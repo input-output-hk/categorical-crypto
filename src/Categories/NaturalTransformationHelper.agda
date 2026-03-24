@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
-module CategoricalCrypto.NaturalTransformationHelper where
+module Categories.NaturalTransformationHelper where
 
 open import Level
   

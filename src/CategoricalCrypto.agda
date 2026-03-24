@@ -11,11 +11,14 @@ module CategoricalCrypto where
 
 -- Improve syntax generally
 
+open import Categories.MonoidalCoherence
+
 open import CategoricalCrypto.Channel.Category public
 open import CategoricalCrypto.Channel.Core public
 open import CategoricalCrypto.Channel.Selection public
-open import CategoricalCrypto.Examples 
 open import CategoricalCrypto.Machine.Constraints public
 open import CategoricalCrypto.Machine.Core public
-open import CategoricalCrypto.MonoidalCoherence
 open import CategoricalCrypto.SFunM public 
+open import CategoricalCrypto.Examples.Basic
+open import CategoricalCrypto.Examples.Commitment
+open import CategoricalCrypto.Examples.Signatures

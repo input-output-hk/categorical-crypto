@@ -1,6 +1,6 @@
 {-# OPTIONS --safe #-}
 
-module CategoricalCrypto.MonoidalCoherence where
+module Categories.MonoidalCoherence where
 
 open import Level renaming (zero to ℓ0)
 
@@ -13,10 +13,10 @@ open import Categories.Functor.Bifunctor
 open import Categories.Morphism
 open import Categories.NaturalTransformation.NaturalIsomorphism.Properties
 
-open import CategoricalCrypto.Discrete
-open import CategoricalCrypto.FreeMonoidal
-open import CategoricalCrypto.NaturalTransformationHelper
-open import CategoricalCrypto.Properties
+open import Categories.Discrete
+open import Categories.FreeMonoidal
+open import Categories.NaturalTransformationHelper
+open import Categories.Properties
 
 open import Data.Empty
 open import Data.Fin using (Fin)

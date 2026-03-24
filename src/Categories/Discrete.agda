@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
-module CategoricalCrypto.Discrete where
+module Categories.Discrete where
 
 open import Level renaming (zero to ℓ0)
 
@@ -9,7 +9,7 @@ open import Categories.Category.Discrete
 open import Categories.Category.Helper
 open import Categories.Functor
 
-open import CategoricalCrypto.NaturalTransformationHelper
+open import Categories.NaturalTransformationHelper
 
 open import Data.Unit
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans)

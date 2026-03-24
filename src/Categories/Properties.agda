@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
-module CategoricalCrypto.Properties where
+module Categories.Properties where
 
 open import Categories.Category
 open import Categories.Category.Product

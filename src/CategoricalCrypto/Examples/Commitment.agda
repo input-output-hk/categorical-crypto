@@ -1,6 +1,6 @@
 {-# OPTIONS --safe #-}
 
-module CategoricalCrypto.Commitment where
+module CategoricalCrypto.Examples.Commitment where
 
 open import categorical-crypto.Prelude hiding (id; _∘_; _⊗_; lookup; Dec)
 

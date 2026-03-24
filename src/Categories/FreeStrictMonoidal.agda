@@ -1,6 +1,6 @@
 -- {-# OPTIONS --safe #-}
 
-module CategoricalCrypto.Category.Instance.FreeStrictMonoidal where
+module Categories.FreeStrictMonoidal where
 
 --------------------------------------------------------------------------------
 -- Various free strict monoidal categories. The intended interface to this
@@ -23,7 +23,7 @@ open import Function hiding (id; _∘_)
 open import Relation.Binary hiding (Symmetric)
 open import Relation.Binary.PropositionalEquality as ≡
 
-open import CategoricalCrypto.FreeMonoidal using (Variant; _≤_; FreeMonoidalData; Symm)
+open import Categories.FreeMonoidal using (Variant; _≤_; FreeMonoidalData; Symm)
 
 module FreeMonoidalHelper (v : Variant) (X : Set) where
 

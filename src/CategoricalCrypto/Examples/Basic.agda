@@ -1,6 +1,6 @@
 {-# OPTIONS --safe #-}
 
-module CategoricalCrypto.Examples where
+module CategoricalCrypto.Examples.Basic where
 
 open import categorical-crypto.Prelude hiding (id; _∘_; _⊗_; lookup; Dec)
 import categorical-crypto.Prelude as P

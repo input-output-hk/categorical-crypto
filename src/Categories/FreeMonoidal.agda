@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
-module CategoricalCrypto.FreeMonoidal where
+module Categories.FreeMonoidal where
 
 --------------------------------------------------------------------------------
 -- Various free monoidal categories. The intended interface to this

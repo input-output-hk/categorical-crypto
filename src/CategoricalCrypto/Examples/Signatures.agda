@@ -1,5 +1,5 @@
 {-# OPTIONS --safe #-}
-module CategoricalCrypto.Signatures where
+module CategoricalCrypto.Examples.Signatures where
 
 open import categorical-crypto.Prelude hiding (id; _∘_; _⊗_; lookup; Dec)
 import categorical-crypto.Prelude as P

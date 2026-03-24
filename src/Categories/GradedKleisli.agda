@@ -1,4 +1,4 @@
-module CategoricalCrypto.Abstract where
+module Categories.GradedKleisli where
 
 open import Level renaming (zero to ℓ0)
 
@@ -68,22 +68,6 @@ module _ (C : Category ℓ0 ℓ0 ℓ0) (I : MonoidalCategory ℓ0 ℓ0 ℓ0) (M 
             (ρ⇒ ∘I (₁ (-⊗ I .unit) α)) ∘I α⇐
               ≈⟨ solve (I .U) ⟩
             ρ⇒ ∘I (₁ (-⊗ I .unit) α) ∘I α⇐ ∎)
-
-            -- α ∘I (₁ (ai ⊗-) ρ⇒)
-            --   ≈⟨ refl⟩∘⟨ identityʳ I ⟨
-            -- α ∘I (₁ (ai ⊗-) ρ⇒ ∘I idI)
-            --   ≈⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoʳ (I .associator) ⟨
-            -- α ∘I ((₁ (ai ⊗-) ρ⇒) ∘I α⇒ ∘I α⇐)
-            --   ≈⟨ refl⟩∘⟨ assoc I ⟨
-            -- α ∘I (((₁ (ai ⊗-) ρ⇒) ∘I α⇒) ∘I α⇐)
-            --   ≈⟨ refl⟩∘⟨ coherence₂ (I .monoidal) ⟩∘⟨refl ⟩
-            -- α ∘I (ρ⇒ ∘I α⇐)
-            --   ≈⟨ solve (I .U) ⟩
-            -- (α ∘I ρ⇒) ∘I α⇐
-            --   ≈⟨ unitorʳ-commute-from I ⟩∘⟨refl ⟨
-            -- (ρ⇒ ∘I (₁ (-⊗ I .unit) α)) ∘I α⇐
-            --   ≈⟨ solve (I .U) ⟩
-            -- ρ⇒ ∘I (₁ (-⊗ I .unit) α) ∘I α⇐ ∎)
     ; identityʳ = {!Solver.solveM!}
     ; equiv     = {!!}
     ; ∘-resp-≈  = {!!}
