@@ -3,7 +3,7 @@
 
 module CategoricalCrypto.Machine.Core where
 
-open import categorical-crypto.Prelude hiding (id; _∘_; _⊗_; lookup; Dec; [_])
+open import categorical-crypto.Prelude hiding (id; _∘_)
 import categorical-crypto.Prelude as P
 open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
 open import CategoricalCrypto.Channel.Core
@@ -18,7 +18,7 @@ machine-type : Type → Channel → Type₁
 machine-type S A = let open Channel A in S → inType → Maybe outType → S → Type
 
 _⊗ᵀ_ : Fun₂ Channel
-A ⊗ᵀ B = A ⊗ B ᵀ
+A ⊗ᵀ B = A ⊗₀ B ᵀ
 
 MachineType : Channel → Channel → Type → Type₁
 MachineType A B S = machine-type S (A ⊗ᵀ B)
@@ -38,7 +38,7 @@ module _ {A B : Channel} (let open Channel (A ⊗ᵀ B)) where
 
   StatelessMachine      : (inType → Maybe outType → Type)          → Machine A B
   FunctionMachine       : (inType → Maybe outType)                 → Machine A B
-  TotalFunctionMachine  : A ⊗ B ᵀ [ In ]⇒[ Out ] A ⊗ B ᵀ          → Machine A B
+  TotalFunctionMachine  : A ⊗₀ B ᵀ [ In ]⇒[ Out ] A ⊗₀ B ᵀ          → Machine A B
   TotalFunctionMachine' : A [ In ]⇒[ In ] B → B [ Out ]⇒[ Out ] A  → Machine A B
   
   StatelessMachine      R   = MkMachine {State = ⊤} $ λ _ i o _ → R i o
@@ -54,7 +54,7 @@ id : ∀ {A} → Machine A A
 id = TotalFunctionMachine' ⇒-solver ⇒-solver
 
 -- given transformation on the channels, transform the machine
-modifyStepRel : ∀ {A B C D} → (∀ {m} → C ⊗ D ᵀ [ m ]⇒[ m ] A ⊗ B ᵀ) → Machine A B → Machine C D
+modifyStepRel : ∀ {A B C D} → (∀ {m} → C ⊗₀ D ᵀ [ m ]⇒[ m ] A ⊗₀ B ᵀ) → Machine A B → Machine C D
 modifyStepRel p (MkMachine stepRel) = MkMachine $ \s m m' s' → stepRel s (app {mᵢ = In} p m) (app {mₒ = Out} p <$> m') s'
 
 module Tensor {A B C D} (M₁ : Machine A B) (M₂ : Machine C D) where
@@ -62,40 +62,40 @@ module Tensor {A B C D} (M₁ : Machine A B) (M₂ : Machine C D) where
   open Machine M₂ renaming (State to State₂; stepRel to stepRel₂; machine-channel to machine-channel₂)
 
   State = State₁ × State₂
-  AllCs = machine-channel₁ ⊗ machine-channel₂
+  AllCs = machine-channel₁ ⊗₀ machine-channel₂
 
   data CompRel : machine-type State AllCs where
     Step₁ : ∀ {m m' s s' s₂} → stepRel₁ s m m' s' → CompRel (s , s₂) (ϵ ⊗R ↑ᵢ m) (ϵ ⊗R ↑ₒ_ <$> m') (s' , s₂)
     Step₂ : ∀ {m m' s s' s₁} → stepRel₂ s m m' s' → CompRel (s₁ , s) (L⊗ ϵ ↑ᵢ m) (L⊗ ϵ ↑ₒ_ <$> m') (s₁ , s')
 
-  infixr 9 _⊗'_
-  _⊗'_ : Machine (A ⊗ C) (B ⊗ D)
-  _⊗'_ = modifyStepRel ⇒-solver machine-inter
+  infixr 9 _⊗₁_
+  _⊗₁_ : Machine (A ⊗₀ C) (B ⊗₀ D)
+  _⊗₁_ = modifyStepRel ⇒-solver machine-inter
     where
-      machine-inter : Machine (A ⊗ B ᵀ) ((C ⊗ D ᵀ) ᵀ)
+      machine-inter : Machine (A ⊗₀ B ᵀ) ((C ⊗₀ D ᵀ) ᵀ)
       machine-inter = MkMachine CompRel
    
-open Tensor using (_⊗'_) public
+open Tensor using (_⊗₁_) public
 
-_⊗ˡ_ : ∀ {A B} (C : Channel) → Machine A B → Machine (C ⊗ A) (C ⊗ B)
-C ⊗ˡ M = id ⊗' M
+_⊗ˡ_ : ∀ {A B} (C : Channel) → Machine A B → Machine (C ⊗₀ A) (C ⊗₀ B)
+C ⊗ˡ M = id ⊗₁ M
 
-_⊗ʳ_ : ∀ {A B} → Machine A B → (C : Channel) → Machine (A ⊗ C) (B ⊗ C)
-M ⊗ʳ C = M ⊗' id
+_⊗ʳ_ : ∀ {A B} → Machine A B → (C : Channel) → Machine (A ⊗₀ C) (B ⊗₀ C)
+M ⊗ʳ C = M ⊗₁ id
 
-_∣ˡ : ∀ {A B C} → Machine (A ⊗ B) C → Machine A C
+_∣ˡ : ∀ {A B C} → Machine (A ⊗₀ B) C → Machine A C
 _∣ˡ = modifyStepRel ⇒-solver
 
-_∣ʳ : ∀ {A B C} → Machine (A ⊗ B) C → Machine B C
+_∣ʳ : ∀ {A B C} → Machine (A ⊗₀ B) C → Machine B C
 _∣ʳ = modifyStepRel ⇒-solver
 
-_∣^ˡ : ∀ {A B C} → Machine A (B ⊗ C) → Machine A B
+_∣^ˡ : ∀ {A B C} → Machine A (B ⊗₀ C) → Machine A B
 _∣^ˡ = modifyStepRel ⇒-solver
   
-_∣^ʳ : ∀ {A B C} → Machine A (B ⊗ C) → Machine A C
+_∣^ʳ : ∀ {A B C} → Machine A (B ⊗₀ C) → Machine A C
 _∣^ʳ = modifyStepRel ⇒-solver
 
-liftᴷ : ∀ {A B E} → Machine A B → Machine A (B ⊗ E)
+liftᴷ : ∀ {A B E} → Machine A B → Machine A (B ⊗₀ E)
 liftᴷ {E = E} M = (M ⊗ʳ E) ∣ˡ
 
 -- trace monoidal category?
@@ -103,9 +103,9 @@ liftᴷ {E = E} M = (M ⊗ʳ E) ∣ˡ
 -- Product of the traces ?
 -- The regular composition "eats" messages
 -- Trace: input-output behavior of the machines, list of messages
-module _ {A B C} (M : Machine (A ⊗ C) (B ⊗ C)) (let open Machine M) where
+module _ {A B C} (M : Machine (A ⊗₀ C) (B ⊗₀ C)) (let open Machine M) where
 
-  data TraceRel : machine-type State ((A ⊗ C) ⊗ᵀ (B ⊗ C)) where
+  data TraceRel : machine-type State ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C)) where
 
     Trace[_] : ∀ {s inM outM s'} → stepRel s inM outM s' → TraceRel s inM outM s'
 
@@ -123,18 +123,18 @@ module _ {A B C} (M : Machine (A ⊗ C) (B ⊗ C)) (let open Machine M) where
 infixr 9 _∘_
 
 _∘_ : ∀ {B C A} → Machine B C → Machine A B → Machine A C
-_∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ⇒-solver (M₂ ⊗' M₁)
+_∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ⇒-solver (M₂ ⊗₁ M₁)
 
-⊗-assoc : ∀ {A B C} → Machine ((A ⊗ B) ⊗ C) (A ⊗ (B ⊗ C))
+⊗-assoc : ∀ {A B C} → Machine ((A ⊗₀ B) ⊗₀ C) (A ⊗₀ (B ⊗₀ C))
 ⊗-assoc = TotalFunctionMachine' ⇒-solver ⇒-solver
   
-⊗-assoc⃖ : ∀ {A B C} → Machine (A ⊗ (B ⊗ C)) ((A ⊗ B) ⊗ C)
+⊗-assoc⃖ : ∀ {A B C} → Machine (A ⊗₀ (B ⊗₀ C)) ((A ⊗₀ B) ⊗₀ C)
 ⊗-assoc⃖ = TotalFunctionMachine' ⇒-solver ⇒-solver
 
-⊗-symₘ : ∀ {A B} → Machine (A ⊗ B) (B ⊗ A)
+⊗-symₘ : ∀ {A B} → Machine (A ⊗₀ B) (B ⊗₀ A)
 ⊗-symₘ = TotalFunctionMachine' ⇒-solver ⇒-solver
 
-idᴷ : ∀ {A} → Machine A (A ⊗ I)
+idᴷ : ∀ {A} → Machine A (A ⊗₀ I)
 idᴷ = liftᴷ id
 
 transpose : ∀ {A B} → Machine A B → Machine (B ᵀ) (A ᵀ)
@@ -148,21 +148,21 @@ transpose = modifyStepRel ⇒-solver
 
 ⨂₁ : ∀ {n} → {A B : Fin n → Channel} → ((k : Fin n) → Machine (A k) (B k)) → Machine (⨂ A) (⨂ B)
 ⨂₁ {zero} M = id
-⨂₁ {suc n} M = M fzero ⊗' ⨂₁ (M P.∘ fsuc)
+⨂₁ {suc n} M = M fzero ⊗₁ ⨂₁ (M P.∘ fsuc)
 
 
 infixr 9 _∘ᴷ_
-_∘ᴷ_ : ∀ {A B C E₁ E₂} → Machine B (C ⊗ E₂) → Machine A (B ⊗ E₁) → Machine A (C ⊗ (E₁ ⊗ E₂))
+_∘ᴷ_ : ∀ {A B C E₁ E₂} → Machine B (C ⊗₀ E₂) → Machine A (B ⊗₀ E₁) → Machine A (C ⊗₀ (E₁ ⊗₀ E₂))
 _∘ᴷ_ {E₁ = E₁} M₂ M₁ = TotalFunctionMachine' ⇒-solver ⇒-solver ∘ (M₂ ⊗ʳ E₁ ∘ M₁)
 
-_⊗ᴷ_ : ∀ {A₁ B₁ E₁ A₂ B₂ E₂} → Machine A₁ (B₁ ⊗ E₁) → Machine A₂ (B₂ ⊗ E₂) → Machine (A₁ ⊗ A₂) ((B₁ ⊗ B₂) ⊗ (E₁ ⊗ E₂))
-M₁ ⊗ᴷ M₂ = TotalFunctionMachine' ⇒-solver ⇒-solver ∘ M₁ ⊗' M₂
+_⊗ᴷ_ : ∀ {A₁ B₁ E₁ A₂ B₂ E₂} → Machine A₁ (B₁ ⊗₀ E₁) → Machine A₂ (B₂ ⊗₀ E₂) → Machine (A₁ ⊗₀ A₂) ((B₁ ⊗₀ B₂) ⊗₀ (E₁ ⊗₀ E₂))
+M₁ ⊗ᴷ M₂ = TotalFunctionMachine' ⇒-solver ⇒-solver ∘ M₁ ⊗₁ M₂
 
-⨂ᴷ : ∀ {n} → {A B E : Fin n → Channel} → ((k : Fin n) → Machine (A k) (B k ⊗ E k)) → Machine (⨂ A) (⨂ B ⊗ ⨂ E)
+⨂ᴷ : ∀ {n} → {A B E : Fin n → Channel} → ((k : Fin n) → Machine (A k) (B k ⊗₀ E k)) → Machine (⨂ A) (⨂ B ⊗₀ ⨂ E)
 ⨂ᴷ {zero} M = idᴷ
 ⨂ᴷ {suc n} M = M fzero ⊗ᴷ ⨂ᴷ (M P.∘ fsuc)
 
-⨂ᴷ-sub-state : ∀ {n} {A B E : Fin n → Channel} {f : (k : Fin n) → Machine (A k) (B k ⊗ E k)} → (k : Fin n) → Machine.State (⨂ᴷ f) → Machine.State (f k)
+⨂ᴷ-sub-state : ∀ {n} {A B E : Fin n → Channel} {f : (k : Fin n) → Machine (A k) (B k ⊗₀ E k)} → (k : Fin n) → Machine.State (⨂ᴷ f) → Machine.State (f k)
 ⨂ᴷ-sub-state fzero ((s , _) , _) = s
 ⨂ᴷ-sub-state (fsuc k) ((_ , s) , _) = ⨂ᴷ-sub-state k s
 
@@ -190,7 +190,7 @@ module _
   (m   : Machine A B) where
   
   open Machine m using (State) renaming (stepRel to _-⟦_/_⟧ᵐ⇀_)
-  open Channel (A ⊗ B ᵀ)
+  open Channel (A ⊗₀ B ᵀ)
 
   data Trace : State → State → Type where
     []         : ∀ {s} → Trace s s
@@ -216,8 +216,8 @@ Invariant-trans record { A≡C = refl ; B≡D = refl ; M₁≡M₂ = H.refl } P 
 
 record OAP (A E₁ B E₂ : Channel) : Type₁ where
   field Adv        : Channel
-        Protocol   : Machine A (B ⊗ Adv)
-        Adversary  : Machine (Adv ⊗ E₁) E₂
+        Protocol   : Machine A (B ⊗₀ Adv)
+        Adversary  : Machine (Adv ⊗₀ E₁) E₂
 
 --------------------------------------------------------------------------------
 -- Environment model
@@ -241,9 +241,9 @@ map-ℰ M E = E ∘ M
 _≈ℰ_ : ∀ {A B} → Machine A B → Machine A B → Type₁
 _≈ℰ_ {B = B} M M' = (E : ℰ B) → map-ℰ M E ≡ map-ℰ M' E
 
-_≤UC_ : ∀ {A B E E''} → Machine A (B ⊗ E) → Machine A (B ⊗ E'') → Type₁
+_≤UC_ : ∀ {A B E E''} → Machine A (B ⊗₀ E) → Machine A (B ⊗₀ E'') → Type₁
 _≤UC_ {B = B} {E} R I = ∀ E' (A : Machine E E') → ∃[ S ] ((B ⊗ˡ A) ∘ R) ≈ℰ ((B ⊗ˡ S) ∘ I)
 
 -- equivalent to _≤UC_ by "completeness of the dummy adversary"
-_≤'UC_ : ∀ {A B E} → Machine A (B ⊗ E) → Machine A (B ⊗ E) → Type₁
+_≤'UC_ : ∀ {A B E} → Machine A (B ⊗₀ E) → Machine A (B ⊗₀ E) → Type₁
 _≤'UC_ {B = B} R I = ∃[ S ] R ≈ℰ (B ⊗ˡ S ∘ I)

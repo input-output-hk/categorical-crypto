@@ -14,10 +14,10 @@ open import Categories.Functor
 open import Categories.Functor.Monoidal
 open import Categories.Functor.Bifunctor
 open import Relation.Binary.PropositionalEquality
-open import categorical-crypto.Prelude hiding (_⊗_ ; Functor ; Bifunctor)
+open import categorical-crypto.Prelude hiding (Functor ; Bifunctor)
 
 opaque
-  unfolding _⊗_
+  unfolding _⊗₀_
   
   channel-category                       : Category (sucˡ zeroˡ) zeroˡ zeroˡ
 
@@ -59,7 +59,7 @@ opaque
 
   ⊗-binary-coproducts = record
     { coproduct = λ {A} {B} → record
-        { A+B = A ⊗ B
+        { A+B = A ⊗₀ B
         ; i₁ = ⊗-right-intro
         ; i₂ = ⊗-left-intro
         ; [_,_] = λ A⇒C B⇒C → ⊗-combine A⇒C B⇒C ⇒ₜ ⊗-fusion

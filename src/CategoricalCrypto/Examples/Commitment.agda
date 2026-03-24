@@ -2,7 +2,7 @@
 
 module CategoricalCrypto.Examples.Commitment where
 
-open import categorical-crypto.Prelude hiding (id; _∘_; _⊗_; lookup; Dec)
+open import categorical-crypto.Prelude
 
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
@@ -43,7 +43,7 @@ module COM where
     b : Bool
     s : Maybe Bool
 
-  data WithState_receive_return_newState_ : MachineType I ((Com ⊗ Ver) ⊗ Adv) (Maybe Bool) where
+  data WithState_receive_return_newState_ : MachineType I ((Com ⊗₀ Ver) ⊗₀ Adv) (Maybe Bool) where
 
     Commit₁ :
       WithState nothing
@@ -71,6 +71,6 @@ module COM where
 
   open Machine
 
-  Functionality : Machine I ((Com ⊗ Ver) ⊗ Adv)
+  Functionality : Machine I ((Com ⊗₀ Ver) ⊗₀ Adv)
   Functionality .State   = Maybe Bool
   Functionality .stepRel = WithState_receive_return_newState_

@@ -2,7 +2,7 @@
 
 module CategoricalCrypto.Examples.Basic where
 
-open import categorical-crypto.Prelude hiding (id; _∘_; _⊗_; lookup; Dec)
+open import categorical-crypto.Prelude hiding (_∘_; Dec)
 import categorical-crypto.Prelude as P
 
 open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
@@ -31,7 +31,7 @@ module TemplateChannel (M : Type) {M' : Type} (f : M → M') where
 
   open Machine
 
-  data WithState_receive_return_newState_ : MachineType I ((A ⊗ B) ⊗ E) (List M) where
+  data WithState_receive_return_newState_ : MachineType I ((A ⊗₀ B) ⊗₀ E) (List M) where
 
     Send : ∀ {m s} → WithState s
                      receive L⊗ ((ϵ ᵗ¹ ⊗R) ⊗R) ᵗ¹ ↑ᵢ m
@@ -43,7 +43,7 @@ module TemplateChannel (M : Type) {M' : Type} (f : M → M') where
                      return just $ L⊗ (L⊗ ϵ ᵗ¹) ᵗ¹ ↑ₒ f m
                      newState s
 
-  Functionality : Machine I ((A ⊗ B) ⊗ E)
+  Functionality : Machine I ((A ⊗₀ B) ⊗₀ E)
   Functionality .State = List M -- queue of messages
   Functionality .stepRel = WithState_receive_return_newState_
   
@@ -100,7 +100,7 @@ module EncryptionShim (PlainText CipherText PubKey PrivKey : Type)
   module S = SecureChannel PlainText msgLength
   module E = Encryption PlainText CipherText PubKey PrivKey genCT getPubKey
 
-  data WithState_receive_return_newState_ : MachineType ((L.A ⊗ L.B) ⊗ L.E) ((S.A ⊗ S.B) ⊗ S.E) (E.Functionality .State) where
+  data WithState_receive_return_newState_ : MachineType ((L.A ⊗₀ L.B) ⊗₀ L.E) ((S.A ⊗₀ S.B) ⊗₀ S.E) (E.Functionality .State) where
   
     EncSend : ∀ {m m' s s'} → E.WithState s
                               receive L⊗ ϵ ↑ᵢ inj₁ (m , pubKey)
@@ -120,7 +120,7 @@ module EncryptionShim (PlainText CipherText PubKey PrivKey : Type)
                               return just $ L⊗ ((L⊗ ϵ ᵗ¹) ⊗R) ᵗ¹ ↑ₒ m'
                               newState s'
 
-  Functionality : Machine ((L.A ⊗ L.B) ⊗ L.E) ((S.A ⊗ S.B) ⊗ S.E)
+  Functionality : Machine ((L.A ⊗₀ L.B) ⊗₀ L.E) ((S.A ⊗₀ S.B) ⊗₀ S.E)
   Functionality .State   = E.Functionality .State
   Functionality .stepRel = WithState_receive_return_newState_
 
@@ -134,7 +134,7 @@ module SecureFromAuthenticated (PlainText CipherText PubKey PrivKey : Type)
   module S  = SecureChannel PlainText msgLength
   module SH = EncryptionShim PlainText CipherText PubKey PrivKey genCT getPubKey pubKey privKey msgLength
 
-  Functionality : Machine I ((S.A ⊗ S.B) ⊗ S.E)
+  Functionality : Machine I ((S.A ⊗₀ S.B) ⊗₀ S.E)
   Functionality = SH.Functionality ∘ L.Functionality
 
   -- F≤Secure : Functionality ≤'UC S.Functionality msgLength

@@ -28,8 +28,8 @@ infix 8 L⊗_
 
 data _[_]⇒[_]ᵍ_ : Channel → Mode → Mode → Channel → Set₁ where
   ϵ : ∀ {m A} → A [ m ]⇒[ m ]ᵍ A
-  _⊗R : ∀ {m m' A B C} → A [ m ]⇒[ m' ]ᵍ B → A [ m ]⇒[ m' ]ᵍ B ⊗ C
-  L⊗_ : ∀ {m m' A B C} → A [ m ]⇒[ m' ]ᵍ B → A [ m ]⇒[ m' ]ᵍ C ⊗ B
+  _⊗R : ∀ {m m' A B C} → A [ m ]⇒[ m' ]ᵍ B → A [ m ]⇒[ m' ]ᵍ B ⊗₀ C
+  L⊗_ : ∀ {m m' A B C} → A [ m ]⇒[ m' ]ᵍ B → A [ m ]⇒[ m' ]ᵍ C ⊗₀ B
   _ᵗ¹ : ∀ {m m' A B} → A [ m ]⇒[ m' ]ᵍ B → A [ m ]⇒[ ¬ₘ m' ]ᵍ B ᵀ
   _ᵗ² : ∀ {m m' A B} → A [ m ]⇒[ ¬ₘ m' ]ᵍ B → A [ m ]⇒[ m' ]ᵍ B ᵀ
 
@@ -98,7 +98,7 @@ instance _ = Functor-M ⦃ Class.Monad.Monad-TC ⦄
       rec ← handle-pattern A m'' m' B
       return $ quote _⇒ₜ_ ∙⟦ quote ⇒-transpose-left-negate-right ∙ ∣ rec ⟧
     -- A ⊗ C [ m ]⇒[ m' ] B
-    ... | quote _⊗_ ∙⟦ A ∣ C ⟧ | _ = do
+    ... | quote _⊗₀_ ∙⟦ A ∣ C ⟧ | _ = do
       rec-left ← handle-pattern A m m' B
       rec-right ← handle-pattern C m m' B
       return $ quote ⊗-merge ∙⟦ rec-left ∣ rec-right ⟧
@@ -125,7 +125,7 @@ instance _ = Functor-M ⦃ Class.Monad.Monad-TC ⦄
       rec ← handle-pattern A m m'' B
       return $ quote _⇒ₜ_ ∙⟦ rec ∣ quote ⇒-negate-left-transpose-right ∙ ⟧
     -- A [ m ]⇒[ m' ] B ⊗ C
-    ... | _ | quote _⊗_ ∙⟦ B ∣ C ⟧ = do
+    ... | _ | quote _⊗₀_ ∙⟦ B ∣ C ⟧ = do
       catch
         (do
           res-left ← handle-pattern A m m' B
@@ -145,7 +145,7 @@ instance _ = Functor-M ⦃ Class.Monad.Monad-TC ⦄
 module _ ⦃ _ : TCOptions ⦄ where
   ⇒-solver-tactic =
     initTacEnv
-      (λ x → record x {reduction = dontReduce (quote _[_]⇒[_]_ ∷ quote Channel ∷ quote _⊗_ ∷ quote _ᵀ ∷ [])})
+      (λ x → record x {reduction = dontReduce (quote _[_]⇒[_]_ ∷ quote Channel ∷ quote _⊗₀_ ∷ quote _ᵀ ∷ [])})
       ⇒-solver-tactic'
   macro
     ⇒-solver = ⇒-solver-tactic
@@ -160,11 +160,11 @@ private
       ; fuel  = ("reduceDec/constrs" , 5) ∷ []
       }
 
-  test₁ : ∀ {A B C m} → (A ⊗ B) ⊗ C [ m ]⇒[ m ] (A ⊗ B ᵀ) ⊗ ((B ⊗ C ᵀ) ᵀ) ⊗ B
+  test₁ : ∀ {A B C m} → (A ⊗₀ B) ⊗₀ C [ m ]⇒[ m ] (A ⊗₀ B ᵀ) ⊗₀ ((B ⊗₀ C ᵀ) ᵀ) ⊗₀ B
   test₁ = ⇒-solver
 
-  test₂ : ∀ {A B m} → (B ᵀ) ⊗ ((A ᵀ) ᵀ) [ m ]⇒[ m ] A ⊗ (B ᵀ)
+  test₂ : ∀ {A B m} → (B ᵀ) ⊗₀ ((A ᵀ) ᵀ) [ m ]⇒[ m ] A ⊗₀ (B ᵀ)
   test₂ = ⇒-solver
 
-  test₃ : ∀ {A B} → A ⊗ B ᵀ [ In ]⇒[ Out ] A ᵀ ⊗ B
+  test₃ : ∀ {A B} → A ⊗₀ B ᵀ [ In ]⇒[ Out ] A ᵀ ⊗₀ B
   test₃ = ⇒-solver

@@ -1,7 +1,7 @@
 {-# OPTIONS --safe #-}
 module CategoricalCrypto.Examples.Signatures where
 
-open import categorical-crypto.Prelude hiding (id; _∘_; _⊗_; lookup; Dec)
+open import categorical-crypto.Prelude
 import categorical-crypto.Prelude as P
 
 open import Data.Fin using (Fin; fromℕ<) renaming (zero to fzero; suc to fsuc)
@@ -47,7 +47,7 @@ module Signatures (VK M S : Set) where
           msgs : List M
           seenIds : List ℕ
 
-  data WithState_receive_return_newState_ : MachineType I ((Sig ⊗ Ver) ⊗ Adv) State where
+  data WithState_receive_return_newState_ : MachineType I ((Sig ⊗₀ Ver) ⊗₀ Adv) State where
 
     Gen₁NI : ∀ {s}
            → State.key s ≡ nothing
@@ -99,13 +99,13 @@ module Signatures (VK M S : Set) where
 
   _-⟦_/_⟧⇀_ = WithState_receive_return_newState_
 
-  Functionality : Machine I ((Sig ⊗ Ver) ⊗ Adv)
+  Functionality : Machine I ((Sig ⊗₀ Ver) ⊗₀ Adv)
   Functionality .Machine.State   = State
   Functionality .Machine.stepRel = WithState_receive_return_newState_
 
   opaque
     unfolding
-      _⊗_
+      _⊗₀_
 
     signTwice : ∀ {s s' m o}
       → s  -⟦ L⊗ ((ϵ ⊗R) ⊗R) ᵗ² ↑ₒ Sign m / o  ⟧⇀ s' → ∃[ o' ] ∃[ s'' ]

@@ -2,7 +2,7 @@
 
 module CategoricalCrypto.Channel.Core where
 
-open import categorical-crypto.Prelude hiding (_⊗_ ; [_])
+open import categorical-crypto.Prelude hiding ([_])
 open import Data.Sum.Base using (swap ; assocʳ ; assocˡ)
 open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
 
@@ -120,13 +120,13 @@ infixr 10 _⇒ₜ_
 -- Tensorial product on Channels --
 -----------------------------------
 
-infixr 9 _⊗_
+infixr 9 _⊗₀_
 
 opaque 
-  _⊗_ : Fun₂ Channel
-  A ⊗ B = (inType A ⊎ inType B) ⇿ (outType A ⊎ outType B)
+  _⊗₀_ : Fun₂ Channel
+  A ⊗₀ B = (inType A ⊎ inType B) ⇿ (outType A ⊎ outType B)
 
-  destruct-⊗ : ∀ {A B m} → modeType m (A ⊗ B) → modeType m A ⊎ modeType m B
+  destruct-⊗ : ∀ {A B m} → modeType m (A ⊗₀ B) → modeType m A ⊎ modeType m B
   destruct-⊗ {m = Out} = id
   destruct-⊗ {m = In} = id
 
@@ -134,57 +134,57 @@ opaque
 -- Forwarding tensorial products --
 -----------------------------------
 
-  ⊗-sym : ∀ {m A B} → A ⊗ B [ m ]⇒[ m ] B ⊗ A
+  ⊗-sym : ∀ {m A B} → A ⊗₀ B [ m ]⇒[ m ] B ⊗₀ A
   ⊗-sym {Out} = record { app = swap }
   ⊗-sym {In} = record { app = swap }
 
-  ⊗-right-assoc : ∀ {m A B C} → (A ⊗ B) ⊗ C [ m ]⇒[ m ] A ⊗ B ⊗ C
+  ⊗-right-assoc : ∀ {m A B C} → (A ⊗₀ B) ⊗₀ C [ m ]⇒[ m ] A ⊗₀ B ⊗₀ C
   ⊗-right-assoc {Out} = record { app = assocʳ }
   ⊗-right-assoc {In} = record { app = assocʳ }
 
-  ⊗-left-assoc : ∀ {m A B C} → A ⊗ B ⊗ C [ m ]⇒[ m ] (A ⊗ B) ⊗ C
+  ⊗-left-assoc : ∀ {m A B C} → A ⊗₀ B ⊗₀ C [ m ]⇒[ m ] (A ⊗₀ B) ⊗₀ C
   ⊗-left-assoc {Out} = record { app = assocˡ }
   ⊗-left-assoc {In} = record { app = assocˡ }
 
-  ⊗-right-intro : ∀ {m A B} → A [ m ]⇒[ m ] A ⊗ B
+  ⊗-right-intro : ∀ {m A B} → A [ m ]⇒[ m ] A ⊗₀ B
   ⊗-right-intro {Out} = record { app = inj₁ }
   ⊗-right-intro {In} = record { app = inj₁ }
 
-  ⊗-ᵀ-distrib : ∀ {m A B} → (A ⊗ B) ᵀ [ m ]⇒[ m ] A ᵀ ⊗ B ᵀ
+  ⊗-ᵀ-distrib : ∀ {m A B} → (A ⊗₀ B) ᵀ [ m ]⇒[ m ] A ᵀ ⊗₀ B ᵀ
   ⊗-ᵀ-distrib {Out} = record { app = id }
   ⊗-ᵀ-distrib {In} = record { app = id }
 
-  ⊗-ᵀ-factor : ∀ {m A B} → A ᵀ ⊗ B ᵀ [ m ]⇒[ m ] (A ⊗ B) ᵀ
+  ⊗-ᵀ-factor : ∀ {m A B} → A ᵀ ⊗₀ B ᵀ [ m ]⇒[ m ] (A ⊗₀ B) ᵀ
   ⊗-ᵀ-factor {Out} = record { app = id }
   ⊗-ᵀ-factor {In} = record { app = id }
 
-  ⊗-right-neutral : ∀ {m A} → A ⊗ I [ m ]⇒[ m ] A
+  ⊗-right-neutral : ∀ {m A} → A ⊗₀ I [ m ]⇒[ m ] A
   ⊗-right-neutral {Out} = record { app = λ {(inj₁ x) → x} }
   ⊗-right-neutral {In} = record { app = λ {(inj₁ x) → x} }
 
-  ⊗-fusion : ∀ {m A} → A ⊗ A [ m ]⇒[ m ] A
+  ⊗-fusion : ∀ {m A} → A ⊗₀ A [ m ]⇒[ m ] A
   ⊗-fusion {Out} = record { app = [ id , id ] }
   ⊗-fusion {In} = record { app = [ id , id ] }
 
-  ⊗-combine : ∀ {m m₁ A B C D} → A [ m ]⇒[ m₁ ] B → C [ m ]⇒[ m₁ ] D → A ⊗ C [ m ]⇒[ m₁ ] B ⊗ D
+  ⊗-combine : ∀ {m m₁ A B C D} → A [ m ]⇒[ m₁ ] B → C [ m ]⇒[ m₁ ] D → A ⊗₀ C [ m ]⇒[ m₁ ] B ⊗₀ D
   ⊗-combine {Out} {Out} p q = record { app = λ { (inj₁ x) → inj₁ (p .app x) ; (inj₂ y) → inj₂ (q .app y)} }
   ⊗-combine {Out} {In} p q = record { app = λ { (inj₁ x) → inj₁ (p .app x) ; (inj₂ y) → inj₂ (q .app y)} }
   ⊗-combine {In} {Out} p q = record { app = λ { (inj₁ x) → inj₁ (p .app x) ; (inj₂ y) → inj₂ (q .app y)} }
   ⊗-combine {In} {In} p q = record { app = λ { (inj₁ x) → inj₁ (p .app x) ; (inj₂ y) → inj₂ (q .app y)} }
 
-⊗-left-intro : ∀ {m A B} → B [ m ]⇒[ m ] A ⊗ B
+⊗-left-intro : ∀ {m A B} → B [ m ]⇒[ m ] A ⊗₀ B
 ⊗-left-intro = ⊗-right-intro ⇒ₜ ⊗-sym
 
-⊗-left-neutral : ∀ {m A} → I ⊗ A [ m ]⇒[ m ] A
+⊗-left-neutral : ∀ {m A} → I ⊗₀ A [ m ]⇒[ m ] A
 ⊗-left-neutral = ⊗-sym ⇒ₜ ⊗-right-neutral
 
-⊗-right-double-intro : ∀ {m A B C} → A [ m ]⇒[ m ] B → A ⊗ C [ m ]⇒[ m ] B ⊗ C
+⊗-right-double-intro : ∀ {m A B C} → A [ m ]⇒[ m ] B → A ⊗₀ C [ m ]⇒[ m ] B ⊗₀ C
 ⊗-right-double-intro p = ⊗-combine p ⇒-refl
 
-⊗-left-double-intro : ∀ {m A B C} → B [ m ]⇒[ m ] C → A ⊗ B [ m ]⇒[ m ] A ⊗ C
+⊗-left-double-intro : ∀ {m A B C} → B [ m ]⇒[ m ] C → A ⊗₀ B [ m ]⇒[ m ] A ⊗₀ C
 ⊗-left-double-intro p = ⊗-sym ⇒ₜ ⊗-right-double-intro p ⇒ₜ ⊗-sym
 
-⊗-merge : ∀ {m m₁ A B C} → A [ m ]⇒[ m₁ ] C → B [ m ]⇒[ m₁ ] C → A ⊗ B [ m ]⇒[ m₁ ] C
+⊗-merge : ∀ {m m₁ A B C} → A [ m ]⇒[ m₁ ] C → B [ m ]⇒[ m₁ ] C → A ⊗₀ B [ m ]⇒[ m₁ ] C
 ⊗-merge p q = ⊗-combine p q ⇒ₜ ⊗-fusion
 
 --------------------------------
@@ -193,14 +193,14 @@ opaque
 
 ⨂_ : ∀ {n} → (Fin n → Channel) → Channel
 ⨂_ {zero} _ = I
-⨂_ {suc n} f = f fzero ⊗ ⨂ (f ∘ fsuc)
+⨂_ {suc n} f = f fzero ⊗₀ ⨂ (f ∘ fsuc)
 
 _⨂ⁿ_ : ℕ → Channel → Channel
 n ⨂ⁿ C = ⨂_ {n} (const C)
 
 ⨂≡ : ∀ {n} → {f g : Fin n → Channel} → (∀ k → f k ≡ g k) → ⨂ f ≡ ⨂ g
 ⨂≡ {zero} _ = refl
-⨂≡ {suc _} p = cong₂ _⊗_ (p fzero) (⨂≡ (p ∘ fsuc))
+⨂≡ {suc _} p = cong₂ _⊗₀_ (p fzero) (⨂≡ (p ∘ fsuc))
 
 ⨂⇒ : ∀ {n m} {f : Fin n → Channel} k → f k [ m ]⇒[ m ] ⨂ f
 ⨂⇒ fzero = ⊗-right-intro
