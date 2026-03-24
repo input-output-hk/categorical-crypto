@@ -1,0 +1,8 @@
+name: categorical-crypto
+depend:
+  standard-library
+  standard-library-classes
+  standard-library-meta
+  agda-categories
+include:
+  src
