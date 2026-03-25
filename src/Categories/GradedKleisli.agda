@@ -1,3 +1,5 @@
+{-# OPTIONS --allow-unsolved-metas #-}
+
 module Categories.GradedKleisli where
 
 open import Level renaming (zero to ℓ0)
@@ -16,7 +18,7 @@ open import Data.Fin
 open import Data.Product
 open import Data.Vec using (_∷_; [])
 
-open import CategoricalCrypto.MonoidalCoherence
+open import Categories.MonoidalCoherence
 
 record UC-model : Set₁ where
   field C : Category ℓ0 ℓ0 ℓ0
