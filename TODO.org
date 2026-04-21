@@ -38,40 +38,37 @@ meantime.
    an inference failure where Agda spuriously reported
    ~G₂.nV != G₁.nV~ while trying to unify the implicit indices.
 
-** TODO [#B] ~hCompose-resp-≅ᴴ~ — full theorem
+** DONE [#B] ~hCompose-resp-≅ᴴ~ — full theorem
    :PROPERTIES:
    :file:     src/Categories/APROP/Hypergraph/Congruence.agda
-   :line:     387
    :difficulty: hard
    :END:
 
-   Vertex/edge bijections mirror ~hTensor-resp-≅ᴴ~; the blocker is
-   the codomain case, which uses the internal ~remap~ of ~hCompose~
-   (defined inside a ~where~ clause, hence not externally nameable).
-   Concretely, we need the commutation lemma
+   Discharged.  ~Congruence.agda~ is now ~--safe~.
 
-   #+begin_src agda
-   remap-comm : ∀ v → φ-C (remap₁ v) ≡ remap₂ (IK.φ v)
-   #+end_src
+   Executed plan:
 
-   which in turn requires
+   1. Refactored ~FromAPROP~ to expose a top-level
+      ~hCompose-impl~ module (parallel to ~hTensor-impl~) holding
+      ~remap'~, ~remap~, ~vlab-c~, ~ein-c~, ~eout-c~, ~elab-c~, and
+      their reduction lemmas.  ~hCompose~ is now a thin wrapper that
+      reexports via ~open hCompose-impl G K~.
 
-   1. Refactor ~FromAPROP.hCompose~ so that ~remap~ and its
-      auxiliary ~remap'~ are *top-level* definitions of a companion
-      module.  Re-export from ~hCompose~ so call sites are
-      unaffected.
+   2. Proved ~remap'-comm~ by induction on ~(K.dom, G.cod)~ with a
+      four-way ~with v Fin.≟ k | IK.φ v Fin.≟ IK.φ k~ split.  The
+      impossible yes/no and no/yes cases are discharged via
+      injectivity of ~IK.φ~, which is itself derivable from
+      ~IK.φ-left~ by the one-line
+      ~trans (sym (φ-left v₁)) (trans (cong φ⁻¹ eq) (φ-left v₂))~.
 
-   2. Prove ~remap'-comm~ by induction on the two list parameters
-      ~(K.dom, G.cod)~, using injectivity of ~IK.φ~ (derivable from
-      ~IK.φ-left~) to port the decidable-equality decision across.
+   3. Plumbed ~remap-comm~ through ~cod-C~, the K-branches of
+      ~atom-ein-C~, ~atom-eout-C~, and ~ψ-elab-C~ via
+      ~map-via-remap~ (the hCompose analog of ~map-via-raise~).
 
-   3. Plumb ~remap-comm~ into the hTensor-style proofs of ~cod-C~,
-      ~ψ-ein-C~ (K-branch), ~ψ-eout-C~ (K-branch), ~atom-ein-C~,
-      ~atom-eout-C~.
-
-   4. Finish with the analogous ~ψ-elab-C~ using ~subst₂-trans~.
-
-   Estimated ~150–200 lines.
+   4. Finished ~ψ-elab-C~ with the same six-step ~subst₂-trans~
+      chain used for ~ψ-elab-T~, using the reduced forms
+      ~C.elab (inject+ K.nE (IG.ψ eG))~ and
+      ~C.elab (raise G.nE (IK.ψ eK))~ for the ~x~ parameter.
 
 ** BLOCKED [#C] ~soundness-axiom~ — 18 atomic ≈Term axioms
    :PROPERTIES:
@@ -166,10 +163,8 @@ Categories.APROP                              YES
 Categories.APROP.Hypergraph.Core              YES
 Categories.APROP.Hypergraph.FromAPROP         YES
 Categories.APROP.Hypergraph.Iso               YES
-Categories.APROP.Hypergraph.Congruence        NO  (ψ-elab-T, hCompose-resp-≅ᴴ)
+Categories.APROP.Hypergraph.Congruence        YES
 Categories.APROP.Hypergraph.Soundness         NO  (soundness-axiom)
 #+end_src
 
-Discharging the postulates in Congruence promotes Congruence to
-~--safe~.  Soundness requires Option A or B above before it can
-be promoted.
+Soundness requires Option A or B above before it can be promoted.

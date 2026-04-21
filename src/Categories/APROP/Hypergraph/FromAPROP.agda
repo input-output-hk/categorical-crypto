@@ -351,6 +351,153 @@ hSwap A B = record
 -- were in `K.dom` become unreachable (their references are remapped
 -- to the corresponding `G.cod` positions). A canonicalisation pass
 -- in Phase 3 can prune them.
+--
+-- The helpers are lifted to a top-level module (parallel to
+-- `hTensor-impl`) so `Congruence` can name `remap`, `remap-comm`,
+-- `elab-c-inj{₁,₂}`, etc. directly.
+
+module hCompose-impl
+  {As Bs Cs : List X}
+  (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs) where
+
+  private
+    module G = Hypergraph G
+    module K = Hypergraph K
+
+  injL : Fin G.nV → Fin (G.nV + K.nV)
+  injL i = inject+ K.nV i
+
+  injR : Fin K.nV → Fin (G.nV + K.nV)
+  injR j = raise G.nV j
+
+  vlab-c : Fin (G.nV + K.nV) → X
+  vlab-c i = [ G.vlab , K.vlab ]′ (splitAt G.nV i)
+
+  vlab-injL : ∀ i → vlab-c (injL i) ≡ G.vlab i
+  vlab-injL i = cong [ G.vlab , K.vlab ]′ (splitAt-inject+ G.nV K.nV i)
+
+  vlab-injR : ∀ j → vlab-c (injR j) ≡ K.vlab j
+  vlab-injR j = cong [ G.vlab , K.vlab ]′ (splitAt-raise G.nV K.nV j)
+
+  -- Positional remap of K-vertices: K.dom[i] ↦ injL G.cod[i].
+  remap' : List (Fin K.nV) → List (Fin G.nV) → Fin K.nV → Fin (G.nV + K.nV)
+  remap' []        _          v = injR v
+  remap' (_ ∷ _)   []         v = injR v
+  remap' (k ∷ ks)  (g ∷ gs)   v with v Fin.≟ k
+  ... | yes _ = injL g
+  ... | no  _ = remap' ks gs v
+
+  remap : Fin K.nV → Fin (G.nV + K.nV)
+  remap = remap' K.dom G.cod
+
+  ∷-headEq : ∀ {A : Set} {a b : A} {as bs : List A} → a ∷ as ≡ b ∷ bs → a ≡ b
+  ∷-headEq refl = refl
+
+  ∷-tailEq : ∀ {A : Set} {a b : A} {as bs : List A} → a ∷ as ≡ b ∷ bs → as ≡ bs
+  ∷-tailEq refl = refl
+
+  -- Core label-preservation lemma for the remap, given the pointwise
+  -- boundary agreement derivable from G.cod-ok and K.dom-ok.
+  remap'-vlab : (ks : List (Fin K.nV)) (gs : List (Fin G.nV))
+              → map K.vlab ks ≡ map G.vlab gs
+              → ∀ v → vlab-c (remap' ks gs v) ≡ K.vlab v
+  remap'-vlab []        _          _  v = vlab-injR v
+  remap'-vlab (_ ∷ _)   []         _  v = vlab-injR v
+  remap'-vlab (k ∷ ks) (g ∷ gs)    eq v with v Fin.≟ k
+  ... | yes refl = trans (vlab-injL g) (sym (∷-headEq eq))
+  ... | no  _    = remap'-vlab ks gs (∷-tailEq eq) v
+
+  -- `map K.vlab K.dom ≡ map G.vlab G.cod`, deduced from the boundary
+  -- annotations (both equal `Bs`).
+  bdy-eq : map K.vlab K.dom ≡ map G.vlab G.cod
+  bdy-eq = trans K.dom-ok (sym G.cod-ok)
+
+  remap-vlab : ∀ v → vlab-c (remap v) ≡ K.vlab v
+  remap-vlab = remap'-vlab K.dom G.cod bdy-eq
+
+  ein-c : Fin (G.nE + K.nE) → List (Fin (G.nV + K.nV))
+  ein-c e = [ (λ eG → map injL (G.ein eG))
+            , (λ eK → map remap (K.ein eK))
+            ]′ (splitAt G.nE e)
+
+  eout-c : Fin (G.nE + K.nE) → List (Fin (G.nV + K.nV))
+  eout-c e = [ (λ eG → map injL (G.eout eG))
+             , (λ eK → map remap (K.eout eK))
+             ]′ (splitAt G.nE e)
+
+  map-via-remap : (xs : List (Fin K.nV))
+                → map K.vlab xs ≡ map vlab-c (map remap xs)
+  map-via-remap xs = trans (sym (map-cong remap-vlab xs)) (map-∘ xs)
+
+  elab-c : (e : Fin (G.nE + K.nE))
+         → FlatGen (map vlab-c (ein-c e)) (map vlab-c (eout-c e))
+  elab-c e with splitAt G.nE e
+  ... | inj₁ eG = subst₂ FlatGen
+                    (map-via-inj vlab-injL (G.ein eG))
+                    (map-via-inj vlab-injL (G.eout eG))
+                    (G.elab eG)
+  ... | inj₂ eK = subst₂ FlatGen
+                    (map-via-remap (K.ein eK))
+                    (map-via-remap (K.eout eK))
+                    (K.elab eK)
+
+  -- Reduction lemmas: ein-c / eout-c in each branch of the internal
+  -- `with` reduce to the injection/remap image of the component's
+  -- `ein`/`eout`. These unlock the outer `with` in `elab-c` for
+  -- external callers (Congruence).
+
+  ein-c-inj₁-red : ∀ (eG : Fin G.nE)
+                 → ein-c (inject+ K.nE eG) ≡ map injL (G.ein eG)
+  ein-c-inj₁-red eG with splitAt G.nE (inject+ K.nE eG)
+                         | splitAt-inject+ G.nE K.nE eG
+  ... | .(inj₁ eG)      | refl = refl
+
+  eout-c-inj₁-red : ∀ (eG : Fin G.nE)
+                  → eout-c (inject+ K.nE eG) ≡ map injL (G.eout eG)
+  eout-c-inj₁-red eG with splitAt G.nE (inject+ K.nE eG)
+                          | splitAt-inject+ G.nE K.nE eG
+  ... | .(inj₁ eG)       | refl = refl
+
+  ein-c-inj₂-red : ∀ (eK : Fin K.nE)
+                 → ein-c (raise G.nE eK) ≡ map remap (K.ein eK)
+  ein-c-inj₂-red eK with splitAt G.nE (raise G.nE eK)
+                         | splitAt-raise G.nE K.nE eK
+  ... | .(inj₂ eK)      | refl = refl
+
+  eout-c-inj₂-red : ∀ (eK : Fin K.nE)
+                  → eout-c (raise G.nE eK) ≡ map remap (K.eout eK)
+  eout-c-inj₂-red eK with splitAt G.nE (raise G.nE eK)
+                          | splitAt-raise G.nE K.nE eK
+  ... | .(inj₂ eK)       | refl = refl
+
+  -- Reduction lemmas for `elab-c`. Analogous to `hTensor-impl`'s
+  -- `elab-c-inj{₁,₂}`.
+
+  elab-c-inj₁ : ∀ (eG : Fin G.nE)
+              → subst₂ FlatGen
+                  (cong (map vlab-c) (ein-c-inj₁-red eG))
+                  (cong (map vlab-c) (eout-c-inj₁-red eG))
+                  (elab-c (inject+ K.nE eG))
+              ≡ subst₂ FlatGen
+                  (map-via-inj vlab-injL (G.ein eG))
+                  (map-via-inj vlab-injL (G.eout eG))
+                  (G.elab eG)
+  elab-c-inj₁ eG with splitAt G.nE (inject+ K.nE eG)
+                      | splitAt-inject+ G.nE K.nE eG
+  ... | .(inj₁ eG)   | refl = refl
+
+  elab-c-inj₂ : ∀ (eK : Fin K.nE)
+              → subst₂ FlatGen
+                  (cong (map vlab-c) (ein-c-inj₂-red eK))
+                  (cong (map vlab-c) (eout-c-inj₂-red eK))
+                  (elab-c (raise G.nE eK))
+              ≡ subst₂ FlatGen
+                  (map-via-remap (K.ein eK))
+                  (map-via-remap (K.eout eK))
+                  (K.elab eK)
+  elab-c-inj₂ eK with splitAt G.nE (raise G.nE eK)
+                      | splitAt-raise G.nE K.nE eK
+  ... | .(inj₂ eK)   | refl = refl
 
 hCompose : ∀ {As Bs Cs} → Hypergraph FlatGen As Bs → Hypergraph FlatGen Bs Cs
          → Hypergraph FlatGen As Cs
@@ -369,83 +516,7 @@ hCompose {As} {Bs} {Cs} G K = record
   where
     module G = Hypergraph G
     module K = Hypergraph K
-
-    injL : Fin G.nV → Fin (G.nV + K.nV)
-    injL i = inject+ K.nV i
-
-    injR : Fin K.nV → Fin (G.nV + K.nV)
-    injR j = raise G.nV j
-
-    vlab-c : Fin (G.nV + K.nV) → X
-    vlab-c i = [ G.vlab , K.vlab ]′ (splitAt G.nV i)
-
-    vlab-injL : ∀ i → vlab-c (injL i) ≡ G.vlab i
-    vlab-injL i = cong [ G.vlab , K.vlab ]′ (splitAt-inject+ G.nV K.nV i)
-
-    vlab-injR : ∀ j → vlab-c (injR j) ≡ K.vlab j
-    vlab-injR j = cong [ G.vlab , K.vlab ]′ (splitAt-raise G.nV K.nV j)
-
-    -- Positional remap of K-vertices: K.dom[i] ↦ injL G.cod[i].
-    remap' : List (Fin K.nV) → List (Fin G.nV) → Fin K.nV → Fin (G.nV + K.nV)
-    remap' []        _          v = injR v
-    remap' (_ ∷ _)   []         v = injR v
-    remap' (k ∷ ks)  (g ∷ gs)   v with v Fin.≟ k
-    ... | yes _ = injL g
-    ... | no  _ = remap' ks gs v
-
-    remap : Fin K.nV → Fin (G.nV + K.nV)
-    remap = remap' K.dom G.cod
-
-    ∷-headEq : ∀ {A : Set} {a b : A} {as bs : List A} → a ∷ as ≡ b ∷ bs → a ≡ b
-    ∷-headEq refl = refl
-
-    ∷-tailEq : ∀ {A : Set} {a b : A} {as bs : List A} → a ∷ as ≡ b ∷ bs → as ≡ bs
-    ∷-tailEq refl = refl
-
-    -- Core label-preservation lemma for the remap, given the pointwise
-    -- boundary agreement derivable from G.cod-ok and K.dom-ok.
-    remap'-vlab : (ks : List (Fin K.nV)) (gs : List (Fin G.nV))
-                → map K.vlab ks ≡ map G.vlab gs
-                → ∀ v → vlab-c (remap' ks gs v) ≡ K.vlab v
-    remap'-vlab []        _          _  v = vlab-injR v
-    remap'-vlab (_ ∷ _)   []         _  v = vlab-injR v
-    remap'-vlab (k ∷ ks) (g ∷ gs)    eq v with v Fin.≟ k
-    ... | yes refl = trans (vlab-injL g) (sym (∷-headEq eq))
-    ... | no  _    = remap'-vlab ks gs (∷-tailEq eq) v
-
-    -- `map K.vlab K.dom ≡ map G.vlab G.cod`, deduced from the boundary
-    -- annotations (both equal `Bs`).
-    bdy-eq : map K.vlab K.dom ≡ map G.vlab G.cod
-    bdy-eq = trans K.dom-ok (sym G.cod-ok)
-
-    remap-vlab : ∀ v → vlab-c (remap v) ≡ K.vlab v
-    remap-vlab = remap'-vlab K.dom G.cod bdy-eq
-
-    ein-c : Fin (G.nE + K.nE) → List (Fin (G.nV + K.nV))
-    ein-c e = [ (λ eG → map injL (G.ein eG))
-              , (λ eK → map remap (K.ein eK))
-              ]′ (splitAt G.nE e)
-
-    eout-c : Fin (G.nE + K.nE) → List (Fin (G.nV + K.nV))
-    eout-c e = [ (λ eG → map injL (G.eout eG))
-               , (λ eK → map remap (K.eout eK))
-               ]′ (splitAt G.nE e)
-
-    map-via-remap : (xs : List (Fin K.nV))
-                  → map K.vlab xs ≡ map vlab-c (map remap xs)
-    map-via-remap xs = trans (sym (map-cong remap-vlab xs)) (map-∘ xs)
-
-    elab-c : (e : Fin (G.nE + K.nE))
-           → FlatGen (map vlab-c (ein-c e)) (map vlab-c (eout-c e))
-    elab-c e with splitAt G.nE e
-    ... | inj₁ eG = subst₂ FlatGen
-                      (map-via-inj vlab-injL (G.ein eG))
-                      (map-via-inj vlab-injL (G.eout eG))
-                      (G.elab eG)
-    ... | inj₂ eK = subst₂ FlatGen
-                      (map-via-remap (K.ein eK))
-                      (map-via-remap (K.eout eK))
-                      (K.elab eK)
+    open hCompose-impl G K
 
 --------------------------------------------------------------------------------
 -- Translation from APROP terms.

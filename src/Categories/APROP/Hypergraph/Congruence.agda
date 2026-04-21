@@ -1,27 +1,23 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 --------------------------------------------------------------------------------
 -- Structural congruences for `_≅ᴴ_`. Building these before soundness
 -- lets the `∘-resp-≈` and `⊗-resp-≈` cases of the soundness theorem
 -- in Phase 3c reduce to the underlying sub-hypergraph isos.
 --
--- STATUS (Phase 3b):
---   hTensor-resp-≅ᴴ: COMPLETE (all fields proved, including ψ-elab-T
---     which chains `hT₂.elab-c-inj{₁,₂}`, `subst₂-sym-subst₂`, and
---     `IG/IK.ψ-elab` through six `subst₂-trans` collapses).
+-- STATUS (Phase 3b): COMPLETE.
+--   hTensor-resp-≅ᴴ: proved in full, including `ψ-elab-T` which
+--     chains `hT₂.elab-c-inj{₁,₂}`, `subst₂-sym-subst₂`, and
+--     `IG/IK.ψ-elab` through six `subst₂-trans` collapses.
 --
---   hCompose-resp-≅ᴴ: POSTULATED. The vertex/edge bijection half is
---     a straightforward copy of hTensor's, but the codomain case
---     touches hCompose's internal `remap` function (defined in a
---     `where` clause and therefore not exposable as a top-level
---     name). Proving that `φ-C ∘ remap₁ ≡ remap₂ ∘ IK.φ` requires an
---     induction on `K.dom`/`G.cod` that ports decidable equality
---     across `IK.φ`. Deferred until we refactor `hCompose` to
---     expose `remap` as a top-level definition.
---
--- Because the remaining `hCompose-resp-≅ᴴ` is postulated, this file
--- is NOT `--safe`; `CategoricalCrypto` does not import it. Phase 3c
--- (soundness) depends on these postulates as-is.
+--   hCompose-resp-≅ᴴ: proved in full. The codomain case uses the
+--     top-level `hCompose-impl.remap` (refactored out of the former
+--     `where` clause); the key lemma `remap-comm` shows
+--     `φ-C ∘ remap₁ ≡ remap₂ ∘ IK.φ` by induction on `K.dom`/`G.cod`
+--     with a four-way `with` on the decidable equalities
+--     `v ≟ k` and `IK.φ v ≟ IK.φ k`, discharging the impossible
+--     yes/no and no/yes branches via injectivity of `IK.φ` (derived
+--     from `IK.φ-left`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -33,6 +29,7 @@ open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
 open import Categories.APROP.Hypergraph.Iso
 
+open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; inject+; raise; splitAt)
 open import Data.Fin.Properties as Fin using (splitAt-inject+; splitAt-raise)
 open import Data.List using (List; []; _∷_; _++_; map)
@@ -43,6 +40,7 @@ open import Data.Sum.Properties using ([,]-∘)
 open import Function using (id; _∘_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂; trans; sym; subst; subst₂)
+open import Relation.Nullary using (yes; no)
 
 private
   -- A `subst₂` helper: two transports with the same proofs collapse.
@@ -410,18 +408,328 @@ module _ {As Bs Cs Ds : List X} where
 --
 -- The vertex bijection mirrors `hTensor`: disjoint union of the two
 -- component bijections, translated through `splitAt`/`join`. The
--- codomain case, however, is composed through the internal `remap`
--- of `hCompose` (which identifies `K.dom` with `G.cod` pointwise).
--- Because `remap` is defined inside a `where` clause, proving the
--- commutation `φ ∘ remap₁ ≡ remap₂ ∘ IK.φ` requires either an
--- exposed top-level `remap` or a dedicated cospan-composition
--- lemma. Postulated for now; see module header.
+-- codomain case commutes with the internal `remap` of `hCompose`:
+--
+--    φ-C ∘ remap₁ ≗ remap₂ ∘ IK.φ.
+--
+-- This `remap-comm` lemma is proved by induction on the two list
+-- parameters of `remap'` (K.dom / G.cod), using injectivity of
+-- `IK.φ` (derivable from `IK.φ-left`) to port the decidable-equality
+-- decision in `remap'` across the iso.
 
 module _ {As Bs Cs : List X} where
 
-  postulate
-    hCompose-resp-≅ᴴ :
-        {G₁ G₂ : Hypergraph FlatGen As Bs}
-        {K₁ K₂ : Hypergraph FlatGen Bs Cs}
-      → G₁ ≅ᴴ G₂ → K₁ ≅ᴴ K₂
-      → hCompose G₁ K₁ ≅ᴴ hCompose G₂ K₂
+  hCompose-resp-≅ᴴ :
+      {G₁ G₂ : Hypergraph FlatGen As Bs}
+      {K₁ K₂ : Hypergraph FlatGen Bs Cs}
+    → G₁ ≅ᴴ G₂ → K₁ ≅ᴴ K₂
+    → hCompose G₁ K₁ ≅ᴴ hCompose G₂ K₂
+  hCompose-resp-≅ᴴ {G₁} {G₂} {K₁} {K₂} iG iK = record
+    { φ         = φ-C
+    ; φ⁻¹       = φ⁻¹-C
+    ; φ-left    = φ-left-C
+    ; φ-rght    = φ-rght-C
+    ; ψ         = ψ-C
+    ; ψ⁻¹       = ψ⁻¹-C
+    ; ψ-left    = ψ-left-C
+    ; ψ-rght    = ψ-rght-C
+    ; φ-lab     = φ-lab-C
+    ; ψ-ein     = ψ-ein-C
+    ; ψ-eout    = ψ-eout-C
+    ; φ-dom     = dom-C
+    ; φ-cod     = cod-C
+    ; atom-ein  = atom-ein-C
+    ; atom-eout = atom-eout-C
+    ; ψ-elab    = ψ-elab-C
+    }
+    where
+      module G₁ = Hypergraph G₁
+      module G₂ = Hypergraph G₂
+      module K₁ = Hypergraph K₁
+      module K₂ = Hypergraph K₂
+      module IG = _≅ᴴ_ iG
+      module IK = _≅ᴴ_ iK
+
+      C₁ = hCompose G₁ K₁
+      C₂ = hCompose G₂ K₂
+      module C₁ = Hypergraph C₁
+      module C₂ = Hypergraph C₂
+
+      module hC₁ = hCompose-impl G₁ K₁
+      module hC₂ = hCompose-impl G₂ K₂
+
+      ----------------------------------------------------------------
+      -- Vertex bijection (same pattern as `hTensor-resp-≅ᴴ`).
+
+      φ-C : Fin (G₁.nV + K₁.nV) → Fin (G₂.nV + K₂.nV)
+      φ-C i = [ (λ iG → inject+ K₂.nV (IG.φ iG))
+              , (λ iK → raise G₂.nV (IK.φ iK))
+              ]′ (splitAt G₁.nV i)
+
+      φ⁻¹-C : Fin (G₂.nV + K₂.nV) → Fin (G₁.nV + K₁.nV)
+      φ⁻¹-C j = [ (λ jG → inject+ K₁.nV (IG.φ⁻¹ jG))
+                , (λ jK → raise G₁.nV (IK.φ⁻¹ jK))
+                ]′ (splitAt G₂.nV j)
+
+      φ-left-C : ∀ i → φ⁻¹-C (φ-C i) ≡ i
+      φ-left-C i with splitAt G₁.nV i in eq
+      ... | inj₁ iG rewrite splitAt-inject+ G₂.nV K₂.nV (IG.φ iG)
+                          | IG.φ-left iG
+                        = sym (_↑ˡinv i eq)
+        where
+          _↑ˡinv : ∀ (i : Fin (G₁.nV + K₁.nV)) {iG}
+                 → splitAt G₁.nV i ≡ inj₁ iG → i ≡ inject+ K₁.nV iG
+          _↑ˡinv i e = sym (Fin.splitAt⁻¹-↑ˡ e)
+      ... | inj₂ iK rewrite splitAt-raise G₂.nV K₂.nV (IK.φ iK)
+                          | IK.φ-left iK
+                        = sym (_↑ʳinv i eq)
+        where
+          _↑ʳinv : ∀ (i : Fin (G₁.nV + K₁.nV)) {iK}
+                 → splitAt G₁.nV i ≡ inj₂ iK → i ≡ raise G₁.nV iK
+          _↑ʳinv i e = sym (Fin.splitAt⁻¹-↑ʳ e)
+
+      φ-rght-C : ∀ j → φ-C (φ⁻¹-C j) ≡ j
+      φ-rght-C j with splitAt G₂.nV j in eq
+      ... | inj₁ jG rewrite splitAt-inject+ G₁.nV K₁.nV (IG.φ⁻¹ jG)
+                          | IG.φ-rght jG
+                        = Fin.splitAt⁻¹-↑ˡ eq
+      ... | inj₂ jK rewrite splitAt-raise G₁.nV K₁.nV (IK.φ⁻¹ jK)
+                          | IK.φ-rght jK
+                        = Fin.splitAt⁻¹-↑ʳ eq
+
+      ----------------------------------------------------------------
+      -- Edge bijection.
+
+      ψ-C : Fin (G₁.nE + K₁.nE) → Fin (G₂.nE + K₂.nE)
+      ψ-C e = [ (λ eG → inject+ K₂.nE (IG.ψ eG))
+              , (λ eK → raise G₂.nE (IK.ψ eK))
+              ]′ (splitAt G₁.nE e)
+
+      ψ⁻¹-C : Fin (G₂.nE + K₂.nE) → Fin (G₁.nE + K₁.nE)
+      ψ⁻¹-C e = [ (λ eG → inject+ K₁.nE (IG.ψ⁻¹ eG))
+                , (λ eK → raise G₁.nE (IK.ψ⁻¹ eK))
+                ]′ (splitAt G₂.nE e)
+
+      ψ-left-C : ∀ e → ψ⁻¹-C (ψ-C e) ≡ e
+      ψ-left-C e with splitAt G₁.nE e in eq
+      ... | inj₁ eG rewrite splitAt-inject+ G₂.nE K₂.nE (IG.ψ eG)
+                          | IG.ψ-left eG
+                        = Fin.splitAt⁻¹-↑ˡ eq
+      ... | inj₂ eK rewrite splitAt-raise G₂.nE K₂.nE (IK.ψ eK)
+                          | IK.ψ-left eK
+                        = Fin.splitAt⁻¹-↑ʳ eq
+
+      ψ-rght-C : ∀ e → ψ-C (ψ⁻¹-C e) ≡ e
+      ψ-rght-C e with splitAt G₂.nE e in eq
+      ... | inj₁ eG rewrite splitAt-inject+ G₁.nE K₁.nE (IG.ψ⁻¹ eG)
+                          | IG.ψ-rght eG
+                        = Fin.splitAt⁻¹-↑ˡ eq
+      ... | inj₂ eK rewrite splitAt-raise G₁.nE K₁.nE (IK.ψ⁻¹ eK)
+                          | IK.ψ-rght eK
+                        = Fin.splitAt⁻¹-↑ʳ eq
+
+      ----------------------------------------------------------------
+      -- Vertex labels.
+
+      φ-lab-C : ∀ i → C₂.vlab (φ-C i) ≡ C₁.vlab i
+      φ-lab-C i with splitAt G₁.nV i
+      ... | inj₁ iG = trans (cong [ G₂.vlab , K₂.vlab ]′
+                                   (splitAt-inject+ G₂.nV K₂.nV (IG.φ iG)))
+                            (IG.φ-lab iG)
+      ... | inj₂ iK = trans (cong [ G₂.vlab , K₂.vlab ]′
+                                   (splitAt-raise G₂.nV K₂.nV (IK.φ iK)))
+                            (IK.φ-lab iK)
+
+      ----------------------------------------------------------------
+      -- `φ-C` on the two injections, and their `map` versions.
+
+      φ-C-injL : ∀ (iG : Fin G₁.nV)
+               → φ-C (inject+ K₁.nV iG) ≡ inject+ K₂.nV (IG.φ iG)
+      φ-C-injL iG = cong [ _ , _ ]′ (splitAt-inject+ G₁.nV K₁.nV iG)
+
+      φ-C-injR : ∀ (iK : Fin K₁.nV)
+               → φ-C (raise G₁.nV iK) ≡ raise G₂.nV (IK.φ iK)
+      φ-C-injR iK = cong [ _ , _ ]′ (splitAt-raise G₁.nV K₁.nV iK)
+
+      map-φ-C-injL : (xs : List (Fin G₁.nV))
+                   → map φ-C (map (inject+ K₁.nV) xs)
+                   ≡ map (inject+ K₂.nV) (map IG.φ xs)
+      map-φ-C-injL xs =
+        trans (sym (map-∘ xs))
+        (trans (map-cong φ-C-injL xs)
+               (map-∘ xs))
+
+      ----------------------------------------------------------------
+      -- Key commutation lemma: `φ-C ∘ remap₁ ≗ remap₂ ∘ IK.φ`.
+
+      -- Injectivity of `IK.φ`, derived from `IK.φ-left`.
+      IK-φ-inj : ∀ {v₁ v₂} → IK.φ v₁ ≡ IK.φ v₂ → v₁ ≡ v₂
+      IK-φ-inj {v₁} {v₂} eq =
+        trans (sym (IK.φ-left v₁))
+              (trans (cong IK.φ⁻¹ eq) (IK.φ-left v₂))
+
+      -- Generalized commutation: the decision made in `remap₁'` at
+      -- (ks₁, gs₁) matches the decision in `remap₂'` at the images
+      -- (map IK.φ ks₁, map IG.φ gs₁).
+      remap'-comm : (ks₁ : List (Fin K₁.nV)) (gs₁ : List (Fin G₁.nV))
+                  → ∀ v → φ-C (hC₁.remap' ks₁ gs₁ v)
+                        ≡ hC₂.remap' (map IK.φ ks₁) (map IG.φ gs₁) (IK.φ v)
+      remap'-comm []       _         v = φ-C-injR v
+      remap'-comm (_ ∷ _)  []        v = φ-C-injR v
+      remap'-comm (k ∷ ks) (g ∷ gs)  v
+        with v Fin.≟ k | IK.φ v Fin.≟ IK.φ k
+      ... | yes refl | yes _        = φ-C-injL g
+      ... | yes refl | no  ¬eq      = ⊥-elim (¬eq refl)
+      ... | no  ¬eq  | yes inj-eq   = ⊥-elim (¬eq (IK-φ-inj inj-eq))
+      ... | no  _    | no  _        = remap'-comm ks gs v
+
+      -- Main commutation.
+      remap-comm : ∀ v → φ-C (hC₁.remap v) ≡ hC₂.remap (IK.φ v)
+      remap-comm v =
+        trans (remap'-comm K₁.dom G₁.cod v)
+              (cong₂ (λ ks gs → hC₂.remap' ks gs (IK.φ v))
+                     (sym IK.φ-dom) (sym IG.φ-cod))
+
+      -- Map version.
+      map-remap-comm : (xs : List (Fin K₁.nV))
+                     → map φ-C (map hC₁.remap xs)
+                     ≡ map hC₂.remap (map IK.φ xs)
+      map-remap-comm xs =
+        trans (sym (map-∘ xs))
+        (trans (map-cong remap-comm xs)
+               (map-∘ xs))
+
+      ----------------------------------------------------------------
+      -- Edge endpoints.
+
+      ψ-ein-C : ∀ e → C₂.ein (ψ-C e) ≡ map φ-C (C₁.ein e)
+      ψ-ein-C e with splitAt G₁.nE e
+      ... | inj₁ eG rewrite splitAt-inject+ G₂.nE K₂.nE (IG.ψ eG) =
+                      trans (cong (map (inject+ K₂.nV)) (IG.ψ-ein eG))
+                            (sym (map-φ-C-injL (G₁.ein eG)))
+      ... | inj₂ eK rewrite splitAt-raise G₂.nE K₂.nE (IK.ψ eK) =
+                      trans (cong (map hC₂.remap) (IK.ψ-ein eK))
+                            (sym (map-remap-comm (K₁.ein eK)))
+
+      ψ-eout-C : ∀ e → C₂.eout (ψ-C e) ≡ map φ-C (C₁.eout e)
+      ψ-eout-C e with splitAt G₁.nE e
+      ... | inj₁ eG rewrite splitAt-inject+ G₂.nE K₂.nE (IG.ψ eG) =
+                      trans (cong (map (inject+ K₂.nV)) (IG.ψ-eout eG))
+                            (sym (map-φ-C-injL (G₁.eout eG)))
+      ... | inj₂ eK rewrite splitAt-raise G₂.nE K₂.nE (IK.ψ eK) =
+                      trans (cong (map hC₂.remap) (IK.ψ-eout eK))
+                            (sym (map-remap-comm (K₁.eout eK)))
+
+      ----------------------------------------------------------------
+      -- Boundary. `dom` uses `inject+ K.nV` (same as hTensor's LHS),
+      -- but `cod` uses `remap` — so `cod-C` goes through `remap-comm`.
+
+      dom-C : C₂.dom ≡ map φ-C C₁.dom
+      dom-C = trans (cong (map (inject+ K₂.nV)) IG.φ-dom)
+                    (sym (map-φ-C-injL G₁.dom))
+
+      cod-C : C₂.cod ≡ map φ-C C₁.cod
+      cod-C = trans (cong (map hC₂.remap) IK.φ-cod)
+                    (sym (map-remap-comm K₁.cod))
+
+      ----------------------------------------------------------------
+      -- Atom-list equalities. Inj₁ branch is identical to
+      -- `atom-ein-T`; inj₂ branch uses `map-via-remap` (from
+      -- `hCompose-impl`) in place of `map-via-raise`.
+
+      atom-ein-C : ∀ e → map C₂.vlab (C₂.ein (ψ-C e))
+                       ≡ map C₁.vlab (C₁.ein e)
+      atom-ein-C e with splitAt G₁.nE e
+      ... | inj₁ eG =
+        trans (cong (map C₂.vlab) (hC₂.ein-c-inj₁-red (IG.ψ eG)))
+        (trans (sym (map-via-inj hC₂.vlab-injL (G₂.ein (IG.ψ eG))))
+        (trans (IG.atom-ein eG)
+               (map-via-inj hC₁.vlab-injL (G₁.ein eG))))
+      ... | inj₂ eK =
+        trans (cong (map C₂.vlab) (hC₂.ein-c-inj₂-red (IK.ψ eK)))
+        (trans (sym (hC₂.map-via-remap (K₂.ein (IK.ψ eK))))
+        (trans (IK.atom-ein eK)
+               (hC₁.map-via-remap (K₁.ein eK))))
+
+      atom-eout-C : ∀ e → map C₂.vlab (C₂.eout (ψ-C e))
+                        ≡ map C₁.vlab (C₁.eout e)
+      atom-eout-C e with splitAt G₁.nE e
+      ... | inj₁ eG =
+        trans (cong (map C₂.vlab) (hC₂.eout-c-inj₁-red (IG.ψ eG)))
+        (trans (sym (map-via-inj hC₂.vlab-injL (G₂.eout (IG.ψ eG))))
+        (trans (IG.atom-eout eG)
+               (map-via-inj hC₁.vlab-injL (G₁.eout eG))))
+      ... | inj₂ eK =
+        trans (cong (map C₂.vlab) (hC₂.eout-c-inj₂-red (IK.ψ eK)))
+        (trans (sym (hC₂.map-via-remap (K₂.eout (IK.ψ eK))))
+        (trans (IK.atom-eout eK)
+               (hC₁.map-via-remap (K₁.eout eK))))
+
+      ----------------------------------------------------------------
+      -- Edge label compatibility. Same skeleton as `ψ-elab-T`.
+
+      ψ-elab-C : ∀ e →
+        subst₂ FlatGen (atom-ein-C e) (atom-eout-C e)
+                       (C₂.elab (ψ-C e))
+        ≡ C₁.elab e
+      ψ-elab-C e with splitAt G₁.nE e
+      ... | inj₁ eG =
+        let
+          α   = cong (map C₂.vlab) (hC₂.ein-c-inj₁-red (IG.ψ eG))
+          α'  = cong (map C₂.vlab) (hC₂.eout-c-inj₁-red (IG.ψ eG))
+          β̄   = map-via-inj hC₂.vlab-injL (G₂.ein  (IG.ψ eG))
+          β̄'  = map-via-inj hC₂.vlab-injL (G₂.eout (IG.ψ eG))
+          γ   = IG.atom-ein  eG
+          γ'  = IG.atom-eout eG
+          δ   = map-via-inj hC₁.vlab-injL (G₁.ein  eG)
+          δ'  = map-via-inj hC₁.vlab-injL (G₁.eout eG)
+          x   = C₂.elab (inject+ K₂.nE (IG.ψ eG))
+        in
+        trans
+          (sym (subst₂-trans α (trans (sym β̄) (trans γ δ))
+                             α' (trans (sym β̄') (trans γ' δ'))
+                             x))
+        (trans
+          (cong (subst₂ FlatGen (trans (sym β̄) (trans γ δ))
+                                (trans (sym β̄') (trans γ' δ')))
+                (hC₂.elab-c-inj₁ (IG.ψ eG)))
+        (trans
+          (sym (subst₂-trans (sym β̄) (trans γ δ)
+                             (sym β̄') (trans γ' δ')
+                             (subst₂ FlatGen β̄ β̄' (G₂.elab (IG.ψ eG)))))
+        (trans
+          (cong (subst₂ FlatGen (trans γ δ) (trans γ' δ'))
+                (subst₂-sym-subst₂ β̄ β̄' (G₂.elab (IG.ψ eG))))
+        (trans
+          (sym (subst₂-trans γ δ γ' δ' (G₂.elab (IG.ψ eG))))
+          (cong (subst₂ FlatGen δ δ') (IG.ψ-elab eG))))))
+      ... | inj₂ eK =
+        let
+          α   = cong (map C₂.vlab) (hC₂.ein-c-inj₂-red (IK.ψ eK))
+          α'  = cong (map C₂.vlab) (hC₂.eout-c-inj₂-red (IK.ψ eK))
+          β̄   = hC₂.map-via-remap (K₂.ein  (IK.ψ eK))
+          β̄'  = hC₂.map-via-remap (K₂.eout (IK.ψ eK))
+          γ   = IK.atom-ein  eK
+          γ'  = IK.atom-eout eK
+          δ   = hC₁.map-via-remap (K₁.ein  eK)
+          δ'  = hC₁.map-via-remap (K₁.eout eK)
+          x   = C₂.elab (raise G₂.nE (IK.ψ eK))
+        in
+        trans
+          (sym (subst₂-trans α (trans (sym β̄) (trans γ δ))
+                             α' (trans (sym β̄') (trans γ' δ'))
+                             x))
+        (trans
+          (cong (subst₂ FlatGen (trans (sym β̄) (trans γ δ))
+                                (trans (sym β̄') (trans γ' δ')))
+                (hC₂.elab-c-inj₂ (IK.ψ eK)))
+        (trans
+          (sym (subst₂-trans (sym β̄) (trans γ δ)
+                             (sym β̄') (trans γ' δ')
+                             (subst₂ FlatGen β̄ β̄' (K₂.elab (IK.ψ eK)))))
+        (trans
+          (cong (subst₂ FlatGen (trans γ δ) (trans γ' δ'))
+                (subst₂-sym-subst₂ β̄ β̄' (K₂.elab (IK.ψ eK))))
+        (trans
+          (sym (subst₂-trans γ δ γ' δ' (K₂.elab (IK.ψ eK))))
+          (cong (subst₂ FlatGen δ δ') (IK.ψ-elab eK))))))
