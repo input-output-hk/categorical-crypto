@@ -28,21 +28,32 @@
 --     leaves the implicit arguments of the per-axiom postulates
 --     unsolved.
 --
--- Classification of the 18 atomic axioms (for future per-axiom
--- discharge, blocked on _≅ᴴ_ refinement; see TODO.org):
+-- Classification of the 18 atomic axioms by whether LHS and RHS have
+-- the same number of vertices in the translated hypergraphs. Blocked
+-- on _≅ᴴ_ refinement (see TODO.org):
 --
---   (a) Equal vertex count (bijection is non-trivial but no `hCompose`
---       refactor needed):
---         `assoc`, `⊗-∘-dist`,
---         `λ⇒∘id⊗f≈f∘λ⇒`, `ρ⇒∘f⊗id≈f∘ρ⇒`, `α-comm`,
---         `triangle`, `pentagon`,
---         `σ∘[f⊗g]≈[g⊗f]∘σ`, `hexagon`.
+--   (a) Equal vertex count (only the `+` re-association or shape-swap
+--       of the vertex set differs; no refactor of `hCompose` is
+--       needed, but the bijection proofs are still non-trivial):
+--         `assoc`         : (nf+ng)+nh = nf+(ng+nh)
+--         `⊗-∘-dist`     : (nf+ng)+(nf'+ng') = (nf+nf')+(ng+ng')
+--         `hexagon`       : 3·(|A|+|B|+|C|) on both sides
 --
---   (b) LHS has strictly more vertices than RHS (requires TODO Option A:
---       prune dangling K-dom vertices inside `hCompose`):
+--   (b) LHS has strictly more vertices than RHS — LHS contains an
+--       extra identity-hypergraph factor whose K-side vertices become
+--       dangling after `hCompose`. Discharging these requires TODO
+--       Option A (prune dangling K-dom vertices in `hCompose`) or
+--       Option B (coarsen `_≅ᴴ_` to allow vertex merging):
 --         `idˡ`, `idʳ`,
 --         `λ⇐∘λ⇒≈id`, `λ⇒∘λ⇐≈id`, `ρ⇐∘ρ⇒≈id`, `ρ⇒∘ρ⇐≈id`,
---         `α⇐∘α⇒≈id`, `α⇒∘α⇐≈id`, `σ∘σ≈id`.
+--         `α⇐∘α⇒≈id`, `α⇒∘α⇐≈id`, `σ∘σ≈id`, `triangle`, `pentagon`
+--
+--   (c) LHS and RHS have different vertex counts in general
+--       (depending on the APROP signature) — naturality + unitor/
+--       associator/braiding laws, where two different coherence
+--       morphisms appear on each side. Same blocker as (b):
+--         `λ⇒∘id⊗f≈f∘λ⇒`, `ρ⇒∘f⊗id≈f∘ρ⇒`, `α-comm`,
+--         `σ∘[f⊗g]≈[g⊗f]∘σ`
 --
 -- Because this file depends on the postulate, it is not `--safe` and
 -- is not transitively imported by `CategoricalCrypto.agda`.

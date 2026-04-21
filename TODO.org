@@ -73,24 +73,27 @@ meantime.
 ** BLOCKED [#C] ~soundness-axiom~ — 18 atomic ≈Term axioms
    :PROPERTIES:
    :file:     src/Categories/APROP/Hypergraph/Soundness.agda
-   :line:     51
+   :line:     65
    :difficulty: blocked
    :END:
 
-   The catch-all in ~Soundness.agda~ absorbs:
+   The catch-all in ~Soundness.agda~ absorbs 18 constructors.  By
+   vertex-count behaviour after translation:
 
-   | cat laws     | ~idˡ~, ~idʳ~, ~assoc~                           |
-   | exchange     | ~⊗-∘-dist~                                     |
-   | iso inverses | ~λ⇐∘λ⇒~, ~λ⇒∘λ⇐~, ~ρ⇐∘ρ⇒~, ~ρ⇒∘ρ⇐~, ~α⇐∘α⇒~, ~α⇒∘α⇐~ |
-   | naturality   | ~λ⇒∘id⊗f~, ~ρ⇒∘f⊗id~, ~α-comm~                   |
-   | coherence    | ~triangle~, ~pentagon~                         |
-   | symmetry     | ~σ∘σ~, ~σ∘[f⊗g]~, ~hexagon~                    |
+   *Group (a):* LHS and RHS have equal vertex count (only ~+~ re-
+   association or shape-swap differs).  Provable with the current
+   ~_≅ᴴ_~ but the bijection proofs are still non-trivial (~200+
+   lines each, similar to ~hCompose-resp-≅ᴴ~).
 
-   *Blocker:* the current ~_≅ᴴ_~ relation requires a strict vertex
-   bijection.  Every axiom involving composition with an identity
-   (or its inverse) produces an LHS with strictly more vertices
-   than the RHS, because ~hCompose~ keeps the K-side vertex set
-   around after identifying ~K.dom~ with ~G.cod~ via ~remap~.
+   - ~assoc~ — ~(a+b)+c = a+(b+c)~ both sides.
+   - ~⊗-∘-dist~ — ~(a+b)+(a'+b')~ vs ~(a+a')+(b+b')~.
+   - ~hexagon~ — three 3-fold compositions, equal total.
+
+   *Groups (b), (c):* the other 15 axioms.  LHS has strictly more
+   vertices than RHS (or the two sides have different counts
+   depending on the APROP signature), because ~hCompose~ keeps
+   the K-side vertex set after identifying ~K.dom~ with ~G.cod~
+   via ~remap~.
 
    Example: ~idˡ : id ∘ f ≈Term f~.  At ~f : HomTerm A B~,
    - LHS ~⟪id ∘ f⟫ = hCompose ⟪f⟫ (hId B)~ has ~⟪f⟫.nV + length(flatten B)~ vertices.
@@ -112,6 +115,38 @@ meantime.
     to produce a vertex in the pruned space, and ~elab-c~ needs to
     dispatch through the pruning map.
 
+    *Implementation sketch:*
+
+    1. Prove that every ~⟪f⟫~ (f : HomTerm A B) has a ~dom~ and
+       ~cod~ with pairwise-distinct entries.  By induction on the
+       primitive constructors (hEmpty, hVar, hGen, hSwap, hId) and
+       preservation under hTensor/hCompose.  Record as a lemma
+       ~⟪_⟫-distinct-dom/cod~ in FromAPROP (or in a new
+       ~Hypergraph.Invariant~ module).
+
+    2. Add a new ~hCompose-impl~ variant (parameterized by the
+       distinctness proof of ~K.dom~) with:
+
+       - ~nV' = G.nV + (K.nV - length K.dom)~.
+
+       - ~compress : Fin K.nV → Fin (K.nV - length K.dom + length K.dom)~
+         moving K-dom vertices to the "tail" ~length K.dom~
+         positions, non-K-dom to the "head".
+
+       - ~remap' : Fin K.nV → Fin (G.nV + (K.nV - length K.dom))~
+         that sends each K.dom vertex to ~injL G.cod[i]~ and each
+         non-K.dom vertex ~v~ to ~injR (compress v)~.
+
+    3. Rewrite the ~hCompose~-branch of ~elab-c~, ~ψ-elab-C~, and
+       ~boundary-eq~ to use the new ~remap'~.
+
+    4. Port ~Congruence.hCompose-resp-≅ᴴ~ to the new ~hCompose~.
+       The structure is the same (six-step ~subst₂-trans~ chain)
+       but the indexing in Fin changes.
+
+    5. Discharge the 15 "LHS > RHS" axioms using vertex bijections
+       with matching counts (all but the 3 group-(a) axioms).
+
 *** TODO Option B — coarsen ~_≅ᴴ_~ to allow vertex merging
     Replace the strict vertex bijection with a pair
     ~(h : Fin G.nV → Fin K.nV, coh : list-of-merges)~ expressing
@@ -127,6 +162,11 @@ meantime.
     simpler ~ψ-elab-T~ / ~hCompose-resp-≅ᴴ~ postulates are
     discharged, since A changes ~hCompose~ and any proofs written
     against the old ~hCompose~ will need porting.
+
+    The three group-(a) axioms (~assoc~, ~⊗-∘-dist~, ~hexagon~)
+    could in principle be discharged without Option A, but their
+    proofs will need to be rewritten anyway if/when ~hCompose~
+    changes.  So start with Option A.
 
 * Remaining phases
 
