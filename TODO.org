@@ -1,0 +1,175 @@
+#+title: Categorical Crypto — Hypergraph Roadmap
+#+startup: overview
+#+todo: TODO STARTED BLOCKED | DONE
+
+* Overview
+
+Phase-by-phase plan for the Agda string-diagram tool under
+~src/Categories/APROP/Hypergraph/~.  Each phase builds on the
+previous one.  The ultimate goal is to make every module typecheck
+with ~--safe~ and have ~CategoricalCrypto.agda~ transitively import
+them.
+
+* Active postulates
+
+All three blocks live in files that currently omit ~--safe~ because
+of these postulates.  The top-level ~CategoricalCrypto.agda~ does
+*not* import any of them, so the library stays ~--safe~ in the
+meantime.
+
+** DONE [#A] ~ψ-elab-T~ — edge-label compatibility in ~hTensor-resp-≅ᴴ~
+   :PROPERTIES:
+   :file:     src/Categories/APROP/Hypergraph/Congruence.agda
+   :difficulty: medium
+   :END:
+
+   Discharged.  The proof splits along ~splitAt G₁.nE e~ and for each
+   branch chains six ~subst₂-trans~ collapses to thread ~α~ (unlock
+   ~T₂.elab~ via ~hT₂.elab-c-inj₁~), ~β̄~ (cancel with
+   ~subst₂-sym-subst₂~), ~γ~ (cross from G₂.elab to G₁.elab via
+   ~IG.ψ-elab~), and ~δ~ (repackage to T₁.elab) equalities.
+
+   Key trick for the ~--without-K~ constraint: the ~x~ argument of
+   ~subst₂-trans~ is written as ~T₂.elab (inject+ K₂.nE (IG.ψ eG))~
+   rather than ~T₂.elab (ψ-T e)~.  Inside the ~with~-aux body
+   ~ψ-T e~ reduces to that form anyway (because the scrutinee
+   substitution ~splitAt G₁.nE e ↦ inj₁ eG~ propagates through
+   ~ψ-T~'s definition), but writing it in the reduced form avoids
+   an inference failure where Agda spuriously reported
+   ~G₂.nV != G₁.nV~ while trying to unify the implicit indices.
+
+** TODO [#B] ~hCompose-resp-≅ᴴ~ — full theorem
+   :PROPERTIES:
+   :file:     src/Categories/APROP/Hypergraph/Congruence.agda
+   :line:     387
+   :difficulty: hard
+   :END:
+
+   Vertex/edge bijections mirror ~hTensor-resp-≅ᴴ~; the blocker is
+   the codomain case, which uses the internal ~remap~ of ~hCompose~
+   (defined inside a ~where~ clause, hence not externally nameable).
+   Concretely, we need the commutation lemma
+
+   #+begin_src agda
+   remap-comm : ∀ v → φ-C (remap₁ v) ≡ remap₂ (IK.φ v)
+   #+end_src
+
+   which in turn requires
+
+   1. Refactor ~FromAPROP.hCompose~ so that ~remap~ and its
+      auxiliary ~remap'~ are *top-level* definitions of a companion
+      module.  Re-export from ~hCompose~ so call sites are
+      unaffected.
+
+   2. Prove ~remap'-comm~ by induction on the two list parameters
+      ~(K.dom, G.cod)~, using injectivity of ~IK.φ~ (derivable from
+      ~IK.φ-left~) to port the decidable-equality decision across.
+
+   3. Plumb ~remap-comm~ into the hTensor-style proofs of ~cod-C~,
+      ~ψ-ein-C~ (K-branch), ~ψ-eout-C~ (K-branch), ~atom-ein-C~,
+      ~atom-eout-C~.
+
+   4. Finish with the analogous ~ψ-elab-C~ using ~subst₂-trans~.
+
+   Estimated ~150–200 lines.
+
+** BLOCKED [#C] ~soundness-axiom~ — 18 atomic ≈Term axioms
+   :PROPERTIES:
+   :file:     src/Categories/APROP/Hypergraph/Soundness.agda
+   :line:     51
+   :difficulty: blocked
+   :END:
+
+   The catch-all in ~Soundness.agda~ absorbs:
+
+   | cat laws     | ~idˡ~, ~idʳ~, ~assoc~                           |
+   | exchange     | ~⊗-∘-dist~                                     |
+   | iso inverses | ~λ⇐∘λ⇒~, ~λ⇒∘λ⇐~, ~ρ⇐∘ρ⇒~, ~ρ⇒∘ρ⇐~, ~α⇐∘α⇒~, ~α⇒∘α⇐~ |
+   | naturality   | ~λ⇒∘id⊗f~, ~ρ⇒∘f⊗id~, ~α-comm~                   |
+   | coherence    | ~triangle~, ~pentagon~                         |
+   | symmetry     | ~σ∘σ~, ~σ∘[f⊗g]~, ~hexagon~                    |
+
+   *Blocker:* the current ~_≅ᴴ_~ relation requires a strict vertex
+   bijection.  Every axiom involving composition with an identity
+   (or its inverse) produces an LHS with strictly more vertices
+   than the RHS, because ~hCompose~ keeps the K-side vertex set
+   around after identifying ~K.dom~ with ~G.cod~ via ~remap~.
+
+   Example: ~idˡ : id ∘ f ≈Term f~.  At ~f : HomTerm A B~,
+   - LHS ~⟪id ∘ f⟫ = hCompose ⟪f⟫ (hId B)~ has ~⟪f⟫.nV + length(flatten B)~ vertices.
+   - RHS ~⟪f⟫~ has ~⟪f⟫.nV~ vertices.
+
+   Since ~length(flatten B) > 0~ whenever ~B~ has any atom, the
+   two cannot be in bijection; no refinement of the bijection
+   functions can fix this.
+
+   Discharging these axioms therefore requires one of the
+   following architectural changes before the lemmas themselves
+   can be written.
+
+*** TODO Option A — prune dangling vertices in ~hCompose~
+    Change ~hCompose~ to delete any K-side vertex that is in
+    ~K.dom~ (since such a vertex has been identified with a G-side
+    vertex via ~remap~).  After pruning, ~idˡ~ / ~idʳ~ produce
+    exactly ~⟪f⟫.nV~ vertices.  Downside: ~remap~ must be rewritten
+    to produce a vertex in the pruned space, and ~elab-c~ needs to
+    dispatch through the pruning map.
+
+*** TODO Option B — coarsen ~_≅ᴴ_~ to allow vertex merging
+    Replace the strict vertex bijection with a pair
+    ~(h : Fin G.nV → Fin K.nV, coh : list-of-merges)~ expressing
+    that ~G~ is obtained from ~K~ by identifying some vertices.
+    Preserves the existing ~hCompose~ but makes the iso relation
+    heavier.  Downside: ~refl-≅ᴴ~ / ~sym-≅ᴴ~ / ~trans-≅ᴴ~ all need
+    to be rewritten, and the structural-congruence proofs in
+    ~Congruence.agda~ will need to be reworked.
+
+*** Recommendation
+    Option A is the lesser refactor and matches the TensorRocq
+    paper (Section 3.3 "canonical hypergraph").  Do A once the
+    simpler ~ψ-elab-T~ / ~hCompose-resp-≅ᴴ~ postulates are
+    discharged, since A changes ~hCompose~ and any proofs written
+    against the old ~hCompose~ will need porting.
+
+* Remaining phases
+
+** TODO Phase 4 — ~smcat~ reflection macro
+   :PROPERTIES:
+   :depends-on: Phase 3 (soundness)
+   :END:
+   Reflection-based tactic that takes a goal ~f ≈ g~ in a
+   symmetric-monoidal category and discharges it by reducing to the
+   APROP translation, applying ~soundness⁻¹~ (to be proved along
+   with ~soundness~), and comparing normal forms via the
+   canonical-hypergraph theorem.
+
+** TODO Phase 5 — DPO rewriting (~srw~)
+   Double-pushout rewriting over hypergraphs, exposed as a tactic
+   ~srw~ that takes a list of rewrite equations and performs
+   matching + replacement.  Needs a pattern-matching layer on
+   hypergraphs (subgraph isomorphism) and the pushout construction
+   itself.
+
+** TODO Phase 6 — Signature layer + Frobenius
+   Generic ~SMCSignature~ record bundling generators + axioms,
+   with Frobenius structure as a worked instance.  Goal: users
+   can register a signature, get tactics, and work in their
+   theory transparently.
+
+* ~--safe~ status
+
+#+begin_src text
+module                                        --safe?
+--------------------------------------------- -------
+CategoricalCrypto.agda                        YES
+Categories.APROP                              YES
+Categories.APROP.Hypergraph.Core              YES
+Categories.APROP.Hypergraph.FromAPROP         YES
+Categories.APROP.Hypergraph.Iso               YES
+Categories.APROP.Hypergraph.Congruence        NO  (ψ-elab-T, hCompose-resp-≅ᴴ)
+Categories.APROP.Hypergraph.Soundness         NO  (soundness-axiom)
+#+end_src
+
+Discharging the postulates in Congruence promotes Congruence to
+~--safe~.  Soundness requires Option A or B above before it can
+be promoted.
