@@ -20,18 +20,31 @@
 --     unfolds definitionally to `hTensor (hId A) (hId B)` (see
 --     `FromAPROP.hId`).
 --
---   * All remaining atomic axioms — category laws (`idˡ`, `idʳ`,
---     `assoc`), exchange (`⊗-∘-dist`), unitor/associator iso
---     inverses, naturality, `triangle`, `pentagon`, and the three
---     symmetry axioms — are POSTULATED as a single catch-all
---     `soundness-axiom`. Each individual axiom can be discharged by
---     exhibiting a vertex/edge bijection between the two boundary-
---     indexed hypergraphs; the identity-hypergraph cases
---     (`idˡ`, `idʳ`, unitor/associator inverses) are the easiest
---     targets since their vertex sets match up to rearrangement.
+--   * Atomic axioms: POSTULATED as a single catch-all `soundness-axiom`
+--     that covers all 18 `≈Term` constructors that aren't congruence or
+--     equivalence rules. Per-constructor splitting was tried but runs
+--     into an unification snag: `⟪_⟫` is defined by pattern matching,
+--     so `⟪ id ∘ f ⟫ ≡ ⟪ id ∘ f' ⟫` does not force `f ≡ f'` and Agda
+--     leaves the implicit arguments of the per-axiom postulates
+--     unsolved.
 --
--- Because this file depends on the postulates in
--- `Categories.APROP.Hypergraph.Congruence`, it is not `--safe` and
+-- Classification of the 18 atomic axioms (for future per-axiom
+-- discharge, blocked on _≅ᴴ_ refinement; see TODO.org):
+--
+--   (a) Equal vertex count (bijection is non-trivial but no `hCompose`
+--       refactor needed):
+--         `assoc`, `⊗-∘-dist`,
+--         `λ⇒∘id⊗f≈f∘λ⇒`, `ρ⇒∘f⊗id≈f∘ρ⇒`, `α-comm`,
+--         `triangle`, `pentagon`,
+--         `σ∘[f⊗g]≈[g⊗f]∘σ`, `hexagon`.
+--
+--   (b) LHS has strictly more vertices than RHS (requires TODO Option A:
+--       prune dangling K-dom vertices inside `hCompose`):
+--         `idˡ`, `idʳ`,
+--         `λ⇐∘λ⇒≈id`, `λ⇒∘λ⇐≈id`, `ρ⇐∘ρ⇒≈id`, `ρ⇒∘ρ⇐≈id`,
+--         `α⇐∘α⇒≈id`, `α⇒∘α⇐≈id`, `σ∘σ≈id`.
+--
+-- Because this file depends on the postulate, it is not `--safe` and
 -- is not transitively imported by `CategoricalCrypto.agda`.
 --------------------------------------------------------------------------------
 
@@ -46,9 +59,7 @@ open import Categories.APROP.Hypergraph.Iso
 open import Categories.APROP.Hypergraph.Congruence sig
 
 --------------------------------------------------------------------------------
--- The single catch-all postulate absorbing the axiomatic cases
--- (category laws, coherence, symmetry). Split into per-constructor
--- lemmas when ready.
+-- Catch-all postulate for the 18 atomic axioms.
 
 postulate
   soundness-axiom : ∀ {A B} {f g : HomTerm A B} → f ≈Term g → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
@@ -75,5 +86,5 @@ soundness (⊗-resp-≈ pf pg)    = hTensor-resp-≅ᴴ (soundness pf) (soundnes
 -- hypergraphs: `hId (A ⊗₀ B) = hTensor (hId A) (hId B)`.
 soundness id⊗id≈id            = refl-≅ᴴ _
 
--- Atomic axioms. See module header for the discharge plan.
+-- Atomic axioms. See module header for the classification.
 soundness p                   = soundness-axiom p
