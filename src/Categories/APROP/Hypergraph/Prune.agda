@@ -29,10 +29,12 @@ module Categories.APROP.Hypergraph.Prune where
 
 open import Data.Fin using (Fin; inject+; raise)
 open import Data.Fin.Properties using (_≟_)
-open import Data.List using (List; length; filter; allFin)
+open import Data.List using (List; length; filter; allFin; lookup)
 open import Data.List.Relation.Unary.Any using (index)
+open import Data.List.Relation.Unary.Any.Properties using (lookup-index)
 open import Data.Nat using (ℕ; _+_)
 open import Data.Sum using (_⊎_; inj₁; inj₂; [_,_]′)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym)
 open import Relation.Nullary.Decidable using (¬?; yes; no)
 
 --------------------------------------------------------------------------------
@@ -60,6 +62,25 @@ module _ {n : ℕ} where
   ... | no  v∉xs =
     inj₂ (index (∈-filter⁺ (λ u → ¬? (u ∈? xs)) (∈-allFin v) v∉xs))
 
+  -- Inversion: when classify returns `inj₁ i`, the member slot `i` in
+  -- `xs` looks back to `v`.
+  classify-inj₁-lookup : (xs : List (Fin n)) (v : Fin n) (i : Fin (length xs))
+                       → classify xs v ≡ inj₁ i
+                       → lookup xs i ≡ v
+  classify-inj₁-lookup xs v i eq with v ∈? xs
+  classify-inj₁-lookup xs v .(index v∈xs) refl
+    | yes v∈xs = sym (lookup-index v∈xs)
+
+  -- Inversion: when classify returns `inj₂ j`, the non-member slot `j` in
+  -- `nonMem xs` looks back to `v`. This is the key lemma used by the
+  -- pruned `hCompose` to recover vertex labels from the pruned space.
+  classify-inj₂-lookup : (xs : List (Fin n)) (v : Fin n) (j : Fin (count-non xs))
+                       → classify xs v ≡ inj₂ j
+                       → lookup (nonMem xs) j ≡ v
+  classify-inj₂-lookup xs v j eq with v ∈? xs
+  classify-inj₂-lookup xs v .(index (∈-filter⁺ _ (∈-allFin v) v∉xs)) refl
+    | no v∉xs = sym (lookup-index (∈-filter⁺ _ (∈-allFin v) v∉xs))
+
 --------------------------------------------------------------------------------
 -- Remap combinator.
 --
@@ -74,3 +95,19 @@ module _ {n m : ℕ} where
   remap xs f v = [ (λ i → inject+ (count-non xs) (f i))
                  , (λ j → raise m j)
                  ]′ (classify xs v)
+
+  -- Reduction of `remap` in the `inj₁` (member) case.
+  remap-inj₁ : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
+               (v : Fin n) (i : Fin (length xs))
+             → classify xs v ≡ inj₁ i
+             → remap xs f v ≡ inject+ (count-non xs) (f i)
+  remap-inj₁ xs f v i eq with classify xs v
+  remap-inj₁ xs f v i refl | inj₁ .i = refl
+
+  -- Reduction of `remap` in the `inj₂` (non-member) case.
+  remap-inj₂ : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
+               (v : Fin n) (j : Fin (count-non xs))
+             → classify xs v ≡ inj₂ j
+             → remap xs f v ≡ raise m j
+  remap-inj₂ xs f v j eq with classify xs v
+  remap-inj₂ xs f v j refl | inj₂ .j = refl
