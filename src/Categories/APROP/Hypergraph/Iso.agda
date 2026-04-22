@@ -409,3 +409,27 @@ module _ {X : Set} {Gen : List X → List X → Set} where
       (H : Hypergraph Gen As Bs)
     → Hypergraph.nE (subst₂ (Hypergraph Gen) eq₁ eq₂ H) ≡ Hypergraph.nE H
   nE-subst₂ refl refl H = refl
+
+  vlab-subst₂
+    : ∀ {As Bs As' Bs'} (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
+      (H : Hypergraph Gen As Bs)
+    → ∀ i → Hypergraph.vlab (subst₂ (Hypergraph Gen) eq₁ eq₂ H)
+              (subst Fin (sym (nV-subst₂ eq₁ eq₂ H)) i)
+          ≡ Hypergraph.vlab H i
+  vlab-subst₂ refl refl H i = refl
+
+  dom-subst₂
+    : ∀ {As Bs As' Bs'} (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
+      (H : Hypergraph Gen As Bs)
+    → Hypergraph.dom (subst₂ (Hypergraph Gen) eq₁ eq₂ H)
+    ≡ subst (λ n → List (Fin n)) (sym (nV-subst₂ eq₁ eq₂ H))
+            (Hypergraph.dom H)
+  dom-subst₂ refl refl H = refl
+
+  cod-subst₂
+    : ∀ {As Bs As' Bs'} (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
+      (H : Hypergraph Gen As Bs)
+    → Hypergraph.cod (subst₂ (Hypergraph Gen) eq₁ eq₂ H)
+    ≡ subst (λ n → List (Fin n)) (sym (nV-subst₂ eq₁ eq₂ H))
+            (Hypergraph.cod H)
+  cod-subst₂ refl refl H = refl
