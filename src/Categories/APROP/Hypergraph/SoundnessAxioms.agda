@@ -40,8 +40,8 @@ open import Categories.APROP.Hypergraph.Prune
         ; classify; classify-lookup-Unique; remap; remap-inj₁)
 
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Fin using (Fin; zero; suc; inject+; raise; splitAt; cast)
-open import Data.Fin.Properties using (splitAt-inject+; splitAt-raise; cast-is-id)
+open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt; cast)
+open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ; cast-is-id)
 open import Data.List using (List; []; _∷_; map; length; lookup; tabulate; allFin)
 open import Data.List.Properties
   using (map-∘; map-cong; map-id; tabulate-lookup; map-tabulate)
@@ -121,7 +121,7 @@ module idˡ-proof {A B : ObjTerm} (f : HomTerm A B) where
   ... | inj₂ j = ⊥-elim (Fin-zero-absurd cn≡0 j)
 
   φ⁻¹ : Fin G.nV → Fin C.nV
-  φ⁻¹ i = inject+ (count-non K.dom) i
+  φ⁻¹ i = i ↑ˡ count-non K.dom
 
   ψ : Fin C.nE → Fin G.nE
   ψ e with splitAt G.nE e
@@ -129,7 +129,7 @@ module idˡ-proof {A B : ObjTerm} (f : HomTerm A B) where
   ... | inj₂ eK = ⊥-elim (Fin-zero-absurd nE≡0 eK)
 
   ψ⁻¹ : Fin G.nE → Fin C.nE
-  ψ⁻¹ e = inject+ K.nE e
+  ψ⁻¹ e = e ↑ˡ K.nE
 
   ------------------------------------------------------------------------------
   -- Bijection laws.
@@ -142,7 +142,7 @@ module idˡ-proof {A B : ObjTerm} (f : HomTerm A B) where
   ... | inj₂ j = ⊥-elim (Fin-zero-absurd cn≡0 j)
 
   φ-rght : ∀ i → φ (φ⁻¹ i) ≡ i
-  φ-rght i rewrite splitAt-inject+ G.nV (count-non K.dom) i = refl
+  φ-rght i rewrite splitAt-↑ˡ G.nV i (count-non K.dom) = refl
 
   ψ-left : ∀ e → ψ⁻¹ (ψ e) ≡ e
   ψ-left e with splitAt G.nE e in eq
@@ -150,7 +150,7 @@ module idˡ-proof {A B : ObjTerm} (f : HomTerm A B) where
   ... | inj₂ eK = ⊥-elim (Fin-zero-absurd nE≡0 eK)
 
   ψ-rght : ∀ e → ψ (ψ⁻¹ e) ≡ e
-  ψ-rght e rewrite splitAt-inject+ G.nE K.nE e = refl
+  ψ-rght e rewrite splitAt-↑ˡ G.nE e K.nE = refl
 
   ------------------------------------------------------------------------------
   -- Label preservation.
@@ -170,8 +170,8 @@ module idˡ-proof {A B : ObjTerm} (f : HomTerm A B) where
 
   -- φ ∘ injL ≡ id on G-vertices.
   private
-    φ-injL : ∀ i → φ (inject+ (count-non K.dom) i) ≡ i
-    φ-injL i rewrite splitAt-inject+ G.nV (count-non K.dom) i = refl
+    φ-injL : ∀ i → φ (i ↑ˡ count-non K.dom) ≡ i
+    φ-injL i rewrite splitAt-↑ˡ G.nV i (count-non K.dom) = refl
 
   ψ-ein : ∀ e → G.ein (ψ e) ≡ map φ (Hypergraph.ein C e)
   ψ-ein e with splitAt G.nE e
@@ -247,7 +247,7 @@ module idˡ-proof {A B : ObjTerm} (f : HomTerm A B) where
   remapP-on-dom
     : ∀ (j : Fin (length K.dom))
     → hCP.remapP (lookup K.dom j)
-    ≡ inject+ (count-non K.dom) (hCP.lookup-cod j)
+    ≡ hCP.lookup-cod j ↑ˡ count-non K.dom
   remapP-on-dom j =
     remap-inj₁ K.dom hCP.lookup-cod (lookup K.dom j) j
       (classify-lookup-Unique K.dom (hId-dom-Unique B) j)
@@ -277,20 +277,20 @@ module idˡ-proof {A B : ObjTerm} (f : HomTerm A B) where
         ≡⟨ sym (map-∘ (allFin (length K.dom))) ⟩
       map (λ j → hCP.remapP (lookup K.dom j)) (allFin (length K.dom))
         ≡⟨ map-cong remapP-on-dom (allFin (length K.dom)) ⟩
-      map (λ j → inject+ (count-non K.dom) (hCP.lookup-cod j))
+      map (λ j → hCP.lookup-cod j ↑ˡ count-non K.dom)
           (allFin (length K.dom))
         ≡⟨ map-∘ (allFin (length K.dom)) ⟩
-      map (inject+ (count-non K.dom))
+      map (_↑ˡ count-non K.dom)
           (map hCP.lookup-cod (allFin (length K.dom)))
-        ≡⟨ cong (map (inject+ (count-non K.dom))) (map-∘ (allFin (length K.dom))) ⟩
-      map (inject+ (count-non K.dom))
+        ≡⟨ cong (map (_↑ˡ count-non K.dom)) (map-∘ (allFin (length K.dom))) ⟩
+      map (_↑ˡ count-non K.dom)
           (map (lookup G.cod) (map (cast hCP.dom-cod-len) (allFin (length K.dom))))
-        ≡⟨ cong (λ xs → map (inject+ (count-non K.dom)) (map (lookup G.cod) xs))
+        ≡⟨ cong (λ xs → map (_↑ˡ count-non K.dom) (map (lookup G.cod) xs))
                (cast-allFin hCP.dom-cod-len) ⟩
-      map (inject+ (count-non K.dom))
+      map (_↑ˡ count-non K.dom)
           (map (lookup G.cod) (allFin (length G.cod)))
-        ≡⟨ cong (map (inject+ (count-non K.dom))) (map-lookup-allFin G.cod) ⟩
-      map (inject+ (count-non K.dom)) G.cod
+        ≡⟨ cong (map (_↑ˡ count-non K.dom)) (map-lookup-allFin G.cod) ⟩
+      map (_↑ˡ count-non K.dom) G.cod
         ∎)
     where open ≡-Reasoning
 
@@ -569,17 +569,17 @@ module σ∘σ-proof (A B : ObjTerm) where
   ... | inj₂ j = ⊥-elim (Fin-zero-absurd cn≡0 j)
 
   φ⁻¹ : Fin R.nV → Fin C.nV
-  φ⁻¹ i = inject+ (count-non K.dom) (cast (sym eq-nV-GR) i)
+  φ⁻¹ i = cast (sym eq-nV-GR) i ↑ˡ count-non K.dom
 
   open import Data.Fin.Properties using (splitAt⁻¹-↑ˡ; cast-is-id; cast-trans)
 
   φ-left : ∀ v → φ⁻¹ (φ v) ≡ v
   φ-left v with splitAt G.nV v in eq
   ... | inj₁ i =
-    -- φ⁻¹ (cast eq-nV-GR i) = inject+ _ (cast (sym eq-nV-GR) (cast eq-nV-GR i))
-    --                      = inject+ _ i  (by cast-is-id + cast-trans)
+    -- φ⁻¹ (cast eq-nV-GR i) = cast (sym eq-nV-GR) (cast eq-nV-GR i) ↑ˡ _
+    --                      = i ↑ˡ _  (by cast-is-id + cast-trans)
     --                      = v  (by splitAt⁻¹-↑ˡ eq)
-    trans (cong (inject+ (count-non K.dom))
+    trans (cong (_↑ˡ count-non K.dom)
                 (trans (cast-trans eq-nV-GR (sym eq-nV-GR) i)
                        (cast-is-id (trans eq-nV-GR (sym eq-nV-GR)) i)))
           (splitAt⁻¹-↑ˡ eq)
@@ -587,7 +587,7 @@ module σ∘σ-proof (A B : ObjTerm) where
 
   φ-rght : ∀ i → φ (φ⁻¹ i) ≡ i
   φ-rght i
-    rewrite splitAt-inject+ G.nV (count-non K.dom) (cast (sym eq-nV-GR) i)
+    rewrite splitAt-↑ˡ G.nV (cast (sym eq-nV-GR) i) (count-non K.dom)
     = trans (cast-trans (sym eq-nV-GR) eq-nV-GR i)
             (cast-is-id (trans (sym eq-nV-GR) eq-nV-GR) i)
 
@@ -680,13 +680,13 @@ module σ∘σ-proof (A B : ObjTerm) where
 
   open import Data.List using (_++_)
   open import Data.List.Properties using (map-++; map-∘; map-cong; map-id)
-  open import Data.Fin.Properties using (splitAt-inject+) renaming (cast-is-id to Fin-cast-is-id)
+  open import Data.Fin.Properties renaming (cast-is-id to Fin-cast-is-id)
 
   private
     -- φ collapses on the injL side to `cast eq-nV-GR`.
     φ-injL-red : ∀ (x : Fin G.nV) → φ (hCP.injL x) ≡ cast eq-nV-GR x
     φ-injL-red x
-      rewrite splitAt-inject+ G.nV (count-non K.dom) x = refl
+      rewrite splitAt-↑ˡ G.nV x (count-non K.dom) = refl
 
     -- List-wise version: map φ C.dom ≡ map (cast eq-nV-GR) G.dom.
     map-φ-injL : map φ C.dom ≡ map (cast eq-nV-GR) G.dom
@@ -705,21 +705,21 @@ module σ∘σ-proof (A B : ObjTerm) where
     (trans map-φ-injL
     -- map (cast _) (map injL nA ++ map raise nB) = map (cast ∘ injL) nA ++ map (cast ∘ raise) nB
     (trans (map-++ (cast eq-nV-GR)
-                   (map (inject+ nB) (range nA))
-                   (map (raise nA) (range nB)))
+                   (map (_↑ˡ nB) (range nA))
+                   (map (nA ↑ʳ_) (range nB)))
     -- Push cast through inject+ on LHS, raise on RHS.
     (cong₂ _++_
-      -- First half: map (cast ∘ inject+ nB) (range nA) = map (inject+ (hId B).nV) (map (cast eq-A) (range nA))
+      -- First half: map (cast ∘ (_↑ˡ nB)) (range nA) = map (_↑ˡ (hId B).nV) (map (cast eq-A) (range nA))
       (trans (sym (map-∘ (range nA)))
       (trans (map-cong (cast-inject+-cong₂ eq-A eq-B) (range nA))
       (trans (map-∘ (range nA))
-             (cong (map (inject+ (Hypergraph.nV (hId B))))
+             (cong (map (_↑ˡ Hypergraph.nV (hId B)))
                    (trans (map-cast-range eq-A) (sym (hId-dom≡range A)))))))
-      -- Second half: map (cast ∘ raise nA) (range nB) = map (raise (hId A).nV) (map (cast eq-B) (range nB))
+      -- Second half: map (cast ∘ (nA ↑ʳ_)) (range nB) = map ((hId A).nV ↑ʳ_) (map (cast eq-B) (range nB))
       (trans (sym (map-∘ (range nB)))
       (trans (map-cong (cast-raise-cong₂ eq-A eq-B) (range nB))
       (trans (map-∘ (range nB))
-             (cong (map (raise (Hypergraph.nV (hId A))))
+             (cong (map (Hypergraph.nV (hId A) ↑ʳ_))
                    (trans (map-cast-range eq-B) (sym (hId-dom≡range B))))))))))
 
   ------------------------------------------------------------------------------
@@ -776,10 +776,10 @@ module σ∘σ-proof (A B : ObjTerm) where
     K-unique = hSwap-dom-Unique B A
 
     -- Given a membership witness v∈K-dom, `remapP v` collapses to
-    -- `inject+ c (lookup-cod (index v∈K-dom))`.
+    -- `lookup-cod (index v∈K-dom) ↑ˡ c`.
     remapP-via-member
       : ∀ {v : Fin K.nV} (v∈K-dom : v ∈ K.dom)
-      → hCP.remapP v ≡ inject+ (count-non K.dom) (hCP.lookup-cod (index v∈K-dom))
+      → hCP.remapP v ≡ hCP.lookup-cod (index v∈K-dom) ↑ˡ count-non K.dom
     remapP-via-member {v} v∈K-dom =
       remap-inj₁ K.dom hCP.lookup-cod v (index v∈K-dom) classify-eq
       where
@@ -809,28 +809,28 @@ module σ∘σ-proof (A B : ObjTerm) where
   -- (map (raise nA) (range nB) ++ ...).
   lookup-cod-inject+-nA
     : ∀ (y : Fin nB)
-    → hCP.lookup-cod (index (∈-++⁺ˡ {ys = map (raise nB) (range nA)}
-                                    (∈-map⁺ (inject+ nA) (range-covers nB y))))
-    ≡ raise nA y
+    → hCP.lookup-cod (index (∈-++⁺ˡ {ys = map (nB ↑ʳ_) (range nA)}
+                                    (∈-map⁺ (_↑ˡ nA) (range-covers nB y))))
+    ≡ nA ↑ʳ y
   lookup-cod-inject+-nA y =
-    -- Goal: lookup G.cod (cast _ k-idx) ≡ raise nA y.
+    -- Goal: lookup G.cod (cast _ k-idx) ≡ nA ↑ʳ y.
     -- Where k-idx : Fin (length K.dom).
     --
-    -- Construct a mirror witness in G.cod: raise nA y ∈ G.cod.
-    -- Then lookup G.cod (index mirror) ≡ raise nA y via lookup-index.
+    -- Construct a mirror witness in G.cod: nA ↑ʳ y ∈ G.cod.
+    -- Then lookup G.cod (index mirror) ≡ nA ↑ʳ y via lookup-index.
     -- Show cast _ k-idx ≡ index mirror via toℕ-injective.
     trans (cong (lookup G.cod) cast-k≡mirror)
           (sym (lookup-index mirror-in-G))
     where
       -- K-side witness.
-      k-witness : inject+ nA y ∈ K.dom
-      k-witness = ∈-++⁺ˡ {ys = map (raise nB) (range nA)}
-                         (∈-map⁺ (inject+ nA) (range-covers nB y))
+      k-witness : y ↑ˡ nA ∈ K.dom
+      k-witness = ∈-++⁺ˡ {ys = map (nB ↑ʳ_) (range nA)}
+                         (∈-map⁺ (_↑ˡ nA) (range-covers nB y))
 
       -- G-side mirror witness.
-      mirror-in-G : raise nA y ∈ G.cod
-      mirror-in-G = ∈-++⁺ˡ {ys = map (inject+ nB) (range nA)}
-                           (∈-map⁺ (raise nA) (range-covers nB y))
+      mirror-in-G : nA ↑ʳ y ∈ G.cod
+      mirror-in-G = ∈-++⁺ˡ {ys = map (_↑ˡ nB) (range nA)}
+                           (∈-map⁺ (nA ↑ʳ_) (range-covers nB y))
 
       k-idx : Fin (length K.dom)
       k-idx = index k-witness
@@ -842,16 +842,16 @@ module σ∘σ-proof (A B : ObjTerm) where
       -- Both `g-idx` and `index mirror-in-G` have toℕ ≡ toℕ y.
       k-side-toℕ : toℕ g-idx ≡ toℕ y
       k-side-toℕ = trans (toℕ-cast _ k-idx)
-                    (trans (toℕ-index-++⁺ˡ (∈-map⁺ (inject+ nA) (range-covers nB y)))
-                    (trans (cong toℕ (∈-map⁺-index-cast (inject+ nA)
+                    (trans (toℕ-index-++⁺ˡ (∈-map⁺ (_↑ˡ nA) (range-covers nB y)))
+                    (trans (cong toℕ (∈-map⁺-index-cast (_↑ˡ nA)
                                                        (inject+-inj _)
                                                        (range-covers nB y)))
                     (trans (toℕ-cast _ _)
                            (toℕ-index-range-covers nB y))))
 
       g-side-toℕ : toℕ (index mirror-in-G) ≡ toℕ y
-      g-side-toℕ = trans (toℕ-index-++⁺ˡ (∈-map⁺ (raise nA) (range-covers nB y)))
-                   (trans (cong toℕ (∈-map⁺-index-cast (raise nA)
+      g-side-toℕ = trans (toℕ-index-++⁺ˡ (∈-map⁺ (nA ↑ʳ_) (range-covers nB y)))
+                   (trans (cong toℕ (∈-map⁺-index-cast (nA ↑ʳ_)
                                                        (raise-inj _)
                                                        (range-covers nB y)))
                    (trans (toℕ-cast _ _)
@@ -864,20 +864,20 @@ module σ∘σ-proof (A B : ObjTerm) where
   -- half of G.cod).
   lookup-cod-raise-nB
     : ∀ (x : Fin nA)
-    → hCP.lookup-cod (index (∈-++⁺ʳ (map (inject+ nA) (range nB))
-                                    (∈-map⁺ (raise nB) (range-covers nA x))))
-    ≡ inject+ nB x
+    → hCP.lookup-cod (index (∈-++⁺ʳ (map (_↑ˡ nA) (range nB))
+                                    (∈-map⁺ (nB ↑ʳ_) (range-covers nA x))))
+    ≡ x ↑ˡ nB
   lookup-cod-raise-nB x =
     trans (cong (lookup G.cod) cast-k≡mirror)
           (sym (lookup-index mirror-in-G))
     where
-      k-witness : raise nB x ∈ K.dom
-      k-witness = ∈-++⁺ʳ (map (inject+ nA) (range nB))
-                         (∈-map⁺ (raise nB) (range-covers nA x))
+      k-witness : nB ↑ʳ x ∈ K.dom
+      k-witness = ∈-++⁺ʳ (map (_↑ˡ nA) (range nB))
+                         (∈-map⁺ (nB ↑ʳ_) (range-covers nA x))
 
-      mirror-in-G : inject+ nB x ∈ G.cod
-      mirror-in-G = ∈-++⁺ʳ (map (raise nA) (range nB))
-                           (∈-map⁺ (inject+ nB) (range-covers nA x))
+      mirror-in-G : x ↑ˡ nB ∈ G.cod
+      mirror-in-G = ∈-++⁺ʳ (map (nA ↑ʳ_) (range nB))
+                           (∈-map⁺ (_↑ˡ nB) (range-covers nA x))
 
       k-idx : Fin (length K.dom)
       k-idx = index k-witness
@@ -888,31 +888,31 @@ module σ∘σ-proof (A B : ObjTerm) where
       -- Both indices have toℕ ≡ nB + toℕ x.
       open import Data.List.Properties using (length-map)
 
-      k-side-toℕ : toℕ g-idx ≡ length (map (inject+ nA) (range nB)) + toℕ x
+      k-side-toℕ : toℕ g-idx ≡ length (map (_↑ˡ nA) (range nB)) + toℕ x
       k-side-toℕ = trans (toℕ-cast _ k-idx)
-                    (trans (toℕ-index-++⁺ʳ (map (inject+ nA) (range nB))
-                              (∈-map⁺ (raise nB) (range-covers nA x)))
-                    (cong (length (map (inject+ nA) (range nB)) +_)
-                          (trans (cong toℕ (∈-map⁺-index-cast (raise nB)
+                    (trans (toℕ-index-++⁺ʳ (map (_↑ˡ nA) (range nB))
+                              (∈-map⁺ (nB ↑ʳ_) (range-covers nA x)))
+                    (cong (length (map (_↑ˡ nA) (range nB)) +_)
+                          (trans (cong toℕ (∈-map⁺-index-cast (nB ↑ʳ_)
                                                               (raise-inj _)
                                                               (range-covers nA x)))
                           (trans (toℕ-cast _ _)
                                  (toℕ-index-range-covers nA x)))))
 
-      g-side-toℕ : toℕ (index mirror-in-G) ≡ length (map (raise nA) (range nB)) + toℕ x
-      g-side-toℕ = trans (toℕ-index-++⁺ʳ (map (raise nA) (range nB))
-                           (∈-map⁺ (inject+ nB) (range-covers nA x)))
-                   (cong (length (map (raise nA) (range nB)) +_)
-                         (trans (cong toℕ (∈-map⁺-index-cast (inject+ nB)
+      g-side-toℕ : toℕ (index mirror-in-G) ≡ length (map (nA ↑ʳ_) (range nB)) + toℕ x
+      g-side-toℕ = trans (toℕ-index-++⁺ʳ (map (nA ↑ʳ_) (range nB))
+                           (∈-map⁺ (_↑ˡ nB) (range-covers nA x)))
+                   (cong (length (map (nA ↑ʳ_) (range nB)) +_)
+                         (trans (cong toℕ (∈-map⁺-index-cast (_↑ˡ nB)
                                                              (inject+-inj _)
                                                              (range-covers nA x)))
                          (trans (toℕ-cast _ _)
                                 (toℕ-index-range-covers nA x))))
 
       -- The two lengths coincide (both nB).
-      len-eq : length (map (inject+ nA) (range nB)) ≡ length (map (raise nA) (range nB))
-      len-eq = trans (length-map (inject+ nA) (range nB))
-                     (sym (length-map (raise nA) (range nB)))
+      len-eq : length (map (_↑ˡ nA) (range nB)) ≡ length (map (nA ↑ʳ_) (range nB))
+      len-eq = trans (length-map (_↑ˡ nA) (range nB))
+                     (sym (length-map (nA ↑ʳ_) (range nB)))
 
       cast-k≡mirror : g-idx ≡ index mirror-in-G
       cast-k≡mirror = Fin-toℕ-injective
@@ -920,25 +920,25 @@ module σ∘σ-proof (A B : ObjTerm) where
 
   remapP-kcod-raise-nB
     : ∀ (x : Fin nA)
-    → hCP.remapP (raise nB x) ≡ inject+ (count-non K.dom) (inject+ nB x)
+    → hCP.remapP (nB ↑ʳ x) ≡ (x ↑ˡ nB) ↑ˡ count-non K.dom
   remapP-kcod-raise-nB x =
     trans (remapP-via-member v∈K-dom)
-          (cong (inject+ (count-non K.dom)) (lookup-cod-raise-nB x))
+          (cong (_↑ˡ count-non K.dom) (lookup-cod-raise-nB x))
     where
-      v∈K-dom : raise nB x ∈ K.dom
-      v∈K-dom = ∈-++⁺ʳ (map (inject+ nA) (range nB))
-                       (∈-map⁺ (raise nB) (range-covers nA x))
+      v∈K-dom : nB ↑ʳ x ∈ K.dom
+      v∈K-dom = ∈-++⁺ʳ (map (_↑ˡ nA) (range nB))
+                       (∈-map⁺ (nB ↑ʳ_) (range-covers nA x))
 
   remapP-kcod-inject+-nA
     : ∀ (y : Fin nB)
-    → hCP.remapP (inject+ nA y) ≡ inject+ (count-non K.dom) (raise nA y)
+    → hCP.remapP (y ↑ˡ nA) ≡ (nA ↑ʳ y) ↑ˡ count-non K.dom
   remapP-kcod-inject+-nA y =
     trans (remapP-via-member v∈K-dom)
-          (cong (inject+ (count-non K.dom)) (lookup-cod-inject+-nA y))
+          (cong (_↑ˡ count-non K.dom) (lookup-cod-inject+-nA y))
     where
-      v∈K-dom : inject+ nA y ∈ K.dom
-      v∈K-dom = ∈-++⁺ˡ {ys = map (raise nB) (range nA)}
-                      (∈-map⁺ (inject+ nA) (range-covers nB y))
+      v∈K-dom : y ↑ˡ nA ∈ K.dom
+      v∈K-dom = ∈-++⁺ˡ {ys = map (nB ↑ʳ_) (range nA)}
+                      (∈-map⁺ (_↑ˡ nA) (range-covers nB y))
 
   -- With the per-element reductions, φ-cod is a direct map-chase
   -- analogous to φ-dom.
@@ -948,28 +948,28 @@ module σ∘σ-proof (A B : ObjTerm) where
       -- Unfold C.cod = map remapP K.cod.  K.cod = raise-half ++ inject+-half.
       (trans (sym (map-∘ K.cod))
              (map-++ (λ v → φ (hCP.remapP v))
-                     (map (raise nB) (range nA))
-                     (map (inject+ nA) (range nB))))
-    -- Left half: raise nB x ↦ inject+ (hId B).nV (cast eq-A x) after all reductions.
+                     (map (nB ↑ʳ_) (range nA))
+                     (map (_↑ˡ nA) (range nB))))
+    -- Left half: nB ↑ʳ x ↦ cast eq-A x ↑ˡ (hId B).nV after all reductions.
     (cong₂ _++_
       (trans (sym (map-∘ (range nA)))
       (trans (map-cong
                 (λ x → trans (cong φ (remapP-kcod-raise-nB x))
-                             (φ-injL-red (inject+ nB x)))
+                             (φ-injL-red (x ↑ˡ nB)))
                 (range nA))
       (trans (map-cong (cast-inject+-cong₂ eq-A eq-B) (range nA))
       (trans (map-∘ (range nA))
-             (cong (map (inject+ (Hypergraph.nV (hId B))))
+             (cong (map (_↑ˡ Hypergraph.nV (hId B)))
                    (trans (map-cast-range eq-A) (sym (hId-cod≡range A))))))))
-      -- Right half: inject+ nA y ↦ raise (hId A).nV (cast eq-B y).
+      -- Right half: y ↑ˡ nA ↦ (hId A).nV ↑ʳ cast eq-B y.
       (trans (sym (map-∘ (range nB)))
       (trans (map-cong
                 (λ y → trans (cong φ (remapP-kcod-inject+-nA y))
-                             (φ-injL-red (raise nA y)))
+                             (φ-injL-red (nA ↑ʳ y)))
                 (range nB))
       (trans (map-cong (cast-raise-cong₂ eq-A eq-B) (range nB))
       (trans (map-∘ (range nB))
-             (cong (map (raise (Hypergraph.nV (hId A))))
+             (cong (map (Hypergraph.nV (hId A) ↑ʳ_))
                    (trans (map-cast-range eq-B) (sym (hId-cod≡range B))))))))))
 
   ψ-ein  : ∀ e → R.ein  (ψ e) ≡ map φ (C.ein  e)

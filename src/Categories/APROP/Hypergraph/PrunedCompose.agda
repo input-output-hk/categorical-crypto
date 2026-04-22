@@ -34,8 +34,8 @@ open import Categories.APROP.Hypergraph.FromAPROP sig
 open import Categories.APROP.Hypergraph.Prune
   using (count-non; nonMem; classify; remap; remap-vlab; map-via-remap)
 
-open import Data.Fin using (Fin; zero; suc; inject+; raise; splitAt; cast)
-open import Data.Fin.Properties using (splitAt-inject+; splitAt-raise)
+open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt; cast)
+open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
 open import Data.List using (List; []; _∷_; length; map; lookup)
 open import Data.List.Properties using (length-map; map-cong; map-∘)
 open import Data.Nat using (ℕ; _+_)
@@ -121,10 +121,10 @@ module hComposeP-impl
 
   -- Injection of G-side vertices into the pruned composite.
   injL : Fin G.nV → Fin nV-P
-  injL i = inject+ (count-non K.dom) i
+  injL i = i ↑ˡ count-non K.dom
 
   vlab-injL : ∀ i → vlab-P (injL i) ≡ G.vlab i
-  vlab-injL i = cong [ G.vlab , λ-pruned ]′ (splitAt-inject+ G.nV (count-non K.dom) i)
+  vlab-injL i = cong [ G.vlab , λ-pruned ]′ (splitAt-↑ˡ G.nV i (count-non K.dom))
 
   --------------------------------------------------------------------------------
   -- Boundary agreement and the key label lemma for remapP.
@@ -179,53 +179,53 @@ module hComposeP-impl
   -- at inject+ / raise inputs.
 
   ein-c-inj₁-red : ∀ (eG : Fin G.nE)
-                 → ein-c (inject+ K.nE eG) ≡ map injL (G.ein eG)
-  ein-c-inj₁-red eG with splitAt G.nE (inject+ K.nE eG)
-                         | splitAt-inject+ G.nE K.nE eG
+                 → ein-c (eG ↑ˡ K.nE) ≡ map injL (G.ein eG)
+  ein-c-inj₁-red eG with splitAt G.nE (eG ↑ˡ K.nE)
+                         | splitAt-↑ˡ G.nE eG K.nE
   ... | .(inj₁ eG)      | refl = refl
 
   eout-c-inj₁-red : ∀ (eG : Fin G.nE)
-                  → eout-c (inject+ K.nE eG) ≡ map injL (G.eout eG)
-  eout-c-inj₁-red eG with splitAt G.nE (inject+ K.nE eG)
-                          | splitAt-inject+ G.nE K.nE eG
+                  → eout-c (eG ↑ˡ K.nE) ≡ map injL (G.eout eG)
+  eout-c-inj₁-red eG with splitAt G.nE (eG ↑ˡ K.nE)
+                          | splitAt-↑ˡ G.nE eG K.nE
   ... | .(inj₁ eG)       | refl = refl
 
   ein-c-inj₂-red : ∀ (eK : Fin K.nE)
-                 → ein-c (raise G.nE eK) ≡ map remapP (K.ein eK)
-  ein-c-inj₂-red eK with splitAt G.nE (raise G.nE eK)
-                         | splitAt-raise G.nE K.nE eK
+                 → ein-c (G.nE ↑ʳ eK) ≡ map remapP (K.ein eK)
+  ein-c-inj₂-red eK with splitAt G.nE (G.nE ↑ʳ eK)
+                         | splitAt-↑ʳ G.nE K.nE eK
   ... | .(inj₂ eK)      | refl = refl
 
   eout-c-inj₂-red : ∀ (eK : Fin K.nE)
-                  → eout-c (raise G.nE eK) ≡ map remapP (K.eout eK)
-  eout-c-inj₂-red eK with splitAt G.nE (raise G.nE eK)
-                          | splitAt-raise G.nE K.nE eK
+                  → eout-c (G.nE ↑ʳ eK) ≡ map remapP (K.eout eK)
+  eout-c-inj₂-red eK with splitAt G.nE (G.nE ↑ʳ eK)
+                          | splitAt-↑ʳ G.nE K.nE eK
   ... | .(inj₂ eK)       | refl = refl
 
   elab-c-inj₁ : ∀ (eG : Fin G.nE)
               → subst₂ FlatGen
                   (cong (map vlab-P) (ein-c-inj₁-red eG))
                   (cong (map vlab-P) (eout-c-inj₁-red eG))
-                  (elab-c (inject+ K.nE eG))
+                  (elab-c (eG ↑ˡ K.nE))
               ≡ subst₂ FlatGen
                   (map-via-inj vlab-injL (G.ein eG))
                   (map-via-inj vlab-injL (G.eout eG))
                   (G.elab eG)
-  elab-c-inj₁ eG with splitAt G.nE (inject+ K.nE eG)
-                      | splitAt-inject+ G.nE K.nE eG
+  elab-c-inj₁ eG with splitAt G.nE (eG ↑ˡ K.nE)
+                      | splitAt-↑ˡ G.nE eG K.nE
   ... | .(inj₁ eG)   | refl = refl
 
   elab-c-inj₂ : ∀ (eK : Fin K.nE)
               → subst₂ FlatGen
                   (cong (map vlab-P) (ein-c-inj₂-red eK))
                   (cong (map vlab-P) (eout-c-inj₂-red eK))
-                  (elab-c (raise G.nE eK))
+                  (elab-c (G.nE ↑ʳ eK))
               ≡ subst₂ FlatGen
                   (map-via-remapP (K.ein eK))
                   (map-via-remapP (K.eout eK))
                   (K.elab eK)
-  elab-c-inj₂ eK with splitAt G.nE (raise G.nE eK)
-                      | splitAt-raise G.nE K.nE eK
+  elab-c-inj₂ eK with splitAt G.nE (G.nE ↑ʳ eK)
+                      | splitAt-↑ʳ G.nE K.nE eK
   ... | .(inj₂ eK)   | refl = refl
 
 --------------------------------------------------------------------------------
