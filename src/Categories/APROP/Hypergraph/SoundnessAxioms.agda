@@ -196,13 +196,33 @@ module idˡ-proof {A B : ObjTerm} (f : HomTerm A B) where
                   (map-id G.dom)))
 
   -- C.cod = map remapP K.cod. Need: G.cod ≡ map φ (map remapP K.cod).
-  -- Since K = hId B, K.cod is structured. For remapP on K.cod, every
-  -- K.cod vertex is in K.dom (hId-cod-covers), so remapP sends to
-  -- inject+ of lookup-cod. Then φ strips to the G-side.
-  -- Tricky — requires `classify (hId A).dom v ≡ inj₁ (...)` reasoning
-  -- and a lemma about G.cod recovery. Postulated.
+  --
+  -- Proof strategy via equational reasoning (avoiding subst chains):
+  --   G.cod
+  --     ≡⟨ sym (map-id G.cod) ⟩
+  --   map id G.cod
+  --     ≡⟨ sym (map-cong φ-rght G.cod) ⟩
+  --   map (φ ∘ φ⁻¹) G.cod
+  --     ≡⟨ map-∘ G.cod ⟩
+  --   map φ (map φ⁻¹ G.cod)
+  --     ≡⟨ cong (map φ) idˡ-cod-helper ⟩   -- hId-specific helper
+  --   map φ C.cod
+  --     ∎
+  -- where `idˡ-cod-helper : map φ⁻¹ G.cod ≡ C.cod`.
+  --
+  -- The helper relies on the hId-specific fact that `remapP` on K.cod
+  -- values yields `inject+ (count-non K.dom) (cast-of-G.cod[j])`, which
+  -- equals `φ⁻¹ (G.cod[j])` when cast is identity (hId's K.cod lines
+  -- up with G.cod structurally). This needs induction on B.
   postulate
-    φ-cod : G.cod ≡ map φ C.cod
+    idˡ-cod-helper : map φ⁻¹ G.cod ≡ C.cod
+
+  φ-cod : G.cod ≡ map φ C.cod
+  φ-cod =
+    trans (sym (map-id G.cod))
+    (trans (sym (map-cong φ-rght G.cod))
+    (trans (map-∘ G.cod)
+           (cong (map φ) idˡ-cod-helper)))
 
   ------------------------------------------------------------------------------
   -- Atom-list equalities.
