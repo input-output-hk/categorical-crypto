@@ -143,3 +143,53 @@ module hComposeP-impl
   map-via-remapP : (xs : List (Fin K.nV))
                  → map K.vlab xs ≡ map vlab-P (map remapP xs)
   map-via-remapP = map-via-remap K.dom lookup-cod K.vlab G.vlab bdy-pt
+
+  --------------------------------------------------------------------------------
+  -- Edge structure of the composite.
+  --
+  -- Same shape as `FromAPROP.hCompose-impl`: G-edges routed through injL,
+  -- K-edges routed through remapP.
+
+  ein-c : Fin (G.nE + K.nE) → List (Fin nV-P)
+  ein-c e = [ (λ eG → map injL (G.ein eG))
+            , (λ eK → map remapP (K.ein eK))
+            ]′ (splitAt G.nE e)
+
+  eout-c : Fin (G.nE + K.nE) → List (Fin nV-P)
+  eout-c e = [ (λ eG → map injL (G.eout eG))
+             , (λ eK → map remapP (K.eout eK))
+             ]′ (splitAt G.nE e)
+
+  elab-c : (e : Fin (G.nE + K.nE))
+         → FlatGen (map vlab-P (ein-c e)) (map vlab-P (eout-c e))
+  elab-c e with splitAt G.nE e
+  ... | inj₁ eG = subst₂ FlatGen
+                    (map-via-inj vlab-injL (G.ein eG))
+                    (map-via-inj vlab-injL (G.eout eG))
+                    (G.elab eG)
+  ... | inj₂ eK = subst₂ FlatGen
+                    (map-via-remapP (K.ein eK))
+                    (map-via-remapP (K.eout eK))
+                    (K.elab eK)
+
+--------------------------------------------------------------------------------
+-- The pruned cospan composition.
+
+hComposeP : ∀ {As Bs Cs} → Hypergraph FlatGen As Bs → Hypergraph FlatGen Bs Cs
+          → Hypergraph FlatGen As Cs
+hComposeP {As} {Bs} {Cs} G K = record
+  { nV = nV-P
+  ; vlab = vlab-P
+  ; nE = G.nE + K.nE
+  ; ein = ein-c
+  ; eout = eout-c
+  ; elab = elab-c
+  ; dom = map injL G.dom
+  ; cod = map remapP K.cod
+  ; dom-ok = trans (sym (map-via-inj vlab-injL G.dom)) G.dom-ok
+  ; cod-ok = trans (sym (map-via-remapP K.cod)) K.cod-ok
+  }
+  where
+    module G = Hypergraph G
+    module K = Hypergraph K
+    open hComposeP-impl G K
