@@ -532,3 +532,25 @@ length-range (suc n) = cong suc
   where
     import Data.Fin as Fin
     open import Data.List.Properties using (length-map)
+
+-- `range n ≡ allFin n`. The two enumerations of Fin n are the same
+-- list. Enables using stdlib's allFin/tabulate/lookup machinery on
+-- `range`-generated lists.
+
+private
+  open import Data.List using (allFin)
+  import Data.Fin as FinMod
+  open import Data.List.Properties using (map-tabulate)
+
+  range≡allFin : ∀ n → range n ≡ allFin n
+  range≡allFin zero    = refl
+  range≡allFin (suc n) = cong (zero ∷_)
+    (trans (cong (map FinMod.suc) (range≡allFin n))
+           (map-tabulate (λ i → i) FinMod.suc))
+
+-- Public alias (kept private to avoid polluting the outer namespace
+-- with `allFin` / `map-tabulate`; call sites that need this can
+-- import it explicitly).
+range≡allFin-pub : ∀ n → range n ≡ allFin n
+range≡allFin-pub = range≡allFin
+  where open import Data.List using (allFin)
