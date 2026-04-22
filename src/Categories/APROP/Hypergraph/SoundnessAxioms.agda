@@ -50,7 +50,7 @@ open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Nat.Properties using (+-identityʳ)
 open import Data.Sum using ([_,_]′; inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; sym; trans; subst; subst₂; module ≡-Reasoning)
+  using (_≡_; refl; cong; cong₂; sym; trans; subst; subst₂; module ≡-Reasoning)
 
 --------------------------------------------------------------------------------
 -- `idˡ`: `id ∘ f ≈Term f`.
@@ -449,24 +449,173 @@ postulate
 -- ⟪ σ ∘ σ ⟫ = hComposeP (hSwap A B) (hSwap B A).
 -- ⟪ id {A ⊗₀ B} ⟫ = hId (A ⊗₀ B) = hTensor (hId A) (hId B).
 --
--- STRUCTURE:
---   * hSwap A B and hSwap B A both have zero edges, so all "ψ-related"
---     fields (ψ, ψ⁻¹, ψ-left, ψ-rght, ψ-ein, ψ-eout, atom-ein,
---     atom-eout, ψ-elab) are absurd.
---   * `K = hSwap B A` has `dom-covers` (`hSwap-dom-covers`), so
---     `count-non K.dom ≡ 0` (`hSwap-count-non-dom`). Hence
---     `C.nV = G.nV + 0` (structurally identical to idˡ's vertex story).
---   * φ-lab, φ-dom, φ-cod: use `hId-vlab-lookup` + `hId-dom≡range` +
---     `hId-cod≡range` to bridge hSwap's `range`-based structures to
---     hTensor (hId _)'s recursive structures.
---
--- NOTE: the φ-lab, φ-dom, φ-cod fields each require a `splitAt` /
--- `cast` commutation lemma that hasn't been proved yet. Each such
--- lemma is one or two lines of `toℕ-injective` machinery; documented
--- as POSTULATE below for clarity on what's blocking full discharge.
+-- Structural ingredients (all proved in Invariant):
+--   * hSwap-count-non-dom: count-non K.dom ≡ 0 (K = hSwap B A covers).
+--   * hSwap-nE:            hSwap has no edges.
+--   * hId-vlab-lookup:     (hId A).vlab i ≡ lookup (flatten A) (cast _ i).
+--   * hId-dom≡range:       (hId A).dom ≡ range (hId A).nV.
+--   * hId-cod≡range:       (hId A).cod ≡ range (hId A).nV.
+--   * splitAt-cast:        splitAt m' (cast (cong₂ _+_ eq-m eq-n) i)
+--                          commutes with splitAt m i.
+--   * hId-nV≡len-flatten:  (hId A).nV ≡ length (flatten A).
 
-postulate
-  σ∘σ-sound : ∀ {A B} → ⟪ σ {B} {A} ∘ σ {A} {B} ⟫ ≅ᴴ ⟪ id {A ⊗₀ B} ⟫
+module σ∘σ-proof (A B : ObjTerm) where
+  private
+    nA  = length (flatten A)
+    nB  = length (flatten B)
+
+    G = hSwap A B
+    K = hSwap B A
+    C = hComposeP G K
+    R = hTensor (hId A) (hId B)  -- = hId (A ⊗₀ B)
+
+    module G = Hypergraph G
+    module K = Hypergraph K
+    module C = Hypergraph C
+    module R = Hypergraph R
+    module hCP = hComposeP-impl G K
+
+    -- Key structural facts.
+    cn≡0 : count-non K.dom ≡ 0
+    cn≡0 = hSwap-count-non-dom B A
+
+    C-nE≡0 : C.nE ≡ 0
+    C-nE≡0 = refl   -- G.nE + K.nE = 0 + 0 = 0
+
+    R-nE≡0 : R.nE ≡ 0
+    R-nE≡0 = hId-nE (A ⊗₀ B)   -- induction on A ⊗₀ B
+
+    -- Vertex count: C.nV = (nA + nB) + count-non K.dom.  R.nV = nA-id + nB-id.
+    -- After reducing count-non via cn≡0, both are propositionally equal.
+    eq-A : nA ≡ Hypergraph.nV (hId A)
+    eq-A = sym (hId-nV≡len-flatten A)
+
+    eq-B : nB ≡ Hypergraph.nV (hId B)
+    eq-B = sym (hId-nV≡len-flatten B)
+
+    eq-nV-GR : nA + nB ≡ R.nV
+    eq-nV-GR = cong₂ _+_ eq-A eq-B
+
+  ------------------------------------------------------------------------------
+  -- Vertex bijection.
+
+  -- C.nV = G.nV + count-non K.dom = (nA + nB) + count-non K.dom.
+  -- We split v by splitAt G.nV = splitAt (nA + nB), with the K-pruned
+  -- side absurd (cn≡0).
+  φ : Fin C.nV → Fin R.nV
+  φ v with splitAt G.nV v
+  ... | inj₁ i = cast eq-nV-GR i
+  ... | inj₂ j = ⊥-elim (Fin-zero-absurd cn≡0 j)
+
+  φ⁻¹ : Fin R.nV → Fin C.nV
+  φ⁻¹ i = inject+ (count-non K.dom) (cast (sym eq-nV-GR) i)
+
+  open import Data.Fin.Properties using (splitAt⁻¹-↑ˡ; cast-is-id; cast-trans)
+
+  φ-left : ∀ v → φ⁻¹ (φ v) ≡ v
+  φ-left v with splitAt G.nV v in eq
+  ... | inj₁ i =
+    -- φ⁻¹ (cast eq-nV-GR i) = inject+ _ (cast (sym eq-nV-GR) (cast eq-nV-GR i))
+    --                      = inject+ _ i  (by cast-is-id + cast-trans)
+    --                      = v  (by splitAt⁻¹-↑ˡ eq)
+    trans (cong (inject+ (count-non K.dom))
+                (trans (cast-trans eq-nV-GR (sym eq-nV-GR) i)
+                       (cast-is-id (trans eq-nV-GR (sym eq-nV-GR)) i)))
+          (splitAt⁻¹-↑ˡ eq)
+  ... | inj₂ j = ⊥-elim (Fin-zero-absurd cn≡0 j)
+
+  φ-rght : ∀ i → φ (φ⁻¹ i) ≡ i
+  φ-rght i
+    rewrite splitAt-inject+ G.nV (count-non K.dom) (cast (sym eq-nV-GR) i)
+    = trans (cast-trans (sym eq-nV-GR) eq-nV-GR i)
+            (cast-is-id (trans (sym eq-nV-GR) eq-nV-GR) i)
+
+  ------------------------------------------------------------------------------
+  -- Edge bijection: both sides have no edges. All absurd.
+
+  absurd-CE : ∀ {ℓ} {X : Set ℓ} → Fin C.nE → X
+  absurd-CE e = ⊥-elim (Fin-zero-absurd C-nE≡0 e)
+
+  absurd-RE : ∀ {ℓ} {X : Set ℓ} → Fin R.nE → X
+  absurd-RE e = ⊥-elim (Fin-zero-absurd R-nE≡0 e)
+
+  ψ : Fin C.nE → Fin R.nE
+  ψ e = absurd-CE e
+
+  ψ⁻¹ : Fin R.nE → Fin C.nE
+  ψ⁻¹ e = absurd-RE e
+
+  ψ-left : ∀ e → ψ⁻¹ (ψ e) ≡ e
+  ψ-left e = absurd-CE e
+
+  ψ-rght : ∀ e → ψ (ψ⁻¹ e) ≡ e
+  ψ-rght e = absurd-RE e
+
+  ------------------------------------------------------------------------------
+  -- Label preservation.
+  --
+  -- For v with splitAt G.nV v = inj₁ i:
+  --   C.vlab v = G.vlab i = (hSwap A B).vlab i
+  --            = [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt nA i)
+  --   R.vlab (φ v) = R.vlab (cast eq-nV-GR i)
+  --                = [ (hId A).vlab , (hId B).vlab ]′
+  --                     (splitAt (hId A).nV (cast eq-nV-GR i))
+  -- Using `splitAt-cast` we relate splitAt (hId A).nV (cast _ i) to
+  -- `splitAt nA i` with casts on each branch. Then `hId-vlab-lookup`
+  -- on each branch closes the gap.
+
+  ------------------------------------------------------------------------------
+  -- φ-lab, φ-dom, φ-cod remain postulated: each unwinds the `cast` and
+  -- `splitAt-cast` commutations against hSwap's `lookup (flatten _)`
+  -- structure vs hTensor (hId _)'s recursive structure. Follows the
+  -- same pattern as the `hId-vlab-lookup` proof but with an extra
+  -- layer of splitAt-reasoning.
+
+  postulate
+    φ-lab-done : ∀ v → R.vlab (φ v) ≡ C.vlab v
+    φ-dom      : R.dom ≡ map φ C.dom
+    φ-cod      : R.cod ≡ map φ C.cod
+
+  ψ-ein  : ∀ e → R.ein  (ψ e) ≡ map φ (C.ein  e)
+  ψ-ein  e = absurd-CE e
+  ψ-eout : ∀ e → R.eout (ψ e) ≡ map φ (C.eout e)
+  ψ-eout e = absurd-CE e
+
+  atom-ein  : ∀ e → map R.vlab (R.ein  (ψ e)) ≡ map C.vlab (C.ein  e)
+  atom-ein  e = absurd-CE e
+  atom-eout : ∀ e → map R.vlab (R.eout (ψ e)) ≡ map C.vlab (C.eout e)
+  atom-eout e = absurd-CE e
+
+  ψ-elab
+    : ∀ e → subst₂ FlatGen (atom-ein e) (atom-eout e) (R.elab (ψ e))
+          ≡ C.elab e
+  ψ-elab e = absurd-CE e
+
+  ------------------------------------------------------------------------------
+  -- Assembled iso.
+
+  σ∘σ-iso : C ≅ᴴ R
+  σ∘σ-iso = record
+    { φ         = φ
+    ; φ⁻¹       = φ⁻¹
+    ; φ-left    = φ-left
+    ; φ-rght    = φ-rght
+    ; ψ         = ψ
+    ; ψ⁻¹       = ψ⁻¹
+    ; ψ-left    = ψ-left
+    ; ψ-rght    = ψ-rght
+    ; φ-lab     = φ-lab-done
+    ; ψ-ein     = ψ-ein
+    ; ψ-eout    = ψ-eout
+    ; φ-dom     = φ-dom
+    ; φ-cod     = φ-cod
+    ; atom-ein  = atom-ein
+    ; atom-eout = atom-eout
+    ; ψ-elab    = ψ-elab
+    }
+
+σ∘σ-sound : ∀ {A B} → ⟪ σ {B} {A} ∘ σ {A} {B} ⟫ ≅ᴴ ⟪ id {A ⊗₀ B} ⟫
+σ∘σ-sound {A} {B} = σ∘σ-proof.σ∘σ-iso A B
 
 --------------------------------------------------------------------------------
 -- Dispatch: replace soundness-axiom calls that match these axioms

@@ -72,7 +72,7 @@ open import Categories.APROP.Hypergraph.Iso
 open import Categories.APROP.Hypergraph.Congruence sig using (hTensor-resp-≅ᴴ)
 open import Categories.APROP.Hypergraph.CongruenceP sig using (hComposeP-resp-≅ᴴ)
 open import Categories.APROP.Hypergraph.SoundnessAxioms sig
-  using (idˡ-sound; λ⇐∘λ⇒-sound; λ⇒∘λ⇐-sound)
+  using (idˡ-sound; λ⇐∘λ⇒-sound; λ⇒∘λ⇐-sound; σ∘σ-sound)
 open import Categories.APROP.Hypergraph.HomTermInvariant sig
   using (⟪_⟫-dom-unique)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
@@ -113,10 +113,11 @@ soundness (⊗-resp-≈ pf pg)    = hTensor-resp-≅ᴴ (soundness pf) (soundnes
 soundness id⊗id≈id            = refl-≅ᴴ _
 
 -- Atomic axioms discharged from SoundnessAxioms (modulo internal
--- postulates for the last 2 fields of each iso).
+-- postulates for the last 2-3 fields of each iso).
 soundness (idˡ {f = f})           = idˡ-sound f
 soundness (λ⇐∘λ⇒≈id {A = A})      = λ⇐∘λ⇒-sound {A}
 soundness (λ⇒∘λ⇐≈id {A = A})      = λ⇒∘λ⇐-sound {A}
+soundness (σ∘σ≈id {A = A} {B = B}) = σ∘σ-sound {A} {B}
 
 -- Atomic axioms still using catch-all. See module header for the
 -- classification.
