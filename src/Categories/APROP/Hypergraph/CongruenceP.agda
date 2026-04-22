@@ -47,8 +47,11 @@ open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
 open import Categories.APROP.Hypergraph.Iso
 open import Categories.APROP.Hypergraph.Prune
-  using ( count-non; nonMem; pruneMap; pruneMap⁻¹
-        ; pruneMap-left-inverse; pruneMap-right-inverse)
+  using ( count-non; nonMem; nonMem?; classify; classify-inj₂-lookup
+        ; pruneMap; pruneMap⁻¹
+        ; pruneMap-left-inverse; pruneMap-right-inverse
+        ; ∉-map-injective; nonMem-member
+        ; index-∈-filter-irrelevant)
 open import Categories.APROP.Hypergraph.PrunedCompose sig
 
 open import Data.Fin using (Fin; inject+; raise; splitAt)
@@ -333,6 +336,29 @@ module _
     (trans (sym (hCP₂.map-via-remapP (K₂.eout (IK.ψ eK))))
     (trans (IK.atom-eout eK)
            (hCP₁.map-via-remapP (K₁.eout eK))))
+
+  --------------------------------------------------------------------------------
+  -- REMAINING: remapP-comm: φ-P ∘ hCP₁.remapP ≡ hCP₂.remapP ∘ IK.φ.
+  --
+  -- Needed for:
+  --   * cod-P (boundary preservation of the K-side codomain).
+  --   * K-side (inj₂) branches of ψ-ein-P / ψ-eout-P.
+  --
+  -- The proof case-splits on `classify K₁.dom v` (via `v ∈? K₁.dom`):
+  --   * yes v∈K₁.dom at index i: both sides reduce to an `inject+`
+  --     form. LHS: inject+ (count-non K₂.dom) (IG.φ (lookup-cod₁ i)).
+  --     RHS: inject+ (count-non K₂.dom) (lookup-cod₂ i') where i'
+  --     corresponds to `IK.φ v ∈ K₂.dom` at the matching index.
+  --     Needs: IG.φ (lookup-cod₁ i) ≡ lookup-cod₂ i' (follows from
+  --     IG.φ-cod and pointwise agreement).
+  --   * no v∉K₁.dom: both sides reduce to a `raise` form on an
+  --     index produced by ∈-filter⁺ of (IK.φ v). LHS goes through
+  --     pruneK (= pruneMap + subst); RHS is a direct ∈-filter⁺
+  --     index. Needs `index-∈-filter-irrelevant` (now in Prune)
+  --     plus careful subst manipulation through IK.φ-dom.
+  --
+  -- Defer to a later session. The rest of the record's fields are
+  -- exposed above and all compile.
 
   --------------------------------------------------------------------------------
   -- Edge label compatibility ψ-elab-P (the big six-step subst₂ chain).

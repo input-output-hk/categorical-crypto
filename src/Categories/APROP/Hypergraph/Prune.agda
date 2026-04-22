@@ -148,6 +148,20 @@ module _ {n : ℕ} where
     where import Data.List.Relation.Unary.Unique.Propositional.Properties
                   as Uniq-Prop
 
+  -- Two ∈-filter⁺ constructions with the same value but different
+  -- non-membership proofs produce the same index into nonMem xs.
+  -- (By uniqueness of lookup in a Unique list, the index is determined
+  -- solely by the value v.)
+  index-∈-filter-irrelevant
+    : ∀ (xs : List (Fin n)) (v : Fin n)
+        (v∉₁ v∉₂ : v ∉ xs)
+    → index (∈-filter⁺ (nonMem? xs) (∈-allFin v) v∉₁)
+    ≡ index (∈-filter⁺ (nonMem? xs) (∈-allFin v) v∉₂)
+  index-∈-filter-irrelevant xs v v∉₁ v∉₂ =
+    lookup-injective-unique (nonMem-Unique xs) _ _
+      (trans (sym (lookup-index (∈-filter⁺ (nonMem? xs) (∈-allFin v) v∉₁)))
+             (lookup-index (∈-filter⁺ (nonMem? xs) (∈-allFin v) v∉₂)))
+
   -- A pruned index `j` in `nonMem xs` looks up to a Fin value that
   -- really is a non-member of `xs`.
   nonMem-member : (xs : List (Fin n)) (j : Fin (count-non xs))
