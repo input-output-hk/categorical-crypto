@@ -389,3 +389,23 @@ subst₂-resp-≅ᴴ
     → G ≅ᴴ K
     → subst₂ (Hypergraph Gen) eq₁ eq₂ G ≅ᴴ subst₂ (Hypergraph Gen) eq₁ eq₂ K
 subst₂-resp-≅ᴴ refl refl iso = iso
+
+--------------------------------------------------------------------------------
+-- Hypergraph record-field projections commute with `subst₂` on the
+-- boundary type indices (since none of `nV`, `vlab`, `nE`, `ein`,
+-- `eout`, `elab`, `dom`, `cod` depend on `As` or `Bs`). Each is a
+-- refl-refl pattern match.
+
+module _ {X : Set} {Gen : List X → List X → Set} where
+
+  nV-subst₂
+    : ∀ {As Bs As' Bs'} (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
+      (H : Hypergraph Gen As Bs)
+    → Hypergraph.nV (subst₂ (Hypergraph Gen) eq₁ eq₂ H) ≡ Hypergraph.nV H
+  nV-subst₂ refl refl H = refl
+
+  nE-subst₂
+    : ∀ {As Bs As' Bs'} (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
+      (H : Hypergraph Gen As Bs)
+    → Hypergraph.nE (subst₂ (Hypergraph Gen) eq₁ eq₂ H) ≡ Hypergraph.nE H
+  nE-subst₂ refl refl H = refl
