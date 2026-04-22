@@ -27,7 +27,7 @@
 
 module Categories.APROP.Hypergraph.Prune where
 
-open import Data.Empty using (⊥-elim)
+open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc; inject+; raise; splitAt)
 open import Data.Fin.Properties using (_≟_; splitAt-inject+; splitAt-raise)
 open import Data.List using (List; []; _∷_; length; filter; allFin; lookup; map)
@@ -212,6 +212,33 @@ module _ {n : ℕ} where
         using () renaming (∈-lookup to ∈-lookup-std)
       ∈-lookup-helper : lookup xs j ∈ xs
       ∈-lookup-helper = ∈-lookup-std j
+
+  -- Dual to `classify-lookup-Unique`: for `j : Fin (count-non xs)`,
+  -- `classify xs (lookup (nonMem xs) j) ≡ inj₂ j`. Used by
+  -- `idʳ-sound` to show the "pruned side" of the bijection inverse.
+  classify-lookup-nonMem
+    : (xs : List (Fin n)) (j : Fin (count-non xs))
+    → classify xs (lookup (nonMem xs) j) ≡ inj₂ j
+  classify-lookup-nonMem xs j
+    with lookup (nonMem xs) j ∈? xs
+  -- impossible: lookup (nonMem xs) j is by construction NOT in xs.
+  ... | yes v∈ = ⊥-elim (nonMem-member-helper v∈)
+    where
+      open import Data.List.Membership.Propositional.Properties
+        using (∈-filter⁻; ∈-lookup)
+      open import Data.Product using (proj₂)
+      nonMem-member-helper : lookup (nonMem xs) j ∈ xs → ⊥
+      nonMem-member-helper =
+        proj₂ (∈-filter⁻ (nonMem? xs) {xs = allFin n}
+                         (∈-lookup {xs = nonMem xs} j))
+  ... | no  v∉ = cong inj₂
+    (lookup-injective-unique
+      (nonMem-Unique xs)
+      (index w) j
+      (sym (lookup-index w)))
+    where
+      w : lookup (nonMem xs) j ∈ nonMem xs
+      w = ∈-filter⁺ (nonMem? xs) (∈-allFin (lookup (nonMem xs) j)) v∉
 
   -- A pruned index `j` in `nonMem xs` looks up to a Fin value that
   -- really is a non-member of `xs`.
