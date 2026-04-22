@@ -266,11 +266,22 @@ meantime.
 
        *Pure postulates (structure not yet written):*
        - ~ρ⇐∘ρ⇒~, ~ρ⇒∘ρ⇐~ — ρ variants with ~subst~ through
-         ~++-identityʳ~. Likely need a similar
-         `Unique-subst₂-dom`-style trick or a direct iso.
-       - ~σ∘σ~ — braiding self-inverse via ~hSwap~. Needs
-         `hSwap-dom-covers` + `count-non-zero` lemmas, similar to
-         `hId-count-non-dom` route used in `idˡ`.
+         ~++-identityʳ~. The underlying records are the same as
+         ~hId (A ⊗₀ unit)~ but the outer type indices differ, so
+         the `idˡ ⟪id⟫` reduction only applies after stripping the
+         subst₂. Strategy: either build a `hComposeP-subst₂-inv` bridge
+         (showing `hComposeP (subst G) (subst K) ≅ᴴ hComposeP G K`
+         up to type-index matching) or discharge directly via a full
+         `≅ᴴ` construction that inlines the subst₂s.
+       - ~σ∘σ~ — braiding self-inverse via ~hSwap~. Infrastructure
+         ready: `hSwap-dom-covers`, `hSwap-count-non-dom ≡ 0`
+         (same route as idˡ). Remaining work:
+         * `φ-lab` needs `(hId A).vlab ≡ lookup (flatten A)` pointwise
+           — blocked by `length (xs ++ ys) ≢ length xs + length ys`
+           definitionally; clean form needs a Fin.cast / Vec detour.
+         * `φ-dom`, `φ-cod` need to relate `hSwap.dom/cod` (uses
+           `range`) to `hTensor (hId A) (hId B).dom/cod` (uses
+           `(hId _).dom`). Needs `hId-dom≡range : (hId A).dom ≡ range n`.
 
        *Not yet touched:*
        - ~idʳ~ — needs a `length xs + count-non xs ≡ n` identity
