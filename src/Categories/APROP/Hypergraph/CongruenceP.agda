@@ -604,3 +604,67 @@ module _
     (trans
       (sym (subst₂-trans γ δ γ' δ' (K₂.elab (IK.ψ eK))))
       (cong (subst₂ FlatGen δ δ') (IK.ψ-elab eK))))))
+
+  --------------------------------------------------------------------------------
+  -- List-wise remapP-comm, used for the K-side of ψ-ein-P / ψ-eout-P
+  -- and for cod-P.
+
+  map-remapP-comm : (xs : List (Fin K₁.nV))
+                  → map φ-P (map hCP₁.remapP xs)
+                  ≡ map hCP₂.remapP (map IK.φ xs)
+  map-remapP-comm xs =
+    trans (sym (map-∘ xs))
+    (trans (map-cong remapP-comm xs)
+           (map-∘ xs))
+
+  --------------------------------------------------------------------------------
+  -- Full ψ-ein-P / ψ-eout-P now that we have map-remapP-comm.
+
+  ψ-ein-P : ∀ e → hCP₂.ein-c (ψ-P e) ≡ map φ-P (hCP₁.ein-c e)
+  ψ-ein-P e with splitAt G₁.nE e
+  ... | inj₁ eG rewrite splitAt-inject+ G₂.nE K₂.nE (IG.ψ eG) =
+    trans (cong (map (inject+ (count-non K₂.dom))) (IG.ψ-ein eG))
+          (sym (map-φ-P-injL (G₁.ein eG)))
+  ... | inj₂ eK rewrite splitAt-raise G₂.nE K₂.nE (IK.ψ eK) =
+    trans (cong (map hCP₂.remapP) (IK.ψ-ein eK))
+          (sym (map-remapP-comm (K₁.ein eK)))
+
+  ψ-eout-P : ∀ e → hCP₂.eout-c (ψ-P e) ≡ map φ-P (hCP₁.eout-c e)
+  ψ-eout-P e with splitAt G₁.nE e
+  ... | inj₁ eG rewrite splitAt-inject+ G₂.nE K₂.nE (IG.ψ eG) =
+    trans (cong (map (inject+ (count-non K₂.dom))) (IG.ψ-eout eG))
+          (sym (map-φ-P-injL (G₁.eout eG)))
+  ... | inj₂ eK rewrite splitAt-raise G₂.nE K₂.nE (IK.ψ eK) =
+    trans (cong (map hCP₂.remapP) (IK.ψ-eout eK))
+          (sym (map-remapP-comm (K₁.eout eK)))
+
+  --------------------------------------------------------------------------------
+  -- Codomain preservation.
+
+  cod-P : Hypergraph.cod (hComposeP G₂ K₂)
+        ≡ map φ-P (Hypergraph.cod (hComposeP G₁ K₁))
+  cod-P = trans (cong (map hCP₂.remapP) IK.φ-cod)
+                (sym (map-remapP-comm K₁.cod))
+
+  --------------------------------------------------------------------------------
+  -- Assemble the full hComposeP-resp-≅ᴴ record.
+
+  hComposeP-resp-≅ᴴ : hComposeP G₁ K₁ ≅ᴴ hComposeP G₂ K₂
+  hComposeP-resp-≅ᴴ = record
+    { φ         = φ-P
+    ; φ⁻¹       = φ⁻¹-P
+    ; φ-left    = φ-left-P
+    ; φ-rght    = φ-rght-P
+    ; ψ         = ψ-P
+    ; ψ⁻¹       = ψ⁻¹-P
+    ; ψ-left    = ψ-left-P
+    ; ψ-rght    = ψ-rght-P
+    ; φ-lab     = φ-lab-P
+    ; ψ-ein     = ψ-ein-P
+    ; ψ-eout    = ψ-eout-P
+    ; φ-dom     = dom-P
+    ; φ-cod     = cod-P
+    ; atom-ein  = atom-ein-P
+    ; atom-eout = atom-eout-P
+    ; ψ-elab    = ψ-elab-P
+    }
