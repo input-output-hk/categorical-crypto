@@ -125,5 +125,34 @@ module idˡ-proof {A B : ObjTerm} (f : HomTerm A B) where
   ψ⁻¹ : Fin G.nE → Fin C.nE
   ψ⁻¹ e = inject+ K.nE e
 
-  -- The remaining fields (laws) require more work and are deferred.
-  -- See TODO.org for the plan.
+  ------------------------------------------------------------------------------
+  -- Bijection laws.
+
+  open import Data.Fin.Properties using (splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ)
+
+  φ-left : ∀ v → φ⁻¹ (φ v) ≡ v
+  φ-left v with splitAt G.nV v in eq
+  ... | inj₁ i = splitAt⁻¹-↑ˡ eq
+  ... | inj₂ j = ⊥-elim (Fin-zero-absurd cn≡0 j)
+
+  φ-rght : ∀ i → φ (φ⁻¹ i) ≡ i
+  φ-rght i rewrite splitAt-inject+ G.nV (count-non K.dom) i = refl
+
+  ψ-left : ∀ e → ψ⁻¹ (ψ e) ≡ e
+  ψ-left e with splitAt G.nE e in eq
+  ... | inj₁ eG = splitAt⁻¹-↑ˡ eq
+  ... | inj₂ eK = ⊥-elim (Fin-zero-absurd nE≡0 eK)
+
+  ψ-rght : ∀ e → ψ (ψ⁻¹ e) ≡ e
+  ψ-rght e rewrite splitAt-inject+ G.nE K.nE e = refl
+
+  ------------------------------------------------------------------------------
+  -- Label preservation.
+  --
+  -- G.vlab (φ v) ≡ C.vlab v. On the inj₁ side, both reduce to G.vlab i.
+  -- The inj₂ side is absurd.
+
+  φ-lab : ∀ v → G.vlab (φ v) ≡ C.vlab v
+  φ-lab v with splitAt G.nV v
+  ... | inj₁ i = refl
+  ... | inj₂ j = ⊥-elim (Fin-zero-absurd cn≡0 j)
