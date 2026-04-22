@@ -55,7 +55,7 @@ open import Categories.APROP.Hypergraph.PrunedCompose sig
 open import Data.Fin using (Fin; inject+; raise; splitAt)
 open import Data.Fin.Properties using (splitAt-inject+; splitAt-raise;
                                         splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ)
-open import Data.List using (List; []; _∷_; map)
+open import Data.List using (List; []; _∷_; map; lookup)
 open import Data.Nat using (ℕ; _+_)
 open import Data.Sum using (inj₁; inj₂; [_,_]′)
 open import Relation.Binary.PropositionalEquality
@@ -189,3 +189,50 @@ module _
   ... | inj₂ eK rewrite splitAt-raise G₁.nE K₁.nE (IK.ψ⁻¹ eK)
                       | IK.ψ-rght eK
                     = splitAt⁻¹-↑ʳ eq
+
+  --------------------------------------------------------------------------------
+  -- Label preservation φ-lab-P.
+  --
+  -- vlab-P₂ (φ-P i) ≡ vlab-P₁ i, where vlab-P is the pruned composite's
+  -- labeling `[ G.vlab , λ j → K.vlab (lookup (nonMem K.dom) j) ]′ ∘ splitAt`.
+
+  open import Categories.APROP.Hypergraph.Prune
+    using (pruneMap-left-inverse)
+
+  private
+    vlab-P₁ : Fin (G₁.nV + count-non K₁.dom) → X
+    vlab-P₁ v = [ G₁.vlab , (λ j → K₁.vlab (lookup (nonMem K₁.dom) j)) ]′
+                  (splitAt G₁.nV v)
+
+    vlab-P₂ : Fin (G₂.nV + count-non K₂.dom) → X
+    vlab-P₂ v = [ G₂.vlab , (λ j → K₂.vlab (lookup (nonMem K₂.dom) j)) ]′
+                  (splitAt G₂.nV v)
+
+    -- When we pattern-match on IK.φ-dom as refl (unifying K₂.dom with
+    -- map IK.φ K₁.dom), the subst in pruneK collapses and pruneK
+    -- becomes pruneMap directly.
+    pruneK-lookup : ∀ jK → K₂.vlab (lookup (nonMem K₂.dom) (pruneK jK))
+                         ≡ K₁.vlab (lookup (nonMem K₁.dom) jK)
+    pruneK-lookup jK with K₂.dom | IK.φ-dom
+    ... | ._ | refl =
+      -- After unification: K₂.dom := map IK.φ K₁.dom, pruneK jK := pruneMap ... jK.
+      -- Goal: K₂.vlab (lookup (nonMem (map IK.φ K₁.dom)) (pruneMap ... jK))
+      --    ≡ K₁.vlab (lookup (nonMem K₁.dom) jK)
+      -- Rewrite using lookup-pruneMap: lookup (nonMem (map IK.φ K₁.dom)) (pruneMap ... jK)
+      --                              ≡ IK.φ (lookup (nonMem K₁.dom) jK)
+      -- Then IK.φ-lab: K₂.vlab (IK.φ v) ≡ K₁.vlab v.
+      trans (cong K₂.vlab
+                   (Prune.lookup-pruneMap IK.φ IK-φ-inj K₁.dom jK))
+            (IK.φ-lab (lookup (nonMem K₁.dom) jK))
+      where import Categories.APROP.Hypergraph.Prune as Prune
+
+  φ-lab-P : ∀ i → vlab-P₂ (φ-P i) ≡ vlab-P₁ i
+  φ-lab-P i with splitAt G₁.nV i
+  ... | inj₁ iG =
+    trans (cong [ G₂.vlab , _ ]′
+                 (splitAt-inject+ G₂.nV (count-non K₂.dom) (IG.φ iG)))
+          (IG.φ-lab iG)
+  ... | inj₂ jK =
+    trans (cong [ G₂.vlab , _ ]′
+                 (splitAt-raise G₂.nV (count-non K₂.dom) (pruneK jK)))
+          (pruneK-lookup jK)
