@@ -264,37 +264,11 @@ meantime.
        - ~soundness λ⇐∘λ⇒≈id = λ⇐∘λ⇒-sound~
        - ~soundness λ⇒∘λ⇐≈id = λ⇒∘λ⇐-sound~
 
-       *Pure postulates (structure not yet written):*
-       - ~ρ⇐∘ρ⇒~, ~ρ⇒∘ρ⇐~ — ρ variants with ~subst~ through
-         ~++-identityʳ~. The underlying records are the same as
-         ~hId (A ⊗₀ unit)~ but the outer type indices differ, so
-         the `idˡ ⟪id⟫` reduction only applies after stripping the
-         subst₂. Strategy: either build a `hComposeP-subst₂-inv` bridge
-         (showing `hComposeP (subst G) (subst K) ≅ᴴ hComposeP G K`
-         up to type-index matching) or discharge directly via a full
-         `≅ᴴ` construction that inlines the subst₂s.
-
-       *Fully assembled, 2 focused internal postulates:*
-       - ~σ∘σ-sound~ — the full ≅ᴴ record assembled.  14 fields
-         constructive.  φ-cod proved modulo a `remapP-via-member`
-         helper that in turn reduces to the residual:
-         * ~lookup-cod-raise-nB~ :
-           `hCP.lookup-cod (index (∈-++⁺ʳ _ (∈-map⁺ (raise nB) (range-covers _ x))))
-            ≡ inject+ nB x`
-         * ~lookup-cod-inject+-nA~ :
-           `hCP.lookup-cod (index (∈-++⁺ˡ (∈-map⁺ (inject+ nA) (range-covers _ y))))
-            ≡ raise nA y`
-
-         These are `lookup G.cod (cast dom-cod-len (index ...))` claims
-         that unwind via stdlib's `Data.List.Relation.Unary.Any.Properties`
-         (specifically, `index-∈-++⁺ʳ` / `index-∈-map⁺`-style lemmas, if
-         present, or ad-hoc induction on the `∈-++⁺ʳ` / `∈-map⁺`
-         constructors).  Each is a dedicated ~40-line induction;
-         mechanical but tedious.
-
-         Infrastructure in place:
+       *Fully proved (zero postulates):*
+       - ~σ∘σ-sound~ — **NEW** — all 16 ≅ᴴ fields constructive!
+         Infrastructure used:
          * Classify / remap: `classify-lookup-Unique`, `remap-inj₁`,
-           `lookup-index`, `hSwap-dom-Unique`.
+           `lookup-index`, `hSwap-dom-Unique`, `∈-map⁺-index-cast`.
          * hId bridge: `hId-vlab-lookup`, `hId-dom≡range`,
            `hId-cod≡range`, `hId-nV≡len-flatten`.
          * Cast arithmetic: `splitAt-cast`, `cast-inject+-cong₂`,
@@ -305,12 +279,15 @@ meantime.
            `toℕ-index-range-covers`.
          * Local: `remapP-via-member`, `vlab-via-hId`, `φ-injL-red`.
 
-         The path to finish: for each `lookup-cod-*`, construct the
-         "mirror" witness in G.cod (`∈-++⁺ˡ` / `∈-++⁺ʳ` + `∈-map⁺ (raise nA)`
-         / `inject+ nB` + `range-covers`), show via `toℕ-injective` +
-         `toℕ-index-*` that the two indices coincide, and use
-         `lookup-index` on the G-side witness to conclude. Each
-         proof is now a ~15-line toℕ chain.
+       *Pure postulates (structure not yet written):*
+       - ~ρ⇐∘ρ⇒~, ~ρ⇒∘ρ⇐~ — ρ variants with ~subst~ through
+         ~++-identityʳ~. The underlying records are the same as
+         ~hId (A ⊗₀ unit)~ but the outer type indices differ, so
+         the `idˡ ⟪id⟫` reduction only applies after stripping the
+         subst₂. Strategy: either build a `hComposeP-subst₂-inv` bridge
+         (showing `hComposeP (subst G) (subst K) ≅ᴴ hComposeP G K`
+         up to type-index matching) or discharge directly via a full
+         `≅ᴴ` construction that inlines the subst₂s.
 
        *Not yet touched:*
        - ~idʳ~ — needs a `length xs + count-non xs ≡ n` identity
