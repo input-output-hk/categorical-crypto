@@ -27,12 +27,16 @@
 
 module Categories.APROP.Hypergraph.Prune where
 
+open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc; inject+; raise; splitAt)
 open import Data.Fin.Properties using (_≟_; splitAt-inject+; splitAt-raise)
 open import Data.List using (List; []; _∷_; length; filter; allFin; lookup; map)
 open import Data.List.Properties using (map-cong; map-∘)
+open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.List.Relation.Unary.Any using (index)
 open import Data.List.Relation.Unary.Any.Properties using (lookup-index)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
+import Data.List.Relation.Unary.AllPairs as AllPairs
 open import Data.Nat using (ℕ; _+_)
 open import Data.Sum using (_⊎_; inj₁; inj₂; [_,_]′)
 open import Function using (_∘_)
@@ -309,3 +313,31 @@ module _ {a} {X : Set a} {n m : ℕ} where
   map-via-remap xs f λK λG bdy ys =
     trans (sym (map-cong (remap-vlab xs f λK λG bdy) ys))
           (map-∘ ys)
+
+--------------------------------------------------------------------------------
+-- Uniqueness-based lookup injectivity.
+--
+-- For a `Unique xs` (pairwise-distinct elements), `lookup xs` is injective
+-- from `Fin (length xs)`. Used to prove that `pruneMap⁻¹ ∘ pruneMap ≡ id`:
+-- `nonMem xs ≡ filter _ (allFin n)` is unique, so the "index of
+-- `lookup (nonMem xs) j` in nonMem xs" always recovers `j`.
+
+module _ {ℓ} {A : Set ℓ} where
+  -- Apply an `All P xs` witness at a Fin position.
+  All-lookup : ∀ {p} {P : A → Set p} {xs : List A}
+             → All P xs → (i : Fin (length xs)) → P (lookup xs i)
+  All-lookup (p ∷ _)  zero    = p
+  All-lookup (_ ∷ ps) (suc i) = All-lookup ps i
+
+  lookup-injective-unique : ∀ {xs : List A}
+                          → Unique xs
+                          → ∀ (i j : Fin (length xs))
+                          → lookup xs i ≡ lookup xs j
+                          → i ≡ j
+  lookup-injective-unique {xs = _ ∷ _ } (_  AllPairs.∷ _ ) zero    zero    _  = refl
+  lookup-injective-unique {xs = _ ∷ _ } (x≢ AllPairs.∷ _ ) zero    (suc j) eq =
+    ⊥-elim (All-lookup x≢ j eq)
+  lookup-injective-unique {xs = _ ∷ _ } (x≢ AllPairs.∷ _ ) (suc i) zero    eq =
+    ⊥-elim (All-lookup x≢ i (sym eq))
+  lookup-injective-unique {xs = _ ∷ _ } (_  AllPairs.∷ uq) (suc i) (suc j) eq =
+    cong suc (lookup-injective-unique uq i j eq)
