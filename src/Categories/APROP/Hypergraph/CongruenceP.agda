@@ -47,11 +47,15 @@ open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
 open import Categories.APROP.Hypergraph.Iso
 open import Categories.APROP.Hypergraph.Prune
-  using ( count-non; nonMem; nonMem?; classify; classify-inj₂-lookup
+  using ( count-non; nonMem; nonMem?; classify
+        ; classify-inj₁-lookup; classify-inj₂-lookup
+        ; classify-inj₁-∈; classify-inj₂-∉
         ; pruneMap; pruneMap⁻¹
         ; pruneMap-left-inverse; pruneMap-right-inverse
         ; ∉-map-injective; nonMem-member
-        ; index-∈-filter-irrelevant)
+        ; index-∈-filter-irrelevant
+        ; subst-∈-filter-index; subst-lookup-nonMem
+        ; lookup-pruneMap; nonMem-Unique; lookup-injective-unique)
 open import Categories.APROP.Hypergraph.PrunedCompose sig
 
 open import Data.Empty using (⊥-elim)
@@ -67,13 +71,18 @@ open import Relation.Nullary using (yes; no)
 
 --------------------------------------------------------------------------------
 -- Vertex bijection for the pruned composite, parametric in two hypergraph
--- isos iG : G₁ ≅ᴴ G₂, iK : K₁ ≅ᴴ K₂.
+-- isos iG : G₁ ≅ᴴ G₂, iK : K₁ ≅ᴴ K₂, plus a distinctness assumption on
+-- K₁.dom (required to pin down the K-side `remapP-comm` — holds for all
+-- translated APROP terms ⟪ f ⟫ via a future invariant).
+
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 
 module _
     {As Bs Cs : List X}
     {G₁ G₂ : Hypergraph FlatGen As Bs}
     {K₁ K₂ : Hypergraph FlatGen Bs Cs}
-    (iG : G₁ ≅ᴴ G₂) (iK : K₁ ≅ᴴ K₂) where
+    (iG : G₁ ≅ᴴ G₂) (iK : K₁ ≅ᴴ K₂)
+    (K₁-dom-unique : Unique (Hypergraph.dom K₁)) where
 
   private
     module G₁ = Hypergraph G₁
@@ -344,13 +353,13 @@ module _
   -- `remapP-comm`. Uses IK-φ-inj (derived from IK.φ-left) plus IK.φ-dom
   -- to relate K₁.dom membership with K₂.dom membership.
 
+  open import Data.List.Membership.Propositional using (_∈_; _∉_)
+  open import Data.List.Membership.Propositional.Properties
+    using (∈-map⁺; ∈-map⁻)
   open import Data.List.Membership.DecPropositional (_≟_ {n = K₁.nV})
     using () renaming (_∈?_ to _∈K₁?_)
   open import Data.List.Membership.DecPropositional (_≟_ {n = K₂.nV})
     using () renaming (_∈?_ to _∈K₂?_)
-  open import Data.List.Membership.Propositional using (_∈_; _∉_)
-  open import Data.List.Membership.Propositional.Properties
-    using (∈-map⁺; ∈-map⁻)
   open import Data.Product using (_,_; proj₁; proj₂)
 
   private
@@ -379,19 +388,131 @@ module _
     φ-P-injR : ∀ jK → φ-P (raise G₁.nV jK) ≡ raise G₂.nV (pruneK jK)
     φ-P-injR jK rewrite splitAt-raise G₁.nV (count-non K₁.dom) jK = refl
 
-  -- Partial remapP-comm: the structural four-way case split compiles,
-  -- with impossibilities ruled out. The (yes, yes) and (no, no) cases
-  -- need deeper equational work (see TODO.org and the module-header
-  -- comment above). Full proof deferred.
+  open import Data.List.Relation.Unary.Any using (index)
+  open import Data.List.Relation.Unary.Any.Properties using (lookup-index)
+  open import Data.List.Membership.Propositional.Properties using (∈-filter⁺; ∈-allFin)
+
+  open import Data.List using (length)
+  open import Data.List.Properties using (length-map)
+  open import Data.Fin using (cast)
+  open import Data.Fin.Properties using (cast-is-id; toℕ-cast)
+  open import Categories.APROP.Hypergraph.Prune
+    using (lookup-map-cast; lookup-≡-map-cast)
+
+  -- Derived: Unique K₂.dom (since K₂.dom = map IK.φ K₁.dom, and IK.φ
+  -- is injective — follows from IK.φ-left).
+  private
+    import Data.List.Relation.Unary.Unique.Propositional.Properties as UP
+
+    K₂-dom-unique : Unique K₂.dom
+    K₂-dom-unique =
+      subst Unique (sym IK.φ-dom) (UP.map⁺ IK-φ-inj K₁-dom-unique)
+
+  -- The yes-yes index coherence, now fully proved.
   --
-  -- remapP-comm : ∀ v → φ-P (hCP₁.remapP v) ≡ hCP₂.remapP (IK.φ v)
-  -- remapP-comm v with v ∈K₁? K₁.dom | IK.φ v ∈K₂? K₂.dom
-  -- ... | yes p  | yes q  = ?   (yes-yes : needs IG.φ-cod + lookup-cod agreement)
-  -- ... | yes p  | no  ¬q = ⊥-elim (¬q (∈K₁→∈K₂ p))
-  -- ... | no  ¬p | yes q  = ⊥-elim (¬p (∈K₂→∈K₁ q))
-  -- ... | no  ¬p | no  ¬q = ?   (no-no : needs index-∈-filter-irrelevant
-  --                              through the IK.φ-dom subst, requires
-  --                              pruneK-unfolding lemma first)
+  -- Strategy: both sides compare positions in Fin (length G₂.cod).
+  -- Using `K₂-dom-unique` + `lookup-injective-unique`, we pin down
+  -- that i₂ equals `cast (cong length IK.φ-dom) i₁` in Fin (length K₂.dom).
+  -- Then `IG.φ-cod` + `lookup-map-cast` commute `IG.φ` through the
+  -- G₂-cod lookup, yielding the desired equality.
+
+  open import Data.Fin.Properties using (cast-trans; cast-is-id)
+
+  lookup-cod-coherence
+    : ∀ (v : Fin K₁.nV)
+        (i₁ : Fin (length K₁.dom))
+        (i₂ : Fin (length K₂.dom))
+    → classify K₁.dom v ≡ inj₁ i₁
+    → classify K₂.dom (IK.φ v) ≡ inj₁ i₂
+    → IG.φ (hCP₁.lookup-cod i₁) ≡ hCP₂.lookup-cod i₂
+  lookup-cod-coherence v i₁ i₂ eq₁ eq₂ = proof
+    where
+      look-v : lookup K₁.dom i₁ ≡ v
+      look-v = classify-inj₁-lookup K₁.dom v i₁ eq₁
+
+      look-φv : lookup K₂.dom i₂ ≡ IK.φ v
+      look-φv = classify-inj₁-lookup K₂.dom (IK.φ v) i₂ eq₂
+
+      len-eq : length K₂.dom ≡ length K₁.dom
+      len-eq = trans (cong length IK.φ-dom) (length-map IK.φ K₁.dom)
+
+      i₁→₂ : Fin (length K₂.dom)
+      i₁→₂ = cast (sym len-eq) i₁
+
+      look-i₁→₂ : lookup K₂.dom i₁→₂ ≡ IK.φ v
+      look-i₁→₂ = trans (lookup-≡-map-cast IK.φ IK.φ-dom i₁)
+                        (cong IK.φ look-v)
+
+      i₁→₂≡i₂ : i₁→₂ ≡ i₂
+      i₁→₂≡i₂ = lookup-injective-unique K₂-dom-unique i₁→₂ i₂
+                  (trans look-i₁→₂ (sym look-φv))
+
+      i₁-in-G₁ : Fin (length G₁.cod)
+      i₁-in-G₁ = cast hCP₁.dom-cod-len i₁
+
+      look-G : IG.φ (hCP₁.lookup-cod i₁)
+             ≡ lookup G₂.cod
+                 (cast (sym (trans (cong length IG.φ-cod)
+                                    (length-map IG.φ G₁.cod)))
+                       i₁-in-G₁)
+      look-G = sym (lookup-≡-map-cast IG.φ IG.φ-cod i₁-in-G₁)
+
+      -- Two casts of i₁ into Fin (length G₂.cod) with different proofs.
+      -- Since Fin.cast's proof is irrelevant, they are propositionally equal.
+      cast-irr : ∀ .(p q : length K₁.dom ≡ length G₂.cod)
+               → cast p i₁ ≡ cast q i₁
+      cast-irr _ _ = refl
+
+      fin-eq : cast (sym (trans (cong length IG.φ-cod)
+                                 (length-map IG.φ G₁.cod)))
+                    i₁-in-G₁
+             ≡ cast hCP₂.dom-cod-len i₂
+      fin-eq =
+        trans (cast-trans hCP₁.dom-cod-len _ i₁)
+          (trans (cast-irr _ _)
+            (sym (trans (cong (cast hCP₂.dom-cod-len) (sym i₁→₂≡i₂))
+                        (cast-trans (sym len-eq) hCP₂.dom-cod-len i₁))))
+
+      proof : IG.φ (hCP₁.lookup-cod i₁) ≡ hCP₂.lookup-cod i₂
+      proof = trans look-G (cong (lookup G₂.cod) fin-eq)
+
+  remapP-comm : ∀ v → φ-P (hCP₁.remapP v) ≡ hCP₂.remapP (IK.φ v)
+  remapP-comm v with classify K₁.dom v in eq₁ | classify K₂.dom (IK.φ v) in eq₂
+  ... | inj₁ i₁ | inj₁ i₂ =
+    -- φ-P (inject+ (count-non K₁.dom) (lookup-cod₁ i₁))
+    --   ≡ inject+ (count-non K₂.dom) (IG.φ (lookup-cod₁ i₁))     [φ-P-injL]
+    --   ≡ inject+ (count-non K₂.dom) (lookup-cod₂ i₂)             [lookup-cod-coherence]
+    --   ≡ hCP₂.remapP (IK.φ v)                                    [classify gives inj₁ i₂]
+    trans (φ-P-injL (hCP₁.lookup-cod i₁))
+          (cong (inject+ (count-non K₂.dom))
+                (lookup-cod-coherence v i₁ i₂ eq₁ eq₂))
+  ... | inj₁ i₁ | inj₂ j₂ =
+    ⊥-elim (classify-inj₂-∉ eq₂ (∈K₁→∈K₂ (classify-inj₁-∈ eq₁)))
+  ... | inj₂ j₁ | inj₁ i₂ =
+    ⊥-elim (classify-inj₂-∉ eq₁ (∈K₂→∈K₁ (classify-inj₁-∈ eq₂)))
+  ... | inj₂ j₁ | inj₂ j₂ =
+    -- φ-P (raise G₁.nV j₁) ≡ raise G₂.nV (pruneK j₁)  [φ-P-injR]
+    -- pruneK j₁ ≡ j₂                                  [lookup-injective-unique]
+    trans (φ-P-injR j₁)
+          (cong (raise G₂.nV)
+            (lookup-injective-unique (nonMem-Unique K₂.dom) (pruneK j₁) j₂
+              (trans lookup-LHS (sym lookup-RHS))))
+    where
+      lookup-j₁≡v : lookup (nonMem K₁.dom) j₁ ≡ v
+      lookup-j₁≡v = classify-inj₂-lookup K₁.dom v j₁ eq₁
+
+      lookup-j₂≡φv : lookup (nonMem K₂.dom) j₂ ≡ IK.φ v
+      lookup-j₂≡φv = classify-inj₂-lookup K₂.dom (IK.φ v) j₂ eq₂
+
+      lookup-LHS : lookup (nonMem K₂.dom) (pruneK j₁) ≡ IK.φ v
+      lookup-LHS = trans
+        (subst-lookup-nonMem (sym IK.φ-dom)
+                              (pruneMap IK.φ IK-φ-inj K₁.dom j₁))
+        (trans (lookup-pruneMap IK.φ IK-φ-inj K₁.dom j₁)
+               (cong IK.φ lookup-j₁≡v))
+
+      lookup-RHS : lookup (nonMem K₂.dom) j₂ ≡ IK.φ v
+      lookup-RHS = lookup-j₂≡φv
 
   --------------------------------------------------------------------------------
   -- Edge label compatibility ψ-elab-P (the big six-step subst₂ chain).

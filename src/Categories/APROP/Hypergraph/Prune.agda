@@ -41,7 +41,7 @@ open import Data.Nat using (ℕ; _+_)
 open import Data.Sum using (_⊎_; inj₁; inj₂; [_,_]′)
 open import Function using (_∘_)
 open import Level using (Level)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
 open import Relation.Nullary.Decidable using (¬?; yes; no)
 
 --------------------------------------------------------------------------------
@@ -162,6 +162,39 @@ module _ {n : ℕ} where
       (trans (sym (lookup-index (∈-filter⁺ (nonMem? xs) (∈-allFin v) v∉₁)))
              (lookup-index (∈-filter⁺ (nonMem? xs) (∈-allFin v) v∉₂)))
 
+  -- `subst` through an equality of lists commutes with `∈-filter⁺`+`index`:
+  -- transporting the index across `xs ≡ ys` is the same as reconstructing
+  -- the ∈-filter⁺ at `ys` with the transported non-membership proof.
+  subst-∈-filter-index
+    : ∀ {xs ys : List (Fin n)} (eq : xs ≡ ys) (v : Fin n) (v∉xs : v ∉ xs)
+    → subst (λ zs → Fin (count-non zs)) eq
+            (index (∈-filter⁺ (nonMem? xs) (∈-allFin v) v∉xs))
+    ≡ index (∈-filter⁺ (nonMem? ys) (∈-allFin v) (subst (v ∉_) eq v∉xs))
+  subst-∈-filter-index refl v v∉xs = refl
+
+  -- `lookup (nonMem ys)` at a subst-transported index from
+  -- `Fin (count-non xs)` agrees with `lookup (nonMem xs)` at the
+  -- original index.
+  subst-lookup-nonMem
+    : ∀ {xs ys : List (Fin n)} (eq : xs ≡ ys) (j : Fin (count-non xs))
+    → lookup (nonMem ys) (subst (λ zs → Fin (count-non zs)) eq j)
+    ≡ lookup (nonMem xs) j
+  subst-lookup-nonMem refl j = refl
+
+  -- When classify returns inj₂, the scrutinee is not in xs.
+  classify-inj₂-∉ : ∀ {xs v j}
+                  → classify xs v ≡ inj₂ j → v ∉ xs
+  classify-inj₂-∉ {xs} {v} eq v∈ with v ∈? xs
+  classify-inj₂-∉ {xs} {v} () _ | yes _
+  classify-inj₂-∉ {xs} {v} _  v∈xs | no v∉xs = v∉xs v∈xs
+
+  -- When classify returns inj₁, the scrutinee is in xs.
+  classify-inj₁-∈ : ∀ {xs v i}
+                  → classify xs v ≡ inj₁ i → v ∈ xs
+  classify-inj₁-∈ {xs} {v} eq with v ∈? xs
+  classify-inj₁-∈ _ | yes v∈ = v∈
+  classify-inj₁-∈ () | no _
+
   -- A pruned index `j` in `nonMem xs` looks up to a Fin value that
   -- really is a non-member of `xs`.
   nonMem-member : (xs : List (Fin n)) (j : Fin (count-non xs))
@@ -173,6 +206,68 @@ module _ {n : ℕ} where
       open import Data.List.Membership.Propositional.Properties
         using (∈-filter⁻; ∈-lookup)
       open import Data.Product using (proj₂)
+
+--------------------------------------------------------------------------------
+-- `any?` / `∈?` commute with `map` under an injection.
+--
+-- The decidable membership test is structural on the list — it walks each
+-- element and checks `_≟ v`. Under an injection f, `f x ≟ f v` has the
+-- same answer as `x ≟ v` (by injectivity in the yes case, vacuously in
+-- the no case). So `any? (_≟ f v) (map f xs)` traces the same walk as
+-- `any? (_≟ v) xs`, just with every element and the target wrapped in f.
+--
+-- This lemma is used by `Congruence.hComposeP-resp-≅ᴴ`'s `remapP-comm`,
+-- via a `classify`-coherence lemma that reduces to this after some
+-- `refl` chasing.
+
+module _ {m n : ℕ}
+         (φ : Fin m → Fin n)
+         (φ-inj : ∀ {x y : Fin m} → φ x ≡ φ y → x ≡ y)
+         where
+  open import Data.List.Membership.Propositional using (_∈_; _∉_)
+  open import Data.List.Relation.Unary.Any using (here; there)
+
+  -- Inverse of ∉-map-injective: `φ v ∈ map φ xs ⇒ v ∈ xs`.
+  -- Dual to `∉-map-injective` (which goes the other way).
+  ∈-map-injective⁻ : ∀ {xs : List (Fin m)} {v : Fin m}
+                   → φ v ∈ map φ xs → v ∈ xs
+  ∈-map-injective⁻ {xs = x ∷ xs} (here eq)    = here (φ-inj eq)
+  ∈-map-injective⁻ {xs = x ∷ xs} (there rest) =
+    there (∈-map-injective⁻ rest)
+
+  open import Data.Fin using (zero; suc; cast)
+  open import Data.List.Properties using (length-map)
+  open import Data.List.Membership.Propositional.Properties using (∈-map⁺)
+
+  -- `∈-map⁺ φ` preserves `Any.index` structurally.
+  ∈-map⁺-index-cast
+    : ∀ {xs : List (Fin m)} {v : Fin m} (v∈xs : v ∈ xs)
+    → index (∈-map⁺ φ v∈xs)
+    ≡ cast (sym (length-map φ xs)) (index v∈xs)
+  ∈-map⁺-index-cast {xs = x ∷ xs} (here refl) = refl
+  ∈-map⁺-index-cast {xs = x ∷ xs} (there p)  =
+    cong suc (∈-map⁺-index-cast p)
+
+-- Generic lookup-through-map commutation.
+module _ {ℓ₁ ℓ₂ : _} {A : Set ℓ₁} {B : Set ℓ₂} where
+  open import Data.Fin using (cast)
+  open import Data.List.Properties using (length-map)
+
+  lookup-map-cast
+    : ∀ (f : A → B) (xs : List A) (i : Fin (length xs))
+    → lookup (map f xs) (cast (sym (length-map f xs)) i) ≡ f (lookup xs i)
+  lookup-map-cast f (x ∷ xs) zero    = refl
+  lookup-map-cast f (x ∷ xs) (suc i) = lookup-map-cast f xs i
+
+  -- Generalization: `lookup ys (cast chain i) ≡ f (lookup xs i)` when
+  -- ys ≡ map f xs. Proof by refl-pattern on the equality.
+  lookup-≡-map-cast
+    : ∀ (f : A → B) {xs : List A} {ys : List B}
+        (eq : ys ≡ map f xs)
+        (i : Fin (length xs))
+    → lookup ys (cast (sym (trans (cong length eq) (length-map f xs))) i)
+    ≡ f (lookup xs i)
+  lookup-≡-map-cast f {xs = xs} refl i = lookup-map-cast f xs i
 
 --------------------------------------------------------------------------------
 -- Injective maps transport (non-)membership.
