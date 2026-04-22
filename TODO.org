@@ -265,7 +265,16 @@ meantime.
        - ~soundness λ⇒∘λ⇐≈id = λ⇒∘λ⇐-sound~
 
        *Fully proved (zero postulates):*
-       - ~σ∘σ-sound~ — **NEW** — all 16 ≅ᴴ fields constructive!
+       - ~idˡ-sound~, ~λ⇐∘λ⇒-sound~, ~λ⇒∘λ⇐-sound~
+       - ~σ∘σ-sound~ — all 16 ≅ᴴ fields constructive.
+       - ~ρ⇐∘ρ⇒-sound~ — **NEW** via `hComposeP-subst-both` +
+         `idˡ-sound (id)`.
+       - ~α⇐∘α⇒-sound~ — **NEW** same pattern.
+
+       *Dispatched in `soundness`:*
+       - idˡ, λ⇐∘λ⇒, λ⇒∘λ⇐, σ∘σ, ρ⇐∘ρ⇒, α⇐∘α⇒.
+
+       (deprecated paragraph header below, see *Fully proved* list)
          Infrastructure used:
          * Classify / remap: `classify-lookup-Unique`, `remap-inj₁`,
            `lookup-index`, `hSwap-dom-Unique`, `∈-map⁺-index-cast`.
