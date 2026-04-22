@@ -275,27 +275,33 @@ meantime.
          `≅ᴴ` construction that inlines the subst₂s.
 
        *Fully assembled, 2 focused internal postulates:*
-       - ~σ∘σ-sound~ — the full ≅ᴴ record assembled. 14 fields
-         constructive (φ/φ⁻¹, φ-left/φ-rght, ψ/ψ⁻¹, ψ-left/ψ-rght,
-         φ-lab, ψ-ein/ψ-eout, atom-ein/atom-eout, ψ-elab, φ-dom).
-         φ-cod is proved modulo two focused postulates:
-         * ~remapP-kcod-raise-nB~ :
-           `hCP.remapP (raise nB x) ≡ inject+ c (inject+ nB x)`.
-         * ~remapP-kcod-inject+-nA~ :
-           `hCP.remapP (inject+ nA y) ≡ inject+ c (raise nA y)`.
-         These are tight classify-lookup-Unique + lookup-++-rai/inj
-         claims that should discharge in ~30 lines each once the
-         `length-range` / `length-map` / `length-++` bookkeeping is
-         threaded through (`length-range` is already available in
-         Invariant).
+       - ~σ∘σ-sound~ — the full ≅ᴴ record assembled.  14 fields
+         constructive.  φ-cod proved modulo a `remapP-via-member`
+         helper that in turn reduces to the residual:
+         * ~lookup-cod-raise-nB~ :
+           `hCP.lookup-cod (index (∈-++⁺ʳ _ (∈-map⁺ (raise nB) (range-covers _ x))))
+            ≡ inject+ nB x`
+         * ~lookup-cod-inject+-nA~ :
+           `hCP.lookup-cod (index (∈-++⁺ˡ (∈-map⁺ (inject+ nA) (range-covers _ y))))
+            ≡ raise nA y`
+
+         These are `lookup G.cod (cast dom-cod-len (index ...))` claims
+         that unwind via stdlib's `Data.List.Relation.Unary.Any.Properties`
+         (specifically, `index-∈-++⁺ʳ` / `index-∈-map⁺`-style lemmas, if
+         present, or ad-hoc induction on the `∈-++⁺ʳ` / `∈-map⁺`
+         constructors).  Each is a dedicated ~40-line induction;
+         mechanical but tedious.
+
          Infrastructure in place:
-         * `hSwap-dom-covers`, `hSwap-count-non-dom ≡ 0`.
-         * `hId-vlab-lookup` via `Fin.cast` (uses toℕ-injective
-           bridging).
-         * `hId-dom≡range`, `hId-cod≡range` (via `range-++`).
-         * `splitAt-cast`, `cast-inject+-cong₂`, `cast-raise-cong₂`.
-         * `map-cast-range : map (cast eq) (range m) ≡ range m'`.
-         * `length-range`.
+         * Classify / remap: `classify-lookup-Unique`, `remap-inj₁`,
+           `lookup-index`, `hSwap-dom-Unique`.
+         * hId bridge: `hId-vlab-lookup`, `hId-dom≡range`,
+           `hId-cod≡range`, `hId-nV≡len-flatten`.
+         * Cast arithmetic: `splitAt-cast`, `cast-inject+-cong₂`,
+           `cast-raise-cong₂`, `map-cast-range`.
+         * Range / allFin: `range-covers`, `range-++`, `length-range`,
+           `range≡allFin-pub`.
+         * Local: `remapP-via-member`, `vlab-via-hId`, `φ-injL-red`.
 
        *Not yet touched:*
        - ~idʳ~ — needs a `length xs + count-non xs ≡ n` identity
