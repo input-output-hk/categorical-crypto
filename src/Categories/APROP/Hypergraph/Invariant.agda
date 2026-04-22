@@ -522,3 +522,13 @@ map-cast-range refl =
   trans (map-cong (λ i → cast-is-id refl i) (range _))
         (map-id (range _))
   where open import Data.List.Properties using (map-id; map-cong)
+
+-- `length (range n) ≡ n`. Routine induction.
+
+length-range : (n : ℕ) → length (range n) ≡ n
+length-range zero    = refl
+length-range (suc n) = cong suc
+  (trans (length-map Fin.suc (range n)) (length-range n))
+  where
+    import Data.Fin as Fin
+    open import Data.List.Properties using (length-map)
