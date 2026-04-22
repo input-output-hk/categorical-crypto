@@ -35,7 +35,7 @@ open import Categories.APROP.Hypergraph.Prune
   using (count-non; nonMem; classify; remap; remap-vlab; map-via-remap)
 
 open import Data.Fin using (Fin; zero; suc; inject+; raise; splitAt; cast)
-open import Data.Fin.Properties using (splitAt-inject+)
+open import Data.Fin.Properties using (splitAt-inject+; splitAt-raise)
 open import Data.List using (List; []; _∷_; length; map; lookup)
 open import Data.List.Properties using (length-map; map-cong; map-∘)
 open import Data.Nat using (ℕ; _+_)
@@ -171,6 +171,62 @@ module hComposeP-impl
                     (map-via-remapP (K.ein eK))
                     (map-via-remapP (K.eout eK))
                     (K.elab eK)
+
+  --------------------------------------------------------------------------------
+  -- Reduction lemmas (same shape as `FromAPROP.hCompose-impl`).
+  -- Callers (e.g. a future `hComposeP-resp-≅ᴴ` in a ported Congruence)
+  -- use these to peel the internal `splitAt` in `ein-c`, `eout-c`, `elab-c`
+  -- at inject+ / raise inputs.
+
+  ein-c-inj₁-red : ∀ (eG : Fin G.nE)
+                 → ein-c (inject+ K.nE eG) ≡ map injL (G.ein eG)
+  ein-c-inj₁-red eG with splitAt G.nE (inject+ K.nE eG)
+                         | splitAt-inject+ G.nE K.nE eG
+  ... | .(inj₁ eG)      | refl = refl
+
+  eout-c-inj₁-red : ∀ (eG : Fin G.nE)
+                  → eout-c (inject+ K.nE eG) ≡ map injL (G.eout eG)
+  eout-c-inj₁-red eG with splitAt G.nE (inject+ K.nE eG)
+                          | splitAt-inject+ G.nE K.nE eG
+  ... | .(inj₁ eG)       | refl = refl
+
+  ein-c-inj₂-red : ∀ (eK : Fin K.nE)
+                 → ein-c (raise G.nE eK) ≡ map remapP (K.ein eK)
+  ein-c-inj₂-red eK with splitAt G.nE (raise G.nE eK)
+                         | splitAt-raise G.nE K.nE eK
+  ... | .(inj₂ eK)      | refl = refl
+
+  eout-c-inj₂-red : ∀ (eK : Fin K.nE)
+                  → eout-c (raise G.nE eK) ≡ map remapP (K.eout eK)
+  eout-c-inj₂-red eK with splitAt G.nE (raise G.nE eK)
+                          | splitAt-raise G.nE K.nE eK
+  ... | .(inj₂ eK)       | refl = refl
+
+  elab-c-inj₁ : ∀ (eG : Fin G.nE)
+              → subst₂ FlatGen
+                  (cong (map vlab-P) (ein-c-inj₁-red eG))
+                  (cong (map vlab-P) (eout-c-inj₁-red eG))
+                  (elab-c (inject+ K.nE eG))
+              ≡ subst₂ FlatGen
+                  (map-via-inj vlab-injL (G.ein eG))
+                  (map-via-inj vlab-injL (G.eout eG))
+                  (G.elab eG)
+  elab-c-inj₁ eG with splitAt G.nE (inject+ K.nE eG)
+                      | splitAt-inject+ G.nE K.nE eG
+  ... | .(inj₁ eG)   | refl = refl
+
+  elab-c-inj₂ : ∀ (eK : Fin K.nE)
+              → subst₂ FlatGen
+                  (cong (map vlab-P) (ein-c-inj₂-red eK))
+                  (cong (map vlab-P) (eout-c-inj₂-red eK))
+                  (elab-c (raise G.nE eK))
+              ≡ subst₂ FlatGen
+                  (map-via-remapP (K.ein eK))
+                  (map-via-remapP (K.eout eK))
+                  (K.elab eK)
+  elab-c-inj₂ eK with splitAt G.nE (raise G.nE eK)
+                      | splitAt-raise G.nE K.nE eK
+  ... | .(inj₂ eK)   | refl = refl
 
 --------------------------------------------------------------------------------
 -- The pruned cospan composition.

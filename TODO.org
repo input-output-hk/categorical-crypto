@@ -107,7 +107,7 @@ meantime.
    following architectural changes before the lemmas themselves
    can be written.
 
-*** TODO Option A — prune dangling vertices in ~hCompose~
+*** STARTED Option A — prune dangling vertices in ~hCompose~
     Change ~hCompose~ to delete any K-side vertex that is in
     ~K.dom~ (since such a vertex has been identified with a G-side
     vertex via ~remap~).  After pruning, ~idˡ~ / ~idʳ~ produce
@@ -115,37 +115,58 @@ meantime.
     to produce a vertex in the pruned space, and ~elab-c~ needs to
     dispatch through the pruning map.
 
-    *Implementation sketch:*
+    Using a count-based variant ~count-non K.dom~ (no distinctness
+    proof needed) instead of the ~K.nV - length K.dom~ sketch.
+    ~Prune.classify~ replaces the positional ~remap'~ recursion with
+    a decidable-membership-based first-occurrence lookup, which makes
+    the proofs cleaner under ~--safe --without-K~.
 
-    1. Prove that every ~⟪f⟫~ (f : HomTerm A B) has a ~dom~ and
-       ~cod~ with pairwise-distinct entries.  By induction on the
-       primitive constructors (hEmpty, hVar, hGen, hSwap, hId) and
-       preservation under hTensor/hCompose.  Record as a lemma
-       ~⟪_⟫-distinct-dom/cod~ in FromAPROP (or in a new
-       ~Hypergraph.Invariant~ module).
+    *Implementation progress (committed, all ~--safe~):*
 
-    2. Add a new ~hCompose-impl~ variant (parameterized by the
-       distinctness proof of ~K.dom~) with:
+    1. DONE. ~Hypergraph.Prune~ — generic pruning combinators:
+       ~nonMem~, ~count-non~, ~classify~, ~remap~, ~remap-vlab~
+       (pointwise label preservation), ~map-via-remap~ (list-wise),
+       ~classify-inj{₁,₂}-lookup~ inversion lemmas, ~AllIn~ predicate
+       with ~AllIn→count-non-zero~ corollary.
 
-       - ~nV' = G.nV + (K.nV - length K.dom)~.
+    2. DONE. ~Hypergraph.PrunedCompose~ — ~hComposeP~ record complete:
+       - ~nV = G.nV + count-non K.dom~.
+       - ~remapP~ via ~Prune.remap K.dom lookup-cod~.
+       - ~vlab-P = [ G.vlab , (λ j → K.vlab (lookup (nonMem K.dom) j)) ]′ ∘ splitAt G.nV~.
+       - ~lookup-cod~ uses ~Fin.cast~ over the proof-irrelevant
+         ~length K.dom ≡ length G.cod~; ~bdy-pt~ proved via local
+         joint-induction ~lookup-boundary~ lemma.
+       - ~ein-c~, ~eout-c~, ~elab-c~, ~dom-ok~, ~cod-ok~ all done.
+       - ~ein-c-inj{₁,₂}-red~, ~elab-c-inj{₁,₂}~ reduction lemmas
+         shipped for downstream Congruence port.
 
-       - ~compress : Fin K.nV → Fin (K.nV - length K.dom + length K.dom)~
-         moving K-dom vertices to the "tail" ~length K.dom~
-         positions, non-K-dom to the "head".
+    3. DONE. ~Hypergraph.Invariant~ — ~hId-dom-covers~,
+       ~hId-cod-covers~ by induction on ObjTerm (unit / Var /
+       ⊗₀ via ~tensor-covers~ from ~splitAt⁻¹-↑{ˡ,ʳ}~ and
+       ~∈-++⁺{ˡ,ʳ}~ + ~∈-map⁺~). Plus ~hId-count-non-{dom,cod}~
+       corollaries: ~count-non (hId A).dom ≡ 0~.
 
-       - ~remap' : Fin K.nV → Fin (G.nV + (K.nV - length K.dom))~
-         that sends each K.dom vertex to ~injL G.cod[i]~ and each
-         non-K.dom vertex ~v~ to ~injR (compress v)~.
+    *Remaining work:*
 
-    3. Rewrite the ~hCompose~-branch of ~elab-c~, ~ψ-elab-C~, and
-       ~boundary-eq~ to use the new ~remap'~.
+    4. TODO. Port ~Congruence.hCompose-resp-≅ᴴ~ to ~hComposeP~.
+       The existing proof structure is the same (six-step
+       ~subst₂-trans~ chain) but the K-side vertex bijection now
+       operates in the pruned space ~Fin (count-non K.dom)~. Needs
+       constructing a bijection between ~nonMem K₁.dom~ and
+       ~nonMem K₂.dom~ from the K₁-K₂ iso (which preserves dom).
 
-    4. Port ~Congruence.hCompose-resp-≅ᴴ~ to the new ~hCompose~.
-       The structure is the same (six-step ~subst₂-trans~ chain)
-       but the indexing in Fin changes.
+    5. TODO. Switch ~⟪ g ∘ f ⟫~ in ~FromAPROP~ to use ~hComposeP~
+       instead of ~hCompose~. Update ~Soundness.∘-resp-≈~ to use
+       the ported ~hComposeP-resp-≅ᴴ~.
 
-    5. Discharge the 15 "LHS > RHS" axioms using vertex bijections
-       with matching counts (all but the 3 group-(a) axioms).
+    6. TODO. Discharge the 12 "LHS > RHS" axioms (group b/c)
+       using vertex bijections with matching counts. ~idˡ~ / ~idʳ~
+       use ~hId-count-non-dom~ + ~+-identityʳ~ for the nV match.
+
+    7. TODO. Discharge the 3 group-(a) axioms (~assoc~, ~⊗-∘-dist~,
+       ~hexagon~) using associator-style bijections. These work
+       with either pruned or unpruned ~hCompose~ since vertex
+       counts match on both sides.
 
 *** TODO Option B — coarsen ~_≅ᴴ_~ to allow vertex merging
     Replace the strict vertex bijection with a pair

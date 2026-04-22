@@ -29,7 +29,7 @@ module Categories.APROP.Hypergraph.Prune where
 
 open import Data.Fin using (Fin; inject+; raise; splitAt)
 open import Data.Fin.Properties using (_≟_; splitAt-inject+; splitAt-raise)
-open import Data.List using (List; length; filter; allFin; lookup; map)
+open import Data.List using (List; []; _∷_; length; filter; allFin; lookup; map)
 open import Data.List.Properties using (map-cong; map-∘)
 open import Data.List.Relation.Unary.Any using (index)
 open import Data.List.Relation.Unary.Any.Properties using (lookup-index)
@@ -83,6 +83,50 @@ module _ {n : ℕ} where
   classify-inj₂-lookup xs v j eq with v ∈? xs
   classify-inj₂-lookup xs v .(index (∈-filter⁺ _ (∈-allFin v) v∉xs)) refl
     | no v∉xs = sym (lookup-index (∈-filter⁺ _ (∈-allFin v) v∉xs))
+
+  -- "Dom covers all vertices": every vertex of Fin n is in xs.
+  AllIn : List (Fin n) → Set
+  AllIn xs = ∀ (v : Fin n) → v ∈ xs
+
+  -- When xs covers everything, nonMem xs is empty — every candidate in
+  -- `allFin n` fails the `¬ (v ∈ xs)` filter.
+  AllIn→nonMem-[] : ∀ {xs} → AllIn xs → nonMem xs ≡ []
+  AllIn→nonMem-[] {xs} all = filter-none all (allFin n)
+    where
+      open import Data.Empty using (⊥-elim)
+
+      -- If every y in ys is in xs, the ¬? filter drops them all.
+      filter-none : (∀ v → v ∈ xs)
+                  → (ys : List (Fin n))
+                  → filter (λ v → ¬? (v ∈? xs)) ys ≡ []
+      filter-none _     []       = refl
+      filter-none all-xs (y ∷ ys) with y ∈? xs
+      ... | yes _ = filter-none all-xs ys
+      ... | no  ¬p = ⊥-elim (¬p (all-xs y))
+
+  -- Hence count-non xs = 0.
+  AllIn→count-non-zero : ∀ {xs} → AllIn xs → count-non xs ≡ 0
+  AllIn→count-non-zero all = cong length (AllIn→nonMem-[] all)
+
+--------------------------------------------------------------------------------
+-- Injective maps transport (non-)membership.
+--
+-- If `φ` is injective and `v ∉ xs`, then `φ v ∉ map φ xs`. Used in the
+-- eventual `hComposeP-resp-≅ᴴ` port to lift the K-side iso through the
+-- pruned space: `K₂.dom ≡ map φ K₁.dom` means φ carries `nonMem K₁.dom`
+-- into `nonMem K₂.dom`.
+
+module _ {m n : ℕ} (φ : Fin m → Fin n)
+         (φ-inj : ∀ {x y : Fin m} → φ x ≡ φ y → x ≡ y) where
+  open import Data.List.Membership.Propositional using (_∈_; _∉_)
+  open import Data.List.Relation.Unary.Any using (here; there)
+
+  ∉-map-injective : ∀ {xs : List (Fin m)} {v : Fin m}
+                  → v ∉ xs → φ v ∉ map φ xs
+  ∉-map-injective {xs = []}     _    ()
+  ∉-map-injective {xs = x ∷ xs} v∉xs (here eq)    = v∉xs (here (φ-inj eq))
+  ∉-map-injective {xs = x ∷ xs} v∉xs (there rest) =
+    ∉-map-injective (λ v∈xs → v∉xs (there v∈xs)) rest
 
 --------------------------------------------------------------------------------
 -- Remap combinator.
