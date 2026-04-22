@@ -29,11 +29,13 @@ module Categories.APROP.Hypergraph.Prune where
 
 open import Data.Fin using (Fin; inject+; raise; splitAt)
 open import Data.Fin.Properties using (_≟_; splitAt-inject+; splitAt-raise)
-open import Data.List using (List; length; filter; allFin; lookup)
+open import Data.List using (List; length; filter; allFin; lookup; map)
+open import Data.List.Properties using (map-cong; map-∘)
 open import Data.List.Relation.Unary.Any using (index)
 open import Data.List.Relation.Unary.Any.Properties using (lookup-index)
 open import Data.Nat using (ℕ; _+_)
 open import Data.Sum using (_⊎_; inj₁; inj₂; [_,_]′)
+open import Function using (_∘_)
 open import Level using (Level)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
 open import Relation.Nullary.Decidable using (¬?; yes; no)
@@ -159,3 +161,17 @@ module _ {a} {X : Set a} {n m : ℕ} where
       (cong [ λG , (λ k → λK (lookup (nonMem xs) k)) ]′
         (splitAt-raise m (count-non xs) (index v∈nonMem)))
       (cong λK (sym (lookup-index v∈nonMem)))
+
+  -- List-wise version of `remap-vlab`: the labels of any list of K-vertices
+  -- agree with the labels obtained by going through `remap` and then the
+  -- pruned `vlab-c = [ λG , _ ]′ ∘ splitAt m`.
+  map-via-remap : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
+                  (λK : Fin n → X) (λG : Fin m → X)
+                  (bdy : ∀ i → λK (lookup xs i) ≡ λG (f i))
+                  (ys : List (Fin n))
+                → map λK ys
+                ≡ map ([ λG , (λ j → λK (lookup (nonMem xs) j)) ]′ ∘ splitAt m)
+                      (map (remap xs f) ys)
+  map-via-remap xs f λK λG bdy ys =
+    trans (sym (map-cong (remap-vlab xs f λK λG bdy) ys))
+          (map-∘ ys)
