@@ -198,41 +198,76 @@ meantime.
         transport membership across the K₁-K₂ iso. These
         discharge two of the four cases of ~remapP-comm~.
 
-    *Remaining work:*
+    4h. DONE. ~remapP-comm~ fully proved under ~--safe~ with the
+        ~Unique K₁.dom~ assumption. The (yes, yes) case via
+        ~lookup-injective-unique~ on ~K₂-dom-unique~; the (no, no)
+        case via the same lemma on ~nonMem-Unique~.
 
-    4h. TODO. Finish ~remapP-comm : φ-P ∘ hCP₁.remapP ≡
-                                     hCP₂.remapP ∘ IK.φ~.
-        Four-way case split on ~v ∈? K₁.dom × IK.φ v ∈? K₂.dom~:
+    4i. DONE. ~hComposeP-resp-≅ᴴ~ complete record in ~CongruenceP~.
 
-        - (yes, no): discharged by ~∈K₁→∈K₂~ + ⊥-elim.
-        - (no, yes): discharged by ~∈K₂→∈K₁~ + ⊥-elim.
-        - (yes, yes): need ~IG.φ (lookup-cod₁ i) ≡ lookup-cod₂ i'~
-          where i, i' are the two ~Any.index~ values. Use
-          ~IG.φ-cod~ + lookup-map-like reasoning.
-        - (no, no): need ~pruneK (Prune.classify-inj₂-index) ≡
-          Prune.classify-inj₂-index~ for the IK.φ v side. Use
-          ~index-∈-filter-irrelevant~ (already shipped in Prune)
-          plus subst-cancellation.
+    5. DONE. Switched ~⟪ g ∘ f ⟫~ to ~hComposeP~ via new
+       ~Hypergraph.Translation~ module (needed separate file since
+       ~PrunedCompose~ imports ~FromAPROP~, can't import back).
+       ~Soundness.∘-resp-≈~ now dispatches through
+       ~hComposeP-resp-≅ᴴ~ with ~⟪_⟫-dom-unique f~ as the ~Unique~
+       witness (postulated for now).
 
-        This is the last hurdle for the full Congruence port.
+    6. IN PROGRESS. Discharge the 15 ≈Term axioms. Current state:
 
-    4i. TODO. Once ~remapP-comm~ is done, assemble the full
-        ~hComposeP-resp-≅ᴴ~ record: ~ψ-ein-P / ψ-eout-P / cod-P~
-        all fall out via ~map-remapP-comm~ (the list-wise version
-        of ~remapP-comm~).
+       *Fully proved (no postulates):*
+       - ~hTensor-hEmpty-hId-iso : hTensor hEmpty (hId A) ≅ᴴ hId A~
+         (bridge lemma for λ/ρ coherence axioms).
 
-    5. TODO. Switch ~⟪ g ∘ f ⟫~ in ~FromAPROP~ to use ~hComposeP~
-       instead of ~hCompose~. Update ~Soundness.∘-resp-≈~ to use
-       the ported ~hComposeP-resp-≅ᴴ~.
+       *Partial — internal postulates remain:*
+       - ~idˡ-sound~ — 14/16 fields proved; ~φ-cod~ and ~ψ-elab~
+         postulated. ~φ-cod~ needs ~classify-inj₁~ reasoning on
+         ~hId B~.cod. ~ψ-elab~ needs the 6-step subst₂-trans chain
+         (~30 lines, structure analogous to ~CongruenceP.ψ-elab-P~).
 
-    6. TODO. Discharge the 12 "LHS > RHS" axioms (group b/c)
-       using vertex bijections with matching counts. ~idˡ~ / ~idʳ~
-       use ~hId-count-non-dom~ + ~+-identityʳ~ for the nV match.
+       *Derived (inherit idˡ's postulates):*
+       - ~λ⇐∘λ⇒-sound~, ~λ⇒∘λ⇐-sound~ — both via ~idˡ-sound~ +
+         ~hTensor-hEmpty-hId-iso~.
 
-    7. TODO. Discharge the 3 group-(a) axioms (~assoc~, ~⊗-∘-dist~,
-       ~hexagon~) using associator-style bijections. These work
-       with either pruned or unpruned ~hCompose~ since vertex
-       counts match on both sides.
+       *Pure postulates (structure not yet written):*
+       - ~ρ⇐∘ρ⇒~, ~ρ⇒∘ρ⇐~ — ρ variants with ~subst~ through
+         ~++-identityʳ~ (similar shape to λ but with extra subst).
+       - ~σ∘σ~ — braiding self-inverse; involves ~hSwap~'s specific
+         structure.
+
+       *Not yet touched:*
+       - ~idʳ~ — needs ~⟪_⟫-dom-unique~ for the dom-coverage
+         count-non calculation. Similar structure to ~idˡ~ but
+         with G and K roles swapped.
+       - ~α~-axioms (~α⇐∘α⇒~, ~α⇒∘α⇐~) — similar to ρ with 3-way
+         tensor.
+       - ~σ∘[f⊗g]≈[g⊗f]∘σ~ — signature-dependent; requires the full
+         ~hComposeP~-on-compositions machinery.
+       - Group (a): ~assoc~, ~⊗-∘-dist~, ~hexagon~ — already have
+         matching vertex counts; need pure bijection construction.
+
+    7. TODO. Prove ~⟪_⟫-dom-unique~ in ~Hypergraph.Invariant~ by
+       induction on ~HomTerm~ + case analysis on ⟪_⟫'s recursive
+       structure. Cases:
+       - ~Agen f~: ~map (inject+ nB) (range nA)~ is ~Unique~ (range
+         has distinct entries, ~inject+~ injective).
+       - ~id A~: by induction on ~ObjTerm~, combining ∷-Unique
+         with ++-Unique at tensor cases.
+       - ~g ∘ f~: ~hComposeP ⟪f⟫ ⟪g⟫.dom = map injL ⟪f⟫.dom~.
+         Unique by IH on f + ~injL~ injective.
+       - ~f ⊗₁ g~: disjoint-union ++ of two ~map injL / injR~ lists.
+       - ~hSwap~: similar to hTensor.
+       - subst cases (ρ/α): ~subst Unique~.
+
+    8. TODO. Promote ~Soundness.agda~ to ~--safe~ by discharging the
+       ~soundness-axiom~ and ~⟪_⟫-dom-unique~ postulates.
+
+    *Rate-limiting factor:* each axiom's ≅ᴴ record has 16 fields.
+    Routine fields (φ/ψ bijections, φ-lab, dom, atom-*) are ~5 lines
+    each via case-splits and the ~Fin-zero-absurd~ idiom. The hard
+    fields are:
+     - ~φ-cod~ (~20 lines via ~classify-inj₁~ + ~IG.φ-cod~).
+     - ~ψ-elab~ (~30 lines, 6-step ~subst₂-trans~ chain).
+    Each axiom: ~80-150 lines. 15 axioms × ~100 lines = ~1500 lines.
 
 *** TODO Option B — coarsen ~_≅ᴴ_~ to allow vertex merging
     Replace the strict vertex bijection with a pair
