@@ -50,7 +50,6 @@ open import Categories.APROP.Hypergraph.Prune
   using ( count-non; nonMem; pruneMap; pruneMap⁻¹
         ; pruneMap-left-inverse; pruneMap-right-inverse)
 open import Categories.APROP.Hypergraph.PrunedCompose sig
-  using (hComposeP)
 
 open import Data.Fin using (Fin; inject+; raise; splitAt)
 open import Data.Fin.Properties using (splitAt-inject+; splitAt-raise;
@@ -236,3 +235,63 @@ module _
     trans (cong [ G₂.vlab , _ ]′
                  (splitAt-raise G₂.nV (count-non K₂.dom) (pruneK jK)))
           (pruneK-lookup jK)
+
+  --------------------------------------------------------------------------------
+  -- Boundary helpers: φ-P applied to an `injL` (G-side inject).
+
+  open import Data.List.Properties using (map-∘; map-cong)
+
+  φ-P-injL : ∀ i → φ-P (inject+ (count-non K₁.dom) i)
+                 ≡ inject+ (count-non K₂.dom) (IG.φ i)
+  φ-P-injL i rewrite splitAt-inject+ G₁.nV (count-non K₁.dom) i = refl
+
+  -- List-wise version used in the dom-P case of hComposeP-resp-≅ᴴ.
+  map-φ-P-injL : (xs : List (Fin G₁.nV))
+               → map φ-P (map (inject+ (count-non K₁.dom)) xs)
+               ≡ map (inject+ (count-non K₂.dom)) (map IG.φ xs)
+  map-φ-P-injL xs = trans (sym (map-∘ xs))
+                          (trans (map-cong φ-P-injL xs) (map-∘ xs))
+
+  --------------------------------------------------------------------------------
+  -- Boundary preservation (dom only; cod requires the deeper remapP-comm).
+  --
+  -- `dom-P : (hComposeP G₂ K₂).dom ≡ map φ-P (hComposeP G₁ K₁).dom`
+  -- reduces to `G₂.dom ≡ map IG.φ G₁.dom` after the inject+ commutation.
+
+  private
+    module hCP₁ = hComposeP-impl G₁ K₁
+    module hCP₂ = hComposeP-impl G₂ K₂
+
+  dom-P : Hypergraph.dom (hComposeP G₂ K₂)
+        ≡ map φ-P (Hypergraph.dom (hComposeP G₁ K₁))
+  dom-P = trans (cong (map (inject+ (count-non K₂.dom))) IG.φ-dom)
+                (sym (map-φ-P-injL G₁.dom))
+
+  --------------------------------------------------------------------------------
+  -- G-side ψ-ein/ψ-eout clauses. The inj₁ case of the full `ψ-ein-P /
+  -- ψ-eout-P` is identical to the unpruned version: an `inject+` of
+  -- `G.ein`/`G.eout` followed by the `map-φ-P-injL` commutation. The
+  -- inj₂ (K-side) branch requires `map-remapP-comm` (the pruned analog
+  -- of `Congruence.map-remap-comm`), which relies on a `remapP-comm`
+  -- showing `φ-P ∘ remapP₁ ≡ remapP₂ ∘ IK.φ` — left for the next
+  -- iteration of this module.
+
+  open import Data.List.Properties using () renaming (map-∘ to List-map-∘)
+
+  -- Inj₁ branch (G-side) of ψ-ein-P.
+  ψ-ein-P-inj₁ : ∀ (eG : Fin G₁.nE)
+               → hCP₂.ein-c (inject+ K₂.nE (IG.ψ eG))
+               ≡ map φ-P (map (inject+ (count-non K₁.dom)) (G₁.ein eG))
+  ψ-ein-P-inj₁ eG =
+    trans (hCP₂.ein-c-inj₁-red (IG.ψ eG))
+          (trans (cong (map (inject+ (count-non K₂.dom))) (IG.ψ-ein eG))
+                 (sym (map-φ-P-injL (G₁.ein eG))))
+
+  -- Inj₁ branch of ψ-eout-P.
+  ψ-eout-P-inj₁ : ∀ (eG : Fin G₁.nE)
+                → hCP₂.eout-c (inject+ K₂.nE (IG.ψ eG))
+                ≡ map φ-P (map (inject+ (count-non K₁.dom)) (G₁.eout eG))
+  ψ-eout-P-inj₁ eG =
+    trans (hCP₂.eout-c-inj₁-red (IG.ψ eG))
+          (trans (cong (map (inject+ (count-non K₂.dom))) (IG.ψ-eout eG))
+                 (sym (map-φ-P-injL (G₁.eout eG))))
