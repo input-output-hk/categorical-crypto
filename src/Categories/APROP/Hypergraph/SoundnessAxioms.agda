@@ -100,6 +100,9 @@ module idˡ-proof {A B : ObjTerm} (f : HomTerm A B) where
     module G = Hypergraph G
     module K = Hypergraph K
     module C = Hypergraph C
+    module hCP = hComposeP-impl G K
+
+    open import Categories.APROP.Hypergraph.FromAPROP sig using (map-via-inj)
 
     -- Key facts.
     cn≡0 : count-non K.dom ≡ 0
@@ -204,33 +207,35 @@ module idˡ-proof {A B : ObjTerm} (f : HomTerm A B) where
   ------------------------------------------------------------------------------
   -- Atom-list equalities.
   --
-  -- atom-ein e : map G.vlab (G.ein (ψ e)) ≡ map C.vlab (C.ein e).
-  -- Follows from ψ-ein + φ-lab.
+  -- KEY TECHNIQUE: instead of deriving atom-ein/atom-eout from ψ-ein/φ-lab
+  -- (which would force ψ-elab to be a subst₂ chain relating two different
+  -- proof terms of the same equality — untractable without UIP), we
+  -- STRATEGICALLY choose atom-ein/atom-eout to MATCH the specific proof
+  -- terms used inside hComposeP-impl.elab-c's subst₂. Then ψ-elab reduces
+  -- to `refl` after the `with splitAt` match.
 
   atom-ein : ∀ e → map G.vlab (G.ein (ψ e)) ≡ map C.vlab (Hypergraph.ein C e)
-  atom-ein e =
-    trans (cong (map G.vlab) (ψ-ein e))
-    (trans (sym (map-∘ (Hypergraph.ein C e)))
-           (map-cong φ-lab (Hypergraph.ein C e)))
+  atom-ein e with splitAt G.nE e
+  ... | inj₁ eG = map-via-inj hCP.vlab-injL (G.ein eG)
+  ... | inj₂ eK = ⊥-elim (Fin-zero-absurd nE≡0 eK)
 
   atom-eout : ∀ e → map G.vlab (G.eout (ψ e)) ≡ map C.vlab (Hypergraph.eout C e)
-  atom-eout e =
-    trans (cong (map G.vlab) (ψ-eout e))
-    (trans (sym (map-∘ (Hypergraph.eout C e)))
-           (map-cong φ-lab (Hypergraph.eout C e)))
+  atom-eout e with splitAt G.nE e
+  ... | inj₁ eG = map-via-inj hCP.vlab-injL (G.eout eG)
+  ... | inj₂ eK = ⊥-elim (Fin-zero-absurd nE≡0 eK)
 
   ------------------------------------------------------------------------------
   -- Edge label compatibility.
   --
-  -- subst₂ FlatGen (atom-ein e) (atom-eout e) (G.elab (ψ e)) ≡ C.elab e.
-  -- For e = inj₁ eG: C.elab e = subst₂ ... (G.elab eG) via elab-c-inj₁,
-  -- so the two subst₂'s of G.elab eG with different proof chains give
-  -- the same result (subst₂-uniqueness). For inj₂ eK: absurd.
-  -- Postulated for now — requires unfolding the elab-c-inj₁ reduction
-  -- and chaining the subst₂ proofs.
-  postulate
-    ψ-elab : ∀ e → subst₂ FlatGen (atom-ein e) (atom-eout e) (G.elab (ψ e))
-                 ≡ Hypergraph.elab C e
+  -- With atom-ein/atom-eout matching `hCP.elab-c`'s internal subst₂ proofs
+  -- (which both use `map-via-inj hCP.vlab-injL`), the LHS and RHS of
+  -- ψ-elab's goal reduce to the SAME subst₂ application. Hence `refl`.
+
+  ψ-elab : ∀ e → subst₂ FlatGen (atom-ein e) (atom-eout e) (G.elab (ψ e))
+               ≡ Hypergraph.elab C e
+  ψ-elab e with splitAt G.nE e
+  ... | inj₁ eG = refl
+  ... | inj₂ eK = ⊥-elim (Fin-zero-absurd nE≡0 eK)
 
   ------------------------------------------------------------------------------
   -- The assembled ≅ᴴ record.
