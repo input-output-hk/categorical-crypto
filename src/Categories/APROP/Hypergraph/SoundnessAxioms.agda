@@ -435,12 +435,27 @@ hTensor-hEmpty-hId-iso A = record
 λ⇒∘λ⇐-sound {A} = idˡ-sound (id {A})
 
 --------------------------------------------------------------------------------
--- ρ⇐∘ρ⇒, ρ⇒∘ρ⇐, α⇐∘α⇒, α⇒∘α⇐ — all similar pattern: composition of two
--- hId-based constructions gives hId. The subst-wrapped cases (ρ, α) need
--- additional subst manipulation.
+-- ρ⇐∘ρ⇒≈id: `⟪ρ⇐ ∘ ρ⇒⟫ = hComposeP ⟪ρ⇒⟫ ⟪ρ⇐⟫` reduces to
+-- `hComposeP (hId (A⊗unit)) (hId (A⊗unit))` via `hComposeP-subst-both`
+-- (the outer boundaries of both sides are flatten A ++ [] so the
+-- subst₂s on eq₁ and eq₃ are refl, and only the middle eq₂ =
+-- ++-identityʳ is non-trivial).  After that reduction, `idˡ-sound
+-- (id {A⊗unit})` closes the iso.
 
+ρ⇐∘ρ⇒-sound : ∀ {A} → ⟪ ρ⇐ {A} ∘ ρ⇒ {A} ⟫ ≅ᴴ ⟪ id {A ⊗₀ unit} ⟫
+ρ⇐∘ρ⇒-sound {A} =
+  subst (_≅ᴴ hId (A ⊗₀ unit))
+        (sym (hComposeP-subst-both refl (++-identityʳ (flatten A)) refl
+                                   (hId (A ⊗₀ unit)) (hId (A ⊗₀ unit))))
+        (idˡ-sound (id {A ⊗₀ unit}))
+  where open import Data.List.Properties using (++-identityʳ)
+
+-- ρ⇒∘ρ⇐≈id is harder: the outer boundaries on both sides are
+-- `flatten A` (not `flatten A ++ []`), so the eq₁/eq₃ substs in
+-- `hComposeP-subst-both` are non-refl. After the reduction we'd
+-- get `subst₂ _ p p (hComposeP (hId _) (hId _)) ≅ᴴ hId A`, whose
+-- RHS requires a `subst₂-hId-cancel` iso. Keeping postulated.
 postulate
-  ρ⇐∘ρ⇒-sound : ∀ {A} → ⟪ ρ⇐ {A} ∘ ρ⇒ {A} ⟫ ≅ᴴ ⟪ id {A ⊗₀ unit} ⟫
   ρ⇒∘ρ⇐-sound : ∀ {A} → ⟪ ρ⇒ {A} ∘ ρ⇐ {A} ⟫ ≅ᴴ ⟪ id {A} ⟫
 
 --------------------------------------------------------------------------------
