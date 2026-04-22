@@ -554,3 +554,30 @@ private
 range≡allFin-pub : ∀ n → range n ≡ allFin n
 range≡allFin-pub = range≡allFin
   where open import Data.List using (allFin)
+
+-- `toℕ (lookup (range n) j) ≡ toℕ j` via direct induction on range.
+-- Needed by σ∘σ-sound's `lookup-cod-*` helpers (bridging the cast
+-- between `Fin (length (range n))` and `Fin n`).
+
+open import Data.Fin using (toℕ)
+
+lookup-range
+  : ∀ n (j : Fin (length (range n)))
+  → toℕ (lookup (range n) j) ≡ toℕ j
+lookup-range (suc n) zero    = refl
+lookup-range (suc n) (suc j) =
+  trans (cong toℕ (lookup-map-Fsuc {xs = range n} j))
+  (cong suc
+    (trans (lookup-range n (cast (length-map Fin.suc (range n)) j))
+           (toℕ-cast _ j)))
+  where
+    import Data.Fin as Fin
+    open import Data.List.Properties using (length-map)
+
+    -- lookup (map suc xs) j = suc (lookup xs (cast _ j)).
+    lookup-map-Fsuc
+      : ∀ {xs : List (Fin n)} (j : Fin (length (map Fin.suc xs)))
+      → lookup (map Fin.suc xs) j
+      ≡ Fin.suc (lookup xs (cast (length-map Fin.suc xs) j))
+    lookup-map-Fsuc {x ∷ xs} zero    = refl
+    lookup-map-Fsuc {x ∷ xs} (suc j) = lookup-map-Fsuc {xs} j
