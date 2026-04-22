@@ -450,13 +450,32 @@ hTensor-hEmpty-hId-iso A = record
         (idˡ-sound (id {A ⊗₀ unit}))
   where open import Data.List.Properties using (++-identityʳ)
 
--- ρ⇒∘ρ⇐≈id is harder: the outer boundaries on both sides are
--- `flatten A` (not `flatten A ++ []`), so the eq₁/eq₃ substs in
--- `hComposeP-subst-both` are non-refl. After the reduction we'd
--- get `subst₂ _ p p (hComposeP (hId _) (hId _)) ≅ᴴ hId A`, whose
--- RHS requires a `subst₂-hId-cancel` iso. Keeping postulated.
+-- α⇐∘α⇒≈id: same pattern as ρ⇐∘ρ⇒ — outer boundaries on both sides
+-- are `flatten ((A⊗B)⊗C) = (flatten A ++ flatten B) ++ flatten C`,
+-- so `hComposeP-subst-both` with eq₁ = eq₃ = refl, eq₂ = ++-assoc
+-- strips the subst₂ cleanly, and `idˡ-sound (id {(A⊗B)⊗C})` closes.
+
+α⇐∘α⇒-sound : ∀ {A B C} → ⟪ α⇐ {A}{B}{C} ∘ α⇒ {A}{B}{C} ⟫ ≅ᴴ ⟪ id {(A ⊗₀ B) ⊗₀ C} ⟫
+α⇐∘α⇒-sound {A} {B} {C} =
+  subst (_≅ᴴ hId ((A ⊗₀ B) ⊗₀ C))
+        (sym (hComposeP-subst-both refl
+                                   (++-assoc (flatten A) (flatten B) (flatten C))
+                                   refl
+                                   (hId ((A ⊗₀ B) ⊗₀ C))
+                                   (hId ((A ⊗₀ B) ⊗₀ C))))
+        (idˡ-sound (id {(A ⊗₀ B) ⊗₀ C}))
+  where open import Data.List.Properties using (++-assoc)
+
+-- ρ⇒∘ρ⇐≈id and α⇒∘α⇐≈id: the "asymmetric" direction. The outer
+-- boundaries on LHS and RHS differ — LHS has `flatten A ++ []` or
+-- `(flatten A ++ flatten B) ++ flatten C`, RHS has `flatten A` or
+-- `flatten A ++ (flatten B ++ flatten C)`. `hComposeP-subst-both`
+-- leaves a non-trivial outer subst₂, needing a `subst₂-hId-cancel`
+-- iso (analogous to hTensor-hEmpty-hId but for the right side).
+
 postulate
   ρ⇒∘ρ⇐-sound : ∀ {A} → ⟪ ρ⇒ {A} ∘ ρ⇐ {A} ⟫ ≅ᴴ ⟪ id {A} ⟫
+  α⇒∘α⇐-sound : ∀ {A B C} → ⟪ α⇒ {A}{B}{C} ∘ α⇐ {A}{B}{C} ⟫ ≅ᴴ ⟪ id {A ⊗₀ (B ⊗₀ C)} ⟫
 
 --------------------------------------------------------------------------------
 -- σ∘σ≈id: the braiding is self-inverse.

@@ -72,7 +72,8 @@ open import Categories.APROP.Hypergraph.Iso
 open import Categories.APROP.Hypergraph.Congruence sig using (hTensor-resp-≅ᴴ)
 open import Categories.APROP.Hypergraph.CongruenceP sig using (hComposeP-resp-≅ᴴ)
 open import Categories.APROP.Hypergraph.SoundnessAxioms sig
-  using (idˡ-sound; λ⇐∘λ⇒-sound; λ⇒∘λ⇐-sound; σ∘σ-sound; ρ⇐∘ρ⇒-sound)
+  using ( idˡ-sound; λ⇐∘λ⇒-sound; λ⇒∘λ⇐-sound; σ∘σ-sound
+        ; ρ⇐∘ρ⇒-sound; α⇐∘α⇒-sound)
 open import Categories.APROP.Hypergraph.HomTermInvariant sig
   using (⟪_⟫-dom-unique)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
@@ -119,6 +120,7 @@ soundness (λ⇐∘λ⇒≈id {A = A})      = λ⇐∘λ⇒-sound {A}
 soundness (λ⇒∘λ⇐≈id {A = A})      = λ⇒∘λ⇐-sound {A}
 soundness (σ∘σ≈id {A = A} {B = B}) = σ∘σ-sound {A} {B}
 soundness (ρ⇐∘ρ⇒≈id {A = A})      = ρ⇐∘ρ⇒-sound {A}
+soundness (α⇐∘α⇒≈id {A = A} {B = B} {C = C}) = α⇐∘α⇒-sound {A} {B} {C}
 
 -- Atomic axioms still using catch-all. See module header for the
 -- classification.
