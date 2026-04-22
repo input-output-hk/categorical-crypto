@@ -1,0 +1,145 @@
+{-# OPTIONS --safe --without-K #-}
+
+--------------------------------------------------------------------------------
+-- Pruned cospan composition (TODO.org Option A).
+--
+-- Identical to `FromAPROP.hCompose` except the output's vertex count is
+--   G.nV + count-non K.dom       (pruned)
+-- instead of
+--   G.nV + K.nV                  (unpruned).
+--
+-- The pruning drops every K-side vertex that lives in `K.dom`, since those
+-- positions have been "glued" to the corresponding `G.cod` entry and are
+-- therefore unreferenced in the composite.
+--
+-- The construction relies on `Hypergraph.Prune.remap` plus its label-
+-- preservation lemma `remap-vlab` / list-wise `map-via-remap`.
+--
+-- Usage downstream:
+--   * Eventually `⟪ g ∘ f ⟫ = hComposeP ⟪ f ⟫ ⟪ g ⟫` (replaces the unpruned
+--     version in `FromAPROP`).
+--   * The group-(b)/(c) ≈Term axioms where LHS has strictly more vertices
+--     than RHS become provable with `hComposeP`, because pruning lets the
+--     vertex counts line up.
+--------------------------------------------------------------------------------
+
+open import Categories.APROP
+
+module Categories.APROP.Hypergraph.PrunedCompose (sig : APROPSignature) where
+
+open APROP sig
+open import Categories.APROP.Hypergraph.Core
+open import Categories.APROP.Hypergraph.FromAPROP sig
+  using (FlatGen; map-via-inj)
+open import Categories.APROP.Hypergraph.Prune
+  using (count-non; nonMem; classify; remap; remap-vlab; map-via-remap)
+
+open import Data.Fin using (Fin; zero; suc; inject+; raise; splitAt; cast)
+open import Data.Fin.Properties using (splitAt-inject+)
+open import Data.List using (List; []; _∷_; length; map; lookup)
+open import Data.List.Properties using (length-map; map-cong; map-∘)
+open import Data.Nat using (ℕ; _+_)
+open import Data.Sum using (inj₁; inj₂; [_,_]′)
+open import Function using (_∘_)
+open import Relation.Binary.PropositionalEquality
+  using (_≡_; refl; cong; sym; trans; subst; subst₂)
+
+--------------------------------------------------------------------------------
+-- Local helpers: "boundary lookup" lemma.
+--
+-- Given two lists with matching mapped images, their pointwise lookups agree
+-- (up to `Fin.cast` across the length equality). This is the main ingredient
+-- for `bdy-pt` below.
+
+private
+  ∷-head : ∀ {A : Set} {x y : A} {xs ys} → x ∷ xs ≡ y ∷ ys → x ≡ y
+  ∷-head refl = refl
+
+  ∷-tail : ∀ {A : Set} {x y : A} {xs ys} → x ∷ xs ≡ y ∷ ys → xs ≡ ys
+  ∷-tail refl = refl
+
+  -- Length equality derived from an equality of mapped lists.
+  len-match : ∀ {A B Y : Set} (f : A → Y) (g : B → Y)
+              (xs : List A) (ys : List B) → map f xs ≡ map g ys
+            → length xs ≡ length ys
+  len-match f g xs ys eq =
+    trans (sym (length-map f xs))
+          (trans (cong length eq) (length-map g ys))
+
+  -- The boundary lookup lemma. Pointwise image agreement from list-wise
+  -- image agreement: f (lookup xs i) ≡ g (lookup ys (cast ... i)).
+  lookup-boundary : ∀ {A B Y : Set} (f : A → Y) (g : B → Y)
+                      (xs : List A) (ys : List B)
+                      (eq : map f xs ≡ map g ys)
+                      (i : Fin (length xs))
+                    → f (lookup xs i)
+                    ≡ g (lookup ys (cast (len-match f g xs ys eq) i))
+  lookup-boundary f g (x ∷ xs) (y ∷ ys) eq zero    = ∷-head eq
+  lookup-boundary f g (x ∷ xs) (y ∷ ys) eq (suc i) =
+    lookup-boundary f g xs ys (∷-tail eq) i
+
+--------------------------------------------------------------------------------
+-- Module-parameterised construction.
+--
+-- Parallel to `FromAPROP.hCompose-impl` but with pruning.
+
+module hComposeP-impl
+  {As Bs Cs : List X}
+  (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs) where
+
+  private
+    module G = Hypergraph G
+    module K = Hypergraph K
+
+  -- K.dom and G.cod have the same length: both are vertex-backings for Bs.
+  dom-cod-len : length K.dom ≡ length G.cod
+  dom-cod-len =
+    trans (sym (length-map K.vlab K.dom))
+          (trans (cong length (trans K.dom-ok (sym G.cod-ok)))
+                 (length-map G.vlab G.cod))
+
+  -- Lookup into G.cod indexed by a position in K.dom. Uses `Fin.cast`
+  -- (proof-irrelevant) so we can reason equationally without getting
+  -- stuck on specific proof terms.
+  lookup-cod : Fin (length K.dom) → Fin G.nV
+  lookup-cod i = lookup G.cod (cast dom-cod-len i)
+
+  -- Pruning remap: K-side vertices → G-side positions (via `lookup-cod`)
+  -- for members of K.dom, else a fresh pruned slot.
+  remapP : Fin K.nV → Fin (G.nV + count-non K.dom)
+  remapP = remap K.dom lookup-cod
+
+  -- Pruned vertex count and labeling.
+  nV-P : ℕ
+  nV-P = G.nV + count-non K.dom
+
+  λ-pruned : Fin (count-non K.dom) → X
+  λ-pruned j = K.vlab (lookup (nonMem K.dom) j)
+
+  vlab-P : Fin nV-P → X
+  vlab-P v = [ G.vlab , λ-pruned ]′ (splitAt G.nV v)
+
+  -- Injection of G-side vertices into the pruned composite.
+  injL : Fin G.nV → Fin nV-P
+  injL i = inject+ (count-non K.dom) i
+
+  vlab-injL : ∀ i → vlab-P (injL i) ≡ G.vlab i
+  vlab-injL i = cong [ G.vlab , λ-pruned ]′ (splitAt-inject+ G.nV (count-non K.dom) i)
+
+  --------------------------------------------------------------------------------
+  -- Boundary agreement and the key label lemma for remapP.
+
+  -- Pointwise `K.vlab (K.dom[i]) ≡ G.vlab (lookup-cod i)`, derived from
+  -- the shared Bs boundary: both sides equal the i-th atom of Bs.
+  bdy-pt : ∀ i → K.vlab (lookup K.dom i) ≡ G.vlab (lookup-cod i)
+  bdy-pt = lookup-boundary K.vlab G.vlab K.dom G.cod
+             (trans K.dom-ok (sym G.cod-ok))
+
+  -- Label preservation for remapP.
+  remapP-vlab : ∀ v → vlab-P (remapP v) ≡ K.vlab v
+  remapP-vlab = remap-vlab K.dom lookup-cod K.vlab G.vlab bdy-pt
+
+  -- List-wise label preservation.
+  map-via-remapP : (xs : List (Fin K.nV))
+                 → map K.vlab xs ≡ map vlab-P (map remapP xs)
+  map-via-remapP = map-via-remap K.dom lookup-cod K.vlab G.vlab bdy-pt
