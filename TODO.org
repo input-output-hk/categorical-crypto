@@ -166,16 +166,60 @@ meantime.
     - ~All-lookup~, ~lookup-injective-unique~ — generic list
       uniqueness lemmas used by the above.
 
+    *CongruenceP port (PARTIAL — ~Categories.APROP.Hypergraph.CongruenceP~):*
+
+    4a. DONE. Vertex bijection ~φ-P / φ⁻¹-P~ with left/right
+        inverse proofs. Uses ~pruneK / pruneK⁻¹~ on the K-side,
+        which route through ~pruneMap~ + ~subst~ across ~IK.φ-dom~.
+        Bijection laws ~pruneK-left / pruneK-right~ shipped.
+
+    4b. DONE. Edge bijection ~ψ-P / ψ⁻¹-P~ with left/right
+        inverse proofs. Identical to unpruned version (edges
+        aren't pruned).
+
+    4c. DONE. Vertex label preservation ~φ-lab-P~. Three-liner
+        for the K-side: pattern-match on ~IK.φ-dom = refl~
+        collapses the ~subst~ in ~pruneK~, then ~lookup-pruneMap~
+        reduces to ~IK.φ ∘ lookup (nonMem K₁.dom)~, bridged to
+        ~K₁.vlab~ by ~IK.φ-lab~.
+
+    4d. DONE. ~dom-P~, ~ψ-ein-P-inj₁~, ~ψ-eout-P-inj₁~ (G-side
+        clauses) + ~map-φ-P-injL~.
+
+    4e. DONE. ~atom-ein-P~, ~atom-eout-P~ — the atom-list
+        equalities. Ported verbatim from ~atom-ein-C / atom-eout-C~,
+        with ~hC?.map-via-remap~ replaced by ~hCP?.map-via-remapP~.
+
+    4f. DONE. ~ψ-elab-P~ — the big six-step ~subst₂~-trans chain.
+        Full proof for both ~inj₁~ and ~inj₂~ branches, ported
+        verbatim from ~ψ-elab-C~.
+
+    4g. DONE. Impossibility lemmas ~∈K₁→∈K₂~, ~∈K₂→∈K₁~ that
+        transport membership across the K₁-K₂ iso. These
+        discharge two of the four cases of ~remapP-comm~.
+
     *Remaining work:*
 
-    4. TODO. Port ~Congruence.hCompose-resp-≅ᴴ~ to ~hComposeP~.
-       The existing proof structure is the same (six-step
-       ~subst₂-trans~ chain) but the K-side vertex bijection
-       is now
-         ~jK ↦ raise G₂.nV (subst Fin (cong count-non IK.φ-dom)~
-         ~                       (pruneMap′ φK φK⁻¹ ... K₁.dom jK))~
-       using the new pruneMap machinery. All other fields track
-       the unpruned proof verbatim.
+    4h. TODO. Finish ~remapP-comm : φ-P ∘ hCP₁.remapP ≡
+                                     hCP₂.remapP ∘ IK.φ~.
+        Four-way case split on ~v ∈? K₁.dom × IK.φ v ∈? K₂.dom~:
+
+        - (yes, no): discharged by ~∈K₁→∈K₂~ + ⊥-elim.
+        - (no, yes): discharged by ~∈K₂→∈K₁~ + ⊥-elim.
+        - (yes, yes): need ~IG.φ (lookup-cod₁ i) ≡ lookup-cod₂ i'~
+          where i, i' are the two ~Any.index~ values. Use
+          ~IG.φ-cod~ + lookup-map-like reasoning.
+        - (no, no): need ~pruneK (Prune.classify-inj₂-index) ≡
+          Prune.classify-inj₂-index~ for the IK.φ v side. Use
+          ~index-∈-filter-irrelevant~ (already shipped in Prune)
+          plus subst-cancellation.
+
+        This is the last hurdle for the full Congruence port.
+
+    4i. TODO. Once ~remapP-comm~ is done, assemble the full
+        ~hComposeP-resp-≅ᴴ~ record: ~ψ-ein-P / ψ-eout-P / cod-P~
+        all fall out via ~map-remapP-comm~ (the list-wise version
+        of ~remapP-comm~).
 
     5. TODO. Switch ~⟪ g ∘ f ⟫~ in ~FromAPROP~ to use ~hComposeP~
        instead of ~hCompose~. Update ~Soundness.∘-resp-≈~ to use
