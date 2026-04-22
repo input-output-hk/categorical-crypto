@@ -330,43 +330,45 @@ private
   lookup-++-rai (x ∷ xs) ys j = lookup-++-rai xs ys j
 
 -- Cast commutes with `inject+` and `raise` up to toℕ-equality.
-private
-  cast-inject+-comm
-    : ∀ {m m'} (eq-m : m ≡ m') (n : ℕ) (i : Fin m)
-    → cast (cong (_+ n) eq-m) (inject+ n i) ≡ inject+ n (cast eq-m i)
-  cast-inject+-comm eq-m n i = toℕ-injective
-    (trans (toℕ-cast _ (inject+ n i))
-    (trans (toℕ-↑ˡ i n)
-    (trans (sym (toℕ-cast eq-m i))
-           (sym (toℕ-↑ˡ (cast eq-m i) n)))))
+-- Public — used by σ∘σ-sound's φ-dom/φ-cod to push casts through
+-- `inject+ / raise`.
 
-  cast-raise-comm
-    : ∀ (m : ℕ) {n n'} (eq-n : n ≡ n') (j : Fin n)
-    → cast (cong (m +_) eq-n) (raise m j) ≡ raise m (cast eq-n j)
-  cast-raise-comm m eq-n j = toℕ-injective
-    (trans (toℕ-cast _ (raise m j))
-    (trans (toℕ-↑ʳ m j)
-    (trans (cong (m +_) (sym (toℕ-cast eq-n j)))
-           (sym (toℕ-↑ʳ m (cast eq-n j))))))
+cast-inject+-comm
+  : ∀ {m m'} (eq-m : m ≡ m') (n : ℕ) (i : Fin m)
+  → cast (cong (_+ n) eq-m) (inject+ n i) ≡ inject+ n (cast eq-m i)
+cast-inject+-comm eq-m n i = toℕ-injective
+  (trans (toℕ-cast _ (inject+ n i))
+  (trans (toℕ-↑ˡ i n)
+  (trans (sym (toℕ-cast eq-m i))
+         (sym (toℕ-↑ˡ (cast eq-m i) n)))))
 
-  -- Bridge the two-variable cong₂ with `cast-inject+-comm` above.
-  -- Pattern-match both eqs as refl to unify the indices, then use
-  -- `cast-is-id` to cancel the residual `cast _` on each side.
-  cast-inject+-cong₂
-    : ∀ {mA mA' mB mB'} (eq-A : mA ≡ mA') (eq-B : mB ≡ mB') (i : Fin mA)
-    → cast (cong₂ _+_ eq-A eq-B) (inject+ mB i)
-    ≡ inject+ mB' (cast eq-A i)
-  cast-inject+-cong₂ refl refl i =
-    trans (cast-is-id refl (inject+ _ i))
-          (cong (inject+ _) (sym (cast-is-id refl i)))
+cast-raise-comm
+  : ∀ (m : ℕ) {n n'} (eq-n : n ≡ n') (j : Fin n)
+  → cast (cong (m +_) eq-n) (raise m j) ≡ raise m (cast eq-n j)
+cast-raise-comm m eq-n j = toℕ-injective
+  (trans (toℕ-cast _ (raise m j))
+  (trans (toℕ-↑ʳ m j)
+  (trans (cong (m +_) (sym (toℕ-cast eq-n j)))
+         (sym (toℕ-↑ʳ m (cast eq-n j))))))
 
-  cast-raise-cong₂
-    : ∀ {mA mA' mB mB'} (eq-A : mA ≡ mA') (eq-B : mB ≡ mB') (j : Fin mB)
-    → cast (cong₂ _+_ eq-A eq-B) (raise mA j)
-    ≡ raise mA' (cast eq-B j)
-  cast-raise-cong₂ refl refl j =
-    trans (cast-is-id refl (raise _ j))
-          (cong (raise _) (sym (cast-is-id refl j)))
+-- Bridge the two-variable cong₂ with `cast-inject+-comm` above.
+-- Pattern-match both eqs as refl to unify the indices, then use
+-- `cast-is-id` to cancel the residual `cast _` on each side.
+cast-inject+-cong₂
+  : ∀ {mA mA' mB mB'} (eq-A : mA ≡ mA') (eq-B : mB ≡ mB') (i : Fin mA)
+  → cast (cong₂ _+_ eq-A eq-B) (inject+ mB i)
+  ≡ inject+ mB' (cast eq-A i)
+cast-inject+-cong₂ refl refl i =
+  trans (cast-is-id refl (inject+ _ i))
+        (cong (inject+ _) (sym (cast-is-id refl i)))
+
+cast-raise-cong₂
+  : ∀ {mA mA' mB mB'} (eq-A : mA ≡ mA') (eq-B : mB ≡ mB') (j : Fin mB)
+  → cast (cong₂ _+_ eq-A eq-B) (raise mA j)
+  ≡ raise mA' (cast eq-B j)
+cast-raise-cong₂ refl refl j =
+  trans (cast-is-id refl (raise _ j))
+        (cong (raise _) (sym (cast-is-id refl j)))
 
 -- The main lemma. Uses Fin.cast across `hId-nV≡len-flatten A` to bridge
 -- the `Fin (hId A).nV` → `Fin (length (flatten A))` gap before looking up.
@@ -509,3 +511,14 @@ splitAt-cast {m} {m'} {n} {n'} refl refl i
     splitAt-cast-refl i with splitAt m i
     ... | inj₁ a = cong inj₁ (sym (cast-is-id refl a))
     ... | inj₂ b = cong inj₂ (sym (cast-is-id refl b))
+
+--------------------------------------------------------------------------------
+-- `map (cast eq) (range m)` = `range m'` when eq : m ≡ m'.
+-- Via refl-pattern + map-cong cast-is-id + map-id.
+
+map-cast-range
+  : ∀ {m m'} (eq : m ≡ m') → map (cast eq) (range m) ≡ range m'
+map-cast-range refl =
+  trans (map-cong (λ i → cast-is-id refl i) (range _))
+        (map-id (range _))
+  where open import Data.List.Properties using (map-id; map-cong)

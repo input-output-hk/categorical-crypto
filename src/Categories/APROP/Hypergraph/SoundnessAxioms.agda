@@ -29,7 +29,7 @@ module Categories.APROP.Hypergraph.SoundnessAxioms (sig : APROPSignature) where
 open APROP sig
 open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using (FlatGen; flatten; hId; hTensor; hGen; hEmpty; hVar; hSwap)
+  using (FlatGen; flatten; hId; hTensor; hGen; hEmpty; hVar; hSwap; range)
 open import Categories.APROP.Hypergraph.Translation sig
 open import Categories.APROP.Hypergraph.Iso
 open import Categories.APROP.Hypergraph.PrunedCompose sig
@@ -604,10 +604,67 @@ module σ∘σ-proof (A B : ObjTerm) where
       ... | inj₂ b = vlab-via-hId B b
   ... | inj₂ j = ⊥-elim (Fin-zero-absurd cn≡0 j)
 
-  -- φ-dom, φ-cod remain postulated: the analogous `map-cast` /
-  -- `hId-dom≡range` / `range-++` chase.
+  ------------------------------------------------------------------------------
+  -- φ-dom, φ-cod: list-wise chase through `cast` + `inject+` / `raise` +
+  -- `hId-dom≡range` / `hId-cod≡range`.
+  --
+  -- map φ C.dom  = map (cast eq-nV-GR) G.dom  (since φ ∘ injL = cast eq-nV-GR).
+  -- G.dom        = map (inject+ nB) (range nA) ++ map (raise nA) (range nB).
+  -- Pushing cast through inject+/raise via `cast-inject+-cong₂` /
+  -- `cast-raise-cong₂` yields
+  --   map (inject+ (hId B).nV) (map (cast eq-A) (range nA))
+  -- ++ map (raise (hId A).nV)  (map (cast eq-B) (range nB))
+  -- where `map (cast eq-A) (range nA) ≡ range (hId A).nV ≡ (hId A).dom`
+  -- via `map-cast-range` + `hId-dom≡range`.
+
+  open import Data.List using (_++_)
+  open import Data.List.Properties using (map-++; map-∘; map-cong; map-id)
+  open import Data.Fin.Properties using (splitAt-inject+) renaming (cast-is-id to Fin-cast-is-id)
+
+  private
+    -- φ collapses on the injL side to `cast eq-nV-GR`.
+    φ-injL-red : ∀ (x : Fin G.nV) → φ (hCP.injL x) ≡ cast eq-nV-GR x
+    φ-injL-red x
+      rewrite splitAt-inject+ G.nV (count-non K.dom) x = refl
+
+    -- List-wise version: map φ C.dom ≡ map (cast eq-nV-GR) G.dom.
+    map-φ-injL : map φ C.dom ≡ map (cast eq-nV-GR) G.dom
+    map-φ-injL =
+      trans (sym (map-∘ G.dom))
+            (map-cong φ-injL-red G.dom)
+
+    -- List-wise version for C.cod = map hCP.remapP K.cod.
+    -- We need a map-via-remapP analog that collapses on the K-dom-covers
+    -- case. Since K.dom covers and K.cod ≡ K.dom (for hSwap-like K's
+    -- with dom=cod? not in general for hSwap — here we DO NOT have
+    -- K.cod ≡ K.dom; hSwap B A has cod ≠ dom). TODO.
+
+  φ-dom : R.dom ≡ map φ C.dom
+  φ-dom = sym
+    (trans map-φ-injL
+    -- map (cast _) (map injL nA ++ map raise nB) = map (cast ∘ injL) nA ++ map (cast ∘ raise) nB
+    (trans (map-++ (cast eq-nV-GR)
+                   (map (inject+ nB) (range nA))
+                   (map (raise nA) (range nB)))
+    -- Push cast through inject+ on LHS, raise on RHS.
+    (cong₂ _++_
+      -- First half: map (cast ∘ inject+ nB) (range nA) = map (inject+ (hId B).nV) (map (cast eq-A) (range nA))
+      (trans (sym (map-∘ (range nA)))
+      (trans (map-cong (cast-inject+-cong₂ eq-A eq-B) (range nA))
+      (trans (map-∘ (range nA))
+             (cong (map (inject+ (Hypergraph.nV (hId B))))
+                   (trans (map-cast-range eq-A) (sym (hId-dom≡range A)))))))
+      -- Second half: map (cast ∘ raise nA) (range nB) = map (raise (hId A).nV) (map (cast eq-B) (range nB))
+      (trans (sym (map-∘ (range nB)))
+      (trans (map-cong (cast-raise-cong₂ eq-A eq-B) (range nB))
+      (trans (map-∘ (range nB))
+             (cong (map (raise (Hypergraph.nV (hId A))))
+                   (trans (map-cast-range eq-B) (sym (hId-dom≡range B))))))))))
+
+  -- φ-cod still postulated: C.cod uses remapP, which requires a more
+  -- delicate chase through the non-trivial K.cod = map injR (range nA)
+  -- ++ map injL (range nB) (note swap: cod differs from dom for hSwap).
   postulate
-    φ-dom : R.dom ≡ map φ C.dom
     φ-cod : R.cod ≡ map φ C.cod
 
   ψ-ein  : ∀ e → R.ein  (ψ e) ≡ map φ (C.ein  e)
