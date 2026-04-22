@@ -300,8 +300,17 @@ meantime.
          * Cast arithmetic: `splitAt-cast`, `cast-inject+-cong₂`,
            `cast-raise-cong₂`, `map-cast-range`.
          * Range / allFin: `range-covers`, `range-++`, `length-range`,
-           `range≡allFin-pub`.
+           `range≡allFin-pub`, `lookup-range` (toℕ-form).
+         * toℕ-indexing: `toℕ-index-++⁺ˡ`, `toℕ-index-++⁺ʳ`,
+           `toℕ-index-range-covers`.
          * Local: `remapP-via-member`, `vlab-via-hId`, `φ-injL-red`.
+
+         The path to finish: for each `lookup-cod-*`, construct the
+         "mirror" witness in G.cod (`∈-++⁺ˡ` / `∈-++⁺ʳ` + `∈-map⁺ (raise nA)`
+         / `inject+ nB` + `range-covers`), show via `toℕ-injective` +
+         `toℕ-index-*` that the two indices coincide, and use
+         `lookup-index` on the G-side witness to conclude. Each
+         proof is now a ~15-line toℕ chain.
 
        *Not yet touched:*
        - ~idʳ~ — needs a `length xs + count-non xs ≡ n` identity
