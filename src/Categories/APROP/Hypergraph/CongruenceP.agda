@@ -138,3 +138,36 @@ module _
   ... | inj₂ kK rewrite splitAt-raise G₁.nV (count-non K₁.dom) (pruneK⁻¹ kK)
                       | pruneK-right kK
                     = splitAt⁻¹-↑ʳ eq
+
+  --------------------------------------------------------------------------------
+  -- Edge bijection. Identical structure to the unpruned
+  -- `Congruence.hCompose-resp-≅ᴴ`, since `hComposeP` has the same edge
+  -- count (G.nE + K.nE) as `hCompose` — pruning only affects vertices.
+
+  ψ-P : Fin (G₁.nE + K₁.nE) → Fin (G₂.nE + K₂.nE)
+  ψ-P e = [ (λ eG → inject+ K₂.nE (IG.ψ eG))
+          , (λ eK → raise G₂.nE (IK.ψ eK))
+          ]′ (splitAt G₁.nE e)
+
+  ψ⁻¹-P : Fin (G₂.nE + K₂.nE) → Fin (G₁.nE + K₁.nE)
+  ψ⁻¹-P e = [ (λ eG → inject+ K₁.nE (IG.ψ⁻¹ eG))
+            , (λ eK → raise G₁.nE (IK.ψ⁻¹ eK))
+            ]′ (splitAt G₂.nE e)
+
+  ψ-left-P : ∀ e → ψ⁻¹-P (ψ-P e) ≡ e
+  ψ-left-P e with splitAt G₁.nE e in eq
+  ... | inj₁ eG rewrite splitAt-inject+ G₂.nE K₂.nE (IG.ψ eG)
+                      | IG.ψ-left eG
+                    = splitAt⁻¹-↑ˡ eq
+  ... | inj₂ eK rewrite splitAt-raise G₂.nE K₂.nE (IK.ψ eK)
+                      | IK.ψ-left eK
+                    = splitAt⁻¹-↑ʳ eq
+
+  ψ-rght-P : ∀ e → ψ-P (ψ⁻¹-P e) ≡ e
+  ψ-rght-P e with splitAt G₂.nE e in eq
+  ... | inj₁ eG rewrite splitAt-inject+ G₁.nE K₁.nE (IG.ψ⁻¹ eG)
+                      | IG.ψ-rght eG
+                    = splitAt⁻¹-↑ˡ eq
+  ... | inj₂ eK rewrite splitAt-raise G₁.nE K₁.nE (IK.ψ⁻¹ eK)
+                      | IK.ψ-rght eK
+                    = splitAt⁻¹-↑ʳ eq
