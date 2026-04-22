@@ -39,8 +39,10 @@ open import Categories.APROP.Hypergraph.Prune
 
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc; inject+; raise; splitAt)
-open import Data.Fin.Properties using (splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ; splitAt-inject+; splitAt-raise)
-open import Data.Nat using (ℕ; zero; suc)
+open import Data.Fin.Properties using
+  ( splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ; splitAt-inject+; splitAt-raise
+  ; cast-is-id; toℕ-cast; toℕ-injective; toℕ-↑ˡ; toℕ-↑ʳ)
+open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.List using (List; []; _∷_; _++_; map; length)
 open import Data.List.Membership.Propositional using (_∈_; _∉_)
 open import Data.List.Membership.Propositional.Properties
@@ -52,7 +54,8 @@ import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
 open import Data.Product using (_,_; _×_)
 open import Data.Sum using (inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; cong₂; sym; trans; subst)
+  using (_≡_; refl; sym; trans; subst)
+open import Relation.Binary.PropositionalEquality as PE using (cong; cong₂)
 
 --------------------------------------------------------------------------------
 -- Helper: every vertex of `G + K` is in `map injL G-dom ++ map injR K-dom`
@@ -271,7 +274,170 @@ hSwap-nE : ∀ A B → Hypergraph.nE (hSwap A B) ≡ 0
 hSwap-nE A B = refl
 
 --------------------------------------------------------------------------------
--- TODO. `hId-vlab-lookup : (hId A).vlab i ≡ lookup (flatten A) i`.
--- Blocked by `length (xs ++ ys) ≢ length xs + length ys` definitionally —
--- stating a clean form needs either a Fin.cast or a Vec detour. See the
--- σ∘σ axiom proof sketch in TODO.org for the usage.
+-- `(hId A).nV` and `length (flatten A)` agree — propositionally only,
+-- because in the tensor case `(hId A).nV = (hId A₁).nV + (hId A₂).nV`
+-- whereas `length (flatten A) = length (flatten A₁ ++ flatten A₂)` which
+-- uses stdlib's `length-++` (propositional).
+
+open import Data.List using (lookup)
+open import Data.Fin using (cast)
+open import Data.List.Properties using (length-++)
+open import Data.Nat.Properties using (+-suc)
+open import Data.Sum using ([_,_]′; _⊎_)
+
+hId-nV≡len-flatten : ∀ A → Hypergraph.nV (hId A) ≡ length (flatten A)
+hId-nV≡len-flatten unit     = refl
+hId-nV≡len-flatten (Var x)  = refl
+hId-nV≡len-flatten (A ⊗₀ B) =
+  trans (cong₂ _+_ (hId-nV≡len-flatten A) (hId-nV≡len-flatten B))
+        (sym (length-++ (flatten A)))
+
+--------------------------------------------------------------------------------
+-- For an identity, `vlab` agrees with `lookup (flatten A)` pointwise —
+-- via a Fin.cast that bridges the `(hId A).nV ≡ length (flatten A)` gap.
+--
+-- Needed by `σ∘σ-sound` (and other axioms that relate `hSwap`-structured
+-- labelings to `hTensor (hId _)`-structured labelings).
+
+private
+  -- Local helpers: lookup through _++_ via inject+/raise, but with a
+  -- Fin.cast that absorbs the `length (xs ++ ys) ≡ length xs + length ys`
+  -- equality. `cast-inj+` re-expresses `inject+ (length ys) i : Fin (length xs + length ys)`
+  -- as an element of `Fin (length (xs ++ ys))`.
+  cast-inj+
+    : ∀ {A : Set} (xs ys : List A) (i : Fin (length xs))
+    → Fin (length (xs ++ ys))
+  cast-inj+ xs ys i = cast (sym (length-++ xs)) (inject+ (length ys) i)
+
+  cast-rai+
+    : ∀ {A : Set} (xs ys : List A) (j : Fin (length ys))
+    → Fin (length (xs ++ ys))
+  cast-rai+ xs ys j = cast (sym (length-++ xs)) (raise (length xs) j)
+
+  -- Lookup-through-++ on the inject+ side.
+  lookup-++-inj
+    : ∀ {A : Set} (xs ys : List A) (i : Fin (length xs))
+    → lookup (xs ++ ys) (cast-inj+ xs ys i) ≡ lookup xs i
+  lookup-++-inj []       ys ()
+  lookup-++-inj (x ∷ xs) ys zero    = refl
+  lookup-++-inj (x ∷ xs) ys (suc i) = lookup-++-inj xs ys i
+
+  -- Lookup-through-++ on the raise side.
+  lookup-++-rai
+    : ∀ {A : Set} (xs ys : List A) (j : Fin (length ys))
+    → lookup (xs ++ ys) (cast-rai+ xs ys j) ≡ lookup ys j
+  lookup-++-rai []       ys j = cong (lookup ys) (cast-is-id refl j)
+  lookup-++-rai (x ∷ xs) ys j = lookup-++-rai xs ys j
+
+-- Cast commutes with `inject+` and `raise` up to toℕ-equality.
+private
+  cast-inject+-comm
+    : ∀ {m m'} (eq-m : m ≡ m') (n : ℕ) (i : Fin m)
+    → cast (cong (_+ n) eq-m) (inject+ n i) ≡ inject+ n (cast eq-m i)
+  cast-inject+-comm eq-m n i = toℕ-injective
+    (trans (toℕ-cast _ (inject+ n i))
+    (trans (toℕ-↑ˡ i n)
+    (trans (sym (toℕ-cast eq-m i))
+           (sym (toℕ-↑ˡ (cast eq-m i) n)))))
+
+  cast-raise-comm
+    : ∀ (m : ℕ) {n n'} (eq-n : n ≡ n') (j : Fin n)
+    → cast (cong (m +_) eq-n) (raise m j) ≡ raise m (cast eq-n j)
+  cast-raise-comm m eq-n j = toℕ-injective
+    (trans (toℕ-cast _ (raise m j))
+    (trans (toℕ-↑ʳ m j)
+    (trans (cong (m +_) (sym (toℕ-cast eq-n j)))
+           (sym (toℕ-↑ʳ m (cast eq-n j))))))
+
+  -- Bridge the two-variable cong₂ with `cast-inject+-comm` above.
+  -- Pattern-match both eqs as refl to unify the indices, then use
+  -- `cast-is-id` to cancel the residual `cast _` on each side.
+  cast-inject+-cong₂
+    : ∀ {mA mA' mB mB'} (eq-A : mA ≡ mA') (eq-B : mB ≡ mB') (i : Fin mA)
+    → cast (cong₂ _+_ eq-A eq-B) (inject+ mB i)
+    ≡ inject+ mB' (cast eq-A i)
+  cast-inject+-cong₂ refl refl i =
+    trans (cast-is-id refl (inject+ _ i))
+          (cong (inject+ _) (sym (cast-is-id refl i)))
+
+  cast-raise-cong₂
+    : ∀ {mA mA' mB mB'} (eq-A : mA ≡ mA') (eq-B : mB ≡ mB') (j : Fin mB)
+    → cast (cong₂ _+_ eq-A eq-B) (raise mA j)
+    ≡ raise mA' (cast eq-B j)
+  cast-raise-cong₂ refl refl j =
+    trans (cast-is-id refl (raise _ j))
+          (cong (raise _) (sym (cast-is-id refl j)))
+
+-- The main lemma. Uses Fin.cast across `hId-nV≡len-flatten A` to bridge
+-- the `Fin (hId A).nV` → `Fin (length (flatten A))` gap before looking up.
+hId-vlab-lookup
+  : ∀ A (i : Fin (Hypergraph.nV (hId A)))
+  → Hypergraph.vlab (hId A) i
+  ≡ lookup (flatten A) (cast (hId-nV≡len-flatten A) i)
+hId-vlab-lookup unit     ()
+hId-vlab-lookup (Var x)  zero = refl
+hId-vlab-lookup (A ⊗₀ B) i
+  with splitAt (Hypergraph.nV (hId A)) i in eq
+-- inj₁ a: (hId A).vlab a ≡ lookup (flatten A) ... ≡ lookup (flatten A ++ flatten B) ...
+... | inj₁ a = trans (hId-vlab-lookup A a) lookup-eq
+  where
+    open import Data.Fin.Properties using (cast-trans)
+
+    eq-A : Hypergraph.nV (hId A) ≡ length (flatten A)
+    eq-A = hId-nV≡len-flatten A
+
+    eq-B : Hypergraph.nV (hId B) ≡ length (flatten B)
+    eq-B = hId-nV≡len-flatten B
+
+    eq-++ : length (flatten A) + length (flatten B) ≡ length (flatten A ++ flatten B)
+    eq-++ = sym (length-++ (flatten A))
+
+    i≡injL : i ≡ inject+ (Hypergraph.nV (hId B)) a
+    i≡injL = sym (splitAt⁻¹-↑ˡ eq)
+
+    -- Reshape the outer cast using cast-trans + cast-inject+-cong₂.
+    cast-form
+      : cast (hId-nV≡len-flatten (A ⊗₀ B)) i
+      ≡ cast-inj+ (flatten A) (flatten B) (cast eq-A a)
+    cast-form =
+      trans (cong (cast _) i≡injL)
+      (trans (sym (cast-trans (cong₂ _+_ eq-A eq-B) eq-++ (inject+ _ a)))
+             (cong (cast eq-++) (cast-inject+-cong₂ eq-A eq-B a)))
+
+    lookup-eq
+      : lookup (flatten A) (cast eq-A a)
+      ≡ lookup (flatten A ++ flatten B) (cast (hId-nV≡len-flatten (A ⊗₀ B)) i)
+    lookup-eq =
+      trans (sym (lookup-++-inj (flatten A) (flatten B) _))
+            (cong (lookup (flatten A ++ flatten B)) (sym cast-form))
+-- inj₂ b: mirror the inj₁ case.
+... | inj₂ b = trans (hId-vlab-lookup B b) lookup-eq
+  where
+    open import Data.Fin.Properties using (cast-trans)
+
+    eq-A : Hypergraph.nV (hId A) ≡ length (flatten A)
+    eq-A = hId-nV≡len-flatten A
+
+    eq-B : Hypergraph.nV (hId B) ≡ length (flatten B)
+    eq-B = hId-nV≡len-flatten B
+
+    eq-++ : length (flatten A) + length (flatten B) ≡ length (flatten A ++ flatten B)
+    eq-++ = sym (length-++ (flatten A))
+
+    i≡raise : i ≡ raise (Hypergraph.nV (hId A)) b
+    i≡raise = sym (splitAt⁻¹-↑ʳ eq)
+
+    cast-form
+      : cast (hId-nV≡len-flatten (A ⊗₀ B)) i
+      ≡ cast-rai+ (flatten A) (flatten B) (cast eq-B b)
+    cast-form =
+      trans (cong (cast _) i≡raise)
+      (trans (sym (cast-trans (cong₂ _+_ eq-A eq-B) eq-++ (raise _ b)))
+             (cong (cast eq-++) (cast-raise-cong₂ eq-A eq-B b)))
+
+    lookup-eq
+      : lookup (flatten B) (cast eq-B b)
+      ≡ lookup (flatten A ++ flatten B) (cast (hId-nV≡len-flatten (A ⊗₀ B)) i)
+    lookup-eq =
+      trans (sym (lookup-++-rai (flatten A) (flatten B) _))
+            (cong (lookup (flatten A ++ flatten B)) (sym cast-form))
