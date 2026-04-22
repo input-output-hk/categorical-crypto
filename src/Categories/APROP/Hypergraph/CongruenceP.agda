@@ -367,6 +367,19 @@ module _
       subst (_∈ K₁.dom) (sym (IK-φ-inj φv≡φv')) v'∈K₁
 
   --------------------------------------------------------------------------------
+  -- remapP-comm — the central commutation lemma for the K-side
+  -- vertex bijection. Four-way case split.
+  --
+  -- NOTE: this version explores whether Agda's with-abstraction on
+  -- the *outer* decidable call (v ∈K₁? K₁.dom / IK.φ v ∈K₂? K₂.dom)
+  -- simultaneously reduces the *inner* classify calls inside remapP.
+  -- If Agda sees them as the same deterministic application, the
+  -- (no, no) and (yes, yes) branches get access to the reduced forms
+  -- directly, and we only need the final equational content.
+
+  open import Categories.APROP.Hypergraph.Prune using (nonMem-member)
+
+  --------------------------------------------------------------------------------
   -- Edge label compatibility ψ-elab-P (the big six-step subst₂ chain).
   --
   -- Structure mirrors `Congruence.ψ-elab-C`: three nested `subst₂-trans`
