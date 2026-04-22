@@ -565,16 +565,50 @@ module σ∘σ-proof (A B : ObjTerm) where
   -- on each branch closes the gap.
 
   ------------------------------------------------------------------------------
-  -- φ-lab, φ-dom, φ-cod remain postulated: each unwinds the `cast` and
-  -- `splitAt-cast` commutations against hSwap's `lookup (flatten _)`
-  -- structure vs hTensor (hId _)'s recursive structure. Follows the
-  -- same pattern as the `hId-vlab-lookup` proof but with an extra
-  -- layer of splitAt-reasoning.
+  -- Label preservation. For v with splitAt G.nV v = inj₁ i:
+  --   C.vlab v = G.vlab i
+  --            = [ lookup (flatten A), lookup (flatten B) ]′ (splitAt nA i)
+  --   R.vlab (φ v) = R.vlab (cast _ i)
+  --                = [ (hId A).vlab, (hId B).vlab ]′ (splitAt (hId A).nV (cast _ i))
+  -- Using `splitAt-cast` the latter's splitAt reduces to
+  --   [ inj₁ ∘ cast eq-A , inj₂ ∘ cast eq-B ]′ (splitAt nA i).
+  -- Then `hId-vlab-lookup` on each branch + `cast-trans` + `cast-is-id`
+  -- collapses each side to `lookup (flatten _) a` or `lookup (flatten _) b`.
 
+  -- Transport (hId A).vlab (cast eq-A a) to G's `lookup (flatten A) a`.
+  -- Uses hId-vlab-lookup + cast-trans + cast-is-id.
+  vlab-via-hId
+    : ∀ (X : ObjTerm) (a : Fin (length (flatten X)))
+    → Hypergraph.vlab (hId X)
+        (cast (sym (hId-nV≡len-flatten X)) a)
+    ≡ lookup (flatten X) a
+  vlab-via-hId X a =
+    trans (hId-vlab-lookup X (cast (sym (hId-nV≡len-flatten X)) a))
+    (cong (lookup (flatten X))
+      (trans (cast-trans (sym (hId-nV≡len-flatten X)) (hId-nV≡len-flatten X) a)
+             (cast-is-id (trans (sym (hId-nV≡len-flatten X)) (hId-nV≡len-flatten X)) a)))
+
+  φ-lab-done : ∀ v → R.vlab (φ v) ≡ C.vlab v
+  φ-lab-done v with splitAt G.nV v in eq
+  ... | inj₁ i = body
+    where
+      -- R.vlab (cast _ i): first splitAt (hId A).nV on it, which via
+      -- splitAt-cast reduces to cases on splitAt nA i.
+      body : R.vlab (cast eq-nV-GR i) ≡ G.vlab i
+      body
+        rewrite splitAt-cast {nA} {Hypergraph.nV (hId A)}
+                             {nB} {Hypergraph.nV (hId B)}
+                             eq-A eq-B i
+        with splitAt nA i
+      ... | inj₁ a = vlab-via-hId A a
+      ... | inj₂ b = vlab-via-hId B b
+  ... | inj₂ j = ⊥-elim (Fin-zero-absurd cn≡0 j)
+
+  -- φ-dom, φ-cod remain postulated: the analogous `map-cast` /
+  -- `hId-dom≡range` / `range-++` chase.
   postulate
-    φ-lab-done : ∀ v → R.vlab (φ v) ≡ C.vlab v
-    φ-dom      : R.dom ≡ map φ C.dom
-    φ-cod      : R.cod ≡ map φ C.cod
+    φ-dom : R.dom ≡ map φ C.dom
+    φ-cod : R.cod ≡ map φ C.cod
 
   ψ-ein  : ∀ e → R.ein  (ψ e) ≡ map φ (C.ein  e)
   ψ-ein  e = absurd-CE e
