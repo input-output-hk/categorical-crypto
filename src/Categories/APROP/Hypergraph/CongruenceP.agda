@@ -63,6 +63,7 @@ open import Data.Nat using (ℕ; _+_)
 open import Data.Sum using (inj₁; inj₂; [_,_]′)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; sym; trans; subst)
+open import Relation.Nullary using (yes; no)
 
 --------------------------------------------------------------------------------
 -- Vertex bijection for the pruned composite, parametric in two hypergraph
@@ -369,15 +370,28 @@ module _
   --------------------------------------------------------------------------------
   -- remapP-comm — the central commutation lemma for the K-side
   -- vertex bijection. Four-way case split.
-  --
-  -- NOTE: this version explores whether Agda's with-abstraction on
-  -- the *outer* decidable call (v ∈K₁? K₁.dom / IK.φ v ∈K₂? K₂.dom)
-  -- simultaneously reduces the *inner* classify calls inside remapP.
-  -- If Agda sees them as the same deterministic application, the
-  -- (no, no) and (yes, yes) branches get access to the reduced forms
-  -- directly, and we only need the final equational content.
 
-  open import Categories.APROP.Hypergraph.Prune using (nonMem-member)
+  open import Categories.APROP.Hypergraph.Prune
+    using (nonMem-member; lookup-pruneMap)
+
+  -- Derived φ-P formulae on injL / injR, for use below.
+  private
+    φ-P-injR : ∀ jK → φ-P (raise G₁.nV jK) ≡ raise G₂.nV (pruneK jK)
+    φ-P-injR jK rewrite splitAt-raise G₁.nV (count-non K₁.dom) jK = refl
+
+  -- Partial remapP-comm: the structural four-way case split compiles,
+  -- with impossibilities ruled out. The (yes, yes) and (no, no) cases
+  -- need deeper equational work (see TODO.org and the module-header
+  -- comment above). Full proof deferred.
+  --
+  -- remapP-comm : ∀ v → φ-P (hCP₁.remapP v) ≡ hCP₂.remapP (IK.φ v)
+  -- remapP-comm v with v ∈K₁? K₁.dom | IK.φ v ∈K₂? K₂.dom
+  -- ... | yes p  | yes q  = ?   (yes-yes : needs IG.φ-cod + lookup-cod agreement)
+  -- ... | yes p  | no  ¬q = ⊥-elim (¬q (∈K₁→∈K₂ p))
+  -- ... | no  ¬p | yes q  = ⊥-elim (¬p (∈K₂→∈K₁ q))
+  -- ... | no  ¬p | no  ¬q = ?   (no-no : needs index-∈-filter-irrelevant
+  --                              through the IK.φ-dom subst, requires
+  --                              pruneK-unfolding lemma first)
 
   --------------------------------------------------------------------------------
   -- Edge label compatibility ψ-elab-P (the big six-step subst₂ chain).
