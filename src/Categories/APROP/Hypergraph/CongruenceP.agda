@@ -54,8 +54,9 @@ open import Categories.APROP.Hypergraph.Prune
         ; index-∈-filter-irrelevant)
 open import Categories.APROP.Hypergraph.PrunedCompose sig
 
+open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; inject+; raise; splitAt)
-open import Data.Fin.Properties using (splitAt-inject+; splitAt-raise;
+open import Data.Fin.Properties using (_≟_; splitAt-inject+; splitAt-raise;
                                         splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ)
 open import Data.List using (List; []; _∷_; map; lookup)
 open import Data.Nat using (ℕ; _+_)
@@ -338,27 +339,32 @@ module _
            (hCP₁.map-via-remapP (K₁.eout eK))))
 
   --------------------------------------------------------------------------------
-  -- REMAINING: remapP-comm: φ-P ∘ hCP₁.remapP ≡ hCP₂.remapP ∘ IK.φ.
-  --
-  -- Needed for:
-  --   * cod-P (boundary preservation of the K-side codomain).
-  --   * K-side (inj₂) branches of ψ-ein-P / ψ-eout-P.
-  --
-  -- The proof case-splits on `classify K₁.dom v` (via `v ∈? K₁.dom`):
-  --   * yes v∈K₁.dom at index i: both sides reduce to an `inject+`
-  --     form. LHS: inject+ (count-non K₂.dom) (IG.φ (lookup-cod₁ i)).
-  --     RHS: inject+ (count-non K₂.dom) (lookup-cod₂ i') where i'
-  --     corresponds to `IK.φ v ∈ K₂.dom` at the matching index.
-  --     Needs: IG.φ (lookup-cod₁ i) ≡ lookup-cod₂ i' (follows from
-  --     IG.φ-cod and pointwise agreement).
-  --   * no v∉K₁.dom: both sides reduce to a `raise` form on an
-  --     index produced by ∈-filter⁺ of (IK.φ v). LHS goes through
-  --     pruneK (= pruneMap + subst); RHS is a direct ∈-filter⁺
-  --     index. Needs `index-∈-filter-irrelevant` (now in Prune)
-  --     plus careful subst manipulation through IK.φ-dom.
-  --
-  -- Defer to a later session. The rest of the record's fields are
-  -- exposed above and all compile.
+  -- Impossibility lemmas for the cross-iso membership cases in
+  -- `remapP-comm`. Uses IK-φ-inj (derived from IK.φ-left) plus IK.φ-dom
+  -- to relate K₁.dom membership with K₂.dom membership.
+
+  open import Data.List.Membership.DecPropositional (_≟_ {n = K₁.nV})
+    using () renaming (_∈?_ to _∈K₁?_)
+  open import Data.List.Membership.DecPropositional (_≟_ {n = K₂.nV})
+    using () renaming (_∈?_ to _∈K₂?_)
+  open import Data.List.Membership.Propositional using (_∈_; _∉_)
+  open import Data.List.Membership.Propositional.Properties
+    using (∈-map⁺; ∈-map⁻)
+  open import Data.Product using (_,_; proj₁; proj₂)
+
+  private
+    -- If v ∈ K₁.dom, then IK.φ v ∈ K₂.dom (via K₂.dom ≡ map IK.φ K₁.dom).
+    ∈K₁→∈K₂ : ∀ {v} → v ∈ K₁.dom → IK.φ v ∈ K₂.dom
+    ∈K₁→∈K₂ v∈ =
+      subst (IK.φ _ ∈_) (sym IK.φ-dom) (∈-map⁺ IK.φ v∈)
+
+    -- If IK.φ v ∈ K₂.dom, then v ∈ K₁.dom (via ∈-map⁻ + IK-φ-inj).
+    -- Note: ∈-map⁻ returns `∃ λ v' → v' ∈ K₁.dom × IK.φ v ≡ IK.φ v'`,
+    -- so we apply IK-φ-inj to get v ≡ v' and sym to convert for subst.
+    ∈K₂→∈K₁ : ∀ {v} → IK.φ v ∈ K₂.dom → v ∈ K₁.dom
+    ∈K₂→∈K₁ {v} φv∈ with ∈-map⁻ IK.φ (subst (IK.φ v ∈_) IK.φ-dom φv∈)
+    ... | v' , v'∈K₁ , φv≡φv' =
+      subst (_∈ K₁.dom) (sym (IK-φ-inj φv≡φv')) v'∈K₁
 
   --------------------------------------------------------------------------------
   -- Edge label compatibility ψ-elab-P (the big six-step subst₂ chain).
