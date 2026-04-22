@@ -195,6 +195,24 @@ module _ {n : ℕ} where
   classify-inj₁-∈ _ | yes v∈ = v∈
   classify-inj₁-∈ () | no _
 
+  -- For Unique xs, the classify index of `lookup xs j` is `j`.
+  -- (The first occurrence of v = lookup xs j in a Unique list xs
+  -- is at position j, since v appears only there.)
+  classify-lookup-Unique
+    : (xs : List (Fin n)) → Unique xs
+    → (j : Fin (length xs))
+    → classify xs (lookup xs j) ≡ inj₁ j
+  classify-lookup-Unique xs unique j
+    with lookup xs j ∈? xs
+  ... | yes v∈ = cong inj₁
+    (lookup-injective-unique unique (index v∈) j (sym (lookup-index v∈)))
+  ... | no  v∉ = ⊥-elim (v∉ ∈-lookup-helper)
+    where
+      open import Data.List.Membership.Propositional.Properties
+        using () renaming (∈-lookup to ∈-lookup-std)
+      ∈-lookup-helper : lookup xs j ∈ xs
+      ∈-lookup-helper = ∈-lookup-std j
+
   -- A pruned index `j` in `nonMem xs` looks up to a Fin value that
   -- really is a non-member of `xs`.
   nonMem-member : (xs : List (Fin n)) (j : Fin (count-non xs))
