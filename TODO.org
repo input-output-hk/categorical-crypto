@@ -273,17 +273,22 @@ meantime.
          (showing `hComposeP (subst G) (subst K) ≅ᴴ hComposeP G K`
          up to type-index matching) or discharge directly via a full
          `≅ᴴ` construction that inlines the subst₂s.
-       - ~σ∘σ~ — braiding self-inverse via ~hSwap~. **All structural
-         infrastructure ready:**
+
+       *15/16 fields proved:*
+       - ~σ∘σ-sound~ — the full ≅ᴴ record assembled; only `φ-cod`
+         remains postulated internally. Infrastructure in place:
          * `hSwap-dom-covers`, `hSwap-count-non-dom ≡ 0`.
          * `hId-vlab-lookup` via `Fin.cast` (uses toℕ-injective
            bridging).
-         * `hId-dom≡range : (hId A).dom ≡ range (hId A).nV`
-           (via `range-++`).
-         What remains is the ≅ᴴ record (16 fields) assembly:
-         chasing the casts through φ-lab (uses hId-vlab-lookup),
-         φ-dom/φ-cod (uses hId-dom≡range), and the +0 vertex-count
-         adjustments (analogous to idˡ's splitAt + absurd pattern).
+         * `hId-dom≡range`, `hId-cod≡range` (via `range-++`).
+         * `splitAt-cast`, `cast-inject+-cong₂`, `cast-raise-cong₂`.
+         * `map-cast-range : map (cast eq) (range m) ≡ range m'`.
+         The remaining `φ-cod` needs per-element tracking of
+         `classify K.dom (lookup K.cod j)` for K = hSwap B A (where
+         K.cod ≠ K.dom because of the braiding swap), then
+         `lookup-cod` into G.cod. Pattern: for each element of
+         K.cod, compute its position in K.dom via splitAt, feed to
+         lookup-cod, then push cast through inject+/raise.
 
        *Not yet touched:*
        - ~idʳ~ — needs a `length xs + count-non xs ≡ n` identity
