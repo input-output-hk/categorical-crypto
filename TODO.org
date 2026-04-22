@@ -341,6 +341,299 @@ meantime.
     proofs will need to be rewritten anyway if/when ~hCompose~
     changes.  So start with Option A.
 
+* Refactor
+
+  Strategic refactoring plan to discharge the remaining 12 ≈Term
+  axioms efficiently by maximizing reuse.  The key observation is
+  that both `idˡ-proof` and `σ∘σ-proof` contain reasoning that only
+  uses record fields of their `G`/`K` arguments, not any APROP-term
+  structure.  Generalizing these to take arbitrary hypergraphs
+  (rather than ~⟪f⟫~-specific ones) creates reusable building
+  blocks for most remaining axioms.
+
+  The sequence below is ordered by effort-to-unlock ratio: each
+  item unlocks downstream axioms and is more tractable given the
+  preceding items.
+
+** TODO [#A] 1. Refactor ~idˡ-proof~ → ~hCompose-hId-R-iso~
+   :PROPERTIES:
+   :effort: 30 min
+   :unlocks: generalized left-identity-composition
+   :END:
+
+   Current `idˡ-proof` module is parameterized by
+   `(f : HomTerm A B)` but only uses `G = ⟪f⟫`'s record fields
+   (nV, vlab, dom, cod, ein, eout, elab, …).  It does NOT depend
+   on `f`'s syntactic structure.  Refactor the module header to:
+   #+begin_src agda
+     module hCompose-hId-R-proof
+       {As : List X} {B : ObjTerm}
+       (G : Hypergraph FlatGen As (flatten B))
+       where
+         ...
+   #+end_src
+   yielding a generic
+   ~hCompose-hId-R-iso : hComposeP G (hId B) ≅ᴴ G~.
+
+   `idˡ-sound` becomes a one-line specialization:
+   `idˡ-sound f = hCompose-hId-R-iso ⟪f⟫`.
+
+   The 230-line body of ~idˡ-proof~ transfers verbatim because
+   all its helpers (cn≡0 via `hId-count-non-dom`, nE≡0 via
+   `hId-nE`, `idˡ-cod-helper` via `hId-cod≡dom` +
+   `hId-dom-Unique` + cast arithmetic, …) depend on `B`, not `f`.
+
+   *Why this matters*: downstream axioms (λ-nat, triangle, some
+   coherences) compose ⟪f⟫'s that are themselves complex
+   expressions (e.g. `hTensor hEmpty ⟪f⟫` for `id⊗f`).  Having a
+   generic `hCompose-hId-R-iso` lets us apply the identity law to
+   those derived hypergraphs without re-deriving the proof.
+
+** TODO [#A] 2. Prove ~hTensor-hEmpty-G-iso~
+   :PROPERTIES:
+   :effort: 2 h
+   :unlocks: λ-naturality via chaining; partial progress on ρ-nat, triangle
+   :END:
+
+   Generalize `hTensor-hEmpty-hId-iso` from `hId A` to an
+   arbitrary G:
+   #+begin_src agda
+     hTensor-hEmpty-G-iso
+       : ∀ {As Bs} (G : Hypergraph FlatGen As Bs)
+       → hTensor hEmpty G ≅ᴴ G
+   #+end_src
+
+   Type alignment holds: `(hTensor hEmpty G).As = [] ++ As = As`
+   (definitional).
+
+   *Fields*:
+   - φ = φ⁻¹ = id.  Bijection laws = refl.
+   - ψ = ψ⁻¹ = id.  Bijection laws = refl.
+   - φ-lab = refl (splitAt 0 always gives inj₂, matches G.vlab).
+   - ψ-ein / ψ-eout: routine `map-∘ / map-cong / map-id` (same
+     as `hTensor-hEmpty-hId-iso`'s existing chain).
+   - φ-dom / φ-cod: same routine chain.
+
+   *Hard field: ψ-elab*.  Unlike the `hId A` specialization
+   (where ψ-elab is vacuous because hId has no edges), a generic
+   G may have edges.  The `(hTensor hEmpty G).elab e` value
+   unfolds to `subst₂ FlatGen (map-via-raise vlab-injR …) … (G.elab e)`.
+   Use the "strategic atom-ein" trick from `idˡ-proof`: choose
+   `atom-ein = map-via-raise vlab-injR (G.ein e)` so the ψ-elab
+   equation reduces to `refl` via the `with splitAt G.nE e` match.
+
+   *Also provide mirror lemma* `hTensor-G-hEmpty-iso-substed`
+   (see item 5).
+
+** TODO [#A] 3. Prove ~hCompose-hId-L-iso~
+   :PROPERTIES:
+   :effort: 4 h
+   :unlocks: idʳ directly; half of λ-nat, ρ-nat, α-nat via chaining
+   :END:
+
+   Port the `σ∘σ-proof` classify + mirror-witness structure to an
+   arbitrary right-side hypergraph K:
+   #+begin_src agda
+     hCompose-hId-L-iso
+       : ∀ {A : ObjTerm} {Bs} {K : Hypergraph FlatGen (flatten A) Bs}
+       → Unique (Hypergraph.dom K)          -- side condition
+       → hComposeP (hId A) K ≅ᴴ K
+   #+end_src
+
+   The side condition is supplied by `⟪_⟫-dom-unique` at the
+   ~idʳ~ call site.
+
+   *Structure* (template = `σ∘σ-proof` with G := hId A,
+   K := arbitrary-with-Unique-dom):
+
+   - C.nV = `(hId A).nV + count-non K.dom`.  φ splits via
+     `splitAt (hId A).nV`:
+     * inj₁ i ↦ `lookup K.dom (cast len-eq i)` (mirror into K).
+     * inj₂ j ↦ `lookup (nonMem K.dom) j` (pruned-K-side).
+     where `len-eq : (hId A).nV ≡ length K.dom` (via
+     `hId-nV≡len-flatten` + `K.dom-ok` + `length-map`).
+
+   - φ⁻¹ via `classify K.dom`:
+     * inj₁ i ↦ `inject+ _ (cast (sym len-eq) i)`.
+     * inj₂ j ↦ `raise (hId A).nV j`.
+
+   - `φ-left`: case on splitAt; `classify-lookup-Unique` and
+     `classify-lookup-nonMem` (newly added!) close the two
+     branches.
+
+   - `φ-rght`: case on classify; `classify-inj₁-lookup` and
+     `classify-inj₂-lookup` close the two branches.
+
+   - `φ-lab`: for the `inj₁ i` branch, the label chain is:
+       `G.vlab i = (hId A).vlab i`
+         `≡ lookup (flatten A) (cast _ i)`      [hId-vlab-lookup]
+         `≡ K.vlab (K.dom[cast _ i])`           [K.dom-ok, pointwise]
+       which matches K.vlab ∘ (lookup K.dom ∘ cast).
+     For the `inj₂ j` branch, both sides equal
+     `K.vlab (lookup (nonMem K.dom) j)`.
+
+   - `φ-dom`: `C.dom = map injL (hId A).dom = map injL (range _)`
+     (via `hId-dom≡range`).  Need `K.dom ≡ map φ C.dom` which
+     simplifies through `classify-lookup-Unique` pointwise to
+     match K.dom entries.
+
+   - `φ-cod`: analogous pattern to `σ∘σ`'s φ-cod — uses the
+     mirror-witness technique + `toℕ-injective`.
+
+   - Edge fields: G has 0 edges (hId-nE), so G-side branches
+     are absurd.  K-side branches route through `remapP`.
+
+   *Reused infrastructure*:
+   `classify-lookup-Unique`, `classify-lookup-nonMem` (added
+   earlier in this session), `remapP-via-member` (from σ∘σ),
+   `hId-vlab-lookup`, `hId-dom≡range`, `hId-cod≡range`,
+   `cast-inject+-cong₂`, `cast-raise-cong₂`, `map-cast-range`,
+   `splitAt-cast`, `toℕ-index-++⁺{ˡ,ʳ}`, `toℕ-index-range-covers`,
+   `lookup-range`.
+
+   *Deliverable*:
+   `idʳ-sound f = hCompose-hId-L-iso (⟪_⟫-dom-unique f)`.
+
+** TODO [#B] 4. Dispatch direct axioms using 1+2+3
+   :PROPERTIES:
+   :effort: 2 h
+   :unlocks: idʳ, λ-nat, ρ⇐∘ρ⇒ (alternate proof)
+   :END:
+
+   With items 1–3 complete, these axioms become short iso
+   chains:
+
+   *idʳ-sound*: direct application of ~hCompose-hId-L-iso~.
+
+   *λ-nat* (`λ⇒∘id⊗f ≈ f∘λ⇒`):
+   #+begin_src agda
+     ⟪LHS⟫ = hComposeP ⟪id⊗f⟫ (hId B)
+             ≅ᴴ ⟪id⊗f⟫               [hCompose-hId-R-iso]
+             = hTensor hEmpty ⟪f⟫    [def: ⟪id⊗f⟫ = hTensor ⟪id⟫ ⟪f⟫, ⟪id {unit}⟫ = hEmpty]
+             ≅ᴴ ⟪f⟫                   [hTensor-hEmpty-G-iso]
+     ⟪RHS⟫ = hComposeP (hId A) ⟪f⟫
+             ≅ᴴ ⟪f⟫                   [hCompose-hId-L-iso]
+     ∴ ⟪LHS⟫ ≅ᴴ ⟪RHS⟫ via sym/trans.
+   #+end_src
+   ~5 lines.
+
+   *ρ⇐∘ρ⇒-sound* (already proved) — note the current proof via
+   `hComposeP-subst-both` is shorter and avoids the Phase-2
+   route; keep as-is.
+
+** TODO [#B] 5. Prove ~hTensor-G-hEmpty-iso-substed~
+   :PROPERTIES:
+   :effort: 3 h
+   :unlocks: ρ⇒∘ρ⇐, α⇒∘α⇐, ρ-nat
+   :END:
+
+   Right-variant of the tensor-empty iso, threading a subst₂ to
+   handle `As ++ []` ≢ `As` definitionally:
+   #+begin_src agda
+     hTensor-G-hEmpty-iso-substed
+       : ∀ {As Bs} (G : Hypergraph FlatGen As Bs)
+       → subst₂ (Hypergraph FlatGen)
+                (++-identityʳ As) (++-identityʳ Bs)
+                (hTensor G hEmpty)
+       ≅ᴴ G
+   #+end_src
+
+   *Strategy*: use the `nV-subst₂ / vlab-subst₂ / dom-subst₂ /
+   cod-subst₂ / nE-subst₂` field-projection helpers (added this
+   session) to access fields of the opaque subst₂-wrapped LHS,
+   then construct each iso field.
+
+   - φ : Fin (LHS.nV) → Fin G.nV.  Chain:
+     `subst Fin (sym (nV-subst₂ p q H)) v : Fin (hTensor G hEmpty).nV = Fin (G.nV + 0)`.
+     Then `splitAt G.nV` + absurd on inj₂ (Fin 0 empty).
+   - ψ-elab: strategic atom-ein matching the internal subst₂
+     in `(hTensor G hEmpty).elab`.
+
+   *Specialization*:
+   `subst₂-hId-cancel = hTensor-G-hEmpty-iso-substed (hId A)`
+   (since `hId (A⊗unit) = hTensor (hId A) hEmpty`).
+
+   Via `subst₂-hId-cancel`, dispatch:
+   - *ρ⇒∘ρ⇐-sound*:
+     chain `hComposeP ⟪ρ⇐⟫ ⟪ρ⇒⟫`
+     → `subst₂ _ p p (hComposeP (hId _) (hId _))`        [hComposeP-subst-both]
+     → `subst₂ _ p p (hId (A⊗unit))`                      [subst₂-resp-≅ᴴ + idˡ-sound]
+     → `hId A`                                             [subst₂-hId-cancel].
+
+   - *α⇒∘α⇐-sound*: same shape, with `++-assoc` replacing
+     `++-identityʳ`.  Needs an α-analog of
+     `hTensor-G-hEmpty-iso-substed`:
+     `subst₂-hId-assoc-cancel : subst₂ _ (++-assoc _ _ _) (++-assoc _ _ _) (hId ((A⊗B)⊗C)) ≅ᴴ hId (A⊗(B⊗C))`.
+
+   - *ρ-nat* (`ρ⇒∘f⊗id ≈ f∘ρ⇒`): mirror of λ-nat, using
+     `hTensor-G-hEmpty-iso-substed` where λ-nat uses
+     `hTensor-hEmpty-G-iso`.
+
+** TODO [#C] 6. Hard axioms: σ-nat, triangle, pentagon, hexagon, assoc, ⊗-∘-dist
+   :PROPERTIES:
+   :effort: 5-10 h each
+   :END:
+
+   These don't reduce to the generic identity-composition +
+   tensor-empty bridge machinery.  Each requires a custom
+   structural argument.
+
+   *σ-nat* (`σ∘(f⊗g) ≈ (g⊗f)∘σ`): Both sides compose a
+   hypergraph with hSwap.  Needs a classify-based bijection
+   against `(hSwap C D).dom` or `(hSwap A B).dom`.  Template:
+   `σ∘σ-proof`'s construction, but with ⟪f⊗g⟫ in place of
+   one of the hSwaps.
+
+   *triangle*: `id ⊗ λ⇒ ∘ α⇒ ≈ ρ⇒ ⊗ id` at `(A⊗unit)⊗B →
+   A⊗B`.  Both sides reduce to hypergraphs differing by the
+   association of the zero middle atom.  Should chain via
+   Phase-2 helpers + `hComposeP-subst-both`.
+
+   *pentagon*: five-α coherence.  Most complex.  Likely
+   needs induction on the atom-count structure or a tactic.
+
+   *hexagon*: three-α/three-σ coherence.  Similar.
+
+   *assoc* (`(h∘g)∘f ≈ h∘(g∘f)`): `hComposeP` associativity.
+   The vertex counts match modulo `+`-associativity: both sides
+   have `⟪f⟫.nV + count-non ⟪g⟫.dom + count-non ⟪h⟫.dom`
+   (propositionally).  Needs a "triple-classify" bijection.
+
+   *⊗-∘-dist* (`(f₁⊗g₁)∘(f₂⊗g₂) ≈ (f₁∘f₂)⊗(g₁∘g₂)`): the
+   tensor/compose interchange.  Both sides in same outer type.
+   Vertex bijection reshuffles `F.nV+G.nV + count-non` vs
+   `F.nV + count-non` + `G.nV + count-non`.  Cross-reasoning.
+
+   *Recommendation*: defer these to a future session / tactic
+   layer (Phase 4 `smcat` reflection).  Items 1–5 above already
+   bring the constructive-axiom count to 21 of 24, with the
+   remaining six being of genuinely higher complexity.
+
+** Execution-order rationale
+
+   Items 1 → 2 → 3 → 4 → 5 → 6.
+
+   - *1 (30 min)* is pure code motion — minimal risk, enables
+     generic reasoning about hId-composition.
+   - *2 (2 h)* introduces the "strategic atom-ein" trick for a
+     generic `G`, confirming the pattern reused throughout.
+   - *3 (4 h)* is the biggest concrete proof; uses items 1 and
+     2 conceptually and closes idʳ immediately.
+   - *4 (2 h)* is mostly glue — each axiom becomes a 5–10 line
+     trans-≅ᴴ chain.
+   - *5 (3 h)* handles the subst₂ right-side pattern that items
+     1–3 don't cover.  Needs items 1 (for `idˡ-sound` in the
+     chain).
+   - *6* is left for a future session; if `smcat` tactic
+     materializes (Phase 4), these may become trivial.
+
+   Expected cumulative axiom-count progression:
+     Start: 12 / 24.
+     After 1+2+3: 13 / 24 (idʳ closed).
+     After 4: 14 / 24 (λ-nat closed).
+     After 5: 17 / 24 (ρ⇒∘ρ⇐, α⇒∘α⇐, ρ-nat closed).
+     After 6 (optional): 23 / 24 (all except perhaps pentagon).
+
 * Remaining phases
 
 ** TODO Phase 4 — ~smcat~ reflection macro
