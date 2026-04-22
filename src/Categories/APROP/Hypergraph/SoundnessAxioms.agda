@@ -676,13 +676,95 @@ module σ∘σ-proof (A B : ObjTerm) where
   --
   -- We isolate the two reductions as postulated helpers; once proved,
   -- φ-cod follows the exact same map-arithmetic as φ-dom.
+  --
+  -- Proof strategy for both:
+  --   1. Construct `v∈K-dom` explicitly:
+  --      - raise nB x ∈ K.dom
+  --          = ∈-++⁺ʳ (map (inject+ nA) (range nB))
+  --                   (∈-map⁺ (raise nB) (range-covers nA x))
+  --      - inject+ nA y ∈ K.dom
+  --          = ∈-++⁺ˡ (∈-map⁺ (inject+ nA) (range-covers nB y))
+  --   2. Let `j = index v∈K-dom : Fin (length K.dom)`.
+  --      By `classify-lookup-Unique K.dom (hSwap-dom-Unique B A) j`
+  --      combined with `lookup-index v∈K-dom : lookup K.dom j ≡ v`
+  --      (via `cong (classify K.dom) (sym lookup-index)` + trans), we get
+  --          classify K.dom v ≡ inj₁ j.
+  --   3. Apply `remap-inj₁` to get
+  --          remapP v ≡ inject+ c (lookup-cod j).
+  --   4. Prove `lookup-cod j ≡ inject+ nB x` (resp. `raise nA y`).
+  --      `lookup-cod j = lookup G.cod (cast dom-cod-len j)`. For G.cod's
+  --      ++ structure (for G = hSwap A B), at "position nB + x" we get
+  --      `inject+ nB x`. The position-matching uses `index (∈-++⁺ʳ ...)
+  --      ≡ cast (length-++) (raise (length first) (index rest))` via a
+  --      stdlib lemma (or ad-hoc chain of `lookup-++-rai` / `lookup-map`
+  --      reductions).
+  --
+  -- Steps 1–3 (classify → remap-inj₁) are clean; step 4 (lookup-cod)
+  -- is the bottleneck. We implement steps 1–3 as a reusable private
+  -- helper `remapP-via-member` that reduces the two goals to just
+  -- `lookup-cod (index v∈K-dom) ≡ <expected-G.cod-value>`.
+
+  open import Data.List.Membership.Propositional using (_∈_)
+  open import Data.List.Membership.Propositional.Properties
+    using (∈-++⁺ˡ; ∈-++⁺ʳ; ∈-map⁺)
+  open import Data.List.Relation.Unary.Any using (index)
+  open import Data.List.Relation.Unary.Any.Properties using (lookup-index)
+
+  private
+    K-unique : Unique K.dom
+    K-unique = hSwap-dom-Unique B A
+
+    -- Given a membership witness v∈K-dom, `remapP v` collapses to
+    -- `inject+ c (lookup-cod (index v∈K-dom))`.
+    remapP-via-member
+      : ∀ {v : Fin K.nV} (v∈K-dom : v ∈ K.dom)
+      → hCP.remapP v ≡ inject+ (count-non K.dom) (hCP.lookup-cod (index v∈K-dom))
+    remapP-via-member {v} v∈K-dom =
+      remap-inj₁ K.dom hCP.lookup-cod v (index v∈K-dom) classify-eq
+      where
+        -- `lookup-index v∈K-dom : v ≡ lookup K.dom (index v∈K-dom)`
+        -- (because `_∈_` uses the `(v ≡_)` predicate).
+        classify-eq : classify K.dom v ≡ inj₁ (index v∈K-dom)
+        classify-eq = trans (cong (classify K.dom) (lookup-index v∈K-dom))
+                            (classify-lookup-Unique K.dom K-unique (index v∈K-dom))
+
+  -- The two lookup-cod obligations: these remain postulated (step 4).
+  -- They are `lookup G.cod (cast dom-cod-len <specific-index>) ≡ <value>`
+  -- claims that unwind via `lookup-++-rai/inj` + `lookup-map` + cast
+  -- arithmetic.
   postulate
-    remapP-kcod-raise-nB
+    lookup-cod-raise-nB
       : ∀ (x : Fin nA)
-      → hCP.remapP (raise nB x) ≡ inject+ (count-non K.dom) (inject+ nB x)
-    remapP-kcod-inject+-nA
+      → hCP.lookup-cod (index (∈-++⁺ʳ (map (inject+ nA) (range nB))
+                                      (∈-map⁺ (raise nB) (range-covers nA x))))
+      ≡ inject+ nB x
+    lookup-cod-inject+-nA
       : ∀ (y : Fin nB)
-      → hCP.remapP (inject+ nA y) ≡ inject+ (count-non K.dom) (raise nA y)
+      → hCP.lookup-cod (index (∈-++⁺ˡ {ys = map (raise nB) (range nA)}
+                                      (∈-map⁺ (inject+ nA) (range-covers nB y))))
+      ≡ raise nA y
+
+  remapP-kcod-raise-nB
+    : ∀ (x : Fin nA)
+    → hCP.remapP (raise nB x) ≡ inject+ (count-non K.dom) (inject+ nB x)
+  remapP-kcod-raise-nB x =
+    trans (remapP-via-member v∈K-dom)
+          (cong (inject+ (count-non K.dom)) (lookup-cod-raise-nB x))
+    where
+      v∈K-dom : raise nB x ∈ K.dom
+      v∈K-dom = ∈-++⁺ʳ (map (inject+ nA) (range nB))
+                       (∈-map⁺ (raise nB) (range-covers nA x))
+
+  remapP-kcod-inject+-nA
+    : ∀ (y : Fin nB)
+    → hCP.remapP (inject+ nA y) ≡ inject+ (count-non K.dom) (raise nA y)
+  remapP-kcod-inject+-nA y =
+    trans (remapP-via-member v∈K-dom)
+          (cong (inject+ (count-non K.dom)) (lookup-cod-inject+-nA y))
+    where
+      v∈K-dom : inject+ nA y ∈ K.dom
+      v∈K-dom = ∈-++⁺ˡ {ys = map (raise nB) (range nA)}
+                      (∈-map⁺ (inject+ nA) (range-covers nB y))
 
   -- With the per-element reductions, φ-cod is a direct map-chase
   -- analogous to φ-dom.
