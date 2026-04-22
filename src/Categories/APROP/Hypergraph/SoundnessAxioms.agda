@@ -661,11 +661,60 @@ module σ∘σ-proof (A B : ObjTerm) where
              (cong (map (raise (Hypergraph.nV (hId A))))
                    (trans (map-cast-range eq-B) (sym (hId-dom≡range B))))))))))
 
-  -- φ-cod still postulated: C.cod uses remapP, which requires a more
-  -- delicate chase through the non-trivial K.cod = map injR (range nA)
-  -- ++ map injL (range nB) (note swap: cod differs from dom for hSwap).
+  ------------------------------------------------------------------------------
+  -- φ-cod: similar shape to φ-dom, but C.cod goes through `remapP`
+  -- rather than the simpler `injL`. For the hSwap B A source, each
+  -- element of K.cod belongs to K.dom at a specific position, so
+  -- `remapP` reduces via `classify-lookup-Unique` to
+  --   `inject+ c (lookup-cod (position-in-K.dom))`.
+  --
+  -- The bookkeeping is:
+  --   * raise nB x ∈ K.cod at pos x (x : Fin nA) lives in K.dom at pos (nB + x).
+  --   * inject+ nA y ∈ K.cod at pos (nA + y) lives in K.dom at pos y.
+  --   * Then `lookup-cod` into G.cod at those positions recovers
+  --     G.cod's own structure — yielding `inject+ nB x` / `raise nA y`.
+  --
+  -- We isolate the two reductions as postulated helpers; once proved,
+  -- φ-cod follows the exact same map-arithmetic as φ-dom.
   postulate
-    φ-cod : R.cod ≡ map φ C.cod
+    remapP-kcod-raise-nB
+      : ∀ (x : Fin nA)
+      → hCP.remapP (raise nB x) ≡ inject+ (count-non K.dom) (inject+ nB x)
+    remapP-kcod-inject+-nA
+      : ∀ (y : Fin nB)
+      → hCP.remapP (inject+ nA y) ≡ inject+ (count-non K.dom) (raise nA y)
+
+  -- With the per-element reductions, φ-cod is a direct map-chase
+  -- analogous to φ-dom.
+  φ-cod : R.cod ≡ map φ C.cod
+  φ-cod = sym
+    (trans
+      -- Unfold C.cod = map remapP K.cod.  K.cod = raise-half ++ inject+-half.
+      (trans (sym (map-∘ K.cod))
+             (map-++ (λ v → φ (hCP.remapP v))
+                     (map (raise nB) (range nA))
+                     (map (inject+ nA) (range nB))))
+    -- Left half: raise nB x ↦ inject+ (hId B).nV (cast eq-A x) after all reductions.
+    (cong₂ _++_
+      (trans (sym (map-∘ (range nA)))
+      (trans (map-cong
+                (λ x → trans (cong φ (remapP-kcod-raise-nB x))
+                             (φ-injL-red (inject+ nB x)))
+                (range nA))
+      (trans (map-cong (cast-inject+-cong₂ eq-A eq-B) (range nA))
+      (trans (map-∘ (range nA))
+             (cong (map (inject+ (Hypergraph.nV (hId B))))
+                   (trans (map-cast-range eq-A) (sym (hId-cod≡range A))))))))
+      -- Right half: inject+ nA y ↦ raise (hId A).nV (cast eq-B y).
+      (trans (sym (map-∘ (range nB)))
+      (trans (map-cong
+                (λ y → trans (cong φ (remapP-kcod-inject+-nA y))
+                             (φ-injL-red (raise nA y)))
+                (range nB))
+      (trans (map-cong (cast-raise-cong₂ eq-A eq-B) (range nB))
+      (trans (map-∘ (range nB))
+             (cong (map (raise (Hypergraph.nV (hId A))))
+                   (trans (map-cast-range eq-B) (sym (hId-cod≡range B))))))))))
 
   ψ-ein  : ∀ e → R.ein  (ψ e) ≡ map φ (C.ein  e)
   ψ-ein  e = absurd-CE e
