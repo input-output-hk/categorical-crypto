@@ -73,6 +73,8 @@ open import Categories.APROP.Hypergraph.Congruence sig using (hTensor-resp-≅�
 open import Categories.APROP.Hypergraph.CongruenceP sig using (hComposeP-resp-≅ᴴ)
 open import Categories.APROP.Hypergraph.SoundnessAxioms sig
   using (idˡ-sound; λ⇐∘λ⇒-sound; λ⇒∘λ⇐-sound)
+open import Categories.APROP.Hypergraph.HomTermInvariant sig
+  using (⟪_⟫-dom-unique)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 
 --------------------------------------------------------------------------------
@@ -85,8 +87,6 @@ open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 
 postulate
   soundness-axiom : ∀ {A B} {f g : HomTerm A B} → f ≈Term g → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-
-  ⟪_⟫-dom-unique  : ∀ {A B} (f : HomTerm A B) → Unique (Hypergraph.dom ⟪ f ⟫)
 
 --------------------------------------------------------------------------------
 -- The soundness theorem.

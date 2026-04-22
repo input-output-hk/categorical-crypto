@@ -214,36 +214,56 @@ meantime.
 
     6. IN PROGRESS. Discharge the 15 ≈Term axioms. Current state:
 
+       *Breakthroughs:*
+       - **ψ-elab = refl via strategic atom-ein**: choosing
+         atom-ein/atom-eout to MATCH the specific proof terms
+         (`map-via-inj hCP.vlab-injL`) used inside
+         `hCP.elab-c`'s internal subst₂ makes ψ-elab a one-line
+         `refl` instead of a 6-step subst₂-trans chain.
+         Applied successfully to idˡ.
+
+       - **Equational reasoning for φ-cod**: reduced the original
+         postulate to a cleaner-stated `idˡ-cod-helper` via
+         `G.cod ≡ map id G.cod ≡ map (φ ∘ φ⁻¹) G.cod ≡ map φ (map φ⁻¹ G.cod) ≡ map φ C.cod`.
+
+       - **classify-lookup-Unique** (in `Prune`): for Unique xs,
+         `classify xs (lookup xs j) ≡ inj₁ j`. Key tool for hId's
+         cod/dom structure.
+
+       - **IsoSimple**: simplified iso record dropping
+         atom-ein/atom-eout (derived via `derived-atom-ein` etc.).
+         Useful for routine isos.
+
        *Fully proved (no postulates):*
        - ~hTensor-hEmpty-hId-iso : hTensor hEmpty (hId A) ≅ᴴ hId A~
          (bridge lemma for λ/ρ coherence axioms).
 
-       *Partial — internal postulates remain:*
-       - ~idˡ-sound~ — 14/16 fields proved; ~φ-cod~ and ~ψ-elab~
-         postulated. ~φ-cod~ needs ~classify-inj₁~ reasoning on
-         ~hId B~.cod. ~ψ-elab~ needs the 6-step subst₂-trans chain
-         (~30 lines, structure analogous to ~CongruenceP.ψ-elab-P~).
+       *15/16 fields proved; 1 postulate remains:*
+       - ~idˡ-sound~ — all fields except ~idˡ-cod-helper~
+         (map φ⁻¹ G.cod ≡ C.cod) fully proved. Helper requires
+         structural induction on B using hId's cod/dom structure
+         + classify-lookup-Unique.
 
-       *Derived (inherit idˡ's postulates):*
-       - ~λ⇐∘λ⇒-sound~, ~λ⇒∘λ⇐-sound~ — both via ~idˡ-sound~ +
-         ~hTensor-hEmpty-hId-iso~.
+       *Derived (inherit idˡ's single postulate):*
+       - ~λ⇐∘λ⇒-sound~ — via ~idˡ-sound~ + ~hTensor-hEmpty-hId-iso~.
+       - ~λ⇒∘λ⇐-sound~ — via ~idˡ-sound~ directly.
+
+       *Dispatched in Soundness.agda:*
+       - ~soundness (idˡ {f = f}) = idˡ-sound f~
+       - ~soundness λ⇐∘λ⇒≈id = λ⇐∘λ⇒-sound~
+       - ~soundness λ⇒∘λ⇐≈id = λ⇒∘λ⇐-sound~
 
        *Pure postulates (structure not yet written):*
        - ~ρ⇐∘ρ⇒~, ~ρ⇒∘ρ⇐~ — ρ variants with ~subst~ through
-         ~++-identityʳ~ (similar shape to λ but with extra subst).
-       - ~σ∘σ~ — braiding self-inverse; involves ~hSwap~'s specific
-         structure.
+         ~++-identityʳ~.
+       - ~σ∘σ~ — braiding self-inverse via ~hSwap~.
 
        *Not yet touched:*
        - ~idʳ~ — needs ~⟪_⟫-dom-unique~ for the dom-coverage
-         count-non calculation. Similar structure to ~idˡ~ but
-         with G and K roles swapped.
-       - ~α~-axioms (~α⇐∘α⇒~, ~α⇒∘α⇐~) — similar to ρ with 3-way
-         tensor.
-       - ~σ∘[f⊗g]≈[g⊗f]∘σ~ — signature-dependent; requires the full
-         ~hComposeP~-on-compositions machinery.
-       - Group (a): ~assoc~, ~⊗-∘-dist~, ~hexagon~ — already have
-         matching vertex counts; need pure bijection construction.
+         count-non calculation.
+       - ~α~-axioms (~α⇐∘α⇒~, ~α⇒∘α⇐~).
+       - Naturality axioms (4 of them).
+       - Group (a): ~assoc~, ~⊗-∘-dist~, ~hexagon~.
 
     7. TODO. Prove ~⟪_⟫-dom-unique~ in ~Hypergraph.Invariant~ by
        induction on ~HomTerm~ + case analysis on ⟪_⟫'s recursive

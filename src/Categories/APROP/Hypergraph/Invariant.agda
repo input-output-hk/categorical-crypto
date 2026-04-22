@@ -40,8 +40,8 @@ open import Categories.APROP.Hypergraph.Prune
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc; inject+; raise; splitAt)
 open import Data.Fin.Properties using (splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ; splitAt-inject+; splitAt-raise)
-open import Data.Nat using (ℕ)
-open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.Nat using (ℕ; zero; suc)
+open import Data.List using (List; []; _∷_; _++_; map; length)
 open import Data.List.Membership.Propositional using (_∈_; _∉_)
 open import Data.List.Membership.Propositional.Properties
   using (∈-++⁺ˡ; ∈-++⁺ʳ; ∈-map⁺; ∈-map⁻)
@@ -121,49 +121,51 @@ hId-cod≡dom (A ⊗₀ B)  =
 --   * ++⁺ with disjointness of images   (inject+ and raise have disjoint ranges).
 
 -- injectivity of inject+ and raise via splitAt reduction.
-private
-  inject+-inj : ∀ {m} (n : ℕ) {i j : Fin m}
-              → inject+ n i ≡ inject+ n j → i ≡ j
-  inject+-inj {m} n {i} {j} eq with
-    splitAt-inject+ m n i | splitAt-inject+ m n j | cong (splitAt m) eq
-  ... | i-red | j-red | split-eq =
-    inj₁-inj (trans (sym i-red) (trans split-eq j-red))
-    where
-      inj₁-inj : ∀ {X Y : Set} {x y : X} → inj₁ {B = Y} x ≡ inj₁ y → x ≡ y
-      inj₁-inj refl = refl
+-- Public: used by `HomTermInvariant` to prove `⟪_⟫-dom-unique` for
+-- `_∘_` and `_⊗₁_`.
 
-  raise-inj : ∀ (m : ℕ) {n} {i j : Fin n}
-            → raise m i ≡ raise m j → i ≡ j
-  raise-inj m {n} {i} {j} eq with
-    splitAt-raise m n i | splitAt-raise m n j | cong (splitAt m) eq
-  ... | i-red | j-red | split-eq =
-    inj₂-inj (trans (sym i-red) (trans split-eq j-red))
-    where
-      inj₂-inj : ∀ {X Y : Set} {x y : Y} → inj₂ {A = X} x ≡ inj₂ y → x ≡ y
-      inj₂-inj refl = refl
+inject+-inj : ∀ {m} (n : ℕ) {i j : Fin m}
+            → inject+ n i ≡ inject+ n j → i ≡ j
+inject+-inj {m} n {i} {j} eq with
+  splitAt-inject+ m n i | splitAt-inject+ m n j | cong (splitAt m) eq
+... | i-red | j-red | split-eq =
+  inj₁-inj (trans (sym i-red) (trans split-eq j-red))
+  where
+    inj₁-inj : ∀ {X Y : Set} {x y : X} → inj₁ {B = Y} x ≡ inj₁ y → x ≡ y
+    inj₁-inj refl = refl
 
-  -- map inject+ and map raise produce disjoint lists.
-  --   If v ∈ map (inject+ n) xs, then v = inject+ n vL for some vL ∈ xs,
-  --     hence splitAt m v = inj₁ vL.
-  --   If v ∈ map (raise m)  ys, then v = raise m vR for some vR ∈ ys,
-  --     hence splitAt m v = inj₂ vR.
-  --   These two splitAt results are both inj₁ and inj₂, contradiction.
-  disj-L-R : ∀ {m n} (xs : List (Fin m)) (ys : List (Fin n))
-           → Disjoint (map (inject+ n) xs) (map (raise m) ys)
-  disj-L-R {m} {n} xs ys {v} (v∈L , v∈R)
-    with ∈-map⁻ (inject+ n) v∈L | ∈-map⁻ (raise m) v∈R
-  ... | vL , _ , v≡L | vR , _ , v≡R
-    = case-absurd (trans (sym sp-L) sp-R)
-    where
-      -- splitAt m v is forced two different ways.
-      sp-L : splitAt m v ≡ inj₁ vL
-      sp-L = trans (cong (splitAt m) v≡L) (splitAt-inject+ m n vL)
+raise-inj : ∀ (m : ℕ) {n} {i j : Fin n}
+          → raise m i ≡ raise m j → i ≡ j
+raise-inj m {n} {i} {j} eq with
+  splitAt-raise m n i | splitAt-raise m n j | cong (splitAt m) eq
+... | i-red | j-red | split-eq =
+  inj₂-inj (trans (sym i-red) (trans split-eq j-red))
+  where
+    inj₂-inj : ∀ {X Y : Set} {x y : Y} → inj₂ {A = X} x ≡ inj₂ y → x ≡ y
+    inj₂-inj refl = refl
 
-      sp-R : splitAt m v ≡ inj₂ vR
-      sp-R = trans (cong (splitAt m) v≡R) (splitAt-raise m n vR)
+-- map inject+ and map raise produce disjoint lists.
+--   If v ∈ map (inject+ n) xs, then v = inject+ n vL for some vL ∈ xs,
+--     hence splitAt m v = inj₁ vL.
+--   If v ∈ map (raise m)  ys, then v = raise m vR for some vR ∈ ys,
+--     hence splitAt m v = inj₂ vR.
+--   These two splitAt results are both inj₁ and inj₂, contradiction.
+disj-L-R : ∀ {m n} (xs : List (Fin m)) (ys : List (Fin n))
+         → Disjoint (map (inject+ n) xs) (map (raise m) ys)
+disj-L-R {m} {n} xs ys {v} (v∈L , v∈R)
+  with ∈-map⁻ (inject+ n) v∈L | ∈-map⁻ (raise m) v∈R
+... | vL , _ , v≡L | vR , _ , v≡R
+  = case-absurd (trans (sym sp-L) sp-R)
+  where
+    -- splitAt m v is forced two different ways.
+    sp-L : splitAt m v ≡ inj₁ vL
+    sp-L = trans (cong (splitAt m) v≡L) (splitAt-inject+ m n vL)
 
-      case-absurd : ∀ {ℓ} {X : Set ℓ} → inj₁ {B = Fin n} vL ≡ inj₂ vR → X
-      case-absurd ()
+    sp-R : splitAt m v ≡ inj₂ vR
+    sp-R = trans (cong (splitAt m) v≡R) (splitAt-raise m n vR)
+
+    case-absurd : ∀ {ℓ} {X : Set ℓ} → inj₁ {B = Fin n} vL ≡ inj₂ vR → X
+    case-absurd ()
 
 hId-dom-Unique : ∀ A → Unique (Hypergraph.dom (hId A))
 hId-dom-Unique unit     = AllPairs.[]
@@ -181,3 +183,49 @@ hId-dom-Unique (A ⊗₀ B) =
 -- Symmetric version for cod.
 hId-cod-Unique : ∀ A → Unique (Hypergraph.cod (hId A))
 hId-cod-Unique A = subst Unique (sym (hId-cod≡dom A)) (hId-dom-Unique A)
+
+--------------------------------------------------------------------------------
+-- Unique witnesses for `range n` and for `hSwap` / `hGen`.
+--
+-- `range n = 0 ∷ suc 0 ∷ suc (suc 0) ∷ ...`: these are all distinct Fin
+-- values because zero ≢ suc and suc is injective.
+
+import Data.List.Relation.Unary.All        as ListAll
+import Data.List.Relation.Unary.AllPairs   as AllPairs
+import Data.Fin                            as Fin
+open import Relation.Binary.PropositionalEquality using (_≢_)
+
+private
+  -- Everything in `map Fin.suc xs` starts with `suc`, hence ≠ zero.
+  all-≢-zero : ∀ {n} (xs : List (Fin n))
+             → ListAll.All (Fin.zero {n = n} ≢_) (map Fin.suc xs)
+  all-≢-zero []       = ListAll.[]
+  all-≢-zero (x ∷ xs) = (λ ()) ListAll.∷ all-≢-zero xs
+
+  -- Fin.suc is injective.
+  fin-suc-inj : ∀ {n} {i j : Fin n} → Fin.suc i ≡ Fin.suc j → i ≡ j
+  fin-suc-inj refl = refl
+
+range-Unique : ∀ n → Unique (range n)
+range-Unique 0             = AllPairs.[]
+range-Unique (suc n)  =
+  all-≢-zero (range n)
+    AllPairs.∷ Uniq-Prop.map⁺ fin-suc-inj (range-Unique n)
+
+--------------------------------------------------------------------------------
+-- hSwap's dom is Unique. Its dom is
+--   `map (inject+ nB) (range nA) ++ map (raise nA) (range nB)`
+-- which is Unique via `map⁺` on each side + `++⁺` with disjointness.
+
+hSwap-dom-Unique : ∀ A B → Unique (Hypergraph.dom (hSwap A B))
+hSwap-dom-Unique A B =
+  Uniq-Prop.++⁺
+    (Uniq-Prop.map⁺ (inject+-inj _) (range-Unique _))
+    (Uniq-Prop.map⁺ (raise-inj   _) (range-Unique _))
+    (disj-L-R (range (length (flatten A))) (range (length (flatten B))))
+
+--------------------------------------------------------------------------------
+-- hGen's dom is Unique. Dom is `map (inject+ nB) (range nA)`.
+
+hGen-dom-Unique : ∀ {A B : ObjTerm} (f : mor A B) → Unique (Hypergraph.dom (hGen f))
+hGen-dom-Unique {A} f = Uniq-Prop.map⁺ (inject+-inj _) (range-Unique _)
