@@ -36,17 +36,21 @@ open import Categories.APROP.Hypergraph.PrunedCompose sig
 open import Categories.APROP.Hypergraph.Invariant sig
 
 open import Categories.APROP.Hypergraph.Prune
-  using (nonMem; count-non; AllIn; AllIn→count-non-zero)
+  using ( nonMem; count-non; AllIn; AllIn→count-non-zero
+        ; classify; classify-lookup-Unique; remap; remap-inj₁)
 
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Fin using (Fin; zero; suc; inject+; raise; splitAt)
-open import Data.Fin.Properties using (splitAt-inject+; splitAt-raise)
-open import Data.List using (List; []; _∷_; map; length)
+open import Data.Fin using (Fin; zero; suc; inject+; raise; splitAt; cast)
+open import Data.Fin.Properties using (splitAt-inject+; splitAt-raise; cast-is-id)
+open import Data.List using (List; []; _∷_; map; length; lookup; tabulate; allFin)
+open import Data.List.Properties
+  using (map-∘; map-cong; map-id; tabulate-lookup; map-tabulate)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Nat.Properties using (+-identityʳ)
 open import Data.Sum using ([_,_]′; inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; sym; trans; subst; subst₂)
+  using (_≡_; refl; cong; sym; trans; subst; subst₂; module ≡-Reasoning)
 
 --------------------------------------------------------------------------------
 -- `idˡ`: `id ∘ f ≈Term f`.
@@ -210,12 +214,85 @@ module idˡ-proof {A B : ObjTerm} (f : HomTerm A B) where
   --     ∎
   -- where `idˡ-cod-helper : map φ⁻¹ G.cod ≡ C.cod`.
   --
-  -- The helper relies on the hId-specific fact that `remapP` on K.cod
-  -- values yields `inject+ (count-non K.dom) (cast-of-G.cod[j])`, which
-  -- equals `φ⁻¹ (G.cod[j])` when cast is identity (hId's K.cod lines
-  -- up with G.cod structurally). This needs induction on B.
-  postulate
-    idˡ-cod-helper : map φ⁻¹ G.cod ≡ C.cod
+  -- The helper relies on the hId-specific facts that
+  --   * K.cod ≡ K.dom        (hId-cod≡dom)       — dom and cod are the
+  --     same list of Fin values for an identity.
+  --   * Unique K.dom          (hId-dom-Unique)    — lets us use
+  --     classify-lookup-Unique to reduce remapP on K.dom positions to
+  --     `inject+ c ∘ lookup-cod`.
+  -- Combined with a small suite of tabulate / allFin / cast lemmas, the
+  -- helper reduces to a chain of `map-tabulate` + pointwise
+  -- `classify-lookup-Unique` rewrites.
+
+  -- Auxiliaries.
+  private
+    -- xs ≡ map (lookup xs) (allFin (length xs)).
+    -- allFin n = tabulate id, so map f (allFin n) = tabulate f (via map-tabulate).
+    map-lookup-allFin
+      : ∀ {A : Set} (xs : List A)
+      → map (lookup xs) (allFin (length xs)) ≡ xs
+    map-lookup-allFin xs = trans (map-tabulate (λ i → i) (lookup xs)) (tabulate-lookup xs)
+
+    -- map (cast eq) (allFin m) ≡ allFin n when eq : m ≡ n.
+    -- Proved by pattern-matching on the proof and using cast-is-id.
+    cast-allFin
+      : ∀ {m n} (eq : m ≡ n) → map (cast eq) (allFin m) ≡ allFin n
+    cast-allFin refl =
+      trans (map-cong (λ i → cast-is-id refl i) (allFin _)) (map-id (allFin _))
+
+  -- Pointwise reduction of `remapP` on K.dom[j].
+  -- By Unique K.dom, `classify K.dom (lookup K.dom j) = inj₁ j`; hence
+  -- `remapP = remap K.dom lookup-cod` reduces to
+  -- `inject+ (count-non K.dom) (lookup-cod j)`.
+  remapP-on-dom
+    : ∀ (j : Fin (length K.dom))
+    → hCP.remapP (lookup K.dom j)
+    ≡ inject+ (count-non K.dom) (hCP.lookup-cod j)
+  remapP-on-dom j =
+    remap-inj₁ K.dom hCP.lookup-cod (lookup K.dom j) j
+      (classify-lookup-Unique K.dom (hId-dom-Unique B) j)
+
+  -- Now the main equality.
+  --
+  -- map remapP K.cod
+  --   ≡ map remapP K.dom                                 [hId-cod≡dom]
+  --   ≡ map (remapP ∘ lookup K.dom) (allFin n)           [sym map-lookup-allFin]
+  --   ≡ map (λ j → inject+ c (lookup-cod j)) (allFin n)  [remapP-on-dom pointwise]
+  --   ≡ map (inject+ c ∘ lookup-cod) (allFin n)
+  --   ≡ map (inject+ c) (map lookup-cod (allFin n))      [map-∘]
+  --   ≡ map (inject+ c) (map (lookup G.cod ∘ cast _) (allFin n))  [def lookup-cod]
+  --   ≡ map (inject+ c) (map (lookup G.cod) (map (cast _) (allFin n)))  [map-∘]
+  --   ≡ map (inject+ c) (map (lookup G.cod) (allFin (length G.cod)))    [cast-allFin]
+  --   ≡ map (inject+ c) G.cod                              [map-lookup-allFin]
+  --
+  -- Combined: map φ⁻¹ G.cod ≡ map remapP K.cod, i.e. `sym` of the above.
+
+  idˡ-cod-helper : map φ⁻¹ G.cod ≡ C.cod
+  idˡ-cod-helper = sym (begin
+      map hCP.remapP K.cod
+        ≡⟨ cong (map hCP.remapP) (hId-cod≡dom B) ⟩
+      map hCP.remapP K.dom
+        ≡⟨ cong (map hCP.remapP) (sym (map-lookup-allFin K.dom)) ⟩
+      map hCP.remapP (map (lookup K.dom) (allFin (length K.dom)))
+        ≡⟨ sym (map-∘ (allFin (length K.dom))) ⟩
+      map (λ j → hCP.remapP (lookup K.dom j)) (allFin (length K.dom))
+        ≡⟨ map-cong remapP-on-dom (allFin (length K.dom)) ⟩
+      map (λ j → inject+ (count-non K.dom) (hCP.lookup-cod j))
+          (allFin (length K.dom))
+        ≡⟨ map-∘ (allFin (length K.dom)) ⟩
+      map (inject+ (count-non K.dom))
+          (map hCP.lookup-cod (allFin (length K.dom)))
+        ≡⟨ cong (map (inject+ (count-non K.dom))) (map-∘ (allFin (length K.dom))) ⟩
+      map (inject+ (count-non K.dom))
+          (map (lookup G.cod) (map (cast hCP.dom-cod-len) (allFin (length K.dom))))
+        ≡⟨ cong (λ xs → map (inject+ (count-non K.dom)) (map (lookup G.cod) xs))
+               (cast-allFin hCP.dom-cod-len) ⟩
+      map (inject+ (count-non K.dom))
+          (map (lookup G.cod) (allFin (length G.cod)))
+        ≡⟨ cong (map (inject+ (count-non K.dom))) (map-lookup-allFin G.cod) ⟩
+      map (inject+ (count-non K.dom)) G.cod
+        ∎)
+    where open ≡-Reasoning
 
   φ-cod : G.cod ≡ map φ C.cod
   φ-cod =
