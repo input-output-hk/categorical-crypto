@@ -170,6 +170,55 @@ module _ {m n : ℕ} (φ : Fin m → Fin n)
                      (∉-map-injective φ φ-inj (nonMem-member xs j)))
 
 --------------------------------------------------------------------------------
+-- Inverse transport: given a two-sided inverse pair `(φ, φ⁻¹)`, the
+-- non-members travel back via `φ⁻¹`. Used for the φ⁻¹ side of the pruned
+-- vertex bijection.
+
+module _ {m n : ℕ}
+         (φ   : Fin m → Fin n) (φ⁻¹ : Fin n → Fin m)
+         (φ-left  : ∀ x → φ⁻¹ (φ x) ≡ x)
+         (φ-right : ∀ y → φ (φ⁻¹ y) ≡ y) where
+  open import Data.List.Membership.Propositional using (_∈_; _∉_)
+  open import Data.List.Membership.Propositional.Properties using (∈-map⁻)
+
+  -- Injectivity from the left-inverse property.
+  φ-inj : ∀ {x y : Fin m} → φ x ≡ φ y → x ≡ y
+  φ-inj {x} {y} eq = trans (sym (φ-left x)) (trans (cong φ⁻¹ eq) (φ-left y))
+
+  φ⁻¹-inj : ∀ {x y : Fin n} → φ⁻¹ x ≡ φ⁻¹ y → x ≡ y
+  φ⁻¹-inj {x} {y} eq = trans (sym (φ-right x)) (trans (cong φ eq) (φ-right y))
+
+  -- If `φ⁻¹ v ∈ xs` then `v ∈ map φ xs` via `v = φ (φ⁻¹ v)`.
+  -- Contrapositive: `v ∉ map φ xs → φ⁻¹ v ∉ xs`.
+  private
+    ∈-map-via-φ : ∀ {xs : List (Fin m)} {v : Fin n}
+                → φ⁻¹ v ∈ xs → v ∈ map φ xs
+    ∈-map-via-φ {xs} {v} p =
+      subst (_∈ map φ xs) (φ-right v) (∈-map⁺ φ p)
+      where open import Data.List.Membership.Propositional.Properties
+                       using (∈-map⁺)
+            open import Relation.Binary.PropositionalEquality using (subst)
+
+  ∉-map-via-φ : ∀ {xs : List (Fin m)} {v : Fin n}
+              → v ∉ map φ xs → φ⁻¹ v ∉ xs
+  ∉-map-via-φ v∉ = λ φ⁻¹v∈xs → v∉ (∈-map-via-φ φ⁻¹v∈xs)
+
+  -- Backward direction of the pruned bijection: given k indexing into
+  -- nonMem (map φ xs), look up the Fin n value, apply φ⁻¹, and take its
+  -- index in nonMem xs.
+  open import Data.List.Membership.DecPropositional (_≟_ {n = m})
+    using () renaming (_∈?_ to _∈m?_)
+  open import Data.List.Membership.Propositional.Properties
+    using (∈-filter⁺; ∈-allFin)
+
+  pruneMap⁻¹ : (xs : List (Fin m)) → Fin (count-non (map φ xs))
+             → Fin (count-non xs)
+  pruneMap⁻¹ xs k =
+    index (∈-filter⁺ (λ u → ¬? (u ∈m? xs))
+                     (∈-allFin (φ⁻¹ (lookup (nonMem (map φ xs)) k)))
+                     (∉-map-via-φ (nonMem-member (map φ xs) k)))
+
+--------------------------------------------------------------------------------
 -- Remap combinator.
 --
 -- Given xs ⊂ Fin n and a target map f : Fin (length xs) → Fin m for
