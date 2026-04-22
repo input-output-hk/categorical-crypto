@@ -269,3 +269,9 @@ hSwap-count-non-cod A B = AllIn→count-non-zero (hSwap-cod-covers A B)
 -- hSwap has zero edges.
 hSwap-nE : ∀ A B → Hypergraph.nE (hSwap A B) ≡ 0
 hSwap-nE A B = refl
+
+--------------------------------------------------------------------------------
+-- TODO. `hId-vlab-lookup : (hId A).vlab i ≡ lookup (flatten A) i`.
+-- Blocked by `length (xs ++ ys) ≢ length xs + length ys` definitionally —
+-- stating a clean form needs either a Fin.cast or a Vec detour. See the
+-- σ∘σ axiom proof sketch in TODO.org for the usage.
