@@ -581,3 +581,41 @@ lookup-range (suc n) (suc j) =
       ≡ Fin.suc (lookup xs (cast (length-map Fin.suc xs) j))
     lookup-map-Fsuc {x ∷ xs} zero    = refl
     lookup-map-Fsuc {x ∷ xs} (suc j) = lookup-map-Fsuc {xs} j
+
+--------------------------------------------------------------------------------
+-- toℕ-equality of `index` under `∈-++⁺ˡ` / `∈-++⁺ʳ`. These compute
+-- the position of a ∈-witness in a concatenated list.
+--
+--   `∈-++⁺ˡ w ∈ xs ++ ys` preserves the index (at the toℕ level) —
+--     the witness points into xs, same position.
+--   `∈-++⁺ʳ xs w ∈ xs ++ ys` shifts the index by `length xs`.
+
+open import Data.List.Relation.Unary.Any using (Any; here; there; index)
+open import Data.List.Relation.Unary.Any.Properties
+  using () renaming (++⁺ˡ to Any-++⁺ˡ; ++⁺ʳ to Any-++⁺ʳ)
+
+toℕ-index-++⁺ˡ
+  : ∀ {ℓ p} {A : Set ℓ} {P : A → Set p} {xs : List A} {ys : List A}
+    (w : Any P xs)
+  → toℕ (index (Any-++⁺ˡ {ys = ys} w)) ≡ toℕ (index w)
+toℕ-index-++⁺ˡ (here _)  = refl
+toℕ-index-++⁺ˡ (there w) = cong suc (toℕ-index-++⁺ˡ w)
+
+toℕ-index-++⁺ʳ
+  : ∀ {ℓ p} {A : Set ℓ} {P : A → Set p} (xs : List A) {ys : List A}
+    (w : Any P ys)
+  → toℕ (index (Any-++⁺ʳ xs w)) ≡ length xs + toℕ (index w)
+toℕ-index-++⁺ʳ []       w = refl
+toℕ-index-++⁺ʳ (x ∷ xs) w = cong suc (toℕ-index-++⁺ʳ xs w)
+
+--------------------------------------------------------------------------------
+-- toℕ-equality of `index (range-covers n v)`: it equals `toℕ v`.
+-- Follows from `lookup-index` on the witness + `lookup-range`.
+
+toℕ-index-range-covers
+  : ∀ n (v : Fin n)
+  → toℕ (index (range-covers n v)) ≡ toℕ v
+toℕ-index-range-covers n v = trans
+  (sym (lookup-range n (index (range-covers n v))))
+  (cong toℕ (sym (lookup-index (range-covers n v))))
+  where open import Data.List.Relation.Unary.Any.Properties using (lookup-index)
