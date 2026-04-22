@@ -45,6 +45,30 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans
 open import Relation.Nullary.Decidable using (¬?; yes; no)
 
 --------------------------------------------------------------------------------
+-- Generic list/uniqueness helpers (not Fin-specific).
+
+module _ {ℓ} {A : Set ℓ} where
+  -- Apply an `All P xs` witness at a Fin position.
+  All-lookup : ∀ {p} {P : A → Set p} {xs : List A}
+             → All P xs → (i : Fin (length xs)) → P (lookup xs i)
+  All-lookup (p ∷ _)  zero    = p
+  All-lookup (_ ∷ ps) (suc i) = All-lookup ps i
+
+  -- Unique lists have injective `lookup`.
+  lookup-injective-unique : ∀ {xs : List A}
+                          → Unique xs
+                          → ∀ (i j : Fin (length xs))
+                          → lookup xs i ≡ lookup xs j
+                          → i ≡ j
+  lookup-injective-unique {xs = _ ∷ _ } (_  AllPairs.∷ _ ) zero    zero    _  = refl
+  lookup-injective-unique {xs = _ ∷ _ } (x≢ AllPairs.∷ _ ) zero    (suc j) eq =
+    ⊥-elim (All-lookup x≢ j eq)
+  lookup-injective-unique {xs = _ ∷ _ } (x≢ AllPairs.∷ _ ) (suc i) zero    eq =
+    ⊥-elim (All-lookup x≢ i (sym eq))
+  lookup-injective-unique {xs = _ ∷ _ } (_  AllPairs.∷ uq) (suc i) (suc j) eq =
+    cong suc (lookup-injective-unique uq i j eq)
+
+--------------------------------------------------------------------------------
 -- Non-members of a Fin list.
 
 module _ {n : ℕ} where
@@ -117,6 +141,13 @@ module _ {n : ℕ} where
   AllIn→count-non-zero : ∀ {xs} → AllIn xs → count-non xs ≡ 0
   AllIn→count-non-zero all = cong length (AllIn→nonMem-[] all)
 
+  -- `nonMem xs` has pairwise-distinct entries — it's a filter of `allFin n`.
+  nonMem-Unique : (xs : List (Fin n)) → Unique (nonMem xs)
+  nonMem-Unique xs =
+    Uniq-Prop.filter⁺ (nonMem? xs) (Uniq-Prop.allFin⁺ n)
+    where import Data.List.Relation.Unary.Unique.Propositional.Properties
+                  as Uniq-Prop
+
   -- A pruned index `j` in `nonMem xs` looks up to a Fin value that
   -- really is a non-member of `xs`.
   nonMem-member : (xs : List (Fin n)) (j : Fin (count-non xs))
@@ -173,6 +204,17 @@ module _ {m n : ℕ} (φ : Fin m → Fin n)
                      (∈-allFin (φ (lookup (nonMem xs) j)))
                      (∉-map-injective φ φ-inj (nonMem-member xs j)))
 
+  -- Key identity: going through pruneMap and then looking up recovers
+  -- `φ v` where `v = lookup (nonMem xs) j`. Proved via `lookup-index`
+  -- on the `∈-filter⁺` witness inside `pruneMap`.
+  lookup-pruneMap : (xs : List (Fin m)) (j : Fin (count-non xs))
+                  → lookup (nonMem (map φ xs)) (pruneMap xs j)
+                  ≡ φ (lookup (nonMem xs) j)
+  lookup-pruneMap xs j =
+    sym (lookup-index (∈-filter⁺ (λ u → ¬? (u ∈n? map φ xs))
+                                  (∈-allFin (φ (lookup (nonMem xs) j)))
+                                  (∉-map-injective φ φ-inj (nonMem-member xs j))))
+
 --------------------------------------------------------------------------------
 -- Inverse transport: given a two-sided inverse pair `(φ, φ⁻¹)`, the
 -- non-members travel back via `φ⁻¹`. Used for the φ⁻¹ side of the pruned
@@ -221,6 +263,54 @@ module _ {m n : ℕ}
     index (∈-filter⁺ (λ u → ¬? (u ∈m? xs))
                      (∈-allFin (φ⁻¹ (lookup (nonMem (map φ xs)) k)))
                      (∉-map-via-φ (nonMem-member (map φ xs) k)))
+
+  -- Key identity: going through pruneMap⁻¹ and then looking up recovers
+  -- `φ⁻¹` of the chain.
+  lookup-pruneMap⁻¹ : (xs : List (Fin m)) (k : Fin (count-non (map φ xs)))
+                    → lookup (nonMem xs) (pruneMap⁻¹ xs k)
+                    ≡ φ⁻¹ (lookup (nonMem (map φ xs)) k)
+  lookup-pruneMap⁻¹ xs k =
+    sym (lookup-index (∈-filter⁺ (λ u → ¬? (u ∈m? xs))
+                                  (∈-allFin (φ⁻¹ (lookup (nonMem (map φ xs)) k)))
+                                  (∉-map-via-φ (nonMem-member (map φ xs) k))))
+
+  -- Shorthand for pruneMap using the derived injectivity.
+  pruneMap′ : (xs : List (Fin m)) → Fin (count-non xs)
+            → Fin (count-non (map φ xs))
+  pruneMap′ = pruneMap φ φ-inj
+
+  lookup-pruneMap′ : (xs : List (Fin m)) (j : Fin (count-non xs))
+                   → lookup (nonMem (map φ xs)) (pruneMap′ xs j)
+                   ≡ φ (lookup (nonMem xs) j)
+  lookup-pruneMap′ = lookup-pruneMap φ φ-inj
+
+  -- Left inverse of pruneMap: `pruneMap⁻¹ ∘ pruneMap ≗ id`.
+  pruneMap-left-inverse : (xs : List (Fin m)) (j : Fin (count-non xs))
+                        → pruneMap⁻¹ xs (pruneMap′ xs j) ≡ j
+  pruneMap-left-inverse xs j =
+    lookup-injective-unique (nonMem-Unique xs) _ j eq
+    where
+      -- lookup (nonMem xs) (pruneMap⁻¹ xs (pruneMap′ xs j))
+      -- = φ⁻¹ (lookup (nonMem (map φ xs)) (pruneMap′ xs j))   [lookup-pruneMap⁻¹]
+      -- = φ⁻¹ (φ (lookup (nonMem xs) j))                      [lookup-pruneMap′]
+      -- = lookup (nonMem xs) j                                [φ-left]
+      eq : lookup (nonMem xs) (pruneMap⁻¹ xs (pruneMap′ xs j))
+         ≡ lookup (nonMem xs) j
+      eq = trans (lookup-pruneMap⁻¹ xs (pruneMap′ xs j))
+                 (trans (cong φ⁻¹ (lookup-pruneMap′ xs j))
+                        (φ-left (lookup (nonMem xs) j)))
+
+  -- Right inverse: `pruneMap ∘ pruneMap⁻¹ ≗ id`. Symmetric proof.
+  pruneMap-right-inverse : (xs : List (Fin m)) (k : Fin (count-non (map φ xs)))
+                         → pruneMap′ xs (pruneMap⁻¹ xs k) ≡ k
+  pruneMap-right-inverse xs k =
+    lookup-injective-unique (nonMem-Unique (map φ xs)) _ k eq
+    where
+      eq : lookup (nonMem (map φ xs)) (pruneMap′ xs (pruneMap⁻¹ xs k))
+         ≡ lookup (nonMem (map φ xs)) k
+      eq = trans (lookup-pruneMap′ xs (pruneMap⁻¹ xs k))
+                 (trans (cong φ (lookup-pruneMap⁻¹ xs k))
+                        (φ-right (lookup (nonMem (map φ xs)) k)))
 
 --------------------------------------------------------------------------------
 -- Remap combinator.
@@ -313,31 +403,3 @@ module _ {a} {X : Set a} {n m : ℕ} where
   map-via-remap xs f λK λG bdy ys =
     trans (sym (map-cong (remap-vlab xs f λK λG bdy) ys))
           (map-∘ ys)
-
---------------------------------------------------------------------------------
--- Uniqueness-based lookup injectivity.
---
--- For a `Unique xs` (pairwise-distinct elements), `lookup xs` is injective
--- from `Fin (length xs)`. Used to prove that `pruneMap⁻¹ ∘ pruneMap ≡ id`:
--- `nonMem xs ≡ filter _ (allFin n)` is unique, so the "index of
--- `lookup (nonMem xs) j` in nonMem xs" always recovers `j`.
-
-module _ {ℓ} {A : Set ℓ} where
-  -- Apply an `All P xs` witness at a Fin position.
-  All-lookup : ∀ {p} {P : A → Set p} {xs : List A}
-             → All P xs → (i : Fin (length xs)) → P (lookup xs i)
-  All-lookup (p ∷ _)  zero    = p
-  All-lookup (_ ∷ ps) (suc i) = All-lookup ps i
-
-  lookup-injective-unique : ∀ {xs : List A}
-                          → Unique xs
-                          → ∀ (i j : Fin (length xs))
-                          → lookup xs i ≡ lookup xs j
-                          → i ≡ j
-  lookup-injective-unique {xs = _ ∷ _ } (_  AllPairs.∷ _ ) zero    zero    _  = refl
-  lookup-injective-unique {xs = _ ∷ _ } (x≢ AllPairs.∷ _ ) zero    (suc j) eq =
-    ⊥-elim (All-lookup x≢ j eq)
-  lookup-injective-unique {xs = _ ∷ _ } (x≢ AllPairs.∷ _ ) (suc i) zero    eq =
-    ⊥-elim (All-lookup x≢ i (sym eq))
-  lookup-injective-unique {xs = _ ∷ _ } (_  AllPairs.∷ uq) (suc i) (suc j) eq =
-    cong suc (lookup-injective-unique uq i j eq)
