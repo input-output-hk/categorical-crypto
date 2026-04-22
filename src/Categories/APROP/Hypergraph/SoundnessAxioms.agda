@@ -442,13 +442,30 @@ hTensor-hEmpty-hId-iso A = record
 -- ++-identityʳ is non-trivial).  After that reduction, `idˡ-sound
 -- (id {A⊗unit})` closes the iso.
 
+-- To avoid a ~100k ms conversion-check blowup, we use `cong₂ hComposeP`
+-- applied to *abstract* arg-level equalities. With the refl proofs hidden
+-- behind `abstract`, Agda can't reduce the `cong₂` application, so the
+-- resulting equality proof stays structural and the `subst` below never
+-- forces a deep comparison of the two `hComposeP ...` records.
 ρ⇐∘ρ⇒-sound : ∀ {A} → ⟪ ρ⇐ {A} ∘ ρ⇒ {A} ⟫ ≅ᴴ ⟪ id {A ⊗₀ unit} ⟫
 ρ⇐∘ρ⇒-sound {A} =
-  subst (_≅ᴴ hId (A ⊗₀ unit))
-        (sym (hComposeP-subst-both refl (++-identityʳ (flatten A)) refl
-                                   (hId (A ⊗₀ unit)) (hId (A ⊗₀ unit))))
+  subst (_≅ᴴ hId (A ⊗₀ unit)) (sym full-eq)
         (idˡ-sound (id {A ⊗₀ unit}))
-  where open import Data.List.Properties using (++-identityʳ)
+  where
+    open import Data.List.Properties using (++-identityʳ)
+    eq = ++-identityʳ (flatten A)
+    abstract
+      arg1 : ⟪ ρ⇒ {A} ⟫
+           ≡ subst₂ (Hypergraph FlatGen) refl eq (hId (A ⊗₀ unit))
+      arg1 = refl
+      arg2 : ⟪ ρ⇐ {A} ⟫
+           ≡ subst₂ (Hypergraph FlatGen) eq refl (hId (A ⊗₀ unit))
+      arg2 = refl
+    full-eq : ⟪ ρ⇐ {A} ∘ ρ⇒ {A} ⟫
+            ≡ hComposeP (hId (A ⊗₀ unit)) (hId (A ⊗₀ unit))
+    full-eq = trans (cong₂ hComposeP arg1 arg2)
+                    (hComposeP-subst-both refl eq refl
+                                          (hId (A ⊗₀ unit)) (hId (A ⊗₀ unit)))
 
 -- α⇐∘α⇒≈id: same pattern as ρ⇐∘ρ⇒ — outer boundaries on both sides
 -- are `flatten ((A⊗B)⊗C) = (flatten A ++ flatten B) ++ flatten C`,
@@ -457,14 +474,24 @@ hTensor-hEmpty-hId-iso A = record
 
 α⇐∘α⇒-sound : ∀ {A B C} → ⟪ α⇐ {A}{B}{C} ∘ α⇒ {A}{B}{C} ⟫ ≅ᴴ ⟪ id {(A ⊗₀ B) ⊗₀ C} ⟫
 α⇐∘α⇒-sound {A} {B} {C} =
-  subst (_≅ᴴ hId ((A ⊗₀ B) ⊗₀ C))
-        (sym (hComposeP-subst-both refl
-                                   (++-assoc (flatten A) (flatten B) (flatten C))
-                                   refl
-                                   (hId ((A ⊗₀ B) ⊗₀ C))
-                                   (hId ((A ⊗₀ B) ⊗₀ C))))
+  subst (_≅ᴴ hId ((A ⊗₀ B) ⊗₀ C)) (sym full-eq)
         (idˡ-sound (id {(A ⊗₀ B) ⊗₀ C}))
-  where open import Data.List.Properties using (++-assoc)
+  where
+    open import Data.List.Properties using (++-assoc)
+    eq = ++-assoc (flatten A) (flatten B) (flatten C)
+    abstract
+      arg1 : ⟪ α⇒ {A}{B}{C} ⟫
+           ≡ subst₂ (Hypergraph FlatGen) refl eq (hId ((A ⊗₀ B) ⊗₀ C))
+      arg1 = refl
+      arg2 : ⟪ α⇐ {A}{B}{C} ⟫
+           ≡ subst₂ (Hypergraph FlatGen) eq refl (hId ((A ⊗₀ B) ⊗₀ C))
+      arg2 = refl
+    full-eq : ⟪ α⇐ {A}{B}{C} ∘ α⇒ {A}{B}{C} ⟫
+            ≡ hComposeP (hId ((A ⊗₀ B) ⊗₀ C)) (hId ((A ⊗₀ B) ⊗₀ C))
+    full-eq = trans (cong₂ hComposeP arg1 arg2)
+                    (hComposeP-subst-both refl eq refl
+                                          (hId ((A ⊗₀ B) ⊗₀ C))
+                                          (hId ((A ⊗₀ B) ⊗₀ C)))
 
 -- ρ⇒∘ρ⇐≈id and α⇒∘α⇐≈id: the "asymmetric" direction. The outer
 -- boundaries on LHS and RHS differ — LHS has `flatten A ++ []` or
