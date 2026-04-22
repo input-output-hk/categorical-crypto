@@ -441,3 +441,45 @@ hId-vlab-lookup (A ⊗₀ B) i
     lookup-eq =
       trans (sym (lookup-++-rai (flatten A) (flatten B) _))
             (cong (lookup (flatten A ++ flatten B)) (sym cast-form))
+
+--------------------------------------------------------------------------------
+-- `range` splits along `_+_`:
+--   range (n + m) ≡ map (inject+ m) (range n) ++ map (raise n) (range m)
+--
+-- Used by `hId-dom≡range` for the tensor case, and transitively by any
+-- proof that needs to show `(hId (A ⊗₀ B)).dom` is `range`-shaped.
+
+range-++ : ∀ (n m : ℕ)
+         → range (n + m) ≡ map (inject+ m) (range n) ++ map (raise n) (range m)
+range-++ zero    m = trans (sym (map-id (range m)))
+                           (sym (map-cong (λ _ → refl) (range m)))
+  where open import Data.List.Properties using (map-id; map-cong)
+range-++ (suc n) m = cong (zero ∷_)
+  (trans (cong (map Fin.suc) (range-++ n m))
+  (trans (map-++ Fin.suc (map (inject+ m) (range n)) (map (raise n) (range m)))
+         (cong₂ _++_
+           (trans (sym (map-∘ (range n)))
+           (trans (map-cong (λ _ → refl) (range n))
+                  (map-∘ (range n))))
+           (sym (map-∘ (range m))))))
+  where
+    open import Data.List.Properties using (map-++; map-∘; map-cong)
+    import Data.Fin as Fin
+
+--------------------------------------------------------------------------------
+-- `(hId A).dom` as a list of Fin is exactly `range (hId A).nV`. Used by
+-- `σ∘σ-sound` (and any axiom relating `hSwap`'s `range`-based dom/cod to
+-- `hTensor (hId _)`'s structural dom/cod).
+
+hId-dom≡range : ∀ A → Hypergraph.dom (hId A) ≡ range (Hypergraph.nV (hId A))
+hId-dom≡range unit     = refl
+hId-dom≡range (Var x)  = refl
+hId-dom≡range (A ⊗₀ B) =
+  trans (cong₂ _++_
+          (cong (map (inject+ (Hypergraph.nV (hId B)))) (hId-dom≡range A))
+          (cong (map (raise  (Hypergraph.nV (hId A)))) (hId-dom≡range B)))
+        (sym (range-++ (Hypergraph.nV (hId A)) (Hypergraph.nV (hId B))))
+
+-- Analogous for cod via the hId-cod≡dom bridge.
+hId-cod≡range : ∀ A → Hypergraph.cod (hId A) ≡ range (Hypergraph.nV (hId A))
+hId-cod≡range A = trans (hId-cod≡dom A) (hId-dom≡range A)

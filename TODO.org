@@ -275,13 +275,14 @@ meantime.
          `≅ᴴ` construction that inlines the subst₂s.
        - ~σ∘σ~ — braiding self-inverse via ~hSwap~. Infrastructure
          ready: `hSwap-dom-covers`, `hSwap-count-non-dom ≡ 0`
-         (same route as idˡ). Remaining work:
-         * `φ-lab` needs `(hId A).vlab ≡ lookup (flatten A)` pointwise
-           — blocked by `length (xs ++ ys) ≢ length xs + length ys`
-           definitionally; clean form needs a Fin.cast / Vec detour.
-         * `φ-dom`, `φ-cod` need to relate `hSwap.dom/cod` (uses
-           `range`) to `hTensor (hId A) (hId B).dom/cod` (uses
-           `(hId _).dom`). Needs `hId-dom≡range : (hId A).dom ≡ range n`.
+         (same route as idˡ), **and `hId-vlab-lookup` via Fin.cast**
+         (new!). Remaining work:
+         * `φ-dom`, `φ-cod` need `hId-dom≡range : ∀ A →
+           map (cast (hId-nV≡len-flatten A)) (hId A).dom
+             ≡ range (length (flatten A))`. Should be routine induction
+           using the same `cast-inject+-cong₂` / `cast-raise-cong₂` tools
+           developed for `hId-vlab-lookup`.
+         * Full ≅ᴴ record (16 fields) assembly.
 
        *Not yet touched:*
        - ~idʳ~ — needs a `length xs + count-non xs ≡ n` identity
