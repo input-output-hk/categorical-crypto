@@ -728,21 +728,134 @@ module σ∘σ-proof (A B : ObjTerm) where
         classify-eq = trans (cong (classify K.dom) (lookup-index v∈K-dom))
                             (classify-lookup-Unique K.dom K-unique (index v∈K-dom))
 
-  -- The two lookup-cod obligations: these remain postulated (step 4).
-  -- They are `lookup G.cod (cast dom-cod-len <specific-index>) ≡ <value>`
-  -- claims that unwind via `lookup-++-rai/inj` + `lookup-map` + cast
-  -- arithmetic.
-  postulate
-    lookup-cod-raise-nB
-      : ∀ (x : Fin nA)
-      → hCP.lookup-cod (index (∈-++⁺ʳ (map (inject+ nA) (range nB))
-                                      (∈-map⁺ (raise nB) (range-covers nA x))))
-      ≡ inject+ nB x
-    lookup-cod-inject+-nA
-      : ∀ (y : Fin nB)
-      → hCP.lookup-cod (index (∈-++⁺ˡ {ys = map (raise nB) (range nA)}
-                                      (∈-map⁺ (inject+ nA) (range-covers nB y))))
-      ≡ raise nA y
+  -- Step 4: discharge the `lookup-cod` obligations via a "mirror
+  -- witness" in G.cod + `toℕ-injective`. Each side's index has the
+  -- same toℕ value (computed via `toℕ-index-++⁺{ˡ,ʳ}` +
+  -- `∈-map⁺-index-cast` + `toℕ-index-range-covers`), so the Fin
+  -- values are equal; then `lookup-index` on the G.cod witness
+  -- gives the result.
+
+  open import Data.Fin using (toℕ)
+  open import Data.Fin.Properties using (toℕ-cast)
+    renaming (toℕ-injective to Fin-toℕ-injective)
+  open import Categories.APROP.Hypergraph.Prune using (∈-map⁺-index-cast)
+  -- toℕ-index-++⁺ˡ / ʳ / range-covers are imported at the module top via
+  -- `Categories.APROP.Hypergraph.Invariant sig`.
+
+  -- For y : Fin nB, inject+ nA y is in the FIRST half of K.dom
+  -- (map (inject+ nA) (range nB) ++ ...). Its G.cod mirror is
+  -- raise nA y in the FIRST half of G.cod
+  -- (map (raise nA) (range nB) ++ ...).
+  lookup-cod-inject+-nA
+    : ∀ (y : Fin nB)
+    → hCP.lookup-cod (index (∈-++⁺ˡ {ys = map (raise nB) (range nA)}
+                                    (∈-map⁺ (inject+ nA) (range-covers nB y))))
+    ≡ raise nA y
+  lookup-cod-inject+-nA y =
+    -- Goal: lookup G.cod (cast _ k-idx) ≡ raise nA y.
+    -- Where k-idx : Fin (length K.dom).
+    --
+    -- Construct a mirror witness in G.cod: raise nA y ∈ G.cod.
+    -- Then lookup G.cod (index mirror) ≡ raise nA y via lookup-index.
+    -- Show cast _ k-idx ≡ index mirror via toℕ-injective.
+    trans (cong (lookup G.cod) cast-k≡mirror)
+          (sym (lookup-index mirror-in-G))
+    where
+      -- K-side witness.
+      k-witness : inject+ nA y ∈ K.dom
+      k-witness = ∈-++⁺ˡ {ys = map (raise nB) (range nA)}
+                         (∈-map⁺ (inject+ nA) (range-covers nB y))
+
+      -- G-side mirror witness.
+      mirror-in-G : raise nA y ∈ G.cod
+      mirror-in-G = ∈-++⁺ˡ {ys = map (inject+ nB) (range nA)}
+                           (∈-map⁺ (raise nA) (range-covers nB y))
+
+      k-idx : Fin (length K.dom)
+      k-idx = index k-witness
+
+      -- cast k-idx to Fin (length G.cod).
+      g-idx : Fin (length G.cod)
+      g-idx = cast hCP.dom-cod-len k-idx
+
+      -- Both `g-idx` and `index mirror-in-G` have toℕ ≡ toℕ y.
+      k-side-toℕ : toℕ g-idx ≡ toℕ y
+      k-side-toℕ = trans (toℕ-cast _ k-idx)
+                    (trans (toℕ-index-++⁺ˡ (∈-map⁺ (inject+ nA) (range-covers nB y)))
+                    (trans (cong toℕ (∈-map⁺-index-cast (inject+ nA)
+                                                       (inject+-inj _)
+                                                       (range-covers nB y)))
+                    (trans (toℕ-cast _ _)
+                           (toℕ-index-range-covers nB y))))
+
+      g-side-toℕ : toℕ (index mirror-in-G) ≡ toℕ y
+      g-side-toℕ = trans (toℕ-index-++⁺ˡ (∈-map⁺ (raise nA) (range-covers nB y)))
+                   (trans (cong toℕ (∈-map⁺-index-cast (raise nA)
+                                                       (raise-inj _)
+                                                       (range-covers nB y)))
+                   (trans (toℕ-cast _ _)
+                          (toℕ-index-range-covers nB y)))
+
+      cast-k≡mirror : g-idx ≡ index mirror-in-G
+      cast-k≡mirror = Fin-toℕ-injective (trans k-side-toℕ (sym g-side-toℕ))
+
+  -- Analogous for raise nB x ∈ K.cod (second half of K.dom → second
+  -- half of G.cod).
+  lookup-cod-raise-nB
+    : ∀ (x : Fin nA)
+    → hCP.lookup-cod (index (∈-++⁺ʳ (map (inject+ nA) (range nB))
+                                    (∈-map⁺ (raise nB) (range-covers nA x))))
+    ≡ inject+ nB x
+  lookup-cod-raise-nB x =
+    trans (cong (lookup G.cod) cast-k≡mirror)
+          (sym (lookup-index mirror-in-G))
+    where
+      k-witness : raise nB x ∈ K.dom
+      k-witness = ∈-++⁺ʳ (map (inject+ nA) (range nB))
+                         (∈-map⁺ (raise nB) (range-covers nA x))
+
+      mirror-in-G : inject+ nB x ∈ G.cod
+      mirror-in-G = ∈-++⁺ʳ (map (raise nA) (range nB))
+                           (∈-map⁺ (inject+ nB) (range-covers nA x))
+
+      k-idx : Fin (length K.dom)
+      k-idx = index k-witness
+
+      g-idx : Fin (length G.cod)
+      g-idx = cast hCP.dom-cod-len k-idx
+
+      -- Both indices have toℕ ≡ nB + toℕ x.
+      open import Data.List.Properties using (length-map)
+
+      k-side-toℕ : toℕ g-idx ≡ length (map (inject+ nA) (range nB)) + toℕ x
+      k-side-toℕ = trans (toℕ-cast _ k-idx)
+                    (trans (toℕ-index-++⁺ʳ (map (inject+ nA) (range nB))
+                              (∈-map⁺ (raise nB) (range-covers nA x)))
+                    (cong (length (map (inject+ nA) (range nB)) +_)
+                          (trans (cong toℕ (∈-map⁺-index-cast (raise nB)
+                                                              (raise-inj _)
+                                                              (range-covers nA x)))
+                          (trans (toℕ-cast _ _)
+                                 (toℕ-index-range-covers nA x)))))
+
+      g-side-toℕ : toℕ (index mirror-in-G) ≡ length (map (raise nA) (range nB)) + toℕ x
+      g-side-toℕ = trans (toℕ-index-++⁺ʳ (map (raise nA) (range nB))
+                           (∈-map⁺ (inject+ nB) (range-covers nA x)))
+                   (cong (length (map (raise nA) (range nB)) +_)
+                         (trans (cong toℕ (∈-map⁺-index-cast (inject+ nB)
+                                                             (inject+-inj _)
+                                                             (range-covers nA x)))
+                         (trans (toℕ-cast _ _)
+                                (toℕ-index-range-covers nA x))))
+
+      -- The two lengths coincide (both nB).
+      len-eq : length (map (inject+ nA) (range nB)) ≡ length (map (raise nA) (range nB))
+      len-eq = trans (length-map (inject+ nA) (range nB))
+                     (sym (length-map (raise nA) (range nB)))
+
+      cast-k≡mirror : g-idx ≡ index mirror-in-G
+      cast-k≡mirror = Fin-toℕ-injective
+        (trans k-side-toℕ (trans (cong (_+ toℕ x) len-eq) (sym g-side-toℕ)))
 
   remapP-kcod-raise-nB
     : ∀ (x : Fin nA)
