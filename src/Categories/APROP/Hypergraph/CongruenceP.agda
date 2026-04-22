@@ -295,3 +295,132 @@ module _
     trans (hCP₂.eout-c-inj₁-red (IG.ψ eG))
           (trans (cong (map (inject+ (count-non K₂.dom))) (IG.ψ-eout eG))
                  (sym (map-φ-P-injL (G₁.eout eG))))
+
+  --------------------------------------------------------------------------------
+  -- Atom-list equalities. These don't require `remapP-comm` — they go
+  -- through `map-via-remapP` from both sides, meeting in the middle at
+  -- the K-side boundary atoms.
+
+  atom-ein-P : ∀ e → map hCP₂.vlab-P (hCP₂.ein-c (ψ-P e))
+                   ≡ map hCP₁.vlab-P (hCP₁.ein-c e)
+  atom-ein-P e with splitAt G₁.nE e
+  ... | inj₁ eG =
+    -- ψ-P on inj₁ produces `inject+ K₂.nE (IG.ψ eG)`; reduce via
+    -- ein-c-inj₁-red to `map injL₂ (G₂.ein (IG.ψ eG))`; then thread
+    -- through `sym (map-via-inj vlab-injL)` + `IG.atom-ein` +
+    -- `map-via-inj vlab-injL` (matching the unpruned proof verbatim,
+    -- except injL is `inject+ (count-non K.dom)` instead of `inject+ K.nV`).
+    trans (cong (map hCP₂.vlab-P) (hCP₂.ein-c-inj₁-red (IG.ψ eG)))
+    (trans (sym (map-via-inj hCP₂.vlab-injL (G₂.ein (IG.ψ eG))))
+    (trans (IG.atom-ein eG)
+           (map-via-inj hCP₁.vlab-injL (G₁.ein eG))))
+  ... | inj₂ eK =
+    trans (cong (map hCP₂.vlab-P) (hCP₂.ein-c-inj₂-red (IK.ψ eK)))
+    (trans (sym (hCP₂.map-via-remapP (K₂.ein (IK.ψ eK))))
+    (trans (IK.atom-ein eK)
+           (hCP₁.map-via-remapP (K₁.ein eK))))
+
+  atom-eout-P : ∀ e → map hCP₂.vlab-P (hCP₂.eout-c (ψ-P e))
+                    ≡ map hCP₁.vlab-P (hCP₁.eout-c e)
+  atom-eout-P e with splitAt G₁.nE e
+  ... | inj₁ eG =
+    trans (cong (map hCP₂.vlab-P) (hCP₂.eout-c-inj₁-red (IG.ψ eG)))
+    (trans (sym (map-via-inj hCP₂.vlab-injL (G₂.eout (IG.ψ eG))))
+    (trans (IG.atom-eout eG)
+           (map-via-inj hCP₁.vlab-injL (G₁.eout eG))))
+  ... | inj₂ eK =
+    trans (cong (map hCP₂.vlab-P) (hCP₂.eout-c-inj₂-red (IK.ψ eK)))
+    (trans (sym (hCP₂.map-via-remapP (K₂.eout (IK.ψ eK))))
+    (trans (IK.atom-eout eK)
+           (hCP₁.map-via-remapP (K₁.eout eK))))
+
+  --------------------------------------------------------------------------------
+  -- Edge label compatibility ψ-elab-P (the big six-step subst₂ chain).
+  --
+  -- Structure mirrors `Congruence.ψ-elab-C`: three nested `subst₂-trans`
+  -- collapses to re-associate proof chains, then `subst₂-sym-subst₂`
+  -- cancellation, one more `subst₂-trans`, and finally the IG.ψ-elab /
+  -- IK.ψ-elab endpoint. Only difference from the unpruned proof: the
+  -- K-side `map-via-remap` is replaced by `map-via-remapP`, and all
+  -- `hC?.*` calls become `hCP?.*`.
+
+  open import Relation.Binary.PropositionalEquality using (subst₂)
+
+  private
+    subst₂-trans : ∀ {A B : Set} {P : A → B → Set} {a₁ a₂ a₃} {b₁ b₂ b₃}
+                 → (p : a₁ ≡ a₂) (p' : a₂ ≡ a₃) (q : b₁ ≡ b₂) (q' : b₂ ≡ b₃)
+                 → (x : P a₁ b₁)
+                 → subst₂ P p' q' (subst₂ P p q x)
+                 ≡ subst₂ P (trans p p') (trans q q') x
+    subst₂-trans refl refl refl refl _ = refl
+
+    subst₂-sym-subst₂ : ∀ {A B : Set} {P : A → B → Set} {a a'} {b b'}
+                      → (p : a ≡ a') (q : b ≡ b') (x : P a b)
+                      → subst₂ P (sym p) (sym q) (subst₂ P p q x) ≡ x
+    subst₂-sym-subst₂ refl refl _ = refl
+
+  ψ-elab-P : ∀ e →
+    subst₂ FlatGen (atom-ein-P e) (atom-eout-P e)
+                   (hCP₂.elab-c (ψ-P e))
+    ≡ hCP₁.elab-c e
+  ψ-elab-P e with splitAt G₁.nE e
+  ... | inj₁ eG =
+    let
+      α   = cong (map hCP₂.vlab-P) (hCP₂.ein-c-inj₁-red (IG.ψ eG))
+      α'  = cong (map hCP₂.vlab-P) (hCP₂.eout-c-inj₁-red (IG.ψ eG))
+      β̄   = map-via-inj hCP₂.vlab-injL (G₂.ein  (IG.ψ eG))
+      β̄'  = map-via-inj hCP₂.vlab-injL (G₂.eout (IG.ψ eG))
+      γ   = IG.atom-ein  eG
+      γ'  = IG.atom-eout eG
+      δ   = map-via-inj hCP₁.vlab-injL (G₁.ein  eG)
+      δ'  = map-via-inj hCP₁.vlab-injL (G₁.eout eG)
+      x   = hCP₂.elab-c (inject+ K₂.nE (IG.ψ eG))
+    in
+    trans
+      (sym (subst₂-trans α (trans (sym β̄) (trans γ δ))
+                         α' (trans (sym β̄') (trans γ' δ'))
+                         x))
+    (trans
+      (cong (subst₂ FlatGen (trans (sym β̄) (trans γ δ))
+                            (trans (sym β̄') (trans γ' δ')))
+            (hCP₂.elab-c-inj₁ (IG.ψ eG)))
+    (trans
+      (sym (subst₂-trans (sym β̄) (trans γ δ)
+                         (sym β̄') (trans γ' δ')
+                         (subst₂ FlatGen β̄ β̄' (G₂.elab (IG.ψ eG)))))
+    (trans
+      (cong (subst₂ FlatGen (trans γ δ) (trans γ' δ'))
+            (subst₂-sym-subst₂ β̄ β̄' (G₂.elab (IG.ψ eG))))
+    (trans
+      (sym (subst₂-trans γ δ γ' δ' (G₂.elab (IG.ψ eG))))
+      (cong (subst₂ FlatGen δ δ') (IG.ψ-elab eG))))))
+  ... | inj₂ eK =
+    let
+      α   = cong (map hCP₂.vlab-P) (hCP₂.ein-c-inj₂-red (IK.ψ eK))
+      α'  = cong (map hCP₂.vlab-P) (hCP₂.eout-c-inj₂-red (IK.ψ eK))
+      β̄   = hCP₂.map-via-remapP (K₂.ein  (IK.ψ eK))
+      β̄'  = hCP₂.map-via-remapP (K₂.eout (IK.ψ eK))
+      γ   = IK.atom-ein  eK
+      γ'  = IK.atom-eout eK
+      δ   = hCP₁.map-via-remapP (K₁.ein  eK)
+      δ'  = hCP₁.map-via-remapP (K₁.eout eK)
+      x   = hCP₂.elab-c (raise G₂.nE (IK.ψ eK))
+    in
+    trans
+      (sym (subst₂-trans α (trans (sym β̄) (trans γ δ))
+                         α' (trans (sym β̄') (trans γ' δ'))
+                         x))
+    (trans
+      (cong (subst₂ FlatGen (trans (sym β̄) (trans γ δ))
+                            (trans (sym β̄') (trans γ' δ')))
+            (hCP₂.elab-c-inj₂ (IK.ψ eK)))
+    (trans
+      (sym (subst₂-trans (sym β̄) (trans γ δ)
+                         (sym β̄') (trans γ' δ')
+                         (subst₂ FlatGen β̄ β̄' (K₂.elab (IK.ψ eK)))))
+    (trans
+      (cong (subst₂ FlatGen (trans γ δ) (trans γ' δ'))
+            (subst₂-sym-subst₂ β̄ β̄' (K₂.elab (IK.ψ eK))))
+    (trans
+      (sym (subst₂-trans γ δ γ' δ' (K₂.elab (IK.ψ eK))))
+      (cong (subst₂ FlatGen δ δ') (IK.ψ-elab eK))))))
