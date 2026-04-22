@@ -9,15 +9,33 @@
 -- rewrite can use `hComposeP` in its `∘-resp-≈` case and still get a
 -- congruence lemma out.
 --
--- CURRENT STATUS: vertex-bijection skeleton only. The full record proof
--- would be another ~200+ lines paralleling the unpruned one; the core
--- novelty is the K-side `jK ↦ pruneMap ... jK` substitution, which is
--- worked out here in isolation.
+-- CURRENT STATUS: vertex + edge bijections with left/right inverse
+-- proofs. Full `hComposeP-resp-≅ᴴ` record remaining:
 --
--- The full port (edges, elab, labels, boundary) follows the structure of
--- `Hypergraph.Congruence.hCompose-resp-≅ᴴ` unchanged, modulo replacing
--- `hCompose-impl` → `hComposeP-impl` and `remap-comm` → a variant using
--- `pruneMap-left-inverse`. Left as a subsequent step.
+--   * φ-lab-P (vertex label preservation): inj₁ case identical to
+--     Congruence.φ-lab-C; inj₂ case needs
+--       vlab-P₂ (raise G₂.nV (pruneK jK))
+--       = K₂.vlab (lookup (nonMem K₂.dom) (pruneK jK))
+--       ≡? K₁.vlab (lookup (nonMem K₁.dom) jK)
+--     which reduces via `subst` on IK.φ-dom and `lookup-pruneMap`
+--     (+ IK.φ-lab).
+--
+--   * ψ-ein-P / ψ-eout-P (edge endpoint preservation): for the inj₂
+--     (K-side) branch, use `map-via-remapP` lifted along pruneK.
+--
+--   * φ-dom-P / φ-cod-P (boundary preservation): map injL-style for
+--     dom (G-side only), map-through-pruneMap for cod.
+--
+--   * atom-ein-P / atom-eout-P (atom-level equality for ≅ᴴ's
+--     derived fields).
+--
+--   * ψ-elab-P (the big six-step subst₂ chain): longest piece, same
+--     shape as the unpruned `ψ-elab-C`, with extra subst through
+--     pruneK in the inj₂ case.
+--
+-- Once assembled, `hComposeP-resp-≅ᴴ : G₁ ≅ᴴ G₂ → K₁ ≅ᴴ K₂
+--                                    → hComposeP G₁ K₁ ≅ᴴ hComposeP G₂ K₂`
+-- discharges `∘-resp-≈` in a Soundness rewrite using `hComposeP`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
