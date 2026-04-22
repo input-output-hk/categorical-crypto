@@ -371,3 +371,21 @@ module _ {X : Set} {Gen : List X → List X → Set} {As Bs : List X} where
             (trans (cong (subst₂ Gen (I₁.atom-ein e) (I₁.atom-eout e)) step₂)
                    step₁)
         in chained
+
+
+--------------------------------------------------------------------------------
+-- `subst₂` on the boundary indices preserves `_≅ᴴ_`. By J on both
+-- equality proofs at refl, the iso passes through unchanged.
+--
+-- Used by ρ/α soundness proofs to chain
+--   `subst₂ _ eq₁ eq₃ G₁ ≅ᴴ subst₂ _ eq₁ eq₃ G₂`
+-- from a base iso `G₁ ≅ᴴ G₂`.
+
+subst₂-resp-≅ᴴ
+  : ∀ {X : Set} {Gen : List X → List X → Set}
+      {As As' Bs Bs' : List X}
+      (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
+      {G K : Hypergraph Gen As Bs}
+    → G ≅ᴴ K
+    → subst₂ (Hypergraph Gen) eq₁ eq₂ G ≅ᴴ subst₂ (Hypergraph Gen) eq₁ eq₂ K
+subst₂-resp-≅ᴴ refl refl iso = iso

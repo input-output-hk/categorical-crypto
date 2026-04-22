@@ -249,3 +249,26 @@ hComposeP {As} {Bs} {Cs} G K = record
     module G = Hypergraph G
     module K = Hypergraph K
     open hComposeP-impl G K
+
+--------------------------------------------------------------------------------
+-- hComposeP commutes with `subst₂` on the boundary types: any subst₂
+-- transport applied to G's outer-As/middle-Bs and K's middle-Bs/outer-Cs
+-- can be factored through a single subst₂ on the resulting composition.
+--
+-- Proved by refl-refl-refl pattern match on all three equalities.
+-- For non-refl inputs the function is opaque, but the equality type is
+-- still satisfied — the lemma serves as a type-correct bridge.
+--
+-- Used by the ρ/α soundness proofs to strip the `++-identityʳ` /
+-- `++-assoc` substs out of `⟪ρ⇒⟫ / ⟪ρ⇐⟫ / ⟪α⇒⟫ / ⟪α⇐⟫` and reduce
+-- the goal to `subst₂ _ (hComposeP (hId _) (hId _))`, which then
+-- chains through `idˡ-sound (id _)` + a subst-elimination step.
+
+hComposeP-subst-both
+  : ∀ {As As' Bs Bs' Cs Cs' : List X}
+      (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs') (eq₃ : Cs ≡ Cs')
+      (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs)
+  → hComposeP (subst₂ (Hypergraph FlatGen) eq₁ eq₂ G)
+              (subst₂ (Hypergraph FlatGen) eq₂ eq₃ K)
+  ≡ subst₂ (Hypergraph FlatGen) eq₁ eq₃ (hComposeP G K)
+hComposeP-subst-both refl refl refl G K = refl
