@@ -66,14 +66,25 @@ module Categories.APROP.Hypergraph.Soundness (sig : APROPSignature) where
 open APROP sig
 open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
+  using (FlatGen; hTensor)
+open import Categories.APROP.Hypergraph.Translation sig
 open import Categories.APROP.Hypergraph.Iso
-open import Categories.APROP.Hypergraph.Congruence sig
+open import Categories.APROP.Hypergraph.Congruence sig using (hTensor-resp-≅ᴴ)
+open import Categories.APROP.Hypergraph.CongruenceP sig using (hComposeP-resp-≅ᴴ)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 
 --------------------------------------------------------------------------------
--- Catch-all postulate for the 18 atomic axioms.
+-- Catch-all postulates.
+-- (1) The 18 atomic axioms (unchanged from the old Soundness).
+-- (2) The `Unique ⟪f⟫.dom` invariant, needed to pass to the pruned
+--     hComposeP-resp-≅ᴴ for the `∘-resp-≈` congruence. Follows from
+--     structural induction on HomTerm; proof deferred to a future
+--     `Hypergraph.Invariant` extension.
 
 postulate
   soundness-axiom : ∀ {A B} {f g : HomTerm A B} → f ≈Term g → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+
+  ⟪_⟫-dom-unique  : ∀ {A B} (f : HomTerm A B) → Unique (Hypergraph.dom ⟪ f ⟫)
 
 --------------------------------------------------------------------------------
 -- The soundness theorem.
@@ -85,10 +96,12 @@ soundness ≈-Term-refl         = refl-≅ᴴ _
 soundness (≈-Term-sym  p)     = sym-≅ᴴ (soundness p)
 soundness (≈-Term-trans p q)  = trans-≅ᴴ (soundness p) (soundness q)
 
--- Congruence for composition. Note the argument order swap: the
--- APROP term `f ∘ g` (f after g) translates to `hCompose ⟪g⟫ ⟪f⟫`
--- (g composed first, then f).
-soundness (∘-resp-≈ pf pg)    = hCompose-resp-≅ᴴ (soundness pg) (soundness pf)
+-- Congruence for composition. The APROP term `f ∘ g` (f after g)
+-- translates to `hComposeP ⟪g⟫ ⟪f⟫`. `hComposeP-resp-≅ᴴ` takes the
+-- G-side iso, K-side iso, and Unique K₁.dom — the last supplied by
+-- the `⟪_⟫-dom-unique` invariant for `f` (which is the K-side).
+soundness (∘-resp-≈ {f = f} pf pg) =
+  hComposeP-resp-≅ᴴ (soundness pg) (soundness pf) (⟪_⟫-dom-unique f)
 
 -- Congruence for tensor.
 soundness (⊗-resp-≈ pf pg)    = hTensor-resp-≅ᴴ (soundness pf) (soundness pg)
