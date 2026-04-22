@@ -229,3 +229,43 @@ hSwap-dom-Unique A B =
 
 hGen-dom-Unique : ∀ {A B : ObjTerm} (f : mor A B) → Unique (Hypergraph.dom (hGen f))
 hGen-dom-Unique {A} f = Uniq-Prop.map⁺ (inject+-inj _) (range-Unique _)
+
+--------------------------------------------------------------------------------
+-- `range n` covers all of Fin n — needed for `hSwap-dom-covers`.
+--
+-- Every Fin n value is in the recursive enumeration `0 ∷ suc 0 ∷ suc (suc 0) ∷ ...`.
+
+range-covers : ∀ (n : ℕ) (v : Fin n) → v ∈ range n
+range-covers (suc n) zero     = here refl
+range-covers (suc n) (suc v)  = there (∈-map⁺ Fin.suc (range-covers n v))
+
+--------------------------------------------------------------------------------
+-- hSwap's dom and cod each cover all vertices. Used to show
+-- `count-non (hSwap A B).dom ≡ 0`, which is the base requirement for the
+-- `σ∘σ` iso (symmetric to `hId-count-non-dom` for `idˡ`).
+
+hSwap-dom-covers : ∀ A B → AllIn (Hypergraph.dom (hSwap A B))
+hSwap-dom-covers A B v =
+  tensor-covers (range (length (flatten A))) (range (length (flatten B)))
+                (range-covers _) (range-covers _) v
+
+hSwap-cod-covers : ∀ A B → AllIn (Hypergraph.cod (hSwap A B))
+hSwap-cod-covers A B v
+  with splitAt (length (flatten A)) v in eq
+-- inj₁ i ⇒ v = inject+ nB i lives in the RIGHT part of cod.
+... | inj₁ i = subst (_∈ _) (splitAt⁻¹-↑ˡ eq)
+                     (∈-++⁺ʳ (map (raise (length (flatten A))) _)
+                             (∈-map⁺ (inject+ (length (flatten B))) (range-covers _ i)))
+-- inj₂ j ⇒ v = raise nA j lives in the LEFT part of cod.
+... | inj₂ j = subst (_∈ _) (splitAt⁻¹-↑ʳ eq)
+                     (∈-++⁺ˡ (∈-map⁺ (raise (length (flatten A))) (range-covers _ j)))
+
+hSwap-count-non-dom : ∀ A B → count-non (Hypergraph.dom (hSwap A B)) ≡ 0
+hSwap-count-non-dom A B = AllIn→count-non-zero (hSwap-dom-covers A B)
+
+hSwap-count-non-cod : ∀ A B → count-non (Hypergraph.cod (hSwap A B)) ≡ 0
+hSwap-count-non-cod A B = AllIn→count-non-zero (hSwap-cod-covers A B)
+
+-- hSwap has zero edges.
+hSwap-nE : ∀ A B → Hypergraph.nE (hSwap A B) ≡ 0
+hSwap-nE A B = refl

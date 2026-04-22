@@ -230,21 +230,32 @@ meantime.
          `classify xs (lookup xs j) ≡ inj₁ j`. Key tool for hId's
          cod/dom structure.
 
+       - **idˡ-cod-helper via tabulate/allFin chain**: for hId the
+         pointwise reduction `remapP (K.dom[j]) = inject+ c (G.cod[cast j])`
+         lifts to a list equality via `tabulate-lookup` +
+         `map-tabulate` + `cast-is-id`. `hId-cod≡dom` bridges K.cod
+         into K.dom. FULLY PROVED, zero postulates.
+
        - **IsoSimple**: simplified iso record dropping
          atom-ein/atom-eout (derived via `derived-atom-ein` etc.).
          Useful for routine isos.
 
+       - **⟪_⟫-dom-unique (in `HomTermInvariant`)**: structural
+         induction on HomTerm. Uses new invariants
+         `hId-dom-Unique`, `hSwap-dom-Unique`, `hGen-dom-Unique`,
+         `range-Unique`. The ρ/α cases go through a
+         `Unique-subst₂-dom` transport helper that pattern-matches
+         both equalities as refl (opaque for non-refl inputs but
+         type-correct by J-elimination).
+
        *Fully proved (no postulates):*
        - ~hTensor-hEmpty-hId-iso : hTensor hEmpty (hId A) ≅ᴴ hId A~
          (bridge lemma for λ/ρ coherence axioms).
+       - ~idˡ-sound~ — the complete composition-identity iso.
+       - ~⟪_⟫-dom-unique~ — lifts the catch-all postulate out of
+         `Soundness.agda`'s ∘-resp-≈ congruence.
 
-       *15/16 fields proved; 1 postulate remains:*
-       - ~idˡ-sound~ — all fields except ~idˡ-cod-helper~
-         (map φ⁻¹ G.cod ≡ C.cod) fully proved. Helper requires
-         structural induction on B using hId's cod/dom structure
-         + classify-lookup-Unique.
-
-       *Derived (inherit idˡ's single postulate):*
+       *Derived (also fully proved):*
        - ~λ⇐∘λ⇒-sound~ — via ~idˡ-sound~ + ~hTensor-hEmpty-hId-iso~.
        - ~λ⇒∘λ⇐-sound~ — via ~idˡ-sound~ directly.
 
@@ -255,31 +266,25 @@ meantime.
 
        *Pure postulates (structure not yet written):*
        - ~ρ⇐∘ρ⇒~, ~ρ⇒∘ρ⇐~ — ρ variants with ~subst~ through
-         ~++-identityʳ~.
-       - ~σ∘σ~ — braiding self-inverse via ~hSwap~.
+         ~++-identityʳ~. Likely need a similar
+         `Unique-subst₂-dom`-style trick or a direct iso.
+       - ~σ∘σ~ — braiding self-inverse via ~hSwap~. Needs
+         `hSwap-dom-covers` + `count-non-zero` lemmas, similar to
+         `hId-count-non-dom` route used in `idˡ`.
 
        *Not yet touched:*
-       - ~idʳ~ — needs ~⟪_⟫-dom-unique~ for the dom-coverage
-         count-non calculation.
+       - ~idʳ~ — needs a `length xs + count-non xs ≡ n` identity
+         for Unique xs ⊂ Fin n, to bridge the `(hId A).nV +
+         count-non ⟪f⟫.dom ≡ ⟪f⟫.nV` gap.
        - ~α~-axioms (~α⇐∘α⇒~, ~α⇒∘α⇐~).
        - Naturality axioms (4 of them).
        - Group (a): ~assoc~, ~⊗-∘-dist~, ~hexagon~.
 
-    7. TODO. Prove ~⟪_⟫-dom-unique~ in ~Hypergraph.Invariant~ by
-       induction on ~HomTerm~ + case analysis on ⟪_⟫'s recursive
-       structure. Cases:
-       - ~Agen f~: ~map (inject+ nB) (range nA)~ is ~Unique~ (range
-         has distinct entries, ~inject+~ injective).
-       - ~id A~: by induction on ~ObjTerm~, combining ∷-Unique
-         with ++-Unique at tensor cases.
-       - ~g ∘ f~: ~hComposeP ⟪f⟫ ⟪g⟫.dom = map injL ⟪f⟫.dom~.
-         Unique by IH on f + ~injL~ injective.
-       - ~f ⊗₁ g~: disjoint-union ++ of two ~map injL / injR~ lists.
-       - ~hSwap~: similar to hTensor.
-       - subst cases (ρ/α): ~subst Unique~.
+    7. DONE. ~⟪_⟫-dom-unique~ in ~Hypergraph.HomTermInvariant~ by
+       induction on ~HomTerm~. See above.
 
     8. TODO. Promote ~Soundness.agda~ to ~--safe~ by discharging the
-       ~soundness-axiom~ and ~⟪_⟫-dom-unique~ postulates.
+       remaining ~soundness-axiom~ postulate.
 
     *Rate-limiting factor:* each axiom's ≅ᴴ record has 16 fields.
     Routine fields (φ/ψ bijections, φ-lab, dom, atom-*) are ~5 lines
