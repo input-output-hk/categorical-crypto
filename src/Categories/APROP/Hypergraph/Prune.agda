@@ -27,14 +27,15 @@
 
 module Categories.APROP.Hypergraph.Prune where
 
-open import Data.Fin using (Fin; inject+; raise)
-open import Data.Fin.Properties using (_≟_)
+open import Data.Fin using (Fin; inject+; raise; splitAt)
+open import Data.Fin.Properties using (_≟_; splitAt-inject+; splitAt-raise)
 open import Data.List using (List; length; filter; allFin; lookup)
 open import Data.List.Relation.Unary.Any using (index)
 open import Data.List.Relation.Unary.Any.Properties using (lookup-index)
 open import Data.Nat using (ℕ; _+_)
 open import Data.Sum using (_⊎_; inj₁; inj₂; [_,_]′)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym)
+open import Level using (Level)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
 open import Relation.Nullary.Decidable using (¬?; yes; no)
 
 --------------------------------------------------------------------------------
@@ -111,3 +112,50 @@ module _ {n m : ℕ} where
              → remap xs f v ≡ raise m j
   remap-inj₂ xs f v j eq with classify xs v
   remap-inj₂ xs f v j refl | inj₂ .j = refl
+
+--------------------------------------------------------------------------------
+-- Label preservation.
+--
+-- The key lemma that makes the pruned `hCompose` work. Given:
+--   * xs : List (Fin n)           — positions to prune (e.g., K.dom)
+--   * f  : Fin (length xs) → Fin m — target map for member positions
+--   * λK : Fin n → X              — labels for the source (K-side)
+--   * λG : Fin m → X              — labels for the target (G-side)
+--   * pointwise boundary agreement: ∀ i → λK (xs[i]) ≡ λG (f i)
+--
+-- The "pruned composite labeling" is
+--   vlab-c : Fin (m + count-non xs) → X
+--   vlab-c = [ λG , λ-non ]′ ∘ splitAt m
+-- where λ-non j = λK (lookup (nonMem xs) j) reads back through the pruned
+-- index. Then `vlab-c (remap xs f v) ≡ λK v` for every v : Fin n — the
+-- pruning preserves K-side labels.
+
+module _ {a} {X : Set a} {n m : ℕ} where
+  open import Data.List.Membership.DecPropositional (_≟_ {n = n}) using (_∈?_)
+  open import Data.List.Membership.Propositional.Properties
+    using (∈-filter⁺; ∈-allFin)
+
+  remap-vlab : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
+               (λK : Fin n → X) (λG : Fin m → X)
+               (bdy : ∀ i → λK (lookup xs i) ≡ λG (f i))
+               (v : Fin n)
+             → [ λG , (λ j → λK (lookup (nonMem xs) j)) ]′
+                  (splitAt m (remap xs f v))
+             ≡ λK v
+  remap-vlab xs f λK λG bdy v with v ∈? xs
+  ... | yes v∈xs =
+    -- classify xs v reduces to inj₁ (index v∈xs), so
+    -- remap xs f v = inject+ (count-non xs) (f (index v∈xs)).
+    trans
+      (cong [ λG , (λ k → λK (lookup (nonMem xs) k)) ]′
+        (splitAt-inject+ m (count-non xs) (f (index v∈xs))))
+      (trans (sym (bdy (index v∈xs)))
+             (cong λK (sym (lookup-index v∈xs))))
+  ... | no v∉xs =
+    -- classify xs v reduces to inj₂ (index v∈nonMem), so
+    -- remap xs f v = raise m (index v∈nonMem).
+    let v∈nonMem = ∈-filter⁺ (λ u → ¬? (u ∈? xs)) (∈-allFin v) v∉xs in
+    trans
+      (cong [ λG , (λ k → λK (lookup (nonMem xs) k)) ]′
+        (splitAt-raise m (count-non xs) (index v∈nonMem)))
+      (cong λK (sym (lookup-index v∈nonMem)))
