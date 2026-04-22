@@ -27,7 +27,7 @@
 
 module Categories.APROP.Hypergraph.Prune where
 
-open import Data.Fin using (Fin; inject+; raise; splitAt)
+open import Data.Fin using (Fin; zero; suc; inject+; raise; splitAt)
 open import Data.Fin.Properties using (_≟_; splitAt-inject+; splitAt-raise)
 open import Data.List using (List; []; _∷_; length; filter; allFin; lookup; map)
 open import Data.List.Properties using (map-cong; map-∘)
@@ -45,13 +45,18 @@ open import Relation.Nullary.Decidable using (¬?; yes; no)
 
 module _ {n : ℕ} where
   open import Data.List.Membership.DecPropositional (_≟_ {n = n}) using (_∈?_)
-  open import Data.List.Membership.Propositional using (_∈_)
+  open import Data.List.Membership.Propositional using (_∈_; _∉_)
   open import Data.List.Membership.Propositional.Properties
     using (∈-filter⁺; ∈-allFin)
+  open import Relation.Nullary.Decidable using (Dec)
+
+  -- The predicate "v is not in xs", as a decidable.
+  nonMem? : (xs : List (Fin n)) → (v : Fin n) → Dec (v ∉ xs)
+  nonMem? xs v = ¬? (v ∈? xs)
 
   -- The Fin values not present in `xs`.
   nonMem : List (Fin n) → List (Fin n)
-  nonMem xs = filter (λ v → ¬? (v ∈? xs)) (allFin n)
+  nonMem xs = filter (nonMem? xs) (allFin n)
 
   -- Count of Fin values not in `xs`.
   count-non : List (Fin n) → ℕ
@@ -63,7 +68,7 @@ module _ {n : ℕ} where
   classify xs v with v ∈? xs
   ... | yes v∈xs = inj₁ (index v∈xs)
   ... | no  v∉xs =
-    inj₂ (index (∈-filter⁺ (λ u → ¬? (u ∈? xs)) (∈-allFin v) v∉xs))
+    inj₂ (index (∈-filter⁺ (nonMem? xs) (∈-allFin v) v∉xs))
 
   -- Inversion: when classify returns `inj₁ i`, the member slot `i` in
   -- `xs` looks back to `v`.
@@ -81,8 +86,8 @@ module _ {n : ℕ} where
                        → classify xs v ≡ inj₂ j
                        → lookup (nonMem xs) j ≡ v
   classify-inj₂-lookup xs v j eq with v ∈? xs
-  classify-inj₂-lookup xs v .(index (∈-filter⁺ _ (∈-allFin v) v∉xs)) refl
-    | no v∉xs = sym (lookup-index (∈-filter⁺ _ (∈-allFin v) v∉xs))
+  classify-inj₂-lookup xs v .(index (∈-filter⁺ (nonMem? xs) (∈-allFin v) v∉xs)) refl
+    | no v∉xs = sym (lookup-index (∈-filter⁺ (nonMem? xs) (∈-allFin v) v∉xs))
 
   -- "Dom covers all vertices": every vertex of Fin n is in xs.
   AllIn : List (Fin n) → Set
@@ -108,6 +113,18 @@ module _ {n : ℕ} where
   AllIn→count-non-zero : ∀ {xs} → AllIn xs → count-non xs ≡ 0
   AllIn→count-non-zero all = cong length (AllIn→nonMem-[] all)
 
+  -- A pruned index `j` in `nonMem xs` looks up to a Fin value that
+  -- really is a non-member of `xs`.
+  nonMem-member : (xs : List (Fin n)) (j : Fin (count-non xs))
+                → lookup (nonMem xs) j ∉ xs
+  nonMem-member xs j =
+    proj₂ (∈-filter⁻ (nonMem? xs) {xs = allFin n}
+                     (∈-lookup {xs = nonMem xs} j))
+    where
+      open import Data.List.Membership.Propositional.Properties
+        using (∈-filter⁻; ∈-lookup)
+      open import Data.Product using (proj₂)
+
 --------------------------------------------------------------------------------
 -- Injective maps transport (non-)membership.
 --
@@ -127,6 +144,30 @@ module _ {m n : ℕ} (φ : Fin m → Fin n)
   ∉-map-injective {xs = x ∷ xs} v∉xs (here eq)    = v∉xs (here (φ-inj eq))
   ∉-map-injective {xs = x ∷ xs} v∉xs (there rest) =
     ∉-map-injective (λ v∈xs → v∉xs (there v∈xs)) rest
+
+--------------------------------------------------------------------------------
+-- Pruned-space transport.
+--
+-- If `φ : Fin m → Fin n` is an injection and `ys = map φ xs`, then the
+-- non-members of `xs` map into non-members of `ys`, yielding
+--   pruneMap : Fin (count-non xs) → Fin (count-non (map φ xs)).
+-- The K-side vertex bijection in a ported `hComposeP-resp-≅ᴴ` routes
+-- through this without leaving `--safe --without-K`.
+
+module _ {m n : ℕ} (φ : Fin m → Fin n)
+         (φ-inj : ∀ {x y : Fin m} → φ x ≡ φ y → x ≡ y) where
+  open import Data.List.Membership.DecPropositional (_≟_ {n = n})
+    using () renaming (_∈?_ to _∈n?_)
+  open import Data.List.Membership.Propositional.Properties
+    using (∈-filter⁺; ∈-allFin)
+
+  -- Forward direction of the pruned bijection.
+  pruneMap : (xs : List (Fin m)) → Fin (count-non xs)
+           → Fin (count-non (map φ xs))
+  pruneMap xs j =
+    index (∈-filter⁺ (λ u → ¬? (u ∈n? map φ xs))
+                     (∈-allFin (φ (lookup (nonMem xs) j)))
+                     (∉-map-injective φ φ-inj (nonMem-member xs j)))
 
 --------------------------------------------------------------------------------
 -- Remap combinator.
