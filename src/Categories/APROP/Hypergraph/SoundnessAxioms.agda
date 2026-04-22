@@ -449,9 +449,21 @@ postulate
 -- ⟪ σ ∘ σ ⟫ = hComposeP (hSwap A B) (hSwap B A).
 -- ⟪ id {A ⊗₀ B} ⟫ = hId (A ⊗₀ B) = hTensor (hId A) (hId B).
 --
--- The iso construction requires showing that `hSwap` composed with its
--- reverse gives identity. Non-trivial: involves reasoning about remapP
--- on hSwap.dom = map injL range-A ++ map injR range-B.
+-- STRUCTURE:
+--   * hSwap A B and hSwap B A both have zero edges, so all "ψ-related"
+--     fields (ψ, ψ⁻¹, ψ-left, ψ-rght, ψ-ein, ψ-eout, atom-ein,
+--     atom-eout, ψ-elab) are absurd.
+--   * `K = hSwap B A` has `dom-covers` (`hSwap-dom-covers`), so
+--     `count-non K.dom ≡ 0` (`hSwap-count-non-dom`). Hence
+--     `C.nV = G.nV + 0` (structurally identical to idˡ's vertex story).
+--   * φ-lab, φ-dom, φ-cod: use `hId-vlab-lookup` + `hId-dom≡range` +
+--     `hId-cod≡range` to bridge hSwap's `range`-based structures to
+--     hTensor (hId _)'s recursive structures.
+--
+-- NOTE: the φ-lab, φ-dom, φ-cod fields each require a `splitAt` /
+-- `cast` commutation lemma that hasn't been proved yet. Each such
+-- lemma is one or two lines of `toℕ-injective` machinery; documented
+-- as POSTULATE below for clarity on what's blocking full discharge.
 
 postulate
   σ∘σ-sound : ∀ {A B} → ⟪ σ {B} {A} ∘ σ {A} {B} ⟫ ≅ᴴ ⟪ id {A ⊗₀ B} ⟫

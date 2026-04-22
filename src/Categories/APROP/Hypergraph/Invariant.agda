@@ -483,3 +483,29 @@ hId-dom≡range (A ⊗₀ B) =
 -- Analogous for cod via the hId-cod≡dom bridge.
 hId-cod≡range : ∀ A → Hypergraph.cod (hId A) ≡ range (Hypergraph.nV (hId A))
 hId-cod≡range A = trans (hId-cod≡dom A) (hId-dom≡range A)
+
+--------------------------------------------------------------------------------
+-- splitAt commutes with `cast` across a `cong₂ _+_` on the indices.
+-- Used wherever we need to lift a `splitAt n i` reasoning across a
+-- propositional equality `n + m ≡ n' + m'` — notably, σ∘σ's φ-lab chase.
+
+splitAt-cast
+  : ∀ {m m' n n'} (eq-m : m ≡ m') (eq-n : n ≡ n') (i : Fin (m + n))
+  → splitAt m' (cast (cong₂ _+_ eq-m eq-n) i)
+  ≡ [ (λ a → inj₁ (cast eq-m a))
+    , (λ b → inj₂ (cast eq-n b))
+    ]′ (splitAt m i)
+splitAt-cast {m} {m'} {n} {n'} refl refl i
+  rewrite cast-is-id (cong₂ _+_ (refl {x = m}) (refl {x = n})) i
+        = splitAt-cast-refl i
+  where
+    -- When both eqs are refl, we just need splitAt m i ≡ ... with cast refl ≡ id.
+    splitAt-cast-refl
+      : (i : Fin (m + n))
+      → splitAt m i
+      ≡ [ (λ a → inj₁ (cast (refl {x = m}) a))
+        , (λ b → inj₂ (cast (refl {x = n}) b))
+        ]′ (splitAt m i)
+    splitAt-cast-refl i with splitAt m i
+    ... | inj₁ a = cong inj₁ (sym (cast-is-id refl a))
+    ... | inj₂ b = cong inj₂ (sym (cast-is-id refl b))
