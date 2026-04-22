@@ -146,14 +146,36 @@ meantime.
        ~∈-++⁺{ˡ,ʳ}~ + ~∈-map⁺~). Plus ~hId-count-non-{dom,cod}~
        corollaries: ~count-non (hId A).dom ≡ 0~.
 
+    *Pruned-space bijection infrastructure (DONE):*
+
+    ~Prune.agda~ now ships the full bijection machinery that a
+    ported Congruence will need:
+
+    - ~pruneMap / pruneMap⁻¹~ — two-sided transport of non-
+      members across an injection (and its inverse). Given
+      ~(φ, φ⁻¹, φ-left, φ-right)~ and ~ys ≡ map φ xs~, these
+      witness ~Fin (count-non xs) ↔ Fin (count-non ys)~.
+    - ~pruneMap-left-inverse / pruneMap-right-inverse~ — full
+      bijection laws. Proved via ~lookup-injective-unique~ on
+      ~nonMem-Unique~ (which comes from stdlib ~allFin⁺ + filter⁺~).
+    - ~lookup-pruneMap{,⁻¹}~ — equational reductions showing each
+      direction of pruneMap composes with `lookup (nonMem _)` as
+      `φ ∘ lookup (nonMem _)` / `φ⁻¹ ∘ lookup (nonMem _)`.
+    - ~∉-map-injective / ∉-map-via-φ~ — forward/backward
+      transport of non-membership across φ / φ⁻¹.
+    - ~All-lookup~, ~lookup-injective-unique~ — generic list
+      uniqueness lemmas used by the above.
+
     *Remaining work:*
 
     4. TODO. Port ~Congruence.hCompose-resp-≅ᴴ~ to ~hComposeP~.
        The existing proof structure is the same (six-step
-       ~subst₂-trans~ chain) but the K-side vertex bijection now
-       operates in the pruned space ~Fin (count-non K.dom)~. Needs
-       constructing a bijection between ~nonMem K₁.dom~ and
-       ~nonMem K₂.dom~ from the K₁-K₂ iso (which preserves dom).
+       ~subst₂-trans~ chain) but the K-side vertex bijection
+       is now
+         ~jK ↦ raise G₂.nV (subst Fin (cong count-non IK.φ-dom)~
+         ~                       (pruneMap′ φK φK⁻¹ ... K₁.dom jK))~
+       using the new pruneMap machinery. All other fields track
+       the unpruned proof verbatim.
 
     5. TODO. Switch ~⟪ g ∘ f ⟫~ in ~FromAPROP~ to use ~hComposeP~
        instead of ~hCompose~. Update ~Soundness.∘-resp-≈~ to use
