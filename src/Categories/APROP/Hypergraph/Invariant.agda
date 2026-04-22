@@ -38,9 +38,9 @@ open import Categories.APROP.Hypergraph.Prune
   using (AllIn; count-non; AllIn→count-non-zero)
 
 open import Data.Empty using (⊥-elim)
-open import Data.Fin using (Fin; zero; suc; inject+; raise; splitAt)
+open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.Fin.Properties using
-  ( splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ; splitAt-inject+; splitAt-raise
+  ( splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ; splitAt-↑ˡ; splitAt-↑ʳ
   ; cast-is-id; toℕ-cast; toℕ-injective; toℕ-↑ˡ; toℕ-↑ʳ)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.List using (List; []; _∷_; _++_; map; length)
@@ -64,12 +64,12 @@ open import Relation.Binary.PropositionalEquality as PE using (cong; cong₂)
 private
   tensor-covers : ∀ {m n : ℕ} (xs : List (Fin m)) (ys : List (Fin n))
                 → (∀ i → i ∈ xs) → (∀ j → j ∈ ys)
-                → (∀ v → v ∈ map (inject+ n) xs ++ map (raise m) ys)
+                → (∀ v → v ∈ map (_↑ˡ n) xs ++ map (m ↑ʳ_) ys)
   tensor-covers {m} {n} xs ys cov-x cov-y v with splitAt m v in eq
   ... | inj₁ i = subst (_∈ _) (splitAt⁻¹-↑ˡ eq)
-                       (∈-++⁺ˡ (∈-map⁺ (inject+ n) (cov-x i)))
+                       (∈-++⁺ˡ (∈-map⁺ (_↑ˡ n) (cov-x i)))
   ... | inj₂ j = subst (_∈ _) (splitAt⁻¹-↑ʳ eq)
-                       (∈-++⁺ʳ (map (inject+ n) xs) (∈-map⁺ (raise m) (cov-y j)))
+                       (∈-++⁺ʳ (map (_↑ˡ n) xs) (∈-map⁺ (m ↑ʳ_) (cov-y j)))
 
 --------------------------------------------------------------------------------
 -- hId's dom (and cod) cover all vertices.
@@ -111,8 +111,8 @@ hId-cod≡dom unit      = refl
 hId-cod≡dom (Var x)   = refl
 hId-cod≡dom (A ⊗₀ B)  =
   cong₂ _++_
-    (cong (map (inject+ (Hypergraph.nV (hId B)))) (hId-cod≡dom A))
-    (cong (map (raise  (Hypergraph.nV (hId A)))) (hId-cod≡dom B))
+    (cong (map (_↑ˡ Hypergraph.nV (hId B))) (hId-cod≡dom A))
+    (cong (map (Hypergraph.nV (hId A) ↑ʳ_)) (hId-cod≡dom B))
 
 --------------------------------------------------------------------------------
 -- `Unique` for identity's dom. Used by `idˡ-cod-helper` to apply
@@ -128,9 +128,9 @@ hId-cod≡dom (A ⊗₀ B)  =
 -- `_∘_` and `_⊗₁_`.
 
 inject+-inj : ∀ {m} (n : ℕ) {i j : Fin m}
-            → inject+ n i ≡ inject+ n j → i ≡ j
+            → i ↑ˡ n ≡ j ↑ˡ n → i ≡ j
 inject+-inj {m} n {i} {j} eq with
-  splitAt-inject+ m n i | splitAt-inject+ m n j | cong (splitAt m) eq
+  splitAt-↑ˡ m i n | splitAt-↑ˡ m j n | cong (splitAt m) eq
 ... | i-red | j-red | split-eq =
   inj₁-inj (trans (sym i-red) (trans split-eq j-red))
   where
@@ -138,9 +138,9 @@ inject+-inj {m} n {i} {j} eq with
     inj₁-inj refl = refl
 
 raise-inj : ∀ (m : ℕ) {n} {i j : Fin n}
-          → raise m i ≡ raise m j → i ≡ j
+          → m ↑ʳ i ≡ m ↑ʳ j → i ≡ j
 raise-inj m {n} {i} {j} eq with
-  splitAt-raise m n i | splitAt-raise m n j | cong (splitAt m) eq
+  splitAt-↑ʳ m n i | splitAt-↑ʳ m n j | cong (splitAt m) eq
 ... | i-red | j-red | split-eq =
   inj₂-inj (trans (sym i-red) (trans split-eq j-red))
   where
@@ -154,18 +154,18 @@ raise-inj m {n} {i} {j} eq with
 --     hence splitAt m v = inj₂ vR.
 --   These two splitAt results are both inj₁ and inj₂, contradiction.
 disj-L-R : ∀ {m n} (xs : List (Fin m)) (ys : List (Fin n))
-         → Disjoint (map (inject+ n) xs) (map (raise m) ys)
+         → Disjoint (map (_↑ˡ n) xs) (map (m ↑ʳ_) ys)
 disj-L-R {m} {n} xs ys {v} (v∈L , v∈R)
-  with ∈-map⁻ (inject+ n) v∈L | ∈-map⁻ (raise m) v∈R
+  with ∈-map⁻ (_↑ˡ n) v∈L | ∈-map⁻ (m ↑ʳ_) v∈R
 ... | vL , _ , v≡L | vR , _ , v≡R
   = case-absurd (trans (sym sp-L) sp-R)
   where
     -- splitAt m v is forced two different ways.
     sp-L : splitAt m v ≡ inj₁ vL
-    sp-L = trans (cong (splitAt m) v≡L) (splitAt-inject+ m n vL)
+    sp-L = trans (cong (splitAt m) v≡L) (splitAt-↑ˡ m vL n)
 
     sp-R : splitAt m v ≡ inj₂ vR
-    sp-R = trans (cong (splitAt m) v≡R) (splitAt-raise m n vR)
+    sp-R = trans (cong (splitAt m) v≡R) (splitAt-↑ʳ m n vR)
 
     case-absurd : ∀ {ℓ} {X : Set ℓ} → inj₁ {B = Fin n} vL ≡ inj₂ vR → X
     case-absurd ()
@@ -255,13 +255,13 @@ hSwap-dom-covers A B v =
 hSwap-cod-covers : ∀ A B → AllIn (Hypergraph.cod (hSwap A B))
 hSwap-cod-covers A B v
   with splitAt (length (flatten A)) v in eq
--- inj₁ i ⇒ v = inject+ nB i lives in the RIGHT part of cod.
+-- inj₁ i ⇒ v = i ↑ˡ nB lives in the RIGHT part of cod.
 ... | inj₁ i = subst (_∈ _) (splitAt⁻¹-↑ˡ eq)
-                     (∈-++⁺ʳ (map (raise (length (flatten A))) _)
-                             (∈-map⁺ (inject+ (length (flatten B))) (range-covers _ i)))
--- inj₂ j ⇒ v = raise nA j lives in the LEFT part of cod.
+                     (∈-++⁺ʳ (map (length (flatten A) ↑ʳ_) _)
+                             (∈-map⁺ (_↑ˡ length (flatten B)) (range-covers _ i)))
+-- inj₂ j ⇒ v = nA ↑ʳ j lives in the LEFT part of cod.
 ... | inj₂ j = subst (_∈ _) (splitAt⁻¹-↑ʳ eq)
-                     (∈-++⁺ˡ (∈-map⁺ (raise (length (flatten A))) (range-covers _ j)))
+                     (∈-++⁺ˡ (∈-map⁺ (length (flatten A) ↑ʳ_) (range-covers _ j)))
 
 hSwap-count-non-dom : ∀ A B → count-non (Hypergraph.dom (hSwap A B)) ≡ 0
 hSwap-count-non-dom A B = AllIn→count-non-zero (hSwap-dom-covers A B)
@@ -307,12 +307,12 @@ private
   cast-inj+
     : ∀ {A : Set} (xs ys : List A) (i : Fin (length xs))
     → Fin (length (xs ++ ys))
-  cast-inj+ xs ys i = cast (sym (length-++ xs)) (inject+ (length ys) i)
+  cast-inj+ xs ys i = cast (sym (length-++ xs)) (i ↑ˡ length ys)
 
   cast-rai+
     : ∀ {A : Set} (xs ys : List A) (j : Fin (length ys))
     → Fin (length (xs ++ ys))
-  cast-rai+ xs ys j = cast (sym (length-++ xs)) (raise (length xs) j)
+  cast-rai+ xs ys j = cast (sym (length-++ xs)) (length xs ↑ʳ j)
 
   -- Lookup-through-++ on the inject+ side.
   lookup-++-inj
@@ -335,18 +335,18 @@ private
 
 cast-inject+-comm
   : ∀ {m m'} (eq-m : m ≡ m') (n : ℕ) (i : Fin m)
-  → cast (cong (_+ n) eq-m) (inject+ n i) ≡ inject+ n (cast eq-m i)
+  → cast (cong (_+ n) eq-m) (i ↑ˡ n) ≡ cast eq-m i ↑ˡ n
 cast-inject+-comm eq-m n i = toℕ-injective
-  (trans (toℕ-cast _ (inject+ n i))
+  (trans (toℕ-cast _ (i ↑ˡ n))
   (trans (toℕ-↑ˡ i n)
   (trans (sym (toℕ-cast eq-m i))
          (sym (toℕ-↑ˡ (cast eq-m i) n)))))
 
 cast-raise-comm
   : ∀ (m : ℕ) {n n'} (eq-n : n ≡ n') (j : Fin n)
-  → cast (cong (m +_) eq-n) (raise m j) ≡ raise m (cast eq-n j)
+  → cast (cong (m +_) eq-n) (m ↑ʳ j) ≡ m ↑ʳ cast eq-n j
 cast-raise-comm m eq-n j = toℕ-injective
-  (trans (toℕ-cast _ (raise m j))
+  (trans (toℕ-cast _ (m ↑ʳ j))
   (trans (toℕ-↑ʳ m j)
   (trans (cong (m +_) (sym (toℕ-cast eq-n j)))
          (sym (toℕ-↑ʳ m (cast eq-n j))))))
@@ -356,19 +356,19 @@ cast-raise-comm m eq-n j = toℕ-injective
 -- `cast-is-id` to cancel the residual `cast _` on each side.
 cast-inject+-cong₂
   : ∀ {mA mA' mB mB'} (eq-A : mA ≡ mA') (eq-B : mB ≡ mB') (i : Fin mA)
-  → cast (cong₂ _+_ eq-A eq-B) (inject+ mB i)
-  ≡ inject+ mB' (cast eq-A i)
+  → cast (cong₂ _+_ eq-A eq-B) (i ↑ˡ mB)
+  ≡ cast eq-A i ↑ˡ mB'
 cast-inject+-cong₂ refl refl i =
-  trans (cast-is-id refl (inject+ _ i))
-        (cong (inject+ _) (sym (cast-is-id refl i)))
+  trans (cast-is-id refl (i ↑ˡ _))
+        (cong (_↑ˡ _) (sym (cast-is-id refl i)))
 
 cast-raise-cong₂
   : ∀ {mA mA' mB mB'} (eq-A : mA ≡ mA') (eq-B : mB ≡ mB') (j : Fin mB)
-  → cast (cong₂ _+_ eq-A eq-B) (raise mA j)
-  ≡ raise mA' (cast eq-B j)
+  → cast (cong₂ _+_ eq-A eq-B) (mA ↑ʳ j)
+  ≡ mA' ↑ʳ cast eq-B j
 cast-raise-cong₂ refl refl j =
-  trans (cast-is-id refl (raise _ j))
-        (cong (raise _) (sym (cast-is-id refl j)))
+  trans (cast-is-id refl (_ ↑ʳ j))
+        (cong (_ ↑ʳ_) (sym (cast-is-id refl j)))
 
 -- The main lemma. Uses Fin.cast across `hId-nV≡len-flatten A` to bridge
 -- the `Fin (hId A).nV` → `Fin (length (flatten A))` gap before looking up.
@@ -394,7 +394,7 @@ hId-vlab-lookup (A ⊗₀ B) i
     eq-++ : length (flatten A) + length (flatten B) ≡ length (flatten A ++ flatten B)
     eq-++ = sym (length-++ (flatten A))
 
-    i≡injL : i ≡ inject+ (Hypergraph.nV (hId B)) a
+    i≡injL : i ≡ a ↑ˡ Hypergraph.nV (hId B)
     i≡injL = sym (splitAt⁻¹-↑ˡ eq)
 
     -- Reshape the outer cast using cast-trans + cast-inject+-cong₂.
@@ -403,7 +403,7 @@ hId-vlab-lookup (A ⊗₀ B) i
       ≡ cast-inj+ (flatten A) (flatten B) (cast eq-A a)
     cast-form =
       trans (cong (cast _) i≡injL)
-      (trans (sym (cast-trans (cong₂ _+_ eq-A eq-B) eq-++ (inject+ _ a)))
+      (trans (sym (cast-trans (cong₂ _+_ eq-A eq-B) eq-++ (a ↑ˡ _)))
              (cong (cast eq-++) (cast-inject+-cong₂ eq-A eq-B a)))
 
     lookup-eq
@@ -426,7 +426,7 @@ hId-vlab-lookup (A ⊗₀ B) i
     eq-++ : length (flatten A) + length (flatten B) ≡ length (flatten A ++ flatten B)
     eq-++ = sym (length-++ (flatten A))
 
-    i≡raise : i ≡ raise (Hypergraph.nV (hId A)) b
+    i≡raise : i ≡ Hypergraph.nV (hId A) ↑ʳ b
     i≡raise = sym (splitAt⁻¹-↑ʳ eq)
 
     cast-form
@@ -434,7 +434,7 @@ hId-vlab-lookup (A ⊗₀ B) i
       ≡ cast-rai+ (flatten A) (flatten B) (cast eq-B b)
     cast-form =
       trans (cong (cast _) i≡raise)
-      (trans (sym (cast-trans (cong₂ _+_ eq-A eq-B) eq-++ (raise _ b)))
+      (trans (sym (cast-trans (cong₂ _+_ eq-A eq-B) eq-++ (_ ↑ʳ b)))
              (cong (cast eq-++) (cast-raise-cong₂ eq-A eq-B b)))
 
     lookup-eq
@@ -452,13 +452,13 @@ hId-vlab-lookup (A ⊗₀ B) i
 -- proof that needs to show `(hId (A ⊗₀ B)).dom` is `range`-shaped.
 
 range-++ : ∀ (n m : ℕ)
-         → range (n + m) ≡ map (inject+ m) (range n) ++ map (raise n) (range m)
+         → range (n + m) ≡ map (_↑ˡ m) (range n) ++ map (n ↑ʳ_) (range m)
 range-++ zero    m = trans (sym (map-id (range m)))
                            (sym (map-cong (λ _ → refl) (range m)))
   where open import Data.List.Properties using (map-id; map-cong)
 range-++ (suc n) m = cong (zero ∷_)
   (trans (cong (map Fin.suc) (range-++ n m))
-  (trans (map-++ Fin.suc (map (inject+ m) (range n)) (map (raise n) (range m)))
+  (trans (map-++ Fin.suc (map (_↑ˡ m) (range n)) (map (n ↑ʳ_) (range m)))
          (cong₂ _++_
            (trans (sym (map-∘ (range n)))
            (trans (map-cong (λ _ → refl) (range n))
@@ -478,8 +478,8 @@ hId-dom≡range unit     = refl
 hId-dom≡range (Var x)  = refl
 hId-dom≡range (A ⊗₀ B) =
   trans (cong₂ _++_
-          (cong (map (inject+ (Hypergraph.nV (hId B)))) (hId-dom≡range A))
-          (cong (map (raise  (Hypergraph.nV (hId A)))) (hId-dom≡range B)))
+          (cong (map (_↑ˡ Hypergraph.nV (hId B))) (hId-dom≡range A))
+          (cong (map (Hypergraph.nV (hId A) ↑ʳ_)) (hId-dom≡range B)))
         (sym (range-++ (Hypergraph.nV (hId A)) (Hypergraph.nV (hId B))))
 
 -- Analogous for cod via the hId-cod≡dom bridge.

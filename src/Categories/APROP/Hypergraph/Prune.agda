@@ -28,8 +28,8 @@
 module Categories.APROP.Hypergraph.Prune where
 
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Fin using (Fin; zero; suc; inject+; raise; splitAt)
-open import Data.Fin.Properties using (_≟_; splitAt-inject+; splitAt-raise)
+open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
+open import Data.Fin.Properties using (_≟_; splitAt-↑ˡ; splitAt-↑ʳ)
 open import Data.List using (List; []; _∷_; length; filter; allFin; lookup; map)
 open import Data.List.Properties using (map-cong; map-∘)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
@@ -477,15 +477,15 @@ module _ {m n : ℕ}
 module _ {n m : ℕ} where
   remap : (xs : List (Fin n)) → (Fin (length xs) → Fin m)
         → Fin n → Fin (m + count-non xs)
-  remap xs f v = [ (λ i → inject+ (count-non xs) (f i))
-                 , (λ j → raise m j)
+  remap xs f v = [ (λ i → f i ↑ˡ count-non xs)
+                 , (λ j → m ↑ʳ j)
                  ]′ (classify xs v)
 
   -- Reduction of `remap` in the `inj₁` (member) case.
   remap-inj₁ : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
                (v : Fin n) (i : Fin (length xs))
              → classify xs v ≡ inj₁ i
-             → remap xs f v ≡ inject+ (count-non xs) (f i)
+             → remap xs f v ≡ f i ↑ˡ count-non xs
   remap-inj₁ xs f v i eq with classify xs v
   remap-inj₁ xs f v i refl | inj₁ .i = refl
 
@@ -493,7 +493,7 @@ module _ {n m : ℕ} where
   remap-inj₂ : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
                (v : Fin n) (j : Fin (count-non xs))
              → classify xs v ≡ inj₂ j
-             → remap xs f v ≡ raise m j
+             → remap xs f v ≡ m ↑ʳ j
   remap-inj₂ xs f v j eq with classify xs v
   remap-inj₂ xs f v j refl | inj₂ .j = refl
 
@@ -529,19 +529,19 @@ module _ {a} {X : Set a} {n m : ℕ} where
   remap-vlab xs f λK λG bdy v with v ∈? xs
   ... | yes v∈xs =
     -- classify xs v reduces to inj₁ (index v∈xs), so
-    -- remap xs f v = inject+ (count-non xs) (f (index v∈xs)).
+    -- remap xs f v = f (index v∈xs) ↑ˡ count-non xs.
     trans
       (cong [ λG , (λ k → λK (lookup (nonMem xs) k)) ]′
-        (splitAt-inject+ m (count-non xs) (f (index v∈xs))))
+        (splitAt-↑ˡ m (f (index v∈xs)) (count-non xs)))
       (trans (sym (bdy (index v∈xs)))
              (cong λK (sym (lookup-index v∈xs))))
   ... | no v∉xs =
     -- classify xs v reduces to inj₂ (index v∈nonMem), so
-    -- remap xs f v = raise m (index v∈nonMem).
+    -- remap xs f v = m ↑ʳ (index v∈nonMem).
     let v∈nonMem = ∈-filter⁺ (λ u → ¬? (u ∈? xs)) (∈-allFin v) v∉xs in
     trans
       (cong [ λG , (λ k → λK (lookup (nonMem xs) k)) ]′
-        (splitAt-raise m (count-non xs) (index v∈nonMem)))
+        (splitAt-↑ʳ m (count-non xs) (index v∈nonMem)))
       (cong λK (sym (lookup-index v∈nonMem)))
 
   -- List-wise version of `remap-vlab`: the labels of any list of K-vertices
