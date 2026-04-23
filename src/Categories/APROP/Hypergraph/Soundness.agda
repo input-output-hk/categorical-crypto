@@ -20,31 +20,43 @@
 --     unfolds definitionally to `hTensor (hId A) (hId B)` (see
 --     `FromAPROP.hId`).
 --
---   * Atomic axioms: 16 of 19 now have a dedicated named dispatch via a
---     focused lemma in `SoundnessAxioms`. The omnibus `soundness-axiom`
---     catch-all remains only for the 3 axioms that blew up type-checking
---     when dispatched individually (pentagon, assoc, ⊗-∘-dist) — their
---     `⟪_⟫` normalization drove typecheck past 3× baseline even after
---     SoundnessAxioms is built. Those 3 still have named postulates
---     (`pentagon-sound`, `assoc-sound`, `⊗-∘-dist-sound`) available for
---     future per-constructor hookup, but the dispatch goes through the
---     catch-all to keep build times bounded.
+--   * Atomic axioms: every `≈Term` constructor has its own explicit
+--     dispatch clause; the omnibus `soundness-axiom` catch-all is no
+--     longer reachable. 11 of the 19 atomic axioms are proven (possibly
+--     modulo internal subst₂-cancel postulates); 8 are still
+--     postulated. Of those 8, 5 route through a named focused lemma in
+--     `SoundnessAxioms` (ρ⇒∘f⊗id≈f∘ρ⇒, α-comm, triangle, σ-nat, hexagon),
+--     and 3 route through the polymorphic `soundness-axiom` itself
+--     (pentagon, assoc, ⊗-∘-dist) — see note below on why.
 --
--- Currently under catch-all (3):
---   * `pentagon`  — five-α coherence.
---   * `assoc`     — hComposeP associativity.
---   * `⊗-∘-dist`  — tensor/compose interchange.
+-- Note on pentagon / assoc / ⊗-∘-dist:
 --
--- Currently dispatched, still postulated (5):
+--   Profiling revealed that a focused postulate with a concrete
+--   `⟪ pentagon-LHS ⟫ ≅ᴴ ⟪ pentagon-RHS ⟫` type triggers a 25-minute
+--   unification at the dispatch site (`soundness pentagon =
+--   pentagon-sound`). Agda's unifier normalises both `⟪_⟫` expressions
+--   to compare them, and the deep nesting of `subst₂`-wrapped `hId`s
+--   from three `α⇒`'s makes that cost explode.  The `soundness-axiom`
+--   catch-all is cheap (≈5s) because it takes `f ≈Term g` as a
+--   parameter and substitutes without reducing.
+--
+--   So the three blow-up axioms dispatch *through* the polymorphic
+--   `soundness-axiom` with an explicit `p@<name>` pattern, yielding
+--   the same runtime behaviour as a direct catch-all but documenting
+--   at the type level which axioms are still postulated.
+--
+-- 8 per-axiom postulates still outstanding (see TODO.org Step 6):
 --   * `ρ⇒∘f⊗id≈f∘ρ⇒-sound` — ρ-nat
 --   * `α-comm-sound`        — α naturality
---   * `triangle-sound`      — α/λ/ρ coherence on (A⊗unit)⊗B
+--   * `triangle-sound`      — α/λ/ρ coherence
 --   * `σ∘[f⊗g]≈[g⊗f]∘σ-sound` — σ-nat
---   * `hexagon-sound`       — three-α/three-σ coherence
+--   * `hexagon-sound`       — symmetric hexagon
+--   * `pentagon` (via soundness-axiom)
+--   * `assoc`    (via soundness-axiom)
+--   * `⊗-∘-dist` (via soundness-axiom)
 --
--- Because this file depends on those postulates and the catch-all, it
--- is not `--safe` and is not transitively imported by
--- `CategoricalCrypto.agda`.
+-- Because this file depends on those postulates, it is not `--safe` and
+-- is not transitively imported by `CategoricalCrypto.agda`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -127,6 +139,12 @@ soundness (triangle {A = A} {B = B}) = triangle-sound {A} {B}
 soundness (σ∘[f⊗g]≈[g⊗f]∘σ {f = f} {g = g}) = σ∘[f⊗g]≈[g⊗f]∘σ-sound {f = f} {g = g}
 soundness (hexagon {A = A} {B = B} {C = C}) = hexagon-sound {A} {B} {C}
 
--- Atomic axioms still using catch-all. See module header for the
--- classification.
-soundness p                   = soundness-axiom p
+-- Per-axiom dispatch for the 3 axioms whose concrete-typed named
+-- postulates made the unifier normalize deep `⟪_⟫` expressions (profile
+-- showed 25min for `soundness pentagon = pentagon-sound` alone, vs 5s
+-- for the polymorphic route). The polymorphic `soundness-axiom`
+-- side-steps that because it takes the `≈Term` proof as an argument
+-- and lets Agda substitute f, g without reducing the concrete types.
+soundness p@pentagon   = soundness-axiom p
+soundness p@assoc      = soundness-axiom p
+soundness p@⊗-∘-dist   = soundness-axiom p
