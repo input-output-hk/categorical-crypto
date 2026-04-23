@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --lossy-unification #-}
 
 --------------------------------------------------------------------------------
 -- Soundness of the APROP-to-hypergraph translation:
@@ -21,29 +21,30 @@
 --     `FromAPROP.hId`).
 --
 --   * Atomic axioms: every `≈Term` constructor has its own explicit
---     dispatch clause; the omnibus `soundness-axiom` catch-all is no
---     longer reachable. 11 of the 19 atomic axioms are proven (possibly
---     modulo internal subst₂-cancel postulates); 8 are still
---     postulated. Of those 8, 5 route through a named focused lemma in
---     `SoundnessAxioms` (ρ⇒∘f⊗id≈f∘ρ⇒, α-comm, triangle, σ-nat, hexagon),
---     and 3 route through the polymorphic `soundness-axiom` itself
---     (pentagon, assoc, ⊗-∘-dist) — see note below on why.
+--     dispatch clause to a named focused lemma in `SoundnessAxioms`.
+--     11 of the 19 atomic axioms are proven (possibly modulo internal
+--     subst₂-cancel postulates); 8 are still postulated.
 --
--- Note on pentagon / assoc / ⊗-∘-dist:
+-- Note on the dispatch machinery (`--lossy-unification`):
 --
---   Profiling revealed that a focused postulate with a concrete
---   `⟪ pentagon-LHS ⟫ ≅ᴴ ⟪ pentagon-RHS ⟫` type triggers a 25-minute
---   unification at the dispatch site (`soundness pentagon =
---   pentagon-sound`). Agda's unifier normalises both `⟪_⟫` expressions
---   to compare them, and the deep nesting of `subst₂`-wrapped `hId`s
---   from three `α⇒`'s makes that cost explode.  The `soundness-axiom`
---   catch-all is cheap (≈5s) because it takes `f ≈Term g` as a
---   parameter and substitutes without reducing.
+--   Without `--lossy-unification`, dispatching a focused postulate like
+--   `pentagon-sound : ∀ {A B C D} → ⟪ pentagon-LHS ⟫ ≅ᴴ ⟪ pentagon-RHS ⟫`
+--   triggers a 25-minute unification at the dispatch site.  Agda's
+--   unifier can't solve the implicit `{A B C D}` metas from the goal's
+--   `⟪ pentagon-LHS ⟫` because `⟪_⟫` isn't (by default) invertible;
+--   it normalises both sides to compare `Hypergraph.cod-ok` proof
+--   fields, which are deep nested `trans (sym (trans ...)) ...` chains
+--   for `hTensor`/`hComposeP` constructions.
 --
---   So the three blow-up axioms dispatch *through* the polymorphic
---   `soundness-axiom` with an explicit `p@<name>` pattern, yielding
---   the same runtime behaviour as a direct catch-all but documenting
---   at the type level which axioms are still postulated.
+--   Two flags together resolve this:
+--     * `--lossy-unification` lets Agda heuristically unify by assuming
+--       the relevant reductions align — fine here because the postulate
+--       and goal have syntactically identical `⟪_⟫` shapes.
+--     * `{-# INJECTIVE_FOR_INFERENCE ⟪_⟫ #-}` (in `Translation.agda`)
+--       lets Agda conclude `f ≡ g` from `⟪ f ⟫ ≡ ⟪ g ⟫`, which lets
+--       the implicit morphism variables be inferred back through `⟪_⟫`.
+--
+--   With both flags, all 8 focused postulates dispatch in <1s each.
 --
 -- 8 per-axiom postulates still outstanding (see TODO.org Step 6):
 --   * `ρ⇒∘f⊗id≈f∘ρ⇒-sound` — ρ-nat
@@ -51,9 +52,9 @@
 --   * `triangle-sound`      — α/λ/ρ coherence
 --   * `σ∘[f⊗g]≈[g⊗f]∘σ-sound` — σ-nat
 --   * `hexagon-sound`       — symmetric hexagon
---   * `pentagon` (via soundness-axiom)
---   * `assoc`    (via soundness-axiom)
---   * `⊗-∘-dist` (via soundness-axiom)
+--   * `pentagon-sound`      — five-α coherence
+--   * `assoc-sound`         — hComposeP associativity
+--   * `⊗-∘-dist-sound`      — tensor/compose interchange
 --
 -- Because this file depends on those postulates, it is not `--safe` and
 -- is not transitively imported by `CategoricalCrypto.agda`.
@@ -81,21 +82,11 @@ open import Categories.APROP.Hypergraph.SoundnessAxioms sig
         ; α-comm-sound
         ; triangle-sound
         ; σ∘[f⊗g]≈[g⊗f]∘σ-sound
-        ; hexagon-sound)
+        ; hexagon-sound
+        ; pentagon-sound; assoc-sound; ⊗-∘-dist-sound)
 open import Categories.APROP.Hypergraph.HomTermInvariant sig
   using (⟪_⟫-dom-unique)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-
---------------------------------------------------------------------------------
--- Catch-all postulates.
--- (1) The 18 atomic axioms (unchanged from the old Soundness).
--- (2) The `Unique ⟪f⟫.dom` invariant, needed to pass to the pruned
---     hComposeP-resp-≅ᴴ for the `∘-resp-≈` congruence. Follows from
---     structural induction on HomTerm; proof deferred to a future
---     `Hypergraph.Invariant` extension.
-
-postulate
-  soundness-axiom : ∀ {A B} {f g : HomTerm A B} → f ≈Term g → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
 
 --------------------------------------------------------------------------------
 -- The soundness theorem.
@@ -138,13 +129,6 @@ soundness (α-comm {f = f} {g = g} {h = h}) = α-comm-sound {f = f} {g = g} {h =
 soundness (triangle {A = A} {B = B}) = triangle-sound {A} {B}
 soundness (σ∘[f⊗g]≈[g⊗f]∘σ {f = f} {g = g}) = σ∘[f⊗g]≈[g⊗f]∘σ-sound {f = f} {g = g}
 soundness (hexagon {A = A} {B = B} {C = C}) = hexagon-sound {A} {B} {C}
-
--- Per-axiom dispatch for the 3 axioms whose concrete-typed named
--- postulates made the unifier normalize deep `⟪_⟫` expressions (profile
--- showed 25min for `soundness pentagon = pentagon-sound` alone, vs 5s
--- for the polymorphic route). The polymorphic `soundness-axiom`
--- side-steps that because it takes the `≈Term` proof as an argument
--- and lets Agda substitute f, g without reducing the concrete types.
-soundness p@pentagon   = soundness-axiom p
-soundness p@assoc      = soundness-axiom p
-soundness p@⊗-∘-dist   = soundness-axiom p
+soundness pentagon     = pentagon-sound
+soundness assoc        = assoc-sound
+soundness ⊗-∘-dist     = ⊗-∘-dist-sound

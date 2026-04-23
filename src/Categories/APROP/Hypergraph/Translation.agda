@@ -59,3 +59,10 @@ open import Relation.Binary.PropositionalEquality using (refl; subst₂)
 
 -- Braiding.
 ⟪ σ {A} {B} ⟫ = hSwap A B
+
+-- Mark `⟪_⟫` injective for type inference.  Without this, dispatching a
+-- focused postulate like `pentagon-sound : ∀ {A B C D} → ⟪ LHS ⟫ ≅ᴴ
+-- ⟪ RHS ⟫` can't solve the implicit {A B C D} from the goal's `⟪ LHS ⟫`
+-- expression, because Agda can't invert `⟪_⟫` otherwise.  With this
+-- pragma, `⟪ f₁ ⟫ = ⟪ f₂ ⟫` is taken to imply `f₁ = f₂`.
+{-# INJECTIVE_FOR_INFERENCE ⟪_⟫ #-}
