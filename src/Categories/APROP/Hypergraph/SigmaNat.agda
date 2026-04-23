@@ -492,6 +492,22 @@ module σ-nat-proof
     (trans (map-via-raise hTL.vlab-injR (G.eout gE))
            (map-via-inj hLHS.vlab-injL (map hTL.injR (G.eout gE))))))
 
+  -- ψ-elab.  Case on splitAt LHS-G.nE, then splitAt F.nE.  For the
+  -- F-edge branch, the chain (see Congruence.agda's ψ-elab-T for the
+  -- 4-equation version) uses:
+  --   * sym (subst₂-trans A rest A' rest' (RHS.elab (ψ e)))
+  --     to split A off
+  --   * `hTR.elab-c-inj₂ fE` to bridge RHS-K.elab (G.nE ↑ʳ fE) to F.elab fE
+  --   * `subst₂-sym-subst₂` to cancel β̄ + sym β̄
+  --   * `subst₂-trans` to collapse the remaining chains into (trans D E)
+  --   * definitional collapse of LHS.elab e to subst₂ E (subst₂ D (F.elab fE))
+  --
+  -- Porting the full chain is mechanical but requires a `map-via-remapP`
+  -- naturality lemma (trans β̄_orig A ≡ trans π β̄ where β̄_orig uses the
+  -- pre-reduction list and β̄ uses the post-reduction list), which in turn
+  -- needs `trans-reflʳ` from stdlib.  Kept as postulate until the
+  -- `atom-ein` / `atom-eout` lemmas settle and can be re-used.
+
   postulate
     φ-lab   : ∀ v → RHS.vlab (φ v) ≡ LHS.vlab v
     ψ-ein   : ∀ e → RHS.ein (ψ e) ≡ map φ (LHS.ein e)
