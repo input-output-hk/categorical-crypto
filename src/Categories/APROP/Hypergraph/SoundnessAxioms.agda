@@ -1566,16 +1566,16 @@ module σ∘σ-proof (A B : ObjTerm) where
 -- proof; deferred to a future session or the Phase-4 `smcat`
 -- reflection tactic.
 
+-- α-comm-sound: proved constructively in `AlphaCommSound`.
+-- Dispatched in Soundness.agda by importing both this file and
+-- AlphaCommSound (not re-exported here to avoid a circular import;
+-- AlphaCommSound depends on `hCompose-hId-R-iso-generic` etc. which live here).
+
 postulate
   -- ρ⇒ ∘ f⊗id ≈ f ∘ ρ⇒  (unitorʳ-commute)
   ρ⇒∘f⊗id≈f∘ρ⇒-sound
     : ∀ {A B} {f : HomTerm A B}
     → ⟪ ρ⇒ {B} ∘ f ⊗₁ id {unit} ⟫ ≅ᴴ ⟪ f ∘ ρ⇒ {A} ⟫
-
-  -- α⇒ ∘ (f⊗g)⊗h ≈ f⊗(g⊗h) ∘ α⇒  (assoc-commute / α-comm)
-  α-comm-sound
-    : ∀ {A B C D E F} {f : HomTerm A B} {g : HomTerm C D} {h : HomTerm E F}
-    → ⟪ α⇒ {B} {D} {F} ∘ (f ⊗₁ g) ⊗₁ h ⟫ ≅ᴴ ⟪ f ⊗₁ (g ⊗₁ h) ∘ α⇒ {A} {C} {E} ⟫
 
   -- triangle: id⊗λ⇒ ∘ α⇒{A,unit,B} ≈ ρ⇒⊗id
   triangle-sound

@@ -79,11 +79,12 @@ open import Categories.APROP.Hypergraph.SoundnessAxioms sig
         ; ρ⇒∘ρ⇐-sound; α⇒∘α⇐-sound
         ; λ⇒∘id⊗f≈f∘λ⇒-sound
         ; ρ⇒∘f⊗id≈f∘ρ⇒-sound
-        ; α-comm-sound
         ; triangle-sound
         ; σ∘[f⊗g]≈[g⊗f]∘σ-sound
         ; hexagon-sound
         ; pentagon-sound; assoc-sound; ⊗-∘-dist-sound)
+open import Categories.APROP.Hypergraph.AlphaCommSound sig
+  using (α-comm-sound)
 open import Categories.APROP.Hypergraph.HomTermInvariant sig
   using (⟪_⟫-dom-unique)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
