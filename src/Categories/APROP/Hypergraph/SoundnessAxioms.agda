@@ -567,8 +567,7 @@ module hCompose-hId-L-proof
     φ-remapP-id : ∀ v → φ (hCP.remapP v) ≡ v
     φ-remapP-id v with classify K.dom v in eq
     ... | inj₁ i
-      rewrite remap-inj₁ K.dom hCP.lookup-cod v i eq
-            | splitAt-↑ˡ G.nV (hCP.lookup-cod i) (count-non K.dom)
+      rewrite splitAt-↑ˡ G.nV (hCP.lookup-cod i) (count-non K.dom)
       = trans (cong (lookup K.dom) cast-eq)
               (classify-inj₁-lookup K.dom v i eq)
       where
@@ -578,8 +577,7 @@ module hCompose-hId-L-proof
           (trans (toℕ-cast (sym len-dom) (hCP.lookup-cod i))
                  (toℕ-lookup-cod i))
     ... | inj₂ j
-      rewrite remap-inj₂ K.dom hCP.lookup-cod v j eq
-            | splitAt-↑ʳ G.nV (count-non K.dom) j
+      rewrite splitAt-↑ʳ G.nV (count-non K.dom) j
       = classify-inj₂-lookup K.dom v j eq
 
   open import Data.List.Properties using (map-∘; map-cong; map-id)
