@@ -50,6 +50,7 @@ open import Categories.APROP.Hypergraph.Prune
   using (count-non; AllIn; AllIn→count-non-zero;
          nonMem; classify; classify-lookup-Unique;
          classify-inj₁-lookup; classify-inj₂-lookup;
+         classify-lookup-nonMem;
          remap; remap-inj₁; remap-inj₂)
 
 open import Data.Empty using (⊥; ⊥-elim)
@@ -278,8 +279,52 @@ module σ-nat-proof
   ... | inj₁ v' = trans (φ-left-inner v') (splitAt⁻¹-↑ˡ eq)
   ... | inj₂ non = ⊥-elim (Fin-zero-absurd cn-LHS-K≡0 non)
 
+  -- φ-rght's pruned case: `w = RHS-G.nV ↑ʳ j` for some j.
+  -- Chain:
+  --   cong φ (φ⁻¹-inj₂-red j)                  -- φ⁻¹ (RHS-G.nV ↑ʳ j) = ψ-swap v* ↑ˡ _
+  --   φ-inj₁-red (ψ-swap v*)                   -- φ (_↑ˡ _) = hRHS.remapP (ψ-swap (ψ-swap v*))
+  --   cong hRHS.remapP (ψ-swap-involutive v*)  -- = hRHS.remapP v*
+  --   remap-inj₂ (classify-lookup-nonMem _ j)  -- = RHS-G.nV ↑ʳ j
+  -- where v* = lookup (nonMem RHS-K.dom) j.
+  φ-rght-int
+    : (j : Fin (count-non RHS-K.dom))
+    → φ (φ⁻¹ (RHS-G.nV ↑ʳ j)) ≡ RHS-G.nV ↑ʳ j
+  φ-rght-int j =
+    trans (cong φ (φ⁻¹-inj₂-red j))
+    (trans (φ-inj₁-red
+             (ψ-swap {G.nV} {F.nV} (lookup (nonMem RHS-K.dom) j)))
+    (trans (cong hRHS.remapP
+                 (ψ-swap-involutive {G.nV} {F.nV}
+                                    (lookup (nonMem RHS-K.dom) j)))
+           (remap-inj₂ RHS-K.dom hRHS.lookup-cod
+                       (lookup (nonMem RHS-K.dom) j) j
+                       (classify-lookup-nonMem RHS-K.dom j))))
+
   postulate
-    φ-rght : ∀ w → φ (φ⁻¹ w) ≡ w
+    -- φ-rght's boundary case.  Mirror of φ-left-bdy: requires
+    -- classify↔lookup-cod bridges tying F/G boundary positions to
+    -- RHS-G's cod.  Future work.
+    φ-rght-bdy
+      : (w : Fin RHS.nV) (c : Fin RHS-G.nV)
+      → splitAt RHS-G.nV w ≡ inj₁ c
+      → φ (φ⁻¹ w) ≡ w
+
+  -- Dispatcher pattern (same idea as φ-left-dispatch): avoid `with` on
+  -- splitAt RHS-G.nV w, which would abstract `φ⁻¹ w | ...` inside the
+  -- goal and fail to unify with the dispatched lemmas.  Take the
+  -- splitAt result explicitly.
+  φ-rght-dispatch
+    : (w : Fin RHS.nV)
+    → (sa : Fin RHS-G.nV ⊎ Fin (count-non RHS-K.dom))
+    → splitAt RHS-G.nV w ≡ sa
+    → φ (φ⁻¹ w) ≡ w
+  φ-rght-dispatch w (inj₁ c) eq = φ-rght-bdy w c eq
+  φ-rght-dispatch w (inj₂ j) eq =
+    trans (cong (λ x → φ (φ⁻¹ x)) (sym (splitAt⁻¹-↑ʳ eq)))
+          (trans (φ-rght-int j) (splitAt⁻¹-↑ʳ eq))
+
+  φ-rght : ∀ w → φ (φ⁻¹ w) ≡ w
+  φ-rght w = φ-rght-dispatch w (splitAt RHS-G.nV w) refl
 
   -- LHS edge ↦ RHS edge: route through the swap permutation on F.nE + G.nE.
   -- LHS.nE = (F.nE + G.nE) + 0  (first coord is the hTensor split).
