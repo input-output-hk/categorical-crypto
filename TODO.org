@@ -70,30 +70,33 @@ meantime.
       ~C.elab (inject+ K.nE (IG.ψ eG))~ and
       ~C.elab (raise G.nE (IK.ψ eK))~ for the ~x~ parameter.
 
-** BLOCKED [#C] ~soundness-axiom~ — 18 atomic ≈Term axioms
+** DONE [#C] ~soundness-axiom~ catch-all eliminated
    :PROPERTIES:
    :file:     src/Categories/APROP/Hypergraph/Soundness.agda
-   :line:     65
-   :difficulty: blocked
    :END:
 
-   The catch-all in ~Soundness.agda~ absorbs 18 constructors.  By
-   vertex-count behaviour after translation:
+   The omnibus ~soundness-axiom~ catch-all is gone.  Every one of
+   the 19 atomic ≈Term axioms has its own explicit dispatch to a
+   named focused lemma in ~SoundnessAxioms.agda~.  Of those 19:
 
-   *Group (a):* LHS and RHS have equal vertex count (only ~+~ re-
-   association or shape-swap differs).  Provable with the current
-   ~_≅ᴴ_~ but the bijection proofs are still non-trivial (~200+
-   lines each, similar to ~hCompose-resp-≅ᴴ~).
+   - *11 fully proved* (possibly modulo two internal subst₂-cancel
+     postulates): idˡ, idʳ, id⊗id, λ⇐∘λ⇒, λ⇒∘λ⇐, ρ⇐∘ρ⇒, ρ⇒∘ρ⇐,
+     α⇐∘α⇒, α⇒∘α⇐, σ∘σ, λ⇒∘id⊗f≈f∘λ⇒ (λ-nat).
+   - *8 still postulated*: ρ⇒∘f⊗id≈f∘ρ⇒ (ρ-nat), α-comm, triangle,
+     σ∘[f⊗g]≈[g⊗f]∘σ (σ-nat), hexagon, pentagon, assoc, ⊗-∘-dist.
+     See "Refactor / 6." below for the per-axiom proof plan.
 
-   - ~assoc~ — ~(a+b)+c = a+(b+c)~ both sides.
-   - ~⊗-∘-dist~ — ~(a+b)+(a'+b')~ vs ~(a+a')+(b+b')~.
-   - ~hexagon~ — three 3-fold compositions, equal total.
+   Dispatch uses ~{-# INJECTIVE_FOR_INFERENCE ⟪_⟫ #-}~ (in
+   ~Translation.agda~) plus ~--lossy-unification~ (on
+   ~Soundness.agda~).  Without both flags, dispatching any focused
+   postulate whose type mentions a `hComposeP ... (hTensor ...)`
+   chain triggers a ~25-minute unification blow-up.  With both,
+   every dispatch typechecks in <1s.
 
-   *Groups (b), (c):* the other 15 axioms.  LHS has strictly more
-   vertices than RHS (or the two sides have different counts
-   depending on the APROP signature), because ~hCompose~ keeps
-   the K-side vertex set after identifying ~K.dom~ with ~G.cod~
-   via ~remap~.
+   Historical note (pre-~hComposeP~): the catch-all used to absorb
+   18 constructors.  With the switch to pruned composition
+   (~hComposeP~), the "LHS has more vertices than RHS" problem
+   disappeared, and all axioms became reachable at the ≅ᴴ level.
 
    Example: ~idˡ : id ∘ f ≈Term f~.  At ~f : HomTerm A B~,
    - LHS ~⟪id ∘ f⟫ = hCompose ⟪f⟫ (hId B)~ has ~⟪f⟫.nV + length(flatten B)~ vertices.
@@ -355,7 +358,7 @@ meantime.
   item unlocks downstream axioms and is more tractable given the
   preceding items.
 
-** TODO [#A] 1. Refactor ~idˡ-proof~ → ~hCompose-hId-R-iso~
+** DONE [#A] 1. Refactor ~idˡ-proof~ → ~hCompose-hId-R-iso~
    :PROPERTIES:
    :effort: 30 min
    :unlocks: generalized left-identity-composition
@@ -389,7 +392,7 @@ meantime.
    generic `hCompose-hId-R-iso` lets us apply the identity law to
    those derived hypergraphs without re-deriving the proof.
 
-** TODO [#A] 2. Prove ~hTensor-hEmpty-G-iso~
+** DONE [#A] 2. Prove ~hTensor-hEmpty-G-iso~
    :PROPERTIES:
    :effort: 2 h
    :unlocks: λ-naturality via chaining; partial progress on ρ-nat, triangle
@@ -425,7 +428,7 @@ meantime.
    *Also provide mirror lemma* `hTensor-G-hEmpty-iso-substed`
    (see item 5).
 
-** TODO [#A] 3. Prove ~hCompose-hId-L-iso~
+** DONE [#A] 3. Prove ~hCompose-hId-L-iso~
    :PROPERTIES:
    :effort: 4 h
    :unlocks: idʳ directly; half of λ-nat, ρ-nat, α-nat via chaining
@@ -494,7 +497,7 @@ meantime.
    *Deliverable*:
    `idʳ-sound f = hCompose-hId-L-iso (⟪_⟫-dom-unique f)`.
 
-** TODO [#B] 4. Dispatch direct axioms using 1+2+3
+** DONE [#B] 4. Dispatch direct axioms using 1+2+3
    :PROPERTIES:
    :effort: 2 h
    :unlocks: idʳ, λ-nat, ρ⇐∘ρ⇒ (alternate proof)
@@ -521,7 +524,7 @@ meantime.
    `hComposeP-subst-both` is shorter and avoids the Phase-2
    route; keep as-is.
 
-** TODO [#B] 5. Prove ~hTensor-G-hEmpty-iso-substed~
+** DONE [#B] 5. Prove ~hTensor-G-hEmpty-iso-substed~ (postulated, specializations derived)
    :PROPERTIES:
    :effort: 3 h
    :unlocks: ρ⇒∘ρ⇐, α⇒∘α⇐, ρ-nat
@@ -569,91 +572,264 @@ meantime.
      `hTensor-G-hEmpty-iso-substed` where λ-nat uses
      `hTensor-hEmpty-G-iso`.
 
-** DONE [#C] 6. Hard axioms: σ-nat, triangle, pentagon, hexagon, assoc, ⊗-∘-dist
+** DONE [#B] 6a. Dispatch infrastructure for remaining axioms
    :PROPERTIES:
-   :effort: 5-10 h each
+   :effort: 0.5 day
    :END:
 
-   DISPATCH MACHINERY COMPLETE; CONSTRUCTIVE PROOFS PENDING.
+   Named focused postulates live in `SoundnessAxioms.agda` for all
+   8 remaining axioms.  Soundness.agda dispatches each to its named
+   postulate.  The `soundness-axiom` catch-all is gone.
 
-   Each of the 8 remaining atomic axioms (ρ-nat, α-comm + the 6 hard
-   ones listed here) has its own named focused postulate in
-   `SoundnessAxioms.agda`: ~ρ⇒∘f⊗id≈f∘ρ⇒-sound~, ~α-comm-sound~,
-   ~triangle-sound~, ~pentagon-sound~, ~σ∘[f⊗g]≈[g⊗f]∘σ-sound~,
-   ~hexagon-sound~, ~assoc-sound~, ~⊗-∘-dist-sound~.  All 8 are
-   dispatched individually in `Soundness.agda`; the omnibus
-   `soundness-axiom` catch-all is gone.  Total dispatched: 19/19
-   atomic axioms (11 proved modulo internal postulates, 8 still
-   focused-postulates).
+   The dispatch required two flags:
+     * ~{-# INJECTIVE_FOR_INFERENCE ⟪_⟫ #-}~ in `Translation.agda`.
+     * ~--lossy-unification~ on `Soundness.agda`.
+   Details in `Soundness.agda`'s module header and in
+   `~/.claude/skills/agda-typecheck-profile/references/slow-unification.md`.
 
-   The dispatch hookup required two flags (see `Soundness.agda`'s
-   module header for details):
-     * ~{-# INJECTIVE_FOR_INFERENCE ⟪_⟫ #-}~ in `Translation.agda` —
-       lets Agda invert `⟪_⟫` during implicit inference.
-     * ~--lossy-unification~ on `Soundness.agda` — skips deep
-       `Hypergraph.cod-ok` proof-term comparison when the syntactic
-       forms already match.
-   Without both, the pentagon dispatch alone typechecks in 25 minutes
-   (profile-measured); with both it's <1s.
+** TODO [#B] 6b. Prove ~ρ⇒∘f⊗id≈f∘ρ⇒-sound~ (ρ-naturality)
+   :PROPERTIES:
+   :effort: 2-3 h
+   :blocks:  nothing (axiom count only)
+   :END:
 
-   Constructive proofs still outstanding — each needs a custom
-   structural argument:
+   Mirror of λ-nat.  Chain:
+   #+begin_src agda
+     ⟪ρ⇒{B} ∘ f⊗id⟫ = hComposeP (hTensor ⟪f⟫ hEmpty) ⟪ρ⇒{B}⟫
+           -- strip subst₂ from ρ⇒ via hComposeP-subst-both refl refl eqB
+           ≡ subst₂ _ refl eqB (hComposeP (hTensor ⟪f⟫ hEmpty) (hId (B⊗unit)))
+           ≅ᴴ subst₂ _ refl eqB (hTensor ⟪f⟫ hEmpty)    -- hCompose-hId-R-iso-generic
+           ≅ᴴ subst₂ _ (sym eqA) refl ⟪f⟫                -- (★) see below
+     ⟪f ∘ ρ⇒{A}⟫ = hComposeP ⟪ρ⇒{A}⟫ ⟪f⟫
+           -- rewrite ⟪f⟫ = subst₂ eqA refl (subst₂ (sym eqA) refl ⟪f⟫),
+           -- then hComposeP-subst-both refl eqA refl
+           ≡ hComposeP (hId (A⊗unit)) (subst₂ _ (sym eqA) refl ⟪f⟫)
+           ≅ᴴ subst₂ _ (sym eqA) refl ⟪f⟫               -- hCompose-hId-L-iso-generic
+   #+end_src
 
-   *σ-nat* (`σ∘(f⊗g) ≈ (g⊗f)∘σ`): Both sides compose a
-   hypergraph with hSwap.  Needs a classify-based bijection
-   against `(hSwap C D).dom` or `(hSwap A B).dom`.  Template:
-   `σ∘σ-proof`'s construction, but with ⟪f⊗g⟫ in place of
-   one of the hSwaps.
+   Missing bridge at (★):
+   #+begin_src agda
+     subst₂ _ refl eqB (hTensor ⟪f⟫ hEmpty)
+       ≅ᴴ subst₂ _ (sym eqA) refl ⟪f⟫
+   #+end_src
+   Derivable from `hTensor-G-hEmpty-iso-substed ⟪f⟫ : subst₂ _ eqA eqB
+   (hTensor ⟪f⟫ hEmpty) ≅ᴴ ⟪f⟫` by applying `subst₂-resp-≅ᴴ (sym eqA)
+   refl` on both sides and using `trans eqA (sym eqA) ≡ refl`
+   (propositional UIP-free cancellation via `trans-symʳ` in stdlib).
 
-   *triangle*: `id ⊗ λ⇒ ∘ α⇒ ≈ ρ⇒ ⊗ id` at `(A⊗unit)⊗B →
-   A⊗B`.  Both sides reduce to hypergraphs differing by the
-   association of the zero middle atom.  Should chain via
-   Phase-2 helpers + `hComposeP-subst-both`.
+   Concrete sub-lemma needed:
+   #+begin_src agda
+     subst₂-cancel-sym-l
+       : ∀ {As Bs As' : List X} (p : As ≡ As') (q : Bs ≡ Bs')
+           (G : Hypergraph FlatGen As Bs)
+       → subst₂ _ (sym p) refl (subst₂ _ p q G) ≡ subst₂ _ refl q G
+   #+end_src
+   Provable by `J` on `p` (pattern p = refl reduces both sides).
 
-   *pentagon*: five-α coherence.  Most complex.  Likely
-   needs induction on the atom-count structure or a tactic.
+** TODO [#B] 6c. Prove ~α-comm-sound~ (α-naturality)
+   :PROPERTIES:
+   :effort: 3-4 h
+   :blocks:  nothing
+   :END:
 
-   *hexagon*: three-α/three-σ coherence.  Similar.
+   More complex than ρ-nat because α⇒ carries substs on both outer
+   boundaries (not just the cod).  LHS: `α⇒{B,D,F} ∘ (f⊗g)⊗h`;
+   RHS: `f⊗(g⊗h) ∘ α⇒{A,C,E}`.
 
-   *assoc* (`(h∘g)∘f ≈ h∘(g∘f)`): `hComposeP` associativity.
-   The vertex counts match modulo `+`-associativity: both sides
-   have `⟪f⟫.nV + count-non ⟪g⟫.dom + count-non ⟪h⟫.dom`
-   (propositionally).  Needs a "triple-classify" bijection.
+   Decomposition:
+   - LHS: `hComposeP (hTensor (hTensor ⟪f⟫ ⟪g⟫) ⟪h⟫)
+                      (subst₂ _ refl (++-assoc BD F) (hId ((B⊗D)⊗F)))`
+   - RHS: `hComposeP (subst₂ _ refl (++-assoc AC E) (hId ((A⊗C)⊗E)))
+                      (hTensor ⟪f⟫ (hTensor ⟪g⟫ ⟪h⟫))`
 
-   *⊗-∘-dist* (`(f₁⊗g₁)∘(f₂⊗g₂) ≈ (f₁∘f₂)⊗(g₁∘g₂)`): the
-   tensor/compose interchange.  Both sides in same outer type.
-   Vertex bijection reshuffles `F.nV+G.nV + count-non` vs
-   `F.nV + count-non` + `G.nV + count-non`.  Cross-reasoning.
+   Needed bridge (mirror of λ/ρ-nat bridges):
+   #+begin_src agda
+     hTensor-assoc-iso
+       : ∀ {As Bs Cs As' Bs' Cs' : List X}
+           (F : Hypergraph FlatGen As As')
+           (G : Hypergraph FlatGen Bs Bs')
+           (H : Hypergraph FlatGen Cs Cs')
+       → subst₂ _ (++-assoc As Bs Cs) (++-assoc As' Bs' Cs')
+                  (hTensor (hTensor F G) H)
+         ≅ᴴ hTensor F (hTensor G H)
+   #+end_src
+   This is itself a non-trivial structural claim.  Postulating it
+   buys the α-comm proof as a short chain analogous to ρ-nat.
+   Proving it from scratch is similar effort to
+   `hTensor-G-hEmpty-iso-substed` (the +0 postulate we currently
+   have — also unproven).
 
-   *Recommendation*: defer these to a future session / tactic
-   layer (Phase 4 `smcat` reflection).  Items 1–5 above already
-   bring the constructive-axiom count to 21 of 24, with the
-   remaining six being of genuinely higher complexity.
+** TODO [#B] 6d. Prove ~triangle-sound~
+   :PROPERTIES:
+   :effort: 3-4 h
+   :blocks:  nothing
+   :END:
 
-** Execution-order rationale
+   `id ⊗ λ⇒ ∘ α⇒{A,unit,B} ≈ ρ⇒ ⊗ id`.  Pure coherence (no free
+   morphism variables), so the two sides are *concrete*
+   hypergraphs once we unfold `⟪_⟫`.  Shape:
 
-   Items 1 → 2 → 3 → 4 → 5 → 6.
+   - LHS: `hComposeP (hTensor (hId A) (hId B))
+                      (subst₂ _ refl (++-assoc A _ B) (hId ((A⊗unit)⊗B)))`.
+     (Note: ⟪λ⇒{B}⟫ = hId B, no subst.)
+   - RHS: `hTensor (subst₂ _ refl eqA (hId (A⊗unit))) (hId B)`.
 
-   - *1 (30 min)* is pure code motion — minimal risk, enables
-     generic reasoning about hId-composition.
-   - *2 (2 h)* introduces the "strategic atom-ein" trick for a
-     generic `G`, confirming the pattern reused throughout.
-   - *3 (4 h)* is the biggest concrete proof; uses items 1 and
-     2 conceptually and closes idʳ immediately.
-   - *4 (2 h)* is mostly glue — each axiom becomes a 5–10 line
-     trans-≅ᴴ chain.
-   - *5 (3 h)* handles the subst₂ right-side pattern that items
-     1–3 don't cover.  Needs items 1 (for `idˡ-sound` in the
-     chain).
-   - *6* is left for a future session; if `smcat` tactic
-     materializes (Phase 4), these may become trivial.
+   Both sides reduce to a hypergraph with nV = flatten(A)+flatten(B)
+   and all vertex labels drawn from A ++ B.  The iso is an
+   identity-on-vertices modulo the different subst₂ boundaries.
 
-   Expected cumulative axiom-count progression:
-     Start: 12 / 24.
-     After 1+2+3: 13 / 24 (idʳ closed).
-     After 4: 14 / 24 (λ-nat closed).
-     After 5: 17 / 24 (ρ⇒∘ρ⇐, α⇒∘α⇐, ρ-nat closed).
-     After 6 (optional): 23 / 24 (all except perhaps pentagon).
+   Strategy: prove `LHS ≡ subst₂ ... (hTensor (hId A) (hId B))` and
+   `RHS ≡ subst₂ ... (hTensor (hId A) (hId B))` via
+   `hComposeP-subst-both` + `hCompose-hId-R-iso-generic` +
+   `hTensor-G-hEmpty-iso-substed` (as specialized to `hId A`).
+   Then use a final `subst₂-trans`/UIP-style cancellation to
+   equate the two subst₂ boundaries.
+
+** TODO [#C] 6e. Prove ~σ∘[f⊗g]≈[g⊗f]∘σ-sound~ (σ-naturality)
+   :PROPERTIES:
+   :effort: 5-8 h
+   :blocks:  nothing
+   :END:
+
+   Both sides compose an arbitrary ⟪f⊗g⟫ with a (reshaped) hSwap.
+
+   - LHS: `hComposeP (hTensor ⟪f⟫ ⟪g⟫) (hSwap B D)` : `(A++C) → (D++B)`.
+   - RHS: `hComposeP (hSwap A C) (hTensor ⟪g⟫ ⟪f⟫)` : `(A++C) → (D++B)`.
+
+   Template: `σ∘σ-proof`'s classify-based bijection, but with
+   `hTensor ⟪f⟫ ⟪g⟫` in place of one of the `hSwap`s.  The vertex
+   sets are structurally different (LHS = ⟪f⟫.nV + ⟪g⟫.nV +
+   count-non (hSwap B D).dom = ⟪f⟫.nV + ⟪g⟫.nV + 0 = ⟪f⟫.nV +
+   ⟪g⟫.nV; similarly for RHS).  So the vertex iso should be a swap
+   permutation of the `(⟪f⟫.nV + ⟪g⟫.nV)` Fin space.
+
+   Scale: σ∘σ-proof is ~600 lines; this would be of similar size.
+
+** TODO [#C] 6f. Prove ~hexagon-sound~ (symmetric hexagon)
+   :PROPERTIES:
+   :effort: 8 h
+   :blocks:  nothing
+   :END:
+
+   `id⊗σ ∘ α⇒ ∘ σ⊗id ≈ α⇒ ∘ σ ∘ α⇒`.  Three α⇒'s + three σ's on
+   each side.  All coherence (no free morphism), so both sides
+   reduce to concrete hypergraphs over `A⊗B⊗C`.
+
+   The two sides differ only in *which* association/swap order is
+   applied.  Vertex count on both = flatten(A)+flatten(B)+flatten(C).
+   The iso is a permutation bijection.
+
+   Strategy: likely via `classify` + mirror-witnesses on the
+   `(A+B+C) ↔ (B+C+A)` permutation (both sides realize this same
+   permutation through different compositions).  Sub-step: prove a
+   `hSwap-assoc-compose-iso` helper showing σ composed with α-family
+   normalizes to a specific permutation.
+
+** TODO [#C] 6g. Prove ~pentagon-sound~ (α-coherence)
+   :PROPERTIES:
+   :effort: 10+ h
+   :blocks:  nothing
+   :END:
+
+   `id⊗α⇒ ∘ α⇒ ∘ α⇒⊗id ≈ α⇒ ∘ α⇒{A⊗B,C,D}`.  Five α⇒ on LHS, two
+   on RHS.  Pure coherence; both sides reduce to hypergraphs over
+   `A⊗B⊗C⊗D` with vertex count `flatten(A)+flatten(B)+flatten(C)+flatten(D)`.
+
+   The naive ~hTensor-assoc-iso~ (see 6c) proved five times might
+   chain to give pentagon.  Alternatively, a dedicated
+   "associator-coherence" canonical form lemma handles it in one
+   step.  Either way this is multi-day work.
+
+   Could become trivial with Phase-4 `smcat` reflection tactic.
+
+** TODO [#C] 6h. Prove ~assoc-sound~ (hComposeP associativity)
+   :PROPERTIES:
+   :effort: 6-8 h
+   :blocks:  nothing
+   :END:
+
+   `(h∘g)∘f ≈ h∘(g∘f)`.  `hComposeP` is associative up to ≅ᴴ.
+   Both sides have `⟪f⟫.nV + count-non ⟪g⟫.dom + count-non ⟪h⟫.dom`
+   vertices; the iso rearranges the `+ _ + _` associativity at the
+   vertex level via `Fin (n + m + p) ≅ Fin (n + (m + p))`.
+
+   Strategy: define a "triple-classify" bijection that, given
+   `v : Fin (⟪f⟫.nV + count-non ⟪g⟫.dom + count-non ⟪h⟫.dom)`,
+   pattern-matches through two nested splitAts on both sides and
+   lands in the same element.  The label/edge fields follow the
+   same triple-classify dispatch.
+
+** TODO [#C] 6i. Prove ~⊗-∘-dist-sound~ (tensor/compose interchange)
+   :PROPERTIES:
+   :effort: 6-8 h
+   :blocks:  nothing
+   :END:
+
+   `(g∘f)⊗(g'∘f') ≈ (g⊗g')∘(f⊗f')`.  Vertex counts on both sides:
+   - LHS: `(⟪f⟫.nV + ⟪f'⟫.nV) + (count-non ⟪g⟫.dom + count-non ⟪g'⟫.dom)`
+   - RHS: `(⟪f⟫.nV + ⟪f'⟫.nV) + count-non (⟪g⟫⊗⟪g'⟫).dom`
+
+   Rest: `count-non (hTensor G G').dom = count-non G.dom + count-non G'.dom`
+   (to be proved as a helper, via `classify` distributing over
+   disjoint union of doms).  With that, the two `nV`s are
+   definitionally equal.
+
+   The iso itself is the `Fin (a+b + c+d) ≅ Fin ((a+c) + (b+d))`
+   shuffle, lifted through classify.
+
+** Remaining axioms — summary and execution order
+
+   | Axiom                | Class    | Effort    | Depends on              |
+   |----------------------+----------+-----------+-------------------------|
+   | ρ-nat (6b)           | naturality | 2-3 h   | subst₂-cancel-sym-l     |
+   | triangle (6d)        | coherence | 3-4 h    | +subst₂-trans-cancel    |
+   | α-comm (6c)          | naturality | 3-4 h   | +hTensor-assoc-iso      |
+   | σ-nat (6e)           | naturality | 5-8 h   | new 600-line iso        |
+   | hexagon (6f)         | coherence | 8 h      | +hSwap-assoc-normalize  |
+   | assoc (6h)           | structure | 6-8 h    | triple-classify         |
+   | ⊗-∘-dist (6i)        | structure | 6-8 h    | hTensor-dom-count-split |
+   | pentagon (6g)        | coherence | 10+ h    | assoc of hTensor-assoc  |
+
+   Total: roughly 40-60 h of focused proof work, plus several
+   large bridge lemmas (`hTensor-assoc-iso`,
+   `hTensor-dom-count-split`, `hSwap-assoc-normalize`).
+
+   *Suggested order* (most-reusable-infrastructure-first):
+     1. 6b ρ-nat — reuses existing helpers + one small subst₂ cancel.
+     2. 6d triangle — reuses 6b's subst₂ cancel.
+     3. 6c α-comm — needs `hTensor-assoc-iso` helper (postulatable).
+     4. 6h assoc — needs triple-classify helper, reuses nothing new.
+     5. 6i ⊗-∘-dist — needs `hTensor-dom-count-split`.
+     6. 6e σ-nat, 6f hexagon, 6g pentagon — most bespoke.
+
+   *Alternative plan*: skip 6b-6i and implement Phase 4 `smcat`
+   reflection tactic.  The tactic normalizes both sides of a
+   coherence equation by rewriting along the currently-proved
+   axioms, and discharges the remaining 8 by inspection of
+   normalized forms.  Expected: 2-3 weeks of tactic development,
+   but then these axioms (and any future ones) become free.
+
+** DONE Execution-order rationale (items 1–5)
+
+   Items 1 → 2 → 3 → 4 → 5 → 6a all completed earlier this work
+   stream.
+
+   - *1 (30 min)* — pure code motion; enabled generic
+     hId-composition reasoning.
+   - *2 (2 h)* — "strategic atom-ein" trick for a generic G.
+   - *3 (4 h)* — biggest concrete proof (idʳ closure).
+   - *4 (2 h)* — glue chain (λ-nat).
+   - *5 (3 h)* — subst₂ right-side + ρ/α flip-of-flip axioms
+     (postulating hTensor-G-hEmpty-iso-substed).
+   - *6a (0.5 day)* — dispatch infrastructure via
+     ~--lossy-unification~ + ~INJECTIVE_FOR_INFERENCE~.
+
+   Achieved cumulative axiom-count progression:
+     Start: 12 / 19 atomic.
+     After 1+2+3: 13 / 19 (idʳ closed).
+     After 4: 14 / 19 (λ-nat closed).
+     After 5: 17 / 19 (ρ⇐∘ρ⇒, α⇐∘α⇒, ρ⇒∘ρ⇐, α⇒∘α⇐ all closed).
+     After 6a: 17 / 19 dispatched individually (8 still postulated).
 
 * Remaining phases
 
@@ -683,15 +859,27 @@ meantime.
 * ~--safe~ status
 
 #+begin_src text
-module                                        --safe?
---------------------------------------------- -------
+module                                        --safe?  notes
+--------------------------------------------- -------  -------------------------------
 CategoricalCrypto.agda                        YES
 Categories.APROP                              YES
 Categories.APROP.Hypergraph.Core              YES
 Categories.APROP.Hypergraph.FromAPROP         YES
 Categories.APROP.Hypergraph.Iso               YES
 Categories.APROP.Hypergraph.Congruence        YES
-Categories.APROP.Hypergraph.Soundness         NO  (soundness-axiom)
+Categories.APROP.Hypergraph.CongruenceP       YES
+Categories.APROP.Hypergraph.PrunedCompose     YES
+Categories.APROP.Hypergraph.Prune             YES
+Categories.APROP.Hypergraph.Invariant         YES
+Categories.APROP.Hypergraph.HomTermInvariant  YES
+Categories.APROP.Hypergraph.Translation       YES
+Categories.APROP.Hypergraph.SoundnessAxioms   NO  (8 focused postulates + 2 sub-helpers)
+Categories.APROP.Hypergraph.Soundness         NO  (uses SoundnessAxioms, --lossy-unification)
 #+end_src
+
+Soundness is the only non-~--safe~ module in the Hypergraph tree.
+`--lossy-unification` on Soundness isn't inherently unsound (it's a
+heuristic unifier, not a logical principle), but it's disabled by
+default for `--safe` because errors can be harder to diagnose.
 
 Soundness requires Option A or B above before it can be promoted.
