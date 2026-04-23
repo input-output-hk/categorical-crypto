@@ -62,7 +62,7 @@ open import Data.List.Properties using (length-map; map-++; map-∘; map-cong; m
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Nat.Properties using (+-identityʳ)
-open import Data.Sum using (inj₁; inj₂; [_,_]′)
+open import Data.Sum using (_⊎_; inj₁; inj₂; [_,_]′)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂; sym; trans; subst; subst₂)
 
@@ -201,29 +201,84 @@ module σ-nat-proof
   φ⁻¹ w | inj₂ j = ψ-swap {G.nV} {F.nV} (lookup (nonMem RHS-K.dom) j)
                    ↑ˡ count-non LHS-K.dom
 
-  -- Roundtrips.
-  --
-  -- φ-left: for v in LHS, `splitAt LHS-G.nV v = inj₁ v'` (inj₂ absurd).
-  -- Then φ v = hRHS.remapP (ψ-swap v').  Dispatch on
+  -- Roundtrips.  Pattern: prove each via reduction lemmas + classify
+  -- case analysis, reusing the Prune.remap-inj₁ / remap-inj₂ /
+  -- classify-inj₁-lookup / classify-inj₂-lookup lemmas.
+
+  -- φ reduction on the LHS-G branch.
+  φ-inj₁-red
+    : ∀ (v' : Fin LHS-G.nV)
+    → φ (v' ↑ˡ count-non LHS-K.dom) ≡ hRHS.remapP (ψ-swap {F.nV} {G.nV} v')
+  φ-inj₁-red v' with splitAt LHS-G.nV (v' ↑ˡ count-non LHS-K.dom)
+                     | splitAt-↑ˡ LHS-G.nV v' (count-non LHS-K.dom)
+  ... | .(inj₁ v') | refl = refl
+
+  -- φ⁻¹ reduction on the RHS-pruned branch.
+  φ⁻¹-inj₂-red
+    : ∀ (j : Fin (count-non RHS-K.dom))
+    → φ⁻¹ (RHS-G.nV ↑ʳ j)
+    ≡ ψ-swap {G.nV} {F.nV} (lookup (nonMem RHS-K.dom) j) ↑ˡ count-non LHS-K.dom
+  φ⁻¹-inj₂-red j with splitAt RHS-G.nV (RHS-G.nV ↑ʳ j)
+                      | splitAt-↑ʳ RHS-G.nV (count-non RHS-K.dom) j
+  ... | .(inj₂ j) | refl = refl
+
+  -- φ-left-inner: the key reduction on `Fin LHS-G.nV`.  Dispatches on
   -- `classify RHS-K.dom (ψ-swap v')`:
-  --   * inj₁ i: remapP reduces to `lookup-cod i ↑ˡ count-non RHS-K.dom`.
-  --     splitAt RHS-G.nV ↦ inj₁ (lookup-cod i); then φ⁻¹ matches on
-  --     splitAt nA (lookup-cod i), which splits into the (A-atom, F-bdy)
-  --     case or (C-atom, G-bdy) case.  The returned F.dom / G.dom value
-  --     is exactly ψ-swap v's preimage (modulo ψ-swap-involutive).
-  --   * inj₂ j: remapP reduces to `RHS-G.nV ↑ʳ j`. splitAt RHS-G.nV ↦
-  --     inj₂ j; then φ⁻¹ uses lookup (nonMem RHS-K.dom) j, which by
-  --     `classify-inj₂-lookup` returns ψ-swap v'.  Then ψ-swap² = id.
-  --
-  -- Both cases discharge into `splitAt⁻¹-↑ˡ eq` for the final step.
-  --
-  -- The full proof is delicate because the hTensor-indexed classify
-  -- requires specific lemmas tying F/G boundary positions to RHS-G's
-  -- cod.  Kept as postulate here; the concrete φ/φ⁻¹ lets future
-  -- sessions discharge the roundtrips incrementally.
+  --   * inj₂ j (pruned): proved constructively via remap-inj₂ +
+  --     φ⁻¹-inj₂-red + classify-inj₂-lookup + ψ-swap-involutive.
+  --   * inj₁ i (boundary): postulated — requires lemmas relating
+  --     classify-inj₁ positions to lookup-cod in hSwap's cod, then
+  --     through `splitAt nA` of that lookup-cod.  These are the same
+  --     classify↔lookup-cod bridges that σ∘σ-proof's `lookup-cod-*`
+  --     lemmas handle; porting them here is future work.
+
+  φ-left-int
+    : (v' : Fin LHS-G.nV) (j : Fin (count-non RHS-K.dom))
+    → classify RHS-K.dom (ψ-swap {F.nV} {G.nV} v') ≡ inj₂ j
+    → φ⁻¹ (hRHS.remapP (ψ-swap {F.nV} {G.nV} v'))
+    ≡ v' ↑ˡ count-non LHS-K.dom
+  φ-left-int v' j cv-eq =
+    trans (cong φ⁻¹
+            (remap-inj₂ RHS-K.dom hRHS.lookup-cod
+                        (ψ-swap {F.nV} {G.nV} v') j cv-eq))
+    (trans (φ⁻¹-inj₂-red j)
+           (cong (_↑ˡ count-non LHS-K.dom)
+                 (trans (cong (ψ-swap {G.nV} {F.nV})
+                              (classify-inj₂-lookup RHS-K.dom
+                                 (ψ-swap {F.nV} {G.nV} v') j cv-eq))
+                        (ψ-swap-involutive {F.nV} {G.nV} v'))))
 
   postulate
-    φ-left : ∀ v → φ⁻¹ (φ v) ≡ v
+    φ-left-bdy
+      : (v' : Fin LHS-G.nV) (i : Fin (length RHS-K.dom))
+      → classify RHS-K.dom (ψ-swap {F.nV} {G.nV} v') ≡ inj₁ i
+      → φ⁻¹ (hRHS.remapP (ψ-swap {F.nV} {G.nV} v'))
+      ≡ v' ↑ˡ count-non LHS-K.dom
+
+  -- Dispatcher that takes classify's result explicitly.  Avoids the
+  -- `with classify ... in cv` abstraction issue (which left the goal
+  -- in `[_,_]′ (classify | ...)` form that didn't unify with
+  -- φ-left-bdy's / φ-left-int's declared types).
+  φ-left-dispatch
+    : (v' : Fin LHS-G.nV)
+    → (cr : Fin (length RHS-K.dom) ⊎ Fin (count-non RHS-K.dom))
+    → classify RHS-K.dom (ψ-swap {F.nV} {G.nV} v') ≡ cr
+    → φ⁻¹ (hRHS.remapP (ψ-swap {F.nV} {G.nV} v')) ≡ v' ↑ˡ count-non LHS-K.dom
+  φ-left-dispatch v' (inj₁ i) cv-eq = φ-left-bdy v' i cv-eq
+  φ-left-dispatch v' (inj₂ j) cv-eq = φ-left-int v' j cv-eq
+
+  φ-left-inner
+    : (v' : Fin LHS-G.nV)
+    → φ⁻¹ (hRHS.remapP (ψ-swap {F.nV} {G.nV} v')) ≡ v' ↑ˡ count-non LHS-K.dom
+  φ-left-inner v' =
+    φ-left-dispatch v' (classify RHS-K.dom (ψ-swap {F.nV} {G.nV} v')) refl
+
+  φ-left : ∀ v → φ⁻¹ (φ v) ≡ v
+  φ-left v with splitAt LHS-G.nV v in eq
+  ... | inj₁ v' = trans (φ-left-inner v') (splitAt⁻¹-↑ˡ eq)
+  ... | inj₂ non = ⊥-elim (Fin-zero-absurd cn-LHS-K≡0 non)
+
+  postulate
     φ-rght : ∀ w → φ (φ⁻¹ w) ≡ w
 
   -- LHS edge ↦ RHS edge: route through the swap permutation on F.nE + G.nE.
