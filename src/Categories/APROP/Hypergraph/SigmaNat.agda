@@ -135,42 +135,18 @@ module σ-nat-proof
     Fin-zero-absurd : ∀ {n} → n ≡ 0 → Fin n → ⊥
     Fin-zero-absurd refl ()
 
-  --------------------------------------------------------------------------
-  -- Vertex bijection.
-  --
-  -- LHS.nV = LHS-G.nV + count-non LHS-K.dom = (F.nV + G.nV) + 0.
-  -- RHS.nV = RHS-G.nV + count-non RHS-K.dom = (nA + nC) + count-non (hTensor G F).dom.
-  --
-  -- The iso swaps the F-half and G-half of the underlying `F.nV + G.nV`
-  -- vertex space.  On the LHS side, the "pruned" K block is empty
-  -- (by `cn-LHS-K≡0`); on the RHS side, every F/G vertex is classified
-  -- against `(hTensor G F).dom` to decide whether it's a "border" vertex
-  -- (mapped onto the swap-permuted RHS-G block) or an "interior" vertex
-  -- (mapped onto RHS's K-pruned slot).
-  --
-  -- Writing the full bijection explicitly here requires the
-  -- classify-based machinery developed for σ∘σ-proof (mirror-witnesses
-  -- in F.cod / G.cod, `toℕ-injective` tying together K-side and G-side
-  -- indices).  We declare the bijection `φ / φ⁻¹` and `φ-left / φ-rght`
-  -- as postulates and build the full ≅ᴴ assembly on top, leaving the
-  -- classify-chase for a dedicated follow-up.
+    -- Boundary-length equations: `length F.dom ≡ nA` from F.dom-ok and
+    -- the fact that `map vlab F.dom ≡ flatten A` has equal lengths.
+    F-dom-len : length F.dom ≡ nA
+    F-dom-len = trans (sym (length-map F.vlab F.dom)) (cong length F.dom-ok)
 
-  postulate
-    φ    : Fin LHS.nV → Fin RHS.nV
-    φ⁻¹  : Fin RHS.nV → Fin LHS.nV
-    φ-left : ∀ v → φ⁻¹ (φ v) ≡ v
-    φ-rght : ∀ w → φ (φ⁻¹ w) ≡ w
+    G-dom-len : length G.dom ≡ nC
+    G-dom-len = trans (sym (length-map G.vlab G.dom)) (cong length G.dom-ok)
 
   --------------------------------------------------------------------------
-  -- Edge bijection.
-  --
-  -- LHS.nE = LHS-G.nE + LHS-K.nE = (F.nE + G.nE) + 0.
-  -- RHS.nE = RHS-G.nE + RHS-K.nE = 0 + (G.nE + F.nE).
-  --
-  -- Iso: swap halves of the F.nE + G.nE space.  `nE` arithmetic collapses
-  -- because hSwap contributes 0 on both sides.
+  -- Natural swap bijection on Fin (m + n) ↔ Fin (n + m).  Used for both
+  -- edge and vertex bijections below.
 
-  -- Natural swap bijection on F.nE + G.nE ↔ G.nE + F.nE.
   ψ-swap : ∀ {m n} → Fin (m + n) → Fin (n + m)
   ψ-swap {m} {n} e with splitAt m e
   ... | inj₁ eL = n ↑ʳ eL
@@ -182,6 +158,73 @@ module σ-nat-proof
   ψ-swap-involutive {m} {n} e with splitAt m e in eq
   ... | inj₁ eL rewrite splitAt-↑ʳ n m eL = splitAt⁻¹-↑ˡ eq
   ... | inj₂ eR rewrite splitAt-↑ˡ n eR m = splitAt⁻¹-↑ʳ eq
+
+  --------------------------------------------------------------------------
+  -- Vertex bijection.
+  --
+  -- LHS.nV = LHS-G.nV + count-non LHS-K.dom = (F.nV + G.nV) + 0
+  --   (count-non LHS-K.dom ≡ 0 because hSwap's dom covers all vertices).
+  -- RHS.nV = RHS-G.nV + count-non RHS-K.dom = (nA + nC) + count-non (hTensor G F).dom.
+  --
+  -- φ uses `hRHS.remapP ∘ ψ-swap` on the F+G half: swap F↔G, then let
+  -- hComposeP's pruning machinery route each vertex to its place in RHS.
+  -- The LHS-K side is absurd (cn-LHS-K≡0).
+  --
+  -- φ⁻¹ inverts by case analysis on `splitAt RHS-G.nV`:
+  --   * If the target is a boundary vertex (RHS-G), decode via
+  --     `splitAt nA` to recover which F-boundary or G-boundary atom it
+  --     represents, then lookup the corresponding F.dom / G.dom entry
+  --     and embed into LHS.
+  --   * If the target is a K-pruned vertex, use `lookup (nonMem RHS-K.dom)`
+  --     to recover the underlying K-side vertex, then swap back via
+  --     `ψ-swap {G.nV} {F.nV}`.
+  --
+  -- All wrapped with `_↑ˡ count-non LHS-K.dom` to embed Fin LHS-G.nV into
+  -- Fin LHS.nV.
+
+  φ : Fin LHS.nV → Fin RHS.nV
+  φ v with splitAt LHS-G.nV v
+  ... | inj₁ v' = hRHS.remapP (ψ-swap {F.nV} {G.nV} v')
+  ... | inj₂ non = ⊥-elim (Fin-zero-absurd cn-LHS-K≡0 non)
+
+  -- φ⁻¹: case on splitAt RHS-G.nV, then on splitAt nA for the boundary side.
+  -- For boundaries, recover via `lookup F.dom a` / `lookup G.dom c'`.
+  -- For pruned, recover via `lookup (nonMem RHS-K.dom) j` + ψ-swap back.
+
+  φ⁻¹ : Fin RHS.nV → Fin LHS.nV
+  φ⁻¹ w with splitAt RHS-G.nV w
+  ... | inj₁ c with splitAt nA c
+  ...    | inj₁ a  = (lookup F.dom (cast (sym F-dom-len) a) ↑ˡ G.nV)
+                     ↑ˡ count-non LHS-K.dom
+  ...    | inj₂ c' = (F.nV ↑ʳ lookup G.dom (cast (sym G-dom-len) c'))
+                     ↑ˡ count-non LHS-K.dom
+  φ⁻¹ w | inj₂ j = ψ-swap {G.nV} {F.nV} (lookup (nonMem RHS-K.dom) j)
+                   ↑ˡ count-non LHS-K.dom
+
+  -- Roundtrips.
+  --
+  -- φ-left: for v in LHS, `splitAt LHS-G.nV v = inj₁ v'` (inj₂ absurd).
+  -- Then φ v = hRHS.remapP (ψ-swap v').  Dispatch on
+  -- `classify RHS-K.dom (ψ-swap v')`:
+  --   * inj₁ i: remapP reduces to `lookup-cod i ↑ˡ count-non RHS-K.dom`.
+  --     splitAt RHS-G.nV ↦ inj₁ (lookup-cod i); then φ⁻¹ matches on
+  --     splitAt nA (lookup-cod i), which splits into the (A-atom, F-bdy)
+  --     case or (C-atom, G-bdy) case.  The returned F.dom / G.dom value
+  --     is exactly ψ-swap v's preimage (modulo ψ-swap-involutive).
+  --   * inj₂ j: remapP reduces to `RHS-G.nV ↑ʳ j`. splitAt RHS-G.nV ↦
+  --     inj₂ j; then φ⁻¹ uses lookup (nonMem RHS-K.dom) j, which by
+  --     `classify-inj₂-lookup` returns ψ-swap v'.  Then ψ-swap² = id.
+  --
+  -- Both cases discharge into `splitAt⁻¹-↑ˡ eq` for the final step.
+  --
+  -- The full proof is delicate because the hTensor-indexed classify
+  -- requires specific lemmas tying F/G boundary positions to RHS-G's
+  -- cod.  Kept as postulate here; the concrete φ/φ⁻¹ lets future
+  -- sessions discharge the roundtrips incrementally.
+
+  postulate
+    φ-left : ∀ v → φ⁻¹ (φ v) ≡ v
+    φ-rght : ∀ w → φ (φ⁻¹ w) ≡ w
 
   -- LHS edge ↦ RHS edge: route through the swap permutation on F.nE + G.nE.
   -- LHS.nE = (F.nE + G.nE) + 0  (first coord is the hTensor split).
