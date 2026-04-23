@@ -1566,20 +1566,23 @@ module σ∘σ-proof (A B : ObjTerm) where
 -- proof; deferred to a future session or the Phase-4 `smcat`
 -- reflection tactic.
 
+-- α-comm-sound: proved constructively in `AlphaCommSound`.
+-- Dispatched in Soundness.agda by importing both this file and
+-- AlphaCommSound (not re-exported here to avoid a circular import;
+-- AlphaCommSound depends on `hCompose-hId-R-iso-generic` etc. which live here).
+
 postulate
   -- ρ⇒ ∘ f⊗id ≈ f ∘ ρ⇒  (unitorʳ-commute)
   ρ⇒∘f⊗id≈f∘ρ⇒-sound
     : ∀ {A B} {f : HomTerm A B}
     → ⟪ ρ⇒ {B} ∘ f ⊗₁ id {unit} ⟫ ≅ᴴ ⟪ f ∘ ρ⇒ {A} ⟫
 
-  -- α⇒ ∘ (f⊗g)⊗h ≈ f⊗(g⊗h) ∘ α⇒  (assoc-commute / α-comm)
-  α-comm-sound
-    : ∀ {A B C D E F} {f : HomTerm A B} {g : HomTerm C D} {h : HomTerm E F}
-    → ⟪ α⇒ {B} {D} {F} ∘ (f ⊗₁ g) ⊗₁ h ⟫ ≅ᴴ ⟪ f ⊗₁ (g ⊗₁ h) ∘ α⇒ {A} {C} {E} ⟫
-
-  -- NOTE: `triangle-sound` is now PROVED constructively in
-  -- `Categories.APROP.Hypergraph.Triangle`.  Soundness.agda imports it
-  -- from there directly, so no postulate is needed in this module.
+  -- NOTE: `triangle-sound` and `α-comm-sound` are now proved
+  -- constructively in their own modules:
+  --   * `Categories.APROP.Hypergraph.Triangle`
+  --   * `Categories.APROP.Hypergraph.AlphaCommSound`
+  -- Soundness.agda imports them from there directly, so no postulates
+  -- are needed in this module.
 
   -- pentagon: id⊗α⇒ ∘ α⇒ ∘ α⇒⊗id ≈ α⇒ ∘ α⇒{A⊗B,C,D}
   pentagon-sound
