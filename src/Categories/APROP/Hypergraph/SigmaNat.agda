@@ -49,6 +49,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
   using (FlatGen; flatten; hTensor; hSwap; hId; range;
+         map-via-inj; map-via-raise;
          module hTensor-impl)
 open import Categories.APROP.Hypergraph.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
@@ -397,17 +398,106 @@ module σ-nat-proof
   -- edges.  Separated from the iso assembly so each can be discharged
   -- independently.
 
+  --------------------------------------------------------------------------
+  -- Edge-label preservation: atom-ein, atom-eout, ψ-elab.
+  --
+  -- Pattern (mirrors Congruence.agda's `atom-ein-T` / `atom-eout-T` /
+  -- `ψ-elab-T`):  case on `splitAt LHS-G.nE e` (inj₂ absurd), then on
+  -- `splitAt F.nE eLG`.  In each branch, LHS.ein / LHS.eout reduce via
+  -- the outer `with`-hoisting on the LHS side's hComposeP + hTensor,
+  -- while RHS requires explicit `hTR.ein-c-inj{₁,₂}-red` to peel the
+  -- RHS-K's hTensor structure (since RHS-G.nE = 0 makes RHS's outer
+  -- hComposeP auto-reduce, but the swap puts us on a specific branch
+  -- of RHS-K = hTensor G F).
+
+  -- ψ-swap reduction lemmas (dual-with).  Pattern analogous to
+  -- `splitAt-↑ˡ` / `splitAt-↑ʳ` + dot pattern.
+  ψ-swap-inj₁-red : ∀ {m n} (eL : Fin m) → ψ-swap {m} {n} (eL ↑ˡ n) ≡ n ↑ʳ eL
+  ψ-swap-inj₁-red {m} {n} eL with splitAt m (eL ↑ˡ n)
+                                  | splitAt-↑ˡ m eL n
+  ... | .(inj₁ eL) | refl = refl
+
+  ψ-swap-inj₂-red : ∀ {m n} (eR : Fin n) → ψ-swap {m} {n} (m ↑ʳ eR) ≡ eR ↑ˡ m
+  ψ-swap-inj₂-red {m} {n} eR with splitAt m (m ↑ʳ eR)
+                                  | splitAt-↑ʳ m n eR
+  ... | .(inj₂ eR) | refl = refl
+
+  -- subst₂ helpers (mirror Congruence's private helpers).
+  private
+    subst₂-trans : ∀ {a b} {A : Set a} {B : Set b} {P : A → B → Set}
+                     {x₁ x₂ x₃ y₁ y₂ y₃}
+                 → (p : x₁ ≡ x₂) (p' : x₂ ≡ x₃)
+                   (q : y₁ ≡ y₂) (q' : y₂ ≡ y₃)
+                 → (z : P x₁ y₁)
+                 → subst₂ P p' q' (subst₂ P p q z)
+                 ≡ subst₂ P (trans p p') (trans q q') z
+    subst₂-trans refl refl refl refl _ = refl
+
+    subst₂-sym-subst₂ : ∀ {a b} {A : Set a} {B : Set b} {P : A → B → Set}
+                          {x x' y y'}
+                      → (p : x ≡ x') (q : y ≡ y') (z : P x y)
+                      → subst₂ P (sym p) (sym q) (subst₂ P p q z) ≡ z
+    subst₂-sym-subst₂ refl refl _ = refl
+
+  -- atom-ein: for an F-edge eLG = fE ↑ˡ G.nE:
+  --   LHS = map F.vlab (F.ein fE) via two `map-via-inj` collapses.
+  --   RHS = map F.vlab (F.ein fE) via hTR.ein-c-inj₂-red + map-via-remapP +
+  --   map-via-raise (injR side of hTensor G F).
+  -- For a G-edge eLG = F.nE ↑ʳ gE:
+  --   LHS = map G.vlab (G.ein gE) via map-via-inj + map-via-raise.
+  --   RHS = map G.vlab (G.ein gE) via hTR.ein-c-inj₁-red + map-via-remapP +
+  --   map-via-inj (injL side of hTensor G F).
+
+  atom-ein : ∀ e → map RHS.vlab (RHS.ein (ψ e))
+                 ≡ map LHS.vlab (LHS.ein e)
+  atom-ein e with splitAt LHS-G.nE e
+  ... | inj₂ absurd = ⊥-elim (Fin-zero-absurd LHS-K-nE≡0 absurd)
+  ... | inj₁ eLG with splitAt F.nE eLG
+  ...   | inj₁ fE =
+    -- RHS side: ψ-swap's inj₁ gives G.nE ↑ʳ fE; RHS.ein unfolds via the
+    -- RHS-G.nE = 0 reduction.
+    trans (cong (map RHS.vlab)
+                (cong (map hRHS.remapP) (hTR.ein-c-inj₂-red fE)))
+    (trans (sym (hRHS.map-via-remapP (map hTR.injR (F.ein fE))))
+    (trans (sym (map-via-raise hTR.vlab-injR (F.ein fE)))
+           -- Now: map F.vlab (F.ein fE) on both sides.
+    (trans (map-via-inj hTL.vlab-injL (F.ein fE))
+           (map-via-inj hLHS.vlab-injL (map hTL.injL (F.ein fE))))))
+  ...   | inj₂ gE =
+    -- RHS side: ψ-swap's inj₂ gives gE ↑ˡ F.nE; RHS-K.ein via inj₁-red.
+    trans (cong (map RHS.vlab)
+                (cong (map hRHS.remapP) (hTR.ein-c-inj₁-red gE)))
+    (trans (sym (hRHS.map-via-remapP (map hTR.injL (G.ein gE))))
+    (trans (sym (map-via-inj hTR.vlab-injL (G.ein gE)))
+    (trans (map-via-raise hTL.vlab-injR (G.ein gE))
+           (map-via-inj hLHS.vlab-injL (map hTL.injR (G.ein gE))))))
+
+  atom-eout : ∀ e → map RHS.vlab (RHS.eout (ψ e))
+                  ≡ map LHS.vlab (LHS.eout e)
+  atom-eout e with splitAt LHS-G.nE e
+  ... | inj₂ absurd = ⊥-elim (Fin-zero-absurd LHS-K-nE≡0 absurd)
+  ... | inj₁ eLG with splitAt F.nE eLG
+  ...   | inj₁ fE =
+    trans (cong (map RHS.vlab)
+                (cong (map hRHS.remapP) (hTR.eout-c-inj₂-red fE)))
+    (trans (sym (hRHS.map-via-remapP (map hTR.injR (F.eout fE))))
+    (trans (sym (map-via-raise hTR.vlab-injR (F.eout fE)))
+    (trans (map-via-inj hTL.vlab-injL (F.eout fE))
+           (map-via-inj hLHS.vlab-injL (map hTL.injL (F.eout fE))))))
+  ...   | inj₂ gE =
+    trans (cong (map RHS.vlab)
+                (cong (map hRHS.remapP) (hTR.eout-c-inj₁-red gE)))
+    (trans (sym (hRHS.map-via-remapP (map hTR.injL (G.eout gE))))
+    (trans (sym (map-via-inj hTR.vlab-injL (G.eout gE)))
+    (trans (map-via-raise hTL.vlab-injR (G.eout gE))
+           (map-via-inj hLHS.vlab-injL (map hTL.injR (G.eout gE))))))
+
   postulate
     φ-lab   : ∀ v → RHS.vlab (φ v) ≡ LHS.vlab v
     ψ-ein   : ∀ e → RHS.ein (ψ e) ≡ map φ (LHS.ein e)
     ψ-eout  : ∀ e → RHS.eout (ψ e) ≡ map φ (LHS.eout e)
     φ-dom   : RHS.dom ≡ map φ LHS.dom
     φ-cod   : RHS.cod ≡ map φ LHS.cod
-
-    atom-ein  : ∀ e → map RHS.vlab (RHS.ein (ψ e))
-                    ≡ map LHS.vlab (LHS.ein e)
-    atom-eout : ∀ e → map RHS.vlab (RHS.eout (ψ e))
-                    ≡ map LHS.vlab (LHS.eout e)
 
     ψ-elab    : ∀ e → subst₂ FlatGen (atom-ein e) (atom-eout e)
                                       (RHS.elab (ψ e))
