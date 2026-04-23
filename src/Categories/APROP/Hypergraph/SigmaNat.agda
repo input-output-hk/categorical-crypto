@@ -3,11 +3,20 @@
 --------------------------------------------------------------------------------
 -- σ-naturality: `σ∘[f⊗g]≈[g⊗f]∘σ-sound`.
 --
--- Partial constructive proof: vertex and edge bijections are defined
--- explicitly; the 8 `_≅ᴴ_` record fields beyond the bijection functions
--- are factored out as named internal postulates so they can be
--- discharged individually in future sessions.  Dispatches into
--- Soundness.agda unchanged.
+-- Partial constructive proof: the edge bijection (ψ, ψ⁻¹, ψ-left,
+-- ψ-rght) is fully constructive via `ψ-swap` + `ψ-swap-involutive`.
+-- Both sides' pruned K blocks contribute 0 edges (hSwap has no edges),
+-- so edge bookkeeping reduces to a swap on `Fin (F.nE + G.nE)`.
+--
+-- The vertex bijection (φ, φ⁻¹, φ-left, φ-rght) is still postulated:
+-- it requires a classify-based construction parallel to σ∘σ-proof's
+-- but more involved because both F and G have interior vertices that
+-- must route through RHS's K-pruned tail.
+--
+-- 5 structural field postulates (φ-lab, ψ-ein, ψ-eout, φ-dom, φ-cod)
+-- and 3 edge-label field postulates (atom-ein, atom-eout, ψ-elab)
+-- depend on the concrete φ; they are factored into named postulates
+-- so future sessions can discharge each one independently.
 --
 -- LHS = hComposeP (hTensor F G) (hSwap B D)
 -- RHS = hComposeP (hSwap A C) (hTensor G F)
