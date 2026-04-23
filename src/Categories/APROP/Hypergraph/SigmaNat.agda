@@ -3,28 +3,40 @@
 --------------------------------------------------------------------------------
 -- σ-naturality: `σ∘[f⊗g]≈[g⊗f]∘σ-sound`.
 --
--- Partial constructive proof: the edge bijection (ψ, ψ⁻¹, ψ-left,
--- ψ-rght) is fully constructive via `ψ-swap` + `ψ-swap-involutive`.
--- Both sides' pruned K blocks contribute 0 edges (hSwap has no edges),
--- so edge bookkeeping reduces to a swap on `Fin (F.nE + G.nE)`.
---
--- The vertex bijection (φ, φ⁻¹, φ-left, φ-rght) is still postulated:
--- it requires a classify-based construction parallel to σ∘σ-proof's
--- but more involved because both F and G have interior vertices that
--- must route through RHS's K-pruned tail.
---
--- 5 structural field postulates (φ-lab, ψ-ein, ψ-eout, φ-dom, φ-cod)
--- and 3 edge-label field postulates (atom-ein, atom-eout, ψ-elab)
--- depend on the concrete φ; they are factored into named postulates
--- so future sessions can discharge each one independently.
---
 -- LHS = hComposeP (hTensor F G) (hSwap B D)
 -- RHS = hComposeP (hSwap A C) (hTensor G F)
 --
--- Both sides have vertex count F.nV + G.nV (via
--- hSwap-count-non-dom on one side, length F.dom + count-non F.dom = F.nV
--- on the other), and edge count F.nE + G.nE.  The iso's φ / ψ are
--- swap permutations on those spaces.
+-- Both sides have vertex count F.nV + G.nV and edge count F.nE + G.nE.
+-- The iso's φ / ψ are swap permutations on those spaces.
+--
+-- Current constructive status:
+--
+-- Edge bijection (4/4 COMPLETE):
+--   * ψ, ψ⁻¹, ψ-left, ψ-rght  — proved via `ψ-swap` +
+--     `ψ-swap-involutive`.  Both sides' pruned K blocks contribute 0
+--     edges (hSwap has no edges), so edge bookkeeping reduces to a
+--     swap on `Fin (F.nE + G.nE)`.
+--
+-- Vertex bijection (2/4 COMPLETE, 2/4 partial):
+--   * φ, φ⁻¹  — concrete formulas: φ uses `hRHS.remapP ∘ ψ-swap`
+--     on the F+G half; φ⁻¹ case-splits on `splitAt RHS-G.nV` then
+--     `splitAt nA` for boundary, or `lookup (nonMem RHS-K.dom)` for
+--     the pruned side, all composed with ψ-swap back and embedded.
+--   * φ-left  — PROVED on the interior branch via `remap-inj₂`,
+--     `classify-inj₂-lookup`, and `ψ-swap-involutive`.  BOUNDARY
+--     branch is postulated as `φ-left-bdy`.
+--   * φ-rght  — PROVED on the interior branch analogously using
+--     `classify-lookup-nonMem`.  BOUNDARY branch is postulated as
+--     `φ-rght-bdy`.
+--
+-- The boundary cases (φ-left-bdy, φ-rght-bdy) each require specific
+-- classify↔lookup-cod bridges tying F/G boundary positions to RHS-G's
+-- cod (a mirror of σ∘σ-proof's `lookup-cod-inject+-nA` / `-raise-nB`
+-- lemmas but routed through the swap permutation).
+--
+-- 5 structural field postulates (φ-lab, ψ-ein, ψ-eout, φ-dom, φ-cod)
+-- and 3 edge-label field postulates (atom-ein, atom-eout, ψ-elab)
+-- remain, bridging concrete φ/ψ to the `_≅ᴴ_` record fields.
 --
 -- Because this file contains internal postulates, it is not `--safe`.
 --------------------------------------------------------------------------------
