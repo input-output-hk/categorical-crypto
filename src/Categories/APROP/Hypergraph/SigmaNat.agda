@@ -455,7 +455,7 @@ module σ-nat-proof
     map-via-remapP-natural
       : ∀ {xs₁ xs₂ : List (Fin RHS-K.nV)} (p : xs₁ ≡ xs₂)
       → trans (hRHS.map-via-remapP xs₁)
-              (cong (λ xs → map RHS.vlab (map hRHS.remapP xs)) p)
+              (cong (map RHS.vlab) (cong (map hRHS.remapP) p))
       ≡ trans (cong (map RHS-K.vlab) p) (hRHS.map-via-remapP xs₂)
     map-via-remapP-natural refl = trans-reflʳ (hRHS.map-via-remapP _)
 
@@ -512,18 +512,123 @@ module σ-nat-proof
     (trans (map-via-raise hTL.vlab-injR (G.eout gE))
            (map-via-inj hLHS.vlab-injL (map hTL.injR (G.eout gE))))))
 
-  -- ψ-elab.  Chain (for F-edge case, mirror for G-edge):
-  --   * sym subst₂-trans A rest _ — split A off
-  --   * collapse trans β̄o A into trans π β̄ via `map-via-remapP-natural`
-  --   * split π off, apply `hTR.elab-c-inj₂ fE` — reach `subst₂ γ (F.elab fE)`
-  --   * subst₂-sym-subst₂ cancels β̄ + sym β̄
-  --   * second subst₂-sym-subst₂ cancels γ + sym γ
-  --   * remainder is subst₂ (trans D E) (F.elab fE) = LHS.elab e (definitional)
+  -- ψ-elab.  Case-by-case chain using the foundations above.
   --
-  -- Full proof ~60 lines per case, following the exact `ψ-elab-T` pattern
-  -- in Congruence.agda.  The foundations are in place — `subst₂-trans`,
-  -- `subst₂-sym-subst₂`, `trans-reflʳ`, and `map-via-remapP-natural` above.
-  -- Kept as postulate; future sessions can discharge it using those helpers.
+  -- For the F-edge branch (splitAt F.nE eLG = inj₁ fE):
+  --   atom-ein = trans A (trans (sym β̄) (trans (sym γ) (trans D E)))
+  -- Chain:
+  --   Σ₁: sym (subst₂-trans A rest …) — split A off outer
+  --   Σ₂: subst₂-trans β̄o A …        — combine inner β̄o + A
+  --   Σ₃: cong₂ … nat nat'           — nat: trans β̄o A ≡ trans π β̄
+  --   Σ₄: sym (subst₂-trans π β̄ …)   — split π off
+  --   Σ₅: cong … hTR.elab-c-inj₂ fE  — RHS-K.elab → subst₂ γ (F.elab fE)
+  --   Σ₆: sym (subst₂-trans (sym β̄) rest₂ …) — split (sym β̄) off
+  --   Σ₇: subst₂-sym-subst₂ β̄ β̄'     — cancel β̄ + sym β̄
+  --   Σ₈: sym (subst₂-trans (sym γ) (trans D E) …) — split (sym γ) off
+  --   Σ₉: subst₂-sym-subst₂ γ γ'     — cancel γ + sym γ
+  --   Σ₁₀: sym (subst₂-trans D E …)  — split (trans D E) back into D then E
+  --         which matches LHS.elab e (definitional in the with context).
+
+  ψ-elab : ∀ e → subst₂ FlatGen (atom-ein e) (atom-eout e)
+                                 (RHS.elab (ψ e))
+               ≡ LHS.elab e
+  ψ-elab e with splitAt LHS-G.nE e
+  ... | inj₂ absurd = ⊥-elim (Fin-zero-absurd LHS-K-nE≡0 absurd)
+  ... | inj₁ eLG with splitAt F.nE eLG
+  ...   | inj₁ fE =
+    let
+      A   = cong (map RHS.vlab) (cong (map hRHS.remapP) (hTR.ein-c-inj₂-red  fE))
+      A'  = cong (map RHS.vlab) (cong (map hRHS.remapP) (hTR.eout-c-inj₂-red fE))
+      β̄   = hRHS.map-via-remapP (map hTR.injR (F.ein  fE))
+      β̄'  = hRHS.map-via-remapP (map hTR.injR (F.eout fE))
+      β̄o  = hRHS.map-via-remapP (RHS-K.ein  (G.nE ↑ʳ fE))
+      β̄o' = hRHS.map-via-remapP (RHS-K.eout (G.nE ↑ʳ fE))
+      π   = cong (map RHS-K.vlab) (hTR.ein-c-inj₂-red  fE)
+      π'  = cong (map RHS-K.vlab) (hTR.eout-c-inj₂-red fE)
+      γ   = map-via-raise hTR.vlab-injR (F.ein  fE)
+      γ'  = map-via-raise hTR.vlab-injR (F.eout fE)
+      D   = map-via-inj   hTL.vlab-injL (F.ein  fE)
+      D'  = map-via-inj   hTL.vlab-injL (F.eout fE)
+      E   = map-via-inj   hLHS.vlab-injL (map hTL.injL (F.ein  fE))
+      E'  = map-via-inj   hLHS.vlab-injL (map hTL.injL (F.eout fE))
+      rest1  = trans (sym β̄) (trans (sym γ) (trans D E))
+      rest1' = trans (sym β̄') (trans (sym γ') (trans D' E'))
+      rest2  = trans (sym γ) (trans D E)
+      rest2' = trans (sym γ') (trans D' E')
+      z   = RHS-K.elab (G.nE ↑ʳ fE)
+      nat  : trans β̄o  A  ≡ trans π  β̄
+      nat  = map-via-remapP-natural (hTR.ein-c-inj₂-red  fE)
+      nat' : trans β̄o' A' ≡ trans π' β̄'
+      nat' = map-via-remapP-natural (hTR.eout-c-inj₂-red fE)
+      -- Sub-chain: subst₂ A A' (subst₂ β̄o β̄o' z)
+      --         ≡ subst₂ β̄ β̄' (subst₂ γ γ' (F.elab fE))
+      step-inner : subst₂ FlatGen A A' (subst₂ FlatGen β̄o β̄o' z)
+                 ≡ subst₂ FlatGen β̄ β̄' (subst₂ FlatGen γ γ' (F.elab fE))
+      step-inner =
+        trans (subst₂-trans β̄o A β̄o' A' z)
+        (trans (cong₂ (λ p q → subst₂ FlatGen p q z) nat nat')
+        (trans (sym (subst₂-trans π β̄ π' β̄' z))
+               (cong (subst₂ FlatGen β̄ β̄') (hTR.elab-c-inj₂ fE))))
+    in
+      trans (sym (subst₂-trans A rest1 A' rest1'
+                    (subst₂ FlatGen β̄o β̄o' z)))
+      (trans (cong (subst₂ FlatGen rest1 rest1') step-inner)
+      (trans (sym (subst₂-trans (sym β̄) rest2 (sym β̄') rest2'
+                    (subst₂ FlatGen β̄ β̄' (subst₂ FlatGen γ γ' (F.elab fE)))))
+      (trans (cong (subst₂ FlatGen rest2 rest2')
+                   (subst₂-sym-subst₂ β̄ β̄' (subst₂ FlatGen γ γ' (F.elab fE))))
+      (trans (sym (subst₂-trans (sym γ) (trans D E) (sym γ') (trans D' E')
+                    (subst₂ FlatGen γ γ' (F.elab fE))))
+      (trans (cong (subst₂ FlatGen (trans D E) (trans D' E'))
+                   (subst₂-sym-subst₂ γ γ' (F.elab fE)))
+             (sym (subst₂-trans D E D' E' (F.elab fE))))))))
+  ...   | inj₂ gE =
+    -- G-edge case mirrors F-edge: ψ-swap's inj₂ gives gE ↑ˡ F.nE;
+    -- RHS-K uses hTR.ein-c-inj₁-red (injL side of hTensor G F) instead.
+    let
+      A   = cong (map RHS.vlab) (cong (map hRHS.remapP) (hTR.ein-c-inj₁-red  gE))
+      A'  = cong (map RHS.vlab) (cong (map hRHS.remapP) (hTR.eout-c-inj₁-red gE))
+      β̄   = hRHS.map-via-remapP (map hTR.injL (G.ein  gE))
+      β̄'  = hRHS.map-via-remapP (map hTR.injL (G.eout gE))
+      β̄o  = hRHS.map-via-remapP (RHS-K.ein  (gE ↑ˡ F.nE))
+      β̄o' = hRHS.map-via-remapP (RHS-K.eout (gE ↑ˡ F.nE))
+      π   = cong (map RHS-K.vlab) (hTR.ein-c-inj₁-red  gE)
+      π'  = cong (map RHS-K.vlab) (hTR.eout-c-inj₁-red gE)
+      γ   = map-via-inj   hTR.vlab-injL (G.ein  gE)
+      γ'  = map-via-inj   hTR.vlab-injL (G.eout gE)
+      D   = map-via-raise hTL.vlab-injR (G.ein  gE)
+      D'  = map-via-raise hTL.vlab-injR (G.eout gE)
+      E   = map-via-inj   hLHS.vlab-injL (map hTL.injR (G.ein  gE))
+      E'  = map-via-inj   hLHS.vlab-injL (map hTL.injR (G.eout gE))
+      rest1  = trans (sym β̄) (trans (sym γ) (trans D E))
+      rest1' = trans (sym β̄') (trans (sym γ') (trans D' E'))
+      rest2  = trans (sym γ) (trans D E)
+      rest2' = trans (sym γ') (trans D' E')
+      z   = RHS-K.elab (gE ↑ˡ F.nE)
+      nat  : trans β̄o  A  ≡ trans π  β̄
+      nat  = map-via-remapP-natural (hTR.ein-c-inj₁-red  gE)
+      nat' : trans β̄o' A' ≡ trans π' β̄'
+      nat' = map-via-remapP-natural (hTR.eout-c-inj₁-red gE)
+      step-inner : subst₂ FlatGen A A' (subst₂ FlatGen β̄o β̄o' z)
+                 ≡ subst₂ FlatGen β̄ β̄' (subst₂ FlatGen γ γ' (G.elab gE))
+      step-inner =
+        trans (subst₂-trans β̄o A β̄o' A' z)
+        (trans (cong₂ (λ p q → subst₂ FlatGen p q z) nat nat')
+        (trans (sym (subst₂-trans π β̄ π' β̄' z))
+               (cong (subst₂ FlatGen β̄ β̄') (hTR.elab-c-inj₁ gE))))
+    in
+      trans (sym (subst₂-trans A rest1 A' rest1'
+                    (subst₂ FlatGen β̄o β̄o' z)))
+      (trans (cong (subst₂ FlatGen rest1 rest1') step-inner)
+      (trans (sym (subst₂-trans (sym β̄) rest2 (sym β̄') rest2'
+                    (subst₂ FlatGen β̄ β̄' (subst₂ FlatGen γ γ' (G.elab gE)))))
+      (trans (cong (subst₂ FlatGen rest2 rest2')
+                   (subst₂-sym-subst₂ β̄ β̄' (subst₂ FlatGen γ γ' (G.elab gE))))
+      (trans (sym (subst₂-trans (sym γ) (trans D E) (sym γ') (trans D' E')
+                    (subst₂ FlatGen γ γ' (G.elab gE))))
+      (trans (cong (subst₂ FlatGen (trans D E) (trans D' E'))
+                   (subst₂-sym-subst₂ γ γ' (G.elab gE)))
+             (sym (subst₂-trans D E D' E' (G.elab gE))))))))
 
   postulate
     φ-lab   : ∀ v → RHS.vlab (φ v) ≡ LHS.vlab v
@@ -531,10 +636,6 @@ module σ-nat-proof
     ψ-eout  : ∀ e → RHS.eout (ψ e) ≡ map φ (LHS.eout e)
     φ-dom   : RHS.dom ≡ map φ LHS.dom
     φ-cod   : RHS.cod ≡ map φ LHS.cod
-
-    ψ-elab    : ∀ e → subst₂ FlatGen (atom-ein e) (atom-eout e)
-                                      (RHS.elab (ψ e))
-                    ≡ LHS.elab e
 
   --------------------------------------------------------------------------
   -- Assembled iso.
