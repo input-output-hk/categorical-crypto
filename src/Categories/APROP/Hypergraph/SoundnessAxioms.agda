@@ -29,7 +29,7 @@ module Categories.APROP.Hypergraph.SoundnessAxioms (sig : APROPSignature) where
 open APROP sig
 open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using (FlatGen; flatten; hId; hTensor; hGen; hEmpty; hVar; hSwap; range)
+  using (FlatGen; flatten; hId; hTensor; hGen; hEmpty; hVar; hSwap; range; module hTensor-impl)
 open import Categories.APROP.Hypergraph.Translation sig
 open import Categories.APROP.Hypergraph.Iso
 open import Categories.APROP.Hypergraph.PrunedCompose sig
@@ -394,53 +394,95 @@ hCompose-hId-R-iso-generic B G = hCompose-hId-R-proof.hCompose-hId-R-iso {B = B}
 -- would be `hEmpty-id-unit-iso` — postulated as its own lemma since it
 -- requires chasing through the tensor construction with nV = 0 + n = n.
 
--- Helper: hTensor hEmpty (hId A) ≅ᴴ hId A.
+-- Generic: `hTensor hEmpty G ≅ᴴ G` for any G. The hId specialization
+-- (needed for λ-axioms) is a direct corollary below.
 --
--- hTensor hEmpty G has nV = 0 + G.nV = G.nV (def), vlab pointwise
--- identical to G (via splitAt 0 = inj₂), and dom/cod differ only by
--- `map (raise 0)` which reduces to identity on lists (raise 0 i = i
--- definitionally). The bijection is identity at the Fin level; the
--- record-field equalities are `refl` or `map-id`-based.
+-- Key facts:
+--   * (hTensor hEmpty G).nV = 0 + G.nV = G.nV             (def).
+--   * (hTensor hEmpty G).nE = 0 + G.nE = G.nE             (def).
+--   * splitAt 0 always gives inj₂, so vlab, ein, eout, elab all
+--     reduce to the "K-side" branch with K = G and injR = 0 ↑ʳ_ = id.
+--   * `0 ↑ʳ j = j` definitionally, so `map injR xs ≡ xs` up to map-id.
+--
+-- The "strategic atom-ein" trick: choose
+-- `atom-ein = map-via-raise vlab-injR (G.ein e)` (matching the internal
+-- subst₂ proof inside hTensor-impl.elab-c's inj₂ branch), making ψ-elab
+-- reduce to `refl` after the implicit splitAt 0 reduction.
 
-hTensor-hEmpty-hId-iso : ∀ (A : ObjTerm) → hTensor hEmpty (hId A) ≅ᴴ hId A
-hTensor-hEmpty-hId-iso A = record
+hTensor-hEmpty-G-iso
+  : ∀ {As Bs : List X} (G : Hypergraph FlatGen As Bs)
+  → hTensor hEmpty G ≅ᴴ G
+hTensor-hEmpty-G-iso {As} {Bs} G = record
   { φ         = λ i → i
   ; φ⁻¹       = λ i → i
   ; φ-left    = λ _ → refl
   ; φ-rght    = λ _ → refl
-  ; ψ         = absurd-E
-  ; ψ⁻¹       = absurd-E
-  ; ψ-left    = λ e → ⊥-elim (Fin-zero-absurd (hId-nE A) e)
-  ; ψ-rght    = λ e → ⊥-elim (Fin-zero-absurd (hId-nE A) e)
+  ; ψ         = λ e → e
+  ; ψ⁻¹       = λ e → e
+  ; ψ-left    = λ _ → refl
+  ; ψ-rght    = λ _ → refl
   ; φ-lab     = λ _ → refl
-  ; ψ-ein     = λ e → ⊥-elim (Fin-zero-absurd (hId-nE A) e)
-  ; ψ-eout    = λ e → ⊥-elim (Fin-zero-absurd (hId-nE A) e)
+  ; ψ-ein     = ein-eq
+  ; ψ-eout    = eout-eq
   ; φ-dom     = dom-eq
   ; φ-cod     = cod-eq
-  ; atom-ein  = λ e → ⊥-elim (Fin-zero-absurd (hId-nE A) e)
-  ; atom-eout = λ e → ⊥-elim (Fin-zero-absurd (hId-nE A) e)
-  ; ψ-elab    = λ e → ⊥-elim (Fin-zero-absurd (hId-nE A) e)
+  ; atom-ein  = atom-ein-eq
+  ; atom-eout = atom-eout-eq
+  ; ψ-elab    = elab-eq
   }
   where
     open import Data.List.Properties using (map-id; map-cong)
+    open import Categories.APROP.Hypergraph.FromAPROP sig
+      using (map-via-raise)
+    module G′ = Hypergraph G
+    module hT = hTensor-impl hEmpty G
 
-    absurd-E : ∀ {ℓ} {X : Set ℓ} → Fin (Hypergraph.nE (hId A)) → X
-    absurd-E e = ⊥-elim (Fin-zero-absurd (hId-nE A) e)
+    -- (hTensor hEmpty G).ein e = map injR (G.ein e) (via splitAt 0 = inj₂).
+    -- injR = 0 ↑ʳ_ = id def, so map injR ≡ map id ≡ id propositionally.
+    ein-eq : ∀ e → G′.ein e ≡ map (λ i → i) (Hypergraph.ein (hTensor hEmpty G) e)
+    ein-eq e = sym (trans (map-id (Hypergraph.ein (hTensor hEmpty G) e))
+                          (trans (map-cong (λ _ → refl) (G′.ein e))
+                                 (map-id (G′.ein e))))
 
-    -- `(hTensor hEmpty G).dom = [] ++ map (raise 0) G.dom = map (raise 0) G.dom`.
-    -- And `raise 0 i = i` def, so `map (raise 0) xs ≡ xs` via map-cong + map-id.
-    -- The outer `map id` from φ = id collapses via map-id.
-    dom-eq : Hypergraph.dom (hId A)
-           ≡ map (λ i → i) (Hypergraph.dom (hTensor hEmpty (hId A)))
-    dom-eq = sym (trans (map-id (Hypergraph.dom (hTensor hEmpty (hId A))))
-                        (trans (map-cong (λ _ → refl) (Hypergraph.dom (hId A)))
-                               (map-id (Hypergraph.dom (hId A)))))
+    eout-eq : ∀ e → G′.eout e ≡ map (λ i → i) (Hypergraph.eout (hTensor hEmpty G) e)
+    eout-eq e = sym (trans (map-id (Hypergraph.eout (hTensor hEmpty G) e))
+                           (trans (map-cong (λ _ → refl) (G′.eout e))
+                                  (map-id (G′.eout e))))
 
-    cod-eq : Hypergraph.cod (hId A)
-           ≡ map (λ i → i) (Hypergraph.cod (hTensor hEmpty (hId A)))
-    cod-eq = sym (trans (map-id (Hypergraph.cod (hTensor hEmpty (hId A))))
-                        (trans (map-cong (λ _ → refl) (Hypergraph.cod (hId A)))
-                               (map-id (Hypergraph.cod (hId A)))))
+    -- (hTensor hEmpty G).dom = [] ++ map injR G.dom = map injR G.dom.
+    dom-eq : G′.dom ≡ map (λ i → i) (Hypergraph.dom (hTensor hEmpty G))
+    dom-eq = sym (trans (map-id (Hypergraph.dom (hTensor hEmpty G)))
+                        (trans (map-cong (λ _ → refl) G′.dom)
+                               (map-id G′.dom)))
+
+    cod-eq : G′.cod ≡ map (λ i → i) (Hypergraph.cod (hTensor hEmpty G))
+    cod-eq = sym (trans (map-id (Hypergraph.cod (hTensor hEmpty G)))
+                        (trans (map-cong (λ _ → refl) G′.cod)
+                               (map-id G′.cod)))
+
+    -- atom-ein: `map G.vlab (G.ein e) ≡ map vlab-c (map injR (G.ein e))`.
+    -- This is exactly hT.map-via-raise vlab-injR applied to G.ein e.
+    atom-ein-eq : ∀ e → map G′.vlab (G′.ein e)
+                      ≡ map (Hypergraph.vlab (hTensor hEmpty G))
+                            (Hypergraph.ein (hTensor hEmpty G) e)
+    atom-ein-eq e = map-via-raise hT.vlab-injR (G′.ein e)
+
+    atom-eout-eq : ∀ e → map G′.vlab (G′.eout e)
+                       ≡ map (Hypergraph.vlab (hTensor hEmpty G))
+                             (Hypergraph.eout (hTensor hEmpty G) e)
+    atom-eout-eq e = map-via-raise hT.vlab-injR (G′.eout e)
+
+    -- ψ-elab: `subst₂ atom-ein atom-eout (G.elab e) ≡ (hTensor hEmpty G).elab e`.
+    -- With our atom-ein/atom-eout matching the specific subst₂ proofs used
+    -- internally in `elab-c`'s inj₂ branch (after splitAt 0 e = inj₂ e),
+    -- both sides become the same subst₂ application.
+    elab-eq : ∀ e → subst₂ FlatGen (atom-ein-eq e) (atom-eout-eq e) (G′.elab e)
+                  ≡ Hypergraph.elab (hTensor hEmpty G) e
+    elab-eq e = refl
+
+-- Specialization for hId A.
+hTensor-hEmpty-hId-iso : ∀ (A : ObjTerm) → hTensor hEmpty (hId A) ≅ᴴ hId A
+hTensor-hEmpty-hId-iso A = hTensor-hEmpty-G-iso (hId A)
 
 λ⇐∘λ⇒-sound : ∀ {A} → ⟪ λ⇐ {A} ∘ λ⇒ {A} ⟫ ≅ᴴ ⟪ id {unit ⊗₀ A} ⟫
 λ⇐∘λ⇒-sound {A} = trans-≅ᴴ (idˡ-sound (id {A})) (sym-≅ᴴ (hTensor-hEmpty-hId-iso A))
