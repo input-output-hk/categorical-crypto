@@ -719,6 +719,20 @@ hCompose-hId-L-iso-generic A K K-unique =
   hCompose-hId-L-proof.hCompose-hId-L-iso {A = A} K K-unique
 
 --------------------------------------------------------------------------------
+-- idʳ : `f ∘ id ≈Term f`. Direct application of hCompose-hId-L-iso-generic
+-- to ⟪f⟫ (with the `Unique ⟪f⟫.dom` side condition supplied by
+-- HomTermInvariant.⟪_⟫-dom-unique).
+
+open import Categories.APROP.Hypergraph.HomTermInvariant sig
+  using (⟪_⟫-dom-unique)
+
+idʳ-sound : ∀ {A B} (f : HomTerm A B) → ⟪ f ∘ id ⟫ ≅ᴴ ⟪ f ⟫
+idʳ-sound {A = A} f = hCompose-hId-L-iso-generic A ⟪ f ⟫ (⟪_⟫-dom-unique f)
+
+-- λ⇒∘id⊗f≈f∘λ⇒ (λ-naturality) is defined below, after
+-- hTensor-hEmpty-G-iso is in scope.
+
+--------------------------------------------------------------------------------
 -- Other group-(b) axioms that reduce to idˡ or require similar
 -- constructions. For axioms `λ⇐∘λ⇒`, `λ⇒∘λ⇐`, `ρ⇐∘ρ⇒`, `ρ⇒∘ρ⇐`,
 -- the LHS is `hComposeP (hId A) (hId A)` at a specific boundary
@@ -826,6 +840,24 @@ hTensor-hEmpty-G-iso {As} {Bs} G = record
 -- Specialization for hId A.
 hTensor-hEmpty-hId-iso : ∀ (A : ObjTerm) → hTensor hEmpty (hId A) ≅ᴴ hId A
 hTensor-hEmpty-hId-iso A = hTensor-hEmpty-G-iso (hId A)
+
+--------------------------------------------------------------------------------
+-- λ⇒∘id⊗f≈f∘λ⇒ (λ-naturality). Chain via:
+--   ⟪ λ⇒ ∘ id⊗f ⟫ = hComposeP (hTensor hEmpty ⟪f⟫) (hId B)
+--                  ≅ᴴ hTensor hEmpty ⟪f⟫   [hCompose-hId-R-iso-generic B]
+--                  ≅ᴴ ⟪f⟫                   [hTensor-hEmpty-G-iso]
+--   ⟪ f ∘ λ⇒ ⟫    = hComposeP (hId A) ⟪f⟫
+--                  ≅ᴴ ⟪f⟫                   [hCompose-hId-L-iso-generic]
+-- Combine with trans-≅ᴴ / sym-≅ᴴ.
+
+λ⇒∘id⊗f≈f∘λ⇒-sound
+  : ∀ {A B} {f : HomTerm A B}
+  → ⟪ λ⇒ {B} ∘ (id {unit} ⊗₁ f) ⟫ ≅ᴴ ⟪ f ∘ λ⇒ {A} ⟫
+λ⇒∘id⊗f≈f∘λ⇒-sound {A = A} {B = B} {f = f} =
+  trans-≅ᴴ
+    (trans-≅ᴴ (hCompose-hId-R-iso-generic B (hTensor hEmpty ⟪ f ⟫))
+              (hTensor-hEmpty-G-iso ⟪ f ⟫))
+    (sym-≅ᴴ (hCompose-hId-L-iso-generic A ⟪ f ⟫ (⟪_⟫-dom-unique f)))
 
 λ⇐∘λ⇒-sound : ∀ {A} → ⟪ λ⇐ {A} ∘ λ⇒ {A} ⟫ ≅ᴴ ⟪ id {unit ⊗₀ A} ⟫
 λ⇐∘λ⇒-sound {A} = trans-≅ᴴ (idˡ-sound (id {A})) (sym-≅ᴴ (hTensor-hEmpty-hId-iso A))
