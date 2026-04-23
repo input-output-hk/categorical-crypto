@@ -21,9 +21,9 @@
 --     `FromAPROP.hId`).
 --
 --   * Atomic axioms: every `≈Term` constructor has its own explicit
---     dispatch clause to a named focused lemma in `SoundnessAxioms`.
---     11 of the 19 atomic axioms are proven (possibly modulo internal
---     subst₂-cancel postulates); 8 are still postulated.
+--     dispatch clause to a named focused lemma.  12 of the 19 atomic
+--     axioms are proven (possibly modulo internal subst₂-cancel
+--     postulates); 7 are still postulated.
 --
 -- Note on the dispatch machinery (`--lossy-unification`):
 --
@@ -46,15 +46,17 @@
 --
 --   With both flags, all 8 focused postulates dispatch in <1s each.
 --
--- 8 per-axiom postulates still outstanding (see TODO.org Step 6):
+-- 7 per-axiom postulates still outstanding (see TODO.org Step 6):
 --   * `ρ⇒∘f⊗id≈f∘ρ⇒-sound` — ρ-nat
 --   * `α-comm-sound`        — α naturality
---   * `triangle-sound`      — α/λ/ρ coherence
 --   * `σ∘[f⊗g]≈[g⊗f]∘σ-sound` — σ-nat
 --   * `hexagon-sound`       — symmetric hexagon
 --   * `pentagon-sound`      — five-α coherence
 --   * `assoc-sound`         — hComposeP associativity
 --   * `⊗-∘-dist-sound`      — tensor/compose interchange
+--
+-- Proved constructively (no postulate):
+--   * `triangle-sound` in `Categories.APROP.Hypergraph.Triangle`.
 --
 -- Because this file depends on those postulates, it is not `--safe` and
 -- is not transitively imported by `CategoricalCrypto.agda`.
@@ -80,10 +82,12 @@ open import Categories.APROP.Hypergraph.SoundnessAxioms sig
         ; λ⇒∘id⊗f≈f∘λ⇒-sound
         ; ρ⇒∘f⊗id≈f∘ρ⇒-sound
         ; α-comm-sound
-        ; triangle-sound
         ; σ∘[f⊗g]≈[g⊗f]∘σ-sound
         ; hexagon-sound
         ; pentagon-sound; assoc-sound; ⊗-∘-dist-sound)
+-- `triangle-sound` is PROVED constructively in this module:
+open import Categories.APROP.Hypergraph.Triangle sig
+  using (triangle-sound)
 open import Categories.APROP.Hypergraph.HomTermInvariant sig
   using (⟪_⟫-dom-unique)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)

@@ -1577,10 +1577,9 @@ postulate
     : ∀ {A B C D E F} {f : HomTerm A B} {g : HomTerm C D} {h : HomTerm E F}
     → ⟪ α⇒ {B} {D} {F} ∘ (f ⊗₁ g) ⊗₁ h ⟫ ≅ᴴ ⟪ f ⊗₁ (g ⊗₁ h) ∘ α⇒ {A} {C} {E} ⟫
 
-  -- triangle: id⊗λ⇒ ∘ α⇒{A,unit,B} ≈ ρ⇒⊗id
-  triangle-sound
-    : ∀ {A B}
-    → ⟪ id {A} ⊗₁ λ⇒ {B} ∘ α⇒ {A} {unit} {B} ⟫ ≅ᴴ ⟪ ρ⇒ {A} ⊗₁ id {B} ⟫
+  -- NOTE: `triangle-sound` is now PROVED constructively in
+  -- `Categories.APROP.Hypergraph.Triangle`.  Soundness.agda imports it
+  -- from there directly, so no postulate is needed in this module.
 
   -- pentagon: id⊗α⇒ ∘ α⇒ ∘ α⇒⊗id ≈ α⇒ ∘ α⇒{A⊗B,C,D}
   pentagon-sound
