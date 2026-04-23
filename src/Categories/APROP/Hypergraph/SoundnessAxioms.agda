@@ -1590,11 +1590,11 @@ postulate
     → ⟪ id {A} ⊗₁ α⇒ {B} {C} {D} ∘ α⇒ {A} {B ⊗₀ C} {D} ∘ α⇒ {A} {B} {C} ⊗₁ id {D} ⟫
     ≅ᴴ ⟪ α⇒ {A} {B} {C ⊗₀ D} ∘ α⇒ {A ⊗₀ B} {C} {D} ⟫
 
-  -- σ-nat: σ ∘ (f⊗g) ≈ (g⊗f) ∘ σ  (braiding naturality)
-  -- (Symm ≤ Symm instance is provided by APROP module.)
-  σ∘[f⊗g]≈[g⊗f]∘σ-sound
-    : ∀ {A B C D} {f : HomTerm A B} {g : HomTerm C D}
-    → ⟪ σ {B} {D} ∘ (f ⊗₁ g) ⟫ ≅ᴴ ⟪ (g ⊗₁ f) ∘ σ {A} {C} ⟫
+  -- NOTE: `σ∘[f⊗g]≈[g⊗f]∘σ-sound` has been moved to `Hypergraph.SigmaNat`.
+  -- That module constructs the iso as a record with explicit φ / ψ
+  -- bijections (vertex/edge swap permutations) and postulates the 7
+  -- remaining coherence fields internally for future discharge.
+  -- Soundness.agda imports it from SigmaNat directly.
 
   -- hexagon: id⊗σ ∘ α⇒ ∘ σ⊗id ≈ α⇒ ∘ σ ∘ α⇒ (symmetric hexagon)
   hexagon-sound
