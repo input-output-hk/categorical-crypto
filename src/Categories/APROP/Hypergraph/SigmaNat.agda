@@ -181,38 +181,46 @@ module σ-nat-proof
   -- Both manipulations go through `splitAt` + the `inj₂` branch being
   -- `Fin 0` (absurd).
 
+  -- `ψ` keeps `with` because its input `Fin LHS.nE = Fin ((F.nE + G.nE) + 0)`
+  -- doesn't have `+0` stripped definitionally (reduction of `_+_` goes
+  -- left-first).  But we drop the `RHS-G.nE ↑ʳ` from the body — that's
+  -- `0 ↑ʳ x = x` by the zero clause of `_↑ʳ_` — so ψ returns `ψ-swap eLG`
+  -- directly on the G-side branch.
   ψ : Fin LHS.nE → Fin RHS.nE
   ψ e with splitAt LHS-G.nE e
-  ... | inj₁ eLG = RHS-G.nE ↑ʳ (ψ-swap {F.nE} {G.nE} eLG)
+  ... | inj₁ eLG = ψ-swap {F.nE} {G.nE} eLG
   ... | inj₂ eLK = ⊥-elim (Fin-zero-absurd LHS-K-nE≡0 eLK)
 
+  -- `ψ⁻¹` is a direct formula (no `with`): input `e : Fin RHS.nE =
+  -- Fin (0 + (G.nE + F.nE)) = Fin (G.nE + F.nE)` reduces via the zero
+  -- clause of `_+_`, so ψ-swap applies immediately and we append 0
+  -- via `_↑ˡ LHS-K.nE = _↑ˡ 0`.  Removing the `with` is essential:
+  -- it lets `ψ⁻¹ x` unfold by substitution rather than `with`-hoisting,
+  -- which simplifies ψ-left's proof considerably.
   ψ⁻¹ : Fin RHS.nE → Fin LHS.nE
-  ψ⁻¹ e with splitAt RHS-G.nE e
-  ... | inj₁ eRG = ⊥-elim (Fin-zero-absurd RHS-G-nE≡0 eRG)
-  ... | inj₂ eRK = (ψ-swap {G.nE} {F.nE} eRK) ↑ˡ LHS-K.nE
+  ψ⁻¹ e = ψ-swap {G.nE} {F.nE} e ↑ˡ LHS-K.nE
 
-  -- Reduction lemma for ψ in the inj₁ (G-side) branch.  Mirrors
-  -- `hTensor-impl.ein-c-inj₁-red`'s pattern: simultaneous match on
-  -- the outer splitAt plus its `splitAt-↑ˡ` proof.
+  -- ψ-left.  After `with splitAt LHS-G.nE e in eq` picks the inj₁
+  -- branch, ψ reduces to `ψ-swap eLG`, and ψ⁻¹ (being a direct formula)
+  -- reduces to `ψ-swap (ψ-swap eLG) ↑ˡ LHS-K.nE`.  Then the involutive
+  -- lemma collapses the double ψ-swap and `splitAt⁻¹-↑ˡ` returns us
+  -- to the original `e`.
+  ψ-left : ∀ e → ψ⁻¹ (ψ e) ≡ e
+  ψ-left e with splitAt LHS-G.nE e in eq
+  ... | inj₁ eLG =
+    trans (cong (_↑ˡ LHS-K.nE) (ψ-swap-involutive {F.nE} {G.nE} eLG))
+          (splitAt⁻¹-↑ˡ eq)
+  ... | inj₂ eLK = ⊥-elim (Fin-zero-absurd LHS-K-nE≡0 eLK)
 
-  ψ-inj₁-red
-    : ∀ (eLG : Fin LHS-G.nE)
-    → ψ (eLG ↑ˡ LHS-K.nE) ≡ RHS-G.nE ↑ʳ (ψ-swap {F.nE} {G.nE} eLG)
-  ψ-inj₁-red eLG with splitAt LHS-G.nE (eLG ↑ˡ LHS-K.nE)
-                      | splitAt-↑ˡ LHS-G.nE eLG LHS-K.nE
-  ... | .(inj₁ eLG)   | refl = refl
-
-  -- ψ roundtrips: the real content is `ψ-swap-involutive` above.  The
-  -- `ψ⁻¹-inj₂-red` companion lemma fails to typecheck under --without-K
-  -- because `RHS-G.nE ≡ 0` definitionally, and the `splitAt 0 (0 ↑ʳ _)`
-  -- pattern match trips on a `w ≟ w` reflexive-equation elimination
-  -- that --without-K forbids when the summand is `Fin 0`.  Both ψ-left
-  -- and ψ-rght are therefore postulated; the real content is in
-  -- `ψ-swap-involutive`.
-
-  postulate
-    ψ-left : ∀ e → ψ⁻¹ (ψ e) ≡ e
-    ψ-rght : ∀ e → ψ (ψ⁻¹ e) ≡ e
+  -- ψ-rght.  `ψ⁻¹ e = ψ-swap e ↑ˡ LHS-K.nE` directly, so
+  -- `splitAt LHS-G.nE (ψ⁻¹ e)` = `splitAt LHS-G.nE (ψ-swap e ↑ˡ LHS-K.nE)`
+  -- reduces to `inj₁ (ψ-swap e)` via `splitAt-↑ˡ`.  Dual-with dispatches
+  -- that reduction, then `ψ-swap-involutive` closes the goal.
+  ψ-rght : ∀ e → ψ (ψ⁻¹ e) ≡ e
+  ψ-rght e with splitAt LHS-G.nE (ψ⁻¹ e)
+                | splitAt-↑ˡ LHS-G.nE (ψ-swap {G.nE} {F.nE} e) LHS-K.nE
+  ... | .(inj₁ (ψ-swap {G.nE} {F.nE} e)) | refl =
+    ψ-swap-involutive {G.nE} {F.nE} e
 
   --------------------------------------------------------------------------
   -- Field postulates (iso body).
