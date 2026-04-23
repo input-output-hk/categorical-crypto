@@ -191,12 +191,24 @@ module σ-nat-proof
   ... | inj₁ eRG = ⊥-elim (Fin-zero-absurd RHS-G-nE≡0 eRG)
   ... | inj₂ eRK = (ψ-swap {G.nE} {F.nE} eRK) ↑ˡ LHS-K.nE
 
-  -- ψ roundtrips: reduce via `splitAt-↑ˡ` / `splitAt-↑ʳ` and
-  -- `ψ-swap-involutive` (the actual proof content is ψ-swap being
-  -- self-inverse on Fin (m + n)).  Writing the proofs with `rewrite`
-  -- runs into `--without-K`'s restrictions on pattern-matching `refl`
-  -- against a `with`-abstracted splitAt result — so we leave them as
-  -- postulates.  Both reduce trivially via case analysis + involutive.
+  -- Reduction lemma for ψ in the inj₁ (G-side) branch.  Mirrors
+  -- `hTensor-impl.ein-c-inj₁-red`'s pattern: simultaneous match on
+  -- the outer splitAt plus its `splitAt-↑ˡ` proof.
+
+  ψ-inj₁-red
+    : ∀ (eLG : Fin LHS-G.nE)
+    → ψ (eLG ↑ˡ LHS-K.nE) ≡ RHS-G.nE ↑ʳ (ψ-swap {F.nE} {G.nE} eLG)
+  ψ-inj₁-red eLG with splitAt LHS-G.nE (eLG ↑ˡ LHS-K.nE)
+                      | splitAt-↑ˡ LHS-G.nE eLG LHS-K.nE
+  ... | .(inj₁ eLG)   | refl = refl
+
+  -- ψ roundtrips: the real content is `ψ-swap-involutive` above.  The
+  -- `ψ⁻¹-inj₂-red` companion lemma fails to typecheck under --without-K
+  -- because `RHS-G.nE ≡ 0` definitionally, and the `splitAt 0 (0 ↑ʳ _)`
+  -- pattern match trips on a `w ≟ w` reflexive-equation elimination
+  -- that --without-K forbids when the summand is `Fin 0`.  Both ψ-left
+  -- and ψ-rght are therefore postulated; the real content is in
+  -- `ψ-swap-involutive`.
 
   postulate
     ψ-left : ∀ e → ψ⁻¹ (ψ e) ≡ e
