@@ -75,6 +75,7 @@ open import Categories.APROP.Hypergraph.SoundnessAxioms sig
   using ( idˡ-sound; idʳ-sound
         ; λ⇐∘λ⇒-sound; λ⇒∘λ⇐-sound; σ∘σ-sound
         ; ρ⇐∘ρ⇒-sound; α⇐∘α⇒-sound
+        ; ρ⇒∘ρ⇐-sound; α⇒∘α⇐-sound
         ; λ⇒∘id⊗f≈f∘λ⇒-sound)
 open import Categories.APROP.Hypergraph.HomTermInvariant sig
   using (⟪_⟫-dom-unique)
@@ -123,6 +124,8 @@ soundness (λ⇒∘λ⇐≈id {A = A})      = λ⇒∘λ⇐-sound {A}
 soundness (σ∘σ≈id {A = A} {B = B}) = σ∘σ-sound {A} {B}
 soundness (ρ⇐∘ρ⇒≈id {A = A})      = ρ⇐∘ρ⇒-sound {A}
 soundness (α⇐∘α⇒≈id {A = A} {B = B} {C = C}) = α⇐∘α⇒-sound {A} {B} {C}
+soundness (ρ⇒∘ρ⇐≈id {A = A})      = ρ⇒∘ρ⇐-sound {A}
+soundness (α⇒∘α⇐≈id {A = A} {B = B} {C = C}) = α⇒∘α⇐-sound {A} {B} {C}
 soundness (idʳ {f = f})           = idʳ-sound f
 soundness (λ⇒∘id⊗f≈f∘λ⇒ {f = f})  = λ⇒∘id⊗f≈f∘λ⇒-sound {f = f}
 
