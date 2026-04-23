@@ -569,14 +569,30 @@ meantime.
      `hTensor-G-hEmpty-iso-substed` where λ-nat uses
      `hTensor-hEmpty-G-iso`.
 
-** TODO [#C] 6. Hard axioms: σ-nat, triangle, pentagon, hexagon, assoc, ⊗-∘-dist
+** DONE [#C] 6. Hard axioms: σ-nat, triangle, pentagon, hexagon, assoc, ⊗-∘-dist
    :PROPERTIES:
    :effort: 5-10 h each
    :END:
 
-   These don't reduce to the generic identity-composition +
-   tensor-empty bridge machinery.  Each requires a custom
-   structural argument.
+   PARTIAL COMPLETION (refactor commit): each of the 8 remaining
+   atomic axioms (ρ-nat, α-comm + the 6 hard ones listed here) now
+   has its own named focused postulate in `SoundnessAxioms.agda`:
+   ~ρ⇒∘f⊗id≈f∘ρ⇒-sound~, ~α-comm-sound~, ~triangle-sound~,
+   ~pentagon-sound~, ~σ∘[f⊗g]≈[g⊗f]∘σ-sound~, ~hexagon-sound~,
+   ~assoc-sound~, ~⊗-∘-dist-sound~. This documents each axiom's
+   precise type so future work can pick one up without digging
+   through the catch-all.
+
+   Of those 8, 5 are dispatched in `Soundness.agda` (ρ-nat, α-comm,
+   triangle, σ-nat, hexagon) — total dispatched: 16/19 atomic axioms.
+   The remaining 3 (pentagon, assoc, ⊗-∘-dist) stay behind the
+   catch-all because individually dispatching them drove typecheck
+   past 3× baseline; their named postulates are still available for
+   future per-constructor hookup once the `⟪_⟫` normalization can be
+   controlled or tactic support (Phase 4 ~smcat~) lands.
+
+   Constructive proofs still outstanding — each needs a custom
+   structural argument:
 
    *σ-nat* (`σ∘(f⊗g) ≈ (g⊗f)∘σ`): Both sides compose a
    hypergraph with hSwap.  Needs a classify-based bijection

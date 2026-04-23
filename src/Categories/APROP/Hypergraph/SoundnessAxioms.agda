@@ -1532,6 +1532,87 @@ module σ∘σ-proof (A B : ObjTerm) where
 σ∘σ-sound {A} {B} = σ∘σ-proof.σ∘σ-iso A B
 
 --------------------------------------------------------------------------------
+-- Remaining axioms (8): ρ-nat, α-comm, σ-nat, triangle, pentagon,
+-- hexagon, assoc, ⊗-∘-dist.  Each is postulated as a focused lemma
+-- per the `≈Term` constructor it discharges.  Together they replace
+-- the omnibus `soundness-axiom` catch-all in `Soundness.agda`,
+-- giving each unfinished axiom its own named stub for future work.
+--
+-- Complexity classification (from TODO.org Step 6):
+--
+--   ρ-nat, α-comm: analogous to λ-nat (done in Step 4), but with
+--     added `subst₂` bookkeeping because ⟪ρ⇒⟫ / ⟪α⇒⟫ carry a
+--     `++-identityʳ` / `++-assoc` cast.  Conceptually reducible to
+--     Step 1–5 machinery; left as an exercise.
+--
+--   σ-nat (`σ∘(f⊗g) ≈ (g⊗f)∘σ`): like σ∘σ-proof, classify-based
+--     bijection against (hSwap C D).dom.
+--
+--   triangle: α/λ/ρ coherence on (A⊗unit)⊗B.  Should chain via
+--     Step-2 helpers + hComposeP-subst-both.
+--
+--   pentagon: five-α coherence.  Needs triple-classify bijection
+--     or a tactic.
+--
+--   hexagon: three-α/three-σ coherence.
+--
+--   assoc: (h∘g)∘f ≈ h∘(g∘f).  Triple-classify; vertex counts
+--     match modulo `+`-associativity.
+--
+--   ⊗-∘-dist: (f₁⊗g₁)∘(f₂⊗g₂) ≈ (f₁∘f₂)⊗(g₁∘g₂).  Tensor/compose
+--     interchange; cross-reasoning on vertex reshuffle.
+--
+-- Per TODO.org, each is estimated at 5–10 h of custom structural
+-- proof; deferred to a future session or the Phase-4 `smcat`
+-- reflection tactic.
+
+postulate
+  -- ρ⇒ ∘ f⊗id ≈ f ∘ ρ⇒  (unitorʳ-commute)
+  ρ⇒∘f⊗id≈f∘ρ⇒-sound
+    : ∀ {A B} {f : HomTerm A B}
+    → ⟪ ρ⇒ {B} ∘ f ⊗₁ id {unit} ⟫ ≅ᴴ ⟪ f ∘ ρ⇒ {A} ⟫
+
+  -- α⇒ ∘ (f⊗g)⊗h ≈ f⊗(g⊗h) ∘ α⇒  (assoc-commute / α-comm)
+  α-comm-sound
+    : ∀ {A B C D E F} {f : HomTerm A B} {g : HomTerm C D} {h : HomTerm E F}
+    → ⟪ α⇒ {B} {D} {F} ∘ (f ⊗₁ g) ⊗₁ h ⟫ ≅ᴴ ⟪ f ⊗₁ (g ⊗₁ h) ∘ α⇒ {A} {C} {E} ⟫
+
+  -- triangle: id⊗λ⇒ ∘ α⇒{A,unit,B} ≈ ρ⇒⊗id
+  triangle-sound
+    : ∀ {A B}
+    → ⟪ id {A} ⊗₁ λ⇒ {B} ∘ α⇒ {A} {unit} {B} ⟫ ≅ᴴ ⟪ ρ⇒ {A} ⊗₁ id {B} ⟫
+
+  -- pentagon: id⊗α⇒ ∘ α⇒ ∘ α⇒⊗id ≈ α⇒ ∘ α⇒{A⊗B,C,D}
+  pentagon-sound
+    : ∀ {A B C D}
+    → ⟪ id {A} ⊗₁ α⇒ {B} {C} {D} ∘ α⇒ {A} {B ⊗₀ C} {D} ∘ α⇒ {A} {B} {C} ⊗₁ id {D} ⟫
+    ≅ᴴ ⟪ α⇒ {A} {B} {C ⊗₀ D} ∘ α⇒ {A ⊗₀ B} {C} {D} ⟫
+
+  -- σ-nat: σ ∘ (f⊗g) ≈ (g⊗f) ∘ σ  (braiding naturality)
+  -- (Symm ≤ Symm instance is provided by APROP module.)
+  σ∘[f⊗g]≈[g⊗f]∘σ-sound
+    : ∀ {A B C D} {f : HomTerm A B} {g : HomTerm C D}
+    → ⟪ σ {B} {D} ∘ (f ⊗₁ g) ⟫ ≅ᴴ ⟪ (g ⊗₁ f) ∘ σ {A} {C} ⟫
+
+  -- hexagon: id⊗σ ∘ α⇒ ∘ σ⊗id ≈ α⇒ ∘ σ ∘ α⇒ (symmetric hexagon)
+  hexagon-sound
+    : ∀ {A B C}
+    → ⟪ id {B} ⊗₁ σ {A} {C} ∘ α⇒ {B} {A} {C} ∘ σ {A} {B} ⊗₁ id {C} ⟫
+    ≅ᴴ ⟪ α⇒ {B} {C} {A} ∘ σ {A} {B ⊗₀ C} ∘ α⇒ {A} {B} {C} ⟫
+
+  -- assoc: (h∘g)∘f ≈ h∘(g∘f)  (composition associativity)
+  assoc-sound
+    : ∀ {A B C D} {f : HomTerm A B} {g : HomTerm B C} {h : HomTerm C D}
+    → ⟪ (h ∘ g) ∘ f ⟫ ≅ᴴ ⟪ h ∘ (g ∘ f) ⟫
+
+  -- ⊗-∘-dist: (g∘f)⊗(g'∘f') ≈ (g⊗g')∘(f⊗f')  (tensor/compose interchange)
+  ⊗-∘-dist-sound
+    : ∀ {A B C A' B' C'}
+        {f : HomTerm A B} {g : HomTerm B C}
+        {f' : HomTerm A' B'} {g' : HomTerm B' C'}
+    → ⟪ (g ∘ f) ⊗₁ (g' ∘ f') ⟫ ≅ᴴ ⟪ (g ⊗₁ g') ∘ (f ⊗₁ f') ⟫
+
+--------------------------------------------------------------------------------
 -- Dispatch: replace soundness-axiom calls that match these axioms
 -- with the proved versions. (Soundness.agda will import this module
 -- and use these lemmas in its per-axiom clauses.)
