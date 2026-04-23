@@ -25,8 +25,8 @@ module Categories.APROP.Hypergraph.FromAPROP (sig : APROPSignature) where
 open APROP sig
 open import Categories.APROP.Hypergraph.Core
 
-open import Data.Fin using (Fin; zero; suc; inject+; raise; splitAt)
-open import Data.Fin.Properties as Fin using (splitAt-inject+; splitAt-raise)
+open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
+open import Data.Fin.Properties as Fin using (splitAt-↑ˡ; splitAt-↑ʳ)
 open import Data.List using (List; []; _∷_; _++_; length; map; lookup)
 open import Data.List.Properties using (map-∘; map-++; map-cong; ++-identityʳ; ++-assoc)
 open import Data.Nat using (ℕ; zero; suc; _+_)
@@ -67,16 +67,16 @@ map-lookup-range (x ∷ xs) =
 -- vertex labeling.
 
 map-via-inj : ∀ {m n : ℕ} {v : Fin m → X} {w : Fin (m + n) → X}
-            → (∀ i → w (inject+ n i) ≡ v i)
+            → (∀ i → w (i ↑ˡ n) ≡ v i)
             → (xs : List (Fin m))
-            → map v xs ≡ map w (map (λ i → inject+ n i) xs)
+            → map v xs ≡ map w (map (_↑ˡ n) xs)
 map-via-inj p xs =
   trans (sym (map-cong p xs)) (map-∘ xs)
 
 map-via-raise : ∀ {m n : ℕ} {v : Fin n → X} {w : Fin (m + n) → X}
-              → (∀ i → w (raise m i) ≡ v i)
+              → (∀ i → w (m ↑ʳ i) ≡ v i)
               → (xs : List (Fin n))
-              → map v xs ≡ map w (map (λ i → raise m i) xs)
+              → map v xs ≡ map w (map (m ↑ʳ_) xs)
 map-via-raise p xs =
   trans (sym (map-cong p xs)) (map-∘ xs)
 
@@ -116,19 +116,19 @@ module hTensor-impl
     module K = Hypergraph K
 
   injL : Fin G.nV → Fin (G.nV + K.nV)
-  injL i = inject+ K.nV i
+  injL i = i ↑ˡ K.nV
 
   injR : Fin K.nV → Fin (G.nV + K.nV)
-  injR j = raise G.nV j
+  injR j = G.nV ↑ʳ j
 
   vlab-c : Fin (G.nV + K.nV) → X
   vlab-c i = [ G.vlab , K.vlab ]′ (splitAt G.nV i)
 
   vlab-injL : ∀ i → vlab-c (injL i) ≡ G.vlab i
-  vlab-injL i = cong [ G.vlab , K.vlab ]′ (splitAt-inject+ G.nV K.nV i)
+  vlab-injL i = cong [ G.vlab , K.vlab ]′ (splitAt-↑ˡ G.nV i K.nV)
 
   vlab-injR : ∀ j → vlab-c (injR j) ≡ K.vlab j
-  vlab-injR j = cong [ G.vlab , K.vlab ]′ (splitAt-raise G.nV K.nV j)
+  vlab-injR j = cong [ G.vlab , K.vlab ]′ (splitAt-↑ʳ G.nV K.nV j)
 
   ein-c : Fin (G.nE + K.nE) → List (Fin (G.nV + K.nV))
   ein-c e = [ (λ eG → map injL (G.ein eG))
@@ -158,27 +158,27 @@ module hTensor-impl
   -- splitAt to match the provided proof, unlocking pattern matching.
 
   ein-c-inj₁-red : ∀ (eG : Fin G.nE)
-                 → ein-c (inject+ K.nE eG) ≡ map injL (G.ein eG)
-  ein-c-inj₁-red eG with splitAt G.nE (inject+ K.nE eG)
-                         | splitAt-inject+ G.nE K.nE eG
+                 → ein-c (eG ↑ˡ K.nE) ≡ map injL (G.ein eG)
+  ein-c-inj₁-red eG with splitAt G.nE (eG ↑ˡ K.nE)
+                         | splitAt-↑ˡ G.nE eG K.nE
   ... | .(inj₁ eG)      | refl = refl
 
   eout-c-inj₁-red : ∀ (eG : Fin G.nE)
-                  → eout-c (inject+ K.nE eG) ≡ map injL (G.eout eG)
-  eout-c-inj₁-red eG with splitAt G.nE (inject+ K.nE eG)
-                          | splitAt-inject+ G.nE K.nE eG
+                  → eout-c (eG ↑ˡ K.nE) ≡ map injL (G.eout eG)
+  eout-c-inj₁-red eG with splitAt G.nE (eG ↑ˡ K.nE)
+                          | splitAt-↑ˡ G.nE eG K.nE
   ... | .(inj₁ eG)       | refl = refl
 
   ein-c-inj₂-red : ∀ (eK : Fin K.nE)
-                 → ein-c (raise G.nE eK) ≡ map injR (K.ein eK)
-  ein-c-inj₂-red eK with splitAt G.nE (raise G.nE eK)
-                         | splitAt-raise G.nE K.nE eK
+                 → ein-c (G.nE ↑ʳ eK) ≡ map injR (K.ein eK)
+  ein-c-inj₂-red eK with splitAt G.nE (G.nE ↑ʳ eK)
+                         | splitAt-↑ʳ G.nE K.nE eK
   ... | .(inj₂ eK)      | refl = refl
 
   eout-c-inj₂-red : ∀ (eK : Fin K.nE)
-                  → eout-c (raise G.nE eK) ≡ map injR (K.eout eK)
-  eout-c-inj₂-red eK with splitAt G.nE (raise G.nE eK)
-                          | splitAt-raise G.nE K.nE eK
+                  → eout-c (G.nE ↑ʳ eK) ≡ map injR (K.eout eK)
+  eout-c-inj₂-red eK with splitAt G.nE (G.nE ↑ʳ eK)
+                          | splitAt-↑ʳ G.nE K.nE eK
   ... | .(inj₂ eK)       | refl = refl
 
   -- Reduction lemmas for `elab-c`. Since `elab-c (inject+ K.nE eG)`
@@ -191,26 +191,26 @@ module hTensor-impl
               → subst₂ FlatGen
                   (cong (map vlab-c) (ein-c-inj₁-red eG))
                   (cong (map vlab-c) (eout-c-inj₁-red eG))
-                  (elab-c (inject+ K.nE eG))
+                  (elab-c (eG ↑ˡ K.nE))
               ≡ subst₂ FlatGen
                   (map-via-inj vlab-injL (G.ein eG))
                   (map-via-inj vlab-injL (G.eout eG))
                   (G.elab eG)
-  elab-c-inj₁ eG with splitAt G.nE (inject+ K.nE eG)
-                      | splitAt-inject+ G.nE K.nE eG
+  elab-c-inj₁ eG with splitAt G.nE (eG ↑ˡ K.nE)
+                      | splitAt-↑ˡ G.nE eG K.nE
   ... | .(inj₁ eG)   | refl = refl
 
   elab-c-inj₂ : ∀ (eK : Fin K.nE)
               → subst₂ FlatGen
                   (cong (map vlab-c) (ein-c-inj₂-red eK))
                   (cong (map vlab-c) (eout-c-inj₂-red eK))
-                  (elab-c (raise G.nE eK))
+                  (elab-c (G.nE ↑ʳ eK))
               ≡ subst₂ FlatGen
                   (map-via-raise vlab-injR (K.ein eK))
                   (map-via-raise vlab-injR (K.eout eK))
                   (K.elab eK)
-  elab-c-inj₂ eK with splitAt G.nE (raise G.nE eK)
-                      | splitAt-raise G.nE K.nE eK
+  elab-c-inj₂ eK with splitAt G.nE (G.nE ↑ʳ eK)
+                      | splitAt-↑ʳ G.nE K.nE eK
   ... | .(inj₂ eK)   | refl = refl
 
   -- Boundary: `map vlab-c (map injL xs ++ map injR ys) ≡ As ++ Cs`
@@ -262,11 +262,11 @@ hGen {A} {B} f = record
   { nV = nA + nB
   ; vlab = vlab-c
   ; nE = 1
-  ; ein = λ _ → map (λ i → inject+ nB i) (range nA)
-  ; eout = λ _ → map (λ i → raise nA i) (range nB)
+  ; ein = λ _ → map (_↑ˡ nB) (range nA)
+  ; eout = λ _ → map (nA ↑ʳ_) (range nB)
   ; elab = λ _ → subst₂ FlatGen lem-in lem-out (flat f)
-  ; dom = map (λ i → inject+ nB i) (range nA)
-  ; cod = map (λ i → raise nA i) (range nB)
+  ; dom = map (_↑ˡ nB) (range nA)
+  ; cod = map (nA ↑ʳ_) (range nB)
   ; dom-ok = sym lem-in
   ; cod-ok = sym lem-out
   }
@@ -277,21 +277,21 @@ hGen {A} {B} f = record
     vlab-c : Fin (nA + nB) → X
     vlab-c i = [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt nA i)
 
-    vlab-inL : ∀ (i : Fin nA) → vlab-c (inject+ nB i) ≡ lookup (flatten A) i
+    vlab-inL : ∀ (i : Fin nA) → vlab-c (i ↑ˡ nB) ≡ lookup (flatten A) i
     vlab-inL i = cong [ lookup (flatten A) , lookup (flatten B) ]′
-                      (splitAt-inject+ nA nB i)
+                      (splitAt-↑ˡ nA i nB)
 
-    vlab-inR : ∀ (i : Fin nB) → vlab-c (raise nA i) ≡ lookup (flatten B) i
+    vlab-inR : ∀ (i : Fin nB) → vlab-c (nA ↑ʳ i) ≡ lookup (flatten B) i
     vlab-inR i = cong [ lookup (flatten A) , lookup (flatten B) ]′
-                      (splitAt-raise nA nB i)
+                      (splitAt-↑ʳ nA nB i)
 
-    lem-in : flatten A ≡ map vlab-c (map (λ i → inject+ nB i) (range nA))
+    lem-in : flatten A ≡ map vlab-c (map (_↑ˡ nB) (range nA))
     lem-in = sym
       (trans (sym (map-∘ (range nA)))
       (trans (map-cong vlab-inL (range nA))
              (map-lookup-range (flatten A))))
 
-    lem-out : flatten B ≡ map vlab-c (map (λ i → raise nA i) (range nB))
+    lem-out : flatten B ≡ map vlab-c (map (nA ↑ʳ_) (range nB))
     lem-out = sym
       (trans (sym (map-∘ (range nB)))
       (trans (map-cong vlab-inR (range nB))
@@ -307,15 +307,15 @@ hSwap A B = record
   ; vlab = vlab-c
   ; nE = 0
   ; ein = λ () ; eout = λ () ; elab = λ ()
-  ; dom = map (λ i → inject+ nB i) (range nA) ++ map (λ i → raise nA i) (range nB)
-  ; cod = map (λ i → raise nA i) (range nB) ++ map (λ i → inject+ nB i) (range nA)
+  ; dom = map (_↑ˡ nB) (range nA) ++ map (nA ↑ʳ_) (range nB)
+  ; cod = map (nA ↑ʳ_) (range nB) ++ map (_↑ˡ nB) (range nA)
   ; dom-ok = trans
-               (map-++ vlab-c (map (λ i → inject+ nB i) (range nA))
-                              (map (λ i → raise nA i)  (range nB)))
+               (map-++ vlab-c (map (_↑ˡ nB) (range nA))
+                              (map (nA ↑ʳ_) (range nB)))
                (cong₂ _++_ lem-L lem-R)
   ; cod-ok = trans
-               (map-++ vlab-c (map (λ i → raise nA i)  (range nB))
-                              (map (λ i → inject+ nB i) (range nA)))
+               (map-++ vlab-c (map (nA ↑ʳ_) (range nB))
+                              (map (_↑ˡ nB) (range nA)))
                (cong₂ _++_ lem-R lem-L)
   }
   where
@@ -325,20 +325,20 @@ hSwap A B = record
     vlab-c : Fin (nA + nB) → X
     vlab-c i = [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt nA i)
 
-    vlab-inL : ∀ (i : Fin nA) → vlab-c (inject+ nB i) ≡ lookup (flatten A) i
+    vlab-inL : ∀ (i : Fin nA) → vlab-c (i ↑ˡ nB) ≡ lookup (flatten A) i
     vlab-inL i = cong [ lookup (flatten A) , lookup (flatten B) ]′
-                      (splitAt-inject+ nA nB i)
+                      (splitAt-↑ˡ nA i nB)
 
-    vlab-inR : ∀ (i : Fin nB) → vlab-c (raise nA i) ≡ lookup (flatten B) i
+    vlab-inR : ∀ (i : Fin nB) → vlab-c (nA ↑ʳ i) ≡ lookup (flatten B) i
     vlab-inR i = cong [ lookup (flatten A) , lookup (flatten B) ]′
-                      (splitAt-raise nA nB i)
+                      (splitAt-↑ʳ nA nB i)
 
-    lem-L : map vlab-c (map (λ i → inject+ nB i) (range nA)) ≡ flatten A
+    lem-L : map vlab-c (map (_↑ˡ nB) (range nA)) ≡ flatten A
     lem-L = trans (sym (map-∘ (range nA)))
            (trans (map-cong vlab-inL (range nA))
                   (map-lookup-range (flatten A)))
 
-    lem-R : map vlab-c (map (λ i → raise nA i) (range nB)) ≡ flatten B
+    lem-R : map vlab-c (map (nA ↑ʳ_) (range nB)) ≡ flatten B
     lem-R = trans (sym (map-∘ (range nB)))
            (trans (map-cong vlab-inR (range nB))
                   (map-lookup-range (flatten B)))
@@ -365,19 +365,19 @@ module hCompose-impl
     module K = Hypergraph K
 
   injL : Fin G.nV → Fin (G.nV + K.nV)
-  injL i = inject+ K.nV i
+  injL i = i ↑ˡ K.nV
 
   injR : Fin K.nV → Fin (G.nV + K.nV)
-  injR j = raise G.nV j
+  injR j = G.nV ↑ʳ j
 
   vlab-c : Fin (G.nV + K.nV) → X
   vlab-c i = [ G.vlab , K.vlab ]′ (splitAt G.nV i)
 
   vlab-injL : ∀ i → vlab-c (injL i) ≡ G.vlab i
-  vlab-injL i = cong [ G.vlab , K.vlab ]′ (splitAt-inject+ G.nV K.nV i)
+  vlab-injL i = cong [ G.vlab , K.vlab ]′ (splitAt-↑ˡ G.nV i K.nV)
 
   vlab-injR : ∀ j → vlab-c (injR j) ≡ K.vlab j
-  vlab-injR j = cong [ G.vlab , K.vlab ]′ (splitAt-raise G.nV K.nV j)
+  vlab-injR j = cong [ G.vlab , K.vlab ]′ (splitAt-↑ʳ G.nV K.nV j)
 
   -- Positional remap of K-vertices: K.dom[i] ↦ injL G.cod[i].
   remap' : List (Fin K.nV) → List (Fin G.nV) → Fin K.nV → Fin (G.nV + K.nV)
@@ -447,27 +447,27 @@ module hCompose-impl
   -- external callers (Congruence).
 
   ein-c-inj₁-red : ∀ (eG : Fin G.nE)
-                 → ein-c (inject+ K.nE eG) ≡ map injL (G.ein eG)
-  ein-c-inj₁-red eG with splitAt G.nE (inject+ K.nE eG)
-                         | splitAt-inject+ G.nE K.nE eG
+                 → ein-c (eG ↑ˡ K.nE) ≡ map injL (G.ein eG)
+  ein-c-inj₁-red eG with splitAt G.nE (eG ↑ˡ K.nE)
+                         | splitAt-↑ˡ G.nE eG K.nE
   ... | .(inj₁ eG)      | refl = refl
 
   eout-c-inj₁-red : ∀ (eG : Fin G.nE)
-                  → eout-c (inject+ K.nE eG) ≡ map injL (G.eout eG)
-  eout-c-inj₁-red eG with splitAt G.nE (inject+ K.nE eG)
-                          | splitAt-inject+ G.nE K.nE eG
+                  → eout-c (eG ↑ˡ K.nE) ≡ map injL (G.eout eG)
+  eout-c-inj₁-red eG with splitAt G.nE (eG ↑ˡ K.nE)
+                          | splitAt-↑ˡ G.nE eG K.nE
   ... | .(inj₁ eG)       | refl = refl
 
   ein-c-inj₂-red : ∀ (eK : Fin K.nE)
-                 → ein-c (raise G.nE eK) ≡ map remap (K.ein eK)
-  ein-c-inj₂-red eK with splitAt G.nE (raise G.nE eK)
-                         | splitAt-raise G.nE K.nE eK
+                 → ein-c (G.nE ↑ʳ eK) ≡ map remap (K.ein eK)
+  ein-c-inj₂-red eK with splitAt G.nE (G.nE ↑ʳ eK)
+                         | splitAt-↑ʳ G.nE K.nE eK
   ... | .(inj₂ eK)      | refl = refl
 
   eout-c-inj₂-red : ∀ (eK : Fin K.nE)
-                  → eout-c (raise G.nE eK) ≡ map remap (K.eout eK)
-  eout-c-inj₂-red eK with splitAt G.nE (raise G.nE eK)
-                          | splitAt-raise G.nE K.nE eK
+                  → eout-c (G.nE ↑ʳ eK) ≡ map remap (K.eout eK)
+  eout-c-inj₂-red eK with splitAt G.nE (G.nE ↑ʳ eK)
+                          | splitAt-↑ʳ G.nE K.nE eK
   ... | .(inj₂ eK)       | refl = refl
 
   -- Reduction lemmas for `elab-c`. Analogous to `hTensor-impl`'s
@@ -477,26 +477,26 @@ module hCompose-impl
               → subst₂ FlatGen
                   (cong (map vlab-c) (ein-c-inj₁-red eG))
                   (cong (map vlab-c) (eout-c-inj₁-red eG))
-                  (elab-c (inject+ K.nE eG))
+                  (elab-c (eG ↑ˡ K.nE))
               ≡ subst₂ FlatGen
                   (map-via-inj vlab-injL (G.ein eG))
                   (map-via-inj vlab-injL (G.eout eG))
                   (G.elab eG)
-  elab-c-inj₁ eG with splitAt G.nE (inject+ K.nE eG)
-                      | splitAt-inject+ G.nE K.nE eG
+  elab-c-inj₁ eG with splitAt G.nE (eG ↑ˡ K.nE)
+                      | splitAt-↑ˡ G.nE eG K.nE
   ... | .(inj₁ eG)   | refl = refl
 
   elab-c-inj₂ : ∀ (eK : Fin K.nE)
               → subst₂ FlatGen
                   (cong (map vlab-c) (ein-c-inj₂-red eK))
                   (cong (map vlab-c) (eout-c-inj₂-red eK))
-                  (elab-c (raise G.nE eK))
+                  (elab-c (G.nE ↑ʳ eK))
               ≡ subst₂ FlatGen
                   (map-via-remap (K.ein eK))
                   (map-via-remap (K.eout eK))
                   (K.elab eK)
-  elab-c-inj₂ eK with splitAt G.nE (raise G.nE eK)
-                      | splitAt-raise G.nE K.nE eK
+  elab-c-inj₂ eK with splitAt G.nE (G.nE ↑ʳ eK)
+                      | splitAt-↑ʳ G.nE K.nE eK
   ... | .(inj₂ eK)   | refl = refl
 
 hCompose : ∀ {As Bs Cs} → Hypergraph FlatGen As Bs → Hypergraph FlatGen Bs Cs

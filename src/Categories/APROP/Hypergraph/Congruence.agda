@@ -30,8 +30,8 @@ open import Categories.APROP.Hypergraph.FromAPROP sig
 open import Categories.APROP.Hypergraph.Iso
 
 open import Data.Empty using (⊥-elim)
-open import Data.Fin using (Fin; inject+; raise; splitAt)
-open import Data.Fin.Properties as Fin using (splitAt-inject+; splitAt-raise)
+open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_; splitAt)
+open import Data.Fin.Properties as Fin using (splitAt-↑ˡ; splitAt-↑ʳ)
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-∘; map-cong; map-++)
 open import Data.Nat using (ℕ; _+_)
@@ -118,39 +118,39 @@ module _ {As Bs Cs Ds : List X} where
       -- Vertex bijection φ_T.
 
       φ-T : Fin (G₁.nV + K₁.nV) → Fin (G₂.nV + K₂.nV)
-      φ-T i = [ (λ iG → inject+ K₂.nV (IG.φ iG))
-              , (λ iK → raise G₂.nV (IK.φ iK))
+      φ-T i = [ (λ iG → (IG.φ iG) ↑ˡ K₂.nV)
+              , (λ iK → _↑ʳ_ G₂.nV (IK.φ iK))
               ]′ (splitAt G₁.nV i)
 
       φ⁻¹-T : Fin (G₂.nV + K₂.nV) → Fin (G₁.nV + K₁.nV)
-      φ⁻¹-T j = [ (λ jG → inject+ K₁.nV (IG.φ⁻¹ jG))
-                , (λ jK → raise G₁.nV (IK.φ⁻¹ jK))
+      φ⁻¹-T j = [ (λ jG → (IG.φ⁻¹ jG) ↑ˡ K₁.nV)
+                , (λ jK → _↑ʳ_ G₁.nV (IK.φ⁻¹ jK))
                 ]′ (splitAt G₂.nV j)
 
       -- Round trips by case analysis on splitAt.
       φ-left-T : ∀ i → φ⁻¹-T (φ-T i) ≡ i
       φ-left-T i with splitAt G₁.nV i in eq
-      ... | inj₁ iG rewrite splitAt-inject+ G₂.nV K₂.nV (IG.φ iG)
+      ... | inj₁ iG rewrite splitAt-↑ˡ G₂.nV (IG.φ iG) K₂.nV
                           | IG.φ-left iG
                         = sym (_↑ˡinv i eq)
         where
           _↑ˡinv : ∀ (i : Fin (G₁.nV + K₁.nV)) {iG}
-                 → splitAt G₁.nV i ≡ inj₁ iG → i ≡ inject+ K₁.nV iG
+                 → splitAt G₁.nV i ≡ inj₁ iG → i ≡ iG ↑ˡ K₁.nV
           _↑ˡinv i e = sym (Fin.splitAt⁻¹-↑ˡ e)
-      ... | inj₂ iK rewrite splitAt-raise G₂.nV K₂.nV (IK.φ iK)
+      ... | inj₂ iK rewrite splitAt-↑ʳ G₂.nV K₂.nV (IK.φ iK)
                           | IK.φ-left iK
                         = sym (_↑ʳinv i eq)
         where
           _↑ʳinv : ∀ (i : Fin (G₁.nV + K₁.nV)) {iK}
-                 → splitAt G₁.nV i ≡ inj₂ iK → i ≡ raise G₁.nV iK
+                 → splitAt G₁.nV i ≡ inj₂ iK → i ≡ _↑ʳ_ G₁.nV iK
           _↑ʳinv i e = sym (Fin.splitAt⁻¹-↑ʳ e)
 
       φ-rght-T : ∀ j → φ-T (φ⁻¹-T j) ≡ j
       φ-rght-T j with splitAt G₂.nV j in eq
-      ... | inj₁ jG rewrite splitAt-inject+ G₁.nV K₁.nV (IG.φ⁻¹ jG)
+      ... | inj₁ jG rewrite splitAt-↑ˡ G₁.nV (IG.φ⁻¹ jG) K₁.nV
                           | IG.φ-rght jG
                         = Fin.splitAt⁻¹-↑ˡ eq
-      ... | inj₂ jK rewrite splitAt-raise G₁.nV K₁.nV (IK.φ⁻¹ jK)
+      ... | inj₂ jK rewrite splitAt-↑ʳ G₁.nV K₁.nV (IK.φ⁻¹ jK)
                           | IK.φ-rght jK
                         = Fin.splitAt⁻¹-↑ʳ eq
 
@@ -158,30 +158,30 @@ module _ {As Bs Cs Ds : List X} where
       -- Edge bijection ψ_T, structurally the same pattern.
 
       ψ-T : Fin (G₁.nE + K₁.nE) → Fin (G₂.nE + K₂.nE)
-      ψ-T e = [ (λ eG → inject+ K₂.nE (IG.ψ eG))
-              , (λ eK → raise G₂.nE (IK.ψ eK))
+      ψ-T e = [ (λ eG → (IG.ψ eG) ↑ˡ K₂.nE)
+              , (λ eK → _↑ʳ_ G₂.nE (IK.ψ eK))
               ]′ (splitAt G₁.nE e)
 
       ψ⁻¹-T : Fin (G₂.nE + K₂.nE) → Fin (G₁.nE + K₁.nE)
-      ψ⁻¹-T e = [ (λ eG → inject+ K₁.nE (IG.ψ⁻¹ eG))
-                , (λ eK → raise G₁.nE (IK.ψ⁻¹ eK))
+      ψ⁻¹-T e = [ (λ eG → (IG.ψ⁻¹ eG) ↑ˡ K₁.nE)
+                , (λ eK → _↑ʳ_ G₁.nE (IK.ψ⁻¹ eK))
                 ]′ (splitAt G₂.nE e)
 
       ψ-left-T : ∀ e → ψ⁻¹-T (ψ-T e) ≡ e
       ψ-left-T e with splitAt G₁.nE e in eq
-      ... | inj₁ eG rewrite splitAt-inject+ G₂.nE K₂.nE (IG.ψ eG)
+      ... | inj₁ eG rewrite splitAt-↑ˡ G₂.nE (IG.ψ eG) K₂.nE
                           | IG.ψ-left eG
                         = Fin.splitAt⁻¹-↑ˡ eq
-      ... | inj₂ eK rewrite splitAt-raise G₂.nE K₂.nE (IK.ψ eK)
+      ... | inj₂ eK rewrite splitAt-↑ʳ G₂.nE K₂.nE (IK.ψ eK)
                           | IK.ψ-left eK
                         = Fin.splitAt⁻¹-↑ʳ eq
 
       ψ-rght-T : ∀ e → ψ-T (ψ⁻¹-T e) ≡ e
       ψ-rght-T e with splitAt G₂.nE e in eq
-      ... | inj₁ eG rewrite splitAt-inject+ G₁.nE K₁.nE (IG.ψ⁻¹ eG)
+      ... | inj₁ eG rewrite splitAt-↑ˡ G₁.nE (IG.ψ⁻¹ eG) K₁.nE
                           | IG.ψ-rght eG
                         = Fin.splitAt⁻¹-↑ˡ eq
-      ... | inj₂ eK rewrite splitAt-raise G₁.nE K₁.nE (IK.ψ⁻¹ eK)
+      ... | inj₂ eK rewrite splitAt-↑ʳ G₁.nE K₁.nE (IK.ψ⁻¹ eK)
                           | IK.ψ-rght eK
                         = Fin.splitAt⁻¹-↑ʳ eq
 
@@ -193,10 +193,10 @@ module _ {As Bs Cs Ds : List X} where
       φ-lab-T : ∀ i → T₂.vlab (φ-T i) ≡ T₁.vlab i
       φ-lab-T i with splitAt G₁.nV i
       ... | inj₁ iG = trans (cong [ G₂.vlab , K₂.vlab ]′
-                                   (splitAt-inject+ G₂.nV K₂.nV (IG.φ iG)))
+                                   (splitAt-↑ˡ G₂.nV (IG.φ iG) K₂.nV))
                             (IG.φ-lab iG)
       ... | inj₂ iK = trans (cong [ G₂.vlab , K₂.vlab ]′
-                                   (splitAt-raise G₂.nV K₂.nV (IK.φ iK)))
+                                   (splitAt-↑ʳ G₂.nV K₂.nV (IK.φ iK)))
                             (IK.φ-lab iK)
 
       ----------------------------------------------------------------
@@ -207,24 +207,24 @@ module _ {As Bs Cs Ds : List X} where
       -- injL' = inject+ K₂.nV (in T₂)
 
       φ-T-injL : ∀ (iG : Fin G₁.nV)
-               → φ-T (inject+ K₁.nV iG) ≡ inject+ K₂.nV (IG.φ iG)
-      φ-T-injL iG = cong [ _ , _ ]′ (splitAt-inject+ G₁.nV K₁.nV iG)
+               → φ-T (iG ↑ˡ K₁.nV) ≡ (IG.φ iG) ↑ˡ K₂.nV
+      φ-T-injL iG = cong [ _ , _ ]′ (splitAt-↑ˡ G₁.nV iG K₁.nV)
 
       φ-T-injR : ∀ (iK : Fin K₁.nV)
-               → φ-T (raise G₁.nV iK) ≡ raise G₂.nV (IK.φ iK)
-      φ-T-injR iK = cong [ _ , _ ]′ (splitAt-raise G₁.nV K₁.nV iK)
+               → φ-T (_↑ʳ_ G₁.nV iK) ≡ _↑ʳ_ G₂.nV (IK.φ iK)
+      φ-T-injR iK = cong [ _ , _ ]′ (splitAt-↑ʳ G₁.nV K₁.nV iK)
 
       map-φ-T-injL : (xs : List (Fin G₁.nV))
-                   → map φ-T (map (inject+ K₁.nV) xs)
-                   ≡ map (inject+ K₂.nV) (map IG.φ xs)
+                   → map φ-T (map (_↑ˡ K₁.nV) xs)
+                   ≡ map (_↑ˡ K₂.nV) (map IG.φ xs)
       map-φ-T-injL xs =
         trans (sym (map-∘ xs))
         (trans (map-cong φ-T-injL xs)
                (map-∘ xs))
 
       map-φ-T-injR : (xs : List (Fin K₁.nV))
-                   → map φ-T (map (raise G₁.nV) xs)
-                   ≡ map (raise G₂.nV) (map IK.φ xs)
+                   → map φ-T (map (_↑ʳ_ G₁.nV) xs)
+                   ≡ map (_↑ʳ_ G₂.nV) (map IK.φ xs)
       map-φ-T-injR xs =
         trans (sym (map-∘ xs))
         (trans (map-cong φ-T-injR xs)
@@ -232,20 +232,20 @@ module _ {As Bs Cs Ds : List X} where
 
       ψ-ein-T : ∀ e → T₂.ein (ψ-T e) ≡ map φ-T (T₁.ein e)
       ψ-ein-T e with splitAt G₁.nE e
-      ... | inj₁ eG rewrite splitAt-inject+ G₂.nE K₂.nE (IG.ψ eG) =
-                      trans (cong (map (inject+ K₂.nV)) (IG.ψ-ein eG))
+      ... | inj₁ eG rewrite splitAt-↑ˡ G₂.nE (IG.ψ eG) K₂.nE =
+                      trans (cong (map (_↑ˡ K₂.nV)) (IG.ψ-ein eG))
                             (sym (map-φ-T-injL (G₁.ein eG)))
-      ... | inj₂ eK rewrite splitAt-raise G₂.nE K₂.nE (IK.ψ eK) =
-                      trans (cong (map (raise G₂.nV)) (IK.ψ-ein eK))
+      ... | inj₂ eK rewrite splitAt-↑ʳ G₂.nE K₂.nE (IK.ψ eK) =
+                      trans (cong (map (_↑ʳ_ G₂.nV)) (IK.ψ-ein eK))
                             (sym (map-φ-T-injR (K₁.ein eK)))
 
       ψ-eout-T : ∀ e → T₂.eout (ψ-T e) ≡ map φ-T (T₁.eout e)
       ψ-eout-T e with splitAt G₁.nE e
-      ... | inj₁ eG rewrite splitAt-inject+ G₂.nE K₂.nE (IG.ψ eG) =
-                      trans (cong (map (inject+ K₂.nV)) (IG.ψ-eout eG))
+      ... | inj₁ eG rewrite splitAt-↑ˡ G₂.nE (IG.ψ eG) K₂.nE =
+                      trans (cong (map (_↑ˡ K₂.nV)) (IG.ψ-eout eG))
                             (sym (map-φ-T-injL (G₁.eout eG)))
-      ... | inj₂ eK rewrite splitAt-raise G₂.nE K₂.nE (IK.ψ eK) =
-                      trans (cong (map (raise G₂.nV)) (IK.ψ-eout eK))
+      ... | inj₂ eK rewrite splitAt-↑ʳ G₂.nE K₂.nE (IK.ψ eK) =
+                      trans (cong (map (_↑ʳ_ G₂.nV)) (IK.ψ-eout eK))
                             (sym (map-φ-T-injR (K₁.eout eK)))
 
       ----------------------------------------------------------------
@@ -255,22 +255,22 @@ module _ {As Bs Cs Ds : List X} where
       dom-T : T₂.dom ≡ map φ-T T₁.dom
       dom-T = trans
         (cong₂ _++_
-          (trans (cong (map (inject+ K₂.nV)) IG.φ-dom)
+          (trans (cong (map (_↑ˡ K₂.nV)) IG.φ-dom)
                  (sym (map-φ-T-injL G₁.dom)))
-          (trans (cong (map (raise G₂.nV)) IK.φ-dom)
+          (trans (cong (map (_↑ʳ_ G₂.nV)) IK.φ-dom)
                  (sym (map-φ-T-injR K₁.dom))))
-        (sym (map-++ φ-T (map (inject+ K₁.nV) G₁.dom)
-                          (map (raise G₁.nV) K₁.dom)))
+        (sym (map-++ φ-T (map (_↑ˡ K₁.nV) G₁.dom)
+                          (map (_↑ʳ_ G₁.nV) K₁.dom)))
 
       cod-T : T₂.cod ≡ map φ-T T₁.cod
       cod-T = trans
         (cong₂ _++_
-          (trans (cong (map (inject+ K₂.nV)) IG.φ-cod)
+          (trans (cong (map (_↑ˡ K₂.nV)) IG.φ-cod)
                  (sym (map-φ-T-injL G₁.cod)))
-          (trans (cong (map (raise G₂.nV)) IK.φ-cod)
+          (trans (cong (map (_↑ʳ_ G₂.nV)) IK.φ-cod)
                  (sym (map-φ-T-injR K₁.cod))))
-        (sym (map-++ φ-T (map (inject+ K₁.nV) G₁.cod)
-                          (map (raise G₁.nV) K₁.cod)))
+        (sym (map-++ φ-T (map (_↑ˡ K₁.nV) G₁.cod)
+                          (map (_↑ʳ_ G₁.nV) K₁.cod)))
 
       ----------------------------------------------------------------
       -- Atom-list equalities. Built as explicit `trans` chains so the
@@ -344,7 +344,7 @@ module _ {As Bs Cs Ds : List X} where
           δ'  = map-via-inj hT₁.vlab-injL (G₁.eout eG)
           -- Reduced form of T₂.elab (ψ-T e): in the inj₁ branch,
           -- ψ-T e = inject+ K₂.nE (IG.ψ eG), definitionally.
-          x   = T₂.elab (inject+ K₂.nE (IG.ψ eG))
+          x   = T₂.elab ((IG.ψ eG) ↑ˡ K₂.nE)
         in
         trans
           -- Split α, α' off the outer trans chain.
@@ -382,7 +382,7 @@ module _ {As Bs Cs Ds : List X} where
           γ'  = IK.atom-eout eK
           δ   = map-via-raise hT₁.vlab-injR (K₁.ein  eK)
           δ'  = map-via-raise hT₁.vlab-injR (K₁.eout eK)
-          x   = T₂.elab (raise G₂.nE (IK.ψ eK))
+          x   = T₂.elab (_↑ʳ_ G₂.nE (IK.ψ eK))
         in
         trans
           (sym (subst₂-trans α (trans (sym β̄) (trans γ δ))
@@ -462,38 +462,38 @@ module _ {As Bs Cs : List X} where
       -- Vertex bijection (same pattern as `hTensor-resp-≅ᴴ`).
 
       φ-C : Fin (G₁.nV + K₁.nV) → Fin (G₂.nV + K₂.nV)
-      φ-C i = [ (λ iG → inject+ K₂.nV (IG.φ iG))
-              , (λ iK → raise G₂.nV (IK.φ iK))
+      φ-C i = [ (λ iG → (IG.φ iG) ↑ˡ K₂.nV)
+              , (λ iK → _↑ʳ_ G₂.nV (IK.φ iK))
               ]′ (splitAt G₁.nV i)
 
       φ⁻¹-C : Fin (G₂.nV + K₂.nV) → Fin (G₁.nV + K₁.nV)
-      φ⁻¹-C j = [ (λ jG → inject+ K₁.nV (IG.φ⁻¹ jG))
-                , (λ jK → raise G₁.nV (IK.φ⁻¹ jK))
+      φ⁻¹-C j = [ (λ jG → (IG.φ⁻¹ jG) ↑ˡ K₁.nV)
+                , (λ jK → _↑ʳ_ G₁.nV (IK.φ⁻¹ jK))
                 ]′ (splitAt G₂.nV j)
 
       φ-left-C : ∀ i → φ⁻¹-C (φ-C i) ≡ i
       φ-left-C i with splitAt G₁.nV i in eq
-      ... | inj₁ iG rewrite splitAt-inject+ G₂.nV K₂.nV (IG.φ iG)
+      ... | inj₁ iG rewrite splitAt-↑ˡ G₂.nV (IG.φ iG) K₂.nV
                           | IG.φ-left iG
                         = sym (_↑ˡinv i eq)
         where
           _↑ˡinv : ∀ (i : Fin (G₁.nV + K₁.nV)) {iG}
-                 → splitAt G₁.nV i ≡ inj₁ iG → i ≡ inject+ K₁.nV iG
+                 → splitAt G₁.nV i ≡ inj₁ iG → i ≡ iG ↑ˡ K₁.nV
           _↑ˡinv i e = sym (Fin.splitAt⁻¹-↑ˡ e)
-      ... | inj₂ iK rewrite splitAt-raise G₂.nV K₂.nV (IK.φ iK)
+      ... | inj₂ iK rewrite splitAt-↑ʳ G₂.nV K₂.nV (IK.φ iK)
                           | IK.φ-left iK
                         = sym (_↑ʳinv i eq)
         where
           _↑ʳinv : ∀ (i : Fin (G₁.nV + K₁.nV)) {iK}
-                 → splitAt G₁.nV i ≡ inj₂ iK → i ≡ raise G₁.nV iK
+                 → splitAt G₁.nV i ≡ inj₂ iK → i ≡ _↑ʳ_ G₁.nV iK
           _↑ʳinv i e = sym (Fin.splitAt⁻¹-↑ʳ e)
 
       φ-rght-C : ∀ j → φ-C (φ⁻¹-C j) ≡ j
       φ-rght-C j with splitAt G₂.nV j in eq
-      ... | inj₁ jG rewrite splitAt-inject+ G₁.nV K₁.nV (IG.φ⁻¹ jG)
+      ... | inj₁ jG rewrite splitAt-↑ˡ G₁.nV (IG.φ⁻¹ jG) K₁.nV
                           | IG.φ-rght jG
                         = Fin.splitAt⁻¹-↑ˡ eq
-      ... | inj₂ jK rewrite splitAt-raise G₁.nV K₁.nV (IK.φ⁻¹ jK)
+      ... | inj₂ jK rewrite splitAt-↑ʳ G₁.nV K₁.nV (IK.φ⁻¹ jK)
                           | IK.φ-rght jK
                         = Fin.splitAt⁻¹-↑ʳ eq
 
@@ -501,30 +501,30 @@ module _ {As Bs Cs : List X} where
       -- Edge bijection.
 
       ψ-C : Fin (G₁.nE + K₁.nE) → Fin (G₂.nE + K₂.nE)
-      ψ-C e = [ (λ eG → inject+ K₂.nE (IG.ψ eG))
-              , (λ eK → raise G₂.nE (IK.ψ eK))
+      ψ-C e = [ (λ eG → (IG.ψ eG) ↑ˡ K₂.nE)
+              , (λ eK → _↑ʳ_ G₂.nE (IK.ψ eK))
               ]′ (splitAt G₁.nE e)
 
       ψ⁻¹-C : Fin (G₂.nE + K₂.nE) → Fin (G₁.nE + K₁.nE)
-      ψ⁻¹-C e = [ (λ eG → inject+ K₁.nE (IG.ψ⁻¹ eG))
-                , (λ eK → raise G₁.nE (IK.ψ⁻¹ eK))
+      ψ⁻¹-C e = [ (λ eG → (IG.ψ⁻¹ eG) ↑ˡ K₁.nE)
+                , (λ eK → _↑ʳ_ G₁.nE (IK.ψ⁻¹ eK))
                 ]′ (splitAt G₂.nE e)
 
       ψ-left-C : ∀ e → ψ⁻¹-C (ψ-C e) ≡ e
       ψ-left-C e with splitAt G₁.nE e in eq
-      ... | inj₁ eG rewrite splitAt-inject+ G₂.nE K₂.nE (IG.ψ eG)
+      ... | inj₁ eG rewrite splitAt-↑ˡ G₂.nE (IG.ψ eG) K₂.nE
                           | IG.ψ-left eG
                         = Fin.splitAt⁻¹-↑ˡ eq
-      ... | inj₂ eK rewrite splitAt-raise G₂.nE K₂.nE (IK.ψ eK)
+      ... | inj₂ eK rewrite splitAt-↑ʳ G₂.nE K₂.nE (IK.ψ eK)
                           | IK.ψ-left eK
                         = Fin.splitAt⁻¹-↑ʳ eq
 
       ψ-rght-C : ∀ e → ψ-C (ψ⁻¹-C e) ≡ e
       ψ-rght-C e with splitAt G₂.nE e in eq
-      ... | inj₁ eG rewrite splitAt-inject+ G₁.nE K₁.nE (IG.ψ⁻¹ eG)
+      ... | inj₁ eG rewrite splitAt-↑ˡ G₁.nE (IG.ψ⁻¹ eG) K₁.nE
                           | IG.ψ-rght eG
                         = Fin.splitAt⁻¹-↑ˡ eq
-      ... | inj₂ eK rewrite splitAt-raise G₁.nE K₁.nE (IK.ψ⁻¹ eK)
+      ... | inj₂ eK rewrite splitAt-↑ʳ G₁.nE K₁.nE (IK.ψ⁻¹ eK)
                           | IK.ψ-rght eK
                         = Fin.splitAt⁻¹-↑ʳ eq
 
@@ -534,26 +534,26 @@ module _ {As Bs Cs : List X} where
       φ-lab-C : ∀ i → C₂.vlab (φ-C i) ≡ C₁.vlab i
       φ-lab-C i with splitAt G₁.nV i
       ... | inj₁ iG = trans (cong [ G₂.vlab , K₂.vlab ]′
-                                   (splitAt-inject+ G₂.nV K₂.nV (IG.φ iG)))
+                                   (splitAt-↑ˡ G₂.nV (IG.φ iG) K₂.nV))
                             (IG.φ-lab iG)
       ... | inj₂ iK = trans (cong [ G₂.vlab , K₂.vlab ]′
-                                   (splitAt-raise G₂.nV K₂.nV (IK.φ iK)))
+                                   (splitAt-↑ʳ G₂.nV K₂.nV (IK.φ iK)))
                             (IK.φ-lab iK)
 
       ----------------------------------------------------------------
       -- `φ-C` on the two injections, and their `map` versions.
 
       φ-C-injL : ∀ (iG : Fin G₁.nV)
-               → φ-C (inject+ K₁.nV iG) ≡ inject+ K₂.nV (IG.φ iG)
-      φ-C-injL iG = cong [ _ , _ ]′ (splitAt-inject+ G₁.nV K₁.nV iG)
+               → φ-C (iG ↑ˡ K₁.nV) ≡ (IG.φ iG) ↑ˡ K₂.nV
+      φ-C-injL iG = cong [ _ , _ ]′ (splitAt-↑ˡ G₁.nV iG K₁.nV)
 
       φ-C-injR : ∀ (iK : Fin K₁.nV)
-               → φ-C (raise G₁.nV iK) ≡ raise G₂.nV (IK.φ iK)
-      φ-C-injR iK = cong [ _ , _ ]′ (splitAt-raise G₁.nV K₁.nV iK)
+               → φ-C (_↑ʳ_ G₁.nV iK) ≡ _↑ʳ_ G₂.nV (IK.φ iK)
+      φ-C-injR iK = cong [ _ , _ ]′ (splitAt-↑ʳ G₁.nV K₁.nV iK)
 
       map-φ-C-injL : (xs : List (Fin G₁.nV))
-                   → map φ-C (map (inject+ K₁.nV) xs)
-                   ≡ map (inject+ K₂.nV) (map IG.φ xs)
+                   → map φ-C (map (_↑ˡ K₁.nV) xs)
+                   ≡ map (_↑ˡ K₂.nV) (map IG.φ xs)
       map-φ-C-injL xs =
         trans (sym (map-∘ xs))
         (trans (map-cong φ-C-injL xs)
@@ -604,19 +604,19 @@ module _ {As Bs Cs : List X} where
 
       ψ-ein-C : ∀ e → C₂.ein (ψ-C e) ≡ map φ-C (C₁.ein e)
       ψ-ein-C e with splitAt G₁.nE e
-      ... | inj₁ eG rewrite splitAt-inject+ G₂.nE K₂.nE (IG.ψ eG) =
-                      trans (cong (map (inject+ K₂.nV)) (IG.ψ-ein eG))
+      ... | inj₁ eG rewrite splitAt-↑ˡ G₂.nE (IG.ψ eG) K₂.nE =
+                      trans (cong (map (_↑ˡ K₂.nV)) (IG.ψ-ein eG))
                             (sym (map-φ-C-injL (G₁.ein eG)))
-      ... | inj₂ eK rewrite splitAt-raise G₂.nE K₂.nE (IK.ψ eK) =
+      ... | inj₂ eK rewrite splitAt-↑ʳ G₂.nE K₂.nE (IK.ψ eK) =
                       trans (cong (map hC₂.remap) (IK.ψ-ein eK))
                             (sym (map-remap-comm (K₁.ein eK)))
 
       ψ-eout-C : ∀ e → C₂.eout (ψ-C e) ≡ map φ-C (C₁.eout e)
       ψ-eout-C e with splitAt G₁.nE e
-      ... | inj₁ eG rewrite splitAt-inject+ G₂.nE K₂.nE (IG.ψ eG) =
-                      trans (cong (map (inject+ K₂.nV)) (IG.ψ-eout eG))
+      ... | inj₁ eG rewrite splitAt-↑ˡ G₂.nE (IG.ψ eG) K₂.nE =
+                      trans (cong (map (_↑ˡ K₂.nV)) (IG.ψ-eout eG))
                             (sym (map-φ-C-injL (G₁.eout eG)))
-      ... | inj₂ eK rewrite splitAt-raise G₂.nE K₂.nE (IK.ψ eK) =
+      ... | inj₂ eK rewrite splitAt-↑ʳ G₂.nE K₂.nE (IK.ψ eK) =
                       trans (cong (map hC₂.remap) (IK.ψ-eout eK))
                             (sym (map-remap-comm (K₁.eout eK)))
 
@@ -625,7 +625,7 @@ module _ {As Bs Cs : List X} where
       -- but `cod` uses `remap` — so `cod-C` goes through `remap-comm`.
 
       dom-C : C₂.dom ≡ map φ-C C₁.dom
-      dom-C = trans (cong (map (inject+ K₂.nV)) IG.φ-dom)
+      dom-C = trans (cong (map (_↑ˡ K₂.nV)) IG.φ-dom)
                     (sym (map-φ-C-injL G₁.dom))
 
       cod-C : C₂.cod ≡ map φ-C C₁.cod
@@ -683,7 +683,7 @@ module _ {As Bs Cs : List X} where
           γ'  = IG.atom-eout eG
           δ   = map-via-inj hC₁.vlab-injL (G₁.ein  eG)
           δ'  = map-via-inj hC₁.vlab-injL (G₁.eout eG)
-          x   = C₂.elab (inject+ K₂.nE (IG.ψ eG))
+          x   = C₂.elab ((IG.ψ eG) ↑ˡ K₂.nE)
         in
         trans
           (sym (subst₂-trans α (trans (sym β̄) (trans γ δ))
@@ -713,7 +713,7 @@ module _ {As Bs Cs : List X} where
           γ'  = IK.atom-eout eK
           δ   = hC₁.map-via-remap (K₁.ein  eK)
           δ'  = hC₁.map-via-remap (K₁.eout eK)
-          x   = C₂.elab (raise G₂.nE (IK.ψ eK))
+          x   = C₂.elab (_↑ʳ_ G₂.nE (IK.ψ eK))
         in
         trans
           (sym (subst₂-trans α (trans (sym β̄) (trans γ δ))

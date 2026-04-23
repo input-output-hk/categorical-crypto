@@ -371,3 +371,65 @@ module _ {X : Set} {Gen : List X → List X → Set} {As Bs : List X} where
             (trans (cong (subst₂ Gen (I₁.atom-ein e) (I₁.atom-eout e)) step₂)
                    step₁)
         in chained
+
+
+--------------------------------------------------------------------------------
+-- `subst₂` on the boundary indices preserves `_≅ᴴ_`. By J on both
+-- equality proofs at refl, the iso passes through unchanged.
+--
+-- Used by ρ/α soundness proofs to chain
+--   `subst₂ _ eq₁ eq₃ G₁ ≅ᴴ subst₂ _ eq₁ eq₃ G₂`
+-- from a base iso `G₁ ≅ᴴ G₂`.
+
+subst₂-resp-≅ᴴ
+  : ∀ {X : Set} {Gen : List X → List X → Set}
+      {As As' Bs Bs' : List X}
+      (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
+      {G K : Hypergraph Gen As Bs}
+    → G ≅ᴴ K
+    → subst₂ (Hypergraph Gen) eq₁ eq₂ G ≅ᴴ subst₂ (Hypergraph Gen) eq₁ eq₂ K
+subst₂-resp-≅ᴴ refl refl iso = iso
+
+--------------------------------------------------------------------------------
+-- Hypergraph record-field projections commute with `subst₂` on the
+-- boundary type indices (since none of `nV`, `vlab`, `nE`, `ein`,
+-- `eout`, `elab`, `dom`, `cod` depend on `As` or `Bs`). Each is a
+-- refl-refl pattern match.
+
+module _ {X : Set} {Gen : List X → List X → Set} where
+
+  nV-subst₂
+    : ∀ {As Bs As' Bs'} (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
+      (H : Hypergraph Gen As Bs)
+    → Hypergraph.nV (subst₂ (Hypergraph Gen) eq₁ eq₂ H) ≡ Hypergraph.nV H
+  nV-subst₂ refl refl H = refl
+
+  nE-subst₂
+    : ∀ {As Bs As' Bs'} (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
+      (H : Hypergraph Gen As Bs)
+    → Hypergraph.nE (subst₂ (Hypergraph Gen) eq₁ eq₂ H) ≡ Hypergraph.nE H
+  nE-subst₂ refl refl H = refl
+
+  vlab-subst₂
+    : ∀ {As Bs As' Bs'} (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
+      (H : Hypergraph Gen As Bs)
+    → ∀ i → Hypergraph.vlab (subst₂ (Hypergraph Gen) eq₁ eq₂ H)
+              (subst Fin (sym (nV-subst₂ eq₁ eq₂ H)) i)
+          ≡ Hypergraph.vlab H i
+  vlab-subst₂ refl refl H i = refl
+
+  dom-subst₂
+    : ∀ {As Bs As' Bs'} (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
+      (H : Hypergraph Gen As Bs)
+    → Hypergraph.dom (subst₂ (Hypergraph Gen) eq₁ eq₂ H)
+    ≡ subst (λ n → List (Fin n)) (sym (nV-subst₂ eq₁ eq₂ H))
+            (Hypergraph.dom H)
+  dom-subst₂ refl refl H = refl
+
+  cod-subst₂
+    : ∀ {As Bs As' Bs'} (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
+      (H : Hypergraph Gen As Bs)
+    → Hypergraph.cod (subst₂ (Hypergraph Gen) eq₁ eq₂ H)
+    ≡ subst (λ n → List (Fin n)) (sym (nV-subst₂ eq₁ eq₂ H))
+            (Hypergraph.cod H)
+  cod-subst₂ refl refl H = refl

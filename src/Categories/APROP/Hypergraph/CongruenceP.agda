@@ -59,8 +59,8 @@ open import Categories.APROP.Hypergraph.Prune
 open import Categories.APROP.Hypergraph.PrunedCompose sig
 
 open import Data.Empty using (⊥-elim)
-open import Data.Fin using (Fin; inject+; raise; splitAt)
-open import Data.Fin.Properties using (_≟_; splitAt-inject+; splitAt-raise;
+open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_; splitAt)
+open import Data.Fin.Properties using (_≟_; splitAt-↑ˡ; splitAt-↑ʳ;
                                         splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ)
 open import Data.List using (List; []; _∷_; map; lookup)
 open import Data.Nat using (ℕ; _+_)
@@ -112,13 +112,13 @@ module _
 
   -- Vertex bijection of the composites.
   φ-P : Fin (G₁.nV + count-non K₁.dom) → Fin (G₂.nV + count-non K₂.dom)
-  φ-P i = [ (λ iG → inject+ (count-non K₂.dom) (IG.φ iG))
-          , (λ iK → raise G₂.nV (pruneK iK))
+  φ-P i = [ (λ iG → (IG.φ iG) ↑ˡ (count-non K₂.dom))
+          , (λ iK → _↑ʳ_ G₂.nV (pruneK iK))
           ]′ (splitAt G₁.nV i)
 
   φ⁻¹-P : Fin (G₂.nV + count-non K₂.dom) → Fin (G₁.nV + count-non K₁.dom)
-  φ⁻¹-P j = [ (λ jG → inject+ (count-non K₁.dom) (IG.φ⁻¹ jG))
-            , (λ jK → raise G₁.nV (pruneK⁻¹ jK))
+  φ⁻¹-P j = [ (λ jG → (IG.φ⁻¹ jG) ↑ˡ (count-non K₁.dom))
+            , (λ jK → _↑ʳ_ G₁.nV (pruneK⁻¹ jK))
             ]′ (splitAt G₂.nV j)
 
   -- Left inverse of the K-side pruned bijection.
@@ -154,19 +154,19 @@ module _
   -- to collapse.
   φ-left-P : ∀ i → φ⁻¹-P (φ-P i) ≡ i
   φ-left-P i with splitAt G₁.nV i in eq
-  ... | inj₁ iG rewrite splitAt-inject+ G₂.nV (count-non K₂.dom) (IG.φ iG)
+  ... | inj₁ iG rewrite splitAt-↑ˡ G₂.nV (IG.φ iG) (count-non K₂.dom)
                       | IG.φ-left iG
                     = splitAt⁻¹-↑ˡ eq
-  ... | inj₂ jK rewrite splitAt-raise G₂.nV (count-non K₂.dom) (pruneK jK)
+  ... | inj₂ jK rewrite splitAt-↑ʳ G₂.nV (count-non K₂.dom) (pruneK jK)
                       | pruneK-left jK
                     = splitAt⁻¹-↑ʳ eq
 
   φ-rght-P : ∀ j → φ-P (φ⁻¹-P j) ≡ j
   φ-rght-P j with splitAt G₂.nV j in eq
-  ... | inj₁ jG rewrite splitAt-inject+ G₁.nV (count-non K₁.dom) (IG.φ⁻¹ jG)
+  ... | inj₁ jG rewrite splitAt-↑ˡ G₁.nV (IG.φ⁻¹ jG) (count-non K₁.dom)
                       | IG.φ-rght jG
                     = splitAt⁻¹-↑ˡ eq
-  ... | inj₂ kK rewrite splitAt-raise G₁.nV (count-non K₁.dom) (pruneK⁻¹ kK)
+  ... | inj₂ kK rewrite splitAt-↑ʳ G₁.nV (count-non K₁.dom) (pruneK⁻¹ kK)
                       | pruneK-right kK
                     = splitAt⁻¹-↑ʳ eq
 
@@ -176,30 +176,30 @@ module _
   -- count (G.nE + K.nE) as `hCompose` — pruning only affects vertices.
 
   ψ-P : Fin (G₁.nE + K₁.nE) → Fin (G₂.nE + K₂.nE)
-  ψ-P e = [ (λ eG → inject+ K₂.nE (IG.ψ eG))
-          , (λ eK → raise G₂.nE (IK.ψ eK))
+  ψ-P e = [ (λ eG → (IG.ψ eG) ↑ˡ K₂.nE)
+          , (λ eK → _↑ʳ_ G₂.nE (IK.ψ eK))
           ]′ (splitAt G₁.nE e)
 
   ψ⁻¹-P : Fin (G₂.nE + K₂.nE) → Fin (G₁.nE + K₁.nE)
-  ψ⁻¹-P e = [ (λ eG → inject+ K₁.nE (IG.ψ⁻¹ eG))
-            , (λ eK → raise G₁.nE (IK.ψ⁻¹ eK))
+  ψ⁻¹-P e = [ (λ eG → (IG.ψ⁻¹ eG) ↑ˡ K₁.nE)
+            , (λ eK → _↑ʳ_ G₁.nE (IK.ψ⁻¹ eK))
             ]′ (splitAt G₂.nE e)
 
   ψ-left-P : ∀ e → ψ⁻¹-P (ψ-P e) ≡ e
   ψ-left-P e with splitAt G₁.nE e in eq
-  ... | inj₁ eG rewrite splitAt-inject+ G₂.nE K₂.nE (IG.ψ eG)
+  ... | inj₁ eG rewrite splitAt-↑ˡ G₂.nE (IG.ψ eG) K₂.nE
                       | IG.ψ-left eG
                     = splitAt⁻¹-↑ˡ eq
-  ... | inj₂ eK rewrite splitAt-raise G₂.nE K₂.nE (IK.ψ eK)
+  ... | inj₂ eK rewrite splitAt-↑ʳ G₂.nE K₂.nE (IK.ψ eK)
                       | IK.ψ-left eK
                     = splitAt⁻¹-↑ʳ eq
 
   ψ-rght-P : ∀ e → ψ-P (ψ⁻¹-P e) ≡ e
   ψ-rght-P e with splitAt G₂.nE e in eq
-  ... | inj₁ eG rewrite splitAt-inject+ G₁.nE K₁.nE (IG.ψ⁻¹ eG)
+  ... | inj₁ eG rewrite splitAt-↑ˡ G₁.nE (IG.ψ⁻¹ eG) K₁.nE
                       | IG.ψ-rght eG
                     = splitAt⁻¹-↑ˡ eq
-  ... | inj₂ eK rewrite splitAt-raise G₁.nE K₁.nE (IK.ψ⁻¹ eK)
+  ... | inj₂ eK rewrite splitAt-↑ʳ G₁.nE K₁.nE (IK.ψ⁻¹ eK)
                       | IK.ψ-rght eK
                     = splitAt⁻¹-↑ʳ eq
 
@@ -243,11 +243,11 @@ module _
   φ-lab-P i with splitAt G₁.nV i
   ... | inj₁ iG =
     trans (cong [ G₂.vlab , _ ]′
-                 (splitAt-inject+ G₂.nV (count-non K₂.dom) (IG.φ iG)))
+                 (splitAt-↑ˡ G₂.nV (IG.φ iG) (count-non K₂.dom)))
           (IG.φ-lab iG)
   ... | inj₂ jK =
     trans (cong [ G₂.vlab , _ ]′
-                 (splitAt-raise G₂.nV (count-non K₂.dom) (pruneK jK)))
+                 (splitAt-↑ʳ G₂.nV (count-non K₂.dom) (pruneK jK)))
           (pruneK-lookup jK)
 
   --------------------------------------------------------------------------------
@@ -255,14 +255,14 @@ module _
 
   open import Data.List.Properties using (map-∘; map-cong)
 
-  φ-P-injL : ∀ i → φ-P (inject+ (count-non K₁.dom) i)
-                 ≡ inject+ (count-non K₂.dom) (IG.φ i)
-  φ-P-injL i rewrite splitAt-inject+ G₁.nV (count-non K₁.dom) i = refl
+  φ-P-injL : ∀ i → φ-P (i ↑ˡ (count-non K₁.dom))
+                 ≡ (IG.φ i) ↑ˡ (count-non K₂.dom)
+  φ-P-injL i rewrite splitAt-↑ˡ G₁.nV i (count-non K₁.dom) = refl
 
   -- List-wise version used in the dom-P case of hComposeP-resp-≅ᴴ.
   map-φ-P-injL : (xs : List (Fin G₁.nV))
-               → map φ-P (map (inject+ (count-non K₁.dom)) xs)
-               ≡ map (inject+ (count-non K₂.dom)) (map IG.φ xs)
+               → map φ-P (map (_↑ˡ (count-non K₁.dom)) xs)
+               ≡ map (_↑ˡ (count-non K₂.dom)) (map IG.φ xs)
   map-φ-P-injL xs = trans (sym (map-∘ xs))
                           (trans (map-cong φ-P-injL xs) (map-∘ xs))
 
@@ -278,7 +278,7 @@ module _
 
   dom-P : Hypergraph.dom (hComposeP G₂ K₂)
         ≡ map φ-P (Hypergraph.dom (hComposeP G₁ K₁))
-  dom-P = trans (cong (map (inject+ (count-non K₂.dom))) IG.φ-dom)
+  dom-P = trans (cong (map (_↑ˡ (count-non K₂.dom))) IG.φ-dom)
                 (sym (map-φ-P-injL G₁.dom))
 
   --------------------------------------------------------------------------------
@@ -294,20 +294,20 @@ module _
 
   -- Inj₁ branch (G-side) of ψ-ein-P.
   ψ-ein-P-inj₁ : ∀ (eG : Fin G₁.nE)
-               → hCP₂.ein-c (inject+ K₂.nE (IG.ψ eG))
-               ≡ map φ-P (map (inject+ (count-non K₁.dom)) (G₁.ein eG))
+               → hCP₂.ein-c ((IG.ψ eG) ↑ˡ K₂.nE)
+               ≡ map φ-P (map (_↑ˡ (count-non K₁.dom)) (G₁.ein eG))
   ψ-ein-P-inj₁ eG =
     trans (hCP₂.ein-c-inj₁-red (IG.ψ eG))
-          (trans (cong (map (inject+ (count-non K₂.dom))) (IG.ψ-ein eG))
+          (trans (cong (map (_↑ˡ (count-non K₂.dom))) (IG.ψ-ein eG))
                  (sym (map-φ-P-injL (G₁.ein eG))))
 
   -- Inj₁ branch of ψ-eout-P.
   ψ-eout-P-inj₁ : ∀ (eG : Fin G₁.nE)
-                → hCP₂.eout-c (inject+ K₂.nE (IG.ψ eG))
-                ≡ map φ-P (map (inject+ (count-non K₁.dom)) (G₁.eout eG))
+                → hCP₂.eout-c ((IG.ψ eG) ↑ˡ K₂.nE)
+                ≡ map φ-P (map (_↑ˡ (count-non K₁.dom)) (G₁.eout eG))
   ψ-eout-P-inj₁ eG =
     trans (hCP₂.eout-c-inj₁-red (IG.ψ eG))
-          (trans (cong (map (inject+ (count-non K₂.dom))) (IG.ψ-eout eG))
+          (trans (cong (map (_↑ˡ (count-non K₂.dom))) (IG.ψ-eout eG))
                  (sym (map-φ-P-injL (G₁.eout eG))))
 
   --------------------------------------------------------------------------------
@@ -385,8 +385,8 @@ module _
 
   -- Derived φ-P formulae on injL / injR, for use below.
   private
-    φ-P-injR : ∀ jK → φ-P (raise G₁.nV jK) ≡ raise G₂.nV (pruneK jK)
-    φ-P-injR jK rewrite splitAt-raise G₁.nV (count-non K₁.dom) jK = refl
+    φ-P-injR : ∀ jK → φ-P (_↑ʳ_ G₁.nV jK) ≡ _↑ʳ_ G₂.nV (pruneK jK)
+    φ-P-injR jK rewrite splitAt-↑ʳ G₁.nV (count-non K₁.dom) jK = refl
 
   open import Data.List.Relation.Unary.Any using (index)
   open import Data.List.Relation.Unary.Any.Properties using (lookup-index)
@@ -484,7 +484,7 @@ module _
     --   ≡ inject+ (count-non K₂.dom) (lookup-cod₂ i₂)             [lookup-cod-coherence]
     --   ≡ hCP₂.remapP (IK.φ v)                                    [classify gives inj₁ i₂]
     trans (φ-P-injL (hCP₁.lookup-cod i₁))
-          (cong (inject+ (count-non K₂.dom))
+          (cong (_↑ˡ (count-non K₂.dom))
                 (lookup-cod-coherence v i₁ i₂ eq₁ eq₂))
   ... | inj₁ i₁ | inj₂ j₂ =
     ⊥-elim (classify-inj₂-∉ eq₂ (∈K₁→∈K₂ (classify-inj₁-∈ eq₁)))
@@ -494,7 +494,7 @@ module _
     -- φ-P (raise G₁.nV j₁) ≡ raise G₂.nV (pruneK j₁)  [φ-P-injR]
     -- pruneK j₁ ≡ j₂                                  [lookup-injective-unique]
     trans (φ-P-injR j₁)
-          (cong (raise G₂.nV)
+          (cong (_↑ʳ_ G₂.nV)
             (lookup-injective-unique (nonMem-Unique K₂.dom) (pruneK j₁) j₂
               (trans lookup-LHS (sym lookup-RHS))))
     where
@@ -554,7 +554,7 @@ module _
       γ'  = IG.atom-eout eG
       δ   = map-via-inj hCP₁.vlab-injL (G₁.ein  eG)
       δ'  = map-via-inj hCP₁.vlab-injL (G₁.eout eG)
-      x   = hCP₂.elab-c (inject+ K₂.nE (IG.ψ eG))
+      x   = hCP₂.elab-c ((IG.ψ eG) ↑ˡ K₂.nE)
     in
     trans
       (sym (subst₂-trans α (trans (sym β̄) (trans γ δ))
@@ -584,7 +584,7 @@ module _
       γ'  = IK.atom-eout eK
       δ   = hCP₁.map-via-remapP (K₁.ein  eK)
       δ'  = hCP₁.map-via-remapP (K₁.eout eK)
-      x   = hCP₂.elab-c (raise G₂.nE (IK.ψ eK))
+      x   = hCP₂.elab-c (_↑ʳ_ G₂.nE (IK.ψ eK))
     in
     trans
       (sym (subst₂-trans α (trans (sym β̄) (trans γ δ))
@@ -622,19 +622,19 @@ module _
 
   ψ-ein-P : ∀ e → hCP₂.ein-c (ψ-P e) ≡ map φ-P (hCP₁.ein-c e)
   ψ-ein-P e with splitAt G₁.nE e
-  ... | inj₁ eG rewrite splitAt-inject+ G₂.nE K₂.nE (IG.ψ eG) =
-    trans (cong (map (inject+ (count-non K₂.dom))) (IG.ψ-ein eG))
+  ... | inj₁ eG rewrite splitAt-↑ˡ G₂.nE (IG.ψ eG) K₂.nE =
+    trans (cong (map (_↑ˡ (count-non K₂.dom))) (IG.ψ-ein eG))
           (sym (map-φ-P-injL (G₁.ein eG)))
-  ... | inj₂ eK rewrite splitAt-raise G₂.nE K₂.nE (IK.ψ eK) =
+  ... | inj₂ eK rewrite splitAt-↑ʳ G₂.nE K₂.nE (IK.ψ eK) =
     trans (cong (map hCP₂.remapP) (IK.ψ-ein eK))
           (sym (map-remapP-comm (K₁.ein eK)))
 
   ψ-eout-P : ∀ e → hCP₂.eout-c (ψ-P e) ≡ map φ-P (hCP₁.eout-c e)
   ψ-eout-P e with splitAt G₁.nE e
-  ... | inj₁ eG rewrite splitAt-inject+ G₂.nE K₂.nE (IG.ψ eG) =
-    trans (cong (map (inject+ (count-non K₂.dom))) (IG.ψ-eout eG))
+  ... | inj₁ eG rewrite splitAt-↑ˡ G₂.nE (IG.ψ eG) K₂.nE =
+    trans (cong (map (_↑ˡ (count-non K₂.dom))) (IG.ψ-eout eG))
           (sym (map-φ-P-injL (G₁.eout eG)))
-  ... | inj₂ eK rewrite splitAt-raise G₂.nE K₂.nE (IK.ψ eK) =
+  ... | inj₂ eK rewrite splitAt-↑ʳ G₂.nE K₂.nE (IK.ψ eK) =
     trans (cong (map hCP₂.remapP) (IK.ψ-eout eK))
           (sym (map-remapP-comm (K₁.eout eK)))
 

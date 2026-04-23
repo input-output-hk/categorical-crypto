@@ -27,9 +27,9 @@
 
 module Categories.APROP.Hypergraph.Prune where
 
-open import Data.Empty using (⊥-elim)
-open import Data.Fin using (Fin; zero; suc; inject+; raise; splitAt)
-open import Data.Fin.Properties using (_≟_; splitAt-inject+; splitAt-raise)
+open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
+open import Data.Fin.Properties using (_≟_; splitAt-↑ˡ; splitAt-↑ʳ)
 open import Data.List using (List; []; _∷_; length; filter; allFin; lookup; map)
 open import Data.List.Properties using (map-cong; map-∘)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
@@ -194,6 +194,51 @@ module _ {n : ℕ} where
   classify-inj₁-∈ {xs} {v} eq with v ∈? xs
   classify-inj₁-∈ _ | yes v∈ = v∈
   classify-inj₁-∈ () | no _
+
+  -- For Unique xs, the classify index of `lookup xs j` is `j`.
+  -- (The first occurrence of v = lookup xs j in a Unique list xs
+  -- is at position j, since v appears only there.)
+  classify-lookup-Unique
+    : (xs : List (Fin n)) → Unique xs
+    → (j : Fin (length xs))
+    → classify xs (lookup xs j) ≡ inj₁ j
+  classify-lookup-Unique xs unique j
+    with lookup xs j ∈? xs
+  ... | yes v∈ = cong inj₁
+    (lookup-injective-unique unique (index v∈) j (sym (lookup-index v∈)))
+  ... | no  v∉ = ⊥-elim (v∉ ∈-lookup-helper)
+    where
+      open import Data.List.Membership.Propositional.Properties
+        using () renaming (∈-lookup to ∈-lookup-std)
+      ∈-lookup-helper : lookup xs j ∈ xs
+      ∈-lookup-helper = ∈-lookup-std j
+
+  -- Dual to `classify-lookup-Unique`: for `j : Fin (count-non xs)`,
+  -- `classify xs (lookup (nonMem xs) j) ≡ inj₂ j`. Used by
+  -- `idʳ-sound` to show the "pruned side" of the bijection inverse.
+  classify-lookup-nonMem
+    : (xs : List (Fin n)) (j : Fin (count-non xs))
+    → classify xs (lookup (nonMem xs) j) ≡ inj₂ j
+  classify-lookup-nonMem xs j
+    with lookup (nonMem xs) j ∈? xs
+  -- impossible: lookup (nonMem xs) j is by construction NOT in xs.
+  ... | yes v∈ = ⊥-elim (nonMem-member-helper v∈)
+    where
+      open import Data.List.Membership.Propositional.Properties
+        using (∈-filter⁻; ∈-lookup)
+      open import Data.Product using (proj₂)
+      nonMem-member-helper : lookup (nonMem xs) j ∈ xs → ⊥
+      nonMem-member-helper =
+        proj₂ (∈-filter⁻ (nonMem? xs) {xs = allFin n}
+                         (∈-lookup {xs = nonMem xs} j))
+  ... | no  v∉ = cong inj₂
+    (lookup-injective-unique
+      (nonMem-Unique xs)
+      (index w) j
+      (sym (lookup-index w)))
+    where
+      w : lookup (nonMem xs) j ∈ nonMem xs
+      w = ∈-filter⁺ (nonMem? xs) (∈-allFin (lookup (nonMem xs) j)) v∉
 
   -- A pruned index `j` in `nonMem xs` looks up to a Fin value that
   -- really is a non-member of `xs`.
@@ -432,15 +477,15 @@ module _ {m n : ℕ}
 module _ {n m : ℕ} where
   remap : (xs : List (Fin n)) → (Fin (length xs) → Fin m)
         → Fin n → Fin (m + count-non xs)
-  remap xs f v = [ (λ i → inject+ (count-non xs) (f i))
-                 , (λ j → raise m j)
+  remap xs f v = [ (λ i → f i ↑ˡ count-non xs)
+                 , (λ j → m ↑ʳ j)
                  ]′ (classify xs v)
 
   -- Reduction of `remap` in the `inj₁` (member) case.
   remap-inj₁ : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
                (v : Fin n) (i : Fin (length xs))
              → classify xs v ≡ inj₁ i
-             → remap xs f v ≡ inject+ (count-non xs) (f i)
+             → remap xs f v ≡ f i ↑ˡ count-non xs
   remap-inj₁ xs f v i eq with classify xs v
   remap-inj₁ xs f v i refl | inj₁ .i = refl
 
@@ -448,7 +493,7 @@ module _ {n m : ℕ} where
   remap-inj₂ : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
                (v : Fin n) (j : Fin (count-non xs))
              → classify xs v ≡ inj₂ j
-             → remap xs f v ≡ raise m j
+             → remap xs f v ≡ m ↑ʳ j
   remap-inj₂ xs f v j eq with classify xs v
   remap-inj₂ xs f v j refl | inj₂ .j = refl
 
@@ -484,19 +529,19 @@ module _ {a} {X : Set a} {n m : ℕ} where
   remap-vlab xs f λK λG bdy v with v ∈? xs
   ... | yes v∈xs =
     -- classify xs v reduces to inj₁ (index v∈xs), so
-    -- remap xs f v = inject+ (count-non xs) (f (index v∈xs)).
+    -- remap xs f v = f (index v∈xs) ↑ˡ count-non xs.
     trans
       (cong [ λG , (λ k → λK (lookup (nonMem xs) k)) ]′
-        (splitAt-inject+ m (count-non xs) (f (index v∈xs))))
+        (splitAt-↑ˡ m (f (index v∈xs)) (count-non xs)))
       (trans (sym (bdy (index v∈xs)))
              (cong λK (sym (lookup-index v∈xs))))
   ... | no v∉xs =
     -- classify xs v reduces to inj₂ (index v∈nonMem), so
-    -- remap xs f v = raise m (index v∈nonMem).
+    -- remap xs f v = m ↑ʳ (index v∈nonMem).
     let v∈nonMem = ∈-filter⁺ (λ u → ¬? (u ∈? xs)) (∈-allFin v) v∉xs in
     trans
       (cong [ λG , (λ k → λK (lookup (nonMem xs) k)) ]′
-        (splitAt-raise m (count-non xs) (index v∈nonMem)))
+        (splitAt-↑ʳ m (count-non xs) (index v∈nonMem)))
       (cong λK (sym (lookup-index v∈nonMem)))
 
   -- List-wise version of `remap-vlab`: the labels of any list of K-vertices
