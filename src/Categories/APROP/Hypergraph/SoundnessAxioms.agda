@@ -95,10 +95,16 @@ private
 -- Label, boundary, and elab preservation follow from the pruned
 -- composite's structure when K has no edges and K.dom covers everything.
 
--- Scaffolding for the full proof:
-module idˡ-proof {A B : ObjTerm} (f : HomTerm A B) where
+-- Generic left-identity-composition iso: for any G with cod = flatten B,
+-- `hComposeP G (hId B) ≅ᴴ G`. The original `idˡ-proof` only used G's
+-- record fields (never f's structure), so it generalizes directly to
+-- arbitrary hypergraphs in the appropriate type.
+
+module hCompose-hId-R-proof
+  {As : List X} {B : ObjTerm}
+  (G : Hypergraph FlatGen As (flatten B))
+  where
   private
-    G = ⟪ f ⟫
     K = hId B
     C = hComposeP G K
     module G = Hypergraph G
@@ -337,8 +343,8 @@ module idˡ-proof {A B : ObjTerm} (f : HomTerm A B) where
   ------------------------------------------------------------------------------
   -- The assembled ≅ᴴ record.
 
-  idˡ-iso : C ≅ᴴ G
-  idˡ-iso = record
+  hCompose-hId-R-iso : C ≅ᴴ G
+  hCompose-hId-R-iso = record
     { φ         = φ
     ; φ⁻¹       = φ⁻¹
     ; φ-left    = φ-left
@@ -357,9 +363,17 @@ module idˡ-proof {A B : ObjTerm} (f : HomTerm A B) where
     ; ψ-elab    = ψ-elab
     }
 
--- Export idˡ proof.
+-- Export idˡ proof via the generic hCompose-hId-R-iso.
 idˡ-sound : ∀ {A B} (f : HomTerm A B) → ⟪ id ∘ f ⟫ ≅ᴴ ⟪ f ⟫
-idˡ-sound f = idˡ-proof.idˡ-iso f
+idˡ-sound {B = B} f = hCompose-hId-R-proof.hCompose-hId-R-iso {B = B} ⟪ f ⟫
+
+-- Also export the generic iso directly for future use (e.g. λ-nat,
+-- triangle, and other axioms that compose with hId on the right).
+hCompose-hId-R-iso-generic
+  : ∀ {As : List X} (B : ObjTerm)
+    (G : Hypergraph FlatGen As (flatten B))
+  → hComposeP G (hId B) ≅ᴴ G
+hCompose-hId-R-iso-generic B G = hCompose-hId-R-proof.hCompose-hId-R-iso {B = B} G
 
 --------------------------------------------------------------------------------
 -- Other group-(b) axioms that reduce to idˡ or require similar
