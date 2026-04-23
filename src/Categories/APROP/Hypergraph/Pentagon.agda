@@ -23,23 +23,20 @@
 --      `p-FINAL`s, which are propositionally equal by
 --      `pentagon-list-coherence` (Mac Lane's pentagon for `++-assoc`).
 --
--- STATUS: `pentagon-sound` is **fully constructive** modulo the one
--- pure-list-level postulate `pentagon-list-coherence` (Mac Lane's
--- pentagon for `++-assoc`).  All hypergraph-level reasoning is proved.
+-- STATUS: `pentagon-sound` is **fully constructive** — no postulates
+-- at any level.
 --
 -- Verified pieces:
 --   * 3 leaf-reduction lemmas (α⇒⊗id-, id⊗α⇒-, α⇒-as-subst-hId).
 --   * 4 `subst₂` + `hComposeP` manipulation lemmas
 --     (hComposeP-cod-subst, subst₂-trans-cod, hTensor-subst₂-{left,right}).
+--   * 5 cong-swap / cong-trans helpers at the `List Y` level.
+--   * `pentagon-list-coherence` (Mac Lane's pentagon for `++-assoc`) —
+--     proved by induction on `xs`.
 --   * LHS ≅ᴴ mid via a 6-step peel chain using `hCompose-hId-R-iso-generic`.
---   * RHS ≅ᴴ mid via a 4-step peel chain.
+--   * RHS ≅ᴴ mid via a 4-step peel chain, ends by bridging the boundary
+--     proof with `pentagon-list-coherence`.
 --   * `pentagon-sound = trans-≅ᴴ LHS≅mid (sym-≅ᴴ RHS≅mid)`.
---
--- Outstanding postulate:
---   * `pentagon-list-coherence` — proven for the base case
---     (`pentagon-list-coherence-base`); inductive case requires a careful
---     `cong-swap`/`trans-assoc` chain (all component helpers are proved;
---     only the final assembly needs more `trans`-associativity bookkeeping).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -176,32 +173,60 @@ private
     → cong (_++_ (x ∷ xs)) p ≡ cong (x ∷_) (cong (_++_ xs) p)
   cong-∷-++-expand x xs refl = refl
 
--- Pentagon at the list level, proved for the base case and postulated
--- inductively.  Fully constructive proof left to a future pass (needs
--- additional `trans`-associativity bookkeeping on the inductive step).
+-- Pentagon at the list level, proved by induction on `xs`.
+--
+-- Base case (`xs = []`): both sides reduce modulo `cong-[]-++` and
+--   `trans-reflʳ` to `++-assoc ys zs ws`.
+-- Inductive case (`xs = x ∷ xs'`): rewrite each LHS term so that
+--   `cong (x ∷_)` factors outward, apply the IH under `cong (cong (x ∷_))`,
+--   then distribute `cong (x ∷_)` back to match the RHS.
 
-postulate
-  pentagon-list-coherence
-    : ∀ {Y : Set} (xs ys zs ws : List Y)
-    → trans (cong (_++ ws) (++-assoc xs ys zs))
-            (trans (++-assoc xs (ys ++ zs) ws)
-                   (cong (xs ++_) (++-assoc ys zs ws)))
-    ≡ trans (++-assoc (xs ++ ys) zs ws) (++-assoc xs ys (zs ++ ws))
-
--- Proof of the base case, kept as a verified sub-claim.  Not used for
--- the full `pentagon-list-coherence` above (which is postulated), but
--- exported as evidence the technique works for the trivial list and as
--- a starting point for completing the inductive case.
-
-pentagon-list-coherence-base
-  : ∀ {Y : Set} (ys zs ws : List Y)
-  → trans (cong (_++ ws) (++-assoc {A = Y} [] ys zs))
-          (trans (++-assoc [] (ys ++ zs) ws)
-                 (cong ([] ++_) (++-assoc ys zs ws)))
-  ≡ trans (++-assoc ([] ++ ys) zs ws) (++-assoc [] ys (zs ++ ws))
-pentagon-list-coherence-base ys zs ws =
+pentagon-list-coherence
+  : ∀ {Y : Set} (xs ys zs ws : List Y)
+  → trans (cong (_++ ws) (++-assoc xs ys zs))
+          (trans (++-assoc xs (ys ++ zs) ws)
+                 (cong (xs ++_) (++-assoc ys zs ws)))
+  ≡ trans (++-assoc (xs ++ ys) zs ws) (++-assoc xs ys (zs ++ ws))
+pentagon-list-coherence [] ys zs ws =
   trans (cong-[]-++ (++-assoc ys zs ws))
         (sym (trans-reflʳ (++-assoc ys zs ws)))
+pentagon-list-coherence (x ∷ xs) ys zs ws =
+  let
+    -- Abbreviations.
+    r  = ++-assoc xs ys zs                 -- : (xs ++ ys) ++ zs ≡ xs ++ ys ++ zs
+    s  = ++-assoc xs (ys ++ zs) ws         -- : (xs ++ ys ++ zs) ++ ws ≡ xs ++ (ys ++ zs) ++ ws
+    t  = ++-assoc ys zs ws                 -- : (ys ++ zs) ++ ws ≡ ys ++ zs ++ ws
+    -- IH: LHS-shape xs ≡ RHS-shape xs.
+    ih : trans (cong (_++ ws) r) (trans s (cong (xs ++_) t))
+       ≡ trans (++-assoc (xs ++ ys) zs ws) (++-assoc xs ys (zs ++ ws))
+    ih = pentagon-list-coherence xs ys zs ws
+  in
+  -- Step 1: pull `x ∷_` outward on the inner factors.
+  trans
+    (cong (λ e → trans e
+                        (trans (cong (x ∷_) s)
+                               (cong (_++_ (x ∷ xs)) t)))
+          (cong-swap-∷-++ʳ x ws r))
+    (trans
+      (cong (λ e → trans (cong (x ∷_) (cong (_++ ws) r))
+                          (trans (cong (x ∷_) s) e))
+            (cong-∷-++-expand x xs t))
+      -- Step 2: fuse the inner trans under cong (x ∷_).
+      (trans
+        (cong (trans (cong (x ∷_) (cong (_++ ws) r)))
+              (sym (cong-∷-trans x s (cong (xs ++_) t))))
+        (trans
+          -- Step 3: fuse the outer trans under cong (x ∷_).
+          (sym (cong-∷-trans x
+                  (cong (_++ ws) r)
+                  (trans s (cong (xs ++_) t))))
+          -- Step 4: apply IH.
+          (trans
+            (cong (cong (x ∷_)) ih)
+            -- Step 5: distribute cong (x ∷_) across the trans in the RHS.
+            (cong-∷-trans x
+              (++-assoc (xs ++ ys) zs ws)
+              (++-assoc xs ys (zs ++ ws)))))))
 
 --------------------------------------------------------------------------------
 -- Pentagon.
