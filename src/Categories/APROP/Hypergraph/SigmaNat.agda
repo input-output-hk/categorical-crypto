@@ -439,6 +439,26 @@ module σ-nat-proof
                       → subst₂ P (sym p) (sym q) (subst₂ P p q z) ≡ z
     subst₂-sym-subst₂ refl refl _ = refl
 
+    trans-reflʳ : ∀ {a} {A : Set a} {x y : A} (p : x ≡ y) → trans p refl ≡ p
+    trans-reflʳ refl = refl
+
+    -- Naturality of `hRHS.map-via-remapP` in its list argument.  For
+    -- any `p : xs₁ ≡ xs₂`, the square commutes:
+    --
+    --   map RHS-K.vlab xs₁  ━━(map-via-remapP xs₁)━━▶  map RHS.vlab (map hRHS.remapP xs₁)
+    --          │                                                   │
+    --   cong (map RHS-K.vlab) p                      cong (map RHS.vlab ∘ map hRHS.remapP) p
+    --          ▼                                                   ▼
+    --   map RHS-K.vlab xs₂  ━━(map-via-remapP xs₂)━━▶  map RHS.vlab (map hRHS.remapP xs₂)
+    --
+    -- Proved by pattern-matching p = refl + trans-reflʳ.
+    map-via-remapP-natural
+      : ∀ {xs₁ xs₂ : List (Fin RHS-K.nV)} (p : xs₁ ≡ xs₂)
+      → trans (hRHS.map-via-remapP xs₁)
+              (cong (λ xs → map RHS.vlab (map hRHS.remapP xs)) p)
+      ≡ trans (cong (map RHS-K.vlab) p) (hRHS.map-via-remapP xs₂)
+    map-via-remapP-natural refl = trans-reflʳ (hRHS.map-via-remapP _)
+
   -- atom-ein: for an F-edge eLG = fE ↑ˡ G.nE:
   --   LHS = map F.vlab (F.ein fE) via two `map-via-inj` collapses.
   --   RHS = map F.vlab (F.ein fE) via hTR.ein-c-inj₂-red + map-via-remapP +
@@ -492,21 +512,18 @@ module σ-nat-proof
     (trans (map-via-raise hTL.vlab-injR (G.eout gE))
            (map-via-inj hLHS.vlab-injL (map hTL.injR (G.eout gE))))))
 
-  -- ψ-elab.  Case on splitAt LHS-G.nE, then splitAt F.nE.  For the
-  -- F-edge branch, the chain (see Congruence.agda's ψ-elab-T for the
-  -- 4-equation version) uses:
-  --   * sym (subst₂-trans A rest A' rest' (RHS.elab (ψ e)))
-  --     to split A off
-  --   * `hTR.elab-c-inj₂ fE` to bridge RHS-K.elab (G.nE ↑ʳ fE) to F.elab fE
-  --   * `subst₂-sym-subst₂` to cancel β̄ + sym β̄
-  --   * `subst₂-trans` to collapse the remaining chains into (trans D E)
-  --   * definitional collapse of LHS.elab e to subst₂ E (subst₂ D (F.elab fE))
+  -- ψ-elab.  Chain (for F-edge case, mirror for G-edge):
+  --   * sym subst₂-trans A rest _ — split A off
+  --   * collapse trans β̄o A into trans π β̄ via `map-via-remapP-natural`
+  --   * split π off, apply `hTR.elab-c-inj₂ fE` — reach `subst₂ γ (F.elab fE)`
+  --   * subst₂-sym-subst₂ cancels β̄ + sym β̄
+  --   * second subst₂-sym-subst₂ cancels γ + sym γ
+  --   * remainder is subst₂ (trans D E) (F.elab fE) = LHS.elab e (definitional)
   --
-  -- Porting the full chain is mechanical but requires a `map-via-remapP`
-  -- naturality lemma (trans β̄_orig A ≡ trans π β̄ where β̄_orig uses the
-  -- pre-reduction list and β̄ uses the post-reduction list), which in turn
-  -- needs `trans-reflʳ` from stdlib.  Kept as postulate until the
-  -- `atom-ein` / `atom-eout` lemmas settle and can be re-used.
+  -- Full proof ~60 lines per case, following the exact `ψ-elab-T` pattern
+  -- in Congruence.agda.  The foundations are in place — `subst₂-trans`,
+  -- `subst₂-sym-subst₂`, `trans-reflʳ`, and `map-via-remapP-natural` above.
+  -- Kept as postulate; future sessions can discharge it using those helpers.
 
   postulate
     φ-lab   : ∀ v → RHS.vlab (φ v) ≡ LHS.vlab v
