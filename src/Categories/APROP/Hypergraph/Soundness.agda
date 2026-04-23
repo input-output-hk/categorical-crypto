@@ -46,18 +46,22 @@
 --
 --   With both flags, all 8 focused postulates dispatch in <1s each.
 --
--- 6 per-axiom postulates still outstanding (see TODO.org Step 6):
+-- 5 per-axiom postulates still outstanding (see TODO.org Step 6):
 --   * `ρ⇒∘f⊗id≈f∘ρ⇒-sound` — ρ-nat
 --   * `σ∘[f⊗g]≈[g⊗f]∘σ-sound` — σ-nat
 --   * `hexagon-sound`       — symmetric hexagon
---   * `pentagon-sound`      — five-α coherence
 --   * `assoc-sound`         — hComposeP associativity
 --   * `⊗-∘-dist-sound`      — tensor/compose interchange
 --
--- Proved constructively (no flat postulate for the axiom itself):
---   * `triangle-sound` in `Categories.APROP.Hypergraph.Triangle`.
+-- Each axiom with a dedicated module (proved constructively where
+-- possible; focused postulates for sub-claims):
+--   * `triangle-sound` in `Categories.APROP.Hypergraph.Triangle`
+--     (fully constructive).
 --   * `α-comm-sound` in `Categories.APROP.Hypergraph.AlphaCommSound`
---     (modulo one reusable focused postulate `hTensor-assoc-iso`).
+--     (modulo one focused postulate `hTensor-assoc-iso`).
+--   * `pentagon-sound` in `Categories.APROP.Hypergraph.Pentagon`
+--     (building blocks proved; overall `pentagon-sound` still a
+--     focused postulate pending the composite-collapse chain).
 --
 -- Because this file depends on those postulates, it is not `--safe` and
 -- is not transitively imported by `CategoricalCrypto.agda`.
@@ -84,13 +88,18 @@ open import Categories.APROP.Hypergraph.SoundnessAxioms sig
         ; ρ⇒∘f⊗id≈f∘ρ⇒-sound
         ; σ∘[f⊗g]≈[g⊗f]∘σ-sound
         ; hexagon-sound
-        ; pentagon-sound; assoc-sound; ⊗-∘-dist-sound)
--- `triangle-sound` and `α-comm-sound` are proved constructively
--- in their own modules (modulo small internal postulates).
+        ; assoc-sound; ⊗-∘-dist-sound)
+-- `triangle-sound`, `α-comm-sound`, and `pentagon-sound` live in their
+-- own modules.  Triangle and AlphaCommSound are proved constructively
+-- (modulo small internal postulates).  Pentagon has its building blocks
+-- proved but `pentagon-sound` itself is still a focused postulate
+-- pending the composite-collapse chain.
 open import Categories.APROP.Hypergraph.Triangle sig
   using (triangle-sound)
 open import Categories.APROP.Hypergraph.AlphaCommSound sig
   using (α-comm-sound)
+open import Categories.APROP.Hypergraph.Pentagon sig
+  using (pentagon-sound)
 open import Categories.APROP.Hypergraph.HomTermInvariant sig
   using (⟪_⟫-dom-unique)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)

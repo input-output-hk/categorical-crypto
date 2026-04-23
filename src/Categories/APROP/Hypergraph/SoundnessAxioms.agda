@@ -1577,18 +1577,13 @@ postulate
     : ∀ {A B} {f : HomTerm A B}
     → ⟪ ρ⇒ {B} ∘ f ⊗₁ id {unit} ⟫ ≅ᴴ ⟪ f ∘ ρ⇒ {A} ⟫
 
-  -- NOTE: `triangle-sound` and `α-comm-sound` are now proved
-  -- constructively in their own modules:
+  -- NOTE: `triangle-sound`, `α-comm-sound`, and `pentagon-sound` all
+  -- live in their own modules now:
   --   * `Categories.APROP.Hypergraph.Triangle`
   --   * `Categories.APROP.Hypergraph.AlphaCommSound`
+  --   * `Categories.APROP.Hypergraph.Pentagon`
   -- Soundness.agda imports them from there directly, so no postulates
-  -- are needed in this module.
-
-  -- pentagon: id⊗α⇒ ∘ α⇒ ∘ α⇒⊗id ≈ α⇒ ∘ α⇒{A⊗B,C,D}
-  pentagon-sound
-    : ∀ {A B C D}
-    → ⟪ id {A} ⊗₁ α⇒ {B} {C} {D} ∘ α⇒ {A} {B ⊗₀ C} {D} ∘ α⇒ {A} {B} {C} ⊗₁ id {D} ⟫
-    ≅ᴴ ⟪ α⇒ {A} {B} {C ⊗₀ D} ∘ α⇒ {A ⊗₀ B} {C} {D} ⟫
+  -- are needed in this module for those axioms.
 
   -- σ-nat: σ ∘ (f⊗g) ≈ (g⊗f) ∘ σ  (braiding naturality)
   -- (Symm ≤ Symm instance is provided by APROP module.)
