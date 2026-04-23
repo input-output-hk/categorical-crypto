@@ -574,22 +574,27 @@ meantime.
    :effort: 5-10 h each
    :END:
 
-   PARTIAL COMPLETION (refactor commit): each of the 8 remaining
-   atomic axioms (ρ-nat, α-comm + the 6 hard ones listed here) now
-   has its own named focused postulate in `SoundnessAxioms.agda`:
-   ~ρ⇒∘f⊗id≈f∘ρ⇒-sound~, ~α-comm-sound~, ~triangle-sound~,
-   ~pentagon-sound~, ~σ∘[f⊗g]≈[g⊗f]∘σ-sound~, ~hexagon-sound~,
-   ~assoc-sound~, ~⊗-∘-dist-sound~. This documents each axiom's
-   precise type so future work can pick one up without digging
-   through the catch-all.
+   DISPATCH MACHINERY COMPLETE; CONSTRUCTIVE PROOFS PENDING.
 
-   Of those 8, 5 are dispatched in `Soundness.agda` (ρ-nat, α-comm,
-   triangle, σ-nat, hexagon) — total dispatched: 16/19 atomic axioms.
-   The remaining 3 (pentagon, assoc, ⊗-∘-dist) stay behind the
-   catch-all because individually dispatching them drove typecheck
-   past 3× baseline; their named postulates are still available for
-   future per-constructor hookup once the `⟪_⟫` normalization can be
-   controlled or tactic support (Phase 4 ~smcat~) lands.
+   Each of the 8 remaining atomic axioms (ρ-nat, α-comm + the 6 hard
+   ones listed here) has its own named focused postulate in
+   `SoundnessAxioms.agda`: ~ρ⇒∘f⊗id≈f∘ρ⇒-sound~, ~α-comm-sound~,
+   ~triangle-sound~, ~pentagon-sound~, ~σ∘[f⊗g]≈[g⊗f]∘σ-sound~,
+   ~hexagon-sound~, ~assoc-sound~, ~⊗-∘-dist-sound~.  All 8 are
+   dispatched individually in `Soundness.agda`; the omnibus
+   `soundness-axiom` catch-all is gone.  Total dispatched: 19/19
+   atomic axioms (11 proved modulo internal postulates, 8 still
+   focused-postulates).
+
+   The dispatch hookup required two flags (see `Soundness.agda`'s
+   module header for details):
+     * ~{-# INJECTIVE_FOR_INFERENCE ⟪_⟫ #-}~ in `Translation.agda` —
+       lets Agda invert `⟪_⟫` during implicit inference.
+     * ~--lossy-unification~ on `Soundness.agda` — skips deep
+       `Hypergraph.cod-ok` proof-term comparison when the syntactic
+       forms already match.
+   Without both, the pentagon dispatch alone typechecks in 25 minutes
+   (profile-measured); with both it's <1s.
 
    Constructive proofs still outstanding — each needs a custom
    structural argument:

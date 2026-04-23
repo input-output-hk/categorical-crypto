@@ -42,7 +42,7 @@ open import Categories.APROP.Hypergraph.Prune
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt; cast)
 open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ; cast-is-id)
-open import Data.List using (List; []; _∷_; map; length; lookup; tabulate; allFin)
+open import Data.List using (List; []; _∷_; _++_; map; length; lookup; tabulate; allFin)
 open import Data.List.Properties
   using (map-∘; map-cong; map-id; tabulate-lookup; map-tabulate)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
