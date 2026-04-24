@@ -1073,14 +1073,17 @@ meantime.
     :effort: 2-3 weeks, ~1200-1500 LOC
     :END:
 
-    Implement a partial decision procedure:
+    Implement a partial decision procedure, in a module parameterised
+    by an ~APROPSignatureDec~ (a superset of ~APROPSignature~ adding
+    decidable equality):
     #+begin_src agda
-      findIso
-        : ∀ {As Bs : List X}
-            ⦃ _ : DecEq X ⦄
-            ⦃ _ : DecMor ⦄       -- decidable equality on edge labels
-            (H J : Hypergraph FlatGen As Bs)
-        → Maybe (H ≅ᴴ J)
+      module Categories.APROP.Hypergraph.FindIso (sig-dec : APROPSignatureDec) where
+        open APROPSignatureDec sig-dec
+
+        findIso
+          : ∀ {As Bs : List X}
+              (H J : Hypergraph FlatGen As Bs)
+          → Maybe (H ≅ᴴ J)
     #+end_src
 
     *Soundness* (always): if ~findIso H J ≡ just iso~, then ~iso~
@@ -1092,17 +1095,18 @@ meantime.
     ≈Term-equivalent APROP terms.  TensorRocq confirms this
     empirically at the ~1s-for-dozens-of-edges scale.
 
-**** Phase 4a.0 — Extended signature
+**** Phase 4a.0 — New `APROPSignatureDec` extension (no upstream edits)
      :PROPERTIES:
      :effort: ~2 h
      :END:
 
-     Current ~APROPSignature~ has no decidable equality on ~X~ or
-     ~mor~.  ~findIso~ needs both: label equality to match edges
-     + atom-label equality to pair boundary vertices.
-
-     Add a new record ~APROPSignatureDec~ (or extend in place) with
+     ~findIso~ needs decidable equality on ~X~ (atom labels, for
+     pairing boundary vertices and comparing ~vlab~) and ~mor A B~
+     (edge labels, for matching edges).  We add these as a NEW
+     record that wraps the existing ~APROPSignature~ — no changes to
+     ~APROPSignature~ or any of its current downstream modules:
      #+begin_src agda
+       -- New file: src/Categories/APROP/Dec.agda
        record APROPSignatureDec : Set₁ where
          field
            sig : APROPSignature
@@ -1111,6 +1115,11 @@ meantime.
            _≟X_    : DecidableEquality X
            _≟-mor_ : ∀ {A B} → DecidableEquality (mor A B)
      #+end_src
+
+     Signatures that don't provide decidable equality can still
+     use all the existing machinery (soundness, Triangle, Pentagon,
+     SigmaNat, …) unchanged.  Only ~findIso~ and the ~smcat~ tactic
+     require ~APROPSignatureDec~ — they sit strictly downstream.
 
      Lifts to ~DecidableEquality FlatGen~ via ~cong sig-to-mor~
      + the existing ~ObjTerm~ decidable equality (which follows
@@ -1350,9 +1359,14 @@ meantime.
 
 **** Risks
 
-     - *Decidable equality for generators*.  APROPSignature
-       doesn't currently require it.  Adding it is invasive
-       upstream but is standard for reflection-style tactics.
+     - *Decidable equality for generators*.  ~APROPSignature~
+       doesn't require it.  We avoid any invasive upstream change
+       by putting the decidable-equality requirement on a new
+       extension record ~APROPSignatureDec~ (4a.0) — all current
+       modules keep working unchanged.  Only ~findIso~ and the
+       ~smcat~ tactic are parameterised by ~APROPSignatureDec~;
+       signatures without decidable equality lose only access to
+       the tactic, not to any existing proof.
 
      - *ψ-elab proof construction*.  The atom-list equalities
        ~atom-ein~, ~atom-eout~ must be constructed in a form that
