@@ -1127,14 +1127,16 @@ meantime.
 
 **** Phase 4a.1 — Partial vertex/edge maps
      :PROPERTIES:
-     :effort: ~3 days, ~200 LOC
+     :effort: ~2 days, ~100 LOC
      :END:
 
-     Data structure for an incrementally-built partial bijection
-     ~Fin n → Fin m~:
+     Pure-function representation — simplest possible data type:
      #+begin_src agda
        PartialMap : ℕ → ℕ → Set
        PartialMap n m = Fin n → Maybe (Fin m)
+
+       empty : ∀ {n m} → PartialMap n m
+       empty _ = nothing
 
        extend
          : ∀ {n m} → PartialMap n m → Fin n → Fin m
@@ -1142,27 +1144,24 @@ meantime.
        extend p i j with p i
        ... | nothing  = just (λ k → if k ≟ i then just j else p k)
        ... | just j'  = if j ≟ j' then just p else nothing
+     #+end_src
 
-       -- Symmetric partial bijection: carry both directions +
-       -- witness of mutual consistency.
+     Symmetric partial bijection carries both directions:
+     #+begin_src agda
        record PBij (n m : ℕ) : Set where
          field
            forward  : PartialMap n m
            backward : PartialMap m n
-           consistent : ∀ i j → forward i ≡ just j → backward j ≡ just i
      #+end_src
 
-     *Operations*:
-     - ~empty : PBij n m~
-     - ~extend : PBij n m → Fin n → Fin m → Maybe (PBij n m)~
-     - ~total? : PBij n m → Maybe (Fin n ↔ Fin m)~ — if forward/
-       backward are total, extract the total bijection with its
-       laws.
+     No invariant field; consistency is enforced operationally
+     by ~extend-bij~ which updates both directions and returns
+     ~nothing~ if either conflicts.
 
-     Reuse if possible: stdlib's ~Data.AVL.Map~ or similar
-     (decidable key, stored as a functional map).  For ~Fin n~
-     keys, a simple ~Vec (Maybe (Fin m)) n~ is also fine and
-     avoids dependency on AVL.
+     ~total? : PBij n m → Maybe (Fin n ↔ Fin m)~ extracts a
+     complete bijection with its laws once both maps are total
+     (all ~Fin n~ and ~Fin m~ values in range).  The bijection
+     laws (~φ-left~, ~φ-rght~) follow from extract-time checks.
 
 **** Phase 4a.2 — Interface seeding
      :PROPERTIES:
@@ -1230,7 +1229,7 @@ meantime.
 
 **** Phase 4a.4 — Backtracking search
      :PROPERTIES:
-     :effort: ~3 days, ~200 LOC
+     :effort: ~2 days, ~100 LOC
      :END:
 
      Glue ~matchEdge~ into a depth-first search:
@@ -1245,21 +1244,18 @@ meantime.
          if all-edges-matched pbij
            then just (extract-complete-bij pbij)
            else
-             let nextEdge = pick-unmatched pbij in
+             let nextEdge = pick-first-unmatched pbij in
              any-match (matchEdge H J pbij nextEdge)
                        (λ pbij' → searchIso H J k pbij')
      #+end_src
 
-     *Heuristics* (matters for performance, not correctness):
-     - Pick edges with the *most* existing φ-constraints first
-       (most-constrained-first / minimum remaining values).
-     - Pick edges with rare labels first.
-     - Fuel = product of some hypergraph size parameters so most
-       actual cases terminate well below the bound.
+     Pick edges in natural order (~Fin.fromℕ~-style left-to-right).
+     No heuristics — we care about simplicity, not speed.
 
-     Termination is by ~fuel~ decrement; the structural argument
-     (finite search space) is more complex in Agda without
-     well-founded recursion on the search tree.
+     ~fuel~ is set to ~H.nE × J.nE~ (finite search tree upper
+     bound).  Termination via ~fuel~ decrement; well-founded
+     recursion on the search tree would be cleaner but more
+     Agda-work.
 
 **** Phase 4a.5 — Record assembly
      :PROPERTIES:
@@ -1320,7 +1316,7 @@ meantime.
 
 **** Phase 4a.6 — Tests + integration
      :PROPERTIES:
-     :effort: ~2 days, ~100 LOC
+     :effort: ~1 day, ~80 LOC
      :END:
 
      Concrete test cases:
@@ -1328,15 +1324,10 @@ meantime.
      - ~findIso (hId A) (hId A) ≡ just _~ for various ~A~.
      - ~findIso ⟪ id ∘ f ⟫ ⟪ f ⟫ ≡ just _~ (should match
        ~idˡ-sound~'s iso up to ~≅ᴴ-cong~).
-     - Negative tests: non-iso hypergraphs return ~nothing~ (or
-       just fail, if we're doing partial-decidable).
-     - Performance checks: moderate-sized examples complete in
-       reasonable time (Agda's evaluator is slow; aim for
-       <1 min on hypergraphs with ~dozen edges).
+     - Negative tests: non-iso hypergraphs return ~nothing~.
 
      Integration check: the ~Soundness~ module imports ~findIso~
-     and can evaluate it on translated APROP terms without the
-     typechecker choking.
+     and can evaluate it on translated APROP terms.
 
 **** Phase 4a — dependency summary
 
@@ -1376,17 +1367,19 @@ meantime.
        record-assembly step could blow up.  Fallback: use
        ~≅ᴴ~-reasoning or a more permissive equivalence internally.
 
-     - *Performance of Agda's evaluator on the algorithm*.  AVL
-       maps over ~Fin~ keys with large ~n~ can be slow in Agda.
-       If ~findIso~ evaluates too slowly during type-checking for
-       ~smcat~ to be practical, we'd fall back to pre-computing
-       the iso and plugging it in manually, or emit the iso via
-       reflection code generation rather than in-type computation.
-
      - *Fuel-based termination*.  Cleaner would be well-founded
        recursion on (unmatched edges, remaining search tree), but
-       that's more Agda-work.  Fuel is pragmatic and matches
+       that's more Agda-work.  Fuel is simple and matches
        TensorRocq's Rocq implementation.
+
+     *Runtime performance is intentionally deferred.*  The plan
+     uses the simplest possible data structures (pure functions,
+     lists) and no heuristics.  If ~findIso~ turns out to be too
+     slow during type-checking for practical ~smcat~ usage, we'll
+     profile and optimise then — potentially swapping ~PartialMap~
+     for ~Vec (Maybe (Fin m)) n~, adding MRV-style heuristics, or
+     emitting the iso via reflection code generation rather than
+     in-type computation.
 
 *** TODO Phase 4b — Reflection tactic ~smcat~
     :PROPERTIES:
