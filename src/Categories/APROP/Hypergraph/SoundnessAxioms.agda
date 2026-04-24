@@ -167,11 +167,17 @@ postulate
     : ∀ {A B} {f : HomTerm A B}
     → ⟪ ρ⇒ {B} ∘ f ⊗₁ id {unit} ⟫ ≅ᴴ ⟪ f ∘ ρ⇒ {A} ⟫
 
-  -- σ-nat: σ ∘ (f⊗g) ≈ (g⊗f) ∘ σ  (braiding naturality)
-  -- (Symm ≤ Symm instance is provided by APROP module.)
-  σ∘[f⊗g]≈[g⊗f]∘σ-sound
-    : ∀ {A B C D} {f : HomTerm A B} {g : HomTerm C D}
-    → ⟪ σ {B} {D} ∘ (f ⊗₁ g) ⟫ ≅ᴴ ⟪ (g ⊗₁ f) ∘ σ {A} {C} ⟫
+  -- NOTE: `triangle-sound`, `α-comm-sound`, `pentagon-sound`, and
+  -- `σ∘[f⊗g]≈[g⊗f]∘σ-sound` all live in their own modules:
+  --   * `Categories.APROP.Hypergraph.Triangle`       (constructive)
+  --   * `Categories.APROP.Hypergraph.AlphaCommSound` (constructive)
+  --   * `Categories.APROP.Hypergraph.Pentagon`       (focused postulate
+  --                                                   + building blocks)
+  --   * `Categories.APROP.Hypergraph.SigmaNat`       (constructive —
+  --                                                   5 structural-field
+  --                                                   postulates inside)
+  -- Soundness.agda imports them from there directly, so no postulates
+  -- are needed in this module.
 
   -- hexagon: id⊗σ ∘ α⇒ ∘ σ⊗id ≈ α⇒ ∘ σ ∘ α⇒ (symmetric hexagon)
   hexagon-sound

@@ -525,19 +525,8 @@ module _
   -- `hC?.*` calls become `hCP?.*`.
 
   open import Relation.Binary.PropositionalEquality using (subst₂)
-
-  private
-    subst₂-trans : ∀ {A B : Set} {P : A → B → Set} {a₁ a₂ a₃} {b₁ b₂ b₃}
-                 → (p : a₁ ≡ a₂) (p' : a₂ ≡ a₃) (q : b₁ ≡ b₂) (q' : b₂ ≡ b₃)
-                 → (x : P a₁ b₁)
-                 → subst₂ P p' q' (subst₂ P p q x)
-                 ≡ subst₂ P (trans p p') (trans q q') x
-    subst₂-trans refl refl refl refl _ = refl
-
-    subst₂-sym-subst₂ : ∀ {A B : Set} {P : A → B → Set} {a a'} {b b'}
-                      → (p : a ≡ a') (q : b ≡ b') (x : P a b)
-                      → subst₂ P (sym p) (sym q) (subst₂ P p q x) ≡ x
-    subst₂-sym-subst₂ refl refl _ = refl
+  open import Categories.APROP.Hypergraph.CoherenceHelpers sig
+    using (subst₂-trans; subst₂-sym-subst₂)
 
   ψ-elab-P : ∀ e →
     subst₂ FlatGen (atom-ein-P e) (atom-eout-P e)

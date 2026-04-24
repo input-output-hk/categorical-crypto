@@ -86,12 +86,12 @@ open import Categories.APROP.Hypergraph.SoundnessAxioms sig
         ; ρ⇒∘ρ⇐-sound; α⇒∘α⇐-sound
         ; λ⇒∘id⊗f≈f∘λ⇒-sound
         ; ρ⇒∘f⊗id≈f∘ρ⇒-sound
-        ; σ∘[f⊗g]≈[g⊗f]∘σ-sound
         ; hexagon-sound
         ; assoc-sound; ⊗-∘-dist-sound)
--- `triangle-sound`, `α-comm-sound`, and `pentagon-sound` live in their
--- own modules.  Triangle and AlphaCommSound are proved constructively
--- (modulo small internal postulates).  Pentagon has its building blocks
+-- `triangle-sound`, `α-comm-sound`, `pentagon-sound`, and
+-- `σ∘[f⊗g]≈[g⊗f]∘σ-sound` live in their own modules.  Triangle,
+-- AlphaCommSound, and SigmaNat are proved constructively (modulo
+-- small internal postulates).  Pentagon has its building blocks
 -- proved but `pentagon-sound` itself is still a focused postulate
 -- pending the composite-collapse chain.
 open import Categories.APROP.Hypergraph.Triangle sig
@@ -100,6 +100,8 @@ open import Categories.APROP.Hypergraph.AlphaCommSound sig
   using (α-comm-sound)
 open import Categories.APROP.Hypergraph.Pentagon sig
   using (pentagon-sound)
+open import Categories.APROP.Hypergraph.SigmaNat sig
+  using (σ∘[f⊗g]≈[g⊗f]∘σ-sound)
 open import Categories.APROP.Hypergraph.HomTermInvariant sig
   using (⟪_⟫-dom-unique)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
