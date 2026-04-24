@@ -47,12 +47,12 @@ open import Categories.APROP.Hypergraph.PrunedCompose sig
   using (hComposeP; hComposeP-subst-both)
 open import Categories.APROP.Hypergraph.Translation sig
 open import Categories.APROP.Hypergraph.Iso
-open import Categories.APROP.Hypergraph.SoundnessAxioms sig
-  using (hCompose-hId-R-iso-generic; hCompose-hId-L-iso-generic)
 open import Categories.APROP.Hypergraph.HomTermInvariant sig
   using (⟪_⟫-dom-unique)
 open import Categories.APROP.Hypergraph.CoherenceHelpers sig
   using (subst₂-cancel-sym-l; subst₂-cancel-sym-r; Unique-subst₂-dom)
+open import Categories.APROP.Hypergraph.CoherenceReductions sig
+  using (reduce-via-hId-R; reduce-via-hId-L)
 
 open import Data.List using (List; _++_)
 open import Data.List.Properties using (++-assoc)
@@ -134,10 +134,7 @@ postulate
                                         (hId ((B ⊗₀ D) ⊗₀ F)))
 
     LHS≅mid : ⟪ α⇒ {B} {D} {F} ∘ (f ⊗₁ g) ⊗₁ h ⟫ ≅ᴴ mid
-    LHS≅mid =
-      subst (_≅ᴴ mid) (sym lhs-≡)
-        (subst₂-resp-≅ᴴ refl eqBD
-          (hCompose-hId-R-iso-generic ((B ⊗₀ D) ⊗₀ F) LHS-tree))
+    LHS≅mid = reduce-via-hId-R ((B ⊗₀ D) ⊗₀ F) LHS-tree eqBD lhs-≡
 
     ----------------------------------------------------------------------------
     -- RHS ≅ᴴ mid.
@@ -178,9 +175,8 @@ postulate
     -- Step A: RHS ≅ᴴ RHS-bridged (strip the hId on G side).
     RHS≅RHS-bridged : ⟪ f ⊗₁ (g ⊗₁ h) ∘ α⇒ {A} {C} {E} ⟫ ≅ᴴ RHS-bridged
     RHS≅RHS-bridged =
-      subst (_≅ᴴ RHS-bridged) (sym rhs-≡)
-        (hCompose-hId-L-iso-generic ((A ⊗₀ C) ⊗₀ E) RHS-bridged
-          RHS-bridged-dom-unique)
+      reduce-via-hId-L ((A ⊗₀ C) ⊗₀ E) RHS-bridged
+        RHS-bridged-dom-unique rhs-≡
 
     -- Step B: RHS-bridged ≅ᴴ mid via hTensor-assoc-iso inverted.
     --

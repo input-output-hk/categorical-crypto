@@ -51,11 +51,11 @@ open import Categories.APROP.Hypergraph.PrunedCompose sig
   using (hComposeP)
 open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Iso
-open import Categories.APROP.Hypergraph.SoundnessAxioms sig
-  using (hCompose-hId-R-iso-generic)
 open import Categories.APROP.Hypergraph.CoherenceHelpers sig
   using (hTensor-subst₂-left; hTensor-subst₂-right
         ; hComposeP-cod-subst; subst₂-trans-cod)
+open import Categories.APROP.Hypergraph.CoherenceReductions sig
+  using (hCompose-hId-R-iso-substed)
 
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc)
@@ -288,7 +288,7 @@ pentagon-sound {A} {B} {C} {D} = trans-≅ᴴ LHS≅mid (sym-≅ᴴ RHS≅mid)
                            (hId (A ⊗₀ ((B ⊗₀ C) ⊗₀ D))))
     lhs-≡-step2 = hComposeP-cod-subst p₃ _ _
 
-    -- Step 3 (≅ᴴ): strip outer hId via hCompose-hId-R-iso-generic.
+    -- Step 3 (≅ᴴ): strip outer hId via hCompose-hId-R-iso-substed.
     lhs-≅ᴴ-step3
       : subst₂ (Hypergraph FlatGen) refl p₃
                (hComposeP (hComposeP
@@ -300,8 +300,7 @@ pentagon-sound {A} {B} {C} {D} = trans-≅ᴴ LHS≅mid (sym-≅ᴴ RHS≅mid)
                  (hComposeP (subst₂ (Hypergraph FlatGen) refl p₁ hId-root)
                              (subst₂ (Hypergraph FlatGen) refl p₂
                                       (hId ((A ⊗₀ (B ⊗₀ C)) ⊗₀ D))))
-    lhs-≅ᴴ-step3 = subst₂-resp-≅ᴴ refl p₃
-      (hCompose-hId-R-iso-generic (A ⊗₀ ((B ⊗₀ C) ⊗₀ D)) _)
+    lhs-≅ᴴ-step3 = hCompose-hId-R-iso-substed (A ⊗₀ ((B ⊗₀ C) ⊗₀ D)) _ p₃
 
     -- Step 4 (≡): factor subst₂ refl p₂ out of inner hComposeP.
     lhs-≡-step4
@@ -326,8 +325,7 @@ pentagon-sound {A} {B} {C} {D} = trans-≅ᴴ LHS≅mid (sym-≅ᴴ RHS≅mid)
                  (subst₂ (Hypergraph FlatGen) refl p₂
                           (subst₂ (Hypergraph FlatGen) refl p₁ hId-root))
     lhs-≅ᴴ-step5 = subst₂-resp-≅ᴴ refl p₃
-      (subst₂-resp-≅ᴴ refl p₂
-        (hCompose-hId-R-iso-generic ((A ⊗₀ (B ⊗₀ C)) ⊗₀ D) _))
+      (hCompose-hId-R-iso-substed ((A ⊗₀ (B ⊗₀ C)) ⊗₀ D) _ p₂)
 
     -- Step 6 (≡): collapse three nested subst₂s.
     lhs-≡-step6
@@ -428,8 +426,7 @@ pentagon-sound {A} {B} {C} {D} = trans-≅ᴴ LHS≅mid (sym-≅ᴴ RHS≅mid)
                            (hId ((A ⊗₀ B) ⊗₀ (C ⊗₀ D))))
       ≅ᴴ subst₂ (Hypergraph FlatGen) refl q₂
                  (subst₂ (Hypergraph FlatGen) refl q₁ hId-root)
-    rhs-≅ᴴ-step3 = subst₂-resp-≅ᴴ refl q₂
-      (hCompose-hId-R-iso-generic ((A ⊗₀ B) ⊗₀ (C ⊗₀ D)) _)
+    rhs-≅ᴴ-step3 = hCompose-hId-R-iso-substed ((A ⊗₀ B) ⊗₀ (C ⊗₀ D)) _ q₂
 
     -- Collapse nested subst₂s AND bridge via pentagon-list-coherence.
     rhs-≡-step4
