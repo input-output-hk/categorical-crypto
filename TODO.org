@@ -1070,62 +1070,309 @@ meantime.
 
 *** TODO Phase 4a — Decidable hypergraph isomorphism
     :PROPERTIES:
-    :effort: 2-3 weeks
+    :effort: 2-3 weeks, ~1200-1500 LOC
     :END:
 
     Implement a partial decision procedure:
     #+begin_src agda
       findIso
         : ∀ {As Bs : List X}
+            ⦃ _ : DecEq X ⦄
+            ⦃ _ : DecMor ⦄       -- decidable equality on edge labels
             (H J : Hypergraph FlatGen As Bs)
         → Maybe (H ≅ᴴ J)
     #+end_src
 
     *Soundness* (always): if ~findIso H J ≡ just iso~, then ~iso~
-    is a valid ~≅ᴴ~.  This holds by construction — the procedure
-    builds the iso record during the search.
+    is a valid ~≅ᴴ~.  By construction — the procedure builds the
+    iso record during the search.
 
     *Completeness* (empirical, partial): in practice, ~findIso~
     returns ~just~ for every pair arising from the translation of
-    ≈Term-equivalent APROP terms.  Rigorous completeness on the
-    full hypergraph class is NOT required for a usable ~smcat~;
-    TensorRocq's paper confirms this works in practice.
+    ≈Term-equivalent APROP terms.  TensorRocq confirms this
+    empirically at the ~1s-for-dozens-of-edges scale.
 
-    *Algorithm outline* (TensorRocq §4.2):
-    1. *Anchor on interfaces.*  ~H.dom~ and ~J.dom~ are ordered
-       lists of the same length; pair them pointwise to seed the
-       vertex-correspondence map ~φ~.  Same for ~H.cod~ and ~J.cod~.
-    2. *Propagate via ein/eout.*  If two edges are tentatively
-       paired (label-matched, arities-matched), and one of their
-       endpoints is already in ~φ~, the other endpoints extend ~φ~
-       pointwise.
-    3. *Match edges.*  For each edge ~e : Fin H.nE~, find candidate
-       edges in ~J~ with the same label.  Filter by existing ~φ~
-       constraints on ~ein e~ / ~eout e~.  Backtrack on conflict.
-    4. *Verify total iso.*  Once ~φ~ covers all of ~Fin H.nV~ and
-       ~ψ~ covers all of ~Fin H.nE~, build the ~≅ᴴ~ record
-       (φ-left/right/lab, ψ-left/right, atom-ein/eout, ψ-elab).
+**** Phase 4a.0 — Extended signature
+     :PROPERTIES:
+     :effort: ~2 h
+     :END:
 
-    *Agda-specific considerations*:
-    - The procedure is computable (no postulates); runs in Agda's
-      evaluator during type-checking.
-    - The full ~≅ᴴ~ record has 15 fields including ~ψ-elab~
-      (edge-label compatibility modulo ~subst₂~).  For the
-      iso-finding algorithm to build this, it needs to thread the
-      atom-ein/atom-eout proofs through each edge match.  The
-      existing ~SoundnessProved.hCompose-hId-R-proof~ and
-      ~σ∘σ-proof~ modules have templates for this.
-    - Data structures: use stdlib's ~AVL~ map or ~Vec~-backed
-      arrays to keep the algorithm tractable on moderate sizes.
+     Current ~APROPSignature~ has no decidable equality on ~X~ or
+     ~mor~.  ~findIso~ needs both: label equality to match edges
+     + atom-label equality to pair boundary vertices.
 
-    *Sub-tasks*:
-    - ~findIso-boundary~: pair ~dom~/~cod~ pointwise.
-    - ~findIso-edge-match~: pick edge correspondences compatibly
-      with a partial ~φ~.
-    - ~findIso-extend~: extend ~φ~ from edge endpoints.
-    - ~findIso-backtrack~: try alternatives on conflict.
-    - Record assembly: fill out all 15 ~≅ᴴ~ fields from the final
-      (φ, ψ).
+     Add a new record ~APROPSignatureDec~ (or extend in place) with
+     #+begin_src agda
+       record APROPSignatureDec : Set₁ where
+         field
+           sig : APROPSignature
+         open APROPSignature sig public
+         field
+           _≟X_    : DecidableEquality X
+           _≟-mor_ : ∀ {A B} → DecidableEquality (mor A B)
+     #+end_src
+
+     Lifts to ~DecidableEquality FlatGen~ via ~cong sig-to-mor~
+     + the existing ~ObjTerm~ decidable equality (which follows
+     from ~_≟X_~).
+
+**** Phase 4a.1 — Partial vertex/edge maps
+     :PROPERTIES:
+     :effort: ~3 days, ~200 LOC
+     :END:
+
+     Data structure for an incrementally-built partial bijection
+     ~Fin n → Fin m~:
+     #+begin_src agda
+       PartialMap : ℕ → ℕ → Set
+       PartialMap n m = Fin n → Maybe (Fin m)
+
+       extend
+         : ∀ {n m} → PartialMap n m → Fin n → Fin m
+         → Maybe (PartialMap n m)   -- conflict check
+       extend p i j with p i
+       ... | nothing  = just (λ k → if k ≟ i then just j else p k)
+       ... | just j'  = if j ≟ j' then just p else nothing
+
+       -- Symmetric partial bijection: carry both directions +
+       -- witness of mutual consistency.
+       record PBij (n m : ℕ) : Set where
+         field
+           forward  : PartialMap n m
+           backward : PartialMap m n
+           consistent : ∀ i j → forward i ≡ just j → backward j ≡ just i
+     #+end_src
+
+     *Operations*:
+     - ~empty : PBij n m~
+     - ~extend : PBij n m → Fin n → Fin m → Maybe (PBij n m)~
+     - ~total? : PBij n m → Maybe (Fin n ↔ Fin m)~ — if forward/
+       backward are total, extract the total bijection with its
+       laws.
+
+     Reuse if possible: stdlib's ~Data.AVL.Map~ or similar
+     (decidable key, stored as a functional map).  For ~Fin n~
+     keys, a simple ~Vec (Maybe (Fin m)) n~ is also fine and
+     avoids dependency on AVL.
+
+**** Phase 4a.2 — Interface seeding
+     :PROPERTIES:
+     :effort: ~2 days, ~100 LOC
+     :END:
+
+     Given ~H, J : Hypergraph FlatGen As Bs~, seed a partial vertex
+     bijection ~φ₀~ from the interfaces:
+     #+begin_src agda
+       seedFromInterfaces
+         : (H J : Hypergraph FlatGen As Bs)
+         → Maybe (PBij H.nV J.nV)
+       seedFromInterfaces H J = do
+         -- H.dom and J.dom both have length = length As, pointwise pair:
+         φ₁ ← pairUp empty H.dom J.dom
+         -- H.cod and J.cod both have length = length Bs:
+         φ₂ ← pairUp φ₁ H.cod J.cod
+         -- Optionally also check that H.vlab and J.vlab agree on paired
+         -- vertices (label preservation at boundaries).
+         pure φ₂
+     #+end_src
+
+     Returns ~nothing~ if:
+     - A vertex in ~H.dom~ maps to two different ~J.dom~ entries
+       (conflict).
+     - Paired vertices have different ~vlab~ (label mismatch).
+
+**** Phase 4a.3 — Edge matching + propagation
+     :PROPERTIES:
+     :effort: ~1 week, ~500 LOC
+     :END:
+
+     The core of the algorithm.  Given partial ~(φ, ψ)~, pick an
+     unmatched edge ~e : Fin H.nE~ and try to match it to a ~J~ edge:
+     #+begin_src agda
+       matchEdge
+         : (H J : Hypergraph FlatGen As Bs)
+         → (pbij : PBij H.nV J.nV × PBij H.nE J.nE)
+         → (e : Fin H.nE)
+         → List (PBij H.nV J.nV × PBij H.nE J.nE)
+                 -- all consistent extensions matching e to some e'∈J
+     #+end_src
+
+     *Algorithm*:
+     1. Iterate over ~J.nE~.
+     2. For each ~e' : Fin J.nE~, check:
+        - Not already in ~ψ~'s range.
+        - Label match: ~H.elab e ≡ J.elab e'~ (modulo atom-list
+          equality, since labels are indexed by ~map vlab (ein)~
+          atoms).  The decidable-equality machinery from 4a.0 does
+          this at the ~mor~ level.
+        - Arity match: ~length (H.ein e) ≡ length (J.ein e')~ and
+          same for ~eout~.
+     3. For each candidate ~e'~:
+        - Try to extend ~φ~ pointwise by pairing ~H.ein e [i]~ ↔
+          ~J.ein e' [i]~ for all ~i~, checking label consistency.
+        - Similarly for ~eout~.
+        - If all extensions succeed, add this ~(e, e')~ pair to ~ψ~
+          and emit the extended ~(φ, ψ)~.
+     4. Return the list of all successful extensions.
+
+     *Propagation* is implicit here: matching one edge adds
+     (~length (ein e) + length (eout e)~) new vertex constraints
+     to ~φ~, which prune future edge-match choices.
+
+**** Phase 4a.4 — Backtracking search
+     :PROPERTIES:
+     :effort: ~3 days, ~200 LOC
+     :END:
+
+     Glue ~matchEdge~ into a depth-first search:
+     #+begin_src agda
+       searchIso
+         : (H J : Hypergraph FlatGen As Bs)
+         → (fuel : ℕ)   -- bound to ensure termination
+         → (pbij : PBij H.nV J.nV × PBij H.nE J.nE)
+         → Maybe (CompleteBij H J)
+       searchIso H J zero    pbij = nothing   -- fuel exhausted
+       searchIso H J (suc k) pbij =
+         if all-edges-matched pbij
+           then just (extract-complete-bij pbij)
+           else
+             let nextEdge = pick-unmatched pbij in
+             any-match (matchEdge H J pbij nextEdge)
+                       (λ pbij' → searchIso H J k pbij')
+     #+end_src
+
+     *Heuristics* (matters for performance, not correctness):
+     - Pick edges with the *most* existing φ-constraints first
+       (most-constrained-first / minimum remaining values).
+     - Pick edges with rare labels first.
+     - Fuel = product of some hypergraph size parameters so most
+       actual cases terminate well below the bound.
+
+     Termination is by ~fuel~ decrement; the structural argument
+     (finite search space) is more complex in Agda without
+     well-founded recursion on the search tree.
+
+**** Phase 4a.5 — Record assembly
+     :PROPERTIES:
+     :effort: ~1 week, ~400-600 LOC
+     :END:
+
+     Given a complete bijection ~(φ, φ⁻¹, ψ, ψ⁻¹)~ with the
+     operational consistency invariants from ~PBij~, assemble the
+     full 15-field ~_≅ᴴ_~ record:
+
+     | Field                | Source                                       |
+     |----------------------+----------------------------------------------|
+     | φ, φ⁻¹               | PBij.forward / .backward                     |
+     | φ-left, φ-rght       | PBij.consistent (expressed as equalities)    |
+     | ψ, ψ⁻¹               | PBij (edges)                                 |
+     | ψ-left, ψ-rght       | PBij.consistent for edges                    |
+     | φ-lab                | maintained as an *invariant* of the search   |
+     | ψ-ein, ψ-eout        | maintained — matched edges paired pointwise  |
+     | φ-dom, φ-cod         | from 4a.2's interface seeding                |
+     | atom-ein, atom-eout  | derived: `trans (cong (map K.vlab) ψ-ein) (map-∘ ...) (map-cong φ-lab) ...` |
+     | ψ-elab               | hardest — see below                          |
+
+     *The ψ-elab field*.  This is the edge-label compatibility
+     claim:
+     #+begin_src agda
+       ψ-elab : ∀ e → subst₂ Gen (atom-ein e) (atom-eout e) (J.elab (ψ e))
+                    ≡ H.elab e
+     #+end_src
+
+     From 4a.3's label match, we know ~H.elab e~ and ~J.elab (ψ e)~
+     are propositionally equal at the generator level (after
+     decidable equality succeeded).  But the iso needs to equate
+     them *modulo* ~subst₂~ along the atom-list equalities.  The
+     "strategic atom-ein" trick (used pervasively in
+     SoundnessProved) chooses ~atom-ein~ and ~atom-eout~ to match
+     the specific proof forms produced by ~matchEdge~'s label
+     check, so ~ψ-elab~ reduces to ~refl~ or a single ~cong~.
+
+     *Reuse opportunity*: the record-assembly boilerplate is
+     similar to ~SigmaNat~'s final assembly (~1619-line file that
+     builds a ~_≅ᴴ_~ record from a permutation of vertices).  We
+     can factor out a ~mkIsoFromBij~ helper that packages the
+     common pattern:
+     #+begin_src agda
+       mkIsoFromBij
+         : (bij : CompleteBij H.nV J.nV)     -- φ with laws
+         → (ebij : CompleteBij H.nE J.nE)    -- ψ with laws
+         → (lab-ok : ∀ i → J.vlab (bij .fwd i) ≡ H.vlab i)
+         → (ein-ok  : ∀ e → J.ein  (ebij .fwd e) ≡ map (bij .fwd) (H.ein e))
+         → (eout-ok : ∀ e → J.eout (ebij .fwd e) ≡ map (bij .fwd) (H.eout e))
+         → (dom-ok  : J.dom ≡ map (bij .fwd) H.dom)
+         → (cod-ok  : J.cod ≡ map (bij .fwd) H.cod)
+         → (elab-ok : ∀ e → ...ψ-elab shape...)
+         → H ≅ᴴ J
+     #+end_src
+     Then ~findIso~ just threads the partial bijection's invariants
+     into the shape required by ~mkIsoFromBij~.
+
+**** Phase 4a.6 — Tests + integration
+     :PROPERTIES:
+     :effort: ~2 days, ~100 LOC
+     :END:
+
+     Concrete test cases:
+     - ~findIso H H ≡ just (refl-≅ᴴ H)~ for small hypergraphs.
+     - ~findIso (hId A) (hId A) ≡ just _~ for various ~A~.
+     - ~findIso ⟪ id ∘ f ⟫ ⟪ f ⟫ ≡ just _~ (should match
+       ~idˡ-sound~'s iso up to ~≅ᴴ-cong~).
+     - Negative tests: non-iso hypergraphs return ~nothing~ (or
+       just fail, if we're doing partial-decidable).
+     - Performance checks: moderate-sized examples complete in
+       reasonable time (Agda's evaluator is slow; aim for
+       <1 min on hypergraphs with ~dozen edges).
+
+     Integration check: the ~Soundness~ module imports ~findIso~
+     and can evaluate it on translated APROP terms without the
+     typechecker choking.
+
+**** Phase 4a — dependency summary
+
+     | Sub-task | Depends on                                        |
+     |----------+---------------------------------------------------|
+     | 4a.0     | `APROPSignature` (existing)                       |
+     | 4a.1     | `Data.Fin`, stdlib (no Hypergraph dependency)     |
+     | 4a.2     | 4a.1 + `Hypergraph.Core`                          |
+     | 4a.3     | 4a.1, 4a.2 + `Hypergraph.Core` + decidable `FlatGen` |
+     | 4a.4     | 4a.3                                              |
+     | 4a.5     | 4a.1-4a.4 + `Iso.agda` (`_≅ᴴ_` record)            |
+     | 4a.6     | 4a.5 + example hypergraphs                        |
+
+     Critical path: 4a.0 → 4a.1 → 4a.2 → 4a.3 → 4a.4 → 4a.5 → 4a.6
+     (mostly sequential, few parallel opportunities).
+
+     *Safety*: everything in 4a can be ~--safe~.  No postulates
+     or ~--lossy-unification~ required (the algorithm is purely
+     computational; the record assembly is structural).
+
+**** Risks
+
+     - *Decidable equality for generators*.  APROPSignature
+       doesn't currently require it.  Adding it is invasive
+       upstream but is standard for reflection-style tactics.
+
+     - *ψ-elab proof construction*.  The atom-list equalities
+       ~atom-ein~, ~atom-eout~ must be constructed in a form that
+       makes ~ψ-elab~ reduce to something tractable.  If we try
+       ~refl~-based strategic choices and they don't work (because
+       matchEdge's label match uses different proof forms), the
+       record-assembly step could blow up.  Fallback: use
+       ~≅ᴴ~-reasoning or a more permissive equivalence internally.
+
+     - *Performance of Agda's evaluator on the algorithm*.  AVL
+       maps over ~Fin~ keys with large ~n~ can be slow in Agda.
+       If ~findIso~ evaluates too slowly during type-checking for
+       ~smcat~ to be practical, we'd fall back to pre-computing
+       the iso and plugging it in manually, or emit the iso via
+       reflection code generation rather than in-type computation.
+
+     - *Fuel-based termination*.  Cleaner would be well-founded
+       recursion on (unmatched edges, remaining search tree), but
+       that's more Agda-work.  Fuel is pragmatic and matches
+       TensorRocq's Rocq implementation.
 
 *** TODO Phase 4b — Reflection tactic ~smcat~
     :PROPERTIES:
