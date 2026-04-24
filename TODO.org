@@ -10,6 +10,8 @@ previous one.  The ultimate goal is to make every module typecheck
 with ~--safe~ and have ~CategoricalCrypto.agda~ transitively import
 them.
 
+See https://arxiv.org/pdf/2604.17592 for high-level details.
+
 * Active postulates
 
 All three blocks live in files that currently omit ~--safe~ because
@@ -833,15 +835,626 @@ meantime.
 
 * Remaining phases
 
-** TODO Phase 4 — ~smcat~ reflection macro
+** TODO Phase 3.5 — Completeness (inverse of soundness)
    :PROPERTIES:
    :depends-on: Phase 3 (soundness)
+   :effort: 1-2 months focused proof work
    :END:
-   Reflection-based tactic that takes a goal ~f ≈ g~ in a
-   symmetric-monoidal category and discharges it by reducing to the
-   APROP translation, applying ~soundness⁻¹~ (to be proved along
-   with ~soundness~), and comparing normal forms via the
-   canonical-hypergraph theorem.
+
+   Prove the converse direction:
+   #+begin_src agda
+     completeness
+       : ∀ {A B} {f g : HomTerm A B}
+       → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫  →  f ≈Term g
+   #+end_src
+   giving a full two-way correspondence:
+   ~f ≈Term g ⟺ ⟪ f ⟫ ≅ᴴ ⟪ g ⟫~ .  Together with ~soundness~
+   (already proved modulo the axiom postulates), this says the
+   APROP equational theory is *exactly* captured by hypergraph
+   isomorphism — the TensorRocq "canonical hypergraph" theorem.
+
+   *Approach*: go through a canonical-form representative.  Two
+   equivalent HomTerms translate to the same canonical hypergraph,
+   and the canonical form round-trips back to a HomTerm in normal
+   form that is ≈Term-equivalent to the original.
+
+*** TODO Phase 3.5a — Unflatten + round-trip on boundaries
+    :PROPERTIES:
+    :effort: ~3 h
+    :END:
+
+    Introduce the decode-direction bridge from ~List X~ back to
+    ~ObjTerm~:
+    #+begin_src agda
+      unflatten : List X → ObjTerm
+      unflatten []       = unit
+      unflatten (x ∷ xs) = Var x ⊗₀ unflatten xs
+
+      flatten-unflatten : ∀ l → flatten (unflatten l) ≡ l
+      flatten-unflatten = ?   -- induction on l
+    #+end_src
+
+    Note: ~unflatten ∘ flatten~ is NOT identity on ~ObjTerm~; it
+    is only equal up to ~≈Term~.  E.g., ~A ⊗ B~ and
+    ~unflatten (flatten (A ⊗ B))~ differ structurally (the latter
+    is right-associated) but are ≈Term-equal via α/ρ chains.
+    Prove:
+    #+begin_src agda
+      unflatten-flatten-≈
+        : ∀ (A : ObjTerm) → ???   -- an iso-morphism in the free SMC
+                                   --   from `A` to `unflatten (flatten A)`
+    #+end_src
+
+*** TODO Phase 3.5b — Canonical form for hypergraphs
+    :PROPERTIES:
+    :effort: 1-2 weeks
+    :END:
+
+    Define a canonicalisation pass on hypergraphs:
+    #+begin_src agda
+      -- A canonical hypergraph has
+      --   * vertices ordered by first appearance in
+      --     `dom ++ cod ++ concat ein ++ concat eout`
+      --   * edges ordered by, say, their `ein` endpoints (lex order
+      --     on Fin-lists).
+      -- Both orderings are fully determined by the data, so two
+      -- canonical hypergraphs with the same labeled-graph structure
+      -- are propositionally equal.
+
+      Canonical : Hypergraph FlatGen As Bs → Set
+      canonify  : Hypergraph FlatGen As Bs → Hypergraph FlatGen As Bs
+      canonify-iso
+        : ∀ (H : Hypergraph FlatGen As Bs) → H ≅ᴴ canonify H
+      canonify-canonical
+        : ∀ H → Canonical (canonify H)
+      canonical-iso→≡
+        : ∀ {H H' : Hypergraph FlatGen As Bs}
+        → Canonical H → Canonical H' → H ≅ᴴ H' → H ≡ H'
+    #+end_src
+
+    *Sub-tasks*:
+    - Define an ordering relation on vertices via the order of
+      first-appearance.  Use ~Unique~ + an index into the list of
+      first-appearances.
+    - Define ~canonify~: permute vertices by the ordering, permute
+      edges by lex order on the permuted ~ein~.
+    - Prove ~canonify-iso~ by constructing the ≅ᴴ whose ~φ~ is the
+      vertex permutation.  Uses ~hTensor-resp-≅ᴴ~-style field
+      threading.
+    - Prove ~canonical-iso→≡~: given two canonical ~H~, ~H'~ with
+      an iso ~φ~, show ~φ~ is forced to be ~id~ (because both
+      orderings agree with the data) — then the ≅ᴴ on all fields
+      collapses to ~≡~.
+
+*** TODO Phase 3.5c — Decoder: hypergraph → HomTerm
+    :PROPERTIES:
+    :effort: ~1 week
+    :END:
+
+    Given a hypergraph, reconstruct a HomTerm:
+    #+begin_src agda
+      decode
+        : ∀ {As Bs} (H : Hypergraph FlatGen As Bs)
+        → HomTerm (unflatten As) (unflatten Bs)
+    #+end_src
+
+    *Construction*:
+    1. Each edge ~e : Fin H.nE~ contributes a generator
+       ~hGen e : HomTerm (unflatten (map vlab (ein e)))
+                          (unflatten (map vlab (eout e)))~.
+    2. Wire the edges through a "serialisation" schema: vertices
+       are produced once (by the first edge whose ~eout~ contains
+       them, or by ~dom~), and consumed zero-or-more times (by
+       edges' ~ein~ or by ~cod~).
+    3. The HomTerm is a composition of tensored generators
+       interleaved with braiding/dup/drop primitives — this is
+       the "cospan form" construction from TensorRocq §3.2.
+
+    *Sub-tasks*:
+    - Pick a linear ordering on edges (topological from ~dom~, or
+      lex on ~ein~).
+    - Inductively build the term edge-by-edge, threading a
+      "stack" of currently-live vertices.
+    - At each edge, emit the generator preceded by a symmetric
+      reshuffle taking the stack to the edge's ~ein~.
+    - At the end, reshuffle from stack to ~cod~.
+
+    *Key property* (to prove in 3.5d):
+    #+begin_src agda
+      decode-translates
+        : ∀ H → ⟪ decode H ⟫ ≅ᴴ
+                subst₂ (Hypergraph FlatGen)
+                       (flatten-unflatten _) (flatten-unflatten _) H
+    #+end_src
+
+*** TODO Phase 3.5d — Round-trip: decode ∘ ⟪_⟫ ≈Term id
+    :PROPERTIES:
+    :effort: ~3-5 days
+    :END:
+
+    Prove decode is the left inverse of ⟪_⟫ modulo ≈Term:
+    #+begin_src agda
+      decode-roundtrip
+        : ∀ {A B} (f : HomTerm A B)
+        → decode ⟪ f ⟫ ≈Term bridge f
+    #+end_src
+    where ~bridge f : HomTerm (unflatten (flatten A)) (unflatten (flatten B))~
+    is ~f~ composed with the ~unflatten-flatten-≈~ iso-morphisms on
+    both ends.
+
+    By induction on ~f~:
+    - Generators: direct.
+    - id, λ, ρ, α, σ: explicit computations.
+    - ∘, ⊗: compositional.
+
+*** TODO Phase 3.5e — Completeness theorem
+    :PROPERTIES:
+    :effort: ~2-3 days
+    :END:
+
+    Assemble the pieces:
+    #+begin_src agda
+      completeness
+        : ∀ {A B} {f g : HomTerm A B}
+        → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+        → f ≈Term g
+      completeness iso =
+        -- f ≈ decode ⟪f⟫   [decode-roundtrip]
+        -- ≈ decode ⟪g⟫     [decode respects ≅ᴴ via canonify-iso + canonical-iso→≡]
+        -- ≈ g              [decode-roundtrip]
+        ?
+    #+end_src
+
+    Needs one more lemma:
+    #+begin_src agda
+      decode-resp-≅ᴴ
+        : ∀ {H H' : Hypergraph FlatGen As Bs}
+        → H ≅ᴴ H' → decode H ≈Term decode H'
+      decode-resp-≅ᴴ iso =
+        -- Route through canonical form:
+        -- decode H ≈Term decode (canonify H)     [decode respects propositional equality
+        --                                          via canonify-iso internal subst]
+        -- decode (canonify H) = decode (canonify H')  [canonical-iso→≡]
+        -- decode (canonify H') ≈Term decode H'
+    #+end_src
+
+*** Phase 3.5 risks + shortcuts
+    *Risks*:
+    - Canonicalisation is subtle under ~--without-K~: the vertex
+      ordering is a dependent permutation on ~Fin n~, and the iso
+      between a hypergraph and its canonicalisation requires
+      transport across ~nV~-equalities.  Expect ~hCompose-resp-≅ᴴ~-
+      size proofs (~500 LOC each).
+    - The decoder's "stack" management needs a clean invariant
+      (probably a vector-style ~Fin n → X~ plus a permutation witness).
+
+    *Shortcuts*:
+    - Weaken to *Boolean* decision: prove
+      ~Dec (⟪f⟫ ≅ᴴ ⟪g⟫) → Dec (f ≈Term g)~ (requires decidable
+      ~_≅ᴴ_~ for translated hypergraphs, which follows from
+      canonification + decidable ~_≡_~).
+    - Could the ~smcat~ tactic (Phase 4) be used to discharge
+      3.5d's round-trip obligations?  NO — this is circular.  The
+      tactic needs completeness (3.5e) to emit proofs; using it
+      inside 3.5d's proof would assume what we're trying to prove.
+      *However*, a weaker tactic using only the already-proved
+      axioms (no appeal to completeness) *could* shrink 3.5d by
+      auto-discharging purely equational obligations that use only
+      those axioms.  That "partial smcat" would itself be a
+      meaningful sub-project (perhaps as part of Phase 3 finishing
+      touches).
+
+** TODO Phase 4 — ~smcat~ tactic via hypergraph-iso decision procedure
+   :PROPERTIES:
+   :depends-on: Phase 3 (soundness) + Phase 3.5 (completeness)
+   :END:
+
+   Following TensorRocq (Caldwell, Spencer, Rand — arXiv:2604.17592),
+   specifically their approach in §4.2: implement a *partial decision
+   procedure* for hypergraph isomorphism directly, bypassing tensor
+   semantics entirely.
+
+   *Key insight from the paper*: although graph isomorphism is
+   computationally expensive in general, for *directed, labeled
+   hypergraphs with ordered interfaces* the search space is tiny.
+   Interfaces pin boundary vertices pointwise; edge labels
+   constrain edge correspondences; directedness distinguishes
+   ein/eout roles.  TensorRocq report:
+   > "it runs in less than a second on all the non-synthetic goals
+   >  we encountered in our examples, which had sizes up to several
+   >  dozen edges."
+
+   Tensor semantics plays NO role in ~smcat~'s decision procedure.
+   Tensors are used only in the ~srw~ rewrite tactic (Phase 5) to
+   *verify* rewrite rules by semantic equality.
+
+*** DONE Phase 4a — Decidable hypergraph isomorphism
+    :PROPERTIES:
+    :effort: 2-3 weeks, ~1200-1500 LOC
+    :END:
+
+    Discharged.  ~findIso : (H J : Hypergraph FlatGen As Bs) → Maybe
+    (H ≅ᴴ J)~ lives at ~src/Categories/APROP/Hypergraph/Solver/FindIso.agda~,
+    parameterised by ~APROPSignatureDec~.  All sub-modules are
+    ~--safe --without-K~.  No upstream files were touched — the new
+    machinery sits entirely under ~Solver/~.
+
+    Modules (1013 LOC total):
+    | sub-task | module                                       | LOC |
+    |----------+----------------------------------------------+-----|
+    | 4a.0     | ~Solver/Signature.agda~                      |  77 |
+    | 4a.1     | ~Solver/PBij.agda~                           |  98 |
+    | 4a.2     | ~Solver/Seed.agda~                           |  91 |
+    | 4a.3     | ~Solver/Match.agda~                          | 117 |
+    | 4a.4     | ~Solver/Search.agda~                         |  88 |
+    | 4a.5     | ~Solver/Verify.agda~ + ~Solver/Totals.agda~  | 284 |
+    | 4a.6     | ~Solver/FindIso.agda~ + ~Solver/Tests.agda~  | 258 |
+
+    19 tests in ~Solver/Tests.agda~ exercise every equation-shaped
+    ~_≈Term_~ constructor (the four inference-rule constructors
+    ~∘-resp-≈~, ~⊗-resp-≈~, ~≈-Term-sym~, ~≈-Term-trans~ are skipped
+    because they aren't single equations).  Each test has the form
+    ~test-X = from-just (findIso ⟪ lhs ⟫ ⟪ rhs ⟫)~, so a test
+    failure shows up as a type-check error.
+
+    Two design notes:
+    - *Sound, partial-complete*.  ~findIso H J ≡ just iso~ produces
+      a verified ~≅ᴴ~; the search itself isn't complete (fuel
+      exhaustion / label-cull pruning can mask real isos), but for
+      hypergraphs arising from ~⟪_⟫~ it's complete in practice.
+    - *Search-fuel boundary*.  ~Search.searchIso~ checks
+      ~firstUnmatched ψ~ in the zero-fuel base case as well as the
+      step case — without that the search returns ~nothing~ when
+      the last edge match consumes the final fuel unit, even when
+      every edge is already paired.  The fuel bound
+      ~nEH × nEJ~ in ~searchIso-default~ is exact rather than
+      generous.
+
+    *Soundness* (always): if ~findIso H J ≡ just iso~, then ~iso~
+    is a valid ~≅ᴴ~.  By construction — the procedure builds the
+    iso record during the search.
+
+    *Completeness* (empirical, partial): in practice, ~findIso~
+    returns ~just~ for every pair arising from the translation of
+    ≈Term-equivalent APROP terms.  TensorRocq confirms this
+    empirically at the ~1s-for-dozens-of-edges scale.
+
+**** Phase 4a.0 — New `APROPSignatureDec` extension (no upstream edits)
+     :PROPERTIES:
+     :effort: ~2 h
+     :END:
+
+     ~findIso~ needs decidable equality on ~X~ (atom labels, for
+     pairing boundary vertices and comparing ~vlab~) and ~mor A B~
+     (edge labels, for matching edges).  We add these as a NEW
+     record that wraps the existing ~APROPSignature~ — no changes to
+     ~APROPSignature~ or any of its current downstream modules:
+     #+begin_src agda
+       -- New file: src/Categories/APROP/Dec.agda
+       record APROPSignatureDec : Set₁ where
+         field
+           sig : APROPSignature
+         open APROPSignature sig public
+         field
+           _≟X_    : DecidableEquality X
+           _≟-mor_ : ∀ {A B} → DecidableEquality (mor A B)
+     #+end_src
+
+     Signatures that don't provide decidable equality can still
+     use all the existing machinery (soundness, Triangle, Pentagon,
+     SigmaNat, …) unchanged.  Only ~findIso~ and the ~smcat~ tactic
+     require ~APROPSignatureDec~ — they sit strictly downstream.
+
+     Lifts to ~DecidableEquality FlatGen~ via ~cong sig-to-mor~
+     + the existing ~ObjTerm~ decidable equality (which follows
+     from ~_≟X_~).
+
+**** Phase 4a.1 — Partial vertex/edge maps
+     :PROPERTIES:
+     :effort: ~2 days, ~100 LOC
+     :END:
+
+     Pure-function representation — simplest possible data type:
+     #+begin_src agda
+       PartialMap : ℕ → ℕ → Set
+       PartialMap n m = Fin n → Maybe (Fin m)
+
+       empty : ∀ {n m} → PartialMap n m
+       empty _ = nothing
+
+       extend
+         : ∀ {n m} → PartialMap n m → Fin n → Fin m
+         → Maybe (PartialMap n m)   -- conflict check
+       extend p i j with p i
+       ... | nothing  = just (λ k → if k ≟ i then just j else p k)
+       ... | just j'  = if j ≟ j' then just p else nothing
+     #+end_src
+
+     Symmetric partial bijection carries both directions:
+     #+begin_src agda
+       record PBij (n m : ℕ) : Set where
+         field
+           forward  : PartialMap n m
+           backward : PartialMap m n
+     #+end_src
+
+     No invariant field; consistency is enforced operationally
+     by ~extend-bij~ which updates both directions and returns
+     ~nothing~ if either conflicts.
+
+     ~total? : PBij n m → Maybe (Fin n ↔ Fin m)~ extracts a
+     complete bijection with its laws once both maps are total
+     (all ~Fin n~ and ~Fin m~ values in range).  The bijection
+     laws (~φ-left~, ~φ-rght~) follow from extract-time checks.
+
+**** Phase 4a.2 — Interface seeding
+     :PROPERTIES:
+     :effort: ~2 days, ~100 LOC
+     :END:
+
+     Given ~H, J : Hypergraph FlatGen As Bs~, seed a partial vertex
+     bijection ~φ₀~ from the interfaces:
+     #+begin_src agda
+       seedFromInterfaces
+         : (H J : Hypergraph FlatGen As Bs)
+         → Maybe (PBij H.nV J.nV)
+       seedFromInterfaces H J = do
+         -- H.dom and J.dom both have length = length As, pointwise pair:
+         φ₁ ← pairUp empty H.dom J.dom
+         -- H.cod and J.cod both have length = length Bs:
+         φ₂ ← pairUp φ₁ H.cod J.cod
+         -- Optionally also check that H.vlab and J.vlab agree on paired
+         -- vertices (label preservation at boundaries).
+         pure φ₂
+     #+end_src
+
+     Returns ~nothing~ if:
+     - A vertex in ~H.dom~ maps to two different ~J.dom~ entries
+       (conflict).
+     - Paired vertices have different ~vlab~ (label mismatch).
+
+**** Phase 4a.3 — Edge matching + propagation
+     :PROPERTIES:
+     :effort: ~1 week, ~500 LOC
+     :END:
+
+     The core of the algorithm.  Given partial ~(φ, ψ)~, pick an
+     unmatched edge ~e : Fin H.nE~ and try to match it to a ~J~ edge:
+     #+begin_src agda
+       matchEdge
+         : (H J : Hypergraph FlatGen As Bs)
+         → (pbij : PBij H.nV J.nV × PBij H.nE J.nE)
+         → (e : Fin H.nE)
+         → List (PBij H.nV J.nV × PBij H.nE J.nE)
+                 -- all consistent extensions matching e to some e'∈J
+     #+end_src
+
+     *Algorithm*:
+     1. Iterate over ~J.nE~.
+     2. For each ~e' : Fin J.nE~, check:
+        - Not already in ~ψ~'s range.
+        - Label match: ~H.elab e ≡ J.elab e'~ (modulo atom-list
+          equality, since labels are indexed by ~map vlab (ein)~
+          atoms).  The decidable-equality machinery from 4a.0 does
+          this at the ~mor~ level.
+        - Arity match: ~length (H.ein e) ≡ length (J.ein e')~ and
+          same for ~eout~.
+     3. For each candidate ~e'~:
+        - Try to extend ~φ~ pointwise by pairing ~H.ein e [i]~ ↔
+          ~J.ein e' [i]~ for all ~i~, checking label consistency.
+        - Similarly for ~eout~.
+        - If all extensions succeed, add this ~(e, e')~ pair to ~ψ~
+          and emit the extended ~(φ, ψ)~.
+     4. Return the list of all successful extensions.
+
+     *Propagation* is implicit here: matching one edge adds
+     (~length (ein e) + length (eout e)~) new vertex constraints
+     to ~φ~, which prune future edge-match choices.
+
+**** Phase 4a.4 — Backtracking search
+     :PROPERTIES:
+     :effort: ~2 days, ~100 LOC
+     :END:
+
+     Glue ~matchEdge~ into a depth-first search:
+     #+begin_src agda
+       searchIso
+         : (H J : Hypergraph FlatGen As Bs)
+         → (fuel : ℕ)   -- bound to ensure termination
+         → (pbij : PBij H.nV J.nV × PBij H.nE J.nE)
+         → Maybe (CompleteBij H J)
+       searchIso H J zero    pbij = nothing   -- fuel exhausted
+       searchIso H J (suc k) pbij =
+         if all-edges-matched pbij
+           then just (extract-complete-bij pbij)
+           else
+             let nextEdge = pick-first-unmatched pbij in
+             any-match (matchEdge H J pbij nextEdge)
+                       (λ pbij' → searchIso H J k pbij')
+     #+end_src
+
+     Pick edges in natural order (~Fin.fromℕ~-style left-to-right).
+     No heuristics — we care about simplicity, not speed.
+
+     ~fuel~ is set to ~H.nE × J.nE~ (finite search tree upper
+     bound).  Termination via ~fuel~ decrement; well-founded
+     recursion on the search tree would be cleaner but more
+     Agda-work.
+
+**** Phase 4a.5 — Record assembly
+     :PROPERTIES:
+     :effort: ~1 week, ~400-600 LOC
+     :END:
+
+     Given a complete bijection ~(φ, φ⁻¹, ψ, ψ⁻¹)~ with the
+     operational consistency invariants from ~PBij~, assemble the
+     full 15-field ~_≅ᴴ_~ record:
+
+     | Field                | Source                                       |
+     |----------------------+----------------------------------------------|
+     | φ, φ⁻¹               | PBij.forward / .backward                     |
+     | φ-left, φ-rght       | PBij.consistent (expressed as equalities)    |
+     | ψ, ψ⁻¹               | PBij (edges)                                 |
+     | ψ-left, ψ-rght       | PBij.consistent for edges                    |
+     | φ-lab                | maintained as an *invariant* of the search   |
+     | ψ-ein, ψ-eout        | maintained — matched edges paired pointwise  |
+     | φ-dom, φ-cod         | from 4a.2's interface seeding                |
+     | atom-ein, atom-eout  | derived: `trans (cong (map K.vlab) ψ-ein) (map-∘ ...) (map-cong φ-lab) ...` |
+     | ψ-elab               | hardest — see below                          |
+
+     *The ψ-elab field*.  This is the edge-label compatibility
+     claim:
+     #+begin_src agda
+       ψ-elab : ∀ e → subst₂ Gen (atom-ein e) (atom-eout e) (J.elab (ψ e))
+                    ≡ H.elab e
+     #+end_src
+
+     From 4a.3's label match, we know ~H.elab e~ and ~J.elab (ψ e)~
+     are propositionally equal at the generator level (after
+     decidable equality succeeded).  But the iso needs to equate
+     them *modulo* ~subst₂~ along the atom-list equalities.  The
+     "strategic atom-ein" trick (used pervasively in
+     SoundnessProved) chooses ~atom-ein~ and ~atom-eout~ to match
+     the specific proof forms produced by ~matchEdge~'s label
+     check, so ~ψ-elab~ reduces to ~refl~ or a single ~cong~.
+
+     *Reuse opportunity*: the record-assembly boilerplate is
+     similar to ~SigmaNat~'s final assembly (~1619-line file that
+     builds a ~_≅ᴴ_~ record from a permutation of vertices).  We
+     can factor out a ~mkIsoFromBij~ helper that packages the
+     common pattern:
+     #+begin_src agda
+       mkIsoFromBij
+         : (bij : CompleteBij H.nV J.nV)     -- φ with laws
+         → (ebij : CompleteBij H.nE J.nE)    -- ψ with laws
+         → (lab-ok : ∀ i → J.vlab (bij .fwd i) ≡ H.vlab i)
+         → (ein-ok  : ∀ e → J.ein  (ebij .fwd e) ≡ map (bij .fwd) (H.ein e))
+         → (eout-ok : ∀ e → J.eout (ebij .fwd e) ≡ map (bij .fwd) (H.eout e))
+         → (dom-ok  : J.dom ≡ map (bij .fwd) H.dom)
+         → (cod-ok  : J.cod ≡ map (bij .fwd) H.cod)
+         → (elab-ok : ∀ e → ...ψ-elab shape...)
+         → H ≅ᴴ J
+     #+end_src
+     Then ~findIso~ just threads the partial bijection's invariants
+     into the shape required by ~mkIsoFromBij~.
+
+**** Phase 4a.6 — Tests + integration
+     :PROPERTIES:
+     :effort: ~1 day, ~80 LOC
+     :END:
+
+     Concrete test cases:
+     - ~findIso H H ≡ just (refl-≅ᴴ H)~ for small hypergraphs.
+     - ~findIso (hId A) (hId A) ≡ just _~ for various ~A~.
+     - ~findIso ⟪ id ∘ f ⟫ ⟪ f ⟫ ≡ just _~ (should match
+       ~idˡ-sound~'s iso up to ~≅ᴴ-cong~).
+     - Negative tests: non-iso hypergraphs return ~nothing~.
+
+     Integration check: the ~Soundness~ module imports ~findIso~
+     and can evaluate it on translated APROP terms.
+
+**** Phase 4a — dependency summary
+
+     | Sub-task | Depends on                                        |
+     |----------+---------------------------------------------------|
+     | 4a.0     | `APROPSignature` (existing)                       |
+     | 4a.1     | `Data.Fin`, stdlib (no Hypergraph dependency)     |
+     | 4a.2     | 4a.1 + `Hypergraph.Core`                          |
+     | 4a.3     | 4a.1, 4a.2 + `Hypergraph.Core` + decidable `FlatGen` |
+     | 4a.4     | 4a.3                                              |
+     | 4a.5     | 4a.1-4a.4 + `Iso.agda` (`_≅ᴴ_` record)            |
+     | 4a.6     | 4a.5 + example hypergraphs                        |
+
+     Critical path: 4a.0 → 4a.1 → 4a.2 → 4a.3 → 4a.4 → 4a.5 → 4a.6
+     (mostly sequential, few parallel opportunities).
+
+     *Safety*: everything in 4a can be ~--safe~.  No postulates
+     or ~--lossy-unification~ required (the algorithm is purely
+     computational; the record assembly is structural).
+
+**** Risks
+
+     - *Decidable equality for generators*.  ~APROPSignature~
+       doesn't require it.  We avoid any invasive upstream change
+       by putting the decidable-equality requirement on a new
+       extension record ~APROPSignatureDec~ (4a.0) — all current
+       modules keep working unchanged.  Only ~findIso~ and the
+       ~smcat~ tactic are parameterised by ~APROPSignatureDec~;
+       signatures without decidable equality lose only access to
+       the tactic, not to any existing proof.
+
+     - *ψ-elab proof construction*.  The atom-list equalities
+       ~atom-ein~, ~atom-eout~ must be constructed in a form that
+       makes ~ψ-elab~ reduce to something tractable.  If we try
+       ~refl~-based strategic choices and they don't work (because
+       matchEdge's label match uses different proof forms), the
+       record-assembly step could blow up.  Fallback: use
+       ~≅ᴴ~-reasoning or a more permissive equivalence internally.
+
+     - *Fuel-based termination*.  Cleaner would be well-founded
+       recursion on (unmatched edges, remaining search tree), but
+       that's more Agda-work.  Fuel is simple and matches
+       TensorRocq's Rocq implementation.
+
+     *Runtime performance is intentionally deferred.*  The plan
+     uses the simplest possible data structures (pure functions,
+     lists) and no heuristics.  If ~findIso~ turns out to be too
+     slow during type-checking for practical ~smcat~ usage, we'll
+     profile and optimise then — potentially swapping ~PartialMap~
+     for ~Vec (Maybe (Fin m)) n~, adding MRV-style heuristics, or
+     emitting the iso via reflection code generation rather than
+     in-type computation.
+
+*** TODO Phase 4b — Reflection tactic ~smcat~
+    :PROPERTIES:
+    :effort: ~1-2 weeks
+    :depends-on: Phase 4a + Phase 3.5 (completeness)
+    :END:
+
+    An Agda reflection macro that dispatches goals of the form
+    ~f ≈Term g~:
+    1. Reify the goal; extract HomTerms ~f~, ~g~.
+    2. Compute ~⟪ f ⟫~ and ~⟪ g ⟫~ by ordinary Agda reduction.
+    3. Apply ~findIso ⟪ f ⟫ ⟪ g ⟫~.
+    4. On ~just iso~, emit the proof ~completeness iso~ (from
+       Phase 3.5).  On ~nothing~, fail the tactic with a useful
+       error.
+
+    The tactic is *sound* (only emits proofs when the iso exists
+    and completeness applies) and *partial-complete* (succeeds in
+    practice for all cases arising in typical proofs).
+
+    *Implementation notes*:
+    - Agda's ~Reflection~ API gives access to ~Term~ / ~Type~
+      manipulation; ~unquote~ splices back into the goal.
+    - Performance: ~findIso~ runs entirely in Agda's evaluator
+      during macro expansion; its runtime ≈ TensorRocq's reported
+      "<1s on dozen-edge hypergraphs".
+    - For debugging, expose a non-macro variant
+      ~smcat-test : (f g : HomTerm A B) → Maybe (f ≈Term g)~.
+
+*** Phase 4 dependency summary
+
+    | Sub-phase | Depends on                  |
+    |-----------+-----------------------------|
+    | 4a        | Hypergraph.Core + Iso       |
+    | 4b        | 4a + Phase 3.5 completeness |
+
+    Critical path: Phase 3 → Phase 3.5 → 4a → 4b.
+
+    *Why this is a win over the previous plan*: no tensor
+    infrastructure needed for the ~smcat~ tactic.  Skipping
+    tensors saves ~4 weeks of development.  Tensor semantics
+    (proving `f ≈ g → ⟦f⟧ᵀ ≡ ⟦g⟧ᵀ` etc.) remains relevant for the
+    rewrite tactic ~srw~ (Phase 5) — but not for the basic
+    equality-by-connectivity tactic.
+
+    *Alternative tactic (no Phase 3.5)*: implement term-level
+    confluent rewriting on HomTerms using only the already-proved
+    ≈Term axioms.  Each rewrite step emits an ~≈Term~ proof
+    directly, so no appeal to completeness is needed.  Equivalent
+    in power; harder to ensure confluence without a canonical
+    form, but avoids the Phase 3.5 dependency entirely.
 
 ** TODO Phase 5 — DPO rewriting (~srw~)
    Double-pushout rewriting over hypergraphs, exposed as a tactic
@@ -873,13 +1486,37 @@ Categories.APROP.Hypergraph.Prune             YES
 Categories.APROP.Hypergraph.Invariant         YES
 Categories.APROP.Hypergraph.HomTermInvariant  YES
 Categories.APROP.Hypergraph.Translation       YES
-Categories.APROP.Hypergraph.SoundnessAxioms   NO  (8 focused postulates + 2 sub-helpers)
-Categories.APROP.Hypergraph.Soundness         NO  (uses SoundnessAxioms, --lossy-unification)
+Categories.APROP.Hypergraph.SoundnessProved   YES  (constructive proofs only)
+Categories.APROP.Hypergraph.Triangle          YES  (fully constructive)
+Categories.APROP.Hypergraph.Pentagon          YES  (fully constructive)
+Categories.APROP.Hypergraph.SoundnessAxioms   NO   (7 postulates: 5 axioms + 2 helpers)
+Categories.APROP.Hypergraph.AlphaCommSound    NO   (hTensor-assoc-iso postulate)
+Categories.APROP.Hypergraph.Soundness         NO   (uses SoundnessAxioms, --lossy-unification)
+Categories.APROP.Hypergraph.Solver.Signature  YES
+Categories.APROP.Hypergraph.Solver.PBij       YES
+Categories.APROP.Hypergraph.Solver.Seed       YES
+Categories.APROP.Hypergraph.Solver.Match      YES
+Categories.APROP.Hypergraph.Solver.Search     YES
+Categories.APROP.Hypergraph.Solver.Totals     YES
+Categories.APROP.Hypergraph.Solver.Verify     YES
+Categories.APROP.Hypergraph.Solver.FindIso    YES
+Categories.APROP.Hypergraph.Solver.Tests      YES
 #+end_src
 
-Soundness is the only non-~--safe~ module in the Hypergraph tree.
-`--lossy-unification` on Soundness isn't inherently unsound (it's a
-heuristic unifier, not a logical principle), but it's disabled by
-default for `--safe` because errors can be harder to diagnose.
+The Hypergraph tree is now mostly `--safe`: three dedicated axiom
+modules (`Triangle`, `Pentagon`, and the generic constructive layer
+`SoundnessProved`) are `--safe`, as is the whole Invariant /
+Congruence / Translation infrastructure.  The only unsafe modules
+are:
 
-Soundness requires Option A or B above before it can be promoted.
+  * `SoundnessAxioms` — holds the 5 remaining flat axiom postulates
+    (ρ-nat, σ-nat, hexagon, assoc, ⊗-∘-dist) plus two focused
+    structural postulates (`hTensor-G-hEmpty-iso-substed`,
+    `subst₂-hId-assoc-cancel`).
+  * `AlphaCommSound` — proves α-comm constructively modulo one
+    focused postulate `hTensor-assoc-iso`.
+  * `Soundness` — dispatches every `≈Term` constructor.  Uses
+    `--lossy-unification` (heuristic unifier, not a logical
+    principle, but currently incompatible with `--safe`).
+
+Each of these becomes `--safe` once its postulates are discharged.
