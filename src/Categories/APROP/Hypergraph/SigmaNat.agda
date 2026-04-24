@@ -17,26 +17,27 @@
 --     edges (hSwap has no edges), so edge bookkeeping reduces to a
 --     swap on `Fin (F.nE + G.nE)`.
 --
--- Vertex bijection (2/4 COMPLETE, 2/4 partial):
+-- Vertex bijection (4/4 COMPLETE):
 --   * φ, φ⁻¹  — concrete formulas: φ uses `hRHS.remapP ∘ ψ-swap`
 --     on the F+G half; φ⁻¹ case-splits on `splitAt RHS-G.nV` then
 --     `splitAt nA` for boundary, or `lookup (nonMem RHS-K.dom)` for
 --     the pruned side, all composed with ψ-swap back and embedded.
---   * φ-left  — PROVED on the interior branch via `remap-inj₂`,
---     `classify-inj₂-lookup`, and `ψ-swap-involutive`.  BOUNDARY
---     branch is postulated as `φ-left-bdy`.
---   * φ-rght  — PROVED on the interior branch analogously using
---     `classify-lookup-nonMem`.  BOUNDARY branch is postulated as
---     `φ-rght-bdy`.
+--   * φ-left  — PROVED: interior branch via `remap-inj₂`,
+--     `classify-inj₂-lookup`, and `ψ-swap-involutive`; boundary
+--     branch via remapP-F-bdy / remapP-G-bdy + contradiction helpers.
+--   * φ-rght  — PROVED: interior branch analogously using
+--     `classify-lookup-nonMem`; boundary branch via φ⁻¹-F-bdy-red /
+--     φ⁻¹-G-bdy-red + cast-cancel chain.
 --
--- The boundary cases (φ-left-bdy, φ-rght-bdy) each require specific
--- classify↔lookup-cod bridges tying F/G boundary positions to RHS-G's
--- cod (a mirror of σ∘σ-proof's `lookup-cod-inject+-nA` / `-raise-nB`
--- lemmas but routed through the swap permutation).
+-- Edge label preservation (3/3 COMPLETE):
+--   * atom-ein, atom-eout — case analysis on F-edge / G-edge + 5-step
+--     trans chain through map-via-inj / map-via-remapP / map-via-raise.
+--   * ψ-elab — 10-step chain via subst₂-trans, subst₂-sym-subst₂,
+--     map-via-remapP-natural, hTR.elab-c-inj{₁,₂}.
 --
--- 5 structural field postulates (φ-lab, ψ-ein, ψ-eout, φ-dom, φ-cod)
--- and 3 edge-label field postulates (atom-ein, atom-eout, ψ-elab)
--- remain, bridging concrete φ/ψ to the `_≅ᴴ_` record fields.
+-- 5 remaining structural field postulates:
+--   * φ-lab, ψ-ein, ψ-eout, φ-dom, φ-cod
+-- These bridge concrete φ/ψ to the record's invariant lists.
 --
 -- Because this file contains internal postulates, it is not `--safe`.
 --------------------------------------------------------------------------------
