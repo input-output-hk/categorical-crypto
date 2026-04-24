@@ -529,20 +529,81 @@ module σ-nat-proof
     subst (_∈ RHS-K.dom) (classify-inj₁-lookup RHS-K.dom v i eq)
           (∈-lookup {xs = RHS-K.dom} i)
 
-  postulate
-    -- φ-left-bdy: case-split v' via splitAt F.nV, then classify F.dom / G.dom
-    -- to get pos_F / pos_G.  The inj₂ (not-in-dom) cases derive ⊥ via the
-    -- contradiction helpers (injR-∉-RHS-K-dom, injL-∉-RHS-K-dom) + classify-inj₂-∉
-    -- + classify-inj₁-∈.  The in-dom cases use remapP-F-bdy / remapP-G-bdy
-    -- + cast-trans + cast-is-id.
-    --
-    -- All the required foundations (helpers above) are PROVED; assembling
-    -- them into the full φ-left-bdy proof is the residual work.
-    φ-left-bdy
-      : (v' : Fin LHS-G.nV) (i : Fin (length RHS-K.dom))
-      → classify RHS-K.dom (ψ-swap {F.nV} {G.nV} v') ≡ inj₁ i
-      → φ⁻¹ (hRHS.remapP (ψ-swap {F.nV} {G.nV} v'))
-      ≡ v' ↑ˡ count-non LHS-K.dom
+  -- φ⁻¹ reduction lemmas for boundary cases (F-side and G-side).
+  -- Use nested dual-with to collapse both splitAt levels.
+
+  φ⁻¹-F-bdy-red
+    : (a : Fin nA)
+    → φ⁻¹ ((a ↑ˡ nC) ↑ˡ count-non RHS-K.dom)
+    ≡ (lookup F.dom (cast (sym F-dom-len) a) ↑ˡ G.nV) ↑ˡ count-non LHS-K.dom
+  φ⁻¹-F-bdy-red a
+    with splitAt RHS-G.nV ((a ↑ˡ nC) ↑ˡ count-non RHS-K.dom)
+       | splitAt-↑ˡ RHS-G.nV (a ↑ˡ nC) (count-non RHS-K.dom)
+  ... | .(inj₁ (a ↑ˡ nC)) | refl
+    with splitAt nA (a ↑ˡ nC) | splitAt-↑ˡ nA a nC
+  ...   | .(inj₁ a) | refl = refl
+
+  φ⁻¹-G-bdy-red
+    : (c' : Fin nC)
+    → φ⁻¹ ((nA ↑ʳ c') ↑ˡ count-non RHS-K.dom)
+    ≡ (F.nV ↑ʳ lookup G.dom (cast (sym G-dom-len) c')) ↑ˡ count-non LHS-K.dom
+  φ⁻¹-G-bdy-red c'
+    with splitAt RHS-G.nV ((nA ↑ʳ c') ↑ˡ count-non RHS-K.dom)
+       | splitAt-↑ˡ RHS-G.nV (nA ↑ʳ c') (count-non RHS-K.dom)
+  ... | .(inj₁ (nA ↑ʳ c')) | refl
+    with splitAt nA (nA ↑ʳ c') | splitAt-↑ʳ nA nC c'
+  ...   | .(inj₂ c') | refl = refl
+
+  -- φ-left-bdy: case-split v' via splitAt F.nV, then classify F.dom / G.dom
+  -- to get pos_F / pos_G.  The inj₂ (not-in-dom) cases derive ⊥ via the
+  -- contradiction helpers (injR-∉-RHS-K-dom, injL-∉-RHS-K-dom) + classify-inj₂-∉
+  -- + classify-inj₁-∈.  The in-dom cases use remapP-F-bdy / remapP-G-bdy
+  -- + cast-cancel via cast-trans + cast-is-id, then φ⁻¹-F-bdy-red / -G-bdy-red
+  -- + classify-inj₁-lookup for F.dom / G.dom.
+
+  φ-left-bdy
+    : (v' : Fin LHS-G.nV) (i : Fin (length RHS-K.dom))
+    → classify RHS-K.dom (ψ-swap {F.nV} {G.nV} v') ≡ inj₁ i
+    → φ⁻¹ (hRHS.remapP (ψ-swap {F.nV} {G.nV} v'))
+    ≡ v' ↑ˡ count-non LHS-K.dom
+  -- Note: after `with splitAt F.nV v'`, Agda reduces `ψ-swap v'` via
+  -- internal with-hoisting to `G.nV ↑ʳ f` (inj₁) or `g ↑ˡ F.nV` (inj₂),
+  -- so no `cong ψ-swap ...` bridge is needed.
+  φ-left-bdy v' i cv-eq with splitAt F.nV v' in ev-v'
+  ... | inj₁ f with classify F.dom f in cf
+  ...   | inj₁ a =
+    let lookup-eq : lookup F.dom a ≡ f
+        lookup-eq = classify-inj₁-lookup F.dom f a cf
+        cast-cancel : cast (sym F-dom-len) (cast F-dom-len a) ≡ a
+        cast-cancel =
+          trans (cast-trans F-dom-len (sym F-dom-len) a)
+                (cast-is-id (trans F-dom-len (sym F-dom-len)) a)
+    in trans (cong (λ v → φ⁻¹ (hRHS.remapP (G.nV ↑ʳ v))) (sym lookup-eq))
+       (trans (cong φ⁻¹ (remapP-F-bdy a))
+       (trans (φ⁻¹-F-bdy-red (cast F-dom-len a))
+       (trans (cong (λ x → (lookup F.dom x ↑ˡ G.nV) ↑ˡ count-non LHS-K.dom)
+                    cast-cancel)
+       (trans (cong (λ x → (x ↑ˡ G.nV) ↑ˡ count-non LHS-K.dom) lookup-eq)
+              (cong (_↑ˡ count-non LHS-K.dom) (splitAt⁻¹-↑ˡ ev-v'))))))
+  ...   | inj₂ j-F =
+    ⊥-elim (injR-∉-RHS-K-dom (classify-inj₂-∉ cf) (classify-inj₁-∈ cv-eq))
+  φ-left-bdy v' i cv-eq | inj₂ g with classify G.dom g in cg
+  ...   | inj₁ c' =
+    let lookup-eq : lookup G.dom c' ≡ g
+        lookup-eq = classify-inj₁-lookup G.dom g c' cg
+        cast-cancel : cast (sym G-dom-len) (cast G-dom-len c') ≡ c'
+        cast-cancel =
+          trans (cast-trans G-dom-len (sym G-dom-len) c')
+                (cast-is-id (trans G-dom-len (sym G-dom-len)) c')
+    in trans (cong (λ v → φ⁻¹ (hRHS.remapP (v ↑ˡ F.nV))) (sym lookup-eq))
+       (trans (cong φ⁻¹ (remapP-G-bdy c'))
+       (trans (φ⁻¹-G-bdy-red (cast G-dom-len c'))
+       (trans (cong (λ x → (F.nV ↑ʳ lookup G.dom x) ↑ˡ count-non LHS-K.dom)
+                    cast-cancel)
+       (trans (cong (λ x → (F.nV ↑ʳ x) ↑ˡ count-non LHS-K.dom) lookup-eq)
+              (cong (_↑ˡ count-non LHS-K.dom) (splitAt⁻¹-↑ʳ ev-v'))))))
+  ...   | inj₂ j-G =
+    ⊥-elim (injL-∉-RHS-K-dom (classify-inj₂-∉ cg) (classify-inj₁-∈ cv-eq))
 
   -- Dispatcher that takes classify's result explicitly.  Avoids the
   -- `with classify ... in cv` abstraction issue (which left the goal
@@ -587,31 +648,6 @@ module σ-nat-proof
            (remap-inj₂ RHS-K.dom hRHS.lookup-cod
                        (lookup (nonMem RHS-K.dom) j) j
                        (classify-lookup-nonMem RHS-K.dom j))))
-
-  -- φ⁻¹ reduction lemmas for boundary cases (F-side and G-side).
-  -- Use nested dual-with to collapse both splitAt levels.
-
-  φ⁻¹-F-bdy-red
-    : (a : Fin nA)
-    → φ⁻¹ ((a ↑ˡ nC) ↑ˡ count-non RHS-K.dom)
-    ≡ (lookup F.dom (cast (sym F-dom-len) a) ↑ˡ G.nV) ↑ˡ count-non LHS-K.dom
-  φ⁻¹-F-bdy-red a
-    with splitAt RHS-G.nV ((a ↑ˡ nC) ↑ˡ count-non RHS-K.dom)
-       | splitAt-↑ˡ RHS-G.nV (a ↑ˡ nC) (count-non RHS-K.dom)
-  ... | .(inj₁ (a ↑ˡ nC)) | refl
-    with splitAt nA (a ↑ˡ nC) | splitAt-↑ˡ nA a nC
-  ...   | .(inj₁ a) | refl = refl
-
-  φ⁻¹-G-bdy-red
-    : (c' : Fin nC)
-    → φ⁻¹ ((nA ↑ʳ c') ↑ˡ count-non RHS-K.dom)
-    ≡ (F.nV ↑ʳ lookup G.dom (cast (sym G-dom-len) c')) ↑ˡ count-non LHS-K.dom
-  φ⁻¹-G-bdy-red c'
-    with splitAt RHS-G.nV ((nA ↑ʳ c') ↑ˡ count-non RHS-K.dom)
-       | splitAt-↑ˡ RHS-G.nV (nA ↑ʳ c') (count-non RHS-K.dom)
-  ... | .(inj₁ (nA ↑ʳ c')) | refl
-    with splitAt nA (nA ↑ʳ c') | splitAt-↑ʳ nA nC c'
-  ...   | .(inj₂ c') | refl = refl
 
   -- φ-rght-bdy: chain via splitAt⁻¹-↑ˡ to rewrite w into the canonical
   -- (a ↑ˡ nC) ↑ˡ _ form, then apply φ⁻¹-F-bdy-red + φ-inj₁-red +
