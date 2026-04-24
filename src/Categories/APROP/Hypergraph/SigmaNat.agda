@@ -56,26 +56,39 @@ open import Categories.APROP.Hypergraph.PrunedCompose sig
 open import Categories.APROP.Hypergraph.Translation sig
 open import Categories.APROP.Hypergraph.Iso
 open import Categories.APROP.Hypergraph.Invariant sig
-  using (hSwap-count-non-dom; hSwap-dom-Unique; hSwap-cod-covers; hSwap-dom-covers)
+  using (hSwap-count-non-dom; hSwap-dom-Unique; hSwap-cod-covers; hSwap-dom-covers;
+         inject+-inj; raise-inj; range-covers; length-range;
+         toℕ-index-++⁺ˡ; toℕ-index-++⁺ʳ; toℕ-index-range-covers;
+         disj-L-R)
 open import Categories.APROP.Hypergraph.HomTermInvariant sig
   using (⟪_⟫-dom-unique)
 open import Categories.APROP.Hypergraph.Prune
   using (count-non; AllIn; AllIn→count-non-zero;
          nonMem; classify; classify-lookup-Unique;
          classify-inj₁-lookup; classify-inj₂-lookup;
+         classify-inj₂-∉;
          classify-lookup-nonMem;
-         remap; remap-inj₁; remap-inj₂)
+         remap; remap-inj₁; remap-inj₂;
+         ∈-map⁺-index-cast)
 
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc; splitAt; cast; _↑ˡ_; _↑ʳ_; toℕ)
 open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ;
                                         splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ;
-                                        cast-is-id; cast-trans)
+                                        cast-is-id; cast-trans; toℕ-cast)
+  renaming (toℕ-injective to Fin-toℕ-injective)
 open import Data.List using (List; []; _∷_; _++_; map; length; lookup)
 open import Data.List.Properties using (length-map; map-++; map-∘; map-cong; map-id)
+open import Data.List.Membership.Propositional using (_∈_; _∉_)
+open import Data.List.Membership.Propositional.Properties
+  using (∈-++⁺ˡ; ∈-++⁺ʳ; ∈-++⁻; ∈-map⁺; ∈-map⁻; ∈-lookup)
+open import Data.List.Relation.Unary.Any using (index; here; there)
+open import Data.List.Relation.Unary.Any.Properties using (lookup-index)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
+import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Nat.Properties using (+-identityʳ)
+open import Data.Product using (_×_; _,_; proj₁; proj₂; ∃; ∃-syntax)
 open import Data.Sum using (_⊎_; inj₁; inj₂; [_,_]′)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂; sym; trans; subst; subst₂)
@@ -262,7 +275,257 @@ module σ-nat-proof
                                  (ψ-swap {F.nV} {G.nV} v') j cv-eq))
                         (ψ-swap-involutive {F.nV} {G.nV} v'))))
 
+  ------------------------------------------------------------------------
+  -- Boundary-case helpers for φ-left-bdy / φ-rght-bdy.
+  --
+  -- Mirrors σ∘σ-proof's `remapP-kcod-*` / `lookup-cod-*` pattern:
+  --   * Prove RHS-K.dom is Unique (via `Uniq-Prop.++⁺` + `disj-L-R`).
+  --   * Port `remapP-via-member`: given a witness v ∈ RHS-K.dom,
+  --     remapP v reduces to lookup-cod (index witness) ↑ˡ _.
+  --   * Prove `lookup-cod-F-bdy` / `lookup-cod-G-bdy` via toℕ-injective:
+  --     at a specific F.dom/G.dom-based witness, lookup-cod gives a
+  --     specific value in RHS-G.cod.
+  --   * Combine into `remapP-F-bdy` / `remapP-G-bdy`.
+
+  -- Index of ∈-lookup (stdlib only has it for Vec, not List).
+  index-∈-lookup
+    : ∀ {ℓ} {X : Set ℓ} (xs : List X) (i : Fin (length xs))
+    → index (∈-lookup {xs = xs} i) ≡ i
+  index-∈-lookup (_ ∷ _)  zero    = refl
+  index-∈-lookup (_ ∷ xs) (suc i) = cong suc (index-∈-lookup xs i)
+
+  -- RHS-K.dom is Unique: both halves are Unique via map⁺ on inject+/raise
+  -- injectivity, and they're disjoint via `disj-L-R`.
+  RHS-K-dom-Unique : Unique RHS-K.dom
+  RHS-K-dom-Unique =
+    Uniq-Prop.++⁺
+      (Uniq-Prop.map⁺ (inject+-inj F.nV) G-dom-U)
+      (Uniq-Prop.map⁺ (raise-inj G.nV)   F-dom-U)
+      (disj-L-R G.dom F.dom)
+
+  -- Port of σ∘σ-proof's `remapP-via-member`.
+  remapP-via-member
+    : ∀ {v : Fin RHS-K.nV} (v∈K-dom : v ∈ RHS-K.dom)
+    → hRHS.remapP v ≡ hRHS.lookup-cod (index v∈K-dom) ↑ˡ count-non RHS-K.dom
+  remapP-via-member {v} v∈K-dom =
+    remap-inj₁ RHS-K.dom hRHS.lookup-cod v (index v∈K-dom) classify-eq
+    where
+      classify-eq : classify RHS-K.dom v ≡ inj₁ (index v∈K-dom)
+      classify-eq = trans (cong (classify RHS-K.dom) (lookup-index v∈K-dom))
+                          (classify-lookup-Unique RHS-K.dom RHS-K-dom-Unique
+                                                  (index v∈K-dom))
+
+  -- lookup-cod at F-boundary position.  Mirrors σ∘σ-proof's
+  -- `lookup-cod-raise-nB`: for v = G.nV ↑ʳ lookup F.dom pos_F (= injR v_F),
+  -- looking up in RHS-G.cod at the cast-matched position gives
+  -- (cast F-dom-len pos_F) ↑ˡ nC.
+  lookup-cod-F-bdy
+    : ∀ (pos_F : Fin (length F.dom))
+    → hRHS.lookup-cod
+        (index (∈-++⁺ʳ (map (_↑ˡ F.nV) G.dom)
+                       (∈-map⁺ (G.nV ↑ʳ_) (∈-lookup {xs = F.dom} pos_F))))
+    ≡ cast F-dom-len pos_F ↑ˡ nC
+  lookup-cod-F-bdy pos_F =
+    trans (cong (lookup RHS-G.cod) cast-k≡mirror)
+          (sym (lookup-index mirror-in-G))
+    where
+      k-witness : G.nV ↑ʳ lookup F.dom pos_F ∈ RHS-K.dom
+      k-witness = ∈-++⁺ʳ (map (_↑ˡ F.nV) G.dom)
+                        (∈-map⁺ (G.nV ↑ʳ_) (∈-lookup {xs = F.dom} pos_F))
+
+      mirror-in-G : cast F-dom-len pos_F ↑ˡ nC ∈ RHS-G.cod
+      mirror-in-G = ∈-++⁺ʳ (map (nA ↑ʳ_) (range nC))
+                          (∈-map⁺ (_↑ˡ nC)
+                                  (range-covers nA (cast F-dom-len pos_F)))
+
+      k-idx : Fin (length RHS-K.dom)
+      k-idx = index k-witness
+
+      g-idx : Fin (length RHS-G.cod)
+      g-idx = cast hRHS.dom-cod-len k-idx
+
+      k-side-toℕ : toℕ g-idx ≡ length (map (_↑ˡ F.nV) G.dom) + toℕ pos_F
+      k-side-toℕ =
+        trans (toℕ-cast _ k-idx)
+        (trans (toℕ-index-++⁺ʳ (map (_↑ˡ F.nV) G.dom)
+                  (∈-map⁺ (G.nV ↑ʳ_) (∈-lookup {xs = F.dom} pos_F)))
+        (cong (length (map (_↑ˡ F.nV) G.dom) +_)
+              (trans (cong toℕ (∈-map⁺-index-cast (G.nV ↑ʳ_)
+                                                  (raise-inj _)
+                                                  (∈-lookup {xs = F.dom} pos_F)))
+              (trans (toℕ-cast _ _)
+                     (cong toℕ (index-∈-lookup F.dom pos_F))))))
+
+      g-side-toℕ : toℕ (index mirror-in-G) ≡ length (map (nA ↑ʳ_) (range nC)) + toℕ pos_F
+      g-side-toℕ =
+        trans (toℕ-index-++⁺ʳ (map (nA ↑ʳ_) (range nC))
+                 (∈-map⁺ (_↑ˡ nC)
+                         (range-covers nA (cast F-dom-len pos_F))))
+        (cong (length (map (nA ↑ʳ_) (range nC)) +_)
+              (trans (cong toℕ (∈-map⁺-index-cast (_↑ˡ nC)
+                                                  (inject+-inj _)
+                                                  (range-covers nA
+                                                    (cast F-dom-len pos_F))))
+              (trans (toℕ-cast _ _)
+              (trans (toℕ-index-range-covers nA (cast F-dom-len pos_F))
+                     (toℕ-cast _ pos_F)))))
+
+      -- The two halves have equal length (both = length G.dom = nC).
+      len-eq : length (map (_↑ˡ F.nV) G.dom) ≡ length (map (nA ↑ʳ_) (range nC))
+      len-eq = trans (length-map (_↑ˡ F.nV) G.dom)
+              (trans G-dom-len
+              (trans (sym (length-range nC))
+                     (sym (length-map (nA ↑ʳ_) (range nC)))))
+
+      cast-k≡mirror : g-idx ≡ index mirror-in-G
+      cast-k≡mirror = Fin-toℕ-injective
+        (trans k-side-toℕ (trans (cong (_+ toℕ pos_F) len-eq) (sym g-side-toℕ)))
+
+  -- lookup-cod at G-boundary position.  Mirror of lookup-cod-F-bdy.
+  lookup-cod-G-bdy
+    : ∀ (pos_G : Fin (length G.dom))
+    → hRHS.lookup-cod
+        (index (∈-++⁺ˡ {ys = map (G.nV ↑ʳ_) F.dom}
+                       (∈-map⁺ (_↑ˡ F.nV) (∈-lookup {xs = G.dom} pos_G))))
+    ≡ nA ↑ʳ cast G-dom-len pos_G
+  lookup-cod-G-bdy pos_G =
+    trans (cong (lookup RHS-G.cod) cast-k≡mirror)
+          (sym (lookup-index mirror-in-G))
+    where
+      k-witness : lookup G.dom pos_G ↑ˡ F.nV ∈ RHS-K.dom
+      k-witness = ∈-++⁺ˡ {ys = map (G.nV ↑ʳ_) F.dom}
+                        (∈-map⁺ (_↑ˡ F.nV) (∈-lookup {xs = G.dom} pos_G))
+
+      mirror-in-G : nA ↑ʳ cast G-dom-len pos_G ∈ RHS-G.cod
+      mirror-in-G = ∈-++⁺ˡ {ys = map (_↑ˡ nC) (range nA)}
+                          (∈-map⁺ (nA ↑ʳ_)
+                                  (range-covers nC (cast G-dom-len pos_G)))
+
+      k-idx : Fin (length RHS-K.dom)
+      k-idx = index k-witness
+
+      g-idx : Fin (length RHS-G.cod)
+      g-idx = cast hRHS.dom-cod-len k-idx
+
+      k-side-toℕ : toℕ g-idx ≡ toℕ pos_G
+      k-side-toℕ =
+        trans (toℕ-cast _ k-idx)
+        (trans (toℕ-index-++⁺ˡ
+                  (∈-map⁺ (_↑ˡ F.nV) (∈-lookup {xs = G.dom} pos_G)))
+        (trans (cong toℕ (∈-map⁺-index-cast (_↑ˡ F.nV)
+                                             (inject+-inj _)
+                                             (∈-lookup {xs = G.dom} pos_G)))
+        (trans (toℕ-cast _ _)
+               (cong toℕ (index-∈-lookup G.dom pos_G)))))
+
+      g-side-toℕ : toℕ (index mirror-in-G) ≡ toℕ pos_G
+      g-side-toℕ =
+        trans (toℕ-index-++⁺ˡ
+                (∈-map⁺ (nA ↑ʳ_)
+                        (range-covers nC (cast G-dom-len pos_G))))
+        (trans (cong toℕ (∈-map⁺-index-cast (nA ↑ʳ_)
+                                             (raise-inj _)
+                                             (range-covers nC
+                                               (cast G-dom-len pos_G))))
+        (trans (toℕ-cast _ _)
+        (trans (toℕ-index-range-covers nC (cast G-dom-len pos_G))
+               (toℕ-cast _ pos_G))))
+
+      cast-k≡mirror : g-idx ≡ index mirror-in-G
+      cast-k≡mirror = Fin-toℕ-injective (trans k-side-toℕ (sym g-side-toℕ))
+
+  -- Combined remap lemmas.
+  remapP-F-bdy
+    : ∀ (pos_F : Fin (length F.dom))
+    → hRHS.remapP (G.nV ↑ʳ lookup F.dom pos_F)
+    ≡ (cast F-dom-len pos_F ↑ˡ nC) ↑ˡ count-non RHS-K.dom
+  remapP-F-bdy pos_F =
+    trans (remapP-via-member witness)
+          (cong (_↑ˡ count-non RHS-K.dom) (lookup-cod-F-bdy pos_F))
+    where
+      witness : G.nV ↑ʳ lookup F.dom pos_F ∈ RHS-K.dom
+      witness = ∈-++⁺ʳ (map (_↑ˡ F.nV) G.dom)
+                      (∈-map⁺ (G.nV ↑ʳ_) (∈-lookup {xs = F.dom} pos_F))
+
+  remapP-G-bdy
+    : ∀ (pos_G : Fin (length G.dom))
+    → hRHS.remapP (lookup G.dom pos_G ↑ˡ F.nV)
+    ≡ (nA ↑ʳ cast G-dom-len pos_G) ↑ˡ count-non RHS-K.dom
+  remapP-G-bdy pos_G =
+    trans (remapP-via-member witness)
+          (cong (_↑ˡ count-non RHS-K.dom) (lookup-cod-G-bdy pos_G))
+    where
+      witness : lookup G.dom pos_G ↑ˡ F.nV ∈ RHS-K.dom
+      witness = ∈-++⁺ˡ {ys = map (G.nV ↑ʳ_) F.dom}
+                      (∈-map⁺ (_↑ˡ F.nV) (∈-lookup {xs = G.dom} pos_G))
+
+  ------------------------------------------------------------------------
+  -- Contradiction helpers: if f ∉ F.dom then G.nV ↑ʳ f ∉ RHS-K.dom
+  -- (and symmetric for G-side).  Used to discharge off-path classify
+  -- cases in φ-left-bdy / φ-rght-bdy.
+
+  injR-∉-RHS-K-dom
+    : ∀ {f : Fin F.nV} → f ∉ F.dom → G.nV ↑ʳ f ∉ RHS-K.dom
+  injR-∉-RHS-K-dom {f} f∉F v∈
+    with ∈-++⁻ (map (_↑ˡ F.nV) G.dom) v∈
+  ... | inj₁ v∈L =
+    let mapped = ∈-map⁻ (_↑ˡ F.nV) v∈L
+        g      = proj₁ mapped
+        eq     = proj₂ (proj₂ mapped)  -- G.nV ↑ʳ f ≡ g ↑ˡ F.nV
+        splitL : splitAt G.nV (G.nV ↑ʳ f) ≡ inj₁ g
+        splitL = trans (cong (splitAt G.nV) eq) (splitAt-↑ˡ G.nV g F.nV)
+        splitR : splitAt G.nV (G.nV ↑ʳ f) ≡ inj₂ f
+        splitR = splitAt-↑ʳ G.nV F.nV f
+        abs : inj₁ g ≡ inj₂ f
+        abs = trans (sym splitL) splitR
+    in case abs of λ ()
+    where open import Function using (case_of_)
+  ... | inj₂ v∈R =
+    let mapped = ∈-map⁻ (G.nV ↑ʳ_) v∈R
+        f'     = proj₁ mapped
+        f'∈F   = proj₁ (proj₂ mapped)
+        eq     = proj₂ (proj₂ mapped)  -- G.nV ↑ʳ f ≡ G.nV ↑ʳ f'
+    in f∉F (subst (_∈ F.dom) (sym (raise-inj G.nV eq)) f'∈F)
+
+  injL-∉-RHS-K-dom
+    : ∀ {g : Fin G.nV} → g ∉ G.dom → g ↑ˡ F.nV ∉ RHS-K.dom
+  injL-∉-RHS-K-dom {g} g∉G v∈
+    with ∈-++⁻ (map (_↑ˡ F.nV) G.dom) v∈
+  ... | inj₁ v∈L =
+    let mapped = ∈-map⁻ (_↑ˡ F.nV) v∈L
+        g'     = proj₁ mapped
+        g'∈G   = proj₁ (proj₂ mapped)
+        eq     = proj₂ (proj₂ mapped)  -- g ↑ˡ F.nV ≡ g' ↑ˡ F.nV
+    in g∉G (subst (_∈ G.dom) (sym (inject+-inj F.nV eq)) g'∈G)
+  ... | inj₂ v∈R =
+    let mapped = ∈-map⁻ (G.nV ↑ʳ_) v∈R
+        f      = proj₁ mapped
+        eq     = proj₂ (proj₂ mapped)  -- g ↑ˡ F.nV ≡ G.nV ↑ʳ f
+        splitL : splitAt G.nV (g ↑ˡ F.nV) ≡ inj₁ g
+        splitL = splitAt-↑ˡ G.nV g F.nV
+        splitR : splitAt G.nV (g ↑ˡ F.nV) ≡ inj₂ f
+        splitR = trans (cong (splitAt G.nV) eq) (splitAt-↑ʳ G.nV F.nV f)
+        abs : inj₁ g ≡ inj₂ f
+        abs = trans (sym splitL) splitR
+    in case abs of λ ()
+    where open import Function using (case_of_)
+
+  -- Classify-inj₁ implies membership.
+  classify-inj₁-∈
+    : ∀ {v i} → classify RHS-K.dom v ≡ inj₁ i → v ∈ RHS-K.dom
+  classify-inj₁-∈ {v} {i} eq =
+    subst (_∈ RHS-K.dom) (classify-inj₁-lookup RHS-K.dom v i eq)
+          (∈-lookup {xs = RHS-K.dom} i)
+
   postulate
+    -- φ-left-bdy: case-split v' via splitAt F.nV, then classify F.dom / G.dom
+    -- to get pos_F / pos_G.  The inj₂ (not-in-dom) cases derive ⊥ via the
+    -- contradiction helpers (injR-∉-RHS-K-dom, injL-∉-RHS-K-dom) + classify-inj₂-∉
+    -- + classify-inj₁-∈.  The in-dom cases use remapP-F-bdy / remapP-G-bdy
+    -- + cast-trans + cast-is-id.
+    --
+    -- All the required foundations (helpers above) are PROVED; assembling
+    -- them into the full φ-left-bdy proof is the residual work.
     φ-left-bdy
       : (v' : Fin LHS-G.nV) (i : Fin (length RHS-K.dom))
       → classify RHS-K.dom (ψ-swap {F.nV} {G.nV} v') ≡ inj₁ i
