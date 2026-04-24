@@ -1357,10 +1357,79 @@ module σ-nat-proof
            (sym (map-++ hRHS.remapP (map hTR.injL G.cod)
                                      (map hTR.injR F.cod))))))
 
+  --------------------------------------------------------------------------
+  -- ψ-ein / ψ-eout: for each edge e, RHS.ein (ψ e) ≡ map φ (LHS.ein e).
+  --
+  -- Case analysis on `splitAt LHS-G.nE e` (inj₂ absurd) + `splitAt F.nE eLG`.
+  --
+  -- For an F-edge (eLG = fE ↑ˡ G.nE, ψ e = G.nE ↑ʳ fE):
+  --   RHS.ein (ψ e) = map hRHS.remapP (RHS-K.ein (ψ e))   [def, since RHS-G.nE = 0]
+  --                 ≡ map hRHS.remapP (map hTR.injR (F.ein fE))   [hTR.ein-c-inj₂-red]
+  --   map φ (LHS.ein e) = map φ (map hLHS.injL (map hTL.injL (F.ein fE)))
+  -- Pointwise for each v ∈ F.ein fE:
+  --   hRHS.remapP (hTR.injR v) = hRHS.remapP (G.nV ↑ʳ v)   [def]
+  --                            ≡ hRHS.remapP (ψ-swap (v ↑ˡ G.nV))   [sym ψ-swap-inj₁-red]
+  --                            ≡ φ ((v ↑ˡ G.nV) ↑ˡ count-non LHS-K.dom)  [sym φ-inj₁-red]
+  --                            = φ (hLHS.injL (hTL.injL v))  [def]
+  -- Chain via map-cong + map-∘ reassembly.  G-edge case symmetric.
+
+  private
+    pointwise-F-ein-eout
+      : ∀ v → hRHS.remapP (hTR.injR v) ≡ φ (hLHS.injL (hTL.injL v))
+    pointwise-F-ein-eout v =
+      trans (cong hRHS.remapP (sym (ψ-swap-inj₁-red {F.nV} {G.nV} v)))
+            (sym (φ-inj₁-red (v ↑ˡ G.nV)))
+
+    pointwise-G-ein-eout
+      : ∀ v → hRHS.remapP (hTR.injL v) ≡ φ (hLHS.injL (hTL.injR v))
+    pointwise-G-ein-eout v =
+      trans (cong hRHS.remapP (sym (ψ-swap-inj₂-red {F.nV} {G.nV} v)))
+            (sym (φ-inj₁-red (F.nV ↑ʳ v)))
+
+    -- Common chain: given an hTR.ein/eout-c-inj₂-red-analogue reduction
+    -- `red : RHS-K-side ≡ map hTR.injR xs`, chain through pointwise-F.
+    ψ-ein-F-chain
+      : ∀ (xs : List (Fin F.nV))
+      → map hRHS.remapP (map hTR.injR xs) ≡ map φ (map hLHS.injL (map hTL.injL xs))
+    ψ-ein-F-chain xs =
+      trans (sym (map-∘ xs))
+      (trans (map-cong pointwise-F-ein-eout xs)
+      (trans (map-∘ xs)
+             (cong (map φ) (map-∘ xs))))
+
+    ψ-ein-G-chain
+      : ∀ (xs : List (Fin G.nV))
+      → map hRHS.remapP (map hTR.injL xs) ≡ map φ (map hLHS.injL (map hTL.injR xs))
+    ψ-ein-G-chain xs =
+      trans (sym (map-∘ xs))
+      (trans (map-cong pointwise-G-ein-eout xs)
+      (trans (map-∘ xs)
+             (cong (map φ) (map-∘ xs))))
+
+  ψ-ein : ∀ e → RHS.ein (ψ e) ≡ map φ (LHS.ein e)
+  ψ-ein e with splitAt LHS-G.nE e
+  ... | inj₂ absurd = ⊥-elim (Fin-zero-absurd LHS-K-nE≡0 absurd)
+  ... | inj₁ eLG with splitAt F.nE eLG
+  ...   | inj₁ fE =
+    trans (cong (map hRHS.remapP) (hTR.ein-c-inj₂-red fE))
+          (ψ-ein-F-chain (F.ein fE))
+  ...   | inj₂ gE =
+    trans (cong (map hRHS.remapP) (hTR.ein-c-inj₁-red gE))
+          (ψ-ein-G-chain (G.ein gE))
+
+  ψ-eout : ∀ e → RHS.eout (ψ e) ≡ map φ (LHS.eout e)
+  ψ-eout e with splitAt LHS-G.nE e
+  ... | inj₂ absurd = ⊥-elim (Fin-zero-absurd LHS-K-nE≡0 absurd)
+  ... | inj₁ eLG with splitAt F.nE eLG
+  ...   | inj₁ fE =
+    trans (cong (map hRHS.remapP) (hTR.eout-c-inj₂-red fE))
+          (ψ-ein-F-chain (F.eout fE))
+  ...   | inj₂ gE =
+    trans (cong (map hRHS.remapP) (hTR.eout-c-inj₁-red gE))
+          (ψ-ein-G-chain (G.eout gE))
+
   postulate
     φ-lab   : ∀ v → RHS.vlab (φ v) ≡ LHS.vlab v
-    ψ-ein   : ∀ e → RHS.ein (ψ e) ≡ map φ (LHS.ein e)
-    ψ-eout  : ∀ e → RHS.eout (ψ e) ≡ map φ (LHS.eout e)
 
   --------------------------------------------------------------------------
   -- Assembled iso.
