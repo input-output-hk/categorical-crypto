@@ -42,25 +42,9 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂; trans; sym; subst; subst₂)
 open import Relation.Nullary using (yes; no)
 
-private
-  -- A `subst₂` helper: two transports with the same proofs collapse.
-  subst₂-trans : ∀ {A B : Set} {P : A → B → Set} {a₁ a₂ a₃} {b₁ b₂ b₃}
-               → (p : a₁ ≡ a₂) (p' : a₂ ≡ a₃) (q : b₁ ≡ b₂) (q' : b₂ ≡ b₃)
-               → (x : P a₁ b₁)
-               → subst₂ P p' q' (subst₂ P p q x)
-               ≡ subst₂ P (trans p p') (trans q q') x
-  subst₂-trans refl refl refl refl _ = refl
-
-  -- Cancel a subst₂ along an equation at `refl`.
-  subst₂-refl : ∀ {A B : Set} {P : A → B → Set} {a b} (x : P a b)
-              → subst₂ P refl refl x ≡ x
-  subst₂-refl _ = refl
-
-  -- `subst₂ (sym p) (sym q)` inverts `subst₂ p q`.
-  subst₂-sym-subst₂ : ∀ {A B : Set} {P : A → B → Set} {a a'} {b b'}
-                    → (p : a ≡ a') (q : b ≡ b') (x : P a b)
-                    → subst₂ P (sym p) (sym q) (subst₂ P p q x) ≡ x
-  subst₂-sym-subst₂ refl refl _ = refl
+-- Shared subst₂ bookkeeping helpers live in `CoherenceHelpers`.
+open import Categories.APROP.Hypergraph.CoherenceHelpers sig
+  using (subst₂-trans; subst₂-refl; subst₂-sym-subst₂)
 
 --------------------------------------------------------------------------------
 -- `hTensor` preserves hypergraph iso.

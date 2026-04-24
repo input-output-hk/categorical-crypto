@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --lossy-unification #-}
+{-# OPTIONS --safe --without-K --lossy-unification #-}
 
 --------------------------------------------------------------------------------
 -- Triangle coherence axiom:  `id ⊗ λ⇒ ∘ α⇒ ≈Term ρ⇒ ⊗ id`.
@@ -41,8 +41,10 @@ open import Categories.APROP.Hypergraph.FromAPROP sig
 open import Categories.APROP.Hypergraph.Translation sig
   using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Iso
-open import Categories.APROP.Hypergraph.SoundnessAxioms sig
+open import Categories.APROP.Hypergraph.SoundnessProved sig
   using (hCompose-hId-R-iso-generic)
+open import Categories.APROP.Hypergraph.CoherenceHelpers sig
+  using (hTensor-subst₂-left)
 
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
@@ -75,18 +77,6 @@ open import Relation.Binary.PropositionalEquality
     cong-swap : ∀ {a b : List _} (p : a ≡ b)
               → cong (x ∷_) (cong (_++ ys) p) ≡ cong (_++ ys) (cong (x ∷_) p)
     cong-swap refl = refl
-
---------------------------------------------------------------------------------
--- `hTensor` commutes with `subst₂` on the left argument's boundaries.
-
-hTensor-subst₂-left
-  : ∀ {As As' Bs Bs' Cs Ds : List X}
-      (p : As ≡ As') (q : Bs ≡ Bs')
-      (X₀ : Hypergraph FlatGen As Bs) (Y₀ : Hypergraph FlatGen Cs Ds)
-  → hTensor (subst₂ (Hypergraph FlatGen) p q X₀) Y₀
-  ≡ subst₂ (Hypergraph FlatGen) (cong (_++ Cs) p) (cong (_++ Ds) q)
-           (hTensor X₀ Y₀)
-hTensor-subst₂-left refl refl X₀ Y₀ = refl
 
 --------------------------------------------------------------------------------
 -- Triangle proof.
