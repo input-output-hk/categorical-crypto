@@ -35,9 +35,15 @@
 --   * ψ-elab — 10-step chain via subst₂-trans, subst₂-sym-subst₂,
 --     map-via-remapP-natural, hTR.elab-c-inj{₁,₂}.
 --
--- 5 remaining structural field postulates:
---   * φ-lab, ψ-ein, ψ-eout, φ-dom, φ-cod
--- These bridge concrete φ/ψ to the record's invariant lists.
+-- Boundary compatibility (2/2 COMPLETE):
+--   * φ-dom, φ-cod — list-wise compatibility via remapP-F-bdy /
+--     remapP-G-bdy (dom side) and remapP-LHS-D / remapP-LHS-B (cod
+--     side), both using map-cast-range + map-lookup-range' to bridge
+--     between range-indexed and dom/cod-indexed lists.
+--
+-- 3 remaining structural field postulates:
+--   * φ-lab, ψ-ein, ψ-eout
+-- These bridge concrete φ/ψ to the record's label/edge invariants.
 --
 -- Because this file contains internal postulates, it is not `--safe`.
 --------------------------------------------------------------------------------
