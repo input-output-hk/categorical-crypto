@@ -173,6 +173,13 @@ module σ-nat-proof
     G-dom-len : length G.dom ≡ nC
     G-dom-len = trans (sym (length-map G.vlab G.dom)) (cong length G.dom-ok)
 
+    -- And the corresponding cod-length equations.
+    F-cod-len : length F.cod ≡ nB
+    F-cod-len = trans (sym (length-map F.vlab F.cod)) (cong length F.cod-ok)
+
+    G-cod-len : length G.cod ≡ nD
+    G-cod-len = trans (sym (length-map G.vlab G.cod)) (cong length G.cod-ok)
+
   --------------------------------------------------------------------------
   -- Natural swap bijection on Fin (m + n) ↔ Fin (n + m).  Used for both
   -- edge and vertex bijections below.
@@ -473,6 +480,182 @@ module σ-nat-proof
       witness : lookup G.dom pos_G ↑ˡ F.nV ∈ RHS-K.dom
       witness = ∈-++⁺ˡ {ys = map (G.nV ↑ʳ_) F.dom}
                       (∈-map⁺ (_↑ˡ F.nV) (∈-lookup {xs = G.dom} pos_G))
+
+  ------------------------------------------------------------------------
+  -- LHS-side helpers for φ-cod.
+  --
+  -- Mirror of the RHS-side helpers above, but with (hSwap B D) as K
+  -- and (hTensor F G) as G (the LHS's hComposeP components).  These
+  -- compute `hLHS.remapP` on specific hSwap.cod-equivalent positions
+  -- and relate them to elements of LHS-G.cod (= hTensor F G.cod).
+
+  -- (hSwap B D).dom is Unique.
+  LHS-K-dom-Unique : Unique LHS-K.dom
+  LHS-K-dom-Unique = hSwap-dom-Unique B D
+
+  -- remapP-via-member for hLHS.
+  remapP-via-member-LHS
+    : ∀ {v : Fin LHS-K.nV} (v∈K-dom : v ∈ LHS-K.dom)
+    → hLHS.remapP v ≡ hLHS.lookup-cod (index v∈K-dom) ↑ˡ count-non LHS-K.dom
+  remapP-via-member-LHS {v} v∈K-dom =
+    remap-inj₁ LHS-K.dom hLHS.lookup-cod v (index v∈K-dom) classify-eq
+    where
+      classify-eq : classify LHS-K.dom v ≡ inj₁ (index v∈K-dom)
+      classify-eq = trans (cong (classify LHS-K.dom) (lookup-index v∈K-dom))
+                          (classify-lookup-Unique LHS-K.dom LHS-K-dom-Unique
+                                                  (index v∈K-dom))
+
+  -- lookup-cod at LHS-side D-boundary position.  For d : Fin nD, the
+  -- position `nB ↑ʳ d` is in the SECOND half of (hSwap B D).dom
+  -- (which is `map (_↑ˡ nD) (range nB) ++ map (nB ↑ʳ_) (range nD)`).
+  -- After lookup-cod it lands in the SECOND half of LHS-G.cod =
+  -- `map hTL.injL F.cod ++ map hTL.injR G.cod`, i.e., at an F.nV ↑ʳ
+  -- lookup G.cod position.
+  lookup-cod-LHS-D
+    : ∀ (d : Fin nD)
+    → hLHS.lookup-cod
+        (index (∈-++⁺ʳ (map (_↑ˡ nD) (range nB))
+                       (∈-map⁺ (nB ↑ʳ_) (range-covers nD d))))
+    ≡ F.nV ↑ʳ lookup G.cod (cast (sym G-cod-len) d)
+  lookup-cod-LHS-D d =
+    trans (cong (lookup LHS-G.cod) cast-k≡mirror)
+          (sym (lookup-index mirror-in-G))
+    where
+      k-witness : nB ↑ʳ d ∈ LHS-K.dom
+      k-witness = ∈-++⁺ʳ (map (_↑ˡ nD) (range nB))
+                        (∈-map⁺ (nB ↑ʳ_) (range-covers nD d))
+
+      mirror-in-G : F.nV ↑ʳ lookup G.cod (cast (sym G-cod-len) d) ∈ LHS-G.cod
+      mirror-in-G = ∈-++⁺ʳ (map hTL.injL F.cod)
+                          (∈-map⁺ (F.nV ↑ʳ_)
+                                  (∈-lookup {xs = G.cod}
+                                            (cast (sym G-cod-len) d)))
+
+      k-idx : Fin (length LHS-K.dom)
+      k-idx = index k-witness
+
+      g-idx : Fin (length LHS-G.cod)
+      g-idx = cast hLHS.dom-cod-len k-idx
+
+      k-side-toℕ : toℕ g-idx
+                 ≡ length (map (_↑ˡ nD) (range nB)) + toℕ d
+      k-side-toℕ =
+        trans (toℕ-cast _ k-idx)
+        (trans (toℕ-index-++⁺ʳ (map (_↑ˡ nD) (range nB))
+                  (∈-map⁺ (nB ↑ʳ_) (range-covers nD d)))
+        (cong (length (map (_↑ˡ nD) (range nB)) +_)
+              (trans (cong toℕ (∈-map⁺-index-cast (nB ↑ʳ_)
+                                                  (raise-inj _)
+                                                  (range-covers nD d)))
+              (trans (toℕ-cast _ _)
+                     (toℕ-index-range-covers nD d)))))
+
+      g-side-toℕ : toℕ (index mirror-in-G)
+                 ≡ length (map hTL.injL F.cod) + toℕ d
+      g-side-toℕ =
+        trans (toℕ-index-++⁺ʳ (map hTL.injL F.cod)
+                 (∈-map⁺ (F.nV ↑ʳ_)
+                         (∈-lookup {xs = G.cod} (cast (sym G-cod-len) d))))
+        (cong (length (map hTL.injL F.cod) +_)
+              (trans (cong toℕ (∈-map⁺-index-cast (F.nV ↑ʳ_)
+                                                  (raise-inj _)
+                                                  (∈-lookup {xs = G.cod}
+                                                            (cast (sym G-cod-len) d))))
+              (trans (toℕ-cast _ _)
+              (trans (cong toℕ (index-∈-lookup G.cod (cast (sym G-cod-len) d)))
+                     (toℕ-cast _ d)))))
+
+      len-eq : length (map (_↑ˡ nD) (range nB))
+             ≡ length (map hTL.injL F.cod)
+      len-eq = trans (length-map (_↑ˡ nD) (range nB))
+              (trans (length-range nB)
+              (trans (sym F-cod-len)
+                     (sym (length-map hTL.injL F.cod))))
+
+      cast-k≡mirror : g-idx ≡ index mirror-in-G
+      cast-k≡mirror = Fin-toℕ-injective
+        (trans k-side-toℕ
+        (trans (cong (_+ toℕ d) len-eq)
+               (sym g-side-toℕ)))
+
+  -- lookup-cod at LHS-side B-boundary position.  Mirror of lookup-cod-LHS-D.
+  lookup-cod-LHS-B
+    : ∀ (b : Fin nB)
+    → hLHS.lookup-cod
+        (index (∈-++⁺ˡ {ys = map (nB ↑ʳ_) (range nD)}
+                       (∈-map⁺ (_↑ˡ nD) (range-covers nB b))))
+    ≡ lookup F.cod (cast (sym F-cod-len) b) ↑ˡ G.nV
+  lookup-cod-LHS-B b =
+    trans (cong (lookup LHS-G.cod) cast-k≡mirror)
+          (sym (lookup-index mirror-in-G))
+    where
+      k-witness : b ↑ˡ nD ∈ LHS-K.dom
+      k-witness = ∈-++⁺ˡ {ys = map (nB ↑ʳ_) (range nD)}
+                        (∈-map⁺ (_↑ˡ nD) (range-covers nB b))
+
+      mirror-in-G : lookup F.cod (cast (sym F-cod-len) b) ↑ˡ G.nV ∈ LHS-G.cod
+      mirror-in-G = ∈-++⁺ˡ {ys = map hTL.injR G.cod}
+                          (∈-map⁺ (_↑ˡ G.nV)
+                                  (∈-lookup {xs = F.cod}
+                                            (cast (sym F-cod-len) b)))
+
+      k-idx : Fin (length LHS-K.dom)
+      k-idx = index k-witness
+
+      g-idx : Fin (length LHS-G.cod)
+      g-idx = cast hLHS.dom-cod-len k-idx
+
+      k-side-toℕ : toℕ g-idx ≡ toℕ b
+      k-side-toℕ =
+        trans (toℕ-cast _ k-idx)
+        (trans (toℕ-index-++⁺ˡ
+                  (∈-map⁺ (_↑ˡ nD) (range-covers nB b)))
+        (trans (cong toℕ (∈-map⁺-index-cast (_↑ˡ nD)
+                                             (inject+-inj _)
+                                             (range-covers nB b)))
+        (trans (toℕ-cast _ _)
+               (toℕ-index-range-covers nB b))))
+
+      g-side-toℕ : toℕ (index mirror-in-G) ≡ toℕ b
+      g-side-toℕ =
+        trans (toℕ-index-++⁺ˡ
+                (∈-map⁺ (_↑ˡ G.nV)
+                        (∈-lookup {xs = F.cod} (cast (sym F-cod-len) b))))
+        (trans (cong toℕ (∈-map⁺-index-cast (_↑ˡ G.nV)
+                                             (inject+-inj _)
+                                             (∈-lookup {xs = F.cod}
+                                                       (cast (sym F-cod-len) b))))
+        (trans (toℕ-cast _ _)
+        (trans (cong toℕ (index-∈-lookup F.cod (cast (sym F-cod-len) b)))
+               (toℕ-cast _ b))))
+
+      cast-k≡mirror : g-idx ≡ index mirror-in-G
+      cast-k≡mirror = Fin-toℕ-injective (trans k-side-toℕ (sym g-side-toℕ))
+
+  -- Combined: hLHS.remapP on the D/B halves of (hSwap B D).cod.
+  remapP-LHS-D
+    : ∀ (d : Fin nD)
+    → hLHS.remapP (nB ↑ʳ d)
+    ≡ (F.nV ↑ʳ lookup G.cod (cast (sym G-cod-len) d)) ↑ˡ count-non LHS-K.dom
+  remapP-LHS-D d =
+    trans (remapP-via-member-LHS witness)
+          (cong (_↑ˡ count-non LHS-K.dom) (lookup-cod-LHS-D d))
+    where
+      witness : nB ↑ʳ d ∈ LHS-K.dom
+      witness = ∈-++⁺ʳ (map (_↑ˡ nD) (range nB))
+                      (∈-map⁺ (nB ↑ʳ_) (range-covers nD d))
+
+  remapP-LHS-B
+    : ∀ (b : Fin nB)
+    → hLHS.remapP (b ↑ˡ nD)
+    ≡ (lookup F.cod (cast (sym F-cod-len) b) ↑ˡ G.nV) ↑ˡ count-non LHS-K.dom
+  remapP-LHS-B b =
+    trans (remapP-via-member-LHS witness)
+          (cong (_↑ˡ count-non LHS-K.dom) (lookup-cod-LHS-B b))
+    where
+      witness : b ↑ˡ nD ∈ LHS-K.dom
+      witness = ∈-++⁺ˡ {ys = map (nB ↑ʳ_) (range nD)}
+                      (∈-map⁺ (_↑ˡ nD) (range-covers nB b))
 
   ------------------------------------------------------------------------
   -- Contradiction helpers: if f ∉ F.dom then G.nV ↑ʳ f ∉ RHS-K.dom
@@ -1085,11 +1268,93 @@ module σ-nat-proof
            (sym (map-++ hRHS.injL (map (_↑ˡ nC) (range nA))
                                    (map (nA ↑ʳ_) (range nC)))))))
 
+  --------------------------------------------------------------------------
+  -- φ-cod: list-wise compatibility of the cod boundary.
+  --
+  -- LHS.cod = map hLHS.remapP ((hSwap B D).cod)
+  --         = map hLHS.remapP (map (nB ↑ʳ_) (range nD) ++ map (_↑ˡ nD) (range nB))
+  -- RHS.cod = map hRHS.remapP ((hTensor G F).cod)
+  --         = map hRHS.remapP (map hTR.injL G.cod ++ map hTR.injR F.cod)
+  --         = map hRHS.remapP (map (_↑ˡ F.nV) G.cod ++ map (G.nV ↑ʳ_) F.cod)
+  --
+  -- The D-half (range nD, indexed by d) on LHS maps (via remapP-LHS-D +
+  -- φ-inj₁-red + ψ-swap-inj₂-red) to `hRHS.remapP (lookup G.cod _ ↑ˡ F.nV)`,
+  -- which after reindexing (map-cast-range + map-lookup-range') becomes
+  -- `map (hRHS.remapP ∘ (_↑ˡ F.nV)) G.cod` = RHS.cod's G-half.  Symmetric for B-half.
+
+  private
+    -- D-half pointwise reduction.
+    D-half-point
+      : ∀ (d : Fin nD)
+      → φ (hLHS.remapP (nB ↑ʳ d))
+      ≡ hRHS.remapP (lookup G.cod (cast (sym G-cod-len) d) ↑ˡ F.nV)
+    D-half-point d =
+      trans (cong φ (remapP-LHS-D d))
+      (trans (φ-inj₁-red
+               (F.nV ↑ʳ lookup G.cod (cast (sym G-cod-len) d)))
+             (cong hRHS.remapP
+                   (ψ-swap-inj₂-red {F.nV} {G.nV}
+                                     (lookup G.cod (cast (sym G-cod-len) d)))))
+
+    B-half-point
+      : ∀ (b : Fin nB)
+      → φ (hLHS.remapP (b ↑ˡ nD))
+      ≡ hRHS.remapP (G.nV ↑ʳ lookup F.cod (cast (sym F-cod-len) b))
+    B-half-point b =
+      trans (cong φ (remapP-LHS-B b))
+      (trans (φ-inj₁-red
+               (lookup F.cod (cast (sym F-cod-len) b) ↑ˡ G.nV))
+             (cong hRHS.remapP
+                   (ψ-swap-inj₁-red {F.nV} {G.nV}
+                                     (lookup F.cod (cast (sym F-cod-len) b)))))
+
+    -- D-half chain: map φ (map hLHS.remapP (map (nB ↑ʳ_) (range nD)))
+    --             ≡ map hRHS.remapP (map hTR.injL G.cod).
+    map-φ-cod-D-half
+      : map φ (map hLHS.remapP (map (nB ↑ʳ_) (range nD)))
+      ≡ map hRHS.remapP (map hTR.injL G.cod)
+    map-φ-cod-D-half =
+      trans (sym (map-∘ (map (nB ↑ʳ_) (range nD))))
+      (trans (sym (map-∘ (range nD)))
+      (trans (map-cong D-half-point (range nD))
+      (trans (map-∘ (range nD))
+      (trans (cong (map (λ g → hRHS.remapP (g ↑ˡ F.nV)))
+                   (trans (map-∘ (range nD))
+                   (trans (cong (map (lookup G.cod))
+                                (map-cast-range (sym G-cod-len)))
+                          (map-lookup-range' G.cod))))
+             (map-∘ G.cod)))))
+
+    map-φ-cod-B-half
+      : map φ (map hLHS.remapP (map (_↑ˡ nD) (range nB)))
+      ≡ map hRHS.remapP (map hTR.injR F.cod)
+    map-φ-cod-B-half =
+      trans (sym (map-∘ (map (_↑ˡ nD) (range nB))))
+      (trans (sym (map-∘ (range nB)))
+      (trans (map-cong B-half-point (range nB))
+      (trans (map-∘ (range nB))
+      (trans (cong (map (λ f → hRHS.remapP (G.nV ↑ʳ f)))
+                   (trans (map-∘ (range nB))
+                   (trans (cong (map (lookup F.cod))
+                                (map-cast-range (sym F-cod-len)))
+                          (map-lookup-range' F.cod))))
+             (map-∘ F.cod)))))
+
+  φ-cod : RHS.cod ≡ map φ LHS.cod
+  φ-cod = sym
+    (trans (cong (map φ) (map-++ hLHS.remapP
+                                  (map (nB ↑ʳ_) (range nD))
+                                  (map (_↑ˡ nD) (range nB))))
+    (trans (map-++ φ (map hLHS.remapP (map (nB ↑ʳ_) (range nD)))
+                     (map hLHS.remapP (map (_↑ˡ nD) (range nB))))
+    (trans (cong₂ _++_ map-φ-cod-D-half map-φ-cod-B-half)
+           (sym (map-++ hRHS.remapP (map hTR.injL G.cod)
+                                     (map hTR.injR F.cod))))))
+
   postulate
     φ-lab   : ∀ v → RHS.vlab (φ v) ≡ LHS.vlab v
     ψ-ein   : ∀ e → RHS.ein (ψ e) ≡ map φ (LHS.ein e)
     ψ-eout  : ∀ e → RHS.eout (ψ e) ≡ map φ (LHS.eout e)
-    φ-cod   : RHS.cod ≡ map φ LHS.cod
 
   --------------------------------------------------------------------------
   -- Assembled iso.
