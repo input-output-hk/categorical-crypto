@@ -60,7 +60,7 @@ open import Categories.APROP.Hypergraph.Invariant sig
   using (hSwap-count-non-dom; hSwap-dom-Unique; hSwap-cod-covers; hSwap-dom-covers;
          inject+-inj; raise-inj; range-covers; length-range;
          toℕ-index-++⁺ˡ; toℕ-index-++⁺ʳ; toℕ-index-range-covers;
-         disj-L-R)
+         disj-L-R; map-cast-range)
 open import Categories.APROP.Hypergraph.HomTermInvariant sig
   using (⟪_⟫-dom-unique)
 open import Categories.APROP.Hypergraph.CoherenceHelpers sig
@@ -977,11 +977,118 @@ module σ-nat-proof
                    (subst₂-sym-subst₂ γ γ' (G.elab gE)))
              (sym (subst₂-trans D E D' E' (G.elab gE))))))))
 
+  --------------------------------------------------------------------------
+  -- φ-dom: list-wise compatibility of the dom boundary.
+  --
+  -- LHS.dom = map hLHS.injL (map hTL.injL F.dom ++ map hTL.injR G.dom)
+  --         (definitional: hComposeP.dom = map injL G.dom; hTensor.dom = ...).
+  -- RHS.dom = map hRHS.injL (map (_↑ˡ nC) (range nA) ++ map (nA ↑ʳ_) (range nC))
+  --         (definitional: hSwap A C.dom covers).
+  --
+  -- For each f ∈ F.dom (at position pos_F : Fin (length F.dom)):
+  --   φ (hLHS.injL (hTL.injL (lookup F.dom pos_F)))
+  --   = hRHS.remapP (G.nV ↑ʳ lookup F.dom pos_F)  (φ-inj₁-red + ψ-swap-inj₁-red)
+  --   = (cast F-dom-len pos_F ↑ˡ nC) ↑ˡ count-non RHS-K.dom   (remapP-F-bdy)
+  -- After reindexing F.dom via `map (lookup F.dom) (range (length F.dom))`
+  -- and applying `map-cast-range F-dom-len`, the F-half becomes
+  -- `map ((_↑ˡ count-non RHS-K.dom) ∘ (_↑ˡ nC)) (range nA) = RHS.dom's A-half`.
+  -- G-half is symmetric.
+
+  -- Polymorphic `map-lookup-range` (FromAPROP's version is restricted to
+  -- the APROP label type `List X`).
+  private
+    map-lookup-range'
+      : ∀ {a} {A : Set a} (xs : List A)
+      → map (lookup xs) (range (length xs)) ≡ xs
+    map-lookup-range' [] = refl
+    map-lookup-range' (x ∷ xs) =
+      cong (x ∷_)
+        (trans (sym (map-∘ (range (length xs))))
+               (map-lookup-range' xs))
+
+    -- F-half pointwise reduction: (φ ∘ hLHS.injL ∘ hTL.injL) ∘ lookup F.dom
+    -- pointwise equals (the RHS-G A-half function) ∘ cast F-dom-len.
+    F-half-point
+      : ∀ (pos_F : Fin (length F.dom))
+      → φ (hLHS.injL (hTL.injL (lookup F.dom pos_F)))
+      ≡ (cast F-dom-len pos_F ↑ˡ nC) ↑ˡ count-non RHS-K.dom
+    F-half-point pos_F =
+      trans (φ-inj₁-red (lookup F.dom pos_F ↑ˡ G.nV))
+      (trans (cong hRHS.remapP
+                   (ψ-swap-inj₁-red {F.nV} {G.nV} (lookup F.dom pos_F)))
+             (remapP-F-bdy pos_F))
+
+    G-half-point
+      : ∀ (pos_G : Fin (length G.dom))
+      → φ (hLHS.injL (hTL.injR (lookup G.dom pos_G)))
+      ≡ (nA ↑ʳ cast G-dom-len pos_G) ↑ˡ count-non RHS-K.dom
+    G-half-point pos_G =
+      trans (φ-inj₁-red (F.nV ↑ʳ lookup G.dom pos_G))
+      (trans (cong hRHS.remapP
+                   (ψ-swap-inj₂-red {F.nV} {G.nV} (lookup G.dom pos_G)))
+             (remapP-G-bdy pos_G))
+
+    -- F-half chain: map φ (map hLHS.injL (map hTL.injL F.dom))
+    --             ≡ map ((_↑ˡ _) ∘ (_↑ˡ nC)) (range nA).
+    map-φ-F-half
+      : map φ (map hLHS.injL (map hTL.injL F.dom))
+      ≡ map (λ a → (a ↑ˡ nC) ↑ˡ count-non RHS-K.dom) (range nA)
+    map-φ-F-half =
+      trans (sym (map-∘ (map hTL.injL F.dom)))
+      (trans (sym (map-∘ F.dom))
+      (trans (cong (map (λ f → φ (hLHS.injL (hTL.injL f))))
+                   (sym (map-lookup-range' F.dom)))
+      (trans (sym (map-∘ (range (length F.dom))))
+      (trans (map-cong F-half-point (range (length F.dom)))
+      (trans (map-∘ (range (length F.dom)))
+             (cong (map (λ a → (a ↑ˡ nC) ↑ˡ count-non RHS-K.dom))
+                   (map-cast-range F-dom-len)))))))
+
+    map-φ-G-half
+      : map φ (map hLHS.injL (map hTL.injR G.dom))
+      ≡ map (λ c → (nA ↑ʳ c) ↑ˡ count-non RHS-K.dom) (range nC)
+    map-φ-G-half =
+      trans (sym (map-∘ (map hTL.injR G.dom)))
+      (trans (sym (map-∘ G.dom))
+      (trans (cong (map (λ g → φ (hLHS.injL (hTL.injR g))))
+                   (sym (map-lookup-range' G.dom)))
+      (trans (sym (map-∘ (range (length G.dom))))
+      (trans (map-cong G-half-point (range (length G.dom)))
+      (trans (map-∘ (range (length G.dom)))
+             (cong (map (λ c → (nA ↑ʳ c) ↑ˡ count-non RHS-K.dom))
+                   (map-cast-range G-dom-len)))))))
+
+  -- Assemble φ-dom.  LHS.dom = map hLHS.injL LHS-G.dom reduces via
+  -- map-++ to map hLHS.injL (F-half ++ G-half), then map φ distributes.
+  -- Each half matches RHS.dom's half via map-φ-F-half / map-φ-G-half.
+  private
+    -- Bridge the final map-∘ between the "λ a → …" form used in
+    -- map-φ-F-half and the explicit "_↑ˡ _" form used in RHS.dom.
+    F-half-reassoc
+      : map (λ a → (a ↑ˡ nC) ↑ˡ count-non RHS-K.dom) (range nA)
+      ≡ map (_↑ˡ count-non RHS-K.dom) (map (_↑ˡ nC) (range nA))
+    F-half-reassoc = map-∘ (range nA)
+
+    G-half-reassoc
+      : map (λ c → (nA ↑ʳ c) ↑ˡ count-non RHS-K.dom) (range nC)
+      ≡ map (_↑ˡ count-non RHS-K.dom) (map (nA ↑ʳ_) (range nC))
+    G-half-reassoc = map-∘ (range nC)
+
+  φ-dom : RHS.dom ≡ map φ LHS.dom
+  φ-dom = sym
+    (trans (cong (map φ) (map-++ hLHS.injL (map hTL.injL F.dom)
+                                           (map hTL.injR G.dom)))
+    (trans (map-++ φ (map hLHS.injL (map hTL.injL F.dom))
+                     (map hLHS.injL (map hTL.injR G.dom)))
+    (trans (cong₂ _++_ (trans map-φ-F-half F-half-reassoc)
+                       (trans map-φ-G-half G-half-reassoc))
+           (sym (map-++ hRHS.injL (map (_↑ˡ nC) (range nA))
+                                   (map (nA ↑ʳ_) (range nC)))))))
+
   postulate
     φ-lab   : ∀ v → RHS.vlab (φ v) ≡ LHS.vlab v
     ψ-ein   : ∀ e → RHS.ein (ψ e) ≡ map φ (LHS.ein e)
     ψ-eout  : ∀ e → RHS.eout (ψ e) ≡ map φ (LHS.eout e)
-    φ-dom   : RHS.dom ≡ map φ LHS.dom
     φ-cod   : RHS.cod ≡ map φ LHS.cod
 
   --------------------------------------------------------------------------
