@@ -63,6 +63,8 @@ open import Categories.APROP.Hypergraph.Invariant sig
          disj-L-R)
 open import Categories.APROP.Hypergraph.HomTermInvariant sig
   using (⟪_⟫-dom-unique)
+open import Categories.APROP.Hypergraph.CoherenceHelpers sig
+  using (subst₂-trans; subst₂-sym-subst₂; trans-reflʳ)
 open import Categories.APROP.Hypergraph.Prune
   using (count-non; AllIn; AllIn→count-non-zero;
          nonMem; classify; classify-lookup-Unique;
@@ -784,26 +786,9 @@ module σ-nat-proof
   -- (ψ-swap-inj{₁,₂}-red moved up near ψ-swap so they're available in
   -- the vertex bijection's boundary proofs.)
 
-  -- subst₂ helpers (mirror Congruence's private helpers).
+  -- subst₂ helpers moved to `CoherenceHelpers`; imported at the top.
+
   private
-    subst₂-trans : ∀ {a b} {A : Set a} {B : Set b} {P : A → B → Set}
-                     {x₁ x₂ x₃ y₁ y₂ y₃}
-                 → (p : x₁ ≡ x₂) (p' : x₂ ≡ x₃)
-                   (q : y₁ ≡ y₂) (q' : y₂ ≡ y₃)
-                 → (z : P x₁ y₁)
-                 → subst₂ P p' q' (subst₂ P p q z)
-                 ≡ subst₂ P (trans p p') (trans q q') z
-    subst₂-trans refl refl refl refl _ = refl
-
-    subst₂-sym-subst₂ : ∀ {a b} {A : Set a} {B : Set b} {P : A → B → Set}
-                          {x x' y y'}
-                      → (p : x ≡ x') (q : y ≡ y') (z : P x y)
-                      → subst₂ P (sym p) (sym q) (subst₂ P p q z) ≡ z
-    subst₂-sym-subst₂ refl refl _ = refl
-
-    trans-reflʳ : ∀ {a} {A : Set a} {x y : A} (p : x ≡ y) → trans p refl ≡ p
-    trans-reflʳ refl = refl
-
     -- Naturality of `hRHS.map-via-remapP` in its list argument.  For
     -- any `p : xs₁ ≡ xs₂`, the square commutes:
     --
