@@ -873,13 +873,28 @@ Categories.APROP.Hypergraph.Prune             YES
 Categories.APROP.Hypergraph.Invariant         YES
 Categories.APROP.Hypergraph.HomTermInvariant  YES
 Categories.APROP.Hypergraph.Translation       YES
-Categories.APROP.Hypergraph.SoundnessAxioms   NO  (8 focused postulates + 2 sub-helpers)
-Categories.APROP.Hypergraph.Soundness         NO  (uses SoundnessAxioms, --lossy-unification)
+Categories.APROP.Hypergraph.SoundnessProved   YES  (constructive proofs only)
+Categories.APROP.Hypergraph.Triangle          YES  (fully constructive)
+Categories.APROP.Hypergraph.Pentagon          YES  (fully constructive)
+Categories.APROP.Hypergraph.SoundnessAxioms   NO   (7 postulates: 5 axioms + 2 helpers)
+Categories.APROP.Hypergraph.AlphaCommSound    NO   (hTensor-assoc-iso postulate)
+Categories.APROP.Hypergraph.Soundness         NO   (uses SoundnessAxioms, --lossy-unification)
 #+end_src
 
-Soundness is the only non-~--safe~ module in the Hypergraph tree.
-`--lossy-unification` on Soundness isn't inherently unsound (it's a
-heuristic unifier, not a logical principle), but it's disabled by
-default for `--safe` because errors can be harder to diagnose.
+The Hypergraph tree is now mostly `--safe`: three dedicated axiom
+modules (`Triangle`, `Pentagon`, and the generic constructive layer
+`SoundnessProved`) are `--safe`, as is the whole Invariant /
+Congruence / Translation infrastructure.  The only unsafe modules
+are:
 
-Soundness requires Option A or B above before it can be promoted.
+  * `SoundnessAxioms` — holds the 5 remaining flat axiom postulates
+    (ρ-nat, σ-nat, hexagon, assoc, ⊗-∘-dist) plus two focused
+    structural postulates (`hTensor-G-hEmpty-iso-substed`,
+    `subst₂-hId-assoc-cancel`).
+  * `AlphaCommSound` — proves α-comm constructively modulo one
+    focused postulate `hTensor-assoc-iso`.
+  * `Soundness` — dispatches every `≈Term` constructor.  Uses
+    `--lossy-unification` (heuristic unifier, not a logical
+    principle, but currently incompatible with `--safe`).
+
+Each of these becomes `--safe` once its postulates are discharged.
