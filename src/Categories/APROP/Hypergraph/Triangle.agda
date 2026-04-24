@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --lossy-unification #-}
+{-# OPTIONS --safe --without-K --lossy-unification #-}
 
 --------------------------------------------------------------------------------
 -- Triangle coherence axiom:  `id ⊗ λ⇒ ∘ α⇒ ≈Term ρ⇒ ⊗ id`.
@@ -41,7 +41,7 @@ open import Categories.APROP.Hypergraph.FromAPROP sig
 open import Categories.APROP.Hypergraph.Translation sig
   using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Iso
-open import Categories.APROP.Hypergraph.SoundnessAxioms sig
+open import Categories.APROP.Hypergraph.SoundnessProved sig
   using (hCompose-hId-R-iso-generic)
 open import Categories.APROP.Hypergraph.CoherenceHelpers sig
   using (hTensor-subst₂-left)

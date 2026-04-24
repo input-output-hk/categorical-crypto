@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --lossy-unification #-}
+{-# OPTIONS --safe --without-K --lossy-unification #-}
 
 --------------------------------------------------------------------------------
 -- Pentagon coherence axiom:

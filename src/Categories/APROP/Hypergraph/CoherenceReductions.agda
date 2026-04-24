@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- Higher-level hypergraph peel helpers.
@@ -7,9 +7,9 @@
 -- derive `T ≅ᴴ <same subst> G`" step that recurs across the coherence
 -- soundness proofs (α-comm, triangle, pentagon, hexagon, ρ/σ-nat).
 --
--- Depends on `hCompose-hId-{R,L}-iso-generic` from `SoundnessAxioms`, so
--- this module is NOT `--safe`.  Pure subst₂/cong bookkeeping (no
--- dependence on `SoundnessAxioms`) lives in the `--safe` module
+-- Depends on `hCompose-hId-{R,L}-iso-generic` from the `--safe` module
+-- `SoundnessProved`, so this module is also `--safe`.  Pure subst₂/cong
+-- bookkeeping (no dependence on the constructive peel proofs) lives in
 -- `Categories.APROP.Hypergraph.CoherenceHelpers`.
 --
 -- Contents:
@@ -32,7 +32,7 @@ open import Categories.APROP.Hypergraph.PrunedCompose sig
   using (hComposeP)
 open import Categories.APROP.Hypergraph.Iso
   using (_≅ᴴ_; subst₂-resp-≅ᴴ)
-open import Categories.APROP.Hypergraph.SoundnessAxioms sig
+open import Categories.APROP.Hypergraph.SoundnessProved sig
   using (hCompose-hId-R-iso-generic; hCompose-hId-L-iso-generic)
 
 open import Data.List using (List)
