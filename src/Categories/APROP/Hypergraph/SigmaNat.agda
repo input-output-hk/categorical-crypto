@@ -1,7 +1,7 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 --------------------------------------------------------------------------------
--- σ-naturality: `σ∘[f⊗g]≈[g⊗f]∘σ-sound`.
+-- σ-naturality: `σ∘[f⊗g]≈[g⊗f]∘σ-sound`.  FULLY CONSTRUCTIVE, `--safe`.
 --
 -- LHS = hComposeP (hTensor F G) (hSwap B D)
 -- RHS = hComposeP (hSwap A C) (hTensor G F)
@@ -9,47 +9,49 @@
 -- Both sides have vertex count F.nV + G.nV and edge count F.nE + G.nE.
 -- The iso's φ / ψ are swap permutations on those spaces.
 --
--- Current constructive status:
+-- Constructive proof summary:
 --
--- Edge bijection (4/4 COMPLETE):
---   * ψ, ψ⁻¹, ψ-left, ψ-rght  — proved via `ψ-swap` +
---     `ψ-swap-involutive`.  Both sides' pruned K blocks contribute 0
---     edges (hSwap has no edges), so edge bookkeeping reduces to a
---     swap on `Fin (F.nE + G.nE)`.
+-- Edge bijection (4 fields):
+--   * ψ, ψ⁻¹, ψ-left, ψ-rght  — via `ψ-swap` + `ψ-swap-involutive`.
+--     Both sides' pruned K blocks contribute 0 edges (hSwap has no
+--     edges), so edge bookkeeping reduces to a swap on `Fin (F.nE + G.nE)`.
 --
--- Vertex bijection (4/4 COMPLETE):
---   * φ, φ⁻¹  — concrete formulas: φ uses `hRHS.remapP ∘ ψ-swap`
+-- Vertex bijection (4 fields):
+--   * φ, φ⁻¹  — concrete formulas.  φ uses `hRHS.remapP ∘ ψ-swap`
 --     on the F+G half; φ⁻¹ case-splits on `splitAt RHS-G.nV` then
 --     `splitAt nA` for boundary, or `lookup (nonMem RHS-K.dom)` for
 --     the pruned side, all composed with ψ-swap back and embedded.
---   * φ-left  — PROVED: interior branch via `remap-inj₂`,
---     `classify-inj₂-lookup`, and `ψ-swap-involutive`; boundary
---     branch via remapP-F-bdy / remapP-G-bdy + contradiction helpers.
---   * φ-rght  — PROVED: interior branch analogously using
---     `classify-lookup-nonMem`; boundary branch via φ⁻¹-F-bdy-red /
---     φ⁻¹-G-bdy-red + cast-cancel chain.
+--   * φ-left — interior via `remap-inj₂` + `classify-inj₂-lookup` +
+--     `ψ-swap-involutive`; boundary via `remapP-F-bdy` / `remapP-G-bdy`
+--     + contradiction helpers (`injR-∉-RHS-K-dom`, `injL-∉-RHS-K-dom`).
+--   * φ-rght — interior via `classify-lookup-nonMem`; boundary via
+--     `φ⁻¹-F-bdy-red` / `φ⁻¹-G-bdy-red` + cast-cancel chain.
 --
--- Edge label preservation (3/3 COMPLETE):
+-- Edge label preservation (3 fields):
 --   * atom-ein, atom-eout — case analysis on F-edge / G-edge + 5-step
---     trans chain through map-via-inj / map-via-remapP / map-via-raise.
---   * ψ-elab — 10-step chain via subst₂-trans, subst₂-sym-subst₂,
---     map-via-remapP-natural, hTR.elab-c-inj{₁,₂}.
+--     trans chain through `map-via-inj` / `map-via-remapP` / `map-via-raise`.
+--   * ψ-elab — 10-step `subst₂` chain via `subst₂-trans`,
+--     `subst₂-sym-subst₂`, `map-via-remapP-natural`, `hTR.elab-c-inj{₁,₂}`.
 --
--- Boundary compatibility (2/2 COMPLETE):
---   * φ-dom, φ-cod — list-wise compatibility via remapP-F-bdy /
---     remapP-G-bdy (dom side) and remapP-LHS-D / remapP-LHS-B (cod
---     side), both using map-cast-range + map-lookup-range' to bridge
---     between range-indexed and dom/cod-indexed lists.
+-- Boundary compatibility (2 fields):
+--   * φ-dom, φ-cod — list-wise compatibility via `remapP-F-bdy` /
+--     `remapP-G-bdy` (dom side) and `remapP-LHS-D` / `remapP-LHS-B`
+--     (cod side), both using `map-cast-range` + `map-lookup-range'` to
+--     bridge between range-indexed and dom/cod-indexed lists.
 --
--- Edge endpoint compatibility (2/2 COMPLETE):
---   * ψ-ein, ψ-eout — list-wise compatibility for each edge via
---     hTR.ein-c-inj{₁,₂}-red + pointwise φ-inj₁-red + ψ-swap-inj*-red.
+-- Edge endpoint compatibility (2 fields):
+--   * ψ-ein, ψ-eout — list-wise via `hTR.ein-c-inj{₁,₂}-red` +
+--     pointwise `φ-inj₁-red` + `ψ-swap-inj*-red`.
 --
--- 1 remaining structural field postulate:
---   * φ-lab — vertex label compatibility.  Bridges concrete φ to the
---     vertex-labeling invariant.
+-- Vertex label compatibility (1 field):
+--   * φ-lab — case-split `splitAt F.nV v'` + classify `F.dom` / `G.dom`.
+--     Boundary: `remapP-F/G-bdy` + `RHS-vlab-A/C-red` + `F/G-vlab-lookup`
+--     (via `F.dom-ok` / `G.dom-ok` + `lookup-list-cast` + `cast-trans`).
+--     Interior: `remap-inj₂` + `RHS-vlab-int-red` + `classify-inj₂-lookup`
+--     + `hTR.vlab-inj{R,L}`; inj₁ branches contradicted via the
+--     `injR/L-∉-RHS-K-dom` helpers.
 --
--- Because this file contains internal postulates, it is not `--safe`.
+-- All 16 iso fields proved constructively — no internal postulates.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -82,7 +84,8 @@ open import Categories.APROP.Hypergraph.Prune
          classify-inj₂-∉;
          classify-lookup-nonMem;
          remap; remap-inj₁; remap-inj₂;
-         ∈-map⁺-index-cast)
+         ∈-map⁺-index-cast;
+         lookup-map-cast)
 
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc; splitAt; cast; _↑ˡ_; _↑ʳ_; toℕ)
@@ -1432,8 +1435,155 @@ module σ-nat-proof
     trans (cong (map hRHS.remapP) (hTR.eout-c-inj₁-red gE))
           (ψ-ein-G-chain (G.eout gE))
 
-  postulate
-    φ-lab   : ∀ v → RHS.vlab (φ v) ≡ LHS.vlab v
+  --------------------------------------------------------------------------
+  -- φ-lab: vertex label compatibility.
+  --
+  -- Case on splitAt LHS-G.nV v (inj₂ absurd), then splitAt F.nV v'
+  -- (F-side or G-side), then classify F.dom f / G.dom g to distinguish
+  -- boundary from interior.  In each case:
+  --   * Boundary: use remapP-F-bdy / remapP-G-bdy + RHS-G's vlab
+  --     reduction + F-vlab-lookup / G-vlab-lookup (via F.dom-ok / G.dom-ok).
+  --   * Interior: use classify RHS-K.dom (ψ-swap v') inj₂ j; apply
+  --     remap-inj₂ + RHS-vlab-int-red + classify-inj₂-lookup +
+  --     hTR.vlab-injR / hTR.vlab-injL.
+
+  -- Helper: F.vlab ∘ lookup F.dom ≡ lookup (flatten A) ∘ cast F-dom-len.
+  private
+    lookup-list-cast
+      : ∀ {a} {A : Set a} {xs ys : List A} (p : xs ≡ ys) (i : Fin (length xs))
+      → lookup xs i ≡ lookup ys (cast (cong length p) i)
+    lookup-list-cast {xs = xs} refl i = cong (lookup xs) (sym (cast-is-id refl i))
+
+    F-vlab-lookup
+      : ∀ (a : Fin (length F.dom))
+      → F.vlab (lookup F.dom a) ≡ lookup (flatten A) (cast F-dom-len a)
+    F-vlab-lookup a =
+      trans (sym (lookup-map-cast F.vlab F.dom a))
+      (trans (lookup-list-cast F.dom-ok
+                               (cast (sym (length-map F.vlab F.dom)) a))
+             (cong (lookup (flatten A))
+                   (cast-trans (sym (length-map F.vlab F.dom))
+                               (cong length F.dom-ok) a)))
+
+    G-vlab-lookup
+      : ∀ (c : Fin (length G.dom))
+      → G.vlab (lookup G.dom c) ≡ lookup (flatten C) (cast G-dom-len c)
+    G-vlab-lookup c =
+      trans (sym (lookup-map-cast G.vlab G.dom c))
+      (trans (lookup-list-cast G.dom-ok
+                               (cast (sym (length-map G.vlab G.dom)) c))
+             (cong (lookup (flatten C))
+                   (cast-trans (sym (length-map G.vlab G.dom))
+                               (cong length G.dom-ok) c)))
+
+    -- RHS.vlab reduction for the A-side boundary: for a : Fin nA,
+    --   RHS.vlab ((a ↑ˡ nC) ↑ˡ count-non RHS-K.dom) ≡ lookup (flatten A) a.
+    RHS-vlab-A-red
+      : ∀ (a : Fin nA)
+      → RHS.vlab ((a ↑ˡ nC) ↑ˡ count-non RHS-K.dom)
+      ≡ lookup (flatten A) a
+    RHS-vlab-A-red a =
+      trans (hRHS.vlab-injL (a ↑ˡ nC))
+            (cong [ lookup (flatten A) , lookup (flatten C) ]′
+                  (splitAt-↑ˡ nA a nC))
+
+    RHS-vlab-C-red
+      : ∀ (c : Fin nC)
+      → RHS.vlab ((nA ↑ʳ c) ↑ˡ count-non RHS-K.dom)
+      ≡ lookup (flatten C) c
+    RHS-vlab-C-red c =
+      trans (hRHS.vlab-injL (nA ↑ʳ c))
+            (cong [ lookup (flatten A) , lookup (flatten C) ]′
+                  (splitAt-↑ʳ nA nC c))
+
+    -- RHS.vlab on the pruned (K-non-dom) side.
+    RHS-vlab-int-red
+      : ∀ (j : Fin (count-non RHS-K.dom))
+      → RHS.vlab (RHS-G.nV ↑ʳ j)
+      ≡ RHS-K.vlab (lookup (nonMem RHS-K.dom) j)
+    RHS-vlab-int-red j =
+      cong [ RHS-G.vlab ,
+             (λ j' → RHS-K.vlab (lookup (nonMem RHS-K.dom) j')) ]′
+           (splitAt-↑ʳ RHS-G.nV (count-non RHS-K.dom) j)
+
+    -- F-interior case: for f ∉ F.dom, both sides = F.vlab f.
+    -- Dispatcher form avoids the `with classify … in cr` abstraction
+    -- issue (the same one that φ-left-dispatch handles).
+    φ-lab-F-int-dispatch
+      : ∀ (f : Fin F.nV) (f∉F : f ∉ F.dom)
+      → (cr : Fin (length RHS-K.dom) ⊎ Fin (count-non RHS-K.dom))
+      → classify RHS-K.dom (G.nV ↑ʳ f) ≡ cr
+      → RHS.vlab (hRHS.remapP (G.nV ↑ʳ f)) ≡ F.vlab f
+    φ-lab-F-int-dispatch f f∉F (inj₁ i) cr-eq =
+      ⊥-elim (injR-∉-RHS-K-dom f∉F (classify-inj₁-∈ cr-eq))
+    φ-lab-F-int-dispatch f f∉F (inj₂ j) cr-eq =
+      trans (cong RHS.vlab
+              (remap-inj₂ RHS-K.dom hRHS.lookup-cod (G.nV ↑ʳ f) j cr-eq))
+      (trans (RHS-vlab-int-red j)
+      (trans (cong RHS-K.vlab
+                   (classify-inj₂-lookup RHS-K.dom (G.nV ↑ʳ f) j cr-eq))
+             (hTR.vlab-injR f)))
+
+    φ-lab-F-int
+      : ∀ (f : Fin F.nV) (f∉F : f ∉ F.dom)
+      → RHS.vlab (hRHS.remapP (G.nV ↑ʳ f)) ≡ F.vlab f
+    φ-lab-F-int f f∉F =
+      φ-lab-F-int-dispatch f f∉F
+                          (classify RHS-K.dom (G.nV ↑ʳ f)) refl
+
+    φ-lab-G-int-dispatch
+      : ∀ (g : Fin G.nV) (g∉G : g ∉ G.dom)
+      → (cr : Fin (length RHS-K.dom) ⊎ Fin (count-non RHS-K.dom))
+      → classify RHS-K.dom (g ↑ˡ F.nV) ≡ cr
+      → RHS.vlab (hRHS.remapP (g ↑ˡ F.nV)) ≡ G.vlab g
+    φ-lab-G-int-dispatch g g∉G (inj₁ i) cr-eq =
+      ⊥-elim (injL-∉-RHS-K-dom g∉G (classify-inj₁-∈ cr-eq))
+    φ-lab-G-int-dispatch g g∉G (inj₂ j) cr-eq =
+      trans (cong RHS.vlab
+              (remap-inj₂ RHS-K.dom hRHS.lookup-cod (g ↑ˡ F.nV) j cr-eq))
+      (trans (RHS-vlab-int-red j)
+      (trans (cong RHS-K.vlab
+                   (classify-inj₂-lookup RHS-K.dom (g ↑ˡ F.nV) j cr-eq))
+             (hTR.vlab-injL g)))
+
+    φ-lab-G-int
+      : ∀ (g : Fin G.nV) (g∉G : g ∉ G.dom)
+      → RHS.vlab (hRHS.remapP (g ↑ˡ F.nV)) ≡ G.vlab g
+    φ-lab-G-int g g∉G =
+      φ-lab-G-int-dispatch g g∉G
+                          (classify RHS-K.dom (g ↑ˡ F.nV)) refl
+
+  φ-lab : ∀ v → RHS.vlab (φ v) ≡ LHS.vlab v
+  φ-lab v with splitAt LHS-G.nV v
+  ... | inj₂ non = ⊥-elim (Fin-zero-absurd cn-LHS-K≡0 non)
+  ... | inj₁ v' with splitAt F.nV v' in ev-v'
+  ...   | inj₁ f with classify F.dom f in cf
+  ...     | inj₁ a =
+    -- F-boundary.  f = lookup F.dom a; remapP-F-bdy gives
+    -- hRHS.remapP (G.nV ↑ʳ f) = (cast F-dom-len a ↑ˡ nC) ↑ˡ _.
+    -- RHS.vlab of this = lookup (flatten A) (cast F-dom-len a) via RHS-vlab-A-red.
+    -- LHS.vlab v = F.vlab f = F.vlab (lookup F.dom a) via F-vlab-lookup.
+    let lookup-eq : lookup F.dom a ≡ f
+        lookup-eq = classify-inj₁-lookup F.dom f a cf
+    in trans (cong (λ x → RHS.vlab (hRHS.remapP (G.nV ↑ʳ x))) (sym lookup-eq))
+       (trans (cong RHS.vlab (remapP-F-bdy a))
+       (trans (RHS-vlab-A-red (cast F-dom-len a))
+       (trans (sym (F-vlab-lookup a))
+              (cong F.vlab lookup-eq))))
+  ...     | inj₂ _ =
+    -- F-interior.  classify F.dom f = inj₂ gives f ∉ F.dom.
+    φ-lab-F-int f (classify-inj₂-∉ cf)
+  φ-lab v | inj₁ v' | inj₂ g with classify G.dom g in cg
+  ...     | inj₁ c' =
+    let lookup-eq : lookup G.dom c' ≡ g
+        lookup-eq = classify-inj₁-lookup G.dom g c' cg
+    in trans (cong (λ x → RHS.vlab (hRHS.remapP (x ↑ˡ F.nV))) (sym lookup-eq))
+       (trans (cong RHS.vlab (remapP-G-bdy c'))
+       (trans (RHS-vlab-C-red (cast G-dom-len c'))
+       (trans (sym (G-vlab-lookup c'))
+              (cong G.vlab lookup-eq))))
+  ...     | inj₂ _ =
+    φ-lab-G-int g (classify-inj₂-∉ cg)
 
   --------------------------------------------------------------------------
   -- Assembled iso.
