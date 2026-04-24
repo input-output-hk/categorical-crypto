@@ -47,7 +47,7 @@ open import Categories.APROP.Hypergraph.PrunedCompose sig
   using (hComposeP; hComposeP-subst-both)
 open import Categories.APROP.Hypergraph.Translation sig
 open import Categories.APROP.Hypergraph.Iso
-open import Categories.APROP.Hypergraph.SoundnessAxioms sig
+open import Categories.APROP.Hypergraph.SoundnessProved sig
   using (hCompose-hId-R-iso-generic; hCompose-hId-L-iso-generic)
 open import Categories.APROP.Hypergraph.HomTermInvariant sig
   using (⟪_⟫-dom-unique)

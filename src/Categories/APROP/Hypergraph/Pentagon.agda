@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --lossy-unification #-}
+{-# OPTIONS --safe --without-K --lossy-unification #-}
 
 --------------------------------------------------------------------------------
 -- Pentagon coherence axiom:
@@ -51,7 +51,7 @@ open import Categories.APROP.Hypergraph.PrunedCompose sig
   using (hComposeP)
 open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Iso
-open import Categories.APROP.Hypergraph.SoundnessAxioms sig
+open import Categories.APROP.Hypergraph.SoundnessProved sig
   using (hCompose-hId-R-iso-generic)
 
 open import Data.List using (List; []; _∷_; _++_)
