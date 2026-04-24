@@ -186,6 +186,18 @@ module σ-nat-proof
   ... | inj₁ eL rewrite splitAt-↑ʳ n m eL = splitAt⁻¹-↑ˡ eq
   ... | inj₂ eR rewrite splitAt-↑ˡ n eR m = splitAt⁻¹-↑ʳ eq
 
+  -- ψ-swap reduction lemmas (dual-with).  Moved up here so they're
+  -- available in the vertex bijection's boundary proofs.
+  ψ-swap-inj₁-red : ∀ {m n} (eL : Fin m) → ψ-swap {m} {n} (eL ↑ˡ n) ≡ n ↑ʳ eL
+  ψ-swap-inj₁-red {m} {n} eL with splitAt m (eL ↑ˡ n)
+                                  | splitAt-↑ˡ m eL n
+  ... | .(inj₁ eL) | refl = refl
+
+  ψ-swap-inj₂-red : ∀ {m n} (eR : Fin n) → ψ-swap {m} {n} (m ↑ʳ eR) ≡ eR ↑ˡ m
+  ψ-swap-inj₂-red {m} {n} eR with splitAt m (m ↑ʳ eR)
+                                  | splitAt-↑ʳ m n eR
+  ... | .(inj₂ eR) | refl = refl
+
   --------------------------------------------------------------------------
   -- Vertex bijection.
   --
@@ -576,14 +588,73 @@ module σ-nat-proof
                        (lookup (nonMem RHS-K.dom) j) j
                        (classify-lookup-nonMem RHS-K.dom j))))
 
-  postulate
-    -- φ-rght's boundary case.  Mirror of φ-left-bdy: requires
-    -- classify↔lookup-cod bridges tying F/G boundary positions to
-    -- RHS-G's cod.  Future work.
-    φ-rght-bdy
-      : (w : Fin RHS.nV) (c : Fin RHS-G.nV)
-      → splitAt RHS-G.nV w ≡ inj₁ c
-      → φ (φ⁻¹ w) ≡ w
+  -- φ⁻¹ reduction lemmas for boundary cases (F-side and G-side).
+  -- Use nested dual-with to collapse both splitAt levels.
+
+  φ⁻¹-F-bdy-red
+    : (a : Fin nA)
+    → φ⁻¹ ((a ↑ˡ nC) ↑ˡ count-non RHS-K.dom)
+    ≡ (lookup F.dom (cast (sym F-dom-len) a) ↑ˡ G.nV) ↑ˡ count-non LHS-K.dom
+  φ⁻¹-F-bdy-red a
+    with splitAt RHS-G.nV ((a ↑ˡ nC) ↑ˡ count-non RHS-K.dom)
+       | splitAt-↑ˡ RHS-G.nV (a ↑ˡ nC) (count-non RHS-K.dom)
+  ... | .(inj₁ (a ↑ˡ nC)) | refl
+    with splitAt nA (a ↑ˡ nC) | splitAt-↑ˡ nA a nC
+  ...   | .(inj₁ a) | refl = refl
+
+  φ⁻¹-G-bdy-red
+    : (c' : Fin nC)
+    → φ⁻¹ ((nA ↑ʳ c') ↑ˡ count-non RHS-K.dom)
+    ≡ (F.nV ↑ʳ lookup G.dom (cast (sym G-dom-len) c')) ↑ˡ count-non LHS-K.dom
+  φ⁻¹-G-bdy-red c'
+    with splitAt RHS-G.nV ((nA ↑ʳ c') ↑ˡ count-non RHS-K.dom)
+       | splitAt-↑ˡ RHS-G.nV (nA ↑ʳ c') (count-non RHS-K.dom)
+  ... | .(inj₁ (nA ↑ʳ c')) | refl
+    with splitAt nA (nA ↑ʳ c') | splitAt-↑ʳ nA nC c'
+  ...   | .(inj₂ c') | refl = refl
+
+  -- φ-rght-bdy: chain via splitAt⁻¹-↑ˡ to rewrite w into the canonical
+  -- (a ↑ˡ nC) ↑ˡ _ form, then apply φ⁻¹-F-bdy-red + φ-inj₁-red +
+  -- ψ-swap-inj₁-red + remapP-F-bdy + cast-cancel.
+  φ-rght-bdy
+    : (w : Fin RHS.nV) (c : Fin RHS-G.nV)
+    → splitAt RHS-G.nV w ≡ inj₁ c
+    → φ (φ⁻¹ w) ≡ w
+  φ-rght-bdy w c eq with splitAt nA c in ec
+  ... | inj₁ a =
+    let pos_F = cast (sym F-dom-len) a
+        v_F   = lookup F.dom pos_F
+        cast-cancel : cast F-dom-len pos_F ≡ a
+        cast-cancel =
+          trans (cast-trans (sym F-dom-len) F-dom-len a)
+                (cast-is-id (trans (sym F-dom-len) F-dom-len) a)
+        w-eq : (a ↑ˡ nC) ↑ˡ count-non RHS-K.dom ≡ w
+        w-eq = trans (cong (_↑ˡ count-non RHS-K.dom) (splitAt⁻¹-↑ˡ ec))
+                     (splitAt⁻¹-↑ˡ eq)
+    in trans (cong (λ w' → φ (φ⁻¹ w')) (sym w-eq))
+       (trans (cong φ (φ⁻¹-F-bdy-red a))
+       (trans (φ-inj₁-red (v_F ↑ˡ G.nV))
+       (trans (cong hRHS.remapP (ψ-swap-inj₁-red {F.nV} {G.nV} v_F))
+       (trans (remapP-F-bdy pos_F)
+       (trans (cong (λ x → (x ↑ˡ nC) ↑ˡ count-non RHS-K.dom) cast-cancel)
+              w-eq)))))
+  ... | inj₂ c' =
+    let pos_G = cast (sym G-dom-len) c'
+        v_G   = lookup G.dom pos_G
+        cast-cancel : cast G-dom-len pos_G ≡ c'
+        cast-cancel =
+          trans (cast-trans (sym G-dom-len) G-dom-len c')
+                (cast-is-id (trans (sym G-dom-len) G-dom-len) c')
+        w-eq : (nA ↑ʳ c') ↑ˡ count-non RHS-K.dom ≡ w
+        w-eq = trans (cong (_↑ˡ count-non RHS-K.dom) (splitAt⁻¹-↑ʳ ec))
+                     (splitAt⁻¹-↑ˡ eq)
+    in trans (cong (λ w' → φ (φ⁻¹ w')) (sym w-eq))
+       (trans (cong φ (φ⁻¹-G-bdy-red c'))
+       (trans (φ-inj₁-red (F.nV ↑ʳ v_G))
+       (trans (cong hRHS.remapP (ψ-swap-inj₂-red {F.nV} {G.nV} v_G))
+       (trans (remapP-G-bdy pos_G)
+       (trans (cong (λ x → (nA ↑ʳ x) ↑ˡ count-non RHS-K.dom) cast-cancel)
+              w-eq)))))
 
   -- Dispatcher pattern (same idea as φ-left-dispatch): avoid `with` on
   -- splitAt RHS-G.nV w, which would abstract `φ⁻¹ w | ...` inside the
@@ -673,17 +744,8 @@ module σ-nat-proof
   -- hComposeP auto-reduce, but the swap puts us on a specific branch
   -- of RHS-K = hTensor G F).
 
-  -- ψ-swap reduction lemmas (dual-with).  Pattern analogous to
-  -- `splitAt-↑ˡ` / `splitAt-↑ʳ` + dot pattern.
-  ψ-swap-inj₁-red : ∀ {m n} (eL : Fin m) → ψ-swap {m} {n} (eL ↑ˡ n) ≡ n ↑ʳ eL
-  ψ-swap-inj₁-red {m} {n} eL with splitAt m (eL ↑ˡ n)
-                                  | splitAt-↑ˡ m eL n
-  ... | .(inj₁ eL) | refl = refl
-
-  ψ-swap-inj₂-red : ∀ {m n} (eR : Fin n) → ψ-swap {m} {n} (m ↑ʳ eR) ≡ eR ↑ˡ m
-  ψ-swap-inj₂-red {m} {n} eR with splitAt m (m ↑ʳ eR)
-                                  | splitAt-↑ʳ m n eR
-  ... | .(inj₂ eR) | refl = refl
+  -- (ψ-swap-inj{₁,₂}-red moved up near ψ-swap so they're available in
+  -- the vertex bijection's boundary proofs.)
 
   -- subst₂ helpers (mirror Congruence's private helpers).
   private
