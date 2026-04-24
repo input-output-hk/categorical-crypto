@@ -53,52 +53,14 @@ open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Iso
 open import Categories.APROP.Hypergraph.SoundnessAxioms sig
   using (hCompose-hId-R-iso-generic)
+open import Categories.APROP.Hypergraph.CoherenceHelpers sig
+  using (hTensor-subst₂-left; hTensor-subst₂-right
+        ; hComposeP-cod-subst; subst₂-trans-cod)
 
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂; sym; trans; subst; subst₂)
-
---------------------------------------------------------------------------------
--- Private building-block lemmas (all proved).
-
-private
-  hTensor-subst₂-left
-    : ∀ {As As' Bs Bs' Cs Ds : List X}
-        (p : As ≡ As') (q : Bs ≡ Bs')
-        (X₀ : Hypergraph FlatGen As Bs) (Y₀ : Hypergraph FlatGen Cs Ds)
-    → hTensor (subst₂ (Hypergraph FlatGen) p q X₀) Y₀
-    ≡ subst₂ (Hypergraph FlatGen) (cong (_++ Cs) p) (cong (_++ Ds) q)
-             (hTensor X₀ Y₀)
-  hTensor-subst₂-left refl refl X₀ Y₀ = refl
-
-  hTensor-subst₂-right
-    : ∀ {As Bs Cs Cs' Ds Ds' : List X}
-        (p : Cs ≡ Cs') (q : Ds ≡ Ds')
-        (X₀ : Hypergraph FlatGen As Bs) (Y₀ : Hypergraph FlatGen Cs Ds)
-    → hTensor X₀ (subst₂ (Hypergraph FlatGen) p q Y₀)
-    ≡ subst₂ (Hypergraph FlatGen) (cong (As ++_) p) (cong (Bs ++_) q)
-             (hTensor X₀ Y₀)
-  hTensor-subst₂-right refl refl X₀ Y₀ = refl
-
-  -- `hComposeP` factors a `subst₂ refl _` out of its right argument.
-  hComposeP-cod-subst
-    : ∀ {As Bs Cs Cs' : List X}
-        (eq : Cs ≡ Cs')
-        (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs)
-    → hComposeP G (subst₂ (Hypergraph FlatGen) refl eq K)
-    ≡ subst₂ (Hypergraph FlatGen) refl eq (hComposeP G K)
-  hComposeP-cod-subst refl G K = refl
-
-  -- Collapse nested `subst₂ refl _` on the cod.
-  subst₂-trans-cod
-    : ∀ {As Bs Bs' Bs'' : List X}
-        (p : Bs ≡ Bs') (q : Bs' ≡ Bs'')
-        (G : Hypergraph FlatGen As Bs)
-    → subst₂ (Hypergraph FlatGen) refl q
-             (subst₂ (Hypergraph FlatGen) refl p G)
-    ≡ subst₂ (Hypergraph FlatGen) refl (trans p q) G
-  subst₂-trans-cod refl refl G = refl
 
 --------------------------------------------------------------------------------
 -- Each leaf of the pentagon AST reduces to `subst₂`-wrapped `hId`.

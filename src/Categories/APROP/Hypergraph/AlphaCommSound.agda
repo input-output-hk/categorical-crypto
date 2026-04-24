@@ -51,6 +51,8 @@ open import Categories.APROP.Hypergraph.SoundnessAxioms sig
   using (hCompose-hId-R-iso-generic; hCompose-hId-L-iso-generic)
 open import Categories.APROP.Hypergraph.HomTermInvariant sig
   using (⟪_⟫-dom-unique)
+open import Categories.APROP.Hypergraph.CoherenceHelpers sig
+  using (subst₂-cancel-sym-l; subst₂-cancel-sym-r; Unique-subst₂-dom)
 
 open import Data.List using (List; _++_)
 open import Data.List.Properties using (++-assoc)
@@ -79,38 +81,6 @@ postulate
              (++-assoc As Bs Cs) (++-assoc As' Bs' Cs')
              (hTensor (hTensor F G) H)
     ≅ᴴ hTensor F (hTensor G H)
-
---------------------------------------------------------------------------------
--- Small subst₂ lemmas.
-
-private
-  -- subst₂ (sym p) refl (subst₂ p q X) ≡ subst₂ refl q X
-  -- Pattern-matches p, q on refl; both sides reduce to X.
-  subst₂-cancel-sym-l
-    : ∀ {Y : Set} {P : List Y → List Y → Set}
-        {As As' Bs Bs' : List Y}
-        (p : As ≡ As') (q : Bs ≡ Bs')
-        (G : P As Bs)
-    → subst₂ P (sym p) refl (subst₂ P p q G) ≡ subst₂ P refl q G
-  subst₂-cancel-sym-l refl refl G = refl
-
-  -- subst₂ p refl (subst₂ (sym p) refl X) ≡ X
-  -- Pattern-matches p on refl.
-  subst₂-cancel-sym-r
-    : ∀ {Y : Set} {P : List Y → List Y → Set}
-        {As As' Bs : List Y}
-        (p : As ≡ As') (X : P As' Bs)
-    → subst₂ P p refl (subst₂ P (sym p) refl X) ≡ X
-  subst₂-cancel-sym-r refl X = refl
-
-  -- `Unique` transport across subst₂ on the dom.
-  Unique-subst₂-dom
-    : ∀ {As Bs As' Bs' : List X}
-        (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
-        (G : Hypergraph FlatGen As Bs)
-    → Unique (Hypergraph.dom G)
-    → Unique (Hypergraph.dom (subst₂ (Hypergraph FlatGen) eq₁ eq₂ G))
-  Unique-subst₂-dom refl refl G p = p
 
 --------------------------------------------------------------------------------
 -- α-naturality.
