@@ -41,9 +41,13 @@
 --     side), both using map-cast-range + map-lookup-range' to bridge
 --     between range-indexed and dom/cod-indexed lists.
 --
--- 3 remaining structural field postulates:
---   * φ-lab, ψ-ein, ψ-eout
--- These bridge concrete φ/ψ to the record's label/edge invariants.
+-- Edge endpoint compatibility (2/2 COMPLETE):
+--   * ψ-ein, ψ-eout — list-wise compatibility for each edge via
+--     hTR.ein-c-inj{₁,₂}-red + pointwise φ-inj₁-red + ψ-swap-inj*-red.
+--
+-- 1 remaining structural field postulate:
+--   * φ-lab — vertex label compatibility.  Bridges concrete φ to the
+--     vertex-labeling invariant.
 --
 -- Because this file contains internal postulates, it is not `--safe`.
 --------------------------------------------------------------------------------
