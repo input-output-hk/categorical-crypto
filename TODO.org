@@ -1044,265 +1044,139 @@ meantime.
       meaningful sub-project (perhaps as part of Phase 3 finishing
       touches).
 
-** TODO Phase 4 — Tensor semantics + ~smcat~ reflection macro
+** TODO Phase 4 — ~smcat~ tactic via hypergraph-iso decision procedure
    :PROPERTIES:
    :depends-on: Phase 3 (soundness) + Phase 3.5 (completeness)
    :END:
 
-   Follows the architecture of TensorRocq (Caldwell, Spencer, Rand,
-   arXiv:2604.17592), adapted to Agda:
+   Following TensorRocq (Caldwell, Spencer, Rand — arXiv:2604.17592),
+   specifically their approach in §4.2: implement a *partial decision
+   procedure* for hypergraph isomorphism directly, bypassing tensor
+   semantics entirely.
 
-   #+begin_src text
-         APROP  ↔  Hypergraph
-              ↘    ↙
-             Tensor           (common semantics — ground truth)
-   #+end_src
+   *Key insight from the paper*: although graph isomorphism is
+   computationally expensive in general, for *directed, labeled
+   hypergraphs with ordered interfaces* the search space is tiny.
+   Interfaces pin boundary vertices pointwise; edge labels
+   constrain edge correspondences; directedness distinguishes
+   ein/eout roles.  TensorRocq report:
+   > "it runs in less than a second on all the non-synthetic goals
+   >  we encountered in our examples, which had sizes up to several
+   >  dozen edges."
 
-   The big idea: add *tensors* as a shallow-embedded semantic
-   domain that both APROPs and hypergraphs project into.  Two
-   morphisms are equivalent iff their tensors are extensionally
-   equal.  Concrete computation on tensors gives a reflection-
-   based tactic.
+   Tensor semantics plays NO role in ~smcat~'s decision procedure.
+   Tensors are used only in the ~srw~ rewrite tactic (Phase 5) to
+   *verify* rewrite rules by semantic equality.
 
-   Phase 4 naturally splits into three pieces: tensor
-   infrastructure (4a–4c), the two completeness claims tying
-   tensors back to hypergraphs / APROPs (4d–4e), then the
-   reflection tactic itself (4f).
-
-*** TODO Phase 4a — Tensor data + algebra
+*** TODO Phase 4a — Decidable hypergraph isomorphism
     :PROPERTIES:
-    :effort: 1-2 weeks
+    :effort: 2-3 weeks
     :END:
 
-    Shallow embedding, following TensorRocq §3.1 / §4.1:
+    Implement a partial decision procedure:
     #+begin_src agda
-      Tensor : (R : Set) (n m : ℕ) (A : Set) → Set
-      Tensor R n m A = Vec A n → Vec A m → R
+      findIso
+        : ∀ {As Bs : List X}
+            (H J : Hypergraph FlatGen As Bs)
+        → Maybe (H ≅ᴴ J)
     #+end_src
 
-    Over any semiring ~R~ with summable index set ~A~.  Dimensionless
-    variant ~DimensionlessTensor R A := ∀ n m → Tensor R n m A~ for
-    hypergraph edges where arity is data-dependent.
+    *Soundness* (always): if ~findIso H J ≡ just iso~, then ~iso~
+    is a valid ~≅ᴴ~.  This holds by construction — the procedure
+    builds the iso record during the search.
 
-    *Operations*:
-    - Delta tensor: ~δ : Tensor R n n A~, ~δ i o = if i ≡ o then 1 else 0~.
-    - Tensor product: ~(τ ⊗ γ)^{jl}_{ik} = τ^j_i * γ^l_k~ (Def 4).
-    - Contraction: ~(τ ; γ)^k_i = Σⱼ τ^j_i * γ^k_j~ (Def 3).
+    *Completeness* (empirical, partial): in practice, ~findIso~
+    returns ~just~ for every pair arising from the translation of
+    ≈Term-equivalent APROP terms.  Rigorous completeness on the
+    full hypergraph class is NOT required for a usable ~smcat~;
+    TensorRocq's paper confirms this works in practice.
 
-    *Properties to prove* (used downstream):
-    - Contraction associativity.
-    - Delta tensor is left/right unit for contraction.
-    - Product is associative (up to obvious reshape) and commutes
-      with contraction on disjoint legs.
-    - Summation interchange / Fubini-style laws.
+    *Algorithm outline* (TensorRocq §4.2):
+    1. *Anchor on interfaces.*  ~H.dom~ and ~J.dom~ are ordered
+       lists of the same length; pair them pointwise to seed the
+       vertex-correspondence map ~φ~.  Same for ~H.cod~ and ~J.cod~.
+    2. *Propagate via ein/eout.*  If two edges are tentatively
+       paired (label-matched, arities-matched), and one of their
+       endpoints is already in ~φ~, the other endpoints extend ~φ~
+       pointwise.
+    3. *Match edges.*  For each edge ~e : Fin H.nE~, find candidate
+       edges in ~J~ with the same label.  Filter by existing ~φ~
+       constraints on ~ein e~ / ~eout e~.  Backtrack on conflict.
+    4. *Verify total iso.*  Once ~φ~ covers all of ~Fin H.nV~ and
+       ~ψ~ covers all of ~Fin H.nE~, build the ~≅ᴴ~ record
+       (φ-left/right/lab, ψ-left/right, atom-ein/eout, ψ-elab).
 
-    Requires a ~SemiringEquiv~ typeclass (matches TensorRocq's use
-    of `ring` solver).  For Agda this probably means a bundled
-    `CommutativeSemiring`-like structure from stdlib.
+    *Agda-specific considerations*:
+    - The procedure is computable (no postulates); runs in Agda's
+      evaluator during type-checking.
+    - The full ~≅ᴴ~ record has 15 fields including ~ψ-elab~
+      (edge-label compatibility modulo ~subst₂~).  For the
+      iso-finding algorithm to build this, it needs to thread the
+      atom-ein/atom-eout proofs through each edge match.  The
+      existing ~SoundnessProved.hCompose-hId-R-proof~ and
+      ~σ∘σ-proof~ modules have templates for this.
+    - Data structures: use stdlib's ~AVL~ map or ~Vec~-backed
+      arrays to keep the algorithm tractable on moderate sizes.
 
-*** TODO Phase 4b — Tensor semantics of APROP HomTerms
+    *Sub-tasks*:
+    - ~findIso-boundary~: pair ~dom~/~cod~ pointwise.
+    - ~findIso-edge-match~: pick edge correspondences compatibly
+      with a partial ~φ~.
+    - ~findIso-extend~: extend ~φ~ from edge endpoints.
+    - ~findIso-backtrack~: try alternatives on conflict.
+    - Record assembly: fill out all 15 ~≅ᴴ~ fields from the final
+      (φ, ψ).
+
+*** TODO Phase 4b — Reflection tactic ~smcat~
     :PROPERTIES:
-    :effort: ~1 week
+    :effort: ~1-2 weeks
+    :depends-on: Phase 4a + Phase 3.5 (completeness)
     :END:
 
-    Given a "generator assignment"
-    ~Ω : ∀ {A B} → mor A B → Tensor R (dim A) (dim B) U~
-    (where ~U~ is the semiring index set and ~dim A = length (flatten A)~):
-    #+begin_src agda
-      ⟦_⟧ᵀ : ∀ {A B} → HomTerm A B → Tensor R (dim A) (dim B) U
-      ⟦ Agen g  ⟧ᵀ = Ω g
-      ⟦ id      ⟧ᵀ = δ
-      ⟦ f ∘ g   ⟧ᵀ = ⟦ g ⟧ᵀ ; ⟦ f ⟧ᵀ       -- contraction
-      ⟦ f ⊗₁ g  ⟧ᵀ = ⟦ f ⟧ᵀ ⊗ ⟦ g ⟧ᵀ
-      ⟦ λ⇒      ⟧ᵀ = δ  -- flatten collapses unit
-      ⟦ λ⇐      ⟧ᵀ = δ
-      ⟦ ρ⇒      ⟧ᵀ = δ
-      ⟦ ρ⇐      ⟧ᵀ = δ
-      ⟦ α⇒      ⟧ᵀ = δ  -- reassociation doesn't change flatten level
-      ⟦ α⇐      ⟧ᵀ = δ
-      ⟦ σ {A}{B}⟧ᵀ = swap-tensor (dim A) (dim B)
-    #+end_src
+    An Agda reflection macro that dispatches goals of the form
+    ~f ≈Term g~:
+    1. Reify the goal; extract HomTerms ~f~, ~g~.
+    2. Compute ~⟪ f ⟫~ and ~⟪ g ⟫~ by ordinary Agda reduction.
+    3. Apply ~findIso ⟪ f ⟫ ⟪ g ⟫~.
+    4. On ~just iso~, emit the proof ~completeness iso~ (from
+       Phase 3.5).  On ~nothing~, fail the tactic with a useful
+       error.
 
-    *Tensor soundness* (the forward direction):
-    #+begin_src agda
-      tensor-sound
-        : ∀ {A B} {f g : HomTerm A B}
-        → f ≈Term g
-        → ⟦ f ⟧ᵀ ≡ ⟦ g ⟧ᵀ     -- extensional, in the tensor algebra sense
-    #+end_src
+    The tactic is *sound* (only emits proofs when the iso exists
+    and completeness applies) and *partial-complete* (succeeds in
+    practice for all cases arising in typical proofs).
 
-    Proved by induction on ~≈Term~, just like the existing
-    hypergraph soundness.  Each axiom becomes a tensor identity,
-    most of which follow from delta-tensor / swap properties.
-
-*** TODO Phase 4c — Tensor semantics of hypergraphs
-    :PROPERTIES:
-    :effort: ~1 week
-    :END:
-
-    Port TensorRocq's Def 8 to Agda:
-    #+begin_src agda
-      -- For a hypergraph H with vertex-label assignment and an edge
-      -- tensor assignment Γ (one tensor per edge label), the tensor
-      -- semantics of H is
-      τ : ∀ {As Bs} (H : Hypergraph FlatGen As Bs)
-        → (Γ : ∀ e → Tensor R (length (Hypergraph.ein  H e))
-                              (length (Hypergraph.eout H e)) U)
-        → Tensor R (length As) (length Bs) U
-      τ H Γ = λ input-vec output-vec →
-        Σ-over (all labelings f : Fin H.nV → U),
-            δ (f-restricted-to-dom H) input-vec
-          * δ output-vec (f-restricted-to-cod H)
-          * Π-over H.nE (λ e → Γ e (f-on-ein e) (f-on-eout e))
-    #+end_src
-
-    *Compositionality* (Lemmas 1 + 2 of paper):
-    #+begin_src agda
-      τ-∘  : τ (hComposeP G K) Γ ≡ τ G Γ ; τ K Γ
-      τ-⊗  : τ (hTensor  F G) Γ ≡ τ F Γ ⊗ τ G Γ
-      τ-hId : τ (hId A) Γ ≡ δ
-    #+end_src
-
-    *Bridge to APROP semantics* — the common-semantics lemma:
-    #+begin_src agda
-      tensor-bridge
-        : ∀ {A B} (f : HomTerm A B) (Γ : ...)
-        → τ ⟪ f ⟫ Γ ≡ ⟦ f ⟧ᵀ  (via Γ ∘ some-reindex)
-    #+end_src
-
-    where the RHS uses the corresponding ~Ω~ built from ~Γ~.
-    By induction on ~f~ using ~τ-∘~, ~τ-⊗~, ~τ-hId~, and the
-    translation equations for λ/ρ/α/σ.
-
-*** TODO Phase 4d — Forward: hypergraph iso implies tensor equality
-    :PROPERTIES:
-    :effort: ~1 week
-    :END:
-
-    TensorRocq's Section 3.2 claim (forward direction):
-    #+begin_src agda
-      ≅ᴴ-τ-resp
-        : ∀ {As Bs} {H J : Hypergraph FlatGen As Bs}
-        → H ≅ᴴ J
-        → (Γ : ...) → τ H Γ ≡ τ J (Γ ∘ ψ⁻¹)
-    #+end_src
-
-    where ~ψ~ is the edge-bijection component of the iso (Γ has to
-    be transported along the edge renaming).
-
-    *Proof*: re-index the sum-over-labelings using the vertex
-    bijection ~φ~.  The per-edge tensor products match because
-    ~ψ~ pairs edges with identical ~(ein, eout)~ structure up to
-    ~φ~.  The delta tensors on the boundary match because
-    ~φ-dom~, ~φ-cod~ make the boundaries agree.
-
-    *This is the direction TensorRocq actually uses* for verifying
-    rewrites.  It doesn't require completeness — it's a forward
-    preservation lemma.
-
-*** TODO Phase 4e — Reverse: extensional tensor equality implies hypergraph iso
-    :PROPERTIES:
-    :effort: 2-3 weeks — the hardest piece
-    :END:
-
-    The user-requested converse:
-    #+begin_src agda
-      τ-≡-resp-≅ᴴ
-        : ∀ {As Bs} {H J : Hypergraph FlatGen As Bs}
-        → (∀ Γ → τ H Γ ≡ τ J Γ)   -- *extensionally* over all Γ
-        → H ≅ᴴ J
-    #+end_src
-
-    Not provable for ARBITRARY hypergraphs — only for a restricted
-    subclass such as "canonical" or "acyclic monogamous"
-    (TensorRocq's Fig 4 dotted line).  Likely formulation:
-    #+begin_src agda
-      τ-≡-resp-≅ᴴ-canonical
-        : ∀ {As Bs} {H J : Hypergraph FlatGen As Bs}
-        → Canonical H → Canonical J
-        → (∀ Γ → τ H Γ ≡ τ J Γ)
-        → H ≡ J                   -- strict equality between canonical reps
-    #+end_src
-
-    *Proof idea*: use "free" generator tensors (polynomial
-    indeterminates over distinct symbols per edge label).  Then
-    two extensionally-equal tensor expressions must have the same
-    "monomial structure" — i.e., the same combinatorial data
-    (number of vertices, edge labels, connectivity).  Extracting
-    this data reconstructs the hypergraph.
-
-    Alternative formulation using decidable tensor equality:
-    plug in specific delta-generator tensors and read off the
-    vertex-labeling pattern.  Requires a suitably rich ~U~
-    (indexing set).
-
-    *Risks*:
-    - "Extensional equality over all Γ" in Agda means universal
-      quantification, which isn't directly decidable.  May need
-      to parameterise by a specific "generic enough" Γ (e.g., from
-      a polynomial semiring) and prove that equality there
-      suffices.
-    - Reconstructing the iso from the tensor might need choice-free
-      combinatorics, which is doable but fiddly.
-
-    *This is the step the user is asking for a plan of*.  It's
-    the crux of Phase 4 and provides an alternative to Phase 3.5
-    if one wants to decide ≈Term via tensors rather than via
-    canonical hypergraph forms.
-
-*** TODO Phase 4f — Reflection tactic ~smcat~
-    :PROPERTIES:
-    :effort: ~2 weeks
-    :END:
-
-    Agda reflection macro that:
-    1. Reifies the goal ~f ≈Term g~.
-    2. Evaluates ~⟦ f ⟧ᵀ~ and ~⟦ g ⟧ᵀ~ at a "generic enough" ~Ω~
-       (e.g. polynomial-indeterminate tensors, or symbolic
-       Finite-field tensors with free parameters per generator).
-    3. Checks tensor equality by reduction (Agda's `_≟_` or an
-       explicit normalisation of polynomial tensors).
-    4. If equal, emits a proof via
-       ~tensor-sound ∘ tensor-bridge ∘ τ-≡-resp-≅ᴴ-canonical ∘ completeness~.
-       I.e., the chain:
-       #+begin_src text
-         f ≈Term g  ←  ⟪f⟫ ≅ᴴ ⟪g⟫      [completeness, Phase 3.5]
-                    ←  canonify ⟪f⟫ ≡ canonify ⟪g⟫   [4e + canonify-iso]
-                    ←  (∀ Γ, τ ⟪f⟫ Γ ≡ τ ⟪g⟫ Γ)      [bridge 4c]
-                    ←  ⟦f⟧ᵀ ≡ ⟦g⟧ᵀ                   [tensor-bridge, 4c]
-                    ←  (evaluated by reflection)
-       #+end_src
-
-    *Alternative*: skip the hypergraph / completeness hop entirely
-    by proving a direct `tensor→≈Term` completeness theorem:
-    ~(∀ Γ → ⟦f⟧ᵀ Γ ≡ ⟦g⟧ᵀ Γ) → f ≈Term g~.  Effectively absorbs
-    Phases 4e + 3.5 into one.
+    *Implementation notes*:
+    - Agda's ~Reflection~ API gives access to ~Term~ / ~Type~
+      manipulation; ~unquote~ splices back into the goal.
+    - Performance: ~findIso~ runs entirely in Agda's evaluator
+      during macro expansion; its runtime ≈ TensorRocq's reported
+      "<1s on dozen-edge hypergraphs".
+    - For debugging, expose a non-macro variant
+      ~smcat-test : (f g : HomTerm A B) → Maybe (f ≈Term g)~.
 
 *** Phase 4 dependency summary
 
     | Sub-phase | Depends on                  |
     |-----------+-----------------------------|
-    | 4a        | none                        |
-    | 4b        | 4a + Phase 3 (soundness)    |
-    | 4c        | 4a + Hypergraph.Core        |
-    | 4d        | 4a + 4c                     |
-    | 4e        | 4a + 4c + Canonical (3.5b)  |
-    | 4f        | 4a-4e + Phase 3.5           |
+    | 4a        | Hypergraph.Core + Iso       |
+    | 4b        | 4a + Phase 3.5 completeness |
 
-    The CRITICAL PATH to a working tactic is:
-    Phase 3 → Phase 3.5b (Canonical) → Phase 4a → 4c → 4e → 4f.
-    Other pieces are parallel.
+    Critical path: Phase 3 → Phase 3.5 → 4a → 4b.
 
-*** Alternative tactic (no Phase 3.5): term-rewriting ~smcat~
+    *Why this is a win over the previous plan*: no tensor
+    infrastructure needed for the ~smcat~ tactic.  Skipping
+    tensors saves ~4 weeks of development.  Tensor semantics
+    (proving `f ≈ g → ⟦f⟧ᵀ ≡ ⟦g⟧ᵀ` etc.) remains relevant for the
+    rewrite tactic ~srw~ (Phase 5) — but not for the basic
+    equality-by-connectivity tactic.
 
-    Implement term-level confluent rewriting on HomTerms using
-    only the already-proved ≈Term axioms.  Each rewrite step
-    emits an ~≈Term~ proof directly, so no appeal to completeness
-    is needed.  This corresponds to a classical SMC normalisation
-    algorithm rather than the tensor approach.  Equivalent in
-    power; the implementation tradeoffs are different
-    (term-rewriting is easier to emit proofs from but harder to
-    ensure confluence without a canonical form).
+    *Alternative tactic (no Phase 3.5)*: implement term-level
+    confluent rewriting on HomTerms using only the already-proved
+    ≈Term axioms.  Each rewrite step emits an ~≈Term~ proof
+    directly, so no appeal to completeness is needed.  Equivalent
+    in power; harder to ensure confluence without a canonical
+    form, but avoids the Phase 3.5 dependency entirely.
 
 ** TODO Phase 5 — DPO rewriting (~srw~)
    Double-pushout rewriting over hypergraphs, exposed as a tactic
