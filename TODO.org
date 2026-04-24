@@ -833,15 +833,216 @@ meantime.
 
 * Remaining phases
 
+** TODO Phase 3.5 — Completeness (inverse of soundness)
+   :PROPERTIES:
+   :depends-on: Phase 3 (soundness)
+   :effort: 1-2 months focused proof work
+   :END:
+
+   Prove the converse direction:
+   #+begin_src agda
+     completeness
+       : ∀ {A B} {f g : HomTerm A B}
+       → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫  →  f ≈Term g
+   #+end_src
+   giving a full two-way correspondence:
+   ~f ≈Term g ⟺ ⟪ f ⟫ ≅ᴴ ⟪ g ⟫~ .  Together with ~soundness~
+   (already proved modulo the axiom postulates), this says the
+   APROP equational theory is *exactly* captured by hypergraph
+   isomorphism — the TensorRocq "canonical hypergraph" theorem.
+
+   *Approach*: go through a canonical-form representative.  Two
+   equivalent HomTerms translate to the same canonical hypergraph,
+   and the canonical form round-trips back to a HomTerm in normal
+   form that is ≈Term-equivalent to the original.
+
+*** TODO Phase 3.5a — Unflatten + round-trip on boundaries
+    :PROPERTIES:
+    :effort: ~3 h
+    :END:
+
+    Introduce the decode-direction bridge from ~List X~ back to
+    ~ObjTerm~:
+    #+begin_src agda
+      unflatten : List X → ObjTerm
+      unflatten []       = unit
+      unflatten (x ∷ xs) = Var x ⊗₀ unflatten xs
+
+      flatten-unflatten : ∀ l → flatten (unflatten l) ≡ l
+      flatten-unflatten = ?   -- induction on l
+    #+end_src
+
+    Note: ~unflatten ∘ flatten~ is NOT identity on ~ObjTerm~; it
+    is only equal up to ~≈Term~.  E.g., ~A ⊗ B~ and
+    ~unflatten (flatten (A ⊗ B))~ differ structurally (the latter
+    is right-associated) but are ≈Term-equal via α/ρ chains.
+    Prove:
+    #+begin_src agda
+      unflatten-flatten-≈
+        : ∀ (A : ObjTerm) → ???   -- an iso-morphism in the free SMC
+                                   --   from `A` to `unflatten (flatten A)`
+    #+end_src
+
+*** TODO Phase 3.5b — Canonical form for hypergraphs
+    :PROPERTIES:
+    :effort: 1-2 weeks
+    :END:
+
+    Define a canonicalisation pass on hypergraphs:
+    #+begin_src agda
+      -- A canonical hypergraph has
+      --   * vertices ordered by first appearance in
+      --     `dom ++ cod ++ concat ein ++ concat eout`
+      --   * edges ordered by, say, their `ein` endpoints (lex order
+      --     on Fin-lists).
+      -- Both orderings are fully determined by the data, so two
+      -- canonical hypergraphs with the same labeled-graph structure
+      -- are propositionally equal.
+
+      Canonical : Hypergraph FlatGen As Bs → Set
+      canonify  : Hypergraph FlatGen As Bs → Hypergraph FlatGen As Bs
+      canonify-iso
+        : ∀ (H : Hypergraph FlatGen As Bs) → H ≅ᴴ canonify H
+      canonify-canonical
+        : ∀ H → Canonical (canonify H)
+      canonical-iso→≡
+        : ∀ {H H' : Hypergraph FlatGen As Bs}
+        → Canonical H → Canonical H' → H ≅ᴴ H' → H ≡ H'
+    #+end_src
+
+    *Sub-tasks*:
+    - Define an ordering relation on vertices via the order of
+      first-appearance.  Use ~Unique~ + an index into the list of
+      first-appearances.
+    - Define ~canonify~: permute vertices by the ordering, permute
+      edges by lex order on the permuted ~ein~.
+    - Prove ~canonify-iso~ by constructing the ≅ᴴ whose ~φ~ is the
+      vertex permutation.  Uses ~hTensor-resp-≅ᴴ~-style field
+      threading.
+    - Prove ~canonical-iso→≡~: given two canonical ~H~, ~H'~ with
+      an iso ~φ~, show ~φ~ is forced to be ~id~ (because both
+      orderings agree with the data) — then the ≅ᴴ on all fields
+      collapses to ~≡~.
+
+*** TODO Phase 3.5c — Decoder: hypergraph → HomTerm
+    :PROPERTIES:
+    :effort: ~1 week
+    :END:
+
+    Given a hypergraph, reconstruct a HomTerm:
+    #+begin_src agda
+      decode
+        : ∀ {As Bs} (H : Hypergraph FlatGen As Bs)
+        → HomTerm (unflatten As) (unflatten Bs)
+    #+end_src
+
+    *Construction*:
+    1. Each edge ~e : Fin H.nE~ contributes a generator
+       ~hGen e : HomTerm (unflatten (map vlab (ein e)))
+                          (unflatten (map vlab (eout e)))~.
+    2. Wire the edges through a "serialisation" schema: vertices
+       are produced once (by the first edge whose ~eout~ contains
+       them, or by ~dom~), and consumed zero-or-more times (by
+       edges' ~ein~ or by ~cod~).
+    3. The HomTerm is a composition of tensored generators
+       interleaved with braiding/dup/drop primitives — this is
+       the "cospan form" construction from TensorRocq §3.2.
+
+    *Sub-tasks*:
+    - Pick a linear ordering on edges (topological from ~dom~, or
+      lex on ~ein~).
+    - Inductively build the term edge-by-edge, threading a
+      "stack" of currently-live vertices.
+    - At each edge, emit the generator preceded by a symmetric
+      reshuffle taking the stack to the edge's ~ein~.
+    - At the end, reshuffle from stack to ~cod~.
+
+    *Key property* (to prove in 3.5d):
+    #+begin_src agda
+      decode-translates
+        : ∀ H → ⟪ decode H ⟫ ≅ᴴ
+                subst₂ (Hypergraph FlatGen)
+                       (flatten-unflatten _) (flatten-unflatten _) H
+    #+end_src
+
+*** TODO Phase 3.5d — Round-trip: decode ∘ ⟪_⟫ ≈Term id
+    :PROPERTIES:
+    :effort: ~3-5 days
+    :END:
+
+    Prove decode is the left inverse of ⟪_⟫ modulo ≈Term:
+    #+begin_src agda
+      decode-roundtrip
+        : ∀ {A B} (f : HomTerm A B)
+        → decode ⟪ f ⟫ ≈Term bridge f
+    #+end_src
+    where ~bridge f : HomTerm (unflatten (flatten A)) (unflatten (flatten B))~
+    is ~f~ composed with the ~unflatten-flatten-≈~ iso-morphisms on
+    both ends.
+
+    By induction on ~f~:
+    - Generators: direct.
+    - id, λ, ρ, α, σ: explicit computations.
+    - ∘, ⊗: compositional.
+
+*** TODO Phase 3.5e — Completeness theorem
+    :PROPERTIES:
+    :effort: ~2-3 days
+    :END:
+
+    Assemble the pieces:
+    #+begin_src agda
+      completeness
+        : ∀ {A B} {f g : HomTerm A B}
+        → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+        → f ≈Term g
+      completeness iso =
+        -- f ≈ decode ⟪f⟫   [decode-roundtrip]
+        -- ≈ decode ⟪g⟫     [decode respects ≅ᴴ via canonify-iso + canonical-iso→≡]
+        -- ≈ g              [decode-roundtrip]
+        ?
+    #+end_src
+
+    Needs one more lemma:
+    #+begin_src agda
+      decode-resp-≅ᴴ
+        : ∀ {H H' : Hypergraph FlatGen As Bs}
+        → H ≅ᴴ H' → decode H ≈Term decode H'
+      decode-resp-≅ᴴ iso =
+        -- Route through canonical form:
+        -- decode H ≈Term decode (canonify H)     [decode respects propositional equality
+        --                                          via canonify-iso internal subst]
+        -- decode (canonify H) = decode (canonify H')  [canonical-iso→≡]
+        -- decode (canonify H') ≈Term decode H'
+    #+end_src
+
+*** Phase 3.5 risks + shortcuts
+    *Risks*:
+    - Canonicalisation is subtle under ~--without-K~: the vertex
+      ordering is a dependent permutation on ~Fin n~, and the iso
+      between a hypergraph and its canonicalisation requires
+      transport across ~nV~-equalities.  Expect ~hCompose-resp-≅ᴴ~-
+      size proofs (~500 LOC each).
+    - The decoder's "stack" management needs a clean invariant
+      (probably a vector-style ~Fin n → X~ plus a permutation witness).
+
+    *Shortcuts*:
+    - If Phase 4 ~smcat~ tactic is done first, it can probably be
+      used to discharge many of the `≈Term` round-trip obligations
+      via reflection, shrinking 3.5d substantially.
+    - Weaken completeness to *Boolean* decision: prove
+      ~Dec (⟪f⟫ ≅ᴴ ⟪g⟫) → Dec (f ≈Term g)~ (requires decidable
+      ~_≅ᴴ_~ for translated hypergraphs, which follows from
+      canonification + decidable ~_≡_~).
+
 ** TODO Phase 4 — ~smcat~ reflection macro
    :PROPERTIES:
    :depends-on: Phase 3 (soundness)
    :END:
    Reflection-based tactic that takes a goal ~f ≈ g~ in a
    symmetric-monoidal category and discharges it by reducing to the
-   APROP translation, applying ~soundness⁻¹~ (to be proved along
-   with ~soundness~), and comparing normal forms via the
-   canonical-hypergraph theorem.
+   APROP translation, applying ~soundness⁻¹~ (Phase 3.5), and
+   comparing normal forms via the canonical-hypergraph theorem.
 
 ** TODO Phase 5 — DPO rewriting (~srw~)
    Double-pushout rewriting over hypergraphs, exposed as a tactic
