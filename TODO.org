@@ -1027,22 +1027,51 @@ meantime.
       (probably a vector-style ~Fin n → X~ plus a permutation witness).
 
     *Shortcuts*:
-    - If Phase 4 ~smcat~ tactic is done first, it can probably be
-      used to discharge many of the `≈Term` round-trip obligations
-      via reflection, shrinking 3.5d substantially.
-    - Weaken completeness to *Boolean* decision: prove
+    - Weaken to *Boolean* decision: prove
       ~Dec (⟪f⟫ ≅ᴴ ⟪g⟫) → Dec (f ≈Term g)~ (requires decidable
       ~_≅ᴴ_~ for translated hypergraphs, which follows from
       canonification + decidable ~_≡_~).
+    - Could the ~smcat~ tactic (Phase 4) be used to discharge
+      3.5d's round-trip obligations?  NO — this is circular.  The
+      tactic needs completeness (3.5e) to emit proofs; using it
+      inside 3.5d's proof would assume what we're trying to prove.
+      *However*, a weaker tactic using only the already-proved
+      axioms (no appeal to completeness) *could* shrink 3.5d by
+      auto-discharging purely equational obligations that use only
+      those axioms.  That "partial smcat" would itself be a
+      meaningful sub-project (perhaps as part of Phase 3 finishing
+      touches).
 
 ** TODO Phase 4 — ~smcat~ reflection macro
    :PROPERTIES:
-   :depends-on: Phase 3 (soundness)
+   :depends-on: Phase 3 (soundness) + Phase 3.5 (completeness)
    :END:
    Reflection-based tactic that takes a goal ~f ≈ g~ in a
    symmetric-monoidal category and discharges it by reducing to the
    APROP translation, applying ~soundness⁻¹~ (Phase 3.5), and
    comparing normal forms via the canonical-hypergraph theorem.
+
+   *Strict dependency on Phase 3.5*: to emit a ~f ≈Term g~ proof
+   from a verified ~⟪f⟫ ≅ᴴ ⟪g⟫~ (or equivalently from
+   ~canonify ⟪f⟫ ≡ canonify ⟪g⟫~), the tactic applies
+   ~completeness~.  Without it, the tactic would only be able to
+   *decide* equality, not produce a proof term Agda will accept.
+
+   A *proof-emitting tactic* (producing an actual ~≈Term~ witness)
+   therefore cannot be built before Phase 3.5.  A *decision
+   procedure* (a computational `Dec` with no extracted proof term)
+   can be built from canonification alone, but it is not directly
+   useful in interactive proofs.
+
+   Alternative tactic design that sidesteps Phase 3.5 entirely:
+   implement term-level confluent rewriting on HomTerms using only
+   the already-proved ≈Term axioms.  Each rewrite step emits an
+   ~≈Term~ proof directly, so no appeal to completeness is needed.
+   This corresponds to a classical SMC normalisation algorithm
+   rather than the hypergraph approach.  Equivalent in power; the
+   implementation tradeoffs are different (term-rewriting is
+   easier to emit proofs from but harder to ensure confluence
+   without a canonical form).
 
 ** TODO Phase 5 — DPO rewriting (~srw~)
    Double-pushout rewriting over hypergraphs, exposed as a tactic
