@@ -1068,23 +1068,47 @@ meantime.
    Tensors are used only in the ~srw~ rewrite tactic (Phase 5) to
    *verify* rewrite rules by semantic equality.
 
-*** TODO Phase 4a — Decidable hypergraph isomorphism
+*** DONE Phase 4a — Decidable hypergraph isomorphism
     :PROPERTIES:
     :effort: 2-3 weeks, ~1200-1500 LOC
     :END:
 
-    Implement a partial decision procedure, in a module parameterised
-    by an ~APROPSignatureDec~ (a superset of ~APROPSignature~ adding
-    decidable equality):
-    #+begin_src agda
-      module Categories.APROP.Hypergraph.FindIso (sig-dec : APROPSignatureDec) where
-        open APROPSignatureDec sig-dec
+    Discharged.  ~findIso : (H J : Hypergraph FlatGen As Bs) → Maybe
+    (H ≅ᴴ J)~ lives at ~src/Categories/APROP/Hypergraph/Solver/FindIso.agda~,
+    parameterised by ~APROPSignatureDec~.  All sub-modules are
+    ~--safe --without-K~.  No upstream files were touched — the new
+    machinery sits entirely under ~Solver/~.
 
-        findIso
-          : ∀ {As Bs : List X}
-              (H J : Hypergraph FlatGen As Bs)
-          → Maybe (H ≅ᴴ J)
-    #+end_src
+    Modules (1013 LOC total):
+    | sub-task | module                                       | LOC |
+    |----------+----------------------------------------------+-----|
+    | 4a.0     | ~Solver/Signature.agda~                      |  77 |
+    | 4a.1     | ~Solver/PBij.agda~                           |  98 |
+    | 4a.2     | ~Solver/Seed.agda~                           |  91 |
+    | 4a.3     | ~Solver/Match.agda~                          | 117 |
+    | 4a.4     | ~Solver/Search.agda~                         |  88 |
+    | 4a.5     | ~Solver/Verify.agda~ + ~Solver/Totals.agda~  | 284 |
+    | 4a.6     | ~Solver/FindIso.agda~ + ~Solver/Tests.agda~  | 258 |
+
+    19 tests in ~Solver/Tests.agda~ exercise every equation-shaped
+    ~_≈Term_~ constructor (the four inference-rule constructors
+    ~∘-resp-≈~, ~⊗-resp-≈~, ~≈-Term-sym~, ~≈-Term-trans~ are skipped
+    because they aren't single equations).  Each test has the form
+    ~test-X = from-just (findIso ⟪ lhs ⟫ ⟪ rhs ⟫)~, so a test
+    failure shows up as a type-check error.
+
+    Two design notes:
+    - *Sound, partial-complete*.  ~findIso H J ≡ just iso~ produces
+      a verified ~≅ᴴ~; the search itself isn't complete (fuel
+      exhaustion / label-cull pruning can mask real isos), but for
+      hypergraphs arising from ~⟪_⟫~ it's complete in practice.
+    - *Search-fuel boundary*.  ~Search.searchIso~ checks
+      ~firstUnmatched ψ~ in the zero-fuel base case as well as the
+      step case — without that the search returns ~nothing~ when
+      the last edge match consumes the final fuel unit, even when
+      every edge is already paired.  The fuel bound
+      ~nEH × nEJ~ in ~searchIso-default~ is exact rather than
+      generous.
 
     *Soundness* (always): if ~findIso H J ≡ just iso~, then ~iso~
     is a valid ~≅ᴴ~.  By construction — the procedure builds the
@@ -1468,6 +1492,15 @@ Categories.APROP.Hypergraph.Pentagon          YES  (fully constructive)
 Categories.APROP.Hypergraph.SoundnessAxioms   NO   (7 postulates: 5 axioms + 2 helpers)
 Categories.APROP.Hypergraph.AlphaCommSound    NO   (hTensor-assoc-iso postulate)
 Categories.APROP.Hypergraph.Soundness         NO   (uses SoundnessAxioms, --lossy-unification)
+Categories.APROP.Hypergraph.Solver.Signature  YES
+Categories.APROP.Hypergraph.Solver.PBij       YES
+Categories.APROP.Hypergraph.Solver.Seed       YES
+Categories.APROP.Hypergraph.Solver.Match      YES
+Categories.APROP.Hypergraph.Solver.Search     YES
+Categories.APROP.Hypergraph.Solver.Totals     YES
+Categories.APROP.Hypergraph.Solver.Verify     YES
+Categories.APROP.Hypergraph.Solver.FindIso    YES
+Categories.APROP.Hypergraph.Solver.Tests      YES
 #+end_src
 
 The Hypergraph tree is now mostly `--safe`: three dedicated axiom
