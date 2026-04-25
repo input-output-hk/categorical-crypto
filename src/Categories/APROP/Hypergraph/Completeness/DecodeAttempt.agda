@@ -51,7 +51,7 @@ open import Categories.APROP.Hypergraph.FromAPROP sig
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈)
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
-  using (decode-attempt; edge-step; extract-prefix)
+  using (decode-attempt; edge-step; extract-prefix; process-edges)
 open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
   using (extract-prefix-self; extract-prefix-from-↭;
          extract-prefix-↑ˡ-on-mixed-just; extract-prefix-↑ʳ-on-mixed-just;
@@ -327,6 +327,28 @@ module _
       with extract-prefix (G.ein eG) xs-G in eq
   ... | just (rest , p) = edge-step-↑ˡ-on-mixed-just eG xs-G ys rest p eq
   ... | nothing         = edge-step-↑ˡ-on-mixed-nothing eG xs-G ys eq
+
+  -- Iterate `edge-step-↑ˡ-on-mixed` over a list of G-edges.  By
+  -- induction on `es`: each step reduces the lifted edge-step to the
+  -- factored form, and the IH continues on the residual stack.
+  process-edges-↑ˡ-on-mixed
+    : ∀ (es : List (Fin G.nE))
+        (xs-G : List (Fin G.nV))
+        (ys : List (Fin K.nV))
+    → ∃[ t ]
+         process-edges (hTensor G K)
+                       (map (_↑ˡ K.nE) es)
+                       (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys)
+         ≡ ( map (_↑ˡ K.nV) (proj₁ (process-edges G es xs-G))
+               ++ map (G.nV ↑ʳ_) ys
+           , t )
+  process-edges-↑ˡ-on-mixed []       xs-G ys = _ , refl
+  process-edges-↑ˡ-on-mixed (e ∷ es) xs-G ys
+      with edge-step-↑ˡ-on-mixed e xs-G ys
+  ... | _ , eq-edge
+      with process-edges-↑ˡ-on-mixed es (proj₁ (edge-step G xs-G e)) ys
+  ... | _ , eq-prefix
+      rewrite eq-edge | eq-prefix = _ , refl
 
 --------------------------------------------------------------------------------
 -- `hSwap A B`: nE = 0, dom = L ++ R, cod = R ++ L (where
