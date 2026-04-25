@@ -1544,33 +1544,41 @@ meantime.
       | ~decode-attempt-hSwap~      | *DONE*            | 1-2 days           |
       | ~decode-attempt-hGen~       | *DONE*            | 2-3 days           |
       | ~decode-attempt-hTensor~    | *DONE*            | 1-2 weeks          |
-      | ~decode-attempt-hCompose~   | API only (postulate body) | 2-3 weeks |
+      | ~decode-attempt-hCompose~   | *DONE*            | 2-3 weeks          |
 
-      ~decode-attempt-hTensor~ is now constructive (postulate
-      discharged in commit ce0e988).  Total foundation work for the
-      hTensor case (commits 15dc367 through ce0e988): ~700 lines
-      across DecodeProperties.agda + DecodeAttempt.agda.  Key new
-      machinery:
+      *All decode-attempt-h* postulates are now discharged
+      constructively* (commit ~a5cefef~).  ~decode-attempt-Linear~
+      is fully constructive on top.
 
-      - Mixed-list lifting (just/nothing) for ~extract-elem~ and
-        ~extract-prefix~.
-      - Permutation-respecting ~extract-prefix~ lemmas
-        (~↭-residual~, ~↭-nothing~) to handle K-side mid-stack
-        shapes that aren't in standard ~L ++ R~ form.
-      - Per-edge lifting (G-side equality form, K-side just /
-        nothing / perm-respecting on ↭-equiv inputs).
-      - ~process-edges~ lifting (G-side equality, K-side perm
-        invariant) by induction over the edge list.
-      - IH-strengthening lemma (~decode-attempt-perm-from-just~)
-        and its inverse (~decode-attempt-from-perm~) to bridge the
-        decoder.
+      Hypergraph-side machinery introduced for hTensor (commits
+      15dc367-ce0e988) and reused / extended for hCompose
+      (05f2d3b-a5cefef):
 
-      ~decode-attempt-hCompose~ remains; it requires similar
-      machinery on the ~remap~ side.  The structure is parallel —
-      foundation lemmas + per-edge + process-edges + IH bridging —
-      and most lemmas should adapt by replacing ~map injR~ with
-      ~map remap~ and reusing the ~remap~ lemmas already in
-      ~Invariant.agda~ / ~Linearity.agda~.
+      - *Mixed-list lifting* for ~extract-elem~ and ~extract-prefix~
+        (just/nothing).  Used by hTensor's K-side via ~injR~.
+      - *Permutation-respecting* ~extract-prefix-↭-residual~ /
+        ~↭-nothing~.  Used by both K-sides (hTensor's via ~injR~,
+        hCompose's via ~remap~).
+      - *Generic via-injective* lifting for any injective
+        ~f : Fin n → Fin m~.  Specialised to ~injL~ (for hCompose's
+        G-side pure-L stack) and ~remap~ (for hCompose's K-side).
+      - *hCompose-Linear-utils* (in Linearity.agda) — exposes
+        ~map-remap-K-dom~, ~remap-noDom~, and the new
+        ~remap-injective~ proof (count-based contradiction via
+        K.dom ↭ x ∷ y ∷ rest decomposition).
+      - *IH-strengthening* (~decode-attempt-perm-from-just~) and
+        its inverse (~decode-attempt-from-perm~).
+      - *Per-edge & process-edges lifts*: G-side equality (mixed
+        for hTensor, pure-L for hCompose), K-side perm-respecting
+        (via ~injR~ for hTensor, via ~remap~ for hCompose).
+
+      ~decode-attempt-hCompose~ takes ~Linear G~ + ~Linear K~ as
+      additional arguments (compared to hTensor's signature).  The
+      caller ~decode-attempt-Linear~ passes ~⟪⟫-Linear f/g~ from
+      ~Linearity.agda~.
+
+      Total: ~1100 lines added across DecodeProperties.agda,
+      DecodeAttempt.agda, Linearity.agda.
 
       The actual time-to-completion for foundation + hSwap + hGen was
       far below the initial estimate, because going through stdlib's
