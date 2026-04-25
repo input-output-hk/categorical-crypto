@@ -51,7 +51,7 @@ import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Nat using (ℕ)
-open import Data.Product using (Σ-syntax; ∃-syntax; _,_)
+open import Data.Product using (Σ-syntax; ∃-syntax; _,_; _×_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong)
 open import Relation.Nullary using (yes; no)
@@ -487,3 +487,55 @@ extract-prefix-from-↭ xs (y ∷ ys') p
            (PermProp.drop-∷ (Perm.↭-trans (Perm.↭-sym q) p))
 ... | r , eq-prefix
     rewrite eq-extract | eq-prefix = _ , refl
+
+--------------------------------------------------------------------------------
+-- (11) `extract-prefix-↭-residual`: the partial form of
+-- `extract-prefix-from-↭`.  When `xs` permutes to `ks ++ rest`,
+-- `extract-prefix ks xs` succeeds with a residual `rest'` that
+-- permutes to `rest`.
+--
+-- Same proof shape as `extract-prefix-from-↭`: `extract-elem-found`
+-- on the head, recurse via `drop-∷`.  Diverges only at the empty
+-- prefix base case where `extract-prefix [] xs ≡ just (xs , refl)`
+-- and we extract `rest ↭ xs` from the input perm.
+
+extract-prefix-↭-residual
+  : ∀ {n} (ks xs rest : List (Fin n))
+  → xs Perm.↭ ks ++ rest
+  → ∃[ rest' ] ∃[ p ] extract-prefix ks xs ≡ just (rest' , p)
+                     × rest Perm.↭ rest'
+extract-prefix-↭-residual []       xs rest perm-in =
+  xs , Perm.refl , refl , Perm.↭-sym perm-in
+extract-prefix-↭-residual (k ∷ ks) xs rest perm-in
+    with extract-elem-found k xs
+           (PermProp.∈-resp-↭ (Perm.↭-sym perm-in) (here refl))
+... | xs' , q , eq-extract
+    with extract-prefix-↭-residual ks xs' rest
+           (PermProp.drop-∷ (Perm.↭-trans (Perm.↭-sym q) perm-in))
+... | rest' , p-prefix , eq-prefix , rest-perm
+    rewrite eq-extract | eq-prefix = rest' , _ , refl , rest-perm
+
+--------------------------------------------------------------------------------
+-- (12) `extract-prefix-↭-nothing`: the contrapositive direction.
+-- If `extract-prefix ks xs ≡ nothing` and `xs ↭ xs'`, then
+-- `extract-prefix ks xs' ≡ nothing`.  Used to lift the K-edge "edge
+-- doesn't fire" case to permutation-equivalent stacks.
+--
+-- Proof by contradiction: if `extract-prefix ks xs' ≡ just (rest', _)`
+-- then `xs' ↭ ks ++ rest'`, so `xs ↭ ks ++ rest'`, so by (11)
+-- `extract-prefix ks xs` succeeds — contradicting the `nothing` input.
+
+extract-prefix-↭-nothing
+  : ∀ {n} (ks xs xs' : List (Fin n))
+  → xs Perm.↭ xs'
+  → extract-prefix ks xs ≡ nothing
+  → extract-prefix ks xs' ≡ nothing
+extract-prefix-↭-nothing ks xs xs' xs↭xs' eq
+    with extract-prefix ks xs' in eq-xs'
+... | nothing             = refl
+... | just (rest' , p-xs')
+    with extract-prefix-↭-residual ks xs rest'
+           (Perm.↭-trans xs↭xs' p-xs')
+... | _ , _ , eq-xs , _
+    rewrite eq-xs with eq
+... | ()
