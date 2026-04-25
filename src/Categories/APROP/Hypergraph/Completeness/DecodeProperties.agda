@@ -539,3 +539,86 @@ extract-prefix-↭-nothing ks xs xs' xs↭xs' eq
 ... | _ , _ , eq-xs , _
     rewrite eq-xs with eq
 ... | ()
+
+--------------------------------------------------------------------------------
+-- (13) `extract-elem`/`extract-prefix` lifting through an injective
+-- function `f : Fin n → Fin m`.  The L-side `_↑ˡ_` and R-side `_↑ʳ_`
+-- liftings (sections 7-8) are special cases; the K-side `remap` of
+-- `hCompose` is another (provided remap is injective, which holds
+-- when both `Linear G` and `Linear K` are assumed).
+--
+-- Only the `nothing` direction at the prefix level is needed by
+-- `decode-attempt-hCompose` (the `just` direction goes through
+-- `extract-prefix-↭-residual` instead).  The `extract-elem` half
+-- needs both directions for the prefix `nothing` proof.
+
+extract-elem-via-injective-nothing
+  : ∀ {n m} (f : Fin n → Fin m)
+  → (f-inj : ∀ {x y} → f x ≡ f y → x ≡ y)
+  → ∀ (k : Fin n) (xs : List (Fin n))
+  → extract-elem k xs ≡ nothing
+  → extract-elem (f k) (map f xs) ≡ nothing
+extract-elem-via-injective-nothing f f-inj k []       _  = refl
+extract-elem-via-injective-nothing f f-inj k (x ∷ xs) eq with x ≟ k
+extract-elem-via-injective-nothing f f-inj k (x ∷ xs) eq | yes _ with eq
+... | ()
+extract-elem-via-injective-nothing f f-inj k (x ∷ xs) eq | no  q
+    with extract-elem k xs in eq-inner
+... | nothing =
+      extract-elem-skip-nothing
+        (f k) (f x) (map f xs)
+        (λ p₁ → q (f-inj p₁))
+        (extract-elem-via-injective-nothing f f-inj k xs eq-inner)
+... | just _ with eq
+... | ()
+
+extract-elem-via-injective-just
+  : ∀ {n m} (f : Fin n → Fin m)
+  → (f-inj : ∀ {x y} → f x ≡ f y → x ≡ y)
+  → ∀ (k : Fin n) (xs rest : List (Fin n)) (p : xs Perm.↭ k ∷ rest)
+  → extract-elem k xs ≡ just (rest , p)
+  → ∃[ q ] extract-elem (f k) (map f xs) ≡ just (map f rest , q)
+extract-elem-via-injective-just f f-inj k (x ∷ xs) rest p eq with x ≟ k
+extract-elem-via-injective-just f f-inj k (x ∷ xs) rest p eq | yes refl
+    with eq
+... | refl with f x ≟ f x
+... | yes _    = _ , refl
+... | no  q    = ⊥-elim (q refl)
+extract-elem-via-injective-just f f-inj k (x ∷ xs) rest p eq | no q
+    with extract-elem k xs in eq-inner
+... | nothing with eq
+... | ()
+extract-elem-via-injective-just f f-inj k (x ∷ xs) rest p eq | no q
+    | just (rest' , p')
+    with eq
+... | refl
+    with extract-elem-via-injective-just f f-inj k xs rest' p' eq-inner
+... | _ , eq-rec =
+      _ , extract-elem-skip-just (f k) (f x) (map f xs)
+            (map f rest') _ (λ p₁ → q (f-inj p₁)) eq-rec
+
+extract-prefix-via-injective-nothing
+  : ∀ {n m} (f : Fin n → Fin m)
+  → (f-inj : ∀ {x y} → f x ≡ f y → x ≡ y)
+  → ∀ (ks xs : List (Fin n))
+  → extract-prefix ks xs ≡ nothing
+  → extract-prefix (map f ks) (map f xs) ≡ nothing
+extract-prefix-via-injective-nothing f f-inj []       xs ()
+extract-prefix-via-injective-nothing f f-inj (k ∷ ks) xs eq
+    with extract-elem k xs in eq-elem
+... | nothing
+    rewrite extract-elem-via-injective-nothing f f-inj k xs eq-elem
+    = refl
+extract-prefix-via-injective-nothing f f-inj (k ∷ ks) xs eq
+    | just (xs' , p-elem)
+    with extract-prefix ks xs' in eq-prefix
+... | nothing
+    with extract-elem-via-injective-just f f-inj k xs xs' p-elem eq-elem
+... | _ , eq-elem-f
+    rewrite eq-elem-f
+          | extract-prefix-via-injective-nothing f f-inj ks xs' eq-prefix
+    = refl
+extract-prefix-via-injective-nothing f f-inj (k ∷ ks) xs eq
+    | just (xs' , p-elem) | just (rest , p-prefix)
+    with eq
+... | ()
