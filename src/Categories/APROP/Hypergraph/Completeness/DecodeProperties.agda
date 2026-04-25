@@ -36,7 +36,10 @@ open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.Fin.Properties using (_≟_; splitAt-↑ˡ; splitAt-↑ʳ)
 open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.List.Membership.Propositional using (_∈_)
+open import Data.List.Relation.Unary.Any using (here; there)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
+import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Nat using (ℕ)
 open import Data.Product using (Σ-syntax; ∃-syntax; _,_)
@@ -171,3 +174,48 @@ extract-exact-self xs with extract-prefix-self xs
 -- they can be inlined as case-specific helpers (the lists involved
 -- there are concrete enough that the proofs are simpler than the
 -- fully general statement above).
+
+--------------------------------------------------------------------------------
+-- (9) `extract-elem-found`: a membership witness `y ∈ xs` constructively
+-- produces a successful `extract-elem y xs ≡ just (rest, p)`.
+--
+-- Pattern-match the membership; in the `there mem'` case, recurse on
+-- `xs` and lift via `extract-elem-skip-just` (the latter does its own
+-- `with x ≟ y`, so we keep the outer signature clean).
+
+extract-elem-found
+  : ∀ {n} (y : Fin n) (xs : List (Fin n))
+  → y ∈ xs
+  → ∃[ rest ] ∃[ p ] extract-elem y xs ≡ just (rest , p)
+extract-elem-found y (x ∷ xs) (here refl) with y ≟ y
+... | yes _ = _ , _ , refl
+... | no  q = ⊥-elim (q refl)
+extract-elem-found y (x ∷ xs) (there mem) with x ≟ y
+... | yes _   = _ , _ , refl
+... | no  q   with extract-elem-found y xs mem
+...              | _ , _ , eq rewrite eq = _ , _ , refl
+
+--------------------------------------------------------------------------------
+-- (10) `extract-prefix-from-↭`: a permutation `xs ↭ ys` constructively
+-- produces a successful `extract-prefix ys xs ≡ just ([], p)`.
+--
+-- This is THE key lemma for `decode-attempt-hSwap`: combined with
+-- stdlib's `Perm.++-comm`, it discharges `extract-exact (R ++ L) (L ++ R)`.
+-- Strategy: induct on `ys`, extracting the head element via `∈-resp-↭`
+-- and `extract-elem-found`, then cancel via `drop-∷` for the recursive
+-- call.
+
+extract-prefix-from-↭
+  : ∀ {n} (xs ys : List (Fin n))
+  → xs Perm.↭ ys
+  → ∃[ p ] extract-prefix ys xs ≡ just ([] , p)
+extract-prefix-from-↭ xs []       p
+    with PermProp.↭-empty-inv p
+... | refl = Perm.refl , refl
+extract-prefix-from-↭ xs (y ∷ ys') p
+    with extract-elem-found y xs (PermProp.∈-resp-↭ (Perm.↭-sym p) (here refl))
+... | rest , q , eq-extract
+    with extract-prefix-from-↭ rest ys'
+           (PermProp.drop-∷ (Perm.↭-trans (Perm.↭-sym q) p))
+... | r , eq-prefix
+    rewrite eq-extract | eq-prefix = _ , refl

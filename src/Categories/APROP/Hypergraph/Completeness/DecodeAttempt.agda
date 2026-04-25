@@ -14,15 +14,16 @@
 --       (concrete lists ⇒ algorithm reduces by `refl`).
 --     - `decode-attempt-hVar`   : `decode-attempt (hVar x) ≡ just _`
 --       (singleton stack ⇒ algorithm reduces by `refl`).
+--     - `decode-attempt-hSwap`  : reduces via `extract-prefix-from-↭`
+--       (in `DecodeProperties.agda`) applied to `Perm.++-comm`.
 --     - `decode-attempt-hId`    : structural recursion on `A`.
 --     - `decode-attempt-subst₂` : `subst₂ refl refl` is the identity.
 --
---   * Postulated (still): `hSwap`, `hGen`, `hTensor`, `hCompose`.
---     Their `dom`/`cod` involve symbolic `_↑ˡ_`/`_↑ʳ_` applications,
---     so `extract-prefix` doesn't reduce by `refl` alone, and a
---     constructive proof requires structural-induction lemmas about
---     the search algorithm (deferred work, overlapping with Step 4's
---     compositional lemmas about `decode`).
+--   * Postulated (still): `hGen`, `hTensor`, `hCompose`.
+--     Their inputs involve real edges (so `process-all-edges` is
+--     non-trivial), and a constructive proof requires more
+--     structural lemmas about how the cospan algorithm interacts
+--     with `injL`/`injR`/`remap` (deferred work).
 --
 -- Composing the per-case lemmas gives a constructive proof of
 -- `decode-attempt-Linear f : ∃ t. decode-attempt ⟪ f ⟫ ≡ just t`,
@@ -39,17 +40,22 @@ module Categories.APROP.Hypergraph.Completeness.DecodeAttempt (sig : APROPSignat
 open APROP sig
 open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using (FlatGen; flatten; ⟪_⟫;
+  using (FlatGen; flatten; ⟪_⟫; range;
          hEmpty; hVar; hId; hGen; hSwap; hTensor; hCompose)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈)
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
   using (decode-attempt)
+open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
+  using (extract-prefix-from-↭)
 
 open import Categories.Morphism FreeMonoidal using (_≅_)
 
-open import Data.List using (List; []; _∷_; _++_)
+open import Data.Fin using (_↑ˡ_; _↑ʳ_)
+open import Data.List using (List; []; _∷_; _++_; length; map)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
+import Data.List.Relation.Binary.Permutation.Propositional as Perm
+import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (just)
 open import Data.Product using (Σ-syntax; _,_; proj₁)
 open import Relation.Binary.PropositionalEquality
@@ -76,13 +82,31 @@ decode-attempt-hVar
       decode-attempt (hVar x) ≡ just t
 decode-attempt-hVar x = _ , refl
 
-postulate
-  decode-attempt-hSwap
-    : ∀ (A B : ObjTerm)
-    → Σ[ t ∈ HomTerm (unflatten (flatten A ++ flatten B))
-                     (unflatten (flatten B ++ flatten A)) ]
-        decode-attempt (hSwap A B) ≡ just t
+--------------------------------------------------------------------------------
+-- `hSwap A B`: nE = 0, dom = L ++ R, cod = R ++ L (where
+-- L = map (_↑ˡ nB) (range nA), R = map (nA ↑ʳ_) (range nB)).
+-- `process-all-edges` returns (dom, id) trivially since nE = 0.
+-- Then `extract-exact (R ++ L) (L ++ R)` succeeds because
+-- (L ++ R) ↭ (R ++ L) by stdlib's `++-comm`, and
+-- `extract-prefix-from-↭` discharges the search.
 
+decode-attempt-hSwap
+  : ∀ (A B : ObjTerm)
+  → Σ[ t ∈ HomTerm (unflatten (flatten A ++ flatten B))
+                   (unflatten (flatten B ++ flatten A)) ]
+      decode-attempt (hSwap A B) ≡ just t
+decode-attempt-hSwap A B
+    with extract-prefix-from-↭
+           (map (_↑ˡ length (flatten B)) (range (length (flatten A)))
+            ++ map (length (flatten A) ↑ʳ_) (range (length (flatten B))))
+           (map (length (flatten A) ↑ʳ_) (range (length (flatten B)))
+            ++ map (_↑ˡ length (flatten B)) (range (length (flatten A))))
+           (PermProp.++-comm
+             (map (_↑ˡ length (flatten B)) (range (length (flatten A))))
+             (map (length (flatten A) ↑ʳ_) (range (length (flatten B)))))
+... | p , eq rewrite eq = _ , refl
+
+postulate
   decode-attempt-hGen
     : ∀ {A B : ObjTerm} (g : mor A B)
     → Σ[ t ∈ HomTerm (unflatten (flatten A)) (unflatten (flatten B)) ]

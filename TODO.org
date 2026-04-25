@@ -1369,25 +1369,52 @@ meantime.
 
       8. ~extract-exact-self~ *(DONE):* immediate from (5).
 
+      9. ~extract-elem-found~ *(DONE):*
+         ~y ∈ xs → ∃ rest p . extract-elem y xs ≡ just (rest, p)~.
+         Constructive search via membership.  Pattern-matches the
+         membership; uses ~extract-elem-self~ for the head case and
+         `rewrite` on the IH for the tail-skip case.  Avoids needing
+         ~extract-elem-skip-just~ (which has a `with-aux` indentation
+         conflict against the outer caller).
+
+      10. ~extract-prefix-from-↭~ *(DONE):*
+          ~xs ↭ ys → ∃ p . extract-prefix ys xs ≡ just ([], p)~.
+          Inducts on `ys`; uses stdlib's ~↭-empty-inv~,
+          ~∈-resp-↭~, ~↭-sym~, ~↭-trans~, ~drop-∷~ to extract a head
+          membership and cancel for the recursive call.  This is the
+          *key* lemma used to discharge ~decode-attempt-hSwap~ via
+          ~PermProp.++-comm~.
+
       *Side-effect of the foundation work:*  ~Decode.agda~'s
       ~extract-elem~ was refactored from ~yes refl~ to ~yes p +
       subst~ so it reduces under `--without-K` even when both arguments
       are forced equal.  All consumers (~decode-attempt-hEmpty~,
       ~decode-attempt-hVar~, ~Completeness.agda~) still compile.
 
-      ****** ~decode-attempt-hSwap A B~ (~1-2 days, after foundation)
+      ****** DONE ~decode-attempt-hSwap A B~
 
       ~hSwap A B~ has ~nE = 0~, ~dom = L ++ R~, ~cod = R ++ L~ where
       ~L = map (_↑ˡ nB) (range nA)~, ~R = map (nA ↑ʳ_) (range nB)~.
       ~process-all-edges~ returns ~(L ++ R , id)~ trivially.  Need:
       ~extract-exact (R ++ L) (L ++ R)~ succeeds.
 
-      Use foundation (6, 7, 8) to factor: extracting ~R~ from ~L ++ R~
-      skips ~L~ (by 6, via ~disj-L-R~) and finds ~R~ in itself (by 7,
-      via ~raise-inj~ + ~range-Unique~); the residual ~L~ then matches
-      ~L~ exactly (by 5, via ~range-Unique~ + ~inject+-inj~).  The
-      resulting term is ~permute-via-vlab vlab perm ∘ id~ where
-      ~perm : (L ++ R) ↭ (R ++ L)~.
+      *Status: complete.* Proved constructively via two new
+      foundation lemmas in ~DecodeProperties.agda~:
+      - ~extract-elem-found : y ∈ xs → ∃ rest p . extract-elem y xs ≡ just (rest, p)~
+        — induction on `xs`, using ~extract-elem-self~ for the head
+        match and `rewrite` on the IH for the tail.
+      - ~extract-prefix-from-↭ : xs ↭ ys → ∃ p . extract-prefix ys xs ≡ just ([], p)~
+        — induction on `ys`, using stdlib's ~↭-empty-inv~,
+        ~∈-resp-↭~, ~↭-sym~, ~↭-trans~, and ~drop-∷~ to extract the
+        head element membership and cancel for the recursive call.
+
+      With these, ~decode-attempt-hSwap A B~ unfolds:
+      ~process-all-edges~ trivialises (nE = 0); the final
+      ~extract-exact (R ++ L) (L ++ R)~ succeeds via
+      ~extract-prefix-from-↭~ applied to stdlib's
+      ~PermProp.++-comm L R : (L ++ R) ↭ (R ++ L)~.  No `disj-L-R` /
+      `inject+-inj` / `range-Unique` plumbing was needed — the
+      `↭-from-Perm.++-comm` route bypasses them entirely.
 
       ****** ~decode-attempt-hGen g~ (~1-2 days, after foundation)
 
