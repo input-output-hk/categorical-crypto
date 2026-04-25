@@ -55,17 +55,19 @@ open import Categories.APROP.Hypergraph.Completeness.Decode sig
 open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
   using (extract-prefix-self; extract-prefix-from-↭;
          extract-prefix-↑ˡ-on-mixed-just; extract-prefix-↑ʳ-on-mixed-just;
-         extract-prefix-↑ˡ-on-mixed-nothing; extract-prefix-↑ʳ-on-mixed-nothing)
+         extract-prefix-↑ˡ-on-mixed-nothing; extract-prefix-↑ʳ-on-mixed-nothing;
+         extract-prefix-↭-residual; extract-prefix-↭-nothing)
 
 open import Categories.Morphism FreeMonoidal using (_≅_)
 
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
+open import Data.Nat using (_+_)
 open import Data.List using (List; []; _∷_; _++_; length; map)
 open import Data.List.Properties using (++-identityʳ; ++-assoc; map-++)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (just; nothing)
-open import Data.Product using (Σ-syntax; ∃-syntax; _,_; proj₁; proj₂)
+open import Data.Product using (Σ-syntax; ∃-syntax; _,_; _×_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst; subst₂; module ≡-Reasoning)
 
@@ -349,6 +351,153 @@ module _
       with process-edges-↑ˡ-on-mixed es (proj₁ (edge-step G xs-G e)) ys
   ... | _ , eq-prefix
       rewrite eq-edge | eq-prefix = _ , refl
+
+  --------------------------------------------------------------------
+  -- K-side per-edge lifting on a permutation-equivalent input.
+  --
+  -- Unlike the G-side, K-edges' eouts get prepended to the front of
+  -- the stack, breaking the `(map injL ?) ++ (map injR ?)` form.  We
+  -- track only a permutation invariant: the lifted edge-step's
+  -- output permutes to `L ++ map injR (proj₁ (edge-step K ys eK))`.
+  --
+  -- Strategy: case-split on K's edge-step; in each case use the
+  -- foundation lemmas + permutation reasoning to lift to s.
+  edge-step-↑ʳ-on-perm
+    : ∀ (eK : Fin K.nE)
+        (s : List (Fin (G.nV + K.nV)))
+        (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → s Perm.↭ map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys
+    → ∃[ s' ] ∃[ t ]
+         edge-step (hTensor G K) s (G.nE ↑ʳ eK) ≡ (s' , t)
+       × s' Perm.↭ map (_↑ˡ K.nV) xs
+                     ++ map (G.nV ↑ʳ_) (proj₁ (edge-step K ys eK))
+  edge-step-↑ʳ-on-perm eK s xs ys s↭std
+      with extract-prefix (K.ein eK) ys in eq-K
+  ... | just (rest , p-K) = R-out ++ r
+                          , proj₁ edge-step-eq
+                          , proj₂ edge-step-eq
+                          , final-perm
+    where
+      open Perm.PermutationReasoning
+      L     = map (_↑ˡ K.nV)  xs
+      R-pre = map (G.nV ↑ʳ_)  (K.ein  eK)
+      R-out = map (G.nV ↑ʳ_)  (K.eout eK)
+      R-rst = map (G.nV ↑ʳ_)  rest
+
+      -- Permute s so that K's ein elements sit at the front.  Used to
+      -- feed `extract-prefix-↭-residual`, which requires the prefix
+      -- exposed at the head.
+      s↭shuffled : s Perm.↭ R-pre ++ (L ++ R-rst)
+      s↭shuffled = begin
+        s
+          ↭⟨ s↭std ⟩
+        L ++ map (G.nV ↑ʳ_) ys
+          ↭⟨ PermProp.++⁺ˡ L (PermProp.map⁺ (G.nV ↑ʳ_) p-K) ⟩
+        L ++ map (G.nV ↑ʳ_) (K.ein eK ++ rest)
+          ≡⟨ cong (L ++_) (map-++ (G.nV ↑ʳ_) (K.ein eK) rest) ⟩
+        L ++ (R-pre ++ R-rst)
+          ≡⟨ sym (++-assoc L R-pre R-rst) ⟩
+        (L ++ R-pre) ++ R-rst
+          ↭⟨ PermProp.++⁺ʳ R-rst (PermProp.++-comm L R-pre) ⟩
+        (R-pre ++ L) ++ R-rst
+          ≡⟨ ++-assoc R-pre L R-rst ⟩
+        R-pre ++ (L ++ R-rst)
+          ∎
+
+      -- Pull the residual `r` and its permutation out via the
+      -- partial form of `extract-prefix-from-↭`.
+      extract-step
+        : ∃[ r ] ∃[ p ] extract-prefix R-pre s ≡ just (r , p)
+                       × (L ++ R-rst) Perm.↭ r
+      extract-step =
+        extract-prefix-↭-residual R-pre s (L ++ R-rst) s↭shuffled
+
+      r  = proj₁ extract-step
+      r↭ : (L ++ R-rst) Perm.↭ r
+      r↭ = proj₂ (proj₂ (proj₂ extract-step))
+
+      -- Bridge `ein-c-inj₂-red` so the lifted extract result is
+      -- expressed in terms of the algorithm's actual lookup.
+      extract-on-ein-c
+        : ∃[ q ] extract-prefix
+                   (Hypergraph.ein (hTensor G K) (G.nE ↑ʳ eK)) s
+                 ≡ just (r , q)
+      extract-on-ein-c =
+        subst (λ ks → ∃[ q ] extract-prefix ks s ≡ just (r , q))
+              (sym (hT-impl.ein-c-inj₂-red eK))
+              (proj₁ (proj₂ extract-step) ,
+               proj₁ (proj₂ (proj₂ extract-step)))
+
+      -- After rewriting the lifted extract's success, edge-step
+      -- reduces to `(eout-c (G.nE ↑ʳ eK) ++ r , _)`.
+      reduce-result
+        : ∃[ t ] edge-step (hTensor G K) s (G.nE ↑ʳ eK)
+                   ≡ (Hypergraph.eout (hTensor G K) (G.nE ↑ʳ eK) ++ r , t)
+      reduce-result rewrite proj₂ extract-on-ein-c = _ , refl
+
+      -- Use `eout-c-inj₂-red` to convert eout-c to `R-out`.
+      edge-step-eq
+        : ∃[ t ] edge-step (hTensor G K) s (G.nE ↑ʳ eK) ≡ (R-out ++ r , t)
+      edge-step-eq =
+        subst (λ ks → ∃[ t ] edge-step (hTensor G K) s (G.nE ↑ʳ eK)
+                              ≡ (ks ++ r , t))
+              (hT-impl.eout-c-inj₂-red eK)
+              reduce-result
+
+      -- Show R-out ++ r permutes to `L ++ map injR (K.eout eK ++ rest)`.
+      final-perm
+        : R-out ++ r Perm.↭ L ++ map (G.nV ↑ʳ_) (K.eout eK ++ rest)
+      final-perm = begin
+        R-out ++ r
+          ↭⟨ PermProp.++⁺ˡ R-out (Perm.↭-sym r↭) ⟩
+        R-out ++ (L ++ R-rst)
+          ≡⟨ sym (++-assoc R-out L R-rst) ⟩
+        (R-out ++ L) ++ R-rst
+          ↭⟨ PermProp.++⁺ʳ R-rst (PermProp.++-comm R-out L) ⟩
+        (L ++ R-out) ++ R-rst
+          ≡⟨ ++-assoc L R-out R-rst ⟩
+        L ++ (R-out ++ R-rst)
+          ≡⟨ cong (L ++_) (sym (map-++ (G.nV ↑ʳ_) (K.eout eK) rest)) ⟩
+        L ++ map (G.nV ↑ʳ_) (K.eout eK ++ rest)
+          ∎
+
+  ... | nothing = nothing-result
+    where
+      open Perm.PermutationReasoning
+      L = map (_↑ˡ K.nV) xs
+      R = map (G.nV ↑ʳ_) ys
+
+      nothing-on-std : extract-prefix
+                         (map (G.nV ↑ʳ_) (K.ein eK)) (L ++ R) ≡ nothing
+      nothing-on-std =
+        extract-prefix-↑ʳ-on-mixed-nothing G.nV (K.ein eK) xs ys eq-K
+
+      nothing-on-s : extract-prefix (map (G.nV ↑ʳ_) (K.ein eK)) s ≡ nothing
+      nothing-on-s =
+        extract-prefix-↭-nothing
+          (map (G.nV ↑ʳ_) (K.ein eK))
+          (L ++ R) s
+          (Perm.↭-sym s↭std)
+          nothing-on-std
+
+      nothing-on-ein-c
+        : extract-prefix
+            (Hypergraph.ein (hTensor G K) (G.nE ↑ʳ eK)) s
+            ≡ nothing
+      nothing-on-ein-c =
+        subst (λ ks → extract-prefix ks s ≡ nothing)
+              (sym (hT-impl.ein-c-inj₂-red eK))
+              nothing-on-s
+
+      reduce-to-id
+        : ∃[ t ] edge-step (hTensor G K) s (G.nE ↑ʳ eK) ≡ (s , t)
+      reduce-to-id rewrite nothing-on-ein-c = _ , refl
+
+      nothing-result : ∃[ s' ] ∃[ t ]
+                         edge-step (hTensor G K) s (G.nE ↑ʳ eK)
+                           ≡ (s' , t)
+                       × s' Perm.↭ L ++ R
+      nothing-result = s , proj₁ reduce-to-id , proj₂ reduce-to-id , s↭std
 
 --------------------------------------------------------------------------------
 -- `hSwap A B`: nE = 0, dom = L ++ R, cod = R ++ L (where
