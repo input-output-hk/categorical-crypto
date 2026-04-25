@@ -46,25 +46,27 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
   using (FlatGen; flatten; ⟪_⟫; range;
-         hEmpty; hVar; hId; hGen; hSwap; hTensor; hCompose)
+         hEmpty; hVar; hId; hGen; hSwap; hTensor; hCompose;
+         module hTensor-impl)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈)
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
-  using (decode-attempt)
+  using (decode-attempt; edge-step; extract-prefix)
 open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
-  using (extract-prefix-self; extract-prefix-from-↭)
+  using (extract-prefix-self; extract-prefix-from-↭;
+         extract-prefix-↑ˡ-on-mixed-just; extract-prefix-↑ʳ-on-mixed-just)
 
 open import Categories.Morphism FreeMonoidal using (_≅_)
 
-open import Data.Fin using (_↑ˡ_; _↑ʳ_)
+open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.List using (List; []; _∷_; _++_; length; map)
-open import Data.List.Properties using (++-identityʳ; ++-assoc)
+open import Data.List.Properties using (++-identityʳ; ++-assoc; map-++)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (just)
-open import Data.Product using (Σ-syntax; ∃-syntax; _,_; proj₁)
+open import Data.Product using (Σ-syntax; ∃-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; subst; subst₂)
+  using (_≡_; refl; sym; trans; cong; subst; subst₂; module ≡-Reasoning)
 
 --------------------------------------------------------------------------------
 -- Per-case lemmas, one for each smart constructor of `FromAPROP`.
@@ -86,6 +88,97 @@ decode-attempt-hVar
   → Σ[ t ∈ HomTerm (unflatten (x ∷ [])) (unflatten (x ∷ [])) ]
       decode-attempt (hVar x) ≡ just t
 decode-attempt-hVar x = _ , refl
+
+--------------------------------------------------------------------------------
+-- Edge-step lifting for `hTensor`: when an edge is on the G-side
+-- (resp. K-side), edge-step's result on the mixed stack factors
+-- through the underlying single-side search.
+--
+-- Strategy: rewrite away the `ein-c` / `eout-c` reductions and the
+-- inner extract-prefix's success, then bridge the resulting `++-assoc
+-- + map-++` shape to the desired form via a single `subst` over an
+-- equational-reasoning chain.
+
+module _
+  {As Bs Cs Ds : List X}
+  (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Cs Ds)
+  where
+  private
+    module G = Hypergraph G
+    module K = Hypergraph K
+    module hT-impl = hTensor-impl G K
+
+  edge-step-↑ˡ-on-mixed-just
+    : ∀ (eG : Fin G.nE)
+        (xs-G : List (Fin G.nV))
+        (ys : List (Fin K.nV))
+        (rest-G : List (Fin G.nV))
+        (p-G : xs-G Perm.↭ G.ein eG ++ rest-G)
+    → extract-prefix (G.ein eG) xs-G ≡ just (rest-G , p-G)
+    → ∃[ t ]
+         edge-step (hTensor G K)
+                   (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys)
+                   (eG ↑ˡ K.nE)
+         ≡ (map (_↑ˡ K.nV) (G.eout eG ++ rest-G) ++ map (G.nV ↑ʳ_) ys , t)
+  edge-step-↑ˡ-on-mixed-just eG xs-G ys rest-G p-G eq =
+      subst (λ s → ∃[ t ]
+                     edge-step (hTensor G K) stack (eG ↑ˡ K.nE)
+                     ≡ (s , t))
+            list-eq
+            reduce-result
+    where
+      open ≡-Reasoning
+
+      stack = map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys
+
+      -- Transport `extract-prefix-↑ˡ-on-mixed-just`'s output from the
+      -- `map (_↑ˡ K.nV) (G.ein eG)` form to the ein-c form Agda actually
+      -- sees in `edge-step`'s body.  Wrapping the existential in `subst`'s
+      -- predicate lets a single subst transport both the residual
+      -- permutation and the equation simultaneously.
+      eq-on-ein-c
+        : ∃[ q ] extract-prefix
+                   (Hypergraph.ein (hTensor G K) (eG ↑ˡ K.nE)) stack
+                 ≡ just (map (_↑ˡ K.nV) rest-G ++ map (G.nV ↑ʳ_) ys , q)
+      eq-on-ein-c =
+        subst (λ ks → ∃[ q ] extract-prefix ks stack
+                              ≡ just ( map (_↑ˡ K.nV) rest-G
+                                         ++ map (G.nV ↑ʳ_) ys
+                                     , q ))
+              (sym (hT-impl.ein-c-inj₁-red eG))
+              (extract-prefix-↑ˡ-on-mixed-just K.nV (G.ein eG)
+                                                xs-G ys rest-G p-G eq)
+
+      reduce-result
+        : ∃[ t ]
+            edge-step (hTensor G K) stack (eG ↑ˡ K.nE)
+            ≡ ( Hypergraph.eout (hTensor G K) (eG ↑ˡ K.nE)
+                  ++ (map (_↑ˡ K.nV) rest-G ++ map (G.nV ↑ʳ_) ys)
+              , t )
+      reduce-result rewrite proj₂ eq-on-ein-c = _ , refl
+
+      -- Equational chain bridging edge-step's raw output to the
+      -- claimed lifted form; absorbs eout-c-inj₁-red, ++-assoc, map-++.
+      list-eq : Hypergraph.eout (hTensor G K) (eG ↑ˡ K.nE)
+                  ++ (map (_↑ˡ K.nV) rest-G ++ map (G.nV ↑ʳ_) ys)
+              ≡ map (_↑ˡ K.nV) (G.eout eG ++ rest-G)
+                  ++ map (G.nV ↑ʳ_) ys
+      list-eq = begin
+        Hypergraph.eout (hTensor G K) (eG ↑ˡ K.nE)
+          ++ (map (_↑ˡ K.nV) rest-G ++ map (G.nV ↑ʳ_) ys)
+        ≡⟨ cong (_++ (map (_↑ˡ K.nV) rest-G ++ map (G.nV ↑ʳ_) ys))
+                (hT-impl.eout-c-inj₁-red eG) ⟩
+        map (_↑ˡ K.nV) (G.eout eG)
+          ++ (map (_↑ˡ K.nV) rest-G ++ map (G.nV ↑ʳ_) ys)
+        ≡⟨ sym (++-assoc (map (_↑ˡ K.nV) (G.eout eG))
+                          (map (_↑ˡ K.nV) rest-G)
+                          (map (G.nV ↑ʳ_) ys)) ⟩
+        (map (_↑ˡ K.nV) (G.eout eG) ++ map (_↑ˡ K.nV) rest-G)
+          ++ map (G.nV ↑ʳ_) ys
+        ≡⟨ cong (_++ map (G.nV ↑ʳ_) ys)
+                (sym (map-++ (_↑ˡ K.nV) (G.eout eG) rest-G)) ⟩
+        map (_↑ˡ K.nV) (G.eout eG ++ rest-G) ++ map (G.nV ↑ʳ_) ys
+        ∎
 
 --------------------------------------------------------------------------------
 -- `hSwap A B`: nE = 0, dom = L ++ R, cod = R ++ L (where
