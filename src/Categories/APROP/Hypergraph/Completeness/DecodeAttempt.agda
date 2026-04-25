@@ -47,7 +47,7 @@ open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
   using (FlatGen; flatten; ⟪_⟫; range;
          hEmpty; hVar; hId; hGen; hSwap; hTensor; hCompose;
-         module hTensor-impl)
+         module hTensor-impl; module hCompose-impl)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈)
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
@@ -57,8 +57,11 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
   using (extract-prefix-self; extract-prefix-from-↭;
          extract-prefix-↑ˡ-on-mixed-just; extract-prefix-↑ʳ-on-mixed-just;
          extract-prefix-↑ˡ-on-mixed-nothing; extract-prefix-↑ʳ-on-mixed-nothing;
-         extract-prefix-↭-residual; extract-prefix-↭-nothing)
+         extract-prefix-↭-residual; extract-prefix-↭-nothing;
+         extract-prefix-via-injective-just; extract-prefix-via-injective-nothing)
 import Categories.APROP.Hypergraph.Invariant sig as Inv
+open Inv using (inject+-inj)
+import Categories.APROP.Hypergraph.Completeness.Linearity sig as Lin
 
 open import Categories.Morphism FreeMonoidal using (_≅_)
 
@@ -562,6 +565,252 @@ module _
       rewrite eq-edge | eq-rec = _ , _ , refl , perm-rec
 
 --------------------------------------------------------------------------------
+-- hCompose lifts.  Parallel to hTensor lifts above, but:
+--   * G-side: pure-L stack `map injL ?` (no R-side mixing) — uses
+--     `extract-prefix-via-injective-{just,nothing}` with f = injL.
+--   * K-side: stack ↭ `map remap ?` — uses extract-prefix-via-injective-
+--     nothing with f = remap (whose injectivity comes from
+--     `Lin.hCompose-Linear-utils.remap-injective`, requiring Linear G +
+--     Linear K).
+
+module _
+  {As Bs Cs : List X}
+  (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs)
+  (lin-G : Lin.Linear G) (lin-K : Lin.Linear K)
+  where
+  private
+    module G = Hypergraph G
+    module K = Hypergraph K
+  -- Brings into scope: injL, injR, remap, ein-c, eout-c, vlab-c,
+  -- ein-c-inj₁-red, eout-c-inj₁-red, ein-c-inj₂-red, eout-c-inj₂-red,
+  -- and helpers map-remap-K-dom, remap-noDom, remap-injective.
+  open Lin.hCompose-Linear-utils G K lin-G lin-K
+
+  --------------------------------------------------------------------
+  -- G-side: per-edge lifting on a pure-L stack `map injL xs`.
+
+  edge-step-↑ˡ-pure-L-just
+    : ∀ (eG : Fin G.nE) (xs : List (Fin G.nV))
+        (rest : List (Fin G.nV)) (p : xs Perm.↭ G.ein eG ++ rest)
+    → extract-prefix (G.ein eG) xs ≡ just (rest , p)
+    → ∃[ t ]
+         edge-step (hCompose G K) (map (_↑ˡ K.nV) xs) (eG ↑ˡ K.nE)
+         ≡ (map (_↑ˡ K.nV) (G.eout eG ++ rest) , t)
+  edge-step-↑ˡ-pure-L-just eG xs rest p eq =
+      subst (λ s → ∃[ t ] edge-step (hCompose G K) stack (eG ↑ˡ K.nE)
+                            ≡ (s , t))
+            list-eq
+            reduce-result
+    where
+      open ≡-Reasoning
+      stack = map (_↑ˡ K.nV) xs
+
+      eq-on-ein-c
+        : ∃[ q ] extract-prefix
+                   (Hypergraph.ein (hCompose G K) (eG ↑ˡ K.nE)) stack
+                 ≡ just (map (_↑ˡ K.nV) rest , q)
+      eq-on-ein-c =
+        subst (λ ks → ∃[ q ] extract-prefix ks stack
+                              ≡ just (map (_↑ˡ K.nV) rest , q))
+              (sym (ein-c-inj₁-red eG))
+              (extract-prefix-via-injective-just (_↑ˡ K.nV) (inject+-inj K.nV)
+                                                  (G.ein eG) xs rest p eq)
+
+      reduce-result
+        : ∃[ t ] edge-step (hCompose G K) stack (eG ↑ˡ K.nE)
+                  ≡ (Hypergraph.eout (hCompose G K) (eG ↑ˡ K.nE)
+                       ++ map (_↑ˡ K.nV) rest , t)
+      reduce-result rewrite proj₂ eq-on-ein-c = _ , refl
+
+      list-eq : Hypergraph.eout (hCompose G K) (eG ↑ˡ K.nE)
+                  ++ map (_↑ˡ K.nV) rest
+              ≡ map (_↑ˡ K.nV) (G.eout eG ++ rest)
+      list-eq = begin
+        Hypergraph.eout (hCompose G K) (eG ↑ˡ K.nE)
+          ++ map (_↑ˡ K.nV) rest
+          ≡⟨ cong (_++ map (_↑ˡ K.nV) rest) (eout-c-inj₁-red eG) ⟩
+        map (_↑ˡ K.nV) (G.eout eG) ++ map (_↑ˡ K.nV) rest
+          ≡⟨ sym (map-++ (_↑ˡ K.nV) (G.eout eG) rest) ⟩
+        map (_↑ˡ K.nV) (G.eout eG ++ rest)
+          ∎
+
+  edge-step-↑ˡ-pure-L-nothing
+    : ∀ (eG : Fin G.nE) (xs : List (Fin G.nV))
+    → extract-prefix (G.ein eG) xs ≡ nothing
+    → ∃[ t ]
+         edge-step (hCompose G K) (map (_↑ˡ K.nV) xs) (eG ↑ˡ K.nE)
+         ≡ (map (_↑ˡ K.nV) xs , t)
+  edge-step-↑ˡ-pure-L-nothing eG xs eq = aux nothing-lifted
+    where
+      stack = map (_↑ˡ K.nV) xs
+
+      nothing-lifted : extract-prefix
+                         (Hypergraph.ein (hCompose G K) (eG ↑ˡ K.nE))
+                         stack ≡ nothing
+      nothing-lifted =
+        subst (λ ks → extract-prefix ks stack ≡ nothing)
+              (sym (ein-c-inj₁-red eG))
+              (extract-prefix-via-injective-nothing (_↑ˡ K.nV)
+                                                     (inject+-inj K.nV)
+                                                     (G.ein eG) xs eq)
+
+      aux : extract-prefix (Hypergraph.ein (hCompose G K) (eG ↑ˡ K.nE)) stack
+              ≡ nothing
+          → ∃[ t ] edge-step (hCompose G K) stack (eG ↑ˡ K.nE) ≡ (stack , t)
+      aux p rewrite p = _ , refl
+
+  edge-step-↑ˡ-pure-L
+    : ∀ (eG : Fin G.nE) (xs : List (Fin G.nV))
+    → ∃[ t ]
+         edge-step (hCompose G K) (map (_↑ˡ K.nV) xs) (eG ↑ˡ K.nE)
+         ≡ (map (_↑ˡ K.nV) (proj₁ (edge-step G xs eG)) , t)
+  edge-step-↑ˡ-pure-L eG xs
+      with extract-prefix (G.ein eG) xs in eq
+  ... | just (rest , p) = edge-step-↑ˡ-pure-L-just eG xs rest p eq
+  ... | nothing         = edge-step-↑ˡ-pure-L-nothing eG xs eq
+
+  process-edges-↑ˡ-pure-L
+    : ∀ (es : List (Fin G.nE)) (xs : List (Fin G.nV))
+    → ∃[ t ]
+         process-edges (hCompose G K) (map (_↑ˡ K.nE) es) (map (_↑ˡ K.nV) xs)
+         ≡ (map (_↑ˡ K.nV) (proj₁ (process-edges G es xs)) , t)
+  process-edges-↑ˡ-pure-L []       xs = _ , refl
+  process-edges-↑ˡ-pure-L (e ∷ es) xs
+      with edge-step-↑ˡ-pure-L e xs
+  ... | _ , eq-edge
+      with process-edges-↑ˡ-pure-L es (proj₁ (edge-step G xs e))
+  ... | _ , eq-prefix
+      rewrite eq-edge | eq-prefix = _ , refl
+
+  --------------------------------------------------------------------
+  -- K-side: perm-respecting per-edge lifting via remap.  Stack
+  -- assumed `↭ map remap ys`; output stack `↭ map remap (proj₁
+  -- (edge-step K ys eK))`.
+
+  edge-step-↑ʳ-via-remap
+    : ∀ (eK : Fin K.nE)
+        (s : List (Fin (G.nV + K.nV)))
+        (ys : List (Fin K.nV))
+    → s Perm.↭ map remap ys
+    → ∃[ s' ] ∃[ t ]
+         (edge-step (hCompose G K) s (G.nE ↑ʳ eK) ≡ (s' , t))
+       × (s' Perm.↭ map remap (proj₁ (edge-step K ys eK)))
+  edge-step-↑ʳ-via-remap eK s ys s↭std
+      with extract-prefix (K.ein eK) ys in eq-K
+  ... | just (rest , p-K) =
+        map remap (K.eout eK) ++ r
+      , proj₁ edge-step-eq
+      , proj₂ edge-step-eq
+      , final-perm
+    where
+      open Perm.PermutationReasoning
+      R-pre = map remap (K.ein eK)
+      R-out = map remap (K.eout eK)
+      R-rst = map remap rest
+
+      -- Permute s to expose K.ein eK as the prefix.
+      s↭shuffled : s Perm.↭ R-pre ++ R-rst
+      s↭shuffled = begin
+        s
+          ↭⟨ s↭std ⟩
+        map remap ys
+          ↭⟨ PermProp.map⁺ remap p-K ⟩
+        map remap (K.ein eK ++ rest)
+          ≡⟨ map-++ remap (K.ein eK) rest ⟩
+        R-pre ++ R-rst
+          ∎
+
+      extract-step
+        : ∃[ r ] ∃[ p ] extract-prefix R-pre s ≡ just (r , p) × R-rst Perm.↭ r
+      extract-step = extract-prefix-↭-residual R-pre s R-rst s↭shuffled
+
+      r = proj₁ extract-step
+      r↭ : R-rst Perm.↭ r
+      r↭ = proj₂ (proj₂ (proj₂ extract-step))
+
+      extract-on-ein-c
+        : ∃[ q ] extract-prefix
+                   (Hypergraph.ein (hCompose G K) (G.nE ↑ʳ eK)) s
+                 ≡ just (r , q)
+      extract-on-ein-c =
+        subst (λ ks → ∃[ q ] extract-prefix ks s ≡ just (r , q))
+              (sym (ein-c-inj₂-red eK))
+              (proj₁ (proj₂ extract-step) ,
+               proj₁ (proj₂ (proj₂ extract-step)))
+
+      reduce-result
+        : ∃[ t ] edge-step (hCompose G K) s (G.nE ↑ʳ eK)
+                  ≡ (Hypergraph.eout (hCompose G K) (G.nE ↑ʳ eK) ++ r , t)
+      reduce-result rewrite proj₂ extract-on-ein-c = _ , refl
+
+      edge-step-eq
+        : ∃[ t ] edge-step (hCompose G K) s (G.nE ↑ʳ eK) ≡ (R-out ++ r , t)
+      edge-step-eq =
+        subst (λ ks → ∃[ t ] edge-step (hCompose G K) s (G.nE ↑ʳ eK)
+                              ≡ (ks ++ r , t))
+              (eout-c-inj₂-red eK)
+              reduce-result
+
+      final-perm : R-out ++ r Perm.↭ map remap (K.eout eK ++ rest)
+      final-perm = begin
+        R-out ++ r
+          ↭⟨ PermProp.++⁺ˡ R-out (Perm.↭-sym r↭) ⟩
+        R-out ++ R-rst
+          ≡⟨ sym (map-++ remap (K.eout eK) rest) ⟩
+        map remap (K.eout eK ++ rest)
+          ∎
+
+  ... | nothing = nothing-result
+    where
+      nothing-on-std
+        : extract-prefix (map remap (K.ein eK)) (map remap ys) ≡ nothing
+      nothing-on-std =
+        extract-prefix-via-injective-nothing remap remap-injective
+                                              (K.ein eK) ys eq-K
+
+      nothing-on-s
+        : extract-prefix (map remap (K.ein eK)) s ≡ nothing
+      nothing-on-s =
+        extract-prefix-↭-nothing
+          (map remap (K.ein eK)) (map remap ys) s
+          (Perm.↭-sym s↭std) nothing-on-std
+
+      nothing-on-ein-c
+        : extract-prefix
+            (Hypergraph.ein (hCompose G K) (G.nE ↑ʳ eK)) s ≡ nothing
+      nothing-on-ein-c =
+        subst (λ ks → extract-prefix ks s ≡ nothing)
+              (sym (ein-c-inj₂-red eK))
+              nothing-on-s
+
+      reduce-to-id
+        : ∃[ t ] edge-step (hCompose G K) s (G.nE ↑ʳ eK) ≡ (s , t)
+      reduce-to-id rewrite nothing-on-ein-c = _ , refl
+
+      nothing-result
+        : ∃[ s' ] ∃[ t ]
+             (edge-step (hCompose G K) s (G.nE ↑ʳ eK) ≡ (s' , t))
+           × (s' Perm.↭ map remap ys)
+      nothing-result = s , proj₁ reduce-to-id , proj₂ reduce-to-id , s↭std
+
+  process-edges-↑ʳ-via-remap
+    : ∀ (es : List (Fin K.nE))
+        (s : List (Fin (G.nV + K.nV)))
+        (ys : List (Fin K.nV))
+    → s Perm.↭ map remap ys
+    → ∃[ s' ] ∃[ t ]
+         (process-edges (hCompose G K) (map (G.nE ↑ʳ_) es) s ≡ (s' , t))
+       × (s' Perm.↭ map remap (proj₁ (process-edges K es ys)))
+  process-edges-↑ʳ-via-remap []       s ys s↭std =
+    s , _ , refl , s↭std
+  process-edges-↑ʳ-via-remap (e ∷ es) s ys s↭std
+      with edge-step-↑ʳ-via-remap e s ys s↭std
+  ... | _ , _ , eq-edge , perm-edge
+      with process-edges-↑ʳ-via-remap es _ (proj₁ (edge-step K ys e)) perm-edge
+  ... | _ , _ , eq-rec , perm-rec
+      rewrite eq-edge | eq-rec = _ , _ , refl , perm-rec
+
+--------------------------------------------------------------------------------
 -- `hSwap A B`: nE = 0, dom = L ++ R, cod = R ++ L (where
 -- L = map (_↑ˡ nB) (range nA), R = map (nA ↑ʳ_) (range nB)).
 -- `process-all-edges` returns (dom, id) trivially since nE = 0.
@@ -763,14 +1012,121 @@ decode-attempt-hTensor {As} {Bs} {Cs} {Ds} G K ih-G ih-K =
       map (_↑ˡ K.nV) G.cod ++ map (G.nV ↑ʳ_) K.cod
         ∎
 
-postulate
-  decode-attempt-hCompose
-    : ∀ {As Bs Cs : List X}
-        (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs)
-    → (∃[ tG ] decode-attempt G ≡ just tG)
-    → (∃[ tK ] decode-attempt K ≡ just tK)
-    → Σ[ t ∈ HomTerm (unflatten As) (unflatten Cs) ]
-        decode-attempt (hCompose G K) ≡ just t
+--------------------------------------------------------------------------------
+-- `decode-attempt-hCompose`: combines G-side and K-side liftings,
+-- using `hCompose-Linear-utils.map-remap-K-dom` to bridge from
+-- `map injL G.cod` (after G-edges) to `map remap K.dom` (start of
+-- K-edges).
+--
+-- Strategy:
+--   1. Extract `s_G_final ↭ G.cod` and `s_K_final ↭ K.cod` via
+--      `decode-attempt-perm-from-just`.
+--   2. Factor `process-all-edges (hCompose G K)` via
+--      `Invariant.range-++` and `process-edges-++-stack`.
+--   3. G-edges block: `process-edges-↑ˡ-pure-L` reduces to
+--      `map injL s_G_final`.
+--   4. Bridge to K-side: `map injL s_G_final ↭ map injL G.cod ≡
+--      map remap K.dom`.
+--   5. K-edges block: `process-edges-↑ʳ-via-remap` (with the bridge
+--      perm as input) yields `s_K' ↭ map remap s_K_final`.
+--   6. Combine via `perm-K`: `map remap s_K_final ↭ map remap K.cod
+--      = (hCompose G K).cod`.
+--   7. Feed to `decode-attempt-from-perm`.
+
+decode-attempt-hCompose
+  : ∀ {As Bs Cs : List X}
+      (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs)
+  → Lin.Linear G → Lin.Linear K
+  → (∃[ tG ] decode-attempt G ≡ just tG)
+  → (∃[ tK ] decode-attempt K ≡ just tK)
+  → Σ[ t ∈ HomTerm (unflatten As) (unflatten Cs) ]
+      decode-attempt (hCompose G K) ≡ just t
+decode-attempt-hCompose {As} {Bs} {Cs} G K lin-G lin-K ih-G ih-K =
+    decode-attempt-from-perm (hCompose G K)
+      (proj₁ proc , proj₂ proc , refl , perm-final)
+  where
+    module G = Hypergraph G
+    module K = Hypergraph K
+    open Lin.hCompose-Linear-utils G K lin-G lin-K
+    open Perm.PermutationReasoning
+
+    -- Extract from IHs.
+    ih-G' = decode-attempt-perm-from-just G ih-G
+    s_G_final = proj₁ ih-G'
+    eq-G = proj₁ (proj₂ (proj₂ ih-G'))
+    perm-G = proj₂ (proj₂ (proj₂ ih-G'))
+
+    ih-K' = decode-attempt-perm-from-just K ih-K
+    s_K_final = proj₁ ih-K'
+    eq-K = proj₁ (proj₂ (proj₂ ih-K'))
+    perm-K = proj₂ (proj₂ (proj₂ ih-K'))
+
+    proc = process-all-edges (hCompose G K) (Hypergraph.dom (hCompose G K))
+
+    -- Stack after G-edges: equals `map injL s_G_final`.
+    after-G-stack = proj₁ (process-edges (hCompose G K)
+                            (map (_↑ˡ K.nE) (range G.nE))
+                            (Hypergraph.dom (hCompose G K)))
+
+    G-lift = process-edges-↑ˡ-pure-L G K lin-G lin-K (range G.nE) G.dom
+
+    after-G-≡ : after-G-stack ≡ map (_↑ˡ K.nV) s_G_final
+    after-G-≡ = trans (cong proj₁ (proj₂ G-lift))
+                       (cong (map (_↑ˡ K.nV)) (cong proj₁ eq-G))
+
+    -- Bridge: after-G-stack ↭ map remap K.dom.
+    -- Via perm-G + map-remap-K-dom.
+    after-G-↭-remap-Kdom
+      : after-G-stack Perm.↭ map remap K.dom
+    after-G-↭-remap-Kdom = begin
+      after-G-stack
+        ≡⟨ after-G-≡ ⟩
+      map (_↑ˡ K.nV) s_G_final
+        ↭⟨ PermProp.map⁺ (_↑ˡ K.nV) perm-G ⟩
+      map (_↑ˡ K.nV) G.cod
+        ≡⟨ sym map-remap-K-dom ⟩
+      map remap K.dom
+        ∎
+
+    -- K-side perm-respecting lift.
+    K-lift = process-edges-↑ʳ-via-remap G K lin-G lin-K
+              (range K.nE) after-G-stack K.dom after-G-↭-remap-Kdom
+
+    s_K' = proj₁ K-lift
+    K-lift-eq   = proj₁ (proj₂ (proj₂ K-lift))
+    K-lift-perm = proj₂ (proj₂ (proj₂ K-lift))
+
+    -- proj₁ proc ≡ s_K' via range-++ + process-edges-++-stack +
+    -- the K-lift's equation.
+    proc-≡-s_K' : proj₁ proc ≡ s_K'
+    proc-≡-s_K' =
+      trans (cong (λ es → proj₁ (process-edges (hCompose G K) es
+                                  (Hypergraph.dom (hCompose G K))))
+                  (Inv.range-++ G.nE K.nE))
+            (trans (process-edges-++-stack (hCompose G K)
+                     (map (_↑ˡ K.nE) (range G.nE))
+                     (map (G.nE ↑ʳ_) (range K.nE))
+                     (Hypergraph.dom (hCompose G K)))
+                   (cong proj₁ K-lift-eq))
+
+    -- Substitute proj₁ K's process-edges output for s_K_final.
+    K-final-perm
+      : s_K' Perm.↭ map remap s_K_final
+    K-final-perm =
+      subst (λ x → s_K' Perm.↭ map remap x)
+            (cong proj₁ eq-K)
+            K-lift-perm
+
+    perm-final : proj₁ proc Perm.↭ Hypergraph.cod (hCompose G K)
+    perm-final = begin
+      proj₁ proc
+        ≡⟨ proc-≡-s_K' ⟩
+      s_K'
+        ↭⟨ K-final-perm ⟩
+      map remap s_K_final
+        ↭⟨ PermProp.map⁺ remap perm-K ⟩
+      map remap K.cod
+        ∎
 
 --------------------------------------------------------------------------------
 -- `subst₂` transport: pure type-level shuffling.  When both equalities
@@ -818,6 +1174,7 @@ decode-attempt-Linear (Agen g)  = decode-attempt-hGen g
 decode-attempt-Linear (id {A})  = decode-attempt-hId A
 decode-attempt-Linear (g ∘ f)   =
   decode-attempt-hCompose ⟪ f ⟫ ⟪ g ⟫
+    (Lin.⟪⟫-Linear f) (Lin.⟪⟫-Linear g)
     (decode-attempt-Linear f) (decode-attempt-Linear g)
 decode-attempt-Linear (f ⊗₁ g)  =
   decode-attempt-hTensor ⟪ f ⟫ ⟪ g ⟫

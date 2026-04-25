@@ -622,3 +622,28 @@ extract-prefix-via-injective-nothing f f-inj (k ∷ ks) xs eq
     | just (xs' , p-elem) | just (rest , p-prefix)
     with eq
 ... | ()
+
+extract-prefix-via-injective-just
+  : ∀ {n m} (f : Fin n → Fin m)
+  → (f-inj : ∀ {x y} → f x ≡ f y → x ≡ y)
+  → ∀ (ks xs rest : List (Fin n)) (p : xs Perm.↭ ks ++ rest)
+  → extract-prefix ks xs ≡ just (rest , p)
+  → ∃[ q ] extract-prefix (map f ks) (map f xs) ≡ just (map f rest , q)
+extract-prefix-via-injective-just f f-inj []       xs rest p eq with eq
+... | refl = _ , refl
+extract-prefix-via-injective-just f f-inj (k ∷ ks) xs rest p eq
+    with extract-elem k xs in eq-elem
+... | nothing with eq
+...              | ()
+extract-prefix-via-injective-just f f-inj (k ∷ ks) xs rest p eq
+    | just (xs' , p-elem)
+    with extract-prefix ks xs' in eq-prefix
+... | nothing with eq
+...              | ()
+extract-prefix-via-injective-just f f-inj (k ∷ ks) xs rest p eq
+    | just (xs' , p-elem) | just (rest' , p-prefix) with eq
+... | refl
+    with extract-elem-via-injective-just f f-inj k xs xs' p-elem eq-elem
+       | extract-prefix-via-injective-just f f-inj ks xs' rest' p-prefix eq-prefix
+... | _ , eq-elem-f | _ , eq-prefix-f
+    rewrite eq-elem-f | eq-prefix-f = _ , refl
