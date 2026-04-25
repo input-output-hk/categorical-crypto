@@ -1543,8 +1543,34 @@ meantime.
       | Foundation lemmas           | *DONE*            | 3-5 days           |
       | ~decode-attempt-hSwap~      | *DONE*            | 1-2 days           |
       | ~decode-attempt-hGen~       | *DONE*            | 2-3 days           |
-      | ~decode-attempt-hTensor~    | API only (postulate body) | 1-2 weeks |
+      | ~decode-attempt-hTensor~    | *DONE*            | 1-2 weeks          |
       | ~decode-attempt-hCompose~   | API only (postulate body) | 2-3 weeks |
+
+      ~decode-attempt-hTensor~ is now constructive (postulate
+      discharged in commit ce0e988).  Total foundation work for the
+      hTensor case (commits 15dc367 through ce0e988): ~700 lines
+      across DecodeProperties.agda + DecodeAttempt.agda.  Key new
+      machinery:
+
+      - Mixed-list lifting (just/nothing) for ~extract-elem~ and
+        ~extract-prefix~.
+      - Permutation-respecting ~extract-prefix~ lemmas
+        (~↭-residual~, ~↭-nothing~) to handle K-side mid-stack
+        shapes that aren't in standard ~L ++ R~ form.
+      - Per-edge lifting (G-side equality form, K-side just /
+        nothing / perm-respecting on ↭-equiv inputs).
+      - ~process-edges~ lifting (G-side equality, K-side perm
+        invariant) by induction over the edge list.
+      - IH-strengthening lemma (~decode-attempt-perm-from-just~)
+        and its inverse (~decode-attempt-from-perm~) to bridge the
+        decoder.
+
+      ~decode-attempt-hCompose~ remains; it requires similar
+      machinery on the ~remap~ side.  The structure is parallel —
+      foundation lemmas + per-edge + process-edges + IH bridging —
+      and most lemmas should adapt by replacing ~map injR~ with
+      ~map remap~ and reusing the ~remap~ lemmas already in
+      ~Invariant.agda~ / ~Linearity.agda~.
 
       The actual time-to-completion for foundation + hSwap + hGen was
       far below the initial estimate, because going through stdlib's
