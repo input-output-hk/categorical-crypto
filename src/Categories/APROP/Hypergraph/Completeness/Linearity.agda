@@ -1,0 +1,1021 @@
+{-# OPTIONS --safe --without-K #-}
+
+--------------------------------------------------------------------------------
+-- Phase 3.5f Step 1 — Linearity invariant on translated hypergraphs.
+--
+-- A hypergraph `H` is *linear* when every vertex's "production" count
+-- (appearances in `dom ++ concat (tabulate eout)`) matches its
+-- "consumption" count (appearances in `cod ++ concat (tabulate ein)`)
+-- and both are at most 1.
+--
+-- This is the side condition under which the cospan-form decoder can
+-- build a `HomTerm`: the free symmetric monoidal category has no
+-- duplication or discarding, so each vertex must be produced and
+-- consumed exactly once (or 0 times for *stranded* vertices that the
+-- composite `hCompose` introduces — those do not show up in the
+-- decoded term).
+--
+-- The translation `⟪ f ⟫` always satisfies linearity (`⟪⟫-Linear`),
+-- by structural induction on `f` using the side lemmas
+-- `Linear-hTensor` / `Linear-hCompose`.
+--
+-- STATUS: complete.  Compositional side lemmas (`Linear-hTensor`,
+-- `Linear-hCompose`), base cases (`Linear-hEmpty`, `Linear-hVar`,
+-- `Linear-hId`, `Linear-hGen`, `Linear-hSwap`), and the `subst₂`
+-- transport (`Linear-subst₂`) used for ρ⇒/ρ⇐/α⇒/α⇐ are all proved.
+--------------------------------------------------------------------------------
+
+open import Categories.APROP
+
+module Categories.APROP.Hypergraph.Completeness.Linearity (sig : APROPSignature) where
+
+open APROP sig
+open import Categories.APROP.Hypergraph.Core
+open import Categories.APROP.Hypergraph.FromAPROP sig
+  using ( FlatGen; flatten; range; ⟪_⟫
+        ; hEmpty; hVar; hId; hGen; hSwap; hTensor; hCompose
+        ; module hTensor-impl; module hCompose-impl)
+
+open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
+open import Data.Fin.Properties using
+  ( _≟_; suc-injective; ↑ˡ-injective; ↑ʳ-injective
+  ; splitAt-↑ˡ; splitAt-↑ʳ; splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ)
+open import Data.List as List using (List; []; _∷_; _++_; length; map; tabulate; concat)
+open import Data.List.Properties using
+  ( ++-identityʳ; ++-assoc; map-++; length-map
+  ; tabulate-cong; map-tabulate; concat-map; concat-++)
+import Data.List.Relation.Binary.Permutation.Propositional as Perm
+import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
+import Function as Fun
+open import Data.Nat using (ℕ; zero; suc; s≤s; z≤n; _+_)
+open import Data.Nat as Nat using ()
+import Data.Nat.Properties as Nat
+open import Data.Product using (Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Sum using (inj₁; inj₂)
+open import Relation.Binary.PropositionalEquality
+  using (_≡_; refl; cong; cong₂; sym; trans; subst; subst₂)
+open import Relation.Nullary.Decidable using (Dec; yes; no)
+open import Relation.Nullary.Negation using (¬_)
+
+--------------------------------------------------------------------------------
+-- count v xs : number of occurrences of `v` in `xs`.
+
+count : ∀ {n} → Fin n → List (Fin n) → ℕ
+count v []       = 0
+count v (x ∷ xs) with v ≟ x
+... | yes _ = suc (count v xs)
+... | no  _ = count v xs
+
+--------------------------------------------------------------------------------
+-- count distributes over `_++_`.
+
+count-++ : ∀ {n} (v : Fin n) (xs ys : List (Fin n))
+         → count v (xs ++ ys) ≡ count v xs + count v ys
+count-++ v []       ys = refl
+count-++ v (x ∷ xs) ys with v ≟ x
+... | yes _ = cong suc (count-++ v xs ys)
+... | no  _ = count-++ v xs ys
+
+count-[]-right : ∀ {n} (v : Fin n) (xs : List (Fin n))
+               → count v (xs ++ []) ≡ count v xs
+count-[]-right v xs = trans (count-++ v xs []) (Nat.+-identityʳ _)
+
+--------------------------------------------------------------------------------
+-- count of `v` in `range n`: every Fin appears exactly once.
+
+private
+  count-zero-map-suc : ∀ {n} (xs : List (Fin n))
+                     → count (zero {n = n}) (map suc xs) ≡ 0
+  count-zero-map-suc []       = refl
+  count-zero-map-suc (x ∷ xs) with zero {n = _} ≟ suc x
+  ... | no  _ = count-zero-map-suc xs
+
+  count-suc-map-suc : ∀ {n} (i : Fin n) (xs : List (Fin n))
+                    → count (suc i) (map suc xs) ≡ count i xs
+  count-suc-map-suc i []       = refl
+  count-suc-map-suc i (x ∷ xs) with suc i ≟ suc x | i ≟ x
+  ... | yes _ | yes _ = cong suc (count-suc-map-suc i xs)
+  ... | yes p | no  q = ⊥-elim (q (suc-injective p))
+  ... | no  q | yes p = ⊥-elim (q (cong suc p))
+  ... | no  _ | no  _ = count-suc-map-suc i xs
+
+count-range : ∀ {n} (v : Fin n) → count v (range n) ≡ 1
+count-range {n = suc n} zero    with zero {n = n} ≟ zero
+... | yes _ = cong suc (count-zero-map-suc {n = n} (range n))
+... | no  q = ⊥-elim (q refl)
+count-range {n = suc n} (suc i) with suc i ≟ zero
+... | no  _ = trans (count-suc-map-suc i (range n)) (count-range i)
+
+--------------------------------------------------------------------------------
+-- Counting along the disjoint injections `_↑ˡ_` and `_↑ʳ_`.
+
+-- The "matching" cases: count i in xs ≡ count (i ↑ˡ nB) in (map (_↑ˡ nB) xs).
+count-map-↑ˡ : ∀ {nA} nB (i : Fin nA) (xs : List (Fin nA))
+             → count (i ↑ˡ nB) (map (_↑ˡ nB) xs) ≡ count i xs
+count-map-↑ˡ nB i []       = refl
+count-map-↑ˡ nB i (x ∷ xs) with (i ↑ˡ nB) ≟ (x ↑ˡ nB) | i ≟ x
+... | yes _ | yes _ = cong suc (count-map-↑ˡ nB i xs)
+... | yes p | no  q = ⊥-elim (q (↑ˡ-injective nB i x p))
+... | no  q | yes p = ⊥-elim (q (cong (_↑ˡ nB) p))
+... | no  _ | no  _ = count-map-↑ˡ nB i xs
+
+count-map-↑ʳ : ∀ nA {nB} (j : Fin nB) (xs : List (Fin nB))
+             → count (nA ↑ʳ j) (map (nA ↑ʳ_) xs) ≡ count j xs
+count-map-↑ʳ nA j []       = refl
+count-map-↑ʳ nA j (x ∷ xs) with (nA ↑ʳ j) ≟ (nA ↑ʳ x) | j ≟ x
+... | yes _ | yes _ = cong suc (count-map-↑ʳ nA j xs)
+... | yes p | no  q = ⊥-elim (q (↑ʳ-injective nA j x p))
+... | no  q | yes p = ⊥-elim (q (cong (nA ↑ʳ_) p))
+... | no  _ | no  _ = count-map-↑ʳ nA j xs
+
+-- The "mismatch" cases: a `nA ↑ʳ j` doesn't appear in any `_↑ˡ_` image,
+-- and vice versa.
+
+private
+  ↑ˡ≢↑ʳ : ∀ {nA nB} (i : Fin nA) (j : Fin nB) → i ↑ˡ nB ≡ nA ↑ʳ j → ⊥
+  ↑ˡ≢↑ʳ {nA} {nB} i j p
+    with trans (sym (splitAt-↑ˡ nA i nB))
+               (trans (cong (splitAt nA) p) (splitAt-↑ʳ nA nB j))
+  ... | ()
+
+count-map-↑ˡ-mismatch : ∀ nA {nB} (j : Fin nB) (xs : List (Fin nA))
+                      → count (nA ↑ʳ j) (map (_↑ˡ nB) xs) ≡ 0
+count-map-↑ˡ-mismatch nA j []       = refl
+count-map-↑ˡ-mismatch nA {nB} j (x ∷ xs) with (nA ↑ʳ j) ≟ (x ↑ˡ nB)
+... | yes p = ⊥-elim (↑ˡ≢↑ʳ x j (sym p))
+... | no  _ = count-map-↑ˡ-mismatch nA j xs
+
+count-map-↑ʳ-mismatch : ∀ {nA} nB (i : Fin nA) (xs : List (Fin nB))
+                      → count (i ↑ˡ nB) (map (nA ↑ʳ_) xs) ≡ 0
+count-map-↑ʳ-mismatch nB i []       = refl
+count-map-↑ʳ-mismatch {nA} nB i (x ∷ xs) with (i ↑ˡ nB) ≟ (nA ↑ʳ x)
+... | yes p = ⊥-elim (↑ˡ≢↑ʳ i x p)
+... | no  _ = count-map-↑ʳ-mismatch nB i xs
+
+--------------------------------------------------------------------------------
+-- count is permutation-invariant under list concatenation reordering.
+
+count-swap : ∀ {n} (v : Fin n) (xs ys : List (Fin n))
+           → count v (xs ++ ys) ≡ count v (ys ++ xs)
+count-swap v xs ys =
+  trans (count-++ v xs ys)
+        (trans (Nat.+-comm (count v xs) (count v ys))
+               (sym (count-++ v ys xs)))
+
+--------------------------------------------------------------------------------
+-- `tabulate` over `Fin (m + n)` splits along the `↑ˡ`/`↑ʳ` boundary.
+
+private
+  tabulate-+ : ∀ {m n} {A : Set} (f : Fin (m + n) → A)
+             → tabulate f
+             ≡ tabulate (λ i → f (i ↑ˡ n)) ++ tabulate (λ j → f (m ↑ʳ j))
+  tabulate-+ {m = zero}              f = refl
+  tabulate-+ {m = suc m} {n = n}     f = cong (f zero ∷_) (tabulate-+ {m = m} {n = n} (f Fun.∘ suc))
+
+--------------------------------------------------------------------------------
+-- The combined `LL ++ RR` list contains every Fin (nA + nB) exactly once.
+
+private
+  count-LL-RR-eq-1
+    : ∀ (nA nB : ℕ) (v : Fin (nA + nB))
+    → count v (map (_↑ˡ nB) (range nA) ++ map (nA ↑ʳ_) (range nB)) ≡ 1
+  count-LL-RR-eq-1 nA nB v with splitAt nA v in eq
+  ... | inj₁ i with splitAt⁻¹-↑ˡ {n = nB} eq
+  ...           | refl =
+                  trans (count-++ (i ↑ˡ nB)
+                                  (map (_↑ˡ nB) (range nA))
+                                  (map (nA ↑ʳ_) (range nB)))
+                        (cong₂ Nat._+_
+                          (trans (count-map-↑ˡ nB i (range nA)) (count-range i))
+                          (count-map-↑ʳ-mismatch nB i (range nB)))
+  count-LL-RR-eq-1 nA nB v | inj₂ j with splitAt⁻¹-↑ʳ {m = nA} eq
+  ...                                  | refl =
+                                          trans (count-++ (nA ↑ʳ j)
+                                                          (map (_↑ˡ nB) (range nA))
+                                                          (map (nA ↑ʳ_) (range nB)))
+                                                (cong₂ Nat._+_
+                                                  (count-map-↑ˡ-mismatch nA j (range nA))
+                                                  (trans (count-map-↑ʳ nA j (range nB)) (count-range j)))
+
+--------------------------------------------------------------------------------
+-- Production / consumption lists of a hypergraph.
+
+producedList : ∀ {As Bs} (H : Hypergraph FlatGen As Bs)
+             → List (Fin (Hypergraph.nV H))
+producedList H =
+  Hypergraph.dom H ++ concat (tabulate (Hypergraph.eout H))
+
+consumedList : ∀ {As Bs} (H : Hypergraph FlatGen As Bs)
+             → List (Fin (Hypergraph.nV H))
+consumedList H =
+  Hypergraph.cod H ++ concat (tabulate (Hypergraph.ein H))
+
+--------------------------------------------------------------------------------
+-- Linearity: matching production / consumption counts, each ≤ 1.
+
+Linear : ∀ {As Bs} → Hypergraph FlatGen As Bs → Set
+Linear H = (∀ v → count v (producedList H) ≡ count v (consumedList H))
+         × (∀ v → count v (producedList H) Nat.≤ 1)
+
+--------------------------------------------------------------------------------
+-- Compositional preservation lemmas.  These are the technical heart of
+-- the linearity proof: hTensor preserves linearity by inj-disjointness,
+-- and hCompose preserves it modulo stranded K.dom-vertices that get
+-- count 0 on each side.
+
+--------------------------------------------------------------------------------
+-- Tensor preserves linearity.
+--
+-- For `v = injL i`, `count v ≡ count i` on G's lists; for `v = injR j`,
+-- `count v ≡ count j` on K's lists.  Both sides match by `Linear G`/
+-- `Linear K`, and the bound transfers.
+
+Linear-hTensor
+  : ∀ {As Bs Cs Ds}
+  → (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Cs Ds)
+  → Linear G → Linear K
+  → Linear (hTensor G K)
+Linear-hTensor G K (G-bal , G-bnd) (K-bal , K-bnd) = balance , bound
+  where
+    module G = Hypergraph G
+    module K = Hypergraph K
+    open hTensor-impl G K
+
+    -- Decompose `concat (tabulate ein-c)` / `concat (tabulate eout-c)`
+    -- into the L/R-side blocks.
+
+    eout-tensor-eq
+      : concat (tabulate eout-c)
+      ≡ map injL (concat (tabulate G.eout))
+        ++ map injR (concat (tabulate K.eout))
+    eout-tensor-eq =
+      trans (cong concat (tabulate-+ {m = G.nE} {n = K.nE} eout-c))
+      (trans (cong concat
+                (cong₂ _++_
+                   (trans (tabulate-cong eout-c-inj₁-red)
+                          (sym (map-tabulate G.eout (map injL))))
+                   (trans (tabulate-cong eout-c-inj₂-red)
+                          (sym (map-tabulate K.eout (map injR))))))
+      (trans (sym (concat-++ (map (map injL) (tabulate G.eout))
+                              (map (map injR) (tabulate K.eout))))
+             (cong₂ _++_ (concat-map (tabulate G.eout))
+                         (concat-map (tabulate K.eout)))))
+
+    ein-tensor-eq
+      : concat (tabulate ein-c)
+      ≡ map injL (concat (tabulate G.ein))
+        ++ map injR (concat (tabulate K.ein))
+    ein-tensor-eq =
+      trans (cong concat (tabulate-+ {m = G.nE} {n = K.nE} ein-c))
+      (trans (cong concat
+                (cong₂ _++_
+                   (trans (tabulate-cong ein-c-inj₁-red)
+                          (sym (map-tabulate G.ein (map injL))))
+                   (trans (tabulate-cong ein-c-inj₂-red)
+                          (sym (map-tabulate K.ein (map injR))))))
+      (trans (sym (concat-++ (map (map injL) (tabulate G.ein))
+                              (map (map injR) (tabulate K.ein))))
+             (cong₂ _++_ (concat-map (tabulate G.ein))
+                         (concat-map (tabulate K.ein)))))
+
+    -- count of `injL i` / `injR j` in `map injL xs ++ map injR ys`.
+
+    count-injL-mixed
+      : ∀ (i : Fin G.nV) (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
+      → count (injL i) (map injL xs ++ map injR ys) ≡ count i xs
+    count-injL-mixed i xs ys =
+      trans (count-++ (injL i) (map injL xs) (map injR ys))
+      (trans (cong₂ Nat._+_
+                (count-map-↑ˡ K.nV i xs)
+                (count-map-↑ʳ-mismatch K.nV i ys))
+             (Nat.+-identityʳ (count i xs)))
+
+    count-injR-mixed
+      : ∀ (j : Fin K.nV) (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
+      → count (injR j) (map injL xs ++ map injR ys) ≡ count j ys
+    count-injR-mixed j xs ys =
+      trans (count-++ (injR j) (map injL xs) (map injR ys))
+            (cong₂ Nat._+_
+              (count-map-↑ˡ-mismatch G.nV j xs)
+              (count-map-↑ʳ G.nV j ys))
+
+    -- `count (injL i)` of the composite's produced/consumed lists
+    -- equals `count i` of G's.
+
+    count-injL-prod
+      : ∀ (i : Fin G.nV)
+      → count (injL i) (producedList (hTensor G K)) ≡ count i (producedList G)
+    count-injL-prod i =
+      trans (count-++ (injL i)
+                       (map injL G.dom ++ map injR K.dom)
+                       (concat (tabulate eout-c)))
+      (trans (cong₂ Nat._+_
+                (count-injL-mixed i G.dom K.dom)
+                (trans (cong (count (injL i)) eout-tensor-eq)
+                       (count-injL-mixed i (concat (tabulate G.eout))
+                                            (concat (tabulate K.eout)))))
+             (sym (count-++ i G.dom (concat (tabulate G.eout)))))
+
+    count-injL-cons
+      : ∀ (i : Fin G.nV)
+      → count (injL i) (consumedList (hTensor G K)) ≡ count i (consumedList G)
+    count-injL-cons i =
+      trans (count-++ (injL i)
+                       (map injL G.cod ++ map injR K.cod)
+                       (concat (tabulate ein-c)))
+      (trans (cong₂ Nat._+_
+                (count-injL-mixed i G.cod K.cod)
+                (trans (cong (count (injL i)) ein-tensor-eq)
+                       (count-injL-mixed i (concat (tabulate G.ein))
+                                            (concat (tabulate K.ein)))))
+             (sym (count-++ i G.cod (concat (tabulate G.ein)))))
+
+    count-injR-prod
+      : ∀ (j : Fin K.nV)
+      → count (injR j) (producedList (hTensor G K)) ≡ count j (producedList K)
+    count-injR-prod j =
+      trans (count-++ (injR j)
+                       (map injL G.dom ++ map injR K.dom)
+                       (concat (tabulate eout-c)))
+      (trans (cong₂ Nat._+_
+                (count-injR-mixed j G.dom K.dom)
+                (trans (cong (count (injR j)) eout-tensor-eq)
+                       (count-injR-mixed j (concat (tabulate G.eout))
+                                            (concat (tabulate K.eout)))))
+             (sym (count-++ j K.dom (concat (tabulate K.eout)))))
+
+    count-injR-cons
+      : ∀ (j : Fin K.nV)
+      → count (injR j) (consumedList (hTensor G K)) ≡ count j (consumedList K)
+    count-injR-cons j =
+      trans (count-++ (injR j)
+                       (map injL G.cod ++ map injR K.cod)
+                       (concat (tabulate ein-c)))
+      (trans (cong₂ Nat._+_
+                (count-injR-mixed j G.cod K.cod)
+                (trans (cong (count (injR j)) ein-tensor-eq)
+                       (count-injR-mixed j (concat (tabulate G.ein))
+                                            (concat (tabulate K.ein)))))
+             (sym (count-++ j K.cod (concat (tabulate K.ein)))))
+
+    balance : ∀ v → count v (producedList (hTensor G K))
+                  ≡ count v (consumedList (hTensor G K))
+    balance v with splitAt G.nV v in eq
+    ... | inj₁ i with splitAt⁻¹-↑ˡ {n = K.nV} eq
+    ...           | refl =
+                    trans (count-injL-prod i)
+                          (trans (G-bal i) (sym (count-injL-cons i)))
+    balance v | inj₂ j with splitAt⁻¹-↑ʳ {m = G.nV} eq
+    ...                  | refl =
+                           trans (count-injR-prod j)
+                                 (trans (K-bal j) (sym (count-injR-cons j)))
+
+    bound : ∀ v → count v (producedList (hTensor G K)) Nat.≤ 1
+    bound v with splitAt G.nV v in eq
+    ... | inj₁ i with splitAt⁻¹-↑ˡ {n = K.nV} eq
+    ...           | refl rewrite count-injL-prod i = G-bnd i
+    bound v | inj₂ j with splitAt⁻¹-↑ʳ {m = G.nV} eq
+    ...                | refl rewrite count-injR-prod j = K-bnd j
+
+--------------------------------------------------------------------------------
+-- Helpers for `Linear-hCompose`: count manipulation, list permutation /
+-- count-equivalence, and an `extract-split` for lists with positive count.
+
+private
+  -- count of `v` at the head of `v ∷ xs` reduces to `suc (count v xs)`.
+  count-cons-yes : ∀ {n} (v : Fin n) (xs : List (Fin n))
+                 → count v (v ∷ xs) ≡ suc (count v xs)
+  count-cons-yes v xs with v ≟ v
+  ... | yes _ = refl
+  ... | no  q = ⊥-elim (q refl)
+
+  -- count of `v` at the head of `x ∷ xs` reduces to `count v xs` when v ≢ x.
+  count-cons-no : ∀ {n} (v x : Fin n) (xs : List (Fin n))
+                → ¬ (v ≡ x)
+                → count v (x ∷ xs) ≡ count v xs
+  count-cons-no v x xs v≢x with v ≟ x
+  ... | yes p = ⊥-elim (v≢x p)
+  ... | no  _ = refl
+
+  -- count is monotone: prepending a head can only ≥ the original count.
+  count-mono-cons : ∀ {n} (v x : Fin n) (xs : List (Fin n))
+                  → count v xs Nat.≤ count v (x ∷ xs)
+  count-mono-cons v x xs with v ≟ x
+  ... | yes _ = Nat.n≤1+n (count v xs)
+  ... | no  _ = Nat.≤-refl
+
+  -- count is empty iff `xs ≡ []`.
+  count-zero-empty : ∀ {n} (xs : List (Fin n))
+                   → (∀ v → count v xs ≡ 0)
+                   → xs ≡ []
+  count-zero-empty []       _   = refl
+  count-zero-empty (x ∷ xs) hyp
+    with trans (sym (count-cons-yes x xs)) (hyp x)
+  ... | ()
+
+  -- Decompose a list with positive count: `xs ≡ xs₁ ++ v ∷ xs₂`.
+  count-pos→split
+    : ∀ {n} (v : Fin n) (xs : List (Fin n))
+    → 0 Nat.< count v xs
+    → Σ[ xs₁ ∈ List (Fin n) ] Σ[ xs₂ ∈ List (Fin n) ] xs ≡ xs₁ ++ v ∷ xs₂
+  count-pos→split v []       ()
+  count-pos→split v (x ∷ xs) c with v ≟ x
+  ... | yes refl = [] , xs , refl
+  ... | no  _    with count-pos→split v xs c
+  ...               | xs₁ , xs₂ , refl = (x ∷ xs₁) , xs₂ , refl
+
+  -- Permutation preserves count.
+  ↭⇒count-≡
+    : ∀ {n} {xs ys : List (Fin n)}
+    → xs Perm.↭ ys → ∀ v → count v xs ≡ count v ys
+  ↭⇒count-≡ Perm.refl              v = refl
+  ↭⇒count-≡ (Perm.prep x p)        v with v ≟ x
+  ... | yes _ = cong suc (↭⇒count-≡ p v)
+  ... | no  _ = ↭⇒count-≡ p v
+  ↭⇒count-≡ (Perm.swap {xs = xs'} {ys = ys'} x y p) v =
+    swap-case (v ≟ x) (v ≟ y)
+    where
+      swap-case : Dec (v ≡ x) → Dec (v ≡ y)
+                → count v (x ∷ y ∷ xs') ≡ count v (y ∷ x ∷ ys')
+      swap-case (yes refl) (yes refl) =
+        -- LHS: count v (v ∷ v ∷ xs'); RHS: count v (v ∷ v ∷ ys').
+        trans (count-cons-yes v (v ∷ xs'))
+        (trans (cong suc (count-cons-yes v xs'))
+        (trans (cong suc (cong suc (↭⇒count-≡ p v)))
+        (trans (cong suc (sym (count-cons-yes v ys')))
+               (sym (count-cons-yes v (v ∷ ys'))))))
+      swap-case (yes refl) (no  q) =
+        -- LHS: count v (v ∷ y ∷ xs'); RHS: count v (y ∷ v ∷ ys'), with v ≢ y.
+        trans (count-cons-yes v (y ∷ xs'))
+        (trans (cong suc (count-cons-no v y xs' q))
+        (trans (cong suc (↭⇒count-≡ p v))
+        (trans (sym (count-cons-yes v ys'))
+               (sym (count-cons-no v y (v ∷ ys') q)))))
+      swap-case (no  q) (yes refl) =
+        -- LHS: count v (x ∷ v ∷ xs'); RHS: count v (v ∷ x ∷ ys'), with v ≢ x.
+        trans (count-cons-no v x (v ∷ xs') q)
+        (trans (count-cons-yes v xs')
+        (trans (cong suc (↭⇒count-≡ p v))
+        (trans (cong suc (sym (count-cons-no v x ys' q)))
+               (sym (count-cons-yes v (x ∷ ys'))))))
+      swap-case (no  q₁) (no  q₂) =
+        -- LHS: count v (x ∷ y ∷ xs'); RHS: count v (y ∷ x ∷ ys'), with v ≢ x, v ≢ y.
+        trans (count-cons-no v x (y ∷ xs') q₁)
+        (trans (count-cons-no v y xs' q₂)
+        (trans (↭⇒count-≡ p v)
+        (trans (sym (count-cons-no v x ys' q₁))
+               (sym (count-cons-no v y (x ∷ ys') q₂)))))
+  ↭⇒count-≡ (Perm.trans p₁ p₂)     v = trans (↭⇒count-≡ p₁ v) (↭⇒count-≡ p₂ v)
+
+  -- Cancel a single shared cons in count equality.
+  count-cancel-cons
+    : ∀ {n} (v x : Fin n) (xs ys : List (Fin n))
+    → count v (x ∷ xs) ≡ count v (x ∷ ys)
+    → count v xs ≡ count v ys
+  count-cancel-cons v x xs ys h with v ≟ x
+  ... | yes _ = Nat.suc-injective h
+  ... | no  _ = h
+
+  -- Count equality lifts to a permutation. Inductive on `xs`.
+  count-≡⇒↭
+    : ∀ {n} (xs ys : List (Fin n))
+    → (∀ v → count v xs ≡ count v ys)
+    → xs Perm.↭ ys
+  count-≡⇒↭ []       ys hyp
+    rewrite count-zero-empty ys (λ k → sym (hyp k)) = Perm.refl
+  count-≡⇒↭ (x ∷ xs) ys hyp
+    with count-pos→split x ys
+           (subst (0 Nat.<_) (trans (sym (count-cons-yes x xs)) (hyp x))
+                  (s≤s z≤n))
+  ... | ys₁ , ys₂ , refl =
+        Perm.trans (Perm.prep x (count-≡⇒↭ xs (ys₁ ++ ys₂) sub-hyp))
+                   (Perm.↭-sym (PermProp.shift x ys₁ ys₂))
+        where
+          -- After splitting `ys = ys₁ ++ x ∷ ys₂`, count-equality on
+          -- `x ∷ xs ≡ ys₁ ++ x ∷ ys₂` rearranges to count-equality on
+          -- `xs ≡ ys₁ ++ ys₂` by going through the shift permutation.
+          sub-hyp : ∀ v → count v xs ≡ count v (ys₁ ++ ys₂)
+          sub-hyp v = count-cancel-cons v x xs (ys₁ ++ ys₂)
+                        (trans (hyp v)
+                               (↭⇒count-≡ (PermProp.shift x ys₁ ys₂) v))
+
+  -- count of `map f` is invariant under count-equal lists.
+  count-map-resp
+    : ∀ {n m} (f : Fin n → Fin m) (xs ys : List (Fin n))
+    → (∀ k → count k xs ≡ count k ys)
+    → ∀ v → count v (map f xs) ≡ count v (map f ys)
+  count-map-resp f xs ys hyp v =
+    ↭⇒count-≡ (PermProp.map⁺ f (count-≡⇒↭ xs ys hyp)) v
+
+--------------------------------------------------------------------------------
+-- `Linear-hCompose`.  The vertices of `hCompose G K` are
+-- `Fin (G.nV + K.nV)`; the boundary identification lives in `remap`,
+-- which sends each `K.dom`-vertex to the corresponding `G.cod`-vertex on
+-- the L-side, and leaves "non-domain" K-vertices untouched on the R-side.
+--
+-- The proof structure parallels the count-↭ machinery: K-balance is a
+-- count-equality, which lifts (via `map⁺` on `_↭_`) to a count-equality
+-- of the `map remap`-images.  Combined with G-balance and the list
+-- equation `map remap K.dom ≡ map injL G.cod`, we obtain the balance
+-- equation for `hCompose G K`.  The bound proof reduces to G-bound (on
+-- the L-side) and K-bound (on the R-side) by computing `count v (map
+-- remap K.eb)` exactly.
+
+Linear-hCompose
+  : ∀ {As Bs Cs}
+  → (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs)
+  → Linear G → Linear K
+  → Linear (hCompose G K)
+Linear-hCompose {Bs = Bs} G K (G-bal , G-bnd) (K-bal , K-bnd) =
+  balance , bound
+  where
+    module G = Hypergraph G
+    module K = Hypergraph K
+    open hCompose-impl G K
+
+    G-eb    = concat (tabulate G.eout)
+    G-ein-b = concat (tabulate G.ein)
+    K-eb    = concat (tabulate K.eout)
+    K-ein-b = concat (tabulate K.ein)
+
+    --------------------------------------------------------------------
+    -- Structural decompositions of `concat (tabulate eout-c)` and
+    -- `concat (tabulate ein-c)`.  Same shape as in `Linear-hTensor`,
+    -- but the K-side uses `remap` instead of `injR`.
+
+    eout-comp-eq
+      : concat (tabulate eout-c)
+      ≡ map injL G-eb ++ map remap K-eb
+    eout-comp-eq =
+      trans (cong concat (tabulate-+ {m = G.nE} {n = K.nE} eout-c))
+      (trans (cong concat
+                (cong₂ _++_
+                   (trans (tabulate-cong eout-c-inj₁-red)
+                          (sym (map-tabulate G.eout (map injL))))
+                   (trans (tabulate-cong eout-c-inj₂-red)
+                          (sym (map-tabulate K.eout (map remap))))))
+      (trans (sym (concat-++ (map (map injL) (tabulate G.eout))
+                              (map (map remap) (tabulate K.eout))))
+             (cong₂ _++_ (concat-map (tabulate G.eout))
+                         (concat-map (tabulate K.eout)))))
+
+    ein-comp-eq
+      : concat (tabulate ein-c)
+      ≡ map injL G-ein-b ++ map remap K-ein-b
+    ein-comp-eq =
+      trans (cong concat (tabulate-+ {m = G.nE} {n = K.nE} ein-c))
+      (trans (cong concat
+                (cong₂ _++_
+                   (trans (tabulate-cong ein-c-inj₁-red)
+                          (sym (map-tabulate G.ein (map injL))))
+                   (trans (tabulate-cong ein-c-inj₂-red)
+                          (sym (map-tabulate K.ein (map remap))))))
+      (trans (sym (concat-++ (map (map injL) (tabulate G.ein))
+                              (map (map remap) (tabulate K.ein))))
+             (cong₂ _++_ (concat-map (tabulate G.ein))
+                         (concat-map (tabulate K.ein)))))
+
+    --------------------------------------------------------------------
+    -- K's domain is duplicate-free (each element appears at most once),
+    -- a corollary of the K-bound (count k K.producedList ≤ 1) since
+    -- count k K.dom ≤ count k (K.dom ++ K-eb) = count k K.producedList.
+
+    K-dom-bnd : ∀ k → count k K.dom Nat.≤ 1
+    K-dom-bnd k =
+      Nat.≤-trans
+        (Nat.≤-trans (Nat.m≤m+n (count k K.dom) _)
+                     (Nat.≤-reflexive (sym (count-++ k K.dom K-eb))))
+        (K-bnd k)
+
+    --------------------------------------------------------------------
+    -- For `k ∉ K.dom`, `remap k ≡ injR k` (the recursion exhausts
+    -- `K.dom` looking for k).
+
+    private-remap-noDom
+      : ∀ (ks : List (Fin K.nV)) (gs : List (Fin G.nV)) (k : Fin K.nV)
+      → count k ks ≡ 0
+      → remap' ks gs k ≡ injR k
+    private-remap-noDom []        _         k _ = refl
+    private-remap-noDom (_ ∷ _)   []        k _ = refl
+    private-remap-noDom (k' ∷ ks) (g ∷ gs)  k c with k ≟ k'
+    ... | no q = private-remap-noDom ks gs k c
+    ... | yes refl with c
+    ...               | ()
+
+    remap-noDom : ∀ k → count k K.dom ≡ 0 → remap k ≡ injR k
+    remap-noDom = private-remap-noDom K.dom G.cod
+
+    --------------------------------------------------------------------
+    -- `length K.dom ≡ length G.cod` from the boundary annotations
+    -- (`K.dom-ok`/`G.cod-ok` both witness `Bs`).
+
+    length-K-dom : length K.dom ≡ length G.cod
+    length-K-dom =
+      trans (sym (length-map K.vlab K.dom))
+      (trans (cong length K.dom-ok)
+      (trans (cong length (sym G.cod-ok))
+             (length-map G.vlab G.cod)))
+
+    --------------------------------------------------------------------
+    -- Lemma X: `map remap K.dom ≡ map injL G.cod`.
+    --
+    -- For each idx ∈ Fin (length K.dom), `remap K.dom[idx] ≡ injL G.cod[idx]`,
+    -- relying on K.dom being duplicate-free (so the recursion finds
+    -- the right G.cod-image at the right depth).
+
+    private-map-remap-on-self
+      : ∀ (ks : List (Fin K.nV)) (gs : List (Fin G.nV))
+      → length ks ≡ length gs
+      → (∀ k → count k ks Nat.≤ 1)
+      → map (remap' ks gs) ks ≡ map injL gs
+    private-map-remap-on-self []        []         _   _     = refl
+    private-map-remap-on-self []        (_ ∷ _)    () _
+    private-map-remap-on-self (_ ∷ _)   []         () _
+    private-map-remap-on-self (k ∷ ks)  (g ∷ gs)   len bnd =
+      cong₂ _∷_ head-eq (trans shift-tail rest-eq)
+      where
+        -- Head: with k ≟ k = yes refl, remap' returns injL g.
+        head-eq : remap' (k ∷ ks) (g ∷ gs) k ≡ injL g
+        head-eq with k ≟ k
+        ... | yes _ = refl
+        ... | no  q = ⊥-elim (q refl)
+
+        -- count k ks ≡ 0: from bnd k (count k (k ∷ ks) ≤ 1) using
+        -- count-cons-yes (count k (k ∷ ks) = suc count k ks).
+        k-not-in-ks : count k ks ≡ 0
+        k-not-in-ks =
+          Nat.≤-antisym
+            (Nat.s≤s⁻¹
+              (Nat.≤-trans (Nat.≤-reflexive (sym (count-cons-yes k ks)))
+                           (bnd k)))
+            z≤n
+
+        -- For each x ∈ ks, x ≠ k (else k would appear in ks). So the
+        -- outer `remap' (k ∷ ks) (g ∷ gs)` reduces to `remap' ks gs`.
+        shift-step
+          : ∀ (xs : List (Fin K.nV))
+          → count k xs ≡ 0
+          → map (remap' (k ∷ ks) (g ∷ gs)) xs ≡ map (remap' ks gs) xs
+        shift-step []        _ = refl
+        shift-step (x ∷ xs)  c with k ≟ x
+        ... | no q = cong₂ _∷_ shift-head (shift-step xs c)
+          where
+            -- remap' (k ∷ ks) (g ∷ gs) x with x ≟ k = no (k≢x reversed).
+            shift-head : remap' (k ∷ ks) (g ∷ gs) x ≡ remap' ks gs x
+            shift-head with x ≟ k
+            ... | yes p = ⊥-elim (q (sym p))
+            ... | no  _ = refl
+        ... | yes refl with c
+        ...               | ()
+
+        shift-tail : map (remap' (k ∷ ks) (g ∷ gs)) ks ≡ map (remap' ks gs) ks
+        shift-tail = shift-step ks k-not-in-ks
+
+        -- IH on the shorter `ks`/`gs`.
+        bnd-ks : ∀ k' → count k' ks Nat.≤ 1
+        bnd-ks k' = Nat.≤-trans (count-mono-cons k' k ks) (bnd k')
+
+        rest-eq : map (remap' ks gs) ks ≡ map injL gs
+        rest-eq = private-map-remap-on-self ks gs (suc-injective′ len) bnd-ks
+          where
+            suc-injective′ : ∀ {n m} → suc n ≡ suc m → n ≡ m
+            suc-injective′ refl = refl
+
+    map-remap-K-dom : map remap K.dom ≡ map injL G.cod
+    map-remap-K-dom = private-map-remap-on-self K.dom G.cod length-K-dom K-dom-bnd
+
+    --------------------------------------------------------------------
+    -- count v (map remap S) for the special K-side lists.
+
+    count-map-remap-K-dom-injL
+      : ∀ (i : Fin G.nV) → count (injL i) (map remap K.dom) ≡ count i G.cod
+    count-map-remap-K-dom-injL i =
+      trans (cong (count (injL i)) map-remap-K-dom)
+            (count-map-↑ˡ K.nV i G.cod)
+
+    count-map-remap-K-dom-injR
+      : ∀ (j : Fin K.nV) → count (injR j) (map remap K.dom) ≡ 0
+    count-map-remap-K-dom-injR j =
+      trans (cong (count (injR j)) map-remap-K-dom)
+            (count-map-↑ˡ-mismatch G.nV j G.cod)
+
+    --------------------------------------------------------------------
+    -- For `k ∈ K-eb` (count k K-eb ≥ 1), `count k K.dom ≡ 0` by K-bnd.
+    -- Hence each element of K-eb is mapped by `remap` to `injR`.
+
+    K-eb-noDom : ∀ k → 0 Nat.< count k K-eb → count k K.dom ≡ 0
+    K-eb-noDom k pos = Nat.≤-antisym le-0 z≤n
+      where
+        prod-bnd : count k K.dom + count k K-eb Nat.≤ 1
+        prod-bnd = subst (Nat._≤ 1) (count-++ k K.dom K-eb) (K-bnd k)
+
+        step : count k K.dom + 1 Nat.≤ 1
+        step =
+          Nat.≤-trans
+            (Nat.+-monoʳ-≤ (count k K.dom) pos)
+            prod-bnd
+
+        le-0 : count k K.dom Nat.≤ 0
+        le-0 = Nat.+-cancelʳ-≤ 1 (count k K.dom) 0 step
+
+    -- map-remap is "structural" on K-eb: each element gets injR'd.
+    map-remap-eb : map remap K-eb ≡ map injR K-eb
+    map-remap-eb = go K-eb (λ _ p → p)
+      where
+        go : ∀ (xs : List (Fin K.nV))
+           → (∀ k → 0 Nat.< count k xs → 0 Nat.< count k K-eb)
+           → map remap xs ≡ map injR xs
+        go []       _   = refl
+        go (x ∷ xs) sub =
+          cong₂ _∷_
+            (remap-noDom x (K-eb-noDom x (sub x x∈x∷xs)))
+            (go xs (λ k p → sub k (Nat.≤-trans p (count-mono-cons k x xs))))
+          where
+            x∈x∷xs : 0 Nat.< count x (x ∷ xs)
+            x∈x∷xs = subst (0 Nat.<_) (sym (count-cons-yes x xs)) (s≤s z≤n)
+
+    --------------------------------------------------------------------
+    -- count of `injL i` / `injR j` in `map injL xs ++ map remap S`.
+
+    count-injL-mixed-remap
+      : ∀ (i : Fin G.nV) (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
+      → count (injL i) (map injL xs ++ map remap ys)
+      ≡ count i xs + count (injL i) (map remap ys)
+    count-injL-mixed-remap i xs ys =
+      trans (count-++ (injL i) (map injL xs) (map remap ys))
+            (cong (Nat._+ count (injL i) (map remap ys))
+                  (count-map-↑ˡ K.nV i xs))
+
+    count-injR-mixed-remap
+      : ∀ (j : Fin K.nV) (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
+      → count (injR j) (map injL xs ++ map remap ys)
+      ≡ count (injR j) (map remap ys)
+    count-injR-mixed-remap j xs ys =
+      trans (count-++ (injR j) (map injL xs) (map remap ys))
+            (cong (Nat._+ count (injR j) (map remap ys))
+                  (count-map-↑ˡ-mismatch G.nV j xs))
+
+    --------------------------------------------------------------------
+    -- K-bal lifted via `remap`: produced/consumed counts of the K-side
+    -- lists are still equal after applying `remap` pointwise.
+
+    K-bal-via-remap
+      : ∀ v
+      → count v (map remap (K.dom ++ K-eb))
+      ≡ count v (map remap (K.cod ++ K-ein-b))
+    K-bal-via-remap v =
+      count-map-resp remap (K.dom ++ K-eb) (K.cod ++ K-ein-b) K-bal v
+
+    --------------------------------------------------------------------
+    -- `count v producedList (hCompose G K)` decomposed into G-side and
+    -- K-side contributions, both labeled by the appropriate map (injL
+    -- or remap).
+
+    count-prod
+      : ∀ v
+      → count v (producedList (hCompose G K))
+      ≡ count v (map injL G.dom)
+      + count v (map injL G-eb)
+      + count v (map remap K-eb)
+    count-prod v =
+      trans (count-++ v (map injL G.dom) (concat (tabulate eout-c)))
+      (trans (cong (count v (map injL G.dom) Nat.+_)
+                   (trans (cong (count v) eout-comp-eq)
+                          (trans (count-++ v (map injL G-eb) (map remap K-eb))
+                                 refl)))
+             (sym (Nat.+-assoc (count v (map injL G.dom)) _ _)))
+
+    count-cons
+      : ∀ v
+      → count v (consumedList (hCompose G K))
+      ≡ count v (map remap K.cod)
+      + count v (map injL G-ein-b)
+      + count v (map remap K-ein-b)
+    count-cons v =
+      trans (count-++ v (map remap K.cod) (concat (tabulate ein-c)))
+      (trans (cong (count v (map remap K.cod) Nat.+_)
+                   (trans (cong (count v) ein-comp-eq)
+                          (trans (count-++ v (map injL G-ein-b) (map remap K-ein-b))
+                                 refl)))
+             (sym (Nat.+-assoc (count v (map remap K.cod)) _ _)))
+
+    --------------------------------------------------------------------
+    -- The "L-side balance" and "R-side balance" identities used in the
+    -- proof of `balance`.  They combine G-bal with the
+    -- `map-remap-K-dom = map injL G.cod` characterisation of the
+    -- composite cospan.
+
+    -- For v = injL i: count v (map injL G.dom) + count v (map injL G-eb)
+    --                ≡ count v (map injL G-ein-b) + count v (map remap K.dom).
+    -- For v = injR j: both sides are 0.
+    αβ≡εη
+      : ∀ v
+      → count v (map injL G.dom) + count v (map injL G-eb)
+      ≡ count v (map injL G-ein-b) + count v (map remap K.dom)
+    αβ≡εη v with splitAt G.nV v in eq
+    ... | inj₁ i with splitAt⁻¹-↑ˡ {n = K.nV} eq
+    ...           | refl =
+                    trans (cong₂ Nat._+_
+                            (count-map-↑ˡ K.nV i G.dom)
+                            (count-map-↑ˡ K.nV i G-eb))
+                    (trans (sym (count-++ i G.dom G-eb))
+                    (trans (G-bal i)
+                    (trans (count-swap i G.cod G-ein-b)
+                    (trans (count-++ i G-ein-b G.cod)
+                           (cong₂ Nat._+_
+                             (sym (count-map-↑ˡ K.nV i G-ein-b))
+                             (sym (count-map-remap-K-dom-injL i)))))))
+    αβ≡εη v | inj₂ j with splitAt⁻¹-↑ʳ {m = G.nV} eq
+    ...                | refl =
+                         trans (cong₂ Nat._+_
+                                 (count-map-↑ˡ-mismatch G.nV j G.dom)
+                                 (count-map-↑ˡ-mismatch G.nV j G-eb))
+                         (sym (cong₂ Nat._+_
+                                 (count-map-↑ˡ-mismatch G.nV j G-ein-b)
+                                 (count-map-remap-K-dom-injR j)))
+
+    --------------------------------------------------------------------
+    -- Balance: combining all the pieces.
+
+    balance : ∀ v → count v (producedList (hCompose G K))
+                  ≡ count v (consumedList (hCompose G K))
+    balance v =
+      trans (count-prod v)
+      (trans (cong (Nat._+ γ) (αβ≡εη v))
+      (trans (Nat.+-assoc ε η γ)
+      (trans (cong (ε Nat.+_)
+                   (trans (sym (count-++ v (map remap K.dom) (map remap K-eb)))
+                   (trans (sym (cong (count v) (map-++ remap K.dom K-eb)))
+                   (trans (K-bal-via-remap v)
+                   (trans (cong (count v) (map-++ remap K.cod K-ein-b))
+                          (count-++ v (map remap K.cod) (map remap K-ein-b)))))))
+      (trans (sym (Nat.+-assoc ε δ ζ))
+      (trans (cong (Nat._+ ζ) (Nat.+-comm ε δ))
+             (sym (count-cons v)))))))
+      where
+        α = count v (map injL G.dom)
+        β = count v (map injL G-eb)
+        γ = count v (map remap K-eb)
+        δ = count v (map remap K.cod)
+        ε = count v (map injL G-ein-b)
+        ζ = count v (map remap K-ein-b)
+        η = count v (map remap K.dom)
+
+    --------------------------------------------------------------------
+    -- Bound: case-split on `v` and use G-bnd / K-bnd.
+
+    -- `count (injL i) (map remap K-eb) ≡ 0`: each element of K-eb has
+    -- count 0 in K.dom, so `remap` injR's it; injR i ≠ injL anything.
+    count-injL-remap-K-eb-zero
+      : ∀ (i : Fin G.nV) → count (injL i) (map remap K-eb) ≡ 0
+    count-injL-remap-K-eb-zero i =
+      trans (cong (count (injL i)) map-remap-eb)
+            (count-map-↑ʳ-mismatch K.nV i K-eb)
+
+    -- `count (injR j) (map remap K-eb) ≡ count j K-eb`: structural via
+    -- `map-remap-eb` and `count-map-↑ʳ`.
+    count-injR-remap-K-eb
+      : ∀ (j : Fin K.nV) → count (injR j) (map remap K-eb) ≡ count j K-eb
+    count-injR-remap-K-eb j =
+      trans (cong (count (injR j)) map-remap-eb)
+            (count-map-↑ʳ G.nV j K-eb)
+
+    bound : ∀ v → count v (producedList (hCompose G K)) Nat.≤ 1
+    bound v with splitAt G.nV v in eq
+    ... | inj₁ i with splitAt⁻¹-↑ˡ {n = K.nV} eq
+    ...           | refl =
+                    -- = count i G.dom + count i G-eb + 0 ≤ 1 by G-bnd.
+                    subst (Nat._≤ 1)
+                      (sym (trans (count-prod (i ↑ˡ K.nV))
+                            (trans (cong (Nat._+ count (injL i) (map remap K-eb))
+                                         (cong₂ Nat._+_
+                                           (count-map-↑ˡ K.nV i G.dom)
+                                           (count-map-↑ˡ K.nV i G-eb)))
+                                   (trans (cong (count i G.dom + count i G-eb Nat.+_)
+                                                (count-injL-remap-K-eb-zero i))
+                                          (trans (Nat.+-identityʳ _)
+                                                 (sym (count-++ i G.dom G-eb)))))))
+                      (G-bnd i)
+    bound v | inj₂ j with splitAt⁻¹-↑ʳ {m = G.nV} eq
+    ...                | refl =
+                         -- = 0 + 0 + count j K-eb ≤ 1 by K-bnd applied
+                         -- (and dropping the K.dom contribution).
+                         subst (Nat._≤ 1)
+                           (sym (trans (count-prod (G.nV ↑ʳ j))
+                                 (trans (cong (Nat._+ count (injR j) (map remap K-eb))
+                                              (cong₂ Nat._+_
+                                                (count-map-↑ˡ-mismatch G.nV j G.dom)
+                                                (count-map-↑ˡ-mismatch G.nV j G-eb)))
+                                        (count-injR-remap-K-eb j))))
+                           K-eb-bnd-j
+      where
+        K-eb-bnd-j : count j K-eb Nat.≤ 1
+        K-eb-bnd-j =
+          Nat.≤-trans
+            (Nat.≤-trans (Nat.m≤n+m (count j K-eb) (count j K.dom))
+                         (Nat.≤-reflexive (sym (count-++ j K.dom K-eb))))
+            (K-bnd j)
+
+--------------------------------------------------------------------------------
+-- Base cases.
+
+Linear-hEmpty : Linear hEmpty
+Linear-hEmpty = (λ ()) , (λ ())
+
+Linear-hVar : ∀ x → Linear (hVar x)
+Linear-hVar x =
+    (λ { zero → refl })
+  , (λ { zero → s≤s z≤n })
+
+-- Symmetry: `dom = LL ++ RR`, `cod = RR ++ LL`, no edges.  Both sides
+-- count `LL` and `RR` once each, just permuted; bound is 1 by
+-- `count-LL-RR-eq-1`.
+Linear-hSwap : ∀ A B → Linear (hSwap A B)
+Linear-hSwap A B = balance , bound
+  where
+    nA = length (flatten A)
+    nB = length (flatten B)
+
+    LL : List (Fin (nA + nB))
+    LL = map (_↑ˡ nB) (range nA)
+
+    RR : List (Fin (nA + nB))
+    RR = map (nA ↑ʳ_) (range nB)
+
+    balance : ∀ v → count v ((LL ++ RR) ++ []) ≡ count v ((RR ++ LL) ++ [])
+    balance v rewrite ++-identityʳ (LL ++ RR) | ++-identityʳ (RR ++ LL) =
+      count-swap v LL RR
+
+    bound : ∀ v → count v ((LL ++ RR) ++ []) Nat.≤ 1
+    bound v rewrite ++-identityʳ (LL ++ RR) | count-LL-RR-eq-1 nA nB v =
+      s≤s z≤n
+
+-- Generator edge: `dom = LL`, `cod = RR`; the single edge has
+-- `ein _ = LL`, `eout _ = RR`.  After expanding `tabulate`/`concat`,
+-- producedList is `LL ++ (RR ++ [])` and consumedList is
+-- `RR ++ (LL ++ [])`.  Reduces to the same `LL ⊕ RR` story as hSwap.
+Linear-hGen : ∀ {A B} (g : mor A B) → Linear (hGen g)
+Linear-hGen {A} {B} _ = balance , bound
+  where
+    nA = length (flatten A)
+    nB = length (flatten B)
+
+    LL : List (Fin (nA + nB))
+    LL = map (_↑ˡ nB) (range nA)
+
+    RR : List (Fin (nA + nB))
+    RR = map (nA ↑ʳ_) (range nB)
+
+    balance : ∀ v → count v (LL ++ (RR ++ [])) ≡ count v (RR ++ (LL ++ []))
+    balance v rewrite ++-identityʳ RR | ++-identityʳ LL =
+      count-swap v LL RR
+
+    bound : ∀ v → count v (LL ++ (RR ++ [])) Nat.≤ 1
+    bound v rewrite ++-identityʳ RR | count-LL-RR-eq-1 nA nB v =
+      s≤s z≤n
+
+-- Identity is built recursively from `hEmpty`/`hVar`/`hTensor`.
+Linear-hId : ∀ A → Linear (hId A)
+Linear-hId unit       = Linear-hEmpty
+Linear-hId (Var x)    = Linear-hVar x
+Linear-hId (A ⊗₀ B)   = Linear-hTensor (hId A) (hId B)
+                          (Linear-hId A) (Linear-hId B)
+
+--------------------------------------------------------------------------------
+-- Closure under `subst₂` on the hypergraph (used for ρ/α coherence
+-- cases of `⟪ _ ⟫`).  By refl-refl pattern match, the wrapping subst₂
+-- is the identity.
+
+Linear-subst₂
+  : ∀ {As Bs As' Bs' : List X}
+      (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
+      (H : Hypergraph FlatGen As Bs)
+  → Linear H → Linear (subst₂ (Hypergraph FlatGen) eq₁ eq₂ H)
+Linear-subst₂ refl refl _ p = p
+
+--------------------------------------------------------------------------------
+-- The translation `⟪ f ⟫` is Linear.
+
+⟪⟫-Linear : ∀ {A B} (f : HomTerm A B) → Linear ⟪ f ⟫
+⟪⟫-Linear (Agen g)  = Linear-hGen g
+⟪⟫-Linear (id {A})  = Linear-hId A
+⟪⟫-Linear (g ∘ f)   =
+  Linear-hCompose ⟪ f ⟫ ⟪ g ⟫ (⟪⟫-Linear f) (⟪⟫-Linear g)
+⟪⟫-Linear (f ⊗₁ g)  =
+  Linear-hTensor ⟪ f ⟫ ⟪ g ⟫ (⟪⟫-Linear f) (⟪⟫-Linear g)
+⟪⟫-Linear (λ⇒ {A})  = Linear-hId A
+⟪⟫-Linear (λ⇐ {A})  = Linear-hId A
+⟪⟫-Linear (ρ⇒ {A})  =
+  Linear-subst₂ refl (++-identityʳ (flatten A))
+    (hId (A ⊗₀ unit)) (Linear-hId (A ⊗₀ unit))
+⟪⟫-Linear (ρ⇐ {A})  =
+  Linear-subst₂ (++-identityʳ (flatten A)) refl
+    (hId (A ⊗₀ unit)) (Linear-hId (A ⊗₀ unit))
+⟪⟫-Linear (α⇒ {A} {B} {C}) =
+  Linear-subst₂ refl (++-assoc (flatten A) (flatten B) (flatten C))
+    (hId ((A ⊗₀ B) ⊗₀ C)) (Linear-hId ((A ⊗₀ B) ⊗₀ C))
+⟪⟫-Linear (α⇐ {A} {B} {C}) =
+  Linear-subst₂ (++-assoc (flatten A) (flatten B) (flatten C)) refl
+    (hId ((A ⊗₀ B) ⊗₀ C)) (Linear-hId ((A ⊗₀ B) ⊗₀ C))
+⟪⟫-Linear (σ {A} {B}) = Linear-hSwap A B

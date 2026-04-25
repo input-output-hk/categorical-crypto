@@ -4,32 +4,40 @@
 -- Phases 3.5c-d (and the missing piece of 3.5e) — `decode` and its
 -- properties.
 --
--- `decode` reconstructs a HomTerm from a hypergraph (Phase 3.5c).  Two
--- properties — both currently postulated — make it useful for
--- completeness:
+-- `decode` reconstructs a HomTerm from a translated hypergraph
+-- `⟪ f ⟫` (Phase 3.5c).  Its constructive cospan-form algorithm
+-- lives in `Decode.agda` and is exposed as
+-- `decode-attempt : Hypergraph → Maybe HomTerm`.  The `Maybe` is
+-- discharged by `decode-attempt-Linear` in `DecodeAttempt.agda`, which
+-- is a *constructive* proof for translated hypergraphs by induction on
+-- the term — relying on per-smart-constructor postulates that are
+-- placeholders for the eventually-fully-constructive cases.
+--
+-- Two further properties — both currently postulated — make `decode`
+-- useful for completeness:
 --
 --   * ~decode-roundtrip~ (Phase 3.5d): on a translated term,
---     ~decode ⟪ f ⟫ ≈Term bridge f~, where ~bridge~ is ~f~
---     composed with the ~unflatten-flatten-≈~ coherence iso on each
---     side.  Constructive proof is by induction on ~f~ (~3-5 days).
+--     ~decode f ≈Term bridge f~, where ~bridge~ is ~f~ composed with
+--     the ~unflatten-flatten-≈~ coherence iso on each side.
+--     Constructive proof is by induction on ~f~ (~3-5 days).
 --
 --   * ~decode-resp-≅ᴴ~ (consumed by Phase 3.5e):
---     ~H ≅ᴴ H' → decode H ≈Term decode H'~.  Constructive proof
---     might be possible directly by induction on the hypergraph
+--     ~⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → decode f ≈Term decode g~.  Constructive
+--     proof might be possible directly by induction on the hypergraph
 --     iso (without going through canonical form — see TODO.org
 --     Phase 3.5b open question).
 --
--- The intended construction of `decode` itself is the "cospan form"
--- from TensorRocq §3.2:
+-- The cospan-form algorithm from TensorRocq §3.2 (now constructive
+-- in `Decode.agda`):
 --
---   1. Topologically sort the edges (each edge's inputs must be
---      produced before the edge runs).
---   2. Thread a "stack" of currently-live vertices (initially `dom`,
---      finally `cod`).
---   3. For each edge `e`, reshuffle the stack so `ein e` is at the
---      front, emit `Agen (elab e)`, then replace the front with
---      `eout e`.
---   4. Final reshuffle from the end-of-edges stack to `cod`.
+--   1. Initial stack `s = H.dom`.
+--   2. For each edge `e : Fin H.nE` in natural Fin order:
+--      a. Search for `H.ein e` as a sub-multiset prefix of `s`;
+--         on success, permute and apply `Agen (elab e) ⊗₁ id`.
+--         On failure, fall back to identity (skip the edge).
+--      b. Update `s` to `H.eout e ++ rest`.
+--   3. Final search for `H.cod` in the end-of-edges stack; if found
+--      with empty residual, apply the resulting permutation.
 --
 -- Linearity (each vertex appears exactly once on each side of every
 -- ein/eout/dom/cod position) means only symmetries are needed for the
@@ -44,10 +52,31 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.Iso
 open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen; ⟪_⟫; flatten)
-open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
-  using (unflatten; unflatten-flatten-≈)
-
-open import Categories.Morphism FreeMonoidal using (_≅_)
+open import Categories.APROP.Hypergraph.Completeness.Linearity sig
+  using (Linear) public
+open import Categories.APROP.Hypergraph.Completeness.Permute sig
+  using (permute; permute-via-vlab) public
+open import Categories.APROP.Hypergraph.Completeness.Decode sig
+  using (decode-attempt; extract-elem; extract-prefix; extract-exact;
+         Agen-edge; edge-step; process-all-edges) public
+open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
+  using (extract-elem-self; extract-elem-skip-nothing; extract-elem-skip-just;
+         extract-elem-↑ʳ-on-↑ˡ-list; extract-elem-↑ˡ-on-↑ʳ-list;
+         extract-prefix-[]; extract-prefix-self; extract-exact-self) public
+open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
+  using (decode-attempt-hEmpty; decode-attempt-hVar;
+         decode-attempt-hSwap; decode-attempt-hGen; decode-attempt-hId;
+         decode-attempt-hTensor; decode-attempt-hCompose;
+         decode-attempt-subst₂; decode-attempt-Linear;
+         decode; bridge) public
+open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtrip sig
+  using (decode-roundtrip;
+         decode-roundtrip-Agen; decode-roundtrip-id;
+         decode-roundtrip-∘; decode-roundtrip-⊗₁;
+         decode-roundtrip-λ⇒; decode-roundtrip-λ⇐;
+         decode-roundtrip-ρ⇒; decode-roundtrip-ρ⇐;
+         decode-roundtrip-α⇒; decode-roundtrip-α⇐;
+         decode-roundtrip-σ) public
 
 open import Data.List using (List)
 
@@ -56,35 +85,13 @@ private
     As Bs : List X
 
 --------------------------------------------------------------------------------
--- The decoder.
+-- The remaining property of decode (still postulated): preservation
+-- of hypergraph isomorphism.
 
 postulate
-  decode
-    : Hypergraph FlatGen As Bs → HomTerm (unflatten As) (unflatten Bs)
-
---------------------------------------------------------------------------------
--- The bridge: `f` composed with the unflatten-flatten coherence isos
--- on each side.  When `flatten`/`unflatten` were definitional inverses
--- this would just be `f`; under propositional/iso-only inversion we
--- need the explicit bridge.
-
-bridge
-  : ∀ {A B}
-  → HomTerm A B
-  → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
-bridge {A} {B} f =
-  _≅_.from (unflatten-flatten-≈ B) ∘ f ∘ _≅_.to (unflatten-flatten-≈ A)
-
---------------------------------------------------------------------------------
--- Properties of decode.
-
-postulate
-  -- Round-trip on translated terms (Phase 3.5d).
-  decode-roundtrip
-    : ∀ {A B} (f : HomTerm A B)
-    → decode ⟪ f ⟫ ≈Term bridge f
-
   -- decode preserves hypergraph iso (consumed by Phase 3.5e).
+  -- Stated for translated hypergraphs since `decode` itself takes a term.
   decode-resp-≅ᴴ
-    : ∀ {H H' : Hypergraph FlatGen As Bs}
-    → H ≅ᴴ H' → decode H ≈Term decode H'
+    : ∀ {A B} (f g : HomTerm A B)
+    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+    → decode f ≈Term decode g

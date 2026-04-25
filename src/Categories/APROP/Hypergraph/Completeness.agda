@@ -95,4 +95,4 @@ completeness {f = f} {g = g} iso = begin
   where
     bf≈bg : bridge f ≈Term bridge g
     bf≈bg = ≈-Term-trans (≈-Term-sym (decode-roundtrip f))
-              (≈-Term-trans (decode-resp-≅ᴴ iso) (decode-roundtrip g))
+              (≈-Term-trans (decode-resp-≅ᴴ f g iso) (decode-roundtrip g))
