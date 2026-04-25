@@ -180,6 +180,71 @@ module _
         map (_↑ˡ K.nV) (G.eout eG ++ rest-G) ++ map (G.nV ↑ʳ_) ys
         ∎
 
+  -- K-side symmetric: when the edge is on the K-side, edge-step on the
+  -- mixed stack produces `map injR (K.eout eK)` *prepended* to the
+  -- L-side and the K-residual.  Unlike the G-side, this output cannot
+  -- be factored as `(map injL ?) ++ (map injR ?)` — the K-eouts sit on
+  -- the *left* of the L-block, so we expose the literal stack shape and
+  -- defer the permutation reasoning to `process-edges`-level lemmas.
+  edge-step-↑ʳ-on-mixed-just
+    : ∀ (eK : Fin K.nE)
+        (xs : List (Fin G.nV))
+        (ys-K : List (Fin K.nV))
+        (rest-K : List (Fin K.nV))
+        (p-K : ys-K Perm.↭ K.ein eK ++ rest-K)
+    → extract-prefix (K.ein eK) ys-K ≡ just (rest-K , p-K)
+    → ∃[ t ]
+         edge-step (hTensor G K)
+                   (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K)
+                   (G.nE ↑ʳ eK)
+         ≡ ( map (G.nV ↑ʳ_) (K.eout eK)
+               ++ map (_↑ˡ K.nV) xs
+               ++ map (G.nV ↑ʳ_) rest-K
+           , t )
+  edge-step-↑ʳ-on-mixed-just eK xs ys-K rest-K p-K eq =
+      subst (λ s → ∃[ t ]
+                     edge-step (hTensor G K) stack (G.nE ↑ʳ eK)
+                     ≡ (s , t))
+            list-eq
+            reduce-result
+    where
+      stack = map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K
+
+      -- Same single-subst trick as the G-side: wrap the existential
+      -- in subst's predicate so one transport carries both residual
+      -- permutation and equation across the ein-c reduction.
+      eq-on-ein-c
+        : ∃[ q ] extract-prefix
+                   (Hypergraph.ein (hTensor G K) (G.nE ↑ʳ eK)) stack
+                 ≡ just (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) rest-K , q)
+      eq-on-ein-c =
+        subst (λ ks → ∃[ q ] extract-prefix ks stack
+                              ≡ just ( map (_↑ˡ K.nV) xs
+                                         ++ map (G.nV ↑ʳ_) rest-K
+                                     , q ))
+              (sym (hT-impl.ein-c-inj₂-red eK))
+              (extract-prefix-↑ʳ-on-mixed-just G.nV (K.ein eK)
+                                                xs ys-K rest-K p-K eq)
+
+      reduce-result
+        : ∃[ t ]
+            edge-step (hTensor G K) stack (G.nE ↑ʳ eK)
+            ≡ ( Hypergraph.eout (hTensor G K) (G.nE ↑ʳ eK)
+                  ++ (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) rest-K)
+              , t )
+      reduce-result rewrite proj₂ eq-on-ein-c = _ , refl
+
+      -- Single `cong` step rewrites `eout-c (G.nE ↑ʳ eK)` to
+      -- `map (G.nV ↑ʳ_) (K.eout eK)`; no associator / map-distribution
+      -- needed because the eouts stay on the left.
+      list-eq : Hypergraph.eout (hTensor G K) (G.nE ↑ʳ eK)
+                  ++ (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) rest-K)
+              ≡ map (G.nV ↑ʳ_) (K.eout eK)
+                  ++ map (_↑ˡ K.nV) xs
+                  ++ map (G.nV ↑ʳ_) rest-K
+      list-eq = cong (_++ (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) rest-K))
+                     (hT-impl.eout-c-inj₂-red eK)
+
 --------------------------------------------------------------------------------
 -- `hSwap A B`: nE = 0, dom = L ++ R, cod = R ++ L (where
 -- L = map (_↑ˡ nB) (range nA), R = map (nA ↑ʳ_) (range nB)).
