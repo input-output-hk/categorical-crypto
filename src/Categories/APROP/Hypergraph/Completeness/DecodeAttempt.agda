@@ -16,14 +16,17 @@
 --       (singleton stack ⇒ algorithm reduces by `refl`).
 --     - `decode-attempt-hSwap`  : reduces via `extract-prefix-from-↭`
 --       (in `DecodeProperties.agda`) applied to `Perm.++-comm`.
+--     - `decode-attempt-hGen`   : `extract-prefix-self` for the single
+--       edge step, then `extract-prefix-from-↭` for the final
+--       `R ++ [] ↭ R` bridge via `PermProp.++-identityʳ`.
 --     - `decode-attempt-hId`    : structural recursion on `A`.
 --     - `decode-attempt-subst₂` : `subst₂ refl refl` is the identity.
 --
---   * Postulated (still): `hGen`, `hTensor`, `hCompose`.
---     Their inputs involve real edges (so `process-all-edges` is
---     non-trivial), and a constructive proof requires more
---     structural lemmas about how the cospan algorithm interacts
---     with `injL`/`injR`/`remap` (deferred work).
+--   * Postulated (still): `hTensor`, `hCompose`.
+--     These have non-trivial edge sets that require `extract-prefix`
+--     to interact with `injL`/`injR`/`remap`-mapped lists.  Discharge
+--     requires more structural lemmas about disjoint-injection
+--     extraction (deferred work).
 --
 -- Composing the per-case lemmas gives a constructive proof of
 -- `decode-attempt-Linear f : ∃ t. decode-attempt ⟪ f ⟫ ≡ just t`,
@@ -47,7 +50,7 @@ open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
   using (decode-attempt)
 open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
-  using (extract-prefix-from-↭)
+  using (extract-prefix-self; extract-prefix-from-↭)
 
 open import Categories.Morphism FreeMonoidal using (_≅_)
 
@@ -106,12 +109,33 @@ decode-attempt-hSwap A B
              (map (length (flatten A) ↑ʳ_) (range (length (flatten B)))))
 ... | p , eq rewrite eq = _ , refl
 
-postulate
-  decode-attempt-hGen
-    : ∀ {A B : ObjTerm} (g : mor A B)
-    → Σ[ t ∈ HomTerm (unflatten (flatten A)) (unflatten (flatten B)) ]
-        decode-attempt (hGen g) ≡ just t
+--------------------------------------------------------------------------------
+-- `hGen g`: nE = 1, ein 0 = dom = L, eout 0 = cod = R (where
+-- L = map (_↑ˡ nB) (range nA), R = map (nA ↑ʳ_) (range nB)).
+--
+-- `process-all-edges` runs the single edge:
+--   `edge-step L 0` calls `extract-prefix L L`, which succeeds by
+--   `extract-prefix-self`.  After the edge the stack becomes `R ++ []`.
+--
+-- The final `extract-exact R (R ++ [])` then needs `(R ++ []) ↭ R`,
+-- discharged by `PermProp.++-identityʳ` + `extract-prefix-from-↭`.
 
+decode-attempt-hGen
+  : ∀ {A B : ObjTerm} (g : mor A B)
+  → Σ[ t ∈ HomTerm (unflatten (flatten A)) (unflatten (flatten B)) ]
+      decode-attempt (hGen g) ≡ just t
+decode-attempt-hGen {A} {B} g
+    with extract-prefix-self
+           (map (_↑ˡ length (flatten B)) (range (length (flatten A))))
+... | _ , eq1 rewrite eq1
+    with extract-prefix-from-↭
+           (map (length (flatten A) ↑ʳ_) (range (length (flatten B))) ++ [])
+           (map (length (flatten A) ↑ʳ_) (range (length (flatten B))))
+           (PermProp.++-identityʳ
+             (map (length (flatten A) ↑ʳ_) (range (length (flatten B)))))
+... | _ , eq2 rewrite eq2 = _ , refl
+
+postulate
   decode-attempt-hTensor
     : ∀ {As Bs Cs Ds : List X}
         (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Cs Ds)

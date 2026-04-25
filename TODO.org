@@ -1416,22 +1416,26 @@ meantime.
       `inject+-inj` / `range-Unique` plumbing was needed — the
       `↭-from-Perm.++-comm` route bypasses them entirely.
 
-      ****** ~decode-attempt-hGen g~ (~1-2 days, after foundation)
+      ****** DONE ~decode-attempt-hGen g~
 
       ~hGen g~ for ~g : mor A B~ has ~nE = 1~, ~ein 0 = dom = L~,
       ~eout 0 = cod = R~ (with ~L~, ~R~ as above).  ~edge-step~ on
       this single edge calls ~extract-prefix L L~, which succeeds by
-      foundation (5) using ~hGen-dom-Unique~ from ~Invariant.agda~.
-      After the edge, stack = ~R ++ [] = R = cod~.  Final
-      ~extract-exact R R~ succeeds by foundation (8).
+      foundation (5) (~extract-prefix-self~).  After the edge, stack
+      becomes ~R ++ []~.  Final ~extract-exact R (R ++ [])~ succeeds
+      via foundation (10) (~extract-prefix-from-↭~) applied to
+      ~PermProp.++-identityʳ R : R ++ [] ↭ R~.
 
-      Concrete next steps:
-      - Compute the value of ~Agen-edge 0~ on ~hGen g~.  The
-        ~elab~-field involves a ~subst₂ FlatGen lem-in lem-out (flat g)~;
-        ~Agen-edge-aux~ pattern-matches ~flat~ regardless, so the
-        substituted form still reduces to a wrapped ~Agen g~.
-      - Trace through the term composition produced by ~edge-step~
-        and ~process-all-edges~.
+      *Status: complete.*  Two `with`-rewrites in
+      ~decode-attempt-hGen~:
+      - ~extract-prefix-self L~ (unblocks the edge step inside
+        ~edge-step L 0~).
+      - ~extract-prefix-from-↭ (R ++ []) R (PermProp.++-identityʳ R)~
+        (unblocks the final ~extract-exact~).
+
+      No special handling for the ~elab = subst₂ FlatGen … (flat g)~
+      was needed: ~Agen-edge-aux~ pattern-matches ~flat~ on the
+      ~elab~-field as-is, and ~_ , refl~ closes the proof.
 
       ****** ~decode-attempt-hTensor G K~ (~5-7 days)
 
@@ -1494,20 +1498,22 @@ meantime.
         argument.
 
       ****** Order & estimate
-      | Phase                       | Estimate (revised) | Estimate (initial) |
-      |-----------------------------+--------------------+--------------------|
-      | Foundation lemmas           | 2-3 days           | 3-5 days           |
-      | ~decode-attempt-hSwap~      | 1-2 days           | 1-2 days           |
-      | ~decode-attempt-hGen~       | 1-2 days           | 2-3 days           |
-      | ~decode-attempt-hTensor~    | 5-7 days           | 1-2 weeks          |
-      | ~decode-attempt-hCompose~   | 1-2 weeks          | 2-3 weeks          |
-      | *Total*                     | *~3-5 weeks*       | *~5-7 weeks*       |
+      | Phase                       | Status         | Estimate (initial) |
+      |-----------------------------+----------------+--------------------|
+      | Foundation lemmas           | *DONE*         | 3-5 days           |
+      | ~decode-attempt-hSwap~      | *DONE*         | 1-2 days           |
+      | ~decode-attempt-hGen~       | *DONE*         | 2-3 days           |
+      | ~decode-attempt-hTensor~    | TODO           | 1-2 weeks          |
+      | ~decode-attempt-hCompose~   | TODO           | 2-3 weeks          |
 
-      Reuse from the soundness chain (Invariant / FromAPROP-impl /
-      Linearity / Congruence) cuts ~30-40 % from the original estimate
-      because the disjoint-injection / Fin-list reasoning was already
-      done; we're rephrasing the same facts in ~extract-*~ form rather
-      than starting from primitives.
+      The actual time-to-completion for foundation + hSwap + hGen was
+      far below the initial estimate, because going through stdlib's
+      generic permutation machinery (~Perm.++-comm~, ~++-identityʳ~,
+      ~drop-∷~, ~∈-resp-↭~) bypasses the disjoint-injection /
+      Fin-membership plumbing entirely.  The same approach should
+      compress the hTensor / hCompose estimates as well, but those
+      cases will additionally need to track per-edge interaction with
+      ~injL~/~injR~ and (for hCompose) ~remap~.
 
       Suggested ordering: foundation → ~hSwap~ → ~hGen~ → ~hTensor~
       → ~hCompose~.  Earlier cases validate the foundation lemmas
