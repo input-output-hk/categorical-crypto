@@ -386,6 +386,64 @@ extract-prefix-↑ʳ-on-mixed-just nA (k ∷ ks) xs ys rest p eq
     rewrite eq-elem-↑ʳ | eq-prefix-↑ʳ = _ , refl
 
 --------------------------------------------------------------------------------
+-- `extract-prefix` lifting: failure direction.  If the underlying
+-- search returns `nothing`, the lifted search on the mixed list also
+-- returns `nothing`.  Used by the per-edge lifting in `DecodeAttempt`
+-- to handle the case where an edge cannot fire.
+
+extract-prefix-↑ˡ-on-mixed-nothing
+  : ∀ {nA} nB (ks xs : List (Fin nA)) (ys : List (Fin nB))
+  → extract-prefix ks xs ≡ nothing
+  → extract-prefix (map (_↑ˡ nB) ks)
+                   (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys)
+       ≡ nothing
+extract-prefix-↑ˡ-on-mixed-nothing nB []       xs ys ()
+extract-prefix-↑ˡ-on-mixed-nothing {nA} nB (k ∷ ks) xs ys eq
+    with extract-elem k xs in eq-elem
+... | nothing
+    rewrite extract-elem-↑ˡ-on-mixed-nothing nB k xs ys eq-elem
+    = refl
+extract-prefix-↑ˡ-on-mixed-nothing {nA} nB (k ∷ ks) xs ys eq
+    | just (xs' , p-elem)
+    with extract-prefix ks xs' in eq-prefix
+... | nothing
+    with extract-elem-↑ˡ-on-mixed-just nB k xs ys xs' p-elem eq-elem
+... | _ , eq-elem-↑ˡ
+    rewrite eq-elem-↑ˡ
+          | extract-prefix-↑ˡ-on-mixed-nothing nB ks xs' ys eq-prefix
+    = refl
+extract-prefix-↑ˡ-on-mixed-nothing {nA} nB (k ∷ ks) xs ys eq
+    | just (xs' , p-elem) | just (rest , p-prefix)
+    with eq
+... | ()
+
+extract-prefix-↑ʳ-on-mixed-nothing
+  : ∀ nA {nB} (ks : List (Fin nB)) (xs : List (Fin nA)) (ys : List (Fin nB))
+  → extract-prefix ks ys ≡ nothing
+  → extract-prefix (map (nA ↑ʳ_) ks)
+                   (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys)
+       ≡ nothing
+extract-prefix-↑ʳ-on-mixed-nothing nA []       xs ys ()
+extract-prefix-↑ʳ-on-mixed-nothing nA (k ∷ ks) xs ys eq
+    with extract-elem k ys in eq-elem
+... | nothing
+    rewrite extract-elem-↑ʳ-on-mixed-nothing nA k xs ys eq-elem
+    = refl
+extract-prefix-↑ʳ-on-mixed-nothing nA (k ∷ ks) xs ys eq
+    | just (ys' , p-elem)
+    with extract-prefix ks ys' in eq-prefix
+... | nothing
+    with extract-elem-↑ʳ-on-mixed-just nA k xs ys ys' p-elem eq-elem
+... | _ , eq-elem-↑ʳ
+    rewrite eq-elem-↑ʳ
+          | extract-prefix-↑ʳ-on-mixed-nothing nA ks xs ys' eq-prefix
+    = refl
+extract-prefix-↑ʳ-on-mixed-nothing nA (k ∷ ks) xs ys eq
+    | just (ys' , p-elem) | just (rest , p-prefix)
+    with eq
+... | ()
+
+--------------------------------------------------------------------------------
 -- (9) `extract-elem-found`: a membership witness `y ∈ xs` constructively
 -- produces a successful `extract-elem y xs ≡ just (rest, p)`.
 --
