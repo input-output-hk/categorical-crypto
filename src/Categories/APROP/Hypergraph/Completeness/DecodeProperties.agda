@@ -9,17 +9,26 @@
 -- are already proved on the soundness side (`Invariant.agda`,
 -- `Linearity.agda`).
 --
--- Currently provided:
---   * `extract-elem-self`         : `extract-elem k (k ∷ xs) ≡ just (xs , Perm.refl)`.
---   * `extract-elem-skip`         : on a head ≢ `k`, the search prepends
---                                   the head and recurses.
---   * `extract-elem-skip-↑ˡ-≢-↑ʳ` : the disjoint-injection no-match case.
---   * `extract-elem-skip-↑ʳ-≢-↑ˡ` : symmetric counterpart.
---   * `extract-prefix-[]`         : `extract-prefix [] xs ≡ just (xs , Perm.refl)`.
+-- Provided here:
 --
--- Future: `extract-elem-find-mapped`, `extract-prefix-self`,
--- `extract-prefix-disjoint-skip`, `extract-prefix-mapped`,
--- `extract-exact-self` — still pending.
+--   Single-list lemmas:
+--     * `extract-elem-self`             — head match returns just _.
+--     * `extract-elem-skip-{nothing,just}` — head ≢ k skipping.
+--     * `extract-elem-{↑ʳ-on-↑ˡ,↑ˡ-on-↑ʳ}-list` — disjoint injection no-match.
+--     * `extract-elem-{↑ˡ-on-↑ˡ,↑ʳ-on-↑ʳ}-list-nothing` — same-injection no-match.
+--     * `extract-prefix-[]`             — empty prefix is trivial.
+--     * `extract-prefix-self`           — searching `xs` in `xs` succeeds.
+--     * `extract-exact-self`            — exact-match search of `xs` in `xs`.
+--
+--   Membership / permutation lemmas:
+--     * `extract-elem-found`            — `y ∈ xs` ⇒ search succeeds.
+--     * `extract-prefix-from-↭`         — `xs ↭ ys` ⇒ exact-prefix search.
+--
+--   Mixed-injection lifting (for `decode-attempt-hTensor`):
+--     * `extract-elem-↑ˡ-on-mixed-{nothing,just}`
+--     * `extract-elem-↑ʳ-on-mixed-{nothing,just}`
+--     * `extract-prefix-↑ˡ-on-mixed-just`
+--     * `extract-prefix-↑ʳ-on-mixed-just`
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -329,8 +338,8 @@ extract-prefix-↑ˡ-on-mixed-just
       (rest : List (Fin nA)) (p : xs Perm.↭ ks ++ rest)
   → extract-prefix ks xs ≡ just (rest , p)
   → ∃[ q ] extract-prefix (map (_↑ˡ nB) ks)
-                          (map (_↑ˡ nB) xs ++ map (_ ↑ʳ_) ys)
-              ≡ just (map (_↑ˡ nB) rest ++ map (_ ↑ʳ_) ys , q)
+                          (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys)
+              ≡ just (map (_↑ˡ nB) rest ++ map (nA ↑ʳ_) ys , q)
 extract-prefix-↑ˡ-on-mixed-just nB []       xs ys rest p eq with eq
 ... | refl = _ , refl
 extract-prefix-↑ˡ-on-mixed-just {nA} nB (k ∷ ks) xs ys rest p eq
@@ -355,8 +364,8 @@ extract-prefix-↑ʳ-on-mixed-just
       (rest : List (Fin nB)) (p : ys Perm.↭ ks ++ rest)
   → extract-prefix ks ys ≡ just (rest , p)
   → ∃[ q ] extract-prefix (map (nA ↑ʳ_) ks)
-                          (map (_↑ˡ _) xs ++ map (nA ↑ʳ_) ys)
-              ≡ just (map (_↑ˡ _) xs ++ map (nA ↑ʳ_) rest , q)
+                          (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys)
+              ≡ just (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) rest , q)
 extract-prefix-↑ʳ-on-mixed-just nA []       xs ys rest p eq with eq
 ... | refl = _ , refl
 extract-prefix-↑ʳ-on-mixed-just nA (k ∷ ks) xs ys rest p eq

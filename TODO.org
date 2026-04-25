@@ -1317,10 +1317,33 @@ meantime.
       With the reuse above, the only genuinely new lemmas we need are
       ~extract-*~-shape statements.  Each is a small wrapper around
       one of the count/disjointness/injectivity facts already proved.
-      *Status:* base lemmas (1, 2, 3, 5, 8) proved in
-      ~src/Categories/APROP/Hypergraph/Completeness/DecodeProperties.agda~.
-      Lifting-through-injection lemmas (4, 6, 7) deferred — see
-      footnote.
+      *Status:* base lemmas (1-3, 5, 8) proved in
+      ~DecodeProperties.agda~.  Mixed-injection lifting lemmas
+      (~extract-elem-↑ˡ-on-mixed-{nothing,just}~,
+      ~extract-elem-↑ʳ-on-mixed-{nothing,just}~,
+      ~extract-prefix-↑ˡ-on-mixed-just~,
+      ~extract-prefix-↑ʳ-on-mixed-just~) *now proved* — they cover
+      the (4, 6, 7) cases of the original numbering for the
+      ~hTensor~ workflow.
+
+      *Remaining for ~decode-attempt-hTensor~ body (NOT YET DONE):*
+      The ~extract-*~ foundations are in place, but the proof of
+      ~decode-attempt-hTensor~ itself still needs:
+
+      - Edge-step lifting: relating
+        ~edge-step (hTensor G K) (eG ↑ˡ K.nE)~ on a mixed stack to
+        ~edge-step G eG~ on the underlying G-side.  Requires careful
+        ~subst₂ HomTerm~ plumbing (the ~bridged~ term has
+        ~map-++~-shaped substs that don't match cleanly across the
+        lifting).  Estimated ~100-150 lines.
+      - ~process-edges~ lifting: iterate the edge-step lifting over
+        a list of mapped edges.  ~50-100 lines.
+      - Composition: tie everything together in
+        ~decode-attempt-hTensor~ via ~Invariant.range-++~ and
+        ~Linear-hTensor~-derived permutations.  ~50 lines.
+
+      Still feasible (~1-2 days) but the ~subst₂~ plumbing is the
+      tedious bit.
 
       1. ~extract-elem-self~ *(DONE — existential form):*
          #+begin_src agda
