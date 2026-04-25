@@ -51,7 +51,8 @@ open import Categories.APROP.Hypergraph.FromAPROP sig
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈)
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
-  using (decode-attempt; edge-step; extract-prefix; process-edges)
+  using (decode-attempt; edge-step; extract-prefix; process-edges;
+         process-all-edges; extract-exact)
 open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
   using (extract-prefix-self; extract-prefix-from-↭;
          extract-prefix-↑ˡ-on-mixed-just; extract-prefix-↑ʳ-on-mixed-just;
@@ -498,6 +499,26 @@ module _
                            ≡ (s' , t)
                        × s' Perm.↭ L ++ R
       nothing-result = s , proj₁ reduce-to-id , proj₂ reduce-to-id , s↭std
+
+  -- Iterate the perm-respecting per-edge lifting over a list of K-edges.
+  -- The output stack permutes to `L ++ map injR (proj₁ (process-edges K es ys))`.
+  process-edges-↑ʳ-on-perm
+    : ∀ (es : List (Fin K.nE))
+        (s : List (Fin (G.nV + K.nV)))
+        (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → s Perm.↭ map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys
+    → ∃[ s' ] ∃[ t ]
+         process-edges (hTensor G K) (map (G.nE ↑ʳ_) es) s ≡ (s' , t)
+       × s' Perm.↭ map (_↑ˡ K.nV) xs
+                     ++ map (G.nV ↑ʳ_) (proj₁ (process-edges K es ys))
+  process-edges-↑ʳ-on-perm []       s xs ys s↭std =
+    s , _ , refl , s↭std
+  process-edges-↑ʳ-on-perm (e ∷ es) s xs ys s↭std
+      with edge-step-↑ʳ-on-perm e s xs ys s↭std
+  ... | _ , _ , eq-edge , perm-edge
+      with process-edges-↑ʳ-on-perm es _ xs (proj₁ (edge-step K ys e)) perm-edge
+  ... | _ , _ , eq-rec , perm-rec
+      rewrite eq-edge | eq-rec = _ , _ , refl , perm-rec
 
 --------------------------------------------------------------------------------
 -- `hSwap A B`: nE = 0, dom = L ++ R, cod = R ++ L (where
