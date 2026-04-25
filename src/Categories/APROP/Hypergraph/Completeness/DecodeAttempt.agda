@@ -94,6 +94,46 @@ decode-attempt-hVar
 decode-attempt-hVar x = _ , refl
 
 --------------------------------------------------------------------------------
+-- Extraction lemma: from `decode-attempt H ≡ just _` we can recover
+-- the final stack of `process-all-edges` together with a permutation
+-- to `H.cod`.  This is what makes the decode-attempt-hTensor IHs
+-- usable in the body — without it, we know the algorithm succeeded
+-- but can't reason about *why*.
+
+decode-attempt-perm-from-just
+  : ∀ {As Bs} (H : Hypergraph FlatGen As Bs)
+  → ∃[ tH ] decode-attempt H ≡ just tH
+  → ∃[ s_final ] ∃[ t' ]
+       (process-all-edges H (Hypergraph.dom H) ≡ (s_final , t'))
+     × (s_final Perm.↭ Hypergraph.cod H)
+decode-attempt-perm-from-just H (tH , eq)
+    with process-all-edges H (Hypergraph.dom H) in eq-proc
+... | s_final , t'
+    with extract-exact (Hypergraph.cod H) s_final in eq-ext
+... | just perm = s_final , t' , refl , perm
+... | nothing
+    with eq
+... | ()
+
+--------------------------------------------------------------------------------
+-- Decomposition of `process-edges` over `_++_`: the stack output of
+-- `process-edges (xs ++ ys) s` factors as `process-edges ys` applied
+-- to the result of `process-edges xs`.  The term-level composition is
+-- not tracked here (we only need the stack to compose the per-edge
+-- liftings).
+
+process-edges-++-stack
+  : ∀ {As Bs} (H : Hypergraph FlatGen As Bs)
+      (xs ys : List (Fin (Hypergraph.nE H)))
+      (s : List (Fin (Hypergraph.nV H)))
+  → proj₁ (process-edges H (xs ++ ys) s)
+    ≡ proj₁ (process-edges H ys (proj₁ (process-edges H xs s)))
+process-edges-++-stack H []       ys s = refl
+process-edges-++-stack H (e ∷ xs) ys s
+    with edge-step H s e
+... | s' , _ = process-edges-++-stack H xs ys s'
+
+--------------------------------------------------------------------------------
 -- Edge-step lifting for `hTensor`: when an edge is on the G-side
 -- (resp. K-side), edge-step's result on the mixed stack factors
 -- through the underlying single-side search.
