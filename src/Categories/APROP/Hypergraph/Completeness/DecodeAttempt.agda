@@ -24,9 +24,11 @@
 --
 --   * Postulated (still): `hTensor`, `hCompose`.
 --     These have non-trivial edge sets that require `extract-prefix`
---     to interact with `injL`/`injR`/`remap`-mapped lists.  Discharge
---     requires more structural lemmas about disjoint-injection
---     extraction (deferred work).
+--     to interact with `injL`/`injR`/`remap`-mapped lists.  Their
+--     signatures *now take induction hypotheses* for the sub-
+--     hypergraphs (matching the eventual proof shape); the bodies
+--     remain postulated pending the disjoint-injection lifting
+--     lemmas.
 --
 -- Composing the per-case lemmas gives a constructive proof of
 -- `decode-attempt-Linear f : ∃ t. decode-attempt ⟪ f ⟫ ≡ just t`,
@@ -60,7 +62,7 @@ open import Data.List.Properties using (++-identityʳ; ++-assoc)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (just)
-open import Data.Product using (Σ-syntax; _,_; proj₁)
+open import Data.Product using (Σ-syntax; ∃-syntax; _,_; proj₁)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; subst; subst₂)
 
@@ -135,16 +137,41 @@ decode-attempt-hGen {A} {B} g
              (map (length (flatten A) ↑ʳ_) (range (length (flatten B)))))
 ... | _ , eq2 rewrite eq2 = _ , refl
 
+-- `decode-attempt-hTensor` and `decode-attempt-hCompose` are stated
+-- *with* induction hypotheses for the sub-hypergraphs.  This is the
+-- API that the eventual constructive proof needs — even though the
+-- bodies are still postulated, the IHs are now plumbed through
+-- `decode-attempt-Linear` (so a future proof can use them without
+-- changing the call sites again).
+--
+-- The proof shape (sketch):
+--   * `process-all-edges` factors via stdlib's
+--     `Invariant.range-++ : range (n + m) ≡ map _↑ˡ_ (range n) ++ map _↑ʳ_ (range m)`
+--     and a `process-edges-++` decomposition (provable by induction).
+--   * Each branch (G's edges then K's) interacts only with one side
+--     of the disjoint-injection stack.  This requires lifting lemmas
+--     analogous to `extract-prefix-from-↭` but specialised to
+--     `extract-prefix (map injL ks) (map injL xs ++ map injR ys)` —
+--     the proofs reuse `disj-L-R` (Invariant) to skip the wrong-side
+--     prefix and `inject+-inj`/`raise-inj` to thread through the
+--     matching side.
+--   * The final `extract-exact cod final-stack` succeeds by
+--     `extract-exact-self` on the (provably equal) `cod`.
+
 postulate
   decode-attempt-hTensor
     : ∀ {As Bs Cs Ds : List X}
         (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Cs Ds)
+    → (∃[ tG ] decode-attempt G ≡ just tG)
+    → (∃[ tK ] decode-attempt K ≡ just tK)
     → Σ[ t ∈ HomTerm (unflatten (As ++ Cs)) (unflatten (Bs ++ Ds)) ]
         decode-attempt (hTensor G K) ≡ just t
 
   decode-attempt-hCompose
     : ∀ {As Bs Cs : List X}
         (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs)
+    → (∃[ tG ] decode-attempt G ≡ just tG)
+    → (∃[ tK ] decode-attempt K ≡ just tK)
     → Σ[ t ∈ HomTerm (unflatten As) (unflatten Cs) ]
         decode-attempt (hCompose G K) ≡ just t
 
@@ -172,7 +199,9 @@ decode-attempt-hId
       decode-attempt (hId A) ≡ just t
 decode-attempt-hId unit       = decode-attempt-hEmpty
 decode-attempt-hId (Var x)    = decode-attempt-hVar x
-decode-attempt-hId (A ⊗₀ B)   = decode-attempt-hTensor (hId A) (hId B)
+decode-attempt-hId (A ⊗₀ B)   =
+  decode-attempt-hTensor (hId A) (hId B)
+    (decode-attempt-hId A) (decode-attempt-hId B)
 
 --------------------------------------------------------------------------------
 -- Constructive proof of `decode-attempt-Linear` for translated
@@ -192,8 +221,10 @@ decode-attempt-Linear (Agen g)  = decode-attempt-hGen g
 decode-attempt-Linear (id {A})  = decode-attempt-hId A
 decode-attempt-Linear (g ∘ f)   =
   decode-attempt-hCompose ⟪ f ⟫ ⟪ g ⟫
+    (decode-attempt-Linear f) (decode-attempt-Linear g)
 decode-attempt-Linear (f ⊗₁ g)  =
   decode-attempt-hTensor ⟪ f ⟫ ⟪ g ⟫
+    (decode-attempt-Linear f) (decode-attempt-Linear g)
 decode-attempt-Linear (λ⇒ {A})  = decode-attempt-hId A
 decode-attempt-Linear (λ⇐ {A})  = decode-attempt-hId A
 decode-attempt-Linear (ρ⇒ {A})  =

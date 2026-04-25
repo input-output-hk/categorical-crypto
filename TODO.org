@@ -1437,11 +1437,25 @@ meantime.
       was needed: ~Agen-edge-aux~ pattern-matches ~flat~ on the
       ~elab~-field as-is, and ~_ , refl~ closes the proof.
 
-      ****** ~decode-attempt-hTensor G K~ (~5-7 days)
+      ****** PARTIAL ~decode-attempt-hTensor G K~
+
+      *Status: API in place, body postulated.* The signature now takes
+      explicit induction hypotheses for the sub-hypergraphs:
+      #+begin_src agda
+        decode-attempt-hTensor
+          : ∀ {As Bs Cs Ds : List X}
+              (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Cs Ds)
+          → (∃[ tG ] decode-attempt G ≡ just tG)
+          → (∃[ tK ] decode-attempt K ≡ just tK)
+          → ∃[ t ] decode-attempt (hTensor G K) ≡ just t
+      #+end_src
+      and ~decode-attempt-Linear (f ⊗₁ g)~ now plumbs them through
+      via ~decode-attempt-Linear f~ / ~decode-attempt-Linear g~.
 
       ~hTensor G K~ partitions vertices and edges into a disjoint
       union via ~injL~/~injR~.  Edges of ~G~ go first in the natural
-      Fin order, then edges of ~K~.  Need to show:
+      Fin order, then edges of ~K~.  Proof-shape sketch (the hard
+      part):
 
       a. After processing ~G~'s edges, stack permutes to
          ~map injL G.cod ++ map injR K.dom~ (uses IH for ~G~).
@@ -1449,20 +1463,23 @@ meantime.
          ~map injL G.cod ++ map injR K.cod = cod~ (uses IH for ~K~).
       c. ~extract-exact cod cod~ succeeds (foundation 8).
 
-      The hard part — showing ~edge-step~ on a ~G~-edge with input
-      ~map injL (G.ein eG)~ leaves the ~K~-side untouched — *reuses
+      Showing ~edge-step~ on a ~G~-edge with input
+      ~map injL (G.ein eG)~ leaves the ~K~-side untouched *reuses
       ~hTensor-impl.ein-c-inj₁-red~* to collapse the combined ~ein-c~
       back to ~map injL (G.ein eG)~, then foundation (3, 6) (which
       themselves reuse ~↑ˡ≢↑ʳ~ / ~disj-L-R~).  The structural pattern
       is exactly the one from ~Congruence.hTensor-resp-≅ᴴ~'s
       case-analysis on ~splitAt G.nE e~.
 
-      Requires a *parameterised* version of the IH:
-      #+begin_src agda
-        decode-attempt-Linear-G : ∃ tG. decode-attempt G ≡ just tG
-        decode-attempt-Linear-K : ∃ tK. decode-attempt K ≡ just tK
-      #+end_src
-      passed in as inputs to ~decode-attempt-hTensor~.
+      *The fundamental obstacle*: the IH ~∃ tG. decode-attempt G ≡ just tG~
+      tells us decode-attempt G succeeds, but it doesn't *expose* the
+      internal ~s_final~ that G's algorithm produced.  For the lifting
+      argument we need either (i) a stronger IH that exposes G's
+      ~s_final~ (e.g. ~∃ s_final t. process-all-edges G.dom ≡ (s_final, t) × s_final ↭ G.cod~),
+      or (ii) a structural argument that bypasses G's IH and does
+      direct algorithm reasoning on hTensor.  Option (i) requires
+      changing the IH up the chain; option (ii) is essentially Step 4's
+      compositional ~decode-hTensor~ lemma.
 
       ****** ~decode-attempt-hCompose G K~ (~1-2 weeks)
 
@@ -1498,13 +1515,13 @@ meantime.
         argument.
 
       ****** Order & estimate
-      | Phase                       | Status         | Estimate (initial) |
-      |-----------------------------+----------------+--------------------|
-      | Foundation lemmas           | *DONE*         | 3-5 days           |
-      | ~decode-attempt-hSwap~      | *DONE*         | 1-2 days           |
-      | ~decode-attempt-hGen~       | *DONE*         | 2-3 days           |
-      | ~decode-attempt-hTensor~    | TODO           | 1-2 weeks          |
-      | ~decode-attempt-hCompose~   | TODO           | 2-3 weeks          |
+      | Phase                       | Status            | Estimate (initial) |
+      |-----------------------------+-------------------+--------------------|
+      | Foundation lemmas           | *DONE*            | 3-5 days           |
+      | ~decode-attempt-hSwap~      | *DONE*            | 1-2 days           |
+      | ~decode-attempt-hGen~       | *DONE*            | 2-3 days           |
+      | ~decode-attempt-hTensor~    | API only (postulate body) | 1-2 weeks |
+      | ~decode-attempt-hCompose~   | API only (postulate body) | 2-3 weeks |
 
       The actual time-to-completion for foundation + hSwap + hGen was
       far below the initial estimate, because going through stdlib's
