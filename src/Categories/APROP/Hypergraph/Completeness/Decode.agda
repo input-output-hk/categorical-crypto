@@ -34,7 +34,7 @@ module Categories.APROP.Hypergraph.Completeness.Decode (sig : APROPSignature) wh
 open APROP sig
 open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using (FlatGen; flatten)
+  using (FlatGen; flatten; range)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈; unflatten-++-≅; _≅_)
 open import Categories.APROP.Hypergraph.Completeness.Permute sig
@@ -176,11 +176,6 @@ module _ {As Bs : List X} (H : Hypergraph FlatGen As Bs) where
   --------------------------------------------------------------------
   -- Process all edges in natural Fin order.  Returns the final stack
   -- and a HomTerm from the original stack.
-
-  private
-    range : (n : ℕ) → List (Fin n)
-    range zero    = []
-    range (suc n) = zero ∷ map suc (range n)
 
   process-edges
     : List (Fin H.nE) → ∀ (s : List (Fin H.nV))

@@ -58,6 +58,7 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
          extract-prefix-↑ˡ-on-mixed-just; extract-prefix-↑ʳ-on-mixed-just;
          extract-prefix-↑ˡ-on-mixed-nothing; extract-prefix-↑ʳ-on-mixed-nothing;
          extract-prefix-↭-residual; extract-prefix-↭-nothing)
+import Categories.APROP.Hypergraph.Invariant sig as Inv
 
 open import Categories.Morphism FreeMonoidal using (_≅_)
 
@@ -631,15 +632,138 @@ decode-attempt-hGen {A} {B} g
 --   * The final `extract-exact cod final-stack` succeeds by
 --     `extract-exact-self` on the (provably equal) `cod`.
 
-postulate
-  decode-attempt-hTensor
-    : ∀ {As Bs Cs Ds : List X}
-        (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Cs Ds)
-    → (∃[ tG ] decode-attempt G ≡ just tG)
-    → (∃[ tK ] decode-attempt K ≡ just tK)
-    → Σ[ t ∈ HomTerm (unflatten (As ++ Cs)) (unflatten (Bs ++ Ds)) ]
-        decode-attempt (hTensor G K) ≡ just t
+--------------------------------------------------------------------------------
+-- Inverse of `decode-attempt-perm-from-just`: from a final stack with
+-- a permutation to `H.cod`, derive `decode-attempt H ≡ just _`.
+-- This is what we feed at the end of `decode-attempt-hTensor`.
 
+decode-attempt-from-perm
+  : ∀ {As Bs} (H : Hypergraph FlatGen As Bs)
+  → ∃[ s_final ] ∃[ t' ]
+       (process-all-edges H (Hypergraph.dom H) ≡ (s_final , t'))
+     × (s_final Perm.↭ Hypergraph.cod H)
+  → Σ[ t ∈ HomTerm (unflatten As) (unflatten Bs) ]
+      decode-attempt H ≡ just t
+decode-attempt-from-perm H (s_final , t' , eq-proc , perm)
+    with extract-prefix-from-↭ s_final (Hypergraph.cod H) perm
+... | _ , eq-prefix
+    rewrite eq-proc | eq-prefix = _ , refl
+
+--------------------------------------------------------------------------------
+-- `decode-attempt-hTensor`: combines the per-edge / process-edges
+-- liftings into a constructive proof.
+--
+-- Strategy:
+--   1. Extract `s_G_final ↭ G.cod` and `s_K_final ↭ K.cod` via
+--      `decode-attempt-perm-from-just`.
+--   2. Factor `process-all-edges (hTensor G K) hTensor.dom` via
+--      `Invariant.range-++` and `process-edges-++-stack`.
+--   3. Apply `process-edges-↑ˡ-on-mixed` for the G-edges block,
+--      yielding a stack of form `map injL s_G_final ++ map injR K.dom`.
+--   4. Apply `process-edges-↑ʳ-on-perm` for the K-edges block (with
+--      reflexivity as the input perm), yielding a stack `s_K'` with
+--      `s_K' ↭ map injL s_G_final ++ map injR s_K_final`.
+--   5. Combine `perm-G`, `perm-K` via `map⁺` and `++⁺` to get
+--      `s_K' ↭ map injL G.cod ++ map injR K.cod = hTensor.cod`.
+--   6. Feed to `decode-attempt-from-perm`.
+
+decode-attempt-hTensor
+  : ∀ {As Bs Cs Ds : List X}
+      (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Cs Ds)
+  → (∃[ tG ] decode-attempt G ≡ just tG)
+  → (∃[ tK ] decode-attempt K ≡ just tK)
+  → Σ[ t ∈ HomTerm (unflatten (As ++ Cs)) (unflatten (Bs ++ Ds)) ]
+      decode-attempt (hTensor G K) ≡ just t
+decode-attempt-hTensor {As} {Bs} {Cs} {Ds} G K ih-G ih-K =
+    decode-attempt-from-perm (hTensor G K)
+      (proj₁ proc , proj₂ proc , refl , perm-final)
+  where
+    module G = Hypergraph G
+    module K = Hypergraph K
+    open Perm.PermutationReasoning
+
+    -- Extract from IHs.
+    ih-G' = decode-attempt-perm-from-just G ih-G
+    s_G_final = proj₁ ih-G'
+    eq-G = proj₁ (proj₂ (proj₂ ih-G'))
+    perm-G = proj₂ (proj₂ (proj₂ ih-G'))
+
+    ih-K' = decode-attempt-perm-from-just K ih-K
+    s_K_final = proj₁ ih-K'
+    eq-K = proj₁ (proj₂ (proj₂ ih-K'))
+    perm-K = proj₂ (proj₂ (proj₂ ih-K'))
+
+    -- The full process-all-edges call we want to compute.
+    proc = process-all-edges (hTensor G K) (Hypergraph.dom (hTensor G K))
+
+    -- After the G-edges block.
+    after-G-stack = proj₁ (process-edges (hTensor G K)
+                            (map (_↑ˡ K.nE) (range G.nE))
+                            (Hypergraph.dom (hTensor G K)))
+
+    -- G-side process-edges lifting: after-G-stack equals the standard
+    -- form `map injL G.s_G_final ++ map injR K.dom`.
+    G-lift = process-edges-↑ˡ-on-mixed G K (range G.nE) G.dom K.dom
+
+    after-G-≡ : after-G-stack
+              ≡ map (_↑ˡ K.nV) s_G_final ++ map (G.nV ↑ʳ_) K.dom
+    after-G-≡ = trans (cong proj₁ (proj₂ G-lift))
+                       (cong (λ x → map (_↑ˡ K.nV) x ++ map (G.nV ↑ʳ_) K.dom)
+                             (cong proj₁ eq-G))
+
+    after-G-↭-std : after-G-stack
+                  Perm.↭ map (_↑ˡ K.nV) s_G_final ++ map (G.nV ↑ʳ_) K.dom
+    after-G-↭-std = Perm.↭-reflexive after-G-≡
+
+    -- K-side perm-respecting process-edges lifting.
+    K-lift = process-edges-↑ʳ-on-perm G K (range K.nE) after-G-stack
+              s_G_final K.dom after-G-↭-std
+
+    s_K' = proj₁ K-lift
+    K-lift-eq   = proj₁ (proj₂ (proj₂ K-lift))
+    K-lift-perm = proj₂ (proj₂ (proj₂ K-lift))
+
+    -- Bridge: `proj₁ proc ≡ s_K'`.
+    -- proc = process-edges (hTensor G K) (range (G.nE + K.nE)) hTensor.dom
+    --      ≡ process-edges (hTensor G K) (map (_↑ˡ K.nE) (range G.nE)
+    --                                  ++ map (G.nE ↑ʳ_) (range K.nE)) hTensor.dom
+    --      stack-projects to (process-edges-++-stack)
+    --      ≡ process-edges (hTensor G K) (map (G.nE ↑ʳ_) (range K.nE)) after-G-stack
+    --      ≡ (s_K' , _) by K-lift-eq
+    proc-≡-s_K' : proj₁ proc ≡ s_K'
+    proc-≡-s_K' =
+      trans (cong (λ es → proj₁ (process-edges (hTensor G K) es
+                                  (Hypergraph.dom (hTensor G K))))
+                  (Inv.range-++ G.nE K.nE))
+            (trans (process-edges-++-stack (hTensor G K)
+                     (map (_↑ˡ K.nE) (range G.nE))
+                     (map (G.nE ↑ʳ_) (range K.nE))
+                     (Hypergraph.dom (hTensor G K)))
+                   (cong proj₁ K-lift-eq))
+
+    -- The K-lift's perm output uses `proj₁ (process-edges K (range K.nE) K.dom)`.
+    -- Substitute via eq-K to get `s_K_final`.
+    K-final-perm
+      : s_K' Perm.↭ map (_↑ˡ K.nV) s_G_final ++ map (G.nV ↑ʳ_) s_K_final
+    K-final-perm =
+      subst (λ x → s_K' Perm.↭ map (_↑ˡ K.nV) s_G_final ++ map (G.nV ↑ʳ_) x)
+            (cong proj₁ eq-K)
+            K-lift-perm
+
+    -- Combine perms: s_K' ↭ map injL G.cod ++ map injR K.cod = hTensor.cod.
+    perm-final : proj₁ proc Perm.↭ Hypergraph.cod (hTensor G K)
+    perm-final = begin
+      proj₁ proc
+        ≡⟨ proc-≡-s_K' ⟩
+      s_K'
+        ↭⟨ K-final-perm ⟩
+      map (_↑ˡ K.nV) s_G_final ++ map (G.nV ↑ʳ_) s_K_final
+        ↭⟨ PermProp.++⁺ (PermProp.map⁺ (_↑ˡ K.nV) perm-G)
+                         (PermProp.map⁺ (G.nV ↑ʳ_) perm-K) ⟩
+      map (_↑ˡ K.nV) G.cod ++ map (G.nV ↑ʳ_) K.cod
+        ∎
+
+postulate
   decode-attempt-hCompose
     : ∀ {As Bs Cs : List X}
         (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs)
