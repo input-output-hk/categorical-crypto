@@ -54,7 +54,8 @@ open import Categories.APROP.Hypergraph.Completeness.Decode sig
   using (decode-attempt; edge-step; extract-prefix)
 open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
   using (extract-prefix-self; extract-prefix-from-↭;
-         extract-prefix-↑ˡ-on-mixed-just; extract-prefix-↑ʳ-on-mixed-just)
+         extract-prefix-↑ˡ-on-mixed-just; extract-prefix-↑ʳ-on-mixed-just;
+         extract-prefix-↑ˡ-on-mixed-nothing; extract-prefix-↑ʳ-on-mixed-nothing)
 
 open import Categories.Morphism FreeMonoidal using (_≅_)
 
@@ -63,7 +64,7 @@ open import Data.List using (List; []; _∷_; _++_; length; map)
 open import Data.List.Properties using (++-identityʳ; ++-assoc; map-++)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-open import Data.Maybe using (just)
+open import Data.Maybe using (just; nothing)
 open import Data.Product using (Σ-syntax; ∃-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst; subst₂; module ≡-Reasoning)
@@ -244,6 +245,88 @@ module _
                   ++ map (G.nV ↑ʳ_) rest-K
       list-eq = cong (_++ (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) rest-K))
                      (hT-impl.eout-c-inj₂-red eK)
+
+  -- Failure-direction edge-step lifting (G-side).  When G's edge
+  -- cannot fire (extract-prefix on G's stack returns `nothing`), the
+  -- lifted edge-step on the mixed stack also cannot fire — by the
+  -- nothing-lifting of extract-prefix.  Result: stack unchanged, term
+  -- is identity.
+  edge-step-↑ˡ-on-mixed-nothing
+    : ∀ (eG : Fin G.nE)
+        (xs-G : List (Fin G.nV))
+        (ys : List (Fin K.nV))
+    → extract-prefix (G.ein eG) xs-G ≡ nothing
+    → ∃[ t ]
+         edge-step (hTensor G K)
+                   (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys)
+                   (eG ↑ˡ K.nE)
+         ≡ (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys , t)
+  edge-step-↑ˡ-on-mixed-nothing eG xs-G ys eq = aux nothing-lifted
+    where
+      stack = map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys
+
+      nothing-lifted : extract-prefix
+                         (Hypergraph.ein (hTensor G K) (eG ↑ˡ K.nE))
+                         stack ≡ nothing
+      nothing-lifted =
+        subst (λ ks → extract-prefix ks stack ≡ nothing)
+              (sym (hT-impl.ein-c-inj₁-red eG))
+              (extract-prefix-↑ˡ-on-mixed-nothing K.nV (G.ein eG) xs-G ys eq)
+
+      aux : extract-prefix (Hypergraph.ein (hTensor G K) (eG ↑ˡ K.nE)) stack
+              ≡ nothing
+          → ∃[ t ] edge-step (hTensor G K) stack (eG ↑ˡ K.nE) ≡ (stack , t)
+      aux p rewrite p = _ , refl
+
+  -- K-side failure: same shape as G-side failure.  Uses
+  -- `extract-prefix-↑ʳ-on-mixed-nothing` and `ein-c-inj₂-red`.
+  edge-step-↑ʳ-on-mixed-nothing
+    : ∀ (eK : Fin K.nE)
+        (xs : List (Fin G.nV))
+        (ys-K : List (Fin K.nV))
+    → extract-prefix (K.ein eK) ys-K ≡ nothing
+    → ∃[ t ]
+         edge-step (hTensor G K)
+                   (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K)
+                   (G.nE ↑ʳ eK)
+         ≡ (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K , t)
+  edge-step-↑ʳ-on-mixed-nothing eK xs ys-K eq = aux nothing-lifted
+    where
+      stack = map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K
+
+      nothing-lifted : extract-prefix
+                         (Hypergraph.ein (hTensor G K) (G.nE ↑ʳ eK))
+                         stack ≡ nothing
+      nothing-lifted =
+        subst (λ ks → extract-prefix ks stack ≡ nothing)
+              (sym (hT-impl.ein-c-inj₂-red eK))
+              (extract-prefix-↑ʳ-on-mixed-nothing G.nV (K.ein eK) xs ys-K eq)
+
+      aux : extract-prefix (Hypergraph.ein (hTensor G K) (G.nE ↑ʳ eK)) stack
+              ≡ nothing
+          → ∃[ t ] edge-step (hTensor G K) stack (G.nE ↑ʳ eK) ≡ (stack , t)
+      aux p rewrite p = _ , refl
+
+  -- Unified G-side per-edge lemma: combines just/nothing into a single
+  -- statement about edge-step's result on the mixed stack, which factors
+  -- through G's edge-step's stack output.  Since G's edges only touch
+  -- the L-side, the output stays in `(map injL _) ++ (map injR ys)` form
+  -- regardless of whether the edge fired.
+  edge-step-↑ˡ-on-mixed
+    : ∀ (eG : Fin G.nE)
+        (xs-G : List (Fin G.nV))
+        (ys : List (Fin K.nV))
+    → ∃[ t ]
+         edge-step (hTensor G K)
+                   (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys)
+                   (eG ↑ˡ K.nE)
+         ≡ ( map (_↑ˡ K.nV) (proj₁ (edge-step G xs-G eG))
+               ++ map (G.nV ↑ʳ_) ys
+           , t )
+  edge-step-↑ˡ-on-mixed eG xs-G ys
+      with extract-prefix (G.ein eG) xs-G in eq
+  ... | just (rest , p) = edge-step-↑ˡ-on-mixed-just eG xs-G ys rest p eq
+  ... | nothing         = edge-step-↑ˡ-on-mixed-nothing eG xs-G ys eq
 
 --------------------------------------------------------------------------------
 -- `hSwap A B`: nE = 0, dom = L ++ R, cod = R ++ L (where
