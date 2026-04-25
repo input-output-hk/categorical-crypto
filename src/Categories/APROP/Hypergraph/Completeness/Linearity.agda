@@ -51,7 +51,7 @@ import Function as Fun
 open import Data.Nat using (ℕ; zero; suc; s≤s; z≤n; _+_)
 open import Data.Nat as Nat using ()
 import Data.Nat.Properties as Nat
-open import Data.Product using (Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Product using (Σ-syntax; ∃-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Sum using (inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂; sym; trans; subst; subst₂)
@@ -1019,3 +1019,306 @@ Linear-subst₂ refl refl _ p = p
   Linear-subst₂ (++-assoc (flatten A) (flatten B) (flatten C)) refl
     (hId ((A ⊗₀ B) ⊗₀ C)) (Linear-hId ((A ⊗₀ B) ⊗₀ C))
 ⟪⟫-Linear (σ {A} {B}) = Linear-hSwap A B
+
+--------------------------------------------------------------------------------
+-- Helpers for `decode-attempt-hCompose`'s K-side machinery.
+--
+-- Given Linear G + Linear K, expose:
+--   * `K-dom-bnd`, `G-cod-bnd`, `length-K-dom`
+--   * `remap-noDom : k ∉ K.dom → remap k ≡ injR k`
+--   * `map-remap-K-dom : map remap K.dom ≡ map injL G.cod`
+--   * `remap-injective : remap is globally injective`
+--
+-- The first three groups are duplicated from `Linear-hCompose`'s
+-- where-block (refactoring to share is left for later).  The
+-- `remap-injective` proof is new: case-analyse on count behavior,
+-- with the both-in-K.dom subcase using a count-based contradiction
+-- (count ≥ 2 from K.dom ↭ x ∷ y ∷ rest, count ≤ 1 from
+-- map-remap-K-dom + G-cod-bnd).
+
+module hCompose-Linear-utils
+  {As Bs Cs} (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs)
+  (lin-G : Linear G) (lin-K : Linear K)
+  where
+
+  open hCompose-impl G K public
+  private
+    module G = Hypergraph G
+    module K = Hypergraph K
+
+    G-bal = proj₁ lin-G
+    G-bnd = proj₂ lin-G
+    K-bnd = proj₂ lin-K
+    K-eb = concat (tabulate K.eout)
+    G-eb = concat (tabulate G.eout)
+    G-ein-b = concat (tabulate G.ein)
+
+  -- K.dom is dup-free (each element appears at most once).
+  K-dom-bnd : ∀ k → count k K.dom Nat.≤ 1
+  K-dom-bnd k =
+    Nat.≤-trans
+      (Nat.≤-trans (Nat.m≤m+n (count k K.dom) _)
+                   (Nat.≤-reflexive (sym (count-++ k K.dom K-eb))))
+      (K-bnd k)
+
+  -- G.cod is dup-free, derived from balance + bound on G.
+  G-cod-bnd : ∀ v → count v G.cod Nat.≤ 1
+  G-cod-bnd v =
+    Nat.≤-trans
+      (Nat.≤-trans (Nat.m≤m+n (count v G.cod) _)
+                   (Nat.≤-reflexive (sym (count-++ v G.cod G-ein-b))))
+      (Nat.≤-trans (Nat.≤-reflexive (sym (G-bal v))) (G-bnd v))
+
+  -- length K.dom ≡ length G.cod (boundary `Bs` matches).
+  length-K-dom : length K.dom ≡ length G.cod
+  length-K-dom =
+    trans (sym (length-map K.vlab K.dom))
+    (trans (cong length K.dom-ok)
+    (trans (cong length (sym G.cod-ok))
+           (length-map G.vlab G.cod)))
+
+  -- For k ∉ K.dom, `remap k ≡ injR k`.
+  private
+    private-remap-noDom
+      : ∀ (ks : List (Fin K.nV)) (gs : List (Fin G.nV)) (k : Fin K.nV)
+      → count k ks ≡ 0
+      → remap' ks gs k ≡ injR k
+    private-remap-noDom []        _         k _ = refl
+    private-remap-noDom (_ ∷ _)   []        k _ = refl
+    private-remap-noDom (k' ∷ ks) (g ∷ gs)  k c with k ≟ k'
+    ... | no _ = private-remap-noDom ks gs k c
+    ... | yes refl with c
+    ...               | ()
+
+  remap-noDom : ∀ k → count k K.dom ≡ 0 → remap k ≡ injR k
+  remap-noDom = private-remap-noDom K.dom G.cod
+
+  -- For dup-free `ks` with length-equal `gs`,
+  -- `map (remap' ks gs) ks ≡ map injL gs`.
+  private
+    suc-injective′ : ∀ {n m : ℕ} → suc n ≡ suc m → n ≡ m
+    suc-injective′ refl = refl
+
+    private-map-remap-on-self
+      : ∀ (ks : List (Fin K.nV)) (gs : List (Fin G.nV))
+      → length ks ≡ length gs
+      → (∀ k → count k ks Nat.≤ 1)
+      → map (remap' ks gs) ks ≡ map injL gs
+    private-map-remap-on-self []        []         _   _     = refl
+    private-map-remap-on-self []        (_ ∷ _)    () _
+    private-map-remap-on-self (_ ∷ _)   []         () _
+    private-map-remap-on-self (k ∷ ks)  (g ∷ gs)   len bnd =
+      cong₂ _∷_ head-eq (trans shift-tail rest-eq)
+      where
+        head-eq : remap' (k ∷ ks) (g ∷ gs) k ≡ injL g
+        head-eq with k ≟ k
+        ... | yes _ = refl
+        ... | no  q = ⊥-elim (q refl)
+
+        k-not-in-ks : count k ks ≡ 0
+        k-not-in-ks =
+          Nat.≤-antisym
+            (Nat.s≤s⁻¹
+              (Nat.≤-trans (Nat.≤-reflexive (sym (count-cons-yes k ks)))
+                           (bnd k)))
+            z≤n
+
+        shift-step
+          : ∀ (xs : List (Fin K.nV))
+          → count k xs ≡ 0
+          → map (remap' (k ∷ ks) (g ∷ gs)) xs ≡ map (remap' ks gs) xs
+        shift-step []        _ = refl
+        shift-step (x ∷ xs)  c with k ≟ x
+        ... | no q = cong₂ _∷_ shift-head (shift-step xs c)
+          where
+            shift-head : remap' (k ∷ ks) (g ∷ gs) x ≡ remap' ks gs x
+            shift-head with x ≟ k
+            ... | yes p = ⊥-elim (q (sym p))
+            ... | no  _ = refl
+        ... | yes refl with c
+        ...               | ()
+
+        shift-tail : map (remap' (k ∷ ks) (g ∷ gs)) ks ≡ map (remap' ks gs) ks
+        shift-tail = shift-step ks k-not-in-ks
+
+        bnd-ks : ∀ k' → count k' ks Nat.≤ 1
+        bnd-ks k' = Nat.≤-trans (count-mono-cons k' k ks) (bnd k')
+
+        rest-eq : map (remap' ks gs) ks ≡ map injL gs
+        rest-eq = private-map-remap-on-self ks gs (suc-injective′ len) bnd-ks
+
+  map-remap-K-dom : map remap K.dom ≡ map injL G.cod
+  map-remap-K-dom = private-map-remap-on-self K.dom G.cod length-K-dom K-dom-bnd
+
+  --------------------------------------------------------------------
+  -- Auxiliary count lemmas for the remap-injective proof.
+
+  -- count v (map f xs) ≥ count k xs whenever f k = v.
+  private
+    count-map-≥-fiber
+      : ∀ {n m} (f : Fin n → Fin m) (k : Fin n) {v : Fin m}
+      → f k ≡ v
+      → ∀ (xs : List (Fin n)) → count k xs Nat.≤ count v (map f xs)
+    count-map-≥-fiber f k {v} eq []       = z≤n
+    count-map-≥-fiber f k {v} eq (x ∷ xs) with k ≟ x
+    count-map-≥-fiber f k {v} eq (x ∷ xs) | yes refl with v ≟ f x
+    ...                                                  | yes _ = s≤s (count-map-≥-fiber f k eq xs)
+    ...                                                  | no  q = ⊥-elim (q (sym eq))
+    count-map-≥-fiber f k {v} eq (x ∷ xs) | no  _    with v ≟ f x
+    ...                                                  | yes _ = Nat.≤-trans
+                                                                    (count-map-≥-fiber f k eq xs)
+                                                                    (Nat.n≤1+n _)
+    ...                                                  | no  _ = count-map-≥-fiber f k eq xs
+
+  -- count v (map remap K.dom) ≤ 1 for any v, via map-remap-K-dom.
+  private
+    count-map-remap-K-dom-≤-1 : ∀ v → count v (map remap K.dom) Nat.≤ 1
+    count-map-remap-K-dom-≤-1 v
+      rewrite map-remap-K-dom = aux v
+      where
+        aux : ∀ v → count v (map (_↑ˡ K.nV) G.cod) Nat.≤ 1
+        aux v with splitAt G.nV v in eq-split
+        ... | inj₁ g with splitAt⁻¹-↑ˡ {n = K.nV} eq-split
+        ...             | refl =
+                          Nat.≤-trans
+                            (Nat.≤-reflexive (count-map-↑ˡ K.nV g G.cod))
+                            (G-cod-bnd g)
+        aux v | inj₂ k with splitAt⁻¹-↑ʳ {m = G.nV} eq-split
+        ...               | refl =
+                            Nat.≤-trans
+                              (Nat.≤-reflexive
+                                (count-map-↑ˡ-mismatch G.nV k G.cod))
+                              z≤n
+
+  -- K.dom permutes to `x ∷ y ∷ rest` when `x ≠ y` are both in K.dom.
+  private
+    K-dom-↭-x∷y∷
+      : ∀ (x y : Fin K.nV) → ¬ (x ≡ y)
+      → 0 Nat.< count x K.dom → 0 Nat.< count y K.dom
+      → ∃[ rest ] (K.dom Perm.↭ x ∷ y ∷ rest)
+    K-dom-↭-x∷y∷ x y x≢y cx cy
+        with count-pos→split x K.dom cx
+    ... | pre1 , post1 , K-dom-eq-x
+        with count-pos→split y (pre1 ++ post1) y-pos-pp
+      where
+        y≢x : ¬ (y ≡ x)
+        y≢x p = x≢y (sym p)
+        y-pos-pp : 0 Nat.< count y (pre1 ++ post1)
+        y-pos-pp =
+          Nat.≤-trans cy
+            (Nat.≤-reflexive
+              (trans (cong (count y) K-dom-eq-x)
+              (trans (count-++ y pre1 (x ∷ post1))
+              (trans (cong (count y pre1 +_) (count-cons-no y x post1 y≢x))
+                     (sym (count-++ y pre1 post1))))))
+    ...    | pre2 , post2 , prepost-eq =
+            pre2 ++ post2 , the-perm
+      where
+        open Perm.PermutationReasoning
+        the-perm : K.dom Perm.↭ x ∷ y ∷ (pre2 ++ post2)
+        the-perm = begin
+          K.dom
+            ≡⟨ K-dom-eq-x ⟩
+          pre1 ++ x ∷ post1
+            ↭⟨ PermProp.shift x pre1 post1 ⟩
+          x ∷ pre1 ++ post1
+            ≡⟨ cong (x ∷_) prepost-eq ⟩
+          x ∷ pre2 ++ y ∷ post2
+            ↭⟨ Perm.prep x (PermProp.shift y pre2 post2) ⟩
+          x ∷ y ∷ (pre2 ++ post2)
+            ∎
+
+  -- Helper for the both-Dom case of remap-injective.
+  private
+    count-cons-eq
+      : ∀ {n} (v u : Fin n) (xs : List (Fin n))
+      → v ≡ u
+      → count v (u ∷ xs) ≡ suc (count v xs)
+    count-cons-eq v u xs refl = count-cons-yes v xs
+
+  remap-injective : ∀ {x y} → remap x ≡ remap y → x ≡ y
+  remap-injective {x} {y} eq with count x K.dom in cx | count y K.dom in cy
+  ... | zero  | zero  =
+        ↑ʳ-injective G.nV x y
+          (trans (sym (remap-noDom x cx)) (trans eq (remap-noDom y cy)))
+  ... | zero  | suc m = ⊥-elim contra
+    where
+      rx≡injR-x : remap x ≡ injR x
+      rx≡injR-x = remap-noDom x cx
+
+      injR-x≡remap-y : injR x ≡ remap y
+      injR-x≡remap-y = trans (sym rx≡injR-x) eq
+
+      bnd-y-by-count : count y K.dom Nat.≤ count (injR x) (map remap K.dom)
+      bnd-y-by-count = count-map-≥-fiber remap y (sym injR-x≡remap-y) K.dom
+
+      count-injR-x-zero : count (injR x) (map remap K.dom) ≡ 0
+      count-injR-x-zero = trans (cong (count (injR x)) map-remap-K-dom)
+                                (count-map-↑ˡ-mismatch G.nV x G.cod)
+
+      count-y-zero : count y K.dom ≡ 0
+      count-y-zero = Nat.≤-antisym
+                       (Nat.≤-trans bnd-y-by-count
+                                    (Nat.≤-reflexive count-injR-x-zero))
+                       z≤n
+
+      contra : ⊥
+      contra with trans (sym count-y-zero) cy
+      ... | ()
+
+  ... | suc n | zero  = ⊥-elim contra
+    where
+      ry≡injR-y : remap y ≡ injR y
+      ry≡injR-y = remap-noDom y cy
+
+      injR-y≡remap-x : injR y ≡ remap x
+      injR-y≡remap-x = trans (sym ry≡injR-y) (sym eq)
+
+      bnd-x-by-count : count x K.dom Nat.≤ count (injR y) (map remap K.dom)
+      bnd-x-by-count = count-map-≥-fiber remap x (sym injR-y≡remap-x) K.dom
+
+      count-injR-y-zero : count (injR y) (map remap K.dom) ≡ 0
+      count-injR-y-zero = trans (cong (count (injR y)) map-remap-K-dom)
+                                (count-map-↑ˡ-mismatch G.nV y G.cod)
+
+      count-x-zero : count x K.dom ≡ 0
+      count-x-zero = Nat.≤-antisym
+                       (Nat.≤-trans bnd-x-by-count
+                                    (Nat.≤-reflexive count-injR-y-zero))
+                       z≤n
+
+      contra : ⊥
+      contra with trans (sym count-x-zero) cx
+      ... | ()
+
+  ... | suc n | suc m with x ≟ y
+  ...                    | yes p = p
+  ...                    | no  q = ⊥-elim contra
+    where
+      cx-pos : 0 Nat.< count x K.dom
+      cx-pos = subst (0 Nat.<_) (sym cx) (s≤s z≤n)
+      cy-pos : 0 Nat.< count y K.dom
+      cy-pos = subst (0 Nat.<_) (sym cy) (s≤s z≤n)
+
+      contra : ⊥
+      contra with K-dom-↭-x∷y∷ x y q cx-pos cy-pos
+      ... | rest , K-perm =
+          Nat.1+n≰n
+            (Nat.≤-trans count-≥-2
+              (Nat.≤-trans
+                (Nat.≤-reflexive
+                  (sym (↭⇒count-≡
+                         (PermProp.map⁺ remap K-perm)
+                         (remap x))))
+                (count-map-remap-K-dom-≤-1 (remap x))))
+        where
+          head-count
+            : count (remap x) (remap x ∷ remap y ∷ map remap rest)
+            ≡ suc (suc (count (remap x) (map remap rest)))
+          head-count =
+            trans (count-cons-yes (remap x) (remap y ∷ map remap rest))
+                  (cong suc (count-cons-eq (remap x) (remap y) (map remap rest) eq))
+
+          count-≥-2 : 2 Nat.≤ count (remap x) (map remap (x ∷ y ∷ rest))
+          count-≥-2 = Nat.≤-trans (s≤s (s≤s z≤n))
+                                  (Nat.≤-reflexive (sym head-count))
