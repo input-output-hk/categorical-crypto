@@ -161,19 +161,220 @@ extract-exact-self xs with extract-prefix-self xs
 ... | p , eq rewrite eq = _ , refl
 
 --------------------------------------------------------------------------------
--- (4, 6, 7) Lifting through injection — TODO.
+-- Lifting `extract-elem` / `extract-prefix` through disjoint
+-- injections (for `decode-attempt-hTensor`).
 --
--- The remaining foundation lemmas (`extract-elem-↑ˡ-mapped-success`,
--- `extract-prefix-disjoint-skip`, `extract-prefix-mapped`) require a
--- triple-`with` chain on `x ≟ k` / `(x ↑ˡ nB) ≟ (k ↑ˡ nB)` /
--- `extract-elem k xs in eq-inner`.  Agda's parser handles the
--- resulting nested-aux indentation awkwardly; phrasing them as
--- existentials and going through `inject+-inj` / `raise-inj` works in
--- principle but the Agda mechanics are fiddly.  Deferred — when
--- `decode-attempt-hSwap` / `decode-attempt-hGen` actually need them,
--- they can be inlined as case-specific helpers (the lists involved
--- there are concrete enough that the proofs are simpler than the
--- fully general statement above).
+-- These lemmas relate searches on a "pure side" list (e.g. `xs`)
+-- to searches on a "mixed" list (`map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys`)
+-- when the key lives entirely on one side.
+
+--------------------------------------------------------------------------------
+-- `nothing` direction.  If the underlying search returns `nothing`,
+-- the lifted search on the mixed list also returns `nothing` (the L
+-- side has no match, the R side mismatches by disjointness).
+
+extract-elem-↑ˡ-on-mixed-nothing
+  : ∀ {nA} nB (k : Fin nA) (xs : List (Fin nA)) (ys : List (Fin nB))
+  → extract-elem k xs ≡ nothing
+  → extract-elem (k ↑ˡ nB) (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys) ≡ nothing
+extract-elem-↑ˡ-on-mixed-nothing {nA} nB k []       ys _  =
+  extract-elem-↑ˡ-on-↑ʳ-list k ys
+extract-elem-↑ˡ-on-mixed-nothing {nA} nB k (x ∷ xs) ys eq with x ≟ k
+extract-elem-↑ˡ-on-mixed-nothing {nA} nB k (x ∷ xs) ys eq | yes p with eq
+... | ()
+extract-elem-↑ˡ-on-mixed-nothing {nA} nB k (x ∷ xs) ys eq | no  q
+    with extract-elem k xs in eq-inner
+... | nothing =
+      extract-elem-skip-nothing
+        (k ↑ˡ nB) (x ↑ˡ nB) (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys)
+        (λ p₁ → q (inject+-inj nB p₁))
+        (extract-elem-↑ˡ-on-mixed-nothing nB k xs ys eq-inner)
+... | just _ with eq
+... | ()
+
+--------------------------------------------------------------------------------
+-- Helper: pure-injection-mapped list, lookup on the same side.
+-- `extract-elem (k ↑ˡ nB) (map (_↑ˡ nB) xs)` returns nothing iff
+-- `extract-elem k xs` returns nothing.
+
+extract-elem-↑ˡ-on-↑ˡ-list-nothing
+  : ∀ {nA} nB (k : Fin nA) (xs : List (Fin nA))
+  → extract-elem k xs ≡ nothing
+  → extract-elem (k ↑ˡ nB) (map (_↑ˡ nB) xs) ≡ nothing
+extract-elem-↑ˡ-on-↑ˡ-list-nothing nB k []       _ = refl
+extract-elem-↑ˡ-on-↑ˡ-list-nothing nB k (x ∷ xs) eq with x ≟ k
+extract-elem-↑ˡ-on-↑ˡ-list-nothing nB k (x ∷ xs) eq | yes p with eq
+... | ()
+extract-elem-↑ˡ-on-↑ˡ-list-nothing nB k (x ∷ xs) eq | no  q
+    with extract-elem k xs in eq-inner
+... | nothing =
+      extract-elem-skip-nothing
+        (k ↑ˡ nB) (x ↑ˡ nB) (map (_↑ˡ nB) xs)
+        (λ p₁ → q (inject+-inj nB p₁))
+        (extract-elem-↑ˡ-on-↑ˡ-list-nothing nB k xs eq-inner)
+... | just _ with eq
+... | ()
+
+extract-elem-↑ʳ-on-↑ʳ-list-nothing
+  : ∀ nA {nB} (j : Fin nB) (ys : List (Fin nB))
+  → extract-elem j ys ≡ nothing
+  → extract-elem (nA ↑ʳ j) (map (nA ↑ʳ_) ys) ≡ nothing
+extract-elem-↑ʳ-on-↑ʳ-list-nothing nA j []       _ = refl
+extract-elem-↑ʳ-on-↑ʳ-list-nothing nA j (x ∷ ys) eq with x ≟ j
+extract-elem-↑ʳ-on-↑ʳ-list-nothing nA j (x ∷ ys) eq | yes p with eq
+... | ()
+extract-elem-↑ʳ-on-↑ʳ-list-nothing nA j (x ∷ ys) eq | no  q
+    with extract-elem j ys in eq-inner
+... | nothing =
+      extract-elem-skip-nothing
+        (nA ↑ʳ j) (nA ↑ʳ x) (map (nA ↑ʳ_) ys)
+        (λ p₁ → q (raise-inj nA p₁))
+        (extract-elem-↑ʳ-on-↑ʳ-list-nothing nA j ys eq-inner)
+... | just _ with eq
+... | ()
+
+--------------------------------------------------------------------------------
+-- Symmetric R-side lifting.
+
+extract-elem-↑ʳ-on-mixed-nothing
+  : ∀ nA {nB} (j : Fin nB) (xs : List (Fin nA)) (ys : List (Fin nB))
+  → extract-elem j ys ≡ nothing
+  → extract-elem (nA ↑ʳ j) (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys) ≡ nothing
+extract-elem-↑ʳ-on-mixed-nothing nA j []       ys eq =
+  extract-elem-↑ʳ-on-↑ʳ-list-nothing nA j ys eq
+extract-elem-↑ʳ-on-mixed-nothing nA j (x ∷ xs) ys eq =
+  extract-elem-skip-nothing
+    (nA ↑ʳ j) (x ↑ˡ _) (map (_↑ˡ _) xs ++ map (nA ↑ʳ_) ys)
+    (↑ˡ≢↑ʳ x j)
+    (extract-elem-↑ʳ-on-mixed-nothing nA j xs ys eq)
+
+--------------------------------------------------------------------------------
+-- `just` direction (L-side).  If extract-elem k xs succeeds, the
+-- lifted version on (mapL xs ++ mapR ys) also succeeds, with the
+-- residual being the lifted underlying residual + the preserved R
+-- side.
+
+extract-elem-↑ˡ-on-mixed-just
+  : ∀ {nA} nB (k : Fin nA) (xs : List (Fin nA)) (ys : List (Fin nB))
+      (rest : List (Fin nA)) (p : xs Perm.↭ k ∷ rest)
+  → extract-elem k xs ≡ just (rest , p)
+  → ∃[ q ] extract-elem (k ↑ˡ nB) (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys)
+              ≡ just (map (_↑ˡ nB) rest ++ map (nA ↑ʳ_) ys , q)
+extract-elem-↑ˡ-on-mixed-just nB k []       ys rest p ()
+extract-elem-↑ˡ-on-mixed-just {nA} nB k (x ∷ xs) ys rest p eq
+    with x ≟ k
+extract-elem-↑ˡ-on-mixed-just {nA} nB k (x ∷ xs) ys rest p eq | yes p₁
+    with (x ↑ˡ nB) ≟ (k ↑ˡ nB)
+... | yes p₂ with eq
+...             | refl = _ , refl
+extract-elem-↑ˡ-on-mixed-just {nA} nB k (x ∷ xs) ys rest p eq | yes p₁ | no  q₂ =
+    ⊥-elim (q₂ (cong (_↑ˡ nB) p₁))
+extract-elem-↑ˡ-on-mixed-just {nA} nB k (x ∷ xs) ys rest p eq | no  q₁
+    with extract-elem k xs in eq-inner
+... | nothing with eq
+...              | ()
+extract-elem-↑ˡ-on-mixed-just {nA} nB k (x ∷ xs) ys rest p eq | no q₁ | just (rest₁ , p₁)
+    with (x ↑ˡ nB) ≟ (k ↑ˡ nB)
+... | yes p₂ = ⊥-elim (q₁ (inject+-inj nB p₂))
+... | no  q₂ with eq
+...             | refl
+                with extract-elem-↑ˡ-on-mixed-just nB k xs ys rest₁ p₁ eq-inner
+...               | _ , eq-↑ˡ
+                  rewrite eq-↑ˡ = _ , refl
+
+--------------------------------------------------------------------------------
+-- `just` direction (R-side, symmetric).
+
+extract-elem-↑ʳ-on-mixed-just
+  : ∀ nA {nB} (j : Fin nB) (xs : List (Fin nA)) (ys : List (Fin nB))
+      (rest : List (Fin nB)) (p : ys Perm.↭ j ∷ rest)
+  → extract-elem j ys ≡ just (rest , p)
+  → ∃[ q ] extract-elem (nA ↑ʳ j) (map (_↑ˡ _) xs ++ map (nA ↑ʳ_) ys)
+              ≡ just (map (_↑ˡ _) xs ++ map (nA ↑ʳ_) rest , q)
+extract-elem-↑ʳ-on-mixed-just nA j xs []       rest p ()
+extract-elem-↑ʳ-on-mixed-just nA j []       (y ∷ ys) rest p eq
+    with y ≟ j
+extract-elem-↑ʳ-on-mixed-just nA j []       (y ∷ ys) rest p eq | yes p₁
+    with (nA ↑ʳ y) ≟ (nA ↑ʳ j)
+... | yes p₂ with eq
+...             | refl = _ , refl
+extract-elem-↑ʳ-on-mixed-just nA j []       (y ∷ ys) rest p eq | yes p₁ | no  q₂ =
+    ⊥-elim (q₂ (cong (nA ↑ʳ_) p₁))
+extract-elem-↑ʳ-on-mixed-just nA j []       (y ∷ ys) rest p eq | no  q₁
+    with extract-elem j ys in eq-inner
+... | nothing with eq
+...              | ()
+extract-elem-↑ʳ-on-mixed-just nA j []       (y ∷ ys) rest p eq | no q₁ | just (rest₁ , p₁)
+    with (nA ↑ʳ y) ≟ (nA ↑ʳ j)
+... | yes p₂ = ⊥-elim (q₁ (raise-inj nA p₂))
+... | no  q₂ with eq
+...             | refl
+                with extract-elem-↑ʳ-on-mixed-just nA j [] ys rest₁ p₁ eq-inner
+...               | _ , eq-↑ʳ
+                  rewrite eq-↑ʳ = _ , refl
+extract-elem-↑ʳ-on-mixed-just nA j (x ∷ xs) (y ∷ ys) rest p eq
+    with extract-elem-↑ʳ-on-mixed-just nA j xs (y ∷ ys) rest p eq
+... | q' , eq-rec =
+      _ ,
+      extract-elem-skip-just (nA ↑ʳ j) (x ↑ˡ _)
+        (map (_↑ˡ _) xs ++ map (nA ↑ʳ_) (y ∷ ys))
+        (map (_↑ˡ _) xs ++ map (nA ↑ʳ_) rest) q'
+        (↑ˡ≢↑ʳ x j) eq-rec
+
+--------------------------------------------------------------------------------
+-- `extract-prefix` lifting: success direction.
+
+extract-prefix-↑ˡ-on-mixed-just
+  : ∀ {nA} nB (ks xs : List (Fin nA)) (ys : List (Fin nB))
+      (rest : List (Fin nA)) (p : xs Perm.↭ ks ++ rest)
+  → extract-prefix ks xs ≡ just (rest , p)
+  → ∃[ q ] extract-prefix (map (_↑ˡ nB) ks)
+                          (map (_↑ˡ nB) xs ++ map (_ ↑ʳ_) ys)
+              ≡ just (map (_↑ˡ nB) rest ++ map (_ ↑ʳ_) ys , q)
+extract-prefix-↑ˡ-on-mixed-just nB []       xs ys rest p eq with eq
+... | refl = _ , refl
+extract-prefix-↑ˡ-on-mixed-just {nA} nB (k ∷ ks) xs ys rest p eq
+    with extract-elem k xs in eq-elem
+... | nothing with eq
+...              | ()
+extract-prefix-↑ˡ-on-mixed-just {nA} nB (k ∷ ks) xs ys rest p eq
+    | just (xs' , p-elem)
+    with extract-prefix ks xs' in eq-prefix
+... | nothing with eq
+...              | ()
+extract-prefix-↑ˡ-on-mixed-just {nA} nB (k ∷ ks) xs ys rest p eq
+    | just (xs' , p-elem) | just (rest' , p-prefix) with eq
+... | refl
+    with extract-elem-↑ˡ-on-mixed-just nB k xs ys xs' p-elem eq-elem
+       | extract-prefix-↑ˡ-on-mixed-just nB ks xs' ys rest' p-prefix eq-prefix
+... | _ , eq-elem-↑ˡ | _ , eq-prefix-↑ˡ
+    rewrite eq-elem-↑ˡ | eq-prefix-↑ˡ = _ , refl
+
+extract-prefix-↑ʳ-on-mixed-just
+  : ∀ nA {nB} (ks : List (Fin nB)) (xs : List (Fin nA)) (ys : List (Fin nB))
+      (rest : List (Fin nB)) (p : ys Perm.↭ ks ++ rest)
+  → extract-prefix ks ys ≡ just (rest , p)
+  → ∃[ q ] extract-prefix (map (nA ↑ʳ_) ks)
+                          (map (_↑ˡ _) xs ++ map (nA ↑ʳ_) ys)
+              ≡ just (map (_↑ˡ _) xs ++ map (nA ↑ʳ_) rest , q)
+extract-prefix-↑ʳ-on-mixed-just nA []       xs ys rest p eq with eq
+... | refl = _ , refl
+extract-prefix-↑ʳ-on-mixed-just nA (k ∷ ks) xs ys rest p eq
+    with extract-elem k ys in eq-elem
+... | nothing with eq
+...              | ()
+extract-prefix-↑ʳ-on-mixed-just nA (k ∷ ks) xs ys rest p eq
+    | just (ys' , p-elem)
+    with extract-prefix ks ys' in eq-prefix
+... | nothing with eq
+...              | ()
+extract-prefix-↑ʳ-on-mixed-just nA (k ∷ ks) xs ys rest p eq
+    | just (ys' , p-elem) | just (rest' , p-prefix) with eq
+... | refl
+    with extract-elem-↑ʳ-on-mixed-just nA k xs ys ys' p-elem eq-elem
+       | extract-prefix-↑ʳ-on-mixed-just nA ks xs ys' rest' p-prefix eq-prefix
+... | _ , eq-elem-↑ʳ | _ , eq-prefix-↑ʳ
+    rewrite eq-elem-↑ʳ | eq-prefix-↑ʳ = _ , refl
 
 --------------------------------------------------------------------------------
 -- (9) `extract-elem-found`: a membership witness `y ∈ xs` constructively
