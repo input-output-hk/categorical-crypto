@@ -71,7 +71,7 @@ open import Data.List using (List; []; _∷_; _++_; length; map)
 open import Data.List.Properties using (++-identityʳ; ++-assoc; map-++)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-open import Data.Maybe using (just; nothing)
+open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ-syntax; ∃-syntax; _,_; _×_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst; subst₂; module ≡-Reasoning)
@@ -1129,8 +1129,50 @@ decode-attempt-hCompose {As} {Bs} {Cs} G K lin-G lin-K ih-G ih-K =
         ∎
 
 --------------------------------------------------------------------------------
--- `subst₂` transport: pure type-level shuffling.  When both equalities
--- are `refl`, `subst₂` is the identity, so the input pair is the output.
+-- `subst₂` transport: pure type-level shuffling.  Generalized to handle
+-- *non-`refl`* equations by exposing the transport explicitly.
+--
+-- The old definition (`decode-attempt-subst₂ H refl refl (t , p) = (t , p)`)
+-- only fired when both `eq-As` and `eq-Bs` were *literally* `refl`.  For
+-- ~++-identityʳ (flatten A)~ etc. — which only reduce to `refl` for
+-- *concrete* `A` — the function was stuck, leaving `decode (ρ⇒ {A})`
+-- opaque for symbolic `A`.
+--
+-- The new definition produces, for *any* equations, a result whose
+-- first projection is the explicit transport
+-- `subst₂ HomTerm (cong unflatten eq-As) (cong unflatten eq-Bs) t`.
+-- Downstream proofs (notably `decode-roundtrip-ρ⇒/ρ⇐/α⇒/α⇐`) can then
+-- reason about the transported term directly, using
+-- `subst`-of-the-result combinators rather than relying on definitional
+-- reduction to fire.
+
+private
+  -- Maybe-of-HomTerm subst₂ commutes with `just`.  Refl-refl-defined,
+  -- so stuck on non-refl args at the term level — but the *type* of the
+  -- equation is well-formed for any args.
+  subst₂-Maybe-of-HomTerm-just
+    : ∀ {As Bs As' Bs' : List X}
+        (eq-As : As ≡ As') (eq-Bs : Bs ≡ Bs')
+        (t : HomTerm (unflatten As) (unflatten Bs))
+    → subst₂ (λ X Y → Maybe (HomTerm (unflatten X) (unflatten Y)))
+            eq-As eq-Bs (just t)
+      ≡ just (subst₂ HomTerm
+                    (cong unflatten eq-As)
+                    (cong unflatten eq-Bs)
+                    t)
+  subst₂-Maybe-of-HomTerm-just refl refl t = refl
+
+  -- `decode-attempt` commutes with the `subst₂` on `Hypergraph`'s
+  -- boundary types.  Same shape: refl-refl is `refl`, non-refl is
+  -- well-typed but doesn't reduce.
+  decode-attempt-resp-subst₂
+    : ∀ {As Bs As' Bs' : List X} (H : Hypergraph FlatGen As Bs)
+        (eq-As : As ≡ As') (eq-Bs : Bs ≡ Bs')
+    → decode-attempt (subst₂ (Hypergraph FlatGen) eq-As eq-Bs H)
+      ≡ subst₂ (λ X Y → Maybe (HomTerm (unflatten X) (unflatten Y)))
+              eq-As eq-Bs
+              (decode-attempt H)
+  decode-attempt-resp-subst₂ H refl refl = refl
 
 decode-attempt-subst₂
   : ∀ {As Bs As' Bs' : List X} (H : Hypergraph FlatGen As Bs)
@@ -1138,7 +1180,23 @@ decode-attempt-subst₂
   → Σ[ t ∈ HomTerm (unflatten As) (unflatten Bs) ] decode-attempt H ≡ just t
   → Σ[ t' ∈ HomTerm (unflatten As') (unflatten Bs') ]
       decode-attempt (subst₂ (Hypergraph FlatGen) eq-As eq-Bs H) ≡ just t'
-decode-attempt-subst₂ H refl refl (t , p) = (t , p)
+decode-attempt-subst₂ {As} {Bs} {As'} {Bs'} H eq-As eq-Bs (t , p) =
+  ( subst₂ HomTerm (cong unflatten eq-As) (cong unflatten eq-Bs) t
+  , trans (decode-attempt-resp-subst₂ H eq-As eq-Bs)
+          (trans (cong (subst₂ (λ X Y → Maybe (HomTerm (unflatten X) (unflatten Y)))
+                              eq-As eq-Bs) p)
+                 (subst₂-Maybe-of-HomTerm-just eq-As eq-Bs t))
+  )
+
+-- Now the first projection is just the explicit `subst₂ HomTerm ... t`,
+-- definitionally — making it usable in downstream `≈Term` chains.
+decode-attempt-subst₂-proj₁
+  : ∀ {As Bs As' Bs' : List X} (H : Hypergraph FlatGen As Bs)
+      (eq-As : As ≡ As') (eq-Bs : Bs ≡ Bs')
+      (w : Σ[ t ∈ HomTerm (unflatten As) (unflatten Bs) ] decode-attempt H ≡ just t)
+  → proj₁ (decode-attempt-subst₂ H eq-As eq-Bs w)
+  ≡ subst₂ HomTerm (cong unflatten eq-As) (cong unflatten eq-Bs) (proj₁ w)
+decode-attempt-subst₂-proj₁ H eq-As eq-Bs (t , p) = refl
 
 --------------------------------------------------------------------------------
 -- `hId A`: structural recursion on `A`.  `hId unit = hEmpty`,
