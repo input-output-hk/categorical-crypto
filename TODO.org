@@ -858,10 +858,15 @@ meantime.
    and the canonical form round-trips back to a HomTerm in normal
    form that is ≈Term-equivalent to the original.
 
-*** TODO Phase 3.5a — Unflatten + round-trip on boundaries
+*** DONE Phase 3.5a — Unflatten + round-trip on boundaries
     :PROPERTIES:
     :effort: ~3 h
     :END:
+
+    Implemented in [[file:src/Categories/APROP/Hypergraph/Completeness/Unflatten.agda]].
+    `unflatten-flatten-≈ A : A ≅ unflatten (flatten A)` — the iso is the
+    `_≅_` from `Categories.Morphism FreeMonoidal`, built compositionally
+    from `unitorˡ`, `unitorʳ`, `associator`, and `_⊗ᵢ_`.
 
     Introduce the decode-direction bridge from ~List X~ back to
     ~ObjTerm~:
@@ -885,10 +890,39 @@ meantime.
                                    --   from `A` to `unflatten (flatten A)`
     #+end_src
 
-*** TODO Phase 3.5b — Canonical form for hypergraphs
+*** DONE Phase 3.5b — Canonical form for hypergraphs (API scaffolded)
     :PROPERTIES:
     :effort: 1-2 weeks
     :END:
+
+    *Status*: API landed in
+    ~src/Categories/APROP/Hypergraph/Completeness/CanonicalForm.agda~ via three
+    postulates (~canonify~, ~canonify-iso~, ~canonify-resp-≅ᴴ~).
+
+    *Open question*: Do we actually need the canonical form?  The
+    only consumer envisaged by Phase 3.5e is ~decode-resp-≅ᴴ~,
+    which routes through ~canonical-iso→≡~ to convert ~H ≅ᴴ H'~
+    into ~canonify H ≡ canonify H'~ and thereby into a
+    ~decode~ equation.  But ~decode-resp-≅ᴴ~ might be provable
+    *directly* by induction on the hypergraph iso (since ~decode~
+    is permutation-equivariant by construction), which would make
+    the entire canonical-form machinery unnecessary.  Before
+    investing the 1-2 weeks to constructively prove the three
+    postulates, sketch a direct proof of ~decode-resp-≅ᴴ~ and only
+    fall back on canonification if that fails.
+    From these, ~Canonical H := canonify H ≡ H~ is defined and the
+    two derived facts are proved constructively:
+    - ~canonify-canonical : ∀ H → Canonical (canonify H)~ via
+      ~sym (canonify-resp-≅ᴴ (canonify-iso H))~.
+    - ~canonical-iso→≡ : Canonical H → Canonical H' → H ≅ᴴ H' → H ≡ H'~
+      via ~trans (sym ch) (trans (canonify-resp-≅ᴴ iso) ch')~.
+
+    The module uses ~--without-K~ (no ~--safe~), matching the
+    existing ~SoundnessAxioms.agda~ pattern.  Constructive proofs of
+    the three postulates are deferred — they are the bulk of the
+    1-2 week effort estimate (vertex permutations and lex-sorted
+    edge enumerations under ~--without-K~ require careful
+    ~subst₂~-transport reasoning across ~nV~/~nE~ equalities).
 
     Define a canonicalisation pass on hypergraphs:
     #+begin_src agda
@@ -926,10 +960,17 @@ meantime.
       orderings agree with the data) — then the ≅ᴴ on all fields
       collapses to ~≡~.
 
-*** TODO Phase 3.5c — Decoder: hypergraph → HomTerm
+*** DONE Phase 3.5c — Decoder: hypergraph → HomTerm (API scaffolded)
     :PROPERTIES:
     :effort: ~1 week
     :END:
+
+    *Status*: API landed in
+    ~src/Categories/APROP/Hypergraph/Completeness/Decoder.agda~ via a
+    single postulate ~decode~ matching the type below.  Constructive
+    implementation is deferred (~1 week of work for topological
+    sort, vertex-list permutation HomTerms, and stack-invariant
+    threading under ~--without-K~).
 
     Given a hypergraph, reconstruct a HomTerm:
     #+begin_src agda
@@ -967,10 +1008,17 @@ meantime.
                        (flatten-unflatten _) (flatten-unflatten _) H
     #+end_src
 
-*** TODO Phase 3.5d — Round-trip: decode ∘ ⟪_⟫ ≈Term id
+*** DONE Phase 3.5d — Round-trip: decode ∘ ⟪_⟫ ≈Term id (API scaffolded)
     :PROPERTIES:
     :effort: ~3-5 days
     :END:
+
+    *Status*: API landed alongside the decoder in
+    ~src/Categories/APROP/Hypergraph/Completeness/Decoder.agda~.
+    ~bridge~ is defined constructively (composing ~f~ with the
+    ~unflatten-flatten-≈~ iso on both ends), and ~decode-roundtrip~
+    is postulated.  Constructive proof by induction on ~f~ deferred
+    (~3-5 days).
 
     Prove decode is the left inverse of ⟪_⟫ modulo ≈Term:
     #+begin_src agda
@@ -987,10 +1035,26 @@ meantime.
     - id, λ, ρ, α, σ: explicit computations.
     - ∘, ⊗: compositional.
 
-*** TODO Phase 3.5e — Completeness theorem
+*** DONE Phase 3.5e — Completeness theorem (assembled, one new postulate)
     :PROPERTIES:
     :effort: ~2-3 days
     :END:
+
+    *Status*: Final theorem landed in
+    ~src/Categories/APROP/Hypergraph/Completeness.agda~.
+    The file:
+    - Defines ~bridge⁻¹~ as the dual composition.
+    - *Constructively* proves ~bridge-cancel : bridge⁻¹ (bridge f) ≈Term f~
+      using ~assoc~, the ~unflatten-flatten-≈~ ~isoˡ~ laws, and unitality
+      (pure category theory, no postulates).
+    - *Constructively* proves ~completeness : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g~
+      from ~bridge-cancel~, ~decode-roundtrip~, and ~decode-resp-≅ᴴ~
+      (the latter two postulated alongside ~decode~ in
+      ~Completeness/Decoder.agda~).
+
+    Total postulates across Phases 3.5b-e: 6 (canonify, canonify-iso,
+    canonify-resp-≅ᴴ; decode; decode-roundtrip; decode-resp-≅ᴴ — but
+    the canonify three may be eliminable, see open question on 3.5b).
 
     Assemble the pieces:
     #+begin_src agda
@@ -1017,6 +1081,1117 @@ meantime.
         -- decode (canonify H) = decode (canonify H')  [canonical-iso→≡]
         -- decode (canonify H') ≈Term decode H'
     #+end_src
+
+*** TODO Phase 3.5f — Plan for proving the Decoder postulates
+    :PROPERTIES:
+    :effort: 4-8 weeks
+    :END:
+
+    All three remaining postulates of Phase 3.5 now live in
+    ~src/Categories/APROP/Hypergraph/Completeness/Decoder.agda~:
+    ~decode~, ~decode-roundtrip~, ~decode-resp-≅ᴴ~.  The plan below
+    breaks them down into discrete subtasks with effort estimates.
+
+    *Suggested sequencing*:
+    1. Linearity lemma (~2 days).
+    2. ~permute~ sub-lemma (~3-5 days).
+    3. ~decode~ constructive (~5-7 days).
+    4. Compositional lemmas about ~decode~ (~3-5 days).
+    5. ~decode-roundtrip~ (~5-7 days).
+    6. Sketch ~decode-resp-≅ᴴ~ Route B (~1 day) — decide A vs B.
+    7. ~decode-resp-≅ᴴ~ via the chosen route (~5-10 days).
+
+    Total: 4-6 weeks if Route B works; 6-8 weeks for Route A.
+
+**** DONE Step 1 — Linearity lemma
+     A free *symmetric* monoidal category has no duplication or
+     discarding primitives, so the cospan-form decoder can only
+     build a HomTerm if every vertex is produced exactly once
+     (~dom~ + ~concat eout~) and consumed exactly once (~cod~ +
+     ~concat ein~).
+
+     *Decision (option b)*: define ~decode~ for *all* hypergraphs
+     by an arbitrary fallback on non-linear inputs (e.g., ignore
+     edges and emit ~id~ + ~unflatten-flatten-≈~ plumbing).
+     Properties (~decode-roundtrip~, ~decode-resp-≅ᴴ~) are only
+     proved on the linear sublattice.  Lemma to prove:
+
+     #+begin_src agda
+       Linear : Hypergraph FlatGen As Bs → Set
+       -- "each Fin nV appears exactly once in dom ++ concat eout
+       --  and exactly once in cod ++ concat ein"
+
+       ⟪⟫-Linear : ∀ {A B} (f : HomTerm A B) → Linear ⟪ f ⟫
+     #+end_src
+
+     ~⟪⟫-Linear~ is by induction on ~f~, using preservation of
+     linearity under ~hCompose~/~hTensor~ (proved as side lemmas).
+
+     *Status: complete.*  Proved in
+     ~src/Categories/APROP/Hypergraph/Completeness/Linearity.agda~:
+     ~Linear-hEmpty~, ~Linear-hVar~, ~Linear-hId~, ~Linear-hGen~,
+     ~Linear-hSwap~, ~Linear-hTensor~, ~Linear-hCompose~,
+     ~Linear-subst₂~, and ~⟪⟫-Linear~.
+
+**** DONE Step 2 — ~permute~ sub-lemma
+     Given two ~List (Fin nV)~ that are permutations of each
+     other (multiset-equal under the ~vlab~ image), build a
+     symmetric-monoidal HomTerm between their unflattened
+     versions:
+
+     #+begin_src agda
+       permute
+         : ∀ (xs ys : List (Fin nV)) (vlab : Fin nV → X)
+         → IsPermutation xs ys
+         → HomTerm (unflatten (map vlab xs)) (unflatten (map vlab ys))
+     #+end_src
+
+     Built compositionally from ~σ~, ~α~, ~λ~, ~ρ~.  This is
+     monoidal coherence on the symmetric monoidal subcategory.
+
+     *Status: complete.*  Proved in
+     ~src/Categories/APROP/Hypergraph/Completeness/Permute.agda~.
+
+     The implementation is a direct structural induction on the
+     standard-library propositional permutation ~_↭_~:
+     - ~refl~       → ~id~
+     - ~prep x p~   → ~id ⊗₁ permute p~
+     - ~swap x y p~ → ~(id ⊗₁ id ⊗₁ permute p) ∘ α⇒ ∘ (σ ⊗₁ id) ∘ α⇐~
+     - ~trans p q~  → ~permute q ∘ permute p~
+
+     Two flavours are exposed: the general one on ~List X~, and a
+     ~permute-via-vlab~ corollary on ~List (Fin n)~ that lifts a
+     permutation through a labelling ~vlab~ via ~PermProp.map⁺~.
+     Re-exported from ~Decoder.agda~ for use by Step 3.
+
+**** DONE Step 3 — ~decode~ (constructive)
+     Cospan-form algorithm parameterised by:
+     - A linear order on edges (use natural ~Fin nE~ order).
+     - The ~permute~ sub-lemma for stack reshuffles.
+
+     Algorithm:
+     1. Initial stack ~s = H.dom~.  Initial term: identity
+        from ~unflatten As~ to itself.
+     2. For ~e : Fin H.nE~ in order:
+        a. ~permute~ stack so ~ein e~ is at the front.
+        b. Apply ~Agen (elab e) ⊗₁ id~ to consume ~ein e~ and
+           produce ~eout e~.
+        c. Update stack: drop ~ein e~ prefix, prepend ~eout e~.
+     3. Final ~permute~ from end-stack to ~H.cod~.
+     4. Compose all the steps; wrap with ~unflatten-flatten-≈~
+        coherence isos to match the boundary types.
+
+     For non-linear ~H~: ~permute~ in step 2a fails to find a
+     valid permutation.  Fallback: emit ~id~-of-the-current-stack
+     and skip the edge.  This makes ~decode~ total but only
+     correct on linear hypergraphs.
+
+     *Status: complete (constructive happy path).*  The cospan-form
+     algorithm is implemented in
+     ~src/Categories/APROP/Hypergraph/Completeness/Decode.agda~ as
+     ~decode-attempt : Hypergraph → Maybe HomTerm~.  The exposed
+     building blocks are:
+     - ~extract-elem~ / ~extract-prefix~ / ~extract-exact~: multiset
+       prefix search returning a residual list and a propositional
+       permutation proof.
+     - ~Agen-edge~: lift ~elab e = flat g~ from ~mor A B~ to a
+       HomTerm between unflattened atom-lists, via the
+       ~unflatten-flatten-≈~ coherence iso.
+     - ~edge-step~: per-edge processor — search for ~ein e~ in the
+       stack; on success permute, apply ~Agen-edge ⊗₁ id~, and
+       prepend ~eout e~ to the residual; on failure fall back to
+       ~id~ (skip).
+     - ~process-all-edges~: iterate ~edge-step~ over ~Fin nE~ in
+       natural order via ~range nE~.
+     - ~decode-attempt~: orchestrate ~process-all-edges H.dom~ +
+       a final ~extract-exact H.cod~ search to bridge the
+       end-of-edges stack to ~H.cod~.
+
+     The remaining piece is the *totality lemma*
+     ~decode-attempt-Linear~, which discharges the ~Maybe~ wrapper.
+     *Done so far:*  ~decode-attempt-Linear~ is now stated specifically
+     for translated hypergraphs and is proved constructively by
+     induction on the term ~f~:
+     #+begin_src agda
+       decode-attempt-Linear
+         : ∀ {A B} (f : HomTerm A B)
+         → ∃ t. decode-attempt ⟪ f ⟫ ≡ just t
+     #+end_src
+     in
+     ~src/Categories/APROP/Hypergraph/Completeness/DecodeAttempt.agda~,
+     using one *postulated* per-smart-constructor lemma per case
+     (~decode-attempt-h{Gen,Id,Swap,Tensor,Compose}~) plus a
+     ~decode-attempt-subst₂~ helper for the unitor / associator
+     branches that translate via ~subst₂~ on ~hId~.  The trivially-
+     reducing base cases (~hEmpty~, ~hVar~) are proved constructively
+     without postulates.
+
+     ~Decoder.agda~ now derives the total ~decode~ constructively as
+     #+begin_src agda
+       decode : ∀ {A B} (f : HomTerm A B) → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
+       decode f = proj₁ (decode-attempt-Linear f)
+     #+end_src
+     i.e. ~decode~ now takes a *term* ~f~ rather than a hypergraph +
+     linearity witness — it is defined exclusively on translated
+     hypergraphs (the only inputs the completeness theorem ever feeds
+     it).  ~decode-roundtrip~ and ~decode-resp-≅ᴴ~ are restated to
+     match: both now take terms ~f~ (and ~g~) and use ~decode f~,
+     ~decode g~.  ~Completeness.agda~ no longer needs to thread
+     ~⟪⟫-Linear~ through.
+
+     *Easy postulates discharged:*
+     - ~decode-attempt-subst₂ H refl refl (t , p) = (t , p)~ (transport
+       through ~subst₂~ on ~refl~ is the identity).
+     - ~decode-attempt-hId~ proved by structural recursion on ~A~,
+       reducing to ~hEmpty~ / ~hVar~ / ~hTensor~.
+
+     *Remaining 4 postulates* (~hSwap~/~hGen~/~hTensor~/~hCompose~)
+     each need to track how ~extract-prefix~ behaves on lists built
+     out of disjoint injections (~_↑ˡ_~/~_↑ʳ_~, or ~injL~/~injR~).
+     Plan in Step 3.5f Sub-step below.
+
+***** TODO Step 3.5f-A — Discharge the remaining 4 ~decode-attempt-h*~ postulates
+      Plan for the ~hSwap~, ~hGen~, ~hTensor~, ~hCompose~ cases of
+      ~decode-attempt-Linear~.
+
+      ****** Reusable machinery from the soundness side
+
+      The existing soundness chain has already invested heavily in the
+      same kind of disjoint-injection / Fin-list reasoning that
+      ~decode-attempt~ needs.  The following can be *reused directly*:
+
+      *From* ~Invariant.agda~ *(public)*:
+      - ~inject+-inj~ / ~raise-inj~ — injectivity of ~_↑ˡ_~ /
+        ~_↑ʳ_~.  Underpins every "find element through injection"
+        lemma.
+      - ~disj-L-R~ — disjointness of ~map (_↑ˡ_) xs~ and
+        ~map (_↑ʳ_) ys~.  Underpins every "skip disjoint-injection
+        element" lemma.
+      - ~range-Unique~, ~range-covers~ — completeness of the
+        ~range n~ enumeration.
+      - ~range-++~ — decomposition of ~range (n + m)~ across the two
+        injections, exactly the form ~hSwap.dom~ / ~hSwap.cod~ /
+        ~hGen.dom~ / ~hGen.cod~ take.
+      - ~hId-dom≡range~, ~hId-cod≡range~, ~hId-cod≡dom~ — explicit
+        forms for ~hId~'s boundary lists.
+      - ~hId-dom-Unique~, ~hSwap-dom-Unique~, ~hGen-dom-Unique~ — the
+        domain is duplicate-free (a strictly stronger property than
+        the linearity ≤ 1 we need).
+      - ~tensor-covers~ — every vertex of ~G + K~ is in
+        ~map injL G.dom ++ map injR K.dom~ (currently private; trivial
+        to expose).
+
+      *From* ~FromAPROP.agda~ *(already imported via ~hCompose-impl~ /
+      ~hTensor-impl~)*:
+      - ~ein-c-inj₁-red~ / ~eout-c-inj₁-red~ /
+        ~ein-c-inj₂-red~ / ~eout-c-inj₂-red~ — exactly the reductions
+        needed to unblock ~edge-step~'s
+        ~with extract-prefix (H.ein e) s~ when ~H = hTensor G K~ or
+        ~H = hCompose G K~.  Each one collapses ~ein-c~/~eout-c~ to
+        the per-side mapped form ~map injL (G.{ein,eout} eG)~ or the
+        ~_↑ʳ_~-side counterpart.
+      - ~elab-c-inj₁~ / ~elab-c-inj₂~ — analogous reductions for the
+        ~elab-c~ field.
+      - ~hCompose-impl.remap~, ~hCompose-impl.remap-comm~ — already
+        in scope; underpin ~decode-attempt-hCompose~.
+
+      *From* ~Linearity.agda~ *(already imported)*:
+      - ~count-map-↑ˡ~, ~count-map-↑ʳ~ — count preserved through
+        injection.
+      - ~count-map-↑ˡ-mismatch~, ~count-map-↑ʳ-mismatch~ — count of
+        mismatched-injection elements is 0.  Conceptually exactly the
+        "extract returns nothing" property we need (in count form).
+      - ~↑ˡ≢↑ʳ~ (currently private; trivial to expose) — the explicit
+        contradiction proof that ~_↑ˡ_~ and ~_↑ʳ_~ images don't meet.
+
+      *Pattern reuse (templates, not direct lemmas)*:
+      - ~HomTermInvariant.agda~ already inducts on ~f~ exactly the
+        same way we do.
+      - ~Congruence.hTensor-resp-≅ᴴ~ case-splits on ~splitAt G.nE e~
+        and uses ~ein-c-inj₁-red~ / ~elab-c-inj₁~ to thread reasoning
+        through ~hTensor~'s combined fields — the same shape our
+        ~hTensor~ proof needs.  Likewise ~CongruenceP~ for ~hCompose~.
+
+      ****** Foundation lemmas (~2-3 days, reduced from 3-5)
+
+      With the reuse above, the only genuinely new lemmas we need are
+      ~extract-*~-shape statements.  Each is a small wrapper around
+      one of the count/disjointness/injectivity facts already proved.
+      *Status:* base lemmas (1-3, 5, 8) proved in
+      ~DecodeProperties.agda~.  Mixed-injection lifting lemmas
+      (~extract-elem-↑ˡ-on-mixed-{nothing,just}~,
+      ~extract-elem-↑ʳ-on-mixed-{nothing,just}~,
+      ~extract-prefix-↑ˡ-on-mixed-just~,
+      ~extract-prefix-↑ʳ-on-mixed-just~) *now proved* — they cover
+      the (4, 6, 7) cases of the original numbering for the
+      ~hTensor~ workflow.
+
+      *Remaining for ~decode-attempt-hTensor~ body (NOT YET DONE):*
+      The ~extract-*~ foundations are in place, but the proof of
+      ~decode-attempt-hTensor~ itself still needs:
+
+      - Edge-step lifting: relating
+        ~edge-step (hTensor G K) (eG ↑ˡ K.nE)~ on a mixed stack to
+        ~edge-step G eG~ on the underlying G-side.  Requires careful
+        ~subst₂ HomTerm~ plumbing (the ~bridged~ term has
+        ~map-++~-shaped substs that don't match cleanly across the
+        lifting).  Estimated ~100-150 lines.
+      - ~process-edges~ lifting: iterate the edge-step lifting over
+        a list of mapped edges.  ~50-100 lines.
+      - Composition: tie everything together in
+        ~decode-attempt-hTensor~ via ~Invariant.range-++~ and
+        ~Linear-hTensor~-derived permutations.  ~50 lines.
+
+      Still feasible (~1-2 days) but the ~subst₂~ plumbing is the
+      tedious bit.
+
+      1. ~extract-elem-self~ *(DONE — existential form):*
+         #+begin_src agda
+           extract-elem-self : ∀ {n} (k : Fin n) (xs : List (Fin n))
+             → ∃[ p ∈ k ∷ xs Perm.↭ k ∷ xs ]
+                 extract-elem k (k ∷ xs) ≡ just (xs , p)
+         #+end_src
+         (Stated as an existential rather than ~just (xs , Perm.refl)~
+         because, with `--without-K`, ~extract-elem~ now uses
+         ~yes p~ + explicit ~subst~ to compute the residual permutation,
+         and the resulting term doesn't reduce to ~Perm.refl~ on its own.
+         This was a non-trivial refactor: the original
+         ~yes refl~-pattern definition didn't reduce when both args were
+         forced equal, blocking the lemma.)
+
+      2. ~extract-elem-skip-{nothing,just}~ *(DONE):* split into
+         ~nothing → nothing~ and ~just (rest, p) → just (x ∷ rest, …)~
+         halves so callers can chain through `Maybe.map`-style.
+
+      3. ~extract-elem-{↑ʳ-on-↑ˡ,↑ˡ-on-↑ʳ}-list~ *(DONE):* on a
+         pure-injection-mapped list, looking for the wrong-side
+         injection returns ~nothing~.  *Reuses ~↑ˡ≢↑ʳ~* (re-defined
+         locally as ~private~).
+
+      4. ~extract-elem-↑ˡ-mapped-success~ *(deferred):*
+         ~extract-elem (k ↑ˡ nB) (map (_↑ˡ nB) xs)~ succeeds whenever
+         ~extract-elem k xs~ does.  *Would reuse ~inject+-inj~ /
+         ~raise-inj~*.  Proof requires a triple-nested ~with~ chain
+         (on ~x ≟ k~, ~(x ↑ˡ nB) ≟ (k ↑ˡ nB)~, and
+         ~extract-elem k xs in eq-inner~) which Agda's parser handles
+         awkwardly.  An attempt with `with-aux` helpers reached working
+         shape but hit indentation issues; deferred to follow-up.
+
+      5. ~extract-prefix-self~ *(DONE):* ~extract-prefix xs xs ≡
+         just ([] , p)~ for some ~p~, *no Unique hypothesis needed*
+         (the algorithm peels heads via ~extract-elem-self~, which
+         always finds ~k~ at the head of ~k ∷ ks~).
+
+      6. ~extract-prefix-disjoint-skip~ *(deferred):* searching for an
+         entirely ~_↑ʳ_~-mapped prefix in a stack of the form
+         ~map (_↑ˡ nB) xs ++ rest~ skips the prefix.  *Would reuse
+         ~disj-L-R~*.
+
+      7. ~extract-prefix-mapped~ *(deferred):* lifting (5) through
+         injection.  *Would reuse ~inject+-inj~ / ~raise-inj~*.
+
+      8. ~extract-exact-self~ *(DONE):* immediate from (5).
+
+      9. ~extract-elem-found~ *(DONE):*
+         ~y ∈ xs → ∃ rest p . extract-elem y xs ≡ just (rest, p)~.
+         Constructive search via membership.  Pattern-matches the
+         membership; uses ~extract-elem-self~ for the head case and
+         `rewrite` on the IH for the tail-skip case.  Avoids needing
+         ~extract-elem-skip-just~ (which has a `with-aux` indentation
+         conflict against the outer caller).
+
+      10. ~extract-prefix-from-↭~ *(DONE):*
+          ~xs ↭ ys → ∃ p . extract-prefix ys xs ≡ just ([], p)~.
+          Inducts on `ys`; uses stdlib's ~↭-empty-inv~,
+          ~∈-resp-↭~, ~↭-sym~, ~↭-trans~, ~drop-∷~ to extract a head
+          membership and cancel for the recursive call.  This is the
+          *key* lemma used to discharge ~decode-attempt-hSwap~ via
+          ~PermProp.++-comm~.
+
+      *Side-effect of the foundation work:*  ~Decode.agda~'s
+      ~extract-elem~ was refactored from ~yes refl~ to ~yes p +
+      subst~ so it reduces under `--without-K` even when both arguments
+      are forced equal.  All consumers (~decode-attempt-hEmpty~,
+      ~decode-attempt-hVar~, ~Completeness.agda~) still compile.
+
+      ****** DONE ~decode-attempt-hSwap A B~
+
+      ~hSwap A B~ has ~nE = 0~, ~dom = L ++ R~, ~cod = R ++ L~ where
+      ~L = map (_↑ˡ nB) (range nA)~, ~R = map (nA ↑ʳ_) (range nB)~.
+      ~process-all-edges~ returns ~(L ++ R , id)~ trivially.  Need:
+      ~extract-exact (R ++ L) (L ++ R)~ succeeds.
+
+      *Status: complete.* Proved constructively via two new
+      foundation lemmas in ~DecodeProperties.agda~:
+      - ~extract-elem-found : y ∈ xs → ∃ rest p . extract-elem y xs ≡ just (rest, p)~
+        — induction on `xs`, using ~extract-elem-self~ for the head
+        match and `rewrite` on the IH for the tail.
+      - ~extract-prefix-from-↭ : xs ↭ ys → ∃ p . extract-prefix ys xs ≡ just ([], p)~
+        — induction on `ys`, using stdlib's ~↭-empty-inv~,
+        ~∈-resp-↭~, ~↭-sym~, ~↭-trans~, and ~drop-∷~ to extract the
+        head element membership and cancel for the recursive call.
+
+      With these, ~decode-attempt-hSwap A B~ unfolds:
+      ~process-all-edges~ trivialises (nE = 0); the final
+      ~extract-exact (R ++ L) (L ++ R)~ succeeds via
+      ~extract-prefix-from-↭~ applied to stdlib's
+      ~PermProp.++-comm L R : (L ++ R) ↭ (R ++ L)~.  No `disj-L-R` /
+      `inject+-inj` / `range-Unique` plumbing was needed — the
+      `↭-from-Perm.++-comm` route bypasses them entirely.
+
+      ****** DONE ~decode-attempt-hGen g~
+
+      ~hGen g~ for ~g : mor A B~ has ~nE = 1~, ~ein 0 = dom = L~,
+      ~eout 0 = cod = R~ (with ~L~, ~R~ as above).  ~edge-step~ on
+      this single edge calls ~extract-prefix L L~, which succeeds by
+      foundation (5) (~extract-prefix-self~).  After the edge, stack
+      becomes ~R ++ []~.  Final ~extract-exact R (R ++ [])~ succeeds
+      via foundation (10) (~extract-prefix-from-↭~) applied to
+      ~PermProp.++-identityʳ R : R ++ [] ↭ R~.
+
+      *Status: complete.*  Two `with`-rewrites in
+      ~decode-attempt-hGen~:
+      - ~extract-prefix-self L~ (unblocks the edge step inside
+        ~edge-step L 0~).
+      - ~extract-prefix-from-↭ (R ++ []) R (PermProp.++-identityʳ R)~
+        (unblocks the final ~extract-exact~).
+
+      No special handling for the ~elab = subst₂ FlatGen … (flat g)~
+      was needed: ~Agen-edge-aux~ pattern-matches ~flat~ on the
+      ~elab~-field as-is, and ~_ , refl~ closes the proof.
+
+      ****** PARTIAL ~decode-attempt-hTensor G K~
+
+      *Status: API in place, body postulated.* The signature now takes
+      explicit induction hypotheses for the sub-hypergraphs:
+      #+begin_src agda
+        decode-attempt-hTensor
+          : ∀ {As Bs Cs Ds : List X}
+              (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Cs Ds)
+          → (∃[ tG ] decode-attempt G ≡ just tG)
+          → (∃[ tK ] decode-attempt K ≡ just tK)
+          → ∃[ t ] decode-attempt (hTensor G K) ≡ just t
+      #+end_src
+      and ~decode-attempt-Linear (f ⊗₁ g)~ now plumbs them through
+      via ~decode-attempt-Linear f~ / ~decode-attempt-Linear g~.
+
+      ~hTensor G K~ partitions vertices and edges into a disjoint
+      union via ~injL~/~injR~.  Edges of ~G~ go first in the natural
+      Fin order, then edges of ~K~.  Proof-shape sketch (the hard
+      part):
+
+      a. After processing ~G~'s edges, stack permutes to
+         ~map injL G.cod ++ map injR K.dom~ (uses IH for ~G~).
+      b. After processing ~K~'s edges, stack permutes to
+         ~map injL G.cod ++ map injR K.cod = cod~ (uses IH for ~K~).
+      c. ~extract-exact cod cod~ succeeds (foundation 8).
+
+      Showing ~edge-step~ on a ~G~-edge with input
+      ~map injL (G.ein eG)~ leaves the ~K~-side untouched *reuses
+      ~hTensor-impl.ein-c-inj₁-red~* to collapse the combined ~ein-c~
+      back to ~map injL (G.ein eG)~, then foundation (3, 6) (which
+      themselves reuse ~↑ˡ≢↑ʳ~ / ~disj-L-R~).  The structural pattern
+      is exactly the one from ~Congruence.hTensor-resp-≅ᴴ~'s
+      case-analysis on ~splitAt G.nE e~.
+
+      *The fundamental obstacle*: the IH ~∃ tG. decode-attempt G ≡ just tG~
+      tells us decode-attempt G succeeds, but it doesn't *expose* the
+      internal ~s_final~ that G's algorithm produced.  For the lifting
+      argument we need either (i) a stronger IH that exposes G's
+      ~s_final~ (e.g. ~∃ s_final t. process-all-edges G.dom ≡ (s_final, t) × s_final ↭ G.cod~),
+      or (ii) a structural argument that bypasses G's IH and does
+      direct algorithm reasoning on hTensor.  Option (i) requires
+      changing the IH up the chain; option (ii) is essentially Step 4's
+      compositional ~decode-hTensor~ lemma.
+
+      ****** ~decode-attempt-hCompose G K~ (~1-2 weeks)
+
+      ~hCompose G K~ identifies ~K.dom~ vertices with ~G.cod~ vertices
+      via ~remap~ (so ~map remap K.dom ≡ map injL G.cod~).  Hardest case.
+
+      Sub-steps:
+      a. Process ~G~'s edges (analogous to ~hTensor~'s G-side, *reusing
+         ~hCompose-impl.ein-c-inj₁-red~* etc. — these are the
+         ~hCompose~ counterparts of the ~hTensor~ reductions).
+      b. Crossover: after ~G~'s edges, stack ≅ ~map injL G.cod~.  By
+         the ~map-remap-K-dom~ lemma (currently in ~Linearity.agda~'s
+         ~hCompose-impl~ scope as an internal helper of
+         ~Linear-hCompose~), ~map injL G.cod ≡ map remap K.dom~.  This
+         lemma is already constructively proved — just needs to be
+         exposed publicly.
+      c. Process ~K~'s edges via ~remap~-translation: *reuse
+         ~hCompose-impl.remap~ / ~remap-comm~* (already public).
+      d. Final ~extract-exact (map remap K.cod) final-stack~ succeeds.
+
+      Required new machinery beyond reuse:
+      - A handful of foundation-style lemmas adapted to ~remap~
+        instead of ~_↑ʳ_~ — analogous to (3, 6, 7) but with
+        ~remap~ as the second injection.  Likely 1-2 days each.
+      - Hoist ~map-remap-K-dom~ out of the ~Linear-hCompose~ where to
+        the top level of ~Linearity.agda~ (or a new shared module).
+      - A *topological soundness* argument: ~K~-edges processed after
+        ~G~-edges always have their inputs in stack.  For ~⟪f⟫~ this
+        is built into the smart constructors; for arbitrary linear ~H~
+        it requires non-trivial justification.  The ~hCompose-impl~
+        already has lemmas (~K-dom-Unique~, ~K-eb-noDom~) that capture
+        the relevant facts; lift them to power the topological
+        argument.
+
+      ****** Order & estimate
+      | Phase                       | Status            | Estimate (initial) |
+      |-----------------------------+-------------------+--------------------|
+      | Foundation lemmas           | *DONE*            | 3-5 days           |
+      | ~decode-attempt-hSwap~      | *DONE*            | 1-2 days           |
+      | ~decode-attempt-hGen~       | *DONE*            | 2-3 days           |
+      | ~decode-attempt-hTensor~    | *DONE*            | 1-2 weeks          |
+      | ~decode-attempt-hCompose~   | *DONE*            | 2-3 weeks          |
+
+      *All decode-attempt-h* postulates are now discharged
+      constructively* (commit ~a5cefef~).  ~decode-attempt-Linear~
+      is fully constructive on top.
+
+      Hypergraph-side machinery introduced for hTensor (commits
+      15dc367-ce0e988) and reused / extended for hCompose
+      (05f2d3b-a5cefef):
+
+      - *Mixed-list lifting* for ~extract-elem~ and ~extract-prefix~
+        (just/nothing).  Used by hTensor's K-side via ~injR~.
+      - *Permutation-respecting* ~extract-prefix-↭-residual~ /
+        ~↭-nothing~.  Used by both K-sides (hTensor's via ~injR~,
+        hCompose's via ~remap~).
+      - *Generic via-injective* lifting for any injective
+        ~f : Fin n → Fin m~.  Specialised to ~injL~ (for hCompose's
+        G-side pure-L stack) and ~remap~ (for hCompose's K-side).
+      - *hCompose-Linear-utils* (in Linearity.agda) — exposes
+        ~map-remap-K-dom~, ~remap-noDom~, and the new
+        ~remap-injective~ proof (count-based contradiction via
+        K.dom ↭ x ∷ y ∷ rest decomposition).
+      - *IH-strengthening* (~decode-attempt-perm-from-just~) and
+        its inverse (~decode-attempt-from-perm~).
+      - *Per-edge & process-edges lifts*: G-side equality (mixed
+        for hTensor, pure-L for hCompose), K-side perm-respecting
+        (via ~injR~ for hTensor, via ~remap~ for hCompose).
+
+      ~decode-attempt-hCompose~ takes ~Linear G~ + ~Linear K~ as
+      additional arguments (compared to hTensor's signature).  The
+      caller ~decode-attempt-Linear~ passes ~⟪⟫-Linear f/g~ from
+      ~Linearity.agda~.
+
+      Total: ~1100 lines added across DecodeProperties.agda,
+      DecodeAttempt.agda, Linearity.agda.
+
+      The actual time-to-completion for foundation + hSwap + hGen was
+      far below the initial estimate, because going through stdlib's
+      generic permutation machinery (~Perm.++-comm~, ~++-identityʳ~,
+      ~drop-∷~, ~∈-resp-↭~) bypasses the disjoint-injection /
+      Fin-membership plumbing entirely.  The same approach should
+      compress the hTensor / hCompose estimates as well, but those
+      cases will additionally need to track per-edge interaction with
+      ~injL~/~injR~ and (for hCompose) ~remap~.
+
+      Suggested ordering: foundation → ~hSwap~ → ~hGen~ → ~hTensor~
+      → ~hCompose~.  Earlier cases validate the foundation lemmas
+      before tackling the recursive ones.
+
+      *Risks*:
+      - Polymorphism vs concrete terms: lemmas on ~map (_↑ˡ_) (range _)~
+        may need helpers about how ~range~ interacts with the
+        injections.
+      - Topological soundness for ~hCompose~ may pull in further
+        linearity-driven lemmas from ~Linearity.agda~.
+
+**** TODO Step 4 — Compositional lemmas about ~decode~
+     One lemma per smart constructor of [[file:src/Categories/APROP/Hypergraph/FromAPROP.agda]],
+     stating that ~decode~ commutes with the constructor up to
+     ~unflatten-flatten-≈~ coherence:
+
+     #+begin_src agda
+       decode-hId      : decode (hId A) ≈Term ⟨coh A⟩
+       decode-hGen     : decode (hGen g) ≈Term ⟨coh⟩ ∘ Agen g ∘ ⟨coh⁻¹⟩
+       decode-hCompose : decode (hCompose G K)
+                       ≈Term ⟨coh⟩ ∘ decode K ∘ decode G ∘ ⟨coh⁻¹⟩
+       decode-hTensor  : decode (hTensor G K)
+                       ≈Term ⟨coh⟩ ∘ (decode G ⊗₁ decode K) ∘ ⟨coh⁻¹⟩
+       decode-hSwap    : decode (hSwap A B)
+                       ≈Term ⟨coh⟩ ∘ σ ∘ ⟨coh⁻¹⟩
+     #+end_src
+
+     The ~⟨coh⟩~ are the ~unflatten-++-≅~ isos linking
+     ~unflatten (As ++ Bs)~ to ~unflatten As ⊗₀ unflatten Bs~.
+     Proofs unfold the cospan-form construction on each
+     constructor and apply the iso laws.
+
+**** DONE Step 5 — ~decode-roundtrip~ (inductive structure)
+     Prove ~decode ⟪ f ⟫ ≈Term bridge f~ by induction on ~f~,
+     using the compositional lemmas from Step 4.  Each case
+     reduces to:
+     - Apply the relevant ~decode-h<X>~ lemma to expose the
+       cospan-form structure on ~⟪ f ⟫~.
+     - Apply the IH(s) on subterms.
+     - Cancel the inner coherence-iso pairs using ~isoˡ~/~isoʳ~
+       laws of ~unflatten-flatten-≈~ and ~unflatten-++-≅~.
+     - Massage the outer coherence to match ~bridge f~.
+
+     The ~λ⇒~/~ρ⇒~/~α⇒~ cases handle the ~subst₂~ in
+     [[file:src/Categories/APROP/Hypergraph/FromAPROP.agda::540]] —
+     this is the most fiddly part.
+
+     *Status: inductive structure complete; per-case postulates
+     deferred.*  ~src/Categories/APROP/Hypergraph/Completeness/DecodeRoundtrip.agda~
+     postulates one ~decode-roundtrip-X~ per ~HomTerm~ constructor
+     (~Agen~/~id~/~_∘_~/~_⊗₁_~/~λ⇒~/~λ⇐~/~ρ⇒~/~ρ⇐~/~α⇒~/~α⇐~/~σ~) and
+     proves
+     #+begin_src agda
+       decode-roundtrip : ∀ {A B} (f : HomTerm A B) → decode f ≈Term bridge f
+     #+end_src
+     constructively by induction on ~f~.  The composite cases
+     (~_∘_~, ~_⊗₁_~) take their inductive hypotheses as arguments,
+     so the recursive structure is preserved for future discharge of
+     the per-case postulates.  ~Decoder.agda~ no longer postulates
+     ~decode-roundtrip~ directly — only ~decode-resp-≅ᴴ~ remains
+     postulated.
+
+     *Easy axioms discharged so far:*
+     - ~decode-roundtrip-id {unit} = assoc~.  In the ~unit~ case
+       both sides reduce to compositions of ~id~ (decode is
+       ~(id ∘ id) ∘ id~, bridge is ~id ∘ (id ∘ id)~) and the proof is
+       just ~assoc~.  The ~Var x~ and ~A ⊗₀ B~ cases of
+       ~decode-roundtrip-id~ are inlined as ~where~-clause postulates
+       (`decode-roundtrip-id-Var`, `decode-roundtrip-id-⊗`) — they
+       require the same coherence chasing as the other atomic /
+       compositional axioms.
+
+     The other axioms (~Agen~, ~λ⇒~, ~λ⇐~, ~ρ⇒~, ~ρ⇐~, ~α⇒~, ~α⇐~,
+     ~σ~, ~_∘_~, ~_⊗₁_~) are still postulated.  They all need to
+     unfold one of the constructive ~decode-attempt-h*~ lemmas into a
+     specific term composition (involving ~permute-via-vlab~,
+     ~unflatten-++-≅~, ~Agen-edge~) and chase ~≈Term~ identities
+     (~assoc~, ~idˡ~/~idʳ~, ~id⊗id≈id~, the iso laws of
+     ~unflatten-flatten-≈~ etc.) until the term equals the
+     corresponding ~bridge~ form.
+
+***** TODO Step 5-A — Discharge the remaining ~decode-roundtrip-X~ axioms
+      Plan focusing on shared logic.  The 11 axioms cluster into three
+      groups; foundation lemmas for each group amortise across multiple
+      axioms.
+
+      ****** Cluster A — ~hId~-based axioms (7 of 11)
+
+      *Members*: ~id~, ~λ⇒~, ~λ⇐~, ~ρ⇒~, ~ρ⇐~, ~α⇒~, ~α⇐~.
+
+      *Common structure*: each has ~⟪X⟫~ either equal to ~hId Y~ (for
+      ~id~/~λ⇒~/~λ⇐~) or to ~subst₂ … (hId Y)~ (for the rest).  So
+      ~decode X~ is the same value as ~decode (id {Y})~ (modulo the
+      ~subst₂~ transport, which is identity on the term).  *Both
+      sides reduce to* ~id~ *(in the appropriate type)*:
+      - decode X ≈Term ~id~ via the algorithm (`hId` has no edges, so
+        the cospan-form output is a pure-identity composition that
+        collapses by ~idˡ~/~idʳ~/~id⊗id≈id~).
+      - bridge X ≈Term ~id~ via iso laws (~≅.from ∘ ≅.to ≈ id~ for
+        the unflatten-flatten coherence iso, plus the constructor's
+        own naturality / iso law).
+
+      *Shared lemmas*:
+      - *L1* ~decode-id-is-id : ∀ A → decode (id {A}) ≈Term id~.  By
+        induction on ~A~:
+        - ~unit~: chain of ~idˡ~ — already proved as the lone case
+          of ~decode-roundtrip-id~.
+        - ~Var x~: chain of ~id⊗id≈id~ + ~idˡ~ (decode reduces to
+          ~((id ⊗ id) ∘ ((id ⊗ id) ∘ id)) ∘ id~).
+        - ~A ⊗₀ B~: needs L1' below.
+      - *L1'* ~decode-attempt-hTensor-of-id-is-id~: when both
+        sub-IHs are ~id~, the tensored decode also reduces to ~id~.
+        This requires a structure lemma about
+        ~decode-attempt-hTensor~'s output (Cluster C foundation L7
+        below — overlapping work).
+      - *L2* ~decode-subst₂-≈ : ∀ {As Bs As' Bs'} (eq-As eq-Bs) (H : Hypergraph FlatGen As Bs)~
+              ~→ decode (subst₂ ... eq-As eq-Bs H) ≈Term decode H~ (modulo type cast).
+        Used for ~ρ⇒~/~ρ⇐~/~α⇒~/~α⇐~ where ~⟪X⟫~ involves ~subst₂~.
+
+      *Per-axiom lemmas*: one ~bridge-X-is-id~ per X.  Each is a
+      short ~≈Term~ chain that reuses an iso law of the constructor:
+      - ~bridge-id A : bridge (id {A}) ≈ id~.  Direct: ~from ∘ id ∘
+        to ≈ from ∘ to ≈ id~.
+      - ~bridge-λ⇒ A : bridge (λ⇒ {A}) ≈ id~.  Uses ~λ⇒-naturality~
+        (~λ⇒ ∘ id ⊗₁ f ≈ f ∘ λ⇒~) and ~λ⇒∘λ⇐≈id~.
+      - ~bridge-λ⇐ A~, ~bridge-ρ⇒ A~, ~bridge-ρ⇐ A~: symmetric, use
+        the relevant unitor naturality + ~iso~ law.
+      - ~bridge-α⇒ A B C~, ~bridge-α⇐ A B C~: use ~α-comm~ + ~α⇒∘α⇐≈id~.
+
+      *Combining*:
+      #+begin_src agda
+        decode-roundtrip-id   = trans (L1 _)              (sym (bridge-id _))
+        decode-roundtrip-λ⇒   = trans (L1 _)              (sym (bridge-λ⇒ _))
+        decode-roundtrip-λ⇐   = trans (L1 _)              (sym (bridge-λ⇐ _))
+        decode-roundtrip-ρ⇒   = trans (trans L2 (L1 _))    (sym (bridge-ρ⇒ _))
+        ...etc...
+      #+end_src
+
+      *Effort*: ~4-5 days.  Heavy lifting in L1 (induction on A,
+      including the tensor case via L1') and the 7 ~bridge-X-is-id~
+      chains.
+
+      ****** Cluster B — atomic axioms (2 of 11)
+
+      *Members*: ~Agen~, ~σ~.
+
+      *Common structure*: each has its own ~decode-attempt-h*~
+      (~hGen~, ~hSwap~), with non-trivial dom/cod boundary equalities
+      (~lem-in~/~lem-out~ for ~hGen~, ~lem-L~/~lem-R~ for ~hSwap~).
+      The ~bridged~ field of ~decode-attempt~ wraps the algorithm
+      output in a ~subst₂ HomTerm (cong unflatten dom-ok)~ pair, so
+      these proofs need to handle the ~subst₂~ explicitly.
+
+      *Shared infrastructure* (also reused by Clusters A and C):
+      - *L4* Permute simplifications:
+        - ~permute Perm.refl ≡ id~ (definitional).
+        - ~permute (Perm.trans p q) ≡ permute q ∘ permute p~
+          (definitional).
+        - ~permute (Perm.prep x p) ≡ id ⊗₁ permute p~ (definitional).
+        - ~permute-via-vlab~ unfolding through ~PermProp.map⁺~ —
+          gives a structural recursion on ~_↭_~.
+      - *L5* Coherence iso reductions: ~≅.from u ∘ ≅.to u ≈ id~,
+        ~≅.to u ∘ ≅.from u ≈ id~ for ~u = unflatten-flatten-≈ X~ and
+        ~u = unflatten-++-≅ xs ys~.
+
+      *Per-axiom* (~3-4 days~):
+      - ~decode-roundtrip-Agen g~: chase ~decode-attempt-hGen g~'s
+        output.  Its core is ~Agen-edge 0 = ≅.from u-B ∘ Agen g ∘
+        ≅.to u-A~ — *exactly the bridge form*.  The algorithm wraps
+        this in a permute (which collapses to ~id~ via L4 since the
+        perm is trivial-modulo-Perm.refl-chains) and ~subst₂ HomTerm~
+        for ~lem-in~/~lem-out~.  After all wrapping cancels via L4 +
+        L5, we get bridge.
+      - ~decode-roundtrip-σ~: similar, but the algorithm uses
+        ~extract-prefix-from-↭ (PermProp.++-comm L R)~.  The resulting
+        ~permute-via-vlab~ output should be ≈Term equivalent to ~σ~
+        (with appropriate coherence wrapping) — the proof goes
+        through ~PermProp.++-comm~'s structure (chains of swaps and
+        preps) and uses ~σ∘σ≈id~ etc. to simplify.  *This is the
+        hardest single axiom* — a permutation of two block-mapped
+        ranges through ~_↭_~ produces a long chain of ~σ~'s in the
+        decoded term.
+
+      ****** Cluster C — compositional axioms (2 of 11)
+
+      *Members*: ~_∘_~, ~_⊗₁_~.
+
+      *Common structure*: both take inductive hypotheses (~IH-g~,
+      ~IH-f~ etc.) and need to push them through the
+      ~decode-attempt-hCompose~ / ~decode-attempt-hTensor~ outputs.
+
+      *Shared infrastructure*:
+      - *L6* ~decode-attempt-hCompose-shape~:
+        #+begin_src agda
+          decode-attempt-hCompose-shape
+            : ∀ G K linG linK ihG ihK
+            → proj₁ (decode-attempt-hCompose G K linG linK ihG ihK)
+              ≈Term <some expression involving proj₁ ihG, proj₁ ihK,
+                     and the unflatten-++-≅ coherence>
+        #+end_src
+        Concretely, the algorithm produces an ~hG-side~ followed by
+        ~hK-side~ with a ~remap~-permute in the middle.  By
+        characterising the output as ~<coh⁻¹>(decode K ⊗ id) ∘ ⟨perm⟩
+        ∘ (decode G ⊗ id)<coh>~ or similar, we can plug in IHs.
+      - *L7* ~decode-attempt-hTensor-shape~: analogous, the output
+        decomposes as ~<coh>(decode G ⊗ decode K)<coh⁻¹>~ with
+        ~hG~/~hK~ side runs interleaved.
+      - *L8* ~bridge-of-compose~:
+        #+begin_src agda
+          bridge-∘ : bridge (g ∘ f) ≈Term bridge g ∘ bridge f
+        #+end_src
+        i.e. ~(from u-C ∘ g ∘ to u-B) ∘ (from u-B ∘ f ∘ to u-A)~
+        collapses to ~from u-C ∘ (g ∘ f) ∘ to u-A~ via inner
+        ~to u-B ∘ from u-B ≈ id~ + ~idˡ~ + ~assoc~.
+      - *L9* ~bridge-of-tensor~:
+        #+begin_src agda
+          bridge-⊗ : bridge (f ⊗₁ g) ≈Term <coh⁻¹> ∘ (bridge f ⊗ bridge g) ∘ <coh>
+        #+end_src
+        Where ~<coh>~ = ~unflatten-++-≅~ from-isos.
+
+      *Per-axiom*: each is a chain
+      ~decode-X ≈⟨ Lₖ ⟩ … ≈⟨ IH ⟩ … ≈⟨ Lₖ' ⟩ bridge-X~ using L6/L7,
+      the IHs, and L8/L9.
+
+      *Effort*: ~5-7 days~.  L6 and L7 are the hardest pieces —
+      they characterise the output of the most complex
+      ~decode-attempt-h*~ proofs.
+
+      ****** Suggested order
+
+      | Layer | Tasks                                          | Estimate | Status |
+      |-------+------------------------------------------------+----------+--------|
+      | 1     | L4 (permute) + L5 (coherence iso) + L8 (bridge-∘) + L9 (bridge-⊗) | 2-3 days | *DONE* |
+      | 2     | L1 + L1' (decode-id-is-id incl. tensor case)    | 2-3 days | *DONE* |
+      | 3     | 7 × L3 (bridge-X-is-id per Cluster A constructor) + L2 (subst₂)   | 1-2 days | partial (5 of 7 — id, λ⇒, λ⇐, ρ⇒, ρ⇐); 2 of 7 (α⇒, α⇐) wired modulo coherence postulates |
+      | 4     | Wire Cluster A: 7 axioms = trans (L1) (sym L3)  | 0.5 days | *DONE* (modulo 2 coherence postulates α⇒/α⇐-coherence) |
+      | 5     | Cluster B: ~Agen~, ~σ~                          | 3-4 days |        |
+      | 6     | L6 + L7 (compositional shape lemmas)            | 3-4 days | partial (postulated as ~decode-∘-shape~ / ~decode-⊗-shape~) |
+      | 7     | Wire Cluster C: 2 axioms                        | 1 day    | *DONE* (modulo Layer 6 postulates) |
+      | *Total* |                                              | *~12-16 days* |  |
+
+      *Layer 2 status (done)*:
+      - ~decode-id-is-id : ∀ A → decode (id {A}) ≈Term id~ — proved
+        constructively by induction on ~A~.  The ~unit~ case is
+        ~idʳ ; idˡ~; the ~Var x~ case is ~idʳ ; id⊗id≈id ; idˡ ; idʳ ;
+        id⊗id≈id~; the ~A ⊗₀ B~ case uses ~decode-⊗-shape (id {A})
+        (id {B})~ + IH on ~A~/~B~ + ~id⊗id≈id~ + ~_≅_.isoˡ
+        (unflatten-++-≅ ...)~.  The ~A ⊗₀ B~ case relies on the
+        definitional equality ~decode (id {A ⊗₀ B}) ≡ decode (id {A}
+        ⊗₁ id {B})~ (which holds because both unfold to the same
+        ~decode-attempt-hTensor (hId A) (hId B) (decode-attempt-hId A)
+        (decode-attempt-hId B)~).
+
+      *Layer 3-4 status (partial)*:
+      - *Done (3 of 7)*:
+        - ~bridge-id-is-id A : bridge (id {A}) ≈Term id~ — direct
+          ~idˡ~ + ~_≅_.isoʳ~.  Then ~decode-roundtrip-id = trans
+          decode-id-is-id (sym bridge-id-is-id)~.
+        - ~bridge-λ⇒-is-id A : bridge (λ⇒ {A}) ≈Term id~ — chain via
+          ~λ⇒∘id⊗f≈f∘λ⇒~ (λ-naturality), ~_≅_.isoʳ~,
+          ~λ⇒∘λ⇐≈id~.
+        - ~bridge-λ⇐-is-id A : bridge (λ⇐ {A}) ≈Term id~ — symmetric
+          chain (λ-naturality + assoc + λ⇒∘λ⇐≈id + ~_≅_.isoʳ~).
+        - ~decode-roundtrip-λ⇒~/~decode-roundtrip-λ⇐~ wired via
+          ~decode-id-is-id A~ (works because
+          ~decode (λ⇒ {A}) ≡ decode (id {A})~ definitionally).
+      - *Wired (4 of 7)*: ~ρ⇒~, ~ρ⇐~, ~α⇒~, ~α⇐~.  These translate via
+        ~subst₂ (Hypergraph FlatGen) eq-As eq-Bs (hId X)~ where
+        ~eq-As~ or ~eq-Bs~ is ~++-identityʳ~ or ~++-assoc~.  With
+        Issue 1 fixed (see below) they are now wired by structural
+        chains
+        ~decode-X-shape ; subst₂-resp-≈Term … (decode-id-is-id …) ; X-coherence~,
+        modulo four small coherence postulates ~ρ⇒-coherence~,
+        ~ρ⇐-coherence~, ~α⇒-coherence~, ~α⇐-coherence~ characterising
+        the ~bridge~-side iso (Kelly's coherence territory).
+        *ρ⇒-coherence and ρ⇐-coherence are now constructive* (using
+        Kelly's ~coherence₂~/~coherence-inv₂~/~coherence₃~ + structural
+        induction on the underlying list).  α⇒/α⇐-coherence remain
+        postulated; their proofs need pentagon and α-naturality
+        across a longer bridge chain (skeleton documented in
+        ~DecodeRoundtrip.agda~).
+
+        *Two compounding issues* originally identified:
+
+        1. *Decode side, subst₂ doesn't reduce.* *(FIXED)*
+           ~decode-attempt-subst₂ H refl refl (t , p) = (t , p)~ —
+           the original definition only fired on literal ~refl × refl~,
+           leaving ~decode (ρ⇒ {A})~ opaque for symbolic ~A~.
+
+           *Generalised* in
+           ~src/Categories/APROP/Hypergraph/Completeness/DecodeAttempt.agda~:
+           the new definition produces, for any ~eq-As~/~eq-Bs~,
+           an output whose first projection is the explicit transport
+           ~subst₂ HomTerm (cong unflatten eq-As) (cong unflatten eq-Bs) t~,
+           via two refl-refl-defined helpers
+           ~subst₂-Maybe-of-HomTerm-just~ and
+           ~decode-attempt-resp-subst₂~ (the helpers are stuck on
+           non-refl args at the term level, but their *types* are
+           well-formed for any args, so the output equation still
+           typechecks).  The companion lemma
+           ~decode-attempt-subst₂-proj₁~ exposes the equation
+           ~proj₁ ∘ decode-attempt-subst₂ ≡ subst₂ HomTerm ∘ proj₁~
+           definitionally.
+
+           *Knock-on*: ~DecodeRoundtrip.agda~ now has shape lemmas
+           ~decode-ρ⇒-shape~, ~decode-ρ⇐-shape~, ~decode-α⇒-shape~,
+           ~decode-α⇐-shape~ characterising
+           ~decode (ρ⇒ {A}) ≡ subst₂ HomTerm refl (cong unflatten
+           (++-identityʳ (flatten A))) (decode (id {A ⊗₀ unit}))~
+           and analogous for the other three.
+
+        2. *Type mismatch — bridge isn't ≈Term id.* *(STRUCTURALLY ADDRESSED)*
+           Originally I'd hoped to chain
+           ~decode-roundtrip-ρ⇒ = trans decode-id-is-id (sym
+           bridge-ρ⇒-is-id)~ analogously to ~λ⇒/λ⇐~.  But for ~ρ⇒~
+           the bridge has type ~unflatten (flatten A ++ []) ⇒
+           unflatten (flatten A)~ — source ≠ target for symbolic
+           ~A~ — so ~bridge (ρ⇒ {A}) ≈Term id~ is *ill-typed*.
+           Same for ~α⇒/α⇐~.  Both sides of
+           ~decode-roundtrip-ρ⇒~ are non-trivial coherence isos
+           (not just ~id~); proving them equal requires
+           characterising both as the SAME iso between
+           propositionally-but-not-definitionally-equal types.
+
+           *Resolution*: with Issue 1 fixed, both sides of the
+           goal are now explicit ~subst₂ HomTerm~ transports.  In
+           ~src/Categories/APROP/Hypergraph/Completeness/DecodeRoundtrip.agda~
+           we add two helpers ~≡⇒≈Term~ and ~subst₂-resp-≈Term~,
+           four small coherence postulates
+           ~ρ⇒-coherence~/~ρ⇐-coherence~/~α⇒-coherence~/~α⇐-coherence~
+           (each of the form
+           ~subst₂ HomTerm <eq-As> <eq-Bs> id ≈Term bridge (X)~),
+           and four constructive chains
+           #+begin_src
+           decode (X) ≈⟨ ≡⇒≈Term (decode-X-shape) ⟩
+           subst₂ … (decode (id {Y}))
+                      ≈⟨ subst₂-resp-≈Term … (decode-id-is-id Y) ⟩
+           subst₂ … id  ≈⟨ X-coherence … ⟩
+           bridge (X)
+           #+end_src
+           that wire ~decode-roundtrip-ρ⇒~/~ρ⇐~/~α⇒~/~α⇐~.
+
+           *ρ⇒-coherence and ρ⇐-coherence are now constructive*
+           (in ~DecodeRoundtrip.agda~).  Each follows the structure:
+           - Auxiliary: helper lemmas ~subst-cod-cons~/~subst-dom-cons~
+             (refl-refl-defined) push ~subst (Var y ⊗₀ unflatten z)~
+             past ~Var y ⊗₀_~ at the cost of an outer ~id ⊗₁ _~.
+           - Bridge form: ~bridge-ρ⇒-form A : bridge (ρ⇒ {A}) ≈Term ρ⇒
+             {unflatten (flatten A)} ∘ ≅.from (unflatten-++-≅ (flatten
+             A) [])~ via ρ⇒-naturality + iso law.  Symmetric for ρ⇐.
+           - List induction: ~ρ⇒-coh-list xs : (subst-form for xs)
+             ≈Term ρ⇒ ∘ ≅.from (unflatten-++-≅ xs [])~ by induction on
+             ~xs~.  Base case (~xs = []~): ~id ≈ ρ⇒ ∘ λ⇐~ via
+             ~coherence₃~ (λ⇒ ≈ ρ⇒ at unit) + ~λ⇒∘λ⇐≈id~.  Cons case
+             (~xs = y ∷ ys~): chain via ~subst-cod-cons~ + IH +
+             ~⊗-∘-dist~ + ~coherence₂~ (id ⊗₁ ρ⇒ ∘ α⇒ ≈ ρ⇒).  Total
+             ≈ 30 lines.
+           - The combined ~ρ⇒-coherence~/~ρ⇐-coherence~ stitches
+             ~subst₂-refl-cod~/~subst₂-refl-dom~ (refl-refl-defined
+             helpers proving ~subst₂ HomTerm refl (cong unflatten q)
+             id ≡ subst (… unflatten z) q id~) with the list lemma
+             and the bridge form.
+
+           *α⇒/α⇐-coherence are now wired via list-induction +
+           bridge-form, with α-form-list defined as the simple
+           recursive id-tower (~α⇒-form-list (x ∷ xs) ys zs = id ⊗₁
+           α⇒-form-list xs ys zs~).  This makes the list induction
+           trivial (analogous to ρ).  The bridge-form lemma
+           ~bridge (α⇒ {A}{B}{C}) ≈Term α⇒-form-list (flatten A)
+           (flatten B) (flatten C)~ is by induction on ~A~'s tree:
+           - *unit case* (`bridge-α⇒-form unit B C`): proven manually
+             (~30-line chain) using ~λ-naturality~ + Kelly's
+             ~coherence₁~ (~λ⇒ ∘ α⇒ ≈ λ⇒ ⊗₁ id~) + ~λ⇒∘λ⇐≈id~ +
+             ~⊗-∘-dist~ + ~_≅_.isoʳ (unflatten-flatten-≈ (B ⊗₀ C))~.
+           - *Var x case* (`bridge-α⇒-form-Var`): postulated.  Same
+             template as unit case but using ρ instead of λ
+             (~unflatten-flatten-≈ (Var x) = ≅.sym unitorʳ~) and
+             Kelly's ~coherence₂~ (~id ⊗₁ ρ⇒ ∘ α⇒ ≈ ρ⇒~).
+           - *⊗ case* (`bridge-α⇒-form-⊗`): postulated.  The
+             inductive case combines IHs on A₁ and A₂ via the
+             pentagon identity.
+           The α⇐ side is symmetric: only the unit case is reducible
+           to the same template (with `coherence-inv₁`); Var x and ⊗
+           cases postulated analogously.
+
+           *MonoidalCoherence-based shortcut blocked by ~--without-K~.*
+           ~Categories.MonoidalCoherence~ (in-tree) provides
+           ~CoherenceThm.all-Comm~ (Mac Lane coherence: any two
+           parallel structural morphisms in the no-generator free
+           monoidal category are equal) plus ~Solver.solveM~ which
+           lifts the equality to any target monoidal category.  This
+           would discharge the bridge-form derivation (the long
+           α-naturality + isoʳ chain) in a single application.
+           Unfortunately, ~MonoidalCoherence~ uses K (specifically,
+           the ~ι~ functor pattern-matches on ~refl~ as morphisms in
+           the ~Discrete~ category, which requires K to eliminate).
+           Adding ~--without-K~ to ~MonoidalCoherence.agda~ produces
+           ~SplitError.UnificationStuck~ at the ~ι₁~/~F-resp-≈~
+           refl-elimination.  Refactoring ~MonoidalCoherence~ to be
+           K-free is non-trivial.
+
+           Current postulate count for α-coherence:
+           - 1 small bridge-form-⊗ postulate for α⇒ (Phase 4 ⊗-⊗ case).
+             ~bridge-α⇒-form unit~: PROVED manually (~30-line chain
+             using ~λ-naturality~ + ~coherence₁~ + ~λ⇒∘λ⇐≈id~ +
+             ~⊗-∘-dist~ + ~_≅_.isoʳ~).
+             ~bridge-α⇒-form-Var~: PROVED manually (~50-line chain
+             using ~triangle~ + ~triangle-inv~ from agda-categories'
+             Utilities + ρ⇒∘ρ⇐ + ~α-naturality~ + ~α⇒∘α⇐~ + iso laws).
+             The key trick was *two* ~FM.assoc~ steps at the start (to
+             flatten the deeply left-associated bridge structure to
+             right-assoc form) + an explicit ~α⇐~ instantiation
+             ~α⇐ {Var x}{unit}{unflatten (flatten B)}~ to avoid
+             unification issues with Agda's where-clause name
+             resolution.
+             ~bridge-α⇒-form-⊗~: PROVED 2 of 3 sub-cases.
+             - ~bridge-α⇒-form-⊗-unit~ (A₁ = unit): PROVED (~50 lines)
+               using F-decomp-unit + T-decomp-unit + α-comm + λ-cancel + IH.
+             - ~bridge-α⇒-form-⊗-Var~ (A₁ = Var x): PROVED (~110 lines
+               including helpers F-Vx⊗-collapse, T-Vx⊗-collapse,
+               F-decomp-Var, T-decomp-Var, α⇐-comm) using pentagon +
+               α⇒/α⇐ cancellations + IH.
+             - ~bridge-α⇒-form-⊗-⊗~ (A₁ = A₁₁⊗A₁₂): POSTULATED.
+               The inductive case requires the pentagon identity to
+               combine IHs on A₁₁⊗A₁₂ at multiple type instantiations
+               with bridge-of-tensored helpers (bridge-⊗) introducing
+               c-iso wrappers at compound flat-list partitions.
+               These c-iso wrappers don't directly cancel — they
+               require a "c-iso pentagon" lemma (associativity of
+               ~unflatten-++-≅~ up to ++-assoc) to merge.
+
+               *Substantial infrastructure for Phase 4 is in place*
+               (added in DecodeRoundtrip.agda):
+               - ~α⇐-α⇒-iso~ (proven, list induction): the reverse
+                 direction of α⇒-α⇐-iso, used to invert α⇒-form-list
+                 factors after pentagon-LHS application.
+               - ~α⇒-λ⇐-collapse~ (proven, ~10 lines): Mac Lane
+                 coherence corollary
+                 ~α⇒_{unit, X, Y} ∘ (λ⇐_X ⊗ id_Y) ≈ λ⇐_{X⊗Y}~,
+                 derived from ~coherence-inv₁~ + ~α⇒∘α⇐≈id~ + ~idˡ~.
+               - ~pentagon-rewrite~ (proven, ~10 lines): solves
+                 pentagon for ~α⇒_{X⊗Y, Z, W}~, expressing it as
+                 ~α⇐ ∘ (id ⊗ α⇒) ∘ α⇒ ∘ (α⇒ ⊗ id)~.
+               - ~id-⊗-subst-bridge~ (proven, 1 line via J on refl):
+                 ~id ⊗ subst-id ≈ subst-id~ at the wrapped predicate
+                 (handles the subst-cong rewriting in c-iso pentagon).
+               - ~id-⊗-respects-∘~ (proven, ~5 lines):
+                 ~id ⊗ (g ∘ f) ≈ (id ⊗ g) ∘ (id ⊗ f)~.
+               - ~α⇐-comm-top~ (proven, top-level): α⇐'s naturality,
+                 derived from α-comm + α-iso laws.  Top-level position
+                 makes it accessible from both Phase 3 and the cons
+                 case of c-iso-assoc-from.
+               - ~bridge-α⇐-form~ forward declaration: makes
+                 bridge-α⇐-form callable from inside
+                 bridge-α⇒-form-⊗-⊗ (terminating since A₁₁⊗A₁₂ <
+                 (A₁₁⊗A₁₂)⊗A₂ structurally).
+
+               *c-iso pentagon (~c-iso-assoc-from~)*: states
+               #+begin_src
+               α⇒ ∘ (c-from xs₁ xs₂ ⊗ id) ∘ c-from (xs₁ ++ xs₂) ys
+                ≈Term (id ⊗ c-from xs₂ ys) ∘ c-from xs₁ (xs₂ ++ ys)
+                       ∘ subst-id-along-++-assoc
+               #+end_src
+               by list induction on ~xs₁~.
+               - Base case (~xs₁ = []~): PROVED (~10 lines) using
+                 ~α⇒-λ⇐-collapse~ + ~λ⇐-naturality~ + ~idʳ~.  Reduces
+                 to the Mac Lane coherence corollary.
+               - Cons case (~xs₁ = x ∷ xs₁'~): POSTULATED.  Requires
+                 ~30 chain steps: ~pentagon-rewrite~ + ⊗-∘-dist +
+                 α⇒∘α⇐ cancel + α-comm + α⇒∘α⇐ cancel +
+                 ~id-⊗-respects-∘~ ×2 + IH on ~xs₁'~ +
+                 ~id-⊗-respects-∘~ ×2 + ~α⇐-comm-top~ + id⊗id≈id +
+                 (definitional reduction) + ~id-⊗-subst-bridge~ +
+                 ~≡⇒≈Term (sym subst-∘)~.
+
+               *Why the residual postulates remain.*  The chain
+               proofs require many parenthesization invariants and
+               careful subst-cong manipulation.  As we saw in Phases
+               2 and 3 (which each took ~5-10 paren-debugging
+               iterations even for shorter chains), the cons case
+               (~30 chain steps) and the main Phase 4 proof (~100-150
+               chain steps once cons case is closed) realistically
+               need a focused multi-hour session of Agda-error
+               iteration.
+
+               *Mac Lane coherence shortcut blocked by --without-K.*
+               In principle, ~bridge α⇒_{(A₁₁⊗A₁₂)⊗A₂, B, C} ≈
+               subst-id-cast~ (which is what the Phase 4 goal
+               reduces to via α⇒-coh-list) should follow from Mac
+               Lane's coherence theorem: parallel iso's between
+               propositionally-equal-types are equal in the free
+               monoidal category.  Unfortunately,
+               ~Categories.MonoidalCoherence~ uses K (the ~ι~
+               functor pattern-matches ~refl~ as morphisms in
+               ~Discrete~), so a K-free port would be non-trivial.
+               Without it, every parallel-iso-equality must be
+               proven case-by-case via chain manipulation.
+           - 0 α⇐ postulates: ~bridge-α⇐-form~ is fully derived from
+             ~bridge-α⇒-form~ via the lemma
+             #+begin_src
+             α⇒-α⇐-iso : ∀ xs ys zs
+               → α⇒-form-list xs ys zs ∘ α⇐-form-list xs ys zs ≈Term id
+             #+end_src
+             (proved by trivial induction on ~xs~ since both forms are
+             id-towers).  The derivation uses ~bridge-∘~ +
+             ~bridge-id-is-id~ + ~α⇐∘α⇒≈id~ to fold
+             ~bridge α⇐ ∘ bridge α⇒~ into ~bridge id ≈ id~, then
+             peels off the iso.
+           - 0 α⇒/α⇐-coherence axiom-level postulates (these are
+             derived from list-induction + bridge-form).
+           Net: 1 small specific-case postulate remains, down from
+           the original 4 large axiom-level postulates (α⇒/α⇐-coherence
+           each spanning all A, B, C).
+
+        *Kelly's coherence is in agda-categories.*
+        ~Categories.Category.Monoidal.Properties.Kelly's~ exposes
+        the relevant lemmas:
+        - ~coherence₁ : λ⇒ ∘ α⇒ ≈ λ⇒ ⊗₁ id~ at
+          ~(unit ⊗₀ X) ⊗₀ Y ⇒ X ⊗₀ Y~.
+        - ~coherence₂ : id ⊗₁ ρ⇒ ∘ α⇒ ≈ ρ⇒~ at
+          ~(X ⊗₀ Y) ⊗₀ unit ⇒ X ⊗₀ Y~.
+        - ~coherence₃ : λ⇒ ≈ ρ⇒~ at ~unit ⊗₀ unit ⇒ unit~.
+        - ~coherence-inv₁/₂/₃~ for the inverse directions.
+        These are exactly the laws needed to chase the ~bridge~-side
+        of ~ρ/α~ proofs.  ~bridge (ρ⇒ {A})~ is an
+        ~unflatten-++-≅~-derived iso between ~unflatten (flatten
+        A ++ [])~ and ~unflatten (flatten A)~, which by induction
+        on ~flatten A~ unfolds to compositions covered by Kelly's
+        ~coherence₂~ / ~coherence-inv₂~.
+
+      *Layer 1 status (done)*:
+      - ~bridge-∘ : bridge (g ∘ f) ≈Term bridge g ∘ bridge f~ — chain of
+        ~assoc~ / ~sym-assoc~ / ~_≅_.isoˡ~ / ~identityˡ~.
+      - ~bridge-⊗ : bridge (f ⊗₁ g) ≈Term coh-B-D.to ∘ (bridge f ⊗₁ bridge g) ∘ coh-A-C.from~
+        — chain of ~assoc~ / ~sym-assoc~ / ~bridge-⊗-decompose~ (which
+        in turn chains two ~⊗-∘-dist~ applications).
+      - L4 / L5 weren't extracted as named lemmas — they're used inline
+        (~_≅_.isoˡ (unflatten-flatten-≈ B)~ etc.) when needed.
+
+      *Layer 7 status (done modulo Layer 6 postulates)*:
+      - ~decode-roundtrip-∘ g f IH-g IH-f~ chains
+        ~decode-∘-shape g f ⟩ ∘-resp-≈ IH-g IH-f ⟩ bridge-∘ g f ⟨~.
+      - ~decode-roundtrip-⊗₁ f g IH-f IH-g~ chains
+        ~decode-⊗-shape f g ⟩ ⊗-resp-≈ IH-f IH-g (under coh-wrappers) ⟩ bridge-⊗ f g ⟨~.
+      - Both replace the original full ~decode-roundtrip-{∘,⊗₁}~
+        postulate with the strictly weaker ~decode-{∘,⊗}-shape~
+        postulate (Layer 6).
+
+      ****** Risks
+
+      - L6 / L7 are the hardest unknowns.  ~decode-attempt-hCompose~'s
+        output shape is genuinely complex (G's side runs first, then a
+        ~remap~ permute, then K's side).  Characterising this in a
+        useful form may require an auxiliary "process-edges shape"
+        lemma about how each edge contributes to the resulting term.
+
+      - L1' depends on understanding ~decode-attempt-hTensor~'s
+        output, which means Layer 2 effectively depends on Layer 6's
+        L7 (or a specialisation of L7 for the both-IH-are-id case).
+        Two ways to break the dependency:
+        (a) Specialise L7 first for the ~id~-IH case (cheaper than
+            full L7).
+        (b) Push L1' fully into Layer 6, accepting Cluster A
+            depends on Cluster C foundations.
+
+      - Cluster B's ~σ~ axiom has the largest single-axiom cost
+        because ~PermProp.++-comm~ unfolds into a long chain of
+        ~Perm.swap~/~Perm.prep~ steps that each translate to a
+        composition of ~σ~/~id ⊗ id~ via ~permute-via-vlab~ +
+        ~PermProp.map⁺~.  Simplifying this chain to a single ~σ~
+        (modulo the coherence-iso wrapping in ~bridge~) is mostly
+        ~σ-naturality~ + ~hexagon~ chasing.
+
+**** TODO Step 6 — ~decode-resp-≅ᴴ~ — sketch Route B first
+     Decide between two routes by spending ~1 day prototyping
+     Route B.  If it works cleanly, skip Phase 3.5b's three
+     postulates entirely (saving 1-2 weeks).
+
+     **Route A** (via canonical form, Phase 3.5b):
+     #+begin_src agda
+       decode H := decode-canonical (canonify H)
+       -- canonify-resp-≅ᴴ : H ≅ᴴ H' → canonify H ≡ canonify H'
+       -- decode-resp-≅ᴴ then follows by `cong decode-canonical`.
+     #+end_src
+     Cost: needs the three canonify postulates of Phase 3.5b
+     proved constructively (~1-2 weeks).
+
+     **Route B** (direct permutation-invariance):
+     #+begin_src agda
+       decode-vperm
+         : ∀ (φ : Fin H.nV ↔ Fin H.nV)
+         → decode H ≈Term decode (rename-vertices φ H)
+       decode-eperm
+         : ∀ (ψ : Fin H.nE ↔ Fin H.nE)
+         → decode H ≈Term decode (rename-edges ψ H)
+     #+end_src
+     ~decode-resp-≅ᴴ~ then follows by combining the two
+     re-indexings with the iso bijections.  The proof reduces
+     to ~σ∘σ≈id~ and friends in the symmetric-monoidal coherence.
+
+**** TODO Step 7 — ~decode-resp-≅ᴴ~ implementation
+     Execute the chosen route from Step 6.  If Route B was
+     selected, also delete or de-prioritise Phase 3.5b.
 
 *** Phase 3.5 risks + shortcuts
     *Risks*:
