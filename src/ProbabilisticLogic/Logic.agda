@@ -32,8 +32,20 @@ open Σ[_][_]_ public
   P ∙ X ∎
   where open ≤-Reasoning Probability
 
+Σ-resp-≐ : {P : ProbDistr Ω} {p : Probability} {X X' : Ω → Type}
+         → X ≐ X' → Σ[ P ][ p ] X → Σ[ P ][ p ] X'
+Σ-resp-≐ {P = P} {p} {X} {X'} X≐X' σ .p≤PX = begin
+  p      ≤⟨ σ .p≤PX ⟩
+  P ∙ X  ≈⟨ ∙-cong X≐X' ⟩
+  P ∙ X' ∎
+  where open ≤-Reasoning Probability
+
 _⇒[_][_]_ : (X : Ω → Type) (P : ProbDistr Ω) (p : Probability) (Y : Ω → Type) → Type₁
 X ⇒[ P ][ p ] Y = Σ[ P ∣ X ][ p ] (Y ∘ proj₁)
+
+⇒-resp-≐-Y : {P : ProbDistr Ω} {p : Probability} {X Y Y' : Ω → Type}
+           → Y ≐ Y' → X ⇒[ P ][ p ] Y → X ⇒[ P ][ p ] Y'
+⇒-resp-≐-Y (Y⊆Y' , Y'⊆Y) = Σ-resp-≐ ((λ {ω} → Y⊆Y') , λ {ω} → Y'⊆Y)
 
 app : {P : ProbDistr Ω} {p q : Probability} {X Y : Ω → Type}
     → X ⇒[ P ][ q ] Y → Σ[ P ][ p ] X → Σ[ P ][ p * q ] Y
