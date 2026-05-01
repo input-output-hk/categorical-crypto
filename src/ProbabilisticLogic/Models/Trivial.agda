@@ -77,6 +77,8 @@ Triv-AbstractProbability = record
   ; d                             = λ _ _ → tt
   ; HasPartialOrder-Probability   = ⊤-HasPartialOrder
   ; ≤-cong                        = λ _ _ → refl
+  ; +-mono-≤                      = λ _ _ → refl
+  ; +-cancelʳ-≤                   = λ _ → refl
   ; fromℚ                         = λ _ → tt
   ; fromℚ-homomorphism            = refl
   }
@@ -98,4 +100,5 @@ Triv = record
   ; uniformFromList     = λ _ → tt
   ; uniform-eq          = refl
   ; cond-uniform        = λ _ → refl
+  ; ∩-bound             = refl
   }

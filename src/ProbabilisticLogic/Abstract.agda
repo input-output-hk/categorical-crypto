@@ -11,6 +11,8 @@ import Data.List.NonEmpty as NE
 open import Data.Rational as ℚ using (ℚ; _/_)
 open import Data.Integer using (+_)
 
+open import ProbabilisticLogic.Reasoning
+
 module ProbabilisticLogic.Abstract where
 
 private variable Ω : Type
@@ -30,6 +32,8 @@ record AbstractProbability : Type₁ where
         d : Probability → Probability → Probability
         ⦃ HasPartialOrder-Probability ⦄ : HasPartialOrder {A = Probability} {_≈_ = _≈_}
         ≤-cong : ∀ {p p' q q' : Probability} → p ≤ p' → q ≤ q' → p * q ≤ p' * q'
+        +-mono-≤ : ∀ {p p' q q' : Probability} → p ≤ p' → q ≤ q' → p + q ≤ p' + q'
+        +-cancelʳ-≤ : ∀ {p q r : Probability} → p + r ≤ q + r → p ≤ q
         fromℚ : ℚ → Probability
         fromℚ-homomorphism : ∀ {p q} → fromℚ p * fromℚ q ≈ fromℚ (p ℚ.* q)
 
@@ -58,5 +62,22 @@ record Abstract : Type₁ where
                      → filterᵇ X (NE.toList l) ≡ NE.toList l'
                      → extend (uniformFromList l ∣ (↑ X)) ∙ Y ≈ uniformFromList l' ∙ Y
 
-  ∙-cong : {P : ProbDistr Ω} {X Y : Ω → Type} → X ≐ Y → P ∙ X ≈ P ∙ Y
+  private variable P : ProbDistr Ω
+                   X Y : Ω → Type
+
+  ∙-cong : X ≐ Y → P ∙ X ≈ P ∙ Y
   ∙-cong (X⊆Y , Y⊆X) = ≤-antisym (prob-monotonous X⊆Y) (prob-monotonous Y⊆X)
+
+  0≤PX : 0# ≤ P ∙ X
+  0≤PX {P = P} {X} = begin
+    0#    ≈⟨ P∅≈0 ⟨
+    P ∙ ∅ ≤⟨ prob-monotonous (λ ()) ⟩
+    P ∙ X ∎
+    where open ≤-Reasoning Probability
+
+  PX≤1 : P ∙ X ≤ 1#
+  PX≤1 {P = P} {X} = begin
+    P ∙ X ≤⟨ prob-monotonous (λ _ → tt) ⟩
+    P ∙ U ≤⟨ PU≤1 ⟩
+    1#    ∎
+    where open ≤-Reasoning Probability

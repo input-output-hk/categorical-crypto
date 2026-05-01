@@ -40,6 +40,25 @@ open Σ[_][_]_ public
   P ∙ X' ∎
   where open ≤-Reasoning Probability
 
+Σ-zero : {P : ProbDistr Ω} {X : Ω → Type} → Σ[ P ][ 0# ] X
+Σ-zero .p≤PX = 0≤PX
+
+Σ-weaken : {P : ProbDistr Ω} {X : Ω → Type} {p q : Probability}
+         → p ≤ q → Σ[ P ][ q ] X → Σ[ P ][ p ] X
+Σ-weaken {P = P} {X} {p} {q} p≤q σ .p≤PX = begin
+  p     ≤⟨ p≤q ⟩
+  q     ≤⟨ σ .p≤PX ⟩
+  P ∙ X ∎
+  where open ≤-Reasoning Probability
+
+Σ-mono : {P : ProbDistr Ω} {p : Probability} {X Y : Ω → Type}
+       → X ⊆ Y → Σ[ P ][ p ] X → Σ[ P ][ p ] Y
+Σ-mono {P = P} {p} {X} {Y} X⊆Y σ .p≤PX = begin
+  p     ≤⟨ σ .p≤PX ⟩
+  P ∙ X ≤⟨ prob-monotonous X⊆Y ⟩
+  P ∙ Y ∎
+  where open ≤-Reasoning Probability
+
 _⇒[_][_]_ : (X : Ω → Type) (P : ProbDistr Ω) (p : Probability) (Y : Ω → Type) → Type₁
 X ⇒[ P ][ p ] Y = Σ[ P ∣ X ][ p ] (Y ∘ proj₁)
 
