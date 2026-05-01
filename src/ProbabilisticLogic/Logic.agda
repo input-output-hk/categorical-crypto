@@ -11,7 +11,7 @@ open import Relation.Binary using (Setoid)
 open import ProbabilisticLogic.Abstract
 open import ProbabilisticLogic.Reasoning
 
-module ProbabilisticLogic.Logic (a : Abstract) where
+module ProbabilisticLogic.Logic ℓ (a : Abstract ℓ) where
 
 open Abstract a
 
@@ -19,7 +19,7 @@ private module Eq = Setoid setoid
 
 private variable Ω : Type
 
-record Σ[_][_]_ (P : ProbDistr Ω) (p : Probability) (X : Ω → Type) : Type₁ where
+record Σ[_][_]_ (P : ProbDistr Ω) (p : Probability) (X : Ω → Type) : Type (sucˡ lzero ⊔ˡ ℓ) where
   field p≤PX : p ≤ P ∙ X
 
 open Σ[_][_]_ public
@@ -59,7 +59,7 @@ open Σ[_][_]_ public
   P ∙ Y ∎
   where open ≤-Reasoning Probability
 
-_⇒[_][_]_ : (X : Ω → Type) (P : ProbDistr Ω) (p : Probability) (Y : Ω → Type) → Type₁
+_⇒[_][_]_ : (X : Ω → Type) (P : ProbDistr Ω) (p : Probability) (Y : Ω → Type) → Set (sucˡ lzero ⊔ˡ ℓ)
 X ⇒[ P ][ p ] Y = Σ[ P ∣ X ][ p ] (Y ∘ proj₁)
 
 ⇒-resp-≐-Y : {P : ProbDistr Ω} {p : Probability} {X Y Y' : Ω → Type}

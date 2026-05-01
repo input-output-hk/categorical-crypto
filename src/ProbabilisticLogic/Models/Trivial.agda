@@ -70,10 +70,10 @@ private
     ; ≤-antisym = λ p _ → p
     }
 
-Triv-AbstractProbability : AbstractProbability
+Triv-AbstractProbability : AbstractProbability 0ℓ
 Triv-AbstractProbability = record
   { Probabilityᴿ                  = ⊤-CommutativeRing
-  ; _⁻¹                           = λ _ → tt
+  ; _⁻¹                           = λ _ _ → tt
   ; d                             = λ _ _ → tt
   ; HasPartialOrder-Probability   = ⊤-HasPartialOrder
   ; ≤-cong                        = λ _ _ → refl
@@ -83,7 +83,7 @@ Triv-AbstractProbability = record
   ; fromℚ-homomorphism            = refl
   }
 
-Triv : Abstract
+Triv : Abstract 0ℓ
 Triv = record
   { abstractProbability = Triv-AbstractProbability
   ; ProbDistr           = λ _ → ⊤
@@ -100,5 +100,4 @@ Triv = record
   ; uniformFromList     = λ _ → tt
   ; uniform-eq          = refl
   ; cond-uniform        = λ _ → refl
-  ; ∩-bound             = refl
   }

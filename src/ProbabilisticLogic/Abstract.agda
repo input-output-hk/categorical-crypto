@@ -23,27 +23,28 @@ disjoint P Q = ∀ {ω} → P ω → Q ω → ⊥
 ↑_ : (Ω → Bool) → Ω → Type
 ↑_ X = T P.∘ X
 
-record AbstractProbability : Type₁ where
-  field Probabilityᴿ : CommutativeRing 0ℓ 0ℓ
+record AbstractProbability ℓ : Type (sucˡ ℓ) where
+  field Probabilityᴿ : CommutativeRing ℓ ℓ
 
   open CommutativeRing Probabilityᴿ renaming (Carrier to Probability) public
 
-  field _⁻¹ : (p : Probability) → {p ≢ 0#} → Probability
+  field _⁻¹ : (p : Probability) → ¬ p ≈ 0# → Probability
         d : Probability → Probability → Probability
-        ⦃ HasPartialOrder-Probability ⦄ : HasPartialOrder {A = Probability} {_≈_ = _≈_}
+        ⦃ HasPartialOrder-Probability ⦄
+          : HasPartialOrder {A = Probability} {_≈_ = _≈_} {ℓ″ = ℓ} {ℓ‴ = ℓ}
         ≤-cong : ∀ {p p' q q' : Probability} → p ≤ p' → q ≤ q' → p * q ≤ p' * q'
         +-mono-≤ : ∀ {p p' q q' : Probability} → p ≤ p' → q ≤ q' → p + q ≤ p' + q'
         +-cancelʳ-≤ : ∀ {p q r : Probability} → p + r ≤ q + r → p ≤ q
         fromℚ : ℚ → Probability
         fromℚ-homomorphism : ∀ {p q} → fromℚ p * fromℚ q ≈ fromℚ (p ℚ.* q)
 
-record Abstract : Type₁ where
-  field abstractProbability : AbstractProbability
+record Abstract ℓ : Type (sucˡ ℓ) where
+  field abstractProbability : AbstractProbability ℓ
 
   open AbstractProbability abstractProbability public
 
   field -- we assume discrete probability distributions, which don't need a σ-algebra
-        ProbDistr : Type → Type
+        ProbDistr : Type → Type ℓ
         _∙_ : ProbDistr Ω → (Ω → Type) → Probability
         _∣_ : ProbDistr Ω → (X : Ω → Type) → ProbDistr (Σ Ω X)
         extend : ∀ {X} → ProbDistr (Σ Ω X) → ProbDistr Ω

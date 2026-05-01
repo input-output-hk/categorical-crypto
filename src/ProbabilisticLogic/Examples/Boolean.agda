@@ -14,10 +14,10 @@ open import Data.Integer using (+_)
 open import ProbabilisticLogic.Abstract
 open import ProbabilisticLogic.Reasoning
 
-module ProbabilisticLogic.Examples.Boolean (a : Abstract) where
+module ProbabilisticLogic.Examples.Boolean ℓ (a : Abstract ℓ) where
 
 open Abstract a
-open import ProbabilisticLogic.Logic a
+open import ProbabilisticLogic.Logic ℓ a
 
 Z = Bool × Bool
 
