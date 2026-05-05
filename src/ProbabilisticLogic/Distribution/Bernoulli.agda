@@ -5,7 +5,7 @@ open import categorical-crypto.Prelude as P hiding (pure; _>>=_; _⊎_; _*_; _/_
 open import Algebra
 import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 
-open import Data.List.Properties using (length-++; length-replicate)
+open import Data.List.Properties using (length-++; length-replicate; ++-identityʳ)
 import Data.List.NonEmpty as NE
 open import Data.Rational as ℚ using (ℚ; _/_)
 open import Data.Rational.Properties using (/-cong)
@@ -20,14 +20,20 @@ open Abstract a
 open import ProbabilisticLogic.Logic c ℓ a
 
 -- The Bernoulli distribution Bernoulli(m / (m + n)) on `Bool`, with
--- probability of `true` equal to m / (m + n). It is realised as the
--- empirical distribution over m trues followed by n falses; the
--- instance constraint `NonZero (m + n)` keeps the underlying list nonempty.
+-- probability of `true` equal to m / (m + n).  Built directly via the
+-- generic `weighted-K` helper.
 
 private
   outcomes : (m n : ℕ) ⦃ _ : NonZero (m +ℕ n) ⦄ → NE.List⁺ Bool
-  outcomes (suc m) n       = true  NE.∷ replicate m true ++ replicate n false
-  outcomes zero    (suc n) = false NE.∷ replicate n false
+  outcomes (suc m) n       = weighted-K ((suc m , true) NE.∷ (n , false) ∷ [])
+  outcomes zero    (suc n) = weighted-K ((suc n , false) NE.∷ [])
+
+  outcomes-toList : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
+                  → NE.toList (outcomes m n) ≡ replicate m true ++ replicate n false
+  outcomes-toList (suc m) n =
+    cong (true ∷_) (cong (replicate m true ++_) (++-identityʳ (replicate n false)))
+  outcomes-toList zero    (suc n) =
+    cong (false ∷_) (++-identityʳ (replicate n false))
 
   filterᵇ-falses : ∀ n → filterᵇ id (replicate n false) ≡ []
   filterᵇ-falses zero    = P.refl
@@ -38,22 +44,6 @@ private
   filterᵇ-trues-length zero    n = cong length (filterᵇ-falses n)
   filterᵇ-trues-length (suc m) n = cong suc (filterᵇ-trues-length m n)
 
-  outcomes-trues-length : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
-                        → length (filterᵇ id (NE.toList (outcomes m n))) ≡ m
-  outcomes-trues-length (suc m) n       = cong suc (filterᵇ-trues-length m n)
-  outcomes-trues-length zero    (suc n) = cong length (filterᵇ-falses (suc n))
-
-  outcomes-length : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
-                  → NE.length (outcomes m n) ≡ m +ℕ n
-  outcomes-length (suc m) n = cong suc $ begin
-    length (replicate m true ++ replicate n false)
-      ≡⟨ length-++ (replicate m true) ⟩
-    length (replicate m true) +ℕ length (replicate n false)
-      ≡⟨ cong₂ _+ℕ_ (length-replicate m) (length-replicate n) ⟩
-    m +ℕ n ∎
-    where open ≡-Reasoning
-  outcomes-length zero    (suc n) = cong suc (length-replicate n)
-
   filterᵇ-not-falses-length : ∀ n → length (filterᵇ not (replicate n false)) ≡ n
   filterᵇ-not-falses-length zero    = P.refl
   filterᵇ-not-falses-length (suc n) = cong suc (filterᵇ-not-falses-length n)
@@ -63,10 +53,27 @@ private
   filterᵇ-not-trues-falses-length zero    n = filterᵇ-not-falses-length n
   filterᵇ-not-trues-falses-length (suc m) n = filterᵇ-not-trues-falses-length m n
 
+  canonical-length : ∀ m n → length (replicate m true ++ replicate n false) ≡ m +ℕ n
+  canonical-length m n =
+    P.trans (length-++ (replicate m true))
+            (cong₂ _+ℕ_ (length-replicate m) (length-replicate n))
+
+  outcomes-trues-length : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
+                        → length (filterᵇ id (NE.toList (outcomes m n))) ≡ m
+  outcomes-trues-length m n =
+    P.trans (cong (length P.∘ filterᵇ id) (outcomes-toList m n))
+            (filterᵇ-trues-length m n)
+
   outcomes-falses-length : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
                          → length (filterᵇ not (NE.toList (outcomes m n))) ≡ n
-  outcomes-falses-length (suc m) n       = filterᵇ-not-trues-falses-length m n
-  outcomes-falses-length zero    (suc n) = filterᵇ-not-falses-length (suc n)
+  outcomes-falses-length m n =
+    P.trans (cong (length P.∘ filterᵇ not) (outcomes-toList m n))
+            (filterᵇ-not-trues-falses-length m n)
+
+  outcomes-length : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
+                  → NE.length (outcomes m n) ≡ m +ℕ n
+  outcomes-length m n =
+    P.trans (cong length (outcomes-toList m n)) (canonical-length m n)
 
 bernoulli : (m n : ℕ) ⦃ _ : NonZero (m +ℕ n) ⦄ → ProbDistr Bool
 bernoulli m n = empirical (outcomes m n)

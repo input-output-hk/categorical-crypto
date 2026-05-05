@@ -111,4 +111,7 @@ Triv = record
   ; cond-empirical      = λ _ → refl
   ; _⊗_                 = λ _ _ → tt
   ; ⊗-rect              = refl
+  ; _>>=_               = λ _ _ → tt
+  ; >>=-empirical       = refl
+  ; >>=-cong-l          = λ _ → refl
   }

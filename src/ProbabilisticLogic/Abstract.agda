@@ -31,6 +31,10 @@ infixr 6 _⊠_
 _⊠_ : (Ω₁ → Type) → (Ω₂ → Type) → Ω₁ × Ω₂ → Type
 (X ⊠ Y) (a , b) = X a × Y b
 
+weighted-K : (l : NE.List⁺ (ℕ × Ω)) ⦃ _ : NonZero (proj₁ (NE.head l)) ⦄ → NE.List⁺ Ω
+weighted-K ((suc m , ω) NE.∷ rest) =
+  ω NE.∷ (replicate m ω ++ concatMap (λ (n , ω') → replicate n ω') rest)
+
 record AbstractProbability c ℓ : Type (sucˡ (c ⊔ˡ ℓ)) where
   field Probabilityᴿ : CommutativeSemiring c ℓ
 
@@ -84,6 +88,19 @@ record Abstract c ℓ : Type (sucˡ (c ⊔ˡ ℓ)) where
         _⊗_ : ProbDistr Ω₁ → ProbDistr Ω₂ → ProbDistr (Ω₁ × Ω₂)
         ⊗-rect : ∀ {P : ProbDistr Ω₁} {Q : ProbDistr Ω₂} {X : Ω₁ → Type} {Y : Ω₂ → Type}
                → (P ⊗ Q) ∙ (X ⊠ Y) ≈ P ∙ X * Q ∙ Y
+        _>>=_ : ProbDistr Ω₁ → (Ω₁ → ProbDistr Ω₂) → ProbDistr Ω₂
+        >>=-empirical : ∀ {l : NE.List⁺ Ω₁} {f : Ω₁ → NE.List⁺ Ω₂} {Y : Ω₂ → Type}
+                      → (empirical l >>= (empirical P.∘ f)) ∙ Y
+                      ≈ empirical (NE.concatMap f l) ∙ Y
+        >>=-cong-l : ∀ {P Q : ProbDistr Ω₁} {f : Ω₁ → ProbDistr Ω₂} {Y : Ω₂ → Type}
+                   → (∀ {X : Ω₁ → Type} → P ∙ X ≈ Q ∙ X)
+                   → (P >>= f) ∙ Y ≈ (Q >>= f) ∙ Y
+
+  pure : Ω → ProbDistr Ω
+  pure ω = empirical (ω NE.∷ [])
+
+  weighted : (l : NE.List⁺ (ℕ × Ω)) ⦃ _ : NonZero (proj₁ (NE.head l)) ⦄ → ProbDistr Ω
+  weighted l = empirical (weighted-K l)
 
   private variable P : ProbDistr Ω
                    X Y : Ω → Type
