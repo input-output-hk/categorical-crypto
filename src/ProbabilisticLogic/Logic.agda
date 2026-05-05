@@ -11,7 +11,7 @@ open import Relation.Binary using (Setoid)
 open import ProbabilisticLogic.Abstract
 open import ProbabilisticLogic.Reasoning
 
-module ProbabilisticLogic.Logic ℓ (a : Abstract ℓ) where
+module ProbabilisticLogic.Logic c ℓ (a : Abstract c ℓ) where
 
 open Abstract a
 
@@ -19,7 +19,7 @@ private module Eq = Setoid setoid
 
 private variable Ω : Type
 
-record Σ[_][_]_ (P : ProbDistr Ω) (p : Probability) (X : Ω → Type) : Type (sucˡ lzero ⊔ˡ ℓ) where
+record Σ[_][_]_ (P : ProbDistr Ω) (p : Probability) (X : Ω → Type) : Type (sucˡ lzero ⊔ˡ c ⊔ˡ ℓ) where
   field p≤PX : p ≤ P ∙ X
 
 open Σ[_][_]_ public
@@ -59,20 +59,19 @@ open Σ[_][_]_ public
   P ∙ Y ∎
   where open ≤-Reasoning Probability
 
-_⇒[_][_]_ : (X : Ω → Type) (P : ProbDistr Ω) (p : Probability) (Y : Ω → Type) → Set (sucˡ lzero ⊔ˡ ℓ)
-X ⇒[ P ][ p ] Y = Σ[ P ∣ X ][ p ] (Y ∘ proj₁)
+_⇒[_][_]_ : (X : Ω → Type) (P : ProbDistr Ω) (p : Probability) (Y : Ω → Type) → Set (sucˡ lzero ⊔ˡ c ⊔ˡ ℓ)
+X ⇒[ P ][ p ] Y = Σ[ P ∣ X ][ p ] Y
 
 ⇒-resp-≐-Y : {P : ProbDistr Ω} {p : Probability} {X Y Y' : Ω → Type}
            → Y ≐ Y' → X ⇒[ P ][ p ] Y → X ⇒[ P ][ p ] Y'
-⇒-resp-≐-Y (Y⊆Y' , Y'⊆Y) = Σ-resp-≐ ((λ {ω} → Y⊆Y') , λ {ω} → Y'⊆Y)
+⇒-resp-≐-Y Y≐Y' = Σ-resp-≐ Y≐Y'
 
 app : {P : ProbDistr Ω} {p q : Probability} {X Y : Ω → Type}
     → X ⇒[ P ][ q ] Y → Σ[ P ][ p ] X → Σ[ P ][ p * q ] Y
 app {P = P} {p} {q} {X} {Y} record { p≤PX = p₁ } record { p≤PX = p₂ } .p≤PX = begin
-  p * q                         ≤⟨ ≤-cong p₂ p₁ ⟩
-  P ∙ X * (P ∣ X) ∙ (Y ∘ proj₁) ≈⟨ *-cong Eq.refl extend-∣ ⟨
-  P ∙ X * (extend (P ∣ X)) ∙ Y  ≈⟨ cond-probability ⟩
-  P ∙ (X ∩ Y)                   ≤⟨ prob-monotonous proj₂ ⟩
+  p * q                ≤⟨ ≤-cong p₂ p₁ ⟩
+  P ∙ X * (P ∣ X) ∙ Y  ≈⟨ cond-probability ⟩
+  P ∙ (X ∩ Y)          ≤⟨ prob-monotonous proj₂ ⟩
   P ∙ Y ∎
   where open ≤-Reasoning Probability
 

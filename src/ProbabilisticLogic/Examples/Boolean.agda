@@ -14,10 +14,10 @@ open import Data.Integer using (+_)
 open import ProbabilisticLogic.Abstract
 open import ProbabilisticLogic.Reasoning
 
-module ProbabilisticLogic.Examples.Boolean ℓ (a : Abstract ℓ) where
+module ProbabilisticLogic.Examples.Boolean c ℓ (a : Abstract c ℓ) where
 
 open Abstract a
-open import ProbabilisticLogic.Logic ℓ a
+open import ProbabilisticLogic.Logic c ℓ a
 
 Z = Bool × Bool
 
@@ -43,10 +43,9 @@ X⇒1/2Y : X ⇒[ P ][ fromℚ (+ 1 / 2) ] Y
 X⇒1/2Y .p≤PX = begin
   fromℚ (+ 1 / 2)                                                  ≈⟨ uniform-eq ⟨
   uniformFromList ((true , false) NE.∷ (true , true) ∷ []) ∙ (↑ Y↓) ≈⟨ cond-uniform P.refl ⟨
-  extend (P ∣ (↑ X↓)) ∙ (↑ Y↓)                                     ≈⟨ extend-∣-cong (toWitness , fromWitness) ⟩
-  extend (P ∣ X) ∙ (↑ Y↓)                                          ≈⟨ P-Dec Y ⟨
-  extend (P ∣ X) ∙ Y                                               ≈⟨ extend-∣ ⟩
-  (P ∣ X) ∙ (Y ∘ proj₁) ∎
+  (P ∣ (↑ X↓)) ∙ (↑ Y↓)                                            ≈⟨ ∣-cong (toWitness , fromWitness) ⟩
+  (P ∣ X) ∙ (↑ Y↓)                                                 ≈⟨ P-Dec Y ⟨
+  (P ∣ X) ∙ Y ∎
   where open ≤-Reasoning Probability
 
 PY≥1/4 : Σ[ P ][ fromℚ (+ 1 / 4) ] Y
