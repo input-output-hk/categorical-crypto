@@ -23,7 +23,7 @@ open import ProbabilisticLogic.Logic c ℓ a
 Z = Bool × Bool
 
 P : ProbDistr Z
-P = uniformFromList ((false , false) NE.∷ (false , true) ∷ (true , false) ∷ (true , true) ∷ [])
+P = empirical ((false , false) NE.∷ (false , true) ∷ (true , false) ∷ (true , true) ∷ [])
 
 -- X: the first coin is `true`
 -- Y: both coins are `true`
@@ -38,7 +38,7 @@ Y↓ ω = P.⌊ ¿ Y ¿¹ ω ⌋
 -- X has probability at least 1/2
 PX≥1/2 : Σ[ P ][ fromℚ (+ 1 / 2) ] X
 PX≥1/2 .p≤PX = begin
-  fromℚ (+ 1 / 2) ≈⟨ uniform-eq ⟨
+  fromℚ (+ 1 / 2) ≈⟨ empirical-eq ⟨
   P ∙ (↑ X↓)      ≈⟨ P-Dec X ⟨
   P ∙ X ∎
   where open ≤-Reasoning Probability
@@ -46,10 +46,10 @@ PX≥1/2 .p≤PX = begin
 -- If X is true, Y has probability at least 1/2
 X⇒1/2Y : X ⇒[ P ][ fromℚ (+ 1 / 2) ] Y
 X⇒1/2Y .p≤PX = begin
-  fromℚ (+ 1 / 2)                                                   ≈⟨ uniform-eq ⟨
-  uniformFromList ((true , false) NE.∷ (true , true) ∷ []) ∙ (↑ Y↓) ≈⟨ cond-uniform P.refl ⟨
-  (P ∣ (↑ X↓)) ∙ (↑ Y↓)                                             ≈⟨ ∣-cong (toWitness , fromWitness) ⟩
-  (P ∣ X) ∙ (↑ Y↓)                                                  ≈⟨ P-Dec Y ⟨
+  fromℚ (+ 1 / 2)                                              ≈⟨ empirical-eq ⟨
+  empirical ((true , false) NE.∷ (true , true) ∷ []) ∙ (↑ Y↓)  ≈⟨ cond-empirical P.refl ⟨
+  (P ∣ (↑ X↓)) ∙ (↑ Y↓)                                        ≈⟨ ∣-cong (toWitness , fromWitness) ⟩
+  (P ∣ X) ∙ (↑ Y↓)                                             ≈⟨ P-Dec Y ⟨
   (P ∣ X) ∙ Y ∎
   where open ≤-Reasoning Probability
 

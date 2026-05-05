@@ -79,7 +79,19 @@ Triv-AbstractProbability = record
   ; +-mono-≤                      = λ _ _ → refl
   ; +-cancelʳ-≤                   = λ _ → refl
   ; fromℚ                         = λ _ → tt
-  ; fromℚ-homomorphism            = refl
+  ; fromℚ-isSemiringHomomorphism  = record
+      { isNearSemiringHomomorphism = record
+          { +-isMonoidHomomorphism = record
+              { isMagmaHomomorphism = record
+                  { isRelHomomorphism = record { cong = λ _ → refl }
+                  ; homo = λ _ _ → refl
+                  }
+              ; ε-homo = refl
+              }
+          ; *-homo = λ _ _ → refl
+          }
+      ; 1#-homo = refl
+      }
   }
 
 Triv : Abstract 0ℓ 0ℓ
@@ -89,12 +101,14 @@ Triv = record
   ; _∙_                 = λ _ _ → tt
   ; _∣_                 = λ _ _ → tt
   ; P∅≈0                = refl
-  ; PU≤1                = refl
+  ; PU≈1                = refl
   ; P-distrib-disjoint  = λ _ → refl
   ; cond-probability    = refl
   ; prob-monotonous     = λ _ → refl
   ; ∣-cong              = λ _ → refl
-  ; uniformFromList     = λ _ → tt
-  ; uniform-eq          = refl
-  ; cond-uniform        = λ _ → refl
+  ; empirical           = λ _ → tt
+  ; empirical-eq        = refl
+  ; cond-empirical      = λ _ → refl
+  ; _⊗_                 = λ _ _ → tt
+  ; ⊗-rect              = refl
   }

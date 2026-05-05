@@ -7,4 +7,9 @@ open import ProbabilisticLogic.Reasoning public
 
 open import ProbabilisticLogic.Models.Trivial
 
+open import ProbabilisticLogic.Distribution.Bernoulli
+open import ProbabilisticLogic.Distribution.Binomial
+
 open import ProbabilisticLogic.Examples.Coins
+open import ProbabilisticLogic.Examples.BiasedCoin
+open import ProbabilisticLogic.Examples.MultipleCoins
