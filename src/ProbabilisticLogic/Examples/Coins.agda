@@ -14,16 +14,19 @@ open import Data.Integer using (+_)
 open import ProbabilisticLogic.Abstract
 open import ProbabilisticLogic.Reasoning
 
-module ProbabilisticLogic.Examples.Boolean c ℓ (a : Abstract c ℓ) where
+module ProbabilisticLogic.Examples.Coins c ℓ (a : Abstract c ℓ) where
 
 open Abstract a
 open import ProbabilisticLogic.Logic c ℓ a
 
+-- flipping 2 coins
 Z = Bool × Bool
 
 P : ProbDistr Z
 P = uniformFromList ((false , false) NE.∷ (false , true) ∷ (true , false) ∷ (true , true) ∷ [])
 
+-- X: the first coin is `true`
+-- Y: both coins are `true`
 X Y : Z → Type
 X ω = proj₁ ω ≡ true
 Y ω = ω ≡ (true , true)
@@ -32,6 +35,7 @@ X↓ Y↓ : Z → Bool
 X↓ ω = P.⌊ ¿ X ¿¹ ω ⌋
 Y↓ ω = P.⌊ ¿ Y ¿¹ ω ⌋
 
+-- X has probability at least 1/2
 PX≥1/2 : Σ[ P ][ fromℚ (+ 1 / 2) ] X
 PX≥1/2 .p≤PX = begin
   fromℚ (+ 1 / 2) ≈⟨ uniform-eq ⟨
@@ -39,14 +43,16 @@ PX≥1/2 .p≤PX = begin
   P ∙ X ∎
   where open ≤-Reasoning Probability
 
+-- If X is true, Y has probability at least 1/2
 X⇒1/2Y : X ⇒[ P ][ fromℚ (+ 1 / 2) ] Y
 X⇒1/2Y .p≤PX = begin
-  fromℚ (+ 1 / 2)                                                  ≈⟨ uniform-eq ⟨
+  fromℚ (+ 1 / 2)                                                   ≈⟨ uniform-eq ⟨
   uniformFromList ((true , false) NE.∷ (true , true) ∷ []) ∙ (↑ Y↓) ≈⟨ cond-uniform P.refl ⟨
-  (P ∣ (↑ X↓)) ∙ (↑ Y↓)                                            ≈⟨ ∣-cong (toWitness , fromWitness) ⟩
-  (P ∣ X) ∙ (↑ Y↓)                                                 ≈⟨ P-Dec Y ⟨
+  (P ∣ (↑ X↓)) ∙ (↑ Y↓)                                             ≈⟨ ∣-cong (toWitness , fromWitness) ⟩
+  (P ∣ X) ∙ (↑ Y↓)                                                  ≈⟨ P-Dec Y ⟨
   (P ∣ X) ∙ Y ∎
   where open ≤-Reasoning Probability
 
+-- This implies Y has probability at least 1/4
 PY≥1/4 : Σ[ P ][ fromℚ (+ 1 / 4) ] Y
 PY≥1/4 = Σ-resp-≈ fromℚ-homomorphism (app X⇒1/2Y PX≥1/2)
