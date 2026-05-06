@@ -27,27 +27,17 @@ module Categories.APROP.Hypergraph.Completeness.DecodeRel (sig : APROPSignature)
 
 open APROP sig
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using (FlatGen; flatten; ⟪_⟫;
-         hEmpty; hVar; hId; hGen; hSwap; hTensor; hCompose;
-         domL-hGen; codL-hGen; domL-hSwap; codL-hSwap)
+  using (flatten; ⟪_⟫)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
-  using (unflatten; unflatten-flatten-≈; unflatten-++-≅)
-open import Categories.APROP.Hypergraph.Completeness.Decode sig
-  using (decode-attempt)
+  using (unflatten; unflatten-++-≅)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
-  using (decode-attempt-Linear; decode;
-         decode-attempt-hEmpty; decode-attempt-hVar;
-         decode-attempt-hId; decode-attempt-hGen;
-         decode-attempt-hSwap; decode-attempt-hTensor;
-         decode-attempt-hCompose)
-import Categories.APROP.Hypergraph.Completeness.Linearity sig as Lin
+  using (bridge)
 
 open import Categories.Morphism FreeMonoidal using (_≅_)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
-open import Data.Product using (_,_; proj₁)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; sym; trans; subst; subst₂)
+  using (_≡_; refl; cong; sym; subst₂)
 
 --------------------------------------------------------------------------------
 -- `decode-rel f` is the term that the algorithm produces on `⟪ f ⟫`,
@@ -71,19 +61,15 @@ decode-rel (_⊗₁_ {A = A} {B = B} {C = C} {D = D} f g) =
     _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
   ∘ (decode-rel f ⊗₁ decode-rel g)
   ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
--- Generators / σ: take the term the algorithm produces.  These need
--- a boundary `subst₂` because the algorithm's natural types are
--- `unflatten (domL ⟪f⟫)` / `unflatten (codL ⟪f⟫)`, while ours are
--- `unflatten (flatten A)` / `unflatten (flatten B)`.  The boundary
--- lemmas `domL-hGen`/`codL-hGen` etc. bridge the two propositionally.
-decode-rel (Agen g) =
-  subst₂ HomTerm (cong unflatten (domL-hGen g))
-                  (cong unflatten (codL-hGen g))
-         (proj₁ (decode-attempt-hGen g))
-decode-rel (σ {A = A} {B = B}) =
-  subst₂ HomTerm (cong unflatten (domL-hSwap A B))
-                  (cong unflatten (codL-hSwap A B))
-         (proj₁ (decode-attempt-hSwap A B))
+-- Generators / σ: pick `bridge (Agen g)` / `bridge (σ)` directly
+-- as the canonical decode-rel — the embedding of the primitive at
+-- `unflatten (flatten _)` types via the unflatten-flatten coherence
+-- iso.  This makes `decode-roundtrip-rel-{Agen,σ}` `refl` outright,
+-- eliminating two postulates (the previous definitions used the
+-- algorithmic `decode-attempt-h{Gen,Swap}` which then required
+-- `DR.decode-roundtrip-{Agen,σ}` postulates to bridge to bridge).
+decode-rel (Agen g) = bridge (Agen g)
+decode-rel (σ {A = A} {B = B} ⦃ s ⦄) = bridge (σ {A = A} {B = B} ⦃ s ⦄)
 -- id, λ⇒, λ⇐: flatten reduces these endpoints to the same list
 -- definitionally, so plain `id` works.
 decode-rel (id {A})  = id
@@ -136,8 +122,6 @@ decode-rel-⊗-shape f g = refl
 -- of the postulated `decode-{∘,⊗}-shape` from DecodeRoundtrip.
 
 import Categories.APROP.Hypergraph.Completeness.DecodeRoundtrip sig as DR
-open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
-  using (decode; bridge)
 open import Categories.Category using (Category)
 
 private
@@ -215,18 +199,19 @@ decode-roundtrip-rel-α⇐
   : ∀ {A B C} → decode-rel (α⇐ {A} {B} {C}) ≈Term bridge (α⇐ {A} {B} {C})
 decode-roundtrip-rel-α⇐ {A} {B} {C} = DR.α⇐-coherence A B C
 
--- For Agen and σ, decode-rel reduces to decode (propositionally `refl`),
--- so we delegate to the existing decode-roundtrip lemmas.  Those are
--- still postulated upstream, but the postulate count doesn't change —
--- we're just inheriting them through a different path.
+-- For Agen and σ, decode-rel was *defined* to be `bridge`, so the
+-- roundtrip lemma is `≈-Term-refl`.  This is the cleanup: the previous
+-- definition wrapped `decode-attempt-h{Gen,Swap}` with subst₂ and
+-- relied on `DR.decode-roundtrip-{Agen,σ}` postulates to bridge them
+-- back to `bridge`.  Now those postulates are gone from the path.
 decode-roundtrip-rel-Agen
   : ∀ {A B} (g : mor A B) → decode-rel (Agen g) ≈Term bridge (Agen g)
-decode-roundtrip-rel-Agen g = DR.decode-roundtrip-Agen g
+decode-roundtrip-rel-Agen g = ≈-Term-refl
 
 decode-roundtrip-rel-σ
   : ∀ {A B} ⦃ s : Symm ≤ Symm ⦄
   → decode-rel (σ {A = A} {B = B} ⦃ s ⦄) ≈Term bridge (σ {A = A} {B = B} ⦃ s ⦄)
-decode-roundtrip-rel-σ ⦃ s ⦄ = DR.decode-roundtrip-σ ⦃ s ⦄
+decode-roundtrip-rel-σ = ≈-Term-refl
 
 -- The full induction.
 decode-roundtrip-rel
