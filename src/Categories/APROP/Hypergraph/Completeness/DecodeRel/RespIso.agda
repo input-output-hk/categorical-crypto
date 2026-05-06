@@ -123,3 +123,25 @@ decode-rel-resp-≅ᴴ-Agen-id-absurd
   : ∀ {A} (g : mor A A) → ⟪ Agen g ⟫ ≅ᴴ ⟪ id {A} ⟫ → ⊥
 decode-rel-resp-≅ᴴ-Agen-id-absurd {A} g iso =
   Agen-nonAgen-absurd refl (hId-nE A) iso
+
+-- The reverse direction: id ↦ Agen is impossible by the same argument.
+decode-rel-resp-≅ᴴ-id-Agen-absurd
+  : ∀ {A} (g : mor A A) → ⟪ id {A} ⟫ ≅ᴴ ⟪ Agen g ⟫ → ⊥
+decode-rel-resp-≅ᴴ-id-Agen-absurd {A} g iso =
+  Agen-nonAgen-absurd refl (hId-nE A) iso'
+  where
+    open import Categories.APROP.Hypergraph.Iso using (sym-≅ᴴ)
+    iso' : ⟪ Agen g ⟫ ≅ᴴ ⟪ id {A} ⟫
+    iso' = sym-≅ᴴ iso
+
+-- Cross-pairs Agen vs σ.  σ {A}{B} has nE = 0 (hSwap.nE = 0
+-- definitionally), so the same nE-mismatch argument applies.  But
+-- types must coincide: σ {A'}{B'} : (A' ⊗ B') → (B' ⊗ A') must equal
+-- HomTerm A B, so A = A' ⊗ B' and B = B' ⊗ A'.  Agen g : mor A B
+-- requires the same A, B.  If both exist at compatible types, the iso
+-- is impossible by edge count.
+decode-rel-resp-≅ᴴ-Agen-σ-absurd
+  : ∀ {A B} ⦃ s : Symm ≤ Symm ⦄
+    (g : mor (A ⊗₀ B) (B ⊗₀ A))
+  → ⟪ Agen g ⟫ ≅ᴴ ⟪ σ {A = A} {B = B} ⦃ s ⦄ ⟫ → ⊥
+decode-rel-resp-≅ᴴ-Agen-σ-absurd g iso = Agen-nonAgen-absurd refl refl iso
