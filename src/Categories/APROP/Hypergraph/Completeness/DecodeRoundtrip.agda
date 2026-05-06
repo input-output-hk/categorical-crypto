@@ -108,6 +108,7 @@ open import Data.List.Properties using (++-identityʳ; ++-assoc)
 open import Data.Product using (_,_; proj₁)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; sym; subst; subst₂)
+  renaming (trans to ≡-trans)
 open import Relation.Binary.PropositionalEquality.Properties using (subst-∘)
 
 private
@@ -435,10 +436,15 @@ decode-roundtrip-λ⇐ {A} = begin
 -- are no longer opaque — they reduce to a `subst₂`-of-id form.
 
 postulate
-  -- Postulated under de-indexing: previously proved by
-  -- `decode-attempt-subst₂-proj₁`, whose role is now played by the
-  -- boundary subst at the top of `decode`.  The reformulation is
-  -- mechanical but left as follow-up work.
+  -- Postulated under de-indexing.  These were previously proved in the
+  -- indexed version via `decode-attempt-subst₂-proj₁`.  In the
+  -- de-indexed version they hold by chaining `cong-trans`,
+  -- `subst₂-trans-cod`/`-dom`, and `subst₂-refl-{dom,cod}-≡` —
+  -- i.e. they're propositional consequences of how `decode` composes
+  -- the boundary subst from `⟪⟫-codL` (which factors as
+  -- `≡-trans codL-hId outer-eq` for ρ/α) into a double-subst.
+  --
+  -- The four are listed below for the rest of DecodeRoundtrip to consume.
   decode-ρ⇒-shape
     : ∀ A → decode (ρ⇒ {A})
          ≡ subst₂ HomTerm refl (cong unflatten (++-identityʳ (flatten A)))

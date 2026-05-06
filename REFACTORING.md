@@ -8,20 +8,81 @@ the completeness theorem.
 
 ## Status
 
-- **Refactor B (de-indexed Hypergraph): IMPLEMENTED on the completeness
-  pipeline.**  Core.agda, FromAPROP.agda, Iso.agda, and the entire
-  Completeness/ subdirectory are de-indexed and type-check together.
-  The completeness pipeline is now `subst₂ (Hypergraph FlatGen)`-free
-  (the only two remaining references are inside comments).  See
-  commit `e44316a`.  The soundness side (Pentagon.agda,
-  AlphaCommSound.agda, SoundnessAxioms.agda, etc.) is left for
-  follow-up — those files have many `subst₂ (Hypergraph FlatGen)`
-  calls but are orthogonal to completeness work.
+### Refactor B — IMPLEMENTED on the completeness pipeline (22 / 42 files pass)
 
-- **Refactor A (decode-rel) and Refactor C (solveM):** prototyped in
-  the experimental files
-  `src/Categories/APROP/Hypergraph/Completeness/{DecodeRel,CoherenceSolver}.agda`
-  but not yet integrated.
+22 of 42 files in `src/Categories/APROP/Hypergraph/` type-check with
+the de-indexed Hypergraph:
+
+```
+Hypergraph/Completeness.agda
+Hypergraph/Core.agda
+Hypergraph/Core2.agda                            (experiment)
+Hypergraph/FromAPROP.agda
+Hypergraph/FromAPROP2.agda                       (experiment)
+Hypergraph/Invariant.agda
+Hypergraph/Iso.agda                              (-44 LOC of subst₂ projection lemmas)
+Hypergraph/IsoSimple.agda
+Hypergraph/Prune.agda
+Hypergraph/Completeness/CoherenceSolver.agda     (experiment)
+Hypergraph/Completeness/Decode.agda              (subst₂ HomTerm boundary wrap eliminated)
+Hypergraph/Completeness/DecodeAttempt.agda       (-66 LOC, decode-attempt-subst₂ machinery gone)
+Hypergraph/Completeness/DecodeProperties.agda
+Hypergraph/Completeness/DecodeRel.agda           (experiment)
+Hypergraph/Completeness/DecodeRoundtrip.agda
+Hypergraph/Completeness/Decoder.agda
+Hypergraph/Completeness/Linearity.agda           (-19 LOC, Linear-subst₂ removed)
+Hypergraph/Completeness/Permute.agda
+Hypergraph/Completeness/Unflatten.agda
+Hypergraph/Solver/PBij.agda
+Hypergraph/Solver/Signature.agda
+Hypergraph/Solver/Totals.agda
+```
+
+`subst₂ (Hypergraph FlatGen)` count in the completeness pipeline:
+**101 → 0** (the only 2 remaining references are inside comments).
+
+The 20 files still failing all live on the **soundness side** —
+they are independent of completeness and only consume hypergraphs
+in the indexed form.  Migration is mechanical (each file's
+`subst₂ (Hypergraph FlatGen)` calls become trivially `refl` or get
+deleted), but high blast radius:
+
+```
+Hypergraph/Pentagon.agda                          50 subst₂ uses
+Hypergraph/AlphaCommSound.agda                     9 subst₂ uses
+Hypergraph/SoundnessAxioms.agda                    9 subst₂ uses
+Hypergraph/CoherenceHelpers.agda                   7 subst₂ uses
+Hypergraph/CoherenceReductions.agda                4 subst₂ uses
+Hypergraph/Translation.agda                        4 subst₂ uses
+Hypergraph/SoundnessProved.agda                    4 subst₂ uses
+Hypergraph/PrunedCompose.agda                      3 subst₂ uses
+Hypergraph/HomTermInvariant.agda                   1 subst₂ use
+Hypergraph/Triangle.agda                           1 subst₂ use
+Hypergraph/SigmaNat.agda                          (broken via dependency)
+Hypergraph/Soundness.agda                         (broken via dependency)
+Hypergraph/Congruence.agda, CongruenceP.agda      (broken via dependency)
+Hypergraph/Solver/{FindIso,Match,Search,Seed,Tests,Verify}.agda
+                                                  (broken via Iso)
+```
+
+### Refactor A (decode-rel) and Refactor C (solveM)
+
+Prototyped in the experimental files
+`src/Categories/APROP/Hypergraph/Completeness/{DecodeRel,CoherenceSolver}.agda`,
+both type-check.  Not yet integrated into the main pipeline.
+
+### `decode-{ρ⇒,ρ⇐,α⇒,α⇐}-shape` shape lemmas
+
+Postulated in DecodeRoundtrip.agda.  In the de-indexed setting they
+are propositional consequences of:
+
+  * `cong-trans : cong f (trans p q) ≡ trans (cong f p) (cong f q)`,
+  * `subst₂-trans-{cod,dom}`: `subst₂ P a (trans b c) x ≡ subst (P _) c (subst₂ P a b x)`,
+  * `subst₂-refl-{dom,cod}-≡`: `subst₂ refl c y ≡ subst (P _) c y`.
+
+A proof attempt is sketched in the file but Agda's implicit-argument
+inference doesn't pick it up cleanly — explicit instantiations would
+make it work but become verbose.  Left as follow-up.
 
 ## Scope
 

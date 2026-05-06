@@ -33,8 +33,8 @@ open import Relation.Binary.PropositionalEquality
 --------------------------------------------------------------------------------
 -- Canonical derivations of atom-ein / atom-eout from ψ-ein / ψ-eout + φ-lab.
 
-module _ {X : Set} {Gen : List X → List X → Set} {As Bs : List X}
-         (G K : Hypergraph Gen As Bs) where
+module _ {X : Set} {Gen : List X → List X → Set}
+         (G K : Hypergraph Gen) where
   private
     module G = Hypergraph G
     module K = Hypergraph K
@@ -64,9 +64,9 @@ module _ {X : Set} {Gen : List X → List X → Set} {As Bs : List X}
 --------------------------------------------------------------------------------
 -- Simplified iso record: 14 fields instead of 16.
 
-module _ {X : Set} {Gen : List X → List X → Set} {As Bs : List X} where
+module _ {X : Set} {Gen : List X → List X → Set} where
 
-  record _≅ᴴˢ_ (G K : Hypergraph Gen As Bs) : Set where
+  record _≅ᴴˢ_ (G K : Hypergraph Gen) : Set where
     private
       module G = Hypergraph G
       module K = Hypergraph K
@@ -99,7 +99,7 @@ module _ {X : Set} {Gen : List X → List X → Set} {As Bs : List X} where
                    ≡ G.elab e
 
   -- Convert simplified to full ≅ᴴ.
-  to-≅ᴴ : ∀ {G K : Hypergraph Gen As Bs} → G ≅ᴴˢ K → G ≅ᴴ K
+  to-≅ᴴ : ∀ {G K : Hypergraph Gen} → G ≅ᴴˢ K → G ≅ᴴ K
   to-≅ᴴ {G} {K} s = record
     { φ         = φ
     ; φ⁻¹       = φ⁻¹
