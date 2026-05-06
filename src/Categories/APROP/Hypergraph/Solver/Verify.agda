@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------
 -- Phase 4a.5: Record assembly / verification.
 --
--- Given `H, J : Hypergraph FlatGen As Bs` and a `(φB, ψB) : PBij × PBij`
+-- Given `H, J : Hypergraph FlatGen` and a `(φB, ψB) : PBij × PBij`
 -- produced by the search, verify all `_≅ᴴ_` invariants and, if they
 -- all hold, produce the iso record. If any invariant fails, return
 -- `nothing`.
@@ -146,8 +146,7 @@ flat-match x y = step (view x) (view y)
 --------------------------------------------------------------------------------
 -- Main verification.
 
-module Verify {As Bs : List X}
-              (H J : Hypergraph FlatGen As Bs)
+module Verify (H J : Hypergraph FlatGen)
               (φB : PBij (Hypergraph.nV H) (Hypergraph.nV J))
               (ψB : PBij (Hypergraph.nE H) (Hypergraph.nE J)) where
 

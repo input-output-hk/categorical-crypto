@@ -67,9 +67,9 @@ private
 --------------------------------------------------------------------------------
 -- The isomorphism relation.
 
-module _ {X : Set} {Gen : List X → List X → Set} {As Bs : List X} where
+module _ {X : Set} {Gen : List X → List X → Set} where
 
-  record _≅ᴴ_ (G K : Hypergraph Gen As Bs) : Set where
+  record _≅ᴴ_ (G K : Hypergraph Gen) : Set where
     private
       module G = Hypergraph G
       module K = Hypergraph K
@@ -111,9 +111,9 @@ module _ {X : Set} {Gen : List X → List X → Set} {As Bs : List X} where
 --------------------------------------------------------------------------------
 -- Reflexivity.
 
-module _ {X : Set} {Gen : List X → List X → Set} {As Bs : List X} where
+module _ {X : Set} {Gen : List X → List X → Set} where
 
-  refl-≅ᴴ : (G : Hypergraph Gen As Bs) → G ≅ᴴ G
+  refl-≅ᴴ : (G : Hypergraph Gen) → G ≅ᴴ G
   refl-≅ᴴ G = record
     { φ         = id
     ; φ⁻¹       = id
@@ -137,9 +137,9 @@ module _ {X : Set} {Gen : List X → List X → Set} {As Bs : List X} where
 --------------------------------------------------------------------------------
 -- Symmetry. Invert the two bijections and flip the transports.
 
-module _ {X : Set} {Gen : List X → List X → Set} {As Bs : List X} where
+module _ {X : Set} {Gen : List X → List X → Set} where
 
-  sym-≅ᴴ : {G K : Hypergraph Gen As Bs} → G ≅ᴴ K → K ≅ᴴ G
+  sym-≅ᴴ : {G K : Hypergraph Gen} → G ≅ᴴ K → K ≅ᴴ G
   sym-≅ᴴ {G} {K} iso = record
     { φ         = φ⁻¹
     ; φ⁻¹       = φ
@@ -273,9 +273,9 @@ module _ {X : Set} {Gen : List X → List X → Set} {As Bs : List X} where
 --------------------------------------------------------------------------------
 -- Transitivity. Compose the two bijections.
 
-module _ {X : Set} {Gen : List X → List X → Set} {As Bs : List X} where
+module _ {X : Set} {Gen : List X → List X → Set} where
 
-  trans-≅ᴴ : {G H K : Hypergraph Gen As Bs}
+  trans-≅ᴴ : {G H K : Hypergraph Gen}
            → G ≅ᴴ H → H ≅ᴴ K → G ≅ᴴ K
   trans-≅ᴴ {G} {H} {K} iso₁ iso₂ = record
     { φ         = λ i → φ₂ (φ₁ i)
@@ -381,55 +381,11 @@ module _ {X : Set} {Gen : List X → List X → Set} {As Bs : List X} where
 --   `subst₂ _ eq₁ eq₃ G₁ ≅ᴴ subst₂ _ eq₁ eq₃ G₂`
 -- from a base iso `G₁ ≅ᴴ G₂`.
 
-subst₂-resp-≅ᴴ
-  : ∀ {X : Set} {Gen : List X → List X → Set}
-      {As As' Bs Bs' : List X}
-      (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
-      {G K : Hypergraph Gen As Bs}
-    → G ≅ᴴ K
-    → subst₂ (Hypergraph Gen) eq₁ eq₂ G ≅ᴴ subst₂ (Hypergraph Gen) eq₁ eq₂ K
-subst₂-resp-≅ᴴ refl refl iso = iso
-
 --------------------------------------------------------------------------------
--- Hypergraph record-field projections commute with `subst₂` on the
--- boundary type indices (since none of `nV`, `vlab`, `nE`, `ein`,
--- `eout`, `elab`, `dom`, `cod` depend on `As` or `Bs`). Each is a
--- refl-refl pattern match.
-
-module _ {X : Set} {Gen : List X → List X → Set} where
-
-  nV-subst₂
-    : ∀ {As Bs As' Bs'} (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
-      (H : Hypergraph Gen As Bs)
-    → Hypergraph.nV (subst₂ (Hypergraph Gen) eq₁ eq₂ H) ≡ Hypergraph.nV H
-  nV-subst₂ refl refl H = refl
-
-  nE-subst₂
-    : ∀ {As Bs As' Bs'} (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
-      (H : Hypergraph Gen As Bs)
-    → Hypergraph.nE (subst₂ (Hypergraph Gen) eq₁ eq₂ H) ≡ Hypergraph.nE H
-  nE-subst₂ refl refl H = refl
-
-  vlab-subst₂
-    : ∀ {As Bs As' Bs'} (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
-      (H : Hypergraph Gen As Bs)
-    → ∀ i → Hypergraph.vlab (subst₂ (Hypergraph Gen) eq₁ eq₂ H)
-              (subst Fin (sym (nV-subst₂ eq₁ eq₂ H)) i)
-          ≡ Hypergraph.vlab H i
-  vlab-subst₂ refl refl H i = refl
-
-  dom-subst₂
-    : ∀ {As Bs As' Bs'} (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
-      (H : Hypergraph Gen As Bs)
-    → Hypergraph.dom (subst₂ (Hypergraph Gen) eq₁ eq₂ H)
-    ≡ subst (λ n → List (Fin n)) (sym (nV-subst₂ eq₁ eq₂ H))
-            (Hypergraph.dom H)
-  dom-subst₂ refl refl H = refl
-
-  cod-subst₂
-    : ∀ {As Bs As' Bs'} (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
-      (H : Hypergraph Gen As Bs)
-    → Hypergraph.cod (subst₂ (Hypergraph Gen) eq₁ eq₂ H)
-    ≡ subst (λ n → List (Fin n)) (sym (nV-subst₂ eq₁ eq₂ H))
-            (Hypergraph.cod H)
-  cod-subst₂ refl refl H = refl
+-- DE-INDEXED REFACTOR PAYOFF: the old indexed Iso.agda exposed
+-- `subst₂-resp-≅ᴴ`, `nV-subst₂`, `nE-subst₂`, `vlab-subst₂`,
+-- `dom-subst₂`, `cod-subst₂` (~50 LOC), each a refl-refl pattern
+-- match shuffling `subst₂ (Hypergraph Gen)` past a record projection.
+-- With the de-indexed `Hypergraph Gen` (no As, Bs in the type) all
+-- of these are now equalities between identical terms — definitionally
+-- `refl` and not needed.

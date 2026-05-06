@@ -2,20 +2,28 @@
 
 --------------------------------------------------------------------------------
 -- Translate an APROP term `HomTerm A B` into a labeled hypergraph
--- `Hypergraph FlatGen (flatten A) (flatten B)`.
+-- `Hypergraph FlatGen`.
 --
--- The hypergraph is indexed by its boundary atom lists (see
--- `Hypergraph.Core`), so composition composes by type and the
--- translation has a clean signature.
+-- The hypergraph is *un-indexed* — it does not carry its boundary
+-- atom-lists in the type.  The boundary facts `domL ⟪f⟫ ≡ flatten A`
+-- and `codL ⟪f⟫ ≡ flatten B` are exposed as separate propositional
+-- lemmas (`⟪⟫-domL`, `⟪⟫-codL`).
 --
 -- Smart constructors:
 --   hEmpty      empty hypergraph
 --   hVar x      single vertex (for `Var x`)
 --   hId A       identity on a flattened object, recursive on A
 --   hGen f      single edge for a user generator `mor A B`
---   hTensor     disjoint union, boundary `As ++ Cs`/`Bs ++ Ds`
---   hSwap A B   braiding, boundary `flatten A ++ flatten B`/`flatten B ++ flatten A`
---   hCompose    cospan composition, `Bs`-interface identified
+--   hTensor     disjoint union, boundary `domL G ++ domL K` /
+--                                          `codL G ++ codL K`
+--   hSwap A B   braiding
+--   hCompose G K bdy-eq    cospan composition; `bdy-eq` witnesses
+--                          `codL G ≡ domL K`
+--
+-- The benefit of de-indexing: `subst₂ (Hypergraph FlatGen)` no longer
+-- shows up.  In particular, the ρ/α cases of `⟪_⟫` are *plain* `hId`
+-- calls; the boundary equations `flatten A ++ [] ≡ flatten A` etc.
+-- live in the boundary lemmas instead of being woven into the type.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -83,33 +91,25 @@ map-via-raise p xs =
 --------------------------------------------------------------------------------
 -- Empty hypergraph: no vertices, no edges, empty boundary.
 
-hEmpty : Hypergraph FlatGen [] []
+hEmpty : Hypergraph FlatGen
 hEmpty = record
-  { nV = 0 ; vlab = λ () ; nE = 0
-  ; ein = λ () ; eout = λ () ; elab = λ ()
-  ; dom = [] ; cod = [] ; dom-ok = refl ; cod-ok = refl
+  { nV = 0; vlab = λ (); nE = 0
+  ; ein = λ (); eout = λ (); elab = λ ()
+  ; dom = []; cod = []
   }
 
 -- Single vertex hypergraph labeled `x`.
-hVar : (x : X) → Hypergraph FlatGen (x ∷ []) (x ∷ [])
+hVar : (x : X) → Hypergraph FlatGen
 hVar x = record
-  { nV = 1 ; vlab = λ _ → x ; nE = 0
-  ; ein = λ () ; eout = λ () ; elab = λ ()
-  ; dom = zero ∷ [] ; cod = zero ∷ []
-  ; dom-ok = refl ; cod-ok = refl
+  { nV = 1; vlab = λ _ → x; nE = 0
+  ; ein = λ (); eout = λ (); elab = λ ()
+  ; dom = zero ∷ []; cod = zero ∷ []
   }
 
 --------------------------------------------------------------------------------
 -- Tensor: disjoint union with concatenated boundaries.
---
--- The helpers are lifted to a top-level module parameterized by G and
--- K so that downstream code (Congruence) can access reduction lemmas
--- for `elab-c` in the `inj₁`/`inj₂` branches of its internal
--- `with splitAt G.nE e`.
 
-module hTensor-impl
-  {As Bs Cs Ds : List X}
-  (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Cs Ds) where
+module hTensor-impl (G K : Hypergraph FlatGen) where
 
   private
     module G = Hypergraph G
@@ -154,9 +154,6 @@ module hTensor-impl
 
   -- Pre-lemmas: ein-c / eout-c in each branch of the internal `with`
   -- reduce to `map injL (G.ein/eout eG)` or `map injR (K.ein/eout eK)`.
-  -- Proved by re-doing the `with`; the dot pattern forces the inner
-  -- splitAt to match the provided proof, unlocking pattern matching.
-
   ein-c-inj₁-red : ∀ (eG : Fin G.nE)
                  → ein-c (eG ↑ˡ K.nE) ≡ map injL (G.ein eG)
   ein-c-inj₁-red eG with splitAt G.nE (eG ↑ˡ K.nE)
@@ -180,12 +177,6 @@ module hTensor-impl
   eout-c-inj₂-red eK with splitAt G.nE (G.nE ↑ʳ eK)
                           | splitAt-↑ʳ G.nE K.nE eK
   ... | .(inj₂ eK)       | refl = refl
-
-  -- Reduction lemmas for `elab-c`. Since `elab-c (inject+ K.nE eG)`
-  -- has type `FlatGen (map vlab-c (ein-c (inject+ K.nE eG))) ...` and
-  -- the target subst₂ expression has type `FlatGen (map vlab-c (map injL
-  -- (G.ein eG))) ...`, we transport the LHS via the ein-c/eout-c
-  -- reduction equalities to put both sides in the same type.
 
   elab-c-inj₁ : ∀ (eG : Fin G.nE)
               → subst₂ FlatGen
@@ -213,21 +204,8 @@ module hTensor-impl
                       | splitAt-↑ʳ G.nE K.nE eK
   ... | .(inj₂ eK)   | refl = refl
 
-  -- Boundary: `map vlab-c (map injL xs ++ map injR ys) ≡ As ++ Cs`
-  -- given `map G.vlab xs ≡ As` and `map K.vlab ys ≡ Cs`.
-  boundary-eq : (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
-              → ∀ {As Cs}
-              → map G.vlab xs ≡ As → map K.vlab ys ≡ Cs
-              → map vlab-c (map injL xs ++ map injR ys) ≡ As ++ Cs
-  boundary-eq xs ys px py =
-    trans (map-++ vlab-c (map injL xs) (map injR ys))
-          (cong₂ _++_
-            (trans (sym (map-via-inj vlab-injL xs)) px)
-            (trans (sym (map-via-raise vlab-injR ys)) py))
-
-hTensor : ∀ {As Bs Cs Ds} → Hypergraph FlatGen As Bs → Hypergraph FlatGen Cs Ds
-        → Hypergraph FlatGen (As ++ Cs) (Bs ++ Ds)
-hTensor {As} {Bs} {Cs} {Ds} G K = record
+hTensor : Hypergraph FlatGen → Hypergraph FlatGen → Hypergraph FlatGen
+hTensor G K = record
   { nV = G.nV + K.nV
   ; vlab = vlab-c
   ; nE = G.nE + K.nE
@@ -236,28 +214,65 @@ hTensor {As} {Bs} {Cs} {Ds} G K = record
   ; elab = elab-c
   ; dom = map injL G.dom ++ map injR K.dom
   ; cod = map injL G.cod ++ map injR K.cod
-  ; dom-ok = boundary-eq G.dom K.dom G.dom-ok K.dom-ok
-  ; cod-ok = boundary-eq G.cod K.cod G.cod-ok K.cod-ok
   }
   where
     module G = Hypergraph G
     module K = Hypergraph K
     open hTensor-impl G K
 
+-- Boundary lemmas for hTensor: `domL (hTensor G K) ≡ domL G ++ domL K`
+-- (and likewise for codL).  These take the place of `boundary-eq`'s
+-- type-level role in the indexed version.
+
+module _ (G K : Hypergraph FlatGen) where
+  private
+    module G = Hypergraph G
+    module K = Hypergraph K
+    open hTensor-impl G K
+
+  private
+    hTensor-boundary
+      : (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
+      → map vlab-c (map injL xs ++ map injR ys)
+      ≡ map G.vlab xs ++ map K.vlab ys
+    hTensor-boundary xs ys = trans
+      (map-++ vlab-c (map injL xs) (map injR ys))
+      (cong₂ _++_
+        (sym (map-via-inj   vlab-injL xs))
+        (sym (map-via-raise vlab-injR ys)))
+
+  domL-hTensor : domL (hTensor G K) ≡ domL G ++ domL K
+  domL-hTensor = hTensor-boundary G.dom K.dom
+
+  codL-hTensor : codL (hTensor G K) ≡ codL G ++ codL K
+  codL-hTensor = hTensor-boundary G.cod K.cod
+
 --------------------------------------------------------------------------------
 -- Identity on an ObjTerm: one fresh vertex per atom, no edges.
--- Defined by recursion on A so the type tells us the boundary.
 
-hId : (A : ObjTerm) → Hypergraph FlatGen (flatten A) (flatten A)
+hId : ObjTerm → Hypergraph FlatGen
 hId unit = hEmpty
 hId (Var x) = hVar x
 hId (A ⊗₀ B) = hTensor (hId A) (hId B)
 
---------------------------------------------------------------------------------
--- Single edge hypergraph for a user generator `mor A B`. Vertices are
--- `flatten A ++ flatten B`.
+domL-hId : ∀ A → domL (hId A) ≡ flatten A
+domL-hId unit       = refl
+domL-hId (Var x)    = refl
+domL-hId (A ⊗₀ B)   =
+  trans (domL-hTensor (hId A) (hId B))
+        (cong₂ _++_ (domL-hId A) (domL-hId B))
 
-hGen : ∀ {A B} → mor A B → Hypergraph FlatGen (flatten A) (flatten B)
+codL-hId : ∀ A → codL (hId A) ≡ flatten A
+codL-hId unit       = refl
+codL-hId (Var x)    = refl
+codL-hId (A ⊗₀ B)   =
+  trans (codL-hTensor (hId A) (hId B))
+        (cong₂ _++_ (codL-hId A) (codL-hId B))
+
+--------------------------------------------------------------------------------
+-- Single edge hypergraph for a user generator `mor A B`.
+
+hGen : ∀ {A B} → mor A B → Hypergraph FlatGen
 hGen {A} {B} f = record
   { nV = nA + nB
   ; vlab = vlab-c
@@ -267,8 +282,6 @@ hGen {A} {B} f = record
   ; elab = λ _ → subst₂ FlatGen lem-in lem-out (flat f)
   ; dom = map (_↑ˡ nB) (range nA)
   ; cod = map (nA ↑ʳ_) (range nB)
-  ; dom-ok = sym lem-in
-  ; cod-ok = sym lem-out
   }
   where
     nA = length (flatten A)
@@ -297,68 +310,100 @@ hGen {A} {B} f = record
       (trans (map-cong vlab-inR (range nB))
              (map-lookup-range (flatten B))))
 
+domL-hGen : ∀ {A B} (g : mor A B) → domL (hGen g) ≡ flatten A
+domL-hGen {A} {B} _ =
+  trans (sym (map-∘ (range nA)))
+        (trans (map-cong vlab-inL (range nA))
+               (map-lookup-range (flatten A)))
+  where
+    nA = length (flatten A)
+    nB = length (flatten B)
+    vlab-c : Fin (nA + nB) → X
+    vlab-c i = [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt nA i)
+    vlab-inL : (i : Fin nA) → vlab-c (i ↑ˡ nB) ≡ lookup (flatten A) i
+    vlab-inL i = cong [ lookup (flatten A) , lookup (flatten B) ]′
+                       (splitAt-↑ˡ nA i nB)
+
+codL-hGen : ∀ {A B} (g : mor A B) → codL (hGen g) ≡ flatten B
+codL-hGen {A} {B} _ =
+  trans (sym (map-∘ (range nB)))
+        (trans (map-cong vlab-inR (range nB))
+               (map-lookup-range (flatten B)))
+  where
+    nA = length (flatten A)
+    nB = length (flatten B)
+    vlab-c : Fin (nA + nB) → X
+    vlab-c i = [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt nA i)
+    vlab-inR : (i : Fin nB) → vlab-c (nA ↑ʳ i) ≡ lookup (flatten B) i
+    vlab-inR i = cong [ lookup (flatten A) , lookup (flatten B) ]′
+                       (splitAt-↑ʳ nA nB i)
+
 --------------------------------------------------------------------------------
 -- Symmetry: vertices = flatten A ++ flatten B, no edges, swapped boundary.
 
-hSwap : (A B : ObjTerm)
-      → Hypergraph FlatGen (flatten A ++ flatten B) (flatten B ++ flatten A)
+hSwap : ObjTerm → ObjTerm → Hypergraph FlatGen
 hSwap A B = record
   { nV = nA + nB
   ; vlab = vlab-c
   ; nE = 0
-  ; ein = λ () ; eout = λ () ; elab = λ ()
+  ; ein = λ (); eout = λ (); elab = λ ()
   ; dom = map (_↑ˡ nB) (range nA) ++ map (nA ↑ʳ_) (range nB)
   ; cod = map (nA ↑ʳ_) (range nB) ++ map (_↑ˡ nB) (range nA)
-  ; dom-ok = trans
-               (map-++ vlab-c (map (_↑ˡ nB) (range nA))
-                              (map (nA ↑ʳ_) (range nB)))
-               (cong₂ _++_ lem-L lem-R)
-  ; cod-ok = trans
-               (map-++ vlab-c (map (nA ↑ʳ_) (range nB))
-                              (map (_↑ˡ nB) (range nA)))
-               (cong₂ _++_ lem-R lem-L)
   }
   where
     nA = length (flatten A)
     nB = length (flatten B)
-
     vlab-c : Fin (nA + nB) → X
     vlab-c i = [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt nA i)
 
+domL-hSwap : ∀ A B → domL (hSwap A B) ≡ flatten A ++ flatten B
+domL-hSwap A B =
+  trans (map-++ vlab-c (map (_↑ˡ nB) (range nA)) (map (nA ↑ʳ_) (range nB)))
+        (cong₂ _++_ lem-L lem-R)
+  where
+    nA = length (flatten A)
+    nB = length (flatten B)
+    vlab-c : Fin (nA + nB) → X
+    vlab-c i = [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt nA i)
     vlab-inL : ∀ (i : Fin nA) → vlab-c (i ↑ˡ nB) ≡ lookup (flatten A) i
-    vlab-inL i = cong [ lookup (flatten A) , lookup (flatten B) ]′
-                      (splitAt-↑ˡ nA i nB)
-
+    vlab-inL i = cong [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt-↑ˡ nA i nB)
     vlab-inR : ∀ (i : Fin nB) → vlab-c (nA ↑ʳ i) ≡ lookup (flatten B) i
-    vlab-inR i = cong [ lookup (flatten A) , lookup (flatten B) ]′
-                      (splitAt-↑ʳ nA nB i)
-
+    vlab-inR i = cong [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt-↑ʳ nA nB i)
     lem-L : map vlab-c (map (_↑ˡ nB) (range nA)) ≡ flatten A
     lem-L = trans (sym (map-∘ (range nA)))
-           (trans (map-cong vlab-inL (range nA))
-                  (map-lookup-range (flatten A)))
-
+                  (trans (map-cong vlab-inL (range nA)) (map-lookup-range (flatten A)))
     lem-R : map vlab-c (map (nA ↑ʳ_) (range nB)) ≡ flatten B
     lem-R = trans (sym (map-∘ (range nB)))
-           (trans (map-cong vlab-inR (range nB))
-                  (map-lookup-range (flatten B)))
+                  (trans (map-cong vlab-inR (range nB)) (map-lookup-range (flatten B)))
+
+codL-hSwap : ∀ A B → codL (hSwap A B) ≡ flatten B ++ flatten A
+codL-hSwap A B =
+  trans (map-++ vlab-c (map (nA ↑ʳ_) (range nB)) (map (_↑ˡ nB) (range nA)))
+        (cong₂ _++_ lem-R lem-L)
+  where
+    nA = length (flatten A)
+    nB = length (flatten B)
+    vlab-c : Fin (nA + nB) → X
+    vlab-c i = [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt nA i)
+    vlab-inL : ∀ (i : Fin nA) → vlab-c (i ↑ˡ nB) ≡ lookup (flatten A) i
+    vlab-inL i = cong [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt-↑ˡ nA i nB)
+    vlab-inR : ∀ (i : Fin nB) → vlab-c (nA ↑ʳ i) ≡ lookup (flatten B) i
+    vlab-inR i = cong [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt-↑ʳ nA nB i)
+    lem-L : map vlab-c (map (_↑ˡ nB) (range nA)) ≡ flatten A
+    lem-L = trans (sym (map-∘ (range nA)))
+                  (trans (map-cong vlab-inL (range nA)) (map-lookup-range (flatten A)))
+    lem-R : map vlab-c (map (nA ↑ʳ_) (range nB)) ≡ flatten B
+    lem-R = trans (sym (map-∘ (range nB)))
+                  (trans (map-cong vlab-inR (range nB)) (map-lookup-range (flatten B)))
 
 --------------------------------------------------------------------------------
--- Cospan composition: identify `K.dom[i]` with `G.cod[i]` pointwise.
--- Typed precondition: G and K share the `Bs` boundary.
---
--- Vertex set of the composite is `G.nV + K.nV`; K-side vertices that
--- were in `K.dom` become unreachable (their references are remapped
--- to the corresponding `G.cod` positions). A canonicalisation pass
--- in Phase 3 can prune them.
---
--- The helpers are lifted to a top-level module (parallel to
--- `hTensor-impl`) so `Congruence` can name `remap`, `remap-comm`,
--- `elab-c-inj{₁,₂}`, etc. directly.
+-- Cospan composition.  Takes the boundary-agreement proof
+-- `bdy-eq : codL G ≡ domL K` as a runtime argument.
 
 module hCompose-impl
-  {As Bs Cs : List X}
-  (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs) where
+  (G K : Hypergraph FlatGen)
+  (bdy-eq : codL G ≡ domL K)
+  where
 
   private
     module G = Hypergraph G
@@ -396,8 +441,6 @@ module hCompose-impl
   ∷-tailEq : ∀ {A : Set} {a b : A} {as bs : List A} → a ∷ as ≡ b ∷ bs → as ≡ bs
   ∷-tailEq refl = refl
 
-  -- Core label-preservation lemma for the remap, given the pointwise
-  -- boundary agreement derivable from G.cod-ok and K.dom-ok.
   remap'-vlab : (ks : List (Fin K.nV)) (gs : List (Fin G.nV))
               → map K.vlab ks ≡ map G.vlab gs
               → ∀ v → vlab-c (remap' ks gs v) ≡ K.vlab v
@@ -407,13 +450,14 @@ module hCompose-impl
   ... | yes refl = trans (vlab-injL g) (sym (∷-headEq eq))
   ... | no  _    = remap'-vlab ks gs (∷-tailEq eq) v
 
-  -- `map K.vlab K.dom ≡ map G.vlab G.cod`, deduced from the boundary
-  -- annotations (both equal `Bs`).
-  bdy-eq : map K.vlab K.dom ≡ map G.vlab G.cod
-  bdy-eq = trans K.dom-ok (sym G.cod-ok)
+  -- The boundary fact `map K.vlab K.dom ≡ map G.vlab G.cod` is now
+  -- exactly the `bdy-eq : codL G ≡ domL K` argument (after unfolding
+  -- `codL`/`domL`), inverted.
+  bdy-eq′ : map K.vlab K.dom ≡ map G.vlab G.cod
+  bdy-eq′ = sym bdy-eq
 
   remap-vlab : ∀ v → vlab-c (remap v) ≡ K.vlab v
-  remap-vlab = remap'-vlab K.dom G.cod bdy-eq
+  remap-vlab = remap'-vlab K.dom G.cod bdy-eq′
 
   ein-c : Fin (G.nE + K.nE) → List (Fin (G.nV + K.nV))
   ein-c e = [ (λ eG → map injL (G.ein eG))
@@ -441,11 +485,6 @@ module hCompose-impl
                     (map-via-remap (K.eout eK))
                     (K.elab eK)
 
-  -- Reduction lemmas: ein-c / eout-c in each branch of the internal
-  -- `with` reduce to the injection/remap image of the component's
-  -- `ein`/`eout`. These unlock the outer `with` in `elab-c` for
-  -- external callers (Congruence).
-
   ein-c-inj₁-red : ∀ (eG : Fin G.nE)
                  → ein-c (eG ↑ˡ K.nE) ≡ map injL (G.ein eG)
   ein-c-inj₁-red eG with splitAt G.nE (eG ↑ˡ K.nE)
@@ -469,9 +508,6 @@ module hCompose-impl
   eout-c-inj₂-red eK with splitAt G.nE (G.nE ↑ʳ eK)
                           | splitAt-↑ʳ G.nE K.nE eK
   ... | .(inj₂ eK)       | refl = refl
-
-  -- Reduction lemmas for `elab-c`. Analogous to `hTensor-impl`'s
-  -- `elab-c-inj{₁,₂}`.
 
   elab-c-inj₁ : ∀ (eG : Fin G.nE)
               → subst₂ FlatGen
@@ -499,9 +535,8 @@ module hCompose-impl
                       | splitAt-↑ʳ G.nE K.nE eK
   ... | .(inj₂ eK)   | refl = refl
 
-hCompose : ∀ {As Bs Cs} → Hypergraph FlatGen As Bs → Hypergraph FlatGen Bs Cs
-         → Hypergraph FlatGen As Cs
-hCompose {As} {Bs} {Cs} G K = record
+hCompose : (G K : Hypergraph FlatGen) → codL G ≡ domL K → Hypergraph FlatGen
+hCompose G K bdy-eq = record
   { nV = G.nV + K.nV
   ; vlab = vlab-c
   ; nE = G.nE + K.nE
@@ -510,45 +545,69 @@ hCompose {As} {Bs} {Cs} G K = record
   ; elab = elab-c
   ; dom = map injL G.dom
   ; cod = map remap K.cod
-  ; dom-ok = trans (sym (map-via-inj vlab-injL G.dom)) G.dom-ok
-  ; cod-ok = trans (sym (map-via-remap K.cod)) K.cod-ok
   }
   where
     module G = Hypergraph G
     module K = Hypergraph K
-    open hCompose-impl G K
+    open hCompose-impl G K bdy-eq
+
+domL-hCompose : ∀ G K bdy-eq → domL (hCompose G K bdy-eq) ≡ domL G
+domL-hCompose G K bdy-eq = sym (map-via-inj (hCompose-impl.vlab-injL G K bdy-eq) _)
+
+codL-hCompose : ∀ G K bdy-eq → codL (hCompose G K bdy-eq) ≡ codL K
+codL-hCompose G K bdy-eq = sym (map-via-remap _)
+  where open hCompose-impl G K bdy-eq
 
 --------------------------------------------------------------------------------
--- Translation from APROP terms.
---
--- Structural coherence morphisms (unitors, associators) are identity
--- hypergraphs with the boundary lists reassociated using `++-identityʳ`
--- and `++-assoc`. The braiding `σ` uses `hSwap`.
+-- Translation from APROP terms.  Defined mutually with the boundary
+-- lemmas because the `_∘_` case needs `⟪⟫-codL f ≡ ⟪⟫-domL g` to feed
+-- into hCompose.
 
-⟪_⟫ : ∀ {A B} → HomTerm A B → Hypergraph FlatGen (flatten A) (flatten B)
+⟪_⟫       : ∀ {A B} → HomTerm A B → Hypergraph FlatGen
+⟪⟫-domL   : ∀ {A B} (f : HomTerm A B) → domL ⟪ f ⟫ ≡ flatten A
+⟪⟫-codL   : ∀ {A B} (f : HomTerm A B) → codL ⟪ f ⟫ ≡ flatten B
 
-⟪ Agen f ⟫ = hGen f
-⟪ id {A} ⟫ = hId A
-⟪ g ∘ f ⟫ = hCompose ⟪ f ⟫ ⟪ g ⟫
-⟪ f ⊗₁ g ⟫ = hTensor ⟪ f ⟫ ⟪ g ⟫
+⟪ Agen f ⟫            = hGen f
+⟪ id {A} ⟫            = hId A
+⟪ g ∘ f ⟫             = hCompose ⟪ f ⟫ ⟪ g ⟫
+                                  (trans (⟪⟫-codL f) (sym (⟪⟫-domL g)))
+⟪ f ⊗₁ g ⟫            = hTensor ⟪ f ⟫ ⟪ g ⟫
+⟪ λ⇒ {A} ⟫            = hId A
+⟪ λ⇐ {A} ⟫            = hId A
+⟪ ρ⇒ {A} ⟫            = hId (A ⊗₀ unit)
+⟪ ρ⇐ {A} ⟫            = hId (A ⊗₀ unit)
+⟪ α⇒ {A} {B} {C} ⟫    = hId ((A ⊗₀ B) ⊗₀ C)
+⟪ α⇐ {A} {B} {C} ⟫    = hId ((A ⊗₀ B) ⊗₀ C)
+⟪ σ {A} {B} ⟫         = hSwap A B
 
--- Unitors: flatten(unit ⊗ A) = flatten A definitionally, so λ⇒ is hId A.
-⟪ λ⇒ {A} ⟫ = hId A
-⟪ λ⇐ {A} ⟫ = hId A
+⟪⟫-domL (Agen f)        = domL-hGen f
+⟪⟫-domL (id {A})        = domL-hId A
+⟪⟫-domL (g ∘ f)         =
+  trans (domL-hCompose ⟪ f ⟫ ⟪ g ⟫ (trans (⟪⟫-codL f) (sym (⟪⟫-domL g))))
+        (⟪⟫-domL f)
+⟪⟫-domL (f ⊗₁ g)        = trans (domL-hTensor ⟪ f ⟫ ⟪ g ⟫)
+                                 (cong₂ _++_ (⟪⟫-domL f) (⟪⟫-domL g))
+⟪⟫-domL (λ⇒ {A})        = domL-hId A
+⟪⟫-domL (λ⇐ {A})        = domL-hId A
+⟪⟫-domL (ρ⇒ {A})        = domL-hId (A ⊗₀ unit)
+⟪⟫-domL (ρ⇐ {A})        = trans (domL-hId (A ⊗₀ unit)) (++-identityʳ (flatten A))
+⟪⟫-domL (α⇒ {A}{B}{C})  = domL-hId ((A ⊗₀ B) ⊗₀ C)
+⟪⟫-domL (α⇐ {A}{B}{C})  = trans (domL-hId ((A ⊗₀ B) ⊗₀ C))
+                                 (++-assoc (flatten A) (flatten B) (flatten C))
+⟪⟫-domL (σ {A}{B})      = domL-hSwap A B
 
--- ρ⇒/ρ⇐ need `flatten A ++ [] ≡ flatten A` (`++-identityʳ`).
-⟪ ρ⇒ {A} ⟫ = subst₂ (Hypergraph FlatGen)
-              refl (++-identityʳ (flatten A)) (hId (A ⊗₀ unit))
-⟪ ρ⇐ {A} ⟫ = subst₂ (Hypergraph FlatGen)
-              (++-identityʳ (flatten A)) refl (hId (A ⊗₀ unit))
-
--- Associators: need `(xs ++ ys) ++ zs ≡ xs ++ (ys ++ zs)`.
-⟪ α⇒ {A} {B} {C} ⟫ = subst₂ (Hypergraph FlatGen)
-                       refl (++-assoc (flatten A) (flatten B) (flatten C))
-                       (hId ((A ⊗₀ B) ⊗₀ C))
-⟪ α⇐ {A} {B} {C} ⟫ = subst₂ (Hypergraph FlatGen)
-                       (++-assoc (flatten A) (flatten B) (flatten C)) refl
-                       (hId ((A ⊗₀ B) ⊗₀ C))
-
--- Braiding.
-⟪ σ {A} {B} ⟫ = hSwap A B
+⟪⟫-codL (Agen f)        = codL-hGen f
+⟪⟫-codL (id {A})        = codL-hId A
+⟪⟫-codL (g ∘ f)         =
+  trans (codL-hCompose ⟪ f ⟫ ⟪ g ⟫ (trans (⟪⟫-codL f) (sym (⟪⟫-domL g))))
+        (⟪⟫-codL g)
+⟪⟫-codL (f ⊗₁ g)        = trans (codL-hTensor ⟪ f ⟫ ⟪ g ⟫)
+                                 (cong₂ _++_ (⟪⟫-codL f) (⟪⟫-codL g))
+⟪⟫-codL (λ⇒ {A})        = codL-hId A
+⟪⟫-codL (λ⇐ {A})        = codL-hId A
+⟪⟫-codL (ρ⇒ {A})        = trans (codL-hId (A ⊗₀ unit)) (++-identityʳ (flatten A))
+⟪⟫-codL (ρ⇐ {A})        = codL-hId (A ⊗₀ unit)
+⟪⟫-codL (α⇒ {A}{B}{C})  = trans (codL-hId ((A ⊗₀ B) ⊗₀ C))
+                                 (++-assoc (flatten A) (flatten B) (flatten C))
+⟪⟫-codL (α⇐ {A}{B}{C})  = codL-hId ((A ⊗₀ B) ⊗₀ C)
+⟪⟫-codL (σ {A}{B})      = codL-hSwap A B

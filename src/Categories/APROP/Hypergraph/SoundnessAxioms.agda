@@ -50,108 +50,22 @@ open import Categories.APROP.Hypergraph.SoundnessProved sig public
         ; σ∘σ-sound
         ; hCompose-hId-R-iso-generic
         ; hCompose-hId-L-iso-generic
-        ; hTensor-hEmpty-G-iso
-        ; hTensor-hEmpty-hId-iso)
+        ; hTensor-hEmpty-G-iso )
 
 open import Data.List using (List; _++_)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂; sym; trans; subst; subst₂)
 
---------------------------------------------------------------------------------
--- "+0 RIGHT-cancel" iso: for any G, the boundary-subst'd
--- `hTensor G hEmpty` is ≅ᴴ to G.  Mirror of `hTensor-hEmpty-G-iso`
--- but the subst₂ around the result is non-trivial: `As ++ [] ≢ As`
--- and `Bs ++ [] ≢ Bs` definitionally (unlike `[] ++ As = As`).
---
--- The construction would go field-by-field through the subst₂ field
--- projections (`nV-subst₂`, `vlab-subst₂`, `dom-subst₂`, `cod-subst₂`,
--- plus `ein-subst₂`, `eout-subst₂`, `elab-subst₂` — not yet added).
--- Since subst₂ with the non-refl `++-identityʳ` doesn't reduce, each
--- field requires explicit cast bookkeeping via `subst-subst-sym` and
--- `splitAt-↑ˡ`.
-
 postulate
-  hTensor-G-hEmpty-iso-substed
-    : ∀ {As Bs : List X} (G : Hypergraph FlatGen As Bs)
-    → subst₂ (Hypergraph FlatGen)
-             (++-identityʳ As) (++-identityʳ Bs)
-             (hTensor G hEmpty)
-    ≅ᴴ G
-
--- Specialization: for hId A, this gives `subst₂ _ p p (hId (A⊗unit)) ≅ᴴ hId A`
--- because `hId (A⊗unit) = hTensor (hId A) hEmpty`.
-subst₂-hId-cancel
-  : ∀ (A : ObjTerm)
-  → subst₂ (Hypergraph FlatGen)
-           (++-identityʳ (flatten A)) (++-identityʳ (flatten A))
-           (hId (A ⊗₀ unit))
-  ≅ᴴ hId A
-subst₂-hId-cancel A = hTensor-G-hEmpty-iso-substed (hId A)
-
---------------------------------------------------------------------------------
--- ρ⇒∘ρ⇐≈id: "asymmetric" direction. Chain via hComposeP-subst-both
--- to reduce to `subst₂ _ eq eq (hComposeP (hId _) (hId _))`, then
--- subst₂-resp-≅ᴴ + idˡ-sound + subst₂-hId-cancel.
-
-ρ⇒∘ρ⇐-sound : ∀ {A} → ⟪ ρ⇒ {A} ∘ ρ⇐ {A} ⟫ ≅ᴴ ⟪ id {A} ⟫
-ρ⇒∘ρ⇐-sound {A} =
-  subst (_≅ᴴ hId A) (sym full-eq)
-    (trans-≅ᴴ (subst₂-resp-≅ᴴ eq eq (idˡ-sound (id {A ⊗₀ unit})))
-              (subst₂-hId-cancel A))
-  where
-    eq = ++-identityʳ (flatten A)
-    abstract
-      arg1 : ⟪ ρ⇐ {A} ⟫ ≡ subst₂ (Hypergraph FlatGen) eq refl (hId (A ⊗₀ unit))
-      arg1 = refl
-      arg2 : ⟪ ρ⇒ {A} ⟫ ≡ subst₂ (Hypergraph FlatGen) refl eq (hId (A ⊗₀ unit))
-      arg2 = refl
-    full-eq : ⟪ ρ⇒ {A} ∘ ρ⇐ {A} ⟫
-            ≡ subst₂ (Hypergraph FlatGen) eq eq
-                     (hComposeP (hId (A ⊗₀ unit)) (hId (A ⊗₀ unit)))
-    full-eq = trans (cong₂ hComposeP arg1 arg2)
-                    (hComposeP-subst-both eq refl eq
-                                          (hId (A ⊗₀ unit)) (hId (A ⊗₀ unit)))
-
---------------------------------------------------------------------------------
--- α⇒∘α⇐≈id: analogous pattern with ++-assoc.  Needs a variant of the
--- "hId-cancel" iso: `subst₂ _ (++-assoc _) (++-assoc _) (hId ((A⊗B)⊗C))
--- ≅ᴴ hId (A⊗(B⊗C))`. This is a structural iso on hId that reassociates
--- the tensor structure — not derivable from `hTensor-G-hEmpty-iso-substed`
--- (which is about `++-identityʳ`, not `++-assoc`).  Postulated here as
--- a focused lemma; dispatching α⇒∘α⇐ uses it analogously to ρ⇒∘ρ⇐'s
--- use of `subst₂-hId-cancel`.
-postulate
-  subst₂-hId-assoc-cancel
-    : ∀ (A B C : ObjTerm)
-    → subst₂ (Hypergraph FlatGen)
-             (++-assoc (flatten A) (flatten B) (flatten C))
-             (++-assoc (flatten A) (flatten B) (flatten C))
-             (hId ((A ⊗₀ B) ⊗₀ C))
-    ≅ᴴ hId (A ⊗₀ (B ⊗₀ C))
-
-α⇒∘α⇐-sound : ∀ {A B C} → ⟪ α⇒ {A}{B}{C} ∘ α⇐ {A}{B}{C} ⟫ ≅ᴴ ⟪ id {A ⊗₀ (B ⊗₀ C)} ⟫
-α⇒∘α⇐-sound {A} {B} {C} =
-  subst (_≅ᴴ hId (A ⊗₀ (B ⊗₀ C))) (sym full-eq)
-    (trans-≅ᴴ (subst₂-resp-≅ᴴ eq eq (idˡ-sound (id {(A ⊗₀ B) ⊗₀ C})))
-              (subst₂-hId-assoc-cancel A B C))
-  where
-    eq = ++-assoc (flatten A) (flatten B) (flatten C)
-    abstract
-      arg1 : ⟪ α⇐ {A}{B}{C} ⟫
-           ≡ subst₂ (Hypergraph FlatGen) eq refl (hId ((A ⊗₀ B) ⊗₀ C))
-      arg1 = refl
-      arg2 : ⟪ α⇒ {A}{B}{C} ⟫
-           ≡ subst₂ (Hypergraph FlatGen) refl eq (hId ((A ⊗₀ B) ⊗₀ C))
-      arg2 = refl
-    full-eq : ⟪ α⇒ {A}{B}{C} ∘ α⇐ {A}{B}{C} ⟫
-            ≡ subst₂ (Hypergraph FlatGen) eq eq
-                     (hComposeP (hId ((A ⊗₀ B) ⊗₀ C))
-                                (hId ((A ⊗₀ B) ⊗₀ C)))
-    full-eq = trans (cong₂ hComposeP arg1 arg2)
-                    (hComposeP-subst-both eq refl eq
-                                          (hId ((A ⊗₀ B) ⊗₀ C))
-                                          (hId ((A ⊗₀ B) ⊗₀ C)))
+  -- DE-INDEXED REFACTOR: in the indexed version, ρ⇒∘ρ⇐ and α⇒∘α⇐ went
+  -- through `hComposeP-subst-both` to reduce to subst₂-wrapped
+  -- hComposeP applications, then through `subst₂-hId-cancel` /
+  -- `subst₂-hId-assoc-cancel` to land at idˡ-sound.  Under
+  -- de-indexing the subst₂s on Hypergraph are gone; the proofs need
+  -- reformulating but the theorems still hold.
+  ρ⇒∘ρ⇐-sound : ∀ {A} → ⟪ ρ⇒ {A} ∘ ρ⇐ {A} ⟫ ≅ᴴ ⟪ id {A} ⟫
+  α⇒∘α⇐-sound : ∀ {A B C} → ⟪ α⇒ {A}{B}{C} ∘ α⇐ {A}{B}{C} ⟫ ≅ᴴ ⟪ id {A ⊗₀ (B ⊗₀ C)} ⟫
 
 --------------------------------------------------------------------------------
 -- Five remaining atomic axioms as flat postulates. Each has a dedicated

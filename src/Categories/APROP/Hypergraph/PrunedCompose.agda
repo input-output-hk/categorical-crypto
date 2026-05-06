@@ -84,8 +84,9 @@ private
 -- Parallel to `FromAPROP.hCompose-impl` but with pruning.
 
 module hComposeP-impl
-  {As Bs Cs : List X}
-  (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs) where
+  (G K : Hypergraph FlatGen)
+  (bdy-eq : codL G ≡ domL K)
+  where
 
   private
     module G = Hypergraph G
@@ -95,7 +96,7 @@ module hComposeP-impl
   dom-cod-len : length K.dom ≡ length G.cod
   dom-cod-len =
     trans (sym (length-map K.vlab K.dom))
-          (trans (cong length (trans K.dom-ok (sym G.cod-ok)))
+          (trans (cong length (sym bdy-eq))
                  (length-map G.vlab G.cod))
 
   -- Lookup into G.cod indexed by a position in K.dom. Uses `Fin.cast`
@@ -130,10 +131,9 @@ module hComposeP-impl
   -- Boundary agreement and the key label lemma for remapP.
 
   -- Pointwise `K.vlab (K.dom[i]) ≡ G.vlab (lookup-cod i)`, derived from
-  -- the shared Bs boundary: both sides equal the i-th atom of Bs.
+  -- the runtime boundary equation `bdy-eq : codL G ≡ domL K` (= `map G.vlab G.cod ≡ map K.vlab K.dom`).
   bdy-pt : ∀ i → K.vlab (lookup K.dom i) ≡ G.vlab (lookup-cod i)
-  bdy-pt = lookup-boundary K.vlab G.vlab K.dom G.cod
-             (trans K.dom-ok (sym G.cod-ok))
+  bdy-pt = lookup-boundary K.vlab G.vlab K.dom G.cod (sym bdy-eq)
 
   -- Label preservation for remapP.
   remapP-vlab : ∀ v → vlab-P (remapP v) ≡ K.vlab v
@@ -231,9 +231,8 @@ module hComposeP-impl
 --------------------------------------------------------------------------------
 -- The pruned cospan composition.
 
-hComposeP : ∀ {As Bs Cs} → Hypergraph FlatGen As Bs → Hypergraph FlatGen Bs Cs
-          → Hypergraph FlatGen As Cs
-hComposeP {As} {Bs} {Cs} G K = record
+hComposeP : (G K : Hypergraph FlatGen) → codL G ≡ domL K → Hypergraph FlatGen
+hComposeP G K bdy-eq = record
   { nV = nV-P
   ; vlab = vlab-P
   ; nE = G.nE + K.nE
@@ -242,13 +241,11 @@ hComposeP {As} {Bs} {Cs} G K = record
   ; elab = elab-c
   ; dom = map injL G.dom
   ; cod = map remapP K.cod
-  ; dom-ok = trans (sym (map-via-inj vlab-injL G.dom)) G.dom-ok
-  ; cod-ok = trans (sym (map-via-remapP K.cod)) K.cod-ok
   }
   where
     module G = Hypergraph G
     module K = Hypergraph K
-    open hComposeP-impl G K
+    open hComposeP-impl G K bdy-eq
 
 --------------------------------------------------------------------------------
 -- hComposeP commutes with `subst₂` on the boundary types: any subst₂
@@ -264,11 +261,17 @@ hComposeP {As} {Bs} {Cs} G K = record
 -- the goal to `subst₂ _ (hComposeP (hId _) (hId _))`, which then
 -- chains through `idˡ-sound (id _)` + a subst-elimination step.
 
-hComposeP-subst-both
-  : ∀ {As As' Bs Bs' Cs Cs' : List X}
-      (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs') (eq₃ : Cs ≡ Cs')
-      (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs)
-  → hComposeP (subst₂ (Hypergraph FlatGen) eq₁ eq₂ G)
-              (subst₂ (Hypergraph FlatGen) eq₂ eq₃ K)
-  ≡ subst₂ (Hypergraph FlatGen) eq₁ eq₃ (hComposeP G K)
-hComposeP-subst-both refl refl refl G K = refl
+-- DE-INDEXED REFACTOR: hComposeP-subst-both used to commute
+-- `subst₂ (Hypergraph FlatGen)` past hComposeP.  Under de-indexing,
+-- the type doesn't admit such substs at all, so the lemma is gone.
+
+-- Boundary lemmas: `domL` of a pruned composition equals `domL G`,
+-- and `codL` equals `codL K` (after applying remap).  These mirror
+-- `FromAPROP.domL-hCompose` / `codL-hCompose`.
+
+domL-hComposeP : ∀ G K bdy-eq → domL (hComposeP G K bdy-eq) ≡ domL G
+domL-hComposeP G K bdy-eq =
+  sym (map-via-inj (hComposeP-impl.vlab-injL G K bdy-eq) _)
+
+codL-hComposeP : ∀ G K bdy-eq → codL (hComposeP G K bdy-eq) ≡ codL K
+codL-hComposeP G K bdy-eq = sym (hComposeP-impl.map-via-remapP G K bdy-eq _)

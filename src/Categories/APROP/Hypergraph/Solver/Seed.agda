@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------
 -- Phase 4a.2: Interface seeding (TensorRocq §4.2).
 --
--- Given `H, J : Hypergraph FlatGen As Bs`, seed a partial vertex
+-- Given `H, J : Hypergraph FlatGen`, seed a partial vertex
 -- bijection `φ₀` from the interfaces by pointwise pairing
 -- `H.dom ↔ J.dom` and `H.cod ↔ J.cod`. This pins the boundary
 -- of the isomorphism before any edge matching begins.
@@ -44,8 +44,8 @@ open import Relation.Nullary using (yes; no)
 -- edge-matching phase to resolve.
 
 check-vlab
-  : ∀ {As Bs : List X}
-    (H J : Hypergraph FlatGen As Bs)
+  : ∀
+    (H J : Hypergraph FlatGen)
   → (Fin (Hypergraph.nV H) → Maybe (Fin (Hypergraph.nV J)))
   → Maybe ⊤
 check-vlab H J p = go (Hypergraph.nV H) λ i → i
@@ -68,8 +68,8 @@ check-vlab H J p = go (Hypergraph.nV H) λ i → i
 -- Seed a partial vertex bijection from the interface lists.
 
 seedFromInterfaces
-  : ∀ {As Bs : List X}
-    (H J : Hypergraph FlatGen As Bs)
+  : ∀
+    (H J : Hypergraph FlatGen)
   → Maybe (PBij (Hypergraph.nV H) (Hypergraph.nV J))
 seedFromInterfaces H J =
   step₁ (pairUp emptyBij (Hypergraph.dom H) (Hypergraph.dom J))
