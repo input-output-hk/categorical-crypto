@@ -121,7 +121,7 @@ soundness (≈-Term-trans p q)  = trans-≅ᴴ (soundness p) (soundness q)
 -- G-side iso, K-side iso, and Unique K₁.dom — the last supplied by
 -- the `⟪_⟫-dom-unique` invariant for `f` (which is the K-side).
 soundness (∘-resp-≈ {f = f} pf pg) =
-  hComposeP-resp-≅ᴴ (soundness pg) (soundness pf) (⟪_⟫-dom-unique f)
+  hComposeP-resp-≅ᴴ (soundness pg) (soundness pf)
 
 -- Congruence for tensor.
 soundness (⊗-resp-≈ pf pg)    = hTensor-resp-≅ᴴ (soundness pf) (soundness pg)
