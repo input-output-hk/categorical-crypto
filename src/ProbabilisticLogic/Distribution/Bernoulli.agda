@@ -3,10 +3,15 @@
 open import categorical-crypto.Prelude as P hiding (pure; _>>=_; _⊎_; _*_; _/_; isEquivalence; trans)
 
 open import Algebra
+open import Relation.Binary using (Setoid)
+open import Relation.Unary using (U; _≐_)
 import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 
 open import Data.List.Properties using (length-++; length-replicate; ++-identityʳ)
 import Data.List.NonEmpty as NE
+open import Data.List.Relation.Unary.Any using (here; there)
+import Data.List.Relation.Unary.All as All
+open import Data.List.Relation.Unary.AllPairs using (AllPairs; []; _∷_)
 open import Data.Rational as ℚ using (ℚ; _/_)
 open import Data.Rational.Properties using (/-cong)
 open import Data.Integer using (+_)
@@ -18,6 +23,7 @@ module ProbabilisticLogic.Distribution.Bernoulli c ℓ (a : Abstract c ℓ) wher
 
 open Abstract a
 open import ProbabilisticLogic.Logic c ℓ a
+open import ProbabilisticLogic.Expectation c ℓ a
 
 -- The Bernoulli distribution Bernoulli(m / (m + n)) on `Bool`, with
 -- probability of `true` equal to m / (m + n).  Built directly via the
@@ -95,3 +101,36 @@ P-bernoulli-false m n = begin
     ≡⟨ cong fromℚ (/-cong (cong +_ (outcomes-falses-length m n)) (outcomes-length m n)) ⟩
   fromℚ (+ n / (m +ℕ n)) ∎
   where open ≈-Reasoning setoid
+
+------------------------------------------------------------------------
+-- Expected value of a Bernoulli random variable.
+
+-- Distinctness / U-coverage for the canonical Bool support [true, false].
+bool-distinct : AllPairs _≢_ (true ∷ false ∷ [])
+bool-distinct = ((λ ()) All.∷ All.[]) ∷ (All.[] ∷ [])
+
+bool-cover : (_∈ˡ (true ∷ false ∷ [])) ≐ U
+proj₁ bool-cover _ = tt
+proj₂ bool-cover {true}  _ = here P.refl
+proj₂ bool-cover {false} _ = there (here P.refl)
+
+bernoulli-full : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
+               → bernoulli m n ∙ (_∈ˡ (true ∷ false ∷ [])) ≈ 1#
+bernoulli-full m n = Eq.trans (∙-cong bool-cover) PU≈1
+  where module Eq = Setoid setoid
+
+private
+  E-bernoulli-trivial : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
+                      → E[ bernoulli m n , (λ _ → 0#) ]≈ _
+  E-bernoulli-trivial m n =
+    E-of-support (true ∷ false ∷ []) bool-distinct (bernoulli-full m n) _
+
+E-bernoulli-true : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
+                 → E[ bernoulli m n , 1[ ↑ id ] ]≈ fromℚ (+ m / (m +ℕ n))
+E-bernoulli-true m n =
+  E-resp-≈ (P-bernoulli-true m n) (E-indicator (E-bernoulli-trivial m n) (↑ id))
+
+E-bernoulli-false : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
+                  → E[ bernoulli m n , 1[ ↑ not ] ]≈ fromℚ (+ n / (m +ℕ n))
+E-bernoulli-false m n =
+  E-resp-≈ (P-bernoulli-false m n) (E-indicator (E-bernoulli-trivial m n) (↑ not))

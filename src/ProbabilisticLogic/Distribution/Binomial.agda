@@ -3,10 +3,14 @@
 open import categorical-crypto.Prelude as P hiding (pure; _>>=_; _⊎_; _*_; _/_; _⊗_; isEquivalence; trans)
 
 open import Relation.Binary using (Setoid)
+open import Relation.Unary using (U; _≐_; _∩_)
 import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 
 import Data.List.NonEmpty as NE
 open import Data.Nat using (_≤_)
+open import Data.List.Relation.Unary.Any using (here)
+import Data.List.Relation.Unary.All as All
+open import Data.List.Relation.Unary.AllPairs using (AllPairs; []; _∷_)
 open import Data.Rational as ℚ using (ℚ; _/_)
 open import Data.Integer using (+_)
 
@@ -17,6 +21,7 @@ module ProbabilisticLogic.Distribution.Binomial c ℓ (a : Abstract c ℓ) where
 
 open Abstract a
 open import ProbabilisticLogic.Distribution.Bernoulli c ℓ a
+open import ProbabilisticLogic.Expectation c ℓ a
 
 private module Eq = Setoid setoid
 
@@ -145,3 +150,133 @@ P-all-false-ℚ k m n = begin
   pow (fromℚ (+ n / (m +ℕ n))) k             ≈⟨ pow-fromℚ (+ n / (m +ℕ n)) k ⟩
   fromℚ (pow-ℚ (+ n / (m +ℕ n)) k)           ∎
   where open ≈-Reasoning setoid
+
+------------------------------------------------------------------------
+-- Recursive enumeration of `Bool^ k` and its support properties.
+
+instance
+  DecEq-Bool^ : ∀ {k} → DecEq (Bool^ k)
+  DecEq-Bool^ {zero}  = DecEq-⊤
+  DecEq-Bool^ {suc k} = DecEq-× ⦃ DecEq-Bool ⦄ ⦃ DecEq-Bool^ ⦄
+
+binomial-support : (k : ℕ) → List (Bool^ k)
+binomial-support zero    = tt ∷ []
+binomial-support (suc k) = (true ∷ false ∷ []) ×ᴸ binomial-support k
+
+private
+  -- ⊤ is exhausted by [tt]; the singleton support has full mass under
+  -- the binomial-0 distribution (= pure tt).
+  ⊤-cover : (_∈ˡ (tt ∷ [])) ≐ U
+  proj₁ ⊤-cover _ = tt
+  proj₂ ⊤-cover {tt} _ = here P.refl
+
+  binomial-0-full : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
+                  → binomial 0 m n ∙ (_∈ˡ (tt ∷ [])) ≈ 1#
+  binomial-0-full m n = Eq.trans (∙-cong ⊤-cover) PU≈1
+
+binomial-support-distinct : (k : ℕ) → AllPairs _≢_ (binomial-support k)
+binomial-support-distinct zero    = All.[] ∷ []
+binomial-support-distinct (suc k) =
+  AllPairs-×ᴸ bool-distinct (binomial-support-distinct k)
+
+binomial-full : ∀ k m n ⦃ _ : NonZero (m +ℕ n) ⦄
+              → binomial k m n ∙ (_∈ˡ binomial-support k) ≈ 1#
+binomial-full zero    m n = binomial-0-full m n
+binomial-full (suc k) m n =
+  ⊗-full (true ∷ false ∷ []) (bernoulli-full m n)
+         (binomial-support k)  (binomial-full k m n)
+
+------------------------------------------------------------------------
+-- Expected value of a (one-trial) Binomial random variable.
+--
+-- For binomial 1 m n = bernoulli m n ⊗ pure tt over Bool × ⊤, the
+-- indicator of "first trial is true" has expected value m / (m + n).
+-- This reduces to the Bernoulli case via `⊗-marg₁`.
+
+E-binomial-1-first-true : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
+                        → E[ binomial 1 m n , 1[ ↑ id P.∘ proj₁ ] ]≈ fromℚ (+ m / (m +ℕ n))
+E-binomial-1-first-true m n = E-resp-≈ first-true-prob
+  (E-indicator ⦃ deceq-Ω = DecEq-Bool^ ⦄
+    (E-of-support (binomial-support 1) (binomial-support-distinct 1)
+                  (binomial-full 1 m n) (λ _ → 0#))
+    (↑ id P.∘ proj₁))
+  where
+    open ≈-Reasoning setoid
+    first-true-prob : binomial 1 m n ∙ (↑ id P.∘ proj₁) ≈ fromℚ (+ m / (m +ℕ n))
+    first-true-prob = begin
+      binomial 1 m n ∙ (↑ id P.∘ proj₁)
+        ≈⟨ ⊗-marg₁ ⟩
+      bernoulli m n ∙ (↑ id)
+        ≈⟨ P-bernoulli-true m n ⟩
+      fromℚ (+ m / (m +ℕ n)) ∎
+
+------------------------------------------------------------------------
+-- Expected count of a Binomial random variable: k * m / (m + n).
+
+-- ℕ-scaling on the additive monoid (`Algebra.Properties.Monoid.Mult`),
+-- aliased here as `_·ℕ_` to avoid clashing with `Data.Product._×_`:
+-- `k ·ℕ x = x + (k - 1) ·ℕ x = x + … + x`.
+import Algebra.Properties.Monoid.Mult as Mult
+private module +-Mult = Mult +-monoid
+
+infixr 8 _·ℕ_
+_·ℕ_ : ℕ → Probability → Probability
+_·ℕ_ = +-Mult._×_
+
+-- The count function (number of successes) lifted to Probability.
+count-as-prob : ∀ {k} → Bool^ k → Probability
+count-as-prob {zero}  _        = 0#
+count-as-prob {suc k} (b , bs) = 1[ ↑ id ] b + count-as-prob bs
+
+-- The weight-sum of count-as-prob over the binomial-support equals
+-- `k × m/(m+n)`.  This is the heart of E-binomial-count, separated out
+-- because `E-binomial-count k m n .support` doesn't reduce for symbolic k.
+ws-count-eq :
+  ∀ k m n ⦃ _ : NonZero (m +ℕ n) ⦄
+  → weight-sum (binomial k m n) count-as-prob (binomial-support k)
+  ≈ k ·ℕ (fromℚ (+ m / (m +ℕ n)))
+ws-count-eq zero    m n = weight-sum-0 (tt ∷ [])
+ws-count-eq (suc k) m n = begin
+  weight-sum (binomial (suc k) m n) count-as-prob sup
+    ≈⟨ weight-sum-+ 1[ ↑ id P.∘ proj₁ ] (count-as-prob P.∘ proj₂) sup ⟩
+  weight-sum (binomial (suc k) m n) 1[ ↑ id P.∘ proj₁ ] sup
+    + weight-sum (binomial (suc k) m n) (count-as-prob P.∘ proj₂) sup
+    ≈⟨ +-cong first-eq second-eq ⟩
+  fromℚ (+ m / (m +ℕ n)) + k ·ℕ (fromℚ (+ m / (m +ℕ n))) ∎
+  where
+    open ≈-Reasoning setoid
+
+    sup = binomial-support (suc k)
+
+    -- Indicator rule + ⊗-marg₁ + Bernoulli's mean.
+    first-eq : weight-sum (binomial (suc k) m n) 1[ ↑ id P.∘ proj₁ ] sup
+             ≈ fromℚ (+ m / (m +ℕ n))
+    first-eq = begin
+      weight-sum (binomial (suc k) m n) 1[ ↑ id P.∘ proj₁ ] sup
+        ≈⟨ weight-sum-1[X] (↑ id P.∘ proj₁) sup (binomial-support-distinct (suc k)) ⟩
+      binomial (suc k) m n ∙ ((↑ id P.∘ proj₁) ∩ (_∈ˡ sup))
+        ≈⟨ Eq.sym (mass-restrict ⦃ ∈ˡ-? ⦃ DecEq-Bool^ ⦄ ⦄ (binomial-full (suc k) m n)) ⟩
+      binomial (suc k) m n ∙ (↑ id P.∘ proj₁)
+        ≈⟨ ⊗-marg₁ ⟩
+      bernoulli m n ∙ (↑ id)
+        ≈⟨ P-bernoulli-true m n ⟩
+      fromℚ (+ m / (m +ℕ n)) ∎
+
+    -- Fubini for proj₂ + the inductive hypothesis.
+    second-eq : weight-sum (binomial (suc k) m n) (count-as-prob P.∘ proj₂) sup
+              ≈ k ·ℕ (fromℚ (+ m / (m +ℕ n)))
+    second-eq = Eq.trans
+      (weight-sum-proj₂ (true ∷ false ∷ []) bool-distinct (bernoulli-full m n)
+                        (binomial-support k) count-as-prob)
+      (ws-count-eq k m n)
+
+-- The expected count under Binomial(k, m/(m+n)) equals k × m/(m+n) — that is,
+-- m/(m+n) added to itself k times.
+E-binomial-count : ∀ k m n ⦃ _ : NonZero (m +ℕ n) ⦄
+                 → E[ binomial k m n , count-as-prob ]≈ (k ·ℕ fromℚ (+ m / (m +ℕ n)))
+E-binomial-count k m n = record
+  { support  = binomial-support k
+  ; distinct = binomial-support-distinct k
+  ; full     = binomial-full k m n
+  ; value    = Eq.sym (ws-count-eq k m n)
+  }
