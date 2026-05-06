@@ -51,6 +51,7 @@ open import Categories.APROP.Hypergraph.SoundnessProved sig public
         ; hCompose-hId-R-iso-generic
         ; hCompose-hId-R-iso-flex
         ; hCompose-hId-L-iso-generic
+        ; hCompose-hId-L-iso-flex
         ; hTensor-hEmpty-G-iso
         ; hTensor-G-hEmpty-iso )
 
@@ -84,11 +85,30 @@ postulate
 -- (`Triangle.agda`, `AlphaCommSound.agda`, `Pentagon.agda`) with at
 -- least partial constructive proofs — they are NOT re-exported here.
 
+-- ρ⇒ ∘ f⊗id ≈ f ∘ ρ⇒  (unitorʳ-commute) — constructive.
+-- Mirrors the λ-naturality proof but on the right side:
+--   LHS = hComposeP (hTensor ⟪f⟫ hEmpty) (hId (B ⊗ unit)) bdy
+--       ≅ᴴ hTensor ⟪f⟫ hEmpty           [hCompose-hId-R-iso-flex]
+--       ≅ᴴ ⟪f⟫                          [hTensor-G-hEmpty-iso]
+--   RHS = hComposeP (hId (A ⊗ unit)) ⟪f⟫ bdy'
+--       ≅ᴴ ⟪f⟫                          [hCompose-hId-L-iso-flex]
+ρ⇒∘f⊗id≈f∘ρ⇒-sound
+  : ∀ {A B} {f : HomTerm A B}
+  → ⟪ ρ⇒ {B} ∘ f ⊗₁ id {unit} ⟫ ≅ᴴ ⟪ f ∘ ρ⇒ {A} ⟫
+ρ⇒∘f⊗id≈f∘ρ⇒-sound {A}{B}{f} =
+  trans-≅ᴴ
+    (trans-≅ᴴ
+       (hCompose-hId-R-iso-flex (B ⊗₀ unit) (hTensor ⟪ f ⟫ (hId unit))
+          (trans (⟪⟫-codL (f ⊗₁ id {unit})) (sym (⟪⟫-domL (ρ⇒ {B})))))
+       (hTensor-G-hEmpty-iso ⟪ f ⟫))
+    (sym-≅ᴴ
+       (hCompose-hId-L-iso-flex (A ⊗₀ unit) ⟪ f ⟫
+          (trans (⟪⟫-domL f) (sym (++-identityʳ (flatten A))))
+          (trans (⟪⟫-codL (ρ⇒ {A})) (sym (⟪⟫-domL f)))
+          (Categories.APROP.Hypergraph.HomTermInvariant.⟪_⟫-dom-unique sig f)))
+  where import Categories.APROP.Hypergraph.HomTermInvariant
+
 postulate
-  -- ρ⇒ ∘ f⊗id ≈ f ∘ ρ⇒  (unitorʳ-commute)
-  ρ⇒∘f⊗id≈f∘ρ⇒-sound
-    : ∀ {A B} {f : HomTerm A B}
-    → ⟪ ρ⇒ {B} ∘ f ⊗₁ id {unit} ⟫ ≅ᴴ ⟪ f ∘ ρ⇒ {A} ⟫
 
   -- NOTE: `triangle-sound`, `α-comm-sound`, `pentagon-sound`, and
   -- `σ∘[f⊗g]≈[g⊗f]∘σ-sound` all live in their own modules:
