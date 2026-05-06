@@ -107,15 +107,13 @@ decode-rel (α⇐ {A} {B} {C}) =
          refl id
 
 --------------------------------------------------------------------------------
--- The two `shape` properties that were postulated as `decode-∘-shape`
--- and `decode-⊗-shape` (Layer 6 in TODO.org) become *DEFINITIONAL*
--- under `decode-rel`.
-
 -- The two `shape` properties are now DEFINITIONAL — the constructive
 -- `decode-rel` definition above means each side reduces to the same
 -- expression by Agda's β rule.  This is the central payoff of
--- refactor A: it discharges `decode-∘-shape` and `decode-⊗-shape`
--- (postulated in DecodeRoundtrip.agda) outright.
+-- refactor A: the algorithmic `decode-{∘,⊗}-shape` postulates (still
+-- present in DecodeRoundtrip.agda for the algorithmic decode chain,
+-- but no longer on the critical path to `Completeness.completeness`)
+-- have been displaced by `refl` here.
 
 decode-rel-∘-shape
   : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
