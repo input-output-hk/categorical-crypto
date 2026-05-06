@@ -6,16 +6,19 @@
 -- Final assembly: from `⟪ f ⟫ ≅ᴴ ⟪ g ⟫` derive `f ≈Term g`.  The
 -- proof routes through:
 --
---   1. ~decode-roundtrip~   (postulated in Decoder): on translated
---                            terms, ~decode ⟪ f ⟫ ≈Term bridge f~.
---   2. ~decode-resp-≅ᴴ~     (postulated in Decoder): decode preserves
---                            hypergraph iso.
---   3. ~bridge-cancel~      (constructive, here): the bridge has a
---                            two-sided inverse modulo ≈Term.
+--   1. ~decode-roundtrip-rel~  (constructive in DecodeRel modulo the
+--                                bridge-α⇒-form-⊗-⊗ /
+--                                decode-roundtrip-{Agen,σ} postulates):
+--                                ~decode-rel f ≈Term bridge f~.
+--   2. ~decode-rel-resp-≅ᴴ~    (postulated in DecodeRel): decode-rel
+--                                preserves hypergraph iso.
+--   3. ~bridge-cancel~         (constructive, here): the bridge has a
+--                                two-sided inverse modulo ≈Term.
 --
--- Step 3 is purely categorical (associativity + iso laws on
--- ~unflatten-flatten-≈~).  Steps 1 and 2 are the genuinely hard
--- postulates that close the syntactic completeness gap.
+-- Refactor A (`decode-rel`) made the algorithmic `decode-{∘,⊗}-shape`
+-- postulates (previously needed by `decode-roundtrip-{∘,⊗}`)
+-- redundant: under decode-rel both shape lemmas are `refl`, so the
+-- inductive cases compose without postulates.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -27,8 +30,10 @@ open import Categories.APROP.Hypergraph.Iso
 open import Categories.APROP.Hypergraph.FromAPROP sig using (⟪_⟫; flatten)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈)
-open import Categories.APROP.Hypergraph.Completeness.Decoder sig
-  using (decode; bridge; decode-roundtrip; decode-resp-≅ᴴ)
+open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
+  using (bridge)
+open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
+  using (decode-rel; decode-roundtrip-rel; decode-rel-resp-≅ᴴ)
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
@@ -94,5 +99,6 @@ completeness {f = f} {g = g} iso = begin
   g ∎
   where
     bf≈bg : bridge f ≈Term bridge g
-    bf≈bg = ≈-Term-trans (≈-Term-sym (decode-roundtrip f))
-              (≈-Term-trans (decode-resp-≅ᴴ f g iso) (decode-roundtrip g))
+    bf≈bg = ≈-Term-trans (≈-Term-sym (decode-roundtrip-rel f))
+              (≈-Term-trans (decode-rel-resp-≅ᴴ f g iso)
+                            (decode-roundtrip-rel g))

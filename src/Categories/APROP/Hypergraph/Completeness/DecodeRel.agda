@@ -89,28 +89,22 @@ decode-rel (σ {A = A} {B = B}) =
 decode-rel (id {A})  = id
 decode-rel (λ⇒ {A}) = id
 decode-rel (λ⇐ {A}) = id
--- ρ⇒, ρ⇐: flatten (A ⊗ unit) = flatten A ++ [], which only
--- propositionally equals `flatten A` (via `++-identityʳ`).  Wrap an
--- `id` morphism in a `subst` along that equality.
+-- ρ⇒, ρ⇐, α⇒, α⇐: flatten introduces a `++ []` or shifts the
+-- bracketing.  Wrap `id` in `subst₂` along the relevant list-equation.
+-- The `subst₂` shape (rather than plain `subst`) matches the existing
+-- `ρ⇒-coherence` / `α⇒-coherence` etc. in DecodeRoundtrip.agda, so the
+-- bridge lemma in each case is a one-liner.
 decode-rel (ρ⇒ {A}) =
-  subst (HomTerm (unflatten (flatten A ++ [])))
-        (cong unflatten (++-identityʳ (flatten A)))
-        id
+  subst₂ HomTerm refl (cong unflatten (++-identityʳ (flatten A))) id
 decode-rel (ρ⇐ {A}) =
-  subst (HomTerm (unflatten (flatten A)))
-        (cong unflatten (sym (++-identityʳ (flatten A))))
-        id
--- α⇒, α⇐: flatten ((A ⊗ B) ⊗ C) = (flatten A ++ flatten B) ++ flatten C
--- and flatten (A ⊗ (B ⊗ C)) = flatten A ++ (flatten B ++ flatten C),
--- propositionally equal via `++-assoc`.  Same `subst` trick.
+  subst₂ HomTerm (cong unflatten (++-identityʳ (flatten A))) refl id
 decode-rel (α⇒ {A} {B} {C}) =
-  subst (HomTerm (unflatten ((flatten A ++ flatten B) ++ flatten C)))
-        (cong unflatten (++-assoc (flatten A) (flatten B) (flatten C)))
-        id
+  subst₂ HomTerm refl
+         (cong unflatten (++-assoc (flatten A) (flatten B) (flatten C)))
+         id
 decode-rel (α⇐ {A} {B} {C}) =
-  subst (HomTerm (unflatten (flatten A ++ flatten B ++ flatten C)))
-        (cong unflatten (sym (++-assoc (flatten A) (flatten B) (flatten C))))
-        id
+  subst₂ HomTerm (cong unflatten (++-assoc (flatten A) (flatten B) (flatten C)))
+         refl id
 
 --------------------------------------------------------------------------------
 -- The two `shape` properties that were postulated as `decode-∘-shape`
@@ -137,64 +131,24 @@ decode-rel-⊗-shape
 decode-rel-⊗-shape f g = refl
 
 --------------------------------------------------------------------------------
--- Equivalence with the algorithmic `decode`.  We show that every
--- `decode-rel f` agrees with `decode f` (= `proj₁ (decode-attempt-Linear f)`)
--- on the nose.  This lets every property proved about `decode-rel` be
--- transported to `decode`.
+-- Roundtrip property: `decode-rel f ≈Term bridge f` for all f.
 --
--- The equivalence is by induction on `f`; each case is `refl` because
--- `decode-attempt-Linear`'s case-analysis dispatches to the same
--- `decode-attempt-h*` we mirror in `decode-rel`.
-
-postulate
-  -- The bridges below characterise the algorithmic decode's output
-  -- shape — exactly the postulates `decode-∘-shape`/`decode-⊗-shape`
-  -- (Layer 6 in TODO.org) plus the ρ/α-shape lemmas in DecodeRoundtrip.
-  -- These are the *only* obstructions to an end-to-end equivalence
-  -- between `decode-rel` and the algorithmic `decode`.
-  decode-rel-bridge-comp
-    : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
-    → decode-rel g ∘ decode-rel f ≡ decode (g ∘ f)
-  decode-rel-bridge-tens
-    : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
-    → decode-rel (f ⊗₁ g) ≡ decode (f ⊗₁ g)
-  decode-rel-bridge-ρ⇒
-    : ∀ {A} → decode-rel (ρ⇒ {A}) ≡ decode (ρ⇒ {A})
-  decode-rel-bridge-ρ⇐
-    : ∀ {A} → decode-rel (ρ⇐ {A}) ≡ decode (ρ⇐ {A})
-  decode-rel-bridge-α⇒
-    : ∀ {A B C} → decode-rel (α⇒ {A} {B} {C}) ≡ decode (α⇒ {A} {B} {C})
-  decode-rel-bridge-α⇐
-    : ∀ {A B C} → decode-rel (α⇐ {A} {B} {C}) ≡ decode (α⇐ {A} {B} {C})
-
-postulate
-  decode-rel-≡-decode
-    : ∀ {A B} (f : HomTerm A B) → decode-rel f ≡ decode f
-
---------------------------------------------------------------------------------
--- DOWNSTREAM PAYOFF: under `decode-rel`, the existing postulates
--- `decode-∘-shape` and `decode-⊗-shape` (in DecodeRoundtrip.agda) and
--- the per-case structural pieces of `decode-roundtrip-{∘,⊗}` collapse.
---
--- The proof of `decode-roundtrip-rel-∘` below uses ONLY:
---   - `DR.bridge-∘`           (already constructive in DecodeRoundtrip.agda)
---   - the IHs              (`decode-roundtrip-rel f`, `decode-roundtrip-rel g`)
--- with NO appeal to a `decode-∘-shape` postulate, because that step is
--- now `refl`.
---
--- Compare to DecodeRoundtrip.decode-roundtrip-∘ which had to first chain
--- through `decode-∘-shape` (a postulate) before applying the IHs, and
--- DecodeRoundtrip.decode-roundtrip-⊗₁ which similarly chained through
--- `decode-⊗-shape` (also a postulate).
+-- This is the analog of `DR.decode-roundtrip` for `decode-rel`.  Crucially,
+-- the `∘` and `⊗` cases use `decode-rel-{∘,⊗}-shape` (now `refl`) instead
+-- of the postulated `decode-{∘,⊗}-shape` from DecodeRoundtrip.
 
 import Categories.APROP.Hypergraph.Completeness.DecodeRoundtrip sig as DR
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
-  using (bridge)
+  using (decode; bridge)
 open import Categories.Category using (Category)
 
 private
   module FM = Category FreeMonoidal
 open FM.HomReasoning
+
+private
+  ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
+  ≡⇒≈Term refl = ≈-Term-refl
 
 decode-roundtrip-rel-∘
   : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
@@ -210,9 +164,6 @@ decode-roundtrip-rel-∘ g f IH-f IH-g = begin
     ≈⟨ DR.bridge-∘ g f ⟨
   bridge (g ∘ f)
     ∎
-  where
-    ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-    ≡⇒≈Term refl = ≈-Term-refl
 
 decode-roundtrip-rel-⊗
   : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
@@ -231,5 +182,80 @@ decode-roundtrip-rel-⊗ {A} {B} {C} {D} f g IH-f IH-g = begin
   where
     cBD-to   = _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
     cAC-from = _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
-    ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-    ≡⇒≈Term refl = ≈-Term-refl
+
+-- Per-constructor cases.  For id/λ⇒/λ⇐, decode-rel is just `id` and
+-- bridge ≈ id.  For ρ/α, decode-rel is exactly the `subst₂ HomTerm`-form
+-- that `DR.{ρ,α}-coherence` already relates to bridge.  For Agen and σ,
+-- decode-rel is propositionally equal to `decode` (the algorithmic
+-- form), so we delegate to the existing `DR.decode-roundtrip-{Agen,σ}`.
+
+decode-roundtrip-rel-id
+  : ∀ {A} → decode-rel (id {A}) ≈Term bridge (id {A})
+decode-roundtrip-rel-id {A} = ≈-Term-sym (DR.bridge-id-is-id A)
+
+decode-roundtrip-rel-λ⇒
+  : ∀ {A} → decode-rel (λ⇒ {A}) ≈Term bridge (λ⇒ {A})
+decode-roundtrip-rel-λ⇒ {A} = ≈-Term-sym (DR.bridge-λ⇒-is-id A)
+
+decode-roundtrip-rel-λ⇐
+  : ∀ {A} → decode-rel (λ⇐ {A}) ≈Term bridge (λ⇐ {A})
+decode-roundtrip-rel-λ⇐ {A} = ≈-Term-sym (DR.bridge-λ⇐-is-id A)
+
+decode-roundtrip-rel-ρ⇒
+  : ∀ {A} → decode-rel (ρ⇒ {A}) ≈Term bridge (ρ⇒ {A})
+decode-roundtrip-rel-ρ⇒ {A} = DR.ρ⇒-coherence A
+
+decode-roundtrip-rel-ρ⇐
+  : ∀ {A} → decode-rel (ρ⇐ {A}) ≈Term bridge (ρ⇐ {A})
+decode-roundtrip-rel-ρ⇐ {A} = DR.ρ⇐-coherence A
+
+decode-roundtrip-rel-α⇒
+  : ∀ {A B C} → decode-rel (α⇒ {A} {B} {C}) ≈Term bridge (α⇒ {A} {B} {C})
+decode-roundtrip-rel-α⇒ {A} {B} {C} = DR.α⇒-coherence A B C
+
+decode-roundtrip-rel-α⇐
+  : ∀ {A B C} → decode-rel (α⇐ {A} {B} {C}) ≈Term bridge (α⇐ {A} {B} {C})
+decode-roundtrip-rel-α⇐ {A} {B} {C} = DR.α⇐-coherence A B C
+
+-- For Agen and σ, decode-rel reduces to decode (propositionally `refl`),
+-- so we delegate to the existing decode-roundtrip lemmas.  Those are
+-- still postulated upstream, but the postulate count doesn't change —
+-- we're just inheriting them through a different path.
+decode-roundtrip-rel-Agen
+  : ∀ {A B} (g : mor A B) → decode-rel (Agen g) ≈Term bridge (Agen g)
+decode-roundtrip-rel-Agen g = DR.decode-roundtrip-Agen g
+
+decode-roundtrip-rel-σ
+  : ∀ {A B} ⦃ s : Symm ≤ Symm ⦄
+  → decode-rel (σ {A = A} {B = B} ⦃ s ⦄) ≈Term bridge (σ {A = A} {B = B} ⦃ s ⦄)
+decode-roundtrip-rel-σ ⦃ s ⦄ = DR.decode-roundtrip-σ ⦃ s ⦄
+
+-- The full induction.
+decode-roundtrip-rel
+  : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term bridge f
+decode-roundtrip-rel (Agen g)        = decode-roundtrip-rel-Agen g
+decode-roundtrip-rel id              = decode-roundtrip-rel-id
+decode-roundtrip-rel (g ∘ f)         =
+  decode-roundtrip-rel-∘ g f (decode-roundtrip-rel f) (decode-roundtrip-rel g)
+decode-roundtrip-rel (f ⊗₁ g)        =
+  decode-roundtrip-rel-⊗ f g (decode-roundtrip-rel f) (decode-roundtrip-rel g)
+decode-roundtrip-rel λ⇒              = decode-roundtrip-rel-λ⇒
+decode-roundtrip-rel λ⇐              = decode-roundtrip-rel-λ⇐
+decode-roundtrip-rel ρ⇒              = decode-roundtrip-rel-ρ⇒
+decode-roundtrip-rel ρ⇐              = decode-roundtrip-rel-ρ⇐
+decode-roundtrip-rel α⇒              = decode-roundtrip-rel-α⇒
+decode-roundtrip-rel α⇐              = decode-roundtrip-rel-α⇐
+decode-roundtrip-rel (σ ⦃ s ⦄)       = decode-roundtrip-rel-σ ⦃ s ⦄
+
+--------------------------------------------------------------------------------
+-- decode-rel preserves hypergraph iso.  Analog of the postulated
+-- `decode-resp-≅ᴴ` in Decoder.agda — replacement, not addition.
+-- Used by `Completeness.completeness` together with `decode-roundtrip-rel`.
+
+open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
+
+postulate
+  decode-rel-resp-≅ᴴ
+    : ∀ {A B} (f g : HomTerm A B)
+    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+    → decode-rel f ≈Term decode-rel g
