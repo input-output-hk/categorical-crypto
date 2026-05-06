@@ -901,6 +901,7 @@ private
 
 -- Pentagon-rewrite: solves pentagon for `α⇒_{X⊗Y, Z, W}`.  Used by
 -- the cons case of `c-iso-assoc-from` to expand the outer α⇒.
+-- Discharged by `solveM` via `CoherenceSolver.4-objs` (refactor C).
 pentagon-rewrite
   : ∀ {X Y Z W}
   → α⇒ {X ⊗₀ Y} {Z} {W}
@@ -908,16 +909,9 @@ pentagon-rewrite
         ∘ id {X} ⊗₁ α⇒ {Y} {Z} {W}
         ∘ α⇒ {X} {Y ⊗₀ Z} {W}
         ∘ α⇒ {X} {Y} {Z} ⊗₁ id {W}
-pentagon-rewrite = begin
-  α⇒
-    ≈⟨ ≈-Term-sym idˡ ⟩
-  id ∘ α⇒
-    ≈⟨ ≈-Term-sym α⇐∘α⇒≈id ⟩∘⟨refl ⟩
-  (α⇐ ∘ α⇒) ∘ α⇒
-    ≈⟨ FM.assoc ⟩
-  α⇐ ∘ α⇒ ∘ α⇒
-    ≈⟨ refl⟩∘⟨ ≈-Term-sym pentagon ⟩
-  α⇐ ∘ (id ⊗₁ α⇒ ∘ α⇒ ∘ α⇒ ⊗₁ id) ∎
+pentagon-rewrite {X} {Y} {Z} {W} = lemma
+  where open import Categories.APROP.Hypergraph.Completeness.CoherenceSolver sig
+        open 4-objs X Y Z W renaming (pentagon-rewrite to lemma)
 
 -- id-⊗-subst-bridge: relates `id_{Var x} ⊗ (subst-id along e)` to a
 -- subst-id at the wrapped predicate.  Used by the cons case to handle
