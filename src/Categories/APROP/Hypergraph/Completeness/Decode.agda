@@ -107,7 +107,7 @@ extract-exact ks xs with extract-prefix ks xs
 --------------------------------------------------------------------------------
 -- Open H once at the module level for the cospan algorithm.
 
-module _ {As Bs : List X} (H : Hypergraph FlatGen As Bs) where
+module _ (H : Hypergraph FlatGen) where
 
   private
     module H = Hypergraph H
@@ -200,20 +200,17 @@ module _ {As Bs : List X} (H : Hypergraph FlatGen As Bs) where
   -- then attempt to bridge the final stack to `H.cod` via a final
   -- permute.
 
+  -- With the de-indexed Hypergraph, `decode-attempt` returns at the
+  -- *computed* boundary type (`unflatten (domL H)` to `unflatten (codL H)`)
+  -- — no `subst₂ HomTerm` boundary wrap is needed, because there's no
+  -- index-level boundary equation to bridge across.
   decode-attempt
-    : Maybe (HomTerm (unflatten As) (unflatten Bs))
+    : Maybe (HomTerm (unflatten (domL H)) (unflatten (codL H)))
   decode-attempt with process-all-edges H.dom
   ... | (s_final , process-term) with extract-exact H.cod s_final
   ...    | nothing   = nothing
-  ...    | just perm = just bridged
+  ...    | just perm = just (final-permute ∘ process-term)
     where
       final-permute : HomTerm (unflatten (map H.vlab s_final))
                               (unflatten (map H.vlab H.cod))
       final-permute = permute-via-vlab H.vlab perm
-
-      -- Bridge the boundary lists via dom-ok / cod-ok.
-      bridged : HomTerm (unflatten As) (unflatten Bs)
-      bridged = subst₂ HomTerm
-                  (cong unflatten H.dom-ok)
-                  (cong unflatten H.cod-ok)
-                  (final-permute ∘ process-term)

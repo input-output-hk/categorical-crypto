@@ -32,7 +32,7 @@ module Categories.APROP.Hypergraph.Completeness.Linearity (sig : APROPSignature)
 open APROP sig
 open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using ( FlatGen; flatten; range; ⟪_⟫
+  using ( FlatGen; flatten; range; ⟪_⟫; ⟪⟫-domL; ⟪⟫-codL
         ; hEmpty; hVar; hId; hGen; hSwap; hTensor; hCompose
         ; module hTensor-impl; module hCompose-impl)
 
@@ -201,20 +201,18 @@ private
 --------------------------------------------------------------------------------
 -- Production / consumption lists of a hypergraph.
 
-producedList : ∀ {As Bs} (H : Hypergraph FlatGen As Bs)
-             → List (Fin (Hypergraph.nV H))
+producedList : (H : Hypergraph FlatGen) → List (Fin (Hypergraph.nV H))
 producedList H =
   Hypergraph.dom H ++ concat (tabulate (Hypergraph.eout H))
 
-consumedList : ∀ {As Bs} (H : Hypergraph FlatGen As Bs)
-             → List (Fin (Hypergraph.nV H))
+consumedList : (H : Hypergraph FlatGen) → List (Fin (Hypergraph.nV H))
 consumedList H =
   Hypergraph.cod H ++ concat (tabulate (Hypergraph.ein H))
 
 --------------------------------------------------------------------------------
 -- Linearity: matching production / consumption counts, each ≤ 1.
 
-Linear : ∀ {As Bs} → Hypergraph FlatGen As Bs → Set
+Linear : Hypergraph FlatGen → Set
 Linear H = (∀ v → count v (producedList H) ≡ count v (consumedList H))
          × (∀ v → count v (producedList H) Nat.≤ 1)
 
@@ -232,8 +230,7 @@ Linear H = (∀ v → count v (producedList H) ≡ count v (consumedList H))
 -- `Linear K`, and the bound transfers.
 
 Linear-hTensor
-  : ∀ {As Bs Cs Ds}
-  → (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Cs Ds)
+  : (G K : Hypergraph FlatGen)
   → Linear G → Linear K
   → Linear (hTensor G K)
 Linear-hTensor G K (G-bal , G-bnd) (K-bal , K-bnd) = balance , bound
@@ -523,16 +520,15 @@ private
 -- remap K.eb)` exactly.
 
 Linear-hCompose
-  : ∀ {As Bs Cs}
-  → (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs)
+  : (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
   → Linear G → Linear K
-  → Linear (hCompose G K)
-Linear-hCompose {Bs = Bs} G K (G-bal , G-bnd) (K-bal , K-bnd) =
+  → Linear (hCompose G K bdy-eq)
+Linear-hCompose G K bdy-eq (G-bal , G-bnd) (K-bal , K-bnd) =
   balance , bound
   where
     module G = Hypergraph G
     module K = Hypergraph K
-    open hCompose-impl G K
+    open hCompose-impl G K bdy-eq
 
     G-eb    = concat (tabulate G.eout)
     G-ein-b = concat (tabulate G.ein)
@@ -607,15 +603,14 @@ Linear-hCompose {Bs = Bs} G K (G-bal , G-bnd) (K-bal , K-bnd) =
     remap-noDom = private-remap-noDom K.dom G.cod
 
     --------------------------------------------------------------------
-    -- `length K.dom ≡ length G.cod` from the boundary annotations
-    -- (`K.dom-ok`/`G.cod-ok` both witness `Bs`).
+    -- `length K.dom ≡ length G.cod` from the runtime boundary equation
+    -- `bdy-eq : codL G ≡ domL K` (= `map G.vlab G.cod ≡ map K.vlab K.dom`).
 
     length-K-dom : length K.dom ≡ length G.cod
     length-K-dom =
       trans (sym (length-map K.vlab K.dom))
-      (trans (cong length K.dom-ok)
-      (trans (cong length (sym G.cod-ok))
-             (length-map G.vlab G.cod)))
+      (trans (cong length (sym bdy-eq))
+             (length-map G.vlab G.cod))
 
     --------------------------------------------------------------------
     -- Lemma X: `map remap K.dom ≡ map injL G.cod`.
@@ -768,13 +763,13 @@ Linear-hCompose {Bs = Bs} G K (G-bal , G-bnd) (K-bal , K-bnd) =
       count-map-resp remap (K.dom ++ K-eb) (K.cod ++ K-ein-b) K-bal v
 
     --------------------------------------------------------------------
-    -- `count v producedList (hCompose G K)` decomposed into G-side and
+    -- `count v producedList (hCompose G K bdy-eq)` decomposed into G-side and
     -- K-side contributions, both labeled by the appropriate map (injL
     -- or remap).
 
     count-prod
       : ∀ v
-      → count v (producedList (hCompose G K))
+      → count v (producedList (hCompose G K bdy-eq))
       ≡ count v (map injL G.dom)
       + count v (map injL G-eb)
       + count v (map remap K-eb)
@@ -788,7 +783,7 @@ Linear-hCompose {Bs = Bs} G K (G-bal , G-bnd) (K-bal , K-bnd) =
 
     count-cons
       : ∀ v
-      → count v (consumedList (hCompose G K))
+      → count v (consumedList (hCompose G K bdy-eq))
       ≡ count v (map remap K.cod)
       + count v (map injL G-ein-b)
       + count v (map remap K-ein-b)
@@ -838,8 +833,8 @@ Linear-hCompose {Bs = Bs} G K (G-bal , G-bnd) (K-bal , K-bnd) =
     --------------------------------------------------------------------
     -- Balance: combining all the pieces.
 
-    balance : ∀ v → count v (producedList (hCompose G K))
-                  ≡ count v (consumedList (hCompose G K))
+    balance : ∀ v → count v (producedList (hCompose G K bdy-eq))
+                  ≡ count v (consumedList (hCompose G K bdy-eq))
     balance v =
       trans (count-prod v)
       (trans (cong (Nat._+ γ) (αβ≡εη v))
@@ -881,7 +876,7 @@ Linear-hCompose {Bs = Bs} G K (G-bal , G-bnd) (K-bal , K-bnd) =
       trans (cong (count (injR j)) map-remap-eb)
             (count-map-↑ʳ G.nV j K-eb)
 
-    bound : ∀ v → count v (producedList (hCompose G K)) Nat.≤ 1
+    bound : ∀ v → count v (producedList (hCompose G K bdy-eq)) Nat.≤ 1
     bound v with splitAt G.nV v in eq
     ... | inj₁ i with splitAt⁻¹-↑ˡ {n = K.nV} eq
     ...           | refl =
@@ -983,42 +978,29 @@ Linear-hId (A ⊗₀ B)   = Linear-hTensor (hId A) (hId B)
                           (Linear-hId A) (Linear-hId B)
 
 --------------------------------------------------------------------------------
--- Closure under `subst₂` on the hypergraph (used for ρ/α coherence
--- cases of `⟪ _ ⟫`).  By refl-refl pattern match, the wrapping subst₂
--- is the identity.
-
-Linear-subst₂
-  : ∀ {As Bs As' Bs' : List X}
-      (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
-      (H : Hypergraph FlatGen As Bs)
-  → Linear H → Linear (subst₂ (Hypergraph FlatGen) eq₁ eq₂ H)
-Linear-subst₂ refl refl _ p = p
-
---------------------------------------------------------------------------------
 -- The translation `⟪ f ⟫` is Linear.
+--
+-- With the de-indexed Hypergraph, ρ/α/λ cases all unfold directly to
+-- `Linear-hId` (no `subst₂` boundary transport needed): the boundary
+-- equations live in `⟪⟫-domL`/`⟪⟫-codL` separately rather than being
+-- woven into the type.
 
 ⟪⟫-Linear : ∀ {A B} (f : HomTerm A B) → Linear ⟪ f ⟫
-⟪⟫-Linear (Agen g)  = Linear-hGen g
-⟪⟫-Linear (id {A})  = Linear-hId A
-⟪⟫-Linear (g ∘ f)   =
-  Linear-hCompose ⟪ f ⟫ ⟪ g ⟫ (⟪⟫-Linear f) (⟪⟫-Linear g)
-⟪⟫-Linear (f ⊗₁ g)  =
+⟪⟫-Linear (Agen g)        = Linear-hGen g
+⟪⟫-Linear (id {A})        = Linear-hId A
+⟪⟫-Linear (g ∘ f)         =
+  Linear-hCompose ⟪ f ⟫ ⟪ g ⟫
+    (trans (⟪⟫-codL f) (sym (⟪⟫-domL g)))
+    (⟪⟫-Linear f) (⟪⟫-Linear g)
+⟪⟫-Linear (f ⊗₁ g)        =
   Linear-hTensor ⟪ f ⟫ ⟪ g ⟫ (⟪⟫-Linear f) (⟪⟫-Linear g)
-⟪⟫-Linear (λ⇒ {A})  = Linear-hId A
-⟪⟫-Linear (λ⇐ {A})  = Linear-hId A
-⟪⟫-Linear (ρ⇒ {A})  =
-  Linear-subst₂ refl (++-identityʳ (flatten A))
-    (hId (A ⊗₀ unit)) (Linear-hId (A ⊗₀ unit))
-⟪⟫-Linear (ρ⇐ {A})  =
-  Linear-subst₂ (++-identityʳ (flatten A)) refl
-    (hId (A ⊗₀ unit)) (Linear-hId (A ⊗₀ unit))
-⟪⟫-Linear (α⇒ {A} {B} {C}) =
-  Linear-subst₂ refl (++-assoc (flatten A) (flatten B) (flatten C))
-    (hId ((A ⊗₀ B) ⊗₀ C)) (Linear-hId ((A ⊗₀ B) ⊗₀ C))
-⟪⟫-Linear (α⇐ {A} {B} {C}) =
-  Linear-subst₂ (++-assoc (flatten A) (flatten B) (flatten C)) refl
-    (hId ((A ⊗₀ B) ⊗₀ C)) (Linear-hId ((A ⊗₀ B) ⊗₀ C))
-⟪⟫-Linear (σ {A} {B}) = Linear-hSwap A B
+⟪⟫-Linear (λ⇒ {A})        = Linear-hId A
+⟪⟫-Linear (λ⇐ {A})        = Linear-hId A
+⟪⟫-Linear (ρ⇒ {A})        = Linear-hId (A ⊗₀ unit)
+⟪⟫-Linear (ρ⇐ {A})        = Linear-hId (A ⊗₀ unit)
+⟪⟫-Linear (α⇒ {A}{B}{C})  = Linear-hId ((A ⊗₀ B) ⊗₀ C)
+⟪⟫-Linear (α⇐ {A}{B}{C})  = Linear-hId ((A ⊗₀ B) ⊗₀ C)
+⟪⟫-Linear (σ {A}{B})      = Linear-hSwap A B
 
 --------------------------------------------------------------------------------
 -- Helpers for `decode-attempt-hCompose`'s K-side machinery.
@@ -1037,11 +1019,11 @@ Linear-subst₂ refl refl _ p = p
 -- map-remap-K-dom + G-cod-bnd).
 
 module hCompose-Linear-utils
-  {As Bs Cs} (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs)
+  (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
   (lin-G : Linear G) (lin-K : Linear K)
   where
 
-  open hCompose-impl G K public
+  open hCompose-impl G K bdy-eq public
   private
     module G = Hypergraph G
     module K = Hypergraph K
@@ -1069,13 +1051,12 @@ module hCompose-Linear-utils
                    (Nat.≤-reflexive (sym (count-++ v G.cod G-ein-b))))
       (Nat.≤-trans (Nat.≤-reflexive (sym (G-bal v))) (G-bnd v))
 
-  -- length K.dom ≡ length G.cod (boundary `Bs` matches).
+  -- length K.dom ≡ length G.cod (boundary equation).
   length-K-dom : length K.dom ≡ length G.cod
   length-K-dom =
     trans (sym (length-map K.vlab K.dom))
-    (trans (cong length K.dom-ok)
-    (trans (cong length (sym G.cod-ok))
-           (length-map G.vlab G.cod)))
+    (trans (cong length (sym bdy-eq))
+           (length-map G.vlab G.cod))
 
   -- For k ∉ K.dom, `remap k ≡ injR k`.
   private

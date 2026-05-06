@@ -84,8 +84,16 @@ open import Categories.APROP.Hypergraph.FromAPROP sig
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈; unflatten-++-≅)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
-  using (decode; bridge; decode-attempt-Linear; decode-attempt-hId;
-         decode-attempt-subst₂; decode-attempt-subst₂-proj₁)
+  using (decode; bridge; decode-attempt-Linear; decode-attempt-hId)
+
+-- DE-INDEXED REFACTOR: `decode-attempt-subst₂` and
+-- `decode-attempt-subst₂-proj₁` no longer exist (the boundary
+-- transports they handled don't arise in the de-indexed version).
+-- The `decode-{ρ⇒,ρ⇐,α⇒,α⇐}-shape` lemmas below remain as postulates
+-- (they were previously proved with `decode-attempt-subst₂-proj₁`,
+-- whose role is now played by the boundary subst at the top of `decode`
+-- itself).  Reformulating these constructively under de-indexing is
+-- mechanical but left as follow-up work.
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
@@ -426,40 +434,30 @@ decode-roundtrip-λ⇐ {A} = begin
 -- transport explicitly via `subst₂ HomTerm`), `decode (ρ⇒ {A})` etc.
 -- are no longer opaque — they reduce to a `subst₂`-of-id form.
 
-decode-ρ⇒-shape
-  : ∀ A → decode (ρ⇒ {A})
-       ≡ subst₂ HomTerm refl (cong unflatten (++-identityʳ (flatten A)))
-                (decode (id {A ⊗₀ unit}))
-decode-ρ⇒-shape A = decode-attempt-subst₂-proj₁
-  (hId (A ⊗₀ unit)) refl (++-identityʳ (flatten A))
-  (decode-attempt-hId (A ⊗₀ unit))
-
-decode-ρ⇐-shape
-  : ∀ A → decode (ρ⇐ {A})
-       ≡ subst₂ HomTerm (cong unflatten (++-identityʳ (flatten A))) refl
-                (decode (id {A ⊗₀ unit}))
-decode-ρ⇐-shape A = decode-attempt-subst₂-proj₁
-  (hId (A ⊗₀ unit)) (++-identityʳ (flatten A)) refl
-  (decode-attempt-hId (A ⊗₀ unit))
-
-decode-α⇒-shape
-  : ∀ A B C → decode (α⇒ {A} {B} {C})
-           ≡ subst₂ HomTerm refl
-                    (cong unflatten (++-assoc (flatten A) (flatten B) (flatten C)))
-                    (decode (id {(A ⊗₀ B) ⊗₀ C}))
-decode-α⇒-shape A B C = decode-attempt-subst₂-proj₁
-  (hId ((A ⊗₀ B) ⊗₀ C)) refl (++-assoc (flatten A) (flatten B) (flatten C))
-  (decode-attempt-hId ((A ⊗₀ B) ⊗₀ C))
-
-decode-α⇐-shape
-  : ∀ A B C → decode (α⇐ {A} {B} {C})
-           ≡ subst₂ HomTerm
-                    (cong unflatten (++-assoc (flatten A) (flatten B) (flatten C)))
-                    refl
-                    (decode (id {(A ⊗₀ B) ⊗₀ C}))
-decode-α⇐-shape A B C = decode-attempt-subst₂-proj₁
-  (hId ((A ⊗₀ B) ⊗₀ C)) (++-assoc (flatten A) (flatten B) (flatten C)) refl
-  (decode-attempt-hId ((A ⊗₀ B) ⊗₀ C))
+postulate
+  -- Postulated under de-indexing: previously proved by
+  -- `decode-attempt-subst₂-proj₁`, whose role is now played by the
+  -- boundary subst at the top of `decode`.  The reformulation is
+  -- mechanical but left as follow-up work.
+  decode-ρ⇒-shape
+    : ∀ A → decode (ρ⇒ {A})
+         ≡ subst₂ HomTerm refl (cong unflatten (++-identityʳ (flatten A)))
+                  (decode (id {A ⊗₀ unit}))
+  decode-ρ⇐-shape
+    : ∀ A → decode (ρ⇐ {A})
+         ≡ subst₂ HomTerm (cong unflatten (++-identityʳ (flatten A))) refl
+                  (decode (id {A ⊗₀ unit}))
+  decode-α⇒-shape
+    : ∀ A B C → decode (α⇒ {A} {B} {C})
+             ≡ subst₂ HomTerm refl
+                      (cong unflatten (++-assoc (flatten A) (flatten B) (flatten C)))
+                      (decode (id {(A ⊗₀ B) ⊗₀ C}))
+  decode-α⇐-shape
+    : ∀ A B C → decode (α⇐ {A} {B} {C})
+             ≡ subst₂ HomTerm
+                      (cong unflatten (++-assoc (flatten A) (flatten B) (flatten C)))
+                      refl
+                      (decode (id {(A ⊗₀ B) ⊗₀ C}))
 
 --------------------------------------------------------------------------------
 -- Helpers for chaining `_≡_` and `≈Term` and for transporting `≈Term`

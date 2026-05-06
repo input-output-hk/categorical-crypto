@@ -45,7 +45,7 @@ module Categories.APROP.Hypergraph.Completeness.DecodeAttempt (sig : APROPSignat
 open APROP sig
 open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using (FlatGen; flatten; ⟪_⟫; range;
+  using (FlatGen; flatten; ⟪_⟫; ⟪⟫-domL; ⟪⟫-codL; range;
          hEmpty; hVar; hId; hGen; hSwap; hTensor; hCompose;
          module hTensor-impl; module hCompose-impl)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
@@ -105,7 +105,7 @@ decode-attempt-hVar x = _ , refl
 -- but can't reason about *why*.
 
 decode-attempt-perm-from-just
-  : ∀ {As Bs} (H : Hypergraph FlatGen As Bs)
+  : (H : Hypergraph FlatGen)
   → ∃[ tH ] decode-attempt H ≡ just tH
   → ∃[ s_final ] ∃[ t' ]
        (process-all-edges H (Hypergraph.dom H) ≡ (s_final , t'))
@@ -127,7 +127,7 @@ decode-attempt-perm-from-just H (tH , eq)
 -- liftings).
 
 process-edges-++-stack
-  : ∀ {As Bs} (H : Hypergraph FlatGen As Bs)
+  : (H : Hypergraph FlatGen)
       (xs ys : List (Fin (Hypergraph.nE H)))
       (s : List (Fin (Hypergraph.nV H)))
   → proj₁ (process-edges H (xs ++ ys) s)
@@ -147,10 +147,7 @@ process-edges-++-stack H (e ∷ xs) ys s
 -- + map-++` shape to the desired form via a single `subst` over an
 -- equational-reasoning chain.
 
-module _
-  {As Bs Cs Ds : List X}
-  (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Cs Ds)
-  where
+module _ (G K : Hypergraph FlatGen) where
   private
     module G = Hypergraph G
     module K = Hypergraph K
@@ -574,8 +571,8 @@ module _
 --     Linear K).
 
 module _
-  {As Bs Cs : List X}
-  (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs)
+  (G K : Hypergraph FlatGen)
+  (bdy-eq : codL G ≡ domL K)
   (lin-G : Lin.Linear G) (lin-K : Lin.Linear K)
   where
   private
@@ -584,7 +581,7 @@ module _
   -- Brings into scope: injL, injR, remap, ein-c, eout-c, vlab-c,
   -- ein-c-inj₁-red, eout-c-inj₁-red, ein-c-inj₂-red, eout-c-inj₂-red,
   -- and helpers map-remap-K-dom, remap-noDom, remap-injective.
-  open Lin.hCompose-Linear-utils G K lin-G lin-K
+  open Lin.hCompose-Linear-utils G K bdy-eq lin-G lin-K
 
   --------------------------------------------------------------------
   -- G-side: per-edge lifting on a pure-L stack `map injL xs`.
@@ -594,10 +591,10 @@ module _
         (rest : List (Fin G.nV)) (p : xs Perm.↭ G.ein eG ++ rest)
     → extract-prefix (G.ein eG) xs ≡ just (rest , p)
     → ∃[ t ]
-         edge-step (hCompose G K) (map (_↑ˡ K.nV) xs) (eG ↑ˡ K.nE)
+         edge-step (hCompose G K bdy-eq) (map (_↑ˡ K.nV) xs) (eG ↑ˡ K.nE)
          ≡ (map (_↑ˡ K.nV) (G.eout eG ++ rest) , t)
   edge-step-↑ˡ-pure-L-just eG xs rest p eq =
-      subst (λ s → ∃[ t ] edge-step (hCompose G K) stack (eG ↑ˡ K.nE)
+      subst (λ s → ∃[ t ] edge-step (hCompose G K bdy-eq) stack (eG ↑ˡ K.nE)
                             ≡ (s , t))
             list-eq
             reduce-result
@@ -607,7 +604,7 @@ module _
 
       eq-on-ein-c
         : ∃[ q ] extract-prefix
-                   (Hypergraph.ein (hCompose G K) (eG ↑ˡ K.nE)) stack
+                   (Hypergraph.ein (hCompose G K bdy-eq) (eG ↑ˡ K.nE)) stack
                  ≡ just (map (_↑ˡ K.nV) rest , q)
       eq-on-ein-c =
         subst (λ ks → ∃[ q ] extract-prefix ks stack
@@ -617,16 +614,16 @@ module _
                                                   (G.ein eG) xs rest p eq)
 
       reduce-result
-        : ∃[ t ] edge-step (hCompose G K) stack (eG ↑ˡ K.nE)
-                  ≡ (Hypergraph.eout (hCompose G K) (eG ↑ˡ K.nE)
+        : ∃[ t ] edge-step (hCompose G K bdy-eq) stack (eG ↑ˡ K.nE)
+                  ≡ (Hypergraph.eout (hCompose G K bdy-eq) (eG ↑ˡ K.nE)
                        ++ map (_↑ˡ K.nV) rest , t)
       reduce-result rewrite proj₂ eq-on-ein-c = _ , refl
 
-      list-eq : Hypergraph.eout (hCompose G K) (eG ↑ˡ K.nE)
+      list-eq : Hypergraph.eout (hCompose G K bdy-eq) (eG ↑ˡ K.nE)
                   ++ map (_↑ˡ K.nV) rest
               ≡ map (_↑ˡ K.nV) (G.eout eG ++ rest)
       list-eq = begin
-        Hypergraph.eout (hCompose G K) (eG ↑ˡ K.nE)
+        Hypergraph.eout (hCompose G K bdy-eq) (eG ↑ˡ K.nE)
           ++ map (_↑ˡ K.nV) rest
           ≡⟨ cong (_++ map (_↑ˡ K.nV) rest) (eout-c-inj₁-red eG) ⟩
         map (_↑ˡ K.nV) (G.eout eG) ++ map (_↑ˡ K.nV) rest
@@ -638,14 +635,14 @@ module _
     : ∀ (eG : Fin G.nE) (xs : List (Fin G.nV))
     → extract-prefix (G.ein eG) xs ≡ nothing
     → ∃[ t ]
-         edge-step (hCompose G K) (map (_↑ˡ K.nV) xs) (eG ↑ˡ K.nE)
+         edge-step (hCompose G K bdy-eq) (map (_↑ˡ K.nV) xs) (eG ↑ˡ K.nE)
          ≡ (map (_↑ˡ K.nV) xs , t)
   edge-step-↑ˡ-pure-L-nothing eG xs eq = aux nothing-lifted
     where
       stack = map (_↑ˡ K.nV) xs
 
       nothing-lifted : extract-prefix
-                         (Hypergraph.ein (hCompose G K) (eG ↑ˡ K.nE))
+                         (Hypergraph.ein (hCompose G K bdy-eq) (eG ↑ˡ K.nE))
                          stack ≡ nothing
       nothing-lifted =
         subst (λ ks → extract-prefix ks stack ≡ nothing)
@@ -654,15 +651,15 @@ module _
                                                      (inject+-inj K.nV)
                                                      (G.ein eG) xs eq)
 
-      aux : extract-prefix (Hypergraph.ein (hCompose G K) (eG ↑ˡ K.nE)) stack
+      aux : extract-prefix (Hypergraph.ein (hCompose G K bdy-eq) (eG ↑ˡ K.nE)) stack
               ≡ nothing
-          → ∃[ t ] edge-step (hCompose G K) stack (eG ↑ˡ K.nE) ≡ (stack , t)
+          → ∃[ t ] edge-step (hCompose G K bdy-eq) stack (eG ↑ˡ K.nE) ≡ (stack , t)
       aux p rewrite p = _ , refl
 
   edge-step-↑ˡ-pure-L
     : ∀ (eG : Fin G.nE) (xs : List (Fin G.nV))
     → ∃[ t ]
-         edge-step (hCompose G K) (map (_↑ˡ K.nV) xs) (eG ↑ˡ K.nE)
+         edge-step (hCompose G K bdy-eq) (map (_↑ˡ K.nV) xs) (eG ↑ˡ K.nE)
          ≡ (map (_↑ˡ K.nV) (proj₁ (edge-step G xs eG)) , t)
   edge-step-↑ˡ-pure-L eG xs
       with extract-prefix (G.ein eG) xs in eq
@@ -672,7 +669,7 @@ module _
   process-edges-↑ˡ-pure-L
     : ∀ (es : List (Fin G.nE)) (xs : List (Fin G.nV))
     → ∃[ t ]
-         process-edges (hCompose G K) (map (_↑ˡ K.nE) es) (map (_↑ˡ K.nV) xs)
+         process-edges (hCompose G K bdy-eq) (map (_↑ˡ K.nE) es) (map (_↑ˡ K.nV) xs)
          ≡ (map (_↑ˡ K.nV) (proj₁ (process-edges G es xs)) , t)
   process-edges-↑ˡ-pure-L []       xs = _ , refl
   process-edges-↑ˡ-pure-L (e ∷ es) xs
@@ -693,7 +690,7 @@ module _
         (ys : List (Fin K.nV))
     → s Perm.↭ map remap ys
     → ∃[ s' ] ∃[ t ]
-         (edge-step (hCompose G K) s (G.nE ↑ʳ eK) ≡ (s' , t))
+         (edge-step (hCompose G K bdy-eq) s (G.nE ↑ʳ eK) ≡ (s' , t))
        × (s' Perm.↭ map remap (proj₁ (edge-step K ys eK)))
   edge-step-↑ʳ-via-remap eK s ys s↭std
       with extract-prefix (K.ein eK) ys in eq-K
@@ -730,7 +727,7 @@ module _
 
       extract-on-ein-c
         : ∃[ q ] extract-prefix
-                   (Hypergraph.ein (hCompose G K) (G.nE ↑ʳ eK)) s
+                   (Hypergraph.ein (hCompose G K bdy-eq) (G.nE ↑ʳ eK)) s
                  ≡ just (r , q)
       extract-on-ein-c =
         subst (λ ks → ∃[ q ] extract-prefix ks s ≡ just (r , q))
@@ -739,14 +736,14 @@ module _
                proj₁ (proj₂ (proj₂ extract-step)))
 
       reduce-result
-        : ∃[ t ] edge-step (hCompose G K) s (G.nE ↑ʳ eK)
-                  ≡ (Hypergraph.eout (hCompose G K) (G.nE ↑ʳ eK) ++ r , t)
+        : ∃[ t ] edge-step (hCompose G K bdy-eq) s (G.nE ↑ʳ eK)
+                  ≡ (Hypergraph.eout (hCompose G K bdy-eq) (G.nE ↑ʳ eK) ++ r , t)
       reduce-result rewrite proj₂ extract-on-ein-c = _ , refl
 
       edge-step-eq
-        : ∃[ t ] edge-step (hCompose G K) s (G.nE ↑ʳ eK) ≡ (R-out ++ r , t)
+        : ∃[ t ] edge-step (hCompose G K bdy-eq) s (G.nE ↑ʳ eK) ≡ (R-out ++ r , t)
       edge-step-eq =
-        subst (λ ks → ∃[ t ] edge-step (hCompose G K) s (G.nE ↑ʳ eK)
+        subst (λ ks → ∃[ t ] edge-step (hCompose G K bdy-eq) s (G.nE ↑ʳ eK)
                               ≡ (ks ++ r , t))
               (eout-c-inj₂-red eK)
               reduce-result
@@ -777,19 +774,19 @@ module _
 
       nothing-on-ein-c
         : extract-prefix
-            (Hypergraph.ein (hCompose G K) (G.nE ↑ʳ eK)) s ≡ nothing
+            (Hypergraph.ein (hCompose G K bdy-eq) (G.nE ↑ʳ eK)) s ≡ nothing
       nothing-on-ein-c =
         subst (λ ks → extract-prefix ks s ≡ nothing)
               (sym (ein-c-inj₂-red eK))
               nothing-on-s
 
       reduce-to-id
-        : ∃[ t ] edge-step (hCompose G K) s (G.nE ↑ʳ eK) ≡ (s , t)
+        : ∃[ t ] edge-step (hCompose G K bdy-eq) s (G.nE ↑ʳ eK) ≡ (s , t)
       reduce-to-id rewrite nothing-on-ein-c = _ , refl
 
       nothing-result
         : ∃[ s' ] ∃[ t ]
-             (edge-step (hCompose G K) s (G.nE ↑ʳ eK) ≡ (s' , t))
+             (edge-step (hCompose G K bdy-eq) s (G.nE ↑ʳ eK) ≡ (s' , t))
            × (s' Perm.↭ map remap ys)
       nothing-result = s , proj₁ reduce-to-id , proj₂ reduce-to-id , s↭std
 
@@ -799,7 +796,7 @@ module _
         (ys : List (Fin K.nV))
     → s Perm.↭ map remap ys
     → ∃[ s' ] ∃[ t ]
-         (process-edges (hCompose G K) (map (G.nE ↑ʳ_) es) s ≡ (s' , t))
+         (process-edges (hCompose G K bdy-eq) (map (G.nE ↑ʳ_) es) s ≡ (s' , t))
        × (s' Perm.↭ map remap (proj₁ (process-edges K es ys)))
   process-edges-↑ʳ-via-remap []       s ys s↭std =
     s , _ , refl , s↭std
@@ -820,8 +817,7 @@ module _
 
 decode-attempt-hSwap
   : ∀ (A B : ObjTerm)
-  → Σ[ t ∈ HomTerm (unflatten (flatten A ++ flatten B))
-                   (unflatten (flatten B ++ flatten A)) ]
+  → Σ[ t ∈ HomTerm (unflatten (domL (hSwap A B))) (unflatten (codL (hSwap A B))) ]
       decode-attempt (hSwap A B) ≡ just t
 decode-attempt-hSwap A B
     with extract-prefix-from-↭
@@ -847,7 +843,7 @@ decode-attempt-hSwap A B
 
 decode-attempt-hGen
   : ∀ {A B : ObjTerm} (g : mor A B)
-  → Σ[ t ∈ HomTerm (unflatten (flatten A)) (unflatten (flatten B)) ]
+  → Σ[ t ∈ HomTerm (unflatten (domL (hGen g))) (unflatten (codL (hGen g))) ]
       decode-attempt (hGen g) ≡ just t
 decode-attempt-hGen {A} {B} g
     with extract-prefix-self
@@ -887,11 +883,11 @@ decode-attempt-hGen {A} {B} g
 -- This is what we feed at the end of `decode-attempt-hTensor`.
 
 decode-attempt-from-perm
-  : ∀ {As Bs} (H : Hypergraph FlatGen As Bs)
+  : (H : Hypergraph FlatGen)
   → ∃[ s_final ] ∃[ t' ]
        (process-all-edges H (Hypergraph.dom H) ≡ (s_final , t'))
      × (s_final Perm.↭ Hypergraph.cod H)
-  → Σ[ t ∈ HomTerm (unflatten As) (unflatten Bs) ]
+  → Σ[ t ∈ HomTerm (unflatten (domL H)) (unflatten (codL H)) ]
       decode-attempt H ≡ just t
 decode-attempt-from-perm H (s_final , t' , eq-proc , perm)
     with extract-prefix-from-↭ s_final (Hypergraph.cod H) perm
@@ -917,13 +913,12 @@ decode-attempt-from-perm H (s_final , t' , eq-proc , perm)
 --   6. Feed to `decode-attempt-from-perm`.
 
 decode-attempt-hTensor
-  : ∀ {As Bs Cs Ds : List X}
-      (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Cs Ds)
+  : (G K : Hypergraph FlatGen)
   → (∃[ tG ] decode-attempt G ≡ just tG)
   → (∃[ tK ] decode-attempt K ≡ just tK)
-  → Σ[ t ∈ HomTerm (unflatten (As ++ Cs)) (unflatten (Bs ++ Ds)) ]
+  → Σ[ t ∈ HomTerm (unflatten (domL (hTensor G K))) (unflatten (codL (hTensor G K))) ]
       decode-attempt (hTensor G K) ≡ just t
-decode-attempt-hTensor {As} {Bs} {Cs} {Ds} G K ih-G ih-K =
+decode-attempt-hTensor G K ih-G ih-K =
     decode-attempt-from-perm (hTensor G K)
       (proj₁ proc , proj₂ proc , refl , perm-final)
   where
@@ -1021,7 +1016,7 @@ decode-attempt-hTensor {As} {Bs} {Cs} {Ds} G K ih-G ih-K =
 -- Strategy:
 --   1. Extract `s_G_final ↭ G.cod` and `s_K_final ↭ K.cod` via
 --      `decode-attempt-perm-from-just`.
---   2. Factor `process-all-edges (hCompose G K)` via
+--   2. Factor `process-all-edges (hCompose G K bdy-eq)` via
 --      `Invariant.range-++` and `process-edges-++-stack`.
 --   3. G-edges block: `process-edges-↑ˡ-pure-L` reduces to
 --      `map injL s_G_final`.
@@ -1030,24 +1025,24 @@ decode-attempt-hTensor {As} {Bs} {Cs} {Ds} G K ih-G ih-K =
 --   5. K-edges block: `process-edges-↑ʳ-via-remap` (with the bridge
 --      perm as input) yields `s_K' ↭ map remap s_K_final`.
 --   6. Combine via `perm-K`: `map remap s_K_final ↭ map remap K.cod
---      = (hCompose G K).cod`.
+--      = (hCompose G K bdy-eq).cod`.
 --   7. Feed to `decode-attempt-from-perm`.
 
 decode-attempt-hCompose
-  : ∀ {As Bs Cs : List X}
-      (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs)
+  : (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
   → Lin.Linear G → Lin.Linear K
   → (∃[ tG ] decode-attempt G ≡ just tG)
   → (∃[ tK ] decode-attempt K ≡ just tK)
-  → Σ[ t ∈ HomTerm (unflatten As) (unflatten Cs) ]
-      decode-attempt (hCompose G K) ≡ just t
-decode-attempt-hCompose {As} {Bs} {Cs} G K lin-G lin-K ih-G ih-K =
-    decode-attempt-from-perm (hCompose G K)
+  → Σ[ t ∈ HomTerm (unflatten (domL (hCompose G K bdy-eq)))
+                    (unflatten (codL (hCompose G K bdy-eq))) ]
+      decode-attempt (hCompose G K bdy-eq) ≡ just t
+decode-attempt-hCompose G K bdy-eq lin-G lin-K ih-G ih-K =
+    decode-attempt-from-perm (hCompose G K bdy-eq)
       (proj₁ proc , proj₂ proc , refl , perm-final)
   where
     module G = Hypergraph G
     module K = Hypergraph K
-    open Lin.hCompose-Linear-utils G K lin-G lin-K
+    open Lin.hCompose-Linear-utils G K bdy-eq lin-G lin-K
     open Perm.PermutationReasoning
 
     -- Extract from IHs.
@@ -1061,14 +1056,14 @@ decode-attempt-hCompose {As} {Bs} {Cs} G K lin-G lin-K ih-G ih-K =
     eq-K = proj₁ (proj₂ (proj₂ ih-K'))
     perm-K = proj₂ (proj₂ (proj₂ ih-K'))
 
-    proc = process-all-edges (hCompose G K) (Hypergraph.dom (hCompose G K))
+    proc = process-all-edges (hCompose G K bdy-eq) (Hypergraph.dom (hCompose G K bdy-eq))
 
     -- Stack after G-edges: equals `map injL s_G_final`.
-    after-G-stack = proj₁ (process-edges (hCompose G K)
+    after-G-stack = proj₁ (process-edges (hCompose G K bdy-eq)
                             (map (_↑ˡ K.nE) (range G.nE))
-                            (Hypergraph.dom (hCompose G K)))
+                            (Hypergraph.dom (hCompose G K bdy-eq)))
 
-    G-lift = process-edges-↑ˡ-pure-L G K lin-G lin-K (range G.nE) G.dom
+    G-lift = process-edges-↑ˡ-pure-L G K bdy-eq lin-G lin-K (range G.nE) G.dom
 
     after-G-≡ : after-G-stack ≡ map (_↑ˡ K.nV) s_G_final
     after-G-≡ = trans (cong proj₁ (proj₂ G-lift))
@@ -1089,7 +1084,7 @@ decode-attempt-hCompose {As} {Bs} {Cs} G K lin-G lin-K ih-G ih-K =
         ∎
 
     -- K-side perm-respecting lift.
-    K-lift = process-edges-↑ʳ-via-remap G K lin-G lin-K
+    K-lift = process-edges-↑ʳ-via-remap G K bdy-eq lin-G lin-K
               (range K.nE) after-G-stack K.dom after-G-↭-remap-Kdom
 
     s_K' = proj₁ K-lift
@@ -1100,13 +1095,13 @@ decode-attempt-hCompose {As} {Bs} {Cs} G K lin-G lin-K ih-G ih-K =
     -- the K-lift's equation.
     proc-≡-s_K' : proj₁ proc ≡ s_K'
     proc-≡-s_K' =
-      trans (cong (λ es → proj₁ (process-edges (hCompose G K) es
-                                  (Hypergraph.dom (hCompose G K))))
+      trans (cong (λ es → proj₁ (process-edges (hCompose G K bdy-eq) es
+                                  (Hypergraph.dom (hCompose G K bdy-eq))))
                   (Inv.range-++ G.nE K.nE))
-            (trans (process-edges-++-stack (hCompose G K)
+            (trans (process-edges-++-stack (hCompose G K bdy-eq)
                      (map (_↑ˡ K.nE) (range G.nE))
                      (map (G.nE ↑ʳ_) (range K.nE))
-                     (Hypergraph.dom (hCompose G K)))
+                     (Hypergraph.dom (hCompose G K bdy-eq)))
                    (cong proj₁ K-lift-eq))
 
     -- Substitute proj₁ K's process-edges output for s_K_final.
@@ -1117,7 +1112,7 @@ decode-attempt-hCompose {As} {Bs} {Cs} G K lin-G lin-K ih-G ih-K =
             (cong proj₁ eq-K)
             K-lift-perm
 
-    perm-final : proj₁ proc Perm.↭ Hypergraph.cod (hCompose G K)
+    perm-final : proj₁ proc Perm.↭ Hypergraph.cod (hCompose G K bdy-eq)
     perm-final = begin
       proj₁ proc
         ≡⟨ proc-≡-s_K' ⟩
@@ -1129,84 +1124,22 @@ decode-attempt-hCompose {As} {Bs} {Cs} G K lin-G lin-K ih-G ih-K =
         ∎
 
 --------------------------------------------------------------------------------
--- `subst₂` transport: pure type-level shuffling.  Generalized to handle
--- *non-`refl`* equations by exposing the transport explicitly.
---
--- The old definition (`decode-attempt-subst₂ H refl refl (t , p) = (t , p)`)
--- only fired when both `eq-As` and `eq-Bs` were *literally* `refl`.  For
--- ~++-identityʳ (flatten A)~ etc. — which only reduce to `refl` for
--- *concrete* `A` — the function was stuck, leaving `decode (ρ⇒ {A})`
--- opaque for symbolic `A`.
---
--- The new definition produces, for *any* equations, a result whose
--- first projection is the explicit transport
--- `subst₂ HomTerm (cong unflatten eq-As) (cong unflatten eq-Bs) t`.
--- Downstream proofs (notably `decode-roundtrip-ρ⇒/ρ⇐/α⇒/α⇐`) can then
--- reason about the transported term directly, using
--- `subst`-of-the-result combinators rather than relying on definitional
--- reduction to fire.
-
-private
-  -- Maybe-of-HomTerm subst₂ commutes with `just`.  Refl-refl-defined,
-  -- so stuck on non-refl args at the term level — but the *type* of the
-  -- equation is well-formed for any args.
-  subst₂-Maybe-of-HomTerm-just
-    : ∀ {As Bs As' Bs' : List X}
-        (eq-As : As ≡ As') (eq-Bs : Bs ≡ Bs')
-        (t : HomTerm (unflatten As) (unflatten Bs))
-    → subst₂ (λ X Y → Maybe (HomTerm (unflatten X) (unflatten Y)))
-            eq-As eq-Bs (just t)
-      ≡ just (subst₂ HomTerm
-                    (cong unflatten eq-As)
-                    (cong unflatten eq-Bs)
-                    t)
-  subst₂-Maybe-of-HomTerm-just refl refl t = refl
-
-  -- `decode-attempt` commutes with the `subst₂` on `Hypergraph`'s
-  -- boundary types.  Same shape: refl-refl is `refl`, non-refl is
-  -- well-typed but doesn't reduce.
-  decode-attempt-resp-subst₂
-    : ∀ {As Bs As' Bs' : List X} (H : Hypergraph FlatGen As Bs)
-        (eq-As : As ≡ As') (eq-Bs : Bs ≡ Bs')
-    → decode-attempt (subst₂ (Hypergraph FlatGen) eq-As eq-Bs H)
-      ≡ subst₂ (λ X Y → Maybe (HomTerm (unflatten X) (unflatten Y)))
-              eq-As eq-Bs
-              (decode-attempt H)
-  decode-attempt-resp-subst₂ H refl refl = refl
-
-decode-attempt-subst₂
-  : ∀ {As Bs As' Bs' : List X} (H : Hypergraph FlatGen As Bs)
-      (eq-As : As ≡ As') (eq-Bs : Bs ≡ Bs')
-  → Σ[ t ∈ HomTerm (unflatten As) (unflatten Bs) ] decode-attempt H ≡ just t
-  → Σ[ t' ∈ HomTerm (unflatten As') (unflatten Bs') ]
-      decode-attempt (subst₂ (Hypergraph FlatGen) eq-As eq-Bs H) ≡ just t'
-decode-attempt-subst₂ {As} {Bs} {As'} {Bs'} H eq-As eq-Bs (t , p) =
-  ( subst₂ HomTerm (cong unflatten eq-As) (cong unflatten eq-Bs) t
-  , trans (decode-attempt-resp-subst₂ H eq-As eq-Bs)
-          (trans (cong (subst₂ (λ X Y → Maybe (HomTerm (unflatten X) (unflatten Y)))
-                              eq-As eq-Bs) p)
-                 (subst₂-Maybe-of-HomTerm-just eq-As eq-Bs t))
-  )
-
--- Now the first projection is just the explicit `subst₂ HomTerm ... t`,
--- definitionally — making it usable in downstream `≈Term` chains.
-decode-attempt-subst₂-proj₁
-  : ∀ {As Bs As' Bs' : List X} (H : Hypergraph FlatGen As Bs)
-      (eq-As : As ≡ As') (eq-Bs : Bs ≡ Bs')
-      (w : Σ[ t ∈ HomTerm (unflatten As) (unflatten Bs) ] decode-attempt H ≡ just t)
-  → proj₁ (decode-attempt-subst₂ H eq-As eq-Bs w)
-  ≡ subst₂ HomTerm (cong unflatten eq-As) (cong unflatten eq-Bs) (proj₁ w)
-decode-attempt-subst₂-proj₁ H eq-As eq-Bs (t , p) = refl
+-- DE-INDEXED REFACTOR PAYOFF: the entire `decode-attempt-subst₂`
+-- machinery (and its three helper functions
+-- `subst₂-Maybe-of-HomTerm-just`, `decode-attempt-resp-subst₂`,
+-- `decode-attempt-subst₂-proj₁`) — about 50 LOC — used to live here,
+-- exclusively to handle `subst₂ (Hypergraph FlatGen)`-wrapped inputs
+-- arising from the indexed translation `⟪ ρ⇒ ⟫ = subst₂ … (hId …)`.
+-- With the de-indexed Hypergraph and the `⟪⟫-domL`/`⟪⟫-codL` boundary
+-- lemmas, none of this is needed: `⟪ ρ⇒ ⟫ = hId (A ⊗₀ unit)` directly,
+-- and `decode-attempt` already returns at the natural boundary type.
 
 --------------------------------------------------------------------------------
--- `hId A`: structural recursion on `A`.  `hId unit = hEmpty`,
--- `hId (Var x) = hVar x`, `hId (A ⊗₀ B) = hTensor (hId A) (hId B)`.
--- The first two are constructive base cases; the tensor case
--- delegates to the (still-postulated) `decode-attempt-hTensor`.
+-- `hId A`: structural recursion on `A`.
 
 decode-attempt-hId
   : ∀ (A : ObjTerm)
-  → Σ[ t ∈ HomTerm (unflatten (flatten A)) (unflatten (flatten A)) ]
+  → Σ[ t ∈ HomTerm (unflatten (domL (hId A))) (unflatten (codL (hId A))) ]
       decode-attempt (hId A) ≡ just t
 decode-attempt-hId unit       = decode-attempt-hEmpty
 decode-attempt-hId (Var x)    = decode-attempt-hVar x
@@ -1216,53 +1149,54 @@ decode-attempt-hId (A ⊗₀ B)   =
 
 --------------------------------------------------------------------------------
 -- Constructive proof of `decode-attempt-Linear` for translated
--- hypergraphs, by induction on the term `f`.  This is the function
--- `Decoder.agda` uses to define the total `decode`.
+-- hypergraphs, by induction on the term `f`.
 --
--- Each branch unfolds `⟪_⟫` and applies the corresponding per-case
--- lemma above.  The unitor / associator branches (`λ⇒`, `λ⇐`, `ρ⇒`,
--- `ρ⇐`, `α⇒`, `α⇐`) translate via `subst₂` on `hId`, so they go
--- through `decode-attempt-subst₂`.
+-- Compared to the indexed version (where ρ⇒/ρ⇐/α⇒/α⇐ went through
+-- `decode-attempt-subst₂` to discharge the `subst₂ Hypergraph`
+-- boundary transport), these cases now collapse: `⟪ ρ⇒ ⟫` is just
+-- `hId (A ⊗₀ unit)`, so we just invoke `decode-attempt-hId`.
 
 decode-attempt-Linear
   : ∀ {A B} (f : HomTerm A B)
-  → Σ[ t ∈ HomTerm (unflatten (flatten A)) (unflatten (flatten B)) ]
+  → Σ[ t ∈ HomTerm (unflatten (domL ⟪ f ⟫)) (unflatten (codL ⟪ f ⟫)) ]
       decode-attempt ⟪ f ⟫ ≡ just t
-decode-attempt-Linear (Agen g)  = decode-attempt-hGen g
-decode-attempt-Linear (id {A})  = decode-attempt-hId A
-decode-attempt-Linear (g ∘ f)   =
+decode-attempt-Linear (Agen g)        = decode-attempt-hGen g
+decode-attempt-Linear (id {A})        = decode-attempt-hId A
+decode-attempt-Linear (g ∘ f)         =
   decode-attempt-hCompose ⟪ f ⟫ ⟪ g ⟫
+    (trans (⟪⟫-codL f) (sym (⟪⟫-domL g)))
     (Lin.⟪⟫-Linear f) (Lin.⟪⟫-Linear g)
     (decode-attempt-Linear f) (decode-attempt-Linear g)
-decode-attempt-Linear (f ⊗₁ g)  =
+decode-attempt-Linear (f ⊗₁ g)        =
   decode-attempt-hTensor ⟪ f ⟫ ⟪ g ⟫
     (decode-attempt-Linear f) (decode-attempt-Linear g)
-decode-attempt-Linear (λ⇒ {A})  = decode-attempt-hId A
-decode-attempt-Linear (λ⇐ {A})  = decode-attempt-hId A
-decode-attempt-Linear (ρ⇒ {A})  =
-  decode-attempt-subst₂ (hId (A ⊗₀ unit)) refl (++-identityʳ (flatten A))
-    (decode-attempt-hId (A ⊗₀ unit))
-decode-attempt-Linear (ρ⇐ {A})  =
-  decode-attempt-subst₂ (hId (A ⊗₀ unit)) (++-identityʳ (flatten A)) refl
-    (decode-attempt-hId (A ⊗₀ unit))
-decode-attempt-Linear (α⇒ {A} {B} {C}) =
-  decode-attempt-subst₂ (hId ((A ⊗₀ B) ⊗₀ C))
-    refl (++-assoc (flatten A) (flatten B) (flatten C))
-    (decode-attempt-hId ((A ⊗₀ B) ⊗₀ C))
-decode-attempt-Linear (α⇐ {A} {B} {C}) =
-  decode-attempt-subst₂ (hId ((A ⊗₀ B) ⊗₀ C))
-    (++-assoc (flatten A) (flatten B) (flatten C)) refl
-    (decode-attempt-hId ((A ⊗₀ B) ⊗₀ C))
-decode-attempt-Linear (σ {A} {B}) = decode-attempt-hSwap A B
+decode-attempt-Linear (λ⇒ {A})        = decode-attempt-hId A
+decode-attempt-Linear (λ⇐ {A})        = decode-attempt-hId A
+decode-attempt-Linear (ρ⇒ {A})        = decode-attempt-hId (A ⊗₀ unit)
+decode-attempt-Linear (ρ⇐ {A})        = decode-attempt-hId (A ⊗₀ unit)
+decode-attempt-Linear (α⇒ {A}{B}{C})  = decode-attempt-hId ((A ⊗₀ B) ⊗₀ C)
+decode-attempt-Linear (α⇐ {A}{B}{C})  = decode-attempt-hId ((A ⊗₀ B) ⊗₀ C)
+decode-attempt-Linear (σ {A}{B})      = decode-attempt-hSwap A B
 
 --------------------------------------------------------------------------------
 -- The total `decode` and the `bridge` it commutes with, derived from
 -- `decode-attempt-Linear`.
 
+-- Boundary subst: relate the algorithm's natural type
+-- `HomTerm (unflatten (domL ⟪f⟫)) (unflatten (codL ⟪f⟫))` to the
+-- user-facing `HomTerm (unflatten (flatten A)) (unflatten (flatten B))`.
+-- This is the SOLE place a boundary subst now appears in the
+-- completeness pipeline; previously it was woven into every step.
+
 decode
   : ∀ {A B} (f : HomTerm A B)
   → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
-decode f = proj₁ (decode-attempt-Linear f)
+decode {A} {B} f =
+  subst₂ HomTerm (cong unflatten dom-eq) (cong unflatten cod-eq)
+         (proj₁ (decode-attempt-Linear f))
+  where
+    dom-eq = ⟪⟫-domL f
+    cod-eq = ⟪⟫-codL f
 
 -- `bridge`: `f` composed with the unflatten-flatten coherence isos
 -- on each side.  When `flatten`/`unflatten` were definitional inverses

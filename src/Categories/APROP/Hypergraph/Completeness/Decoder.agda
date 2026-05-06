@@ -67,7 +67,7 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (decode-attempt-hEmpty; decode-attempt-hVar;
          decode-attempt-hSwap; decode-attempt-hGen; decode-attempt-hId;
          decode-attempt-hTensor; decode-attempt-hCompose;
-         decode-attempt-subst₂; decode-attempt-Linear;
+         decode-attempt-Linear;
          decode; bridge) public
 open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtrip sig
   using (decode-roundtrip;
