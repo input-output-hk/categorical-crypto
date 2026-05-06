@@ -288,12 +288,11 @@ idˡ-sound {B = B} f = hCompose-hId-R-iso-generic B ⟪ f ⟫ (⟪⟫-codL f)
 module hCompose-hId-L-proof
   (A : ObjTerm)
   (K : Hypergraph FlatGen) (K-domL≡flat : domL K ≡ flatten A)
+  (bdy-eq : codL (hId A) ≡ domL K)
   (K-unique : Unique (Hypergraph.dom K))
   where
   private
     G = hId A
-    bdy-eq : codL G ≡ domL K
-    bdy-eq = trans (codL-hId A) (sym K-domL≡flat)
     C = hComposeP G K bdy-eq
     module G = Hypergraph G
     module K = Hypergraph K
@@ -613,7 +612,21 @@ hCompose-hId-L-iso-generic
       (K-domL≡flat : domL K ≡ flatten A)
   → Unique (Hypergraph.dom K)
   → hComposeP (hId A) K (trans (codL-hId A) (sym K-domL≡flat)) ≅ᴴ K
-hCompose-hId-L-iso-generic = hCompose-hId-L-proof.hCompose-hId-L-iso
+hCompose-hId-L-iso-generic A K K-domL≡flat K-unique =
+  hCompose-hId-L-proof.hCompose-hId-L-iso A K K-domL≡flat
+    (trans (codL-hId A) (sym K-domL≡flat)) K-unique
+
+-- Flexible variant: takes the boundary equation as `codL (hId A) ≡ domL K`
+-- directly.  Useful when the bdy proof doesn't factor as
+-- `trans (codL-hId A) (sym K-domL≡flat)` (e.g. when the intermediate
+-- object isn't `flatten A` but a related `++`-rearrangement of it).
+hCompose-hId-L-iso-flex
+  : ∀ (A : ObjTerm) (K : Hypergraph FlatGen)
+      (K-domL≡flat : domL K ≡ flatten A)
+      (bdy : codL (hId A) ≡ domL K)
+  → Unique (Hypergraph.dom K)
+  → hComposeP (hId A) K bdy ≅ᴴ K
+hCompose-hId-L-iso-flex = hCompose-hId-L-proof.hCompose-hId-L-iso
 
 idʳ-sound : ∀ {A B} (f : HomTerm A B) → ⟪ f ∘ id ⟫ ≅ᴴ ⟪ f ⟫
 idʳ-sound {A = A} f =
