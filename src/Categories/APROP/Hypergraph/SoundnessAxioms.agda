@@ -49,22 +49,31 @@ open import Categories.APROP.Hypergraph.SoundnessProved sig public
         ; ρ⇐∘ρ⇒-sound; α⇐∘α⇒-sound
         ; σ∘σ-sound
         ; hCompose-hId-R-iso-generic
+        ; hCompose-hId-R-iso-flex
         ; hCompose-hId-L-iso-generic
-        ; hTensor-hEmpty-G-iso )
+        ; hTensor-hEmpty-G-iso
+        ; hTensor-G-hEmpty-iso )
 
 open import Data.List using (List; _++_)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂; sym; trans; subst; subst₂)
 
+-- ρ⇒∘ρ⇐: ⟪ρ⇒ ∘ ρ⇐⟫ = hComposeP (hId (A ⊗ unit)) (hId (A ⊗ unit)) bdy.
+-- Apply `hCompose-hId-R-iso-flex` (≅ᴴ hId (A ⊗ unit)) then
+-- `hTensor-G-hEmpty-iso (hId A)` (since hId (A ⊗ unit) =
+-- hTensor (hId A) hEmpty definitionally) to land at ⟪id {A}⟫ = hId A.
+ρ⇒∘ρ⇐-sound : ∀ {A} → ⟪ ρ⇒ {A} ∘ ρ⇐ {A} ⟫ ≅ᴴ ⟪ id {A} ⟫
+ρ⇒∘ρ⇐-sound {A} =
+  trans-≅ᴴ
+    (hCompose-hId-R-iso-flex (A ⊗₀ unit) (hId (A ⊗₀ unit))
+      (trans (⟪⟫-codL (ρ⇐ {A})) (sym (⟪⟫-domL (ρ⇒ {A})))))
+    (hTensor-G-hEmpty-iso (hId A))
+
 postulate
-  -- DE-INDEXED REFACTOR: in the indexed version, ρ⇒∘ρ⇐ and α⇒∘α⇐ went
-  -- through `hComposeP-subst-both` to reduce to subst₂-wrapped
-  -- hComposeP applications, then through `subst₂-hId-cancel` /
-  -- `subst₂-hId-assoc-cancel` to land at idˡ-sound.  Under
-  -- de-indexing the subst₂s on Hypergraph are gone; the proofs need
-  -- reformulating but the theorems still hold.
-  ρ⇒∘ρ⇐-sound : ∀ {A} → ⟪ ρ⇒ {A} ∘ ρ⇐ {A} ⟫ ≅ᴴ ⟪ id {A} ⟫
+  -- α⇒∘α⇐: needs additionally `hId ((A ⊗ B) ⊗ C) ≅ᴴ hId (A ⊗ (B ⊗ C))`,
+  -- which is hTensor-associativity for hId — a non-trivial constructive
+  -- bijection not yet proved.
   α⇒∘α⇐-sound : ∀ {A B C} → ⟪ α⇒ {A}{B}{C} ∘ α⇐ {A}{B}{C} ⟫ ≅ᴴ ⟪ id {A ⊗₀ (B ⊗₀ C)} ⟫
 
 --------------------------------------------------------------------------------

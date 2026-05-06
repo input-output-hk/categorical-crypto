@@ -711,6 +711,131 @@ hTensor-hEmpty-G-iso G = record
     atom-eout-eq e = map-via-raise hT.vlab-injR (G′.eout e)
 
 --------------------------------------------------------------------------------
+-- `hTensor-G-hEmpty-iso`: for any G, `hTensor G hEmpty ≅ᴴ G`.  Right-unit
+-- counterpart to `hTensor-hEmpty-G-iso`.  Unlike the left-unit case where
+-- `0 + n` reduces to `n` definitionally and `splitAt 0 v = inj₂ v`, here
+-- `n + 0` doesn't reduce, so vertex/edge bijections are spelled out via
+-- explicit `splitAt G.nV` case-splits with the inj₂ branches absurd
+-- (since `Fin 0` has no inhabitants).
+
+hTensor-G-hEmpty-iso
+  : (G : Hypergraph FlatGen) → hTensor G hEmpty ≅ᴴ G
+hTensor-G-hEmpty-iso G = record
+  { φ         = φ
+  ; φ⁻¹       = φ⁻¹
+  ; φ-left    = φ-left
+  ; φ-rght    = φ-rght
+  ; ψ         = ψ
+  ; ψ⁻¹       = ψ⁻¹
+  ; ψ-left    = ψ-left
+  ; ψ-rght    = ψ-rght
+  ; φ-lab     = φ-lab
+  ; ψ-ein     = ψ-ein
+  ; ψ-eout    = ψ-eout
+  ; φ-dom     = φ-dom
+  ; φ-cod     = φ-cod
+  ; atom-ein  = atom-ein
+  ; atom-eout = atom-eout
+  ; ψ-elab    = ψ-elab
+  }
+  where
+    module G′ = Hypergraph G
+    H = hTensor G hEmpty
+    module H′ = Hypergraph H
+    module hT = hTensor-impl G hEmpty
+
+    φ : Fin H′.nV → Fin G′.nV
+    φ v with splitAt G′.nV v
+    ... | inj₁ k = k
+    ... | inj₂ ()
+
+    φ⁻¹ : Fin G′.nV → Fin H′.nV
+    φ⁻¹ k = k ↑ˡ 0
+
+    φ-left : ∀ v → φ⁻¹ (φ v) ≡ v
+    φ-left v with splitAt G′.nV v in eq
+    ... | inj₁ k = splitAt⁻¹-↑ˡ eq
+    ... | inj₂ ()
+
+    φ-rght : ∀ k → φ (φ⁻¹ k) ≡ k
+    φ-rght k rewrite splitAt-↑ˡ G′.nV k 0 = refl
+
+    ψ : Fin H′.nE → Fin G′.nE
+    ψ e with splitAt G′.nE e
+    ... | inj₁ eG = eG
+    ... | inj₂ ()
+
+    ψ⁻¹ : Fin G′.nE → Fin H′.nE
+    ψ⁻¹ e = e ↑ˡ 0
+
+    ψ-left : ∀ e → ψ⁻¹ (ψ e) ≡ e
+    ψ-left e with splitAt G′.nE e in eq
+    ... | inj₁ eG = splitAt⁻¹-↑ˡ eq
+    ... | inj₂ ()
+
+    ψ-rght : ∀ e → ψ (ψ⁻¹ e) ≡ e
+    ψ-rght e rewrite splitAt-↑ˡ G′.nE e 0 = refl
+
+    φ-lab : ∀ v → G′.vlab (φ v) ≡ H′.vlab v
+    φ-lab v with splitAt G′.nV v
+    ... | inj₁ k = refl
+    ... | inj₂ ()
+
+    φ-injL : ∀ k → φ (k ↑ˡ 0) ≡ k
+    φ-injL k rewrite splitAt-↑ˡ G′.nV k 0 = refl
+
+    -- `H.dom` and `H.cod` have an explicit trailing `map injR [] = []`
+    -- because `hEmpty.dom = hEmpty.cod = []`.  Strip via `++-identityʳ`
+    -- in `φ-dom`/`φ-cod`.
+    open import Data.List.Properties using (++-identityʳ)
+
+    ψ-ein : ∀ e → G′.ein (ψ e) ≡ map φ (H′.ein e)
+    ψ-ein e with splitAt G′.nE e
+    ... | inj₁ eG = sym
+      (trans (sym (map-∘ (G′.ein eG)))
+             (trans (map-cong φ-injL (G′.ein eG))
+                    (map-id (G′.ein eG))))
+    ... | inj₂ ()
+
+    ψ-eout : ∀ e → G′.eout (ψ e) ≡ map φ (H′.eout e)
+    ψ-eout e with splitAt G′.nE e
+    ... | inj₁ eG = sym
+      (trans (sym (map-∘ (G′.eout eG)))
+             (trans (map-cong φ-injL (G′.eout eG))
+                    (map-id (G′.eout eG))))
+    ... | inj₂ ()
+
+    φ-dom : G′.dom ≡ map φ H′.dom
+    φ-dom = sym
+      (trans (cong (map φ) (++-identityʳ (map hT.injL G′.dom)))
+      (trans (sym (map-∘ G′.dom))
+      (trans (map-cong φ-injL G′.dom)
+             (map-id G′.dom))))
+
+    φ-cod : G′.cod ≡ map φ H′.cod
+    φ-cod = sym
+      (trans (cong (map φ) (++-identityʳ (map hT.injL G′.cod)))
+      (trans (sym (map-∘ G′.cod))
+      (trans (map-cong φ-injL G′.cod)
+             (map-id G′.cod))))
+
+    atom-ein : ∀ e → map G′.vlab (G′.ein (ψ e)) ≡ map H′.vlab (H′.ein e)
+    atom-ein e with splitAt G′.nE e
+    ... | inj₁ eG = map-via-inj hT.vlab-injL (G′.ein eG)
+    ... | inj₂ ()
+
+    atom-eout : ∀ e → map G′.vlab (G′.eout (ψ e)) ≡ map H′.vlab (H′.eout e)
+    atom-eout e with splitAt G′.nE e
+    ... | inj₁ eG = map-via-inj hT.vlab-injL (G′.eout eG)
+    ... | inj₂ ()
+
+    ψ-elab : ∀ e → subst₂ FlatGen (atom-ein e) (atom-eout e) (G′.elab (ψ e))
+                 ≡ H′.elab e
+    ψ-elab e with splitAt G′.nE e
+    ... | inj₁ eG = refl
+    ... | inj₂ ()
+
+--------------------------------------------------------------------------------
 -- λ⇐∘λ⇒-sound and λ⇒∘λ⇐-sound: under de-indexing, ⟪ λ⇒ {A} ⟫ = hId A
 -- and ⟪ λ⇐ {A} ⟫ = hId A.  So both ⟪ λ⇐ ∘ λ⇒ ⟫ and ⟪ λ⇒ ∘ λ⇐ ⟫ reduce
 -- to `hComposeP (hId A) (hId A) bdy`, which `idˡ-sound (id {A})` shows
