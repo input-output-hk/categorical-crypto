@@ -11,7 +11,8 @@ open import Data.List.Properties using (length-++; length-replicate; ++-identity
 import Data.List.NonEmpty as NE
 open import Data.List.Relation.Unary.Any using (here; there)
 import Data.List.Relation.Unary.All as All
-open import Data.List.Relation.Unary.AllPairs using (AllPairs; []; _∷_)
+open import Data.List.Relation.Unary.AllPairs using ([]; _∷_)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Rational as ℚ using (ℚ; _/_)
 open import Data.Rational.Properties using (/-cong)
 open import Data.Integer using (+_)
@@ -106,7 +107,7 @@ P-bernoulli-false m n = begin
 -- Expected value of a Bernoulli random variable.
 
 -- Distinctness / U-coverage for the canonical Bool support [true, false].
-bool-distinct : AllPairs _≢_ (true ∷ false ∷ [])
+bool-distinct : Unique (true ∷ false ∷ [])
 bool-distinct = ((λ ()) All.∷ All.[]) ∷ (All.[] ∷ [])
 
 bool-cover : (_∈ˡ (true ∷ false ∷ [])) ≐ U
@@ -119,18 +120,14 @@ bernoulli-full : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
 bernoulli-full m n = Eq.trans (∙-cong bool-cover) PU≈1
   where module Eq = Setoid setoid
 
-private
-  E-bernoulli-trivial : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
-                      → E[ bernoulli m n , (λ _ → 0#) ]≈ _
-  E-bernoulli-trivial m n =
-    E-of-support (true ∷ false ∷ []) bool-distinct (bernoulli-full m n) _
-
 E-bernoulli-true : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
                  → E[ bernoulli m n , 1[ ↑ id ] ]≈ fromℚ (+ m / (m +ℕ n))
 E-bernoulli-true m n =
-  E-resp-≈ (P-bernoulli-true m n) (E-indicator (E-bernoulli-trivial m n) (↑ id))
+  E-resp-≈ (P-bernoulli-true m n)
+    (E-indicator (true ∷ false ∷ []) bool-distinct (bernoulli-full m n) (↑ id))
 
 E-bernoulli-false : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
                   → E[ bernoulli m n , 1[ ↑ not ] ]≈ fromℚ (+ n / (m +ℕ n))
 E-bernoulli-false m n =
-  E-resp-≈ (P-bernoulli-false m n) (E-indicator (E-bernoulli-trivial m n) (↑ not))
+  E-resp-≈ (P-bernoulli-false m n)
+    (E-indicator (true ∷ false ∷ []) bool-distinct (bernoulli-full m n) (↑ not))

@@ -5,17 +5,23 @@ open import categorical-crypto.Prelude as P hiding (pure; _>>=_; _⊎_; _*_; _/_
 open import Class.HasOrder
 open import Algebra
 open import Algebra.Morphism.Structures using (module SemiringMorphisms)
-open import Relation.Binary using (Setoid)
+open import Relation.Binary using (Setoid; IsPreorder)
 import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
-open import Relation.Unary
+open import Relation.Unary hiding (⌊_⌋)
 
 import Data.List.NonEmpty as NE
 
-open import Data.Rational as ℚ using (ℚ; _/_)
+open import Data.Rational as ℚ using (ℚ; _/_; 1ℚ)
 import Data.Rational.Properties as ℚP
 open import Data.Integer using (+_)
 
 open import ProbabilisticLogic.Reasoning
+
+open import LibExt using (module Lists; module Arith; module Predicates;
+                          _⊠_; singleton-≐-rect)
+open Lists using (_×ᴸ_; ×ᴸ-≐-rect; ∈ˡ-?; ∈ˡ-≐-T-∈?; filterᵇ-self)
+open Arith using (n/n≡1ℚ)
+open Predicates using (∪-∁-LEM; ∩-∁-partition)
 
 module ProbabilisticLogic.Abstract where
 
@@ -26,10 +32,6 @@ disjoint P Q = ∀ {ω} → P ω → Q ω → ⊥
 
 ↑_ : (Ω → Bool) → Ω → Type
 ↑_ X = T P.∘ X
-
-infixr 6 _⊠_
-_⊠_ : (Ω₁ → Type) → (Ω₂ → Type) → Ω₁ × Ω₂ → Type
-(X ⊠ Y) (a , b) = X a × Y b
 
 weighted-K : (l : NE.List⁺ (ℕ × Ω)) ⦃ _ : NonZero (proj₁ (NE.head l)) ⦄ → NE.List⁺ Ω
 weighted-K ((suc m , ω) NE.∷ rest) =
@@ -163,3 +165,126 @@ record Abstract c ℓ : Type (sucˡ (c ⊔ˡ ℓ)) where
     fromℚ (+ length (filterᵇ X (NE.toList l₁)) / NE.length l₁)
       * fromℚ (+ length (filterᵇ Y (NE.toList l₂)) / NE.length l₂) ∎
     where open ≈-Reasoning setoid
+
+  ----------------------------------------------------------------------
+  -- Complement of a full-mass event has zero mass; restriction to a
+  -- full-mass event preserves probabilities.
+
+  private
+    module HPo = HasPartialOrder HasPartialOrder-Probability
+    module HP  = HasPreorder HPo.hasPreorder
+
+    ≈⇒≤-P : ∀ {x y : Probability} → x ≈ y → x ≤ y
+    ≈⇒≤-P = IsPreorder.reflexive HP.≤-isPreorder
+
+    1+p≈1⇒p≤0 : ∀ {p : Probability} → 1# + p ≈ 1# → p ≤ 0#
+    1+p≈1⇒p≤0 {p} eq = +-cancelʳ-≤ (≈⇒≤-P p+1≈0+1)
+      where
+        module Eq = Setoid setoid
+        open ≈-Reasoning setoid
+        p+1≈0+1 : p + 1# ≈ 0# + 1#
+        p+1≈0+1 = begin
+          p + 1#  ≈⟨ +-comm p 1# ⟩
+          1# + p  ≈⟨ eq ⟩
+          1#      ≈⟨ Eq.sym (+-identityˡ 1#) ⟩
+          0# + 1# ∎
+
+  P-∁≈0 : ∀ {P : ProbDistr Ω} {A : Ω → Type} ⦃ A? : A ⁇¹ ⦄
+        → P ∙ A ≈ 1# → P ∙ ∁ A ≈ 0#
+  P-∁≈0 {P = P} {A} PA≈1 = HPo.≤-antisym P∁A≤0 0≤PX
+    where
+      module Eq = Setoid setoid
+      open ≈-Reasoning setoid
+
+      A∁A-disj : disjoint A (∁ A)
+      A∁A-disj Aω ¬Aω = ¬Aω Aω
+
+      PA+P∁A≈1 : P ∙ A + P ∙ ∁ A ≈ 1#
+      PA+P∁A≈1 = begin
+        P ∙ A + P ∙ ∁ A   ≈⟨ P-distrib-disjoint A∁A-disj ⟩
+        P ∙ (A ∪ ∁ A)     ≈⟨ ∙-cong (∪-∁-LEM A) ⟩
+        P ∙ U             ≈⟨ PU≈1 ⟩
+        1#                 ∎
+
+      1+P∁A≈1 : 1# + P ∙ ∁ A ≈ 1#
+      1+P∁A≈1 = Eq.trans (+-congʳ (Eq.sym PA≈1)) PA+P∁A≈1
+
+      P∁A≤0 : P ∙ ∁ A ≤ 0#
+      P∁A≤0 = 1+p≈1⇒p≤0 1+P∁A≈1
+
+  P≈0-of-⊆ : ∀ {P : ProbDistr Ω} {X Y : Ω → Type}
+           → X ⊆ Y → P ∙ Y ≈ 0# → P ∙ X ≈ 0#
+  P≈0-of-⊆ X⊆Y PY≈0 = HPo.≤-antisym
+    (HP.≤-trans (prob-monotonous X⊆Y) (≈⇒≤-P PY≈0))
+    0≤PX
+
+  mass-restrict : ∀ {P : ProbDistr Ω} {A B : Ω → Type} ⦃ A? : A ⁇¹ ⦄
+                → P ∙ A ≈ 1# → P ∙ B ≈ P ∙ (B ∩ A)
+  mass-restrict {P = P} {A} {B} PA≈1 = begin
+    P ∙ B
+      ≈⟨ ∙-cong (∩-∁-partition B A) ⟩
+    P ∙ ((B ∩ A) ∪ (B ∩ ∁ A))
+      ≈⟨ Eq.sym (P-distrib-disjoint disj) ⟩
+    P ∙ (B ∩ A) + P ∙ (B ∩ ∁ A)
+      ≈⟨ +-congˡ (P≈0-of-⊆ proj₂ (P-∁≈0 PA≈1)) ⟩
+    P ∙ (B ∩ A) + 0#
+      ≈⟨ +-identityʳ _ ⟩
+    P ∙ (B ∩ A) ∎
+    where
+      module Eq = Setoid setoid
+      open ≈-Reasoning setoid
+
+      disj : disjoint (B ∩ A) (B ∩ ∁ A)
+      disj (_ , Aω) (_ , ¬Aω) = ¬Aω Aω
+
+  ----------------------------------------------------------------------
+  -- Singleton events and full mass on cartesian product supports.
+
+  -- A singleton in `P ⊗ Q` factors as the product of singletons.
+  ⊗-singleton : ∀ {P : ProbDistr Ω₁} {Q : ProbDistr Ω₂} (a : Ω₁) (b : Ω₂)
+              → (P ⊗ Q) ∙ ((a , b) ≡_) ≈ P ∙ (a ≡_) * Q ∙ (b ≡_)
+  ⊗-singleton a b = Eq.trans (∙-cong (singleton-≐-rect a b)) ⊗-rect
+    where module Eq = Setoid setoid
+
+  ⊗-full : ∀ {P : ProbDistr Ω₁} {Q : ProbDistr Ω₂}
+         → (s₁ : List Ω₁) → P ∙ (_∈ˡ s₁) ≈ 1#
+         → (s₂ : List Ω₂) → Q ∙ (_∈ˡ s₂) ≈ 1#
+         → (P ⊗ Q) ∙ (_∈ˡ (s₁ ×ᴸ s₂)) ≈ 1#
+  ⊗-full {P = P} {Q} s₁ P-full s₂ Q-full = begin
+    (P ⊗ Q) ∙ (_∈ˡ (s₁ ×ᴸ s₂))
+      ≈⟨ ∙-cong (×ᴸ-≐-rect s₁ s₂) ⟩
+    (P ⊗ Q) ∙ ((_∈ˡ s₁) ⊠ (_∈ˡ s₂))
+      ≈⟨ ⊗-rect ⟩
+    P ∙ (_∈ˡ s₁) * Q ∙ (_∈ˡ s₂)
+      ≈⟨ *-cong P-full Q-full ⟩
+    1# * 1#
+      ≈⟨ *-identityʳ 1# ⟩
+    1# ∎
+    where open ≈-Reasoning setoid
+
+  ----------------------------------------------------------------------
+  -- Lemmas requiring decidable equality on Ω: full-mass for `pure ω`
+  -- and `empirical l`.
+
+  module _ {Ω : Type} ⦃ deceq-Ω : DecEq Ω ⦄ where
+
+    open import Data.List.Membership.DecPropositional (DecEq._≟_ deceq-Ω)
+      using (_∈?_)
+
+    empirical-full : (l : NE.List⁺ Ω) → empirical l ∙ (_∈ˡ NE.toList l) ≈ 1#
+    empirical-full l@(_ NE.∷ _) = begin
+      empirical l ∙ (_∈ˡ NE.toList l)
+        ≈⟨ ∙-cong ∈ˡ-≐-T-∈? ⟩
+      empirical l ∙ (↑ (λ ω → ⌊ ω ∈? NE.toList l ⌋))
+        ≈⟨ empirical-eq ⟩
+      fromℚ ((+ length (filterᵇ (λ ω → ⌊ ω ∈? NE.toList l ⌋) (NE.toList l))) / NE.length l)
+        ≡⟨ cong (λ s → fromℚ ((+ length s) / NE.length l)) (filterᵇ-self (NE.toList l)) ⟩
+      fromℚ ((+ NE.length l) / NE.length l)
+        ≡⟨ cong fromℚ (n/n≡1ℚ (NE.length l)) ⟩
+      fromℚ 1ℚ
+        ≈⟨ fromℚ-1 ⟩
+      1# ∎
+      where open ≈-Reasoning setoid
+
+    pure-full : ∀ (ω : Ω) → pure ω ∙ (_∈ˡ (ω ∷ [])) ≈ 1#
+    pure-full ω = empirical-full (ω NE.∷ [])

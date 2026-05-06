@@ -10,6 +10,8 @@ open import Data.Integer using (+_)
 open import ProbabilisticLogic.Abstract
 open import ProbabilisticLogic.Reasoning
 
+open import LibExt using (_⊠_)
+
 module ProbabilisticLogic.Examples.BiasedCoin c ℓ (a : Abstract c ℓ) where
 
 open Abstract a

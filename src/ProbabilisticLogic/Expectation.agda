@@ -1,37 +1,51 @@
 {-# OPTIONS --safe --without-K #-}
 
-open import categorical-crypto.Prelude as P hiding (pure; _>>=_; _⊎_; _*_; _/_; _⊗_; isEquivalence; trans)
+open import categorical-crypto.Prelude as P
+  hiding (pure; _>>=_; _⊎_; _*_; _/_; _⊗_; isEquivalence; trans; zeroˡ)
 
 open import Class.Decidable
-open import Class.HasOrder
-open import Relation.Binary using (Setoid; IsPreorder)
+open import Relation.Binary using (Setoid)
 open import Relation.Unary using (∅; U; _∩_; _∪_; _≐_; ∁)
 import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 
 open import Data.List.Relation.Unary.Any using (here; there)
 open import Data.List.Relation.Unary.All as All using (All)
-open import Data.List.Relation.Unary.AllPairs using (AllPairs; []; _∷_)
+open import Data.List.Relation.Unary.AllPairs using ([]; _∷_)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
+import Data.List.Relation.Binary.Permutation.Propositional as Perm
+open Perm using (_↭_)
+open import Data.List.Relation.Binary.Permutation.Propositional.Properties
+  using (∈-resp-↭)
 
 open import ProbabilisticLogic.Abstract
 
-open import Data.List using (cartesianProduct) renaming (map to mapL)
+open import Data.List using (filter) renaming (map to mapL)
 open import Data.List.Membership.Propositional.Properties using
-  (∈-cartesianProduct⁺; ∈-cartesianProduct⁻)
-import Data.List.Relation.Unary.Unique.Propositional.Properties as UniqueP
+  (∈-++⁺ˡ; ∈-++⁺ʳ; ∈-filter⁺; ∈-filter⁻)
+import Data.List.NonEmpty as NE
+import Data.List.Relation.Unary.AllPairs.Properties as AllPairsP
+open import Relation.Nullary.Decidable using (¬?)
+
+open import LibExt using (module Lists; module Predicates)
+open Lists using (_×ᴸ_; Unique-×ᴸ; partition-↭; ∈-cons-≐; ∈ˡ-?)
+open import Relation.Unary.Properties using (≐-sym)
 
 module ProbabilisticLogic.Expectation c ℓ (a : Abstract c ℓ) where
 
 open Abstract a
 
-open import Algebra.Properties.CommutativeSemigroup +-commutativeSemigroup
-  using () renaming (interchange to +-swap-middle)
-open import Algebra.Properties.CommutativeSemigroup *-commutativeSemigroup
-  using () renaming (x∙yz≈y∙xz to *-x∙yz≈y∙xz)
+-- Ring solver instance for `Probability`'s commutative semiring.
+-- `NaturalCoefficients` uses ℕ as the coefficient ring (abstract semirings
+-- have no negation); supplying `nothing` everywhere for the weak decidability
+-- of `m × 1# ≈ n × 1#` makes the solver only weaker, but is enough for the
+-- pure structural rearrangements we need.
+import Algebra.Solver.Ring.NaturalCoefficients
+  (record { isCommutativeSemiring = isCommutativeSemiring })
+  (λ _ _ → nothing)
+  as R
 
 private
   module Eq = Setoid setoid
-  module HPo = HasPartialOrder HasPartialOrder-Probability
-  module HP  = HasPreorder HPo.hasPreorder
 
   variable Ω Ω₁ Ω₂ : Type
 
@@ -48,10 +62,10 @@ weight-sum P f = foldr (λ ω acc → P ∙ (ω ≡_) * f ω + acc) 0#
 
 record E[_,_]≈_ (P : ProbDistr Ω) (f : Ω → Probability) (e : Probability)
   : Type (sucˡ lzero ⊔ˡ c ⊔ˡ ℓ) where
-  field support  : List Ω
-        distinct : AllPairs _≢_ support
-        full     : P ∙ (_∈ˡ support) ≈ 1#
-        value    : e ≈ weight-sum P f support
+  field support     : List Ω
+        distinct    : Unique support
+        off-support : ∀ {ω} → ω ∉ˡ support → P ∙ (ω ≡_) * f ω ≈ 0#
+        value       : e ≈ weight-sum P f support
 
 open E[_,_]≈_ public
 
@@ -70,27 +84,25 @@ weight-sum-cong-f {P = P} f≈g (ω ∷ ωs) =
 weight-sum-+ : ∀ {P : ProbDistr Ω} (f g : Ω → Probability) (s : List Ω)
              → weight-sum P (λ ω → f ω + g ω) s ≈ weight-sum P f s + weight-sum P g s
 weight-sum-+         f g []       = Eq.sym (+-identityʳ 0#)
-weight-sum-+ {P = P} f g (ω ∷ ωs) = begin
-  P ∙ (ω ≡_) * (f ω + g ω) + weight-sum P (λ ω → f ω + g ω) ωs
-    ≈⟨ +-cong (distribˡ _ _ _) (weight-sum-+ f g ωs) ⟩
-  (P ∙ (ω ≡_) * f ω + P ∙ (ω ≡_) * g ω) +
-    (weight-sum P f ωs + weight-sum P g ωs)
-    ≈⟨ +-swap-middle _ _ _ _ ⟩
-  (P ∙ (ω ≡_) * f ω + weight-sum P f ωs) +
-    (P ∙ (ω ≡_) * g ω + weight-sum P g ωs) ∎
-  where open ≈-Reasoning setoid
+weight-sum-+ {P = P} f g (ω ∷ ωs) = Eq.trans
+  (+-congˡ (weight-sum-+ f g ωs))
+  (R.solve 5 (λ pω fω gω wsf wsg →
+       ((pω R.:* (fω R.:+ gω)) R.:+ (wsf R.:+ wsg))
+     R.:= (((pω R.:* fω) R.:+ wsf) R.:+ ((pω R.:* gω) R.:+ wsg)))
+   Eq.refl
+   (P ∙ (ω ≡_)) (f ω) (g ω) (weight-sum P f ωs) (weight-sum P g ωs))
 
 -- Linearity in scalar multiplication: a constant factor pulls out.
 weight-sum-*ₗ : ∀ {P : ProbDistr Ω} (k : Probability) (f : Ω → Probability) (s : List Ω)
               → weight-sum P (λ ω → k * f ω) s ≈ k * weight-sum P f s
 weight-sum-*ₗ         k f []       = Eq.sym (zeroʳ k)
-weight-sum-*ₗ {P = P} k f (ω ∷ ωs) = begin
-  P ∙ (ω ≡_) * (k * f ω) + weight-sum P (λ ω → k * f ω) ωs
-    ≈⟨ +-cong (*-x∙yz≈y∙xz (P ∙ (ω ≡_)) k (f ω)) (weight-sum-*ₗ k f ωs) ⟩
-  k * (P ∙ (ω ≡_) * f ω) + k * weight-sum P f ωs
-    ≈⟨ Eq.sym (distribˡ k _ _) ⟩
-  k * (P ∙ (ω ≡_) * f ω + weight-sum P f ωs) ∎
-  where open ≈-Reasoning setoid
+weight-sum-*ₗ {P = P} k f (ω ∷ ωs) = Eq.trans
+  (+-congˡ (weight-sum-*ₗ k f ωs))
+  (R.solve 4 (λ pω k' fω wsf →
+       ((pω R.:* (k' R.:* fω)) R.:+ (k' R.:* wsf))
+     R.:= (k' R.:* ((pω R.:* fω) R.:+ wsf)))
+   Eq.refl
+   (P ∙ (ω ≡_)) k (f ω) (weight-sum P f ωs))
 
 -- The constant-zero function has weighted sum zero.
 weight-sum-0 : ∀ {P : ProbDistr Ω} (s : List Ω) → weight-sum P (λ _ → 0#) s ≈ 0#
@@ -102,169 +114,158 @@ weight-sum-0 {P = P} (ω ∷ ωs) = begin
   0# ∎
   where open ≈-Reasoning setoid
 
--- Monotonicity in the function argument.
-weight-sum-mono-f : ∀ {P : ProbDistr Ω} {f g : Ω → Probability}
-                  → (∀ ω → f ω ≤ g ω)
-                  → ∀ s → weight-sum P f s ≤ weight-sum P g s
-weight-sum-mono-f         _   []       = HP.≤-refl
-weight-sum-mono-f {P = P} f≤g (ω ∷ ωs) =
-  +-mono-≤ (≤-cong HP.≤-refl (f≤g ω)) (weight-sum-mono-f f≤g ωs)
+-- `weight-sum` distributes over list concatenation in the support.
+weight-sum-++ : ∀ {P : ProbDistr Ω} (f : Ω → Probability) (s t : List Ω)
+              → weight-sum P f (s ++ t) ≈ weight-sum P f s + weight-sum P f t
+weight-sum-++         f []      t = Eq.sym (+-identityˡ _)
+weight-sum-++ {P = P} f (ω ∷ s) t = Eq.trans
+  (+-congˡ (weight-sum-++ f s t))
+  (R.solve 4 (λ pω fω wss wst →
+       ((pω R.:* fω) R.:+ (wss R.:+ wst))
+     R.:= (((pω R.:* fω) R.:+ wss) R.:+ wst))
+   Eq.refl
+   (P ∙ (ω ≡_)) (f ω) (weight-sum P f s) (weight-sum P f t))
+
+-- A `cons in the middle` rearrangement: an element `a` placed between
+-- two list segments contributes the same `P ∙ (a ≡_) * f a` whether we
+-- evaluate the sum in-order or pull `a` to the front.
+weight-sum-cons-middle : ∀ {P : ProbDistr Ω} {a : Ω}
+                         (xs : List Ω) {ys : List Ω}
+                         (f : Ω → Probability)
+                       → weight-sum P f (xs ++ a ∷ ys)
+                       ≈ P ∙ (a ≡_) * f a + weight-sum P f (xs ++ ys)
+weight-sum-cons-middle {P = P} {a} xs {ys} f = Eq.trans
+  (weight-sum-++ f xs (a ∷ ys))
+  (Eq.trans
+    (R.solve 4 (λ wsxs paω fa wsys →
+         (wsxs R.:+ ((paω R.:* fa) R.:+ wsys))
+       R.:= ((paω R.:* fa) R.:+ (wsxs R.:+ wsys)))
+     Eq.refl
+     (weight-sum P f xs) (P ∙ (a ≡_)) (f a) (weight-sum P f ys))
+    (+-congˡ (Eq.sym (weight-sum-++ f xs ys))))
+
+-- `weight-sum` is invariant under permutation of the support.  Each
+-- constructor case is a single ring rearrangement on the head, so the
+-- ring solver closes the algebra immediately.
+weight-sum-↭ : ∀ {P : ProbDistr Ω} (f : Ω → Probability) {s t : List Ω}
+             → s ↭ t → weight-sum P f s ≈ weight-sum P f t
+weight-sum-↭         f Perm.refl                    = Eq.refl
+weight-sum-↭         f (Perm.prep _ p)              = +-congˡ (weight-sum-↭ f p)
+weight-sum-↭ {P = P} f (Perm.swap ω₁ ω₂ p) = Eq.trans
+  (+-congˡ (+-congˡ (weight-sum-↭ f p)))
+  (R.solve 3 (λ x y z → (x R.:+ (y R.:+ z)) R.:= (y R.:+ (x R.:+ z)))
+   Eq.refl
+   (P ∙ (ω₁ ≡_) * f ω₁) (P ∙ (ω₂ ≡_) * f ω₂) _)
+weight-sum-↭         f (Perm.trans p q)             =
+  Eq.trans (weight-sum-↭ f p) (weight-sum-↭ f q)
+
+-- A `weight-sum` over a support whose every weighted contribution
+-- vanishes is itself zero.
+weight-sum-vanish : ∀ {P : ProbDistr Ω} {f : Ω → Probability} (s : List Ω)
+                  → (∀ {ω} → ω ∈ˡ s → P ∙ (ω ≡_) * f ω ≈ 0#)
+                  → weight-sum P f s ≈ 0#
+weight-sum-vanish         []       _      = Eq.refl
+weight-sum-vanish {P = P} {f} (ω ∷ ωs) vanish = Eq.trans
+  (+-cong (vanish (here P.refl)) (weight-sum-vanish ωs (vanish ∘ there)))
+  (+-identityʳ 0#)
+
+-- "Support enlargement by vanishing elements": if `t` covers `s`, both
+-- distinct, and the elements of `t \ s` have vanishing weighted
+-- contribution, then ws over `t` equals ws over `s`.  Realised by
+-- permuting `t` to `s ++ extras` (via `partition-↭`) and dropping the
+-- extras with `weight-sum-vanish`.
+weight-sum-extend-vanish : ∀ {P : ProbDistr Ω} (t s : List Ω)
+                         → Unique t → Unique s
+                         → (∀ {ω} → ω ∈ˡ s → ω ∈ˡ t)
+                         → (f : Ω → Probability)
+                         → (∀ {ω} → ω ∈ˡ t → ω ∉ˡ s → P ∙ (ω ≡_) * f ω ≈ 0#)
+                         → weight-sum P f t ≈ weight-sum P f s
+weight-sum-extend-vanish {P = P} t s t-d s-d s⊆t f vanish
+  with extras , t↭ , _ , extras∉s ← partition-↭ t s t-d s-d s⊆t = begin
+    weight-sum P f t                              ≈⟨ weight-sum-↭ f t↭ ⟩
+    weight-sum P f (s ++ extras)                  ≈⟨ weight-sum-++ f s extras ⟩
+    weight-sum P f s + weight-sum P f extras      ≈⟨ +-congˡ extras-sum-0 ⟩
+    weight-sum P f s + 0#                         ≈⟨ +-identityʳ _ ⟩
+    weight-sum P f s ∎
+  where
+    open ≈-Reasoning setoid
+    extras-sum-0 : weight-sum P f extras ≈ 0#
+    extras-sum-0 = weight-sum-vanish extras
+      (λ ω∈ex → vanish (∈-resp-↭ (Perm.↭-sym t↭) (∈-++⁺ʳ s ω∈ex))
+                       (extras∉s ω∈ex))
 
 ------------------------------------------------------------------------
 -- Lemmas at the relation level.
 
--- Refit an existing E witness onto a (possibly different) function and
--- value, reusing the original's support.  Most lemmas below are thin
--- wrappers around this — they only differ in the `value` equation.
-E-refit : ∀ {P : ProbDistr Ω} {f : Ω → Probability} {e : Probability}
-        → (E_f : E[ P , f ]≈ e)
-        → ∀ {g : Ω → Probability} {e' : Probability}
-        → e' ≈ weight-sum P g (E_f .support)
-        → E[ P , g ]≈ e'
-E-refit E_f val = record
-  { support  = E_f .support
-  ; distinct = E_f .distinct
-  ; full     = E_f .full
-  ; value    = val
-  }
-
 -- Replacing the value by an `≈`-equal one.
 E-resp-≈ : ∀ {P : ProbDistr Ω} {f : Ω → Probability} {e e' : Probability}
          → e ≈ e' → E[ P , f ]≈ e → E[ P , f ]≈ e'
-E-resp-≈ e≈e' E = E-refit E (Eq.trans (Eq.sym e≈e') (E .value))
+E-resp-≈ e≈e' E = record
+  { support     = E .support
+  ; distinct    = E .distinct
+  ; off-support = E .off-support
+  ; value       = Eq.trans (Eq.sym e≈e') (E .value)
+  }
 
 -- Replacing `f` by a pointwise-`≈` function.
 E-resp-≈-f : ∀ {P : ProbDistr Ω} {f g : Ω → Probability} {e : Probability}
            → (∀ ω → f ω ≈ g ω) → E[ P , f ]≈ e → E[ P , g ]≈ e
-E-resp-≈-f f≈g E = E-refit E (Eq.trans (E .value) (weight-sum-cong-f f≈g (E .support)))
+E-resp-≈-f {P = P} {f} {g} f≈g E = record
+  { support     = E .support
+  ; distinct    = E .distinct
+  ; off-support = λ {ω} ω∉ → Eq.trans (*-congˡ (Eq.sym (f≈g ω))) (E .off-support ω∉)
+  ; value       = Eq.trans (E .value) (weight-sum-cong-f f≈g (E .support))
+  }
 
--- Reusing the support of an existing witness to obtain an expectation
--- for any other function `g`.
-E-rebind : ∀ {P : ProbDistr Ω} {f : Ω → Probability} {e : Probability}
-         → (E_f : E[ P , f ]≈ e) (g : Ω → Probability)
-         → E[ P , g ]≈ weight-sum P g (E_f .support)
-E-rebind E_f _ = E-refit E_f Eq.refl
-
--- The constant-zero function has expected value zero.
-E-zero : ∀ {P : ProbDistr Ω} {f : Ω → Probability} {e : Probability}
-       → E[ P , f ]≈ e → E[ P , (λ _ → 0#) ]≈ 0#
-E-zero E_f = E-refit E_f (Eq.sym (weight-sum-0 (E_f .support)))
-
--- Linearity at the relation level: shares the support of the first witness.
-E-+ : ∀ {P : ProbDistr Ω} {f : Ω → Probability} {e : Probability}
-    → (E_f : E[ P , f ]≈ e) (g : Ω → Probability)
-    → E[ P , (λ ω → f ω + g ω) ]≈ (e + weight-sum P g (E_f .support))
-E-+ {P = P} {f} {e} E_f g = E-refit E_f (begin
-  e + weight-sum P g (E_f .support)
-    ≈⟨ +-congʳ (E_f .value) ⟩
-  weight-sum P f (E_f .support) + weight-sum P g (E_f .support)
-    ≈⟨ Eq.sym (weight-sum-+ f g (E_f .support)) ⟩
-  weight-sum P (λ ω → f ω + g ω) (E_f .support) ∎)
-  where open ≈-Reasoning setoid
+-- The constant-zero function has expected value zero, on the empty support.
+E-zero : ∀ {P : ProbDistr Ω} → E[ P , (λ _ → 0#) ]≈ 0#
+E-zero = record
+  { support     = []
+  ; distinct    = []
+  ; off-support = λ _ → zeroʳ _
+  ; value       = Eq.refl
+  }
 
 -- Scalar pre-multiplication.
 E-*ₗ : ∀ {P : ProbDistr Ω} {f : Ω → Probability} {e : Probability}
      → (k : Probability) → E[ P , f ]≈ e → E[ P , (λ ω → k * f ω) ]≈ (k * e)
-E-*ₗ {P = P} {f} {e} k E_f = E-refit E_f (begin
-  k * e ≈⟨ *-congˡ (E_f .value) ⟩
-  k * weight-sum P f (E_f .support)
-    ≈⟨ Eq.sym (weight-sum-*ₗ k f (E_f .support)) ⟩
-  weight-sum P (λ ω → k * f ω) (E_f .support) ∎)
-  where open ≈-Reasoning setoid
+E-*ₗ {P = P} {f} {e} k E_f = record
+  { support     = E_f .support
+  ; distinct    = E_f .distinct
+  ; off-support = λ {ω} ω∉ → Eq.trans
+        (R.solve 3 (λ pω k' fω →
+             (pω R.:* (k' R.:* fω))
+           R.:= (k' R.:* (pω R.:* fω)))
+         Eq.refl
+         (P ∙ (ω ≡_)) k (f ω))
+        (Eq.trans (*-congˡ (E_f .off-support ω∉)) (zeroʳ _))
+  ; value = Eq.trans (*-congˡ (E_f .value))
+                     (Eq.sym (weight-sum-*ₗ k f (E_f .support)))
+  }
 
--- Building an E witness from a support enumeration.
-E-of-support : ∀ {P : ProbDistr Ω} (s : List Ω) → AllPairs _≢_ s
-             → P ∙ (_∈ˡ s) ≈ 1# → (f : Ω → Probability)
+-- Building an E witness directly from a support and an `off-support`
+-- proof for the function `f`.
+E-of-support : ∀ {P : ProbDistr Ω} (s : List Ω) → Unique s
+             → (f : Ω → Probability)
+             → (∀ {ω} → ω ∉ˡ s → P ∙ (ω ≡_) * f ω ≈ 0#)
              → E[ P , f ]≈ weight-sum P f s
-E-of-support s d full f = record
-  { support = s ; distinct = d ; full = full ; value = Eq.refl }
-
-------------------------------------------------------------------------
--- Cartesian product of lists, the rectangle decomposition of membership,
--- and distinctness preservation — all from std-lib.
-
--- Infix alias for `cartesianProduct`, matching standard math notation.
-infixr 5 _×ᴸ_
-_×ᴸ_ : List Ω₁ → List Ω₂ → List (Ω₁ × Ω₂)
-_×ᴸ_ = cartesianProduct
-
--- Cartesian product preserves distinctness (alias for std-lib's
--- `Unique.Propositional.cartesianProduct⁺`).
-AllPairs-×ᴸ : ∀ {s₁ : List Ω₁} {s₂ : List Ω₂}
-            → AllPairs _≢_ s₁ → AllPairs _≢_ s₂
-            → AllPairs _≢_ (s₁ ×ᴸ s₂)
-AllPairs-×ᴸ = UniqueP.cartesianProduct⁺
-
--- Membership in the cartesian product as a rectangle predicate equivalence.
-×ᴸ-≐-rect : ∀ (s₁ : List Ω₁) (s₂ : List Ω₂)
-          → (_∈ˡ (s₁ ×ᴸ s₂)) ≐ ((_∈ˡ s₁) ⊠ (_∈ˡ s₂))
-proj₁ (×ᴸ-≐-rect s₁ s₂) ab∈ = ∈-cartesianProduct⁻ s₁ s₂ ab∈
-proj₂ (×ᴸ-≐-rect s₁ s₂) (a∈ , b∈) = ∈-cartesianProduct⁺ a∈ b∈
-
--- Full mass for the cartesian product of full-mass supports under ⊗.
-⊗-full : ∀ {P : ProbDistr Ω₁} {Q : ProbDistr Ω₂}
-       → (s₁ : List Ω₁) → P ∙ (_∈ˡ s₁) ≈ 1#
-       → (s₂ : List Ω₂) → Q ∙ (_∈ˡ s₂) ≈ 1#
-       → (P ⊗ Q) ∙ (_∈ˡ (s₁ ×ᴸ s₂)) ≈ 1#
-⊗-full {P = P} {Q} s₁ P-full s₂ Q-full = begin
-  (P ⊗ Q) ∙ (_∈ˡ (s₁ ×ᴸ s₂))
-    ≈⟨ ∙-cong (×ᴸ-≐-rect s₁ s₂) ⟩
-  (P ⊗ Q) ∙ ((_∈ˡ s₁) ⊠ (_∈ˡ s₂))
-    ≈⟨ ⊗-rect ⟩
-  P ∙ (_∈ˡ s₁) * Q ∙ (_∈ˡ s₂)
-    ≈⟨ *-cong P-full Q-full ⟩
-  1# * 1#
-    ≈⟨ *-identityʳ 1# ⟩
-  1# ∎
-  where open ≈-Reasoning setoid
-
--- Building an E witness for `P ⊗ Q` from supports of P and Q.
-E-of-support-⊗ : ∀ {P : ProbDistr Ω₁} {Q : ProbDistr Ω₂}
-               → (s₁ : List Ω₁) → AllPairs _≢_ s₁ → P ∙ (_∈ˡ s₁) ≈ 1#
-               → (s₂ : List Ω₂) → AllPairs _≢_ s₂ → Q ∙ (_∈ˡ s₂) ≈ 1#
-               → (f : Ω₁ × Ω₂ → Probability)
-               → E[ P ⊗ Q , f ]≈ weight-sum (P ⊗ Q) f (s₁ ×ᴸ s₂)
-E-of-support-⊗ s₁ d₁ P-full s₂ d₂ Q-full f =
-  E-of-support (s₁ ×ᴸ s₂) (AllPairs-×ᴸ d₁ d₂) (⊗-full s₁ P-full s₂ Q-full) f
+E-of-support s d f off = record
+  { support = s ; distinct = d ; off-support = off ; value = Eq.refl }
 
 ------------------------------------------------------------------------
 -- Fubini-style decompositions of `weight-sum` over `s₁ ×ᴸ s₂`.
 
--- `weight-sum` distributes over list concatenation in the support.
-weight-sum-++ : ∀ {Ω : Type} {P : ProbDistr Ω} (f : Ω → Probability) (s t : List Ω)
-              → weight-sum P f (s ++ t) ≈ weight-sum P f s + weight-sum P f t
-weight-sum-++         f []      t = Eq.sym (+-identityˡ _)
-weight-sum-++ {P = P} f (ω ∷ s) t = begin
-  P ∙ (ω ≡_) * f ω + weight-sum P f (s ++ t)
-    ≈⟨ +-congˡ (weight-sum-++ f s t) ⟩
-  P ∙ (ω ≡_) * f ω + (weight-sum P f s + weight-sum P f t)
-    ≈⟨ Eq.sym (+-assoc _ _ _) ⟩
-  P ∙ (ω ≡_) * f ω + weight-sum P f s + weight-sum P f t ∎
-  where open ≈-Reasoning setoid
-
-private
-  -- The singleton event {= (a, b)} is a rectangle over the components.
-  singleton-≐-rect : ∀ {Ω₁ Ω₂ : Type} (a : Ω₁) (b : Ω₂)
-                   → ((a , b) ≡_) ≐ ((a ≡_) ⊠ (b ≡_))
-  proj₁ (singleton-≐-rect a b) P.refl = P.refl , P.refl
-  proj₂ (singleton-≐-rect a b) (P.refl , P.refl) = P.refl
-
--- A singleton in `P ⊗ Q` factors as the product of singletons.
-⊗-singleton : ∀ {P : ProbDistr Ω₁} {Q : ProbDistr Ω₂} (a : Ω₁) (b : Ω₂)
-            → (P ⊗ Q) ∙ ((a , b) ≡_) ≈ P ∙ (a ≡_) * Q ∙ (b ≡_)
-⊗-singleton {P = P} {Q} a b = Eq.trans (∙-cong (singleton-≐-rect a b)) ⊗-rect
-
 -- `weight-sum` factors out a constant scalar (right multiplication).
-weight-sum-*ᵣ : ∀ {Ω : Type} {P : ProbDistr Ω} (f : Ω → Probability) (k : Probability) (s : List Ω)
+weight-sum-*ᵣ : ∀ {P : ProbDistr Ω} (f : Ω → Probability) (k : Probability) (s : List Ω)
               → weight-sum P (λ ω → f ω * k) s ≈ weight-sum P f s * k
-weight-sum-*ᵣ         f k []       = Eq.sym (Eq.trans (*-comm 0# k) (zeroʳ k))
-weight-sum-*ᵣ {P = P} f k (ω ∷ ωs) = begin
-  P ∙ (ω ≡_) * (f ω * k) + weight-sum P (λ ω → f ω * k) ωs
-    ≈⟨ +-cong (Eq.sym (*-assoc _ _ _)) (weight-sum-*ᵣ f k ωs) ⟩
-  P ∙ (ω ≡_) * f ω * k + weight-sum P f ωs * k
-    ≈⟨ Eq.sym (distribʳ k _ _) ⟩
-  (P ∙ (ω ≡_) * f ω + weight-sum P f ωs) * k ∎
-  where open ≈-Reasoning setoid
+weight-sum-*ᵣ         f k []       = Eq.sym (zeroˡ k)
+weight-sum-*ᵣ {P = P} f k (ω ∷ ωs) = Eq.trans
+  (+-congˡ (weight-sum-*ᵣ f k ωs))
+  (R.solve 4 (λ pω fω k' wsf →
+       ((pω R.:* (fω R.:* k')) R.:+ (wsf R.:* k'))
+     R.:= (((pω R.:* fω) R.:+ wsf) R.:* k'))
+   Eq.refl
+   (P ∙ (ω ≡_)) (f ω) k (weight-sum P f ωs))
 
 -- `weight-sum` over `mapL (a ,_) s₂` collapses to a constant times the inner
 -- weight-sum (the contribution of the fixed first component a).
@@ -273,20 +274,13 @@ weight-sum-mapL : ∀ {P : ProbDistr Ω₁} {Q : ProbDistr Ω₂}
                 → weight-sum (P ⊗ Q) f (mapL (a ,_) s₂)
                 ≈ P ∙ (a ≡_) * weight-sum Q (λ b → f (a , b)) s₂
 weight-sum-mapL {P = P} {Q} a [] f = Eq.sym (zeroʳ (P ∙ (a ≡_)))
-weight-sum-mapL {P = P} {Q} a (b ∷ bs) f = begin
-  (P ⊗ Q) ∙ ((a , b) ≡_) * f (a , b)
-    + weight-sum (P ⊗ Q) f (mapL (a ,_) bs)
-    ≈⟨ +-cong (*-congʳ (⊗-singleton a b)) (weight-sum-mapL a bs f) ⟩
-  P ∙ (a ≡_) * Q ∙ (b ≡_) * f (a , b)
-    + P ∙ (a ≡_) * weight-sum Q (λ b' → f (a , b')) bs
-    ≈⟨ +-congʳ (*-assoc _ _ _) ⟩
-  P ∙ (a ≡_) * (Q ∙ (b ≡_) * f (a , b))
-    + P ∙ (a ≡_) * weight-sum Q (λ b' → f (a , b')) bs
-    ≈⟨ Eq.sym (distribˡ (P ∙ (a ≡_)) _ _) ⟩
-  P ∙ (a ≡_)
-    * (Q ∙ (b ≡_) * f (a , b)
-       + weight-sum Q (λ b' → f (a , b')) bs) ∎
-  where open ≈-Reasoning setoid
+weight-sum-mapL {P = P} {Q} a (b ∷ bs) f = Eq.trans
+  (+-cong (*-congʳ (⊗-singleton a b)) (weight-sum-mapL a bs f))
+  (R.solve 4 (λ pa qb fab wsq →
+       (((pa R.:* qb) R.:* fab) R.:+ (pa R.:* wsq))
+     R.:= (pa R.:* ((qb R.:* fab) R.:+ wsq)))
+   Eq.refl
+   (P ∙ (a ≡_)) (Q ∙ (b ≡_)) (f (a , b)) (weight-sum Q (λ b' → f (a , b')) bs))
 
 -- Fubini-style: weight-sum over `s₁ ×ᴸ s₂` factors as a sum over s₁ of the
 -- inner weight-sums weighted by P ∙ (a ≡_).
@@ -306,8 +300,8 @@ weight-sum-×ᴸ {P = P} {Q} (a ∷ as) s₂ f = begin
 
 -- For a distinct support s, summing the singletons P ∙ (ω ≡_) over s
 -- gives P ∙ (_∈ˡ s).
-weight-sum-1#-distinct : ∀ {Ω : Type} {P : ProbDistr Ω}
-                         (s : List Ω) → AllPairs _≢_ s
+weight-sum-1#-distinct : ∀ {P : ProbDistr Ω}
+                         (s : List Ω) → Unique s
                        → weight-sum P (λ _ → 1#) s ≈ P ∙ (_∈ˡ s)
 weight-sum-1#-distinct {P = P} [] _ = begin
   0#                ≈⟨ Eq.sym P∅≈0 ⟩
@@ -320,22 +314,17 @@ weight-sum-1#-distinct {P = P} (ω ∷ ωs) (ω∉ωs ∷ d-rest) = begin
   P ∙ (ω ≡_) + P ∙ (_∈ˡ ωs)
     ≈⟨ P-distrib-disjoint disj ⟩
   P ∙ ((ω ≡_) ∪ (_∈ˡ ωs))
-    ≈⟨ ∙-cong cons-equiv ⟩
+    ≈⟨ ∙-cong (≐-sym (∈-cons-≐ ω ωs)) ⟩
   P ∙ (_∈ˡ (ω ∷ ωs)) ∎
   where
     open ≈-Reasoning setoid
     disj : disjoint (ω ≡_) (_∈ˡ ωs)
     disj P.refl ω∈ωs = All.lookup ω∉ωs ω∈ωs P.refl
-    cons-equiv : ((ω ≡_) ∪ (_∈ˡ ωs)) ≐ (_∈ˡ (ω ∷ ωs))
-    proj₁ cons-equiv (inj₁ ω≡ω') = here (P.sym ω≡ω')
-    proj₁ cons-equiv (inj₂ ω'∈ωs) = there ω'∈ωs
-    proj₂ cons-equiv (here ω'≡ω) = inj₁ (P.sym ω'≡ω)
-    proj₂ cons-equiv (there ω'∈ωs) = inj₂ ω'∈ωs
 
 -- Fubini for the second projection: weight-sum (P ⊗ Q) (f ∘ proj₂) over a
 -- product support reduces to weight-sum Q f over the second support.
 weight-sum-proj₂ : ∀ {P : ProbDistr Ω₁} {Q : ProbDistr Ω₂}
-                   (s₁ : List Ω₁) → AllPairs _≢_ s₁ → P ∙ (_∈ˡ s₁) ≈ 1#
+                   (s₁ : List Ω₁) → Unique s₁ → P ∙ (_∈ˡ s₁) ≈ 1#
                  → (s₂ : List Ω₂) (f : Ω₂ → Probability)
                  → weight-sum (P ⊗ Q) (f P.∘ proj₂) (s₁ ×ᴸ s₂)
                  ≈ weight-sum Q f s₂
@@ -354,90 +343,10 @@ weight-sum-proj₂ {P = P} {Q} s₁ d₁ P-full s₂ f = begin
   where open ≈-Reasoning setoid
 
 ------------------------------------------------------------------------
--- Helpers about probability events.
-
-private
-  ≈⇒≤-P : ∀ {x y : Probability} → x ≈ y → x ≤ y
-  ≈⇒≤-P = IsPreorder.reflexive HP.≤-isPreorder
-
-  -- Cancellation: 1# + p ≈ 1# implies p ≤ 0#.
-  1+p≈1⇒p≤0 : ∀ {p : Probability} → 1# + p ≈ 1# → p ≤ 0#
-  1+p≈1⇒p≤0 {p} eq = +-cancelʳ-≤ (≈⇒≤-P p+1≈0+1)
-    where
-      open ≈-Reasoning setoid
-      p+1≈0+1 : p + 1# ≈ 0# + 1#
-      p+1≈0+1 = begin
-        p + 1#  ≈⟨ +-comm p 1# ⟩
-        1# + p  ≈⟨ eq ⟩
-        1#      ≈⟨ Eq.sym (+-identityˡ 1#) ⟩
-        0# + 1# ∎
-
--- Complement of a full-mass event has zero mass.  Requires decidability
--- of the event (so we have law-of-excluded-middle on it).
-P-∁≈0 : ∀ {P : ProbDistr Ω} {A : Ω → Type} ⦃ A? : A ⁇¹ ⦄
-      → P ∙ A ≈ 1# → P ∙ ∁ A ≈ 0#
-P-∁≈0 {P = P} {A} PA≈1 = HPo.≤-antisym P∁A≤0 0≤PX
-  where
-    open ≈-Reasoning setoid
-
-    A∁A-disj : disjoint A (∁ A)
-    A∁A-disj Aω ¬Aω = ¬Aω Aω
-
-    A∪∁A≐U : (A ∪ ∁ A) ≐ U
-    proj₁ A∪∁A≐U _ = tt
-    proj₂ A∪∁A≐U {ω} _ with ¿ A ω ¿
-    ... | yes Aω = inj₁ Aω
-    ... | no ¬Aω = inj₂ ¬Aω
-
-    PA+P∁A≈1 : P ∙ A + P ∙ ∁ A ≈ 1#
-    PA+P∁A≈1 = begin
-      P ∙ A + P ∙ ∁ A   ≈⟨ P-distrib-disjoint A∁A-disj ⟩
-      P ∙ (A ∪ ∁ A)     ≈⟨ ∙-cong A∪∁A≐U ⟩
-      P ∙ U             ≈⟨ PU≈1 ⟩
-      1#                 ∎
-
-    1+P∁A≈1 : 1# + P ∙ ∁ A ≈ 1#
-    1+P∁A≈1 = Eq.trans (+-congʳ (Eq.sym PA≈1)) PA+P∁A≈1
-
-    P∁A≤0 : P ∙ ∁ A ≤ 0#
-    P∁A≤0 = 1+p≈1⇒p≤0 1+P∁A≈1
-
--- Mass restriction: P(B) coincides with P(B ∩ A) when A is full-mass.
-mass-restrict : ∀ {P : ProbDistr Ω} {A B : Ω → Type} ⦃ A? : A ⁇¹ ⦄
-              → P ∙ A ≈ 1# → P ∙ B ≈ P ∙ (B ∩ A)
-mass-restrict {P = P} {A} {B} PA≈1 = begin
-  P ∙ B
-    ≈⟨ ∙-cong B≐BA∪B∁A ⟩
-  P ∙ ((B ∩ A) ∪ (B ∩ ∁ A))
-    ≈⟨ Eq.sym (P-distrib-disjoint disj) ⟩
-  P ∙ (B ∩ A) + P ∙ (B ∩ ∁ A)
-    ≈⟨ +-congˡ P-B∩∁A≈0 ⟩
-  P ∙ (B ∩ A) + 0#
-    ≈⟨ +-identityʳ _ ⟩
-  P ∙ (B ∩ A) ∎
-  where
-    open ≈-Reasoning setoid
-
-    B≐BA∪B∁A : B ≐ (B ∩ A) ∪ (B ∩ ∁ A)
-    proj₁ B≐BA∪B∁A {ω} Bω with ¿ A ω ¿
-    ... | yes Aω = inj₁ (Bω , Aω)
-    ... | no ¬Aω = inj₂ (Bω , ¬Aω)
-    proj₂ B≐BA∪B∁A (inj₁ (Bω , _)) = Bω
-    proj₂ B≐BA∪B∁A (inj₂ (Bω , _)) = Bω
-
-    disj : disjoint (B ∩ A) (B ∩ ∁ A)
-    disj (_ , Aω) (_ , ¬Aω) = ¬Aω Aω
-
-    P-B∩∁A≈0 : P ∙ (B ∩ ∁ A) ≈ 0#
-    P-B∩∁A≈0 = HPo.≤-antisym
-                  (HP.≤-trans (prob-monotonous proj₂) (≈⇒≤-P (P-∁≈0 PA≈1)))
-                  0≤PX
-
-------------------------------------------------------------------------
 -- The indicator function summed over a distinct support equals the
 -- probability of the event restricted to that support.
 weight-sum-1[X] : ∀ {P : ProbDistr Ω} (X : Ω → Type) ⦃ X? : X ⁇¹ ⦄
-                → ∀ s → AllPairs _≢_ s
+                → ∀ s → Unique s
                 → weight-sum P 1[ X ] s ≈ P ∙ (X ∩ (_∈ˡ s))
 weight-sum-1[X] {P = P} X [] [] = begin
   0#                              ≈⟨ Eq.sym P∅≈0 ⟩
@@ -491,71 +400,125 @@ module _ {Ω : Type} ⦃ deceq-Ω : DecEq Ω ⦄ where
 
   open import Data.List.Membership.DecPropositional (DecEq._≟_ deceq-Ω) using (_∈?_)
 
-  -- List membership is decidable when Ω has decidable equality.
-  instance
-    ∈ˡ-? : ∀ {s : List Ω} → (_∈ˡ s) ⁇¹
-    ∈ˡ-? {s} = ⁇¹ (_∈? s)
+  -- For a support that carries full P-mass, every singleton off the
+  -- support has zero P-mass, hence zero weighted contribution.  This is
+  -- the bridge from "support has full P-mass" to "off-support contributes
+  -- zero" — the field condition of the `E[ … ]≈ _` record.
+  off-support-of-full-mass :
+    ∀ {P : ProbDistr Ω} {s : List Ω}
+    → P ∙ (_∈ˡ s) ≈ 1#
+    → (f : Ω → Probability) → ∀ {ω} → ω ∉ˡ s → P ∙ (ω ≡_) * f ω ≈ 0#
+  off-support-of-full-mass full f ω∉ =
+    Eq.trans (*-congʳ (P≈0-of-⊆ (λ where P.refl → ω∉) (P-∁≈0 ⦃ ∈ˡ-? ⦄ full)))
+             (zeroˡ _)
 
-  -- Indicator rule: the expected value of an indicator equals the event's
-  -- probability.  Reuses the support of any provided E witness.
-  -- TODO: this really shouldn't have the `E_f` argument
-  E-indicator : ∀ {P : ProbDistr Ω} {f : Ω → Probability} {e : Probability}
-              → (E_f : E[ P , f ]≈ e)
+  -- Indicator rule: the expected value of an indicator over a full-mass
+  -- support equals the event's probability.
+  E-indicator : ∀ {P : ProbDistr Ω}
+              → (s : List Ω) → Unique s → P ∙ (_∈ˡ s) ≈ 1#
               → (X : Ω → Type) ⦃ X? : X ⁇¹ ⦄
               → E[ P , 1[ X ] ]≈ (P ∙ X)
-  E-indicator {P = P} {f} {e} E_f X = E-refit E_f (begin
-    P ∙ X
-      ≈⟨ mass-restrict ⦃ ∈ˡ-? ⦄ (E_f .full) ⟩
-    P ∙ (X ∩ (_∈ˡ E_f .support))
-      ≈⟨ Eq.sym (weight-sum-1[X] X (E_f .support) (E_f .distinct)) ⟩
-    weight-sum P 1[ X ] (E_f .support) ∎)
-    where open ≈-Reasoning setoid
+  E-indicator {P = P} s d full X =
+    E-resp-≈ ws-1[X]≈P∙X (E-of-support s d 1[ X ] (off-support-of-full-mass full 1[ X ]))
+    where
+      open ≈-Reasoning setoid
+      ws-1[X]≈P∙X : weight-sum P 1[ X ] s ≈ P ∙ X
+      ws-1[X]≈P∙X = begin
+        weight-sum P 1[ X ] s              ≈⟨ weight-sum-1[X] X s d ⟩
+        P ∙ (X ∩ (_∈ˡ s))                  ≈⟨ Eq.sym (mass-restrict ⦃ ∈ˡ-? ⦄ full) ⟩
+        P ∙ X ∎
 
   ------------------------------------------------------------------------
-  -- Expected value of `pure ω`.
+  -- Two-witness linearity: if `f` and `g` each have an expected value, so
+  -- does their pointwise sum.  Decidable equality on `Ω` is what lets us
+  -- build a distinct combined support.
+  E-+ : ∀ {P : ProbDistr Ω} {f g : Ω → Probability} {ef eg : Probability}
+      → E[ P , f ]≈ ef → E[ P , g ]≈ eg
+      → E[ P , (λ ω → f ω + g ω) ]≈ (ef + eg)
+  E-+ {P = P} {f} {g} {ef} {eg} Ef Eg = record
+    { support     = sf ++ extras
+    ; distinct    = s-d
+    ; off-support = off-fg
+    ; value       = value-eq
+    }
+    where
+      open ≈-Reasoning setoid
 
-  private
-    import Data.List.NonEmpty as NE
-    open import Data.List.Properties using (filter-all)
-    open import Data.Rational using (_/_; 1ℚ)
-    open import Data.Integer using (+_)
-    open import Relation.Nullary.Decidable using (T?)
-    open import LibExt using (module Arith)
-    open Arith using (n/n≡1ℚ)
+      sf = Ef .support
+      sg = Eg .support
 
-    -- `_∈ˡ s` and the lifted Bool predicate `↑ (λ ω' → ⌊ ω' ∈? s ⌋)` are
-    -- pointwise logically equivalent.
-    ∈ˡ≐↑∈?  : ∀ {s : List Ω} → (_∈ˡ s) ≐ (↑ (λ ω' → ⌊ ω' ∈? s ⌋))
-    proj₁ ∈ˡ≐↑∈? ω∈s = fromWitness ω∈s
-    proj₂ ∈ˡ≐↑∈? {ω} ↑ω = toWitness {a? = ω ∈? _} ↑ω
+      ¬∈sf? : (y : Ω) → Dec (y ∉ˡ sf)
+      ¬∈sf? y = ¬? (y ∈? sf)
 
-    -- `filterᵇ (λ ω' → ⌊ ω' ∈? s ⌋) s ≡ s`: filtering by self-membership
-    -- keeps every element.
-    filterᵇ-self : (s : List Ω) → filterᵇ (λ ω' → ⌊ ω' ∈? s ⌋) s ≡ s
-    filterᵇ-self s = filter-all (T? P.∘ (λ ω' → ⌊ ω' ∈? s ⌋))
-                                (All.tabulate fromWitness)
+      extras : List Ω
+      extras = filter ¬∈sf? sg
 
-  -- For pure ω, "ω' ∈ [ω]" has full probability mass.
-  pure-full : ∀ (ω : Ω) → pure ω ∙ (_∈ˡ (ω ∷ [])) ≈ 1#
-  pure-full ω = begin
-    pure ω ∙ (_∈ˡ (ω ∷ []))
-      ≈⟨ ∙-cong ∈ˡ≐↑∈? ⟩
-    pure ω ∙ (↑ (λ ω' → ⌊ ω' ∈? (ω ∷ []) ⌋))
-      ≈⟨ empirical-eq ⟩
-    fromℚ ((+ length (filterᵇ (λ ω' → ⌊ ω' ∈? (ω ∷ []) ⌋) (ω ∷ []))) / 1)
-      ≡⟨ cong (λ s → fromℚ ((+ length s) / 1)) (filterᵇ-self (ω ∷ [])) ⟩
-    fromℚ ((+ 1) / 1)
-      ≈⟨ fromℚ-1 ⟩
-    1# ∎
-    where open ≈-Reasoning setoid
+      extras-d : Unique extras
+      extras-d = AllPairsP.filter⁺ ¬∈sf? (Eg .distinct)
 
-  -- The expected value of `f` under `pure ω` is `f ω`.
+      extras-∉sf : ∀ {x} → x ∈ˡ extras → x ∉ˡ sf
+      extras-∉sf x∈ = proj₂ (∈-filter⁻ ¬∈sf? {xs = sg} x∈)
+
+      ∉sf→sg→extras : ∀ {x} → x ∉ˡ sf → x ∈ˡ sg → x ∈ˡ extras
+      ∉sf→sg→extras x∉sf x∈sg = ∈-filter⁺ ¬∈sf? {xs = sg} x∈sg x∉sf
+
+      s-d : Unique (sf ++ extras)
+      s-d = AllPairsP.++⁺ (Ef .distinct) extras-d cross
+        where
+          cross : All (λ x → All (x ≢_) extras) sf
+          cross = All.tabulate (λ {x} x∈sf →
+                    All.tabulate (λ {y} y∈extras x≡y →
+                      extras-∉sf y∈extras (subst (_∈ˡ sf) x≡y x∈sf)))
+
+      off-fg : ∀ {ω} → ω ∉ˡ (sf ++ extras) → P ∙ (ω ≡_) * (f ω + g ω) ≈ 0#
+      off-fg {ω} ω∉ = begin
+        P ∙ (ω ≡_) * (f ω + g ω)
+          ≈⟨ distribˡ _ _ _ ⟩
+        P ∙ (ω ≡_) * f ω + P ∙ (ω ≡_) * g ω
+          ≈⟨ +-cong (Ef .off-support ω∉sf) (Eg .off-support ω∉sg) ⟩
+        0# + 0#
+          ≈⟨ +-identityʳ _ ⟩
+        0# ∎
+        where
+          ω∉sf : ω ∉ˡ sf
+          ω∉sf ω∈sf = ω∉ (∈-++⁺ˡ ω∈sf)
+          ω∉sg : ω ∉ˡ sg
+          ω∉sg ω∈sg with ω ∈? sf
+          ... | yes ω∈sf  = ω∉sf ω∈sf
+          ... | no  ω∉sf' = ω∉ (∈-++⁺ʳ sf (∉sf→sg→extras ω∉sf' ω∈sg))
+
+      sg⊆combined : ∀ {ω} → ω ∈ˡ sg → ω ∈ˡ (sf ++ extras)
+      sg⊆combined {ω} ω∈sg with ω ∈? sf
+      ... | yes ω∈sf  = ∈-++⁺ˡ ω∈sf
+      ... | no  ω∉sf' = ∈-++⁺ʳ sf (∉sf→sg→extras ω∉sf' ω∈sg)
+
+      ws-f-eq : weight-sum P f sf ≈ weight-sum P f (sf ++ extras)
+      ws-f-eq = Eq.sym (weight-sum-extend-vanish (sf ++ extras) sf s-d
+                        (Ef .distinct) ∈-++⁺ˡ f (λ _ → Ef .off-support))
+
+      ws-g-eq : weight-sum P g sg ≈ weight-sum P g (sf ++ extras)
+      ws-g-eq = Eq.sym (weight-sum-extend-vanish (sf ++ extras) sg s-d
+                        (Eg .distinct) sg⊆combined g (λ _ → Eg .off-support))
+
+      value-eq : ef + eg ≈ weight-sum P (λ ω → f ω + g ω) (sf ++ extras)
+      value-eq = begin
+        ef + eg
+          ≈⟨ +-cong (Ef .value) (Eg .value) ⟩
+        weight-sum P f sf + weight-sum P g sg
+          ≈⟨ +-cong ws-f-eq ws-g-eq ⟩
+        weight-sum P f (sf ++ extras) + weight-sum P g (sf ++ extras)
+          ≈⟨ Eq.sym (weight-sum-+ f g (sf ++ extras)) ⟩
+        weight-sum P (λ ω → f ω + g ω) (sf ++ extras) ∎
+
+  ------------------------------------------------------------------------
+  -- Expected value of `pure ω`: just the value at ω.
+
   E-pure : (ω : Ω) (f : Ω → Probability) → E[ pure ω , f ]≈ f ω
   E-pure ω f = record
-    { support  = ω ∷ []
-    ; distinct = All.[] ∷ []
-    ; full     = pure-full ω
-    ; value    = begin
+    { support     = ω ∷ []
+    ; distinct    = All.[] ∷ []
+    ; off-support = off-support-of-full-mass (pure-full ω) f
+    ; value       = begin
         f ω
           ≈⟨ Eq.sym (+-identityʳ _) ⟩
         f ω + 0#
@@ -577,30 +540,13 @@ module _ {Ω : Type} ⦃ deceq-Ω : DecEq Ω ⦄ where
 
   ------------------------------------------------------------------------
   -- Expected value of `empirical l` for a list with distinct elements.
+  -- The canonical "structural" empirical witness — converting into a
+  -- closed-form arithmetic expression `(Σ f) * fromℚ (1 / n)` is further
+  -- work.
 
-  -- For a non-empty list `l` whose elements are pairwise distinct, the
-  -- mass of `_∈ˡ NE.toList l` is 1.
-  empirical-full : (l : NE.List⁺ Ω) → empirical l ∙ (_∈ˡ NE.toList l) ≈ 1#
-  empirical-full l@(_ NE.∷ tail) = begin
-    empirical l ∙ (_∈ˡ NE.toList l)
-      ≈⟨ ∙-cong ∈ˡ≐↑∈? ⟩
-    empirical l ∙ (↑ (λ ω → ⌊ ω ∈? NE.toList l ⌋))
-      ≈⟨ empirical-eq ⟩
-    fromℚ ((+ length (filterᵇ (λ ω → ⌊ ω ∈? NE.toList l ⌋) (NE.toList l))) / NE.length l)
-      ≡⟨ cong (λ s → fromℚ ((+ length s) / NE.length l)) (filterᵇ-self (NE.toList l)) ⟩
-    fromℚ ((+ NE.length l) / NE.length l)
-      ≡⟨ cong fromℚ (n/n≡1ℚ (NE.length l)) ⟩
-    fromℚ 1ℚ
-      ≈⟨ fromℚ-1 ⟩
-    1# ∎
-    where open ≈-Reasoning setoid
-
-  -- The expected value of `f` under `empirical l` for a distinct-element
-  -- list `l` is the weight-sum over `NE.toList l`.  This is the canonical
-  -- "structural" empirical witness — converting it into a closed-form
-  -- arithmetic expression `(Σ f) * fromℚ (1 / n)` requires further work.
-  E-empirical-distinct : (l : NE.List⁺ Ω) → AllPairs _≢_ (NE.toList l)
+  E-empirical-distinct : (l : NE.List⁺ Ω) → Unique (NE.toList l)
                        → (f : Ω → Probability)
                        → E[ empirical l , f ]≈ weight-sum (empirical l) f (NE.toList l)
   E-empirical-distinct l l-distinct f =
-    E-of-support (NE.toList l) l-distinct (empirical-full l) f
+    E-of-support (NE.toList l) l-distinct f
+                 (off-support-of-full-mass (empirical-full l) f)

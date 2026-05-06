@@ -10,12 +10,16 @@ import Data.List.NonEmpty as NE
 open import Data.Nat using (_≤_)
 open import Data.List.Relation.Unary.Any using (here)
 import Data.List.Relation.Unary.All as All
-open import Data.List.Relation.Unary.AllPairs using (AllPairs; []; _∷_)
+open import Data.List.Relation.Unary.AllPairs using ([]; _∷_)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Rational as ℚ using (ℚ; _/_)
 open import Data.Integer using (+_)
 
 open import ProbabilisticLogic.Abstract
 open import ProbabilisticLogic.Reasoning
+
+open import LibExt using (module Lists)
+open Lists using (_×ᴸ_; Unique-×ᴸ; ∈ˡ-?)
 
 module ProbabilisticLogic.Distribution.Binomial c ℓ (a : Abstract c ℓ) where
 
@@ -174,10 +178,10 @@ private
                   → binomial 0 m n ∙ (_∈ˡ (tt ∷ [])) ≈ 1#
   binomial-0-full m n = Eq.trans (∙-cong ⊤-cover) PU≈1
 
-binomial-support-distinct : (k : ℕ) → AllPairs _≢_ (binomial-support k)
+binomial-support-distinct : (k : ℕ) → Unique (binomial-support k)
 binomial-support-distinct zero    = All.[] ∷ []
 binomial-support-distinct (suc k) =
-  AllPairs-×ᴸ bool-distinct (binomial-support-distinct k)
+  Unique-×ᴸ bool-distinct (binomial-support-distinct k)
 
 binomial-full : ∀ k m n ⦃ _ : NonZero (m +ℕ n) ⦄
               → binomial k m n ∙ (_∈ˡ binomial-support k) ≈ 1#
@@ -197,8 +201,7 @@ E-binomial-1-first-true : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄
                         → E[ binomial 1 m n , 1[ ↑ id P.∘ proj₁ ] ]≈ fromℚ (+ m / (m +ℕ n))
 E-binomial-1-first-true m n = E-resp-≈ first-true-prob
   (E-indicator ⦃ deceq-Ω = DecEq-Bool^ ⦄
-    (E-of-support (binomial-support 1) (binomial-support-distinct 1)
-                  (binomial-full 1 m n) (λ _ → 0#))
+    (binomial-support 1) (binomial-support-distinct 1) (binomial-full 1 m n)
     (↑ id P.∘ proj₁))
   where
     open ≈-Reasoning setoid
@@ -275,8 +278,8 @@ ws-count-eq (suc k) m n = begin
 E-binomial-count : ∀ k m n ⦃ _ : NonZero (m +ℕ n) ⦄
                  → E[ binomial k m n , count-as-prob ]≈ (k ·ℕ fromℚ (+ m / (m +ℕ n)))
 E-binomial-count k m n = record
-  { support  = binomial-support k
-  ; distinct = binomial-support-distinct k
-  ; full     = binomial-full k m n
-  ; value    = Eq.sym (ws-count-eq k m n)
+  { support     = binomial-support k
+  ; distinct    = binomial-support-distinct k
+  ; off-support = off-support-of-full-mass ⦃ DecEq-Bool^ ⦄ (binomial-full k m n) count-as-prob
+  ; value       = Eq.sym (ws-count-eq k m n)
   }
