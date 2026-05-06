@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS #-}
 
 --------------------------------------------------------------------------------
 -- Experiment: define `decode` directly by structural recursion on the

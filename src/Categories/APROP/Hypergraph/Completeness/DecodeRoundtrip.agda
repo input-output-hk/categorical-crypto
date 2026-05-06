@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS #-}
 
 --------------------------------------------------------------------------------
 -- Phase 3.5f Step 5 — `decode-roundtrip` by induction on the term.

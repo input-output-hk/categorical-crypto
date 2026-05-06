@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS #-}
 
 --------------------------------------------------------------------------------
 -- Phases 3.5c-d (and the missing piece of 3.5e) — `decode` and its
