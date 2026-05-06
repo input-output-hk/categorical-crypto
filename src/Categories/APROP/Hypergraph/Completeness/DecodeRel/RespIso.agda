@@ -134,14 +134,56 @@ decode-rel-resp-≅ᴴ-id-Agen-absurd {A} g iso =
     iso' : ⟪ Agen g ⟫ ≅ᴴ ⟪ id {A} ⟫
     iso' = sym-≅ᴴ iso
 
--- Cross-pairs Agen vs σ.  σ {A}{B} has nE = 0 (hSwap.nE = 0
--- definitionally), so the same nE-mismatch argument applies.  But
--- types must coincide: σ {A'}{B'} : (A' ⊗ B') → (B' ⊗ A') must equal
--- HomTerm A B, so A = A' ⊗ B' and B = B' ⊗ A'.  Agen g : mor A B
--- requires the same A, B.  If both exist at compatible types, the iso
--- is impossible by edge count.
+-- All other cross-pairs Agen-vs-non-Agen-atomic share the nE-mismatch
+-- structure: Agen has 1 edge, every other atomic constructor's
+-- translation has 0 edges.  Each lemma below is `Agen-nonAgen-absurd`
+-- applied to the appropriate `hId-nE` or `refl`.
+
+-- Agen vs σ: ⟪σ⟫ = hSwap, hSwap.nE = 0 definitionally.
 decode-rel-resp-≅ᴴ-Agen-σ-absurd
   : ∀ {A B} ⦃ s : Symm ≤ Symm ⦄
     (g : mor (A ⊗₀ B) (B ⊗₀ A))
   → ⟪ Agen g ⟫ ≅ᴴ ⟪ σ {A = A} {B = B} ⦃ s ⦄ ⟫ → ⊥
 decode-rel-resp-≅ᴴ-Agen-σ-absurd g iso = Agen-nonAgen-absurd refl refl iso
+
+-- Agen vs λ⇒: ⟪λ⇒ A⟫ = hId A.
+decode-rel-resp-≅ᴴ-Agen-λ⇒-absurd
+  : ∀ {A} (g : mor (unit ⊗₀ A) A)
+  → ⟪ Agen g ⟫ ≅ᴴ ⟪ λ⇒ {A} ⟫ → ⊥
+decode-rel-resp-≅ᴴ-Agen-λ⇒-absurd {A} g iso =
+  Agen-nonAgen-absurd refl (hId-nE A) iso
+
+-- Agen vs λ⇐: ⟪λ⇐ A⟫ = hId A.
+decode-rel-resp-≅ᴴ-Agen-λ⇐-absurd
+  : ∀ {A} (g : mor A (unit ⊗₀ A))
+  → ⟪ Agen g ⟫ ≅ᴴ ⟪ λ⇐ {A} ⟫ → ⊥
+decode-rel-resp-≅ᴴ-Agen-λ⇐-absurd {A} g iso =
+  Agen-nonAgen-absurd refl (hId-nE A) iso
+
+-- Agen vs ρ⇒: ⟪ρ⇒ A⟫ = hId (A ⊗ unit).
+decode-rel-resp-≅ᴴ-Agen-ρ⇒-absurd
+  : ∀ {A} (g : mor (A ⊗₀ unit) A)
+  → ⟪ Agen g ⟫ ≅ᴴ ⟪ ρ⇒ {A} ⟫ → ⊥
+decode-rel-resp-≅ᴴ-Agen-ρ⇒-absurd {A} g iso =
+  Agen-nonAgen-absurd refl (hId-nE (A ⊗₀ unit)) iso
+
+-- Agen vs ρ⇐: ⟪ρ⇐ A⟫ = hId (A ⊗ unit).
+decode-rel-resp-≅ᴴ-Agen-ρ⇐-absurd
+  : ∀ {A} (g : mor A (A ⊗₀ unit))
+  → ⟪ Agen g ⟫ ≅ᴴ ⟪ ρ⇐ {A} ⟫ → ⊥
+decode-rel-resp-≅ᴴ-Agen-ρ⇐-absurd {A} g iso =
+  Agen-nonAgen-absurd refl (hId-nE (A ⊗₀ unit)) iso
+
+-- Agen vs α⇒: ⟪α⇒ A B C⟫ = hId ((A ⊗ B) ⊗ C).
+decode-rel-resp-≅ᴴ-Agen-α⇒-absurd
+  : ∀ {A B C} (g : mor ((A ⊗₀ B) ⊗₀ C) (A ⊗₀ (B ⊗₀ C)))
+  → ⟪ Agen g ⟫ ≅ᴴ ⟪ α⇒ {A} {B} {C} ⟫ → ⊥
+decode-rel-resp-≅ᴴ-Agen-α⇒-absurd {A} {B} {C} g iso =
+  Agen-nonAgen-absurd refl (hId-nE ((A ⊗₀ B) ⊗₀ C)) iso
+
+-- Agen vs α⇐: ⟪α⇐ A B C⟫ = hId ((A ⊗ B) ⊗ C).
+decode-rel-resp-≅ᴴ-Agen-α⇐-absurd
+  : ∀ {A B C} (g : mor (A ⊗₀ (B ⊗₀ C)) ((A ⊗₀ B) ⊗₀ C))
+  → ⟪ Agen g ⟫ ≅ᴴ ⟪ α⇐ {A} {B} {C} ⟫ → ⊥
+decode-rel-resp-≅ᴴ-Agen-α⇐-absurd {A} {B} {C} g iso =
+  Agen-nonAgen-absurd refl (hId-nE ((A ⊗₀ B) ⊗₀ C)) iso
