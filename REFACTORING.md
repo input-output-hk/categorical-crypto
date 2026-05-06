@@ -6,6 +6,23 @@ in this worktree and the prototypes type-check.  They stack: applying all
 three eliminates ~1000-1500 LOC and 4-5 of the postulates currently blocking
 the completeness theorem.
 
+## Status
+
+- **Refactor B (de-indexed Hypergraph): IMPLEMENTED on the completeness
+  pipeline.**  Core.agda, FromAPROP.agda, Iso.agda, and the entire
+  Completeness/ subdirectory are de-indexed and type-check together.
+  The completeness pipeline is now `subst₂ (Hypergraph FlatGen)`-free
+  (the only two remaining references are inside comments).  See
+  commit `e44316a`.  The soundness side (Pentagon.agda,
+  AlphaCommSound.agda, SoundnessAxioms.agda, etc.) is left for
+  follow-up — those files have many `subst₂ (Hypergraph FlatGen)`
+  calls but are orthogonal to completeness work.
+
+- **Refactor A (decode-rel) and Refactor C (solveM):** prototyped in
+  the experimental files
+  `src/Categories/APROP/Hypergraph/Completeness/{DecodeRel,CoherenceSolver}.agda`
+  but not yet integrated.
+
 ## Scope
 
 Files affected (current LOC):
