@@ -40,27 +40,28 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
   using (FlatGen; flatten; hId; hTensor; hEmpty; codL-hId; domL-hId;
-         map-via-inj; map-via-raise; module hTensor-impl)
+         map-via-inj; map-via-raise; module hTensor-impl; range)
 open import Categories.APROP.Hypergraph.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
 open import Categories.APROP.Hypergraph.Translation sig
 open import Categories.APROP.Hypergraph.Iso
 open import Categories.APROP.Hypergraph.Invariant sig
-  using (hId-cod≡dom; hId-dom-Unique; hId-count-non-dom)
 open import Categories.APROP.Hypergraph.Prune
-  using (count-non; remap-inj₁; classify-lookup-Unique)
 
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Nat using (ℕ; zero; suc; _+_)
-open import Data.Fin using (Fin; _↑ˡ_; cast)
-open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt⁻¹-↑ˡ; cast-is-id)
+open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_; cast)
+open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ;
+                                        splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ;
+                                        cast-is-id; cast-trans;
+                                        toℕ-cast; toℕ-injective)
 open import Data.List using (List; []; _∷_; map; lookup; tabulate; allFin; length)
 open import Data.List.Properties using (map-∘; map-cong; map-id; map-tabulate;
                                           tabulate-lookup)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Sum using (inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; trans; sym; cong; subst₂; module ≡-Reasoning)
+  using (_≡_; refl; trans; sym; cong; subst; subst₂; module ≡-Reasoning)
 open import Data.Fin using (splitAt)
 
 -- Helpers: hId has no edges; absurd elimination on Fin 0.
@@ -272,21 +273,365 @@ hCompose-hId-R-iso-generic = hCompose-hId-R-proof.hCompose-hId-R-iso
 idˡ-sound : ∀ {A B} (f : HomTerm A B) → ⟪ id ∘ f ⟫ ≅ᴴ ⟪ f ⟫
 idˡ-sound {B = B} f = hCompose-hId-R-iso-generic B ⟪ f ⟫ (⟪⟫-codL f)
 
-postulate
-  hCompose-hId-L-iso-generic
-    : ∀ (A : ObjTerm) (K : Hypergraph FlatGen)
-        (K-domL≡flat : domL K ≡ flatten A)
-    → Unique (Hypergraph.dom K)
-    → hComposeP (hId A) K (trans (codL-hId A) (sym K-domL≡flat)) ≅ᴴ K
-  idʳ-sound : ∀ {A B} (f : HomTerm A B) → ⟪ f ∘ id ⟫ ≅ᴴ ⟪ f ⟫
+--------------------------------------------------------------------------------
+-- Generic LEFT-identity-composition iso.  Symmetric to the R proof,
+-- with the bijection `classify`-based.
+
+module hCompose-hId-L-proof
+  (A : ObjTerm)
+  (K : Hypergraph FlatGen) (K-domL≡flat : domL K ≡ flatten A)
+  (K-unique : Unique (Hypergraph.dom K))
+  where
+  private
+    G = hId A
+    bdy-eq : codL G ≡ domL K
+    bdy-eq = trans (codL-hId A) (sym K-domL≡flat)
+    C = hComposeP G K bdy-eq
+    module G = Hypergraph G
+    module K = Hypergraph K
+    module C = Hypergraph C
+    module hCP = hComposeP-impl G K bdy-eq
+
+    open import Data.List.Properties using (length-map)
+    open import Data.Fin.Properties using (splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ;
+                                           cast-is-id; cast-trans;
+                                           toℕ-cast; toℕ-injective)
+
+    -- G has zero edges.
+    G-nE≡0 : G.nE ≡ 0
+    G-nE≡0 = hId-nE A
+
+    -- Length of K.dom matches G.nV = (hId A).nV.
+    len-dom : length K.dom ≡ G.nV
+    len-dom =
+      trans (sym (length-map K.vlab K.dom))
+      (trans (cong length K-domL≡flat)
+             (sym (hId-nV≡len-flatten A)))
+
+  ------------------------------------------------------------------------------
+  -- Vertex bijection.
+  --
+  -- C.nV = G.nV + count-non K.dom.
+  -- φ splits via splitAt G.nV:
+  --   inj₁ k (k : Fin G.nV) ↦ lookup K.dom (cast (sym len-dom) k).
+  --   inj₂ j (j : Fin (count-non K.dom)) ↦ lookup (nonMem K.dom) j.
+  -- φ⁻¹ via classify K.dom:
+  --   inj₁ i ↦ cast len-dom i ↑ˡ count-non K.dom.
+  --   inj₂ j ↦ G.nV ↑ʳ j.
+
+  φ : Fin C.nV → Fin K.nV
+  φ v with splitAt G.nV v
+  ... | inj₁ k = lookup K.dom (cast (sym len-dom) k)
+  ... | inj₂ j = lookup (nonMem K.dom) j
+
+  φ⁻¹ : Fin K.nV → Fin C.nV
+  φ⁻¹ v with classify K.dom v
+  ... | inj₁ i = cast len-dom i ↑ˡ count-non K.dom
+  ... | inj₂ j = G.nV ↑ʳ j
+
+  ------------------------------------------------------------------------------
+  -- Bijection laws.
+
+  open import Categories.APROP.Hypergraph.Prune
+    using ( classify-inj₁-lookup; classify-inj₂-lookup
+          ; classify-lookup-nonMem; lookup-≡-map-cast; remap-inj₂)
+
+  φ-left : ∀ v → φ⁻¹ (φ v) ≡ v
+  φ-left v with splitAt G.nV v in eq
+  ... | inj₁ k
+    rewrite classify-lookup-Unique K.dom K-unique (cast (sym len-dom) k)
+    = trans (cong (_↑ˡ count-non K.dom)
+                  (trans (cast-trans (sym len-dom) len-dom k)
+                         (cast-is-id (trans (sym len-dom) len-dom) k)))
+            (splitAt⁻¹-↑ˡ eq)
+  ... | inj₂ j
+    rewrite classify-lookup-nonMem K.dom j
+    = splitAt⁻¹-↑ʳ eq
+
+  φ-rght : ∀ v → φ (φ⁻¹ v) ≡ v
+  φ-rght v with classify K.dom v in eq
+  ... | inj₁ i
+    rewrite splitAt-↑ˡ G.nV (cast len-dom i) (count-non K.dom)
+    = trans (cong (lookup K.dom)
+                  (trans (cast-trans len-dom (sym len-dom) i)
+                         (cast-is-id (trans len-dom (sym len-dom)) i)))
+            (classify-inj₁-lookup K.dom v i eq)
+  ... | inj₂ j
+    rewrite splitAt-↑ʳ G.nV (count-non K.dom) j
+    = classify-inj₂-lookup K.dom v j eq
+
+  ------------------------------------------------------------------------------
+  -- Edge bijection: G has no edges, so C.nE = 0 + K.nE = K.nE (only
+  -- propositionally, since G.nE = (hId A).nE isn't def-0 for abstract A).
+  -- We pattern-match on `splitAt G.nE e` with the inj₁ branch absurd.
+
+  ψ : Fin C.nE → Fin K.nE
+  ψ e with splitAt G.nE e
+  ... | inj₁ eG = ⊥-elim (Fin-zero-absurd G-nE≡0 eG)
+  ... | inj₂ eK = eK
+
+  ψ⁻¹ : Fin K.nE → Fin C.nE
+  ψ⁻¹ e = G.nE ↑ʳ e
+
+  ψ-left : ∀ e → ψ⁻¹ (ψ e) ≡ e
+  ψ-left e with splitAt G.nE e in eq
+  ... | inj₁ eG = ⊥-elim (Fin-zero-absurd G-nE≡0 eG)
+  ... | inj₂ eK = splitAt⁻¹-↑ʳ eq
+
+  ψ-rght : ∀ e → ψ (ψ⁻¹ e) ≡ e
+  ψ-rght e rewrite splitAt-↑ʳ G.nE K.nE e = refl
+    where open import Data.Fin.Properties using (splitAt-↑ʳ)
+
+  ------------------------------------------------------------------------------
+  -- Label preservation.
+  --
+  -- For v with splitAt G.nV v = inj₁ k:
+  --   C.vlab v = G.vlab k = (hId A).vlab k
+  --   K.vlab (φ v) = K.vlab (lookup K.dom (cast (sym len-dom) k)).
+  --   By K-domL≡flat (pointwise): K.vlab (lookup K.dom j) ≡ lookup (flatten A) (cast _ j).
+  --   By hId-vlab-lookup: (hId A).vlab k ≡ lookup (flatten A) (cast _ k).
+  --   Both sides reduce to `lookup (flatten A) (cast _ k)` modulo toℕ-injective.
+  --
+  -- For v with splitAt G.nV v = inj₂ j:
+  --   C.vlab v = K.vlab (lookup (nonMem K.dom) j) = K.vlab (φ v).  REFL.
+
+  open import Data.Fin using (toℕ)
+
+  -- Pointwise from K-domL≡flat: K.vlab (lookup K.dom j) ≡ lookup (flatten A) (cast _ j).
+  -- `lookup-≡-map-cast` gives us this in a specific cast form; we then use
+  -- toℕ-injective to collapse that with `hId-vlab-lookup`'s cast.
+
+  φ-lab : ∀ v → K.vlab (φ v) ≡ C.vlab v
+  φ-lab v with splitAt G.nV v
+  ... | inj₁ k =
+    -- Goal: K.vlab (lookup K.dom (cast (sym len-dom) k)) ≡ G.vlab k
+    -- RHS:  G.vlab k = (hId A).vlab k ≡ lookup (flatten A) (cast _ k)
+    --       by hId-vlab-lookup.
+    -- LHS:  K.vlab (lookup K.dom j)   ≡ lookup (flatten A) (cast _ j)
+    --       by lookup-≡-map-cast K.vlab (sym K-domL≡flat), with j = cast (sym len-dom) k.
+    -- Both casts applied to k have toℕ = toℕ k, so equal by toℕ-injective.
+    trans (sym (lookup-≡-map-cast K.vlab (sym K-domL≡flat) (cast (sym len-dom) k)))
+    (trans (cong (lookup (flatten A)) same-cast-at-k)
+           (sym (hId-vlab-lookup A k)))
+    where
+      open import Data.Fin using (cast)
+
+      -- The two distinct Fin values (from the two casts) both have
+      -- toℕ = toℕ k, hence they're equal by toℕ-injective.
+      same-cast-at-k
+        : cast (sym (trans (cong length (sym K-domL≡flat)) (length-map K.vlab K.dom)))
+               (cast (sym len-dom) k)
+        ≡ cast (hId-nV≡len-flatten A) k
+      same-cast-at-k = toℕ-injective
+        (trans (toℕ-cast _ (cast (sym len-dom) k))
+        (trans (toℕ-cast _ k)
+               (sym (toℕ-cast _ k))))
+  ... | inj₂ j = refl
+
+  ------------------------------------------------------------------------------
+  -- Edge endpoints via `φ ∘ remapP = id on K.nV`.
+
+  private
+    -- φ composed with remapP is the identity on K.nV.
+    -- For v ∈ K.dom: classify → inj₁ i. remapP v = inject+ _ (lookup-cod i).
+    --   φ (inject+ _ k) via splitAt inj₁ → lookup K.dom (cast (sym len-dom) k).
+    --   With k = lookup-cod i and appropriate toℕ reasoning, this = v.
+    -- For v ∉ K.dom: classify → inj₂ j. remapP v = raise G.nV j.
+    --   φ (raise G.nV j) via splitAt inj₂ → lookup (nonMem K.dom) j = v.
+
+    -- toℕ (lookup G.cod j) ≡ toℕ j for G = hId A.
+    -- Transport via hId-cod≡range: use subst to replace G.cod with
+    -- range G.nV in the quantified statement, then apply lookup-range.
+    toℕ-lookup-GCod
+      : ∀ (j : Fin (length G.cod)) → toℕ (lookup G.cod j) ≡ toℕ j
+    toℕ-lookup-GCod =
+      subst (λ l → ∀ (k : Fin (length l)) → toℕ (lookup l k) ≡ toℕ k)
+            (sym (hId-cod≡range A))
+            (lookup-range G.nV)
+
+    -- lookup-cod on G = hId A at toℕ-level: equals the input toℕ.
+    toℕ-lookup-cod
+      : ∀ (i : Fin (length K.dom))
+      → toℕ (hCP.lookup-cod i) ≡ toℕ i
+    toℕ-lookup-cod i =
+      trans (toℕ-lookup-GCod (cast hCP.dom-cod-len i))
+            (toℕ-cast hCP.dom-cod-len i)
+      where open import Data.Fin using (cast)
+
+    φ-remapP-id : ∀ v → φ (hCP.remapP v) ≡ v
+    φ-remapP-id v with classify K.dom v in eq
+    ... | inj₁ i
+      rewrite splitAt-↑ˡ G.nV (hCP.lookup-cod i) (count-non K.dom)
+      = trans (cong (lookup K.dom) cast-eq)
+              (classify-inj₁-lookup K.dom v i eq)
+      where
+        open import Data.Fin using (cast)
+        cast-eq : cast (sym len-dom) (hCP.lookup-cod i) ≡ i
+        cast-eq = toℕ-injective
+          (trans (toℕ-cast (sym len-dom) (hCP.lookup-cod i))
+                 (toℕ-lookup-cod i))
+    ... | inj₂ j
+      rewrite splitAt-↑ʳ G.nV (count-non K.dom) j
+      = classify-inj₂-lookup K.dom v j eq
+
+  open import Data.List.Properties using (map-∘; map-cong; map-id)
+
+  ψ-ein : ∀ e → K.ein (ψ e) ≡ map φ (C.ein e)
+  ψ-ein e with splitAt G.nE e
+  ... | inj₁ eG = ⊥-elim (Fin-zero-absurd G-nE≡0 eG)
+  ... | inj₂ eK = sym
+    (trans (sym (map-∘ (K.ein eK)))
+    (trans (map-cong φ-remapP-id (K.ein eK))
+           (map-id (K.ein eK))))
+
+  ψ-eout : ∀ e → K.eout (ψ e) ≡ map φ (C.eout e)
+  ψ-eout e with splitAt G.nE e
+  ... | inj₁ eG = ⊥-elim (Fin-zero-absurd G-nE≡0 eG)
+  ... | inj₂ eK = sym
+    (trans (sym (map-∘ (K.eout eK)))
+    (trans (map-cong φ-remapP-id (K.eout eK))
+           (map-id (K.eout eK))))
+
+  ------------------------------------------------------------------------------
+  -- Boundary preservation.
+  --
+  -- C.dom = map injL G.dom = map injL (hId A).dom.
+  -- We need K.dom ≡ map φ C.dom.
+  --
+  -- Via hId-dom≡range: (hId A).dom ≡ range G.nV.
+  -- Via range≡allFin-pub: range G.nV ≡ allFin G.nV.
+  -- Pointwise reduction: φ ∘ injL → lookup K.dom ∘ cast (sym len-dom).
+  -- Combined with tabulate-lookup identities, reduces to K.dom.
+  --
+  -- C.cod = map remapP K.cod. Via φ-remapP-id and map-∘/map-id,
+  -- map φ (map remapP K.cod) = map id K.cod = K.cod.
+
+  private
+    φ-injL-eq : ∀ k → φ (hCP.injL k) ≡ lookup K.dom (cast (sym len-dom) k)
+    φ-injL-eq k rewrite splitAt-↑ˡ G.nV k (count-non K.dom) = refl
+
+  open import Data.List using (_++_; tabulate; allFin)
+  open import Data.List.Properties using (tabulate-lookup; map-tabulate)
+
+  φ-dom : K.dom ≡ map φ C.dom
+  φ-dom =
+    -- K.dom ≡ map (lookup K.dom) (allFin (length K.dom))
+    -- ≡ map (lookup K.dom) (range (length K.dom))
+    -- ≡ map (λ k → lookup K.dom (cast (sym len-dom) k)) (range G.nV)
+    -- ≡ map (φ ∘ injL) G.dom   (via hId-dom≡range + φ-injL-eq pointwise)
+    -- ≡ map φ (map injL G.dom) = map φ C.dom   (map-∘).
+    trans (sym (map-lookup-allFin K.dom))
+    (trans (cong (map (lookup K.dom)) (sym range≡allFin-len))
+    (trans map-via-cast
+    (trans (cong (λ l → map (λ k → lookup K.dom (cast (sym len-dom) k)) l)
+                 (sym (hId-dom≡range A)))
+    (trans (map-cong (λ k → sym (φ-injL-eq k)) G.dom)
+           (map-∘ G.dom)))))
+    where
+      open import Data.Fin using (cast)
+      open import Data.List using (lookup)
+      -- xs ≡ map (lookup xs) (allFin (length xs))
+      map-lookup-allFin
+        : ∀ {A : Set} (xs : List A)
+        → map (lookup xs) (allFin (length xs)) ≡ xs
+      map-lookup-allFin xs =
+        trans (map-tabulate (λ i → i) (lookup xs)) (tabulate-lookup xs)
+
+      -- range (length K.dom) ≡ allFin (length K.dom).
+      range≡allFin-len : range (length K.dom) ≡ allFin (length K.dom)
+      range≡allFin-len = range≡allFin-pub (length K.dom)
+
+      -- map (lookup K.dom) (range (length K.dom))
+      -- ≡ map (lookup K.dom ∘ cast (sym len-dom)) (range G.nV)
+      -- via map-cast-range + map-∘.
+      map-via-cast
+        : map (lookup K.dom) (range (length K.dom))
+        ≡ map (λ k → lookup K.dom (cast (sym len-dom) k)) (range G.nV)
+      map-via-cast =
+        trans (cong (map (lookup K.dom)) (sym (map-cast-range (sym len-dom))))
+              (sym (map-∘ (range G.nV)))
+
+  φ-cod : K.cod ≡ map φ C.cod
+  φ-cod = sym
+    (trans (sym (map-∘ K.cod))
+    (trans (map-cong φ-remapP-id K.cod)
+           (map-id K.cod)))
+
+  ------------------------------------------------------------------------------
+  -- Atom-list equalities, chosen to match `elab-c`'s internal subst₂ proofs.
+
+  atom-ein : ∀ e → map K.vlab (K.ein (ψ e)) ≡ map C.vlab (C.ein e)
+  atom-ein e with splitAt G.nE e
+  ... | inj₁ eG = ⊥-elim (Fin-zero-absurd G-nE≡0 eG)
+  ... | inj₂ eK = hCP.map-via-remapP (K.ein eK)
+
+  atom-eout : ∀ e → map K.vlab (K.eout (ψ e)) ≡ map C.vlab (C.eout e)
+  atom-eout e with splitAt G.nE e
+  ... | inj₁ eG = ⊥-elim (Fin-zero-absurd G-nE≡0 eG)
+  ... | inj₂ eK = hCP.map-via-remapP (K.eout eK)
+
+  ψ-elab : ∀ e → subst₂ FlatGen (atom-ein e) (atom-eout e) (K.elab (ψ e))
+               ≡ C.elab e
+  ψ-elab e with splitAt G.nE e
+  ... | inj₁ eG = ⊥-elim (Fin-zero-absurd G-nE≡0 eG)
+  ... | inj₂ eK = refl
+
+  ------------------------------------------------------------------------------
+  -- The assembled ≅ᴴ record.
+
+  hCompose-hId-L-iso : C ≅ᴴ K
+  hCompose-hId-L-iso = record
+    { φ         = φ
+    ; φ⁻¹       = φ⁻¹
+    ; φ-left    = φ-left
+    ; φ-rght    = φ-rght
+    ; ψ         = ψ
+    ; ψ⁻¹       = ψ⁻¹
+    ; ψ-left    = ψ-left
+    ; ψ-rght    = ψ-rght
+    ; φ-lab     = φ-lab
+    ; ψ-ein     = ψ-ein
+    ; ψ-eout    = ψ-eout
+    ; φ-dom     = φ-dom
+    ; φ-cod     = φ-cod
+    ; atom-ein  = atom-ein
+    ; atom-eout = atom-eout
+    ; ψ-elab    = ψ-elab
+    }
+
+
+hCompose-hId-L-iso-generic
+  : ∀ (A : ObjTerm) (K : Hypergraph FlatGen)
+      (K-domL≡flat : domL K ≡ flatten A)
+  → Unique (Hypergraph.dom K)
+  → hComposeP (hId A) K (trans (codL-hId A) (sym K-domL≡flat)) ≅ᴴ K
+hCompose-hId-L-iso-generic = hCompose-hId-L-proof.hCompose-hId-L-iso
+
+idʳ-sound : ∀ {A B} (f : HomTerm A B) → ⟪ f ∘ id ⟫ ≅ᴴ ⟪ f ⟫
+idʳ-sound {A = A} f =
+  hCompose-hId-L-iso-generic A ⟪ f ⟫ (⟪⟫-domL f)
+    (Categories.APROP.Hypergraph.HomTermInvariant.⟪_⟫-dom-unique sig f)
+  where import Categories.APROP.Hypergraph.HomTermInvariant
+
 
 postulate
 
+  σ∘σ-sound : ∀ {A B} → ⟪ σ {B}{A} ∘ σ {A}{B} ⟫ ≅ᴴ ⟪ id {A ⊗₀ B} ⟫
+
+--------------------------------------------------------------------------------
+-- ρ⇐∘ρ⇒ and α⇐∘α⇒: under de-indexing, ⟪ ρ⇒/ρ⇐ ⟫ are both hId (A ⊗ unit)
+-- and ⟪ α⇒/α⇐ ⟫ are both hId ((A ⊗ B) ⊗ C).  But ⟪ ρ⇐ ∘ ρ⇒ ⟫ and
+-- ⟪ id ∘ id {A ⊗ unit} ⟫ — while having identical hypergraph data —
+-- pass *different bdy-eq proofs* to hComposeP (one factors through
+-- `++-identityʳ`, the other through `refl`).  The hypergraphs are
+-- still ≅ᴴ via identity bijections (data fields ignore bdy), but
+-- formalising this requires an "hComposeP-bdy-irrelevant" lemma not
+-- yet in the codebase.  Postulated for now.
+
+postulate
   ρ⇐∘ρ⇒-sound : ∀ {A} → ⟪ ρ⇐ {A} ∘ ρ⇒ {A} ⟫ ≅ᴴ ⟪ id {A ⊗₀ unit} ⟫
   α⇐∘α⇒-sound : ∀ {A B C}
               → ⟪ α⇐ {A}{B}{C} ∘ α⇒ {A}{B}{C} ⟫ ≅ᴴ ⟪ id {(A ⊗₀ B) ⊗₀ C} ⟫
-
-  σ∘σ-sound : ∀ {A B} → ⟪ σ {B}{A} ∘ σ {A}{B} ⟫ ≅ᴴ ⟪ id {A ⊗₀ B} ⟫
 
 --------------------------------------------------------------------------------
 -- CONSTRUCTIVELY PROVED under de-indexing.
