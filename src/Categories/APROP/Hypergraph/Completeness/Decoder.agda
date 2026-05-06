@@ -78,20 +78,9 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtrip sig
          decode-roundtrip-α⇒; decode-roundtrip-α⇐;
          decode-roundtrip-σ) public
 
-open import Data.List using (List)
-
-private
-  variable
-    As Bs : List X
-
---------------------------------------------------------------------------------
--- The remaining property of decode (still postulated): preservation
--- of hypergraph isomorphism.
-
-postulate
-  -- decode preserves hypergraph iso (consumed by Phase 3.5e).
-  -- Stated for translated hypergraphs since `decode` itself takes a term.
-  decode-resp-≅ᴴ
-    : ∀ {A B} (f g : HomTerm A B)
-    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-    → decode f ≈Term decode g
+-- NOTE: This module is no longer imported by `Completeness.completeness`,
+-- which now routes through `decode-rel` (DecodeRel.agda) and the
+-- single postulate `decode-rel-resp-≅ᴴ`.  The algorithmic
+-- `decode-resp-≅ᴴ` postulate that previously lived here has been
+-- removed since nothing reaches it anymore.  This file is kept as a
+-- re-export hub for the algorithmic decode pipeline.
