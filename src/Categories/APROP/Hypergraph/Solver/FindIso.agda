@@ -45,8 +45,8 @@ open import Data.Product using (_,_)
 -- Each stage returns `nothing` on failure.
 
 findIso
-  : ∀ {As Bs : List X}
-    (H J : Hypergraph FlatGen As Bs)
+  : ∀
+    (H J : Hypergraph FlatGen)
   → Maybe (H ≅ᴴ J)
 findIso H J = stage-seed (seedFromInterfaces H J)
   where

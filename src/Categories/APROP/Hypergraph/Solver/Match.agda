@@ -51,8 +51,8 @@ _≟L_ : (xs ys : List X) → _
 _≟L_ = ≡-dec _≟X_
 
 shape-ok?
-  : ∀ {As Bs : List X}
-    (H J : Hypergraph FlatGen As Bs)
+  : ∀
+    (H J : Hypergraph FlatGen)
   → (e : Fin (Hypergraph.nE H)) (e' : Fin (Hypergraph.nE J))
   → Bool
 shape-ok? H J e e' =
@@ -67,8 +67,8 @@ shape-ok? H J e e' =
 -- then their target lists; finally pair `e` with `e'` in the edge PBij.
 -- Returns `just (φ', ψ')` on success, or `nothing` on any conflict.
 
-module _ {As Bs : List X}
-         (H J : Hypergraph FlatGen As Bs) where
+module _
+         (H J : Hypergraph FlatGen) where
 
   private
     nVH = Hypergraph.nV H

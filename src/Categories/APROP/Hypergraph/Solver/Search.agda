@@ -52,8 +52,8 @@ firstUnmatched {nEH} ψ = go nEH (λ i → i)
 -- Backtracking depth-first search. Iterates over `matchEdge` results,
 -- recurses with `fuel - 1`. On fuel exhaustion, returns `nothing`.
 
-module _ {As Bs : List X}
-         (H J : Hypergraph FlatGen As Bs) where
+module _
+         (H J : Hypergraph FlatGen) where
 
   private
     nVH = Hypergraph.nV H
