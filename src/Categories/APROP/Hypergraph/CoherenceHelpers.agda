@@ -105,42 +105,12 @@ trans-reflʳ
 trans-reflʳ refl = refl
 
 --------------------------------------------------------------------------------
--- Hypergraph-specific subst₂ bookkeeping.
-
--- `hTensor` factors a subst₂ out of its left argument's boundaries.
-hTensor-subst₂-left
-  : ∀ {As As' Bs Bs' Cs Ds : List X}
-      (p : As ≡ As') (q : Bs ≡ Bs')
-      (X₀ : Hypergraph FlatGen As Bs) (Y₀ : Hypergraph FlatGen Cs Ds)
-  → hTensor (subst₂ (Hypergraph FlatGen) p q X₀) Y₀
-  ≡ subst₂ (Hypergraph FlatGen) (cong (_++ Cs) p) (cong (_++ Ds) q)
-           (hTensor X₀ Y₀)
-hTensor-subst₂-left refl refl X₀ Y₀ = refl
-
--- `hTensor` factors a subst₂ out of its right argument's boundaries.
-hTensor-subst₂-right
-  : ∀ {As Bs Cs Cs' Ds Ds' : List X}
-      (p : Cs ≡ Cs') (q : Ds ≡ Ds')
-      (X₀ : Hypergraph FlatGen As Bs) (Y₀ : Hypergraph FlatGen Cs Ds)
-  → hTensor X₀ (subst₂ (Hypergraph FlatGen) p q Y₀)
-  ≡ subst₂ (Hypergraph FlatGen) (cong (As ++_) p) (cong (Bs ++_) q)
-           (hTensor X₀ Y₀)
-hTensor-subst₂-right refl refl X₀ Y₀ = refl
-
--- `hComposeP` factors a `subst₂ refl _` out of its right argument.
-hComposeP-cod-subst
-  : ∀ {As Bs Cs Cs' : List X}
-      (eq : Cs ≡ Cs')
-      (G : Hypergraph FlatGen As Bs) (K : Hypergraph FlatGen Bs Cs)
-  → hComposeP G (subst₂ (Hypergraph FlatGen) refl eq K)
-  ≡ subst₂ (Hypergraph FlatGen) refl eq (hComposeP G K)
-hComposeP-cod-subst refl G K = refl
-
--- Transport `Unique` across a subst₂ on the dom.
-Unique-subst₂-dom
-  : ∀ {As Bs As' Bs' : List X}
-      (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
-      (G : Hypergraph FlatGen As Bs)
-  → Unique (Hypergraph.dom G)
-  → Unique (Hypergraph.dom (subst₂ (Hypergraph FlatGen) eq₁ eq₂ G))
-Unique-subst₂-dom refl refl G p = p
+-- DE-INDEXED REFACTOR: the hypergraph-specific subst₂ bookkeeping
+-- lemmas (`hTensor-subst₂-left`, `hTensor-subst₂-right`,
+-- `hComposeP-cod-subst`, `Unique-subst₂-dom` — ~40 LOC) used to live
+-- here.  They handled `subst₂ (Hypergraph FlatGen)` on the indexed
+-- Hypergraph type.  Under de-indexing, no such subst₂ arises, so
+-- these are gone.  The polymorphic helpers above (`subst₂-cancel-*`,
+-- `subst₂-trans-cod`, `subst₂-trans`, `subst₂-sym-subst₂`,
+-- `subst₂-refl`, `trans-reflʳ`) work on any indexed type and are
+-- retained for downstream use (e.g. SigmaNat's psnat / σnat chains).
