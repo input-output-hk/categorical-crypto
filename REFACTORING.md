@@ -66,6 +66,40 @@ The recommended next step is the restricted-signature variant — see
 the `Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso` work
 in progress (atomic-only sub-cases of `decode-rel-resp-≅ᴴ`).
 
+### Lessons from the restricted-variant prototype
+
+`Completeness/DecodeRel/RespIso.agda` attempts the atomic-case proof
+of `decode-rel-resp-≅ᴴ`.  Status of the 81 atomic-vs-atomic pairs:
+
+- **Same-constructor trivial cases** (8 of 9): `≈-Term-refl`.  Both
+  sides are syntactically identical because the ObjTerm parameters
+  are forced by the type signature.  9th case is Agen, where the
+  underlying `mor` value can differ.
+- **Cross-pair Agen-vs-non-Agen impossibilities** (7 + symmetric):
+  discharged via `Agen-nonAgen-absurd : G.nE ≡ 1 → K.nE ≡ 0 → G ≅ᴴ K
+  → ⊥`, which extracts `Fin 0` from the iso's edge bijection.
+  Mechanical pattern.
+- **Agen-Agen (different generators)**: requires `flat-injective`,
+  which needs UIP-on-ListX (available with `APROPSignatureDec` via
+  Hedberg's theorem).  ~1-2 days to finish.
+- **Genuinely non-trivial cross-pairs at unit-only types** (e.g.,
+  `λ⇒ {unit}` vs `ρ⇒ {unit}` — both translate to `hEmpty`, both have
+  type `HomTerm (unit ⊗ unit) unit`): require categorical coherence
+  lemmas like Kelly's `coherence₃` (`λ⇒ {unit} ≈ ρ⇒ {unit}`).
+  Each such pair is a 5-15 line proof using existing infrastructure.
+  Estimated 5-10 such pairs in total.
+
+**Atomic case completion estimate**: ~1 week (consistent with the
+earlier estimate).
+
+**The harder remaining work** is the inductive cases of
+`decode-rel-resp-≅ᴴ`: when `f` or `g` is compound (∘ or ⊗), the iso's
+structure must be DECOMPOSED to match sub-terms.  This requires
+understanding how `hComposeP` and `hTensor` interact with iso —
+specifically, how to extract sub-isos from a composite iso, and how
+to thread α-coherence and σ-naturality to bridge syntactic
+differences.  This is the genuine 2-3 weeks of categorical work.
+
 ## Status
 
 ### Refactor B — IMPLEMENTED across all 42 hypergraph files
