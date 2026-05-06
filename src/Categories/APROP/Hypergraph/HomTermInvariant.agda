@@ -54,17 +54,9 @@ open import Relation.Binary.PropositionalEquality
 -- body doesn't reduce, but the typechecker still accepts it as a term of
 -- the given equality type because there is no other canonical element.
 
-private
-  -- Transport `Unique` across the `subst₂` wrapper on the Hypergraph.
-  -- Pattern-matches both equalities as `refl`, at which point
-  -- `subst₂ _ refl refl = id` and the Unique witness passes through.
-  Unique-subst₂-dom
-    : ∀ {As Bs As' Bs' : List X}
-        (eq₁ : As ≡ As') (eq₂ : Bs ≡ Bs')
-        (G : Hypergraph FlatGen As Bs)
-    → Unique (Hypergraph.dom G)
-    → Unique (Hypergraph.dom (subst₂ (Hypergraph FlatGen) eq₁ eq₂ G))
-  Unique-subst₂-dom refl refl G p = p
+-- DE-INDEXED REFACTOR: `Unique-subst₂-dom` was a refl-refl pattern
+-- match that transported `Unique` across `subst₂ (Hypergraph FlatGen)`.
+-- Under de-indexing, no such subst₂ on Hypergraph arises.
 
 --------------------------------------------------------------------------------
 -- `⟪ f ⟫.dom` is Unique for every APROP term.
@@ -94,35 +86,12 @@ private
 ⟪ λ⇒ {A} ⟫-dom-unique = hId-dom-Unique A
 ⟪ λ⇐ {A} ⟫-dom-unique = hId-dom-Unique A
 
--- Right unitors: subst₂ over hId (A ⊗₀ unit). Lift Unique of the
--- inner hId.dom through the subst via the refl-refl transport helper.
---
--- The specific subst₂ proofs from `⟪_⟫` must match — pass them explicitly
--- so Agda can unify the goal with `Unique (Hypergraph.dom (subst₂ ...))`.
-⟪ ρ⇒ {A} ⟫-dom-unique =
-  Unique-subst₂-dom
-    refl (++-identityʳ (flatten A))
-    (hId (A ⊗₀ unit))
-    (hId-dom-Unique (A ⊗₀ unit))
-
-⟪ ρ⇐ {A} ⟫-dom-unique =
-  Unique-subst₂-dom
-    (++-identityʳ (flatten A)) refl
-    (hId (A ⊗₀ unit))
-    (hId-dom-Unique (A ⊗₀ unit))
-
--- Associators: subst₂ over hId ((A ⊗₀ B) ⊗₀ C).
-⟪ α⇒ {A} {B} {C} ⟫-dom-unique =
-  Unique-subst₂-dom
-    refl (++-assoc (flatten A) (flatten B) (flatten C))
-    (hId ((A ⊗₀ B) ⊗₀ C))
-    (hId-dom-Unique ((A ⊗₀ B) ⊗₀ C))
-
-⟪ α⇐ {A} {B} {C} ⟫-dom-unique =
-  Unique-subst₂-dom
-    (++-assoc (flatten A) (flatten B) (flatten C)) refl
-    (hId ((A ⊗₀ B) ⊗₀ C))
-    (hId-dom-Unique ((A ⊗₀ B) ⊗₀ C))
+-- ρ⇒/ρ⇐/α⇒/α⇐: under de-indexing, `⟪ ρ⇒ {A} ⟫ = hId (A ⊗₀ unit)` directly,
+-- so we just delegate to `hId-dom-Unique`.
+⟪ ρ⇒ {A} ⟫-dom-unique = hId-dom-Unique (A ⊗₀ unit)
+⟪ ρ⇐ {A} ⟫-dom-unique = hId-dom-Unique (A ⊗₀ unit)
+⟪ α⇒ {A} {B} {C} ⟫-dom-unique = hId-dom-Unique ((A ⊗₀ B) ⊗₀ C)
+⟪ α⇐ {A} {B} {C} ⟫-dom-unique = hId-dom-Unique ((A ⊗₀ B) ⊗₀ C)
 
 -- Braiding: dom = map (inject+ _) (range nA) ++ map (raise _) (range nB).
 ⟪ σ {A} {B} ⟫-dom-unique = hSwap-dom-Unique A B
