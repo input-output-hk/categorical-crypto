@@ -8,14 +8,14 @@ the completeness theorem.
 
 ## Status
 
-### Refactor B — IMPLEMENTED across the completeness pipeline + Solver + structural soundness (31 / 42 files pass)
+### Refactor B — IMPLEMENTED across the completeness pipeline + Solver + structural soundness (32 / 42 files pass)
 
-31 of 42 files in `src/Categories/APROP/Hypergraph/` type-check with
+32 of 42 files in `src/Categories/APROP/Hypergraph/` type-check with
 the de-indexed Hypergraph.  This includes the entire completeness
 pipeline, the Solver (Phase 4a — `findIso` decision procedure), and
 the structural infrastructure underlying soundness (Core, FromAPROP,
 Iso, IsoSimple, Translation, PrunedCompose, Invariant, Prune,
-HomTermInvariant).
+HomTermInvariant, CoherenceHelpers).
 
 ```
 Hypergraph/Completeness.agda
@@ -45,18 +45,22 @@ Hypergraph/Solver/Totals.agda
 `subst₂ (Hypergraph FlatGen)` count in the completeness pipeline:
 **101 → 0** (the only 2 remaining references are inside comments).
 
-The 11 files still failing form the **soundness chain** — Pentagon,
+The 10 files still failing form the **soundness chain** — Pentagon,
 Triangle, AlphaCommSound, SoundnessAxioms, SoundnessProved,
-CoherenceHelpers, CoherenceReductions, SigmaNat, Soundness,
-Congruence, CongruenceP.  These prove statements of the form
-`⟪ LHS ⟫ ≅ᴴ ⟪ RHS ⟫` where the LHS/RHS previously involved
-`subst₂ Hypergraph` from the indexed translation; the proofs were
-structured around peeling those substs.
+CoherenceReductions, SigmaNat, Soundness, Congruence, CongruenceP.
+These prove statements of the form `⟪ LHS ⟫ ≅ᴴ ⟪ RHS ⟫` where the
+LHS/RHS previously involved `subst₂ Hypergraph` from the indexed
+translation; the proofs were structured around peeling those substs.
 
 Now that the translation is de-indexed, the `subst₂ Hypergraph` is
 gone — these proofs need to be reformulated, not just mechanically
 migrated.  This is real proof work (a few hours per file, more
-for Pentagon).
+for Pentagon).  An attempt to migrate `SoundnessProved.agda` showed
+that each `hCompose-hId-{R,L}-iso-generic` export and each
+ρ⇐∘ρ⇒/α⇐∘α⇒ proof requires careful threading of the new runtime
+`bdy-eq` argument; the boundary equation that was previously a
+type-level subst now needs to be supplied at each `hComposeP` call
+site, including with `cong unflatten` lifts.
 
 ### Refactor A (decode-rel) and Refactor C (solveM)
 
