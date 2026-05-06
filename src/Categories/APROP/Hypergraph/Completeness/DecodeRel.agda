@@ -28,7 +28,8 @@ module Categories.APROP.Hypergraph.Completeness.DecodeRel (sig : APROPSignature)
 open APROP sig
 open import Categories.APROP.Hypergraph.FromAPROP sig
   using (FlatGen; flatten; ⟪_⟫;
-         hEmpty; hVar; hId; hGen; hSwap; hTensor; hCompose)
+         hEmpty; hVar; hId; hGen; hSwap; hTensor; hCompose;
+         domL-hGen; codL-hGen; domL-hSwap; codL-hSwap)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈; unflatten-++-≅)
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
@@ -59,37 +60,81 @@ open import Relation.Binary.PropositionalEquality
 -- so any property about `decode-rel` (proved by induction on `f`)
 -- transports to the algorithmic `decode`.
 
-postulate
-  -- Stub: the original pre-de-index version of decode-rel had explicit
-  -- subst-based equations for ρ/α boundary; under de-indexing those
-  -- substs all live at the API layer in `decode` itself, so decode-rel
-  -- should follow the *natural* unflatten(domL ⟪f⟫) / unflatten(codL ⟪f⟫)
-  -- types and compose with a boundary subst at the very end.
-  -- Reformulating this is mechanical follow-up work.
-  decode-rel
-    : ∀ {A B} (f : HomTerm A B)
-    → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
+decode-rel
+  : ∀ {A B} (f : HomTerm A B)
+  → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
+-- Composition / tensor: structural recursion — these definitional
+-- equalities are exactly what makes `decode-rel-∘-shape` and
+-- `decode-rel-⊗-shape` `refl`.
+decode-rel (g ∘ f) = decode-rel g ∘ decode-rel f
+decode-rel (_⊗₁_ {A = A} {B = B} {C = C} {D = D} f g) =
+    _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
+  ∘ (decode-rel f ⊗₁ decode-rel g)
+  ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
+-- Generators / σ: take the term the algorithm produces.  These need
+-- a boundary `subst₂` because the algorithm's natural types are
+-- `unflatten (domL ⟪f⟫)` / `unflatten (codL ⟪f⟫)`, while ours are
+-- `unflatten (flatten A)` / `unflatten (flatten B)`.  The boundary
+-- lemmas `domL-hGen`/`codL-hGen` etc. bridge the two propositionally.
+decode-rel (Agen g) =
+  subst₂ HomTerm (cong unflatten (domL-hGen g))
+                  (cong unflatten (codL-hGen g))
+         (proj₁ (decode-attempt-hGen g))
+decode-rel (σ {A = A} {B = B}) =
+  subst₂ HomTerm (cong unflatten (domL-hSwap A B))
+                  (cong unflatten (codL-hSwap A B))
+         (proj₁ (decode-attempt-hSwap A B))
+-- id, λ⇒, λ⇐: flatten reduces these endpoints to the same list
+-- definitionally, so plain `id` works.
+decode-rel (id {A})  = id
+decode-rel (λ⇒ {A}) = id
+decode-rel (λ⇐ {A}) = id
+-- ρ⇒, ρ⇐: flatten (A ⊗ unit) = flatten A ++ [], which only
+-- propositionally equals `flatten A` (via `++-identityʳ`).  Wrap an
+-- `id` morphism in a `subst` along that equality.
+decode-rel (ρ⇒ {A}) =
+  subst (HomTerm (unflatten (flatten A ++ [])))
+        (cong unflatten (++-identityʳ (flatten A)))
+        id
+decode-rel (ρ⇐ {A}) =
+  subst (HomTerm (unflatten (flatten A)))
+        (cong unflatten (sym (++-identityʳ (flatten A))))
+        id
+-- α⇒, α⇐: flatten ((A ⊗ B) ⊗ C) = (flatten A ++ flatten B) ++ flatten C
+-- and flatten (A ⊗ (B ⊗ C)) = flatten A ++ (flatten B ++ flatten C),
+-- propositionally equal via `++-assoc`.  Same `subst` trick.
+decode-rel (α⇒ {A} {B} {C}) =
+  subst (HomTerm (unflatten ((flatten A ++ flatten B) ++ flatten C)))
+        (cong unflatten (++-assoc (flatten A) (flatten B) (flatten C)))
+        id
+decode-rel (α⇐ {A} {B} {C}) =
+  subst (HomTerm (unflatten (flatten A ++ flatten B ++ flatten C)))
+        (cong unflatten (sym (++-assoc (flatten A) (flatten B) (flatten C))))
+        id
 
 --------------------------------------------------------------------------------
 -- The two `shape` properties that were postulated as `decode-∘-shape`
 -- and `decode-⊗-shape` (Layer 6 in TODO.org) become *DEFINITIONAL*
 -- under `decode-rel`.
 
-postulate
-  -- These were `refl` in the pre-de-index DecodeRel version (the whole
-  -- point of decode-rel was that they're definitional).  Under
-  -- de-indexing, they remain definitional in spirit but the
-  -- decode-rel definition above is currently postulated, so these are
-  -- too.  Once decode-rel is filled in, these will be `refl` again.
-  decode-rel-∘-shape
-    : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
-    → decode-rel (g ∘ f) ≡ decode-rel g ∘ decode-rel f
-  decode-rel-⊗-shape
-    : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
-    → decode-rel (f ⊗₁ g)
-    ≡ _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
-    ∘ (decode-rel f ⊗₁ decode-rel g)
-    ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
+-- The two `shape` properties are now DEFINITIONAL — the constructive
+-- `decode-rel` definition above means each side reduces to the same
+-- expression by Agda's β rule.  This is the central payoff of
+-- refactor A: it discharges `decode-∘-shape` and `decode-⊗-shape`
+-- (postulated in DecodeRoundtrip.agda) outright.
+
+decode-rel-∘-shape
+  : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
+  → decode-rel (g ∘ f) ≡ decode-rel g ∘ decode-rel f
+decode-rel-∘-shape g f = refl
+
+decode-rel-⊗-shape
+  : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
+  → decode-rel (f ⊗₁ g)
+  ≡ _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
+  ∘ (decode-rel f ⊗₁ decode-rel g)
+  ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
+decode-rel-⊗-shape f g = refl
 
 --------------------------------------------------------------------------------
 -- Equivalence with the algorithmic `decode`.  We show that every
