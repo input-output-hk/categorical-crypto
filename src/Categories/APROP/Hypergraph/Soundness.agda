@@ -120,8 +120,14 @@ soundness (≈-Term-trans p q)  = trans-≅ᴴ (soundness p) (soundness q)
 -- translates to `hComposeP ⟪g⟫ ⟪f⟫`. `hComposeP-resp-≅ᴴ` takes the
 -- G-side iso, K-side iso, and Unique K₁.dom — the last supplied by
 -- the `⟪_⟫-dom-unique` invariant for `f` (which is the K-side).
-soundness (∘-resp-≈ {f = f} pf pg) =
-  hComposeP-resp-≅ᴴ (soundness pg) (soundness pf)
+soundness (∘-resp-≈ {f = f} {h = h} {g = g} {i = i} pf pg) =
+  hComposeP-resp-≅ᴴ
+    (trans (⟪⟫-codL g) (sym (⟪⟫-domL f)))
+    (trans (⟪⟫-codL i) (sym (⟪⟫-domL h)))
+    (soundness pg) (soundness pf)
+    (⟪_⟫-dom-unique f)
+  where
+    open import Relation.Binary.PropositionalEquality using (trans; sym)
 
 -- Congruence for tensor.
 soundness (⊗-resp-≈ pf pg)    = hTensor-resp-≅ᴴ (soundness pf) (soundness pg)
