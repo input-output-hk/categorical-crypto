@@ -87,12 +87,10 @@ hId-nE (A ⊗₀ B)   = cong₂-+ (hId-nE A) (hId-nE B)
 module hCompose-hId-R-proof
   (B : ObjTerm)
   (G : Hypergraph FlatGen)
-  (bdy-eq : codL G ≡ flatten B)
+  (bdy-eq′ : codL G ≡ domL (hId B))
   where
   private
     K = hId B
-    bdy-eq′ : codL G ≡ domL K
-    bdy-eq′ = trans bdy-eq (sym (domL-hId B))
     C = hComposeP G K bdy-eq′
     module G = Hypergraph G
     module K = Hypergraph K
@@ -262,7 +260,17 @@ module hCompose-hId-R-proof
 hCompose-hId-R-iso-generic
   : (B : ObjTerm) (G : Hypergraph FlatGen) (bdy-eq : codL G ≡ flatten B)
   → hComposeP G (hId B) (trans bdy-eq (sym (domL-hId B))) ≅ᴴ G
-hCompose-hId-R-iso-generic = hCompose-hId-R-proof.hCompose-hId-R-iso
+hCompose-hId-R-iso-generic B G bdy-eq =
+  hCompose-hId-R-proof.hCompose-hId-R-iso B G (trans bdy-eq (sym (domL-hId B)))
+
+-- Flexible variant: takes the boundary equation as `codL G ≡ domL (hId B)`
+-- directly, without going through `flatten B`.  Useful when the bdy proof
+-- doesn't factor through `flatten B` (e.g. for `ρ⇐∘ρ⇒-sound` where the
+-- bdy is built from the de-indexed `⟪⟫-codL`/`⟪⟫-domL` invariants).
+hCompose-hId-R-iso-flex
+  : (B : ObjTerm) (G : Hypergraph FlatGen) (bdy : codL G ≡ domL (hId B))
+  → hComposeP G (hId B) bdy ≅ᴴ G
+hCompose-hId-R-iso-flex = hCompose-hId-R-proof.hCompose-hId-R-iso
 
 --------------------------------------------------------------------------------
 -- `idˡ-sound`: ⟪ id ∘ f ⟫ ≅ᴴ ⟪ f ⟫.
@@ -620,18 +628,24 @@ postulate
 
 --------------------------------------------------------------------------------
 -- ρ⇐∘ρ⇒ and α⇐∘α⇒: under de-indexing, ⟪ ρ⇒/ρ⇐ ⟫ are both hId (A ⊗ unit)
--- and ⟪ α⇒/α⇐ ⟫ are both hId ((A ⊗ B) ⊗ C).  But ⟪ ρ⇐ ∘ ρ⇒ ⟫ and
--- ⟪ id ∘ id {A ⊗ unit} ⟫ — while having identical hypergraph data —
--- pass *different bdy-eq proofs* to hComposeP (one factors through
--- `++-identityʳ`, the other through `refl`).  The hypergraphs are
--- still ≅ᴴ via identity bijections (data fields ignore bdy), but
--- formalising this requires an "hComposeP-bdy-irrelevant" lemma not
--- yet in the codebase.  Postulated for now.
+-- and ⟪ α⇒/α⇐ ⟫ are both hId ((A ⊗ B) ⊗ C).  We apply
+-- `hCompose-hId-R-iso-flex`, which accepts an arbitrary boundary
+-- equation `codL G ≡ domL (hId B)` (rather than the rigid
+-- `trans bdy (sym (domL-hId B))` form `hCompose-hId-R-iso-generic`
+-- requires).  The bdy from `⟪ g ∘ f ⟫` factors through `flatten A`
+-- (intermediate object), not `flatten (A ⊗ unit)`, so the flex variant
+-- is the right tool here.
 
-postulate
-  ρ⇐∘ρ⇒-sound : ∀ {A} → ⟪ ρ⇐ {A} ∘ ρ⇒ {A} ⟫ ≅ᴴ ⟪ id {A ⊗₀ unit} ⟫
-  α⇐∘α⇒-sound : ∀ {A B C}
-              → ⟪ α⇐ {A}{B}{C} ∘ α⇒ {A}{B}{C} ⟫ ≅ᴴ ⟪ id {(A ⊗₀ B) ⊗₀ C} ⟫
+ρ⇐∘ρ⇒-sound : ∀ {A} → ⟪ ρ⇐ {A} ∘ ρ⇒ {A} ⟫ ≅ᴴ ⟪ id {A ⊗₀ unit} ⟫
+ρ⇐∘ρ⇒-sound {A} =
+  hCompose-hId-R-iso-flex (A ⊗₀ unit) (hId (A ⊗₀ unit))
+    (trans (⟪⟫-codL (ρ⇒ {A})) (sym (⟪⟫-domL (ρ⇐ {A}))))
+
+α⇐∘α⇒-sound : ∀ {A B C}
+            → ⟪ α⇐ {A}{B}{C} ∘ α⇒ {A}{B}{C} ⟫ ≅ᴴ ⟪ id {(A ⊗₀ B) ⊗₀ C} ⟫
+α⇐∘α⇒-sound {A}{B}{C} =
+  hCompose-hId-R-iso-flex ((A ⊗₀ B) ⊗₀ C) (hId ((A ⊗₀ B) ⊗₀ C))
+    (trans (⟪⟫-codL (α⇒ {A}{B}{C})) (sym (⟪⟫-domL (α⇐ {A}{B}{C}))))
 
 --------------------------------------------------------------------------------
 -- CONSTRUCTIVELY PROVED under de-indexing.
