@@ -89,3 +89,66 @@ module 3-atoms (a b c : X) where
     (id' ⊗₁' α⇒' {A = Var' (suc zero)} {Var' (suc (suc zero))} {Var' zero}
        ∘' α⇒' {A = Var' zero} {Var' (suc zero) ⊗₀' Var' (suc (suc zero))} {Var' zero}
        ∘' α⇒' {A = Var' zero} {Var' (suc zero)} {Var' (suc (suc zero))} ⊗₁' id')
+
+--------------------------------------------------------------------------------
+-- Solver-discharged structural lemmas, generic in arbitrary ObjTerm
+-- parameters X, Y, ... .  Each takes the parameters as a Vec at
+-- instantiation; Mac Lane coherence then settles the equation in one
+-- `solveM` call regardless of what X, Y, ... actually are.
+
+module 2-objs (X Y : ObjTerm) where
+  vars : Vec ObjTerm 2
+  vars = X ∷ Y ∷ []
+
+  open Solver record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
+              {n = 2} vars
+    using (solveM)
+    renaming (α⇒ to α⇒'; α⇐ to α⇐';
+              λ⇒ to λ⇒'; λ⇐ to λ⇐'; ρ⇒ to ρ⇒'; ρ⇐ to ρ⇐';
+              id to id'; _∘_ to _∘'_; _⊗₁_ to _⊗₁'_;
+              unit to unit'; _⊗₀_ to _⊗₀'_; Var to Var')
+    public
+
+  -- α⇒-λ⇐-collapse: α⇒_{unit, X, Y} ∘ (λ⇐_X ⊗ id_Y) ≈ λ⇐_{X⊗Y}.
+  -- Mac Lane corollary, used in `c-iso-assoc-from` (xs₁ = []) base case.
+  α⇒-λ⇐-collapse
+    : α⇒ {unit} {X} {Y} ∘ (λ⇐ {X} ⊗₁ id {Y}) ≈Term λ⇐ {X ⊗₀ Y}
+  α⇒-λ⇐-collapse =
+    solveM
+      (α⇒' {A = unit'} {Var' zero} {Var' (suc zero)} ∘' (λ⇐' ⊗₁' id'))
+      (λ⇐' {A = Var' zero ⊗₀' Var' (suc zero)})
+
+module 4-objs (X Y Z W : ObjTerm) where
+  vars : Vec ObjTerm 4
+  vars = X ∷ Y ∷ Z ∷ W ∷ []
+
+  open Solver record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
+              {n = 4} vars
+    using (solveM)
+    renaming (α⇒ to α⇒'; α⇐ to α⇐';
+              λ⇒ to λ⇒'; λ⇐ to λ⇐'; ρ⇒ to ρ⇒'; ρ⇐ to ρ⇐';
+              id to id'; _∘_ to _∘'_; _⊗₁_ to _⊗₁'_;
+              unit to unit'; _⊗₀_ to _⊗₀'_; Var to Var')
+    public
+
+  private
+    X' = Var' zero
+    Y' = Var' (suc zero)
+    Z' = Var' (suc (suc zero))
+    W' = Var' (suc (suc (suc zero)))
+
+  -- pentagon-rewrite: solve pentagon for α⇒_{X⊗Y, Z, W}.
+  -- Used by the cons case of `c-iso-assoc-from` to expand the outer α⇒.
+  pentagon-rewrite
+    : α⇒ {X ⊗₀ Y} {Z} {W}
+    ≈Term α⇐ {X} {Y} {Z ⊗₀ W}
+          ∘ id {X} ⊗₁ α⇒ {Y} {Z} {W}
+          ∘ α⇒ {X} {Y ⊗₀ Z} {W}
+          ∘ α⇒ {X} {Y} {Z} ⊗₁ id {W}
+  pentagon-rewrite =
+    solveM
+      (α⇒' {A = X' ⊗₀' Y'} {Z'} {W'})
+      (α⇐' {A = X'} {Y'} {Z' ⊗₀' W'}
+       ∘' id' ⊗₁' α⇒' {A = Y'} {Z'} {W'}
+       ∘' α⇒' {A = X'} {Y' ⊗₀' Z'} {W'}
+       ∘' α⇒' {A = X'} {Y'} {Z'} ⊗₁' id')

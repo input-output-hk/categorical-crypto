@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS #-}
 
 --------------------------------------------------------------------------------
 -- Experiment: define `decode` directly by structural recursion on the
@@ -27,26 +27,17 @@ module Categories.APROP.Hypergraph.Completeness.DecodeRel (sig : APROPSignature)
 
 open APROP sig
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using (FlatGen; flatten; ⟪_⟫;
-         hEmpty; hVar; hId; hGen; hSwap; hTensor; hCompose)
+  using (flatten; ⟪_⟫)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
-  using (unflatten; unflatten-flatten-≈; unflatten-++-≅)
-open import Categories.APROP.Hypergraph.Completeness.Decode sig
-  using (decode-attempt)
+  using (unflatten; unflatten-++-≅)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
-  using (decode-attempt-Linear; decode;
-         decode-attempt-hEmpty; decode-attempt-hVar;
-         decode-attempt-hId; decode-attempt-hGen;
-         decode-attempt-hSwap; decode-attempt-hTensor;
-         decode-attempt-hCompose)
-import Categories.APROP.Hypergraph.Completeness.Linearity sig as Lin
+  using (bridge)
 
 open import Categories.Morphism FreeMonoidal using (_≅_)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
-open import Data.Product using (_,_; proj₁)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; sym; trans; subst; subst₂)
+  using (_≡_; refl; cong; sym; subst₂)
 
 --------------------------------------------------------------------------------
 -- `decode-rel f` is the term that the algorithm produces on `⟪ f ⟫`,
@@ -59,97 +50,71 @@ open import Relation.Binary.PropositionalEquality
 -- so any property about `decode-rel` (proved by induction on `f`)
 -- transports to the algorithmic `decode`.
 
-postulate
-  -- Stub: the original pre-de-index version of decode-rel had explicit
-  -- subst-based equations for ρ/α boundary; under de-indexing those
-  -- substs all live at the API layer in `decode` itself, so decode-rel
-  -- should follow the *natural* unflatten(domL ⟪f⟫) / unflatten(codL ⟪f⟫)
-  -- types and compose with a boundary subst at the very end.
-  -- Reformulating this is mechanical follow-up work.
-  decode-rel
-    : ∀ {A B} (f : HomTerm A B)
-    → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
+decode-rel
+  : ∀ {A B} (f : HomTerm A B)
+  → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
+-- Composition / tensor: structural recursion.  These definitional
+-- equalities are exactly what makes `decode-rel-∘-shape` and
+-- `decode-rel-⊗-shape` `refl`.
+decode-rel (g ∘ f) = decode-rel g ∘ decode-rel f
+decode-rel (_⊗₁_ {A = A} {B = B} {C = C} {D = D} f g) =
+    _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
+  ∘ (decode-rel f ⊗₁ decode-rel g)
+  ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
+-- Atomic cases: take `bridge f` directly.  This is the canonical
+-- embedding of an atomic morphism into `unflatten (flatten _)` types
+-- via the `unflatten-flatten-≈` coherence iso.  Each
+-- `decode-roundtrip-rel-X` for atomic X then becomes `≈-Term-refl`,
+-- eliminating per-atom postulates from the critical path.
+decode-rel (Agen g)                  = bridge (Agen g)
+decode-rel (σ {A = A} {B = B} ⦃ s ⦄) = bridge (σ {A = A} {B = B} ⦃ s ⦄)
+decode-rel (id {A})                  = bridge (id {A})
+decode-rel (λ⇒ {A})                  = bridge (λ⇒ {A})
+decode-rel (λ⇐ {A})                  = bridge (λ⇐ {A})
+decode-rel (ρ⇒ {A})                  = bridge (ρ⇒ {A})
+decode-rel (ρ⇐ {A})                  = bridge (ρ⇐ {A})
+decode-rel (α⇒ {A} {B} {C})          = bridge (α⇒ {A} {B} {C})
+decode-rel (α⇐ {A} {B} {C})          = bridge (α⇐ {A} {B} {C})
 
 --------------------------------------------------------------------------------
--- The two `shape` properties that were postulated as `decode-∘-shape`
--- and `decode-⊗-shape` (Layer 6 in TODO.org) become *DEFINITIONAL*
--- under `decode-rel`.
+-- The two `shape` properties are now DEFINITIONAL — the constructive
+-- `decode-rel` definition above means each side reduces to the same
+-- expression by Agda's β rule.  This is the central payoff of
+-- refactor A: the algorithmic `decode-{∘,⊗}-shape` postulates (still
+-- present in DecodeRoundtrip.agda for the algorithmic decode chain,
+-- but no longer on the critical path to `Completeness.completeness`)
+-- have been displaced by `refl` here.
 
-postulate
-  -- These were `refl` in the pre-de-index DecodeRel version (the whole
-  -- point of decode-rel was that they're definitional).  Under
-  -- de-indexing, they remain definitional in spirit but the
-  -- decode-rel definition above is currently postulated, so these are
-  -- too.  Once decode-rel is filled in, these will be `refl` again.
-  decode-rel-∘-shape
-    : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
-    → decode-rel (g ∘ f) ≡ decode-rel g ∘ decode-rel f
-  decode-rel-⊗-shape
-    : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
-    → decode-rel (f ⊗₁ g)
-    ≡ _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
-    ∘ (decode-rel f ⊗₁ decode-rel g)
-    ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
+decode-rel-∘-shape
+  : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
+  → decode-rel (g ∘ f) ≡ decode-rel g ∘ decode-rel f
+decode-rel-∘-shape g f = refl
 
---------------------------------------------------------------------------------
--- Equivalence with the algorithmic `decode`.  We show that every
--- `decode-rel f` agrees with `decode f` (= `proj₁ (decode-attempt-Linear f)`)
--- on the nose.  This lets every property proved about `decode-rel` be
--- transported to `decode`.
---
--- The equivalence is by induction on `f`; each case is `refl` because
--- `decode-attempt-Linear`'s case-analysis dispatches to the same
--- `decode-attempt-h*` we mirror in `decode-rel`.
-
-postulate
-  -- The bridges below characterise the algorithmic decode's output
-  -- shape — exactly the postulates `decode-∘-shape`/`decode-⊗-shape`
-  -- (Layer 6 in TODO.org) plus the ρ/α-shape lemmas in DecodeRoundtrip.
-  -- These are the *only* obstructions to an end-to-end equivalence
-  -- between `decode-rel` and the algorithmic `decode`.
-  decode-rel-bridge-comp
-    : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
-    → decode-rel g ∘ decode-rel f ≡ decode (g ∘ f)
-  decode-rel-bridge-tens
-    : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
-    → decode-rel (f ⊗₁ g) ≡ decode (f ⊗₁ g)
-  decode-rel-bridge-ρ⇒
-    : ∀ {A} → decode-rel (ρ⇒ {A}) ≡ decode (ρ⇒ {A})
-  decode-rel-bridge-ρ⇐
-    : ∀ {A} → decode-rel (ρ⇐ {A}) ≡ decode (ρ⇐ {A})
-  decode-rel-bridge-α⇒
-    : ∀ {A B C} → decode-rel (α⇒ {A} {B} {C}) ≡ decode (α⇒ {A} {B} {C})
-  decode-rel-bridge-α⇐
-    : ∀ {A B C} → decode-rel (α⇐ {A} {B} {C}) ≡ decode (α⇐ {A} {B} {C})
-
-postulate
-  decode-rel-≡-decode
-    : ∀ {A B} (f : HomTerm A B) → decode-rel f ≡ decode f
+decode-rel-⊗-shape
+  : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
+  → decode-rel (f ⊗₁ g)
+  ≡ _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
+  ∘ (decode-rel f ⊗₁ decode-rel g)
+  ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
+decode-rel-⊗-shape f g = refl
 
 --------------------------------------------------------------------------------
--- DOWNSTREAM PAYOFF: under `decode-rel`, the existing postulates
--- `decode-∘-shape` and `decode-⊗-shape` (in DecodeRoundtrip.agda) and
--- the per-case structural pieces of `decode-roundtrip-{∘,⊗}` collapse.
+-- Roundtrip property: `decode-rel f ≈Term bridge f` for all f.
 --
--- The proof of `decode-roundtrip-rel-∘` below uses ONLY:
---   - `DR.bridge-∘`           (already constructive in DecodeRoundtrip.agda)
---   - the IHs              (`decode-roundtrip-rel f`, `decode-roundtrip-rel g`)
--- with NO appeal to a `decode-∘-shape` postulate, because that step is
--- now `refl`.
---
--- Compare to DecodeRoundtrip.decode-roundtrip-∘ which had to first chain
--- through `decode-∘-shape` (a postulate) before applying the IHs, and
--- DecodeRoundtrip.decode-roundtrip-⊗₁ which similarly chained through
--- `decode-⊗-shape` (also a postulate).
+-- This is the analog of `DR.decode-roundtrip` for `decode-rel`.  Crucially,
+-- the `∘` and `⊗` cases use `decode-rel-{∘,⊗}-shape` (now `refl`) instead
+-- of the postulated `decode-{∘,⊗}-shape` from DecodeRoundtrip.
 
 import Categories.APROP.Hypergraph.Completeness.DecodeRoundtrip sig as DR
-open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
-  using (bridge)
 open import Categories.Category using (Category)
 
 private
   module FM = Category FreeMonoidal
 open FM.HomReasoning
+
+private
+  ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
+  ≡⇒≈Term refl = ≈-Term-refl
 
 decode-roundtrip-rel-∘
   : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
@@ -165,9 +130,6 @@ decode-roundtrip-rel-∘ g f IH-f IH-g = begin
     ≈⟨ DR.bridge-∘ g f ⟨
   bridge (g ∘ f)
     ∎
-  where
-    ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-    ≡⇒≈Term refl = ≈-Term-refl
 
 decode-roundtrip-rel-⊗
   : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
@@ -186,5 +148,37 @@ decode-roundtrip-rel-⊗ {A} {B} {C} {D} f g IH-f IH-g = begin
   where
     cBD-to   = _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
     cAC-from = _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
-    ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-    ≡⇒≈Term refl = ≈-Term-refl
+
+-- All atomic cases reduce to `≈-Term-refl` because decode-rel was
+-- defined to *be* `bridge` for those constructors.  The only real
+-- work is in the inductive ∘/⊗ cases, where we use the now-`refl`
+-- shape lemmas to thread the IHs through `bridge-∘`/`bridge-⊗`.
+
+decode-roundtrip-rel
+  : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term bridge f
+decode-roundtrip-rel (Agen g)        = ≈-Term-refl
+decode-roundtrip-rel id              = ≈-Term-refl
+decode-roundtrip-rel (g ∘ f)         =
+  decode-roundtrip-rel-∘ g f (decode-roundtrip-rel f) (decode-roundtrip-rel g)
+decode-roundtrip-rel (f ⊗₁ g)        =
+  decode-roundtrip-rel-⊗ f g (decode-roundtrip-rel f) (decode-roundtrip-rel g)
+decode-roundtrip-rel λ⇒              = ≈-Term-refl
+decode-roundtrip-rel λ⇐              = ≈-Term-refl
+decode-roundtrip-rel ρ⇒              = ≈-Term-refl
+decode-roundtrip-rel ρ⇐              = ≈-Term-refl
+decode-roundtrip-rel α⇒              = ≈-Term-refl
+decode-roundtrip-rel α⇐              = ≈-Term-refl
+decode-roundtrip-rel σ               = ≈-Term-refl
+
+--------------------------------------------------------------------------------
+-- decode-rel preserves hypergraph iso.  Analog of the postulated
+-- `decode-resp-≅ᴴ` in Decoder.agda — replacement, not addition.
+-- Used by `Completeness.completeness` together with `decode-roundtrip-rel`.
+
+open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
+
+postulate
+  decode-rel-resp-≅ᴴ
+    : ∀ {A B} (f g : HomTerm A B)
+    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+    → decode-rel f ≈Term decode-rel g

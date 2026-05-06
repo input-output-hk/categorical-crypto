@@ -46,22 +46,23 @@
 --
 --   With both flags, all 8 focused postulates dispatch in <1s each.
 --
--- 5 per-axiom postulates still outstanding (see TODO.org Step 6):
---   * `ρ⇒∘f⊗id≈f∘ρ⇒-sound` — ρ-nat
+-- Postulates still outstanding under de-indexed refactor:
+--   * `α⇒∘α⇐-sound`         — needs `hTensor-assoc` for hId
 --   * `σ∘[f⊗g]≈[g⊗f]∘σ-sound` — σ-nat
 --   * `hexagon-sound`       — symmetric hexagon
 --   * `assoc-sound`         — hComposeP associativity
 --   * `⊗-∘-dist-sound`      — tensor/compose interchange
 --
--- Each axiom with a dedicated module (proved constructively where
--- possible; focused postulates for sub-claims):
+-- Each axiom with a dedicated module:
 --   * `triangle-sound` in `Categories.APROP.Hypergraph.Triangle`
---     (fully constructive).
+--     (FULLY CONSTRUCTIVE under de-indexing; uses
+--     `hCompose-hId-L-iso-flex` + `hTensor-G-hEmpty-iso`).
 --   * `α-comm-sound` in `Categories.APROP.Hypergraph.AlphaCommSound`
---     (modulo one focused postulate `hTensor-assoc-iso`).
+--     (still a flat postulate; needs `hTensor-assoc`).
 --   * `pentagon-sound` in `Categories.APROP.Hypergraph.Pentagon`
---     (building blocks proved; overall `pentagon-sound` still a
---     focused postulate pending the composite-collapse chain).
+--     (still a flat postulate; needs `hTensor-assoc`).
+--   * `σ∘[f⊗g]≈[g⊗f]∘σ-sound` in `Categories.APROP.Hypergraph.SigmaNat`
+--     (still a flat postulate).
 --
 -- Because this file depends on those postulates, it is not `--safe` and
 -- is not transitively imported by `CategoricalCrypto.agda`.
@@ -89,11 +90,9 @@ open import Categories.APROP.Hypergraph.SoundnessAxioms sig
         ; hexagon-sound
         ; assoc-sound; ⊗-∘-dist-sound)
 -- `triangle-sound`, `α-comm-sound`, `pentagon-sound`, and
--- `σ∘[f⊗g]≈[g⊗f]∘σ-sound` live in their own modules.  Triangle,
--- AlphaCommSound, and SigmaNat are proved constructively (modulo
--- small internal postulates).  Pentagon has its building blocks
--- proved but `pentagon-sound` itself is still a focused postulate
--- pending the composite-collapse chain.
+-- `σ∘[f⊗g]≈[g⊗f]∘σ-sound` live in their own modules.  Triangle is
+-- fully constructive; AlphaCommSound, Pentagon, SigmaNat are still
+-- flat postulates pending the `hTensor-assoc` proof.
 open import Categories.APROP.Hypergraph.Triangle sig
   using (triangle-sound)
 open import Categories.APROP.Hypergraph.AlphaCommSound sig
@@ -120,8 +119,14 @@ soundness (≈-Term-trans p q)  = trans-≅ᴴ (soundness p) (soundness q)
 -- translates to `hComposeP ⟪g⟫ ⟪f⟫`. `hComposeP-resp-≅ᴴ` takes the
 -- G-side iso, K-side iso, and Unique K₁.dom — the last supplied by
 -- the `⟪_⟫-dom-unique` invariant for `f` (which is the K-side).
-soundness (∘-resp-≈ {f = f} pf pg) =
-  hComposeP-resp-≅ᴴ (soundness pg) (soundness pf)
+soundness (∘-resp-≈ {f = f} {h = h} {g = g} {i = i} pf pg) =
+  hComposeP-resp-≅ᴴ
+    (trans (⟪⟫-codL g) (sym (⟪⟫-domL f)))
+    (trans (⟪⟫-codL i) (sym (⟪⟫-domL h)))
+    (soundness pg) (soundness pf)
+    (⟪_⟫-dom-unique f)
+  where
+    open import Relation.Binary.PropositionalEquality using (trans; sym)
 
 -- Congruence for tensor.
 soundness (⊗-resp-≈ pf pg)    = hTensor-resp-≅ᴴ (soundness pf) (soundness pg)

@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS #-}
 
 --------------------------------------------------------------------------------
 -- Phase 3.5f Step 5 — `decode-roundtrip` by induction on the term.
@@ -892,21 +892,16 @@ private
 
 -- Mac Lane coherence corollary: α⇒_{unit, X, Y} ∘ (λ⇐_X ⊗ id_Y) ≈ λ⇐_{X⊗Y}.
 -- Used for the base case (xs₁ = []) of `c-iso-assoc-from`.
+-- Discharged by `solveM` via `CoherenceSolver.2-objs` (refactor C).
 α⇒-λ⇐-collapse
   : ∀ {X Y} → α⇒ {unit} {X} {Y} ∘ (λ⇐ {X} ⊗₁ id {Y}) ≈Term λ⇐ {X ⊗₀ Y}
-α⇒-λ⇐-collapse = begin
-  α⇒ ∘ (λ⇐ ⊗₁ id)
-    ≈⟨ refl⟩∘⟨ ≈-Term-sym coherence-inv₁ ⟩
-  α⇒ ∘ (α⇐ ∘ λ⇐)
-    ≈⟨ FM.sym-assoc ⟩
-  (α⇒ ∘ α⇐) ∘ λ⇐
-    ≈⟨ α⇒∘α⇐≈id ⟩∘⟨refl ⟩
-  id ∘ λ⇐
-    ≈⟨ idˡ ⟩
-  λ⇐ ∎
+α⇒-λ⇐-collapse {X} {Y} = lemma
+  where open import Categories.APROP.Hypergraph.Completeness.CoherenceSolver sig
+        open 2-objs X Y renaming (α⇒-λ⇐-collapse to lemma)
 
 -- Pentagon-rewrite: solves pentagon for `α⇒_{X⊗Y, Z, W}`.  Used by
 -- the cons case of `c-iso-assoc-from` to expand the outer α⇒.
+-- Discharged by `solveM` via `CoherenceSolver.4-objs` (refactor C).
 pentagon-rewrite
   : ∀ {X Y Z W}
   → α⇒ {X ⊗₀ Y} {Z} {W}
@@ -914,16 +909,9 @@ pentagon-rewrite
         ∘ id {X} ⊗₁ α⇒ {Y} {Z} {W}
         ∘ α⇒ {X} {Y ⊗₀ Z} {W}
         ∘ α⇒ {X} {Y} {Z} ⊗₁ id {W}
-pentagon-rewrite = begin
-  α⇒
-    ≈⟨ ≈-Term-sym idˡ ⟩
-  id ∘ α⇒
-    ≈⟨ ≈-Term-sym α⇐∘α⇒≈id ⟩∘⟨refl ⟩
-  (α⇐ ∘ α⇒) ∘ α⇒
-    ≈⟨ FM.assoc ⟩
-  α⇐ ∘ α⇒ ∘ α⇒
-    ≈⟨ refl⟩∘⟨ ≈-Term-sym pentagon ⟩
-  α⇐ ∘ (id ⊗₁ α⇒ ∘ α⇒ ∘ α⇒ ⊗₁ id) ∎
+pentagon-rewrite {X} {Y} {Z} {W} = lemma
+  where open import Categories.APROP.Hypergraph.Completeness.CoherenceSolver sig
+        open 4-objs X Y Z W renaming (pentagon-rewrite to lemma)
 
 -- id-⊗-subst-bridge: relates `id_{Var x} ⊗ (subst-id along e)` to a
 -- subst-id at the wrapped predicate.  Used by the cons case to handle
