@@ -892,18 +892,12 @@ private
 
 -- Mac Lane coherence corollary: α⇒_{unit, X, Y} ∘ (λ⇐_X ⊗ id_Y) ≈ λ⇐_{X⊗Y}.
 -- Used for the base case (xs₁ = []) of `c-iso-assoc-from`.
+-- Discharged by `solveM` via `CoherenceSolver.2-objs` (refactor C).
 α⇒-λ⇐-collapse
   : ∀ {X Y} → α⇒ {unit} {X} {Y} ∘ (λ⇐ {X} ⊗₁ id {Y}) ≈Term λ⇐ {X ⊗₀ Y}
-α⇒-λ⇐-collapse = begin
-  α⇒ ∘ (λ⇐ ⊗₁ id)
-    ≈⟨ refl⟩∘⟨ ≈-Term-sym coherence-inv₁ ⟩
-  α⇒ ∘ (α⇐ ∘ λ⇐)
-    ≈⟨ FM.sym-assoc ⟩
-  (α⇒ ∘ α⇐) ∘ λ⇐
-    ≈⟨ α⇒∘α⇐≈id ⟩∘⟨refl ⟩
-  id ∘ λ⇐
-    ≈⟨ idˡ ⟩
-  λ⇐ ∎
+α⇒-λ⇐-collapse {X} {Y} = lemma
+  where open import Categories.APROP.Hypergraph.Completeness.CoherenceSolver sig
+        open 2-objs X Y renaming (α⇒-λ⇐-collapse to lemma)
 
 -- Pentagon-rewrite: solves pentagon for `α⇒_{X⊗Y, Z, W}`.  Used by
 -- the cons case of `c-iso-assoc-from` to expand the outer α⇒.
