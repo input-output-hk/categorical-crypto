@@ -53,7 +53,7 @@ open import Relation.Binary.PropositionalEquality
 decode-rel
   : ∀ {A B} (f : HomTerm A B)
   → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
--- Composition / tensor: structural recursion — these definitional
+-- Composition / tensor: structural recursion.  These definitional
 -- equalities are exactly what makes `decode-rel-∘-shape` and
 -- `decode-rel-⊗-shape` `refl`.
 decode-rel (g ∘ f) = decode-rel g ∘ decode-rel f
@@ -61,36 +61,20 @@ decode-rel (_⊗₁_ {A = A} {B = B} {C = C} {D = D} f g) =
     _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
   ∘ (decode-rel f ⊗₁ decode-rel g)
   ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
--- Generators / σ: pick `bridge (Agen g)` / `bridge (σ)` directly
--- as the canonical decode-rel — the embedding of the primitive at
--- `unflatten (flatten _)` types via the unflatten-flatten coherence
--- iso.  This makes `decode-roundtrip-rel-{Agen,σ}` `refl` outright,
--- eliminating two postulates (the previous definitions used the
--- algorithmic `decode-attempt-h{Gen,Swap}` which then required
--- `DR.decode-roundtrip-{Agen,σ}` postulates to bridge to bridge).
-decode-rel (Agen g) = bridge (Agen g)
+-- Atomic cases: take `bridge f` directly.  This is the canonical
+-- embedding of an atomic morphism into `unflatten (flatten _)` types
+-- via the `unflatten-flatten-≈` coherence iso.  Each
+-- `decode-roundtrip-rel-X` for atomic X then becomes `≈-Term-refl`,
+-- eliminating per-atom postulates from the critical path.
+decode-rel (Agen g)                  = bridge (Agen g)
 decode-rel (σ {A = A} {B = B} ⦃ s ⦄) = bridge (σ {A = A} {B = B} ⦃ s ⦄)
--- id, λ⇒, λ⇐: flatten reduces these endpoints to the same list
--- definitionally, so plain `id` works.
-decode-rel (id {A})  = id
-decode-rel (λ⇒ {A}) = id
-decode-rel (λ⇐ {A}) = id
--- ρ⇒, ρ⇐, α⇒, α⇐: flatten introduces a `++ []` or shifts the
--- bracketing.  Wrap `id` in `subst₂` along the relevant list-equation.
--- The `subst₂` shape (rather than plain `subst`) matches the existing
--- `ρ⇒-coherence` / `α⇒-coherence` etc. in DecodeRoundtrip.agda, so the
--- bridge lemma in each case is a one-liner.
-decode-rel (ρ⇒ {A}) =
-  subst₂ HomTerm refl (cong unflatten (++-identityʳ (flatten A))) id
-decode-rel (ρ⇐ {A}) =
-  subst₂ HomTerm (cong unflatten (++-identityʳ (flatten A))) refl id
-decode-rel (α⇒ {A} {B} {C}) =
-  subst₂ HomTerm refl
-         (cong unflatten (++-assoc (flatten A) (flatten B) (flatten C)))
-         id
-decode-rel (α⇐ {A} {B} {C}) =
-  subst₂ HomTerm (cong unflatten (++-assoc (flatten A) (flatten B) (flatten C)))
-         refl id
+decode-rel (id {A})                  = bridge (id {A})
+decode-rel (λ⇒ {A})                  = bridge (λ⇒ {A})
+decode-rel (λ⇐ {A})                  = bridge (λ⇐ {A})
+decode-rel (ρ⇒ {A})                  = bridge (ρ⇒ {A})
+decode-rel (ρ⇐ {A})                  = bridge (ρ⇐ {A})
+decode-rel (α⇒ {A} {B} {C})          = bridge (α⇒ {A} {B} {C})
+decode-rel (α⇐ {A} {B} {C})          = bridge (α⇐ {A} {B} {C})
 
 --------------------------------------------------------------------------------
 -- The two `shape` properties are now DEFINITIONAL — the constructive
@@ -165,70 +149,26 @@ decode-roundtrip-rel-⊗ {A} {B} {C} {D} f g IH-f IH-g = begin
     cBD-to   = _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
     cAC-from = _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
 
--- Per-constructor cases.  For id/λ⇒/λ⇐, decode-rel is just `id` and
--- bridge ≈ id.  For ρ/α, decode-rel is exactly the `subst₂ HomTerm`-form
--- that `DR.{ρ,α}-coherence` already relates to bridge.  For Agen and σ,
--- decode-rel is propositionally equal to `decode` (the algorithmic
--- form), so we delegate to the existing `DR.decode-roundtrip-{Agen,σ}`.
+-- All atomic cases reduce to `≈-Term-refl` because decode-rel was
+-- defined to *be* `bridge` for those constructors.  The only real
+-- work is in the inductive ∘/⊗ cases, where we use the now-`refl`
+-- shape lemmas to thread the IHs through `bridge-∘`/`bridge-⊗`.
 
-decode-roundtrip-rel-id
-  : ∀ {A} → decode-rel (id {A}) ≈Term bridge (id {A})
-decode-roundtrip-rel-id {A} = ≈-Term-sym (DR.bridge-id-is-id A)
-
-decode-roundtrip-rel-λ⇒
-  : ∀ {A} → decode-rel (λ⇒ {A}) ≈Term bridge (λ⇒ {A})
-decode-roundtrip-rel-λ⇒ {A} = ≈-Term-sym (DR.bridge-λ⇒-is-id A)
-
-decode-roundtrip-rel-λ⇐
-  : ∀ {A} → decode-rel (λ⇐ {A}) ≈Term bridge (λ⇐ {A})
-decode-roundtrip-rel-λ⇐ {A} = ≈-Term-sym (DR.bridge-λ⇐-is-id A)
-
-decode-roundtrip-rel-ρ⇒
-  : ∀ {A} → decode-rel (ρ⇒ {A}) ≈Term bridge (ρ⇒ {A})
-decode-roundtrip-rel-ρ⇒ {A} = DR.ρ⇒-coherence A
-
-decode-roundtrip-rel-ρ⇐
-  : ∀ {A} → decode-rel (ρ⇐ {A}) ≈Term bridge (ρ⇐ {A})
-decode-roundtrip-rel-ρ⇐ {A} = DR.ρ⇐-coherence A
-
-decode-roundtrip-rel-α⇒
-  : ∀ {A B C} → decode-rel (α⇒ {A} {B} {C}) ≈Term bridge (α⇒ {A} {B} {C})
-decode-roundtrip-rel-α⇒ {A} {B} {C} = DR.α⇒-coherence A B C
-
-decode-roundtrip-rel-α⇐
-  : ∀ {A B C} → decode-rel (α⇐ {A} {B} {C}) ≈Term bridge (α⇐ {A} {B} {C})
-decode-roundtrip-rel-α⇐ {A} {B} {C} = DR.α⇐-coherence A B C
-
--- For Agen and σ, decode-rel was *defined* to be `bridge`, so the
--- roundtrip lemma is `≈-Term-refl`.  This is the cleanup: the previous
--- definition wrapped `decode-attempt-h{Gen,Swap}` with subst₂ and
--- relied on `DR.decode-roundtrip-{Agen,σ}` postulates to bridge them
--- back to `bridge`.  Now those postulates are gone from the path.
-decode-roundtrip-rel-Agen
-  : ∀ {A B} (g : mor A B) → decode-rel (Agen g) ≈Term bridge (Agen g)
-decode-roundtrip-rel-Agen g = ≈-Term-refl
-
-decode-roundtrip-rel-σ
-  : ∀ {A B} ⦃ s : Symm ≤ Symm ⦄
-  → decode-rel (σ {A = A} {B = B} ⦃ s ⦄) ≈Term bridge (σ {A = A} {B = B} ⦃ s ⦄)
-decode-roundtrip-rel-σ = ≈-Term-refl
-
--- The full induction.
 decode-roundtrip-rel
   : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term bridge f
-decode-roundtrip-rel (Agen g)        = decode-roundtrip-rel-Agen g
-decode-roundtrip-rel id              = decode-roundtrip-rel-id
+decode-roundtrip-rel (Agen g)        = ≈-Term-refl
+decode-roundtrip-rel id              = ≈-Term-refl
 decode-roundtrip-rel (g ∘ f)         =
   decode-roundtrip-rel-∘ g f (decode-roundtrip-rel f) (decode-roundtrip-rel g)
 decode-roundtrip-rel (f ⊗₁ g)        =
   decode-roundtrip-rel-⊗ f g (decode-roundtrip-rel f) (decode-roundtrip-rel g)
-decode-roundtrip-rel λ⇒              = decode-roundtrip-rel-λ⇒
-decode-roundtrip-rel λ⇐              = decode-roundtrip-rel-λ⇐
-decode-roundtrip-rel ρ⇒              = decode-roundtrip-rel-ρ⇒
-decode-roundtrip-rel ρ⇐              = decode-roundtrip-rel-ρ⇐
-decode-roundtrip-rel α⇒              = decode-roundtrip-rel-α⇒
-decode-roundtrip-rel α⇐              = decode-roundtrip-rel-α⇐
-decode-roundtrip-rel (σ ⦃ s ⦄)       = decode-roundtrip-rel-σ ⦃ s ⦄
+decode-roundtrip-rel λ⇒              = ≈-Term-refl
+decode-roundtrip-rel λ⇐              = ≈-Term-refl
+decode-roundtrip-rel ρ⇒              = ≈-Term-refl
+decode-roundtrip-rel ρ⇐              = ≈-Term-refl
+decode-roundtrip-rel α⇒              = ≈-Term-refl
+decode-roundtrip-rel α⇐              = ≈-Term-refl
+decode-roundtrip-rel σ               = ≈-Term-refl
 
 --------------------------------------------------------------------------------
 -- decode-rel preserves hypergraph iso.  Analog of the postulated
