@@ -6,6 +6,66 @@ in this worktree and the prototypes type-check.  They stack: applying all
 three eliminates ~1000-1500 LOC and 4-5 of the postulates currently blocking
 the completeness theorem.
 
+## Current state (after refactors A, B, C)
+
+The completeness theorem (`Categories.APROP.Hypergraph.Completeness.completeness`)
+now depends on **a single postulate**:
+
+```agda
+decode-rel-resp-≅ᴴ
+  : ∀ {A B} (f g : HomTerm A B)
+  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+  → decode-rel f ≈Term decode-rel g
+```
+
+(in `Completeness/DecodeRel.agda`).  All other postulates that were on the
+critical path have been displaced — see the per-refactor sections below.
+
+### How we got here
+
+| Path postulate count | After |
+|---|---:|
+| Original (indexed Hypergraph, algorithmic decode) | 9-10 (transitively) |
+| After refactor B (de-index Hypergraph) | unchanged on this axis |
+| After refactor A step 1 (decode-rel concrete) | 5 |
+| After Agen/σ → bridge | 3 |
+| After all atomic → bridge | **1** |
+
+The simplification that collapsed 5→1 was: define `decode-rel f = bridge f`
+for every atomic constructor (id, λ, ρ, α, σ, Agen).  Each per-atom
+roundtrip lemma then becomes `≈-Term-refl`, severing the chain that had
+previously routed through `DR.{ρ,α}-coherence` (which depended on the
+postulated `bridge-α⇒-form-⊗-⊗` and `c-iso-assoc-from-cons`).  The
+α-coherence postulates remain in `DecodeRoundtrip.agda` for the algorithmic
+decode pipeline but are no longer reached from `Completeness.completeness`.
+
+### Difficulty of the remaining postulate
+
+`decode-rel-resp-≅ᴴ` is essentially the completeness theorem itself —
+"two terms with isomorphic hypergraphs decode to ≈Term-equal terms."
+Discharging it requires the genuine categorical content (this is
+the heart of the symmetric-PROP completeness theorem).
+
+The Solver/* directory provides a *decision procedure* `findIso` that
+returns `_≅ᴴ_` records for every `_≈Term_` equation form (verified
+empirically by `Solver/Tests.agda`), but it doesn't produce ≈Term proofs.
+Bridging "iso found" → "≈Term derivation" is the mathematical content
+that's still missing.
+
+Realistic estimates for full discharge:
+- **Modify Solver to extract ≈Term proofs alongside iso**: 2-4 weeks,
+  ~600-1000 LOC of new proof-tracking code.
+- **Direct induction on the iso's structure** (vertex/edge bijections):
+  2-4 weeks, similar scale.
+- **Normalization to a canonical iso-invariant form**: 2-3 weeks,
+  needs new infrastructure.
+- **Restricted-signature first, then extend**: 1-2 weeks for the
+  restricted case (atomic-vs-atomic), then per-extension cost.
+
+The recommended next step is the restricted-signature variant — see
+the `Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso` work
+in progress (atomic-only sub-cases of `decode-rel-resp-≅ᴴ`).
+
 ## Status
 
 ### Refactor B — IMPLEMENTED across all 42 hypergraph files
