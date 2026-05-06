@@ -8,10 +8,14 @@ the completeness theorem.
 
 ## Status
 
-### Refactor B — IMPLEMENTED on the completeness pipeline (22 / 42 files pass)
+### Refactor B — IMPLEMENTED across the completeness pipeline + Solver + structural soundness (31 / 42 files pass)
 
-22 of 42 files in `src/Categories/APROP/Hypergraph/` type-check with
-the de-indexed Hypergraph:
+31 of 42 files in `src/Categories/APROP/Hypergraph/` type-check with
+the de-indexed Hypergraph.  This includes the entire completeness
+pipeline, the Solver (Phase 4a — `findIso` decision procedure), and
+the structural infrastructure underlying soundness (Core, FromAPROP,
+Iso, IsoSimple, Translation, PrunedCompose, Invariant, Prune,
+HomTermInvariant).
 
 ```
 Hypergraph/Completeness.agda
@@ -41,29 +45,18 @@ Hypergraph/Solver/Totals.agda
 `subst₂ (Hypergraph FlatGen)` count in the completeness pipeline:
 **101 → 0** (the only 2 remaining references are inside comments).
 
-The 20 files still failing all live on the **soundness side** —
-they are independent of completeness and only consume hypergraphs
-in the indexed form.  Migration is mechanical (each file's
-`subst₂ (Hypergraph FlatGen)` calls become trivially `refl` or get
-deleted), but high blast radius:
+The 11 files still failing form the **soundness chain** — Pentagon,
+Triangle, AlphaCommSound, SoundnessAxioms, SoundnessProved,
+CoherenceHelpers, CoherenceReductions, SigmaNat, Soundness,
+Congruence, CongruenceP.  These prove statements of the form
+`⟪ LHS ⟫ ≅ᴴ ⟪ RHS ⟫` where the LHS/RHS previously involved
+`subst₂ Hypergraph` from the indexed translation; the proofs were
+structured around peeling those substs.
 
-```
-Hypergraph/Pentagon.agda                          50 subst₂ uses
-Hypergraph/AlphaCommSound.agda                     9 subst₂ uses
-Hypergraph/SoundnessAxioms.agda                    9 subst₂ uses
-Hypergraph/CoherenceHelpers.agda                   7 subst₂ uses
-Hypergraph/CoherenceReductions.agda                4 subst₂ uses
-Hypergraph/Translation.agda                        4 subst₂ uses
-Hypergraph/SoundnessProved.agda                    4 subst₂ uses
-Hypergraph/PrunedCompose.agda                      3 subst₂ uses
-Hypergraph/HomTermInvariant.agda                   1 subst₂ use
-Hypergraph/Triangle.agda                           1 subst₂ use
-Hypergraph/SigmaNat.agda                          (broken via dependency)
-Hypergraph/Soundness.agda                         (broken via dependency)
-Hypergraph/Congruence.agda, CongruenceP.agda      (broken via dependency)
-Hypergraph/Solver/{FindIso,Match,Search,Seed,Tests,Verify}.agda
-                                                  (broken via Iso)
-```
+Now that the translation is de-indexed, the `subst₂ Hypergraph` is
+gone — these proofs need to be reformulated, not just mechanically
+migrated.  This is real proof work (a few hours per file, more
+for Pentagon).
 
 ### Refactor A (decode-rel) and Refactor C (solveM)
 
