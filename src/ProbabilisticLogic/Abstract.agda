@@ -25,6 +25,8 @@ open Predicates using (∪-∁-LEM; ∩-∁-partition)
 
 module ProbabilisticLogic.Abstract where
 
+open import Tactic.Solver.Ring using (solve-≈)
+
 private variable Ω Ω₁ Ω₂ : Type
 
 disjoint : (P Q : Ω → Type) → Type
@@ -178,16 +180,12 @@ record Abstract c ℓ : Type (sucˡ (c ⊔ˡ ℓ)) where
     ≈⇒≤-P = IsPreorder.reflexive HP.≤-isPreorder
 
     1+p≈1⇒p≤0 : ∀ {p : Probability} → 1# + p ≈ 1# → p ≤ 0#
-    1+p≈1⇒p≤0 {p} eq = +-cancelʳ-≤ (≈⇒≤-P p+1≈0+1)
-      where
-        module Eq = Setoid setoid
-        open ≈-Reasoning setoid
-        p+1≈0+1 : p + 1# ≈ 0# + 1#
-        p+1≈0+1 = begin
-          p + 1#  ≈⟨ +-comm p 1# ⟩
-          1# + p  ≈⟨ eq ⟩
-          1#      ≈⟨ Eq.sym (+-identityˡ 1#) ⟩
-          0# + 1# ∎
+    1+p≈1⇒p≤0 {p} eq = +-cancelʳ-≤ (≈⇒≤-P (begin
+      p + 1#  ≈⟨ solve-≈ Probabilityᴿ ⟩
+      1# + p  ≈⟨ eq ⟩
+      1#      ≈⟨ solve-≈ Probabilityᴿ ⟩
+      0# + 1# ∎))
+      where open ≈-Reasoning setoid
 
   P-∁≈0 : ∀ {P : ProbDistr Ω} {A : Ω → Type} ⦃ A? : A ⁇¹ ⦄
         → P ∙ A ≈ 1# → P ∙ ∁ A ≈ 0#

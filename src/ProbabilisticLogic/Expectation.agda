@@ -34,15 +34,7 @@ module ProbabilisticLogic.Expectation c ℓ (a : Abstract c ℓ) where
 
 open Abstract a
 
--- Ring solver instance for `Probability`'s commutative semiring.
--- `NaturalCoefficients` uses ℕ as the coefficient ring (abstract semirings
--- have no negation); supplying `nothing` everywhere for the weak decidability
--- of `m × 1# ≈ n × 1#` makes the solver only weaker, but is enough for the
--- pure structural rearrangements we need.
-import Algebra.Solver.Ring.NaturalCoefficients
-  (record { isCommutativeSemiring = isCommutativeSemiring })
-  (λ _ _ → nothing)
-  as R
+open import Tactic.Solver.Ring using (solve-≈)
 
 private
   module Eq = Setoid setoid
@@ -86,11 +78,7 @@ weight-sum-+ : ∀ {P : ProbDistr Ω} (f g : Ω → Probability) (s : List Ω)
 weight-sum-+         f g []       = Eq.sym (+-identityʳ 0#)
 weight-sum-+ {P = P} f g (ω ∷ ωs) = Eq.trans
   (+-congˡ (weight-sum-+ f g ωs))
-  (R.solve 5 (λ pω fω gω wsf wsg →
-       ((pω R.:* (fω R.:+ gω)) R.:+ (wsf R.:+ wsg))
-     R.:= (((pω R.:* fω) R.:+ wsf) R.:+ ((pω R.:* gω) R.:+ wsg)))
-   Eq.refl
-   (P ∙ (ω ≡_)) (f ω) (g ω) (weight-sum P f ωs) (weight-sum P g ωs))
+  (solve-≈ Probabilityᴿ)
 
 -- Linearity in scalar multiplication: a constant factor pulls out.
 weight-sum-*ₗ : ∀ {P : ProbDistr Ω} (k : Probability) (f : Ω → Probability) (s : List Ω)
@@ -98,11 +86,7 @@ weight-sum-*ₗ : ∀ {P : ProbDistr Ω} (k : Probability) (f : Ω → Probabili
 weight-sum-*ₗ         k f []       = Eq.sym (zeroʳ k)
 weight-sum-*ₗ {P = P} k f (ω ∷ ωs) = Eq.trans
   (+-congˡ (weight-sum-*ₗ k f ωs))
-  (R.solve 4 (λ pω k' fω wsf →
-       ((pω R.:* (k' R.:* fω)) R.:+ (k' R.:* wsf))
-     R.:= (k' R.:* ((pω R.:* fω) R.:+ wsf)))
-   Eq.refl
-   (P ∙ (ω ≡_)) k (f ω) (weight-sum P f ωs))
+  (solve-≈ Probabilityᴿ)
 
 -- The constant-zero function has weighted sum zero.
 weight-sum-0 : ∀ {P : ProbDistr Ω} (s : List Ω) → weight-sum P (λ _ → 0#) s ≈ 0#
@@ -120,11 +104,7 @@ weight-sum-++ : ∀ {P : ProbDistr Ω} (f : Ω → Probability) (s t : List Ω)
 weight-sum-++         f []      t = Eq.sym (+-identityˡ _)
 weight-sum-++ {P = P} f (ω ∷ s) t = Eq.trans
   (+-congˡ (weight-sum-++ f s t))
-  (R.solve 4 (λ pω fω wss wst →
-       ((pω R.:* fω) R.:+ (wss R.:+ wst))
-     R.:= (((pω R.:* fω) R.:+ wss) R.:+ wst))
-   Eq.refl
-   (P ∙ (ω ≡_)) (f ω) (weight-sum P f s) (weight-sum P f t))
+  (solve-≈ Probabilityᴿ)
 
 -- A `cons in the middle` rearrangement: an element `a` placed between
 -- two list segments contributes the same `P ∙ (a ≡_) * f a` whether we
@@ -137,11 +117,7 @@ weight-sum-cons-middle : ∀ {P : ProbDistr Ω} {a : Ω}
 weight-sum-cons-middle {P = P} {a} xs {ys} f = Eq.trans
   (weight-sum-++ f xs (a ∷ ys))
   (Eq.trans
-    (R.solve 4 (λ wsxs paω fa wsys →
-         (wsxs R.:+ ((paω R.:* fa) R.:+ wsys))
-       R.:= ((paω R.:* fa) R.:+ (wsxs R.:+ wsys)))
-     Eq.refl
-     (weight-sum P f xs) (P ∙ (a ≡_)) (f a) (weight-sum P f ys))
+    (solve-≈ Probabilityᴿ)
     (+-congˡ (Eq.sym (weight-sum-++ f xs ys))))
 
 -- `weight-sum` is invariant under permutation of the support.  Each
@@ -153,9 +129,7 @@ weight-sum-↭         f Perm.refl                    = Eq.refl
 weight-sum-↭         f (Perm.prep _ p)              = +-congˡ (weight-sum-↭ f p)
 weight-sum-↭ {P = P} f (Perm.swap ω₁ ω₂ p) = Eq.trans
   (+-congˡ (+-congˡ (weight-sum-↭ f p)))
-  (R.solve 3 (λ x y z → (x R.:+ (y R.:+ z)) R.:= (y R.:+ (x R.:+ z)))
-   Eq.refl
-   (P ∙ (ω₁ ≡_) * f ω₁) (P ∙ (ω₂ ≡_) * f ω₂) _)
+  (solve-≈ Probabilityᴿ)
 weight-sum-↭         f (Perm.trans p q)             =
   Eq.trans (weight-sum-↭ f p) (weight-sum-↭ f q)
 
@@ -233,12 +207,8 @@ E-*ₗ {P = P} {f} {e} k E_f = record
   { support     = E_f .support
   ; distinct    = E_f .distinct
   ; off-support = λ {ω} ω∉ → Eq.trans
-        (R.solve 3 (λ pω k' fω →
-             (pω R.:* (k' R.:* fω))
-           R.:= (k' R.:* (pω R.:* fω)))
-         Eq.refl
-         (P ∙ (ω ≡_)) k (f ω))
-        (Eq.trans (*-congˡ (E_f .off-support ω∉)) (zeroʳ _))
+        (solve-≈ Probabilityᴿ)
+        (Eq.trans (*-congˡ (E_f .off-support ω∉)) (zeroʳ k))
   ; value = Eq.trans (*-congˡ (E_f .value))
                      (Eq.sym (weight-sum-*ₗ k f (E_f .support)))
   }
@@ -261,11 +231,7 @@ weight-sum-*ᵣ : ∀ {P : ProbDistr Ω} (f : Ω → Probability) (k : Probabili
 weight-sum-*ᵣ         f k []       = Eq.sym (zeroˡ k)
 weight-sum-*ᵣ {P = P} f k (ω ∷ ωs) = Eq.trans
   (+-congˡ (weight-sum-*ᵣ f k ωs))
-  (R.solve 4 (λ pω fω k' wsf →
-       ((pω R.:* (fω R.:* k')) R.:+ (wsf R.:* k'))
-     R.:= (((pω R.:* fω) R.:+ wsf) R.:* k'))
-   Eq.refl
-   (P ∙ (ω ≡_)) (f ω) k (weight-sum P f ωs))
+  (solve-≈ Probabilityᴿ)
 
 -- `weight-sum` over `mapL (a ,_) s₂` collapses to a constant times the inner
 -- weight-sum (the contribution of the fixed first component a).
@@ -276,11 +242,7 @@ weight-sum-mapL : ∀ {P : ProbDistr Ω₁} {Q : ProbDistr Ω₂}
 weight-sum-mapL {P = P} {Q} a [] f = Eq.sym (zeroʳ (P ∙ (a ≡_)))
 weight-sum-mapL {P = P} {Q} a (b ∷ bs) f = Eq.trans
   (+-cong (*-congʳ (⊗-singleton a b)) (weight-sum-mapL a bs f))
-  (R.solve 4 (λ pa qb fab wsq →
-       (((pa R.:* qb) R.:* fab) R.:+ (pa R.:* wsq))
-     R.:= (pa R.:* ((qb R.:* fab) R.:+ wsq)))
-   Eq.refl
-   (P ∙ (a ≡_)) (Q ∙ (b ≡_)) (f (a , b)) (weight-sum Q (λ b' → f (a , b')) bs))
+  (solve-≈ Probabilityᴿ)
 
 -- Fubini-style: weight-sum over `s₁ ×ᴸ s₂` factors as a sum over s₁ of the
 -- inner weight-sums weighted by P ∙ (a ≡_).
@@ -520,9 +482,7 @@ module _ {Ω : Type} ⦃ deceq-Ω : DecEq Ω ⦄ where
     ; off-support = off-support-of-full-mass (pure-full ω) f
     ; value       = begin
         f ω
-          ≈⟨ Eq.sym (+-identityʳ _) ⟩
-        f ω + 0#
-          ≈⟨ +-congʳ (Eq.sym (*-identityˡ _)) ⟩
+          ≈⟨ solve-≈ Probabilityᴿ ⟩
         1# * f ω + 0#
           ≈⟨ +-congʳ (*-congʳ (Eq.sym pω-self)) ⟩
         pure ω ∙ (ω ≡_) * f ω + 0# ∎
