@@ -1,160 +1,245 @@
 # Goal: complete the completeness theorem
 
-The immediate objective is to discharge the single remaining postulate
-blocking `Categories.APROP.Hypergraph.Completeness.completeness`:
+The completeness theorem `Categories.APROP.Hypergraph.CompletenessFull.completeness-full`
+is now wired through `decode-rel-resp-≅ᴴ-full` (in `DecodeRel/Inductive.agda`)
+and depends on **five narrow postulates** in three sub-modules.  All of
+the atomic-case work (Phase 1) and the inductive framework (Phase 2) have
+been discharged.  What remains is targeted vertex/edge bookkeeping and
+two pieces of symmetric-monoidal coherence content.
+
+## Current state
+
+`CompletenessFull.completeness-full : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g` builds
+cleanly.  The dependency tree of remaining postulates:
+
+```
+completeness-full
+└── decode-rel-resp-≅ᴴ-full       (Inductive.agda — fully proved)
+    ├── decode-rel-resp-≅ᴴ-atomic (Atomic.agda — fully proved, Phase 1)
+    ├── decode-rel-resp-≅ᴴ-atomic-compound  ─┐
+    ├── decode-rel-resp-≅ᴴ-compound-atomic ─┤ derived from each other
+    │   └── 2 postulates in AtomicCompound.agda:
+    │       • atomic-compound-0E  (structural-coherence equation)
+    │       • Agen-compound-1E    (1-edge decomposition)
+    │   (nE-Agen-iso-1 already discharged via Discharge/NEAgenIso1.agda)
+    ├── decode-rel-resp-≅ᴴ-⊗⊗     (TensorTensor.agda)
+    │   └── iso-decompose-⊗⊗      (1 postulate — vertex/edge bookkeeping)
+    ├── decode-rel-resp-≅ᴴ-∘∘     (ComposeCompose.agda)
+    │   └── iso-decompose-∘∘      (1 postulate — deepest math)
+    ├── decode-rel-resp-≅ᴴ-∘⊗     (Inductive.agda — 1 postulate)
+    └── decode-rel-resp-≅ᴴ-⊗∘     (derived from -∘⊗ via sym-≅ᴴ)
+```
+
+| Path postulate count | After |
+|---|---:|
+| Original (indexed Hypergraph, algorithmic decode) | 9–10 |
+| After refactors A, B, C | 1 (top-level `decode-rel-resp-≅ᴴ`) |
+| After Phase 1 (atomic dispatcher) | 1 (still top-level, atomic case dispatched) |
+| After Phase 2 framework | **5** narrow postulates |
+
+## Remaining postulates and plans
+
+### 1. `iso-decompose-⊗⊗` (TensorTensor.agda)
 
 ```agda
-decode-rel-resp-≅ᴴ
-  : ∀ {A B} (f g : HomTerm A B)
+iso-decompose-⊗⊗
+  : ∀ {A B C D}
+      (f₁ : HomTerm A B) (g₁ : HomTerm C D)
+      (f₂ : HomTerm A B) (g₂ : HomTerm C D)
+  → ⟪ f₁ ⊗₁ g₁ ⟫ ≅ᴴ ⟪ f₂ ⊗₁ g₂ ⟫
+  → (⟪ f₁ ⟫ ≅ᴴ ⟪ f₂ ⟫) × (⟪ g₁ ⟫ ≅ᴴ ⟪ g₂ ⟫)
+```
+
+**Soundness**: confirmed sound after investigation.  Boundary equations
+`φ-dom : K.dom ≡ map φ G.dom` (position-ordered list equality, with both
+sides split as `injL …-dom ++ injR …-dom` of length `|flatten A|`) force
+`φ` to map f₁'s boundary into f₂'s boundary element-wise; propagation
+through `ψ-ein`/`ψ-eout` extends "structurally straight" behaviour into
+the interior.
+
+**Plan**: ~100–200 LOC of vertex/edge bookkeeping in two passes.
+1. Pass 1: derive half-restricted `φ` from `φ-dom`/`φ-cod` (slice the
+   bijection at index `|flatten A|`; use `splitAt`-properties from
+   `Data.Fin.Properties`).
+2. Pass 2: derive half-restricted `ψ` from `ψ-ein`/`ψ-eout` + the
+   half-restricted `φ`.  Edges with at least one boundary endpoint
+   are forced into the matching half; for purely-interior edges,
+   restrict via `splitAt` on `Fin (G.nE)` analogous to `φ`.
+3. Assemble two `_≅ᴴ_` records (one for each half) using the existing
+   `hTensor-impl.elab-c-inj₁/₂` to manage the `subst₂ Gen` transports.
+
+The forward direction `hTensor-resp-≅ᴴ` likely exists in
+`Hypergraph.Congruence`; the reverse machinery is the analogue we need.
+
+### 2. `iso-decompose-∘∘` (ComposeCompose.agda)
+
+```agda
+iso-decompose-∘∘
+  : ∀ {A B X Y} (g₁ : HomTerm X B) (f₁ : HomTerm A X)
+                  (g₂ : HomTerm Y B) (f₂ : HomTerm A Y)
+  → ⟪ g₁ ∘ f₁ ⟫ ≅ᴴ ⟪ g₂ ∘ f₂ ⟫
+  → Σ (HomTerm A X) λ f₂' →
+    Σ (HomTerm X B) λ g₂' →
+        (⟪ f₁ ⟫ ≅ᴴ ⟪ f₂' ⟫)
+      × (⟪ g₁ ⟫ ≅ᴴ ⟪ g₂' ⟫)
+      × (decode-rel (g₂' ∘ f₂') ≈Term decode-rel (g₂ ∘ f₂))
+```
+
+**This is the deepest remaining mathematical content.**  The
+existential `f₂'`/`g₂'` ranges over `HomTerm`s at the same middle
+object `X` as f₁/g₁ (matching the IH's required type), with a
+`≈Term`-bridge absorbing the X-vs-Y middle-object mismatch.
+
+**Plan (5 named sub-lemmas, sketched in ComposeCompose.agda)**:
+1. `partition-ψ`: split the edge bijection along the G/K boundary
+   using `hCompose-impl.elab-c-inj₁/₂` (`FromAPROP.agda` lines
+   ≈488–536).
+2. `partition-φ`: split the vertex bijection.  Subtlety: `hCompose`
+   identifies boundary vertices ("remap"), so φ only partitions after
+   quotienting boundary vertices — needs the existing `ein-coh`/
+   `eout-coh` plus `partition-ψ`.
+3. `extract-sub-iso-f`, `extract-sub-iso-g`: build the `_≅ᴴ_` records
+   from the partitioned data using `subst₂-resp-≅ᴴ`.
+4. `bridge-coherence`: construct the `≈Term` bridge from `g₂' ∘ f₂'`
+   to `g₂ ∘ f₂`.  Uses associativity, the X-vs-Y coherence iso
+   (derived from `unflatten-flatten-≈`), and `identityˡ`/`identityʳ`.
+
+Estimate: ~500–1000 LOC, ~1-2 weeks of focused work.
+
+A *narrower* deliverable (X ≡ Y case only — same middle object): if
+the iso preserves the middle, the bridge collapses to refl and only
+steps (1)–(3) are needed.  Roughly ~200–400 LOC.
+
+### 3. `decode-rel-resp-≅ᴴ-atomic-compound-0E` (AtomicCompound.agda)
+
+```agda
+decode-rel-resp-≅ᴴ-atomic-compound-0E
+  : ∀ {A B} {f g : HomTerm A B}
+  → Atomic f → Compound g
+  → nE ⟪ g ⟫ ≡ 0
   → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
   → decode-rel f ≈Term decode-rel g
 ```
 
-(in `Completeness/DecodeRel.agda`).  See the roadmap below.
+Both `f` and `g` are 0-edge structural morphisms (no `Agen`
+sub-occurrences); the existing `Discharge/AtomicCompound0E.agda`
+proves the inductive characterisation that `nE ⟪g⟫ ≡ 0` implies `g` is
+`Structural` (no `Agen` anywhere), and dismisses the `Agen` LHS branch.
 
-## Current state (after refactors A, B, C)
+**What's left**: a symmetric-monoidal coherence theorem stating that
+any two `Structural` `HomTerm`s of matching type with isomorphic
+hypergraph translations are `≈Term`-equal.  This is Mac Lane coherence
+extended to `σ`.
 
-The completeness theorem now depends on **a single postulate** —
-`decode-rel-resp-≅ᴴ` above.  All other postulates that were on the
-critical path have been discharged.
+**Plan**:
+- Path A (broad): extend `Categories.MonoidalCoherence.Solver.solveM`
+  (currently Mac Lane only) to symmetric monoidal categories — handle
+  `σ` via permutation tracking.  Roughly 1–2 weeks; produces a
+  general-purpose tactic discharging many other postulates simultaneously.
+- Path B (targeted): hand-prove the coherence equation by induction
+  on `Structural g`, threading `σ∘[f⊗g]≈[g⊗f]∘σ`, `α-comm`,
+  `triangle`, `pentagon`, and (in the σ branch) the existing
+  `σ-flatten-empty-is-id` from `RespIso/IdSigma.agda` and the
+  hexagon-based derivations from `RespIso/AlphaForwardSigma.agda`.
+  Roughly 3–5 days.
 
-### How we got here
+### 4. `decode-rel-resp-≅ᴴ-Agen-compound-1E` (AtomicCompound.agda)
 
-| Path postulate count | After |
-|---|---:|
-| Original (indexed Hypergraph, algorithmic decode) | 9-10 (transitively) |
-| After refactor B (de-index Hypergraph) | unchanged on this axis |
-| After refactor A step 1 (decode-rel concrete) | 5 |
-| After Agen/σ → bridge | 3 |
-| After all atomic → bridge | **1** |
+```agda
+decode-rel-resp-≅ᴴ-Agen-compound-1E
+  : ∀ {A B} {g : mor A B} {h : HomTerm A B}
+  → Compound h
+  → nE ⟪ h ⟫ ≡ 1
+  → ⟪ Agen g ⟫ ≅ᴴ ⟪ h ⟫
+  → decode-rel (Agen g) ≈Term decode-rel h
+```
 
-The simplification that collapsed 5→1 was: define `decode-rel f = bridge f`
-for every atomic constructor (id, λ, ρ, α, σ, Agen).  Each per-atom
-roundtrip lemma then becomes `≈-Term-refl`, severing the chain that had
-previously routed through `DR.{ρ,α}-coherence` (which depended on the
-postulated `bridge-α⇒-form-⊗-⊗` and `c-iso-assoc-from-cons`).  The
-α-coherence postulates remain in `DecodeRoundtrip.agda` for the algorithmic
-decode pipeline but are no longer reached from `Completeness.completeness`.
+`h` is compound with exactly one edge total; exactly one sub-term of
+`h` contains the unique `Agen` (with the same generator `g` as the LHS
+by `ψ-elab`), and the other sub-term is `Structural` (0 edges).
+`Discharge/AgenCompound1E.agda` already splits this into four
+shape-routed cases (∘-left, ∘-right, ⊗-left, ⊗-right).
 
-### Difficulty of the remaining postulate
+**Plan**:
+1. Extract sub-iso `⟪ Agen g ⟫ ≅ᴴ ⟪ h-with-Agen ⟫` (the sub-term
+   containing the unique edge) — `iso-decompose-⊗⊗`/`-∘∘` provides
+   the surrounding decomposition.
+2. By Agen-Agen (already proved in `RespIso/AgenAgen.agda`), the
+   underlying generators agree.
+3. The structural sibling (0 edges) collapses to identity-like under
+   `atomic-compound-0E` (postulate above) — or more directly, via the
+   `idˡ`/`idʳ` axiom + bridge.
 
-`decode-rel-resp-≅ᴴ` is essentially the completeness theorem itself —
-"two terms with isomorphic hypergraphs decode to ≈Term-equal terms."
-Discharging it requires the genuine categorical content (this is
-the heart of the symmetric-PROP completeness theorem).
+Total ~200–400 LOC, but depends on items 1 (iso-decompose) and 3
+(atomic-compound-0E) being discharged.
 
-The Solver/* directory provides a *decision procedure* `findIso` that
-returns `_≅ᴴ_` records for every `_≈Term_` equation form (verified
-empirically by `Solver/Tests.agda`), but it doesn't produce ≈Term proofs.
-Bridging "iso found" → "≈Term derivation" is the mathematical content
-that's still missing.
+### 5. `decode-rel-resp-≅ᴴ-∘⊗` (Inductive.agda)
 
-Realistic estimates for full discharge:
-- **Modify Solver to extract ≈Term proofs alongside iso**: 2-4 weeks,
-  ~600-1000 LOC of new proof-tracking code.
-- **Direct induction on the iso's structure** (vertex/edge bijections):
-  2-4 weeks, similar scale.
-- **Normalization to a canonical iso-invariant form**: 2-3 weeks,
-  needs new infrastructure.
-- **Restricted-signature first, then extend**: 1-2 weeks for the
-  restricted case (atomic-vs-atomic), then per-extension cost.
+```agda
+decode-rel-resp-≅ᴴ-∘⊗
+  : ∀ {Ap Aq Bp Bq X}
+      (g : HomTerm X (Bp ⊗₀ Bq)) (f : HomTerm (Ap ⊗₀ Aq) X)
+      (p : HomTerm Ap Bp) (q : HomTerm Aq Bq)
+  → ⟪ g ∘ f ⟫ ≅ᴴ ⟪ p ⊗₁ q ⟫
+  → decode-rel (g ∘ f) ≈Term decode-rel (p ⊗₁ q)
+```
 
-The recommended next step is the restricted-signature variant — see
-the `Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso` work
-in progress (atomic-only sub-cases of `decode-rel-resp-≅ᴴ`).
+(The symmetric `-⊗∘` is derived constructively via `sym-≅ᴴ`.)
 
-### Lessons from the restricted-variant prototype
+**Plan (in `Discharge/CrossOC.agda`)**: introduce a single
+`iso-decompose-∘⊗` postulate that produces interchange factors
+`f' : Ap⊗Aq → X` and `g' : X → Bp⊗Bq` (at f's/g's exact endpoints, so
+IH applies directly), sub-isos to f and g, and a `≈Term` bridge to
+`p ⊗₁ q`.  The canonical witness shape is
+`f' = γ.from ∘ (id ⊗ q)`, `g' = (p ⊗ id) ∘ γ.to` for a coherence iso
+`γ : Bp ⊗ Aq ≅ X` extracted from the composite hypergraph iso —
+analogous bookkeeping to `iso-decompose-∘∘` (item 2).
 
-`Completeness/DecodeRel/RespIso.agda` attempts the atomic-case proof
-of `decode-rel-resp-≅ᴴ`.  Status of the 81 atomic-vs-atomic pairs:
+Estimate: ~200–400 LOC once `iso-decompose-∘∘`'s machinery is in
+place; substantially less if reused.
 
-- **Same-constructor trivial cases** (8 of 9): `≈-Term-refl`.  Both
-  sides are syntactically identical because the ObjTerm parameters
-  are forced by the type signature.  9th case is Agen, where the
-  underlying `mor` value can differ.
-- **Cross-pair Agen-vs-non-Agen impossibilities** (7 + symmetric):
-  discharged via `Agen-nonAgen-absurd : G.nE ≡ 1 → K.nE ≡ 0 → G ≅ᴴ K
-  → ⊥`, which extracts `Fin 0` from the iso's edge bijection.
-  Mechanical pattern.
-- **Agen-Agen (different generators)**: requires `flat-injective`,
-  which needs UIP-on-ListX (available with `APROPSignatureDec` via
-  Hedberg's theorem).  ~1-2 days to finish.
-- **Genuinely non-trivial cross-pairs at unit-only types** (e.g.,
-  `λ⇒ {unit}` vs `ρ⇒ {unit}` — both translate to `hEmpty`, both have
-  type `HomTerm (unit ⊗ unit) unit`): require categorical coherence
-  lemmas like Kelly's `coherence₃` (`λ⇒ {unit} ≈ ρ⇒ {unit}`).
-  Each such pair is a 5-15 line proof using existing infrastructure.
-  Estimated 5-10 such pairs in total.
+## Dependency order for discharge
 
-**Atomic case completion estimate**: ~1 week (consistent with the
-earlier estimate).
+The five postulates depend on each other as follows; pick discharge
+order accordingly:
 
-**The harder remaining work** is the inductive cases of
-`decode-rel-resp-≅ᴴ`: when `f` or `g` is compound (∘ or ⊗), the iso's
-structure must be DECOMPOSED to match sub-terms.  This requires
-understanding how `hComposeP` and `hTensor` interact with iso —
-specifically, how to extract sub-isos from a composite iso, and how
-to thread α-coherence and σ-naturality to bridge syntactic
-differences.  This is the genuine 2-3 weeks of categorical work.
+1. **`iso-decompose-⊗⊗`** — independent; pure ⊗-bookkeeping.
+2. **`iso-decompose-∘∘`** — independent; pure ∘-bookkeeping (but
+   substantial).
+3. **`decode-rel-resp-≅ᴴ-Agen-compound-1E`** — depends on
+   `iso-decompose-⊗⊗`, `iso-decompose-∘∘`, and `atomic-compound-0E`.
+4. **`decode-rel-resp-≅ᴴ-atomic-compound-0E`** — depends only on
+   symmetric-monoidal coherence machinery.
+5. **`decode-rel-resp-≅ᴴ-∘⊗`** — depends on the same bookkeeping as
+   `iso-decompose-∘∘`.
 
-### Concrete roadmap to discharge `decode-rel-resp-≅ᴴ`
+Most efficient order: 1, 4 in parallel, then 2 (which unblocks 3 and
+5).
 
-Ordered by difficulty / leverage:
+## Helpers already in place
 
-**Phase 1 — Atomic case (~1 week)**
+The `RespIso/Discharge/` subdirectory contains scaffolding from earlier
+attempts that future work can build on:
 
-1. *Mechanical extension of cross-pair impossibilities* (~half a day):
-   complete the symmetric direction (X-vs-Agen for X ∈ {λ⇒, λ⇐, ρ⇒, ρ⇐,
-   α⇒, α⇐}).  Each is a one-liner using `sym-≅ᴴ` + the existing
-   `Agen-nonAgen-absurd` helper.
-2. *Agen-Agen case under `APROPSignatureDec`* (~1-2 days): bring the
-   proof under decidable equality, derive `flat-injective` via
-   `Verify.UIP-ListX`, pattern-match `flat g₁ ≡ flat g₂` to extract
-   `g₁ ≡ g₂`, then `cong Agen`.
-3. *Genuine non-trivial cross-pairs at unit-only types* (~2-3 days):
-   enumerate the 5-10 atomic-cross pairs whose iso is non-trivial (e.g.
-   `λ⇒ {unit}` vs `ρ⇒ {unit}`, `id {A ⊗ A}` vs `σ {A}{A}` for unit-only
-   `A`, etc.).  Each uses Kelly's coherence (`coherence₃` etc.) plus
-   the existing `bridge-X-is-id` lemmas.
-4. *Assemble the atomic-case dispatcher* (~half a day): wrap the
-   per-pair lemmas into a single `decode-rel-resp-≅ᴴ-atomic` that
-   pattern-matches on `f, g : HomTerm A B` ruled to be atomic, with
-   absurd cases discharged automatically by Agda's coverage checker.
+- `Discharge/NEAgenIso1.agda` — discharged proof of `nE-Agen-iso-1`
+  (`Fin 1 ↔ Fin n` forces `n = 1`).  Imported by `AtomicCompound.agda`.
+- `Discharge/IsoDecomposeTT.agda` — scaffold for item 1.
+- `Discharge/IsoDecomposeCC.agda` — scaffold for item 2 with 5
+  named sub-lemmas identified.
+- `Discharge/AtomicCompound0E.agda` — proves `nE ⟪g⟫ ≡ 0 → Structural g`
+  constructively; only the symmetric-monoidal coherence step remains
+  as a narrowed postulate.
+- `Discharge/AgenCompound1E.agda` — four-way shape split for item 3.
+- `Discharge/CrossOC.agda` / `Discharge/CrossCO.agda` — scaffold for
+  item 5 and its symmetric.
 
-**Phase 2 — Inductive case (~2-3 weeks)**
+## Alternative paths (still open)
 
-5. *Iso decomposition lemmas* (~1 week): given `⟪g₁ ∘ f₁⟫ ≅ᴴ
-   ⟪g₂ ∘ f₂⟫`, extract sub-isos `⟪f₁⟫ ≅ᴴ ⟪f₂'⟫` and `⟪g₁⟫ ≅ᴴ ⟪g₂'⟫`
-   for some related `f₂', g₂'`.  Same for `⊗`.  This requires deep
-   engagement with `hComposeP`'s pruning mechanics: a sub-iso between
-   composites doesn't trivially restrict to sub-isos between
-   components — it could permute compositions via assoc.
-6. *Thread α/σ-naturality* (~1 week): once the sub-isos are extracted,
-   the inductive hypothesis gives `decode-rel f₁ ≈ decode-rel f₂'` and
-   similarly for g.  Combining with structural equalities (assoc, σ-nat,
-   α-comm) gives `decode-rel (g₁ ∘ f₁) ≈ decode-rel (g₂ ∘ f₂)`.  This
-   may transitively reach the still-postulated soundness lemmas
-   (`hexagon`, `α-comm`, `pentagon`, etc.) — discharging those is
-   the genuine remaining work.
-7. *Final assembly and audit* (~few days): compose all the per-case
-   lemmas, prove the full induction, verify all 44 files build.
-
-**Total: ~3-4 weeks of focused expert work** to fully discharge
-`decode-rel-resp-≅ᴴ` and complete the completeness theorem.
-
-### Alternative paths
-
-- **Modify `Solver/findIso` to extract ≈Term proofs**: rather than
-  pattern-matching on the iso, modify the decision procedure to track
-  ≈Term moves alongside the iso construction.  Each `pairUp`,
-  `tryEdge`, and `verify` step gets a parallel ≈Term-emitting variant.
-  Same time estimate but more localized to one module.
-- **Build a normal-form decoder**: define `nf : Hypergraph → HomTerm`
-  invariant under `≅ᴴ`.  The existing `decode-attempt-Linear` is a
-  candidate (it walks the hypergraph in a deterministic Fin order).
-  Then `decode-rel-resp-≅ᴴ` follows from `nf-resp-≅ᴴ` plus
-  `decode-rel f ≈ nf ⟪f⟫`.  Same time estimate.
-
-All three paths are roughly equivalent in effort.  The
-restricted-variant approach is the most incremental and produces
-visible progress.
+- **Modify `Solver/findIso` to extract `≈Term` proofs alongside the
+  iso**.  Each `pairUp`, `tryEdge`, and `verify` step would emit a
+  parallel `≈Term` rewrite.  Same total effort as the direct approach,
+  more localized to `Solver/`.
+- **Build a normal-form decoder**.  Define `nf : Hypergraph → HomTerm`
+  invariant under `≅ᴴ` (the existing `decode-attempt-Linear` is a
+  candidate).  Then `decode-rel-resp-≅ᴴ-full` follows from
+  `nf-resp-≅ᴴ` plus `decode-rel f ≈ nf ⟪f⟫`.
