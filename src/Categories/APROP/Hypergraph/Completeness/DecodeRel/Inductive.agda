@@ -17,9 +17,16 @@
 --
 -- The recursive calls in this module are direct (not via the abstract
 -- IH parameter of the sub-modules), so Agda's structural termination
--- checker accepts the recursion.  Only the cross-shape cases (∘ vs ⊗,
--- ⊗ vs ∘) remain as local postulates in this file — they were left out
--- of the subagent dispatch.
+-- checker accepts the recursion.  Status of the four compound branches:
+--   * ⊗⊗ — discharged from `iso-decompose-⊗⊗`.
+--   * ∘∘ — discharged from `iso-decompose-∘∘`.
+--   * ∘⊗ — discharged from the narrow `iso-decompose-∘⊗` (whose only
+--          remaining postulate is the coherence iso `γ` in
+--          `Discharge/CrossOC.agda`).
+--   * ⊗∘ — remaining local postulate (`decode-rel-resp-≅ᴴ-⊗∘`),
+--          equivalent under `sym-≅ᴴ` to ∘⊗ but rejected by Agda's
+--          structural termination check (see note below for the path
+--          to discharge).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -50,6 +57,16 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.TensorTen
   using (iso-decompose-⊗⊗)
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.ComposeCompose sig-dec
   using (iso-decompose-∘∘)
+-- The ∘⊗ cross-shape iso decomposition is narrowed (relative to a
+-- monolithic postulate) in `Discharge/CrossOC.agda`: the bridge term
+-- is proved categorically from the coherence iso `γ : Ap ⊗ Bq ≅ X`
+-- supplied by `iso-decompose-∘⊗-primitive`.  We import the narrowed
+-- theorem here and inline-dispatch the ∘⊗ branch from it directly;
+-- only the symmetric ⊗∘ branch still requires a local postulate at
+-- this layer for structural-termination reasons (see note above the
+-- ⊗∘ postulate below).
+open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.CrossOC sig-dec
+  using (iso-decompose-∘⊗)
 
 open import Data.Product using (Σ; _,_; proj₁; proj₂; _×_)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
@@ -71,26 +88,48 @@ atomic-or-compound α⇐        = inj₁ atomic-α⇐
 atomic-or-compound (σ ⦃ s ⦄) = inj₁ (atomic-σ ⦃ s ⦄)
 
 --------------------------------------------------------------------------------
--- Cross-shape postulate.  Only the forward direction (`-∘⊗`) is
--- postulated; the symmetric direction `-⊗∘` is derived constructively
--- below via `sym-≅ᴴ`.
+-- Cross-shape postulate.  Only the symmetric direction `-⊗∘` is
+-- still a local postulate at this layer: the forward `∘⊗` direction is
+-- discharged inline below from the narrow `iso-decompose-∘⊗`
+-- theorem in `Discharge/CrossOC.agda`.
+--
+-- Narrowing status
+-- ================
+--
+-- The "deep math" for this case has been narrowed in
+-- `Discharge/CrossOC.agda` to the single primitive postulate
+--
+--   iso-decompose-∘⊗-primitive : ⟪ g ∘ f ⟫ ≅ᴴ ⟪ p ⊗₁ q ⟫
+--     → Σ ((Ap ⊗₀ Bq) ≅ X) λ γ →
+--          (⟪ f ⟫ ≅ᴴ ⟪ γ.from ∘ (id ⊗₁ q) ⟫)
+--        × (⟪ g ⟫ ≅ᴴ ⟪ (p ⊗₁ id) ∘ γ.to ⟫)
+--
+-- which extracts only the coherence iso `γ : Ap ⊗₀ Bq ≅ X` in
+-- `FreeMonoidal` together with the two sub-isos.  The bridge term
+-- (`decode-rel (g' ∘ f') ≈Term decode-rel (p ⊗ q)`) is *proved* there
+-- from `γ.iso.isoˡ`, `⊗-∘-dist`, `idˡ`, `idʳ`, lifted through
+-- `decode-rel` by a `decode-rel-resp-≈Term` lemma.
+--
+-- The forward `∘⊗` direction is then discharged inline in
+-- `decode-rel-resp-≅ᴴ-full` below: structural termination is fine,
+-- since the recursive calls are on `f₁` and `g₁` (subterms of the
+-- LHS `g₁ ∘ f₁`).
+--
+-- The symmetric `⊗∘` direction is structurally trickier: there the
+-- recursive subterms `f`, `g` live in the *second* argument
+-- (`g ∘ f`), and Agda's termination checker rejects the lex-direction
+-- decrease.  Until well-founded recursion or the analogous
+-- iso-decompose machinery for `⊗∘` (a `iso-decompose-⊗∘-primitive`)
+-- is filled in, the symmetric direction remains a postulate at this
+-- layer.
 
 postulate
-  decode-rel-resp-≅ᴴ-∘⊗
+  decode-rel-resp-≅ᴴ-⊗∘
     : ∀ {Ap Aq Bp Bq X}
-        (g : HomTerm X (Bp ⊗₀ Bq)) (f : HomTerm (Ap ⊗₀ Aq) X)
         (p : HomTerm Ap Bp) (q : HomTerm Aq Bq)
-    → ⟪ g ∘ f ⟫ ≅ᴴ ⟪ p ⊗₁ q ⟫
-    → decode-rel (g ∘ f) ≈Term decode-rel (p ⊗₁ q)
-
-decode-rel-resp-≅ᴴ-⊗∘
-  : ∀ {Ap Aq Bp Bq X}
-      (p : HomTerm Ap Bp) (q : HomTerm Aq Bq)
-      (g : HomTerm X (Bp ⊗₀ Bq)) (f : HomTerm (Ap ⊗₀ Aq) X)
-  → ⟪ p ⊗₁ q ⟫ ≅ᴴ ⟪ g ∘ f ⟫
-  → decode-rel (p ⊗₁ q) ≈Term decode-rel (g ∘ f)
-decode-rel-resp-≅ᴴ-⊗∘ p q g f iso =
-  ≈-Term-sym (decode-rel-resp-≅ᴴ-∘⊗ g f p q (sym-≅ᴴ iso))
+        (g : HomTerm X (Bp ⊗₀ Bq)) (f : HomTerm (Ap ⊗₀ Aq) X)
+    → ⟪ p ⊗₁ q ⟫ ≅ᴴ ⟪ g ∘ f ⟫
+    → decode-rel (p ⊗₁ q) ≈Term decode-rel (g ∘ f)
 
 --------------------------------------------------------------------------------
 -- The full inductive theorem.
@@ -121,8 +160,26 @@ decode-rel-resp-≅ᴴ-full f g iso
       IH-f    = decode-rel-resp-≅ᴴ-full f₁ f₂' iso-f
       IH-g    = decode-rel-resp-≅ᴴ-full g₁ g₂' iso-g
   in ≈-Term-trans (∘-resp-≈ IH-g IH-f) bridge
--- Cross-shape: postulated.
-... | inj₂ (compound-∘ g f) | inj₂ (compound-⊗ p q) =
-  decode-rel-resp-≅ᴴ-∘⊗ g f p q iso
+-- Cross-shape ∘⊗: decompose iso into sub-isos and a coherence bridge
+-- via the narrow `iso-decompose-∘⊗` theorem (in `Discharge/CrossOC.agda`),
+-- recurse on the structural subterms `f` and `g` of the LHS, and
+-- combine via the bridge.  Structurally analogous to the ∘∘ branch
+-- above.
+... | inj₂ (compound-∘ g₁ f₁) | inj₂ (compound-⊗ p q) =
+  let decomp  = iso-decompose-∘⊗ g₁ f₁ p q iso
+      f'      = proj₁ decomp
+      g'      = proj₁ (proj₂ decomp)
+      iso-f   = proj₁ (proj₂ (proj₂ decomp))
+      iso-g   = proj₁ (proj₂ (proj₂ (proj₂ decomp)))
+      brdg    = proj₂ (proj₂ (proj₂ (proj₂ decomp)))
+      IH-f    = decode-rel-resp-≅ᴴ-full f₁ f' iso-f
+      IH-g    = decode-rel-resp-≅ᴴ-full g₁ g' iso-g
+  in ≈-Term-trans (∘-resp-≈ IH-g IH-f) brdg
+-- Cross-shape ⊗∘: dispatched via the postulate above.  Structural
+-- termination on this side fails because the recursive subterms
+-- `f`, `g` live in the *second* argument `g ∘ f`, not the first
+-- `p ⊗ q` -- and Agda's lex check looks at the first argument first.
+-- Discharge via well-founded recursion on term size or a dedicated
+-- `iso-decompose-⊗∘-primitive` (parallel to `∘⊗`).
 ... | inj₂ (compound-⊗ p q) | inj₂ (compound-∘ g f) =
   decode-rel-resp-≅ᴴ-⊗∘ p q g f iso
