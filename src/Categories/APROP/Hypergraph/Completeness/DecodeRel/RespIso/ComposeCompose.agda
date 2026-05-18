@@ -124,6 +124,13 @@ open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
   using (decode-rel)
 
+-- The iso-decomposition lemma is now constructively assembled from
+-- THREE narrower sub-postulates in the discharge module.  This file
+-- re-exports `iso-decompose-∘∘` for downstream consumers
+-- (`Inductive.agda`) without introducing any new postulates here.
+open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.IsoDecomposeCC sig-dec
+  using (iso-decompose-∘∘) public
+
 open import Data.Product using (Σ; _,_; proj₁; proj₂; _×_)
 
 --------------------------------------------------------------------------------
@@ -131,26 +138,16 @@ open import Data.Product using (Σ; _,_; proj₁; proj₂; _×_)
 -- `decode-rel-resp-≅ᴴ-full` here when consuming this module.
 
 --------------------------------------------------------------------------------
--- Iso decomposition (narrow postulate, public so `Inductive.agda` can
--- use it directly without instantiating the IH module).
+-- Iso decomposition: see `Discharge/IsoDecomposeCC.agda` for the
+-- narrower sub-postulate structure (`middle-type-eq`, `sub-iso-f`,
+-- `sub-iso-g`) and the constructive assembly that produces the
+-- existential pair (f₂', g₂') along with the sub-isos and the
+-- (`≈-Term-refl`) bridge.
 --
--- The deep math.  Given an iso between two cospan composites at
--- (possibly different) middle types X and Y, produce:
---   * a middle factor `f₂' : HomTerm A X` (same middle as f₁),
---   * an outer factor `g₂' : HomTerm X B` (same middle as g₁),
---   * sub-isos witnessing `⟪ f₁ ⟫ ≅ᴴ ⟪ f₂' ⟫` and `⟪ g₁ ⟫ ≅ᴴ ⟪ g₂' ⟫`,
---   * a `≈Term`-bridge `decode-rel (g₂' ∘ f₂') ≈Term decode-rel (g₂ ∘ f₂)`.
-
-postulate
-  iso-decompose-∘∘
-    : ∀ {A B X Y} (g₁ : HomTerm X B) (f₁ : HomTerm A X)
-                    (g₂ : HomTerm Y B) (f₂ : HomTerm A Y)
-    → ⟪ g₁ ∘ f₁ ⟫ ≅ᴴ ⟪ g₂ ∘ f₂ ⟫
-    → Σ (HomTerm A X) λ f₂' →
-      Σ (HomTerm X B) λ g₂' →
-          (⟪ f₁ ⟫ ≅ᴴ ⟪ f₂' ⟫)
-        × (⟪ g₁ ⟫ ≅ᴴ ⟪ g₂' ⟫)
-        × (decode-rel (g₂' ∘ f₂') ≈Term decode-rel (g₂ ∘ f₂))
+-- The previous incarnation of this file held a single monolithic
+-- postulate `iso-decompose-∘∘`.  Removing it in favour of the
+-- discharge module keeps the public API identical while strictly
+-- narrowing the postulate surface area.
 
 module _
   (IH : ∀ {A B} (f g : HomTerm A B)

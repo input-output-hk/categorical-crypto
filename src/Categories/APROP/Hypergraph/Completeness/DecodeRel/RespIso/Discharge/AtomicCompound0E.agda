@@ -50,13 +50,40 @@
 -- * `Structural`             — syntactic predicate "no `Agen` subterm".
 -- * `nE-0→Structural`        — `nE ⟪ g ⟫ ≡ 0 → Structural g`,
 --                              fully constructive.
--- * `Structural-coherence`   — the narrowed postulate: any two
+-- * `Structural-coherence-≈Term`
+--                            — the *narrowed* postulate: any two
 --                              structural terms of the same type with
---                              isomorphic translations are `≈Term`-equal.
+--                              isomorphic translations are `≈Term`-equal
+--                              at the `FreeMonoidal` level (i.e. `f ≈Term g`
+--                              directly, no `decode-rel`/`bridge` wrapping).
+--                              This is exactly Mac Lane's symmetric
+--                              monoidal coherence theorem on the
+--                              `id, λ, ρ, α, σ`-fragment.
+-- * `Structural-coherence`   — derived: `decode-rel f ≈Term decode-rel g`,
+--                              obtained from `Structural-coherence-≈Term`
+--                              by passing through `decode-roundtrip-rel`
+--                              and the `bridge`-congruence.
 -- * `decode-rel-resp-≅ᴴ-atomic-compound-0E` — the original lemma,
---                              derived from the above two ingredients
+--                              derived from the above ingredients
 --                              together with the `Atomic ⇒ Structural`
 --                              fact.
+--
+-- ## Why this narrowing is strict
+--
+-- The original postulate had conclusion `decode-rel f ≈Term decode-rel g`,
+-- whose unfolding involves `bridge`, `unflatten-flatten-≈`, and the
+-- structural recursion of `decode-rel` through `∘` and `⊗₁`.  The
+-- narrowed conclusion `f ≈Term g` lives purely in the free symmetric
+-- monoidal category over the signature, with no decode plumbing — it
+-- is exactly the statement of categorical coherence for the
+-- non-generator (a.k.a. `Structural`) fragment.
+--
+-- The derivation back to the original form uses only existing
+-- constructive lemmas:
+--   * `decode-roundtrip-rel f : decode-rel f ≈Term bridge f`     (proved)
+--   * `decode-roundtrip-rel g : decode-rel g ≈Term bridge g`     (proved)
+--   * `bridge` is a congruence wrt `≈Term`                       (1-line proof)
+-- so the original lemma is `decode-roundtrip-rel f ; bridge-cong ; sym (decode-roundtrip-rel g)`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -70,19 +97,16 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen; ⟪_⟫)
 open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
+open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
+  using (bridge)
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
-  using (decode-rel)
+  using (decode-rel; decode-roundtrip-rel)
 
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Atomic sig-dec
   using ( Atomic
         ; atomic-Agen; atomic-id
         ; atomic-λ⇒; atomic-λ⇐; atomic-ρ⇒; atomic-ρ⇐
         ; atomic-α⇒; atomic-α⇐; atomic-σ
-        )
-open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.AtomicCompound sig-dec
-  using ( Compound
-        ; compound-∘
-        ; compound-⊗
         )
 
 open import Data.Empty using (⊥; ⊥-elim)
@@ -163,25 +187,61 @@ nE-0→Structural (h ⊗₁ k) g-nE≡0 =
 
 --------------------------------------------------------------------------------
 -- Narrowed postulate: symmetric-monoidal coherence on the structural
--- fragment.
+-- fragment, at the `FreeMonoidal` level.
 --
--- Any two structural HomTerms of the same type whose hypergraph
--- translations are isomorphic are `≈Term`-equal.  This is exactly the
--- statement of Mac Lane's symmetric-monoidal coherence theorem
--- applied to our syntactic presentation: the underlying permutation
--- is determined by the iso's boundary action, and structural terms
--- present a unique morphism per permutation up to `≈Term`.
+-- This is the *minimal* postulate needed to discharge the original
+-- `decode-rel-resp-≅ᴴ-atomic-compound-0E`.  It is the statement of
+-- Mac Lane's symmetric monoidal coherence theorem on the structural
+-- (i.e. generator-free) sub-language: any two `Structural` HomTerms
+-- of the same type whose hypergraph translations are isomorphic are
+-- equal in the free symmetric monoidal category.
 --
--- The constructive discharge requires extending
+-- All `decode-rel`/`bridge`/`unflatten`-flavoured plumbing has been
+-- factored out: the postulate conclusion is the plain `_≈Term_`
+-- equality between two `HomTerm A B`s built from
+-- `id, λ⇒, λ⇐, ρ⇒, ρ⇐, α⇒, α⇐, σ, _∘_, _⊗₁_`.  The constructive
+-- discharge ultimately requires extending
 -- `Categories.MonoidalCoherence.Solver` (currently Mac Lane only) to
--- handle the braiding σ.  See the header comment for the path.
+-- handle σ via permutation tracking — see the header for the path.
 
 postulate
-  Structural-coherence
+  Structural-coherence-≈Term
     : ∀ {A B} {f g : HomTerm A B}
     → Structural f → Structural g
     → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-    → decode-rel f ≈Term decode-rel g
+    → f ≈Term g
+
+--------------------------------------------------------------------------------
+-- Derived: lift `Structural-coherence-≈Term` through `bridge` and
+-- `decode-roundtrip-rel` to the original `decode-rel`-shaped lemma.
+--
+-- The derivation is purely categorical (no further postulates): the
+-- `bridge`-wrapping is a congruence with respect to `_≈Term_`, and
+-- `decode-rel f ≈Term bridge f` for every `f` by `decode-roundtrip-rel`.
+
+private
+  open import Categories.Category using (Category)
+  module FM = Category FreeMonoidal
+  open FM.HomReasoning
+
+  -- `bridge` is a congruence for `_≈Term_`.  Inlined here so the
+  -- discharge module doesn't depend on the `DecodeRoundtrip` private
+  -- helper.
+  bridge-resp-≈Term
+    : ∀ {A B} {f g : HomTerm A B}
+    → f ≈Term g → bridge f ≈Term bridge g
+  bridge-resp-≈Term f≈g = refl⟩∘⟨ f≈g ⟩∘⟨refl
+
+Structural-coherence
+  : ∀ {A B} {f g : HomTerm A B}
+  → Structural f → Structural g
+  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+  → decode-rel f ≈Term decode-rel g
+Structural-coherence {f = f} {g = g} sf sg iso = begin
+  decode-rel f   ≈⟨ decode-roundtrip-rel f ⟩
+  bridge f       ≈⟨ bridge-resp-≈Term (Structural-coherence-≈Term sf sg iso) ⟩
+  bridge g       ≈⟨ decode-roundtrip-rel g ⟨
+  decode-rel g   ∎
 
 --------------------------------------------------------------------------------
 -- Discharge the original postulate.
@@ -201,13 +261,22 @@ postulate
 -- `Agen` branch is dismissed via the iso witness's edge-count
 -- transport (a `Fin 1 ↔ Fin 0` contradiction).
 
+-- The discharge of `decode-rel-resp-≅ᴴ-atomic-compound-0E`.  Note we
+-- *drop* the redundant `Compound g` hypothesis: under
+-- `nE ⟪ g ⟫ ≡ 0`, the `Compound g` argument carries no information
+-- beyond the boundary types, since `Structural g` is recovered from
+-- the edge-count witness alone (see `nE-0→Structural`).  Dropping it
+-- breaks an otherwise-circular import between `AtomicCompound.agda`
+-- (which defines `Compound`) and this module.  The caller in
+-- `AtomicCompound.agda` ignores the redundant argument when wiring up.
+
 decode-rel-resp-≅ᴴ-atomic-compound-0E
   : ∀ {A B} {f g : HomTerm A B}
-  → Atomic f → Compound g
+  → Atomic f
   → nE ⟪ g ⟫ ≡ 0
   → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
   → decode-rel f ≈Term decode-rel g
-decode-rel-resp-≅ᴴ-atomic-compound-0E {f = f} {g = g} af cg g-nE≡0 iso =
+decode-rel-resp-≅ᴴ-atomic-compound-0E {f = f} {g = g} af g-nE≡0 iso =
   Structural-coherence
     (atomic→structural af)
     (nE-0→Structural g g-nE≡0)

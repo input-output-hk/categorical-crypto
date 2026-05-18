@@ -59,6 +59,8 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Atomic si
         )
 import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.NEAgenIso1 sig
   as DischargeNEAgenIso1
+import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.AtomicCompound0E sig-dec
+  as DischargeAC0E
 
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc)
@@ -160,14 +162,25 @@ private
 -- * `nE-Agen-iso-1`: the iso's edge bijection forces the compound's
 --   nE to 1.
 
-postulate
-  decode-rel-resp-≅ᴴ-atomic-compound-0E
-    : ∀ {A B} {f g : HomTerm A B}
-    → Atomic f → Compound g
-    → nE ⟪ g ⟫ ≡ 0
-    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-    → decode-rel f ≈Term decode-rel g
+-- `decode-rel-resp-≅ᴴ-atomic-compound-0E`: NARROWED postulate, fully
+-- discharged constructively from `Structural-coherence-≈Term` (the
+-- symmetric-monoidal coherence equation on the structural fragment)
+-- in `Discharge/AtomicCompound0E.agda`.  Imported here as a function
+-- (no postulate at this layer).  The `Compound g` argument from the
+-- original signature is now redundant under `nE ⟪ g ⟫ ≡ 0` — we
+-- drop it for the import call, then thread it back through for the
+-- dispatch site's signature.
 
+decode-rel-resp-≅ᴴ-atomic-compound-0E
+  : ∀ {A B} {f g : HomTerm A B}
+  → Atomic f → Compound g
+  → nE ⟪ g ⟫ ≡ 0
+  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+  → decode-rel f ≈Term decode-rel g
+decode-rel-resp-≅ᴴ-atomic-compound-0E af _ g-nE≡0 iso =
+  DischargeAC0E.decode-rel-resp-≅ᴴ-atomic-compound-0E af g-nE≡0 iso
+
+postulate
   decode-rel-resp-≅ᴴ-Agen-compound-1E
     : ∀ {A B} {g : mor A B} {h : HomTerm A B}
     → Compound h

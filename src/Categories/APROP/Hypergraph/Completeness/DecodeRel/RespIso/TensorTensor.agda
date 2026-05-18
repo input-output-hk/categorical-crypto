@@ -102,8 +102,16 @@ open import Data.Product using (_×_; proj₁; proj₂)
 --
 -- Discharging the postulate is consequently vertex/edge bookkeeping
 -- in two passes: (1) extract the half-restricted φ/ψ at boundaries;
--- (2) propagate to interior via the endpoint equations.  No further
--- mathematical insight is needed.
+-- (2) propagate to interior via the endpoint equations.
+--
+-- Progress on (1) has been collected in
+-- `RespIso/Discharge/IsoDecomposeTT.agda` as a stand-alone toolkit
+-- (`dom-split-eq-L`/`-R`, `cod-split-eq-L`/`-R`, plus the
+-- length-matching `++-split-eq` helper).  Pass (2), the propagation
+-- to interior vertices, requires either a linearity-based
+-- reachability argument or a symmetric-monoidal coherence step for
+-- the crossed (half-swap) case — neither of which is in place yet —
+-- so this postulate is retained for now.
 
 postulate
   iso-decompose-⊗⊗

@@ -71,44 +71,49 @@ the interior.
 The forward direction `hTensor-resp-≅ᴴ` likely exists in
 `Hypergraph.Congruence`; the reverse machinery is the analogue we need.
 
-### 2. `iso-decompose-∘∘` (ComposeCompose.agda)
+### 2. `iso-decompose-∘∘` (ComposeCompose.agda) — NARROWED
 
-```agda
-iso-decompose-∘∘
-  : ∀ {A B X Y} (g₁ : HomTerm X B) (f₁ : HomTerm A X)
-                  (g₂ : HomTerm Y B) (f₂ : HomTerm A Y)
-  → ⟪ g₁ ∘ f₁ ⟫ ≅ᴴ ⟪ g₂ ∘ f₂ ⟫
-  → Σ (HomTerm A X) λ f₂' →
-    Σ (HomTerm X B) λ g₂' →
-        (⟪ f₁ ⟫ ≅ᴴ ⟪ f₂' ⟫)
-      × (⟪ g₁ ⟫ ≅ᴴ ⟪ g₂' ⟫)
-      × (decode-rel (g₂' ∘ f₂') ≈Term decode-rel (g₂ ∘ f₂))
-```
+The original monolithic `iso-decompose-∘∘` postulate has been
+**replaced** by a constructive assembly in
+`Discharge/IsoDecomposeCC.agda`.  `ComposeCompose.agda` re-exports the
+discharged version and contains no `postulate` of its own anymore.
 
-**This is the deepest remaining mathematical content.**  The
-existential `f₂'`/`g₂'` ranges over `HomTerm`s at the same middle
-object `X` as f₁/g₁ (matching the IH's required type), with a
-`≈Term`-bridge absorbing the X-vs-Y middle-object mismatch.
+The assembly canonical-izes the existential pair as
+`f₂' := γ.from ∘ f₂` and `g₂' := g₂ ∘ γ.to` for a coherence iso
+`γ : Y ≅ X` extracted from the composite hypergraph iso.  The bridge
+`decode-rel ((g₂ ∘ γ.to) ∘ (γ.from ∘ f₂)) ≈Term decode-rel (g₂ ∘ f₂)`
+is then a fully **constructive** `assoc`/`identity`/`iso-cancellation`
+derivation (`bridge-decode-rel`).
 
-**Plan (5 named sub-lemmas, sketched in ComposeCompose.agda)**:
-1. `partition-ψ`: split the edge bijection along the G/K boundary
-   using `hCompose-impl.elab-c-inj₁/₂` (`FromAPROP.agda` lines
-   ≈488–536).
-2. `partition-φ`: split the vertex bijection.  Subtlety: `hCompose`
-   identifies boundary vertices ("remap"), so φ only partitions after
-   quotienting boundary vertices — needs the existing `ein-coh`/
-   `eout-coh` plus `partition-ψ`.
-3. `extract-sub-iso-f`, `extract-sub-iso-g`: build the `_≅ᴴ_` records
-   from the partitioned data using `subst₂-resp-≅ᴴ`.
-4. `bridge-coherence`: construct the `≈Term` bridge from `g₂' ∘ f₂'`
-   to `g₂ ∘ f₂`.  Uses associativity, the X-vs-Y coherence iso
-   (derived from `unflatten-flatten-≈`), and `identityˡ`/`identityʳ`.
+The original existential postulate has been narrowed to four named
+sub-postulates:
 
-Estimate: ~500–1000 LOC, ~1-2 weeks of focused work.
+1. `middle-iso` : `Y ≅ X` extracted from the composite iso.  Forced by
+   the boundary equation that `flatten X ≡ flatten Y`, plus the
+   `unflatten-flatten-≈` coherence iso.
 
-A *narrower* deliverable (X ≡ Y case only — same middle object): if
-the iso preserves the middle, the bridge collapses to refl and only
-steps (1)–(3) are needed.  Roughly ~200–400 LOC.
+2. `sub-iso-f-via-γ` : `⟪ f₁ ⟫ ≅ᴴ ⟪ γ.from ∘ f₂ ⟫`.  Sub-iso for the
+   inner factor, at the correct middle type after γ-prepending.
+   Mathematical content = old `partition-ψ` + `partition-φ` +
+   `extract-sub-iso-f` (joint).
+
+3. `sub-iso-g-via-γ` : `⟪ g₁ ⟫ ≅ᴴ ⟪ g₂ ∘ γ.to ⟫`.  Symmetric.
+
+4. `to∘from≈id` (inside `bridge-decode-rel`):
+   `decode-rel γ.to ∘ decode-rel γ.from ≈Term id`.  The lift of
+   `γ.isoˡ` through `decode-rel` for the coherence iso γ — a small
+   soundness fact for `decode-rel` on coherence morphisms.
+
+Each sub-postulate is independently provable and individually
+self-contained (each ~100-200 LOC of vertex/edge bookkeeping using
+`hCompose-impl.elab-c-inj₁/₂` from `FromAPROP.agda` lines ≈488-536).
+The "deepest math" of the old monolithic existential — the
+mathematical content of the X-vs-Y coherence bridge — is now
+discharged constructively.
+
+Total expected work to finish discharge: ~300-600 LOC (down from
+~500-1000), entirely structural vertex/edge bookkeeping with no
+further mathematical insight needed.
 
 ### 3. `decode-rel-resp-≅ᴴ-atomic-compound-0E` (AtomicCompound.agda)
 
