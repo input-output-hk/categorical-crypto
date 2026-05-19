@@ -10,7 +10,10 @@ permutation-equality coherence.
 The completeness path now depends on **13 narrow postulates** across
 6 files. Every original wide postulate has been narrowed; many were
 replaced outright by constructive definitions backed by a narrower
-postulate.
+postulate. As of `923b1d7`, the Mac Lane fragment of structural
+coherence is constructively discharged via `solveM`; the residual
+postulate in that file is pure UIP / subst-plumbing with zero
+categorical content.
 
 ### 1. Tensor block-diagonal — `Discharge/IsoDecomposeTT.agda`
 
@@ -174,10 +177,22 @@ Structural-coherence-≈Term-noσ : NoSigma f → NoSigma g → ⟪f⟫ ≅ᴴ �
 Structural-coherence-≈Term-σ   : Structural f → Structural g → ⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g
 ```
 
-The `-noσ` half is *exactly* Mac Lane coherence on the structural
-fragment, already covered by `Categories.MonoidalCoherence.Solver.solveM`
-modulo a Var-bookkeeping encoder. The `-σ` half is the symmetric
-residual that still requires extending `solveM` to σ.
+**Update (commit `923b1d7`)**: `Structural-coherence-≈Term-noσ` is
+**no longer a postulate** — it's a constructive definition routed
+through `Categories.MonoidalCoherence.Solver.solveM` instantiated at
+APROP's `FreeMonoidal`. The Var-bookkeeping encoder
+(`objAtoms`/`idxFin`/`varsVec`/`enc-Obj`/`enc-Hom`) plus
+`enc-Obj-sound` (constructive) plus a UIP-flavored subst stub
+`enc-Hom-sound-id` complete the discharge. The Mac Lane coherence
+content is now fully constructive; the sole residual postulate at
+this site (`enc-Hom-sound-id`) asserts only that the encoder is
+identity-on-NoSigma-terms up to type transport — provable from UIP
+on ObjTerm (Hedberg via `_≟-ObjTerm_`) plus definitional reductions
+of `S.⟦_⟧₁` on each constructor.
+
+The `-σ` half remains the only categorical-content postulate at
+this site; it requires extending `solveM` to handle σ (SMC
+braiding) and is independent infrastructure.
 
 ### 5. Agen-compound-1E — `RespIso/AtomicCompound.agda`
 
@@ -217,7 +232,8 @@ in `RespIso/AgenAgen.agda`).
 | middle-iso-perm | Medium | extract permutation from boundary preservation in hCompose |
 | sub-iso-{f,g}-via-γ | Medium | vertex/edge bookkeeping over hCompose-impl |
 | ⊗-∘-dist-FromAPROP-iso, mirror, ⊗∘-decode-rel-bridge | Medium | universal coherence isos for cross-shape primitives |
-| Structural-coherence-≈Term-noσ | Easy-Medium | Mac Lane coherence; awaits `solveM` Var-encoder |
+| Structural-coherence-≈Term-noσ | **Discharged** | Mac Lane coherence; constructive via `solveM` (`923b1d7`) |
+| enc-Hom-sound-id | Easy | UIP/subst-plumbing residual from `-noσ` discharge |
 | Structural-coherence-≈Term-σ | Hard | needs σ-extended SMC coherence solver |
 | decode-rel-resp-≅ᴴ-Agen-compound-1E | Hard | depends on iso-decompose's machinery |
 
