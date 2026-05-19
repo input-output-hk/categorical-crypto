@@ -7,13 +7,23 @@ permutation-equality coherence.
 
 ## Postulate inventory
 
-The completeness path now depends on **12 narrow postulates** across
+The completeness path now depends on **11 narrow postulates** across
 6 files. Every original wide postulate has been narrowed; many were
 replaced outright by constructive definitions backed by a narrower
 postulate. As of `b7e31da`, the entire Mac Lane fragment of
 structural coherence (`Structural-coherence-≈Term-noσ` and its
 encoder-soundness residual) is **fully constructive end-to-end**
 via `solveM` + Var-encoder + UIP coercions.
+
+**May 2026 unsoundness retraction (`425bf16`)**: an earlier
+narrowing pass (`0c4f223`) introduced `⊗-∘-dist-FromAPROP-iso` and
+its mirror in Cross{OC,CO} as "narrow universal coherence
+postulates." These are **mathematically false**: `_≅ᴴ_` requires a
+Fin-bijection on vertices, but the LHS `⟪p ⊗ q⟫` and RHS
+`⟪(p⊗id) ∘ (id⊗q)⟫` have vertex counts differing by `nA + nB`
+(unpruned hCompose retains all interior vertices). The narrowing
+has been reverted; `iso-decompose-{∘⊗,⊗∘}-primitive-perm` are once
+again direct postulates with their original wide signatures.
 
 ### 1. Tensor block-diagonal — `Discharge/IsoDecomposeTT.agda`
 
@@ -111,6 +121,23 @@ The two `sub-iso-{f,g}-via-γ` postulates are vertex/edge bookkeeping
 analogous to `IsoDecomposeTT.Assembly`. Estimated ~100–200 LOC each
 once a sound `hCompose-impl` boundary-slicing toolkit is in place.
 
+**May 2026 architectural finding**: `sub-iso-{f,g}-via-γ` are
+**not theorems** as currently stated — they suffer a composition-
+side analog of the σ-naturality counter-example documented in §1.
+Concrete: `f₁ = Agen u, g₁ = id` vs `f₂ = id, g₂ = Agen u` (with
+`u : mor unit unit`). Both composites `≈Term`-equal via `idˡ`/
+`idʳ`; both translate to isomorphic 1-edge hypergraphs.
+`middle-iso-perm` produces `[] ↭ []`, γ = identity. But
+`sub-iso-f-via-γ` would assert `⟪Agen u⟫ ≅ᴴ ⟪γ.from ∘ id⟫` — LHS
+has 1 edge, RHS has 0, no edge bijection exists. The Agen edge
+"shifts" across the composition cut via `idˡ`/`idʳ`, mixing f and
+g content. Same family of pathologies as the TT half-swap.
+
+`middle-iso-perm` is mathematically true (vlab multisets on the
+middle slice must agree by label-preservation) but its constructive
+extraction requires Linear-invariant infrastructure (~300+ LOC),
+not the simple boundary-projection initially imagined.
+
 ### 3. Cross-shape primitives — `Discharge/Cross{OC,CO}.agda`
 
 ```agda
@@ -129,18 +156,13 @@ to eliminating the previous `decode-rel-resp-≅ᴴ-⊗∘` termination
 workaround postulate — the symmetric primitive lets the ⊗∘ branch
 recurse structurally on `p, q` (subterms of the *first* argument).
 
-**May 2026 narrowing**: both primitives are now *constructively
-defined* from narrower universal coherence postulates. CrossOC
-introduces a single `⊗-∘-dist-FromAPROP-iso : ⟪ p ⊗₁ q ⟫ ≅ᴴ
-⟪ (p ⊗₁ id) ∘ (id ⊗₁ q) ⟫` (no iso input, no existential content),
-then transports through it and invokes
-`IsoDecomposeCC.middle-iso-perm` + `sub-iso-{f,g}-via-γ`. CrossCO
-introduces a mirror coherence iso plus a small `⊗∘-decode-rel-bridge`.
-Net: 2 wide existentials → 3 narrow universals; the existential /
-permutation / sub-iso content is now derived. A FromAPROP-side
-bridge `⟪f⟫_FromAPROP ≅ᴴ ⟪f⟫_Translation` was ruled out: pruning
-strictly removes stranded K-side dom vertices, so universal
-unpruned→pruned is mathematically impossible.
+**May 2026 retraction (`425bf16`)**: an earlier narrowing
+(`0c4f223`) replaced these primitives with constructive definitions
+backed by `⊗-∘-dist-FromAPROP-iso` (and mirror). That postulate is
+**unsound** — `_≅ᴴ_` requires a Fin-bijection on vertices, but the
+two hypergraphs `⟪p ⊗ q⟫` and `⟪(p⊗id) ∘ (id⊗q)⟫` differ in
+vertex count by `nA + nB` under unpruned `hCompose`. The narrowing
+has been reverted; the two postulates are once again direct.
 
 ### 4. SMC coherence on the structural fragment — `Discharge/AtomicCompound0E.agda`
 
@@ -227,11 +249,11 @@ in `RespIso/AgenAgen.agda`).
 
 | Postulate | Difficulty | Notes |
 |---|---|---|
-| φ-restricts-{L,R}-non-bdy | Hard | needs label-multiset counting (boundary case discharged) |
-| ψ-restricts-{L,R}-deg (matching) | Hard | matching-ghosts case; needs label-multiset counting |
-| middle-iso-perm | Medium | extract permutation from boundary preservation in hCompose |
-| sub-iso-{f,g}-via-γ | Medium | vertex/edge bookkeeping over hCompose-impl |
-| ⊗-∘-dist-FromAPROP-iso, mirror, ⊗∘-decode-rel-bridge | Medium | universal coherence isos for cross-shape primitives |
+| φ-restricts-{L,R}-non-bdy | **Architecturally blocked** | not theorems under current `_≅ᴴ_` (σ-naturality counter-example) |
+| ψ-restricts-{L,R}-deg (matching) | **Architecturally blocked** | same σ-naturality pathology |
+| middle-iso-perm | Hard | needs Linear-invariant infrastructure (~300 LOC) |
+| sub-iso-{f,g}-via-γ | **Architecturally blocked** | composition-side analog of σ-naturality; not theorems |
+| iso-decompose-{∘⊗,⊗∘}-primitive-perm | Hard | wide postulates restored after `0c4f223` revert |
 | Structural-coherence-≈Term-noσ | **Discharged** | Mac Lane coherence; constructive via `solveM` (`923b1d7` + `b7e31da`) |
 | Structural-coherence-≈Term-σ | Hard | needs σ-extended SMC coherence solver |
 | decode-rel-resp-≅ᴴ-Agen-compound-1E | Hard | depends on iso-decompose's machinery |
