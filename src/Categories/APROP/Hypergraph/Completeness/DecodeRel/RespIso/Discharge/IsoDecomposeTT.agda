@@ -341,6 +341,197 @@ module BoundarySlice
   cod-split-eq-R = proj₂ (++-split-eq _ _ _ _ length-injL-cod-eq φ-cod-split)
 
 --------------------------------------------------------------------------------
+-- BoundaryDischarge: constructive φ-restricts-L/R witnesses for
+-- BOUNDARY vertices (step (6) of the connected-components refactor
+-- sketch above).
+--
+-- For any vertex `iG ∈ G₁.dom` (or `G₁.cod`, K₁.dom`, `K₁.cod`), the
+-- position-by-position match of `dom-split-eq-L` etc. constructively
+-- exhibits the corresponding G₂.dom/cod element and the L-form
+-- equation.  No mutual recursion against `ψ-restricts-*`; no postulate.
+--
+-- This proves a strict *subset* of `φ-restricts-L/R`: the boundary
+-- case.  The full postulate still needs the *interior + stranded*
+-- case, which is the genuine obstruction (per the vertex-coverage
+-- counter-example).  Exposing this discharge makes the residual
+-- difficulty explicit: any future tighter narrowing of
+-- `φ-restricts-L/R` could quantify only over "non-boundary L-vertices".
+
+module BoundaryDischarge
+  {A B C D}
+  (f₁ : HomTerm A B) (g₁ : HomTerm C D)
+  (f₂ : HomTerm A B) (g₂ : HomTerm C D)
+  (iso : ⟪ f₁ ⊗₁ g₁ ⟫ ≅ᴴ ⟪ f₂ ⊗₁ g₂ ⟫)
+  where
+
+  open BoundarySlice f₁ g₁ f₂ g₂ iso public
+
+  -- Position witness: `x` is the (length ys)-th element of (ys ++ x ∷ zs).
+  At : ∀ {A : Set} → A → List A → Set
+  At {A} x xs = Σ (List A) λ ys → Σ (List A) λ zs → xs ≡ ys ++ x ∷ zs
+
+  -- Same-position lookup across a `map`-equation.  Given parallel
+  -- decompositions of `xs` and `ys` at the same position, the map
+  -- equation yields equality of `f x ≡ g y` for the chosen elements.
+  private
+    map-at-eq
+      : ∀ {S T R : Set}
+      → (f : S → R) (g : T → R)
+      → (x : S) (xs₁ xs₂ : List S)
+      → (y : T) (ys₁ ys₂ : List T)
+      → length xs₁ ≡ length ys₁
+      → map f (xs₁ ++ x ∷ xs₂) ≡ map g (ys₁ ++ y ∷ ys₂)
+      → f x ≡ g y
+    map-at-eq f g x []         xs₂ y []         ys₂ _ eq = ∷-head eq
+      where
+        ∷-head : ∀ {A : Set} {x x' : A} {xs xs' : List A}
+               → x ∷ xs ≡ x' ∷ xs' → x ≡ x'
+        ∷-head refl = refl
+    map-at-eq f g x (x' ∷ xs₁) xs₂ y (y' ∷ ys₁) ys₂ len eq =
+      map-at-eq f g x xs₁ xs₂ y ys₁ ys₂ (suc-injective len) (∷-tail eq)
+      where
+        ∷-tail : ∀ {A : Set} {x x' : A} {xs xs' : List A}
+               → x ∷ xs ≡ x' ∷ xs' → xs ≡ xs'
+        ∷-tail refl = refl
+    map-at-eq f g x []         xs₂ y (y' ∷ ys₁) ys₂ () _
+    map-at-eq f g x (x' ∷ xs₁) xs₂ y []         ys₂ () _
+
+    -- Length facts derived from `dom-split-eq-L`/`cod-split-eq-L`.
+    dom-len-L : length G₁.dom ≡ length G₂.dom
+    dom-len-L =
+      trans (sym (length-map (_↑ˡ K₁.nV) G₁.dom))
+      (trans (sym (length-map φ (map (_↑ˡ K₁.nV) G₁.dom)))
+      (trans (sym (cong length dom-split-eq-L))
+             (length-map (_↑ˡ K₂.nV) G₂.dom)))
+
+    cod-len-L : length G₁.cod ≡ length G₂.cod
+    cod-len-L =
+      trans (sym (length-map (_↑ˡ K₁.nV) G₁.cod))
+      (trans (sym (length-map φ (map (_↑ˡ K₁.nV) G₁.cod)))
+      (trans (sym (cong length cod-split-eq-L))
+             (length-map (_↑ˡ K₂.nV) G₂.cod)))
+
+    dom-len-R : length K₁.dom ≡ length K₂.dom
+    dom-len-R =
+      trans (sym (length-map (G₁.nV ↑ʳ_) K₁.dom))
+      (trans (sym (length-map φ (map (G₁.nV ↑ʳ_) K₁.dom)))
+      (trans (sym (cong length dom-split-eq-R))
+             (length-map (G₂.nV ↑ʳ_) K₂.dom)))
+
+    cod-len-R : length K₁.cod ≡ length K₂.cod
+    cod-len-R =
+      trans (sym (length-map (G₁.nV ↑ʳ_) K₁.cod))
+      (trans (sym (length-map φ (map (G₁.nV ↑ʳ_) K₁.cod)))
+      (trans (sym (cong length cod-split-eq-R))
+             (length-map (G₂.nV ↑ʳ_) K₂.cod)))
+
+    -- Same-position list decomposition: given a decomposition of `xs`
+    -- of length n and a length-balanced list `ys`, decompose `ys` at
+    -- the same position.
+    split-by-pos
+      : ∀ {S T : Set} (x : S) (xs₁ xs₂ : List S) (ys : List T)
+      → length (xs₁ ++ x ∷ xs₂) ≡ length ys
+      → Σ T λ y → Σ (List T) λ ys₁ → Σ (List T) λ ys₂
+          → ys ≡ ys₁ ++ y ∷ ys₂ × length xs₁ ≡ length ys₁
+    split-by-pos x []         xs₂ (y ∷ ys)  _   = y , [] , ys , refl , refl
+    split-by-pos x (x' ∷ xs₁) xs₂ (y ∷ ys)  len
+      with split-by-pos x xs₁ xs₂ ys (suc-injective len)
+    ... | y' , ys₁ , ys₂ , dec , lenEq =
+            y' , (y ∷ ys₁) , ys₂ , cong (y ∷_) dec , cong suc lenEq
+      where open import Data.Nat using (suc)
+    split-by-pos x []         xs₂ []        ()
+    split-by-pos x (_ ∷ _)    xs₂ []        ()
+
+  -- Constructive discharge for L-boundary (dom) vertices.
+  φ-restricts-L-from-dom
+    : ∀ (iG : Fin G₁.nV) → At iG G₁.dom
+    → Σ (Fin G₂.nV) λ iG' → φ (iG ↑ˡ K₁.nV) ≡ iG' ↑ˡ K₂.nV
+  φ-restricts-L-from-dom iG (xs₁ , xs₂ , decomp) =
+    let
+      len-eq : length (xs₁ ++ iG ∷ xs₂) ≡ length G₂.dom
+      len-eq = trans (sym (cong length decomp)) dom-len-L
+    in helper (split-by-pos iG xs₁ xs₂ G₂.dom len-eq)
+    where
+      helper : (Σ (Fin G₂.nV) λ y → Σ (List (Fin G₂.nV)) λ ys₁ → Σ (List (Fin G₂.nV)) λ ys₂
+                → G₂.dom ≡ ys₁ ++ y ∷ ys₂ × length xs₁ ≡ length ys₁)
+             → Σ (Fin G₂.nV) λ iG' → φ (iG ↑ˡ K₁.nV) ≡ iG' ↑ˡ K₂.nV
+      helper (iG' , ys₁ , ys₂ , g2-dec , lenEq) =
+        iG' ,
+        sym (map-at-eq (_↑ˡ K₂.nV) (λ z → φ (z ↑ˡ K₁.nV))
+                       iG' ys₁ ys₂ iG xs₁ xs₂
+                       (sym lenEq)
+                       (trans (cong (map (_↑ˡ K₂.nV)) (sym g2-dec))
+                       (trans dom-split-eq-L
+                       (trans (sym (map-∘ G₁.dom))
+                              (cong (map (λ z → φ (z ↑ˡ K₁.nV))) decomp)))))
+
+  φ-restricts-L-from-cod
+    : ∀ (iG : Fin G₁.nV) → At iG G₁.cod
+    → Σ (Fin G₂.nV) λ iG' → φ (iG ↑ˡ K₁.nV) ≡ iG' ↑ˡ K₂.nV
+  φ-restricts-L-from-cod iG (xs₁ , xs₂ , decomp) =
+    let
+      len-eq : length (xs₁ ++ iG ∷ xs₂) ≡ length G₂.cod
+      len-eq = trans (sym (cong length decomp)) cod-len-L
+    in helper (split-by-pos iG xs₁ xs₂ G₂.cod len-eq)
+    where
+      helper : (Σ (Fin G₂.nV) λ y → Σ (List (Fin G₂.nV)) λ ys₁ → Σ (List (Fin G₂.nV)) λ ys₂
+                → G₂.cod ≡ ys₁ ++ y ∷ ys₂ × length xs₁ ≡ length ys₁)
+             → Σ (Fin G₂.nV) λ iG' → φ (iG ↑ˡ K₁.nV) ≡ iG' ↑ˡ K₂.nV
+      helper (iG' , ys₁ , ys₂ , g2-dec , lenEq) =
+        iG' ,
+        sym (map-at-eq (_↑ˡ K₂.nV) (λ z → φ (z ↑ˡ K₁.nV))
+                       iG' ys₁ ys₂ iG xs₁ xs₂
+                       (sym lenEq)
+                       (trans (cong (map (_↑ˡ K₂.nV)) (sym g2-dec))
+                       (trans cod-split-eq-L
+                       (trans (sym (map-∘ G₁.cod))
+                              (cong (map (λ z → φ (z ↑ˡ K₁.nV))) decomp)))))
+
+  φ-restricts-R-from-dom
+    : ∀ (iK : Fin K₁.nV) → At iK K₁.dom
+    → Σ (Fin K₂.nV) λ iK' → φ (G₁.nV ↑ʳ iK) ≡ G₂.nV ↑ʳ iK'
+  φ-restricts-R-from-dom iK (xs₁ , xs₂ , decomp) =
+    let
+      len-eq : length (xs₁ ++ iK ∷ xs₂) ≡ length K₂.dom
+      len-eq = trans (sym (cong length decomp)) dom-len-R
+    in helper (split-by-pos iK xs₁ xs₂ K₂.dom len-eq)
+    where
+      helper : (Σ (Fin K₂.nV) λ y → Σ (List (Fin K₂.nV)) λ ys₁ → Σ (List (Fin K₂.nV)) λ ys₂
+                → K₂.dom ≡ ys₁ ++ y ∷ ys₂ × length xs₁ ≡ length ys₁)
+             → Σ (Fin K₂.nV) λ iK' → φ (G₁.nV ↑ʳ iK) ≡ G₂.nV ↑ʳ iK'
+      helper (iK' , ys₁ , ys₂ , k2-dec , lenEq) =
+        iK' ,
+        sym (map-at-eq (G₂.nV ↑ʳ_) (λ z → φ (G₁.nV ↑ʳ z))
+                       iK' ys₁ ys₂ iK xs₁ xs₂
+                       (sym lenEq)
+                       (trans (cong (map (G₂.nV ↑ʳ_)) (sym k2-dec))
+                       (trans dom-split-eq-R
+                       (trans (sym (map-∘ K₁.dom))
+                              (cong (map (λ z → φ (G₁.nV ↑ʳ z))) decomp)))))
+
+  φ-restricts-R-from-cod
+    : ∀ (iK : Fin K₁.nV) → At iK K₁.cod
+    → Σ (Fin K₂.nV) λ iK' → φ (G₁.nV ↑ʳ iK) ≡ G₂.nV ↑ʳ iK'
+  φ-restricts-R-from-cod iK (xs₁ , xs₂ , decomp) =
+    let
+      len-eq : length (xs₁ ++ iK ∷ xs₂) ≡ length K₂.cod
+      len-eq = trans (sym (cong length decomp)) cod-len-R
+    in helper (split-by-pos iK xs₁ xs₂ K₂.cod len-eq)
+    where
+      helper : (Σ (Fin K₂.nV) λ y → Σ (List (Fin K₂.nV)) λ ys₁ → Σ (List (Fin K₂.nV)) λ ys₂
+                → K₂.cod ≡ ys₁ ++ y ∷ ys₂ × length xs₁ ≡ length ys₁)
+             → Σ (Fin K₂.nV) λ iK' → φ (G₁.nV ↑ʳ iK) ≡ G₂.nV ↑ʳ iK'
+      helper (iK' , ys₁ , ys₂ , k2-dec , lenEq) =
+        iK' ,
+        sym (map-at-eq (G₂.nV ↑ʳ_) (λ z → φ (G₁.nV ↑ʳ z))
+                       iK' ys₁ ys₂ iK xs₁ xs₂
+                       (sym lenEq)
+                       (trans (cong (map (G₂.nV ↑ʳ_)) (sym k2-dec))
+                       (trans cod-split-eq-R
+                       (trans (sym (map-∘ K₁.cod))
+                              (cong (map (λ z → φ (G₁.nV ↑ʳ z))) decomp)))))
+
+--------------------------------------------------------------------------------
 -- Sub-postulates: block-diagonal structure of the iso bijections.
 --
 -- These are the four narrow sub-postulates from which we constructively
@@ -517,17 +708,78 @@ module BlockDiagonal
   -- requires either the `vertex-coverage` structural lemma or the
   -- label-multiset counting infrastructure — neither of which exists
   -- elsewhere in the codebase yet.
+  --
+  -- May 2026 narrowing: the BOUNDARY case (vertices in G₁.dom or G₁.cod,
+  -- resp. K₁.dom or K₁.cod) is now constructively discharged via
+  -- `BoundaryDischarge` above.  We therefore narrow the postulates to
+  -- *non-boundary* (interior + stranded) vertices.  The strict-narrowing
+  -- property is immediate: trivially weaker than the full ∀-statement.
+  open import Data.List.Membership.Propositional using (_∉_)
+
   postulate
-    -- For every left-half vertex (i.e. one of the form `iG ↑ˡ K₁.nV`)
-    -- of T₁, φ sends it to a left-half vertex of T₂.
-    φ-restricts-L
+    -- Narrower postulate: only fires when iG is in NEITHER G₁.dom nor
+    -- G₁.cod (i.e. an interior or stranded L-half vertex).
+    φ-restricts-L-non-bdy
       : ∀ (iG : Fin G₁.nV)
+      → iG ∉ G₁.dom
+      → iG ∉ G₁.cod
       → Σ (Fin G₂.nV) λ iG' → φ (iG ↑ˡ K₁.nV) ≡ iG' ↑ˡ K₂.nV
 
-    -- For every right-half vertex of T₁, φ sends it to a right-half vertex.
-    φ-restricts-R
+    φ-restricts-R-non-bdy
       : ∀ (iK : Fin K₁.nV)
+      → iK ∉ K₁.dom
+      → iK ∉ K₁.cod
       → Σ (Fin K₂.nV) λ iK' → φ (G₁.nV ↑ʳ iK) ≡ G₂.nV ↑ʳ iK'
+
+  -- Constructive φ-restricts-L: dispatch on whether `iG` is a boundary
+  -- vertex (in G₁.dom or G₁.cod, in which case
+  -- `BoundaryDischarge.φ-restricts-L-from-dom`/`-cod` discharges it),
+  -- or a non-boundary vertex (delegate to the narrower postulate).
+  private
+    module _∈?_-G₁-dom where
+      open import Data.Fin.Properties using (_≟_)
+      open import Data.List.Membership.DecPropositional (_≟_ {n = G₁.nV}) public
+
+    module _∈?_-K₁-dom where
+      open import Data.Fin.Properties using (_≟_)
+      open import Data.List.Membership.DecPropositional (_≟_ {n = K₁.nV}) public
+
+    open import Data.List.Relation.Unary.Any using (Any; here; there)
+    open import Relation.Nullary.Decidable using (yes; no)
+    open import Data.List.Membership.Propositional using (_∈_)
+
+    -- Convert `Any (_≡ x) xs` into a decomposition `xs ≡ ys ++ x ∷ zs`.
+    any-to-decomp
+      : ∀ {A : Set} {x : A} {xs : List A}
+      → Any (_≡_ x) xs
+      → Σ (List A) λ ys → Σ (List A) λ zs → xs ≡ ys ++ x ∷ zs
+    any-to-decomp {xs = []}     ()
+    any-to-decomp {xs = y ∷ xs} (here refl) = [] , xs , refl
+    any-to-decomp {xs = y ∷ xs} (there p)
+      with any-to-decomp p
+    ... | ys , zs , refl = (y ∷ ys) , zs , refl
+
+  φ-restricts-L
+    : ∀ (iG : Fin G₁.nV)
+    → Σ (Fin G₂.nV) λ iG' → φ (iG ↑ˡ K₁.nV) ≡ iG' ↑ˡ K₂.nV
+  φ-restricts-L iG with _∈?_-G₁-dom._∈?_ iG G₁.dom
+  ... | yes mem = BoundaryDischarge.φ-restricts-L-from-dom
+                    f₁ g₁ f₂ g₂ iso iG (any-to-decomp mem)
+  ... | no  ¬dom with _∈?_-G₁-dom._∈?_ iG G₁.cod
+  ...   | yes mem = BoundaryDischarge.φ-restricts-L-from-cod
+                      f₁ g₁ f₂ g₂ iso iG (any-to-decomp mem)
+  ...   | no  ¬cod = φ-restricts-L-non-bdy iG ¬dom ¬cod
+
+  φ-restricts-R
+    : ∀ (iK : Fin K₁.nV)
+    → Σ (Fin K₂.nV) λ iK' → φ (G₁.nV ↑ʳ iK) ≡ G₂.nV ↑ʳ iK'
+  φ-restricts-R iK with _∈?_-K₁-dom._∈?_ iK K₁.dom
+  ... | yes mem = BoundaryDischarge.φ-restricts-R-from-dom
+                    f₁ g₁ f₂ g₂ iso iK (any-to-decomp mem)
+  ... | no  ¬dom with _∈?_-K₁-dom._∈?_ iK K₁.cod
+  ...   | yes mem = BoundaryDischarge.φ-restricts-R-from-cod
+                      f₁ g₁ f₂ g₂ iso iK (any-to-decomp mem)
+  ...   | no  ¬cod = φ-restricts-R-non-bdy iK ¬dom ¬cod
 
   -- Forward bijection on the L-half of vertices, extracted from
   -- `φ-restricts-L`.
