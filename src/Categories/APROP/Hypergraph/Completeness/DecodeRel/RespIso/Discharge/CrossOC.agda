@@ -79,8 +79,14 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
   using (decode-rel; decode-roundtrip-rel)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (bridge)
+open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
+  using (unflatten; unflatten-flatten-≈)
+open import Categories.APROP.Hypergraph.Completeness.PermutationCoherence sig
+  using (↭-to-≅)
+open import Categories.APROP.Hypergraph.FromAPROP sig using (flatten)
 
-open import Categories.Morphism FreeMonoidal using (_≅_)
+open import Categories.Morphism FreeMonoidal using (_≅_; module ≅)
+open import Data.List.Relation.Binary.Permutation.Propositional using (_↭_)
 open import Data.Product using (Σ; _,_; proj₁; proj₂; _×_)
 
 --------------------------------------------------------------------------------
@@ -122,15 +128,60 @@ decode-rel-resp-≈Term {f = f} {g = g} eq =
 -- iso `γ` here.  See `Discharge/IsoDecomposeCC.agda` for the
 -- analogous discharge programme.
 
+-- Narrowed primitive: instead of postulating a free-form coherence
+-- iso `γ : Ap ⊗₀ Bq ≅ X` in `FreeMonoidal`, we postulate only a
+-- *propositional permutation* `π : flatten X ↭ flatten (Ap ⊗₀ Bq)`
+-- on the flattened atom lists.  The associated coherence iso
+-- (via `↭-to-≅` of `PermutationCoherence`) is then *built* from `π`,
+-- so its size is bounded by the size of the permutation derivation
+-- and the result is structurally constrained.
+--
+-- Soundness check (σ counter-example): for `xs = [a, b]`,
+-- `ys = [b, a]`, `swap a b refl` produces a coherence iso that is
+-- exactly the braiding `σ`, which is the expected coherence iso for
+-- the symmetry of `Var a ⊗ Var b` and `Var b ⊗ Var a`.  Permutations
+-- naturally handle that case.
+
 postulate
-  iso-decompose-∘⊗-primitive
+  iso-decompose-∘⊗-primitive-perm
     : ∀ {Ap Aq Bp Bq X}
         (g : HomTerm X (Bp ⊗₀ Bq)) (f : HomTerm (Ap ⊗₀ Aq) X)
         (p : HomTerm Ap Bp)        (q : HomTerm Aq Bq)
     → ⟪ g ∘ f ⟫ ≅ᴴ ⟪ p ⊗₁ q ⟫
-    → Σ ((Ap ⊗₀ Bq) ≅ X) λ γ →
-          (⟪ f ⟫ ≅ᴴ ⟪ _≅_.from γ ∘ (id ⊗₁ q) ⟫)
-        × (⟪ g ⟫ ≅ᴴ ⟪ (p ⊗₁ id) ∘ _≅_.to γ ⟫)
+    → Σ (flatten X ↭ flatten (Ap ⊗₀ Bq)) λ π →
+        let γ : (Ap ⊗₀ Bq) ≅ X
+            γ = ≅.trans
+                  (unflatten-flatten-≈ (Ap ⊗₀ Bq))
+                  (≅.trans (≅.sym (↭-to-≅ π))
+                           (≅.sym (unflatten-flatten-≈ X)))
+        in
+            (⟪ f ⟫ ≅ᴴ ⟪ _≅_.from γ ∘ (id ⊗₁ q) ⟫)
+          × (⟪ g ⟫ ≅ᴴ ⟪ (p ⊗₁ id) ∘ _≅_.to γ ⟫)
+
+--------------------------------------------------------------------------------
+-- Derived "γ as a HomTerm iso" form (the previous monolithic primitive).
+--
+-- Builds the coherence iso `γ : Ap ⊗₀ Bq ≅ X` from the permutation
+-- supplied by `iso-decompose-∘⊗-primitive-perm`, by sandwiching
+-- `↭-to-≅ π` between two `unflatten-flatten-≈` coherence isos.
+
+iso-decompose-∘⊗-primitive
+  : ∀ {Ap Aq Bp Bq X}
+      (g : HomTerm X (Bp ⊗₀ Bq)) (f : HomTerm (Ap ⊗₀ Aq) X)
+      (p : HomTerm Ap Bp)        (q : HomTerm Aq Bq)
+  → ⟪ g ∘ f ⟫ ≅ᴴ ⟪ p ⊗₁ q ⟫
+  → Σ ((Ap ⊗₀ Bq) ≅ X) λ γ →
+        (⟪ f ⟫ ≅ᴴ ⟪ _≅_.from γ ∘ (id ⊗₁ q) ⟫)
+      × (⟪ g ⟫ ≅ᴴ ⟪ (p ⊗₁ id) ∘ _≅_.to γ ⟫)
+iso-decompose-∘⊗-primitive {Ap} {Aq} {Bp} {Bq} {X} g f p q iso =
+  let prim = iso-decompose-∘⊗-primitive-perm g f p q iso
+      π    = proj₁ prim
+      γ    : (Ap ⊗₀ Bq) ≅ X
+      γ    = ≅.trans
+                (unflatten-flatten-≈ (Ap ⊗₀ Bq))
+                (≅.trans (≅.sym (↭-to-≅ π))
+                         (≅.sym (unflatten-flatten-≈ X)))
+  in γ , proj₁ (proj₂ prim) , proj₂ (proj₂ prim)
 
 --------------------------------------------------------------------------------
 -- Bridge lemma: from the coherence iso `γ`, the canonical factors
