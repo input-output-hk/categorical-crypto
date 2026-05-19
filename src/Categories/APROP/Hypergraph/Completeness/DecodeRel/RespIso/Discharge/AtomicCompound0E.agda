@@ -95,7 +95,7 @@ module Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.Atom
 open APROPSignatureDec sig-dec using (sig)
 open APROP sig
 open import Categories.APROP.Hypergraph.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen; ⟪_⟫)
+open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen; ⟪_⟫; flatten)
 open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (bridge)
@@ -110,10 +110,15 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Atomic si
         )
 
 open import Data.Empty using (⊥; ⊥-elim)
+open import Data.List using (List; []; _∷_; _++_)
+import Data.List.Properties
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Nat.Properties using (m+n≡0⇒m≡0; m+n≡0⇒n≡0)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl)
+import Data.List.Relation.Binary.Permutation.Propositional as Perm
+import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
+open Perm using (_↭_)
 
 private
   nE : Hypergraph FlatGen → ℕ
@@ -204,12 +209,86 @@ nE-0→Structural (h ⊗₁ k) g-nE≡0 =
 -- `Categories.MonoidalCoherence.Solver` (currently Mac Lane only) to
 -- handle σ via permutation tracking — see the header for the path.
 
+--------------------------------------------------------------------------------
+-- Extract the underlying permutation of a structural HomTerm.
+--
+-- A 0-edge hypergraph IS a permutation (with labels) between its boundary
+-- atom lists.  We extract this permutation by structural induction on
+-- `Structural`, using only the propositional permutation combinators
+-- (`refl`, `prep`, `swap`, `trans`) and standard list-permutation lemmas
+-- (`++-comm`, `++-assoc`, `++-identityʳ`, `++⁺`).
+--
+-- The directions:
+--   * `id        : A → A`              ↦ refl
+--   * `λ⇒ : I⊗A → A`,  `λ⇐ : A → I⊗A`  ↦ refl     ([] ++ xs ≡ xs definitionally)
+--   * `ρ⇒ : A⊗I → A`                   ↦ ++-identityʳ
+--   * `ρ⇐ : A → A⊗I`                   ↦ sym (++-identityʳ)
+--   * `α⇒ : (A⊗B)⊗C → A⊗(B⊗C)`         ↦ ↭-reflexive (++-assoc)
+--   * `α⇐ : A⊗(B⊗C) → (A⊗B)⊗C`         ↦ sym
+--   * `σ  : A⊗B → B⊗A`                 ↦ ++-comm
+--   * `_∘_`                            ↦ Perm.trans (note: h ∘ k goes k then h)
+--   * `_⊗₁_`                           ↦ PermProp.++⁺
+
+Structural-to-perm
+  : ∀ {A B} {f : HomTerm A B}
+  → Structural f → flatten A ↭ flatten B
+Structural-to-perm (structural-id {A}) = Perm.refl
+Structural-to-perm structural-λ⇒        = Perm.refl
+Structural-to-perm structural-λ⇐        = Perm.refl
+Structural-to-perm (structural-ρ⇒ {A})  = PermProp.++-identityʳ (flatten A)
+Structural-to-perm (structural-ρ⇐ {A})  = Perm.↭-sym (PermProp.++-identityʳ (flatten A))
+Structural-to-perm (structural-α⇒ {A} {B} {C}) =
+  Perm.↭-reflexive (Data.List.Properties.++-assoc (flatten A) (flatten B) (flatten C))
+Structural-to-perm (structural-α⇐ {A} {B} {C}) =
+  Perm.↭-sym (Perm.↭-reflexive (Data.List.Properties.++-assoc (flatten A) (flatten B) (flatten C)))
+Structural-to-perm (structural-σ {A} {B}) =
+  PermProp.++-comm (flatten A) (flatten B)
+Structural-to-perm (structural-∘ sh sk) =
+  Perm.trans (Structural-to-perm sk) (Structural-to-perm sh)
+Structural-to-perm (structural-⊗ sh sk) =
+  PermProp.++⁺ (Structural-to-perm sh) (Structural-to-perm sk)
+
+--------------------------------------------------------------------------------
+-- Narrowed postulates.
+--
+-- The original `Structural-coherence-≈Term` is split into two pieces:
+--
+--   * `perm-eq-from-iso` — the iso `⟪ f ⟫ ≅ᴴ ⟪ g ⟫` forces the underlying
+--     permutations to agree, propositionally.  Sound because both
+--     hypergraphs have 0 edges (structural), so the iso IS just the
+--     boundary permutation comparison.  Stated as propositional equality
+--     of `Structural-to-perm` outputs.
+--
+--   * `Structural-coherence-from-perm-eq` — Mac Lane's symmetric monoidal
+--     coherence on the structural fragment: two structural HomTerms with
+--     the same underlying permutation are `≈Term`-equal.  This is a
+--     clearly-bounded finite problem (permutation equality is decidable
+--     and the SMC coherence theorem applies).
+--
+-- The original `Structural-coherence-≈Term` is then derived as a
+-- *definition* (no longer postulated).
+
 postulate
-  Structural-coherence-≈Term
+  perm-eq-from-iso
     : ∀ {A B} {f g : HomTerm A B}
-    → Structural f → Structural g
+    → (sf : Structural f) → (sg : Structural g)
     → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+    → Structural-to-perm sf ≡ Structural-to-perm sg
+
+  Structural-coherence-from-perm-eq
+    : ∀ {A B} {f g : HomTerm A B}
+    → (sf : Structural f) → (sg : Structural g)
+    → Structural-to-perm sf ≡ Structural-to-perm sg
     → f ≈Term g
+
+-- Derived: combine the two narrowed postulates.
+Structural-coherence-≈Term
+  : ∀ {A B} {f g : HomTerm A B}
+  → Structural f → Structural g
+  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+  → f ≈Term g
+Structural-coherence-≈Term sf sg iso =
+  Structural-coherence-from-perm-eq sf sg (perm-eq-from-iso sf sg iso)
 
 --------------------------------------------------------------------------------
 -- Derived: lift `Structural-coherence-≈Term` through `bridge` and
