@@ -1,250 +1,159 @@
 # Goal: complete the completeness theorem
 
-The completeness theorem `Categories.APROP.Hypergraph.CompletenessFull.completeness-full`
-is now wired through `decode-rel-resp-≅ᴴ-full` (in `DecodeRel/Inductive.agda`)
-and depends on **five narrow postulates** in three sub-modules.  All of
-the atomic-case work (Phase 1) and the inductive framework (Phase 2) have
-been discharged.  What remains is targeted vertex/edge bookkeeping and
-two pieces of symmetric-monoidal coherence content.
+`Categories.APROP.Hypergraph.CompletenessFull.completeness-full :
+⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g` builds cleanly. What's left is a small set
+of **narrow postulates** of two flavours: vertex/edge bookkeeping and
+permutation-equality coherence.
 
-## Current state
+## Postulate inventory
 
-`CompletenessFull.completeness-full : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g` builds
-cleanly.  The dependency tree of remaining postulates:
+The completeness path now depends on **12 narrow postulates** across
+6 files. Every original wide postulate has been narrowed; many were
+replaced outright by constructive definitions backed by a narrower
+postulate.
 
-```
-completeness-full
-└── decode-rel-resp-≅ᴴ-full       (Inductive.agda — fully proved)
-    ├── decode-rel-resp-≅ᴴ-atomic (Atomic.agda — fully proved, Phase 1)
-    ├── decode-rel-resp-≅ᴴ-atomic-compound  ─┐
-    ├── decode-rel-resp-≅ᴴ-compound-atomic ─┤ derived from each other
-    │   └── 2 postulates in AtomicCompound.agda:
-    │       • atomic-compound-0E  (structural-coherence equation)
-    │       • Agen-compound-1E    (1-edge decomposition)
-    │   (nE-Agen-iso-1 already discharged via Discharge/NEAgenIso1.agda)
-    ├── decode-rel-resp-≅ᴴ-⊗⊗     (TensorTensor.agda)
-    │   └── iso-decompose-⊗⊗      (1 postulate — vertex/edge bookkeeping)
-    ├── decode-rel-resp-≅ᴴ-∘∘     (ComposeCompose.agda)
-    │   └── iso-decompose-∘∘      (1 postulate — deepest math)
-    ├── decode-rel-resp-≅ᴴ-∘⊗     (Inductive.agda — 1 postulate)
-    └── decode-rel-resp-≅ᴴ-⊗∘     (derived from -∘⊗ via sym-≅ᴴ)
-```
+### 1. Tensor block-diagonal — `Discharge/IsoDecomposeTT.agda`
 
-| Path postulate count | After |
-|---|---:|
-| Original (indexed Hypergraph, algorithmic decode) | 9–10 |
-| After refactors A, B, C | 1 (top-level `decode-rel-resp-≅ᴴ`) |
-| After Phase 1 (atomic dispatcher) | 1 (still top-level, atomic case dispatched) |
-| After Phase 2 framework | **5** narrow postulates |
-
-## Remaining postulates and plans
-
-### 1. `iso-decompose-⊗⊗` (TensorTensor.agda)
+The monolithic `iso-decompose-⊗⊗` postulate is **gone**; it is now
+constructively assembled (in `BlockDiagonal.Assembly`) from four narrow
+restriction postulates:
 
 ```agda
-iso-decompose-⊗⊗
-  : ∀ {A B C D}
-      (f₁ : HomTerm A B) (g₁ : HomTerm C D)
-      (f₂ : HomTerm A B) (g₂ : HomTerm C D)
-  → ⟪ f₁ ⊗₁ g₁ ⟫ ≅ᴴ ⟪ f₂ ⊗₁ g₂ ⟫
-  → (⟪ f₁ ⟫ ≅ᴴ ⟪ f₂ ⟫) × (⟪ g₁ ⟫ ≅ᴴ ⟪ g₂ ⟫)
+φ-restricts-L : ∀ iG → Σ iG' → φ (iG ↑ˡ K₁.nV) ≡ iG' ↑ˡ K₂.nV
+φ-restricts-R : ∀ iK → Σ iK' → φ (G₁.nV ↑ʳ iK) ≡ G₂.nV ↑ʳ iK'
+ψ-restricts-L-deg : ∀ eG → G₁.ein eG ≡ [] → G₁.eout eG ≡ [] → …
+ψ-restricts-R-deg : ∀ eK → K₁.ein eK ≡ [] → K₁.eout eK ≡ [] → …
 ```
 
-**Soundness**: confirmed sound after investigation.  Boundary equations
-`φ-dom : K.dom ≡ map φ G.dom` (position-ordered list equality, with both
-sides split as `injL …-dom ++ injR …-dom` of length `|flatten A|`) force
-`φ` to map f₁'s boundary into f₂'s boundary element-wise; propagation
-through `ψ-ein`/`ψ-eout` extends "structurally straight" behaviour into
-the interior.
+`ψ-restricts-L/R` for *non-degenerate* edges (any non-empty `ein` or
+`eout`) is **proved constructively** in the same file. The two `-deg`
+postulates are strict narrowings — they only fire on degenerate "ghost"
+edges (`mor unit unit`-shaped, no endpoints).
 
-**Plan**: ~100–200 LOC of vertex/edge bookkeeping in two passes.
-1. Pass 1: derive half-restricted `φ` from `φ-dom`/`φ-cod` (slice the
-   bijection at index `|flatten A|`; use `splitAt`-properties from
-   `Data.Fin.Properties`).
-2. Pass 2: derive half-restricted `ψ` from `ψ-ein`/`ψ-eout` + the
-   half-restricted `φ`.  Edges with at least one boundary endpoint
-   are forced into the matching half; for purely-interior edges,
-   restrict via `splitAt` on `Fin (G.nE)` analogous to `φ`.
-3. Assemble two `_≅ᴴ_` records (one for each half) using the existing
-   `hTensor-impl.elab-c-inj₁/₂` to manage the `subst₂ Gen` transports.
+**Obstruction**: vertex coverage. The naive route to discharge
+`φ-restricts-L/R` (case-split + ψ-restricts contradiction) is
+*mutually recursive* with ψ-restricts. The natural fix —
+"every vertex of ⟪f⟫ is in dom/cod/some edge" — is **mathematically
+false** (counter-example: `id ∘ id` has stranded vertices from
+`hCompose`'s remap). The remaining route is label-multiset counting
+over the `Linear` invariant — substantial new infrastructure
+(~300+ LOC).
 
-The forward direction `hTensor-resp-≅ᴴ` likely exists in
-`Hypergraph.Congruence`; the reverse machinery is the analogue we need.
+### 2. Compose-compose middle/sub-isos — `Discharge/IsoDecomposeCC.agda`
 
-### 2. `iso-decompose-∘∘` (ComposeCompose.agda) — NARROWED
-
-The original monolithic `iso-decompose-∘∘` postulate has been
-**replaced** by a constructive assembly in
-`Discharge/IsoDecomposeCC.agda`.  `ComposeCompose.agda` re-exports the
-discharged version and contains no `postulate` of its own anymore.
-
-The assembly canonical-izes the existential pair as
-`f₂' := γ.from ∘ f₂` and `g₂' := g₂ ∘ γ.to` for a coherence iso
-`γ : Y ≅ X` extracted from the composite hypergraph iso.  The bridge
-`decode-rel ((g₂ ∘ γ.to) ∘ (γ.from ∘ f₂)) ≈Term decode-rel (g₂ ∘ f₂)`
-is then a fully **constructive** `assoc`/`identity`/`iso-cancellation`
-derivation (`bridge-decode-rel`).
-
-The original existential postulate has been narrowed to four named
-sub-postulates:
-
-1. `middle-iso` : `Y ≅ X` extracted from the composite iso.  Forced by
-   the boundary equation that `flatten X ≡ flatten Y`, plus the
-   `unflatten-flatten-≈` coherence iso.
-
-2. `sub-iso-f-via-γ` : `⟪ f₁ ⟫ ≅ᴴ ⟪ γ.from ∘ f₂ ⟫`.  Sub-iso for the
-   inner factor, at the correct middle type after γ-prepending.
-   Mathematical content = old `partition-ψ` + `partition-φ` +
-   `extract-sub-iso-f` (joint).
-
-3. `sub-iso-g-via-γ` : `⟪ g₁ ⟫ ≅ᴴ ⟪ g₂ ∘ γ.to ⟫`.  Symmetric.
-
-4. `to∘from≈id` (inside `bridge-decode-rel`):
-   `decode-rel γ.to ∘ decode-rel γ.from ≈Term id`.  The lift of
-   `γ.isoˡ` through `decode-rel` for the coherence iso γ — a small
-   soundness fact for `decode-rel` on coherence morphisms.
-
-Each sub-postulate is independently provable and individually
-self-contained (each ~100-200 LOC of vertex/edge bookkeeping using
-`hCompose-impl.elab-c-inj₁/₂` from `FromAPROP.agda` lines ≈488-536).
-The "deepest math" of the old monolithic existential — the
-mathematical content of the X-vs-Y coherence bridge — is now
-discharged constructively.
-
-Total expected work to finish discharge: ~300-600 LOC (down from
-~500-1000), entirely structural vertex/edge bookkeeping with no
-further mathematical insight needed.
-
-### 3. `decode-rel-resp-≅ᴴ-atomic-compound-0E` (AtomicCompound.agda)
+The monolithic existential `iso-decompose-∘∘` is **gone**. The X-vs-Y
+coherence bridge is now a constructive `assoc`/`identity`/`γ.isoˡ`
+derivation. Three remaining narrow postulates:
 
 ```agda
-decode-rel-resp-≅ᴴ-atomic-compound-0E
-  : ∀ {A B} {f g : HomTerm A B}
-  → Atomic f → Compound g
-  → nE ⟪ g ⟫ ≡ 0
-  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-  → decode-rel f ≈Term decode-rel g
+middle-iso-perm    : ⟪ g₁ ∘ f₁ ⟫ ≅ᴴ ⟪ g₂ ∘ f₂ ⟫ → flatten Y ↭ flatten X
+sub-iso-f-via-γ    : iso → ⟪ f₁ ⟫ ≅ᴴ ⟪ γ.from ∘ f₂ ⟫
+sub-iso-g-via-γ    : iso → ⟪ g₁ ⟫ ≅ᴴ ⟪ g₂ ∘ γ.to ⟫
 ```
 
-Both `f` and `g` are 0-edge structural morphisms (no `Agen`
-sub-occurrences); the existing `Discharge/AtomicCompound0E.agda`
-proves the inductive characterisation that `nE ⟪g⟫ ≡ 0` implies `g` is
-`Structural` (no `Agen` anywhere), and dismisses the `Agen` LHS branch.
+`middle-iso : Y ≅ X` is a *definition* built from `middle-iso-perm`
+plus `↭-to-≅` and `unflatten-flatten-≈`. The previous narrowing via
+`flatten X ≡ flatten Y` was reverted as **unsound** (σ-counter-example:
+`f₂ = σ_{a,b}, g₂ = σ_{b,a}` yields composite-iso with `flatten X ≢
+flatten Y` as ordered lists). The new permutation-valued version
+handles σ cleanly via `_↭_`'s `swap` constructor.
 
-**What's left**: a symmetric-monoidal coherence theorem stating that
-any two `Structural` `HomTerm`s of matching type with isomorphic
-hypergraph translations are `≈Term`-equal.  This is Mac Lane coherence
-extended to `σ`.
+The two `sub-iso-{f,g}-via-γ` postulates are vertex/edge bookkeeping
+analogous to `IsoDecomposeTT.Assembly`. Estimated ~100–200 LOC each
+once a sound `hCompose-impl` boundary-slicing toolkit is in place.
 
-**Plan**:
-- Path A (broad): extend `Categories.MonoidalCoherence.Solver.solveM`
-  (currently Mac Lane only) to symmetric monoidal categories — handle
-  `σ` via permutation tracking.  Roughly 1–2 weeks; produces a
-  general-purpose tactic discharging many other postulates simultaneously.
-- Path B (targeted): hand-prove the coherence equation by induction
-  on `Structural g`, threading `σ∘[f⊗g]≈[g⊗f]∘σ`, `α-comm`,
-  `triangle`, `pentagon`, and (in the σ branch) the existing
-  `σ-flatten-empty-is-id` from `RespIso/IdSigma.agda` and the
-  hexagon-based derivations from `RespIso/AlphaForwardSigma.agda`.
-  Roughly 3–5 days.
+### 3. Cross-shape primitives — `Discharge/Cross{OC,CO}.agda`
 
-### 4. `decode-rel-resp-≅ᴴ-Agen-compound-1E` (AtomicCompound.agda)
+```agda
+iso-decompose-∘⊗-primitive-perm
+  : ⟪ g ∘ f ⟫ ≅ᴴ ⟪ p ⊗₁ q ⟫
+  → Σ (flatten X ↭ flatten (Ap ⊗₀ Bq)) λ π →
+        (⟪ f ⟫ ≅ᴴ ⟪ ↭-to-≅ π .from ∘ (id ⊗₁ q) ⟫)
+      × (⟪ g ⟫ ≅ᴴ ⟪ (p ⊗₁ id) ∘ ↭-to-≅ π .to ⟫)
+
+iso-decompose-⊗∘-primitive-perm  -- symmetric variant
+```
+
+Both produce the coherence iso γ as a `_↭_` permutation
+(bounded data), not an abstract `_≅_` record. This was the key
+to eliminating the previous `decode-rel-resp-≅ᴴ-⊗∘` termination
+workaround postulate — the symmetric primitive lets the ⊗∘ branch
+recurse structurally on `p, q` (subterms of the *first* argument).
+
+### 4. SMC coherence on the structural fragment — `Discharge/AtomicCompound0E.agda`
+
+`decode-rel-resp-≅ᴴ-atomic-compound-0E` is **gone**, replaced by
+`Structural-coherence-≈Term` which is now a definition. Two narrow
+postulates plus a constructive permutation extractor:
+
+```agda
+Structural-to-perm : Structural f → flatten A ↭ flatten B  -- CONSTRUCTIVE
+  (id/λ → refl; ρ → ++-identityʳ; α → ++-assoc; σ → ++-comm;
+   _∘_ → trans; _⊗₁_ → ++⁺)
+
+perm-eq-from-iso
+  : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → Structural f → Structural g
+  → Structural-to-perm sf ≡ Structural-to-perm sg
+
+Structural-coherence-from-perm-eq
+  : Structural f → Structural g
+  → Structural-to-perm sf ≡ Structural-to-perm sg
+  → f ≈Term g
+```
+
+The residual SMC coherence content is now stated against `_≡_` on
+propositional permutations — a clearly-bounded decidable problem,
+no Mac Lane solver extension needed.
+
+### 5. Agen-compound-1E — `RespIso/AtomicCompound.agda`
+
+The single direct postulate:
 
 ```agda
 decode-rel-resp-≅ᴴ-Agen-compound-1E
-  : ∀ {A B} {g : mor A B} {h : HomTerm A B}
-  → Compound h
-  → nE ⟪ h ⟫ ≡ 1
-  → ⟪ Agen g ⟫ ≅ᴴ ⟪ h ⟫
+  : Compound h → nE ⟪ h ⟫ ≡ 1 → ⟪ Agen g ⟫ ≅ᴴ ⟪ h ⟫
   → decode-rel (Agen g) ≈Term decode-rel h
 ```
 
-`h` is compound with exactly one edge total; exactly one sub-term of
-`h` contains the unique `Agen` (with the same generator `g` as the LHS
-by `ψ-elab`), and the other sub-term is `Structural` (0 edges).
-`Discharge/AgenCompound1E.agda` already splits this into four
-shape-routed cases (∘-left, ∘-right, ⊗-left, ⊗-right).
+`Discharge/AgenCompound1E.agda` provides an alternative path via 4
+shape-routed narrower postulates (`discharge-{∘,⊗}-{left,right}`),
+but these are not yet wired to discharge the wider postulate. Each
+narrow case depends on items (1)–(2) plus Agen-Agen (already proved
+in `RespIso/AgenAgen.agda`).
 
-**Plan**:
-1. Extract sub-iso `⟪ Agen g ⟫ ≅ᴴ ⟪ h-with-Agen ⟫` (the sub-term
-   containing the unique edge) — `iso-decompose-⊗⊗`/`-∘∘` provides
-   the surrounding decomposition.
-2. By Agen-Agen (already proved in `RespIso/AgenAgen.agda`), the
-   underlying generators agree.
-3. The structural sibling (0 edges) collapses to identity-like under
-   `atomic-compound-0E` (postulate above) — or more directly, via the
-   `idˡ`/`idʳ` axiom + bridge.
+## Helpers and infrastructure
 
-Total ~200–400 LOC, but depends on items 1 (iso-decompose) and 3
-(atomic-compound-0E) being discharged.
+- `Completeness/PermutationCoherence.agda` — **keystone helper**:
+  `↭-to-≅ : xs ↭ ys → unflatten xs ≅ unflatten ys`. The new
+  permutation-based postulates all derive coherence isos through this
+  function, producing γ's whose syntactic size is bounded linearly by
+  the permutation witness.
+- `Completeness/Linearity.agda` — `Linear` invariant on hypergraphs;
+  the natural framework for the label-multiset counting argument
+  that would unblock Family 1.
+- `Discharge/NEAgenIso1.agda` — fully discharged auxiliary used in
+  `AtomicCompound.agda`.
 
-### 5. `decode-rel-resp-≅ᴴ-∘⊗` (Inductive.agda)
+## Discharge difficulty rated
 
-```agda
-decode-rel-resp-≅ᴴ-∘⊗
-  : ∀ {Ap Aq Bp Bq X}
-      (g : HomTerm X (Bp ⊗₀ Bq)) (f : HomTerm (Ap ⊗₀ Aq) X)
-      (p : HomTerm Ap Bp) (q : HomTerm Aq Bq)
-  → ⟪ g ∘ f ⟫ ≅ᴴ ⟪ p ⊗₁ q ⟫
-  → decode-rel (g ∘ f) ≈Term decode-rel (p ⊗₁ q)
-```
+| Postulate | Difficulty | Notes |
+|---|---|---|
+| φ-restricts-L/R | Hard | needs label-multiset counting (no vertex-coverage) |
+| ψ-restricts-{L,R}-deg | Hard | requires iso-canonicalization for ghost edges |
+| middle-iso-perm | Medium | extract permutation from boundary preservation in hCompose |
+| sub-iso-{f,g}-via-γ | Medium | vertex/edge bookkeeping over hCompose-impl |
+| iso-decompose-{∘⊗,⊗∘}-primitive-perm | Medium | similar to middle-iso-perm |
+| perm-eq-from-iso | Easy | 0-edge hypergraph IS its permutation |
+| Structural-coherence-from-perm-eq | Medium | mac Lane-style coherence on `_↭_` |
+| decode-rel-resp-≅ᴴ-Agen-compound-1E | Hard | depends on iso-decompose's machinery |
 
-(The symmetric `-⊗∘` is derived constructively via `sym-≅ᴴ`.)
-
-**Plan (in `Discharge/CrossOC.agda`)**: introduce a single
-`iso-decompose-∘⊗` postulate that produces interchange factors
-`f' : Ap⊗Aq → X` and `g' : X → Bp⊗Bq` (at f's/g's exact endpoints, so
-IH applies directly), sub-isos to f and g, and a `≈Term` bridge to
-`p ⊗₁ q`.  The canonical witness shape is
-`f' = γ.from ∘ (id ⊗ q)`, `g' = (p ⊗ id) ∘ γ.to` for a coherence iso
-`γ : Bp ⊗ Aq ≅ X` extracted from the composite hypergraph iso —
-analogous bookkeeping to `iso-decompose-∘∘` (item 2).
-
-Estimate: ~200–400 LOC once `iso-decompose-∘∘`'s machinery is in
-place; substantially less if reused.
-
-## Dependency order for discharge
-
-The five postulates depend on each other as follows; pick discharge
-order accordingly:
-
-1. **`iso-decompose-⊗⊗`** — independent; pure ⊗-bookkeeping.
-2. **`iso-decompose-∘∘`** — independent; pure ∘-bookkeeping (but
-   substantial).
-3. **`decode-rel-resp-≅ᴴ-Agen-compound-1E`** — depends on
-   `iso-decompose-⊗⊗`, `iso-decompose-∘∘`, and `atomic-compound-0E`.
-4. **`decode-rel-resp-≅ᴴ-atomic-compound-0E`** — depends only on
-   symmetric-monoidal coherence machinery.
-5. **`decode-rel-resp-≅ᴴ-∘⊗`** — depends on the same bookkeeping as
-   `iso-decompose-∘∘`.
-
-Most efficient order: 1, 4 in parallel, then 2 (which unblocks 3 and
-5).
-
-## Helpers already in place
-
-The `RespIso/Discharge/` subdirectory contains scaffolding from earlier
-attempts that future work can build on:
-
-- `Discharge/NEAgenIso1.agda` — discharged proof of `nE-Agen-iso-1`
-  (`Fin 1 ↔ Fin n` forces `n = 1`).  Imported by `AtomicCompound.agda`.
-- `Discharge/IsoDecomposeTT.agda` — scaffold for item 1.
-- `Discharge/IsoDecomposeCC.agda` — scaffold for item 2 with 5
-  named sub-lemmas identified.
-- `Discharge/AtomicCompound0E.agda` — proves `nE ⟪g⟫ ≡ 0 → Structural g`
-  constructively; only the symmetric-monoidal coherence step remains
-  as a narrowed postulate.
-- `Discharge/AgenCompound1E.agda` — four-way shape split for item 3.
-- `Discharge/CrossOC.agda` / `Discharge/CrossCO.agda` — scaffold for
-  item 5 and its symmetric.
-
-## Alternative paths (still open)
+## Alternative paths
 
 - **Modify `Solver/findIso` to extract `≈Term` proofs alongside the
-  iso**.  Each `pairUp`, `tryEdge`, and `verify` step would emit a
-  parallel `≈Term` rewrite.  Same total effort as the direct approach,
-  more localized to `Solver/`.
-- **Build a normal-form decoder**.  Define `nf : Hypergraph → HomTerm`
-  invariant under `≅ᴴ` (the existing `decode-attempt-Linear` is a
-  candidate).  Then `decode-rel-resp-≅ᴴ-full` follows from
-  `nf-resp-≅ᴴ` plus `decode-rel f ≈ nf ⟪f⟫`.
+  iso** — each `pairUp`/`tryEdge`/`verify` step would emit a parallel
+  `≈Term` rewrite. Localized to `Solver/` instead of touching the
+  RespIso modules.
+- **Normal-form decoder** — define `nf : Hypergraph → HomTerm` invariant
+  under `≅ᴴ` (existing `decode-attempt-Linear` is a candidate). Then
+  `decode-rel-resp-≅ᴴ-full` follows from `nf-resp-≅ᴴ` plus
+  `decode-rel f ≈ nf ⟪f⟫`.
