@@ -1,0 +1,121 @@
+{-# OPTIONS --safe --no-require-unique-meta-solutions #-}
+
+------------------------------------------------------------------------
+-- Plan (new strategy):
+--   Machine ≅ Hom in (G-construction ∘ GradedKleisli ∘ SFunM)-built category
+--
+-- This file sketches the correspondence. Actual definitions are TODO.
+--
+-- ---------------------------------------------------------------------
+-- The categorical picture
+-- ---------------------------------------------------------------------
+--
+-- Start: `SFunM` (CategoricalCrypto.SFunM) — the category whose
+-- morphisms `A → B` are stateful monadic functions
+--
+--     fun : State × A → M (State × B)
+--
+-- parameterised over a commutative, extensional monad M.
+--
+-- Step 1. View `SFunM` as monoidal with *coproduct* tensor (⊎, ⊥).
+--   Kleisli over a strong monad inherits coproducts from Sets, so this
+--   structure exists.  Crucially, the tensor is ⊎ not ×:  bidirectional
+--   channels send EITHER an input on one side OR a back-flow on the
+--   other, never both simultaneously.
+--
+-- Step 2. Verify `SFunM` is *traced* monoidal under (⊎, ⊥).
+--   Trace loops a sum factor back onto itself:
+--
+--     tr : SFunᵉ (A ⊎ X) (B ⊎ X) → SFunᵉ A B
+--
+--   The state thread of M carries the loop's accumulator. This is the
+--   `tr` of `Machine.Core`, viewed at the SFunM level.
+--
+-- Step 3. Apply `GConstruction` (Joyal-Street-Verity "Int") to the
+--   traced symmetric monoidal SFunM. Result: a compact-closed
+--   category whose
+--
+--     • objects are pairs (A⁺ , A⁻) = a Channel,
+--     • morphisms (A⁺,A⁻) → (B⁺,B⁻) are SFunM morphisms
+--         A⁺ ⊎ B⁻ → A⁻ ⊎ B⁺
+--       — which is exactly a step relation of the bidirectional
+--       channel `A ⊗₀ B ᵀ`.
+--
+-- Step 4. Apply `GradedKleisli` over the G-constructed category
+--   with the `Maybe`-monad as a graded monad (grading by a unit
+--   monoid, or with `List` for trace history). This adds the
+--   "optional output" structure that `Machine.stepRel` encodes via
+--   `Maybe outType` in its codomain.
+--
+-- The resulting category has objects = Channels and morphisms with
+-- the exact shape of `Machine`'s stepRel, modulo:
+--
+-- ---------------------------------------------------------------------
+-- "Minor details" — what differs and how to reconcile
+-- ---------------------------------------------------------------------
+--
+-- (a) Init state.  `SFunᵉ` carries an `init : State`.  `Machine` does
+--     not — its `stepRel` is parametric in starting state. Bridge: the
+--     init field is observed by `eval` / environment-composition;
+--     ignore it for the morphism-correspondence and recover it from
+--     the user (or use ⊤-init for the structural level).
+--
+-- (b) Relations vs. functions.  `Machine.stepRel` is a *relation*
+--     `S → A → Maybe B → S → Type`; SFunᵉ is a *function*
+--     `S × A → M (S × B)`. Bridge: the relation is the graph of a
+--     non-deterministic function. With `M = ReaderT R (PowerSet)` or
+--     similar set-valued monad you recover relations. For deterministic
+--     machines (most of the examples), they're already functions.
+--
+-- (c) Hidden state.  In `SFunM` the state type is a field; in
+--     `Machine` it's an existential. The G-Kleisli morphism set
+--     should be quotiented by state-bijection — i.e., the category
+--     uses the existential-state equivalence. This is the same
+--     phenomenon that drove our (now-abandoned) `_≈ᴹ_` definition.
+--
+-- (d) Grading. The graded-Kleisli grading carries the "shape of
+--     observable events" — corresponds to `Trace`'s history in our
+--     setting. For category laws we likely need the trivial grading
+--     (= unit monoid, no history).
+--
+-- ---------------------------------------------------------------------
+-- Status of dependencies (as of this writing)
+-- ---------------------------------------------------------------------
+--
+--   src/CategoricalCrypto/SFunM.agda    : ✓ `SFunᵉ-Category` exists,
+--                                          but no Monoidal/Traced/⊎.
+--                                          Need to add these.
+--   src/Categories/GConstruction.agda   : partial — 3 holes (identity
+--                                          laws, assoc-coherence).
+--                                          `--allow-unsolved-metas` is
+--                                          on. Needs to be completed.
+--   src/Categories/GradedKleisli.agda   : partial — 4 holes (assoc,
+--                                          identityʳ, equiv,
+--                                          ∘-resp-≈). Same flag.
+--
+-- ---------------------------------------------------------------------
+-- Suggested order of work
+-- ---------------------------------------------------------------------
+--
+-- 1. Build Monoidal(⊎,⊥) and Traced structures on `SFunM`. The trace
+--    is implementation-level — should match the `tr` already in
+--    Machine.Core.
+--
+-- 2. Either complete `GConstruction` / `GradedKleisli` or just take
+--    the existing partial code and instantiate it. The category laws
+--    in those files don't need to be revisited for the correspondence
+--    — Machine ≅ Hom only needs the *types* to match.
+--
+-- 3. Define a translation Machine ↔ Hom-in-G-Kleisli(SFunM) and
+--    prove it bijective on hom-sets modulo (a)–(d) above.
+--
+-- 4. The category of Machines (Machine.Core's `_∘_`, `id`, `tr`)
+--    is then *inherited* from the G-Kleisli category — categorical
+--    laws come for free from the constructions, not from per-axiom
+--    bisimulation walkers.
+
+module CategoricalCrypto.Machine.Category where
+
+-- Intentionally empty for now: this file documents the new strategy
+-- but doesn't yet contain definitions. The previous bisimulation-based
+-- attempt has been removed (see git history for the prior approach).
