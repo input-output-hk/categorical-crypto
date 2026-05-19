@@ -74,7 +74,7 @@ module Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.Cros
 open APROPSignatureDec sig-dec using (sig)
 open APROP sig
 open import Categories.APROP.Hypergraph.FromAPROP sig using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_; sym-≅ᴴ; trans-≅ᴴ)
+open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_; sym-≅ᴴ)
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
   using (decode-rel; decode-roundtrip-rel)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
@@ -84,8 +84,6 @@ open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
 open import Categories.APROP.Hypergraph.Completeness.PermutationCoherence sig
   using (↭-to-≅)
 open import Categories.APROP.Hypergraph.FromAPROP sig using (flatten)
-open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.IsoDecomposeCC sig-dec
-  using (middle-iso-perm; sub-iso-f-via-γ; sub-iso-g-via-γ; middle-iso)
 
 open import Categories.Morphism FreeMonoidal using (_≅_; module ≅)
 open import Data.List.Relation.Binary.Permutation.Propositional using (_↭_)
@@ -144,92 +142,21 @@ decode-rel-resp-≈Term {f = f} {g = g} eq =
 -- the symmetry of `Var a ⊗ Var b` and `Var b ⊗ Var a`.  Permutations
 -- naturally handle that case.
 
--- NARROWING (this pass): the previous monolithic perm-primitive
--- postulate is REPLACED by a constructive definition that uses:
---
---   * ONE new (narrow, universal) postulate `⊗-∘-dist-FromAPROP-iso`:
---     the FromAPROP-side hypergraph iso
---       ⟪ p ⊗₁ q ⟫ ≅ᴴ ⟪ (p ⊗₁ id) ∘ (id ⊗₁ q) ⟫.
---     This is just a coherence iso of hypergraphs (no `iso` argument,
---     no permutation, no sub-isos).  Much narrower content than the
---     old primitive (which embedded the entire permutation extraction
---     under arbitrary iso assumption).
---
---   * The already-postulated `middle-iso-perm`, `sub-iso-f-via-γ` and
---     `sub-iso-g-via-γ` from `Discharge/IsoDecomposeCC`.
---
--- Strategy: given `iso : ⟪ g ∘ f ⟫ ≅ᴴ ⟪ p ⊗₁ q ⟫`, transport across
--- `⊗-∘-dist-FromAPROP-iso` to obtain
---   iso' : ⟪ g ∘ f ⟫ ≅ᴴ ⟪ (p ⊗₁ id) ∘ (id ⊗₁ q) ⟫.
--- This is now a *compose-compose* shape, so `IsoDecomposeCC.middle-iso`
--- yields the coherence iso γ : Ap ⊗₀ Bq ≅ X (built from the
--- `middle-iso-perm` permutation `π_cc : flatten (Ap ⊗₀ Bq) ↭ flatten X`).
--- The two sub-iso postulates of `IsoDecomposeCC` then provide
--- the witnesses on `f` and `g`.
---
--- NOTE ON π DIRECTION: the previous version of this primitive had
--- `π : flatten X ↭ flatten (Ap ⊗₀ Bq)` and built γ via `≅.sym (↭-to-≅ π)`.
--- We flip π's direction to `flatten (Ap ⊗₀ Bq) ↭ flatten X` so that
--- γ is built *exactly* as `IsoDecomposeCC.middle-iso` builds it.  This
--- direction flip is internal (π is only consumed by the adapter
--- `iso-decompose-∘⊗-primitive` below to reconstruct γ, and the new
--- formula is mathematically equivalent).
---
--- The new postulate `⊗-∘-dist-FromAPROP-iso` is genuinely smaller than
--- the old primitive: it asserts a single fixed hypergraph coherence iso
--- between two specific terms; it has no existential / permutation /
--- sub-iso content; and it is independent of any input iso.  Discharging
--- it constructively is a pure vertex/edge bookkeeping exercise (the
--- `hCompose` of `(p ⊗ id)` after `(id ⊗ q)` differs from the `hTensor`
--- of `p` and `q` only by a structural relabeling of the interior
--- vertices, with no `subst₂` content).
-
 postulate
-  -- Narrow coherence iso: tensor / compose interchange on the FromAPROP
-  -- hypergraph side.  This is the same statement as `⊗-∘-dist-sound`
-  -- (in `Hypergraph/SoundnessAxioms.agda`) restricted to factors of the
-  -- form `p ∘ id` and `id ∘ q` — i.e., interchange specialised to the
-  -- single rewrite `p ⊗ q ↔ (p ⊗ id) ∘ (id ⊗ q)`.
-  ⊗-∘-dist-FromAPROP-iso
-    : ∀ {Ap Aq Bp Bq}
-        (p : HomTerm Ap Bp) (q : HomTerm Aq Bq)
-    → ⟪ p ⊗₁ q ⟫ ≅ᴴ ⟪ (p ⊗₁ id {Bq}) ∘ (id {Ap} ⊗₁ q) ⟫
-
--- Constructive discharge of the perm-primitive.
---
--- Given `iso : ⟪ g ∘ f ⟫ ≅ᴴ ⟪ p ⊗₁ q ⟫`, transport to a compose-
--- compose iso and feed it to `IsoDecomposeCC.middle-iso-perm` and the
--- two `sub-iso-*-via-γ` postulates.
-iso-decompose-∘⊗-primitive-perm
-  : ∀ {Ap Aq Bp Bq X}
-      (g : HomTerm X (Bp ⊗₀ Bq)) (f : HomTerm (Ap ⊗₀ Aq) X)
-      (p : HomTerm Ap Bp)        (q : HomTerm Aq Bq)
-  → ⟪ g ∘ f ⟫ ≅ᴴ ⟪ p ⊗₁ q ⟫
-  → Σ (flatten (Ap ⊗₀ Bq) ↭ flatten X) λ π →
-      let γ : (Ap ⊗₀ Bq) ≅ X
-          γ = ≅.trans
-                (unflatten-flatten-≈ (Ap ⊗₀ Bq))
-                (≅.trans (↭-to-≅ π)
-                         (≅.sym (unflatten-flatten-≈ X)))
-      in
-          (⟪ f ⟫ ≅ᴴ ⟪ _≅_.from γ ∘ (id ⊗₁ q) ⟫)
-        × (⟪ g ⟫ ≅ᴴ ⟪ (p ⊗₁ id) ∘ _≅_.to γ ⟫)
-iso-decompose-∘⊗-primitive-perm {Ap} {Aq} {Bp} {Bq} {X} g f p q iso =
-  let
-    -- Transport to compose-compose shape.
-    iso' : ⟪ g ∘ f ⟫ ≅ᴴ ⟪ (p ⊗₁ id {Bq}) ∘ (id {Ap} ⊗₁ q) ⟫
-    iso' = trans-≅ᴴ iso (⊗-∘-dist-FromAPROP-iso p q)
-    -- Permutation from IsoDecomposeCC.
-    π : flatten (Ap ⊗₀ Bq) ↭ flatten X
-    π = middle-iso-perm g f (p ⊗₁ id {Bq}) (id {Ap} ⊗₁ q) iso'
-    -- Sub-isos from IsoDecomposeCC.  Note that
-    -- `middle-iso g f (p⊗id) (id⊗q) iso'` is defined to be exactly
-    -- the `γ` we reconstruct in the Σ-witness.
-    iso-f : ⟪ f ⟫ ≅ᴴ ⟪ _≅_.from (middle-iso g f (p ⊗₁ id) (id ⊗₁ q) iso') ∘ (id ⊗₁ q) ⟫
-    iso-f = sub-iso-f-via-γ g f (p ⊗₁ id) (id ⊗₁ q) iso'
-    iso-g : ⟪ g ⟫ ≅ᴴ ⟪ (p ⊗₁ id) ∘ _≅_.to (middle-iso g f (p ⊗₁ id) (id ⊗₁ q) iso') ⟫
-    iso-g = sub-iso-g-via-γ g f (p ⊗₁ id) (id ⊗₁ q) iso'
-  in π , iso-f , iso-g
+  iso-decompose-∘⊗-primitive-perm
+    : ∀ {Ap Aq Bp Bq X}
+        (g : HomTerm X (Bp ⊗₀ Bq)) (f : HomTerm (Ap ⊗₀ Aq) X)
+        (p : HomTerm Ap Bp)        (q : HomTerm Aq Bq)
+    → ⟪ g ∘ f ⟫ ≅ᴴ ⟪ p ⊗₁ q ⟫
+    → Σ (flatten X ↭ flatten (Ap ⊗₀ Bq)) λ π →
+        let γ : (Ap ⊗₀ Bq) ≅ X
+            γ = ≅.trans
+                  (unflatten-flatten-≈ (Ap ⊗₀ Bq))
+                  (≅.trans (≅.sym (↭-to-≅ π))
+                           (≅.sym (unflatten-flatten-≈ X)))
+        in
+            (⟪ f ⟫ ≅ᴴ ⟪ _≅_.from γ ∘ (id ⊗₁ q) ⟫)
+          × (⟪ g ⟫ ≅ᴴ ⟪ (p ⊗₁ id) ∘ _≅_.to γ ⟫)
 
 --------------------------------------------------------------------------------
 -- Derived "γ as a HomTerm iso" form (the previous monolithic primitive).
@@ -252,7 +179,7 @@ iso-decompose-∘⊗-primitive {Ap} {Aq} {Bp} {Bq} {X} g f p q iso =
       γ    : (Ap ⊗₀ Bq) ≅ X
       γ    = ≅.trans
                 (unflatten-flatten-≈ (Ap ⊗₀ Bq))
-                (≅.trans (↭-to-≅ π)
+                (≅.trans (≅.sym (↭-to-≅ π))
                          (≅.sym (unflatten-flatten-≈ X)))
   in γ , proj₁ (proj₂ prim) , proj₂ (proj₂ prim)
 

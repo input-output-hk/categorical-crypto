@@ -41,19 +41,16 @@ module Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.Cros
 open APROPSignatureDec sig-dec using (sig)
 open APROP sig
 open import Categories.APROP.Hypergraph.FromAPROP sig using (⟪_⟫; flatten)
-open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_; sym-≅ᴴ; trans-≅ᴴ; refl-≅ᴴ)
+open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_; sym-≅ᴴ)
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
   using (decode-rel; decode-roundtrip-rel)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈)
 open import Categories.APROP.Hypergraph.Completeness.PermutationCoherence sig
   using (↭-to-≅)
-open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.IsoDecomposeCC sig-dec
-  using (middle-iso-perm)
 
 open import Categories.Morphism FreeMonoidal using (_≅_; module ≅)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open Perm using (_↭_; ↭-sym)
+open import Data.List.Relation.Binary.Permutation.Propositional using (_↭_)
 open import Data.Product using (Σ; _,_; proj₁; proj₂; _×_)
 
 --------------------------------------------------------------------------------
@@ -91,77 +88,18 @@ decode-rel-resp-≈Term {f = f} {g = g} eq =
 -- with reflexive sub-isos, in which case the bridge term carries all
 -- of the iso content; permutations naturally handle the σ case).
 
--- NARROWING (this pass): the wide perm-primitive (with permutation,
--- choice of `p'`, `q'`, sub-isos, and decode-rel bridge) is replaced
--- by a CONSTRUCTIVE assembly from a single, much narrower postulate
--- `⊗∘-decode-rel-bridge` — see below.
---
--- The wide signature is reconstructed by always returning `p' = p`
--- and `q' = q` with reflexive sub-isos and identity permutation; the
--- only residual content is the decode-rel bridge
---   `decode-rel (p ⊗₁ q) ≈Term decode-rel (g ∘ f)`,
--- isolated as the narrow postulate.
---
--- Why this can't be further discharged HERE (i.e. inside this
--- primitive layer): the bridge bridges the *cross-shape* iso to an
--- `≈Term`-equation, but no FromAPROP-side ≈Term-style coherence
--- closes this from the iso alone — converting `⟪f⟫ ≅ᴴ ⟪f'⟫` to
--- `decode-rel f ≈Term decode-rel f'` requires the recursive
--- `decode-rel-resp-≅ᴴ` itself (the IH).  The IH is threaded by the
--- consumer (`Inductive.agda`), not available here.
-
 postulate
-  -- Narrow coherence iso: mirror tensor/compose interchange on the
-  -- FromAPROP side.  Same shape as `CrossOC.⊗-∘-dist-FromAPROP-iso`
-  -- but with the alternative middle object `Bp ⊗₀ Aq`.
-  ⊗-∘-dist-FromAPROP-iso-mirror
-    : ∀ {Ap Aq Bp Bq}
-        (p : HomTerm Ap Bp) (q : HomTerm Aq Bq)
-    → ⟪ p ⊗₁ q ⟫ ≅ᴴ ⟪ (id {Bp} ⊗₁ q) ∘ (p ⊗₁ id {Aq}) ⟫
-
-  -- The residual decode-rel content of the original perm-primitive
-  -- (narrowed: the perm and sub-iso slots are now reflexive in the
-  -- assembly below).  See the comment in `iso-decompose-⊗∘-primitive-perm`.
-  ⊗∘-decode-rel-bridge
+  iso-decompose-⊗∘-primitive-perm
     : ∀ {Ap Aq Bp Bq X}
         (p : HomTerm Ap Bp) (q : HomTerm Aq Bq)
         (g : HomTerm X (Bp ⊗₀ Bq)) (f : HomTerm (Ap ⊗₀ Aq) X)
     → ⟪ p ⊗₁ q ⟫ ≅ᴴ ⟪ g ∘ f ⟫
-    → decode-rel (p ⊗₁ q) ≈Term decode-rel (g ∘ f)
-
--- Constructive reassembly of the wide perm-primitive.
---
---   * The permutation `π : flatten X ↭ flatten (Bp ⊗₀ Aq)` is built
---     by transporting the input iso across `⊗-∘-dist-mirror`, applying
---     `IsoDecomposeCC.middle-iso-perm` to extract a permutation on the
---     middle list, then flipping direction via `↭-sym`.
---   * `p' = p`, `q' = q` with reflexive sub-isos.
---   * The decode-rel bridge is the narrow `⊗∘-decode-rel-bridge`.
-iso-decompose-⊗∘-primitive-perm
-  : ∀ {Ap Aq Bp Bq X}
-      (p : HomTerm Ap Bp) (q : HomTerm Aq Bq)
-      (g : HomTerm X (Bp ⊗₀ Bq)) (f : HomTerm (Ap ⊗₀ Aq) X)
-  → ⟪ p ⊗₁ q ⟫ ≅ᴴ ⟪ g ∘ f ⟫
-  → Σ (flatten X ↭ flatten (Bp ⊗₀ Aq)) λ π →
-    Σ (HomTerm Ap Bp) λ p' →
-    Σ (HomTerm Aq Bq) λ q' →
-        (⟪ p ⟫ ≅ᴴ ⟪ p' ⟫)
-      × (⟪ q ⟫ ≅ᴴ ⟪ q' ⟫)
-      × (decode-rel (p' ⊗₁ q') ≈Term decode-rel (g ∘ f))
-iso-decompose-⊗∘-primitive-perm {Ap} {Aq} {Bp} {Bq} {X} p q g f iso =
-  let
-    -- ⟪ (id ⊗ q) ∘ (p ⊗ id) ⟫ ≅ᴴ ⟪ g ∘ f ⟫
-    iso' : ⟪ (id {Bp} ⊗₁ q) ∘ (p ⊗₁ id {Aq}) ⟫ ≅ᴴ ⟪ g ∘ f ⟫
-    iso' = trans-≅ᴴ (sym-≅ᴴ (⊗-∘-dist-FromAPROP-iso-mirror p q)) iso
-    -- IsoDecomposeCC.middle-iso-perm with g₁=(id⊗q), f₁=(p⊗id), g₂=g, f₂=f
-    -- returns:  flatten Y ↭ flatten X  where Y is the *second*
-    -- composite's middle.  But here the SECOND composite is `g ∘ f`
-    -- whose middle is `X`, and the FIRST is the iso's LHS with middle
-    -- `Bp ⊗ Aq`.  So `middle-iso-perm` returns `flatten X ↭ flatten (Bp ⊗ Aq)`.
-    -- We can return this permutation directly (no ↭-sym needed).
-    π-cc : flatten X ↭ flatten (Bp ⊗₀ Aq)
-    π-cc = middle-iso-perm (id {Bp} ⊗₁ q) (p ⊗₁ id {Aq}) g f iso'
-  in π-cc , p , q , refl-≅ᴴ ⟪ p ⟫ , refl-≅ᴴ ⟪ q ⟫ , ⊗∘-decode-rel-bridge p q g f iso
+    → Σ (flatten X ↭ flatten (Bp ⊗₀ Aq)) λ π →
+      Σ (HomTerm Ap Bp) λ p' →
+      Σ (HomTerm Aq Bq) λ q' →
+          (⟪ p ⟫ ≅ᴴ ⟪ p' ⟫)
+        × (⟪ q ⟫ ≅ᴴ ⟪ q' ⟫)
+        × (decode-rel (p' ⊗₁ q') ≈Term decode-rel (g ∘ f))
 
 --------------------------------------------------------------------------------
 -- Wide interface (consumed by `Inductive.agda`).
