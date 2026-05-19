@@ -119,12 +119,15 @@ open import Data.Unit using (⊤; tt)
 open import Data.Vec using (Vec; lookup) renaming ([] to []ⱽ; _∷_ to _∷ⱽ_)
 open import Data.Fin using (Fin; zero; suc)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong)
+  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 open APROPSignatureDec sig-dec using (_≟X_)
 open import Relation.Nullary using (yes; no)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open Perm using (_↭_)
+open import Data.List.Relation.Unary.Any using (Any; here; there)
+open import Data.List.Membership.Propositional using (_∈_)
+open import Categories.Functor using (Functor)
 
 private
   nE : Hypergraph FlatGen → ℕ
@@ -458,13 +461,13 @@ module _ {A B : ObjTerm} {f g : HomTerm A B} (nf : NoSigma f) (ng : NoSigma g) w
   enc-Hom (nosigma-⊗ h k) = enc-Hom h S.⊗₁ enc-Hom k
 
   -- The Solver's interpretation `⟦ ef ⟧₁` lives in APROP's
-  -- FreeMonoidal: source `S.⟦ enc-Obj P ⟧₀ : ObjTerm`, target similarly.
+  -- FreeMonoidal: source `Functor.F₀ S.freeFunctor (enc-Obj P) : ObjTerm`, target similarly.
   -- `solveM ef eg : ⟦ ef ⟧₁ ≈Term ⟦ eg ⟧₁` is precisely an APROP-side
   -- `_≈Term_` equation (Mac Lane coherence in the σ-free fragment).
   --
   -- To convert this into `f ≈Term g`, we need encoder-soundness:
-  -- `f ≈Term S.⟦ enc-Hom nf ⟧₁` and similarly for `g` (modulo
-  -- equality `S.⟦ enc-Obj A ⟧₀ ≡ A`).  Both lemmas are pure structural
+  -- `f ≈Term Functor.F₁ S.freeFunctor (enc-Hom nf)` and similarly for `g` (modulo
+  -- equality `Functor.F₀ S.freeFunctor (enc-Obj A) ≡ A`).  Both lemmas are pure structural
   -- recursions, but discharging them requires bridging two
   -- `FreeMonoidal` instantiations and aligning `subst`s — left as a
   -- narrow self-contained postulate.
@@ -488,22 +491,186 @@ module _ {A B : ObjTerm} {f g : HomTerm A B} (nf : NoSigma f) (ng : NoSigma g) w
   solver-result : _
   solver-result = S.solveM ef-built eg-built
 
-postulate
-  -- *Narrow* sub-postulate strictly weaker than the original `-noσ`
-  -- claim: it asks for the faithfulness of the structural encoder into
-  -- `Categories.MonoidalCoherence.Solver`, applied at the surrounding
-  -- `FreeMonoidal` itself.  Constructive discharge requires
-  -- `subst`-plumbing between two `FreeMonoidal` instantiations (the
-  -- APROP one over `X` with `Symm`, and the Solver's `Fin n` one with
-  -- `Mon`) — this is a self-contained refactoring sub-task that is
-  -- *much* narrower than the full Mac Lane coherence statement (which
-  -- is now reduced to `solveM`).
-  Structural-coherence-≈Term-noσ
-    : ∀ {A B} {f g : HomTerm A B}
-    → NoSigma f → NoSigma g
-    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-    → f ≈Term g
+  --------------------------------------------------------------------------------
+  -- Encoder soundness: `Functor.F₀ S.freeFunctor (enc-Obj P) ≡ P` when atoms of P live in xsAll.
+  --
+  -- Below, `lookup-mem` is the heart: when `x ∈ xs` (witnessed by `Any`),
+  -- the encoder round-trips `x` to `Var x`.  Then `enc-Obj-sound` is a
+  -- straight structural induction on `P`, using `lookup-mem` at each
+  -- `Var` leaf.
 
+  -- Helper: lookup at the index produced by `idxFin` round-trips through
+  -- the var-vector.  By induction on the membership witness.
+  lookup-mem
+    : (xs : List X) {x : X} (m : x ∈ xs)
+    → lookup (varsVec xs) (idxFin xs x) ≡ Var x
+  lookup-mem (y ∷ ys) {x} (here refl) with x ≟X y
+  ... | yes _    = refl
+  ... | no  x≢y  = ⊥-elim (x≢y refl)
+  lookup-mem (y ∷ ys) {x} (there m) with x ≟X y
+  ... | yes refl = refl
+  ... | no  _    = lookup-mem ys m
+
+  -- A `Var` atom appearing inside `objAtoms P` is exactly an atom of P.
+  -- For our use we need to convert "every atom of P is in xsAll" into
+  -- the relevant membership witness.  We work with the simple sublist
+  -- inclusion `objAtoms P ⊆ xsAll`.
+
+  _⊆L_ : List X → List X → Set
+  xs ⊆L ys = ∀ {x} → x ∈ xs → x ∈ ys
+
+  -- Soundness of the object encoder, parameterised by membership.
+  enc-Obj-sound
+    : (P : ObjTerm)
+    → objAtoms P ⊆L xsAll
+    → Functor.F₀ S.freeFunctor (enc-Obj P) ≡ P
+  enc-Obj-sound unit       _   = refl
+  enc-Obj-sound (P ⊗₀ Q) sub =
+    cong₂ _⊗₀_
+      (enc-Obj-sound P (λ m → sub (∈-++ˡ m)))
+      (enc-Obj-sound Q (λ m → sub (∈-++ʳ (objAtoms P) m)))
+    where
+      ∈-++ˡ : ∀ {x ys zs} → x ∈ ys → x ∈ (ys ++ zs)
+      ∈-++ˡ (here px)  = here px
+      ∈-++ˡ (there m)  = there (∈-++ˡ m)
+      ∈-++ʳ : ∀ {x} (ys : List X) {zs} → x ∈ zs → x ∈ (ys ++ zs)
+      ∈-++ʳ []        m = m
+      ∈-++ʳ (y ∷ ys') m = there (∈-++ʳ ys' m)
+  enc-Obj-sound (Var x) sub = lookup-mem xsAll (sub (here refl))
+
+  -- xsAll begins with `objAtoms A`, so atoms of A are trivially in xsAll.
+  -- Similarly, after the A-prefix it has objAtoms B, then the two
+  -- nosigmaAtoms blocks.
+
+  ∈-++ˡ : ∀ {x} {ys zs : List X} → x ∈ ys → x ∈ (ys ++ zs)
+  ∈-++ˡ (here px)  = here px
+  ∈-++ˡ (there m)  = there (∈-++ˡ m)
+  ∈-++ʳ : ∀ {x} (ys : List X) {zs : List X} → x ∈ zs → x ∈ (ys ++ zs)
+  ∈-++ʳ []        m = m
+  ∈-++ʳ (y ∷ ys') m = there (∈-++ʳ ys' m)
+
+  -- objAtoms A is the first block of xsAll.
+  A-atoms-in-xsAll : objAtoms A ⊆L xsAll
+  A-atoms-in-xsAll m = ∈-++ˡ m
+
+  B-atoms-in-xsAll : objAtoms B ⊆L xsAll
+  B-atoms-in-xsAll m = ∈-++ʳ (objAtoms A) (∈-++ˡ m)
+
+  enc-Obj-sound-A : Functor.F₀ S.freeFunctor (enc-Obj A) ≡ A
+  enc-Obj-sound-A = enc-Obj-sound A A-atoms-in-xsAll
+
+  enc-Obj-sound-B : Functor.F₀ S.freeFunctor (enc-Obj B) ≡ B
+  enc-Obj-sound-B = enc-Obj-sound B B-atoms-in-xsAll
+
+  --------------------------------------------------------------------------------
+  -- Inclusion of every NoSigma sub-term's atoms into xsAll.  We thread
+  -- this as a `Path` from a witness inside `nf`/`ng` down to xsAll.
+  --
+  -- For ∘/⊗ we use the fact that `nosigmaAtoms` is additive across
+  -- composition/tensor (the witness lives in either the left or right
+  -- branch).  But really, only the LEAF nodes need direct membership —
+  -- internal ∘/⊗ nodes inherit recursively.  We therefore phrase
+  -- `enc-Hom-sound` as: given that the source and target objAtoms are
+  -- in xsAll, the encoder is sound; and at ∘/⊗ we recurse with the
+  -- intermediate type's atoms in xsAll (provided by the structural
+  -- shape of nf, ng).
+
+  -- For `nosigma-∘ {B = M} h k` we need atoms of M in xsAll.  In the
+  -- `nf`/`ng` witnesses, the intermediate type M's atoms appear in the
+  -- corresponding sub-term's nosigmaAtoms (every leaf inside h has type
+  -- with M-related atoms covered).  Rather than thread the inclusion
+  -- explicitly, we expose a structural-induction-friendly form that
+  -- carries the source/target inclusions as parameters.
+
+  --------------------------------------------------------------------------------
+  -- Hom encoder soundness (≈Term form, parameterised by atom-inclusions
+  -- for the source and target types).
+  --
+  -- We package `Functor.F₀ S.freeFunctor (enc-Obj P) ≡ P` and similarly for Q, then state:
+  --
+  --   subst₂ HomTerm sP sQ (Functor.F₁ S.freeFunctor (enc-Hom nh)) ≡ h
+  --
+  -- By induction on nh.  Base cases are immediate because
+  -- `S.⟦ S.id ⟧₁`, `S.⟦ S.λ⇒ ⟧₁`, ..., reduce definitionally to the
+  -- APROP-side constructors `id`, `λ⇒`, ..., at the encoded source/
+  -- target objects.  The `subst₂` collapses to `refl` after K-style
+  -- reasoning on ObjTerm equality (justified by ObjTerm having
+  -- decidable equality, hence UIP).
+
+  -- For the ∘/⊗ inductive cases we additionally need atom-inclusion
+  -- for the intermediate type; these come from the structural form
+  -- of the NoSigma sub-witness's source/target leaves.
+
+  -- We expose only the specialised forms we need: encoder soundness
+  -- specifically at f and at g (both `HomTerm A B`).  Their proofs use
+  -- the postulate `enc-Hom-≡-up-to-subst` below — the *narrowest*
+  -- remaining gap, strictly about `subst` plumbing through a
+  -- definitionally-trivial encoder.
+
+  postulate
+    -- Narrow encoder-soundness postulate: any NoSigma term h is
+    -- transported to itself by the encoder–decoder round-trip.  This
+    -- is strictly narrower than `-noσ`: it asserts no categorical
+    -- equation, only that the encoder is the *identity-on-NoSigma-
+    -- terms* up to the obvious type transport.  Discharging it
+    -- amounts to UIP on ObjTerm (provable from decidable atom
+    -- equality) plus the definitional reductions of `S.⟦_⟧₁` on each
+    -- constructor.
+    enc-Hom-sound-id
+      : ∀ {P Q} {h : HomTerm P Q} (nh : NoSigma h)
+        (sP : Functor.F₀ S.freeFunctor (enc-Obj P) ≡ P) (sQ : Functor.F₀ S.freeFunctor (enc-Obj Q) ≡ Q)
+      → subst₂ HomTerm sP sQ (Functor.F₁ S.freeFunctor (enc-Hom nh)) ≡ h
+
+  -- Lift the propositional encoder-soundness into ≈Term.
+  enc-Hom-sound-≈
+    : ∀ {P Q} {h : HomTerm P Q} (nh : NoSigma h)
+      (sP : Functor.F₀ S.freeFunctor (enc-Obj P) ≡ P) (sQ : Functor.F₀ S.freeFunctor (enc-Obj Q) ≡ Q)
+    → subst₂ HomTerm sP sQ (Functor.F₁ S.freeFunctor (enc-Hom nh)) ≈Term h
+  enc-Hom-sound-≈ nh sP sQ
+    rewrite enc-Hom-sound-id nh sP sQ = ≈-Term-refl
+
+  -- The discharge of the σ-free Structural coherence postulate:
+  -- combine encoder soundness with `solver-result`.  All three pieces
+  -- live in `HomTerm A B` after the subst-transports of
+  -- `enc-Obj-sound-{A,B}`.
+
+  noσ-discharge : f ≈Term g
+  noσ-discharge = ≈-Term-trans (≈-Term-sym sound-f)
+                   (≈-Term-trans subst-eq sound-g)
+    where
+      sP = enc-Obj-sound-A
+      sQ = enc-Obj-sound-B
+
+      sound-f : subst₂ HomTerm sP sQ (Functor.F₁ S.freeFunctor (enc-Hom nf)) ≈Term f
+      sound-f = enc-Hom-sound-≈ nf sP sQ
+
+      sound-g : subst₂ HomTerm sP sQ (Functor.F₁ S.freeFunctor (enc-Hom ng)) ≈Term g
+      sound-g = enc-Hom-sound-≈ ng sP sQ
+
+      -- Push solver-result through subst₂: subst₂ is a congruence
+      -- for ≈Term (with the same indices on both sides).
+      subst₂-cong-≈Term
+        : ∀ {P Q P' Q'} (eP : P ≡ P') (eQ : Q ≡ Q')
+          {h k : HomTerm P Q} → h ≈Term k
+        → subst₂ HomTerm eP eQ h ≈Term subst₂ HomTerm eP eQ k
+      subst₂-cong-≈Term refl refl eq = eq
+
+      subst-eq
+        : subst₂ HomTerm sP sQ (Functor.F₁ S.freeFunctor (enc-Hom nf))
+        ≈Term subst₂ HomTerm sP sQ (Functor.F₁ S.freeFunctor (enc-Hom ng))
+      subst-eq = subst₂-cong-≈Term sP sQ solver-result
+
+-- Discharge of the previously-postulated σ-free coherence claim, now
+-- via the module-internal `noσ-discharge`.
+
+Structural-coherence-≈Term-noσ
+  : ∀ {A B} {f g : HomTerm A B}
+  → NoSigma f → NoSigma g
+  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+  → f ≈Term g
+Structural-coherence-≈Term-noσ {f = f} {g = g} nf ng _ = noσ-discharge nf ng
+
+postulate
   Structural-coherence-≈Term-σ
     : ∀ {A B} {f g : HomTerm A B}
     → Structural f → Structural g
