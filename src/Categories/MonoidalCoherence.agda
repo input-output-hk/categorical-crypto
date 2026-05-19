@@ -370,7 +370,7 @@ module Solver (C : MonoidalCategory 0ℓ 0ℓ 0ℓ)
     { ⟦v⟧ = record { C = C .U ; Monoidal-C = C .monoidal ; Symmetric-C = λ where ⦃ () ⦄ }
     ; ⟦_⟧ᵖ₀ = lookup vars
     ; ⟦_⟧ᵖ₁ = λ ()
-    }
+    } public
 
   opaque
     solveM : ∀ {X Y} → (f g : FreeMonoidal [ X , Y ]) → (C .U) [ ⟦ f ⟧₁ ≈ ⟦ g ⟧₁ ]

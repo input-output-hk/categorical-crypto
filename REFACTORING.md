@@ -1,498 +1,270 @@
-# Refactoring plan: completeness proof simplifications
+# Goal: complete the completeness theorem
 
-This document records three independent simplifications discovered while
-auditing `string-diagram-solver-completeness`.  Each was prototyped end-to-end
-in this worktree and the prototypes type-check.  They stack: applying all
-three eliminates ~1000-1500 LOC and 4-5 of the postulates currently blocking
-the completeness theorem.
+`Categories.APROP.Hypergraph.CompletenessFull.completeness-full :
+⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g` builds cleanly. What's left is a small set
+of **narrow postulates** of two flavours: vertex/edge bookkeeping and
+permutation-equality coherence.
 
-## Current state (after refactors A, B, C)
+## Postulate inventory
 
-The completeness theorem (`Categories.APROP.Hypergraph.Completeness.completeness`)
-now depends on **a single postulate**:
+The completeness path now depends on **11 narrow postulates** across
+6 files. Every original wide postulate has been narrowed; many were
+replaced outright by constructive definitions backed by a narrower
+postulate. As of `b7e31da`, the entire Mac Lane fragment of
+structural coherence (`Structural-coherence-≈Term-noσ` and its
+encoder-soundness residual) is **fully constructive end-to-end**
+via `solveM` + Var-encoder + UIP coercions.
 
-```agda
-decode-rel-resp-≅ᴴ
-  : ∀ {A B} (f g : HomTerm A B)
-  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-  → decode-rel f ≈Term decode-rel g
-```
+**May 2026 unsoundness retraction (`425bf16`)**: an earlier
+narrowing pass (`0c4f223`) introduced `⊗-∘-dist-FromAPROP-iso` and
+its mirror in Cross{OC,CO} as "narrow universal coherence
+postulates." These are **mathematically false**: `_≅ᴴ_` requires a
+Fin-bijection on vertices, but the LHS `⟪p ⊗ q⟫` and RHS
+`⟪(p⊗id) ∘ (id⊗q)⟫` have vertex counts differing by `nA + nB`
+(unpruned hCompose retains all interior vertices). The narrowing
+has been reverted; `iso-decompose-{∘⊗,⊗∘}-primitive-perm` are once
+again direct postulates with their original wide signatures.
 
-(in `Completeness/DecodeRel.agda`).  All other postulates that were on the
-critical path have been displaced — see the per-refactor sections below.
+### 1. Tensor block-diagonal — `Discharge/IsoDecomposeTT.agda`
 
-### How we got here
-
-| Path postulate count | After |
-|---|---:|
-| Original (indexed Hypergraph, algorithmic decode) | 9-10 (transitively) |
-| After refactor B (de-index Hypergraph) | unchanged on this axis |
-| After refactor A step 1 (decode-rel concrete) | 5 |
-| After Agen/σ → bridge | 3 |
-| After all atomic → bridge | **1** |
-
-The simplification that collapsed 5→1 was: define `decode-rel f = bridge f`
-for every atomic constructor (id, λ, ρ, α, σ, Agen).  Each per-atom
-roundtrip lemma then becomes `≈-Term-refl`, severing the chain that had
-previously routed through `DR.{ρ,α}-coherence` (which depended on the
-postulated `bridge-α⇒-form-⊗-⊗` and `c-iso-assoc-from-cons`).  The
-α-coherence postulates remain in `DecodeRoundtrip.agda` for the algorithmic
-decode pipeline but are no longer reached from `Completeness.completeness`.
-
-### Difficulty of the remaining postulate
-
-`decode-rel-resp-≅ᴴ` is essentially the completeness theorem itself —
-"two terms with isomorphic hypergraphs decode to ≈Term-equal terms."
-Discharging it requires the genuine categorical content (this is
-the heart of the symmetric-PROP completeness theorem).
-
-The Solver/* directory provides a *decision procedure* `findIso` that
-returns `_≅ᴴ_` records for every `_≈Term_` equation form (verified
-empirically by `Solver/Tests.agda`), but it doesn't produce ≈Term proofs.
-Bridging "iso found" → "≈Term derivation" is the mathematical content
-that's still missing.
-
-Realistic estimates for full discharge:
-- **Modify Solver to extract ≈Term proofs alongside iso**: 2-4 weeks,
-  ~600-1000 LOC of new proof-tracking code.
-- **Direct induction on the iso's structure** (vertex/edge bijections):
-  2-4 weeks, similar scale.
-- **Normalization to a canonical iso-invariant form**: 2-3 weeks,
-  needs new infrastructure.
-- **Restricted-signature first, then extend**: 1-2 weeks for the
-  restricted case (atomic-vs-atomic), then per-extension cost.
-
-The recommended next step is the restricted-signature variant — see
-the `Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso` work
-in progress (atomic-only sub-cases of `decode-rel-resp-≅ᴴ`).
-
-### Lessons from the restricted-variant prototype
-
-`Completeness/DecodeRel/RespIso.agda` attempts the atomic-case proof
-of `decode-rel-resp-≅ᴴ`.  Status of the 81 atomic-vs-atomic pairs:
-
-- **Same-constructor trivial cases** (8 of 9): `≈-Term-refl`.  Both
-  sides are syntactically identical because the ObjTerm parameters
-  are forced by the type signature.  9th case is Agen, where the
-  underlying `mor` value can differ.
-- **Cross-pair Agen-vs-non-Agen impossibilities** (7 + symmetric):
-  discharged via `Agen-nonAgen-absurd : G.nE ≡ 1 → K.nE ≡ 0 → G ≅ᴴ K
-  → ⊥`, which extracts `Fin 0` from the iso's edge bijection.
-  Mechanical pattern.
-- **Agen-Agen (different generators)**: requires `flat-injective`,
-  which needs UIP-on-ListX (available with `APROPSignatureDec` via
-  Hedberg's theorem).  ~1-2 days to finish.
-- **Genuinely non-trivial cross-pairs at unit-only types** (e.g.,
-  `λ⇒ {unit}` vs `ρ⇒ {unit}` — both translate to `hEmpty`, both have
-  type `HomTerm (unit ⊗ unit) unit`): require categorical coherence
-  lemmas like Kelly's `coherence₃` (`λ⇒ {unit} ≈ ρ⇒ {unit}`).
-  Each such pair is a 5-15 line proof using existing infrastructure.
-  Estimated 5-10 such pairs in total.
-
-**Atomic case completion estimate**: ~1 week (consistent with the
-earlier estimate).
-
-**The harder remaining work** is the inductive cases of
-`decode-rel-resp-≅ᴴ`: when `f` or `g` is compound (∘ or ⊗), the iso's
-structure must be DECOMPOSED to match sub-terms.  This requires
-understanding how `hComposeP` and `hTensor` interact with iso —
-specifically, how to extract sub-isos from a composite iso, and how
-to thread α-coherence and σ-naturality to bridge syntactic
-differences.  This is the genuine 2-3 weeks of categorical work.
-
-## Status
-
-### Refactor B — IMPLEMENTED across all 42 hypergraph files
-
-All 42 files in `src/Categories/APROP/Hypergraph/` type-check with
-the de-indexed Hypergraph.  This includes the entire completeness
-pipeline, the Solver (Phase 4a — `findIso` decision procedure), the
-structural infrastructure underlying soundness (Core, FromAPROP,
-Iso, IsoSimple, Translation, PrunedCompose, Invariant, Prune,
-HomTermInvariant, CoherenceHelpers), and the soundness chain
-itself (SoundnessProved, SoundnessAxioms, Soundness,
-CoherenceReductions, Triangle, Pentagon, AlphaCommSound, SigmaNat,
-Congruence, CongruenceP).
-
-The 10 soundness-chain files have their core lemmas **postulated**
-under de-indexing.  Each file's stub documents the original proof
-structure (which was 150–1620 LOC of constructive Agda built around
-indexed-Hypergraph `subst₂` chains).  The theorems still hold —
-migrating their proofs constructively under de-indexing is
-mechanical but voluminous follow-up.
-
-```
-Hypergraph/Completeness.agda
-Hypergraph/Core.agda
-Hypergraph/Core2.agda                            (experiment)
-Hypergraph/FromAPROP.agda
-Hypergraph/FromAPROP2.agda                       (experiment)
-Hypergraph/Invariant.agda
-Hypergraph/Iso.agda                              (-44 LOC of subst₂ projection lemmas)
-Hypergraph/IsoSimple.agda
-Hypergraph/Prune.agda
-Hypergraph/Completeness/CoherenceSolver.agda     (experiment)
-Hypergraph/Completeness/Decode.agda              (subst₂ HomTerm boundary wrap eliminated)
-Hypergraph/Completeness/DecodeAttempt.agda       (-66 LOC, decode-attempt-subst₂ machinery gone)
-Hypergraph/Completeness/DecodeProperties.agda
-Hypergraph/Completeness/DecodeRel.agda           (experiment)
-Hypergraph/Completeness/DecodeRoundtrip.agda
-Hypergraph/Completeness/Decoder.agda
-Hypergraph/Completeness/Linearity.agda           (-19 LOC, Linear-subst₂ removed)
-Hypergraph/Completeness/Permute.agda
-Hypergraph/Completeness/Unflatten.agda
-Hypergraph/Solver/PBij.agda
-Hypergraph/Solver/Signature.agda
-Hypergraph/Solver/Totals.agda
-```
-
-`subst₂ (Hypergraph FlatGen)` count in the completeness pipeline:
-**101 → 0** (the only 2 remaining references are inside comments).
-
-No files are still failing.  All `subst₂ (Hypergraph FlatGen)`
-machinery has been purged from the codebase.
-
-### Lines removed
-
-The 10 soundness-chain files dropped from a combined ~4790 LOC of
-constructive proofs to ~250 LOC of postulate stubs (a net reduction
-of about 4500 LOC).  Most of that volume was index-level subst₂
-bookkeeping; under de-indexing the underlying mathematical content
-remains identical, but the proofs need to be re-expressed in terms
-of runtime `bdy-eq` arguments and the new `domL`/`codL` lemmas.
-
-Migrating one of the soundness proofs constructively will be a
-focused exercise that demonstrates the full pattern: each file's
-stub documents the original proof structure for reference.
-
-### Refactor A (decode-rel) and Refactor C (solveM)
-
-Prototyped in the experimental files
-`src/Categories/APROP/Hypergraph/Completeness/{DecodeRel,CoherenceSolver}.agda`,
-both type-check.  Not yet integrated into the main pipeline.
-
-### `decode-{ρ⇒,ρ⇐,α⇒,α⇐}-shape` shape lemmas
-
-Postulated in DecodeRoundtrip.agda.  In the de-indexed setting they
-are propositional consequences of:
-
-  * `cong-trans : cong f (trans p q) ≡ trans (cong f p) (cong f q)`,
-  * `subst₂-trans-{cod,dom}`: `subst₂ P a (trans b c) x ≡ subst (P _) c (subst₂ P a b x)`,
-  * `subst₂-refl-{dom,cod}-≡`: `subst₂ refl c y ≡ subst (P _) c y`.
-
-A proof attempt is sketched in the file but Agda's implicit-argument
-inference doesn't pick it up cleanly — explicit instantiations would
-make it work but become verbose.  Left as follow-up.
-
-## Scope
-
-Files affected (current LOC):
-
-```
-Pentagon.agda                                        451
-AlphaCommSound.agda                                  211
-SoundnessAxioms.agda                                 198
-CoherenceHelpers.agda                                146
-CoherenceReductions.agda                              85
-PrunedCompose.agda                                   274
-SoundnessProved.agda                                1431
-HomTermInvariant.agda                                  -
-Triangle.agda                                        137
-FromAPROP.agda                                       554
-Translation.agda                                       -
-Completeness/Linearity.agda                         1324
-Completeness/DecodeAttempt.agda                     1276
-Completeness/DecodeRoundtrip.agda                   1981
-Completeness/DecodeProperties.agda                   649
-Completeness/Decode.agda                             219
-```
-
-Total `subst₂ (Hypergraph FlatGen)` occurrences across these files: **101**.
-Of these, **99 vanish** under refactor B (de-indexing).
-
-## Refactor B — de-index `Hypergraph`
-
-### Change
+The monolithic `iso-decompose-⊗⊗` postulate is **gone**; it is now
+constructively assembled (in `BlockDiagonal.Assembly`) from four narrow
+restriction postulates:
 
 ```agda
--- Before
-record Hypergraph {X} (Gen : List X → List X → Set) (As Bs : List X) : Set where
-  field
-    nV : ℕ
-    vlab : Fin nV → X
-    nE : ℕ
-    ein : Fin nE → List (Fin nV)
-    eout : Fin nE → List (Fin nV)
-    elab : (e : Fin nE) → Gen (map vlab (ein e)) (map vlab (eout e))
-    dom : List (Fin nV)
-    cod : List (Fin nV)
-    dom-ok : map vlab dom ≡ As
-    cod-ok : map vlab cod ≡ Bs
-
--- After
-record Hypergraph {X} (Gen : List X → List X → Set) : Set where
-  field
-    nV : ℕ
-    vlab : Fin nV → X
-    nE : ℕ
-    ein : Fin nE → List (Fin nV)
-    eout : Fin nE → List (Fin nV)
-    elab : (e : Fin nE) → Gen (map vlab (ein e)) (map vlab (eout e))
-    dom : List (Fin nV)
-    cod : List (Fin nV)
-
-domL : Hypergraph Gen → List X
-domL H = map (vlab H) (dom H)
-
-codL : Hypergraph Gen → List X
-codL H = map (vlab H) (cod H)
+φ-restricts-L : ∀ iG → Σ iG' → φ (iG ↑ˡ K₁.nV) ≡ iG' ↑ˡ K₂.nV
+φ-restricts-R : ∀ iK → Σ iK' → φ (G₁.nV ↑ʳ iK) ≡ G₂.nV ↑ʳ iK'
+ψ-restricts-L-deg : ∀ eG → G₁.ein eG ≡ [] → G₁.eout eG ≡ [] → …
+ψ-restricts-R-deg : ∀ eK → K₁.ein eK ≡ [] → K₁.eout eK ≡ [] → …
 ```
 
-`dom-ok` / `cod-ok` are gone.  The boundary atom lists are *computed* from
-the Fin data via `domL` / `codL`.
+`ψ-restricts-L/R` for *non-degenerate* edges (any non-empty `ein` or
+`eout`) is **proved constructively** in the same file. The two `-deg`
+postulates are strict narrowings — they only fire on degenerate "ghost"
+edges (`mor unit unit`-shaped, no endpoints).
 
-### Why this kills 99% of the `subst` plumbing
+**May 2026 narrowing of `ψ-restricts-{L,R}-deg`**: the postulates now
+*additionally* require evidence of a matching ghost edge on the
+opposite tensor half (a `Σ Fin K₂.nE λ eK → K₂.ein eK ≡ [] × K₂.eout
+eK ≡ []` argument, respectively for the R side). The call site
+constructively builds this witness via a small `map-≡-[]-inv` helper
+on `ein-combined`/`eout-combined`. Ghost edges arise legitimately
+from `Agen (f : mor unit unit)`; the genuinely hard residual is the
+matching-ghosts case (e.g., `Agen g ⊗ id` vs `id ⊗ Agen g` swap).
 
-The type `Hypergraph Gen` no longer depends on `As Bs`, so
-`subst₂ (Hypergraph Gen) eq₁ eq₂ H` reduces (definitionally, since the
-indices the subst lives on don't appear in the type) to `H`.  Every
-construction of the form `subst₂ (Hypergraph FlatGen) eq₁ eq₂ <expr>` —
-all 99 of the eliminable occurrences — collapses.
+**May 2026 narrowing**: `φ-restricts-L/R` have been further narrowed
+to a `-non-bdy` form that only fires on vertices outside *both*
+`dom` and `cod`. The boundary subcase is now constructively
+discharged by the `BoundaryDischarge` module via same-position
+lookup across `dom-split-eq-L/R` and `cod-split-eq-L/R`; the
+constructive `φ-restricts-L/R` dispatch on decidable membership.
 
-Boundary equations don't disappear; they become *propositional facts about
-`domL` / `codL`*, used at the API surface (e.g. when wrapping the algorithm's
-output in the user-facing `HomTerm (unflatten (flatten A)) (unflatten (flatten B))`
-type) rather than threaded through every algorithmic step.
+**Remaining obstruction**: vertex coverage for *interior + stranded*
+vertices. The naive route is *mutually recursive* with
+`ψ-restricts`. The natural fix — "every non-boundary vertex is in
+some edge" — is **mathematically false** (counter-example: `id ∘
+id` has stranded vertices from `hCompose`'s remap). The remaining
+route is label-multiset counting over the `Linear` invariant —
+substantial new infrastructure (~300+ LOC).
 
-### Concrete examples
+**May 2026 architectural finding** (three independent opus agents
+converged): the four postulates `φ-restricts-{L,R}-non-bdy` and
+`ψ-restricts-{L,R}-deg` (matching-ghost) are **not theorems** as
+currently stated. Concrete counter-example: `f₁ = Agen u, g₁ = id`
+vs `f₂ = id, g₂ = Agen u` at type `unit ⊗ A → unit ⊗ A`. These
+terms ARE `≈Term`-equal (σ-naturality), their hypergraphs ARE
+≅ᴴ-isomorphic via a half-swap, and `σ∘[f⊗g]≈[g⊗f]∘σ-sound` in
+`Soundness.agda` is literally a half-swap iso producer. So no
+L→L-restricting iso exists in this case, yet the postulates claim
+one does.
 
-#### `⟪ ρ⇒ {A} ⟫` translation
+**Salvage paths considered**:
+
+- *Strengthen `_≅ᴴ_` with Origin tag*: doesn't help — just relocates
+  the postulates to a `_≅ᴴ_ → _≅ᴴ⊗_` upcast with identical content
+  (Soundness can't produce Origin-respecting isos for σ-naturality
+  witnesses).
+
+- *Restate as disjunction* (`L→L ⊎ L→R-with-σ-witness`): plausibly
+  theorem-correct (σ-counter-example lands in inj₂ without
+  contradiction), but consumer wiring through
+  `BlockDiagonal.Assembly` (~1700 LOC of derivations) and
+  `Inductive.agda`'s `⊗⊗` clause requires ~400-600 LOC of
+  additional dispatch work to be usable. The dispatcher needs
+  σ-naturality at the `≈Term` level (available as
+  `σ∘[f⊗g]≈[g⊗f]∘σ` in `FreeMonoidal.agda:100`).
+
+- *Bypass via normal-form decoder or Solver/findIso emitting
+  ≈Term*: sidesteps the architecture entirely; see Alternative
+  paths section.
+
+### 2. Compose-compose middle/sub-isos — `Discharge/IsoDecomposeCC.agda`
+
+The monolithic existential `iso-decompose-∘∘` is **gone**. The X-vs-Y
+coherence bridge is now a constructive `assoc`/`identity`/`γ.isoˡ`
+derivation. Three remaining narrow postulates:
 
 ```agda
--- Before (FromAPROP.agda:540-541):
-⟪ ρ⇒ {A} ⟫ = subst₂ (Hypergraph FlatGen)
-              refl (++-identityʳ (flatten A)) (hId (A ⊗₀ unit))
-
--- After:
-⟪ ρ⇒ {A} ⟫ = hId (A ⊗₀ unit)
+middle-iso-perm    : ⟪ g₁ ∘ f₁ ⟫ ≅ᴴ ⟪ g₂ ∘ f₂ ⟫ → flatten Y ↭ flatten X
+sub-iso-f-via-γ    : iso → ⟪ f₁ ⟫ ≅ᴴ ⟪ γ.from ∘ f₂ ⟫
+sub-iso-g-via-γ    : iso → ⟪ g₁ ⟫ ≅ᴴ ⟪ g₂ ∘ γ.to ⟫
 ```
 
-The propositional fact `++-identityʳ (flatten A)` moves to a separate boundary
-lemma `⟪⟫-codL-ρ⇒ A : codL ⟪ρ⇒ {A}⟫ ≡ flatten A` (one line).
+`middle-iso : Y ≅ X` is a *definition* built from `middle-iso-perm`
+plus `↭-to-≅` and `unflatten-flatten-≈`. The previous narrowing via
+`flatten X ≡ flatten Y` was reverted as **unsound** (σ-counter-example:
+`f₂ = σ_{a,b}, g₂ = σ_{b,a}` yields composite-iso with `flatten X ≢
+flatten Y` as ordered lists). The new permutation-valued version
+handles σ cleanly via `_↭_`'s `swap` constructor.
 
-#### `decode-attempt-Linear (ρ⇒ {A})`
+The two `sub-iso-{f,g}-via-γ` postulates are vertex/edge bookkeeping
+analogous to `IsoDecomposeTT.Assembly`. Estimated ~100–200 LOC each
+once a sound `hCompose-impl` boundary-slicing toolkit is in place.
+
+**May 2026 architectural finding**: `sub-iso-{f,g}-via-γ` are
+**not theorems** as currently stated — they suffer a composition-
+side analog of the σ-naturality counter-example documented in §1.
+Concrete: `f₁ = Agen u, g₁ = id` vs `f₂ = id, g₂ = Agen u` (with
+`u : mor unit unit`). Both composites `≈Term`-equal via `idˡ`/
+`idʳ`; both translate to isomorphic 1-edge hypergraphs.
+`middle-iso-perm` produces `[] ↭ []`, γ = identity. But
+`sub-iso-f-via-γ` would assert `⟪Agen u⟫ ≅ᴴ ⟪γ.from ∘ id⟫` — LHS
+has 1 edge, RHS has 0, no edge bijection exists. The Agen edge
+"shifts" across the composition cut via `idˡ`/`idʳ`, mixing f and
+g content. Same family of pathologies as the TT half-swap.
+
+`middle-iso-perm` is mathematically true (vlab multisets on the
+middle slice must agree by label-preservation) but its constructive
+extraction requires Linear-invariant infrastructure (~300+ LOC),
+not the simple boundary-projection initially imagined.
+
+### 3. Cross-shape primitives — `Discharge/Cross{OC,CO}.agda`
 
 ```agda
--- Before (DecodeAttempt.agda:1242-1244):
-decode-attempt-Linear (ρ⇒ {A}) =
-  decode-attempt-subst₂ (hId (A ⊗₀ unit)) refl (++-identityʳ (flatten A))
-    (decode-attempt-hId (A ⊗₀ unit))
+iso-decompose-∘⊗-primitive-perm
+  : ⟪ g ∘ f ⟫ ≅ᴴ ⟪ p ⊗₁ q ⟫
+  → Σ (flatten X ↭ flatten (Ap ⊗₀ Bq)) λ π →
+        (⟪ f ⟫ ≅ᴴ ⟪ ↭-to-≅ π .from ∘ (id ⊗₁ q) ⟫)
+      × (⟪ g ⟫ ≅ᴴ ⟪ (p ⊗₁ id) ∘ ↭-to-≅ π .to ⟫)
 
--- After:
-decode-attempt-Linear (ρ⇒ {A}) = decode-attempt-hId (A ⊗₀ unit)
+iso-decompose-⊗∘-primitive-perm  -- symmetric variant
 ```
 
-The entire `decode-attempt-subst₂` machinery (the function plus its
-private helpers `subst₂-Maybe-of-HomTerm-just`, `decode-attempt-resp-subst₂`,
-and the projector `decode-attempt-subst₂-proj₁`) — about 50 LOC in
-DecodeAttempt.agda — disappears.
+Both produce the coherence iso γ as a `_↭_` permutation
+(bounded data), not an abstract `_≅_` record. This was the key
+to eliminating the previous `decode-rel-resp-≅ᴴ-⊗∘` termination
+workaround postulate — the symmetric primitive lets the ⊗∘ branch
+recurse structurally on `p, q` (subterms of the *first* argument).
 
-#### `Linear-subst₂` and the ρ/α cases of `⟪⟫-Linear`
+**May 2026 retraction (`425bf16`)**: an earlier narrowing
+(`0c4f223`) replaced these primitives with constructive definitions
+backed by `⊗-∘-dist-FromAPROP-iso` (and mirror). That postulate is
+**unsound** — `_≅ᴴ_` requires a Fin-bijection on vertices, but the
+two hypergraphs `⟪p ⊗ q⟫` and `⟪(p⊗id) ∘ (id⊗q)⟫` differ in
+vertex count by `nA + nB` under unpruned `hCompose`. The narrowing
+has been reverted; the two postulates are once again direct.
+
+### 4. SMC coherence on the structural fragment — `Discharge/AtomicCompound0E.agda`
+
+`decode-rel-resp-≅ᴴ-atomic-compound-0E` is **gone**, replaced by
+`Structural-coherence-≈Term`. One narrow postulate plus a
+constructive permutation extractor:
 
 ```agda
--- Before (Linearity.agda:990-1020):
-Linear-subst₂ : ...                                  -- 5 lines
-⟪⟫-Linear (ρ⇒ {A}) =
-  Linear-subst₂ refl (++-identityʳ (flatten A))
-    (hId (A ⊗₀ unit)) (Linear-hId (A ⊗₀ unit))      -- 3 lines × 4 cases
-...
+Structural-to-perm : Structural f → flatten A ↭ flatten B  -- CONSTRUCTIVE
+  (id/λ → refl; ρ → ++-identityʳ; α → ++-assoc; σ → ++-comm;
+   _∘_ → trans; _⊗₁_ → ++⁺)
 
--- After:
-⟪⟫-Linear (ρ⇒ {A}) = Linear-hId (A ⊗₀ unit)         -- 1 line × 4 cases
+Structural-coherence-≈Term
+  : Structural f → Structural g → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g
 ```
 
-`Linear-subst₂` deleted, ρ/α cases shrink ~12 → 4 lines.  Net ~17 LOC saved in
-Linearity.agda.
+**May 2026 retraction**: an earlier version split the postulate into
+`perm-eq-from-iso : ⟪f⟫ ≅ᴴ ⟪g⟫ → Structural-to-perm sf ≡ Structural-to-perm sg`
+plus `Structural-coherence-from-perm-eq`. That split is **unsound**:
+`Data.List.Relation.Binary.Permutation.Propositional._↭_` is not
+truncated — `refl` and `trans refl refl` are distinct constructors
+despite witnessing the same underlying permutation, so
+`perm-eq-from-iso` was unprovable as stated. The split has been
+reverted to a single postulate. `Structural-to-perm` is retained as
+useful infrastructure for a future model-theoretic discharge.
 
-### Distribution of `subst₂ (Hypergraph FlatGen)` occurrences
-
-| File                     | uses |
-|--------------------------|-----:|
-| Pentagon.agda            |   50 |
-| AlphaCommSound.agda      |    9 |
-| SoundnessAxioms.agda     |    9 |
-| CoherenceHelpers.agda    |    7 |
-| CoherenceReductions.agda |    4 |
-| FromAPROP.agda           |    4 |
-| SoundnessProved.agda     |    4 |
-| Translation.agda         |    4 |
-| PrunedCompose.agda       |    3 |
-| Completeness/DecodeAttempt.agda |    2 |
-| HomTermInvariant.agda, Triangle.agda, Linearity.agda | 1 each |
-
-Pentagon.agda alone has 50; together with its surrounding `subst-trans` /
-`subst₂-cong` shuffling helpers, it is by far the largest beneficiary of
-this refactor.
-
-### Net LOC saved by refactor B alone
-
-Conservative: **300-500 LOC** across the codebase.
-
-### Smart-constructor signature changes
-
-`hCompose` and any other constructor that needs source/target boundary
-agreement now takes a propositional argument instead of relying on shared
-indices:
+**May 2026 σ-split**: `Structural-coherence-≈Term` is now a
+*constructive dispatcher* (no longer a postulate). It routes via a
+`HasSigma? : Structural f → NoSigma f ⊎ ⊤` decision to one of two
+strictly narrower postulates:
 
 ```agda
--- Before
-hCompose : ∀ {As Bs Cs} → Hypergraph Gen As Bs → Hypergraph Gen Bs Cs
-         → Hypergraph Gen As Cs
-
--- After
-hCompose : (G K : Hypergraph Gen) → codL G ≡ domL K → Hypergraph Gen
+Structural-coherence-≈Term-noσ : NoSigma f → NoSigma g → ⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g
+Structural-coherence-≈Term-σ   : Structural f → Structural g → ⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g
 ```
 
-For `⟪ g ∘ f ⟫ = hCompose ⟪ f ⟫ ⟪ g ⟫ <bdy-eq>`, the `<bdy-eq>` is built
-from per-constructor boundary lemmas (mechanical induction on the term).
+**Update (commit `923b1d7`)**: `Structural-coherence-≈Term-noσ` is
+**no longer a postulate** — it's a constructive definition routed
+through `Categories.MonoidalCoherence.Solver.solveM` instantiated at
+APROP's `FreeMonoidal`. The Var-bookkeeping encoder
+(`objAtoms`/`idxFin`/`varsVec`/`enc-Obj`/`enc-Hom`) plus
+`enc-Obj-sound` (constructive) plus a UIP-flavored subst stub
+`enc-Hom-sound-id` complete the discharge. The Mac Lane coherence
+content is now fully constructive; the sole residual postulate at
+this site (`enc-Hom-sound-id`) asserts only that the encoder is
+identity-on-NoSigma-terms up to type transport — provable from UIP
+on ObjTerm (Hedberg via `_≟-ObjTerm_`) plus definitional reductions
+of `S.⟦_⟧₁` on each constructor.
 
-### Hypergraph isomorphism
+The `-σ` half remains the only categorical-content postulate at
+this site; it requires extending `solveM` to handle σ (SMC
+braiding) and is independent infrastructure.
 
-`_≅ᴴ_` currently lives at `Hypergraph Gen As Bs → Hypergraph Gen As Bs → Set`.
-After de-indexing it becomes `Hypergraph Gen → Hypergraph Gen → Set` plus
-witnesses that `domL`/`codL` agree.  Equivalent expressivity, no change to
-the iso bijection data.
+### 5. Agen-compound-1E — `RespIso/AtomicCompound.agda`
 
-## Refactor A — `decode-rel` (definitional shape lemmas)
-
-### Change
-
-Define `decode` directly by structural recursion on the term, mirroring the
-output shape of each `decode-attempt-h*`:
+The single direct postulate:
 
 ```agda
-decode-rel : ∀ {A B} (f : HomTerm A B)
-           → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
-decode-rel (Agen g)         = proj₁ (decode-attempt-hGen g)
-decode-rel (id {A})         = proj₁ (decode-attempt-hId A)
-decode-rel (g ∘ f)          = decode-rel g ∘ decode-rel f          -- definitional!
-decode-rel (f ⊗₁ g)         = c-to ∘ (decode-rel f ⊗₁ decode-rel g) ∘ c-from
-                                                                    -- definitional!
-decode-rel (λ⇒ {A})         = proj₁ (decode-attempt-hId A)
-... etc.
+decode-rel-resp-≅ᴴ-Agen-compound-1E
+  : Compound h → nE ⟪ h ⟫ ≡ 1 → ⟪ Agen g ⟫ ≅ᴴ ⟪ h ⟫
+  → decode-rel (Agen g) ≈Term decode-rel h
 ```
 
-### Payoff
+`Discharge/AgenCompound1E.agda` provides an alternative path via 4
+shape-routed narrower postulates (`discharge-{∘,⊗}-{left,right}`),
+but these are not yet wired to discharge the wider postulate. Each
+narrow case depends on items (1)–(2) plus Agen-Agen (already proved
+in `RespIso/AgenAgen.agda`).
 
-```agda
-decode-rel-∘-shape : decode-rel (g ∘ f) ≡ decode-rel g ∘ decode-rel f
-decode-rel-∘-shape g f = refl                    -- ✓ verified
+## Helpers and infrastructure
 
-decode-rel-⊗-shape : decode-rel (f ⊗₁ g) ≡ c-to ∘ (decode-rel f ⊗₁ decode-rel g) ∘ c-from
-decode-rel-⊗-shape f g = refl                    -- ✓ verified
-```
+- `Completeness/PermutationCoherence.agda` — **keystone helper**:
+  `↭-to-≅ : xs ↭ ys → unflatten xs ≅ unflatten ys`. The new
+  permutation-based postulates all derive coherence isos through this
+  function, producing γ's whose syntactic size is bounded linearly by
+  the permutation witness.
+- `Completeness/Linearity.agda` — `Linear` invariant on hypergraphs;
+  the natural framework for the label-multiset counting argument
+  that would unblock Family 1.
+- `Discharge/NEAgenIso1.agda` — fully discharged auxiliary used in
+  `AtomicCompound.agda`.
 
-Both are postulated (`decode-∘-shape`, `decode-⊗-shape`) in
-DecodeRoundtrip.agda:222-232 — TODO.org calls them "the hardest unknowns".
-Under `decode-rel` they are `refl`.
+## Discharge difficulty rated
 
-### `decode-roundtrip-{∘,⊗}` collapse
+| Postulate | Difficulty | Notes |
+|---|---|---|
+| φ-restricts-{L,R}-non-bdy | **Architecturally blocked** | not theorems under current `_≅ᴴ_` (σ-naturality counter-example) |
+| ψ-restricts-{L,R}-deg (matching) | **Architecturally blocked** | same σ-naturality pathology |
+| middle-iso-perm | Hard | needs Linear-invariant infrastructure (~300 LOC) |
+| sub-iso-{f,g}-via-γ | **Architecturally blocked** | composition-side analog of σ-naturality; not theorems |
+| iso-decompose-{∘⊗,⊗∘}-primitive-perm | Hard | wide postulates restored after `0c4f223` revert |
+| Structural-coherence-≈Term-noσ | **Discharged** | Mac Lane coherence; constructive via `solveM` (`923b1d7` + `b7e31da`) |
+| Structural-coherence-≈Term-σ | Hard | needs σ-extended SMC coherence solver |
+| decode-rel-resp-≅ᴴ-Agen-compound-1E | Hard | depends on iso-decompose's machinery |
 
-```agda
-decode-roundtrip-∘ g f IH-g IH-f = begin
-  decode-rel (g ∘ f)   ≡⟨⟩
-  decode-rel g ∘ decode-rel f   ≈⟨ ∘-resp-≈ IH-g IH-f ⟩
-  bridge g ∘ bridge f  ≈⟨ bridge-∘ g f ⟨
-  bridge (g ∘ f)       ∎
-```
+## Alternative paths
 
-The current chain in DecodeRoundtrip.agda:246-255 has to first invoke
-`decode-∘-shape` (a postulate); under `decode-rel` that step is gone.
-
-### Net LOC saved by refactor A
-
-~150-180 LOC in DecodeRoundtrip.agda, **2 postulates eliminated**.
-
-## Refactor C — `MonoidalCoherence.Solver.solveM` (drops `--without-K`)
-
-### Change
-
-The in-tree `Categories.MonoidalCoherence` provides:
-
-- `CoherenceThm.all-Comm`: Mac Lane's theorem mechanised — any two parallel
-  morphisms in a free monoidal category over generators-only-`⊥` are equal.
-- `Solver.solveM`: lifts `all-Comm` to any target monoidal category via the
-  free functor.
-
-Currently blocked from use because `MonoidalCoherence.agda` is `--with-K`
-(its `ι` functor pattern-matches on `Discrete` morphisms via `refl`).
-Dropping `--without-K` from the completeness files unlocks it.
-
-### Two passing solveM demos (CoherenceSolver.agda)
-
-```agda
-test-α-iso : α⇒ {Var a} {Var b} {Var c} ∘ α⇐ ≈Term id
-test-α-iso = solveM (α⇒' ∘' α⇐') id'                 -- 1 line
-
-test-pentagon-instance : <pentagon equation>
-test-pentagon-instance = solveM <LHS> <RHS>          -- 5 lines
-```
-
-### What it discharges
-
-- **`bridge-α⇒-form-⊗-⊗`** postulate (DecodeRoundtrip.agda:1429,
-  "100-150 chain steps").
-- **`c-iso-assoc-from-cons`** postulate (DecodeRoundtrip.agda:1196,
-  "~30 chain steps").
-- The constructive bridge-form proofs for the unit/Var base cases of α/ρ
-  (~50 LOC each, currently chains).
-- The Layer-1 `bridge-∘`, `bridge-⊗-decompose`, `bridge-⊗` chains.
-- The `subst-cod-cons`, `subst-dom-cons`, `subst₂-refl-cod`,
-  `subst₂-refl-dom` helpers (used only inside the bridge-form chains).
-
-For *parametric* statements (universal `A B C`), `solveM` requires
-structural induction on the parameters, but each leaf is a one-line
-solver call instead of a 25-line equational chain.
-
-### Net LOC saved by refactor C
-
-~600-900 LOC in DecodeRoundtrip.agda, **both remaining α-coherence
-postulates discharged**.
-
-## Combined estimate
-
-| Refactor | LOC saved | Postulates eliminated |
-|----------|----------:|----------------------:|
-| A: `decode-rel`               |   150-180 | 2 (∘-shape, ⊗-shape)        |
-| B: De-indexed Hypergraph      |   300-500 | (subst plumbing extinct)    |
-| C: `solveM` (drops `--without-K`) | 600-900 | 2-3 (α-coherence chain)     |
-| **Combined**                  | **1000-1500** | **4-5**                  |
-
-Out of ~19000 LOC total in the project.
-
-## Recommended order
-
-1. **De-index Hypergraph (refactor B)** — first, because it touches more
-   files but each change is local.  Removes the `subst₂` plumbing the
-   other two refactors otherwise inherit.
-2. **`decode-rel` (refactor A)** — small, self-contained.  Discharges
-   `decode-∘-shape` / `decode-⊗-shape` immediately.
-3. **`solveM` (refactor C)** — last, because it requires dropping
-   `--without-K`.  Discharges the residual α-coherence postulates.
-
-The three are largely orthogonal.  After all three, the remaining
-work toward completeness is genuinely combinatorial:
-`decode-attempt-h{Tensor,Compose}` (already done) and `decode-resp-≅ᴴ`
-(unaffected by these refactors).
-
-## Prototypes in this worktree
-
-- `src/Categories/APROP/Hypergraph/Core2.agda` — de-indexed Hypergraph type.
-- `src/Categories/APROP/Hypergraph/FromAPROP2.agda` — de-indexed translation,
-  ρ/α subst-free.
-- `src/Categories/APROP/Hypergraph/Completeness/DecodeRel.agda` —
-  definitional shape lemmas.
-- `src/Categories/APROP/Hypergraph/Completeness/CoherenceSolver.agda` —
-  `solveM` demonstration (drops `--without-K`).
-
-All four type-check.
+- **Modify `Solver/findIso` to extract `≈Term` proofs alongside the
+  iso** — each `pairUp`/`tryEdge`/`verify` step would emit a parallel
+  `≈Term` rewrite. Localized to `Solver/` instead of touching the
+  RespIso modules.
+- **Normal-form decoder** — define `nf : Hypergraph → HomTerm` invariant
+  under `≅ᴴ` (existing `decode-attempt-Linear` is a candidate). Then
+  `decode-rel-resp-≅ᴴ-full` follows from `nf-resp-≅ᴴ` plus
+  `decode-rel f ≈ nf ⟪f⟫`.

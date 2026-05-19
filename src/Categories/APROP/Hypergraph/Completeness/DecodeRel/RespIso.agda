@@ -187,3 +187,59 @@ decode-rel-resp-≅ᴴ-Agen-α⇐-absurd
   → ⟪ Agen g ⟫ ≅ᴴ ⟪ α⇐ {A} {B} {C} ⟫ → ⊥
 decode-rel-resp-≅ᴴ-Agen-α⇐-absurd {A} {B} {C} g iso =
   Agen-nonAgen-absurd refl (hId-nE ((A ⊗₀ B) ⊗₀ C)) iso
+
+--------------------------------------------------------------------------------
+-- Reverse direction: X-vs-Agen for X ∈ {σ, λ⇒, λ⇐, ρ⇒, ρ⇐, α⇒, α⇐}.
+-- Each is the corresponding Agen-X lemma precomposed with sym-≅ᴴ.
+
+open import Categories.APROP.Hypergraph.Iso using (sym-≅ᴴ)
+
+-- σ vs Agen.
+decode-rel-resp-≅ᴴ-σ-Agen-absurd
+  : ∀ {A B} ⦃ s : Symm ≤ Symm ⦄
+    (g : mor (A ⊗₀ B) (B ⊗₀ A))
+  → ⟪ σ {A = A} {B = B} ⦃ s ⦄ ⟫ ≅ᴴ ⟪ Agen g ⟫ → ⊥
+decode-rel-resp-≅ᴴ-σ-Agen-absurd ⦃ s ⦄ g iso =
+  decode-rel-resp-≅ᴴ-Agen-σ-absurd ⦃ s ⦄ g (sym-≅ᴴ iso)
+
+-- λ⇒ vs Agen.
+decode-rel-resp-≅ᴴ-λ⇒-Agen-absurd
+  : ∀ {A} (g : mor (unit ⊗₀ A) A)
+  → ⟪ λ⇒ {A} ⟫ ≅ᴴ ⟪ Agen g ⟫ → ⊥
+decode-rel-resp-≅ᴴ-λ⇒-Agen-absurd g iso =
+  decode-rel-resp-≅ᴴ-Agen-λ⇒-absurd g (sym-≅ᴴ iso)
+
+-- λ⇐ vs Agen.
+decode-rel-resp-≅ᴴ-λ⇐-Agen-absurd
+  : ∀ {A} (g : mor A (unit ⊗₀ A))
+  → ⟪ λ⇐ {A} ⟫ ≅ᴴ ⟪ Agen g ⟫ → ⊥
+decode-rel-resp-≅ᴴ-λ⇐-Agen-absurd g iso =
+  decode-rel-resp-≅ᴴ-Agen-λ⇐-absurd g (sym-≅ᴴ iso)
+
+-- ρ⇒ vs Agen.
+decode-rel-resp-≅ᴴ-ρ⇒-Agen-absurd
+  : ∀ {A} (g : mor (A ⊗₀ unit) A)
+  → ⟪ ρ⇒ {A} ⟫ ≅ᴴ ⟪ Agen g ⟫ → ⊥
+decode-rel-resp-≅ᴴ-ρ⇒-Agen-absurd g iso =
+  decode-rel-resp-≅ᴴ-Agen-ρ⇒-absurd g (sym-≅ᴴ iso)
+
+-- ρ⇐ vs Agen.
+decode-rel-resp-≅ᴴ-ρ⇐-Agen-absurd
+  : ∀ {A} (g : mor A (A ⊗₀ unit))
+  → ⟪ ρ⇐ {A} ⟫ ≅ᴴ ⟪ Agen g ⟫ → ⊥
+decode-rel-resp-≅ᴴ-ρ⇐-Agen-absurd g iso =
+  decode-rel-resp-≅ᴴ-Agen-ρ⇐-absurd g (sym-≅ᴴ iso)
+
+-- α⇒ vs Agen.
+decode-rel-resp-≅ᴴ-α⇒-Agen-absurd
+  : ∀ {A B C} (g : mor ((A ⊗₀ B) ⊗₀ C) (A ⊗₀ (B ⊗₀ C)))
+  → ⟪ α⇒ {A} {B} {C} ⟫ ≅ᴴ ⟪ Agen g ⟫ → ⊥
+decode-rel-resp-≅ᴴ-α⇒-Agen-absurd g iso =
+  decode-rel-resp-≅ᴴ-Agen-α⇒-absurd g (sym-≅ᴴ iso)
+
+-- α⇐ vs Agen.
+decode-rel-resp-≅ᴴ-α⇐-Agen-absurd
+  : ∀ {A B C} (g : mor (A ⊗₀ (B ⊗₀ C)) ((A ⊗₀ B) ⊗₀ C))
+  → ⟪ α⇐ {A} {B} {C} ⟫ ≅ᴴ ⟪ Agen g ⟫ → ⊥
+decode-rel-resp-≅ᴴ-α⇐-Agen-absurd g iso =
+  decode-rel-resp-≅ᴴ-Agen-α⇐-absurd g (sym-≅ᴴ iso)
