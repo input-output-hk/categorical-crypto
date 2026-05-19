@@ -54,6 +54,37 @@ id` has stranded vertices from `hCompose`'s remap). The remaining
 route is label-multiset counting over the `Linear` invariant —
 substantial new infrastructure (~300+ LOC).
 
+**May 2026 architectural finding** (three independent opus agents
+converged): the four postulates `φ-restricts-{L,R}-non-bdy` and
+`ψ-restricts-{L,R}-deg` (matching-ghost) are **not theorems** as
+currently stated. Concrete counter-example: `f₁ = Agen u, g₁ = id`
+vs `f₂ = id, g₂ = Agen u` at type `unit ⊗ A → unit ⊗ A`. These
+terms ARE `≈Term`-equal (σ-naturality), their hypergraphs ARE
+≅ᴴ-isomorphic via a half-swap, and `σ∘[f⊗g]≈[g⊗f]∘σ-sound` in
+`Soundness.agda` is literally a half-swap iso producer. So no
+L→L-restricting iso exists in this case, yet the postulates claim
+one does.
+
+**Salvage paths considered**:
+
+- *Strengthen `_≅ᴴ_` with Origin tag*: doesn't help — just relocates
+  the postulates to a `_≅ᴴ_ → _≅ᴴ⊗_` upcast with identical content
+  (Soundness can't produce Origin-respecting isos for σ-naturality
+  witnesses).
+
+- *Restate as disjunction* (`L→L ⊎ L→R-with-σ-witness`): plausibly
+  theorem-correct (σ-counter-example lands in inj₂ without
+  contradiction), but consumer wiring through
+  `BlockDiagonal.Assembly` (~1700 LOC of derivations) and
+  `Inductive.agda`'s `⊗⊗` clause requires ~400-600 LOC of
+  additional dispatch work to be usable. The dispatcher needs
+  σ-naturality at the `≈Term` level (available as
+  `σ∘[f⊗g]≈[g⊗f]∘σ` in `FreeMonoidal.agda:100`).
+
+- *Bypass via normal-form decoder or Solver/findIso emitting
+  ≈Term*: sidesteps the architecture entirely; see Alternative
+  paths section.
+
 ### 2. Compose-compose middle/sub-isos — `Discharge/IsoDecomposeCC.agda`
 
 The monolithic existential `iso-decompose-∘∘` is **gone**. The X-vs-Y
