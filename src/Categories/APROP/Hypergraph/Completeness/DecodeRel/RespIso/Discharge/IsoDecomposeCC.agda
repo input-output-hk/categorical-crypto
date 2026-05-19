@@ -109,11 +109,14 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtrip sig
   using (bridge-∘; bridge-id-is-id)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈)
+open import Categories.APROP.Hypergraph.Completeness.PermutationCoherence sig
+  using (↭-to-≅)
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_; module ≅)
 
 open import Data.List using (List; length)
+open import Data.List.Relation.Binary.Permutation.Propositional using (_↭_)
 open import Data.Product using (Σ; _,_; proj₁; proj₂; _×_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; sym; trans; subst; subst₂)
@@ -156,12 +159,32 @@ private
 -- unsound (it postulated a false statement); reverted to a direct
 -- postulate of `middle-iso` until a sound narrowing is found.
 
+-- The smaller postulate: an iso between composite hypergraphs induces a
+-- *permutation* between the middle flatten lists.  This is sound because
+-- the σ counter-example (f₂ = σ_{a,b}, g₂ = σ_{b,a}) corresponds exactly
+-- to a transposition `[a, b] ↭ [b, a]`, which `_↭_` admits via `swap`.
 postulate
-  middle-iso
+  middle-iso-perm
     : ∀ {A B X Y} (g₁ : HomTerm X B) (f₁ : HomTerm A X)
                     (g₂ : HomTerm Y B) (f₂ : HomTerm A Y)
     → ⟪ g₁ ∘ f₁ ⟫ ≅ᴴ ⟪ g₂ ∘ f₂ ⟫
-    → Y ≅ X
+    → flatten Y ↭ flatten X
+
+-- `middle-iso` is now a *definition*, derived from `middle-iso-perm` plus
+-- `↭-to-≅` (`PermutationCoherence`) and `unflatten-flatten-≈`:
+--
+--   Y  ≅⟨ unflatten-flatten-≈ Y ⟩  unflatten (flatten Y)
+--      ≅⟨ ↭-to-≅ (middle-iso-perm ...) ⟩  unflatten (flatten X)
+--      ≅⟨ ≅.sym (unflatten-flatten-≈ X) ⟩  X
+middle-iso
+  : ∀ {A B X Y} (g₁ : HomTerm X B) (f₁ : HomTerm A X)
+                  (g₂ : HomTerm Y B) (f₂ : HomTerm A Y)
+  → ⟪ g₁ ∘ f₁ ⟫ ≅ᴴ ⟪ g₂ ∘ f₂ ⟫
+  → Y ≅ X
+middle-iso {A} {B} {X} {Y} g₁ f₁ g₂ f₂ iso =
+  ≅.trans (unflatten-flatten-≈ Y)
+    (≅.trans (↭-to-≅ (middle-iso-perm g₁ f₁ g₂ f₂ iso))
+             (≅.sym (unflatten-flatten-≈ X)))
 
 --------------------------------------------------------------------------------
 -- Sub-postulate (2): sub-iso between f₁ and the γ.from-prepended f₂.
