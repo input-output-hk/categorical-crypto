@@ -28,8 +28,8 @@ data _≤_ : Variant → Variant → Set where
   v≤v : ∀ {v} → v ≤ v
   M≤S : Mon ≤ Symm
 
-record ⟦_⟧ᵥ (v : Variant) : Set₁ where
-  field C : Category ℓ0 ℓ0 ℓ0
+record ⟦_⟧ᵥ (v : Variant) {o ℓ e : Level} : Set (suc (o ⊔ ℓ ⊔ e)) where
+  field C : Category o ℓ e
         Monoidal-C : Monoidal C
         Symmetric-C : ⦃ Symm ≤ v ⦄ → Symmetric Monoidal-C
 
@@ -164,7 +164,8 @@ module FreeMonoidal (d : FreeMonoidalData) where
 -- middle of `FreeFunctorData`. We cannot inline this module, since
 -- Agda only allows definitions that can be defined in a let-binding
 -- in the middle of a record.
-module FreeFunctorHelper (d : FreeMonoidalData) (let open FreeMonoidalData d) (⟦v⟧ : ⟦ v ⟧ᵥ) where
+module FreeFunctorHelper (d : FreeMonoidalData) (let open FreeMonoidalData d)
+                         {o ℓ e : Level} (⟦v⟧ : ⟦ v ⟧ᵥ {o} {ℓ} {e}) where
   open FreeMonoidal d public
 
   module C = ⟦_⟧ᵥ.Cat ⟦v⟧
@@ -176,10 +177,11 @@ module FreeFunctorHelper (d : FreeMonoidalData) (let open FreeMonoidalData d) (�
     ⟦ x ⊗₀ x₁ ⟧₀ = ⟦ x ⟧₀ C.⊗₀ ⟦ x₁ ⟧₀
     ⟦ Var x ⟧₀ = ⟦ x ⟧ᵖ₀
 
-record FreeFunctorData (d : FreeMonoidalData) : Set₁ where
+record FreeFunctorData (d : FreeMonoidalData) {o ℓ e : Level}
+                       : Set (suc (o ⊔ ℓ ⊔ e)) where
   open FreeMonoidalData d
 
-  field ⟦v⟧ : ⟦ v ⟧ᵥ
+  field ⟦v⟧ : ⟦ v ⟧ᵥ {o} {ℓ} {e}
 
   open FreeFunctorHelper d ⟦v⟧ public
 
@@ -189,7 +191,8 @@ record FreeFunctorData (d : FreeMonoidalData) : Set₁ where
 
   field ⟦_⟧ᵖ₁ : ∀ {x y} → mor x y → ⟦ x ⟧₀ C.⇒ ⟦ y ⟧₀
 
-module FreeFunctor {d : FreeMonoidalData} (ffd : FreeFunctorData d) where
+module FreeFunctor {d : FreeMonoidalData} {o ℓ e : Level}
+                   (ffd : FreeFunctorData d {o} {ℓ} {e}) where
   open FreeFunctorData ffd
 
   private
@@ -198,8 +201,9 @@ module FreeFunctor {d : FreeMonoidalData} (ffd : FreeFunctorData d) where
 
   open ⟦_⟧ᵥ ⟦v⟧
 
-  CM FreeMonoidalM : MonoidalCategory 0ℓ 0ℓ 0ℓ
+  CM : MonoidalCategory o ℓ e
   CM = record { U = C ; monoidal = Monoidal-C }
+  FreeMonoidalM : MonoidalCategory 0ℓ 0ℓ 0ℓ
   FreeMonoidalM = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
 
   ⟦_⟧₁ : ∀ {A B} → A FM.⇒ B → ⟦ A ⟧₀ C.⇒ ⟦ B ⟧₀
