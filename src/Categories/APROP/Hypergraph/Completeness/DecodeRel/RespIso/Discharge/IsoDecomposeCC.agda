@@ -101,12 +101,19 @@ open APROPSignatureDec sig-dec using (sig)
 open APROP sig
 open import Categories.APROP.Hypergraph.FromAPROP sig using (⟪_⟫; flatten)
 open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
+open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
+  using (bridge)
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
-  using (decode-rel; decode-rel-∘-shape)
+  using (decode-rel; decode-rel-∘-shape; decode-roundtrip-rel)
+open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtrip sig
+  using (bridge-∘; bridge-id-is-id)
+open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
+  using (unflatten; unflatten-flatten-≈)
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_; module ≅)
 
+open import Data.List using (List)
 open import Data.Product using (Σ; _,_; proj₁; proj₂; _×_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; sym; trans; subst; subst₂)
@@ -118,25 +125,62 @@ private
   ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
   ≡⇒≈Term refl = ≈-Term-refl
 
+  -- `bridge` is a congruence for `_≈Term_`.  Inlined locally because the
+  -- corresponding helper in `DecodeRoundtrip.agda` is private.
+  bridge-resp-≈Term
+    : ∀ {A B} {f g : HomTerm A B}
+    → f ≈Term g → bridge f ≈Term bridge g
+  bridge-resp-≈Term f≈g = refl⟩∘⟨ f≈g ⟩∘⟨refl
+
+  -- Lift a propositional equality between flat lists into an iso
+  -- between their `unflatten`-ed `ObjTerm`s.  Pure J on the equality:
+  -- the unique inhabitant of `unflatten l ≅ unflatten l` is `≅.refl`.
+  unflatten-≡⇒≅ : ∀ {l l' : List X} → l ≡ l' → unflatten l ≅ unflatten l'
+  unflatten-≡⇒≅ refl = ≅.refl
+
 --------------------------------------------------------------------------------
--- Sub-postulate (1): the iso between composites induces a coherence
--- iso between the middle objects.
+-- Sub-postulate (1): the iso between composites forces propositional
+-- equality of the flat-atom lists at the middle.
 --
 -- Mathematical content: the boundary equation
 --   ⟪⟫-codL fᵢ ≡ flatten Xᵢ ≡ ⟪⟫-domL gᵢ
 -- is what makes ⟪ gᵢ ∘ fᵢ ⟫ well-defined.  An iso between the
 -- composites preserves the underlying vertex-label list at the
 -- "middle" cospan boundary (after `remap` is undone), forcing
--- `flatten X ≡ flatten Y` propositionally.  This list-level equality
--- always lifts to a coherence iso `X ≅ Y` in `FreeMonoidal` via
--- `unflatten-flatten-≈`.
+-- `flatten X ≡ flatten Y` propositionally.
+--
+-- This is a STRICTLY NARROWED replacement of the previous `middle-iso`
+-- postulate, which directly asserted `Y ≅ X` in `FreeMonoidal`.  The
+-- propositional list equality below is mathematically smaller (no
+-- iso data, no coherence content), and `middle-iso` is now
+-- *constructively* derived from it via `unflatten-flatten-≈` and
+-- `unflatten-≡⇒≅` (see below).
 
 postulate
-  middle-iso
+  flatten-middle-equal
     : ∀ {A B X Y} (g₁ : HomTerm X B) (f₁ : HomTerm A X)
                     (g₂ : HomTerm Y B) (f₂ : HomTerm A Y)
     → ⟪ g₁ ∘ f₁ ⟫ ≅ᴴ ⟪ g₂ ∘ f₂ ⟫
-    → Y ≅ X
+    → flatten X ≡ flatten Y
+
+--------------------------------------------------------------------------------
+-- Constructive `middle-iso`: lift the flat-list equality into an iso
+-- between the middle `ObjTerm`s in `FreeMonoidal`.
+--
+--   unflatten-flatten-≈ Y : Y ≅ unflatten (flatten Y)
+--   unflatten-≡⇒≅ (sym eq) : unflatten (flatten Y) ≅ unflatten (flatten X)
+--   ≅.sym (unflatten-flatten-≈ X) : unflatten (flatten X) ≅ X
+-- composed via ≅.trans.
+
+middle-iso
+  : ∀ {A B X Y} (g₁ : HomTerm X B) (f₁ : HomTerm A X)
+                  (g₂ : HomTerm Y B) (f₂ : HomTerm A Y)
+  → ⟪ g₁ ∘ f₁ ⟫ ≅ᴴ ⟪ g₂ ∘ f₂ ⟫
+  → Y ≅ X
+middle-iso {A} {B} {X} {Y} g₁ f₁ g₂ f₂ iso =
+  ≅.trans (unflatten-flatten-≈ Y)
+    (≅.trans (unflatten-≡⇒≅ (sym (flatten-middle-equal g₁ f₁ g₂ f₂ iso)))
+             (≅.sym (unflatten-flatten-≈ X)))
 
 --------------------------------------------------------------------------------
 -- Sub-postulate (2): sub-iso between f₁ and the γ.from-prepended f₂.
@@ -257,16 +301,26 @@ bridge-decode-rel {A} {B} {X} {Y} g₂ f₂ γ = begin
     -- level of `decode-rel` (i.e. inside `unflatten ... → unflatten ...`
     -- types) because γ is built from coherence isos in `FreeMonoidal`,
     -- and `decode-rel` preserves the ≈Term-structure of coherence
-    -- morphisms (each `decode-rel coh` unfolds to `bridge coh`).
+    -- morphisms.  The discharge uses only the coherence-iso
+    -- preservation of `decode-rel`, i.e. the chain:
     --
-    -- For the present narrowing we expose this as a postulate.  A
-    -- discharge requires only the coherence-iso preservation of
-    -- decode-rel, which IS provable via `decode-roundtrip-rel` plus
-    -- soundness of `bridge` for coherence isos (the underlying
-    -- composition `γ.to ∘ γ.from ≈ id` at the term level is
-    -- precisely `γ.isoˡ`).
-    postulate
-      to∘from≈id : decode-rel γ.to ∘ decode-rel γ.from ≈Term id
+    --   decode-rel γ.to ∘ decode-rel γ.from
+    --     ≈ bridge γ.to ∘ bridge γ.from               [decode-roundtrip-rel × 2]
+    --     ≈ bridge (γ.to ∘ γ.from)                    [sym bridge-∘]
+    --     ≈ bridge id                                  [bridge-resp-≈Term γ.isoˡ]
+    --     ≈ id                                          [bridge-id-is-id]
+    to∘from≈id : decode-rel γ.to ∘ decode-rel γ.from ≈Term id
+    to∘from≈id = begin
+      decode-rel γ.to ∘ decode-rel γ.from
+        ≈⟨ ∘-resp-≈ (decode-roundtrip-rel γ.to) (decode-roundtrip-rel γ.from) ⟩
+      bridge γ.to ∘ bridge γ.from
+        ≈⟨ bridge-∘ γ.to γ.from ⟨
+      bridge (γ.to ∘ γ.from)
+        ≈⟨ bridge-resp-≈Term γ.isoˡ ⟩
+      bridge (id {Y})
+        ≈⟨ bridge-id-is-id Y ⟩
+      id
+        ∎
 
 --------------------------------------------------------------------------------
 -- CONSTRUCTIVE assembly of `iso-decompose-∘∘`.
