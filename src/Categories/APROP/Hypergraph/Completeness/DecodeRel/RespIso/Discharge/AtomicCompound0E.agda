@@ -249,46 +249,45 @@ Structural-to-perm (structural-⊗ sh sk) =
   PermProp.++⁺ (Structural-to-perm sh) (Structural-to-perm sk)
 
 --------------------------------------------------------------------------------
--- Narrowed postulates.
+-- Narrowed postulate: symmetric-monoidal coherence on the structural
+-- fragment.
 --
--- The original `Structural-coherence-≈Term` is split into two pieces:
+-- An earlier version of this file attempted a further split into
 --
---   * `perm-eq-from-iso` — the iso `⟪ f ⟫ ≅ᴴ ⟪ g ⟫` forces the underlying
---     permutations to agree, propositionally.  Sound because both
---     hypergraphs have 0 edges (structural), so the iso IS just the
---     boundary permutation comparison.  Stated as propositional equality
---     of `Structural-to-perm` outputs.
+--   * `perm-eq-from-iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → Structural-to-perm sf ≡ Structural-to-perm sg`
+--   * `Structural-coherence-from-perm-eq : … ≡ … → f ≈Term g`
 --
---   * `Structural-coherence-from-perm-eq` — Mac Lane's symmetric monoidal
---     coherence on the structural fragment: two structural HomTerms with
---     the same underlying permutation are `≈Term`-equal.  This is a
---     clearly-bounded finite problem (permutation equality is decidable
---     and the SMC coherence theorem applies).
+-- and derived `Structural-coherence-≈Term` from the two.  That split
+-- is **unsound** in its propositional-equality form:
+-- `Data.List.Relation.Binary.Permutation.Propositional._↭_` is *not*
+-- a thin relation — `Perm.refl` and `Perm.trans Perm.refl Perm.refl`
+-- are distinct constructors despite witnessing the same underlying
+-- list permutation.  Concrete counter-example: `f = id`, `sf =
+-- structural-id`, `g = id ∘ id`, `sg = structural-∘ structural-id
+-- structural-id` give `Structural-to-perm sf = Perm.refl` while
+-- `Structural-to-perm sg = Perm.trans Perm.refl Perm.refl`, which are
+-- *not* `_≡_`, yet the corresponding hypergraphs are isomorphic.  So
+-- the `perm-eq-from-iso` half could never be discharged as stated.
 --
--- The original `Structural-coherence-≈Term` is then derived as a
--- *definition* (no longer postulated).
+-- Reverting to a single postulate restores soundness: this is exactly
+-- the statement of Mac Lane's symmetric monoidal coherence theorem on
+-- the structural (i.e. generator-free) sub-language.  The constructive
+-- discharge ultimately requires extending
+-- `Categories.MonoidalCoherence.Solver` (currently Mac Lane only) to
+-- handle σ via permutation tracking.
+--
+-- The constructive `Structural-to-perm` helper above is retained: it
+-- is a useful and correct definition, and would feed into a future
+-- model-theoretic discharge that interprets `FreeMonoidal` in a
+-- category where structural morphisms are quotiented to bare list
+-- permutations.
 
 postulate
-  perm-eq-from-iso
+  Structural-coherence-≈Term
     : ∀ {A B} {f g : HomTerm A B}
-    → (sf : Structural f) → (sg : Structural g)
+    → Structural f → Structural g
     → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-    → Structural-to-perm sf ≡ Structural-to-perm sg
-
-  Structural-coherence-from-perm-eq
-    : ∀ {A B} {f g : HomTerm A B}
-    → (sf : Structural f) → (sg : Structural g)
-    → Structural-to-perm sf ≡ Structural-to-perm sg
     → f ≈Term g
-
--- Derived: combine the two narrowed postulates.
-Structural-coherence-≈Term
-  : ∀ {A B} {f g : HomTerm A B}
-  → Structural f → Structural g
-  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-  → f ≈Term g
-Structural-coherence-≈Term sf sg iso =
-  Structural-coherence-from-perm-eq sf sg (perm-eq-from-iso sf sg iso)
 
 --------------------------------------------------------------------------------
 -- Derived: lift `Structural-coherence-≈Term` through `bridge` and

@@ -7,7 +7,7 @@ permutation-equality coherence.
 
 ## Postulate inventory
 
-The completeness path now depends on **12 narrow postulates** across
+The completeness path now depends on **11 narrow postulates** across
 6 files. Every original wide postulate has been narrowed; many were
 replaced outright by constructive definitions backed by a narrower
 postulate.
@@ -30,14 +30,20 @@ restriction postulates:
 postulates are strict narrowings — they only fire on degenerate "ghost"
 edges (`mor unit unit`-shaped, no endpoints).
 
-**Obstruction**: vertex coverage. The naive route to discharge
-`φ-restricts-L/R` (case-split + ψ-restricts contradiction) is
-*mutually recursive* with ψ-restricts. The natural fix —
-"every vertex of ⟪f⟫ is in dom/cod/some edge" — is **mathematically
-false** (counter-example: `id ∘ id` has stranded vertices from
-`hCompose`'s remap). The remaining route is label-multiset counting
-over the `Linear` invariant — substantial new infrastructure
-(~300+ LOC).
+**May 2026 narrowing**: `φ-restricts-L/R` have been further narrowed
+to a `-non-bdy` form that only fires on vertices outside *both*
+`dom` and `cod`. The boundary subcase is now constructively
+discharged by the `BoundaryDischarge` module via same-position
+lookup across `dom-split-eq-L/R` and `cod-split-eq-L/R`; the
+constructive `φ-restricts-L/R` dispatch on decidable membership.
+
+**Remaining obstruction**: vertex coverage for *interior + stranded*
+vertices. The naive route is *mutually recursive* with
+`ψ-restricts`. The natural fix — "every non-boundary vertex is in
+some edge" — is **mathematically false** (counter-example: `id ∘
+id` has stranded vertices from `hCompose`'s remap). The remaining
+route is label-multiset counting over the `Linear` invariant —
+substantial new infrastructure (~300+ LOC).
 
 ### 2. Compose-compose middle/sub-isos — `Discharge/IsoDecomposeCC.agda`
 
@@ -83,27 +89,27 @@ recurse structurally on `p, q` (subterms of the *first* argument).
 ### 4. SMC coherence on the structural fragment — `Discharge/AtomicCompound0E.agda`
 
 `decode-rel-resp-≅ᴴ-atomic-compound-0E` is **gone**, replaced by
-`Structural-coherence-≈Term` which is now a definition. Two narrow
-postulates plus a constructive permutation extractor:
+`Structural-coherence-≈Term`. One narrow postulate plus a
+constructive permutation extractor:
 
 ```agda
 Structural-to-perm : Structural f → flatten A ↭ flatten B  -- CONSTRUCTIVE
   (id/λ → refl; ρ → ++-identityʳ; α → ++-assoc; σ → ++-comm;
    _∘_ → trans; _⊗₁_ → ++⁺)
 
-perm-eq-from-iso
-  : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → Structural f → Structural g
-  → Structural-to-perm sf ≡ Structural-to-perm sg
-
-Structural-coherence-from-perm-eq
-  : Structural f → Structural g
-  → Structural-to-perm sf ≡ Structural-to-perm sg
-  → f ≈Term g
+Structural-coherence-≈Term
+  : Structural f → Structural g → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g
 ```
 
-The residual SMC coherence content is now stated against `_≡_` on
-propositional permutations — a clearly-bounded decidable problem,
-no Mac Lane solver extension needed.
+**May 2026 retraction**: an earlier version split the postulate into
+`perm-eq-from-iso : ⟪f⟫ ≅ᴴ ⟪g⟫ → Structural-to-perm sf ≡ Structural-to-perm sg`
+plus `Structural-coherence-from-perm-eq`. That split is **unsound**:
+`Data.List.Relation.Binary.Permutation.Propositional._↭_` is not
+truncated — `refl` and `trans refl refl` are distinct constructors
+despite witnessing the same underlying permutation, so
+`perm-eq-from-iso` was unprovable as stated. The split has been
+reverted to a single postulate. `Structural-to-perm` is retained as
+useful infrastructure for a future model-theoretic discharge.
 
 ### 5. Agen-compound-1E — `RespIso/AtomicCompound.agda`
 
@@ -138,13 +144,12 @@ in `RespIso/AgenAgen.agda`).
 
 | Postulate | Difficulty | Notes |
 |---|---|---|
-| φ-restricts-L/R | Hard | needs label-multiset counting (no vertex-coverage) |
+| φ-restricts-{L,R}-non-bdy | Hard | needs label-multiset counting (boundary case discharged) |
 | ψ-restricts-{L,R}-deg | Hard | requires iso-canonicalization for ghost edges |
 | middle-iso-perm | Medium | extract permutation from boundary preservation in hCompose |
 | sub-iso-{f,g}-via-γ | Medium | vertex/edge bookkeeping over hCompose-impl |
 | iso-decompose-{∘⊗,⊗∘}-primitive-perm | Medium | similar to middle-iso-perm |
-| perm-eq-from-iso | Easy | 0-edge hypergraph IS its permutation |
-| Structural-coherence-from-perm-eq | Medium | mac Lane-style coherence on `_↭_` |
+| Structural-coherence-≈Term | Hard | symmetric monoidal coherence; needs σ-extended solver |
 | decode-rel-resp-≅ᴴ-Agen-compound-1E | Hard | depends on iso-decompose's machinery |
 
 ## Alternative paths
