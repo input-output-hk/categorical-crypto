@@ -361,6 +361,29 @@ module BlockDiagonal
 
   open BoundarySlice f₁ g₁ f₂ g₂ iso public
 
+  -- Status note (May 2026): `φ-restricts-L`/`-R` remain postulates after
+  -- the edge-discharge work above (`ψ-restricts-L`/`-R` were eliminated,
+  -- modulo narrower `-deg` postulates).  The natural proof strategy for
+  -- vertices on at least one edge would case-split on
+  -- `splitAt G₂.nV (φ (iG ↑ˡ K₁.nV))` and use `ψ-restricts-L eG` (for an
+  -- edge eG with iG as endpoint) plus `ψ-ein`/`ψ-eout` to derive a
+  -- contradiction in the R-half branch.  But the discharged
+  -- `ψ-restricts-L` proof itself relies on `φ_L`/`φ_L-eq` — i.e. on this
+  -- very postulate — to convert
+  --   `map φ (map (_↑ˡ K₁.nV) (G₁.ein eG))` into
+  --   `map (_↑ˡ K₂.nV) (map φ_L (G₁.ein eG))`.
+  -- The two proofs are MUTUALLY RECURSIVE at the proof level, and the
+  -- recursion has no obvious termination measure for Agda.  A clean
+  -- discharge would require either:
+  --   (1) a structural induction on the HomTerm `f₁` (and `g₁`) proving
+  --       a "vertex coverage" lemma (every vertex of `⟪f⟫` is in
+  --       `⟪f⟫.dom`, `⟪f⟫.cod`, or on some edge), then case-split on it
+  --       and use the boundary `dom-split-eq-L`/`cod-split-eq-L` for
+  --       boundary vertices plus a non-mutual edge-propagation for the
+  --       interior;
+  --   (2) reworking `ψ-restricts-L`/`-R` to avoid `φ_L` so the
+  --       recursion is one-way.
+  -- Both are substantial multi-hundred-LOC efforts.
   postulate
     -- For every left-half vertex (i.e. one of the form `iG ↑ˡ K₁.nV`)
     -- of T₁, φ sends it to a left-half vertex of T₂.
