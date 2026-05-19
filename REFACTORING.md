@@ -7,13 +7,13 @@ permutation-equality coherence.
 
 ## Postulate inventory
 
-The completeness path now depends on **13 narrow postulates** across
+The completeness path now depends on **12 narrow postulates** across
 6 files. Every original wide postulate has been narrowed; many were
 replaced outright by constructive definitions backed by a narrower
-postulate. As of `923b1d7`, the Mac Lane fragment of structural
-coherence is constructively discharged via `solveM`; the residual
-postulate in that file is pure UIP / subst-plumbing with zero
-categorical content.
+postulate. As of `b7e31da`, the entire Mac Lane fragment of
+structural coherence (`Structural-coherence-≈Term-noσ` and its
+encoder-soundness residual) is **fully constructive end-to-end**
+via `solveM` + Var-encoder + UIP coercions.
 
 ### 1. Tensor block-diagonal — `Discharge/IsoDecomposeTT.agda`
 
@@ -232,8 +232,7 @@ in `RespIso/AgenAgen.agda`).
 | middle-iso-perm | Medium | extract permutation from boundary preservation in hCompose |
 | sub-iso-{f,g}-via-γ | Medium | vertex/edge bookkeeping over hCompose-impl |
 | ⊗-∘-dist-FromAPROP-iso, mirror, ⊗∘-decode-rel-bridge | Medium | universal coherence isos for cross-shape primitives |
-| Structural-coherence-≈Term-noσ | **Discharged** | Mac Lane coherence; constructive via `solveM` (`923b1d7`) |
-| enc-Hom-sound-id | Easy | UIP/subst-plumbing residual from `-noσ` discharge |
+| Structural-coherence-≈Term-noσ | **Discharged** | Mac Lane coherence; constructive via `solveM` (`923b1d7` + `b7e31da`) |
 | Structural-coherence-≈Term-σ | Hard | needs σ-extended SMC coherence solver |
 | decode-rel-resp-≅ᴴ-Agen-compound-1E | Hard | depends on iso-decompose's machinery |
 
