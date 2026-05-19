@@ -607,27 +607,300 @@ module _ {A B : ObjTerm} {f g : HomTerm A B} (nf : NoSigma f) (ng : NoSigma g) w
   -- remaining gap, strictly about `subst` plumbing through a
   -- definitionally-trivial encoder.
 
-  postulate
-    -- Narrow encoder-soundness postulate: any NoSigma term h is
-    -- transported to itself by the encoder–decoder round-trip.  This
-    -- is strictly narrower than `-noσ`: it asserts no categorical
-    -- equation, only that the encoder is the *identity-on-NoSigma-
-    -- terms* up to the obvious type transport.  Discharging it
-    -- amounts to UIP on ObjTerm (provable from decidable atom
-    -- equality) plus the definitional reductions of `S.⟦_⟧₁` on each
-    -- constructor.
-    enc-Hom-sound-id
-      : ∀ {P Q} {h : HomTerm P Q} (nh : NoSigma h)
-        (sP : Functor.F₀ S.freeFunctor (enc-Obj P) ≡ P) (sQ : Functor.F₀ S.freeFunctor (enc-Obj Q) ≡ Q)
-      → subst₂ HomTerm sP sQ (Functor.F₁ S.freeFunctor (enc-Hom nh)) ≡ h
+  -- Discharge of `enc-Hom-sound-id`: any NoSigma term h is transported
+  -- to itself by the encoder–decoder round-trip.  Proof: induction on
+  -- nh.  For each structural constructor, `F₁ S.freeFunctor (enc-Hom …)`
+  -- reduces definitionally to the corresponding APROP-side constructor,
+  -- and the subst₂ collapses via UIP on ObjTerm (provable from decidable
+  -- atom equality `_≟-ObjTerm_`) combined with J on a single object-arg
+  -- equality (per constructor).
+  private
+    import Axiom.UniquenessOfIdentityProofs as UIP-mod
+    open APROPSignatureDec sig-dec using (_≟-ObjTerm_)
+    module ObjTerm-UIP-mod = UIP-mod.Decidable⇒UIP _≟-ObjTerm_
 
-  -- Lift the propositional encoder-soundness into ≈Term.
-  enc-Hom-sound-≈
+    ObjTerm-UIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q
+    ObjTerm-UIP = ObjTerm-UIP-mod.≡-irrelevant
+
+    -- Per-constructor coercion lemmas.  Each takes the source/target
+    -- substitutions plus the underlying argument equalities (derived
+    -- from sP/sQ via injectivity of `_⊗₀_`), and reduces `subst₂`
+    -- through the constructor to refl.
+
+    id-coerce
+      : ∀ {X Y : ObjTerm} (p q : X ≡ Y)
+      → subst₂ HomTerm p q (id {X}) ≡ id {Y}
+    id-coerce refl q with ObjTerm-UIP q refl
+    ... | refl = refl
+
+    λ⇒-coerce
+      : ∀ {X Y : ObjTerm} (p : unit ⊗₀ X ≡ unit ⊗₀ Y) (q : X ≡ Y)
+      → subst₂ HomTerm p q (λ⇒ {X}) ≡ λ⇒ {Y}
+    λ⇒-coerce p refl with ObjTerm-UIP p refl
+    ... | refl = refl
+
+    λ⇐-coerce
+      : ∀ {X Y : ObjTerm} (p : X ≡ Y) (q : unit ⊗₀ X ≡ unit ⊗₀ Y)
+      → subst₂ HomTerm p q (λ⇐ {X}) ≡ λ⇐ {Y}
+    λ⇐-coerce refl q with ObjTerm-UIP q refl
+    ... | refl = refl
+
+    ρ⇒-coerce
+      : ∀ {X Y : ObjTerm} (p : X ⊗₀ unit ≡ Y ⊗₀ unit) (q : X ≡ Y)
+      → subst₂ HomTerm p q (ρ⇒ {X}) ≡ ρ⇒ {Y}
+    ρ⇒-coerce p refl with ObjTerm-UIP p refl
+    ... | refl = refl
+
+    ρ⇐-coerce
+      : ∀ {X Y : ObjTerm} (p : X ≡ Y) (q : X ⊗₀ unit ≡ Y ⊗₀ unit)
+      → subst₂ HomTerm p q (ρ⇐ {X}) ≡ ρ⇐ {Y}
+    ρ⇐-coerce refl q with ObjTerm-UIP q refl
+    ... | refl = refl
+
+    α⇒-coerce
+      : ∀ {X Y Z X' Y' Z' : ObjTerm}
+          (sX : X ≡ X') (sY : Y ≡ Y') (sZ : Z ≡ Z')
+          (p : (X ⊗₀ Y) ⊗₀ Z ≡ (X' ⊗₀ Y') ⊗₀ Z')
+          (q : X ⊗₀ (Y ⊗₀ Z) ≡ X' ⊗₀ (Y' ⊗₀ Z'))
+      → subst₂ HomTerm p q (α⇒ {X} {Y} {Z}) ≡ α⇒ {X'} {Y'} {Z'}
+    α⇒-coerce refl refl refl p q
+      with ObjTerm-UIP p refl | ObjTerm-UIP q refl
+    ... | refl | refl = refl
+
+    α⇐-coerce
+      : ∀ {X Y Z X' Y' Z' : ObjTerm}
+          (sX : X ≡ X') (sY : Y ≡ Y') (sZ : Z ≡ Z')
+          (p : X ⊗₀ (Y ⊗₀ Z) ≡ X' ⊗₀ (Y' ⊗₀ Z'))
+          (q : (X ⊗₀ Y) ⊗₀ Z ≡ (X' ⊗₀ Y') ⊗₀ Z')
+      → subst₂ HomTerm p q (α⇐ {X} {Y} {Z}) ≡ α⇐ {X'} {Y'} {Z'}
+    α⇐-coerce refl refl refl p q
+      with ObjTerm-UIP p refl | ObjTerm-UIP q refl
+    ... | refl | refl = refl
+
+    -- Injectivity of `_⊗₀_`.
+    ⊗-injˡ : ∀ {A A' B B' : ObjTerm} → (A ⊗₀ B) ≡ (A' ⊗₀ B') → A ≡ A'
+    ⊗-injˡ refl = refl
+
+    ⊗-injʳ : ∀ {A A' B B' : ObjTerm} → (A ⊗₀ B) ≡ (A' ⊗₀ B') → B ≡ B'
+    ⊗-injʳ refl = refl
+
+    -- Push subst₂ through `_∘_`: it preserves composition, factored
+    -- through an intermediate type's equality `sM`.
+    ∘-coerce
+      : ∀ {X M Y X' M' Y' : ObjTerm}
+          (h : HomTerm M Y) (k : HomTerm X M)
+          (h' : HomTerm M' Y') (k' : HomTerm X' M')
+          (sX : X ≡ X') (sM : M ≡ M') (sY : Y ≡ Y')
+          (p : X ≡ X') (q : Y ≡ Y')
+      → subst₂ HomTerm sM sY h ≡ h'
+      → subst₂ HomTerm sX sM k ≡ k'
+      → subst₂ HomTerm p q (h ∘ k) ≡ h' ∘ k'
+    ∘-coerce h k h' k' refl refl refl p q eh ek
+      with ObjTerm-UIP p refl | ObjTerm-UIP q refl
+    ... | refl | refl rewrite eh | ek = refl
+
+    -- Push subst₂ through `_⊗₁_`.
+    ⊗-coerce
+      : ∀ {A B C D A' B' C' D' : ObjTerm}
+          (h : HomTerm A B) (k : HomTerm C D)
+          (h' : HomTerm A' B') (k' : HomTerm C' D')
+          (sA : A ≡ A') (sB : B ≡ B') (sC : C ≡ C') (sD : D ≡ D')
+          (p : A ⊗₀ C ≡ A' ⊗₀ C') (q : B ⊗₀ D ≡ B' ⊗₀ D')
+      → subst₂ HomTerm sA sB h ≡ h'
+      → subst₂ HomTerm sC sD k ≡ k'
+      → subst₂ HomTerm p q (h ⊗₁ k) ≡ h' ⊗₁ k'
+    ⊗-coerce h k h' k' refl refl refl refl p q eh ek
+      with ObjTerm-UIP p refl | ObjTerm-UIP q refl
+    ... | refl | refl rewrite eh | ek = refl
+
+  -- Inclusion bookkeeping: every NoSigma sub-term's source and target
+  -- objAtoms are contained in its `nosigmaAtoms`.  Combined with an
+  -- outer "this nh's nosigmaAtoms ⊆ xsAll" hypothesis, we can recover
+  -- the intermediate-type equality at every recursive step.
+
+  private
+    ⊆L-trans : ∀ {xs ys zs : List X} → xs ⊆L ys → ys ⊆L zs → xs ⊆L zs
+    ⊆L-trans f g m = g (f m)
+
+    ⊆L-++ˡ : ∀ {xs ys zs : List X} → xs ⊆L ys → xs ⊆L (ys ++ zs)
+    ⊆L-++ˡ f m = ∈-++ˡ (f m)
+
+    ⊆L-++ʳ : ∀ {xs} (ys : List X) {zs : List X} → xs ⊆L zs → xs ⊆L (ys ++ zs)
+    ⊆L-++ʳ ys f m = ∈-++ʳ ys (f m)
+
+    ⊆L-refl : ∀ {xs : List X} → xs ⊆L xs
+    ⊆L-refl m = m
+
+    objAtoms-⊗₀ : ∀ A B → objAtoms (A ⊗₀ B) ⊆L (objAtoms A ++ objAtoms B)
+    objAtoms-⊗₀ A B = ⊆L-refl
+
+    -- src-atoms / tgt-atoms of a NoSigma witness are included in its nosigmaAtoms.
+    nosigmaAtoms-src⊆ : ∀ {P Q} {h : HomTerm P Q} (nh : NoSigma h)
+                      → objAtoms P ⊆L nosigmaAtoms nh
+    nosigmaAtoms-tgt⊆ : ∀ {P Q} {h : HomTerm P Q} (nh : NoSigma h)
+                      → objAtoms Q ⊆L nosigmaAtoms nh
+
+    nosigmaAtoms-src⊆ (nosigma-id {A}) = ⊆L-refl
+    -- src of λ⇒ is unit ⊗₀ A; objAtoms = [] ++ objAtoms A = objAtoms A
+    nosigmaAtoms-src⊆ (nosigma-λ⇒ {A}) m = m
+    nosigmaAtoms-src⊆ (nosigma-λ⇐ {A}) m = m
+    nosigmaAtoms-src⊆ (nosigma-ρ⇒ {A}) {x} m = aux (objAtoms A) m
+      where
+        aux : ∀ (xs : List X) {x} → x ∈ (xs ++ []) → x ∈ xs
+        aux []       ()
+        aux (y ∷ ys) (here px) = here px
+        aux (y ∷ ys) (there m') = there (aux ys m')
+    nosigmaAtoms-src⊆ (nosigma-ρ⇐ {A}) m = m
+    nosigmaAtoms-src⊆ (nosigma-α⇒ {A} {B} {C}) m = α⇒-src m
+      where
+        -- src = (A⊗B)⊗C, objAtoms = (objAtoms A ++ objAtoms B) ++ objAtoms C
+        -- tgt of nosigmaAtoms = objAtoms A ++ objAtoms B ++ objAtoms C
+        α⇒-src : ((objAtoms A ++ objAtoms B) ++ objAtoms C) ⊆L (objAtoms A ++ objAtoms B ++ objAtoms C)
+        α⇒-src m' = ++-assoc-→ (objAtoms A) (objAtoms B) (objAtoms C) m'
+          where
+            ++-assoc-→ : ∀ (xs ys zs : List X) {x}
+                       → x ∈ ((xs ++ ys) ++ zs) → x ∈ (xs ++ ys ++ zs)
+            ++-assoc-→ []       ys zs m'' = m''
+            ++-assoc-→ (x ∷ xs') ys zs (here px) = here px
+            ++-assoc-→ (x ∷ xs') ys zs (there m'') = there (++-assoc-→ xs' ys zs m'')
+    nosigmaAtoms-src⊆ (nosigma-α⇐ {A} {B} {C}) m = m  -- src = A⊗(B⊗C), same flattening
+    nosigmaAtoms-src⊆ (nosigma-∘ h k) = ⊆L-++ʳ (nosigmaAtoms h) (nosigmaAtoms-src⊆ k)
+    nosigmaAtoms-src⊆ (nosigma-⊗ {A} {B} {C} {D} h k) =
+      atoms-split-src {A} {C} (nosigmaAtoms-src⊆ h) (nosigmaAtoms-src⊆ k)
+      where
+        -- Generic: split membership across `xs ++ ys`.
+        split-∈ : ∀ {x} (xs ys : List X) → x ∈ (xs ++ ys) → (x ∈ xs) ⊎ (x ∈ ys)
+        split-∈ []       ys m            = inj₂ m
+        split-∈ (y ∷ ys') zs (here px)   = inj₁ (here px)
+        split-∈ (y ∷ ys') zs (there m')  with split-∈ ys' zs m'
+        ... | inj₁ m'' = inj₁ (there m'')
+        ... | inj₂ m'' = inj₂ m''
+
+        atoms-split-src
+          : ∀ {A C : ObjTerm} {hA hB : List X}
+          → objAtoms A ⊆L hA → objAtoms C ⊆L hB
+          → objAtoms (A ⊗₀ C) ⊆L (hA ++ hB)
+        atoms-split-src {A} {C} {hA} {hB} fa fc {x} m with split-∈ (objAtoms A) (objAtoms C) m
+        ... | inj₁ mA = ∈-++ˡ (fa mA)
+        ... | inj₂ mC = ∈-++ʳ hA (fc mC)
+
+    nosigmaAtoms-tgt⊆ (nosigma-id {A}) = ⊆L-refl
+    nosigmaAtoms-tgt⊆ (nosigma-λ⇒ {A}) = ⊆L-refl
+    nosigmaAtoms-tgt⊆ (nosigma-λ⇐ {A}) m = m
+    nosigmaAtoms-tgt⊆ (nosigma-ρ⇒ {A}) = ⊆L-refl
+    nosigmaAtoms-tgt⊆ (nosigma-ρ⇐ {A}) {x} m = aux (objAtoms A) m
+      where
+        aux : ∀ (xs : List X) {x} → x ∈ (xs ++ []) → x ∈ xs
+        aux []       ()
+        aux (y ∷ ys) (here px) = here px
+        aux (y ∷ ys) (there m') = there (aux ys m')
+    nosigmaAtoms-tgt⊆ (nosigma-α⇒ {A} {B} {C}) m = m  -- tgt is A⊗(B⊗C)
+    nosigmaAtoms-tgt⊆ (nosigma-α⇐ {A} {B} {C}) m = α⇐-tgt m
+      where
+        α⇐-tgt : ((objAtoms A ++ objAtoms B) ++ objAtoms C) ⊆L (objAtoms A ++ objAtoms B ++ objAtoms C)
+        α⇐-tgt m' = ++-assoc-→ (objAtoms A) (objAtoms B) (objAtoms C) m'
+          where
+            ++-assoc-→ : ∀ (xs ys zs : List X) {x}
+                       → x ∈ ((xs ++ ys) ++ zs) → x ∈ (xs ++ ys ++ zs)
+            ++-assoc-→ []       ys zs m'' = m''
+            ++-assoc-→ (x ∷ xs') ys zs (here px) = here px
+            ++-assoc-→ (x ∷ xs') ys zs (there m'') = there (++-assoc-→ xs' ys zs m'')
+    nosigmaAtoms-tgt⊆ (nosigma-∘ h k) = ⊆L-++ˡ (nosigmaAtoms-tgt⊆ h)
+    nosigmaAtoms-tgt⊆ (nosigma-⊗ {A} {B} {C} {D} h k) =
+      atoms-split-tgt {B} {D} (nosigmaAtoms-tgt⊆ h) (nosigmaAtoms-tgt⊆ k)
+      where
+        split-∈ : ∀ {x} (xs ys : List X) → x ∈ (xs ++ ys) → (x ∈ xs) ⊎ (x ∈ ys)
+        split-∈ []       ys m            = inj₂ m
+        split-∈ (y ∷ ys') zs (here px)   = inj₁ (here px)
+        split-∈ (y ∷ ys') zs (there m')  with split-∈ ys' zs m'
+        ... | inj₁ m'' = inj₁ (there m'')
+        ... | inj₂ m'' = inj₂ m''
+
+        atoms-split-tgt
+          : ∀ {B D : ObjTerm} {hA hB : List X}
+          → objAtoms B ⊆L hA → objAtoms D ⊆L hB
+          → objAtoms (B ⊗₀ D) ⊆L (hA ++ hB)
+        atoms-split-tgt {B} {D} {hA} {hB} fa fc {x} m with split-∈ (objAtoms B) (objAtoms D) m
+        ... | inj₁ mB = ∈-++ˡ (fa mB)
+        ... | inj₂ mD = ∈-++ʳ hA (fc mD)
+
+    -- Intermediate-type equality for the ∘ case: in `nosigma-∘ h k`,
+    -- given an outer inclusion `nosigmaAtoms (nosigma-∘ h k) ⊆L xsAll`,
+    -- the intermediate type M = tgt k = src h has objAtoms covered.
+    inter-eq
+      : ∀ {P Q} {h : HomTerm P Q} (nh : NoSigma h)
+      → nosigmaAtoms nh ⊆L xsAll
+      → Functor.F₀ S.freeFunctor (enc-Obj P) ≡ P
+    inter-eq {P} nh inc = enc-Obj-sound P (⊆L-trans (nosigmaAtoms-src⊆ nh) inc)
+
+    inter-eq-tgt
+      : ∀ {P Q} {h : HomTerm P Q} (nh : NoSigma h)
+      → nosigmaAtoms nh ⊆L xsAll
+      → Functor.F₀ S.freeFunctor (enc-Obj Q) ≡ Q
+    inter-eq-tgt {Q = Q} nh inc = enc-Obj-sound Q (⊆L-trans (nosigmaAtoms-tgt⊆ nh) inc)
+
+  -- The main lemma.  Now parameterised by an inclusion proof so we can
+  -- access intermediate-type equalities in `∘` recursive cases.
+  enc-Hom-sound-id-inc
     : ∀ {P Q} {h : HomTerm P Q} (nh : NoSigma h)
-      (sP : Functor.F₀ S.freeFunctor (enc-Obj P) ≡ P) (sQ : Functor.F₀ S.freeFunctor (enc-Obj Q) ≡ Q)
-    → subst₂ HomTerm sP sQ (Functor.F₁ S.freeFunctor (enc-Hom nh)) ≈Term h
-  enc-Hom-sound-≈ nh sP sQ
-    rewrite enc-Hom-sound-id nh sP sQ = ≈-Term-refl
+      (inc : nosigmaAtoms nh ⊆L xsAll)
+      (sP : Functor.F₀ S.freeFunctor (enc-Obj P) ≡ P)
+      (sQ : Functor.F₀ S.freeFunctor (enc-Obj Q) ≡ Q)
+    → subst₂ HomTerm sP sQ (Functor.F₁ S.freeFunctor (enc-Hom nh)) ≡ h
+  enc-Hom-sound-id-inc (nosigma-id {A})            inc sP sQ = id-coerce sP sQ
+  enc-Hom-sound-id-inc (nosigma-λ⇒ {A})            inc sP sQ = λ⇒-coerce sP sQ
+  enc-Hom-sound-id-inc (nosigma-λ⇐ {A})            inc sP sQ = λ⇐-coerce sP sQ
+  enc-Hom-sound-id-inc (nosigma-ρ⇒ {A})            inc sP sQ = ρ⇒-coerce sP sQ
+  enc-Hom-sound-id-inc (nosigma-ρ⇐ {A})            inc sP sQ = ρ⇐-coerce sP sQ
+  enc-Hom-sound-id-inc (nosigma-α⇒ {A} {B} {C})    inc sP sQ =
+    α⇒-coerce (⊗-injˡ (⊗-injˡ sP)) (⊗-injʳ (⊗-injˡ sP)) (⊗-injʳ sP) sP sQ
+  enc-Hom-sound-id-inc (nosigma-α⇐ {A} {B} {C})    inc sP sQ =
+    α⇐-coerce (⊗-injˡ sP) (⊗-injˡ (⊗-injʳ sP)) (⊗-injʳ (⊗-injʳ sP)) sP sQ
+  enc-Hom-sound-id-inc (nosigma-∘ {A} {M} {C} h k) inc sP sQ =
+    let
+      inc-h : nosigmaAtoms h ⊆L xsAll
+      inc-h m = inc (∈-++ˡ m)
+      inc-k : nosigmaAtoms k ⊆L xsAll
+      inc-k m = inc (∈-++ʳ (nosigmaAtoms h) m)
+      sM : Functor.F₀ S.freeFunctor (enc-Obj M) ≡ M
+      sM = inter-eq-tgt k inc-k  -- tgt of k = M
+    in ∘-coerce _ _ _ _ sP sM sQ sP sQ
+         (enc-Hom-sound-id-inc h inc-h sM sQ)
+         (enc-Hom-sound-id-inc k inc-k sP sM)
+  enc-Hom-sound-id-inc (nosigma-⊗ {A} {B} {C} {D} h k) inc sP sQ =
+    let
+      inc-h : nosigmaAtoms h ⊆L xsAll
+      inc-h m = inc (∈-++ˡ m)
+      inc-k : nosigmaAtoms k ⊆L xsAll
+      inc-k m = inc (∈-++ʳ (nosigmaAtoms h) m)
+    in ⊗-coerce _ _ _ _
+         (⊗-injˡ sP) (⊗-injˡ sQ) (⊗-injʳ sP) (⊗-injʳ sQ) sP sQ
+         (enc-Hom-sound-id-inc h inc-h (⊗-injˡ sP) (⊗-injˡ sQ))
+         (enc-Hom-sound-id-inc k inc-k (⊗-injʳ sP) (⊗-injʳ sQ))
+
+  -- Inclusions for the top-level nf and ng in xsAll = objAtoms A ++
+  -- objAtoms B ++ nosigmaAtoms nf ++ nosigmaAtoms ng.
+  private
+    nf-inclusion : nosigmaAtoms nf ⊆L xsAll
+    nf-inclusion m = ∈-++ʳ (objAtoms A) (∈-++ʳ (objAtoms B) (∈-++ˡ m))
+
+    ng-inclusion : nosigmaAtoms ng ⊆L xsAll
+    ng-inclusion m = ∈-++ʳ (objAtoms A) (∈-++ʳ (objAtoms B) (∈-++ʳ (nosigmaAtoms nf) m))
+
+  -- Lift the propositional encoder-soundness into ≈Term.  Specialised
+  -- to nh = nf and nh = ng (the only consumers), where the inclusion
+  -- `nosigmaAtoms nh ⊆L xsAll` is structurally available.
+  enc-Hom-sound-≈-nf
+    : (sP : Functor.F₀ S.freeFunctor (enc-Obj A) ≡ A) (sQ : Functor.F₀ S.freeFunctor (enc-Obj B) ≡ B)
+    → subst₂ HomTerm sP sQ (Functor.F₁ S.freeFunctor (enc-Hom nf)) ≈Term f
+  enc-Hom-sound-≈-nf sP sQ
+    rewrite enc-Hom-sound-id-inc nf nf-inclusion sP sQ = ≈-Term-refl
+
+  enc-Hom-sound-≈-ng
+    : (sP : Functor.F₀ S.freeFunctor (enc-Obj A) ≡ A) (sQ : Functor.F₀ S.freeFunctor (enc-Obj B) ≡ B)
+    → subst₂ HomTerm sP sQ (Functor.F₁ S.freeFunctor (enc-Hom ng)) ≈Term g
+  enc-Hom-sound-≈-ng sP sQ
+    rewrite enc-Hom-sound-id-inc ng ng-inclusion sP sQ = ≈-Term-refl
 
   -- The discharge of the σ-free Structural coherence postulate:
   -- combine encoder soundness with `solver-result`.  All three pieces
@@ -642,10 +915,10 @@ module _ {A B : ObjTerm} {f g : HomTerm A B} (nf : NoSigma f) (ng : NoSigma g) w
       sQ = enc-Obj-sound-B
 
       sound-f : subst₂ HomTerm sP sQ (Functor.F₁ S.freeFunctor (enc-Hom nf)) ≈Term f
-      sound-f = enc-Hom-sound-≈ nf sP sQ
+      sound-f = enc-Hom-sound-≈-nf sP sQ
 
       sound-g : subst₂ HomTerm sP sQ (Functor.F₁ S.freeFunctor (enc-Hom ng)) ≈Term g
-      sound-g = enc-Hom-sound-≈ ng sP sQ
+      sound-g = enc-Hom-sound-≈-ng sP sQ
 
       -- Push solver-result through subst₂: subst₂ is a congruence
       -- for ≈Term (with the same indices on both sides).
