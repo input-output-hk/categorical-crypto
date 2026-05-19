@@ -100,7 +100,7 @@ module Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.IsoD
 open APROPSignatureDec sig-dec using (sig)
 open APROP sig
 open import Categories.APROP.Hypergraph.FromAPROP sig using (⟪_⟫; flatten)
-open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
+open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_; trans-≅ᴴ)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (bridge)
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
@@ -113,7 +113,7 @@ open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_; module ≅)
 
-open import Data.List using (List)
+open import Data.List using (List; length)
 open import Data.Product using (Σ; _,_; proj₁; proj₂; _×_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; sym; trans; subst; subst₂)
@@ -139,48 +139,29 @@ private
   unflatten-≡⇒≅ refl = ≅.refl
 
 --------------------------------------------------------------------------------
--- Sub-postulate (1): the iso between composites forces propositional
--- equality of the flat-atom lists at the middle.
+-- Sub-postulate (1): the iso between composites induces a coherence
+-- iso between the middle objects.
 --
--- Mathematical content: the boundary equation
---   ⟪⟫-codL fᵢ ≡ flatten Xᵢ ≡ ⟪⟫-domL gᵢ
--- is what makes ⟪ gᵢ ∘ fᵢ ⟫ well-defined.  An iso between the
--- composites preserves the underlying vertex-label list at the
--- "middle" cospan boundary (after `remap` is undone), forcing
--- `flatten X ≡ flatten Y` propositionally.
+-- IMPORTANT: this CANNOT be derived from `flatten X ≡ flatten Y`
+-- (propositional list equality), because that statement is
+-- *mathematically false* in general.  Counter-example:
+--   f₁ = g₁ = id_{a⊗b}  (so X = a⊗b, flatten X = [a, b])
+--   f₂ = σ_{a,b}, g₂ = σ_{b,a}  (so Y = b⊗a, flatten Y = [b, a])
+-- Both composites are hypergraph-isomorphic, but flatten X ≢ flatten Y
+-- as ordered lists.
 --
--- This is a STRICTLY NARROWED replacement of the previous `middle-iso`
--- postulate, which directly asserted `Y ≅ X` in `FreeMonoidal`.  The
--- propositional list equality below is mathematically smaller (no
--- iso data, no coherence content), and `middle-iso` is now
--- *constructively* derived from it via `unflatten-flatten-≈` and
--- `unflatten-≡⇒≅` (see below).
+-- Mathematically `Y ≅ X` *does* hold (here via σ), but recovering the
+-- iso requires tracking the underlying permutation, not just a list
+-- equality.  The previous narrowing via `flatten-middle-equal` was
+-- unsound (it postulated a false statement); reverted to a direct
+-- postulate of `middle-iso` until a sound narrowing is found.
 
 postulate
-  flatten-middle-equal
+  middle-iso
     : ∀ {A B X Y} (g₁ : HomTerm X B) (f₁ : HomTerm A X)
                     (g₂ : HomTerm Y B) (f₂ : HomTerm A Y)
     → ⟪ g₁ ∘ f₁ ⟫ ≅ᴴ ⟪ g₂ ∘ f₂ ⟫
-    → flatten X ≡ flatten Y
-
---------------------------------------------------------------------------------
--- Constructive `middle-iso`: lift the flat-list equality into an iso
--- between the middle `ObjTerm`s in `FreeMonoidal`.
---
---   unflatten-flatten-≈ Y : Y ≅ unflatten (flatten Y)
---   unflatten-≡⇒≅ (sym eq) : unflatten (flatten Y) ≅ unflatten (flatten X)
---   ≅.sym (unflatten-flatten-≈ X) : unflatten (flatten X) ≅ X
--- composed via ≅.trans.
-
-middle-iso
-  : ∀ {A B X Y} (g₁ : HomTerm X B) (f₁ : HomTerm A X)
-                  (g₂ : HomTerm Y B) (f₂ : HomTerm A Y)
-  → ⟪ g₁ ∘ f₁ ⟫ ≅ᴴ ⟪ g₂ ∘ f₂ ⟫
-  → Y ≅ X
-middle-iso {A} {B} {X} {Y} g₁ f₁ g₂ f₂ iso =
-  ≅.trans (unflatten-flatten-≈ Y)
-    (≅.trans (unflatten-≡⇒≅ (sym (flatten-middle-equal g₁ f₁ g₂ f₂ iso)))
-             (≅.sym (unflatten-flatten-≈ X)))
+    → Y ≅ X
 
 --------------------------------------------------------------------------------
 -- Sub-postulate (2): sub-iso between f₁ and the γ.from-prepended f₂.
@@ -200,7 +181,11 @@ postulate
 
 --------------------------------------------------------------------------------
 -- Sub-postulate (3): sub-iso between g₁ and the γ.to-postpended g₂.
-
+--
+-- Direct postulate (the previous narrowing via `sub-iso-g-raw` +
+-- `coh-postcompose-on-dom` was unsound: `coh-postcompose-on-dom` is
+-- false in general because `⟪g⟫` and `⟪g ∘ h⟫` have different
+-- domain-label lists in `hCompose`).
 postulate
   sub-iso-g-via-γ
     : ∀ {A B X Y} (g₁ : HomTerm X B) (f₁ : HomTerm A X)
