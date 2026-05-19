@@ -36,12 +36,17 @@
 -- that proves the same conclusion via σ-naturality, but we do not
 -- need to enumerate it here for the *file to type-check*).
 --
--- This module exposes the iso decomposition as the narrow postulate
--- `iso-decompose-⊗⊗`, which the rest of the proof consumes
--- structurally.  Discharging it is a focused engineering task that
--- does not require any further mathematical insight — it is a vertex/
--- edge bookkeeping job analogous to (but more delicate than) the
--- existing `hTensor-resp-≅ᴴ` in `Hypergraph.Congruence`.
+-- This module exposes the iso decomposition `iso-decompose-⊗⊗`,
+-- which the rest of the proof consumes structurally.  The
+-- decomposition is now *constructively assembled* from four narrow
+-- block-diagonal sub-postulates living in
+-- `RespIso.Discharge.IsoDecomposeTT.BlockDiagonal`
+-- (`φ-restricts-L/R`, `ψ-restricts-L/R`); every other iso-record
+-- field is derived constructively from those four claims plus the
+-- original tensor-iso.  The only remaining open obligation is to
+-- discharge those four restrictions themselves, which is a focused
+-- vertex/edge bookkeeping job analogous to (but more delicate than)
+-- the existing `hTensor-resp-≅ᴴ` in `Hypergraph.Congruence`.
 --
 -- The IH `decode-rel-resp-≅ᴴ-full` is taken as a *module parameter*
 -- (not imported) so this file does not depend on `Inductive.agda`,
@@ -62,19 +67,28 @@ open import Categories.APROP.Hypergraph.FromAPROP sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
   using (decode-rel)
+open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.IsoDecomposeTT sig
+  using (module Assembly)
 
-open import Data.Product using (_×_; proj₁; proj₂)
+open import Data.Product using (_×_; _,_; proj₁; proj₂)
 
 --------------------------------------------------------------------------------
 -- Module-level abstract IH parameter.  `Inductive.agda` will pass
 -- `decode-rel-resp-≅ᴴ-full` here when consuming this module.
 
 --------------------------------------------------------------------------------
--- Iso decomposition (narrow postulate, public so `Inductive.agda` can
--- use it directly without instantiating the IH module).
+-- Iso decomposition: decompose an iso between two tensor hypergraphs
+-- into two sub-isos.  This is the inverse of `Congruence.hTensor-resp-≅ᴴ`.
 --
--- Decompose an iso between two tensor hypergraphs into two sub-isos.
--- This is the inverse of `Congruence.hTensor-resp-≅ᴴ`.
+-- This top-level lemma is now *constructively assembled* from the
+-- four block-diagonal narrow postulates in
+-- `Discharge.IsoDecomposeTT.BlockDiagonal`
+-- (`φ-restricts-L`, `φ-restricts-R`, `ψ-restricts-L`, `ψ-restricts-R`)
+-- via the `Assembly` collector module, which derives every iso-record
+-- field of `iso-L` and `iso-R` constructively from those four claims
+-- and the original tensor-iso.  All postulates beyond the four
+-- block-diagonal ones (including the previous monolithic
+-- `iso-decompose-⊗⊗`) have been eliminated from this file.
 --
 -- *Soundness note (added after a soundness investigation)*: the
 -- decomposition is sound because of the position-ordered boundary
@@ -100,9 +114,10 @@ open import Data.Product using (_×_; proj₁; proj₂)
 -- `(⟪f₁⟫ ≅ᴴ ⟪f₂⟫) × (⟪g₁⟫ ≅ᴴ ⟪g₂⟫)` would follow gratis from
 -- transitivity with the relevant structural-coherence iso anyway.
 --
--- Discharging the postulate is consequently vertex/edge bookkeeping
--- in two passes: (1) extract the half-restricted φ/ψ at boundaries;
--- (2) propagate to interior via the endpoint equations.
+-- Discharging the four remaining block-diagonal sub-postulates is
+-- consequently vertex/edge bookkeeping in two passes: (1) extract the
+-- half-restricted φ/ψ at boundaries; (2) propagate to interior via
+-- the endpoint equations.
 --
 -- Progress on (1) has been collected in
 -- `RespIso/Discharge/IsoDecomposeTT.agda` as a stand-alone toolkit
@@ -110,16 +125,16 @@ open import Data.Product using (_×_; proj₁; proj₂)
 -- length-matching `++-split-eq` helper).  Pass (2), the propagation
 -- to interior vertices, requires either a linearity-based
 -- reachability argument or a symmetric-monoidal coherence step for
--- the crossed (half-swap) case — neither of which is in place yet —
--- so this postulate is retained for now.
-
-postulate
-  iso-decompose-⊗⊗
-    : ∀ {A B C D}
-        (f₁ : HomTerm A B) (g₁ : HomTerm C D)
-        (f₂ : HomTerm A B) (g₂ : HomTerm C D)
-    → ⟪ f₁ ⊗₁ g₁ ⟫ ≅ᴴ ⟪ f₂ ⊗₁ g₂ ⟫
-    → (⟪ f₁ ⟫ ≅ᴴ ⟪ f₂ ⟫) × (⟪ g₁ ⟫ ≅ᴴ ⟪ g₂ ⟫)
+-- the crossed (half-swap) case — both still to be discharged.
+iso-decompose-⊗⊗
+  : ∀ {A B C D}
+      (f₁ : HomTerm A B) (g₁ : HomTerm C D)
+      (f₂ : HomTerm A B) (g₂ : HomTerm C D)
+  → ⟪ f₁ ⊗₁ g₁ ⟫ ≅ᴴ ⟪ f₂ ⊗₁ g₂ ⟫
+  → (⟪ f₁ ⟫ ≅ᴴ ⟪ f₂ ⟫) × (⟪ g₁ ⟫ ≅ᴴ ⟪ g₂ ⟫)
+iso-decompose-⊗⊗ f₁ g₁ f₂ g₂ iso = A.iso-L , A.iso-R
+  where
+    module A = Assembly f₁ g₁ f₂ g₂ iso
 
 module _
   (IH : ∀ {A B} (f g : HomTerm A B)

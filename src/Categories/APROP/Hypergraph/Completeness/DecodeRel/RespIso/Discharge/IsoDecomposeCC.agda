@@ -100,7 +100,7 @@ module Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.IsoD
 open APROPSignatureDec sig-dec using (sig)
 open APROP sig
 open import Categories.APROP.Hypergraph.FromAPROP sig using (⟪_⟫; flatten)
-open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_; trans-≅ᴴ)
+open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (bridge)
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig

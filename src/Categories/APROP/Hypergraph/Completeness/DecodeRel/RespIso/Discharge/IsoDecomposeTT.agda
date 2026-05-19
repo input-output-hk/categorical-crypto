@@ -64,10 +64,11 @@ module Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.IsoD
 open APROP sig
 open import Categories.APROP.Hypergraph.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using (flatten; FlatGen; ⟪_⟫; ⟪⟫-domL; ⟪⟫-codL; hTensor; hTensor-impl)
 open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
+open import Categories.APROP.Hypergraph.CoherenceHelpers sig
+  using (subst₂-trans; subst₂-sym-subst₂; subst₂-refl)
 
-open import Data.Empty using (⊥-elim)
+open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.Fin.Properties as Fin using
   (splitAt-↑ˡ; splitAt-↑ʳ; splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ;
@@ -147,6 +148,47 @@ private
   ↑ʳ≢↑ˡ : ∀ {m n} (iG : Fin m) (iK : Fin n)
         → m ↑ʳ iK ≡ iG ↑ˡ n → ⊥
   ↑ʳ≢↑ˡ iG iK eq = ↑ˡ≢↑ʳ iG iK (sym eq)
+
+  -- List-level injectivity of `_↑ˡ n` and `m ↑ʳ_` on `Fin`-lists.
+  map-↑ˡ-injective
+    : ∀ {m n} (xs ys : List (Fin m))
+    → map (_↑ˡ n) xs ≡ map (_↑ˡ n) ys → xs ≡ ys
+  map-↑ˡ-injective []       []       _  = refl
+  map-↑ˡ-injective []       (y ∷ _)  ()
+  map-↑ˡ-injective (x ∷ _)  []       ()
+  map-↑ˡ-injective {m} {n} (x ∷ xs) (y ∷ ys) eq =
+    cong₂ _∷_ head-eq (map-↑ˡ-injective xs ys tail-eq)
+    where
+      ∷-head : ∀ {A : Set} {x x' : A} {xs xs' : List A}
+             → x ∷ xs ≡ x' ∷ xs' → x ≡ x'
+      ∷-head refl = refl
+      ∷-tail : ∀ {A : Set} {x x' : A} {xs xs' : List A}
+             → x ∷ xs ≡ x' ∷ xs' → xs ≡ xs'
+      ∷-tail refl = refl
+      head-eq : x ≡ y
+      head-eq = ↑ˡ-injective n x y (∷-head eq)
+      tail-eq : map (_↑ˡ n) xs ≡ map (_↑ˡ n) ys
+      tail-eq = ∷-tail eq
+
+  map-↑ʳ-injective
+    : ∀ {m n} (xs ys : List (Fin n))
+    → map (m ↑ʳ_) xs ≡ map (m ↑ʳ_) ys → xs ≡ ys
+  map-↑ʳ-injective []       []       _  = refl
+  map-↑ʳ-injective []       (y ∷ _)  ()
+  map-↑ʳ-injective (x ∷ _)  []       ()
+  map-↑ʳ-injective {m} {n} (x ∷ xs) (y ∷ ys) eq =
+    cong₂ _∷_ head-eq (map-↑ʳ-injective xs ys tail-eq)
+    where
+      ∷-head : ∀ {A : Set} {x x' : A} {xs xs' : List A}
+             → x ∷ xs ≡ x' ∷ xs' → x ≡ x'
+      ∷-head refl = refl
+      ∷-tail : ∀ {A : Set} {x x' : A} {xs xs' : List A}
+             → x ∷ xs ≡ x' ∷ xs' → xs ≡ xs'
+      ∷-tail refl = refl
+      head-eq : x ≡ y
+      head-eq = ↑ʳ-injective m x y (∷-head eq)
+      tail-eq : map (m ↑ʳ_) xs ≡ map (m ↑ʳ_) ys
+      tail-eq = ∷-tail eq
 
 --------------------------------------------------------------------------------
 -- Main slicing lemma: boundary half-equations.
@@ -361,29 +403,21 @@ module InverseDerivations
     → Σ (Fin G₁.nV) λ iG → φ⁻¹ (iG' ↑ˡ K₂.nV) ≡ iG ↑ˡ K₁.nV
   φ_L⁻¹-data iG' with splitAt G₁.nV (φ⁻¹ (iG' ↑ˡ K₂.nV)) in eq
   ... | inj₁ iG = iG , sym (splitAt⁻¹-↑ˡ eq)
-  ... | inj₂ iK = ⊥-elim (↑ˡ≢↑ʳ (φ_R iK) iG' contradiction)
+  ... | inj₂ iK = ⊥-elim (↑ʳ≢↑ˡ iG' (φ_R iK) step₃)
     where
       -- φ⁻¹ (iG' ↑ˡ K₂.nV) = G₁.nV ↑ʳ iK, so applying φ gives
       -- iG' ↑ˡ K₂.nV = φ(G₁.nV ↑ʳ iK) = G₂.nV ↑ʳ (φ_R iK) (by φ_R-eq).
       back-eq : G₁.nV ↑ʳ iK ≡ φ⁻¹ (iG' ↑ˡ K₂.nV)
-      back-eq = sym (splitAt⁻¹-↑ʳ eq)
+      back-eq = splitAt⁻¹-↑ʳ eq
 
-      contradiction : (φ_R iK) ↑ˡ K₂.nV ≡ G₂.nV ↑ʳ iG'
-      contradiction = ⊥-elim impossible
-        where
-          -- Wait, we want the opposite: iG' ↑ˡ K₂.nV ≡ G₂.nV ↑ʳ (φ_R iK).
-          -- Let me restructure.
-          apply-φ : φ (φ⁻¹ (iG' ↑ˡ K₂.nV)) ≡ iG' ↑ˡ K₂.nV
-          apply-φ = φ-rght (iG' ↑ˡ K₂.nV)
+      apply-φ : φ (φ⁻¹ (iG' ↑ˡ K₂.nV)) ≡ iG' ↑ˡ K₂.nV
+      apply-φ = φ-rght (iG' ↑ˡ K₂.nV)
 
-          step₂ : φ (G₁.nV ↑ʳ iK) ≡ iG' ↑ˡ K₂.nV
-          step₂ = trans (cong φ back-eq) apply-φ
+      step₂ : φ (G₁.nV ↑ʳ iK) ≡ iG' ↑ˡ K₂.nV
+      step₂ = trans (cong φ back-eq) apply-φ
 
-          step₃ : G₂.nV ↑ʳ (φ_R iK) ≡ iG' ↑ˡ K₂.nV
-          step₃ = trans (sym (φ_R-eq iK)) step₂
-
-          impossible : ⊥
-          impossible = ↑ʳ≢↑ˡ iG' (φ_R iK) step₃
+      step₃ : G₂.nV ↑ʳ (φ_R iK) ≡ iG' ↑ˡ K₂.nV
+      step₃ = trans (sym (φ_R-eq iK)) step₂
 
   φ_L⁻¹ : Fin G₂.nV → Fin G₁.nV
   φ_L⁻¹ iG' = proj₁ (φ_L⁻¹-data iG')
@@ -396,10 +430,10 @@ module InverseDerivations
     : ∀ (iK' : Fin K₂.nV)
     → Σ (Fin K₁.nV) λ iK → φ⁻¹ (G₂.nV ↑ʳ iK') ≡ G₁.nV ↑ʳ iK
   φ_R⁻¹-data iK' with splitAt G₁.nV (φ⁻¹ (G₂.nV ↑ʳ iK')) in eq
-  ... | inj₁ iG = ⊥-elim (↑ˡ≢↑ʳ (φ_L iG) iK' contradiction)
+  ... | inj₁ iG = ⊥-elim (↑ˡ≢↑ʳ (φ_L iG) iK' step₃)
     where
       back-eq : iG ↑ˡ K₁.nV ≡ φ⁻¹ (G₂.nV ↑ʳ iK')
-      back-eq = sym (splitAt⁻¹-↑ˡ eq)
+      back-eq = splitAt⁻¹-↑ˡ eq
 
       apply-φ : φ (φ⁻¹ (G₂.nV ↑ʳ iK')) ≡ G₂.nV ↑ʳ iK'
       apply-φ = φ-rght (G₂.nV ↑ʳ iK')
@@ -409,9 +443,6 @@ module InverseDerivations
 
       step₃ : (φ_L iG) ↑ˡ K₂.nV ≡ G₂.nV ↑ʳ iK'
       step₃ = trans (sym (φ_L-eq iG)) step₂
-
-      contradiction : (φ_L iG) ↑ˡ K₂.nV ≡ G₂.nV ↑ʳ iK'
-      contradiction = step₃
   ... | inj₂ iK = iK , sym (splitAt⁻¹-↑ʳ eq)
 
   φ_R⁻¹ : Fin K₂.nV → Fin K₁.nV
@@ -429,7 +460,7 @@ module InverseDerivations
   ... | inj₂ eK = ⊥-elim (↑ʳ≢↑ˡ eG' (ψ_R eK) step₃)
     where
       back-eq : G₁.nE ↑ʳ eK ≡ ψ⁻¹ (eG' ↑ˡ K₂.nE)
-      back-eq = sym (splitAt⁻¹-↑ʳ eq)
+      back-eq = splitAt⁻¹-↑ʳ eq
 
       apply-ψ : ψ (ψ⁻¹ (eG' ↑ˡ K₂.nE)) ≡ eG' ↑ˡ K₂.nE
       apply-ψ = ψ-rght (eG' ↑ˡ K₂.nE)
@@ -454,7 +485,7 @@ module InverseDerivations
   ... | inj₁ eG = ⊥-elim (↑ˡ≢↑ʳ (ψ_L eG) eK' step₃)
     where
       back-eq : eG ↑ˡ K₁.nE ≡ ψ⁻¹ (G₂.nE ↑ʳ eK')
-      back-eq = sym (splitAt⁻¹-↑ˡ eq)
+      back-eq = splitAt⁻¹-↑ˡ eq
 
       apply-ψ : ψ (ψ⁻¹ (G₂.nE ↑ʳ eK')) ≡ G₂.nE ↑ʳ eK'
       apply-ψ = ψ-rght (G₂.nE ↑ʳ eK')
@@ -588,3 +619,624 @@ module InverseDerivations
       eq3 = trans (sym (ψ_R-eq (ψ_R⁻¹ eK'))) eq2
     in
     ↑ʳ-injective G₂.nE (ψ_R (ψ_R⁻¹ eK')) eK' eq3
+
+--------------------------------------------------------------------------------
+-- Assembly: from the four block-diagonal sub-postulates plus their
+-- constructively-derived inverse-direction data, build two sub-isos
+--
+--    iso-L : ⟪ f₁ ⟫ ≅ᴴ ⟪ f₂ ⟫
+--    iso-R : ⟪ g₁ ⟫ ≅ᴴ ⟪ g₂ ⟫.
+--
+-- All record fields are derived by pulling back the analogous fields
+-- of the original tensor-iso through the L/R splitting.  The boundary
+-- equations use `dom-split-eq-L`/`-R` and `cod-split-eq-L`/`-R`; the
+-- vertex-label, edge-endpoint, atom-list, and edge-label fields use
+-- the `hT₁`/`hT₂` reduction lemmas `vlab-injL`/`vlab-injR`,
+-- `ein-c-inj₁-red`/`ein-c-inj₂-red`, and `elab-c-inj₁`/`elab-c-inj₂`,
+-- together with the original iso's matching fields restricted via
+-- `φ_L-eq`/`ψ_L-eq` (resp. R).
+
+module Assembly
+  {A B C D}
+  (f₁ : HomTerm A B) (g₁ : HomTerm C D)
+  (f₂ : HomTerm A B) (g₂ : HomTerm C D)
+  (iso : ⟪ f₁ ⊗₁ g₁ ⟫ ≅ᴴ ⟪ f₂ ⊗₁ g₂ ⟫)
+  where
+
+  open InverseDerivations f₁ g₁ f₂ g₂ iso public
+
+  -- hTensor helpers for the two sides (avoids ambiguity over which
+  -- `vlab-c`, `ein-c` etc. we mean).
+  module hT₁ = hTensor-impl ⟪ f₁ ⟫ ⟪ g₁ ⟫
+  module hT₂ = hTensor-impl ⟪ f₂ ⟫ ⟪ g₂ ⟫
+
+  T₁ = ⟪ f₁ ⊗₁ g₁ ⟫
+  T₂ = ⟪ f₂ ⊗₁ g₂ ⟫
+  module T₁ = Hypergraph T₁
+  module T₂ = Hypergraph T₂
+
+  ------------------------------------------------------------------------------
+  -- Generic re-writes: convert `map φ (map (_↑ˡ K.nV) xs)` into
+  -- `map (_↑ˡ K.nV) (map φ_L xs)` using the elementwise `φ_L-eq`.
+
+  map-φ-injL
+    : (xs : List (Fin G₁.nV))
+    → map φ (map (_↑ˡ K₁.nV) xs) ≡ map (_↑ˡ K₂.nV) (map φ_L xs)
+  map-φ-injL xs =
+    trans (sym (map-∘ xs))
+    (trans (map-cong φ_L-eq xs)
+           (map-∘ xs))
+
+  map-φ-injR
+    : (xs : List (Fin K₁.nV))
+    → map φ (map (G₁.nV ↑ʳ_) xs) ≡ map (G₂.nV ↑ʳ_) (map φ_R xs)
+  map-φ-injR xs =
+    trans (sym (map-∘ xs))
+    (trans (map-cong φ_R-eq xs)
+           (map-∘ xs))
+
+  ------------------------------------------------------------------------------
+  -- Boundary preservation, restricted to the L/R halves.
+  --
+  --   G₂.dom ≡ map φ_L G₁.dom    (and similarly cod, R)
+  --
+  -- via `dom-split-eq-L` plus `map-↑ˡ-injective`.
+
+  φ-dom-L : G₂.dom ≡ map φ_L G₁.dom
+  φ-dom-L = map-↑ˡ-injective G₂.dom (map φ_L G₁.dom)
+                              (trans dom-split-eq-L (map-φ-injL G₁.dom))
+
+  φ-cod-L : G₂.cod ≡ map φ_L G₁.cod
+  φ-cod-L = map-↑ˡ-injective G₂.cod (map φ_L G₁.cod)
+                              (trans cod-split-eq-L (map-φ-injL G₁.cod))
+
+  φ-dom-R : K₂.dom ≡ map φ_R K₁.dom
+  φ-dom-R = map-↑ʳ-injective K₂.dom (map φ_R K₁.dom)
+                              (trans dom-split-eq-R (map-φ-injR K₁.dom))
+
+  φ-cod-R : K₂.cod ≡ map φ_R K₁.cod
+  φ-cod-R = map-↑ʳ-injective K₂.cod (map φ_R K₁.cod)
+                              (trans cod-split-eq-R (map-φ-injR K₁.cod))
+
+  ------------------------------------------------------------------------------
+  -- Vertex-label preservation, restricted to each half.
+
+  φ-lab-L : ∀ iG → G₂.vlab (φ_L iG) ≡ G₁.vlab iG
+  φ-lab-L iG =
+    let
+      -- IG.φ-lab at the lifted index `iG ↑ˡ K₁.nV`:
+      lab-T : T₂.vlab (φ (iG ↑ˡ K₁.nV)) ≡ T₁.vlab (iG ↑ˡ K₁.nV)
+      lab-T = φ-lab (iG ↑ˡ K₁.nV)
+
+      -- Translate the LHS through φ_L-eq:
+      lab-L-T : T₂.vlab (φ_L iG ↑ˡ K₂.nV) ≡ T₁.vlab (iG ↑ˡ K₁.nV)
+      lab-L-T = trans (cong T₂.vlab (sym (φ_L-eq iG))) lab-T
+    in
+      -- T₂.vlab on `_↑ˡ K₂.nV` reduces to G₂.vlab; ditto T₁.
+      trans (sym (hT₂.vlab-injL (φ_L iG)))
+            (trans lab-L-T (hT₁.vlab-injL iG))
+
+  φ-lab-R : ∀ iK → K₂.vlab (φ_R iK) ≡ K₁.vlab iK
+  φ-lab-R iK =
+    let
+      lab-T : T₂.vlab (φ (G₁.nV ↑ʳ iK)) ≡ T₁.vlab (G₁.nV ↑ʳ iK)
+      lab-T = φ-lab (G₁.nV ↑ʳ iK)
+
+      lab-R-T : T₂.vlab (G₂.nV ↑ʳ φ_R iK) ≡ T₁.vlab (G₁.nV ↑ʳ iK)
+      lab-R-T = trans (cong T₂.vlab (sym (φ_R-eq iK))) lab-T
+    in
+      trans (sym (hT₂.vlab-injR (φ_R iK)))
+            (trans lab-R-T (hT₁.vlab-injR iK))
+
+  ------------------------------------------------------------------------------
+  -- Edge endpoints, restricted to each half.
+
+  ψ-ein-L : ∀ eG → G₂.ein (ψ_L eG) ≡ map φ_L (G₁.ein eG)
+  ψ-ein-L eG =
+    let
+      -- IG.ψ-ein at the lifted index `eG ↑ˡ K₁.nE`:
+      ein-T : T₂.ein (ψ (eG ↑ˡ K₁.nE)) ≡ map φ (T₁.ein (eG ↑ˡ K₁.nE))
+      ein-T = ψ-ein (eG ↑ˡ K₁.nE)
+
+      -- Translate LHS through ψ_L-eq:
+      ein-L-T : T₂.ein (ψ_L eG ↑ˡ K₂.nE) ≡ map φ (T₁.ein (eG ↑ˡ K₁.nE))
+      ein-L-T = trans (cong T₂.ein (sym (ψ_L-eq eG))) ein-T
+
+      -- Reduce T₂.ein (ψ_L eG ↑ˡ K₂.nE) via hT₂.ein-c-inj₁-red:
+      step₁ : map (_↑ˡ K₂.nV) (G₂.ein (ψ_L eG))
+            ≡ map φ (T₁.ein (eG ↑ˡ K₁.nE))
+      step₁ = trans (sym (hT₂.ein-c-inj₁-red (ψ_L eG))) ein-L-T
+
+      -- Reduce T₁.ein (eG ↑ˡ K₁.nE) via hT₁.ein-c-inj₁-red:
+      step₂ : map (_↑ˡ K₂.nV) (G₂.ein (ψ_L eG))
+            ≡ map φ (map (_↑ˡ K₁.nV) (G₁.ein eG))
+      step₂ = trans step₁ (cong (map φ) (hT₁.ein-c-inj₁-red eG))
+
+      -- Push φ through ↑ˡ via map-φ-injL:
+      step₃ : map (_↑ˡ K₂.nV) (G₂.ein (ψ_L eG))
+            ≡ map (_↑ˡ K₂.nV) (map φ_L (G₁.ein eG))
+      step₃ = trans step₂ (map-φ-injL (G₁.ein eG))
+    in
+      map-↑ˡ-injective (G₂.ein (ψ_L eG)) (map φ_L (G₁.ein eG)) step₃
+
+  ψ-eout-L : ∀ eG → G₂.eout (ψ_L eG) ≡ map φ_L (G₁.eout eG)
+  ψ-eout-L eG =
+    let
+      eout-T : T₂.eout (ψ (eG ↑ˡ K₁.nE)) ≡ map φ (T₁.eout (eG ↑ˡ K₁.nE))
+      eout-T = ψ-eout (eG ↑ˡ K₁.nE)
+
+      eout-L-T : T₂.eout (ψ_L eG ↑ˡ K₂.nE) ≡ map φ (T₁.eout (eG ↑ˡ K₁.nE))
+      eout-L-T = trans (cong T₂.eout (sym (ψ_L-eq eG))) eout-T
+
+      step₁ : map (_↑ˡ K₂.nV) (G₂.eout (ψ_L eG))
+            ≡ map φ (T₁.eout (eG ↑ˡ K₁.nE))
+      step₁ = trans (sym (hT₂.eout-c-inj₁-red (ψ_L eG))) eout-L-T
+
+      step₂ : map (_↑ˡ K₂.nV) (G₂.eout (ψ_L eG))
+            ≡ map φ (map (_↑ˡ K₁.nV) (G₁.eout eG))
+      step₂ = trans step₁ (cong (map φ) (hT₁.eout-c-inj₁-red eG))
+
+      step₃ : map (_↑ˡ K₂.nV) (G₂.eout (ψ_L eG))
+            ≡ map (_↑ˡ K₂.nV) (map φ_L (G₁.eout eG))
+      step₃ = trans step₂ (map-φ-injL (G₁.eout eG))
+    in
+      map-↑ˡ-injective (G₂.eout (ψ_L eG)) (map φ_L (G₁.eout eG)) step₃
+
+  ψ-ein-R : ∀ eK → K₂.ein (ψ_R eK) ≡ map φ_R (K₁.ein eK)
+  ψ-ein-R eK =
+    let
+      ein-T : T₂.ein (ψ (G₁.nE ↑ʳ eK)) ≡ map φ (T₁.ein (G₁.nE ↑ʳ eK))
+      ein-T = ψ-ein (G₁.nE ↑ʳ eK)
+
+      ein-R-T : T₂.ein (G₂.nE ↑ʳ ψ_R eK) ≡ map φ (T₁.ein (G₁.nE ↑ʳ eK))
+      ein-R-T = trans (cong T₂.ein (sym (ψ_R-eq eK))) ein-T
+
+      step₁ : map (G₂.nV ↑ʳ_) (K₂.ein (ψ_R eK))
+            ≡ map φ (T₁.ein (G₁.nE ↑ʳ eK))
+      step₁ = trans (sym (hT₂.ein-c-inj₂-red (ψ_R eK))) ein-R-T
+
+      step₂ : map (G₂.nV ↑ʳ_) (K₂.ein (ψ_R eK))
+            ≡ map φ (map (G₁.nV ↑ʳ_) (K₁.ein eK))
+      step₂ = trans step₁ (cong (map φ) (hT₁.ein-c-inj₂-red eK))
+
+      step₃ : map (G₂.nV ↑ʳ_) (K₂.ein (ψ_R eK))
+            ≡ map (G₂.nV ↑ʳ_) (map φ_R (K₁.ein eK))
+      step₃ = trans step₂ (map-φ-injR (K₁.ein eK))
+    in
+      map-↑ʳ-injective (K₂.ein (ψ_R eK)) (map φ_R (K₁.ein eK)) step₃
+
+  ψ-eout-R : ∀ eK → K₂.eout (ψ_R eK) ≡ map φ_R (K₁.eout eK)
+  ψ-eout-R eK =
+    let
+      eout-T : T₂.eout (ψ (G₁.nE ↑ʳ eK)) ≡ map φ (T₁.eout (G₁.nE ↑ʳ eK))
+      eout-T = ψ-eout (G₁.nE ↑ʳ eK)
+
+      eout-R-T : T₂.eout (G₂.nE ↑ʳ ψ_R eK) ≡ map φ (T₁.eout (G₁.nE ↑ʳ eK))
+      eout-R-T = trans (cong T₂.eout (sym (ψ_R-eq eK))) eout-T
+
+      step₁ : map (G₂.nV ↑ʳ_) (K₂.eout (ψ_R eK))
+            ≡ map φ (T₁.eout (G₁.nE ↑ʳ eK))
+      step₁ = trans (sym (hT₂.eout-c-inj₂-red (ψ_R eK))) eout-R-T
+
+      step₂ : map (G₂.nV ↑ʳ_) (K₂.eout (ψ_R eK))
+            ≡ map φ (map (G₁.nV ↑ʳ_) (K₁.eout eK))
+      step₂ = trans step₁ (cong (map φ) (hT₁.eout-c-inj₂-red eK))
+
+      step₃ : map (G₂.nV ↑ʳ_) (K₂.eout (ψ_R eK))
+            ≡ map (G₂.nV ↑ʳ_) (map φ_R (K₁.eout eK))
+      step₃ = trans step₂ (map-φ-injR (K₁.eout eK))
+    in
+      map-↑ʳ-injective (K₂.eout (ψ_R eK)) (map φ_R (K₁.eout eK)) step₃
+
+  ------------------------------------------------------------------------------
+  -- Atom-list equalities.
+  --
+  -- Defined as the explicit chain that the `ψ-elab-L`/`-R` proofs
+  -- below produce when they unwind the original `ψ-elab` field
+  -- through the L/R restriction.  This definitional choice makes
+  -- `ψ-elab-L`/`-R` go through without UIP: the proof's running
+  -- `subst₂` ends up parameterised by exactly these `trans` chains.
+  --
+  -- The chain shape, for the L-half:
+  --
+  --   map G₂.vlab (G₂.ein (ψ_L eG))
+  --     ≡⟨ map-via-inj hT₂.vlab-injL ⟩
+  --   map T₂.vlab (map injL₂ (G₂.ein (ψ_L eG)))
+  --     ≡⟨ sym (cong (map T₂.vlab) (hT₂.ein-c-inj₁-red (ψ_L eG))) ⟩
+  --   map T₂.vlab (T₂.ein (ψ_L eG ↑ˡ K₂.nE))
+  --     ≡⟨ sym (cong (λ z → map T₂.vlab (T₂.ein z)) (ψ_L-eq eG)) ⟩
+  --   map T₂.vlab (T₂.ein (ψ (eG ↑ˡ K₁.nE)))
+  --     ≡⟨ atom-ein (eG ↑ˡ K₁.nE) ⟩
+  --   map T₁.vlab (T₁.ein (eG ↑ˡ K₁.nE))
+  --     ≡⟨ cong (map T₁.vlab) (hT₁.ein-c-inj₁-red eG) ⟩
+  --   map T₁.vlab (map injL₁ (G₁.ein eG))
+  --     ≡⟨ sym (map-via-inj hT₁.vlab-injL) ⟩
+  --   map G₁.vlab (G₁.ein eG)
+
+  atom-ein-L : ∀ eG → map G₂.vlab (G₂.ein (ψ_L eG))
+                    ≡ map G₁.vlab (G₁.ein eG)
+  atom-ein-L eG =
+    trans (map-via-inj hT₂.vlab-injL (G₂.ein (ψ_L eG)))
+    (trans (sym (cong (map T₂.vlab) (hT₂.ein-c-inj₁-red (ψ_L eG))))
+    (trans (cong (λ z → map T₂.vlab (T₂.ein z)) (sym (ψ_L-eq eG)))
+    (trans (atom-ein (eG ↑ˡ K₁.nE))
+    (trans (cong (map T₁.vlab) (hT₁.ein-c-inj₁-red eG))
+           (sym (map-via-inj hT₁.vlab-injL (G₁.ein eG)))))))
+
+  atom-eout-L : ∀ eG → map G₂.vlab (G₂.eout (ψ_L eG))
+                     ≡ map G₁.vlab (G₁.eout eG)
+  atom-eout-L eG =
+    trans (map-via-inj hT₂.vlab-injL (G₂.eout (ψ_L eG)))
+    (trans (sym (cong (map T₂.vlab) (hT₂.eout-c-inj₁-red (ψ_L eG))))
+    (trans (cong (λ z → map T₂.vlab (T₂.eout z)) (sym (ψ_L-eq eG)))
+    (trans (atom-eout (eG ↑ˡ K₁.nE))
+    (trans (cong (map T₁.vlab) (hT₁.eout-c-inj₁-red eG))
+           (sym (map-via-inj hT₁.vlab-injL (G₁.eout eG)))))))
+
+  atom-ein-R : ∀ eK → map K₂.vlab (K₂.ein (ψ_R eK))
+                    ≡ map K₁.vlab (K₁.ein eK)
+  atom-ein-R eK =
+    trans (map-via-raise hT₂.vlab-injR (K₂.ein (ψ_R eK)))
+    (trans (sym (cong (map T₂.vlab) (hT₂.ein-c-inj₂-red (ψ_R eK))))
+    (trans (cong (λ z → map T₂.vlab (T₂.ein z)) (sym (ψ_R-eq eK)))
+    (trans (atom-ein (G₁.nE ↑ʳ eK))
+    (trans (cong (map T₁.vlab) (hT₁.ein-c-inj₂-red eK))
+           (sym (map-via-raise hT₁.vlab-injR (K₁.ein eK)))))))
+
+  atom-eout-R : ∀ eK → map K₂.vlab (K₂.eout (ψ_R eK))
+                     ≡ map K₁.vlab (K₁.eout eK)
+  atom-eout-R eK =
+    trans (map-via-raise hT₂.vlab-injR (K₂.eout (ψ_R eK)))
+    (trans (sym (cong (map T₂.vlab) (hT₂.eout-c-inj₂-red (ψ_R eK))))
+    (trans (cong (λ z → map T₂.vlab (T₂.eout z)) (sym (ψ_R-eq eK)))
+    (trans (atom-eout (G₁.nE ↑ʳ eK))
+    (trans (cong (map T₁.vlab) (hT₁.eout-c-inj₂-red eK))
+           (sym (map-via-raise hT₁.vlab-injR (K₁.eout eK)))))))
+
+  ------------------------------------------------------------------------------
+  -- Edge-label preservation.
+  --
+  -- Strategy: chain through the same 6 segments used to construct
+  -- `atom-ein-L` / `atom-eout-L`, applying the relevant unfolding
+  -- lemma at each step:
+  --
+  --   step 1 (s1, s1'):  `hT₂.elab-c-inj₁ (ψ_L eG)` (read in reverse:
+  --                       `subst₂ s1 s1' (G₂.elab (ψ_L eG))
+  --                        ≡ subst₂ (cong …) (T₂.elab (ψ_L eG ↑ˡ K₂.nE))`).
+  --   step 2 (s2, s2'):  `subst₂-sym-subst₂` collapses the
+  --                       `(cong …) ∘ (sym (cong …))` pair to identity.
+  --   step 3 (s3, s3'):  `T₂-elab-cong` transports `T₂.elab` along
+  --                       `ψ_L-eq eG`.
+  --   step 4 (s4, s4'):  `ψ-elab (eG ↑ˡ K₁.nE)` from the original iso.
+  --   step 5 (s5, s5'):  `hT₁.elab-c-inj₁ eG` unfolds `T₁.elab`.
+  --   step 6 (s6, s6'):  `subst₂-sym-subst₂` again.
+  --
+  -- The five `subst₂-trans` collapses then re-package the six nested
+  -- `subst₂` calls into one `subst₂` along the full `atom-ein-L eG` /
+  -- `atom-eout-L eG` chain.
+
+  -- Transport-along-equality for `T.elab`.  Standard `subst₂` shape
+  -- consistent with the atom-list equalities expressed via `cong`.
+  T₂-elab-cong : ∀ {e₁ e₂ : Fin T₂.nE} (eq : e₁ ≡ e₂)
+               → T₂.elab e₂ ≡ subst₂ FlatGen
+                                (cong (λ z → map T₂.vlab (T₂.ein z))  eq)
+                                (cong (λ z → map T₂.vlab (T₂.eout z)) eq)
+                                (T₂.elab e₁)
+  T₂-elab-cong refl = refl
+
+  ψ-elab-L : ∀ eG → subst₂ FlatGen (atom-ein-L eG) (atom-eout-L eG)
+                                    (G₂.elab (ψ_L eG))
+                  ≡ G₁.elab eG
+  ψ-elab-L eG =
+    let
+      -- Six segment-equations of `atom-ein-L eG`.
+      s1  = map-via-inj hT₂.vlab-injL (G₂.ein (ψ_L eG))
+      s1' = map-via-inj hT₂.vlab-injL (G₂.eout (ψ_L eG))
+      s2  = sym (cong (map T₂.vlab) (hT₂.ein-c-inj₁-red (ψ_L eG)))
+      s2' = sym (cong (map T₂.vlab) (hT₂.eout-c-inj₁-red (ψ_L eG)))
+      s3  = cong (λ z → map T₂.vlab (T₂.ein z))  (sym (ψ_L-eq eG))
+      s3' = cong (λ z → map T₂.vlab (T₂.eout z)) (sym (ψ_L-eq eG))
+      s4  = atom-ein  (eG ↑ˡ K₁.nE)
+      s4' = atom-eout (eG ↑ˡ K₁.nE)
+      s5  = cong (map T₁.vlab) (hT₁.ein-c-inj₁-red eG)
+      s5' = cong (map T₁.vlab) (hT₁.eout-c-inj₁-red eG)
+      s6  = sym (map-via-inj hT₁.vlab-injL (G₁.ein eG))
+      s6' = sym (map-via-inj hT₁.vlab-injL (G₁.eout eG))
+
+      -- Step 1: apply `hT₂.elab-c-inj₁` in reverse to transport
+      -- `G₂.elab (ψ_L eG)` to a `subst₂`-of-`T₂.elab`.
+      step1 : subst₂ FlatGen s1 s1' (G₂.elab (ψ_L eG))
+            ≡ subst₂ FlatGen
+                (cong (map T₂.vlab) (hT₂.ein-c-inj₁-red  (ψ_L eG)))
+                (cong (map T₂.vlab) (hT₂.eout-c-inj₁-red (ψ_L eG)))
+                (T₂.elab (ψ_L eG ↑ˡ K₂.nE))
+      step1 = sym (hT₂.elab-c-inj₁ (ψ_L eG))
+
+      -- Step 2: collapse the `(cong …) ∘ (sym (cong …))` pair.
+      step2 : subst₂ FlatGen s2 s2'
+                (subst₂ FlatGen
+                  (cong (map T₂.vlab) (hT₂.ein-c-inj₁-red  (ψ_L eG)))
+                  (cong (map T₂.vlab) (hT₂.eout-c-inj₁-red (ψ_L eG)))
+                  (T₂.elab (ψ_L eG ↑ˡ K₂.nE)))
+            ≡ T₂.elab (ψ_L eG ↑ˡ K₂.nE)
+      step2 = subst₂-sym-subst₂
+                (cong (map T₂.vlab) (hT₂.ein-c-inj₁-red  (ψ_L eG)))
+                (cong (map T₂.vlab) (hT₂.eout-c-inj₁-red (ψ_L eG)))
+                (T₂.elab (ψ_L eG ↑ˡ K₂.nE))
+
+      -- Step 3: transport `T₂.elab` from `(ψ_L eG ↑ˡ K₂.nE)` back to
+      -- `ψ (eG ↑ˡ K₁.nE)` via `ψ_L-eq eG`.  `T₂-elab-cong` produces
+      -- the `(sym ∘ ψ_L-eq)`-flavoured `subst₂`; symmetrising gives
+      -- the direction we want.
+      step3 : subst₂ FlatGen s3 s3' (T₂.elab (ψ_L eG ↑ˡ K₂.nE))
+            ≡ T₂.elab (ψ (eG ↑ˡ K₁.nE))
+      step3 = sym (T₂-elab-cong (sym (ψ_L-eq eG)))
+
+      -- Step 4: original iso's `ψ-elab` at `eG ↑ˡ K₁.nE`.
+      step4 : subst₂ FlatGen s4 s4' (T₂.elab (ψ (eG ↑ˡ K₁.nE)))
+            ≡ T₁.elab (eG ↑ˡ K₁.nE)
+      step4 = ψ-elab (eG ↑ˡ K₁.nE)
+
+      -- Step 5: apply `hT₁.elab-c-inj₁` to unfold `T₁.elab (eG ↑ˡ K₁.nE)`.
+      step5 : subst₂ FlatGen s5 s5' (T₁.elab (eG ↑ˡ K₁.nE))
+            ≡ subst₂ FlatGen
+                (map-via-inj hT₁.vlab-injL (G₁.ein  eG))
+                (map-via-inj hT₁.vlab-injL (G₁.eout eG))
+                (G₁.elab eG)
+      step5 = hT₁.elab-c-inj₁ eG
+
+      -- Step 6: collapse the `(map-via-inj) ∘ (sym (map-via-inj))` pair.
+      step6 : subst₂ FlatGen s6 s6'
+                (subst₂ FlatGen
+                  (map-via-inj hT₁.vlab-injL (G₁.ein  eG))
+                  (map-via-inj hT₁.vlab-injL (G₁.eout eG))
+                  (G₁.elab eG))
+            ≡ G₁.elab eG
+      step6 = subst₂-sym-subst₂
+                (map-via-inj hT₁.vlab-injL (G₁.ein  eG))
+                (map-via-inj hT₁.vlab-injL (G₁.eout eG))
+                (G₁.elab eG)
+
+      -- Combine the six steps.  Each step's `subst₂` is applied to
+      -- the previous step's RHS; we use `cong (subst₂ FlatGen ...)`
+      -- to push them through.
+      combined : subst₂ FlatGen s6 s6'
+                  (subst₂ FlatGen s5 s5'
+                    (subst₂ FlatGen s4 s4'
+                      (subst₂ FlatGen s3 s3'
+                        (subst₂ FlatGen s2 s2'
+                          (subst₂ FlatGen s1 s1' (G₂.elab (ψ_L eG)))))))
+               ≡ G₁.elab eG
+      combined =
+        trans (cong (subst₂ FlatGen s6 s6')
+              (trans (cong (subst₂ FlatGen s5 s5')
+                    (trans (cong (subst₂ FlatGen s4 s4')
+                          (trans (cong (subst₂ FlatGen s3 s3')
+                                (trans (cong (subst₂ FlatGen s2 s2') step1)
+                                       step2))
+                                 step3))
+                           step4))
+                     step5))
+              step6
+
+      -- Now collapse the six nested `subst₂` calls into one along the
+      -- full `atom-ein-L eG` / `atom-eout-L eG` chain via 5 applications
+      -- of `subst₂-trans`.
+      -- atom-ein-L eG is right-associated as
+      --   trans s1 (trans s2 (trans s3 (trans s4 (trans s5 s6)))).
+      -- Split it inside-out, applying `sym (subst₂-trans)` at each
+      -- step: `subst₂ (trans p R) Q X = subst₂ R Q' (subst₂ p X)`.
+
+      r5 = trans s5  s6
+      r5' = trans s5' s6'
+      r4 = trans s4  r5
+      r4' = trans s4' r5'
+      r3 = trans s3  r4
+      r3' = trans s3' r4'
+      r2 = trans s2  r3
+      r2' = trans s2' r3'
+      -- r1 = trans s1 r2 = atom-ein-L eG (definitionally)
+      -- r1' = trans s1' r2' = atom-eout-L eG (definitionally)
+
+      Y₁ = subst₂ FlatGen s1 s1' (G₂.elab (ψ_L eG))
+      Y₂ = subst₂ FlatGen s2 s2' Y₁
+      Y₃ = subst₂ FlatGen s3 s3' Y₂
+      Y₄ = subst₂ FlatGen s4 s4' Y₃
+      Y₅ = subst₂ FlatGen s5 s5' Y₄
+      Y₆ = subst₂ FlatGen s6 s6' Y₅
+
+      split-1 : subst₂ FlatGen (trans s1 r2) (trans s1' r2') (G₂.elab (ψ_L eG))
+              ≡ subst₂ FlatGen r2 r2' Y₁
+      split-1 = sym (subst₂-trans s1 r2 s1' r2' (G₂.elab (ψ_L eG)))
+
+      split-2 : subst₂ FlatGen r2 r2' Y₁ ≡ subst₂ FlatGen r3 r3' Y₂
+      split-2 = sym (subst₂-trans s2 r3 s2' r3' Y₁)
+
+      split-3 : subst₂ FlatGen r3 r3' Y₂ ≡ subst₂ FlatGen r4 r4' Y₃
+      split-3 = sym (subst₂-trans s3 r4 s3' r4' Y₂)
+
+      split-4 : subst₂ FlatGen r4 r4' Y₃ ≡ subst₂ FlatGen r5 r5' Y₄
+      split-4 = sym (subst₂-trans s4 r5 s4' r5' Y₃)
+
+      split-5 : subst₂ FlatGen r5 r5' Y₄ ≡ Y₆
+      split-5 = sym (subst₂-trans s5 s6 s5' s6' Y₄)
+
+      collapse : subst₂ FlatGen (atom-ein-L eG) (atom-eout-L eG)
+                                (G₂.elab (ψ_L eG))
+               ≡ Y₆
+      collapse = trans split-1 (trans split-2 (trans split-3
+                                  (trans split-4 split-5)))
+    in
+      trans collapse combined
+
+  -- R-half companion.
+  T₂-elab-cong-R : ∀ {e₁ e₂ : Fin T₂.nE} (eq : e₁ ≡ e₂)
+                 → T₂.elab e₂ ≡ subst₂ FlatGen
+                                  (cong (λ z → map T₂.vlab (T₂.ein z))  eq)
+                                  (cong (λ z → map T₂.vlab (T₂.eout z)) eq)
+                                  (T₂.elab e₁)
+  T₂-elab-cong-R refl = refl
+
+  ψ-elab-R : ∀ eK → subst₂ FlatGen (atom-ein-R eK) (atom-eout-R eK)
+                                    (K₂.elab (ψ_R eK))
+                  ≡ K₁.elab eK
+  ψ-elab-R eK =
+    let
+      s1  = map-via-raise hT₂.vlab-injR (K₂.ein  (ψ_R eK))
+      s1' = map-via-raise hT₂.vlab-injR (K₂.eout (ψ_R eK))
+      s2  = sym (cong (map T₂.vlab) (hT₂.ein-c-inj₂-red  (ψ_R eK)))
+      s2' = sym (cong (map T₂.vlab) (hT₂.eout-c-inj₂-red (ψ_R eK)))
+      s3  = cong (λ z → map T₂.vlab (T₂.ein z))  (sym (ψ_R-eq eK))
+      s3' = cong (λ z → map T₂.vlab (T₂.eout z)) (sym (ψ_R-eq eK))
+      s4  = atom-ein  (G₁.nE ↑ʳ eK)
+      s4' = atom-eout (G₁.nE ↑ʳ eK)
+      s5  = cong (map T₁.vlab) (hT₁.ein-c-inj₂-red  eK)
+      s5' = cong (map T₁.vlab) (hT₁.eout-c-inj₂-red eK)
+      s6  = sym (map-via-raise hT₁.vlab-injR (K₁.ein  eK))
+      s6' = sym (map-via-raise hT₁.vlab-injR (K₁.eout eK))
+
+      step1 : subst₂ FlatGen s1 s1' (K₂.elab (ψ_R eK))
+            ≡ subst₂ FlatGen
+                (cong (map T₂.vlab) (hT₂.ein-c-inj₂-red  (ψ_R eK)))
+                (cong (map T₂.vlab) (hT₂.eout-c-inj₂-red (ψ_R eK)))
+                (T₂.elab (G₂.nE ↑ʳ ψ_R eK))
+      step1 = sym (hT₂.elab-c-inj₂ (ψ_R eK))
+
+      step2 : subst₂ FlatGen s2 s2'
+                (subst₂ FlatGen
+                  (cong (map T₂.vlab) (hT₂.ein-c-inj₂-red  (ψ_R eK)))
+                  (cong (map T₂.vlab) (hT₂.eout-c-inj₂-red (ψ_R eK)))
+                  (T₂.elab (G₂.nE ↑ʳ ψ_R eK)))
+            ≡ T₂.elab (G₂.nE ↑ʳ ψ_R eK)
+      step2 = subst₂-sym-subst₂
+                (cong (map T₂.vlab) (hT₂.ein-c-inj₂-red  (ψ_R eK)))
+                (cong (map T₂.vlab) (hT₂.eout-c-inj₂-red (ψ_R eK)))
+                (T₂.elab (G₂.nE ↑ʳ ψ_R eK))
+
+      step3 : subst₂ FlatGen s3 s3' (T₂.elab (G₂.nE ↑ʳ ψ_R eK))
+            ≡ T₂.elab (ψ (G₁.nE ↑ʳ eK))
+      step3 = sym (T₂-elab-cong-R (sym (ψ_R-eq eK)))
+
+      step4 : subst₂ FlatGen s4 s4' (T₂.elab (ψ (G₁.nE ↑ʳ eK)))
+            ≡ T₁.elab (G₁.nE ↑ʳ eK)
+      step4 = ψ-elab (G₁.nE ↑ʳ eK)
+
+      step5 : subst₂ FlatGen s5 s5' (T₁.elab (G₁.nE ↑ʳ eK))
+            ≡ subst₂ FlatGen
+                (map-via-raise hT₁.vlab-injR (K₁.ein  eK))
+                (map-via-raise hT₁.vlab-injR (K₁.eout eK))
+                (K₁.elab eK)
+      step5 = hT₁.elab-c-inj₂ eK
+
+      step6 : subst₂ FlatGen s6 s6'
+                (subst₂ FlatGen
+                  (map-via-raise hT₁.vlab-injR (K₁.ein  eK))
+                  (map-via-raise hT₁.vlab-injR (K₁.eout eK))
+                  (K₁.elab eK))
+            ≡ K₁.elab eK
+      step6 = subst₂-sym-subst₂
+                (map-via-raise hT₁.vlab-injR (K₁.ein  eK))
+                (map-via-raise hT₁.vlab-injR (K₁.eout eK))
+                (K₁.elab eK)
+
+      combined : subst₂ FlatGen s6 s6'
+                  (subst₂ FlatGen s5 s5'
+                    (subst₂ FlatGen s4 s4'
+                      (subst₂ FlatGen s3 s3'
+                        (subst₂ FlatGen s2 s2'
+                          (subst₂ FlatGen s1 s1' (K₂.elab (ψ_R eK)))))))
+               ≡ K₁.elab eK
+      combined =
+        trans (cong (subst₂ FlatGen s6 s6')
+              (trans (cong (subst₂ FlatGen s5 s5')
+                    (trans (cong (subst₂ FlatGen s4 s4')
+                          (trans (cong (subst₂ FlatGen s3 s3')
+                                (trans (cong (subst₂ FlatGen s2 s2') step1)
+                                       step2))
+                                 step3))
+                           step4))
+                     step5))
+              step6
+
+      r5 = trans s5  s6
+      r5' = trans s5' s6'
+      r4 = trans s4  r5
+      r4' = trans s4' r5'
+      r3 = trans s3  r4
+      r3' = trans s3' r4'
+      r2 = trans s2  r3
+      r2' = trans s2' r3'
+
+      Y₁ = subst₂ FlatGen s1 s1' (K₂.elab (ψ_R eK))
+      Y₂ = subst₂ FlatGen s2 s2' Y₁
+      Y₃ = subst₂ FlatGen s3 s3' Y₂
+      Y₄ = subst₂ FlatGen s4 s4' Y₃
+      Y₅ = subst₂ FlatGen s5 s5' Y₄
+      Y₆ = subst₂ FlatGen s6 s6' Y₅
+
+      split-1 : subst₂ FlatGen (trans s1 r2) (trans s1' r2') (K₂.elab (ψ_R eK))
+              ≡ subst₂ FlatGen r2 r2' Y₁
+      split-1 = sym (subst₂-trans s1 r2 s1' r2' (K₂.elab (ψ_R eK)))
+
+      split-2 : subst₂ FlatGen r2 r2' Y₁ ≡ subst₂ FlatGen r3 r3' Y₂
+      split-2 = sym (subst₂-trans s2 r3 s2' r3' Y₁)
+
+      split-3 : subst₂ FlatGen r3 r3' Y₂ ≡ subst₂ FlatGen r4 r4' Y₃
+      split-3 = sym (subst₂-trans s3 r4 s3' r4' Y₂)
+
+      split-4 : subst₂ FlatGen r4 r4' Y₃ ≡ subst₂ FlatGen r5 r5' Y₄
+      split-4 = sym (subst₂-trans s4 r5 s4' r5' Y₃)
+
+      split-5 : subst₂ FlatGen r5 r5' Y₄ ≡ Y₆
+      split-5 = sym (subst₂-trans s5 s6 s5' s6' Y₄)
+
+      collapse : subst₂ FlatGen (atom-ein-R eK) (atom-eout-R eK)
+                                (K₂.elab (ψ_R eK))
+               ≡ Y₆
+      collapse = trans split-1 (trans split-2 (trans split-3
+                                  (trans split-4 split-5)))
+    in
+      trans collapse combined
+
+  ------------------------------------------------------------------------------
+  -- Assemble the two sub-isos.
+
+  iso-L : ⟪ f₁ ⟫ ≅ᴴ ⟪ f₂ ⟫
+  iso-L = record
+    { φ         = φ_L
+    ; φ⁻¹       = φ_L⁻¹
+    ; φ-left    = φ_L-left
+    ; φ-rght    = φ_L-rght
+    ; ψ         = ψ_L
+    ; ψ⁻¹       = ψ_L⁻¹
+    ; ψ-left    = ψ_L-left
+    ; ψ-rght    = ψ_L-rght
+    ; φ-lab     = φ-lab-L
+    ; ψ-ein     = ψ-ein-L
+    ; ψ-eout    = ψ-eout-L
+    ; φ-dom     = φ-dom-L
+    ; φ-cod     = φ-cod-L
+    ; atom-ein  = atom-ein-L
+    ; atom-eout = atom-eout-L
+    ; ψ-elab    = ψ-elab-L
+    }
+
+  iso-R : ⟪ g₁ ⟫ ≅ᴴ ⟪ g₂ ⟫
+  iso-R = record
+    { φ         = φ_R
+    ; φ⁻¹       = φ_R⁻¹
+    ; φ-left    = φ_R-left
+    ; φ-rght    = φ_R-rght
+    ; ψ         = ψ_R
+    ; ψ⁻¹       = ψ_R⁻¹
+    ; ψ-left    = ψ_R-left
+    ; ψ-rght    = ψ_R-rght
+    ; φ-lab     = φ-lab-R
+    ; ψ-ein     = ψ-ein-R
+    ; ψ-eout    = ψ-eout-R
+    ; φ-dom     = φ-dom-R
+    ; φ-cod     = φ-cod-R
+    ; atom-ein  = atom-ein-R
+    ; atom-eout = atom-eout-R
+    ; ψ-elab    = ψ-elab-R
+    }
