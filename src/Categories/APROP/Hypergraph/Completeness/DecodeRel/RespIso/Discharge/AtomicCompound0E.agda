@@ -114,6 +114,8 @@ open import Data.List using (List; []; _∷_; _++_)
 import Data.List.Properties
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Nat.Properties using (m+n≡0⇒m≡0; m+n≡0⇒n≡0)
+open import Data.Sum using (_⊎_; inj₁; inj₂)
+open import Data.Unit using (⊤; tt)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
@@ -143,6 +145,57 @@ data Structural : ∀ {A B} → HomTerm A B → Set where
   structural-⊗  : ∀ {A B C D} {h : HomTerm A B} {k : HomTerm C D}
                 → Structural h → Structural k
                 → Structural (h ⊗₁ k)
+
+--------------------------------------------------------------------------------
+-- `NoSigma`: predicate "no `σ` subterm anywhere".  Strictly stronger
+-- than `Structural` (which allows σ); morphisms satisfying `NoSigma`
+-- live in the Mac Lane fragment, where coherence is fully constructive
+-- via `Categories.MonoidalCoherence.Solver.solveM`.
+
+data NoSigma : ∀ {A B} → HomTerm A B → Set where
+  nosigma-id : ∀ {A} → NoSigma (id {A})
+  nosigma-λ⇒ : ∀ {A} → NoSigma (λ⇒ {A})
+  nosigma-λ⇐ : ∀ {A} → NoSigma (λ⇐ {A})
+  nosigma-ρ⇒ : ∀ {A} → NoSigma (ρ⇒ {A})
+  nosigma-ρ⇐ : ∀ {A} → NoSigma (ρ⇐ {A})
+  nosigma-α⇒ : ∀ {A B C} → NoSigma (α⇒ {A} {B} {C})
+  nosigma-α⇐ : ∀ {A B C} → NoSigma (α⇐ {A} {B} {C})
+  nosigma-∘  : ∀ {A B C} {h : HomTerm B C} {k : HomTerm A B}
+             → NoSigma h → NoSigma k
+             → NoSigma (h ∘ k)
+  nosigma-⊗  : ∀ {A B C D} {h : HomTerm A B} {k : HomTerm C D}
+             → NoSigma h → NoSigma k
+             → NoSigma (h ⊗₁ k)
+
+NoSigma→Structural : ∀ {A B} {f : HomTerm A B} → NoSigma f → Structural f
+NoSigma→Structural nosigma-id      = structural-id
+NoSigma→Structural nosigma-λ⇒      = structural-λ⇒
+NoSigma→Structural nosigma-λ⇐      = structural-λ⇐
+NoSigma→Structural nosigma-ρ⇒      = structural-ρ⇒
+NoSigma→Structural nosigma-ρ⇐      = structural-ρ⇐
+NoSigma→Structural nosigma-α⇒      = structural-α⇒
+NoSigma→Structural nosigma-α⇐      = structural-α⇐
+NoSigma→Structural (nosigma-∘ h k) = structural-∘ (NoSigma→Structural h)
+                                                   (NoSigma→Structural k)
+NoSigma→Structural (nosigma-⊗ h k) = structural-⊗ (NoSigma→Structural h)
+                                                   (NoSigma→Structural k)
+
+-- Decide whether a structural term contains at least one `σ`.
+HasSigma? : ∀ {A B} {f : HomTerm A B} → Structural f → NoSigma f ⊎ ⊤
+HasSigma? structural-id        = inj₁ nosigma-id
+HasSigma? structural-λ⇒        = inj₁ nosigma-λ⇒
+HasSigma? structural-λ⇐        = inj₁ nosigma-λ⇐
+HasSigma? structural-ρ⇒        = inj₁ nosigma-ρ⇒
+HasSigma? structural-ρ⇐        = inj₁ nosigma-ρ⇐
+HasSigma? structural-α⇒        = inj₁ nosigma-α⇒
+HasSigma? structural-α⇐        = inj₁ nosigma-α⇐
+HasSigma? structural-σ         = inj₂ tt
+HasSigma? (structural-∘ sh sk) with HasSigma? sh | HasSigma? sk
+... | inj₁ nh | inj₁ nk = inj₁ (nosigma-∘ nh nk)
+... | _       | _       = inj₂ tt
+HasSigma? (structural-⊗ sh sk) with HasSigma? sh | HasSigma? sk
+... | inj₁ nh | inj₁ nk = inj₁ (nosigma-⊗ nh nk)
+... | _       | _       = inj₂ tt
 
 --------------------------------------------------------------------------------
 -- Atomic structural constructors are structural.  (The `Agen` atomic
@@ -282,12 +335,38 @@ Structural-to-perm (structural-⊗ sh sk) =
 -- category where structural morphisms are quotiented to bare list
 -- permutations.
 
+-- Splitting via `HasSigma?` exposes the σ-free (Mac Lane) sub-case as
+-- a strictly narrower postulate that is mechanically dischargeable by
+-- `Categories.MonoidalCoherence.Solver.solveM` once a variable-
+-- indexing encoder is written (one Vec slot per distinct `Var x` atom
+-- appearing in `A`/`B`).  The σ-containing residual is the genuine
+-- remaining content — requires extending `solveM` to the symmetric
+-- fragment.  Under the iso hypothesis the σ-free case has identity-
+-- forced boundary φ, so Mac Lane coherence applies directly.
+
 postulate
-  Structural-coherence-≈Term
+  Structural-coherence-≈Term-noσ
+    : ∀ {A B} {f g : HomTerm A B}
+    → NoSigma f → NoSigma g
+    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+    → f ≈Term g
+
+  Structural-coherence-≈Term-σ
     : ∀ {A B} {f g : HomTerm A B}
     → Structural f → Structural g
     → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
     → f ≈Term g
+
+-- Dispatch: σ-free × σ-free goes to the Mac Lane sub-postulate; any
+-- σ-containing pair goes to the symmetric residual.
+Structural-coherence-≈Term
+  : ∀ {A B} {f g : HomTerm A B}
+  → Structural f → Structural g
+  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+  → f ≈Term g
+Structural-coherence-≈Term sf sg iso with HasSigma? sf | HasSigma? sg
+... | inj₁ nf | inj₁ ng = Structural-coherence-≈Term-noσ nf ng iso
+... | _       | _       = Structural-coherence-≈Term-σ   sf sg iso
 
 --------------------------------------------------------------------------------
 -- Derived: lift `Structural-coherence-≈Term` through `bridge` and

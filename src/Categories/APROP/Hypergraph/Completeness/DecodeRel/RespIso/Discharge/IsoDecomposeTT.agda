@@ -895,22 +895,36 @@ module BlockDiagonal
     nonempty-↑ˡ≡↑ʳ-impossible g gs []        ()
     nonempty-↑ˡ≡↑ʳ-impossible g gs (w ∷ ws) eq = ∷-↑ˡ≢↑ʳ g w gs ws eq
 
+  -- Helper: `map f xs ≡ []` forces `xs ≡ []`.
+  private
+    map-≡-[]-inv : ∀ {S T : Set} (f : S → T) (xs : List S)
+                 → map f xs ≡ [] → xs ≡ []
+    map-≡-[]-inv f []       refl = refl
+    map-≡-[]-inv f (_ ∷ _)  ()
+
   postulate
-    -- "Degenerate" sub-postulates: only fire when the L-half edge
-    -- has BOTH empty `ein` and empty `eout` (a `mor unit unit` ghost
-    -- edge).  These are strictly weaker than the original
-    -- `ψ-restricts-L`/`-R` postulates and only required for the corner
-    -- case of unit→unit generators inside the tensor halves.
+    -- "Degenerate" sub-postulates: only fire when the L-half edge has
+    -- BOTH empty `ein` and empty `eout` (a `mor unit unit` ghost edge)
+    -- AND the opposite half (K₂ for L-deg, G₂ for R-deg) contains a
+    -- candidate ghost edge of the same shape.  Strictly weaker than the
+    -- pre-May-2026 form: if the opposite half has no ghost edge at all,
+    -- the discharge below derives ⊥ from the `inj₂`/`inj₁` branch.
+    -- This is the narrowest factoring short of the full label-multiset
+    -- counting argument: the residual postulate is only invoked when
+    -- the iso could *potentially* swap matching ghost edges across
+    -- halves, which is the genuine obstruction.
     ψ-restricts-L-deg
       : ∀ (eG : Fin G₁.nE)
       → G₁.ein eG ≡ []
       → G₁.eout eG ≡ []
+      → (Σ (Fin K₂.nE) λ eK → K₂.ein eK ≡ [] × K₂.eout eK ≡ [])
       → Σ (Fin G₂.nE) λ eG' → ψ (eG ↑ˡ K₁.nE) ≡ eG' ↑ˡ K₂.nE
 
     ψ-restricts-R-deg
       : ∀ (eK : Fin K₁.nE)
       → K₁.ein eK ≡ []
       → K₁.eout eK ≡ []
+      → (Σ (Fin G₂.nE) λ eG → G₂.ein eG ≡ [] × G₂.eout eG ≡ [])
       → Σ (Fin K₂.nE) λ eK' → ψ (G₁.nE ↑ʳ eK) ≡ G₂.nE ↑ʳ eK'
 
   -- ψ-restricts-L now DISCHARGED (no longer a postulate).
@@ -979,7 +993,25 @@ module BlockDiagonal
         → (o : List (Fin G₁.nV))
         → G₁.eout eG ≡ o
         → Σ (Fin G₂.nE) λ eG' → ψ (eG ↑ˡ K₁.nE) ≡ eG' ↑ˡ K₂.nE
-      handle []        eeq []          oeq = ψ-restricts-L-deg eG eeq oeq
+      handle []        eeq []          oeq =
+        -- Both G₁.ein eG and G₁.eout eG are []; combined equations
+        -- force K₂.ein eK' ≡ [] and K₂.eout eK' ≡ [].  Pass that ghost
+        -- partner to the narrowed postulate.
+        let
+          ein-emptyR : map (G₂.nV ↑ʳ_) (K₂.ein eK') ≡ []
+          ein-emptyR =
+            trans ein-combined
+                  (cong (λ z → map (_↑ˡ K₂.nV) (map φ_L z)) eeq)
+          eout-emptyR : map (G₂.nV ↑ʳ_) (K₂.eout eK') ≡ []
+          eout-emptyR =
+            trans eout-combined
+                  (cong (λ z → map (_↑ˡ K₂.nV) (map φ_L z)) oeq)
+          eK'-ein-empty  : K₂.ein  eK' ≡ []
+          eK'-ein-empty  = map-≡-[]-inv (G₂.nV ↑ʳ_) _ ein-emptyR
+          eK'-eout-empty : K₂.eout eK' ≡ []
+          eK'-eout-empty = map-≡-[]-inv (G₂.nV ↑ʳ_) _ eout-emptyR
+        in ψ-restricts-L-deg eG eeq oeq
+             (eK' , eK'-ein-empty , eK'-eout-empty)
       handle []        eeq (x₀ ∷ xs₀)  oeq =
         -- G₁.eout eG = x₀ ∷ xs₀ (non-empty).  Use eout to derive ⊥.
         go (K₂.eout eK') refl
@@ -1086,7 +1118,25 @@ module BlockDiagonal
         → (o : List (Fin K₁.nV))
         → K₁.eout eK ≡ o
         → Σ (Fin K₂.nE) λ eK' → ψ (G₁.nE ↑ʳ eK) ≡ G₂.nE ↑ʳ eK'
-      handle []        eeq []          oeq = ψ-restricts-R-deg eK eeq oeq
+      handle []        eeq []          oeq =
+        -- Both K₁.ein eK and K₁.eout eK are []; combined equations
+        -- force G₂.ein eG' ≡ [] and G₂.eout eG' ≡ [].  Pass that ghost
+        -- partner to the narrowed postulate.
+        let
+          ein-emptyL : map (_↑ˡ K₂.nV) (G₂.ein eG') ≡ []
+          ein-emptyL =
+            trans ein-combined
+                  (cong (λ z → map (G₂.nV ↑ʳ_) (map φ_R z)) eeq)
+          eout-emptyL : map (_↑ˡ K₂.nV) (G₂.eout eG') ≡ []
+          eout-emptyL =
+            trans eout-combined
+                  (cong (λ z → map (G₂.nV ↑ʳ_) (map φ_R z)) oeq)
+          eG'-ein-empty  : G₂.ein  eG' ≡ []
+          eG'-ein-empty  = map-≡-[]-inv (_↑ˡ K₂.nV) _ ein-emptyL
+          eG'-eout-empty : G₂.eout eG' ≡ []
+          eG'-eout-empty = map-≡-[]-inv (_↑ˡ K₂.nV) _ eout-emptyL
+        in ψ-restricts-R-deg eK eeq oeq
+             (eG' , eG'-ein-empty , eG'-eout-empty)
       handle []        eeq (x₀ ∷ xs₀)  oeq =
         go (G₂.eout eG') refl
         where

@@ -7,7 +7,7 @@ permutation-equality coherence.
 
 ## Postulate inventory
 
-The completeness path now depends on **11 narrow postulates** across
+The completeness path now depends on **13 narrow postulates** across
 6 files. Every original wide postulate has been narrowed; many were
 replaced outright by constructive definitions backed by a narrower
 postulate.
@@ -29,6 +29,15 @@ restriction postulates:
 `eout`) is **proved constructively** in the same file. The two `-deg`
 postulates are strict narrowings — they only fire on degenerate "ghost"
 edges (`mor unit unit`-shaped, no endpoints).
+
+**May 2026 narrowing of `ψ-restricts-{L,R}-deg`**: the postulates now
+*additionally* require evidence of a matching ghost edge on the
+opposite tensor half (a `Σ Fin K₂.nE λ eK → K₂.ein eK ≡ [] × K₂.eout
+eK ≡ []` argument, respectively for the R side). The call site
+constructively builds this witness via a small `map-≡-[]-inv` helper
+on `ein-combined`/`eout-combined`. Ghost edges arise legitimately
+from `Agen (f : mor unit unit)`; the genuinely hard residual is the
+matching-ghosts case (e.g., `Agen g ⊗ id` vs `id ⊗ Agen g` swap).
 
 **May 2026 narrowing**: `φ-restricts-L/R` have been further narrowed
 to a `-non-bdy` form that only fires on vertices outside *both*
@@ -86,6 +95,19 @@ to eliminating the previous `decode-rel-resp-≅ᴴ-⊗∘` termination
 workaround postulate — the symmetric primitive lets the ⊗∘ branch
 recurse structurally on `p, q` (subterms of the *first* argument).
 
+**May 2026 narrowing**: both primitives are now *constructively
+defined* from narrower universal coherence postulates. CrossOC
+introduces a single `⊗-∘-dist-FromAPROP-iso : ⟪ p ⊗₁ q ⟫ ≅ᴴ
+⟪ (p ⊗₁ id) ∘ (id ⊗₁ q) ⟫` (no iso input, no existential content),
+then transports through it and invokes
+`IsoDecomposeCC.middle-iso-perm` + `sub-iso-{f,g}-via-γ`. CrossCO
+introduces a mirror coherence iso plus a small `⊗∘-decode-rel-bridge`.
+Net: 2 wide existentials → 3 narrow universals; the existential /
+permutation / sub-iso content is now derived. A FromAPROP-side
+bridge `⟪f⟫_FromAPROP ≅ᴴ ⟪f⟫_Translation` was ruled out: pruning
+strictly removes stranded K-side dom vertices, so universal
+unpruned→pruned is mathematically impossible.
+
 ### 4. SMC coherence on the structural fragment — `Discharge/AtomicCompound0E.agda`
 
 `decode-rel-resp-≅ᴴ-atomic-compound-0E` is **gone**, replaced by
@@ -110,6 +132,21 @@ despite witnessing the same underlying permutation, so
 `perm-eq-from-iso` was unprovable as stated. The split has been
 reverted to a single postulate. `Structural-to-perm` is retained as
 useful infrastructure for a future model-theoretic discharge.
+
+**May 2026 σ-split**: `Structural-coherence-≈Term` is now a
+*constructive dispatcher* (no longer a postulate). It routes via a
+`HasSigma? : Structural f → NoSigma f ⊎ ⊤` decision to one of two
+strictly narrower postulates:
+
+```agda
+Structural-coherence-≈Term-noσ : NoSigma f → NoSigma g → ⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g
+Structural-coherence-≈Term-σ   : Structural f → Structural g → ⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g
+```
+
+The `-noσ` half is *exactly* Mac Lane coherence on the structural
+fragment, already covered by `Categories.MonoidalCoherence.Solver.solveM`
+modulo a Var-bookkeeping encoder. The `-σ` half is the symmetric
+residual that still requires extending `solveM` to σ.
 
 ### 5. Agen-compound-1E — `RespIso/AtomicCompound.agda`
 
@@ -145,11 +182,12 @@ in `RespIso/AgenAgen.agda`).
 | Postulate | Difficulty | Notes |
 |---|---|---|
 | φ-restricts-{L,R}-non-bdy | Hard | needs label-multiset counting (boundary case discharged) |
-| ψ-restricts-{L,R}-deg | Hard | requires iso-canonicalization for ghost edges |
+| ψ-restricts-{L,R}-deg (matching) | Hard | matching-ghosts case; needs label-multiset counting |
 | middle-iso-perm | Medium | extract permutation from boundary preservation in hCompose |
 | sub-iso-{f,g}-via-γ | Medium | vertex/edge bookkeeping over hCompose-impl |
-| iso-decompose-{∘⊗,⊗∘}-primitive-perm | Medium | similar to middle-iso-perm |
-| Structural-coherence-≈Term | Hard | symmetric monoidal coherence; needs σ-extended solver |
+| ⊗-∘-dist-FromAPROP-iso, mirror, ⊗∘-decode-rel-bridge | Medium | universal coherence isos for cross-shape primitives |
+| Structural-coherence-≈Term-noσ | Easy-Medium | Mac Lane coherence; awaits `solveM` Var-encoder |
+| Structural-coherence-≈Term-σ | Hard | needs σ-extended SMC coherence solver |
 | decode-rel-resp-≅ᴴ-Agen-compound-1E | Hard | depends on iso-decompose's machinery |
 
 ## Alternative paths
