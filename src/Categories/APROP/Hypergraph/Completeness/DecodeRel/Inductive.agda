@@ -118,10 +118,41 @@ atomic-or-compound (σ ⦃ s ⦄) = inj₁ (atomic-σ ⦃ s ⦄)
 -- The symmetric `⊗∘` direction is structurally trickier: there the
 -- recursive subterms `f`, `g` live in the *second* argument
 -- (`g ∘ f`), and Agda's termination checker rejects the lex-direction
--- decrease.  Until well-founded recursion or the analogous
--- iso-decompose machinery for `⊗∘` (a `iso-decompose-⊗∘-primitive`)
--- is filled in, the symmetric direction remains a postulate at this
--- layer.
+-- decrease.  Two avenues were attempted and found insufficient at
+-- this layer:
+--
+--   1.  Threading `decode-rel-resp-≅ᴴ-full` itself as a higher-order
+--       `IH` parameter into `CrossOC.decode-rel-resp-≅ᴴ-∘⊗` applied
+--       to `sym-≅ᴴ iso`.  Agda's termination checker traverses into
+--       the parameterised module and observes the unguarded
+--       recursive call on `f`, `g` (subterms of the second argument
+--       `g ∘ f`), and rejects the definition with the same
+--       lex-direction failure.
+--
+--   2.  Well-founded recursion on a syntactic size measure
+--       `size f + size g`.  Mathematically the iso-decomposition
+--       produces a coherence iso `γ` in `FreeMonoidal` whose
+--       canonical factors `f' = γ.from ∘ (id ⊗₁ q)` and
+--       `g' = (p ⊗₁ id) ∘ γ.to` carry the (unbounded) size of `γ`.
+--       The recursive call needs `size f + size f' < size (p ⊗ q)
+--       + size (g ∘ f)`, which reduces to `size γ.from < size p +
+--       size g` — there is no a-priori bound on the size of `γ` in
+--       the abstract iso-decomposition postulate, so size alone
+--       does not strictly decrease.
+--
+-- A genuine discharge therefore requires either:
+--   (a) a tighter primitive that bounds the size of `γ` (or
+--       returns the canonical factors with controlled syntactic
+--       shape), or
+--   (b) a strong-induction measure that combines size with the
+--       hypergraph-iso content (e.g. edge/vertex counts of the
+--       decoded hypergraph), or
+--   (c) a `--terminating`/TERMINATING annotation, which the
+--       project consciously avoids.
+--
+-- For now the symmetric direction remains a local postulate at
+-- this layer, equivalent under `sym-≅ᴴ` to the discharged
+-- `decode-rel-resp-≅ᴴ-∘⊗` of `CrossOC`.
 
 postulate
   decode-rel-resp-≅ᴴ-⊗∘

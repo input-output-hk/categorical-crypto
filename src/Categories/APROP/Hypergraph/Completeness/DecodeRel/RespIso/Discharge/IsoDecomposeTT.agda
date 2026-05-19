@@ -384,6 +384,86 @@ module BlockDiagonal
   --   (2) reworking `ψ-restricts-L`/`-R` to avoid `φ_L` so the
   --       recursion is one-way.
   -- Both are substantial multi-hundred-LOC efforts.
+  --
+  -- ## Connected-components refactor sketch (May 2026, agent-ade28bbf)
+  --
+  -- A cleaner organisation factors all four block-diagonal postulates
+  -- through ONE generic `iso-preserves-components` helper plus a single
+  -- residual lemma.  Concretely:
+  --
+  --   1. Define `Side = L | R` and `vertex-side : Fin (G.nV+K.nV) → Side`
+  --      via `splitAt`; similarly `edge-side`.
+  --
+  --   2. Constructive lemma: in `hTensor G K`, every endpoint of an
+  --      L-edge has L-side (and dually for R-edges).  This follows from
+  --      `hTensor-impl.ein-c-inj₁-red`/`ein-c-inj₂-red` together with
+  --      the fact that `map (_↑ˡ K.nV)` produces only L-side values.
+  --
+  --   3. Constructive lemma `iso-preserves-edge-endpoints`: for the iso
+  --      `T₁ ≅ᴴ T₂`, if vertex `v ∈ Fin T₁.nV` is an endpoint of edge
+  --      `e ∈ Fin T₁.nE`, then `φ v` is an endpoint of `ψ e`.  Direct
+  --      from `ψ-ein`/`ψ-eout` plus `∈`-image preservation.
+  --
+  --   4. Constructive lemma `iso-preserves-vertex-side-from-edge`:
+  --      combining (2) and (3), if `v` lies on edge `e` of T₁ and we
+  --      know `edge-side₂ (ψ e) = edge-side₁ e`, then
+  --      `vertex-side₂ (φ v) = vertex-side₁ v`.
+  --
+  --   5. Constructive lemma `iso-preserves-edge-side`: directly from
+  --      `ψ-ein`/`ψ-eout` on a NON-DEGENERATE edge (one with at least
+  --      one endpoint), since the endpoint already has a known side via
+  --      the boundary equations or by induction on the edge structure
+  --      of `⟪fᵢ⟫`/`⟪gᵢ⟫`.  (Degenerate edges with empty `ein`+`eout`
+  --      are exactly the ones picked up by `ψ-restricts-L-deg`/`-R-deg`.)
+  --
+  --   6. Constructive lemma `boundary-vertex-side`: every boundary
+  --      vertex of T₁ has a known side from `dom-split-eq-L/R` and
+  --      `cod-split-eq-L/R` (already in `BoundarySlice`).
+  --
+  --   7. Residual lemma (the SINGLE remaining hole): every vertex of
+  --      `⟪f⟫` is reachable — i.e. either appears in `⟪f⟫.dom`,
+  --      `⟪f⟫.cod`, or is an endpoint of some edge in `⟪f⟫.ein _` /
+  --      `⟪f⟫.eout _`.  This `vertex-coverage` lemma is a structural
+  --      induction on `f : HomTerm A B` and is the genuine remaining
+  --      content; it has no analogue elsewhere in the codebase yet.
+  --
+  -- Once (1)–(7) are in place, `φ-restricts-L`/`-R` are derivable in a
+  -- non-mutual fashion (the edge-side argument no longer references
+  -- `φ_L`).  The two `ψ-restricts-*-deg` postulates still need a
+  -- SEPARATE argument: they concern `mor unit unit` "ghost" edges with
+  -- no endpoints, where neither side functions nor connectivity help.
+  -- A counting argument on the multiset of edge labels per half (the
+  -- iso preserves edge labels, and the per-half label-multiset is an
+  -- intrinsic invariant of `⟪fᵢ⟫`/`⟪gᵢ⟫`) is the natural route, but it
+  -- also requires its own infrastructure (a `Multiset`/permutation
+  -- treatment of `Fin nE` lists).
+  --
+  -- ## Soundness audit of the four postulates
+  --
+  -- Each postulate has been independently checked against the σ-style
+  -- "label repetition across halves" counter-example:
+  --
+  --   * `φ-restricts-L`/`-R` — NOT falsifiable by the counter-example,
+  --     because vertices live in disjoint Fin coproducts; the iso's
+  --     bijection acts on raw `Fin (G.nV+K.nV)` indices, not on labels.
+  --     The only way to falsify would be a structural "half-swap" iso
+  --     between heterogeneous types, which the type discipline of
+  --     `HomTerm A B`/`HomTerm C D` rules out.
+  --
+  --   * `ψ-restricts-L-deg`/`-R-deg` — narrowest possible form: only
+  --     fires on ghost edges with no endpoints in either direction.
+  --     Falsifiability would require two `mor unit unit` edges, one in
+  --     each half, with identical edge labels, and the iso swapping
+  --     them; this is again ruled out by the structural decomposition
+  --     of the HomTerm tensor.  This case is genuinely the
+  --     "indistinguishable bookkeeping" corner and any cleanup likely
+  --     requires the label-multiset counting argument above.
+  --
+  -- The current narrowing (4 sub-postulates instead of 1 monolithic
+  -- `iso-decompose-⊗⊗`) is therefore sound, and any further discharge
+  -- requires either the `vertex-coverage` structural lemma or the
+  -- label-multiset counting infrastructure — neither of which exists
+  -- elsewhere in the codebase yet.
   postulate
     -- For every left-half vertex (i.e. one of the form `iG ↑ˡ K₁.nV`)
     -- of T₁, φ sends it to a left-half vertex of T₂.
