@@ -20,36 +20,67 @@
 -- ## Strict narrowing
 --
 -- The original monolithic postulate `iso-decompose-⊗⊗` has been replaced
--- by four named, narrow sub-postulates that capture exactly the
+-- by a narrower set of named sub-postulates that capture exactly the
 -- "block-diagonal" content of the iso's vertex and edge bijections.
 -- Concretely:
 --
---   * `φ-restricts-L`  / `φ-restricts-R`
---   * `ψ-restricts-L`  / `ψ-restricts-R`
+--   * `φ-restricts-L`  / `φ-restricts-R`          (vertices, still
+--                                                  postulates)
+--   * `ψ-restricts-L`  / `ψ-restricts-R`          (edges, now
+--                                                  DISCHARGED for the
+--                                                  generic case)
+--   * `ψ-restricts-L-deg` / `ψ-restricts-R-deg`   (edges, narrower
+--                                                  postulates for the
+--                                                  degenerate corner
+--                                                  case below)
 --
--- Each says: "for vertices/edges in the L (resp. R) half of T₁, the
--- iso's bijection lands in the L (resp. R) half of T₂".  Mathematically
--- this is the statement that the iso restricts to a pair of sub-isos
+-- Each `restricts-L` says: "for vertices/edges in the L-half of T₁,
+-- the iso's bijection lands in the L-half of T₂".  Mathematically this
+-- is the statement that the iso restricts to a pair of sub-isos
 -- between the f-halves and the g-halves of the two tensors.
 --
--- From these four sub-postulates we constructively assemble the two
+-- From these sub-postulates we constructively assemble the two
 -- sub-isos.  All the inverse-direction data (`φ⁻¹` for the sub-iso,
 -- the `φ-left`/`φ-rght` round-trips, etc.) is derived constructively
 -- by composing with the original iso's `φ⁻¹`/`ψ⁻¹` and using the
 -- `splitAt-↑ˡ`/`splitAt-↑ʳ` properties.
 --
--- ## Justification of the narrowing
+-- ## Edge postulate discharge (Apr 2026)
 --
--- Each sub-postulate is strictly smaller than the original existential.
--- They are also independently provable in principle: a "structurally
--- straight" iso (the only kind that occurs in our setting) satisfies
--- these properties directly from `dom-split-eq-L`/`-R` and
--- `cod-split-eq-L`/`-R` for boundary vertices, and from the
--- `ψ-ein`/`ψ-eout` propagation for interior vertices.  The
--- "crossed" case (where the iso swaps halves) is rejected by the type
--- discipline: f₁,f₂ have type A → B and g₁,g₂ have type C → D, so a
--- half-swap would force A ≡ C and B ≡ D heterogeneously, which our
--- type-driven decomposition does not need to handle.
+-- `ψ-restricts-L` and `ψ-restricts-R` have been discharged: each is now
+-- a constructive `with`-tree.  When `G₁.ein eG` (or eout) is non-empty,
+-- a half-swap would force a list-equation `map (G₂.nV ↑ʳ_) (k ∷ ks) ≡
+-- map (_↑ˡ K₂.nV) ws`, contradicting `↑ʳ≢↑ˡ` on the head.  The proof
+-- pulls in the iso's `ψ-ein`/`ψ-eout` field, `φ-restricts-L`/`-R`
+-- (still postulates) to push the contradiction through the vertex
+-- bijection, and `hTensor-impl.ein-c-inj₁/₂-red` to unfold the
+-- compound `T₁.ein`/`T₂.ein` into half-restricted form.
+--
+-- The remaining "degenerate" case — an edge with BOTH `ein ≡ []` and
+-- `eout ≡ []` (a `mor unit unit` ghost edge) — is captured by the two
+-- narrow sub-postulates `ψ-restricts-L-deg` / `ψ-restricts-R-deg`.  In
+-- such cases there are no endpoints to anchor the iso's `ψ` to a
+-- particular half, so the iso could in principle swap a unit→unit
+-- edge from f₁ with a unit→unit edge from g₂ (or vice versa).  Strict
+-- narrowing: each `-deg` postulate is strictly weaker than the
+-- original `ψ-restricts-L`/`-R` (just discard the two empty-list
+-- hypotheses to recover the original).  Soundness assumption: same as
+-- the original `iso-decompose-⊗⊗`, which we already accept; the
+-- narrowing inherits this without any further structural commitment.
+--
+-- ## Justification of the narrowing (vertex case)
+--
+-- `φ-restricts-L`/`-R` are strictly smaller than the original
+-- existential.  They are also independently provable in principle: a
+-- "structurally straight" iso (the only kind that occurs in our
+-- setting) satisfies these properties directly from
+-- `dom-split-eq-L`/`-R` and `cod-split-eq-L`/`-R` for boundary
+-- vertices, and from the `ψ-ein`/`ψ-eout` propagation for interior
+-- vertices.  The "crossed" case (where the iso swaps halves) is
+-- rejected by the type discipline: f₁,f₂ have type A → B and g₁,g₂
+-- have type C → D, so a half-swap would force A ≡ C and B ≡ D
+-- heterogeneously, which our type-driven decomposition does not need
+-- to handle.
 --
 -- The sub-isos are then assembled from these block-diagonal witnesses
 -- by carefully transporting the original iso's edge/vertex data
@@ -342,17 +373,8 @@ module BlockDiagonal
       : ∀ (iK : Fin K₁.nV)
       → Σ (Fin K₂.nV) λ iK' → φ (G₁.nV ↑ʳ iK) ≡ G₂.nV ↑ʳ iK'
 
-    -- For every left-half edge of T₁, ψ sends it to a left-half edge of T₂.
-    ψ-restricts-L
-      : ∀ (eG : Fin G₁.nE)
-      → Σ (Fin G₂.nE) λ eG' → ψ (eG ↑ˡ K₁.nE) ≡ eG' ↑ˡ K₂.nE
-
-    -- For every right-half edge of T₁, ψ sends it to a right-half edge of T₂.
-    ψ-restricts-R
-      : ∀ (eK : Fin K₁.nE)
-      → Σ (Fin K₂.nE) λ eK' → ψ (G₁.nE ↑ʳ eK) ≡ G₂.nE ↑ʳ eK'
-
-  -- Extracted half-restricted bijections (in the forward direction).
+  -- Forward bijection on the L-half of vertices, extracted from
+  -- `φ-restricts-L`.
   φ_L : Fin G₁.nV → Fin G₂.nV
   φ_L iG = proj₁ (φ-restricts-L iG)
 
@@ -365,6 +387,346 @@ module BlockDiagonal
   φ_R-eq : ∀ iK → φ (G₁.nV ↑ʳ iK) ≡ G₂.nV ↑ʳ φ_R iK
   φ_R-eq iK = proj₂ (φ-restricts-R iK)
 
+  --------------------------------------------------------------------
+  -- Edge half-restriction is now DISCHARGED (no longer a postulate).
+  --
+  -- Strategy.  Pattern-match on `splitAt G₂.nE (ψ (eG ↑ˡ K₁.nE))`:
+  --
+  --   * `inj₁ eG'` case: by `splitAt⁻¹-↑ˡ`, we get
+  --     `ψ (eG ↑ˡ K₁.nE) ≡ eG' ↑ˡ K₂.nE`, and we return `eG'`.
+  --
+  --   * `inj₂ eK'` case: by `splitAt⁻¹-↑ʳ`, we get
+  --     `ψ (eG ↑ˡ K₁.nE) ≡ G₂.nE ↑ʳ eK'`.  Apply `ψ-ein` (resp. `ψ-eout`):
+  --     the iso says `T₂.ein (ψ (eG ↑ˡ K₁.nE)) ≡ map φ (T₁.ein (eG ↑ˡ K₁.nE))`.
+  --     - LHS reduces to `map (G₂.nV ↑ʳ_) (K₂.ein eK')` (R-half vertices).
+  --     - RHS reduces to `map (_↑ˡ K₂.nV) (map φ_L (G₁.ein eG))` using
+  --       `φ-restricts-L` pointwise on the entries.
+  --     If `G₁.ein eG ∷⁺` non-empty, taking the head of each list gives
+  --     `G₂.nV ↑ʳ _ ≡ _ ↑ˡ K₂.nV`, contradicting `↑ʳ≢↑ˡ`.
+  --     We try `G₁.ein eG`; if empty, fall back to `G₁.eout eG` via the
+  --     `ψ-eout` constraint.
+  --
+  -- The remaining "degenerate" case where BOTH `G₁.ein eG = []` and
+  -- `G₁.eout eG = []` corresponds to a `mor unit unit` edge with no
+  -- endpoints.  This case is NOT discharged here: such "ghost" edges
+  -- are genuinely indistinguishable to the iso and the iso could map
+  -- them across halves.  We leave it as a narrower sub-postulate
+  -- `ψ-restricts-L-deg` / `-R-deg` strictly weaker than the original.
+
+  private
+    -- Helpers (hTensor-impl, map-via-inj, map-via-raise are already in
+    -- scope from the top-level `open import` of `FromAPROP`).
+    module hT₁ = hTensor-impl ⟪ f₁ ⟫ ⟪ g₁ ⟫
+    module hT₂ = hTensor-impl ⟪ f₂ ⟫ ⟪ g₂ ⟫
+
+    -- `T₁′`, `T₂′` are local convenience aliases for the tensor
+    -- hypergraphs.  They are intentionally distinct from `Assembly`'s
+    -- public `T₁`, `T₂` (and the modules of the same name there) — we
+    -- use them only inside the `ψ-restricts-L`/`-R` proofs below.
+    module T₁′ = Hypergraph ⟪ f₁ ⊗₁ g₁ ⟫
+    module T₂′ = Hypergraph ⟪ f₂ ⊗₁ g₂ ⟫
+
+    -- `map φ (map (_↑ˡ K₁.nV) xs) ≡ map (_↑ˡ K₂.nV) (map φ_L xs)`.
+    map-φ-injL-vert : (xs : List (Fin G₁.nV))
+      → map φ (map (_↑ˡ K₁.nV) xs) ≡ map (_↑ˡ K₂.nV) (map φ_L xs)
+    map-φ-injL-vert xs =
+      trans (sym (map-∘ xs))
+      (trans (map-cong φ_L-eq xs)
+             (map-∘ xs))
+
+    -- `map φ (map (G₁.nV ↑ʳ_) xs) ≡ map (G₂.nV ↑ʳ_) (map φ_R xs)`.
+    map-φ-injR-vert : (xs : List (Fin K₁.nV))
+      → map φ (map (G₁.nV ↑ʳ_) xs) ≡ map (G₂.nV ↑ʳ_) (map φ_R xs)
+    map-φ-injR-vert xs =
+      trans (sym (map-∘ xs))
+      (trans (map-cong φ_R-eq xs)
+             (map-∘ xs))
+
+    -- Head-of-list mismatch: `map (G₂.nV ↑ʳ_) (k ∷ ks) ≡ map (_↑ˡ K₂.nV) (l ∷ ls)`
+    -- forces `G₂.nV ↑ʳ k ≡ l ↑ˡ K₂.nV`, contradicting `↑ʳ≢↑ˡ`.
+    ∷-↑ʳ≢↑ˡ
+      : ∀ (k : Fin K₂.nV) (l : Fin G₂.nV) ks ls
+      → map (G₂.nV ↑ʳ_) (k ∷ ks) ≡ map (_↑ˡ K₂.nV) (l ∷ ls) → ⊥
+    ∷-↑ʳ≢↑ˡ k l ks ls eq = ↑ʳ≢↑ˡ l k head-eq
+      where
+        ∷-head : ∀ {A : Set} {x x' : A} {xs xs' : List A}
+               → x ∷ xs ≡ x' ∷ xs' → x ≡ x'
+        ∷-head refl = refl
+        head-eq : G₂.nV ↑ʳ k ≡ l ↑ˡ K₂.nV
+        head-eq = ∷-head eq
+
+    -- Symmetric: `map (_↑ˡ K₂.nV) (l ∷ ls) ≡ map (G₂.nV ↑ʳ_) (k ∷ ks)`.
+    ∷-↑ˡ≢↑ʳ
+      : ∀ (l : Fin G₂.nV) (k : Fin K₂.nV) ls ks
+      → map (_↑ˡ K₂.nV) (l ∷ ls) ≡ map (G₂.nV ↑ʳ_) (k ∷ ks) → ⊥
+    ∷-↑ˡ≢↑ʳ l k ls ks eq = ↑ˡ≢↑ʳ l k head-eq
+      where
+        ∷-head : ∀ {A : Set} {x x' : A} {xs xs' : List A}
+               → x ∷ xs ≡ x' ∷ xs' → x ≡ x'
+        ∷-head refl = refl
+        head-eq : l ↑ˡ K₂.nV ≡ G₂.nV ↑ʳ k
+        head-eq = ∷-head eq
+
+    -- A reusable contradiction extractor.  Given a non-empty list on
+    -- one side of `_↑ʳ_` versus an arbitrary list on the `_↑ˡ_` side,
+    -- the head-of-list `↑ʳ` vs `↑ˡ` disagreement produces ⊥.
+    nonempty-↑ʳ≡↑ˡ-impossible
+      : (k : Fin K₂.nV) (ks : List (Fin K₂.nV))
+      → (ws : List (Fin G₂.nV))
+      → map (G₂.nV ↑ʳ_) (k ∷ ks) ≡ map (_↑ˡ K₂.nV) ws
+      → ⊥
+    nonempty-↑ʳ≡↑ˡ-impossible k ks []        ()
+    nonempty-↑ʳ≡↑ˡ-impossible k ks (w ∷ ws) eq = ∷-↑ʳ≢↑ˡ k w ks ws eq
+
+    -- Symmetric.
+    nonempty-↑ˡ≡↑ʳ-impossible
+      : (g : Fin G₂.nV) (gs : List (Fin G₂.nV))
+      → (ws : List (Fin K₂.nV))
+      → map (_↑ˡ K₂.nV) (g ∷ gs) ≡ map (G₂.nV ↑ʳ_) ws
+      → ⊥
+    nonempty-↑ˡ≡↑ʳ-impossible g gs []        ()
+    nonempty-↑ˡ≡↑ʳ-impossible g gs (w ∷ ws) eq = ∷-↑ˡ≢↑ʳ g w gs ws eq
+
+  postulate
+    -- "Degenerate" sub-postulates: only fire when the L-half edge
+    -- has BOTH empty `ein` and empty `eout` (a `mor unit unit` ghost
+    -- edge).  These are strictly weaker than the original
+    -- `ψ-restricts-L`/`-R` postulates and only required for the corner
+    -- case of unit→unit generators inside the tensor halves.
+    ψ-restricts-L-deg
+      : ∀ (eG : Fin G₁.nE)
+      → G₁.ein eG ≡ []
+      → G₁.eout eG ≡ []
+      → Σ (Fin G₂.nE) λ eG' → ψ (eG ↑ˡ K₁.nE) ≡ eG' ↑ˡ K₂.nE
+
+    ψ-restricts-R-deg
+      : ∀ (eK : Fin K₁.nE)
+      → K₁.ein eK ≡ []
+      → K₁.eout eK ≡ []
+      → Σ (Fin K₂.nE) λ eK' → ψ (G₁.nE ↑ʳ eK) ≡ G₂.nE ↑ʳ eK'
+
+  -- ψ-restricts-L now DISCHARGED (no longer a postulate).
+  ψ-restricts-L
+    : ∀ (eG : Fin G₁.nE)
+    → Σ (Fin G₂.nE) λ eG' → ψ (eG ↑ˡ K₁.nE) ≡ eG' ↑ˡ K₂.nE
+  ψ-restricts-L eG with splitAt G₂.nE (ψ (eG ↑ˡ K₁.nE)) in splEq
+  ... | inj₁ eG' = eG' , sym (splitAt⁻¹-↑ˡ splEq)
+  ... | inj₂ eK' = handle (G₁.ein eG) refl (G₁.eout eG) refl
+    where
+      back-eq : G₂.nE ↑ʳ eK' ≡ ψ (eG ↑ˡ K₁.nE)
+      back-eq = splitAt⁻¹-↑ʳ splEq
+
+      -- ψ-ein at (eG ↑ˡ K₁.nE).
+      ein-iso : T₂′.ein (ψ (eG ↑ˡ K₁.nE)) ≡ map φ (T₁′.ein (eG ↑ˡ K₁.nE))
+      ein-iso = ψ-ein (eG ↑ˡ K₁.nE)
+
+      eout-iso : T₂′.eout (ψ (eG ↑ˡ K₁.nE)) ≡ map φ (T₁′.eout (eG ↑ˡ K₁.nE))
+      eout-iso = ψ-eout (eG ↑ˡ K₁.nE)
+
+      -- Rewrite LHS at G₂.nE ↑ʳ eK' (using back-eq) → map (G₂.nV ↑ʳ_) (K₂.ein eK').
+      ein-LHS-rewrite
+        : map (G₂.nV ↑ʳ_) (K₂.ein eK') ≡ map φ (T₁′.ein (eG ↑ˡ K₁.nE))
+      ein-LHS-rewrite =
+        trans (sym (hT₂.ein-c-inj₂-red eK'))
+        (trans (cong T₂′.ein back-eq) ein-iso)
+
+      eout-LHS-rewrite
+        : map (G₂.nV ↑ʳ_) (K₂.eout eK') ≡ map φ (T₁′.eout (eG ↑ˡ K₁.nE))
+      eout-LHS-rewrite =
+        trans (sym (hT₂.eout-c-inj₂-red eK'))
+        (trans (cong T₂′.eout back-eq) eout-iso)
+
+      -- Rewrite RHS using hT₁.ein-c-inj₁-red and map-φ-injL-vert.
+      ein-RHS-rewrite
+        : map φ (T₁′.ein (eG ↑ˡ K₁.nE))
+        ≡ map (_↑ˡ K₂.nV) (map φ_L (G₁.ein eG))
+      ein-RHS-rewrite =
+        trans (cong (map φ) (hT₁.ein-c-inj₁-red eG))
+              (map-φ-injL-vert (G₁.ein eG))
+
+      eout-RHS-rewrite
+        : map φ (T₁′.eout (eG ↑ˡ K₁.nE))
+        ≡ map (_↑ˡ K₂.nV) (map φ_L (G₁.eout eG))
+      eout-RHS-rewrite =
+        trans (cong (map φ) (hT₁.eout-c-inj₁-red eG))
+              (map-φ-injL-vert (G₁.eout eG))
+
+      -- Combined:
+      ein-combined
+        : map (G₂.nV ↑ʳ_) (K₂.ein eK')
+        ≡ map (_↑ˡ K₂.nV) (map φ_L (G₁.ein eG))
+      ein-combined = trans ein-LHS-rewrite ein-RHS-rewrite
+
+      eout-combined
+        : map (G₂.nV ↑ʳ_) (K₂.eout eK')
+        ≡ map (_↑ˡ K₂.nV) (map φ_L (G₁.eout eG))
+      eout-combined = trans eout-LHS-rewrite eout-RHS-rewrite
+
+      -- Now case on whether G₁.ein eG / G₁.eout eG are non-empty.
+      -- If either is non-empty, derive ⊥; if both empty, use the
+      -- narrow `ψ-restricts-L-deg` postulate.
+      handle
+        : (e : List (Fin G₁.nV))
+        → G₁.ein eG ≡ e
+        → (o : List (Fin G₁.nV))
+        → G₁.eout eG ≡ o
+        → Σ (Fin G₂.nE) λ eG' → ψ (eG ↑ˡ K₁.nE) ≡ eG' ↑ˡ K₂.nE
+      handle []        eeq []          oeq = ψ-restricts-L-deg eG eeq oeq
+      handle []        eeq (x₀ ∷ xs₀)  oeq =
+        -- G₁.eout eG = x₀ ∷ xs₀ (non-empty).  Use eout to derive ⊥.
+        go (K₂.eout eK') refl
+        where
+          eq-with-oeq
+            : map (G₂.nV ↑ʳ_) (K₂.eout eK')
+            ≡ map (_↑ˡ K₂.nV) (map φ_L (x₀ ∷ xs₀))
+          eq-with-oeq =
+            trans eout-combined (cong (λ z → map (_↑ˡ K₂.nV) (map φ_L z))
+                                       oeq)
+
+          go : ∀ (l : List (Fin K₂.nV)) → K₂.eout eK' ≡ l
+             → Σ (Fin G₂.nE) λ eG' → ψ (eG ↑ˡ K₁.nE) ≡ eG' ↑ˡ K₂.nE
+          go []        keq =
+            ⊥-elim (case-empty
+              (trans (sym (cong (map (G₂.nV ↑ʳ_)) keq)) eq-with-oeq))
+            where
+              case-empty : [] ≡ map (_↑ˡ K₂.nV) (map φ_L (x₀ ∷ xs₀)) → ⊥
+              case-empty ()
+          go (k ∷ ks)  keq =
+            ⊥-elim (nonempty-↑ʳ≡↑ˡ-impossible k ks
+                      (map φ_L (x₀ ∷ xs₀))
+                      (trans (sym (cong (map (G₂.nV ↑ʳ_)) keq)) eq-with-oeq))
+      handle (x₀ ∷ xs₀)  eeq o           oeq =
+        -- G₁.ein eG = x₀ ∷ xs₀ (non-empty).  Use ein to derive ⊥.
+        go (K₂.ein eK') refl
+        where
+          eq-with-eeq
+            : map (G₂.nV ↑ʳ_) (K₂.ein eK')
+            ≡ map (_↑ˡ K₂.nV) (map φ_L (x₀ ∷ xs₀))
+          eq-with-eeq =
+            trans ein-combined (cong (λ z → map (_↑ˡ K₂.nV) (map φ_L z))
+                                      eeq)
+
+          go : ∀ (l : List (Fin K₂.nV)) → K₂.ein eK' ≡ l
+             → Σ (Fin G₂.nE) λ eG' → ψ (eG ↑ˡ K₁.nE) ≡ eG' ↑ˡ K₂.nE
+          go []        keq =
+            ⊥-elim (case-empty
+              (trans (sym (cong (map (G₂.nV ↑ʳ_)) keq)) eq-with-eeq))
+            where
+              case-empty : [] ≡ map (_↑ˡ K₂.nV) (map φ_L (x₀ ∷ xs₀)) → ⊥
+              case-empty ()
+          go (k ∷ ks)  keq =
+            ⊥-elim (nonempty-↑ʳ≡↑ˡ-impossible k ks
+                      (map φ_L (x₀ ∷ xs₀))
+                      (trans (sym (cong (map (G₂.nV ↑ʳ_)) keq)) eq-with-eeq))
+
+  -- ψ-restricts-R DISCHARGED (no longer a postulate).
+  ψ-restricts-R
+    : ∀ (eK : Fin K₁.nE)
+    → Σ (Fin K₂.nE) λ eK' → ψ (G₁.nE ↑ʳ eK) ≡ G₂.nE ↑ʳ eK'
+  ψ-restricts-R eK with splitAt G₂.nE (ψ (G₁.nE ↑ʳ eK)) in splEq
+  ... | inj₂ eK' = eK' , sym (splitAt⁻¹-↑ʳ splEq)
+  ... | inj₁ eG' = handle (K₁.ein eK) refl (K₁.eout eK) refl
+    where
+      back-eq : eG' ↑ˡ K₂.nE ≡ ψ (G₁.nE ↑ʳ eK)
+      back-eq = splitAt⁻¹-↑ˡ splEq
+
+      ein-iso : T₂′.ein (ψ (G₁.nE ↑ʳ eK)) ≡ map φ (T₁′.ein (G₁.nE ↑ʳ eK))
+      ein-iso = ψ-ein (G₁.nE ↑ʳ eK)
+
+      eout-iso : T₂′.eout (ψ (G₁.nE ↑ʳ eK)) ≡ map φ (T₁′.eout (G₁.nE ↑ʳ eK))
+      eout-iso = ψ-eout (G₁.nE ↑ʳ eK)
+
+      ein-LHS-rewrite
+        : map (_↑ˡ K₂.nV) (G₂.ein eG') ≡ map φ (T₁′.ein (G₁.nE ↑ʳ eK))
+      ein-LHS-rewrite =
+        trans (sym (hT₂.ein-c-inj₁-red eG'))
+        (trans (cong T₂′.ein back-eq) ein-iso)
+
+      eout-LHS-rewrite
+        : map (_↑ˡ K₂.nV) (G₂.eout eG') ≡ map φ (T₁′.eout (G₁.nE ↑ʳ eK))
+      eout-LHS-rewrite =
+        trans (sym (hT₂.eout-c-inj₁-red eG'))
+        (trans (cong T₂′.eout back-eq) eout-iso)
+
+      ein-RHS-rewrite
+        : map φ (T₁′.ein (G₁.nE ↑ʳ eK))
+        ≡ map (G₂.nV ↑ʳ_) (map φ_R (K₁.ein eK))
+      ein-RHS-rewrite =
+        trans (cong (map φ) (hT₁.ein-c-inj₂-red eK))
+              (map-φ-injR-vert (K₁.ein eK))
+
+      eout-RHS-rewrite
+        : map φ (T₁′.eout (G₁.nE ↑ʳ eK))
+        ≡ map (G₂.nV ↑ʳ_) (map φ_R (K₁.eout eK))
+      eout-RHS-rewrite =
+        trans (cong (map φ) (hT₁.eout-c-inj₂-red eK))
+              (map-φ-injR-vert (K₁.eout eK))
+
+      ein-combined
+        : map (_↑ˡ K₂.nV) (G₂.ein eG')
+        ≡ map (G₂.nV ↑ʳ_) (map φ_R (K₁.ein eK))
+      ein-combined = trans ein-LHS-rewrite ein-RHS-rewrite
+
+      eout-combined
+        : map (_↑ˡ K₂.nV) (G₂.eout eG')
+        ≡ map (G₂.nV ↑ʳ_) (map φ_R (K₁.eout eK))
+      eout-combined = trans eout-LHS-rewrite eout-RHS-rewrite
+
+      handle
+        : (e : List (Fin K₁.nV))
+        → K₁.ein eK ≡ e
+        → (o : List (Fin K₁.nV))
+        → K₁.eout eK ≡ o
+        → Σ (Fin K₂.nE) λ eK' → ψ (G₁.nE ↑ʳ eK) ≡ G₂.nE ↑ʳ eK'
+      handle []        eeq []          oeq = ψ-restricts-R-deg eK eeq oeq
+      handle []        eeq (x₀ ∷ xs₀)  oeq =
+        go (G₂.eout eG') refl
+        where
+          eq-with-oeq
+            : map (_↑ˡ K₂.nV) (G₂.eout eG')
+            ≡ map (G₂.nV ↑ʳ_) (map φ_R (x₀ ∷ xs₀))
+          eq-with-oeq =
+            trans eout-combined (cong (λ z → map (G₂.nV ↑ʳ_) (map φ_R z))
+                                       oeq)
+
+          go : ∀ (l : List (Fin G₂.nV)) → G₂.eout eG' ≡ l
+             → Σ (Fin K₂.nE) λ eK' → ψ (G₁.nE ↑ʳ eK) ≡ G₂.nE ↑ʳ eK'
+          go []        geq =
+            ⊥-elim (case-empty
+              (trans (sym (cong (map (_↑ˡ K₂.nV)) geq)) eq-with-oeq))
+            where
+              case-empty : [] ≡ map (G₂.nV ↑ʳ_) (map φ_R (x₀ ∷ xs₀)) → ⊥
+              case-empty ()
+          go (g ∷ gs)  geq =
+            ⊥-elim (nonempty-↑ˡ≡↑ʳ-impossible g gs
+                      (map φ_R (x₀ ∷ xs₀))
+                      (trans (sym (cong (map (_↑ˡ K₂.nV)) geq)) eq-with-oeq))
+      handle (x₀ ∷ xs₀)  eeq o           oeq =
+        go (G₂.ein eG') refl
+        where
+          eq-with-eeq
+            : map (_↑ˡ K₂.nV) (G₂.ein eG')
+            ≡ map (G₂.nV ↑ʳ_) (map φ_R (x₀ ∷ xs₀))
+          eq-with-eeq =
+            trans ein-combined (cong (λ z → map (G₂.nV ↑ʳ_) (map φ_R z))
+                                      eeq)
+
+          go : ∀ (l : List (Fin G₂.nV)) → G₂.ein eG' ≡ l
+             → Σ (Fin K₂.nE) λ eK' → ψ (G₁.nE ↑ʳ eK) ≡ G₂.nE ↑ʳ eK'
+          go []        geq =
+            ⊥-elim (case-empty
+              (trans (sym (cong (map (_↑ˡ K₂.nV)) geq)) eq-with-eeq))
+            where
+              case-empty : [] ≡ map (G₂.nV ↑ʳ_) (map φ_R (x₀ ∷ xs₀)) → ⊥
+              case-empty ()
+          go (g ∷ gs)  geq =
+            ⊥-elim (nonempty-↑ˡ≡↑ʳ-impossible g gs
+                      (map φ_R (x₀ ∷ xs₀))
+                      (trans (sym (cong (map (_↑ˡ K₂.nV)) geq)) eq-with-eeq))
+
+  -- Extracted half-restricted bijections on edges (forward direction).
+  -- `φ_L`/`φ_R` defined earlier; here we extract `ψ_L`/`ψ_R` from the
+  -- now-discharged `ψ-restricts-L`/`-R`.
   ψ_L : Fin G₁.nE → Fin G₂.nE
   ψ_L eG = proj₁ (ψ-restricts-L eG)
 
