@@ -427,6 +427,59 @@ module BlockDiagonal
   --      induction on `f : HomTerm A B` and is the genuine remaining
   --      content; it has no analogue elsewhere in the codebase yet.
   --
+  -- ## OBSTRUCTION (May 2026, agent-ad5261f1): vertex-coverage is FALSE
+  --
+  -- The `vertex-coverage` lemma in step (7) as stated above is *not*
+  -- provable — there is a concrete counter-example arising from
+  -- `hCompose` of two non-empty hypergraphs that share their merged
+  -- boundary:
+  --
+  --   Take `f = id ∘ id : HomTerm (Var x) (Var x)`.  Then
+  --
+  --     ⟪ id ∘ id ⟫ = hCompose ⟪ id ⟫ ⟪ id ⟫ (refl)
+  --                 = hCompose (hVar x) (hVar x) (refl)
+  --
+  --   This compound hypergraph has
+  --
+  --     nV     = G.nV + K.nV = 1 + 1 = 2
+  --     nE     = 0
+  --     dom    = map injL G.dom = map injL [zero] = [zero ↑ˡ 1]
+  --     cod    = map remap K.cod = map remap [zero]
+  --                = [injL zero]   (since K.dom = G.cod = [zero] forces
+  --                                  remap zero ≡ injL zero)
+  --
+  --   So `dom ≡ cod ≡ [Fin.zero]` and `nE ≡ 0`.  The vertex
+  --   `1 ↑ˡ ... ≡ injR zero` of `Fin 2` therefore appears in NEITHER
+  --   `dom`, NOR `cod`, NOR any `ein`/`eout` (the latter being empty).
+  --   It is a *stranded* vertex — exactly the kind that
+  --   `Linearity.agda` calls out and which the linearity invariant
+  --   tolerates by allowing 0-counts.
+  --
+  -- The iso `φ` on `⟪ f₁ ⊗₁ g₁ ⟫ ≅ᴴ ⟪ f₂ ⊗₁ g₂ ⟫` is free to send a
+  -- stranded L-half vertex of T₁ to a same-label vertex anywhere in T₂
+  -- (including the R-half), because stranded vertices have no edge or
+  -- boundary anchor.  So `φ-restricts-L`/`-R` is itself NOT derivable
+  -- from connectivity-based reasoning alone; the original postulate
+  -- (or a label-multiset counting argument) is genuinely required.
+  --
+  -- Any future discharge of `φ-restricts-L`/`-R` must therefore either:
+  --
+  --   (a) Weaken `vertex-coverage` to "covered OR stranded with a
+  --       same-label covered partner", and then exhibit a deterministic
+  --       per-vertex assignment that the iso must respect (this still
+  --       seems to fail for the symmetric case where both halves have
+  --       matching stranded copies); OR
+  --
+  --   (b) Adopt the label-multiset counting infrastructure on
+  --       `Fin nV`-lists, which directly preserves per-half cardinalities
+  --       under the iso and rules out half-swaps for ALL vertices
+  --       (stranded or not).  This is the same infrastructure that
+  --       `ψ-restricts-*-deg` requires.
+  --
+  -- The current narrowing (4 sub-postulates) is therefore the right
+  -- factoring and the `vertex-coverage` route is a dead end: the next
+  -- step on this proof has to be the multiset counting layer.
+  --
   -- Once (1)–(7) are in place, `φ-restricts-L`/`-R` are derivable in a
   -- non-mutual fashion (the edge-side argument no longer references
   -- `φ_L`).  The two `ψ-restricts-*-deg` postulates still need a
