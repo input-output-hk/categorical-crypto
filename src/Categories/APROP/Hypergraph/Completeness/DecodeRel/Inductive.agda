@@ -291,6 +291,179 @@ SingleAgen? (h ⊗₁ k) with SingleAgen? h | NoSigma? k | NoSigma? h | SingleAg
 ... | _       | _       | _       | _       = inj₂ tt
 
 --------------------------------------------------------------------------------
+-- Two-sided single-Agen normal form.  A `SingleAgen` term `f` decomposes
+-- as `c-to ∘ (id ⊗ (Agen u ⊗ id)) ∘ c-from` where `c-from` and `c-to`
+-- are σ-free Mac Lane wrappers (`NoSigma`) and `u` is the unique
+-- underlying generator.  This is the syntactic counterpart to "exactly
+-- one edge in the middle, structural rewiring on the outside".
+--
+-- The four implicit `ObjTerm` fields `YL YR Aᵢ Bᵢ` are the wire types
+-- *around* the unique generator: `YL`/`YR` are the left/right context
+-- carried through the middle, and `Aᵢ`/`Bᵢ` are the generator's source
+-- and target.
+
+record SingleAgenNF {A B : ObjTerm} (f : HomTerm A B) : Set where
+  field
+    {YL YR}      : ObjTerm
+    {Aᵢ Bᵢ}      : ObjTerm
+    u            : mor Aᵢ Bᵢ
+    c-from       : HomTerm A (YL ⊗₀ Aᵢ ⊗₀ YR)
+    c-to         : HomTerm (YL ⊗₀ Bᵢ ⊗₀ YR) B
+    nosigma-from : NoSigma c-from
+    nosigma-to   : NoSigma c-to
+    equiv        : f ≈Term c-to ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from
+
+--------------------------------------------------------------------------------
+-- The strip lemma: every `SingleAgen f` admits a two-sided normal form.
+--
+-- The constructive content is the syntactic decomposition (the `c-from`
+-- / `c-to` wrappers plus their `NoSigma` proofs).  The `equiv` field is
+-- proven by induction:
+--   * `single-agen-here`  : pure Mac Lane (λ⇒/λ⇐/ρ⇒/ρ⇐ naturality).
+--   * `single-agen-∘-{l,r}` : extend one wrapper via `∘-resp-≈` + assoc.
+--   * `single-agen-⊗-{l,r}` : extend the wrapper across the tensor by
+--     re-associating; the underlying Mac Lane reshuffle is a strictly
+--     narrower postulate (`single-agen-strip-⊗-equiv-{l,r}`) — far
+--     smaller than the original `single-agen-coherence-≈Term`.
+
+private
+  postulate
+    single-agen-strip-⊗-equiv-l
+      : ∀ {A B C D YL YR Aᵢ Bᵢ}
+          (h : HomTerm A B) (k : HomTerm C D)
+          (u : mor Aᵢ Bᵢ)
+          (c-from-h : HomTerm A (YL ⊗₀ Aᵢ ⊗₀ YR))
+          (c-to-h   : HomTerm (YL ⊗₀ Bᵢ ⊗₀ YR) B)
+      → h ≈Term c-to-h ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-h
+      → h ⊗₁ k
+        ≈Term
+        ((c-to-h ⊗₁ k) ∘ α⇐ ∘ (id ⊗₁ α⇐))
+        ∘ (id ⊗₁ (Agen u ⊗₁ id))
+        ∘ ((id ⊗₁ α⇒) ∘ α⇒ ∘ (c-from-h ⊗₁ id))
+
+    single-agen-strip-⊗-equiv-r
+      : ∀ {A B C D YL YR Aᵢ Bᵢ}
+          (h : HomTerm A B) (k : HomTerm C D)
+          (u : mor Aᵢ Bᵢ)
+          (c-from-k : HomTerm C (YL ⊗₀ Aᵢ ⊗₀ YR))
+          (c-to-k   : HomTerm (YL ⊗₀ Bᵢ ⊗₀ YR) D)
+      → k ≈Term c-to-k ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-k
+      → h ⊗₁ k
+        ≈Term
+        ((h ⊗₁ c-to-k) ∘ α⇒)
+        ∘ (id ⊗₁ (Agen u ⊗₁ id))
+        ∘ (α⇐ ∘ (id ⊗₁ c-from-k))
+
+private
+  open import Categories.Category using (Category)
+  module FM-strip = Category FreeMonoidal
+  open FM-strip.HomReasoning
+
+single-agen-strip
+  : ∀ {A B} {f : HomTerm A B} → SingleAgen f → SingleAgenNF f
+single-agen-strip {f = Agen u} (single-agen-here .u) =
+  record
+    { u            = u
+    ; c-from       = λ⇐ ∘ ρ⇐
+    ; c-to         = ρ⇒ ∘ λ⇒
+    ; nosigma-from = nosigma-∘ nosigma-λ⇐ nosigma-ρ⇐
+    ; nosigma-to   = nosigma-∘ nosigma-ρ⇒ nosigma-λ⇒
+    ; equiv        = equiv-Agen
+    }
+  where
+    -- Goal: Agen u ≈Term (ρ⇒ ∘ λ⇒) ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ (λ⇐ ∘ ρ⇐)
+    -- Use λ⇒-naturality, ρ⇒-naturality, and the unit/counit laws.
+    equiv-Agen
+      : Agen u
+        ≈Term
+        (ρ⇒ ∘ λ⇒) ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ (λ⇐ ∘ ρ⇐)
+    equiv-Agen = ≈-Term-sym (begin
+      (ρ⇒ ∘ λ⇒) ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ (λ⇐ ∘ ρ⇐)
+        ≈⟨ assoc ⟩
+      ρ⇒ ∘ λ⇒ ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ (λ⇐ ∘ ρ⇐)
+        ≈⟨ refl⟩∘⟨ ≈-Term-sym assoc ⟩
+      ρ⇒ ∘ (λ⇒ ∘ (id ⊗₁ (Agen u ⊗₁ id))) ∘ (λ⇐ ∘ ρ⇐)
+        ≈⟨ refl⟩∘⟨ λ⇒∘id⊗f≈f∘λ⇒ ⟩∘⟨refl ⟩
+      ρ⇒ ∘ ((Agen u ⊗₁ id) ∘ λ⇒) ∘ (λ⇐ ∘ ρ⇐)
+        ≈⟨ refl⟩∘⟨ assoc ⟩
+      ρ⇒ ∘ (Agen u ⊗₁ id) ∘ λ⇒ ∘ (λ⇐ ∘ ρ⇐)
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym assoc ⟩
+      ρ⇒ ∘ (Agen u ⊗₁ id) ∘ (λ⇒ ∘ λ⇐) ∘ ρ⇐
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ λ⇒∘λ⇐≈id ⟩∘⟨refl ⟩
+      ρ⇒ ∘ (Agen u ⊗₁ id) ∘ id ∘ ρ⇐
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
+      ρ⇒ ∘ (Agen u ⊗₁ id) ∘ ρ⇐
+        ≈⟨ ≈-Term-sym assoc ⟩
+      (ρ⇒ ∘ (Agen u ⊗₁ id)) ∘ ρ⇐
+        ≈⟨ ρ⇒∘f⊗id≈f∘ρ⇒ ⟩∘⟨refl ⟩
+      (Agen u ∘ ρ⇒) ∘ ρ⇐
+        ≈⟨ assoc ⟩
+      Agen u ∘ (ρ⇒ ∘ ρ⇐)
+        ≈⟨ refl⟩∘⟨ ρ⇒∘ρ⇐≈id ⟩
+      Agen u ∘ id
+        ≈⟨ idʳ ⟩
+      Agen u ∎)
+
+single-agen-strip {f = h ∘ k} (single-agen-∘-l sh nk) =
+  let nf-h = single-agen-strip sh
+      open SingleAgenNF nf-h
+  in record
+    { u            = u
+    ; c-from       = c-from ∘ k
+    ; c-to         = c-to
+    ; nosigma-from = nosigma-∘ nosigma-from nk
+    ; nosigma-to   = nosigma-to
+    ; equiv        = ≈-Term-sym (begin
+        c-to ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ (c-from ∘ k)
+          ≈⟨ refl⟩∘⟨ ≈-Term-sym assoc ⟩
+        c-to ∘ ((id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from) ∘ k
+          ≈⟨ ≈-Term-sym assoc ⟩
+        (c-to ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from) ∘ k
+          ≈⟨ ≈-Term-sym equiv ⟩∘⟨refl ⟩
+        h ∘ k ∎)
+    }
+single-agen-strip {f = h ∘ k} (single-agen-∘-r nh sk) =
+  let nf-k = single-agen-strip sk
+      open SingleAgenNF nf-k
+  in record
+    { u            = u
+    ; c-from       = c-from
+    ; c-to         = h ∘ c-to
+    ; nosigma-from = nosigma-from
+    ; nosigma-to   = nosigma-∘ nh nosigma-to
+    ; equiv        = ≈-Term-sym (begin
+        (h ∘ c-to) ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from
+          ≈⟨ assoc ⟩
+        h ∘ c-to ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from
+          ≈⟨ refl⟩∘⟨ ≈-Term-sym equiv ⟩
+        h ∘ k ∎)
+    }
+single-agen-strip {f = h ⊗₁ k} (single-agen-⊗-l sh nk) =
+  let nf-h = single-agen-strip sh
+      open SingleAgenNF nf-h
+  in record
+    { u            = u
+    ; c-from       = (id ⊗₁ α⇒) ∘ α⇒ ∘ (c-from ⊗₁ id)
+    ; c-to         = (c-to ⊗₁ k) ∘ α⇐ ∘ (id ⊗₁ α⇐)
+    ; nosigma-from = nosigma-∘ (nosigma-⊗ nosigma-id nosigma-α⇒)
+                       (nosigma-∘ nosigma-α⇒ (nosigma-⊗ nosigma-from nosigma-id))
+    ; nosigma-to   = nosigma-∘ (nosigma-⊗ nosigma-to nk)
+                       (nosigma-∘ nosigma-α⇐ (nosigma-⊗ nosigma-id nosigma-α⇐))
+    ; equiv        = single-agen-strip-⊗-equiv-l h k u c-from c-to equiv
+    }
+single-agen-strip {f = h ⊗₁ k} (single-agen-⊗-r nh sk) =
+  let nf-k = single-agen-strip sk
+      open SingleAgenNF nf-k
+  in record
+    { u            = u
+    ; c-from       = α⇐ ∘ (id ⊗₁ c-from)
+    ; c-to         = (h ⊗₁ c-to) ∘ α⇒
+    ; nosigma-from = nosigma-∘ nosigma-α⇐ (nosigma-⊗ nosigma-id nosigma-from)
+    ; nosigma-to   = nosigma-∘ (nosigma-⊗ nh nosigma-to) nosigma-α⇒
+    ; equiv        = single-agen-strip-⊗-equiv-r h k u c-from c-to equiv
+    }
+
+--------------------------------------------------------------------------------
 -- Strictly-narrower postulate (introduced Day 6).  Discharges the
 -- σ-free single-Agen case: both `f, g` have exactly one Agen and are
 -- σ-free elsewhere.  This covers all of:
@@ -323,10 +496,6 @@ postulate
 -- `bridge-≅ᴴ` lemma.
 
 private
-  open import Categories.Category using (Category)
-  module FM = Category FreeMonoidal
-  open FM.HomReasoning
-
   bridge-resp-≈Term
     : ∀ {A B} {f g : HomTerm A B}
     → f ≈Term g → bridge f ≈Term bridge g
