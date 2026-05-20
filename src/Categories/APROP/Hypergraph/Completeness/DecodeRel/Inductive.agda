@@ -2992,26 +2992,399 @@ YL-length-from-iso sf sg iso ein-g-nonempty =
                (length-YL-strip-≡ sg))
 
 --------------------------------------------------------------------------------
--- `single-agen-NF-coherence-discharge-given-len`: the full discharge of
--- the `single-agen-NF-coherence` postulate, ASSUMING the length
--- equality.  Composes:
+-- `discharge-aligned`: the core "Mac-Lane wrapper closure" lemma.
 --
---   * `single-agen-flat-data`: iso → `(flat-A-eq, flat-B-eq, flat-u-eq)`.
---   * `flat-data-to-ObjTerm`: flat data → `(Aᵢ_f ≡ Aᵢ_g, Bᵢ_f ≡ Bᵢ_g,
---     u_f ≡ u_g)`.
---   * `positional-alignment-from-length`: (flat-A-eq, len-YL-eq) →
---     `(flatten YL_f ≡ flatten YL_g, flatten YR_f ≡ flatten YR_g)`.
---   * `bridge-naturality-pos`: positional alignment + Agen u middle →
---     `mlB ∘ M_f ≈Term M_g ∘ mlA` (Mac-Lane bridge naturality).
---   * `single-agen-strip` on both sides: f ≈Term c-to-f ∘ M_f ∘ c-from-f,
---     g ≈Term c-to-g ∘ M_g ∘ c-from-f.
---   * `NoSigma-coherence` on the σ-free wrappers.
+-- Given:
+--   * The two SingleAgen normal forms (already aligned at the Aᵢ/Bᵢ/u
+--     level — they share `u : mor Aᵢ Bᵢ`);
+--   * Positional alignment: `eYL : flatten YL-f ≡ flatten YL-g` and
+--     `eYR : flatten YR-f ≡ flatten YR-g`;
 --
--- This is the final composition that closes the discharge.  Once
--- the empty-ein case is handled (or excluded as a precondition),
--- the postulate `single-agen-NF-coherence` can be entirely closed
--- via this composition.  Currently the non-empty-ein case is
--- covered by `YL-length-from-iso`.
+-- conclude the two NF expressions are `≈Term`-equal:
+--   c-to-f ∘ (id ⊗ (Agen u ⊗ id)) ∘ c-from-f
+--     ≈Term
+--   c-to-g ∘ (id ⊗ (Agen u ⊗ id)) ∘ c-from-g.
+--
+-- Proof strategy (composed from existing infrastructure):
+--   * Build `bA : (YL_f ⊗ Aᵢ ⊗ YR_f) → (YL_g ⊗ Aᵢ ⊗ YR_g)` as
+--     `bridge-NoSigma-fwd eA` (where `eA` is the appropriate flatten
+--     equality).
+--   * Build `bB : (YL_f ⊗ Bᵢ ⊗ YR_f) → (YL_g ⊗ Bᵢ ⊗ YR_g)` similarly.
+--   * Use `NoSigma-coherence` to rewrite c-from-f as `bA-bwd ∘ c-from-g`
+--     (both are NoSigma morphisms from A to (YL_f ⊗ Aᵢ ⊗ YR_f)).
+--   * Use `bridge-naturality-pos` to push `bA-bwd` past M.
+--   * Use `NoSigma-coherence` again on the c-to side.
+
+private
+  -- Auxiliary: assemble flatten equality for the triple tensor
+  -- `YL ⊗ X ⊗ YR` from individual eYL, eYR equalities (and shared X).
+  eA-from-eYL-eYR
+    : ∀ {YL-f YR-f YL-g YR-g X : ObjTerm}
+        (eYL : flatten YL-f ≡ flatten YL-g)
+        (eYR : flatten YR-f ≡ flatten YR-g)
+    → flatten (YL-f ⊗₀ X ⊗₀ YR-f) ≡ flatten (YL-g ⊗₀ X ⊗₀ YR-g)
+  eA-from-eYL-eYR {X = X} eYL eYR =
+    cong₂ _++_ eYL (cong (flatten X ++_) eYR)
+    where open import Relation.Binary.PropositionalEquality using (cong₂)
+
+  -- "Backwards" variant of `bridge-naturality-pos`: derived from the
+  -- forward version by composing with the bridge iso laws.  Statement:
+  --
+  --   M_f ∘ bridge-NoSigma-bwd eA ≈Term bridge-NoSigma-bwd eB ∘ M_g
+  --
+  -- where `M_f = id ⊗ (Agen u ⊗ id_{YR-f})`, M_g symmetrically.
+  bridge-naturality-pos-bwd
+    : ∀ {YL-f YR-f YL-g YR-g Aᵢ Bᵢ : ObjTerm}
+        (u : mor Aᵢ Bᵢ)
+        (eYL : flatten YL-f ≡ flatten YL-g)
+        (eYR : flatten YR-f ≡ flatten YR-g)
+        (eA  : flatten (YL-f ⊗₀ Aᵢ ⊗₀ YR-f)
+             ≡ flatten (YL-g ⊗₀ Aᵢ ⊗₀ YR-g))
+        (eB  : flatten (YL-f ⊗₀ Bᵢ ⊗₀ YR-f)
+             ≡ flatten (YL-g ⊗₀ Bᵢ ⊗₀ YR-g))
+    → (id ⊗₁ (Agen u ⊗₁ id {YR-f})) ∘ bridge-NoSigma-bwd eA
+    ≈Term
+      bridge-NoSigma-bwd eB ∘ (id ⊗₁ (Agen u ⊗₁ id {YR-g}))
+  bridge-naturality-pos-bwd {YL-f} {YR-f} {YL-g} {YR-g} {Aᵢ} {Bᵢ}
+                            u eYL eYR eA eB = HRBN.begin
+      M_f ∘ bA-bwd
+        HRBN.≈⟨ ≈-Term-sym FM-bridge.identityˡ ⟩
+      id ∘ M_f ∘ bA-bwd
+        HRBN.≈⟨ ≈-Term-sym (bridge-NoSigma-isoˡ eB) HRBN.⟩∘⟨refl ⟩
+      (bB-bwd ∘ bB-fwd) ∘ M_f ∘ bA-bwd
+        HRBN.≈⟨ FM-bridge.assoc ⟩
+      bB-bwd ∘ bB-fwd ∘ M_f ∘ bA-bwd
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.sym-assoc ⟩
+      bB-bwd ∘ (bB-fwd ∘ M_f) ∘ bA-bwd
+        HRBN.≈⟨ HRBN.refl⟩∘⟨
+                bridge-naturality-pos {YL-f} {YR-f} {YL-g} {YR-g} {Aᵢ} {Bᵢ}
+                  u eYL eYR eA eB
+                  HRBN.⟩∘⟨refl ⟩
+      bB-bwd ∘ (M_g ∘ bA-fwd) ∘ bA-bwd
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.assoc ⟩
+      bB-bwd ∘ M_g ∘ bA-fwd ∘ bA-bwd
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ HRBN.refl⟩∘⟨ bridge-NoSigma-isoʳ eA ⟩
+      bB-bwd ∘ M_g ∘ id
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.identityʳ ⟩
+      bB-bwd ∘ M_g HRBN.∎
+    where
+      bA-fwd = bridge-NoSigma-fwd eA
+      bA-bwd = bridge-NoSigma-bwd eA
+      bB-fwd = bridge-NoSigma-fwd eB
+      bB-bwd = bridge-NoSigma-bwd eB
+      M_f    = id ⊗₁ (Agen u ⊗₁ id {YR-f})
+      M_g    = id ⊗₁ (Agen u ⊗₁ id {YR-g})
+
+  -- Core wrapper-closure: given pre-aligned generator data (shared
+  -- `u : mor Aᵢ Bᵢ`) and positional alignment, the two NF expressions
+  -- coincide on the nose.
+  discharge-aligned
+    : ∀ {A B} {YL-f YR-f YL-g YR-g Aᵢ Bᵢ : ObjTerm} (u : mor Aᵢ Bᵢ)
+        {c-from-f : HomTerm A (YL-f ⊗₀ Aᵢ ⊗₀ YR-f)}
+        {c-to-f   : HomTerm (YL-f ⊗₀ Bᵢ ⊗₀ YR-f) B}
+        {c-from-g : HomTerm A (YL-g ⊗₀ Aᵢ ⊗₀ YR-g)}
+        {c-to-g   : HomTerm (YL-g ⊗₀ Bᵢ ⊗₀ YR-g) B}
+        (nosigma-from-f : NoSigma c-from-f) (nosigma-to-f : NoSigma c-to-f)
+        (nosigma-from-g : NoSigma c-from-g) (nosigma-to-g : NoSigma c-to-g)
+        (eYL : flatten YL-f ≡ flatten YL-g)
+        (eYR : flatten YR-f ≡ flatten YR-g)
+     → (c-to-f ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-f)
+       ≈Term
+       (c-to-g ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-g)
+  discharge-aligned {A} {B} {YL-f} {YR-f} {YL-g} {YR-g} {Aᵢ} {Bᵢ}
+                    u {c-from-f} {c-to-f} {c-from-g} {c-to-g}
+                    nosigma-from-f nosigma-to-f
+                    nosigma-from-g nosigma-to-g
+                    eYL eYR =
+    let
+      eA : flatten (YL-f ⊗₀ Aᵢ ⊗₀ YR-f) ≡ flatten (YL-g ⊗₀ Aᵢ ⊗₀ YR-g)
+      eA = eA-from-eYL-eYR {YL-f} {YR-f} {YL-g} {YR-g} {Aᵢ} eYL eYR
+      eB : flatten (YL-f ⊗₀ Bᵢ ⊗₀ YR-f) ≡ flatten (YL-g ⊗₀ Bᵢ ⊗₀ YR-g)
+      eB = eA-from-eYL-eYR {YL-f} {YR-f} {YL-g} {YR-g} {Bᵢ} eYL eYR
+      bA-bwd = bridge-NoSigma-bwd eA
+      bB-fwd = bridge-NoSigma-fwd eB
+      bB-bwd = bridge-NoSigma-bwd eB
+      bA-bwd-NS = bridge-NoSigma-bwd-NS {YL-f ⊗₀ Aᵢ ⊗₀ YR-f} {YL-g ⊗₀ Aᵢ ⊗₀ YR-g} eA
+      bB-fwd-NS = bridge-NoSigma-fwd-NS {YL-f ⊗₀ Bᵢ ⊗₀ YR-f} {YL-g ⊗₀ Bᵢ ⊗₀ YR-g} eB
+      bB-bwd-NS = bridge-NoSigma-bwd-NS {YL-f ⊗₀ Bᵢ ⊗₀ YR-f} {YL-g ⊗₀ Bᵢ ⊗₀ YR-g} eB
+      M_f    = id ⊗₁ (Agen u ⊗₁ id {YR-f})
+      M_g    = id ⊗₁ (Agen u ⊗₁ id {YR-g})
+
+      -- c-from-f ≈ bA-bwd ∘ c-from-g  (both NoSigma : A → YL_f ⊗ Aᵢ ⊗ YR_f).
+      cfrom-rewrite : c-from-f ≈Term bA-bwd ∘ c-from-g
+      cfrom-rewrite =
+        NoSigma-coherence nosigma-from-f (nosigma-∘ bA-bwd-NS nosigma-from-g)
+
+      -- c-to-f ≈ c-to-g ∘ bB-fwd  (both NoSigma : (YL_f ⊗ Bᵢ ⊗ YR_f) → B).
+      cto-rewrite : c-to-f ≈Term c-to-g ∘ bB-fwd
+      cto-rewrite =
+        NoSigma-coherence nosigma-to-f
+          (nosigma-∘ nosigma-to-g bB-fwd-NS)
+
+      -- bB-fwd ∘ bB-bwd ≈ id (iso law).
+      bB-iso : bB-fwd ∘ bB-bwd ≈Term id
+      bB-iso = bridge-NoSigma-isoʳ eB
+
+    in HRBN.begin
+      c-to-f ∘ M_f ∘ c-from-f
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ HRBN.refl⟩∘⟨ cfrom-rewrite ⟩
+      c-to-f ∘ M_f ∘ (bA-bwd ∘ c-from-g)
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.sym-assoc ⟩
+      c-to-f ∘ (M_f ∘ bA-bwd) ∘ c-from-g
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ bridge-naturality-pos-bwd u eYL eYR eA eB
+                  HRBN.⟩∘⟨refl ⟩
+      c-to-f ∘ (bB-bwd ∘ M_g) ∘ c-from-g
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.assoc ⟩
+      c-to-f ∘ bB-bwd ∘ M_g ∘ c-from-g
+        HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+      (c-to-f ∘ bB-bwd) ∘ M_g ∘ c-from-g
+        HRBN.≈⟨ (cto-rewrite HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+      ((c-to-g ∘ bB-fwd) ∘ bB-bwd) ∘ M_g ∘ c-from-g
+        HRBN.≈⟨ FM-bridge.assoc HRBN.⟩∘⟨refl ⟩
+      (c-to-g ∘ (bB-fwd ∘ bB-bwd)) ∘ M_g ∘ c-from-g
+        HRBN.≈⟨ (HRBN.refl⟩∘⟨ bB-iso) HRBN.⟩∘⟨refl ⟩
+      (c-to-g ∘ id) ∘ M_g ∘ c-from-g
+        HRBN.≈⟨ FM-bridge.identityʳ HRBN.⟩∘⟨refl ⟩
+      c-to-g ∘ M_g ∘ c-from-g HRBN.∎
+
+--------------------------------------------------------------------------------
+-- `single-agen-NF-coherence-discharge-nonempty`: the full constructive
+-- discharge of the (narrowed) `single-agen-NF-coherence` postulate in
+-- the non-empty Agen-ein case.  Composes:
+--
+--   * `flat-data-to-ObjTerm`: flat-level eqs → ObjTerm-level eqs (at
+--     `single-agen-u` level).
+--   * `single-agen-u-strip-{Aᵢ,Bᵢ,u}`: consistency between
+--     `single-agen-u` and `single-agen-strip` extractors.  Used to
+--     LIFT the ObjTerm eqs from `single-agen-u` to `single-agen-strip`
+--     records.
+--   * `YL-length-from-iso`: extract `length-YL` equality (REQUIRES
+--     non-empty `ein` for the Agen edge).
+--   * `positional-alignment-from-length`: convert length equality to
+--     flatten-of-YL/YR equalities.
+--   * `single-agen-NF-discharge-aux` (helper, below): pattern-matches
+--     the lifted strip-level equalities as `refl` and applies
+--     `discharge-aligned`.
+
+private
+  -- Generic subst₂ fusion lemma for `mor`.
+  subst₂-trans-mor
+    : ∀ {A B C D E F : ObjTerm}
+        (p₁ : A ≡ C) (p₂ : C ≡ E)
+        (q₁ : B ≡ D) (q₂ : D ≡ F)
+        (u : mor A B)
+    → subst₂ mor p₂ q₂ (subst₂ mor p₁ q₁ u)
+    ≡ subst₂ mor (trans p₁ p₂) (trans q₁ q₂) u
+  subst₂-trans-mor refl refl refl refl _ = refl
+
+  -- `subst₂` cancels its own `sym` inverse in `mor`.
+  subst₂-sym-cancel-mor
+    : ∀ {A B C D : ObjTerm}
+        (p : A ≡ C) (q : B ≡ D)
+        (u : mor A B)
+    → subst₂ mor (sym p) (sym q) (subst₂ mor p q u) ≡ u
+  subst₂-sym-cancel-mor refl refl _ = refl
+
+-- The helper that pattern-matches the strip-level equalities as
+-- `refl`.  After matching, the strip records' `Aᵢ`, `Bᵢ`, `u` align
+-- definitionally, and the discharge reduces to `discharge-aligned`.
+--
+-- To enable the pattern-match, we abstract over the strip records
+-- (`nf-f, nf-g`) AND over the underlying `f, g` HomTerms by passing
+-- the strip equivs explicitly.
+private
+  single-agen-NF-discharge-aux-cps
+    : ∀ {A B} {f g : HomTerm A B}
+        {YL-f YR-f Aᵢ-f Bᵢ-f : ObjTerm}
+        {YL-g YR-g Aᵢ-g Bᵢ-g : ObjTerm}
+        (u-f : mor Aᵢ-f Bᵢ-f) (u-g : mor Aᵢ-g Bᵢ-g)
+        {c-from-f : HomTerm A (YL-f ⊗₀ Aᵢ-f ⊗₀ YR-f)}
+        {c-to-f   : HomTerm (YL-f ⊗₀ Bᵢ-f ⊗₀ YR-f) B}
+        {c-from-g : HomTerm A (YL-g ⊗₀ Aᵢ-g ⊗₀ YR-g)}
+        {c-to-g   : HomTerm (YL-g ⊗₀ Bᵢ-g ⊗₀ YR-g) B}
+        (nosigma-from-f : NoSigma c-from-f) (nosigma-to-f : NoSigma c-to-f)
+        (nosigma-from-g : NoSigma c-from-g) (nosigma-to-g : NoSigma c-to-g)
+        (equiv-f : f ≈Term c-to-f ∘ (id ⊗₁ (Agen u-f ⊗₁ id)) ∘ c-from-f)
+        (equiv-g : g ≈Term c-to-g ∘ (id ⊗₁ (Agen u-g ⊗₁ id)) ∘ c-from-g)
+        (A-eq : Aᵢ-f ≡ Aᵢ-g)
+        (B-eq : Bᵢ-f ≡ Bᵢ-g)
+        (u-eq : subst₂ mor A-eq B-eq u-f ≡ u-g)
+        (eYL : flatten YL-f ≡ flatten YL-g)
+        (eYR : flatten YR-f ≡ flatten YR-g)
+     → f ≈Term g
+  single-agen-NF-discharge-aux-cps {f = f} {g = g}
+                                   u-f .u-f
+                                   {c-from-f} {c-to-f} {c-from-g} {c-to-g}
+                                   nosigma-from-f nosigma-to-f
+                                   nosigma-from-g nosigma-to-g
+                                   equiv-f equiv-g
+                                   refl refl refl eYL eYR =
+    HRBN.begin
+      f
+        HRBN.≈⟨ equiv-f ⟩
+      c-to-f ∘ (id ⊗₁ (Agen u-f ⊗₁ id)) ∘ c-from-f
+        HRBN.≈⟨ discharge-aligned u-f
+                  nosigma-from-f nosigma-to-f
+                  nosigma-from-g nosigma-to-g
+                  eYL eYR ⟩
+      c-to-g ∘ (id ⊗₁ (Agen u-f ⊗₁ id)) ∘ c-from-g
+        HRBN.≈⟨ ≈-Term-sym equiv-g ⟩
+      g HRBN.∎
+
+single-agen-NF-discharge-aux
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (A-strip-eq : SingleAgenNF.Aᵢ (single-agen-strip sf)
+                  ≡ SingleAgenNF.Aᵢ (single-agen-strip sg))
+      (B-strip-eq : SingleAgenNF.Bᵢ (single-agen-strip sf)
+                  ≡ SingleAgenNF.Bᵢ (single-agen-strip sg))
+      (u-strip-eq : subst₂ mor A-strip-eq B-strip-eq
+                      (SingleAgenNF.u (single-agen-strip sf))
+                    ≡ SingleAgenNF.u (single-agen-strip sg))
+      (eYL : flatten (SingleAgenNF.YL (single-agen-strip sf))
+           ≡ flatten (SingleAgenNF.YL (single-agen-strip sg)))
+      (eYR : flatten (SingleAgenNF.YR (single-agen-strip sf))
+           ≡ flatten (SingleAgenNF.YR (single-agen-strip sg)))
+  → f ≈Term g
+single-agen-NF-discharge-aux {f = f} {g = g} sf sg A-eq B-eq u-eq eYL eYR =
+  single-agen-NF-discharge-aux-cps
+    NF-f.u NF-g.u
+    NF-f.nosigma-from NF-f.nosigma-to
+    NF-g.nosigma-from NF-g.nosigma-to
+    NF-f.equiv NF-g.equiv
+    A-eq B-eq u-eq eYL eYR
+  where
+    module NF-f = SingleAgenNF (single-agen-strip sf)
+    module NF-g = SingleAgenNF (single-agen-strip sg)
+
+-- The full discharge (non-empty Agen ein case).
+single-agen-NF-coherence-discharge-nonempty
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (flat-A-eq : flatten (SingleAgenGen.Aᵢ (single-agen-u sf))
+                 ≡ flatten (SingleAgenGen.Aᵢ (single-agen-u sg)))
+      (flat-B-eq : flatten (SingleAgenGen.Bᵢ (single-agen-u sf))
+                 ≡ flatten (SingleAgenGen.Bᵢ (single-agen-u sg)))
+      (flat-u-eq : subst₂ FlatGen flat-A-eq flat-B-eq
+                      (flat (SingleAgenGen.u (single-agen-u sf)))
+                   ≡ flat (SingleAgenGen.u (single-agen-u sg)))
+      (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+      (ein-g-nonempty : Hypergraph.ein ⟪ g ⟫ (SingleAgen-edge sg) ≢ [])
+  → f ≈Term g
+single-agen-NF-coherence-discharge-nonempty {f = f} {g = g}
+                                            sf sg pA pB pU iso ein-g-nonempty =
+  single-agen-NF-discharge-aux sf sg A-strip-eq B-strip-eq u-strip-eq eYL eYR
+  where
+    -- Step 1: ObjTerm eqs at `single-agen-u` level.
+    u_uf = SingleAgenGen.u (single-agen-u sf)
+    u_ug = SingleAgenGen.u (single-agen-u sg)
+    objterm = flat-data-to-ObjTerm u_uf u_ug pA pB pU
+    A-u-eq = proj₁ objterm
+    B-u-eq = proj₁ (proj₂ objterm)
+    u-u-eq = proj₂ (proj₂ objterm)
+
+    -- Step 2: Lift to strip-record level via consistency lemmas.
+    consist-A-f = single-agen-u-strip-Aᵢ sf
+    consist-B-f = single-agen-u-strip-Bᵢ sf
+    consist-A-g = single-agen-u-strip-Aᵢ sg
+    consist-B-g = single-agen-u-strip-Bᵢ sg
+    consist-u-f = single-agen-u-strip-u sf
+    consist-u-g = single-agen-u-strip-u sg
+
+    A-strip-eq : SingleAgenNF.Aᵢ (single-agen-strip sf)
+               ≡ SingleAgenNF.Aᵢ (single-agen-strip sg)
+    A-strip-eq = trans (sym consist-A-f) (trans A-u-eq consist-A-g)
+
+    B-strip-eq : SingleAgenNF.Bᵢ (single-agen-strip sf)
+               ≡ SingleAgenNF.Bᵢ (single-agen-strip sg)
+    B-strip-eq = trans (sym consist-B-f) (trans B-u-eq consist-B-g)
+
+    -- Step 3: Combine the consistency lemmas with u-u-eq to derive
+    -- the strip-level u equality.
+    --
+    -- consist-u-f : subst₂ mor consist-A-f consist-B-f u_uf ≡ NF-f.u
+    -- consist-u-g : subst₂ mor consist-A-g consist-B-g u_ug ≡ NF-g.u
+    -- u-u-eq      : subst₂ mor A-u-eq B-u-eq u_uf ≡ u_ug
+    --
+    -- We want:
+    --   subst₂ mor A-strip-eq B-strip-eq NF-f.u ≡ NF-g.u
+    --
+    -- Strategy: substitute NF-f.u via sym (consist-u-f), fuse with
+    -- A-strip-eq/B-strip-eq, then use u-u-eq + consist-u-g.
+
+    u-strip-eq : subst₂ mor A-strip-eq B-strip-eq
+                   (SingleAgenNF.u (single-agen-strip sf))
+                 ≡ SingleAgenNF.u (single-agen-strip sg)
+    u-strip-eq = EQR.begin
+        subst₂ mor A-strip-eq B-strip-eq (SingleAgenNF.u (single-agen-strip sf))
+          EQR.≡⟨ cong (subst₂ mor A-strip-eq B-strip-eq) (sym consist-u-f) ⟩
+        subst₂ mor A-strip-eq B-strip-eq
+          (subst₂ mor consist-A-f consist-B-f u_uf)
+          EQR.≡⟨ subst₂-trans-mor consist-A-f A-strip-eq consist-B-f B-strip-eq u_uf ⟩
+        subst₂ mor (trans consist-A-f A-strip-eq)
+                   (trans consist-B-f B-strip-eq) u_uf
+          EQR.≡⟨ trans-A-collapse ⟩
+        subst₂ mor (trans A-u-eq consist-A-g)
+                   (trans B-u-eq consist-B-g) u_uf
+          EQR.≡⟨ sym (subst₂-trans-mor A-u-eq consist-A-g B-u-eq consist-B-g u_uf) ⟩
+        subst₂ mor consist-A-g consist-B-g
+          (subst₂ mor A-u-eq B-u-eq u_uf)
+          EQR.≡⟨ cong (subst₂ mor consist-A-g consist-B-g) u-u-eq ⟩
+        subst₂ mor consist-A-g consist-B-g u_ug
+          EQR.≡⟨ consist-u-g ⟩
+        SingleAgenNF.u (single-agen-strip sg)
+          EQR.∎
+      where
+        module EQR = ≡-Reasoning
+
+        -- `trans x (trans (sym x) y) ≡ y` (use UIP on ObjTerm).
+        -- More precisely:
+        --   trans consist-A-f A-strip-eq
+        -- = trans consist-A-f (trans (sym consist-A-f) (trans A-u-eq consist-A-g))
+        -- = trans (trans consist-A-f (sym consist-A-f)) (trans A-u-eq consist-A-g)  (associativity of trans)
+        -- = trans refl (trans A-u-eq consist-A-g)                                    (right inverse, propositional)
+        -- = trans A-u-eq consist-A-g                                                 (left identity)
+        --
+        -- Avoid the propositional reasoning by transforming via
+        -- the (definitional) law `trans-assoc` + UIP.
+        --
+        -- A cleaner approach: pattern-match on consist-A-f and consist-B-f
+        -- through a `with` block (they are not always definitionally
+        -- refl, but we can rewrite).
+        --
+        -- Even simpler: prove the entire equality below via a single
+        -- subst₂-cong that uses UIP.
+
+        trans-A-collapse :
+          subst₂ mor (trans consist-A-f A-strip-eq)
+                     (trans consist-B-f B-strip-eq) u_uf
+          ≡ subst₂ mor (trans A-u-eq consist-A-g)
+                       (trans B-u-eq consist-B-g) u_uf
+        trans-A-collapse =
+          cong₂ (λ a b → subst₂ mor a b u_uf)
+                (UIP-ObjTerm (trans consist-A-f A-strip-eq)
+                             (trans A-u-eq consist-A-g))
+                (UIP-ObjTerm (trans consist-B-f B-strip-eq)
+                             (trans B-u-eq consist-B-g))
+          where
+            open import Relation.Binary.PropositionalEquality using (cong₂)
+            open APROPSignatureDec sig-dec using (_≟-ObjTerm_)
+            open import Axiom.UniquenessOfIdentityProofs as UIP-mod
+            UIP-ObjTerm : ∀ {x y : ObjTerm} (p q : x ≡ y) → p ≡ q
+            UIP-ObjTerm = UIP-mod.Decidable⇒UIP.≡-irrelevant _≟-ObjTerm_
+
+    -- Step 4: Positional alignment via length-from-iso.
+    len-eq : length (flatten (SingleAgenNF.YL (single-agen-strip sf)))
+           ≡ length (flatten (SingleAgenNF.YL (single-agen-strip sg)))
+    len-eq = YL-length-from-iso sf sg iso ein-g-nonempty
+
+    pos-align = positional-alignment-from-length sf sg iso len-eq
+    eYL : flatten (SingleAgenNF.YL (single-agen-strip sf))
+        ≡ flatten (SingleAgenNF.YL (single-agen-strip sg))
+    eYL = proj₁ pos-align
+    eYR : flatten (SingleAgenNF.YR (single-agen-strip sf))
+        ≡ flatten (SingleAgenNF.YR (single-agen-strip sg))
+    eYR = proj₁ (proj₂ pos-align)
 
 --------------------------------------------------------------------------------
 -- The remaining narrow assumptions of the completeness path, bundled
