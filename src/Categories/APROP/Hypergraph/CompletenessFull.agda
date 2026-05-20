@@ -22,7 +22,8 @@ module Categories.APROP.Hypergraph.CompletenessFull
 open APROPSignatureDec sig-dec using (sig)
 open APROP sig
 open import Categories.APROP.Hypergraph.Iso
-open import Categories.APROP.Hypergraph.FromAPROP sig using (⟪_⟫; flatten)
+open import Categories.APROP.Hypergraph.FromAPROP sig using (flatten)
+open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig

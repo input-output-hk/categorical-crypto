@@ -95,7 +95,8 @@ module Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.Atom
 open APROPSignatureDec sig-dec using (sig)
 open APROP sig
 open import Categories.APROP.Hypergraph.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen; ⟪_⟫; flatten)
+open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen; flatten)
+open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (bridge)
