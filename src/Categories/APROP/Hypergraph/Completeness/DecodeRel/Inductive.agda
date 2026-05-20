@@ -1629,6 +1629,312 @@ private
       (id ⊗₁ (Agen u ⊗₁ id {YR-g})) ∘ bridge-NoSigma-fwd eA HRBN.∎
 
 --------------------------------------------------------------------------------
+-- Positional alignment (Step 5 front-end).
+--
+-- Goal: extract `flatten YL_f ≡ flatten YL_g` and
+-- `flatten YR_f ≡ flatten YR_g` from an iso `⟪f⟫ ≅ᴴ ⟪g⟫` and SingleAgen
+-- witnesses `sf, sg`.  Combined with `bridge-naturality-pos`, this would
+-- close the central Mac-Lane naturality lemma.
+--
+-- ## Structural decomposition (atom level)
+--
+-- The starting observation: every `SingleAgen f` admits a NoSigma
+-- `c-from : A → YL ⊗₀ Aᵢ ⊗₀ YR` (from `single-agen-strip`).  Since
+-- NoSigma morphisms preserve `flatten` (via `flatten-NoSigma`), we get
+-- a list-level decomposition
+--
+--   flatten A ≡ flatten YL ++ flatten Aᵢ ++ flatten YR
+--
+-- For two `SingleAgen f, g : HomTerm A B`, this gives two
+-- decompositions of the *same* list `flatten A`.  The middles agree at
+-- the `flatten Aᵢ` level via `single-agen-flat-data`.
+--
+-- ## The remaining gap
+--
+-- The two decompositions can in principle differ at the POSITION of
+-- the middle.  E.g. `flatten A = [a,b,a,b]` with `flatten Aᵢ = [a,b]`
+-- admits two splits.  To uniqueness, we need a positional constraint
+-- from the iso — concretely, that the Agen-edge's `ein` lives at the
+-- same position in the (uniquely-ordered) vertex lists of `⟪f⟫.dom`
+-- and `⟪g⟫.dom`.  This requires an additional structural lemma
+-- relating `SingleAgen-edge`'s position to `length (flatten YL)`,
+-- combined with the iso's `ψ-ein` + `φ-dom` constraints.
+--
+-- The structural decomposition `strip-flatten-A-decomp` is provided
+-- below as the easy half; the positional alignment is left as a
+-- documented open lemma (~200-400 LOC of routine geometric chasing).
+
+-- Atom-level structural decomposition: from a `SingleAgen` witness on
+-- `f : HomTerm A B`, the source `flatten A` decomposes as
+-- `flatten YL ++ flatten Aᵢ ++ flatten YR`.  Proved by reading off
+-- `c-from : A → YL ⊗₀ Aᵢ ⊗₀ YR` (extracted by `single-agen-strip`)
+-- and applying `flatten-NoSigma`.
+
+open import Data.List using (_++_)
+
+strip-flatten-A-decomp
+  : ∀ {A B} {f : HomTerm A B} (sf : SingleAgen f)
+  → flatten A
+  ≡ flatten (SingleAgenNF.YL (single-agen-strip sf))
+    ++ flatten (SingleAgenNF.Aᵢ (single-agen-strip sf))
+    ++ flatten (SingleAgenNF.YR (single-agen-strip sf))
+strip-flatten-A-decomp sf =
+  flatten-NoSigma (SingleAgenNF.nosigma-from (single-agen-strip sf))
+
+-- Symmetrically: the target `flatten B` decomposes via `c-to`.
+-- Note the *reversed* direction: `c-to : YL ⊗₀ Bᵢ ⊗₀ YR → B`, so
+-- `flatten-NoSigma nosigma-to` gives `flatten (YL ⊗₀ Bᵢ ⊗₀ YR) ≡ flatten B`.
+
+strip-flatten-B-decomp
+  : ∀ {A B} {f : HomTerm A B} (sf : SingleAgen f)
+  → flatten B
+  ≡ flatten (SingleAgenNF.YL (single-agen-strip sf))
+    ++ flatten (SingleAgenNF.Bᵢ (single-agen-strip sf))
+    ++ flatten (SingleAgenNF.YR (single-agen-strip sf))
+strip-flatten-B-decomp sf =
+  sym (flatten-NoSigma (SingleAgenNF.nosigma-to (single-agen-strip sf)))
+
+--------------------------------------------------------------------------------
+-- Positional alignment (length-of-YL) — partial reduction.
+--
+-- The `strip-flatten-A-decomp` lemmas reduce `positional-alignment` to
+-- the *length equality*: `length (flatten YL_f) ≡ length (flatten YL_g)`.
+-- Given that, `flatten YL_f ≡ flatten YL_g` follows by `take`-equality
+-- on the common `flatten A`, and symmetrically for YR via `drop`.
+--
+-- This length equality is the *real* content of positional alignment:
+-- it cannot be derived from the syntactic strips alone (the same
+-- `flatten A` can be split with different YL lengths if atoms repeat),
+-- so it requires the iso `⟪f⟫ ≅ᴴ ⟪g⟫`.  The cleanest geometric
+-- argument routes through the position of the Agen-edge's `ein`
+-- within `⟪f⟫.dom` / `⟪g⟫.dom`, matched up via the φ vertex
+-- bijection.  Encoding this requires a structural lemma
+--
+--   strip-dom-vert-decomp
+--     : (sf : SingleAgen f)
+--     → Σ[ pre ∈ List (Fin nV_f) ] Σ[ post ∈ List (Fin nV_f) ]
+--         ⟪f⟫.dom ≡ pre ++ ⟪f⟫.ein (SingleAgen-edge sf) ++ post
+--         × length pre ≡ length (flatten YL_f)
+--         × length post ≡ length (flatten YR_f)
+--
+-- which is provable by structural recursion on `sf`, but the
+-- recursion is delicate because the Agen edge's `ein` is not always
+-- a sublist of `dom` literally (e.g. in the `∘-l` case where the
+-- Agen is post-composed by `k`, its `ein` is remapped via the
+-- `hComposeP` remap).  Roughly 150-300 LOC.
+--
+-- Below we provide a stub `positional-alignment` whose *witness* is
+-- the strip-flatten-A-decomp pair plus a length-equality input.  Once
+-- the geometric length equality is proved, the rest follows in ~30 LOC.
+
+private
+  -- List `take`/`drop` based extraction: if `xs ≡ ys₁ ++ zs₁` and
+  -- `xs ≡ ys₂ ++ zs₂` with `length ys₁ ≡ length ys₂`, then
+  -- `ys₁ ≡ ys₂` and `zs₁ ≡ zs₂`.
+  --
+  -- Proved by induction on `ys₁` (and casing `ys₂` against its length).
+
+  open import Data.List using ([]; _∷_; _++_; length)
+  open import Data.List.Properties using (∷-injectiveˡ; ∷-injectiveʳ)
+  open import Data.Nat using () renaming (suc to ℕsuc)
+  open import Data.Product using (proj₁; proj₂)
+
+  ℕ-suc-inj : ∀ {m n} → ℕsuc m ≡ ℕsuc n → m ≡ n
+  ℕ-suc-inj refl = refl
+
+  -- Variant that takes the LHS list directly.  The general
+  -- formulation above can be derived by `subst`-ing through `xs`.
+  ++-split-by-length-eq
+    : ∀ {A : Set} (ys₁ zs₁ ys₂ zs₂ : List A)
+    → ys₁ ++ zs₁ ≡ ys₂ ++ zs₂
+    → length ys₁ ≡ length ys₂
+    → ys₁ ≡ ys₂ × zs₁ ≡ zs₂
+  ++-split-by-length-eq [] zs₁ [] zs₂ eq _ = refl , eq
+  ++-split-by-length-eq [] _ (_ ∷ _) _ _ ()
+  ++-split-by-length-eq (_ ∷ _) _ [] _ _ ()
+  ++-split-by-length-eq (y₁ ∷ ys₁) zs₁ (y₂ ∷ ys₂) zs₂ eq ℓeq =
+    let head-eq : y₁ ≡ y₂
+        head-eq = ∷-injectiveˡ eq
+        tail-eq : ys₁ ++ zs₁ ≡ ys₂ ++ zs₂
+        tail-eq = ∷-injectiveʳ eq
+        rec = ++-split-by-length-eq ys₁ zs₁ ys₂ zs₂ tail-eq (ℕ-suc-inj ℓeq)
+    in cong₂ _∷_ head-eq (proj₁ rec) , proj₂ rec
+    where open import Relation.Binary.PropositionalEquality using (cong₂)
+
+  -- The version we actually use: derives split from two `xs ≡ ...`
+  -- equations by chaining them.
+  ++-split-by-length
+    : ∀ {A : Set} {xs : List A} (ys₁ zs₁ ys₂ zs₂ : List A)
+    → xs ≡ ys₁ ++ zs₁ → xs ≡ ys₂ ++ zs₂
+    → length ys₁ ≡ length ys₂
+    → ys₁ ≡ ys₂ × zs₁ ≡ zs₂
+  ++-split-by-length ys₁ zs₁ ys₂ zs₂ eq₁ eq₂ ℓeq =
+    ++-split-by-length-eq ys₁ zs₁ ys₂ zs₂ (trans (sym eq₁) eq₂) ℓeq
+
+  -- Three-way split (specialized form for YL ++ Aᵢ ++ YR splits).
+  -- Takes flatten-A decomps for both f and g, the middle-equality
+  -- `flatten Aᵢ_f ≡ flatten Aᵢ_g` (from `single-agen-flat-data`),
+  -- and the length equality on `flatten YL_f`/`flatten YL_g` — the
+  -- only piece that requires positional info from the iso.
+  --
+  -- Output: `flatten YL_f ≡ flatten YL_g` and `flatten YR_f ≡ flatten YR_g`.
+  --
+  -- Strategy: list cancellation on the LEFT (using YL length equality)
+  -- gives YL_f ≡ YL_g and the tail `Aᵢ_f ++ YR_f ≡ Aᵢ_g ++ YR_g`.
+  -- Then list cancellation on the LEFT again (using the Aᵢ length
+  -- equality derived from `flatten Aᵢ_f ≡ flatten Aᵢ_g`) gives the
+  -- second result.
+
+  ++-split-3way
+    : ∀ {A : Set} {xs : List A} (ys₁ ms₁ zs₁ ys₂ ms₂ zs₂ : List A)
+    → xs ≡ ys₁ ++ ms₁ ++ zs₁ → xs ≡ ys₂ ++ ms₂ ++ zs₂
+    → ms₁ ≡ ms₂
+    → length ys₁ ≡ length ys₂
+    → ys₁ ≡ ys₂ × zs₁ ≡ zs₂
+  ++-split-3way ys₁ ms₁ zs₁ ys₂ ms₂ zs₂ eq₁ eq₂ m-eq ℓeq =
+    let
+      -- First split: ys₁ ≡ ys₂, (ms₁ ++ zs₁) ≡ (ms₂ ++ zs₂).
+      step₁ = ++-split-by-length ys₁ (ms₁ ++ zs₁) ys₂ (ms₂ ++ zs₂) eq₁ eq₂ ℓeq
+      ys-eq = proj₁ step₁
+      tail-eq = proj₂ step₁
+      -- Second split: ms₁ ≡ ms₂ (given), zs₁ ≡ zs₂.
+      -- We need length ms₁ ≡ length ms₂ — follows from m-eq.
+      ms-ℓeq : length ms₁ ≡ length ms₂
+      ms-ℓeq = cong length m-eq
+      step₂ = ++-split-by-length-eq ms₁ zs₁ ms₂ zs₂ tail-eq ms-ℓeq
+      zs-eq = proj₂ step₂
+    in ys-eq , zs-eq
+
+--------------------------------------------------------------------------------
+-- `positional-alignment-from-length`: the constructively-closed half of
+-- the positional alignment lemma.
+--
+-- Given:
+--   * Two `SingleAgen` witnesses `sf : SingleAgen f`, `sg : SingleAgen g`
+--     with `f, g : HomTerm A B`;
+--   * The iso `⟪f⟫ ≅ᴴ ⟪g⟫` (currently unused — kept for the open
+--     length-equality refinement);
+--   * The length-equality `len-YL-eq : length (flatten YL_f) ≡
+--     length (flatten YL_g)` — the ONE missing piece;
+--
+-- Produce:
+--   * `flatten YL_f ≡ flatten YL_g`
+--   * `flatten YR_f ≡ flatten YR_g`
+--
+-- via `strip-flatten-A-decomp` + `single-agen-flat-data`'s `flat-A-eq` +
+-- `++-split-3way`.
+--
+-- The trust content has thus shrunk to a *single* `ℕ`-level equality
+-- (`length-of-YL`) — the smallest possible interface for the iso.
+
+positional-alignment-from-length
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+      (len-YL-eq : length (flatten (SingleAgenNF.YL (single-agen-strip sf)))
+                 ≡ length (flatten (SingleAgenNF.YL (single-agen-strip sg))))
+  → Σ[ eYL ∈ flatten (SingleAgenNF.YL (single-agen-strip sf))
+           ≡ flatten (SingleAgenNF.YL (single-agen-strip sg)) ]
+    Σ[ eYR ∈ flatten (SingleAgenNF.YR (single-agen-strip sf))
+           ≡ flatten (SingleAgenNF.YR (single-agen-strip sg)) ]
+    ⊤
+positional-alignment-from-length {A = A} {f = f} {g = g} sf sg iso len-YL-eq =
+  let
+    -- Decomposition of flatten A from f's strip.
+    decomp-f : flatten A
+             ≡ flatten YL-f ++ flatten Aᵢ-f ++ flatten YR-f
+    decomp-f = strip-flatten-A-decomp sf
+
+    -- Decomposition of flatten A from g's strip.
+    decomp-g : flatten A
+             ≡ flatten YL-g ++ flatten Aᵢ-g ++ flatten YR-g
+    decomp-g = strip-flatten-A-decomp sg
+
+    -- Aᵢ-level equality, lifted from `single-agen-u`'s record to
+    -- `single-agen-strip`'s record via the consistency lemma.
+    flat-data = single-agen-flat-data sf sg iso
+    flat-A-eq-u = proj₁ flat-data
+
+    Aᵢ-u-f→strip-f : flatten (SingleAgenGen.Aᵢ (single-agen-u sf))
+                   ≡ flatten Aᵢ-f
+    Aᵢ-u-f→strip-f = cong flatten (single-agen-u-strip-Aᵢ sf)
+
+    Aᵢ-u-g→strip-g : flatten (SingleAgenGen.Aᵢ (single-agen-u sg))
+                   ≡ flatten Aᵢ-g
+    Aᵢ-u-g→strip-g = cong flatten (single-agen-u-strip-Aᵢ sg)
+
+    flat-A-eq : flatten Aᵢ-f ≡ flatten Aᵢ-g
+    flat-A-eq = trans (sym Aᵢ-u-f→strip-f) (trans flat-A-eq-u Aᵢ-u-g→strip-g)
+
+    split = ++-split-3way (flatten YL-f) (flatten Aᵢ-f) (flatten YR-f)
+                          (flatten YL-g) (flatten Aᵢ-g) (flatten YR-g)
+                          decomp-f decomp-g flat-A-eq len-YL-eq
+  in proj₁ split , proj₂ split , tt
+  where
+    YL-f = SingleAgenNF.YL (single-agen-strip sf)
+    Aᵢ-f = SingleAgenNF.Aᵢ (single-agen-strip sf)
+    YR-f = SingleAgenNF.YR (single-agen-strip sf)
+    YL-g = SingleAgenNF.YL (single-agen-strip sg)
+    Aᵢ-g = SingleAgenNF.Aᵢ (single-agen-strip sg)
+    YR-g = SingleAgenNF.YR (single-agen-strip sg)
+
+--------------------------------------------------------------------------------
+-- `length-of-YL-eq`: open input (the remaining hole).
+--
+-- Length equality of `flatten YL` between the two strips, which IS
+-- determined by the iso `⟪f⟫ ≅ᴴ ⟪g⟫`, but extracting it requires
+-- geometric reasoning about the position of the Agen edge's `ein`
+-- within `⟪f⟫.dom` / `⟪g⟫.dom`.  Sketch:
+--
+--   1. For each strip case, the Agen edge's `ein` corresponds to a
+--      contiguous range of vertices of `⟪f⟫`, BUT it is not always a
+--      sublist of `⟪f⟫.dom` literally (e.g. `single-agen-∘-l`: the
+--      Agen edge's `ein` is `map remap (...)`, not `map injL (...)`).
+--      Hence a clean structural lemma "Agen-ein is at position
+--      `length (flatten YL)` in dom" does NOT generalise across all 5
+--      `SingleAgen` constructors.
+--
+--   2. The clean route is via the *strip* equivalence: after applying
+--      `single-agen-strip`'s `equiv`, both `⟪f⟫` and `⟪g⟫` are
+--      ≈Term-equal (and thus iso) to graphs of the form
+--      `⟪c-to ∘ M ∘ c-from⟫` where the Agen edge's `ein` IS a sublist
+--      of dom at position `length (flatten YL)` (via the explicit
+--      M = id ⊗ (Agen u ⊗ id) structure).  This requires soundness
+--      of `≈Term`, which is available but introduces an indirect
+--      route through the iso transitivity machinery.
+--
+--   3. Either approach gives `length-of-YL-eq` in ~100-200 LOC.
+--      The current file ships `positional-alignment-from-length`
+--      requiring `length-of-YL-eq` as an *input* — the trust content
+--      of the remaining hole has thereby shrunk from "extract iso →
+--      `flatten YL_f ≡ flatten YL_g`" to "extract iso →
+--      `length (flatten YL_f) ≡ length (flatten YL_g)`", i.e. a
+--      single `ℕ` equality.
+
+--------------------------------------------------------------------------------
+-- `single-agen-NF-coherence-discharge-given-len`: the full discharge of
+-- the `single-agen-NF-coherence` postulate, ASSUMING the length
+-- equality.  Composes:
+--
+--   * `single-agen-flat-data`: iso → `(flat-A-eq, flat-B-eq, flat-u-eq)`.
+--   * `flat-data-to-ObjTerm`: flat data → `(Aᵢ_f ≡ Aᵢ_g, Bᵢ_f ≡ Bᵢ_g,
+--     u_f ≡ u_g)`.
+--   * `positional-alignment-from-length`: (flat-A-eq, len-YL-eq) →
+--     `(flatten YL_f ≡ flatten YL_g, flatten YR_f ≡ flatten YR_g)`.
+--   * `bridge-naturality-pos`: positional alignment + Agen u middle →
+--     `mlB ∘ M_f ≈Term M_g ∘ mlA` (Mac-Lane bridge naturality).
+--   * `single-agen-strip` on both sides: f ≈Term c-to-f ∘ M_f ∘ c-from-f,
+--     g ≈Term c-to-g ∘ M_g ∘ c-from-g.
+--   * `NoSigma-coherence` on the σ-free wrappers: c-from-f and the
+--     composition `bridge-NoSigma-fwd eA ∘ c-from-g` are both NoSigma
+--     A → (YL_f ⊗ Aᵢ ⊗ YR_f), hence ≈Term-equal; similarly for c-to.
+--
+-- This is the final composition that closes the discharge.  Currently
+-- written as a stub because it requires `length-of-YL-eq` as input.
+-- Once that single `ℕ`-equality is proved, this composition closes
+-- `single-agen-NF-coherence` constructively.
+
+--------------------------------------------------------------------------------
 -- The remaining narrow assumptions of the completeness path, bundled
 -- into the `CompletenessAssumptions` record.  The rest of this module
 -- (the `nf-resp-≅ᴴ` dispatcher and the top-level
