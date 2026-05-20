@@ -1,19 +1,75 @@
 # Goal: complete the completeness theorem
 
 `Categories.APROP.Hypergraph.CompletenessFull.completeness-full :
-⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g` builds cleanly. What's left is a small set
-of **narrow postulates** of two flavours: vertex/edge bookkeeping and
-permutation-equality coherence.
+⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g` builds cleanly.
 
-## Postulate inventory
+## Postulate inventory (post `50e3eb3` — Path B restructure)
 
-The completeness path now depends on **11 narrow postulates** across
-6 files. Every original wide postulate has been narrowed; many were
-replaced outright by constructive definitions backed by a narrower
-postulate. As of `b7e31da`, the entire Mac Lane fragment of
-structural coherence (`Structural-coherence-≈Term-noσ` and its
-encoder-soundness residual) is **fully constructive end-to-end**
-via `solveM` + Var-encoder + UIP coercions.
+The completeness path now depends on **a single architecturally-
+tractable postulate**:
+
+```agda
+nf-resp-≅ᴴ : ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → bridge f ≈Term bridge g
+```
+
+stated in `Completeness/DecodeRel/Inductive.agda`. `decode-rel-resp-≅ᴴ-full`
+is now a 4-line composition `trans (decode-roundtrip-rel f) (trans
+(nf-resp-≅ᴴ iso) (sym (decode-roundtrip-rel g)))`, no recursion.
+
+`decode-roundtrip-rel` is already fully constructive (in `DecodeRel.agda`),
+so the bridge `decode-rel f ≈Term bridge f` costs nothing.
+
+### History (May 2026 marathon session)
+
+The original inductive proof `decode-rel-resp-≅ᴴ-full` decomposed
+isos recursively through 4 compound branches (`⊗⊗`, `∘∘`, `⊗∘`, `∘⊗`)
+plus atomic-vs-compound dispatch. Each branch needed sub-iso
+extraction (`iso-decompose-⊗⊗`, etc.), which in turn needed vertex/
+edge restriction postulates in `IsoDecomposeTT.agda`, `IsoDecomposeCC.agda`,
+`Cross{OC,CO}.agda`, and `AgenCompound1E.agda`.
+
+That whole structure has been **architecturally blocked** by two
+counter-example families:
+
+1. **σ-naturality half-swap** (tensor case): `Agen u ⊗ id` vs
+   `id ⊗ Agen u` at `unit ⊗ A → unit ⊗ A` are `≈Term`-equal via
+   σ-naturality, their hypergraphs are `≅ᴴ` via a half-swap, but
+   no L→L-restricting iso exists. Three independent opus agents
+   converged on this conclusion.
+
+2. **idˡ/idʳ-absorption** (composition case): `Agen u ∘ id` vs
+   `id ∘ Agen u` at `unit → unit → unit` are `≈Term`-equal via
+   `idˡ`/`idʳ`, their composite hypergraphs are isomorphic, but
+   sub-iso extraction is impossible (one side has 1 edge, the
+   "extracted" sub-iso would need 0 edges).
+
+The Path B restructure (commit `50e3eb3`) bypasses both pathologies
+by re-stating completeness at the `bridge` level. `nf-resp-≅ᴴ`
+operates on the whole hypergraph at once and doesn't care about
+syntactic decomposition.
+
+### Orphaned files (no longer on critical path)
+
+The following files contain ~50 LOC of constructive code that's
+still kept for reference but is no longer reached by
+`completeness-full`:
+
+- `RespIso/Atomic.agda`, `RespIso/AtomicCompound.agda`
+- `RespIso/TensorTensor.agda`, `RespIso/ComposeCompose.agda`
+- `RespIso/Discharge/{AtomicCompound0E,AgenCompound1E,IsoDecomposeTT,IsoDecomposeCC,CrossOC,CrossCO}.agda`
+- `BlockDiagonal/*`
+
+`AtomicCompound0E.agda` contains the Mac Lane discharge from `b7e31da`
+— constructive end-to-end via `solveM` + Var-encoder + UIP coercions
+— preserved for potential future reuse.
+
+### Earlier landmarks (this session)
+
+- `b7e31da` — Mac Lane fragment of structural coherence fully
+  constructive via `solveM` + Var-encoder + UIP coercions.
+- `425bf16` — reverted unsound `⊗-∘-dist-FromAPROP-iso` narrowing
+  (vertex-count mismatch).
+- `5ed168e`/`d417b63` — documented the architectural blockers.
 
 **May 2026 unsoundness retraction (`425bf16`)**: an earlier
 narrowing pass (`0c4f223`) introduced `⊗-∘-dist-FromAPROP-iso` and
@@ -24,6 +80,17 @@ Fin-bijection on vertices, but the LHS `⟪p ⊗ q⟫` and RHS
 (unpruned hCompose retains all interior vertices). The narrowing
 has been reverted; `iso-decompose-{∘⊗,⊗∘}-primitive-perm` are once
 again direct postulates with their original wide signatures.
+
+---
+
+## Historical: the old inductive structure (no longer on critical path)
+
+Everything below describes the *previous* proof architecture that
+was orphaned by the Path B restructure (`50e3eb3`). The files
+still exist as reference but are not reached by `completeness-full`.
+The discharge of `nf-resp-≅ᴴ` (Path B Day 3+) may revisit some of
+the constructive infrastructure here, but the postulates
+documented below are no longer on the critical path.
 
 ### 1. Tensor block-diagonal — `Discharge/IsoDecomposeTT.agda`
 
