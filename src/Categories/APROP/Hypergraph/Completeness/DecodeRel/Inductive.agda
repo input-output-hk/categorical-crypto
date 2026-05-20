@@ -1,33 +1,36 @@
 {-# OPTIONS #-}
 
 --------------------------------------------------------------------------------
--- Path B (Day 1-2): replace the inductive `decode-rel-resp-≅ᴴ-full`
--- (which dispatched on atomic/compound shape and required ~6 narrow
--- postulates: `iso-decompose-{⊗⊗,∘∘,∘⊗,⊗∘}` plus the atomic-compound
--- dispatchers and `decode-rel-resp-≅ᴴ-Agen-compound-1E`) with a single
--- top-level postulate `nf-resp-≅ᴴ` routed through the normal-form
--- decoder bridge.
+-- Path B (Day 3): progressively discharge `nf-resp-≅ᴴ` by case-splitting
+-- on whether `f` and `g` are σ-free Mac Lane terms.  The Mac Lane fragment
+-- (both `f` and `g` are `NoSigma`, i.e. no `σ` and no `Agen` subterm) is
+-- routed through `Structural-coherence-≈Term-noσ` in `AtomicCompound0E`,
+-- which is fully constructive via `solveM` + Var-encoder + UIP coercions
+-- (commit `b7e31da`).  All other cases are absorbed into a strictly
+-- narrower residual postulate `nf-resp-≅ᴴ-residual`.
 --
--- The old inductive structure was architecturally blocked: four of the
--- restriction postulates in `IsoDecomposeTT`/`IsoDecomposeCC` are NOT
--- theorems under the current `_≅ᴴ_` (σ-naturality and idˡ/idʳ
--- counter-examples — see memory `completeness_architectural_blockers`).
+-- Net postulate count: same (1 → 1), but the new residual fires only
+-- when at least one of `f`, `g` contains an `Agen` or `σ` subterm.
 --
--- The new top-level postulate `nf-resp-≅ᴴ` is the *only* postulate
--- needed for `decode-rel-resp-≅ᴴ-full`.  It states the normal-form
--- decoder respects hypergraph iso — provable via a normal-form
--- canonicalisation of `Hypergraph FlatGen → HomTerm` invariant under
--- `≅ᴴ` (Path B Day 3+ work).
+-- See `REFACTORING.md` for the full Path B narrative and the earlier
+-- (orphaned) inductive structure described below.
+--------------------------------------------------------------------------------
+-- The old inductive structure (recursively decomposing isos through 4
+-- compound branches plus atomic-vs-compound dispatch) was architecturally
+-- blocked by σ-naturality and idˡ/idʳ counter-examples (see memory
+-- `completeness_architectural_blockers`).  Path B bypasses that by
+-- restating completeness at the `bridge` level.
 --
--- The orphaned files (no longer on the critical path) include:
+-- Orphaned files (no longer on the critical path) — left in place for
+-- reference / future reuse:
 --   * RespIso/Atomic.agda
---   * RespIso/AtomicCompound.agda  (and AtomicCompound0E.agda)
+--   * RespIso/AtomicCompound.agda  (and AtomicCompound0E.agda's
+--     Atomic-flavoured dispatcher; the *Mac Lane discharge* from
+--     `AtomicCompound0E` is now re-imported into the critical path)
 --   * RespIso/TensorTensor.agda
 --   * RespIso/ComposeCompose.agda
---   * RespIso/Discharge/CrossOC.agda
---   * RespIso/Discharge/CrossCO.agda
+--   * RespIso/Discharge/CrossOC.agda, CrossCO.agda
 --   * BlockDiagonal/* and IsoDecompose{TT,CC}.agda
--- All are left in place for a separate cleanup pass.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -45,25 +48,87 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
   using (decode-rel; decode-roundtrip-rel)
 
+-- Re-import the constructive Mac Lane discharge from the orphaned
+-- AtomicCompound0E module.  `NoSigma`, `Structural-coherence-≈Term-noσ`,
+-- and the syntactic predicate are all defined there.
+open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.AtomicCompound0E sig-dec
+  using ( NoSigma
+        ; nosigma-id; nosigma-λ⇒; nosigma-λ⇐; nosigma-ρ⇒; nosigma-ρ⇐
+        ; nosigma-α⇒; nosigma-α⇐; nosigma-∘; nosigma-⊗
+        ; Structural-coherence-≈Term-noσ
+        )
+
+open import Data.Sum using (_⊎_; inj₁; inj₂)
+open import Data.Product using (_×_; _,_)
+
 --------------------------------------------------------------------------------
--- The single Path B postulate: the normal-form decoder respects
--- hypergraph isomorphism.  Stated at the `bridge` level (equivalently
--- `decode-rel` modulo `decode-roundtrip-rel`) because `bridge` is the
--- canonical embedding of every `HomTerm` into the `unflatten ∘ flatten`
--- normalised types — the natural target for a hypergraph-iso-invariant
--- normal form.
---
--- Discharge route (Path B Day 3+): define a normal-form canonicalizer
--- `nf : ∀ {A B} → Hypergraph FlatGen → HomTerm (unflatten dom)
--- (unflatten cod)` invariant under `≅ᴴ`, then prove `bridge f ≈Term nf
--- ⟪ f ⟫` by induction on `f`.  The σ-free Mac Lane fragment is already
--- constructive (see commit b7e31da).
+-- Decidable `NoSigma`.  Returns `inj₁ ns` if `f` is `NoSigma`, `inj₂ _`
+-- otherwise (Agen, σ, or any subterm containing them).  We use `⊤` for
+-- the negative case since the Mac Lane discharge does not need a
+-- *negation* witness — only the positive `NoSigma` witness.
+
+open import Data.Unit using (⊤; tt)
+
+NoSigma? : ∀ {A B} (f : HomTerm A B) → NoSigma f ⊎ ⊤
+NoSigma? (Agen _)   = inj₂ tt
+NoSigma? id         = inj₁ nosigma-id
+NoSigma? λ⇒         = inj₁ nosigma-λ⇒
+NoSigma? λ⇐         = inj₁ nosigma-λ⇐
+NoSigma? ρ⇒         = inj₁ nosigma-ρ⇒
+NoSigma? ρ⇐         = inj₁ nosigma-ρ⇐
+NoSigma? α⇒         = inj₁ nosigma-α⇒
+NoSigma? α⇐         = inj₁ nosigma-α⇐
+NoSigma? σ          = inj₂ tt
+NoSigma? (h ∘ k) with NoSigma? h | NoSigma? k
+... | inj₁ nh | inj₁ nk = inj₁ (nosigma-∘ nh nk)
+... | _       | _       = inj₂ tt
+NoSigma? (h ⊗₁ k) with NoSigma? h | NoSigma? k
+... | inj₁ nh | inj₁ nk = inj₁ (nosigma-⊗ nh nk)
+... | _       | _       = inj₂ tt
+
+--------------------------------------------------------------------------------
+-- `bridge` is a congruence with respect to `_≈Term_` — wrapping with
+-- the coherence isos on each side preserves `≈Term`.  This is the
+-- 1-line lemma that lifts `Structural-coherence-≈Term-noσ`'s conclusion
+-- `f ≈Term g` to `bridge f ≈Term bridge g` without needing a separate
+-- `bridge-≅ᴴ` lemma.
+
+private
+  open import Categories.Category using (Category)
+  module FM = Category FreeMonoidal
+  open FM.HomReasoning
+
+  bridge-resp-≈Term
+    : ∀ {A B} {f g : HomTerm A B}
+    → f ≈Term g → bridge f ≈Term bridge g
+  bridge-resp-≈Term f≈g = refl⟩∘⟨ f≈g ⟩∘⟨refl
+
+--------------------------------------------------------------------------------
+-- Strictly narrower residual postulate.  Fires only when at least one
+-- of `f`, `g` contains a `σ` or `Agen` subterm — i.e. *not* a σ-free
+-- Mac Lane term.  The σ-free Mac Lane case is constructively
+-- discharged below.
 
 postulate
-  nf-resp-≅ᴴ
+  nf-resp-≅ᴴ-residual
     : ∀ {A B} (f g : HomTerm A B)
     → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
     → bridge f ≈Term bridge g
+
+--------------------------------------------------------------------------------
+-- The Path B `nf-resp-≅ᴴ`: case-split on Mac Lane fragment.  Both
+-- `f` and `g` `NoSigma` ⇒ constructive discharge via
+-- `Structural-coherence-≈Term-noσ` lifted through `bridge`.  Otherwise
+-- ⇒ residual.
+
+nf-resp-≅ᴴ
+  : ∀ {A B} (f g : HomTerm A B)
+  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+  → bridge f ≈Term bridge g
+nf-resp-≅ᴴ f g iso with NoSigma? f | NoSigma? g
+... | inj₁ nf | inj₁ ng =
+        bridge-resp-≈Term (Structural-coherence-≈Term-noσ nf ng iso)
+... | _       | _       = nf-resp-≅ᴴ-residual f g iso
 
 --------------------------------------------------------------------------------
 -- `nf-bridge`: the bridge from `decode-rel` to `bridge`.  This is
