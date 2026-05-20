@@ -10,6 +10,7 @@ open import ProbabilisticLogic.Models.Trivial
 
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Setoid
+open import ProbabilisticLogic.Distribution.RationalDist.Markov
 open import ProbabilisticLogic.Distribution.Bernoulli
 open import ProbabilisticLogic.Distribution.Binomial
 open import ProbabilisticLogic.Distribution.Markov
