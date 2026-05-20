@@ -71,6 +71,32 @@ still kept for reference but is no longer reached by
   (vertex-count mismatch).
 - `5ed168e`/`d417b63` — documented the architectural blockers.
 
+### Path B Day 4 — Agen-Agen and edge-count narrowing
+
+The single residual `nf-resp-≅ᴴ-residual` is now further narrowed in
+`DecodeRel/Inductive.agda`. The constructive dispatcher
+`nf-resp-≅ᴴ` discharges three sub-cases before falling through:
+
+1. Both `NoSigma` (no σ, no Agen) → `Structural-coherence-≈Term-noσ`
+   (Mac Lane, constructive).
+2. Both `IsAgen` (literally `Agen g₁` and `Agen g₂`) → reuses the
+   already-discharged `decode-rel-resp-≅ᴴ-Agen-Agen` from
+   `RespIso/AgenAgen.agda`.  This is possible because
+   `decode-rel (Agen g) = bridge (Agen g)` definitionally.
+3. Edge-count contradiction: `NoAgen f` ∧ `IsAgen g` (or symmetric)
+   yields `Fin 0 ↔ Fin 1`, which is `⊥` via `ψ`/`ψ⁻¹` on the iso.
+
+A new `NoAgen` predicate (analogous to `NoSigma` but admitting σ) is
+introduced.  Its key invariant `nE-NoAgen : NoAgen f → nE ⟪f⟫ ≡ 0`
+follows from a small `nE-hId` recursion plus structural induction
+through `hTensor`/`hCompose`.  Decidable classifier `NoAgen?` is
+local to the dispatcher.
+
+The residual now fires only when *both* `f, g` contain a σ subterm,
+or *both* contain Agen but are not pure atomic Agens (e.g.
+`Agen u ⊗ id`, `Agen u ∘ id`, etc.).  Postulate count unchanged
+(still 1), but its scope is strictly smaller.
+
 **May 2026 unsoundness retraction (`425bf16`)**: an earlier
 narrowing pass (`0c4f223`) introduced `⊗-∘-dist-FromAPROP-iso` and
 its mirror in Cross{OC,CO} as "narrow universal coherence
