@@ -327,37 +327,186 @@ record SingleAgenNF {A B : ObjTerm} (f : HomTerm A B) : Set where
 --     smaller than the original `single-agen-coherence-≈Term`.
 
 private
-  postulate
-    single-agen-strip-⊗-equiv-l
-      : ∀ {A B C D YL YR Aᵢ Bᵢ}
-          (h : HomTerm A B) (k : HomTerm C D)
-          (u : mor Aᵢ Bᵢ)
-          (c-from-h : HomTerm A (YL ⊗₀ Aᵢ ⊗₀ YR))
-          (c-to-h   : HomTerm (YL ⊗₀ Bᵢ ⊗₀ YR) B)
-      → h ≈Term c-to-h ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-h
-      → h ⊗₁ k
-        ≈Term
-        ((c-to-h ⊗₁ k) ∘ α⇐ ∘ (id ⊗₁ α⇐))
-        ∘ (id ⊗₁ (Agen u ⊗₁ id))
-        ∘ ((id ⊗₁ α⇒) ∘ α⇒ ∘ (c-from-h ⊗₁ id))
-
-    single-agen-strip-⊗-equiv-r
-      : ∀ {A B C D YL YR Aᵢ Bᵢ}
-          (h : HomTerm A B) (k : HomTerm C D)
-          (u : mor Aᵢ Bᵢ)
-          (c-from-k : HomTerm C (YL ⊗₀ Aᵢ ⊗₀ YR))
-          (c-to-k   : HomTerm (YL ⊗₀ Bᵢ ⊗₀ YR) D)
-      → k ≈Term c-to-k ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-k
-      → h ⊗₁ k
-        ≈Term
-        ((h ⊗₁ c-to-k) ∘ α⇒)
-        ∘ (id ⊗₁ (Agen u ⊗₁ id))
-        ∘ (α⇐ ∘ (id ⊗₁ c-from-k))
-
-private
   open import Categories.Category using (Category)
   module FM-strip = Category FreeMonoidal
   open FM-strip.HomReasoning
+
+-- Mac Lane reassociation lemmas underlying the `⊗-l` / `⊗-r` strip
+-- cases.  Both are pure Mac Lane (only `α`, `id`, `⊗₁`, no `σ`/`Agen`
+-- naturality beyond α-comm); proved here by direct `≈Term` chase.
+
+private
+  -- The middle generator M = id ⊗ (Agen u ⊗ id) is conjugated by the
+  -- Mac Lane wrappers W = (id ⊗ α⇒) ∘ α⇒ and W' = α⇐ ∘ (id ⊗ α⇐) on
+  -- the left strip case, producing `M ⊗ id` on the outside.
+  --
+  -- Key claim: `M' ∘ W ≈ W ∘ (M ⊗ id)`, where M' is M with new
+  -- right-context YR' = YR ⊗ C.  Two applications of α-comm.
+  M-W-comm-l
+    : ∀ {YL YR Aᵢ Bᵢ C} (u : mor Aᵢ Bᵢ)
+    → (id ⊗₁ (Agen u ⊗₁ id {YR ⊗₀ C})) ∘ ((id ⊗₁ α⇒) ∘ α⇒ {YL} {Aᵢ ⊗₀ YR} {C})
+      ≈Term
+      ((id ⊗₁ α⇒) ∘ α⇒) ∘ ((id ⊗₁ (Agen u ⊗₁ id {YR})) ⊗₁ id {C})
+  M-W-comm-l {YL} {YR} {Aᵢ} {Bᵢ} {C} u = ≈-Term-sym (begin
+    ((id ⊗₁ α⇒) ∘ α⇒) ∘ ((id ⊗₁ (Agen u ⊗₁ id)) ⊗₁ id)
+      ≈⟨ assoc ⟩
+    (id ⊗₁ α⇒) ∘ α⇒ ∘ ((id ⊗₁ (Agen u ⊗₁ id)) ⊗₁ id)
+      ≈⟨ refl⟩∘⟨ α-comm ⟩
+    (id ⊗₁ α⇒) ∘ (id ⊗₁ ((Agen u ⊗₁ id) ⊗₁ id)) ∘ α⇒
+      ≈⟨ ≈-Term-sym assoc ⟩
+    ((id ⊗₁ α⇒) ∘ (id ⊗₁ ((Agen u ⊗₁ id) ⊗₁ id))) ∘ α⇒
+      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩∘⟨refl ⟩
+    ((id ∘ id) ⊗₁ (α⇒ ∘ ((Agen u ⊗₁ id) ⊗₁ id))) ∘ α⇒
+      ≈⟨ ⊗-resp-≈ idˡ α-comm ⟩∘⟨refl ⟩
+    (id ⊗₁ ((Agen u ⊗₁ (id ⊗₁ id)) ∘ α⇒)) ∘ α⇒
+      ≈⟨ ⊗-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ ≈-Term-refl id⊗id≈id) ≈-Term-refl) ⟩∘⟨refl ⟩
+    (id ⊗₁ ((Agen u ⊗₁ id) ∘ α⇒)) ∘ α⇒
+      ≈⟨ ⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl ⟩∘⟨refl ⟩
+    ((id ∘ id) ⊗₁ ((Agen u ⊗₁ id) ∘ α⇒)) ∘ α⇒
+      ≈⟨ ⊗-∘-dist ⟩∘⟨refl ⟩
+    ((id ⊗₁ (Agen u ⊗₁ id)) ∘ (id ⊗₁ α⇒)) ∘ α⇒
+      ≈⟨ assoc ⟩
+    (id ⊗₁ (Agen u ⊗₁ id)) ∘ (id ⊗₁ α⇒) ∘ α⇒ ∎)
+
+  -- W' ∘ W ≈ id  (cancellation of the wrapping isos)
+  W'-W-cancel-l
+    : ∀ {YL YR Aᵢ C}
+    → (α⇐ {YL} {Aᵢ ⊗₀ YR} {C} ∘ (id ⊗₁ α⇐ {Aᵢ} {YR} {C}))
+      ∘ ((id ⊗₁ α⇒ {Aᵢ} {YR} {C}) ∘ α⇒ {YL} {Aᵢ ⊗₀ YR} {C})
+      ≈Term id
+  W'-W-cancel-l = begin
+    (α⇐ ∘ (id ⊗₁ α⇐)) ∘ ((id ⊗₁ α⇒) ∘ α⇒)
+      ≈⟨ assoc ⟩
+    α⇐ ∘ (id ⊗₁ α⇐) ∘ ((id ⊗₁ α⇒) ∘ α⇒)
+      ≈⟨ refl⟩∘⟨ ≈-Term-sym assoc ⟩
+    α⇐ ∘ ((id ⊗₁ α⇐) ∘ (id ⊗₁ α⇒)) ∘ α⇒
+      ≈⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩∘⟨refl ⟩
+    α⇐ ∘ ((id ∘ id) ⊗₁ (α⇐ ∘ α⇒)) ∘ α⇒
+      ≈⟨ refl⟩∘⟨ ⊗-resp-≈ idˡ α⇐∘α⇒≈id ⟩∘⟨refl ⟩
+    α⇐ ∘ (id ⊗₁ id) ∘ α⇒
+      ≈⟨ refl⟩∘⟨ id⊗id≈id ⟩∘⟨refl ⟩
+    α⇐ ∘ id ∘ α⇒
+      ≈⟨ refl⟩∘⟨ idˡ ⟩
+    α⇐ ∘ α⇒
+      ≈⟨ α⇐∘α⇒≈id ⟩
+    id ∎
+
+  -- For the right strip case: α⇒ ∘ M_r ∘ α⇐ ≈ id_B ⊗ M, where M_r is
+  -- M with new left-context YL' = B ⊗ YL.  Just α-comm applied once.
+  M-α-conj-r
+    : ∀ {B YL YR Aᵢ Bᵢ} (u : mor Aᵢ Bᵢ)
+    → α⇒ {B} {YL} {Bᵢ ⊗₀ YR} ∘ (id ⊗₁ (Agen u ⊗₁ id {YR})) ∘ α⇐ {B} {YL} {Aᵢ ⊗₀ YR}
+      ≈Term
+      id {B} ⊗₁ (id {YL} ⊗₁ (Agen u ⊗₁ id {YR}))
+  M-α-conj-r {B} {YL} {YR} {Aᵢ} {Bᵢ} u = begin
+    α⇒ ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ α⇐
+      ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (≈-Term-sym id⊗id≈id) ≈-Term-refl ⟩∘⟨refl ⟩
+    α⇒ ∘ ((id ⊗₁ id) ⊗₁ (Agen u ⊗₁ id)) ∘ α⇐
+      ≈⟨ ≈-Term-sym assoc ⟩
+    (α⇒ ∘ ((id ⊗₁ id) ⊗₁ (Agen u ⊗₁ id))) ∘ α⇐
+      ≈⟨ α-comm ⟩∘⟨refl ⟩
+    (id ⊗₁ (id ⊗₁ (Agen u ⊗₁ id)) ∘ α⇒) ∘ α⇐
+      ≈⟨ assoc ⟩
+    id ⊗₁ (id ⊗₁ (Agen u ⊗₁ id)) ∘ (α⇒ ∘ α⇐)
+      ≈⟨ refl⟩∘⟨ α⇒∘α⇐≈id ⟩
+    id ⊗₁ (id ⊗₁ (Agen u ⊗₁ id)) ∘ id
+      ≈⟨ idʳ ⟩
+    id ⊗₁ (id ⊗₁ (Agen u ⊗₁ id)) ∎
+
+  single-agen-strip-⊗-equiv-l
+    : ∀ {A B C D YL YR Aᵢ Bᵢ}
+        (h : HomTerm A B) (k : HomTerm C D)
+        (u : mor Aᵢ Bᵢ)
+        (c-from-h : HomTerm A (YL ⊗₀ Aᵢ ⊗₀ YR))
+        (c-to-h   : HomTerm (YL ⊗₀ Bᵢ ⊗₀ YR) B)
+    → h ≈Term c-to-h ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-h
+    → h ⊗₁ k
+      ≈Term
+      ((c-to-h ⊗₁ k) ∘ α⇐ ∘ (id ⊗₁ α⇐))
+      ∘ (id ⊗₁ (Agen u ⊗₁ id))
+      ∘ ((id ⊗₁ α⇒) ∘ α⇒ ∘ (c-from-h ⊗₁ id))
+  single-agen-strip-⊗-equiv-l {C = C} h k u c-from-h c-to-h equiv = ≈-Term-sym (begin
+    ((c-to-h ⊗₁ k) ∘ α⇐ ∘ (id ⊗₁ α⇐))
+      ∘ (id ⊗₁ (Agen u ⊗₁ id))
+      ∘ ((id ⊗₁ α⇒) ∘ α⇒ ∘ (c-from-h ⊗₁ id))
+      -- Re-associate so M conjugation is contiguous: (c-to-h ⊗ k) ∘ W' ∘ M' ∘ W ∘ (c-from-h ⊗ id)
+      ≈⟨ assoc ⟩
+    (c-to-h ⊗₁ k) ∘ (α⇐ ∘ (id ⊗₁ α⇐))
+      ∘ (id ⊗₁ (Agen u ⊗₁ id))
+      ∘ ((id ⊗₁ α⇒) ∘ α⇒ ∘ (c-from-h ⊗₁ id))
+      -- reassoc inner W ∘ (c-from-h ⊗ id) to ((id⊗α⇒)∘α⇒) ∘ (c-from⊗id), then push parens
+      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym assoc ⟩
+    (c-to-h ⊗₁ k) ∘ (α⇐ ∘ (id ⊗₁ α⇐))
+      ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ (((id ⊗₁ α⇒) ∘ α⇒) ∘ (c-from-h ⊗₁ id))
+      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym assoc ⟩
+    (c-to-h ⊗₁ k) ∘ (α⇐ ∘ (id ⊗₁ α⇐))
+      ∘ ((id ⊗₁ (Agen u ⊗₁ id)) ∘ ((id ⊗₁ α⇒) ∘ α⇒)) ∘ (c-from-h ⊗₁ id)
+      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ M-W-comm-l u ⟩∘⟨refl ⟩
+    (c-to-h ⊗₁ k) ∘ (α⇐ ∘ (id ⊗₁ α⇐))
+      ∘ (((id ⊗₁ α⇒) ∘ α⇒) ∘ ((id ⊗₁ (Agen u ⊗₁ id)) ⊗₁ id)) ∘ (c-from-h ⊗₁ id)
+      -- Collapse W' ∘ W using W'-W-cancel-l.
+      ≈⟨ refl⟩∘⟨ ≈-Term-sym assoc ⟩
+    (c-to-h ⊗₁ k) ∘ ((α⇐ ∘ (id ⊗₁ α⇐))
+      ∘ (((id ⊗₁ α⇒) ∘ α⇒) ∘ ((id ⊗₁ (Agen u ⊗₁ id)) ⊗₁ id))) ∘ (c-from-h ⊗₁ id)
+      ≈⟨ refl⟩∘⟨ ≈-Term-sym assoc ⟩∘⟨refl ⟩
+    (c-to-h ⊗₁ k) ∘ (((α⇐ ∘ (id ⊗₁ α⇐))
+      ∘ ((id ⊗₁ α⇒) ∘ α⇒)) ∘ ((id ⊗₁ (Agen u ⊗₁ id)) ⊗₁ id)) ∘ (c-from-h ⊗₁ id)
+      ≈⟨ refl⟩∘⟨ (W'-W-cancel-l ⟩∘⟨refl) ⟩∘⟨refl ⟩
+    (c-to-h ⊗₁ k) ∘ (id ∘ ((id ⊗₁ (Agen u ⊗₁ id)) ⊗₁ id)) ∘ (c-from-h ⊗₁ id)
+      ≈⟨ refl⟩∘⟨ idˡ ⟩∘⟨refl ⟩
+    (c-to-h ⊗₁ k) ∘ ((id ⊗₁ (Agen u ⊗₁ id)) ⊗₁ id) ∘ (c-from-h ⊗₁ id)
+      -- Now collapse via ⊗-∘-dist (twice) using k = k ∘ id ∘ id.
+      ≈⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩
+    (c-to-h ⊗₁ k) ∘ ((id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-h) ⊗₁ (id ∘ id)
+      ≈⟨ refl⟩∘⟨ ⊗-resp-≈ ≈-Term-refl idˡ ⟩
+    (c-to-h ⊗₁ k) ∘ ((id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-h) ⊗₁ id
+      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
+    (c-to-h ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-h) ⊗₁ (k ∘ id)
+      ≈⟨ ⊗-resp-≈ (≈-Term-sym equiv) idʳ ⟩
+    h ⊗₁ k ∎)
+
+  single-agen-strip-⊗-equiv-r
+    : ∀ {A B C D YL YR Aᵢ Bᵢ}
+        (h : HomTerm A B) (k : HomTerm C D)
+        (u : mor Aᵢ Bᵢ)
+        (c-from-k : HomTerm C (YL ⊗₀ Aᵢ ⊗₀ YR))
+        (c-to-k   : HomTerm (YL ⊗₀ Bᵢ ⊗₀ YR) D)
+    → k ≈Term c-to-k ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-k
+    → h ⊗₁ k
+      ≈Term
+      ((h ⊗₁ c-to-k) ∘ α⇒)
+      ∘ (id ⊗₁ (Agen u ⊗₁ id))
+      ∘ (α⇐ ∘ (id ⊗₁ c-from-k))
+  single-agen-strip-⊗-equiv-r h k u c-from-k c-to-k equiv = ≈-Term-sym (begin
+    ((h ⊗₁ c-to-k) ∘ α⇒)
+      ∘ (id ⊗₁ (Agen u ⊗₁ id))
+      ∘ (α⇐ ∘ (id ⊗₁ c-from-k))
+      ≈⟨ assoc ⟩
+    (h ⊗₁ c-to-k) ∘ α⇒
+      ∘ (id ⊗₁ (Agen u ⊗₁ id))
+      ∘ (α⇐ ∘ (id ⊗₁ c-from-k))
+      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym assoc ⟩
+    (h ⊗₁ c-to-k) ∘ α⇒
+      ∘ ((id ⊗₁ (Agen u ⊗₁ id)) ∘ α⇐) ∘ (id ⊗₁ c-from-k)
+      ≈⟨ refl⟩∘⟨ ≈-Term-sym assoc ⟩
+    (h ⊗₁ c-to-k) ∘ (α⇒
+      ∘ ((id ⊗₁ (Agen u ⊗₁ id)) ∘ α⇐)) ∘ (id ⊗₁ c-from-k)
+      ≈⟨ refl⟩∘⟨ ≈-Term-sym assoc ⟩∘⟨refl ⟩
+    (h ⊗₁ c-to-k) ∘ ((α⇒
+      ∘ (id ⊗₁ (Agen u ⊗₁ id))) ∘ α⇐) ∘ (id ⊗₁ c-from-k)
+      ≈⟨ refl⟩∘⟨ assoc ⟩∘⟨refl ⟩
+    (h ⊗₁ c-to-k) ∘ (α⇒
+      ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ α⇐) ∘ (id ⊗₁ c-from-k)
+      ≈⟨ refl⟩∘⟨ M-α-conj-r u ⟩∘⟨refl ⟩
+    (h ⊗₁ c-to-k) ∘ (id ⊗₁ (id ⊗₁ (Agen u ⊗₁ id))) ∘ (id ⊗₁ c-from-k)
+      ≈⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩
+    (h ⊗₁ c-to-k) ∘ (id ∘ id) ⊗₁ ((id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-k)
+      ≈⟨ refl⟩∘⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩
+    (h ⊗₁ c-to-k) ∘ id ⊗₁ ((id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-k)
+      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
+    (h ∘ id) ⊗₁ (c-to-k ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-k)
+      ≈⟨ ⊗-resp-≈ idʳ (≈-Term-sym equiv) ⟩
+    h ⊗₁ k ∎)
 
 single-agen-strip
   : ∀ {A B} {f : HomTerm A B} → SingleAgen f → SingleAgenNF f
