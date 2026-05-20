@@ -1979,6 +1979,194 @@ YL-length-from-iso-here-here
 YL-length-from-iso-here-here _ = refl
 
 --------------------------------------------------------------------------------
+-- `agen-ein-position` machinery.
+--
+-- `length-YL-strip sf ≡ length (flatten YL_f)` is a direct ℕ computation
+-- from the witness, parallel to the implicit YL inside `single-agen-strip`.
+-- Provided as a recursion-friendly view so downstream code can compute
+-- on the ℕ rather than on the `flatten` of the strip's YL.
+
+length-YL-strip
+  : ∀ {A B} {f : HomTerm A B} → SingleAgen f → ℕ
+length-YL-strip (single-agen-here _)   = 0
+length-YL-strip (single-agen-∘-l sh _) = length-YL-strip sh
+length-YL-strip (single-agen-∘-r _ sk) = length-YL-strip sk
+length-YL-strip (single-agen-⊗-l sh _) = length-YL-strip sh
+length-YL-strip {f = h ⊗₁ k} (single-agen-⊗-r {A = A} _ sk) =
+  length (flatten A) + length-YL-strip sk
+
+-- `length-YL-strip sf ≡ length (flatten YL_f)`.  Strict recursion
+-- mirroring `single-agen-strip`'s YL field.  Used to convert between
+-- the structural ℕ view and the `flatten`-of-YL form expected by the
+-- `positional-alignment-from-length` interface.
+open import Data.List using (length)
+open import Data.List.Properties using (length-++)
+open import Data.Nat using (_+_)
+
+length-YL-strip-≡
+  : ∀ {A B} {f : HomTerm A B} (sf : SingleAgen f)
+  → length-YL-strip sf
+  ≡ length (flatten (SingleAgenNF.YL (single-agen-strip sf)))
+length-YL-strip-≡ (single-agen-here _)   = refl
+length-YL-strip-≡ (single-agen-∘-l sh _) = length-YL-strip-≡ sh
+length-YL-strip-≡ (single-agen-∘-r _ sk) = length-YL-strip-≡ sk
+length-YL-strip-≡ (single-agen-⊗-l sh _) = length-YL-strip-≡ sh
+length-YL-strip-≡ {f = h ⊗₁ k} (single-agen-⊗-r {A = A} _ sk) =
+  trans (cong (length (flatten A) +_) (length-YL-strip-≡ sk))
+        (sym (length-++ (flatten A)))
+
+--------------------------------------------------------------------------------
+-- `length-dom-⟪⟫ : length ⟪f⟫.dom ≡ length (flatten A)`.  A small ℕ
+-- lemma derived from `⟪⟫-domL` and `length-map`.  Used in the
+-- `length-of-YL` proof to count atoms across the Agen-edge boundary.
+
+length-dom-⟪⟫
+  : ∀ {A B} (f : HomTerm A B)
+  → length (Hypergraph.dom ⟪ f ⟫) ≡ length (flatten A)
+length-dom-⟪⟫ {A = A} f =
+  trans (sym (length-map-dom (Hypergraph.vlab ⟪ f ⟫) (Hypergraph.dom ⟪ f ⟫)))
+        (cong length (⟪⟫-domL f))
+  where
+    open import Data.List.Properties
+      using () renaming (length-map to length-map-dom)
+
+--------------------------------------------------------------------------------
+-- NoSigma-cod≡dom: for any NoSigma `h : HomTerm A B`, the dom and cod
+-- of `⟪h⟫` are propositionally equal Fin lists.
+--
+-- Proof by structural induction on the NoSigma witness.  For each
+-- *atomic* NoSigma case (id, λ⇒, λ⇐, ρ⇒, ρ⇐, α⇒, α⇐), the translation
+-- produces `hId X` for some X, and `hId-cod≡dom` settles the case.
+-- For `nosigma-∘` and `nosigma-⊗` we recurse on the structure.
+--
+-- The compose case uses the central observation: for `hComposeP G K`
+-- with `Unique K.dom`, `map remapP K.dom ≡ map injL G.cod` (up to
+-- structural manipulation involving `lookup-cod` and the
+-- `cast dom-cod-len`).  Combined with the IH on G (`G.cod ≡ G.dom`),
+-- this yields `composed.cod ≡ composed.dom`.
+
+open import Categories.APROP.Hypergraph.HomTermInvariant sig using (⟪_⟫-dom-unique)
+open import Categories.APROP.Hypergraph.Invariant sig
+  using (hId-cod≡dom)
+open import Categories.APROP.Hypergraph.Core using (codL; domL)
+
+private
+  open import Data.List using (allFin; lookup)
+  open import Data.List.Properties
+    using (map-tabulate; tabulate-lookup; map-cong; map-id; map-∘; length-map)
+  open import Data.Fin using (cast)
+  open import Data.Fin.Properties using (cast-is-id)
+  open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
+  open import Categories.APROP.Hypergraph.Prune
+    using (remap-inj₁; classify-lookup-Unique)
+  open import Categories.APROP.Hypergraph.PrunedCompose sig
+    using ()
+
+  -- Re-derivation of `map-lookup-allFin` and `cast-allFin` (from
+  -- `SoundnessProved`'s private module).  Re-stated locally to avoid
+  -- breaking the existing module's private boundary.
+  map-lookup-allFin
+    : ∀ {A : Set} (xs : List A)
+    → map (lookup xs) (allFin (length xs)) ≡ xs
+  map-lookup-allFin xs =
+    trans (map-tabulate (λ i → i) (lookup xs)) (tabulate-lookup xs)
+
+  cast-allFin
+    : ∀ {m n} (eq : m ≡ n) → map (cast eq) (allFin m) ≡ allFin n
+  cast-allFin refl =
+    trans (map-cong (λ i → cast-is-id refl i) (allFin _)) (map-id (allFin _))
+
+  -- For `hComposeP G K bdy-eq` with `Unique K.dom`,
+  -- `map remapP K.dom ≡ map injL G.cod`.  Generalises the
+  -- `idˡ-cod-helper`'s K = hId chain to any Unique-dom K.
+  map-remapP-dom-≡-injL-G-cod
+    : ∀ (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
+    → Unique (Hypergraph.dom K)
+    → let module hCP = hComposeP-impl G K bdy-eq
+          module Kh = Hypergraph K
+          module Gh = Hypergraph G
+      in map hCP.remapP Kh.dom ≡ map hCP.injL Gh.cod
+  map-remapP-dom-≡-injL-G-cod G K bdy-eq K-dom-Unique =
+    let module hCP = hComposeP-impl G K bdy-eq
+        module Kh = Hypergraph K
+        module Gh = Hypergraph G
+
+        remapP-on-dom
+          : ∀ (j : Fin (length Kh.dom))
+          → hCP.remapP (lookup Kh.dom j)
+          ≡ hCP.lookup-cod j ↑ˡ Prune.count-non Kh.dom
+        remapP-on-dom j =
+          remap-inj₁ Kh.dom hCP.lookup-cod (lookup Kh.dom j) j
+            (classify-lookup-Unique Kh.dom K-dom-Unique j)
+    in EQR.begin
+      map hCP.remapP Kh.dom
+        EQR.≡⟨ cong (map hCP.remapP) (sym (map-lookup-allFin Kh.dom)) ⟩
+      map hCP.remapP (map (lookup Kh.dom) (allFin (length Kh.dom)))
+        EQR.≡⟨ sym (map-∘ (allFin (length Kh.dom))) ⟩
+      map (λ j → hCP.remapP (lookup Kh.dom j)) (allFin (length Kh.dom))
+        EQR.≡⟨ map-cong remapP-on-dom (allFin (length Kh.dom)) ⟩
+      map (λ j → hCP.lookup-cod j ↑ˡ Prune.count-non Kh.dom)
+          (allFin (length Kh.dom))
+        EQR.≡⟨ map-∘ (allFin (length Kh.dom)) ⟩
+      map (_↑ˡ Prune.count-non Kh.dom)
+          (map hCP.lookup-cod (allFin (length Kh.dom)))
+        EQR.≡⟨ cong (map (_↑ˡ Prune.count-non Kh.dom)) (map-∘ (allFin (length Kh.dom))) ⟩
+      map (_↑ˡ Prune.count-non Kh.dom)
+          (map (lookup Gh.cod) (map (cast hCP.dom-cod-len) (allFin (length Kh.dom))))
+        EQR.≡⟨ cong (λ xs → map (_↑ˡ Prune.count-non Kh.dom)
+                              (map (lookup Gh.cod) xs))
+              (cast-allFin hCP.dom-cod-len) ⟩
+      map (_↑ˡ Prune.count-non Kh.dom)
+          (map (lookup Gh.cod) (allFin (length Gh.cod)))
+        EQR.≡⟨ cong (map (_↑ˡ Prune.count-non Kh.dom)) (map-lookup-allFin Gh.cod) ⟩
+      map (_↑ˡ Prune.count-non Kh.dom) Gh.cod
+        EQR.∎
+    where
+      module EQR = ≡-Reasoning
+      module Prune = Categories.APROP.Hypergraph.Prune
+
+NoSigma-cod≡dom
+  : ∀ {A B} {h : HomTerm A B}
+  → NoSigma h → Hypergraph.cod ⟪ h ⟫ ≡ Hypergraph.dom ⟪ h ⟫
+NoSigma-cod≡dom (nosigma-id {A}) = hId-cod≡dom A
+NoSigma-cod≡dom (nosigma-λ⇒ {A}) = hId-cod≡dom A
+NoSigma-cod≡dom (nosigma-λ⇐ {A}) = hId-cod≡dom A
+NoSigma-cod≡dom (nosigma-ρ⇒ {A}) = hId-cod≡dom (A ⊗₀ unit)
+NoSigma-cod≡dom (nosigma-ρ⇐ {A}) = hId-cod≡dom (A ⊗₀ unit)
+NoSigma-cod≡dom (nosigma-α⇒ {A} {B} {C}) = hId-cod≡dom ((A ⊗₀ B) ⊗₀ C)
+NoSigma-cod≡dom (nosigma-α⇐ {A} {B} {C}) = hId-cod≡dom ((A ⊗₀ B) ⊗₀ C)
+NoSigma-cod≡dom {h = h₁ ⊗₁ h₂} (nosigma-⊗ nh nk) =
+  let module H₁ = Hypergraph ⟪ h₁ ⟫
+      module H₂ = Hypergraph ⟪ h₂ ⟫
+  in cong₂ _++_
+       (cong (map (_↑ˡ H₂.nV)) (NoSigma-cod≡dom nh))
+       (cong (map (H₁.nV ↑ʳ_)) (NoSigma-cod≡dom nk))
+  where open import Relation.Binary.PropositionalEquality using (cong₂)
+NoSigma-cod≡dom {h = h₁ ∘ h₂} (nosigma-∘ nh nk) =
+  -- ⟪h₁ ∘ h₂⟫ = hComposeP ⟪h₂⟫ ⟪h₁⟫ bdy.
+  --   G = ⟪h₂⟫, K = ⟪h₁⟫.
+  --   dom = map injL G.dom.
+  --   cod = map remapP K.cod.
+  -- IH on h₁: K.cod ≡ K.dom.
+  -- For Unique K.dom: `map remapP K.dom ≡ map injL G.cod`.
+  -- IH on h₂: G.cod ≡ G.dom.
+  EQR.begin
+    map hCP.remapP K.cod
+      EQR.≡⟨ cong (map hCP.remapP) (NoSigma-cod≡dom nh) ⟩
+    map hCP.remapP K.dom
+      EQR.≡⟨ map-remapP-dom-≡-injL-G-cod ⟪ h₂ ⟫ ⟪ h₁ ⟫ bdy (⟪_⟫-dom-unique h₁) ⟩
+    map hCP.injL G.cod
+      EQR.≡⟨ cong (map hCP.injL) (NoSigma-cod≡dom nk) ⟩
+    map hCP.injL G.dom
+      EQR.∎
+  where
+    module EQR = ≡-Reasoning
+    bdy = trans (⟪⟫-codL h₂) (sym (⟪⟫-domL h₁))
+    module G = Hypergraph ⟪ h₂ ⟫
+    module K = Hypergraph ⟪ h₁ ⟫
+    module hCP = hComposeP-impl ⟪ h₂ ⟫ ⟪ h₁ ⟫ bdy
+
+--------------------------------------------------------------------------------
 -- `single-agen-NF-coherence-discharge-given-len`: the full discharge of
 -- the `single-agen-NF-coherence` postulate, ASSUMING the length
 -- equality.  Composes:
