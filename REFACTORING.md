@@ -1,7 +1,11 @@
 # Goal: complete the completeness theorem
 
 `Categories.APROP.Hypergraph.CompletenessFull.completeness-full :
-⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g` builds cleanly.
+⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g` builds cleanly with `⟪_⟫` from
+`Translation` (pruned `hComposeP`), restoring symmetry with
+`Soundness.agda`. `Solver/Tests.agda` exercises 20 categorical-axiom-
+shaped equations end-to-end through `completeness-full ∘ findIso` —
+all 20 pass.
 
 ## Postulate inventory (post `50e3eb3` — Path B restructure)
 
