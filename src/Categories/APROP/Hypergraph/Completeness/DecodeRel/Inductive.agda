@@ -54,11 +54,17 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.AgenAgen 
 -- Re-import the constructive Mac Lane discharge from the orphaned
 -- AtomicCompound0E module.  `NoSigma`, `Structural-coherence-≈Term-noσ`,
 -- and the syntactic predicate are all defined there.
+--
+-- We also pull in `noσ-discharge`, the iso-free Mac-Lane coherence: any
+-- two parallel `NoSigma` morphisms are `≈Term`-equal.  Used below to
+-- align the σ-free wrappers around the unique `Agen u` generator when
+-- closing `single-agen-NF-coherence-discharge`.
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge.AtomicCompound0E sig-dec
   using ( NoSigma
         ; nosigma-id; nosigma-λ⇒; nosigma-λ⇐; nosigma-ρ⇒; nosigma-ρ⇐
         ; nosigma-α⇒; nosigma-α⇐; nosigma-∘; nosigma-⊗
         ; Structural-coherence-≈Term-noσ
+        ; noσ-discharge
         )
 
 open import Data.Sum using (_⊎_; inj₁; inj₂)
@@ -1444,16 +1450,84 @@ private
       (_≅_.isoʳ (unflatten-flatten-≈ X))
 
 --------------------------------------------------------------------------------
--- Discharge attempt: the helpers above (`flat-data-to-ObjTerm`,
--- `flatten-NoSigma`, `bridge-NoSigma-{fwd,bwd}` + iso laws +
--- NoSigma proofs, `subst-HomTerm-id-NoSigma`) implement Steps 1–4
--- of the Field-1 discharge strategy documented at the top of this
--- section and in REFACTORING.md.  Step 5 — the central "`Agen u`
--- commutes with NoSigma wrappers" naturality lemma — is not yet
--- proved constructively.  Since no new postulates may be added,
--- the original `single-agen-NF-coherence` field is retained
--- unchanged below; the discharge can be completed in a future pass
--- by closing the Step 5 hole.
+-- Step 5: central naturality of the Mac-Lane bridge with respect to a
+-- pinned `Agen u` middle.
+--
+-- Statement (with implicit context YL-f, YR-f, YL-g, YR-g, Aᵢ, Bᵢ):
+--
+--   bridge-NoSigma-fwd eB ∘ (id ⊗ (Agen u ⊗ id {YR-f}))
+--     ≈Term
+--   (id ⊗ (Agen u ⊗ id {YR-g})) ∘ bridge-NoSigma-fwd eA
+--
+-- This is the only remaining sub-lemma blocking the constructive
+-- discharge of `single-agen-NF-coherence`.  All other pieces are in
+-- place (`flat-data-to-ObjTerm`, `flatten-NoSigma`, the bridge family
+-- + iso laws, `NoSigma-coherence`), implementing Steps 1–4 of the
+-- documented strategy.
+--
+-- ## Why naturality is non-trivial
+--
+-- After pattern-matching `cong unflatten eA, eB` as `refl` (collapsing
+-- the internal `subst-id`s to `id`), the bridges reduce to
+-- `to ∘ from`-form.  The residual equation is
+--
+--   (to-Bg ∘ from-Bf) ∘ M_f ≈Term M_g ∘ (to-Ag ∘ from-Af)
+--
+-- where `to-X, from-Y` are the from/to maps of `unflatten-flatten-≈`
+-- on specific ObjTerms.  Both sides are SingleAgen terms with the
+-- *same* underlying generator `u`, but the σ-free wrappers
+-- (`to ∘ from` parts) have different intermediate types because of
+-- the Aᵢ-vs-Bᵢ "slot" swap.  Mac-Lane coherence (`NoSigma-coherence`,
+-- exposed below) aligns parallel NoSigma morphisms but does not
+-- apply directly across the `Agen u` middle.
+--
+-- The natural way through this is to either:
+--
+--   1. **Tensor-factor the bridge** as `bL ⊗ (id ⊗ bR)`.  This
+--      requires `flatten YL_f = flatten YL_g` and
+--      `flatten YR_f = flatten YR_g` propositionally — which follows
+--      from the iso `⟪f⟫ ≅ᴴ ⟪g⟫` constraining the boundary positions
+--      to align (the φ bijection on vertices preserves the
+--      ordering of the unique Agen-edge's inputs/outputs within
+--      `flatten A`).  Extracting this positional alignment from the
+--      iso requires additional infrastructure (~150-300 LOC).
+--
+--   2. **Mac-Lane chase mirroring `unflatten-flatten-≈`**.  By
+--      structural induction on the ObjTerms `YL_f, YR_f, YL_g, YR_g`,
+--      naturality propagates through each constructor of
+--      `unflatten-flatten-≈` (unit / Var / ⊗) using `λ⇒∘id⊗f`,
+--      `ρ⇒∘f⊗id`, `α-comm`, and `⊗-∘-dist`.  ~100-300 LOC of routine
+--      categorical reasoning.
+--
+--   3. **Extend the Mac-Lane solver** to a "single-pinned generator"
+--      fragment: instantiate `Categories.MonoidalCoherence` with an
+--      extra atomic generator slot for the unique `Agen u`.  ~200-500
+--      LOC of solver infrastructure.
+--
+-- ## TODO
+--
+-- This lemma is left as a documented hole.  The postulate
+-- `single-agen-NF-coherence` is retained in `CompletenessAssumptions`
+-- until naturality is proved.  The narrowing scope is fixed: the
+-- iso → flat-data extraction is constructively closed via
+-- `single-agen-flat-data`, leaving only the Mac-Lane closure on the
+-- σ-free wrappers around the aligned generator.
+
+private
+  -- `NoSigma-coherence`: any two parallel `NoSigma` morphisms are
+  -- `≈Term`-equal.  This is the iso-free Mac-Lane coherence theorem
+  -- in the σ-free fragment, obtained by stripping the (vestigial)
+  -- iso argument from `Structural-coherence-≈Term-noσ` and exposing
+  -- the underlying `noσ-discharge` directly.  Provided here as the
+  -- foundational tool for closing the Mac-Lane wrappers around an
+  -- aligned `Agen u` generator — once the naturality lemma above is
+  -- proved, this lemma completes the discharge of
+  -- `single-agen-NF-coherence`.
+  NoSigma-coherence
+    : ∀ {X Y} {b₁ b₂ : HomTerm X Y}
+    → NoSigma b₁ → NoSigma b₂
+    → b₁ ≈Term b₂
+  NoSigma-coherence nb₁ nb₂ = noσ-discharge nb₁ nb₂
 
 --------------------------------------------------------------------------------
 -- The remaining narrow assumptions of the completeness path, bundled

@@ -186,7 +186,15 @@ These helpers implement Steps 1–4 of the documented Field-1 strategy
 `Completeness/DecodeRel/Inductive.agda` near
 `flat-data-to-ObjTerm`).  Step 5 (the central
 "`Agen u` commutes with NoSigma wrappers" lemma) is the only
-remaining hole.  Approaches for Step 5:
+remaining hole.
+
+This session: added the `NoSigma-coherence` thin wrapper exposing
+`noσ-discharge` (the iso-free Mac-Lane coherence: any two parallel
+`NoSigma` morphisms are `≈Term`-equal).  This is the key
+infrastructure for closing the Step-5 wrapper alignment, and
+documented as the Mac-Lane closure tool for the discharge.
+
+Approaches for Step 5 itself (still open):
 
 1. **Direct structural induction on the bridge's NoSigma witness**:
    Each NoSigma constructor (α, λ, ρ, id, ⊗, ∘) has a known
@@ -194,7 +202,14 @@ remaining hole.  Approaches for Step 5:
    morphism, expressible via the existing `_≈Term_` axioms
    (`α-comm`, `λ⇒∘id⊗f≈f∘λ⇒`, `ρ⇒∘f⊗id≈f∘ρ⇒`, etc.).  Estimated
    ~100–300 LOC of routine but type-heavy categorical chase.
-2. **Extend `solveM` to a "single-pinned-generator" fragment**:
+2. **Tensor-factor the bridge via iso-derived positional alignment**:
+   The iso `⟪f⟫ ≅ᴴ ⟪g⟫` constrains the unique Agen-edge's input/output
+   positions to match modulo the φ vertex bijection.  Extracting
+   `flatten YL_f ≡ flatten YL_g` and `flatten YR_f ≡ flatten YR_g`
+   from this would allow factoring the bridge as `bL ⊗ (id ⊗ bR)`,
+   reducing naturality to `⊗-∘-dist` plus `id`-naturality.  Estimated
+   ~150–300 LOC of iso/positional-alignment infrastructure.
+3. **Extend `solveM` to a "single-pinned-generator" fragment**:
    instantiate `Categories.MonoidalCoherence` with an extra
    atomic generator slot for the unique `Agen u`.  This gives Step 5
    directly via the solver, at the cost of a new solver variant.
