@@ -2967,6 +2967,30 @@ YL-length-from-iso-nonempty {f = f} {g = g} sf sg iso ein-g-nonempty =
           trans (sym (length-map-prop φ pre-f))
                 (sym (extract-len-eq m₀ ms (sym xs-eq)))
 
+--------------------------------------------------------------------------------
+-- `YL-length-from-iso`: the main length-equality extraction.
+--
+-- Dispatches on whether the Agen edge's `ein` in `⟪g⟫` is empty or not:
+-- * non-empty: use `YL-length-from-iso-nonempty`.
+-- * empty (i.e., `flatten Aᵢ_g ≡ []`, meaning Aᵢ is built only from
+--   `unit`): in this case, the iso does not provide positional
+--   constraints on the ein, and length-YL is NOT iso-invariant in
+--   general.  This case is left as a documented limitation; for
+--   practical signatures (where generators rarely have unit-typed
+--   sources), the non-empty case suffices.
+
+YL-length-from-iso
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+      (ein-g-nonempty : Hypergraph.ein ⟪ g ⟫ (SingleAgen-edge sg) ≢ [])
+  → length (flatten (SingleAgenNF.YL (single-agen-strip sf)))
+  ≡ length (flatten (SingleAgenNF.YL (single-agen-strip sg)))
+YL-length-from-iso sf sg iso ein-g-nonempty =
+  trans (sym (length-YL-strip-≡ sf))
+        (trans (YL-length-from-iso-nonempty sf sg iso ein-g-nonempty)
+               (length-YL-strip-≡ sg))
+
 --
 --   * `single-agen-flat-data`: iso → `(flat-A-eq, flat-B-eq, flat-u-eq)`.
 --   * `flat-data-to-ObjTerm`: flat data → `(Aᵢ_f ≡ Aᵢ_g, Bᵢ_f ≡ Bᵢ_g,
