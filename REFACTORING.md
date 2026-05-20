@@ -230,7 +230,38 @@ is built — that's what the postulate still owns.
 
 ### Field 1 — Mac-Lane wrapper closure
 
-Two candidate routes:
+Path now narrowed to extracting **a single ℕ-equality**:
+`length(flatten YL_f) ≡ length(flatten YL_g)` from the iso.  Given
+that, `positional-alignment-from-length` + `bridge-naturality-pos` +
+`NoSigma-coherence` compose into the full discharge.
+
+The lemma is documented in `Inductive.agda` (near
+`positional-alignment-from-length`) with substep analysis from this
+session.  Closing requires structural induction through `hComposeP` /
+`hTensor` / `hGen` to show that in the canonical NF `⟪Wf⟫`, the Agen
+edge's `ein` vertices form a contiguous sublist of `dom` at offset
+`length(flatten YL_f)`.
+
+Two candidate routes (both ~150–300 LOC):
+
+1. **Direct structural induction on `sf`** through 5 cases (one per
+   `SingleAgen` constructor), each unpacking the relevant
+   `hComposeP`/`hTensor` positional content.  Trivial in the
+   `single-agen-here` case (`YL = unit`, length 0); compound cases
+   require careful tracking of `injL`/`injR`/`remapP` through the
+   composition layers.
+
+2. **Canonical-NF reduction via soundness**: apply `Soundness.soundness`
+   to the strip's `equiv` field on both sides to get
+   `⟪Wf⟫ ≅ᴴ ⟪Wg⟫`, then prove the positional lemma specifically for
+   the canonical form `Wf = c-to ∘ M ∘ c-from`.  Requires showing
+   NoSigma terms preserve positional alignment between dom and cod
+   (each constructor needs verification).
+
+This session's closed sub-case (`YL-length-from-iso-here-here`):
+when both sides are `single-agen-here`, length is trivially `0 ≡ 0`.
+
+Earlier candidate routes (still applicable, but more general):
 
 1. **Push the discharge into the constructive Mac-Lane solver**: extend
    `solveM` (`Categories.MonoidalCoherence`, ~378 LOC) to handle terms
