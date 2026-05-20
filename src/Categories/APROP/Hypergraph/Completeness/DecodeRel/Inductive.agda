@@ -3411,22 +3411,20 @@ single-agen-NF-coherence-discharge-nonempty {f = f} {g = g}
 
 record CompletenessAssumptions : Set where
   field
-    -- Narrowed `single-agen-NF-coherence`: the iso → flat-data step is
-    -- already discharged by `single-agen-flat-data` at the call site,
-    -- so this postulate only owns the Mac-Lane chase that closes the
-    -- σ-free wrappers around the (already aligned) generator.  Inputs:
-    --   * `sf, sg`         — `SingleAgen` witnesses (raw); the user
-    --     can build `SingleAgenNF` records on demand via
-    --     `single-agen-strip` for the wrapper data, or work directly
-    --     from `single-agen-u` for the underlying generator;
-    --   * `flat-A-eq, flat-B-eq` — equalities of the inner generator's
-    --     source/target objects, at the `flatten` level;
-    --   * `flat-u-eq`      — equality of the generators themselves
-    --     (modulo the two flatten-level substs).
-    -- The `⟪f⟫ ≅ᴴ ⟪g⟫` argument is kept (rather than reconstructed
-    -- from the flat data) so the postulate retains access to the
-    -- vertex/boundary bijections it needs for the wrapper alignment.
-    single-agen-NF-coherence
+    -- Strictly-narrowed `single-agen-NF-coherence`: now only handles
+    -- the EMPTY Agen-ein case.  The non-empty case is fully
+    -- constructive via `single-agen-NF-coherence-discharge-nonempty`
+    -- above.
+    --
+    -- The empty case corresponds to `flatten Aᵢ_g ≡ []`, i.e. Aᵢ is
+    -- built only from `unit` constructors.  In this case the iso
+    -- does not provide positional constraints on the Agen edge's
+    -- `ein` (it is empty), so the constructive YL-length extraction
+    -- fails; the postulate fills this gap.
+    --
+    -- For practical signatures where generators have non-unit-typed
+    -- sources, this postulate is never invoked.
+    single-agen-NF-coherence-empty-ein
       : ∀ {A B} {f g : HomTerm A B}
           (sf : SingleAgen f) (sg : SingleAgen g)
           (flat-A-eq : flatten (SingleAgenGen.Aᵢ (single-agen-u sf))
@@ -3436,7 +3434,8 @@ record CompletenessAssumptions : Set where
           (flat-u-eq : subst₂ FlatGen flat-A-eq flat-B-eq
                           (flat (SingleAgenGen.u (single-agen-u sf)))
                        ≡ flat (SingleAgenGen.u (single-agen-u sg)))
-      → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+          (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+          (ein-empty : Hypergraph.ein ⟪ g ⟫ (SingleAgen-edge sg) ≡ [])
       → f ≈Term g
 
     nf-resp-≅ᴴ-residual
@@ -3564,23 +3563,40 @@ module WithAssumptions (assumptions : CompletenessAssumptions) where
   ------------------------------------------------------------------------
   -- Derived: the original (wider) coherence claim, constructively
   -- discharging the iso → flat-data step via `single-agen-flat-data`
-  -- and feeding the resulting three flat-level equalities into the
-  -- narrowed postulate.  `single-agen-strip` is no longer applied
-  -- here — the postulate accepts `SingleAgen` witnesses directly and
-  -- can build `SingleAgenNF` on demand for the wrapper Mac-Lane
-  -- alignment.
+  -- and then dispatching on whether the Agen edge's `ein` is empty:
+  --   * non-empty: use the constructive
+  --     `single-agen-NF-coherence-discharge-nonempty` from the parent
+  --     module (no postulate involved).
+  --   * empty: fall back to the (strictly narrower)
+  --     `single-agen-NF-coherence-empty-ein` postulate.
+  private
+    empty? : ∀ {A : Set} (xs : List A) → (xs ≡ []) ⊎ (xs ≢ [])
+    empty? []      = inj₁ refl
+    empty? (_ ∷ _) = inj₂ λ ()
+
   single-agen-coherence-≈Term
     : ∀ {A B} {f g : HomTerm A B}
     → SingleAgen f → SingleAgen g
     → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
     → f ≈Term g
-  single-agen-coherence-≈Term sf sg iso =
-    single-agen-NF-coherence sf sg flat-A-eq flat-B-eq flat-u-eq iso
-    where
-      flat-data = single-agen-flat-data sf sg iso
-      flat-A-eq = proj₁ flat-data
-      flat-B-eq = proj₁ (proj₂ flat-data)
-      flat-u-eq = proj₂ (proj₂ flat-data)
+  single-agen-coherence-≈Term {g = g} sf sg iso
+    with empty? (Hypergraph.ein ⟪ g ⟫ (SingleAgen-edge sg))
+  ... | inj₁ ein-empty =
+        single-agen-NF-coherence-empty-ein
+          sf sg flat-A-eq flat-B-eq flat-u-eq iso ein-empty
+        where
+          flat-data = single-agen-flat-data sf sg iso
+          flat-A-eq = proj₁ flat-data
+          flat-B-eq = proj₁ (proj₂ flat-data)
+          flat-u-eq = proj₂ (proj₂ flat-data)
+  ... | inj₂ ein-nonempty =
+        single-agen-NF-coherence-discharge-nonempty
+          sf sg flat-A-eq flat-B-eq flat-u-eq iso ein-nonempty
+        where
+          flat-data = single-agen-flat-data sf sg iso
+          flat-A-eq = proj₁ flat-data
+          flat-B-eq = proj₁ (proj₂ flat-data)
+          flat-u-eq = proj₂ (proj₂ flat-data)
 
   ------------------------------------------------------------------------
   -- The Path B `nf-resp-≅ᴴ`: case-split layered as
