@@ -176,6 +176,67 @@ IsAgen? (_ ∘ _)   = inj₂ tt
 IsAgen? (_ ⊗₁ _)  = inj₂ tt
 
 --------------------------------------------------------------------------------
+-- `HasAgen`: predicate "f contains at least one `Agen` subterm".  Used
+-- to extend the edge-count contradiction beyond *atomic* Agen to any
+-- compound term with an Agen subterm.  Key invariant:
+-- `HasAgen f → nE ⟪f⟫ ≥ 1`.
+
+data HasAgen : ∀ {A B} → HomTerm A B → Set where
+  has-agen-here : ∀ {A B} (g : mor A B) → HasAgen (Agen g)
+  has-agen-∘-l  : ∀ {A B C} {h : HomTerm B C} {k : HomTerm A B}
+                → HasAgen h → HasAgen (h ∘ k)
+  has-agen-∘-r  : ∀ {A B C} {h : HomTerm B C} {k : HomTerm A B}
+                → HasAgen k → HasAgen (h ∘ k)
+  has-agen-⊗-l  : ∀ {A B C D} {h : HomTerm A B} {k : HomTerm C D}
+                → HasAgen h → HasAgen (h ⊗₁ k)
+  has-agen-⊗-r  : ∀ {A B C D} {h : HomTerm A B} {k : HomTerm C D}
+                → HasAgen k → HasAgen (h ⊗₁ k)
+
+-- Decidable: either there is a `HasAgen` witness, or the term is
+-- `NoAgen` (modulo σ).  We use `NoAgen` for the negative side because
+-- it is the structurally complementary predicate (any constructor
+-- that is not an Agen subterm must be NoAgen — including σ).
+NoAgen-or-HasAgen : ∀ {A B} (f : HomTerm A B) → NoAgen f ⊎ HasAgen f
+NoAgen-or-HasAgen (Agen g)   = inj₂ (has-agen-here g)
+NoAgen-or-HasAgen id         = inj₁ noagen-id
+NoAgen-or-HasAgen λ⇒         = inj₁ noagen-λ⇒
+NoAgen-or-HasAgen λ⇐         = inj₁ noagen-λ⇐
+NoAgen-or-HasAgen ρ⇒         = inj₁ noagen-ρ⇒
+NoAgen-or-HasAgen ρ⇐         = inj₁ noagen-ρ⇐
+NoAgen-or-HasAgen α⇒         = inj₁ noagen-α⇒
+NoAgen-or-HasAgen α⇐         = inj₁ noagen-α⇐
+NoAgen-or-HasAgen (σ ⦃ s ⦄)  = inj₁ (noagen-σ ⦃ s ⦄)
+NoAgen-or-HasAgen (h ∘ k) with NoAgen-or-HasAgen h | NoAgen-or-HasAgen k
+... | inj₁ nh | inj₁ nk = inj₁ (noagen-∘ nh nk)
+... | inj₂ ha | _       = inj₂ (has-agen-∘-l ha)
+... | inj₁ _  | inj₂ ha = inj₂ (has-agen-∘-r ha)
+NoAgen-or-HasAgen (h ⊗₁ k) with NoAgen-or-HasAgen h | NoAgen-or-HasAgen k
+... | inj₁ nh | inj₁ nk = inj₁ (noagen-⊗ nh nk)
+... | inj₂ ha | _       = inj₂ (has-agen-⊗-l ha)
+... | inj₁ _  | inj₂ ha = inj₂ (has-agen-⊗-r ha)
+
+-- A `HasAgen` witness implies `nE ⟪f⟫ ≥ 1` (concretely: ≡ suc k for
+-- some k).  We produce a `Fin (nE ⟪f⟫)` directly, which is the form
+-- the edge-count contradiction needs (its `ψ⁻¹` requires a `Fin K.nE`
+-- inhabitant).
+HasAgen-edge : ∀ {A B} {f : HomTerm A B} → HasAgen f → Fin (Hypergraph.nE ⟪ f ⟫)
+HasAgen-edge {f = Agen g}    (has-agen-here _) = zero
+HasAgen-edge {f = h ∘ k}     (has-agen-∘-l ha)
+  -- ⟪ h ∘ k ⟫ = hCompose ⟪ k ⟫ ⟪ h ⟫ _, with nE = nE ⟪k⟫ + nE ⟪h⟫.
+  -- Embed the recursive edge of `h` into the right summand.
+  = Hypergraph.nE ⟪ k ⟫ ↑ʳ HasAgen-edge ha
+  where open import Data.Fin using (_↑ʳ_)
+HasAgen-edge {f = h ∘ k}     (has-agen-∘-r ha)
+  = HasAgen-edge ha ↑ˡ Hypergraph.nE ⟪ h ⟫
+  where open import Data.Fin using (_↑ˡ_)
+HasAgen-edge {f = h ⊗₁ k}    (has-agen-⊗-l ha)
+  = HasAgen-edge ha ↑ˡ Hypergraph.nE ⟪ k ⟫
+  where open import Data.Fin using (_↑ˡ_)
+HasAgen-edge {f = h ⊗₁ k}    (has-agen-⊗-r ha)
+  = Hypergraph.nE ⟪ h ⟫ ↑ʳ HasAgen-edge ha
+  where open import Data.Fin using (_↑ʳ_)
+
+--------------------------------------------------------------------------------
 -- `bridge` is a congruence with respect to `_≈Term_` — wrapping with
 -- the coherence isos on each side preserves `≈Term`.  This is the
 -- 1-line lemma that lifts `Structural-coherence-≈Term-noσ`'s conclusion
@@ -231,6 +292,41 @@ IsAgen-iso-NoAgen-⊥ {f = f} {g = g} ng iso =
         absurd with eG'
         ... | ()
 
+-- General edge-count contradiction: a NoAgen side and a HasAgen side
+-- of an iso are inconsistent — the iso's ψ⁻¹/ψ produces a Fin 0
+-- inhabitant.
+NoAgen-iso-HasAgen-⊥
+  : ∀ {A B} {f g : HomTerm A B}
+  → NoAgen f → HasAgen g → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → ⊥
+NoAgen-iso-HasAgen-⊥ {f = f} {g = g} nf hg iso = absurd
+  where
+    open _≅ᴴ_ iso
+    eG : Fin (Hypergraph.nE ⟪ g ⟫)
+    eG = HasAgen-edge hg
+    eF : Fin (Hypergraph.nE ⟪ f ⟫)
+    eF = ψ⁻¹ eG
+    eF0 : Fin 0
+    eF0 = subst Fin (nE-NoAgen nf) eF
+    absurd : ⊥
+    absurd with eF0
+    ... | ()
+
+HasAgen-iso-NoAgen-⊥
+  : ∀ {A B} {f g : HomTerm A B}
+  → HasAgen f → NoAgen g → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → ⊥
+HasAgen-iso-NoAgen-⊥ {f = f} {g = g} hf ng iso = absurd
+  where
+    open _≅ᴴ_ iso
+    eF : Fin (Hypergraph.nE ⟪ f ⟫)
+    eF = HasAgen-edge hf
+    eG : Fin (Hypergraph.nE ⟪ g ⟫)
+    eG = ψ eF
+    eG0 : Fin 0
+    eG0 = subst Fin (nE-NoAgen ng) eG
+    absurd : ⊥
+    absurd with eG0
+    ... | ()
+
 --------------------------------------------------------------------------------
 -- Strictly narrower residual postulate.  Fires only when *both* of
 -- `f, g` contain a σ or non-atomic Agen subterm.  Already discharged:
@@ -263,13 +359,28 @@ nf-resp-≅ᴴ f g iso with NoSigma? f | NoSigma? g
 ...    | inj₁ (is-agen g₁) | inj₁ (is-agen g₂) =
             -- `decode-rel (Agen _) = bridge (Agen _)` definitionally.
             decode-rel-resp-≅ᴴ-Agen-Agen g₁ g₂ iso
-...    | inj₁ (is-agen g₁) | inj₂ _ with NoAgen? g
+-- Day 5 generalization: instead of just routing the IsAgen-vs-x case
+-- on `NoAgen? x` (which gives 0-vs-1 contradiction), we now check
+-- the full `NoAgen-or-HasAgen` classifier on the *other* side.  A
+-- NoAgen term has nE = 0, a HasAgen term has nE ≥ 1, so the iso is
+-- inconsistent in every NoAgen-vs-HasAgen pair — not just when one
+-- side is *literally* `Agen _`.
+...    | inj₁ (is-agen g₁) | inj₂ _ with NoAgen-or-HasAgen g
 ...        | inj₁ ng = ⊥-elim (IsAgen-iso-NoAgen-⊥ {f = g₁} {g = g} ng iso)
 ...        | inj₂ _  = nf-resp-≅ᴴ-residual f g iso
-nf-resp-≅ᴴ f g iso | _ | _ | inj₂ _ | inj₁ (is-agen g₂) with NoAgen? f
+nf-resp-≅ᴴ f g iso | _ | _ | inj₂ _ | inj₁ (is-agen g₂) with NoAgen-or-HasAgen f
 ...        | inj₁ nf = ⊥-elim (NoAgen-iso-IsAgen-⊥ {f = f} {g = g₂} nf iso)
 ...        | inj₂ _  = nf-resp-≅ᴴ-residual f g iso
-nf-resp-≅ᴴ f g iso | _ | _ | inj₂ _ | inj₂ _ = nf-resp-≅ᴴ-residual f g iso
+-- Two compound (non-atomic-Agen) terms: discriminate on
+-- NoAgen-vs-HasAgen on each side.  Three of the four quadrants are
+-- vacuous (NoAgen-vs-HasAgen and the symmetric one), so the residual
+-- only fires when *both* sides are HasAgen — strictly narrower than
+-- before (which fired on the entire fall-through).
+nf-resp-≅ᴴ f g iso | _ | _ | inj₂ _ | inj₂ _ with NoAgen-or-HasAgen f | NoAgen-or-HasAgen g
+...        | inj₁ nf | inj₂ hg = ⊥-elim (NoAgen-iso-HasAgen-⊥ nf hg iso)
+...        | inj₂ hf | inj₁ ng = ⊥-elim (HasAgen-iso-NoAgen-⊥ hf ng iso)
+...        | inj₁ nf | inj₁ ng = nf-resp-≅ᴴ-residual f g iso
+...        | inj₂ _  | inj₂ _  = nf-resp-≅ᴴ-residual f g iso
 
 --------------------------------------------------------------------------------
 -- `nf-bridge`: the bridge from `decode-rel` to `bridge`.  This is

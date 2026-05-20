@@ -97,6 +97,43 @@ or *both* contain Agen but are not pure atomic Agens (e.g.
 `Agen u ⊗ id`, `Agen u ∘ id`, etc.).  Postulate count unchanged
 (still 1), but its scope is strictly smaller.
 
+### Path B Day 5 — `HasAgen` generalization of edge-count contradiction
+
+The single residual `nf-resp-≅ᴴ-residual` is further narrowed.  Day 4
+killed the asymmetric case only when one side was *literally*
+`Agen _`.  Day 5 introduces a `HasAgen` predicate — "this term
+contains at least one `Agen` subterm anywhere" — together with a
+constructive edge-extractor
+
+```agda
+HasAgen-edge : HasAgen f → Fin (Hypergraph.nE ⟪ f ⟫)
+```
+
+that walks down the `∘`/`⊗` skeleton and embeds the witnessed Agen
+edge through `_↑ˡ_`/`_↑ʳ_`.  Combined with `nE-NoAgen : NoAgen f →
+nE ⟪f⟫ ≡ 0`, the iso's `ψ`/`ψ⁻¹` again produces a `Fin 0` inhabitant
+in any mixed NoAgen-vs-HasAgen pair:
+
+```agda
+NoAgen-iso-HasAgen-⊥ : NoAgen f → HasAgen g → ⟪f⟫ ≅ᴴ ⟪g⟫ → ⊥
+HasAgen-iso-NoAgen-⊥ : HasAgen f → NoAgen g → ⟪f⟫ ≅ᴴ ⟪g⟫ → ⊥
+```
+
+A decidable `NoAgen-or-HasAgen` classifier splits every term into
+exactly one of the two cases (every constructor is either an `Agen`
+descendant or has the structural `noagen-*` constructor available).
+The dispatcher's compound-vs-compound fall-through now first checks
+`NoAgen-or-HasAgen` on each side; three of the four quadrants are
+vacuous, so the residual only fires when *both* sides have a
+`HasAgen` witness — i.e. both contain at least one user-generator
+edge.
+
+Concretely, the residual *no longer* fires on examples like
+`f = id, g = Agen u ⊗ id_X` or `f = α⇒, g = Agen u ∘ id_B` — these
+NoAgen/HasAgen mixes are now closed by the edge-count contradiction.
+The remaining open scope: both `f, g` contain a user-generator edge
+**or** both contain σ.  Postulate count unchanged (still 1).
+
 **May 2026 unsoundness retraction (`425bf16`)**: an earlier
 narrowing pass (`0c4f223`) introduced `⊗-∘-dist-FromAPROP-iso` and
 its mirror in Cross{OC,CO} as "narrow universal coherence
