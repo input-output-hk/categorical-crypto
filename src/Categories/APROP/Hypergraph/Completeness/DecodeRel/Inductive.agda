@@ -1912,6 +1912,73 @@ positional-alignment-from-length {A = A} {f = f} {g = g} sf sg iso len-YL-eq =
 --      single `ℕ` equality.
 
 --------------------------------------------------------------------------------
+-- Attempt at deriving `length(flatten YL_f) ≡ length(flatten YL_g)` from
+-- the iso `⟪f⟫ ≅ᴴ ⟪g⟫`.  Strategy: in the canonical normal form
+-- `Wf = c-to ∘ M ∘ c-from`, the Agen edge's `ein` is structurally
+-- located at position `length(flatten YL_f)` of dom — but extracting
+-- this requires the full structural recursion through `hComposeP`,
+-- `hTensor`, and `hGen` whose explicit positional content is encoded
+-- in `FromAPROP` and `PrunedCompose`.
+--
+-- The lemma `YL-length-from-iso` was investigated extensively in this
+-- session; it remains open.  The blocker is *not* a postulate (none
+-- have been added) but the substantial structural induction needed to
+-- prove that in `⟪Wf⟫`, the Agen edge's `ein` vertices form a
+-- contiguous sublist of `dom` at offset `length(flatten YL_f)`.
+--
+-- Substep analysis (this session):
+--
+--   * The soundness chain `f ≈Term Wf` → `⟪f⟫ ≅ᴴ ⟪Wf⟫` is available
+--     via `Soundness.soundness`.  Composing with the input iso gives
+--     `⟪Wf⟫ ≅ᴴ ⟪Wg⟫`.
+--
+--   * In `⟪Wf⟫`, the structure is
+--     `hComposeP (hComposeP ⟪c-from⟫ ⟪M⟫ ...) ⟪c-to⟫ ...`.  The Agen
+--     edge sits in `⟪M⟫` (the K-side of the inner compose).  After
+--     the inner compose, the Agen edge's `ein` is mapped via
+--     `remapP_inner` (which lands in `⟪c-from⟫.cod` positions because
+--     the Agen ein vertices are all in `⟪M⟫.dom`).  After the outer
+--     compose, the Agen ein gets `injL_outer` applied.  Final form:
+--     `map (injL_outer ∘ remapP_inner) (⟪M⟫.ein agen-edge)`.
+--
+--   * In `⟪M⟫ = ⟪id_YL ⊗ (Agen u ⊗ id_YR)⟫`, the Agen ein is at
+--     position `length(flatten YL)` within `⟪M⟫.dom` (which equals
+--     `flatten(YL ⊗ Aᵢ ⊗ YR)`-positionally).  This part is concrete
+--     and computable from `hTensor-impl` and `hGen`.
+--
+--   * Connecting the Agen ein (in `⟪M⟫.dom` positions) to dom
+--     positions of `⟪Wf⟫` requires showing that `remapP_inner` maps
+--     these `⟪M⟫.dom` positions to corresponding `⟪c-from⟫.cod`
+--     positions, AND that `⟪c-from⟫.cod` is positionally aligned with
+--     `⟪c-from⟫.dom` (= `⟪Wf⟫.dom` modulo injL_outer) — i.e., that
+--     NoSigma terms preserve positional order between dom and cod.
+--
+-- The third bullet is the substantial step.  For NoSigma c-from, the
+-- claim "cod position i ↔ dom position i" requires verifying for
+-- each NoSigma constructor (id, λ⇒/⇐, ρ⇒/⇐, α⇒/⇐, ∘, ⊗) that the
+-- corresponding hypergraph operation preserves this positional
+-- relationship.  Most constructors are trivial (hId-based: dom = cod);
+-- ∘ and ⊗ require induction with care for the injL/injR/remapP wrappers.
+--
+-- This work is left as documented future work; the current commit
+-- preserves all existing infrastructure and the postulate
+-- `single-agen-NF-coherence` remains in `CompletenessAssumptions`.
+
+--------------------------------------------------------------------------------
+-- Closed sub-case of `YL-length-from-iso`: when *both* witnesses are
+-- `single-agen-here`, the strip's YL is `unit` on both sides, so the
+-- length equality is trivially `0 ≡ 0`.  This sub-case is exposed as
+-- a stepping stone for future work that may dispatch on `sf` to
+-- gradually close other constructors.
+
+YL-length-from-iso-here-here
+  : ∀ {A B} {u_f u_g : mor A B}
+      (iso : ⟪ Agen u_f ⟫ ≅ᴴ ⟪ Agen u_g ⟫)
+  → length (flatten (SingleAgenNF.YL (single-agen-strip (single-agen-here u_f))))
+  ≡ length (flatten (SingleAgenNF.YL (single-agen-strip (single-agen-here u_g))))
+YL-length-from-iso-here-here _ = refl
+
+--------------------------------------------------------------------------------
 -- `single-agen-NF-coherence-discharge-given-len`: the full discharge of
 -- the `single-agen-NF-coherence` postulate, ASSUMING the length
 -- equality.  Composes:
