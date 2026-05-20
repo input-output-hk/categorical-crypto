@@ -2440,6 +2440,279 @@ agen-ein-position {f = h ∘ k} (single-agen-∘-l sh nk) =
             (cong (λ xs → pre ++ xs ++ post) (sym ein-composed-eq))
 
 --------------------------------------------------------------------------------
+-- `length-cod-⟪⟫ : length ⟪f⟫.cod ≡ length (flatten B)`.  Dual of
+-- `length-dom-⟪⟫`.  Used in the `agen-eout-position` proof.
+
+length-cod-⟪⟫
+  : ∀ {A B} (f : HomTerm A B)
+  → length (Hypergraph.cod ⟪ f ⟫) ≡ length (flatten B)
+length-cod-⟪⟫ {B = B} f =
+  trans (sym (length-map-cod (Hypergraph.vlab ⟪ f ⟫) (Hypergraph.cod ⟪ f ⟫)))
+        (cong length (⟪⟫-codL f))
+  where
+    open import Data.List.Properties
+      using () renaming (length-map to length-map-cod)
+
+--------------------------------------------------------------------------------
+-- `agen-eout-position`: dual of `agen-ein-position`.  For each
+-- `SingleAgen` witness `sf`, the cod of `⟪f⟫` admits a decomposition
+--
+--   ⟪f⟫.cod ≡ pre ++ ⟪f⟫.eout (SingleAgen-edge sf) ++ post
+--
+-- with the same `length pre ≡ length-YL-strip sf` and
+-- `length post ≡ length-YR-strip sf` (since the strip's YL/YR are
+-- shared between source and target of the middle).
+--
+-- The proof structure mirrors `agen-ein-position`'s, using eout-c-inj_X
+-- instead of ein-c-inj_X.
+
+agen-eout-position
+  : ∀ {A B} {f : HomTerm A B} (sf : SingleAgen f)
+  → Σ[ pre ∈ List (Fin (Hypergraph.nV ⟪ f ⟫)) ]
+    Σ[ post ∈ List (Fin (Hypergraph.nV ⟪ f ⟫)) ]
+    Hypergraph.cod ⟪ f ⟫
+    ≡ pre ++ Hypergraph.eout ⟪ f ⟫ (SingleAgen-edge sf) ++ post
+    × length pre ≡ length-YL-strip sf
+    × length post ≡ length-YR-strip sf
+agen-eout-position (single-agen-here u) =
+  -- ⟪Agen u⟫ = hGen u.  cod = eout = `map (nA ↑ʳ_) (range nB)`.
+  -- pre = post = [].
+  [] , [] ,
+  sym (++-identityʳ _) ,
+  refl ,
+  refl
+  where open import Data.List.Properties using (++-identityʳ)
+agen-eout-position {f = h ∘ k} (single-agen-∘-r nh sk) =
+  -- ⟪h ∘ k⟫ = hComposeP ⟪k⟫ ⟪h⟫ bdy.
+  --   G = ⟪k⟫, K = ⟪h⟫.
+  --   composed.cod = map remapP ⟪h⟫.cod.
+  --   Agen edge in composed = (SingleAgen-edge sk) ↑ˡ ⟪h⟫.nE.
+  --   Its eout in composed = map injL (⟪k⟫.eout (SingleAgen-edge sk)).
+  --
+  -- For the Agen-eout, sk is in the G-side.  We need
+  --   composed.cod ≡ pre ++ map injL eout-k ++ post.
+  --
+  -- But composed.cod = map remapP ⟪h⟫.cod, NOT map injL ⟪k⟫.cod.
+  -- For NoSigma h: NoSigma-cod≡dom nh gives ⟪h⟫.cod ≡ ⟪h⟫.dom.
+  -- Then map-remapP-dom-≡-injL-G-cod gives map remapP ⟪h⟫.dom ≡ map injL ⟪k⟫.cod.
+  -- So composed.cod ≡ map injL ⟪k⟫.cod.
+  -- By IH on sk: ⟪k⟫.cod = pre-k ++ ⟪k⟫.eout agen-k ++ post-k.
+  -- Substitute to get the decomposition.
+  pre , post ,
+  decomp ,
+  trans (length-map-prop injL pre-k) len-pre-k ,
+  trans (length-map-prop injL post-k) len-post-k
+  where
+    open import Relation.Binary.PropositionalEquality using (cong₂)
+    bdy = trans (⟪⟫-codL k) (sym (⟪⟫-domL h))
+    open hComposeP-impl ⟪ k ⟫ ⟪ h ⟫ bdy
+      using (injL; remapP; eout-c-inj₁-red)
+    module Gk = Hypergraph ⟪ k ⟫
+    module Kh = Hypergraph ⟪ h ⟫
+
+    ih = agen-eout-position sk
+    pre-k     = proj₁ ih
+    post-k    = proj₁ (proj₂ ih)
+    cod-eq-k  = proj₁ (proj₂ (proj₂ ih))
+    len-pre-k = proj₁ (proj₂ (proj₂ (proj₂ ih)))
+    len-post-k = proj₂ (proj₂ (proj₂ (proj₂ ih)))
+
+    pre = map injL pre-k
+    eout-k = Gk.eout (SingleAgen-edge sk)
+    post = map injL post-k
+
+    -- map remapP Kh.cod = ?
+    remapP-Kh-cod-dom : map remapP Kh.cod ≡ map remapP Kh.dom
+    remapP-Kh-cod-dom = cong (map remapP) (NoSigma-cod≡dom nh)
+
+    remapP-Kh-dom-eq : map remapP Kh.dom ≡ map injL Gk.cod
+    remapP-Kh-dom-eq =
+      map-remapP-dom-≡-injL-G-cod ⟪ k ⟫ ⟪ h ⟫ bdy (⟪_⟫-dom-unique h)
+
+    -- composed.cod ≡ map injL Gk.cod.
+    composed-cod-eq-Gk-cod : map remapP Kh.cod ≡ map injL Gk.cod
+    composed-cod-eq-Gk-cod = trans remapP-Kh-cod-dom remapP-Kh-dom-eq
+
+    -- map injL Gk.cod = map injL (pre-k ++ eout-k ++ post-k)
+    --                 = map injL pre-k ++ map injL eout-k ++ map injL post-k
+    injL-decomp :
+      map injL Gk.cod
+      ≡ map injL pre-k ++ map injL eout-k ++ map injL post-k
+    injL-decomp =
+      trans (cong (map injL) cod-eq-k)
+            (trans (map-++ injL pre-k (eout-k ++ post-k))
+                   (cong (map injL pre-k ++_)
+                         (map-++ injL eout-k post-k)))
+
+    -- composed.cod ≡ pre ++ map injL eout-k ++ post.
+    cod-eq : map remapP Kh.cod ≡ pre ++ map injL eout-k ++ post
+    cod-eq = trans composed-cod-eq-Gk-cod injL-decomp
+
+    -- composed.eout at the agen edge = map injL eout-k.
+    eout-composed-eq :
+      Hypergraph.eout ⟪ h ∘ k ⟫ (SingleAgen-edge sk ↑ˡ Kh.nE)
+      ≡ map injL eout-k
+    eout-composed-eq = eout-c-inj₁-red (SingleAgen-edge sk)
+
+    decomp :
+      Hypergraph.cod ⟪ h ∘ k ⟫
+      ≡ pre ++ Hypergraph.eout ⟪ h ∘ k ⟫ (SingleAgen-edge sk ↑ˡ Kh.nE) ++ post
+    decomp =
+      trans cod-eq
+            (cong (λ xs → pre ++ xs ++ post) (sym eout-composed-eq))
+agen-eout-position {f = h ⊗₁ k} (single-agen-⊗-l {C = C} sh nk) =
+  -- ⟪h ⊗ k⟫ = hTensor ⟪h⟫ ⟪k⟫.  composed.cod = map injL Hh.cod ++ map injR Hk.cod.
+  -- Agen edge in composed = (SingleAgen-edge sh) ↑ˡ Hk.nE.
+  -- Its eout in composed = map injL (⟪h⟫.eout (SingleAgen-edge sh)).
+  -- By IH on sh: ⟪h⟫.cod = pre-h ++ eout-h ++ post-h.
+  pre , post ,
+  trans cod-eq (cong (λ xs → pre ++ xs ++ post) (sym eout-composed-eq)) ,
+  trans (length-map-prop injL pre-h) len-pre-h ,
+  post-len-eq
+  where
+    open import Relation.Binary.PropositionalEquality using (cong₂)
+    open hTensor-impl ⟪ h ⟫ ⟪ k ⟫ using (injL; injR; eout-c-inj₁-red)
+    module Hh = Hypergraph ⟪ h ⟫
+    module Hk = Hypergraph ⟪ k ⟫
+    ih = agen-eout-position sh
+    pre-h    = proj₁ ih
+    post-h   = proj₁ (proj₂ ih)
+    cod-eq-h = proj₁ (proj₂ (proj₂ ih))
+    len-pre-h = proj₁ (proj₂ (proj₂ (proj₂ ih)))
+    len-post-h = proj₂ (proj₂ (proj₂ (proj₂ ih)))
+    pre = map injL pre-h
+    eout-h = Hh.eout (SingleAgen-edge sh)
+    post = map injL post-h ++ map injR Hk.cod
+    map-decomp :
+      map injL Hh.cod
+      ≡ map injL pre-h ++ map injL eout-h ++ map injL post-h
+    map-decomp =
+      trans (cong (map injL) cod-eq-h)
+            (trans (map-++ injL pre-h (eout-h ++ post-h))
+                   (cong (map injL pre-h ++_)
+                         (map-++ injL eout-h post-h)))
+    cod-eq :
+      map injL Hh.cod ++ map injR Hk.cod
+      ≡ pre ++ map injL eout-h ++ post
+    cod-eq =
+      trans (cong (_++ map injR Hk.cod) map-decomp)
+            (trans (++-assoc (map injL pre-h)
+                             (map injL eout-h ++ map injL post-h)
+                             (map injR Hk.cod))
+                   (cong (map injL pre-h ++_)
+                         (++-assoc (map injL eout-h)
+                                   (map injL post-h)
+                                   (map injR Hk.cod))))
+    eout-composed-eq :
+      Hypergraph.eout ⟪ h ⊗₁ k ⟫ (SingleAgen-edge sh ↑ˡ Hk.nE)
+      ≡ map injL eout-h
+    eout-composed-eq = eout-c-inj₁-red (SingleAgen-edge sh)
+    -- The post-len-eq for ⊗-l: the YR has been extended with C.
+    -- Use length-cod-⟪⟫ on k (which gives length flatten D, where k : C → D).
+    -- But our length-YR-strip references flatten C.
+    -- For NoSigma k : C → D, flatten C ≡ flatten D, so lengths agree.
+    post-len-eq :
+      length post ≡ length-YR-strip sh + length (flatten C)
+    post-len-eq =
+      trans (length-++ (map injL post-h))
+            (cong₂ _+_
+              (trans (length-map-prop injL post-h) len-post-h)
+              (trans (length-map-prop injR Hk.cod)
+                     (trans (length-cod-⟪⟫ k)
+                            (cong length (sym (flatten-NoSigma nk))))))
+agen-eout-position {f = h ⊗₁ k} (single-agen-⊗-r {A = A_h} nh sk) =
+  -- ⟪h ⊗ k⟫ = hTensor ⟪h⟫ ⟪k⟫.  composed.cod = map injL Hh.cod ++ map injR Hk.cod.
+  -- Agen edge in composed = Hh.nE ↑ʳ (SingleAgen-edge sk).
+  -- Its eout in composed = map injR (⟪k⟫.eout (SingleAgen-edge sk)).
+  pre , post ,
+  trans cod-eq (cong (λ xs → pre ++ xs ++ post) (sym eout-composed-eq)) ,
+  pre-len-eq ,
+  trans (length-map-prop injR post-k) len-post-k
+  where
+    open import Relation.Binary.PropositionalEquality using (cong₂)
+    open hTensor-impl ⟪ h ⟫ ⟪ k ⟫ using (injL; injR; eout-c-inj₂-red)
+    module Hh = Hypergraph ⟪ h ⟫
+    module Hk = Hypergraph ⟪ k ⟫
+    ih = agen-eout-position sk
+    pre-k    = proj₁ ih
+    post-k   = proj₁ (proj₂ ih)
+    cod-eq-k = proj₁ (proj₂ (proj₂ ih))
+    len-pre-k = proj₁ (proj₂ (proj₂ (proj₂ ih)))
+    len-post-k = proj₂ (proj₂ (proj₂ (proj₂ ih)))
+    pre = map injL Hh.cod ++ map injR pre-k
+    eout-k = Hk.eout (SingleAgen-edge sk)
+    post = map injR post-k
+    map-decomp :
+      map injR Hk.cod
+      ≡ map injR pre-k ++ map injR eout-k ++ map injR post-k
+    map-decomp =
+      trans (cong (map injR) cod-eq-k)
+            (trans (map-++ injR pre-k (eout-k ++ post-k))
+                   (cong (map injR pre-k ++_)
+                         (map-++ injR eout-k post-k)))
+    cod-eq :
+      map injL Hh.cod ++ map injR Hk.cod
+      ≡ pre ++ map injR eout-k ++ post
+    cod-eq =
+      trans (cong (map injL Hh.cod ++_) map-decomp)
+            (sym (++-assoc (map injL Hh.cod) (map injR pre-k) _))
+    eout-composed-eq :
+      Hypergraph.eout ⟪ h ⊗₁ k ⟫ (Hh.nE ↑ʳ SingleAgen-edge sk)
+      ≡ map injR eout-k
+    eout-composed-eq = eout-c-inj₂-red (SingleAgen-edge sk)
+    -- pre length: length(map injL Hh.cod) + length(map injR pre-k) = length flatten B_h + length pre-k.
+    -- For NoSigma h: flatten A_h ≡ flatten B_h.
+    pre-len-eq :
+      length pre ≡ length (flatten A_h) + length-YL-strip sk
+    pre-len-eq =
+      trans (length-++ (map injL Hh.cod))
+            (cong₂ _+_
+              (trans (length-map-prop injL Hh.cod)
+                     (trans (length-cod-⟪⟫ h)
+                            (cong length (sym (flatten-NoSigma nh)))))
+              (trans (length-map-prop injR pre-k) len-pre-k))
+agen-eout-position {f = h ∘ k} (single-agen-∘-l sh nk) =
+  -- ⟪h ∘ k⟫ = hComposeP ⟪k⟫ ⟪h⟫ bdy.
+  --   composed.cod = map remapP ⟪h⟫.cod.
+  --   Agen edge in composed = ⟪k⟫.nE ↑ʳ (SingleAgen-edge sh).
+  --   Its eout in composed = map remapP (⟪h⟫.eout (SingleAgen-edge sh)).
+  -- By IH on sh: ⟪h⟫.cod = pre-h ++ eout-h ++ post-h.
+  -- composed.cod = map remapP ⟪h⟫.cod = map remapP (pre-h ++ eout-h ++ post-h)
+  --              = map remapP pre-h ++ map remapP eout-h ++ map remapP post-h.
+  pre , post ,
+  trans cod-eq (cong (λ xs → pre ++ xs ++ post) (sym eout-composed-eq)) ,
+  trans (length-map-prop remapP pre-h) len-pre-h ,
+  trans (length-map-prop remapP post-h) len-post-h
+  where
+    open import Relation.Binary.PropositionalEquality using (cong₂)
+    bdy = trans (⟪⟫-codL k) (sym (⟪⟫-domL h))
+    open hComposeP-impl ⟪ k ⟫ ⟪ h ⟫ bdy
+      using (remapP; eout-c-inj₂-red)
+    module Gk = Hypergraph ⟪ k ⟫
+    module Kh = Hypergraph ⟪ h ⟫
+    ih = agen-eout-position sh
+    pre-h    = proj₁ ih
+    post-h   = proj₁ (proj₂ ih)
+    cod-eq-h = proj₁ (proj₂ (proj₂ ih))
+    len-pre-h = proj₁ (proj₂ (proj₂ (proj₂ ih)))
+    len-post-h = proj₂ (proj₂ (proj₂ (proj₂ ih)))
+    pre = map remapP pre-h
+    eout-h = Kh.eout (SingleAgen-edge sh)
+    post = map remapP post-h
+    cod-eq :
+      map remapP Kh.cod
+      ≡ pre ++ map remapP eout-h ++ post
+    cod-eq =
+      trans (cong (map remapP) cod-eq-h)
+            (trans (map-++ remapP pre-h (eout-h ++ post-h))
+                   (cong (map remapP pre-h ++_)
+                         (map-++ remapP eout-h post-h)))
+    eout-composed-eq :
+      Hypergraph.eout ⟪ h ∘ k ⟫ (Gk.nE ↑ʳ SingleAgen-edge sh)
+      ≡ map remapP eout-h
+    eout-composed-eq = eout-c-inj₂-red (SingleAgen-edge sh)
+
+--------------------------------------------------------------------------------
 -- `Unique`-middle-position uniqueness: if `xs ≡ a ++ M ++ b ≡ c ++ M ++ d`
 -- with `Unique xs` and `M` non-empty (= `m₀ ∷ ms`), then `length a ≡ length c`.
 --
@@ -2693,6 +2966,7 @@ YL-length-from-iso-nonempty {f = f} {g = g} sf sg iso ein-g-nonempty =
         lemma (m₀ ∷ ms) xs-eq =
           trans (sym (length-map-prop φ pre-f))
                 (sym (extract-len-eq m₀ ms (sym xs-eq)))
+
 --
 --   * `single-agen-flat-data`: iso → `(flat-A-eq, flat-B-eq, flat-u-eq)`.
 --   * `flat-data-to-ObjTerm`: flat data → `(Aᵢ_f ≡ Aᵢ_g, Bᵢ_f ≡ Bᵢ_g,
