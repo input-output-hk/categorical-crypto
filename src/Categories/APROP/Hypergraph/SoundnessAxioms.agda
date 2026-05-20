@@ -47,7 +47,6 @@ open import Categories.APROP.Hypergraph.SoundnessProved sig public
         ; λ⇒∘id⊗f≈f∘λ⇒-sound
         ; λ⇐∘λ⇒-sound; λ⇒∘λ⇐-sound
         ; ρ⇐∘ρ⇒-sound; α⇐∘α⇒-sound
-        ; σ∘σ-sound
         ; hCompose-hId-R-iso-generic
         ; hCompose-hId-R-iso-flex
         ; hCompose-hId-L-iso-generic
@@ -76,6 +75,12 @@ postulate
   -- which is hTensor-associativity for hId — a non-trivial constructive
   -- bijection not yet proved.
   α⇒∘α⇐-sound : ∀ {A B C} → ⟪ α⇒ {A}{B}{C} ∘ α⇐ {A}{B}{C} ⟫ ≅ᴴ ⟪ id {A ⊗₀ (B ⊗₀ C)} ⟫
+
+  -- σ∘σ: symmetry self-inverse.  Constructive proof is mechanical but
+  -- requires routing through the hSwap-permutation invariants.  Moved
+  -- here from `SoundnessProved.agda` so that module is fully
+  -- postulate-free (`--safe`).
+  σ∘σ-sound : ∀ {A B} → ⟪ σ {B}{A} ∘ σ {A}{B} ⟫ ≅ᴴ ⟪ id {A ⊗₀ B} ⟫
 
 --------------------------------------------------------------------------------
 -- Five remaining atomic axioms as flat postulates. Each has a dedicated

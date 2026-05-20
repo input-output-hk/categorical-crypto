@@ -1,4 +1,4 @@
-{-# OPTIONS #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- Agen-Agen case of `decode-rel-resp-≅ᴴ`.
@@ -26,7 +26,8 @@ open APROPSignatureDec sig-dec
 open APROP sig
 open import Categories.APROP.Hypergraph.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using (FlatGen; flat; ⟪_⟫)
+  using (FlatGen; flat)
+open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (bridge)

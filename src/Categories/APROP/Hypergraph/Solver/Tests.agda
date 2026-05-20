@@ -1,28 +1,33 @@
-{-# OPTIONS --safe --without-K #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
--- Smoke tests for `findIso`.
---
--- A concrete `APROPSignatureDec` instance with `X = Fin 3` and a custom
--- `MyMor` data type whose constructors all live at distinct `(domain,
--- codomain)` index pairs — this makes `_≟-MyMor_` a one-line case
--- analysis.
+-- Smoke tests for `findIso`, threaded through `completeness-full`.
+-- This module is parameterized by a `CompletenessAssumptions` record
+-- instance.  The trust is concentrated in the non-safe sibling module
+-- `Solver/TestsTrust.agda`, which postulates the record and applies
+-- the tests.
 --
 -- Each test is of the form
 --
---   test : ⟪ lhs ⟫ ≅ᴴ ⟪ rhs ⟫
---   test = from-just (findIso ⟪ lhs ⟫ ⟪ rhs ⟫)
+--   test : f ≈Term g
+--   test = completeness-full (from-just (findIso ⟪ f ⟫ ⟪ g ⟫))
 --
 -- which compels `findIso` to actually reduce to `just _` at type-check
--- time. If the search or verification fails, the program does not
--- type-check.
+-- time and routes the resulting hypergraph iso through the inductive
+-- `decode-rel-resp-≅ᴴ-full` dispatcher to a syntactic `≈Term` equation.
 --
--- We cover every *equation*-shaped constructor of `_≈Term_`. The four
--- inference rules — `∘-resp-≈`, `≈-Term-sym`, `≈-Term-trans`,
--- `⊗-resp-≈` — are skipped because they aren't single equations.
+-- `⟪_⟫` is imported from `Translation` (the *pruned* translation).
+-- Under pruning, `⟪ id ∘ Agen f ⟫` and `⟪ Agen f ⟫` have matching
+-- vertex counts, so `findIso` succeeds on all 18 equation-shaped
+-- `_≈Term_` constructors below.
+--
+-- `completeness-full` is now stated against `Translation.⟪_⟫`, so the
+-- two pieces compose directly.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Solver.Tests where
+
+import Categories.APROP.Hypergraph.Completeness.DecodeRel.Inductive as IND
 
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
@@ -79,7 +84,7 @@ mySigDec = record
   }
 
 --------------------------------------------------------------------------------
--- Bring in the term language and the solver.
+-- Bring in the term language, the solver, and the completeness theorem.
 
 open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Translation mySig using (⟪_⟫)
@@ -87,102 +92,114 @@ open import Categories.APROP.Hypergraph.Solver.FindIso mySigDec using (findIso)
 open APROP mySig
 
 --------------------------------------------------------------------------------
--- Tests for each equation-shaped `_≈Term_` constructor.
+-- The tests are parameterized over a `CompletenessAssumptions`
+-- instance.  A non-safe sibling module `Solver/TestsTrust.agda`
+-- supplies the record via `postulate` and re-exports the tests.
 
-test-idˡ : ⟪ id ∘ Agen f ⟫ ≅ᴴ ⟪ Agen f ⟫
-test-idˡ = from-just (findIso ⟪ id ∘ Agen f ⟫ ⟪ Agen f ⟫)
+module WithAssumptions (assumptions : IND.CompletenessAssumptions mySigDec) where
 
-test-idʳ : ⟪ Agen f ∘ id ⟫ ≅ᴴ ⟪ Agen f ⟫
-test-idʳ = from-just (findIso ⟪ Agen f ∘ id ⟫ ⟪ Agen f ⟫)
+  open import Categories.APROP.Hypergraph.CompletenessFull mySigDec assumptions
+    using (completeness-full)
 
-test-assoc : ⟪ (Agen h ∘ Agen g) ∘ Agen f ⟫ ≅ᴴ ⟪ Agen h ∘ (Agen g ∘ Agen f) ⟫
-test-assoc = from-just (findIso ⟪ (Agen h ∘ Agen g) ∘ Agen f ⟫
-                                ⟪ Agen h ∘ (Agen g ∘ Agen f) ⟫)
+  --------------------------------------------------------------------------------
+  -- Tests for each equation-shaped `_≈Term_` constructor.
 
-test-≈-refl : ⟪ Agen f ⟫ ≅ᴴ ⟪ Agen f ⟫
-test-≈-refl = from-just (findIso ⟪ Agen f ⟫ ⟪ Agen f ⟫)
+  test-idˡ : id ∘ Agen f ≈Term Agen f
+  test-idˡ = completeness-full (from-just (findIso ⟪ id ∘ Agen f ⟫ ⟪ Agen f ⟫))
 
-test-id⊗id : ⟪ id {a₀} ⊗₁ id {a₁} ⟫ ≅ᴴ ⟪ id {a₀ ⊗₀ a₁} ⟫
-test-id⊗id = from-just (findIso ⟪ id {a₀} ⊗₁ id {a₁} ⟫ ⟪ id {a₀ ⊗₀ a₁} ⟫)
+  test-idʳ : Agen f ∘ id ≈Term Agen f
+  test-idʳ = completeness-full (from-just (findIso ⟪ Agen f ∘ id ⟫ ⟪ Agen f ⟫))
 
-test-⊗-∘-dist
-  : ⟪ (Agen g ∘ Agen f) ⊗₁ (Agen f ∘ Agen h) ⟫
-  ≅ᴴ ⟪ Agen g ⊗₁ Agen f ∘ Agen f ⊗₁ Agen h ⟫
-test-⊗-∘-dist = from-just (findIso
-  ⟪ (Agen g ∘ Agen f) ⊗₁ (Agen f ∘ Agen h) ⟫
-  ⟪ Agen g ⊗₁ Agen f ∘ Agen f ⊗₁ Agen h ⟫)
+  test-assoc : (Agen h ∘ Agen g) ∘ Agen f ≈Term Agen h ∘ (Agen g ∘ Agen f)
+  test-assoc = completeness-full
+    (from-just (findIso ⟪ (Agen h ∘ Agen g) ∘ Agen f ⟫
+                        ⟪ Agen h ∘ (Agen g ∘ Agen f) ⟫))
 
-test-λ⇐∘λ⇒ : ⟪ λ⇐ ∘ λ⇒ {a₀} ⟫ ≅ᴴ ⟪ id {unit ⊗₀ a₀} ⟫
-test-λ⇐∘λ⇒ = from-just (findIso ⟪ λ⇐ ∘ λ⇒ {a₀} ⟫ ⟪ id {unit ⊗₀ a₀} ⟫)
+  test-≈-refl : Agen f ≈Term Agen f
+  test-≈-refl = completeness-full (from-just (findIso ⟪ Agen f ⟫ ⟪ Agen f ⟫))
 
-test-λ⇒∘λ⇐ : ⟪ λ⇒ ∘ λ⇐ {a₀} ⟫ ≅ᴴ ⟪ id {a₀} ⟫
-test-λ⇒∘λ⇐ = from-just (findIso ⟪ λ⇒ ∘ λ⇐ {a₀} ⟫ ⟪ id {a₀} ⟫)
+  test-id⊗id : id {a₀} ⊗₁ id {a₁} ≈Term id {a₀ ⊗₀ a₁}
+  test-id⊗id = completeness-full
+    (from-just (findIso ⟪ id {a₀} ⊗₁ id {a₁} ⟫ ⟪ id {a₀ ⊗₀ a₁} ⟫))
 
-test-ρ⇐∘ρ⇒ : ⟪ ρ⇐ ∘ ρ⇒ {a₀} ⟫ ≅ᴴ ⟪ id {a₀ ⊗₀ unit} ⟫
-test-ρ⇐∘ρ⇒ = from-just (findIso ⟪ ρ⇐ ∘ ρ⇒ {a₀} ⟫ ⟪ id {a₀ ⊗₀ unit} ⟫)
+  test-⊗-∘-dist
+    : (Agen g ∘ Agen f) ⊗₁ (Agen f ∘ Agen h)
+    ≈Term Agen g ⊗₁ Agen f ∘ Agen f ⊗₁ Agen h
+  test-⊗-∘-dist = completeness-full (from-just (findIso
+    ⟪ (Agen g ∘ Agen f) ⊗₁ (Agen f ∘ Agen h) ⟫
+    ⟪ Agen g ⊗₁ Agen f ∘ Agen f ⊗₁ Agen h ⟫))
 
-test-ρ⇒∘ρ⇐ : ⟪ ρ⇒ ∘ ρ⇐ {a₀} ⟫ ≅ᴴ ⟪ id {a₀} ⟫
-test-ρ⇒∘ρ⇐ = from-just (findIso ⟪ ρ⇒ ∘ ρ⇐ {a₀} ⟫ ⟪ id {a₀} ⟫)
+  test-λ⇐∘λ⇒ : λ⇐ ∘ λ⇒ {a₀} ≈Term id {unit ⊗₀ a₀}
+  test-λ⇐∘λ⇒ = completeness-full
+    (from-just (findIso ⟪ λ⇐ ∘ λ⇒ {a₀} ⟫ ⟪ id {unit ⊗₀ a₀} ⟫))
 
-test-α⇐∘α⇒
-  : ⟪ α⇐ ∘ α⇒ {a₀} {a₁} {a₂} ⟫ ≅ᴴ ⟪ id {(a₀ ⊗₀ a₁) ⊗₀ a₂} ⟫
-test-α⇐∘α⇒ = from-just (findIso
-  ⟪ α⇐ ∘ α⇒ {a₀} {a₁} {a₂} ⟫ ⟪ id {(a₀ ⊗₀ a₁) ⊗₀ a₂} ⟫)
+  test-λ⇒∘λ⇐ : λ⇒ ∘ λ⇐ {a₀} ≈Term id {a₀}
+  test-λ⇒∘λ⇐ = completeness-full
+    (from-just (findIso ⟪ λ⇒ ∘ λ⇐ {a₀} ⟫ ⟪ id {a₀} ⟫))
 
-test-α⇒∘α⇐
-  : ⟪ α⇒ ∘ α⇐ {a₀} {a₁} {a₂} ⟫ ≅ᴴ ⟪ id {a₀ ⊗₀ (a₁ ⊗₀ a₂)} ⟫
-test-α⇒∘α⇐ = from-just (findIso
-  ⟪ α⇒ ∘ α⇐ {a₀} {a₁} {a₂} ⟫ ⟪ id {a₀ ⊗₀ (a₁ ⊗₀ a₂)} ⟫)
+  test-ρ⇐∘ρ⇒ : ρ⇐ ∘ ρ⇒ {a₀} ≈Term id {a₀ ⊗₀ unit}
+  test-ρ⇐∘ρ⇒ = completeness-full
+    (from-just (findIso ⟪ ρ⇐ ∘ ρ⇒ {a₀} ⟫ ⟪ id {a₀ ⊗₀ unit} ⟫))
 
-test-λ⇒∘id⊗f
-  : ⟪ λ⇒ ∘ (id {unit} ⊗₁ Agen f) ⟫ ≅ᴴ ⟪ Agen f ∘ λ⇒ ⟫
-test-λ⇒∘id⊗f = from-just (findIso
-  ⟪ λ⇒ ∘ (id {unit} ⊗₁ Agen f) ⟫ ⟪ Agen f ∘ λ⇒ ⟫)
+  test-ρ⇒∘ρ⇐ : ρ⇒ ∘ ρ⇐ {a₀} ≈Term id {a₀}
+  test-ρ⇒∘ρ⇐ = completeness-full
+    (from-just (findIso ⟪ ρ⇒ ∘ ρ⇐ {a₀} ⟫ ⟪ id {a₀} ⟫))
 
-test-ρ⇒∘f⊗id
-  : ⟪ ρ⇒ ∘ (Agen f ⊗₁ id {unit}) ⟫ ≅ᴴ ⟪ Agen f ∘ ρ⇒ ⟫
-test-ρ⇒∘f⊗id = from-just (findIso
-  ⟪ ρ⇒ ∘ (Agen f ⊗₁ id {unit}) ⟫ ⟪ Agen f ∘ ρ⇒ ⟫)
+  test-α⇐∘α⇒ : α⇐ ∘ α⇒ {a₀} {a₁} {a₂} ≈Term id {(a₀ ⊗₀ a₁) ⊗₀ a₂}
+  test-α⇐∘α⇒ = completeness-full (from-just (findIso
+    ⟪ α⇐ ∘ α⇒ {a₀} {a₁} {a₂} ⟫ ⟪ id {(a₀ ⊗₀ a₁) ⊗₀ a₂} ⟫))
 
-test-α-comm
-  : ⟪ α⇒ ∘ ((Agen f ⊗₁ Agen g) ⊗₁ Agen h) ⟫
-  ≅ᴴ ⟪ (Agen f ⊗₁ (Agen g ⊗₁ Agen h)) ∘ α⇒ ⟫
-test-α-comm = from-just (findIso
-  ⟪ α⇒ ∘ ((Agen f ⊗₁ Agen g) ⊗₁ Agen h) ⟫
-  ⟪ (Agen f ⊗₁ (Agen g ⊗₁ Agen h)) ∘ α⇒ ⟫)
+  test-α⇒∘α⇐ : α⇒ ∘ α⇐ {a₀} {a₁} {a₂} ≈Term id {a₀ ⊗₀ (a₁ ⊗₀ a₂)}
+  test-α⇒∘α⇐ = completeness-full (from-just (findIso
+    ⟪ α⇒ ∘ α⇐ {a₀} {a₁} {a₂} ⟫ ⟪ id {a₀ ⊗₀ (a₁ ⊗₀ a₂)} ⟫))
 
-test-triangle
-  : ⟪ id {a₀} ⊗₁ λ⇒ {a₁} ∘ α⇒ {a₀} {unit} {a₁} ⟫
-  ≅ᴴ ⟪ ρ⇒ {a₀} ⊗₁ id {a₁} ⟫
-test-triangle = from-just (findIso
-  ⟪ id {a₀} ⊗₁ λ⇒ {a₁} ∘ α⇒ {a₀} {unit} {a₁} ⟫
-  ⟪ ρ⇒ {a₀} ⊗₁ id {a₁} ⟫)
+  test-λ⇒∘id⊗f : λ⇒ ∘ (id {unit} ⊗₁ Agen f) ≈Term Agen f ∘ λ⇒
+  test-λ⇒∘id⊗f = completeness-full (from-just (findIso
+    ⟪ λ⇒ ∘ (id {unit} ⊗₁ Agen f) ⟫ ⟪ Agen f ∘ λ⇒ ⟫))
 
-test-pentagon
-  : ⟪ (id {a₀} ⊗₁ α⇒ {a₁} {a₂} {a₀})
-        ∘ α⇒ {a₀} {a₁ ⊗₀ a₂} {a₀}
-        ∘ (α⇒ {a₀} {a₁} {a₂} ⊗₁ id {a₀}) ⟫
-  ≅ᴴ ⟪ α⇒ {a₀} {a₁} {a₂ ⊗₀ a₀}
-        ∘ α⇒ {a₀ ⊗₀ a₁} {a₂} {a₀} ⟫
-test-pentagon = from-just (findIso
-  ⟪ (id {a₀} ⊗₁ α⇒ {a₁} {a₂} {a₀})
-       ∘ α⇒ {a₀} {a₁ ⊗₀ a₂} {a₀}
-       ∘ (α⇒ {a₀} {a₁} {a₂} ⊗₁ id {a₀}) ⟫
-  ⟪ α⇒ {a₀} {a₁} {a₂ ⊗₀ a₀}
-       ∘ α⇒ {a₀ ⊗₀ a₁} {a₂} {a₀} ⟫)
+  test-ρ⇒∘f⊗id : ρ⇒ ∘ (Agen f ⊗₁ id {unit}) ≈Term Agen f ∘ ρ⇒
+  test-ρ⇒∘f⊗id = completeness-full (from-just (findIso
+    ⟪ ρ⇒ ∘ (Agen f ⊗₁ id {unit}) ⟫ ⟪ Agen f ∘ ρ⇒ ⟫))
 
-test-σ∘σ : ⟪ σ ∘ σ {a₀} {a₁} ⟫ ≅ᴴ ⟪ id {a₀ ⊗₀ a₁} ⟫
-test-σ∘σ = from-just (findIso ⟪ σ ∘ σ {a₀} {a₁} ⟫ ⟪ id {a₀ ⊗₀ a₁} ⟫)
+  test-α-comm
+    : α⇒ ∘ ((Agen f ⊗₁ Agen g) ⊗₁ Agen h)
+    ≈Term (Agen f ⊗₁ (Agen g ⊗₁ Agen h)) ∘ α⇒
+  test-α-comm = completeness-full (from-just (findIso
+    ⟪ α⇒ ∘ ((Agen f ⊗₁ Agen g) ⊗₁ Agen h) ⟫
+    ⟪ (Agen f ⊗₁ (Agen g ⊗₁ Agen h)) ∘ α⇒ ⟫))
 
-test-σ∘[f⊗g]
-  : ⟪ σ ∘ (Agen f ⊗₁ Agen g) ⟫ ≅ᴴ ⟪ (Agen g ⊗₁ Agen f) ∘ σ ⟫
-test-σ∘[f⊗g] = from-just (findIso
-  ⟪ σ ∘ (Agen f ⊗₁ Agen g) ⟫
-  ⟪ (Agen g ⊗₁ Agen f) ∘ σ ⟫)
+  test-triangle
+    : id {a₀} ⊗₁ λ⇒ {a₁} ∘ α⇒ {a₀} {unit} {a₁}
+    ≈Term ρ⇒ {a₀} ⊗₁ id {a₁}
+  test-triangle = completeness-full (from-just (findIso
+    ⟪ id {a₀} ⊗₁ λ⇒ {a₁} ∘ α⇒ {a₀} {unit} {a₁} ⟫
+    ⟪ ρ⇒ {a₀} ⊗₁ id {a₁} ⟫))
 
-test-hexagon
-  : ⟪ id {a₁} ⊗₁ σ ∘ α⇒ {a₁} {a₀} {a₂} ∘ σ ⊗₁ id {a₂} ⟫
-  ≅ᴴ ⟪ α⇒ {a₁} {a₂} {a₀} ∘ σ {a₀} {a₁ ⊗₀ a₂} ∘ α⇒ {a₀} {a₁} {a₂} ⟫
-test-hexagon = from-just (findIso
-  ⟪ id {a₁} ⊗₁ σ ∘ α⇒ {a₁} {a₀} {a₂} ∘ σ ⊗₁ id {a₂} ⟫
-  ⟪ α⇒ {a₁} {a₂} {a₀} ∘ σ {a₀} {a₁ ⊗₀ a₂} ∘ α⇒ {a₀} {a₁} {a₂} ⟫)
+  test-pentagon
+    : (id {a₀} ⊗₁ α⇒ {a₁} {a₂} {a₀})
+         ∘ α⇒ {a₀} {a₁ ⊗₀ a₂} {a₀}
+         ∘ (α⇒ {a₀} {a₁} {a₂} ⊗₁ id {a₀})
+    ≈Term α⇒ {a₀} {a₁} {a₂ ⊗₀ a₀}
+         ∘ α⇒ {a₀ ⊗₀ a₁} {a₂} {a₀}
+  test-pentagon = completeness-full (from-just (findIso
+    ⟪ (id {a₀} ⊗₁ α⇒ {a₁} {a₂} {a₀})
+         ∘ α⇒ {a₀} {a₁ ⊗₀ a₂} {a₀}
+         ∘ (α⇒ {a₀} {a₁} {a₂} ⊗₁ id {a₀}) ⟫
+    ⟪ α⇒ {a₀} {a₁} {a₂ ⊗₀ a₀}
+         ∘ α⇒ {a₀ ⊗₀ a₁} {a₂} {a₀} ⟫))
+
+  test-σ∘σ : σ ∘ σ {a₀} {a₁} ≈Term id {a₀ ⊗₀ a₁}
+  test-σ∘σ = completeness-full
+    (from-just (findIso ⟪ σ ∘ σ {a₀} {a₁} ⟫ ⟪ id {a₀ ⊗₀ a₁} ⟫))
+
+  test-σ∘[f⊗g] : σ ∘ (Agen f ⊗₁ Agen g) ≈Term (Agen g ⊗₁ Agen f) ∘ σ
+  test-σ∘[f⊗g] = completeness-full (from-just (findIso
+    ⟪ σ ∘ (Agen f ⊗₁ Agen g) ⟫
+    ⟪ (Agen g ⊗₁ Agen f) ∘ σ ⟫))
+
+  test-hexagon
+    : id {a₁} ⊗₁ σ ∘ α⇒ {a₁} {a₀} {a₂} ∘ σ ⊗₁ id {a₂}
+    ≈Term α⇒ {a₁} {a₂} {a₀} ∘ σ {a₀} {a₁ ⊗₀ a₂} ∘ α⇒ {a₀} {a₁} {a₂}
+  test-hexagon = completeness-full (from-just (findIso
+    ⟪ id {a₁} ⊗₁ σ ∘ α⇒ {a₁} {a₀} {a₂} ∘ σ ⊗₁ id {a₂} ⟫
+    ⟪ α⇒ {a₁} {a₂} {a₀} ∘ σ {a₀} {a₁ ⊗₀ a₂} ∘ α⇒ {a₀} {a₁} {a₂} ⟫))
