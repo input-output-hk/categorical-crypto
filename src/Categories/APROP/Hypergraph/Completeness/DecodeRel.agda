@@ -170,15 +170,6 @@ decode-roundtrip-rel α⇒              = ≈-Term-refl
 decode-roundtrip-rel α⇐              = ≈-Term-refl
 decode-roundtrip-rel σ               = ≈-Term-refl
 
---------------------------------------------------------------------------------
--- decode-rel preserves hypergraph iso.  Analog of the postulated
--- `decode-resp-≅ᴴ` in Decoder.agda — replacement, not addition.
--- Used by `Completeness.completeness` together with `decode-roundtrip-rel`.
-
-open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
-
-postulate
-  decode-rel-resp-≅ᴴ
-    : ∀ {A B} (f g : HomTerm A B)
-    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-    → decode-rel f ≈Term decode-rel g
+-- (Legacy `decode-rel-resp-≅ᴴ` postulate removed; the completeness
+-- path now goes through the constructive `decode-rel-resp-≅ᴴ-full`
+-- dispatcher in `DecodeRel/Inductive.agda`.)
