@@ -62,12 +62,27 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Discharge
         )
 
 open import Data.Sum using (_⊎_; inj₁; inj₂)
-open import Data.Product using (_×_; _,_; Σ; Σ-syntax)
+open import Data.Product using (_×_; _,_; Σ; Σ-syntax; proj₁; proj₂)
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Fin using (Fin; zero)
+open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_)
 open import Data.Nat using (ℕ; zero; suc; _+_)
+open import Data.List using (List; map)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
+  using (_≡_; refl; sym; trans; cong; subst; subst₂; module ≡-Reasoning)
+
+-- Imports used by `elab-at-SingleAgen-edge` and its inductive cases.
+-- Brought in at the top level so the lemma can be stated near
+-- `single-agen-u`.  Note: `hComposeP-impl` / `hTensor-impl` are
+-- parameterised submodules; they are opened locally with the relevant
+-- `⟪_⟫` arguments inside each clause via the qualified path
+-- (`hComposeP-impl ⟪k⟫ ⟪h⟫ bdy-eq` / `hTensor-impl ⟪h⟫ ⟪k⟫`).
+open import Categories.APROP.Hypergraph.FromAPROP sig
+  using (FlatGen; flat; flatten;
+         map-via-inj; map-via-raise; module hTensor-impl)
+open import Categories.APROP.Hypergraph.PrunedCompose sig
+  using (module hComposeP-impl)
+open import Categories.APROP.Hypergraph.Translation sig
+  using (⟪⟫-domL; ⟪⟫-codL)
 
 --------------------------------------------------------------------------------
 -- Decidable `NoSigma`.  Returns `inj₁ ns` if `f` is `NoSigma`, `inj₂ _`
@@ -289,6 +304,447 @@ SingleAgen? (h ⊗₁ k) with SingleAgen? h | NoSigma? k | NoSigma? h | SingleAg
 ... | inj₁ sh | inj₁ nk | _       | _       = inj₁ (single-agen-⊗-l sh nk)
 ... | _       | _       | inj₁ nh | inj₁ sk = inj₁ (single-agen-⊗-r nh sk)
 ... | _       | _       | _       | _       = inj₂ tt
+
+--------------------------------------------------------------------------------
+-- Helpers for `SingleAgen`:
+--   * `NoSigma→NoAgen` — `NoSigma` admits neither `σ` nor `Agen`, so it
+--     is strictly stronger than `NoAgen` (which permits `σ`).  Used in
+--     `nE-SingleAgen` below to discharge the wrappers' 0-edge claim.
+--   * `nE-SingleAgen : SingleAgen f → nE ⟪f⟫ ≡ 1` — combines the IH on
+--     the SingleAgen side (1 edge) with `nE-NoAgen` on the NoSigma side
+--     (0 edges) through the additive structure of `hCompose`/`hTensor`.
+--   * `SingleAgen-edge` — locator for the unique Agen edge inside
+--     `⟪f⟫`.  Parallels `HasAgen-edge` but is driven by `SingleAgen`.
+
+NoSigma→NoAgen : ∀ {A B} {f : HomTerm A B} → NoSigma f → NoAgen f
+NoSigma→NoAgen nosigma-id        = noagen-id
+NoSigma→NoAgen nosigma-λ⇒        = noagen-λ⇒
+NoSigma→NoAgen nosigma-λ⇐        = noagen-λ⇐
+NoSigma→NoAgen nosigma-ρ⇒        = noagen-ρ⇒
+NoSigma→NoAgen nosigma-ρ⇐        = noagen-ρ⇐
+NoSigma→NoAgen nosigma-α⇒        = noagen-α⇒
+NoSigma→NoAgen nosigma-α⇐        = noagen-α⇐
+NoSigma→NoAgen (nosigma-∘ nh nk) = noagen-∘ (NoSigma→NoAgen nh) (NoSigma→NoAgen nk)
+NoSigma→NoAgen (nosigma-⊗ nh nk) = noagen-⊗ (NoSigma→NoAgen nh) (NoSigma→NoAgen nk)
+
+nE-SingleAgen : ∀ {A B} {f : HomTerm A B} → SingleAgen f → Hypergraph.nE ⟪ f ⟫ ≡ 1
+nE-SingleAgen (single-agen-here _) = refl
+nE-SingleAgen (single-agen-∘-l sh nk)
+  rewrite nE-SingleAgen sh | nE-NoAgen (NoSigma→NoAgen nk) = refl
+nE-SingleAgen (single-agen-∘-r nh sk)
+  rewrite nE-SingleAgen sk | nE-NoAgen (NoSigma→NoAgen nh) = refl
+nE-SingleAgen (single-agen-⊗-l sh nk)
+  rewrite nE-SingleAgen sh | nE-NoAgen (NoSigma→NoAgen nk) = refl
+nE-SingleAgen (single-agen-⊗-r nh sk)
+  rewrite nE-SingleAgen sk | nE-NoAgen (NoSigma→NoAgen nh) = refl
+
+SingleAgen-edge
+  : ∀ {A B} {f : HomTerm A B}
+  → SingleAgen f → Fin (Hypergraph.nE ⟪ f ⟫)
+SingleAgen-edge {f = Agen _}  (single-agen-here _) = zero
+SingleAgen-edge {f = h ∘ k}   (single-agen-∘-l sh _)
+  = Hypergraph.nE ⟪ k ⟫ ↑ʳ SingleAgen-edge sh
+  where open import Data.Fin using (_↑ʳ_)
+SingleAgen-edge {f = h ∘ k}   (single-agen-∘-r _ sk)
+  = SingleAgen-edge sk ↑ˡ Hypergraph.nE ⟪ h ⟫
+  where open import Data.Fin using (_↑ˡ_)
+SingleAgen-edge {f = h ⊗₁ k}  (single-agen-⊗-l sh _)
+  = SingleAgen-edge sh ↑ˡ Hypergraph.nE ⟪ k ⟫
+  where open import Data.Fin using (_↑ˡ_)
+SingleAgen-edge {f = h ⊗₁ k}  (single-agen-⊗-r _ sk)
+  = Hypergraph.nE ⟪ h ⟫ ↑ʳ SingleAgen-edge sk
+  where open import Data.Fin using (_↑ʳ_)
+
+-- Extract the unique underlying generator from a `SingleAgen` witness.
+-- This is the `u` field of the eventual `SingleAgenNF` record built by
+-- `single-agen-strip`, but exposed here independently of the strip so
+-- downstream lemmas (notably the elab-at-`SingleAgen-edge` characterization)
+-- can reference it without owning a strip-built NF record.
+
+record SingleAgenGen {A B : ObjTerm} (f : HomTerm A B) : Set where
+  field
+    {Aᵢ Bᵢ} : ObjTerm
+    u       : mor Aᵢ Bᵢ
+
+single-agen-u
+  : ∀ {A B} {f : HomTerm A B}
+  → SingleAgen f → SingleAgenGen f
+single-agen-u (single-agen-here u) = record { u = u }
+single-agen-u (single-agen-∘-l sh _) = record
+  { Aᵢ = SingleAgenGen.Aᵢ rec
+  ; Bᵢ = SingleAgenGen.Bᵢ rec
+  ; u  = SingleAgenGen.u  rec
+  }
+  where rec = single-agen-u sh
+single-agen-u (single-agen-∘-r _ sk) = record
+  { Aᵢ = SingleAgenGen.Aᵢ rec
+  ; Bᵢ = SingleAgenGen.Bᵢ rec
+  ; u  = SingleAgenGen.u  rec
+  }
+  where rec = single-agen-u sk
+single-agen-u (single-agen-⊗-l sh _) = record
+  { Aᵢ = SingleAgenGen.Aᵢ rec
+  ; Bᵢ = SingleAgenGen.Bᵢ rec
+  ; u  = SingleAgenGen.u  rec
+  }
+  where rec = single-agen-u sh
+single-agen-u (single-agen-⊗-r _ sk) = record
+  { Aᵢ = SingleAgenGen.Aᵢ rec
+  ; Bᵢ = SingleAgenGen.Bᵢ rec
+  ; u  = SingleAgenGen.u  rec
+  }
+  where rec = single-agen-u sk
+
+--------------------------------------------------------------------------------
+-- Characterization of `elab ⟪f⟫ (SingleAgen-edge sf)`.  At the unique
+-- `Agen` edge of `⟪f⟫`, the label is `flat u` (the underlying generator
+-- from `single-agen-u sf`) up to two transports witnessing that the
+-- edge's incoming/outgoing vertex-label lists equal `flatten Aᵢ` /
+-- `flatten Bᵢ`.  The transports are bundled existentially because their
+-- concrete form depends on the path through the term:
+--
+--   * Base case `Agen u`: the `lem-in`/`lem-out` produced inside
+--     `hGen u` (witnessing `flatten A ≡ map vlab-c (map (_↑ˡ nB) (range nA))`
+--     and dually for the output).
+--   * `∘` cases: one extra `map-via-remapP`/`map-via-inj` layer per
+--     `∘` arising from `hComposeP-impl.elab-c-inj₂` (K-side) /
+--     `elab-c-inj₁` (G-side).
+--   * `⊗` cases: one extra `map-via-inj`/`map-via-raise` layer per
+--     `⊗` arising from `hTensor-impl.elab-c-inj₁` / `elab-c-inj₂`.
+--
+-- Downstream consumers (notably the forthcoming `single-agen-flat-data`)
+-- combine this with `ψ-elab` and `UIP-ListX` to extract the propositional
+-- equalities `flat-A-eq`, `flat-B-eq`, `flat-u-eq` that the narrowed
+-- `single-agen-NF-coherence` postulate consumes.
+
+private
+  -- Two consecutive `subst₂` transports fuse along `trans`.
+  subst₂-trans-FlatGen
+    : ∀ {As Bs Cs Ds Es Fs : List X}
+        (p₁ : As ≡ Cs) (p₂ : Cs ≡ Es)
+        (q₁ : Bs ≡ Ds) (q₂ : Ds ≡ Fs)
+        (x : FlatGen As Bs)
+    → subst₂ FlatGen p₂ q₂ (subst₂ FlatGen p₁ q₁ x)
+    ≡ subst₂ FlatGen (trans p₁ p₂) (trans q₁ q₂) x
+  subst₂-trans-FlatGen refl refl refl refl _ = refl
+
+  -- `subst₂` cancels its own `sym` inverse.
+  subst₂-sym-cancel
+    : ∀ {As Bs Cs Ds : List X}
+        (p : As ≡ Cs) (q : Bs ≡ Ds)
+        (x : FlatGen As Bs)
+    → subst₂ FlatGen (sym p) (sym q) (subst₂ FlatGen p q x) ≡ x
+  subst₂-sym-cancel refl refl _ = refl
+
+  -- The inductive-step "fold": given the IH on the sub-elab plus the
+  -- relevant `elab-c-inj_` for the surrounding `hComposeP`/`hTensor`,
+  -- produces the lifted characterization at the composite edge.
+  fold-elab-step
+    : ∀ {As Bs Cs Ds Es Fs Gs Hs : List X}
+        {x : FlatGen As Bs} {base : FlatGen Cs Ds}
+        (target : FlatGen Gs Hs)
+        (p-IH : As ≡ Cs)   (q-IH : Bs ≡ Ds)
+        (M-in : Cs ≡ Es)   (M-out : Ds ≡ Fs)
+        (L-in : Gs ≡ Es)   (L-out : Hs ≡ Fs)
+    → base ≡ subst₂ FlatGen p-IH q-IH x
+    → subst₂ FlatGen L-in L-out target ≡ subst₂ FlatGen M-in M-out base
+    → target ≡ subst₂ FlatGen (trans (trans p-IH M-in) (sym L-in))
+                              (trans (trans q-IH M-out) (sym L-out))
+                              x
+  fold-elab-step {x = x} {base = base} target p-IH q-IH M-in M-out L-in L-out base-eq inj-eq =
+    begin
+      target
+    ≡⟨ sym (subst₂-sym-cancel L-in L-out target) ⟩
+      subst₂ FlatGen (sym L-in) (sym L-out)
+        (subst₂ FlatGen L-in L-out target)
+    ≡⟨ cong (subst₂ FlatGen (sym L-in) (sym L-out)) inj-eq ⟩
+      subst₂ FlatGen (sym L-in) (sym L-out)
+        (subst₂ FlatGen M-in M-out base)
+    ≡⟨ cong (λ z → subst₂ FlatGen (sym L-in) (sym L-out)
+                     (subst₂ FlatGen M-in M-out z)) base-eq ⟩
+      subst₂ FlatGen (sym L-in) (sym L-out)
+        (subst₂ FlatGen M-in M-out (subst₂ FlatGen p-IH q-IH x))
+    ≡⟨ cong (subst₂ FlatGen (sym L-in) (sym L-out))
+            (subst₂-trans-FlatGen p-IH M-in q-IH M-out x) ⟩
+      subst₂ FlatGen (sym L-in) (sym L-out)
+        (subst₂ FlatGen (trans p-IH M-in) (trans q-IH M-out) x)
+    ≡⟨ subst₂-trans-FlatGen (trans p-IH M-in) (sym L-in)
+                            (trans q-IH M-out) (sym L-out) x ⟩
+      subst₂ FlatGen (trans (trans p-IH M-in) (sym L-in))
+                     (trans (trans q-IH M-out) (sym L-out)) x
+    ∎
+    where open ≡-Reasoning
+
+elab-at-SingleAgen-edge
+  : ∀ {A B} {f : HomTerm A B} (sf : SingleAgen f)
+  → Σ[ p ∈ flatten (SingleAgenGen.Aᵢ (single-agen-u sf))
+         ≡ map (Hypergraph.vlab ⟪ f ⟫) (Hypergraph.ein ⟪ f ⟫ (SingleAgen-edge sf)) ]
+    Σ[ q ∈ flatten (SingleAgenGen.Bᵢ (single-agen-u sf))
+         ≡ map (Hypergraph.vlab ⟪ f ⟫) (Hypergraph.eout ⟪ f ⟫ (SingleAgen-edge sf)) ]
+    Hypergraph.elab ⟪ f ⟫ (SingleAgen-edge sf)
+    ≡ subst₂ FlatGen p q (flat (SingleAgenGen.u (single-agen-u sf)))
+elab-at-SingleAgen-edge (single-agen-here u) = _ , _ , refl
+elab-at-SingleAgen-edge {f = h ∘ k} (single-agen-∘-l sh nk) =
+  P , Q , EQ
+  where
+    bdy-eq = trans (⟪⟫-codL k) (sym (⟪⟫-domL h))
+    open hComposeP-impl ⟪ k ⟫ ⟪ h ⟫ bdy-eq
+      using (elab-c; elab-c-inj₂; ein-c-inj₂-red; eout-c-inj₂-red;
+             map-via-remapP; vlab-P)
+
+    eK    = SingleAgen-edge sh
+    ih    = elab-at-SingleAgen-edge sh
+    p-IH  = proj₁ ih
+    q-IH  = proj₁ (proj₂ ih)
+    eq-IH = proj₂ (proj₂ ih)
+
+    L-in  = cong (map vlab-P) (ein-c-inj₂-red eK)
+    L-out = cong (map vlab-P) (eout-c-inj₂-red eK)
+    M-in  = map-via-remapP (Hypergraph.ein ⟪ h ⟫ eK)
+    M-out = map-via-remapP (Hypergraph.eout ⟪ h ⟫ eK)
+
+    P = trans (trans p-IH M-in) (sym L-in)
+    Q = trans (trans q-IH M-out) (sym L-out)
+
+    EQ = fold-elab-step
+      (elab-c (Hypergraph.nE ⟪ k ⟫ ↑ʳ eK))
+      p-IH q-IH M-in M-out L-in L-out
+      eq-IH (elab-c-inj₂ eK)
+
+elab-at-SingleAgen-edge {f = h ∘ k} (single-agen-∘-r nh sk) =
+  P , Q , EQ
+  where
+    bdy-eq = trans (⟪⟫-codL k) (sym (⟪⟫-domL h))
+    open hComposeP-impl ⟪ k ⟫ ⟪ h ⟫ bdy-eq
+      using (elab-c; elab-c-inj₁; ein-c-inj₁-red; eout-c-inj₁-red;
+             vlab-injL; vlab-P)
+
+    eG    = SingleAgen-edge sk
+    ih    = elab-at-SingleAgen-edge sk
+    p-IH  = proj₁ ih
+    q-IH  = proj₁ (proj₂ ih)
+    eq-IH = proj₂ (proj₂ ih)
+
+    L-in  = cong (map vlab-P) (ein-c-inj₁-red eG)
+    L-out = cong (map vlab-P) (eout-c-inj₁-red eG)
+    M-in  = map-via-inj vlab-injL (Hypergraph.ein ⟪ k ⟫ eG)
+    M-out = map-via-inj vlab-injL (Hypergraph.eout ⟪ k ⟫ eG)
+
+    P = trans (trans p-IH M-in) (sym L-in)
+    Q = trans (trans q-IH M-out) (sym L-out)
+
+    EQ = fold-elab-step
+      (elab-c (eG ↑ˡ Hypergraph.nE ⟪ h ⟫))
+      p-IH q-IH M-in M-out L-in L-out
+      eq-IH (elab-c-inj₁ eG)
+
+elab-at-SingleAgen-edge {f = h ⊗₁ k} (single-agen-⊗-l sh nk) =
+  P , Q , EQ
+  where
+    open hTensor-impl ⟪ h ⟫ ⟪ k ⟫
+      using (elab-c; elab-c-inj₁; ein-c-inj₁-red; eout-c-inj₁-red;
+             vlab-injL; vlab-c)
+
+    eG    = SingleAgen-edge sh
+    ih    = elab-at-SingleAgen-edge sh
+    p-IH  = proj₁ ih
+    q-IH  = proj₁ (proj₂ ih)
+    eq-IH = proj₂ (proj₂ ih)
+
+    L-in  = cong (map vlab-c) (ein-c-inj₁-red eG)
+    L-out = cong (map vlab-c) (eout-c-inj₁-red eG)
+    M-in  = map-via-inj vlab-injL (Hypergraph.ein ⟪ h ⟫ eG)
+    M-out = map-via-inj vlab-injL (Hypergraph.eout ⟪ h ⟫ eG)
+
+    P = trans (trans p-IH M-in) (sym L-in)
+    Q = trans (trans q-IH M-out) (sym L-out)
+
+    EQ = fold-elab-step
+      (elab-c (eG ↑ˡ Hypergraph.nE ⟪ k ⟫))
+      p-IH q-IH M-in M-out L-in L-out
+      eq-IH (elab-c-inj₁ eG)
+
+elab-at-SingleAgen-edge {f = h ⊗₁ k} (single-agen-⊗-r nh sk) =
+  P , Q , EQ
+  where
+    open hTensor-impl ⟪ h ⟫ ⟪ k ⟫
+      using (elab-c; elab-c-inj₂; ein-c-inj₂-red; eout-c-inj₂-red;
+             vlab-injR; vlab-c)
+
+    eK    = SingleAgen-edge sk
+    ih    = elab-at-SingleAgen-edge sk
+    p-IH  = proj₁ ih
+    q-IH  = proj₁ (proj₂ ih)
+    eq-IH = proj₂ (proj₂ ih)
+
+    L-in  = cong (map vlab-c) (ein-c-inj₂-red eK)
+    L-out = cong (map vlab-c) (eout-c-inj₂-red eK)
+    M-in  = map-via-raise vlab-injR (Hypergraph.ein ⟪ k ⟫ eK)
+    M-out = map-via-raise vlab-injR (Hypergraph.eout ⟪ k ⟫ eK)
+
+    P = trans (trans p-IH M-in) (sym L-in)
+    Q = trans (trans q-IH M-out) (sym L-out)
+
+    EQ = fold-elab-step
+      (elab-c (Hypergraph.nE ⟪ h ⟫ ↑ʳ eK))
+      p-IH q-IH M-in M-out L-in L-out
+      eq-IH (elab-c-inj₂ eK)
+
+--------------------------------------------------------------------------------
+-- `single-agen-flat-data`: from a `SingleAgen` witness on each side of
+-- an iso `⟪f⟫ ≅ᴴ ⟪g⟫`, extract the three flat-level equalities that
+-- the (forthcoming) narrowed `single-agen-NF-coherence` consumes.
+--
+-- The proof composes:
+--   * `nE-SingleAgen sg` + `Fin 1` uniqueness to align
+--     `ψ (SingleAgen-edge sf) ≡ SingleAgen-edge sg`;
+--   * `ψ-elab` from the iso, combined with the edge alignment, to
+--     express `elab ⟪f⟫ (SingleAgen-edge sf)` in terms of
+--     `elab ⟪g⟫ (SingleAgen-edge sg)` via a single fused `subst₂`;
+--   * `elab-at-SingleAgen-edge` on both sides to turn both elabs into
+--     `subst₂ FlatGen ... (flat u)`;
+--   * a final `subst₂` peel (`flat-eq-extract`) that absorbs the
+--     vertex-label transports into a flat `(flat-A-eq, flat-B-eq,
+--     flat-u-eq)` triple.
+--
+-- The trust content of the previous `single-agen-NF-coherence` thereby
+-- shrinks: the postulate no longer needs to chase the iso into ObjTerm
+-- alignment; it only needs to close the Mac-Lane wrappers around an
+-- already-aligned generator.
+
+private
+  -- `Fin 1` has a unique inhabitant `zero`.
+  Fin1-uniq : (x : Fin 1) → x ≡ zero
+  Fin1-uniq zero = refl
+
+  -- `subst Fin p` is injective along the same proof `p`.
+  subst-Fin-injective
+    : ∀ {n m : ℕ} (p : n ≡ m) {x y : Fin n}
+    → subst Fin p x ≡ subst Fin p y → x ≡ y
+  subst-Fin-injective refl eq = eq
+
+  -- Edge equality lifts to an `elab` equality up to `subst₂` along the
+  -- congruences of `ein` / `eout`.  Used to absorb
+  -- `ψ (SingleAgen-edge sf) ≡ SingleAgen-edge sg` into the elab chain.
+  subst₂-cong-elab
+    : ∀ {nE nV : ℕ} {vlab : Fin nV → X}
+        (ein eout : Fin nE → List (Fin nV))
+        (elab : (e : Fin nE) → FlatGen (map vlab (ein e)) (map vlab (eout e)))
+        {e₁ e₂ : Fin nE} (eq : e₁ ≡ e₂)
+    → elab e₁
+    ≡ subst₂ FlatGen (cong (λ e → map vlab (ein e))  (sym eq))
+                     (cong (λ e → map vlab (eout e)) (sym eq))
+                     (elab e₂)
+  subst₂-cong-elab _ _ _ refl = refl
+
+  -- Final peel: convert a binary `subst₂` equation into the flat form
+  -- expected by `single-agen-NF-coherence` (after rewire).
+  flat-eq-extract
+    : ∀ {Aᵢ-f Bᵢ-f Aᵢ-g Bᵢ-g As Bs : List X}
+        (p_f : Aᵢ-f ≡ As) (q_f : Bᵢ-f ≡ Bs)
+        (P-rhs : Aᵢ-g ≡ As) (Q-rhs : Bᵢ-g ≡ Bs)
+        {x : FlatGen Aᵢ-f Bᵢ-f} {y : FlatGen Aᵢ-g Bᵢ-g}
+    → subst₂ FlatGen p_f q_f x ≡ subst₂ FlatGen P-rhs Q-rhs y
+    → subst₂ FlatGen (trans p_f (sym P-rhs)) (trans q_f (sym Q-rhs)) x ≡ y
+  flat-eq-extract p_f q_f P-rhs Q-rhs {x = x} {y = y} eq =
+    trans
+      (sym (subst₂-trans-FlatGen p_f (sym P-rhs) q_f (sym Q-rhs) x))
+      (trans (cong (subst₂ FlatGen (sym P-rhs) (sym Q-rhs)) eq)
+             (subst₂-sym-cancel P-rhs Q-rhs y))
+
+single-agen-flat-data
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+  → Σ[ flat-A-eq ∈ flatten (SingleAgenGen.Aᵢ (single-agen-u sf))
+                ≡ flatten (SingleAgenGen.Aᵢ (single-agen-u sg)) ]
+    Σ[ flat-B-eq ∈ flatten (SingleAgenGen.Bᵢ (single-agen-u sf))
+                ≡ flatten (SingleAgenGen.Bᵢ (single-agen-u sg)) ]
+    subst₂ FlatGen flat-A-eq flat-B-eq
+      (flat (SingleAgenGen.u (single-agen-u sf)))
+    ≡ flat (SingleAgenGen.u (single-agen-u sg))
+single-agen-flat-data {f = f} {g = g} sf sg iso =
+    flat-A-eq , flat-B-eq , flat-u-eq
+  where
+    open _≅ᴴ_ iso
+    module HF = Hypergraph ⟪ f ⟫
+    module HG = Hypergraph ⟪ g ⟫
+
+    e₀ : Fin HF.nE
+    e₀ = SingleAgen-edge sf
+
+    u_f = SingleAgenGen.u (single-agen-u sf)
+    u_g = SingleAgenGen.u (single-agen-u sg)
+
+    -- ψ-edge-eq : ψ e₀ ≡ SingleAgen-edge sg.
+    -- Proof: subst both to `Fin 1` via `nE-SingleAgen sg`, then apply
+    -- `Fin1-uniq`; `subst-Fin-injective` finishes.
+    nE-eq-g : HG.nE ≡ 1
+    nE-eq-g = nE-SingleAgen sg
+
+    ψ-edge-eq : ψ e₀ ≡ SingleAgen-edge sg
+    ψ-edge-eq = subst-Fin-injective nE-eq-g
+      (trans (Fin1-uniq (subst Fin nE-eq-g (ψ e₀)))
+             (sym (Fin1-uniq (subst Fin nE-eq-g (SingleAgen-edge sg)))))
+
+    -- IH bindings (from `elab-at-SingleAgen-edge`).
+    ih-f = elab-at-SingleAgen-edge sf
+    p_f  = proj₁ ih-f
+    q_f  = proj₁ (proj₂ ih-f)
+    eq_f = proj₂ (proj₂ ih-f)
+
+    ih-g = elab-at-SingleAgen-edge sg
+    p_g  = proj₁ ih-g
+    q_g  = proj₁ (proj₂ ih-g)
+    eq_g = proj₂ (proj₂ ih-g)
+
+    -- Cong of `ψ-edge-eq` through `map HG.vlab ∘ HG.{ein,eout}`.
+    -- Direction: `(SingleAgen-edge sg) → (ψ e₀)` (matches the
+    -- direction returned by `subst₂-cong-elab`).
+    cong-ein-sym  = cong (λ e → map HG.vlab (HG.ein  e)) (sym ψ-edge-eq)
+    cong-eout-sym = cong (λ e → map HG.vlab (HG.eout e)) (sym ψ-edge-eq)
+
+    -- Compose `ψ-elab e₀` with `subst₂-cong-elab` and IH on `g` to
+    -- express `HF.elab e₀` as a single `subst₂` over `flat u_g`.
+    P-rhs = trans p_g (trans cong-ein-sym  (atom-ein  e₀))
+    Q-rhs = trans q_g (trans cong-eout-sym (atom-eout e₀))
+
+    HF-elab-flat : HF.elab e₀ ≡ subst₂ FlatGen P-rhs Q-rhs (flat u_g)
+    HF-elab-flat = begin
+        HF.elab e₀
+      ≡⟨ sym (ψ-elab e₀) ⟩
+        subst₂ FlatGen (atom-ein e₀) (atom-eout e₀) (HG.elab (ψ e₀))
+      ≡⟨ cong (subst₂ FlatGen (atom-ein e₀) (atom-eout e₀))
+              (subst₂-cong-elab HG.ein HG.eout HG.elab ψ-edge-eq) ⟩
+        subst₂ FlatGen (atom-ein e₀) (atom-eout e₀)
+          (subst₂ FlatGen cong-ein-sym cong-eout-sym
+            (HG.elab (SingleAgen-edge sg)))
+      ≡⟨ subst₂-trans-FlatGen cong-ein-sym (atom-ein e₀)
+                              cong-eout-sym (atom-eout e₀)
+                              (HG.elab (SingleAgen-edge sg)) ⟩
+        subst₂ FlatGen (trans cong-ein-sym  (atom-ein  e₀))
+                       (trans cong-eout-sym (atom-eout e₀))
+                       (HG.elab (SingleAgen-edge sg))
+      ≡⟨ cong (subst₂ FlatGen (trans cong-ein-sym  (atom-ein  e₀))
+                              (trans cong-eout-sym (atom-eout e₀))) eq_g ⟩
+        subst₂ FlatGen (trans cong-ein-sym  (atom-ein  e₀))
+                       (trans cong-eout-sym (atom-eout e₀))
+                       (subst₂ FlatGen p_g q_g (flat u_g))
+      ≡⟨ subst₂-trans-FlatGen p_g (trans cong-ein-sym  (atom-ein  e₀))
+                              q_g (trans cong-eout-sym (atom-eout e₀))
+                              (flat u_g) ⟩
+        subst₂ FlatGen P-rhs Q-rhs (flat u_g)
+      ∎
+      where open ≡-Reasoning
+
+    -- Combine with IH-f to relate `flat u_f` and `flat u_g`.
+    combined : subst₂ FlatGen p_f q_f (flat u_f)
+             ≡ subst₂ FlatGen P-rhs Q-rhs (flat u_g)
+    combined = trans (sym eq_f) HF-elab-flat
+
+    flat-A-eq = trans p_f (sym P-rhs)
+    flat-B-eq = trans q_f (sym Q-rhs)
+    flat-u-eq = flat-eq-extract p_f q_f P-rhs Q-rhs combined
 
 --------------------------------------------------------------------------------
 -- Two-sided single-Agen normal form.  A `SingleAgen` term `f` decomposes
@@ -613,43 +1069,96 @@ single-agen-strip {f = h ⊗₁ k} (single-agen-⊗-r nh sk) =
     }
 
 --------------------------------------------------------------------------------
--- Strictly-narrower postulate (Day 9 refinement).  Discharges the
--- σ-free single-Agen case *at the stripped normal-form level*: both
--- sides are presented with explicit `SingleAgenNF` data (the unique
--- generator `u` and the σ-free Mac Lane wrappers `c-from`/`c-to`).
---
--- This postulate is strictly narrower than the previous
--- `SingleAgen f → SingleAgen g → ⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g`: it consumes
--- the already-built NF data on each side rather than re-deriving it
--- from the bare `SingleAgen` predicate.  The bridge to the general
--- form `single-agen-coherence-≈Term` is constructive via the strip
--- lemma `single-agen-strip` (commit 4bbc93b).
---
--- Why this remains a postulate: the NF discharge still needs to align
--- the wire types `YL, Aᵢ, Bᵢ, YR` and unique generator `u` between the
--- two NFs from the underlying iso.  Mac Lane coherence
--- (`Structural-coherence-≈Term-noσ`) trivially equates the wrappers
--- once their types are aligned, but the type-alignment step requires
--- non-trivial reasoning at the `flatten`-list level which is not
--- decidable from `flatten` alone (it is not injective; e.g.,
--- `flatten (unit ⊗₀ A) ≡ flatten A`).
---
--- Net postulate count: unchanged (1 → 1).  Net content: strictly
--- narrower — the hypothesis assumes the NF decomposition is given.
+-- `single-agen-u`/`single-agen-strip` consistency.  Both functions
+-- extract `Aᵢ`/`Bᵢ`/`u` from a `SingleAgen` witness, but via different
+-- records (`SingleAgenGen` for `single-agen-u`, `SingleAgenNF` for
+-- `single-agen-strip`).  By construction both pipelines traverse the
+-- witness identically and produce the same underlying generator data;
+-- the consistency lemmas below witness this propositionally, so the
+-- (forthcoming) wrapper-closure work can freely switch between the two
+-- forms without re-running structural induction at every call site.
+
+single-agen-u-strip-Aᵢ
+  : ∀ {A B} {f : HomTerm A B} (sf : SingleAgen f)
+  → SingleAgenGen.Aᵢ (single-agen-u sf)
+  ≡ SingleAgenNF.Aᵢ (single-agen-strip sf)
+single-agen-u-strip-Aᵢ (single-agen-here _)  = refl
+single-agen-u-strip-Aᵢ (single-agen-∘-l sh _) = single-agen-u-strip-Aᵢ sh
+single-agen-u-strip-Aᵢ (single-agen-∘-r _ sk) = single-agen-u-strip-Aᵢ sk
+single-agen-u-strip-Aᵢ (single-agen-⊗-l sh _) = single-agen-u-strip-Aᵢ sh
+single-agen-u-strip-Aᵢ (single-agen-⊗-r _ sk) = single-agen-u-strip-Aᵢ sk
+
+single-agen-u-strip-Bᵢ
+  : ∀ {A B} {f : HomTerm A B} (sf : SingleAgen f)
+  → SingleAgenGen.Bᵢ (single-agen-u sf)
+  ≡ SingleAgenNF.Bᵢ (single-agen-strip sf)
+single-agen-u-strip-Bᵢ (single-agen-here _)  = refl
+single-agen-u-strip-Bᵢ (single-agen-∘-l sh _) = single-agen-u-strip-Bᵢ sh
+single-agen-u-strip-Bᵢ (single-agen-∘-r _ sk) = single-agen-u-strip-Bᵢ sk
+single-agen-u-strip-Bᵢ (single-agen-⊗-l sh _) = single-agen-u-strip-Bᵢ sh
+single-agen-u-strip-Bᵢ (single-agen-⊗-r _ sk) = single-agen-u-strip-Bᵢ sk
+
+single-agen-u-strip-u
+  : ∀ {A B} {f : HomTerm A B} (sf : SingleAgen f)
+  → subst₂ mor (single-agen-u-strip-Aᵢ sf) (single-agen-u-strip-Bᵢ sf)
+      (SingleAgenGen.u (single-agen-u sf))
+  ≡ SingleAgenNF.u (single-agen-strip sf)
+single-agen-u-strip-u (single-agen-here _)  = refl
+single-agen-u-strip-u (single-agen-∘-l sh _) = single-agen-u-strip-u sh
+single-agen-u-strip-u (single-agen-∘-r _ sk) = single-agen-u-strip-u sk
+single-agen-u-strip-u (single-agen-⊗-l sh _) = single-agen-u-strip-u sh
+single-agen-u-strip-u (single-agen-⊗-r _ sk) = single-agen-u-strip-u sk
 
 --------------------------------------------------------------------------------
--- The two remaining narrow assumptions of the completeness path are
--- bundled into a record `CompletenessAssumptions`.  The rest of this
--- module (the `nf-resp-≅ᴴ` dispatcher and the top-level
+-- The remaining narrow assumptions of the completeness path, bundled
+-- into the `CompletenessAssumptions` record.  The rest of this module
+-- (the `nf-resp-≅ᴴ` dispatcher and the top-level
 -- `decode-rel-resp-≅ᴴ-full`) lives inside a sub-module parameterized
 -- by a record instance, so this file itself is `--safe`-clean: the
 -- trust is exposed at the call site that supplies the record.
+--
+-- `single-agen-NF-coherence` has been narrowed (this session) to take
+-- the three flat-level equalities (`flat-A-eq`, `flat-B-eq`,
+-- `flat-u-eq`) extracted constructively by `single-agen-flat-data`.
+-- The trust content is now just the Mac-Lane wrapper closure: given
+-- already-aligned `SingleAgen` witnesses (via the flat triple), produce
+-- `f ≈Term g`.  The (still-pending) constructive discharge of this
+-- content is documented in `REFACTORING.md` as "Field 1 → Mac-Lane
+-- wrapper closure" with two candidate approaches (solveM extension,
+-- σ-free iso decomposition).
+--
+-- `nf-resp-≅ᴴ-residual` covers all other compound cases (terms with
+-- σ subterms or ≥2 Agens) and remains architecturally blocked under
+-- the current `_≅ᴴ_` (see `REFACTORING.md` § "Architectural
+-- blockers").
 
 record CompletenessAssumptions : Set where
   field
+    -- Narrowed `single-agen-NF-coherence`: the iso → flat-data step is
+    -- already discharged by `single-agen-flat-data` at the call site,
+    -- so this postulate only owns the Mac-Lane chase that closes the
+    -- σ-free wrappers around the (already aligned) generator.  Inputs:
+    --   * `sf, sg`         — `SingleAgen` witnesses (raw); the user
+    --     can build `SingleAgenNF` records on demand via
+    --     `single-agen-strip` for the wrapper data, or work directly
+    --     from `single-agen-u` for the underlying generator;
+    --   * `flat-A-eq, flat-B-eq` — equalities of the inner generator's
+    --     source/target objects, at the `flatten` level;
+    --   * `flat-u-eq`      — equality of the generators themselves
+    --     (modulo the two flatten-level substs).
+    -- The `⟪f⟫ ≅ᴴ ⟪g⟫` argument is kept (rather than reconstructed
+    -- from the flat data) so the postulate retains access to the
+    -- vertex/boundary bijections it needs for the wrapper alignment.
     single-agen-NF-coherence
       : ∀ {A B} {f g : HomTerm A B}
-      → SingleAgenNF f → SingleAgenNF g
+          (sf : SingleAgen f) (sg : SingleAgen g)
+          (flat-A-eq : flatten (SingleAgenGen.Aᵢ (single-agen-u sf))
+                     ≡ flatten (SingleAgenGen.Aᵢ (single-agen-u sg)))
+          (flat-B-eq : flatten (SingleAgenGen.Bᵢ (single-agen-u sf))
+                     ≡ flatten (SingleAgenGen.Bᵢ (single-agen-u sg)))
+          (flat-u-eq : subst₂ FlatGen flat-A-eq flat-B-eq
+                          (flat (SingleAgenGen.u (single-agen-u sf)))
+                       ≡ flat (SingleAgenGen.u (single-agen-u sg)))
       → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
       → f ≈Term g
 
@@ -777,14 +1286,24 @@ module WithAssumptions (assumptions : CompletenessAssumptions) where
 
   ------------------------------------------------------------------------
   -- Derived: the original (wider) coherence claim, constructively
-  -- reduced to the NF-level field via `single-agen-strip`.
+  -- discharging the iso → flat-data step via `single-agen-flat-data`
+  -- and feeding the resulting three flat-level equalities into the
+  -- narrowed postulate.  `single-agen-strip` is no longer applied
+  -- here — the postulate accepts `SingleAgen` witnesses directly and
+  -- can build `SingleAgenNF` on demand for the wrapper Mac-Lane
+  -- alignment.
   single-agen-coherence-≈Term
     : ∀ {A B} {f g : HomTerm A B}
     → SingleAgen f → SingleAgen g
     → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
     → f ≈Term g
   single-agen-coherence-≈Term sf sg iso =
-    single-agen-NF-coherence (single-agen-strip sf) (single-agen-strip sg) iso
+    single-agen-NF-coherence sf sg flat-A-eq flat-B-eq flat-u-eq iso
+    where
+      flat-data = single-agen-flat-data sf sg iso
+      flat-A-eq = proj₁ flat-data
+      flat-B-eq = proj₁ (proj₂ flat-data)
+      flat-u-eq = proj₂ (proj₂ flat-data)
 
   ------------------------------------------------------------------------
   -- The Path B `nf-resp-≅ᴴ`: case-split layered as
