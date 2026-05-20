@@ -64,18 +64,17 @@ private
   Symm≤Symm-uniq v≤v = refl
 
 --------------------------------------------------------------------------------
--- The `Atomic` predicate.
+-- The `Atomic` predicate (re-exported from the safe sub-module
+-- `RespIso/AtomicData.agda`).
 
-data Atomic : ∀ {A B} → HomTerm A B → Set where
-  atomic-Agen : ∀ {A B} (g : mor A B) → Atomic (Agen g)
-  atomic-id   : ∀ {A} → Atomic (id {A})
-  atomic-λ⇒   : ∀ {A} → Atomic (λ⇒ {A})
-  atomic-λ⇐   : ∀ {A} → Atomic (λ⇐ {A})
-  atomic-ρ⇒   : ∀ {A} → Atomic (ρ⇒ {A})
-  atomic-ρ⇐   : ∀ {A} → Atomic (ρ⇐ {A})
-  atomic-α⇒   : ∀ {A B C} → Atomic (α⇒ {A} {B} {C})
-  atomic-α⇐   : ∀ {A B C} → Atomic (α⇐ {A} {B} {C})
-  atomic-σ    : ∀ {A B} ⦃ s : Symm ≤ Symm ⦄ → Atomic (σ {A = A} {B = B} ⦃ s ⦄)
+open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.AtomicData sig public
+  using ( Atomic
+        ; atomic-Agen; atomic-id
+        ; atomic-λ⇒; atomic-λ⇐
+        ; atomic-ρ⇒; atomic-ρ⇐
+        ; atomic-α⇒; atomic-α⇐
+        ; atomic-σ
+        )
 
 --------------------------------------------------------------------------------
 -- Main dispatcher.  Pattern-matches on the two `Atomic` witnesses,

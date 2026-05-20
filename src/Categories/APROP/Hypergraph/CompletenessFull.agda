@@ -1,23 +1,28 @@
-{-# OPTIONS #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- Completeness theorem, threaded through the inductive
--- `decode-rel-resp-≅ᴴ-full` from `DecodeRel/Inductive.agda` instead of
--- the top-level `decode-rel-resp-≅ᴴ` postulate in `DecodeRel.agda`.
+-- `decode-rel-resp-≅ᴴ-full` from `DecodeRel/Inductive.agda`.
 --
--- The only remaining postulates on the path to `completeness-full` are
--- the seven narrow ones in `DecodeRel/Inductive.agda`'s subordinate
--- modules — see that file for the inventory.
+-- The two remaining narrow postulates (`single-agen-NF-coherence`,
+-- `nf-resp-≅ᴴ-residual`) are bundled into the
+-- `CompletenessAssumptions` record exposed by `Inductive.agda`.  This
+-- module takes a record instance as a parameter and is therefore
+-- itself `--safe`: the trust is exposed at the call site that
+-- supplies the assumptions.
 --
 -- This module is parameterized by `APROPSignatureDec` (required by
--- the Agen-Agen case in Phase 1's atomic dispatcher).
+-- the Agen-Agen case in Phase 1's atomic dispatcher) and by a
+-- `CompletenessAssumptions` record instance.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
 open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
+import Categories.APROP.Hypergraph.Completeness.DecodeRel.Inductive as IND
 
 module Categories.APROP.Hypergraph.CompletenessFull
-  (sig-dec : APROPSignatureDec) where
+  (sig-dec : APROPSignatureDec)
+  (assumptions : IND.CompletenessAssumptions sig-dec) where
 
 open APROPSignatureDec sig-dec using (sig)
 open APROP sig
@@ -30,7 +35,7 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (bridge)
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
   using (decode-rel; decode-roundtrip-rel)
-open import Categories.APROP.Hypergraph.Completeness.DecodeRel.Inductive sig-dec
+open IND.WithAssumptions sig-dec assumptions
   using (decode-rel-resp-≅ᴴ-full)
 
 open import Categories.Category using (Category)

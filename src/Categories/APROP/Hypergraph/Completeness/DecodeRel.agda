@@ -1,4 +1,4 @@
-{-# OPTIONS #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- Experiment: define `decode` directly by structural recursion on the
@@ -105,7 +105,7 @@ decode-rel-⊗-shape f g = refl
 -- the `∘` and `⊗` cases use `decode-rel-{∘,⊗}-shape` (now `refl`) instead
 -- of the postulated `decode-{∘,⊗}-shape` from DecodeRoundtrip.
 
-import Categories.APROP.Hypergraph.Completeness.DecodeRoundtrip sig as DR
+import Categories.APROP.Hypergraph.Completeness.BridgeOps sig as DR
 open import Categories.Category using (Category)
 
 private

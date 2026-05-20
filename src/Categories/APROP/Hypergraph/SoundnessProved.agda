@@ -635,9 +635,9 @@ idʳ-sound {A = A} f =
   where import Categories.APROP.Hypergraph.HomTermInvariant
 
 
-postulate
-
-  σ∘σ-sound : ∀ {A B} → ⟪ σ {B}{A} ∘ σ {A}{B} ⟫ ≅ᴴ ⟪ id {A ⊗₀ B} ⟫
+-- `σ∘σ-sound` was previously postulated here.  It has been moved to
+-- `SoundnessAxioms.agda` so that `SoundnessProved.agda` is fully
+-- postulate-free and can be type-checked under `--safe`.
 
 --------------------------------------------------------------------------------
 -- ρ⇐∘ρ⇒ and α⇐∘α⇒: under de-indexing, ⟪ ρ⇒/ρ⇐ ⟫ are both hId (A ⊗ unit)

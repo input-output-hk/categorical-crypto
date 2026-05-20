@@ -1,4 +1,4 @@
-{-# OPTIONS #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- Path B (Day 3): progressively discharge `nf-resp-≅ᴴ` by case-splitting
@@ -637,22 +637,30 @@ single-agen-strip {f = h ⊗₁ k} (single-agen-⊗-r nh sk) =
 -- Net postulate count: unchanged (1 → 1).  Net content: strictly
 -- narrower — the hypothesis assumes the NF decomposition is given.
 
-postulate
-  single-agen-NF-coherence
-    : ∀ {A B} {f g : HomTerm A B}
-    → SingleAgenNF f → SingleAgenNF g
-    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-    → f ≈Term g
+--------------------------------------------------------------------------------
+-- The two remaining narrow assumptions of the completeness path are
+-- bundled into a record `CompletenessAssumptions`.  The rest of this
+-- module (the `nf-resp-≅ᴴ` dispatcher and the top-level
+-- `decode-rel-resp-≅ᴴ-full`) lives inside a sub-module parameterized
+-- by a record instance, so this file itself is `--safe`-clean: the
+-- trust is exposed at the call site that supplies the record.
 
--- Derived: the original (wider) coherence claim, constructively
--- reduced to the NF-level postulate via `single-agen-strip`.
-single-agen-coherence-≈Term
-  : ∀ {A B} {f g : HomTerm A B}
-  → SingleAgen f → SingleAgen g
-  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-  → f ≈Term g
-single-agen-coherence-≈Term sf sg iso =
-  single-agen-NF-coherence (single-agen-strip sf) (single-agen-strip sg) iso
+record CompletenessAssumptions : Set where
+  field
+    single-agen-NF-coherence
+      : ∀ {A B} {f g : HomTerm A B}
+      → SingleAgenNF f → SingleAgenNF g
+      → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+      → f ≈Term g
+
+    nf-resp-≅ᴴ-residual
+      : ∀ {A B} (f g : HomTerm A B)
+      → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+      → bridge f ≈Term bridge g
+
+-- The record-parameterized sub-module is `WithAssumptions` below
+-- (placed after the structural helpers `NoAgen-iso-IsAgen-⊥` etc. and
+-- `nf-bridge`, both of which are postulate-free and reused here).
 
 --------------------------------------------------------------------------------
 -- `bridge` is a congruence with respect to `_≈Term_` — wrapping with
@@ -748,66 +756,11 @@ HasAgen-iso-NoAgen-⊥ {f = f} {g = g} hf ng iso = absurd
 --   * Both atomic Agen → `decode-rel-resp-≅ᴴ-Agen-Agen`.
 --   * One NoAgen, other atomic Agen → contradiction via edge-count.
 
-postulate
-  nf-resp-≅ᴴ-residual
-    : ∀ {A B} (f g : HomTerm A B)
-    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-    → bridge f ≈Term bridge g
-
---------------------------------------------------------------------------------
--- The Path B `nf-resp-≅ᴴ`: case-split layered as
---   (1) both NoSigma         → Mac Lane (constructive),
---   (2) both atomic Agen     → AgenAgen (constructive),
---   (3) one NoAgen vs the other atomic Agen → vacuous (edge-count ⊥),
---   (4) else                 → residual postulate (strictly narrower
---                              than before).
-
-nf-resp-≅ᴴ
-  : ∀ {A B} (f g : HomTerm A B)
-  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-  → bridge f ≈Term bridge g
-nf-resp-≅ᴴ f g iso with NoSigma? f | NoSigma? g
-... | inj₁ nf | inj₁ ng =
-        bridge-resp-≈Term (Structural-coherence-≈Term-noσ nf ng iso)
-... | _       | _       with IsAgen? f | IsAgen? g
-...    | inj₁ (is-agen g₁) | inj₁ (is-agen g₂) =
-            -- `decode-rel (Agen _) = bridge (Agen _)` definitionally.
-            decode-rel-resp-≅ᴴ-Agen-Agen g₁ g₂ iso
--- Day 5 generalization: instead of just routing the IsAgen-vs-x case
--- on `NoAgen? x` (which gives 0-vs-1 contradiction), we now check
--- the full `NoAgen-or-HasAgen` classifier on the *other* side.  A
--- NoAgen term has nE = 0, a HasAgen term has nE ≥ 1, so the iso is
--- inconsistent in every NoAgen-vs-HasAgen pair — not just when one
--- side is *literally* `Agen _`.
-...    | inj₁ (is-agen g₁) | inj₂ _ with NoAgen-or-HasAgen g
-...        | inj₁ ng = ⊥-elim (IsAgen-iso-NoAgen-⊥ {f = g₁} {g = g} ng iso)
-...        | inj₂ _  = nf-resp-≅ᴴ-residual f g iso
-nf-resp-≅ᴴ f g iso | _ | _ | inj₂ _ | inj₁ (is-agen g₂) with NoAgen-or-HasAgen f
-...        | inj₁ nf = ⊥-elim (NoAgen-iso-IsAgen-⊥ {f = f} {g = g₂} nf iso)
-...        | inj₂ _  = nf-resp-≅ᴴ-residual f g iso
--- Two compound (non-atomic-Agen) terms: discriminate on
--- NoAgen-vs-HasAgen on each side.  Three of the four quadrants are
--- vacuous (NoAgen-vs-HasAgen and the symmetric one), so the residual
--- only fires when *both* sides are HasAgen — strictly narrower than
--- before (which fired on the entire fall-through).
-nf-resp-≅ᴴ f g iso | _ | _ | inj₂ _ | inj₂ _ with NoAgen-or-HasAgen f | NoAgen-or-HasAgen g
-...        | inj₁ nf | inj₂ hg = ⊥-elim (NoAgen-iso-HasAgen-⊥ nf hg iso)
-...        | inj₂ hf | inj₁ ng = ⊥-elim (HasAgen-iso-NoAgen-⊥ hf ng iso)
-...        | inj₁ nf | inj₁ ng = nf-resp-≅ᴴ-residual f g iso
--- Day 6: route the σ-free single-Agen sub-case to the narrower
--- `single-agen-coherence-≈Term` postulate.  Two compound terms each
--- with `HasAgen`: if *both* are also `SingleAgen` (exactly one Agen,
--- σ-free elsewhere), discharge via the narrower postulate; else fall
--- through to the catch-all.
-...        | inj₂ _  | inj₂ _  with SingleAgen? f | SingleAgen? g
-...            | inj₁ sf | inj₁ sg =
-                   bridge-resp-≈Term (single-agen-coherence-≈Term sf sg iso)
-...            | _       | _       = nf-resp-≅ᴴ-residual f g iso
-
 --------------------------------------------------------------------------------
 -- `nf-bridge`: the bridge from `decode-rel` to `bridge`.  This is
 -- *exactly* `decode-roundtrip-rel` (in `DecodeRel.agda`), restated
--- here so the composition below reads as the path-B story.
+-- here so the composition below reads as the path-B story.  Lives
+-- outside `WithAssumptions` since it is postulate-free.
 
 nf-bridge
   : ∀ {A B} (f : HomTerm A B)
@@ -815,20 +768,65 @@ nf-bridge
 nf-bridge = decode-roundtrip-rel
 
 --------------------------------------------------------------------------------
--- The full theorem, now a one-shot composition:
---
---   decode-rel f
---     ≈⟨ nf-bridge f ⟩      bridge f
---     ≈⟨ nf-resp-≅ᴴ iso ⟩   bridge g
---     ≈⟨ sym (nf-bridge g) ⟩ decode-rel g
---
--- No induction on `f`/`g` is needed: termination is trivial.
+-- The remaining dispatcher and the full theorem live inside the
+-- record-parameterized sub-module `WithAssumptions`, since they
+-- consume `nf-resp-≅ᴴ-residual` and (transitively) `single-agen-NF-coherence`.
 
-decode-rel-resp-≅ᴴ-full
-  : ∀ {A B} (f g : HomTerm A B)
-  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-  → decode-rel f ≈Term decode-rel g
-decode-rel-resp-≅ᴴ-full f g iso =
-  ≈-Term-trans (nf-bridge f)
-    (≈-Term-trans (nf-resp-≅ᴴ f g iso)
-                  (≈-Term-sym (nf-bridge g)))
+module WithAssumptions (assumptions : CompletenessAssumptions) where
+  open CompletenessAssumptions assumptions
+
+  ------------------------------------------------------------------------
+  -- Derived: the original (wider) coherence claim, constructively
+  -- reduced to the NF-level field via `single-agen-strip`.
+  single-agen-coherence-≈Term
+    : ∀ {A B} {f g : HomTerm A B}
+    → SingleAgen f → SingleAgen g
+    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+    → f ≈Term g
+  single-agen-coherence-≈Term sf sg iso =
+    single-agen-NF-coherence (single-agen-strip sf) (single-agen-strip sg) iso
+
+  ------------------------------------------------------------------------
+  -- The Path B `nf-resp-≅ᴴ`: case-split layered as
+  --   (1) both NoSigma         → Mac Lane (constructive),
+  --   (2) both atomic Agen     → AgenAgen (constructive),
+  --   (3) one NoAgen vs the other atomic Agen → vacuous (edge-count ⊥),
+  --   (4) else                 → residual field (strictly narrower
+  --                              than before).
+
+  nf-resp-≅ᴴ
+    : ∀ {A B} (f g : HomTerm A B)
+    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+    → bridge f ≈Term bridge g
+  nf-resp-≅ᴴ f g iso with NoSigma? f | NoSigma? g
+  ... | inj₁ nf | inj₁ ng =
+          bridge-resp-≈Term (Structural-coherence-≈Term-noσ nf ng iso)
+  ... | _       | _       with IsAgen? f | IsAgen? g
+  ...    | inj₁ (is-agen g₁) | inj₁ (is-agen g₂) =
+              decode-rel-resp-≅ᴴ-Agen-Agen g₁ g₂ iso
+  ...    | inj₁ (is-agen g₁) | inj₂ _ with NoAgen-or-HasAgen g
+  ...        | inj₁ ng = ⊥-elim (IsAgen-iso-NoAgen-⊥ {f = g₁} {g = g} ng iso)
+  ...        | inj₂ _  = nf-resp-≅ᴴ-residual f g iso
+  nf-resp-≅ᴴ f g iso | _ | _ | inj₂ _ | inj₁ (is-agen g₂) with NoAgen-or-HasAgen f
+  ...        | inj₁ nf = ⊥-elim (NoAgen-iso-IsAgen-⊥ {f = f} {g = g₂} nf iso)
+  ...        | inj₂ _  = nf-resp-≅ᴴ-residual f g iso
+  nf-resp-≅ᴴ f g iso | _ | _ | inj₂ _ | inj₂ _ with NoAgen-or-HasAgen f | NoAgen-or-HasAgen g
+  ...        | inj₁ nf | inj₂ hg = ⊥-elim (NoAgen-iso-HasAgen-⊥ nf hg iso)
+  ...        | inj₂ hf | inj₁ ng = ⊥-elim (HasAgen-iso-NoAgen-⊥ hf ng iso)
+  ...        | inj₁ nf | inj₁ ng = nf-resp-≅ᴴ-residual f g iso
+  ...        | inj₂ _  | inj₂ _  with SingleAgen? f | SingleAgen? g
+  ...            | inj₁ sf | inj₁ sg =
+                     bridge-resp-≈Term (single-agen-coherence-≈Term sf sg iso)
+  ...            | _       | _       = nf-resp-≅ᴴ-residual f g iso
+
+  ------------------------------------------------------------------------
+  -- The full theorem, now a one-shot composition.
+
+  decode-rel-resp-≅ᴴ-full
+    : ∀ {A B} (f g : HomTerm A B)
+    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+    → decode-rel f ≈Term decode-rel g
+  decode-rel-resp-≅ᴴ-full f g iso =
+    ≈-Term-trans (nf-bridge f)
+      (≈-Term-trans (nf-resp-≅ᴴ f g iso)
+                    (≈-Term-sym (nf-bridge g)))

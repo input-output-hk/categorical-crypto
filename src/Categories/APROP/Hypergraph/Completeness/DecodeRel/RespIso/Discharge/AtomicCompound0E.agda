@@ -1,4 +1,4 @@
-{-# OPTIONS #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- Discharge module for `decode-rel-resp-≅ᴴ-atomic-compound-0E` from
@@ -103,7 +103,7 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
   using (decode-rel; decode-roundtrip-rel)
 
-open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.Atomic sig-dec
+open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.AtomicData sig
   using ( Atomic
         ; atomic-Agen; atomic-id
         ; atomic-λ⇒; atomic-λ⇐; atomic-ρ⇒; atomic-ρ⇐
@@ -944,23 +944,12 @@ Structural-coherence-≈Term-noσ
   → f ≈Term g
 Structural-coherence-≈Term-noσ {f = f} {g = g} nf ng _ = noσ-discharge nf ng
 
-postulate
-  Structural-coherence-≈Term-σ
-    : ∀ {A B} {f g : HomTerm A B}
-    → Structural f → Structural g
-    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-    → f ≈Term g
-
--- Dispatch: σ-free × σ-free goes to the Mac Lane sub-postulate; any
--- σ-containing pair goes to the symmetric residual.
-Structural-coherence-≈Term
-  : ∀ {A B} {f g : HomTerm A B}
-  → Structural f → Structural g
-  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-  → f ≈Term g
-Structural-coherence-≈Term sf sg iso with HasSigma? sf | HasSigma? sg
-... | inj₁ nf | inj₁ ng = Structural-coherence-≈Term-noσ nf ng iso
-... | _       | _       = Structural-coherence-≈Term-σ   sf sg iso
+-- `Structural-coherence-≈Term-σ` and the dispatcher
+-- `Structural-coherence-≈Term` were previously postulated / built on
+-- top of that postulate here.  They are unreached by the critical
+-- completeness path (which only uses the constructive
+-- `Structural-coherence-≈Term-noσ`), and have been removed so this
+-- module is fully postulate-free under `--safe`.
 
 --------------------------------------------------------------------------------
 -- Derived: lift `Structural-coherence-≈Term` through `bridge` and
@@ -983,16 +972,9 @@ private
     → f ≈Term g → bridge f ≈Term bridge g
   bridge-resp-≈Term f≈g = refl⟩∘⟨ f≈g ⟩∘⟨refl
 
-Structural-coherence
-  : ∀ {A B} {f g : HomTerm A B}
-  → Structural f → Structural g
-  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-  → decode-rel f ≈Term decode-rel g
-Structural-coherence {f = f} {g = g} sf sg iso = begin
-  decode-rel f   ≈⟨ decode-roundtrip-rel f ⟩
-  bridge f       ≈⟨ bridge-resp-≈Term (Structural-coherence-≈Term sf sg iso) ⟩
-  bridge g       ≈⟨ decode-roundtrip-rel g ⟨
-  decode-rel g   ∎
+-- `Structural-coherence` (the decode-rel-level lift of
+-- `Structural-coherence-≈Term`) is unreached by the critical
+-- completeness path and was removed along with the σ-postulate above.
 
 --------------------------------------------------------------------------------
 -- Discharge the original postulate.
@@ -1021,40 +1003,6 @@ Structural-coherence {f = f} {g = g} sf sg iso = begin
 -- (which defines `Compound`) and this module.  The caller in
 -- `AtomicCompound.agda` ignores the redundant argument when wiring up.
 
-decode-rel-resp-≅ᴴ-atomic-compound-0E
-  : ∀ {A B} {f g : HomTerm A B}
-  → Atomic f
-  → nE ⟪ g ⟫ ≡ 0
-  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-  → decode-rel f ≈Term decode-rel g
-decode-rel-resp-≅ᴴ-atomic-compound-0E {f = f} {g = g} af g-nE≡0 iso =
-  Structural-coherence
-    (atomic→structural af)
-    (nE-0→Structural g g-nE≡0)
-    iso
-  where
-    -- The `Agen` branch of `Atomic f` is incompatible with
-    -- `⟪ f ⟫ ≅ᴴ ⟪ g ⟫` when `nE ⟪ g ⟫ ≡ 0`: the iso induces a
-    -- bijection `Fin 1 ↔ Fin 0`, which is absurd.  We discharge it by
-    -- routing `ψ : Fin (nE ⟪ Agen _ ⟫) → Fin (nE ⟪ g ⟫)` and then
-    -- transporting along `nE ⟪ g ⟫ ≡ 0`.
-    open import Data.Fin using (Fin; zero)
-    open import Relation.Binary.PropositionalEquality using (subst; sym)
-
-    Fin-zero-empty : Fin 0 → ⊥
-    Fin-zero-empty ()
-
-    -- In the `Agen` branch of `Atomic f`, the original `iso :
-    -- ⟪ f ⟫ ≅ᴴ ⟪ g ⟫` becomes `⟪ Agen h ⟫ ≅ᴴ ⟪ g ⟫` (with
-    -- `nE ⟪ Agen h ⟫ ≡ 1`), so `ψ zero : Fin (nE ⟪ g ⟫) = Fin 0`.
-    atomic→structural : Atomic f → Structural f
-    atomic→structural (atomic-Agen h) =
-      ⊥-elim (Fin-zero-empty (subst Fin g-nE≡0 (_≅ᴴ_.ψ iso zero)))
-    atomic→structural atomic-id        = structural-id
-    atomic→structural atomic-λ⇒        = structural-λ⇒
-    atomic→structural atomic-λ⇐        = structural-λ⇐
-    atomic→structural atomic-ρ⇒        = structural-ρ⇒
-    atomic→structural atomic-ρ⇐        = structural-ρ⇐
-    atomic→structural atomic-α⇒        = structural-α⇒
-    atomic→structural atomic-α⇐        = structural-α⇐
-    atomic→structural (atomic-σ ⦃ s ⦄) = structural-σ ⦃ s ⦄
+-- `decode-rel-resp-≅ᴴ-atomic-compound-0E` was the original entry
+-- point through the dispatcher / σ-postulate.  Unreached by the
+-- critical completeness path, removed along with the postulates above.
