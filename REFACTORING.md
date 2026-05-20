@@ -139,6 +139,67 @@ All `--safe`-clean.  `CompletenessFull.agda` and `Solver/Tests.agda`
 both still pass (20/20 tests).  Postulate count unchanged at 2;
 content strictly narrower.
 
+## Mac-Lane bridge infrastructure (Field 1 prep)
+
+Additional constructive helpers added in
+`Completeness/DecodeRel/Inductive.agda` (after
+`single-agen-u-strip-u`), establishing Steps 1–4 of the Field-1
+discharge strategy.  Step 5 (central "Agen u" naturality lemma:
+`mlB ∘ M_f ≈Term M_g ∘ mlA`) remains open; the postulate is retained
+because no new ones may be introduced and the central naturality is
+not yet discharged.
+
+- `FlatView'`, `view`, `view-subst-A`, `view-subst-B` — inlined
+  FlatView extractor (the `--without-K` version in
+  `Solver.Verify` is structurally identical but lives in a
+  different `--with-K`-axis module; we duplicate the record locally
+  to avoid the cross-axis import).
+- `flat-injective`, `_≟LX_`, `UIP-ListX`, `subst₂-eq-elim` —
+  inlined Hedberg-from-decidable + flat-constructor injectivity.
+- `flat-data-to-ObjTerm` — closes Steps 1–2 of the Field-1
+  strategy: from `(pA, pB, pU)` extract the ObjTerm-level triple
+  `(Aᵢ-eq : Aᵢ_f ≡ Aᵢ_g, Bᵢ-eq, u-eq : subst₂ mor … u_f ≡ u_g)`.
+  Pattern-matches the ObjTerm equalities and uses UIP to collapse
+  the now-self-equal `pA, pB` to `refl`, then applies
+  `flat-injective` to derive `u_f ≡ u_g`.
+- `flatten-NoSigma` — every NoSigma `f : HomTerm A B` satisfies
+  `flatten A ≡ flatten B`.  Used in Step 4 to obtain the
+  flatten-equality between the strip's wrapper codomains.
+- `unflatten-{++,flatten}-{from,to}-NoSigma` — NoSigma-ness of
+  every morphism produced by `unflatten-flatten-≈` and
+  `unflatten-++-≅`.  These are the structural rebalancers used in
+  the bridge construction.
+- `bridge-NoSigma-fwd`, `bridge-NoSigma-bwd` (with `*-NS`
+  NoSigma proofs and `bridge-NoSigma-iso{ʳ,ˡ}` iso laws) — a
+  two-sided NoSigma iso between any two ObjTerms with equal
+  `flatten`.  Constructed by composing `unflatten-flatten-≈`'s
+  from/to with a `subst (HomTerm _) (cong unflatten _) id` middle
+  bridge (which collapses to `id` along the ObjTerm-level
+  equality).  Iso laws via a generic `bridge-iso-helper` that
+  abstracts over the unflatten intermediates so the standard
+  refl-pattern-match works (the J-stuck issue at
+  `flatten X ≡ flatten Y` is sidestepped by working at the
+  unflatten level).
+
+These helpers implement Steps 1–4 of the documented Field-1 strategy
+(see the "Strategy" comment block in
+`Completeness/DecodeRel/Inductive.agda` near
+`flat-data-to-ObjTerm`).  Step 5 (the central
+"`Agen u` commutes with NoSigma wrappers" lemma) is the only
+remaining hole.  Approaches for Step 5:
+
+1. **Direct structural induction on the bridge's NoSigma witness**:
+   Each NoSigma constructor (α, λ, ρ, id, ⊗, ∘) has a known
+   naturality with respect to an arbitrary `Agen u`-edged middle
+   morphism, expressible via the existing `_≈Term_` axioms
+   (`α-comm`, `λ⇒∘id⊗f≈f∘λ⇒`, `ρ⇒∘f⊗id≈f∘ρ⇒`, etc.).  Estimated
+   ~100–300 LOC of routine but type-heavy categorical chase.
+2. **Extend `solveM` to a "single-pinned-generator" fragment**:
+   instantiate `Categories.MonoidalCoherence` with an extra
+   atomic generator slot for the unique `Agen u`.  This gives Step 5
+   directly via the solver, at the cost of a new solver variant.
+   Estimated ~200–500 LOC of solver infrastructure.
+
 ### Why type alignment can't fully collapse
 
 `u_f : mor Aᵢ_f Bᵢ_f` and `u_g : mor Aᵢ_g Bᵢ_g` live in different

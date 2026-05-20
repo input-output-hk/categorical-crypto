@@ -1110,6 +1110,352 @@ single-agen-u-strip-u (single-agen-⊗-l sh _) = single-agen-u-strip-u sh
 single-agen-u-strip-u (single-agen-⊗-r _ sk) = single-agen-u-strip-u sk
 
 --------------------------------------------------------------------------------
+-- Constructive discharge of `single-agen-NF-coherence`.
+--
+-- Given two `SingleAgen` witnesses on `f, g : HomTerm A B` and the
+-- three flat-level equalities `pA, pB, pU` extracted by
+-- `single-agen-flat-data`, we show `f ≈Term g` constructively.
+--
+-- Strategy:
+--   1. The equation `subst₂ FlatGen pA pB (flat u_f) ≡ flat u_g` forces
+--      ObjTerm-level equalities `Aᵢ_f ≡ Aᵢ_g` and `Bᵢ_f ≡ Bᵢ_g`
+--      (extracted via the `FlatView` extractor below), because the
+--      hidden type indices of `flat` must coincide for the constructor
+--      forms to be equal.
+--   2. After pattern-matching those ObjTerm equalities as `refl`,
+--      `UIP-ListX` collapses `pA, pB` to `refl`, and `pU` reduces to
+--      `flat u_f ≡ flat u_g`.  Then `flat-injective` gives
+--      `u_f ≡ u_g`.
+--   3. With aligned generator data, apply `single-agen-strip` on both
+--      sides to obtain the two-sided NF: `f ≈Term c-to-f ∘ M ∘ c-from-f`
+--      and `g ≈Term c-to-g ∘ M ∘ c-from-g`, where `M = id ⊗ (Agen u ⊗ id)`
+--      (with the same `u` on both sides, after the consistency lemma
+--      `single-agen-u-strip-{Aᵢ,Bᵢ,u}` transports the generator data
+--      from `single-agen-u` to `single-agen-strip`'s record).
+--   4. Build NoSigma Mac-Lane bridges between the wrapper ObjTerms
+--      `YL_f ⊗ Aᵢ ⊗ YR_f` and `YL_g ⊗ Aᵢ ⊗ YR_g` (both have the same
+--      `flatten`, equal to `flatten A`, because they are the codomain
+--      of a NoSigma term from `A`).  Similarly for the B-side.
+--   5. The central "Agen conjugation" lemma
+--      `mlB ∘ M_f ∘ mlA⁻¹ ≈Term M_g` is required to chain everything;
+--      it expresses naturality of `Agen u` with respect to Mac-Lane
+--      coherence iso.  This is left as a strictly-narrower sub-lemma
+--      `Agen-conj-noσ` and is the only remaining hole.
+
+private
+  --------------------------------------------------------------------------------
+  -- FlatView-style extractor (inlined here to avoid cross-`with-K`
+  -- module dependency on `Solver.Verify`).  Given `flat u`, the view
+  -- exposes the hidden `(A, B, u)` triple together with explicit
+  -- equalities — enough to extract ObjTerm-level equalities from a
+  -- `subst₂ FlatGen pA pB (flat u_f) ≡ flat u_g` equation.
+
+  record FlatView' {As Bs : List X} (x : FlatGen As Bs) : Set where
+    constructor flatV'
+    field
+      A' B' : ObjTerm
+      ok-A' : flatten A' ≡ As
+      ok-B' : flatten B' ≡ Bs
+      u'    : mor A' B'
+      ok    : subst₂ FlatGen ok-A' ok-B' (flat u') ≡ x
+
+  view : ∀ {As Bs} (x : FlatGen As Bs) → FlatView' x
+  view (flat {A} {B} u) = flatV' A B refl refl u refl
+
+  -- After `pA, pB` are dispatched, `subst₂ FlatGen pA pB (flat u_f) ≡
+  -- flat u_g` implies `Aᵢ_f ≡ Aᵢ_g` and `Bᵢ_f ≡ Bᵢ_g` (the hidden
+  -- ObjTerm indices of `flat`).
+
+  view-subst-A
+    : ∀ {Aᵢ Bᵢ} (u : mor Aᵢ Bᵢ) {As Bs}
+        (pA : flatten Aᵢ ≡ As) (pB : flatten Bᵢ ≡ Bs)
+    → FlatView'.A' (view (subst₂ FlatGen pA pB (flat u))) ≡ Aᵢ
+  view-subst-A _ refl refl = refl
+
+  view-subst-B
+    : ∀ {Aᵢ Bᵢ} (u : mor Aᵢ Bᵢ) {As Bs}
+        (pA : flatten Aᵢ ≡ As) (pB : flatten Bᵢ ≡ Bs)
+    → FlatView'.B' (view (subst₂ FlatGen pA pB (flat u))) ≡ Bᵢ
+  view-subst-B _ refl refl = refl
+
+  -- `flat` is injective on its hidden ObjTerm indices: `flat u_f ≡
+  -- flat u_g` (with definitionally equal types) implies `u_f ≡ u_g`.
+
+  flat-injective
+    : ∀ {Aᵢ Bᵢ} {u₁ u₂ : mor Aᵢ Bᵢ}
+    → flat u₁ ≡ flat u₂ → u₁ ≡ u₂
+  flat-injective refl = refl
+
+  -- UIP on `List X` (Hedberg from `_≟X_`), copied from
+  -- `Solver.Verify` so we don't pull in a `--without-K` import.
+  open APROPSignatureDec sig-dec using (_≟X_)
+  open import Axiom.UniquenessOfIdentityProofs using (UIP)
+  import Axiom.UniquenessOfIdentityProofs as UIP-mod
+  open import Data.List.Properties using (≡-dec)
+  open import Relation.Binary.Definitions using (DecidableEquality)
+
+  _≟LX_ : DecidableEquality (List X)
+  _≟LX_ = ≡-dec _≟X_
+
+  UIP-ListX : UIP (List X)
+  UIP-ListX = UIP-mod.Decidable⇒UIP.≡-irrelevant _≟LX_
+
+  -- Helper: collapse a `subst₂ FlatGen pA pB` where `pA, pB` are
+  -- self-equalities (i.e. equal lists on both sides) to identity via
+  -- UIP collapsing `pA, pB` to `refl`.
+  subst₂-eq-elim
+    : ∀ {As Bs : List X} {x y : FlatGen As Bs}
+        (p : As ≡ As) (q : Bs ≡ Bs)
+    → subst₂ FlatGen p q x ≡ y → x ≡ y
+  subst₂-eq-elim p q eq
+    with UIP-ListX p refl | UIP-ListX q refl
+  ... | refl | refl = eq
+
+  -- Extract ObjTerm-level equality and a `flat u_f ≡ flat u_g`
+  -- equation from the three flat-level inputs.
+  flat-data-to-ObjTerm
+    : ∀ {Aᵢ-f Bᵢ-f Aᵢ-g Bᵢ-g}
+        (u_f : mor Aᵢ-f Bᵢ-f) (u_g : mor Aᵢ-g Bᵢ-g)
+        (pA : flatten Aᵢ-f ≡ flatten Aᵢ-g)
+        (pB : flatten Bᵢ-f ≡ flatten Bᵢ-g)
+        (pU : subst₂ FlatGen pA pB (flat u_f) ≡ flat u_g)
+    → Σ[ pA' ∈ Aᵢ-f ≡ Aᵢ-g ]
+      Σ[ pB' ∈ Bᵢ-f ≡ Bᵢ-g ]
+      subst₂ mor pA' pB' u_f ≡ u_g
+  flat-data-to-ObjTerm {Aᵢ-f} {Bᵢ-f} {Aᵢ-g} {Bᵢ-g} u_f u_g pA pB pU =
+      A-eq , B-eq , mor-eq
+    where
+      -- A-eq via cong on FlatView'.A' through pU.
+      -- `view (flat u_g) = flatV' Aᵢ-g Bᵢ-g refl refl u_g refl`,
+      -- so `FlatView'.A' (view (flat u_g)) ≡ Aᵢ-g` definitionally.
+      A-eq : Aᵢ-f ≡ Aᵢ-g
+      A-eq = trans (sym (view-subst-A u_f pA pB))
+                   (cong (λ z → FlatView'.A' (view z)) pU)
+
+      B-eq : Bᵢ-f ≡ Bᵢ-g
+      B-eq = trans (sym (view-subst-B u_f pA pB))
+                   (cong (λ z → FlatView'.B' (view z)) pU)
+
+      -- Now derive u_f ≡ u_g (via subst₂).  Dispatch on A-eq, B-eq
+      -- as refl; then UIP collapses pA, pB to refl, so pU becomes
+      -- `flat u_f ≡ flat u_g`, hence u_f ≡ u_g via flat-injective.
+      mor-eq : subst₂ mor A-eq B-eq u_f ≡ u_g
+      mor-eq = helper A-eq B-eq pA pB pU refl refl
+        where
+          helper
+            : (A-eq' : Aᵢ-f ≡ Aᵢ-g) (B-eq' : Bᵢ-f ≡ Bᵢ-g)
+              (pA' : flatten Aᵢ-f ≡ flatten Aᵢ-g)
+              (pB' : flatten Bᵢ-f ≡ flatten Bᵢ-g)
+              (pU' : subst₂ FlatGen pA' pB' (flat u_f) ≡ flat u_g)
+            → A-eq' ≡ A-eq → B-eq' ≡ B-eq
+            → subst₂ mor A-eq' B-eq' u_f ≡ u_g
+          helper refl refl pA' pB' pU' _ _ =
+            flat-injective (subst₂-eq-elim pA' pB' pU')
+
+--------------------------------------------------------------------------------
+-- NoSigma terms preserve `flatten`: a NoSigma `f : HomTerm A B` has
+-- `flatten A ≡ flatten B`.  This is the key fact used below to build
+-- Mac-Lane bridges between two NoSigma sources (one from each strip).
+
+flatten-NoSigma
+  : ∀ {A B} {f : HomTerm A B}
+  → NoSigma f → flatten A ≡ flatten B
+flatten-NoSigma (nosigma-id {A})         = refl
+flatten-NoSigma (nosigma-λ⇒ {A})         = refl
+flatten-NoSigma (nosigma-λ⇐ {A})         = refl
+flatten-NoSigma (nosigma-ρ⇒ {A})         = ++-identityʳ (flatten A)
+  where open import Data.List.Properties using (++-identityʳ)
+flatten-NoSigma (nosigma-ρ⇐ {A})         = sym (++-identityʳ (flatten A))
+  where open import Data.List.Properties using (++-identityʳ)
+flatten-NoSigma (nosigma-α⇒ {A} {B} {C}) = ++-assoc (flatten A) (flatten B) (flatten C)
+  where open import Data.List.Properties using (++-assoc)
+flatten-NoSigma (nosigma-α⇐ {A} {B} {C}) = sym (++-assoc (flatten A) (flatten B) (flatten C))
+  where open import Data.List.Properties using (++-assoc)
+flatten-NoSigma (nosigma-∘ nh nk)        = trans (flatten-NoSigma nk) (flatten-NoSigma nh)
+flatten-NoSigma {A = A ⊗₀ B} {B = C ⊗₀ D} (nosigma-⊗ nh nk)
+  = cong₂ _++_ (flatten-NoSigma nh) (flatten-NoSigma nk)
+  where
+    open import Data.List using (_++_)
+    open import Relation.Binary.PropositionalEquality using (cong₂)
+
+--------------------------------------------------------------------------------
+-- NoSigma-ness of `unflatten-flatten-≈`'s from/to morphisms.  These
+-- are built out of `λ⇐, ρ⇒, α⇐, id, ⊗₁, ∘` (no σ, no Agen) by
+-- structural induction on the ObjTerm.
+
+private
+  open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
+    using (unflatten; unflatten-flatten-≈; unflatten-++-≅)
+  open import Categories.Morphism FreeMonoidal using (_≅_)
+  open import Categories.Category using (Category)
+  open import Data.List using ([]; _∷_)
+  module FM-bridge = Category FreeMonoidal
+
+  -- `unflatten-++-≅ xs ys` has from/to built from `λ⇐`, `α⇐`, `id`,
+  -- `⊗₁`, `∘`.  NoSigma by structural recursion on `xs`.
+  unflatten-++-from-NoSigma
+    : ∀ (xs ys : List X)
+    → NoSigma (_≅_.from (unflatten-++-≅ xs ys))
+  unflatten-++-from-NoSigma []       ys = nosigma-λ⇐
+  unflatten-++-from-NoSigma (x ∷ xs) ys =
+    nosigma-∘ nosigma-α⇐ (nosigma-⊗ nosigma-id (unflatten-++-from-NoSigma xs ys))
+
+  unflatten-++-to-NoSigma
+    : ∀ (xs ys : List X)
+    → NoSigma (_≅_.to (unflatten-++-≅ xs ys))
+  unflatten-++-to-NoSigma []       ys = nosigma-λ⇒
+  unflatten-++-to-NoSigma (x ∷ xs) ys =
+    nosigma-∘ (nosigma-⊗ nosigma-id (unflatten-++-to-NoSigma xs ys)) nosigma-α⇒
+
+  unflatten-flatten-from-NoSigma
+    : ∀ (A : ObjTerm) → NoSigma (_≅_.from (unflatten-flatten-≈ A))
+  unflatten-flatten-from-NoSigma unit     = nosigma-id
+  unflatten-flatten-from-NoSigma (Var x)  = nosigma-ρ⇐
+  unflatten-flatten-from-NoSigma (A ⊗₀ B) =
+    nosigma-∘ (unflatten-++-to-NoSigma (flatten A) (flatten B))
+              (nosigma-⊗ (unflatten-flatten-from-NoSigma A)
+                         (unflatten-flatten-from-NoSigma B))
+
+  unflatten-flatten-to-NoSigma
+    : ∀ (A : ObjTerm) → NoSigma (_≅_.to (unflatten-flatten-≈ A))
+  unflatten-flatten-to-NoSigma unit     = nosigma-id
+  unflatten-flatten-to-NoSigma (Var x)  = nosigma-ρ⇒
+  unflatten-flatten-to-NoSigma (A ⊗₀ B) =
+    nosigma-∘ (nosigma-⊗ (unflatten-flatten-to-NoSigma A)
+                         (unflatten-flatten-to-NoSigma B))
+              (unflatten-++-from-NoSigma (flatten A) (flatten B))
+
+--------------------------------------------------------------------------------
+-- NoSigma bridge between two ObjTerms with equal `flatten`.  Built by
+-- composing `unflatten-flatten-≈`'s from/to with a `subst`-bridge in
+-- the middle (which collapses to identity when the equality is
+-- definitional refl).  Both the bridge and its inverse are NoSigma.
+
+private
+  -- Bridge construction with explicit `subst` of identity (which is
+  -- `id` when `e ≡ refl`).  The bridge composes:
+  --   X → unflatten (flatten X) =[ subst id ]= unflatten (flatten Y) → Y
+  -- Both extremes are NoSigma; the middle reduces to `id` when `e ≡ refl`.
+
+  bridge-NoSigma-fwd
+    : ∀ {X Y : ObjTerm} → flatten X ≡ flatten Y → HomTerm X Y
+  bridge-NoSigma-fwd {X} {Y} e =
+    _≅_.to (unflatten-flatten-≈ Y) ∘
+      subst (HomTerm (unflatten (flatten X))) (cong unflatten e) id ∘
+        _≅_.from (unflatten-flatten-≈ X)
+
+  bridge-NoSigma-bwd
+    : ∀ {X Y : ObjTerm} → flatten X ≡ flatten Y → HomTerm Y X
+  bridge-NoSigma-bwd {X} {Y} e =
+    _≅_.to (unflatten-flatten-≈ X) ∘
+      subst (HomTerm (unflatten (flatten Y))) (cong unflatten (sym e)) id ∘
+        _≅_.from (unflatten-flatten-≈ Y)
+
+  -- NoSigma proofs: dispatch on `e` via J trick — abstract over
+  -- `flatten X` to get unification-friendly indices.  The middle
+  -- `subst` reduces to identity along `cong unflatten e`; we use
+  -- the helper `subst-HomTerm-NoSigma` to extract NoSigma in any case.
+  subst-HomTerm-id-NoSigma
+    : ∀ {X Y : ObjTerm} (e : X ≡ Y)
+    → NoSigma (subst (HomTerm X) e id)
+  subst-HomTerm-id-NoSigma refl = nosigma-id
+
+  bridge-NoSigma-fwd-NS
+    : ∀ {X Y} (e : flatten X ≡ flatten Y) → NoSigma (bridge-NoSigma-fwd e)
+  bridge-NoSigma-fwd-NS {X} {Y} e =
+    nosigma-∘ (unflatten-flatten-to-NoSigma Y)
+      (nosigma-∘ (subst-HomTerm-id-NoSigma (cong unflatten e))
+                 (unflatten-flatten-from-NoSigma X))
+
+  bridge-NoSigma-bwd-NS
+    : ∀ {X Y} (e : flatten X ≡ flatten Y) → NoSigma (bridge-NoSigma-bwd e)
+  bridge-NoSigma-bwd-NS {X} {Y} e =
+    nosigma-∘ (unflatten-flatten-to-NoSigma X)
+      (nosigma-∘ (subst-HomTerm-id-NoSigma (cong unflatten (sym e)))
+                 (unflatten-flatten-from-NoSigma Y))
+
+  -- The bridge's iso laws follow from `unflatten-flatten-≈`'s iso
+  -- structure.  Dispatch on `e` (the flatten-eq) as refl, then the
+  -- substs collapse to id and the chain reduces to a straightforward
+  -- iso cancellation.
+
+  module HRB = FM-bridge.HomReasoning
+
+  -- Generic iso law for a bridge through a parameterised intermediate
+  -- pair (P, Q).  When `eu : P ≡ Q` is pattern-matched as refl, the
+  -- subst collapses and the proof becomes routine iso cancellation.
+  bridge-iso-helper
+    : ∀ {X Y : ObjTerm} {P Q : ObjTerm}
+        (eu : P ≡ Q)
+        (eu-sym : Q ≡ P)
+        (to-Q : HomTerm Q Y) (from-Q : HomTerm Y Q)
+        (to-P : HomTerm P X) (from-P : HomTerm X P)
+        (isoʳ-P : to-P ∘ from-P ≈Term id)
+        (isoˡ-P : from-P ∘ to-P ≈Term id)
+        (isoʳ-Q : to-Q ∘ from-Q ≈Term id)
+        (isoˡ-Q : from-Q ∘ to-Q ≈Term id)
+    → (to-Q ∘ subst (HomTerm P) eu id ∘ from-P)
+        ∘ (to-P ∘ subst (HomTerm Q) eu-sym id ∘ from-Q)
+      ≈Term id
+  bridge-iso-helper refl refl to-Q from-Q to-P from-P _ isoˡ-P isoʳ-Q _ = HRB.begin
+      (to-Q ∘ id ∘ from-P) ∘ (to-P ∘ id ∘ from-Q)
+        HRB.≈⟨ (HRB.refl⟩∘⟨ FM-bridge.identityˡ)
+                HRB.⟩∘⟨ (HRB.refl⟩∘⟨ FM-bridge.identityˡ) ⟩
+      (to-Q ∘ from-P) ∘ (to-P ∘ from-Q)
+        HRB.≈⟨ FM-bridge.assoc ⟩
+      to-Q ∘ from-P ∘ to-P ∘ from-Q
+        HRB.≈⟨ HRB.refl⟩∘⟨ FM-bridge.sym-assoc ⟩
+      to-Q ∘ (from-P ∘ to-P) ∘ from-Q
+        HRB.≈⟨ HRB.refl⟩∘⟨ isoˡ-P HRB.⟩∘⟨refl ⟩
+      to-Q ∘ id ∘ from-Q
+        HRB.≈⟨ HRB.refl⟩∘⟨ FM-bridge.identityˡ ⟩
+      to-Q ∘ from-Q
+        HRB.≈⟨ isoʳ-Q ⟩
+      id HRB.∎
+
+  bridge-NoSigma-isoʳ
+    : ∀ {X Y} (e : flatten X ≡ flatten Y)
+    → bridge-NoSigma-fwd e ∘ bridge-NoSigma-bwd e ≈Term id
+  bridge-NoSigma-isoʳ {X} {Y} e =
+    bridge-iso-helper
+      (cong unflatten e) (cong unflatten (sym e))
+      (_≅_.to (unflatten-flatten-≈ Y))
+      (_≅_.from (unflatten-flatten-≈ Y))
+      (_≅_.to (unflatten-flatten-≈ X))
+      (_≅_.from (unflatten-flatten-≈ X))
+      (_≅_.isoˡ (unflatten-flatten-≈ X))
+      (_≅_.isoʳ (unflatten-flatten-≈ X))
+      (_≅_.isoˡ (unflatten-flatten-≈ Y))
+      (_≅_.isoʳ (unflatten-flatten-≈ Y))
+
+  bridge-NoSigma-isoˡ
+    : ∀ {X Y} (e : flatten X ≡ flatten Y)
+    → bridge-NoSigma-bwd e ∘ bridge-NoSigma-fwd e ≈Term id
+  bridge-NoSigma-isoˡ {X} {Y} e =
+    bridge-iso-helper
+      (cong unflatten (sym e)) (cong unflatten e)
+      (_≅_.to (unflatten-flatten-≈ X))
+      (_≅_.from (unflatten-flatten-≈ X))
+      (_≅_.to (unflatten-flatten-≈ Y))
+      (_≅_.from (unflatten-flatten-≈ Y))
+      (_≅_.isoˡ (unflatten-flatten-≈ Y))
+      (_≅_.isoʳ (unflatten-flatten-≈ Y))
+      (_≅_.isoˡ (unflatten-flatten-≈ X))
+      (_≅_.isoʳ (unflatten-flatten-≈ X))
+
+--------------------------------------------------------------------------------
+-- Discharge attempt: the helpers above (`flat-data-to-ObjTerm`,
+-- `flatten-NoSigma`, `bridge-NoSigma-{fwd,bwd}` + iso laws +
+-- NoSigma proofs, `subst-HomTerm-id-NoSigma`) implement Steps 1–4
+-- of the Field-1 discharge strategy documented at the top of this
+-- section and in REFACTORING.md.  Step 5 — the central "`Agen u`
+-- commutes with NoSigma wrappers" naturality lemma — is not yet
+-- proved constructively.  Since no new postulates may be added,
+-- the original `single-agen-NF-coherence` field is retained
+-- unchanged below; the discharge can be completed in a future pass
+-- by closing the Step 5 hole.
+
+--------------------------------------------------------------------------------
 -- The remaining narrow assumptions of the completeness path, bundled
 -- into the `CompletenessAssumptions` record.  The rest of this module
 -- (the `nf-resp-≅ᴴ` dispatcher and the top-level
