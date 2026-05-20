@@ -1530,6 +1530,105 @@ private
   NoSigma-coherence nb₁ nb₂ = noσ-discharge nb₁ nb₂
 
 --------------------------------------------------------------------------------
+-- Bridge naturality (Step 5) — back-end.
+--
+-- Given *positional alignment* hypotheses `eYL : flatten YL-f ≡ flatten
+-- YL-g` and `eYR : flatten YR-f ≡ flatten YR-g`, the naturality of the
+-- bridge w.r.t. a pinned `Agen u` middle is provable by:
+--
+--   1. Tensor-factor the monolithic bridge `bridge-NoSigma-fwd eA` (over
+--      the ternary tensor `YL ⊗ X ⊗ YR`) as `bL ⊗ (id_X ⊗ bR)` where
+--      `bL = bridge-NoSigma-fwd eYL` and `bR = bridge-NoSigma-fwd eYR`.
+--      Both sides are NoSigma; agreement follows from `noσ-discharge`.
+--   2. Push the `Agen u` middle through via `⊗-∘-dist` twice + `idˡ`/
+--      `idʳ` cleanup.
+--   3. Untensor-factor the result.
+--
+-- The front-end — deriving `eYL, eYR` from an iso `⟪f⟫ ≅ᴴ ⟪g⟫` — is
+-- separate work (positional alignment via the φ vertex bijection on
+-- the unique Agen-edge boundary).
+
+private
+  -- Tensor-factored bridge as a NoSigma morphism: just
+  -- `bL ⊗₁ (id ⊗₁ bR)`.
+
+  bridge-tensor-fwd
+    : ∀ {YL-f YR-f YL-g YR-g X : ObjTerm}
+        (eYL : flatten YL-f ≡ flatten YL-g)
+        (eYR : flatten YR-f ≡ flatten YR-g)
+    → HomTerm (YL-f ⊗₀ X ⊗₀ YR-f) (YL-g ⊗₀ X ⊗₀ YR-g)
+  bridge-tensor-fwd eYL eYR =
+    bridge-NoSigma-fwd eYL ⊗₁ (id ⊗₁ bridge-NoSigma-fwd eYR)
+
+  bridge-tensor-fwd-NS
+    : ∀ {YL-f YR-f YL-g YR-g X : ObjTerm}
+        (eYL : flatten YL-f ≡ flatten YL-g)
+        (eYR : flatten YR-f ≡ flatten YR-g)
+    → NoSigma (bridge-tensor-fwd {YL-f} {YR-f} {YL-g} {YR-g} {X} eYL eYR)
+  bridge-tensor-fwd-NS {YL-f} {YR-f} {YL-g} {YR-g} {X} eYL eYR =
+    nosigma-⊗ (bridge-NoSigma-fwd-NS eYL)
+              (nosigma-⊗ (nosigma-id {X}) (bridge-NoSigma-fwd-NS eYR))
+
+  -- Monolithic vs. tensor-factored bridge: both are NoSigma between the
+  -- same ObjTerms, so they agree by `noσ-discharge`.
+
+  bridge-NoSigma-tensor-factor
+    : ∀ {YL-f YR-f YL-g YR-g X : ObjTerm}
+        (eYL : flatten YL-f ≡ flatten YL-g)
+        (eYR : flatten YR-f ≡ flatten YR-g)
+        (eA  : flatten (YL-f ⊗₀ X ⊗₀ YR-f)
+             ≡ flatten (YL-g ⊗₀ X ⊗₀ YR-g))
+    → bridge-NoSigma-fwd eA
+    ≈Term bridge-tensor-fwd {YL-f} {YR-f} {YL-g} {YR-g} {X} eYL eYR
+  bridge-NoSigma-tensor-factor {YL-f} {YR-f} {YL-g} {YR-g} {X} eYL eYR eA =
+    noσ-discharge (bridge-NoSigma-fwd-NS eA)
+                  (bridge-tensor-fwd-NS {YL-f} {YR-f} {YL-g} {YR-g} {X} eYL eYR)
+
+  module HRBN = FM-bridge.HomReasoning
+
+  -- Naturality of the bridge w.r.t. the pinned `Agen u`, given
+  -- positional alignment.  The proof is a chase through `⊗-∘-dist`
+  -- + `idˡ`/`idʳ` on the tensor-factored form.
+
+  bridge-naturality-pos
+    : ∀ {YL-f YR-f YL-g YR-g Aᵢ Bᵢ : ObjTerm}
+        (u : mor Aᵢ Bᵢ)
+        (eYL : flatten YL-f ≡ flatten YL-g)
+        (eYR : flatten YR-f ≡ flatten YR-g)
+        (eA  : flatten (YL-f ⊗₀ Aᵢ ⊗₀ YR-f)
+             ≡ flatten (YL-g ⊗₀ Aᵢ ⊗₀ YR-g))
+        (eB  : flatten (YL-f ⊗₀ Bᵢ ⊗₀ YR-f)
+             ≡ flatten (YL-g ⊗₀ Bᵢ ⊗₀ YR-g))
+    → bridge-NoSigma-fwd eB ∘ (id ⊗₁ (Agen u ⊗₁ id {YR-f}))
+    ≈Term
+      (id ⊗₁ (Agen u ⊗₁ id {YR-g})) ∘ bridge-NoSigma-fwd eA
+  bridge-naturality-pos {YL-f} {YR-f} {YL-g} {YR-g} {Aᵢ} {Bᵢ} u eYL eYR eA eB =
+    let bL = bridge-NoSigma-fwd eYL
+        bR = bridge-NoSigma-fwd eYR
+    in HRBN.begin
+      bridge-NoSigma-fwd eB ∘ (id ⊗₁ (Agen u ⊗₁ id {YR-f}))
+        HRBN.≈⟨ bridge-NoSigma-tensor-factor {YL-f} {YR-f} {YL-g} {YR-g} {Bᵢ}
+                  eYL eYR eB HRBN.⟩∘⟨refl ⟩
+      (bL ⊗₁ (id ⊗₁ bR)) ∘ (id ⊗₁ (Agen u ⊗₁ id {YR-f}))
+        HRBN.≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
+      (bL ∘ id) ⊗₁ ((id ⊗₁ bR) ∘ (Agen u ⊗₁ id {YR-f}))
+        HRBN.≈⟨ ⊗-resp-≈ idʳ (≈-Term-sym ⊗-∘-dist) ⟩
+      bL ⊗₁ ((id ∘ Agen u) ⊗₁ (bR ∘ id))
+        HRBN.≈⟨ ⊗-resp-≈ ≈-Term-refl (⊗-resp-≈ idˡ idʳ) ⟩
+      bL ⊗₁ (Agen u ⊗₁ bR)
+        HRBN.≈⟨ ⊗-resp-≈ (≈-Term-sym idˡ)
+                  (⊗-resp-≈ (≈-Term-sym idʳ) (≈-Term-sym idˡ)) ⟩
+      (id ∘ bL) ⊗₁ ((Agen u ∘ id) ⊗₁ (id ∘ bR))
+        HRBN.≈⟨ ⊗-resp-≈ ≈-Term-refl ⊗-∘-dist ⟩
+      (id ∘ bL) ⊗₁ ((Agen u ⊗₁ id) ∘ (id ⊗₁ bR))
+        HRBN.≈⟨ ⊗-∘-dist ⟩
+      (id ⊗₁ (Agen u ⊗₁ id {YR-g})) ∘ (bL ⊗₁ (id ⊗₁ bR))
+        HRBN.≈⟨ refl⟩∘⟨ ≈-Term-sym
+                  (bridge-NoSigma-tensor-factor {YL-f} {YR-f} {YL-g} {YR-g} {Aᵢ}
+                     eYL eYR eA) ⟩
+      (id ⊗₁ (Agen u ⊗₁ id {YR-g})) ∘ bridge-NoSigma-fwd eA HRBN.∎
+
+--------------------------------------------------------------------------------
 -- The remaining narrow assumptions of the completeness path, bundled
 -- into the `CompletenessAssumptions` record.  The rest of this module
 -- (the `nf-resp-≅ᴴ` dispatcher and the top-level
