@@ -134,6 +134,46 @@ NoAgen/HasAgen mixes are now closed by the edge-count contradiction.
 The remaining open scope: both `f, g` contain a user-generator edge
 **or** both contain σ.  Postulate count unchanged (still 1).
 
+### Path B Day 6 — `SingleAgen` σ-free single-generator narrowing
+
+Day 5 closed all asymmetric NoAgen-vs-HasAgen pairs.  The
+"both HasAgen" residual is now further refined by routing the
+**σ-free single-Agen** sub-case through a *strictly-narrower*
+postulate:
+
+```agda
+single-agen-coherence-≈Term
+  : SingleAgen f → SingleAgen g
+  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+  → f ≈Term g
+```
+
+`SingleAgen` is a new inductive predicate in
+`Completeness/DecodeRel/Inductive.agda`: "f contains exactly one
+`Agen` subterm and is σ-free elsewhere."  Its constructors mirror
+`HasAgen` but require the *other* side of every `∘`/`⊗` to be
+`NoSigma` (no σ, no Agen).  A decidable classifier `SingleAgen?`
+identifies the case.
+
+Examples now closed by the narrower postulate (formerly absorbed
+by the wide catch-all):
+
+- `Agen u ∘ id` vs `Agen u`
+- `Agen u ⊗ id_unit` vs `Agen u`
+- `id ∘ (Agen u ∘ id)` vs `Agen u`
+- `Agen u ∘ id` vs `id ∘ Agen u`
+- any σ-free pair with exactly one Agen on each side
+
+The catch-all `nf-resp-≅ᴴ-residual` is retained but now fires
+only when at least one side contains a σ subterm OR contains 2+
+Agen subterms (truly "compound generators").  Postulate count:
+**1 → 2**, but the wide residual's effective firing scope is
+strictly narrower than before, and the new postulate is itself
+a focused structural-coherence claim amenable to a future
+constructive discharge via a syntactic strip lemma + sub-iso
+restriction (analogous to the constructive AgenAgen + Mac Lane
+combo, generalised through the single-edge wrapper context).
+
 **May 2026 unsoundness retraction (`425bf16`)**: an earlier
 narrowing pass (`0c4f223`) introduced `⊗-∘-dist-FromAPROP-iso` and
 its mirror in Cross{OC,CO} as "narrow universal coherence

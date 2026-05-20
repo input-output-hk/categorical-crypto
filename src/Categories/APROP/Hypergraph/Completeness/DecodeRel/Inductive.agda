@@ -237,6 +237,85 @@ HasAgen-edge {f = h ⊗₁ k}    (has-agen-⊗-r ha)
   where open import Data.Fin using (_↑ʳ_)
 
 --------------------------------------------------------------------------------
+-- `SingleAgen`: predicate "f contains *exactly one* `Agen` subterm and is
+-- σ-free elsewhere".  This is the σ-free single-generator family — every
+-- σ-free term whose hypergraph has exactly one edge falls in this shape.
+--
+-- Constructors mirror `HasAgen` but require the *other* side of every
+-- `∘`/`⊗` to be `NoSigma` (which already implies no Agen — see `NoSigma`'s
+-- definition in `AtomicCompound0E`).  The `Agen u` leaf is allowed.
+--
+-- Key invariants:
+--   * `SingleAgen f → nE ⟪f⟫ ≡ 1`.
+--   * `SingleAgen f → HasAgen f` (forgetting uniqueness).
+--
+-- The constructive discharge of "both `f, g` are `SingleAgen`" is
+-- intentionally left to a single strictly-narrower postulate (see
+-- `single-agen-coherence-≈Term` below): it captures the σ-free 1-Agen
+-- iso fragment.  The catch-all `nf-resp-≅ᴴ-residual` then only fires
+-- when at least one of `f`, `g` contains a σ subterm OR contains 2+
+-- Agen subterms.
+
+data SingleAgen : ∀ {A B} → HomTerm A B → Set where
+  single-agen-here : ∀ {A B} (g : mor A B) → SingleAgen (Agen g)
+  single-agen-∘-l  : ∀ {A B C} {h : HomTerm B C} {k : HomTerm A B}
+                   → SingleAgen h → NoSigma k → SingleAgen (h ∘ k)
+  single-agen-∘-r  : ∀ {A B C} {h : HomTerm B C} {k : HomTerm A B}
+                   → NoSigma h → SingleAgen k → SingleAgen (h ∘ k)
+  single-agen-⊗-l  : ∀ {A B C D} {h : HomTerm A B} {k : HomTerm C D}
+                   → SingleAgen h → NoSigma k → SingleAgen (h ⊗₁ k)
+  single-agen-⊗-r  : ∀ {A B C D} {h : HomTerm A B} {k : HomTerm C D}
+                   → NoSigma h → SingleAgen k → SingleAgen (h ⊗₁ k)
+
+-- Decidable classifier.  Returns `SingleAgen f` if applicable, else
+-- `⊤` (we never need a *negation* witness — the dispatcher only
+-- consumes the positive case and falls through to the catch-all
+-- residual otherwise).
+SingleAgen? : ∀ {A B} (f : HomTerm A B) → SingleAgen f ⊎ ⊤
+SingleAgen? (Agen g)   = inj₁ (single-agen-here g)
+SingleAgen? id         = inj₂ tt
+SingleAgen? λ⇒         = inj₂ tt
+SingleAgen? λ⇐         = inj₂ tt
+SingleAgen? ρ⇒         = inj₂ tt
+SingleAgen? ρ⇐         = inj₂ tt
+SingleAgen? α⇒         = inj₂ tt
+SingleAgen? α⇐         = inj₂ tt
+SingleAgen? σ          = inj₂ tt
+SingleAgen? (h ∘ k) with SingleAgen? h | NoSigma? k | NoSigma? h | SingleAgen? k
+... | inj₁ sh | inj₁ nk | _       | _       = inj₁ (single-agen-∘-l sh nk)
+... | _       | _       | inj₁ nh | inj₁ sk = inj₁ (single-agen-∘-r nh sk)
+... | _       | _       | _       | _       = inj₂ tt
+SingleAgen? (h ⊗₁ k) with SingleAgen? h | NoSigma? k | NoSigma? h | SingleAgen? k
+... | inj₁ sh | inj₁ nk | _       | _       = inj₁ (single-agen-⊗-l sh nk)
+... | _       | _       | inj₁ nh | inj₁ sk = inj₁ (single-agen-⊗-r nh sk)
+... | _       | _       | _       | _       = inj₂ tt
+
+--------------------------------------------------------------------------------
+-- Strictly-narrower postulate (introduced Day 6).  Discharges the
+-- σ-free single-Agen case: both `f, g` have exactly one Agen and are
+-- σ-free elsewhere.  This covers all of:
+--   `Agen u ∘ id` vs `Agen u`
+--   `Agen u ⊗ id_unit` vs `Agen u`
+--   `id ∘ (Agen u ∘ id)` vs `Agen u`
+--   `Agen u ∘ id` vs `id ∘ Agen u`
+-- and any other σ-free pair whose hypergraph has exactly one edge.
+--
+-- Intuition: the iso's `ψ-elab` at the unique edge forces the
+-- generators to match (cf. `decode-rel-resp-≅ᴴ-Agen-Agen`), and the
+-- σ-free Mac Lane wrappers on each side are coherent by
+-- `Structural-coherence-≈Term-noσ` applied to a "remove the unique
+-- edge" sub-iso.  A fully constructive proof requires a syntactic
+-- strip lemma + a sub-iso restriction — kept as a strictly-narrower
+-- postulate to bound the per-day LOC budget.
+
+postulate
+  single-agen-coherence-≈Term
+    : ∀ {A B} {f g : HomTerm A B}
+    → SingleAgen f → SingleAgen g
+    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+    → f ≈Term g
+
+--------------------------------------------------------------------------------
 -- `bridge` is a congruence with respect to `_≈Term_` — wrapping with
 -- the coherence isos on each side preserves `≈Term`.  This is the
 -- 1-line lemma that lifts `Structural-coherence-≈Term-noσ`'s conclusion
@@ -380,7 +459,15 @@ nf-resp-≅ᴴ f g iso | _ | _ | inj₂ _ | inj₂ _ with NoAgen-or-HasAgen f | 
 ...        | inj₁ nf | inj₂ hg = ⊥-elim (NoAgen-iso-HasAgen-⊥ nf hg iso)
 ...        | inj₂ hf | inj₁ ng = ⊥-elim (HasAgen-iso-NoAgen-⊥ hf ng iso)
 ...        | inj₁ nf | inj₁ ng = nf-resp-≅ᴴ-residual f g iso
-...        | inj₂ _  | inj₂ _  = nf-resp-≅ᴴ-residual f g iso
+-- Day 6: route the σ-free single-Agen sub-case to the narrower
+-- `single-agen-coherence-≈Term` postulate.  Two compound terms each
+-- with `HasAgen`: if *both* are also `SingleAgen` (exactly one Agen,
+-- σ-free elsewhere), discharge via the narrower postulate; else fall
+-- through to the catch-all.
+...        | inj₂ _  | inj₂ _  with SingleAgen? f | SingleAgen? g
+...            | inj₁ sf | inj₁ sg =
+                   bridge-resp-≈Term (single-agen-coherence-≈Term sf sg iso)
+...            | _       | _       = nf-resp-≅ᴴ-residual f g iso
 
 --------------------------------------------------------------------------------
 -- `nf-bridge`: the bridge from `decode-rel` to `bridge`.  This is
