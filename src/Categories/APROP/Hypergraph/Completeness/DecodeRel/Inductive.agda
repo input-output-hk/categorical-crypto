@@ -2440,9 +2440,259 @@ agen-ein-position {f = h ∘ k} (single-agen-∘-l sh nk) =
             (cong (λ xs → pre ++ xs ++ post) (sym ein-composed-eq))
 
 --------------------------------------------------------------------------------
--- `single-agen-NF-coherence-discharge-given-len`: the full discharge of
--- the `single-agen-NF-coherence` postulate, ASSUMING the length
--- equality.  Composes:
+-- `Unique`-middle-position uniqueness: if `xs ≡ a ++ M ++ b ≡ c ++ M ++ d`
+-- with `Unique xs` and `M` non-empty (= `m₀ ∷ ms`), then `length a ≡ length c`.
+--
+-- Proof: induction on `a, c`.
+--   * Both []: trivially refl.
+--   * Both cons: heads agree (= xs's first element).  Recurse with the
+--     tail of xs (which is still Unique).
+--   * One []:   xs = M ++ ... AND xs = (c₀ ∷ c') ++ M ++ ...
+--               so xs's first element is both M[0] (= m₀) and c₀, hence
+--               c₀ ≡ m₀.  By Unique, m₀ doesn't appear in xs's tail.  But
+--               the tail of xs is c' ++ M ++ ..., which DOES contain m₀
+--               (in the middle).  Contradiction.
+
+private
+  open import Data.List using ([]; _∷_)
+  open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
+  import Data.List.Relation.Unary.AllPairs as AllPairs
+  import Data.List.Relation.Unary.All       as ListAll
+  open import Data.List.Membership.Propositional using (_∈_)
+  open import Data.List.Membership.Propositional.Properties using (∈-++⁺ʳ)
+  open import Data.List.Relation.Unary.Any using (here; there)
+  open import Relation.Nullary using (¬_)
+
+  -- For `Unique (a ∷ as)`, a is distinct from every element of as.
+  Unique-head-not-in-tail
+    : ∀ {a} {A : Set a} {x : A} {xs : List A}
+    → Unique (x ∷ xs) → ¬ (x ∈ xs)
+  Unique-head-not-in-tail (x≢ AllPairs.∷ _) x∈xs =
+    head-not-in x≢ x∈xs
+    where
+      open import Relation.Binary.PropositionalEquality using (_≢_)
+      head-not-in : ∀ {a} {A : Set a} {x : A} {xs : List A}
+                  → ListAll.All (x ≢_) xs → x ∈ xs → ⊥
+      head-not-in (px ListAll.∷ _) (here refl)  = px refl
+      head-not-in (_ ListAll.∷ rs) (there x∈xs) = head-not-in rs x∈xs
+
+  -- For Unique (cons-list), the tail is also Unique.
+  Unique-tail : ∀ {a} {A : Set a} {x : A} {xs : List A}
+              → Unique (x ∷ xs) → Unique xs
+  Unique-tail (_ AllPairs.∷ uq) = uq
+
+  -- ++ middle-position uniqueness for Unique lists with non-empty middle.
+  ++-middle-length-eq
+    : ∀ {a} {A : Set a}
+        (a' : List A) (m₀ : A) (ms b : List A)
+        (c : List A) (d : List A)
+    → Unique (a' ++ (m₀ ∷ ms) ++ b)
+    → a' ++ (m₀ ∷ ms) ++ b ≡ c ++ (m₀ ∷ ms) ++ d
+    → length a' ≡ length c
+  ++-middle-length-eq [] m₀ ms b [] d _ _ = refl
+  ++-middle-length-eq [] m₀ ms b (c₀ ∷ c') d uq eq
+    = ⊥-elim contra
+    where
+      -- xs = m₀ ∷ ms ++ b = c₀ ∷ c' ++ (m₀ ∷ ms) ++ d.
+      -- Head equality: c₀ ≡ m₀.
+      head-eq : c₀ ≡ m₀
+      head-eq = sym (cons-head-eq eq)
+        where
+          cons-head-eq : ∀ {a} {A : Set a} {x y : A} {xs ys : List A}
+                       → x ∷ xs ≡ y ∷ ys → x ≡ y
+          cons-head-eq refl = refl
+      -- Tail: ms ++ b = c' ++ (m₀ ∷ ms) ++ d
+      tail-eq : ms ++ b ≡ c' ++ (m₀ ∷ ms) ++ d
+      tail-eq = cons-tail-eq eq
+        where
+          cons-tail-eq : ∀ {a} {A : Set a} {x y : A} {xs ys : List A}
+                       → x ∷ xs ≡ y ∷ ys → xs ≡ ys
+          cons-tail-eq refl = refl
+      -- m₀ ∈ xs's tail (= ms ++ b)? It's in c' ++ (m₀ ∷ ms) ++ d.
+      m₀-in-tail : m₀ ∈ ms ++ b
+      m₀-in-tail = subst (m₀ ∈_) (sym tail-eq)
+        (∈-++⁺ʳ c' (here refl))
+      -- But by Unique (m₀ ∷ ms ++ b), m₀ ∉ ms ++ b.
+      contra : ⊥
+      contra = Unique-head-not-in-tail uq m₀-in-tail
+  ++-middle-length-eq (a₀ ∷ a') m₀ ms b [] d uq eq
+    = ⊥-elim contra
+    where
+      head-eq : a₀ ≡ m₀
+      head-eq = cons-head-eq eq
+        where
+          cons-head-eq : ∀ {a} {A : Set a} {x y : A} {xs ys : List A}
+                       → x ∷ xs ≡ y ∷ ys → x ≡ y
+          cons-head-eq refl = refl
+      tail-eq : a' ++ (m₀ ∷ ms) ++ b ≡ ms ++ d
+      tail-eq = cons-tail-eq eq
+        where
+          cons-tail-eq : ∀ {a} {A : Set a} {x y : A} {xs ys : List A}
+                       → x ∷ xs ≡ y ∷ ys → xs ≡ ys
+          cons-tail-eq refl = refl
+      m₀-in-tail : m₀ ∈ a' ++ (m₀ ∷ ms) ++ b
+      m₀-in-tail = ∈-++⁺ʳ a' (here refl)
+      uq-tail : Unique (a' ++ (m₀ ∷ ms) ++ b)
+      uq-tail = Unique-tail (subst Unique (cong (_∷ _) head-eq) uq)
+      -- uq : Unique (a₀ ∷ a' ++ (m₀ ∷ ms) ++ b) with a₀ = m₀.
+      -- So m₀ should not be in a' ++ (m₀ ∷ ms) ++ b. Contradiction.
+      contra : ⊥
+      contra = Unique-head-not-in-tail uq' m₀-in-tail
+        where
+          uq' : Unique (m₀ ∷ a' ++ (m₀ ∷ ms) ++ b)
+          uq' = subst (λ z → Unique (z ∷ a' ++ (m₀ ∷ ms) ++ b)) head-eq uq
+  ++-middle-length-eq (a₀ ∷ a') m₀ ms b (c₀ ∷ c') d uq eq =
+    -- xs = a₀ ∷ a' ++ (m₀ ∷ ms) ++ b = c₀ ∷ c' ++ (m₀ ∷ ms) ++ d.
+    -- a₀ ≡ c₀.  Recurse on tails.
+    cong suc (++-middle-length-eq a' m₀ ms b c' d (Unique-tail uq) tail-eq)
+    where
+      tail-eq : a' ++ (m₀ ∷ ms) ++ b ≡ c' ++ (m₀ ∷ ms) ++ d
+      tail-eq = cons-tail-eq eq
+        where
+          cons-tail-eq : ∀ {a} {A : Set a} {x y : A} {xs ys : List A}
+                       → x ∷ xs ≡ y ∷ ys → xs ≡ ys
+          cons-tail-eq refl = refl
+
+--------------------------------------------------------------------------------
+-- `YL-length-from-iso-nonempty`: extract `length-YL-strip` equality
+-- when the Agen edge's `ein` is non-empty.
+--
+-- Proof: combine `agen-ein-position sf, sg` with `φ-dom` from the iso
+-- and `++-middle-length-eq`.  The iso gives `⟪g⟫.dom ≡ map φ ⟪f⟫.dom`,
+-- and `ψ-ein` on the unique Agen edge (with `ψ : Fin 1 → Fin 1` being
+-- the identity) gives `⟪g⟫.ein agen-g ≡ map φ (⟪f⟫.ein agen-f)`.
+-- From sf's decomposition, `map φ ⟪f⟫.dom = map φ pre-f ++ map φ (ein-f) ++ map φ post-f`.
+-- This and sg's decomposition both equal `⟪g⟫.dom`.  Using
+-- `++-middle-length-eq` with `Unique ⟪g⟫.dom`, the prefixes' lengths
+-- agree.
+
+open import Relation.Binary.PropositionalEquality using (_≢_)
+
+YL-length-from-iso-nonempty
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+  → Hypergraph.ein ⟪ g ⟫ (SingleAgen-edge sg) ≢ []
+  → length-YL-strip sf ≡ length-YL-strip sg
+YL-length-from-iso-nonempty {f = f} {g = g} sf sg iso ein-g-nonempty =
+  trans (sym len-pre-f-eq)
+        (trans len-prefix-eq len-pre-g-eq)
+  where
+    open _≅ᴴ_ iso
+    module HF = Hypergraph ⟪ f ⟫
+    module HG = Hypergraph ⟪ g ⟫
+
+    -- sf decomp: ⟪f⟫.dom ≡ pre-f ++ ein-f ++ post-f
+    pf = agen-ein-position sf
+    pre-f = proj₁ pf
+    post-f = proj₁ (proj₂ pf)
+    dom-eq-f = proj₁ (proj₂ (proj₂ pf))
+    len-pre-f-eq : length pre-f ≡ length-YL-strip sf
+    len-pre-f-eq = proj₁ (proj₂ (proj₂ (proj₂ pf)))
+
+    -- sg decomp: ⟪g⟫.dom ≡ pre-g ++ ein-g ++ post-g
+    pg = agen-ein-position sg
+    pre-g = proj₁ pg
+    post-g = proj₁ (proj₂ pg)
+    dom-eq-g = proj₁ (proj₂ (proj₂ pg))
+    len-pre-g-eq : length pre-g ≡ length-YL-strip sg
+    len-pre-g-eq = proj₁ (proj₂ (proj₂ (proj₂ pg)))
+
+    ein-f = HF.ein (SingleAgen-edge sf)
+    ein-g = HG.ein (SingleAgen-edge sg)
+
+    -- ψ : Fin 1 → Fin 1, must be identity.  So ψ (SingleAgen-edge sf)
+    -- equals SingleAgen-edge sg (when both have nE = 1).
+    nE-eq-g : HG.nE ≡ 1
+    nE-eq-g = nE-SingleAgen sg
+
+    Fin1-uniq-loc : (x : Fin 1) → x ≡ zero
+    Fin1-uniq-loc zero = refl
+
+    subst-Fin-inj-loc
+      : ∀ {n m : ℕ} (p : n ≡ m) {x y : Fin n}
+      → subst Fin p x ≡ subst Fin p y → x ≡ y
+    subst-Fin-inj-loc refl eq = eq
+
+    ψ-edge-eq : ψ (SingleAgen-edge sf) ≡ SingleAgen-edge sg
+    ψ-edge-eq = subst-Fin-inj-loc nE-eq-g
+      (trans (Fin1-uniq-loc (subst Fin nE-eq-g (ψ (SingleAgen-edge sf))))
+             (sym (Fin1-uniq-loc (subst Fin nE-eq-g (SingleAgen-edge sg)))))
+
+    ein-g-eq : ein-g ≡ map φ ein-f
+    ein-g-eq =
+      trans (cong HG.ein (sym ψ-edge-eq))
+            (ψ-ein (SingleAgen-edge sf))
+
+    -- ⟪g⟫.dom = map φ ⟪f⟫.dom = map φ (pre-f ++ ein-f ++ post-f)
+    --        = map φ pre-f ++ map φ ein-f ++ map φ post-f
+    --        = map φ pre-f ++ ein-g ++ map φ post-f.
+    g-dom-eq-φ :
+      HG.dom ≡ map φ pre-f ++ ein-g ++ map φ post-f
+    g-dom-eq-φ = EQR.begin
+      HG.dom
+        EQR.≡⟨ φ-dom ⟩
+      map φ HF.dom
+        EQR.≡⟨ cong (map φ) dom-eq-f ⟩
+      map φ (pre-f ++ ein-f ++ post-f)
+        EQR.≡⟨ map-++ φ pre-f (ein-f ++ post-f) ⟩
+      map φ pre-f ++ map φ (ein-f ++ post-f)
+        EQR.≡⟨ cong (map φ pre-f ++_) (map-++ φ ein-f post-f) ⟩
+      map φ pre-f ++ map φ ein-f ++ map φ post-f
+        EQR.≡⟨ cong (λ x → map φ pre-f ++ x ++ map φ post-f) (sym ein-g-eq) ⟩
+      map φ pre-f ++ ein-g ++ map φ post-f
+        EQR.∎
+      where module EQR = ≡-Reasoning
+
+    -- ⟪g⟫.dom ≡ pre-g ++ ein-g ++ post-g (= dom-eq-g).
+    -- ⟪g⟫.dom ≡ map φ pre-f ++ ein-g ++ map φ post-f (= g-dom-eq-φ).
+    -- Equate: pre-g ++ ein-g ++ post-g ≡ map φ pre-f ++ ein-g ++ map φ post-f.
+    decomp-eq :
+      pre-g ++ ein-g ++ post-g ≡ map φ pre-f ++ ein-g ++ map φ post-f
+    decomp-eq = trans (sym dom-eq-g) g-dom-eq-φ
+
+    g-dom-Unique : Unique HG.dom
+    g-dom-Unique = ⟪_⟫-dom-unique g
+
+    -- Convert dom-eq-g into Unique-friendly form.
+    -- ⟪g⟫.dom = pre-g ++ ein-g ++ post-g, so Unique on this list.
+    -- Use ++-middle-length-eq.
+    decomp-Unique : Unique (pre-g ++ ein-g ++ post-g)
+    decomp-Unique = subst Unique dom-eq-g g-dom-Unique
+
+    -- ein-g is non-empty, so split into m₀ ∷ ms.
+    extract-len-eq :
+      (m₀ : Fin HG.nV) (ms : List (Fin HG.nV))
+      → ein-g ≡ m₀ ∷ ms
+      → length pre-g ≡ length (map φ pre-f)
+    extract-len-eq m₀ ms ein-g-cons =
+      ++-middle-length-eq
+        pre-g m₀ ms post-g
+        (map φ pre-f) (map φ post-f)
+        (subst (λ x → Unique (pre-g ++ x ++ post-g)) ein-g-cons decomp-Unique)
+        (helper-eq m₀ ms ein-g-cons)
+      where
+        helper-eq : (m₀ : Fin HG.nV) (ms : List (Fin HG.nV))
+                  → ein-g ≡ m₀ ∷ ms
+                  → pre-g ++ (m₀ ∷ ms) ++ post-g
+                  ≡ map φ pre-f ++ (m₀ ∷ ms) ++ map φ post-f
+        helper-eq m₀ ms eq =
+          trans (cong (λ x → pre-g ++ x ++ post-g) (sym eq))
+                (trans decomp-eq
+                       (cong (λ x → map φ pre-f ++ x ++ map φ post-f) eq))
+
+    -- Now extract using ein-g-nonempty.  Pattern match on ein-g via
+    -- helper that exposes the structural equality to the body.
+    len-prefix-eq : length pre-f ≡ length pre-g
+    len-prefix-eq = lemma ein-g refl
+      where
+        lemma : (xs : List (Fin HG.nV))
+              → xs ≡ ein-g
+              → length pre-f ≡ length pre-g
+        lemma []        xs-eq = ⊥-elim (ein-g-nonempty (sym xs-eq))
+        lemma (m₀ ∷ ms) xs-eq =
+          trans (sym (length-map-prop φ pre-f))
+                (sym (extract-len-eq m₀ ms (sym xs-eq)))
 --
 --   * `single-agen-flat-data`: iso → `(flat-A-eq, flat-B-eq, flat-u-eq)`.
 --   * `flat-data-to-ObjTerm`: flat data → `(Aᵢ_f ≡ Aᵢ_g, Bᵢ_f ≡ Bᵢ_g,
