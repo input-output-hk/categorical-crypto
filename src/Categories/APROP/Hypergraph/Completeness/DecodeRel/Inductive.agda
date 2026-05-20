@@ -2991,6 +2991,10 @@ YL-length-from-iso sf sg iso ein-g-nonempty =
         (trans (YL-length-from-iso-nonempty sf sg iso ein-g-nonempty)
                (length-YL-strip-≡ sg))
 
+--------------------------------------------------------------------------------
+-- `single-agen-NF-coherence-discharge-given-len`: the full discharge of
+-- the `single-agen-NF-coherence` postulate, ASSUMING the length
+-- equality.  Composes:
 --
 --   * `single-agen-flat-data`: iso → `(flat-A-eq, flat-B-eq, flat-u-eq)`.
 --   * `flat-data-to-ObjTerm`: flat data → `(Aᵢ_f ≡ Aᵢ_g, Bᵢ_f ≡ Bᵢ_g,
@@ -3000,15 +3004,14 @@ YL-length-from-iso sf sg iso ein-g-nonempty =
 --   * `bridge-naturality-pos`: positional alignment + Agen u middle →
 --     `mlB ∘ M_f ≈Term M_g ∘ mlA` (Mac-Lane bridge naturality).
 --   * `single-agen-strip` on both sides: f ≈Term c-to-f ∘ M_f ∘ c-from-f,
---     g ≈Term c-to-g ∘ M_g ∘ c-from-g.
---   * `NoSigma-coherence` on the σ-free wrappers: c-from-f and the
---     composition `bridge-NoSigma-fwd eA ∘ c-from-g` are both NoSigma
---     A → (YL_f ⊗ Aᵢ ⊗ YR_f), hence ≈Term-equal; similarly for c-to.
+--     g ≈Term c-to-g ∘ M_g ∘ c-from-f.
+--   * `NoSigma-coherence` on the σ-free wrappers.
 --
--- This is the final composition that closes the discharge.  Currently
--- written as a stub because it requires `length-of-YL-eq` as input.
--- Once that single `ℕ`-equality is proved, this composition closes
--- `single-agen-NF-coherence` constructively.
+-- This is the final composition that closes the discharge.  Once
+-- the empty-ein case is handled (or excluded as a precondition),
+-- the postulate `single-agen-NF-coherence` can be entirely closed
+-- via this composition.  Currently the non-empty-ein case is
+-- covered by `YL-length-from-iso`.
 
 --------------------------------------------------------------------------------
 -- The remaining narrow assumptions of the completeness path, bundled
