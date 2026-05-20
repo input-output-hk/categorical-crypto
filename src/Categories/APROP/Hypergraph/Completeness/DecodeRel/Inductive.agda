@@ -613,29 +613,46 @@ single-agen-strip {f = h ⊗₁ k} (single-agen-⊗-r nh sk) =
     }
 
 --------------------------------------------------------------------------------
--- Strictly-narrower postulate (introduced Day 6).  Discharges the
--- σ-free single-Agen case: both `f, g` have exactly one Agen and are
--- σ-free elsewhere.  This covers all of:
---   `Agen u ∘ id` vs `Agen u`
---   `Agen u ⊗ id_unit` vs `Agen u`
---   `id ∘ (Agen u ∘ id)` vs `Agen u`
---   `Agen u ∘ id` vs `id ∘ Agen u`
--- and any other σ-free pair whose hypergraph has exactly one edge.
+-- Strictly-narrower postulate (Day 9 refinement).  Discharges the
+-- σ-free single-Agen case *at the stripped normal-form level*: both
+-- sides are presented with explicit `SingleAgenNF` data (the unique
+-- generator `u` and the σ-free Mac Lane wrappers `c-from`/`c-to`).
 --
--- Intuition: the iso's `ψ-elab` at the unique edge forces the
--- generators to match (cf. `decode-rel-resp-≅ᴴ-Agen-Agen`), and the
--- σ-free Mac Lane wrappers on each side are coherent by
--- `Structural-coherence-≈Term-noσ` applied to a "remove the unique
--- edge" sub-iso.  A fully constructive proof requires a syntactic
--- strip lemma + a sub-iso restriction — kept as a strictly-narrower
--- postulate to bound the per-day LOC budget.
+-- This postulate is strictly narrower than the previous
+-- `SingleAgen f → SingleAgen g → ⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g`: it consumes
+-- the already-built NF data on each side rather than re-deriving it
+-- from the bare `SingleAgen` predicate.  The bridge to the general
+-- form `single-agen-coherence-≈Term` is constructive via the strip
+-- lemma `single-agen-strip` (commit 4bbc93b).
+--
+-- Why this remains a postulate: the NF discharge still needs to align
+-- the wire types `YL, Aᵢ, Bᵢ, YR` and unique generator `u` between the
+-- two NFs from the underlying iso.  Mac Lane coherence
+-- (`Structural-coherence-≈Term-noσ`) trivially equates the wrappers
+-- once their types are aligned, but the type-alignment step requires
+-- non-trivial reasoning at the `flatten`-list level which is not
+-- decidable from `flatten` alone (it is not injective; e.g.,
+-- `flatten (unit ⊗₀ A) ≡ flatten A`).
+--
+-- Net postulate count: unchanged (1 → 1).  Net content: strictly
+-- narrower — the hypothesis assumes the NF decomposition is given.
 
 postulate
-  single-agen-coherence-≈Term
+  single-agen-NF-coherence
     : ∀ {A B} {f g : HomTerm A B}
-    → SingleAgen f → SingleAgen g
+    → SingleAgenNF f → SingleAgenNF g
     → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
     → f ≈Term g
+
+-- Derived: the original (wider) coherence claim, constructively
+-- reduced to the NF-level postulate via `single-agen-strip`.
+single-agen-coherence-≈Term
+  : ∀ {A B} {f g : HomTerm A B}
+  → SingleAgen f → SingleAgen g
+  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+  → f ≈Term g
+single-agen-coherence-≈Term sf sg iso =
+  single-agen-NF-coherence (single-agen-strip sf) (single-agen-strip sg) iso
 
 --------------------------------------------------------------------------------
 -- `bridge` is a congruence with respect to `_≈Term_` — wrapping with
