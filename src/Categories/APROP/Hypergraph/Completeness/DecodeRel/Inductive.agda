@@ -4482,6 +4482,194 @@ single-agen-NF-coherence-discharge-nonempty-eout {f = f} {g = g}
     eYR = proj₁ (proj₂ pos-align)
 
 --------------------------------------------------------------------------------
+-- `single-agen-NF-coherence-discharge-scalar`: the BOTH-EMPTY case
+-- (ein empty AND eout empty).  Closed constructively via the
+-- `scalar-coherence` lemma above (which composes `M-to-leftmost` on
+-- both sides with `NoSigma-coherence` and ⊗-functoriality).
+--
+-- Derives `flatten Aᵢ ≡ []` from `ein ⟪g⟫ (SingleAgen-edge sg) ≡ []`
+-- via `elab-at-SingleAgen-edge sg`, and similarly `flatten Bᵢ ≡ []`
+-- from `eout ⟪g⟫ (SingleAgen-edge sg) ≡ []`.  Then composes the
+-- standard strip-level flat→ObjTerm chain and applies
+-- `scalar-coherence` after pattern-matching the strip-level Aᵢ/Bᵢ/u
+-- equalities as refl (via a CPS aux mirroring
+-- `single-agen-NF-discharge-aux-cps`).
+
+private
+  -- CPS aux: pattern-matches the strip-level eqs as refl, then applies
+  -- `scalar-coherence`.
+  single-agen-NF-discharge-scalar-aux-cps
+    : ∀ {A B} {f g : HomTerm A B}
+        {YL-f YR-f Aᵢ-f Bᵢ-f : ObjTerm}
+        {YL-g YR-g Aᵢ-g Bᵢ-g : ObjTerm}
+        (u-f : mor Aᵢ-f Bᵢ-f) (u-g : mor Aᵢ-g Bᵢ-g)
+        {c-from-f : HomTerm A (YL-f ⊗₀ Aᵢ-f ⊗₀ YR-f)}
+        {c-to-f   : HomTerm (YL-f ⊗₀ Bᵢ-f ⊗₀ YR-f) B}
+        {c-from-g : HomTerm A (YL-g ⊗₀ Aᵢ-g ⊗₀ YR-g)}
+        {c-to-g   : HomTerm (YL-g ⊗₀ Bᵢ-g ⊗₀ YR-g) B}
+        (nosigma-from-f : NoSigma c-from-f) (nosigma-to-f : NoSigma c-to-f)
+        (nosigma-from-g : NoSigma c-from-g) (nosigma-to-g : NoSigma c-to-g)
+        (equiv-f : f ≈Term c-to-f ∘ (id ⊗₁ (Agen u-f ⊗₁ id)) ∘ c-from-f)
+        (equiv-g : g ≈Term c-to-g ∘ (id ⊗₁ (Agen u-g ⊗₁ id)) ∘ c-from-g)
+        (A-eq : Aᵢ-f ≡ Aᵢ-g)
+        (B-eq : Bᵢ-f ≡ Bᵢ-g)
+        (u-eq : subst₂ mor A-eq B-eq u-f ≡ u-g)
+        (Aᵢ-empty : flatten Aᵢ-g ≡ [])
+        (Bᵢ-empty : flatten Bᵢ-g ≡ [])
+     → f ≈Term g
+  single-agen-NF-discharge-scalar-aux-cps {f = f} {g = g}
+                                          u-f .u-f
+                                          {c-from-f} {c-to-f} {c-from-g} {c-to-g}
+                                          nosigma-from-f nosigma-to-f
+                                          nosigma-from-g nosigma-to-g
+                                          equiv-f equiv-g
+                                          refl refl refl Aᵢ-empty Bᵢ-empty =
+    HRBN.begin
+      f
+        HRBN.≈⟨ equiv-f ⟩
+      c-to-f ∘ (id ⊗₁ (Agen u-f ⊗₁ id)) ∘ c-from-f
+        HRBN.≈⟨ scalar-coherence u-f
+                  nosigma-from-f nosigma-to-f
+                  nosigma-from-g nosigma-to-g
+                  Aᵢ-empty Bᵢ-empty ⟩
+      c-to-g ∘ (id ⊗₁ (Agen u-f ⊗₁ id)) ∘ c-from-g
+        HRBN.≈⟨ ≈-Term-sym equiv-g ⟩
+      g HRBN.∎
+
+single-agen-NF-discharge-scalar-aux
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (A-strip-eq : SingleAgenNF.Aᵢ (single-agen-strip sf)
+                  ≡ SingleAgenNF.Aᵢ (single-agen-strip sg))
+      (B-strip-eq : SingleAgenNF.Bᵢ (single-agen-strip sf)
+                  ≡ SingleAgenNF.Bᵢ (single-agen-strip sg))
+      (u-strip-eq : subst₂ mor A-strip-eq B-strip-eq
+                      (SingleAgenNF.u (single-agen-strip sf))
+                    ≡ SingleAgenNF.u (single-agen-strip sg))
+      (Aᵢ-empty : flatten (SingleAgenNF.Aᵢ (single-agen-strip sg)) ≡ [])
+      (Bᵢ-empty : flatten (SingleAgenNF.Bᵢ (single-agen-strip sg)) ≡ [])
+  → f ≈Term g
+single-agen-NF-discharge-scalar-aux {f = f} {g = g} sf sg
+                                    A-eq B-eq u-eq Aᵢ-empty Bᵢ-empty =
+  single-agen-NF-discharge-scalar-aux-cps
+    NF-f.u NF-g.u
+    NF-f.nosigma-from NF-f.nosigma-to
+    NF-g.nosigma-from NF-g.nosigma-to
+    NF-f.equiv NF-g.equiv
+    A-eq B-eq u-eq Aᵢ-empty Bᵢ-empty
+  where
+    module NF-f = SingleAgenNF (single-agen-strip sf)
+    module NF-g = SingleAgenNF (single-agen-strip sg)
+
+single-agen-NF-coherence-discharge-scalar
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (flat-A-eq : flatten (SingleAgenGen.Aᵢ (single-agen-u sf))
+                 ≡ flatten (SingleAgenGen.Aᵢ (single-agen-u sg)))
+      (flat-B-eq : flatten (SingleAgenGen.Bᵢ (single-agen-u sf))
+                 ≡ flatten (SingleAgenGen.Bᵢ (single-agen-u sg)))
+      (flat-u-eq : subst₂ FlatGen flat-A-eq flat-B-eq
+                      (flat (SingleAgenGen.u (single-agen-u sf)))
+                   ≡ flat (SingleAgenGen.u (single-agen-u sg)))
+      (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+      (ein-empty  : Hypergraph.ein  ⟪ g ⟫ (SingleAgen-edge sg) ≡ [])
+      (eout-empty : Hypergraph.eout ⟪ g ⟫ (SingleAgen-edge sg) ≡ [])
+  → f ≈Term g
+single-agen-NF-coherence-discharge-scalar {f = f} {g = g}
+                                          sf sg pA pB pU iso ein-empty eout-empty =
+  single-agen-NF-discharge-scalar-aux
+    sf sg A-strip-eq B-strip-eq u-strip-eq
+    Aᵢ-strip-empty Bᵢ-strip-empty
+  where
+    -- Step 1: ObjTerm eqs at `single-agen-u` level.
+    u_uf = SingleAgenGen.u (single-agen-u sf)
+    u_ug = SingleAgenGen.u (single-agen-u sg)
+    objterm = flat-data-to-ObjTerm u_uf u_ug pA pB pU
+    A-u-eq = proj₁ objterm
+    B-u-eq = proj₁ (proj₂ objterm)
+    u-u-eq = proj₂ (proj₂ objterm)
+
+    -- Step 2: Lift to strip-record level via consistency lemmas.
+    consist-A-f = single-agen-u-strip-Aᵢ sf
+    consist-B-f = single-agen-u-strip-Bᵢ sf
+    consist-A-g = single-agen-u-strip-Aᵢ sg
+    consist-B-g = single-agen-u-strip-Bᵢ sg
+    consist-u-f = single-agen-u-strip-u sf
+    consist-u-g = single-agen-u-strip-u sg
+
+    A-strip-eq : SingleAgenNF.Aᵢ (single-agen-strip sf)
+               ≡ SingleAgenNF.Aᵢ (single-agen-strip sg)
+    A-strip-eq = trans (sym consist-A-f) (trans A-u-eq consist-A-g)
+
+    B-strip-eq : SingleAgenNF.Bᵢ (single-agen-strip sf)
+               ≡ SingleAgenNF.Bᵢ (single-agen-strip sg)
+    B-strip-eq = trans (sym consist-B-f) (trans B-u-eq consist-B-g)
+
+    u-strip-eq : subst₂ mor A-strip-eq B-strip-eq
+                   (SingleAgenNF.u (single-agen-strip sf))
+                 ≡ SingleAgenNF.u (single-agen-strip sg)
+    u-strip-eq = EQR.begin
+        subst₂ mor A-strip-eq B-strip-eq (SingleAgenNF.u (single-agen-strip sf))
+          EQR.≡⟨ cong (subst₂ mor A-strip-eq B-strip-eq) (sym consist-u-f) ⟩
+        subst₂ mor A-strip-eq B-strip-eq
+          (subst₂ mor consist-A-f consist-B-f u_uf)
+          EQR.≡⟨ subst₂-trans-mor consist-A-f A-strip-eq consist-B-f B-strip-eq u_uf ⟩
+        subst₂ mor (trans consist-A-f A-strip-eq)
+                   (trans consist-B-f B-strip-eq) u_uf
+          EQR.≡⟨ trans-A-collapse ⟩
+        subst₂ mor (trans A-u-eq consist-A-g)
+                   (trans B-u-eq consist-B-g) u_uf
+          EQR.≡⟨ sym (subst₂-trans-mor A-u-eq consist-A-g B-u-eq consist-B-g u_uf) ⟩
+        subst₂ mor consist-A-g consist-B-g
+          (subst₂ mor A-u-eq B-u-eq u_uf)
+          EQR.≡⟨ cong (subst₂ mor consist-A-g consist-B-g) u-u-eq ⟩
+        subst₂ mor consist-A-g consist-B-g u_ug
+          EQR.≡⟨ consist-u-g ⟩
+        SingleAgenNF.u (single-agen-strip sg)
+          EQR.∎
+      where
+        module EQR = ≡-Reasoning
+
+        trans-A-collapse :
+          subst₂ mor (trans consist-A-f A-strip-eq)
+                     (trans consist-B-f B-strip-eq) u_uf
+          ≡ subst₂ mor (trans A-u-eq consist-A-g)
+                       (trans B-u-eq consist-B-g) u_uf
+        trans-A-collapse =
+          cong₂ (λ a b → subst₂ mor a b u_uf)
+                (UIP-ObjTerm (trans consist-A-f A-strip-eq)
+                             (trans A-u-eq consist-A-g))
+                (UIP-ObjTerm (trans consist-B-f B-strip-eq)
+                             (trans B-u-eq consist-B-g))
+          where
+            open import Relation.Binary.PropositionalEquality using (cong₂)
+            open APROPSignatureDec sig-dec using (_≟-ObjTerm_)
+            open import Axiom.UniquenessOfIdentityProofs as UIP-mod
+            UIP-ObjTerm : ∀ {x y : ObjTerm} (p q : x ≡ y) → p ≡ q
+            UIP-ObjTerm = UIP-mod.Decidable⇒UIP.≡-irrelevant _≟-ObjTerm_
+
+    -- Step 3: derive flatten Aᵢ ≡ [] at strip-level from ein ≡ [].
+    -- elab-at-SingleAgen-edge sg gives:
+    --   flatten (Aᵢ_u sg) ≡ map vlab (ein ⟪g⟫ (SingleAgen-edge sg)).
+    -- With ein ≡ [], the RHS = [].  Then transport via consist-A-g
+    -- (Aᵢ_u sg ≡ Aᵢ_strip sg) to get flatten (Aᵢ_strip sg) ≡ [].
+    Aᵢ-u-empty : flatten (SingleAgenGen.Aᵢ (single-agen-u sg)) ≡ []
+    Aᵢ-u-empty =
+      trans (proj₁ (elab-at-SingleAgen-edge sg))
+            (cong (Data.List.map (Hypergraph.vlab ⟪ g ⟫)) ein-empty)
+      where open import Data.List using (map)
+    Aᵢ-strip-empty : flatten (SingleAgenNF.Aᵢ (single-agen-strip sg)) ≡ []
+    Aᵢ-strip-empty = trans (cong flatten (sym consist-A-g)) Aᵢ-u-empty
+
+    Bᵢ-u-empty : flatten (SingleAgenGen.Bᵢ (single-agen-u sg)) ≡ []
+    Bᵢ-u-empty =
+      trans (proj₁ (proj₂ (elab-at-SingleAgen-edge sg)))
+            (cong (Data.List.map (Hypergraph.vlab ⟪ g ⟫)) eout-empty)
+      where open import Data.List using (map)
+    Bᵢ-strip-empty : flatten (SingleAgenNF.Bᵢ (single-agen-strip sg)) ≡ []
+    Bᵢ-strip-empty = trans (cong flatten (sym consist-B-g)) Bᵢ-u-empty
+
+--------------------------------------------------------------------------------
 -- The remaining narrow assumptions of the completeness path, bundled
 -- into the `CompletenessAssumptions` record.  The rest of this module
 -- (the `nf-resp-≅ᴴ` dispatcher and the top-level
@@ -4528,37 +4716,6 @@ single-agen-NF-coherence-discharge-nonempty-eout {f = f} {g = g}
 
 record CompletenessAssumptions : Set where
   field
-    -- Strictly-narrowed `single-agen-NF-coherence`: now only handles
-    -- the case where BOTH the Agen edge's `ein` AND `eout` in `⟪g⟫`
-    -- are empty.  The non-empty-ein case is constructive via
-    -- `single-agen-NF-coherence-discharge-nonempty`, and the
-    -- empty-ein-but-non-empty-eout case is constructive via
-    -- `single-agen-NF-coherence-discharge-nonempty-eout`.
-    --
-    -- The both-empty case corresponds to `flatten Aᵢ_g ≡ []` AND
-    -- `flatten Bᵢ_g ≡ []`, i.e. Aᵢ and Bᵢ are both built only from
-    -- `unit` — a "scalar generator" u : 1 → 1.  In this case neither
-    -- the ein-side nor the eout-side positional argument finds a
-    -- vertex to locate; the iso provides no positional constraint
-    -- and the constructive route fails on both sides.
-    --
-    -- For practical signatures where generators have at least one
-    -- non-unit input or output, this postulate is never invoked.
-    single-agen-NF-coherence-empty-ein
-      : ∀ {A B} {f g : HomTerm A B}
-          (sf : SingleAgen f) (sg : SingleAgen g)
-          (flat-A-eq : flatten (SingleAgenGen.Aᵢ (single-agen-u sf))
-                     ≡ flatten (SingleAgenGen.Aᵢ (single-agen-u sg)))
-          (flat-B-eq : flatten (SingleAgenGen.Bᵢ (single-agen-u sf))
-                     ≡ flatten (SingleAgenGen.Bᵢ (single-agen-u sg)))
-          (flat-u-eq : subst₂ FlatGen flat-A-eq flat-B-eq
-                          (flat (SingleAgenGen.u (single-agen-u sf)))
-                       ≡ flat (SingleAgenGen.u (single-agen-u sg)))
-          (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
-          (ein-empty  : Hypergraph.ein  ⟪ g ⟫ (SingleAgen-edge sg) ≡ [])
-          (eout-empty : Hypergraph.eout ⟪ g ⟫ (SingleAgen-edge sg) ≡ [])
-      → f ≈Term g
-
     nf-resp-≅ᴴ-residual
       : ∀ {A B} (f g : HomTerm A B)
       → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
@@ -4721,7 +4878,7 @@ module WithAssumptions (assumptions : CompletenessAssumptions) where
           flat-B-eq = proj₁ (proj₂ flat-data)
           flat-u-eq = proj₂ (proj₂ flat-data)
   ... | inj₁ ein-empty    | inj₁ eout-empty =
-        single-agen-NF-coherence-empty-ein
+        single-agen-NF-coherence-discharge-scalar
           sf sg flat-A-eq flat-B-eq flat-u-eq iso ein-empty eout-empty
         where
           flat-data = single-agen-flat-data sf sg iso
