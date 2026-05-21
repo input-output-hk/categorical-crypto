@@ -1629,6 +1629,83 @@ private
       (id ⊗₁ (Agen u ⊗₁ id {YR-g})) ∘ bridge-NoSigma-fwd eA HRBN.∎
 
 --------------------------------------------------------------------------------
+-- σ-on-unit lemmas (Sub-step 1).
+--
+-- These are the basic identities relating the symmetry `σ` at a unit
+-- argument to the unitors.  Imported from agda-categories'
+-- `braiding-coherence : λ⇒ ∘ σ ≈ ρ⇒`, and dualised.
+
+private
+  open import Categories.Category.Monoidal.Symmetric Monoidal-FreeMonoidal
+    using (module Symmetric)
+  open import Categories.Category.Monoidal.Braided.Properties
+    (Symmetric.braided Symmetric-Monoidal)
+    using (braiding-coherence; inv-braiding-coherence)
+
+  -- Sub-step 1A: σ {X}{unit} ≈Term λ⇐ ∘ ρ⇒.
+  --
+  -- Derivation: from `braiding-coherence : λ⇒ ∘ σ ≈ ρ⇒` (in the
+  -- agda-categories braided properties module, instantiated at the
+  -- symmetric monoidal `FreeMonoidal`), compose with `λ⇐` on the
+  -- left:
+  --   λ⇐ ∘ (λ⇒ ∘ σ) ≈ λ⇐ ∘ ρ⇒
+  -- LHS rewrites via assoc + λ⇐∘λ⇒≈id to `σ`, so `σ ≈ λ⇐ ∘ ρ⇒`.
+
+  σ-on-unit-Y
+    : ∀ {X : ObjTerm} ⦃ s : Symm ≤ Symm ⦄
+    → σ {A = X} {B = unit} ⦃ s ⦄ ≈Term λ⇐ ∘ ρ⇒
+  σ-on-unit-Y {X} ⦃ s ⦄ = HRBN.begin
+      σ {A = X} {B = unit} ⦃ s ⦄
+        HRBN.≈⟨ ≈-Term-sym idˡ ⟩
+      id ∘ σ {A = X} {B = unit} ⦃ s ⦄
+        HRBN.≈⟨ ≈-Term-sym λ⇐∘λ⇒≈id HRBN.⟩∘⟨refl ⟩
+      (λ⇐ ∘ λ⇒) ∘ σ {A = X} {B = unit} ⦃ s ⦄
+        HRBN.≈⟨ FM-bridge.assoc ⟩
+      λ⇐ ∘ (λ⇒ ∘ σ {A = X} {B = unit} ⦃ s ⦄)
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ braiding-coherence-here ⟩
+      λ⇐ ∘ ρ⇒ HRBN.∎
+    where
+      -- Specialise `braiding-coherence` to the concrete `s` we have.
+      -- The agda-categories version uses the `Symmetric-Monoidal`
+      -- instance directly; our σ takes an explicit `Symm ≤ Symm`.
+      -- All such proofs are propositionally `v≤v`.
+      Symm≤Symm-uniq : (s : Symm ≤ Symm) → s ≡ v≤v
+      Symm≤Symm-uniq v≤v = refl
+
+      braiding-coherence-here
+        : λ⇒ ∘ σ {A = X} {B = unit} ⦃ s ⦄ ≈Term ρ⇒
+      braiding-coherence-here
+        rewrite Symm≤Symm-uniq s = braiding-coherence
+
+  -- Sub-step 1B: σ {unit}{X} ≈Term ρ⇐ ∘ λ⇒.
+  --
+  -- Strategy: directly use `inv-braiding-coherence` from
+  -- agda-categories, which states `ρ⇒ ∘ σ⇐ ≈ λ⇒`.  In our symmetric
+  -- setting σ is self-inverse (σ⇐ = σ {unit}{X}), so we get
+  -- `ρ⇒ ∘ σ {unit}{X} ≈ λ⇒`.  Compose ρ⇐ on the left and use
+  -- ρ⇐∘ρ⇒≈id to extract σ {unit}{X} ≈ ρ⇐ ∘ λ⇒.
+
+  σ-on-unit-X
+    : ∀ {X : ObjTerm} ⦃ s : Symm ≤ Symm ⦄
+    → σ {A = unit} {B = X} ⦃ s ⦄ ≈Term ρ⇐ ∘ λ⇒
+  σ-on-unit-X {X} ⦃ s ⦄ = HRBN.begin
+      σ {A = unit} {B = X} ⦃ s ⦄
+        HRBN.≈⟨ ≈-Term-sym idˡ ⟩
+      id ∘ σ {A = unit} {B = X} ⦃ s ⦄
+        HRBN.≈⟨ ≈-Term-sym ρ⇐∘ρ⇒≈id HRBN.⟩∘⟨refl ⟩
+      (ρ⇐ ∘ ρ⇒) ∘ σ {A = unit} {B = X} ⦃ s ⦄
+        HRBN.≈⟨ FM-bridge.assoc ⟩
+      ρ⇐ ∘ (ρ⇒ ∘ σ {A = unit} {B = X} ⦃ s ⦄)
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ ρ⇒∘σ-here ⟩
+      ρ⇐ ∘ λ⇒ HRBN.∎
+    where
+      Symm≤Symm-uniq : (s : Symm ≤ Symm) → s ≡ v≤v
+      Symm≤Symm-uniq v≤v = refl
+
+      ρ⇒∘σ-here : ρ⇒ ∘ σ {A = unit} {B = X} ⦃ s ⦄ ≈Term λ⇒
+      ρ⇒∘σ-here rewrite Symm≤Symm-uniq s = inv-braiding-coherence
+
+--------------------------------------------------------------------------------
 -- Positional alignment (Step 5 front-end).
 --
 -- Goal: extract `flatten YL_f ≡ flatten YL_g` and
