@@ -3394,15 +3394,32 @@ single-agen-NF-coherence-discharge-nonempty {f = f} {g = g}
 -- by a record instance, so this file itself is `--safe`-clean: the
 -- trust is exposed at the call site that supplies the record.
 --
--- `single-agen-NF-coherence` has been narrowed (this session) to take
--- the three flat-level equalities (`flat-A-eq`, `flat-B-eq`,
--- `flat-u-eq`) extracted constructively by `single-agen-flat-data`.
--- The trust content is now just the Mac-Lane wrapper closure: given
--- already-aligned `SingleAgen` witnesses (via the flat triple), produce
--- `f ≈Term g`.  The (still-pending) constructive discharge of this
--- content is documented in `REFACTORING.md` as "Field 1 → Mac-Lane
--- wrapper closure" with two candidate approaches (solveM extension,
--- σ-free iso decomposition).
+-- ## Discharge progress (this session)
+--
+-- The Mac-Lane wrapper closure for `single-agen-NF-coherence` has been
+-- CONSTRUCTIVELY CLOSED for the non-empty Agen-ein case via
+-- `single-agen-NF-coherence-discharge-nonempty`.  The chain is:
+--   * flat data → ObjTerm eqs via `flat-data-to-ObjTerm`;
+--   * `YL-length-from-iso` (REQUIRES non-empty `ein`);
+--   * `positional-alignment-from-length`;
+--   * `single-agen-strip` to get NF wrappers;
+--   * `discharge-aligned` via `NoSigma-coherence`, `bridge-naturality-pos`,
+--     and the bridge iso laws.
+--
+-- The postulate has been NARROWED to the strictly smaller empty-ein
+-- case (`single-agen-NF-coherence-empty-ein`).  The empty-ein
+-- precondition forces `flatten Aᵢ ≡ []`, i.e. Aᵢ is built only from
+-- `unit` — a degenerate "scalar input" generator.  In this case the
+-- ein-side positional argument vacates (there is no input vertex to
+-- locate); the iso provides no positional constraint and the
+-- constructive route fails.  A symmetric eout-side argument WOULD
+-- close many of these cases (whenever `flatten Bᵢ ≢ []`), but
+-- requires `⟪g⟫.cod` to be Unique — a non-trivial structural claim
+-- not currently proven (see `agen-eout-position` + comments on
+-- cod-uniqueness below).
+--
+-- For practical signatures where generators have non-unit-typed
+-- sources, the postulate is never invoked.
 --
 -- `nf-resp-≅ᴴ-residual` covers all other compound cases (terms with
 -- σ subterms or ≥2 Agens) and remains architecturally blocked under
