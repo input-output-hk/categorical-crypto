@@ -1911,6 +1911,85 @@ private
           σ∘σ-here : σ {A = Y} {B = X} ⦃ s ⦄ ∘ σ {A = X} {B = Y} ⦃ s ⦄ ≈Term id
           σ∘σ-here rewrite Symm≤Symm-uniq s = σ∘σ≈id ⦃ v≤v ⦄
 
+  -- scalar-Agen-tensor-commute: when flatten Aᵢ = flatten Bᵢ = [], the
+  -- morphism `id {X} ⊗ Agen u` can be relocated to `Agen u ⊗ id {X}`
+  -- modulo a pair of NoSigma morphisms.  This follows from σ-naturality
+  -- `σ ∘ (f ⊗ g) ≈ (g ⊗ f) ∘ σ`, combined with σ-on-empty-X/Y to
+  -- collapse the σ's to NoSigma morphisms.
+  --
+  -- Used to "float" the scalar Agen generator within a Mac-Lane wrapper
+  -- structure: with this commutation as a primitive, Agen u can be
+  -- pushed past any NoSigma context, enabling the scalar-coherence
+  -- discharge.
+  scalar-Agen-tensor-commute
+    : ∀ {X Aᵢ Bᵢ : ObjTerm} (u : mor Aᵢ Bᵢ)
+        (Aᵢ-empty : flatten Aᵢ ≡ [])
+        (Bᵢ-empty : flatten Bᵢ ≡ [])
+        ⦃ s : Symm ≤ Symm ⦄
+    → Σ[ ns₁ ∈ HomTerm (X ⊗₀ Aᵢ) (Aᵢ ⊗₀ X) ]
+      Σ[ ns₂ ∈ HomTerm (Bᵢ ⊗₀ X) (X ⊗₀ Bᵢ) ]
+        NoSigma ns₁ × NoSigma ns₂ ×
+        ((id {X} ⊗₁ Agen u) ≈Term ns₂ ∘ (Agen u ⊗₁ id {X}) ∘ ns₁)
+  scalar-Agen-tensor-commute {X} {Aᵢ} {Bᵢ} u Aᵢ-empty Bᵢ-empty ⦃ s ⦄ =
+      ns₁ , ns₂ , ns₁-NS , ns₂-NS , chain
+    where
+      Symm≤Symm-uniq : (s : Symm ≤ Symm) → s ≡ v≤v
+      Symm≤Symm-uniq v≤v = refl
+
+      -- σ {X}{Aᵢ} ≈Term ns₁ via σ-on-empty-Y (the empty arg is the 2nd = Aᵢ).
+      rec-σ₁ = σ-on-empty-Y {X} {Aᵢ} ⦃ s ⦄ Aᵢ-empty
+      ns₁ = proj₁ rec-σ₁
+      ns₁-NS = proj₁ (proj₂ rec-σ₁)
+      σXAᵢ≈ns₁ = proj₂ (proj₂ rec-σ₁)
+
+      -- σ {Bᵢ}{X} ≈Term ns₂ via σ-on-empty-X (the empty arg is the 1st = Bᵢ).
+      rec-σ₂ = σ-on-empty-X {X} {Bᵢ} ⦃ s ⦄ Bᵢ-empty
+      ns₂ = proj₁ rec-σ₂
+      ns₂-NS = proj₁ (proj₂ rec-σ₂)
+      σBᵢX≈ns₂ = proj₂ (proj₂ rec-σ₂)
+
+      -- σ-naturality specialised: σ {Bᵢ}{X} ∘ (Agen u ⊗ id {X})
+      --   ≈Term (id {X} ⊗ Agen u) ∘ σ {Aᵢ}{X}
+      -- ... wait, careful: σ∘[f⊗g]≈[g⊗f]∘σ with f = Agen u, g = id {X}:
+      --   σ ∘ (Agen u ⊗ id {X}) ≈ (id {X} ⊗ Agen u) ∘ σ
+      -- where the LHS σ is at type (Bᵢ ⊗ X) → (X ⊗ Bᵢ), i.e. σ {Bᵢ}{X}.
+      -- The RHS σ is at type (Aᵢ ⊗ X) → (X ⊗ Aᵢ), i.e. σ {Aᵢ}{X}.
+      --
+      -- So we need σ {Aᵢ}{X} (where Aᵢ is empty on the LEFT) — that's
+      -- σ-on-empty-X applied with Y = Aᵢ.
+      rec-σ-Aᵢ-left = σ-on-empty-X {X} {Aᵢ} ⦃ s ⦄ Aᵢ-empty
+      ns-Aᵢ-left = proj₁ rec-σ-Aᵢ-left
+      σAᵢX≈ns-Aᵢ-left = proj₂ (proj₂ rec-σ-Aᵢ-left)
+      -- Note: ns-Aᵢ-left : Aᵢ ⊗ X → X ⊗ Aᵢ, NoSigma.
+
+      σ-naturality-here
+        : σ {A = Bᵢ} {B = X} ⦃ s ⦄ ∘ (Agen u ⊗₁ id {X})
+        ≈Term (id {X} ⊗₁ Agen u) ∘ σ {A = Aᵢ} {B = X} ⦃ s ⦄
+      σ-naturality-here rewrite Symm≤Symm-uniq s =
+        σ∘[f⊗g]≈[g⊗f]∘σ ⦃ v≤v ⦄
+
+      -- (id {X} ⊗ Agen u) ∘ σ {Aᵢ}{X} ∘ σ {X}{Aᵢ} ≈ (id {X} ⊗ Agen u) ∘ id ≈ (id {X} ⊗ Agen u)
+      -- via σ∘σ≈id and idʳ.
+      σ∘σ-AᵢX : σ {A = Aᵢ} {B = X} ⦃ s ⦄ ∘ σ {A = X} {B = Aᵢ} ⦃ s ⦄ ≈Term id
+      σ∘σ-AᵢX rewrite Symm≤Symm-uniq s = σ∘σ≈id ⦃ v≤v ⦄
+
+      chain
+        : (id {X} ⊗₁ Agen u) ≈Term ns₂ ∘ (Agen u ⊗₁ id {X}) ∘ ns₁
+      chain = HRBN.begin
+          id {X} ⊗₁ Agen u
+            HRBN.≈⟨ ≈-Term-sym idʳ ⟩
+          (id {X} ⊗₁ Agen u) ∘ id
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym σ∘σ-AᵢX ⟩
+          (id {X} ⊗₁ Agen u) ∘ (σ {A = Aᵢ} {B = X} ⦃ s ⦄ ∘ σ {A = X} {B = Aᵢ} ⦃ s ⦄)
+            HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+          ((id {X} ⊗₁ Agen u) ∘ σ {A = Aᵢ} {B = X} ⦃ s ⦄) ∘ σ {A = X} {B = Aᵢ} ⦃ s ⦄
+            HRBN.≈⟨ ≈-Term-sym σ-naturality-here HRBN.⟩∘⟨refl ⟩
+          (σ {A = Bᵢ} {B = X} ⦃ s ⦄ ∘ (Agen u ⊗₁ id {X})) ∘ σ {A = X} {B = Aᵢ} ⦃ s ⦄
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          σ {A = Bᵢ} {B = X} ⦃ s ⦄ ∘ (Agen u ⊗₁ id {X}) ∘ σ {A = X} {B = Aᵢ} ⦃ s ⦄
+            HRBN.≈⟨ σBᵢX≈ns₂ HRBN.⟩∘⟨ (HRBN.refl⟩∘⟨ σXAᵢ≈ns₁) ⟩
+          ns₂ ∘ (Agen u ⊗₁ id {X}) ∘ ns₁ HRBN.∎
+
 --------------------------------------------------------------------------------
 -- Positional alignment (Step 5 front-end).
 --
