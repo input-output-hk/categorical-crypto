@@ -2056,7 +2056,7 @@ length-dom-⟪⟫ {A = A} f =
 -- `cast dom-cod-len`).  Combined with the IH on G (`G.cod ≡ G.dom`),
 -- this yields `composed.cod ≡ composed.dom`.
 
-open import Categories.APROP.Hypergraph.HomTermInvariant sig using (⟪_⟫-dom-unique)
+open import Categories.APROP.Hypergraph.HomTermInvariant sig using (⟪_⟫-dom-unique; ⟪_⟫-cod-unique)
 open import Categories.APROP.Hypergraph.Invariant sig
   using (hId-cod≡dom)
 open import Categories.APROP.Hypergraph.Core using (codL; domL)
@@ -2989,6 +2989,145 @@ YL-length-from-iso
 YL-length-from-iso sf sg iso ein-g-nonempty =
   trans (sym (length-YL-strip-≡ sf))
         (trans (YL-length-from-iso-nonempty sf sg iso ein-g-nonempty)
+               (length-YL-strip-≡ sg))
+
+--------------------------------------------------------------------------------
+-- `YL-length-from-iso-nonempty-eout`: eout-side counterpart of
+-- `YL-length-from-iso-nonempty`.  Extracts `length-YL-strip sf ≡
+-- length-YL-strip sg` from the iso when the Agen edge's `eout` is
+-- non-empty (`flatten Bᵢ_g ≢ []`).
+--
+-- Proof mirrors the ein-side: combine `agen-eout-position` with
+-- `φ-cod`, `ψ-eout`, `⟪_⟫-cod-unique`, and `++-middle-length-eq`.
+
+YL-length-from-iso-nonempty-eout
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+  → Hypergraph.eout ⟪ g ⟫ (SingleAgen-edge sg) ≢ []
+  → length-YL-strip sf ≡ length-YL-strip sg
+YL-length-from-iso-nonempty-eout {f = f} {g = g} sf sg iso eout-g-nonempty =
+  trans (sym len-pre-f-eq)
+        (trans len-prefix-eq len-pre-g-eq)
+  where
+    open _≅ᴴ_ iso
+    module HF = Hypergraph ⟪ f ⟫
+    module HG = Hypergraph ⟪ g ⟫
+
+    -- sf decomp: ⟪f⟫.cod ≡ pre-f ++ eout-f ++ post-f
+    pf = agen-eout-position sf
+    pre-f = proj₁ pf
+    post-f = proj₁ (proj₂ pf)
+    cod-eq-f = proj₁ (proj₂ (proj₂ pf))
+    len-pre-f-eq : length pre-f ≡ length-YL-strip sf
+    len-pre-f-eq = proj₁ (proj₂ (proj₂ (proj₂ pf)))
+
+    -- sg decomp: ⟪g⟫.cod ≡ pre-g ++ eout-g ++ post-g
+    pg = agen-eout-position sg
+    pre-g = proj₁ pg
+    post-g = proj₁ (proj₂ pg)
+    cod-eq-g = proj₁ (proj₂ (proj₂ pg))
+    len-pre-g-eq : length pre-g ≡ length-YL-strip sg
+    len-pre-g-eq = proj₁ (proj₂ (proj₂ (proj₂ pg)))
+
+    eout-f = HF.eout (SingleAgen-edge sf)
+    eout-g = HG.eout (SingleAgen-edge sg)
+
+    -- ψ : Fin 1 → Fin 1, must be identity.
+    nE-eq-g : HG.nE ≡ 1
+    nE-eq-g = nE-SingleAgen sg
+
+    Fin1-uniq-loc : (x : Fin 1) → x ≡ zero
+    Fin1-uniq-loc zero = refl
+
+    subst-Fin-inj-loc
+      : ∀ {n m : ℕ} (p : n ≡ m) {x y : Fin n}
+      → subst Fin p x ≡ subst Fin p y → x ≡ y
+    subst-Fin-inj-loc refl eq = eq
+
+    ψ-edge-eq : ψ (SingleAgen-edge sf) ≡ SingleAgen-edge sg
+    ψ-edge-eq = subst-Fin-inj-loc nE-eq-g
+      (trans (Fin1-uniq-loc (subst Fin nE-eq-g (ψ (SingleAgen-edge sf))))
+             (sym (Fin1-uniq-loc (subst Fin nE-eq-g (SingleAgen-edge sg)))))
+
+    eout-g-eq : eout-g ≡ map φ eout-f
+    eout-g-eq =
+      trans (cong HG.eout (sym ψ-edge-eq))
+            (ψ-eout (SingleAgen-edge sf))
+
+    g-cod-eq-φ :
+      HG.cod ≡ map φ pre-f ++ eout-g ++ map φ post-f
+    g-cod-eq-φ = EQR.begin
+      HG.cod
+        EQR.≡⟨ φ-cod ⟩
+      map φ HF.cod
+        EQR.≡⟨ cong (map φ) cod-eq-f ⟩
+      map φ (pre-f ++ eout-f ++ post-f)
+        EQR.≡⟨ map-++ φ pre-f (eout-f ++ post-f) ⟩
+      map φ pre-f ++ map φ (eout-f ++ post-f)
+        EQR.≡⟨ cong (map φ pre-f ++_) (map-++ φ eout-f post-f) ⟩
+      map φ pre-f ++ map φ eout-f ++ map φ post-f
+        EQR.≡⟨ cong (λ x → map φ pre-f ++ x ++ map φ post-f) (sym eout-g-eq) ⟩
+      map φ pre-f ++ eout-g ++ map φ post-f
+        EQR.∎
+      where module EQR = ≡-Reasoning
+
+    decomp-eq :
+      pre-g ++ eout-g ++ post-g ≡ map φ pre-f ++ eout-g ++ map φ post-f
+    decomp-eq = trans (sym cod-eq-g) g-cod-eq-φ
+
+    g-cod-Unique : Unique HG.cod
+    g-cod-Unique = ⟪_⟫-cod-unique g
+
+    decomp-Unique : Unique (pre-g ++ eout-g ++ post-g)
+    decomp-Unique = subst Unique cod-eq-g g-cod-Unique
+
+    extract-len-eq :
+      (m₀ : Fin HG.nV) (ms : List (Fin HG.nV))
+      → eout-g ≡ m₀ ∷ ms
+      → length pre-g ≡ length (map φ pre-f)
+    extract-len-eq m₀ ms eout-g-cons =
+      ++-middle-length-eq
+        pre-g m₀ ms post-g
+        (map φ pre-f) (map φ post-f)
+        (subst (λ x → Unique (pre-g ++ x ++ post-g)) eout-g-cons decomp-Unique)
+        (helper-eq m₀ ms eout-g-cons)
+      where
+        helper-eq : (m₀ : Fin HG.nV) (ms : List (Fin HG.nV))
+                  → eout-g ≡ m₀ ∷ ms
+                  → pre-g ++ (m₀ ∷ ms) ++ post-g
+                  ≡ map φ pre-f ++ (m₀ ∷ ms) ++ map φ post-f
+        helper-eq m₀ ms eq =
+          trans (cong (λ x → pre-g ++ x ++ post-g) (sym eq))
+                (trans decomp-eq
+                       (cong (λ x → map φ pre-f ++ x ++ map φ post-f) eq))
+
+    len-prefix-eq : length pre-f ≡ length pre-g
+    len-prefix-eq = lemma eout-g refl
+      where
+        lemma : (xs : List (Fin HG.nV))
+              → xs ≡ eout-g
+              → length pre-f ≡ length pre-g
+        lemma []        xs-eq = ⊥-elim (eout-g-nonempty (sym xs-eq))
+        lemma (m₀ ∷ ms) xs-eq =
+          trans (sym (length-map-prop φ pre-f))
+                (sym (extract-len-eq m₀ ms (sym xs-eq)))
+
+--------------------------------------------------------------------------------
+-- `YL-length-from-iso-eout`: the eout-side wrapper, parallel to
+-- `YL-length-from-iso`.  Lifts `YL-length-from-iso-nonempty-eout` to
+-- the `flatten YL` form.
+
+YL-length-from-iso-eout
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+      (eout-g-nonempty : Hypergraph.eout ⟪ g ⟫ (SingleAgen-edge sg) ≢ [])
+  → length (flatten (SingleAgenNF.YL (single-agen-strip sf)))
+  ≡ length (flatten (SingleAgenNF.YL (single-agen-strip sg)))
+YL-length-from-iso-eout sf sg iso eout-g-nonempty =
+  trans (sym (length-YL-strip-≡ sf))
+        (trans (YL-length-from-iso-nonempty-eout sf sg iso eout-g-nonempty)
                (length-YL-strip-≡ sg))
 
 --------------------------------------------------------------------------------
