@@ -1838,6 +1838,79 @@ private
   σ-on-empty-Y {X} {Var x} ⦃ _ ⦄ flat-eq with flat-eq
   ... | ()
 
+  -- σ-on-empty-X: dual of σ-on-empty-Y.  When `flatten Y ≡ []`, the
+  -- morphism `σ {Y}{X} : Y ⊗ X → X ⊗ Y` is `≈Term`-equal to a NoSigma
+  -- morphism.  Derived from σ-on-empty-Y via the σ∘σ≈id trick:
+  --
+  --   * From σ-on-empty-Y at (X, Y) get NoSigma `ns-Y : X ⊗ Y → Y ⊗ X`
+  --     with σ {X}{Y} ≈Term ns-Y.
+  --   * The desired NoSigma `ns-X : Y ⊗ X → X ⊗ Y` exists because
+  --     flatten(Y ⊗ X) = flatten X = flatten(X ⊗ Y) — use
+  --     `bridge-NoSigma-fwd`.
+  --   * σ {Y}{X} ≈Term σ {Y}{X} ∘ id ≈Term σ {Y}{X} ∘ (ns-Y ∘ ns-X) and
+  --     σ {Y}{X} ∘ ns-Y ≈ σ {Y}{X} ∘ σ {X}{Y} ≈ id (σ∘σ≈id), so
+  --     σ {Y}{X} ≈Term ns-X.
+  --
+  -- The "ns-Y ∘ ns-X ≈ id" step uses NoSigma-coherence at type
+  -- `Y ⊗ X → Y ⊗ X` (both `ns-Y ∘ ns-X` and `id` are NoSigma).
+
+  σ-on-empty-X
+    : ∀ {X Y : ObjTerm} ⦃ s : Symm ≤ Symm ⦄
+    → flatten Y ≡ []
+    → Σ[ ns ∈ HomTerm (Y ⊗₀ X) (X ⊗₀ Y) ]
+        NoSigma ns × (σ {A = Y} {B = X} ⦃ s ⦄ ≈Term ns)
+  σ-on-empty-X {X} {Y} ⦃ s ⦄ flat-eq = ns-X , ns-X-NS , chain
+    where
+      rec-Y = σ-on-empty-Y {X} {Y} ⦃ s ⦄ flat-eq
+      ns-Y = proj₁ rec-Y
+      ns-Y-NS = proj₁ (proj₂ rec-Y)
+      σXY≈ns-Y = proj₂ (proj₂ rec-Y)
+
+      -- flatten(Y ⊗ X) = [] ++ flatten X = flatten X.
+      -- flatten(X ⊗ Y) = flatten X ++ [] = flatten X.
+      open import Data.List.Properties using (++-identityʳ)
+      flat-YX≡X : flatten (Y ⊗₀ X) ≡ flatten X
+      flat-YX≡X rewrite flat-eq = refl
+
+      flat-X≡XY : flatten X ≡ flatten (X ⊗₀ Y)
+      flat-X≡XY rewrite flat-eq = sym (++-identityʳ (flatten X))
+
+      flat-YX≡XY : flatten (Y ⊗₀ X) ≡ flatten (X ⊗₀ Y)
+      flat-YX≡XY = trans flat-YX≡X flat-X≡XY
+
+      ns-X : HomTerm (Y ⊗₀ X) (X ⊗₀ Y)
+      ns-X = bridge-NoSigma-fwd flat-YX≡XY
+
+      ns-X-NS : NoSigma ns-X
+      ns-X-NS = bridge-NoSigma-fwd-NS flat-YX≡XY
+
+      -- ns-Y ∘ ns-X ≈ id (both NoSigma : Y ⊗ X → Y ⊗ X).
+      ns-Y∘ns-X≈id : ns-Y ∘ ns-X ≈Term id
+      ns-Y∘ns-X≈id =
+        NoSigma-coherence (nosigma-∘ ns-Y-NS ns-X-NS) nosigma-id
+
+      chain : σ {A = Y} {B = X} ⦃ s ⦄ ≈Term ns-X
+      chain = HRBN.begin
+          σ {A = Y} {B = X} ⦃ s ⦄
+            HRBN.≈⟨ ≈-Term-sym idʳ ⟩
+          σ {A = Y} {B = X} ⦃ s ⦄ ∘ id
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym ns-Y∘ns-X≈id ⟩
+          σ {A = Y} {B = X} ⦃ s ⦄ ∘ (ns-Y ∘ ns-X)
+            HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+          (σ {A = Y} {B = X} ⦃ s ⦄ ∘ ns-Y) ∘ ns-X
+            HRBN.≈⟨ (HRBN.refl⟩∘⟨ ≈-Term-sym σXY≈ns-Y) HRBN.⟩∘⟨refl ⟩
+          (σ {A = Y} {B = X} ⦃ s ⦄ ∘ σ {A = X} {B = Y} ⦃ s ⦄) ∘ ns-X
+            HRBN.≈⟨ σ∘σ-here HRBN.⟩∘⟨refl ⟩
+          id ∘ ns-X
+            HRBN.≈⟨ idˡ ⟩
+          ns-X HRBN.∎
+        where
+          Symm≤Symm-uniq : (s : Symm ≤ Symm) → s ≡ v≤v
+          Symm≤Symm-uniq v≤v = refl
+
+          σ∘σ-here : σ {A = Y} {B = X} ⦃ s ⦄ ∘ σ {A = X} {B = Y} ⦃ s ⦄ ≈Term id
+          σ∘σ-here rewrite Symm≤Symm-uniq s = σ∘σ≈id ⦃ v≤v ⦄
+
 --------------------------------------------------------------------------------
 -- Positional alignment (Step 5 front-end).
 --
