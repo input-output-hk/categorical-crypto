@@ -1991,6 +1991,39 @@ private
           ns₂ ∘ (Agen u ⊗₁ id {X}) ∘ ns₁ HRBN.∎
 
 --------------------------------------------------------------------------------
+-- Sub-step 3 (full scalar-coherence): REMAINING WORK
+--
+-- With `σ-on-empty-Y`, `σ-on-empty-X`, and `scalar-Agen-tensor-commute`
+-- in place, the remaining path to fully discharge scalar-coherence is:
+--
+-- 1.  Prove `M-to-leftmost`: any wrapper `id {YL} ⊗ (Agen u ⊗ id {YR})`
+--     equals `NS-post ∘ (id {unit} ⊗ (Agen u ⊗ id {YL ⊗ YR})) ∘ NS-pre`
+--     with NS-pre, NS-post NoSigma, when flatten Aᵢ ≡ flatten Bᵢ ≡ [].
+--
+--     Sketch: by `α-comm` (= `α⇒ ∘ (f ⊗ g) ⊗ h ≈Term f ⊗ (g ⊗ h) ∘ α⇒`),
+--             (id {YL} ⊗ (Agen u ⊗ id {YR}))
+--               ≈Term α⇒ ∘ ((id {YL} ⊗ Agen u) ⊗ id {YR}) ∘ α⇐
+--             ≈Term [using `scalar-Agen-tensor-commute` on `id {YL} ⊗ Agen u`]
+--               α⇒ ∘ ((ns₂ ∘ (Agen u ⊗ id {YL}) ∘ ns₁) ⊗ id {YR}) ∘ α⇐
+--             ≈Term [⊗-∘-dist twice]
+--               α⇒ ∘ (ns₂ ⊗ id) ∘ ((Agen u ⊗ id {YL}) ⊗ id {YR}) ∘ (ns₁ ⊗ id) ∘ α⇐
+--             ≈Term [α-comm again on the middle factor]
+--               (α⇒ ∘ (ns₂ ⊗ id) ∘ α⇐ ∘ λ⇒) ∘ (id {unit} ⊗ (Agen u ⊗ id {YL ⊗ YR}))
+--                 ∘ (λ⇐ ∘ α⇒ ∘ (ns₁ ⊗ id) ∘ α⇐)
+--     where the λ-unitor pair λ⇐∘λ⇒ ≈ id absorbs the unit insertion.
+--     Both wrapper factors are NoSigma.  Estimated ~80-150 LOC.
+--
+-- 2.  Prove `scalar-coherence` by combining `M-to-leftmost` on both
+--     sides with `discharge-aligned` at YL=unit, YR=YL⊗YR (so eYL=refl
+--     and eYR comes from `flatten A = flatten YL⊗YR` on both sides).
+--     The c-from/c-to wrappers around the canonical form are NoSigma,
+--     so NoSigma-coherence aligns them.  Estimated ~50-80 LOC.
+--
+-- 3.  Wire up `single-agen-NF-coherence-discharge-scalar` (sub-step 4)
+--     in parallel with `-discharge-nonempty[-eout]`, dropping the
+--     `single-agen-NF-coherence-empty-ein` postulate field.  ~30-80 LOC.
+
+--------------------------------------------------------------------------------
 -- Positional alignment (Step 5 front-end).
 --
 -- Goal: extract `flatten YL_f ≡ flatten YL_g` and
