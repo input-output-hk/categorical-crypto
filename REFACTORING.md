@@ -16,10 +16,12 @@ into the `CompletenessAssumptions` record in
 ```agda
 record CompletenessAssumptions : Set where
   field
-    -- Strictly-narrowed: now only the EMPTY Agen-ein case
-    -- (`flatten Aᵢ ≡ []`, i.e. scalar-input generators).  The
-    -- non-empty case is fully constructive via
-    -- `single-agen-NF-coherence-discharge-nonempty`.
+    -- Strictly-narrowed: now only the BOTH-EMPTY case
+    -- (both `ein` AND `eout` of the Agen edge in ⟪g⟫ are empty).
+    -- The ein-non-empty case is constructive via
+    -- `single-agen-NF-coherence-discharge-nonempty`; the eout-non-empty
+    -- case (when ein is empty) is constructive via
+    -- `single-agen-NF-coherence-discharge-nonempty-eout`.
     single-agen-NF-coherence-empty-ein
       : ∀ {A B} {f g : HomTerm A B}
           (sf : SingleAgen f) (sg : SingleAgen g)
@@ -31,7 +33,8 @@ record CompletenessAssumptions : Set where
                           (flat (SingleAgenGen.u (single-agen-u sf)))
                        ≡ flat (SingleAgenGen.u (single-agen-u sg)))
           (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
-          (ein-empty : Hypergraph.ein ⟪ g ⟫ (SingleAgen-edge sg) ≡ [])
+          (ein-empty  : Hypergraph.ein  ⟪ g ⟫ (SingleAgen-edge sg) ≡ [])
+          (eout-empty : Hypergraph.eout ⟪ g ⟫ (SingleAgen-edge sg) ≡ [])
       → f ≈Term g
 
     nf-resp-≅ᴴ-residual
@@ -51,23 +54,31 @@ fully constructive (in `DecodeRel.agda`), so the bridge
 `decode-rel f ≈Term bridge f` costs nothing.
 
 **Trust content of `single-agen-NF-coherence-empty-ein`**: only the
-Mac-Lane chase around a scalar-input Agen generator
-(`flatten Aᵢ ≡ []`, i.e. Aᵢ built from `unit` constructors only).
-The iso provides no positional constraint on the Agen-ein (it is
-empty), so the constructive YL-length extraction fails.  For practical
-signatures where generators have non-unit-typed sources, this
-postulate is NEVER invoked — the non-empty discharge fires instead.
+Mac-Lane chase around a "scalar" generator u : 1 → 1, i.e. both
+`flatten Aᵢ ≡ []` AND `flatten Bᵢ ≡ []` (both sides built only from
+`unit` constructors).  In this fully-degenerate case neither the
+ein-side nor the eout-side positional argument finds a vertex to
+locate; the iso provides no positional constraint on either interface
+and the constructive route fails on both sides.  For practical
+signatures where generators have at least one non-unit input or
+output, this postulate is NEVER invoked — one of the constructive
+discharges fires instead.
 
-The full chain for the non-empty case (closed this session) is in
-`single-agen-NF-coherence-discharge-nonempty` and composes:
+The full chain for the non-empty cases is in
+`single-agen-NF-coherence-discharge-nonempty[-eout]` and composes:
 
   * `flat-data-to-ObjTerm`: flat-level → ObjTerm-level eqs (constructive).
-  * `YL-length-from-iso`: extract length-of-YL equality
-    (REQUIRES non-empty `ein`, hence the residual case above).
+  * `YL-length-from-iso[-eout]`: extract length-of-YL equality
+    (REQUIRES non-empty `ein`/`eout`, hence the residual case above).
   * `positional-alignment-from-length`: length → flatten-of-YL/YR eqs.
   * `single-agen-strip` on both sides for the σ-free wrappers.
   * `discharge-aligned`: core wrapper closure via `NoSigma-coherence`,
     `bridge-naturality-pos`, and bridge iso laws.
+
+The eout-side uses `⟪_⟫-cod-unique` (cod-side analogue of
+`⟪_⟫-dom-unique`, in `HomTermInvariant`) + `remap-injective` (in
+`Prune`) to discharge the `Unique ⟪g⟫.cod` requirement that the
+positional argument needs.
 
 ### Dispatcher (`nf-resp-≅ᴴ` in `WithAssumptions`)
 
@@ -82,12 +93,12 @@ Case-splits before falling through to the residual:
 4. Both `SingleAgen` (σ-free, exactly one `Agen` subterm each) →
    `single-agen-coherence-≈Term`, which constructively extracts the
    three flat equalities via `single-agen-flat-data` and then
-   DECIDABLY DISPATCHES on whether `⟪g⟫.ein` for the Agen edge is
-   empty:
-     * **non-empty** (the common case for practical signatures):
-       fully constructive via
+   DECIDABLY 3-WAY DISPATCHES on the Agen edge's interface in `⟪g⟫`:
+     * **ein non-empty**: fully constructive via
        `single-agen-NF-coherence-discharge-nonempty`.
-     * **empty** (degenerate scalar-input generators only): falls
+     * **ein empty AND eout non-empty**: fully constructive via
+       `single-agen-NF-coherence-discharge-nonempty-eout`.
+     * **BOTH ein and eout empty** (scalar u : 1 → 1 only): falls
        back to the narrowed `single-agen-NF-coherence-empty-ein`
        postulate.
 5. Else → `nf-resp-≅ᴴ-residual`.
