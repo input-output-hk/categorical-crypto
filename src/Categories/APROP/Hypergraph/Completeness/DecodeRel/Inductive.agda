@@ -2183,6 +2183,270 @@ private
             HRBN.≈⟨ ≈-Term-refl ⟩
           NS-post ∘ (Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ NS-pre HRBN.∎
 
+  -- scalar-coherence: the both-empty case of the Mac-Lane wrapper
+  -- closure.  Given two NF expressions sharing `u : mor Aᵢ Bᵢ` with
+  -- flatten Aᵢ ≡ flatten Bᵢ ≡ [], and arbitrary NoSigma wrappers on
+  -- both sides (no positional alignment hypothesis needed — it's
+  -- forced by flatten A = flatten YL_f ⊗ YR_f = flatten YL_g ⊗ YR_g),
+  -- conclude the two NF expressions are ≈Term-equal.
+  --
+  -- Strategy:
+  --   1. Apply `M-to-leftmost` on both sides to relocate `Agen u` to
+  --      the leftmost position with NoSigma pre/post wrappers.
+  --   2. Build a NoSigma bridge `bX : X_f → X_g` where
+  --      X_f = YL_f ⊗ YR_f, X_g = YL_g ⊗ YR_g (their flattens both
+  --      equal flatten A since flatten Aᵢ ≡ []).
+  --   3. Push `id_{Aᵢ} ⊗ bX` past `Agen u ⊗ id_{X_f}` using
+  --      bifunctoriality: `(id_{Bᵢ} ⊗ bX) ∘ (Agen u ⊗ id_{X_f})
+  --        ≈Term (Agen u ⊗ id_{X_g}) ∘ (id_{Aᵢ} ⊗ bX)`.
+  --   4. Absorb the bridges into the outer NoSigma wrappers and align
+  --      via `NoSigma-coherence`.
+  scalar-coherence
+    : ∀ {A B : ObjTerm}
+        {YL-f YR-f YL-g YR-g Aᵢ Bᵢ : ObjTerm}
+        (u : mor Aᵢ Bᵢ)
+        {c-from-f : HomTerm A (YL-f ⊗₀ Aᵢ ⊗₀ YR-f)}
+        {c-to-f   : HomTerm (YL-f ⊗₀ Bᵢ ⊗₀ YR-f) B}
+        {c-from-g : HomTerm A (YL-g ⊗₀ Aᵢ ⊗₀ YR-g)}
+        {c-to-g   : HomTerm (YL-g ⊗₀ Bᵢ ⊗₀ YR-g) B}
+        (nosigma-from-f : NoSigma c-from-f) (nosigma-to-f : NoSigma c-to-f)
+        (nosigma-from-g : NoSigma c-from-g) (nosigma-to-g : NoSigma c-to-g)
+        (Aᵢ-empty : flatten Aᵢ ≡ [])
+        (Bᵢ-empty : flatten Bᵢ ≡ [])
+     → (c-to-f ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-f)
+       ≈Term
+       (c-to-g ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-g)
+  scalar-coherence {A} {B} {YL-f} {YR-f} {YL-g} {YR-g} {Aᵢ} {Bᵢ}
+                   u {c-from-f} {c-to-f} {c-from-g} {c-to-g}
+                   ns-from-f ns-to-f ns-from-g ns-to-g
+                   Aᵢ-empty Bᵢ-empty = main-chain
+    where
+        -- Apply M-to-leftmost on both sides.
+        rec-f = M-to-leftmost {YL-f} {YR-f} u ⦃ v≤v ⦄ Aᵢ-empty Bᵢ-empty
+        NS-pre-f  = proj₁ rec-f
+        NS-post-f = proj₁ (proj₂ rec-f)
+        NS-pre-f-NS  = proj₁ (proj₂ (proj₂ rec-f))
+        NS-post-f-NS = proj₁ (proj₂ (proj₂ (proj₂ rec-f)))
+        M-eq-f       = proj₂ (proj₂ (proj₂ (proj₂ rec-f)))
+        -- M-eq-f : id {YL-f} ⊗ (Agen u ⊗ id {YR-f})
+        --   ≈Term NS-post-f ∘ (Agen u ⊗ id {YL-f ⊗ YR-f}) ∘ NS-pre-f
+
+        rec-g = M-to-leftmost {YL-g} {YR-g} u ⦃ v≤v ⦄ Aᵢ-empty Bᵢ-empty
+        NS-pre-g  = proj₁ rec-g
+        NS-post-g = proj₁ (proj₂ rec-g)
+        NS-pre-g-NS  = proj₁ (proj₂ (proj₂ rec-g))
+        NS-post-g-NS = proj₁ (proj₂ (proj₂ (proj₂ rec-g)))
+        M-eq-g       = proj₂ (proj₂ (proj₂ (proj₂ rec-g)))
+
+        -- Bridge X_f → X_g via flatten X_f ≡ flatten X_g (both equal flatten A).
+        -- Derive flatten X_f ≡ flatten X_g from `flatten Aᵢ ≡ []`:
+        --   flatten (YL_f ⊗ YR_f) = flatten YL_f ++ flatten YR_f
+        --   flatten A = flatten YL_f ++ [] ++ flatten YR_f = flatten X_f
+        -- ... but we don't have flatten A directly here.  We instead
+        -- argue: both `c-from-f` and `c-from-g` are NoSigma from A,
+        -- so flatten A = flatten (YL-f ⊗ Aᵢ ⊗ YR-f) = flatten (YL-g ⊗ Aᵢ ⊗ YR-g).
+        -- Since flatten Aᵢ = [], this reduces to flatten X_f = flatten X_g.
+        flat-from-f : flatten A ≡ flatten (YL-f ⊗₀ Aᵢ ⊗₀ YR-f)
+        flat-from-f = flatten-NoSigma ns-from-f
+        flat-from-g : flatten A ≡ flatten (YL-g ⊗₀ Aᵢ ⊗₀ YR-g)
+        flat-from-g = flatten-NoSigma ns-from-g
+
+        -- Reduce: flatten (YL ⊗ Aᵢ ⊗ YR) = flatten YL ++ [] ++ flatten YR
+        --                                  = flatten YL ++ flatten YR
+        --                                  = flatten (YL ⊗ YR).
+        reduce-Aᵢ
+          : ∀ (YL YR : ObjTerm)
+          → flatten (YL ⊗₀ Aᵢ ⊗₀ YR) ≡ flatten (YL ⊗₀ YR)
+        reduce-Aᵢ YL YR
+          rewrite Aᵢ-empty = refl
+
+        flat-Xf : flatten A ≡ flatten (YL-f ⊗₀ YR-f)
+        flat-Xf = trans flat-from-f (reduce-Aᵢ YL-f YR-f)
+        flat-Xg : flatten A ≡ flatten (YL-g ⊗₀ YR-g)
+        flat-Xg = trans flat-from-g (reduce-Aᵢ YL-g YR-g)
+        flat-Xf-Xg : flatten (YL-f ⊗₀ YR-f) ≡ flatten (YL-g ⊗₀ YR-g)
+        flat-Xf-Xg = trans (sym flat-Xf) flat-Xg
+
+        bX-fwd : HomTerm (YL-f ⊗₀ YR-f) (YL-g ⊗₀ YR-g)
+        bX-fwd = bridge-NoSigma-fwd flat-Xf-Xg
+        bX-bwd : HomTerm (YL-g ⊗₀ YR-g) (YL-f ⊗₀ YR-f)
+        bX-bwd = bridge-NoSigma-bwd flat-Xf-Xg
+        bX-fwd-NS = bridge-NoSigma-fwd-NS flat-Xf-Xg
+        bX-bwd-NS = bridge-NoSigma-bwd-NS flat-Xf-Xg
+
+        -- Bifunctoriality of ⊗: (id_Bᵢ ⊗ bX) ∘ (Agen u ⊗ id_X_f)
+        --   ≈Term (Agen u ⊗ bX)
+        --   ≈Term (Agen u ⊗ id_X_g) ∘ (id_Aᵢ ⊗ bX)
+        push-bX-fwd
+          : (id {Bᵢ} ⊗₁ bX-fwd) ∘ (Agen u ⊗₁ id {YL-f ⊗₀ YR-f})
+          ≈Term (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘ (id {Aᵢ} ⊗₁ bX-fwd)
+        push-bX-fwd = HRBN.begin
+            (id {Bᵢ} ⊗₁ bX-fwd) ∘ (Agen u ⊗₁ id {YL-f ⊗₀ YR-f})
+              HRBN.≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
+            (id ∘ Agen u) ⊗₁ (bX-fwd ∘ id)
+              HRBN.≈⟨ ⊗-resp-≈ idˡ idʳ ⟩
+            Agen u ⊗₁ bX-fwd
+              HRBN.≈⟨ ⊗-resp-≈ (≈-Term-sym idʳ) (≈-Term-sym idˡ) ⟩
+            (Agen u ∘ id) ⊗₁ (id ∘ bX-fwd)
+              HRBN.≈⟨ ⊗-∘-dist ⟩
+            (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘ (id {Aᵢ} ⊗₁ bX-fwd) HRBN.∎
+
+        -- Outer wrappers as NoSigma morphisms.
+        -- LHS outer-to-f' : (Bᵢ ⊗ X_g) → B, built from c-to-f, NS-post-f, bX-bwd.
+        outer-to-f' : HomTerm (Bᵢ ⊗₀ YL-g ⊗₀ YR-g) B
+        outer-to-f' = c-to-f ∘ NS-post-f ∘ (id {Bᵢ} ⊗₁ bX-bwd)
+        outer-to-f'-NS : NoSigma outer-to-f'
+        outer-to-f'-NS =
+          nosigma-∘ ns-to-f
+            (nosigma-∘ NS-post-f-NS
+              (nosigma-⊗ nosigma-id bX-bwd-NS))
+
+        outer-from-f' : HomTerm A (Aᵢ ⊗₀ YL-g ⊗₀ YR-g)
+        outer-from-f' = (id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f
+        outer-from-f'-NS : NoSigma outer-from-f'
+        outer-from-f'-NS =
+          nosigma-∘ (nosigma-⊗ nosigma-id bX-fwd-NS)
+            (nosigma-∘ NS-pre-f-NS ns-from-f)
+
+        outer-to-g : HomTerm (Bᵢ ⊗₀ YL-g ⊗₀ YR-g) B
+        outer-to-g = c-to-g ∘ NS-post-g
+        outer-to-g-NS : NoSigma outer-to-g
+        outer-to-g-NS = nosigma-∘ ns-to-g NS-post-g-NS
+
+        outer-from-g : HomTerm A (Aᵢ ⊗₀ YL-g ⊗₀ YR-g)
+        outer-from-g = NS-pre-g ∘ c-from-g
+        outer-from-g-NS : NoSigma outer-from-g
+        outer-from-g-NS = nosigma-∘ NS-pre-g-NS ns-from-g
+
+        -- NoSigma alignments.
+        to-align   : outer-to-f' ≈Term outer-to-g
+        to-align   = NoSigma-coherence outer-to-f'-NS outer-to-g-NS
+        from-align : outer-from-f' ≈Term outer-from-g
+        from-align = NoSigma-coherence outer-from-f'-NS outer-from-g-NS
+
+        -- bX-bwd ∘ bX-fwd ≈Term id (iso law).
+        bX-iso-bwd-fwd : bX-bwd ∘ bX-fwd ≈Term id
+        bX-iso-bwd-fwd = bridge-NoSigma-isoˡ flat-Xf-Xg
+
+        -- id_Bᵢ ⊗ (bX-bwd ∘ bX-fwd) ≈Term id_{Bᵢ ⊗ (YL-f ⊗ YR-f)}.
+        id⊗bX-iso : (id {Bᵢ} ⊗₁ bX-bwd) ∘ (id {Bᵢ} ⊗₁ bX-fwd) ≈Term id
+        id⊗bX-iso = HRBN.begin
+            (id {Bᵢ} ⊗₁ bX-bwd) ∘ (id {Bᵢ} ⊗₁ bX-fwd)
+              HRBN.≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
+            (id ∘ id) ⊗₁ (bX-bwd ∘ bX-fwd)
+              HRBN.≈⟨ ⊗-resp-≈ idˡ bX-iso-bwd-fwd ⟩
+            id ⊗₁ id
+              HRBN.≈⟨ id⊗id≈id ⟩
+            id HRBN.∎
+
+        main-chain
+          : (c-to-f ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-f)
+            ≈Term
+            (c-to-g ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-g)
+        main-chain = HRBN.begin
+            c-to-f ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-f
+            -- Replace M with leftmost form (LHS).
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ M-eq-f HRBN.⟩∘⟨refl ⟩
+          c-to-f ∘ (NS-post-f ∘ (Agen u ⊗₁ id {YL-f ⊗₀ YR-f}) ∘ NS-pre-f)
+            ∘ c-from-f
+            -- Re-associate.
+            HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+          (c-to-f ∘ (NS-post-f ∘ (Agen u ⊗₁ id) ∘ NS-pre-f)) ∘ c-from-f
+            HRBN.≈⟨ FM-bridge.sym-assoc HRBN.⟩∘⟨refl ⟩
+          ((c-to-f ∘ NS-post-f) ∘ ((Agen u ⊗₁ id) ∘ NS-pre-f)) ∘ c-from-f
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          (c-to-f ∘ NS-post-f) ∘ ((Agen u ⊗₁ id) ∘ NS-pre-f) ∘ c-from-f
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.assoc ⟩
+          (c-to-f ∘ NS-post-f) ∘ (Agen u ⊗₁ id) ∘ NS-pre-f ∘ c-from-f
+            -- Insert (id ⊗ bX-bwd) ∘ (id ⊗ bX-fwd) = id on the LEFT of M.
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym idˡ ⟩
+          (c-to-f ∘ NS-post-f) ∘
+            id ∘ ((Agen u ⊗₁ id) ∘ NS-pre-f ∘ c-from-f)
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym id⊗bX-iso HRBN.⟩∘⟨refl ⟩
+          (c-to-f ∘ NS-post-f) ∘
+            ((id {Bᵢ} ⊗₁ bX-bwd) ∘ (id {Bᵢ} ⊗₁ bX-fwd))
+            ∘ ((Agen u ⊗₁ id) ∘ NS-pre-f ∘ c-from-f)
+            -- Re-associate to expose (id ⊗ bX-fwd) ∘ (Agen u ⊗ id).
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.assoc ⟩
+          (c-to-f ∘ NS-post-f) ∘
+            (id {Bᵢ} ⊗₁ bX-bwd) ∘
+            ((id {Bᵢ} ⊗₁ bX-fwd) ∘ ((Agen u ⊗₁ id) ∘ NS-pre-f ∘ c-from-f))
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ HRBN.refl⟩∘⟨ FM-bridge.sym-assoc ⟩
+          (c-to-f ∘ NS-post-f) ∘
+            (id {Bᵢ} ⊗₁ bX-bwd) ∘
+            (((id {Bᵢ} ⊗₁ bX-fwd) ∘ (Agen u ⊗₁ id)) ∘ NS-pre-f ∘ c-from-f)
+            -- Apply push-bX-fwd.
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ HRBN.refl⟩∘⟨
+                     (push-bX-fwd HRBN.⟩∘⟨refl) ⟩
+          (c-to-f ∘ NS-post-f) ∘
+            (id {Bᵢ} ⊗₁ bX-bwd) ∘
+            (((Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘ (id {Aᵢ} ⊗₁ bX-fwd))
+              ∘ NS-pre-f ∘ c-from-f)
+            -- Re-associate.
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ HRBN.refl⟩∘⟨ FM-bridge.assoc ⟩
+          (c-to-f ∘ NS-post-f) ∘
+            (id {Bᵢ} ⊗₁ bX-bwd) ∘
+            (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            -- Re-associate to pull bridges into outer wrappers.
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.sym-assoc ⟩
+          (c-to-f ∘ NS-post-f) ∘
+            ((id {Bᵢ} ⊗₁ bX-bwd) ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g})) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+          ((c-to-f ∘ NS-post-f) ∘
+            ((id {Bᵢ} ⊗₁ bX-bwd) ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}))) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            HRBN.≈⟨ FM-bridge.assoc HRBN.⟩∘⟨refl ⟩
+          (c-to-f ∘ NS-post-f ∘
+            ((id {Bᵢ} ⊗₁ bX-bwd) ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}))) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            HRBN.≈⟨ (HRBN.refl⟩∘⟨ FM-bridge.sym-assoc) HRBN.⟩∘⟨refl ⟩
+          (c-to-f ∘ (NS-post-f ∘ (id {Bᵢ} ⊗₁ bX-bwd)) ∘
+            (Agen u ⊗₁ id {YL-g ⊗₀ YR-g})) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            HRBN.≈⟨ FM-bridge.sym-assoc HRBN.⟩∘⟨refl ⟩
+          ((c-to-f ∘ (NS-post-f ∘ (id {Bᵢ} ⊗₁ bX-bwd))) ∘
+            (Agen u ⊗₁ id {YL-g ⊗₀ YR-g})) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            -- Now `c-to-f ∘ (NS-post-f ∘ (id ⊗ bX-bwd)) = outer-to-f'`
+            -- and `(id ⊗ bX-fwd) ∘ NS-pre-f ∘ c-from-f = outer-from-f'`
+            -- (after re-association).  Replace via outer-to-f' and
+            -- outer-from-f' (definitionally equal up to associativity).
+            HRBN.≈⟨ (FM-bridge.sym-assoc HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (((c-to-f ∘ NS-post-f) ∘ (id {Bᵢ} ⊗₁ bX-bwd)) ∘
+            (Agen u ⊗₁ id {YL-g ⊗₀ YR-g})) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            HRBN.≈⟨ (FM-bridge.assoc HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          ((c-to-f ∘ NS-post-f ∘ (id {Bᵢ} ⊗₁ bX-bwd)) ∘
+            (Agen u ⊗₁ id {YL-g ⊗₀ YR-g})) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            -- LHS factor `c-to-f ∘ NS-post-f ∘ (id ⊗ bX-bwd) = outer-to-f'`.
+            HRBN.≈⟨ (to-align HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (outer-to-g ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g})) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            -- RHS factor: `(id ⊗ bX-fwd) ∘ NS-pre-f ∘ c-from-f = outer-from-f'`.
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ from-align ⟩
+          (outer-to-g ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g})) ∘ outer-from-g
+            -- Unfold outer-to-g, outer-from-g.
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          outer-to-g ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘ outer-from-g
+            HRBN.≈⟨ ≈-Term-refl ⟩
+          (c-to-g ∘ NS-post-g) ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘
+            (NS-pre-g ∘ c-from-g)
+            -- Re-associate to standard form.
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          c-to-g ∘ NS-post-g ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘
+            (NS-pre-g ∘ c-from-g)
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ HRBN.refl⟩∘⟨ FM-bridge.sym-assoc ⟩
+          c-to-g ∘ NS-post-g ∘
+            ((Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘ NS-pre-g) ∘ c-from-g
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.sym-assoc ⟩
+          c-to-g ∘ (NS-post-g ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘ NS-pre-g)
+            ∘ c-from-g
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym M-eq-g HRBN.⟩∘⟨refl ⟩
+          c-to-g ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-g HRBN.∎
+
 --------------------------------------------------------------------------------
 -- Sub-step 3 (full scalar-coherence): REMAINING WORK
 --
