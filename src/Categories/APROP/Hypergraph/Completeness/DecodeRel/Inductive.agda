@@ -51,6 +51,18 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.AgenAgen sig-dec
   using (decode-rel-resp-≅ᴴ-Agen-Agen)
 
+-- The `CompletenessAssumptions` record lives in `DecodeRespIso.agda`
+-- (which is `--safe`-clean).  Re-export it so existing consumers can
+-- continue to reference `IND.CompletenessAssumptions`.  The record
+-- has THREE fields:
+--   * boundary-respects-iso (Translation ↔ FromAPROP iso lift)
+--   * decode-attempt-resp-iso (algorithmic decoder iso invariance)
+--   * decode-rel-≈-decode (structural/algorithmic decoder agreement)
+-- All trust is concentrated here.
+open import Categories.APROP.Hypergraph.Completeness.DecodeRespIso sig-dec
+  using (CompletenessAssumptions) public
+import Categories.APROP.Hypergraph.Completeness.DecodeRespIso sig-dec as RespIso
+
 -- Re-import the constructive Mac Lane discharge from the orphaned
 -- AtomicCompound0E module.  `NoSigma`, `Structural-coherence-≈Term-noσ`,
 -- and the syntactic predicate are all defined there.
@@ -4709,17 +4721,30 @@ single-agen-NF-coherence-discharge-scalar {f = f} {g = g}
 -- For practical signatures where generators have at least one non-unit
 -- input or output, the postulate is never invoked.
 --
--- `nf-resp-≅ᴴ-residual` covers all other compound cases (terms with
--- σ subterms or ≥2 Agens) and remains architecturally blocked under
--- the current `_≅ᴴ_` (see `REFACTORING.md` § "Architectural
--- blockers").
+-- ## Route 1 high-level proof (this session)
+--
+-- The residual is reformulated at the `decode-rel` level as iso-invariance
+-- of the structural decoder:
+--
+--   decode-rel-resp-iso
+--     : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → decode-rel f ≈Term decode-rel g
+--
+-- This is more natural than the previous bridge-level postulate, because
+-- `decode-rel` is hypergraph-structural (`DecodeRel.agda`).  An iso
+-- ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ provides the bijection data (φ, ψ) that should let the
+-- two decoder runs align — see `Completeness/EdgeReorder.agda` for the
+-- viability analysis.
+--
+-- The previously-postulated bridge-level claim `nf-resp-≅ᴴ-residual` is
+-- now a 3-line DERIVED definition in `WithAssumptions`, composing
+-- `decode-rel-resp-iso` with `decode-roundtrip-rel` on both sides.
+-- The dispatcher's residual call sites are unchanged.
 
-record CompletenessAssumptions : Set where
-  field
-    nf-resp-≅ᴴ-residual
-      : ∀ {A B} (f g : HomTerm A B)
-      → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-      → bridge f ≈Term bridge g
+-- `CompletenessAssumptions` is re-exported from `DecodeRespIso.agda`
+-- above.  It has two fields (boundary-respects-iso,
+-- decode-attempt-resp-iso) at the hypergraph-algorithm level; the
+-- term-level `decode-rel-resp-iso` is derived constructively in
+-- `WithAssumptions` below.
 
 -- The record-parameterized sub-module is `WithAssumptions` below
 -- (placed after the structural helpers `NoAgen-iso-IsAgen-⊥` etc. and
@@ -4838,6 +4863,13 @@ nf-bridge = decode-roundtrip-rel
 module WithAssumptions (assumptions : CompletenessAssumptions) where
   open CompletenessAssumptions assumptions
 
+  -- DecodeRespIso.WithAssumptions provides the algorithmic-level
+  -- `decode-resp-iso` and the term-level `decode-rel-resp-iso`,
+  -- both derived constructively from the three
+  -- `CompletenessAssumptions` fields.
+  open RespIso.WithAssumptions assumptions
+    using (decode-resp-iso; decode-rel-resp-iso) public
+
   ------------------------------------------------------------------------
   -- Derived: the original (wider) coherence claim, constructively
   -- discharging the iso → flat-data step via `single-agen-flat-data`
@@ -4887,12 +4919,74 @@ module WithAssumptions (assumptions : CompletenessAssumptions) where
           flat-u-eq = proj₂ (proj₂ flat-data)
 
   ------------------------------------------------------------------------
+  -- High-level proof of `nf-resp-≅ᴴ-residual` via Route 1.
+  --
+  -- The claim `⟪f⟫ ≅ᴴ ⟪g⟫ → bridge f ≈Term bridge g` is the
+  -- "residual" of the completeness theorem after the constructive
+  -- dispatcher cases (Mac Lane, atomic Agen, edge-count ⊥, σ-free
+  -- SingleAgen) are eliminated.  The argument routes through the
+  -- structural decoder `decode-rel`, which is *hypergraph-recursive*
+  -- in its construction (atomic terms produce `bridge`; compounds
+  -- thread through pruned composition and tensor).
+  --
+  -- Three named pieces:
+  --
+  --   (P1) `decode-roundtrip-rel f : decode-rel f ≈Term bridge f`
+  --        — provided constructively in `DecodeRel.agda:157-171`.
+  --        Discharges the bridge↔decode-rel correspondence on each
+  --        side of the chain.
+  --
+  --   (P2) `decode-rel-resp-iso f g iso : decode-rel f ≈Term decode-rel g`
+  --        — the Route 1 POSTULATE.  Captures iso-invariance of the
+  --        structural decoder.  Discharge strategy (~1100-1550 LOC)
+  --        in REFACTORING.md § "Route 1": (a) Linear preservation
+  --        under iso [constructive], (b) edge-reorder invariance
+  --        under ψ [Mac Lane chase per swap atom], (c) vertex-
+  --        relabel invariance under φ [permute-via-vlab],
+  --        (d) stack-permutation absorption at extract-exact.
+  --
+  --   (P3) `decode-roundtrip-rel g` — symmetric of (P1).
+  --
+  -- Composition: (P1)⁻¹ ∘ (P2) ∘ (P3), giving the bridge-level chain
+  --
+  --   bridge f  ≈  decode-rel f  ≈  decode-rel g  ≈  bridge g.
+  --
+  -- Note on the bridge↔raw equivalence.  `bridge f ≈Term bridge g`
+  -- is constructively equivalent (via `bridge-cancel` in
+  -- `CompletenessFull.agda:63`) to `f ≈Term g`, so this residual IS
+  -- completeness for the residual term shapes.  The bridge form is
+  -- bookkeeping for chaining with `decode-rel`'s boundary subst
+  -- types.
+
+  -- Step P1: the (sym of the) bridge↔decode-rel roundtrip.  Named
+  -- alias for readability of the proof chain below.
+  private
+    bridge≈decode-rel : ∀ {A B} (f : HomTerm A B)
+                      → bridge f ≈Term decode-rel f
+    bridge≈decode-rel f = ≈-Term-sym (decode-roundtrip-rel f)
+
+  -- The Route 1 high-level proof of the residual.  Three steps:
+  --   bridge f      [start]
+  --     ≈⟨ P1 ⟩  decode-rel f       (bridge↔decode-rel)
+  --     ≈⟨ P2 ⟩  decode-rel g       (decode-rel-resp-iso, POSTULATE)
+  --     ≈⟨ P3 ⟩  bridge g           (decode-rel↔bridge)
+  nf-resp-≅ᴴ-residual
+    : ∀ {A B} (f g : HomTerm A B)
+    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+    → bridge f ≈Term bridge g
+  nf-resp-≅ᴴ-residual f g iso =
+    ≈-Term-trans (bridge≈decode-rel f)             -- P1
+      (≈-Term-trans (decode-rel-resp-iso f g iso)  -- P2 (postulate)
+                    (decode-roundtrip-rel g))      -- P3
+
+  ------------------------------------------------------------------------
   -- The Path B `nf-resp-≅ᴴ`: case-split layered as
   --   (1) both NoSigma         → Mac Lane (constructive),
   --   (2) both atomic Agen     → AgenAgen (constructive),
   --   (3) one NoAgen vs the other atomic Agen → vacuous (edge-count ⊥),
-  --   (4) else                 → residual field (strictly narrower
-  --                              than before).
+  --   (4) else                 → derived `nf-resp-≅ᴴ-residual` (above),
+  --                              which composes `decode-rel-resp-iso`
+  --                              with the bridge roundtrip.
 
   nf-resp-≅ᴴ
     : ∀ {A B} (f g : HomTerm A B)

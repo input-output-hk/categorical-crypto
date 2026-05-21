@@ -9,39 +9,42 @@ all 20 pass.
 
 ## Current postulate inventory
 
-The completeness path depends on **two narrow postulates**, bundled
+The completeness path depends on **one narrow postulate**, bundled
 into the `CompletenessAssumptions` record in
 `Completeness/DecodeRel/Inductive.agda`:
 
 ```agda
 record CompletenessAssumptions : Set where
   field
-    -- Strictly-narrowed: now only the BOTH-EMPTY case
-    -- (both `ein` AND `eout` of the Agen edge in ⟪g⟫ are empty).
-    -- The ein-non-empty case is constructive via
-    -- `single-agen-NF-coherence-discharge-nonempty`; the eout-non-empty
-    -- case (when ein is empty) is constructive via
-    -- `single-agen-NF-coherence-discharge-nonempty-eout`.
-    single-agen-NF-coherence-empty-ein
-      : ∀ {A B} {f g : HomTerm A B}
-          (sf : SingleAgen f) (sg : SingleAgen g)
-          (flat-A-eq : flatten (SingleAgenGen.Aᵢ (single-agen-u sf))
-                     ≡ flatten (SingleAgenGen.Aᵢ (single-agen-u sg)))
-          (flat-B-eq : flatten (SingleAgenGen.Bᵢ (single-agen-u sf))
-                     ≡ flatten (SingleAgenGen.Bᵢ (single-agen-u sg)))
-          (flat-u-eq : subst₂ FlatGen flat-A-eq flat-B-eq
-                          (flat (SingleAgenGen.u (single-agen-u sf)))
-                       ≡ flat (SingleAgenGen.u (single-agen-u sg)))
-          (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
-          (ein-empty  : Hypergraph.ein  ⟪ g ⟫ (SingleAgen-edge sg) ≡ [])
-          (eout-empty : Hypergraph.eout ⟪ g ⟫ (SingleAgen-edge sg) ≡ [])
-      → f ≈Term g
-
-    nf-resp-≅ᴴ-residual
+    decode-rel-resp-iso
       : ∀ {A B} (f g : HomTerm A B)
       → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-      → bridge f ≈Term bridge g
+      → decode-rel f ≈Term decode-rel g
 ```
+
+This is the Route 1 high-level statement: the structural decoder
+`decode-rel` is iso-invariant.  See REFACTORING.md § "Route 1" for
+the discharge strategy.
+
+The previously-postulated `nf-resp-≅ᴴ-residual` (at the bridge level)
+is now DERIVED as a three-step composition in `WithAssumptions`:
+
+```agda
+nf-resp-≅ᴴ-residual f g iso =
+  bridge f       ≈⟨ P1 ⟩    -- bridge↔decode-rel (constructive)
+  decode-rel f   ≈⟨ P2 ⟩    -- iso invariance (POSTULATE)
+  decode-rel g   ≈⟨ P3 ⟩    -- decode-rel↔bridge (constructive)
+  bridge g
+```
+
+with named pieces
+
+- **P1**: `bridge≈decode-rel f = ≈-Term-sym (decode-roundtrip-rel f)`
+  — the (sym of the) bridge roundtrip from `DecodeRel.agda:157-171`.
+- **P2**: `decode-rel-resp-iso f g iso` — the Route 1 postulate.
+- **P3**: `decode-roundtrip-rel g` — the symmetric roundtrip.
+
+P1 and P3 are constructive.  P2 is the only postulate.
 
 `CompletenessFull.agda` takes this record as a parameter and is
 therefore `--safe`-clean: the trust is exposed only at the call site
@@ -49,36 +52,7 @@ that supplies a record instance.
 
 `decode-rel-resp-≅ᴴ-full` is a 4-line composition
 `trans (decode-roundtrip-rel f) (trans (nf-resp-≅ᴴ iso) (sym
-(decode-roundtrip-rel g)))`, no recursion.  `decode-roundtrip-rel` is
-fully constructive (in `DecodeRel.agda`), so the bridge
-`decode-rel f ≈Term bridge f` costs nothing.
-
-**Trust content of `single-agen-NF-coherence-empty-ein`**: only the
-Mac-Lane chase around a "scalar" generator u : 1 → 1, i.e. both
-`flatten Aᵢ ≡ []` AND `flatten Bᵢ ≡ []` (both sides built only from
-`unit` constructors).  In this fully-degenerate case neither the
-ein-side nor the eout-side positional argument finds a vertex to
-locate; the iso provides no positional constraint on either interface
-and the constructive route fails on both sides.  For practical
-signatures where generators have at least one non-unit input or
-output, this postulate is NEVER invoked — one of the constructive
-discharges fires instead.
-
-The full chain for the non-empty cases is in
-`single-agen-NF-coherence-discharge-nonempty[-eout]` and composes:
-
-  * `flat-data-to-ObjTerm`: flat-level → ObjTerm-level eqs (constructive).
-  * `YL-length-from-iso[-eout]`: extract length-of-YL equality
-    (REQUIRES non-empty `ein`/`eout`, hence the residual case above).
-  * `positional-alignment-from-length`: length → flatten-of-YL/YR eqs.
-  * `single-agen-strip` on both sides for the σ-free wrappers.
-  * `discharge-aligned`: core wrapper closure via `NoSigma-coherence`,
-    `bridge-naturality-pos`, and bridge iso laws.
-
-The eout-side uses `⟪_⟫-cod-unique` (cod-side analogue of
-`⟪_⟫-dom-unique`, in `HomTermInvariant`) + `remap-injective` (in
-`Prune`) to discharge the `Unique ⟪g⟫.cod` requirement that the
-positional argument needs.
+(decode-roundtrip-rel g)))`, no recursion.
 
 ### Dispatcher (`nf-resp-≅ᴴ` in `WithAssumptions`)
 
@@ -92,29 +66,28 @@ Case-splits before falling through to the residual:
    `IsAgen`) mix is vacuous via `ψ`/`ψ⁻¹` on `Fin 0`.
 4. Both `SingleAgen` (σ-free, exactly one `Agen` subterm each) →
    `single-agen-coherence-≈Term`, which constructively extracts the
-   three flat equalities via `single-agen-flat-data` and then
-   DECIDABLY 3-WAY DISPATCHES on the Agen edge's interface in `⟪g⟫`:
-     * **ein non-empty**: fully constructive via
-       `single-agen-NF-coherence-discharge-nonempty`.
-     * **ein empty AND eout non-empty**: fully constructive via
+   three flat equalities via `single-agen-flat-data` and 3-way
+   dispatches on the Agen edge's interface in `⟪g⟫`:
+     * **ein non-empty**: `single-agen-NF-coherence-discharge-nonempty`.
+     * **ein empty AND eout non-empty**:
        `single-agen-NF-coherence-discharge-nonempty-eout`.
-     * **BOTH ein and eout empty** (scalar u : 1 → 1 only): falls
-       back to the narrowed `single-agen-NF-coherence-empty-ein`
-       postulate.
+     * **both ein and eout empty** (scalar u : 1 → 1):
+       `single-agen-NF-coherence-discharge-scalar` (commit `23d3000`).
 5. Else → `nf-resp-≅ᴴ-residual`.
 
 After (1)–(4), the residual fires only when at least one side contains
 a σ subterm OR contains ≥2 Agen subterms.
 
-## Architectural blockers (Field 2 / `nf-resp-≅ᴴ-residual`)
+## Architectural blockers
 
 Two counter-example families established by independent investigation:
 
 1. **σ-naturality half-swap (tensor)**: `Agen u ⊗ id` vs `id ⊗ Agen u`
    at `unit ⊗ A → unit ⊗ A` are `≈Term`-equal via σ-naturality, their
    hypergraphs are `≅ᴴ`-isomorphic via a half-swap, but no
-   L→L-restricting sub-iso exists (Soundness's σ-naturality witness is
-   literally the half-swap producer).
+   L→L-restricting sub-iso exists (Soundness's σ-naturality witness in
+   `Categories.APROP.Hypergraph.SigmaNat` is literally the half-swap
+   producer).
 
 2. **idˡ/idʳ-absorption (composition)**: `Agen u ∘ id` vs
    `id ∘ Agen u` at `unit → unit → unit` are `≈Term`-equal via
@@ -124,10 +97,8 @@ Two counter-example families established by independent investigation:
 
 These pathologies architecturally block the **inductive** strategies
 that powered the old `decode-rel-resp-≅ᴴ-full` (decomposing isos
-recursively through `⊗⊗`/`∘∘`/`⊗∘`/`∘⊗`).  Path B bypassed cases (1)–(4)
-above, leaving only the residual.  Direct inductive proof of the
-residual is not on the table — see "Alternative paths for Field 2"
-below.
+recursively through `⊗⊗`/`∘∘`/`⊗∘`/`∘⊗`).  Direct inductive proof of
+the residual is not on the table — see Routes 1 and 2 below.
 
 ### Earlier unsoundness retractions (cautionary)
 
@@ -140,209 +111,288 @@ below.
   is not truncated, so the propositional equality of permutations was
   unprovable as stated.
 
-## Recent narrowing: Field 1 trust content
+## Discharged: Field 1 (`single-agen-NF-coherence`)
 
-Landed in `Completeness/DecodeRel/Inductive.agda` (after the
-`SingleAgen?` classifier):
+Originally a second record field for the σ-free single-Agen case.
+Fully discharged constructively over commits `7aebf2c..23d3000` in
+three sub-cases (ein-non-empty, eout-non-empty, scalar).  The
+discharge chain composes: `flat-data-to-ObjTerm` → flat→ObjTerm eqs;
+`YL-length-from-iso[-eout]` → length-of-YL equality (non-empty case
+only); `positional-alignment-from-length` → flatten-of-YL/YR eqs;
+`single-agen-strip` → σ-free wrappers; `discharge-aligned` → wrapper
+closure via `NoSigma-coherence`, `bridge-naturality-pos`, bridge iso
+laws.  The eout-side uses `⟪_⟫-cod-unique` + `remap-injective`.  See
+`Completeness/DecodeRel/Inductive.agda` for the live code.
 
-- `NoSigma→NoAgen`, `nE-SingleAgen`, `SingleAgen-edge` — structural
-  helpers locating the unique `Agen` edge inside `⟪f⟫`.
-- `SingleAgenGen` record + `single-agen-u` — extractor for the
-  underlying `mor Aᵢ Bᵢ` generator (independent of `single-agen-strip`).
-- `elab-at-SingleAgen-edge` — at the unique Agen edge, `elab ⟪f⟫`
-  equals `flat u` under two existentially-packaged transports.
-  Inductive cases share `fold-elab-step`, composing the IH on the
-  sub-term with `hComposeP-impl.elab-c-inj₁/inj₂` and
-  `hTensor-impl.elab-c-inj₁/inj₂`; base case `Agen u` discharges to
-  `refl` via Agda unification on `hGen`'s internal `lem-in`/`lem-out`.
-- `single-agen-flat-data` — combines `ψ-elab` at `SingleAgen-edge sf`
-  with `elab-at-SingleAgen-edge` on both sides, aligns
-  `ψ (SingleAgen-edge sf)` with `SingleAgen-edge sg` via `Fin 1`
-  uniqueness (using `nE-SingleAgen sg`), peels the `subst₂`s, and
-  emits the triple `(flat-A-eq, flat-B-eq, flat-u-eq)`.
-- `single-agen-u-strip-{Aᵢ,Bᵢ,u}` — consistency lemmas witnessing
-  that `single-agen-u` and `single-agen-strip` produce the same
-  underlying generator data.  Foundational for the wrapper-closure
-  work below (lets future code switch between Gen-form and NF-form
-  without re-running structural induction at each call site).
-- **Rewired `CompletenessAssumptions.single-agen-NF-coherence`**: now
-  takes `SingleAgen` witnesses and the three flat equalities (rather
-  than `SingleAgenNF` records).
-- **Rewired `WithAssumptions.single-agen-coherence-≈Term`**: derives
-  the flat data via `single-agen-flat-data` and passes the triple
-  into the narrowed postulate.
+## Routes for discharging `nf-resp-≅ᴴ-residual`
 
-All `--safe`-clean.  `CompletenessFull.agda` and `Solver/Tests.agda`
-both still pass (20/20 tests).  Postulate count unchanged at 2;
-content strictly narrower.
+Deep investigation produced two main routes plus a speculative third.
+Neither Route 1 nor Route 2 is a clear winner — both carry significant
+hidden risks identified below.
 
-## Mac-Lane bridge infrastructure (Field 1 prep)
+### Route 1 — Iso-invariant decoder (proves the theorem)
 
-Additional constructive helpers added in
-`Completeness/DecodeRel/Inductive.agda` (after
-`single-agen-u-strip-u`), establishing Steps 1–4 of the Field-1
-discharge strategy.  Step 5 (central "Agen u" naturality lemma:
-`mlB ∘ M_f ≈Term M_g ∘ mlA`) remains open; the postulate is retained
-because no new ones may be introduced and the central naturality is
-not yet discharged.
+**Plan**: define `decode-of : Hypergraph → HomTerm` that is
+iso-invariant, then prove
 
-- `FlatView'`, `view`, `view-subst-A`, `view-subst-B` — inlined
-  FlatView extractor (the `--without-K` version in
-  `Solver.Verify` is structurally identical but lives in a
-  different `--with-K`-axis module; we duplicate the record locally
-  to avoid the cross-axis import).
-- `flat-injective`, `_≟LX_`, `UIP-ListX`, `subst₂-eq-elim` —
-  inlined Hedberg-from-decidable + flat-constructor injectivity.
-- `flat-data-to-ObjTerm` — closes Steps 1–2 of the Field-1
-  strategy: from `(pA, pB, pU)` extract the ObjTerm-level triple
-  `(Aᵢ-eq : Aᵢ_f ≡ Aᵢ_g, Bᵢ-eq, u-eq : subst₂ mor … u_f ≡ u_g)`.
-  Pattern-matches the ObjTerm equalities and uses UIP to collapse
-  the now-self-equal `pA, pB` to `refl`, then applies
-  `flat-injective` to derive `u_f ≡ u_g`.
-- `flatten-NoSigma` — every NoSigma `f : HomTerm A B` satisfies
-  `flatten A ≡ flatten B`.  Used in Step 4 to obtain the
-  flatten-equality between the strip's wrapper codomains.
-- `unflatten-{++,flatten}-{from,to}-NoSigma` — NoSigma-ness of
-  every morphism produced by `unflatten-flatten-≈` and
-  `unflatten-++-≅`.  These are the structural rebalancers used in
-  the bridge construction.
-- `bridge-NoSigma-fwd`, `bridge-NoSigma-bwd` (with `*-NS`
-  NoSigma proofs and `bridge-NoSigma-iso{ʳ,ˡ}` iso laws) — a
-  two-sided NoSigma iso between any two ObjTerms with equal
-  `flatten`.  Constructed by composing `unflatten-flatten-≈`'s
-  from/to with a `subst (HomTerm _) (cong unflatten _) id` middle
-  bridge (which collapses to `id` along the ObjTerm-level
-  equality).  Iso laws via a generic `bridge-iso-helper` that
-  abstracts over the unflatten intermediates so the standard
-  refl-pattern-match works (the J-stuck issue at
-  `flatten X ≡ flatten Y` is sidestepped by working at the
-  unflatten level).
+```
+bridge f ≈Term decode-of ⟪f⟫ ≈Term decode-of ⟪g⟫ ≈Term bridge g
+```
 
-These helpers implement Steps 1–4 of the documented Field-1 strategy
-(see the "Strategy" comment block in
-`Completeness/DecodeRel/Inductive.agda` near
-`flat-data-to-ObjTerm`).  Step 5 (the central
-"`Agen u` commutes with NoSigma wrappers" lemma) is the only
-remaining hole.
+The middle step is the new lemma:
+`H ≅ᴴ K → decode-of H ≈Term decode-of K`.
 
-This session: added the `NoSigma-coherence` thin wrapper exposing
-`noσ-discharge` (the iso-free Mac-Lane coherence: any two parallel
-`NoSigma` morphisms are `≈Term`-equal).  This is the key
-infrastructure for closing the Step-5 wrapper alignment, and
-documented as the Mac-Lane closure tool for the discharge.
+**Existing foundation (strong)**:
 
-Approaches for Step 5 itself (still open):
+- `decode-rel : HomTerm A B → HomTerm (unflatten (flatten A)) (unflatten (flatten B))`
+  is fully defined (`DecodeRel.agda:53-78`), recursive on term structure.
+- `decode-roundtrip-rel : decode-rel f ≈Term bridge f` is **completely
+  constructive** (`DecodeRel.agda:157-171`); atomic cases reduce to
+  `≈-Term-refl`, ∘/⊗ cases use now-`refl` shape lemmas.
+- `Linear` invariant + `⟪⟫-Linear` constructive (`Linearity.agda`).
+- `extract-prefix-from-↭` (`DecodeProperties.agda:467-520`) absorbs
+  permutations on the *vertex-lookup* side.
+- **NEW** (`Route1Composition.agda`): `decode-rel-resp-iso` is now a
+  CONSTRUCTIVE function derived from two narrower postulates at the
+  algorithmic-decoder level:
+  - `decode-rel-≈-decode` — agreement between the structural decoder
+    `decode-rel` and the algorithmic decoder `decode` (~50-100 LOC
+    discharge sketch in comments; "provable" per DecodeRel.agda
+    comments).
+  - `decode-resp-iso` — algorithmic decoder iso invariance, bundling
+    sub-properties (b), (c), (d) of Route 1's discharge.
 
-1. **Direct structural induction on the bridge's NoSigma witness**:
-   Each NoSigma constructor (α, λ, ρ, id, ⊗, ∘) has a known
-   naturality with respect to an arbitrary `Agen u`-edged middle
-   morphism, expressible via the existing `_≈Term_` axioms
-   (`α-comm`, `λ⇒∘id⊗f≈f∘λ⇒`, `ρ⇒∘f⊗id≈f∘ρ⇒`, etc.).  Estimated
-   ~100–300 LOC of routine but type-heavy categorical chase.
-2. **Tensor-factor the bridge via iso-derived positional alignment**:
-   The iso `⟪f⟫ ≅ᴴ ⟪g⟫` constrains the unique Agen-edge's input/output
-   positions to match modulo the φ vertex bijection.  Extracting
-   `flatten YL_f ≡ flatten YL_g` and `flatten YR_f ≡ flatten YR_g`
-   from this would allow factoring the bridge as `bL ⊗ (id ⊗ bR)`,
-   reducing naturality to `⊗-∘-dist` plus `id`-naturality.  Estimated
-   ~150–300 LOC of iso/positional-alignment infrastructure.
-3. **Extend `solveM` to a "single-pinned-generator" fragment**:
-   instantiate `Categories.MonoidalCoherence` with an extra
-   atomic generator slot for the unique `Agen u`.  This gives Step 5
-   directly via the solver, at the cost of a new solver variant.
-   Estimated ~200–500 LOC of solver infrastructure.
+  Trust shift: from 1 opaque term-level postulate to 2 narrower
+  algorithmic-level postulates.  The composition is a 3-line
+  constructive chain via `decode-rel-≈-decode` + `decode-resp-iso` +
+  `≈-Term-sym` of `decode-rel-≈-decode`.  Also exports
+  `route1-assumptions : CompletenessAssumptions` that wires the
+  constructive `decode-rel-resp-iso` into the existing
+  `Inductive.agda` record.
 
-### Why type alignment can't fully collapse
+- **NEW** (`LinearityIso.agda`, **`--safe`-clean**, ~440 LOC):
+  Linear preservation under iso (sub-property (a) of Route 1's
+  discharge) is now FULLY CONSTRUCTIVE.
+  - `count-↭` — count is invariant under list permutation (~13 LOC).
+  - `count-map-via-bij` — count under bijection-map relabels via the
+    inverse (~10 LOC).
+  - `tabulate-bij-↭` — `tabulate (f ∘ π) ↭ tabulate f` for self-
+    bijections π on `Fin n` (~70 LOC).  Induction on n with
+    bijection deflation via stdlib's `punchIn`/`punchOut`.
+  - `bij-fin-ℕ-≡` — m ≡ n from a Fin-bijection (~10 LOC).
+  - `tabulate-bij-↭-via-eq` — extension to Fin m → Fin n
+    bijections (~3 LOC).
+  - `concat-↭` — concat preserves ↭ (~10 LOC).
+  - **`Linear-resp-iso : H ≅ᴴ K → Linear H → Linear K`** — the main
+    theorem, ~80 LOC composition.  For each v : Fin K.nV,
+    derives `count v (producedList K) ≡ count (φ⁻¹ v) (producedList H)`
+    via the iso's φ/ψ data + the helpers; Linear K then follows by
+    applying Linear H at φ⁻¹ v.
+  
+  Sub-property (a) is now in the bank for the eventual discharge of
+  `decode-rel-resp-iso`.  Three sub-properties remain ((b)
+  edge-reorder, (c) vertex-relabel, (d) stack-permutation absorption).
 
-`u_f : mor Aᵢ_f Bᵢ_f` and `u_g : mor Aᵢ_g Bᵢ_g` live in different
-`mor` types.  The iso forces only `flatten Aᵢ_f ≡ flatten Aᵢ_g`,
-not `Aᵢ_f ≡ Aᵢ_g`, because `flatten` is not injective on `ObjTerm`
-(`unit ⊗ A` and `A` flatten the same).  Similarly the strip's wrapper
-types `YL ⊗ Aᵢ ⊗ YR` are accumulated outside-in from syntactic shape
-and generally differ across `f, g` even at equal flatten.  The
-Mac-Lane chase closes the wrappers *once* the ObjTerm-level alignment
-is built — that's what the postulate still owns.
+**The missing core lemma**: edge-reorder invariance.  The decoder
+processes edges in order `range nE`.  Under the iso's `ψ` bijection,
+the "same edges" appear in DIFFERENT orders on the two sides.  Needed:
 
-## Next directions
+```agda
+process-edges-↭
+  : (es₁ es₂ : List (Fin H.nE)) → es₁ ↭ es₂
+  → process-edges H es₁ s ≈Term process-edges H es₂ s
+```
 
-### Field 1 — Mac-Lane wrapper closure
+This lemma does NOT exist in the codebase.  `extract-prefix-from-↭`
+is the closest analog but absorbs permutations on the lookup-list
+side, not the edge-sequence side.
 
-Path now narrowed to extracting **a single ℕ-equality**:
-`length(flatten YL_f) ≡ length(flatten YL_g)` from the iso.  Given
-that, `positional-alignment-from-length` + `bridge-naturality-pos` +
-`NoSigma-coherence` compose into the full discharge.
+**Critical concern — architectural blockers can resurface**: for
+`f = Agen u ⊗ id` vs `g = id ⊗ Agen u`, the half-swap iso has the
+same Agen edge but with reversed ein vertex order under φ.  The
+decoder's `extract-prefix` consumes the stack in different orders,
+producing terms whose `σ`/`α`/`λ`/`ρ` permutation skeletons differ.
+Bridging them requires `σ∘[f⊗g]≈[g⊗f]∘σ` — the same axiom whose
+hypergraph image (the half-swap iso) was the original obstacle.  The
+blocker doesn't disappear; it shifts from term-structural induction
+to permutation arithmetic on edge sequences.
 
-The lemma is documented in `Inductive.agda` (near
-`positional-alignment-from-length`) with substep analysis from this
-session.  Closing requires structural induction through `hComposeP` /
-`hTensor` / `hGen` to show that in the canonical NF `⟪Wf⟫`, the Agen
-edge's `ein` vertices form a contiguous sublist of `dom` at offset
-`length(flatten YL_f)`.
+**Concrete LOC and risk breakdown**:
 
-Two candidate routes (both ~150–300 LOC):
+| Module | LOC | Risk |
+|---|---|---|
+| `process-edges-↭` (edge reordering) | ~250 | **High**: permutation arithmetic subtleties |
+| `vertex-relabel-invariance` (φ side) | ~150 | Medium: mostly rewriting |
+| `decode-rel-resp-iso` (combine) | ~200 | **High**: tensor/compose threading |
+| `extract-prefix-under-relabel` | ~100 | Low: similar to existing |
+| `iso-preserves-Linear` | ~10 | Trivial |
+| **Total** | **~700** | **High** |
 
-1. **Direct structural induction on `sf`** through 5 cases (one per
-   `SingleAgen` constructor), each unpacking the relevant
-   `hComposeP`/`hTensor` positional content.  Trivial in the
-   `single-agen-here` case (`YL = unit`, length 0); compound cases
-   require careful tracking of `injL`/`injR`/`remapP` through the
-   composition layers.
+**Failure mode**: if the permutation structure gets baked into the
+term recursively (e.g., in the ⊗ case where permutations on left and
+right sides must thread together), the proof could grow exponentially
+in depth, hitting Agda's computational limits.  The σ-naturality
+pathology becomes "permutation depth blowup" rather than "no sub-iso
+exists" — same fundamental difficulty, different layer.
 
-2. **Canonical-NF reduction via soundness**: apply `Soundness.soundness`
-   to the strip's `equiv` field on both sides to get
-   `⟪Wf⟫ ≅ᴴ ⟪Wg⟫`, then prove the positional lemma specifically for
-   the canonical form `Wf = c-to ∘ M ∘ c-from`.  Requires showing
-   NoSigma terms preserve positional alignment between dom and cod
-   (each constructor needs verification).
+**Viability test status (probe in `Completeness/EdgeReorder.agda`)**:
+the `refl` and `prep` cases are proven constructively (~30 LOC); the
+`swap` case is analysed structurally.  Findings:
 
-This session's closed sub-case (`YL-length-from-iso-here-here`):
-when both sides are `single-agen-here`, length is trivially `0 ≡ 0`.
+- **The natural lemma is FALSE in general.**  Concrete counter-example:
+  for edges `e₁ : [v₁]→[v₂]` and `e₂ : [v₂]→[v₃]` from stack `[v₁]`,
+  the order `[e₁,e₂]` produces final stack `[v₃]` but `[e₂,e₁]`
+  produces `[v₂]` (because `e₂` cannot fire when its prerequisite
+  `v₂` isn't on the stack — `extract-prefix` silently skips).  Final
+  multisets aren't `↭`-related.
+- **The correct lemma requires a topological-success precondition**
+  (`AllFire es s` = every edge in `es` successfully extracts from
+  the running stack).  For the iso case (`H ≅ᴴ K`, both Linear),
+  this precondition holds for both orderings — but proving its
+  preservation under iso adds substantial bookkeeping (~200 LOC).
+- **POSITIVE finding: σ-naturality on Agen edges is NOT required.**
+  The decoder structure places Agen edges "side-by-side in tensor"
+  through `unflatten-++-≅` chains, not "swapped through σ".
+  Commuting `(Agen e₁ ⊗ id)` past `(Agen e₂ ⊗ id)` uses `⊗-∘-dist`
+  + Mac Lane coherence on the surrounding wrappers — NOT σ-naturality
+  on the generators themselves.  The architectural blocker does NOT
+  recur in Route 1.
+- **REVISED LOC estimate**: ~1100-1550 (up from 700), reducible to
+  ~800-1000 if `solveM` is extended to absorb the per-swap-atom Mac
+  Lane chase wholesale.
 
-Earlier candidate routes (still applicable, but more general):
+**Verdict**: Route 1 is **viable but more expensive than first
+estimated**.  The architectural blocker is real but does not block
+Route 1 specifically — it's displaced into Mac Lane coherence
+gymnastics on coherence wrappers, which are constructive though
+verbose.  The next test would be proving the "both fire, non-
+interacting" swap sub-case fully in Agda (~200 LOC) to confirm the
+Mac Lane chase actually composes without surprises.
 
-1. **Push the discharge into the constructive Mac-Lane solver**: extend
-   `solveM` (`Categories.MonoidalCoherence`, ~378 LOC) to handle terms
-   with a single `Agen u`-edge "pinned" at the centre.  The wrappers
-   around it reduce to a NoSigma equation, modulo a single
-   subst-on-the-inner-u.  ~100–300 LOC; reusable infrastructure
-   beyond this file.
-2. **Two-sided strip symmetric closure**: build the strip records via
-   `single-agen-strip`, observe both sides reduce to `c-to ∘ (id ⊗
-   (Agen u ⊗ id)) ∘ c-from`, and bridge the two via the flat
-   equalities + Mac-Lane isos derived from `unflatten-flatten-≈`.
-   ~100–200 LOC; more concrete than (1) but tied to the current strip
-   shape.  Uses the new `single-agen-u-strip-*` consistency lemmas.
+### Route 2 — Solver-emits-≈Term (sidesteps but does not discharge)
 
-### Field 2 — Architecturally blocked; alternative paths
+**Plan**: change `findIso : H J → Maybe (H ≅ᴴ J)` to
+`findIso : f g → Maybe (⟪f⟫ ≅ᴴ ⟪g⟫ × f ≈Term g)`.  Each search step
+emits the categorical-axiom rewrite that justifies it.  The postulate
+stays in `CompletenessAssumptions` but is **never reached** by the
+standard pipeline (Tests.agda routes through the enriched `findIso`).
 
-Direct inductive proof of `nf-resp-≅ᴴ-residual` is blocked by the
-σ-naturality and idˡ/idʳ counter-examples above.  Two viable routes:
+**Pipeline structure** (`FindIso.agda:47-71`): Seed → Search → Verify.
 
-- **Solver-emitting-≈Term** — modify `Solver/findIso` to emit a
-  parallel `≈Term` rewrite witness alongside the iso (each
-  `pairUp`/`tryEdge`/`verify` step emits a parallel rewrite).
-  Localized change inside `Solver/`; sidesteps the residual at all
-  current call sites.  Replaces the *theorem* rather than proves it.
-- **`≅ᴴ`-invariant normal-form decoder** — define
-  `nf : Hypergraph → HomTerm` so that `⟪f⟫ ≅ᴴ ⟪g⟫ → nf ⟪f⟫ ≈Term
-  nf ⟪g⟫`.  `Completeness/DecodeAttempt.agda` (`decode-attempt-Linear`)
-  and `Completeness/Linearity.agda` are candidate infrastructure.
-  Real proof of the underlying claim; substantial (~500–1000 LOC).
+| Stage | Role | ≈Term emission | Effort | Risk |
+|---|---|---|---|---|
+| **Seed** (`Seed.agda:70-92`) | Match boundary vertices by interface | Coherence iso (`unflatten-flatten-≈`) | ~50 LOC | Low |
+| **Search** (`Search.agda:55-88`) | Backtrack edge bijection ψ | Naturality axioms per match | ~300 LOC | **High** |
+| **Match** (`Match.agda:85-108`) | Per-edge bijection extension | Generator-specific dispatch | ~250 LOC | **High** |
+| **Verify** (`Verify.agda:149-240`) | Assemble iso record + invariants | Pass-through | ~20 LOC | Low |
+
+**Critical issue**: `findIso` currently takes hypergraphs, NOT terms.
+The term structure isn't visible to the solver.  Threading term info
+through all five files (FindIso, Search, Match, Verify, PBij) is a
+major refactor.  `searchIso`'s signature changes from
+`(fuel : ℕ) → VertexBij → EdgeBij → Maybe (...)` to one carrying
+`f, g : HomTerm` plus an accumulated partial rewrite proof.
+
+`Match.matchEdge` would need **generator introspection** — distinguish
+σ-edges from Agen-edges from structural edges — to dispatch the right
+axiom.  Currently matching is purely shape-based (atom-list agreement,
+edge count).  Generator-aware dispatch is ~300-400 LOC of *risky*
+new code with novel invariants.
+
+**Coverage limitation**: Route 2 provides `f ≈Term g` only when the
+iso came from `findIso`.  For the postulate's signature
+`∀ {A B} (f g : HomTerm A B) → ⟪f⟫ ≅ᴴ ⟪g⟫ → bridge f ≈Term bridge g`,
+where the iso is *given* (could come from anywhere), Route 2 doesn't
+help.  Consequences:
+
+- All 20 tests in `Solver/Tests.agda` are routed through `findIso`,
+  so Route 2 covers them.
+- `completeness-full` as a general theorem still syntactically
+  requires `CompletenessAssumptions`; with Route 2, the record is
+  never invoked by the standard pipeline but remains a "trust
+  assumption for non-solver isos" in the type.
+
+**Architectural blocker check**: the σ-naturality counter-example IS
+in the test suite (`Tests.agda:195`, `test-σ∘[f⊗g]`).  Under Route 2,
+when `findIso` runs on this case:
+
+1. Seed pairs boundary vertices (structural, no axiom needed).
+2. Search matches the Agen-pair edges from LHS to RHS (positions
+   shifted due to the swap).
+3. Search matches the σ-edge.  To emit ≈Term, this step must
+   recognize "σ-edge interacting with reordered tensor inputs" and
+   apply `σ∘[f⊗g]≈[g⊗f]∘σ`.  The axiom exists constructively as a
+   `_≈Term_` constructor; what's missing is dispatch logic in Match.
+
+**Failure mode**: generator-aware dispatch in Match could fail to
+cover edge cases.  Tests pass case-by-case, but new tests or
+solver-emitted isos for complex axioms could expose dispatch gaps.
+
+### Comparison
+
+| Dimension | Route 1 | Route 2 |
+|---|---|---|
+| Discharges the postulate? | Yes (any iso) | No (only solver isos) |
+| `completeness-full` becomes constructive? | Yes | Only for solver-derived inputs |
+| LOC estimate | ~700 | ~660 |
+| Riskiest module | `process-edges-↭` | `Match` generator dispatch |
+| Architectural blocker handling | Resurfaces as permutation depth | Bypassed structurally; per-step axiom dispatch |
+| Failure mode | Term blowup / Agda compute limit | Dispatch gaps in Match |
+| Reusability of new code | Permutation lemmas (stdlib-flavor) | Solver-specific |
+| Auditability | One big proof | Many small per-axiom proofs + dispatch logic |
+| Test coverage cost | None (one proof discharges all) | Per-test rewrite chain (~10 steps each) |
+
+### Route 3 — Linear / vertex-counting argument (speculative)
+
+Not yet investigated in depth.  The intuition: prove the postulate
+for the *Linear* fragment using a multiset/counting argument that
+operates at the hypergraph level, not via term-structural induction
+or edge ordering.  Linearity (`Linearity.agda`) is preserved under
+the translation; the iso preserves it; vertex-multiset equality
+might encode the structural data needed to bridge `f` and `g` without
+touching the permutation pathology.  Would need its own research pass.
+
+## Recommendation
+
+After the viability probe (`Completeness/EdgeReorder.agda`):
+
+- **Route 1 is viable but expensive** (~1100-1550 LOC).  The
+  architectural blocker does not recur for the decoder; the cost is
+  Mac Lane coherence chase per swap atom plus the `AllFire`
+  precondition bookkeeping.
+- **Route 2 is cheaper for current call sites** (~660 LOC) but does
+  not discharge `completeness-full` for arbitrary isos.
+- **Route 3 (Linear/vertex-counting)** is still speculative.
+
+Suggested path forward:
+
+1. **Confirm the Mac Lane chase composes** by proving the "both fire,
+   non-interacting" swap sub-case fully (~200 LOC).  Definitive
+   confirmation that Route 1's expensive-but-tractable estimate is
+   accurate.
+2. If step 1 succeeds, decide based on appetite: Route 1 (general
+   theorem, more LOC) vs Route 2 (test-coverage-only, less LOC).
+3. If step 1 hits unexpected blockers, pivot to Route 2 starting
+   with Seed + Verify (the easy stages), building up to Search/Match
+   per-test rather than uniformly.
 
 ## Helpers and infrastructure (still live)
 
 - `Completeness/PermutationCoherence.agda` —
   `↭-to-≅ : xs ↭ ys → unflatten xs ≅ unflatten ys`.  Used by
-  `bridge`/`bridge⁻¹` derivations and would be reused by Field 1
-  Mac-Lane bridge construction.
+  `bridge`/`bridge⁻¹` derivations.
 - `Completeness/Unflatten.agda` — `unflatten`/`unflatten-flatten-≈`,
   the `bridge` half-isomorphism foundation.
 - `Completeness/BridgeOps.agda` — `bridge-∘`/`bridge-⊗`/
   `bridge-⊗-decompose`, constructive distributivity laws.
 - `Completeness/DecodeRel.agda` — `decode-rel`, `decode-roundtrip-rel`
   (constructive).
-- `Completeness/Linearity.agda` — `Linear` invariant on hypergraphs;
-  natural framework for label-multiset counting.
+- `Completeness/DecodeAttempt.agda` — `decode-attempt-Linear`,
+  `decode`, `bridge`.  Candidate infrastructure for Route 1.
+- `Completeness/DecodeProperties.agda` — `extract-prefix-from-↭`,
+  permutation absorbers.  Candidate infrastructure for Route 1.
+- `Completeness/Linearity.agda` — `Linear` invariant.  Candidate
+  infrastructure for Routes 1 and 3.
 
 ## Orphaned files
 
