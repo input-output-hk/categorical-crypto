@@ -227,11 +227,31 @@ hSwap-dom-Unique A B =
     (Uniq-Prop.map⁺ (raise-inj   _) (range-Unique _))
     (disj-L-R (range (length (flatten A))) (range (length (flatten B))))
 
+-- hSwap's cod is also Unique.  Its cod is the same as dom with the two
+-- halves swapped:
+--   `map (raise nA) (range nB) ++ map (inject+ nB) (range nA)`.
+hSwap-cod-Unique : ∀ A B → Unique (Hypergraph.cod (hSwap A B))
+hSwap-cod-Unique A B =
+  Uniq-Prop.++⁺
+    (Uniq-Prop.map⁺ (raise-inj   _) (range-Unique _))
+    (Uniq-Prop.map⁺ (inject+-inj _) (range-Unique _))
+    (disj-R-L (range (length (flatten B))) (range (length (flatten A))))
+  where
+    -- Symmetric counterpart of `disj-L-R`: `map (raise m) ys` and
+    -- `map (_↑ˡ n) xs` are disjoint (same proof flipped).
+    disj-R-L : ∀ {m n} (ys : List (Fin n)) (xs : List (Fin m))
+             → Disjoint (map (m ↑ʳ_) ys) (map (_↑ˡ n) xs)
+    disj-R-L ys xs (v∈R , v∈L) = disj-L-R xs ys (v∈L , v∈R)
+
 --------------------------------------------------------------------------------
 -- hGen's dom is Unique. Dom is `map (inject+ nB) (range nA)`.
 
 hGen-dom-Unique : ∀ {A B : ObjTerm} (f : mor A B) → Unique (Hypergraph.dom (hGen f))
 hGen-dom-Unique {A} f = Uniq-Prop.map⁺ (inject+-inj _) (range-Unique _)
+
+-- hGen's cod is Unique. Cod is `map (raise nA) (range nB)`.
+hGen-cod-Unique : ∀ {A B : ObjTerm} (f : mor A B) → Unique (Hypergraph.cod (hGen f))
+hGen-cod-Unique {A} f = Uniq-Prop.map⁺ (raise-inj _) (range-Unique _)
 
 --------------------------------------------------------------------------------
 -- `range n` covers all of Fin n — needed for `hSwap-dom-covers`.

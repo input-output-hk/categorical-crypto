@@ -557,3 +557,87 @@ module _ {a} {X : Set a} {n m : ℕ} where
   map-via-remap xs f λK λG bdy ys =
     trans (sym (map-cong (remap-vlab xs f λK λG bdy) ys))
           (map-∘ ys)
+
+--------------------------------------------------------------------------------
+-- Global injectivity of `remap xs f`, assuming `Unique xs` and `f`
+-- injective. The pruning routes members to `inject+` slots (one per
+-- xs-index) and non-members to `raise` slots (one per nonMem-index);
+-- distinct inputs yield distinct outputs because:
+--   * lookup is injective on Unique xs (so distinct members of xs give
+--     distinct xs-indices, hence distinct f-images, hence distinct
+--     inject+ results);
+--   * nonMem xs is Unique (filter of allFin), so distinct non-members
+--     give distinct nonMem-indices, hence distinct raise results;
+--   * inject+ and raise produce disjoint values (different splitAt sides).
+
+module _ {n m : ℕ} where
+  open import Data.List.Membership.DecPropositional (_≟_ {n = n}) using (_∈?_)
+  open import Data.List.Membership.Propositional using (_∈_; _∉_)
+  open import Data.List.Membership.Propositional.Properties using (∈-filter⁺; ∈-allFin)
+  open import Data.Sum using (inj₁; inj₂)
+
+  -- `_↑ˡ_ k` is injective for any fixed `k` (analogue of `inject+-inj`).
+  -- Re-derived locally to avoid pulling in the `Invariant` module.
+  ↑ˡ-inj : ∀ {n} (k : ℕ) {i j : Fin n}
+         → i ↑ˡ k ≡ j ↑ˡ k → i ≡ j
+  ↑ˡ-inj {n} k {i} {j} eq
+    with splitAt-↑ˡ n i k | splitAt-↑ˡ n j k | cong (splitAt n) eq
+  ... | i-red | j-red | split-eq =
+    inj₁-inj (trans (sym i-red) (trans split-eq j-red))
+    where
+      inj₁-inj : ∀ {X Y : Set} {x y : X} → inj₁ {B = Y} x ≡ inj₁ y → x ≡ y
+      inj₁-inj refl = refl
+
+  ↑ʳ-inj : ∀ (k : ℕ) {n} {i j : Fin n}
+         → k ↑ʳ i ≡ k ↑ʳ j → i ≡ j
+  ↑ʳ-inj k {n} {i} {j} eq
+    with splitAt-↑ʳ k n i | splitAt-↑ʳ k n j | cong (splitAt k) eq
+  ... | i-red | j-red | split-eq =
+    inj₂-inj (trans (sym i-red) (trans split-eq j-red))
+    where
+      inj₂-inj : ∀ {X Y : Set} {x y : Y} → inj₂ {A = X} x ≡ inj₂ y → x ≡ y
+      inj₂-inj refl = refl
+
+  -- Disjointness of `_↑ˡ k` and `m ↑ʳ_` ranges.
+  ↑ˡ-↑ʳ-disjoint : (k : ℕ) (i : Fin m) (j : Fin k)
+                 → i ↑ˡ k ≡ m ↑ʳ j → ⊥
+  ↑ˡ-↑ʳ-disjoint k i j eq
+    with splitAt-↑ˡ m i k | splitAt-↑ʳ m k j | cong (splitAt m) eq
+  ... | i-red | j-red | split-eq =
+    case-absurd (trans (sym i-red) (trans split-eq j-red))
+    where
+      case-absurd : ∀ {X Y : Set} {x : X} {y : Y} → inj₁ x ≡ inj₂ y → ⊥
+      case-absurd ()
+
+  remap-injective
+    : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
+    → Unique xs
+    → (∀ {i j : Fin (length xs)} → f i ≡ f j → i ≡ j)
+    → ∀ {v v' : Fin n} → remap xs f v ≡ remap xs f v' → v ≡ v'
+  remap-injective xs f xs-uniq f-inj {v} {v'} eq with v ∈? xs | v' ∈? xs
+  ... | yes v∈ | yes v'∈ =
+    -- Both members.  remap xs f v = f (index v∈) ↑ˡ count-non xs, same for v'.
+    -- inject+-inj reduces eq to `f (index v∈) ≡ f (index v'∈)`.
+    -- f-inj gives `index v∈ ≡ index v'∈`.  Then lookup-index closes.
+    trans (lookup-index v∈)
+      (trans (cong (lookup xs) idx-eq) (sym (lookup-index v'∈)))
+    where
+      f-eq : f (index v∈) ≡ f (index v'∈)
+      f-eq = ↑ˡ-inj (count-non xs) eq
+      idx-eq : index v∈ ≡ index v'∈
+      idx-eq = f-inj f-eq
+  ... | yes v∈ | no v'∉ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ _ eq)
+  ... | no v∉  | yes v'∈ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ _ (sym eq))
+  ... | no v∉  | no v'∉ =
+    -- Both non-members.  remap = m ↑ʳ (index ∈-filter⁺ ...).
+    -- ↑ʳ-inj reduces to index-equality on nonMem indices.
+    -- lookup-index then gives v ≡ v'.
+    trans (lookup-index v∈nonMem)
+      (trans (cong (lookup (nonMem xs)) idx-eq) (sym (lookup-index v'∈nonMem)))
+    where
+      v∈nonMem : v ∈ nonMem xs
+      v∈nonMem = ∈-filter⁺ (λ u → ¬? (u ∈? xs)) (∈-allFin v) v∉
+      v'∈nonMem : v' ∈ nonMem xs
+      v'∈nonMem = ∈-filter⁺ (λ u → ¬? (u ∈? xs)) (∈-allFin v') v'∉
+      idx-eq : index v∈nonMem ≡ index v'∈nonMem
+      idx-eq = ↑ʳ-inj m eq
