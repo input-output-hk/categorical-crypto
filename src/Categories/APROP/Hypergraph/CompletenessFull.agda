@@ -4,10 +4,9 @@
 -- Completeness theorem, threaded through the inductive
 -- `decode-rel-resp-≅ᴴ-full` from `DecodeRel/Inductive.agda`.
 --
--- The two remaining narrow postulates (`single-agen-NF-coherence`,
--- `nf-resp-≅ᴴ-residual`) are bundled into the
--- `CompletenessAssumptions` record exposed by `Inductive.agda`.  This
--- module takes a record instance as a parameter and is therefore
+-- The remaining narrow postulate (`decode-rel-resp-iso`) is bundled
+-- into the `CompletenessAssumptions` record exposed by `Inductive.agda`.
+-- This module takes a record instance as a parameter and is therefore
 -- itself `--safe`: the trust is exposed at the call site that
 -- supplies the assumptions.
 --

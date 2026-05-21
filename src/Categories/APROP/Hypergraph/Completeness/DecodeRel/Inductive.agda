@@ -51,6 +51,18 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.AgenAgen sig-dec
   using (decode-rel-resp-≅ᴴ-Agen-Agen)
 
+-- The `CompletenessAssumptions` record lives in `DecodeRespIso.agda`
+-- (which is `--safe`-clean).  Re-export it so existing consumers can
+-- continue to reference `IND.CompletenessAssumptions`.  The record
+-- has THREE fields:
+--   * boundary-respects-iso (Translation ↔ FromAPROP iso lift)
+--   * decode-attempt-resp-iso (algorithmic decoder iso invariance)
+--   * decode-rel-≈-decode (structural/algorithmic decoder agreement)
+-- All trust is concentrated here.
+open import Categories.APROP.Hypergraph.Completeness.DecodeRespIso sig-dec
+  using (CompletenessAssumptions) public
+import Categories.APROP.Hypergraph.Completeness.DecodeRespIso sig-dec as RespIso
+
 -- Re-import the constructive Mac Lane discharge from the orphaned
 -- AtomicCompound0E module.  `NoSigma`, `Structural-coherence-≈Term-noσ`,
 -- and the syntactic predicate are all defined there.
@@ -1629,6 +1641,858 @@ private
       (id ⊗₁ (Agen u ⊗₁ id {YR-g})) ∘ bridge-NoSigma-fwd eA HRBN.∎
 
 --------------------------------------------------------------------------------
+-- σ-on-unit lemmas (Sub-step 1).
+--
+-- These are the basic identities relating the symmetry `σ` at a unit
+-- argument to the unitors.  Imported from agda-categories'
+-- `braiding-coherence : λ⇒ ∘ σ ≈ ρ⇒`, and dualised.
+
+private
+  open import Categories.Category.Monoidal.Symmetric Monoidal-FreeMonoidal
+    using (module Symmetric)
+  open import Categories.Category.Monoidal.Braided.Properties
+    (Symmetric.braided Symmetric-Monoidal)
+    using (braiding-coherence; inv-braiding-coherence)
+
+  -- Sub-step 1A: σ {X}{unit} ≈Term λ⇐ ∘ ρ⇒.
+  --
+  -- Derivation: from `braiding-coherence : λ⇒ ∘ σ ≈ ρ⇒` (in the
+  -- agda-categories braided properties module, instantiated at the
+  -- symmetric monoidal `FreeMonoidal`), compose with `λ⇐` on the
+  -- left:
+  --   λ⇐ ∘ (λ⇒ ∘ σ) ≈ λ⇐ ∘ ρ⇒
+  -- LHS rewrites via assoc + λ⇐∘λ⇒≈id to `σ`, so `σ ≈ λ⇐ ∘ ρ⇒`.
+
+  σ-on-unit-Y
+    : ∀ {X : ObjTerm} ⦃ s : Symm ≤ Symm ⦄
+    → σ {A = X} {B = unit} ⦃ s ⦄ ≈Term λ⇐ ∘ ρ⇒
+  σ-on-unit-Y {X} ⦃ s ⦄ = HRBN.begin
+      σ {A = X} {B = unit} ⦃ s ⦄
+        HRBN.≈⟨ ≈-Term-sym idˡ ⟩
+      id ∘ σ {A = X} {B = unit} ⦃ s ⦄
+        HRBN.≈⟨ ≈-Term-sym λ⇐∘λ⇒≈id HRBN.⟩∘⟨refl ⟩
+      (λ⇐ ∘ λ⇒) ∘ σ {A = X} {B = unit} ⦃ s ⦄
+        HRBN.≈⟨ FM-bridge.assoc ⟩
+      λ⇐ ∘ (λ⇒ ∘ σ {A = X} {B = unit} ⦃ s ⦄)
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ braiding-coherence-here ⟩
+      λ⇐ ∘ ρ⇒ HRBN.∎
+    where
+      -- Specialise `braiding-coherence` to the concrete `s` we have.
+      -- The agda-categories version uses the `Symmetric-Monoidal`
+      -- instance directly; our σ takes an explicit `Symm ≤ Symm`.
+      -- All such proofs are propositionally `v≤v`.
+      Symm≤Symm-uniq : (s : Symm ≤ Symm) → s ≡ v≤v
+      Symm≤Symm-uniq v≤v = refl
+
+      braiding-coherence-here
+        : λ⇒ ∘ σ {A = X} {B = unit} ⦃ s ⦄ ≈Term ρ⇒
+      braiding-coherence-here
+        rewrite Symm≤Symm-uniq s = braiding-coherence
+
+  -- Sub-step 1B: σ {unit}{X} ≈Term ρ⇐ ∘ λ⇒.
+  --
+  -- Strategy: directly use `inv-braiding-coherence` from
+  -- agda-categories, which states `ρ⇒ ∘ σ⇐ ≈ λ⇒`.  In our symmetric
+  -- setting σ is self-inverse (σ⇐ = σ {unit}{X}), so we get
+  -- `ρ⇒ ∘ σ {unit}{X} ≈ λ⇒`.  Compose ρ⇐ on the left and use
+  -- ρ⇐∘ρ⇒≈id to extract σ {unit}{X} ≈ ρ⇐ ∘ λ⇒.
+
+  σ-on-unit-X
+    : ∀ {X : ObjTerm} ⦃ s : Symm ≤ Symm ⦄
+    → σ {A = unit} {B = X} ⦃ s ⦄ ≈Term ρ⇐ ∘ λ⇒
+  σ-on-unit-X {X} ⦃ s ⦄ = HRBN.begin
+      σ {A = unit} {B = X} ⦃ s ⦄
+        HRBN.≈⟨ ≈-Term-sym idˡ ⟩
+      id ∘ σ {A = unit} {B = X} ⦃ s ⦄
+        HRBN.≈⟨ ≈-Term-sym ρ⇐∘ρ⇒≈id HRBN.⟩∘⟨refl ⟩
+      (ρ⇐ ∘ ρ⇒) ∘ σ {A = unit} {B = X} ⦃ s ⦄
+        HRBN.≈⟨ FM-bridge.assoc ⟩
+      ρ⇐ ∘ (ρ⇒ ∘ σ {A = unit} {B = X} ⦃ s ⦄)
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ ρ⇒∘σ-here ⟩
+      ρ⇐ ∘ λ⇒ HRBN.∎
+    where
+      Symm≤Symm-uniq : (s : Symm ≤ Symm) → s ≡ v≤v
+      Symm≤Symm-uniq v≤v = refl
+
+      ρ⇒∘σ-here : ρ⇒ ∘ σ {A = unit} {B = X} ⦃ s ⦄ ≈Term λ⇒
+      ρ⇒∘σ-here rewrite Symm≤Symm-uniq s = inv-braiding-coherence
+
+  -- Sub-step 2: σ-on-empty-Y.
+  --
+  -- When `flatten Y ≡ []`, the morphism `σ {X}{Y} : X ⊗ Y → Y ⊗ X`
+  -- is ≈Term-equal to a NoSigma morphism.  Proved by induction on Y:
+  --   * Y = unit          : direct via sub-step 1A.
+  --   * Y = A ⊗ B         : ++-conicalˡ splits flatten = [] into both
+  --                         flatten A = [] and flatten B = [], use
+  --                         hexagon to decompose σ {X}{A⊗B}.
+  --   * Y = Var x         : flatten (Var x) = [x] ≠ [], contradiction.
+  --
+  -- The result is packaged as a Σ-type to expose both the rewriting
+  -- target `ns` and its NoSigma witness, suitable for downstream use
+  -- in the scalar discharge.
+
+  open import Data.List.Properties using (++-conicalˡ; ++-conicalʳ)
+
+  σ-on-empty-Y
+    : ∀ {X Y : ObjTerm} ⦃ s : Symm ≤ Symm ⦄
+    → flatten Y ≡ []
+    → Σ[ ns ∈ HomTerm (X ⊗₀ Y) (Y ⊗₀ X) ]
+        NoSigma ns × (σ {A = X} {B = Y} ⦃ s ⦄ ≈Term ns)
+  σ-on-empty-Y {X} {unit} ⦃ s ⦄ _ =
+      λ⇐ ∘ ρ⇒
+    , nosigma-∘ nosigma-λ⇐ nosigma-ρ⇒
+    , σ-on-unit-Y {X} ⦃ s ⦄
+  σ-on-empty-Y {X} {Y₁ ⊗₀ Y₂} ⦃ s ⦄ flat-eq =
+      ns , ns-NS , chain
+    where
+      flat₁ : flatten Y₁ ≡ []
+      flat₁ = ++-conicalˡ (flatten Y₁) (flatten Y₂) flat-eq
+      flat₂ : flatten Y₂ ≡ []
+      flat₂ = ++-conicalʳ (flatten Y₁) (flatten Y₂) flat-eq
+
+      rec₁ = σ-on-empty-Y {X} {Y₁} ⦃ s ⦄ flat₁
+      rec₂ = σ-on-empty-Y {X} {Y₂} ⦃ s ⦄ flat₂
+
+      ns₁ = proj₁ rec₁
+      ns₁-NS = proj₁ (proj₂ rec₁)
+      σ≈ns₁ = proj₂ (proj₂ rec₁)
+
+      ns₂ = proj₁ rec₂
+      ns₂-NS = proj₁ (proj₂ rec₂)
+      σ≈ns₂ = proj₂ (proj₂ rec₂)
+
+      -- Decomposition target: matches the natural chain output.
+      -- With right-associative ∘, this parses as:
+      --   α⇐ ∘ (X1 ∘ (X2 ∘ X3)) ∘ α⇐
+      -- where X1 = id ⊗₁ ns₂, X2 = α⇒, X3 = ns₁ ⊗₁ id.
+      ns : HomTerm (X ⊗₀ (Y₁ ⊗₀ Y₂)) ((Y₁ ⊗₀ Y₂) ⊗₀ X)
+      ns = (α⇐ ∘ id {Y₁} ⊗₁ ns₂ ∘ α⇒ ∘ ns₁ ⊗₁ id {Y₂}) ∘ α⇐
+
+      ns-NS : NoSigma ns
+      ns-NS = nosigma-∘ (nosigma-∘ nosigma-α⇐
+                          (nosigma-∘ (nosigma-⊗ nosigma-id ns₂-NS)
+                            (nosigma-∘ nosigma-α⇒
+                                       (nosigma-⊗ ns₁-NS nosigma-id))))
+                        nosigma-α⇐
+
+      -- The σ-decomposition chain.
+      --
+      -- Hexagon (in the *inverted* form used here): start with the
+      -- axiom `id ⊗₁ σ ∘ α⇒ ∘ σ ⊗₁ id ≈ α⇒ ∘ σ {X}{Y₁⊗Y₂} ∘ α⇒`,
+      -- so:
+      --   σ {X}{Y₁⊗Y₂}
+      --   ≈ id ∘ σ {X}{Y₁⊗Y₂} ∘ id
+      --   ≈ α⇐ ∘ α⇒ ∘ σ {X}{Y₁⊗Y₂} ∘ α⇒ ∘ α⇐
+      --   ≈ α⇐ ∘ (id ⊗₁ σ {X}{Y₂} ∘ α⇒ ∘ σ {X}{Y₁} ⊗₁ id) ∘ α⇐
+      --   ≈ α⇐ ∘ ((id ⊗₁ ns₂) ∘ α⇒ ∘ (ns₁ ⊗₁ id)) ∘ α⇐
+      --
+      -- We assemble it with the HomReasoning combinator.
+
+      -- Right-associativity of ∘: `a ∘ b ∘ c = a ∘ (b ∘ c)`.
+      -- LHS of hexagon: `(id ⊗₁ σ) ∘ (α⇒ ∘ (σ ⊗₁ id))`.
+      -- RHS:            `α⇒ ∘ (σ {X}{Y₁⊗Y₂} ∘ α⇒)`.
+      --
+      -- We invert via:
+      --   σ ≈ (α⇐ ∘ LHS) ∘ α⇐
+      -- by chasing `α⇐ ∘ (α⇒ ∘ (σ ∘ α⇒)) = σ ∘ α⇒` and `(σ ∘ α⇒) ∘ α⇐ = σ`.
+
+      LHS-hex : HomTerm ((X ⊗₀ Y₁) ⊗₀ Y₂) (Y₁ ⊗₀ (Y₂ ⊗₀ X))
+      LHS-hex = id ⊗₁ σ {A = X} {B = Y₂} ⦃ s ⦄
+                  ∘ α⇒
+                  ∘ σ {A = X} {B = Y₁} ⦃ s ⦄ ⊗₁ id
+
+      hex-inverted
+        : σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄
+        ≈Term (α⇐ ∘ LHS-hex) ∘ α⇐
+      hex-inverted = HRBN.begin
+          σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄
+            HRBN.≈⟨ ≈-Term-sym idˡ ⟩
+          id ∘ σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄
+            HRBN.≈⟨ ≈-Term-sym idʳ ⟩
+          (id ∘ σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄) ∘ id
+            HRBN.≈⟨ ≈-Term-sym α⇐∘α⇒≈id HRBN.⟩∘⟨refl HRBN.⟩∘⟨refl ⟩
+          ((α⇐ ∘ α⇒) ∘ σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄) ∘ id
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym α⇒∘α⇐≈id ⟩
+          ((α⇐ ∘ α⇒) ∘ σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄) ∘ (α⇒ ∘ α⇐)
+            HRBN.≈⟨ FM-bridge.assoc HRBN.⟩∘⟨refl ⟩
+          (α⇐ ∘ (α⇒ ∘ σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄)) ∘ (α⇒ ∘ α⇐)
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          α⇐ ∘ ((α⇒ ∘ σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄) ∘ (α⇒ ∘ α⇐))
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.sym-assoc ⟩
+          α⇐ ∘ (((α⇒ ∘ σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄) ∘ α⇒) ∘ α⇐)
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.assoc HRBN.⟩∘⟨refl ⟩
+          α⇐ ∘ ((α⇒ ∘ (σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄ ∘ α⇒)) ∘ α⇐)
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym (hexagon ⦃ s ⦄) HRBN.⟩∘⟨refl ⟩
+          α⇐ ∘ (LHS-hex ∘ α⇐)
+            HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+          (α⇐ ∘ LHS-hex) ∘ α⇐ HRBN.∎
+
+      -- Now rewrite the two inner σ's inside LHS-hex using IH.
+      LHS-hex-rw
+        : LHS-hex ≈Term (id ⊗₁ ns₂ ∘ α⇒ ∘ ns₁ ⊗₁ id)
+      LHS-hex-rw = HRBN.begin
+          id ⊗₁ σ {A = X} {B = Y₂} ⦃ s ⦄
+            ∘ α⇒
+            ∘ σ {A = X} {B = Y₁} ⦃ s ⦄ ⊗₁ id
+            HRBN.≈⟨ ⊗-resp-≈ ≈-Term-refl σ≈ns₂ HRBN.⟩∘⟨refl ⟩
+          id ⊗₁ ns₂ ∘ α⇒ ∘ σ {A = X} {B = Y₁} ⦃ s ⦄ ⊗₁ id
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ HRBN.refl⟩∘⟨ ⊗-resp-≈ σ≈ns₁ ≈-Term-refl ⟩
+          id ⊗₁ ns₂ ∘ α⇒ ∘ ns₁ ⊗₁ id HRBN.∎
+
+      chain
+        : σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄ ≈Term ns
+      chain = HRBN.begin
+          σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄
+            HRBN.≈⟨ hex-inverted ⟩
+          (α⇐ ∘ LHS-hex) ∘ α⇐
+            HRBN.≈⟨ (HRBN.refl⟩∘⟨ LHS-hex-rw) HRBN.⟩∘⟨refl ⟩
+          (α⇐ ∘ id ⊗₁ ns₂ ∘ α⇒ ∘ ns₁ ⊗₁ id) ∘ α⇐ HRBN.∎
+  σ-on-empty-Y {X} {Var x} ⦃ _ ⦄ flat-eq with flat-eq
+  ... | ()
+
+  -- σ-on-empty-X: dual of σ-on-empty-Y.  When `flatten Y ≡ []`, the
+  -- morphism `σ {Y}{X} : Y ⊗ X → X ⊗ Y` is `≈Term`-equal to a NoSigma
+  -- morphism.  Derived from σ-on-empty-Y via the σ∘σ≈id trick:
+  --
+  --   * From σ-on-empty-Y at (X, Y) get NoSigma `ns-Y : X ⊗ Y → Y ⊗ X`
+  --     with σ {X}{Y} ≈Term ns-Y.
+  --   * The desired NoSigma `ns-X : Y ⊗ X → X ⊗ Y` exists because
+  --     flatten(Y ⊗ X) = flatten X = flatten(X ⊗ Y) — use
+  --     `bridge-NoSigma-fwd`.
+  --   * σ {Y}{X} ≈Term σ {Y}{X} ∘ id ≈Term σ {Y}{X} ∘ (ns-Y ∘ ns-X) and
+  --     σ {Y}{X} ∘ ns-Y ≈ σ {Y}{X} ∘ σ {X}{Y} ≈ id (σ∘σ≈id), so
+  --     σ {Y}{X} ≈Term ns-X.
+  --
+  -- The "ns-Y ∘ ns-X ≈ id" step uses NoSigma-coherence at type
+  -- `Y ⊗ X → Y ⊗ X` (both `ns-Y ∘ ns-X` and `id` are NoSigma).
+
+  σ-on-empty-X
+    : ∀ {X Y : ObjTerm} ⦃ s : Symm ≤ Symm ⦄
+    → flatten Y ≡ []
+    → Σ[ ns ∈ HomTerm (Y ⊗₀ X) (X ⊗₀ Y) ]
+        NoSigma ns × (σ {A = Y} {B = X} ⦃ s ⦄ ≈Term ns)
+  σ-on-empty-X {X} {Y} ⦃ s ⦄ flat-eq = ns-X , ns-X-NS , chain
+    where
+      rec-Y = σ-on-empty-Y {X} {Y} ⦃ s ⦄ flat-eq
+      ns-Y = proj₁ rec-Y
+      ns-Y-NS = proj₁ (proj₂ rec-Y)
+      σXY≈ns-Y = proj₂ (proj₂ rec-Y)
+
+      -- flatten(Y ⊗ X) = [] ++ flatten X = flatten X.
+      -- flatten(X ⊗ Y) = flatten X ++ [] = flatten X.
+      open import Data.List.Properties using (++-identityʳ)
+      flat-YX≡X : flatten (Y ⊗₀ X) ≡ flatten X
+      flat-YX≡X rewrite flat-eq = refl
+
+      flat-X≡XY : flatten X ≡ flatten (X ⊗₀ Y)
+      flat-X≡XY rewrite flat-eq = sym (++-identityʳ (flatten X))
+
+      flat-YX≡XY : flatten (Y ⊗₀ X) ≡ flatten (X ⊗₀ Y)
+      flat-YX≡XY = trans flat-YX≡X flat-X≡XY
+
+      ns-X : HomTerm (Y ⊗₀ X) (X ⊗₀ Y)
+      ns-X = bridge-NoSigma-fwd flat-YX≡XY
+
+      ns-X-NS : NoSigma ns-X
+      ns-X-NS = bridge-NoSigma-fwd-NS flat-YX≡XY
+
+      -- ns-Y ∘ ns-X ≈ id (both NoSigma : Y ⊗ X → Y ⊗ X).
+      ns-Y∘ns-X≈id : ns-Y ∘ ns-X ≈Term id
+      ns-Y∘ns-X≈id =
+        NoSigma-coherence (nosigma-∘ ns-Y-NS ns-X-NS) nosigma-id
+
+      chain : σ {A = Y} {B = X} ⦃ s ⦄ ≈Term ns-X
+      chain = HRBN.begin
+          σ {A = Y} {B = X} ⦃ s ⦄
+            HRBN.≈⟨ ≈-Term-sym idʳ ⟩
+          σ {A = Y} {B = X} ⦃ s ⦄ ∘ id
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym ns-Y∘ns-X≈id ⟩
+          σ {A = Y} {B = X} ⦃ s ⦄ ∘ (ns-Y ∘ ns-X)
+            HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+          (σ {A = Y} {B = X} ⦃ s ⦄ ∘ ns-Y) ∘ ns-X
+            HRBN.≈⟨ (HRBN.refl⟩∘⟨ ≈-Term-sym σXY≈ns-Y) HRBN.⟩∘⟨refl ⟩
+          (σ {A = Y} {B = X} ⦃ s ⦄ ∘ σ {A = X} {B = Y} ⦃ s ⦄) ∘ ns-X
+            HRBN.≈⟨ σ∘σ-here HRBN.⟩∘⟨refl ⟩
+          id ∘ ns-X
+            HRBN.≈⟨ idˡ ⟩
+          ns-X HRBN.∎
+        where
+          Symm≤Symm-uniq : (s : Symm ≤ Symm) → s ≡ v≤v
+          Symm≤Symm-uniq v≤v = refl
+
+          σ∘σ-here : σ {A = Y} {B = X} ⦃ s ⦄ ∘ σ {A = X} {B = Y} ⦃ s ⦄ ≈Term id
+          σ∘σ-here rewrite Symm≤Symm-uniq s = σ∘σ≈id ⦃ v≤v ⦄
+
+  -- scalar-Agen-tensor-commute: when flatten Aᵢ = flatten Bᵢ = [], the
+  -- morphism `id {X} ⊗ Agen u` can be relocated to `Agen u ⊗ id {X}`
+  -- modulo a pair of NoSigma morphisms.  This follows from σ-naturality
+  -- `σ ∘ (f ⊗ g) ≈ (g ⊗ f) ∘ σ`, combined with σ-on-empty-X/Y to
+  -- collapse the σ's to NoSigma morphisms.
+  --
+  -- Used to "float" the scalar Agen generator within a Mac-Lane wrapper
+  -- structure: with this commutation as a primitive, Agen u can be
+  -- pushed past any NoSigma context, enabling the scalar-coherence
+  -- discharge.
+  scalar-Agen-tensor-commute
+    : ∀ {X Aᵢ Bᵢ : ObjTerm} (u : mor Aᵢ Bᵢ)
+        (Aᵢ-empty : flatten Aᵢ ≡ [])
+        (Bᵢ-empty : flatten Bᵢ ≡ [])
+        ⦃ s : Symm ≤ Symm ⦄
+    → Σ[ ns₁ ∈ HomTerm (X ⊗₀ Aᵢ) (Aᵢ ⊗₀ X) ]
+      Σ[ ns₂ ∈ HomTerm (Bᵢ ⊗₀ X) (X ⊗₀ Bᵢ) ]
+        NoSigma ns₁ × NoSigma ns₂ ×
+        ((id {X} ⊗₁ Agen u) ≈Term ns₂ ∘ (Agen u ⊗₁ id {X}) ∘ ns₁)
+  scalar-Agen-tensor-commute {X} {Aᵢ} {Bᵢ} u Aᵢ-empty Bᵢ-empty ⦃ s ⦄ =
+      ns₁ , ns₂ , ns₁-NS , ns₂-NS , chain
+    where
+      Symm≤Symm-uniq : (s : Symm ≤ Symm) → s ≡ v≤v
+      Symm≤Symm-uniq v≤v = refl
+
+      -- σ {X}{Aᵢ} ≈Term ns₁ via σ-on-empty-Y (the empty arg is the 2nd = Aᵢ).
+      rec-σ₁ = σ-on-empty-Y {X} {Aᵢ} ⦃ s ⦄ Aᵢ-empty
+      ns₁ = proj₁ rec-σ₁
+      ns₁-NS = proj₁ (proj₂ rec-σ₁)
+      σXAᵢ≈ns₁ = proj₂ (proj₂ rec-σ₁)
+
+      -- σ {Bᵢ}{X} ≈Term ns₂ via σ-on-empty-X (the empty arg is the 1st = Bᵢ).
+      rec-σ₂ = σ-on-empty-X {X} {Bᵢ} ⦃ s ⦄ Bᵢ-empty
+      ns₂ = proj₁ rec-σ₂
+      ns₂-NS = proj₁ (proj₂ rec-σ₂)
+      σBᵢX≈ns₂ = proj₂ (proj₂ rec-σ₂)
+
+      -- σ-naturality specialised: σ {Bᵢ}{X} ∘ (Agen u ⊗ id {X})
+      --   ≈Term (id {X} ⊗ Agen u) ∘ σ {Aᵢ}{X}
+      -- ... wait, careful: σ∘[f⊗g]≈[g⊗f]∘σ with f = Agen u, g = id {X}:
+      --   σ ∘ (Agen u ⊗ id {X}) ≈ (id {X} ⊗ Agen u) ∘ σ
+      -- where the LHS σ is at type (Bᵢ ⊗ X) → (X ⊗ Bᵢ), i.e. σ {Bᵢ}{X}.
+      -- The RHS σ is at type (Aᵢ ⊗ X) → (X ⊗ Aᵢ), i.e. σ {Aᵢ}{X}.
+      --
+      -- So we need σ {Aᵢ}{X} (where Aᵢ is empty on the LEFT) — that's
+      -- σ-on-empty-X applied with Y = Aᵢ.
+      rec-σ-Aᵢ-left = σ-on-empty-X {X} {Aᵢ} ⦃ s ⦄ Aᵢ-empty
+      ns-Aᵢ-left = proj₁ rec-σ-Aᵢ-left
+      σAᵢX≈ns-Aᵢ-left = proj₂ (proj₂ rec-σ-Aᵢ-left)
+      -- Note: ns-Aᵢ-left : Aᵢ ⊗ X → X ⊗ Aᵢ, NoSigma.
+
+      σ-naturality-here
+        : σ {A = Bᵢ} {B = X} ⦃ s ⦄ ∘ (Agen u ⊗₁ id {X})
+        ≈Term (id {X} ⊗₁ Agen u) ∘ σ {A = Aᵢ} {B = X} ⦃ s ⦄
+      σ-naturality-here rewrite Symm≤Symm-uniq s =
+        σ∘[f⊗g]≈[g⊗f]∘σ ⦃ v≤v ⦄
+
+      -- (id {X} ⊗ Agen u) ∘ σ {Aᵢ}{X} ∘ σ {X}{Aᵢ} ≈ (id {X} ⊗ Agen u) ∘ id ≈ (id {X} ⊗ Agen u)
+      -- via σ∘σ≈id and idʳ.
+      σ∘σ-AᵢX : σ {A = Aᵢ} {B = X} ⦃ s ⦄ ∘ σ {A = X} {B = Aᵢ} ⦃ s ⦄ ≈Term id
+      σ∘σ-AᵢX rewrite Symm≤Symm-uniq s = σ∘σ≈id ⦃ v≤v ⦄
+
+      chain
+        : (id {X} ⊗₁ Agen u) ≈Term ns₂ ∘ (Agen u ⊗₁ id {X}) ∘ ns₁
+      chain = HRBN.begin
+          id {X} ⊗₁ Agen u
+            HRBN.≈⟨ ≈-Term-sym idʳ ⟩
+          (id {X} ⊗₁ Agen u) ∘ id
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym σ∘σ-AᵢX ⟩
+          (id {X} ⊗₁ Agen u) ∘ (σ {A = Aᵢ} {B = X} ⦃ s ⦄ ∘ σ {A = X} {B = Aᵢ} ⦃ s ⦄)
+            HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+          ((id {X} ⊗₁ Agen u) ∘ σ {A = Aᵢ} {B = X} ⦃ s ⦄) ∘ σ {A = X} {B = Aᵢ} ⦃ s ⦄
+            HRBN.≈⟨ ≈-Term-sym σ-naturality-here HRBN.⟩∘⟨refl ⟩
+          (σ {A = Bᵢ} {B = X} ⦃ s ⦄ ∘ (Agen u ⊗₁ id {X})) ∘ σ {A = X} {B = Aᵢ} ⦃ s ⦄
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          σ {A = Bᵢ} {B = X} ⦃ s ⦄ ∘ (Agen u ⊗₁ id {X}) ∘ σ {A = X} {B = Aᵢ} ⦃ s ⦄
+            HRBN.≈⟨ σBᵢX≈ns₂ HRBN.⟩∘⟨ (HRBN.refl⟩∘⟨ σXAᵢ≈ns₁) ⟩
+          ns₂ ∘ (Agen u ⊗₁ id {X}) ∘ ns₁ HRBN.∎
+
+  -- M-to-leftmost: the wrapper `id {YL} ⊗ (Agen u ⊗ id {YR})` admits a
+  -- "leftmost" form `NS-post ∘ (Agen u ⊗ id {YL ⊗ YR}) ∘ NS-pre` with
+  -- NS-pre, NS-post NoSigma, when flatten Aᵢ ≡ flatten Bᵢ ≡ [].
+  --
+  -- Strategy:
+  --   id {YL} ⊗ (Agen u ⊗ id {YR})
+  --     ≈⟨ α-comm (reversed) ⟩
+  --   α⇒ ∘ ((id ⊗ Agen u) ⊗ id) ∘ α⇐
+  --     ≈⟨ scalar-Agen-tensor-commute on (id ⊗ Agen u) ⟩
+  --   α⇒ ∘ ((ns₂ ∘ (Agen u ⊗ id) ∘ ns₁) ⊗ id) ∘ α⇐
+  --     ≈⟨ ⊗-∘-dist twice ⟩
+  --   α⇒ ∘ (ns₂ ⊗ id) ∘ ((Agen u ⊗ id) ⊗ id) ∘ (ns₁ ⊗ id) ∘ α⇐
+  --     ≈⟨ α-comm (reversed) on the middle ⟩
+  --   (α⇒ ∘ (ns₂ ⊗ id) ∘ α⇐) ∘ (Agen u ⊗ id {YL ⊗ YR}) ∘ (α⇒ ∘ (ns₁ ⊗ id) ∘ α⇐)
+  M-to-leftmost
+    : ∀ {YL YR Aᵢ Bᵢ : ObjTerm} (u : mor Aᵢ Bᵢ) ⦃ s : Symm ≤ Symm ⦄
+        (Aᵢ-empty : flatten Aᵢ ≡ [])
+        (Bᵢ-empty : flatten Bᵢ ≡ [])
+    → Σ[ NS-pre  ∈ HomTerm (YL ⊗₀ Aᵢ ⊗₀ YR) (Aᵢ ⊗₀ YL ⊗₀ YR) ]
+      Σ[ NS-post ∈ HomTerm (Bᵢ ⊗₀ YL ⊗₀ YR) (YL ⊗₀ Bᵢ ⊗₀ YR) ]
+        NoSigma NS-pre × NoSigma NS-post ×
+        ((id {YL} ⊗₁ (Agen u ⊗₁ id {YR}))
+         ≈Term NS-post ∘ (Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ NS-pre)
+  M-to-leftmost {YL} {YR} {Aᵢ} {Bᵢ} u ⦃ s ⦄ Aᵢ-empty Bᵢ-empty =
+      NS-pre , NS-post , NS-pre-NS , NS-post-NS , chain
+    where
+      -- scalar-Agen-tensor-commute at X = YL on (id_YL ⊗ Agen u).
+      rec₁ = scalar-Agen-tensor-commute {YL} u Aᵢ-empty Bᵢ-empty ⦃ s ⦄
+      ns₁  = proj₁ rec₁
+      ns₂  = proj₁ (proj₂ rec₁)
+      ns₁-NS = proj₁ (proj₂ (proj₂ rec₁))
+      ns₂-NS = proj₁ (proj₂ (proj₂ (proj₂ rec₁)))
+      eq-scalar = proj₂ (proj₂ (proj₂ (proj₂ rec₁)))
+      -- eq-scalar : id {YL} ⊗ Agen u ≈Term ns₂ ∘ (Agen u ⊗ id {YL}) ∘ ns₁
+
+      NS-pre  : HomTerm (YL ⊗₀ Aᵢ ⊗₀ YR) (Aᵢ ⊗₀ YL ⊗₀ YR)
+      NS-pre  = α⇒ ∘ (ns₁ ⊗₁ id {YR}) ∘ α⇐
+
+      NS-post : HomTerm (Bᵢ ⊗₀ YL ⊗₀ YR) (YL ⊗₀ Bᵢ ⊗₀ YR)
+      NS-post = α⇒ ∘ (ns₂ ⊗₁ id {YR}) ∘ α⇐
+
+      NS-pre-NS : NoSigma NS-pre
+      NS-pre-NS =
+        nosigma-∘ nosigma-α⇒
+          (nosigma-∘ (nosigma-⊗ ns₁-NS nosigma-id) nosigma-α⇐)
+
+      NS-post-NS : NoSigma NS-post
+      NS-post-NS =
+        nosigma-∘ nosigma-α⇒
+          (nosigma-∘ (nosigma-⊗ ns₂-NS nosigma-id) nosigma-α⇐)
+
+      -- Local α-comm rewrites.
+      --   α⇒ ∘ ((id ⊗ Agen u) ⊗ id) ≈Term (id ⊗ (Agen u ⊗ id)) ∘ α⇒
+      α-comm-1
+        : α⇒ {YL} {Bᵢ} {YR} ∘ ((id {YL} ⊗₁ Agen u) ⊗₁ id {YR})
+        ≈Term (id {YL} ⊗₁ (Agen u ⊗₁ id {YR})) ∘ α⇒ {YL} {Aᵢ} {YR}
+      α-comm-1 = α-comm
+
+      --   α⇒ ∘ ((Agen u ⊗ id_YL) ⊗ id_YR) ≈Term (Agen u ⊗ (id_YL ⊗ id_YR)) ∘ α⇒
+      α-comm-2
+        : α⇒ {Bᵢ} {YL} {YR} ∘ ((Agen u ⊗₁ id {YL}) ⊗₁ id {YR})
+        ≈Term (Agen u ⊗₁ (id {YL} ⊗₁ id {YR})) ∘ α⇒ {Aᵢ} {YL} {YR}
+      α-comm-2 = α-comm
+
+      chain
+        : (id {YL} ⊗₁ (Agen u ⊗₁ id {YR}))
+          ≈Term NS-post ∘ (Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ NS-pre
+      chain = HRBN.begin
+          id {YL} ⊗₁ (Agen u ⊗₁ id {YR})
+            -- Insert α⇒ ∘ α⇐ = id on the right.
+            HRBN.≈⟨ ≈-Term-sym idʳ ⟩
+          (id {YL} ⊗₁ (Agen u ⊗₁ id {YR})) ∘ id
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym α⇒∘α⇐≈id ⟩
+          (id {YL} ⊗₁ (Agen u ⊗₁ id {YR})) ∘ (α⇒ {YL} {Aᵢ} {YR} ∘ α⇐)
+            HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+          ((id {YL} ⊗₁ (Agen u ⊗₁ id {YR})) ∘ α⇒ {YL} {Aᵢ} {YR}) ∘ α⇐
+            HRBN.≈⟨ ≈-Term-sym α-comm-1 HRBN.⟩∘⟨refl ⟩
+          (α⇒ {YL} {Bᵢ} {YR} ∘ ((id {YL} ⊗₁ Agen u) ⊗₁ id {YR})) ∘ α⇐
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          α⇒ {YL} {Bᵢ} {YR} ∘ ((id {YL} ⊗₁ Agen u) ⊗₁ id {YR}) ∘ α⇐
+            -- Apply scalar-Agen-tensor-commute on (id ⊗ Agen u).
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ (⊗-resp-≈ eq-scalar ≈-Term-refl) HRBN.⟩∘⟨refl ⟩
+          α⇒ ∘ ((ns₂ ∘ (Agen u ⊗₁ id {YL}) ∘ ns₁) ⊗₁ id {YR}) ∘ α⇐
+            -- ⊗-∘-dist (split into ns₂ and (Agen u ⊗ id) ∘ ns₁).
+            HRBN.≈⟨ HRBN.refl⟩∘⟨
+                    (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idʳ)
+                       HRBN.○ ⊗-∘-dist) HRBN.⟩∘⟨refl ⟩
+          α⇒ ∘ ((ns₂ ⊗₁ id {YR}) ∘ (((Agen u ⊗₁ id {YL}) ∘ ns₁) ⊗₁ id))
+            ∘ α⇐
+            -- ⊗-∘-dist on the inner factor.
+            HRBN.≈⟨ HRBN.refl⟩∘⟨
+                    (HRBN.refl⟩∘⟨
+                       (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idʳ)
+                          HRBN.○ ⊗-∘-dist)) HRBN.⟩∘⟨refl ⟩
+          α⇒ ∘ ((ns₂ ⊗₁ id {YR}) ∘
+                 (((Agen u ⊗₁ id {YL}) ⊗₁ id {YR}) ∘ (ns₁ ⊗₁ id {YR})))
+            ∘ α⇐
+            -- Re-associate the inner triple to ((ns₂⊗id) ∘ ((Agen u⊗id)⊗id)) ∘ (ns₁⊗id).
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ (FM-bridge.sym-assoc HRBN.⟩∘⟨refl) ⟩
+          α⇒ ∘ (((ns₂ ⊗₁ id {YR}) ∘ ((Agen u ⊗₁ id {YL}) ⊗₁ id {YR}))
+                 ∘ (ns₁ ⊗₁ id {YR}))
+            ∘ α⇐
+            HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+          (α⇒ ∘ (((ns₂ ⊗₁ id) ∘ ((Agen u ⊗₁ id) ⊗₁ id))
+                 ∘ (ns₁ ⊗₁ id)))
+            ∘ α⇐
+            HRBN.≈⟨ FM-bridge.sym-assoc HRBN.⟩∘⟨refl ⟩
+          ((α⇒ ∘ ((ns₂ ⊗₁ id) ∘ ((Agen u ⊗₁ id) ⊗₁ id)))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            HRBN.≈⟨ (FM-bridge.sym-assoc HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id)) ∘ ((Agen u ⊗₁ id) ⊗₁ id))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            -- Now apply α-comm on ((Agen u ⊗ id) ⊗ id) via α⇒ ∘ α⇐ = id.
+            HRBN.≈⟨ ((HRBN.refl⟩∘⟨ ≈-Term-sym idˡ) HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ (id ∘ ((Agen u ⊗₁ id) ⊗₁ id)))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            HRBN.≈⟨ ((HRBN.refl⟩∘⟨ (≈-Term-sym α⇐∘α⇒≈id HRBN.⟩∘⟨refl))
+                       HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ ((α⇐ ∘ α⇒) ∘ ((Agen u ⊗₁ id) ⊗₁ id)))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            HRBN.≈⟨ ((HRBN.refl⟩∘⟨ FM-bridge.assoc) HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ (α⇐ ∘ (α⇒ ∘ ((Agen u ⊗₁ id) ⊗₁ id))))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            HRBN.≈⟨ ((HRBN.refl⟩∘⟨ (HRBN.refl⟩∘⟨ α-comm-2))
+                       HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ (α⇐ ∘ ((Agen u ⊗₁ (id {YL} ⊗₁ id {YR})) ∘ α⇒)))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            -- Collapse id ⊗ id to id_{YL⊗YR}.
+            HRBN.≈⟨ ((HRBN.refl⟩∘⟨ (HRBN.refl⟩∘⟨
+                       (⊗-resp-≈ ≈-Term-refl id⊗id≈id HRBN.⟩∘⟨refl)))
+                       HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ (α⇐ ∘ ((Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ α⇒)))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            -- Re-associate to expose `NS-post ∘ M' ∘ NS-pre`.
+            HRBN.≈⟨ ((HRBN.refl⟩∘⟨ FM-bridge.sym-assoc) HRBN.⟩∘⟨refl)
+                      HRBN.⟩∘⟨refl ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ ((α⇐ ∘ (Agen u ⊗₁ id {YL ⊗₀ YR})) ∘ α⇒))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            HRBN.≈⟨ (FM-bridge.sym-assoc HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          ((((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ (α⇐ ∘ (Agen u ⊗₁ id {YL ⊗₀ YR}))) ∘ α⇒)
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ (α⇐ ∘ (Agen u ⊗₁ id {YL ⊗₀ YR}))) ∘ α⇒)
+            ∘ ((ns₁ ⊗₁ id) ∘ α⇐)
+            HRBN.≈⟨ FM-bridge.assoc HRBN.⟩∘⟨refl ⟩
+          ((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ ((α⇐ ∘ (Agen u ⊗₁ id {YL ⊗₀ YR})) ∘ α⇒))
+            ∘ ((ns₁ ⊗₁ id) ∘ α⇐)
+            HRBN.≈⟨ (HRBN.refl⟩∘⟨ FM-bridge.assoc) HRBN.⟩∘⟨refl ⟩
+          ((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ (α⇐ ∘ ((Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ α⇒)))
+            ∘ ((ns₁ ⊗₁ id) ∘ α⇐)
+            HRBN.≈⟨ FM-bridge.assoc HRBN.⟩∘⟨refl ⟩
+          (α⇒ ∘ ((ns₂ ⊗₁ id)
+              ∘ (α⇐ ∘ ((Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ α⇒))))
+            ∘ ((ns₁ ⊗₁ id) ∘ α⇐)
+            HRBN.≈⟨ (HRBN.refl⟩∘⟨ FM-bridge.sym-assoc) HRBN.⟩∘⟨refl ⟩
+          (α⇒ ∘ (((ns₂ ⊗₁ id) ∘ α⇐)
+              ∘ ((Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ α⇒)))
+            ∘ ((ns₁ ⊗₁ id) ∘ α⇐)
+            -- Pack into NS-post ∘ M' ∘ NS-pre.
+            HRBN.≈⟨ FM-bridge.sym-assoc HRBN.⟩∘⟨refl ⟩
+          ((α⇒ ∘ ((ns₂ ⊗₁ id) ∘ α⇐))
+              ∘ ((Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ α⇒))
+            ∘ ((ns₁ ⊗₁ id) ∘ α⇐)
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          (α⇒ ∘ ((ns₂ ⊗₁ id) ∘ α⇐))
+              ∘ (((Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ α⇒)
+                 ∘ ((ns₁ ⊗₁ id) ∘ α⇐))
+            HRBN.≈⟨ ≈-Term-refl HRBN.⟩∘⟨ FM-bridge.assoc ⟩
+          (α⇒ ∘ ((ns₂ ⊗₁ id) ∘ α⇐))
+              ∘ ((Agen u ⊗₁ id {YL ⊗₀ YR})
+                 ∘ (α⇒ ∘ ((ns₁ ⊗₁ id) ∘ α⇐)))
+            HRBN.≈⟨ ≈-Term-refl ⟩
+          NS-post ∘ (Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ NS-pre HRBN.∎
+
+  -- scalar-coherence: the both-empty case of the Mac-Lane wrapper
+  -- closure.  Given two NF expressions sharing `u : mor Aᵢ Bᵢ` with
+  -- flatten Aᵢ ≡ flatten Bᵢ ≡ [], and arbitrary NoSigma wrappers on
+  -- both sides (no positional alignment hypothesis needed — it's
+  -- forced by flatten A = flatten YL_f ⊗ YR_f = flatten YL_g ⊗ YR_g),
+  -- conclude the two NF expressions are ≈Term-equal.
+  --
+  -- Strategy:
+  --   1. Apply `M-to-leftmost` on both sides to relocate `Agen u` to
+  --      the leftmost position with NoSigma pre/post wrappers.
+  --   2. Build a NoSigma bridge `bX : X_f → X_g` where
+  --      X_f = YL_f ⊗ YR_f, X_g = YL_g ⊗ YR_g (their flattens both
+  --      equal flatten A since flatten Aᵢ ≡ []).
+  --   3. Push `id_{Aᵢ} ⊗ bX` past `Agen u ⊗ id_{X_f}` using
+  --      bifunctoriality: `(id_{Bᵢ} ⊗ bX) ∘ (Agen u ⊗ id_{X_f})
+  --        ≈Term (Agen u ⊗ id_{X_g}) ∘ (id_{Aᵢ} ⊗ bX)`.
+  --   4. Absorb the bridges into the outer NoSigma wrappers and align
+  --      via `NoSigma-coherence`.
+  scalar-coherence
+    : ∀ {A B : ObjTerm}
+        {YL-f YR-f YL-g YR-g Aᵢ Bᵢ : ObjTerm}
+        (u : mor Aᵢ Bᵢ)
+        {c-from-f : HomTerm A (YL-f ⊗₀ Aᵢ ⊗₀ YR-f)}
+        {c-to-f   : HomTerm (YL-f ⊗₀ Bᵢ ⊗₀ YR-f) B}
+        {c-from-g : HomTerm A (YL-g ⊗₀ Aᵢ ⊗₀ YR-g)}
+        {c-to-g   : HomTerm (YL-g ⊗₀ Bᵢ ⊗₀ YR-g) B}
+        (nosigma-from-f : NoSigma c-from-f) (nosigma-to-f : NoSigma c-to-f)
+        (nosigma-from-g : NoSigma c-from-g) (nosigma-to-g : NoSigma c-to-g)
+        (Aᵢ-empty : flatten Aᵢ ≡ [])
+        (Bᵢ-empty : flatten Bᵢ ≡ [])
+     → (c-to-f ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-f)
+       ≈Term
+       (c-to-g ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-g)
+  scalar-coherence {A} {B} {YL-f} {YR-f} {YL-g} {YR-g} {Aᵢ} {Bᵢ}
+                   u {c-from-f} {c-to-f} {c-from-g} {c-to-g}
+                   ns-from-f ns-to-f ns-from-g ns-to-g
+                   Aᵢ-empty Bᵢ-empty = main-chain
+    where
+        -- Apply M-to-leftmost on both sides.
+        rec-f = M-to-leftmost {YL-f} {YR-f} u ⦃ v≤v ⦄ Aᵢ-empty Bᵢ-empty
+        NS-pre-f  = proj₁ rec-f
+        NS-post-f = proj₁ (proj₂ rec-f)
+        NS-pre-f-NS  = proj₁ (proj₂ (proj₂ rec-f))
+        NS-post-f-NS = proj₁ (proj₂ (proj₂ (proj₂ rec-f)))
+        M-eq-f       = proj₂ (proj₂ (proj₂ (proj₂ rec-f)))
+        -- M-eq-f : id {YL-f} ⊗ (Agen u ⊗ id {YR-f})
+        --   ≈Term NS-post-f ∘ (Agen u ⊗ id {YL-f ⊗ YR-f}) ∘ NS-pre-f
+
+        rec-g = M-to-leftmost {YL-g} {YR-g} u ⦃ v≤v ⦄ Aᵢ-empty Bᵢ-empty
+        NS-pre-g  = proj₁ rec-g
+        NS-post-g = proj₁ (proj₂ rec-g)
+        NS-pre-g-NS  = proj₁ (proj₂ (proj₂ rec-g))
+        NS-post-g-NS = proj₁ (proj₂ (proj₂ (proj₂ rec-g)))
+        M-eq-g       = proj₂ (proj₂ (proj₂ (proj₂ rec-g)))
+
+        -- Bridge X_f → X_g via flatten X_f ≡ flatten X_g (both equal flatten A).
+        -- Derive flatten X_f ≡ flatten X_g from `flatten Aᵢ ≡ []`:
+        --   flatten (YL_f ⊗ YR_f) = flatten YL_f ++ flatten YR_f
+        --   flatten A = flatten YL_f ++ [] ++ flatten YR_f = flatten X_f
+        -- ... but we don't have flatten A directly here.  We instead
+        -- argue: both `c-from-f` and `c-from-g` are NoSigma from A,
+        -- so flatten A = flatten (YL-f ⊗ Aᵢ ⊗ YR-f) = flatten (YL-g ⊗ Aᵢ ⊗ YR-g).
+        -- Since flatten Aᵢ = [], this reduces to flatten X_f = flatten X_g.
+        flat-from-f : flatten A ≡ flatten (YL-f ⊗₀ Aᵢ ⊗₀ YR-f)
+        flat-from-f = flatten-NoSigma ns-from-f
+        flat-from-g : flatten A ≡ flatten (YL-g ⊗₀ Aᵢ ⊗₀ YR-g)
+        flat-from-g = flatten-NoSigma ns-from-g
+
+        -- Reduce: flatten (YL ⊗ Aᵢ ⊗ YR) = flatten YL ++ [] ++ flatten YR
+        --                                  = flatten YL ++ flatten YR
+        --                                  = flatten (YL ⊗ YR).
+        reduce-Aᵢ
+          : ∀ (YL YR : ObjTerm)
+          → flatten (YL ⊗₀ Aᵢ ⊗₀ YR) ≡ flatten (YL ⊗₀ YR)
+        reduce-Aᵢ YL YR
+          rewrite Aᵢ-empty = refl
+
+        flat-Xf : flatten A ≡ flatten (YL-f ⊗₀ YR-f)
+        flat-Xf = trans flat-from-f (reduce-Aᵢ YL-f YR-f)
+        flat-Xg : flatten A ≡ flatten (YL-g ⊗₀ YR-g)
+        flat-Xg = trans flat-from-g (reduce-Aᵢ YL-g YR-g)
+        flat-Xf-Xg : flatten (YL-f ⊗₀ YR-f) ≡ flatten (YL-g ⊗₀ YR-g)
+        flat-Xf-Xg = trans (sym flat-Xf) flat-Xg
+
+        bX-fwd : HomTerm (YL-f ⊗₀ YR-f) (YL-g ⊗₀ YR-g)
+        bX-fwd = bridge-NoSigma-fwd flat-Xf-Xg
+        bX-bwd : HomTerm (YL-g ⊗₀ YR-g) (YL-f ⊗₀ YR-f)
+        bX-bwd = bridge-NoSigma-bwd flat-Xf-Xg
+        bX-fwd-NS = bridge-NoSigma-fwd-NS flat-Xf-Xg
+        bX-bwd-NS = bridge-NoSigma-bwd-NS flat-Xf-Xg
+
+        -- Bifunctoriality of ⊗: (id_Bᵢ ⊗ bX) ∘ (Agen u ⊗ id_X_f)
+        --   ≈Term (Agen u ⊗ bX)
+        --   ≈Term (Agen u ⊗ id_X_g) ∘ (id_Aᵢ ⊗ bX)
+        push-bX-fwd
+          : (id {Bᵢ} ⊗₁ bX-fwd) ∘ (Agen u ⊗₁ id {YL-f ⊗₀ YR-f})
+          ≈Term (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘ (id {Aᵢ} ⊗₁ bX-fwd)
+        push-bX-fwd = HRBN.begin
+            (id {Bᵢ} ⊗₁ bX-fwd) ∘ (Agen u ⊗₁ id {YL-f ⊗₀ YR-f})
+              HRBN.≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
+            (id ∘ Agen u) ⊗₁ (bX-fwd ∘ id)
+              HRBN.≈⟨ ⊗-resp-≈ idˡ idʳ ⟩
+            Agen u ⊗₁ bX-fwd
+              HRBN.≈⟨ ⊗-resp-≈ (≈-Term-sym idʳ) (≈-Term-sym idˡ) ⟩
+            (Agen u ∘ id) ⊗₁ (id ∘ bX-fwd)
+              HRBN.≈⟨ ⊗-∘-dist ⟩
+            (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘ (id {Aᵢ} ⊗₁ bX-fwd) HRBN.∎
+
+        -- Outer wrappers as NoSigma morphisms.
+        -- LHS outer-to-f' : (Bᵢ ⊗ X_g) → B, built from c-to-f, NS-post-f, bX-bwd.
+        outer-to-f' : HomTerm (Bᵢ ⊗₀ YL-g ⊗₀ YR-g) B
+        outer-to-f' = c-to-f ∘ NS-post-f ∘ (id {Bᵢ} ⊗₁ bX-bwd)
+        outer-to-f'-NS : NoSigma outer-to-f'
+        outer-to-f'-NS =
+          nosigma-∘ ns-to-f
+            (nosigma-∘ NS-post-f-NS
+              (nosigma-⊗ nosigma-id bX-bwd-NS))
+
+        outer-from-f' : HomTerm A (Aᵢ ⊗₀ YL-g ⊗₀ YR-g)
+        outer-from-f' = (id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f
+        outer-from-f'-NS : NoSigma outer-from-f'
+        outer-from-f'-NS =
+          nosigma-∘ (nosigma-⊗ nosigma-id bX-fwd-NS)
+            (nosigma-∘ NS-pre-f-NS ns-from-f)
+
+        outer-to-g : HomTerm (Bᵢ ⊗₀ YL-g ⊗₀ YR-g) B
+        outer-to-g = c-to-g ∘ NS-post-g
+        outer-to-g-NS : NoSigma outer-to-g
+        outer-to-g-NS = nosigma-∘ ns-to-g NS-post-g-NS
+
+        outer-from-g : HomTerm A (Aᵢ ⊗₀ YL-g ⊗₀ YR-g)
+        outer-from-g = NS-pre-g ∘ c-from-g
+        outer-from-g-NS : NoSigma outer-from-g
+        outer-from-g-NS = nosigma-∘ NS-pre-g-NS ns-from-g
+
+        -- NoSigma alignments.
+        to-align   : outer-to-f' ≈Term outer-to-g
+        to-align   = NoSigma-coherence outer-to-f'-NS outer-to-g-NS
+        from-align : outer-from-f' ≈Term outer-from-g
+        from-align = NoSigma-coherence outer-from-f'-NS outer-from-g-NS
+
+        -- bX-bwd ∘ bX-fwd ≈Term id (iso law).
+        bX-iso-bwd-fwd : bX-bwd ∘ bX-fwd ≈Term id
+        bX-iso-bwd-fwd = bridge-NoSigma-isoˡ flat-Xf-Xg
+
+        -- id_Bᵢ ⊗ (bX-bwd ∘ bX-fwd) ≈Term id_{Bᵢ ⊗ (YL-f ⊗ YR-f)}.
+        id⊗bX-iso : (id {Bᵢ} ⊗₁ bX-bwd) ∘ (id {Bᵢ} ⊗₁ bX-fwd) ≈Term id
+        id⊗bX-iso = HRBN.begin
+            (id {Bᵢ} ⊗₁ bX-bwd) ∘ (id {Bᵢ} ⊗₁ bX-fwd)
+              HRBN.≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
+            (id ∘ id) ⊗₁ (bX-bwd ∘ bX-fwd)
+              HRBN.≈⟨ ⊗-resp-≈ idˡ bX-iso-bwd-fwd ⟩
+            id ⊗₁ id
+              HRBN.≈⟨ id⊗id≈id ⟩
+            id HRBN.∎
+
+        main-chain
+          : (c-to-f ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-f)
+            ≈Term
+            (c-to-g ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-g)
+        main-chain = HRBN.begin
+            c-to-f ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-f
+            -- Replace M with leftmost form (LHS).
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ M-eq-f HRBN.⟩∘⟨refl ⟩
+          c-to-f ∘ (NS-post-f ∘ (Agen u ⊗₁ id {YL-f ⊗₀ YR-f}) ∘ NS-pre-f)
+            ∘ c-from-f
+            -- Re-associate.
+            HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+          (c-to-f ∘ (NS-post-f ∘ (Agen u ⊗₁ id) ∘ NS-pre-f)) ∘ c-from-f
+            HRBN.≈⟨ FM-bridge.sym-assoc HRBN.⟩∘⟨refl ⟩
+          ((c-to-f ∘ NS-post-f) ∘ ((Agen u ⊗₁ id) ∘ NS-pre-f)) ∘ c-from-f
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          (c-to-f ∘ NS-post-f) ∘ ((Agen u ⊗₁ id) ∘ NS-pre-f) ∘ c-from-f
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.assoc ⟩
+          (c-to-f ∘ NS-post-f) ∘ (Agen u ⊗₁ id) ∘ NS-pre-f ∘ c-from-f
+            -- Insert (id ⊗ bX-bwd) ∘ (id ⊗ bX-fwd) = id on the LEFT of M.
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym idˡ ⟩
+          (c-to-f ∘ NS-post-f) ∘
+            id ∘ ((Agen u ⊗₁ id) ∘ NS-pre-f ∘ c-from-f)
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym id⊗bX-iso HRBN.⟩∘⟨refl ⟩
+          (c-to-f ∘ NS-post-f) ∘
+            ((id {Bᵢ} ⊗₁ bX-bwd) ∘ (id {Bᵢ} ⊗₁ bX-fwd))
+            ∘ ((Agen u ⊗₁ id) ∘ NS-pre-f ∘ c-from-f)
+            -- Re-associate to expose (id ⊗ bX-fwd) ∘ (Agen u ⊗ id).
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.assoc ⟩
+          (c-to-f ∘ NS-post-f) ∘
+            (id {Bᵢ} ⊗₁ bX-bwd) ∘
+            ((id {Bᵢ} ⊗₁ bX-fwd) ∘ ((Agen u ⊗₁ id) ∘ NS-pre-f ∘ c-from-f))
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ HRBN.refl⟩∘⟨ FM-bridge.sym-assoc ⟩
+          (c-to-f ∘ NS-post-f) ∘
+            (id {Bᵢ} ⊗₁ bX-bwd) ∘
+            (((id {Bᵢ} ⊗₁ bX-fwd) ∘ (Agen u ⊗₁ id)) ∘ NS-pre-f ∘ c-from-f)
+            -- Apply push-bX-fwd.
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ HRBN.refl⟩∘⟨
+                     (push-bX-fwd HRBN.⟩∘⟨refl) ⟩
+          (c-to-f ∘ NS-post-f) ∘
+            (id {Bᵢ} ⊗₁ bX-bwd) ∘
+            (((Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘ (id {Aᵢ} ⊗₁ bX-fwd))
+              ∘ NS-pre-f ∘ c-from-f)
+            -- Re-associate.
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ HRBN.refl⟩∘⟨ FM-bridge.assoc ⟩
+          (c-to-f ∘ NS-post-f) ∘
+            (id {Bᵢ} ⊗₁ bX-bwd) ∘
+            (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            -- Re-associate to pull bridges into outer wrappers.
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.sym-assoc ⟩
+          (c-to-f ∘ NS-post-f) ∘
+            ((id {Bᵢ} ⊗₁ bX-bwd) ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g})) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+          ((c-to-f ∘ NS-post-f) ∘
+            ((id {Bᵢ} ⊗₁ bX-bwd) ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}))) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            HRBN.≈⟨ FM-bridge.assoc HRBN.⟩∘⟨refl ⟩
+          (c-to-f ∘ NS-post-f ∘
+            ((id {Bᵢ} ⊗₁ bX-bwd) ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}))) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            HRBN.≈⟨ (HRBN.refl⟩∘⟨ FM-bridge.sym-assoc) HRBN.⟩∘⟨refl ⟩
+          (c-to-f ∘ (NS-post-f ∘ (id {Bᵢ} ⊗₁ bX-bwd)) ∘
+            (Agen u ⊗₁ id {YL-g ⊗₀ YR-g})) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            HRBN.≈⟨ FM-bridge.sym-assoc HRBN.⟩∘⟨refl ⟩
+          ((c-to-f ∘ (NS-post-f ∘ (id {Bᵢ} ⊗₁ bX-bwd))) ∘
+            (Agen u ⊗₁ id {YL-g ⊗₀ YR-g})) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            -- Now `c-to-f ∘ (NS-post-f ∘ (id ⊗ bX-bwd)) = outer-to-f'`
+            -- and `(id ⊗ bX-fwd) ∘ NS-pre-f ∘ c-from-f = outer-from-f'`
+            -- (after re-association).  Replace via outer-to-f' and
+            -- outer-from-f' (definitionally equal up to associativity).
+            HRBN.≈⟨ (FM-bridge.sym-assoc HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (((c-to-f ∘ NS-post-f) ∘ (id {Bᵢ} ⊗₁ bX-bwd)) ∘
+            (Agen u ⊗₁ id {YL-g ⊗₀ YR-g})) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            HRBN.≈⟨ (FM-bridge.assoc HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          ((c-to-f ∘ NS-post-f ∘ (id {Bᵢ} ⊗₁ bX-bwd)) ∘
+            (Agen u ⊗₁ id {YL-g ⊗₀ YR-g})) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            -- LHS factor `c-to-f ∘ NS-post-f ∘ (id ⊗ bX-bwd) = outer-to-f'`.
+            HRBN.≈⟨ (to-align HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (outer-to-g ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g})) ∘
+            ((id {Aᵢ} ⊗₁ bX-fwd) ∘ NS-pre-f ∘ c-from-f)
+            -- RHS factor: `(id ⊗ bX-fwd) ∘ NS-pre-f ∘ c-from-f = outer-from-f'`.
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ from-align ⟩
+          (outer-to-g ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g})) ∘ outer-from-g
+            -- Unfold outer-to-g, outer-from-g.
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          outer-to-g ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘ outer-from-g
+            HRBN.≈⟨ ≈-Term-refl ⟩
+          (c-to-g ∘ NS-post-g) ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘
+            (NS-pre-g ∘ c-from-g)
+            -- Re-associate to standard form.
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          c-to-g ∘ NS-post-g ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘
+            (NS-pre-g ∘ c-from-g)
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ HRBN.refl⟩∘⟨ FM-bridge.sym-assoc ⟩
+          c-to-g ∘ NS-post-g ∘
+            ((Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘ NS-pre-g) ∘ c-from-g
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.sym-assoc ⟩
+          c-to-g ∘ (NS-post-g ∘ (Agen u ⊗₁ id {YL-g ⊗₀ YR-g}) ∘ NS-pre-g)
+            ∘ c-from-g
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym M-eq-g HRBN.⟩∘⟨refl ⟩
+          c-to-g ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-g HRBN.∎
+
+--------------------------------------------------------------------------------
+-- Sub-step 3 (full scalar-coherence): REMAINING WORK
+--
+-- With `σ-on-empty-Y`, `σ-on-empty-X`, and `scalar-Agen-tensor-commute`
+-- in place, the remaining path to fully discharge scalar-coherence is:
+--
+-- 1.  Prove `M-to-leftmost`: any wrapper `id {YL} ⊗ (Agen u ⊗ id {YR})`
+--     equals `NS-post ∘ (id {unit} ⊗ (Agen u ⊗ id {YL ⊗ YR})) ∘ NS-pre`
+--     with NS-pre, NS-post NoSigma, when flatten Aᵢ ≡ flatten Bᵢ ≡ [].
+--
+--     Sketch: by `α-comm` (= `α⇒ ∘ (f ⊗ g) ⊗ h ≈Term f ⊗ (g ⊗ h) ∘ α⇒`),
+--             (id {YL} ⊗ (Agen u ⊗ id {YR}))
+--               ≈Term α⇒ ∘ ((id {YL} ⊗ Agen u) ⊗ id {YR}) ∘ α⇐
+--             ≈Term [using `scalar-Agen-tensor-commute` on `id {YL} ⊗ Agen u`]
+--               α⇒ ∘ ((ns₂ ∘ (Agen u ⊗ id {YL}) ∘ ns₁) ⊗ id {YR}) ∘ α⇐
+--             ≈Term [⊗-∘-dist twice]
+--               α⇒ ∘ (ns₂ ⊗ id) ∘ ((Agen u ⊗ id {YL}) ⊗ id {YR}) ∘ (ns₁ ⊗ id) ∘ α⇐
+--             ≈Term [α-comm again on the middle factor]
+--               (α⇒ ∘ (ns₂ ⊗ id) ∘ α⇐ ∘ λ⇒) ∘ (id {unit} ⊗ (Agen u ⊗ id {YL ⊗ YR}))
+--                 ∘ (λ⇐ ∘ α⇒ ∘ (ns₁ ⊗ id) ∘ α⇐)
+--     where the λ-unitor pair λ⇐∘λ⇒ ≈ id absorbs the unit insertion.
+--     Both wrapper factors are NoSigma.  Estimated ~80-150 LOC.
+--
+-- 2.  Prove `scalar-coherence` by combining `M-to-leftmost` on both
+--     sides with `discharge-aligned` at YL=unit, YR=YL⊗YR (so eYL=refl
+--     and eYR comes from `flatten A = flatten YL⊗YR` on both sides).
+--     The c-from/c-to wrappers around the canonical form are NoSigma,
+--     so NoSigma-coherence aligns them.  Estimated ~50-80 LOC.
+--
+-- 3.  Wire up `single-agen-NF-coherence-discharge-scalar` (sub-step 4)
+--     in parallel with `-discharge-nonempty[-eout]`, dropping the
+--     `single-agen-NF-coherence-empty-ein` postulate field.  ~30-80 LOC.
+
+--------------------------------------------------------------------------------
 -- Positional alignment (Step 5 front-end).
 --
 -- Goal: extract `flatten YL_f ≡ flatten YL_g` and
@@ -1979,27 +2843,1843 @@ YL-length-from-iso-here-here
 YL-length-from-iso-here-here _ = refl
 
 --------------------------------------------------------------------------------
--- `single-agen-NF-coherence-discharge-given-len`: the full discharge of
--- the `single-agen-NF-coherence` postulate, ASSUMING the length
--- equality.  Composes:
+-- `agen-ein-position` machinery.
 --
---   * `single-agen-flat-data`: iso → `(flat-A-eq, flat-B-eq, flat-u-eq)`.
---   * `flat-data-to-ObjTerm`: flat data → `(Aᵢ_f ≡ Aᵢ_g, Bᵢ_f ≡ Bᵢ_g,
---     u_f ≡ u_g)`.
---   * `positional-alignment-from-length`: (flat-A-eq, len-YL-eq) →
---     `(flatten YL_f ≡ flatten YL_g, flatten YR_f ≡ flatten YR_g)`.
---   * `bridge-naturality-pos`: positional alignment + Agen u middle →
---     `mlB ∘ M_f ≈Term M_g ∘ mlA` (Mac-Lane bridge naturality).
---   * `single-agen-strip` on both sides: f ≈Term c-to-f ∘ M_f ∘ c-from-f,
---     g ≈Term c-to-g ∘ M_g ∘ c-from-g.
---   * `NoSigma-coherence` on the σ-free wrappers: c-from-f and the
---     composition `bridge-NoSigma-fwd eA ∘ c-from-g` are both NoSigma
---     A → (YL_f ⊗ Aᵢ ⊗ YR_f), hence ≈Term-equal; similarly for c-to.
+-- `length-YL-strip sf ≡ length (flatten YL_f)` is a direct ℕ computation
+-- from the witness, parallel to the implicit YL inside `single-agen-strip`.
+-- Provided as a recursion-friendly view so downstream code can compute
+-- on the ℕ rather than on the `flatten` of the strip's YL.
+
+length-YL-strip
+  : ∀ {A B} {f : HomTerm A B} → SingleAgen f → ℕ
+length-YL-strip (single-agen-here _)   = 0
+length-YL-strip (single-agen-∘-l sh _) = length-YL-strip sh
+length-YL-strip (single-agen-∘-r _ sk) = length-YL-strip sk
+length-YL-strip (single-agen-⊗-l sh _) = length-YL-strip sh
+length-YL-strip {f = h ⊗₁ k} (single-agen-⊗-r {A = A} _ sk) =
+  length (flatten A) + length-YL-strip sk
+
+-- Mirror of `length-YL-strip` for the YR side.  Used to characterise
+-- the post-Agen-edge segment of dom.
+length-YR-strip
+  : ∀ {A B} {f : HomTerm A B} → SingleAgen f → ℕ
+length-YR-strip (single-agen-here _)   = 0
+length-YR-strip (single-agen-∘-l sh _) = length-YR-strip sh
+length-YR-strip (single-agen-∘-r _ sk) = length-YR-strip sk
+length-YR-strip {f = h ⊗₁ k} (single-agen-⊗-l {C = C} sh _) =
+  length-YR-strip sh + length (flatten C)
+length-YR-strip (single-agen-⊗-r _ sk) = length-YR-strip sk
+
+-- `length-YL-strip sf ≡ length (flatten YL_f)`.  Strict recursion
+-- mirroring `single-agen-strip`'s YL field.  Used to convert between
+-- the structural ℕ view and the `flatten`-of-YL form expected by the
+-- `positional-alignment-from-length` interface.
+open import Data.List using (length)
+open import Data.List.Properties using (length-++)
+open import Data.Nat using (_+_)
+
+length-YL-strip-≡
+  : ∀ {A B} {f : HomTerm A B} (sf : SingleAgen f)
+  → length-YL-strip sf
+  ≡ length (flatten (SingleAgenNF.YL (single-agen-strip sf)))
+length-YL-strip-≡ (single-agen-here _)   = refl
+length-YL-strip-≡ (single-agen-∘-l sh _) = length-YL-strip-≡ sh
+length-YL-strip-≡ (single-agen-∘-r _ sk) = length-YL-strip-≡ sk
+length-YL-strip-≡ (single-agen-⊗-l sh _) = length-YL-strip-≡ sh
+length-YL-strip-≡ {f = h ⊗₁ k} (single-agen-⊗-r {A = A} _ sk) =
+  trans (cong (length (flatten A) +_) (length-YL-strip-≡ sk))
+        (sym (length-++ (flatten A)))
+
+--------------------------------------------------------------------------------
+-- `length-dom-⟪⟫ : length ⟪f⟫.dom ≡ length (flatten A)`.  A small ℕ
+-- lemma derived from `⟪⟫-domL` and `length-map`.  Used in the
+-- `length-of-YL` proof to count atoms across the Agen-edge boundary.
+
+length-dom-⟪⟫
+  : ∀ {A B} (f : HomTerm A B)
+  → length (Hypergraph.dom ⟪ f ⟫) ≡ length (flatten A)
+length-dom-⟪⟫ {A = A} f =
+  trans (sym (length-map-dom (Hypergraph.vlab ⟪ f ⟫) (Hypergraph.dom ⟪ f ⟫)))
+        (cong length (⟪⟫-domL f))
+  where
+    open import Data.List.Properties
+      using () renaming (length-map to length-map-dom)
+
+--------------------------------------------------------------------------------
+-- NoSigma-cod≡dom: for any NoSigma `h : HomTerm A B`, the dom and cod
+-- of `⟪h⟫` are propositionally equal Fin lists.
 --
--- This is the final composition that closes the discharge.  Currently
--- written as a stub because it requires `length-of-YL-eq` as input.
--- Once that single `ℕ`-equality is proved, this composition closes
--- `single-agen-NF-coherence` constructively.
+-- Proof by structural induction on the NoSigma witness.  For each
+-- *atomic* NoSigma case (id, λ⇒, λ⇐, ρ⇒, ρ⇐, α⇒, α⇐), the translation
+-- produces `hId X` for some X, and `hId-cod≡dom` settles the case.
+-- For `nosigma-∘` and `nosigma-⊗` we recurse on the structure.
+--
+-- The compose case uses the central observation: for `hComposeP G K`
+-- with `Unique K.dom`, `map remapP K.dom ≡ map injL G.cod` (up to
+-- structural manipulation involving `lookup-cod` and the
+-- `cast dom-cod-len`).  Combined with the IH on G (`G.cod ≡ G.dom`),
+-- this yields `composed.cod ≡ composed.dom`.
+
+open import Categories.APROP.Hypergraph.HomTermInvariant sig using (⟪_⟫-dom-unique; ⟪_⟫-cod-unique)
+open import Categories.APROP.Hypergraph.Invariant sig
+  using (hId-cod≡dom)
+open import Categories.APROP.Hypergraph.Core using (codL; domL)
+
+private
+  open import Data.List using (allFin; lookup)
+  open import Data.List.Properties
+    using (map-tabulate; tabulate-lookup; map-cong; map-id; map-∘; length-map)
+  open import Data.Fin using (cast)
+  open import Data.Fin.Properties using (cast-is-id)
+  open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
+  open import Categories.APROP.Hypergraph.Prune
+    using (remap-inj₁; classify-lookup-Unique)
+  open import Categories.APROP.Hypergraph.PrunedCompose sig
+    using ()
+
+  -- Re-derivation of `map-lookup-allFin` and `cast-allFin` (from
+  -- `SoundnessProved`'s private module).  Re-stated locally to avoid
+  -- breaking the existing module's private boundary.
+  map-lookup-allFin
+    : ∀ {A : Set} (xs : List A)
+    → map (lookup xs) (allFin (length xs)) ≡ xs
+  map-lookup-allFin xs =
+    trans (map-tabulate (λ i → i) (lookup xs)) (tabulate-lookup xs)
+
+  cast-allFin
+    : ∀ {m n} (eq : m ≡ n) → map (cast eq) (allFin m) ≡ allFin n
+  cast-allFin refl =
+    trans (map-cong (λ i → cast-is-id refl i) (allFin _)) (map-id (allFin _))
+
+  -- For `hComposeP G K bdy-eq` with `Unique K.dom`,
+  -- `map remapP K.dom ≡ map injL G.cod`.  Generalises the
+  -- `idˡ-cod-helper`'s K = hId chain to any Unique-dom K.
+  map-remapP-dom-≡-injL-G-cod
+    : ∀ (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
+    → Unique (Hypergraph.dom K)
+    → let module hCP = hComposeP-impl G K bdy-eq
+          module Kh = Hypergraph K
+          module Gh = Hypergraph G
+      in map hCP.remapP Kh.dom ≡ map hCP.injL Gh.cod
+  map-remapP-dom-≡-injL-G-cod G K bdy-eq K-dom-Unique =
+    let module hCP = hComposeP-impl G K bdy-eq
+        module Kh = Hypergraph K
+        module Gh = Hypergraph G
+
+        remapP-on-dom
+          : ∀ (j : Fin (length Kh.dom))
+          → hCP.remapP (lookup Kh.dom j)
+          ≡ hCP.lookup-cod j ↑ˡ Prune.count-non Kh.dom
+        remapP-on-dom j =
+          remap-inj₁ Kh.dom hCP.lookup-cod (lookup Kh.dom j) j
+            (classify-lookup-Unique Kh.dom K-dom-Unique j)
+    in EQR.begin
+      map hCP.remapP Kh.dom
+        EQR.≡⟨ cong (map hCP.remapP) (sym (map-lookup-allFin Kh.dom)) ⟩
+      map hCP.remapP (map (lookup Kh.dom) (allFin (length Kh.dom)))
+        EQR.≡⟨ sym (map-∘ (allFin (length Kh.dom))) ⟩
+      map (λ j → hCP.remapP (lookup Kh.dom j)) (allFin (length Kh.dom))
+        EQR.≡⟨ map-cong remapP-on-dom (allFin (length Kh.dom)) ⟩
+      map (λ j → hCP.lookup-cod j ↑ˡ Prune.count-non Kh.dom)
+          (allFin (length Kh.dom))
+        EQR.≡⟨ map-∘ (allFin (length Kh.dom)) ⟩
+      map (_↑ˡ Prune.count-non Kh.dom)
+          (map hCP.lookup-cod (allFin (length Kh.dom)))
+        EQR.≡⟨ cong (map (_↑ˡ Prune.count-non Kh.dom)) (map-∘ (allFin (length Kh.dom))) ⟩
+      map (_↑ˡ Prune.count-non Kh.dom)
+          (map (lookup Gh.cod) (map (cast hCP.dom-cod-len) (allFin (length Kh.dom))))
+        EQR.≡⟨ cong (λ xs → map (_↑ˡ Prune.count-non Kh.dom)
+                              (map (lookup Gh.cod) xs))
+              (cast-allFin hCP.dom-cod-len) ⟩
+      map (_↑ˡ Prune.count-non Kh.dom)
+          (map (lookup Gh.cod) (allFin (length Gh.cod)))
+        EQR.≡⟨ cong (map (_↑ˡ Prune.count-non Kh.dom)) (map-lookup-allFin Gh.cod) ⟩
+      map (_↑ˡ Prune.count-non Kh.dom) Gh.cod
+        EQR.∎
+    where
+      module EQR = ≡-Reasoning
+      module Prune = Categories.APROP.Hypergraph.Prune
+
+NoSigma-cod≡dom
+  : ∀ {A B} {h : HomTerm A B}
+  → NoSigma h → Hypergraph.cod ⟪ h ⟫ ≡ Hypergraph.dom ⟪ h ⟫
+NoSigma-cod≡dom (nosigma-id {A}) = hId-cod≡dom A
+NoSigma-cod≡dom (nosigma-λ⇒ {A}) = hId-cod≡dom A
+NoSigma-cod≡dom (nosigma-λ⇐ {A}) = hId-cod≡dom A
+NoSigma-cod≡dom (nosigma-ρ⇒ {A}) = hId-cod≡dom (A ⊗₀ unit)
+NoSigma-cod≡dom (nosigma-ρ⇐ {A}) = hId-cod≡dom (A ⊗₀ unit)
+NoSigma-cod≡dom (nosigma-α⇒ {A} {B} {C}) = hId-cod≡dom ((A ⊗₀ B) ⊗₀ C)
+NoSigma-cod≡dom (nosigma-α⇐ {A} {B} {C}) = hId-cod≡dom ((A ⊗₀ B) ⊗₀ C)
+NoSigma-cod≡dom {h = h₁ ⊗₁ h₂} (nosigma-⊗ nh nk) =
+  let module H₁ = Hypergraph ⟪ h₁ ⟫
+      module H₂ = Hypergraph ⟪ h₂ ⟫
+  in cong₂ _++_
+       (cong (map (_↑ˡ H₂.nV)) (NoSigma-cod≡dom nh))
+       (cong (map (H₁.nV ↑ʳ_)) (NoSigma-cod≡dom nk))
+  where open import Relation.Binary.PropositionalEquality using (cong₂)
+NoSigma-cod≡dom {h = h₁ ∘ h₂} (nosigma-∘ nh nk) =
+  -- ⟪h₁ ∘ h₂⟫ = hComposeP ⟪h₂⟫ ⟪h₁⟫ bdy.
+  --   G = ⟪h₂⟫, K = ⟪h₁⟫.
+  --   dom = map injL G.dom.
+  --   cod = map remapP K.cod.
+  -- IH on h₁: K.cod ≡ K.dom.
+  -- For Unique K.dom: `map remapP K.dom ≡ map injL G.cod`.
+  -- IH on h₂: G.cod ≡ G.dom.
+  EQR.begin
+    map hCP.remapP K.cod
+      EQR.≡⟨ cong (map hCP.remapP) (NoSigma-cod≡dom nh) ⟩
+    map hCP.remapP K.dom
+      EQR.≡⟨ map-remapP-dom-≡-injL-G-cod ⟪ h₂ ⟫ ⟪ h₁ ⟫ bdy (⟪_⟫-dom-unique h₁) ⟩
+    map hCP.injL G.cod
+      EQR.≡⟨ cong (map hCP.injL) (NoSigma-cod≡dom nk) ⟩
+    map hCP.injL G.dom
+      EQR.∎
+  where
+    module EQR = ≡-Reasoning
+    bdy = trans (⟪⟫-codL h₂) (sym (⟪⟫-domL h₁))
+    module G = Hypergraph ⟪ h₂ ⟫
+    module K = Hypergraph ⟪ h₁ ⟫
+    module hCP = hComposeP-impl ⟪ h₂ ⟫ ⟪ h₁ ⟫ bdy
+
+--------------------------------------------------------------------------------
+-- `agen-ein-position`: structural positional decomposition of `⟪f⟫.dom`
+-- around the unique Agen edge's `ein`.
+--
+-- For each `SingleAgen` witness `sf`, the dom of `⟪f⟫` admits a
+-- decomposition
+--
+--   ⟪f⟫.dom ≡ pre ++ ⟪f⟫.ein (SingleAgen-edge sf) ++ post
+--
+-- where `length pre ≡ length-YL-strip sf` and
+-- `length post ≡ length-YR-strip sf`.
+--
+-- The proof is by structural recursion on `sf`.  The compose-left
+-- case is the most delicate: the Agen edge's `ein` is `map remapP
+-- (⟪h⟫.ein agen-h)`, not literally a sublist of `map injL ⟪k⟫.dom`.
+-- We close it via `map-remapP-dom-≡-injL-G-cod` + `NoSigma-cod≡dom`
+-- on the right-hand wrapper.
+
+open import Data.List.Properties using (map-++; ++-assoc; length-++)
+  renaming (length-map to length-map-prop)
+open import Data.List using ([])
+
+agen-ein-position
+  : ∀ {A B} {f : HomTerm A B} (sf : SingleAgen f)
+  → Σ[ pre ∈ List (Fin (Hypergraph.nV ⟪ f ⟫)) ]
+    Σ[ post ∈ List (Fin (Hypergraph.nV ⟪ f ⟫)) ]
+    Hypergraph.dom ⟪ f ⟫
+    ≡ pre ++ Hypergraph.ein ⟪ f ⟫ (SingleAgen-edge sf) ++ post
+    × length pre ≡ length-YL-strip sf
+    × length post ≡ length-YR-strip sf
+agen-ein-position (single-agen-here u) =
+  -- ⟪Agen u⟫ = hGen u.  dom = ein = `map (_↑ˡ nB) (range nA)`.
+  -- pre = post = [].
+  [] , [] ,
+  sym (++-identityʳ _) ,
+  refl ,
+  refl
+  where open import Data.List.Properties using (++-identityʳ)
+agen-ein-position {f = h ∘ k} (single-agen-∘-r nh sk) =
+  -- ⟪h ∘ k⟫ = hComposeP ⟪k⟫ ⟪h⟫ bdy.
+  --   G = ⟪k⟫, K = ⟪h⟫.
+  --   composed.dom = map injL ⟪k⟫.dom.
+  --   Agen edge in composed = (SingleAgen-edge sk) ↑ˡ ⟪h⟫.nE.
+  --   Its ein in composed = map injL (⟪k⟫.ein (SingleAgen-edge sk)).
+  -- IH on sk: ⟪k⟫.dom = pre-k ++ ⟪k⟫.ein agen-k ++ post-k.
+  let
+    ih = agen-ein-position sk
+    pre-k    = proj₁ ih
+    post-k   = proj₁ (proj₂ ih)
+    dom-eq-k = proj₁ (proj₂ (proj₂ ih))
+    len-pre-k = proj₁ (proj₂ (proj₂ (proj₂ ih)))
+    len-post-k = proj₂ (proj₂ (proj₂ (proj₂ ih)))
+
+    bdy = trans (⟪⟫-codL k) (sym (⟪⟫-domL h))
+    open hComposeP-impl ⟪ k ⟫ ⟪ h ⟫ bdy using (injL; ein-c-inj₁-red)
+    module K-G = Hypergraph ⟪ k ⟫
+    module H-K = Hypergraph ⟪ h ⟫
+
+    pre = map injL pre-k
+    ein-k = K-G.ein (SingleAgen-edge sk)
+    post = map injL post-k
+
+    dom-eq :
+      map injL K-G.dom ≡ pre ++ map injL ein-k ++ post
+    dom-eq =
+      trans (cong (map injL) dom-eq-k)
+            (trans (map-++ injL pre-k (ein-k ++ post-k))
+                   (cong (map injL pre-k ++_)
+                         (map-++ injL ein-k post-k)))
+
+    ein-composed-eq :
+      Hypergraph.ein ⟪ h ∘ k ⟫ (SingleAgen-edge sk ↑ˡ H-K.nE)
+      ≡ map injL ein-k
+    ein-composed-eq = ein-c-inj₁-red (SingleAgen-edge sk)
+  in
+    pre , post ,
+    trans dom-eq
+          (cong (λ xs → pre ++ xs ++ post) (sym ein-composed-eq)) ,
+    trans (length-map-prop injL pre-k) len-pre-k ,
+    trans (length-map-prop injL post-k) len-post-k
+agen-ein-position {f = h ⊗₁ k} (single-agen-⊗-l {C = C} sh nk) =
+  -- ⟪h ⊗ k⟫ = hTensor ⟪h⟫ ⟪k⟫.
+  --   composed.dom = map injL ⟪h⟫.dom ++ map injR ⟪k⟫.dom.
+  --   Agen edge in composed = (SingleAgen-edge sh) ↑ˡ ⟪k⟫.nE.
+  --   Its ein in composed = map injL (⟪h⟫.ein (SingleAgen-edge sh)).
+  -- IH on sh: ⟪h⟫.dom = pre-h ++ ⟪h⟫.ein agen-h ++ post-h.
+  pre , post ,
+  trans dom-eq
+        (cong (λ xs → pre ++ xs ++ post) (sym ein-composed-eq)) ,
+  trans (length-map-prop injL pre-h) len-pre-h ,
+  post-len-eq
+  where
+    open import Relation.Binary.PropositionalEquality using (cong₂)
+    open hTensor-impl ⟪ h ⟫ ⟪ k ⟫ using (injL; injR; ein-c-inj₁-red)
+    module Hh = Hypergraph ⟪ h ⟫
+    module Hk = Hypergraph ⟪ k ⟫
+    ih = agen-ein-position sh
+    pre-h    = proj₁ ih
+    post-h   = proj₁ (proj₂ ih)
+    dom-eq-h = proj₁ (proj₂ (proj₂ ih))
+    len-pre-h = proj₁ (proj₂ (proj₂ (proj₂ ih)))
+    len-post-h = proj₂ (proj₂ (proj₂ (proj₂ ih)))
+    pre = map injL pre-h
+    ein-h = Hh.ein (SingleAgen-edge sh)
+    post = map injL post-h ++ map injR Hk.dom
+    map-decomp :
+      map injL Hh.dom
+      ≡ map injL pre-h ++ map injL ein-h ++ map injL post-h
+    map-decomp =
+      trans (cong (map injL) dom-eq-h)
+            (trans (map-++ injL pre-h (ein-h ++ post-h))
+                   (cong (map injL pre-h ++_)
+                         (map-++ injL ein-h post-h)))
+    dom-eq :
+      map injL Hh.dom ++ map injR Hk.dom
+      ≡ pre ++ map injL ein-h ++ post
+    dom-eq =
+      trans (cong (_++ map injR Hk.dom) map-decomp)
+            (trans (++-assoc (map injL pre-h)
+                             (map injL ein-h ++ map injL post-h)
+                             (map injR Hk.dom))
+                   (cong (map injL pre-h ++_)
+                         (++-assoc (map injL ein-h)
+                                   (map injL post-h)
+                                   (map injR Hk.dom))))
+    ein-composed-eq :
+      Hypergraph.ein ⟪ h ⊗₁ k ⟫ (SingleAgen-edge sh ↑ˡ Hk.nE)
+      ≡ map injL ein-h
+    ein-composed-eq = ein-c-inj₁-red (SingleAgen-edge sh)
+    post-len-eq :
+      length post ≡ length-YR-strip sh + length (flatten C)
+    post-len-eq =
+      trans (length-++ (map injL post-h))
+            (cong₂ _+_
+              (trans (length-map-prop injL post-h) len-post-h)
+              (trans (length-map-prop injR Hk.dom) (length-dom-⟪⟫ k)))
+agen-ein-position {f = h ⊗₁ k} (single-agen-⊗-r {A = A_h} nh sk) =
+  -- ⟪h ⊗ k⟫ = hTensor ⟪h⟫ ⟪k⟫.
+  --   composed.dom = map injL ⟪h⟫.dom ++ map injR ⟪k⟫.dom.
+  --   Agen edge in composed = ⟪h⟫.nE ↑ʳ (SingleAgen-edge sk).
+  --   Its ein in composed = map injR (⟪k⟫.ein (SingleAgen-edge sk)).
+  -- IH on sk: ⟪k⟫.dom = pre-k ++ ⟪k⟫.ein agen-k ++ post-k.
+  pre , post ,
+  trans dom-eq
+        (cong (λ xs → pre ++ xs ++ post) (sym ein-composed-eq)) ,
+  pre-len-eq ,
+  trans (length-map-prop injR post-k) len-post-k
+  where
+    open import Relation.Binary.PropositionalEquality using (cong₂)
+    open hTensor-impl ⟪ h ⟫ ⟪ k ⟫ using (injL; injR; ein-c-inj₂-red)
+    module Hh = Hypergraph ⟪ h ⟫
+    module Hk = Hypergraph ⟪ k ⟫
+    ih = agen-ein-position sk
+    pre-k    = proj₁ ih
+    post-k   = proj₁ (proj₂ ih)
+    dom-eq-k = proj₁ (proj₂ (proj₂ ih))
+    len-pre-k = proj₁ (proj₂ (proj₂ (proj₂ ih)))
+    len-post-k = proj₂ (proj₂ (proj₂ (proj₂ ih)))
+    pre = map injL Hh.dom ++ map injR pre-k
+    ein-k = Hk.ein (SingleAgen-edge sk)
+    post = map injR post-k
+    map-decomp :
+      map injR Hk.dom
+      ≡ map injR pre-k ++ map injR ein-k ++ map injR post-k
+    map-decomp =
+      trans (cong (map injR) dom-eq-k)
+            (trans (map-++ injR pre-k (ein-k ++ post-k))
+                   (cong (map injR pre-k ++_)
+                         (map-++ injR ein-k post-k)))
+    dom-eq :
+      map injL Hh.dom ++ map injR Hk.dom
+      ≡ pre ++ map injR ein-k ++ post
+    dom-eq =
+      trans (cong (map injL Hh.dom ++_) map-decomp)
+            (sym (++-assoc (map injL Hh.dom) (map injR pre-k) _))
+    ein-composed-eq :
+      Hypergraph.ein ⟪ h ⊗₁ k ⟫ (Hh.nE ↑ʳ SingleAgen-edge sk)
+      ≡ map injR ein-k
+    ein-composed-eq = ein-c-inj₂-red (SingleAgen-edge sk)
+    pre-len-eq :
+      length pre ≡ length (flatten A_h) + length-YL-strip sk
+    pre-len-eq =
+      trans (length-++ (map injL Hh.dom))
+            (cong₂ _+_
+              (trans (length-map-prop injL Hh.dom) (length-dom-⟪⟫ h))
+              (trans (length-map-prop injR pre-k) len-pre-k))
+agen-ein-position {f = h ∘ k} (single-agen-∘-l sh nk) =
+  -- ⟪h ∘ k⟫ = hComposeP ⟪k⟫ ⟪h⟫ bdy.
+  --   G = ⟪k⟫, K = ⟪h⟫.
+  --   composed.dom = map injL ⟪k⟫.dom.
+  --   Agen edge in composed = ⟪k⟫.nE ↑ʳ (SingleAgen-edge sh).
+  --   Its ein in composed = map remapP (⟪h⟫.ein (SingleAgen-edge sh)).
+  -- IH on sh: ⟪h⟫.dom = pre-h ++ ⟪h⟫.ein agen-h ++ post-h.
+  -- map remapP ⟪h⟫.dom = map injL ⟪k⟫.cod   (by map-remapP-dom-≡-injL-G-cod).
+  -- ⟪k⟫.cod = ⟪k⟫.dom                       (by NoSigma-cod≡dom nk).
+  -- So map remapP ⟪h⟫.dom = composed.dom.
+  -- Hence composed.dom = map remapP pre-h ++ map remapP ein-h ++ map remapP post-h.
+  pre , post ,
+  decomp ,
+  trans (length-map-prop remapP pre-h) len-pre-h ,
+  trans (length-map-prop remapP post-h) len-post-h
+  where
+    open import Relation.Binary.PropositionalEquality using (cong₂)
+    bdy = trans (⟪⟫-codL k) (sym (⟪⟫-domL h))
+    open hComposeP-impl ⟪ k ⟫ ⟪ h ⟫ bdy
+      using (injL; remapP; ein-c-inj₂-red)
+    module Gk = Hypergraph ⟪ k ⟫
+    module Kh = Hypergraph ⟪ h ⟫
+
+    ih = agen-ein-position sh
+    pre-h     = proj₁ ih
+    post-h    = proj₁ (proj₂ ih)
+    dom-eq-h  = proj₁ (proj₂ (proj₂ ih))
+    len-pre-h = proj₁ (proj₂ (proj₂ (proj₂ ih)))
+    len-post-h = proj₂ (proj₂ (proj₂ (proj₂ ih)))
+
+    pre = map remapP pre-h
+    ein-h = Kh.ein (SingleAgen-edge sh)
+    post = map remapP post-h
+
+    -- map remapP Kh.dom ≡ map injL Gk.cod (general K Unique-dom)
+    remapP-Kh-dom-eq : map remapP Kh.dom ≡ map injL Gk.cod
+    remapP-Kh-dom-eq =
+      map-remapP-dom-≡-injL-G-cod ⟪ k ⟫ ⟪ h ⟫ bdy (⟪_⟫-dom-unique h)
+
+    -- map injL Gk.cod ≡ map injL Gk.dom (since k is NoSigma)
+    injL-Gk-cod-dom-eq : map injL Gk.cod ≡ map injL Gk.dom
+    injL-Gk-cod-dom-eq = cong (map injL) (NoSigma-cod≡dom nk)
+
+    -- So map remapP Kh.dom ≡ composed.dom.
+    remapP-Kh-eq-dom : map remapP Kh.dom ≡ map injL Gk.dom
+    remapP-Kh-eq-dom = trans remapP-Kh-dom-eq injL-Gk-cod-dom-eq
+
+    -- Decomposition of map remapP Kh.dom using IH.
+    remapP-decomp :
+      map remapP Kh.dom
+      ≡ map remapP pre-h ++ map remapP ein-h ++ map remapP post-h
+    remapP-decomp =
+      trans (cong (map remapP) dom-eq-h)
+            (trans (map-++ remapP pre-h (ein-h ++ post-h))
+                   (cong (map remapP pre-h ++_)
+                         (map-++ remapP ein-h post-h)))
+
+    -- Combined: composed.dom ≡ pre ++ map remapP ein-h ++ post.
+    composed-dom-eq :
+      map injL Gk.dom ≡ pre ++ map remapP ein-h ++ post
+    composed-dom-eq =
+      trans (sym remapP-Kh-eq-dom) remapP-decomp
+
+    -- Agen ein in composed equals map remapP ein-h.
+    ein-composed-eq :
+      Hypergraph.ein ⟪ h ∘ k ⟫ (Gk.nE ↑ʳ SingleAgen-edge sh)
+      ≡ map remapP ein-h
+    ein-composed-eq = ein-c-inj₂-red (SingleAgen-edge sh)
+
+    decomp :
+      Hypergraph.dom ⟪ h ∘ k ⟫
+      ≡ pre ++ Hypergraph.ein ⟪ h ∘ k ⟫ (Gk.nE ↑ʳ SingleAgen-edge sh) ++ post
+    decomp =
+      trans composed-dom-eq
+            (cong (λ xs → pre ++ xs ++ post) (sym ein-composed-eq))
+
+--------------------------------------------------------------------------------
+-- `length-cod-⟪⟫ : length ⟪f⟫.cod ≡ length (flatten B)`.  Dual of
+-- `length-dom-⟪⟫`.  Used in the `agen-eout-position` proof.
+
+length-cod-⟪⟫
+  : ∀ {A B} (f : HomTerm A B)
+  → length (Hypergraph.cod ⟪ f ⟫) ≡ length (flatten B)
+length-cod-⟪⟫ {B = B} f =
+  trans (sym (length-map-cod (Hypergraph.vlab ⟪ f ⟫) (Hypergraph.cod ⟪ f ⟫)))
+        (cong length (⟪⟫-codL f))
+  where
+    open import Data.List.Properties
+      using () renaming (length-map to length-map-cod)
+
+--------------------------------------------------------------------------------
+-- `agen-eout-position`: dual of `agen-ein-position`.  For each
+-- `SingleAgen` witness `sf`, the cod of `⟪f⟫` admits a decomposition
+--
+--   ⟪f⟫.cod ≡ pre ++ ⟪f⟫.eout (SingleAgen-edge sf) ++ post
+--
+-- with the same `length pre ≡ length-YL-strip sf` and
+-- `length post ≡ length-YR-strip sf` (since the strip's YL/YR are
+-- shared between source and target of the middle).
+--
+-- The proof structure mirrors `agen-ein-position`'s, using eout-c-inj_X
+-- instead of ein-c-inj_X.
+
+agen-eout-position
+  : ∀ {A B} {f : HomTerm A B} (sf : SingleAgen f)
+  → Σ[ pre ∈ List (Fin (Hypergraph.nV ⟪ f ⟫)) ]
+    Σ[ post ∈ List (Fin (Hypergraph.nV ⟪ f ⟫)) ]
+    Hypergraph.cod ⟪ f ⟫
+    ≡ pre ++ Hypergraph.eout ⟪ f ⟫ (SingleAgen-edge sf) ++ post
+    × length pre ≡ length-YL-strip sf
+    × length post ≡ length-YR-strip sf
+agen-eout-position (single-agen-here u) =
+  -- ⟪Agen u⟫ = hGen u.  cod = eout = `map (nA ↑ʳ_) (range nB)`.
+  -- pre = post = [].
+  [] , [] ,
+  sym (++-identityʳ _) ,
+  refl ,
+  refl
+  where open import Data.List.Properties using (++-identityʳ)
+agen-eout-position {f = h ∘ k} (single-agen-∘-r nh sk) =
+  -- ⟪h ∘ k⟫ = hComposeP ⟪k⟫ ⟪h⟫ bdy.
+  --   G = ⟪k⟫, K = ⟪h⟫.
+  --   composed.cod = map remapP ⟪h⟫.cod.
+  --   Agen edge in composed = (SingleAgen-edge sk) ↑ˡ ⟪h⟫.nE.
+  --   Its eout in composed = map injL (⟪k⟫.eout (SingleAgen-edge sk)).
+  --
+  -- For the Agen-eout, sk is in the G-side.  We need
+  --   composed.cod ≡ pre ++ map injL eout-k ++ post.
+  --
+  -- But composed.cod = map remapP ⟪h⟫.cod, NOT map injL ⟪k⟫.cod.
+  -- For NoSigma h: NoSigma-cod≡dom nh gives ⟪h⟫.cod ≡ ⟪h⟫.dom.
+  -- Then map-remapP-dom-≡-injL-G-cod gives map remapP ⟪h⟫.dom ≡ map injL ⟪k⟫.cod.
+  -- So composed.cod ≡ map injL ⟪k⟫.cod.
+  -- By IH on sk: ⟪k⟫.cod = pre-k ++ ⟪k⟫.eout agen-k ++ post-k.
+  -- Substitute to get the decomposition.
+  pre , post ,
+  decomp ,
+  trans (length-map-prop injL pre-k) len-pre-k ,
+  trans (length-map-prop injL post-k) len-post-k
+  where
+    open import Relation.Binary.PropositionalEquality using (cong₂)
+    bdy = trans (⟪⟫-codL k) (sym (⟪⟫-domL h))
+    open hComposeP-impl ⟪ k ⟫ ⟪ h ⟫ bdy
+      using (injL; remapP; eout-c-inj₁-red)
+    module Gk = Hypergraph ⟪ k ⟫
+    module Kh = Hypergraph ⟪ h ⟫
+
+    ih = agen-eout-position sk
+    pre-k     = proj₁ ih
+    post-k    = proj₁ (proj₂ ih)
+    cod-eq-k  = proj₁ (proj₂ (proj₂ ih))
+    len-pre-k = proj₁ (proj₂ (proj₂ (proj₂ ih)))
+    len-post-k = proj₂ (proj₂ (proj₂ (proj₂ ih)))
+
+    pre = map injL pre-k
+    eout-k = Gk.eout (SingleAgen-edge sk)
+    post = map injL post-k
+
+    -- map remapP Kh.cod = ?
+    remapP-Kh-cod-dom : map remapP Kh.cod ≡ map remapP Kh.dom
+    remapP-Kh-cod-dom = cong (map remapP) (NoSigma-cod≡dom nh)
+
+    remapP-Kh-dom-eq : map remapP Kh.dom ≡ map injL Gk.cod
+    remapP-Kh-dom-eq =
+      map-remapP-dom-≡-injL-G-cod ⟪ k ⟫ ⟪ h ⟫ bdy (⟪_⟫-dom-unique h)
+
+    -- composed.cod ≡ map injL Gk.cod.
+    composed-cod-eq-Gk-cod : map remapP Kh.cod ≡ map injL Gk.cod
+    composed-cod-eq-Gk-cod = trans remapP-Kh-cod-dom remapP-Kh-dom-eq
+
+    -- map injL Gk.cod = map injL (pre-k ++ eout-k ++ post-k)
+    --                 = map injL pre-k ++ map injL eout-k ++ map injL post-k
+    injL-decomp :
+      map injL Gk.cod
+      ≡ map injL pre-k ++ map injL eout-k ++ map injL post-k
+    injL-decomp =
+      trans (cong (map injL) cod-eq-k)
+            (trans (map-++ injL pre-k (eout-k ++ post-k))
+                   (cong (map injL pre-k ++_)
+                         (map-++ injL eout-k post-k)))
+
+    -- composed.cod ≡ pre ++ map injL eout-k ++ post.
+    cod-eq : map remapP Kh.cod ≡ pre ++ map injL eout-k ++ post
+    cod-eq = trans composed-cod-eq-Gk-cod injL-decomp
+
+    -- composed.eout at the agen edge = map injL eout-k.
+    eout-composed-eq :
+      Hypergraph.eout ⟪ h ∘ k ⟫ (SingleAgen-edge sk ↑ˡ Kh.nE)
+      ≡ map injL eout-k
+    eout-composed-eq = eout-c-inj₁-red (SingleAgen-edge sk)
+
+    decomp :
+      Hypergraph.cod ⟪ h ∘ k ⟫
+      ≡ pre ++ Hypergraph.eout ⟪ h ∘ k ⟫ (SingleAgen-edge sk ↑ˡ Kh.nE) ++ post
+    decomp =
+      trans cod-eq
+            (cong (λ xs → pre ++ xs ++ post) (sym eout-composed-eq))
+agen-eout-position {f = h ⊗₁ k} (single-agen-⊗-l {C = C} sh nk) =
+  -- ⟪h ⊗ k⟫ = hTensor ⟪h⟫ ⟪k⟫.  composed.cod = map injL Hh.cod ++ map injR Hk.cod.
+  -- Agen edge in composed = (SingleAgen-edge sh) ↑ˡ Hk.nE.
+  -- Its eout in composed = map injL (⟪h⟫.eout (SingleAgen-edge sh)).
+  -- By IH on sh: ⟪h⟫.cod = pre-h ++ eout-h ++ post-h.
+  pre , post ,
+  trans cod-eq (cong (λ xs → pre ++ xs ++ post) (sym eout-composed-eq)) ,
+  trans (length-map-prop injL pre-h) len-pre-h ,
+  post-len-eq
+  where
+    open import Relation.Binary.PropositionalEquality using (cong₂)
+    open hTensor-impl ⟪ h ⟫ ⟪ k ⟫ using (injL; injR; eout-c-inj₁-red)
+    module Hh = Hypergraph ⟪ h ⟫
+    module Hk = Hypergraph ⟪ k ⟫
+    ih = agen-eout-position sh
+    pre-h    = proj₁ ih
+    post-h   = proj₁ (proj₂ ih)
+    cod-eq-h = proj₁ (proj₂ (proj₂ ih))
+    len-pre-h = proj₁ (proj₂ (proj₂ (proj₂ ih)))
+    len-post-h = proj₂ (proj₂ (proj₂ (proj₂ ih)))
+    pre = map injL pre-h
+    eout-h = Hh.eout (SingleAgen-edge sh)
+    post = map injL post-h ++ map injR Hk.cod
+    map-decomp :
+      map injL Hh.cod
+      ≡ map injL pre-h ++ map injL eout-h ++ map injL post-h
+    map-decomp =
+      trans (cong (map injL) cod-eq-h)
+            (trans (map-++ injL pre-h (eout-h ++ post-h))
+                   (cong (map injL pre-h ++_)
+                         (map-++ injL eout-h post-h)))
+    cod-eq :
+      map injL Hh.cod ++ map injR Hk.cod
+      ≡ pre ++ map injL eout-h ++ post
+    cod-eq =
+      trans (cong (_++ map injR Hk.cod) map-decomp)
+            (trans (++-assoc (map injL pre-h)
+                             (map injL eout-h ++ map injL post-h)
+                             (map injR Hk.cod))
+                   (cong (map injL pre-h ++_)
+                         (++-assoc (map injL eout-h)
+                                   (map injL post-h)
+                                   (map injR Hk.cod))))
+    eout-composed-eq :
+      Hypergraph.eout ⟪ h ⊗₁ k ⟫ (SingleAgen-edge sh ↑ˡ Hk.nE)
+      ≡ map injL eout-h
+    eout-composed-eq = eout-c-inj₁-red (SingleAgen-edge sh)
+    -- The post-len-eq for ⊗-l: the YR has been extended with C.
+    -- Use length-cod-⟪⟫ on k (which gives length flatten D, where k : C → D).
+    -- But our length-YR-strip references flatten C.
+    -- For NoSigma k : C → D, flatten C ≡ flatten D, so lengths agree.
+    post-len-eq :
+      length post ≡ length-YR-strip sh + length (flatten C)
+    post-len-eq =
+      trans (length-++ (map injL post-h))
+            (cong₂ _+_
+              (trans (length-map-prop injL post-h) len-post-h)
+              (trans (length-map-prop injR Hk.cod)
+                     (trans (length-cod-⟪⟫ k)
+                            (cong length (sym (flatten-NoSigma nk))))))
+agen-eout-position {f = h ⊗₁ k} (single-agen-⊗-r {A = A_h} nh sk) =
+  -- ⟪h ⊗ k⟫ = hTensor ⟪h⟫ ⟪k⟫.  composed.cod = map injL Hh.cod ++ map injR Hk.cod.
+  -- Agen edge in composed = Hh.nE ↑ʳ (SingleAgen-edge sk).
+  -- Its eout in composed = map injR (⟪k⟫.eout (SingleAgen-edge sk)).
+  pre , post ,
+  trans cod-eq (cong (λ xs → pre ++ xs ++ post) (sym eout-composed-eq)) ,
+  pre-len-eq ,
+  trans (length-map-prop injR post-k) len-post-k
+  where
+    open import Relation.Binary.PropositionalEquality using (cong₂)
+    open hTensor-impl ⟪ h ⟫ ⟪ k ⟫ using (injL; injR; eout-c-inj₂-red)
+    module Hh = Hypergraph ⟪ h ⟫
+    module Hk = Hypergraph ⟪ k ⟫
+    ih = agen-eout-position sk
+    pre-k    = proj₁ ih
+    post-k   = proj₁ (proj₂ ih)
+    cod-eq-k = proj₁ (proj₂ (proj₂ ih))
+    len-pre-k = proj₁ (proj₂ (proj₂ (proj₂ ih)))
+    len-post-k = proj₂ (proj₂ (proj₂ (proj₂ ih)))
+    pre = map injL Hh.cod ++ map injR pre-k
+    eout-k = Hk.eout (SingleAgen-edge sk)
+    post = map injR post-k
+    map-decomp :
+      map injR Hk.cod
+      ≡ map injR pre-k ++ map injR eout-k ++ map injR post-k
+    map-decomp =
+      trans (cong (map injR) cod-eq-k)
+            (trans (map-++ injR pre-k (eout-k ++ post-k))
+                   (cong (map injR pre-k ++_)
+                         (map-++ injR eout-k post-k)))
+    cod-eq :
+      map injL Hh.cod ++ map injR Hk.cod
+      ≡ pre ++ map injR eout-k ++ post
+    cod-eq =
+      trans (cong (map injL Hh.cod ++_) map-decomp)
+            (sym (++-assoc (map injL Hh.cod) (map injR pre-k) _))
+    eout-composed-eq :
+      Hypergraph.eout ⟪ h ⊗₁ k ⟫ (Hh.nE ↑ʳ SingleAgen-edge sk)
+      ≡ map injR eout-k
+    eout-composed-eq = eout-c-inj₂-red (SingleAgen-edge sk)
+    -- pre length: length(map injL Hh.cod) + length(map injR pre-k) = length flatten B_h + length pre-k.
+    -- For NoSigma h: flatten A_h ≡ flatten B_h.
+    pre-len-eq :
+      length pre ≡ length (flatten A_h) + length-YL-strip sk
+    pre-len-eq =
+      trans (length-++ (map injL Hh.cod))
+            (cong₂ _+_
+              (trans (length-map-prop injL Hh.cod)
+                     (trans (length-cod-⟪⟫ h)
+                            (cong length (sym (flatten-NoSigma nh)))))
+              (trans (length-map-prop injR pre-k) len-pre-k))
+agen-eout-position {f = h ∘ k} (single-agen-∘-l sh nk) =
+  -- ⟪h ∘ k⟫ = hComposeP ⟪k⟫ ⟪h⟫ bdy.
+  --   composed.cod = map remapP ⟪h⟫.cod.
+  --   Agen edge in composed = ⟪k⟫.nE ↑ʳ (SingleAgen-edge sh).
+  --   Its eout in composed = map remapP (⟪h⟫.eout (SingleAgen-edge sh)).
+  -- By IH on sh: ⟪h⟫.cod = pre-h ++ eout-h ++ post-h.
+  -- composed.cod = map remapP ⟪h⟫.cod = map remapP (pre-h ++ eout-h ++ post-h)
+  --              = map remapP pre-h ++ map remapP eout-h ++ map remapP post-h.
+  pre , post ,
+  trans cod-eq (cong (λ xs → pre ++ xs ++ post) (sym eout-composed-eq)) ,
+  trans (length-map-prop remapP pre-h) len-pre-h ,
+  trans (length-map-prop remapP post-h) len-post-h
+  where
+    open import Relation.Binary.PropositionalEquality using (cong₂)
+    bdy = trans (⟪⟫-codL k) (sym (⟪⟫-domL h))
+    open hComposeP-impl ⟪ k ⟫ ⟪ h ⟫ bdy
+      using (remapP; eout-c-inj₂-red)
+    module Gk = Hypergraph ⟪ k ⟫
+    module Kh = Hypergraph ⟪ h ⟫
+    ih = agen-eout-position sh
+    pre-h    = proj₁ ih
+    post-h   = proj₁ (proj₂ ih)
+    cod-eq-h = proj₁ (proj₂ (proj₂ ih))
+    len-pre-h = proj₁ (proj₂ (proj₂ (proj₂ ih)))
+    len-post-h = proj₂ (proj₂ (proj₂ (proj₂ ih)))
+    pre = map remapP pre-h
+    eout-h = Kh.eout (SingleAgen-edge sh)
+    post = map remapP post-h
+    cod-eq :
+      map remapP Kh.cod
+      ≡ pre ++ map remapP eout-h ++ post
+    cod-eq =
+      trans (cong (map remapP) cod-eq-h)
+            (trans (map-++ remapP pre-h (eout-h ++ post-h))
+                   (cong (map remapP pre-h ++_)
+                         (map-++ remapP eout-h post-h)))
+    eout-composed-eq :
+      Hypergraph.eout ⟪ h ∘ k ⟫ (Gk.nE ↑ʳ SingleAgen-edge sh)
+      ≡ map remapP eout-h
+    eout-composed-eq = eout-c-inj₂-red (SingleAgen-edge sh)
+
+--------------------------------------------------------------------------------
+-- `Unique`-middle-position uniqueness: if `xs ≡ a ++ M ++ b ≡ c ++ M ++ d`
+-- with `Unique xs` and `M` non-empty (= `m₀ ∷ ms`), then `length a ≡ length c`.
+--
+-- Proof: induction on `a, c`.
+--   * Both []: trivially refl.
+--   * Both cons: heads agree (= xs's first element).  Recurse with the
+--     tail of xs (which is still Unique).
+--   * One []:   xs = M ++ ... AND xs = (c₀ ∷ c') ++ M ++ ...
+--               so xs's first element is both M[0] (= m₀) and c₀, hence
+--               c₀ ≡ m₀.  By Unique, m₀ doesn't appear in xs's tail.  But
+--               the tail of xs is c' ++ M ++ ..., which DOES contain m₀
+--               (in the middle).  Contradiction.
+
+private
+  open import Data.List using ([]; _∷_)
+  open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
+  import Data.List.Relation.Unary.AllPairs as AllPairs
+  import Data.List.Relation.Unary.All       as ListAll
+  open import Data.List.Membership.Propositional using (_∈_)
+  open import Data.List.Membership.Propositional.Properties using (∈-++⁺ʳ)
+  open import Data.List.Relation.Unary.Any using (here; there)
+  open import Relation.Nullary using (¬_)
+
+  -- For `Unique (a ∷ as)`, a is distinct from every element of as.
+  Unique-head-not-in-tail
+    : ∀ {a} {A : Set a} {x : A} {xs : List A}
+    → Unique (x ∷ xs) → ¬ (x ∈ xs)
+  Unique-head-not-in-tail (x≢ AllPairs.∷ _) x∈xs =
+    head-not-in x≢ x∈xs
+    where
+      open import Relation.Binary.PropositionalEquality using (_≢_)
+      head-not-in : ∀ {a} {A : Set a} {x : A} {xs : List A}
+                  → ListAll.All (x ≢_) xs → x ∈ xs → ⊥
+      head-not-in (px ListAll.∷ _) (here refl)  = px refl
+      head-not-in (_ ListAll.∷ rs) (there x∈xs) = head-not-in rs x∈xs
+
+  -- For Unique (cons-list), the tail is also Unique.
+  Unique-tail : ∀ {a} {A : Set a} {x : A} {xs : List A}
+              → Unique (x ∷ xs) → Unique xs
+  Unique-tail (_ AllPairs.∷ uq) = uq
+
+  -- ++ middle-position uniqueness for Unique lists with non-empty middle.
+  ++-middle-length-eq
+    : ∀ {a} {A : Set a}
+        (a' : List A) (m₀ : A) (ms b : List A)
+        (c : List A) (d : List A)
+    → Unique (a' ++ (m₀ ∷ ms) ++ b)
+    → a' ++ (m₀ ∷ ms) ++ b ≡ c ++ (m₀ ∷ ms) ++ d
+    → length a' ≡ length c
+  ++-middle-length-eq [] m₀ ms b [] d _ _ = refl
+  ++-middle-length-eq [] m₀ ms b (c₀ ∷ c') d uq eq
+    = ⊥-elim contra
+    where
+      -- xs = m₀ ∷ ms ++ b = c₀ ∷ c' ++ (m₀ ∷ ms) ++ d.
+      -- Head equality: c₀ ≡ m₀.
+      head-eq : c₀ ≡ m₀
+      head-eq = sym (cons-head-eq eq)
+        where
+          cons-head-eq : ∀ {a} {A : Set a} {x y : A} {xs ys : List A}
+                       → x ∷ xs ≡ y ∷ ys → x ≡ y
+          cons-head-eq refl = refl
+      -- Tail: ms ++ b = c' ++ (m₀ ∷ ms) ++ d
+      tail-eq : ms ++ b ≡ c' ++ (m₀ ∷ ms) ++ d
+      tail-eq = cons-tail-eq eq
+        where
+          cons-tail-eq : ∀ {a} {A : Set a} {x y : A} {xs ys : List A}
+                       → x ∷ xs ≡ y ∷ ys → xs ≡ ys
+          cons-tail-eq refl = refl
+      -- m₀ ∈ xs's tail (= ms ++ b)? It's in c' ++ (m₀ ∷ ms) ++ d.
+      m₀-in-tail : m₀ ∈ ms ++ b
+      m₀-in-tail = subst (m₀ ∈_) (sym tail-eq)
+        (∈-++⁺ʳ c' (here refl))
+      -- But by Unique (m₀ ∷ ms ++ b), m₀ ∉ ms ++ b.
+      contra : ⊥
+      contra = Unique-head-not-in-tail uq m₀-in-tail
+  ++-middle-length-eq (a₀ ∷ a') m₀ ms b [] d uq eq
+    = ⊥-elim contra
+    where
+      head-eq : a₀ ≡ m₀
+      head-eq = cons-head-eq eq
+        where
+          cons-head-eq : ∀ {a} {A : Set a} {x y : A} {xs ys : List A}
+                       → x ∷ xs ≡ y ∷ ys → x ≡ y
+          cons-head-eq refl = refl
+      tail-eq : a' ++ (m₀ ∷ ms) ++ b ≡ ms ++ d
+      tail-eq = cons-tail-eq eq
+        where
+          cons-tail-eq : ∀ {a} {A : Set a} {x y : A} {xs ys : List A}
+                       → x ∷ xs ≡ y ∷ ys → xs ≡ ys
+          cons-tail-eq refl = refl
+      m₀-in-tail : m₀ ∈ a' ++ (m₀ ∷ ms) ++ b
+      m₀-in-tail = ∈-++⁺ʳ a' (here refl)
+      uq-tail : Unique (a' ++ (m₀ ∷ ms) ++ b)
+      uq-tail = Unique-tail (subst Unique (cong (_∷ _) head-eq) uq)
+      -- uq : Unique (a₀ ∷ a' ++ (m₀ ∷ ms) ++ b) with a₀ = m₀.
+      -- So m₀ should not be in a' ++ (m₀ ∷ ms) ++ b. Contradiction.
+      contra : ⊥
+      contra = Unique-head-not-in-tail uq' m₀-in-tail
+        where
+          uq' : Unique (m₀ ∷ a' ++ (m₀ ∷ ms) ++ b)
+          uq' = subst (λ z → Unique (z ∷ a' ++ (m₀ ∷ ms) ++ b)) head-eq uq
+  ++-middle-length-eq (a₀ ∷ a') m₀ ms b (c₀ ∷ c') d uq eq =
+    -- xs = a₀ ∷ a' ++ (m₀ ∷ ms) ++ b = c₀ ∷ c' ++ (m₀ ∷ ms) ++ d.
+    -- a₀ ≡ c₀.  Recurse on tails.
+    cong suc (++-middle-length-eq a' m₀ ms b c' d (Unique-tail uq) tail-eq)
+    where
+      tail-eq : a' ++ (m₀ ∷ ms) ++ b ≡ c' ++ (m₀ ∷ ms) ++ d
+      tail-eq = cons-tail-eq eq
+        where
+          cons-tail-eq : ∀ {a} {A : Set a} {x y : A} {xs ys : List A}
+                       → x ∷ xs ≡ y ∷ ys → xs ≡ ys
+          cons-tail-eq refl = refl
+
+--------------------------------------------------------------------------------
+-- `YL-length-from-iso-nonempty`: extract `length-YL-strip` equality
+-- when the Agen edge's `ein` is non-empty.
+--
+-- Proof: combine `agen-ein-position sf, sg` with `φ-dom` from the iso
+-- and `++-middle-length-eq`.  The iso gives `⟪g⟫.dom ≡ map φ ⟪f⟫.dom`,
+-- and `ψ-ein` on the unique Agen edge (with `ψ : Fin 1 → Fin 1` being
+-- the identity) gives `⟪g⟫.ein agen-g ≡ map φ (⟪f⟫.ein agen-f)`.
+-- From sf's decomposition, `map φ ⟪f⟫.dom = map φ pre-f ++ map φ (ein-f) ++ map φ post-f`.
+-- This and sg's decomposition both equal `⟪g⟫.dom`.  Using
+-- `++-middle-length-eq` with `Unique ⟪g⟫.dom`, the prefixes' lengths
+-- agree.
+
+open import Relation.Binary.PropositionalEquality using (_≢_)
+
+YL-length-from-iso-nonempty
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+  → Hypergraph.ein ⟪ g ⟫ (SingleAgen-edge sg) ≢ []
+  → length-YL-strip sf ≡ length-YL-strip sg
+YL-length-from-iso-nonempty {f = f} {g = g} sf sg iso ein-g-nonempty =
+  trans (sym len-pre-f-eq)
+        (trans len-prefix-eq len-pre-g-eq)
+  where
+    open _≅ᴴ_ iso
+    module HF = Hypergraph ⟪ f ⟫
+    module HG = Hypergraph ⟪ g ⟫
+
+    -- sf decomp: ⟪f⟫.dom ≡ pre-f ++ ein-f ++ post-f
+    pf = agen-ein-position sf
+    pre-f = proj₁ pf
+    post-f = proj₁ (proj₂ pf)
+    dom-eq-f = proj₁ (proj₂ (proj₂ pf))
+    len-pre-f-eq : length pre-f ≡ length-YL-strip sf
+    len-pre-f-eq = proj₁ (proj₂ (proj₂ (proj₂ pf)))
+
+    -- sg decomp: ⟪g⟫.dom ≡ pre-g ++ ein-g ++ post-g
+    pg = agen-ein-position sg
+    pre-g = proj₁ pg
+    post-g = proj₁ (proj₂ pg)
+    dom-eq-g = proj₁ (proj₂ (proj₂ pg))
+    len-pre-g-eq : length pre-g ≡ length-YL-strip sg
+    len-pre-g-eq = proj₁ (proj₂ (proj₂ (proj₂ pg)))
+
+    ein-f = HF.ein (SingleAgen-edge sf)
+    ein-g = HG.ein (SingleAgen-edge sg)
+
+    -- ψ : Fin 1 → Fin 1, must be identity.  So ψ (SingleAgen-edge sf)
+    -- equals SingleAgen-edge sg (when both have nE = 1).
+    nE-eq-g : HG.nE ≡ 1
+    nE-eq-g = nE-SingleAgen sg
+
+    Fin1-uniq-loc : (x : Fin 1) → x ≡ zero
+    Fin1-uniq-loc zero = refl
+
+    subst-Fin-inj-loc
+      : ∀ {n m : ℕ} (p : n ≡ m) {x y : Fin n}
+      → subst Fin p x ≡ subst Fin p y → x ≡ y
+    subst-Fin-inj-loc refl eq = eq
+
+    ψ-edge-eq : ψ (SingleAgen-edge sf) ≡ SingleAgen-edge sg
+    ψ-edge-eq = subst-Fin-inj-loc nE-eq-g
+      (trans (Fin1-uniq-loc (subst Fin nE-eq-g (ψ (SingleAgen-edge sf))))
+             (sym (Fin1-uniq-loc (subst Fin nE-eq-g (SingleAgen-edge sg)))))
+
+    ein-g-eq : ein-g ≡ map φ ein-f
+    ein-g-eq =
+      trans (cong HG.ein (sym ψ-edge-eq))
+            (ψ-ein (SingleAgen-edge sf))
+
+    -- ⟪g⟫.dom = map φ ⟪f⟫.dom = map φ (pre-f ++ ein-f ++ post-f)
+    --        = map φ pre-f ++ map φ ein-f ++ map φ post-f
+    --        = map φ pre-f ++ ein-g ++ map φ post-f.
+    g-dom-eq-φ :
+      HG.dom ≡ map φ pre-f ++ ein-g ++ map φ post-f
+    g-dom-eq-φ = EQR.begin
+      HG.dom
+        EQR.≡⟨ φ-dom ⟩
+      map φ HF.dom
+        EQR.≡⟨ cong (map φ) dom-eq-f ⟩
+      map φ (pre-f ++ ein-f ++ post-f)
+        EQR.≡⟨ map-++ φ pre-f (ein-f ++ post-f) ⟩
+      map φ pre-f ++ map φ (ein-f ++ post-f)
+        EQR.≡⟨ cong (map φ pre-f ++_) (map-++ φ ein-f post-f) ⟩
+      map φ pre-f ++ map φ ein-f ++ map φ post-f
+        EQR.≡⟨ cong (λ x → map φ pre-f ++ x ++ map φ post-f) (sym ein-g-eq) ⟩
+      map φ pre-f ++ ein-g ++ map φ post-f
+        EQR.∎
+      where module EQR = ≡-Reasoning
+
+    -- ⟪g⟫.dom ≡ pre-g ++ ein-g ++ post-g (= dom-eq-g).
+    -- ⟪g⟫.dom ≡ map φ pre-f ++ ein-g ++ map φ post-f (= g-dom-eq-φ).
+    -- Equate: pre-g ++ ein-g ++ post-g ≡ map φ pre-f ++ ein-g ++ map φ post-f.
+    decomp-eq :
+      pre-g ++ ein-g ++ post-g ≡ map φ pre-f ++ ein-g ++ map φ post-f
+    decomp-eq = trans (sym dom-eq-g) g-dom-eq-φ
+
+    g-dom-Unique : Unique HG.dom
+    g-dom-Unique = ⟪_⟫-dom-unique g
+
+    -- Convert dom-eq-g into Unique-friendly form.
+    -- ⟪g⟫.dom = pre-g ++ ein-g ++ post-g, so Unique on this list.
+    -- Use ++-middle-length-eq.
+    decomp-Unique : Unique (pre-g ++ ein-g ++ post-g)
+    decomp-Unique = subst Unique dom-eq-g g-dom-Unique
+
+    -- ein-g is non-empty, so split into m₀ ∷ ms.
+    extract-len-eq :
+      (m₀ : Fin HG.nV) (ms : List (Fin HG.nV))
+      → ein-g ≡ m₀ ∷ ms
+      → length pre-g ≡ length (map φ pre-f)
+    extract-len-eq m₀ ms ein-g-cons =
+      ++-middle-length-eq
+        pre-g m₀ ms post-g
+        (map φ pre-f) (map φ post-f)
+        (subst (λ x → Unique (pre-g ++ x ++ post-g)) ein-g-cons decomp-Unique)
+        (helper-eq m₀ ms ein-g-cons)
+      where
+        helper-eq : (m₀ : Fin HG.nV) (ms : List (Fin HG.nV))
+                  → ein-g ≡ m₀ ∷ ms
+                  → pre-g ++ (m₀ ∷ ms) ++ post-g
+                  ≡ map φ pre-f ++ (m₀ ∷ ms) ++ map φ post-f
+        helper-eq m₀ ms eq =
+          trans (cong (λ x → pre-g ++ x ++ post-g) (sym eq))
+                (trans decomp-eq
+                       (cong (λ x → map φ pre-f ++ x ++ map φ post-f) eq))
+
+    -- Now extract using ein-g-nonempty.  Pattern match on ein-g via
+    -- helper that exposes the structural equality to the body.
+    len-prefix-eq : length pre-f ≡ length pre-g
+    len-prefix-eq = lemma ein-g refl
+      where
+        lemma : (xs : List (Fin HG.nV))
+              → xs ≡ ein-g
+              → length pre-f ≡ length pre-g
+        lemma []        xs-eq = ⊥-elim (ein-g-nonempty (sym xs-eq))
+        lemma (m₀ ∷ ms) xs-eq =
+          trans (sym (length-map-prop φ pre-f))
+                (sym (extract-len-eq m₀ ms (sym xs-eq)))
+
+--------------------------------------------------------------------------------
+-- `YL-length-from-iso`: the main length-equality extraction.
+--
+-- Dispatches on whether the Agen edge's `ein` in `⟪g⟫` is empty or not:
+-- * non-empty: use `YL-length-from-iso-nonempty`.
+-- * empty (i.e., `flatten Aᵢ_g ≡ []`, meaning Aᵢ is built only from
+--   `unit`): in this case, the iso does not provide positional
+--   constraints on the ein, and length-YL is NOT iso-invariant in
+--   general.  This case is left as a documented limitation; for
+--   practical signatures (where generators rarely have unit-typed
+--   sources), the non-empty case suffices.
+
+YL-length-from-iso
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+      (ein-g-nonempty : Hypergraph.ein ⟪ g ⟫ (SingleAgen-edge sg) ≢ [])
+  → length (flatten (SingleAgenNF.YL (single-agen-strip sf)))
+  ≡ length (flatten (SingleAgenNF.YL (single-agen-strip sg)))
+YL-length-from-iso sf sg iso ein-g-nonempty =
+  trans (sym (length-YL-strip-≡ sf))
+        (trans (YL-length-from-iso-nonempty sf sg iso ein-g-nonempty)
+               (length-YL-strip-≡ sg))
+
+--------------------------------------------------------------------------------
+-- `YL-length-from-iso-nonempty-eout`: eout-side counterpart of
+-- `YL-length-from-iso-nonempty`.  Extracts `length-YL-strip sf ≡
+-- length-YL-strip sg` from the iso when the Agen edge's `eout` is
+-- non-empty (`flatten Bᵢ_g ≢ []`).
+--
+-- Proof mirrors the ein-side: combine `agen-eout-position` with
+-- `φ-cod`, `ψ-eout`, `⟪_⟫-cod-unique`, and `++-middle-length-eq`.
+
+YL-length-from-iso-nonempty-eout
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+  → Hypergraph.eout ⟪ g ⟫ (SingleAgen-edge sg) ≢ []
+  → length-YL-strip sf ≡ length-YL-strip sg
+YL-length-from-iso-nonempty-eout {f = f} {g = g} sf sg iso eout-g-nonempty =
+  trans (sym len-pre-f-eq)
+        (trans len-prefix-eq len-pre-g-eq)
+  where
+    open _≅ᴴ_ iso
+    module HF = Hypergraph ⟪ f ⟫
+    module HG = Hypergraph ⟪ g ⟫
+
+    -- sf decomp: ⟪f⟫.cod ≡ pre-f ++ eout-f ++ post-f
+    pf = agen-eout-position sf
+    pre-f = proj₁ pf
+    post-f = proj₁ (proj₂ pf)
+    cod-eq-f = proj₁ (proj₂ (proj₂ pf))
+    len-pre-f-eq : length pre-f ≡ length-YL-strip sf
+    len-pre-f-eq = proj₁ (proj₂ (proj₂ (proj₂ pf)))
+
+    -- sg decomp: ⟪g⟫.cod ≡ pre-g ++ eout-g ++ post-g
+    pg = agen-eout-position sg
+    pre-g = proj₁ pg
+    post-g = proj₁ (proj₂ pg)
+    cod-eq-g = proj₁ (proj₂ (proj₂ pg))
+    len-pre-g-eq : length pre-g ≡ length-YL-strip sg
+    len-pre-g-eq = proj₁ (proj₂ (proj₂ (proj₂ pg)))
+
+    eout-f = HF.eout (SingleAgen-edge sf)
+    eout-g = HG.eout (SingleAgen-edge sg)
+
+    -- ψ : Fin 1 → Fin 1, must be identity.
+    nE-eq-g : HG.nE ≡ 1
+    nE-eq-g = nE-SingleAgen sg
+
+    Fin1-uniq-loc : (x : Fin 1) → x ≡ zero
+    Fin1-uniq-loc zero = refl
+
+    subst-Fin-inj-loc
+      : ∀ {n m : ℕ} (p : n ≡ m) {x y : Fin n}
+      → subst Fin p x ≡ subst Fin p y → x ≡ y
+    subst-Fin-inj-loc refl eq = eq
+
+    ψ-edge-eq : ψ (SingleAgen-edge sf) ≡ SingleAgen-edge sg
+    ψ-edge-eq = subst-Fin-inj-loc nE-eq-g
+      (trans (Fin1-uniq-loc (subst Fin nE-eq-g (ψ (SingleAgen-edge sf))))
+             (sym (Fin1-uniq-loc (subst Fin nE-eq-g (SingleAgen-edge sg)))))
+
+    eout-g-eq : eout-g ≡ map φ eout-f
+    eout-g-eq =
+      trans (cong HG.eout (sym ψ-edge-eq))
+            (ψ-eout (SingleAgen-edge sf))
+
+    g-cod-eq-φ :
+      HG.cod ≡ map φ pre-f ++ eout-g ++ map φ post-f
+    g-cod-eq-φ = EQR.begin
+      HG.cod
+        EQR.≡⟨ φ-cod ⟩
+      map φ HF.cod
+        EQR.≡⟨ cong (map φ) cod-eq-f ⟩
+      map φ (pre-f ++ eout-f ++ post-f)
+        EQR.≡⟨ map-++ φ pre-f (eout-f ++ post-f) ⟩
+      map φ pre-f ++ map φ (eout-f ++ post-f)
+        EQR.≡⟨ cong (map φ pre-f ++_) (map-++ φ eout-f post-f) ⟩
+      map φ pre-f ++ map φ eout-f ++ map φ post-f
+        EQR.≡⟨ cong (λ x → map φ pre-f ++ x ++ map φ post-f) (sym eout-g-eq) ⟩
+      map φ pre-f ++ eout-g ++ map φ post-f
+        EQR.∎
+      where module EQR = ≡-Reasoning
+
+    decomp-eq :
+      pre-g ++ eout-g ++ post-g ≡ map φ pre-f ++ eout-g ++ map φ post-f
+    decomp-eq = trans (sym cod-eq-g) g-cod-eq-φ
+
+    g-cod-Unique : Unique HG.cod
+    g-cod-Unique = ⟪_⟫-cod-unique g
+
+    decomp-Unique : Unique (pre-g ++ eout-g ++ post-g)
+    decomp-Unique = subst Unique cod-eq-g g-cod-Unique
+
+    extract-len-eq :
+      (m₀ : Fin HG.nV) (ms : List (Fin HG.nV))
+      → eout-g ≡ m₀ ∷ ms
+      → length pre-g ≡ length (map φ pre-f)
+    extract-len-eq m₀ ms eout-g-cons =
+      ++-middle-length-eq
+        pre-g m₀ ms post-g
+        (map φ pre-f) (map φ post-f)
+        (subst (λ x → Unique (pre-g ++ x ++ post-g)) eout-g-cons decomp-Unique)
+        (helper-eq m₀ ms eout-g-cons)
+      where
+        helper-eq : (m₀ : Fin HG.nV) (ms : List (Fin HG.nV))
+                  → eout-g ≡ m₀ ∷ ms
+                  → pre-g ++ (m₀ ∷ ms) ++ post-g
+                  ≡ map φ pre-f ++ (m₀ ∷ ms) ++ map φ post-f
+        helper-eq m₀ ms eq =
+          trans (cong (λ x → pre-g ++ x ++ post-g) (sym eq))
+                (trans decomp-eq
+                       (cong (λ x → map φ pre-f ++ x ++ map φ post-f) eq))
+
+    len-prefix-eq : length pre-f ≡ length pre-g
+    len-prefix-eq = lemma eout-g refl
+      where
+        lemma : (xs : List (Fin HG.nV))
+              → xs ≡ eout-g
+              → length pre-f ≡ length pre-g
+        lemma []        xs-eq = ⊥-elim (eout-g-nonempty (sym xs-eq))
+        lemma (m₀ ∷ ms) xs-eq =
+          trans (sym (length-map-prop φ pre-f))
+                (sym (extract-len-eq m₀ ms (sym xs-eq)))
+
+--------------------------------------------------------------------------------
+-- `YL-length-from-iso-eout`: the eout-side wrapper, parallel to
+-- `YL-length-from-iso`.  Lifts `YL-length-from-iso-nonempty-eout` to
+-- the `flatten YL` form.
+
+YL-length-from-iso-eout
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+      (eout-g-nonempty : Hypergraph.eout ⟪ g ⟫ (SingleAgen-edge sg) ≢ [])
+  → length (flatten (SingleAgenNF.YL (single-agen-strip sf)))
+  ≡ length (flatten (SingleAgenNF.YL (single-agen-strip sg)))
+YL-length-from-iso-eout sf sg iso eout-g-nonempty =
+  trans (sym (length-YL-strip-≡ sf))
+        (trans (YL-length-from-iso-nonempty-eout sf sg iso eout-g-nonempty)
+               (length-YL-strip-≡ sg))
+
+--------------------------------------------------------------------------------
+-- `discharge-aligned`: the core "Mac-Lane wrapper closure" lemma.
+--
+-- Given:
+--   * The two SingleAgen normal forms (already aligned at the Aᵢ/Bᵢ/u
+--     level — they share `u : mor Aᵢ Bᵢ`);
+--   * Positional alignment: `eYL : flatten YL-f ≡ flatten YL-g` and
+--     `eYR : flatten YR-f ≡ flatten YR-g`;
+--
+-- conclude the two NF expressions are `≈Term`-equal:
+--   c-to-f ∘ (id ⊗ (Agen u ⊗ id)) ∘ c-from-f
+--     ≈Term
+--   c-to-g ∘ (id ⊗ (Agen u ⊗ id)) ∘ c-from-g.
+--
+-- Proof strategy (composed from existing infrastructure):
+--   * Build `bA : (YL_f ⊗ Aᵢ ⊗ YR_f) → (YL_g ⊗ Aᵢ ⊗ YR_g)` as
+--     `bridge-NoSigma-fwd eA` (where `eA` is the appropriate flatten
+--     equality).
+--   * Build `bB : (YL_f ⊗ Bᵢ ⊗ YR_f) → (YL_g ⊗ Bᵢ ⊗ YR_g)` similarly.
+--   * Use `NoSigma-coherence` to rewrite c-from-f as `bA-bwd ∘ c-from-g`
+--     (both are NoSigma morphisms from A to (YL_f ⊗ Aᵢ ⊗ YR_f)).
+--   * Use `bridge-naturality-pos` to push `bA-bwd` past M.
+--   * Use `NoSigma-coherence` again on the c-to side.
+
+private
+  -- Auxiliary: assemble flatten equality for the triple tensor
+  -- `YL ⊗ X ⊗ YR` from individual eYL, eYR equalities (and shared X).
+  eA-from-eYL-eYR
+    : ∀ {YL-f YR-f YL-g YR-g X : ObjTerm}
+        (eYL : flatten YL-f ≡ flatten YL-g)
+        (eYR : flatten YR-f ≡ flatten YR-g)
+    → flatten (YL-f ⊗₀ X ⊗₀ YR-f) ≡ flatten (YL-g ⊗₀ X ⊗₀ YR-g)
+  eA-from-eYL-eYR {X = X} eYL eYR =
+    cong₂ _++_ eYL (cong (flatten X ++_) eYR)
+    where open import Relation.Binary.PropositionalEquality using (cong₂)
+
+  -- "Backwards" variant of `bridge-naturality-pos`: derived from the
+  -- forward version by composing with the bridge iso laws.  Statement:
+  --
+  --   M_f ∘ bridge-NoSigma-bwd eA ≈Term bridge-NoSigma-bwd eB ∘ M_g
+  --
+  -- where `M_f = id ⊗ (Agen u ⊗ id_{YR-f})`, M_g symmetrically.
+  bridge-naturality-pos-bwd
+    : ∀ {YL-f YR-f YL-g YR-g Aᵢ Bᵢ : ObjTerm}
+        (u : mor Aᵢ Bᵢ)
+        (eYL : flatten YL-f ≡ flatten YL-g)
+        (eYR : flatten YR-f ≡ flatten YR-g)
+        (eA  : flatten (YL-f ⊗₀ Aᵢ ⊗₀ YR-f)
+             ≡ flatten (YL-g ⊗₀ Aᵢ ⊗₀ YR-g))
+        (eB  : flatten (YL-f ⊗₀ Bᵢ ⊗₀ YR-f)
+             ≡ flatten (YL-g ⊗₀ Bᵢ ⊗₀ YR-g))
+    → (id ⊗₁ (Agen u ⊗₁ id {YR-f})) ∘ bridge-NoSigma-bwd eA
+    ≈Term
+      bridge-NoSigma-bwd eB ∘ (id ⊗₁ (Agen u ⊗₁ id {YR-g}))
+  bridge-naturality-pos-bwd {YL-f} {YR-f} {YL-g} {YR-g} {Aᵢ} {Bᵢ}
+                            u eYL eYR eA eB = HRBN.begin
+      M_f ∘ bA-bwd
+        HRBN.≈⟨ ≈-Term-sym FM-bridge.identityˡ ⟩
+      id ∘ M_f ∘ bA-bwd
+        HRBN.≈⟨ ≈-Term-sym (bridge-NoSigma-isoˡ eB) HRBN.⟩∘⟨refl ⟩
+      (bB-bwd ∘ bB-fwd) ∘ M_f ∘ bA-bwd
+        HRBN.≈⟨ FM-bridge.assoc ⟩
+      bB-bwd ∘ bB-fwd ∘ M_f ∘ bA-bwd
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.sym-assoc ⟩
+      bB-bwd ∘ (bB-fwd ∘ M_f) ∘ bA-bwd
+        HRBN.≈⟨ HRBN.refl⟩∘⟨
+                bridge-naturality-pos {YL-f} {YR-f} {YL-g} {YR-g} {Aᵢ} {Bᵢ}
+                  u eYL eYR eA eB
+                  HRBN.⟩∘⟨refl ⟩
+      bB-bwd ∘ (M_g ∘ bA-fwd) ∘ bA-bwd
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.assoc ⟩
+      bB-bwd ∘ M_g ∘ bA-fwd ∘ bA-bwd
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ HRBN.refl⟩∘⟨ bridge-NoSigma-isoʳ eA ⟩
+      bB-bwd ∘ M_g ∘ id
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.identityʳ ⟩
+      bB-bwd ∘ M_g HRBN.∎
+    where
+      bA-fwd = bridge-NoSigma-fwd eA
+      bA-bwd = bridge-NoSigma-bwd eA
+      bB-fwd = bridge-NoSigma-fwd eB
+      bB-bwd = bridge-NoSigma-bwd eB
+      M_f    = id ⊗₁ (Agen u ⊗₁ id {YR-f})
+      M_g    = id ⊗₁ (Agen u ⊗₁ id {YR-g})
+
+  -- Core wrapper-closure: given pre-aligned generator data (shared
+  -- `u : mor Aᵢ Bᵢ`) and positional alignment, the two NF expressions
+  -- coincide on the nose.
+  discharge-aligned
+    : ∀ {A B} {YL-f YR-f YL-g YR-g Aᵢ Bᵢ : ObjTerm} (u : mor Aᵢ Bᵢ)
+        {c-from-f : HomTerm A (YL-f ⊗₀ Aᵢ ⊗₀ YR-f)}
+        {c-to-f   : HomTerm (YL-f ⊗₀ Bᵢ ⊗₀ YR-f) B}
+        {c-from-g : HomTerm A (YL-g ⊗₀ Aᵢ ⊗₀ YR-g)}
+        {c-to-g   : HomTerm (YL-g ⊗₀ Bᵢ ⊗₀ YR-g) B}
+        (nosigma-from-f : NoSigma c-from-f) (nosigma-to-f : NoSigma c-to-f)
+        (nosigma-from-g : NoSigma c-from-g) (nosigma-to-g : NoSigma c-to-g)
+        (eYL : flatten YL-f ≡ flatten YL-g)
+        (eYR : flatten YR-f ≡ flatten YR-g)
+     → (c-to-f ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-f)
+       ≈Term
+       (c-to-g ∘ (id ⊗₁ (Agen u ⊗₁ id)) ∘ c-from-g)
+  discharge-aligned {A} {B} {YL-f} {YR-f} {YL-g} {YR-g} {Aᵢ} {Bᵢ}
+                    u {c-from-f} {c-to-f} {c-from-g} {c-to-g}
+                    nosigma-from-f nosigma-to-f
+                    nosigma-from-g nosigma-to-g
+                    eYL eYR =
+    let
+      eA : flatten (YL-f ⊗₀ Aᵢ ⊗₀ YR-f) ≡ flatten (YL-g ⊗₀ Aᵢ ⊗₀ YR-g)
+      eA = eA-from-eYL-eYR {YL-f} {YR-f} {YL-g} {YR-g} {Aᵢ} eYL eYR
+      eB : flatten (YL-f ⊗₀ Bᵢ ⊗₀ YR-f) ≡ flatten (YL-g ⊗₀ Bᵢ ⊗₀ YR-g)
+      eB = eA-from-eYL-eYR {YL-f} {YR-f} {YL-g} {YR-g} {Bᵢ} eYL eYR
+      bA-bwd = bridge-NoSigma-bwd eA
+      bB-fwd = bridge-NoSigma-fwd eB
+      bB-bwd = bridge-NoSigma-bwd eB
+      bA-bwd-NS = bridge-NoSigma-bwd-NS {YL-f ⊗₀ Aᵢ ⊗₀ YR-f} {YL-g ⊗₀ Aᵢ ⊗₀ YR-g} eA
+      bB-fwd-NS = bridge-NoSigma-fwd-NS {YL-f ⊗₀ Bᵢ ⊗₀ YR-f} {YL-g ⊗₀ Bᵢ ⊗₀ YR-g} eB
+      bB-bwd-NS = bridge-NoSigma-bwd-NS {YL-f ⊗₀ Bᵢ ⊗₀ YR-f} {YL-g ⊗₀ Bᵢ ⊗₀ YR-g} eB
+      M_f    = id ⊗₁ (Agen u ⊗₁ id {YR-f})
+      M_g    = id ⊗₁ (Agen u ⊗₁ id {YR-g})
+
+      -- c-from-f ≈ bA-bwd ∘ c-from-g  (both NoSigma : A → YL_f ⊗ Aᵢ ⊗ YR_f).
+      cfrom-rewrite : c-from-f ≈Term bA-bwd ∘ c-from-g
+      cfrom-rewrite =
+        NoSigma-coherence nosigma-from-f (nosigma-∘ bA-bwd-NS nosigma-from-g)
+
+      -- c-to-f ≈ c-to-g ∘ bB-fwd  (both NoSigma : (YL_f ⊗ Bᵢ ⊗ YR_f) → B).
+      cto-rewrite : c-to-f ≈Term c-to-g ∘ bB-fwd
+      cto-rewrite =
+        NoSigma-coherence nosigma-to-f
+          (nosigma-∘ nosigma-to-g bB-fwd-NS)
+
+      -- bB-fwd ∘ bB-bwd ≈ id (iso law).
+      bB-iso : bB-fwd ∘ bB-bwd ≈Term id
+      bB-iso = bridge-NoSigma-isoʳ eB
+
+    in HRBN.begin
+      c-to-f ∘ M_f ∘ c-from-f
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ HRBN.refl⟩∘⟨ cfrom-rewrite ⟩
+      c-to-f ∘ M_f ∘ (bA-bwd ∘ c-from-g)
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.sym-assoc ⟩
+      c-to-f ∘ (M_f ∘ bA-bwd) ∘ c-from-g
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ bridge-naturality-pos-bwd u eYL eYR eA eB
+                  HRBN.⟩∘⟨refl ⟩
+      c-to-f ∘ (bB-bwd ∘ M_g) ∘ c-from-g
+        HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.assoc ⟩
+      c-to-f ∘ bB-bwd ∘ M_g ∘ c-from-g
+        HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+      (c-to-f ∘ bB-bwd) ∘ M_g ∘ c-from-g
+        HRBN.≈⟨ (cto-rewrite HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+      ((c-to-g ∘ bB-fwd) ∘ bB-bwd) ∘ M_g ∘ c-from-g
+        HRBN.≈⟨ FM-bridge.assoc HRBN.⟩∘⟨refl ⟩
+      (c-to-g ∘ (bB-fwd ∘ bB-bwd)) ∘ M_g ∘ c-from-g
+        HRBN.≈⟨ (HRBN.refl⟩∘⟨ bB-iso) HRBN.⟩∘⟨refl ⟩
+      (c-to-g ∘ id) ∘ M_g ∘ c-from-g
+        HRBN.≈⟨ FM-bridge.identityʳ HRBN.⟩∘⟨refl ⟩
+      c-to-g ∘ M_g ∘ c-from-g HRBN.∎
+
+--------------------------------------------------------------------------------
+-- `single-agen-NF-coherence-discharge-nonempty`: the full constructive
+-- discharge of the (narrowed) `single-agen-NF-coherence` postulate in
+-- the non-empty Agen-ein case.  Composes:
+--
+--   * `flat-data-to-ObjTerm`: flat-level eqs → ObjTerm-level eqs (at
+--     `single-agen-u` level).
+--   * `single-agen-u-strip-{Aᵢ,Bᵢ,u}`: consistency between
+--     `single-agen-u` and `single-agen-strip` extractors.  Used to
+--     LIFT the ObjTerm eqs from `single-agen-u` to `single-agen-strip`
+--     records.
+--   * `YL-length-from-iso`: extract `length-YL` equality (REQUIRES
+--     non-empty `ein` for the Agen edge).
+--   * `positional-alignment-from-length`: convert length equality to
+--     flatten-of-YL/YR equalities.
+--   * `single-agen-NF-discharge-aux` (helper, below): pattern-matches
+--     the lifted strip-level equalities as `refl` and applies
+--     `discharge-aligned`.
+
+private
+  -- Generic subst₂ fusion lemma for `mor`.
+  subst₂-trans-mor
+    : ∀ {A B C D E F : ObjTerm}
+        (p₁ : A ≡ C) (p₂ : C ≡ E)
+        (q₁ : B ≡ D) (q₂ : D ≡ F)
+        (u : mor A B)
+    → subst₂ mor p₂ q₂ (subst₂ mor p₁ q₁ u)
+    ≡ subst₂ mor (trans p₁ p₂) (trans q₁ q₂) u
+  subst₂-trans-mor refl refl refl refl _ = refl
+
+  -- `subst₂` cancels its own `sym` inverse in `mor`.
+  subst₂-sym-cancel-mor
+    : ∀ {A B C D : ObjTerm}
+        (p : A ≡ C) (q : B ≡ D)
+        (u : mor A B)
+    → subst₂ mor (sym p) (sym q) (subst₂ mor p q u) ≡ u
+  subst₂-sym-cancel-mor refl refl _ = refl
+
+-- The helper that pattern-matches the strip-level equalities as
+-- `refl`.  After matching, the strip records' `Aᵢ`, `Bᵢ`, `u` align
+-- definitionally, and the discharge reduces to `discharge-aligned`.
+--
+-- To enable the pattern-match, we abstract over the strip records
+-- (`nf-f, nf-g`) AND over the underlying `f, g` HomTerms by passing
+-- the strip equivs explicitly.
+private
+  single-agen-NF-discharge-aux-cps
+    : ∀ {A B} {f g : HomTerm A B}
+        {YL-f YR-f Aᵢ-f Bᵢ-f : ObjTerm}
+        {YL-g YR-g Aᵢ-g Bᵢ-g : ObjTerm}
+        (u-f : mor Aᵢ-f Bᵢ-f) (u-g : mor Aᵢ-g Bᵢ-g)
+        {c-from-f : HomTerm A (YL-f ⊗₀ Aᵢ-f ⊗₀ YR-f)}
+        {c-to-f   : HomTerm (YL-f ⊗₀ Bᵢ-f ⊗₀ YR-f) B}
+        {c-from-g : HomTerm A (YL-g ⊗₀ Aᵢ-g ⊗₀ YR-g)}
+        {c-to-g   : HomTerm (YL-g ⊗₀ Bᵢ-g ⊗₀ YR-g) B}
+        (nosigma-from-f : NoSigma c-from-f) (nosigma-to-f : NoSigma c-to-f)
+        (nosigma-from-g : NoSigma c-from-g) (nosigma-to-g : NoSigma c-to-g)
+        (equiv-f : f ≈Term c-to-f ∘ (id ⊗₁ (Agen u-f ⊗₁ id)) ∘ c-from-f)
+        (equiv-g : g ≈Term c-to-g ∘ (id ⊗₁ (Agen u-g ⊗₁ id)) ∘ c-from-g)
+        (A-eq : Aᵢ-f ≡ Aᵢ-g)
+        (B-eq : Bᵢ-f ≡ Bᵢ-g)
+        (u-eq : subst₂ mor A-eq B-eq u-f ≡ u-g)
+        (eYL : flatten YL-f ≡ flatten YL-g)
+        (eYR : flatten YR-f ≡ flatten YR-g)
+     → f ≈Term g
+  single-agen-NF-discharge-aux-cps {f = f} {g = g}
+                                   u-f .u-f
+                                   {c-from-f} {c-to-f} {c-from-g} {c-to-g}
+                                   nosigma-from-f nosigma-to-f
+                                   nosigma-from-g nosigma-to-g
+                                   equiv-f equiv-g
+                                   refl refl refl eYL eYR =
+    HRBN.begin
+      f
+        HRBN.≈⟨ equiv-f ⟩
+      c-to-f ∘ (id ⊗₁ (Agen u-f ⊗₁ id)) ∘ c-from-f
+        HRBN.≈⟨ discharge-aligned u-f
+                  nosigma-from-f nosigma-to-f
+                  nosigma-from-g nosigma-to-g
+                  eYL eYR ⟩
+      c-to-g ∘ (id ⊗₁ (Agen u-f ⊗₁ id)) ∘ c-from-g
+        HRBN.≈⟨ ≈-Term-sym equiv-g ⟩
+      g HRBN.∎
+
+single-agen-NF-discharge-aux
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (A-strip-eq : SingleAgenNF.Aᵢ (single-agen-strip sf)
+                  ≡ SingleAgenNF.Aᵢ (single-agen-strip sg))
+      (B-strip-eq : SingleAgenNF.Bᵢ (single-agen-strip sf)
+                  ≡ SingleAgenNF.Bᵢ (single-agen-strip sg))
+      (u-strip-eq : subst₂ mor A-strip-eq B-strip-eq
+                      (SingleAgenNF.u (single-agen-strip sf))
+                    ≡ SingleAgenNF.u (single-agen-strip sg))
+      (eYL : flatten (SingleAgenNF.YL (single-agen-strip sf))
+           ≡ flatten (SingleAgenNF.YL (single-agen-strip sg)))
+      (eYR : flatten (SingleAgenNF.YR (single-agen-strip sf))
+           ≡ flatten (SingleAgenNF.YR (single-agen-strip sg)))
+  → f ≈Term g
+single-agen-NF-discharge-aux {f = f} {g = g} sf sg A-eq B-eq u-eq eYL eYR =
+  single-agen-NF-discharge-aux-cps
+    NF-f.u NF-g.u
+    NF-f.nosigma-from NF-f.nosigma-to
+    NF-g.nosigma-from NF-g.nosigma-to
+    NF-f.equiv NF-g.equiv
+    A-eq B-eq u-eq eYL eYR
+  where
+    module NF-f = SingleAgenNF (single-agen-strip sf)
+    module NF-g = SingleAgenNF (single-agen-strip sg)
+
+-- The full discharge (non-empty Agen ein case).
+single-agen-NF-coherence-discharge-nonempty
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (flat-A-eq : flatten (SingleAgenGen.Aᵢ (single-agen-u sf))
+                 ≡ flatten (SingleAgenGen.Aᵢ (single-agen-u sg)))
+      (flat-B-eq : flatten (SingleAgenGen.Bᵢ (single-agen-u sf))
+                 ≡ flatten (SingleAgenGen.Bᵢ (single-agen-u sg)))
+      (flat-u-eq : subst₂ FlatGen flat-A-eq flat-B-eq
+                      (flat (SingleAgenGen.u (single-agen-u sf)))
+                   ≡ flat (SingleAgenGen.u (single-agen-u sg)))
+      (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+      (ein-g-nonempty : Hypergraph.ein ⟪ g ⟫ (SingleAgen-edge sg) ≢ [])
+  → f ≈Term g
+single-agen-NF-coherence-discharge-nonempty {f = f} {g = g}
+                                            sf sg pA pB pU iso ein-g-nonempty =
+  single-agen-NF-discharge-aux sf sg A-strip-eq B-strip-eq u-strip-eq eYL eYR
+  where
+    -- Step 1: ObjTerm eqs at `single-agen-u` level.
+    u_uf = SingleAgenGen.u (single-agen-u sf)
+    u_ug = SingleAgenGen.u (single-agen-u sg)
+    objterm = flat-data-to-ObjTerm u_uf u_ug pA pB pU
+    A-u-eq = proj₁ objterm
+    B-u-eq = proj₁ (proj₂ objterm)
+    u-u-eq = proj₂ (proj₂ objterm)
+
+    -- Step 2: Lift to strip-record level via consistency lemmas.
+    consist-A-f = single-agen-u-strip-Aᵢ sf
+    consist-B-f = single-agen-u-strip-Bᵢ sf
+    consist-A-g = single-agen-u-strip-Aᵢ sg
+    consist-B-g = single-agen-u-strip-Bᵢ sg
+    consist-u-f = single-agen-u-strip-u sf
+    consist-u-g = single-agen-u-strip-u sg
+
+    A-strip-eq : SingleAgenNF.Aᵢ (single-agen-strip sf)
+               ≡ SingleAgenNF.Aᵢ (single-agen-strip sg)
+    A-strip-eq = trans (sym consist-A-f) (trans A-u-eq consist-A-g)
+
+    B-strip-eq : SingleAgenNF.Bᵢ (single-agen-strip sf)
+               ≡ SingleAgenNF.Bᵢ (single-agen-strip sg)
+    B-strip-eq = trans (sym consist-B-f) (trans B-u-eq consist-B-g)
+
+    -- Step 3: Combine the consistency lemmas with u-u-eq to derive
+    -- the strip-level u equality.
+    --
+    -- consist-u-f : subst₂ mor consist-A-f consist-B-f u_uf ≡ NF-f.u
+    -- consist-u-g : subst₂ mor consist-A-g consist-B-g u_ug ≡ NF-g.u
+    -- u-u-eq      : subst₂ mor A-u-eq B-u-eq u_uf ≡ u_ug
+    --
+    -- We want:
+    --   subst₂ mor A-strip-eq B-strip-eq NF-f.u ≡ NF-g.u
+    --
+    -- Strategy: substitute NF-f.u via sym (consist-u-f), fuse with
+    -- A-strip-eq/B-strip-eq, then use u-u-eq + consist-u-g.
+
+    u-strip-eq : subst₂ mor A-strip-eq B-strip-eq
+                   (SingleAgenNF.u (single-agen-strip sf))
+                 ≡ SingleAgenNF.u (single-agen-strip sg)
+    u-strip-eq = EQR.begin
+        subst₂ mor A-strip-eq B-strip-eq (SingleAgenNF.u (single-agen-strip sf))
+          EQR.≡⟨ cong (subst₂ mor A-strip-eq B-strip-eq) (sym consist-u-f) ⟩
+        subst₂ mor A-strip-eq B-strip-eq
+          (subst₂ mor consist-A-f consist-B-f u_uf)
+          EQR.≡⟨ subst₂-trans-mor consist-A-f A-strip-eq consist-B-f B-strip-eq u_uf ⟩
+        subst₂ mor (trans consist-A-f A-strip-eq)
+                   (trans consist-B-f B-strip-eq) u_uf
+          EQR.≡⟨ trans-A-collapse ⟩
+        subst₂ mor (trans A-u-eq consist-A-g)
+                   (trans B-u-eq consist-B-g) u_uf
+          EQR.≡⟨ sym (subst₂-trans-mor A-u-eq consist-A-g B-u-eq consist-B-g u_uf) ⟩
+        subst₂ mor consist-A-g consist-B-g
+          (subst₂ mor A-u-eq B-u-eq u_uf)
+          EQR.≡⟨ cong (subst₂ mor consist-A-g consist-B-g) u-u-eq ⟩
+        subst₂ mor consist-A-g consist-B-g u_ug
+          EQR.≡⟨ consist-u-g ⟩
+        SingleAgenNF.u (single-agen-strip sg)
+          EQR.∎
+      where
+        module EQR = ≡-Reasoning
+
+        -- `trans x (trans (sym x) y) ≡ y` (use UIP on ObjTerm).
+        -- More precisely:
+        --   trans consist-A-f A-strip-eq
+        -- = trans consist-A-f (trans (sym consist-A-f) (trans A-u-eq consist-A-g))
+        -- = trans (trans consist-A-f (sym consist-A-f)) (trans A-u-eq consist-A-g)  (associativity of trans)
+        -- = trans refl (trans A-u-eq consist-A-g)                                    (right inverse, propositional)
+        -- = trans A-u-eq consist-A-g                                                 (left identity)
+        --
+        -- Avoid the propositional reasoning by transforming via
+        -- the (definitional) law `trans-assoc` + UIP.
+        --
+        -- A cleaner approach: pattern-match on consist-A-f and consist-B-f
+        -- through a `with` block (they are not always definitionally
+        -- refl, but we can rewrite).
+        --
+        -- Even simpler: prove the entire equality below via a single
+        -- subst₂-cong that uses UIP.
+
+        trans-A-collapse :
+          subst₂ mor (trans consist-A-f A-strip-eq)
+                     (trans consist-B-f B-strip-eq) u_uf
+          ≡ subst₂ mor (trans A-u-eq consist-A-g)
+                       (trans B-u-eq consist-B-g) u_uf
+        trans-A-collapse =
+          cong₂ (λ a b → subst₂ mor a b u_uf)
+                (UIP-ObjTerm (trans consist-A-f A-strip-eq)
+                             (trans A-u-eq consist-A-g))
+                (UIP-ObjTerm (trans consist-B-f B-strip-eq)
+                             (trans B-u-eq consist-B-g))
+          where
+            open import Relation.Binary.PropositionalEquality using (cong₂)
+            open APROPSignatureDec sig-dec using (_≟-ObjTerm_)
+            open import Axiom.UniquenessOfIdentityProofs as UIP-mod
+            UIP-ObjTerm : ∀ {x y : ObjTerm} (p q : x ≡ y) → p ≡ q
+            UIP-ObjTerm = UIP-mod.Decidable⇒UIP.≡-irrelevant _≟-ObjTerm_
+
+    -- Step 4: Positional alignment via length-from-iso.
+    len-eq : length (flatten (SingleAgenNF.YL (single-agen-strip sf)))
+           ≡ length (flatten (SingleAgenNF.YL (single-agen-strip sg)))
+    len-eq = YL-length-from-iso sf sg iso ein-g-nonempty
+
+    pos-align = positional-alignment-from-length sf sg iso len-eq
+    eYL : flatten (SingleAgenNF.YL (single-agen-strip sf))
+        ≡ flatten (SingleAgenNF.YL (single-agen-strip sg))
+    eYL = proj₁ pos-align
+    eYR : flatten (SingleAgenNF.YR (single-agen-strip sf))
+        ≡ flatten (SingleAgenNF.YR (single-agen-strip sg))
+    eYR = proj₁ (proj₂ pos-align)
+
+--------------------------------------------------------------------------------
+-- `single-agen-NF-coherence-discharge-nonempty-eout`: eout-side
+-- counterpart of `single-agen-NF-coherence-discharge-nonempty`.  Uses
+-- `YL-length-from-iso-eout` (which requires non-empty `eout` for the
+-- Agen edge) instead of `YL-length-from-iso`.  All other steps are
+-- identical.
+
+single-agen-NF-coherence-discharge-nonempty-eout
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (flat-A-eq : flatten (SingleAgenGen.Aᵢ (single-agen-u sf))
+                 ≡ flatten (SingleAgenGen.Aᵢ (single-agen-u sg)))
+      (flat-B-eq : flatten (SingleAgenGen.Bᵢ (single-agen-u sf))
+                 ≡ flatten (SingleAgenGen.Bᵢ (single-agen-u sg)))
+      (flat-u-eq : subst₂ FlatGen flat-A-eq flat-B-eq
+                      (flat (SingleAgenGen.u (single-agen-u sf)))
+                   ≡ flat (SingleAgenGen.u (single-agen-u sg)))
+      (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+      (eout-g-nonempty : Hypergraph.eout ⟪ g ⟫ (SingleAgen-edge sg) ≢ [])
+  → f ≈Term g
+single-agen-NF-coherence-discharge-nonempty-eout {f = f} {g = g}
+                                                 sf sg pA pB pU iso eout-g-nonempty =
+  single-agen-NF-discharge-aux sf sg A-strip-eq B-strip-eq u-strip-eq eYL eYR
+  where
+    -- Step 1: ObjTerm eqs at `single-agen-u` level.
+    u_uf = SingleAgenGen.u (single-agen-u sf)
+    u_ug = SingleAgenGen.u (single-agen-u sg)
+    objterm = flat-data-to-ObjTerm u_uf u_ug pA pB pU
+    A-u-eq = proj₁ objterm
+    B-u-eq = proj₁ (proj₂ objterm)
+    u-u-eq = proj₂ (proj₂ objterm)
+
+    -- Step 2: Lift to strip-record level via consistency lemmas.
+    consist-A-f = single-agen-u-strip-Aᵢ sf
+    consist-B-f = single-agen-u-strip-Bᵢ sf
+    consist-A-g = single-agen-u-strip-Aᵢ sg
+    consist-B-g = single-agen-u-strip-Bᵢ sg
+    consist-u-f = single-agen-u-strip-u sf
+    consist-u-g = single-agen-u-strip-u sg
+
+    A-strip-eq : SingleAgenNF.Aᵢ (single-agen-strip sf)
+               ≡ SingleAgenNF.Aᵢ (single-agen-strip sg)
+    A-strip-eq = trans (sym consist-A-f) (trans A-u-eq consist-A-g)
+
+    B-strip-eq : SingleAgenNF.Bᵢ (single-agen-strip sf)
+               ≡ SingleAgenNF.Bᵢ (single-agen-strip sg)
+    B-strip-eq = trans (sym consist-B-f) (trans B-u-eq consist-B-g)
+
+    u-strip-eq : subst₂ mor A-strip-eq B-strip-eq
+                   (SingleAgenNF.u (single-agen-strip sf))
+                 ≡ SingleAgenNF.u (single-agen-strip sg)
+    u-strip-eq = EQR.begin
+        subst₂ mor A-strip-eq B-strip-eq (SingleAgenNF.u (single-agen-strip sf))
+          EQR.≡⟨ cong (subst₂ mor A-strip-eq B-strip-eq) (sym consist-u-f) ⟩
+        subst₂ mor A-strip-eq B-strip-eq
+          (subst₂ mor consist-A-f consist-B-f u_uf)
+          EQR.≡⟨ subst₂-trans-mor consist-A-f A-strip-eq consist-B-f B-strip-eq u_uf ⟩
+        subst₂ mor (trans consist-A-f A-strip-eq)
+                   (trans consist-B-f B-strip-eq) u_uf
+          EQR.≡⟨ trans-A-collapse ⟩
+        subst₂ mor (trans A-u-eq consist-A-g)
+                   (trans B-u-eq consist-B-g) u_uf
+          EQR.≡⟨ sym (subst₂-trans-mor A-u-eq consist-A-g B-u-eq consist-B-g u_uf) ⟩
+        subst₂ mor consist-A-g consist-B-g
+          (subst₂ mor A-u-eq B-u-eq u_uf)
+          EQR.≡⟨ cong (subst₂ mor consist-A-g consist-B-g) u-u-eq ⟩
+        subst₂ mor consist-A-g consist-B-g u_ug
+          EQR.≡⟨ consist-u-g ⟩
+        SingleAgenNF.u (single-agen-strip sg)
+          EQR.∎
+      where
+        module EQR = ≡-Reasoning
+
+        trans-A-collapse :
+          subst₂ mor (trans consist-A-f A-strip-eq)
+                     (trans consist-B-f B-strip-eq) u_uf
+          ≡ subst₂ mor (trans A-u-eq consist-A-g)
+                       (trans B-u-eq consist-B-g) u_uf
+        trans-A-collapse =
+          cong₂ (λ a b → subst₂ mor a b u_uf)
+                (UIP-ObjTerm (trans consist-A-f A-strip-eq)
+                             (trans A-u-eq consist-A-g))
+                (UIP-ObjTerm (trans consist-B-f B-strip-eq)
+                             (trans B-u-eq consist-B-g))
+          where
+            open import Relation.Binary.PropositionalEquality using (cong₂)
+            open APROPSignatureDec sig-dec using (_≟-ObjTerm_)
+            open import Axiom.UniquenessOfIdentityProofs as UIP-mod
+            UIP-ObjTerm : ∀ {x y : ObjTerm} (p q : x ≡ y) → p ≡ q
+            UIP-ObjTerm = UIP-mod.Decidable⇒UIP.≡-irrelevant _≟-ObjTerm_
+
+    -- Step 4: Positional alignment via length-from-iso-eout.
+    len-eq : length (flatten (SingleAgenNF.YL (single-agen-strip sf)))
+           ≡ length (flatten (SingleAgenNF.YL (single-agen-strip sg)))
+    len-eq = YL-length-from-iso-eout sf sg iso eout-g-nonempty
+
+    pos-align = positional-alignment-from-length sf sg iso len-eq
+    eYL : flatten (SingleAgenNF.YL (single-agen-strip sf))
+        ≡ flatten (SingleAgenNF.YL (single-agen-strip sg))
+    eYL = proj₁ pos-align
+    eYR : flatten (SingleAgenNF.YR (single-agen-strip sf))
+        ≡ flatten (SingleAgenNF.YR (single-agen-strip sg))
+    eYR = proj₁ (proj₂ pos-align)
+
+--------------------------------------------------------------------------------
+-- `single-agen-NF-coherence-discharge-scalar`: the BOTH-EMPTY case
+-- (ein empty AND eout empty).  Closed constructively via the
+-- `scalar-coherence` lemma above (which composes `M-to-leftmost` on
+-- both sides with `NoSigma-coherence` and ⊗-functoriality).
+--
+-- Derives `flatten Aᵢ ≡ []` from `ein ⟪g⟫ (SingleAgen-edge sg) ≡ []`
+-- via `elab-at-SingleAgen-edge sg`, and similarly `flatten Bᵢ ≡ []`
+-- from `eout ⟪g⟫ (SingleAgen-edge sg) ≡ []`.  Then composes the
+-- standard strip-level flat→ObjTerm chain and applies
+-- `scalar-coherence` after pattern-matching the strip-level Aᵢ/Bᵢ/u
+-- equalities as refl (via a CPS aux mirroring
+-- `single-agen-NF-discharge-aux-cps`).
+
+private
+  -- CPS aux: pattern-matches the strip-level eqs as refl, then applies
+  -- `scalar-coherence`.
+  single-agen-NF-discharge-scalar-aux-cps
+    : ∀ {A B} {f g : HomTerm A B}
+        {YL-f YR-f Aᵢ-f Bᵢ-f : ObjTerm}
+        {YL-g YR-g Aᵢ-g Bᵢ-g : ObjTerm}
+        (u-f : mor Aᵢ-f Bᵢ-f) (u-g : mor Aᵢ-g Bᵢ-g)
+        {c-from-f : HomTerm A (YL-f ⊗₀ Aᵢ-f ⊗₀ YR-f)}
+        {c-to-f   : HomTerm (YL-f ⊗₀ Bᵢ-f ⊗₀ YR-f) B}
+        {c-from-g : HomTerm A (YL-g ⊗₀ Aᵢ-g ⊗₀ YR-g)}
+        {c-to-g   : HomTerm (YL-g ⊗₀ Bᵢ-g ⊗₀ YR-g) B}
+        (nosigma-from-f : NoSigma c-from-f) (nosigma-to-f : NoSigma c-to-f)
+        (nosigma-from-g : NoSigma c-from-g) (nosigma-to-g : NoSigma c-to-g)
+        (equiv-f : f ≈Term c-to-f ∘ (id ⊗₁ (Agen u-f ⊗₁ id)) ∘ c-from-f)
+        (equiv-g : g ≈Term c-to-g ∘ (id ⊗₁ (Agen u-g ⊗₁ id)) ∘ c-from-g)
+        (A-eq : Aᵢ-f ≡ Aᵢ-g)
+        (B-eq : Bᵢ-f ≡ Bᵢ-g)
+        (u-eq : subst₂ mor A-eq B-eq u-f ≡ u-g)
+        (Aᵢ-empty : flatten Aᵢ-g ≡ [])
+        (Bᵢ-empty : flatten Bᵢ-g ≡ [])
+     → f ≈Term g
+  single-agen-NF-discharge-scalar-aux-cps {f = f} {g = g}
+                                          u-f .u-f
+                                          {c-from-f} {c-to-f} {c-from-g} {c-to-g}
+                                          nosigma-from-f nosigma-to-f
+                                          nosigma-from-g nosigma-to-g
+                                          equiv-f equiv-g
+                                          refl refl refl Aᵢ-empty Bᵢ-empty =
+    HRBN.begin
+      f
+        HRBN.≈⟨ equiv-f ⟩
+      c-to-f ∘ (id ⊗₁ (Agen u-f ⊗₁ id)) ∘ c-from-f
+        HRBN.≈⟨ scalar-coherence u-f
+                  nosigma-from-f nosigma-to-f
+                  nosigma-from-g nosigma-to-g
+                  Aᵢ-empty Bᵢ-empty ⟩
+      c-to-g ∘ (id ⊗₁ (Agen u-f ⊗₁ id)) ∘ c-from-g
+        HRBN.≈⟨ ≈-Term-sym equiv-g ⟩
+      g HRBN.∎
+
+single-agen-NF-discharge-scalar-aux
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (A-strip-eq : SingleAgenNF.Aᵢ (single-agen-strip sf)
+                  ≡ SingleAgenNF.Aᵢ (single-agen-strip sg))
+      (B-strip-eq : SingleAgenNF.Bᵢ (single-agen-strip sf)
+                  ≡ SingleAgenNF.Bᵢ (single-agen-strip sg))
+      (u-strip-eq : subst₂ mor A-strip-eq B-strip-eq
+                      (SingleAgenNF.u (single-agen-strip sf))
+                    ≡ SingleAgenNF.u (single-agen-strip sg))
+      (Aᵢ-empty : flatten (SingleAgenNF.Aᵢ (single-agen-strip sg)) ≡ [])
+      (Bᵢ-empty : flatten (SingleAgenNF.Bᵢ (single-agen-strip sg)) ≡ [])
+  → f ≈Term g
+single-agen-NF-discharge-scalar-aux {f = f} {g = g} sf sg
+                                    A-eq B-eq u-eq Aᵢ-empty Bᵢ-empty =
+  single-agen-NF-discharge-scalar-aux-cps
+    NF-f.u NF-g.u
+    NF-f.nosigma-from NF-f.nosigma-to
+    NF-g.nosigma-from NF-g.nosigma-to
+    NF-f.equiv NF-g.equiv
+    A-eq B-eq u-eq Aᵢ-empty Bᵢ-empty
+  where
+    module NF-f = SingleAgenNF (single-agen-strip sf)
+    module NF-g = SingleAgenNF (single-agen-strip sg)
+
+single-agen-NF-coherence-discharge-scalar
+  : ∀ {A B} {f g : HomTerm A B}
+      (sf : SingleAgen f) (sg : SingleAgen g)
+      (flat-A-eq : flatten (SingleAgenGen.Aᵢ (single-agen-u sf))
+                 ≡ flatten (SingleAgenGen.Aᵢ (single-agen-u sg)))
+      (flat-B-eq : flatten (SingleAgenGen.Bᵢ (single-agen-u sf))
+                 ≡ flatten (SingleAgenGen.Bᵢ (single-agen-u sg)))
+      (flat-u-eq : subst₂ FlatGen flat-A-eq flat-B-eq
+                      (flat (SingleAgenGen.u (single-agen-u sf)))
+                   ≡ flat (SingleAgenGen.u (single-agen-u sg)))
+      (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+      (ein-empty  : Hypergraph.ein  ⟪ g ⟫ (SingleAgen-edge sg) ≡ [])
+      (eout-empty : Hypergraph.eout ⟪ g ⟫ (SingleAgen-edge sg) ≡ [])
+  → f ≈Term g
+single-agen-NF-coherence-discharge-scalar {f = f} {g = g}
+                                          sf sg pA pB pU iso ein-empty eout-empty =
+  single-agen-NF-discharge-scalar-aux
+    sf sg A-strip-eq B-strip-eq u-strip-eq
+    Aᵢ-strip-empty Bᵢ-strip-empty
+  where
+    -- Step 1: ObjTerm eqs at `single-agen-u` level.
+    u_uf = SingleAgenGen.u (single-agen-u sf)
+    u_ug = SingleAgenGen.u (single-agen-u sg)
+    objterm = flat-data-to-ObjTerm u_uf u_ug pA pB pU
+    A-u-eq = proj₁ objterm
+    B-u-eq = proj₁ (proj₂ objterm)
+    u-u-eq = proj₂ (proj₂ objterm)
+
+    -- Step 2: Lift to strip-record level via consistency lemmas.
+    consist-A-f = single-agen-u-strip-Aᵢ sf
+    consist-B-f = single-agen-u-strip-Bᵢ sf
+    consist-A-g = single-agen-u-strip-Aᵢ sg
+    consist-B-g = single-agen-u-strip-Bᵢ sg
+    consist-u-f = single-agen-u-strip-u sf
+    consist-u-g = single-agen-u-strip-u sg
+
+    A-strip-eq : SingleAgenNF.Aᵢ (single-agen-strip sf)
+               ≡ SingleAgenNF.Aᵢ (single-agen-strip sg)
+    A-strip-eq = trans (sym consist-A-f) (trans A-u-eq consist-A-g)
+
+    B-strip-eq : SingleAgenNF.Bᵢ (single-agen-strip sf)
+               ≡ SingleAgenNF.Bᵢ (single-agen-strip sg)
+    B-strip-eq = trans (sym consist-B-f) (trans B-u-eq consist-B-g)
+
+    u-strip-eq : subst₂ mor A-strip-eq B-strip-eq
+                   (SingleAgenNF.u (single-agen-strip sf))
+                 ≡ SingleAgenNF.u (single-agen-strip sg)
+    u-strip-eq = EQR.begin
+        subst₂ mor A-strip-eq B-strip-eq (SingleAgenNF.u (single-agen-strip sf))
+          EQR.≡⟨ cong (subst₂ mor A-strip-eq B-strip-eq) (sym consist-u-f) ⟩
+        subst₂ mor A-strip-eq B-strip-eq
+          (subst₂ mor consist-A-f consist-B-f u_uf)
+          EQR.≡⟨ subst₂-trans-mor consist-A-f A-strip-eq consist-B-f B-strip-eq u_uf ⟩
+        subst₂ mor (trans consist-A-f A-strip-eq)
+                   (trans consist-B-f B-strip-eq) u_uf
+          EQR.≡⟨ trans-A-collapse ⟩
+        subst₂ mor (trans A-u-eq consist-A-g)
+                   (trans B-u-eq consist-B-g) u_uf
+          EQR.≡⟨ sym (subst₂-trans-mor A-u-eq consist-A-g B-u-eq consist-B-g u_uf) ⟩
+        subst₂ mor consist-A-g consist-B-g
+          (subst₂ mor A-u-eq B-u-eq u_uf)
+          EQR.≡⟨ cong (subst₂ mor consist-A-g consist-B-g) u-u-eq ⟩
+        subst₂ mor consist-A-g consist-B-g u_ug
+          EQR.≡⟨ consist-u-g ⟩
+        SingleAgenNF.u (single-agen-strip sg)
+          EQR.∎
+      where
+        module EQR = ≡-Reasoning
+
+        trans-A-collapse :
+          subst₂ mor (trans consist-A-f A-strip-eq)
+                     (trans consist-B-f B-strip-eq) u_uf
+          ≡ subst₂ mor (trans A-u-eq consist-A-g)
+                       (trans B-u-eq consist-B-g) u_uf
+        trans-A-collapse =
+          cong₂ (λ a b → subst₂ mor a b u_uf)
+                (UIP-ObjTerm (trans consist-A-f A-strip-eq)
+                             (trans A-u-eq consist-A-g))
+                (UIP-ObjTerm (trans consist-B-f B-strip-eq)
+                             (trans B-u-eq consist-B-g))
+          where
+            open import Relation.Binary.PropositionalEquality using (cong₂)
+            open APROPSignatureDec sig-dec using (_≟-ObjTerm_)
+            open import Axiom.UniquenessOfIdentityProofs as UIP-mod
+            UIP-ObjTerm : ∀ {x y : ObjTerm} (p q : x ≡ y) → p ≡ q
+            UIP-ObjTerm = UIP-mod.Decidable⇒UIP.≡-irrelevant _≟-ObjTerm_
+
+    -- Step 3: derive flatten Aᵢ ≡ [] at strip-level from ein ≡ [].
+    -- elab-at-SingleAgen-edge sg gives:
+    --   flatten (Aᵢ_u sg) ≡ map vlab (ein ⟪g⟫ (SingleAgen-edge sg)).
+    -- With ein ≡ [], the RHS = [].  Then transport via consist-A-g
+    -- (Aᵢ_u sg ≡ Aᵢ_strip sg) to get flatten (Aᵢ_strip sg) ≡ [].
+    Aᵢ-u-empty : flatten (SingleAgenGen.Aᵢ (single-agen-u sg)) ≡ []
+    Aᵢ-u-empty =
+      trans (proj₁ (elab-at-SingleAgen-edge sg))
+            (cong (Data.List.map (Hypergraph.vlab ⟪ g ⟫)) ein-empty)
+      where open import Data.List using (map)
+    Aᵢ-strip-empty : flatten (SingleAgenNF.Aᵢ (single-agen-strip sg)) ≡ []
+    Aᵢ-strip-empty = trans (cong flatten (sym consist-A-g)) Aᵢ-u-empty
+
+    Bᵢ-u-empty : flatten (SingleAgenGen.Bᵢ (single-agen-u sg)) ≡ []
+    Bᵢ-u-empty =
+      trans (proj₁ (proj₂ (elab-at-SingleAgen-edge sg)))
+            (cong (Data.List.map (Hypergraph.vlab ⟪ g ⟫)) eout-empty)
+      where open import Data.List using (map)
+    Bᵢ-strip-empty : flatten (SingleAgenNF.Bᵢ (single-agen-strip sg)) ≡ []
+    Bᵢ-strip-empty = trans (cong flatten (sym consist-B-g)) Bᵢ-u-empty
 
 --------------------------------------------------------------------------------
 -- The remaining narrow assumptions of the completeness path, bundled
@@ -2009,55 +4689,62 @@ YL-length-from-iso-here-here _ = refl
 -- by a record instance, so this file itself is `--safe`-clean: the
 -- trust is exposed at the call site that supplies the record.
 --
--- `single-agen-NF-coherence` has been narrowed (this session) to take
--- the three flat-level equalities (`flat-A-eq`, `flat-B-eq`,
--- `flat-u-eq`) extracted constructively by `single-agen-flat-data`.
--- The trust content is now just the Mac-Lane wrapper closure: given
--- already-aligned `SingleAgen` witnesses (via the flat triple), produce
--- `f ≈Term g`.  The (still-pending) constructive discharge of this
--- content is documented in `REFACTORING.md` as "Field 1 → Mac-Lane
--- wrapper closure" with two candidate approaches (solveM extension,
--- σ-free iso decomposition).
+-- ## Discharge progress (this session)
 --
--- `nf-resp-≅ᴴ-residual` covers all other compound cases (terms with
--- σ subterms or ≥2 Agens) and remains architecturally blocked under
--- the current `_≅ᴴ_` (see `REFACTORING.md` § "Architectural
--- blockers").
+-- The Mac-Lane wrapper closure for `single-agen-NF-coherence` has been
+-- CONSTRUCTIVELY CLOSED on BOTH sides — ein and eout:
+--   * `single-agen-NF-coherence-discharge-nonempty`     (ein non-empty)
+--   * `single-agen-NF-coherence-discharge-nonempty-eout` (eout non-empty)
+--
+-- The chain (parallel on both sides) is:
+--   * flat data → ObjTerm eqs via `flat-data-to-ObjTerm`;
+--   * `YL-length-from-iso[-eout]` (REQUIRES non-empty `ein`/`eout`);
+--   * `positional-alignment-from-length`;
+--   * `single-agen-strip` to get NF wrappers;
+--   * `discharge-aligned` via `NoSigma-coherence`, `bridge-naturality-pos`,
+--     and the bridge iso laws.
+--
+-- The eout side uses `⟪_⟫-cod-unique` (the cod-side analogue of
+-- `⟪_⟫-dom-unique`, proved in `HomTermInvariant`) plus `remap-injective`
+-- (in `Prune`) to close the cod-uniqueness of the composite hypergraph.
+--
+-- The postulate has been NARROWED to the strictly smaller "both empty"
+-- case (`single-agen-NF-coherence-empty-ein`, now requiring BOTH the
+-- ein-empty and eout-empty preconditions).  The both-empty precondition
+-- forces `flatten Aᵢ ≡ []` AND `flatten Bᵢ ≡ []`, i.e. the generator
+-- is a "scalar" u : 1 → 1 where both source and target are built only
+-- from `unit` constructors.  In this fully-degenerate case neither the
+-- ein-side nor the eout-side positional argument finds a vertex to
+-- locate; the iso provides no positional constraint and the constructive
+-- route fails on both sides.
+--
+-- For practical signatures where generators have at least one non-unit
+-- input or output, the postulate is never invoked.
+--
+-- ## Route 1 high-level proof (this session)
+--
+-- The residual is reformulated at the `decode-rel` level as iso-invariance
+-- of the structural decoder:
+--
+--   decode-rel-resp-iso
+--     : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → decode-rel f ≈Term decode-rel g
+--
+-- This is more natural than the previous bridge-level postulate, because
+-- `decode-rel` is hypergraph-structural (`DecodeRel.agda`).  An iso
+-- ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ provides the bijection data (φ, ψ) that should let the
+-- two decoder runs align — see `Completeness/EdgeReorder.agda` for the
+-- viability analysis.
+--
+-- The previously-postulated bridge-level claim `nf-resp-≅ᴴ-residual` is
+-- now a 3-line DERIVED definition in `WithAssumptions`, composing
+-- `decode-rel-resp-iso` with `decode-roundtrip-rel` on both sides.
+-- The dispatcher's residual call sites are unchanged.
 
-record CompletenessAssumptions : Set where
-  field
-    -- Narrowed `single-agen-NF-coherence`: the iso → flat-data step is
-    -- already discharged by `single-agen-flat-data` at the call site,
-    -- so this postulate only owns the Mac-Lane chase that closes the
-    -- σ-free wrappers around the (already aligned) generator.  Inputs:
-    --   * `sf, sg`         — `SingleAgen` witnesses (raw); the user
-    --     can build `SingleAgenNF` records on demand via
-    --     `single-agen-strip` for the wrapper data, or work directly
-    --     from `single-agen-u` for the underlying generator;
-    --   * `flat-A-eq, flat-B-eq` — equalities of the inner generator's
-    --     source/target objects, at the `flatten` level;
-    --   * `flat-u-eq`      — equality of the generators themselves
-    --     (modulo the two flatten-level substs).
-    -- The `⟪f⟫ ≅ᴴ ⟪g⟫` argument is kept (rather than reconstructed
-    -- from the flat data) so the postulate retains access to the
-    -- vertex/boundary bijections it needs for the wrapper alignment.
-    single-agen-NF-coherence
-      : ∀ {A B} {f g : HomTerm A B}
-          (sf : SingleAgen f) (sg : SingleAgen g)
-          (flat-A-eq : flatten (SingleAgenGen.Aᵢ (single-agen-u sf))
-                     ≡ flatten (SingleAgenGen.Aᵢ (single-agen-u sg)))
-          (flat-B-eq : flatten (SingleAgenGen.Bᵢ (single-agen-u sf))
-                     ≡ flatten (SingleAgenGen.Bᵢ (single-agen-u sg)))
-          (flat-u-eq : subst₂ FlatGen flat-A-eq flat-B-eq
-                          (flat (SingleAgenGen.u (single-agen-u sf)))
-                       ≡ flat (SingleAgenGen.u (single-agen-u sg)))
-      → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-      → f ≈Term g
-
-    nf-resp-≅ᴴ-residual
-      : ∀ {A B} (f g : HomTerm A B)
-      → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-      → bridge f ≈Term bridge g
+-- `CompletenessAssumptions` is re-exported from `DecodeRespIso.agda`
+-- above.  It has two fields (boundary-respects-iso,
+-- decode-attempt-resp-iso) at the hypergraph-algorithm level; the
+-- term-level `decode-rel-resp-iso` is derived constructively in
+-- `WithAssumptions` below.
 
 -- The record-parameterized sub-module is `WithAssumptions` below
 -- (placed after the structural helpers `NoAgen-iso-IsAgen-⊥` etc. and
@@ -2176,34 +4863,130 @@ nf-bridge = decode-roundtrip-rel
 module WithAssumptions (assumptions : CompletenessAssumptions) where
   open CompletenessAssumptions assumptions
 
+  -- DecodeRespIso.WithAssumptions provides the algorithmic-level
+  -- `decode-resp-iso` and the term-level `decode-rel-resp-iso`,
+  -- both derived constructively from the three
+  -- `CompletenessAssumptions` fields.
+  open RespIso.WithAssumptions assumptions
+    using (decode-resp-iso; decode-rel-resp-iso) public
+
   ------------------------------------------------------------------------
   -- Derived: the original (wider) coherence claim, constructively
   -- discharging the iso → flat-data step via `single-agen-flat-data`
-  -- and feeding the resulting three flat-level equalities into the
-  -- narrowed postulate.  `single-agen-strip` is no longer applied
-  -- here — the postulate accepts `SingleAgen` witnesses directly and
-  -- can build `SingleAgenNF` on demand for the wrapper Mac-Lane
-  -- alignment.
+  -- and then 3-way dispatching:
+  --   * ein non-empty: use the constructive
+  --     `single-agen-NF-coherence-discharge-nonempty` (ein-side).
+  --   * ein empty AND eout non-empty: use the constructive
+  --     `single-agen-NF-coherence-discharge-nonempty-eout` (eout-side).
+  --   * BOTH ein and eout empty: fall back to the (strictly narrower)
+  --     `single-agen-NF-coherence-empty-ein` postulate.
+  private
+    empty? : ∀ {A : Set} (xs : List A) → (xs ≡ []) ⊎ (xs ≢ [])
+    empty? []      = inj₁ refl
+    empty? (_ ∷ _) = inj₂ λ ()
+
   single-agen-coherence-≈Term
     : ∀ {A B} {f g : HomTerm A B}
     → SingleAgen f → SingleAgen g
     → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
     → f ≈Term g
-  single-agen-coherence-≈Term sf sg iso =
-    single-agen-NF-coherence sf sg flat-A-eq flat-B-eq flat-u-eq iso
-    where
-      flat-data = single-agen-flat-data sf sg iso
-      flat-A-eq = proj₁ flat-data
-      flat-B-eq = proj₁ (proj₂ flat-data)
-      flat-u-eq = proj₂ (proj₂ flat-data)
+  single-agen-coherence-≈Term {g = g} sf sg iso
+    with empty? (Hypergraph.ein  ⟪ g ⟫ (SingleAgen-edge sg))
+       | empty? (Hypergraph.eout ⟪ g ⟫ (SingleAgen-edge sg))
+  ... | inj₂ ein-nonempty | _ =
+        single-agen-NF-coherence-discharge-nonempty
+          sf sg flat-A-eq flat-B-eq flat-u-eq iso ein-nonempty
+        where
+          flat-data = single-agen-flat-data sf sg iso
+          flat-A-eq = proj₁ flat-data
+          flat-B-eq = proj₁ (proj₂ flat-data)
+          flat-u-eq = proj₂ (proj₂ flat-data)
+  ... | inj₁ _            | inj₂ eout-nonempty =
+        single-agen-NF-coherence-discharge-nonempty-eout
+          sf sg flat-A-eq flat-B-eq flat-u-eq iso eout-nonempty
+        where
+          flat-data = single-agen-flat-data sf sg iso
+          flat-A-eq = proj₁ flat-data
+          flat-B-eq = proj₁ (proj₂ flat-data)
+          flat-u-eq = proj₂ (proj₂ flat-data)
+  ... | inj₁ ein-empty    | inj₁ eout-empty =
+        single-agen-NF-coherence-discharge-scalar
+          sf sg flat-A-eq flat-B-eq flat-u-eq iso ein-empty eout-empty
+        where
+          flat-data = single-agen-flat-data sf sg iso
+          flat-A-eq = proj₁ flat-data
+          flat-B-eq = proj₁ (proj₂ flat-data)
+          flat-u-eq = proj₂ (proj₂ flat-data)
+
+  ------------------------------------------------------------------------
+  -- High-level proof of `nf-resp-≅ᴴ-residual` via Route 1.
+  --
+  -- The claim `⟪f⟫ ≅ᴴ ⟪g⟫ → bridge f ≈Term bridge g` is the
+  -- "residual" of the completeness theorem after the constructive
+  -- dispatcher cases (Mac Lane, atomic Agen, edge-count ⊥, σ-free
+  -- SingleAgen) are eliminated.  The argument routes through the
+  -- structural decoder `decode-rel`, which is *hypergraph-recursive*
+  -- in its construction (atomic terms produce `bridge`; compounds
+  -- thread through pruned composition and tensor).
+  --
+  -- Three named pieces:
+  --
+  --   (P1) `decode-roundtrip-rel f : decode-rel f ≈Term bridge f`
+  --        — provided constructively in `DecodeRel.agda:157-171`.
+  --        Discharges the bridge↔decode-rel correspondence on each
+  --        side of the chain.
+  --
+  --   (P2) `decode-rel-resp-iso f g iso : decode-rel f ≈Term decode-rel g`
+  --        — the Route 1 POSTULATE.  Captures iso-invariance of the
+  --        structural decoder.  Discharge strategy (~1100-1550 LOC)
+  --        in REFACTORING.md § "Route 1": (a) Linear preservation
+  --        under iso [constructive], (b) edge-reorder invariance
+  --        under ψ [Mac Lane chase per swap atom], (c) vertex-
+  --        relabel invariance under φ [permute-via-vlab],
+  --        (d) stack-permutation absorption at extract-exact.
+  --
+  --   (P3) `decode-roundtrip-rel g` — symmetric of (P1).
+  --
+  -- Composition: (P1)⁻¹ ∘ (P2) ∘ (P3), giving the bridge-level chain
+  --
+  --   bridge f  ≈  decode-rel f  ≈  decode-rel g  ≈  bridge g.
+  --
+  -- Note on the bridge↔raw equivalence.  `bridge f ≈Term bridge g`
+  -- is constructively equivalent (via `bridge-cancel` in
+  -- `CompletenessFull.agda:63`) to `f ≈Term g`, so this residual IS
+  -- completeness for the residual term shapes.  The bridge form is
+  -- bookkeeping for chaining with `decode-rel`'s boundary subst
+  -- types.
+
+  -- Step P1: the (sym of the) bridge↔decode-rel roundtrip.  Named
+  -- alias for readability of the proof chain below.
+  private
+    bridge≈decode-rel : ∀ {A B} (f : HomTerm A B)
+                      → bridge f ≈Term decode-rel f
+    bridge≈decode-rel f = ≈-Term-sym (decode-roundtrip-rel f)
+
+  -- The Route 1 high-level proof of the residual.  Three steps:
+  --   bridge f      [start]
+  --     ≈⟨ P1 ⟩  decode-rel f       (bridge↔decode-rel)
+  --     ≈⟨ P2 ⟩  decode-rel g       (decode-rel-resp-iso, POSTULATE)
+  --     ≈⟨ P3 ⟩  bridge g           (decode-rel↔bridge)
+  nf-resp-≅ᴴ-residual
+    : ∀ {A B} (f g : HomTerm A B)
+    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+    → bridge f ≈Term bridge g
+  nf-resp-≅ᴴ-residual f g iso =
+    ≈-Term-trans (bridge≈decode-rel f)             -- P1
+      (≈-Term-trans (decode-rel-resp-iso f g iso)  -- P2 (postulate)
+                    (decode-roundtrip-rel g))      -- P3
 
   ------------------------------------------------------------------------
   -- The Path B `nf-resp-≅ᴴ`: case-split layered as
   --   (1) both NoSigma         → Mac Lane (constructive),
   --   (2) both atomic Agen     → AgenAgen (constructive),
   --   (3) one NoAgen vs the other atomic Agen → vacuous (edge-count ⊥),
-  --   (4) else                 → residual field (strictly narrower
-  --                              than before).
+  --   (4) else                 → derived `nf-resp-≅ᴴ-residual` (above),
+  --                              which composes `decode-rel-resp-iso`
+  --                              with the bridge roundtrip.
 
   nf-resp-≅ᴴ
     : ∀ {A B} (f g : HomTerm A B)
