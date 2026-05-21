@@ -1705,6 +1705,139 @@ private
       ρ⇒∘σ-here : ρ⇒ ∘ σ {A = unit} {B = X} ⦃ s ⦄ ≈Term λ⇒
       ρ⇒∘σ-here rewrite Symm≤Symm-uniq s = inv-braiding-coherence
 
+  -- Sub-step 2: σ-on-empty-Y.
+  --
+  -- When `flatten Y ≡ []`, the morphism `σ {X}{Y} : X ⊗ Y → Y ⊗ X`
+  -- is ≈Term-equal to a NoSigma morphism.  Proved by induction on Y:
+  --   * Y = unit          : direct via sub-step 1A.
+  --   * Y = A ⊗ B         : ++-conicalˡ splits flatten = [] into both
+  --                         flatten A = [] and flatten B = [], use
+  --                         hexagon to decompose σ {X}{A⊗B}.
+  --   * Y = Var x         : flatten (Var x) = [x] ≠ [], contradiction.
+  --
+  -- The result is packaged as a Σ-type to expose both the rewriting
+  -- target `ns` and its NoSigma witness, suitable for downstream use
+  -- in the scalar discharge.
+
+  open import Data.List.Properties using (++-conicalˡ; ++-conicalʳ)
+
+  σ-on-empty-Y
+    : ∀ {X Y : ObjTerm} ⦃ s : Symm ≤ Symm ⦄
+    → flatten Y ≡ []
+    → Σ[ ns ∈ HomTerm (X ⊗₀ Y) (Y ⊗₀ X) ]
+        NoSigma ns × (σ {A = X} {B = Y} ⦃ s ⦄ ≈Term ns)
+  σ-on-empty-Y {X} {unit} ⦃ s ⦄ _ =
+      λ⇐ ∘ ρ⇒
+    , nosigma-∘ nosigma-λ⇐ nosigma-ρ⇒
+    , σ-on-unit-Y {X} ⦃ s ⦄
+  σ-on-empty-Y {X} {Y₁ ⊗₀ Y₂} ⦃ s ⦄ flat-eq =
+      ns , ns-NS , chain
+    where
+      flat₁ : flatten Y₁ ≡ []
+      flat₁ = ++-conicalˡ (flatten Y₁) (flatten Y₂) flat-eq
+      flat₂ : flatten Y₂ ≡ []
+      flat₂ = ++-conicalʳ (flatten Y₁) (flatten Y₂) flat-eq
+
+      rec₁ = σ-on-empty-Y {X} {Y₁} ⦃ s ⦄ flat₁
+      rec₂ = σ-on-empty-Y {X} {Y₂} ⦃ s ⦄ flat₂
+
+      ns₁ = proj₁ rec₁
+      ns₁-NS = proj₁ (proj₂ rec₁)
+      σ≈ns₁ = proj₂ (proj₂ rec₁)
+
+      ns₂ = proj₁ rec₂
+      ns₂-NS = proj₁ (proj₂ rec₂)
+      σ≈ns₂ = proj₂ (proj₂ rec₂)
+
+      -- Decomposition target: matches the natural chain output.
+      -- With right-associative ∘, this parses as:
+      --   α⇐ ∘ (X1 ∘ (X2 ∘ X3)) ∘ α⇐
+      -- where X1 = id ⊗₁ ns₂, X2 = α⇒, X3 = ns₁ ⊗₁ id.
+      ns : HomTerm (X ⊗₀ (Y₁ ⊗₀ Y₂)) ((Y₁ ⊗₀ Y₂) ⊗₀ X)
+      ns = (α⇐ ∘ id {Y₁} ⊗₁ ns₂ ∘ α⇒ ∘ ns₁ ⊗₁ id {Y₂}) ∘ α⇐
+
+      ns-NS : NoSigma ns
+      ns-NS = nosigma-∘ (nosigma-∘ nosigma-α⇐
+                          (nosigma-∘ (nosigma-⊗ nosigma-id ns₂-NS)
+                            (nosigma-∘ nosigma-α⇒
+                                       (nosigma-⊗ ns₁-NS nosigma-id))))
+                        nosigma-α⇐
+
+      -- The σ-decomposition chain.
+      --
+      -- Hexagon (in the *inverted* form used here): start with the
+      -- axiom `id ⊗₁ σ ∘ α⇒ ∘ σ ⊗₁ id ≈ α⇒ ∘ σ {X}{Y₁⊗Y₂} ∘ α⇒`,
+      -- so:
+      --   σ {X}{Y₁⊗Y₂}
+      --   ≈ id ∘ σ {X}{Y₁⊗Y₂} ∘ id
+      --   ≈ α⇐ ∘ α⇒ ∘ σ {X}{Y₁⊗Y₂} ∘ α⇒ ∘ α⇐
+      --   ≈ α⇐ ∘ (id ⊗₁ σ {X}{Y₂} ∘ α⇒ ∘ σ {X}{Y₁} ⊗₁ id) ∘ α⇐
+      --   ≈ α⇐ ∘ ((id ⊗₁ ns₂) ∘ α⇒ ∘ (ns₁ ⊗₁ id)) ∘ α⇐
+      --
+      -- We assemble it with the HomReasoning combinator.
+
+      -- Right-associativity of ∘: `a ∘ b ∘ c = a ∘ (b ∘ c)`.
+      -- LHS of hexagon: `(id ⊗₁ σ) ∘ (α⇒ ∘ (σ ⊗₁ id))`.
+      -- RHS:            `α⇒ ∘ (σ {X}{Y₁⊗Y₂} ∘ α⇒)`.
+      --
+      -- We invert via:
+      --   σ ≈ (α⇐ ∘ LHS) ∘ α⇐
+      -- by chasing `α⇐ ∘ (α⇒ ∘ (σ ∘ α⇒)) = σ ∘ α⇒` and `(σ ∘ α⇒) ∘ α⇐ = σ`.
+
+      LHS-hex : HomTerm ((X ⊗₀ Y₁) ⊗₀ Y₂) (Y₁ ⊗₀ (Y₂ ⊗₀ X))
+      LHS-hex = id ⊗₁ σ {A = X} {B = Y₂} ⦃ s ⦄
+                  ∘ α⇒
+                  ∘ σ {A = X} {B = Y₁} ⦃ s ⦄ ⊗₁ id
+
+      hex-inverted
+        : σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄
+        ≈Term (α⇐ ∘ LHS-hex) ∘ α⇐
+      hex-inverted = HRBN.begin
+          σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄
+            HRBN.≈⟨ ≈-Term-sym idˡ ⟩
+          id ∘ σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄
+            HRBN.≈⟨ ≈-Term-sym idʳ ⟩
+          (id ∘ σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄) ∘ id
+            HRBN.≈⟨ ≈-Term-sym α⇐∘α⇒≈id HRBN.⟩∘⟨refl HRBN.⟩∘⟨refl ⟩
+          ((α⇐ ∘ α⇒) ∘ σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄) ∘ id
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym α⇒∘α⇐≈id ⟩
+          ((α⇐ ∘ α⇒) ∘ σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄) ∘ (α⇒ ∘ α⇐)
+            HRBN.≈⟨ FM-bridge.assoc HRBN.⟩∘⟨refl ⟩
+          (α⇐ ∘ (α⇒ ∘ σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄)) ∘ (α⇒ ∘ α⇐)
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          α⇐ ∘ ((α⇒ ∘ σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄) ∘ (α⇒ ∘ α⇐))
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.sym-assoc ⟩
+          α⇐ ∘ (((α⇒ ∘ σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄) ∘ α⇒) ∘ α⇐)
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ FM-bridge.assoc HRBN.⟩∘⟨refl ⟩
+          α⇐ ∘ ((α⇒ ∘ (σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄ ∘ α⇒)) ∘ α⇐)
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym (hexagon ⦃ s ⦄) HRBN.⟩∘⟨refl ⟩
+          α⇐ ∘ (LHS-hex ∘ α⇐)
+            HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+          (α⇐ ∘ LHS-hex) ∘ α⇐ HRBN.∎
+
+      -- Now rewrite the two inner σ's inside LHS-hex using IH.
+      LHS-hex-rw
+        : LHS-hex ≈Term (id ⊗₁ ns₂ ∘ α⇒ ∘ ns₁ ⊗₁ id)
+      LHS-hex-rw = HRBN.begin
+          id ⊗₁ σ {A = X} {B = Y₂} ⦃ s ⦄
+            ∘ α⇒
+            ∘ σ {A = X} {B = Y₁} ⦃ s ⦄ ⊗₁ id
+            HRBN.≈⟨ ⊗-resp-≈ ≈-Term-refl σ≈ns₂ HRBN.⟩∘⟨refl ⟩
+          id ⊗₁ ns₂ ∘ α⇒ ∘ σ {A = X} {B = Y₁} ⦃ s ⦄ ⊗₁ id
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ HRBN.refl⟩∘⟨ ⊗-resp-≈ σ≈ns₁ ≈-Term-refl ⟩
+          id ⊗₁ ns₂ ∘ α⇒ ∘ ns₁ ⊗₁ id HRBN.∎
+
+      chain
+        : σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄ ≈Term ns
+      chain = HRBN.begin
+          σ {A = X} {B = Y₁ ⊗₀ Y₂} ⦃ s ⦄
+            HRBN.≈⟨ hex-inverted ⟩
+          (α⇐ ∘ LHS-hex) ∘ α⇐
+            HRBN.≈⟨ (HRBN.refl⟩∘⟨ LHS-hex-rw) HRBN.⟩∘⟨refl ⟩
+          (α⇐ ∘ id ⊗₁ ns₂ ∘ α⇒ ∘ ns₁ ⊗₁ id) ∘ α⇐ HRBN.∎
+  σ-on-empty-Y {X} {Var x} ⦃ _ ⦄ flat-eq with flat-eq
+  ... | ()
+
 --------------------------------------------------------------------------------
 -- Positional alignment (Step 5 front-end).
 --
