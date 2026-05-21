@@ -16,7 +16,11 @@ into the `CompletenessAssumptions` record in
 ```agda
 record CompletenessAssumptions : Set where
   field
-    single-agen-NF-coherence
+    -- Strictly-narrowed: now only the EMPTY Agen-ein case
+    -- (`flatten Aᵢ ≡ []`, i.e. scalar-input generators).  The
+    -- non-empty case is fully constructive via
+    -- `single-agen-NF-coherence-discharge-nonempty`.
+    single-agen-NF-coherence-empty-ein
       : ∀ {A B} {f g : HomTerm A B}
           (sf : SingleAgen f) (sg : SingleAgen g)
           (flat-A-eq : flatten (SingleAgenGen.Aᵢ (single-agen-u sf))
@@ -26,7 +30,8 @@ record CompletenessAssumptions : Set where
           (flat-u-eq : subst₂ FlatGen flat-A-eq flat-B-eq
                           (flat (SingleAgenGen.u (single-agen-u sf)))
                        ≡ flat (SingleAgenGen.u (single-agen-u sg)))
-      → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+          (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+          (ein-empty : Hypergraph.ein ⟪ g ⟫ (SingleAgen-edge sg) ≡ [])
       → f ≈Term g
 
     nf-resp-≅ᴴ-residual
@@ -45,10 +50,24 @@ that supplies a record instance.
 fully constructive (in `DecodeRel.agda`), so the bridge
 `decode-rel f ≈Term bridge f` costs nothing.
 
-Trust content of `single-agen-NF-coherence`: only the Mac-Lane chase
-that closes the σ-free wrappers around an already-aligned generator.
-The iso → flat-data step is constructive (`single-agen-flat-data` in
-`Inductive.agda`).
+**Trust content of `single-agen-NF-coherence-empty-ein`**: only the
+Mac-Lane chase around a scalar-input Agen generator
+(`flatten Aᵢ ≡ []`, i.e. Aᵢ built from `unit` constructors only).
+The iso provides no positional constraint on the Agen-ein (it is
+empty), so the constructive YL-length extraction fails.  For practical
+signatures where generators have non-unit-typed sources, this
+postulate is NEVER invoked — the non-empty discharge fires instead.
+
+The full chain for the non-empty case (closed this session) is in
+`single-agen-NF-coherence-discharge-nonempty` and composes:
+
+  * `flat-data-to-ObjTerm`: flat-level → ObjTerm-level eqs (constructive).
+  * `YL-length-from-iso`: extract length-of-YL equality
+    (REQUIRES non-empty `ein`, hence the residual case above).
+  * `positional-alignment-from-length`: length → flatten-of-YL/YR eqs.
+  * `single-agen-strip` on both sides for the σ-free wrappers.
+  * `discharge-aligned`: core wrapper closure via `NoSigma-coherence`,
+    `bridge-naturality-pos`, and bridge iso laws.
 
 ### Dispatcher (`nf-resp-≅ᴴ` in `WithAssumptions`)
 
@@ -62,8 +81,15 @@ Case-splits before falling through to the residual:
    `IsAgen`) mix is vacuous via `ψ`/`ψ⁻¹` on `Fin 0`.
 4. Both `SingleAgen` (σ-free, exactly one `Agen` subterm each) →
    `single-agen-coherence-≈Term`, which constructively extracts the
-   three flat equalities via `single-agen-flat-data` and feeds them
-   to the narrowed `single-agen-NF-coherence`.
+   three flat equalities via `single-agen-flat-data` and then
+   DECIDABLY DISPATCHES on whether `⟪g⟫.ein` for the Agen edge is
+   empty:
+     * **non-empty** (the common case for practical signatures):
+       fully constructive via
+       `single-agen-NF-coherence-discharge-nonempty`.
+     * **empty** (degenerate scalar-input generators only): falls
+       back to the narrowed `single-agen-NF-coherence-empty-ein`
+       postulate.
 5. Else → `nf-resp-≅ᴴ-residual`.
 
 After (1)–(4), the residual fires only when at least one side contains
