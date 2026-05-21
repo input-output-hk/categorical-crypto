@@ -1990,6 +1990,199 @@ private
             HRBN.≈⟨ σBᵢX≈ns₂ HRBN.⟩∘⟨ (HRBN.refl⟩∘⟨ σXAᵢ≈ns₁) ⟩
           ns₂ ∘ (Agen u ⊗₁ id {X}) ∘ ns₁ HRBN.∎
 
+  -- M-to-leftmost: the wrapper `id {YL} ⊗ (Agen u ⊗ id {YR})` admits a
+  -- "leftmost" form `NS-post ∘ (Agen u ⊗ id {YL ⊗ YR}) ∘ NS-pre` with
+  -- NS-pre, NS-post NoSigma, when flatten Aᵢ ≡ flatten Bᵢ ≡ [].
+  --
+  -- Strategy:
+  --   id {YL} ⊗ (Agen u ⊗ id {YR})
+  --     ≈⟨ α-comm (reversed) ⟩
+  --   α⇒ ∘ ((id ⊗ Agen u) ⊗ id) ∘ α⇐
+  --     ≈⟨ scalar-Agen-tensor-commute on (id ⊗ Agen u) ⟩
+  --   α⇒ ∘ ((ns₂ ∘ (Agen u ⊗ id) ∘ ns₁) ⊗ id) ∘ α⇐
+  --     ≈⟨ ⊗-∘-dist twice ⟩
+  --   α⇒ ∘ (ns₂ ⊗ id) ∘ ((Agen u ⊗ id) ⊗ id) ∘ (ns₁ ⊗ id) ∘ α⇐
+  --     ≈⟨ α-comm (reversed) on the middle ⟩
+  --   (α⇒ ∘ (ns₂ ⊗ id) ∘ α⇐) ∘ (Agen u ⊗ id {YL ⊗ YR}) ∘ (α⇒ ∘ (ns₁ ⊗ id) ∘ α⇐)
+  M-to-leftmost
+    : ∀ {YL YR Aᵢ Bᵢ : ObjTerm} (u : mor Aᵢ Bᵢ) ⦃ s : Symm ≤ Symm ⦄
+        (Aᵢ-empty : flatten Aᵢ ≡ [])
+        (Bᵢ-empty : flatten Bᵢ ≡ [])
+    → Σ[ NS-pre  ∈ HomTerm (YL ⊗₀ Aᵢ ⊗₀ YR) (Aᵢ ⊗₀ YL ⊗₀ YR) ]
+      Σ[ NS-post ∈ HomTerm (Bᵢ ⊗₀ YL ⊗₀ YR) (YL ⊗₀ Bᵢ ⊗₀ YR) ]
+        NoSigma NS-pre × NoSigma NS-post ×
+        ((id {YL} ⊗₁ (Agen u ⊗₁ id {YR}))
+         ≈Term NS-post ∘ (Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ NS-pre)
+  M-to-leftmost {YL} {YR} {Aᵢ} {Bᵢ} u ⦃ s ⦄ Aᵢ-empty Bᵢ-empty =
+      NS-pre , NS-post , NS-pre-NS , NS-post-NS , chain
+    where
+      -- scalar-Agen-tensor-commute at X = YL on (id_YL ⊗ Agen u).
+      rec₁ = scalar-Agen-tensor-commute {YL} u Aᵢ-empty Bᵢ-empty ⦃ s ⦄
+      ns₁  = proj₁ rec₁
+      ns₂  = proj₁ (proj₂ rec₁)
+      ns₁-NS = proj₁ (proj₂ (proj₂ rec₁))
+      ns₂-NS = proj₁ (proj₂ (proj₂ (proj₂ rec₁)))
+      eq-scalar = proj₂ (proj₂ (proj₂ (proj₂ rec₁)))
+      -- eq-scalar : id {YL} ⊗ Agen u ≈Term ns₂ ∘ (Agen u ⊗ id {YL}) ∘ ns₁
+
+      NS-pre  : HomTerm (YL ⊗₀ Aᵢ ⊗₀ YR) (Aᵢ ⊗₀ YL ⊗₀ YR)
+      NS-pre  = α⇒ ∘ (ns₁ ⊗₁ id {YR}) ∘ α⇐
+
+      NS-post : HomTerm (Bᵢ ⊗₀ YL ⊗₀ YR) (YL ⊗₀ Bᵢ ⊗₀ YR)
+      NS-post = α⇒ ∘ (ns₂ ⊗₁ id {YR}) ∘ α⇐
+
+      NS-pre-NS : NoSigma NS-pre
+      NS-pre-NS =
+        nosigma-∘ nosigma-α⇒
+          (nosigma-∘ (nosigma-⊗ ns₁-NS nosigma-id) nosigma-α⇐)
+
+      NS-post-NS : NoSigma NS-post
+      NS-post-NS =
+        nosigma-∘ nosigma-α⇒
+          (nosigma-∘ (nosigma-⊗ ns₂-NS nosigma-id) nosigma-α⇐)
+
+      -- Local α-comm rewrites.
+      --   α⇒ ∘ ((id ⊗ Agen u) ⊗ id) ≈Term (id ⊗ (Agen u ⊗ id)) ∘ α⇒
+      α-comm-1
+        : α⇒ {YL} {Bᵢ} {YR} ∘ ((id {YL} ⊗₁ Agen u) ⊗₁ id {YR})
+        ≈Term (id {YL} ⊗₁ (Agen u ⊗₁ id {YR})) ∘ α⇒ {YL} {Aᵢ} {YR}
+      α-comm-1 = α-comm
+
+      --   α⇒ ∘ ((Agen u ⊗ id_YL) ⊗ id_YR) ≈Term (Agen u ⊗ (id_YL ⊗ id_YR)) ∘ α⇒
+      α-comm-2
+        : α⇒ {Bᵢ} {YL} {YR} ∘ ((Agen u ⊗₁ id {YL}) ⊗₁ id {YR})
+        ≈Term (Agen u ⊗₁ (id {YL} ⊗₁ id {YR})) ∘ α⇒ {Aᵢ} {YL} {YR}
+      α-comm-2 = α-comm
+
+      chain
+        : (id {YL} ⊗₁ (Agen u ⊗₁ id {YR}))
+          ≈Term NS-post ∘ (Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ NS-pre
+      chain = HRBN.begin
+          id {YL} ⊗₁ (Agen u ⊗₁ id {YR})
+            -- Insert α⇒ ∘ α⇐ = id on the right.
+            HRBN.≈⟨ ≈-Term-sym idʳ ⟩
+          (id {YL} ⊗₁ (Agen u ⊗₁ id {YR})) ∘ id
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ ≈-Term-sym α⇒∘α⇐≈id ⟩
+          (id {YL} ⊗₁ (Agen u ⊗₁ id {YR})) ∘ (α⇒ {YL} {Aᵢ} {YR} ∘ α⇐)
+            HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+          ((id {YL} ⊗₁ (Agen u ⊗₁ id {YR})) ∘ α⇒ {YL} {Aᵢ} {YR}) ∘ α⇐
+            HRBN.≈⟨ ≈-Term-sym α-comm-1 HRBN.⟩∘⟨refl ⟩
+          (α⇒ {YL} {Bᵢ} {YR} ∘ ((id {YL} ⊗₁ Agen u) ⊗₁ id {YR})) ∘ α⇐
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          α⇒ {YL} {Bᵢ} {YR} ∘ ((id {YL} ⊗₁ Agen u) ⊗₁ id {YR}) ∘ α⇐
+            -- Apply scalar-Agen-tensor-commute on (id ⊗ Agen u).
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ (⊗-resp-≈ eq-scalar ≈-Term-refl) HRBN.⟩∘⟨refl ⟩
+          α⇒ ∘ ((ns₂ ∘ (Agen u ⊗₁ id {YL}) ∘ ns₁) ⊗₁ id {YR}) ∘ α⇐
+            -- ⊗-∘-dist (split into ns₂ and (Agen u ⊗ id) ∘ ns₁).
+            HRBN.≈⟨ HRBN.refl⟩∘⟨
+                    (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idʳ)
+                       HRBN.○ ⊗-∘-dist) HRBN.⟩∘⟨refl ⟩
+          α⇒ ∘ ((ns₂ ⊗₁ id {YR}) ∘ (((Agen u ⊗₁ id {YL}) ∘ ns₁) ⊗₁ id))
+            ∘ α⇐
+            -- ⊗-∘-dist on the inner factor.
+            HRBN.≈⟨ HRBN.refl⟩∘⟨
+                    (HRBN.refl⟩∘⟨
+                       (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idʳ)
+                          HRBN.○ ⊗-∘-dist)) HRBN.⟩∘⟨refl ⟩
+          α⇒ ∘ ((ns₂ ⊗₁ id {YR}) ∘
+                 (((Agen u ⊗₁ id {YL}) ⊗₁ id {YR}) ∘ (ns₁ ⊗₁ id {YR})))
+            ∘ α⇐
+            -- Re-associate the inner triple to ((ns₂⊗id) ∘ ((Agen u⊗id)⊗id)) ∘ (ns₁⊗id).
+            HRBN.≈⟨ HRBN.refl⟩∘⟨ (FM-bridge.sym-assoc HRBN.⟩∘⟨refl) ⟩
+          α⇒ ∘ (((ns₂ ⊗₁ id {YR}) ∘ ((Agen u ⊗₁ id {YL}) ⊗₁ id {YR}))
+                 ∘ (ns₁ ⊗₁ id {YR}))
+            ∘ α⇐
+            HRBN.≈⟨ FM-bridge.sym-assoc ⟩
+          (α⇒ ∘ (((ns₂ ⊗₁ id) ∘ ((Agen u ⊗₁ id) ⊗₁ id))
+                 ∘ (ns₁ ⊗₁ id)))
+            ∘ α⇐
+            HRBN.≈⟨ FM-bridge.sym-assoc HRBN.⟩∘⟨refl ⟩
+          ((α⇒ ∘ ((ns₂ ⊗₁ id) ∘ ((Agen u ⊗₁ id) ⊗₁ id)))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            HRBN.≈⟨ (FM-bridge.sym-assoc HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id)) ∘ ((Agen u ⊗₁ id) ⊗₁ id))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            -- Now apply α-comm on ((Agen u ⊗ id) ⊗ id) via α⇒ ∘ α⇐ = id.
+            HRBN.≈⟨ ((HRBN.refl⟩∘⟨ ≈-Term-sym idˡ) HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ (id ∘ ((Agen u ⊗₁ id) ⊗₁ id)))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            HRBN.≈⟨ ((HRBN.refl⟩∘⟨ (≈-Term-sym α⇐∘α⇒≈id HRBN.⟩∘⟨refl))
+                       HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ ((α⇐ ∘ α⇒) ∘ ((Agen u ⊗₁ id) ⊗₁ id)))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            HRBN.≈⟨ ((HRBN.refl⟩∘⟨ FM-bridge.assoc) HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ (α⇐ ∘ (α⇒ ∘ ((Agen u ⊗₁ id) ⊗₁ id))))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            HRBN.≈⟨ ((HRBN.refl⟩∘⟨ (HRBN.refl⟩∘⟨ α-comm-2))
+                       HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ (α⇐ ∘ ((Agen u ⊗₁ (id {YL} ⊗₁ id {YR})) ∘ α⇒)))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            -- Collapse id ⊗ id to id_{YL⊗YR}.
+            HRBN.≈⟨ ((HRBN.refl⟩∘⟨ (HRBN.refl⟩∘⟨
+                       (⊗-resp-≈ ≈-Term-refl id⊗id≈id HRBN.⟩∘⟨refl)))
+                       HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ (α⇐ ∘ ((Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ α⇒)))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            -- Re-associate to expose `NS-post ∘ M' ∘ NS-pre`.
+            HRBN.≈⟨ ((HRBN.refl⟩∘⟨ FM-bridge.sym-assoc) HRBN.⟩∘⟨refl)
+                      HRBN.⟩∘⟨refl ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ ((α⇐ ∘ (Agen u ⊗₁ id {YL ⊗₀ YR})) ∘ α⇒))
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            HRBN.≈⟨ (FM-bridge.sym-assoc HRBN.⟩∘⟨refl) HRBN.⟩∘⟨refl ⟩
+          ((((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ (α⇐ ∘ (Agen u ⊗₁ id {YL ⊗₀ YR}))) ∘ α⇒)
+            ∘ (ns₁ ⊗₁ id))
+            ∘ α⇐
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          (((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ (α⇐ ∘ (Agen u ⊗₁ id {YL ⊗₀ YR}))) ∘ α⇒)
+            ∘ ((ns₁ ⊗₁ id) ∘ α⇐)
+            HRBN.≈⟨ FM-bridge.assoc HRBN.⟩∘⟨refl ⟩
+          ((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ ((α⇐ ∘ (Agen u ⊗₁ id {YL ⊗₀ YR})) ∘ α⇒))
+            ∘ ((ns₁ ⊗₁ id) ∘ α⇐)
+            HRBN.≈⟨ (HRBN.refl⟩∘⟨ FM-bridge.assoc) HRBN.⟩∘⟨refl ⟩
+          ((α⇒ ∘ (ns₂ ⊗₁ id))
+              ∘ (α⇐ ∘ ((Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ α⇒)))
+            ∘ ((ns₁ ⊗₁ id) ∘ α⇐)
+            HRBN.≈⟨ FM-bridge.assoc HRBN.⟩∘⟨refl ⟩
+          (α⇒ ∘ ((ns₂ ⊗₁ id)
+              ∘ (α⇐ ∘ ((Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ α⇒))))
+            ∘ ((ns₁ ⊗₁ id) ∘ α⇐)
+            HRBN.≈⟨ (HRBN.refl⟩∘⟨ FM-bridge.sym-assoc) HRBN.⟩∘⟨refl ⟩
+          (α⇒ ∘ (((ns₂ ⊗₁ id) ∘ α⇐)
+              ∘ ((Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ α⇒)))
+            ∘ ((ns₁ ⊗₁ id) ∘ α⇐)
+            -- Pack into NS-post ∘ M' ∘ NS-pre.
+            HRBN.≈⟨ FM-bridge.sym-assoc HRBN.⟩∘⟨refl ⟩
+          ((α⇒ ∘ ((ns₂ ⊗₁ id) ∘ α⇐))
+              ∘ ((Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ α⇒))
+            ∘ ((ns₁ ⊗₁ id) ∘ α⇐)
+            HRBN.≈⟨ FM-bridge.assoc ⟩
+          (α⇒ ∘ ((ns₂ ⊗₁ id) ∘ α⇐))
+              ∘ (((Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ α⇒)
+                 ∘ ((ns₁ ⊗₁ id) ∘ α⇐))
+            HRBN.≈⟨ ≈-Term-refl HRBN.⟩∘⟨ FM-bridge.assoc ⟩
+          (α⇒ ∘ ((ns₂ ⊗₁ id) ∘ α⇐))
+              ∘ ((Agen u ⊗₁ id {YL ⊗₀ YR})
+                 ∘ (α⇒ ∘ ((ns₁ ⊗₁ id) ∘ α⇐)))
+            HRBN.≈⟨ ≈-Term-refl ⟩
+          NS-post ∘ (Agen u ⊗₁ id {YL ⊗₀ YR}) ∘ NS-pre HRBN.∎
+
 --------------------------------------------------------------------------------
 -- Sub-step 3 (full scalar-coherence): REMAINING WORK
 --
