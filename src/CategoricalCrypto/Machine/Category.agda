@@ -37,7 +37,8 @@ open import Categories.Category.Instance.One using (One)
 open import Categories.Category.Monoidal.Instance.One using (One-Monoidal)
 open import Categories.Monad.Graded using (GradedKleisliTriple)
 
-open import CategoricalCrypto.Channel.Core using (Channel; _⇿_; _ᵀ; _⊗₀_; destruct-⊗; In; Out)
+open import CategoricalCrypto.Channel.Core
+  using (Channel; _⇿_; _ᵀ; _⊗₀_; destruct-⊗; construct-⊗; In; Out)
 open import CategoricalCrypto.Machine.Core as MC using (Machine; MkMachine; _⊗ᵀ_; machine-type; _≈ℰ_)
 
 module CategoricalCrypto.Machine.Category {M : Type↑}
@@ -128,15 +129,16 @@ SFunᵉ-GConstruction =
 -- encodes via `Maybe outType` in its codomain (and, eventually, the
 -- list-of-events grading that backs trace history).
 --
--- The plan calls for a `Maybe`-like graded monad on
--- `SFunᵉ-GConstruction`, graded by a monoidal category. Building such a
--- triple from first principles is substantial (T₀, ext, return, sub, plus
--- ten coherence laws); for now we *postulate* the triple so that the
--- categorical pipeline stays connected end-to-end. A concrete instance
--- (built from the underlying `Maybe` monad of `M`) is a follow-up.
+-- The triple is `Maybe`-graded: `T₀ ⋆ (A⁺, A⁻) = (A⁺ ⊎ ⊤, A⁻)`. A
+-- morphism `A ⇒ T₀ ⋆ B` in G(SFunᵉ) unfolds to
+-- `SFunᵉ(A⁺ ⊎ B⁻, A⁻ ⊎ (B⁺ ⊎ ⊤))`, which under the canonical iso
+-- `Maybe X ≅ X ⊎ ⊤` is the `MaybeHom` hom-set shape. `return` and `ext`
+-- are concrete (Tier 1); the eight non-trivial graded-Kleisli laws on
+-- `ext`/`sub-commute` are postulated for now — discharging them is
+-- substantial setoid-level work (Tier 2/3).
 --
 -- We grade by the terminal monoidal category `One` — i.e. the unit
--- monoid — matching the "no history" choice mentioned in the plan.
+-- monoid — so all subsumption maps `sub` are identities.
 
 One-MonoidalCategory : MonoidalCategory _ _ _
 One-MonoidalCategory = record { U = One ; monoidal = One-Monoidal }
@@ -144,29 +146,139 @@ One-MonoidalCategory = record { U = One ; monoidal = One-Monoidal }
 private
   module GC-C = Category SFunᵉ-GConstruction
 
--- Concrete triple: the *identity* graded monad over SFunᵉ-GConstruction.
--- T₀ ignores the grade and returns the object unchanged; ext, return,
--- and sub are all identity. Every law collapses to a category-identity
--- law of `SFunᵉ-GConstruction`.
+-- ─────────────────────────────────────────────────────────────────────
+-- Maybe-graded triple: T₀'s action on objects.
+-- ─────────────────────────────────────────────────────────────────────
+-- T₀(⋆, (A⁺, A⁻)) = (A⁺ ⊎ ⊤, A⁻) — augments the "input" component of a
+-- G-object with a ⊤ alternative. A morphism A ⇒ T₀(⋆, B) in
+-- G(SFunᵉ) unfolds to SFunᵉ(A⁺ ⊎ B⁻, A⁻ ⊎ (B⁺ ⊎ ⊤)), which is the
+-- shape of `MaybeHom A B` (up to the canonical iso
+-- `Maybe X ≅ X ⊎ ⊤` applied at A⁻ ⊎ B⁺).
+MaybeT₀ : Category.Obj One → GC-C.Obj → GC-C.Obj
+MaybeT₀ _ (A⁺ , A⁻) = (A⁺ ⊎ ⊤) , A⁻
+
+-- The unit (`return`) at A : G-Hom A (MaybeT₀ ⋆ A).
+-- Unfolded type: SFunᵉ(A⁺ ⊎ A⁻, A⁻ ⊎ (A⁺ ⊎ ⊤)).
+-- Built as the G-identity (the braiding σᵉ) post-composed with the
+-- inj₁ injection on the A⁺-summand of the output side.
+MaybeT-return : ∀ {A : GC-C.Obj} → A GC-C.⇒ MaybeT₀ _ A
+MaybeT-return {A⁺ , A⁻} = (idᵉ {A⁻} ⊗ᵉ pure-reshape inj₁) ∘ᵉ σᵉ {A⁺} {A⁻}
+
+-- Kleisli extension. Given f : A ⇒ MaybeT₀ ⋆ B, build
+-- ext(f) : MaybeT₀ ⋆ A ⇒ MaybeT₀ ⋆ B.
+-- Unfolded type: SFunᵉ((A⁺ ⊎ ⊤) ⊎ B⁻, A⁻ ⊎ (B⁺ ⊎ ⊤)).
+-- Semantics: when the input is the ⊤ added by MaybeT₀(A), emit ⊤ on
+-- the output's B-side (propagate the "nothing"); otherwise dispatch to f.
+MaybeT-ext : ∀ {A B : GC-C.Obj}
+           → A GC-C.⇒ MaybeT₀ _ B
+           → MaybeT₀ _ A GC-C.⇒ MaybeT₀ _ B
+MaybeT-ext f = record
+  { State = SFunᵉ.State f
+  ; init  = SFunᵉ.init f
+  ; fun   = λ where
+      (s , inj₁ (inj₁ a)) → SFunᵉ.fun f (s , inj₁ a)
+      (s , inj₁ (inj₂ _)) → return (s , inj₂ (inj₂ tt))
+      (s , inj₂ b)        → SFunᵉ.fun f (s , inj₂ b)
+  }
+
+-- The Maybe-graded triple over SFunᵉ-GConstruction. T₀ adds a ⊤
+-- alternative to the "input" component of each G-object (so morphisms
+-- into T₀ B carry an optional "no emission" on their output coproduct);
+-- return and ext are the concrete unit and Kleisli-extension realising
+-- this. sub is identity (the grading category V = One has only one
+-- morphism). The eight graded-Kleisli laws involving `ext` are
+-- substantial (equations in SFunᵉ-GConstruction's hom-equivalence over
+-- list-trace evaluation) and are postulated here; the four sub-only
+-- laws are proved from `SFunᵉ-GConstruction`'s identity laws directly.
+--
+-- Proof sketches for each ext-related postulate (Tier 3 roadmap):
+--
+-- • MaybeT-ext-identityˡ : ext(return) ≈ G-id at T₀ A.
+--   After GC-C.identityʳ on the outer ∘, the goal is
+--     MaybeT-ext MaybeT-return ≈ GC-C.id {MaybeT₀ u A}.
+--   GC-C.id at T₀ A unfolds to σᵉ : SFunᵉ((A⁺⊎⊤)⊎A⁻, A⁻⊎(A⁺⊎⊤)).
+--   MaybeT-ext (MaybeT-return) is a pure SFunᵉ — its `fun` is monadic
+--   `return ∘ <case-routing>` at every input. The case-routing
+--   computes the same σ-fn that σᵉ uses. The proof reduces to:
+--     (i)  define `pure-reshape-of-record` lemma — if an SFunᵉ's `fun`
+--          is `return ∘ g` pointwise for some `g : A → B`, then the
+--          SFunᵉ is ≈ᵉ-equal to `pure-reshape g`;
+--     (ii) apply this to both MaybeT-ext(MaybeT-return) (giving a pure
+--          reshape with the case-by-case σ function) and GC-C.id;
+--     (iii) conclude via `pure-reshape-cong` since both g's agree
+--           pointwise.
+--   Estimated: 30-50 lines, including (i) which is reusable.
+--
+-- • MaybeT-ext-identityʳ : ext(f) ∘ᴋ return ≈ f.
+--   GC-C.∘ uses trace internally (G-construction composition), so this
+--   isn't a direct SFunᵉ ∘ identity. After unfolding GC-C.∘ as
+--   `trace (assoc ∘ (return ⊗ ext f) ∘ assoc⁻¹)`, the trace loop
+--   degenerates because `return` is pure on the trace variable. The
+--   proof uses `SFunᵉ-trace-∘ʳ` (the existing trace naturality
+--   postulate) plus careful unfolding of `MaybeT-return`'s structure.
+--   Estimated: 80-120 lines.
+--
+-- • MaybeT-ext-assoc : ext(ext(f) ∘ g) ≈ ext(f) ∘ ext(g).
+--   The hardest law. Both sides are SFunᵉ-GConstruction morphisms
+--   whose `fun` does case-routing on input. Each case dispatches to
+--   either f, g, or both via G-construction composition (trace).
+--   The proof requires:
+--     (i)   an input-case lemma reducing ext's behavior to f/g calls;
+--     (ii)  trace fusion across the nested composition (similar in
+--           spirit to vanishing₂ in Traced.agda);
+--     (iii) ext-resp-≈ to push GC-C.identityˡ inside ext on the RHS.
+--   Estimated: 200-400 lines. Likely needs additional helper lemmas
+--   about MaybeT-ext's interaction with G-composition.
+--
+-- • MaybeT-ext-resp-≈ : f ≈ g → ext(f) ≈ ext(g).
+--   Congruence of ext under ≈ᵉ. Inductive on input lists. Key step:
+--   a "trace factoring" lemma:
+--     eval (MaybeT-ext f) xs ≡ <interleave eval f (filter₁ xs)
+--                                  with constant ⊤-emissions on
+--                                  filter₂ xs positions>.
+--   This factor-lemma is the substantive content; once stated, the
+--   conclusion follows by applying f ≈ g to filter₁ xs.
+--   Estimated: 60-100 lines (factor-lemma + induction).
+--
+-- • MaybeT-sub-commute : ext(GC-id ∘ f) ∘ GC-id ≈ GC-id ∘ ext(f).
+--   Trivially provable once ext-resp-≈ is in place:
+--     LHS = ext(GC-id ∘ f) ∘ GC-id
+--         ≈⟨ GC-C.identityʳ ⟩  ext(GC-id ∘ f)
+--         ≈⟨ MaybeT-ext-resp-≈ GC-C.identityˡ ⟩  ext(f)
+--         ≈˘⟨ GC-C.identityˡ ⟩  GC-id ∘ ext(f) = RHS.
+--   Estimated: 5 lines after ext-resp-≈.
+private
+  postulate
+    MaybeT-ext-identityˡ : ∀ {u A}
+      → GC-C.id GC-C.∘ MaybeT-ext (MaybeT-return {A}) GC-C.≈ GC-C.id {MaybeT₀ u A}
+    MaybeT-ext-identityʳ : ∀ {u A B} {f : A GC-C.⇒ MaybeT₀ u B}
+      → GC-C.id GC-C.∘ MaybeT-ext f GC-C.∘ MaybeT-return GC-C.≈ f
+    MaybeT-ext-assoc : ∀ {u v w A B C}
+      {f : B GC-C.⇒ MaybeT₀ w C} {g : A GC-C.⇒ MaybeT₀ v B}
+      → MaybeT-ext (MaybeT-ext f GC-C.∘ g)
+        GC-C.≈ GC-C.id GC-C.∘ (MaybeT-ext f GC-C.∘ MaybeT-ext g)
+    MaybeT-ext-resp-≈ : ∀ {u v A B} {f g : A GC-C.⇒ MaybeT₀ v B}
+      → f GC-C.≈ g → MaybeT-ext {A} {B} f GC-C.≈ MaybeT-ext g
+    MaybeT-sub-commute : ∀ {u₁ u₂ v₁ v₂ A B}
+      {α : Lift _ ⊤} {β : Lift _ ⊤} {f : A GC-C.⇒ MaybeT₀ u₂ B}
+      → MaybeT-ext (GC-C.id GC-C.∘ f) GC-C.∘ GC-C.id
+        GC-C.≈ GC-C.id GC-C.∘ MaybeT-ext {A} {B} f
+
 SFunᵉ-GradedTriple : GradedKleisliTriple One-MonoidalCategory SFunᵉ-GConstruction
 SFunᵉ-GradedTriple = record
-  { T₀               = λ _ A → A
-  ; ext              = λ _ f → f
-  ; return           = GC-C.id
+  { T₀               = MaybeT₀
+  ; ext              = λ _ → MaybeT-ext
+  ; return           = MaybeT-return
   ; sub              = λ _ → GC-C.id
-  ; ext-identityˡ    = GC-C.identityˡ
-  ; ext-identityʳ    = trans-id² _
-  ; ext-assoc        = GC-C.Equiv.sym GC-C.identityˡ
-  ; ext-resp-≈       = λ p → p
-  ; sub-commute      = GC-C.identityʳ
+  ; ext-identityˡ    = MaybeT-ext-identityˡ
+  ; ext-identityʳ    = MaybeT-ext-identityʳ
+  ; ext-assoc        = MaybeT-ext-assoc
+  ; ext-resp-≈       = MaybeT-ext-resp-≈
+  ; sub-commute      = MaybeT-sub-commute
   ; sub-identity     = GC-C.Equiv.refl
   ; sub-homomorphism = GC-C.Equiv.sym GC-C.identity²
   ; sub-resp-≈       = λ _ → GC-C.Equiv.refl
   }
-  where
-    -- `id ∘ f ∘ id ≈ f`, used for ext-identityʳ.
-    trans-id² : ∀ {A B} (f : A GC-C.⇒ B) → (GC-C.id GC-C.∘ f GC-C.∘ GC-C.id) GC-C.≈ f
-    trans-id² f = GC-C.Equiv.trans GC-C.identityˡ GC-C.identityʳ
 
 -- The graded-Kleisli category over `SFunᵉ-GConstruction`. Its objects
 -- pair a grade (in `One`) with a G-construction object — when the
@@ -237,6 +349,75 @@ record MaybeHom (A B : Channel) : Type₁ where
 open MaybeHom
 
 -- ─────────────────────────────────────────────────────────────────────
+-- Principled Maybe-Kleisli hom: literally the hom-set of the
+-- Maybe-graded Kleisli category. Unfolds to an `SFunᵉ` with state, init,
+-- and a `fun : State × (inType A ⊎ outType B) → M(State × (outType A ⊎
+-- (inType B ⊎ ⊤)))`. The unique difference from `MaybeHom` above is the
+-- extra `init` field and the use of `_⊎ ⊤` (the G-Kleisli T₀ shape)
+-- instead of `Maybe`. The two are isomorphic — see `MaybeHom→Kl` /
+-- `Kl→MaybeHom` below.
+MaybeHom-Kl : Channel → Channel → Type₁
+MaybeHom-Kl A B = (Channel→Obj A) GC-C.⇒ MaybeT₀ _ (Channel→Obj B)
+
+-- ─────────────────────────────────────────────────────────────────────
+-- Iso between MaybeHom and MaybeHom-Kl.
+-- ─────────────────────────────────────────────────────────────────────
+-- The forward direction needs an explicit initial state since
+-- `MaybeHom` is init-less; the backward direction discards init.
+-- The Maybe-vs-(⊎⊤) shape mismatch is handled by `maybe→sum` /
+-- `sum→maybe` below; the opaque `inType (A ⊗ᵀ B)` ↔ `inType A ⊎
+-- outType B` bridge uses `destruct-⊗` / `construct-⊗`.
+
+private
+  -- Maybe X ↔ X ⊎ ⊤ at the value level.
+  maybe→sum-⊤ : ∀ {X} → Maybe X → X ⊎ ⊤
+  maybe→sum-⊤ (just x) = inj₁ x
+  maybe→sum-⊤ nothing  = inj₂ tt
+
+  sum-⊤→maybe : ∀ {X} → X ⊎ ⊤ → Maybe X
+  sum-⊤→maybe (inj₁ x) = just x
+  sum-⊤→maybe (inj₂ _) = nothing
+
+  -- Outgoing-side reshape: `Maybe (outType A ⊎ inType B) →
+  -- outType A ⊎ (inType B ⊎ ⊤)`. Bundles maybe→sum-⊤ with the
+  -- ⊎-reassociation that takes (outType A ⊎ inType B) ⊎ ⊤ to the
+  -- right-nested form used by MaybeT₀'s output.
+  out-mh→kl : ∀ {A B : Channel}
+    → Maybe (Channel.outType (A ⊗ᵀ B))
+    → Channel.outType A ⊎ (Channel.inType B ⊎ ⊤)
+  out-mh→kl nothing  = inj₂ (inj₂ tt)
+  out-mh→kl (just z) with destruct-⊗ {m = Out} z
+  ... | inj₁ a = inj₁ a
+  ... | inj₂ b = inj₂ (inj₁ b)
+
+  out-kl→mh : ∀ {A B : Channel}
+    → Channel.outType A ⊎ (Channel.inType B ⊎ ⊤)
+    → Maybe (Channel.outType (A ⊗ᵀ B))
+  out-kl→mh (inj₁ a)         = just (construct-⊗ {m = Out} (inj₁ a))
+  out-kl→mh (inj₂ (inj₁ b))  = just (construct-⊗ {m = Out} (inj₂ b))
+  out-kl→mh (inj₂ (inj₂ _))  = nothing
+
+-- Build a `MaybeHom-Kl` from a `MaybeHom` together with an initial state.
+MaybeHom→Kl : ∀ {A B : Channel} (MH : MaybeHom A B)
+            → MaybeHom.State MH → MaybeHom-Kl A B
+MaybeHom→Kl {A} {B} MH init₀ = record
+  { State = MaybeHom.State MH
+  ; init  = init₀
+  ; fun   = λ (s , i) →
+      MaybeHom.fun MH (s , construct-⊗ {m = In} i) >>= λ (s' , mo) →
+        return (s' , out-mh→kl {A} {B} mo)
+  }
+
+-- Forget the init field and reshape the output back to `Maybe`.
+Kl→MaybeHom : ∀ {A B : Channel} → MaybeHom-Kl A B → MaybeHom A B
+Kl→MaybeHom {A} {B} Kl = record
+  { State = SFunᵉ.State Kl
+  ; fun   = λ (s , i) →
+      SFunᵉ.fun Kl (s , destruct-⊗ {m = In} i) >>= λ (s' , z) →
+        return (s' , out-kl→mh {A} {B} z)
+  }
+
+-- ─────────────────────────────────────────────────────────────────────
 -- Hom→Machine: any `MaybeHom A B` can be read as a Machine.
 -- ─────────────────────────────────────────────────────────────────────
 -- The Machine's `stepRel s i mo s'` is membership of `(s', mo)` in
@@ -297,6 +478,37 @@ MaybeHom-roundtrip :
   → MaybeHom.fun (Machine→Hom (Hom→Machine MH)) (s , i)
   ≡ MaybeHom.fun MH (s , i)
 MaybeHom-roundtrip MH s i = member-η (MaybeHom.fun MH (s , i))
+
+-- ─────────────────────────────────────────────────────────────────────
+-- Machine ↔ MaybeHom-Kl: the principled route via the Maybe-graded
+-- Kleisli hom (composes Machine ↔ MaybeHom with the MaybeHom ↔ Kl iso).
+-- ─────────────────────────────────────────────────────────────────────
+
+Machine→Kl : ∀ {A B : Channel} (Mch : Machine A B)
+           → Machine.State Mch → MaybeHom-Kl A B
+Machine→Kl Mch init₀ = MaybeHom→Kl (Machine→Hom Mch) init₀
+
+Kl→Machine : ∀ {A B : Channel} → MaybeHom-Kl A B → Machine A B
+Kl→Machine Kl = Hom→Machine (Kl→MaybeHom Kl)
+
+-- ─────────────────────────────────────────────────────────────────────
+-- Principled category operations on `MaybeHom-Kl`, built directly
+-- from the Maybe-graded triple's `MaybeT-return` (the unit) and
+-- `MaybeT-ext` (the Kleisli extension) plus G-construction composition.
+-- These are the canonical category structure on `MaybeHom-Kl` — the
+-- forgetful image of the graded Kleisli category's id and ∘ under the
+-- collapse V=One. Modulo the 5 postulated `ext-*` laws on the triple,
+-- the four MaybeHomCategory laws (assoc, identityˡ/ʳ, ∘-resp-≈) are
+-- derivable from these by transport through `MaybeHom↔Kl`.
+idᴹᴴ-Kl : ∀ {A : Channel} → MaybeHom-Kl A A
+idᴹᴴ-Kl {A} = MaybeT-return {Channel→Obj A}
+
+_∘ᴹᴴ-Kl_ : ∀ {A B C : Channel}
+         → MaybeHom-Kl B C → MaybeHom-Kl A B → MaybeHom-Kl A C
+g ∘ᴹᴴ-Kl f = MaybeT-ext g GC-C.∘ f
+
+_≈ᴹᴴ-Kl_ : ∀ {A B : Channel} → MaybeHom-Kl A B → MaybeHom-Kl A B → Type _
+f ≈ᴹᴴ-Kl g = f GC-C.≈ g
 
 -- Specialisation hooks for the functional subset (kept for use sites
 -- that already construct Homs directly from channel-level functions).
@@ -363,6 +575,30 @@ _≈ᴹᴴ_ MH₁ MH₂ = Hom→Machine MH₁ ≈ℰ Hom→Machine MH₂
 -- residue of MachineCategory's laws — they will hold by transport from
 -- `SFunᵉ-GradedKleisli` when its underlying triple is concrete and the
 -- GConstruction holes are filled.
+--
+-- Two routes to discharge each of these (Tier 3 roadmap):
+--
+-- Route A — via Machine: each MaybeHomCategory law is the bijection
+-- image of the corresponding MachineCategory law. Specifically:
+--   • idᴹᴴ ∘ᴹᴴ f = Machine→Hom (Hom→Machine idᴹᴴ MC.∘ Hom→Machine f)
+--                = Machine→Hom (MC.id MC.∘ Hom→Machine f)   [via Hom-Machine-roundtrip-≡]
+--                = Machine→Hom (Hom→Machine f)               [via MachineCategory.identityˡ]
+--                ≈ᴹᴴ f                                        [via roundtrip + ≈ℰ-refl]
+-- Same pattern for the other three.
+-- Required (currently unproved): MachineCategory's identityˡ/ʳ,
+-- assoc, ∘-resp-≈. These are Machine-level statements not yet in
+-- Machine.Core.
+--
+-- Route B — via the Maybe-graded triple: each MaybeHomCategory law
+-- is the iso image (MaybeHom↔Kl) of the corresponding MaybeHom-Kl
+-- law. Specifically:
+--   MaybeHom-Kl forms a category via the GradedKleisli construction;
+--   the iso Kl→MaybeHom takes that category's laws to MaybeHomCategory's
+--   laws — modulo (a) the 5 postulated `MaybeT-ext-*` laws above,
+--   (b) the 4 holes in `Categories.GradedKleisli`, and (c) showing
+--   the iso is functorial (preserves id and ∘ up to ≈ᴹᴴ).
+-- Both routes are substantial but the framework is in place for
+-- either to be pursued.
 postulate
   MaybeHomCategory-assoc :
     ∀ {A B C D} {f : MaybeHom A B} {g : MaybeHom B C} {h : MaybeHom C D}
