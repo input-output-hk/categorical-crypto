@@ -19,8 +19,6 @@
 \usepackage{newunicodechar}
 \newunicodechar{ℰ}{\ensuremath{\mathcal{E}}}
 
-\setcounter{secnumdepth}{1}
-
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{proposition}[theorem]{Proposition}
@@ -237,13 +235,8 @@ the instantiation at $\SFunM$ is
 
 \subsection{Step 5: graded Kleisli over $G\SFunM$}
 
-A \emph{graded monad}~\cite{Katsumata} on $\mathcal{C}$ graded by a
-monoidal category $\mathcal{V}$ assigns to each object $u \in \mathcal{V}$
-a functor $T_u : \mathcal{C} \to \mathcal{C}$, with a Kleisli extension
-and subsumption maps satisfying graded Kleisli laws.  The graded
-Kleisli category $\mathrm{Kl}_T(\mathcal{C})$ has objects $(u, A)$
-and morphisms $(i, A) \to (j, B)$ triples $(k,\,
-f : A \to T_k B,\, \alpha : i \otimes k \to j)$.
+For the definition of a graded monad and its graded Kleisli
+category see Appendix~\ref{sec:graded}.
 
 \paragraph{Applied here.}  We grade $G\SFunM$ by the terminal
 monoidal category $\mathbf{1}$ and pick $T_\star = \id$, so
@@ -777,6 +770,84 @@ The structure that matters for our development is
 $(\SFunM, \sqcup, \bot)$ where $\sqcup$ is the disjoint-union tensor
 lifted from $\Set$ (Step 2 of the construction).
 
+\subsection{Graded monads}
+\label{sec:graded}
+
+A \emph{graded monad}~\cite{Katsumata} generalises a monad by
+indexing the endofunctor over an auxiliary monoidal category
+$\mathcal{V}$ whose objects are interpreted as ``effect grades''.
+
+\paragraph{Definition.}
+A graded monad on $\mathcal{C}$ over a monoidal category
+$(\mathcal{V}, \otimes_\mathcal{V}, I_\mathcal{V})$ consists of
+\begin{itemize}
+  \item for each $u \in \mathcal{V}$, an endofunctor
+        $T_u : \mathcal{C} \to \mathcal{C}$;
+  \item a unit $\eta : \id_\mathcal{C} \Rightarrow T_{I_\mathcal{V}}$;
+  \item a multiplication
+        $\mu_{u,v} : T_u T_v \Rightarrow T_{u \otimes_\mathcal{V} v}$,
+        natural in both grades;
+  \item for each $\alpha : u \to v$ in $\mathcal{V}$, a
+        \emph{subsumption} natural transformation
+        $T_\alpha : T_u \Rightarrow T_v$, functorial in $\alpha$,
+\end{itemize}
+subject to graded versions of the monad coherences (compatible with
+$\mathcal{V}$'s associator and unitors).  When $\mathcal{V} =
+\mathbf{1}$ is the terminal monoidal category, the grading
+trivialises and a graded monad reduces to a plain monad.
+
+\paragraph{Kleisli-triple presentation.}
+Equivalently, give an object-level action
+$T_0 : \Obj(\mathcal{V}) \times \Obj(\mathcal{C}) \to \Obj(\mathcal{C})$,
+a unit $\eta_A : A \to T_0(I_\mathcal{V}, A)$, and a graded Kleisli
+extension
+\[
+  \mathrm{ext}_{u,v} :
+    (A \to T_0(v, B)) \;\longrightarrow\;
+    (T_0(u, A) \to T_0(u \otimes_\mathcal{V} v, B))
+\]
+satisfying the three Kleisli laws indexed over $\mathcal{V}$.  This
+is the presentation used in Step~5.
+
+\paragraph{Graded Kleisli category.}
+The \emph{graded Kleisli category} $\mathrm{Kl}_T(\mathcal{C})$ has
+\begin{itemize}
+  \item objects: pairs $(u, A)$ with $u \in \mathcal{V}$,
+        $A \in \Obj(\mathcal{C})$;
+  \item morphisms $(i, A) \to (j, B)$: triples $(k,\,
+        f : A \to T_k(B),\, \alpha : i \otimes_\mathcal{V} k \to j)$
+        --- the grade $k$ is the effect produced by $f$, and
+        $\alpha$ is a subsumption witness that the composite grade
+        $i \otimes k$ fits inside $j$;
+  \item composition: graded Kleisli extension of $f$ along
+        $\mathrm{ext}$, monoidal combination of grades in
+        $\mathcal{V}$, and subsumption along $\alpha$.
+\end{itemize}
+
+\paragraph{Examples.}
+\begin{itemize}
+  \item $\mathcal{V} = \mathbf{1}$, $T_\star = T$ a plain monad:
+        recovers the ordinary Kleisli category of $T$.
+  \item $\mathcal{V} = (\mathbb{N}, +, 0)$, $T_n(A) = A^n$:
+        a monad tracking the exact length of a list.
+  \item $\mathcal{V}$ = monoid of resource bounds, $T_u(A)$ =
+        ``computations producing $A$ within cost $u$'':
+        a basis for cost-tracking semantics.
+  \item $\mathcal{V}$ = monoid of effect labels (read / write /
+        IO / \ldots),
+        $T_u(A) = A$ together with the set of effects $u$:
+        Katsumata's effect systems.
+\end{itemize}
+
+\paragraph{Why it appears here.}
+Step 5 sits a graded Kleisli layer above $G\SFunM$ with the trivial
+grading $\mathcal{V} = \mathbf{1}$ and $T_\star = \id$, so
+$\mathrm{Kl}_T(G\SFunM) \cong G\SFunM$.  The point is purely
+prospective: the layer is a substitution slot.  Replacing the
+trivial triple with, e.g., a $\Maybe$-graded one would absorb the
+$\Maybe$-bookkeeping of $\mathrm{MaybeHom}$ into the graded Kleisli
+machinery, discharging several category-law obligations at once.
+
 \subsection{Braided and symmetric monoidal categories}
 \label{sec:braided}
 
@@ -852,7 +923,37 @@ with a family of operators
   \mathrm{tr}^X_{A, B} : \mathcal{C}(A \otimes X,\, B \otimes X)
                        \to \mathcal{C}(A, B),
 \]
-called the \emph{trace}, satisfying four axioms~\cite{JSV}:
+called the \emph{trace}.  Diagrammatically, $\mathrm{tr}^X(f)$
+``feeds back'' the $X$-output of $f$ into its $X$-input:
+\begin{center}
+\begin{tikzpicture}[baseline=(current bounding box.center), scale=0.7]
+  % Box f
+  \node[draw, thick, minimum width=1.4cm, minimum height=0.8cm] (f) at (0,0) {$f$};
+  % top inputs
+  \draw[thick] (-0.4, 0.4) -- (-0.4, 1.4);
+  \draw[thick] (0.4, 0.4) -- (0.4, 1.4);
+  % bottom outputs
+  \draw[thick] (-0.4, -0.4) -- (-0.4, -1.4);
+  \draw[thick] (0.4, -0.4) -- (0.4, -1.4);
+  % trace loop (X feedback)
+  \draw[thick] (0.4, -1.4) -- (1.4, -1.4) -- (1.4, 1.4) -- (0.4, 1.4);
+  % labels
+  \node[above] at (-0.4, 1.4) {$A$};
+  \node[below] at (-0.4, -1.4) {$B$};
+  \node[right] at (1.1, 0)    {\small$X$};
+  % equality + traced morphism
+  \node at (3, 0) {$\;\rightsquigarrow\;$};
+  \begin{scope}[xshift=4cm]
+    \node[draw, thick, minimum width=1.4cm, minimum height=0.8cm]
+      (trf) at (0,0) {$\mathrm{tr}^X(f)$};
+    \draw[thick] (0, 0.4) -- (0, 1.4);
+    \draw[thick] (0, -0.4) -- (0, -1.4);
+    \node[above] at (0, 1.4) {$A$};
+    \node[below] at (0, -1.4) {$B$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The four trace axioms~\cite{JSV} are:
 \begin{itemize}
   \item \emph{Naturality} (left and right):
         $\mathrm{tr}^X(g \otimes \id_X \circ f) = g \circ \mathrm{tr}^X(f)$
@@ -871,16 +972,49 @@ called the \emph{trace}, satisfying four axioms~\cite{JSV}:
 \end{itemize}
 
 \paragraph{Intuition.}
-Think of morphisms as boxes with $\otimes$-products of wires entering
-on the left and leaving on the right.  Tracing $X$ joins one
-$X$-output back to one $X$-input --- a \emph{feedback loop}.  The
-axioms say loops can be slid around (naturality), nested (vanishing),
-moved past parallel boxes (superposing), and a wire crossed and
-immediately re-routed to itself is a straight wire (yanking).  This
-``string diagram'' picture is rigorous: \cite{JSV} (see also
-\cite{Selinger} for a survey) show
-that two terms denote equal morphisms iff their string diagrams are
-isotopic in the plane (with appropriate boundary conditions).
+The axioms say loops can be slid around (naturality), nested
+(vanishing), moved past parallel boxes (superposing), and a wire
+crossed and immediately re-routed to itself is a straight wire
+(yanking).  This last axiom is the most visually striking:
+\begin{center}
+\begin{tikzpicture}[baseline=(current bounding box.center), scale=0.7]
+  % LHS: braiding σ_{X,X} with right strand traced out
+  \begin{scope}
+    % Wire extensions above the cross
+    \draw[thick] (0, 2) -- (0, 1);
+    \draw[thick] (1, 2) -- (1, 1);
+    % The crossing: one strand goes from (0,1) to (1,-1); the other
+    % from (1,1) to (0,-1) drawn with a gap to suggest "over".
+    \draw[thick] (0, 1) -- (1, -1);
+    \draw[thick, white, line width=3pt] (1, 1) -- (0, -1);
+    \draw[thick] (1, 1) -- (0, -1);
+    % Wire extensions below the cross
+    \draw[thick] (0, -1) -- (0, -2);
+    \draw[thick] (1, -1) -- (1, -2);
+    % Trace loop on the right strand
+    \draw[thick] (1, -2) -- (1.8, -2) -- (1.8, 2) -- (1, 2);
+    % labels
+    \node[above] at (0, 2) {$X$};
+    \node[below] at (0, -2) {$X$};
+    \node[right] at (1.4, 0) {\small$X$};
+  \end{scope}
+  % Equality
+  \node at (3.5, 0) {$=$};
+  % RHS: straight X wire
+  \begin{scope}[xshift=4.5cm]
+    \draw[thick] (0, 2) -- (0, -2);
+    \node[above] at (0, 2) {$X$};
+    \node[below] at (0, -2) {$X$};
+    \node[right] at (0, 0) {\small$X$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The trace loop and the braiding cancel out: following the strand,
+it crosses, loops around, and crosses back to its starting column,
+giving the identity.  This ``string diagram'' picture is rigorous:
+\cite{JSV} (see also \cite{Selinger} for a survey) show that two
+terms denote equal morphisms iff their string diagrams are isotopic
+in the plane (with appropriate boundary conditions).
 
 \paragraph{Examples.}
 \begin{itemize}
@@ -894,6 +1028,97 @@ isotopic in the plane (with appropriate boundary conditions).
   \item The Kleisli category of a monad equipped with an iteration
         operator (Hasegawa 1997) --- this is the setting for $\SFunM$
         with the coproduct tensor in Step 3.
+\end{itemize}
+
+\subsection{Compact closed categories}
+\label{sec:compact}
+
+A symmetric monoidal category $(\mathcal{C}, \otimes, I, \sigma)$ is
+\emph{compact closed} if every object $A$ has a \emph{dual} $A^*$
+equipped with two morphisms
+\[
+  \eta_A : I \to A \otimes A^*
+  \qquad \text{(\emph{unit}, ``cup'')},
+\]
+\[
+  \varepsilon_A : A^* \otimes A \to I
+  \qquad \text{(\emph{counit}, ``cap'')},
+\]
+satisfying the \emph{snake} (also called \emph{zigzag} or
+\emph{triangle}) identities
+\begin{align*}
+  (\id_A \otimes \varepsilon_A) \circ (\eta_A \otimes \id_A) &= \id_A,\\
+  (\varepsilon_A \otimes \id_{A^*}) \circ (\id_{A^*} \otimes \eta_A) &= \id_{A^*}.
+\end{align*}
+In string-diagram notation $\eta_A$ is a U-shaped wire and
+$\varepsilon_A$ is an upside-down U; the snake identities say a U
+followed by an inverted U gives a straight wire:
+\begin{center}
+\begin{tikzpicture}[baseline=(current bounding box.center), scale=0.8]
+  % LHS: zigzag through a cap (η) and cup (ε)
+  \begin{scope}
+    % Straight wire segments
+    \draw[thick] (0,2) -- (0,0);                 % left output A
+    \draw[thick] (1,2) -- (1,0.5);               % middle A^*
+    \draw[thick] (2,3) -- (2,0.5);               % right input A
+    % η: arc connecting (0,2) and (1,2), opening upward
+    \draw[thick] (0,2) arc[start angle=180, end angle=0, radius=0.5];
+    \node[above] at (0.5,2.5) {\small$\eta_A$};
+    % ε: arc connecting (1,0.5) and (2,0.5), opening downward
+    \draw[thick] (1,0.5) arc[start angle=180, end angle=360, radius=0.5];
+    \node[below] at (1.5,0) {\small$\varepsilon_A$};
+    % endpoint labels
+    \node[above] at (2,3) {$A$};
+    \node[below] at (0,0) {$A$};
+    % strand labels
+    \node[left]  at (0,1)    {\small$A$};
+    \node[left]  at (1,1.25) {\small$A^*$};
+    \node[right] at (2,1.75) {\small$A$};
+  \end{scope}
+  % Equality
+  \node at (4,1.5) {$=$};
+  % RHS: straight identity wire
+  \begin{scope}[xshift=5cm]
+    \draw[thick] (0,3) -- (0,0);
+    \node[above] at (0,3) {$A$};
+    \node[below] at (0,0) {$A$};
+    \node[right] at (0,1.5) {\small$A$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The dual identity (for $A^*$) is the mirror image.
+
+\paragraph{Key consequences.}
+\begin{itemize}
+  \item \emph{Hom-set isomorphism}:
+        $\mathcal{C}(A \otimes B,\, C) \;\cong\; \mathcal{C}(A,\, B^* \otimes C)$.
+        Arguments can be ``bent'' freely between input and output sides.
+  \item \emph{Trace for free}: every compact-closed category is
+        traced, with
+        $\mathrm{tr}^X(f) :=
+          (\id_B \otimes \varepsilon_X) \circ (f \otimes \id_{X^*}) \circ
+          (\id_A \otimes \eta_X)$
+        (modulo unitor isomorphisms).  Conversely, the G-construction
+        below shows every traced category sits inside a compact-closed
+        one as a sub-monoidal category.
+  \item \emph{String diagrams} for a compact-closed category are
+        isotopic in the plane up to deformation that takes strands
+        through each other ``around'' a cup-cap pair --- strands can
+        be bent freely, not just slid past each other.
+\end{itemize}
+
+\paragraph{Examples.}
+\begin{itemize}
+  \item $(\mathbf{FinVect}_k, \otimes_k, k)$ with $A^*$ the linear
+        dual; $\eta$ is the canonical pairing $k \to A \otimes A^*$
+        and $\varepsilon$ is evaluation $A^* \otimes A \to k$.
+  \item $(\mathbf{Rel}, \times, 1)$ (sets and relations) with
+        $A^* = A$ and $\eta, \varepsilon$ the diagonals.
+  \item The G-construction $G\mathcal{C}$ of any traced symmetric
+        monoidal $\mathcal{C}$, with $(A^+, A^-)^* := (A^-, A^+)$.
+        Joyal--Street--Verity~\cite{JSV} prove that $G$ is in fact the
+        free compact-closed category on $\mathcal{C}$ in an
+        appropriate 2-categorical sense.
 \end{itemize}
 
 \subsection{The G-construction (``Int'' / Geometry of Interaction)}
@@ -940,9 +1165,9 @@ sub-monoidal-category of objects of the form $(A, I)$.
 \end{theorem}
 
 \paragraph{Compact closure.}
-Being compact closed means every object $(A^+, A^-)$ has a
-\emph{dual}, $(A^+, A^-)^* = (A^-, A^+)$, with unit and counit
-morphisms (``cup'' and ``cap''):
+Being compact closed (see Appendix~\ref{sec:compact}) means every
+object $(A^+, A^-)$ has a \emph{dual}, $(A^+, A^-)^* = (A^-, A^+)$,
+with unit and counit morphisms (``cup'' and ``cap''):
 \[
   \eta : I \to (A^+, A^-) \otimes (A^+, A^-)^*,
   \qquad
