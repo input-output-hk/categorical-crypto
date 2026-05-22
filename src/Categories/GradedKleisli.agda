@@ -26,7 +26,9 @@ record UC-model : Set₁ where
         M : GradedMonad I C
         ℰ : Presheaf C (Sets ℓ0)
 
-module _ (C : Category ℓ0 ℓ0 ℓ0) (I : MonoidalCategory ℓ0 ℓ0 ℓ0) (M : GradedKleisliTriple I C) where
+module _ {o ℓ e : Level}
+         (C : Category o ℓ e) (I : MonoidalCategory ℓ0 ℓ0 ℓ0)
+         (M : GradedKleisliTriple I C) where
   open Category hiding (∘-resp-≈ˡ; identityʳ; assoc)
   open Category C using () renaming (id to idC; _∘_ to _∘C_)
   open MonoidalCategory hiding (_⊗₀_; _⊗₁_; -⊗_; _⊗-; ∘-resp-≈ˡ)
@@ -37,7 +39,7 @@ module _ (C : Category ℓ0 ℓ0 ℓ0) (I : MonoidalCategory ℓ0 ℓ0 ℓ0) (M 
   open import Categories.Category.Monoidal.Utilities (I .monoidal)
   open Shorthands
 
-  GradedKleisli : Category ℓ0 ℓ0 ℓ0
+  GradedKleisli : Category o ℓ e
   GradedKleisli = categoryHelper record
     { Obj       = I .Obj × C .Obj
     ; _⇒_       = λ where (i , c) (j , d) → ∃[ k ] (C [ c , T₀ k d ]) × (I .U [ i ⊗₀ k , j ])

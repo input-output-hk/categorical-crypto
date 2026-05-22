@@ -60,8 +60,8 @@ _∘ᵉ_ g f = let module g = SFunᵉ g; module f = SFunᵉ f in record
 trace : SFunType A B State → State → List A → M (List B)
 trace f s [] = return []
 trace f s (a ∷ as) = do
-  (s , b) ← f (s , a)
-  bs ← trace f s as
+  (s' , b) ← f (s , a)
+  bs ← trace f s' as
   return (b ∷ bs)
 
 eval : SFunᵉ A B → List A → M (List B)

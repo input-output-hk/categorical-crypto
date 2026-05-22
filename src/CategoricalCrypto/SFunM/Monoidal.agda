@@ -153,6 +153,10 @@ pure-reshape-∘ {g = g} {f = f} xs = begin
 ρ-fn : A ⊎ ⊥ → A
 ρ-fn (inj₁ a) = a
 
+σ-fn : A ⊎ B → B ⊎ A
+σ-fn (inj₁ a) = inj₂ a
+σ-fn (inj₂ b) = inj₁ b
+
 -- Associator: (A ⊎ B) ⊎ C ≅ A ⊎ (B ⊎ C)
 α⇒ᵉ : SFunᵉ ((A ⊎ B) ⊎ C) (A ⊎ (B ⊎ C))
 α⇒ᵉ = pure-reshape α-fn
@@ -176,9 +180,7 @@ pure-reshape-∘ {g = g} {f = f} xs = begin
 
 -- Symmetry: A ⊎ B ≅ B ⊎ A
 σᵉ : SFunᵉ (A ⊎ B) (B ⊎ A)
-σᵉ = pure-reshape λ where
-  (inj₁ a) → inj₂ a
-  (inj₂ b) → inj₁ b
+σᵉ = pure-reshape σ-fn
 
 ------------------------------------------------------------------------
 -- Coherence and bifunctor laws — TODO.
