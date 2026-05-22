@@ -7,6 +7,18 @@
 \usepackage{hyperref}
 \usepackage[margin=1in]{geometry}
 
+% LuaLaTeX Unicode support. fontspec lets us choose a Unicode-capable
+% monospace font so that Agda identifiers inside \texttt{...} (which
+% contain α, σ, ⊗, ⇒, ᵉ, ᴹ, ᵀ, ≈, ℰ, …) render correctly. Math mode
+% still uses LaTeX commands (\alpha, \otimes, …) routed through
+% Latin Modern Math, so unicode-math is not needed (and conflicts
+% with stmaryrd's symbol redefinitions). The one glyph DejaVu Sans
+% Mono lacks (ℰ = U+2130 Script capital E) is mapped to math mode.
+\usepackage{fontspec}
+\setmonofont{DejaVuSansMono}[Scale=MatchLowercase]
+\usepackage{newunicodechar}
+\newunicodechar{ℰ}{\ensuremath{\mathcal{E}}}
+
 \setcounter{secnumdepth}{1}
 
 \newtheorem{theorem}{Theorem}
@@ -63,7 +75,12 @@ with
   \item an \emph{iteration} operator
         $\mathrm{iter} : (X \to M(X + A)) \to X \to M(A)$ satisfying the
         Bloom--\'Esik axioms~\cite{BloomEsik} (fixpoint, congruence,
-        naturality, parameter, codiagonal, uniformity);
+        naturality, parameter, codiagonal-$X$, codiagonal-$Y$,
+        vanishing-$2$, uniformity).  Codiagonal-$Y$ is the
+        symmetric counterpart of codiagonal that starts the
+        Bek\v{c}i\'c unfolding on the right summand; vanishing-$2$
+        is the nested-iter law identifying $\mathrm{iter}\,fy \bind
+        \mathrm{dispatch}$ with $\mathrm{iter}\,(\mathrm{combine}\,fx\,fy)$;
   \item a ``relations-into-$M$'' map (\S\ref{sec:MonadOfRel}) used
         when bridging relational machines to functional homs.
 \end{itemize}
@@ -75,6 +92,12 @@ in the Kleisli category of $M$.
 \section{Construction}
 
 \subsection{Step 1: the category $\SFunM$ of stateful monadic functions}
+
+The Agda record \texttt{SFunM.SFunᵉ} packages a morphism as a hidden
+\texttt{State} type with an \texttt{init} value and a step function
+\texttt{fun : State × A → M (State × B)}.  See
+Appendix~\ref{sec:sfunm} for the categorical background on stateful
+monadic functions.
 
 \begin{construction}
 The category $\SFunM$ has
@@ -94,14 +117,18 @@ where
 Identity is $(\{\star\}, \star, (s, a) \mapsto \ret(s, a))$.
 \end{construction}
 
-\begin{lemma}
-$\SFunM$ is a category.  The proofs reduce to the monad laws and
-extensionality of $M$.
-\end{lemma}
-
-In Agda this is \texttt{CategoricalCrypto.SFunM.SFunᵉ-Category}.
+Composition is \texttt{SFunM.\_∘ᵉ\_}; the identity is
+\texttt{SFunM.idᵉ}; the category instance is
+\texttt{SFunM.SFunᵉ-Category}.  The category laws
+(\texttt{assoc-∘ᵉ}, \texttt{identityˡ-∘ᵉ}, \texttt{identityʳ-∘ᵉ},
+\texttt{∘ᵉ-resp-≈ᵉ}) reduce to the monad laws plus extensionality of
+bind (\texttt{Class.Monad.Ext.ExtensionalMonad}; see
+Appendix~\ref{sec:extbind}).
 
 \subsection{Step 2: monoidal structure $(\sqcup, \bot)$ on $\SFunM$}
+
+For category-theory background on (braided / symmetric) monoidal
+categories, see Appendices~\ref{sec:monoidal} and~\ref{sec:braided}.
 
 \begin{construction}
 For $f : A \to B$ and $g : C \to D$ in $\SFunM$, define
@@ -114,21 +141,19 @@ and symmetrically on the right summand.  The unit is the empty type
 $\bot$.
 \end{construction}
 
-\begin{lemma}
-$(\sqcup, \bot)$ exhibits $\SFunM$ as a symmetric monoidal category.
-Associator, unitors and braiding are \emph{pure reshapes}
-(stateless deterministic morphisms) of the underlying coproduct
-structure on $\mathbf{Type}$, lifted to $\SFunM$ via $\ret$.
-\end{lemma}
-
-The pentagon, triangle, hexagon and braiding-involution coherences
-all reduce, via $\bind$/$\ret$ laws and extensionality, to ordinary
-coherence in $(\mathbf{Type}, +, 0)$.
-
-In Agda this is \texttt{CategoricalCrypto.SFunM.Monoidal.SFunᵉ-monoidal}
-(together with its symmetric extension in \texttt{Traced.agda}).
+The tensor is \texttt{SFunM.Monoidal.\_⊗ᵉ\_}; the symmetric monoidal
+instance is \texttt{SFunM.Monoidal.SFunᵉ-monoidal}, extended with
+\texttt{Traced.symmetric-ᵉ} for the braiding.  Associator
+\texttt{α⇒ᵉ}/\texttt{α⇐ᵉ}, unitors, and braiding \texttt{σᵉ} are all
+\texttt{pure-reshape}s of the underlying coproduct on $\mathbf{Type}$;
+the pentagon, triangle and hexagon coherences reduce, via the
+$\bind$/$\ret$ laws and extensionality, to ordinary coherence in
+$(\mathbf{Type}, +, 0)$.
 
 \subsection{Step 3: traced structure on $\SFunM$}
+
+For background on traced monoidal categories see
+Appendix~\ref{sec:traced}.
 
 \begin{construction}
 For $f : A \sqcup X \to B \sqcup X$ in $\SFunM$, define
@@ -147,6 +172,11 @@ where $\mathrm{tag}$ routes $\mathrm{inj}_1 b$ to ``done'' and
 $\mathrm{inj}_2 x$ to ``loop''.
 \end{construction}
 
+The trace is \texttt{SFunM.Traced.tr}, built on top of two helpers
+\texttt{tr-step} (the iter body) and \texttt{tr-cont} (the routing
+into loop/done).  The iteration operator \texttt{iter} and its
+axioms live in \texttt{Class.Monad.Iterative.IterativeMonad}.
+
 \begin{lemma}\label{lem:traced}
 The operator $\mathrm{tr}$ satisfies the Joyal--Street--Verity traced
 monoidal axioms:
@@ -161,46 +191,36 @@ monoidal axioms:
 \end{itemize}
 \end{lemma}
 
-Vanishing-1 and yanking follow from $\mathrm{iter}$-fixpoint plus monad
-laws.  Vanishing-2 and superposing rely on
-\emph{$\mathrm{iter}$-codiagonal} and \emph{$\mathrm{iter}$-uniformity}~\cite{Hasegawa97}.
+In Agda, each axiom is a top-level theorem:
+\texttt{Traced.vanishing₁-ᵉ}, \texttt{Traced.vanishing₂-ᵉ},
+\texttt{Traced.superposing-ᵉ}, \texttt{Traced.yanking-ᵉ}.  Vanishing-1
+(\texttt{vanishing₁-ᵉ}) and yanking (\texttt{yanking-ᵉ}) follow from
+\texttt{iter-fix} plus monad laws.  Superposing
+(\texttt{superposing-ᵉ}) and the X-direction of vanishing-2 use
+\texttt{iter-codiag} and \texttt{iter-conjugate} (Hasegawa
+uniformity~\cite{Hasegawa97}).  The Y-direction of vanishing-2 needs
+two further axioms beyond the standard Bloom--\'Esik six:
+\texttt{iter-codiag-y} (the symmetric Bek\v{c}i\'c unfolding) and
+\texttt{iter-vanishing-2} (collapsing nested $\mathrm{iter}$s into a
+single $\mathrm{iter}$ on \texttt{combine}).  Both are bundled into
+\texttt{IterativeMonad} and used by the bridging lemma
+\texttt{iter-equiv-final-y}.
 
-In Agda this is \texttt{CategoricalCrypto.SFunM.Traced.SFunᵉ-traced}.
+The traced instance is \texttt{Traced.SFunᵉ-traced}, exposing the
+\texttt{Traced} record from \texttt{agda-categories}.
 
 \subsection{Step 4: the G-construction (``Int'' / geometry of interaction)}
 
-Given a traced symmetric monoidal category $(\mathcal{C}, \otimes, I,
-\mathrm{tr})$, the
-\emph{Joyal--Street--Verity G-construction}~\cite{JSV} produces a
-compact-closed category $G\mathcal{C}$:
-\begin{itemize}
-  \item $\Obj(G\mathcal{C}) = \Obj(\mathcal{C}) \times \Obj(\mathcal{C})$;
-        write objects as pairs $(A^+, A^-)$;
-  \item $\Hom_{G\mathcal{C}}((A^+, A^-), (B^+, B^-)) =
-         \Hom_\mathcal{C}(A^+ \otimes B^-,\, A^- \otimes B^+)$;
-  \item identity at $(A^+, A^-)$: the braiding
-        $\sigma : A^+ \otimes A^- \to A^- \otimes A^+$;
-  \item composition: given
-        $f : A^+ \otimes B^- \to A^- \otimes B^+$ and
-        $g : B^+ \otimes C^- \to B^- \otimes C^+$, set
-        \[
-          g \circ_G f = \mathrm{tr}_{B^+ \otimes B^-}\bigl(
-            \alpha \circ (f \otimes g) \circ \gamma\bigr),
-        \]
-        where $\alpha, \gamma$ are the symmetry-and-associator
-        isomorphisms that arrange the tensors so the shared
-        $B$-component can be traced out.
-\end{itemize}
-
-\begin{theorem}[\cite{JSV}]
-If $\mathcal{C}$ is traced symmetric monoidal, then $G\mathcal{C}$ is
-a compact-closed category and the assignment
-$A \mapsto (A, I)$ is a strong monoidal functor $\mathcal{C} \to G\mathcal{C}$.
-\end{theorem}
+The Joyal--Street--Verity G-construction (see
+Appendix~\ref{sec:gconstr} for the definition and theorem) takes a
+traced symmetric monoidal category $\mathcal{C}$ and produces a
+compact-closed category $G\mathcal{C}$ whose objects are pairs
+$(A^+, A^-) \in \Obj(\mathcal{C})^2$ and whose homs are
+$G\mathcal{C}((A^+, A^-), (B^+, B^-)) = \mathcal{C}(A^+ \otimes B^-,\,
+A^- \otimes B^+)$.
 
 \paragraph{Applied here.}  Take $\mathcal{C} = \SFunM$ with
 $(\otimes, I) = (\sqcup, \bot)$.  Then
-$G\SFunM$ has objects pairs of types $(A^+, A^-)$ and homs
 \[
   \Hom_{G\SFunM}((A^+, A^-), (B^+, B^-))
   = \Hom_\SFunM(A^+ \sqcup B^-,\, A^- \sqcup B^+),
@@ -208,44 +228,34 @@ $G\SFunM$ has objects pairs of types $(A^+, A^-)$ and homs
 i.e.\ stateful monadic functions that, given an input on either the
 ``A-input side'' or the ``B-output side'', emit on either the
 ``A-output side'' or the ``B-input side''.  This is the exact
-typed-channel shape used by \texttt{Machine.Core}.
+typed-channel shape used by \texttt{Channel.Core}.
 
-In Agda this is \texttt{CategoricalCrypto.Machine.Category.SFunᵉ-GConstruction}.
+In Agda the G-construction is parameterised over an arbitrary traced
+symmetric monoidal $\mathcal{C}$ in \texttt{Categories.GConstruction};
+the instantiation at $\SFunM$ is
+\texttt{Machine.Category.SFunᵉ-GConstruction}.
 
 \subsection{Step 5: graded Kleisli over $G\SFunM$}
 
 A \emph{graded monad}~\cite{Katsumata} on $\mathcal{C}$ graded by a
 monoidal category $\mathcal{V}$ assigns to each object $u \in \mathcal{V}$
 a functor $T_u : \mathcal{C} \to \mathcal{C}$, with a Kleisli extension
-\[
-  \mathrm{ext}_u : (A \to T_v B) \to (T_u A \to T_{u \otimes v} B)
-\]
-and subsumption maps $\mathrm{sub}_\alpha : T_u \Rightarrow T_v$ for each
-$\alpha : u \to v$ in $\mathcal{V}$, satisfying graded Kleisli laws.
-Its \emph{graded Kleisli category} $\mathrm{Kl}_T(\mathcal{C})$ has
-\begin{itemize}
-  \item objects: pairs $(u, A)$ with $u \in \mathcal{V}$ and
-        $A \in \mathcal{C}$;
-  \item morphisms $(i, A) \to (j, B)$: triples $(k,\,
-        f : A \to T_k B,\, \alpha : i \otimes k \to j)$;
-  \item composition reuses $\mathrm{ext}$ and the graded subsumption.
-\end{itemize}
+and subsumption maps satisfying graded Kleisli laws.  The graded
+Kleisli category $\mathrm{Kl}_T(\mathcal{C})$ has objects $(u, A)$
+and morphisms $(i, A) \to (j, B)$ triples $(k,\,
+f : A \to T_k B,\, \alpha : i \otimes k \to j)$.
 
-\paragraph{Applied here.}  We grade $G\SFunM$ by the \emph{terminal}
-monoidal category $\mathbf{1}$ (single object $\star$, single
-morphism, $\star \otimes \star = \star$).  This collapses graded
-Kleisli to ordinary Kleisli for whichever monad $T_\star$ we choose.
-We pick the \emph{identity monad}: $T_\star A = A$.  Then
-$\mathrm{Kl}_T(G\SFunM)$ is canonically isomorphic to $G\SFunM$
-itself.
-
-The point of this layer is to expose a slot into which a richer
-graded monad (e.g.\ encoding ``optional output'' via $\Maybe$, or
-``trace history'' via $\mathrm{List}$) can be substituted later
+\paragraph{Applied here.}  We grade $G\SFunM$ by the terminal
+monoidal category $\mathbf{1}$ and pick $T_\star = \id$, so
+$\mathrm{Kl}_T(G\SFunM) \cong G\SFunM$.  This layer is a slot into
+which a richer graded monad (e.g.\ ``optional output'' via $\Maybe$
+or ``trace history'' via $\mathrm{List}$) can be substituted later
 without touching the steps below.
 
-In Agda this is \texttt{CategoricalCrypto.Machine.Category.SFunᵉ-GradedKleisli}
-together with the concrete identity triple \texttt{SFunᵉ-GradedTriple}.
+In Agda the abstract construction is \texttt{Categories.GradedKleisli};
+the instantiation here is
+\texttt{Machine.Category.SFunᵉ-GradedKleisli} with the trivial
+\texttt{SFunᵉ-GradedTriple}.
 
 \subsection{Step 6: machines and the $\Machine \leftrightarrow \mathrm{Hom}$ bijection}
 
@@ -253,9 +263,10 @@ together with the concrete identity triple \texttt{SFunᵉ-GradedTriple}.
 
 A \emph{channel} $A \in \Channel$ is a pair of types
 $(\mathrm{in}_A, \mathrm{out}_A)$ encoding ``messages flowing in''
-and ``messages flowing out''.  The transpose
-$A^T = (\mathrm{out}_A, \mathrm{in}_A)$ swaps directions, and the
-tensor $A \otimes B$ takes coproducts component-wise.
+and ``messages flowing out''.  In Agda this is the record
+\texttt{Channel.Core.Channel}; the transpose
+$A^T = (\mathrm{out}_A, \mathrm{in}_A)$ is \texttt{\_ᵀ}, the
+component-wise coproduct tensor is \texttt{\_⊗₀\_}.
 
 There is an evident isomorphism
 \[
@@ -273,7 +284,9 @@ $(S, \stepRel)$ with $S$ a hidden \emph{state} type and
              \Maybe(\mathrm{out}_{A \otimes B^T}) \times S \to \Set,
 \]
 i.e.\ a four-place \emph{relation} parameterised by (current state,
-input message, optional output message, next state).
+input message, optional output message, next state).  In Agda this
+is the record \texttt{Machine.Core.Machine}, with fields
+\texttt{State}, \texttt{init}, and \texttt{stepRel}.
 
 Two structural features distinguish this from a $G\SFunM$ hom:
 \begin{enumerate}
@@ -298,6 +311,7 @@ with
 \end{itemize}
 The canonical instance is $M = \Set^{(-)}$ (the power-set / predicate
 monad), where $\mathrm{ofrel} = \id$ and $\mathrm{member}(a, P) = P(a)$.
+This data lives in \texttt{Class.Monad.OfRel}.
 
 \subsubsection{The Maybe-augmented hom-set $\mathrm{MaybeHom}$}
 
@@ -352,6 +366,13 @@ Define
 \end{itemize}
 \end{construction}
 
+In Agda the identity is \texttt{Machine.Core.idᴹ}, the tensor product
+of machines is \texttt{Machine.Core.\_⊗₁\_}, the trace is
+\texttt{Machine.Core.tr} (built from the inductive \texttt{TraceRel}),
+composition is \texttt{Machine.Core.\_∘\_}, and the environment-based
+equivalence is \texttt{Machine.Core.\_≈ℰ\_}.  The category instance
+on $\Machine$ is assembled in \texttt{Machine.Category}.
+
 \begin{theorem}[Categorical laws via transport]
 The triple $(\Channel, \Machine, \sim_\mathcal{E})$ satisfies the
 category axioms (associativity, left/right identity, congruence of
@@ -398,16 +419,25 @@ $\Maybe$-augmentation lives inside the categorical machinery itself.
 \]
 
 \noindent
-The horizontal arrows are: Kleisli of $M$; equipping with the
-coproduct tensor; taking the JSV trace; the $G$-construction; the
-graded Kleisli over the identity graded monad (which collapses).
-
-The horizontal arrows are well-known constructions on a category:
-Kleisli of a monad, equipping with a coproduct tensor, taking a
-trace, $G$-construction, and graded Kleisli.  Each is functorial and
-preserves the structure used by the next.  The final bijection
-$\mathrm{MaybeHom} \cong \Machine$ uses the
-$\mathrm{MonadOfRel}$ bridge to absorb the
+The horizontal arrows are well-known constructions on a category;
+each step is functorial and preserves the structure used by the
+next.  In Agda each is a named module:
+\begin{itemize}
+  \item Kleisli of $M$ over $\mathbf{Type}$: implicit in the use of
+        \texttt{Monad} from \texttt{Class.Monad}.
+  \item equipping with the coproduct tensor:
+        \texttt{SFunM.Monoidal.SFunᵉ-monoidal} (Step 2);
+  \item taking the JSV trace: \texttt{SFunM.Traced.SFunᵉ-traced}
+        (Step 3);
+  \item the $G$-construction: abstract in
+        \texttt{Categories.GConstruction}, applied at $\SFunM$ in
+        \texttt{Machine.Category.SFunᵉ-GConstruction} (Step 4);
+  \item the graded Kleisli (trivial identity grading):
+        \texttt{Categories.GradedKleisli} applied via
+        \texttt{Machine.Category.SFunᵉ-GradedKleisli} (Step 5).
+\end{itemize}
+The final bijection $\mathrm{MaybeHom} \cong \Machine$ uses the
+\texttt{Class.Monad.OfRel} bridge to absorb the
 relation-vs-function distinction.
 
 \section{Outstanding theoretical content not yet captured constructively}
@@ -419,9 +449,6 @@ postulated in the Agda development:
         left/right naturality, Fubini) for $\SFunM$.  Derivable from
         the basic vanishing/superposing/yanking axioms via
         Hasegawa's setoid-level proofs.
-  \item \emph{Superposing} and \emph{vanishing-2} for $\SFunM$.
-        Derivable from $\mathrm{iter}$-codiagonal and
-        $\mathrm{iter}$-uniformity.
   \item $G\SFunM$'s \emph{identity laws} and \emph{associativity
         coherence}.  These are standard for any traced symmetric
         monoidal category but require careful manipulation of
@@ -486,7 +513,7 @@ A few notational conventions:
         live in a richer category, e.g.\ a set with topology
         (\emph{topological enrichment}) or a monoidal-category-valued
         \emph{enrichment}.  In this document all hom-sets are plain
-        sets (or, in Agda, types).
+        sets.
   \item The hom-set of a derived category, e.g.\ Kleisli
         $\mathcal{C}_T(A, B) = \mathcal{C}(A, T B)$, is computed from
         the underlying $\mathcal{C}$ together with the construction's
@@ -666,6 +693,7 @@ laws:
 \end{enumerate}
 
 \subsection{Extensional bind}
+\label{sec:extbind}
 
 For formalisation in a proof assistant, the bind operation requires
 one additional structural property that is automatic in mathematical
@@ -686,6 +714,7 @@ substitute pointwise-equal continuations, which is needed
 ubiquitously for equational reasoning over $\lambda$-abstractions.
 
 \subsection{Stateful monadic functions}
+\label{sec:sfunm}
 
 We will be working not with the Kleisli category of $M$ directly, but
 with a refinement that threads a hidden \emph{state} type alongside
@@ -705,6 +734,7 @@ applied to the Kleisli category of $M$; it gives a new category which
 we baptise $\SFunM$ in \S\ref{sec:setup}.
 
 \subsection{Monoidal categories}
+\label{sec:monoidal}
 
 A \emph{monoidal category} is a category $\mathcal{C}$ equipped with
 \begin{itemize}

@@ -43,7 +43,7 @@
 
           tex = pkgs.texlive.combine {
             inherit (pkgs.texlive)
-              scheme-medium tikz-cd stmaryrd mathtools;
+              scheme-medium tikz-cd stmaryrd mathtools dejavu newunicodechar;
           };
 
           machine-category-pdf = pkgs.stdenvNoCC.mkDerivation {
