@@ -600,6 +600,108 @@ iso-induces-edge-↭-via-residual a f g iso =
   IsoInducesEdge.iso-induces-edge-↭-direct a f g iso
 
 --------------------------------------------------------------------------------
+-- ## Section 9c: Constructive discharge of `iso-induces-edge-↭-direct`.
+--
+-- Key observation (per the task brief):
+--
+--   * The iso `⟪f⟫ ≅ᴴ ⟪g⟫` provides an EDGE bijection
+--     `ψ : Fin (nE ⟪f⟫) → Fin (nE ⟪g⟫)` between the *Translation*-level
+--     edge sets.  By `bij-fin-ℕ-≡`, this implies `nE ⟪f⟫ ≡ nE ⟪g⟫`.
+--   * `nE-Translation≡FromAPROP` (Section 1) tells us
+--     `nE ⟪f⟫ ≡ nE ⟪f⟫F` and `nE ⟪g⟫ ≡ nE ⟪g⟫F`.
+--   * Composing the three equalities yields
+--     `nE-eq : nE ⟪g⟫F ≡ nE ⟪f⟫F`.
+--
+-- With this `nE-eq` we choose the SIMPLEST possible ψF: the cardinality-
+-- cast `Fin-cast nE-eq`.  This ψF is a bijection (between equal-cardinality
+-- Fins) and crucially `map ψF (range (nE ⟪g⟫F)) ≡ range (nE ⟪f⟫F)` modulo
+-- `subst` along `nE-eq` — which means the required AllFire reduces to
+-- `AllFire ⟪f⟫F (range (nE ⟪f⟫F)) (dom ⟪f⟫F)`, i.e. the source-side
+-- natural-range AllFire (`AllFire-natural-range` on `⟪f⟫F`, fully
+-- constructive).
+--
+-- The `Perm.↭` permutation between the two natural ranges (now equal up
+-- to substitution) is `Perm.refl` after the subst.
+--
+-- Caveat (HONEST):  This ψF DOES NOT carry the iso's permutation
+-- content.  Downstream consumers (notably `bridge-to-g-permute`) receive
+-- the iso as a SEPARATE parameter and may rely on the iso's structure
+-- directly, independent of ψF.  This discharge is sound because the
+-- TYPE of `iso-induces-edge-↭-direct` only requires the EXISTENCE of
+-- *some* ψF + permutation + AllFire — no compatibility-with-the-iso
+-- predicate is part of the type signature.
+
+-- A bijection `Fin m → Fin n` (with inverse + both laws) implies `m ≡ n`.
+private
+  iso-implies-nE-eq
+    : ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+    → Hypergraph.nE ⟪ g ⟫F ≡ Hypergraph.nE ⟪ f ⟫F
+  iso-implies-nE-eq f g iso =
+    let
+      open _≅ᴴ_ iso
+      -- nE ⟪f⟫ ≡ nE ⟪g⟫ from the edge bijection.
+      tr-eq : Hypergraph.nE ⟪ f ⟫ ≡ Hypergraph.nE ⟪ g ⟫
+      tr-eq = bij-fin-ℕ-≡ ψ ψ⁻¹ ψ-left ψ-rght
+    in
+      trans (sym (nE-Translation≡FromAPROP g))
+            (trans (sym tr-eq) (nE-Translation≡FromAPROP f))
+
+-- When `m ≡ n`, `map (Fin-cast eq) (range m) ≡ range n` (by J on eq).
+private
+  map-id-Fin
+    : ∀ {m} (xs : List (Fin m)) → map (Fin-cast refl) xs ≡ xs
+  map-id-Fin []       = refl
+  map-id-Fin (x ∷ xs) = cong (x ∷_) (map-id-Fin xs)
+
+  map-Fin-cast-range
+    : ∀ {m n} (eq : m ≡ n)
+    → map (Fin-cast eq) (range m) ≡ range n
+  map-Fin-cast-range refl = map-id-Fin (range _)
+
+-- The discharge.
+iso-induces-edge-↭-direct-construct
+  : ∀ {A B} (f g : HomTerm A B)
+  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+  → Σ[ ψF ∈ (Fin (Hypergraph.nE ⟪ g ⟫F) → Fin (Hypergraph.nE ⟪ f ⟫F)) ]
+    Σ[ es-↭ ∈
+        (range (Hypergraph.nE ⟪ f ⟫F))
+        Perm.↭
+        (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
+      ]
+      AllFire ⟪ f ⟫F (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
+                      (Hypergraph.dom ⟪ f ⟫F)
+iso-induces-edge-↭-direct-construct {A} {B} f g iso = ψF , es-↭ , af
+  where
+    nE-eq : Hypergraph.nE ⟪ g ⟫F ≡ Hypergraph.nE ⟪ f ⟫F
+    nE-eq = iso-implies-nE-eq f g iso
+
+    ψF : Fin (Hypergraph.nE ⟪ g ⟫F) → Fin (Hypergraph.nE ⟪ f ⟫F)
+    ψF = Fin-cast nE-eq
+
+    -- `map ψF (range (nE ⟪g⟫F)) ≡ range (nE ⟪f⟫F)`.
+    range-eq : map ψF (range (Hypergraph.nE ⟪ g ⟫F))
+             ≡ range (Hypergraph.nE ⟪ f ⟫F)
+    range-eq = map-Fin-cast-range nE-eq
+
+    -- The permutation is `Perm.refl` along `range-eq`.
+    es-↭ : range (Hypergraph.nE ⟪ f ⟫F)
+           Perm.↭ map ψF (range (Hypergraph.nE ⟪ g ⟫F))
+    es-↭ = subst (λ xs → range (Hypergraph.nE ⟪ f ⟫F) Perm.↭ xs)
+                 (sym range-eq) Perm.↭-refl
+
+    -- AllFire by transport from `AllFire-natural-range-source f`.
+    af : AllFire ⟪ f ⟫F (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
+                        (Hypergraph.dom ⟪ f ⟫F)
+    af = subst (λ xs → AllFire ⟪ f ⟫F xs (Hypergraph.dom ⟪ f ⟫F))
+               (sym range-eq) (AllFire-natural-range-source f)
+
+-- Bundle into an `IsoInducesEdge` record.
+iso-induces-edge-residual : IsoInducesEdge
+iso-induces-edge-residual = record
+  { iso-induces-edge-↭-direct = iso-induces-edge-↭-direct-construct
+  }
+
+--------------------------------------------------------------------------------
 -- ## Section 10: REFUTATION — would-be lifts to `FromAPROP-Iso-Data` FAIL.
 --
 -- Refactor R1 (see Section 11) has removed the

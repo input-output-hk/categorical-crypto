@@ -17,16 +17,12 @@
 --   (1) `swap-atom-residual : SwapAtomResidual`        — 3 fields
 --       (was 4; `Linear-hyp` removed — Linearity is now threaded
 --        per-call at H = ⟪f⟫F via `⟪⟫-Linear`)
---   (2) `allFire-residual   : IsoInducesEdge`          — 1 field
---                                                       (iso-induces-edge-↭-direct;
---                                                        post-R1 surface — replaces the
---                                                        previous uninhabitable
---                                                        FromAPROP-iso-from-Translation-iso
---                                                        field with the consumer-facing
---                                                        edge+AllFire triple directly.
---                                                        AllFire-natural-range-source
---                                                        remains derived constructively
---                                                        inside Sub/IsoInducesEdgePerm.agda)
+--   (2) `allFire-residual` (iso-induces-edge-↭-direct): REMOVED — now
+--       discharged constructively in
+--       `Sub/IsoInducesEdgePerm.iso-induces-edge-residual` (Section 9c)
+--       via the trivial Fin-cast ψF strategy + `AllFire-natural-range`
+--       on `⟪f⟫F`.  The `IsoInducesEdge` record is now constructively
+--       inhabited; no postulated field remains on this surface.
 --   (3) `bridge-to-g-permute`                          — 1 field
 --                                                       (verbatim same type as
 --                                                        ProcessTermAligned2Residual.bridge-to-g-permute;
@@ -151,7 +147,8 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SwapAtomAssum
   using (SwapAtomResidual; build-swap-atom-assumption)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.IsoInducesEdgePerm
   sig-dec
-  using (IsoInducesEdge; iso-induces-edge-↭-via-residual; FromAPROP-Iso-Data)
+  using ( IsoInducesEdge; iso-induces-edge-↭-via-residual; FromAPROP-Iso-Data
+        ; iso-induces-edge-residual)
 
 -- The ProcessTermAligned2Residual + WithResidual machinery:
 import Categories.APROP.Hypergraph.Completeness.Discharge.ProcessTermAligned2
@@ -281,18 +278,11 @@ record APROPMacLaneAtoms : Set where
     --      H = ⟪f⟫F via `⟪⟫-Linear`.)
     swap-atom-residual : SwapAtomResidual
 
-    -- (2) Iso-induces-edge bundle (1 field):
-    --     iso-induces-edge-↭-direct — the direct consumer-facing
-    --     edge+AllFire triple.
-    --     See `Sub/IsoInducesEdgePerm.agda` (post-R1 surface).
-    --
-    --     NOTE: after refactor R1, this residual no longer carries the
-    --     previous (uninhabitable) `FromAPROP-iso-from-Translation-iso`
-    --     field.  The internal `AllFire-natural-range-source` helper is
-    --     still derived constructively inside
-    --     `Sub/IsoInducesEdgePerm.agda` from
-    --     `Sub/AllFireNatural.AllFire-natural-range`.
-    allFire-residual : IsoInducesEdge
+    -- (2) Iso-induces-edge bundle: REMOVED — discharged constructively
+    -- in `Sub/IsoInducesEdgePerm.iso-induces-edge-residual` (Section 9c
+    -- of that file), via the trivial Fin-cast ψF strategy + AllFire-
+    -- natural-range.  See `Sub/IsoInducesEdgePerm.agda` Section 9c for
+    -- the construction.  No field is needed here.
 
     -- (3) Bridge-to-g, in the SOUND native-↭ form.
     --
@@ -427,7 +417,7 @@ module _ (atoms : APROPMacLaneAtoms) where
                             (Hypergraph.dom ⟪ f ⟫F)
   iso-induces-edge-↭-pta2 f g iso =
     let (ψF , es-↭ , af-iiep) =
-          iso-induces-edge-↭-via-residual allFire-residual f g iso
+          iso-induces-edge-↭-via-residual iso-induces-edge-residual f g iso
     in ψF , es-↭ ,
        IIEP→PTA2-AllFire ⟪ f ⟫F
          (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
@@ -521,17 +511,10 @@ process-term-permute-aligned-from-atoms atoms =
 --   * `swap-atom-residual.Linear-hyp`              — Sub/SwapAtomAssumptionDischarge:158
 --                                                  — Linearity hypothesis (∀ H).
 --
---   * `allFire-residual.iso-induces-edge-↭-direct`
---                                                  — Sub/IsoInducesEdgePerm (post-R1)
---                                                  — direct consumer-facing
---                                                    edge+AllFire triple.
---                                                    Replaces the previous
---                                                    (uninhabitable)
---                                                    FromAPROP-iso-from-Translation-iso
---                                                    field; refactor R1.
---   (The `AllFire-natural-range-source` helper is derived
---    constructively in Sub/IsoInducesEdgePerm.agda and is not
---    exposed at the record surface.)
+--   (`allFire-residual` / `iso-induces-edge-↭-direct` REMOVED — now
+--    discharged constructively as `iso-induces-edge-residual` in
+--    Sub/IsoInducesEdgePerm.agda Section 9c, via Fin-cast ψF +
+--    AllFire-natural-range on ⟪f⟫F.)
 --
 --   * `bridge-to-g-permute`                        — this file
 --                                                  — verbatim same type as
