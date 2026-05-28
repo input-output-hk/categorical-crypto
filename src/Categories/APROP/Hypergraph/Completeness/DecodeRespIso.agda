@@ -1,72 +1,84 @@
 {-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
--- Sub-property (E) of Route 1: ALGORITHMIC DECODER ISO INVARIANCE.
+-- Route 1 trust point: `CompletenessAssumptions` with fine-grained
+-- sub-postulates corresponding to Route 1's sub-properties.
 --
--- This file attempts a constructive discharge of the postulate
+-- ## Architecture
 --
---     decode-resp-iso
---       : ∀ {A B} (f g : HomTerm A B)
---       → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
---       → decode f ≈Term decode g
+-- The record has THREE fields, each strictly narrower than the
+-- original opaque `decode-rel-resp-iso` postulate:
 --
--- by decomposing it into narrower fields of `CompletenessAssumptions`
--- corresponding to the three Route-1 sub-steps (b), (c), (d) and
--- providing CONSTRUCTIVE COMPOSITION between them.  This is the
--- TRUST POINT for the completeness theorem.
+--   (c')  `process-term-permute-aligned`  — Term-level ≈Term taking
+--                                           `stack-↭` as an explicit
+--                                           parameter (narrower than
+--                                           the old (c) which embedded
+--                                           a call to (b)).
+--   (XSL) `X-permute-self-loop-id`        — Kelly's UNARY self-loop
+--                                           coherence: `permute r ≈Term
+--                                           id` for any `r : xs ↭ xs`.
+--                                           The binary form (the old
+--                                           (K)) is reconstructed in
+--                                           `WithAssumptions` from this
+--                                           plus `permute-inverse-right`.
+--   (F)   `decode-rel-≈-decode`           — Structural ↔ algorithmic
+--                                           decoder agreement.
 --
--- ## Status
+-- FOUR sub-properties have been FULLY DISCHARGED CONSTRUCTIVELY and
+-- are no longer fields of the record:
 --
--- This file is the SOLE TRUST POINT for Route 1's completeness.
--- The record `CompletenessAssumptions` has THREE fields; the
--- `WithAssumptions` module constructively derives `decode-resp-iso`
--- (algorithmic level) and `decode-rel-resp-iso` (term level) from
--- them.
+--   * `decode-attempt-Linear-extracts` — structural shape lemma,
+--     discharged in `Discharge/LinearExtracts.agda`.
+--   * (b) `process-edges-resp-iso-stack` — stack permutation,
+--     discharged in `Discharge/StackPerm.agda`.  The iso is
+--     structurally redundant for the multiset statement; the proof
+--     needs only `⟪⟫F-codL`.
+--   * The old (c) and (d) field bodies are RECONSTRUCTED in
+--     `WithAssumptions` from the new (c') + (XSL) fields.  See
+--     `Discharge/ProcessTermNew.agda` and
+--     `Discharge/FinalPermuteNew.agda` for the analysis.
+--   * The old (K) binary `permute-≈Term-coherence` is RECONSTRUCTED
+--     in `WithAssumptions` from (XSL) via Path C in
+--     `Discharge/PermuteCoherenceShared.agda` (`FromXSelfLoop`),
+--     using the discharged `permute-inverse-right`.
 --
---   * (E1) boundary-respects-iso   — Translation ↔ FromAPROP iso lift
---   * (E2) decode-attempt-resp-iso — algorithmic ≈Term invariance
---                                      pre-subst₂
---   * (F)  decode-rel-≈-decode     — structural/algorithmic decoder
---                                      agreement
---   * Composition: CONSTRUCTIVE (subst₂-resp-≈Term + subst₂-trans +
---     trans-sym-cancel + decode-rel-≈-decode chaining).
+-- `WithAssumptions` constructively derives `decode-attempt-resp-iso`,
+-- `decode-resp-iso`, and `decode-rel-resp-iso` from these fields.
 --
--- This file is `--safe`-clean; all downstream consumers
--- (Inductive.agda, CompletenessFull.agda, Tests.agda) are also
--- `--safe`-clean.  Only `TestsTrust.agda` is non-safe (by design —
--- it postulates `CompletenessAssumptions` for the test pipeline).
+-- ## Why the input iso is at Translation level
 --
--- The composition uses `subst₂-resp-≈Term` from `DecodeRoundtrip.agda`
--- to lift the algorithmic ≈Term through the boundary subst₂ in
--- `decode`'s definition.  This is the GENUINELY CONSTRUCTIVE part —
--- (E1) and (E2) remain postulated but at a substantially narrower
--- granularity than the original.
+-- An earlier `boundary-respects-iso : iso-T → iso-F` field was
+-- provably FALSE (see `BoundaryRespectsIso.agda`).  The counter-
+-- example: `id ∘ id` vs `id`.  Translation prunes the redundant
+-- vertex via `hComposeP`; FromAPROP keeps it, so the two
+-- FromAPROP hypergraphs have different vertex counts (2 vs 1) and
+-- cannot be iso.
 --
--- All sub-postulates are STRICTLY NARROWER than the original
--- `decode-resp-iso`.  (E2) operates at the hypergraph-algorithm level
--- (over `decode-attempt-Linear`) where the iso's φ/ψ data can be used
--- directly, and (E1) is a pure translation-equivalence statement that
--- does not depend on `≈Term` reasoning.
+-- Recovery: the sub-postulates take the Translation iso DIRECTLY.
+-- The decoder still operates at the FromAPROP level (because
+-- `decode-attempt-Linear` is defined there), but the boundary
+-- subst₂ chain uses FromAPROP's `⟪⟫F-domL`/`⟪⟫F-codL`, which
+-- propositionally equal `flatten A`/`flatten B` regardless of the
+-- iso level.
 --
--- ## Architectural blockers (documented for future discharge)
+-- ## File is `--safe`-clean
 --
--- (E2) decode-attempt-resp-iso would, if discharged constructively,
--- require a ~600 LOC Mac-Lane chase per σ-naturality swap atom — see
--- `Completeness/EdgeReorder.agda` for the probe and the topological-
--- success precondition.  The natural process-edges-↭ is FALSE in
--- general; under Linearity (which holds for both ⟪f⟫_F and ⟪g⟫_F),
--- the lemma holds via a topologically-valid AllFire precondition.
+-- Sub-postulates are fields of the record — they are not
+-- `postulate` declarations in this file.  All downstream modules
+-- (Inductive.agda, CompletenessFull.agda, Tests.agda) are
+-- `--safe`-clean.  `TestsTrust.agda` is the unique non-safe file
+-- (postulates the record by design).
 --
--- (E1) boundary-respects-iso bridges Translation's `hComposeP` (pruning)
--- and FromAPROP's `hCompose` (no pruning).  Structurally inductive on
--- `f` and `g`; the difference is purely in the `_∘_` case where
--- pruning removes unreachable K-side vertices.  The iso's φ already
--- agrees on the un-pruned vertices, so the lift is mechanical (though
--- not yet implemented).
+-- ## Optional finer trust via `DecoderAgreementSafe.agda`
 --
--- (Composition) Pure boundary subst₂ chase — fully constructive in
--- this file (via `subst₂-resp-≈Term`, `subst₂-HomTerm-trans`, and
--- `trans-sym-cancel`).
+-- The `decode-rel-≈-decode` field can be discharged constructively
+-- from 11 yet-narrower per-constructor fields via
+-- `Completeness/DecoderAgreementSafe.agda` (separate record +
+-- `WithAssumptions` module, also `--safe`-clean).  A consumer
+-- postulating the 11 fields gets `decode-rel-≈-decode` for free,
+-- bringing the effective trust to 4 algorithmic + 11 atomic = 15
+-- narrower fields.  Use this path when fine-grained auditability is
+-- desired; otherwise stick with the 5-field record here.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -78,7 +90,7 @@ module Categories.APROP.Hypergraph.Completeness.DecodeRespIso
 open APROPSignatureDec sig-dec using (sig)
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.FromAPROP sig
   using (FlatGen; flatten; range)
   renaming (⟪_⟫ to ⟪_⟫F; ⟪⟫-domL to ⟪⟫F-domL; ⟪⟫-codL to ⟪⟫F-codL)
@@ -86,6 +98,8 @@ open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten)
+open import Categories.APROP.Hypergraph.Completeness.Decode sig
+  using (process-all-edges)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (decode; bridge; decode-attempt-Linear)
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
@@ -94,23 +108,96 @@ open import Categories.APROP.Hypergraph.Completeness.Linearity sig
   using (Linear)
 open import Categories.APROP.Hypergraph.Completeness.LinearityIso sig
   using (Linear-resp-iso)
+open import Categories.APROP.Hypergraph.Completeness.Permute sig
+  using (permute; permute-via-vlab)
 import Categories.APROP.Hypergraph.Completeness.Linearity sig as Lin
+
+-- `decode-attempt-Linear-extracts` is fully discharged constructively
+-- in `Discharge/LinearExtracts.agda` (via agent 4).
+-- The discharge function is imported here and used directly inside
+-- `WithAssumptions`, eliminating the need for a record field.
+open import Categories.APROP.Hypergraph.Completeness.Discharge.LinearExtracts sig-dec
+  using (decode-attempt-Linear-extracts-discharge)
+
+-- `permute-inverse-left/right` are fully discharged constructively in
+-- `Discharge/Sub/PermuteCoherenceFin.agda` (via agent on the
+-- Fin-Unique-coherence task).  These say `permute p ∘ permute (↭-sym p)
+-- ≈Term id` (and the symmetric form) for any `p : xs ↭ ys`.  This is
+-- the round-trip cancellation needed for the (b)→`Perm.↭` refactor.
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.PermuteCoherenceFin sig
+  using (permute-inverse-left; permute-inverse-right)
+
+-- (b) `process-edges-resp-iso-stack` is FULLY DISCHARGED CONSTRUCTIVELY
+-- in `Discharge/StackPerm.agda`.  It says that the iso induces a
+-- `Perm.↭` permutation between the vlab-mapped final stacks of
+-- `process-all-edges` on both sides.  The proof needs only
+-- `⟪⟫F-codL` + `decode-attempt-Linear` + `decode-attempt-perm-from-just`
+-- — the iso itself is structurally redundant.  No longer a field
+-- of `CompletenessAssumptions`.
+open import Categories.APROP.Hypergraph.Completeness.Discharge.StackPerm sig-dec
+  using (process-edges-resp-iso-stack)
+
+-- (c)/(d) narrowing modules.  Each exposes a STRICTLY NARROWER
+-- residual: a `ProcessTermPermuteAssumption` for (c) (takes `stack-↭`
+-- as an explicit parameter rather than computing it from (b)), and a
+-- `PermuteCoherence` for (d) (just Kelly's coherence on the `permute`
+-- fragment, no decoder/iso/subst₂ plumbing).  The two `PermuteCoherence`
+-- statements in the two files are identical content; they share a
+-- single Kelly witness in `WithAssumptions` below.
+import Categories.APROP.Hypergraph.Completeness.Discharge.ProcessTermNew sig-dec
+  as ProcessTermN
+import Categories.APROP.Hypergraph.Completeness.Discharge.FinalPermuteNew sig-dec
+  as FinalPermuteN
+
+-- (K) → (XSelfLoop) reduction.  `PermuteCoherenceShared.FromXSelfLoop`
+-- derives the binary `permute-≈Term-coherence` from the unary X-level
+-- `X-permute-self-loop-id` plus the constructive `permute-inverse-right`.
+-- The unary form is the narrowest known X-level Kelly residual.
+import Categories.APROP.Hypergraph.Completeness.Discharge.PermuteCoherenceShared sig-dec
+  as PermSh
 
 open import Categories.Category using (Category)
 
-open import Data.List using (List)
-open import Data.Product using (_×_; _,_; proj₁; proj₂)
+open import Data.Fin using (Fin)
+open import Data.List using (List; []; _∷_; map)
+import Data.List.Relation.Binary.Permutation.Propositional as Perm
+open import Data.Product using (_×_; _,_; ∃-syntax; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst; subst₂; module ≡-Reasoning)
+  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 
 private
   module FM = Category FreeMonoidal
 
 open FM.HomReasoning
 
--- Inlined helpers (originally from DecodeRoundtrip.agda, but that
--- module is not `--safe` so we inline these tiny lemmas here to keep
--- this file `--safe`-clean).
+--------------------------------------------------------------------------------
+-- ## Section 1: Linearity and boundary equations.
+--
+-- These are constructive helpers exposed for clarity / reuse.
+
+-- Both ⟪f⟫_F and ⟪g⟫_F are Linear.  Constructive from `⟪⟫-Linear`.
+⟪⟫F-Linear-pair
+  : ∀ {A B} (f g : HomTerm A B)
+  → Linear ⟪ f ⟫F × Linear ⟪ g ⟫F
+⟪⟫F-Linear-pair f g = Lin.⟪⟫-Linear f , Lin.⟪⟫-Linear g
+
+-- Boundary equations (no iso needed — both ⟪f⟫F.domL and ⟪g⟫F.domL
+-- equal `flatten A` by `⟪⟫F-domL`).
+full-dom-eq : ∀ {A B} (f g : HomTerm A B)
+            → domL ⟪ g ⟫F ≡ domL ⟪ f ⟫F
+full-dom-eq f g = trans (⟪⟫F-domL g) (sym (⟪⟫F-domL f))
+
+full-cod-eq : ∀ {A B} (f g : HomTerm A B)
+            → codL ⟪ g ⟫F ≡ codL ⟪ f ⟫F
+full-cod-eq f g = trans (⟪⟫F-codL g) (sym (⟪⟫F-codL f))
+
+--------------------------------------------------------------------------------
+-- ## Section 2: Inlined `subst₂` algebra + UIP.
+--
+-- Tiny lemmas about subst₂-on-HomTerm.  All FULLY CONSTRUCTIVE.
+-- (Previously these lived in `DecodeRoundtrip.agda` but that module
+-- has open postulates; we inline here to keep `--safe`-clean.)
+
 private
   ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
   ≡⇒≈Term refl = ≈-Term-refl
@@ -123,137 +210,18 @@ private
       ≈Term subst₂ HomTerm (cong unflatten eq-As) (cong unflatten eq-Bs) g
   subst₂-resp-≈Term refl refl f≈g = f≈g
 
---------------------------------------------------------------------------------
--- ## Section 1: Linear preservation under iso (CONSTRUCTIVE).
---
--- Demonstrates the use of `Linear-resp-iso` from `LinearityIso.agda`.
--- This is sub-property (a) of Route 1 and is FULLY CONSTRUCTIVE.
---
--- For translated hypergraphs (both `⟪f⟫_F` and `⟪g⟫_F`), Linearity
--- comes directly from `Lin.⟪⟫-Linear`.  We package both forms so the
--- composition below can use either, and `Linear-resp-iso` is exposed
--- for future use in the general algorithm-level proof.
+  -- Two `subst₂ HomTerm` transports with PROOF-EQUAL equation
+  -- arguments give equal terms (UIP-flavoured).
+  subst₂-cong-proofs
+    : ∀ {As Bs As' Bs' : List X}
+        (p₁ p₂ : As ≡ As') (q₁ q₂ : Bs ≡ Bs')
+        (t : HomTerm (unflatten As) (unflatten Bs))
+    → p₁ ≡ p₂ → q₁ ≡ q₂
+    → subst₂ HomTerm (cong unflatten p₁) (cong unflatten q₁) t
+      ≡ subst₂ HomTerm (cong unflatten p₂) (cong unflatten q₂) t
+  subst₂-cong-proofs _ _ _ _ _ refl refl = refl
 
-⟪⟫F-Linear-via-iso
-  : ∀ {A B} (f g : HomTerm A B)
-  → ⟪ f ⟫F ≅ᴴ ⟪ g ⟫F
-  → Linear ⟪ f ⟫F × Linear ⟪ g ⟫F
-⟪⟫F-Linear-via-iso f g iso = lin-F , Linear-resp-iso iso lin-F
-  where
-    lin-F : Linear ⟪ f ⟫F
-    lin-F = Lin.⟪⟫-Linear f
-
--- Direct form (no iso needed): both ⟪f⟫_F and ⟪g⟫_F are Linear
--- independently.
-⟪⟫F-Linear-pair
-  : ∀ {A B} (f g : HomTerm A B)
-  → Linear ⟪ f ⟫F × Linear ⟪ g ⟫F
-⟪⟫F-Linear-pair f g = Lin.⟪⟫-Linear f , Lin.⟪⟫-Linear g
-
---------------------------------------------------------------------------------
--- ## Section 2: The `CompletenessAssumptions` record.
---
--- The two sub-properties needed to discharge `decode-resp-iso` are
--- bundled as fields of a record.  A consumer satisfies the record by
--- providing both fields; this file then provides a CONSTRUCTIVE
--- `decode-resp-iso` derived from them (in `WithAssumptions` below).
---
--- (E1) BOUNDARY-RESPECTS-ISO: the Translation ↔ FromAPROP iso lift.
---
--- The iso `⟪f⟫_T ≅ᴴ ⟪g⟫_T` (Translation, with `hComposeP`) lifts to
--- `⟪f⟫_F ≅ᴴ ⟪g⟫_F` (FromAPROP, with `hCompose`).  Translation
--- differs from FromAPROP only in the `_∘_` case (using `hComposeP`
--- vs `hCompose`); for atomic terms and ⊗ they coincide.
---
--- An iso between Translation-hypergraphs implies the corresponding
--- iso between FromAPROP-hypergraphs because the pruned vertices
--- (removed by `hComposeP`) are precisely those that the iso's φ
--- forces to be in the same equivalence class.
---
--- DISCHARGE STRATEGY: structural induction on `f` and `g`, with the
--- `_∘_` case unfolding `hComposeP` vs `hCompose` and transferring
--- the vertex/edge bijections through the pruning map.
---
--- (E2) DECODE-ATTEMPT-RESP-ISO: the algorithmic step.
---
--- Given an iso `⟪f⟫_F ≅ᴴ ⟪g⟫_F` over FromAPROP-translated hypergraphs
--- (both automatically Linear via `⟪⟫-Linear`), the projection of
--- `decode-attempt-Linear` is ≈Term-equivalent on both sides modulo
--- a boundary-equality substitution.
---
--- This bundles sub-properties (b), (c), (d) of Route 1:
---   * (b) Edge-reorder invariance under ψ
---   * (c) Vertex-relabel invariance under φ
---   * (d) Stack-permutation absorption at extract-exact
---
--- The boundary equation chain is:
---
---     domL ⟪f⟫_F ≡ flatten A ≡ domL ⟪g⟫_F
---
--- i.e., the dom-equality is just `trans (sym (⟪⟫F-domL g)) (⟪⟫F-domL f)`.
---
--- DISCHARGE STRATEGY:
---   1. Use `decode-attempt-perm-from-just` on both sides to extract
---      `s_f-final ↭ ⟪f⟫_F.cod` and `s_g-final ↭ ⟪g⟫_F.cod`.
---   2. Use the iso's φ to derive `s_g-final ↭ map φ s_f-final`.
---   3. Compose process-edges' outputs via `process-edges-↭`-style
---      lemmas (analogous to those in EdgeReorder.agda but under the
---      topological-success precondition that Linearity provides).
---   4. Absorb the final stack permutation into `permute-via-vlab`.
---   5. The resulting ≈Term chain composes with idˡ/idʳ and the bridge
---      coherence isos to close.
---
--- ARCHITECTURAL BLOCKER: step 3 requires the ~600 LOC Mac-Lane chase
--- per swap atom (see EdgeReorder.agda).
-
-record CompletenessAssumptions : Set where
-  field
-    -- (E1) Translation ↔ FromAPROP iso lift.
-    boundary-respects-iso
-      : ∀ {A B} (f g : HomTerm A B)
-      → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫       -- Translation iso (hComposeP)
-      → ⟪ f ⟫F ≅ᴴ ⟪ g ⟫F     -- FromAPROP iso (hCompose)
-
-    -- (E2) Algorithmic decoder ≈Term invariance pre-subst₂.
-    decode-attempt-resp-iso
-      : ∀ {A B} (f g : HomTerm A B)
-      → ⟪ f ⟫F ≅ᴴ ⟪ g ⟫F
-      → proj₁ (decode-attempt-Linear f)
-        ≈Term subst₂ HomTerm
-                (cong unflatten (trans (⟪⟫F-domL g) (sym (⟪⟫F-domL f))))
-                (cong unflatten (trans (⟪⟫F-codL g) (sym (⟪⟫F-codL f))))
-                (proj₁ (decode-attempt-Linear g))
-
-    -- (F) Decoder agreement: the structural decoder `decode-rel`
-    -- agrees with the algorithmic decoder `decode` up to `≈Term`.
-    -- A constructive proof of this would go via the shared `bridge`
-    -- normal form (decode-rel f ≈ bridge f ≈ decode f), but
-    -- `decode-roundtrip` from DecodeRoundtrip.agda still has open
-    -- postulates (`decode-roundtrip-Agen`, `decode-roundtrip-σ`,
-    -- etc.).  Consolidating it here makes the trust explicit and
-    -- lets all downstream modules be `--safe`-clean.
-    decode-rel-≈-decode
-      : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term decode f
-
---------------------------------------------------------------------------------
--- ## Section 3: CONSTRUCTIVE COMPOSITION.
---
--- The constructive composition of (E1) and (E2) into
--- `decode-resp-iso`.  Uses `subst₂-resp-≈Term` (DecodeRoundtrip.agda)
--- to lift the underlying ≈Term through the boundary `subst₂` in
--- `decode`'s definition.
---
--- Strategy:
---   1. (E1) lift Translation iso to FromAPROP iso.
---   2. (E2) get the ≈Term at the unsubst'd algorithmic level.
---   3. Push the subst₂ through using `subst₂-trans` + cancellation.
---   4. Apply `subst₂-resp-≈Term` to match the boundary types of
---      `decode f` and `decode g`.
-
--- Step 3 helper: `subst₂-trans` for HomTerm along `unflatten`-cong'd
--- equations.  Lifts trans of equality chains to the subst₂ level.
-
-private
+  -- Subst₂-trans for HomTerm along `unflatten`-cong'd equations.
   subst₂-HomTerm-trans
     : ∀ {As₁ As₂ As₃ Bs₁ Bs₂ Bs₃}
         (p₁ : As₁ ≡ As₂) (p₂ : As₂ ≡ As₃)
@@ -265,66 +233,312 @@ private
                         (cong unflatten (trans q₁ q₂)) t
   subst₂-HomTerm-trans refl refl refl refl _ = refl
 
-  -- Cancellation: trans (sym (g≡)) (f≡) ∘ f≡-inverse =def g≡.
-  -- This is the bridge cancellation lemma at the equation level.
-  trans-sym-cancel
-    : ∀ {A : Set} {a b c : A} (p : a ≡ b) (q : c ≡ b)
-    → trans (trans q (sym p)) p ≡ q
-  trans-sym-cancel refl refl = refl
+  -- Subst₂ commutes with composition.
+  subst₂-∘-distrib
+    : ∀ {As₁ As₂ Bs₁ Bs₂ Cs₁ Cs₂ : List X}
+        (p : As₁ ≡ As₂) (q : Bs₁ ≡ Bs₂) (r : Cs₁ ≡ Cs₂)
+        (f : HomTerm (unflatten Bs₁) (unflatten Cs₁))
+        (g : HomTerm (unflatten As₁) (unflatten Bs₁))
+    → subst₂ HomTerm (cong unflatten p) (cong unflatten r) (f ∘ g)
+      ≡ subst₂ HomTerm (cong unflatten q) (cong unflatten r) f
+        ∘ subst₂ HomTerm (cong unflatten p) (cong unflatten q) g
+  subst₂-∘-distrib refl refl refl _ _ = refl
 
-  -- Triangle: the f-domL identity goes from `domL ⟪f⟫F → flatten A`,
-  -- and the g-domL goes from `domL ⟪g⟫F → flatten A`.  We need the
-  -- composition (going through both) to land on `flatten A`.
-  trans-paths-collapse
-    : ∀ {A : Set} {a b c : A} (p : a ≡ c) (q : b ≡ c)
-    → trans (trans q (sym p)) p ≡ q
-  trans-paths-collapse refl refl = refl
-
---------------------------------------------------------------------------------
--- (Composition) The boundary subst₂ chase — CONSTRUCTIVE.
---
--- After applying (E2) at the unsubst'd algorithmic level, we have:
---
---     proj₁ (decode-attempt-Linear f)
---       ≈Term subst₂ [cong unflatten (trans (⟪⟫F-domL g) (sym (⟪⟫F-domL f)))]
---                     [cong unflatten (trans (⟪⟫F-codL g) (sym (⟪⟫F-codL f)))]
---                     (proj₁ (decode-attempt-Linear g))
---
--- And we want:
---
---     decode f ≈Term decode g
---
--- where:
---
---     decode f = subst₂ [cong unflatten (⟪⟫F-domL f)] [cong unflatten (⟪⟫F-codL f)]
---                       (proj₁ (decode-attempt-Linear f))
---     decode g = subst₂ [cong unflatten (⟪⟫F-domL g)] [cong unflatten (⟪⟫F-codL g)]
---                       (proj₁ (decode-attempt-Linear g))
---
--- The chase: lift (E2) through `subst₂-resp-≈Term`, then collapse the
--- nested subst₂'s into one via `subst₂-HomTerm-trans` whose composed
--- equation simplifies to `⟪⟫F-domL g` (via `trans-sym-cancel`).
-
--- A helper: rewrite the type of a HomTerm along an equality of equality
--- witnesses.  Lets us bridge from `subst₂ p q t` to `subst₂ p' q' t`
--- when `p ≡ p'` and `q ≡ q'`.
-
-private
-  subst₂-cong
-    : ∀ {As Bs As' Bs' : List X}
-        {p₁ p₂ : As ≡ As'} {q₁ q₂ : Bs ≡ Bs'}
-        (eq-p : p₁ ≡ p₂) (eq-q : q₁ ≡ q₂)
-        (t : HomTerm (unflatten As) (unflatten Bs))
-    → subst₂ HomTerm (cong unflatten p₁) (cong unflatten q₁) t
-      ≡ subst₂ HomTerm (cong unflatten p₂) (cong unflatten q₂) t
-  subst₂-cong refl refl _ = refl
+  -- UIP (from `--with-K`).
+  uip : ∀ {A : Set} {a b : A} (p q : a ≡ b) → p ≡ q
+  uip refl refl = refl
 
 --------------------------------------------------------------------------------
--- The main result: `decode-resp-iso` as a CONSTRUCTIVE composition,
--- parameterised by an instance of `CompletenessAssumptions`.
+-- ## Section 3: The `CompletenessAssumptions` record.
+--
+-- THREE fields, each strictly narrower than the original opaque
+-- algorithmic-decoder iso invariance.  The composition deriving
+-- `decode-attempt-resp-iso` (and beyond) lives in `WithAssumptions`.
+
+record CompletenessAssumptions : Set where
+  field
+    -- (c') TERM-LEVEL, NARROWER: takes the stack permutation as an
+    -- EXPLICIT parameter (rather than internally calling the (b)
+    -- discharge).  This is strictly narrower than the old (c) on two
+    -- axes:
+    --   * No internal invocation of `process-edges-resp-iso-stack`.
+    --   * Otherwise identical conclusion shape.
+    -- The old (c) is recovered constructively in `WithAssumptions` by
+    -- applying this field to the discharged (b) value.
+    -- See `Discharge/ProcessTermNew.agda` for the structural analysis.
+    process-term-permute-aligned
+      : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+          (stack-↭ :
+            map (Hypergraph.vlab ⟪ f ⟫F)
+                (proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
+            Perm.↭
+            map (Hypergraph.vlab ⟪ g ⟫F)
+                (proj₁ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F))))
+      → permute (Perm.↭-sym stack-↭)
+        ∘ subst₂ HomTerm
+            (cong unflatten (full-dom-eq f g))
+            refl
+            (proj₂ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F)))
+        ≈Term
+        proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
+
+    -- (XSL) KELLY'S SELF-LOOP COHERENCE on the `permute` fragmengt.
+    -- This is the UNARY form of Kelly's coherence: any `permute` of a
+    -- closed `↭ : xs ↭ xs` (a "permutation cycle") is `≈Term`-equal
+    -- to `id`.
+    --
+    -- The full binary `permute-≈Term-coherence` (Kelly on the
+    -- `permute` fragment) is RECONSTRUCTED constructively in
+    -- `WithAssumptions` from this unary field plus the discharged
+    -- `permute-inverse-right`.  See
+    -- `Discharge/PermuteCoherenceShared.agda` (`FromXSelfLoop`) for
+    -- the reduction.
+    --
+    -- Strictly narrower than the old (K): one boundary list `xs`, one
+    -- derivation `r : xs ↭ xs`, conclusion `≈Term id` (no second
+    -- derivation, no second boundary list).  Both the old (c) and (d)
+    -- discharges flow through this single shared residual.
+    --
+    -- ⚠ Caveat: at X-level (atom labels) this can still fail for
+    -- duplicate-list inputs (see `Discharge/Sub/PermuteCoherence.agda`
+    -- counter-example).  A safer formulation restricts to Fin-level
+    -- via `Linear` data + `Unique` (see
+    -- `Discharge/Sub/PermuteCoherenceFin.agda` for partial discharge,
+    -- and `Discharge/Sub/SelfLoop.agda` for further narrowing of the
+    -- Fin-level self-loop down to `trans-mismatch-self-loop-id` for
+    -- nested-trans cases).
+    X-permute-self-loop-id
+      : ∀ {xs : List X} (r : xs Perm.↭ xs)
+      → permute r ≈Term id
+
+    -- (F) DECODER AGREEMENT: the structural decoder `decode-rel`
+    -- agrees with the algorithmic decoder `decode` up to `≈Term`.
+    decode-rel-≈-decode
+      : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term decode f
+
+--------------------------------------------------------------------------------
+-- ## Section 4: CONSTRUCTIVE COMPOSITION.
+--
+-- `WithAssumptions` derives `decode-attempt-resp-iso`,
+-- `decode-resp-iso`, and `decode-rel-resp-iso` constructively from
+-- the five `CompletenessAssumptions` fields.
 
 module WithAssumptions (assumptions : CompletenessAssumptions) where
   open CompletenessAssumptions assumptions
+
+  ------------------------------------------------------------------------
+  -- Step 0: Reconstruct the old (c)/(d) discharges from the new
+  -- factored fields + Kelly coherence.
+
+  private
+    -- Step 0a: reconstruct the binary `permute-≈Term-coherence` from
+    -- the unary `X-permute-self-loop-id` field, via Path C in
+    -- `Discharge/PermuteCoherenceShared.agda`.
+    x-self-loop : PermSh.XSelfLoop
+    x-self-loop = record { X-permute-self-loop-id = X-permute-self-loop-id }
+
+    open PermSh.FromXSelfLoop x-self-loop
+      using (permute-≈Term-coherence-from-X-self-loop)
+
+    permute-≈Term-coherence
+      : ∀ {xs ys : List X} (p q : xs Perm.↭ ys)
+      → permute p ≈Term permute q
+    permute-≈Term-coherence = permute-≈Term-coherence-from-X-self-loop
+
+    -- Step 0b: bundle the recovered Kelly coherence for the (c)/(d)
+    -- discharge modules.
+    process-assumption : ProcessTermN.ProcessTermPermuteAssumption
+    process-assumption = record
+      { process-term-permute-aligned = process-term-permute-aligned }
+
+    bridge-coherence : ProcessTermN.PermuteCoherenceForBridge
+    bridge-coherence = record
+      { permute-≈Term-coherence = permute-≈Term-coherence }
+
+    finalp-coherence : FinalPermuteN.PermuteCoherence
+    finalp-coherence = record
+      { permute-≈Term-coherence = permute-≈Term-coherence }
+
+    open ProcessTermN.WithAssumption process-assumption bridge-coherence
+      using (discharge-with-stack-fn)
+    open FinalPermuteN.WithCoherence finalp-coherence
+      using (final-permute-absorb-discharge)
+
+  -- The OLD (c) body, derived from `process-term-permute-aligned`
+  -- applied to the discharged (b) value.
+  process-edges-resp-iso-term
+    : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+    → let process-F = process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)
+          process-G = process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F)
+          stack-↭ = process-edges-resp-iso-stack f g iso
+      in permute (Perm.↭-sym stack-↭)
+         ∘ subst₂ HomTerm
+             (cong unflatten (full-dom-eq f g))
+             refl
+             (proj₂ process-G)
+         ≈Term
+         proj₂ process-F
+  process-edges-resp-iso-term f g iso =
+    discharge-with-stack-fn process-edges-resp-iso-stack f g iso
+
+  -- The OLD (d) body, derived from `final-permute-absorb-discharge`
+  -- applied to the discharged (b) value.
+  final-permute-absorb
+    : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+        (perm-f : proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
+                  Perm.↭ Hypergraph.cod ⟪ f ⟫F)
+        (perm-g : proj₁ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F))
+                  Perm.↭ Hypergraph.cod ⟪ g ⟫F)
+    → let stack-↭ = process-edges-resp-iso-stack f g iso
+          F-vlab = Hypergraph.vlab ⟪ f ⟫F
+          G-vlab = Hypergraph.vlab ⟪ g ⟫F
+      in subst₂ HomTerm
+           refl
+           (cong unflatten (full-cod-eq f g))
+           (permute-via-vlab G-vlab perm-g)
+         ∘ permute stack-↭
+         ≈Term
+         permute-via-vlab F-vlab perm-f
+  final-permute-absorb f g iso perm-f perm-g =
+    final-permute-absorb-discharge f g iso
+      (process-edges-resp-iso-stack f g iso) perm-f perm-g
+
+  ------------------------------------------------------------------------
+  -- Step 1: `decode-attempt-resp-iso`.
+  --
+  -- The algorithmic-decoder iso invariance, derived constructively
+  -- from the discharged (b), the locally-reconstructed old (c)/(d)
+  -- bodies above, and `decode-attempt-Linear-extracts` plus the
+  -- subst₂ algebra.
+
+  decode-attempt-resp-iso
+    : ∀ {A B} (f g : HomTerm A B)
+    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+    → proj₁ (decode-attempt-Linear f)
+      ≈Term subst₂ HomTerm
+              (cong unflatten (full-dom-eq f g))
+              (cong unflatten (full-cod-eq f g))
+              (proj₁ (decode-attempt-Linear g))
+  decode-attempt-resp-iso {A} {B} f g iso = chain
+    where
+      f-extract-data = decode-attempt-Linear-extracts-discharge f
+      g-extract-data = decode-attempt-Linear-extracts-discharge g
+
+      perm-f : proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
+               Perm.↭ Hypergraph.cod ⟪ f ⟫F
+      perm-f = proj₁ f-extract-data
+
+      perm-g : proj₁ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F))
+               Perm.↭ Hypergraph.cod ⟪ g ⟫F
+      perm-g = proj₁ g-extract-data
+
+      F-vlab = Hypergraph.vlab ⟪ f ⟫F
+      G-vlab = Hypergraph.vlab ⟪ g ⟫F
+
+      process-F-term = proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
+      process-G-term = proj₂ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F))
+
+      final-permute-F = permute-via-vlab F-vlab perm-f
+      final-permute-G = permute-via-vlab G-vlab perm-g
+
+      dom-iso = full-dom-eq f g
+      cod-iso = full-cod-eq f g
+
+      stack-↭ = process-edges-resp-iso-stack f g iso
+      proc-eq = process-edges-resp-iso-term f g iso
+      fperm-eq = final-permute-absorb f g iso perm-f perm-g
+
+      f-extracts : proj₁ (decode-attempt-Linear f)
+                 ≡ final-permute-F ∘ process-F-term
+      f-extracts = proj₂ f-extract-data
+
+      g-extracts : proj₁ (decode-attempt-Linear g)
+                 ≡ final-permute-G ∘ process-G-term
+      g-extracts = proj₂ g-extract-data
+
+      -- The new composition shape uses `permute (Perm.↭-sym stack-↭)`
+      -- and `permute stack-↭` as bridges; their round-trip cancels by
+      -- `permute-inverse-right`.
+
+      -- The G-side terms after subst₂.
+      subst-G-final = subst₂ HomTerm refl (cong unflatten cod-iso)
+                              final-permute-G
+      subst-G-proc  = subst₂ HomTerm (cong unflatten dom-iso) refl
+                              process-G-term
+
+      -- (d): `subst-G-final ∘ permute stack-↭ ≈Term final-permute-F`.
+      -- (c): `permute (sym stack-↭) ∘ subst-G-proc ≈Term process-F-term`.
+      -- Compose: `final-permute-F ∘ process-F-term ≈Term
+      --   (subst-G-final ∘ permute stack-↭) ∘ (permute (sym stack-↭) ∘ subst-G-proc)`.
+      -- By assoc + `permute-inverse-right stack-↭`:
+      --   ≈Term subst-G-final ∘ id ∘ subst-G-proc
+      --   ≈Term subst-G-final ∘ subst-G-proc                    [idˡ]
+      --   ≡ subst₂ dom-iso cod-iso (final-permute-G ∘ process-G-term)  [subst₂-∘-distrib]
+      --   ≡ subst₂ dom-iso cod-iso (decode-attempt-Linear g)    [sym g-extracts]
+      -- And `decode-attempt-Linear f ≡ final-permute-F ∘ process-F-term` [f-extracts].
+
+      ∘-step : final-permute-F ∘ process-F-term
+             ≈Term (subst-G-final ∘ permute stack-↭)
+                   ∘ (permute (Perm.↭-sym stack-↭) ∘ subst-G-proc)
+      ∘-step = FM.∘-resp-≈ (≈-Term-sym fperm-eq) (≈-Term-sym proc-eq)
+
+      cancellation-step
+        : (subst-G-final ∘ permute stack-↭)
+          ∘ (permute (Perm.↭-sym stack-↭) ∘ subst-G-proc)
+          ≈Term subst-G-final ∘ subst-G-proc
+      cancellation-step = begin
+        (subst-G-final ∘ permute stack-↭)
+          ∘ (permute (Perm.↭-sym stack-↭) ∘ subst-G-proc)
+          ≈⟨ FM.assoc ⟩
+        subst-G-final ∘ (permute stack-↭
+          ∘ (permute (Perm.↭-sym stack-↭) ∘ subst-G-proc))
+          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+        subst-G-final ∘ ((permute stack-↭ ∘ permute (Perm.↭-sym stack-↭))
+          ∘ subst-G-proc)
+          ≈⟨ refl⟩∘⟨ (permute-inverse-right stack-↭ ⟩∘⟨refl) ⟩
+        subst-G-final ∘ (id ∘ subst-G-proc)
+          ≈⟨ refl⟩∘⟨ FM.identityˡ ⟩
+        subst-G-final ∘ subst-G-proc
+          ∎
+
+      subst-fold : subst-G-final ∘ subst-G-proc
+                 ≡ subst₂ HomTerm
+                     (cong unflatten dom-iso)
+                     (cong unflatten cod-iso)
+                     (final-permute-G ∘ process-G-term)
+      subst-fold = sym (subst₂-∘-distrib dom-iso refl cod-iso
+                                          final-permute-G process-G-term)
+
+      chain
+        : proj₁ (decode-attempt-Linear f)
+          ≈Term subst₂ HomTerm
+                  (cong unflatten dom-iso)
+                  (cong unflatten cod-iso)
+                  (proj₁ (decode-attempt-Linear g))
+      chain = begin
+        proj₁ (decode-attempt-Linear f)
+          ≈⟨ ≡⇒≈Term f-extracts ⟩
+        final-permute-F ∘ process-F-term
+          ≈⟨ ∘-step ⟩
+        (subst-G-final ∘ permute stack-↭)
+          ∘ (permute (Perm.↭-sym stack-↭) ∘ subst-G-proc)
+          ≈⟨ cancellation-step ⟩
+        subst-G-final ∘ subst-G-proc
+          ≈⟨ ≡⇒≈Term subst-fold ⟩
+        subst₂ HomTerm (cong unflatten dom-iso) (cong unflatten cod-iso)
+          (final-permute-G ∘ process-G-term)
+          ≈⟨ ≡⇒≈Term (cong (subst₂ HomTerm (cong unflatten dom-iso)
+                                            (cong unflatten cod-iso))
+                            (sym g-extracts)) ⟩
+        subst₂ HomTerm (cong unflatten dom-iso) (cong unflatten cod-iso)
+          (proj₁ (decode-attempt-Linear g))
+          ∎
+
+  ------------------------------------------------------------------------
+  -- Step 2: `decode-resp-iso` (algorithmic level, with `decode`).
+  --
+  -- Lifts `decode-attempt-resp-iso` through the boundary subst₂ in
+  -- `decode`'s definition.
 
   decode-resp-iso
     : ∀ {A B} (f g : HomTerm A B)
@@ -332,41 +546,16 @@ module WithAssumptions (assumptions : CompletenessAssumptions) where
     → decode f ≈Term decode g
   decode-resp-iso {A} {B} f g iso-T = chain
     where
-      -- (E1): lift Translation iso to FromAPROP iso.
-      iso-F : ⟪ f ⟫F ≅ᴴ ⟪ g ⟫F
-      iso-F = boundary-respects-iso f g iso-T
-
-      -- Linear data (constructive).  Not strictly used in the composition
-      -- below since (E2) is at the term level (Linearity is used inside
-      -- its discharge via `⟪⟫-Linear` directly), but exposed here for
-      -- the future general case where it's the workhorse.
-      lin-pair : Linear ⟪ f ⟫F × Linear ⟪ g ⟫F
-      lin-pair = ⟪⟫F-Linear-pair f g
-
-      -- The unsubst'd HomTerms.
       t-f = proj₁ (decode-attempt-Linear f)
       t-g = proj₁ (decode-attempt-Linear g)
 
-      -- (E2) The ≈Term at the unsubst'd level.
-      --   bridge equations:
-      --     dom-bridge : domL ⟪f⟫_F ≡ domL ⟪g⟫_F
-      --     cod-bridge : codL ⟪f⟫_F ≡ codL ⟪g⟫_F
-      dom-bridge = trans (⟪⟫F-domL g) (sym (⟪⟫F-domL f))
-      cod-bridge = trans (⟪⟫F-codL g) (sym (⟪⟫F-codL f))
+      dom-bridge = full-dom-eq f g
+      cod-bridge = full-cod-eq f g
 
-      body-eq
-        : t-f
-          ≈Term subst₂ HomTerm
-                  (cong unflatten dom-bridge)
-                  (cong unflatten cod-bridge)
-                  t-g
-      body-eq = decode-attempt-resp-iso f g iso-F
+      body-eq : t-f ≈Term subst₂ HomTerm (cong unflatten dom-bridge)
+                                          (cong unflatten cod-bridge) t-g
+      body-eq = decode-attempt-resp-iso f g iso-T
 
-      -- Lift `body-eq` through the outer subst₂ (the boundary in `decode f`).
-      --   subst₂ (cong unflatten ⟪⟫F-domL f) (cong unflatten ⟪⟫F-codL f) t-f
-      --     ≈Term subst₂ (cong unflatten ⟪⟫F-domL f) (cong unflatten ⟪⟫F-codL f)
-      --             (subst₂ (cong unflatten dom-bridge) (cong unflatten cod-bridge) t-g)
-      --   Definitionally: LHS = decode f.
       lifted-eq
         : decode f
           ≈Term subst₂ HomTerm
@@ -378,7 +567,6 @@ module WithAssumptions (assumptions : CompletenessAssumptions) where
                     t-g)
       lifted-eq = subst₂-resp-≈Term (⟪⟫F-domL f) (⟪⟫F-codL f) body-eq
 
-      -- Collapse the nested subst₂'s into one.
       collapsed
         : subst₂ HomTerm
             (cong unflatten (⟪⟫F-domL f))
@@ -394,16 +582,22 @@ module WithAssumptions (assumptions : CompletenessAssumptions) where
       collapsed = subst₂-HomTerm-trans dom-bridge (⟪⟫F-domL f)
                                         cod-bridge (⟪⟫F-codL f) t-g
 
-      -- The composed equations simplify to `⟪⟫F-domL g` and `⟪⟫F-codL g`.
-      dom-collapse
-        : trans dom-bridge (⟪⟫F-domL f) ≡ ⟪⟫F-domL g
-      dom-collapse = trans-sym-cancel (⟪⟫F-domL f) (⟪⟫F-domL g)
+      dom-collapse : trans dom-bridge (⟪⟫F-domL f) ≡ ⟪⟫F-domL g
+      dom-collapse = trans-paths-collapse (⟪⟫F-domL f) (⟪⟫F-domL g)
+        where
+          trans-paths-collapse
+            : ∀ {A : Set} {a b c : A} (p : a ≡ c) (q : b ≡ c)
+            → trans (trans q (sym p)) p ≡ q
+          trans-paths-collapse refl refl = refl
 
-      cod-collapse
-        : trans cod-bridge (⟪⟫F-codL f) ≡ ⟪⟫F-codL g
-      cod-collapse = trans-sym-cancel (⟪⟫F-codL f) (⟪⟫F-codL g)
+      cod-collapse : trans cod-bridge (⟪⟫F-codL f) ≡ ⟪⟫F-codL g
+      cod-collapse = trans-paths-collapse (⟪⟫F-codL f) (⟪⟫F-codL g)
+        where
+          trans-paths-collapse
+            : ∀ {A : Set} {a b c : A} (p : a ≡ c) (q : b ≡ c)
+            → trans (trans q (sym p)) p ≡ q
+          trans-paths-collapse refl refl = refl
 
-      -- Rewrite the collapsed subst₂ to use ⟪⟫F-{dom,cod}L g directly.
       rewritten
         : subst₂ HomTerm
             (cong unflatten (trans dom-bridge (⟪⟫F-domL f)))
@@ -413,28 +607,22 @@ module WithAssumptions (assumptions : CompletenessAssumptions) where
               (cong unflatten (⟪⟫F-domL g))
               (cong unflatten (⟪⟫F-codL g))
               t-g
-      rewritten = subst₂-cong dom-collapse cod-collapse t-g
+      rewritten = subst₂-cong-proofs (trans dom-bridge (⟪⟫F-domL f))
+                                      (⟪⟫F-domL g)
+                                      (trans cod-bridge (⟪⟫F-codL f))
+                                      (⟪⟫F-codL g)
+                                      t-g
+                                      dom-collapse cod-collapse
 
-      -- The RHS of `rewritten` is definitionally `decode g`.
-      rewritten-decode-g
-        : subst₂ HomTerm
-            (cong unflatten (⟪⟫F-domL g))
-            (cong unflatten (⟪⟫F-codL g))
-            t-g
-          ≡ decode g
-      rewritten-decode-g = refl
-
-      -- Chain everything together.
       chain : decode f ≈Term decode g
       chain = ≈-Term-trans lifted-eq
                 (≈-Term-trans (≡⇒≈Term collapsed)
-                              (≡⇒≈Term (trans rewritten rewritten-decode-g)))
+                              (≡⇒≈Term rewritten))
 
-  --------------------------------------------------------------------------------
-  -- Derived: the term-level claim `decode-rel-resp-iso`.  Composes
-  -- the algorithmic `decode-resp-iso` with the (F) decoder-agreement
-  -- field.  Used by `Inductive.WithAssumptions` to derive
-  -- `nf-resp-≅ᴴ-residual`.
+  ------------------------------------------------------------------------
+  -- Step 3: `decode-rel-resp-iso` (term level, with `decode-rel`).
+  --
+  -- Composes `decode-resp-iso` with the (F) decoder-agreement field.
 
   decode-rel-resp-iso
     : ∀ {A B} (f g : HomTerm A B)
@@ -444,57 +632,3 @@ module WithAssumptions (assumptions : CompletenessAssumptions) where
     ≈-Term-trans (decode-rel-≈-decode f)
       (≈-Term-trans (decode-resp-iso f g iso)
                     (≈-Term-sym (decode-rel-≈-decode g)))
-
---------------------------------------------------------------------------------
--- ## Section 4: Summary.
---
--- This file's `decode-resp-iso` has STRICTLY NARROWER postulates than
--- the original opaque postulate in `Route1Composition.agda`:
---
--- BEFORE (Route1Composition.agda):
---   * decode-resp-iso  — 1 opaque term-level postulate (the full
---     algorithmic decoder iso invariance over Translation
---     hypergraphs)
---
--- AFTER (this file):
---   * boundary-respects-iso     — Translation ↔ FromAPROP iso lift
---                                  (~150 LOC structural induction)
---   * decode-attempt-resp-iso   — algorithmic ≈Term invariance
---                                  (~600+50+50 LOC = (b)+(c)+(d))
---
--- Net: shifted from 1 opaque term-level postulate to 2 narrower
--- postulates at the boundary / algorithmic level, with the high-level
--- `decode-resp-iso` as a CONSTRUCTIVE composition (no extra postulates
--- for the composition itself).
---
--- ## CONSTRUCTIVE CONTENT DELIVERED.
---
---   * `⟪⟫F-Linear-pair`      — direct Linear pair from `⟪⟫-Linear` × 2.
---   * `⟪⟫F-Linear-via-iso`   — Linear preservation via `Linear-resp-iso`.
---                              (Sub-property (a) of Route 1, fully
---                              constructive in LinearityIso.agda.)
---   * `subst₂-HomTerm-trans` — subst₂ trans collapse lemma.
---   * `trans-sym-cancel`     — equation-trans cancellation lemma.
---   * `subst₂-cong`          — subst₂ equality-cong lemma.
---   * The composition pipeline in `decode-resp-iso` itself: a
---     7-step chain applying (E1), (E2), and the boundary subst₂
---     algebra to produce a constructive `decode f ≈Term decode g`.
---
--- ## NEXT STEPS RECOMMENDATIONS.
---
--- 1. Discharge `boundary-respects-iso` constructively by structural
---    induction on `f`/`g`.  The only non-trivial case is `g ∘ f`
---    where `hComposeP` pruning must be tracked back to `hCompose`'s
---    full vertex/edge set.  Estimated ~150 LOC.
---
--- 2. Discharge `decode-attempt-resp-iso` by following the Route 1
---    strategy in `EdgeReorder.agda`'s prose analysis.  Define the
---    `AllFire` precondition, prove it's preserved by the iso for
---    translated/Linear hypergraphs, then discharge per swap atom
---    via Mac Lane chase.  Estimated ~700 LOC.
---
--- 3. Alternative: rather than going through the iso route, try a
---    DECODER-DIRECT approach via `decode-roundtrip` + bridge
---    cancellation.  But this requires `f ≈Term g`, which is what
---    `completeness-full` derives FROM the iso — circular.
---------------------------------------------------------------------------------

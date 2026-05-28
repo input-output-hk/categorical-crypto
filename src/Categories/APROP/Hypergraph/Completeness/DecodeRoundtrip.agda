@@ -1180,22 +1180,12 @@ private
   --  11. `id-⊗-subst-bridge` + `≡⇒≈Term (sym (subst-∘ ...))` to
   --      convert `id ⊗ subst-id-xs₁'` to `subst-id-(x ∷ xs₁')`.
   -- Inductive case helper: `c-iso-assoc-from-cons` is what
-  -- `c-iso-assoc-from (x ∷ xs₁') xs₂ ys` reduces to.  Postulated for
-  -- now — full proof requires ~30 chain steps.  All necessary
-  -- infrastructure is in place above (pentagon-rewrite, α⇐-comm-top,
-  -- id-⊗-respects-∘, id-⊗-subst-bridge, c-iso-assoc-from xs₁' xs₂ ys
-  -- as IH).
-  postulate
-    c-iso-assoc-from-cons
-      : ∀ x xs₁' xs₂ ys
-      → α⇒ {unflatten (x ∷ xs₁')} {unflatten xs₂} {unflatten ys}
-        ∘ (_≅_.from (unflatten-++-≅ (x ∷ xs₁') xs₂) ⊗₁ id)
-        ∘ _≅_.from (unflatten-++-≅ ((x ∷ xs₁') ++ xs₂) ys)
-      ≈Term (id {unflatten (x ∷ xs₁')} ⊗₁ _≅_.from (unflatten-++-≅ xs₂ ys))
-            ∘ _≅_.from (unflatten-++-≅ (x ∷ xs₁') (xs₂ ++ ys))
-            ∘ subst (λ z → HomTerm (unflatten (((x ∷ xs₁') ++ xs₂) ++ ys))
-                                    (unflatten z))
-                    (++-assoc (x ∷ xs₁') xs₂ ys) id
+  -- `c-iso-assoc-from (x ∷ xs₁') xs₂ ys` reduces to.  Constructively
+  -- discharged in
+  -- `Categories.APROP.Hypergraph.Completeness.Discharge.CIsoAssocFromCons`
+  -- via an 11-step pentagon chain.
+  open import Categories.APROP.Hypergraph.Completeness.Discharge.CIsoAssocFromCons sig
+    using (c-iso-assoc-from-cons)
 
   c-iso-assoc-from
     : ∀ xs₁ xs₂ ys

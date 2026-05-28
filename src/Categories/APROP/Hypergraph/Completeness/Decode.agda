@@ -90,6 +90,13 @@ extract-prefix (k ∷ ks) xs with extract-elem k xs
 ...                         | just (rest , q)    =
                                just (rest , Perm.trans p (Perm.prep k q))
 
+-- `xs ++ [] ↭ xs`.  Lifted to module scope (was previously local to
+-- `extract-exact`'s where-clause) so downstream lemmas can refer to it
+-- when reasoning about `extract-exact`'s perm output.
+++-[]-↭ : ∀ {n} (l : List (Fin n)) → l ++ [] Perm.↭ l
+++-[]-↭ []       = Perm.refl
+++-[]-↭ (x ∷ xs) = Perm.prep x (++-[]-↭ xs)
+
 -- Specialised search for an exact multiset match: look for `ks`
 -- with empty residual.  Used at the final step to bridge to `H.cod`.
 extract-exact
@@ -98,10 +105,6 @@ extract-exact
 extract-exact ks xs with extract-prefix ks xs
 ... | nothing       = nothing
 ... | just ([]    , p) = just (Perm.trans p (++-[]-↭ ks))
-  where
-    ++-[]-↭ : ∀ {n} (l : List (Fin n)) → l ++ [] Perm.↭ l
-    ++-[]-↭ []       = Perm.refl
-    ++-[]-↭ (x ∷ xs) = Perm.prep x (++-[]-↭ xs)
 ... | just (_ ∷ _ , _) = nothing
 
 --------------------------------------------------------------------------------
