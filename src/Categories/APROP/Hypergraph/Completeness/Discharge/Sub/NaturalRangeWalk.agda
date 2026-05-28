@@ -132,9 +132,6 @@ open import Categories.APROP.Hypergraph.Completeness.Permute sig
   using (permute; permute-via-vlab)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.ProcessTerm sig-dec
   using (full-dom-eq; full-cod-eq)
-open import Categories.APROP.Hypergraph.Completeness.Discharge.PermuteCoherenceShared
-  sig-dec
-  using (XSelfLoop; PermuteCoherence; module FromXSelfLoop)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BridgeToGList
   sig-dec
   using (PerEdgeAtomsOnly; NaturalRangeWalkBridge)
@@ -296,12 +293,10 @@ record NaturalRangeWalkResidual : Set where
 
 module FromInputs
   (atoms    : PerEdgeAtomsOnly)
-  (xsl      : XSelfLoop)
   (residual : NaturalRangeWalkResidual)
   where
 
   open PerEdgeAtomsOnly atoms
-  open XSelfLoop xsl
   open NaturalRangeWalkResidual residual
 
   -- Build a `ProcessTermAlignedAssumption` from the inputs, then

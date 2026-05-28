@@ -112,6 +112,8 @@ open import Categories.APROP.Hypergraph.Completeness.Decode sig
   using (extract-prefix; process-edges; process-all-edges; edge-step)
 open import Categories.APROP.Hypergraph.Completeness.Permute sig
   using (permute; permute-via-vlab)
+open import Categories.APROP.Hypergraph.Completeness.Linearity sig
+  using (Linear) renaming (⟪⟫-Linear to Lin-⟪⟫-Linear)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.PermuteCoherenceFin sig
   using (permute-inverse-left; permute-inverse-right)
 
@@ -364,6 +366,7 @@ record ProcessTermAligned2Residual : Set where
       : ∀ (H : Hypergraph FlatGen)
           (es₁ es₂ : List (Fin (Hypergraph.nE H)))
           (s : List (Fin (Hypergraph.nV H)))
+        (lin : Linear H)
         (af₁ : AllFire H es₁ s) (af₂ : AllFire H es₂ s)
       → es₁ Perm.↭ es₂
       → ProcessEdges↭Goal H es₁ es₂ s
@@ -492,6 +495,7 @@ module WithResidual (r : ProcessTermAligned2Residual) where
                   (range (Hypergraph.nE ⟪ f ⟫F))
                   (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
                   (Hypergraph.dom ⟪ f ⟫F)
+                  (Lin-⟪⟫-Linear f)
                   af-nat af-via es-↭
 
         b-stack-↭ = proj₁ b-out

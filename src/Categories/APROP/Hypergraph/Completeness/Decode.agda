@@ -108,28 +108,32 @@ extract-exact ks xs with extract-prefix ks xs
 ... | just (_ ∷ _ , _) = nothing
 
 --------------------------------------------------------------------------------
+-- Apply an edge: pattern-match `H.elab e` to recover the underlying
+-- generator `g : mor A B`, then wrap with the unflatten-flatten
+-- coherence iso on each side.
+
+-- Auxiliary helper: pattern-match `FlatGen.flat` indirectly through
+-- explicit propositional equalities.  The naive `with H.elab e | flat
+-- g` doesn't work because Agda can't unify `flatten A` with the
+-- generic `map H.vlab (H.ein e)`.
+--
+-- Top-level (not nested inside the `module _ (H : Hypergraph FlatGen)`
+-- below) so downstream files can `cong`-rewrite under it when
+-- transporting `Agen-edge` along `elab` equations — no `H` argument is
+-- needed.
+Agen-edge-aux
+  : ∀ {ins outs : List X} → FlatGen ins outs
+  → HomTerm (unflatten ins) (unflatten outs)
+Agen-edge-aux (FlatGen.flat {A} {B} g) =
+  _≅_.from (unflatten-flatten-≈ B) ∘ Agen g ∘ _≅_.to (unflatten-flatten-≈ A)
+
+--------------------------------------------------------------------------------
 -- Open H once at the module level for the cospan algorithm.
 
 module _ (H : Hypergraph FlatGen) where
 
   private
     module H = Hypergraph H
-
-  --------------------------------------------------------------------
-  -- Apply an edge: pattern-match `H.elab e` to recover the underlying
-  -- generator `g : mor A B`, then wrap with the unflatten-flatten
-  -- coherence iso on each side.
-
-  -- Auxiliary helper: pattern-match `FlatGen.flat` indirectly through
-  -- explicit propositional equalities.  The naive `with H.elab e | flat
-  -- g` doesn't work because Agda can't unify `flatten A` with the
-  -- generic `map H.vlab (H.ein e)`.
-  private
-    Agen-edge-aux
-      : ∀ {ins outs : List X} → FlatGen ins outs
-      → HomTerm (unflatten ins) (unflatten outs)
-    Agen-edge-aux (FlatGen.flat {A} {B} g) =
-      _≅_.from (unflatten-flatten-≈ B) ∘ Agen g ∘ _≅_.to (unflatten-flatten-≈ A)
 
   Agen-edge
     : (e : Fin H.nE)

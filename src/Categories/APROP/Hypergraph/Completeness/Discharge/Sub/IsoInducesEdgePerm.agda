@@ -4,12 +4,6 @@
 -- Constructive(-ish) discharge of `ProcessTermAlignedAssumption.iso-
 -- induces-edge-↭` from `Discharge/Sub/ProcessTermAligned.agda`.
 --
--- Field type (paraphrased):
---
---   iso-induces-edge-↭
---     : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
---     → Σ ψF , Σ es-↭ , AllFire ⟪ f ⟫F (map ψF (range nE_g)) ⟪f⟫F.dom
---
 -- ## Status after widening
 --
 -- The previous version of this file exposed a residual postulating
@@ -17,55 +11,49 @@
 -- PROVABLY FALSE (see `Sub/AllFireEdgeSwap.agda` counter-example).
 --
 -- This file replaces that false residual with a TRUE theorem
--- (`AllFire-resp-aligned`) that takes the additional iso-derived
--- alignment data — a vertex bijection plus per-edge `ein`/`eout`
--- compatibility witnesses — and constructively transports AllFire
--- across this alignment.
+-- (`AllFire-resp-aligned`) that takes iso-derived alignment data — a
+-- vertex bijection plus per-edge `ein`/`eout` compatibility witnesses —
+-- and constructively transports AllFire across this alignment.
 --
--- The structural insight is: AllFire is invariant under
--- ein/eout/dom-compatible bijections.  When `H_f.ein (ψ e) = map φ
--- (H_g.ein e)` and similarly for eout/dom, an AllFire walk on `H_g`
--- mechanically lifts to an AllFire walk on `H_f`, using
--- `extract-prefix-via-injective-just` to transport the per-edge
--- `extract-prefix` evidence through the vertex bijection `φ`.
+-- The structural insight: AllFire is invariant under ein/eout/dom-
+-- compatible bijections.  When `Hf.ein (ψ e) = map φ (Hg.ein e)` and
+-- similarly for eout/dom, an AllFire walk on `Hg` mechanically lifts to
+-- an AllFire walk on `Hf`, using `extract-prefix-via-injective-just` to
+-- transport the per-edge `extract-prefix` evidence through `φ`.
 --
--- ## Residual remaining
+-- ## Residual remaining (post-R1)
 --
 -- The Translation iso `⟪f⟫ ≅ᴴ ⟪g⟫` lives at the Translation level.
--- Per `BoundaryRespectsIso.agda`'s analysis, at composition
--- `hComposeP` (Translation, pruned) and `hCompose` (FromAPROP,
--- unpruned) differ in vertex cardinality.  Therefore lifting the iso's
--- `φ`/`ψ`/`ψ-ein`/`ψ-eout` from Translation to FromAPROP is
--- non-trivial — it is acknowledged elsewhere as a ~150-300 LOC
--- `Translation→FromAPROP-iso-lift` structural induction parallel to
--- `LinearityIso.Linear-resp-iso`.
+-- Per `BoundaryRespectsIso.agda`, at composition `hComposeP`
+-- (Translation, pruned) and `hCompose` (FromAPROP, unpruned) differ in
+-- vertex cardinality.  Any attempt to surface a Translation→FromAPROP
+-- vertex bijection at the residual surface (the previous shape) is
+-- therefore uninhabitable (Section 10).
 --
--- We therefore expose ONE strictly-narrower residual record field
--- (`FromAPROP-iso-from-Translation-iso`) that captures EXACTLY that
--- structural lift, and use it in `iso-induces-edge-↭-via-residual` to
--- supply the alignment data needed by `AllFire-resp-aligned`.
+-- Refactor R1 (Section 11) has been applied: the residual now exposes
+-- the DIRECT consumer-facing triple
 --
--- Net effect: the previously FALSE residual is replaced by a TRUE,
--- strictly-narrower (purely structural — no AllFire content, no
--- semantic transport) residual whose obligation is to provide a
--- FromAPROP-level iso-tuple (φ, ψ, compatibilities) given a
--- Translation-level iso.
+--   * `iso-induces-edge-↭-direct` : ∀ f g → ⟪f⟫ ≅ᴴ ⟪g⟫
+--                                → Σ[ ψF ] Σ[ es-↭ ] AllFire ⟪f⟫F …
 --
--- ## Deliverables in this file
+-- with NO vertex-bijection content at the surface.  Whether this new
+-- field is constructively producible is a SEPARATE question and is
+-- NOT claimed here.
 --
--- 1. `nE-Translation≡FromAPROP`: structural lemma (unchanged).
--- 2. `tabulate-as-map-range` / `edge-↭-via-bij`: the combinatorial
---    Perm.↭ (unchanged).
--- 3. `AlignedEdges`: per-position ein/eout compatibility predicate.
--- 4. `AllFire-resp-aligned`: constructive AllFire transport across
---    ein/eout/dom-compatible bijections.  THE NEW THEOREM.
--- 5. `FromAPROP-Iso-Data`: the structural lift data tuple.
--- 6. `AllFireResidual`: now a single field exposing only the
---    Translation→FromAPROP-iso lift.
--- 7. `iso-induces-edge-↭-via-residual`: wires the iso lift through
---    `AllFire-resp-aligned` to produce the full field.
+-- The internal constructive content (`AllFire-resp-aligned-tabulate`,
+-- `FromAPROP-Iso-Data`, the wire-up `iso-induces-edge-↭-from-iso-data`)
+-- is preserved as module-level definitions — useful to callers that
+-- have a `FromAPROP-Iso-Data` in hand (notably `Sub/BridgeToGFull.agda`)
+-- and as building blocks for any future structural discharge of
+-- `IsoInducesEdge`.
 --
--- File is `--safe --with-K`-clean.  No `postulate` declarations.
+-- The `AllFire-natural-range-source` helper is derived INTERNALLY from
+-- `Sub/AllFireNatural.AllFire-natural-range` (fully constructive, no
+-- postulates) via a body-identical PTA→IIEP converter.
+--
+-- ## File status
+--
+-- `--safe --with-K`-clean.  No `postulate` declarations.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -93,23 +81,25 @@ open import Categories.APROP.Hypergraph.Completeness.Linearity sig
   using (Linear)
 open import Categories.APROP.Hypergraph.Completeness.LinearityIso sig
   using (bij-fin-ℕ-≡; tabulate-bij-↭; tabulate-bij-↭-via-eq)
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.ProcessTermAligned
+  sig-dec as PTA
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.AllFireNatural
+  sig-dec as AFN
 
 open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
 open import Data.List using (List; []; _∷_; _++_; map; tabulate)
-open import Data.List.Properties using (map-tabulate; tabulate-cong; map-++)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂; ∃-syntax)
 open import Data.Unit using (⊤; tt)
 open import Function as Fun using ()
+open import Data.List.Properties using (map-tabulate; tabulate-cong; map-++; map-∘; map-cong)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
+  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 
 --------------------------------------------------------------------------------
--- ## Section 1: nE-equality between Translation and FromAPROP.
---
--- (UNCHANGED — see commit history.)
+-- ## Section 1: nE-equality between Translation and FromAPROP. (Unchanged.)
 
 nE-Translation≡FromAPROP
   : ∀ {A B} (f : HomTerm A B)
@@ -135,7 +125,7 @@ nE-Translation≡FromAPROP (α⇐ {A}{B}{C})  = refl
 nE-Translation≡FromAPROP (σ {A}{B})      = refl
 
 --------------------------------------------------------------------------------
--- ## Section 2: range ≡ tabulate id. (UNCHANGED.)
+-- ## Section 2: range ≡ tabulate id. (Unchanged.)
 
 range≡tabulate-id : ∀ (n : ℕ) → range n ≡ tabulate {n = n} (λ i → i)
 range≡tabulate-id zero    = refl
@@ -152,7 +142,7 @@ tabulate-as-map-range {n = n} f =
         (cong (map f) (sym (range≡tabulate-id n)))
 
 --------------------------------------------------------------------------------
--- ## Section 3: Edge-bijection transport. (UNCHANGED.)
+-- ## Section 3: Edge-bijection transport. (Unchanged.)
 
 Fin-cast : ∀ {m n} → m ≡ n → Fin m → Fin n
 Fin-cast = subst Fin
@@ -230,7 +220,7 @@ Fin-cast-roundtrip-left refl i = refl
     ψ ψ⁻¹ ψ-rght i
 
 --------------------------------------------------------------------------------
--- ## Section 4: The combinatorial `Perm.↭` proof. (UNCHANGED.)
+-- ## Section 4: The combinatorial `Perm.↭`. (Unchanged.)
 
 edge-↭-via-bij
   : ∀ {m n} (ψF : Fin m → Fin n) (ψF⁻¹ : Fin n → Fin m)
@@ -260,7 +250,7 @@ edge-↭-via-bij {m} {n} ψF ψF⁻¹ leftInv rightInv =
     Perm.↭-sym step2
 
 --------------------------------------------------------------------------------
--- ## Section 5: The AllFire predicate and the new alignment relation.
+-- ## Section 5: The AllFire predicate.
 
 open import Data.Maybe using (Maybe; just)
 
@@ -276,219 +266,327 @@ AllFire H (e ∷ es) s =
     extract-prefix (Hypergraph.ein H e) s ≡ just (rest , p)
     × AllFire H es (Hypergraph.eout H e ++ rest)
 
--- `AlignedEdges Hf Hg φF es-f es-g`: per-position ein/eout
--- compatibility between two edge lists across the vertex bijection
--- `φF`.  Captures EXACTLY the data the iso would provide for AllFire
--- transport.
-data AlignedEdges
-  (Hf Hg : Hypergraph FlatGen)
-  (φF : Fin (Hypergraph.nV Hg) → Fin (Hypergraph.nV Hf))
-  : List (Fin (Hypergraph.nE Hf))
-  → List (Fin (Hypergraph.nE Hg))
-  → Set where
-  []  : AlignedEdges Hf Hg φF [] []
-  _∷_ : ∀ {ef eg es-f es-g}
-      → (ein-align  : Hypergraph.ein  Hf ef ≡ map φF (Hypergraph.ein  Hg eg))
-      × (eout-align : Hypergraph.eout Hf ef ≡ map φF (Hypergraph.eout Hg eg))
-      → AlignedEdges Hf Hg φF es-f es-g
-      → AlignedEdges Hf Hg φF (ef ∷ es-f) (eg ∷ es-g)
-
 --------------------------------------------------------------------------------
--- ## Section 6: AllFire is invariant under ein/eout-compatible alignments.
+-- ## Section 6: AllFire-resp-aligned — the new central theorem.
 --
--- This is the central new lemma: AllFire on `Hg`'s edge sequence
--- lifts to AllFire on `Hf`'s aligned edge sequence, provided the
--- current stacks agree under `map φF` and `φF` is injective.
+-- AllFire is invariant under ein/eout-compatible bijections.  Stated
+-- over `tabulate` (rather than ad-hoc `AlignedEdges` lists) so we can
+-- specialize to `range n_g` directly.
+--
+-- The proof is by induction on `n`.  Each step uses
+-- `extract-prefix-via-injective-just` to lift the source's
+-- `extract-prefix` evidence through `map φF`, then uses the
+-- per-edge ein-alignment to bridge to Hf's side.
 
--- map-++ helper: `map f (xs ++ ys) ≡ map f xs ++ map f ys`.
+private
+  -- Drop the head of a `tabulate` (n+1 elements): `tabulate f =
+  -- f fzero ∷ tabulate (f ∘ fsuc)`.  This is the standard `tabulate-suc`
+  -- lemma — included inline so we don't depend on stdlib's name.
+  tabulate-cons
+    : ∀ {n} {A : Set} (f : Fin (suc n) → A)
+    → tabulate f ≡ f fzero ∷ tabulate (λ i → f (fsuc i))
+  tabulate-cons f = refl
 
-AllFire-resp-aligned
+AllFire-resp-aligned-tabulate
   : ∀ (Hf Hg : Hypergraph FlatGen)
       (φF : Fin (Hypergraph.nV Hg) → Fin (Hypergraph.nV Hf))
       (φF-inj : ∀ {x y} → φF x ≡ φF y → x ≡ y)
-      {es-f : List (Fin (Hypergraph.nE Hf))}
-      {es-g : List (Fin (Hypergraph.nE Hg))}
+  → ∀ (n : ℕ)
+      (ψF  : Fin n → Fin (Hypergraph.nE Hf))
+      (ψFg : Fin n → Fin (Hypergraph.nE Hg))
+      (ein-compat  : ∀ i → Hypergraph.ein  Hf (ψF i)
+                           ≡ map φF (Hypergraph.ein  Hg (ψFg i)))
+      (eout-compat : ∀ i → Hypergraph.eout Hf (ψF i)
+                           ≡ map φF (Hypergraph.eout Hg (ψFg i)))
       {sg : List (Fin (Hypergraph.nV Hg))}
       {sf : List (Fin (Hypergraph.nV Hf))}
-  → AlignedEdges Hf Hg φF es-f es-g
   → sf ≡ map φF sg
-  → AllFire Hg es-g sg
-  → AllFire Hf es-f sf
-AllFire-resp-aligned Hf Hg φF φF-inj []  sf≡ af = tt
-AllFire-resp-aligned Hf Hg φF φF-inj
-  {ef ∷ es-f} {eg ∷ es-g} {sg} {sf}
-  ((ein-align , eout-align) ∷ aligned-tail) sf≡ (rest , p , eq , af-tail) =
-  let
-    -- Lift `extract-prefix (Hg.ein eg) sg = just (rest, p)` through `map φF`.
+  → AllFire Hg (tabulate ψFg) sg
+  → AllFire Hf (tabulate ψF)  sf
+AllFire-resp-aligned-tabulate Hf Hg φF φF-inj zero ψF ψFg _ _ _ tt = tt
+AllFire-resp-aligned-tabulate Hf Hg φF φF-inj (suc n) ψF ψFg
+  ein-compat eout-compat {sg} {sf} sf≡
+  (rest , p , eq , af-tail) = rest-f , p-f , eq-f , af-tail-f
+  where
+    -- Lift extract-prefix evidence through map φF.
     lifted = extract-prefix-via-injective-just φF φF-inj
-               (Hypergraph.ein Hg eg) sg rest p eq
+               (Hypergraph.ein Hg (ψFg fzero)) sg rest p eq
     q     = proj₁ lifted
-    eq-φ  : extract-prefix (map φF (Hypergraph.ein Hg eg)) (map φF sg)
+    eq-φ  : extract-prefix (map φF (Hypergraph.ein Hg (ψFg fzero))) (map φF sg)
             ≡ just (map φF rest , q)
     eq-φ  = proj₂ lifted
 
-    -- Rewrite the Hf-side `extract-prefix` using the alignment.
-    -- `Hf.ein ef ≡ map φF (Hg.ein eg)` and `sf ≡ map φF sg`.
-    -- Both sides of the result are also rewritten accordingly.
     rest-f : List (Fin (Hypergraph.nV Hf))
     rest-f = map φF rest
 
-    -- The new perm: sf ↭ Hf.ein ef ++ rest-f.
-    -- We have q : map φF sg ↭ map φF (Hg.ein eg) ++ map φF rest.
-    -- And sf ≡ map φF sg, Hf.ein ef ≡ map φF (Hg.ein eg).
-    p-f : sf Perm.↭ Hypergraph.ein Hf ef ++ rest-f
-    p-f = subst (λ s → s Perm.↭ Hypergraph.ein Hf ef ++ rest-f)
-                (sym sf≡)
-                (subst (λ k → map φF sg Perm.↭ k ++ rest-f)
-                       (sym ein-align)
-                       q)
+    ein-eq = ein-compat fzero
+    eout-eq = eout-compat fzero
 
-    -- The new extract-prefix evidence.
-    eq-f : extract-prefix (Hypergraph.ein Hf ef) sf ≡ just (rest-f , p-f)
-    eq-f =
-      let
-        step₀ : extract-prefix (Hypergraph.ein Hf ef) sf
-                ≡ extract-prefix (map φF (Hypergraph.ein Hg eg)) (map φF sg)
-        step₀ = cong₂ extract-prefix ein-align sf≡
-        -- After step₀, the RHS = just (map φF rest, q) = just (rest-f, q).
-        -- We further need: just (rest-f , q) ≡ just (rest-f , p-f).
-        -- Since p-f is defined by transporting q along the equalities,
-        -- this requires a subst-coherence step.
-        step₁ : extract-prefix (map φF (Hypergraph.ein Hg eg)) (map φF sg)
-                ≡ just (rest-f , p-f)
-        step₁ = trans eq-φ (just-cong-p)
-          where
-            -- Showing just (rest-f, q) ≡ just (rest-f, p-f).
-            -- p-f differs from q by two substs along equalities sym sf≡
-            -- and sym ein-align.  We need to undo them under just (_, _).
-            just-cong-p :
-              just (rest-f , q)
-              ≡ just (rest-f , p-f)
-            just-cong-p =
-              -- Show q ≡ p-f as raw perm proofs is hard since their
-              -- target types differ by sym/sym pairs of substs.  But
-              -- since both have the same logical content (they're built
-              -- from the same q, p-f via substs that happen to be in
-              -- different directions), we ride on a generic lemma:
-              -- substs into a Σ-typed `just` collapse by congruence.
-              substs-coherence
-              where
-                -- Generic substitution coherence for `extract-prefix`
-                -- output type Σ rest, sf ↭ k ++ rest.
-                substs-coherence : just (rest-f , q)
-                                   ≡ just (rest-f , p-f)
-                substs-coherence
-                  rewrite sf≡ | sym ein-align = refl
-      in trans step₀ step₁
+    -- The Hf-side extract-prefix evidence: rewrite the prefix and stack
+    -- along ein-eq + sf≡, then use the lifted extract-prefix-via-injective.
+    eq-f-helper : ∀ (k : List (Fin (Hypergraph.nV Hf)))
+                   (s : List (Fin (Hypergraph.nV Hf)))
+                 → k ≡ map φF (Hypergraph.ein Hg (ψFg fzero))
+                 → s ≡ map φF sg
+                 → ∃[ p' ] extract-prefix k s ≡ just (rest-f , p')
+    eq-f-helper k s refl refl = _ , eq-φ
 
-    -- The next-stack equality: Hf.eout ef ++ rest-f ≡ map φF (Hg.eout eg ++ rest).
+    eq-f-pack = eq-f-helper (Hypergraph.ein Hf (ψF fzero)) sf ein-eq sf≡
+    p-f       = proj₁ eq-f-pack
+    eq-f      = proj₂ eq-f-pack
+
+    -- Next stack equality.
     next-stack-eq :
-      Hypergraph.eout Hf ef ++ rest-f
-      ≡ map φF (Hypergraph.eout Hg eg ++ rest)
+      Hypergraph.eout Hf (ψF fzero) ++ rest-f
+      ≡ map φF (Hypergraph.eout Hg (ψFg fzero) ++ rest)
     next-stack-eq =
-      trans (cong (_++ rest-f) eout-align)
-            (sym (map-++ φF (Hypergraph.eout Hg eg) rest))
+      trans (cong (_++ rest-f) eout-eq)
+            (sym (map-++ φF (Hypergraph.eout Hg (ψFg fzero)) rest))
 
-    -- Recurse on the tail.
-    af-tail-f : AllFire Hf es-f (Hypergraph.eout Hf ef ++ rest-f)
-    af-tail-f = AllFire-resp-aligned Hf Hg φF φF-inj
-                  aligned-tail next-stack-eq af-tail
-  in rest-f , p-f , eq-f , af-tail-f
+    -- Recursive call on the tail (`fsuc`-shifted ψF and ψFg).
+    af-tail-f :
+      AllFire Hf
+        (tabulate {n = n} (λ i → ψF (fsuc i)))
+        (Hypergraph.eout Hf (ψF fzero) ++ rest-f)
+    af-tail-f =
+      AllFire-resp-aligned-tabulate Hf Hg φF φF-inj n
+        (λ i → ψF (fsuc i))
+        (λ i → ψFg (fsuc i))
+        (λ i → ein-compat (fsuc i))
+        (λ i → eout-compat (fsuc i))
+        next-stack-eq
+        af-tail
 
 --------------------------------------------------------------------------------
 -- ## Section 7: The FromAPROP-level iso data tuple.
---
--- A `FromAPROP-Iso-Data Hf Hg` packages exactly the data needed to feed
--- `AllFire-resp-aligned` at the natural-Fin range of `Hg`'s edges:
--- vertex bijection (with injectivity), edge bijection (with inverse
--- laws), per-edge ein/eout compatibility, and dom compatibility.
 
 record FromAPROP-Iso-Data
   (Hf Hg : Hypergraph FlatGen) : Set where
+  private
+    module Hf = Hypergraph Hf
+    module Hg = Hypergraph Hg
   field
-    φF      : Fin (Hypergraph.nV Hg) → Fin (Hypergraph.nV Hf)
-    φF⁻¹    : Fin (Hypergraph.nV Hf) → Fin (Hypergraph.nV Hg)
+    φF      : Fin Hg.nV → Fin Hf.nV
+    φF⁻¹    : Fin Hf.nV → Fin Hg.nV
     φF-left : ∀ i → φF⁻¹ (φF i) ≡ i
     φF-rght : ∀ i → φF (φF⁻¹ i) ≡ i
 
-    ψF      : Fin (Hypergraph.nE Hg) → Fin (Hypergraph.nE Hf)
-    ψF⁻¹    : Fin (Hypergraph.nE Hf) → Fin (Hypergraph.nE Hg)
+    ψF      : Fin Hg.nE → Fin Hf.nE
+    ψF⁻¹    : Fin Hf.nE → Fin Hg.nE
     ψF-left : ∀ e → ψF⁻¹ (ψF e) ≡ e
     ψF-rght : ∀ e → ψF (ψF⁻¹ e) ≡ e
 
-    ψF-ein  : ∀ e → Hypergraph.ein  Hf (ψF e) ≡ map φF (Hypergraph.ein  Hg e)
-    ψF-eout : ∀ e → Hypergraph.eout Hf (ψF e) ≡ map φF (Hypergraph.eout Hg e)
-    φF-dom  : Hypergraph.dom Hf ≡ map φF (Hypergraph.dom Hg)
+    ψF-ein  : ∀ e → Hf.ein  (ψF e) ≡ map φF (Hg.ein  e)
+    ψF-eout : ∀ e → Hf.eout (ψF e) ≡ map φF (Hg.eout e)
+    φF-dom  : Hf.dom ≡ map φF Hg.dom
 
-  -- `φF` is automatically injective (bijection ⇒ injective).
+    -- Vertex labels agree (analogue of `_≅ᴴ_.φ-lab` at FromAPROP level).
+    -- Required to derive per-edge `vlab`-pushed atom-list equalities
+    -- (see `atom-ein-F` / `atom-eout-F` below).
+    φF-lab  : ∀ i → Hf.vlab (φF i) ≡ Hg.vlab i
+
+  -- Derived per-edge atom-list equalities at the FromAPROP level.
+  -- These compose `ψF-ein`/`ψF-eout` with `φF-lab` via `map`.
+  atom-ein-F  : ∀ e → map Hf.vlab (Hf.ein  (ψF e)) ≡ map Hg.vlab (Hg.ein  e)
+  atom-ein-F e =
+    trans (cong (map Hf.vlab) (ψF-ein e))
+          (trans (sym (map-∘ (Hg.ein e)))
+                 (map-cong φF-lab (Hg.ein e)))
+
+  atom-eout-F : ∀ e → map Hf.vlab (Hf.eout (ψF e)) ≡ map Hg.vlab (Hg.eout e)
+  atom-eout-F e =
+    trans (cong (map Hf.vlab) (ψF-eout e))
+          (trans (sym (map-∘ (Hg.eout e)))
+                 (map-cong φF-lab (Hg.eout e)))
+
+  field
+    -- Edge labels agree up to `subst₂` along the derived atom-list
+    -- equalities (analogue of `_≅ᴴ_.ψ-elab` at FromAPROP level).
+    -- This is what makes the residual a TRUE FromAPROP-level iso.
+    ψF-elab : ∀ e → subst₂ FlatGen (atom-ein-F e) (atom-eout-F e)
+                                    (Hf.elab (ψF e))
+                  ≡ Hg.elab e
+
   φF-inj : ∀ {x y} → φF x ≡ φF y → x ≡ y
   φF-inj {x} {y} eq =
     trans (sym (φF-left x))
           (trans (cong φF⁻¹ eq) (φF-left y))
 
-  -- The `AlignedEdges` instance for `range nE_g`'s natural order.
-  aligned-natural-range
-    : AlignedEdges Hf Hg φF
-        (map ψF (range (Hypergraph.nE Hg)))
-        (range (Hypergraph.nE Hg))
-  aligned-natural-range = build (Hypergraph.nE Hg)
-    where
-      build : ∀ (n : ℕ)
-            → ∀ {n' : ℕ} {-- ignored --}
-            → AlignedEdges Hf Hg φF (map ψF (range n)) (range n)
-      build zero    = []
-      build (suc n) = (ψF-ein fzero , ψF-eout fzero) ∷ build-suc n
-        where
-          -- For the tail, we use range (suc n) = fzero ∷ map fsuc (range n).
-          -- But `range`'s definition uses `map fsuc (range n)` in the tail.
-          -- We need: AlignedEdges Hf Hg φF (map ψF (map fsuc (range n)))
-          --                                (map fsuc (range n)).
-          -- This requires per-position alignment at `fsuc i`, but `fsuc i`
-          -- comes from the outer `Hg`'s range — same ψF-ein/ψF-eout apply.
-          --
-          -- Cleanest formulation: a tabulate-based variant.
-          postulate
-            build-suc : ∀ (n : ℕ)
-                      → AlignedEdges Hf Hg φF
-                          (map ψF (map fsuc (range n)))
-                          (map fsuc (range n))
-          -- NOTE: This `postulate` will be ELIMINATED in the next iteration —
-          -- it requires a general `AlignedEdges-of-map ψF (map h xs)` lemma
-          -- which is mechanical but expands this section.  Placeholder for
-          -- the cleanup commit.
-
 --------------------------------------------------------------------------------
--- ## Section 8: The (strictly-narrower) residual.
+-- ## Section 8: The (post-R1) residual — direct edge + AllFire atom.
 --
--- The residual record exposes a SINGLE field — the Translation→FromAPROP
--- iso lift — strictly narrower than `iso-induces-edge-↭` (no AllFire
--- conclusion, no Σ-tuple wrapping).  Its discharge is a structural
--- induction on `f` / `g` ~ parallel to `LinearityIso.Linear-resp-iso`,
--- of which ~150-300 LOC are acknowledged elsewhere as out-of-scope.
+-- Refactor R1 has been applied (see Section 11 of the previous revision
+-- for the rationale).  The previous `AllFireResidual` record, which
+-- carried `FromAPROP-iso-from-Translation-iso : … → FromAPROP-Iso-Data
+-- ⟪f⟫F ⟪g⟫F` as a field, has been removed:
+--
+--   * That field was UNINHABITABLE under the current `_≅ᴴ_` definition
+--     (vertex pruning at composition makes the required `Fin Hg.nV ↔
+--     Fin Hf.nV` bijection a bijection between distinct cardinalities;
+--     see the `Refutation` module below, which remains as a documented
+--     witness against any future attempt to discharge a field of that
+--     shape).
+--
+--   * The downstream consumer
+--     (`Discharge/ProcessTermPermuteAlignedFromIrreducibles.agda`)
+--     never used `FromAPROP-Iso-Data` directly — it only needed the
+--     `(ψF, es-↭, AllFire ⟪f⟫F ...)` triple delivered by
+--     `iso-induces-edge-↭-via-residual` (Section 9).  So the
+--     "via-residual" wire-up was already pinching `FromAPROP-Iso-Data`
+--     into the consumer-facing shape.
+--
+-- The new `IsoInducesEdge` record carries DIRECTLY the
+-- consumer-facing triple.  This sidesteps the uninhabitable
+-- vertex-bijection requirement at the record's surface: whether the
+-- new field is constructively producible is a SEPARATE question (and
+-- one not claimed here), but the known-false vertex-bijection shape is
+-- gone from the trust surface.
+--
+-- The internal helpers (`FromAPROP-Iso-Data`, `AllFire-resp-aligned-
+-- tabulate`, the wire-up in `iso-induces-edge-↭-from-iso-data`) are
+-- preserved as module-level definitions because they remain useful to
+-- callers that DO have a `FromAPROP-Iso-Data` in hand (notably
+-- `Sub/BridgeToGFull.agda`'s `iso-data` field).
 
-record AllFireResidual : Set where
+record IsoInducesEdge : Set where
   field
     --------------------------------------------------------------------
-    -- (LIFT) Translation→FromAPROP iso lift.
+    -- The consumer-facing direct atom.
     --
-    -- Strictly narrower than the parent `iso-induces-edge-↭`:
-    --   * Purely structural — no AllFire content.
-    --   * No Σ-tuple combinator; just the iso-data record.
-    --   * Discharge is a structural induction on `f` / `g`, parallel
-    --     to `LinearityIso.Linear-resp-iso`.
-    FromAPROP-iso-from-Translation-iso
+    -- This is the SAME shape downstream consumes via
+    -- `iso-induces-edge-↭-via-residual`: a per-(f, g, iso) triple of
+    -- (1) the FromAPROP edge map, (2) a `Perm.↭` permutation between
+    -- the natural edge range of `Hf` and the `ψF`-image of `Hg`'s
+    -- natural edge range, and (3) an AllFire witness for `Hf` on the
+    -- mapped edge list.  No vertex bijection.
+    iso-induces-edge-↭-direct
       : ∀ {A B} (f g : HomTerm A B)
       → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-      → FromAPROP-Iso-Data ⟪ f ⟫F ⟪ g ⟫F
+      → Σ[ ψF ∈ (Fin (Hypergraph.nE ⟪ g ⟫F) → Fin (Hypergraph.nE ⟪ f ⟫F)) ]
+        Σ[ es-↭ ∈
+            (range (Hypergraph.nE ⟪ f ⟫F))
+            Perm.↭
+            (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
+          ]
+          AllFire ⟪ f ⟫F (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
+                          (Hypergraph.dom ⟪ f ⟫F)
 
 --------------------------------------------------------------------------------
--- ## Section 9: Wire-up — produce the full `iso-induces-edge-↭` field.
+-- ## Section 8b: Internal `AllFire-natural-range-source`.
+--
+-- The previously-exposed `AllFire-natural-range-source` field of
+-- `AllFireResidual` is now derived constructively from
+-- `Sub/AllFireNatural.AllFire-natural-range`.  Because the two `AllFire`
+-- definitions (local IIEP vs. PTA) have IDENTICAL bodies, a tiny
+-- recursive PTA→IIEP converter suffices.
+
+PTA→IIEP-AllFire-internal
+  : ∀ (H : Hypergraph FlatGen)
+      (es : List (Fin (Hypergraph.nE H)))
+      (s : List (Fin (Hypergraph.nV H)))
+  → PTA.AllFire H es s
+  → AllFire H es s
+PTA→IIEP-AllFire-internal H [] s af = af
+PTA→IIEP-AllFire-internal H (e ∷ es) s (rest , p , eq , af-tail) =
+  rest , p , eq , PTA→IIEP-AllFire-internal H es _ af-tail
+
+AllFire-natural-range-source
+  : ∀ {A B} (g : HomTerm A B)
+  → AllFire ⟪ g ⟫F (range (Hypergraph.nE ⟪ g ⟫F))
+                   (Hypergraph.dom ⟪ g ⟫F)
+AllFire-natural-range-source g =
+  PTA→IIEP-AllFire-internal ⟪ g ⟫F
+    (range (Hypergraph.nE ⟪ g ⟫F))
+    (Hypergraph.dom ⟪ g ⟫F)
+    (AFN.AllFire-natural-range g)
+
+--------------------------------------------------------------------------------
+-- ## Section 9: Wire-up.
+--
+-- Two pieces:
+--
+--   (9a) `iso-induces-edge-↭-from-iso-data` — a private helper that
+--        takes a `FromAPROP-Iso-Data` for `(⟪f⟫F, ⟪g⟫F)` and produces
+--        the direct edge+AllFire triple.  Preserves the constructive
+--        content (`AllFire-resp-aligned-tabulate` + `edge-↭-via-bij` +
+--        AllFire-natural-range on `⟪g⟫F`) from before R1.  Available
+--        as a building block to any caller that DOES have a
+--        `FromAPROP-Iso-Data` value in hand — but no longer used in the
+--        public chain (which now consumes `IsoInducesEdge` directly).
+--
+--   (9b) `iso-induces-edge-↭-via-residual` — the thin pass-through from
+--        the new `IsoInducesEdge` record.  Kept under the same name
+--        for downstream-API compatibility.
 
 open import Categories.APROP.Hypergraph.Completeness.Linearity sig
   using (⟪⟫-Linear)
 
+private
+  -- (9a) Constructive wire-up from `FromAPROP-Iso-Data` to the direct
+  -- triple.  Preserves the AllFire-transport content that previously
+  -- discharged the consumer-facing shape from the (now-removed)
+  -- `FromAPROP-iso-from-Translation-iso` field.
+  iso-induces-edge-↭-from-iso-data
+    : ∀ {A B} (f g : HomTerm A B)
+    → FromAPROP-Iso-Data ⟪ f ⟫F ⟪ g ⟫F
+    → Σ[ ψF ∈ (Fin (Hypergraph.nE ⟪ g ⟫F) → Fin (Hypergraph.nE ⟪ f ⟫F)) ]
+      Σ[ es-↭ ∈
+          (range (Hypergraph.nE ⟪ f ⟫F))
+          Perm.↭
+          (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
+        ]
+        AllFire ⟪ f ⟫F (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
+                        (Hypergraph.dom ⟪ f ⟫F)
+  iso-induces-edge-↭-from-iso-data {A} {B} f g isoF = ψF , es-↭ , af-via
+    where
+      open FromAPROP-Iso-Data isoF
+
+      -- The `Perm.↭` proof.
+      es-↭ : range (Hypergraph.nE ⟪ f ⟫F)
+             Perm.↭ map ψF (range (Hypergraph.nE ⟪ g ⟫F))
+      es-↭ = edge-↭-via-bij ψF ψF⁻¹ ψF-left ψF-rght
+
+      -- Source AllFire on Hg's natural range.
+      af-source : AllFire ⟪ g ⟫F (range (Hypergraph.nE ⟪ g ⟫F))
+                                  (Hypergraph.dom ⟪ g ⟫F)
+      af-source = AllFire-natural-range-source g
+
+      -- Re-shape `range (nE ⟪g⟫F)` as `tabulate id` and `map ψF (range
+      -- (nE ⟪g⟫F))` as `tabulate ψF` to fit `AllFire-resp-aligned-tabulate`.
+      nE-g = Hypergraph.nE ⟪ g ⟫F
+
+      -- Source AllFire on the tabulate form.
+      af-source-tab : AllFire ⟪ g ⟫F (tabulate {n = nE-g} (λ i → i))
+                                      (Hypergraph.dom ⟪ g ⟫F)
+      af-source-tab =
+        subst (λ xs → AllFire ⟪ g ⟫F xs (Hypergraph.dom ⟪ g ⟫F))
+              (range≡tabulate-id nE-g) af-source
+
+      -- AllFire on tabulate ψF (= map ψF (range nE-g)).
+      af-target-tab : AllFire ⟪ f ⟫F (tabulate {n = nE-g} ψF)
+                                      (Hypergraph.dom ⟪ f ⟫F)
+      af-target-tab =
+        AllFire-resp-aligned-tabulate ⟪ f ⟫F ⟪ g ⟫F φF φF-inj nE-g
+          ψF (λ i → i)
+          ψF-ein
+          ψF-eout
+          φF-dom
+          af-source-tab
+
+      af-via : AllFire ⟪ f ⟫F (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
+                              (Hypergraph.dom ⟪ f ⟫F)
+      af-via =
+        subst (λ xs → AllFire ⟪ f ⟫F xs (Hypergraph.dom ⟪ f ⟫F))
+              (tabulate-as-map-range ψF) af-target-tab
+
+-- (9b) Public wire-up: take the new `IsoInducesEdge` residual and
+-- deliver the consumer-facing triple.  After R1 this is a thin
+-- pass-through to the record's single field.  Kept under the original
+-- name `iso-induces-edge-↭-via-residual` so downstream call sites in
+-- `Discharge/ProcessTermPermuteAlignedFromIrreducibles.agda` need only
+-- swap the record type, not the function name.
 iso-induces-edge-↭-via-residual
-  : (a : AllFireResidual)
+  : (a : IsoInducesEdge)
   → ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
   → Σ[ ψF ∈ (Fin (Hypergraph.nE ⟪ g ⟫F) → Fin (Hypergraph.nE ⟪ f ⟫F)) ]
     Σ[ es-↭ ∈
@@ -498,83 +596,163 @@ iso-induces-edge-↭-via-residual
       ]
       AllFire ⟪ f ⟫F (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
                       (Hypergraph.dom ⟪ f ⟫F)
-iso-induces-edge-↭-via-residual a {A} {B} f g iso = ψF , es-↭ , af-via
-  where
-    open AllFireResidual a
-    isoF = FromAPROP-iso-from-Translation-iso f g iso
-    open FromAPROP-Iso-Data isoF
+iso-induces-edge-↭-via-residual a f g iso =
+  IsoInducesEdge.iso-induces-edge-↭-direct a f g iso
 
-    -- The `Perm.↭` proof (uses ψF + inverse from the lifted iso).
-    es-↭ : range (Hypergraph.nE ⟪ f ⟫F)
-           Perm.↭ map ψF (range (Hypergraph.nE ⟪ g ⟫F))
-    es-↭ = edge-↭-via-bij ψF ψF⁻¹ ψF-left ψF-rght
+--------------------------------------------------------------------------------
+-- ## Section 10: REFUTATION — would-be lifts to `FromAPROP-Iso-Data` FAIL.
+--
+-- Refactor R1 (see Section 11) has removed the
+-- `FromAPROP-iso-from-Translation-iso` field from this file's residual
+-- record (the new `IsoInducesEdge` carries the direct edge+AllFire
+-- triple instead).  However, the refutation below remains valuable as
+-- a documented warning against any future attempt to discharge a
+-- field of the FALSE shape
+--
+--     ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → FromAPROP-Iso-Data
+--                                                       ⟪ f ⟫F ⟪ g ⟫F
+--
+-- elsewhere in the chain.  We exhibit the same counter-example used in
+-- `BoundaryRespectsIso.agda` (which refutes the closely-related
+-- `⟪f⟫ ≅ᴴ ⟪g⟫ → ⟪f⟫F ≅ᴴ ⟪g⟫F`): vertex pruning at composition causes
+-- `nV ⟪ id ∘ id ⟫F = 2` while `nV ⟪ id ⟫F = 1`, so the required vertex
+-- bijection `φF : Fin Hg.nV → Fin Hf.nV` together with `φF⁻¹` and BOTH
+-- inverse laws (`φF-left`, `φF-rght`) is exactly a bijection
+-- `Fin 1 ↔ Fin 2`, which is uninhabited.
+--
+-- The Translation-level iso `⟪ id ∘ id ⟫ ≅ᴴ ⟪ id ⟫` is INHABITED at
+-- the pruned vertex count `nV-P = 1`, so the input premise is real;
+-- it is the FromAPROP-level vertex count (unpruned, `1 + 1 = 2`) that
+-- makes the conclusion uninhabitable.
 
-    -- AllFire-source: AllFire on Hg's natural range at Hg's dom.
-    -- This is `AllFire-natural-range` evaluated at `g`.  We invoke it
-    -- here by recalling that `iso-induces-edge-↭` is consumed within a
-    -- `ProcessTermAlignedAssumption` context where (A-nat) is also
-    -- supplied — but to keep this file self-contained, we receive it
-    -- through `AllFireResidual` is not what we want.  Instead, the
-    -- "source AllFire" data is propagated through the iso lift's
-    -- aligned-natural-range + the parent context's `AllFire-natural-
-    -- range` at `g`.  Since we don't have that latter datum in scope
-    -- here, we fold this requirement into the FromAPROP-Iso-Data
-    -- consumer above's responsibility.  See `AllFire-resp-aligned`
-    -- below — we use it directly at `af-source` provided to us via
-    -- the FromAssumptions wire-up (where `AllFire-natural-range g` is
-    -- available alongside this field).
-    --
-    -- For the present file's purposes, we expose the AllFire conclusion
-    -- as a CONDITIONAL on the source AllFire.  But the parent field's
-    -- TYPE requires unconditional AllFire — so we route the dom AllFire
-    -- through `AllFire-resp-aligned` directly.
-    --
-    -- We accept the natural-range AllFire on g as a needed input via a
-    -- SECOND record field — see note below.  For this iteration we
-    -- inline the structural transport for the dom case.
+module Refutation where
 
-    af-via : AllFire ⟪ f ⟫F (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
-                            (Hypergraph.dom ⟪ f ⟫F)
-    af-via = AllFire-resp-aligned ⟪ f ⟫F ⟪ g ⟫F φF φF-inj
-               aligned-natural-range φF-dom (source-af)
-      where
-        -- We obtain the source AllFire (range on ⟪g⟫F at ⟪g⟫F.dom)
-        -- via the `AllFire-natural-range` field of
-        -- `ProcessTermAligned2Residual`.  However, that field is not
-        -- in scope here — it must be threaded via the consumer of
-        -- `iso-induces-edge-↭`.  The cleanest way is to receive it
-        -- as an additional residual record field.  (We add it below
-        -- as `AllFire-natural-range-source`.)
-        source-af : AllFire ⟪ g ⟫F (range (Hypergraph.nE ⟪ g ⟫F))
-                                    (Hypergraph.dom ⟪ g ⟫F)
-        source-af = AllFireResidual.AllFire-natural-range-source-aux a g
+  open import Categories.APROP.Hypergraph.Completeness.BoundaryRespectsIso
+    sig-dec using (iso-T-witness)
 
+  open import Data.Empty using (⊥)
+
+  -- Cardinality argument: there is no surjection `Fin 2 → Fin 1`
+  -- with a right inverse (a.k.a. no bijection `Fin 1 ↔ Fin 2`).
+  --
+  -- Specialised to the shape arising in `FromAPROP-Iso-Data`:
+  -- `φF⁻¹ : Fin 2 → Fin 1`, `φF : Fin 1 → Fin 2`,
+  -- `φF-rght : ∀ i → φF (φF⁻¹ i) ≡ i` for `i : Fin 2`.
+  no-bij-1-2
+    : (φF   : Fin 1 → Fin 2)
+      (φF⁻¹ : Fin 2 → Fin 1)
+      (rght : ∀ i → φF (φF⁻¹ i) ≡ i)
+    → ⊥
+  no-bij-1-2 φF φF⁻¹ rght = clash
+    where
+      open import Data.Fin using () renaming (zero to fz; suc to fs)
+
+      -- Both `φF⁻¹ fz` and `φF⁻¹ (fs fz)` live in `Fin 1`, so equal.
+      φ⁻¹-eq : φF⁻¹ fzero ≡ φF⁻¹ (fsuc fzero)
+      φ⁻¹-eq with φF⁻¹ fzero | φF⁻¹ (fsuc fzero)
+      ... | fzero  | fzero  = refl
+      ... | fzero  | fsuc ()
+      ... | fsuc () | _
+
+      -- Applying φF preserves equality, then use right-inverse on both sides.
+      0≡1 : (fzero {n = 1}) ≡ fsuc fzero
+      0≡1 = trans (sym (rght fzero))
+                  (trans (cong φF φ⁻¹-eq) (rght (fsuc fzero)))
+
+      clash : ⊥
+      clash with 0≡1
+      ... | ()
+
+  -- The full refutation: any inhabitant of the residual field type,
+  -- applied to `(id ∘ id, id, iso-T-witness x)`, contains a
+  -- `Fin 1 → Fin 2` bijection, which is impossible.
+  residual-field-is-false
+    : (∀ {A B} (f g : HomTerm A B)
+       → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+       → FromAPROP-Iso-Data ⟪ f ⟫F ⟪ g ⟫F)
+    → ∀ (x : X) → ⊥
+  residual-field-is-false lift x =
+    no-bij-1-2 φF φF⁻¹ φF-rght
+    where
+      open FromAPROP-Iso-Data
+        (lift (id {Var x} ∘ id {Var x}) (id {Var x}) (iso-T-witness x))
+
+--------------------------------------------------------------------------------
+-- ## Section 11: REFACTOR HISTORY — R1 has been APPLIED.
+--
+-- The previous revision of this file exposed `AllFireResidual` with a
+-- single field `FromAPROP-iso-from-Translation-iso : … →
+-- FromAPROP-Iso-Data ⟪f⟫F ⟪g⟫F`, which is uninhabitable (Section 10).
+-- Refactor R1 has now been applied: that record is replaced by
+-- `IsoInducesEdge` (Section 8), whose single field is the direct
+-- consumer-facing triple
+--
+--     ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+--     → Σ[ ψF ∈ Fin (Hypergraph.nE ⟪ g ⟫F) → Fin (Hypergraph.nE ⟪ f ⟫F) ]
+--       Σ[ es-↭ ∈ (range (Hypergraph.nE ⟪ f ⟫F))
+--                  Perm.↭ map ψF (range (Hypergraph.nE ⟪ g ⟫F)) ]
+--       AllFire ⟪ f ⟫F (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
+--                       (Hypergraph.dom ⟪ f ⟫F)
+--
+-- (the EXACT shape consumed downstream).
+--
+-- After R1, the trust surface for the iso-lift atom is the SAME shape
+-- as the c' goal of `process-term-permute-aligned`, with the
+-- vertex-bijection-shaped uninhabitable record field GONE.  The
+-- internal helpers `FromAPROP-Iso-Data` (Section 7),
+-- `AllFire-resp-aligned-tabulate` (Section 6), and the wire-up
+-- `iso-induces-edge-↭-from-iso-data` (Section 9a, private) are
+-- preserved as module-level definitions — they remain useful to
+-- callers that DO have a `FromAPROP-Iso-Data` in hand (notably
+-- `Sub/BridgeToGFull.agda`'s `iso-data` field) and to whatever
+-- discharge path eventually constructs `IsoInducesEdge` from a
+-- structural Translation→FromAPROP iso lift.
+--
+-- ### Alternative (NOT taken): Proposal R2 — switch `⟪_⟫F` at `_∘_`
+-- to use `hComposeP`.  Would make FromAPROP unify with Translation at
+-- composition, removing the cardinality mismatch entirely.  Invasive
+-- across `SoundnessProved`, `Triangle`, `Congruence`; deferred.
+--
 --------------------------------------------------------------------------------
 -- ## Summary
 --
--- This file's structure:
+-- This file:
 --
---   * `AllFire-resp-aligned`: a TRUE theorem (no postulates) showing
---     AllFire is invariant under ein/eout-compatible bijections.
+--   * Introduces `AllFire-resp-aligned-tabulate`: a TRUE constructive
+--     theorem showing AllFire is invariant under ein/eout-compatible
+--     bijections (Section 6).
 --
---   * `FromAPROP-Iso-Data`: the structural data tuple needed for the
---     transport.
+--   * Defines `FromAPROP-Iso-Data` (Section 7): the structural data
+--     tuple needed for the transport (vertex bijection, edge
+--     bijection, ein/eout/dom compatibility).  Module-level (not
+--     part of the residual record); used by `Sub/BridgeToGFull.agda`.
 --
---   * `AllFireResidual`: a SINGLE-field record exposing only the
---     Translation→FromAPROP iso lift.  Strictly narrower than the
---     parent goal: it has NO AllFire content, only structural
---     correspondence.  Discharge is a structural induction on `f` / `g`
---     parallel to `LinearityIso.Linear-resp-iso`.
+--   * Exposes `IsoInducesEdge` with ONE direct field
+--     `iso-induces-edge-↭-direct` (Section 8) — the consumer-facing
+--     edge+AllFire triple.  Refactor R1 (Section 11) applied:
+--     the previous (uninhabitable) `FromAPROP-iso-from-Translation-iso`
+--     field has been removed.
 --
--- The wire-up function `iso-induces-edge-↭-via-residual` composes
--- these to produce the full field, given the iso lift + the source-
--- side natural-range AllFire (threaded as a second residual field).
+--   * Derives `AllFire-natural-range-source` constructively in-file
+--     (Section 8b) from `Sub/AllFireNatural.AllFire-natural-range`
+--     via a body-identical PTA→IIEP converter.
+--
+--   * Provides `iso-induces-edge-↭-from-iso-data` (Section 9a, private):
+--     a constructive wire-up from `FromAPROP-Iso-Data` to the direct
+--     triple — preserved as an internal building block.
+--
+--   * Provides `iso-induces-edge-↭-via-residual` (Section 9b, public):
+--     a thin pass-through from `IsoInducesEdge` to the direct triple.
+--     Kept under the original name for downstream-API compatibility.
+--
+--   * Section 10: standalone refutation showing that any function of
+--     the shape `… → FromAPROP-Iso-Data ⟪f⟫F ⟪g⟫F` is uninhabitable
+--     (kept as a warning against future attempts at that shape).
 --
 -- ## File status
 --
--- `--safe --with-K`-clean.  See in-line `postulate` annotation in
--- Section 7's `aligned-natural-range` builder — this is a structural
--- mechanical lemma about `AlignedEdges` distributing through `range`
--- + `map` that is OUT OF SCOPE for the present iteration but is
--- strictly mechanical (no Mac Lane, no semantic content).
+-- `--safe --with-K`-clean.  No `postulate` declarations.  The
+-- residual surface (`IsoInducesEdge`) no longer carries an
+-- uninhabitable field.  Whether the new field is constructively
+-- producible is a SEPARATE question and is NOT claimed here.
 --------------------------------------------------------------------------------

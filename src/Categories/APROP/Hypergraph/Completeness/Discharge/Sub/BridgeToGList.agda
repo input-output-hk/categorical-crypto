@@ -98,10 +98,6 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.ProcessTerm sig-d
   using (full-dom-eq; full-cod-eq)
 open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtripSafe sig
   using (≡⇒≈Term; subst₂-resp-≈Term)
-open import Categories.APROP.Hypergraph.Completeness.Discharge.PermuteCoherenceShared
-  sig-dec
-  using (XSelfLoop; PermuteCoherence; module FromXSelfLoop)
-
 open import Categories.Category using (Category)
 
 open import Data.Fin using (Fin)
@@ -308,7 +304,6 @@ record StackOrderingBridge : Set where
 
 module WithAll
   (atoms : PerEdgeAtomsOnly)
-  (xsl   : XSelfLoop)
   (walk  : NaturalRangeWalkBridge)
   (sob   : StackOrderingBridge)
   where
@@ -317,21 +312,16 @@ module WithAll
   open NaturalRangeWalkBridge walk
   open StackOrderingBridge sob
 
-  -- Derive `PermuteCoherence` from XSL.  Currently unused in the
-  -- composition itself (because the `natural-range-≈Term` already
-  -- bakes in the result of `permute-≈Term-coherence`), but exposed
-  -- here so future inlinings of the list-induction can consume it
-  -- directly.
-  private
-    permCoh : PermuteCoherence
-    permCoh = FromXSelfLoop.permuteCoherence xsl
-
-  open PermuteCoherence permCoh
-
   ------------------------------------------------------------------
   -- The discharge of `bridge-to-g-list`.
   --
   -- Composition: chain (P-walk) then (P-ordering).
+  --
+  -- NOTE: the former `xsl : XSelfLoop` parameter has been dropped —
+  -- it was used to derive `PermuteCoherence`, which was documented
+  -- as "currently unused in the composition itself" (the
+  -- `natural-range-≈Term` already bakes in the result of
+  -- `permute-≈Term-coherence`).
 
   bridge-to-g-list
     : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)

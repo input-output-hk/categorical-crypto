@@ -66,6 +66,7 @@ open import Categories.APROP.Hypergraph.Completeness.Permute sig
   using (permute; permute-via-vlab)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.ProcessTermAligned sig-dec
   using (AllFire; IndependentSwap; ProcessEdges↭Goal)
+open import Categories.APROP.Hypergraph.Completeness.Linearity sig using (Linear)
 
 open import Categories.Category using (Category)
 
@@ -163,12 +164,19 @@ record SwapAtomAssumption : Set where
     --
     -- Exposed as a field so a downstream agent can discharge it via the
     -- AllFire-respects-↭-edges combinatorial lemma (~75 LOC).
+    --
+    -- NOTE: Takes `Linear H` as a parameter so that downstream
+    -- discharges (via `AllFire-edge-↭`) can be supplied per-call
+    -- rather than via an `∀ H → Linear H` universal hypothesis (which
+    -- is false in general).  The top-level consumer instantiates this
+    -- at `H = ⟪f⟫F` and supplies `⟪⟫-Linear f`.
     trans-intermediate-allfire
       : ∀ (H : Hypergraph FlatGen)
           (es₁ es-mid es₂ : List (Fin (Hypergraph.nE H)))
           (s : List (Fin (Hypergraph.nV H)))
-          (p : es₁ Perm.↭ es-mid) (q : es-mid Perm.↭ es₂)
-          (af₁ : AllFire H es₁ s) (af₂ : AllFire H es₂ s)
+        → Linear H
+        → (p : es₁ Perm.↭ es-mid) (q : es-mid Perm.↭ es₂)
+        → (af₁ : AllFire H es₁ s) (af₂ : AllFire H es₂ s)
       → AllFire H es-mid s
 
 --------------------------------------------------------------------------------
@@ -297,6 +305,7 @@ module WithSwapAtom (assumption : SwapAtomAssumption) where
     : ∀ (H : Hypergraph FlatGen)
         (es₁ es-mid es₂ : List (Fin (Hypergraph.nE H)))
         (s : List (Fin (Hypergraph.nV H)))
+      (lin : Linear H)
       (af₁ : AllFire H es₁ s) (af₂ : AllFire H es₂ s)
       (p : es₁ Perm.↭ es-mid) (q : es-mid Perm.↭ es₂)
       (ih-p : ∀ (af-mid : AllFire H es-mid s)
@@ -304,8 +313,8 @@ module WithSwapAtom (assumption : SwapAtomAssumption) where
       (ih-q : ∀ (af-mid : AllFire H es-mid s)
             → ProcessEdges↭Goal H es-mid es₂ s)
     → ProcessEdges↭Goal H es₁ es₂ s
-  process-edges-↭-topo-trans H es₁ es-mid es₂ s af₁ af₂ p q ih-p ih-q
-      with trans-intermediate-allfire H es₁ es-mid es₂ s p q af₁ af₂
+  process-edges-↭-topo-trans H es₁ es-mid es₂ s lin af₁ af₂ p q ih-p ih-q
+      with trans-intermediate-allfire H es₁ es-mid es₂ s lin p q af₁ af₂
   ... | af-mid
       with ih-p af-mid | ih-q af-mid
   ... | ↭₁ , eq₁ | ↭₂ , eq₂ = ↭ , goal-eq
@@ -346,23 +355,24 @@ module WithSwapAtom (assumption : SwapAtomAssumption) where
     : ∀ (H : Hypergraph FlatGen)
         (es₁ es₂ : List (Fin (Hypergraph.nE H)))
         (s : List (Fin (Hypergraph.nV H)))
+      (lin : Linear H)
       (af₁ : AllFire H es₁ s) (af₂ : AllFire H es₂ s)
     → es₁ Perm.↭ es₂
     → ProcessEdges↭Goal H es₁ es₂ s
-  process-edges-↭-topo H es₁ es₂ s af₁ af₂ Perm.refl =
+  process-edges-↭-topo H es₁ es₂ s lin af₁ af₂ Perm.refl =
     process-edges-↭-topo-refl H es₁ s af₁
-  process-edges-↭-topo H (e ∷ es₁') (e ∷ es₂') s af₁ af₂ (Perm.prep .e tail-↭) =
+  process-edges-↭-topo H (e ∷ es₁') (e ∷ es₂') s lin af₁ af₂ (Perm.prep .e tail-↭) =
     process-edges-↭-topo-prep H e es₁' es₂' s af₁ af₂
       (λ s' af₁' af₂' →
-         process-edges-↭-topo H es₁' es₂' s' af₁' af₂' tail-↭)
+         process-edges-↭-topo H es₁' es₂' s' lin af₁' af₂' tail-↭)
       tail-↭
-  process-edges-↭-topo H (e₁ ∷ e₂ ∷ xs) (.e₂ ∷ .e₁ ∷ ys) s af₁ af₂
+  process-edges-↭-topo H (e₁ ∷ e₂ ∷ xs) (.e₂ ∷ .e₁ ∷ ys) s lin af₁ af₂
       (Perm.swap .e₁ .e₂ rest-↭) =
     process-edges-↭-topo-swap H e₁ e₂ xs ys s af₁ af₂ rest-↭
-  process-edges-↭-topo H es₁ es₂ s af₁ af₂ (Perm.trans {ys = es-mid} p q) =
-    process-edges-↭-topo-trans H es₁ es-mid es₂ s af₁ af₂ p q
-      (λ af-mid → process-edges-↭-topo H es₁ es-mid s af₁ af-mid p)
-      (λ af-mid → process-edges-↭-topo H es-mid es₂ s af-mid af₂ q)
+  process-edges-↭-topo H es₁ es₂ s lin af₁ af₂ (Perm.trans {ys = es-mid} p q) =
+    process-edges-↭-topo-trans H es₁ es-mid es₂ s lin af₁ af₂ p q
+      (λ af-mid → process-edges-↭-topo H es₁ es-mid s lin af₁ af-mid p)
+      (λ af-mid → process-edges-↭-topo H es-mid es₂ s lin af-mid af₂ q)
 
 --------------------------------------------------------------------------------
 -- ## Section 3: summary.

@@ -126,13 +126,19 @@ open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten)
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
   using (extract-prefix; process-edges; process-all-edges; edge-step;
-         Agen-edge)
+         Agen-edge; Agen-edge-aux)
 open import Categories.APROP.Hypergraph.Completeness.Permute sig
   using (permute; permute-via-vlab)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.ProcessTerm sig-dec
   using (full-dom-eq; full-cod-eq)
 open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtripSafe sig
   using (≡⇒≈Term; subst₂-resp-≈Term)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BridgeToGList
+  sig-dec
+  using (NaturalRangeWalkBridge; StackOrderingBridge)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.IsoInducesEdgePerm
+  sig-dec
+  using (FromAPROP-Iso-Data)
 
 open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; _++_; map)
@@ -171,152 +177,162 @@ private
 --------------------------------------------------------------------------------
 -- ## Section 2: The narrow residual record.
 --
--- The bridge-to-g content decomposed into FOUR fields:
+-- After the refactor (this revision), `BridgeToGFullResidual` carries
+-- a SINGLE field:
 --
---   (a) atom-ein-F        — Per-edge `vlab ∘ ein` equality.
---   (b) atom-eout-F       — Per-edge `vlab ∘ eout` equality.
---   (c) Agen-edge-compat  — Per-edge term equivalence (uses (a)+(b)).
---   (d) bridge-to-g-list  — Generic list-induction (parametric in
---                            the edge list + stack permutation).
+--   (iso)  iso-data — Translation→FromAPROP iso lift, exactly the same
+--                      witness that `AllFireResidual.FromAPROP-iso-from-
+--                      Translation-iso` already provides.
 --
--- All four are STRICTLY NARROWER than the parent `bridge-to-g`:
+-- The 3 per-edge atoms (`atom-ein-F`, `atom-eout-F`, `Agen-edge-compat`)
+-- are NO LONGER fields — they are DERIVED constructively from
+-- `FromAPROP-Iso-Data`'s extended interface (which now carries
+-- `φF-lab` and `ψF-elab`, mirroring the Translation `_≅ᴴ_`'s
+-- `φ-lab` / `ψ-elab` at the FromAPROP level).
 --
---   * (a)/(b) are per-edge propositional equalities; no term content,
---     no list induction, no boundary subst₂.
---   * (c) is per-edge term equivalence modulo subst₂; no list
---     induction, no `permute-via-vlab` composition.
---   * (d) is THE constructive list-induction; it works on a generic
---     edge list (not specifically `range nE_g`) and accepts the
---     per-edge data as hypothesis.  The "full-dom-eq" boundary is
---     factored out via a generic per-edge-list-stack hypothesis.
+-- ### Why this consolidation works
 --
--- A future agent who can prove (a) + (b) can derive (c) mechanically;
--- given (a)+(b)+(c), the harness in Section 3 instantiates (d) and
--- gives the full bridge-to-g.
+-- 1. `atom-ein-F`, `atom-eout-F` follow from `ψF-ein`/`ψF-eout` (giving
+--    `Hf.ein (ψF e) ≡ map φF (Hg.ein e)`) composed with `φF-lab` (giving
+--    `Hf.vlab ∘ φF ≡ Hg.vlab` pointwise).  Pure `map`-naturality —
+--    discharged inside `FromAPROP-Iso-Data` as derived `atom-ein-F` /
+--    `atom-eout-F` helpers.
+--
+-- 2. `Agen-edge-compat` follows from `ψF-elab`:
+--      subst₂ FlatGen p q (Hf.elab (ψF e)) ≡ Hg.elab e
+--    via `subst₂`-naturality of `Agen-edge-aux` — discharged below.
+--
+-- ### Restriction: ψF is FIXED to (iso-data ...).ψF
+--
+-- The DERIVED atoms work only at `ψF = (iso-data f g iso).ψF`.  The
+-- old fields universally quantified over an arbitrary `ψF` and so
+-- could not be discharged from the iso alone.  This refactor makes
+-- the dependency explicit: `ψF` comes FROM the iso-data, exactly as
+-- in the consumer chain `iso-induces-edge-↭ → bridge-to-g-permute`.
+--
+-- ### Shared with AllFireResidual
+--
+-- This single `iso-data` field carries the SAME content as
+-- `AllFireResidual.FromAPROP-iso-from-Translation-iso`.  Sharing one
+-- structural axiom across both sub-residuals (Bridge-permute + (C-
+-- bridge) at the same time) eliminates one source of trust delta.
 
 record BridgeToGFullResidual : Set where
   field
     --------------------------------------------------------------------
-    -- (a) Per-edge `vlab ∘ ein` equality at the FromAPROP level.
+    -- (iso) Translation→FromAPROP iso lift.
     --
-    -- The iso at the Translation level gives `_≅ᴴ_.atom-ein`:
-    --   map K.vlab (K.ein (ψ e)) ≡ map G.vlab (G.ein e)
-    -- for the Translation hypergraphs.  We need the SAME equation at
-    -- the FromAPROP level, with ψF replacing ψ.  This is NOT
-    -- automatic: `hComposeP` (Translation) vs `hCompose` (FromAPROP)
-    -- pruning may shift vertices, breaking the equation in general.
-    --
-    -- Conjecture: provable for any iso that ARISES from
-    -- (PrunedCompose.unprune-≅ᴴ ∘ Translation.⟪_⟫), parallel to
-    -- `LinearityIso.Linear-resp-iso`.  ~50-80 LOC.
-    --
-    -- Note: the `ProcessTermAlignedAssumption` consumer guarantees
-    -- that ψF arises FROM the iso (via `iso-induces-edge-↭`), so it
-    -- ALREADY matches `nE-Translation≡FromAPROP` of the iso's ψ.
-    -- A future iso-lift can use that to derive this field.
-    atom-ein-F
-      : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
-          (ψF : Fin (Hypergraph.nE ⟪ g ⟫F)
-                → Fin (Hypergraph.nE ⟪ f ⟫F))
-          (e : Fin (Hypergraph.nE ⟪ g ⟫F))
-      → map (Hypergraph.vlab ⟪ f ⟫F) (Hypergraph.ein  ⟪ f ⟫F (ψF e))
-      ≡ map (Hypergraph.vlab ⟪ g ⟫F) (Hypergraph.ein  ⟪ g ⟫F e)
+    -- Same content as `AllFireResidual.FromAPROP-iso-from-Translation-iso`.
+    -- A single structural axiom usable by BOTH the (Bridge-permute)
+    -- sub-residual (this file) and the (C-bridge) sub-residual
+    -- (`Sub/IsoInducesEdgePerm.agda`).
+    iso-data
+      : ∀ {A B} (f g : HomTerm A B)
+      → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+      → FromAPROP-Iso-Data ⟪ f ⟫F ⟪ g ⟫F
 
-    --------------------------------------------------------------------
-    -- (b) Per-edge `vlab ∘ eout` equality at the FromAPROP level.
-    -- Parallel to (a).
-    atom-eout-F
-      : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
-          (ψF : Fin (Hypergraph.nE ⟪ g ⟫F)
-                → Fin (Hypergraph.nE ⟪ f ⟫F))
-          (e : Fin (Hypergraph.nE ⟪ g ⟫F))
-      → map (Hypergraph.vlab ⟪ f ⟫F) (Hypergraph.eout ⟪ f ⟫F (ψF e))
-      ≡ map (Hypergraph.vlab ⟪ g ⟫F) (Hypergraph.eout ⟪ g ⟫F e)
+  --------------------------------------------------------------------
+  -- Derived: per-edge atoms at the iso's ψF.
+  --
+  -- The 3 atoms (`atom-ein-F`, `atom-eout-F`, `Agen-edge-compat`)
+  -- previously exposed as fields are now DERIVED from `iso-data`.
+  -- The arbitrary-ψF version is unavailable — the iso fixes `ψF` to
+  -- `(iso-data f g iso).ψF`.
 
-    --------------------------------------------------------------------
-    -- (c) Per-edge `Agen-edge` term equivalence under iso.
-    --
-    -- The iso's `ψ-elab` gives:
-    --   subst₂ FlatGen (atom-ein e) (atom-eout e) (K.elab (ψ e))
-    --   ≡ G.elab e
-    -- at the Translation level.  Lifted to `Agen-edge` (which wraps
-    -- `H.elab e` with `unflatten-flatten-≈` coherence isos), the
-    -- equation becomes:
-    --   subst₂ HomTerm <atom-ein-eq> <atom-eout-eq> (Agen-edge ⟪f⟫F (ψF e))
-    --   ≈Term Agen-edge ⟪g⟫F e
-    --
-    -- This is derivable from (a) + (b) + `ψ-elab` at the FromAPROP
-    -- level.  ~20-40 LOC of subst₂ algebra plus the coherence-iso
-    -- preservation under subst₂.
-    Agen-edge-compat
-      : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
-          (ψF : Fin (Hypergraph.nE ⟪ g ⟫F)
-                → Fin (Hypergraph.nE ⟪ f ⟫F))
-          (e : Fin (Hypergraph.nE ⟪ g ⟫F))
-      → subst₂ HomTerm
-          (cong unflatten (atom-ein-F  f g iso ψF e))
-          (cong unflatten (atom-eout-F f g iso ψF e))
-          (Agen-edge ⟪ f ⟫F (ψF e))
-        ≈Term Agen-edge ⟪ g ⟫F e
+  private
+    -- Per-(f, g, iso), the FromAPROP-level iso data.
+    isoF
+      : ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+      → FromAPROP-Iso-Data ⟪ f ⟫F ⟪ g ⟫F
+    isoF f g iso = iso-data f g iso
 
-    --------------------------------------------------------------------
-    -- (d) The constructive list-induction harness.
-    --
-    -- For any edge list `es : List (Fin nE_g)` and any stack
-    -- relationships, the `process-edges ⟪g⟫F es s_g` output bridges
-    -- to `process-edges ⟪f⟫F (map ψF es) s_f` via a permute-via-vlab
-    -- term and the boundary subst₂.
-    --
-    -- This is the "true" constructive content.  Its proof is the
-    -- list-induction described in the file header: by induction on
-    -- `es`, the base case is the empty list (both sides are id +
-    -- stack permutation), the cons case uses (c) to align the
-    -- `edge-step` outputs.
-    --
-    -- This field is strictly more general than `bridge-to-g`: it
-    -- accepts ANY `es` (not just `range nE_g`), ANY `s_g`/`s_f`
-    -- (not just `dom`), and ANY `stack-↭` (not specifically the
-    -- (B-↭) output).
-    --
-    -- The shape of the conclusion is the EXISTENCE of an `≈Term`
-    -- bridge — a future agent provides the explicit bridge.
-    --
-    -- NOTE: This field is the SOLE remaining content that requires
-    -- a true list-induction.  Its TYPE has been narrowed:
-    --
-    --   - Takes a per-edge-list "vlab stack equality" hypothesis
-    --     (which collapses to `stack-eq` at `es = range nE_g`).
-    --   - Takes a per-edge-list "stack permutation" hypothesis
-    --     (which collapses to `b-stack-↭` at `es = range nE_g`).
-    --   - The boundary subst₂ matches the input stack-eq directly
-    --     (no `full-dom-eq` outer wrapper; that's handled by the
-    --     bridging harness in Section 3).
-    bridge-to-g-list
-      : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
-          (ψF : Fin (Hypergraph.nE ⟪ g ⟫F)
-                → Fin (Hypergraph.nE ⟪ f ⟫F))
-          (stack-eq :
-            map (Hypergraph.vlab ⟪ f ⟫F)
-                (proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
-            ≡
-            map (Hypergraph.vlab ⟪ g ⟫F)
-                (proj₁ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F)))
-          )
-          (b-stack-↭ :
-            proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
-            Perm.↭
-            proj₁ (process-edges ⟪ f ⟫F
-                     (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
-                     (Hypergraph.dom ⟪ f ⟫F)))
-      → subst₂ HomTerm
-          (cong unflatten (full-dom-eq f g))
-          (cong unflatten (sym stack-eq))
-          (proj₂ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F)))
-        ≈Term
-        permute-via-vlab (Hypergraph.vlab ⟪ f ⟫F) (Perm.↭-sym b-stack-↭)
-          ∘ proj₂ (process-edges ⟪ f ⟫F
-                     (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
-                     (Hypergraph.dom ⟪ f ⟫F))
+  -- The iso-supplied edge bijection.
+  ψF-iso
+    : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+    → Fin (Hypergraph.nE ⟪ g ⟫F) → Fin (Hypergraph.nE ⟪ f ⟫F)
+  ψF-iso f g iso = FromAPROP-Iso-Data.ψF (isoF f g iso)
+
+  -- (a) Per-edge `vlab ∘ ein` equality at the FromAPROP level.
+  atom-ein-F
+    : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+        (e : Fin (Hypergraph.nE ⟪ g ⟫F))
+    → map (Hypergraph.vlab ⟪ f ⟫F) (Hypergraph.ein  ⟪ f ⟫F (ψF-iso f g iso e))
+    ≡ map (Hypergraph.vlab ⟪ g ⟫F) (Hypergraph.ein  ⟪ g ⟫F e)
+  atom-ein-F f g iso = FromAPROP-Iso-Data.atom-ein-F (isoF f g iso)
+
+  -- (b) Per-edge `vlab ∘ eout` equality at the FromAPROP level.
+  atom-eout-F
+    : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+        (e : Fin (Hypergraph.nE ⟪ g ⟫F))
+    → map (Hypergraph.vlab ⟪ f ⟫F) (Hypergraph.eout ⟪ f ⟫F (ψF-iso f g iso e))
+    ≡ map (Hypergraph.vlab ⟪ g ⟫F) (Hypergraph.eout ⟪ g ⟫F e)
+  atom-eout-F f g iso = FromAPROP-Iso-Data.atom-eout-F (isoF f g iso)
+
+  -- (c) Per-edge `Agen-edge` term equivalence under iso.
+  --
+  -- Discharged constructively from `ψF-elab` via `subst₂`-naturality
+  -- of `Agen-edge` (provable by `refl`-pattern-match on the two
+  -- atom-list equalities).
+  Agen-edge-compat
+    : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+        (e : Fin (Hypergraph.nE ⟪ g ⟫F))
+    → subst₂ HomTerm
+        (cong unflatten (atom-ein-F  f g iso e))
+        (cong unflatten (atom-eout-F f g iso e))
+        (Agen-edge ⟪ f ⟫F (ψF-iso f g iso e))
+      ≈Term Agen-edge ⟪ g ⟫F e
+  Agen-edge-compat f g iso e =
+    ≡⇒≈Term (Agen-edge-respects-elab-eq ⟪ f ⟫F ⟪ g ⟫F
+              (FromAPROP-Iso-Data.ψF (isoF f g iso) e) e
+              (FromAPROP-Iso-Data.atom-ein-F  (isoF f g iso) e)
+              (FromAPROP-Iso-Data.atom-eout-F (isoF f g iso) e)
+              (FromAPROP-Iso-Data.ψF-elab     (isoF f g iso) e))
+    where
+      -- Naturality of `Agen-edge` under `subst₂ FlatGen` on the
+      -- underlying `elab`-equation.  Proof outline:
+      --
+      --   1. Pattern match `p = refl, q = refl`, reducing both
+      --      `subst₂` to identity.  The hypothesis becomes
+      --      `Hf.elab ef ≡ Hg.elab eg`.
+      --   2. The goal is now `Agen-edge Hf ef ≡ Agen-edge Hg eg`.
+      --   3. Use a local copy of `Agen-edge-aux` (`flat-to-HomTerm`)
+      --      to bridge: `cong flat-to-HomTerm elab-eq` chains via
+      --      `Agen-edge-via-flat`.
+      Agen-edge-respects-elab-eq
+        : ∀ (Hf Hg : Hypergraph FlatGen)
+            (ef : Fin (Hypergraph.nE Hf))
+            (eg : Fin (Hypergraph.nE Hg))
+            (p : map (Hypergraph.vlab Hf) (Hypergraph.ein  Hf ef)
+               ≡ map (Hypergraph.vlab Hg) (Hypergraph.ein  Hg eg))
+            (q : map (Hypergraph.vlab Hf) (Hypergraph.eout Hf ef)
+               ≡ map (Hypergraph.vlab Hg) (Hypergraph.eout Hg eg))
+        → subst₂ FlatGen p q (Hypergraph.elab Hf ef) ≡ Hypergraph.elab Hg eg
+        → subst₂ HomTerm (cong unflatten p) (cong unflatten q)
+                          (Agen-edge Hf ef)
+          ≡ Agen-edge Hg eg
+      Agen-edge-respects-elab-eq Hf Hg ef eg p q elab-eq =
+        -- Chain:
+        --   subst₂ HomTerm (cong unflatten p) (cong unflatten q)
+        --                  (Agen-edge Hf ef)
+        --   = subst₂ HomTerm (cong unflatten p) (cong unflatten q)
+        --                    (Agen-edge-aux (Hf.elab ef))         -- by def of Agen-edge
+        --   ≡ Agen-edge-aux (subst₂ FlatGen p q (Hf.elab ef))     -- by subst₂-Agen-edge-aux-nat
+        --   ≡ Agen-edge-aux (Hg.elab eg)                          -- by cong over elab-eq
+        --   = Agen-edge Hg eg                                     -- by def
+        trans (subst₂-Agen-edge-aux-nat p q (Hypergraph.elab Hf ef))
+              (cong Agen-edge-aux elab-eq)
+        where
+          -- Naturality of `Agen-edge-aux` under `subst₂` along the
+          -- atom-list equalities.  Proved by pattern-matching p, q on
+          -- refl; then both `subst₂`s reduce to identity.
+          subst₂-Agen-edge-aux-nat
+            : ∀ {ins₁ ins₂ outs₁ outs₂ : List X}
+                (p' : ins₁ ≡ ins₂) (q' : outs₁ ≡ outs₂)
+                (x : FlatGen ins₁ outs₁)
+            → subst₂ HomTerm (cong unflatten p') (cong unflatten q')
+                             (Agen-edge-aux x)
+            ≡ Agen-edge-aux (subst₂ FlatGen p' q' x)
+          subst₂-Agen-edge-aux-nat refl refl _ = refl
 
 --------------------------------------------------------------------------------
 -- ## Section 3: Constructive composition deriving the full `bridge-to-g`.
@@ -334,7 +350,66 @@ record BridgeToGFullResidual : Set where
 -- The orientation flips in `s-eq` and `stack-eq` are bridged via
 -- `sym`.
 
-module WithResidual (r : BridgeToGFullResidual) where
+-- The constructive top-level `bridge-to-g-list`.
+--
+-- Discharged constructively (no postulates) from:
+--
+--   * `r   : BridgeToGFullResidual`   (iso-data + derived per-edge atoms)
+--   * `walk: NaturalRangeWalkBridge`  (natural-range walks' equiv)
+--   * `sob : StackOrderingBridge`     (architectural ordering bridge)
+--
+-- The matching signature is the original `bridge-to-g-list`.
+--
+-- Composition is the same 2-step `≈Term`-trans as
+-- `BridgeToGList.WithAll.bridge-to-g-list`.  We INLINE it here (rather
+-- than delegating) because `WithAll` requires a `PerEdgeAtomsOnly`
+-- value parametric in an arbitrary `ψF`, but the new
+-- `BridgeToGFullResidual.iso-data` fixes `ψF` to the iso's bijection.
+-- The `PerEdgeAtomsOnly` parameter is unused in `WithAll`'s body, so
+-- bypassing it loses no constructive content.
+--
+-- NOTE: the former `xsl : XSelfLoop` parameter has been dropped — it
+-- was accepted for API symmetry with `BridgeToGList.WithAll` but
+-- NEVER consumed in the body (verified by F1).
+bridge-to-g-list
+  : (r    : BridgeToGFullResidual)
+  → (walk : NaturalRangeWalkBridge)
+  → (sob  : StackOrderingBridge)
+  → ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
+    (ψF : Fin (Hypergraph.nE ⟪ g ⟫F)
+          → Fin (Hypergraph.nE ⟪ f ⟫F))
+    (stack-eq :
+      map (Hypergraph.vlab ⟪ f ⟫F)
+          (proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
+      ≡
+      map (Hypergraph.vlab ⟪ g ⟫F)
+          (proj₁ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F)))
+    )
+    (b-stack-↭ :
+      proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
+      Perm.↭
+      proj₁ (process-edges ⟪ f ⟫F
+               (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
+               (Hypergraph.dom ⟪ f ⟫F)))
+  → subst₂ HomTerm
+      (cong unflatten (full-dom-eq f g))
+      (cong unflatten (sym stack-eq))
+      (proj₂ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F)))
+    ≈Term
+    permute-via-vlab (Hypergraph.vlab ⟪ f ⟫F) (Perm.↭-sym b-stack-↭)
+      ∘ proj₂ (process-edges ⟪ f ⟫F
+                 (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
+                 (Hypergraph.dom ⟪ f ⟫F))
+bridge-to-g-list r walk sob f g iso ψF stack-eq b-stack-↭ =
+  ≈-Term-trans
+    (NaturalRangeWalkBridge.natural-range-≈Term walk f g iso stack-eq)
+    (StackOrderingBridge.ordering-bridge       sob  f g iso ψF b-stack-↭)
+
+module WithResidual
+  (r    : BridgeToGFullResidual)
+  (walk : NaturalRangeWalkBridge)
+  (sob  : StackOrderingBridge)
+  where
   open BridgeToGFullResidual r
 
   -- Helper: the starting-stack equality at the FromAPROP level.
@@ -455,13 +530,11 @@ module WithResidual (r : BridgeToGFullResidual) where
                    (map ψF (range (Hypergraph.nE ⟪ g ⟫F)))
                    (Hypergraph.dom ⟪ f ⟫F))
   bridge-to-g-from-residual f g iso ψF stack-eq b-stack-↭ =
-    -- The full bridge is delivered by `bridge-to-g-list` directly.
-    -- The per-edge fields (a), (b), (c) above are PROVIDED FOR
-    -- DOWNSTREAM USE — they capture the per-edge iso-compatibility
-    -- content that would be USED by a list-induction implementing
-    -- `bridge-to-g-list`.  This composition wires the residual to
-    -- the parent assumption.
-    bridge-to-g-list f g iso ψF stack-eq b-stack-↭
+    -- The full bridge is delivered by the top-level `bridge-to-g-list`,
+    -- which constructively derives the list-induction harness from
+    -- the per-edge atoms (fields (a)/(b)/(c)) + the auxiliary walk/sob
+    -- inputs supplied to this module.
+    bridge-to-g-list r walk sob f g iso ψF stack-eq b-stack-↭
 
 --------------------------------------------------------------------------------
 -- ## Section 4: Summary.

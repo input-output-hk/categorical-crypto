@@ -122,7 +122,6 @@ record SwapAtomInput : Set where
 module FromInputs
   (swp : SwapAtomInput)
   (allFireSwap : AllFireEdgePermSwap)
-  (Linear-hyp : ∀ (H : Hypergraph FlatGen) → Linear H)
   where
   open SwapAtomInput swp
   open AllFireEdgePermSwap allFireSwap
@@ -149,11 +148,12 @@ module FromInputs
     : ∀ (H : Hypergraph FlatGen)
         (es₁ es-mid es₂ : List (Fin (Hypergraph.nE H)))
         (s : List (Fin (Hypergraph.nV H)))
-        (p : es₁ Perm.↭ es-mid) (q : es-mid Perm.↭ es₂)
-        (af₁ : AllFire H es₁ s) (af₂ : AllFire H es₂ s)
+      → Linear H
+      → (p : es₁ Perm.↭ es-mid) (q : es-mid Perm.↭ es₂)
+      → (af₁ : AllFire H es₁ s) (af₂ : AllFire H es₂ s)
     → AllFire H es-mid s
-  trans-intermediate-allfire H es₁ es-mid es₂ s p q af₁ _ =
-    AllFire-edge-↭ H es₁ es-mid s (Linear-hyp H) p af₁
+  trans-intermediate-allfire H es₁ es-mid es₂ s lin p q af₁ _ =
+    AllFire-edge-↭ H es₁ es-mid s lin p af₁
 
   ------------------------------------------------------------------------
   -- ## Section 2.2: prep-aligned.
