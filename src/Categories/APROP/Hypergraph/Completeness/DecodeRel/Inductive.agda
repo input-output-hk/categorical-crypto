@@ -60,7 +60,7 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.AgenAgen 
 --   * decode-rel-≈-decode (structural/algorithmic decoder agreement)
 -- All trust is concentrated here.
 open import Categories.APROP.Hypergraph.Completeness.DecodeRespIso sig-dec
-  using (CompletenessAssumptions) public
+  using (Build) public
 import Categories.APROP.Hypergraph.Completeness.DecodeRespIso sig-dec as RespIso
 
 -- Re-import the constructive Mac Lane discharge from the orphaned
@@ -4860,15 +4860,17 @@ nf-bridge = decode-roundtrip-rel
 -- record-parameterized sub-module `WithAssumptions`, since they
 -- consume `nf-resp-≅ᴴ-residual` and (transitively) `single-agen-NF-coherence`.
 
-module WithAssumptions (assumptions : CompletenessAssumptions) where
-  open CompletenessAssumptions assumptions
+module WithAssumptions (b : Build) where
+  open Build b
 
   -- DecodeRespIso.WithAssumptions provides the algorithmic-level
   -- `decode-resp-iso` and the term-level `decode-rel-resp-iso`,
-  -- both derived constructively from the three
-  -- `CompletenessAssumptions` fields.
-  open RespIso.WithAssumptions assumptions
-    using (decode-resp-iso; decode-rel-resp-iso) public
+  -- both derived constructively from the seven `Build` fields.
+  open RespIso.WithAssumptions b
+    using (decode-resp-iso; decode-rel-resp-iso;
+           process-term-permute-aligned;
+           X-permute-self-loop-id;
+           decode-rel-≈-decode) public
 
   ------------------------------------------------------------------------
   -- Derived: the original (wider) coherence claim, constructively

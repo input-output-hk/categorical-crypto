@@ -156,6 +156,23 @@ import Categories.APROP.Hypergraph.Completeness.Discharge.FinalPermuteNew sig-de
 import Categories.APROP.Hypergraph.Completeness.Discharge.PermuteCoherenceShared sig-dec
   as PermSh
 
+-- Imports needed for `Build` record's field types.
+open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeShape sig
+  using (DecodeShapeResiduals)
+import Categories.APROP.Hypergraph.Completeness.Discharge.DecoderAgreementRho as Rho
+module Rho-sig = Rho sig
+open Rho-sig using (RhoShapeResidual)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRoundtripAgenSigma sig
+  using (Residuals)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.ProcessTermAligned2 sig-dec
+  using (ProcessTermAligned2Residual)
+
+-- Imports needed for deriving the three trust values from `Build`.
+import Categories.APROP.Hypergraph.Completeness.FromAssumptions.DecodeRelDecode as DRD
+module DRD-sig = DRD sig-dec
+import Categories.APROP.Hypergraph.Completeness.FromAssumptions.ProcessTermPermute as PTP
+module PTP-sig = PTP sig-dec
+
 open import Categories.Category using (Category)
 
 open import Data.Fin using (Fin)
@@ -249,23 +266,17 @@ private
   uip refl refl = refl
 
 --------------------------------------------------------------------------------
--- ## Section 3: The `CompletenessAssumptions` record.
+-- ## Section 3: The `Build` record (formerly `CompletenessAssumptions`).
 --
--- THREE fields, each strictly narrower than the original opaque
--- algorithmic-decoder iso invariance.  The composition deriving
--- `decode-attempt-resp-iso` (and beyond) lives in `WithAssumptions`.
+-- THREE trust-output fields needed by `WithAssumptions` to derive
+-- `decode-{attempt,_,rel}-resp-iso`.  A `Build` value can be:
+--   (a) postulated directly (e.g. in `Solver/TestsTrust.agda`), or
+--   (b) constructed from a finer-grained set of 7 APROP-specific
+--       residuals via `buildFromResiduals` below.
 
-record CompletenessAssumptions : Set where
+record Build : Set where
   field
-    -- (c') TERM-LEVEL, NARROWER: takes the stack permutation as an
-    -- EXPLICIT parameter (rather than internally calling the (b)
-    -- discharge).  This is strictly narrower than the old (c) on two
-    -- axes:
-    --   * No internal invocation of `process-edges-resp-iso-stack`.
-    --   * Otherwise identical conclusion shape.
-    -- The old (c) is recovered constructively in `WithAssumptions` by
-    -- applying this field to the discharged (b) value.
-    -- See `Discharge/ProcessTermNew.agda` for the structural analysis.
+    -- (c') Term-level ≈Term taking `stack-↭` as explicit parameter.
     process-term-permute-aligned
       : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
           (stack-↭ :
@@ -282,39 +293,57 @@ record CompletenessAssumptions : Set where
         ≈Term
         proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
 
-    -- (XSL) KELLY'S SELF-LOOP COHERENCE on the `permute` fragmengt.
-    -- This is the UNARY form of Kelly's coherence: any `permute` of a
-    -- closed `↭ : xs ↭ xs` (a "permutation cycle") is `≈Term`-equal
-    -- to `id`.
-    --
-    -- The full binary `permute-≈Term-coherence` (Kelly on the
-    -- `permute` fragment) is RECONSTRUCTED constructively in
-    -- `WithAssumptions` from this unary field plus the discharged
-    -- `permute-inverse-right`.  See
-    -- `Discharge/PermuteCoherenceShared.agda` (`FromXSelfLoop`) for
-    -- the reduction.
-    --
-    -- Strictly narrower than the old (K): one boundary list `xs`, one
-    -- derivation `r : xs ↭ xs`, conclusion `≈Term id` (no second
-    -- derivation, no second boundary list).  Both the old (c) and (d)
-    -- discharges flow through this single shared residual.
-    --
-    -- ⚠ Caveat: at X-level (atom labels) this can still fail for
-    -- duplicate-list inputs (see `Discharge/Sub/PermuteCoherence.agda`
-    -- counter-example).  A safer formulation restricts to Fin-level
-    -- via `Linear` data + `Unique` (see
-    -- `Discharge/Sub/PermuteCoherenceFin.agda` for partial discharge,
-    -- and `Discharge/Sub/SelfLoop.agda` for further narrowing of the
-    -- Fin-level self-loop down to `trans-mismatch-self-loop-id` for
-    -- nested-trans cases).
+    -- (XSL) Kelly's UNARY self-loop coherence on `permute`.
+    -- ⚠ At X-level this can fail for duplicate-list inputs.
     X-permute-self-loop-id
       : ∀ {xs : List X} (r : xs Perm.↭ xs)
       → permute r ≈Term id
 
-    -- (F) DECODER AGREEMENT: the structural decoder `decode-rel`
-    -- agrees with the algorithmic decoder `decode` up to `≈Term`.
+    -- (F) Structural ↔ algorithmic decoder agreement.
     decode-rel-≈-decode
       : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term decode f
+
+--------------------------------------------------------------------------------
+-- ## Section 3a: `buildFromResiduals` — construct `Build` from a
+-- finer-grained set of 7 APROP-specific residuals.
+--
+-- This factors the trust into narrower obligations.  See
+-- `FromAssumptions/{DecodeRelDecode,ProcessTermPermute}.agda` for the
+-- residual records.
+
+buildFromResiduals
+  : (decodeShapeResiduals : DecodeShapeResiduals)
+    (rhoShapeResidual : RhoShapeResidual)
+    (agenSigmaResiduals : Residuals)
+    (decode-rel-≈-decode-α⇒-impl
+       : ∀ {A B C} → decode-rel (α⇒ {A} {B} {C})
+                   ≈Term decode (α⇒ {A} {B} {C}))
+    (decode-rel-≈-decode-α⇐-impl
+       : ∀ {A B C} → decode-rel (α⇐ {A} {B} {C})
+                   ≈Term decode (α⇐ {A} {B} {C}))
+    (x-permute-self-loop-id
+       : ∀ {xs : List X} (r : xs Perm.↭ xs) → permute r ≈Term id)
+    (processTermResidual : ProcessTermAligned2Residual)
+  → Build
+buildFromResiduals
+    decodeShapeResiduals
+    rhoShapeResidual
+    agenSigmaResiduals
+    decode-rel-≈-decode-α⇒-impl
+    decode-rel-≈-decode-α⇐-impl
+    x-permute-self-loop-id
+    processTermResidual = record
+  { process-term-permute-aligned =
+      PTP-sig.process-term-permute-aligned-impl processTermResidual
+  ; X-permute-self-loop-id = x-permute-self-loop-id
+  ; decode-rel-≈-decode =
+      DRD-sig.decode-rel-≈-decode-impl
+        decodeShapeResiduals
+        rhoShapeResidual
+        agenSigmaResiduals
+        decode-rel-≈-decode-α⇒-impl
+        decode-rel-≈-decode-α⇐-impl
+  }
 
 --------------------------------------------------------------------------------
 -- ## Section 4: CONSTRUCTIVE COMPOSITION.
@@ -323,8 +352,8 @@ record CompletenessAssumptions : Set where
 -- `decode-resp-iso`, and `decode-rel-resp-iso` constructively from
 -- the five `CompletenessAssumptions` fields.
 
-module WithAssumptions (assumptions : CompletenessAssumptions) where
-  open CompletenessAssumptions assumptions
+module WithAssumptions (b : Build) where
+  open Build b public
 
   ------------------------------------------------------------------------
   -- Step 0: Reconstruct the old (c)/(d) discharges from the new

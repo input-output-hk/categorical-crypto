@@ -43,6 +43,6 @@ open import Categories.APROP.Hypergraph.Solver.Tests
   using (mySigDec; module WithAssumptions)
 
 postulate
-  trusted-assumptions : IND.CompletenessAssumptions mySigDec
+  trusted-build : IND.Build mySigDec
 
-open WithAssumptions trusted-assumptions public
+open WithAssumptions trusted-build public
