@@ -15,27 +15,20 @@
 -- the corresponding `unapply-X` helper (added to
 -- `DecoderAgreementSafe.agda` for this purpose).
 --
--- ## Achievements (partial: at concrete instance `A = unit`)
+-- ## Achievements
 --
 -- The following CONSTRUCTIVE proofs are established here:
 --
 --   * `bridge-id-is-id`   (∀ A → bridge (id {A}) ≈Term id)
 --   * `bridge-λ⇒-is-id`   (∀ A → bridge (λ⇒ {A}) ≈Term id)
 --   * `bridge-λ⇐-is-id`   (∀ A → bridge (λ⇐ {A}) ≈Term id)
---   * `probe-decode-id-unit`, `probe-decode-λ⇒-unit`,
---     `probe-decode-λ⇐-unit`  (decode (X {unit}) ≈Term id)
---   * `probe-decode-rel-≈-decode-{id,λ⇒,λ⇐}-unit`
---     (the full equation `decode-rel (X {unit}) ≈Term decode (X {unit})`)
+--   * `FromShape` (below): given a `Ty-⊗-shape` witness, it produces
+--     `Ty-id`, `Ty-λ⇒`, `Ty-λ⇐` polymorphically in `A` (the `A ⊗₀ B`
+--     case of `decode-id-is-id` routes through the `⊗`-shape witness;
+--     the `Var`/`unit` leaves are closed directly).
 --
--- These DO NOT yet provide values of `Ty-X`, because `Ty-X` types
--- quantify over ALL `A`, not just `A = unit`.  Scaling to `∀ A`
--- requires either:
---
---   1. A safe-compatible version of `decode-⊗-shape` (currently
---      postulated in `DecodeRoundtrip.agda`) — needed for the `A ⊗₀ B`
---      case of `decode-id-is-id`.
---   2. Substantial extra infrastructure for the algorithmic-side
---      reductions (permute coherence over `subst-of-refl`, etc.).
+-- The per-case analysis below predates `FromShape` and is retained as
+-- background on why the `⊗`-shape witness is the load-bearing input.
 --
 -- ## Per-case status (summary)
 --
@@ -283,38 +276,6 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtripSafe sig
         ; decode-id-is-id-unit
         ; decode-id-is-id-Var
         )
-
--- Probes at unit (chained via the imported lemmas).
-
-probe-decode-id-unit : decode (id {unit}) ≈Term id
-probe-decode-id-unit = decode-id-is-id-unit
-
-probe-decode-rel-≈-decode-id-unit
-  : decode-rel (id {unit}) ≈Term decode (id {unit})
-probe-decode-rel-≈-decode-id-unit = begin
-  decode-rel (id {unit})    ≈⟨ bridge-id-is-id unit ⟩
-  id                        ≈⟨ probe-decode-id-unit ⟨
-  decode (id {unit})        ∎
-
-probe-decode-λ⇒-unit : decode (λ⇒ {unit}) ≈Term id
-probe-decode-λ⇒-unit = decode-id-is-id-unit
-
-probe-decode-λ⇐-unit : decode (λ⇐ {unit}) ≈Term id
-probe-decode-λ⇐-unit = decode-id-is-id-unit
-
-probe-decode-rel-≈-decode-λ⇒-unit
-  : decode-rel (λ⇒ {unit}) ≈Term decode (λ⇒ {unit})
-probe-decode-rel-≈-decode-λ⇒-unit = begin
-  decode-rel (λ⇒ {unit})    ≈⟨ bridge-λ⇒-is-id unit ⟩
-  id                        ≈⟨ probe-decode-λ⇒-unit ⟨
-  decode (λ⇒ {unit})        ∎
-
-probe-decode-rel-≈-decode-λ⇐-unit
-  : decode-rel (λ⇐ {unit}) ≈Term decode (λ⇐ {unit})
-probe-decode-rel-≈-decode-λ⇐-unit = begin
-  decode-rel (λ⇐ {unit})    ≈⟨ bridge-λ⇐-is-id unit ⟩
-  id                        ≈⟨ probe-decode-λ⇐-unit ⟨
-  decode (λ⇐ {unit})        ∎
 
 --------------------------------------------------------------------------------
 -- ## `FromShape`: polymorphic `Ty-X` values constructed from `Ty-⊗-shape`.

@@ -99,8 +99,7 @@
 -- ## File size
 --
 -- ~150 LOC including header.  The bulk is documentation; the
--- constructive content (two top-level functions plus the
--- `WithXSelfLoop` and `FromResiduals` modules) is ~30 LOC.
+-- constructive content (the `FromResiduals` module) is ~30 LOC.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -119,9 +118,7 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
 open import Categories.APROP.Hypergraph.Completeness.DecoderAgreementSafe sig
   using (Ty-Agen; Ty-σ; unapply-Agen; unapply-σ)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRoundtripAgenSigma sig
-  using (Residuals; module WithResiduals)
-open import Categories.APROP.Hypergraph.Completeness.Discharge.PermuteCoherenceShared sig-dec
-  using (XSelfLoop)
+  using (Residuals; module Residuals)
 
 --------------------------------------------------------------------------------
 -- ## Section 1: Discharge from `Residuals` alone.
@@ -152,7 +149,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.PermuteCoherenceS
 -- residuals.
 
 module FromResiduals (residuals : Residuals) where
-  open WithResiduals residuals using (decode-roundtrip-Agen; decode-roundtrip-σ)
+  open Residuals residuals using (decode-Agen-collapse; decode-σ-collapse)
 
   --------------------------------------------------------------------
   -- The natural-typed proofs.  Both follow by one-step `≈-Term-sym`
@@ -161,13 +158,13 @@ module FromResiduals (residuals : Residuals) where
 
   decode-rel-≈-decode-Agen
     : ∀ {A B} (g : mor A B) → decode-rel (Agen g) ≈Term decode (Agen g)
-  decode-rel-≈-decode-Agen g = ≈-Term-sym (decode-roundtrip-Agen g)
+  decode-rel-≈-decode-Agen g = ≈-Term-sym (decode-Agen-collapse g)
 
   decode-rel-≈-decode-σ
     : ∀ {A B} ⦃ s : Symm ≤ Symm ⦄
     → decode-rel (σ {A = A} {B = B} ⦃ s ⦄)
       ≈Term decode (σ {A = A} {B = B} ⦃ s ⦄)
-  decode-rel-≈-decode-σ ⦃ s ⦄ = ≈-Term-sym (decode-roundtrip-σ ⦃ s ⦄)
+  decode-rel-≈-decode-σ ⦃ s ⦄ = ≈-Term-sym (decode-σ-collapse ⦃ s ⦄)
 
   --------------------------------------------------------------------
   -- The abstract-typed proofs.  Wrap the natural-typed proofs into the
@@ -181,40 +178,14 @@ module FromResiduals (residuals : Residuals) where
   ty-σ = unapply-σ (λ {A} {B} ⦃ s ⦄ → decode-rel-≈-decode-σ {A} {B} ⦃ s ⦄)
 
 --------------------------------------------------------------------------------
--- ## Section 2: XSL entry point.
+-- ## Note: the X-level self-loop (XSL) does NOT enter here.
 --
--- The task description's canonical entry point: take `XSelfLoop` (the
--- one-rung-narrower X-level self-loop postulate) as the input.
---
--- ### Status
---
--- XSL alone does NOT suffice to close `decode-{Agen,σ}-collapse`
--- without additional infrastructure for boundary `subst₂` peeling
--- (see file header for the four-step chain and the obstacle at
--- step 3).  We therefore expose this module with `XSelfLoop` as the
--- canonical name AND a `Residuals` parameter capturing exactly the
--- post-XSL, post-subst₂-peeled residual content.
---
--- A future agent who develops the subst₂ peeling infrastructure
--- (~150-300 LOC per case) can drop the `Residuals` parameter and
--- instead construct it constructively from XSL via:
---
---   1. `PermuteCoherenceShared.FromXSelfLoop xsl` to get
---      `permute-≈Term-coherence`.
---   2. `subst₂-resp-≈Term`-style chains to peel
---      `cong unflatten (domL-h{Gen,Swap} ...)`.
---   3. Kelly coherence (from step 1) to identify the resulting
---      permute compositions with the bridge form.
---
--- For now, the XSL parameter is held opaque inside the module —
--- present at the API surface for forward compatibility but not
--- structurally used.
-
-module WithXSelfLoop
-  (xsl : XSelfLoop)
-  (residuals : Residuals)
-  where
-  open FromResiduals residuals public
+-- An earlier design exposed a `WithXSelfLoop (xsl : XSelfLoop) (residuals
+-- : Residuals)` entry point, but `xsl` was never structurally used: XSL
+-- alone does not close `decode-{Agen,σ}-collapse` (it would additionally
+-- need boundary `subst₂` peeling, ~150-300 LOC per case).  Since the
+-- `Residuals` already carry the closed content, the XSL wrapper was pure
+-- overhead and has been removed.  `FromResiduals` is the sole entry point.
 
 --------------------------------------------------------------------------------
 -- ## Section 3: Trust-surface summary.
@@ -224,19 +195,13 @@ module WithXSelfLoop
 --   * `FromResiduals` — constructive: given a `Residuals` value
 --     (factored in `DecodeRoundtripAgenSigma.agda`), produces
 --     `ty-Agen : Ty-Agen` and `ty-σ : Ty-σ` ready to fill the
---     corresponding fields of `DecoderAgreementAssumptions`.
---
---   * `WithXSelfLoop` — the task's canonical entry point: takes
---     `XSelfLoop` AND `Residuals` and re-exports the `FromResiduals`
---     content.  The XSL parameter is opaque here; it is included
---     in the API for downstream consumers who want a single named
---     entry point bundling all (atomic-discharge) trust assumptions.
+--     corresponding fields of `DecoderAgreementAssumptions`.  This is
+--     the sole entry point.
 --
 -- ### Strictly-narrower residual exposed
 --
--- The `Residuals` parameter (re-exported via the `module WithResiduals`
--- alias in `DecodeRoundtripAgenSigma.agda`) is STRICTLY NARROWER than
--- the original `Ty-Agen` / `Ty-σ` field statements because:
+-- The `Residuals` parameter is STRICTLY NARROWER than the original
+-- `Ty-Agen` / `Ty-σ` field statements because:
 --
 --   (i) Quantification is fixed to ONE atomic constructor.  The
 --       original `decode-rel-≈-decode` postulate quantifies over

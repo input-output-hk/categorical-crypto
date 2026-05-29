@@ -110,57 +110,7 @@ private
 open FM.HomReasoning
 
 --------------------------------------------------------------------------------
--- ## Section 1: Constructive subst₂ peeling — `decode-{∘,⊗}-unfold`.
---
--- These propositional equations reduce `decode (g ∘ f)` resp `decode
--- (f ⊗₁ g)` to their `subst₂`-wrapped inner forms.  Both reduce by
--- `refl` since `decode` is defined as exactly such a `subst₂` wrap
--- around `proj₁ (decode-attempt-Linear …)`, and the `_∘_`/`_⊗₁_` cases
--- of `decode-attempt-Linear` are exactly the corresponding
--- `decode-attempt-h{Compose,Tensor}` applications.
---
--- These are USED by `WithResiduals` (Section 3) to peel the outer
--- subst₂ when bridging the inner residual to the postulate
--- conclusion.
-
-decode-∘-unfold
-  : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
-  → decode (g ∘ f)
-  ≡ subst₂ HomTerm
-      (cong unflatten (⟪⟫-domL (g ∘ f)))
-      (cong unflatten (⟪⟫-codL (g ∘ f)))
-      (proj₁ (decode-attempt-hCompose ⟪ f ⟫ ⟪ g ⟫
-              (trans (⟪⟫-codL f) (sym (⟪⟫-domL g)))
-              (Lin.⟪⟫-Linear f) (Lin.⟪⟫-Linear g)
-              (decode-attempt-Linear f) (decode-attempt-Linear g)))
-decode-∘-unfold g f = refl
-
-decode-⊗-unfold
-  : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
-  → decode (f ⊗₁ g)
-  ≡ subst₂ HomTerm
-      (cong unflatten (⟪⟫-domL (f ⊗₁ g)))
-      (cong unflatten (⟪⟫-codL (f ⊗₁ g)))
-      (proj₁ (decode-attempt-hTensor ⟪ f ⟫ ⟪ g ⟫
-              (decode-attempt-Linear f) (decode-attempt-Linear g)))
-decode-⊗-unfold f g = refl
-
--- Companion unfold lemma: `decode f = subst₂ … (proj₁ (decode-attempt-Linear f))`.
--- Reduces by `refl`.  Used by `WithResiduals` to expose the inner forms of
--- `decode f` / `decode g` when bridging `decode g ∘ decode f` to the inner
--- residual.
-
-decode-unfold
-  : ∀ {A B} (f : HomTerm A B)
-  → decode f
-  ≡ subst₂ HomTerm
-      (cong unflatten (⟪⟫-domL f))
-      (cong unflatten (⟪⟫-codL f))
-      (proj₁ (decode-attempt-Linear f))
-decode-unfold f = refl
-
---------------------------------------------------------------------------------
--- ## Section 2: The narrower residual record.
+-- ## Section 1: The narrower residual record.
 --
 -- Two fields, one per shape postulate.  Each residual is the
 -- `_≈Term_` between the OUTER `decode`-level shapes (same conclusion
@@ -234,38 +184,14 @@ record DecodeShapeResiduals : Set where
            ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
 
 --------------------------------------------------------------------------------
--- ## Section 3: Constructive composition — `WithResiduals`.
---
--- Given a `DecodeShapeResiduals` instance, derive `decode-∘-shape`
--- and `decode-⊗-shape` (matching the postulate signatures from
--- `DecodeRoundtrip.agda:231-241`).
---
--- The derivation is a direct invocation of the residual (the
--- conclusion shapes match).  The constructive (i)-layer discharge
--- via `decode-{∘,⊗}-unfold` is INHERENT in the proof structure: it
--- is invoked WHEN the residual itself is discharged (the residual's
--- proof routes through `decode-{∘,⊗}-unfold`).
---
--- The architectural value: the residuals make the (ii) + (iii)
--- obligations EXPLICIT and ISOLATED, while the consumer-facing
--- signatures stay aligned with the existing postulate signatures.
-
-module WithResiduals (a : DecodeShapeResiduals) where
-  open DecodeShapeResiduals a
-
-  decode-∘-shape
-    : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
-    → decode (g ∘ f) ≈Term decode g ∘ decode f
-  decode-∘-shape g f = decode-∘-shape-inner g f
-
-  decode-⊗-shape
-    : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
-    → decode (f ⊗₁ g)
-    ≈Term _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
-         ∘ (decode f ⊗₁ decode g)
-         ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
-  decode-⊗-shape f g = decode-⊗-shape-inner f g
-
+-- The two `DecodeShapeResiduals` fields ARE the discharge: their
+-- conclusions already match the original `decode-{∘,⊗}-shape` postulate
+-- signatures (`DecodeRoundtrip.agda:231-241`).  Consumers `open
+-- DecodeShapeResiduals` and use `decode-{∘,⊗}-shape-inner` directly.
+-- (An earlier `module WithResiduals` re-exported the fields under the
+-- names `decode-{∘,⊗}-shape`; it was a pure rename and has been removed,
+-- together with the unused `decode-{∘,⊗}-unfold` / `decode-unfold`
+-- `refl`-lemmas that were documented as feeding it.)
 --------------------------------------------------------------------------------
 -- ## Section 4: Architectural insights.
 --

@@ -143,147 +143,8 @@ full-dom-eq : ∀ {A B} (f g : HomTerm A B)
             → domL ⟪ g ⟫F ≡ domL ⟪ f ⟫F
 full-dom-eq f g = trans (⟪⟫F-domL g) (sym (⟪⟫F-domL f))
 
-full-cod-eq : ∀ {A B} (f g : HomTerm A B)
-            → codL ⟪ g ⟫F ≡ codL ⟪ f ⟫F
-full-cod-eq f g = trans (⟪⟫F-codL g) (sym (⟪⟫F-codL f))
-
 --------------------------------------------------------------------------------
--- ## Section 2: Tiny subst₂ algebra (UIP-flavoured).
-
-private
-  -- `trans p (sym p) ≡ refl` (UIP via K).
-  trans-sym-refl : ∀ {A : Set} {a b : A} (p : a ≡ b)
-                 → trans p (sym p) ≡ refl
-  trans-sym-refl refl = refl
-
-  -- `full-dom-eq f f ≡ refl` propositionally.
-  full-dom-eq-self : ∀ {A B} (f : HomTerm A B) → full-dom-eq f f ≡ refl
-  full-dom-eq-self f = trans-sym-refl (⟪⟫F-domL f)
-
-  -- `subst₂` on identical domains with `refl` proof collapses.
-  subst₂-refl-refl
-    : ∀ {As Bs : List X} (t : HomTerm (unflatten As) (unflatten Bs))
-    → subst₂ HomTerm refl refl t ≡ t
-  subst₂-refl-refl _ = refl
-
-  -- `subst₂` over a UIP-collapsed proof reduces.
-  subst₂-cong-refl
-    : ∀ {A B} (f : HomTerm A B)
-        (eq : full-dom-eq f f ≡ refl)
-    → subst₂ HomTerm (cong unflatten (full-dom-eq f f)) refl
-        (proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
-      ≡ proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
-  subst₂-cong-refl f eq rewrite eq = refl
-
-  -- Convert propositional equality of HomTerms into ≈Term.
-  ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-  ≡⇒≈Term refl = ≈-Term-refl
-
---------------------------------------------------------------------------------
--- ## Section 3: Reflexive sub-case discharge (f ≡ g, arbitrary stack-↭).
---
--- When `f ≡ g` propositionally, the dom-subst collapses (via UIP from
--- `--with-K`).  The remaining `permute (Perm.↭-sym stack-↭) ∘ proj₂`
--- is `≈Term`-equal to `proj₂` IFF `permute (Perm.↭-sym stack-↭) ≈Term id`.
---
--- For ANY `stack-↭ : xs ↭ xs` (a self-loop), this requires Kelly's
--- self-loop coherence (the `XSelfLoop` postulate from `FinalPermuteNew`).
--- For the SPECIFIC case `stack-↭ = Perm.refl`, it's trivial.
---
--- Status: we close the `stack-↭ = Perm.refl` case fully constructively.
--- For arbitrary `stack-↭ : xs ↭ xs`, see `WithSelfLoop` below.
-
-reflexive-discharge-refl-↭
-  : ∀ {A B} (f : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ f ⟫)
-  → permute (Perm.↭-sym
-      (Perm.refl {xs = map (Hypergraph.vlab ⟪ f ⟫F)
-                          (proj₁ (process-all-edges ⟪ f ⟫F
-                                    (Hypergraph.dom ⟪ f ⟫F)))}))
-    ∘ subst₂ HomTerm
-        (cong unflatten (full-dom-eq f f))
-        refl
-        (proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
-    ≈Term
-    proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
-reflexive-discharge-refl-↭ {A} {B} f _iso =
-  let dom-self-eq = full-dom-eq-self f
-  in begin
-       permute (Perm.↭-sym Perm.refl)
-         ∘ subst₂ HomTerm (cong unflatten (full-dom-eq f f)) refl
-           (proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
-         -- `permute (↭-sym refl) = id` definitionally.
-         ≡⟨ refl ⟩
-       id
-         ∘ subst₂ HomTerm (cong unflatten (full-dom-eq f f)) refl
-           (proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
-         ≈⟨ FM.identityˡ ⟩
-       subst₂ HomTerm (cong unflatten (full-dom-eq f f)) refl
-         (proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
-         ≡⟨ subst₂-cong-refl f dom-self-eq ⟩
-       proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
-         ∎
-
---------------------------------------------------------------------------------
--- ## Section 4: Reflexive sub-case with self-loop coherence assumption.
---
--- For the FULL reflexive case (`f ≡ g`, arbitrary `stack-↭ : xs ↭ xs`),
--- we need to know that `permute (Perm.↭-sym stack-↭) ≈Term id` for any
--- self-loop `stack-↭`.  This is exactly Kelly's self-loop coherence.
---
--- We expose this as a NARROWED record field (`XSelfLoopForRefl`) — it
--- is identical content to `XSelfLoop.X-permute-self-loop-id` in
--- `Discharge/FinalPermuteNew.agda` (Section 4).  Including it here as a
--- separate residual makes the reflexive case self-contained.
-
-record XSelfLoopForRefl : Set where
-  field
-    -- Kelly's self-loop coherence at X-level: any `xs ↭ xs` derivation
-    -- corresponds to the identity HomTerm.  Strictly narrower than
-    -- `process-term-permute-aligned` (no iso, no decoder, no subst₂,
-    -- no boundary lists; just one self-loop derivation).
-    X-permute-self-loop-id
-      : ∀ {xs : List X} (r : xs Perm.↭ xs)
-      → permute r ≈Term id
-
-module WithSelfLoopRefl (slr : XSelfLoopForRefl) where
-  open XSelfLoopForRefl slr
-
-  reflexive-discharge
-    : ∀ {A B} (f : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ f ⟫)
-        (stack-↭ :
-          map (Hypergraph.vlab ⟪ f ⟫F)
-              (proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
-          Perm.↭
-          map (Hypergraph.vlab ⟪ f ⟫F)
-              (proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))))
-    → permute (Perm.↭-sym stack-↭)
-      ∘ subst₂ HomTerm
-          (cong unflatten (full-dom-eq f f))
-          refl
-          (proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
-      ≈Term
-      proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
-  reflexive-discharge {A} {B} f _iso stack-↭ =
-    let dom-self-eq = full-dom-eq-self f
-        sym-↭-id : permute (Perm.↭-sym stack-↭) ≈Term id
-        sym-↭-id = X-permute-self-loop-id (Perm.↭-sym stack-↭)
-    in begin
-         permute (Perm.↭-sym stack-↭)
-           ∘ subst₂ HomTerm (cong unflatten (full-dom-eq f f)) refl
-             (proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
-           ≈⟨ FM.∘-resp-≈ sym-↭-id ≈-Term-refl ⟩
-         id
-           ∘ subst₂ HomTerm (cong unflatten (full-dom-eq f f)) refl
-             (proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
-           ≈⟨ FM.identityˡ ⟩
-         subst₂ HomTerm (cong unflatten (full-dom-eq f f)) refl
-           (proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
-           ≡⟨ subst₂-cong-refl f dom-self-eq ⟩
-         proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
-           ∎
-
---------------------------------------------------------------------------------
--- ## Section 5: `AllFire` predicate and `IndependentSwap` (Step A).
+-- ## Section 2: `AllFire` predicate and `IndependentSwap` (Step A).
 --
 -- Mirrors `Discharge/Sub/ProcessTermAligned.agda` Section 1-2; included
 -- here so the residual record below is self-contained.
@@ -308,7 +169,7 @@ IndependentSwap H e₁ e₂ s =
   AllFire H (e₁ ∷ e₂ ∷ []) s × AllFire H (e₂ ∷ e₁ ∷ []) s
 
 --------------------------------------------------------------------------------
--- ## Section 6: The `process-edges-↭` goal-shape.
+-- ## Section 3: The `process-edges-↭` goal-shape.
 --
 -- The output of (B-swap) and (B-↭): a stack permutation `p` and a term
 -- `≈Term`-equivalence between the two `process-edges` outputs, bridged
@@ -331,7 +192,7 @@ ProcessEdges↭Goal H es₁ es₂ s =
       ∘ proj₂ (process-edges H es₂ s)
 
 --------------------------------------------------------------------------------
--- ## Section 7: The residual record — five strictly narrower fields.
+-- ## Section 4: The residual record — five strictly narrower fields.
 --
 -- Together, these discharge `process-term-permute-aligned` constructively.
 -- Each field is strictly narrower than the parent statement on one or
@@ -441,7 +302,7 @@ record ProcessTermAligned2Residual : Set where
                      (Hypergraph.dom ⟪ f ⟫F))
 
 --------------------------------------------------------------------------------
--- ## Section 8: The constructive composition.
+-- ## Section 5: The constructive composition.
 --
 -- Given a `ProcessTermAligned2Residual`, derive the body of
 -- `process-term-permute-aligned`.
@@ -523,17 +384,16 @@ module WithResidual (r : ProcessTermAligned2Residual) where
     in ≈-Term-trans bridge-out (≈-Term-sym b-≈Term)
 
 --------------------------------------------------------------------------------
--- ## Section 9: Summary.
+-- ## Section 6: Summary.
 --
 -- ### Discharge level: PARTIAL.
 --
--- We constructively close:
---   * Reflexive case `f ≡ g, stack-↭ = Perm.refl` via UIP +
---     definitional unfolding (no postulates).
---   * Reflexive case `f ≡ g, arbitrary stack-↭ : xs ↭ xs` via the
---     `XSelfLoopForRefl` record field (Kelly's self-loop coherence).
---   * General case via the five-field `ProcessTermAligned2Residual`
---     record + `WithResidual.process-term-permute-aligned-discharge`.
+-- We constructively close the general case via the five-field
+-- `ProcessTermAligned2Residual` record +
+-- `WithResidual.process-term-permute-aligned-discharge`.
+-- (Earlier reflexive-case sub-discharges — `f ≡ g` with `Perm.refl` or
+-- an arbitrary self-loop `stack-↭` — were unused scaffolding and have
+-- been removed.)
 --
 -- ### Residual record fields (strictly narrower)
 --

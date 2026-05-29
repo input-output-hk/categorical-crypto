@@ -202,27 +202,7 @@ extract-elem-↑ˡ-on-mixed-nothing {nA} nB k (x ∷ xs) ys eq | no  q
 ... | ()
 
 --------------------------------------------------------------------------------
--- Helper: pure-injection-mapped list, lookup on the same side.
--- `extract-elem (k ↑ˡ nB) (map (_↑ˡ nB) xs)` returns nothing iff
--- `extract-elem k xs` returns nothing.
-
-extract-elem-↑ˡ-on-↑ˡ-list-nothing
-  : ∀ {nA} nB (k : Fin nA) (xs : List (Fin nA))
-  → extract-elem k xs ≡ nothing
-  → extract-elem (k ↑ˡ nB) (map (_↑ˡ nB) xs) ≡ nothing
-extract-elem-↑ˡ-on-↑ˡ-list-nothing nB k []       _ = refl
-extract-elem-↑ˡ-on-↑ˡ-list-nothing nB k (x ∷ xs) eq with x ≟ k
-extract-elem-↑ˡ-on-↑ˡ-list-nothing nB k (x ∷ xs) eq | yes p with eq
-... | ()
-extract-elem-↑ˡ-on-↑ˡ-list-nothing nB k (x ∷ xs) eq | no  q
-    with extract-elem k xs in eq-inner
-... | nothing =
-      extract-elem-skip-nothing
-        (k ↑ˡ nB) (x ↑ˡ nB) (map (_↑ˡ nB) xs)
-        (λ p₁ → q (inject+-inj nB p₁))
-        (extract-elem-↑ˡ-on-↑ˡ-list-nothing nB k xs eq-inner)
-... | just _ with eq
-... | ()
+-- Helper: pure-injection-mapped list, lookup on the same (R) side.
 
 extract-elem-↑ʳ-on-↑ʳ-list-nothing
   : ∀ nA {nB} (j : Fin nB) (ys : List (Fin nB))

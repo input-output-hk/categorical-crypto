@@ -86,12 +86,25 @@ open import Categories.APROP.Hypergraph.Completeness.Decode sig
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (decode-attempt-Linear; decode-attempt-perm-from-just)
 
-open import Data.List using (map)
+open import Data.List using (List; map; length)
+open import Data.List.Properties using (length-map)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Product using (proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; cong)
+  using (_≡_; refl; sym; trans; cong; subst; subst₂)
+
+-- For the `eval-↭`-level rigidity lemma exposing the internal structure.
+open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_; id-fb; _∘-fb_)
+open import Categories.PermuteCoherence.Eval using (eval-↭)
+open import Categories.PermuteCoherence.Soundness
+  using (≈-fb-trans; ≈-fb-sym; eval-↭-comp)
+open import Categories.PermuteCoherence.Rigid using (eval-rigid)
+open import Categories.PermuteCoherence.Map
+  using (eval-map⁺; subst₂-FinBij-≈; map⁺-↭-reflexive; ≈-fb-of-≡
+        ; ∘-fb-cong; ∘-fb-assoc; ≈-fb-resp-≡)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FromAPROPCodUnique sig-dec
+  using (⟪_⟫F-cod-unique)
 
 --------------------------------------------------------------------------------
 -- ## Section 1: Per-side bridge to `flatten B`.
@@ -139,3 +152,88 @@ process-edges-resp-iso-stack
         (proj₁ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F)))
 process-edges-resp-iso-stack f g _iso =
   Perm.trans (stack-↭-flatten-B f) (Perm.↭-sym (stack-↭-flatten-B g))
+
+--------------------------------------------------------------------------------
+-- ## Section 3: `eval-↭`-level rigidity exposure of `stack-↭-flatten-B`.
+--
+-- For ANY `perm-f : s₀ ↭ cod ⟪f⟫F` (where `s₀` is the decoder's final
+-- stack `proj₁ (process-all-edges …)`), the evaluated bijection of
+-- `stack-↭-flatten-B f` agrees with that of
+-- `trans (map⁺ vlab perm-f) (↭-reflexive (⟪⟫F-codL f))`.
+--
+-- This exposes the internal structure of `stack-↭-flatten-B` purely at
+-- the `eval-↭` (finite-bijection) level, WITHOUT requiring the caller
+-- to know the internal `s_final`/`s↭cod`/`proj-eq` witnesses.  The proof
+-- factors the internal reflexive-`proj-eq` bridge into the Fin-level
+-- derivation `q = trans (↭-reflexive proj-eq) s↭cod : s₀ ↭ cod`, then
+-- uses `eval-rigid` on the `Unique` codomain `cod ⟪f⟫F` to identify
+-- `eval q` with `eval perm-f`; the `map vlab` relabel cancels via
+-- `eval-map⁺` (the length casts coincide on both sides).
+
+eval-stack-↭-flatten-B-rigid
+  : ∀ {A B} (f : HomTerm A B)
+      (perm-f : proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
+                Perm.↭ Hypergraph.cod ⟪ f ⟫F)
+  → eval-↭ (stack-↭-flatten-B f)
+    ≈-fb eval-↭ (Perm.trans (PermProp.map⁺ (Hypergraph.vlab ⟪ f ⟫F) perm-f)
+                            (Perm.↭-reflexive (⟪⟫F-codL f)))
+eval-stack-↭-flatten-B-rigid f perm-f = result
+  where
+    vlab      = Hypergraph.vlab ⟪ f ⟫F
+    cod       = Hypergraph.cod ⟪ f ⟫F
+    s₀        = proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
+    dal       = decode-attempt-Linear f
+    perm-data = decode-attempt-perm-from-just ⟪ f ⟫F dal
+    s_final   = proj₁ perm-data
+    eq-proc   = proj₁ (proj₂ (proj₂ perm-data))
+    s↭cod     = proj₂ (proj₂ (proj₂ perm-data))
+    proj-eq : s₀ ≡ s_final
+    proj-eq = cong proj₁ eq-proc
+    R0 = Perm.↭-reflexive (cong (map vlab) proj-eq)
+    M0 = PermProp.map⁺ vlab s↭cod
+    RC = Perm.↭-reflexive (⟪⟫F-codL f)
+
+    -- The Fin-level composite derivation s₀ ↭ cod.
+    q : s₀ Perm.↭ cod
+    q = Perm.trans (Perm.↭-reflexive proj-eq) s↭cod
+
+    -- 1. eval (stack-↭-flatten-B f) = eval (trans R0 (trans M0 RC))
+    --    = eval RC ∘-fb (eval M0 ∘-fb eval R0)   (re-associated).
+    --    The LHS literally parenthesises as (eval RC ∘-fb eval M0) ∘-fb eval R0.
+    assoc-step : eval-↭ (stack-↭-flatten-B f)
+            ≈-fb eval-↭ RC ∘-fb (eval-↭ M0 ∘-fb eval-↭ R0)
+    assoc-step = ∘-fb-assoc (eval-↭ RC) (eval-↭ M0) (eval-↭ R0)
+
+    -- 2. eval RC ≈ eval RC  (trivial; named for ∘-fb-cong).
+    RC≈step : eval-↭ RC ≈-fb eval-↭ RC
+    RC≈step = ≈-fb-of-≡ {π = eval-↭ RC} refl
+
+    -- 3. eval M0 ∘-fb eval R0 = eval (trans R0 M0) = eval (map⁺ vlab q)
+    --    ≈ eval (map⁺ vlab perm-f)  (eval-rigid on the Unique codomain cod).
+    step-map⁺ : eval-↭ M0 ∘-fb eval-↭ R0 ≡ eval-↭ (PermProp.map⁺ vlab q)
+    step-map⁺ = cong (λ z → eval-↭ (Perm.trans z M0))
+                     (sym (map⁺-↭-reflexive vlab proj-eq))
+
+    -- Core rigidity at the Fin level (Unique codomain cod).
+    rigid-core : eval-↭ q ≈-fb eval-↭ perm-f
+    rigid-core = eval-rigid (⟪ f ⟫F-cod-unique) q perm-f
+
+    -- inner: transport `subst₂-FinBij-≈ … rigid-core` back along the two
+    -- `eval-map⁺` equalities and `step-map⁺` using `≈-fb-resp-≡`.
+    inner : eval-↭ M0 ∘-fb eval-↭ R0 ≈-fb eval-↭ (PermProp.map⁺ vlab perm-f)
+    inner =
+      ≈-fb-resp-≡
+        (trans (sym (eval-map⁺ vlab q)) (sym step-map⁺))
+        (sym (eval-map⁺ vlab perm-f))
+        (subst₂-FinBij-≈ (sym (length-map vlab s₀)) (sym (length-map vlab cod)) rigid-core)
+
+    result : eval-↭ (stack-↭-flatten-B f)
+             ≈-fb eval-↭ (Perm.trans (PermProp.map⁺ vlab perm-f) RC)
+    result = ≈-fb-trans {π = eval-↭ (stack-↭-flatten-B f)}
+                        {ρ = eval-↭ RC ∘-fb (eval-↭ M0 ∘-fb eval-↭ R0)}
+                        {σ = eval-↭ RC ∘-fb eval-↭ (PermProp.map⁺ vlab perm-f)}
+                        assoc-step
+                        (∘-fb-cong {g = eval-↭ RC} {g′ = eval-↭ RC}
+                                   {f = eval-↭ M0 ∘-fb eval-↭ R0}
+                                   {f′ = eval-↭ (PermProp.map⁺ vlab perm-f)}
+                                   RC≈step inner)

@@ -130,6 +130,10 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.ProcessTermAligne
          ProcessEdges↭Goal; full-dom-eq)
   renaming (module WithResidual to PTA2-WithResidual)
 
+-- The concrete stack permutation baked into the (c') field type.
+open import Categories.APROP.Hypergraph.Completeness.Discharge.StackPerm sig-dec
+  using (process-edges-resp-iso-stack)
+
 open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; map)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
@@ -149,18 +153,13 @@ abstract
   process-term-permute-aligned-impl
     : (residual : ProcessTermAligned2Residual)
     → ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
-        (stack-↭ :
-          map (Hypergraph.vlab ⟪ f ⟫F)
-              (proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
-          Perm.↭
-          map (Hypergraph.vlab ⟪ g ⟫F)
-              (proj₁ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F))))
-    → permute (Perm.↭-sym stack-↭)
+    → permute (Perm.↭-sym (process-edges-resp-iso-stack f g iso))
       ∘ subst₂ HomTerm
           (cong unflatten (full-dom-eq f g))
           refl
           (proj₂ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F)))
       ≈Term
       proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
-  process-term-permute-aligned-impl residual =
-    PTA2-WithResidual.process-term-permute-aligned-discharge residual
+  process-term-permute-aligned-impl residual f g iso =
+    PTA2-WithResidual.process-term-permute-aligned-discharge residual f g iso
+      (process-edges-resp-iso-stack f g iso)

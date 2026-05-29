@@ -46,7 +46,7 @@ open import Categories.APROP.Hypergraph.Completeness.DecoderAgreementSafe sig
 import Categories.APROP.Hypergraph.Completeness.DecoderAgreementSafe as DAS
 module DAS-sig = DAS sig
 open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeShape sig
-  using (DecodeShapeResiduals; module WithResiduals)
+  using (DecodeShapeResiduals; module DecodeShapeResiduals)
 import Categories.APROP.Hypergraph.Completeness.Discharge.DecoderAgreementCases as Cases
 module Cases-sig = Cases sig
 import Categories.APROP.Hypergraph.Completeness.Discharge.DecoderAgreementRho as Rho
@@ -63,7 +63,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRoundtripAg
 -- `abstract` is critical: without it, downstream elaboration in
 -- `Solver/Tests.agda` runs out of memory (>8 GB) due to the
 -- module-application chain through `DecoderAgreementSafe.WithAssumptions`
--- and the four `FromShape` / `WithResiduals` / `FromResiduals` submodules.
+-- and the `FromShape` / `FromResiduals` submodules.
 
 abstract
   decode-rel-≈-decode-impl
@@ -80,13 +80,13 @@ abstract
     decode-rel-≈-decode-α⇒-impl decode-rel-≈-decode-α⇐-impl =
     DAS-sig.WithAssumptions.decode-rel-≈-decode decoderAgreementAssumptions
     where
-      module Shape = WithResiduals decodeShapeResiduals
+      module Shape = DecodeShapeResiduals decodeShapeResiduals
 
       ty-⊗-shape : Ty-⊗-shape
-      ty-⊗-shape = unapply-⊗-shape (λ {A} {B} {C} {D} f g → Shape.decode-⊗-shape f g)
+      ty-⊗-shape = unapply-⊗-shape (λ {A} {B} {C} {D} f g → Shape.decode-⊗-shape-inner f g)
 
       ty-∘-shape : Ty-∘-shape
-      ty-∘-shape = unapply-∘-shape (λ {A} {B} {C} g f → Shape.decode-∘-shape g f)
+      ty-∘-shape = unapply-∘-shape (λ {A} {B} {C} g f → Shape.decode-∘-shape-inner g f)
 
       module CasesShape = Cases-sig.FromShape ty-⊗-shape
 

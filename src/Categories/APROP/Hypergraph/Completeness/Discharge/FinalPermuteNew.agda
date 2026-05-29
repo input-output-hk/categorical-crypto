@@ -118,8 +118,9 @@ open import Categories.APROP.Hypergraph.Completeness.Decode sig
   using (process-all-edges)
 open import Categories.APROP.Hypergraph.Completeness.Permute sig
   using (permute; permute-via-vlab)
-open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.PermuteCoherenceFin sig
-  using (permute-inverse-left; permute-inverse-right)
+
+open import Categories.PermuteCoherence.Eval using (eval-↭)
+open import Categories.PermuteCoherence.FinBij using (_≈-fb_)
 
 open import Categories.Category using (Category)
 open import Data.Fin using (Fin)
@@ -154,20 +155,22 @@ private
 
 record PermuteCoherence : Set where
   field
-    -- Symmetric monoidal coherence on the `permute` fragment.  This is
-    -- exactly Kelly's coherence theorem for symmetric monoidal
-    -- categories restricted to morphisms built from `id, σ, α, _⊗₁_, _∘_`.
+    -- Kelly's symmetric-monoidal coherence theorem on the `permute`
+    -- fragment, in its TRUE `≅↭`-CONDITIONED form (Kelly 1964): two
+    -- `permute` derivations between the same boundary that evaluate to
+    -- the SAME finite bijection (`eval-↭ p ≈-fb eval-↭ q`) are
+    -- `≈Term`-equal.  This is exactly `FaithfulnessResidual` of
+    -- `Categories.PermuteCoherence.Faithfulness` (APROP's `permute` is
+    -- definitionally that module's `permute`).
     --
-    -- Strictly narrower than `final-permute-absorb`: no `f, g, iso,
-    -- ⟪_⟫F`, no decoder, no `subst₂` plumbing.
-    --
-    -- See `Discharge/Sub/PermuteCoherence.agda` and
-    -- `Discharge/Sub/PermuteCoherenceFin.agda` for the further
-    -- narrowing to the Fin-level `Unique`-precondition statement
-    -- (which is genuinely *true* in the free symmetric monoidal
-    -- category) and the residual self-loop obligation.
+    -- ⚠ The OLD field dropped the `eval-↭ p ≈-fb eval-↭ q` hypothesis,
+    -- making it FALSE in general (duplicate X-level lists: `permute σ ≢
+    -- id`).  The hypothesis is what makes it true; the consumer
+    -- discharges it constructively from the `Unique`-ness of the
+    -- decoder stacks (see `Categories.PermuteCoherence.Rigid.eval-rigid`).
     permute-≈Term-coherence
       : ∀ {xs ys : List X} (p q : xs Perm.↭ ys)
+      → eval-↭ p ≈-fb eval-↭ q
       → permute p ≈Term permute q
 
 --------------------------------------------------------------------------------
@@ -178,32 +181,19 @@ module WithCoherence (coh : PermuteCoherence) where
   open PermuteCoherence coh
 
   ------------------------------------------------------------------------
-  -- ### Step 1: Lift coherence through `permute-via-vlab`.
-  --
-  -- `permute-via-vlab vlab p = permute (PermProp.map⁺ vlab p)`.  Any
-  -- two `permute-via-vlab vlab p` and `permute-via-vlab vlab q` are
-  -- `≈Term`-equal by `permute-≈Term-coherence` applied to
-  -- `map⁺ vlab p` and `map⁺ vlab q`.
-
-  permute-via-vlab-≈Term-coherence
-    : ∀ {n} {xs ys : List (Fin n)}
-        (vlab : Fin n → X)
-        (p q : xs Perm.↭ ys)
-    → permute-via-vlab vlab p ≈Term permute-via-vlab vlab q
-  permute-via-vlab-≈Term-coherence vlab p q =
-    permute-≈Term-coherence (PermProp.map⁺ vlab p) (PermProp.map⁺ vlab q)
-
-  ------------------------------------------------------------------------
-  -- ### Step 2: Generic compose-style discharge.
+  -- ### Generic compose-style discharge.
   --
   -- The key constructive step: after J-eliminating the cod-equation,
   -- the LHS becomes `permute q ∘ permute s` for some derivations.
   -- By definition of `permute` on `Perm.trans`, this equals
   -- `permute (Perm.trans s q)`; combined with `permute-≈Term-coherence`
-  -- it gives the goal.
+  -- (fed the `≅↭` evidence `ev`) it gives the goal.
   --
   -- The helper is generic over the boundary lists, so the eventual
-  -- specialisation to `process-all-edges` lists is mechanical.
+  -- specialisation to `process-all-edges` lists is mechanical.  The
+  -- `ev` argument carries the `≅↭` (equal-evaluated-bijection)
+  -- evidence; under `cs≡ds = refl` its type collapses to
+  -- `eval-↭ (Perm.trans s q) ≈-fb eval-↭ p`.
 
   generic-permute-compose-absorb
     : ∀ {as bs cs ds : List X}
@@ -211,21 +201,23 @@ module WithCoherence (coh : PermuteCoherence) where
         (s : as Perm.↭ bs)
         (q : bs Perm.↭ cs)
         (p : as Perm.↭ ds)
+        (ev : eval-↭ (Perm.trans s q)
+              ≈-fb eval-↭ (subst (λ z → as Perm.↭ z) (sym cs≡ds) p))
     → subst₂ HomTerm
         refl
         (cong unflatten cs≡ds)
         (permute q)
       ∘ permute s
       ≈Term permute p
-  generic-permute-compose-absorb refl s q p =
+  generic-permute-compose-absorb refl s q p ev =
     -- subst₂ refl refl (permute q) = permute q  definitionally.
     -- So the LHS is `permute q ∘ permute s`.
     -- By definition of permute on Perm.trans:
     --   permute (Perm.trans s q) = permute q ∘ permute s
     -- Hence LHS ≡ permute (Perm.trans s q).
-    -- Then `permute-≈Term-coherence (Perm.trans s q) p` closes the
-    -- goal.
-    permute-≈Term-coherence (Perm.trans s q) p
+    -- Then `permute-≈Term-coherence (Perm.trans s q) p ev` closes the
+    -- goal (ev : (Perm.trans s q) ≅↭ p).
+    permute-≈Term-coherence (Perm.trans s q) p ev
 
   ------------------------------------------------------------------------
   -- ### Step 3: The constructive discharge of the NEW
@@ -247,6 +239,17 @@ module WithCoherence (coh : PermuteCoherence) where
                   Perm.↭ Hypergraph.cod ⟪ f ⟫F)
         (perm-g : proj₁ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F))
                   Perm.↭ Hypergraph.cod ⟪ g ⟫F)
+        -- The `≅↭` evidence: the composite `stack-↭` then `perm-g`
+        -- evaluates to the same finite bijection as `perm-f` (after the
+        -- cod-equation transport).  Discharged constructively from the
+        -- `Unique`-ness of the decoder stacks.
+        (ev : eval-↭ (Perm.trans stack-↭ (PermProp.map⁺ (Hypergraph.vlab ⟪ g ⟫F) perm-g))
+              ≈-fb eval-↭ (subst (λ z →
+                       map (Hypergraph.vlab ⟪ f ⟫F)
+                           (proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
+                       Perm.↭ z)
+                     (sym (full-cod-eq f g))
+                     (PermProp.map⁺ (Hypergraph.vlab ⟪ f ⟫F) perm-f)))
     → let F-vlab = Hypergraph.vlab ⟪ f ⟫F
           G-vlab = Hypergraph.vlab ⟪ g ⟫F
       in subst₂ HomTerm
@@ -256,191 +259,27 @@ module WithCoherence (coh : PermuteCoherence) where
          ∘ permute stack-↭
          ≈Term
          permute-via-vlab F-vlab perm-f
-  final-permute-absorb-discharge {A} {B} f g iso stack-↭ perm-f perm-g =
+  final-permute-absorb-discharge {A} {B} f g iso stack-↭ perm-f perm-g ev =
     let F-vlab = Hypergraph.vlab ⟪ f ⟫F
         G-vlab = Hypergraph.vlab ⟪ g ⟫F
         mapped-perm-f = PermProp.map⁺ F-vlab perm-f
         mapped-perm-g = PermProp.map⁺ G-vlab perm-g
         cod-eq = full-cod-eq f g
-    in generic-permute-compose-absorb cod-eq stack-↭ mapped-perm-g mapped-perm-f
-
-  ------------------------------------------------------------------------
-  -- ## Section 3: Drop-in replacement matching the original (d) field
-  --                signature.
-  --
-  -- The (d) field references `process-edges-resp-iso-stack f g iso`
-  -- inside the type via a let-binding.  To produce a discharge with
-  -- that exact type, we parametrise on the (b) callback.
-
-  module FromStackCallback
-    (stack-callback
-      : ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-      → map (Hypergraph.vlab ⟪ f ⟫F)
-            (proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
-        Perm.↭
-        map (Hypergraph.vlab ⟪ g ⟫F)
-            (proj₁ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F))))
-    where
-
-    -- Exact drop-in matching the (d) field's type modulo `let`-unfolding:
-    -- given (f, g, iso, perm-f, perm-g), produce the ≈Term.
-    final-permute-absorb
-      : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
-          (perm-f : proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
-                    Perm.↭ Hypergraph.cod ⟪ f ⟫F)
-          (perm-g : proj₁ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F))
-                    Perm.↭ Hypergraph.cod ⟪ g ⟫F)
-      → let stack-↭ = stack-callback f g iso
-            F-vlab = Hypergraph.vlab ⟪ f ⟫F
-            G-vlab = Hypergraph.vlab ⟪ g ⟫F
-        in subst₂ HomTerm
-             refl
-             (cong unflatten (full-cod-eq f g))
-             (permute-via-vlab G-vlab perm-g)
-           ∘ permute stack-↭
-           ≈Term
-           permute-via-vlab F-vlab perm-f
-    final-permute-absorb f g iso perm-f perm-g =
-      final-permute-absorb-discharge f g iso
-        (stack-callback f g iso) perm-f perm-g
+    in generic-permute-compose-absorb cod-eq stack-↭ mapped-perm-g mapped-perm-f ev
 
 --------------------------------------------------------------------------------
--- ## Section 4: Reduction to the Fin-level self-loop postulate
---                (sketch + working partial reduction).
+-- ## Trust-surface summary.
 --
--- The PermuteCoherence postulate is at the X-level; this is genuinely
--- FALSE in general (see the counter-example in
--- `Discharge/Sub/PermuteCoherence.agda` header).  However, for the
--- consumer's actual usage, the inputs are always of the form
--- `Perm.trans stack-↭ (PermProp.map⁺ G-vlab perm-g)` vs
--- `PermProp.map⁺ F-vlab perm-f`, with the underlying Fin-level lists
--- (`process-all-edges` outputs and `Hypergraph.cod`) being `Unique`
--- thanks to the Linearity machinery.
+-- `final-permute-absorb-discharge` is fully constructive GIVEN the
+-- `≅↭` evidence `ev` (that the composite stack/perm derivation
+-- evaluates to the same finite bijection as `perm-f`) and the
+-- `PermuteCoherence` witness (the TRUE Kelly faithfulness residual).
 --
--- The cleaner narrowing exposes a *self-loop* postulate at the X-level
--- and uses `permute-inverse-right` to bridge.  We outline the partial
--- reduction:
-
-module ReductionToSelfLoop where
-
-  -- The narrow self-loop obligation at the X level, given an arbitrary
-  -- self-loop derivation `r : xs ↭ xs`.
-  --
-  -- This is STRICTLY NARROWER than the binary X-level
-  -- `permute-≈Term-coherence` (only requires one derivation and one
-  -- boundary list).
-  record XSelfLoop : Set where
-    field
-      X-permute-self-loop-id
-        : ∀ {xs : List X} (r : xs Perm.↭ xs)
-        → permute r ≈Term id
-
-  -- The reduction: given the self-loop postulate plus
-  -- `permute-inverse-right` (constructive), derive the binary
-  -- `PermuteCoherence` value.
-  --
-  -- This proves PermuteCoherence from XSelfLoop, demonstrating that
-  -- `XSelfLoop` is *sufficient* to drive the (d) discharge.
-  module FromSelfLoop (xsl : XSelfLoop) where
-    open XSelfLoop xsl
-
-    -- The reduction strategy mirrors `WithSelfLoop` in
-    -- `PermuteCoherenceFin.agda`:
-    --
-    --   permute p
-    --     ≈Term id ∘ permute p                                [idˡ-sym]
-    --     ≈Term (permute q ∘ permute (↭-sym q)) ∘ permute p  [perm-inv-right q]
-    --     ≈Term permute q ∘ (permute (↭-sym q) ∘ permute p)   [assoc]
-    --     ≈Term permute q ∘ permute (Perm.trans p (↭-sym q))  [permute on trans]
-    --     ≈Term permute q ∘ id                                [X-self-loop on trans p (↭-sym q)]
-    --     ≈Term permute q                                      [idʳ]
-
-    permute-≈Term-coherence-from-self-loop
-      : ∀ {xs ys : List X} (p q : xs Perm.↭ ys)
-      → permute p ≈Term permute q
-    permute-≈Term-coherence-from-self-loop p q =
-      let -- The "loop" derivation: trans p (↭-sym q) : xs ↭ xs.
-          --
-          -- Note: by definition of `permute` on `Perm.trans`,
-          --   permute (Perm.trans p (Perm.↭-sym q))
-          --     = permute (Perm.↭-sym q) ∘ permute p
-          -- Hence applying `X-permute-self-loop-id` at the loop gives
-          --   permute (Perm.↭-sym q) ∘ permute p ≈Term id.
-          loop-id : permute (Perm.↭-sym q) ∘ permute p ≈Term id
-          loop-id = X-permute-self-loop-id (Perm.trans p (Perm.↭-sym q))
-
-          right-inv : permute q ∘ permute (Perm.↭-sym q) ≈Term id
-          right-inv = permute-inverse-right q
-      in begin
-           permute p
-             ≈⟨ ≈-Term-sym idˡ ⟩
-           id ∘ permute p
-             ≈⟨ ∘-resp-≈ (≈-Term-sym right-inv) ≈-Term-refl ⟩
-           (permute q ∘ permute (Perm.↭-sym q)) ∘ permute p
-             ≈⟨ assoc ⟩
-           permute q ∘ (permute (Perm.↭-sym q) ∘ permute p)
-             ≈⟨ ∘-resp-≈ ≈-Term-refl loop-id ⟩
-           permute q ∘ id
-             ≈⟨ idʳ ⟩
-           permute q
-         ∎
-
-    -- Bundle as a PermuteCoherence value.
-    permuteCoherence : PermuteCoherence
-    permuteCoherence = record
-      { permute-≈Term-coherence = permute-≈Term-coherence-from-self-loop
-      }
-
---------------------------------------------------------------------------------
--- ## Section 5: Trust-surface summary.
---
--- ### Constructive content (closed without any postulate):
---
---   1. `generic-permute-compose-absorb`: J-elim on `cod-eq`,
---      definitional unfolding of `permute (Perm.trans _ _)`.  Pure
---      bookkeeping.
---
---   2. `final-permute-absorb-discharge`: specialises (1) to the
---      decoder boundary types.  Pure bookkeeping.
---
---   3. `FromStackCallback.final-permute-absorb`: composes with the
---      (b)-callback.  Pure bookkeeping.
---
---   4. `permute-via-vlab-≈Term-coherence`: lifts coherence through
---      `map⁺ vlab`.  Pure bookkeeping.
---
---   5. `ReductionToSelfLoop.permute-≈Term-coherence-from-self-loop`:
---      constructively derives the binary coherence from the unary
---      self-loop postulate, using the (already-discharged)
---      `permute-inverse-right` from
---      `Discharge/Sub/PermuteCoherenceFin.agda`.  Demonstrates the
---      tight equivalence between the two narrowing styles.
---
--- ### Residual obligation (one record field):
---
---   * `PermuteCoherence.permute-≈Term-coherence` — binary X-level
---     coherence between any two `permute` derivations.
---
---   * EQUIVALENT (via `ReductionToSelfLoop.FromSelfLoop`) to the unary
---     self-loop `XSelfLoop.X-permute-self-loop-id`.
---
---   * Both are strictly narrower than the original `final-permute-absorb`:
---     no mention of `f, g, iso, ⟪_⟫F`, decoder, or `subst₂`.
---
--- ### Connection to `Fin-permute-self-loop-id` of `PermuteCoherenceFin`:
---
---   The X-level `XSelfLoop.X-permute-self-loop-id` is FALSE in
---   full generality (because of X-level duplicates — same counter-
---   example as for `permute-≈Term-coherence` in
---   `PermuteCoherence.agda`).  The Fin-level analogue
---   `Fin-permute-self-loop-id`, with the `Unique xs` precondition, IS
---   true and corresponds to the consumer's actual usage.
---
---   Reducing `XSelfLoop` to `Fin-permute-self-loop-id` requires
---   converting an X-level `↭` to a Fin-level `↭` (when the underlying
---   Fin lists are `Unique`).  This conversion lemma is not yet
---   implemented in the codebase, so we expose the X-level coherence
---   directly here; see `ReductionToSelfLoop` for the partial reduction.
---
--- ## Final LOC delivered: 446 (this file).
+-- The OLD `ReductionToSelfLoop`/`XSelfLoop` apparatus has been removed:
+-- it derived the binary coherence from the UNCONDITIONAL X-level
+-- self-loop `permute r ≈Term id`, which is FALSE in general (duplicate
+-- X-level lists).  The `≅↭`-conditioned `permute-≈Term-coherence` is
+-- the honest replacement; its hypothesis is discharged constructively
+-- by the consumer via `Categories.PermuteCoherence.Rigid.eval-rigid`
+-- on the `Unique` decoder stacks.
 --------------------------------------------------------------------------------

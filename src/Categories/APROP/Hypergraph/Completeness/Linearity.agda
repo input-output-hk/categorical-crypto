@@ -77,10 +77,6 @@ count-++ v (x ∷ xs) ys with v ≟ x
 ... | yes _ = cong suc (count-++ v xs ys)
 ... | no  _ = count-++ v xs ys
 
-count-[]-right : ∀ {n} (v : Fin n) (xs : List (Fin n))
-               → count v (xs ++ []) ≡ count v xs
-count-[]-right v xs = trans (count-++ v xs []) (Nat.+-identityʳ _)
-
 --------------------------------------------------------------------------------
 -- count of `v` in `range n`: every Fin appears exactly once.
 

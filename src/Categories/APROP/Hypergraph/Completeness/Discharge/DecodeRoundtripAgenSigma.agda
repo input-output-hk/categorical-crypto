@@ -154,36 +154,10 @@ record Residuals : Set where
       → decode (σ {A = A} {B = B} ⦃ s ⦄) ≈Term bridge (σ {A = A} {B = B} ⦃ s ⦄)
 
 --------------------------------------------------------------------------------
--- The constructive derivation.  Given a `Residuals` witness, derive the
--- two original `decode-roundtrip-{Agen,σ}` HomTerms at the exact type
--- signatures of `DecodeRoundtrip.agda` lines 244-249.
---
--- The derivation is *one-step* per case — the residual records the same
--- proposition modulo the algorithm internals of `decode`.  This is the
--- "exposure" half of the discharge; the residuals themselves are the
--- minimised kernel.
-
-module WithResiduals (r : Residuals) where
-  open Residuals r
-
-  --------------------------------------------------------------------
-  -- `decode-roundtrip-Agen`.
-  --
-  -- Direct invocation of the corresponding residual.  Both LHS and RHS
-  -- have type `HomTerm (unflatten (flatten A)) (unflatten (flatten B))`,
-  -- so the discharge is by reflexivity at the residual level.
-
-  decode-roundtrip-Agen
-    : ∀ {A B} (g : mor A B) → decode (Agen g) ≈Term bridge (Agen g)
-  decode-roundtrip-Agen g = decode-Agen-collapse g
-
-  --------------------------------------------------------------------
-  -- `decode-roundtrip-σ`.
-  --
-  -- Direct invocation of the corresponding residual, threading through
-  -- the `Symm ≤ Symm` instance argument.
-
-  decode-roundtrip-σ
-    : ∀ {A B} ⦃ s : Symm ≤ Symm ⦄
-    → decode (σ {A = A} {B = B} ⦃ s ⦄) ≈Term bridge (σ {A = A} {B = B} ⦃ s ⦄)
-  decode-roundtrip-σ ⦃ s ⦄ = decode-σ-collapse ⦃ s ⦄
+-- The `Residuals` fields ARE the discharge: each field already has the
+-- exact proposition `decode (Agen g) ≈Term bridge (Agen g)` (resp. σ)
+-- at the natural boundary type.  Consumers `open Residuals` and use
+-- `decode-{Agen,σ}-collapse` directly — no wrapper module is needed.
+-- (An earlier `module WithResiduals` re-exported the fields under the
+-- names `decode-roundtrip-{Agen,σ}`; it was a pure rename and has been
+-- removed.)

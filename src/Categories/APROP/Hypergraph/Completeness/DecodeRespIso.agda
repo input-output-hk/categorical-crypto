@@ -9,18 +9,26 @@
 -- The record has THREE fields, each strictly narrower than the
 -- original opaque `decode-rel-resp-iso` postulate:
 --
---   (c')  `process-term-permute-aligned`  — Term-level ≈Term taking
---                                           `stack-↭` as an explicit
---                                           parameter (narrower than
---                                           the old (c) which embedded
---                                           a call to (b)).
---   (XSL) `X-permute-self-loop-id`        — Kelly's UNARY self-loop
---                                           coherence: `permute r ≈Term
---                                           id` for any `r : xs ↭ xs`.
---                                           The binary form (the old
---                                           (K)) is reconstructed in
---                                           `WithAssumptions` from this
---                                           plus `permute-inverse-right`.
+--   (c')  `process-term-permute-aligned`  — Term-level ≈Term,
+--                                           specialised to the concrete
+--                                           `process-edges-resp-iso-stack
+--                                           f g iso` (no longer takes a
+--                                           universally-quantified
+--                                           `stack-↭`).
+--   (Kelly) `permute-≅↭-faithful`         — Kelly's symmetric-monoidal
+--                                           coherence in its TRUE
+--                                           `≅↭`-CONDITIONED form
+--                                           (`eval-↭ p ≈-fb eval-↭ q →
+--                                           permute p ≈Term permute q`);
+--                                           = `FaithfulnessResidual`.
+--                                           REPLACES the old, FALSE-in-
+--                                           general `X-permute-self-loop-id`.
+--                                           The (d) consumer discharges
+--                                           the `≅↭` hypothesis
+--                                           CONSTRUCTIVELY via
+--                                           `Sub.StackEvalCoherence`
+--                                           (`Rigid.eval-rigid` +
+--                                           `Sub.FromAPROPCodUnique`).
 --   (F)   `decode-rel-≈-decode`           — Structural ↔ algorithmic
 --                                           decoder agreement.
 --
@@ -33,14 +41,15 @@
 --     discharged in `Discharge/StackPerm.agda`.  The iso is
 --     structurally redundant for the multiset statement; the proof
 --     needs only `⟪⟫F-codL`.
---   * The old (c) and (d) field bodies are RECONSTRUCTED in
---     `WithAssumptions` from the new (c') + (XSL) fields.  See
---     `Discharge/ProcessTermNew.agda` and
---     `Discharge/FinalPermuteNew.agda` for the analysis.
---   * The old (K) binary `permute-≈Term-coherence` is RECONSTRUCTED
---     in `WithAssumptions` from (XSL) via Path C in
---     `Discharge/PermuteCoherenceShared.agda` (`FromXSelfLoop`),
---     using the discharged `permute-inverse-right`.
+--   * The old (c) field body is RECONSTRUCTED in `WithAssumptions` by
+--     applying the (c') field directly to the discharged (b) value —
+--     the (c') field takes the stack permutation as an explicit
+--     parameter, so the (c) path needs NO Kelly coherence.
+--   * The old (d) field body is RECONSTRUCTED in `WithAssumptions` via
+--     `Discharge/FinalPermuteNew.agda`'s `final-permute-absorb-discharge`.
+--     Its Kelly-coherence input is reconstructed from (XSL) via that
+--     module's own `ReductionToSelfLoop.FromSelfLoop`, using the
+--     discharged `permute-inverse-right`.
 --
 -- `WithAssumptions` constructively derives `decode-attempt-resp-iso`,
 -- `decode-resp-iso`, and `decode-rel-resp-iso` from these fields.
@@ -119,13 +128,13 @@ import Categories.APROP.Hypergraph.Completeness.Linearity sig as Lin
 open import Categories.APROP.Hypergraph.Completeness.Discharge.LinearExtracts sig-dec
   using (decode-attempt-Linear-extracts-discharge)
 
--- `permute-inverse-left/right` are fully discharged constructively in
+-- `permute-inverse-right` is fully discharged constructively in
 -- `Discharge/Sub/PermuteCoherenceFin.agda` (via agent on the
--- Fin-Unique-coherence task).  These say `permute p ∘ permute (↭-sym p)
--- ≈Term id` (and the symmetric form) for any `p : xs ↭ ys`.  This is
--- the round-trip cancellation needed for the (b)→`Perm.↭` refactor.
+-- Fin-Unique-coherence task).  It says `permute p ∘ permute (↭-sym p)
+-- ≈Term id` for any `p : xs ↭ ys`.  This is the round-trip
+-- cancellation used in `decode-attempt-resp-iso`.
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.PermuteCoherenceFin sig
-  using (permute-inverse-left; permute-inverse-right)
+  using (permute-inverse-right)
 
 -- (b) `process-edges-resp-iso-stack` is FULLY DISCHARGED CONSTRUCTIVELY
 -- in `Discharge/StackPerm.agda`.  It says that the iso induces a
@@ -137,24 +146,29 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.PermuteCohere
 open import Categories.APROP.Hypergraph.Completeness.Discharge.StackPerm sig-dec
   using (process-edges-resp-iso-stack)
 
--- (c)/(d) narrowing modules.  Each exposes a STRICTLY NARROWER
--- residual: a `ProcessTermPermuteAssumption` for (c) (takes `stack-↭`
--- as an explicit parameter rather than computing it from (b)), and a
--- `PermuteCoherence` for (d) (just Kelly's coherence on the `permute`
--- fragment, no decoder/iso/subst₂ plumbing).  The two `PermuteCoherence`
--- statements in the two files are identical content; they share a
--- single Kelly witness in `WithAssumptions` below.
-import Categories.APROP.Hypergraph.Completeness.Discharge.ProcessTermNew sig-dec
-  as ProcessTermN
+-- (d) narrowing module.  `FinalPermuteNew` exposes the (d) body as
+-- `final-permute-absorb-discharge`, parameterised by a `PermuteCoherence`
+-- (Kelly's coherence on the `permute` fragment).  It also provides
+-- `ReductionToSelfLoop.FromSelfLoop`, which derives that
+-- `PermuteCoherence` from the unary X-level `X-permute-self-loop-id`
+-- field plus the constructive `permute-inverse-right` — so `WithAssumptions`
+-- needs no separate Kelly-coherence module.
+--
+-- The (c) body needs NO Kelly coherence: the `process-term-permute-aligned`
+-- field already takes the stack permutation as an explicit parameter, so
+-- `WithAssumptions` applies it directly to the discharged (b) value
+-- `process-edges-resp-iso-stack`.
 import Categories.APROP.Hypergraph.Completeness.Discharge.FinalPermuteNew sig-dec
   as FinalPermuteN
 
--- (K) → (XSelfLoop) reduction.  `PermuteCoherenceShared.FromXSelfLoop`
--- derives the binary `permute-≈Term-coherence` from the unary X-level
--- `X-permute-self-loop-id` plus the constructive `permute-inverse-right`.
--- The unary form is the narrowest known X-level Kelly residual.
-import Categories.APROP.Hypergraph.Completeness.Discharge.PermuteCoherenceShared sig-dec
-  as PermSh
+open import Categories.PermuteCoherence.Eval using (eval-↭)
+open import Categories.PermuteCoherence.FinBij using (_≈-fb_)
+
+-- (XSL glue) CONSTRUCTIVELY DISCHARGED — the `≅↭` evidence consumed by
+-- the (d) discharge is now a theorem (via `Rigid.eval-rigid` +
+-- `FromAPROPCodUnique.⟪_⟫F-cod-unique`), not a trust field.
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackEvalCoherence sig-dec
+  using (stack-eval-coherence)
 
 -- Imports needed for `Build` record's field types.
 open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeShape sig
@@ -276,16 +290,16 @@ private
 
 record Build : Set where
   field
-    -- (c') Term-level ≈Term taking `stack-↭` as explicit parameter.
+    -- (c') Term-level ≈Term.  Specialised to the concrete stack
+    -- permutation `process-edges-resp-iso-stack f g iso` (discharged
+    -- constructively in `Discharge/StackPerm.agda`).  The field used to
+    -- take this permutation as a universally-quantified parameter, but
+    -- the single use site (`process-edges-resp-iso-term`) only ever
+    -- instantiates it to that concrete value, so baking it in strictly
+    -- narrows the trust surface (no unused ∀-hypothesis).
     process-term-permute-aligned
       : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
-          (stack-↭ :
-            map (Hypergraph.vlab ⟪ f ⟫F)
-                (proj₁ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)))
-            Perm.↭
-            map (Hypergraph.vlab ⟪ g ⟫F)
-                (proj₁ (process-all-edges ⟪ g ⟫F (Hypergraph.dom ⟪ g ⟫F))))
-      → permute (Perm.↭-sym stack-↭)
+      → permute (Perm.↭-sym (process-edges-resp-iso-stack f g iso))
         ∘ subst₂ HomTerm
             (cong unflatten (full-dom-eq f g))
             refl
@@ -293,11 +307,23 @@ record Build : Set where
         ≈Term
         proj₂ (process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F))
 
-    -- (XSL) Kelly's UNARY self-loop coherence on `permute`.
-    -- ⚠ At X-level this can fail for duplicate-list inputs.
-    X-permute-self-loop-id
-      : ∀ {xs : List X} (r : xs Perm.↭ xs)
-      → permute r ≈Term id
+    -- (XSL→Kelly) Kelly's symmetric-monoidal coherence theorem on the
+    -- `permute` fragment, in its TRUE `≅↭`-CONDITIONED form (this is
+    -- exactly `Categories.PermuteCoherence.Faithfulness.FaithfulnessResidual`,
+    -- since APROP's `permute` IS that module's `permute`): two `permute`
+    -- derivations between the same boundary whose evaluated finite
+    -- bijections coincide (`eval-↭ p ≈-fb eval-↭ q`) are `≈Term`-equal.
+    --
+    -- This REPLACES the OLD `X-permute-self-loop-id : ∀ {xs} (r : xs ↭
+    -- xs) → permute r ≈Term id`, which was FALSE in general (duplicate
+    -- X-level lists give `permute σ ≢ id`).  The new field is TRUE
+    -- (Kelly 1964); its `eval-↭`-hypothesis is discharged constructively
+    -- at the (d) use site from the `Unique`-ness of the decoder stacks
+    -- (see `stack-eval-coherence` + `Rigid.eval-rigid`).
+    permute-≅↭-faithful
+      : ∀ {xs ys : List X} (p q : xs Perm.↭ ys)
+      → eval-↭ p ≈-fb eval-↭ q
+      → permute p ≈Term permute q
 
     -- (F) Structural ↔ algorithmic decoder agreement.
     decode-rel-≈-decode
@@ -321,8 +347,9 @@ buildFromResiduals
     (decode-rel-≈-decode-α⇐-impl
        : ∀ {A B C} → decode-rel (α⇐ {A} {B} {C})
                    ≈Term decode (α⇐ {A} {B} {C}))
-    (x-permute-self-loop-id
-       : ∀ {xs : List X} (r : xs Perm.↭ xs) → permute r ≈Term id)
+    (permute-≅↭-faithful-impl
+       : ∀ {xs ys : List X} (p q : xs Perm.↭ ys)
+       → eval-↭ p ≈-fb eval-↭ q → permute p ≈Term permute q)
     (processTermResidual : ProcessTermAligned2Residual)
   → Build
 buildFromResiduals
@@ -331,11 +358,11 @@ buildFromResiduals
     agenSigmaResiduals
     decode-rel-≈-decode-α⇒-impl
     decode-rel-≈-decode-α⇐-impl
-    x-permute-self-loop-id
+    permute-≅↭-faithful-impl
     processTermResidual = record
   { process-term-permute-aligned =
       PTP-sig.process-term-permute-aligned-impl processTermResidual
-  ; X-permute-self-loop-id = x-permute-self-loop-id
+  ; permute-≅↭-faithful = permute-≅↭-faithful-impl
   ; decode-rel-≈-decode =
       DRD-sig.decode-rel-≈-decode-impl
         decodeShapeResiduals
@@ -350,51 +377,29 @@ buildFromResiduals
 --
 -- `WithAssumptions` derives `decode-attempt-resp-iso`,
 -- `decode-resp-iso`, and `decode-rel-resp-iso` constructively from
--- the five `CompletenessAssumptions` fields.
+-- the three `Build` fields.
 
 module WithAssumptions (b : Build) where
   open Build b public
 
   ------------------------------------------------------------------------
-  -- Step 0: Reconstruct the old (c)/(d) discharges from the new
-  -- factored fields + Kelly coherence.
+  -- Step 0: Reconstruct the old (c)/(d) discharge BODIES from the
+  -- factored fields.
 
   private
-    -- Step 0a: reconstruct the binary `permute-≈Term-coherence` from
-    -- the unary `X-permute-self-loop-id` field, via Path C in
-    -- `Discharge/PermuteCoherenceShared.agda`.
-    x-self-loop : PermSh.XSelfLoop
-    x-self-loop = record { X-permute-self-loop-id = X-permute-self-loop-id }
-
-    open PermSh.FromXSelfLoop x-self-loop
-      using (permute-≈Term-coherence-from-X-self-loop)
-
-    permute-≈Term-coherence
-      : ∀ {xs ys : List X} (p q : xs Perm.↭ ys)
-      → permute p ≈Term permute q
-    permute-≈Term-coherence = permute-≈Term-coherence-from-X-self-loop
-
-    -- Step 0b: bundle the recovered Kelly coherence for the (c)/(d)
-    -- discharge modules.
-    process-assumption : ProcessTermN.ProcessTermPermuteAssumption
-    process-assumption = record
-      { process-term-permute-aligned = process-term-permute-aligned }
-
-    bridge-coherence : ProcessTermN.PermuteCoherenceForBridge
-    bridge-coherence = record
-      { permute-≈Term-coherence = permute-≈Term-coherence }
-
+    -- The (d) discharge needs Kelly's `≅↭`-conditioned coherence on
+    -- `permute`.  That IS the `permute-≅↭-faithful` field directly.
     finalp-coherence : FinalPermuteN.PermuteCoherence
-    finalp-coherence = record
-      { permute-≈Term-coherence = permute-≈Term-coherence }
+    finalp-coherence =
+      record { permute-≈Term-coherence = permute-≅↭-faithful }
 
-    open ProcessTermN.WithAssumption process-assumption bridge-coherence
-      using (discharge-with-stack-fn)
     open FinalPermuteN.WithCoherence finalp-coherence
       using (final-permute-absorb-discharge)
 
-  -- The OLD (c) body, derived from `process-term-permute-aligned`
-  -- applied to the discharged (b) value.
+  -- The OLD (c) body.  The `process-term-permute-aligned` field already
+  -- takes `stack-↭` as an explicit parameter, so we apply it DIRECTLY to
+  -- the discharged (b) value `process-edges-resp-iso-stack f g iso`.  No
+  -- Kelly coherence is needed for the (c) path.
   process-edges-resp-iso-term
     : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
     → let process-F = process-all-edges ⟪ f ⟫F (Hypergraph.dom ⟪ f ⟫F)
@@ -408,7 +413,7 @@ module WithAssumptions (b : Build) where
          ≈Term
          proj₂ process-F
   process-edges-resp-iso-term f g iso =
-    discharge-with-stack-fn process-edges-resp-iso-stack f g iso
+    process-term-permute-aligned f g iso
 
   -- The OLD (d) body, derived from `final-permute-absorb-discharge`
   -- applied to the discharged (b) value.
@@ -431,6 +436,7 @@ module WithAssumptions (b : Build) where
   final-permute-absorb f g iso perm-f perm-g =
     final-permute-absorb-discharge f g iso
       (process-edges-resp-iso-stack f g iso) perm-f perm-g
+      (stack-eval-coherence f g iso perm-f perm-g)
 
   ------------------------------------------------------------------------
   -- Step 1: `decode-attempt-resp-iso`.
