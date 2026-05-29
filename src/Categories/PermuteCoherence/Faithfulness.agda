@@ -44,7 +44,7 @@ module Categories.PermuteCoherence.Faithfulness
 open FreeMonoidal d
 open FreeMonoidalData d using (X)
 
-open import Data.List.Base using (List; []; _∷_; length)
+open import Data.List.Base using (List; []; _∷_; _++_; length)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 
@@ -56,6 +56,12 @@ open import Relation.Binary.PropositionalEquality.Core
   using (_≡_; refl; sym; trans; cong)
 open import Data.Empty using (⊥; ⊥-elim)
 
+open import Categories.Category.Monoidal using (Monoidal)
+open import Categories.Category.Monoidal.Utilities Monoidal-FreeMonoidal
+  using (_⊗ᵢ_)
+open import Categories.Morphism FreeMonoidal using (_≅_; module ≅)
+open Monoidal Monoidal-FreeMonoidal using (unitorˡ; associator)
+
 open import Categories.PermuteCoherence.FinBij
 open import Categories.PermuteCoherence.Eval
 open import Categories.PermuteCoherence.Canonical
@@ -66,6 +72,18 @@ open import Categories.PermuteCoherence.Canonical
 unflatten : List X → ObjTerm
 unflatten []       = unit
 unflatten (x ∷ xs) = Var x ⊗₀ unflatten xs
+
+------------------------------------------------------------------------
+-- 1b. `unflatten-++-≅`: `unflatten` distributes over `_++_` up to a
+-- coherence iso.  Re-used by APROP `Unflatten.agda` (which re-exports
+-- this) so that the APROP and SMC definitions are definitionally equal.
+
+unflatten-++-≅
+  : ∀ (xs ys : List X)
+  → unflatten (xs ++ ys) ≅ unflatten xs ⊗₀ unflatten ys
+unflatten-++-≅ []       ys = ≅.sym unitorˡ
+unflatten-++-≅ (x ∷ xs) ys =
+  ≅.trans (≅.refl ⊗ᵢ unflatten-++-≅ xs ys) (≅.sym associator)
 
 ------------------------------------------------------------------------
 -- 2. Generic `permute`.  This matches the structure of the

@@ -95,7 +95,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SelfLoopFullC
   using (swap-count; measure; _≪₃_; ≪₃-fst; ≪₃-snd; ≪₃-thd)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.YangBaxterClosure sig-dec
   using (RealFinalResidual)
-open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SigmaBlockHexagon sig-dec
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SigmaBlockHexagon asFreeMonoidalData
   using ( σ-block
         ; σ-block-involutive
         ; σ-block-natural₃

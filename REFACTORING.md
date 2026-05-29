@@ -33,6 +33,32 @@ is consumed by `Sub/XSLByFinBij.agda` to derive the Fin-level
 be moved to `Assumptions` (their types mention `Hypergraph FlatGen`,
 `⟪_⟫F`, `process-edges`, etc.).
 
+## FreeSMC reduction of `APROPMacLaneAtoms` (in progress)
+
+`Categories/FreeSMC/*` re-states the c'-chain atoms at the generic
+`FreeMonoidalData ⦃ Symm ≤ v ⦄` level (no APROP/Hypergraph), so the
+trust collapses toward symmetric-group coherence rather than anything
+APROP-specific.  `MacLaneAtoms.SMCMacLaneAtoms` is the Sense-1 record;
+`Discharge/APROPMacLaneFromSMC.agda` bridges it to `APROPMacLaneAtoms`.
+
+Discharged constructively (`--safe`, no postulates):
+- `Steps.fire-clean` (splitJoin / subst₂ elimination, definitional).
+- `FinalStackPerm` + `StackPerm.swap-stack-↭` (atom-1 stack witness).
+- `ProcessFinal.process-steps-final-↭` (final stack respects edge-↭, via
+  net-multiset invariant) — removed `process-steps-final-↭` as a field.
+- `BraidBlock.braid-natural`, `BraidPermute.{permute-swap-refl-σ-block,
+  permute-rotate}`, `SigmaBlockTensor.σ⊗-from-hexagon₂`,
+  `PermuteInverse.{permute-inverse-left,pvv-inverse-left}` — the
+  generator-slide / permute-inverse tooling.
+- `SigmaBlockHexagon` was generalised from `sig-dec` to `d`
+  (3 APROP consumers updated; XSL chain re-verified).
+- `swap-core` is now a DERIVED value (was a field): proved from `swap-gens`
+  + `pvv-inverse-left`, factoring/cancelling the input permute.
+
+Residual fields of `SMCMacLaneAtoms` (5): `permute-faithfulness` (kept,
+= the XSL Kelly residual), `swap-gens` (bare 2-generator interchange),
+`process-steps-↭-term`, `bridge-cross`, `bridge-reorder`.
+
 ## c' (`process-term-permute-aligned`) — current factorisation
 
 The c' field is constructively derived in

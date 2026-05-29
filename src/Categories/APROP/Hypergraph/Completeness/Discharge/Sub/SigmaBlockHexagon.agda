@@ -45,14 +45,16 @@
 -- ## File is `--safe --with-K`-clean.  No new postulates.
 --------------------------------------------------------------------------------
 
-open import Categories.APROP
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
+open import Categories.FreeMonoidal
 
+-- NOTE: generalised from `(sig-dec : APROPSignatureDec)` to an arbitrary
+-- `FreeMonoidalData` with a symmetric structure.  The body uses only the
+-- free (symmetric) monoidal structure, so nothing changes below.  APROP
+-- consumers now pass `asFreeMonoidalData`.
 module Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SigmaBlockHexagon
-  (sig-dec : APROPSignatureDec) where
+  (d : FreeMonoidalData) ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
 
-open APROPSignatureDec sig-dec using (sig)
-open APROP sig
+open FreeMonoidal d
 
 open import Categories.Category using (Category)
 

@@ -61,7 +61,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SelfLoopFullC
   using (total-l)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SelfLoopFullClosure2 sig-dec
   using (swap-count; measure; _≪₃_; ≪₃-fst; ≪₃-snd; ≪₃-thd)
-open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SigmaBlockHexagon sig-dec
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SigmaBlockHexagon asFreeMonoidalData
   using ( σ-block; σ-block-involutive
         ; σ-block-natural₁; σ-block-natural₃
         ; hexagon₂; σ-A⊗B-expand; inner-eq)

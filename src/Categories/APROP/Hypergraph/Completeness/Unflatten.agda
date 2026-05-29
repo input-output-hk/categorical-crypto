@@ -33,10 +33,14 @@ open Monoidal Monoidal-FreeMonoidal using (unitorˡ; unitorʳ; associator)
 
 --------------------------------------------------------------------------------
 -- Decode a flat atom list into a right-associated `ObjTerm`.
+--
+-- Re-exported from `Categories.PermuteCoherence.Faithfulness` (which has
+-- the same definition over generic `FreeMonoidalData`) so that downstream
+-- bridges to generic SMC infrastructure observe definitional equality
+-- between the two unflattens.
 
-unflatten : List X → ObjTerm
-unflatten []       = unit
-unflatten (x ∷ xs) = Var x ⊗₀ unflatten xs
+open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData public
+  using (unflatten; unflatten-++-≅)
 
 --------------------------------------------------------------------------------
 -- `flatten ∘ unflatten ≡ id` propositionally.
@@ -44,16 +48,6 @@ unflatten (x ∷ xs) = Var x ⊗₀ unflatten xs
 flatten-unflatten : ∀ l → flatten (unflatten l) ≡ l
 flatten-unflatten []       = refl
 flatten-unflatten (x ∷ xs) = cong (x ∷_) (flatten-unflatten xs)
-
---------------------------------------------------------------------------------
--- `unflatten` distributes over `_++_` up to a coherence iso.
-
-unflatten-++-≅
-  : ∀ (xs ys : List X)
-  → unflatten (xs ++ ys) ≅ unflatten xs ⊗₀ unflatten ys
-unflatten-++-≅ []       ys = ≅.sym unitorˡ
-unflatten-++-≅ (x ∷ xs) ys =
-  ≅.trans (≅.refl ⊗ᵢ unflatten-++-≅ xs ys) (≅.sym associator)
 
 --------------------------------------------------------------------------------
 -- The reverse round-trip is a coherence iso, not a propositional equality.

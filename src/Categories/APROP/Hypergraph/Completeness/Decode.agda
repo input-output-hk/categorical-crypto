@@ -57,38 +57,12 @@ open import Relation.Nullary using (yes; no)
 -- at top-level so foundation lemmas (`DecodeProperties.agda`) can talk
 -- about them without H-parametrisation.
 
--- `extract-elem k xs` looks for `k` in `xs`, returning the residual list
--- and a permutation `xs ↭ k ∷ rest`.
---
--- Defined with `yes p` + explicit `subst` (rather than `yes refl`) so
--- that the function reduces under `--without-K` even when called with
--- the same `Fin` value at both `x` and `k` positions — needed for
--- `extract-elem-self`-style lemmas in `DecodeProperties.agda`.
-extract-elem
-  : ∀ {n} (k : Fin n) (xs : List (Fin n))
-  → Maybe (Σ[ rest ∈ List (Fin n) ] xs Perm.↭ k ∷ rest)
-extract-elem k []       = nothing
-extract-elem k (x ∷ xs) with x ≟ k
-... | yes p = just ( xs
-                   , subst (λ y → (x ∷ xs) Perm.↭ y ∷ xs) p Perm.refl )
-... | no  _ with extract-elem k xs
-...               | nothing            = nothing
-...               | just (rest , q)    =
-                     just ( x ∷ rest
-                          , Perm.trans (Perm.prep x q) (Perm.swap x k Perm.refl) )
-
--- `extract-prefix ks xs`: locate `ks` as a sub-multiset prefix of `xs`,
--- returning the residual after removing each element of `ks` once.
-extract-prefix
-  : ∀ {n} (ks xs : List (Fin n))
-  → Maybe (Σ[ rest ∈ List (Fin n) ] xs Perm.↭ ks ++ rest)
-extract-prefix []       xs = just (xs , Perm.refl)
-extract-prefix (k ∷ ks) xs with extract-elem k xs
-... | nothing            = nothing
-... | just (xs' , p)     with extract-prefix ks xs'
-...                         | nothing            = nothing
-...                         | just (rest , q)    =
-                               just (rest , Perm.trans p (Perm.prep k q))
+-- `extract-elem` and `extract-prefix` are re-exported from a generic
+-- module so that downstream bridges (e.g.
+-- `Categories.APROP.Hypergraph.Completeness.Discharge.APROPMacLaneFromSMC`)
+-- observe definitional equality between APROP and SMC versions.
+open import Categories.Hypergraph.ExtractPrefix public
+  using (extract-elem; extract-prefix)
 
 -- `xs ++ [] ↭ xs`.  Lifted to module scope (was previously local to
 -- `extract-exact`'s where-clause) so downstream lemmas can refer to it
