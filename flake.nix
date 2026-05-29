@@ -11,6 +11,8 @@
     agda-nix = {
       url = "github:input-output-hk/agda.nix";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.standard-library-meta.url =
+        "github:agda/agda-stdlib-meta/d10d2826db53855e5765b5a49a74e567a7ceb2ff";
     };
 
     pagda = {
