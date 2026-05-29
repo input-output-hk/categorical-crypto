@@ -359,7 +359,7 @@ module CoherenceThm (X : Set) where
   all-Comm f g = push-eq Nf≅id (ι.F-resp-≈ _)
     where module ι = Functor ι
 
-module Solver (C : MonoidalCategory 0ℓ 0ℓ 0ℓ)
+module Solver {o ℓ e} (C : MonoidalCategory o ℓ e)
               {n} (vars : Vec (C .MonoidalCategory.Obj) n) where
   open MonoidalCategory
   d : FreeMonoidalData
