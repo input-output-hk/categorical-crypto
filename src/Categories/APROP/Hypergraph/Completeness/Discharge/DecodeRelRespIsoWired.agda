@@ -51,12 +51,29 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeAttemptLine
   using (decode-attempt-LinearP)
 
 import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceWiring sig as IW
+import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceConcrete sig as IC
+open import Categories.APROP.Hypergraph.Completeness.Discharge.DepIrrefl sig
+  using (dep-irrefl-⟪⟫)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
+  using (Dep)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.FinOrderNoInv sig
+  using (fin-order-NoInv-⟪⟫)
+
+-- The Kelly faithfulness residual type, from the `--without-K` module
+-- `PermuteCoherence.Faithfulness`.  We postulate a fresh value of it (the
+-- explicit Kelly axiom) — NOT the `--with-K` `KellyCoherence` — so the
+-- module stays `--without-K`.
+open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
+  using (FaithfulnessResidual)
 
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Relation.Nullary using (¬_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; cong; subst; subst₂)
+
+import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeOrdBoundary sig as DOB
 
 ------------------------------------------------------------------------
 -- The pruned decoder.  Genuinely built from the (postulate-free) pruned
@@ -90,18 +107,19 @@ decodeP {A} {B} f =
 
 decode-attempt⇒decodeOrd-range
   : (H : Hypergraph FlatGen)
+  → (dih : ∀ {e} → ¬ (Dep H e e))
   → (t : HomTerm (unflatten (domL H)) (unflatten (codL H)))
   → decode-attempt H ≡ just t
-  → Σ[ v ∈ IW.PerHG.Valid H (range (Hypergraph.nE H)) ]
-       t ≡ IW.PerHG.decodeOrd H (range (Hypergraph.nE H)) v
-decode-attempt⇒decodeOrd-range H t eq
+  → Σ[ v ∈ IW.PerHG.Valid H dih (range (Hypergraph.nE H)) ]
+       t ≡ IW.PerHG.decodeOrd H dih (range (Hypergraph.nE H)) v
+decode-attempt⇒decodeOrd-range H dih t eq
     with process-all-edges H (Hypergraph.dom H)
 ... | s_final , process-term
     with extract-exact (Hypergraph.cod H) s_final
 ...    | just perm
        with eq
 ...       | refl = perm , refl
-decode-attempt⇒decodeOrd-range H t eq
+decode-attempt⇒decodeOrd-range H dih t eq
     | s_final , process-term | nothing with eq
 ... | ()
 
@@ -113,9 +131,12 @@ decode-attempt⇒decodeOrd-range H t eq
 ------------------------------------------------------------------------
 
 -- The validity witness for `f`'s natural order, extracted from totality.
-vrange : ∀ {A B} (f : HomTerm A B) → IW.PerHG.Valid ⟪ f ⟫ (range (Hypergraph.nE ⟪ f ⟫))
+-- The `Dep`-irreflexivity witness for `⟪f⟫` is the proven
+-- `DepIrrefl.dep-irrefl-⟪⟫ f`.
+vrange : ∀ {A B} (f : HomTerm A B)
+       → IW.PerHG.Valid ⟪ f ⟫ (dep-irrefl-⟪⟫ f) (range (Hypergraph.nE ⟪ f ⟫))
 vrange f =
-  proj₁ (decode-attempt⇒decodeOrd-range ⟪ f ⟫
+  proj₁ (decode-attempt⇒decodeOrd-range ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
            (proj₁ (decode-attempt-LinearP f))
            (proj₂ (decode-attempt-LinearP f)))
 
@@ -123,10 +144,10 @@ decodeP-≡-decodeOrd-range
   : ∀ {A B} (f : HomTerm A B)
   → decodeP f
     ≡ subst₂ HomTerm (cong unflatten (⟪⟫-domL f)) (cong unflatten (⟪⟫-codL f))
-             (IW.PerHG.decodeOrd ⟪ f ⟫ (range (Hypergraph.nE ⟪ f ⟫)) (vrange f))
+             (IW.PerHG.decodeOrd ⟪ f ⟫ (dep-irrefl-⟪⟫ f) (range (Hypergraph.nE ⟪ f ⟫)) (vrange f))
 decodeP-≡-decodeOrd-range f =
   cong (subst₂ HomTerm (cong unflatten (⟪⟫-domL f)) (cong unflatten (⟪⟫-codL f)))
-       (proj₂ (decode-attempt⇒decodeOrd-range ⟪ f ⟫
+       (proj₂ (decode-attempt⇒decodeOrd-range ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
                  (proj₁ (decode-attempt-LinearP f))
                  (proj₂ (decode-attempt-LinearP f))))
 
@@ -140,31 +161,19 @@ decodeP-≡-decodeOrd-range f =
 postulate
   decode-rel-≈-decodeP : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term decodeP f
 
--- (decoder-boundary bridge, RESIDUAL) The only remaining gap, now stated
--- PURELY at the `decodeOrd` level (no `decodeP`): it relates the two
--- decodings of ⟪f⟫ in its natural order under DIFFERENT validity
--- witnesses (`vH` from the wiring's `order-invariant`, `vrange f` from
--- the totality lemma), then transports the boundary `subst₂` from the
--- wiring's iso-boundary (`IW.domL-iso`/`IW.codL-iso`, equating ⟪f⟫'s and
--- ⟪g⟫'s boundaries) to the user-facing one (`⟪⟫-domL`/`⟪⟫-codL`,
--- equating to `flatten`).  The two validity witnesses are PROOFS of the
--- SAME `↭`, so their final permutes agree only up to the TRUE Kelly
--- faithfulness residual `permute-≈Term-coherence` that gates the
--- final-permute throughout this development; combined with pure
--- `subst₂`-transport algebra, this is the entire content.
+-- (decoder-boundary bridge) The former coarse residual is now PROVEN in
+-- `Discharge.DecodeOrdBoundary` GIVEN the TWO explicit K-inputs below:
+--   * `K-faithfulness : FaithfulnessResidual` — the TRUE Kelly residual
+--     that gates the final permute throughout this development (a value of
+--     the `--without-K` record, postulated fresh here — NOT the `--with-K`
+--     `KellyCoherence`);
+--   * `objUIP` — uniqueness-of-identity-proofs on `ObjTerm`.
+-- `DecodeOrdBoundary.decodeOrd-boundary-resp-≈` discharges everything else
+-- (the two same-↭ final permutes agree via `eval-rigid` + K; the boundary
+-- transport is pure `subst₂` algebra under UIP).
 postulate
-  decodeOrd-boundary-resp-≈
-    : ∀ {A B} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
-        (vH : IW.PerHG.Valid ⟪ f ⟫ (range (Hypergraph.nE ⟪ f ⟫)))
-    → ( subst₂ HomTerm (cong unflatten (IW.domL-iso iso)) (cong unflatten (IW.codL-iso iso))
-          (IW.PerHG.decodeOrd ⟪ g ⟫ (range (Hypergraph.nE ⟪ g ⟫)) (vrange g))
-        ≈Term
-        IW.PerHG.decodeOrd ⟪ f ⟫ (range (Hypergraph.nE ⟪ f ⟫)) vH )
-    → ( subst₂ HomTerm (cong unflatten (⟪⟫-domL f)) (cong unflatten (⟪⟫-codL f))
-          (IW.PerHG.decodeOrd ⟪ f ⟫ (range (Hypergraph.nE ⟪ f ⟫)) (vrange f))
-        ≈Term
-        subst₂ HomTerm (cong unflatten (⟪⟫-domL g)) (cong unflatten (⟪⟫-codL g))
-          (IW.PerHG.decodeOrd ⟪ g ⟫ (range (Hypergraph.nE ⟪ g ⟫)) (vrange g)) )
+  K-faithfulness : FaithfulnessResidual
+  objUIP : ∀ {a b : ObjTerm} (p q : a ≡ b) → p ≡ q
 
 ------------------------------------------------------------------------
 -- Iso-invariance of the pruned decoder, consuming the real pruned iso.
@@ -183,10 +192,19 @@ decodeP-resp-iso f g iso =
   subst₂ (λ a b → a ≈Term b)
          (sym (decodeP-≡-decodeOrd-range f))
          (sym (decodeP-≡-decodeOrd-range g))
-         (decodeOrd-boundary-resp-≈ f g iso vH wiring≈)
+         (DOB.decodeOrd-boundary-resp-≈ K-faithfulness objUIP
+            f g iso (vrange f) (vrange g) vH wiring≈)
   where
-    -- The wiring's iso-invariance, fed J = ⟪g⟫'s natural-order validity.
-    res = IW.decode-ord-resp-iso iso (vrange g)
+    -- The wiring's iso-invariance, fed J = ⟪g⟫'s natural-order validity,
+    -- the two `Dep`-irreflexivity witnesses (`dep-irrefl-⟪⟫`) and the two
+    -- natural-order no-inversion witnesses (`fin-order-NoInv-⟪⟫`).  Sourced
+    -- from `IsoInvarianceConcrete` (which feeds the real `SwapStep.swap-≈`,
+    -- `SwapValidity.swap-validity`, `WiringLemmas.NoInv-τ`,
+    -- `FinOrderNoInv.fin-order-NoInv-⟪⟫`, `IsoTransport.iso-transport`).
+    res = IC.decode-ord-resp-iso iso
+            (dep-irrefl-⟪⟫ f) (dep-irrefl-⟪⟫ g)
+            (fin-order-NoInv-⟪⟫ f) (fin-order-NoInv-⟪⟫ g)
+            (vrange g)
     vH  = proj₁ res
     wiring≈ = proj₂ res
 

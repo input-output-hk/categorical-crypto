@@ -89,12 +89,14 @@ tabulate-as-map-range {n = n} f =
 -- Per-hypergraph: order-indexed decoder and order-invariance.
 ------------------------------------------------------------------------
 
-module PerHG (H : Hypergraph FlatGen) where
+module PerHG (H : Hypergraph FlatGen)
+             (Dep-irrefl : ∀ {e} → ¬ (Dep H e e)) where
   private module H = Hypergraph H
 
-  -- Acyclicity: no edge depends on itself.  TRUE for `⟪f⟫F` (a generator
-  -- box's input and output wires are disjoint); postulated here.
-  postulate Dep-irrefl : ∀ {e} → ¬ (Dep H e e)
+  -- Acyclicity: no edge depends on itself.  This is FALSE for an arbitrary
+  -- `H` (a self-feeding edge), so it is taken as a MODULE PARAMETER and
+  -- supplied at the use sites at `H = ⟪f⟫`/`⟪g⟫` via the proven
+  -- `DepIrrefl.dep-irrefl-⟪⟫`.  (Previously a false postulate.)
 
   -- Instantiate the connectivity theorem at the *immediate* dependency
   -- relation (needs only irreflexivity — `LinearExtension` was generalised
@@ -126,46 +128,19 @@ module PerHG (H : Hypergraph FlatGen) where
   decodeOrd o p =
     permute-via-vlab H.vlab p ∘ proj₂ (process-edges H o H.dom)
 
-  -- (N+K) per-swap analytic step: swapping two adjacent *independent*
-  -- (Dep-incomparable) edges changes the decoding only up to ≈Term, by the
-  -- interchange axiom σ∘(p⊗q)≈(q⊗p)∘σ on the two opaque boxes plus
-  -- permutation coherence on the surrounding wiring.  THE analytic content.
-  -- Carries the validity witnesses for both endpoints (the decoder needs
-  -- them; the swap relates the two *valid* decodings).
-  postulate
-    swap-≈ : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂
-           → (p₁ : Valid o₁) (p₂ : Valid o₂)
-           → decodeOrd o₁ p₁ ≈Term decodeOrd o₂ p₂
-
-  -- Validity is preserved by an adjacent-independent swap.  TRUE: the
-  -- live-wire multiset / final stack is order-independent for swaps of
-  -- Dep-incomparable adjacent edges, so `finalStack o₁ ↭ cod` transports
-  -- to `finalStack o₂ ↭ cod`.  Bookkeeping postulate (no analytic content).
-  postulate
-    swap-validity : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂ → Valid o₁ → Valid o₂
-
-  -- Lift the per-swap step to the reflexive-transitive closure, threading
-  -- the validity witness.  REAL: dependent fold over the `Star`.
-  ↝*⇒≈ : ∀ {o₁ o₂ : Order} → o₁ ↝* o₂ → (p₁ : Valid o₁)
-       → Σ[ p₂ ∈ Valid o₂ ] decodeOrd o₁ p₁ ≈Term decodeOrd o₂ p₂
-  ↝*⇒≈ ε        p₁ = p₁ , ≈-Term-refl
-  ↝*⇒≈ (s ◅ ss) p₁ =
-    let p-mid          = swap-validity s p₁
-        (p₂ , mid≈rec) = ↝*⇒≈ ss p-mid
-    in  p₂ , ≈-Term-trans (swap-≈ s p₁ p-mid) mid≈rec
-
-  -- Order-invariance of the decoder, driven by `connectivity`.  REAL:
-  -- this is the payoff of the two order-theory modules.
-  order-invariant :
-    ∀ (o₁ o₂ : Order) → o₁ Perm.↭ o₂ → NoInv o₁ → NoInv o₂ →
-    (p₁ : Valid o₁) →
-    Σ[ p₂ ∈ Valid o₂ ] decodeOrd o₁ p₁ ≈Term decodeOrd o₂ p₂
-  order-invariant o₁ o₂ p n₁ n₂ p₁ = ↝*⇒≈ (connectivity p n₁ n₂) p₁
-
-  -- (LemC) the natural Fin order is a linear extension (= the proven
-  -- `AllFire-natural-range`, in `NoInv` form).
-  postulate
-    fin-order-NoInv : NoInv (range H.nE)
+  -- (N+K) per-swap analytic step `swap-≈` and its closure-lift `↝*⇒≈` and
+  -- the central `order-invariant` are NO LONGER defined here: `swap-≈` is
+  -- now PROVEN in `Discharge.SwapStep`, so the swap-dependent assembly has
+  -- moved downstream to `Discharge.IsoInvarianceConcrete` (which re-defines
+  -- `↝*⇒≈`, `order-invariant`, `decode-ord-resp-iso` feeding the real
+  -- `SwapStep.swap-≈` and `WiringLemmas.NoInv-τ`).
+  --
+  -- The former postulates `swap-validity` and `fin-order-NoInv` are GONE:
+  --   * `swap-validity`    is now PROVEN in `Discharge.SwapValidity`
+  --                        (modulo `front-swap-stack-↭`);
+  --   * `fin-order-NoInv`  is FALSE for arbitrary `H` and is now supplied at
+  --                        the call site by `FinOrderNoInv.fin-order-NoInv-⟪⟫`
+  --                        (threaded as an explicit hypothesis).
 
 ------------------------------------------------------------------------
 -- Across an isomorphism: iso-invariance of the decoder.
@@ -173,8 +148,6 @@ module PerHG (H : Hypergraph FlatGen) where
 
 module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J) where
   private
-    module PH = PerHG H
-    module PJ = PerHG J
     module H  = Hypergraph H
     module J  = Hypergraph J
   open _≅ᴴ_ Φ
@@ -210,7 +183,7 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J) where
   -- edges in the order ψ⁻¹ induces from J's `Fin` order; it is a
   -- permutation of H's `range`, and `ψ-pres-dep` (Lemma A) makes it a
   -- linear extension of `Dep H`.
-  τ : PH.Order
+  τ : List (Fin H.nE)
   τ = map ψ⁻¹ (range J.nE)
 
   -- `τ ↭ range H.nE`: the image of J's complete `range` under the
@@ -243,36 +216,15 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J) where
       step : tabulate {n = J.nE} (λ i → ψ⁻¹ i) Perm.↭ range H.nE
       step = base-range
 
-  postulate
-    NoInv-τ : PH.NoInv τ
+  -- (`NoInv-τ` is now PROVEN in `Discharge.WiringLemmas` (Lemma 4), so it
+  -- is no longer postulated here.  The assembly that consumed it,
+  -- `decode-ord-resp-iso`, has moved to `Discharge.IsoInvarianceConcrete`.)
 
-  -- (Lem0) vertex relabelling is free + ψ re-indexing: decoding J in its
-  -- natural order equals decoding H in the pulled-back order τ, after the
-  -- boundary transport.  Now validity-threaded: given a validity witness
-  -- for J's natural order, it produces a validity witness for the
-  -- pulled-back order τ on H together with the transported ≈Term.
-  postulate
-    iso-transport :
-      (vJ : PJ.Valid (range J.nE))
-      → Σ[ vτ ∈ PH.Valid τ ]
-          ( subst₂ HomTerm (cong unflatten domL-iso) (cong unflatten codL-iso)
-                   (PJ.decodeOrd (range J.nE) vJ)
-            ≈Term PH.decodeOrd τ vτ )
+  -- (Lem0) vertex relabelling is free + ψ re-indexing (`iso-transport`)
+  -- is now PROVEN in `Discharge.IsoTransport`, consumed directly by
+  -- `Discharge.IsoInvarianceConcrete`; the former postulate here is GONE.
 
-  -- Iso-invariance of the (order-indexed) decoder.  The CENTRAL step is
-  -- `PH.order-invariant` (real, via connectivity); everything else is the
-  -- transport/bookkeeping postulated above.  Takes a validity witness for
-  -- J's natural order (the caller has it from `decode-attempt-LinearP`) and
-  -- returns a validity witness for H's natural order with the ≈Term.
-  decode-ord-resp-iso :
-      (vJ : PJ.Valid (range J.nE))
-      → Σ[ vH ∈ PH.Valid (range H.nE) ]
-          ( subst₂ HomTerm (cong unflatten domL-iso) (cong unflatten codL-iso)
-                   (PJ.decodeOrd (range J.nE) vJ)
-            ≈Term PH.decodeOrd (range H.nE) vH )
-  decode-ord-resp-iso vJ =
-    let (vτ , transport≈)   = iso-transport vJ
-        (vH , invariant≈)   =
-          PH.order-invariant τ (range H.nE) τ↭range NoInv-τ
-                             PH.fin-order-NoInv vτ
-    in  vH , ≈-Term-trans transport≈ invariant≈
+  -- (Iso-invariance of the order-indexed decoder, `decode-ord-resp-iso`,
+  -- has moved to `Discharge.IsoInvarianceConcrete`: it is the assembly that
+  -- consumes the now-downstream `order-invariant` and the now-proven
+  -- `NoInv-τ`.)
