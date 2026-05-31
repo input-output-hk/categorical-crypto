@@ -57,6 +57,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeAttemptLine
 import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceWiring sig as IW
 import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceConcrete sig as IC
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.RunInterchangeTail sig as RIT
 open import Categories.APROP.Hypergraph.HomTermInvariant sig using (⟪_⟫-cod-unique)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.DepIrrefl sig
   using (dep-irrefl-⟪⟫)
@@ -207,8 +208,9 @@ objUIP = ObjUIP.objUIP′ {Symm} _≟X_
 --   * `run-interchange-tail-⟪⟫` — the ORTHOGONAL tail extension: lifting
 --     the empty-tail swap to an arbitrary suffix `qs`.  This is pure
 --     decoder equivariance under stack permutation — no box / associator
---     content (see `Sub/StackEquivariance.agda`), provable by induction
---     on `qs` from the (already proven) `pe-term-++` split lemma.
+--     content (see `Sub/StackEquivariance.agda`).  PROVEN (no longer a
+--     postulate) in `Sub/RunInterchangeTail.agda` via
+--     `process-edges-equivariant`, instantiated below.
 --
 -- The general witness `run-interchange-⟪⟫` that the chain consumes is now
 -- their composite (a DEFINITION, no longer a postulate), so nothing
@@ -222,15 +224,21 @@ postulate
     → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
         K-faithfulness (⟪ f ⟫-cod-unique) ps [] inc
 
-  run-interchange-tail-⟪⟫
-    : ∀ {A B} (f : HomTerm A B)
-        (ps qs : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f))
-        {e e' : Fin (Hypergraph.nE ⟪ f ⟫)}
-        (inc : SS.PerHG.Incomp ⟪ f ⟫ (dep-irrefl-⟪⟫ f) e e')
-    → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
-        K-faithfulness (⟪ f ⟫-cod-unique) ps [] inc
-    → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
-        K-faithfulness (⟪ f ⟫-cod-unique) ps qs inc
+-- The tail extension is now a THEOREM: it instantiates the generic
+-- `RunInterchangeTail.run-interchange-tail` (proven by decoder
+-- stack-equivariance) at `H = ⟪f⟫`.
+run-interchange-tail-⟪⟫
+  : ∀ {A B} (f : HomTerm A B)
+      (ps qs : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f))
+      {e e' : Fin (Hypergraph.nE ⟪ f ⟫)}
+      (inc : SS.PerHG.Incomp ⟪ f ⟫ (dep-irrefl-⟪⟫ f) e e')
+  → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
+      K-faithfulness (⟪ f ⟫-cod-unique) ps [] inc
+  → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
+      K-faithfulness (⟪ f ⟫-cod-unique) ps qs inc
+run-interchange-tail-⟪⟫ f ps qs inc =
+  RIT.run-interchange-tail ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
+    K-faithfulness (⟪ f ⟫-cod-unique) ps qs inc
 
 run-interchange-⟪⟫
   : ∀ {A B} (f : HomTerm A B)
