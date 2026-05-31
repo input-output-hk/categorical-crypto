@@ -1,9 +1,45 @@
 {-# OPTIONS --without-K #-}
 
 --------------------------------------------------------------------------------
--- Standalone discharge attempt for the `fire-mid-interchange` residual of
+-- Standalone discharge of the `fire-mid-interchange` residual of
 -- `Discharge/Sub/RunInterchangeEmptyTail.agda` — the both-fire two-edge
 -- interchange.
+--
+-- ## Status of `block-nf` (the Mac-Lane block-normal-form content)
+--
+-- `block-nf` is now CONSTRUCTED (no longer a flat postulate): the
+-- combinatorial heart of the both-fire interchange — locating BOTH input
+-- blocks at once (a common residual list `Rlist` shared by the two firing
+-- orders, the two block-located input permutes, the two block-located
+-- OUTPUT permutes, and the output reshuffle `r-stk`) — is PROVEN
+-- constructively, postulate-free, in `Sub/FireMidInterchangeComb.agda`
+-- (the `SimLoc` record), using only `count`/`_↭_` algebra plus the
+-- `Incomp` + `Linear` disjointness.  From that located data we build the
+-- concrete `BlockNF` frames (`R`, `vin₁`, `vin₂`, `vout₁`, `vout₂`,
+-- `r-stk`) as `unflatten-++-≅` re-bracketings of the locating permutes.
+--
+-- The SOLE remaining postulate is the four-equation residual
+-- `block-nf-residual : BlockNFResidual`, packaging ONLY the categorical
+-- equations over those now-PINNED frames:
+--
+--   * `nf₁-eq` / `nf₂-eq` — the two SINGLE-order block-normal-form
+--     factorisations (one firing order's box-composite, with its blocks
+--     LOCATED by the view frames, equals the 3-block tensor
+--     `(box ⊗ box) ⊗ id`).  This is the genuine Mac-Lane "two boxes on
+--     disjoint factors compose to a tensor of boxes" chase, of the same
+--     flavour the `--with-K` development leaves open
+--     (`Sub/SwapAtomAligned.swap-mac-lane-residual`).
+--   * `vin-coh-eq` / `vout-coh-eq` — the σ-coherence of the two view
+--     frames (the two block orders differ by the braiding on the two
+--     `Aein`/`Aeout` factors).  A multi-block braiding↔`permute` bridge:
+--     the same content as `FreeSMC.BraidPermute`/`BraidBlock` (both
+--     `--with-K`), which provides it only at the single-atom level.
+--
+-- NEITHER residual field is the full `fire-mid-interchange` goal: each
+-- `nfᵢ` concerns a SINGLE firing order in isolation, and the goal
+-- (relating the two orders by `r-stk`) is recovered ONLY by combining
+-- all four residual equations with `box-interchange` (the proven glue in
+-- `fire-mid-interchange` below).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -16,11 +52,11 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
-  using (unflatten)
+  using (unflatten; unflatten-++-≅; _≅_)
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
   using (Agen-edge)
 open import Categories.APROP.Hypergraph.Completeness.Permute sig
-  using (permute-via-vlab)
+  using (permute; permute-via-vlab)
 open import Categories.APROP.Hypergraph.Completeness.Linearity sig
   using (Linear)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation sig
@@ -30,16 +66,20 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
   using (Dep)
 
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidInterchangeComb sig as Comb
 
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
 
 open import Data.Fin using (Fin)
 open import Data.List using (List; _++_; map)
+open import Data.List.Properties using (map-++)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open import Data.Product using (Σ-syntax; _,_)
+open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_)
+open import Relation.Binary.PropositionalEquality
+  using (_≡_; refl; sym; cong; subst₂)
 
 module _ (H : Hypergraph FlatGen)
          (dih : ∀ {e} → ¬ (Dep H e e))
@@ -97,10 +137,9 @@ module _ (H : Hypergraph FlatGen)
   -- where the two orders SHARE the same frame `(Vin , Vout)` (up to the
   -- braiding `σ` on the two box factors), `box-core` is `box-e ⊗₁ box-e'`
   -- resp. `box-e' ⊗₁ box-e` tensored with `id` on `R`, and `Vin`/`Vout`
-  -- are `permute`-built isos from/to the actual stack objects.  Folding the
-  -- outer locating-permutes into `Vin` and sharing one frame is exactly the
-  -- combined `unflatten-++-≅` bracketing + K-reconciliation that even the
-  -- `--with-K` development leaves open; it is the SOLE postulate here.
+  -- are `permute`-built isos from/to the actual stack objects.  These
+  -- frames are CONSTRUCTED below from the located combinatorics; only the
+  -- four categorical equations over them remain postulated (see header).
   --
   --   * `nf₁` : the `e ∷ e'` order (RHS box-composite + outer `permute p₁`).
   --   * `nf₂` : the `e' ∷ e` order (LHS box-composite + outer `permute p₂'`).
@@ -144,15 +183,225 @@ module _ (H : Hypergraph FlatGen)
                  ∘ fire-mid H e' r₂' ∘ permute-via-vlab H.vlab p₂' )
              ≈Term vout₂ ∘ ((box-e e' ⊗₁ box-e e) ⊗₁ id) ∘ vin₂
 
+  ----------------------------------------------------------------------
+  -- ## CONSTRUCTION of `block-nf` from the simultaneous-location
+  -- combinatorics (`Comb.SimLoc`) plus a STRICTLY NARROWER residual.
+  --
+  -- The combinatorial heart — locating BOTH input blocks at once (a common
+  -- residual `Rlist` and the two block-located input permutes), and the
+  -- output reshuffle `r-stk` — is PROVEN constructively in
+  -- `Sub/FireMidInterchangeComb.agda` (the `SimLoc` record), using only
+  -- `count`/`_↭_` algebra + the `Incomp`/`Linear` disjointness.
+  --
+  -- Here we BUILD the concrete `BlockNF` frames from that located data:
+  --
+  --   * `R       = unflatten (map vlab Rlist)`              (the residual block)
+  --   * `vin₁    = view-in₁ ∘ permute-via-vlab loc₁`        (e-first input frame)
+  --   * `vin₂    = view-in₂ ∘ permute-via-vlab loc₂`        (e'-first input frame)
+  --   * `vout₁   = permute-via-vlab vout-loc₁ ∘ view-out₁⁻¹`
+  --   * `vout₂   = permute-via-vlab vout-loc₂ ∘ view-out₂⁻¹`
+  --   * `r-stk   = SimLoc.r-stk`
+  --
+  -- where each `view-…` is the `unflatten-++-≅` re-bracketing of a
+  -- block-located stack into `(Aein e ⊗₀ Aein e') ⊗₀ R` (resp. out), and
+  -- `vout-loc₁`/`vout-loc₂` locate the two output blocks in the final
+  -- stacks (`block-loc-e` applied to the *output* side).
+  --
+  -- The REMAINING residual `BlockNFResidual` packages ONLY the four
+  -- categorical equations over these PINNED frames:
+  --
+  --   * `nf₁`/`nf₂` — the two single-order block-normal-form factorisations
+  --     (each says: one firing order's box-composite, with its blocks now
+  --     LOCATED by the view frames, IS the 3-block tensor `(box ⊗ box) ⊗ id`).
+  --     This is the genuine Mac-Lane "two boxes on disjoint factors compose
+  --     to a tensor of boxes" chase that even the `--with-K` development
+  --     (`Sub/SwapAtomAligned.swap-mac-lane-residual`) leaves open.
+  --   * `vin-coh`/`vout-coh` — the σ-coherence of the two view frames (the
+  --     two block orders differ by the braiding on the two `Aein`/`Aeout`
+  --     factors).  A pure `permute`-vs-`σ`-conjugate coherence over the
+  --     pinned frames.
+  --
+  -- NEITHER residual field is the full `fire-mid-interchange` goal: each
+  -- `nfᵢ` concerns a SINGLE firing order in isolation, and the goal
+  -- (relating the two orders by `r-stk`) is recovered ONLY by combining
+  -- `nf₁`, `nf₂`, `vin-coh`, `vout-coh`, and `box-interchange` (the proven
+  -- glue in `fire-mid-interchange` below).
+  ----------------------------------------------------------------------
+
+  private
+    R-obj : List (Fin H.nV) → ObjTerm
+    R-obj Rlist = unflatten (map H.vlab Rlist)
+
+    -- Map-bridged `unflatten-++-≅`: `unflatten (map vlab (As ++ Bs))`
+    -- re-brackets as `unflatten (map vlab As) ⊗₀ unflatten (map vlab Bs)`.
+    uf++ : (As Bs : List (Fin H.nV))
+         → unflatten (map H.vlab (As ++ Bs))
+           ≅ unflatten (map H.vlab As) ⊗₀ unflatten (map H.vlab Bs)
+    uf++ As Bs =
+      subst₂ _≅_
+        (cong unflatten (sym (map-++ H.vlab As Bs)))
+        refl
+        (unflatten-++-≅ (map H.vlab As) (map H.vlab Bs))
+
+    -- The input view iso: `unflatten (map vlab ((ein a ++ ein b) ++ Rlist))`
+    -- ≅ `(Aein a ⊗₀ Aein b) ⊗₀ R`.
+    view-in≅
+      : (a b : Fin H.nE) (Rlist : List (Fin H.nV))
+      → unflatten (map H.vlab ((H.ein a ++ H.ein b) ++ Rlist))
+        ≅ (Aein a ⊗₀ Aein b) ⊗₀ R-obj Rlist
+    view-in≅ a b Rlist =
+      ≅.trans (uf++ (H.ein a ++ H.ein b) Rlist)
+              (≅⊗id (uf++ (H.ein a) (H.ein b)))
+      where
+        open import Categories.Morphism FreeMonoidal using (module ≅)
+        -- `X ≅ Y → X ⊗₀ Z ≅ Y ⊗₀ Z` (right-whisker an iso by `id`).
+        ≅⊗id : ∀ {X Y : ObjTerm} → X ≅ Y → X ⊗₀ R-obj Rlist ≅ Y ⊗₀ R-obj Rlist
+        ≅⊗id i = record
+          { from = _≅_.from i ⊗₁ id
+          ; to   = _≅_.to   i ⊗₁ id
+          ; iso  = record
+            { isoˡ = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+                       (≈-Term-trans (⊗-resp-≈ (_≅_.isoˡ i) idˡ) id⊗id≈id)
+            ; isoʳ = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+                       (≈-Term-trans (⊗-resp-≈ (_≅_.isoʳ i) idˡ) id⊗id≈id)
+            }
+          }
+
+    -- The output view iso: identical shape on the `eout` blocks.
+    view-out≅
+      : (a b : Fin H.nE) (Rlist : List (Fin H.nV))
+      → unflatten (map H.vlab ((H.eout a ++ H.eout b) ++ Rlist))
+        ≅ (Aeout a ⊗₀ Aeout b) ⊗₀ R-obj Rlist
+    view-out≅ a b Rlist =
+      ≅.trans (uf++ (H.eout a ++ H.eout b) Rlist)
+              (≅⊗id (uf++ (H.eout a) (H.eout b)))
+      where
+        open import Categories.Morphism FreeMonoidal using (module ≅)
+        ≅⊗id : ∀ {X Y : ObjTerm} → X ≅ Y → X ⊗₀ R-obj Rlist ≅ Y ⊗₀ R-obj Rlist
+        ≅⊗id i = record
+          { from = _≅_.from i ⊗₁ id
+          ; to   = _≅_.to   i ⊗₁ id
+          ; iso  = record
+            { isoˡ = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+                       (≈-Term-trans (⊗-resp-≈ (_≅_.isoˡ i) idˡ) id⊗id≈id)
+            ; isoʳ = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+                       (≈-Term-trans (⊗-resp-≈ (_≅_.isoʳ i) idˡ) id⊗id≈id)
+            }
+          }
+
+  ----------------------------------------------------------------------
+  -- The CONCRETE located frames, built from `Comb.sim-loc`.  These pin
+  -- the `BlockNF` existentials `R`, `vin₁`, `vin₂`, `vout₁`, `vout₂`,
+  -- `r-stk` to the simultaneous-location construction.
+  ----------------------------------------------------------------------
+
+  private
+    -- The located data (combinatorial heart, fully PROVEN in `Comb`).
+    SL : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
+           (sp : List (Fin H.nV))
+           (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
+           (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
+           (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
+           (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+       → Comb.SimLoc H dih lin (proj₁ inc) (proj₂ inc)
+                     sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+    SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' =
+      Comb.sim-loc H dih lin (proj₁ inc) (proj₂ inc)
+                   sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+
+  -- The residual: the four categorical equations over the PINNED frames
+  -- built from `SimLoc`.  Strictly narrower than `block-nf`: the residual
+  -- block `R`, all four view frames, and the reshuffle `r-stk` are no
+  -- longer existential — `block-nf` below fills them with the concrete
+  -- located construction; only these four equations remain.
+  record BlockNFResidual : Set where
+    field
+      -- `nf₁`: e-first single-order block normal form (the genuine
+      -- Mac-Lane "two boxes on disjoint factors = tensor of boxes" chase).
+      nf₁-eq
+        : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
+            (sp : List (Fin H.nV))
+            (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
+            (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
+            (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
+            (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+        → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+          in ( fire-mid H e' r₂ ∘ permute-via-vlab H.vlab p₂
+                 ∘ fire-mid H e r₁ ∘ permute-via-vlab H.vlab p₁ )
+             ≈Term ( permute-via-vlab H.vlab vout-loc₁ ∘ _≅_.to (view-out≅ e e' Rlist) )
+                   ∘ ((box-e e ⊗₁ box-e e') ⊗₁ id)
+                   ∘ ( _≅_.from (view-in≅ e e' Rlist) ∘ permute-via-vlab H.vlab loc₁ )
+      -- `nf₂`: e'-first single-order block normal form.
+      nf₂-eq
+        : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
+            (sp : List (Fin H.nV))
+            (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
+            (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
+            (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
+            (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+        → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+          in ( fire-mid H e r₁' ∘ permute-via-vlab H.vlab p₁'
+                 ∘ fire-mid H e' r₂' ∘ permute-via-vlab H.vlab p₂' )
+             ≈Term ( permute-via-vlab H.vlab vout-loc₂ ∘ _≅_.to (view-out≅ e' e Rlist) )
+                   ∘ ((box-e e' ⊗₁ box-e e) ⊗₁ id)
+                   ∘ ( _≅_.from (view-in≅ e' e Rlist) ∘ permute-via-vlab H.vlab loc₂ )
+      -- `vin-coh`: the two input view frames differ by the braiding.
+      vin-coh-eq
+        : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
+            (sp : List (Fin H.nV))
+            (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
+            (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
+            (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
+            (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+        → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+          in ( _≅_.from (view-in≅ e e' Rlist) ∘ permute-via-vlab H.vlab loc₁ )
+             ≈Term (σ ⊗₁ id)
+                   ∘ ( _≅_.from (view-in≅ e' e Rlist) ∘ permute-via-vlab H.vlab loc₂ )
+      -- `vout-coh`: the two output view frames are reconciled by `r-stk`
+      -- and the braiding.
+      vout-coh-eq
+        : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
+            (sp : List (Fin H.nV))
+            (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
+            (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
+            (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
+            (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+        → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+          in permute-via-vlab H.vlab r-stk
+               ∘ ( permute-via-vlab H.vlab vout-loc₁ ∘ _≅_.to (view-out≅ e e' Rlist) )
+             ≈Term ( permute-via-vlab H.vlab vout-loc₂ ∘ _≅_.to (view-out≅ e' e Rlist) )
+                   ∘ (σ ⊗₁ id)
+
+  -- The four-equation residual remains a postulate: the located frame
+  -- construction (`R`, the view isos, the locating permutes, `r-stk`) and
+  -- the proven glue are in place; only the categorical equations over the
+  -- pinned frames remain.  See module-header report.
   postulate
-    block-nf
-      : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
-          (sp : List (Fin H.nV))
-          (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
-          (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
-          (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
-          (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-      → BlockNF inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+    block-nf-residual : BlockNFResidual
+
+  block-nf
+    : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
+        (sp : List (Fin H.nV))
+        (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
+        (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
+        (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
+        (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+    → BlockNF inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+  block-nf {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' = record
+    { R     = R-obj Rlist
+    ; vin₁  = _≅_.from (view-in≅ e e' Rlist) ∘ permute-via-vlab H.vlab loc₁
+    ; vin₂  = _≅_.from (view-in≅ e' e Rlist) ∘ permute-via-vlab H.vlab loc₂
+    ; vout₁ = permute-via-vlab H.vlab vout-loc₁ ∘ _≅_.to (view-out≅ e e' Rlist)
+    ; vout₂ = permute-via-vlab H.vlab vout-loc₂ ∘ _≅_.to (view-out≅ e' e Rlist)
+    ; r-stk = r-stk
+    ; vin-coh  = vin-coh-eq  inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+    ; vout-coh = vout-coh-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+    ; nf₁ = nf₁-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+    ; nf₂ = nf₂-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+    }
+    where
+      open BlockNFResidual block-nf-residual
+      open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
 
   fire-mid-interchange
     : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
