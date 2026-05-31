@@ -338,13 +338,10 @@ concat-↭ (Perm.trans p q) = Perm.trans (concat-↭ p) (concat-↭ q)
 --     lists into a count-equality.
 --   * Helper 2 (count-map-via-bij) — to push count through `map φ`
 --     into a count at `φ⁻¹ v` on the original list.
---   * Helper 3 (tabulate-bij-↭, postulated) — to derive the
---     `_↭_` witness needed for count-↭.
+--   * Helper 3 (tabulate-bij-↭, proven constructively above) — to
+--     derive the `_↭_` witness needed for count-↭.
 --   * Iso fields `φ-dom`, `φ-cod`, `ψ-ein`, `ψ-eout`, `ψ-rght` to
 --     rewrite K's lists in terms of H's.
---
--- Once Helper 3 is closed, this proof becomes a ~50 LOC mechanical
--- chain.
 
 open import Data.List.Properties using (map-tabulate; concat-map; tabulate-cong)
 

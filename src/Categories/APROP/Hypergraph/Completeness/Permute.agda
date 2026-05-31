@@ -47,23 +47,10 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
 --                            = unflatten (y ∷ x ∷ ys)
 --   trans p q : permute q ∘ permute p
 
-permute : ∀ {xs ys : List X} → xs Perm.↭ ys → HomTerm (unflatten xs) (unflatten ys)
-permute Perm.refl         = id
-permute (Perm.prep x p)   = id ⊗₁ permute p
-permute (Perm.swap x y p) =
-  (id ⊗₁ (id ⊗₁ permute p)) ∘ α⇒ ∘ (σ ⊗₁ id) ∘ α⇐
-permute (Perm.trans p q)  = permute q ∘ permute p
+-- Re-exported from `Categories.FreeSMC.Steps` (which re-exports
+-- `permute` from PermuteCoherence.Faithfulness) so that APROP and
+-- generic SMC code observe definitional equality on both `permute`
+-- and `permute-via-vlab`.
 
---------------------------------------------------------------------------------
--- Fin-version corollary (used by `decode`): given a permutation of two
--- `List (Fin n)` and a vertex labeling `vlab : Fin n → X`, build the
--- corresponding HomTerm between the unflattened *labelled* lists.
---
--- The image lists `map vlab xs` and `map vlab ys` are also permutations of
--- each other (by `PermProp.map⁺`); we then apply `permute` directly.
-
-permute-via-vlab
-  : ∀ {n} {xs ys : List (Fin n)} (vlab : Fin n → X)
-  → xs Perm.↭ ys
-  → HomTerm (unflatten (map vlab xs)) (unflatten (map vlab ys))
-permute-via-vlab vlab p = permute (PermProp.map⁺ vlab p)
+open import Categories.FreeSMC.Steps asFreeMonoidalData public
+  using (permute; permute-via-vlab)

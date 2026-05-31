@@ -51,16 +51,15 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.AgenAgen sig-dec
   using (decode-rel-resp-≅ᴴ-Agen-Agen)
 
--- The `CompletenessAssumptions` record lives in `DecodeRespIso.agda`
--- (which is `--safe`-clean).  Re-export it so existing consumers can
--- continue to reference `IND.CompletenessAssumptions`.  The record
--- has THREE fields:
---   * boundary-respects-iso (Translation ↔ FromAPROP iso lift)
---   * decode-attempt-resp-iso (algorithmic decoder iso invariance)
+-- The `Build` record lives in `DecodeRespIso.agda` (which is
+-- `--safe`-clean).  Re-export it so consumers (e.g. `CompletenessFull`)
+-- can reference `IND.Build`.  The record has THREE fields:
+--   * process-term-permute-aligned (Mac Lane reordering of process-edges)
+--   * X-permute-self-loop-id (Kelly's unary self-loop coherence)
 --   * decode-rel-≈-decode (structural/algorithmic decoder agreement)
 -- All trust is concentrated here.
 open import Categories.APROP.Hypergraph.Completeness.DecodeRespIso sig-dec
-  using (CompletenessAssumptions) public
+  using (Build) public
 import Categories.APROP.Hypergraph.Completeness.DecodeRespIso sig-dec as RespIso
 
 -- Re-import the constructive Mac Lane discharge from the orphaned
@@ -4860,15 +4859,15 @@ nf-bridge = decode-roundtrip-rel
 -- record-parameterized sub-module `WithAssumptions`, since they
 -- consume `nf-resp-≅ᴴ-residual` and (transitively) `single-agen-NF-coherence`.
 
-module WithAssumptions (assumptions : CompletenessAssumptions) where
-  open CompletenessAssumptions assumptions
+module WithAssumptions (b : Build) where
+  open Build b
 
-  -- DecodeRespIso.WithAssumptions provides the algorithmic-level
-  -- `decode-resp-iso` and the term-level `decode-rel-resp-iso`,
-  -- both derived constructively from the three
-  -- `CompletenessAssumptions` fields.
-  open RespIso.WithAssumptions assumptions
-    using (decode-resp-iso; decode-rel-resp-iso) public
+  -- DecodeRespIso.WithAssumptions provides the term-level
+  -- `decode-rel-resp-iso`, derived constructively from the three
+  -- `Build` fields.  It is the only name consumed below (in
+  -- `nf-resp-≅ᴴ-residual`).
+  open RespIso.WithAssumptions b
+    using (decode-rel-resp-iso)
 
   ------------------------------------------------------------------------
   -- Derived: the original (wider) coherence claim, constructively

@@ -57,38 +57,19 @@ open import Relation.Nullary using (yes; no)
 -- at top-level so foundation lemmas (`DecodeProperties.agda`) can talk
 -- about them without H-parametrisation.
 
--- `extract-elem k xs` looks for `k` in `xs`, returning the residual list
--- and a permutation `xs ↭ k ∷ rest`.
---
--- Defined with `yes p` + explicit `subst` (rather than `yes refl`) so
--- that the function reduces under `--without-K` even when called with
--- the same `Fin` value at both `x` and `k` positions — needed for
--- `extract-elem-self`-style lemmas in `DecodeProperties.agda`.
-extract-elem
-  : ∀ {n} (k : Fin n) (xs : List (Fin n))
-  → Maybe (Σ[ rest ∈ List (Fin n) ] xs Perm.↭ k ∷ rest)
-extract-elem k []       = nothing
-extract-elem k (x ∷ xs) with x ≟ k
-... | yes p = just ( xs
-                   , subst (λ y → (x ∷ xs) Perm.↭ y ∷ xs) p Perm.refl )
-... | no  _ with extract-elem k xs
-...               | nothing            = nothing
-...               | just (rest , q)    =
-                     just ( x ∷ rest
-                          , Perm.trans (Perm.prep x q) (Perm.swap x k Perm.refl) )
+-- `extract-elem` and `extract-prefix` are re-exported from a generic
+-- module so that downstream bridges (e.g.
+-- `Categories.APROP.Hypergraph.Completeness.Discharge.APROPMacLaneFromSMC`)
+-- observe definitional equality between APROP and SMC versions.
+open import Categories.Hypergraph.ExtractPrefix public
+  using (extract-elem; extract-prefix)
 
--- `extract-prefix ks xs`: locate `ks` as a sub-multiset prefix of `xs`,
--- returning the residual after removing each element of `ks` once.
-extract-prefix
-  : ∀ {n} (ks xs : List (Fin n))
-  → Maybe (Σ[ rest ∈ List (Fin n) ] xs Perm.↭ ks ++ rest)
-extract-prefix []       xs = just (xs , Perm.refl)
-extract-prefix (k ∷ ks) xs with extract-elem k xs
-... | nothing            = nothing
-... | just (xs' , p)     with extract-prefix ks xs'
-...                         | nothing            = nothing
-...                         | just (rest , q)    =
-                               just (rest , Perm.trans p (Perm.prep k q))
+-- `xs ++ [] ↭ xs`.  Lifted to module scope (was previously local to
+-- `extract-exact`'s where-clause) so downstream lemmas can refer to it
+-- when reasoning about `extract-exact`'s perm output.
+++-[]-↭ : ∀ {n} (l : List (Fin n)) → l ++ [] Perm.↭ l
+++-[]-↭ []       = Perm.refl
+++-[]-↭ (x ∷ xs) = Perm.prep x (++-[]-↭ xs)
 
 -- Specialised search for an exact multiset match: look for `ks`
 -- with empty residual.  Used at the final step to bridge to `H.cod`.
@@ -98,11 +79,27 @@ extract-exact
 extract-exact ks xs with extract-prefix ks xs
 ... | nothing       = nothing
 ... | just ([]    , p) = just (Perm.trans p (++-[]-↭ ks))
-  where
-    ++-[]-↭ : ∀ {n} (l : List (Fin n)) → l ++ [] Perm.↭ l
-    ++-[]-↭ []       = Perm.refl
-    ++-[]-↭ (x ∷ xs) = Perm.prep x (++-[]-↭ xs)
 ... | just (_ ∷ _ , _) = nothing
+
+--------------------------------------------------------------------------------
+-- Apply an edge: pattern-match `H.elab e` to recover the underlying
+-- generator `g : mor A B`, then wrap with the unflatten-flatten
+-- coherence iso on each side.
+
+-- Auxiliary helper: pattern-match `FlatGen.flat` indirectly through
+-- explicit propositional equalities.  The naive `with H.elab e | flat
+-- g` doesn't work because Agda can't unify `flatten A` with the
+-- generic `map H.vlab (H.ein e)`.
+--
+-- Top-level (not nested inside the `module _ (H : Hypergraph FlatGen)`
+-- below) so downstream files can `cong`-rewrite under it when
+-- transporting `Agen-edge` along `elab` equations — no `H` argument is
+-- needed.
+Agen-edge-aux
+  : ∀ {ins outs : List X} → FlatGen ins outs
+  → HomTerm (unflatten ins) (unflatten outs)
+Agen-edge-aux (FlatGen.flat {A} {B} g) =
+  _≅_.from (unflatten-flatten-≈ B) ∘ Agen g ∘ _≅_.to (unflatten-flatten-≈ A)
 
 --------------------------------------------------------------------------------
 -- Open H once at the module level for the cospan algorithm.
@@ -111,22 +108,6 @@ module _ (H : Hypergraph FlatGen) where
 
   private
     module H = Hypergraph H
-
-  --------------------------------------------------------------------
-  -- Apply an edge: pattern-match `H.elab e` to recover the underlying
-  -- generator `g : mor A B`, then wrap with the unflatten-flatten
-  -- coherence iso on each side.
-
-  -- Auxiliary helper: pattern-match `FlatGen.flat` indirectly through
-  -- explicit propositional equalities.  The naive `with H.elab e | flat
-  -- g` doesn't work because Agda can't unify `flatten A` with the
-  -- generic `map H.vlab (H.ein e)`.
-  private
-    Agen-edge-aux
-      : ∀ {ins outs : List X} → FlatGen ins outs
-      → HomTerm (unflatten ins) (unflatten outs)
-    Agen-edge-aux (FlatGen.flat {A} {B} g) =
-      _≅_.from (unflatten-flatten-≈ B) ∘ Agen g ∘ _≅_.to (unflatten-flatten-≈ A)
 
   Agen-edge
     : (e : Fin H.nE)

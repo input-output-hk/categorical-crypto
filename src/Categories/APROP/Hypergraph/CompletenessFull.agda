@@ -21,7 +21,7 @@ import Categories.APROP.Hypergraph.Completeness.DecodeRel.Inductive as IND
 
 module Categories.APROP.Hypergraph.CompletenessFull
   (sig-dec : APROPSignatureDec)
-  (assumptions : IND.CompletenessAssumptions sig-dec) where
+  (b : IND.Build sig-dec) where
 
 open APROPSignatureDec sig-dec using (sig)
 open APROP sig
@@ -34,7 +34,7 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (bridge)
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
   using (decode-rel; decode-roundtrip-rel)
-open IND.WithAssumptions sig-dec assumptions
+open IND.WithAssumptions sig-dec b
   using (decode-rel-resp-≅ᴴ-full)
 
 open import Categories.Category using (Category)

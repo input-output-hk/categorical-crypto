@@ -103,18 +103,9 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
   using (decode-rel; decode-roundtrip-rel)
 
-open import Categories.APROP.Hypergraph.Completeness.DecodeRel.RespIso.AtomicData sig
-  using ( Atomic
-        ; atomic-Agen; atomic-id
-        ; atomic-λ⇒; atomic-λ⇐; atomic-ρ⇒; atomic-ρ⇐
-        ; atomic-α⇒; atomic-α⇐; atomic-σ
-        )
-
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.List using (List; []; _∷_; _++_; length)
-import Data.List.Properties
 open import Data.Nat using (ℕ; zero; suc; _+_)
-open import Data.Nat.Properties using (m+n≡0⇒m≡0; m+n≡0⇒n≡0)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Unit using (⊤; tt)
 open import Data.Vec using (Vec; lookup) renaming ([] to []ⱽ; _∷_ to _∷ⱽ_)
@@ -135,30 +126,10 @@ private
   nE = Hypergraph.nE
 
 --------------------------------------------------------------------------------
--- The `Structural` predicate: "no `Agen` subterm anywhere".
-
-data Structural : ∀ {A B} → HomTerm A B → Set where
-  structural-id : ∀ {A} → Structural (id {A})
-  structural-λ⇒ : ∀ {A} → Structural (λ⇒ {A})
-  structural-λ⇐ : ∀ {A} → Structural (λ⇐ {A})
-  structural-ρ⇒ : ∀ {A} → Structural (ρ⇒ {A})
-  structural-ρ⇐ : ∀ {A} → Structural (ρ⇐ {A})
-  structural-α⇒ : ∀ {A B C} → Structural (α⇒ {A} {B} {C})
-  structural-α⇐ : ∀ {A B C} → Structural (α⇐ {A} {B} {C})
-  structural-σ  : ∀ {A B} ⦃ s : Symm ≤ Symm ⦄
-                → Structural (σ {A = A} {B = B} ⦃ s ⦄)
-  structural-∘  : ∀ {A B C} {h : HomTerm B C} {k : HomTerm A B}
-                → Structural h → Structural k
-                → Structural (h ∘ k)
-  structural-⊗  : ∀ {A B C D} {h : HomTerm A B} {k : HomTerm C D}
-                → Structural h → Structural k
-                → Structural (h ⊗₁ k)
-
---------------------------------------------------------------------------------
--- `NoSigma`: predicate "no `σ` subterm anywhere".  Strictly stronger
--- than `Structural` (which allows σ); morphisms satisfying `NoSigma`
--- live in the Mac Lane fragment, where coherence is fully constructive
--- via `Categories.MonoidalCoherence.Solver.solveM`.
+-- `NoSigma`: predicate "no `σ` (and no `Agen`) subterm anywhere".
+-- Morphisms satisfying `NoSigma` live in the Mac Lane fragment, where
+-- coherence is fully constructive via
+-- `Categories.MonoidalCoherence.Solver.solveM`.
 
 data NoSigma : ∀ {A B} → HomTerm A B → Set where
   nosigma-id : ∀ {A} → NoSigma (id {A})
@@ -174,183 +145,6 @@ data NoSigma : ∀ {A B} → HomTerm A B → Set where
   nosigma-⊗  : ∀ {A B C D} {h : HomTerm A B} {k : HomTerm C D}
              → NoSigma h → NoSigma k
              → NoSigma (h ⊗₁ k)
-
-NoSigma→Structural : ∀ {A B} {f : HomTerm A B} → NoSigma f → Structural f
-NoSigma→Structural nosigma-id      = structural-id
-NoSigma→Structural nosigma-λ⇒      = structural-λ⇒
-NoSigma→Structural nosigma-λ⇐      = structural-λ⇐
-NoSigma→Structural nosigma-ρ⇒      = structural-ρ⇒
-NoSigma→Structural nosigma-ρ⇐      = structural-ρ⇐
-NoSigma→Structural nosigma-α⇒      = structural-α⇒
-NoSigma→Structural nosigma-α⇐      = structural-α⇐
-NoSigma→Structural (nosigma-∘ h k) = structural-∘ (NoSigma→Structural h)
-                                                   (NoSigma→Structural k)
-NoSigma→Structural (nosigma-⊗ h k) = structural-⊗ (NoSigma→Structural h)
-                                                   (NoSigma→Structural k)
-
--- Decide whether a structural term contains at least one `σ`.
-HasSigma? : ∀ {A B} {f : HomTerm A B} → Structural f → NoSigma f ⊎ ⊤
-HasSigma? structural-id        = inj₁ nosigma-id
-HasSigma? structural-λ⇒        = inj₁ nosigma-λ⇒
-HasSigma? structural-λ⇐        = inj₁ nosigma-λ⇐
-HasSigma? structural-ρ⇒        = inj₁ nosigma-ρ⇒
-HasSigma? structural-ρ⇐        = inj₁ nosigma-ρ⇐
-HasSigma? structural-α⇒        = inj₁ nosigma-α⇒
-HasSigma? structural-α⇐        = inj₁ nosigma-α⇐
-HasSigma? structural-σ         = inj₂ tt
-HasSigma? (structural-∘ sh sk) with HasSigma? sh | HasSigma? sk
-... | inj₁ nh | inj₁ nk = inj₁ (nosigma-∘ nh nk)
-... | _       | _       = inj₂ tt
-HasSigma? (structural-⊗ sh sk) with HasSigma? sh | HasSigma? sk
-... | inj₁ nh | inj₁ nk = inj₁ (nosigma-⊗ nh nk)
-... | _       | _       = inj₂ tt
-
---------------------------------------------------------------------------------
--- Atomic structural constructors are structural.  (The `Agen` atomic
--- constructor is excluded — it has `nE ≡ 1` and is handled separately.)
-
-Atomic-non-Agen→Structural
-  : ∀ {A B} {f : HomTerm A B}
-  → Atomic f → nE ⟪ f ⟫ ≡ 0 → Structural f
-Atomic-non-Agen→Structural (atomic-Agen _)   ()
-Atomic-non-Agen→Structural atomic-id         _ = structural-id
-Atomic-non-Agen→Structural atomic-λ⇒         _ = structural-λ⇒
-Atomic-non-Agen→Structural atomic-λ⇐         _ = structural-λ⇐
-Atomic-non-Agen→Structural atomic-ρ⇒         _ = structural-ρ⇒
-Atomic-non-Agen→Structural atomic-ρ⇐         _ = structural-ρ⇐
-Atomic-non-Agen→Structural atomic-α⇒         _ = structural-α⇒
-Atomic-non-Agen→Structural atomic-α⇐         _ = structural-α⇐
-Atomic-non-Agen→Structural (atomic-σ ⦃ s ⦄)  _ = structural-σ ⦃ s ⦄
-
---------------------------------------------------------------------------------
--- Main syntactic lemma: a 0-edge HomTerm is structural.
---
--- Proceeds by induction on `g`.  For atomic constructors, route via
--- `Atomic-non-Agen→Structural` (and explicitly rule out `Agen`).  For
--- compound constructors, split the additive 0 into both summands.
-
-nE-0→Structural
-  : ∀ {A B} (g : HomTerm A B) → nE ⟪ g ⟫ ≡ 0 → Structural g
-nE-0→Structural (Agen _)              ()
-nE-0→Structural id                    _ = structural-id
-nE-0→Structural λ⇒                    _ = structural-λ⇒
-nE-0→Structural λ⇐                    _ = structural-λ⇐
-nE-0→Structural ρ⇒                    _ = structural-ρ⇒
-nE-0→Structural ρ⇐                    _ = structural-ρ⇐
-nE-0→Structural α⇒                    _ = structural-α⇒
-nE-0→Structural α⇐                    _ = structural-α⇐
-nE-0→Structural (σ ⦃ s ⦄)             _ = structural-σ ⦃ s ⦄
-nE-0→Structural (h ∘ k) g-nE≡0 =
-  -- `nE ⟪ h ∘ k ⟫ = nE ⟪ k ⟫ + nE ⟪ h ⟫` definitionally (see `nE-∘`
-  -- in AtomicCompound.agda — note the order: it's `nE k + nE h`).
-  structural-∘
-    (nE-0→Structural h (m+n≡0⇒n≡0 (nE ⟪ k ⟫) g-nE≡0))
-    (nE-0→Structural k (m+n≡0⇒m≡0 (nE ⟪ k ⟫) g-nE≡0))
-nE-0→Structural (h ⊗₁ k) g-nE≡0 =
-  structural-⊗
-    (nE-0→Structural h (m+n≡0⇒m≡0 (nE ⟪ h ⟫) g-nE≡0))
-    (nE-0→Structural k (m+n≡0⇒n≡0 (nE ⟪ h ⟫) g-nE≡0))
-
---------------------------------------------------------------------------------
--- Narrowed postulate: symmetric-monoidal coherence on the structural
--- fragment, at the `FreeMonoidal` level.
---
--- This is the *minimal* postulate needed to discharge the original
--- `decode-rel-resp-≅ᴴ-atomic-compound-0E`.  It is the statement of
--- Mac Lane's symmetric monoidal coherence theorem on the structural
--- (i.e. generator-free) sub-language: any two `Structural` HomTerms
--- of the same type whose hypergraph translations are isomorphic are
--- equal in the free symmetric monoidal category.
---
--- All `decode-rel`/`bridge`/`unflatten`-flavoured plumbing has been
--- factored out: the postulate conclusion is the plain `_≈Term_`
--- equality between two `HomTerm A B`s built from
--- `id, λ⇒, λ⇐, ρ⇒, ρ⇐, α⇒, α⇐, σ, _∘_, _⊗₁_`.  The constructive
--- discharge ultimately requires extending
--- `Categories.MonoidalCoherence.Solver` (currently Mac Lane only) to
--- handle σ via permutation tracking — see the header for the path.
-
---------------------------------------------------------------------------------
--- Extract the underlying permutation of a structural HomTerm.
---
--- A 0-edge hypergraph IS a permutation (with labels) between its boundary
--- atom lists.  We extract this permutation by structural induction on
--- `Structural`, using only the propositional permutation combinators
--- (`refl`, `prep`, `swap`, `trans`) and standard list-permutation lemmas
--- (`++-comm`, `++-assoc`, `++-identityʳ`, `++⁺`).
---
--- The directions:
---   * `id        : A → A`              ↦ refl
---   * `λ⇒ : I⊗A → A`,  `λ⇐ : A → I⊗A`  ↦ refl     ([] ++ xs ≡ xs definitionally)
---   * `ρ⇒ : A⊗I → A`                   ↦ ++-identityʳ
---   * `ρ⇐ : A → A⊗I`                   ↦ sym (++-identityʳ)
---   * `α⇒ : (A⊗B)⊗C → A⊗(B⊗C)`         ↦ ↭-reflexive (++-assoc)
---   * `α⇐ : A⊗(B⊗C) → (A⊗B)⊗C`         ↦ sym
---   * `σ  : A⊗B → B⊗A`                 ↦ ++-comm
---   * `_∘_`                            ↦ Perm.trans (note: h ∘ k goes k then h)
---   * `_⊗₁_`                           ↦ PermProp.++⁺
-
-Structural-to-perm
-  : ∀ {A B} {f : HomTerm A B}
-  → Structural f → flatten A ↭ flatten B
-Structural-to-perm (structural-id {A}) = Perm.refl
-Structural-to-perm structural-λ⇒        = Perm.refl
-Structural-to-perm structural-λ⇐        = Perm.refl
-Structural-to-perm (structural-ρ⇒ {A})  = PermProp.++-identityʳ (flatten A)
-Structural-to-perm (structural-ρ⇐ {A})  = Perm.↭-sym (PermProp.++-identityʳ (flatten A))
-Structural-to-perm (structural-α⇒ {A} {B} {C}) =
-  Perm.↭-reflexive (Data.List.Properties.++-assoc (flatten A) (flatten B) (flatten C))
-Structural-to-perm (structural-α⇐ {A} {B} {C}) =
-  Perm.↭-sym (Perm.↭-reflexive (Data.List.Properties.++-assoc (flatten A) (flatten B) (flatten C)))
-Structural-to-perm (structural-σ {A} {B}) =
-  PermProp.++-comm (flatten A) (flatten B)
-Structural-to-perm (structural-∘ sh sk) =
-  Perm.trans (Structural-to-perm sk) (Structural-to-perm sh)
-Structural-to-perm (structural-⊗ sh sk) =
-  PermProp.++⁺ (Structural-to-perm sh) (Structural-to-perm sk)
-
---------------------------------------------------------------------------------
--- Narrowed postulate: symmetric-monoidal coherence on the structural
--- fragment.
---
--- An earlier version of this file attempted a further split into
---
---   * `perm-eq-from-iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → Structural-to-perm sf ≡ Structural-to-perm sg`
---   * `Structural-coherence-from-perm-eq : … ≡ … → f ≈Term g`
---
--- and derived `Structural-coherence-≈Term` from the two.  That split
--- is **unsound** in its propositional-equality form:
--- `Data.List.Relation.Binary.Permutation.Propositional._↭_` is *not*
--- a thin relation — `Perm.refl` and `Perm.trans Perm.refl Perm.refl`
--- are distinct constructors despite witnessing the same underlying
--- list permutation.  Concrete counter-example: `f = id`, `sf =
--- structural-id`, `g = id ∘ id`, `sg = structural-∘ structural-id
--- structural-id` give `Structural-to-perm sf = Perm.refl` while
--- `Structural-to-perm sg = Perm.trans Perm.refl Perm.refl`, which are
--- *not* `_≡_`, yet the corresponding hypergraphs are isomorphic.  So
--- the `perm-eq-from-iso` half could never be discharged as stated.
---
--- Reverting to a single postulate restores soundness: this is exactly
--- the statement of Mac Lane's symmetric monoidal coherence theorem on
--- the structural (i.e. generator-free) sub-language.  The constructive
--- discharge ultimately requires extending
--- `Categories.MonoidalCoherence.Solver` (currently Mac Lane only) to
--- handle σ via permutation tracking.
---
--- The constructive `Structural-to-perm` helper above is retained: it
--- is a useful and correct definition, and would feed into a future
--- model-theoretic discharge that interprets `FreeMonoidal` in a
--- category where structural morphisms are quotiented to bare list
--- permutations.
-
--- Splitting via `HasSigma?` exposes the σ-free (Mac Lane) sub-case as
--- a strictly narrower postulate that is mechanically dischargeable by
--- `Categories.MonoidalCoherence.Solver.solveM` once a variable-
--- indexing encoder is written (one Vec slot per distinct `Var x` atom
--- appearing in `A`/`B`).  The σ-containing residual is the genuine
--- remaining content — requires extending `solveM` to the symmetric
--- fragment.  Under the iso hypothesis the σ-free case has identity-
--- forced boundary φ, so Mac Lane coherence applies directly.
 
 --------------------------------------------------------------------------------
 -- Constructive discharge plumbing for the σ-free case via

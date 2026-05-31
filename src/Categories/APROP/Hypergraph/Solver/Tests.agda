@@ -96,9 +96,9 @@ open APROP mySig
 -- instance.  A non-safe sibling module `Solver/TestsTrust.agda`
 -- supplies the record via `postulate` and re-exports the tests.
 
-module WithAssumptions (assumptions : IND.CompletenessAssumptions mySigDec) where
+module WithAssumptions (b : IND.Build mySigDec) where
 
-  open import Categories.APROP.Hypergraph.CompletenessFull mySigDec assumptions
+  open import Categories.APROP.Hypergraph.CompletenessFull mySigDec b
     using (completeness-full)
 
   --------------------------------------------------------------------------------
