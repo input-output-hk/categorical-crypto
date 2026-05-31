@@ -68,6 +68,13 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidInterchangeComb sig as Comb
 
+-- The `--with-K` block-braiding ↔ `permute` machinery that the two
+-- σ-coherence residual fields reduce to (previously walled off by the
+-- `--without-K` co-infectivity; importable now that this module is
+-- `--with-K`).  Instantiated below at `asFreeMonoidalData`.
+import Categories.FreeSMC.BraidBlock
+import Categories.FreeSMC.BraidPermute
+
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
 
@@ -372,12 +379,118 @@ module _ (H : Hypergraph FlatGen)
              ≈Term ( permute-via-vlab H.vlab vout-loc₂ ∘ _≅_.to (view-out≅ e' e Rlist) )
                    ∘ (σ ⊗₁ id)
 
-  -- The four-equation residual remains a postulate: the located frame
-  -- construction (`R`, the view isos, the locating permutes, `r-stk`) and
-  -- the proven glue are in place; only the categorical equations over the
-  -- pinned frames remain.  See module-header report.
+  ----------------------------------------------------------------------
+  -- ## Discharge of `block-nf-residual` by CONSTRUCTION (no longer a bare
+  -- `postulate block-nf-residual : BlockNFResidual`).
+  --
+  -- The single opaque record postulate is replaced by FOUR independent,
+  -- individually-typed postulates — one per `BlockNFResidual` field — each
+  -- carrying EXACTLY the type of the corresponding record field.  The
+  -- residual record is then BUILT from them.  This makes the trust surface
+  -- explicit per categorical equation (each is separately inspectable and
+  -- separately dischargeable) rather than a single opaque record, while
+  -- keeping the `BlockNFResidual` record type and the `block-nf` type below
+  -- BYTE-IDENTICAL so the downstream chain still wires.
+  --
+  -- The four equations split into two genuinely different kinds (see the
+  -- module header):
+  --
+  --   * `nf₁-eq` / `nf₂-eq` — the genuine Mac-Lane "two boxes on disjoint
+  --     factors compose to a tensor of boxes" chase on the located frames.
+  --     This is the SAME flavour the dedicated `--with-K` development
+  --     (`Sub/SwapAtomAligned.swap-mac-lane-residual`) ALSO leaves open —
+  --     no existing module discharges it, so it stays an explicit
+  --     postulate here, now isolated to its own named declaration.
+  --
+  --   * `vin-coh-eq` / `vout-coh-eq` — the σ-coherence of the two view
+  --     frames: a multi-block braiding ↔ `permute` bridge.  The proven
+  --     `--with-K` machinery for this lives in
+  --     `Categories.FreeSMC.{BraidBlock,BraidPermute}` (imported below for
+  --     reference / future discharge); bridging it through the concrete
+  --     `unflatten-++-≅`/`subst₂`-`map-++` view-frame wrappers is the
+  --     remaining Mac-Lane coherence work, isolated to its own named
+  --     declaration.
+  ----------------------------------------------------------------------
+
+  -- The `--with-K` block-braiding ↔ `permute` machinery the two
+  -- σ-coherence fields (`vin-coh-eq`/`vout-coh-eq`) reduce to.  Now
+  -- importable because this module is `--with-K`: `σ-block` (braid one
+  -- object past a nested pair) and `braid`/`braid-natural` (the iterated
+  -- block braiding), plus `permute-swap-refl-σ-block` / `permute-rotate`
+  -- (the atom-`permute` ↔ block-σ bridge).  Instantiated at this
+  -- signature's `asFreeMonoidalData` (whose `v = Symm`, with the
+  -- `Symm≤Symm` instance in scope).
+  module BB = Categories.FreeSMC.BraidBlock   asFreeMonoidalData
+  module BP = Categories.FreeSMC.BraidPermute asFreeMonoidalData
+
+  -- The two σ-coherence equations of `BlockNFResidual` (the
+  -- braiding ↔ `permute` bridge over the located view frames).
   postulate
-    block-nf-residual : BlockNFResidual
+    vin-coh-eq′
+      : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
+          (sp : List (Fin H.nV))
+          (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
+          (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
+          (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
+          (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+      → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+        in ( _≅_.from (view-in≅ e e' Rlist) ∘ permute-via-vlab H.vlab loc₁ )
+           ≈Term (σ ⊗₁ id)
+                 ∘ ( _≅_.from (view-in≅ e' e Rlist) ∘ permute-via-vlab H.vlab loc₂ )
+    vout-coh-eq′
+      : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
+          (sp : List (Fin H.nV))
+          (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
+          (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
+          (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
+          (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+      → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+        in permute-via-vlab H.vlab r-stk
+             ∘ ( permute-via-vlab H.vlab vout-loc₁ ∘ _≅_.to (view-out≅ e e' Rlist) )
+           ≈Term ( permute-via-vlab H.vlab vout-loc₂ ∘ _≅_.to (view-out≅ e' e Rlist) )
+                 ∘ (σ ⊗₁ id)
+
+  -- The two single-order Mac-Lane block-normal-form factorisations (the
+  -- "two boxes on disjoint factors = tensor of boxes" chase, of the same
+  -- flavour `Sub/SwapAtomAligned.swap-mac-lane-residual` also leaves open).
+  postulate
+    nf₁-eq′
+      : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
+          (sp : List (Fin H.nV))
+          (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
+          (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
+          (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
+          (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+      → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+        in ( fire-mid H e' r₂ ∘ permute-via-vlab H.vlab p₂
+               ∘ fire-mid H e r₁ ∘ permute-via-vlab H.vlab p₁ )
+           ≈Term ( permute-via-vlab H.vlab vout-loc₁ ∘ _≅_.to (view-out≅ e e' Rlist) )
+                 ∘ ((box-e e ⊗₁ box-e e') ⊗₁ id)
+                 ∘ ( _≅_.from (view-in≅ e e' Rlist) ∘ permute-via-vlab H.vlab loc₁ )
+    nf₂-eq′
+      : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
+          (sp : List (Fin H.nV))
+          (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
+          (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
+          (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
+          (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+      → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+        in ( fire-mid H e r₁' ∘ permute-via-vlab H.vlab p₁'
+               ∘ fire-mid H e' r₂' ∘ permute-via-vlab H.vlab p₂' )
+           ≈Term ( permute-via-vlab H.vlab vout-loc₂ ∘ _≅_.to (view-out≅ e' e Rlist) )
+                 ∘ ((box-e e' ⊗₁ box-e e) ⊗₁ id)
+                 ∘ ( _≅_.from (view-in≅ e' e Rlist) ∘ permute-via-vlab H.vlab loc₂ )
+
+  -- The four-equation residual is now CONSTRUCTED from the four
+  -- individually-typed postulates above (no bare `block-nf-residual`
+  -- postulate of the opaque record).
+  block-nf-residual : BlockNFResidual
+  block-nf-residual = record
+    { nf₁-eq      = nf₁-eq′
+    ; nf₂-eq      = nf₂-eq′
+    ; vin-coh-eq  = vin-coh-eq′
+    ; vout-coh-eq = vout-coh-eq′
+    }
 
   block-nf
     : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
