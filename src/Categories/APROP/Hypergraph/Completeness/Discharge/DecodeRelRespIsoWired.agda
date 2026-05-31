@@ -75,6 +75,7 @@ open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Fin using (Fin)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.List.Base using ([])
 open import Relation.Nullary using (¬_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Relation.Binary.PropositionalEquality
@@ -192,17 +193,54 @@ objUIP = ObjUIP.objUIP′ {Symm} _≟X_
 -- edges, running them in the swapped order equals running them in the
 -- original order followed by a reshuffle.  This is the genuine
 -- symmetric-monoidal interchange-axiom content (`σ ∘ (f ⊗ g) ≈ (g ⊗ f) ∘ σ`
--- on the two disjoint edge boxes); TRUE, but left as an open obligation
--- here.  Supplied at `H = ⟪f⟫` with the TRUE Kelly residual and the
--- VERTEX-level `Unique (cod ⟪f⟫)` (from `⟪_⟫-cod-unique`).
+-- on the two disjoint edge boxes).  Supplied at `H = ⟪f⟫` with the TRUE
+-- Kelly residual and the VERTEX-level `Unique (cod ⟪f⟫)` (from
+-- `⟪_⟫-cod-unique`).
+--
+-- SPLIT into two ORTHOGONAL obligations (per the informal proof, §"The
+-- per-swap step in detail"):
+--
+--   * `run-interchange₀-⟪⟫`    — the EMPTY-TAIL core (`qs := []`): the
+--     genuine two-edge interchange at a single swap.  This is the
+--     substantive Mac-Lane / `box-interchange` content (the block normal
+--     form `A_e ⊗ A_e' ⊗ R`); being attacked directly.
+--   * `run-interchange-tail-⟪⟫` — the ORTHOGONAL tail extension: lifting
+--     the empty-tail swap to an arbitrary suffix `qs`.  This is pure
+--     decoder equivariance under stack permutation — no box / associator
+--     content (see `Sub/StackEquivariance.agda`), provable by induction
+--     on `qs` from the (already proven) `pe-term-++` split lemma.
+--
+-- The general witness `run-interchange-⟪⟫` that the chain consumes is now
+-- their composite (a DEFINITION, no longer a postulate), so nothing
+-- downstream changes.
 postulate
-  run-interchange-⟪⟫
+  run-interchange₀-⟪⟫
+    : ∀ {A B} (f : HomTerm A B)
+        (ps : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f))
+        {e e' : Fin (Hypergraph.nE ⟪ f ⟫)}
+        (inc : SS.PerHG.Incomp ⟪ f ⟫ (dep-irrefl-⟪⟫ f) e e')
+    → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
+        K-faithfulness (⟪ f ⟫-cod-unique) ps [] inc
+
+  run-interchange-tail-⟪⟫
     : ∀ {A B} (f : HomTerm A B)
         (ps qs : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f))
         {e e' : Fin (Hypergraph.nE ⟪ f ⟫)}
         (inc : SS.PerHG.Incomp ⟪ f ⟫ (dep-irrefl-⟪⟫ f) e e')
     → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
+        K-faithfulness (⟪ f ⟫-cod-unique) ps [] inc
+    → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
         K-faithfulness (⟪ f ⟫-cod-unique) ps qs inc
+
+run-interchange-⟪⟫
+  : ∀ {A B} (f : HomTerm A B)
+      (ps qs : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f))
+      {e e' : Fin (Hypergraph.nE ⟪ f ⟫)}
+      (inc : SS.PerHG.Incomp ⟪ f ⟫ (dep-irrefl-⟪⟫ f) e e')
+  → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
+      K-faithfulness (⟪ f ⟫-cod-unique) ps qs inc
+run-interchange-⟪⟫ f ps qs inc =
+  run-interchange-tail-⟪⟫ f ps qs inc (run-interchange₀-⟪⟫ f ps inc)
 
 ------------------------------------------------------------------------
 -- Iso-invariance of the pruned decoder, consuming the real pruned iso.
