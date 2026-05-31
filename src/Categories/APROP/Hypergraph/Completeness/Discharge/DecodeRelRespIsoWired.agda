@@ -31,11 +31,15 @@
 {-# OPTIONS --without-K #-}
 
 open import Categories.APROP
+open import Relation.Binary using (DecidableEquality)
+open import Categories.FreeMonoidal using (Symm)
 
 module Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRelRespIsoWired
-  (sig : APROPSignature) where
+  (sig : APROPSignature)
+  (_≟X_ : DecidableEquality (APROPSignature.X sig)) where
 
 open APROP sig
+open import Categories.APROP.Hypergraph.Completeness.Discharge.ObjUIP
 
 open import Categories.APROP.Hypergraph.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen; flatten; range)
@@ -48,10 +52,12 @@ open import Categories.APROP.Hypergraph.Completeness.Decode sig
 open import Categories.APROP.Hypergraph.Completeness.Permute sig
   using (permute-via-vlab)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeAttemptLinearP sig
-  using (decode-attempt-LinearP)
+  using (decode-attempt-LinearP; ⟪⟫-LinearP)
 
 import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceWiring sig as IW
 import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceConcrete sig as IC
+import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
+open import Categories.APROP.Hypergraph.HomTermInvariant sig using (⟪_⟫-cod-unique)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.DepIrrefl sig
   using (dep-irrefl-⟪⟫)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
@@ -67,6 +73,7 @@ open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
 
 open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Fin using (Fin)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
@@ -173,7 +180,29 @@ postulate
 -- transport is pure `subst₂` algebra under UIP).
 postulate
   K-faithfulness : FaithfulnessResidual
-  objUIP : ∀ {a b : ObjTerm} (p q : a ≡ b) → p ≡ q
+
+-- objUIP DISCHARGED (no longer a postulate): UIP on `ObjTerm` from
+-- `DecidableEquality X` (Hedberg), via `Discharge.ObjUIP`.  (`ObjTerm`
+-- does not depend on the variant, so `{Symm}` is given explicitly.)
+objUIP : ∀ {a b : ObjTerm} (p q : a ≡ b) → p ≡ q
+objUIP = ObjUIP.objUIP′ {Symm} _≟X_
+
+-- (N / interchange residual) The per-swap `RunInterchange` witness that
+-- `SwapStep.swap-≈` consumes: for an adjacent INDEPENDENT pair of front
+-- edges, running them in the swapped order equals running them in the
+-- original order followed by a reshuffle.  This is the genuine
+-- symmetric-monoidal interchange-axiom content (`σ ∘ (f ⊗ g) ≈ (g ⊗ f) ∘ σ`
+-- on the two disjoint edge boxes); TRUE, but left as an open obligation
+-- here.  Supplied at `H = ⟪f⟫` with the TRUE Kelly residual and the
+-- VERTEX-level `Unique (cod ⟪f⟫)` (from `⟪_⟫-cod-unique`).
+postulate
+  run-interchange-⟪⟫
+    : ∀ {A B} (f : HomTerm A B)
+        (ps qs : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f))
+        {e e' : Fin (Hypergraph.nE ⟪ f ⟫)}
+        (inc : SS.PerHG.Incomp ⟪ f ⟫ (dep-irrefl-⟪⟫ f) e e')
+    → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
+        K-faithfulness (⟪ f ⟫-cod-unique) ps qs inc
 
 ------------------------------------------------------------------------
 -- Iso-invariance of the pruned decoder, consuming the real pruned iso.
@@ -203,6 +232,9 @@ decodeP-resp-iso f g iso =
     -- `FinOrderNoInv.fin-order-NoInv-⟪⟫`, `IsoTransport.iso-transport`).
     res = IC.decode-ord-resp-iso iso
             (dep-irrefl-⟪⟫ f) (dep-irrefl-⟪⟫ g)
+            (⟪⟫-LinearP f)
+            K-faithfulness (⟪ f ⟫-cod-unique) (⟪ g ⟫-cod-unique)
+            (run-interchange-⟪⟫ f)
             (fin-order-NoInv-⟪⟫ f) (fin-order-NoInv-⟪⟫ g)
             (vrange g)
     vH  = proj₁ res

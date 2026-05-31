@@ -37,22 +37,46 @@ import Categories.APROP.Hypergraph.Completeness.Discharge.IsoTransport sig as IT
 import Categories.APROP.Hypergraph.Completeness.Discharge.FinOrderNoInv sig as FN
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
   using (Dep)
+open import Categories.APROP.Hypergraph.Completeness.Linearity sig using (Linear)
 
 open import Relation.Nullary using (¬_)
+open import Data.Fin using (Fin)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Relation.Binary.PropositionalEquality
   using (_≡_; cong; subst₂)
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive
   using (Star; ε; _◅_)
 
+-- The Kelly faithfulness residual, threaded from the top of the chain.
+open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
+  using (FaithfulnessResidual)
+
 ------------------------------------------------------------------------
 -- Per-hypergraph: the closure-lift and order-invariance, now fed the real
 -- `SwapStep.swap-≈` (applied at `H`) and IW's kept `swap-validity`.
 ------------------------------------------------------------------------
 
+-- The per-hypergraph module now threads the analytic-step inputs of
+-- `SwapStep.swap-≈`:
+--   * `K          : FaithfulnessResidual`     (the Kelly residual),
+--   * `uniq-cod    : Unique (cod H)`           (VERTEX-level codomain
+--     uniqueness — TRUE; NOT the X-level `Unique (map vlab cod)`),
+--   * `run-interchange` — the per-swap `RunInterchange` (N) witness (the
+--     genuine interchange-axiom residual).
+-- All three are supplied at the call site (`H = ⟪f⟫`) by
+-- `DecodeRelRespIsoWired`.
 module PerHG (H : Hypergraph FlatGen)
-             (dih : ∀ {e} → ¬ (Dep H e e)) where
+             (dih : ∀ {e} → ¬ (Dep H e e))
+             (lin : Linear H)
+             (K : FaithfulnessResidual)
+             (uniq-cod : Unique (Hypergraph.cod H))
+             (run-interchange
+               : ∀ (ps qs : SS.PerHG.Order H dih)
+                   {e e' : Fin (Hypergraph.nE H)}
+                   (inc : SS.PerHG.Incomp H dih e e')
+               → SS.FrontSwap.RunInterchange H dih K uniq-cod ps qs inc) where
   module PH = IW.PerHG H dih
   open PH using (Order; Valid; decodeOrd; _↝_; _↝*_; NoInv; connectivity)
 
@@ -60,13 +84,13 @@ module PerHG (H : Hypergraph FlatGen)
   swap-≈ : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂
          → (p₁ : Valid o₁) (p₂ : Valid o₂)
          → decodeOrd o₁ p₁ ≈Term decodeOrd o₂ p₂
-  swap-≈ = SS.swap-≈ H dih
+  swap-≈ = SS.swap-≈ H dih K uniq-cod run-interchange
 
   -- Validity is preserved by an adjacent-independent swap.  Now PROVEN in
   -- `Discharge.SwapValidity` (modulo its own `front-swap-stack-↭`), applied
   -- at `H`; the former `IW.PerHG.swap-validity` postulate is GONE.
   swap-validity : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂ → Valid o₁ → Valid o₂
-  swap-validity = SV.PerHG.swap-validity H dih
+  swap-validity = SV.PerHG.swap-validity H dih lin
 
   -- Lift the per-swap step to the reflexive-transitive closure, threading
   -- the validity witness.  REAL: dependent fold over the `Star`.  (Copy of
@@ -99,13 +123,30 @@ module PerHG (H : Hypergraph FlatGen)
 -- the call site (`H = ⟪f⟫`, `J = ⟪g⟫`) from `DepIrrefl.dep-irrefl-⟪⟫` and
 -- `FinOrderNoInv.fin-order-NoInv-⟪⟫`.  `iso-transport` is now sourced from
 -- the proven `Discharge.IsoTransport` (was the deleted `IW.iso-transport`).
+--
+-- The analytic-step inputs are also threaded explicitly:
+--   * `K            : FaithfulnessResidual`   (the Kelly residual, shared
+--     by `SwapStep` (via `PerHG H`) and `IsoTransport`),
+--   * `codUniqueH    : Unique (cod H)`, `codUniqueJ : Unique (cod J)`
+--     (VERTEX-level codomain uniqueness — TRUE; supplied from
+--     `⟪_⟫-cod-unique`),
+--   * `run-interchange-H` — H's per-swap `RunInterchange` (N) witness.
 module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
          (dihH : ∀ {e} → ¬ (Dep H e e))
-         (dihJ : ∀ {e} → ¬ (Dep J e e)) where
+         (dihJ : ∀ {e} → ¬ (Dep J e e))
+         (linH : Linear H)
+         (K : FaithfulnessResidual)
+         (codUniqueH : Unique (Hypergraph.cod H))
+         (codUniqueJ : Unique (Hypergraph.cod J))
+         (run-interchange-H
+           : ∀ (ps qs : SS.PerHG.Order H dihH)
+               {e e' : Fin (Hypergraph.nE H)}
+               (inc : SS.PerHG.Incomp H dihH e e')
+           → SS.FrontSwap.RunInterchange H dihH K codUniqueH ps qs inc) where
   private
     module PH  = IW.PerHG H dihH
     module PJ  = IW.PerHG J dihJ
-    module CPH = PerHG H dihH
+    module CPH = PerHG H dihH linH K codUniqueH run-interchange-H
     module H   = Hypergraph H
     module J   = Hypergraph J
     module L4  = WL.Lemma4 Φ dihH dihJ
@@ -127,7 +168,7 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
                    (PJ.decodeOrd (range J.nE) vJ)
             ≈Term PH.decodeOrd (range H.nE) vH )
   decode-ord-resp-iso noInvH noInvJ vJ =
-    let (vτ , transport≈)   = IT.iso-transport Φ dihH dihJ vJ
+    let (vτ , transport≈)   = IT.iso-transport Φ dihH dihJ K codUniqueH codUniqueJ vJ
         (vH , invariant≈)   =
           CPH.order-invariant (IW.τ Φ) (range H.nE) (IW.τ↭range Φ) (NoInv-τ noInvJ)
                               noInvH vτ

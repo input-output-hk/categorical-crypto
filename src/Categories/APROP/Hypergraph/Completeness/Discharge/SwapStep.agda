@@ -26,9 +26,52 @@
 --     edges are `Dep`-INCOMPARABLE (independent: neither shares a wire
 --     with the other).  This is the locus where N and K are invoked.
 --
--- The body of `swap-≈` is FULLY ASSEMBLED from these (modulo the single
--- bottom postulate `front-swap-≈`, which fuses the N-instance and the
--- K-instance — see its comment), and the module typechecks.
+-- ## What is now PROVEN (vs. postulated) — 2026-05-30 refactor
+--
+-- `front-swap-≈` is NO LONGER a postulate.  It is now a THEOREM, derived
+-- from:
+--
+--   * (K)  `final-permute-coh` — PROVEN here, GIVEN the Kelly residual
+--          `K : FaithfulnessResidual` and a VERTEX-level `Unique (cod H)`
+--          witness.  This is the final-permute reconciliation: two
+--          validity witnesses `va : a-stk ↭ cod`, `vb : b-stk ↭ cod`
+--          bridged by a reshuffle `r : a-stk ↭ b-stk` give
+--          `permute va ≈Term permute vb ∘ permute r`, because both `va`
+--          and `trans r vb` evaluate to the SAME FinBij by `eval-rigid`
+--          on the vertex-level `Unique (cod H)` codomain, lifted through
+--          `map⁺ vlab` by `eval-map⁺` + `subst₂-FinBij-≈` — i.e. they
+--          are `≅↭`-equal — and K closes the gap.  This is EXACTLY the
+--          `permute-via-vlab-coh` pattern of `Sub/DecodeOrdBoundary.agda`,
+--          generalised to two distinct domains bridged by `r`.  The
+--          `eval-rigid`/`eval-map⁺`/`subst₂-FinBij-≈` helpers are inlined
+--          (J-only, `--without-K`-clean), verbatim from `DecodeOrdBoundary`.
+--
+--   * (N)  `RunInterchange` — the SOLE remaining residual, exposed as a
+--          RECORD parameter (the per-swap N-content).  It packages the
+--          reshuffle `r : fs₁ ↭ fs₂` between the two post-front stacks
+--          and the run-level interchange equation
+--          `run₂ ≈Term permute r ∘ run₁`.  Because the two edges are
+--          `Incomp` (DISJOINT blocks), the two boxes `(Agen-edge ⊗ id)`
+--          commute by N (`σ∘[f⊗g]≈[g⊗f]∘σ`) and the surrounding permutes
+--          collapse to `permute r`.  This residual mentions NEITHER the
+--          final permute NOR `cod` — only the two front runs — so it is
+--          strictly the interchange-axiom content, with the K-half
+--          factored out and proven.
+--
+-- The `coe-cod` codomain-transport bookkeeping between the
+-- `decodeOrd-factor` shape and the un-transported `fs` level is also
+-- PROVEN here (`coe-vanish`, by matching the `++-stack` proof at `refl`
+-- on a generalised source stack).
+--
+-- INTERFACE CHANGE: `FrontSwap` and the `swap-≈` assembly module now take
+-- `(K : FaithfulnessResidual)` + `(uniq-cod : Unique (cod H))` — the
+-- VERTEX-level codomain uniqueness (TRUE; dischargeable from
+-- `⟪_⟫-cod-unique`), NOT the X-level `Unique (map vlab cod)` (which is
+-- FALSE when boundary atoms repeat).  `swap-≈` additionally takes a
+-- per-swap `run-interchange` supplying the `RunInterchange` (N) witness.
+-- Downstream rewiring supplies K (as in `DecodeOrdBoundary`), the
+-- vertex-level `cod` uniqueness (from `⟪_⟫-cod-unique`), and the
+-- `RunInterchange` (the interchange axiom on the two disjoint boxes).
 {-# OPTIONS --without-K #-}
 
 open import Categories.APROP
@@ -55,13 +98,35 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
   using (Dep)
 
+-- The Kelly faithfulness residual K (`permute-resp-≅↭`), exposed as a
+-- record in the `--without-K` module `PermuteCoherence.Faithfulness`,
+-- parameterised over the APROP `FreeMonoidalData`.  This is the SAME K
+-- threaded through `Discharge/Sub/DecodeOrdBoundary.agda`.
+open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
+  using (FaithfulnessResidual)
+
+-- K-free FinBij/eval infrastructure (`--cubical-compatible` modules).
+open import Categories.PermuteCoherence.FinBij
+  using (FinBij; _≈-fb_; id-fb; _∘-fb_; cons-fb; swap-fb)
+open import Categories.PermuteCoherence.Eval using (eval-↭)
+
+open import Data.Nat.Base using (ℕ; suc)
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.Fin.Base using (zero; suc)
+open import Data.Fin.Patterns using (0F; 1F)
+open import Data.List using (List; []; _∷_; _++_; map; length; lookup)
+open import Data.List.Properties using (length-map)
+open import Data.List.Relation.Unary.All using (All; []; _∷_)
+open import Data.List.Relation.Unary.AllPairs using () renaming (_∷_ to _∷ᵘ_)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
+import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
+import Data.Fin.Permutation as P
+open import Data.Empty using (⊥-elim)
 open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
+  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 
 ------------------------------------------------------------------------
 -- Per-hypergraph: fix `H` and a `Dep`-irreflexivity witness `dih`
@@ -259,59 +324,368 @@ module PerHG (H : Hypergraph FlatGen)
 --       two orders but realise the SAME total bijection on wires; they are
 --       reconciled by (K) `FaithfulnessResidual.permute-resp-≅↭`.
 --
--- The single bottom postulate below (`front-swap-≈`) fuses exactly the
--- N- and K-instances of this front swap, stated at the `decodeOrd`-factor
--- level so it plugs straight into `swap-≈` after the prefix reduction.
+-- Of these, (d) [the K-instance] is now PROVEN here (`final-permute-coh`,
+-- GIVEN the Kelly residual K + a `Unique (map vlab cod)` witness), and
+-- (b)+(c) [the N-instance: the post-stack reshuffle and the run-level
+-- interchange of the two disjoint boxes] are the SOLE residual, packaged
+-- as the `RunInterchange` record.  `front-swap-≈` is assembled from both,
+-- stated at the `decodeOrd`-factor level so it plugs straight into
+-- `swap-≈` after the prefix reduction.
 ------------------------------------------------------------------------
 
+------------------------------------------------------------------------
+-- K-FREE helper infrastructure (inlined, J-only copies of the
+-- intrinsically K-free lemmas that live in the `--with-K` modules
+-- `PermuteCoherence.{Rigid,Map}`).  These are VERBATIM copies of the
+-- §0 block of `Discharge/Sub/DecodeOrdBoundary.agda`; co-infectivity
+-- forbids importing those `--with-K` modules into this `--without-K`
+-- module, so the (intrinsically J-only) helpers are re-derived here.
+------------------------------------------------------------------------
+
+private
+  ----------------------------------------------------------------------
+  -- Rigidity of `eval-↭` on `Unique` codomains (copy of
+  -- `PermuteCoherence.Rigid.eval-rigid`; structural, no K).
+  ----------------------------------------------------------------------
+
+  All-lookup : ∀ {a p} {A : Set a} {Q : A → Set p} {xs : List A}
+             → All Q xs → (i : Fin (length xs)) → Q (lookup xs i)
+  All-lookup (q ∷ _)  zero    = q
+  All-lookup (_ ∷ qs) (suc i) = All-lookup qs i
+
+  lookup-injective-unique
+    : ∀ {a} {A : Set a} {xs : List A}
+    → Unique xs → (i j : Fin (length xs))
+    → lookup xs i ≡ lookup xs j
+    → i ≡ j
+  lookup-injective-unique (_  ∷ᵘ _ ) zero    zero    _  = refl
+  lookup-injective-unique (x≢ ∷ᵘ _ ) zero    (suc j) eq = ⊥-elim (All-lookup x≢ j eq)
+  lookup-injective-unique (x≢ ∷ᵘ _ ) (suc i) zero    eq = ⊥-elim (All-lookup x≢ i (sym eq))
+  lookup-injective-unique (_  ∷ᵘ uq) (suc i) (suc j) eq =
+    cong suc (lookup-injective-unique uq i j eq)
+
+  lookup-sound
+    : ∀ {a} {A : Set a} {xs ys : List A} (p : xs Perm.↭ ys) (i : Fin (length xs))
+    → lookup ys (eval-↭ p P.⟨$⟩ʳ i) ≡ lookup xs i
+  lookup-sound Perm.refl         i             = refl
+  lookup-sound (Perm.prep x p)   0F            = refl
+  lookup-sound (Perm.prep x p)   (suc i)       = lookup-sound p i
+  lookup-sound (Perm.swap x y p) 0F            = refl
+  lookup-sound (Perm.swap x y p) (suc 0F)      = refl
+  lookup-sound (Perm.swap x y p) (suc (suc i)) = lookup-sound p i
+  lookup-sound (Perm.trans p q)  i             =
+    trans (lookup-sound q (eval-↭ p P.⟨$⟩ʳ i)) (lookup-sound p i)
+
+  eval-rigid
+    : ∀ {a} {A : Set a} {xs ys : List A} → Unique ys
+    → (p q : xs Perm.↭ ys)
+    → eval-↭ p ≈-fb eval-↭ q
+  eval-rigid uniq p q i =
+    lookup-injective-unique uniq _ _
+      (trans (lookup-sound p i) (sym (lookup-sound q i)))
+
+  ----------------------------------------------------------------------
+  -- `eval-map⁺` and its `subst₂`-on-FinBij algebra (copies of the
+  -- `PermuteCoherence.Map` lemmas; all J-only, no K).
+  ----------------------------------------------------------------------
+
+  subst₂-FinBij-id : ∀ {n m} (e : n ≡ m) → subst₂ FinBij e e id-fb ≡ id-fb
+  subst₂-FinBij-id refl = refl
+
+  cons-cast
+    : ∀ {n n' m m'} (ex : n' ≡ n) (ey : m' ≡ m) (π : FinBij n m)
+    → cons-fb (subst₂ FinBij (sym ex) (sym ey) π)
+      ≡ subst₂ FinBij (sym (cong suc ex)) (sym (cong suc ey)) (cons-fb π)
+  cons-cast refl refl π = refl
+
+  swap-cast
+    : ∀ {n n' m m'} (ex : n' ≡ n) (ey : m' ≡ m) (π : FinBij n m)
+    → swap-fb m' ∘-fb cons-fb (cons-fb (subst₂ FinBij (sym ex) (sym ey) π))
+      ≡ subst₂ FinBij (sym (cong suc (cong suc ex)))
+                      (sym (cong suc (cong suc ey)))
+                      (swap-fb m ∘-fb cons-fb (cons-fb π))
+  swap-cast refl refl π = refl
+
+  comp-cast
+    : ∀ {n n' m m' k k'}
+        (ex : n' ≡ n) (ey : m' ≡ m) (ez : k' ≡ k)
+        (g : FinBij m k) (f : FinBij n m)
+    → subst₂ FinBij (sym ey) (sym ez) g ∘-fb subst₂ FinBij (sym ex) (sym ey) f
+      ≡ subst₂ FinBij (sym ex) (sym ez) (g ∘-fb f)
+  comp-cast refl refl refl g f = refl
+
+  eval-map⁺ : ∀ {A C : Set}
+    (h : A → C) {xs ys : List A} (p : xs Perm.↭ ys)
+    → eval-↭ (PermProp.map⁺ h p)
+      ≡ subst₂ FinBij (sym (length-map h xs)) (sym (length-map h ys)) (eval-↭ p)
+  eval-map⁺ h {xs = xs} Perm.refl = sym (subst₂-FinBij-id (sym (length-map h xs)))
+  eval-map⁺ h {xs = x ∷ xs} {ys = .x ∷ ys} (Perm.prep x p) =
+    trans (cong cons-fb (eval-map⁺ h p))
+          (cons-cast (length-map h xs) (length-map h ys) (eval-↭ p))
+  eval-map⁺ h {xs = x ∷ x' ∷ xs} {ys = y ∷ y' ∷ ys} (Perm.swap x y p) =
+    trans (cong (λ z → swap-fb (length (map h ys)) ∘-fb cons-fb (cons-fb z)) (eval-map⁺ h p))
+          (swap-cast (length-map h xs) (length-map h ys) (eval-↭ p))
+  eval-map⁺ h {xs = xs} {ys = zs} (Perm.trans {ys = ys} p q) =
+    trans (cong₂ _∘-fb_ (eval-map⁺ h q) (eval-map⁺ h p))
+          (comp-cast (length-map h xs) (length-map h ys) (length-map h zs)
+                     (eval-↭ q) (eval-↭ p))
+
+  subst₂-FinBij-≈ : ∀ {n m n' m'} (a : n ≡ n') (b : m ≡ m') {π ρ : FinBij n m}
+    → π ≈-fb ρ → subst₂ FinBij a b π ≈-fb subst₂ FinBij a b ρ
+  subst₂-FinBij-≈ refl refl eq = eq
+
+-- The `FrontSwap` module is now parameterised by the Kelly faithfulness
+-- residual `K : FaithfulnessResidual` (the SAME K threaded through
+-- `Discharge/Sub/DecodeOrdBoundary.agda`) and a `Unique` witness on the
+-- vertex-labelled codomain `map vlab cod` (supplied downstream at
+-- `H = ⟪f⟫` via `⟪_⟫-cod-unique` after `map`; for an arbitrary `H` it
+-- is a genuine hypothesis, exactly as `objUIP`/`uniq` are in
+-- `DecodeOrdBoundary`).  GIVEN those, the K-half of the front swap (the
+-- final-permute reconciliation) is a THEOREM (`final-permute-coh`);
+-- only the N-half (the run-level interchange) remains a residual.
+-- SOUNDNESS NOTE: `uniq-cod` is the VERTEX-level `Unique (cod H)` (TRUE,
+-- dischargeable from `⟪_⟫-cod-unique` at `H = ⟪f⟫`), NOT the X-level
+-- `Unique (map vlab cod)` (which is FALSE when boundary atoms repeat).
+-- The final-permute reconciliation runs `eval-rigid` on the VERTEX-level
+-- derivations `va`/`trans r vb : … ↭ cod`, then lifts through `map⁺ vlab`
+-- via `eval-map⁺` + `subst₂-FinBij-≈` — exactly the `DecodeOrdBoundary`
+-- pattern.
 module FrontSwap (H : Hypergraph FlatGen)
-                 (dih : ∀ {e} → ¬ (Dep H e e)) where
+                 (dih : ∀ {e} → ¬ (Dep H e e))
+                 (K : FaithfulnessResidual)
+                 (uniq-cod : Unique (Hypergraph.cod H))
+                 where
   private module H = Hypergraph H
   open PerHG H dih
+  open FaithfulnessResidual K
 
-  -- The "decode the tail and permute to cod" left factor, shared shape
-  -- between the two orders modulo the order of the two front edges.
-  -- For a given validity witness `p`, post-stack `sp`, and remaining
-  -- order `o`, this is `permute-via-vlab vlab p ∘ pe-term o sp`.
-
-  -- (N + K) FRONT SWAP — the analytic core.  Given:
-  --   * the prefix `ps` and the residual `qs`,
-  --   * the incomparability witness `inc : Incomp e e'`,
-  --   * validity witnesses for both full orders,
-  -- the two `decodeOrd`-left-factors over the swapped front are ≈Term.
+  --------------------------------------------------------------------
+  -- (K)  THE FINAL-PERMUTE RECONCILIATION — fully PROVEN given K.
   --
-  -- This is the SOLE remaining content.  It decomposes (see the module
-  -- header (a)–(d)) into:
-  --   interchange-front : the two `(Agen-edge ⊗ id)` boxes commute on the
-  --                       disjoint blocks                       [ N ]
-  --   permute-coherence-front : the accumulated `permute-via-vlab`
-  --                       reshuffles realise the same bijection [ K ]
-  -- We keep them fused into a single front-swap postulate because the two
-  -- ingredients are entangled by the shared validity witnesses (the same
-  -- final permute is threaded through both); separating them would require
-  -- naming the intermediate `↭`/`eval` bridge (the rigid-discharge pattern
-  -- of `Sub/StackEvalCoherence.agda`).  Both endpoints below are genuine
-  -- `_≈Term_` obligations of the forms (N) `σ∘[f⊗g]≈[g⊗f]∘σ` and (K)
-  -- `permute-resp-≅↭`; neither introduces new mathematical content beyond
-  -- those two named axioms.
-  -- Stated at exactly the shape `decodeOrd-factor` produces: the
-  -- validity-carried final permute composed with the codomain-transported
-  -- tail run, from the shared post-prefix stack `sp = pe-stack ps dom`.
-  -- This plugs straight into `swap-≈`'s `∘-resp-≈` over the shared prefix
-  -- term `pe-term ps dom`.
-  postulate
-    front-swap-≈
-      : ∀ (ps qs : Order) {e e' : Fin H.nE}
-          (inc : Incomp e e')
-          (p₁ : Valid (ps ++ e ∷ e' ∷ qs))
-          (p₂ : Valid (ps ++ e' ∷ e ∷ qs))
-      → ( permute-via-vlab H.vlab p₁
-            ∘ coe-cod (sym (++-stack ps (e ∷ e' ∷ qs) H.dom))
-                      (pe-term (e ∷ e' ∷ qs) (pe-stack ps H.dom)) )
-        ≈Term
-        ( permute-via-vlab H.vlab p₂
-            ∘ coe-cod (sym (++-stack ps (e' ∷ e ∷ qs) H.dom))
-                      (pe-term (e' ∷ e ∷ qs) (pe-stack ps H.dom)) )
+  -- Given a reshuffle `r : a-stk ↭ b-stk` between two post-front stacks
+  -- and two validity-style witnesses `va : a-stk ↭ cod`, `vb : b-stk ↭
+  -- cod`, the `permute-via-vlab` of `va` agrees (up to ≈Term) with the
+  -- `permute-via-vlab` of `vb` PRECOMPOSED by the reshuffle's permute:
+  --
+  --     permute-via-vlab va  ≈Term  permute-via-vlab vb ∘ permute-via-vlab r
+  --
+  -- because both `va` and `trans r vb` are `↭`-derivations into the SAME
+  -- codomain `cod`, which is `Unique` after `map vlab`; hence their
+  -- `map⁺ vlab` liftings evaluate to the same FinBij by `eval-rigid`,
+  -- i.e. they are `≅↭`-equal, and K (`permute-resp-≅↭`) closes the gap.
+  -- (`permute-via-vlab v = permute (map⁺ vlab v)` definitionally, and
+  -- `map⁺ vlab (trans r vb) = trans (map⁺ vlab r) (map⁺ vlab vb)`, with
+  -- `permute (trans a b) = permute b ∘ permute a`.)
+  --
+  -- This is the K-instance of the front swap, isolated and discharged —
+  -- exactly the `permute-via-vlab-coh` pattern of `DecodeOrdBoundary`,
+  -- generalised to two distinct domains bridged by `r`.
+  --------------------------------------------------------------------
+
+  private
+    -- `≅↭`-equality of the two map-lifted derivations into `map vlab cod`.
+    permute-bridge-≅↭
+      : ∀ {a-stk b-stk : List (Fin H.nV)}
+          (r  : a-stk Perm.↭ b-stk)
+          (va : a-stk Perm.↭ H.cod)
+          (vb : b-stk Perm.↭ H.cod)
+      → eval-↭ (PermProp.map⁺ H.vlab va)
+        ≈-fb eval-↭ (PermProp.map⁺ H.vlab (Perm.trans r vb))
+    permute-bridge-≅↭ {a-stk} {b-stk} r va vb =
+      -- `eval-rigid` is run on the VERTEX-level derivations `va` and
+      -- `trans r vb`, both `a-stk ↭ cod`, against the TRUE vertex-level
+      -- `Unique (cod H)`; the result is transported through `map⁺ vlab`
+      -- by `eval-map⁺` + `subst₂-FinBij-≈` (the `DecodeOrdBoundary`
+      -- pattern), so NO X-level `Unique (map vlab cod)` is needed.
+      subst (λ z → z ≈-fb eval-↭ (PermProp.map⁺ H.vlab (Perm.trans r vb)))
+            (sym (eval-map⁺ H.vlab va))
+        (subst (λ z → subst₂ FinBij (sym (length-map H.vlab a-stk))
+                                    (sym (length-map H.vlab H.cod)) (eval-↭ va)
+                      ≈-fb z)
+               (sym (eval-map⁺ H.vlab (Perm.trans r vb)))
+          (subst₂-FinBij-≈ (sym (length-map H.vlab a-stk))
+                           (sym (length-map H.vlab H.cod))
+            (eval-rigid uniq-cod va (Perm.trans r vb))))
+
+  final-permute-coh
+    : ∀ {a-stk b-stk : List (Fin H.nV)}
+        (r  : a-stk Perm.↭ b-stk)
+        (va : a-stk Perm.↭ H.cod)
+        (vb : b-stk Perm.↭ H.cod)
+    → permute-via-vlab H.vlab va
+      ≈Term permute-via-vlab H.vlab vb ∘ permute-via-vlab H.vlab r
+  final-permute-coh r va vb =
+    -- permute-via-vlab va = permute (map⁺ vlab va)
+    --   ≈Term [K on (map⁺ va , map⁺ (trans r vb)) via ≅↭ bridge]
+    -- permute (map⁺ vlab (trans r vb))
+    --   = permute (trans (map⁺ vlab r) (map⁺ vlab vb))
+    --   = permute (map⁺ vlab vb) ∘ permute (map⁺ vlab r)
+    --   = permute-via-vlab vb ∘ permute-via-vlab r          (definitional)
+    permute-resp-≅↭
+      (PermProp.map⁺ H.vlab va)
+      (PermProp.map⁺ H.vlab (Perm.trans r vb))
+      (permute-bridge-≅↭ r va vb)
+
+  --------------------------------------------------------------------
+  -- (N)  THE RUN-LEVEL INTERCHANGE — the SOLE residual.
+  --
+  -- This is the genuinely-analytic, K-free content of the front swap:
+  -- running the two INDEPENDENT front edges in the order `e' ∷ e` from
+  -- the shared post-prefix stack `sp` equals running them in the order
+  -- `e ∷ e'` followed by a reshuffle `r`, where `r` is a permutation of
+  -- the two post-front stacks.  Because the two edges are `Incomp`
+  -- (DISJOINT wire blocks), the two opaque boxes `(Agen-edge ⊗ id)`
+  -- commute by the interchange axiom (N) `σ ∘ (f ⊗ g) ≈ (g ⊗ f) ∘ σ`
+  -- (the `_≈Term_` constructor `σ∘[f⊗g]≈[g⊗f]∘σ` of `Categories.
+  -- FreeMonoidal`), and the surrounding `permute-via-vlab` reshuffles
+  -- collapse to a single `permute-via-vlab r`.
+  --
+  -- We expose it as a record so it carries BOTH the reshuffle `r` and
+  -- the run equation; `final-permute-coh` (K) then closes the gap
+  -- between the two validity witnesses.  This is the smallest residual:
+  -- it mentions NEITHER the final permute NOR `cod`, only the two front
+  -- runs and the reshuffle between their post-stacks — i.e. EXACTLY the
+  -- interchange axiom applied to the two boxes, plus the bookkeeping
+  -- that the surrounding `permute-via-vlab` collapse to `permute r`.
+  --------------------------------------------------------------------
+
+  --------------------------------------------------------------------
+  -- (N)  THE INTERCHANGE KERNEL — PROVEN here, isolated as the literal
+  -- σ-naturality application.
+  --
+  -- This is the genuine §II interchange axiom (N), `σ ∘ (f ⊗ g) ≈
+  -- (g ⊗ f) ∘ σ`, packaged in the σ-conjugation form
+  --
+  --     g ⊗₁ f  ≈Term  σ ∘ (f ⊗₁ g) ∘ σ
+  --
+  -- that is the algebraic heart of "two boxes on DISJOINT blocks
+  -- commute": precompose+postcompose with the braid and the two boxes
+  -- swap places.  It is derived purely from the FreeMonoidal primitives
+  -- `σ∘[f⊗g]≈[g⊗f]∘σ` (the N constructor) and `σ∘σ≈id` (involutivity),
+  -- with no K and no firing data — it is the K-free, hypergraph-free
+  -- core of the run-level interchange.
+  --
+  -- `run-eq` (the residual below) is exactly this kernel TRANSPORTED
+  -- through the two `edge-step` boxes' `splitJoin`/`unflatten-++-≅`
+  -- bookkeeping and the tail recursion on `qs`; that transport (the
+  -- Mac-Lane "swap-mac-lane-residual" chase of `Sub/SwapAtomAligned.agda`,
+  -- which even the `--with-K` development leaves open) plus the
+  -- topological firing-success of both orders (FALSE from `Incomp`
+  -- alone — see `EdgeReorder.agda`) is what keeps `run-eq` a residual.
+  -- The N-axiom itself, however, enters ONLY through `box-interchange`.
+  --------------------------------------------------------------------
+
+  box-interchange
+    : ∀ {A B C D : ObjTerm}
+        (f : HomTerm A B) (g : HomTerm C D)
+    → g ⊗₁ f ≈Term σ ∘ ((f ⊗₁ g) ∘ σ)
+  box-interchange f g =
+    -- σ ∘ (f ⊗ g) ∘ σ
+    --   ≈ ((g ⊗ f) ∘ σ) ∘ σ           [N: σ∘[f⊗g]≈[g⊗f]∘σ, under ∘ σ]
+    --   ≈ (g ⊗ f) ∘ (σ ∘ σ)           [assoc]
+    --   ≈ (g ⊗ f) ∘ id                [σ∘σ≈id]
+    --   ≈ g ⊗ f                       [idʳ]
+    ≈-Term-sym
+      (≈-Term-trans
+        (≈-Term-trans
+          (≈-Term-sym assoc)
+          (∘-resp-≈ σ∘[f⊗g]≈[g⊗f]∘σ ≈-Term-refl))
+        (≈-Term-trans assoc
+          (≈-Term-trans (∘-resp-≈ ≈-Term-refl σ∘σ≈id) idʳ)))
+
+  record RunInterchange (ps qs : Order) {e e' : Fin H.nE}
+                        (inc : Incomp e e') : Set where
+    private
+      sp  = pe-stack ps H.dom
+      fs₁ = pe-stack (e ∷ e' ∷ qs) sp
+      fs₂ = pe-stack (e' ∷ e ∷ qs) sp
+    field
+      -- The reshuffle between the two post-front stacks.
+      reshuffle : fs₁ Perm.↭ fs₂
+      -- The interchange equation (N): the `e' ∷ e` run equals the
+      -- `e ∷ e'` run followed by the reshuffle's permute.
+      run-eq
+        : pe-term (e' ∷ e ∷ qs) sp
+          ≈Term permute-via-vlab H.vlab reshuffle ∘ pe-term (e ∷ e' ∷ qs) sp
+
+  --------------------------------------------------------------------
+  -- (N + K) FRONT SWAP — assembled from the N-residual + the proven
+  -- K-coherence.  GIVEN a `RunInterchange` witness `RI`, the front swap
+  -- is a THEOREM.  Stated at exactly the shape `decodeOrd-factor`
+  -- produces, so it plugs straight into `swap-≈`'s `∘-resp-≈`.
+  --------------------------------------------------------------------
+
+  front-swap-≈
+    : ∀ (ps qs : Order) {e e' : Fin H.nE}
+        (inc : Incomp e e')
+        (RI : RunInterchange ps qs inc)
+        (p₁ : Valid (ps ++ e ∷ e' ∷ qs))
+        (p₂ : Valid (ps ++ e' ∷ e ∷ qs))
+    → ( permute-via-vlab H.vlab p₁
+          ∘ coe-cod (sym (++-stack ps (e ∷ e' ∷ qs) H.dom))
+                    (pe-term (e ∷ e' ∷ qs) (pe-stack ps H.dom)) )
+      ≈Term
+      ( permute-via-vlab H.vlab p₂
+          ∘ coe-cod (sym (++-stack ps (e' ∷ e ∷ qs) H.dom))
+                    (pe-term (e' ∷ e ∷ qs) (pe-stack ps H.dom)) )
+  front-swap-≈ ps qs {e} {e'} inc RI p₁ p₂ =
+    -- Both `coe-cod` transports vanish into the UN-transported `fs`
+    -- level by matching the `++-stack` proofs at `refl` (`coe-vanish`):
+    -- the codomain equalities are between `pe-stack (ps ++ _) dom` and
+    -- `pe-stack _ sp`, and `permute-via-vlab pᵢ`'s domain is the FORMER
+    -- while the runs land in the LATTER, so the two `subst`s on each side
+    -- compose to the identity transport once `p₁,p₂` are re-expressed at
+    -- the `fs` level (`p₁', p₂'` below).
+    ≈-Term-trans (coe-vanish (++-stack ps (e ∷ e' ∷ qs) H.dom) p₁
+                             (pe-term (e ∷ e' ∷ qs) sp))
+      (≈-Term-trans assembled
+        (≈-Term-sym (coe-vanish (++-stack ps (e' ∷ e ∷ qs) H.dom) p₂
+                                (pe-term (e' ∷ e ∷ qs) sp))))
+    where
+      open RunInterchange RI
+
+      sp  = pe-stack ps H.dom
+      fs₁ = pe-stack (e ∷ e' ∷ qs) sp
+      fs₂ = pe-stack (e' ∷ e ∷ qs) sp
+
+      run₁ = pe-term (e ∷ e' ∷ qs) sp
+      run₂ = pe-term (e' ∷ e ∷ qs) sp
+
+      -- Re-express the validity witnesses at the `fs` level.
+      p₁' : fs₁ Perm.↭ H.cod
+      p₁' = subst (Perm._↭ H.cod) (++-stack ps (e ∷ e' ∷ qs) H.dom) p₁
+      p₂' : fs₂ Perm.↭ H.cod
+      p₂' = subst (Perm._↭ H.cod) (++-stack ps (e' ∷ e ∷ qs) H.dom) p₂
+
+      -- `coe-vanish`: with the stack-equality matched at `refl`, the
+      -- codomain `subst` on the run and the codomain `subst` on the
+      -- validity witness compose to the un-transported composite.  The
+      -- source stack `FS` is GENERALISED to a variable so the `refl`
+      -- split is not unification-stuck under `--without-K` (both sides
+      -- are `pe-stack`-redexes that do not reduce; abstracting `FS` makes
+      -- the inferred index a variable).
+      coe-vanish
+        : ∀ {FS B : List (Fin H.nV)} (eq : FS ≡ B)
+            (pv : FS Perm.↭ H.cod)
+            (run : HomTerm (unflatten (map H.vlab sp))
+                           (unflatten (map H.vlab B)))
+        → permute-via-vlab H.vlab pv ∘ coe-cod (sym eq) run
+          ≈Term permute-via-vlab H.vlab (subst (Perm._↭ H.cod) eq pv) ∘ run
+      coe-vanish refl pv run = ≈-Term-refl
+
+      -- The core assembly at the `fs` level:
+      --   permute p₁' ∘ run₁
+      --     ≈ (permute p₂' ∘ permute reshuffle) ∘ run₁      [K: final-permute-coh]
+      --     ≈ permute p₂' ∘ (permute reshuffle ∘ run₁)      [assoc]
+      --     ≈ permute p₂' ∘ run₂                            [N: run-eq, sym]
+      assembled
+        : permute-via-vlab H.vlab p₁' ∘ run₁
+          ≈Term permute-via-vlab H.vlab p₂' ∘ run₂
+      assembled =
+        ≈-Term-trans
+          (∘-resp-≈ (final-permute-coh reshuffle p₁' p₂') ≈-Term-refl)
+          (≈-Term-trans assoc
+            (∘-resp-≈ ≈-Term-refl (≈-Term-sym run-eq)))
 
 ------------------------------------------------------------------------
 -- Assembly of `swap-≈`.
@@ -331,18 +705,36 @@ module FrontSwap (H : Hypergraph FlatGen)
 -- (the already-processed prefix) is carried through by `∘-resp-≈`.
 ------------------------------------------------------------------------
 
+-- The `swap-≈` assembly is now parameterised by K + the `Unique`
+-- codomain witness (threaded into `FrontSwap`), and by the SOLE residual
+-- `run-interchange` — the N-content witness supplied per swap.  This is
+-- the smallest residual the front swap reduces to (the run-level
+-- interchange / `RunInterchange` record); the K-half and all plumbing
+-- are PROVEN.  Downstream rewiring (`DecodeRelRespIsoWired`) supplies K
+-- (as in `DecodeOrdBoundary`), the `map vlab cod` Uniqueness (from
+-- `⟪_⟫-cod-unique`), and the per-swap `RunInterchange` (the interchange
+-- axiom applied to the two disjoint boxes).
 module _ (H : Hypergraph FlatGen)
-         (dih : ∀ {e} → ¬ (Dep H e e)) where
+         (dih : ∀ {e} → ¬ (Dep H e e))
+         (K : FaithfulnessResidual)
+         (uniq-cod : Unique (Hypergraph.cod H))
+         where
   open PerHG H dih
-  open FrontSwap H dih using (front-swap-≈)
+  module FS = FrontSwap H dih K uniq-cod
+  open FS using (front-swap-≈; RunInterchange)
 
-  swap-≈
-    : ∀ {o₁ o₂ : PH.Order} → o₁ PH.↝ o₂
-    → (p₁ : PH.Valid o₁) (p₂ : PH.Valid o₂)
-    → PH.decodeOrd o₁ p₁ ≈Term PH.decodeOrd o₂ p₂
-  swap-≈ (swap-step ps qs inc) p₁ p₂ =
-    ≈-Term-trans
-      (decodeOrd-factor ps (_ ∷ _ ∷ qs) p₁)
-      (≈-Term-trans
-        (∘-resp-≈ (front-swap-≈ ps qs inc p₁ p₂) ≈-Term-refl)
-        (≈-Term-sym (decodeOrd-factor ps (_ ∷ _ ∷ qs) p₂)))
+  module _ (run-interchange
+              : ∀ (ps qs : Order) {e e' : Fin (Hypergraph.nE H)} (inc : Incomp e e')
+              → RunInterchange ps qs inc) where
+
+    swap-≈
+      : ∀ {o₁ o₂ : PH.Order} → o₁ PH.↝ o₂
+      → (p₁ : PH.Valid o₁) (p₂ : PH.Valid o₂)
+      → PH.decodeOrd o₁ p₁ ≈Term PH.decodeOrd o₂ p₂
+    swap-≈ (swap-step ps qs inc) p₁ p₂ =
+      ≈-Term-trans
+        (decodeOrd-factor ps (_ ∷ _ ∷ qs) p₁)
+        (≈-Term-trans
+          (∘-resp-≈ (front-swap-≈ ps qs inc (run-interchange ps qs inc) p₁ p₂)
+                    ≈-Term-refl)
+          (≈-Term-sym (decodeOrd-factor ps (_ ∷ _ ∷ qs) p₂)))

@@ -50,14 +50,65 @@
 --     (`subst₂-∘-distrib`), the `process-edges` factor is discharged by
 --     the §3 kernel, and `iso-transport` is assembled from the pieces.
 --
--- TWO clearly-scoped residual postulates remain (each with a precise
--- "what it needs" note at its definition):
---   (§3) `process-edges-respects-φ` — the term-level induction kernel
---        (`≈Term` half needs the Mac-Lane / subst₂ chase of the per-edge
---        `edge-step` bridges; structural route documented inline);
---   (§5) `permute-relabel-free` — permute relabel-freeness, a permute
---        faithfulness statement (`Faithfulness.permute-resp-≅↭`) for the
---        final `permute-via-vlab` factor under the `φ` vertex relabel.
+-- NEWLY DISCHARGED (given the module parameters `K`/`codUnique*`):
+--   * (§2b/§2c) The STACK (`proj₁`) component of the kernel is now FULLY
+--     CONSTRUCTIVE at both granularities: `edge-step-stack-φ` (per-edge,
+--     FIRE/SKIP branch-lockstep via `extract-prefix-via-injective-*` +
+--     `ψ-ein`/`ψ-eout`) and `process-edges-fin-φ` (per-edge-LIST, by
+--     induction).  This is the list-level analogue of
+--     `StackPerm.process-edges-resp-iso-stack`.
+--   * (§3) `process-edges-respects-φ` is now a REAL function by induction
+--     on `eJ`; the `[]` base case is proven constructively
+--     (`subst₂-HomTerm-id`).  Its `_∷_` step `process-edges-respects-φ-step`
+--     is ALSO CONSTRUCTIVE now: the `proj₁` half is `process-edges-fin-φ`,
+--     and the term half is assembled by splitting the boundary `subst₂`
+--     over the `tJ' ∘ tJ` composite (`subst₂-∘-distrib`), discharging the
+--     COD factor by the IH and the DOM factor by the per-`edge-step`
+--     residual `edge-step-term-φ` (`∘-resp-≈`).  (The kernel type
+--     `process-edges-respects-φ-T` now fixes `fin≡ := process-edges-fin-φ`,
+--     so it is a plain `≈Term` rather than a Σ.)
+--   * (§5b) `permute-relabel-free` is now PROVEN GIVEN K: the boundary
+--     `subst₂` is pushed through `permute` (`permute-subst₂`), bringing
+--     both sides onto a common pair of `map H.vlab _` lists, and the Kelly
+--     residual K (`permute-resp-≅↭`) closes the `≈Term` goal from the
+--     `≅↭` evidence.
+--   * (§5b) `permute-relabel-free-≅↭` — the FinBij-level φ-equivariant
+--     rigidity of the two final permutes — is now CONSTRUCTIVELY PROVEN
+--     (no postulate).  Both `eval-↭` images are descended to `Fin (length
+--     H.cod)` (via `length-map`) and discriminated through the `Unique`
+--     Fin-list `H.cod` (`codUniqueH`): `lookup-sound` pins each image to the
+--     matching `sH-final` vertex, the J-side passing through
+--     `lookup J.cod = φ ∘ lookup H.cod` (from `φ-cod`) and `sJ-final =
+--     map φ sH-final` (from `fin-eq`), with `φ` injective.  The chase uses
+--     only the §0b–0d K-free helpers (`eval-map⁺`, `eval-subst₂-↭`,
+--     `lookup-sound`, `lookup-injective-unique`, `lookup-map`) plus
+--     `Data.Nat.Properties.≡-irrelevant` for `subst Fin` cast-irrelevance.
+--
+-- ONE clearly-scoped residual postulate remains (NARROWED from the old
+-- per-edge-LIST `process-edges-respects-φ-step` to a single per-`edge-step`
+-- `≈Term`; precise "what it needs" note at its definition):
+--   (§3) `edge-step-term-φ` — the per-`edge-step` term-level φ-naturality:
+--        running ONE `edge-step` of the J-edge `j` vs the H-edge `ψ⁻¹ j`
+--        produces `≈Term`-equal HomTerms after the boundary `subst₂`.
+--        SKIP branch: both `edge-step`s are `(_, id)`, so the goal is
+--        `subst₂ HomTerm p q id ≈Term id`.  FIRE branch: the genuine
+--        Mac-Lane core — the `mid' = unflatten-++-≅ ∘ (Agen-edge ⊗₁ id) ∘
+--        unflatten-++-≅` factor agrees via `Agen-edge-respects-ψ` (§2) +
+--        `id⊗id≈id`, and the `permute-via-vlab` factor agrees by a second
+--        Kelly `permute-resp-≅↭` (K) application at the φ-relabel between
+--        the two `extract-prefix` permutations (a φ-equivariant rigidity
+--        proof analogous to §5b).  Everything ELSE in the kernel — both
+--        stack components, the list-level composition, the IH threading,
+--        and the §4/§5 assembly — is now constructive.
+--
+-- ## Interface change
+--
+-- The cross-iso module now takes THREE extra explicit parameters,
+-- supplied by the downstream wiring (`IsoInvarianceConcrete`) at the
+-- `H = ⟪f⟫`, `J = ⟪g⟫` call site:
+--   * `K : FaithfulnessResidual`     (the Kelly faithfulness residual),
+--   * `codUniqueH : Unique (cod H)`, `codUniqueJ : Unique (cod J)`
+--     (dischargeable from `Sub.FromAPROPCodUnique.⟪_⟫F-cod-unique`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -76,7 +127,7 @@ open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
   using (process-edges; edge-step; Agen-edge; Agen-edge-aux; extract-prefix)
 open import Categories.APROP.Hypergraph.Completeness.Permute sig
-  using (permute-via-vlab)
+  using (permute; permute-via-vlab)
 open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
   using (extract-prefix-via-injective-just; extract-prefix-via-injective-nothing)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceWiring sig
@@ -84,17 +135,33 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceWiri
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
   using (Dep)
 
-open import Data.Fin using (Fin)
-open import Data.Nat using (ℕ)
-open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (map-∘; map-cong; map-++; map-injective)
+open import Data.Fin.Base using (Fin; zero; suc)
+open import Data.Nat using (ℕ; suc)
+open import Data.List using (List; []; _∷_; _++_; map; length; lookup)
+open import Data.List.Properties using (map-∘; map-cong; map-++; map-injective; length-map)
+open import Data.List.Relation.Unary.All using (All; []; _∷_)
+open import Data.List.Relation.Unary.AllPairs using () renaming (_∷_ to _∷ᵘ_)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
+open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 open import Function using (Injective)
+import Data.Fin.Permutation as P
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂; sym; trans; subst; subst₂)
+
+-- The Kelly faithfulness residual K (`permute-resp-≅↭`), and the K-free
+-- FinBij/eval infrastructure, taken at the APROP `FreeMonoidalData` so
+-- that `permute`/`unflatten`/`HomTerm`/`≈Term` all line up definitionally
+-- with the APROP-level ones used here.
+open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
+  using (FaithfulnessResidual)
+open import Categories.PermuteCoherence.FinBij
+  using (FinBij; _≈-fb_; id-fb; cons-fb; swap-fb; _∘-fb_)
+open import Categories.PermuteCoherence.Eval using (eval-↭)
 
 --------------------------------------------------------------------------------
 -- §0.  ≈Term plumbing (local copies of the trivial helpers used widely
@@ -103,6 +170,17 @@ open import Relation.Binary.PropositionalEquality
 
 ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
 ≡⇒≈Term refl = ≈-Term-refl
+
+-- Trivial `Maybe` helpers used by the §2b branch-lockstep.
+private
+  just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
+  just≢nothing ()
+
+  -- First-component injectivity for `just (a , _) ≡ just (b , _)`.
+  just-injective-fst
+    : ∀ {a b} {A : Set a} {B : A → Set b} {x y : A} {p : B x} {q : B y}
+    → just (x , p) ≡ just (y , q) → x ≡ y
+  just-injective-fst refl = refl
 
 subst₂-resp-≈Term
   : ∀ {A A' B B'} (p : A ≡ A') (q : B ≡ B')
@@ -116,6 +194,12 @@ subst₂-resp-≈Term refl refl f≈g = f≈g
 subst₂-HomTerm-refl
   : ∀ {A B} (f : HomTerm A B) → subst₂ HomTerm refl refl f ≡ f
 subst₂-HomTerm-refl _ = refl
+
+-- Transporting the identity morphism along a SINGLE path on both ends
+-- yields the identity (path induction, without-K clean).
+subst₂-HomTerm-id
+  : ∀ {A B} (p : A ≡ B) → subst₂ HomTerm p p id ≡ id
+subst₂-HomTerm-id refl = refl
 
 -- `subst₂ HomTerm` distributes over composition (local copy of
 -- `DecodeRespIso.subst₂-∘-distrib`; `refl/refl/refl`-pattern, so
@@ -131,13 +215,219 @@ subst₂-∘-distrib
 subst₂-∘-distrib refl refl refl _ _ = refl
 
 --------------------------------------------------------------------------------
+-- §0b.  K-FREE rigidity infrastructure (inlined J-only copies of the
+-- intrinsically K-free lemmas that live in the `--with-K` modules
+-- `PermuteCoherence.{Rigid,Map}`; co-infectivity forbids importing those
+-- under `--without-K`, so they are re-derived here exactly as in
+-- `Discharge/DecodeOrdBoundary.agda` §0).
+
+private
+  All-lookup : ∀ {a p} {A : Set a} {Q : A → Set p} {xs : List A}
+             → All Q xs → (i : Fin (length xs)) → Q (lookup xs i)
+  All-lookup (q ∷ _)  zero    = q
+  All-lookup (_ ∷ qs) (suc i) = All-lookup qs i
+
+  lookup-injective-unique
+    : ∀ {a} {A : Set a} {xs : List A}
+    → Unique xs → (i j : Fin (length xs))
+    → lookup xs i ≡ lookup xs j
+    → i ≡ j
+  lookup-injective-unique (_  ∷ᵘ _ ) zero    zero    _  = refl
+  lookup-injective-unique (x≢ ∷ᵘ _ ) zero    (suc j) eq = ⊥-elim (All-lookup x≢ j eq)
+  lookup-injective-unique (x≢ ∷ᵘ _ ) (suc i) zero    eq = ⊥-elim (All-lookup x≢ i (sym eq))
+  lookup-injective-unique (_  ∷ᵘ uq) (suc i) (suc j) eq =
+    cong suc (lookup-injective-unique uq i j eq)
+
+  lookup-sound
+    : ∀ {a} {A : Set a} {xs ys : List A} (p : xs Perm.↭ ys) (i : Fin (length xs))
+    → lookup ys (eval-↭ p P.⟨$⟩ʳ i) ≡ lookup xs i
+  lookup-sound Perm.refl              i                  = refl
+  lookup-sound (Perm.prep x p)        zero               = refl
+  lookup-sound (Perm.prep x p)        (suc i)            = lookup-sound p i
+  lookup-sound (Perm.swap x y p)      zero               = refl
+  lookup-sound (Perm.swap x y p)      (suc zero)         = refl
+  lookup-sound (Perm.swap x y p)      (suc (suc i))      = lookup-sound p i
+  lookup-sound (Perm.trans p q)       i                  =
+    trans (lookup-sound q (eval-↭ p P.⟨$⟩ʳ i)) (lookup-sound p i)
+
+  -- Rigidity of `eval-↭` on `Unique` codomains: any two derivations into
+  -- the same `Unique` list evaluate to the same finite bijection.
+  eval-rigid
+    : ∀ {a} {A : Set a} {xs ys : List A} → Unique ys
+    → (p q : xs Perm.↭ ys)
+    → eval-↭ p ≈-fb eval-↭ q
+  eval-rigid uniq p q i =
+    lookup-injective-unique uniq _ _
+      (trans (lookup-sound p i) (sym (lookup-sound q i)))
+
+  ----------------------------------------------------------------------
+  -- 0c.  Extra K-free helpers for the CROSS-iso rigidity (φ-equivariance).
+  --      All are `refl`-matched on `Fin`/length proofs, so without-K clean.
+
+  -- `lookup` commutes with `map` along the canonical length cast.
+  --   lookup (map g xs) i ≡ g (lookup xs (cast i))
+  -- stated as a plain induction over `xs` so no explicit `subst` appears
+  -- (the index `i` ranges over `length (map g xs)`, which is *definitionally*
+  -- `length xs` because `length-map` reduces structurally).
+  -- `subst Fin` along a `sym (cong suc _)` cast commutes with `suc`/`zero`.
+  subst-Fin-sym-suc
+    : ∀ {n m : ℕ} (e : n ≡ m) (i : Fin m)
+    → subst Fin (sym (cong suc e)) (suc i) ≡ suc (subst Fin (sym e) i)
+  subst-Fin-sym-suc refl i = refl
+
+  subst-Fin-sym-zero
+    : ∀ {n m : ℕ} (e : n ≡ m)
+    → subst Fin (sym (cong suc e)) zero ≡ zero
+  subst-Fin-sym-zero refl = refl
+
+  -- `lookup` commutes with `map`, the index transported along `length-map`.
+  lookup-map
+    : ∀ {A B : Set} (g : A → B) (xs : List A)
+        (i : Fin (length xs))
+    → lookup (map g xs) (subst Fin (sym (length-map g xs)) i) ≡ g (lookup xs i)
+  lookup-map g (x ∷ xs) zero =
+    cong (lookup (map g (x ∷ xs))) (subst-Fin-sym-zero (length-map g xs))
+  lookup-map g (x ∷ xs) (suc i) =
+    trans (cong (lookup (map g (x ∷ xs))) (subst-Fin-sym-suc (length-map g xs) i))
+          (lookup-map g xs i)
+
+  -- `eval-↭` commutes with `subst₂ _↭_` along list equalities, matched at
+  -- `refl` (without-K clean).
+  eval-subst₂-↭
+    : ∀ {a} {A : Set a} {xs xs' ys ys' : List A}
+        (p : xs ≡ xs') (q : ys ≡ ys') (r : xs Perm.↭ ys)
+    → eval-↭ (subst₂ Perm._↭_ p q r)
+      ≡ subst₂ FinBij (cong length p) (cong length q) (eval-↭ r)
+  eval-subst₂-↭ refl refl r = refl
+
+  -- `subst₂ FinBij` re-expressed as a pair of single `subst Fin`-casts on
+  -- domain (precompose) and codomain (postcompose), matched at `refl`.  Used
+  -- to turn the `appʳ-subst₂` output (a single `subst Fin` on each end) into
+  -- the `subst₂`-form produced by `eval-map⁺`/`eval-subst₂-↭`.
+  subst₂-FinBij-as-subst
+    : ∀ {n n' m m'} (a : n ≡ n') (b : m ≡ m') (π : FinBij n m) (i : Fin n')
+    → (subst₂ FinBij a b π) P.⟨$⟩ʳ i
+      ≡ subst Fin b (π P.⟨$⟩ʳ subst Fin (sym a) i)
+  subst₂-FinBij-as-subst refl refl π i = refl
+
+  -- ℕ-equality is irrelevant (UIP from decidability), so `subst Fin` does
+  -- not depend on the *proof* of a length equality, only its endpoints.
+  cast-irr
+    : ∀ {n m : ℕ} (e e' : n ≡ m) (i : Fin n)
+    → subst Fin e i ≡ subst Fin e' i
+  cast-irr e e' i = cong (λ z → subst Fin z i) (ℕ-≡-irrelevant e e')
+    where open import Data.Nat.Properties using () renaming (≡-irrelevant to ℕ-≡-irrelevant)
+
+  -- Two nested `subst Fin`-casts collapse to a single one (matched at refl);
+  -- combined with `cast-irr` this lets any chain of length-casts be
+  -- normalised to one cast over the composite endpoints.
+  subst-Fin-trans
+    : ∀ {n m k : ℕ} (e : n ≡ m) (e' : m ≡ k) (i : Fin n)
+    → subst Fin e' (subst Fin e i) ≡ subst Fin (trans e e') i
+  subst-Fin-trans refl refl i = refl
+
+  -- `subst Fin` along `refl` is the identity.
+  subst-Fin-refl : ∀ {n : ℕ} (i : Fin n) → subst Fin refl i ≡ i
+  subst-Fin-refl i = refl
+
+  -- `lookup` along a list equality: transporting the index by the
+  -- `cong length`-cast of `e : xs ≡ ys` re-indexes `ys` to agree with `xs`.
+  -- Matched at `refl`.
+  lookup-subst-list
+    : ∀ {a} {A : Set a} {xs ys : List A} (e : xs ≡ ys) (k : Fin (length xs))
+    → lookup ys (subst Fin (cong length e) k) ≡ lookup xs k
+  lookup-subst-list refl k = refl
+
+  -- A `subst Fin` round-trip (cast then inverse cast) is the identity, up to
+  -- `cast-irr` for the composed proof.
+  subst-Fin-roundtrip
+    : ∀ {n m : ℕ} (e : n ≡ m) (i : Fin n)
+    → subst Fin (sym e) (subst Fin e i) ≡ i
+  subst-Fin-roundtrip refl i = refl
+
+  -- The other-direction round-trip:  `subst Fin e ∘ subst Fin (sym e) = id`.
+  subst-Fin-roundtrip'
+    : ∀ {n m : ℕ} (e : n ≡ m) (i : Fin m)
+    → subst Fin e (subst Fin (sym e) i) ≡ i
+  subst-Fin-roundtrip' refl i = refl
+
+  -- `subst Fin (sym (sym e)) = subst Fin e` (cast-irr, since `sym (sym e)`
+  -- and `e` have the same endpoints).
+  subst-Fin-sym-sym
+    : ∀ {n m : ℕ} (e : n ≡ m) (i : Fin n)
+    → subst Fin (sym (sym e)) i ≡ subst Fin e i
+  subst-Fin-sym-sym e i = cast-irr (sym (sym e)) e i
+
+  ----------------------------------------------------------------------
+  -- 0d.  `eval-map⁺` and its `subst₂`-on-FinBij algebra (copies of the
+  --      `--with-K` `PermuteCoherence.Map` lemmas; all J-only, no K;
+  --      identical to `DecodeOrdBoundary.agda` §0b).
+  ----------------------------------------------------------------------
+
+  subst₂-FinBij-id : ∀ {n m} (e : n ≡ m) → subst₂ FinBij e e id-fb ≡ id-fb
+  subst₂-FinBij-id refl = refl
+
+  cons-cast
+    : ∀ {n n' m m'} (ex : n' ≡ n) (ey : m' ≡ m) (π : FinBij n m)
+    → cons-fb (subst₂ FinBij (sym ex) (sym ey) π)
+      ≡ subst₂ FinBij (sym (cong suc ex)) (sym (cong suc ey)) (cons-fb π)
+  cons-cast refl refl π = refl
+
+  swap-cast
+    : ∀ {n n' m m'} (ex : n' ≡ n) (ey : m' ≡ m) (π : FinBij n m)
+    → swap-fb m' ∘-fb cons-fb (cons-fb (subst₂ FinBij (sym ex) (sym ey) π))
+      ≡ subst₂ FinBij (sym (cong suc (cong suc ex)))
+                      (sym (cong suc (cong suc ey)))
+                      (swap-fb m ∘-fb cons-fb (cons-fb π))
+  swap-cast refl refl π = refl
+
+  comp-cast
+    : ∀ {n n' m m' k k'}
+        (ex : n' ≡ n) (ey : m' ≡ m) (ez : k' ≡ k)
+        (g : FinBij m k) (f : FinBij n m)
+    → subst₂ FinBij (sym ey) (sym ez) g ∘-fb subst₂ FinBij (sym ex) (sym ey) f
+      ≡ subst₂ FinBij (sym ex) (sym ez) (g ∘-fb f)
+  comp-cast refl refl refl g f = refl
+
+  eval-map⁺ : ∀ {a c} {A : Set a} {C : Set c}
+    (h : A → C) {xs ys : List A} (p : xs Perm.↭ ys)
+    → eval-↭ (PermProp.map⁺ h p)
+      ≡ subst₂ FinBij (sym (length-map h xs)) (sym (length-map h ys)) (eval-↭ p)
+  eval-map⁺ h {xs = xs} Perm.refl = sym (subst₂-FinBij-id (sym (length-map h xs)))
+  eval-map⁺ h {xs = x ∷ xs} {ys = .x ∷ ys} (Perm.prep x p) =
+    trans (cong cons-fb (eval-map⁺ h p))
+          (cons-cast (length-map h xs) (length-map h ys) (eval-↭ p))
+  eval-map⁺ h {xs = x ∷ x' ∷ xs} {ys = y ∷ y' ∷ ys} (Perm.swap x y p) =
+    trans (cong (λ z → swap-fb (length (map h ys)) ∘-fb cons-fb (cons-fb z)) (eval-map⁺ h p))
+          (swap-cast (length-map h xs) (length-map h ys) (eval-↭ p))
+  eval-map⁺ h {xs = xs} {ys = zs} (Perm.trans {ys = ys} p q) =
+    trans (cong₂ _∘-fb_ (eval-map⁺ h q) (eval-map⁺ h p))
+          (comp-cast (length-map h xs) (length-map h ys) (length-map h zs)
+                     (eval-↭ q) (eval-↭ p))
+
+  subst₂-FinBij-≈ : ∀ {n m n' m'} (a : n ≡ n') (b : m ≡ m') {π ρ : FinBij n m}
+    → π ≈-fb ρ → subst₂ FinBij a b π ≈-fb subst₂ FinBij a b ρ
+  subst₂-FinBij-≈ refl refl eq = eq
+
+--------------------------------------------------------------------------------
 -- §1.  Cross-iso module.  Mirrors `IsoInvarianceWiring`'s cross-iso
 -- module so the names (`PH`, `PJ`, `τ`, `domL-iso`, `codL-iso`) line up
 -- exactly with the target `iso-transport` type.
 
 module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
          (dihH : ∀ {e} → ¬ (Dep H e e))
-         (dihJ : ∀ {e} → ¬ (Dep J e e)) where
+         (dihJ : ∀ {e} → ¬ (Dep J e e))
+         -- The Kelly faithfulness residual that gates every final
+         -- `permute` in this development (a record value of the
+         -- `--without-K` module `PermuteCoherence.Faithfulness`); supplied
+         -- by the downstream wiring (`IsoInvarianceConcrete`) at the
+         -- `H = ⟪f⟫`, `J = ⟪g⟫` call site.
+         (K : FaithfulnessResidual)
+         -- Fin-level codomain uniqueness, dischargeable downstream from
+         -- `Sub.FromAPROPCodUnique.⟪_⟫F-cod-unique` at `H = ⟪f⟫`,
+         -- `J = ⟪g⟫`.
+         (codUniqueH : Unique (Hypergraph.cod H))
+         (codUniqueJ : Unique (Hypergraph.cod J)) where
   private
     module PH = PerHG H dihH
     module PJ = PerHG J dihJ
@@ -146,6 +436,7 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
   open _≅ᴴ_ Φ
     using (φ; φ⁻¹; ψ; ψ⁻¹; φ-left; φ-rght; ψ-left; ψ-rght
           ; φ-lab; φ-dom; φ-cod; ψ-ein; ψ-eout; atom-ein; atom-eout; ψ-elab)
+  open FaithfulnessResidual K using (permute-resp-≅↭)
 
   ------------------------------------------------------------------------
   -- §1.1  Injectivity of φ (re-derived locally; same as EdgeDependency).
@@ -211,6 +502,110 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
           (cong Agen-edge-aux (ψ-elab e))
 
   ------------------------------------------------------------------------
+  -- §2b.  Per-edge `edge-step` φ-naturality, STACK component (CONSTRUCTIVE).
+  --
+  -- For an H-edge `e` and the corresponding J-edge `ψ e`, running
+  -- `edge-step J (ψ e)` from `map φ sH` produces a final stack that is
+  -- the `map φ`-image of the stack produced by `edge-step H e` from `sH`.
+  --
+  -- Proof: case-split on `extract-prefix (H.ein e) sH`.  By
+  -- `extract-prefix-via-injective-{nothing,just} φ φ-inj` (transported along
+  -- `ψ-ein e : J.ein (ψ e) ≡ map φ (H.ein e)`) the J-side `extract-prefix`
+  -- lands in the SAME branch:
+  --   * SKIP/SKIP: both stacks are the inputs, `map φ sH ≡ map φ sH`.
+  --   * FIRE/FIRE: J stack = `J.eout (ψ e) ++ map φ rest`, H stack =
+  --     `H.eout e ++ rest`; equal by `ψ-eout e` + `map-++ φ`.
+
+  -- The J-side `extract-prefix` results, obtained from the H-side ones by
+  -- the injective lemmas + transport along `ψ-ein e : J.ein (ψ e) ≡ map φ
+  -- (H.ein e)`.  Stated directly at the J-edge `ψ e`'s `extract-prefix`
+  -- (codomain `Maybe (Σ ... J.ein (ψ e) ++ rest)`) via `subst`.
+  extract-prefix-J-nothing
+    : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
+    → extract-prefix (H.ein e) sH ≡ nothing
+    → extract-prefix (J.ein (ψ e)) (map φ sH) ≡ nothing
+  extract-prefix-J-nothing e sH eqH =
+    subst (λ ks → extract-prefix ks (map φ sH) ≡ nothing) (sym (ψ-ein e))
+          (extract-prefix-via-injective-nothing φ φ-inj (H.ein e) sH eqH)
+
+  extract-prefix-J-just
+    : ∀ (e : Fin H.nE) (sH restH : List (Fin H.nV))
+        (pH : sH Perm.↭ H.ein e ++ restH)
+    → extract-prefix (H.ein e) sH ≡ just (restH , pH)
+    → Σ[ q ∈ map φ sH Perm.↭ J.ein (ψ e) ++ map φ restH ]
+        extract-prefix (J.ein (ψ e)) (map φ sH) ≡ just (map φ restH , q)
+  extract-prefix-J-just e sH restH pH eqH =
+    subst (λ ks → Σ[ q ∈ map φ sH Perm.↭ ks ++ map φ restH ]
+                    extract-prefix ks (map φ sH) ≡ just (map φ restH , q))
+          (sym (ψ-ein e))
+          (extract-prefix-via-injective-just φ φ-inj (H.ein e) sH restH pH eqH)
+
+  edge-step-stack-φ
+    : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
+    → proj₁ (edge-step J (map φ sH) (ψ e))
+      ≡ map φ (proj₁ (edge-step H sH e))
+  edge-step-stack-φ e sH
+    with extract-prefix (H.ein e) sH
+       in eqH
+  ... | nothing
+        with extract-prefix (J.ein (ψ e)) (map φ sH)
+           in eqJ
+  ...    | nothing = refl
+  ...    | just (restJ , pJ) =
+           ⊥-elim (just≢nothing
+             (trans (sym eqJ) (extract-prefix-J-nothing e sH eqH)))
+  edge-step-stack-φ e sH
+      | just (restH , pH)
+        with extract-prefix (J.ein (ψ e)) (map φ sH)
+           in eqJ
+  ...    | nothing =
+           ⊥-elim (just≢nothing
+             (trans (sym (proj₂ (extract-prefix-J-just e sH restH pH eqH))) eqJ))
+  ...    | just (restJ , pJ) =
+           -- FIRE/FIRE: J stack = `J.eout (ψ e) ++ restJ`, H stack =
+           -- `H.eout e ++ restH`.  The injective lemma forces
+           -- `restJ ≡ map φ restH`; combine with `ψ-eout e` + `map-++`.
+           let restJ≡ : restJ ≡ map φ restH
+               restJ≡ = just-injective-fst
+                          (trans (sym eqJ)
+                                 (proj₂ (extract-prefix-J-just e sH restH pH eqH)))
+           in trans (cong₂ _++_ (ψ-eout e) restJ≡)
+                    (sym (map-++ φ (H.eout e) restH))
+
+  ------------------------------------------------------------------------
+  -- §2c.  Per-edge-LIST STACK component (CONSTRUCTIVE), by induction on `eJ`
+  -- using `edge-step-stack-φ` per step.  This is the `proj₁` (final-stack)
+  -- half of the kernel; it is the list-level analogue of
+  -- `StackPerm.process-edges-resp-iso-stack`, and provides the `fin≡`
+  -- component of `process-edges-respects-φ-T` constructively (so only the
+  -- `≈Term` half remains as a residual).
+
+  -- Per-edge intermediate-stack alignment for a J-edge `j` on a `map φ`-
+  -- aligned pair: `proj₁ (edge-step J sJ j)` is the `map φ`-image of
+  -- `proj₁ (edge-step H sH (ψ⁻¹ j))`.  Rewrites the J `edge-step`'s
+  -- stack/edge to `edge-step J (map φ sH) (ψ (ψ⁻¹ j))` (via `sJ≡` and
+  -- `sym (ψ-rght j)`), then applies `edge-step-stack-φ`.
+  edge-step-fin-φ
+    : ∀ (j : Fin J.nE) {sH : List (Fin H.nV)} {sJ : List (Fin J.nV)}
+        (sJ≡ : sJ ≡ map φ sH)
+    → proj₁ (edge-step J sJ j)
+      ≡ map φ (proj₁ (edge-step H sH (ψ⁻¹ j)))
+  edge-step-fin-φ j {sH} {sJ} sJ≡ =
+    trans (cong₂ (λ s u → proj₁ (edge-step J s u)) sJ≡ (sym (ψ-rght j)))
+          (edge-step-stack-φ (ψ⁻¹ j) sH)
+
+  process-edges-fin-φ
+    : ∀ (eJ : List (Fin J.nE))
+        {sH : List (Fin H.nV)} {sJ : List (Fin J.nV)}
+        (sJ≡ : sJ ≡ map φ sH)
+    → proj₁ (process-edges J eJ sJ)
+      ≡ map φ (proj₁ (process-edges H (map ψ⁻¹ eJ) sH))
+  process-edges-fin-φ []       {sH} {sJ} sJ≡ = sJ≡
+  process-edges-fin-φ (j ∷ es) {sH} {sJ} sJ≡ =
+    process-edges-fin-φ es {proj₁ (edge-step H sH (ψ⁻¹ j))}
+                           {proj₁ (edge-step J sJ j)} (edge-step-fin-φ j sJ≡)
+
+  ------------------------------------------------------------------------
   -- §3.  THE TERM-LEVEL INDUCTION KERNEL  (`process-edges-respects-φ`).
   --
   -- This is the genuine content of Lemma 0.  It is the term-level
@@ -255,9 +650,12 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
   --     Composing per-edge agreements through `∘-resp-≈` + the inductive
   --     hypothesis on `es` closes the step.
   --
-  -- This is the ~300-500 LOC Mac-Lane / subst₂ chase.  It is left as the
-  -- single residual postulate of this module.  Its conclusion shape is
-  -- exactly what `iso-transport` consumes below (after instantiating
+  -- (UPDATE) Of the route sketched above, the `extract-prefix`-lockstep
+  -- stack alignment, the `∘`-split, and the IH composition are now all
+  -- CONSTRUCTIVE (§2b/§2c/§3 below); the residual has been NARROWED to the
+  -- single per-`edge-step` `≈Term` `edge-step-term-φ` (the FIRE-branch
+  -- Mac-Lane + permute-φ-rigidity core).  Its conclusion shape is exactly
+  -- what `iso-transport` consumes below (after instantiating
   -- `eJ = range J.nE`, `sH = H.dom`, `sJ = J.dom`, `sJ≡ = φ-dom`).
   --
   -- TODO(process-edges-respects-φ): discharge by induction on `eJ` as
@@ -272,23 +670,123 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
   vlab-φ : ∀ (s : List (Fin H.nV)) → map J.vlab (map φ s) ≡ map H.vlab s
   vlab-φ s = trans (sym (map-∘ s)) (map-cong φ-lab s)
 
+  -- The conclusion-type of the kernel, abstracted so the `[]` case can be
+  -- proven and the `_∷_` step isolated as a residual with the SAME shape.
+  --
+  -- The final-stack equation `fin≡` is FIXED to `process-edges-fin-φ`
+  -- (the §2c constructive list-level kernel), so the type is a plain
+  -- `≈Term` rather than a Σ — this lets the cons step plug the IH term
+  -- half in directly (no opaque `proj₁` to reconcile).  The §4/§5 callers
+  -- use `process-edges-fin-φ`/`process-edges-respects-φ` directly.
+  process-edges-respects-φ-T
+    : (eJ : List (Fin J.nE))
+      {sH : List (Fin H.nV)} {sJ : List (Fin J.nV)}
+      (sJ≡ : sJ ≡ map φ sH) → Set
+  process-edges-respects-φ-T eJ {sH} {sJ} sJ≡ =
+    subst₂ HomTerm
+      (cong unflatten (trans (cong (map J.vlab) sJ≡) (vlab-φ sH)))
+      (cong unflatten (trans (cong (map J.vlab) (process-edges-fin-φ eJ sJ≡))
+                             (vlab-φ (proj₁ (process-edges H (map ψ⁻¹ eJ) sH)))))
+      (proj₂ (process-edges J eJ sJ))
+    ≈Term
+    proj₂ (process-edges H (map ψ⁻¹ eJ) sH)
+
+  -- §3 RESIDUAL (NARROWED): the per-EDGE-STEP `≈Term` φ-naturality.
+  --
+  -- The original per-edge-LIST residual `process-edges-respects-φ-step`
+  -- is now CONSTRUCTIVE (below); it is assembled from this strictly
+  -- smaller per-`edge-step` `≈Term` residual via `subst₂-∘-distrib` +
+  -- `∘-resp-≈` + the IH.  This residual is the genuine Mac-Lane / subst₂
+  -- core of the `edge-step` FIRE/SKIP branches:
+  --   * SKIP (`extract-prefix (H.ein (ψ⁻¹ j)) sH = nothing`, hence — via
+  --     `edge-step-stack-φ`'s injective lockstep — also `nothing` on the
+  --     J side):  both `edge-step`s are `(_, id)`, so the goal is
+  --     `subst₂ HomTerm p p id ≈Term id` (closed by `subst₂-HomTerm-id`);
+  --   * FIRE:  both fire; the produced `bridged = mid' ∘ permute-via-vlab`
+  --     terms must agree after the boundary `subst₂`.  The `mid'` factor
+  --     agrees by `Agen-edge-respects-ψ` (§2) tensored with `id`
+  --     (`⊗-resp-≈` + `id⊗id≈id`) wrapped by the `unflatten-++-≅`
+  --     `subst₂` bridges; the `permute-via-vlab` factor agrees by another
+  --     Kelly `permute-resp-≅↭` (K) application at the φ-relabel between
+  --     the two `extract-prefix` permutations (φ-equivariant rigidity,
+  --     analogous to §5b).
+  --
+  -- Stated at the J-edge `j` with H-edge `ψ⁻¹ j`; its boundary `subst₂`
+  -- paths are EXACTLY the DOM/MID factor produced by the `subst₂-∘-distrib`
+  -- split in `process-edges-respects-φ-step` (using `edge-step-fin-φ` for
+  -- the intermediate-stack equation), so it plugs in directly.
   postulate
-    process-edges-respects-φ
-      : ∀ (eJ : List (Fin J.nE))
-          {sH : List (Fin H.nV)} {sJ : List (Fin J.nV)}
+    edge-step-term-φ
+      : ∀ (j : Fin J.nE) {sH : List (Fin H.nV)} {sJ : List (Fin J.nV)}
           (sJ≡ : sJ ≡ map φ sH)
-      → Σ[ fin≡ ∈ ( proj₁ (process-edges J eJ sJ)
-                    ≡ map φ (proj₁ (process-edges H (map ψ⁻¹ eJ) sH)) ) ]
-          -- Transport the J-side HomTerm onto the H-side boundary
-          -- (`unflatten (map H.vlab _)` on both ends) and assert it is
-          -- `≈Term` the H-side HomTerm.
-          ( subst₂ HomTerm
-              (cong unflatten (trans (cong (map J.vlab) sJ≡) (vlab-φ sH)))
-              (cong unflatten (trans (cong (map J.vlab) fin≡)
-                                     (vlab-φ (proj₁ (process-edges H (map ψ⁻¹ eJ) sH)))))
-              (proj₂ (process-edges J eJ sJ))
-            ≈Term
-            proj₂ (process-edges H (map ψ⁻¹ eJ) sH) )
+      → subst₂ HomTerm
+          (cong unflatten (trans (cong (map J.vlab) sJ≡) (vlab-φ sH)))
+          (cong unflatten (trans (cong (map J.vlab) (edge-step-fin-φ j sJ≡))
+                                 (vlab-φ (proj₁ (edge-step H sH (ψ⁻¹ j))))))
+          (proj₂ (edge-step J sJ j))
+        ≈Term proj₂ (edge-step H sH (ψ⁻¹ j))
+
+  -- The per-edge-LIST STEP, CONSTRUCTIVE from `edge-step-term-φ` + the IH.
+  -- The composite `proj₂ (process-edges J (j ∷ es) sJ) = tJ' ∘ tJ` has its
+  -- boundary `subst₂` split at the intermediate object `unflatten
+  -- (map H.vlab sH')` by `subst₂-∘-distrib`; the COD factor is the IH term
+  -- half on `es` (at the `edge-step`-aligned stacks), the DOM factor is
+  -- `edge-step-term-φ`.
+  process-edges-respects-φ-step
+    : ∀ (j : Fin J.nE) (es : List (Fin J.nE))
+    → ( ∀ {sH : List (Fin H.nV)} {sJ : List (Fin J.nV)} (sJ≡ : sJ ≡ map φ sH)
+        → process-edges-respects-φ-T es sJ≡ )
+    → ∀ {sH : List (Fin H.nV)} {sJ : List (Fin J.nV)} (sJ≡ : sJ ≡ map φ sH)
+    → process-edges-respects-φ-T (j ∷ es) sJ≡
+  process-edges-respects-φ-step j es IH {sH} {sJ} sJ≡ = term-half
+    where
+      sH'  = proj₁ (edge-step H sH (ψ⁻¹ j))
+      sJ'  = proj₁ (edge-step J sJ j)
+      tJ   = proj₂ (edge-step J sJ j)
+      tH   = proj₂ (edge-step H sH (ψ⁻¹ j))
+      tJ'  = proj₂ (process-edges J es sJ')
+      tH'  = proj₂ (process-edges H (map ψ⁻¹ es) sH')
+      step≡ : sJ' ≡ map φ sH'
+      step≡ = edge-step-fin-φ j sJ≡
+
+      sFinH = proj₁ (process-edges H (map ψ⁻¹ es) sH')
+
+      -- The three boundary list-equalities of the split.
+      pDom = trans (cong (map J.vlab) sJ≡)   (vlab-φ sH)
+      pMid = trans (cong (map J.vlab) step≡) (vlab-φ sH')
+      pCod = trans (cong (map J.vlab) (process-edges-fin-φ es step≡)) (vlab-φ sFinH)
+
+      -- Split the boundary subst₂ over the `tJ' ∘ tJ` composite.
+      split
+        : subst₂ HomTerm (cong unflatten pDom) (cong unflatten pCod) (tJ' ∘ tJ)
+          ≡ subst₂ HomTerm (cong unflatten pMid) (cong unflatten pCod) tJ'
+            ∘ subst₂ HomTerm (cong unflatten pDom) (cong unflatten pMid) tJ
+      split = subst₂-∘-distrib pDom pMid pCod tJ' tJ
+
+      term-half
+        : subst₂ HomTerm (cong unflatten pDom) (cong unflatten pCod) (tJ' ∘ tJ)
+          ≈Term tH' ∘ tH
+      term-half =
+        ≈-Term-trans (≡⇒≈Term split)
+          (∘-resp-≈ (IH {sH'} {sJ'} step≡)
+                    (edge-step-term-φ j sJ≡))
+
+  -- The kernel, by induction on `eJ`.  The `[]` case is CONSTRUCTIVE; the
+  -- `_∷_` case defers to the residual step above.
+  process-edges-respects-φ
+    : ∀ (eJ : List (Fin J.nE))
+        {sH : List (Fin H.nV)} {sJ : List (Fin J.nV)}
+        (sJ≡ : sJ ≡ map φ sH)
+    → process-edges-respects-φ-T eJ sJ≡
+  process-edges-respects-φ []       {sH} {sJ} sJ≡ =
+    -- `process-edges _ [] s = (s , id)`; `map ψ⁻¹ [] = []`;
+    -- `process-edges-fin-φ [] sJ≡ = sJ≡`, so the DOM and COD boundary
+    -- paths coincide and the goal is `subst₂ HomTerm p p id ≈Term id`.
+    ≡⇒≈Term (subst₂-HomTerm-id
+              (cong unflatten (trans (cong (map J.vlab) sJ≡) (vlab-φ sH))))
+  process-edges-respects-φ (j ∷ es) {sH} {sJ} sJ≡ =
+    process-edges-respects-φ-step j es
+      (λ {sH'} {sJ'} sJ≡' → process-edges-respects-φ es sJ≡') sJ≡
 
   ------------------------------------------------------------------------
   -- §4.  Validity (stack) transport.  CONSTRUCTIVE.
@@ -309,7 +807,7 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
 
     -- (a) instantiated at the natural order; note `map ψ⁻¹ (range J.nE) = τ`.
     fin-eq : proj₁ (process-edges J (range J.nE) J.dom) ≡ map φ sH-final
-    fin-eq = proj₁ (process-edges-respects-φ (range J.nE) {H.dom} {J.dom} φ-dom)
+    fin-eq = process-edges-fin-φ (range J.nE) {H.dom} {J.dom} φ-dom
 
   -- `map φ` reflects `↭` for injective `φ`.  Built from stdlib's
   -- `↭-map-inv` (recover a permuted pre-image list) plus `map-injective`
@@ -377,19 +875,290 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
     mid-iso : map J.vlab sJ-final ≡ map H.vlab sH-final
     mid-iso = trans (cong (map J.vlab) fin-eq) (vlab-φ sH-final)
 
-  -- Residual (permute relabel-freeness).  The §3 kernel handles the
-  -- `process-edges` factor; this handles the `permute-via-vlab` factor.
-  -- TODO(permute-relabel-free): discharge via permute faithfulness
-  -- (`PermuteCoherence.Faithfulness.permute-resp-≅↭`): both sides are
-  -- `permute (map⁺ vlab _)`, and the relabel `vlab-φ` makes the two
-  -- evaluated finite bijections coincide, so the terms are `≈Term`.
-  postulate
-    permute-relabel-free
-      : (vJ : PJ.Valid (range J.nE))
-      → subst₂ HomTerm
-          (cong unflatten mid-iso) (cong unflatten codL-iso)
-          (permute-via-vlab J.vlab vJ)
-        ≈Term permute-via-vlab H.vlab (iso-valid vJ)
+  ------------------------------------------------------------------------
+  -- §5b.  Permute relabel-freeness (`permute-relabel-free`).
+  --
+  -- This is now PROVEN GIVEN K.  Its only FinBij-level input,
+  -- `permute-relabel-free-≅↭` (the φ-equivariant rigidity of the two final
+  -- permutes), is CONSTRUCTIVELY DISCHARGED below (no postulate).  The
+  -- CONSTRUCTIVE part performed here:
+  --
+  --   * the boundary `subst₂ HomTerm (cong unflatten _) (cong unflatten _)`
+  --     is pushed THROUGH `permute` onto the underlying `_↭_` derivation
+  --     (`permute-subst₂`, a pure `refl/refl` transport lemma);
+  --   * both sides then become `permute` of two derivations over the SAME
+  --     pair of `map H.vlab _` lists, so the Kelly residual K
+  --     (`permute-resp-≅↭`) closes the `≈Term` goal from the `≅↭`
+  --     (equal-evaluated-bijection) evidence.
+  --
+  -- The `≅↭` evidence is the φ-equivariant rigidity statement below.  It
+  -- says the J-side final permute `map⁺ J.vlab vJ`, transported along the
+  -- relabel equalities `mid-iso`/`codL-iso`, evaluates to the same finite
+  -- bijection as the H-side final permute `map⁺ H.vlab (iso-valid vJ)`.
+  -- Both are derivations into `map H.vlab H.cod`; their evaluated bijections
+  -- coincide because the vertex relabel `φ` is a bijection and the Fin-level
+  -- codomain `H.cod` is `Unique` (`codUniqueH`).  This is the term-level
+  -- analogue of `StackPerm.eval-stack-↭-flatten-B-rigid`, specialised to the
+  -- cross-iso relabel; it is closed constructively by the `eval-map⁺` /
+  -- `eval-subst₂-↭` / `lookup-sound` / `lookup-map` chase across the
+  -- φ-relabel (see §0b–0d), discriminating through the `Unique` Fin-list
+  -- `H.cod` with `subst Fin` cast-irrelevance (`Data.Nat.≡-irrelevant`).
+
+  -- `permute` commutes with `subst₂` along list equalities: transporting a
+  -- `permute` term along `cong unflatten p`/`cong unflatten q` equals
+  -- `permute` of the `subst₂`-transported derivation.  Pure `refl/refl`
+  -- transport (without-K clean: both equalities are explicit arguments).
+  permute-subst₂
+    : ∀ {xs xs' ys ys' : List X} (p : xs ≡ xs') (q : ys ≡ ys')
+        (r : xs Perm.↭ ys)
+    → subst₂ HomTerm (cong unflatten p) (cong unflatten q) (permute r)
+      ≡ permute (subst₂ Perm._↭_ p q r)
+  permute-subst₂ refl refl r = refl
+
+  -- The two final-permute derivations, brought onto the common pair of
+  -- `map H.vlab _` lists.
+  private
+    permJ-↭ : (vJ : PJ.Valid (range J.nE))
+            → map J.vlab sJ-final Perm.↭ map J.vlab J.cod
+    permJ-↭ vJ = PermProp.map⁺ J.vlab vJ
+
+    permJ-↭' : (vJ : PJ.Valid (range J.nE))
+             → map H.vlab sH-final Perm.↭ map H.vlab H.cod
+    permJ-↭' vJ = subst₂ Perm._↭_ mid-iso codL-iso (permJ-↭ vJ)
+
+    permH-↭ : (vJ : PJ.Valid (range J.nE))
+            → map H.vlab sH-final Perm.↭ map H.vlab H.cod
+    permH-↭ vJ = PermProp.map⁺ H.vlab (iso-valid vJ)
+
+  -- φ-equivariant rigidity of the two final permutes, at the
+  -- finite-bijection level.  CONSTRUCTIVELY DISCHARGED (no postulate):
+  -- the §0b `eval-rigid`/`eval-map⁺`/`eval-subst₂-↭` chase across the φ
+  -- relabel, threaded through the `Unique` Fin-codomain `H.cod`
+  -- (`codUniqueH`) and the vertex bijection `φ` (`φ-inj`).
+  --
+  -- Both `eval-↭ (permJ-↭' vJ)` and `eval-↭ (permH-↭ vJ)` are bijections
+  -- `Fin (length (map H.vlab sH-final)) → Fin (length (map H.vlab H.cod))`.
+  -- We show their forward maps agree pointwise: cast the image index back
+  -- to `Fin (length H.cod)` (via `length-map`) and discriminate through the
+  -- `Unique` list `H.cod`.  Both sides land on the SAME `H.cod`-position,
+  -- because `lookup-sound` pins each image to the corresponding `sH-final`
+  -- vertex (J-side via `lookup J.cod = φ ∘ lookup H.cod` from `φ-cod`, and
+  -- `sJ-final = map φ sH-final` from `fin-eq`, with `φ` injective).
+
+  private
+    -- The two length-casts used to descend from the `map H.vlab _` sizes to
+    -- the underlying Fin-list sizes.
+    cH-dom : length (map H.vlab sH-final) ≡ length sH-final
+    cH-dom = length-map H.vlab sH-final
+
+    cH-cod : length (map H.vlab H.cod) ≡ length H.cod
+    cH-cod = length-map H.vlab H.cod
+
+    -- The composite cast `length J.cod ≡ length H.cod` along `φ-cod`.
+    cJH : length J.cod ≡ length H.cod
+    cJH = trans (cong length φ-cod) (length-map φ H.cod)
+
+    -- `lookup J.cod` factors as `φ ∘ lookup H.cod` after the `cJH` cast.
+    lookup-Jcod-φ
+      : (k : Fin (length J.cod))
+      → φ (lookup H.cod (subst Fin cJH k)) ≡ lookup J.cod k
+    lookup-Jcod-φ k =
+      trans (sym (lookup-map φ H.cod (subst Fin cJH k)))
+        (trans (cong (lookup (map φ H.cod)) reduce-idx)
+               (lookup-subst-list φ-cod k))
+      where
+        -- `subst Fin (sym (length-map φ H.cod)) (subst Fin cJH k)`
+        --   = subst Fin (sym lm) (subst Fin lm (subst Fin (cong length φ-cod) k))
+        --   = subst Fin (cong length φ-cod) k.
+        reduce-idx
+          : subst Fin (sym (length-map φ H.cod)) (subst Fin cJH k)
+            ≡ subst Fin (cong length φ-cod) k
+        reduce-idx =
+          trans (cong (subst Fin (sym (length-map φ H.cod)))
+                      (sym (subst-Fin-trans (cong length φ-cod) (length-map φ H.cod) k)))
+                (subst-Fin-roundtrip (length-map φ H.cod)
+                   (subst Fin (cong length φ-cod) k))
+
+    -- `lookup sJ-final` factors as `φ ∘ lookup sH-final` after the
+    -- `fin-eq`-cast.
+    cSJH : length sJ-final ≡ length sH-final
+    cSJH = trans (cong length fin-eq) (length-map φ sH-final)
+
+    lookup-sJ-φ
+      : (k : Fin (length sJ-final))
+      → φ (lookup sH-final (subst Fin cSJH k)) ≡ lookup sJ-final k
+    lookup-sJ-φ k =
+      trans (sym (lookup-map φ sH-final (subst Fin cSJH k)))
+        (trans (cong (lookup (map φ sH-final)) reduce-idx)
+               (lookup-subst-list fin-eq k))
+      where
+        reduce-idx
+          : subst Fin (sym (length-map φ sH-final)) (subst Fin cSJH k)
+            ≡ subst Fin (cong length fin-eq) k
+        reduce-idx =
+          trans (cong (subst Fin (sym (length-map φ sH-final)))
+                      (sym (subst-Fin-trans (cong length fin-eq) (length-map φ sH-final) k)))
+                (subst-Fin-roundtrip (length-map φ sH-final)
+                   (subst Fin (cong length fin-eq) k))
+
+  permute-relabel-free-≅↭
+    : (vJ : PJ.Valid (range J.nE))
+    → eval-↭ (permJ-↭' vJ) ≈-fb eval-↭ (permH-↭ vJ)
+  permute-relabel-free-≅↭ vJ i = goal
+    where
+      -- The two images of `i` (at the `map H.vlab _` sizes).
+      kJ kH : Fin (length (map H.vlab H.cod))
+      kJ = eval-↭ (permJ-↭' vJ) P.⟨$⟩ʳ i
+      kH = eval-↭ (permH-↭ vJ) P.⟨$⟩ʳ i
+
+      -- The shared descent of the DOMAIN index `i` to `Fin (length sH-final)`.
+      iH : Fin (length sH-final)
+      iH = subst Fin cH-dom i
+
+      ----------------------------------------------------------------
+      -- H-side.  Rewrite `kH` via `eval-map⁺`, peel the `subst₂` to a pair
+      -- of `subst Fin`-casts, cancel the codomain cast against `cH-cod`, and
+      -- apply `lookup-sound (iso-valid vJ)`.
+      ----------------------------------------------------------------
+      kH≡ : subst Fin cH-cod kH
+            ≡ eval-↭ (iso-valid vJ) P.⟨$⟩ʳ iH
+      kH≡ =
+        trans (cong (λ z → subst Fin cH-cod (z P.⟨$⟩ʳ i))
+                    (eval-map⁺ H.vlab (iso-valid vJ)))
+        (trans (cong (subst Fin cH-cod)
+                     (subst₂-FinBij-as-subst (sym cH-dom) (sym cH-cod)
+                        (eval-↭ (iso-valid vJ)) i))
+        (trans (subst-Fin-roundtrip' cH-cod
+                  (eval-↭ (iso-valid vJ) P.⟨$⟩ʳ subst Fin (sym (sym cH-dom)) i))
+               (cong (eval-↭ (iso-valid vJ) P.⟨$⟩ʳ_)
+                     (subst-Fin-sym-sym cH-dom i))))
+
+      H-step
+        : lookup H.cod (subst Fin cH-cod kH)
+          ≡ lookup sH-final iH
+      H-step =
+        trans (cong (lookup H.cod) kH≡)
+              (lookup-sound (iso-valid vJ) iH)
+
+      ----------------------------------------------------------------
+      -- J-side.  Rewrite `kJ` via `eval-subst₂-↭` then `eval-map⁺`, peel the
+      -- nested `subst₂`s, normalise the codomain casts to the single `cJH`
+      -- cast (`cast-irr`/`subst-Fin-trans`), and obtain the underlying
+      -- J-index `jJ`.
+      ----------------------------------------------------------------
+      -- The DOMAIN index `i` descended to `Fin (length sJ-final)` (through
+      -- the H-final stack and the φ-relabel `cSJH`).
+      iJ : Fin (length sJ-final)
+      iJ = subst Fin (sym cSJH) iH
+
+      jJ : Fin (length J.cod)
+      jJ = eval-↭ vJ P.⟨$⟩ʳ iJ
+
+      private-lmJd : length (map J.vlab sJ-final) ≡ length sJ-final
+      private-lmJd = length-map J.vlab sJ-final
+
+      private-lmJc : length (map J.vlab J.cod) ≡ length J.cod
+      private-lmJc = length-map J.vlab J.cod
+
+      -- The J-side image, with its domain index normalised to `iJ` and its
+      -- codomain cast normalised to `cJH`.  Proven by peeling the two nested
+      -- `subst₂`s (`eval-subst₂-↭`, `eval-map⁺`) into single `subst Fin`
+      -- casts and collapsing them with `subst-Fin-trans` + `cast-irr`.
+      kJ≡ : subst Fin cH-cod kJ ≡ subst Fin cJH jJ
+      kJ≡ =
+        trans (cong (λ z → subst Fin cH-cod (z P.⟨$⟩ʳ i))
+                    (trans (eval-subst₂-↭ mid-iso codL-iso (permJ-↭ vJ))
+                           (cong (subst₂ FinBij (cong length mid-iso)
+                                                 (cong length codL-iso))
+                                 (eval-map⁺ J.vlab vJ))))
+        (trans (cong (subst Fin cH-cod)
+                     (subst₂-FinBij-as-subst (cong length mid-iso) (cong length codL-iso)
+                        (subst₂ FinBij (sym private-lmJd) (sym private-lmJc) (eval-↭ vJ)) i))
+        (trans (cong (λ z → subst Fin cH-cod (subst Fin (cong length codL-iso) z))
+                     (subst₂-FinBij-as-subst (sym private-lmJd) (sym private-lmJc) (eval-↭ vJ)
+                        (subst Fin (sym (cong length mid-iso)) i)))
+          -- now:  subst cH-cod (subst (cong length codL-iso)
+          --          (subst (sym private-lmJc) (eval vJ ⟨$⟩ʳ DOM)))
+          -- with DOM = subst (sym (sym private-lmJd)) (subst (sym (cong length mid-iso)) i)
+          (cod-collapse)))
+        where
+          DOM₀ : Fin (length sJ-final)
+          DOM₀ = subst Fin (sym (sym private-lmJd))
+                   (subst Fin (sym (cong length mid-iso)) i)
+
+          -- The image we are casting on the codomain side.
+          IMG : Fin (length J.cod)
+          IMG = eval-↭ vJ P.⟨$⟩ʳ DOM₀
+
+          -- DOM₀ ≡ iJ (domain index normalisation).
+          dom-eq : DOM₀ ≡ iJ
+          dom-eq =
+            trans (subst-Fin-trans (sym (cong length mid-iso)) (sym (sym private-lmJd)) i)
+            (trans (cast-irr (trans (sym (cong length mid-iso)) (sym (sym private-lmJd)))
+                             (trans cH-dom (sym cSJH)) i)
+                   (sym (subst-Fin-trans cH-dom (sym cSJH) i)))
+
+          -- Codomain casts collapse:
+          --   subst cH-cod (subst (cong length codL-iso) (subst (sym private-lmJc) IMG))
+          --     ≡ subst cJH IMG.
+          cod-collapse
+            : subst Fin cH-cod
+                (subst Fin (cong length codL-iso)
+                   (subst Fin (sym private-lmJc) IMG))
+              ≡ subst Fin cJH jJ
+          cod-collapse =
+            trans (cong (subst Fin cH-cod)
+                        (subst-Fin-trans (sym private-lmJc) (cong length codL-iso) IMG))
+            (trans (subst-Fin-trans
+                      (trans (sym private-lmJc) (cong length codL-iso)) cH-cod IMG)
+            (trans (cast-irr
+                      (trans (trans (sym private-lmJc) (cong length codL-iso)) cH-cod)
+                      cJH IMG)
+                   (cong (subst Fin cJH) (cong (eval-↭ vJ P.⟨$⟩ʳ_) dom-eq))))
+
+      ----------------------------------------------------------------
+      -- J-side `lookup` discriminator: descended kJ lands on `lookup sH-final iH`.
+      ----------------------------------------------------------------
+      J-step
+        : lookup H.cod (subst Fin cH-cod kJ)
+          ≡ lookup sH-final iH
+      J-step =
+        φ-inj
+          (trans
+            -- φ (lookup H.cod (subst cH-cod kJ)) ≡ lookup sJ-final iJ
+            (trans (cong (λ z → φ (lookup H.cod z)) kJ≡)
+              (trans (lookup-Jcod-φ jJ)
+                     (lookup-sound vJ iJ)))
+            -- lookup sJ-final iJ ≡ φ (lookup sH-final iH)
+            (trans (sym (lookup-sJ-φ iJ))
+                   (cong (λ z → φ (lookup sH-final z))
+                         (subst-Fin-roundtrip' cSJH iH))))
+
+      ----------------------------------------------------------------
+      -- Both descended images discriminate to the SAME `H.cod` position;
+      -- `H.cod` is `Unique` so the descended indices are equal, and the
+      -- descent cast `subst Fin cH-cod` is injective.
+      ----------------------------------------------------------------
+      goal : kJ ≡ kH
+      goal =
+        trans (sym (subst-Fin-roundtrip cH-cod kJ))
+        (trans (cong (subst Fin (sym cH-cod))
+                     (lookup-injective-unique codUniqueH
+                        (subst Fin cH-cod kJ) (subst Fin cH-cod kH)
+                        (trans J-step (sym H-step))))
+               (subst-Fin-roundtrip cH-cod kH))
+
+  -- The headline §5 lemma, PROVEN GIVEN K + the `≅↭` residual.
+  permute-relabel-free
+    : (vJ : PJ.Valid (range J.nE))
+    → subst₂ HomTerm
+        (cong unflatten mid-iso) (cong unflatten codL-iso)
+        (permute-via-vlab J.vlab vJ)
+      ≈Term permute-via-vlab H.vlab (iso-valid vJ)
+  permute-relabel-free vJ =
+    ≈-Term-trans
+      (≡⇒≈Term (permute-subst₂ mid-iso codL-iso (permJ-↭ vJ)))
+      (permute-resp-≅↭ (permJ-↭' vJ) (permH-↭ vJ) (permute-relabel-free-≅↭ vJ))
 
   -- The assembly `≈Term`, FROM the §3 kernel + `permute-relabel-free`.
   iso-transport-≈
@@ -430,7 +1199,7 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
       proc-factor
         : subst₂ HomTerm (cong unflatten domL-iso) (cong unflatten mid-iso) procJ′
         ≈Term proj₂ (process-edges H τ H.dom)
-      proc-factor = proj₂ (process-edges-respects-φ (range J.nE) {H.dom} {J.dom} φ-dom)
+      proc-factor = process-edges-respects-φ (range J.nE) {H.dom} {J.dom} φ-dom
 
   -- The exported lemma, matching the type kept in
   -- `IsoInvarianceWiring` verbatim.

@@ -48,11 +48,21 @@
 --     The remaining two facts — the K-block reflection through `remapP`
 --     (`compose-KK-reflect`) and the cross-block acyclicity (`remapP`-images
 --     of K-outputs are never consumed by a G-edge, `compose-cross-acyclic`) —
---     rest on the FULL LINEARITY invariant of the translation, available only
---     through `Completeness.Linearity` (an `APROPSignatureDec`-parameterised
---     module).  They are isolated as TWO precisely-scoped `-- TODO:`
---     postulates; see their individual docstrings.  Everything else in the
---     `∘` case is proven.
+--     rest on the FULL LINEARITY invariant of the translation.  They are now
+--     also PROVEN, by threading `Linear ⟪f⟫`/`Linear ⟪g⟫` (the pruned-
+--     translation linearity witness `⟪⟫-LinearP` from `DecodeAttemptLinearP`)
+--     into the composition assembly:
+--       - `compose-KK-reflect` reuses `LinearHComposeP.remapP-injective`
+--         (injectivity of the pruning map on edge-port vertices; needs
+--         `Linear G`, `Linear K`), mirroring `tensor-KK-reflect`;
+--       - `compose-cross-acyclic` observes that a `remapP`-image of a K-output
+--         that is also an `injL`-image forces the K-output vertex into
+--         `K.dom`, so it occurs in BOTH summands of `producedList K`, giving
+--         `count ≥ 2`, contradicting the `Linear K` bound `≤ 1`.
+--     ALL reachable from a bare `APROPSignature`: both `Linearity` and the
+--     spike `LinearHComposeP` / `DecodeAttemptLinearP` are bare-`sig` modules,
+--     so NO `APROPSignatureDec` parameterisation is needed.  The whole `∘`
+--     case is now constructive.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -75,24 +85,66 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
 import Categories.APROP.Hypergraph.Invariant sig as Inv
 open Inv using (inject+-inj; raise-inj; disj-L-R; range-++)
 
+-- Linearity layer (bare `APROPSignature`-parameterised): the `Linear`
+-- invariant, `count`, the pruned-translation linearity witness, and the
+-- pruning machinery needed to discharge the two composition postulates.
+open import Categories.APROP.Hypergraph.Completeness.Linearity sig
+  using (Linear; count; count-++; producedList)
+import Categories.APROP.Hypergraph.Completeness.Discharge.LinearHComposeP sig as LHC
+open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeAttemptLinearP sig
+  using (⟪⟫-LinearP)
+open import Categories.APROP.Hypergraph.Prune
+  using (count-non; classify; classify-inj₁-∈)
+open import Data.Fin.Properties using (_≟_; splitAt-↑ˡ; splitAt-↑ʳ)
+open import Data.List.Relation.Unary.Any using (Any; here; there)
+open import Data.List.Membership.Propositional.Properties
+  using (∈-concat⁺′; ∈-tabulate⁺)
+open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Sum using (inj₁; inj₂)
+open import Data.Nat using () renaming (_<_ to _ℕ<_)
+import Data.Nat.Properties as Nat
+
 import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceWiring sig
   as IW
 open import Categories.APROP.Hypergraph.Completeness.Discharge.DepIrrefl sig
   using (dep-irrefl-⟪⟫)
 
-open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_)
-open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
+open import Data.List using (List; []; _∷_; _++_; map; concat; tabulate)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties using (∈-map⁻)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
   renaming (map to All-map)
 open import Data.List.Relation.Unary.AllPairs using (AllPairs; []; _∷_)
 import Data.List.Relation.Unary.AllPairs.Properties as AllPairsProp
-open import Data.Nat using (ℕ; zero; suc; _+_)
+open import Data.Nat using (ℕ; zero; suc; _+_; s≤s; z≤n; _≤_)
 open import Data.Product using (∃-syntax; _×_; _,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_)
+open import Relation.Nullary.Decidable using (yes; no)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst)
+
+--------------------------------------------------------------------------------
+-- ## Generic count / disjointness helpers (used by the `∘` cross-acyclicity).
+
+-- Membership ⇒ positive `count`.  `count` (from `Linearity`) walks the list
+-- testing `v ≟ x`; an occurrence of `v` forces at least one `suc`.
+∈→count-pos : ∀ {n} (v : Fin n) (xs : List (Fin n)) → v ∈ xs → 0 ℕ< count v xs
+∈→count-pos v (x ∷ xs) (here  refl) with v ≟ x
+... | yes _ = s≤s z≤n
+... | no  q = ⊥-elim (q refl)
+∈→count-pos v (x ∷ xs) (there p) with v ≟ x
+... | yes _ = s≤s z≤n
+... | no  _ = ∈→count-pos v xs p
+
+-- The `_↑ˡ_` and `_↑ʳ_` images of `Fin (m + k)` are disjoint.
+↑ˡ-↑ʳ-disjoint : ∀ {m k} (i : Fin m) (j : Fin k) → i ↑ˡ k ≡ m ↑ʳ j → ⊥
+↑ˡ-↑ʳ-disjoint {m} {k} i j eq
+  with splitAt-↑ˡ m i k | splitAt-↑ʳ m k j | cong (splitAt m) eq
+... | i-red | j-red | split-eq = case-absurd (trans (sym i-red) (trans split-eq j-red))
+  where
+    case-absurd : ∀ {Y : Set} {x : Fin m} {y : Fin k} → inj₁ x ≡ inj₂ y → Y
+    case-absurd ()
 
 --------------------------------------------------------------------------------
 -- ## The `NoInv` predicate as a bare `AllPairs`.
@@ -238,12 +290,14 @@ module _ (G K : Hypergraph FlatGen) where
 -- K-block reflection through `remapP`, and the cross-block acyclicity) hinge
 -- on the full LINEARITY invariant of the translation (each wire
 -- produced/consumed at most once; output-boundary vertices are never
--- re-consumed inside a block).  That invariant is proven only in
--- `Completeness.Linearity`, an `APROPSignatureDec`-parameterised module
--- unreachable from here.  We isolate the irreducible content as two
--- precisely-scoped postulates.
+-- re-consumed inside a block).  That invariant — `Linear` from
+-- `Completeness.Linearity` — is reachable from a bare `APROPSignature`, so we
+-- thread `Linear G`/`Linear K` in as module parameters and PROVE both facts
+-- (no postulates); the call site supplies `⟪⟫-LinearP` for `G = ⟪f⟫`,
+-- `K = ⟪g⟫`.
 
-module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K) where
+module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
+         (lin-G : Linear G) (lin-K : Linear K) where
   private
     module G = Hypergraph G
     module K = Hypergraph K
@@ -275,33 +329,91 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K) where
               (inject+-inj _ (trans (sym v≡wa) v≡wb))
               wa∈
 
-  -- TODO: K-block dependency reflects to K.  Needs injectivity of the pruning
-  -- map `remapP : Fin K.nV → Fin (G.nV + count-non K.dom)` ON THE VERTICES
-  -- THAT ACTUALLY OCCUR in K's edge ports.  `remapP` is NOT globally
-  -- injective (all `K.dom` members collapse onto their `G.cod` images), so
-  -- this requires the LINEARITY fact that distinct edge-port vertices of `K`
-  -- stay distinct under `remapP` (equivalently: at most the boundary
-  -- collapses, and boundary vertices are not interior ports).  Proven inside
-  -- `Completeness.Linearity` as `hCompose-Linear-utils.remap-injective`
-  -- (requires `Linear G`, `Linear K`), which is reachable only from an
-  -- `APROPSignatureDec` module.
-  postulate
-    compose-KK-reflect : ∀ {ea eb : Fin K.nE}
-                       → Dep Hc (injREc eb) (injREc ea) → Dep K eb ea
+  -- K-block dependency reflects to K.  PROVEN — identical in shape to
+  -- `tensor-KK-reflect`, with the K-side vertex injection `injR` replaced by
+  -- the pruning map `remapP` and `raise-inj` replaced by `remapP`'s
+  -- injectivity ON EDGE-PORT VERTICES.  That injectivity is precisely the
+  -- spike's `LinearHComposeP.remapP-injective`, which needs `Linear G` and
+  -- `Linear K` (both threaded in as module parameters).
+  remapP-inj : ∀ {v v'} → C.remapP v ≡ C.remapP v' → v ≡ v'
+  remapP-inj = LHC.remapP-injective G K bdy lin-G lin-K
 
-  -- TODO: the cross-block acyclicity — no K-block edge produces a wire that an
-  -- earlier G-block edge consumes.  This is the substantive ACYCLICITY fact:
-  -- `eout (K-edge) = map remapP (K.eout)` and `ein (G-edge) = map injL
-  -- (G.ein)`; a shared vertex would force a `remapP`-image of a K-output to
-  -- equal an `injL`-image of a G-input.  Since `remapP` hits the `injL` block
-  -- only on `K.dom` members (mapped to their `G.cod` boundary images), this
-  -- reduces to "a `G.cod` (output-boundary) vertex is never a member of any
-  -- `G.ein` (an edge input)" — exactly the linearity/acyclicity invariant of
-  -- the FromAPROP translation.  Proven (in the AllFire form) constructively
-  -- in `Discharge/Sub/AllFireNatural.agda`, but only over `APROPSignatureDec`.
-  postulate
-    compose-cross-acyclic : ∀ {ea : Fin G.nE} {eb : Fin K.nE}
-                          → ¬ Dep Hc (injREc eb) (injLEc ea)
+  compose-KK-reflect : ∀ {ea eb : Fin K.nE}
+                     → Dep Hc (injREc eb) (injREc ea) → Dep K eb ea
+  compose-KK-reflect {ea} {eb} (v , v∈out , v∈in)
+    with subst (v ∈_) (C.eout-c-inj₂-red eb) v∈out
+       | subst (v ∈_) (C.ein-c-inj₂-red ea) v∈in
+  ... | v∈out' | v∈in'
+    with ∈-map⁻ C.remapP v∈out' | ∈-map⁻ C.remapP v∈in'
+  ... | wb , wb∈ , v≡wb | wa , wa∈ , v≡wa =
+        wb
+      , wb∈
+      , subst (_∈ K.ein ea)
+              (remapP-inj (trans (sym v≡wa) v≡wb))
+              wa∈
+
+  -- The cross-block acyclicity — no K-block edge produces a wire that an
+  -- earlier G-block edge consumes.  PROVEN.  A shared vertex `v` would be both
+  -- a `remapP`-image of a K-output `k₀ ∈ K.eout eb` and an `injL`-image
+  -- (`_↑ˡ cn`) of a G-input.  Case-split `classify K.dom k₀`:
+  --   * `inj₂ j`: `remapP k₀ = G.nV ↑ʳ j`, which can't be an `_↑ˡ cn` image
+  --     (`↑ˡ-↑ʳ-disjoint`).
+  --   * `inj₁ i`: `k₀ ∈ K.dom`.  But also `k₀ ∈ K.eout eb`, so `k₀` occurs in
+  --     BOTH summands of `producedList K = K.dom ++ concat (tabulate K.eout)`,
+  --     giving `count k₀ (producedList K) ≥ 2`, contradicting the `Linear K`
+  --     bound `≤ 1`.  This is the linearity/acyclicity invariant.
+  private
+    cn = count-non K.dom
+
+    -- `producedList K` count of an edge-output that is also in `K.dom` is ≥ 2.
+    dom-and-out→absurd
+      : ∀ (k : Fin K.nV) (eb : Fin K.nE)
+      → k ∈ K.dom → k ∈ K.eout eb → ⊥
+    dom-and-out→absurd k eb k∈dom k∈out =
+      Nat.<-irrefl refl
+        (Nat.<-≤-trans 1<prod (proj₂ lin-K k))
+      where
+        k∈eb : k ∈ concat (tabulate K.eout)
+        k∈eb = ∈-concat⁺′ k∈out (∈-tabulate⁺ eb)
+
+        prod-eq : count k (producedList K)
+                ≡ count k K.dom + count k (concat (tabulate K.eout))
+        prod-eq = count-++ k K.dom (concat (tabulate K.eout))
+
+        1<prod : 1 ℕ< count k (producedList K)
+        1<prod =
+          subst (1 ℕ<_) (sym prod-eq)
+            (Nat.+-mono-≤ (∈→count-pos k K.dom k∈dom)
+                          (∈→count-pos k (concat (tabulate K.eout)) k∈eb))
+
+    -- Only `K.dom` members route to the `_↑ˡ cn` (G-side) slots: if
+    -- `remapP k ≡ i ↑ˡ cn` then `k ∈ K.dom`.  We case-split `classify K.dom k`
+    -- (`rewrite`-ing the hypothesis so `remapP k` reduces along that branch):
+    -- the `inj₂` branch routes to a `G.nV ↑ʳ_` slot, disjoint from `_↑ˡ cn`.
+    -- Only `K.dom` members route to `_↑ˡ cn` (G-side) slots.  Case-split
+    -- `classify K.dom k`: `inj₁` gives `k ∈ K.dom` (`classify-inj₁-∈`).  In the
+    -- `inj₂ j` branch the `with`-abstraction reduces `C.remapP k` to its
+    -- non-member image, so `hyp` already reads `G.nV ↑ʳ j ≡ i ↑ˡ cn`, which is
+    -- absurd by `↑ˡ-↑ʳ-disjoint`.
+    remapP-injL→dom
+      : ∀ (k : Fin K.nV) (i : Fin G.nV) → C.remapP k ≡ i ↑ˡ cn → k ∈ K.dom
+    remapP-injL→dom k i hyp with classify K.dom k in cls
+    ... | inj₁ _ = classify-inj₁-∈ cls
+    ... | inj₂ j = ⊥-elim (↑ˡ-↑ʳ-disjoint i j (sym hyp))
+
+  compose-cross-acyclic : ∀ {ea : Fin G.nE} {eb : Fin K.nE}
+                        → ¬ Dep Hc (injREc eb) (injLEc ea)
+  compose-cross-acyclic {ea} {eb} (v , v∈out , v∈in)
+    with subst (v ∈_) (C.eout-c-inj₂-red eb) v∈out
+       | subst (v ∈_) (C.ein-c-inj₁-red ea) v∈in
+  ... | v∈out' | v∈in'
+    with ∈-map⁻ C.remapP v∈out' | ∈-map⁻ C.injL v∈in'
+  ... | k₀ , k₀∈out , v≡rk | i₀ , i₀∈in , v≡injL =
+        -- `C.remapP k₀ ≡ i₀ ↑ˡ cn`, so `k₀ ∈ K.dom`; but `k₀ ∈ K.eout eb`,
+        -- contradicting `Linear K`.
+        dom-and-out→absurd k₀ eb
+          (remapP-injL→dom k₀ i₀ (trans (sym v≡rk) v≡injL))
+          k₀∈out
 
   ------------------------------------------------------------------------------
   -- Assembly of `NoInvH Hc (range (G.nE + K.nE))` from the three facts above
@@ -400,7 +512,8 @@ NoInvH-range-⟪⟫ (f ⊗₁ g) =
 NoInvH-range-⟪⟫ (g ∘ f) =
   subst (NoInvH (hComposeP F G bdy))
         (sym (range-++ F.nE G.nE))
-        (NoInvH-compose F G bdy (range F.nE) (range G.nE)
+        (NoInvH-compose F G bdy (⟪⟫-LinearP f) (⟪⟫-LinearP g)
+          (range F.nE) (range G.nE)
           (NoInvH-range-⟪⟫ f) (NoInvH-range-⟪⟫ g))
   where
     F = ⟪ f ⟫
