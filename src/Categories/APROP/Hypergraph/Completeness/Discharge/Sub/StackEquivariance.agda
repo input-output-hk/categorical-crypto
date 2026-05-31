@@ -33,32 +33,32 @@
 --
 -- The induction, the SKIP and impossible cross-cases, the list-level
 -- threading, the inverse/self-loop permute facts (via the Kelly residual
--- `K : FaithfulnessResidual`), and the FIRE-permute reconciliation (also via
--- K) are PROVEN here, postulate-free except for TWO clearly-flagged residual
--- sub-lemmas about a SINGLE edge-step's FIRE branch:
+-- `K : FaithfulnessResidual`), the FIRE-box naturality, and the FIRE-permute
+-- reconciliation (via K) are PROVEN here, postulate-free except for a SINGLE
+-- clearly-flagged, TRUE residual sub-lemma about `extract-prefix`:
 --
---   * `fire-mid-equivariant` — the per-edge FIRE box is natural in its
---     residual stack under a *permutation* of that residual.  Concretely:
---     `splitJoin`-ing the (fixed, edge-only) box `(Agen-edge e ⊗ id)` over a
---     residual `restH'` equals doing it over a permuted residual `restH`
---     conjugated by the residual permute on the `id`-block.  TRUE — the box
---     acts as identity on the residual, so a permutation of the residual
---     commutes with it (interchange `id ∘ p ⊗ q ∘ id`); but the boundary
---     `subst₂`/`unflatten-++-≅` bookkeeping makes the constructive chase
---     lengthy, so it is isolated here.  This is strictly the box-naturality
---     half (no firing data, no `cod`).
+--   * `fire-mid-equivariant` — PROVEN (no longer a postulate): the per-edge
+--     FIRE box is natural in its residual stack under a *permutation* of that
+--     residual.  Discharged by the standalone `Sub/FireMidEquivariant.agda`.
 --
---   * `fire-locate-coherent` — the two locating permutations agree as
---     bijections after vertex labelling (a `≅↭`), so K reconciles them.  This
---     is the identity-relabel / stack-permute analogue of the proven
---     `Categories.Hypergraph.ExtractPrefixEvalPhi.eval-coincide` (which proves
---     exactly this for a φ-relabel and NO stack-permute).  TRUE because
---     `extract-prefix` locates the same multiset-prefix canonically; isolated
---     here as the locating-coherence half (no box, no `cod`).
+--   * `residual-recon` — the SOLE remaining postulate; TRUE and CANONICAL.
+--     It reconciles the `extract-prefix-↭-residual` output (the located perm
+--     `proj₁ (proj₂ st)` re-attached to the residual reshuffle on the `rest`
+--     block) against the input perm, as a `≅↭`:
+--       `trans (located) (++⁺ˡ ks (↭-sym residual-↭)) ≅↭ perm-in`.
+--     This REPLACES the previous FALSE `fire-locate-coherent` postulate, which
+--     took four UNCONSTRAINED permutations (a free `μ = swap` on a
+--     repeated-vertex residual `[v,v]` is a machine-checked counterexample).
+--     At the call site (`locate-coherent`, FIRE/FIRE), the residual perm is
+--     NOT free: it is exactly `extract-prefix-↭-residual`'s canonical output,
+--     identified with the call-site data by `extract-prefix` determinism, so
+--     `residual-recon` is the TRUE narrow form.  TRUE (base case proven; cons
+--     case reduces to `drop-∷` eval-faithfulness, DEFERRED).
 --
--- Both residuals concern only ONE edge's FIRE box; they carry NO firing data
--- across the list and NO final `cod` permute — the same residual posture as
--- `EdgeStepNaturality.fire-perm-rel` and `SwapStep.RunInterchange.run-eq`.
+-- The residual concerns only ONE edge's FIRE locating step; it carries NO
+-- firing data across the list and NO final `cod` permute — the same residual
+-- posture as `EdgeStepNaturality.fire-perm-rel` and
+-- `SwapStep.RunInterchange.run-eq`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -85,20 +85,23 @@ open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual; permute-self-loop-id-wide)
 open import Categories.PermuteCoherence.Canonical using (_≅↭_)
 open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _≈-fb_; id-fb; inv-fb; _∘-fb_)
+  using (FinBij; _≈-fb_; id-fb; inv-fb; _∘-fb_; cons-fb; swap-fb)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.Soundness using (≈-fb-trans; eval-↭-sym)
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.Nat.Base using (suc)
+open import Data.List using (List; []; _∷_; _++_; map; length)
+open import Data.List.Properties using (length-map)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 import Data.Fin.Permutation as P
 open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Maybe.Properties using (just-injective)
 open import Data.Product using (Σ; Σ-syntax; ∃-syntax; _,_; _×_; proj₁; proj₂)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst)
+  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 
 --------------------------------------------------------------------------------
 -- ≈Term plumbing.
@@ -114,6 +117,60 @@ private
     : ∀ {a b} {A : Set a} {B : A → Set b} {x y : A} {p : B x} {q : B y}
     → just (x , p) ≡ just (y , q) → x ≡ y
   just-injective-fst refl = refl
+
+  ----------------------------------------------------------------------
+  -- `eval-map⁺` and its `subst₂`-on-FinBij algebra (copies of the
+  -- `SwapStep.agda` private helpers / `PermuteCoherence.Map` lemmas;
+  -- all J-only, no K).  Used to LIFT a vertex-level `≅↭` (from
+  -- `residual-recon`) through `map⁺ vlab` to the X-level `≅↭` that
+  -- `permute-resp-≅↭` consumes — the `SwapStep.permute-bridge-≅↭`
+  -- pattern, minus the `eval-rigid` step (we already HAVE the ≅↭).
+  ----------------------------------------------------------------------
+
+  subst₂-FinBij-id : ∀ {n m} (e : n ≡ m) → subst₂ FinBij e e id-fb ≡ id-fb
+  subst₂-FinBij-id refl = refl
+
+  cons-cast
+    : ∀ {n n' m m'} (ex : n' ≡ n) (ey : m' ≡ m) (π : FinBij n m)
+    → cons-fb (subst₂ FinBij (sym ex) (sym ey) π)
+      ≡ subst₂ FinBij (sym (cong suc ex)) (sym (cong suc ey)) (cons-fb π)
+  cons-cast refl refl π = refl
+
+  swap-cast
+    : ∀ {n n' m m'} (ex : n' ≡ n) (ey : m' ≡ m) (π : FinBij n m)
+    → swap-fb m' ∘-fb cons-fb (cons-fb (subst₂ FinBij (sym ex) (sym ey) π))
+      ≡ subst₂ FinBij (sym (cong suc (cong suc ex)))
+                      (sym (cong suc (cong suc ey)))
+                      (swap-fb m ∘-fb cons-fb (cons-fb π))
+  swap-cast refl refl π = refl
+
+  comp-cast
+    : ∀ {n n' m m' k k'}
+        (ex : n' ≡ n) (ey : m' ≡ m) (ez : k' ≡ k)
+        (g : FinBij m k) (f : FinBij n m)
+    → subst₂ FinBij (sym ey) (sym ez) g ∘-fb subst₂ FinBij (sym ex) (sym ey) f
+      ≡ subst₂ FinBij (sym ex) (sym ez) (g ∘-fb f)
+  comp-cast refl refl refl g f = refl
+
+  eval-map⁺ : ∀ {A C : Set}
+    (h : A → C) {xs ys : List A} (p : xs Perm.↭ ys)
+    → eval-↭ (PermProp.map⁺ h p)
+      ≡ subst₂ FinBij (sym (length-map h xs)) (sym (length-map h ys)) (eval-↭ p)
+  eval-map⁺ h {xs = xs} Perm.refl = sym (subst₂-FinBij-id (sym (length-map h xs)))
+  eval-map⁺ h {xs = x ∷ xs} {ys = .x ∷ ys} (Perm.prep x p) =
+    trans (cong cons-fb (eval-map⁺ h p))
+          (cons-cast (length-map h xs) (length-map h ys) (eval-↭ p))
+  eval-map⁺ h {xs = x ∷ x' ∷ xs} {ys = y ∷ y' ∷ ys} (Perm.swap x y p) =
+    trans (cong (λ z → swap-fb (length (map h ys)) ∘-fb cons-fb (cons-fb z)) (eval-map⁺ h p))
+          (swap-cast (length-map h xs) (length-map h ys) (eval-↭ p))
+  eval-map⁺ h {xs = xs} {ys = zs} (Perm.trans {ys = ys} p q) =
+    trans (cong₂ _∘-fb_ (eval-map⁺ h q) (eval-map⁺ h p))
+          (comp-cast (length-map h xs) (length-map h ys) (length-map h zs)
+                     (eval-↭ q) (eval-↭ p))
+
+  subst₂-FinBij-≈ : ∀ {n m n' m'} (a : n ≡ n') (b : m ≡ m') {π ρ : FinBij n m}
+    → π ≈-fb ρ → subst₂ FinBij a b π ≈-fb subst₂ FinBij a b ρ
+  subst₂-FinBij-≈ refl refl eq = eq
 
 --------------------------------------------------------------------------------
 
@@ -286,31 +343,169 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
   fire-mid-equivariant = FME.fire-mid-equivariant H K
 
   ----------------------------------------------------------------------
-  -- RESIDUAL 2 — FIRE locating-permute coherence.
+  -- RESIDUAL 2 — FIRE locating-permute coherence (CANONICAL residual).
   --
   -- The two locating permutations (the one `extract-prefix` finds on `s'`
   -- pushed through the box-residual permute, vs. the one found on `s`
-  -- precomposed with ρ) realise the SAME bijection after vertex
-  -- labelling — i.e. they are `≅↭`-equal — so K reconciles their
-  -- `permute`s.  This is the identity-relabel / stack-permute analogue of
-  -- `ExtractPrefixEvalPhi.eval-coincide` (which proves it for a φ-relabel
-  -- with NO stack permute).  TRUE because `extract-prefix` locates the
-  -- same multiset-prefix canonically; isolated here as the locating
-  -- coherence (no box, no `cod`).
+  -- precomposed with ρ) realise the SAME multiset prefix CANONICALLY, so
+  -- they coincide as vertex `↭`-derivations up to `≅↭`.
+  --
+  -- The previous `fire-locate-coherent` postulate was FALSE as stated: it
+  -- took FOUR UNCONSTRAINED permutations and asserted two separately-built
+  -- bijections coincide (a free `μ = swap` on a repeated-vertex residual
+  -- `[v,v]` is a machine-checked counterexample).  It is REPLACED by this
+  -- TRUE, CANONICAL form: `residual-recon` reconciles the SINGLE
+  -- `extract-prefix-↭-residual` output (which is exactly what
+  -- `edge-step-graph` returns at the call site) against the input perm.
+  --
+  -- For `st = extract-prefix-↭-residual ks xs rest perm-in`, with
+  -- `proj₁ (proj₂ st) : xs ↭ ks ++ rest'` the located perm and
+  -- `proj₂ (proj₂ (proj₂ st)) : rest ↭ rest'` the residual reshuffle,
+  -- re-attaching the residual reshuffle on the `rest` block recovers the
+  -- input perm:
+  --
+  --   trans (located) (++⁺ˡ ks (↭-sym residual-↭))  ≅↭  perm-in
+  --
+  -- TRUE (machine-verified true + base case proven): the empty-prefix base
+  -- case `extract-prefix [] xs ≡ just (xs , refl)` makes `located = refl`
+  -- and `residual-↭ = ↭-sym perm-in`, so the LHS is `trans refl (↭-sym (↭-sym
+  -- perm-in)) ≅↭ perm-in` by `↭-sym-involutive` + eval; the cons case
+  -- reduces to `drop-∷` eval-faithfulness (a separate multi-session effort,
+  -- DEFERRED).  We do NOT try to prove it here.
   postulate
-    fire-locate-coherent
-      : ∀ (e : Fin H.nE) {s s' : List (Fin H.nV)} (ρ : s' Perm.↭ s)
-          {restH restH' : List (Fin H.nV)}
-          (permH  : s  Perm.↭ H.ein e ++ restH)
-          (permH' : s' Perm.↭ H.ein e ++ restH')
-          (μ : restH Perm.↭ restH')
-      → PermProp.map⁺ H.vlab (Perm.trans permH' (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym μ)))
+    residual-recon
+      : ∀ {n} (ks xs rest : List (Fin n)) (perm-in : xs Perm.↭ ks ++ rest)
+      → let st = extract-prefix-↭-residual ks xs rest perm-in in
+        Perm.trans (proj₁ (proj₂ st))
+                   (PermProp.++⁺ˡ ks (Perm.↭-sym (proj₂ (proj₂ (proj₂ st)))))
+        ≅↭ perm-in
+
+  ----------------------------------------------------------------------
+  -- map⁺ LIFT — vertex-level `≅↭` → X-level `≅↭` through `map⁺ vlab`.
+  --
+  -- This is the `SwapStep.permute-bridge-≅↭` map-lift pattern, MINUS the
+  -- `eval-rigid` step: we already HAVE the vertex-level `≅↭` (from
+  -- `residual-recon`), so we only transport it through `map⁺ vlab` via
+  -- `eval-map⁺` + `subst₂-FinBij-≈` (J-only, `--without-K`-clean).
+  ----------------------------------------------------------------------
+  map⁺-lift-≅↭
+    : ∀ {xs ys : List (Fin H.nV)} (p q : xs Perm.↭ ys)
+    → p ≅↭ q
+    → PermProp.map⁺ H.vlab p ≅↭ PermProp.map⁺ H.vlab q
+  map⁺-lift-≅↭ {xs} {ys} p q p≅q =
+    subst (λ z → z ≈-fb eval-↭ (PermProp.map⁺ H.vlab q))
+          (sym (eval-map⁺ H.vlab p))
+      (subst (λ z → subst₂ FinBij (sym (length-map H.vlab xs))
+                                  (sym (length-map H.vlab ys)) (eval-↭ p)
+                    ≈-fb z)
+             (sym (eval-map⁺ H.vlab q))
+        (subst₂-FinBij-≈ (sym (length-map H.vlab xs))
+                         (sym (length-map H.vlab ys)) p≅q))
+
+  ----------------------------------------------------------------------
+  -- CANONICAL residual reshuffle `fire-μ` — the SINGLE source of the
+  -- FIRE residual permutation, shared by `edge-step-fire-equivariant`
+  -- and `edge-step-equivariant`'s output witness.  It uses the RAW
+  -- `Perm.trans ρ permH` as the input perm so the `residual-recon`
+  -- reconciliation lands exactly on the `Perm.trans ρ permH` the goal's
+  -- right-hand factor needs.  The residual list it locates is `restH'`
+  -- by `extract-prefix` determinism (`eqH'`).
+  ----------------------------------------------------------------------
+  module _ (e : Fin H.nE) {s s' : List (Fin H.nV)} (ρ : s' Perm.↭ s)
+           {restH restH' : List (Fin H.nV)}
+           (permH  : s  Perm.↭ H.ein e ++ restH)
+           (permH' : s' Perm.↭ H.ein e ++ restH')
+           (eqH' : extract-prefix (H.ein e) s' ≡ just (restH' , permH'))
+           where
+    private
+      -- The canonical `extract-prefix-↭-residual` output on the RAW
+      -- `Perm.trans ρ permH` — `residual-recon` is stated for exactly this.
+      st = extract-prefix-↭-residual (H.ein e) s' restH (Perm.trans ρ permH)
+      restHc  = proj₁ st
+      permHc  = proj₁ (proj₂ st)
+      eqHc    = proj₁ (proj₂ (proj₂ st))   -- extract-prefix … ≡ just (restHc , permHc)
+      rpc     = proj₂ (proj₂ (proj₂ st))   -- restH ↭ restHc
+
+      -- determinism: the canonical Σ-pair IS the call-site one.
+      pair-eq : (restHc , permHc) ≡ (restH' , permH')
+      pair-eq = just-injective (trans (sym eqHc) eqH')
+
+      restHc≡ : restHc ≡ restH'
+      restHc≡ = cong proj₁ pair-eq
+
+    -- The residual reshuffle, transported onto `restH'`.
+    fire-μ : restH Perm.↭ restH'
+    fire-μ = subst (restH Perm.↭_) restHc≡ rpc
+
+    ------------------------------------------------------------------
+    -- LOCATING-PERMUTE COHERENCE — the X-level `≅↭` that
+    -- `permute-resp-≅↭` consumes, derived from `residual-recon`.
+    --
+    --   map⁺ vlab (trans permH' (++⁺ˡ (ein e) (↭-sym fire-μ)))
+    --     ≅↭ map⁺ vlab (Perm.trans ρ permH)
+    --
+    -- `residual-recon` gives the VERTEX-level `≅↭`
+    --   trans permHc (++⁺ˡ (ein e) (↭-sym rpc)) ≅↭ Perm.trans ρ permH;
+    -- the determinism transport `restHc≡` identifies `(restHc, permHc, rpc)`
+    -- with `(restH', permH', fire-μ)` (matched at `refl`), and `map⁺-lift-≅↭`
+    -- lifts the result through `map⁺ vlab`.
+    ------------------------------------------------------------------
+    private
+      -- The `restHc≡`-`refl`-matching collapse: the call-site
+      -- `permH'`/`fire-μ` ARE the canonical `permHc`/`rpc` after transport.
+      recon-collapse
+        : ∀ {rc} (pc : s' Perm.↭ H.ein e ++ rc) (rp : restH Perm.↭ rc)
+            (req : rc ≡ restH')
+            (peq : permH' ≡ subst (λ r → s' Perm.↭ H.ein e ++ r) req pc)
+        → Perm.trans permH'
+            (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym (subst (restH Perm.↭_) req rp)))
+          ≅↭ Perm.trans pc (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym rp))
+      recon-collapse pc rp refl refl i = refl
+
+      -- `permH'`-determinism in `subst` form (`req = restHc≡ = cong proj₁ pair-eq`).
+      permHc≡ : permH' ≡ subst (λ r → s' Perm.↭ H.ein e ++ r) restHc≡ permHc
+      permHc≡ = sym (subst-pair-snd pair-eq)
+        where
+          -- `proj₂` of a transported Σ-pair, generalised then matched at refl.
+          subst-pair-snd
+            : ∀ {rc : List (Fin H.nV)} {pc : s' Perm.↭ H.ein e ++ rc}
+                (pe : (rc , pc) ≡ (restH' , permH'))
+            → subst (λ r → s' Perm.↭ H.ein e ++ r) (cong proj₁ pe) pc ≡ permH'
+          subst-pair-snd refl = refl
+
+    locate-coherent
+      : PermProp.map⁺ H.vlab
+          (Perm.trans permH' (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym fire-μ)))
         ≅↭ PermProp.map⁺ H.vlab (Perm.trans ρ permH)
+    locate-coherent =
+      map⁺-lift-≅↭
+        (Perm.trans permH' (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym fire-μ)))
+        (Perm.trans ρ permH)
+        chained
+      where
+        -- The shared middle derivation, named to pin `≈-fb-trans`'s `ρ`.
+        mid : s' Perm.↭ H.ein e ++ restH
+        mid = Perm.trans permHc (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym rpc))
+
+        half₁ : Perm.trans permH' (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym fire-μ))
+                ≅↭ mid
+        half₁ = recon-collapse permHc rpc restHc≡ permHc≡
+
+        half₂ : mid ≅↭ Perm.trans ρ permH
+        half₂ = residual-recon (H.ein e) s' restH (Perm.trans ρ permH)
+
+        chained
+          : Perm.trans permH' (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym fire-μ))
+            ≅↭ Perm.trans ρ permH
+        chained i = trans (half₁ i) (half₂ i)
 
   ----------------------------------------------------------------------
   -- FIRE/FIRE term equivariance — assembled from Residuals 1 & 2 + K.
   -- The output factor is `permute (++⁺ˡ (eout e) μ)`, i.e. the forward
-  -- output permutation `eout e ++ restH ↭ eout e ++ restH'`.
+  -- output permutation `eout e ++ restH ↭ eout e ++ restH'`.  The residual
+  -- `μ = fire-μ …` is the CANONICAL residual reshuffle, and the locating
+  -- coherence is `locate-coherent` (from the TRUE `residual-recon`), NOT
+  -- the old FALSE free-μ `fire-locate-coherent`.
   ----------------------------------------------------------------------
 
   edge-step-fire-equivariant
@@ -318,12 +513,12 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
         {restH restH' : List (Fin H.nV)}
         (permH  : s  Perm.↭ H.ein e ++ restH)
         (permH' : s' Perm.↭ H.ein e ++ restH')
-        (μ : restH Perm.↭ restH')
+        (eqH' : extract-prefix (H.ein e) s' ≡ just (restH' , permH'))
     → fire-term H e s' restH' permH'
-      ≈Term permute-via-vlab H.vlab (PermProp.++⁺ˡ (H.eout e) μ)
+      ≈Term permute-via-vlab H.vlab (PermProp.++⁺ˡ (H.eout e) (fire-μ e ρ permH permH' eqH'))
               ∘ ( fire-term H e s restH permH
                   ∘ permute-via-vlab H.vlab ρ )
-  edge-step-fire-equivariant e {s} {s'} ρ {restH} {restH'} permH permH' μ =
+  edge-step-fire-equivariant e {s} {s'} ρ {restH} {restH'} permH permH' eqH' =
     -- fire-term e s' restH' permH' = fire-mid e restH' ∘ permute permH'
     --   ≈ (permute(++eoutμ) ∘ fire-mid e restH ∘ permute μ_in) ∘ permute permH'  [R1]
     --   ≈ permute(++eoutμ) ∘ fire-mid e restH ∘ (permute μ_in ∘ permute permH')  [assoc]
@@ -342,6 +537,7 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
               (∘-resp-≈ ≈-Term-refl perm-reconcile)
               (≈-Term-sym assoc)))))
     where
+      μ     = fire-μ e ρ permH permH' eqH'
       μ-in  = PermProp.++⁺ˡ (H.ein  e) (Perm.↭-sym μ)
 
       -- `permute μ_in ∘ permute permH' = permute (trans permH' μ_in)`
@@ -355,7 +551,7 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
             (permute-resp-≅↭
               (PermProp.map⁺ H.vlab (Perm.trans permH' μ-in))
               (PermProp.map⁺ H.vlab (Perm.trans ρ permH))
-              (fire-locate-coherent e ρ permH permH' μ))
+              (locate-coherent e ρ permH permH' eqH'))
             (pvv-trans ρ permH))
 
   ----------------------------------------------------------------------
@@ -396,9 +592,10 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
       eqH'-as : extract-prefix (H.ein e) s' ≡ nothing
       eqH'-as = eqH'
   -- FIRE/FIRE: the substantive case.  The residual from `s` permutes onto
-  -- the residual from `s'` (`fire-stable-just`); but the residual `wH'`
-  -- carries (`restH'`,`permH'`) may differ from the one `fire-stable-just`
-  -- found — they agree by `extract-prefix` determinism (`just`-injective).
+  -- the residual from `s'` (`fire-μ`, the canonical residual reshuffle);
+  -- the located `(restH'`,`permH')` agree with the canonical ones by
+  -- `extract-prefix` determinism, threaded inside `fire-μ`/`locate-coherent`
+  -- via `eqH'`.
   edge-step-equivariant e {s} {s'} ρ
       (fireR restH permH eqH) (fireR restH' permH' eqH') =
         PermProp.++⁺ˡ (H.eout e) (Perm.↭-sym μ)
@@ -410,16 +607,12 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
               (sym (trans (++⁺ˡ-↭-sym (H.eout e) (Perm.↭-sym μ))
                           (cong (PermProp.++⁺ˡ (H.eout e))
                                 (PermProp.↭-sym-involutive μ))))
-              (edge-step-fire-equivariant e ρ permH permH' μ)
+              (edge-step-fire-equivariant e ρ permH permH' eqH')
     where
-      -- `μ : restH ↭ restH'`, recovered from `fire-stable-just` (whose
-      -- found residual is `restH'` by `extract-prefix` determinism).
-      st = fire-stable-just e ρ permH eqH
-      restH'≡ : proj₁ st ≡ restH'
-      restH'≡ = just-injective-fst
-                  (trans (sym (proj₁ (proj₂ (proj₂ st)))) eqH')
+      -- `μ : restH ↭ restH'` is the CANONICAL residual reshuffle `fire-μ`,
+      -- the SAME one `edge-step-fire-equivariant` uses internally.
       μ : restH Perm.↭ restH'
-      μ = subst (restH Perm.↭_) restH'≡ (proj₂ (proj₂ (proj₂ st)))
+      μ = fire-μ e ρ permH permH' eqH'
 
   ----------------------------------------------------------------------
   -- MAIN THEOREM — `process-edges-equivariant`.
