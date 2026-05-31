@@ -79,6 +79,7 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
   using (extract-prefix-↭-residual; extract-prefix-↭-nothing)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation sig
   using (EdgeStepR; skipR; fireR; fire-term; fire-mid; edge-step-graph; edge-step-sound)
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidEquivariant sig as FME
 
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual; permute-self-loop-id-wide)
@@ -272,14 +273,17 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
   -- `subst₂`/`unflatten-++-≅` bookkeeping makes the constructive chase
   -- long; isolated here as the box-naturality half.  No firing data,
   -- no `cod`.
-  postulate
-    fire-mid-equivariant
+  -- PROVEN (no longer a postulate): discharged by the standalone
+  -- `Sub/FireMidEquivariant.agda` (box-naturality via `permute-++⁺ˡ-slide`
+  -- + `⊗-∘-dist` + the K self-loop inverse).
+  fire-mid-equivariant
       : ∀ (e : Fin H.nE) {restH restH' : List (Fin H.nV)}
           (μ : restH Perm.↭ restH')
       → fire-mid H e restH'
         ≈Term permute-via-vlab H.vlab (PermProp.++⁺ˡ (H.eout e) μ)
                 ∘ ( fire-mid H e restH
                     ∘ permute-via-vlab H.vlab (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym μ)) )
+  fire-mid-equivariant = FME.fire-mid-equivariant H K
 
   ----------------------------------------------------------------------
   -- RESIDUAL 2 — FIRE locating-permute coherence.

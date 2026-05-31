@@ -101,6 +101,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
   using (Dep)
 
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidInterchange sig as FMI
 
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
@@ -430,8 +431,12 @@ module _ (H : Hypergraph FlatGen)
   -- `σ ∘ (f ⊗ g) ≈ (g ⊗ f) ∘ σ` (= `box-interchange`).
   ----------------------------------------------------------------------
 
-  postulate
-    fire-mid-interchange
+  -- Reduced (no longer a free postulate here): discharged by the standalone
+  -- `Sub/FireMidInterchange.agda`, which PROVES the σ-interchange + permute
+  -- reconciliation around a single isolated `block-nf` residual (the pure
+  -- Mac-Lane block-normal-form `unflatten-++-≅`/`subst₂` bracketing — the part
+  -- even the --with-K development leaves open).
+  fire-mid-interchange
       : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
           (sp : List (Fin H.nV))
           (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
@@ -444,6 +449,7 @@ module _ (H : Hypergraph FlatGen)
           ≈Term permute-via-vlab H.vlab r
                   ∘ ( fire-term H e' (H.eout e ++ r₁) r₂ p₂
                         ∘ fire-term H e sp r₁ p₁ )
+  fire-mid-interchange = FMI.fire-mid-interchange H dih K uniq-cod lin
 
   ----------------------------------------------------------------------
   -- The EMPTY-TAIL interchange core.
