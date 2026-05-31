@@ -58,6 +58,7 @@ import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceWiring si
 import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceConcrete sig as IC
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.RunInterchangeTail sig as RIT
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.RunInterchangeEmptyTail sig as RET
 open import Categories.APROP.Hypergraph.HomTermInvariant sig using (⟪_⟫-cod-unique)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.DepIrrefl sig
   using (dep-irrefl-⟪⟫)
@@ -215,14 +216,25 @@ objUIP = ObjUIP.objUIP′ {Symm} _≟X_
 -- The general witness `run-interchange-⟪⟫` that the chain consumes is now
 -- their composite (a DEFINITION, no longer a postulate), so nothing
 -- downstream changes.
-postulate
-  run-interchange₀-⟪⟫
-    : ∀ {A B} (f : HomTerm A B)
-        (ps : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f))
-        {e e' : Fin (Hypergraph.nE ⟪ f ⟫)}
-        (inc : SS.PerHG.Incomp ⟪ f ⟫ (dep-irrefl-⟪⟫ f) e e')
-    → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
-        K-faithfulness (⟪ f ⟫-cod-unique) ps [] inc
+--
+-- The EMPTY-TAIL core is now a THEOREM too: it instantiates the generic
+-- `RunInterchangeEmptyTail.run-interchange₀` (proven by the 4-case firing
+-- split — three cases trivial, both-fire reduced to the single box-M
+-- residual `fire-mid-interchange`) at `H = ⟪f⟫`, with `Linear ⟪f⟫` supplied
+-- by `⟪⟫-LinearP f`.  So the live interchange obligation is no longer
+-- `run-interchange₀-⟪⟫` itself, but the small box-M residuals it (and the
+-- tail extension) bottom out in: `fire-mid-interchange`,
+-- `fire-mid-equivariant`, `fire-locate-coherent`.
+run-interchange₀-⟪⟫
+  : ∀ {A B} (f : HomTerm A B)
+      (ps : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f))
+      {e e' : Fin (Hypergraph.nE ⟪ f ⟫)}
+      (inc : SS.PerHG.Incomp ⟪ f ⟫ (dep-irrefl-⟪⟫ f) e e')
+  → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
+      K-faithfulness (⟪ f ⟫-cod-unique) ps [] inc
+run-interchange₀-⟪⟫ f ps inc =
+  RET.run-interchange₀ ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
+    K-faithfulness (⟪ f ⟫-cod-unique) (⟪⟫-LinearP f) ps inc
 
 -- The tail extension is now a THEOREM: it instantiates the generic
 -- `RunInterchangeTail.run-interchange-tail` (proven by decoder
