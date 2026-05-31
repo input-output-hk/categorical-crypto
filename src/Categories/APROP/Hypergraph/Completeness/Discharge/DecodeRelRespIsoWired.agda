@@ -28,7 +28,7 @@
 -- `subst₂`-transport algebra plus the `permute`-proof-irrelevance (the
 -- TRUE Kelly faithfulness residual that gates the final-permute throughout
 -- this development).
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --with-K #-}
 
 open import Categories.APROP
 open import Relation.Binary using (DecidableEquality)
@@ -67,10 +67,12 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
 open import Categories.APROP.Hypergraph.Completeness.Discharge.FinOrderNoInv sig
   using (fin-order-NoInv-⟪⟫)
 
--- The Kelly faithfulness residual type, from the `--without-K` module
--- `PermuteCoherence.Faithfulness`.  We postulate a fresh value of it (the
--- explicit Kelly axiom) — NOT the `--with-K` `KellyCoherence` — so the
--- module stays `--without-K`.
+-- The Kelly faithfulness residual type, from `PermuteCoherence.Faithfulness`.
+-- We postulate a fresh value of it (the explicit Kelly axiom).  This module is
+-- now `--with-K` (the completeness chain was switched off the `--without-K`
+-- discipline, which bought nothing for the already-`--with-K` top theorem
+-- `CompletenessFull` and only forced K-free re-derivation of the `--with-K`
+-- coherence machinery via co-infectivity).
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
 

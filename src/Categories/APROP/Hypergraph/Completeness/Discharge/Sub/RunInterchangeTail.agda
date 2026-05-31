@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --with-K #-}
 
 --------------------------------------------------------------------------------
 -- TAIL-EXTENSION of the run-level interchange.

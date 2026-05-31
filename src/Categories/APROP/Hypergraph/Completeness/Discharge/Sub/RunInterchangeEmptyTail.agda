@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --with-K #-}
 
 --------------------------------------------------------------------------------
 -- The EMPTY-TAIL two-edge interchange core `run-interchange₀`.

@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --with-K #-}
 
 --------------------------------------------------------------------------------
 -- Part (I) of the completeness proof: the structural ↔ pruned-algorithmic
