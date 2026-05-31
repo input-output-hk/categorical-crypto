@@ -739,7 +739,7 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
       ≈Term proj₂ (edge-step H sH (ψ⁻¹ j))
   edge-step-term-φ j {sH} {sJ} sJ≡ rewrite sJ≡ =
     subst G (ψ-rght j)
-      (λ pth → edge-step-term-rel Φ objUIP (ψ⁻¹ j) sH
+      (λ pth → edge-step-term-rel Φ objUIP K (ψ⁻¹ j) sH
                  (edge-step-graph H sH (ψ⁻¹ j))
                  (edge-step-graph J (map φ sH) (ψ (ψ⁻¹ j)))
                  pth)

@@ -41,10 +41,19 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation sig
   using (EdgeStepR; skipR; fireR; fire-term; fire-mid; box-of; box-of-cong)
 
+open import Categories.APROP.Hypergraph.Completeness.Permute sig using (permute)
+open import Categories.Hypergraph.ExtractPrefixEvalPhi using (eval-coincide; ≈-fb-of-≡)
+open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
+  using (FaithfulnessResidual)
+open import Categories.PermuteCoherence.Eval using (eval-↭)
+open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_)
+open import Categories.PermuteCoherence.Soundness using (≈-fb-trans)
+
 open import Data.Fin using (Fin)
-open import Data.List using (List; _++_; map)
+open import Data.List using (List; _++_; map; length)
 open import Data.List.Properties using (map-∘; map-cong; map-++)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
+import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 open import Data.Empty using (⊥; ⊥-elim)
@@ -88,14 +97,32 @@ subst₂-∘
     ≡ subst₂ HomTerm (trans p₁ p₂) (trans q₁ q₂) f
 subst₂-∘ refl refl refl refl f = refl
 
+-- `subst₂ HomTerm` pushed through `permute` onto the underlying `↭` (refl).
+permute-subst₂
+  : ∀ {xs xs' ys ys' : List X} (p : xs ≡ xs') (q : ys ≡ ys')
+      (r : xs Perm.↭ ys)
+  → subst₂ HomTerm (cong unflatten p) (cong unflatten q) (permute r)
+    ≡ permute (subst₂ Perm._↭_ p q r)
+permute-subst₂ refl refl r = refl
+
+-- `eval-↭` commutes with `subst₂ _↭_` along list equalities (refl).
+eval-subst₂-↭
+  : ∀ {a} {A : Set a} {xs xs' ys ys' : List A}
+      (p : xs ≡ xs') (q : ys ≡ ys') (r : xs Perm.↭ ys)
+  → eval-↭ (subst₂ Perm._↭_ p q r)
+    ≡ subst₂ FinBij (cong length p) (cong length q) (eval-↭ r)
+eval-subst₂-↭ refl refl r = refl
+
 --------------------------------------------------------------------------------
 
 module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
-         (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q) where
+         (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
+         (K : FaithfulnessResidual) where
   private
     module H = Hypergraph H
     module J = Hypergraph J
   open _≅ᴴ_ Φ using (φ; φ⁻¹; ψ; φ-left; φ-lab; ψ-ein; atom-ein; atom-eout; ψ-elab)
+  open FaithfulnessResidual K using (permute-resp-≅↭)
 
   -- φ is injective (φ-left exhibits φ⁻¹ as a left inverse).
   φ-inj : ∀ {x y} → φ x ≡ φ y → x ≡ y
@@ -176,18 +203,51 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
                                   (J.elab (ψ e)) (H.elab e) (ψ-elab e)))))
 
   -- FIRE permute factor (K): the two search-permutes agree after the boundary
-  -- transport.  TO PROVE by a §5b `permute-relabel-free-≅↭` clone + K.
-  postulate
-    fire-perm-rel
-      : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
-          (restH : List (Fin H.nV)) (permH : sH Perm.↭ H.ein e ++ restH)
-          (eqH : extract-prefix (H.ein e) sH ≡ just (restH , permH))
-          (restJ : List (Fin J.nV)) (permJ : map φ sH Perm.↭ J.ein (ψ e) ++ restJ)
-          (eqJ : extract-prefix (J.ein (ψ e)) (map φ sH) ≡ just (restJ , permJ))
-          (p : map J.vlab (map φ sH) ≡ map H.vlab sH)
-          (q : map J.vlab (J.ein (ψ e) ++ restJ) ≡ map H.vlab (H.ein e ++ restH))
-      → subst₂ HomTerm (cong unflatten p) (cong unflatten q) (permute-via-vlab J.vlab permJ)
-        ≈Term permute-via-vlab H.vlab permH
+  -- transport.  PROVEN: the J-side search is the `map φ`-image of the H-side
+  -- (`extract-prefix-J-just` gives `restJ ≡ map φ restH`, then `rewrite ψ-ein`
+  -- brings the J-edge into `map φ`-form).  `permute-subst₂` pushes the boundary
+  -- `subst₂` through `permute`; the resulting derivations have coinciding
+  -- evaluated bijections (`eval-coincide`, via `eval-subst₂-↭`); K
+  -- (`permute-resp-≅↭`) closes the `≈Term`.
+  fire-perm-rel
+    : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
+        (restH : List (Fin H.nV)) (permH : sH Perm.↭ H.ein e ++ restH)
+        (eqH : extract-prefix (H.ein e) sH ≡ just (restH , permH))
+        (restJ : List (Fin J.nV)) (permJ : map φ sH Perm.↭ J.ein (ψ e) ++ restJ)
+        (eqJ : extract-prefix (J.ein (ψ e)) (map φ sH) ≡ just (restJ , permJ))
+        (p : map J.vlab (map φ sH) ≡ map H.vlab sH)
+        (q : map J.vlab (J.ein (ψ e) ++ restJ) ≡ map H.vlab (H.ein e ++ restH))
+    → subst₂ HomTerm (cong unflatten p) (cong unflatten q) (permute-via-vlab J.vlab permJ)
+      ≈Term permute-via-vlab H.vlab permH
+  fire-perm-rel e sH restH permH eqH restJ permJ eqJ p q =
+    helper restJ permJ eqJ q
+      (just-injective-fst
+        (trans (sym eqJ) (proj₂ (extract-prefix-J-just e sH restH permH eqH))))
+    where
+      -- All `restJ`-dependents abstracted as arguments, so matching
+      -- `restJ ≡ map φ restH` (then `rewrite ψ-ein e`) is well-typed.
+      helper
+        : (rJ : List (Fin J.nV))
+          (pJ : map φ sH Perm.↭ J.ein (ψ e) ++ rJ)
+          (eJ : extract-prefix (J.ein (ψ e)) (map φ sH) ≡ just (rJ , pJ))
+          (qq : map J.vlab (J.ein (ψ e) ++ rJ) ≡ map H.vlab (H.ein e ++ restH))
+        → rJ ≡ map φ restH
+        → subst₂ HomTerm (cong unflatten p) (cong unflatten qq)
+            (permute-via-vlab J.vlab pJ)
+          ≈Term permute-via-vlab H.vlab permH
+      helper .(map φ restH) pJ eJ qq refl rewrite ψ-ein e =
+        ≈-Term-trans
+          (≡⇒≈Term (permute-subst₂ p qq (PermProp.map⁺ J.vlab pJ)))
+          (permute-resp-≅↭
+            (subst₂ Perm._↭_ p qq (PermProp.map⁺ J.vlab pJ))
+            (PermProp.map⁺ H.vlab permH)
+            ≅↭ev)
+        where
+          ≅↭ev : eval-↭ (subst₂ Perm._↭_ p qq (PermProp.map⁺ J.vlab pJ))
+               ≈-fb eval-↭ (PermProp.map⁺ H.vlab permH)
+          ≅↭ev rewrite eval-subst₂-↭ p qq (PermProp.map⁺ J.vlab pJ) =
+            eval-coincide φ φ-inj J.vlab H.vlab φ-lab
+              (H.ein e) sH restH permH pJ p qq eqH eJ
 
   -- FIRE/FIRE assembled: split `fire-mid ∘ permute` via `subst₂-∘-distrib`,
   -- then box (`fire-mid-rel`) ∘ permute (`fire-perm-rel`).
