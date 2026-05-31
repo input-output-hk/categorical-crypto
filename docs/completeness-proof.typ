@@ -26,9 +26,9 @@
   equal in the free category. The proof sequentialises a string diagram into a term via a
   *decoder*, and quotients by the order in which independent generator-boxes are processed.
   We give the informal proof in full and then document its Agda mechanization, which reduces
-  the entire theorem to *four* explicit obligations. The single irreducible mathematical
+  the entire theorem to *three* explicit obligations. The single irreducible mathematical
   kernel is symmetric-monoidal coherence on the permutation fragment (Kelly 1964); the
-  remaining three obligations are two coherence chases and one decoder-agreement, all
+  remaining two obligations are one Mac-Lane re-bracketing chase and one decoder-agreement, all
   identified precisely. No unsound assumptions remain in the development.]
 ])
 
@@ -54,7 +54,7 @@ Agda development. It has two purposes:
   [a *transparent informal proof* of @main, structured so that every step corresponds to a
    concrete, checkable formal obligation;],
   [a precise account of the *current mechanization status*: which steps are fully verified in
-   Agda, and the exact *trust surface* — the four remaining postulates and what each is.],
+   Agda, and the exact *trust surface* — the three remaining postulates and what each is.],
 )
 
 *The proof in one line.* Every term equals the canonical *sequentialisation* (decoding) of
@@ -381,6 +381,62 @@ Chaining over the linear-extension connection yields $"decode" ⟪f⟫ approx "d
   (wiring).]
 ]
 
+== The per-swap step in detail (`run-eq`)
+
+The single adjacent-independent swap above is mechanized as the field `run-eq` of the record
+`SwapStep.FrontSwap.RunInterchange`. Write $D_(e e')$ for the decoder term of the order
+"process $e$, then $e'$, then the tail", and $D_(e' e)$ for the swapped order, both run from the
+shared post-prefix stack $s_p$; let $r$ be the *reshuffle* — the permutation between the two
+orders' post-front stacks. The swap equation is
+
+$
+  D_(e' e) quad approx quad "permute"(r) compose D_(e e') .
+$ <runeq>
+
+Each fired layer expands (as in @layer) to
+$
+  "layer"_e = "to"("unflatten-++-≅") compose (#raw("Agen") g_e times.o "id")
+              compose "from"("unflatten-++-≅") compose "permute"(pi_e),
+$
+i.e. *permute $"ein" e$ to the front, re-bracket the stack as
+$"unflatten"("ein") times.o "unflatten"("rest")$, apply the box, re-bracket back.* @runeq then
+decomposes into exactly one obligation per ledger class:
+
++ *Disjointness ($bold(S)$).* Independence ($e, e'$ incomparable — neither consumes the other's
+  output) together with linearity (each wire produced/consumed at most once) gives that
+  $"ein" e$, $"ein" e'$ are disjoint, and $"eout" e$ is disjoint from $"ein" e'$ (and
+  symmetrically). Hence the two edges occupy *disjoint wire-blocks*, both orders fire, and they
+  reach the *same stack-multiset* — the reshuffle $r$. _This half is now PROVEN_ —
+  `Sub/FiringSwap.front-swap-reshuffle`, a one-line bridge to the constructive
+  `SwapValidity.front-swap-stack-↭` (linearity gives `ein-ein-disjoint`, independence gives
+  `eout-ein-disjoint`).
+
++ *Box-commute ($bold(N)$).* Brought to disjoint adjacent factors, the two boxes
+  $(#raw("Agen") g_e times.o "id")$ and $(#raw("Agen") g_(e') times.o "id")$ act on *disjoint
+  tensor factors* and commute by the *bifunctor interchange*
+  $(a times.o b) compose (c times.o d) = (a compose c) times.o (b compose d)$ (`⊗-∘-dist`). This
+  is the literal "independent firings commute". The braided form @interchange is its conjugate;
+  but for disjoint *aligned* blocks plain bifunctoriality suffices — there is *no braiding on the
+  boxes themselves* (the braiding lives entirely in the reshuffle, item 4).
+
++ *Re-bracketing ($bold(M)$).* The two orders thread the stack through *different* intermediate
+  shapes (after $e$ fires, $e'$ sees residual $"eout" e ++ dots.c$; after $e'$ fires, $e$ sees
+  $"eout" e' ++ dots.c$). To bring both boxes to the common disjoint-aligned form that
+  `⊗-∘-dist` needs, the `unflatten-++-≅` coercions must be re-associated — pure Mac-Lane
+  coherence ($alpha, lambda, rho$ + coercion naturality). *This is the bulk of the open
+  transport*: it has no canonical-form solver in the symmetric fragment, so it is hand-chased,
+  per positional case, under `--without-K` `subst₂` casts.
+
++ *Reshuffle ($bold(K)$).* The two orders bring the input wires forward in different orders and
+  leave the output blocks in swapped positions; the net difference is a pure wire-permutation,
+  realised by $"permute"(r)$. Matching it is @K. Plus a tail recursion: the suffix runs on the
+  reshuffled stack and commutes with $r$ by naturality.
+
+So @runeq is *$bold(S)$ (done) $+ bold(N)$ (one `⊗-∘-dist`) $+ bold(M)$ (the re-association bulk)
+$+ bold(K)$ (the reshuffle)*. The genuine remaining cost is the $bold(M)$ re-bracketing — the
+solver-unfriendly heart of braided-monoidal coherence — *not* the interchange axiom @interchange
+itself, which is already proven (`SwapStep.box-interchange`).
+
 = The normal-form theorem, part (I)
 
 By induction on $f$, using the action of $⟪dot.c⟫$ on each constructor:
@@ -480,12 +536,12 @@ assembled as follows; the order-theoretic core is signature-generic and `--safe`
   [`DepIrrefl` (acyclicity), `SwapValidity` (firing-stable swaps), `ObjUIP` (UIP)],
   [postulate-free],
   [iso-invariance of the structural decoder (`DecodeRelRespIsoWired`, top of chain)],
-  [4 postulates (below)],
+  [3 postulates (below)],
 )
 
 == Trust surface
 
-Completeness rests on exactly four postulates, plus a `DecidableEquality` hypothesis on the
+Completeness rests on exactly three postulates, plus a `DecidableEquality` hypothesis on the
 atom type (satisfied by any concrete signature, used to discharge UIP on objects). Every
 postulate is *true*; none is an unsound shortcut.
 
@@ -498,26 +554,25 @@ postulate is *true*; none is an unsound shortcut.
   [`K-faithfulness`], [$bold(K)$],
   [the classical axiom: permutation coherence (Kelly 1964); the irreducible kernel, shared by
    (I), (II), and Lemma 0b.],
-  [`edge-step-term-φ`], [$bold(K)+bold(M)$],
-  [Lemma 0b at one layer: the per-edge term-level relabelling agreement. Its stack-level
-   companion (Lemma 0a) is proven; this residual is the permute ($bold(K)$) and box
-   ($bold(M)$) factors.],
-  [`run-interchange-⟪⟫`], [$bold(N)+bold(M)$],
-  [the analytic crux of (II) at one swap: the two adjacent independent boxes commute. The
-   interchange axiom is isolated as a proven lemma; the residual is the Mac-Lane transport
-   through the layer coercions.],
+  [`run-interchange-⟪⟫`], [$bold(M)$],
+  [the analytic crux of (II) at one swap (`run-eq`, @runeq). Of its two halves the *firing*
+   half (`reshuffle`, $bold(S)$) is now proven (`Sub/FiringSwap`) and the interchange axiom
+   $bold(N)$ is isolated as a proven lemma (`box-interchange`); the residual is exactly the
+   Mac-Lane re-bracketing transport through the layer coercions.],
   [`decode-rel-≈-decodeP`], [(I)],
   [the normal-form theorem (decoder agreement): decomposes per constructor into the $compose$/
    $times.o$-shape lemmas ($bold(S)$), the monoidal atomics ($bold(M)$), and the $sigma$/box
    atomics ($bold(K)$).],
 )
 
-The four obligations are not independent: $bold(K)$ recurs in three of them, so the genuinely
+The three obligations are not independent: $bold(K)$ recurs in two of them, so the genuinely
 open mathematical content is *(a)* the coherence axiom $bold(K)$; *(b)* the Mac-Lane
-interchange transport (`run-interchange-⟪⟫` and the box part of `edge-step-term-φ`); and *(c)*
-the structural decoder-agreement (`decode-rel-≈-decodeP`). The combinatorial backbone — Lemma
-A, Lemma C, the connectivity of linear extensions, decoder totality, and the firing-stability
-of independent swaps — is fully verified.
+re-bracketing transport at one swap (`run-interchange-⟪⟫`, @runeq); and *(c)* the structural
+decoder-agreement (`decode-rel-≈-decodeP`). The combinatorial backbone — Lemma A, Lemma C, the
+connectivity of linear extensions, decoder totality, the firing-stability of independent swaps,
+and *all of Lemma 0b* (`edge-step-term-φ`, formerly a postulate, now proven via the
+relation-view of `edge-step` — its box factor $bold(M)$ and permute factor $bold(K)$ both
+discharged) — is fully verified.
 
 == Soundness notes
 
@@ -537,9 +592,9 @@ of independent swaps — is fully verified.
 
 = Conclusion
 
-The completeness theorem @main is reduced — informally in full, and in Agda modulo four
-explicit, true obligations — to a single classical axiom together with two coherence chases and
-one decoder-agreement, all precisely located. The deep content is symmetric-monoidal coherence
+The completeness theorem @main is reduced — informally in full, and in Agda modulo three
+explicit, true obligations — to a single classical axiom together with one Mac-Lane
+re-bracketing chase and one decoder-agreement, all precisely located. The deep content is symmetric-monoidal coherence
 on the permutation fragment ($bold(K)$); everything genuinely combinatorial is verified.
 
 Closing the remaining obligations is research-level work of a familiar kind: $bold(K)$ is the
