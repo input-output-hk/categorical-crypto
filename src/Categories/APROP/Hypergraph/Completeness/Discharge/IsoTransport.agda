@@ -134,6 +134,10 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceWiri
   using (module PerHG)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
   using (Dep)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation sig
+  using (edge-step-graph)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepNaturality sig
+  using (edge-step-term-rel)
 
 open import Data.Fin.Base using (Fin; zero; suc)
 open import Data.Nat using (ℕ; suc)
@@ -427,7 +431,8 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
          -- `Sub.FromAPROPCodUnique.⟪_⟫F-cod-unique` at `H = ⟪f⟫`,
          -- `J = ⟪g⟫`.
          (codUniqueH : Unique (Hypergraph.cod H))
-         (codUniqueJ : Unique (Hypergraph.cod J)) where
+         (codUniqueJ : Unique (Hypergraph.cod J))
+         (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q) where
   private
     module PH = PerHG H dihH
     module PJ = PerHG J dihJ
@@ -715,16 +720,40 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
   -- paths are EXACTLY the DOM/MID factor produced by the `subst₂-∘-distrib`
   -- split in `process-edges-respects-φ-step` (using `edge-step-fin-φ` for
   -- the intermediate-stack equation), so it plugs in directly.
-  postulate
-    edge-step-term-φ
-      : ∀ (j : Fin J.nE) {sH : List (Fin H.nV)} {sJ : List (Fin J.nV)}
-          (sJ≡ : sJ ≡ map φ sH)
-      → subst₂ HomTerm
-          (cong unflatten (trans (cong (map J.vlab) sJ≡) (vlab-φ sH)))
-          (cong unflatten (trans (cong (map J.vlab) (edge-step-fin-φ j sJ≡))
-                                 (vlab-φ (proj₁ (edge-step H sH (ψ⁻¹ j))))))
-          (proj₂ (edge-step J sJ j))
-        ≈Term proj₂ (edge-step H sH (ψ⁻¹ j))
+  -- §3 (was a postulate): now PROVEN by the relation-view naturality
+  -- `edge-step-term-rel` (`EdgeStepNaturality`), bridged to the `j`/`ψ⁻¹ j`
+  -- form.  `rewrite sJ≡` aligns the J-stack to `map φ sH`; then a single
+  -- `subst` over the J-edge (along `ψ-rght j`), with a Π-over-stack-path
+  -- motive `G` that absorbs the boundary-path difference, converts the
+  -- `ψ (ψ⁻¹ j)` statement (= `edge-step-term-rel` at `e = ψ⁻¹ j`) to the
+  -- `j` statement.  No `objUIP` juggling here; `objUIP` is only used inside
+  -- `edge-step-term-rel`'s SKIP branch.
+  edge-step-term-φ
+    : ∀ (j : Fin J.nE) {sH : List (Fin H.nV)} {sJ : List (Fin J.nV)}
+        (sJ≡ : sJ ≡ map φ sH)
+    → subst₂ HomTerm
+        (cong unflatten (trans (cong (map J.vlab) sJ≡) (vlab-φ sH)))
+        (cong unflatten (trans (cong (map J.vlab) (edge-step-fin-φ j sJ≡))
+                               (vlab-φ (proj₁ (edge-step H sH (ψ⁻¹ j))))))
+        (proj₂ (edge-step J sJ j))
+      ≈Term proj₂ (edge-step H sH (ψ⁻¹ j))
+  edge-step-term-φ j {sH} {sJ} sJ≡ rewrite sJ≡ =
+    subst G (ψ-rght j)
+      (λ pth → edge-step-term-rel Φ objUIP (ψ⁻¹ j) sH
+                 (edge-step-graph H sH (ψ⁻¹ j))
+                 (edge-step-graph J (map φ sH) (ψ (ψ⁻¹ j)))
+                 pth)
+      (edge-step-fin-φ j refl)
+    where
+      G : (jE : Fin J.nE) → Set
+      G jE = (pth : proj₁ (edge-step J (map φ sH) jE)
+                    ≡ map φ (proj₁ (edge-step H sH (ψ⁻¹ j))))
+           → subst₂ HomTerm
+               (cong unflatten (vlab-φ sH))
+               (cong unflatten (trans (cong (map J.vlab) pth)
+                                      (vlab-φ (proj₁ (edge-step H sH (ψ⁻¹ j))))))
+               (proj₂ (edge-step J (map φ sH) jE))
+             ≈Term proj₂ (edge-step H sH (ψ⁻¹ j))
 
   -- The per-edge-LIST STEP, CONSTRUCTIVE from `edge-step-term-φ` + the IH.
   -- The composite `proj₂ (process-edges J (j ∷ es) sJ) = tJ' ∘ tJ` has its

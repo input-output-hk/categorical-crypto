@@ -138,6 +138,7 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
          (K : FaithfulnessResidual)
          (codUniqueH : Unique (Hypergraph.cod H))
          (codUniqueJ : Unique (Hypergraph.cod J))
+         (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
          (run-interchange-H
            : ∀ (ps qs : SS.PerHG.Order H dihH)
                {e e' : Fin (Hypergraph.nE H)}
@@ -168,7 +169,7 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
                    (PJ.decodeOrd (range J.nE) vJ)
             ≈Term PH.decodeOrd (range H.nE) vH )
   decode-ord-resp-iso noInvH noInvJ vJ =
-    let (vτ , transport≈)   = IT.iso-transport Φ dihH dihJ K codUniqueH codUniqueJ vJ
+    let (vτ , transport≈)   = IT.iso-transport Φ dihH dihJ K codUniqueH codUniqueJ objUIP vJ
         (vH , invariant≈)   =
           CPH.order-invariant (IW.τ Φ) (range H.nE) (IW.τ↭range Φ) (NoInv-τ noInvJ)
                               noInvH vτ

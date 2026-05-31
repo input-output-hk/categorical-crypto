@@ -234,6 +234,7 @@ decodeP-resp-iso f g iso =
             (dep-irrefl-⟪⟫ f) (dep-irrefl-⟪⟫ g)
             (⟪⟫-LinearP f)
             K-faithfulness (⟪ f ⟫-cod-unique) (⟪ g ⟫-cod-unique)
+            objUIP
             (run-interchange-⟪⟫ f)
             (fin-order-NoInv-⟪⟫ f) (fin-order-NoInv-⟪⟫ g)
             (vrange g)
