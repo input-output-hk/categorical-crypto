@@ -269,6 +269,73 @@ module _ (H : Hypergraph FlatGen) where
               (Nat.≤-trans arith (Nat.≤-reflexive (sym rhs≡)))
 
   ------------------------------------------------------------------------
+  -- 1b.  The SINGLE-EDGE invariant advance (the `inv-skip`/`inv-fire`
+  --      step of `process-edges-count≤1`, factored out so the
+  --      `StackEquivariance.process-edges-equivariant` recursion can
+  --      thread the invariant across one `edge-step` and recover
+  --      `Unique` of every running stack along the way).
+  --
+  --   * `Reservoir≤1⇒Unique`  : the invariant for the running stack
+  --      bounds its plain count by 1, hence `Unique`.
+  --   * `edge-step-Reservoir≤1` : the invariant survives one `edge-step`
+  --      (SKIP keeps the stack, FIRE replaces it by `eout e ++ rest`).
+
+  Reservoir≤1⇒Unique
+    : ∀ (qs : List (Fin H.nE)) (s : List (Fin H.nV))
+    → Reservoir≤1 qs s → Unique s
+  Reservoir≤1⇒Unique qs s inv =
+    count≤1⇒Unique (λ v → Nat.≤-trans (Nat.m≤m+n (count v s) _) (inv v))
+
+  edge-step-Reservoir≤1
+    : ∀ (e : Fin H.nE) (qs : List (Fin H.nE)) (s : List (Fin H.nV))
+    → Reservoir≤1 (e ∷ qs) s
+    → Reservoir≤1 qs (proj₁ (edge-step H s e))
+  edge-step-Reservoir≤1 e qs s inv
+      with extract-prefix (H.ein e) s in eq
+  ... | nothing = inv-skip
+    where
+      inv-skip : Reservoir≤1 qs s
+      inv-skip w =
+        Nat.≤-trans
+          (Nat.+-monoʳ-≤ (count w s)
+            (Nat.≤-trans (Nat.m≤n+m _ (count w (H.eout e)))
+                         (Nat.≤-reflexive (sym (reservoir-cons-count e qs w)))))
+          (inv w)
+  ... | just (rest , perm) = inv-fire
+    where
+      inv-fire : Reservoir≤1 qs (H.eout e ++ rest)
+      inv-fire w =
+        Nat.≤-trans new≤old (inv w)
+        where
+          post-stack : count w (H.eout e ++ rest)
+                     ≡ count w (H.eout e) + count w rest
+          post-stack = count-++ w (H.eout e) rest
+          pre-stack : count w s ≡ count w (H.ein e) + count w rest
+          pre-stack = trans (↭⇒count perm w) (count-++ w (H.ein e) rest)
+          lhs≡ : count w (H.eout e ++ rest) + count w (reservoir qs)
+               ≡ (count w (H.eout e) + count w rest) + count w (reservoir qs)
+          lhs≡ = cong (_+ count w (reservoir qs)) post-stack
+          rhs≡ : count w s + count w (reservoir (e ∷ qs))
+               ≡ (count w (H.ein e) + count w rest)
+                 + (count w (H.eout e) + count w (reservoir qs))
+          rhs≡ = cong₂ _+_ pre-stack (reservoir-cons-count e qs w)
+          a = count w (H.eout e)
+          b = count w rest
+          c = count w (reservoir qs)
+          d = count w (H.ein e)
+          eq1 : (a + b) + c ≡ b + (a + c)
+          eq1 = trans (cong (_+ c) (Nat.+-comm a b)) (Nat.+-assoc b a c)
+          step2 : b + (a + c) ≤ⁿ (d + b) + (a + c)
+          step2 = Nat.+-monoˡ-≤ (a + c) (Nat.m≤n+m b d)
+          arith : (a + b) + c ≤ⁿ (d + b) + (a + c)
+          arith = Nat.≤-trans (Nat.≤-reflexive eq1) step2
+          new≤old : count w (H.eout e ++ rest) + count w (reservoir qs)
+                  ≤ⁿ count w s + count w (reservoir (e ∷ qs))
+          new≤old =
+            Nat.≤-trans (Nat.≤-reflexive lhs≡)
+              (Nat.≤-trans arith (Nat.≤-reflexive (sym rhs≡)))
+
+  ------------------------------------------------------------------------
   -- 2.  Bridge: `map H.eout (range nE) ≡ tabulate H.eout`, so the initial
   --     reservoir `reservoir (range nE)` is `concat (tabulate H.eout)`, and
   --     `producedList H = H.dom ++ concat (tabulate H.eout)`.

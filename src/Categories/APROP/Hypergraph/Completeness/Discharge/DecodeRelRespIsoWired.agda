@@ -86,6 +86,7 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; cong; subst; subst₂)
 
 import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeOrdBoundary sig as DOB
+import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRelDecodeP sig as DRDP
 
 ------------------------------------------------------------------------
 -- The pruned decoder.  Genuinely built from the (postulate-free) pruned
@@ -168,10 +169,19 @@ decodeP-≡-decodeOrd-range f =
 ------------------------------------------------------------------------
 
 -- (F) Structural ↔ pruned-algorithmic decoder agreement.  The pruned
--- analogue of the existing `decode-rel-≈-decode` Build field; true,
--- postulated here.
-postulate
-  decode-rel-≈-decodeP : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term decodeP f
+-- analogue of the existing `decode-rel-≈-decode` Build field.  No longer a
+-- wholesale postulate: it is now the dispatcher proven in
+-- `Discharge.DecodeRelDecodeP` (constructive induction on `f` via
+-- `DecoderAgreementSafe.WithAssumptions` + the pruned/unpruned shape
+-- bridge).  `DRDP.decodeP f` is DEFINITIONALLY identical to the local
+-- `decodeP f` (both are the `subst₂`-transport of
+-- `proj₁ (decode-attempt-LinearP f)`), so the result has exactly the type
+-- below.  The narrower residuals it exposes (the pruned `⊗`-shape kernel =
+-- `nf-bracket`/`swap-atom-aligned`, the `∘`-shape `DecodeAttempt` straggler,
+-- and the shared UNPRUNED shape/ρ/Agen-σ/α residuals) live in
+-- `DecodeRelDecodeP` itself.
+decode-rel-≈-decodeP : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term decodeP f
+decode-rel-≈-decodeP = DRDP.decode-rel-≈-decodeP
 
 -- (decoder-boundary bridge) The former coarse residual is now PROVEN in
 -- `Discharge.DecodeOrdBoundary` GIVEN the TWO explicit K-inputs below:

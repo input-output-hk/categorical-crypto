@@ -50,6 +50,8 @@ open import Categories.PermuteCoherence.Faithfulness d
   using (unflatten; unflatten-++-≅; permute; FaithfulnessResidual)
 open import Categories.PermuteCoherence.Canonical using (_≅↭_)
 open import Categories.FreeSMC.Steps d using (permute-via-vlab)
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFBraid d
+  as BlockNFBraid
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_; module ≅; Iso)
@@ -153,15 +155,17 @@ module _ {n : ℕ} (vlab : Fin n → X) where
   --                       `id` on `cs`, conjugated by `unflatten-++-≅`, is
   --                       the `permute` of `P` extended over `cs`
   --                       (`++⁺ʳ cs P`).  Pure `unflatten-++-≅` naturality.
-  postulate
-    σ-block-comm
-      : (as bs : List (Fin n))
-      → _≅_.to (uf++ bs as) ∘ (σ {Aof as} {Aof bs}) ∘ _≅_.from (uf++ as bs)
-        ≈Term pvl (PermProp.++-comm as bs)
-    frame-ext
-      : (es fs cs : List (Fin n)) (P : es Perm.↭ fs)
-      → _≅_.to (uf++ fs cs) ∘ (pvl P ⊗₁ id {A = R-obj cs}) ∘ _≅_.from (uf++ es cs)
-        ≈Term pvl (PermProp.++⁺ʳ cs P)
+  σ-block-comm
+    : (as bs : List (Fin n))
+    → _≅_.to (uf++ bs as) ∘ (σ {Aof as} {Aof bs}) ∘ _≅_.from (uf++ as bs)
+      ≈Term pvl (PermProp.++-comm as bs)
+  σ-block-comm = BlockNFBraid.σ-block-comm vlab
+
+  frame-ext
+    : (es fs cs : List (Fin n)) (P : es Perm.↭ fs)
+    → _≅_.to (uf++ fs cs) ∘ (pvl P ⊗₁ id {A = R-obj cs}) ∘ _≅_.from (uf++ es cs)
+      ≈Term pvl (PermProp.++⁺ʳ cs P)
+  frame-ext = BlockNFBraid.frame-ext vlab
 
   --------------------------------------------------------------------
   -- ## The KEYSTONE (BraidBlock core), now PROVEN from the two pure

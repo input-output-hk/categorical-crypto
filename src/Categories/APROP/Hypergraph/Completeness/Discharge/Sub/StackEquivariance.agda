@@ -372,6 +372,17 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
   -- perm-in)) ≅↭ perm-in` by `↭-sym-involutive` + eval; the cons case
   -- reduces to `drop-∷` eval-faithfulness (a separate multi-session effort,
   -- DEFERRED).  We do NOT try to prove it here.
+  --
+  -- A `Unique`-carrying drop-in IS available — `StackUnique.residual-recon`
+  -- proves the EXACT conclusion below, modulo a `Unique (ks ++ rest)`
+  -- hypothesis on the codomain (closed by `eval-rigid`).  Wiring it in,
+  -- however, requires threading a running-stack uniqueness witness up to
+  -- the `RunInterchangeTail` / `RunInterchange` consumer interface, which
+  -- quantifies over ARBITRARY edge orders `ps qs : Order` (= `List (Fin
+  -- nE)`) with NO validity / produced-list linkage — so the `Unique`-of-
+  -- each-running-stack witness is genuinely UNAVAILABLE there without a
+  -- deeper interface change (carrying `Valid` through `RunInterchange`).
+  -- See StackUniqueReach.{Reservoir≤1⇒Unique,edge-step-Reservoir≤1}.
   postulate
     residual-recon
       : ∀ {n} (ks xs rest : List (Fin n)) (perm-in : xs Perm.↭ ks ++ rest)
