@@ -85,6 +85,11 @@ open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈; unflatten-++-≅)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (decode; bridge; decode-attempt-Linear; decode-attempt-hId)
+-- Constructive discharge of the Phase-4 compound α-coherence residual.
+import Categories.APROP.Hypergraph.Completeness.Discharge.BridgeAlphaFormCompound
+  as BridgeAlphaFormCompound
+import Categories.APROP.Hypergraph.Completeness.DecodeRoundtripSafe sig
+  as DRSafe
 
 -- DE-INDEXED REFACTOR: `decode-attempt-subst₂` and
 -- `decode-attempt-subst₂-proj₁` no longer exist (the boundary
@@ -1461,12 +1466,29 @@ private
   -- coherence corollary.  The cons case is the analogous claim
   -- for non-empty lists; it's structurally similar but requires
   -- ~30 chain steps.  Phase 4 main is ~100-150 chain steps.
-  postulate
-    bridge-α⇒-form-⊗-⊗
-      : ∀ A₁₁ A₁₂ A₂ B C
-      → bridge (α⇒ {(A₁₁ ⊗₀ A₁₂) ⊗₀ A₂} {B} {C})
-      ≈Term α⇒-form-list ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂)
-                          (flatten B) (flatten C)
+  -- `α⇒-form-list` here and in `DecodeRoundtripSafe` are defined by the
+  -- identical id-tower recursion, so they agree pointwise.
+  α⇒-form-list≡safe
+    : ∀ xs ys zs → α⇒-form-list xs ys zs ≡ DRSafe.α⇒-form-list xs ys zs
+  α⇒-form-list≡safe []       ys zs = refl
+  α⇒-form-list≡safe (x ∷ xs) ys zs =
+    cong (id {Var x} ⊗₁_) (α⇒-form-list≡safe xs ys zs)
+
+  -- Discharged constructively (no longer a postulate): the Phase-4
+  -- compound α-coherence is proven in
+  -- `Discharge/BridgeAlphaFormCompound.agda` by well-founded recursion on
+  -- the `⊗₀`-node count of the first object index, decomposed via
+  -- `pentagon-rewrite` + `bridge-∘`/`bridge-⊗` and a pure list-level
+  -- Mac-Lane coherence (`list-collapse-gen`).
+  bridge-α⇒-form-⊗-⊗
+    : ∀ A₁₁ A₁₂ A₂ B C
+    → bridge (α⇒ {(A₁₁ ⊗₀ A₁₂) ⊗₀ A₂} {B} {C})
+    ≈Term α⇒-form-list ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂)
+                        (flatten B) (flatten C)
+  bridge-α⇒-form-⊗-⊗ A₁₁ A₁₂ A₂ B C =
+    ≈-Term-trans (BridgeAlphaFormCompound.bridge-α⇒-form-⊗-⊗ sig A₁₁ A₁₂ A₂ B C)
+      (≡⇒≈Term (sym (α⇒-form-list≡safe
+        ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂) (flatten B) (flatten C))))
 
 bridge-α⇒-form-⊗
   : ∀ A₁ A₂ B C → bridge (α⇒ {A₁ ⊗₀ A₂} {B} {C})

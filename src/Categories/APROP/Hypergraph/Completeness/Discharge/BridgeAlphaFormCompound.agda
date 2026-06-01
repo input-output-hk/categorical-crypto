@@ -11,9 +11,14 @@
 --   ≈Term α⇒-form-list ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂)
 --                       (flatten B) (flatten C)
 --
--- Strategy: pentagon-rewrite the central α⇒ + apply bridge-∘ + IHs.
--- For terminating recursion, we induct on the depth of `A₁₁` (which
--- strictly decreases in the compound subcase via α-shift).
+-- Strategy: a single well-founded recursion (`Worker.work`) on the number
+-- of `⊗₀` nodes (`sz`) of the first object index.  The compound case
+-- `((A₁₁⊗A₁₂)⊗A₂)` applies `pentagon-rewrite` to the bridge, distributes
+-- via `bridge-∘`/`bridge-⊗`, and recurses on the strictly-smaller-`sz`
+-- objects `A₁₁⊗A₁₂` (three times) and `A₂`; the α⇐ factor is derived
+-- non-recursively (`derive-⇐`).  The residual bottoms out in a pure
+-- list-level Mac-Lane coherence (`list-collapse-gen`, induction on the
+-- prefix list).  Fully constructive — NO postulates.
 --
 -- This file is `--safe --with-K`-clean.
 --------------------------------------------------------------------------------
@@ -65,6 +70,12 @@ open import Categories.Category.Monoidal.Utilities Monoidal-FreeMonoidal
   using (triangle-inv)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc)
+open import Data.Nat using (ℕ; zero; suc; _+_; _<_; _≤_; s≤s; z≤n)
+open import Data.Nat.Properties
+  using (m<m+n; m<n+m; +-comm; +-assoc; <-trans; m≤m+n; m≤n+m; ≤-refl; ≤-trans
+        ; +-suc; n<1+n; m<n⇒m<1+n; +-identityʳ; n≤1+n)
+open import Data.Nat.Induction using (<-wellFounded)
+open import Induction.WellFounded using (Acc; acc; acc-inverse)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; sym; subst; subst₂)
 
@@ -281,42 +292,340 @@ private
 -- measure (TBD).
 
 --------------------------------------------------------------------------------
--- Residual record for the compound case (see comments after the block
--- for why this is exposed as a record rather than discharged inline).
+-- Well-founded recursion measure: the number of `⊗₀` nodes in an object.
+--
+-- Every recursive call made by the α⇒-form dispatcher (including the
+-- compound `A₁₁⊗A₁₂` case via `pentagon-rewrite`, and the α⇐ factor it
+-- introduces) targets an object with *strictly smaller* `sz`.  In
+-- particular the pentagon-rewrite of `α⇒_{(A₁₁⊗A₁₂)⊗A₂,B,C}` yields
+-- sub-`α⇒`'s whose first index is `A₁₁⊗A₁₂` (a proper subtree of
+-- `(A₁₁⊗A₁₂)⊗A₂`) or `A₂`, both of strictly smaller `sz`.  So a single
+-- well-founded recursion on `sz` of the first object index discharges
+-- the whole dispatcher.
 
-record BridgeAlphaFormCompoundResidual : Set where
-  field
-    bridge-α⇒-form-⊗-⊗
-      : ∀ A₁₁ A₁₂ A₂ B C
-      → bridge (α⇒ {(A₁₁ ⊗₀ A₁₂) ⊗₀ A₂} {B} {C})
-      ≈Term α⇒-form-list ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂)
-                          (flatten B) (flatten C)
+sz : ObjTerm → ℕ
+sz unit       = 0
+sz (Var _)    = 0
+sz (A ⊗₀ B)   = suc (sz A + sz B)
+
+-- The two `sz`-decrease facts needed in the compound case.
+--   sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
+--     = suc (sz (A₁₁ ⊗₀ A₁₂) + sz A₂)
+--     = suc (suc (sz A₁₁ + sz A₁₂) + sz A₂)  (definitionally)
+private
+  -- sz (A₁₁ ⊗₀ A₁₂) < sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
+  --   i.e.  suc (sz A₁₁ + sz A₁₂) < suc (suc (sz A₁₁ + sz A₁₂) + sz A₂)
+  sz-left< : ∀ A₁₁ A₁₂ A₂
+           → sz (A₁₁ ⊗₀ A₁₂) < sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
+  sz-left< A₁₁ A₁₂ A₂ =
+    s≤s (m≤m+n (sz (A₁₁ ⊗₀ A₁₂)) (sz A₂))
+
+  -- sz A₂ < sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
+  --   i.e.  sz A₂ < suc (sz (A₁₁ ⊗₀ A₁₂) + sz A₂)
+  sz-right< : ∀ A₁₁ A₁₂ A₂
+            → sz A₂ < sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
+  sz-right< A₁₁ A₁₂ A₂ =
+    s≤s (m≤n+m (sz A₂) (sz (A₁₁ ⊗₀ A₁₂)))
 
 --------------------------------------------------------------------------------
--- WithResidual: the dispatcher + sub-dispatcher derived constructively
--- modulo the BridgeAlphaFormCompoundResidual record above.
+-- `derive-⇐`: the α⇐-form derived from the α⇒-form result at the SAME
+-- object, via the α⇒/α⇐ iso (mirrors `bridge-α⇐-form` in
+-- DecodeRoundtrip.agda).  Non-recursive: it takes the α⇒ result as an
+-- explicit argument so it stays *outside* the well-founded recursion.
 
-module WithResidual (r : BridgeAlphaFormCompoundResidual) where
-  open BridgeAlphaFormCompoundResidual r
+private
+  bridge-resp-≈Term
+    : ∀ {A B} {f g : HomTerm A B} → f ≈Term g → bridge f ≈Term bridge g
+  bridge-resp-≈Term f≈g = refl⟩∘⟨ f≈g ⟩∘⟨refl
 
-  -- Outer dispatcher: bridge α⇒_{A, B, C} for ANY A.  Pattern-matches on A.
-  bridge-α⇒-form-any
+  derive-⇐
     : ∀ A B C
+    → bridge (α⇒ {A} {B} {C})
+      ≈Term α⇒-form-list (flatten A) (flatten B) (flatten C)
+    → bridge (α⇐ {A} {B} {C})
+      ≈Term α⇐-form-list (flatten A) (flatten B) (flatten C)
+  derive-⇐ A B C br-α⇒ = begin
+    bridge (α⇐ {A} {B} {C})
+      ≈⟨ ≈-Term-sym idʳ ⟩
+    bridge (α⇐ {A} {B} {C}) ∘ id
+      ≈⟨ refl⟩∘⟨ ≈-Term-sym (α⇒-α⇐-iso (flatten A) (flatten B) (flatten C)) ⟩
+    bridge (α⇐ {A} {B} {C}) ∘ (α⇒-form-list (flatten A) (flatten B) (flatten C)
+                                ∘ α⇐-form-list (flatten A) (flatten B) (flatten C))
+      ≈⟨ FM.sym-assoc ⟩
+    (bridge (α⇐ {A} {B} {C}) ∘ α⇒-form-list (flatten A) (flatten B) (flatten C))
+     ∘ α⇐-form-list (flatten A) (flatten B) (flatten C)
+      ≈⟨ (refl⟩∘⟨ ≈-Term-sym br-α⇒) ⟩∘⟨refl ⟩
+    (bridge (α⇐ {A} {B} {C}) ∘ bridge (α⇒ {A} {B} {C}))
+     ∘ α⇐-form-list (flatten A) (flatten B) (flatten C)
+      ≈⟨ ≈-Term-sym (bridge-∘ α⇐ α⇒) ⟩∘⟨refl ⟩
+    bridge (α⇐ {A} {B} {C} ∘ α⇒ {A} {B} {C})
+     ∘ α⇐-form-list (flatten A) (flatten B) (flatten C)
+      ≈⟨ bridge-resp-≈Term α⇐∘α⇒≈id ⟩∘⟨refl ⟩
+    bridge (id {(A ⊗₀ B) ⊗₀ C}) ∘ α⇐-form-list (flatten A) (flatten B) (flatten C)
+      ≈⟨ bridge-id-is-id ((A ⊗₀ B) ⊗₀ C) ⟩∘⟨refl ⟩
+    id ∘ α⇐-form-list (flatten A) (flatten B) (flatten C)
+      ≈⟨ idˡ ⟩
+    α⇐-form-list (flatten A) (flatten B) (flatten C) ∎
+
+--------------------------------------------------------------------------------
+-- `list-collapse-gen`: the pure list-level Mac-Lane coherence that the
+-- compound `pentagon-rewrite` decomposition bottoms out in.  Proven by
+-- induction on the prefix list `p` (= flatten (A₁₁ ⊗₀ A₁₂)).  Every step is
+-- a unitor/associator/`⊗-∘-dist` rewrite (σ-free, box-free).
+
+private
+  cto : (as bs : List X) → HomTerm (unflatten as ⊗₀ unflatten bs) (unflatten (as ++ bs))
+  cto as bs = _≅_.to (unflatten-++-≅ as bs)
+
+  cfrom : (as bs : List X) → HomTerm (unflatten (as ++ bs)) (unflatten as ⊗₀ unflatten bs)
+  cfrom as bs = _≅_.from (unflatten-++-≅ as bs)
+
+  list-collapse-gen
+    : ∀ (p a b c : List X)
+    → α⇐-form-list p a (b ++ c)
+        ∘ ( cto p (a ++ b ++ c)
+          ∘ (id ⊗₁ α⇒-form-list a b c)
+          ∘ cfrom p ((a ++ b) ++ c) )
+        ∘ α⇒-form-list p (a ++ b) c
+        ∘ ( cto (p ++ a ++ b) c
+          ∘ (α⇒-form-list p a b ⊗₁ id)
+          ∘ cfrom ((p ++ a) ++ b) c )
+      ≈Term α⇒-form-list (p ++ a) b c
+  -- Base case p = []:  all `α…-form-list [] …` are `id`; `cto [] = λ⇒`,
+  -- `cfrom [] = λ⇐`.  The two unitor frames cancel, leaving α⇒-form-list a b c.
+  list-collapse-gen [] a b c = begin
+    α⇐-form-list [] a (b ++ c)
+      ∘ ( cto [] (a ++ b ++ c)
+        ∘ (id ⊗₁ α⇒-form-list a b c)
+        ∘ cfrom [] ((a ++ b) ++ c) )
+      ∘ α⇒-form-list [] (a ++ b) c
+      ∘ ( cto (a ++ b) c
+        ∘ (α⇒-form-list [] a b ⊗₁ id {unflatten c})
+        ∘ cfrom (a ++ b) c )
+      ≈⟨ idˡ ⟩
+    ( λ⇒ ∘ (id ⊗₁ α⇒-form-list a b c) ∘ λ⇐ )
+      ∘ id
+      ∘ ( cto (a ++ b) c
+        ∘ (id {unflatten (a ++ b)} ⊗₁ id {unflatten c})
+        ∘ cfrom (a ++ b) c )
+      ≈⟨ refl⟩∘⟨ idˡ ⟩
+    ( λ⇒ ∘ (id ⊗₁ α⇒-form-list a b c) ∘ λ⇐ )
+      ∘ ( cto (a ++ b) c
+        ∘ (id ⊗₁ id)
+        ∘ cfrom (a ++ b) c )
+      ≈⟨ λ-collapse (α⇒-form-list a b c) ⟩∘⟨ (refl⟩∘⟨ id⊗id≈id ⟩∘⟨refl) ⟩
+    α⇒-form-list a b c ∘ ( cto (a ++ b) c ∘ id ∘ cfrom (a ++ b) c )
+      ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ idˡ) ⟩
+    α⇒-form-list a b c ∘ ( cto (a ++ b) c ∘ cfrom (a ++ b) c )
+      ≈⟨ refl⟩∘⟨ _≅_.isoˡ (unflatten-++-≅ (a ++ b) c) ⟩
+    α⇒-form-list a b c ∘ id
+      ≈⟨ idʳ ⟩
+    α⇒-form-list a b c ∎
+    where
+      -- λ⇒ ∘ (id ⊗ f) ∘ λ⇐ ≈ f  (λ-naturality cancellation).
+      λ-collapse : ∀ {Y Y'} (f : HomTerm Y Y') → λ⇒ ∘ (id ⊗₁ f) ∘ λ⇐ ≈Term f
+      λ-collapse f = begin
+        λ⇒ ∘ (id ⊗₁ f) ∘ λ⇐
+          ≈⟨ FM.sym-assoc ⟩
+        (λ⇒ ∘ (id ⊗₁ f)) ∘ λ⇐
+          ≈⟨ λ⇒∘id⊗f≈f∘λ⇒ ⟩∘⟨refl ⟩
+        (f ∘ λ⇒) ∘ λ⇐
+          ≈⟨ FM.assoc ⟩
+        f ∘ λ⇒ ∘ λ⇐
+          ≈⟨ refl⟩∘⟨ λ⇒∘λ⇐≈id ⟩
+        f ∘ id
+          ≈⟨ idʳ ⟩
+        f ∎
+
+  -- Cons case p = x ∷ p':  peel `id{Var x} ⊗ _` from every factor (the
+  -- form-lists already have that shape; the two c-iso framed groups M1/M2
+  -- acquire it after cancelling the `α⇒/α⇐` introduced by `cto/cfrom (x∷_)`
+  -- via `α-comm`).  Then `⊗-∘-dist` collects them and the IH finishes.
+  list-collapse-gen (x ∷ p') a b c = begin
+    α⇐-form-list (x ∷ p') a (b ++ c)
+      ∘ ( cto (x ∷ p') (a ++ b ++ c)
+        ∘ (idₚ ⊗₁ α⇒-form-list a b c)
+        ∘ cfrom (x ∷ p') ((a ++ b) ++ c) )
+      ∘ α⇒-form-list (x ∷ p') (a ++ b) c
+      ∘ ( cto ((x ∷ p') ++ a ++ b) c
+        ∘ (α⇒-form-list (x ∷ p') a b ⊗₁ id {unflatten c})
+        ∘ cfrom (((x ∷ p') ++ a) ++ b) c )
+      -- peel M1 and M2 to `id{Var x} ⊗ _`.
+      ≈⟨ refl⟩∘⟨ peel-M1 ⟩∘⟨ refl⟩∘⟨ peel-M2 ⟩
+    (id {Var x} ⊗₁ α⇐-form-list p' a (b ++ c))
+      ∘ (id {Var x} ⊗₁ M1')
+      ∘ (id {Var x} ⊗₁ α⇒-form-list p' (a ++ b) c)
+      ∘ (id {Var x} ⊗₁ M2')
+      -- collect the four `id{Var x} ⊗ _` via ⊗-∘-dist.
+      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ⊗-∘-dist-id ⟩
+    (id {Var x} ⊗₁ α⇐-form-list p' a (b ++ c))
+      ∘ (id {Var x} ⊗₁ M1')
+      ∘ (id {Var x} ⊗₁ (α⇒-form-list p' (a ++ b) c ∘ M2'))
+      ≈⟨ refl⟩∘⟨ ⊗-∘-dist-id ⟩
+    (id {Var x} ⊗₁ α⇐-form-list p' a (b ++ c))
+      ∘ (id {Var x} ⊗₁ (M1' ∘ α⇒-form-list p' (a ++ b) c ∘ M2'))
+      ≈⟨ ⊗-∘-dist-id ⟩
+    id {Var x} ⊗₁ ( α⇐-form-list p' a (b ++ c)
+                  ∘ M1'
+                  ∘ α⇒-form-list p' (a ++ b) c
+                  ∘ M2' )
+      ≈⟨ ⊗-resp-≈ ≈-Term-refl (list-collapse-gen p' a b c) ⟩
+    id {Var x} ⊗₁ α⇒-form-list (p' ++ a) b c ∎
+    where
+      Vx  = Var x
+      P'  = unflatten p'
+      idₚ = id {Vx ⊗₀ P'}
+      αfl-abc = α⇒-form-list a b c
+
+      M1' M2' : _
+      M1' = cto p' (a ++ b ++ c)
+          ∘ (id ⊗₁ αfl-abc)
+          ∘ cfrom p' ((a ++ b) ++ c)
+      M2' = cto (p' ++ a ++ b) c
+          ∘ (α⇒-form-list p' a b ⊗₁ id {unflatten c})
+          ∘ cfrom ((p' ++ a) ++ b) c
+
+      -- `(id{Vx} ⊗ g) ∘ (id{Vx} ⊗ f) ≈ id{Vx} ⊗ (g ∘ f)`.
+      ⊗-∘-dist-id : ∀ {Y₁ Y₂ Y₃} {g : HomTerm Y₂ Y₃} {f : HomTerm Y₁ Y₂}
+                  → (id {Vx} ⊗₁ g) ∘ (id {Vx} ⊗₁ f) ≈Term id {Vx} ⊗₁ (g ∘ f)
+      ⊗-∘-dist-id {g = g} {f} = begin
+        (id ⊗₁ g) ∘ (id ⊗₁ f)
+          ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
+        (id ∘ id) ⊗₁ (g ∘ f)
+          ≈⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩
+        id ⊗₁ (g ∘ f) ∎
+
+      -- α⇒_{Vx,P',W'} ∘ (id{Vx⊗P'} ⊗ f) ∘ α⇐_{Vx,P',W} ≈ id{Vx} ⊗ (id{P'} ⊗ f).
+      α-slide
+        : ∀ {W W'} (f : HomTerm W W')
+        → α⇒ {Vx} {P'} {W'} ∘ (idₚ ⊗₁ f) ∘ α⇐ {Vx} {P'} {W}
+          ≈Term id {Vx} ⊗₁ (id {P'} ⊗₁ f)
+      α-slide f = begin
+        α⇒ ∘ (idₚ ⊗₁ f) ∘ α⇐
+          ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (≈-Term-sym id⊗id≈id) ≈-Term-refl ⟩∘⟨refl ⟩
+        α⇒ ∘ ((id ⊗₁ id) ⊗₁ f) ∘ α⇐
+          ≈⟨ FM.sym-assoc ⟩
+        (α⇒ ∘ ((id ⊗₁ id) ⊗₁ f)) ∘ α⇐
+          ≈⟨ α-comm ⟩∘⟨refl ⟩
+        (id ⊗₁ (id ⊗₁ f) ∘ α⇒) ∘ α⇐
+          ≈⟨ FM.assoc ⟩
+        id ⊗₁ (id ⊗₁ f) ∘ α⇒ ∘ α⇐
+          ≈⟨ refl⟩∘⟨ α⇒∘α⇐≈id ⟩
+        id ⊗₁ (id ⊗₁ f) ∘ id
+          ≈⟨ idʳ ⟩
+        id ⊗₁ (id ⊗₁ f) ∎
+
+      peel-M1
+        : cto (x ∷ p') (a ++ b ++ c)
+          ∘ (idₚ ⊗₁ αfl-abc)
+          ∘ cfrom (x ∷ p') ((a ++ b) ++ c)
+          ≈Term id {Vx} ⊗₁ M1'
+      peel-M1 = begin
+        ((id ⊗₁ cto p' (a ++ b ++ c)) ∘ α⇒)
+          ∘ (idₚ ⊗₁ αfl-abc)
+          ∘ (α⇐ ∘ (id ⊗₁ cfrom p' ((a ++ b) ++ c)))
+          ≈⟨ FM.assoc ⟩
+        (id ⊗₁ cto p' (a ++ b ++ c))
+          ∘ α⇒
+          ∘ (idₚ ⊗₁ αfl-abc)
+          ∘ (α⇐ ∘ (id ⊗₁ cfrom p' ((a ++ b) ++ c)))
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+        (id ⊗₁ cto p' (a ++ b ++ c))
+          ∘ α⇒
+          ∘ ((idₚ ⊗₁ αfl-abc) ∘ α⇐)
+          ∘ (id ⊗₁ cfrom p' ((a ++ b) ++ c))
+          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+        (id ⊗₁ cto p' (a ++ b ++ c))
+          ∘ (α⇒ ∘ ((idₚ ⊗₁ αfl-abc) ∘ α⇐))
+          ∘ (id ⊗₁ cfrom p' ((a ++ b) ++ c))
+          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩∘⟨refl ⟩
+        (id ⊗₁ cto p' (a ++ b ++ c))
+          ∘ ((α⇒ ∘ (idₚ ⊗₁ αfl-abc)) ∘ α⇐)
+          ∘ (id ⊗₁ cfrom p' ((a ++ b) ++ c))
+          ≈⟨ refl⟩∘⟨ FM.assoc ⟩∘⟨refl ⟩
+        (id ⊗₁ cto p' (a ++ b ++ c))
+          ∘ (α⇒ ∘ (idₚ ⊗₁ αfl-abc) ∘ α⇐)
+          ∘ (id ⊗₁ cfrom p' ((a ++ b) ++ c))
+          ≈⟨ refl⟩∘⟨ α-slide αfl-abc ⟩∘⟨refl ⟩
+        (id ⊗₁ cto p' (a ++ b ++ c))
+          ∘ (id ⊗₁ (id ⊗₁ αfl-abc))
+          ∘ (id ⊗₁ cfrom p' ((a ++ b) ++ c))
+          ≈⟨ refl⟩∘⟨ ⊗-∘-dist-id ⟩
+        (id ⊗₁ cto p' (a ++ b ++ c))
+          ∘ (id ⊗₁ ((id ⊗₁ αfl-abc) ∘ cfrom p' ((a ++ b) ++ c)))
+          ≈⟨ ⊗-∘-dist-id ⟩
+        id {Vx} ⊗₁ M1' ∎
+
+      peel-M2
+        : cto ((x ∷ p') ++ a ++ b) c
+          ∘ (α⇒-form-list (x ∷ p') a b ⊗₁ id {unflatten c})
+          ∘ cfrom (((x ∷ p') ++ a) ++ b) c
+          ≈Term id {Vx} ⊗₁ M2'
+      peel-M2 = begin
+        ((id ⊗₁ cto (p' ++ a ++ b) c) ∘ α⇒)
+          ∘ ((id {Vx} ⊗₁ α⇒-form-list p' a b) ⊗₁ id {unflatten c})
+          ∘ (α⇐ ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c))
+          ≈⟨ FM.assoc ⟩
+        (id ⊗₁ cto (p' ++ a ++ b) c)
+          ∘ α⇒
+          ∘ ((id {Vx} ⊗₁ α⇒-form-list p' a b) ⊗₁ id {unflatten c})
+          ∘ (α⇐ ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c))
+          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+        (id ⊗₁ cto (p' ++ a ++ b) c)
+          ∘ (α⇒ ∘ ((id {Vx} ⊗₁ α⇒-form-list p' a b) ⊗₁ id))
+          ∘ (α⇐ ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c))
+          ≈⟨ refl⟩∘⟨ α-comm ⟩∘⟨refl ⟩
+        (id ⊗₁ cto (p' ++ a ++ b) c)
+          ∘ ((id ⊗₁ (α⇒-form-list p' a b ⊗₁ id)) ∘ α⇒)
+          ∘ (α⇐ ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c))
+          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+        (id ⊗₁ cto (p' ++ a ++ b) c)
+          ∘ (id ⊗₁ (α⇒-form-list p' a b ⊗₁ id))
+          ∘ (α⇒ ∘ α⇐ ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c))
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+        (id ⊗₁ cto (p' ++ a ++ b) c)
+          ∘ (id ⊗₁ (α⇒-form-list p' a b ⊗₁ id))
+          ∘ ((α⇒ ∘ α⇐) ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c))
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ α⇒∘α⇐≈id ⟩∘⟨refl ⟩
+        (id ⊗₁ cto (p' ++ a ++ b) c)
+          ∘ (id ⊗₁ (α⇒-form-list p' a b ⊗₁ id))
+          ∘ (id ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c))
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
+        (id ⊗₁ cto (p' ++ a ++ b) c)
+          ∘ (id ⊗₁ (α⇒-form-list p' a b ⊗₁ id))
+          ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c)
+          ≈⟨ refl⟩∘⟨ ⊗-∘-dist-id ⟩
+        (id ⊗₁ cto (p' ++ a ++ b) c)
+          ∘ (id ⊗₁ ((α⇒-form-list p' a b ⊗₁ id) ∘ cfrom ((p' ++ a) ++ b) c))
+          ≈⟨ ⊗-∘-dist-id ⟩
+        id {Vx} ⊗₁ M2' ∎
+
+--------------------------------------------------------------------------------
+-- The well-founded worker.  `work A B C ac` proves the α⇒-form for the
+-- object `A`, given accessibility evidence `ac : Acc _<_ (sz A)`.  The
+-- α⇐-form factor needed by the compound case is derived (non-recursively)
+-- from `work` at the SAME object via the α⇒-α⇐ iso.
+
+module Worker where
+
+  -- The single well-founded worker.  Pattern-matches `A` to a depth that
+  -- exposes the prefix shape, so that ALL recursive calls supply a
+  -- structurally-smaller `Acc` (no lateral same-`Acc` hops, which the
+  -- termination checker rejects).
+  work
+    : ∀ A B C → Acc _<_ (sz A)
     → bridge (α⇒ {A} {B} {C})
     ≈Term α⇒-form-list (flatten A) (flatten B) (flatten C)
 
-  -- Sub-dispatcher: bridge α⇒_{A₁⊗A₂, B, C} for ANY A₁ A₂ B C.  Pattern-matches on A₁.
-  bridge-α⇒-form-⊗-here
-    : ∀ A₁ A₂ B C
-    → bridge (α⇒ {A₁ ⊗₀ A₂} {B} {C})
-    ≈Term α⇒-form-list (flatten A₁ ++ flatten A₂) (flatten B) (flatten C)
-
 --------------------------------------------------------------------------------
--- Definitions (inside the WithResidual module).
+-- Definitions (inside the Worker module).
+
+  work unit    B C ac = bridge-α⇒-form-unit B C
+  work (Var x) B C ac = bridge-α⇒-form-Var x B C
 
   -- A₁ = unit: bridge α⇒_{unit ⊗ A₂, B, C} reduces via λ-machinery to
   -- bridge α⇒_{A₂, B, C}.
-  bridge-α⇒-form-⊗-here unit A₂ B C = begin
+  work (unit ⊗₀ A₂) B C (acc rs) = begin
     bridge (α⇒ {unit ⊗₀ A₂} {B} {C})
       ≈⟨ F-decomp-unit A₂ B C ⟩∘⟨ refl⟩∘⟨ T-decomp-unit A₂ B C ⟩
     (F-A₂BC ∘ (λ⇒ ⊗₁ id)) ∘ α⇒-uA₂ ∘ (((λ⇐ ⊗₁ id) ⊗₁ id) ∘ T-A₂BC)
@@ -334,7 +643,7 @@ module WithResidual (r : BridgeAlphaFormCompoundResidual) where
     F-A₂BC ∘ (id ∘ α⇒-A₂) ∘ T-A₂BC
       ≈⟨ refl⟩∘⟨ idˡ ⟩∘⟨refl ⟩
     F-A₂BC ∘ α⇒-A₂ ∘ T-A₂BC
-      ≈⟨ bridge-α⇒-form-any A₂ B C ⟩
+      ≈⟨ work A₂ B C (rs (n<1+n (sz A₂))) ⟩
     α⇒-form-list (flatten A₂) (flatten B) (flatten C) ∎
     where
       F-A₂BC  = _≅_.from (unflatten-flatten-≈ (A₂ ⊗₀ (B ⊗₀ C)))
@@ -343,7 +652,7 @@ module WithResidual (r : BridgeAlphaFormCompoundResidual) where
       α⇒-A₂   = α⇒ {A₂} {B} {C}
 
   -- A₁ = Var x: similar, but with Var x prefix.
-  bridge-α⇒-form-⊗-here (Var x) A B C = begin
+  work (Var x ⊗₀ A) B C (acc rs) = begin
     bridge (α⇒ {Var x ⊗₀ A} {B} {C})
       ≈⟨ F-decomp-Var x A B C ⟩∘⟨ refl⟩∘⟨ T-decomp-Var x A B C ⟩
     ((id ⊗₁ F-ABC) ∘ α⇒-V,A,BC) ∘ α⇒-V⊗A ∘ ((α⇐-A,B ⊗₁ id) ∘ α⇐-AB,C ∘ (id ⊗₁ T-AB⊗C))
@@ -381,7 +690,7 @@ module WithResidual (r : BridgeAlphaFormCompoundResidual) where
     (id ∘ id) ⊗₁ (F-ABC ∘ α⇒-A,B,C ∘ T-AB⊗C)
       ≈⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩
     id ⊗₁ (F-ABC ∘ α⇒-A,B,C ∘ T-AB⊗C)
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (bridge-α⇒-form-any A B C) ⟩
+      ≈⟨ ⊗-resp-≈ ≈-Term-refl (work A B C (rs (n<1+n (sz A)))) ⟩
     id ⊗₁ α⇒-form-list (flatten A) (flatten B) (flatten C) ∎
     where
       F-ABC      = _≅_.from (unflatten-flatten-≈ (A ⊗₀ (B ⊗₀ C)))
@@ -403,27 +712,144 @@ module WithResidual (r : BridgeAlphaFormCompoundResidual) where
         : α⇒-V,A,B ⊗₁ id {C} ∘ α⇐-A,B ⊗₁ id {C} ≈Term id
       collapse-α-VAB = collapse-α-iso-⊗id
 
-  -- A₁ = A₁₁ ⊗ A₁₂: invoke the residual bridge-α⇒-form-⊗-⊗.
-  bridge-α⇒-form-⊗-here (A₁₁ ⊗₀ A₁₂) A₂ B C = bridge-α⇒-form-⊗-⊗ A₁₁ A₁₂ A₂ B C
+  -- A₁ = A₁₁ ⊗ A₁₂: the genuinely compound case, by `pentagon-rewrite` +
+  -- `bridge-∘` + recursion on strictly-smaller-`sz` objects.
+  work ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂) B C (acc rs) = compound-body
+    where
+      P  = A₁₁ ⊗₀ A₁₂
+      p  = flatten A₁₁ ++ flatten A₁₂   -- = flatten P
 
-  -- Outer dispatcher.
-  bridge-α⇒-form-any unit       B C = bridge-α⇒-form-unit B C
-  bridge-α⇒-form-any (Var x)    B C = bridge-α⇒-form-Var x B C
-  bridge-α⇒-form-any (A₁ ⊗₀ A₂) B C = bridge-α⇒-form-⊗-here A₁ A₂ B C
+      -- The four bridges produced by `pentagon-rewrite`.  Recursive calls
+      -- pass the sub-accessibility evidence `rs (…)` INLINE so the
+      -- termination checker sees them as structural sub-components of the
+      -- input `acc rs`.
+      br-⇐ : bridge (α⇐ {P} {A₂} {B ⊗₀ C})
+           ≈Term α⇐-form-list p (flatten A₂) (flatten B ++ flatten C)
+      br-⇐ = derive-⇐ P A₂ (B ⊗₀ C)
+               (work P A₂ (B ⊗₀ C) (rs (sz-left< A₁₁ A₁₂ A₂)))
+
+      br-mid : bridge (α⇒ {P} {A₂ ⊗₀ B} {C})
+             ≈Term α⇒-form-list p (flatten A₂ ++ flatten B) (flatten C)
+      br-mid = work P (A₂ ⊗₀ B) C (rs (sz-left< A₁₁ A₁₂ A₂))
+
+      br-low : bridge (α⇒ {P} {A₂} {B})
+             ≈Term α⇒-form-list p (flatten A₂) (flatten B)
+      br-low = work P A₂ B (rs (sz-left< A₁₁ A₁₂ A₂))
+
+      br-A₂ : bridge (α⇒ {A₂} {B} {C})
+            ≈Term α⇒-form-list (flatten A₂) (flatten B) (flatten C)
+      br-A₂ = work A₂ B C (rs (sz-right< A₁₁ A₁₂ A₂))
+
+      compound-body
+          : bridge (α⇒ {(A₁₁ ⊗₀ A₁₂) ⊗₀ A₂} {B} {C})
+          ≈Term α⇒-form-list ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂)
+                              (flatten B) (flatten C)
+      compound-body = begin
+        bridge (α⇒ {(A₁₁ ⊗₀ A₁₂) ⊗₀ A₂} {B} {C})
+          ≈⟨ bridge-resp-≈Term pentagon-rewrite ⟩
+        bridge ( α⇐ {P} {A₂} {B ⊗₀ C}
+               ∘ id {P} ⊗₁ α⇒ {A₂} {B} {C}
+               ∘ α⇒ {P} {A₂ ⊗₀ B} {C}
+               ∘ α⇒ {P} {A₂} {B} ⊗₁ id {C} )
+          ≈⟨ bridge-∘4 ⟩
+        bridge (α⇐ {P} {A₂} {B ⊗₀ C})
+          ∘ bridge (id {P} ⊗₁ α⇒ {A₂} {B} {C})
+          ∘ bridge (α⇒ {P} {A₂ ⊗₀ B} {C})
+          ∘ bridge (α⇒ {P} {A₂} {B} ⊗₁ id {C})
+          ≈⟨ br-⇐ ⟩∘⟨ bx-mid ⟩∘⟨ br-mid ⟩∘⟨ bx-low ⟩
+        α⇐-form-list p (flatten A₂) (flatten B ++ flatten C)
+          ∘ ( c-to p (flatten A₂ ++ flatten B ++ flatten C)
+            ∘ (id ⊗₁ α⇒-form-list (flatten A₂) (flatten B) (flatten C))
+            ∘ c-from p ((flatten A₂ ++ flatten B) ++ flatten C) )
+          ∘ α⇒-form-list p (flatten A₂ ++ flatten B) (flatten C)
+          ∘ ( c-to (p ++ flatten A₂ ++ flatten B) (flatten C)
+            ∘ (α⇒-form-list p (flatten A₂) (flatten B) ⊗₁ id)
+            ∘ c-from ((p ++ flatten A₂) ++ flatten B) (flatten C) )
+          ≈⟨ list-collapse ⟩
+        α⇒-form-list ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂)
+                     (flatten B) (flatten C) ∎
+        where
+          c-to   = λ as bs → _≅_.to   (unflatten-++-≅ as bs)
+          c-from = λ as bs → _≅_.from (unflatten-++-≅ as bs)
+
+          -- bridge (id_P ⊗ α⇒_{A₂,B,C}) via bridge-⊗ + bridge-id + br-A₂.
+          bx-mid
+            : bridge (id {P} ⊗₁ α⇒ {A₂} {B} {C})
+            ≈Term c-to p (flatten A₂ ++ flatten B ++ flatten C)
+                 ∘ (id ⊗₁ α⇒-form-list (flatten A₂) (flatten B) (flatten C))
+                 ∘ c-from p ((flatten A₂ ++ flatten B) ++ flatten C)
+          bx-mid = begin
+            bridge (id {P} ⊗₁ α⇒ {A₂} {B} {C})
+              ≈⟨ bridge-⊗ (id {P}) (α⇒ {A₂} {B} {C}) ⟩
+            c-to p (flatten A₂ ++ flatten B ++ flatten C)
+              ∘ (bridge (id {P}) ⊗₁ bridge (α⇒ {A₂} {B} {C}))
+              ∘ c-from p ((flatten A₂ ++ flatten B) ++ flatten C)
+              ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (bridge-id-is-id P) br-A₂ ⟩∘⟨refl ⟩
+            c-to p (flatten A₂ ++ flatten B ++ flatten C)
+              ∘ (id ⊗₁ α⇒-form-list (flatten A₂) (flatten B) (flatten C))
+              ∘ c-from p ((flatten A₂ ++ flatten B) ++ flatten C) ∎
+
+          -- bridge (α⇒_{P,A₂,B} ⊗ id_C) via bridge-⊗ + br-low + bridge-id.
+          bx-low
+            : bridge (α⇒ {P} {A₂} {B} ⊗₁ id {C})
+            ≈Term c-to (p ++ flatten A₂ ++ flatten B) (flatten C)
+                 ∘ (α⇒-form-list p (flatten A₂) (flatten B) ⊗₁ id)
+                 ∘ c-from ((p ++ flatten A₂) ++ flatten B) (flatten C)
+          bx-low = begin
+            bridge (α⇒ {P} {A₂} {B} ⊗₁ id {C})
+              ≈⟨ bridge-⊗ (α⇒ {P} {A₂} {B}) (id {C}) ⟩
+            c-to (p ++ flatten A₂ ++ flatten B) (flatten C)
+              ∘ (bridge (α⇒ {P} {A₂} {B}) ⊗₁ bridge (id {C}))
+              ∘ c-from ((p ++ flatten A₂) ++ flatten B) (flatten C)
+              ≈⟨ refl⟩∘⟨ ⊗-resp-≈ br-low (bridge-id-is-id C) ⟩∘⟨refl ⟩
+            c-to (p ++ flatten A₂ ++ flatten B) (flatten C)
+              ∘ (α⇒-form-list p (flatten A₂) (flatten B) ⊗₁ id)
+              ∘ c-from ((p ++ flatten A₂) ++ flatten B) (flatten C) ∎
+
+          list-collapse
+              : α⇐-form-list p (flatten A₂) (flatten B ++ flatten C)
+                  ∘ ( c-to p (flatten A₂ ++ flatten B ++ flatten C)
+                    ∘ (id ⊗₁ α⇒-form-list (flatten A₂) (flatten B) (flatten C))
+                    ∘ c-from p ((flatten A₂ ++ flatten B) ++ flatten C) )
+                  ∘ α⇒-form-list p (flatten A₂ ++ flatten B) (flatten C)
+                  ∘ ( c-to (p ++ flatten A₂ ++ flatten B) (flatten C)
+                    ∘ (α⇒-form-list p (flatten A₂) (flatten B) ⊗₁ id)
+                    ∘ c-from ((p ++ flatten A₂) ++ flatten B) (flatten C) )
+              ≈Term α⇒-form-list ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂)
+                                  (flatten B) (flatten C)
+          list-collapse = list-collapse-gen p (flatten A₂) (flatten B) (flatten C)
+
+          -- bridge distributes over the 4-fold composite.
+          bridge-∘4
+            : bridge ( α⇐ {P} {A₂} {B ⊗₀ C}
+                     ∘ id {P} ⊗₁ α⇒ {A₂} {B} {C}
+                     ∘ α⇒ {P} {A₂ ⊗₀ B} {C}
+                     ∘ α⇒ {P} {A₂} {B} ⊗₁ id {C} )
+            ≈Term bridge (α⇐ {P} {A₂} {B ⊗₀ C})
+                ∘ bridge (id {P} ⊗₁ α⇒ {A₂} {B} {C})
+                ∘ bridge (α⇒ {P} {A₂ ⊗₀ B} {C})
+                ∘ bridge (α⇒ {P} {A₂} {B} ⊗₁ id {C})
+          bridge-∘4 = begin
+            bridge (f0 ∘ f1 ∘ f2 ∘ f3)
+              ≈⟨ bridge-∘ f0 (f1 ∘ f2 ∘ f3) ⟩
+            bridge f0 ∘ bridge (f1 ∘ f2 ∘ f3)
+              ≈⟨ refl⟩∘⟨ bridge-∘ f1 (f2 ∘ f3) ⟩
+            bridge f0 ∘ bridge f1 ∘ bridge (f2 ∘ f3)
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ bridge-∘ f2 f3 ⟩
+            bridge f0 ∘ bridge f1 ∘ bridge f2 ∘ bridge f3 ∎
+            where
+              f0 = α⇐ {P} {A₂} {B ⊗₀ C}
+              f1 = id {P} ⊗₁ α⇒ {A₂} {B} {C}
+              f2 = α⇒ {P} {A₂ ⊗₀ B} {C}
+              f3 = α⇒ {P} {A₂} {B} ⊗₁ id {C}
 
 --------------------------------------------------------------------------------
--- Why bridge-α⇒-form-⊗-⊗ remains a residual (record-field):
---
---   (a) Pentagon-rewrite + bridge-∘ + IHs — but pentagon-induced sub-α⇒'s
---       have UNCHANGED compound first arg (A₁₁⊗A₁₂), which fails Agda's
---       structural termination.
---   (b) α-shift to relate `α⇒_{(A₁₁⊗A₁₂)⊗A₂, B, C}` and
---       `α⇒_{A₁₁⊗(A₁₂⊗A₂), B, C}` — but the connecting morphism is
---       itself `α⇒_{A₁₁,A₁₂,A₂}`, whose bridge requires recursing into
---       `bridge α⇒_{A₁₁, A₁₂, A₂}` at types matching the dispatcher.
---       Same termination obstacle.
---   (c) Custom well-founded recursion via `Acc` or sized types.
---
--- None of these fit within a single discharge-file's LOC budget.  The
--- unit/Var cases of `bridge-α⇒-form-⊗-here`, plus F/T decomp helpers,
--- are constructive and packaged inside `WithResidual` above.
+-- Public entry point: discharge the original residual via `<-wellFounded`.
+
+bridge-α⇒-form-⊗-⊗
+  : ∀ A₁₁ A₁₂ A₂ B C
+  → bridge (α⇒ {(A₁₁ ⊗₀ A₁₂) ⊗₀ A₂} {B} {C})
+  ≈Term α⇒-form-list ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂)
+                      (flatten B) (flatten C)
+bridge-α⇒-form-⊗-⊗ A₁₁ A₁₂ A₂ B C =
+  Worker.work ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂) B C (<-wellFounded _)
