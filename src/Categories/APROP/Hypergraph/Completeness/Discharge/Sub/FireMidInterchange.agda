@@ -67,6 +67,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
 
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidInterchangeComb sig as Comb
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFNf2 sig as Nf2
 
 -- The `--with-K` block-braiding ↔ `permute` machinery that the two
 -- σ-coherence residual fields reduce to (previously walled off by the
@@ -450,36 +451,18 @@ module _ (H : Hypergraph FlatGen)
            ≈Term ( permute-via-vlab H.vlab vout-loc₂ ∘ _≅_.to (view-out≅ e' e Rlist) )
                  ∘ (σ ⊗₁ id)
 
-  -- The two single-order Mac-Lane block-normal-form factorisations (the
-  -- "two boxes on disjoint factors = tensor of boxes" chase, of the same
-  -- flavour `Sub/SwapAtomAligned.swap-mac-lane-residual` also leaves open).
+  -- The two single-order Mac-Lane block-normal-form factorisations are now
+  -- DISCHARGED from a SINGLE shared residual, via `Sub/BlockNFNf2.agda`.
+  -- `nf₁-eq′`/`nf₂-eq′` are MIRROR images (swap the two block roles), so both
+  -- instantiate ONE symmetric generic lemma whose SOLE residual is the
+  -- `BlockBracket.block-bracket` field — the shared-block two-box interchange,
+  -- i.e. the genuine Mac-Lane kernel (`≈ swap-atom-aligned`, open under
+  -- `--with-K` too).  This collapses the previous TWO `nf` postulates into ONE.
   postulate
-    nf₁-eq′
-      : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
-          (sp : List (Fin H.nV))
-          (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
-          (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
-          (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
-          (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-      → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
-        in ( fire-mid H e' r₂ ∘ permute-via-vlab H.vlab p₂
-               ∘ fire-mid H e r₁ ∘ permute-via-vlab H.vlab p₁ )
-           ≈Term ( permute-via-vlab H.vlab vout-loc₁ ∘ _≅_.to (view-out≅ e e' Rlist) )
-                 ∘ ((box-e e ⊗₁ box-e e') ⊗₁ id)
-                 ∘ ( _≅_.from (view-in≅ e e' Rlist) ∘ permute-via-vlab H.vlab loc₁ )
-    nf₂-eq′
-      : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
-          (sp : List (Fin H.nV))
-          (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
-          (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
-          (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
-          (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-      → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
-        in ( fire-mid H e r₁' ∘ permute-via-vlab H.vlab p₁'
-               ∘ fire-mid H e' r₂' ∘ permute-via-vlab H.vlab p₂' )
-           ≈Term ( permute-via-vlab H.vlab vout-loc₂ ∘ _≅_.to (view-out≅ e' e Rlist) )
-                 ∘ ((box-e e' ⊗₁ box-e e) ⊗₁ id)
-                 ∘ ( _≅_.from (view-in≅ e' e Rlist) ∘ permute-via-vlab H.vlab loc₂ )
+    nf-bracket : Nf2.BlockBracket H
+  private module NfInst = Nf2.Instantiate H nf-bracket dih lin
+  nf₁-eq′ = NfInst.nf₁-eq-derived
+  nf₂-eq′ = NfInst.nf₂-eq-derived
 
   -- The four-equation residual is now CONSTRUCTED from the four
   -- individually-typed postulates above (no bare `block-nf-residual`
