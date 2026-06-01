@@ -54,6 +54,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SigmaBlockHex
 open import Categories.FreeSMC.BraidPermute d
   using (rotate; σ-rotate; permute-rotate; permute-swap-refl-σ-block)
 open import Categories.FreeSMC.SigmaBlockTensor d using (σ⊗-from-hexagon₂)
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SigmaBlockCommRaw d as SBC
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_; module ≅; Iso)
@@ -868,13 +869,15 @@ private
   -- realised as `permute (rotate …)` = `permute (↭-sym (shift …))`) and
   -- braiding `xs'` past `ys` (the IH).
 
-  postulate
-    σ-block-comm-raw
-      : (xs ys : List X)
-      → _≅_.to (unflatten-++-≅ ys xs)
-          ∘ σ {A = unflatten xs} {B = unflatten ys}
-          ∘ _≅_.from (unflatten-++-≅ xs ys)
-        ≈Term permute (PermProp.++-comm xs ys)
+  -- DISCHARGED (no longer a postulate): proven in `Sub/SigmaBlockCommRaw.agda`
+  -- modulo only the pure associator/pentagon `σ-block-Bmerge` there.
+  σ-block-comm-raw
+    : (xs ys : List X)
+    → _≅_.to (unflatten-++-≅ ys xs)
+        ∘ σ {A = unflatten xs} {B = unflatten ys}
+        ∘ _≅_.from (unflatten-++-≅ xs ys)
+      ≈Term permute (PermProp.++-comm xs ys)
+  σ-block-comm-raw = SBC.σ-block-comm-raw
 
 --------------------------------------------------------------------------------
 -- ## (B)  The `map vlab` block level — the two residuals of `BlockNFVoutCoh`.
