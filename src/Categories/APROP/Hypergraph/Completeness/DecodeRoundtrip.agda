@@ -80,7 +80,7 @@ module Categories.APROP.Hypergraph.Completeness.DecodeRoundtrip (sig : APROPSign
 
 open APROP sig
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using (flatten; ⟪_⟫; hId)
+  using (flatten; ⟪_⟫; hId; domL-hId; codL-hId)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈; unflatten-++-≅)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
@@ -89,11 +89,11 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
 -- DE-INDEXED REFACTOR: `decode-attempt-subst₂` and
 -- `decode-attempt-subst₂-proj₁` no longer exist (the boundary
 -- transports they handled don't arise in the de-indexed version).
--- The `decode-{ρ⇒,ρ⇐,α⇒,α⇐}-shape` lemmas below remain as postulates
--- (they were previously proved with `decode-attempt-subst₂-proj₁`,
--- whose role is now played by the boundary subst at the top of `decode`
--- itself).  Reformulating these constructively under de-indexing is
--- mechanical but left as follow-up work.
+-- The `decode-{ρ⇒,ρ⇐,α⇒,α⇐}-shape` lemmas below are now PROVEN
+-- postulate-free (clone of `rhoShapeResidual` from
+-- `Discharge/DecodeRelDecodeP.agda`): the role formerly played by
+-- `decode-attempt-subst₂-proj₁` is now played by the boundary subst at
+-- the top of `decode` itself, peeled by `subst₂-{cod,dom}-trans`.
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
@@ -435,35 +435,88 @@ decode-roundtrip-λ⇐ {A} = begin
 -- transport explicitly via `subst₂ HomTerm`), `decode (ρ⇒ {A})` etc.
 -- are no longer opaque — they reduce to a `subst₂`-of-id form.
 
-postulate
-  -- Postulated under de-indexing.  These were previously proved in the
-  -- indexed version via `decode-attempt-subst₂-proj₁`.  In the
-  -- de-indexed version they hold by chaining `cong-trans`,
-  -- `subst₂-trans-cod`/`-dom`, and `subst₂-refl-{dom,cod}-≡` —
-  -- i.e. they're propositional consequences of how `decode` composes
-  -- the boundary subst from `⟪⟫-codL` (which factors as
-  -- `≡-trans codL-hId outer-eq` for ρ/α) into a double-subst.
-  --
-  -- The four are listed below for the rest of DecodeRoundtrip to consume.
-  decode-ρ⇒-shape
-    : ∀ A → decode (ρ⇒ {A})
-         ≡ subst₂ HomTerm refl (cong unflatten (++-identityʳ (flatten A)))
-                  (decode (id {A ⊗₀ unit}))
-  decode-ρ⇐-shape
-    : ∀ A → decode (ρ⇐ {A})
-         ≡ subst₂ HomTerm (cong unflatten (++-identityʳ (flatten A))) refl
-                  (decode (id {A ⊗₀ unit}))
-  decode-α⇒-shape
-    : ∀ A B C → decode (α⇒ {A} {B} {C})
-             ≡ subst₂ HomTerm refl
-                      (cong unflatten (++-assoc (flatten A) (flatten B) (flatten C)))
-                      (decode (id {(A ⊗₀ B) ⊗₀ C}))
-  decode-α⇐-shape
-    : ∀ A B C → decode (α⇐ {A} {B} {C})
-             ≡ subst₂ HomTerm
-                      (cong unflatten (++-assoc (flatten A) (flatten B) (flatten C)))
-                      refl
-                      (decode (id {(A ⊗₀ B) ⊗₀ C}))
+-- The four `decode-{ρ⇒,ρ⇐,α⇒,α⇐}-shape` lemmas are now PROVEN
+-- (postulate-free).  They are PURE boundary-`subst₂` ALGEBRA, NOT
+-- process-edges content:
+--   `⟪ ρ⇒ {A} ⟫ = hId (A ⊗₀ unit) = ⟪ id {A ⊗₀ unit} ⟫`, and
+--   `⟪ α⇒ {A}{B}{C} ⟫ = hId ((A ⊗₀ B) ⊗₀ C) = ⟪ id {(A ⊗₀ B) ⊗₀ C} ⟫`,
+-- so `decode-attempt-Linear (ρ⇒/α⇒)` and `decode-attempt-Linear (id …)`
+-- are DEFINITIONALLY the SAME `decode-attempt-hId …`.  The two decoders
+-- therefore share the SAME inner term `proj₁ (… decode-attempt-hId …)`
+-- and differ ONLY in the boundary equations supplied to `decode`'s
+-- `subst₂`.  Per `FromAPROP`:
+--   ⟪⟫-codL (ρ⇒ {A})       = ≡-trans (codL-hId (A ⊗₀ unit))     (++-identityʳ …)
+--   ⟪⟫-domL (ρ⇐ {A})       = ≡-trans (domL-hId (A ⊗₀ unit))     (++-identityʳ …)
+--   ⟪⟫-codL (α⇒ {A}{B}{C})  = ≡-trans (codL-hId ((A⊗B)⊗C))       (++-assoc …)
+--   ⟪⟫-domL (α⇐ {A}{B}{C})  = ≡-trans (domL-hId ((A⊗B)⊗C))       (++-assoc …)
+-- (the OTHER boundary is `codL-hId/domL-hId` alone — same as for `id`),
+-- and the generic `subst₂`-over-`trans` split below (`--with-K`, by
+-- `refl`-pattern, hence TRUE for ALL instances) peels exactly the
+-- trailing `++-identityʳ`/`++-assoc`.  Clone of `rhoShapeResidual`
+-- (`Discharge/DecodeRelDecodeP.agda`).
+
+private
+  -- Generic: a `subst₂` whose cod equation factors as `≡-trans q r`
+  -- splits as the outer `r`-transport of the inner `q`-transport.
+  -- (`--with-K`; TRUE for every `p`, `q`, `r`, `x`.)
+  subst₂-cod-trans
+    : ∀ {as as' bs bs' bs'' : List X}
+        (p : as ≡ as') (q : bs ≡ bs') (r : bs' ≡ bs'')
+        (x : HomTerm (unflatten as) (unflatten bs))
+    → subst₂ HomTerm (cong unflatten p) (cong unflatten (≡-trans q r)) x
+      ≡ subst₂ HomTerm refl (cong unflatten r)
+               (subst₂ HomTerm (cong unflatten p) (cong unflatten q) x)
+  subst₂-cod-trans refl refl refl x = refl
+
+  -- Symmetric: a `subst₂` whose dom equation factors as `≡-trans q r`.
+  subst₂-dom-trans
+    : ∀ {as as' as'' bs bs' : List X}
+        (q : as ≡ as') (r : as' ≡ as'') (p : bs ≡ bs')
+        (x : HomTerm (unflatten as) (unflatten bs))
+    → subst₂ HomTerm (cong unflatten (≡-trans q r)) (cong unflatten p) x
+      ≡ subst₂ HomTerm (cong unflatten r) refl
+               (subst₂ HomTerm (cong unflatten q) (cong unflatten p) x)
+  subst₂-dom-trans refl refl refl x = refl
+
+decode-ρ⇒-shape
+  : ∀ A → decode (ρ⇒ {A})
+       ≡ subst₂ HomTerm refl (cong unflatten (++-identityʳ (flatten A)))
+                (decode (id {A ⊗₀ unit}))
+decode-ρ⇒-shape A =
+  subst₂-cod-trans (domL-hId (A ⊗₀ unit)) (codL-hId (A ⊗₀ unit))
+                   (++-identityʳ (flatten A))
+                   (proj₁ (decode-attempt-hId (A ⊗₀ unit)))
+
+decode-ρ⇐-shape
+  : ∀ A → decode (ρ⇐ {A})
+       ≡ subst₂ HomTerm (cong unflatten (++-identityʳ (flatten A))) refl
+                (decode (id {A ⊗₀ unit}))
+decode-ρ⇐-shape A =
+  subst₂-dom-trans (domL-hId (A ⊗₀ unit)) (++-identityʳ (flatten A))
+                   (codL-hId (A ⊗₀ unit))
+                   (proj₁ (decode-attempt-hId (A ⊗₀ unit)))
+
+decode-α⇒-shape
+  : ∀ A B C → decode (α⇒ {A} {B} {C})
+           ≡ subst₂ HomTerm refl
+                    (cong unflatten (++-assoc (flatten A) (flatten B) (flatten C)))
+                    (decode (id {(A ⊗₀ B) ⊗₀ C}))
+decode-α⇒-shape A B C =
+  subst₂-cod-trans (domL-hId ((A ⊗₀ B) ⊗₀ C)) (codL-hId ((A ⊗₀ B) ⊗₀ C))
+                   (++-assoc (flatten A) (flatten B) (flatten C))
+                   (proj₁ (decode-attempt-hId ((A ⊗₀ B) ⊗₀ C)))
+
+decode-α⇐-shape
+  : ∀ A B C → decode (α⇐ {A} {B} {C})
+           ≡ subst₂ HomTerm
+                    (cong unflatten (++-assoc (flatten A) (flatten B) (flatten C)))
+                    refl
+                    (decode (id {(A ⊗₀ B) ⊗₀ C}))
+decode-α⇐-shape A B C =
+  subst₂-dom-trans (domL-hId ((A ⊗₀ B) ⊗₀ C))
+                   (++-assoc (flatten A) (flatten B) (flatten C))
+                   (codL-hId ((A ⊗₀ B) ⊗₀ C))
+                   (proj₁ (decode-attempt-hId ((A ⊗₀ B) ⊗₀ C)))
 
 --------------------------------------------------------------------------------
 -- Helpers for chaining `_≡_` and `≈Term` and for transporting `≈Term`
