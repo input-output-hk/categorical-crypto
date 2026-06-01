@@ -35,6 +35,10 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SigmaBlockHex
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_; module ≅; Iso)
+open import Categories.MonoidalCoherence using (module Solver)
+import Data.Vec as Vec
+open Vec using (Vec)
+open import Data.Fin using (Fin; zero; suc)
 open import Categories.Category.Monoidal.Symmetric Monoidal-FreeMonoidal using (Symmetric)
 open import Categories.Category.Monoidal.Braided.Properties
   (Symmetric.braided Symmetric-Monoidal)
@@ -216,18 +220,444 @@ private
 
 -- B-slot tensor decomposition of `σ-block`: the pure α-coherence "wrapping"
 -- of `σ-Bmerge-bare` (the dual of `BlockNFBraid`'s private C-slot
--- `σ-block-merge`).  Pure Mac-Lane associahedron coherence — NO braiding
--- content remains (that is fully discharged by `σ-Bmerge-bare`).  This is the
--- SOLE residual of this module: an associator/pentagon reassociation of the
--- already-proven `σ-Bmerge-bare`; unambiguously TRUE.
-postulate
-  σ-block-Bmerge
-    : ∀ {A B₁ B₂ C : ObjTerm}
-    → σ-block {A} {B₁ ⊗₀ B₂} {C}
-      ≈Term α⇐ {A = B₁} {B = B₂} {C = A ⊗₀ C}
-              ∘ (id {A = B₁} ⊗₁ σ-block {A} {B₂} {C})
-              ∘ σ-block {A} {B₁} {B₂ ⊗₀ C}
+-- `σ-block-merge`).  NO braiding content remains beyond `σ-Bmerge-bare`:
+-- both sides reduce to a common normal form `nf` in which the two genuine
+-- braid cells `σ{A}{B₁} ⊗ id` and `id ⊗ σ{A}{B₂}` are framed by associators;
+-- `lhs≈nf` substitutes `σ-Bmerge-bare` into the bare `σ-block` LHS and
+-- distributes the `⊗ id{C}`, while `rhs≈nf` slides the two RHS associators
+-- across the two braid cells via `α-comm` / pentagon coherence.  PROVEN.
+σ-block-Bmerge
+  : ∀ {A B₁ B₂ C : ObjTerm}
+  → σ-block {A} {B₁ ⊗₀ B₂} {C}
+    ≈Term α⇐ {A = B₁} {B = B₂} {C = A ⊗₀ C}
+            ∘ (id {A = B₁} ⊗₁ σ-block {A} {B₂} {C})
+            ∘ σ-block {A} {B₁} {B₂ ⊗₀ C}
+            ∘ (id {A = A} ⊗₁ α⇒ {A = B₁} {B = B₂} {C = C})
+σ-block-Bmerge {A} {B₁} {B₂} {C} = ≈-Term-trans lhs≈nf (≈-Term-sym rhs≈nf)
+  where
+    σ₁ = σ {A = A} {B = B₁}
+    σ₂ = σ {A = A} {B = B₂}
+
+    -- `(f ∘ g) ⊗ id ≈ (f ⊗ id) ∘ (g ⊗ id)`.
+    ⊗id-d : ∀ {Y₁ Y₂ Y₃ Z : ObjTerm} {f : HomTerm Y₂ Y₃} {g : HomTerm Y₁ Y₂}
+          → (f ∘ g) ⊗₁ id {A = Z} ≈Term (f ⊗₁ id) ∘ (g ⊗₁ id)
+    ⊗id-d = ≈-Term-trans (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⊗-∘-dist
+
+    -- The common normal form: `σ-Bmerge-bare ⊗ id{C}` distributed, framed by
+    -- the outer `α⇒/α⇐` of `σ-block{A}{B₁⊗B₂}{C}`.
+    nf : HomTerm (A ⊗₀ ((B₁ ⊗₀ B₂) ⊗₀ C)) ((B₁ ⊗₀ B₂) ⊗₀ (A ⊗₀ C))
+    nf = α⇒ {A = B₁ ⊗₀ B₂} {B = A} {C = C}
+       ∘ (α⇐ {A = B₁} {B = B₂} {C = A} ⊗₁ id {A = C})
+       ∘ ((id {A = B₁} ⊗₁ σ₂) ⊗₁ id {A = C})
+       ∘ (α⇒ {A = B₁} {B = A} {C = B₂} ⊗₁ id {A = C})
+       ∘ ((σ₁ ⊗₁ id {A = B₂}) ⊗₁ id {A = C})
+       ∘ (α⇐ {A = A} {B = B₁} {C = B₂} ⊗₁ id {A = C})
+       ∘ α⇐ {A = A} {B = B₁ ⊗₀ B₂} {C = C}
+
+    -- LHS = σ-block{A}{B₁⊗B₂}{C} = α⇒ ∘ (σ{A}{B₁⊗B₂} ⊗ id) ∘ α⇐;
+    -- rewrite σ{A}{B₁⊗B₂} via σ-Bmerge-bare and distribute `⊗ id{C}`.
+    lhs≈nf : σ-block {A} {B₁ ⊗₀ B₂} {C} ≈Term nf
+    lhs≈nf = begin
+        α⇒ ∘ (σ {A = A} {B = B₁ ⊗₀ B₂} ⊗₁ id {A = C}) ∘ α⇐
+          ≈⟨ refl⟩∘⟨ (⊗-resp-≈ σ-Bmerge-bare ≈-Term-refl ⟩∘⟨refl) ⟩
+        α⇒
+          ∘ ((α⇐ ∘ (id ⊗₁ σ₂) ∘ α⇒ ∘ (σ₁ ⊗₁ id) ∘ α⇐) ⊗₁ id {A = C}) ∘ α⇐
+          ≈⟨ refl⟩∘⟨ (dist ⟩∘⟨refl) ⟩
+        α⇒
+          ∘ ((α⇐ ⊗₁ id)
+              ∘ ((id ⊗₁ σ₂) ⊗₁ id)
+              ∘ (α⇒ ⊗₁ id)
+              ∘ ((σ₁ ⊗₁ id) ⊗₁ id)
+              ∘ (α⇐ ⊗₁ id)) ∘ α⇐
+          ≈⟨ refl⟩∘⟨ assoc ⟩
+        α⇒
+          ∘ (α⇐ ⊗₁ id)
+          ∘ (((id ⊗₁ σ₂) ⊗₁ id)
+              ∘ (α⇒ ⊗₁ id)
+              ∘ ((σ₁ ⊗₁ id) ⊗₁ id)
+              ∘ (α⇐ ⊗₁ id)) ∘ α⇐
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ assoc ⟩
+        α⇒
+          ∘ (α⇐ ⊗₁ id)
+          ∘ ((id ⊗₁ σ₂) ⊗₁ id)
+          ∘ ((α⇒ ⊗₁ id)
+              ∘ ((σ₁ ⊗₁ id) ⊗₁ id)
+              ∘ (α⇐ ⊗₁ id)) ∘ α⇐
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ assoc ⟩
+        α⇒
+          ∘ (α⇐ ⊗₁ id)
+          ∘ ((id ⊗₁ σ₂) ⊗₁ id)
+          ∘ (α⇒ ⊗₁ id)
+          ∘ (((σ₁ ⊗₁ id) ⊗₁ id)
+              ∘ (α⇐ ⊗₁ id)) ∘ α⇐
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ assoc ⟩
+        α⇒
+          ∘ (α⇐ ⊗₁ id)
+          ∘ ((id ⊗₁ σ₂) ⊗₁ id)
+          ∘ (α⇒ ⊗₁ id)
+          ∘ ((σ₁ ⊗₁ id) ⊗₁ id)
+          ∘ (α⇐ ⊗₁ id) ∘ α⇐
+      ∎
+      where
+        -- (g₁ ∘ g₂ ∘ g₃ ∘ g₄ ∘ g₅) ⊗ id ≈ (g₁⊗id) ∘ ... ∘ (g₅⊗id)
+        dist
+          : (α⇐ {A = B₁} {B = B₂} {C = A} ∘ (id ⊗₁ σ₂) ∘ α⇒ {A = B₁} {B = A} {C = B₂}
+              ∘ (σ₁ ⊗₁ id) ∘ α⇐ {A = A} {B = B₁} {C = B₂}) ⊗₁ id {A = C}
+            ≈Term (α⇐ ⊗₁ id)
+                ∘ ((id ⊗₁ σ₂) ⊗₁ id)
+                ∘ (α⇒ ⊗₁ id)
+                ∘ ((σ₁ ⊗₁ id) ⊗₁ id)
+                ∘ (α⇐ ⊗₁ id)
+        dist = begin
+            (α⇐ ∘ (id ⊗₁ σ₂) ∘ α⇒ ∘ (σ₁ ⊗₁ id) ∘ α⇐) ⊗₁ id
+              ≈⟨ ⊗id-d ⟩
+            (α⇐ ⊗₁ id) ∘ (((id ⊗₁ σ₂) ∘ α⇒ ∘ (σ₁ ⊗₁ id) ∘ α⇐) ⊗₁ id)
+              ≈⟨ refl⟩∘⟨ ⊗id-d ⟩
+            (α⇐ ⊗₁ id) ∘ ((id ⊗₁ σ₂) ⊗₁ id) ∘ ((α⇒ ∘ (σ₁ ⊗₁ id) ∘ α⇐) ⊗₁ id)
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ⊗id-d ⟩
+            (α⇐ ⊗₁ id) ∘ ((id ⊗₁ σ₂) ⊗₁ id) ∘ (α⇒ ⊗₁ id) ∘ (((σ₁ ⊗₁ id) ∘ α⇐) ⊗₁ id)
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ ⊗id-d ⟩
+            (α⇐ ⊗₁ id) ∘ ((id ⊗₁ σ₂) ⊗₁ id) ∘ (α⇒ ⊗₁ id)
+              ∘ ((σ₁ ⊗₁ id) ⊗₁ id) ∘ (α⇐ ⊗₁ id)
+          ∎
+
+    -- Solver instance over the 4 atoms `B₁ B₂ A C` (in this order), used to
+    -- discharge the three pure-associator framing identities E1/E2/E3 below
+    -- (Mac-Lane coherence; no braiding).
+    vars : Vec ObjTerm 4
+    vars = B₁ Vec.∷ B₂ Vec.∷ A Vec.∷ C Vec.∷ Vec.[]
+
+    open Solver (record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal })
+                {n = 4} vars
+      using (solveM)
+      renaming (α⇒ to α⇒ˢ; α⇐ to α⇐ˢ; id to idˢ; _∘_ to _∘ˢ_;
+                _⊗₁_ to _⊗₁ˢ_; _⊗₀_ to _⊗₀ˢ_; Var to Varˢ)
+
+    b₁ b₂ a c : _
+    b₁ = Varˢ zero
+    b₂ = Varˢ (suc zero)
+    a  = Varˢ (suc (suc zero))
+    c  = Varˢ (suc (suc (suc zero)))
+
+    -- E1: framing before the σ₂-cell.
+    --   α⇐{B₁}{B₂}{A⊗C} ∘ (id{B₁}⊗α⇒{B₂}{A}{C}) ∘ α⇒{B₁}{B₂⊗A}{C}
+    --     ≈ α⇒{B₁⊗B₂}{A}{C} ∘ (α⇐{B₁}{B₂}{A} ⊗ id{C})
+    E1 : α⇐ {A = B₁} {B = B₂} {C = A ⊗₀ C}
+           ∘ (id {A = B₁} ⊗₁ α⇒ {A = B₂} {B = A} {C = C})
+           ∘ α⇒ {A = B₁} {B = B₂ ⊗₀ A} {C = C}
+         ≈Term α⇒ {A = B₁ ⊗₀ B₂} {B = A} {C = C}
+           ∘ (α⇐ {A = B₁} {B = B₂} {C = A} ⊗₁ id {A = C})
+    E1 = solveM
+      (α⇐ˢ {A = b₁} {b₂} {a ⊗₀ˢ c}
+        ∘ˢ (idˢ ⊗₁ˢ α⇒ˢ {A = b₂} {a} {c})
+        ∘ˢ α⇒ˢ {A = b₁} {b₂ ⊗₀ˢ a} {c})
+      (α⇒ˢ {A = b₁ ⊗₀ˢ b₂} {a} {c}
+        ∘ˢ (α⇐ˢ {A = b₁} {b₂} {a} ⊗₁ˢ idˢ))
+
+    -- E2: framing between the σ₂-cell and the σ₁-cell.
+    --   α⇐{B₁}{A⊗B₂}{C} ∘ (id{B₁}⊗α⇐{A}{B₂}{C}) ∘ α⇒{B₁}{A}{B₂⊗C} ∘ α⇒{B₁⊗A}{B₂}{C}
+    --     ≈ (α⇒{B₁}{A}{B₂} ⊗ id{C})
+    E2 : α⇐ {A = B₁} {B = A ⊗₀ B₂} {C = C}
+           ∘ (id {A = B₁} ⊗₁ α⇐ {A = A} {B = B₂} {C = C})
+           ∘ α⇒ {A = B₁} {B = A} {C = B₂ ⊗₀ C}
+           ∘ α⇒ {A = B₁ ⊗₀ A} {B = B₂} {C = C}
+         ≈Term (α⇒ {A = B₁} {B = A} {C = B₂} ⊗₁ id {A = C})
+    E2 = solveM
+      (α⇐ˢ {A = b₁} {a ⊗₀ˢ b₂} {c}
+        ∘ˢ (idˢ ⊗₁ˢ α⇐ˢ {A = a} {b₂} {c})
+        ∘ˢ α⇒ˢ {A = b₁} {a} {b₂ ⊗₀ˢ c}
+        ∘ˢ α⇒ˢ {A = b₁ ⊗₀ˢ a} {b₂} {c})
+      (α⇒ˢ {A = b₁} {a} {b₂} ⊗₁ˢ idˢ)
+
+    -- E3: framing after the σ₁-cell.
+    --   α⇐{A⊗B₁}{B₂}{C} ∘ α⇐{A}{B₁}{B₂⊗C} ∘ (id{A}⊗α⇒{B₁}{B₂}{C})
+    --     ≈ (α⇐{A}{B₁}{B₂} ⊗ id{C}) ∘ α⇐{A}{B₁⊗B₂}{C}
+    E3 : α⇐ {A = A ⊗₀ B₁} {B = B₂} {C = C}
+           ∘ α⇐ {A = A} {B = B₁} {C = B₂ ⊗₀ C}
+           ∘ (id {A = A} ⊗₁ α⇒ {A = B₁} {B = B₂} {C = C})
+         ≈Term (α⇐ {A = A} {B = B₁} {C = B₂} ⊗₁ id {A = C})
+           ∘ α⇐ {A = A} {B = B₁ ⊗₀ B₂} {C = C}
+    E3 = solveM
+      (α⇐ˢ {A = a ⊗₀ˢ b₁} {b₂} {c}
+        ∘ˢ α⇐ˢ {A = a} {b₁} {b₂ ⊗₀ˢ c}
+        ∘ˢ (idˢ ⊗₁ˢ α⇒ˢ {A = b₁} {b₂} {c}))
+      ((α⇐ˢ {A = a} {b₁} {b₂} ⊗₁ˢ idˢ)
+        ∘ˢ α⇐ˢ {A = a} {b₁ ⊗₀ˢ b₂} {c})
+
+    -- α-naturality to align the σ₂-cell: (id{B₁} ⊗ (σ₂ ⊗ id{C}))
+    --   = α⇒ ∘ ((id{B₁} ⊗ σ₂) ⊗ id{C}) ∘ α⇐   (assoc-commute).
+    sl₂ : (id {A = B₁} ⊗₁ (σ₂ ⊗₁ id {A = C}))
+          ≈Term α⇒ {A = B₁} {B = B₂ ⊗₀ A} {C = C}
+              ∘ ((id {A = B₁} ⊗₁ σ₂) ⊗₁ id {A = C})
+              ∘ α⇐ {A = B₁} {B = A ⊗₀ B₂} {C = C}
+    sl₂ = begin
+        id ⊗₁ (σ₂ ⊗₁ id)
+          ≈⟨ ≈-Term-sym idˡ ⟩
+        id ∘ (id ⊗₁ (σ₂ ⊗₁ id))
+          ≈⟨ ≈-Term-sym α⇒∘α⇐≈id ⟩∘⟨refl ⟩
+        (α⇒ ∘ α⇐) ∘ (id ⊗₁ (σ₂ ⊗₁ id))
+          ≈⟨ assoc ⟩
+        α⇒ ∘ (α⇐ ∘ (id ⊗₁ (σ₂ ⊗₁ id)))
+          ≈⟨ refl⟩∘⟨ ≈-Term-sym α⇐-nat ⟩
+        α⇒ ∘ (((id ⊗₁ σ₂) ⊗₁ id) ∘ α⇐)
+          ≈⟨ ≈-Term-sym assoc ⟩
+        (α⇒ ∘ ((id ⊗₁ σ₂) ⊗₁ id)) ∘ α⇐
+          ≈⟨ assoc ⟩
+        α⇒ ∘ ((id ⊗₁ σ₂) ⊗₁ id) ∘ α⇐
+      ∎
+      where
+        -- α⇐ ∘ (id ⊗ (f ⊗ id)) ≈ ((id ⊗ f) ⊗ id) ∘ α⇐  (from α-comm).
+        α⇐-nat : ((id {A = B₁} ⊗₁ σ₂) ⊗₁ id {A = C}) ∘ α⇐ {A = B₁} {B = A ⊗₀ B₂} {C = C}
+                 ≈Term α⇐ {A = B₁} {B = B₂ ⊗₀ A} {C = C} ∘ (id {A = B₁} ⊗₁ (σ₂ ⊗₁ id {A = C}))
+        α⇐-nat = begin
+            ((id ⊗₁ σ₂) ⊗₁ id) ∘ α⇐
+              ≈⟨ ≈-Term-sym idˡ ⟩
+            id ∘ ((id ⊗₁ σ₂) ⊗₁ id) ∘ α⇐
+              ≈⟨ (≈-Term-sym α⇐∘α⇒≈id) ⟩∘⟨refl ⟩
+            (α⇐ ∘ α⇒) ∘ ((id ⊗₁ σ₂) ⊗₁ id) ∘ α⇐
+              ≈⟨ assoc ⟩
+            α⇐ ∘ (α⇒ ∘ ((id ⊗₁ σ₂) ⊗₁ id) ∘ α⇐)
+              ≈⟨ refl⟩∘⟨ (≈-Term-sym assoc) ⟩
+            α⇐ ∘ ((α⇒ ∘ ((id ⊗₁ σ₂) ⊗₁ id)) ∘ α⇐)
+              ≈⟨ refl⟩∘⟨ (α-comm ⟩∘⟨refl) ⟩
+            α⇐ ∘ (((id ⊗₁ (σ₂ ⊗₁ id)) ∘ α⇒) ∘ α⇐)
+              ≈⟨ refl⟩∘⟨ assoc ⟩
+            α⇐ ∘ ((id ⊗₁ (σ₂ ⊗₁ id)) ∘ (α⇒ ∘ α⇐))
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ α⇒∘α⇐≈id ⟩
+            α⇐ ∘ ((id ⊗₁ (σ₂ ⊗₁ id)) ∘ id)
+              ≈⟨ refl⟩∘⟨ idʳ ⟩
+            α⇐ ∘ (id ⊗₁ (σ₂ ⊗₁ id))
+          ∎
+
+    -- α-naturality to align the σ₁-cell: (σ₁ ⊗ id{B₂⊗C})
+    --   = α⇒ ∘ ((σ₁ ⊗ id{B₂}) ⊗ id{C}) ∘ α⇐.
+    sl₁ : (σ₁ ⊗₁ id {A = B₂ ⊗₀ C})
+          ≈Term α⇒ {A = B₁ ⊗₀ A} {B = B₂} {C = C}
+              ∘ ((σ₁ ⊗₁ id {A = B₂}) ⊗₁ id {A = C})
+              ∘ α⇐ {A = A ⊗₀ B₁} {B = B₂} {C = C}
+    sl₁ = begin
+        σ₁ ⊗₁ id {A = B₂ ⊗₀ C}
+          ≈⟨ ⊗-resp-≈ ≈-Term-refl (≈-Term-sym id⊗id≈id) ⟩
+        σ₁ ⊗₁ (id {A = B₂} ⊗₁ id {A = C})
+          ≈⟨ ≈-Term-sym idˡ ⟩
+        id ∘ (σ₁ ⊗₁ (id ⊗₁ id))
+          ≈⟨ (≈-Term-sym α⇒∘α⇐≈id) ⟩∘⟨refl ⟩
+        (α⇒ ∘ α⇐) ∘ (σ₁ ⊗₁ (id ⊗₁ id))
+          ≈⟨ assoc ⟩
+        α⇒ ∘ (α⇐ ∘ (σ₁ ⊗₁ (id ⊗₁ id)))
+          ≈⟨ refl⟩∘⟨ (≈-Term-sym α⇐-nat₁) ⟩
+        α⇒ ∘ (((σ₁ ⊗₁ id) ⊗₁ id) ∘ α⇐)
+          ≈⟨ ≈-Term-sym assoc ⟩
+        (α⇒ ∘ ((σ₁ ⊗₁ id) ⊗₁ id)) ∘ α⇐
+          ≈⟨ assoc ⟩
+        α⇒ ∘ ((σ₁ ⊗₁ id) ⊗₁ id) ∘ α⇐
+      ∎
+      where
+        α⇐-nat₁ : ((σ₁ ⊗₁ id {A = B₂}) ⊗₁ id {A = C}) ∘ α⇐ {A = A ⊗₀ B₁} {B = B₂} {C = C}
+                  ≈Term α⇐ {A = B₁ ⊗₀ A} {B = B₂} {C = C}
+                      ∘ (σ₁ ⊗₁ (id {A = B₂} ⊗₁ id {A = C}))
+        α⇐-nat₁ = begin
+            ((σ₁ ⊗₁ id) ⊗₁ id) ∘ α⇐
+              ≈⟨ ≈-Term-sym idˡ ⟩
+            id ∘ ((σ₁ ⊗₁ id) ⊗₁ id) ∘ α⇐
+              ≈⟨ (≈-Term-sym α⇐∘α⇒≈id) ⟩∘⟨refl ⟩
+            (α⇐ ∘ α⇒) ∘ ((σ₁ ⊗₁ id) ⊗₁ id) ∘ α⇐
+              ≈⟨ assoc ⟩
+            α⇐ ∘ (α⇒ ∘ ((σ₁ ⊗₁ id) ⊗₁ id) ∘ α⇐)
+              ≈⟨ refl⟩∘⟨ (≈-Term-sym assoc) ⟩
+            α⇐ ∘ ((α⇒ ∘ ((σ₁ ⊗₁ id) ⊗₁ id)) ∘ α⇐)
+              ≈⟨ refl⟩∘⟨ (α-comm ⟩∘⟨refl) ⟩
+            α⇐ ∘ (((σ₁ ⊗₁ (id ⊗₁ id)) ∘ α⇒) ∘ α⇐)
+              ≈⟨ refl⟩∘⟨ assoc ⟩
+            α⇐ ∘ ((σ₁ ⊗₁ (id ⊗₁ id)) ∘ (α⇒ ∘ α⇐))
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ α⇒∘α⇐≈id ⟩
+            α⇐ ∘ ((σ₁ ⊗₁ (id ⊗₁ id)) ∘ id)
+              ≈⟨ refl⟩∘⟨ idʳ ⟩
+            α⇐ ∘ (σ₁ ⊗₁ (id ⊗₁ id))
+          ∎
+
+    -- `id ⊗ (f ∘ g ∘ h) ≈ (id⊗f) ∘ (id⊗g) ∘ (id⊗h)`.
+    id⊗-d : ∀ {Z Y₁ Y₂ Y₃ Y₄ : ObjTerm}
+              {f : HomTerm Y₃ Y₄} {g : HomTerm Y₂ Y₃} {h : HomTerm Y₁ Y₂}
+          → id {A = Z} ⊗₁ (f ∘ g ∘ h)
+            ≈Term (id ⊗₁ f) ∘ (id ⊗₁ g) ∘ (id ⊗₁ h)
+    id⊗-d = ≈-Term-trans
+              (⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl)
+              (≈-Term-trans ⊗-∘-dist
+                (refl⟩∘⟨ (≈-Term-trans (⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl) ⊗-∘-dist)))
+
+    rhs≈nf : α⇐ {A = B₁} {B = B₂} {C = A ⊗₀ C}
+               ∘ (id {A = B₁} ⊗₁ σ-block {A} {B₂} {C})
+               ∘ σ-block {A} {B₁} {B₂ ⊗₀ C}
+               ∘ (id {A = A} ⊗₁ α⇒ {A = B₁} {B = B₂} {C = C})
+             ≈Term nf
+    rhs≈nf = begin
+        -- expand `id ⊗ σ-block{A}{B₂}{C}` and `σ-block{A}{B₁}{B₂⊗C}`.
+        α⇐ ∘ (id {A = B₁} ⊗₁ σ-block {A} {B₂} {C})
+          ∘ σ-block {A} {B₁} {B₂ ⊗₀ C}
+          ∘ (id {A = A} ⊗₁ α⇒ {A = B₁} {B = B₂} {C = C})
+          ≈⟨ refl⟩∘⟨ (id⊗-d ⟩∘⟨refl) ⟩
+        α⇐
+          ∘ ((id ⊗₁ α⇒ {A = B₂} {B = A} {C = C})
+              ∘ (id ⊗₁ (σ₂ ⊗₁ id {A = C}))
+              ∘ (id ⊗₁ α⇐ {A = A} {B = B₂} {C = C}))
+          ∘ (α⇒ {A = B₁} {B = A} {C = B₂ ⊗₀ C}
+              ∘ (σ₁ ⊗₁ id {A = B₂ ⊗₀ C})
+              ∘ α⇐ {A = A} {B = B₁} {C = B₂ ⊗₀ C})
+          ∘ (id {A = A} ⊗₁ α⇒ {A = B₁} {B = B₂} {C = C})
+          -- substitute sl₂ and sl₁ for the two braid cells.
+          ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ (sl₂ ⟩∘⟨refl)) ⟩∘⟨ ((refl⟩∘⟨ (sl₁ ⟩∘⟨refl)) ⟩∘⟨refl)) ⟩
+        α⇐
+          ∘ ((id ⊗₁ α⇒ {A = B₂} {B = A} {C = C})
+              ∘ (α⇒ {A = B₁} {B = B₂ ⊗₀ A} {C = C}
+                  ∘ ((id ⊗₁ σ₂) ⊗₁ id)
+                  ∘ α⇐ {A = B₁} {B = A ⊗₀ B₂} {C = C})
+              ∘ (id ⊗₁ α⇐ {A = A} {B = B₂} {C = C}))
+          ∘ (α⇒ {A = B₁} {B = A} {C = B₂ ⊗₀ C}
+              ∘ (α⇒ {A = B₁ ⊗₀ A} {B = B₂} {C = C}
+                  ∘ ((σ₁ ⊗₁ id) ⊗₁ id)
+                  ∘ α⇐ {A = A ⊗₀ B₁} {B = B₂} {C = C})
+              ∘ α⇐ {A = A} {B = B₁} {C = B₂ ⊗₀ C})
+          ∘ (id {A = A} ⊗₁ α⇒ {A = B₁} {B = B₂} {C = C})
+          -- flatten into a single right-associated chain.
+          ≈⟨ flatten ⟩
+        α⇐
+          ∘ (id ⊗₁ α⇒ {A = B₂} {B = A} {C = C})
+          ∘ α⇒ {A = B₁} {B = B₂ ⊗₀ A} {C = C}
+          ∘ ((id ⊗₁ σ₂) ⊗₁ id)
+          ∘ α⇐ {A = B₁} {B = A ⊗₀ B₂} {C = C}
+          ∘ (id ⊗₁ α⇐ {A = A} {B = B₂} {C = C})
+          ∘ α⇒ {A = B₁} {B = A} {C = B₂ ⊗₀ C}
+          ∘ α⇒ {A = B₁ ⊗₀ A} {B = B₂} {C = C}
+          ∘ ((σ₁ ⊗₁ id) ⊗₁ id)
+          ∘ α⇐ {A = A ⊗₀ B₁} {B = B₂} {C = C}
+          ∘ α⇐ {A = A} {B = B₁} {C = B₂ ⊗₀ C}
+          ∘ (id {A = A} ⊗₁ α⇒ {A = B₁} {B = B₂} {C = C})
+          -- collapse the three pure-associator framing blocks via E1/E2/E3.
+          ≈⟨ collapse ⟩
+        nf
+      ∎
+      where
+        -- regroup the doubly-nested form into a flat right-associated chain.
+        flatten
+          : α⇐ {A = B₁} {B = B₂} {C = A ⊗₀ C}
+              ∘ ((id ⊗₁ α⇒ {A = B₂} {B = A} {C = C})
+                  ∘ (α⇒ {A = B₁} {B = B₂ ⊗₀ A} {C = C}
+                      ∘ ((id ⊗₁ σ₂) ⊗₁ id)
+                      ∘ α⇐ {A = B₁} {B = A ⊗₀ B₂} {C = C})
+                  ∘ (id ⊗₁ α⇐ {A = A} {B = B₂} {C = C}))
+              ∘ (α⇒ {A = B₁} {B = A} {C = B₂ ⊗₀ C}
+                  ∘ (α⇒ {A = B₁ ⊗₀ A} {B = B₂} {C = C}
+                      ∘ ((σ₁ ⊗₁ id) ⊗₁ id)
+                      ∘ α⇐ {A = A ⊗₀ B₁} {B = B₂} {C = C})
+                  ∘ α⇐ {A = A} {B = B₁} {C = B₂ ⊗₀ C})
               ∘ (id {A = A} ⊗₁ α⇒ {A = B₁} {B = B₂} {C = C})
+            ≈Term
+            α⇐ {A = B₁} {B = B₂} {C = A ⊗₀ C}
+              ∘ (id ⊗₁ α⇒ {A = B₂} {B = A} {C = C})
+              ∘ α⇒ {A = B₁} {B = B₂ ⊗₀ A} {C = C}
+              ∘ ((id ⊗₁ σ₂) ⊗₁ id)
+              ∘ α⇐ {A = B₁} {B = A ⊗₀ B₂} {C = C}
+              ∘ (id ⊗₁ α⇐ {A = A} {B = B₂} {C = C})
+              ∘ α⇒ {A = B₁} {B = A} {C = B₂ ⊗₀ C}
+              ∘ α⇒ {A = B₁ ⊗₀ A} {B = B₂} {C = C}
+              ∘ ((σ₁ ⊗₁ id) ⊗₁ id)
+              ∘ α⇐ {A = A ⊗₀ B₁} {B = B₂} {C = C}
+              ∘ α⇐ {A = A} {B = B₁} {C = B₂ ⊗₀ C}
+              ∘ (id {A = A} ⊗₁ α⇒ {A = B₁} {B = B₂} {C = C})
+        flatten = begin
+            p0 ∘ ((p1 ∘ ((p2 ∘ (p3 ∘ p4)) ∘ p5)) ∘ ((p6 ∘ ((p7 ∘ (p8 ∘ p9)) ∘ p10)) ∘ p11))
+              -- flatten the B₂ group `p1 ∘ ((p2∘(p3∘p4))∘p5)`.
+              ≈⟨ refl⟩∘⟨ assoc ⟩
+            p0 ∘ (p1 ∘ (((p2 ∘ (p3 ∘ p4)) ∘ p5) ∘ Xt))
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ assoc ⟩
+            p0 ∘ (p1 ∘ ((p2 ∘ (p3 ∘ p4)) ∘ (p5 ∘ Xt)))
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ assoc ⟩
+            p0 ∘ (p1 ∘ (p2 ∘ ((p3 ∘ p4) ∘ (p5 ∘ Xt))))
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ assoc ⟩
+            p0 ∘ (p1 ∘ (p2 ∘ (p3 ∘ (p4 ∘ (p5 ∘ Xt)))))
+              -- now flatten `X = (p6 ∘ ((p7∘(p8∘p9))∘p10)) ∘ p11`.
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ assoc ⟩
+            p0 ∘ (p1 ∘ (p2 ∘ (p3 ∘ (p4 ∘ (p5 ∘ (p6 ∘ (((p7 ∘ (p8 ∘ p9)) ∘ p10) ∘ p11)))))))
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ assoc ⟩
+            p0 ∘ (p1 ∘ (p2 ∘ (p3 ∘ (p4 ∘ (p5 ∘ (p6 ∘ ((p7 ∘ (p8 ∘ p9)) ∘ (p10 ∘ p11))))))))
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ assoc ⟩
+            p0 ∘ (p1 ∘ (p2 ∘ (p3 ∘ (p4 ∘ (p5 ∘ (p6 ∘ (p7 ∘ ((p8 ∘ p9) ∘ (p10 ∘ p11)))))))))
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ assoc ⟩
+            p0 ∘ (p1 ∘ (p2 ∘ (p3 ∘ (p4 ∘ (p5 ∘ (p6 ∘ (p7 ∘ (p8 ∘ (p9 ∘ (p10 ∘ p11))))))))))
+          ∎
+          where
+            p0  = α⇐ {A = B₁} {B = B₂} {C = A ⊗₀ C}
+            p1  = id {A = B₁} ⊗₁ α⇒ {A = B₂} {B = A} {C = C}
+            p2  = α⇒ {A = B₁} {B = B₂ ⊗₀ A} {C = C}
+            p3  = (id {A = B₁} ⊗₁ σ₂) ⊗₁ id {A = C}
+            p4  = α⇐ {A = B₁} {B = A ⊗₀ B₂} {C = C}
+            p5  = id {A = B₁} ⊗₁ α⇐ {A = A} {B = B₂} {C = C}
+            p6  = α⇒ {A = B₁} {B = A} {C = B₂ ⊗₀ C}
+            p7  = α⇒ {A = B₁ ⊗₀ A} {B = B₂} {C = C}
+            p8  = (σ₁ ⊗₁ id {A = B₂}) ⊗₁ id {A = C}
+            p9  = α⇐ {A = A ⊗₀ B₁} {B = B₂} {C = C}
+            p10 = α⇐ {A = A} {B = B₁} {C = B₂ ⊗₀ C}
+            p11 = id {A = A} ⊗₁ α⇒ {A = B₁} {B = B₂} {C = C}
+            Xt  = (p6 ∘ ((p7 ∘ (p8 ∘ p9)) ∘ p10)) ∘ p11
+
+        collapse
+          : α⇐ {A = B₁} {B = B₂} {C = A ⊗₀ C}
+              ∘ (id ⊗₁ α⇒ {A = B₂} {B = A} {C = C})
+              ∘ α⇒ {A = B₁} {B = B₂ ⊗₀ A} {C = C}
+              ∘ ((id ⊗₁ σ₂) ⊗₁ id)
+              ∘ α⇐ {A = B₁} {B = A ⊗₀ B₂} {C = C}
+              ∘ (id ⊗₁ α⇐ {A = A} {B = B₂} {C = C})
+              ∘ α⇒ {A = B₁} {B = A} {C = B₂ ⊗₀ C}
+              ∘ α⇒ {A = B₁ ⊗₀ A} {B = B₂} {C = C}
+              ∘ ((σ₁ ⊗₁ id) ⊗₁ id)
+              ∘ α⇐ {A = A ⊗₀ B₁} {B = B₂} {C = C}
+              ∘ α⇐ {A = A} {B = B₁} {C = B₂ ⊗₀ C}
+              ∘ (id {A = A} ⊗₁ α⇒ {A = B₁} {B = B₂} {C = C})
+            ≈Term nf
+        collapse = begin
+            p0 ∘ (p1 ∘ (p2 ∘ (p3 ∘ (p4 ∘ (p5 ∘ (p6 ∘ (p7 ∘ (p8 ∘ (p9 ∘ (p10 ∘ p11))))))))))
+              -- group head triple (p0 ∘ p1 ∘ p2) and apply E1.
+              ≈⟨ refl⟩∘⟨ ≈-Term-sym assoc ⟩
+            p0 ∘ ((p1 ∘ p2) ∘ (p3 ∘ (p4 ∘ (p5 ∘ (p6 ∘ (p7 ∘ (p8 ∘ (p9 ∘ (p10 ∘ p11)))))))))
+              ≈⟨ ≈-Term-sym assoc ⟩
+            (p0 ∘ (p1 ∘ p2)) ∘ (p3 ∘ (p4 ∘ (p5 ∘ (p6 ∘ (p7 ∘ (p8 ∘ (p9 ∘ (p10 ∘ p11))))))))
+              ≈⟨ E1 ⟩∘⟨refl ⟩
+            (n0 ∘ n1) ∘ (p3 ∘ (p4 ∘ (p5 ∘ (p6 ∘ (p7 ∘ (p8 ∘ (p9 ∘ (p10 ∘ p11))))))))
+              ≈⟨ assoc ⟩
+            n0 ∘ (n1 ∘ (p3 ∘ (p4 ∘ (p5 ∘ (p6 ∘ (p7 ∘ (p8 ∘ (p9 ∘ (p10 ∘ p11)))))))))
+              -- navigate under n0, n1, p3(=n2) and group quad (p4 ∘ p5 ∘ p6 ∘ p7).
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨
+                   (refl⟩∘⟨ (refl⟩∘⟨ ≈-Term-sym assoc)) ⟩
+            n0 ∘ (n1 ∘ (p3 ∘ (p4 ∘ (p5 ∘ ((p6 ∘ p7) ∘ (p8 ∘ (p9 ∘ (p10 ∘ p11))))))))
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ (refl⟩∘⟨ ≈-Term-sym assoc) ⟩
+            n0 ∘ (n1 ∘ (p3 ∘ (p4 ∘ ((p5 ∘ (p6 ∘ p7)) ∘ (p8 ∘ (p9 ∘ (p10 ∘ p11)))))))
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym assoc ⟩
+            n0 ∘ (n1 ∘ (p3 ∘ ((p4 ∘ (p5 ∘ (p6 ∘ p7))) ∘ (p8 ∘ (p9 ∘ (p10 ∘ p11))))))
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ (E2 ⟩∘⟨refl) ⟩
+            n0 ∘ (n1 ∘ (p3 ∘ (n3 ∘ (p8 ∘ (p9 ∘ (p10 ∘ p11))))))
+              -- navigate under n3, p8(=n4); group tail triple (p9 ∘ p10 ∘ p11) and apply E3.
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ E3 ⟩
+            nf
+          ∎
+          where
+            p0  = α⇐ {A = B₁} {B = B₂} {C = A ⊗₀ C}
+            p1  = id {A = B₁} ⊗₁ α⇒ {A = B₂} {B = A} {C = C}
+            p2  = α⇒ {A = B₁} {B = B₂ ⊗₀ A} {C = C}
+            p3  = (id {A = B₁} ⊗₁ σ₂) ⊗₁ id {A = C}
+            p4  = α⇐ {A = B₁} {B = A ⊗₀ B₂} {C = C}
+            p5  = id {A = B₁} ⊗₁ α⇐ {A = A} {B = B₂} {C = C}
+            p6  = α⇒ {A = B₁} {B = A} {C = B₂ ⊗₀ C}
+            p7  = α⇒ {A = B₁ ⊗₀ A} {B = B₂} {C = C}
+            p8  = (σ₁ ⊗₁ id {A = B₂}) ⊗₁ id {A = C}
+            p9  = α⇐ {A = A ⊗₀ B₁} {B = B₂} {C = C}
+            p10 = α⇐ {A = A} {B = B₁} {C = B₂ ⊗₀ C}
+            p11 = id {A = A} ⊗₁ α⇒ {A = B₁} {B = B₂} {C = C}
+            n0  = α⇒ {A = B₁ ⊗₀ B₂} {B = A} {C = C}
+            n1  = α⇐ {A = B₁} {B = B₂} {C = A} ⊗₁ id {A = C}
+            n3  = α⇒ {A = B₁} {B = A} {C = B₂} ⊗₁ id {A = C}
+            n5  = α⇐ {A = A} {B = B₁} {C = B₂} ⊗₁ id {A = C}
+            n6  = α⇐ {A = A} {B = B₁ ⊗₀ B₂} {C = C}
 
 -- The `rotate-cap` `ys = b∷ys'` step: the iteration of the IH past one fixed
 -- atom `Vb`, assembled from `σ-block-Bmerge` (peel `Vb` off the front of the
