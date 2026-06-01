@@ -128,6 +128,11 @@ module Rho-sig = Rho sig
 open Rho-sig using (RhoShapeResidual)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRoundtripAgenSigma sig
   using (Residuals; module Residuals)
+-- The pruned shape residuals + factoring assemblers (this module's
+-- `decodeP` and the new module's `decodeP` are DEFINITIONALLY identical;
+-- see §(B) below).
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.ProcessEdgesTermShape sig
+  using (DecodePShapeResiduals; module Assemble)
 
 open import Categories.Category using (Category)
 open import Data.Product using (proj₁)
@@ -241,34 +246,54 @@ decode-rel-≈-decode
 decode-rel-≈-decode = WithAssumptions.decode-rel-≈-decode unprunedAssumptions
 
 --------------------------------------------------------------------------------
--- ## (B) The pruned-vs-unpruned BRIDGE.
+-- ## (B) The pruned-vs-unpruned BRIDGE, factored through PRUNED shapes.
 --
--- The ONLY genuinely-new pruned obligations: the bridge on the two
--- recursive constructors.  Every ATOMIC case is `refl` (verified below),
--- since `decodeP X ≡ decode X` definitionally for non-`∘` X.
+-- The two recursive constructors are the only places `decodeP X` and
+-- `decode X` can differ (every ATOMIC `decodeP X ≡ decode X`
+-- definitionally — verified by `refl` in `decodeP-≈-decode` below).
+--
+-- We no longer postulate the two bridges directly.  Instead each is
+-- FACTORED through a PRUNED shape lemma + the structural recursion + the
+-- ALREADY-TRUSTED unpruned shape (`Shape.decode-{∘,⊗}-shape-inner`):
+--
+--     decodeP (g∘f) ≈⟨ pruned ∘ shape ⟩ decodeP g ∘ decodeP f
+--                   ≈⟨ rec g , rec f  ⟩ decode  g ∘ decode  f
+--                   ≈⟨ sym (unpruned ∘ shape) ⟩ decode (g∘f)
+--
+-- (and dually for `⊗`).  The assembler `Assemble.decodeP-≈-decode-∘-from`
+-- (in `Sub.ProcessEdgesTermShape`) performs the chain; we supply `decode`,
+-- the unpruned shapes from `Shape`, the pruned shapes from the residual
+-- record below, and `decodeP-≈-decode` itself as the recursion `rec`.
+--
+-- The SOLE remaining pruning-specific trust is therefore
+-- `decodePShapeResiduals : DecodePShapeResiduals` — its two fields are
+-- the PRUNED mirror of `decode-{∘,⊗}-shape-inner` (`decode` → `decodeP`),
+-- i.e. NO new conceptual trust beyond the shared shape obligation; for
+-- the `⊗` field the term-level content is confirmedly the
+-- `swap-atom-aligned` / `nf-bracket` kernel (see
+-- `Sub.ProcessEdgesTermShape` `decodeP-⊗-shape` doc).
+--
+-- The new module's `decodeP` is DEFINITIONALLY identical to this
+-- module's (`subst₂ HomTerm … (proj₁ (decode-attempt-LinearP f))`), so
+-- the `Assemble` results have exactly the bridge postulate types.
 --------------------------------------------------------------------------------
 
 postulate
-  -- (B/∘) pruned `∘` bridge: `hComposeP` vs `hCompose`.  Constructive
-  -- content = `pe-term-++`-style block-decomposition of `process-edges`
-  -- on `hComposeP` (parallel to the unpruned `decode-∘-shape-inner`).
-  decodeP-≈-decode-∘
-    : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
-    → decodeP (g ∘ f) ≈Term decode (g ∘ f)
+  -- (B) the SOLE pruning-specific residual: the two PRUNED shape lemmas.
+  decodePShapeResiduals : DecodePShapeResiduals
 
-  -- (B/⊗) pruned `⊗` bridge.  Tensor is NOT pruned, so this relates two
-  -- `decode-attempt-hTensor` applications differing only in their
-  -- sub-translations; modulo the recursive sub-bridges its term-level
-  -- content is the independent-block reordering = `swap-atom-aligned`
-  -- (the SAME Mac-Lane kernel as the interchange side).  See module
-  -- header.
-  decodeP-≈-decode-⊗
-    : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
-    → decodeP (f ⊗₁ g) ≈Term decode (f ⊗₁ g)
+private
+  -- The factoring assembler, instantiated with `decode`, the unpruned
+  -- shape residuals, and the pruned shape residuals.
+  module Asm = Assemble decode
+                 (λ {A} {B} {C} g f → Shape.decode-∘-shape-inner g f)
+                 (λ {A} {B} {C} {D} f g → Shape.decode-⊗-shape-inner f g)
+                 decodePShapeResiduals
 
 -- The full pruned-vs-unpruned bridge, polymorphic in `f`.  ATOMIC cases:
 -- `refl` (each `decodeP X ≡ decode X` definitionally).  Recursive cases:
--- the two (B) residuals above.
+-- the factoring assemblers, fed the recursion RESULTS on the
+-- structurally-smaller sub-terms (so termination is visible).
 decodeP-≈-decode : ∀ {A B} (f : HomTerm A B) → decodeP f ≈Term decode f
 decodeP-≈-decode (Agen g)  = ≡⇒≈Term refl
 decodeP-≈-decode (σ ⦃ s ⦄) = ≡⇒≈Term refl
@@ -279,8 +304,24 @@ decodeP-≈-decode ρ⇒        = ≡⇒≈Term refl
 decodeP-≈-decode ρ⇐        = ≡⇒≈Term refl
 decodeP-≈-decode α⇒        = ≡⇒≈Term refl
 decodeP-≈-decode α⇐        = ≡⇒≈Term refl
-decodeP-≈-decode (g ∘ f)   = decodeP-≈-decode-∘ g f
-decodeP-≈-decode (f ⊗₁ g)  = decodeP-≈-decode-⊗ f g
+decodeP-≈-decode (g ∘ f)   =
+  Asm.decodeP-≈-decode-∘-from g f (decodeP-≈-decode g) (decodeP-≈-decode f)
+decodeP-≈-decode (f ⊗₁ g)  =
+  Asm.decodeP-≈-decode-⊗-from f g (decodeP-≈-decode f) (decodeP-≈-decode g)
+
+-- The two bridge interfaces (same types as the old postulates), now
+-- DERIVED.  Kept as named top-level values so `DecodeRelRespIsoWired`
+-- (and any other consumer that referenced the old postulate names) can
+-- still cite them directly.
+decodeP-≈-decode-∘
+  : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
+  → decodeP (g ∘ f) ≈Term decode (g ∘ f)
+decodeP-≈-decode-∘ g f = decodeP-≈-decode (g ∘ f)
+
+decodeP-≈-decode-⊗
+  : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
+  → decodeP (f ⊗₁ g) ≈Term decode (f ⊗₁ g)
+decodeP-≈-decode-⊗ f g = decodeP-≈-decode (f ⊗₁ g)
 
 --------------------------------------------------------------------------------
 -- ## The dispatcher (public interface).
