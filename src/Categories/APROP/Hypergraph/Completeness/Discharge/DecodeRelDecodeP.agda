@@ -98,7 +98,7 @@ module Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRelDecodeP
 open APROP sig
 
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using (flatten)
+  using (flatten; domL-hId; codL-hId)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten)
 open import Categories.APROP.Hypergraph.Translation sig
@@ -112,7 +112,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeAttemptLine
 -- machinery for it (previously walled off; importable now that this
 -- module is `--with-K`).
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
-  using (decode)
+  using (decode; decode-attempt-hId)
 open import Categories.APROP.Hypergraph.Completeness.DecoderAgreementSafe sig
   using ( DecoderAgreementAssumptions; module WithAssumptions
         ; Ty-Agen; Ty-σ; Ty-id; Ty-λ⇒; Ty-λ⇐; Ty-ρ⇒; Ty-ρ⇐; Ty-α⇒; Ty-α⇐
@@ -136,7 +136,10 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.ProcessEdgesT
 
 open import Categories.Category using (Category)
 open import Data.Product using (proj₁)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; subst₂)
+open import Data.List using (List)
+open import Data.List.Properties using (++-identityʳ)
+open import Relation.Binary.PropositionalEquality
+  using (_≡_; refl; trans; cong; subst₂)
 
 --------------------------------------------------------------------------------
 -- The pruned decoder `decodeP`, re-stated here *verbatim* from
@@ -185,8 +188,6 @@ private
 postulate
   -- (U/S) the unpruned shape residuals: `decode-{∘,⊗}-shape-inner`.
   decodeShapeResiduals : DecodeShapeResiduals
-  -- (U/M) the unpruned right-unitor shape residuals: `decode-{ρ⇒,ρ⇐}-shape`.
-  rhoShapeResidual     : RhoShapeResidual
   -- (U/K) the unpruned single-edge collapses: `decode-{Agen,σ}-collapse`.
   agenSigmaResiduals   : Residuals
   -- (U/M) the two atomic associator obligations (bare params upstream too).
@@ -194,6 +195,87 @@ postulate
     : ∀ {A B C} → decode-rel (α⇒ {A} {B} {C}) ≈Term decode (α⇒ {A} {B} {C})
   decode-rel-≈-decode-α⇐
     : ∀ {A B C} → decode-rel (α⇐ {A} {B} {C}) ≈Term decode (α⇐ {A} {B} {C})
+
+--------------------------------------------------------------------------------
+-- ## (U/M) `rhoShapeResidual` — PROVEN (postulate-free).
+--
+-- `RhoShapeResidual` packages two PROPOSITIONAL `_≡_` characterisations:
+--
+--     decode-ρ⇒-shape A : decode (ρ⇒ {A})
+--       ≡ subst₂ HomTerm refl (cong unflatten (++-identityʳ (flatten A)))
+--                (decode (id {A ⊗₀ unit}))
+--     decode-ρ⇐-shape A : decode (ρ⇐ {A})
+--       ≡ subst₂ HomTerm (cong unflatten (++-identityʳ (flatten A))) refl
+--                (decode (id {A ⊗₀ unit}))
+--
+-- These are PURE boundary-`subst₂` ALGEBRA, NOT process-edges content:
+-- `⟪ ρ⇒ {A} ⟫ = hId (A ⊗₀ unit) = ⟪ id {A ⊗₀ unit} ⟫`, so
+-- `decode-attempt-Linear (ρ⇒ {A})` and `decode-attempt-Linear (id {A ⊗₀ unit})`
+-- are DEFINITIONALLY the SAME `decode-attempt-hId (A ⊗₀ unit)`.  The two
+-- decoders therefore share the SAME inner term `proj₁ (…hId (A ⊗₀ unit))`
+-- and differ ONLY in the boundary equations supplied to `decode`'s
+-- `subst₂`.  For ρ⇒ those are
+--
+--     dom : ⟪⟫-domL (ρ⇒ {A}) = domL-hId (A ⊗₀ unit)              -- vs id: same
+--     cod : ⟪⟫-codL (ρ⇒ {A}) = trans (codL-hId (A ⊗₀ unit)) r    -- vs id: codL-hId only
+--
+-- where `r = ++-identityʳ (flatten A)`.  The identity then follows from
+-- the generic `subst₂`-over-`trans` split below, which is `--with-K`
+-- (proved by `refl`-pattern, hence TRUE for ALL instances of its type;
+-- no side condition needed — it is a UIP-level transport fact, not a
+-- quantified hypergraph claim).
+--------------------------------------------------------------------------------
+
+private
+  -- Generic: a `subst₂` whose cod equation factors as `trans q r`
+  -- splits as the outer `r`-transport of the inner `q`-transport.
+  -- (`--with-K`; TRUE for every `p`, `q`, `r`, `x`.)
+  subst₂-cod-trans
+    : ∀ {as as' bs bs' bs'' : List X}
+        (p : as ≡ as') (q : bs ≡ bs') (r : bs' ≡ bs'')
+        (x : HomTerm (unflatten as) (unflatten bs))
+    → subst₂ HomTerm (cong unflatten p) (cong unflatten (trans q r)) x
+      ≡ subst₂ HomTerm refl (cong unflatten r)
+               (subst₂ HomTerm (cong unflatten p) (cong unflatten q) x)
+  subst₂-cod-trans refl refl refl x = refl
+
+  -- Symmetric: a `subst₂` whose dom equation factors as `trans q r`.
+  subst₂-dom-trans
+    : ∀ {as as' as'' bs bs' : List X}
+        (q : as ≡ as') (r : as' ≡ as'') (p : bs ≡ bs')
+        (x : HomTerm (unflatten as) (unflatten bs))
+    → subst₂ HomTerm (cong unflatten (trans q r)) (cong unflatten p) x
+      ≡ subst₂ HomTerm (cong unflatten r) refl
+               (subst₂ HomTerm (cong unflatten q) (cong unflatten p) x)
+  subst₂-dom-trans refl refl refl x = refl
+
+  -- ρ⇒ shape.  `decode (ρ⇒ {A})` and `decode (id {A ⊗₀ unit})` reduce
+  -- to `subst₂ … (proj₁ (decode-attempt-hId (A ⊗₀ unit)))` with the
+  -- SAME inner term; only the cod equation differs by the trailing
+  -- `++-identityʳ`.  `subst₂-cod-trans` peels exactly that.
+  rho⇒-shape
+    : ∀ A → decode (ρ⇒ {A})
+         ≡ subst₂ HomTerm refl (cong unflatten (++-identityʳ (flatten A)))
+                  (decode (id {A ⊗₀ unit}))
+  rho⇒-shape A =
+    subst₂-cod-trans (domL-hId (A ⊗₀ unit)) (codL-hId (A ⊗₀ unit))
+                     (++-identityʳ (flatten A))
+                     (proj₁ (decode-attempt-hId (A ⊗₀ unit)))
+
+  rho⇐-shape
+    : ∀ A → decode (ρ⇐ {A})
+         ≡ subst₂ HomTerm (cong unflatten (++-identityʳ (flatten A))) refl
+                  (decode (id {A ⊗₀ unit}))
+  rho⇐-shape A =
+    subst₂-dom-trans (domL-hId (A ⊗₀ unit)) (++-identityʳ (flatten A))
+                     (codL-hId (A ⊗₀ unit))
+                     (proj₁ (decode-attempt-hId (A ⊗₀ unit)))
+
+rhoShapeResidual : RhoShapeResidual
+rhoShapeResidual = record
+  { decode-ρ⇒-shape = rho⇒-shape
+  ; decode-ρ⇐-shape = rho⇐-shape
+  }
 
 -- Assemble the unpruned `DecoderAgreementAssumptions` from the residual
 -- records (mirrors `FromAssumptions.DecodeRelDecode`, but inline with
