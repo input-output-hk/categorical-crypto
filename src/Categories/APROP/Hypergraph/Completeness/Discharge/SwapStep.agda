@@ -82,7 +82,7 @@ module Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Core using (Hypergraph; domL; codL)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
+open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten)
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
@@ -723,18 +723,39 @@ module _ (H : Hypergraph FlatGen)
   module FS = FrontSwap H dih K uniq-cod
   open FS using (front-swap-≈; RunInterchange)
 
+  -- The `run-interchange` consumer now carries the SWAP-SITE PROVENANCE:
+  -- the order it is asked about, `ps ++ e' ∷ e ∷ qs`, is a permutation of
+  -- the natural order `range nE`.  This is the SOUND side condition the
+  -- (previously false-as-stated) `dom-reservoir` was missing: the
+  -- reservoir bound `Reservoir≤1 H o H.dom` holds for `o ↭ range nE`
+  -- (every edge appears exactly once, so `eout` is not over-counted), and
+  -- every order the connectivity chase visits is `↝*`-reachable from
+  -- `range nE`, hence a permutation of it.  The producer
+  -- (`DecodeRelRespIsoWired`) discharges the reservoir from this `↭ range`
+  -- witness via `StackUniqueReach.dom-reservoir-prov`.
   module _ (run-interchange
               : ∀ (ps qs : Order) {e e' : Fin (Hypergraph.nE H)} (inc : Incomp e e')
+              → (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE H)
               → RunInterchange ps qs inc) where
 
     swap-≈
       : ∀ {o₁ o₂ : PH.Order} → o₁ PH.↝ o₂
+      → o₁ Perm.↭ range (Hypergraph.nE H)
       → (p₁ : PH.Valid o₁) (p₂ : PH.Valid o₂)
       → PH.decodeOrd o₁ p₁ ≈Term PH.decodeOrd o₂ p₂
-    swap-≈ (swap-step ps qs inc) p₁ p₂ =
+    swap-≈ (swap-step ps {e} {e'} qs inc) o₁↭range p₁ p₂ =
       ≈-Term-trans
         (decodeOrd-factor ps (_ ∷ _ ∷ qs) p₁)
         (≈-Term-trans
-          (∘-resp-≈ (front-swap-≈ ps qs inc (run-interchange ps qs inc) p₁ p₂)
+          (∘-resp-≈ (front-swap-≈ ps qs inc
+                       (run-interchange ps qs inc o₂↭range) p₁ p₂)
                     ≈-Term-refl)
           (≈-Term-sym (decodeOrd-factor ps (_ ∷ _ ∷ qs) p₂)))
+      where
+        -- `o₂ = ps ++ e' ∷ e ∷ qs` is `↭ o₁ = ps ++ e ∷ e' ∷ qs` (an
+        -- adjacent transposition under the prefix `ps`), hence `↭ range`.
+        o₂↭range : (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE H)
+        o₂↭range =
+          Perm.↭-trans
+            (PermProp.++⁺ˡ ps (Perm.swap e' e Perm.refl))
+            o₁↭range

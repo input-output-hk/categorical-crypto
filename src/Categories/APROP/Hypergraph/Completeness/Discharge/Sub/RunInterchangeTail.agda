@@ -56,16 +56,19 @@ module Categories.APROP.Hypergraph.Completeness.Discharge.Sub.RunInterchangeTail
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
+open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig using (unflatten)
 open import Categories.APROP.Hypergraph.Completeness.Permute sig
   using (permute-via-vlab)
 
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackEquivariance sig as SE
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUniqueReach sig as SUR
 
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
   using (Dep)
+open import Categories.APROP.Hypergraph.Completeness.Linearity sig
+  using (Linear)
 
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
@@ -90,6 +93,7 @@ module _ (H : Hypergraph FlatGen)
          (dih : ∀ {e} → ¬ (Dep H e e))
          (K : FaithfulnessResidual)
          (uniq-cod : Unique (Hypergraph.cod H))
+         (lin : Linear H)
          where
   private module H = Hypergraph H
   open SS.PerHG H dih
@@ -103,14 +107,52 @@ module _ (H : Hypergraph FlatGen)
   pvv-inverse-left          = SE.pvv-inverse-left H K
 
   ----------------------------------------------------------------------
+  -- ## Sourcing the running-stack freshness invariant `Reservoir≤1`.
+  --
+  -- `process-edges-equivariant` (which discharges the `residual-recon`
+  -- eval-coincidence residual via `eval-rigid` on a `Unique` codomain)
+  -- now requires a `Reservoir≤1 qs s'` freshness invariant on the
+  -- PERMUTED tail-input stack `B = pe-stack (e' ∷ e ∷ []) sp`.  We descend
+  -- it from a GLOBAL reservoir on `H.dom` over the combined order
+  -- `ps ++ e' ∷ e ∷ qs` by the (proven) `StackUniqueReach.reservoir-split`,
+  -- iterated along the two prefixes `ps` then `(e' ∷ e ∷ [])`.
+  --
+  -- The GLOBAL reservoir `Reservoir≤1 (ps ++ e' ∷ e ∷ qs) H.dom` is the
+  -- *bound* half of `Linear H` (`proj₂ lin : count v producedList ≤ 1`)
+  -- SPECIALISED to the combined order — TRUE precisely because the combined
+  -- order is a PERMUTATION of `range nE` (`prov`, threaded from the
+  -- connectivity chase: every order it visits is `↝*`-reachable from
+  -- `range nE`, hence a permutation of it).  `StackUniqueReach.dom-reservoir-prov`
+  -- PROVES the reservoir from that `↭ range` provenance + the `Linear`
+  -- bound; NO false-as-stated `∀ o` postulate is used.
+
+  -- The reservoir on the FULL swap order, PROVEN from the provenance.
+  dom-reservoir-at
+    : ∀ (o : Order) → o Perm.↭ range H.nE → SUR.Reservoir≤1 H o H.dom
+  dom-reservoir-at o prov =
+    SUR.dom-reservoir-prov H (proj₂ lin) o prov
+
+  -- The tail-input reservoir on `B`, descended from the swap-order
+  -- reservoir along the prefix `ps` then the concrete 2-prefix `(e' ∷ e ∷ [])`.
+  tail-reservoir
+    : ∀ (ps qs : Order) (e e' : Fin H.nE)
+    → (ps ++ e' ∷ e ∷ qs) Perm.↭ range H.nE
+    → SUR.Reservoir≤1 H qs (pe-stack (e' ∷ e ∷ []) (pe-stack ps H.dom))
+  tail-reservoir ps qs e e' prov =
+    SUR.reservoir-split H (e' ∷ e ∷ []) qs (pe-stack ps H.dom)
+      (SUR.reservoir-split H ps (e' ∷ e ∷ qs) H.dom
+        (dom-reservoir-at (ps ++ e' ∷ e ∷ qs) prov))
+
+  ----------------------------------------------------------------------
   -- The tail-extension lemma.
   ----------------------------------------------------------------------
 
   run-interchange-tail
     : ∀ (ps qs : Order) {e e' : Fin H.nE} (inc : Incomp e e')
+    → (ps ++ e' ∷ e ∷ qs) Perm.↭ range H.nE
     → RunInterchange ps [] inc
     → RunInterchange ps qs inc
-  run-interchange-tail ps qs {e} {e'} inc RI₀ =
+  run-interchange-tail ps qs {e} {e'} inc prov RI₀ =
     record { reshuffle = Perm.↭-sym ρf ; run-eq = run-eq }
     where
       sp : List (Fin H.nV)
@@ -140,6 +182,7 @@ module _ (H : Hypergraph FlatGen)
                       ∘ ( pe-term qs A
                           ∘ permute-via-vlab H.vlab (Perm.↭-sym r₀) )
       equivar = process-edges-equivariant qs {s = A} {s' = B} (Perm.↭-sym r₀)
+                  (tail-reservoir ps qs e e' prov)
 
       ρf : pe-stack qs B Perm.↭ pe-stack qs A
       ρf = proj₁ equivar

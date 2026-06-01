@@ -68,6 +68,8 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidInterchangeComb sig as Comb
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFNf2 sig as Nf2
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUnique sig as SU
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackEquivariance sig as SE
 
 -- The `--with-K` block-braiding ↔ `permute` machinery that the two
 -- σ-coherence residual fields reduce to (previously walled off by the
@@ -359,6 +361,8 @@ module _ (H : Hypergraph FlatGen)
                    ∘ ((box-e e' ⊗₁ box-e e) ⊗₁ id)
                    ∘ ( _≅_.from (view-in≅ e' e Rlist) ∘ permute-via-vlab H.vlab loc₂ )
       -- `vin-coh`: the two input view frames differ by the braiding.
+      -- Carries `Unique sp` (the input stack's freshness) — its sole use
+      -- is to supply `coh-in`'s `Unique`-codomain witness via `eval-rigid`.
       vin-coh-eq
         : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
             (sp : List (Fin H.nV))
@@ -366,12 +370,14 @@ module _ (H : Hypergraph FlatGen)
             (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
             (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
             (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+            (us-sp : Unique sp)
         → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
           in ( _≅_.from (view-in≅ e e' Rlist) ∘ permute-via-vlab H.vlab loc₁ )
              ≈Term (σ ⊗₁ id)
                    ∘ ( _≅_.from (view-in≅ e' e Rlist) ∘ permute-via-vlab H.vlab loc₂ )
       -- `vout-coh`: the two output view frames are reconciled by `r-stk`
-      -- and the braiding.
+      -- and the braiding.  Carries `Unique (eout e ++ r₁')` (the e'-first
+      -- run's FINAL-stack freshness) for `coh-out`'s `Unique` codomain.
       vout-coh-eq
         : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
             (sp : List (Fin H.nV))
@@ -379,6 +385,7 @@ module _ (H : Hypergraph FlatGen)
             (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
             (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
             (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+            (us-cod : Unique (H.eout e ++ r₁'))
         → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
           in permute-via-vlab H.vlab r-stk
                ∘ ( permute-via-vlab H.vlab vout-loc₁ ∘ _≅_.to (view-out≅ e e' Rlist) )
@@ -447,31 +454,65 @@ module _ (H : Hypergraph FlatGen)
   -- via `eval-rigid` would require threading `Unique sp` through the
   -- `RunInterchange` interface (a deeper interface change).  So the
   -- residual is demoted to exactly these two `≅↭` location-coherences.
-  postulate
-    coh-in
-      : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
-          (sp : List (Fin H.nV))
-          (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
-          (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
-          (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
-          (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-      → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
-        in PermProp.map⁺ H.vlab loc₁
-           ≅↭ PermProp.map⁺ H.vlab
-                (Perm.trans loc₂
-                  (BVC.app-swap H.vlab (H.ein e') (H.ein e) Rlist))
-    coh-out
-      : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
-          (sp : List (Fin H.nV))
-          (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
-          (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
-          (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
-          (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-      → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
-        in PermProp.map⁺ H.vlab (Perm.trans vout-loc₁ r-stk)
-           ≅↭ PermProp.map⁺ H.vlab
-                (Perm.trans (BVC.app-swap H.vlab (H.eout e) (H.eout e') Rlist)
-                            vout-loc₂)
+  --
+  -- NOW PROVEN (no longer postulates): each is a `eval-rigid`
+  -- ("two `↭`s into a `Unique` codomain agree") instance — `coh-fin-rigid`
+  -- at the vertex level, lifted through `map⁺ vlab` by `map⁺-lift-≅↭`.
+  --
+  --   * `coh-in`  compares `loc₁` and `trans loc₂ (app-swap …)`, BOTH
+  --     `sp ↭ (ein e ++ ein e') ++ Rlist`.  The codomain is `Unique`
+  --     because it is the `↭`-image (via `loc₁`) of `Unique sp`.
+  --   * `coh-out` compares `trans vout-loc₁ r-stk` and
+  --     `trans (app-swap …) vout-loc₂`, BOTH `(eout e ++ eout e') ++ Rlist
+  --     ↭ eout e ++ r₁'`.  Its codomain is the e'-first run's FINAL stack
+  --     `eout e ++ r₁'`, whose uniqueness is the POST-RUN freshness fact
+  --     (reservoir-derived, NOT from `Unique sp` alone — see the StackUnique
+  --     FIRE-step counterexample).
+  --
+  -- Both `Unique` witnesses arrive as hypotheses `us-sp`/`us-cod`, sourced
+  -- by the caller (`RunInterchangeEmptyTail`, where `sp = pe-stack ps dom`)
+  -- from the `Linear`-backed reservoir invariant.
+
+  coh-in
+    : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
+        (sp : List (Fin H.nV))
+        (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
+        (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
+        (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
+        (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+        (us-sp : Unique sp)
+    → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+      in PermProp.map⁺ H.vlab loc₁
+         ≅↭ PermProp.map⁺ H.vlab
+              (Perm.trans loc₂
+                (BVC.app-swap H.vlab (H.ein e') (H.ein e) Rlist))
+  coh-in {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp =
+    SE.map⁺-lift-≅↭ H K loc₁ rhs
+      (SU.coh-fin-rigid loc₁ rhs (SU.Unique-resp-↭ loc₁ us-sp))
+    where
+      open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+      rhs = Perm.trans loc₂ (BVC.app-swap H.vlab (H.ein e') (H.ein e) Rlist)
+
+  coh-out
+    : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
+        (sp : List (Fin H.nV))
+        (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
+        (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
+        (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
+        (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+        (us-cod : Unique (H.eout e ++ r₁'))
+    → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+      in PermProp.map⁺ H.vlab (Perm.trans vout-loc₁ r-stk)
+         ≅↭ PermProp.map⁺ H.vlab
+              (Perm.trans (BVC.app-swap H.vlab (H.eout e) (H.eout e') Rlist)
+                          vout-loc₂)
+  coh-out {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-cod =
+    SE.map⁺-lift-≅↭ H K lhs rhs
+      (SU.coh-fin-rigid lhs rhs us-cod)
+    where
+      open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+      lhs = Perm.trans vout-loc₁ r-stk
+      rhs = Perm.trans (BVC.app-swap H.vlab (H.eout e) (H.eout e') Rlist) vout-loc₂
 
   vin-coh-eq′
     : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
@@ -480,14 +521,15 @@ module _ (H : Hypergraph FlatGen)
         (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
         (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
         (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+        (us-sp : Unique sp)
     → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
       in ( _≅_.from (view-in≅ e e' Rlist) ∘ permute-via-vlab H.vlab loc₁ )
          ≈Term (σ ⊗₁ id)
                ∘ ( _≅_.from (view-in≅ e' e Rlist) ∘ permute-via-vlab H.vlab loc₂ )
-  vin-coh-eq′ {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' =
+  vin-coh-eq′ {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp =
     BVC.vin-coh H.vlab K
       (H.ein e) (H.ein e') Rlist sp loc₁ loc₂
-      (coh-in inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+      (coh-in inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp)
     where open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
 
   vout-coh-eq′
@@ -497,15 +539,16 @@ module _ (H : Hypergraph FlatGen)
         (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
         (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
         (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+        (us-cod : Unique (H.eout e ++ r₁'))
     → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
       in permute-via-vlab H.vlab r-stk
            ∘ ( permute-via-vlab H.vlab vout-loc₁ ∘ _≅_.to (view-out≅ e e' Rlist) )
          ≈Term ( permute-via-vlab H.vlab vout-loc₂ ∘ _≅_.to (view-out≅ e' e Rlist) )
                ∘ (σ ⊗₁ id)
-  vout-coh-eq′ {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' =
+  vout-coh-eq′ {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-cod =
     BVC.vout-coh H.vlab K
       (H.eout e) (H.eout e') Rlist r₂ r₁' vout-loc₁ vout-loc₂ r-stk
-      (coh-out inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+      (coh-out inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-cod)
     where open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
 
   -- The two single-order Mac-Lane block-normal-form factorisations are now
@@ -539,16 +582,17 @@ module _ (H : Hypergraph FlatGen)
         (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
         (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
         (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+        (us-sp  : Unique sp) (us-cod : Unique (H.eout e ++ r₁'))
     → BlockNF inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
-  block-nf {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' = record
+  block-nf {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod = record
     { R     = R-obj Rlist
     ; vin₁  = _≅_.from (view-in≅ e e' Rlist) ∘ permute-via-vlab H.vlab loc₁
     ; vin₂  = _≅_.from (view-in≅ e' e Rlist) ∘ permute-via-vlab H.vlab loc₂
     ; vout₁ = permute-via-vlab H.vlab vout-loc₁ ∘ _≅_.to (view-out≅ e e' Rlist)
     ; vout₂ = permute-via-vlab H.vlab vout-loc₂ ∘ _≅_.to (view-out≅ e' e Rlist)
     ; r-stk = r-stk
-    ; vin-coh  = vin-coh-eq  inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
-    ; vout-coh = vout-coh-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+    ; vin-coh  = vin-coh-eq  inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp
+    ; vout-coh = vout-coh-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-cod
     ; nf₁ = nf₁-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
     ; nf₂ = nf₂-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
     }
@@ -563,17 +607,18 @@ module _ (H : Hypergraph FlatGen)
         (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
         (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
         (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+        (us-sp  : Unique sp) (us-cod : Unique (H.eout e ++ r₁'))
     → Σ[ r ∈ (H.eout e' ++ r₂) Perm.↭ (H.eout e ++ r₁') ]
         ( fire-term H e (H.eout e' ++ r₂') r₁' p₁'
             ∘ fire-term H e' sp r₂' p₂' )
         ≈Term permute-via-vlab H.vlab r
                 ∘ ( fire-term H e' (H.eout e ++ r₁) r₂ p₂
                       ∘ fire-term H e sp r₁ p₁ )
-  fire-mid-interchange {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' =
+  fire-mid-interchange {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod =
     BlockNF.r-stk nf , goal
     where
       nf : BlockNF inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
-      nf = block-nf inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+      nf = block-nf inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod
       open BlockNF nf
 
       -- The locating permutes.

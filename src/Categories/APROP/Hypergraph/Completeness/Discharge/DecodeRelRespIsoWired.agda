@@ -59,6 +59,7 @@ import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceConcrete 
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.RunInterchangeTail sig as RIT
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.RunInterchangeEmptyTail sig as RET
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUniqueReach sig as SUR
 open import Categories.APROP.Hypergraph.HomTermInvariant sig using (⟪_⟫-cod-unique)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.DepIrrefl sig
   using (dep-irrefl-⟪⟫)
@@ -79,7 +80,8 @@ open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Fin using (Fin)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
-open import Data.List.Base using ([])
+open import Data.List.Base using ([]; _∷_; _++_)
+open import Data.List.Properties using (++-assoc)
 open import Relation.Nullary using (¬_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Relation.Binary.PropositionalEquality
@@ -237,42 +239,75 @@ objUIP = ObjUIP.objUIP′ {Symm} _≟X_
 -- `run-interchange₀-⟪⟫` itself, but the small box-M residuals it (and the
 -- tail extension) bottom out in: `fire-mid-interchange`,
 -- `fire-mid-equivariant`, `fire-locate-coherent`.
+-- The EMPTY-TAIL core, fed the empty-tail swap-order reservoir
+-- `Reservoir≤1 ⟪f⟫ (ps ++ e' ∷ e ∷ []) dom` (sourced below from the full
+-- swap-order `↭ range` provenance via a prefix drop).
 run-interchange₀-⟪⟫
   : ∀ {A B} (f : HomTerm A B)
       (ps : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f))
       {e e' : Fin (Hypergraph.nE ⟪ f ⟫)}
       (inc : SS.PerHG.Incomp ⟪ f ⟫ (dep-irrefl-⟪⟫ f) e e')
+  → SUR.Reservoir≤1 ⟪ f ⟫ (ps ++ e' ∷ e ∷ []) (Hypergraph.dom ⟪ f ⟫)
   → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
       K-faithfulness (⟪ f ⟫-cod-unique) ps [] inc
-run-interchange₀-⟪⟫ f ps inc =
+run-interchange₀-⟪⟫ f ps inc res =
   RET.run-interchange₀ ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
-    K-faithfulness (⟪ f ⟫-cod-unique) (⟪⟫-LinearP f) ps inc
+    K-faithfulness (⟪ f ⟫-cod-unique) (⟪⟫-LinearP f) ps inc res
 
 -- The tail extension is now a THEOREM: it instantiates the generic
 -- `RunInterchangeTail.run-interchange-tail` (proven by decoder
--- stack-equivariance) at `H = ⟪f⟫`.
+-- stack-equivariance) at `H = ⟪f⟫`, fed the full swap-order `↭ range`
+-- provenance.
 run-interchange-tail-⟪⟫
   : ∀ {A B} (f : HomTerm A B)
       (ps qs : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f))
       {e e' : Fin (Hypergraph.nE ⟪ f ⟫)}
       (inc : SS.PerHG.Incomp ⟪ f ⟫ (dep-irrefl-⟪⟫ f) e e')
+  → (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE ⟪ f ⟫)
   → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
       K-faithfulness (⟪ f ⟫-cod-unique) ps [] inc
   → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
       K-faithfulness (⟪ f ⟫-cod-unique) ps qs inc
-run-interchange-tail-⟪⟫ f ps qs inc =
+run-interchange-tail-⟪⟫ f ps qs inc prov =
   RIT.run-interchange-tail ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
-    K-faithfulness (⟪ f ⟫-cod-unique) ps qs inc
+    K-faithfulness (⟪ f ⟫-cod-unique) (⟪⟫-LinearP f) ps qs inc prov
 
+-- The general witness the chain consumes: now carries the SWAP-SITE
+-- PROVENANCE `(ps ++ e' ∷ e ∷ qs) ↭ range nE`.  The full swap-order
+-- reservoir is PROVEN from it by `StackUniqueReach.dom-reservoir-prov`
+-- (with the `Linear ⟪f⟫` bound from `⟪⟫-LinearP f`); the EMPTY-TAIL
+-- reservoir is the prefix-drop of that (the `++-assoc` re-bracketing of
+-- `ps ++ e' ∷ e ∷ qs ≡ (ps ++ e' ∷ e ∷ []) ++ qs`).  NO false-as-stated
+-- `∀ o` reservoir postulate is used anywhere on this path.
 run-interchange-⟪⟫
   : ∀ {A B} (f : HomTerm A B)
       (ps qs : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f))
       {e e' : Fin (Hypergraph.nE ⟪ f ⟫)}
       (inc : SS.PerHG.Incomp ⟪ f ⟫ (dep-irrefl-⟪⟫ f) e e')
+  → (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE ⟪ f ⟫)
   → SS.FrontSwap.RunInterchange ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
       K-faithfulness (⟪ f ⟫-cod-unique) ps qs inc
-run-interchange-⟪⟫ f ps qs inc =
-  run-interchange-tail-⟪⟫ f ps qs inc (run-interchange₀-⟪⟫ f ps inc)
+run-interchange-⟪⟫ f ps qs {e} {e'} inc prov =
+  run-interchange-tail-⟪⟫ f ps qs inc prov
+    (run-interchange₀-⟪⟫ f ps inc res-empty-tail)
+  where
+    -- Full swap-order reservoir, PROVEN from the `↭ range` provenance.
+    res-full : SUR.Reservoir≤1 ⟪ f ⟫ (ps ++ e' ∷ e ∷ qs) (Hypergraph.dom ⟪ f ⟫)
+    res-full =
+      SUR.dom-reservoir-prov ⟪ f ⟫ (proj₂ (⟪⟫-LinearP f))
+        (ps ++ e' ∷ e ∷ qs) prov
+
+    -- Empty-tail reservoir = prefix drop of `qs`, after re-bracketing
+    -- `ps ++ e' ∷ e ∷ qs ≡ (ps ++ e' ∷ e ∷ []) ++ qs`.
+    res-empty-tail
+      : SUR.Reservoir≤1 ⟪ f ⟫ (ps ++ e' ∷ e ∷ []) (Hypergraph.dom ⟪ f ⟫)
+    res-empty-tail =
+      SUR.reservoir-prefix ⟪ f ⟫ (ps ++ e' ∷ e ∷ []) qs (Hypergraph.dom ⟪ f ⟫)
+        (subst (λ z → SUR.Reservoir≤1 ⟪ f ⟫ z (Hypergraph.dom ⟪ f ⟫))
+               (assoc-eq) res-full)
+      where
+        assoc-eq : ps ++ e' ∷ e ∷ qs ≡ (ps ++ e' ∷ e ∷ []) ++ qs
+        assoc-eq = sym (++-assoc ps (e' ∷ e ∷ []) qs)
 
 ------------------------------------------------------------------------
 -- Iso-invariance of the pruned decoder, consuming the real pruned iso.

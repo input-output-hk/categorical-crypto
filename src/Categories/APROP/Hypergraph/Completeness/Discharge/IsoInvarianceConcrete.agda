@@ -42,8 +42,10 @@ open import Categories.APROP.Hypergraph.Completeness.Linearity sig using (Linear
 open import Relation.Nullary using (¬_)
 open import Data.Fin using (Fin)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.List using (_∷_; _++_)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
+import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Relation.Binary.PropositionalEquality
   using (_≡_; cong; subst₂)
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive
@@ -76,12 +78,16 @@ module PerHG (H : Hypergraph FlatGen)
                : ∀ (ps qs : SS.PerHG.Order H dih)
                    {e e' : Fin (Hypergraph.nE H)}
                    (inc : SS.PerHG.Incomp H dih e e')
+                 → (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE H)
                → SS.FrontSwap.RunInterchange H dih K uniq-cod ps qs inc) where
   module PH = IW.PerHG H dih
   open PH using (Order; Valid; decodeOrd; _↝_; _↝*_; NoInv; connectivity)
+  open IW.PerHG.L H dih using (swap-step)
 
   -- The real per-swap analytic step, proven in `SwapStep`, applied at `H`.
+  -- Now threaded the SWAP-SITE PROVENANCE `o₁ ↭ range nE`.
   swap-≈ : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂
+         → o₁ Perm.↭ range (Hypergraph.nE H)
          → (p₁ : Valid o₁) (p₂ : Valid o₂)
          → decodeOrd o₁ p₁ ≈Term decodeOrd o₂ p₂
   swap-≈ = SS.swap-≈ H dih K uniq-cod run-interchange
@@ -92,25 +98,38 @@ module PerHG (H : Hypergraph FlatGen)
   swap-validity : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂ → Valid o₁ → Valid o₂
   swap-validity = SV.PerHG.swap-validity H dih lin
 
+  -- An adjacent-independent swap IS a permutation (a transposition under
+  -- the prefix `ps`), so it preserves the `↭ range nE` provenance along
+  -- the connectivity chase.
+  ↝⇒↭ : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂ → o₁ Perm.↭ o₂
+  ↝⇒↭ (swap-step ps {x} {y} qs _) =
+    PermProp.++⁺ˡ ps (Perm.swap x y Perm.refl)
+
   -- Lift the per-swap step to the reflexive-transitive closure, threading
-  -- the validity witness.  REAL: dependent fold over the `Star`.  (Copy of
-  -- the former `IW.PerHG.↝*⇒≈`.)
-  ↝*⇒≈ : ∀ {o₁ o₂ : Order} → o₁ ↝* o₂ → (p₁ : Valid o₁)
+  -- BOTH the validity witness AND the `↭ range nE` provenance (preserved
+  -- at each swap by `↝⇒↭`).  REAL: dependent fold over the `Star`.
+  ↝*⇒≈ : ∀ {o₁ o₂ : Order} → o₁ ↝* o₂
+       → o₁ Perm.↭ range (Hypergraph.nE H)
+       → (p₁ : Valid o₁)
        → Σ[ p₂ ∈ Valid o₂ ] decodeOrd o₁ p₁ ≈Term decodeOrd o₂ p₂
-  ↝*⇒≈ ε        p₁ = p₁ , ≈-Term-refl
-  ↝*⇒≈ (s ◅ ss) p₁ =
+  ↝*⇒≈ ε        o₁↭range p₁ = p₁ , ≈-Term-refl
+  ↝*⇒≈ (s ◅ ss) o₁↭range p₁ =
     let p-mid          = swap-validity s p₁
-        (p₂ , mid≈rec) = ↝*⇒≈ ss p-mid
-    in  p₂ , ≈-Term-trans (swap-≈ s p₁ p-mid) mid≈rec
+        o-mid↭range    = Perm.↭-trans (Perm.↭-sym (↝⇒↭ s)) o₁↭range
+        (p₂ , mid≈rec) = ↝*⇒≈ ss o-mid↭range p-mid
+    in  p₂ , ≈-Term-trans (swap-≈ s o₁↭range p₁ p-mid) mid≈rec
 
   -- Order-invariance of the decoder, driven by `connectivity`.  REAL:
-  -- this is the payoff of the two order-theory modules.  (Copy of the
-  -- former `IW.PerHG.order-invariant`.)
+  -- this is the payoff of the two order-theory modules.  Now threaded the
+  -- starting order's `↭ range nE` provenance (supplied at the call site:
+  -- the chase starts from `τ ↭ range`).
   order-invariant :
     ∀ (o₁ o₂ : Order) → o₁ Perm.↭ o₂ → NoInv o₁ → NoInv o₂ →
+    o₁ Perm.↭ range (Hypergraph.nE H) →
     (p₁ : Valid o₁) →
     Σ[ p₂ ∈ Valid o₂ ] decodeOrd o₁ p₁ ≈Term decodeOrd o₂ p₂
-  order-invariant o₁ o₂ p n₁ n₂ p₁ = ↝*⇒≈ (connectivity p n₁ n₂) p₁
+  order-invariant o₁ o₂ p n₁ n₂ o₁↭range p₁ =
+    ↝*⇒≈ (connectivity p n₁ n₂) o₁↭range p₁
 
 ------------------------------------------------------------------------
 -- Across an isomorphism: iso-invariance of the decoder, now fed the real
@@ -143,6 +162,7 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
            : ∀ (ps qs : SS.PerHG.Order H dihH)
                {e e' : Fin (Hypergraph.nE H)}
                (inc : SS.PerHG.Incomp H dihH e e')
+             → (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE H)
            → SS.FrontSwap.RunInterchange H dihH K codUniqueH ps qs inc) where
   private
     module PH  = IW.PerHG H dihH
@@ -172,5 +192,5 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
     let (vτ , transport≈)   = IT.iso-transport Φ dihH dihJ K codUniqueH codUniqueJ objUIP vJ
         (vH , invariant≈)   =
           CPH.order-invariant (IW.τ Φ) (range H.nE) (IW.τ↭range Φ) (NoInv-τ noInvJ)
-                              noInvH vτ
+                              noInvH (IW.τ↭range Φ) vτ
     in  vH , ≈-Term-trans transport≈ invariant≈

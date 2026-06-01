@@ -74,7 +74,7 @@ open import Data.Nat using (s≤s⁻¹)
   renaming (_≤_ to _≤ⁿ_; _<_ to _<ⁿ_; s≤s to s≤sⁿ; z≤n to z≤nⁿ)
 import Data.Nat.Properties as Nat
 open import Data.List using (List; []; _∷_; _++_; map; concat; tabulate)
-open import Data.List.Properties using (++-identityʳ)
+open import Data.List.Properties using (++-identityʳ; map-++; concat-++)
 open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (Maybe; just; nothing)
@@ -336,6 +336,31 @@ module _ (H : Hypergraph FlatGen) where
               (Nat.≤-trans arith (Nat.≤-reflexive (sym rhs≡)))
 
   ------------------------------------------------------------------------
+  -- 1c.  RESERVOIR-SPLIT — the GLOBAL reservoir specialises to a mid-run
+  --      context.  Iterating `edge-step-Reservoir≤1` along a prefix `ps`,
+  --      a `Reservoir≤1 (ps ++ qs) s` invariant for the full edge list
+  --      descends to a `Reservoir≤1 qs` invariant for the stack reached
+  --      AFTER running `ps` from `s`.  This lets a `Linear`-sourced GLOBAL
+  --      reservoir feed any mid-run `(qs , pe-stack ps s)`.
+  --
+  --   * `ps = []`     : `process-edges [] s = (s , id)` and `[] ++ qs = qs`,
+  --     so the invariant is unchanged.
+  --   * `ps = e ∷ ps'`: `(e ∷ ps') ++ qs = e ∷ (ps' ++ qs)`; one
+  --     `edge-step-Reservoir≤1` advances `s` to `proj₁ (edge-step H s e)`
+  --     and drops the head edge, then recurse on `ps'` (the running stack
+  --     of `process-edges (e ∷ ps') s` is exactly `process-edges ps'
+  --     (proj₁ (edge-step H s e))` definitionally).
+
+  reservoir-split
+    : ∀ (ps qs : List (Fin H.nE)) (s : List (Fin H.nV))
+    → Reservoir≤1 (ps ++ qs) s
+    → Reservoir≤1 qs (proj₁ (process-edges H ps s))
+  reservoir-split []        qs s inv = inv
+  reservoir-split (e ∷ ps') qs s inv =
+    reservoir-split ps' qs (proj₁ (edge-step H s e))
+      (edge-step-Reservoir≤1 e (ps' ++ qs) s inv)
+
+  ------------------------------------------------------------------------
   -- 2.  Bridge: `map H.eout (range nE) ≡ tabulate H.eout`, so the initial
   --     reservoir `reservoir (range nE)` is `concat (tabulate H.eout)`, and
   --     `producedList H = H.dom ++ concat (tabulate H.eout)`.
@@ -391,6 +416,99 @@ module _ (H : Hypergraph FlatGen) where
         Nat.≤-trans
           (Nat.≤-reflexive (sym (producedList-count v)))
           (prod-bnd v)
+
+  ------------------------------------------------------------------------
+  -- 3b.  PROVENANCE-SOURCED reservoir.  The `Reservoir≤1 H o H.dom`
+  --      invariant is NOT true for an arbitrary edge order `o` (a repeated
+  --      edge over-counts its `eout` in the reservoir).  But it IS true for
+  --      every order `o` that is a PERMUTATION of `range H.nE` — exactly the
+  --      orders the downstream connectivity chase visits (each `↝` swap is
+  --      an adjacent transposition, preserving the multiset).  We thread
+  --      that provenance `o ↭ range nE` here and discharge the reservoir
+  --      from the `Linear`-backed `range`-order bound (`pe-stack-Unique`'s
+  --      `inv-init`), using `↭`-invariance of the reservoir's per-vertex
+  --      count.
+
+  private
+    -- Per-vertex count of `concat (map H.eout xs)` is `↭`-invariant in
+    -- `xs` (a "weighted" version of the `↭⇒count` lemma above, weight
+    -- `count v (H.eout ·)`).  Inducts on the `↭`-derivation; each step
+    -- rearranges the `concat`/`++` blocks with `count-++` + arithmetic.
+    reservoir-↭-count
+      : ∀ {xs ys : List (Fin H.nE)} → xs Perm.↭ ys
+      → ∀ v → count v (reservoir xs) ≡ count v (reservoir ys)
+    reservoir-↭-count Perm.refl v = refl
+    reservoir-↭-count (Perm.prep {xs = xs} {ys = ys} e p) v =
+      trans (count-++ v (H.eout e) (reservoir xs))
+      (trans (cong (count v (H.eout e) +_) (reservoir-↭-count p v))
+             (sym (count-++ v (H.eout e) (reservoir ys))))
+    reservoir-↭-count (Perm.swap {xs = xs} {ys = ys} e e' p) v =
+      -- reservoir (e ∷ e' ∷ xs) = eout e ++ (eout e' ++ reservoir xs)
+      -- reservoir (e' ∷ e ∷ ys) = eout e' ++ (eout e ++ reservoir ys)
+      trans (count-++ v (H.eout e) (H.eout e' ++ reservoir xs))
+      (trans (cong (count v (H.eout e) +_)
+                   (count-++ v (H.eout e') (reservoir xs)))
+      (trans (sym (Nat.+-assoc (count v (H.eout e)) (count v (H.eout e'))
+                               (count v (reservoir xs))))
+      (trans (cong (_+ count v (reservoir xs))
+                   (Nat.+-comm (count v (H.eout e)) (count v (H.eout e'))))
+      (trans (Nat.+-assoc (count v (H.eout e')) (count v (H.eout e))
+                          (count v (reservoir xs)))
+      (trans (cong (λ z → count v (H.eout e') + (count v (H.eout e) + z))
+                   (reservoir-↭-count p v))
+      (trans (cong (count v (H.eout e') +_)
+                   (sym (count-++ v (H.eout e) (reservoir ys))))
+             (sym (count-++ v (H.eout e') (H.eout e ++ reservoir ys)))))))))
+    reservoir-↭-count (Perm.trans p₁ p₂) v =
+      trans (reservoir-↭-count p₁ v) (reservoir-↭-count p₂ v)
+
+  -- THE PROVENANCE-SOURCED reservoir.  For any order `o ↭ range H.nE`, the
+  -- `dom`-reservoir invariant holds — the per-vertex reservoir count of `o`
+  -- equals that of `range H.nE` (`reservoir-↭-count`), and the `range`-order
+  -- bound `count v dom + count v (reservoir (range nE)) ≤ 1` is exactly the
+  -- `Linear`-backed `producedList` bound (`producedList-count` + `prod-bnd`).
+  --
+  -- This is the SOUND replacement for the (FALSE-as-stated) `∀ o → …`
+  -- reservoir: the `o ↭ range` hypothesis is the missing side condition.
+  dom-reservoir-prov
+    : (∀ v → count v (producedList H) ≤ⁿ 1)
+    → ∀ (o : List (Fin H.nE)) → o Perm.↭ range H.nE
+    → Reservoir≤1 o H.dom
+  dom-reservoir-prov prod-bnd o o↭range v =
+    Nat.≤-trans
+      (Nat.≤-reflexive
+        (trans (cong (count v H.dom +_) (reservoir-↭-count o↭range v))
+               (sym (producedList-count v))))
+      (prod-bnd v)
+
+  -- PREFIX MONOTONICITY of the `dom`-reservoir.  A `Reservoir≤1` invariant
+  -- for the full order `o ++ rest` descends to its prefix `o`: the
+  -- reservoir of `o` is a sub-multiset of that of `o ++ rest`
+  -- (`reservoir (o ++ rest) = reservoir o ++ reservoir rest`), so every
+  -- per-vertex count only shrinks when `rest` is dropped, keeping the
+  -- bound ≤ 1.  This lets a swap-site reservoir feed the truncated orders
+  -- `ps` / `ps ++ e' ∷ e ∷ []` that the empty-tail core consumes.
+  private
+    reservoir-++-count
+      : ∀ (o rest : List (Fin H.nE)) (v : Fin H.nV)
+      → count v (reservoir (o ++ rest))
+      ≡ count v (reservoir o) + count v (reservoir rest)
+    reservoir-++-count o rest v =
+      trans (cong (count v)
+                  (trans (cong concat (map-++ H.eout o rest))
+                         (sym (concat-++ (map H.eout o) (map H.eout rest)))))
+            (count-++ v (reservoir o) (reservoir rest))
+
+  reservoir-prefix
+    : ∀ (o rest : List (Fin H.nE)) (s : List (Fin H.nV))
+    → Reservoir≤1 (o ++ rest) s → Reservoir≤1 o s
+  reservoir-prefix o rest s inv v =
+    Nat.≤-trans
+      (Nat.+-monoʳ-≤ (count v s)
+        (Nat.≤-trans
+          (Nat.m≤m+n (count v (reservoir o)) (count v (reservoir rest)))
+          (Nat.≤-reflexive (sym (reservoir-++-count o rest v)))))
+      (inv v)
 
   ------------------------------------------------------------------------
   -- 4.  Eval-coincidence interface — the `Unique` codomain witnesses.
