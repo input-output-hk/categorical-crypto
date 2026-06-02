@@ -2060,6 +2060,383 @@ module BlockFactor
           ∘ (pvlC p ⊗₁ id {RsufObj ys}) ∘ from-xs ∎
 
   ------------------------------------------------------------------------
+  -- ### `head-factor-K` — the K-side single-edge FIRE factorization
+  -- (the K-side mirror of `head-factor`, with the carried G-output PREFIX).
+  --
+  -- For a single FIRE K-edge fired from the mixed stack `map injL P ++ map
+  -- injR ys` (the `map injL P` is the carried G-output PREFIX held by `id`),
+  -- the head term factors — modulo `BTC.uf++` framing — as `(id {prefix} ⊗₁
+  -- K-head)`, where `K-head = (box on the injR-block residual) ∘ pvlC q` is
+  -- the pure-injR FIRE head.  Mirror of `head-factor` with LEFT/RIGHT swapped:
+  -- the carried block is the LEFT prefix `map injL P` (held by `id`), the box
+  -- acts on the RIGHT injR-block `eiBlk ++ rgBlk`.
+  --
+  -- Box half = `box-prefix-BTC` (`box-prefix` reframed into `BTC.uf++`);
+  -- permute half = `head-perm-factor-K` (= `pvv-block-tensor`@(p=↭-refl) +
+  -- `pvl-refl`); combine = middle `from(BTC) ∘ to(BTC) = id` cancellation +
+  -- `⊗-∘-dist`.
+
+  -- The constant G-prefix object (the `id`-carried near block).
+  RpreObj : (P : List (Fin G.nV)) → ObjTerm
+  RpreObj P = unflatten (map C.vlab (map injL P))
+
+  -- The permute factor: `pvlC (++⁺ ↭-refl q)` slides past `BTC.uf++` as
+  -- `(id ⊗₁ pvlC q)` (corollary of `pvv-block-tensor`@(p=↭-refl) + `pvl-refl`).
+  -- Mirror of `head-perm-factor` (identity on the LEFT prefix `Ls`).
+  head-perm-factor-K
+    : ∀ (Ls : List (Fin C.nV)) {as bs : List (Fin C.nV)} (q : as Perm.↭ bs)
+    → pvlC (PermProp.++⁺ (Perm.↭-refl {x = Ls}) q)
+      ≈Term _≅_.to (BTC.uf++ Ls bs)
+            ∘ (id {unflatten (map C.vlab Ls)} ⊗₁ pvlC q)
+            ∘ _≅_.from (BTC.uf++ Ls as)
+  head-perm-factor-K Ls {as} {bs} q = begin
+    pvlC (PermProp.++⁺ (Perm.↭-refl {x = Ls}) q)
+      ≈⟨ BTC.pvv-block-tensor (Perm.↭-refl {x = Ls}) q ⟩
+    _≅_.to (BTC.uf++ Ls bs) ∘ (pvlC (Perm.↭-refl {x = Ls}) ⊗₁ pvlC q)
+      ∘ _≅_.from (BTC.uf++ Ls as)
+      ≈⟨ refl⟩∘⟨ ⊗-resp-≈ pvl-refl ≈-Term-refl ⟩∘⟨refl ⟩
+    _≅_.to (BTC.uf++ Ls bs) ∘ (id {unflatten (map C.vlab Ls)} ⊗₁ pvlC q)
+      ∘ _≅_.from (BTC.uf++ Ls as) ∎
+
+  ------------------------------------------------------------------------
+  -- ### `box-prefix-BTC` — `box-prefix`'s LHS shape reframed into `BTC.uf++`.
+  --
+  -- The K-side box-part: a `box-prefix`-LHS-shaped box (the carried injL
+  -- prefix `map injL P` held by `id`, the K-edge box `box-of eiBlk eoBlk
+  -- rgBlk` acting on the injR block) lifted from raw `unflatten-++-≅` into the
+  -- `BTC.uf++` convention.  No `++-assoc`: the prefix structure `P ++ (eiBlk
+  -- ++ rgBlk)` already matches, so only the two `map-++ C.vlab` (block-2 and
+  -- the outer) reconciliations are needed.  `BoxSub` is the SAME pure-injR
+  -- per-edge box `head-factor` uses (`box-of` on the `map C.vlab`-block lists).
+
+  -- The combined `box-of`-endpoint transports `P-img ++ (eiBlk-img ++
+  -- rgBlk-img) ≡ map C.vlab (map injL P ++ (eiBlk ++ rgBlk))` — the inner
+  -- `map-++ C.vlab eiBlk rgBlk` (block-2 split) plus the outer `map-++
+  -- C.vlab (map injL P) (eiBlk ++ rgBlk)`, one per box endpoint block.
+  private
+    Pimg : (P : List (Fin G.nV)) → List X
+    Pimg P = map C.vlab (map injL P)
+
+    whole-eq-K : ∀ (P : List (Fin G.nV)) (eBlk rgBlk : List (Fin C.nV))
+               → Pimg P ++ (map C.vlab eBlk ++ map C.vlab rgBlk)
+                 ≡ map C.vlab (map injL P ++ (eBlk ++ rgBlk))
+    whole-eq-K P eBlk rgBlk =
+      trans (cong (Pimg P ++_) (sym (map-++ C.vlab eBlk rgBlk)))
+            (sym (map-++ C.vlab (map injL P) (eBlk ++ rgBlk)))
+
+  -- to/from of `unflatten-++-≅ L R` under a BLOCK-2 list equality `r : R ≡ R'`
+  -- (the `map-++ C.vlab` split on the box block), a single `subst` over R.
+  -- (Mirror of `to-blk1`/`from-blk1`, on the SECOND block.)
+  private
+    to-blk2 : ∀ (L R R' : List X) (r : R ≡ R')
+            → subst (λ z → HomTerm (unflatten L ⊗₀ unflatten z) (unflatten (L ++ z)))
+                    r (_≅_.to (unflatten-++-≅ L R))
+              ≡ _≅_.to (unflatten-++-≅ L R')
+    to-blk2 L R .R refl = refl
+
+    from-blk2 : ∀ (L R R' : List X) (r : R ≡ R')
+              → subst (λ z → HomTerm (unflatten (L ++ z)) (unflatten L ⊗₀ unflatten z))
+                      r (_≅_.from (unflatten-++-≅ L R))
+                ≡ _≅_.from (unflatten-++-≅ L R')
+    from-blk2 L R .R refl = refl
+
+  ------------------------------------------------------------------------
+  -- `box-prefix`'s LHS shape (the carried injL prefix `map injL P` held by
+  -- `id`, the K-edge box on the injR block `eiBlk ++ rgBlk`) reframed into
+  -- `BTC.uf++`.  `BoxSub` is the SAME pure-injR per-edge box `head-factor`
+  -- uses.
+  box-prefix-BTC
+    : ∀ (P : List (Fin G.nV)) (eiBlk eoBlk rgBlk : List (Fin C.nV))
+        (g : FlatGen (map C.vlab eiBlk) (map C.vlab eoBlk))
+    → subst₂ HomTerm
+        (cong unflatten (whole-eq-K P eiBlk rgBlk))
+        (cong unflatten (whole-eq-K P eoBlk rgBlk))
+        (_≅_.to (unflatten-++-≅ (Pimg P) (map C.vlab eoBlk ++ map C.vlab rgBlk))
+         ∘ (id {RpreObj P}
+            ⊗₁ box-of (map C.vlab eiBlk) (map C.vlab eoBlk) (map C.vlab rgBlk) g)
+         ∘ _≅_.from (unflatten-++-≅ (Pimg P) (map C.vlab eiBlk ++ map C.vlab rgBlk)))
+      ≈Term _≅_.to (BTC.uf++ (map injL P) (eoBlk ++ rgBlk))
+            ∘ (id {RpreObj P}
+               ⊗₁ subst₂ HomTerm
+                    (cong unflatten (sym (map-++ C.vlab eiBlk rgBlk)))
+                    (cong unflatten (sym (map-++ C.vlab eoBlk rgBlk)))
+                    (box-of (map C.vlab eiBlk) (map C.vlab eoBlk) (map C.vlab rgBlk) g))
+            ∘ _≅_.from (BTC.uf++ (map injL P) (eiBlk ++ rgBlk))
+  box-prefix-BTC P eiBlk eoBlk rgBlk g = ≈-Term-sym (≡⇒≈Term rhs-≡)
+    where
+      P'  = Pimg P
+      eiL = map C.vlab eiBlk
+      eoL = map C.vlab eoBlk
+      rgL = map C.vlab rgBlk
+      UP  = RpreObj P
+
+      boxRg = box-of eiL eoL rgL g
+
+      -- the two `map-++ C.vlab` block-2 splits.
+      mpei = sym (map-++ C.vlab eiBlk rgBlk)   -- map C.vlab (eiBlk++rgBlk) ≡ eiL ++ rgL  (reversed)
+      mpeo = sym (map-++ C.vlab eoBlk rgBlk)
+
+      -- the outer `BTC.uf++` splits.
+      Cei = sym (map-++ C.vlab (map injL P) (eiBlk ++ rgBlk))
+      Ceo = sym (map-++ C.vlab (map injL P) (eoBlk ++ rgBlk))
+
+      to-raw = _≅_.to   (unflatten-++-≅ P' (eoL ++ rgL))
+      fr-raw = _≅_.from (unflatten-++-≅ P' (eiL ++ rgL))
+      M      = id {UP} ⊗₁ boxRg
+      BoxSub = subst₂ HomTerm (cong unflatten mpei) (cong unflatten mpeo) boxRg
+
+      -- `id_UP ⊗ subst₂ … box`-subst push (subst on the SECOND ⊗-factor).
+      ⊗-push
+        : ∀ {a₁ a₂ b₁ b₂ : List X} (r₁ : a₁ ≡ a₂) (r₂ : b₁ ≡ b₂)
+            (f : HomTerm (unflatten a₁) (unflatten b₁))
+        → id {UP} ⊗₁ (subst₂ HomTerm (cong unflatten r₁) (cong unflatten r₂) f)
+          ≡ subst₂ HomTerm
+              (cong (λ z → UP ⊗₀ unflatten z) r₁)
+              (cong (λ z → UP ⊗₀ unflatten z) r₂)
+              (id {UP} ⊗₁ f)
+      ⊗-push refl refl f = refl
+
+      -- A `subst` over a 2-place `HomTerm` motive as a `subst₂`.
+      subst-2 : ∀ {a b : List X} (f h : List X → ObjTerm) (r : a ≡ b)
+                  (t : HomTerm (f a) (h a))
+              → subst (λ z → HomTerm (f z) (h z)) r t
+                ≡ subst₂ HomTerm (cong f r) (cong h r) t
+      subst-2 f h refl t = refl
+
+      -- to/from(BTC) re-expressed on the SPLIT raw blocks (to-BTC/from-BTC +
+      -- the blk2 `map-++ C.vlab` reconciliation, recast via `subst-2`),
+      -- combined to a single `subst₂` via `subst₂-HomTerm-∘`.  (Mirror of
+      -- `box-suffix-BTC`'s `to-eo-≡`/`from-ei-≡`, on the SECOND block.)
+      to-eo-≡ :
+        _≅_.to (BTC.uf++ (map injL P) (eoBlk ++ rgBlk))
+        ≡ subst₂ HomTerm
+            (trans (cong (λ z → UP ⊗₀ unflatten z) mpeo) refl)
+            (trans (cong (λ z → unflatten (P' ++ z)) mpeo) (cong unflatten Ceo))
+            to-raw
+      to-eo-≡ =
+        trans (to-BTC (map injL P) (eoBlk ++ rgBlk))
+        (trans (cong (subst₂ HomTerm refl (cong unflatten Ceo))
+                     (trans (sym (to-blk2 P' (eoL ++ rgL) (map C.vlab (eoBlk ++ rgBlk)) mpeo))
+                            (subst-2 (λ z → UP ⊗₀ unflatten z) (λ z → unflatten (P' ++ z))
+                               mpeo to-raw)))
+               (subst₂-HomTerm-∘
+                  (cong (λ z → UP ⊗₀ unflatten z) mpeo) refl
+                  (cong (λ z → unflatten (P' ++ z)) mpeo) (cong unflatten Ceo)
+                  to-raw))
+
+      from-ei-≡ :
+        _≅_.from (BTC.uf++ (map injL P) (eiBlk ++ rgBlk))
+        ≡ subst₂ HomTerm
+            (trans (cong (λ z → unflatten (P' ++ z)) mpei) (cong unflatten Cei))
+            (trans (cong (λ z → UP ⊗₀ unflatten z) mpei) refl)
+            fr-raw
+      from-ei-≡ =
+        trans (from-BTC (map injL P) (eiBlk ++ rgBlk))
+        (trans (cong (subst₂ HomTerm (cong unflatten Cei) refl)
+                     (trans (sym (from-blk2 P' (eiL ++ rgL) (map C.vlab (eiBlk ++ rgBlk)) mpei))
+                            (subst-2 (λ z → unflatten (P' ++ z)) (λ z → UP ⊗₀ unflatten z)
+                               mpei fr-raw)))
+               (subst₂-HomTerm-∘
+                  (cong (λ z → unflatten (P' ++ z)) mpei) (cong unflatten Cei)
+                  (cong (λ z → UP ⊗₀ unflatten z) mpei) refl
+                  fr-raw))
+
+      Qto = trans (cong (λ z → UP ⊗₀ unflatten z) mpeo) refl   -- to-eo-≡ dom
+      Qfr = trans (cong (λ z → UP ⊗₀ unflatten z) mpei) refl   -- from-ei-≡ cod
+      B'i = cong (λ z → unflatten (P' ++ z)) mpei
+      B'o = cong (λ z → unflatten (P' ++ z)) mpeo
+      Pp  = trans B'i (cong unflatten Cei)
+      Rc  = trans B'o (cong unflatten Ceo)
+
+      -- the middle box factor matches `subst₂ Qfr Qto M` modulo the two
+      -- `trans _ refl` pads (`trans-reflʳ`).
+      mid-≡ : id {UP} ⊗₁ BoxSub ≡ subst₂ HomTerm Qfr Qto M
+      mid-≡ =
+        trans (⊗-push mpei mpeo boxRg)
+              (cong₂ (λ p q → subst₂ HomTerm p q M)
+                     (sym (trans-reflʳ (cong (λ z → UP ⊗₀ unflatten z) mpei)))
+                     (sym (trans-reflʳ (cong (λ z → UP ⊗₀ unflatten z) mpeo))))
+
+      -- `B'·` ≡ `cong unflatten (cong (P' ++_) mp·)` (the `cong-∘` bridge).
+      Aei = cong (P' ++_) mpei
+      Aeo = cong (P' ++_) mpeo
+
+      rhs-≡ :
+        _≅_.to (BTC.uf++ (map injL P) (eoBlk ++ rgBlk))
+          ∘ (id {UP} ⊗₁ BoxSub)
+          ∘ _≅_.from (BTC.uf++ (map injL P) (eiBlk ++ rgBlk))
+        ≡ subst₂ HomTerm
+            (cong unflatten (whole-eq-K P eiBlk rgBlk))
+            (cong unflatten (whole-eq-K P eoBlk rgBlk))
+            (to-raw ∘ M ∘ fr-raw)
+      rhs-≡ = ≡R.begin
+          _≅_.to (BTC.uf++ (map injL P) (eoBlk ++ rgBlk))
+            ∘ (id {UP} ⊗₁ BoxSub)
+            ∘ _≅_.from (BTC.uf++ (map injL P) (eiBlk ++ rgBlk))
+            -- Step 1: rewrite the three BTC factors to substituted raw.
+            ≡R.≡⟨ cong₃ (λ a b c → a ∘ b ∘ c) to-eo-≡ mid-≡ from-ei-≡ ⟩
+          subst₂ HomTerm Qto Rc to-raw
+            ∘ subst₂ HomTerm Qfr Qto M
+            ∘ subst₂ HomTerm Pp Qfr fr-raw
+            -- Step 2: recombine the M / from factors.
+            ≡R.≡⟨ cong (λ w → subst₂ HomTerm Qto Rc to-raw ∘ w)
+                    (sym (subst₂-HomTerm-∘-dist Pp Qfr Qto M fr-raw)) ⟩
+          subst₂ HomTerm Qto Rc to-raw
+            ∘ subst₂ HomTerm Pp Qto (M ∘ fr-raw)
+            -- Step 3: recombine the to factor.
+            ≡R.≡⟨ sym (subst₂-HomTerm-∘-dist Pp Qto Rc to-raw (M ∘ fr-raw)) ⟩
+          subst₂ HomTerm Pp Rc (to-raw ∘ M ∘ fr-raw)
+            -- Step 4: re-nest the combined `subst₂` into `Cei'∘B'·` form.
+            ≡R.≡⟨ sym (subst₂-HomTerm-∘
+                      B'i (cong unflatten Cei)
+                      B'o (cong unflatten Ceo)
+                      (to-raw ∘ M ∘ fr-raw)) ⟩
+          subst₂ HomTerm (cong unflatten Cei) (cong unflatten Ceo)
+            (subst₂ HomTerm B'i B'o (to-raw ∘ M ∘ fr-raw))
+            -- Step 5: `B'·` ≡ `cong unflatten (cong (P' ++_) mp·)`.
+            ≡R.≡⟨ cong (λ p → subst₂ HomTerm (cong unflatten Cei) (cong unflatten Ceo) p)
+                    (cong₂ (λ a b → subst₂ HomTerm a b (to-raw ∘ M ∘ fr-raw))
+                           (cong-∘ mpei) (cong-∘ mpeo)) ⟩
+          subst₂ HomTerm (cong unflatten Cei) (cong unflatten Ceo)
+            (subst₂ HomTerm (cong unflatten Aei) (cong unflatten Aeo)
+               (to-raw ∘ M ∘ fr-raw))
+            -- Step 6: fold the two layers into the single `whole-eq-K` subst.
+            ≡R.≡⟨ fold-whole ⟩
+          subst₂ HomTerm
+            (cong unflatten (whole-eq-K P eiBlk rgBlk))
+            (cong unflatten (whole-eq-K P eoBlk rgBlk))
+            (to-raw ∘ M ∘ fr-raw) ≡R.∎
+        where
+          module ≡R = ≡-Reasoning
+          cong₃ : ∀ {a} {A B C D : Set a} (f : A → B → C → D)
+                    {x x' y y' z z'} → x ≡ x' → y ≡ y' → z ≡ z'
+                  → f x y z ≡ f x' y' z'
+          cong₃ f refl refl refl = refl
+
+          fold-whole :
+            subst₂ HomTerm (cong unflatten Cei) (cong unflatten Ceo)
+              (subst₂ HomTerm (cong unflatten Aei) (cong unflatten Aeo)
+                 (to-raw ∘ M ∘ fr-raw))
+            ≡ subst₂ HomTerm
+                (cong unflatten (whole-eq-K P eiBlk rgBlk))
+                (cong unflatten (whole-eq-K P eoBlk rgBlk))
+                (to-raw ∘ M ∘ fr-raw)
+          fold-whole =
+            trans
+              (subst₂-HomTerm-∘
+                 (cong unflatten Aei) (cong unflatten Cei)
+                 (cong unflatten Aeo) (cong unflatten Ceo)
+                 (to-raw ∘ M ∘ fr-raw))
+              (cong₂ (λ p q → subst₂ HomTerm p q (to-raw ∘ M ∘ fr-raw))
+                     (sym (cong-whole eiBlk)) (sym (cong-whole eoBlk)))
+            where
+              cong-whole : ∀ (eBlk : List (Fin C.nV))
+                         → cong unflatten (whole-eq-K P eBlk rgBlk)
+                           ≡ trans (cong unflatten (cong (P' ++_) (sym (map-++ C.vlab eBlk rgBlk))))
+                                   (cong unflatten (sym (map-++ C.vlab (map injL P) (eBlk ++ rgBlk))))
+              cong-whole eBlk =
+                sym (trans-cong {f = unflatten}
+                       (cong (P' ++_) (sym (map-++ C.vlab eBlk rgBlk))))
+
+  ------------------------------------------------------------------------
+  -- ### `head-factor-K` — the single-K-edge FIRE head-step factorization.
+  --
+  -- THE per-edge K-side piece (NON-inductive), the mirror of `head-factor`.
+  -- A single FIRE K-edge fired from the mixed stack `map injL P ++ map injR
+  -- ys` — its `box-prefix`-LHS-shaped box (carried `map injL P` prefix held
+  -- by `id`, the K-edge `box-of` on the injR-block residual `rgBlk`, in
+  -- `whole-eq-K`-substituted form) precomposed with the front-permute
+  -- `pvlC (++⁺ ↭-refl q)` (identity on the LEFT `map injL P` prefix) —
+  -- factors, modulo the `BTC.uf++` framing on the WHOLE block lists, as
+  -- `(id {prefix} ⊗₁ K-head)` on the carried `map injL P` prefix, where
+  --
+  --   K-head = (box on the injR-block residual) ∘ pvlC q
+  --
+  -- is the pure-injR FIRE head.  Box half = `box-prefix-BTC`; permute half =
+  -- `head-perm-factor-K` (= `pvv-block-tensor`@(p=↭-refl) + `pvl-refl`);
+  -- combine = middle `from(BTC) ∘ to(BTC) = id` cancellation + `⊗-∘-dist`.
+  -- The cons step (`kblock-factor`, separate) reconciles the actual
+  -- `fire-mid C (ψK e)` / computed extract-prefix perm to this `box`/`++⁺
+  -- ↭-refl q` form via the `ein-c`/`eout-c` reductions + the keystone (K
+  -- prepends its eout to the stack front, so the post-edge stack only `↭`s).
+  head-factor-K
+    : ∀ (P : List (Fin G.nV)) (eiBlk eoBlk rgBlk : List (Fin C.nV))
+        (ys : List (Fin K.nV))
+        (g : FlatGen (map C.vlab eiBlk) (map C.vlab eoBlk))
+        (q : map injR ys Perm.↭ eiBlk ++ rgBlk)
+    → subst₂ HomTerm
+        (cong unflatten (whole-eq-K P eiBlk rgBlk))
+        (cong unflatten (whole-eq-K P eoBlk rgBlk))
+        (_≅_.to (unflatten-++-≅ (Pimg P) (map C.vlab eoBlk ++ map C.vlab rgBlk))
+         ∘ (id {RpreObj P}
+            ⊗₁ box-of (map C.vlab eiBlk) (map C.vlab eoBlk) (map C.vlab rgBlk) g)
+         ∘ _≅_.from (unflatten-++-≅ (Pimg P) (map C.vlab eiBlk ++ map C.vlab rgBlk)))
+      ∘ pvlC (PermProp.++⁺ (Perm.↭-refl {x = map injL P}) q)
+      ≈Term _≅_.to (BTC.uf++ (map injL P) (eoBlk ++ rgBlk))
+            ∘ (id {RpreObj P}
+               ⊗₁ (subst₂ HomTerm
+                     (cong unflatten (sym (map-++ C.vlab eiBlk rgBlk)))
+                     (cong unflatten (sym (map-++ C.vlab eoBlk rgBlk)))
+                     (box-of (map C.vlab eiBlk) (map C.vlab eoBlk) (map C.vlab rgBlk) g)
+                  ∘ pvlC q))
+            ∘ _≅_.from (BTC.uf++ (map injL P) (map injR ys))
+  head-factor-K P eiBlk eoBlk rgBlk ys g q = begin
+      Box-sub ∘ pvlC (PermProp.++⁺ (Perm.↭-refl {x = map injL P}) q)
+        ≈⟨ ∘-resp-≈ (box-prefix-BTC P eiBlk eoBlk rgBlk g)
+                    (head-perm-factor-K (map injL P) q) ⟩
+      (to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub) ∘ from-eirg)
+        ∘ (to-eirg ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys)
+        ≈⟨ cancel-mid ⟩
+      to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub) ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys
+        ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+      to-eorg ∘ ((id {RpreObj P} ⊗₁ BoxSub) ∘ (id {RpreObj P} ⊗₁ pvlC q)) ∘ from-ys
+        ≈⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩∘⟨refl ⟩
+      to-eorg ∘ ((id {RpreObj P} ∘ id {RpreObj P}) ⊗₁ (BoxSub ∘ pvlC q)) ∘ from-ys
+        ≈⟨ refl⟩∘⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩∘⟨refl ⟩
+      to-eorg ∘ (id {RpreObj P} ⊗₁ (BoxSub ∘ pvlC q)) ∘ from-ys ∎
+    where
+      Box = _≅_.to (unflatten-++-≅ (Pimg P) (map C.vlab eoBlk ++ map C.vlab rgBlk))
+            ∘ (id {RpreObj P}
+               ⊗₁ box-of (map C.vlab eiBlk) (map C.vlab eoBlk) (map C.vlab rgBlk) g)
+            ∘ _≅_.from (unflatten-++-≅ (Pimg P) (map C.vlab eiBlk ++ map C.vlab rgBlk))
+      Box-sub = subst₂ HomTerm
+                  (cong unflatten (whole-eq-K P eiBlk rgBlk))
+                  (cong unflatten (whole-eq-K P eoBlk rgBlk))
+                  Box
+      BoxSub = subst₂ HomTerm
+                 (cong unflatten (sym (map-++ C.vlab eiBlk rgBlk)))
+                 (cong unflatten (sym (map-++ C.vlab eoBlk rgBlk)))
+                 (box-of (map C.vlab eiBlk) (map C.vlab eoBlk) (map C.vlab rgBlk) g)
+      to-eorg = _≅_.to   (BTC.uf++ (map injL P) (eoBlk ++ rgBlk))
+      from-eirg = _≅_.from (BTC.uf++ (map injL P) (eiBlk ++ rgBlk))
+      to-eirg = _≅_.to   (BTC.uf++ (map injL P) (eiBlk ++ rgBlk))
+      from-ys = _≅_.from (BTC.uf++ (map injL P) (map injR ys))
+
+      cancel-mid
+        : (to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub) ∘ from-eirg)
+            ∘ (to-eirg ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys)
+          ≈Term to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub)
+                  ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys
+      cancel-mid = begin
+        (to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub) ∘ from-eirg)
+          ∘ (to-eirg ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys)
+          ≈⟨ FM.assoc ⟩
+        to-eorg ∘ ((id {RpreObj P} ⊗₁ BoxSub) ∘ from-eirg)
+          ∘ (to-eirg ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys)
+          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+        to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub) ∘ from-eirg
+          ∘ to-eirg ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+        to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub) ∘ (from-eirg ∘ to-eirg)
+          ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoʳ (BTC.uf++ (map injL P) (eiBlk ++ rgBlk)) ⟩∘⟨refl ⟩
+        to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub) ∘ id
+          ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
+        to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub)
+          ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys ∎
+
+  ------------------------------------------------------------------------
   -- ### `gblock-factor` — the G-side suffix-carry factorization.
   --
   -- Statement (with the SOUND `Reservoir≤1` freshness hypothesis, threaded
