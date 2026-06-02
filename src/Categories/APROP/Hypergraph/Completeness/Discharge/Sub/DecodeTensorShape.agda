@@ -1463,6 +1463,178 @@ module BoxAssoc where
                 s-eo⁻ ∘ bxRaw ∘ s-ei ∎
 
 --------------------------------------------------------------------------------
+-- ## The G-side / K-side block factorizations — SHARED SCAFFOLDING.
+--
+-- SCAFFOLDING ONLY (proven, postulate-free, hole-free).  The two TERM
+-- companions of the STACK-only `process-edges-↑ˡ-on-mixed` /
+-- `process-edges-↑ʳ-on-perm` — `gblock-factor` (Milestone 2a) and
+-- `kblock-factor` (Milestone 2b) — are NOT yet assembled (see the RESIDUAL
+-- note at the end of the file).  This module fixes the framing convention
+-- (`BTC.uf++`, matching `pvv-block-tensor`) and the factored-form shapes
+-- (`GFactored`, `Lterm`) those two inductions land on, plus the stack
+-- agreements (`mixed-stack-G`, `proc-stack-emb-L`) and the per-edge
+-- `box-of` residual-rewrite (`box-rest-rewrite`) they consume.
+
+module BlockFactor
+  (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
+  (Kf : FaithfulnessResidual)
+  (G K : Hypergraph FlatGen)
+  where
+  private
+    module G = Hypergraph G
+    module K = Hypergraph K
+    module C = Hypergraph (hTensor G K)
+  open FA.hTensor-impl G K
+  open FM.HomReasoning
+  open EmbedData objUIP Kf G K using (module TG)
+
+  C-hg : Hypergraph FlatGen
+  C-hg = hTensor G K
+
+  -- Abbreviations for the C-level run.
+  pe-stackC : List (Fin C.nE) → List (Fin C.nV) → List (Fin C.nV)
+  pe-stackC o s = proj₁ (process-edges C-hg o s)
+
+  pe-termC : (o : List (Fin C.nE)) (s : List (Fin C.nV))
+           → HomTerm (unflatten (map C.vlab s))
+                     (unflatten (map C.vlab (pe-stackC o s)))
+  pe-termC o s = proj₂ (process-edges C-hg o s)
+
+
+  ------------------------------------------------------------------------
+  -- ### Milestone 2a — the G-side SUFFIX-CARRY factorization.
+  --
+  -- The whole factorization is at the C level (no G/K relabel — that is the
+  -- gate's job later).  We relate the mixed-stack C-run of the G-edge block
+  -- to the pure-L C-run tensored with `id` on the (constant) `map injR ys`
+  -- suffix, framed by the raw `unflatten-++-≅` on the `vlab-c`-images.
+  --
+  -- Per FIRE edge the box-of on residual `map vlab-c (map injL restG) ++
+  -- map vlab-c (map injR ys)` factors as `(box-of on map vlab-c (map injL
+  -- restG)) ⊗₁ id` via `BoxAssoc.box-suffix`; per SKIP edge the `id` factors
+  -- as `id ⊗₁ id`.  The `permute` of each FIRE step (the `pvl perm`) carries
+  -- along.  This is the term companion of `process-edges-↑ˡ-on-mixed`.
+
+  -- The `BlockTensor C.vlab` framing (matches `pvv-block-tensor`'s `uf++`).
+  module BTC = BlockTensor C.vlab
+
+  -- Codomain transport along a C-stack equality.
+  coeC : ∀ {d : List (Fin C.nV)} {s s' : List (Fin C.nV)} → s ≡ s'
+       → HomTerm (unflatten (map C.vlab d)) (unflatten (map C.vlab s))
+       → HomTerm (unflatten (map C.vlab d)) (unflatten (map C.vlab s'))
+  coeC {d} eq = subst (λ z → HomTerm (unflatten (map C.vlab d))
+                                      (unflatten (map C.vlab z))) eq
+
+  ------------------------------------------------------------------------
+  -- `box-of` residual-list rewrite: changing the residual list along an
+  -- equality `r : rest ≡ rest'` transports the box-of by `subst₂` over the
+  -- `cong (einL ++_)` / `cong (eoutL ++_)` endpoints.  (`refl` on `r`.)
+  box-rest-rewrite
+    : ∀ (einL eoutL : List X) {rest rest' : List X} (r : rest ≡ rest')
+        (g : FlatGen einL eoutL)
+    → subst₂ HomTerm
+        (cong unflatten (cong (einL  ++_) r))
+        (cong unflatten (cong (eoutL ++_) r))
+        (box-of einL eoutL rest g)
+      ≡ box-of einL eoutL rest' g
+  box-rest-rewrite einL eoutL refl g = refl
+
+  -- The constant K-suffix object (the `id`-carried far block).
+  RsufObj : (ys : List (Fin K.nV)) → ObjTerm
+  RsufObj ys = unflatten (map C.vlab (map injR ys))
+
+  pe-stackG : List (Fin G.nE) → List (Fin G.nV) → List (Fin G.nV)
+  pe-stackG o s = proj₁ (process-edges G o s)
+
+  -- Pure-L stack agreement (from the gate's `proc-stack-emb`, φ = injL).
+  proc-stack-emb-L
+    : (es : List (Fin G.nE)) (xs : List (Fin G.nV))
+    → pe-stackC (map (_↑ˡ K.nE) es) (map injL xs)
+      ≡ map injL (pe-stackG es xs)
+  proc-stack-emb-L es xs = TG.proc-stack-emb es xs
+
+  -- The pure-L inner term, with its codomain transported from
+  -- `pe-stackC (map ψG es) (map injL xs)` to `map injL (pe-stackG es xs)`.
+  Lterm
+    : (es : List (Fin G.nE)) (xs : List (Fin G.nV))
+    → HomTerm (unflatten (map C.vlab (map injL xs)))
+              (unflatten (map C.vlab (map injL (pe-stackG es xs))))
+  Lterm es xs =
+    coeC {map injL xs} (proc-stack-emb-L es xs)
+         (pe-termC (map (_↑ˡ K.nE) es) (map injL xs))
+
+  -- The G-side factorization statement, framed by `BTC.uf++`.
+  GFactored
+    : (es : List (Fin G.nE)) (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → HomTerm (unflatten (map C.vlab (map injL xs ++ map injR ys)))
+              (unflatten (map C.vlab (map injL (pe-stackG es xs) ++ map injR ys)))
+  GFactored es xs ys =
+    _≅_.to (BTC.uf++ (map injL (pe-stackG es xs)) (map injR ys))
+    ∘ (Lterm es xs ⊗₁ id {RsufObj ys})
+    ∘ _≅_.from (BTC.uf++ (map injL xs) (map injR ys))
+
+  -- The mixed-stack agreement (from `process-edges-↑ˡ-on-mixed`).
+  mixed-stack-G
+    : (es : List (Fin G.nE)) (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → pe-stackC (map (_↑ˡ K.nE) es) (map injL xs ++ map injR ys)
+      ≡ map injL (pe-stackG es xs) ++ map injR ys
+  mixed-stack-G es xs ys =
+    cong proj₁ (proj₂ (process-edges-↑ˡ-on-mixed G K es xs ys))
+
+  ------------------------------------------------------------------------
+  -- ### Reusable per-edge pieces for the G-suffix induction.
+
+  -- UIP on the vertex-list type (`--with-K`).
+  uipL : ∀ {a b : List (Fin C.nV)} (p q : a ≡ b) → p ≡ q
+  uipL refl refl = refl
+
+  pvlC : {xs ys : List (Fin C.nV)} → xs Perm.↭ ys
+       → HomTerm (unflatten (map C.vlab xs)) (unflatten (map C.vlab ys))
+  pvlC = BTC.pvl
+
+  -- `permute-via-vlab` of the identity permutation is `id` (definitional:
+  -- `map⁺ vlab refl = refl` and `permute refl = id`).
+  pvl-refl : ∀ {xs : List (Fin C.nV)} → pvlC (Perm.↭-refl {x = xs}) ≈Term id
+  pvl-refl = ≈-Term-refl
+
+  -- `id` factors through the `uf++` framing as `id ⊗₁ id`.
+  id-as-tensor
+    : ∀ (As Bs : List (Fin C.nV))
+    → id {unflatten (map C.vlab (As ++ Bs))}
+      ≈Term _≅_.to (BTC.uf++ As Bs)
+            ∘ (id {unflatten (map C.vlab As)} ⊗₁ id {unflatten (map C.vlab Bs)})
+            ∘ _≅_.from (BTC.uf++ As Bs)
+  id-as-tensor As Bs = begin
+    id
+      ≈⟨ ≈-Term-sym (_≅_.isoˡ (BTC.uf++ As Bs)) ⟩
+    _≅_.to (BTC.uf++ As Bs) ∘ _≅_.from (BTC.uf++ As Bs)
+      ≈⟨ refl⟩∘⟨ ≈-Term-sym idˡ ⟩
+    _≅_.to (BTC.uf++ As Bs) ∘ id ∘ _≅_.from (BTC.uf++ As Bs)
+      ≈⟨ refl⟩∘⟨ ≈-Term-sym id⊗id≈id ⟩∘⟨refl ⟩
+    _≅_.to (BTC.uf++ As Bs) ∘ (id ⊗₁ id) ∘ _≅_.from (BTC.uf++ As Bs) ∎
+
+  ------------------------------------------------------------------------
+  -- ### `gblock-factor` — the G-side suffix-carry factorization. (PENDING)
+  --
+  -- Statement:
+  --   coeC (mixed-stack-G es xs ys) (pe-termC (map (_↑ˡ K.nE) es)
+  --        (map injL xs ++ map injR ys))  ≈Term  GFactored es xs ys
+  --
+  -- BASE case (proven during development; re-add when the cons lands):
+  --   gblock-factor [] xs ys =
+  --     ≈-Term-trans (≡⇒≈Term (cong (λ z → coeC z id)
+  --        (uipL (mixed-stack-G [] xs ys) refl)))
+  --        (id-as-tensor (map injL xs) (map injR ys))
+  --
+  -- CONS case = the induction wall.  Plan: factor the single head edge-step
+  -- (`head-factor`, a NON-inductive sub-lemma) as `(L-head ⊗₁ id)` framed —
+  -- box via `BoxAssoc.box-suffix` (+ `box-rest-rewrite`), permute via
+  -- `pvv-block-tensor` at `q = ↭-refl` (`pvl-refl`) — then compose with the
+  -- IH (tail) via `⊗-∘-dist` + `uf++` framing cancellation.  The mixed
+  -- residual form + head/tail split come from the `EdgeStepR` relation-view
+  -- reconciled against `extract-prefix-↑ˡ-on-mixed-just/-nothing`.
+
+--------------------------------------------------------------------------------
 -- ## `Linear H ⇒ Unique (cod H)` (sig-level), verbatim from DecodeComposeShape.
 
 private
