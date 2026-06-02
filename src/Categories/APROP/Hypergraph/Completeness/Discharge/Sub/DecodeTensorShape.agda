@@ -1500,7 +1500,7 @@ module BlockFactor
     module C = Hypergraph (hTensor G K)
   open FA.hTensor-impl G K
   open FM.HomReasoning
-  open EmbedData objUIP Kf G K using (module TG)
+  open EmbedData objUIP Kf G K using (module TG; module TK)
 
   C-hg : Hypergraph FlatGen
   C-hg = hTensor G K
@@ -3195,6 +3195,104 @@ module BlockFactor
       goal = combine s1 tH (coeC {Lxs} lEq tHL) mEq
                      (mixed-stack-G (e ∷ es) xs ys) head-fac
                      (Lterm-cons s1L tHL lEq (proc-stack-emb-L (e ∷ es) xs))
+
+  ------------------------------------------------------------------------
+  -- ### Milestone 2b — the K-side PREFIX-CARRY factorization (`kblock-factor`).
+  --
+  -- The mirror of `gblock-factor` with LEFT/RIGHT swapped: the carried block
+  -- is the `map injL P` PREFIX (held by `id` on the LEFT), and the K-edges
+  -- `ψK e = G.nE ↑ʳ e` act on the `map injR` part.
+  --
+  -- THE EXTRA WRINKLE: a K-edge PREPENDS its `eout` (`map injR (K.eout e)`)
+  -- to the FRONT of the running stack (before the carried `map injL P`
+  -- prefix), so the actual post-edge mixed stack only `↭`s — not `≡`s — the
+  -- clean `map injL P ++ map injR <K-stack'>` target.  We therefore CANNOT
+  -- thread a clean stack `≡` (as the G-side does via `mixed-stack-G`).
+  -- Instead the K-block factorization lands on the ACTUAL mixed-run codomain
+  -- and carries an OUTER `pvlC` braid (`KBraid`) from that codomain to the
+  -- clean `(id {prefix} ⊗₁ Kterm)` target; the braid is a `permute-via-vlab`
+  -- coincidence on the `Unique` codomain, discharged by the keystone
+  -- `permute-via-vlab-≈Term-coherence-K` exactly as in `fire-core`'s
+  -- `pvlC-reconcile`.
+
+  -- `ψK` is `G.nE ↑ʳ_`; `map ψK es ≡ map (G.nE ↑ʳ_) es` definitionally.
+  ψK : Fin K.nE → Fin C.nE
+  ψK eK = G.nE ↑ʳ eK
+
+  pe-stackK : List (Fin K.nE) → List (Fin K.nV) → List (Fin K.nV)
+  pe-stackK o s = proj₁ (process-edges K o s)
+
+  -- Pure-R stack agreement (from the gate's `proc-stack-emb`, φ = injR).
+  proc-stack-emb-R
+    : (es : List (Fin K.nE)) (ys : List (Fin K.nV))
+    → pe-stackC (map (G.nE ↑ʳ_) es) (map injR ys)
+      ≡ map injR (pe-stackK es ys)
+  proc-stack-emb-R es ys = TK.proc-stack-emb es ys
+
+  -- The pure-R inner term, with its codomain transported from
+  -- `pe-stackC (map ψK es) (map injR ys)` to `map injR (pe-stackK es ys)`.
+  Kterm
+    : (es : List (Fin K.nE)) (ys : List (Fin K.nV))
+    → HomTerm (unflatten (map C.vlab (map injR ys)))
+              (unflatten (map C.vlab (map injR (pe-stackK es ys))))
+  Kterm es ys =
+    coeC {map injR ys} (proc-stack-emb-R es ys)
+         (pe-termC (map (G.nE ↑ʳ_) es) (map injR ys))
+
+  -- The CLEAN K-side target: `(id {prefix} ⊗₁ Kterm)`, framed by `BTC.uf++`.
+  -- (Mirror of `GFactored`, prefix on the LEFT.)
+  KClean
+    : (es : List (Fin K.nE)) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → HomTerm (unflatten (map C.vlab (map injL P ++ map injR ys)))
+              (unflatten (map C.vlab (map injL P ++ map injR (pe-stackK es ys))))
+  KClean es P ys =
+    _≅_.to (BTC.uf++ (map injL P) (map injR (pe-stackK es ys)))
+    ∘ (id {RpreObj P} ⊗₁ Kterm es ys)
+    ∘ _≅_.from (BTC.uf++ (map injL P) (map injR ys))
+
+  -- The K-prepend braid: the ACTUAL mixed K-run output `↭`s the clean target
+  -- `map injL P ++ map injR (pe-stackK es ys)` (the K-edge eouts prepend to the
+  -- stack front).  Read off `process-edges-↑ʳ-on-perm` at the identity input
+  -- perm.  (`injL = _↑ˡ K.nV`, `injR = G.nV ↑ʳ_` definitionally.)
+  private
+    KBraid-data
+      : (es : List (Fin K.nE)) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+      → ∃[ s' ] ∃[ t ]
+           process-edges C-hg (map (G.nE ↑ʳ_) es) (map injL P ++ map injR ys)
+             ≡ (s' , t)
+         × s' Perm.↭ map injL P ++ map injR (pe-stackK es ys)
+    KBraid-data es P ys =
+      process-edges-↑ʳ-on-perm G K es (map injL P ++ map injR ys) P ys Perm.↭-refl
+
+  KBraid
+    : (es : List (Fin K.nE)) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → pe-stackC (map (G.nE ↑ʳ_) es) (map injL P ++ map injR ys)
+      Perm.↭ map injL P ++ map injR (pe-stackK es ys)
+  KBraid es P ys =
+    subst (Perm._↭ (map injL P ++ map injR (pe-stackK es ys)))
+          (sym (cong proj₁ (proj₁ (proj₂ (proj₂ (KBraid-data es P ys))))))
+          (proj₂ (proj₂ (proj₂ (KBraid-data es P ys))))
+
+  -- `mixed-stack-K` is REFLEXIVE: the codomain `coeC` transports `pe-termC`'s
+  -- codomain to is the ACTUAL mixed K-run stack (NO clean stack `≡` exists —
+  -- the K-edges prepend).  The braid to the clean target lives in `KFactored`.
+  mixed-stack-K
+    : (es : List (Fin K.nE)) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → pe-stackC (map (G.nE ↑ʳ_) es) (map injL P ++ map injR ys)
+      ≡ pe-stackC (map (G.nE ↑ʳ_) es) (map injL P ++ map injR ys)
+  mixed-stack-K es P ys = refl
+
+  -- The K-side factorization target: the clean `(id {prefix} ⊗₁ Kterm)`
+  -- (`KClean`) followed by the K-prepend braid `pvlC (↭-sym KBraid)` carrying
+  -- the clean codomain back to the actual mixed-run codomain.  (Mirror of
+  -- `GFactored` plus the wrinkle braid that the assembly later absorbs.)
+  KFactored
+    : (es : List (Fin K.nE)) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → HomTerm (unflatten (map C.vlab (map injL P ++ map injR ys)))
+              (unflatten (map C.vlab
+                 (pe-stackC (map (G.nE ↑ʳ_) es) (map injL P ++ map injR ys))))
+  KFactored es P ys =
+    pvlC (Perm.↭-sym (KBraid es P ys)) ∘ KClean es P ys
 
 --------------------------------------------------------------------------------
 -- ## `Linear H ⇒ Unique (cod H)` (sig-level), verbatim from DecodeComposeShape.
