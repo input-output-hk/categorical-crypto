@@ -73,7 +73,12 @@ open import Categories.APROP.Hypergraph.Completeness.Permute sig
   using (permute-via-vlab; permute)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (decode; decode-attempt-Linear
-        ; process-edges-↑ˡ-on-mixed; process-edges-↑ʳ-on-perm)
+        ; process-edges-↑ˡ-on-mixed; process-edges-↑ʳ-on-perm
+        ; edge-step-↑ˡ-on-mixed; edge-step-↑ˡ-on-mixed-just
+        ; edge-step-↑ˡ-on-mixed-nothing)
+open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
+  using (extract-prefix-↑ˡ-on-mixed-just; extract-prefix-↑ˡ-on-mixed-nothing
+        ; extract-prefix-via-injective-just; extract-prefix-via-injective-nothing)
 import Categories.APROP.Hypergraph.Completeness.Linearity sig as Lin
 import Categories.APROP.Hypergraph.Invariant sig as Inv
 
@@ -109,7 +114,11 @@ open import Data.List using (List; []; _∷_; _++_; map; length)
 open import Data.List.Properties using (map-++; map-∘; map-cong; length-map; ++-assoc; ++-identityʳ)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as UniqueProp
+open import Data.List.Relation.Unary.AllPairs using ([]; _∷_)
+import Data.List.Relation.Unary.All.Properties as AllProp
 open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Maybe.Properties using (just-injective)
+open import Data.Empty using (⊥; ⊥-elim)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂; ∃; ∃-syntax)
@@ -123,6 +132,9 @@ private
 
   ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
   ≡⇒≈Term refl = ≈-Term-refl
+
+  just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
+  just≢nothing ()
 
   -- `subst₂ FlatGen` cancellations (`--with-K`), copied from DecodeComposeShape.
   subst₂-FlatGen-cancel
@@ -2048,31 +2060,764 @@ module BlockFactor
           ∘ (pvlC p ⊗₁ id {RsufObj ys}) ∘ from-xs ∎
 
   ------------------------------------------------------------------------
-  -- ### `gblock-factor` — the G-side suffix-carry factorization. (PENDING)
+  -- ### `gblock-factor` — the G-side suffix-carry factorization.
   --
-  -- Statement:
-  --   coeC (mixed-stack-G es xs ys) (pe-termC (map (_↑ˡ K.nE) es)
+  -- Statement (with the SOUND `Reservoir≤1` freshness hypothesis, threaded
+  -- exactly like `StackEquivariance.process-edges-equivariant`):
+  --   Reservoir≤1 C (map ψG es) (map injL xs ++ map injR ys) →
+  --   coeC (mixed-stack-G es xs ys) (pe-termC (map ψG es)
   --        (map injL xs ++ map injR ys))  ≈Term  GFactored es xs ys
   --
-  -- BASE case (proven during development; re-add when the cons lands):
-  --   gblock-factor [] xs ys =
-  --     ≈-Term-trans (≡⇒≈Term (cong (λ z → coeC z id)
-  --        (uipL (mixed-stack-G [] xs ys) refl)))
-  --        (id-as-tensor (map injL xs) (map injR ys))
+  -- The hypothesis supplies, via `Reservoir≤1⇒Unique`, the per-edge keystone
+  -- `Unique` of the running stack at every cons; it is advanced one
+  -- `edge-step` per recursion by `edge-step-Reservoir≤1`.
+
+  -- `ψG` is `_↑ˡ K.nE`; `map ψG es ≡ map (_↑ˡ K.nE) es` definitionally.
+  ψG : Fin G.nE → Fin C.nE
+  ψG eG = eG ↑ˡ K.nE
+
+  ------------------------------------------------------------------------
+  -- ### Permute coherence helpers (the keystone, packaged for `pvlC`).
+
+  -- Two `pvlC`-permutes with the SAME domain+codomain coincide, given the
+  -- codomain is `Unique` — the keystone, at `C.vlab`.
+  pvlC-coh
+    : ∀ {zs ws : List (Fin C.nV)} → Unique ws → (p q : zs Perm.↭ ws)
+    → pvlC p ≈Term pvlC q
+  pvlC-coh uniq p q = permute-via-vlab-≈Term-coherence-K Kf C.vlab uniq p q
+
+  -- `pvlC permC ≈ coeC (sym e) (pvlC q)` when `permC : zs ↭ ws` and the
+  -- `head-factor`-shaped perm `q : zs ↭ ws'` reach the SAME (Unique) list up
+  -- to a codomain LIST equality `e : ws ≡ ws'`.  `e`-`refl`-match collapses
+  -- `coeC` to identity; then the keystone closes the common Unique codomain.
+  pvlC-reconcile
+    : ∀ {zs : List (Fin C.nV)} {ws ws' : List (Fin C.nV)}
+        (e : ws ≡ ws') (permC : zs Perm.↭ ws) (q : zs Perm.↭ ws')
+    → Unique ws'
+    → pvlC permC ≈Term coeC {zs} (sym e) (pvlC q)
+  pvlC-reconcile refl permC q uniq = pvlC-coh uniq permC q
+
+  ------------------------------------------------------------------------
+  -- ### head box reconciliation.
   --
-  -- CONS case = the induction wall.  Plan: the single head edge-step factors
-  -- as `(L-head ⊗₁ id)` framed via the PROVEN NON-inductive `head-factor`
-  -- (above) — box via `box-suffix-BTC` (`BoxAssoc.box-suffix` reframed to the
-  -- `BTC.uf++` convention, + `box-rest-rewrite`), permute via the corollary
-  -- `head-perm-factor` (= `pvv-block-tensor` at `q = ↭-refl` + `pvl-refl`),
-  -- combined by middle `uf++` framing cancellation + `⊗-∘-dist`.  The cons step
-  -- then composes `head-factor` with the IH (tail) via `⊗-∘-dist` + `uf++`
-  -- cancellation.  The mixed residual form + the FIRE/SKIP head/tail split (and
-  -- the reduction of the actual `fire-mid C (ψG e)` / computed extract-prefix
-  -- perm to `head-factor`'s `box`/`++⁺ p ↭-refl` form) come from the `EdgeStepR`
-  -- relation-view reconciled against `extract-prefix-↑ˡ-on-mixed-just/-nothing`
-  -- (+ the `ein-c`/`eout-c` reductions and the eval residual) — the cons step's
-  -- remaining work, NOT `head-factor`'s.
+  -- The single-FIRE-edge box `fire-mid C (ψG e) (injL restG ++ injR ys)`
+  -- (framed in `process-edges`' `A++(B++C)` shape, residual un-split) IS
+  -- `head-factor`'s `Box` (the `whole-eq`-substituted box-of on
+  -- `g = C.elab (ψG e)`, residual split + `++-assoc`'d into the
+  -- `(A++B)++C` shape), modulo a single `subst₂` framing transport that
+  -- `objUIP` collapses (`box-rest-rewrite` is the residual split; the rest
+  -- is two `subst₂-HomTerm-∘` recombinations + `objUIP`).
+  Box-of-head
+    : (e : Fin G.nE) (restG : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → HomTerm (unflatten (map C.vlab ((C.ein  (ψG e) ++ map injL restG) ++ map injR ys)))
+              (unflatten (map C.vlab ((C.eout (ψG e) ++ map injL restG) ++ map injR ys)))
+  Box-of-head e restG ys =
+    subst₂ HomTerm
+      (cong unflatten (whole-eq (C.ein  (ψG e)) (map injL restG) ys))
+      (cong unflatten (whole-eq (C.eout (ψG e)) (map injL restG) ys))
+      (box-of (map C.vlab (C.ein (ψG e))) (map C.vlab (C.eout (ψG e)))
+              (map C.vlab (map injL restG) ++ Rys-flat ys)
+              (C.elab (ψG e)))
+
+  -- `Box-of-head` is the `++-assoc`-transport of `fire-mid` on the un-split
+  -- residual `injL restG ++ injR ys`.
+  fire-mid-to-Box-≡
+    : (e : Fin G.nE) (restG : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → (dEq : map C.vlab (C.ein  (ψG e) ++ (map injL restG ++ map injR ys))
+           ≡ map C.vlab ((C.ein  (ψG e) ++ map injL restG) ++ map injR ys))
+      (cEq : map C.vlab (C.eout (ψG e) ++ (map injL restG ++ map injR ys))
+           ≡ map C.vlab ((C.eout (ψG e) ++ map injL restG) ++ map injR ys))
+    → subst₂ HomTerm (cong unflatten dEq) (cong unflatten cEq)
+        (fire-mid C-hg (ψG e) (map injL restG ++ map injR ys))
+      ≡ Box-of-head e restG ys
+  fire-mid-to-Box-≡ e restG ys dEq cEq = goal-≡
+    where
+      eiL = map C.vlab (C.ein  (ψG e))
+      eoL = map C.vlab (C.eout (ψG e))
+      restC = map injL restG ++ map injR ys
+      g  = C.elab (ψG e)
+
+      rsplit : map C.vlab restC ≡ map C.vlab (map injL restG) ++ Rys-flat ys
+      rsplit = map-++ C.vlab (map injL restG) (map injR ys)
+
+      box-base = box-of eiL eoL (map C.vlab restC) g
+
+      -- the box-of on the split residual is the subst of box-base.
+      bx-rest : box-of eiL eoL (map C.vlab (map injL restG) ++ Rys-flat ys) g
+              ≡ subst₂ HomTerm
+                  (cong unflatten (cong (eiL ++_) rsplit))
+                  (cong unflatten (cong (eoL ++_) rsplit))
+                  box-base
+      bx-rest = sym (box-rest-rewrite eiL eoL rsplit g)
+
+      goal-≡
+        : subst₂ HomTerm (cong unflatten dEq) (cong unflatten cEq)
+            (fire-mid C-hg (ψG e) restC)
+          ≡ Box-of-head e restG ys
+      goal-≡ =
+        trans
+          -- LHS: subst₂ dEq/cEq (subst₂ (fire-mid framing) box-base)
+          (cong (subst₂ HomTerm (cong unflatten dEq) (cong unflatten cEq))
+                (refl {x = fire-mid C-hg (ψG e) restC}))
+        (trans
+          (subst₂-HomTerm-∘
+             (cong unflatten (sym (map-++ C.vlab (C.ein  (ψG e)) restC)))
+             (cong unflatten dEq)
+             (cong unflatten (sym (map-++ C.vlab (C.eout (ψG e)) restC)))
+             (cong unflatten cEq)
+             box-base)
+        (trans
+          -- collapse to the whole-eq framing over box-base via objUIP.
+          (cong₂ (λ p q → subst₂ HomTerm p q box-base)
+                 (objUIP _ (trans (cong unflatten (cong (eiL ++_) rsplit))
+                                  (cong unflatten (whole-eq (C.ein  (ψG e)) (map injL restG) ys))))
+                 (objUIP _ (trans (cong unflatten (cong (eoL ++_) rsplit))
+                                  (cong unflatten (whole-eq (C.eout (ψG e)) (map injL restG) ys)))))
+          -- split back: whole-eq ∘ box-rest, then fold box-rest into the inner box.
+          (trans
+            (sym (subst₂-HomTerm-∘
+                    (cong unflatten (cong (eiL ++_) rsplit))
+                    (cong unflatten (whole-eq (C.ein  (ψG e)) (map injL restG) ys))
+                    (cong unflatten (cong (eoL ++_) rsplit))
+                    (cong unflatten (whole-eq (C.eout (ψG e)) (map injL restG) ys))
+                    box-base))
+            (cong (subst₂ HomTerm
+                     (cong unflatten (whole-eq (C.ein  (ψG e)) (map injL restG) ys))
+                     (cong unflatten (whole-eq (C.eout (ψG e)) (map injL restG) ys)))
+                  (sym bx-rest)))))
+
+  -- `Unique` of a `++` restricts to the left prefix.
+  Unique-++ˡ : ∀ {a} {A : Set a} (xs : List A) {ys : List A}
+             → Unique (xs ++ ys) → Unique xs
+  Unique-++ˡ []       _        = []
+  Unique-++ˡ (x ∷ xs) (px ∷ u) = AllProp.++⁻ˡ xs px ∷ Unique-++ˡ xs u
+
+  -- `coeC` (codomain transport) distributes over `∘` on the cod factor.
+  coeC-∘
+    : ∀ {d m : List (Fin C.nV)} {s s' : List (Fin C.nV)} (eq : s ≡ s')
+        (f : HomTerm (unflatten (map C.vlab m)) (unflatten (map C.vlab s)))
+        (g : HomTerm (unflatten (map C.vlab d)) (unflatten (map C.vlab m)))
+    → coeC {d} eq (f ∘ g) ≡ coeC {m} eq f ∘ g
+  coeC-∘ refl f g = refl
+
+  ------------------------------------------------------------------------
+  -- ### `fire-core` — `fire-case` with the C-residuals already in their
+  -- canonical lifted form (`map injL restG ++ map injR ys` / `map injL
+  -- restG`).  `fire-case` reduces to this by `extract-prefix` determinism.
+  --
+  -- The mixed FIRE box slides past `uf++` via `head-factor` (with
+  -- `eiBlk = C.ein (ψG e)`, `rgBlk = map injL restG`, `g = C.elab (ψG e)`,
+  -- `p = permCl`); the two FIRE permutes + the `++-assoc`/eout-c box
+  -- framings are reconciled by `fire-mid-to-Box-≡` and the keystone (the
+  -- choice of `p` is immaterial — the keystone makes any two perms into the
+  -- shared `Unique` codomain coincide).
+  fire-core
+    : (e : Fin G.nE) (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → Unique (map injL xs ++ map injR ys)
+    → (restG : List (Fin G.nV))
+      (permCm : map injL xs ++ map injR ys
+                Perm.↭ C.ein (ψG e) ++ (map injL restG ++ map injR ys))
+      (permCl : map injL xs Perm.↭ C.ein (ψG e) ++ map injL restG)
+    → (mEq : C.eout (ψG e) ++ (map injL restG ++ map injR ys)
+           ≡ map injL (G.eout e ++ restG) ++ map injR ys)
+    → (lEq : C.eout (ψG e) ++ map injL restG ≡ map injL (G.eout e ++ restG))
+    → coeC {map injL xs ++ map injR ys} mEq
+        (fire-term C-hg (ψG e) (map injL xs ++ map injR ys)
+                   (map injL restG ++ map injR ys) permCm)
+      ≈Term _≅_.to (BTC.uf++ (map injL (G.eout e ++ restG)) (map injR ys))
+            ∘ (coeC {map injL xs} lEq
+                 (fire-term C-hg (ψG e) (map injL xs) (map injL restG) permCl)
+               ⊗₁ id {RsufObj ys})
+            ∘ _≅_.from (BTC.uf++ (map injL xs) (map injR ys))
+  -- codomain-only transport (any ObjTerm domain), for the `⊗₀`-domained
+  -- `uf++` composites.
+  coCod : ∀ {D : ObjTerm} {s s' : List (Fin C.nV)} → s ≡ s'
+        → HomTerm D (unflatten (map C.vlab s)) → HomTerm D (unflatten (map C.vlab s'))
+  coCod {D} eq = subst (λ z → HomTerm D (unflatten (map C.vlab z))) eq
+
+  coCod-resp-≈
+    : ∀ {D : ObjTerm} {s s' : List (Fin C.nV)} (eq : s ≡ s')
+        {f h : HomTerm D (unflatten (map C.vlab s))}
+    → f ≈Term h → coCod eq f ≈Term coCod eq h
+  coCod-resp-≈ refl f≈h = f≈h
+
+  -- domain-only transport.
+  coDom : ∀ {D : ObjTerm} {s s' : List (Fin C.nV)} → s ≡ s'
+        → HomTerm (unflatten (map C.vlab s)) D → HomTerm (unflatten (map C.vlab s')) D
+  coDom {D} eq = subst (λ z → HomTerm (unflatten (map C.vlab z)) D) eq
+
+  -- slide a codomain transport across a composite: `f ∘ coCod (sym eq) g`
+  -- pushes `eq` onto `f`'s domain.
+  ∘-coCod-slide
+    : ∀ {D E : ObjTerm} {a b : List (Fin C.nV)} (eq : a ≡ b)
+        (f : HomTerm (unflatten (map C.vlab b)) E)
+        (g : HomTerm D (unflatten (map C.vlab a)))
+    → f ∘ coCod eq g ≡ coDom (sym eq) f ∘ g
+  ∘-coCod-slide refl f g = refl
+
+  -- `coeC` and `coCod`/`coDom` interaction: `coeC eq f` viewed as `coCod`,
+  -- and a `subst₂ HomTerm`-on-both-ends as `coCod ∘ coDom`.
+  subst₂-as-coCod-coDom
+    : ∀ {a b c d : List (Fin C.nV)} (p : a ≡ b) (q : c ≡ d)
+        (f : HomTerm (unflatten (map C.vlab a)) (unflatten (map C.vlab c)))
+    → subst₂ HomTerm (cong unflatten (cong (map C.vlab) p))
+                     (cong unflatten (cong (map C.vlab) q)) f
+      ≡ coCod q (coDom p f)
+  subst₂-as-coCod-coDom refl refl f = refl
+
+  -- `coCod` of a `trans` factors; `coDom`/`coCod` commute.
+  coCod-trans
+    : ∀ {D : ObjTerm} {a b c : List (Fin C.nV)} (p : a ≡ b) (q : b ≡ c)
+        (f : HomTerm D (unflatten (map C.vlab a)))
+    → coCod (trans p q) f ≡ coCod q (coCod p f)
+  coCod-trans refl refl f = refl
+
+  coDom-coCod-comm
+    : ∀ {a b c d : List (Fin C.nV)} (p : a ≡ b) (q : c ≡ d)
+        (f : HomTerm (unflatten (map C.vlab a)) (unflatten (map C.vlab c)))
+    → coDom p (coCod q f) ≡ coCod q (coDom p f)
+  coDom-coCod-comm refl refl f = refl
+
+  -- `coCod` commutes with precomposition.
+  coCod-∘ʳ
+    : ∀ {D E : ObjTerm} {s s' : List (Fin C.nV)} (eq : s ≡ s')
+        (f : HomTerm E (unflatten (map C.vlab s))) (h : HomTerm D E)
+    → coCod eq f ∘ h ≡ coCod eq (f ∘ h)
+  coCod-∘ʳ refl f h = refl
+
+  -- `coeC eq f = coCod eq f` for a `U(map C.vlab d)`-domained term (the two
+  -- transports agree; `coeC` is `coCod` specialised to that domain).
+  coeC≡coCod
+    : ∀ {d : List (Fin C.nV)} {s s' : List (Fin C.nV)} (eq : s ≡ s')
+        (f : HomTerm (unflatten (map C.vlab d)) (unflatten (map C.vlab s)))
+    → coeC {d} eq f ≡ coCod eq f
+  coeC≡coCod refl f = refl
+
+  -- `to(uf++ A' Rys) ∘ (coeC lEq X ⊗₁ id)` slides the block-1 transport
+  -- onto the composite's codomain (eq-refl-match).
+  to-uf++-blk1
+    : ∀ {A A' : List (Fin C.nV)} (eq : A ≡ A') (Rs : List (Fin C.nV))
+        {d : List (Fin C.nV)}
+        (X : HomTerm (unflatten (map C.vlab d)) (unflatten (map C.vlab A)))
+    → _≅_.to (BTC.uf++ A' Rs) ∘ (coeC {d} eq X ⊗₁ id {unflatten (map C.vlab Rs)})
+      ≈Term coCod (cong (_++ Rs) eq)
+              (_≅_.to (BTC.uf++ A Rs) ∘ (X ⊗₁ id {unflatten (map C.vlab Rs)}))
+  to-uf++-blk1 refl Rs X = ≈-Term-refl
+
+  fire-core e xs ys uniq restG permCm permCl mEq lEq = goal
+    where
+      s = map injL xs ++ map injR ys
+      eiB = C.ein  (ψG e)
+      eoB = C.eout (ψG e)
+      rgB = map injL restG
+      g  = C.elab (ψG e)
+      Rys = map injR ys
+
+      open FM.HomReasoning
+
+      -- the `head-factor` perm: `permCl` itself works (the keystone makes
+      -- the exact choice immaterial — only the Unique codomain matters).
+      pL : map injL xs Perm.↭ eiB ++ rgB
+      pL = permCl
+
+      -- the FIRE box on the un-split residual (LHS form).
+      fmM = fire-mid C-hg (ψG e) (rgB ++ Rys)
+      fmL = fire-mid C-hg (ψG e) rgB
+
+      -- the head-factor RHS pure-L box `BoxSub` IS `fmL` definitionally.
+      BoxSub = subst₂ HomTerm
+                 (cong unflatten (sym (map-++ C.vlab eiB rgB)))
+                 (cong unflatten (sym (map-++ C.vlab eoB rgB)))
+                 (box-of (map C.vlab eiB) (map C.vlab eoB) (map C.vlab rgB) g)
+
+      BoxSub≡fmL : BoxSub ≡ fmL
+      BoxSub≡fmL = refl
+
+      -- Unique of the lifted codomain (for the keystone), via `Unique-resp-↭`.
+      uniqMix : Unique (eiB ++ (rgB ++ Rys))
+      uniqMix = SU.Unique-resp-↭ permCm uniq
+      uniqL : Unique (eiB ++ rgB)
+      uniqL = SU.Unique-resp-↭ permCl (Unique-++ˡ (map injL xs) uniq)
+      uniqMix' : Unique ((eiB ++ rgB) ++ Rys)
+      uniqMix' = SU.Unique-resp-↭ (PermProp.++⁺ pL (Perm.↭-refl {x = Rys})) uniq
+
+      e₀ : eiB ++ (rgB ++ Rys) ≡ (eiB ++ rgB) ++ Rys
+      e₀ = sym (++-assoc eiB rgB Rys)
+
+      Box = Box-of-head e restG ys
+      ppL = PermProp.++⁺ pL (Perm.↭-refl {x = Rys})
+
+      -- the common middle: `coCod (cong (_++Rys) lEq) (Box ∘ pvlC ppL)`.
+      Mid = coCod {unflatten (map C.vlab s)} (cong (_++ Rys) lEq) (Box ∘ pvlC ppL)
+
+      -- RHS reconciliation: head-factor RHS, block-1 transport + perm keystone.
+      hf : Box ∘ pvlC ppL
+         ≈Term _≅_.to (BTC.uf++ (eoB ++ rgB) Rys)
+               ∘ ((fmL ∘ pvlC pL) ⊗₁ id {unflatten (map C.vlab Rys)})
+               ∘ _≅_.from (BTC.uf++ (map injL xs) Rys)
+      hf = head-factor eiB eoB rgB xs ys g pL
+
+      rhs≈Mid
+        : _≅_.to (BTC.uf++ (map injL (G.eout e ++ restG)) Rys)
+          ∘ (coeC {map injL xs} lEq (fmL ∘ pvlC permCl) ⊗₁ id {RsufObj ys})
+          ∘ _≅_.from (BTC.uf++ (map injL xs) Rys)
+          ≈Term Mid
+      rhs≈Mid = begin
+        _≅_.to (BTC.uf++ (map injL (G.eout e ++ restG)) Rys)
+          ∘ (coeC {map injL xs} lEq (fmL ∘ pvlC pL) ⊗₁ id {unflatten (map C.vlab Rys)})
+          ∘ _≅_.from (BTC.uf++ (map injL xs) Rys)
+          ≈⟨ FM.sym-assoc ⟩
+        (_≅_.to (BTC.uf++ (map injL (G.eout e ++ restG)) Rys)
+          ∘ (coeC {map injL xs} lEq (fmL ∘ pvlC pL) ⊗₁ id {unflatten (map C.vlab Rys)}))
+          ∘ _≅_.from (BTC.uf++ (map injL xs) Rys)
+          ≈⟨ ∘-resp-≈ (to-uf++-blk1 lEq Rys (fmL ∘ pvlC pL)) ≈-Term-refl ⟩
+        coCod (cong (_++ Rys) lEq)
+          (_≅_.to (BTC.uf++ (eoB ++ rgB) Rys)
+           ∘ ((fmL ∘ pvlC pL) ⊗₁ id {unflatten (map C.vlab Rys)}))
+          ∘ _≅_.from (BTC.uf++ (map injL xs) Rys)
+          ≈⟨ ≡⇒≈Term (coCod-∘ʳ (cong (_++ Rys) lEq) _ _) ⟩
+        coCod (cong (_++ Rys) lEq)
+          ((_≅_.to (BTC.uf++ (eoB ++ rgB) Rys)
+            ∘ ((fmL ∘ pvlC pL) ⊗₁ id {unflatten (map C.vlab Rys)}))
+           ∘ _≅_.from (BTC.uf++ (map injL xs) Rys))
+          ≈⟨ coCod-resp-≈ (cong (_++ Rys) lEq)
+                (≈-Term-trans FM.assoc (≈-Term-sym hf)) ⟩
+        Mid ∎
+
+      -- the box-of cod equation as a `trans` through head-factor's `(A++B)++C`.
+      cEq-assoc : eoB ++ (rgB ++ Rys) ≡ (eoB ++ rgB) ++ Rys
+      cEq-assoc = sym (++-assoc eoB rgB Rys)
+      mEq-split : mEq ≡ trans cEq-assoc (cong (_++ Rys) lEq)
+      mEq-split = uipL mEq (trans cEq-assoc (cong (_++ Rys) lEq))
+
+      -- `coDom e₀ (coCod cEq-assoc fmM) ≡ Box` (fire-mid-to-Box, recast).
+      Box≡ : coCod cEq-assoc (coDom e₀ fmM) ≡ Box
+      Box≡ =
+        trans (sym (subst₂-as-coCod-coDom e₀ cEq-assoc fmM))
+              (≈Term⇒≡-box)
+        where
+          -- fire-mid-to-Box gives the ≈Term; its proof is `≡⇒≈Term`, so the
+          -- underlying ≡ holds — re-derive it by the same subst chain.
+          ≈Term⇒≡-box
+            : subst₂ HomTerm (cong unflatten (cong (map C.vlab) e₀))
+                             (cong unflatten (cong (map C.vlab) cEq-assoc)) fmM
+              ≡ Box
+          ≈Term⇒≡-box = fire-mid-to-Box-≡ e restG ys
+                          (cong (map C.vlab) e₀)
+                          (cong (map C.vlab) cEq-assoc)
+
+      lhs≈Mid
+        : coeC {s} mEq (fire-term C-hg (ψG e) s (rgB ++ Rys) permCm)
+          ≈Term Mid
+      lhs≈Mid = begin
+        coeC {s} mEq (fmM ∘ pvlC permCm)
+          ≈⟨ ≡⇒≈Term (coeC-∘ mEq fmM (pvlC permCm)) ⟩
+        coeC {eiB ++ (rgB ++ Rys)} mEq fmM ∘ pvlC permCm
+          ≈⟨ ∘-resp-≈ ≈-Term-refl
+               (pvlC-reconcile e₀ permCm ppL uniqMix') ⟩
+        coeC {eiB ++ (rgB ++ Rys)} mEq fmM ∘ coeC {s} (sym e₀) (pvlC ppL)
+          ≈⟨ ≡⇒≈Term (cong₂ _∘_ (coeC≡coCod mEq fmM)
+                                 (coeC≡coCod (sym e₀) (pvlC ppL))) ⟩
+        coCod mEq fmM ∘ coCod (sym e₀) (pvlC ppL)
+          ≈⟨ ≡⇒≈Term (∘-coCod-slide (sym e₀) (coCod mEq fmM) (pvlC ppL)) ⟩
+        coDom (sym (sym e₀)) (coCod mEq fmM) ∘ pvlC ppL
+          ≈⟨ ≡⇒≈Term (cong (λ z → coDom z (coCod mEq fmM) ∘ pvlC ppL)
+                           (sym²e₀)) ⟩
+        coDom e₀ (coCod mEq fmM) ∘ pvlC ppL
+          ≈⟨ ≡⇒≈Term (cong (λ z → coDom e₀ (coCod z fmM) ∘ pvlC ppL) mEq-split) ⟩
+        coDom e₀ (coCod (trans cEq-assoc (cong (_++ Rys) lEq)) fmM) ∘ pvlC ppL
+          ≈⟨ ≡⇒≈Term (cong (λ z → coDom e₀ z ∘ pvlC ppL)
+                           (coCod-trans cEq-assoc (cong (_++ Rys) lEq) fmM)) ⟩
+        coDom e₀ (coCod (cong (_++ Rys) lEq) (coCod cEq-assoc fmM)) ∘ pvlC ppL
+          ≈⟨ ≡⇒≈Term (cong (_∘ pvlC ppL)
+                           (coDom-coCod-comm e₀ (cong (_++ Rys) lEq)
+                              (coCod cEq-assoc fmM))) ⟩
+        coCod (cong (_++ Rys) lEq) (coDom e₀ (coCod cEq-assoc fmM)) ∘ pvlC ppL
+          ≈⟨ ≡⇒≈Term (cong (λ z → coCod (cong (_++ Rys) lEq) z ∘ pvlC ppL)
+                           (trans (coDom-coCod-comm e₀ cEq-assoc fmM) Box≡)) ⟩
+        coCod (cong (_++ Rys) lEq) Box ∘ pvlC ppL
+          ≈⟨ ≡⇒≈Term (coCod-∘ʳ (cong (_++ Rys) lEq) Box (pvlC ppL)) ⟩
+        Mid ∎
+        where
+          sym²e₀ : sym (sym e₀) ≡ e₀
+          sym²e₀ = BoxAssoc.sym² e₀
+
+      goal
+        : coeC {s} mEq (fire-term C-hg (ψG e) s (rgB ++ Rys) permCm)
+          ≈Term _≅_.to (BTC.uf++ (map injL (G.eout e ++ restG)) Rys)
+                ∘ (coeC {map injL xs} lEq (fmL ∘ pvlC permCl) ⊗₁ id {RsufObj ys})
+                ∘ _≅_.from (BTC.uf++ (map injL xs) Rys)
+      goal = ≈-Term-trans lhs≈Mid (≈-Term-sym rhs≈Mid)
+
+  ------------------------------------------------------------------------
+  -- ### `fire-case` — the FIRE/FIRE/FIRE core of `edge-suffix-factor`.
+  fire-case
+    : (e : Fin G.nE) (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → Unique (map injL xs ++ map injR ys)
+    → (restG : List (Fin G.nV)) (pG : xs Perm.↭ G.ein e ++ restG)
+      (eqG : extract-prefix (G.ein e) xs ≡ just (restG , pG))
+    → (restCm : List (Fin C.nV))
+      (permCm : map injL xs ++ map injR ys Perm.↭ C.ein (ψG e) ++ restCm)
+      (eqCm : extract-prefix (C.ein (ψG e)) (map injL xs ++ map injR ys)
+              ≡ just (restCm , permCm))
+    → (restCl : List (Fin C.nV))
+      (permCl : map injL xs Perm.↭ C.ein (ψG e) ++ restCl)
+      (eqCl : extract-prefix (C.ein (ψG e)) (map injL xs) ≡ just (restCl , permCl))
+    → (mEq : C.eout (ψG e) ++ restCm ≡ map injL (G.eout e ++ restG) ++ map injR ys)
+    → (lEq : C.eout (ψG e) ++ restCl ≡ map injL (G.eout e ++ restG))
+    → coeC {map injL xs ++ map injR ys} mEq
+        (fire-term C-hg (ψG e) (map injL xs ++ map injR ys) restCm permCm)
+      ≈Term _≅_.to (BTC.uf++ (map injL (G.eout e ++ restG)) (map injR ys))
+            ∘ (coeC {map injL xs} lEq
+                 (fire-term C-hg (ψG e) (map injL xs) restCl permCl)
+               ⊗₁ id {RsufObj ys})
+            ∘ _≅_.from (BTC.uf++ (map injL xs) (map injR ys))
+  fire-case e xs ys uniq restG pG eqG restCm permCm eqCm restCl permCl eqCl mEq lEq =
+    collapse restCm permCm mEq restCl permCl lEq restCm≡ restCl≡
+    where
+      s = map injL xs ++ map injR ys
+
+      -- determinism: the C-mixed residual IS the lifted G-residual.
+      mixed-lift
+        : ∃[ q ] extract-prefix (C.ein (ψG e)) s
+                 ≡ just (map injL restG ++ map injR ys , q)
+      mixed-lift =
+        subst (λ ks → ∃[ q ] extract-prefix ks s
+                              ≡ just (map injL restG ++ map injR ys , q))
+              (sym (ein-c-inj₁-red e))
+              (extract-prefix-↑ˡ-on-mixed-just K.nV (G.ein e) xs ys restG pG eqG)
+
+      restCm≡ : restCm ≡ map injL restG ++ map injR ys
+      restCm≡ = cong proj₁ (just-injective (trans (sym eqCm) (proj₂ mixed-lift)))
+
+      pureL-lift
+        : ∃[ q ] extract-prefix (C.ein (ψG e)) (map injL xs)
+                 ≡ just (map injL restG , q)
+      pureL-lift =
+        subst (λ ks → ∃[ q ] extract-prefix ks (map injL xs)
+                              ≡ just (map injL restG , q))
+              (sym (ein-c-inj₁-red e))
+              (extract-prefix-via-injective-just injL
+                 (λ {x} {y} → ↑ˡ-injective K.nV x y) (G.ein e) xs restG pG eqG)
+
+      restCl≡ : restCl ≡ map injL restG
+      restCl≡ = cong proj₁ (just-injective (trans (sym eqCl) (proj₂ pureL-lift)))
+
+      -- collapse BOTH residuals into canonical form (matched at refl/refl),
+      -- reducing the goal to `fire-core`.
+      collapse
+        : ∀ (rCm : List (Fin C.nV)) (pCm : s Perm.↭ C.ein (ψG e) ++ rCm)
+            (mEq₀ : C.eout (ψG e) ++ rCm ≡ map injL (G.eout e ++ restG) ++ map injR ys)
+            (rCl : List (Fin C.nV)) (pCl : map injL xs Perm.↭ C.ein (ψG e) ++ rCl)
+            (lEq₀ : C.eout (ψG e) ++ rCl ≡ map injL (G.eout e ++ restG))
+            (rCm≡ : rCm ≡ map injL restG ++ map injR ys)
+            (rCl≡ : rCl ≡ map injL restG)
+        → coeC {s} mEq₀ (fire-term C-hg (ψG e) s rCm pCm)
+          ≈Term _≅_.to (BTC.uf++ (map injL (G.eout e ++ restG)) (map injR ys))
+                ∘ (coeC {map injL xs} lEq₀
+                     (fire-term C-hg (ψG e) (map injL xs) rCl pCl)
+                   ⊗₁ id {RsufObj ys})
+                ∘ _≅_.from (BTC.uf++ (map injL xs) (map injR ys))
+      collapse rCm pCm mEq₀ rCl pCl lEq₀ refl refl =
+        fire-core e xs ys uniq restG pCm pCl mEq₀ lEq₀
+
+  ------------------------------------------------------------------------
+  -- ### `edge-suffix-factor` — the per-edge mixed-vs-pure-L factorization.
+  --
+  -- Over the THREE `EdgeStepR` relation witnesses (G-side, mixed-C,
+  -- pure-L-C), with the two stack-agreement equalities `mEq`/`lEq`:
+  --
+  --   coeC mEq tCm
+  --     ≈Term to(uf++ (map injL xs') Rys) ∘ (coeC lEq tCl ⊗₁ id) ∘ from(uf++ … Rys)
+  --
+  -- The G-side witness `wG` drives the firing dispatch; the lifting lemmas
+  -- rule out the cross (G-fires/C-skips, G-skips/C-fires) cases.
+  --
+  -- SKIP: both C terms are `id`, `xs' = xs`, closed by `id-as-tensor` + a
+  -- framing collapse (`subst₂-id` via `uipL`).
+  -- FIRE: `head-factor` slides the mixed FIRE box past `uf++` as `(pure-L
+  -- FIRE box ⊗₁ id)`; the two FIRE permutes + the `++-assoc` box framings are
+  -- reconciled via the keystone (`pvlC-reconcile`/`pvlC-coh`, `Unique`-fed) and
+  -- `fire-mid-to-Box`.
+  edge-suffix-factor
+    : (e : Fin G.nE) (xs xs' : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → Unique (map injL xs ++ map injR ys)
+    → ∀ {tG : HomTerm (unflatten (map G.vlab xs)) (unflatten (map G.vlab xs'))}
+        {s'Cm : List (Fin C.nV)}
+        {tCm : HomTerm (unflatten (map C.vlab (map injL xs ++ map injR ys)))
+                       (unflatten (map C.vlab s'Cm))}
+        {s'Cl : List (Fin C.nV)}
+        {tCl : HomTerm (unflatten (map C.vlab (map injL xs)))
+                       (unflatten (map C.vlab s'Cl))}
+    → EdgeStepR G xs e xs' tG
+    → EdgeStepR C-hg (map injL xs ++ map injR ys) (ψG e) s'Cm tCm
+    → EdgeStepR C-hg (map injL xs) (ψG e) s'Cl tCl
+    → (mEq : s'Cm ≡ map injL xs' ++ map injR ys)
+    → (lEq : s'Cl ≡ map injL xs')
+    → coeC {map injL xs ++ map injR ys} mEq tCm
+      ≈Term _≅_.to (BTC.uf++ (map injL xs') (map injR ys))
+            ∘ (coeC {map injL xs} lEq tCl ⊗₁ id {RsufObj ys})
+            ∘ _≅_.from (BTC.uf++ (map injL xs) (map injR ys))
+  -- SKIP/SKIP/SKIP.  Both C terms are `id`, xs' = xs; `coeC ·-refl id = id`.
+  edge-suffix-factor e xs .xs ys uniq (skipR eqG) (skipR eqCm) (skipR eqCl) mEq lEq =
+    ≈-Term-trans
+      (≡⇒≈Term (cong (λ z → coeC {map injL xs ++ map injR ys} z id)
+                     (uipL mEq refl)))
+      (≈-Term-trans (id-as-tensor (map injL xs) (map injR ys))
+        (∘-resp-≈ ≈-Term-refl
+          (∘-resp-≈
+            (⊗-resp-≈
+              (≡⇒≈Term (sym (cong (λ z → coeC {map injL xs} z id) (uipL lEq refl))))
+              ≈-Term-refl)
+            ≈-Term-refl)))
+  -- G skips but mixed-C fires: impossible (mixed-nothing lifting).
+  edge-suffix-factor e xs xs' ys uniq (skipR eqG) (fireR restCm permCm eqCm) _ mEq lEq =
+    ⊥-elim (just≢nothing (trans (sym eqCm) cNothing))
+    where
+      cNothing : extract-prefix (C.ein (ψG e)) (map injL xs ++ map injR ys) ≡ nothing
+      cNothing =
+        subst (λ ks → extract-prefix ks (map injL xs ++ map injR ys) ≡ nothing)
+              (sym (ein-c-inj₁-red e))
+              (extract-prefix-↑ˡ-on-mixed-nothing K.nV (G.ein e) xs ys eqG)
+  -- G skips but pure-L-C fires: impossible.
+  edge-suffix-factor e xs xs' ys uniq (skipR eqG) _ (fireR restCl permCl eqCl) mEq lEq =
+    ⊥-elim (just≢nothing (trans (sym eqCl) clNothing))
+    where
+      clNothing : extract-prefix (C.ein (ψG e)) (map injL xs) ≡ nothing
+      clNothing =
+        subst (λ ks → extract-prefix ks (map injL xs) ≡ nothing)
+              (sym (ein-c-inj₁-red e))
+              (extract-prefix-via-injective-nothing injL
+                 (λ {x} {y} → ↑ˡ-injective K.nV x y) (G.ein e) xs eqG)
+  -- G fires but mixed-C skips: impossible.
+  edge-suffix-factor e xs xs' ys uniq (fireR restG pG eqG) (skipR eqCm) _ mEq lEq =
+    ⊥-elim (just≢nothing (trans (sym (proj₂ transp)) eqCm))
+    where
+      transp =
+        subst (λ ks → ∃[ q ] extract-prefix ks (map injL xs ++ map injR ys)
+                              ≡ just (map injL restG ++ map injR ys , q))
+              (sym (ein-c-inj₁-red e))
+              (extract-prefix-↑ˡ-on-mixed-just K.nV (G.ein e) xs ys restG pG eqG)
+  -- G fires but pure-L-C skips: impossible.
+  edge-suffix-factor e xs xs' ys uniq (fireR restG pG eqG) _ (skipR eqCl) mEq lEq =
+    ⊥-elim (just≢nothing (trans (sym (proj₂ transp)) eqCl))
+    where
+      transp =
+        subst (λ ks → ∃[ q ] extract-prefix ks (map injL xs)
+                              ≡ just (map injL restG , q))
+              (sym (ein-c-inj₁-red e))
+              (extract-prefix-via-injective-just injL
+                 (λ {x} {y} → ↑ˡ-injective K.nV x y) (G.ein e) xs restG pG eqG)
+  -- FIRE/FIRE/FIRE: the substantive case.
+  edge-suffix-factor e xs .(G.eout e ++ restG) ys uniq
+      (fireR restG pG eqG) (fireR restCm permCm eqCm) (fireR restCl permCl eqCl) mEq lEq =
+    fire-case e xs ys uniq restG pG eqG restCm permCm eqCm restCl permCl eqCl mEq lEq
+
+  ------------------------------------------------------------------------
+  -- ### `gblock-factor` itself.
+  --
+  -- The G-edge block run from the MIXED dom `map injL xs ++ map injR ys`
+  -- factors, modulo `BTC.uf++`, as the pure-injL block run (`Lterm`)
+  -- tensored with `id` on the untouched `map injR ys` suffix.  Proven by
+  -- induction on the edge list, threading the `Reservoir≤1` freshness
+  -- invariant exactly like `StackEquivariance.process-edges-equivariant`:
+  -- the head edge-step is factored by `edge-suffix-factor` (over the three
+  -- `EdgeStepR` relation witnesses), and the tail by the IH; the two
+  -- `(· ⊗₁ id)` blocks merge through the middle `from ∘ to = id` `uf++`
+  -- cancellation + `⊗-∘-dist`.
+  gblock-factor
+    : (es : List (Fin G.nE)) (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → SUR.Reservoir≤1 (hTensor G K) (map (_↑ˡ K.nE) es) (map injL xs ++ map injR ys)
+    → coeC {map injL xs ++ map injR ys} (mixed-stack-G es xs ys)
+        (pe-termC (map (_↑ˡ K.nE) es) (map injL xs ++ map injR ys))
+      ≈Term GFactored es xs ys
+  gblock-factor [] xs ys res =
+    ≈-Term-trans
+      (≡⇒≈Term (cong (λ z → coeC {map injL xs ++ map injR ys} z id)
+                     (uipL (mixed-stack-G [] xs ys) refl)))
+      (id-as-tensor (map injL xs) (map injR ys))
+  gblock-factor (e ∷ es) xs ys res = goal
+    where
+      s = map injL xs ++ map injR ys
+      Lxs = map injL xs
+      Rys = map injR ys
+      xs' = proj₁ (edge-step G xs e)
+      s1  = proj₁ (edge-step C-hg s (ψG e))
+      tH  = proj₂ (edge-step C-hg s (ψG e))
+      s1L = proj₁ (edge-step C-hg Lxs (ψG e))
+      tHL = proj₂ (edge-step C-hg Lxs (ψG e))
+
+      uniq-s : Unique s
+      uniq-s = SUR.Reservoir≤1⇒Unique C-hg (map (_↑ˡ K.nE) (e ∷ es)) s res
+
+      mEq : s1 ≡ map injL xs' ++ Rys
+      mEq = cong proj₁ (proj₂ (edge-step-↑ˡ-on-mixed G K e xs ys))
+
+      lEq : s1L ≡ map injL xs'
+      lEq = TG.edge-step-stack-emb e xs
+
+      -- reservoir advanced one edge for the tail.
+      res-tail : SUR.Reservoir≤1 C-hg (map (_↑ˡ K.nE) es) (map injL xs' ++ Rys)
+      res-tail = subst (SUR.Reservoir≤1 C-hg (map (_↑ˡ K.nE) es)) mEq
+                       (SUR.edge-step-Reservoir≤1 C-hg (ψG e) (map (_↑ˡ K.nE) es) s res)
+
+      -- head edge-step factorization (over the three relation witnesses).
+      head-fac
+        : coeC {s} mEq tH
+          ≈Term _≅_.to (BTC.uf++ (map injL xs') Rys)
+                ∘ (coeC {Lxs} lEq tHL ⊗₁ id {RsufObj ys})
+                ∘ _≅_.from (BTC.uf++ Lxs Rys)
+      head-fac = edge-suffix-factor e xs xs' ys uniq-s
+                   (edge-step-graph G xs e)
+                   (edge-step-graph C-hg s (ψG e))
+                   (edge-step-graph C-hg Lxs (ψG e))
+                   mEq lEq
+
+      open FM.HomReasoning
+
+      IH : coeC {map injL xs' ++ Rys} (mixed-stack-G es xs' ys)
+             (pe-termC (map (_↑ˡ K.nE) es) (map injL xs' ++ Rys))
+           ≈Term GFactored es xs' ys
+      IH = gblock-factor es xs' ys res-tail
+
+      -- pure-L composition: the pure-injL run's head ∘ tail IS `Lterm (e∷es)`.
+      -- Generalise the pure-L head stack `s1Lᵍ`/term `tHLᵍ`/stack-emb `wEqL`
+      -- so `lEqᵍ` can be matched at refl (the real `s1L` is a stuck
+      -- `edge-step` projection), then `coeC-∘` + `uipL` on `proc-stack-emb-L`.
+      Lterm-cons
+        : ∀ (s1Lᵍ : List (Fin C.nV))
+            (tHLᵍ : HomTerm (unflatten (map C.vlab Lxs)) (unflatten (map C.vlab s1Lᵍ)))
+            (lEqᵍ : s1Lᵍ ≡ map injL xs')
+            (wEqL : pe-stackC (map (_↑ˡ K.nE) es) s1Lᵍ
+                    ≡ map injL (pe-stackG (e ∷ es) xs))
+        → Lterm es xs' ∘ coeC {Lxs} lEqᵍ tHLᵍ
+          ≈Term coeC {Lxs} wEqL (pe-termC (map (_↑ˡ K.nE) es) s1Lᵍ ∘ tHLᵍ)
+      Lterm-cons .(map injL xs') tHLᵍ refl wEqL =
+        ≡⇒≈Term
+          (trans (sym (coeC-∘ (proc-stack-emb-L es xs')
+                    (pe-termC (map (_↑ˡ K.nE) es) (map injL xs')) tHLᵍ))
+          (cong (λ z → coeC {Lxs} z
+                   (pe-termC (map (_↑ˡ K.nE) es) (map injL xs') ∘ tHLᵍ))
+                (uipL (proc-stack-emb-L es xs') wEqL)))
+
+      -- combine: match the MIXED stack agreement at refl (over generalised
+      -- `s1ᵍ`/`tHᵍ`, so the stuck `edge-step` projection does not block
+      -- unification), then cancel the middle `from ∘ to = id` and merge the
+      -- `(· ⊗₁ id)` via `⊗-∘-dist`.  The pure-L head `Lhead` and its
+      -- composition fact `Lterm-fact` are passed in (proven concretely, via
+      -- `Lterm-cons`, where the real `lEq`/`tHL` are in scope).
+      combine
+        : ∀ (s1ᵍ : List (Fin C.nV))
+            (tHᵍ : HomTerm (unflatten (map C.vlab s)) (unflatten (map C.vlab s1ᵍ)))
+            (Lhead : HomTerm (unflatten (map C.vlab Lxs))
+                             (unflatten (map C.vlab (map injL xs'))))
+        → (mEq₀ : s1ᵍ ≡ map injL xs' ++ Rys)
+        → (wholeEq : pe-stackC (map (_↑ˡ K.nE) es) s1ᵍ
+                     ≡ map injL (pe-stackG (e ∷ es) xs) ++ Rys)
+        → coeC {s} mEq₀ tHᵍ
+          ≈Term _≅_.to (BTC.uf++ (map injL xs') Rys)
+                ∘ (Lhead ⊗₁ id {RsufObj ys})
+                ∘ _≅_.from (BTC.uf++ Lxs Rys)
+        → Lterm es xs' ∘ Lhead ≈Term Lterm (e ∷ es) xs
+        → coeC {s} wholeEq
+            (pe-termC (map (_↑ˡ K.nE) es) s1ᵍ ∘ tHᵍ)
+          ≈Term GFactored (e ∷ es) xs ys
+      combine .(map injL xs' ++ Rys) tHᵍ Lhead refl wholeEq head Lterm-fact = begin
+        coeC {s} wholeEq
+          (pe-termC (map (_↑ˡ K.nE) es) (map injL xs' ++ Rys) ∘ tHᵍ)
+          ≈⟨ ≡⇒≈Term (coeC-∘ wholeEq
+                            (pe-termC (map (_↑ˡ K.nE) es) (map injL xs' ++ Rys)) tHᵍ) ⟩
+        coeC {map injL xs' ++ Rys} wholeEq
+          (pe-termC (map (_↑ˡ K.nE) es) (map injL xs' ++ Rys)) ∘ tHᵍ
+          ≈⟨ ∘-resp-≈ (≡⇒≈Term (cong (λ z → coeC {map injL xs' ++ Rys} z
+                                          (pe-termC (map (_↑ˡ K.nE) es) (map injL xs' ++ Rys)))
+                                      (uipL wholeEq
+                                            (mixed-stack-G es xs' ys))))
+                      ≈-Term-refl ⟩
+        coeC {map injL xs' ++ Rys} (mixed-stack-G es xs' ys)
+          (pe-termC (map (_↑ˡ K.nE) es) (map injL xs' ++ Rys)) ∘ tHᵍ
+          ≈⟨ ∘-resp-≈ IH head ⟩
+        GFactored es xs' ys
+          ∘ (_≅_.to (BTC.uf++ (map injL xs') Rys)
+             ∘ (Lhead ⊗₁ id {RsufObj ys})
+             ∘ _≅_.from (BTC.uf++ Lxs Rys))
+          ≈⟨ cancel-merge ⟩
+        _≅_.to (BTC.uf++ (map injL (pe-stackG es xs')) Rys)
+          ∘ ((Lterm es xs' ∘ Lhead) ⊗₁ id {RsufObj ys})
+          ∘ _≅_.from (BTC.uf++ Lxs Rys)
+          ≈⟨ ∘-resp-≈ ≈-Term-refl
+               (∘-resp-≈ (⊗-resp-≈ Lterm-fact ≈-Term-refl) ≈-Term-refl) ⟩
+        _≅_.to (BTC.uf++ (map injL (pe-stackG es xs')) Rys)
+          ∘ (Lterm (e ∷ es) xs ⊗₁ id {RsufObj ys})
+          ∘ _≅_.from (BTC.uf++ Lxs Rys) ∎
+        where
+          Lxs'' = map injL (pe-stackG es xs')
+          cancel-merge
+            : GFactored es xs' ys
+              ∘ (_≅_.to (BTC.uf++ (map injL xs') Rys)
+                 ∘ (Lhead ⊗₁ id {RsufObj ys})
+                 ∘ _≅_.from (BTC.uf++ Lxs Rys))
+              ≈Term _≅_.to (BTC.uf++ Lxs'' Rys)
+                    ∘ ((Lterm es xs' ∘ Lhead) ⊗₁ id {RsufObj ys})
+                    ∘ _≅_.from (BTC.uf++ Lxs Rys)
+          cancel-merge = begin
+            (_≅_.to (BTC.uf++ Lxs'' Rys)
+              ∘ (Lterm es xs' ⊗₁ id {RsufObj ys})
+              ∘ _≅_.from (BTC.uf++ (map injL xs') Rys))
+              ∘ (_≅_.to (BTC.uf++ (map injL xs') Rys)
+                 ∘ (Lhead ⊗₁ id {RsufObj ys})
+                 ∘ _≅_.from (BTC.uf++ Lxs Rys))
+              ≈⟨ FM.assoc ⟩
+            _≅_.to (BTC.uf++ Lxs'' Rys)
+              ∘ ((Lterm es xs' ⊗₁ id {RsufObj ys}) ∘ _≅_.from (BTC.uf++ (map injL xs') Rys))
+              ∘ (_≅_.to (BTC.uf++ (map injL xs') Rys)
+                 ∘ (Lhead ⊗₁ id {RsufObj ys})
+                 ∘ _≅_.from (BTC.uf++ Lxs Rys))
+              ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+            _≅_.to (BTC.uf++ Lxs'' Rys)
+              ∘ (Lterm es xs' ⊗₁ id {RsufObj ys})
+              ∘ _≅_.from (BTC.uf++ (map injL xs') Rys)
+              ∘ _≅_.to (BTC.uf++ (map injL xs') Rys)
+              ∘ (Lhead ⊗₁ id {RsufObj ys})
+              ∘ _≅_.from (BTC.uf++ Lxs Rys)
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+            _≅_.to (BTC.uf++ Lxs'' Rys)
+              ∘ (Lterm es xs' ⊗₁ id {RsufObj ys})
+              ∘ (_≅_.from (BTC.uf++ (map injL xs') Rys)
+                 ∘ _≅_.to (BTC.uf++ (map injL xs') Rys))
+              ∘ (Lhead ⊗₁ id {RsufObj ys})
+              ∘ _≅_.from (BTC.uf++ Lxs Rys)
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoʳ (BTC.uf++ (map injL xs') Rys) ⟩∘⟨refl ⟩
+            _≅_.to (BTC.uf++ Lxs'' Rys)
+              ∘ (Lterm es xs' ⊗₁ id {RsufObj ys})
+              ∘ id
+              ∘ (Lhead ⊗₁ id {RsufObj ys})
+              ∘ _≅_.from (BTC.uf++ Lxs Rys)
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
+            _≅_.to (BTC.uf++ Lxs'' Rys)
+              ∘ (Lterm es xs' ⊗₁ id {RsufObj ys})
+              ∘ (Lhead ⊗₁ id {RsufObj ys})
+              ∘ _≅_.from (BTC.uf++ Lxs Rys)
+              ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+            _≅_.to (BTC.uf++ Lxs'' Rys)
+              ∘ ((Lterm es xs' ⊗₁ id {RsufObj ys}) ∘ (Lhead ⊗₁ id {RsufObj ys}))
+              ∘ _≅_.from (BTC.uf++ Lxs Rys)
+              ≈⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩∘⟨refl ⟩
+            _≅_.to (BTC.uf++ Lxs'' Rys)
+              ∘ ((Lterm es xs' ∘ Lhead) ⊗₁ (id {RsufObj ys} ∘ id {RsufObj ys}))
+              ∘ _≅_.from (BTC.uf++ Lxs Rys)
+              ≈⟨ refl⟩∘⟨ ⊗-resp-≈ ≈-Term-refl idˡ ⟩∘⟨refl ⟩
+            _≅_.to (BTC.uf++ Lxs'' Rys)
+              ∘ ((Lterm es xs' ∘ Lhead) ⊗₁ id {RsufObj ys})
+              ∘ _≅_.from (BTC.uf++ Lxs Rys) ∎
+
+      goal
+        : coeC {s} (mixed-stack-G (e ∷ es) xs ys)
+            (pe-termC (map (_↑ˡ K.nE) es) s1 ∘ tH)
+          ≈Term GFactored (e ∷ es) xs ys
+      goal = combine s1 tH (coeC {Lxs} lEq tHL) mEq
+                     (mixed-stack-G (e ∷ es) xs ys) head-fac
+                     (Lterm-cons s1L tHL lEq (proc-stack-emb-L (e ∷ es) xs))
 
 --------------------------------------------------------------------------------
 -- ## `Linear H ⇒ Unique (cod H)` (sig-level), verbatim from DecodeComposeShape.
