@@ -59,7 +59,7 @@ open import Categories.APROP.Hypergraph.Completeness.Decode sig
 open import Categories.APROP.Hypergraph.Completeness.Permute sig
   using (permute-via-vlab)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation sig
-  using (fire-mid)
+  using (fire-mid; box-of)
 open import Categories.APROP.Hypergraph.Completeness.Linearity sig
   using (Linear)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
@@ -68,6 +68,20 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidInterchangeComb sig as Comb
 
+-- The generic, hypergraph-agnostic box / block-tensor primitives
+-- (`BlockTensor.pvv-block-tensor`/`frame-ext`, `BoxAssoc.box-suffix`/
+-- `box-prefix`/`box-braid`) reused as the structural template / box
+-- machinery.  These are top-level submodules of `DecodeTensorShape`
+-- (parameterised only by `sig` / a `vlab`), so importing them does NOT
+-- pull in the `EmbedData`/`BlockFactor` decode machinery, and the cached
+-- interface keeps the import cheap.  Acyclic: `DecodeTensorShape` does not
+-- import this module.
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig as DTS
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFBraid
+  asFreeMonoidalData as BNB
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFVoutCoh
+  asFreeMonoidalData as BNV
+
 -- The Kelly faithfulness residual `K` (over this signature's
 -- `asFreeMonoidalData`).  Carried as a module parameter below: the
 -- eventual proof of `block-bracket` needs it (via
@@ -75,16 +89,21 @@ import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidInterchange
 -- permutes against the block-locating permutes on the `Unique` codomains.
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.PermuteCoherenceK
+  asFreeMonoidalData using (permute-via-vlab-≈Term-coherence-K)
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUnique sig as SU
 
+open import Categories.Category using (Category)
 open import Data.Fin using (Fin)
 open import Data.List using (List; _++_; map)
 open import Data.List.Properties using (map-++)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
+import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Product using (proj₁; proj₂)
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; cong; subst₂)
+  using (_≡_; refl; sym; trans; cong; subst₂)
 
 module _ (H : Hypergraph FlatGen)
          (K : FaithfulnessResidual)
@@ -143,6 +162,470 @@ module _ (H : Hypergraph FlatGen)
     view-out≅ a b Rlist =
       ≅.trans (uf++ (H.eout a ++ H.eout b) Rlist)
               (≅⊗id Rlist (uf++ (H.eout a) (H.eout b)))
+
+  ----------------------------------------------------------------------
+  -- ## Box / permute machinery for the proof of `block-bracket`.
+  --
+  -- `BT` is the generic block-tensor module instantiated at `H.vlab`; its
+  -- `uf++` is DEFINITIONALLY the local `uf++` above (both are `BNB.uf++
+  -- H.vlab`).  `pvl` is the local `permute-via-vlab H.vlab`.
+  ----------------------------------------------------------------------
+
+  private
+    module FM = Category FreeMonoidal
+    open FM.HomReasoning
+
+    module BT = DTS.BlockTensor H.vlab
+
+    pvl : {xs ys : List (Fin H.nV)} → xs Perm.↭ ys
+        → HomTerm (unflatten (map H.vlab xs)) (unflatten (map H.vlab ys))
+    pvl = permute-via-vlab H.vlab
+
+    -- `BT.uf++` ≡ the local `uf++` (both `BNB.uf++ H.vlab`).
+    uf++≡BT : ∀ (As Bs : List (Fin H.nV)) → uf++ As Bs ≡ BT.uf++ As Bs
+    uf++≡BT As Bs = refl
+
+    ≡⇒≈ : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
+    ≡⇒≈ refl = ≈-Term-refl
+
+    -- The keystone: two permutes with the same endpoints into a `Unique`
+    -- codomain agree after `pvl`.
+    pvl-coh : ∀ {zs ws : List (Fin H.nV)} → Unique ws → (p q : zs Perm.↭ ws)
+            → pvl p ≈Term pvl q
+    pvl-coh uniq p q = permute-via-vlab-≈Term-coherence-K K H.vlab uniq p q
+
+    ----------------------------------------------------------------------
+    -- `fire-mid` as the `uf++`-framed box `(box-e e ⊗₁ id)`.
+    --
+    --   fire-mid e rest ≈ to(uf++ (eout e) rest) ∘ (box-e e ⊗₁ id)
+    --                       ∘ from(uf++ (ein e) rest)
+    --
+    -- `box-of (map vlab (ein e)) (map vlab (eout e)) (map vlab rest) (elab e)`
+    -- already IS `to(raw) ∘ (box-e e ⊗₁ id) ∘ from(raw)`; the `fire-mid`
+    -- `subst₂` over the `sym (map-++ …)` boundaries is exactly the
+    -- `to`/`from`-subst that turns the raw `unflatten-++-≅` into `BT.uf++`
+    -- (via `BNB.to-subst₂-≅`/`from-subst₂-≅`).
+    fire-mid-decomp
+      : ∀ (e : Fin H.nE) (rest : List (Fin H.nV))
+      → fire-mid H e rest
+        ≈Term _≅_.to (BT.uf++ (H.eout e) rest)
+              ∘ (box-e e ⊗₁ id {R-obj rest})
+              ∘ _≅_.from (BT.uf++ (H.ein e) rest)
+    fire-mid-decomp e rest =
+      ≈-Term-trans (≡⇒≈ step) (∘-resp-≈ (≡⇒≈ (sym to≡)) (∘-resp-≈ ≈-Term-refl (≡⇒≈ (sym from≡))))
+      where
+        einL  = map H.vlab (H.ein  e)
+        eoutL = map H.vlab (H.eout e)
+        restL = map H.vlab rest
+        g     = H.elab e
+        Grp   = Agen-edge-aux g                 -- = box-e e
+        pIn   = cong unflatten (sym (map-++ H.vlab (H.ein  e) rest))
+        pOut  = cong unflatten (sym (map-++ H.vlab (H.eout e) rest))
+        rawTo   = _≅_.to   (unflatten-++-≅ eoutL restL)
+        rawFrom = _≅_.from (unflatten-++-≅ einL  restL)
+
+        -- box-of = rawTo ∘ ((Grp ⊗ id) ∘ rawFrom).  Split the `subst₂` over
+        -- `∘` at the two interior objects.
+        step
+          : fire-mid H e rest
+            ≡ subst₂ HomTerm refl pOut rawTo
+              ∘ ((Grp ⊗₁ id {R-obj rest}) ∘ subst₂ HomTerm pIn refl rawFrom)
+        step =
+          trans (BNB.subst₂-∘-split pIn pOut rawTo
+                   ((Grp ⊗₁ id {R-obj rest}) ∘ rawFrom))
+                (cong (subst₂ HomTerm refl pOut rawTo ∘_)
+                   (BNB.subst₂-∘-split pIn refl (Grp ⊗₁ id {R-obj rest}) rawFrom))
+
+        to≡   : _≅_.to (BT.uf++ (H.eout e) rest) ≡ subst₂ HomTerm refl pOut rawTo
+        to≡   = BNB.to-subst₂-≅ pOut (unflatten-++-≅ eoutL restL)
+
+        from≡ : _≅_.from (BT.uf++ (H.ein e) rest) ≡ subst₂ HomTerm pIn refl rawFrom
+        from≡ = BNB.from-subst₂-≅ pIn (unflatten-++-≅ einL restL)
+
+    ----------------------------------------------------------------------
+    -- ## The framed single box, and the view-frame unfoldings.
+    --
+    -- `Bframed e rest` = the `uf++`-framed `(box e ⊗ id)` (the RHS of
+    -- `fire-mid-decomp`).
+    Bframed : (e : Fin H.nE) (rest : List (Fin H.nV))
+            → HomTerm (unflatten (map H.vlab (H.ein  e ++ rest)))
+                      (unflatten (map H.vlab (H.eout e ++ rest)))
+    Bframed e rest =
+      _≅_.to (BT.uf++ (H.eout e) rest)
+      ∘ (box-e e ⊗₁ id {R-obj rest})
+      ∘ _≅_.from (BT.uf++ (H.ein e) rest)
+
+    fire≈Bframed : ∀ (e : Fin H.nE) (rest : List (Fin H.nV))
+                 → fire-mid H e rest ≈Term Bframed e rest
+    fire≈Bframed = fire-mid-decomp
+
+    -- The view frames `from`/`to` unfold DEFINITIONALLY into a `⊗₁ id`-whisker
+    -- composed with the outer `uf++` (`≅.trans` is `from j ∘ from i` /
+    -- `to i ∘ to j`, and `≅⊗id`'s `from`/`to` are `· ⊗₁ id`).
+    from-view-in≡
+      : ∀ (a b : Fin H.nE) (Rlist : List (Fin H.nV))
+      → _≅_.from (view-in≅ a b Rlist)
+        ≡ (_≅_.from (uf++ (H.ein a) (H.ein b)) ⊗₁ id {R-obj Rlist})
+          ∘ _≅_.from (uf++ (H.ein a ++ H.ein b) Rlist)
+    from-view-in≡ a b Rlist = refl
+
+    to-view-out≡
+      : ∀ (a b : Fin H.nE) (Rlist : List (Fin H.nV))
+      → _≅_.to (view-out≅ a b Rlist)
+        ≡ _≅_.to (uf++ (H.eout a ++ H.eout b) Rlist)
+          ∘ (_≅_.to (uf++ (H.eout a) (H.eout b)) ⊗₁ id {R-obj Rlist})
+    to-view-out≡ a b Rlist = refl
+
+    ----------------------------------------------------------------------
+    -- ## L1 — box residual-naturality (the `++⁺ˡ`-slide of a residual
+    -- permute through a framed box).
+    --
+    --   Bframed e rest' ∘ pvl(++⁺ˡ (ein e) ρ)
+    --     ≈ pvl(++⁺ˡ (eout e) ρ) ∘ Bframed e rest
+    --
+    -- A residual permute `ρ : rest ↭ rest'` slides through the box `box-e e`
+    -- (which acts only on the front `ein e`/`eout e` block).  This is the
+    -- `pvv-++⁺ˡ-slide` left-slide on BOTH frames + bifunctoriality
+    -- (`box e ⊗ id` commutes with `id ⊗ pvl ρ`).  Sound (no K needed): it is
+    -- pure naturality of `⊗` and the `uf++` framing.
+    box-resid-slide
+      : ∀ (e : Fin H.nE) {rest rest' : List (Fin H.nV)} (ρ : rest Perm.↭ rest')
+      → Bframed e rest' ∘ pvl (PermProp.++⁺ˡ (H.ein e) ρ)
+        ≈Term pvl (PermProp.++⁺ˡ (H.eout e) ρ) ∘ Bframed e rest
+    box-resid-slide e {rest} {rest'} ρ = begin
+        Bframed e rest' ∘ pvl (PermProp.++⁺ˡ (H.ein e) ρ)
+          ≈⟨ refl⟩∘⟨ BT.pvv-++⁺ˡ-slide (H.ein e) ρ ⟩
+        (to-eo' ∘ (box-e e ⊗₁ id {R-obj rest'}) ∘ from-ei')
+          ∘ (to-ei' ∘ (id {Aein e} ⊗₁ pvl ρ) ∘ from-ei)
+          ≈⟨ cancel-in ⟩
+        to-eo' ∘ (box-e e ⊗₁ id {R-obj rest'}) ∘ (id {Aein e} ⊗₁ pvl ρ) ∘ from-ei
+          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+        to-eo' ∘ ((box-e e ⊗₁ id {R-obj rest'}) ∘ (id {Aein e} ⊗₁ pvl ρ)) ∘ from-ei
+          ≈⟨ refl⟩∘⟨ slide-box ⟩∘⟨refl ⟩
+        to-eo' ∘ ((id {Aeout e} ⊗₁ pvl ρ) ∘ (box-e e ⊗₁ id {R-obj rest})) ∘ from-ei
+          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+        to-eo' ∘ (id {Aeout e} ⊗₁ pvl ρ) ∘ (box-e e ⊗₁ id {R-obj rest}) ∘ from-ei
+          ≈⟨ FM.sym-assoc ⟩
+        (to-eo' ∘ (id {Aeout e} ⊗₁ pvl ρ)) ∘ (box-e e ⊗₁ id {R-obj rest}) ∘ from-ei
+          ≈⟨ reattach-out ⟩∘⟨refl ⟩
+        (pvl (PermProp.++⁺ˡ (H.eout e) ρ) ∘ to-eo) ∘ (box-e e ⊗₁ id {R-obj rest}) ∘ from-ei
+          ≈⟨ FM.assoc ⟩
+        pvl (PermProp.++⁺ˡ (H.eout e) ρ)
+          ∘ (to-eo ∘ (box-e e ⊗₁ id {R-obj rest}) ∘ from-ei) ∎
+      where
+        to-ei  = _≅_.to   (uf++ (H.ein  e) rest)
+        from-ei = _≅_.from (uf++ (H.ein e) rest)
+        to-ei' = _≅_.to   (uf++ (H.ein  e) rest')
+        from-ei' = _≅_.from (uf++ (H.ein e) rest')
+        to-eo  = _≅_.to   (uf++ (H.eout e) rest)
+        to-eo' = _≅_.to   (uf++ (H.eout e) rest')
+
+        -- `from-ei' ∘ to-ei' = id` cancellation in the middle (reassoc first).
+        cancel-in
+          : (to-eo' ∘ (box-e e ⊗₁ id {R-obj rest'}) ∘ from-ei')
+              ∘ (to-ei' ∘ (id {Aein e} ⊗₁ pvl ρ) ∘ from-ei)
+            ≈Term to-eo' ∘ (box-e e ⊗₁ id {R-obj rest'}) ∘ (id {Aein e} ⊗₁ pvl ρ) ∘ from-ei
+        cancel-in = begin
+          (to-eo' ∘ (box-e e ⊗₁ id {R-obj rest'}) ∘ from-ei')
+            ∘ (to-ei' ∘ (id {Aein e} ⊗₁ pvl ρ) ∘ from-ei)
+            ≈⟨ FM.assoc ⟩
+          to-eo' ∘ ((box-e e ⊗₁ id {R-obj rest'}) ∘ from-ei')
+            ∘ (to-ei' ∘ (id {Aein e} ⊗₁ pvl ρ) ∘ from-ei)
+            ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+          to-eo' ∘ (box-e e ⊗₁ id {R-obj rest'}) ∘ from-ei'
+            ∘ to-ei' ∘ (id {Aein e} ⊗₁ pvl ρ) ∘ from-ei
+            ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+          to-eo' ∘ (box-e e ⊗₁ id {R-obj rest'}) ∘ (from-ei' ∘ to-ei')
+            ∘ (id {Aein e} ⊗₁ pvl ρ) ∘ from-ei
+            ≈⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoʳ (uf++ (H.ein e) rest') ⟩∘⟨refl ⟩
+          to-eo' ∘ (box-e e ⊗₁ id {R-obj rest'}) ∘ id
+            ∘ (id {Aein e} ⊗₁ pvl ρ) ∘ from-ei
+            ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
+          to-eo' ∘ (box-e e ⊗₁ id {R-obj rest'}) ∘ (id {Aein e} ⊗₁ pvl ρ) ∘ from-ei ∎
+
+        -- bifunctoriality: `(box e ⊗ id) ∘ (id ⊗ pvl ρ) ≈ (id ⊗ pvl ρ) ∘ (box e ⊗ id)`.
+        slide-box
+          : (box-e e ⊗₁ id {R-obj rest'}) ∘ (id {Aein e} ⊗₁ pvl ρ)
+            ≈Term (id {Aeout e} ⊗₁ pvl ρ) ∘ (box-e e ⊗₁ id {R-obj rest})
+        slide-box = begin
+          (box-e e ⊗₁ id {R-obj rest'}) ∘ (id {Aein e} ⊗₁ pvl ρ)
+            ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
+          (box-e e ∘ id {Aein e}) ⊗₁ (id {R-obj rest'} ∘ pvl ρ)
+            ≈⟨ ⊗-resp-≈ idʳ idˡ ⟩
+          box-e e ⊗₁ pvl ρ
+            ≈⟨ ⊗-resp-≈ (≈-Term-sym idˡ) (≈-Term-sym idʳ) ⟩
+          (id {Aeout e} ∘ box-e e) ⊗₁ (pvl ρ ∘ id {R-obj rest})
+            ≈⟨ ⊗-∘-dist ⟩
+          (id {Aeout e} ⊗₁ pvl ρ) ∘ (box-e e ⊗₁ id {R-obj rest}) ∎
+
+        -- reattach the output frame: `to-eo' ∘ (id ⊗ pvl ρ) ≈ pvl(++⁺ˡ) ∘ to-eo`.
+        reattach-out
+          : to-eo' ∘ (id {Aeout e} ⊗₁ pvl ρ)
+            ≈Term pvl (PermProp.++⁺ˡ (H.eout e) ρ) ∘ to-eo
+        reattach-out = begin
+          to-eo' ∘ (id {Aeout e} ⊗₁ pvl ρ)
+            ≈⟨ ≈-Term-sym idʳ ⟩
+          (to-eo' ∘ (id {Aeout e} ⊗₁ pvl ρ)) ∘ id
+            ≈⟨ refl⟩∘⟨ ≈-Term-sym (_≅_.isoʳ (uf++ (H.eout e) rest)) ⟩
+          (to-eo' ∘ (id {Aeout e} ⊗₁ pvl ρ)) ∘ (from-eo ∘ to-eo)
+            ≈⟨ FM.assoc ⟩
+          to-eo' ∘ ((id {Aeout e} ⊗₁ pvl ρ) ∘ (from-eo ∘ to-eo))
+            ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+          to-eo' ∘ (((id {Aeout e} ⊗₁ pvl ρ) ∘ from-eo) ∘ to-eo)
+            ≈⟨ FM.sym-assoc ⟩
+          (to-eo' ∘ ((id {Aeout e} ⊗₁ pvl ρ) ∘ from-eo)) ∘ to-eo
+            ≈⟨ ≈-Term-sym (BT.pvv-++⁺ˡ-slide (H.eout e) ρ) ⟩∘⟨refl ⟩
+          pvl (PermProp.++⁺ˡ (H.eout e) ρ) ∘ to-eo ∎
+          where from-eo = _≅_.from (uf++ (H.eout e) rest)
+
+    ----------------------------------------------------------------------
+    -- ## The both-boxes-at-front morphism `Both a b`, and `Core` as `Both`
+    -- framed at residual `R`.
+    --
+    --   Both a b = to(uf++ (eout a)(eout b)) ∘ (box a ⊗ box b)
+    --                ∘ from(uf++ (ein a)(ein b))
+    --     : unflatten (map vlab (ein a ++ ein b))
+    --       → unflatten (map vlab (eout a ++ eout b))
+    Both : (a b : Fin H.nE)
+         → HomTerm (unflatten (map H.vlab (H.ein a ++ H.ein b)))
+                   (unflatten (map H.vlab (H.eout a ++ H.eout b)))
+    Both a b =
+      _≅_.to (uf++ (H.eout a) (H.eout b))
+      ∘ (box-e a ⊗₁ box-e b)
+      ∘ _≅_.from (uf++ (H.ein a) (H.ein b))
+
+    Core : (a b : Fin H.nE) (R : List (Fin H.nV))
+         → HomTerm (unflatten (map H.vlab ((H.ein a ++ H.ein b) ++ R)))
+                   (unflatten (map H.vlab ((H.eout a ++ H.eout b) ++ R)))
+    Core a b R =
+      _≅_.to (view-out≅ a b R)
+      ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id {R-obj R})
+      ∘ _≅_.from (view-in≅ a b R)
+
+    -- `(h ∘ k ∘ l) ⊗₁ id ≈ (h ⊗₁ id) ∘ (k ⊗₁ id) ∘ (l ⊗₁ id)`.
+    private
+      ⊗id-∘∘ : ∀ {A B C D} {Z : ObjTerm}
+                 (h : HomTerm C D) (k : HomTerm B C) (l : HomTerm A B)
+             → (h ∘ k ∘ l) ⊗₁ id {Z}
+               ≈Term (h ⊗₁ id {Z}) ∘ (k ⊗₁ id {Z}) ∘ (l ⊗₁ id {Z})
+      ⊗id-∘∘ {Z = Z} h k l = begin
+        (h ∘ k ∘ l) ⊗₁ id {Z}
+          ≈⟨ ⊗-resp-≈ ≈-Term-refl (≈-Term-sym (≈-Term-trans idˡ idˡ)) ⟩
+        (h ∘ k ∘ l) ⊗₁ (id {Z} ∘ id {Z} ∘ id {Z})
+          ≈⟨ ⊗-∘-dist ⟩
+        (h ⊗₁ id {Z}) ∘ ((k ∘ l) ⊗₁ (id {Z} ∘ id {Z}))
+          ≈⟨ refl⟩∘⟨ ⊗-∘-dist ⟩
+        (h ⊗₁ id {Z}) ∘ (k ⊗₁ id {Z}) ∘ (l ⊗₁ id {Z}) ∎
+
+    -- `Core a b R ≈ to(uf++ (eout a ++ eout b) R) ∘ (Both a b ⊗ id)
+    --                ∘ from(uf++ (ein a ++ ein b) R)`.
+    core≡both-framed
+      : ∀ (a b : Fin H.nE) (R : List (Fin H.nV))
+      → Core a b R
+        ≈Term _≅_.to (uf++ (H.eout a ++ H.eout b) R)
+              ∘ (Both a b ⊗₁ id {R-obj R})
+              ∘ _≅_.from (uf++ (H.ein a ++ H.ein b) R)
+    core≡both-framed a b R = begin
+        Core a b R
+          ≈⟨ ∘-resp-≈ (≡⇒≈ (to-view-out≡ a b R))
+               (∘-resp-≈ ≈-Term-refl (≡⇒≈ (from-view-in≡ a b R))) ⟩
+        (to-eoeo ∘ (to-eo₂ ⊗₁ id {R-obj R}))
+          ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id {R-obj R})
+          ∘ ((from-ei₂ ⊗₁ id {R-obj R}) ∘ from-eiei)
+          ≈⟨ FM.assoc ⟩
+        to-eoeo ∘ (to-eo₂ ⊗₁ id {R-obj R})
+          ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id {R-obj R})
+          ∘ ((from-ei₂ ⊗₁ id {R-obj R}) ∘ from-eiei)
+          ≈⟨ refl⟩∘⟨ merge ⟩
+        to-eoeo ∘ (Both a b ⊗₁ id {R-obj R}) ∘ from-eiei ∎
+      where
+        to-eoeo = _≅_.to   (uf++ (H.eout a ++ H.eout b) R)
+        from-eiei = _≅_.from (uf++ (H.ein a ++ H.ein b) R)
+        to-eo₂  = _≅_.to   (uf++ (H.eout a) (H.eout b))
+        from-ei₂ = _≅_.from (uf++ (H.ein a) (H.ein b))
+
+        merge
+          : (to-eo₂ ⊗₁ id {R-obj R})
+              ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id {R-obj R})
+              ∘ ((from-ei₂ ⊗₁ id {R-obj R}) ∘ from-eiei)
+            ≈Term (Both a b ⊗₁ id {R-obj R}) ∘ from-eiei
+        merge = begin
+          (to-eo₂ ⊗₁ id {R-obj R})
+            ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id {R-obj R})
+            ∘ ((from-ei₂ ⊗₁ id {R-obj R}) ∘ from-eiei)
+            ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+          (to-eo₂ ⊗₁ id {R-obj R})
+            ∘ (((box-e a ⊗₁ box-e b) ⊗₁ id {R-obj R}) ∘ (from-ei₂ ⊗₁ id {R-obj R}))
+            ∘ from-eiei
+            ≈⟨ FM.sym-assoc ⟩
+          ((to-eo₂ ⊗₁ id {R-obj R})
+            ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id {R-obj R}) ∘ (from-ei₂ ⊗₁ id {R-obj R}))
+            ∘ from-eiei
+            ≈⟨ ≈-Term-sym (⊗id-∘∘ to-eo₂ (box-e a ⊗₁ box-e b) from-ei₂) ⟩∘⟨refl ⟩
+          (Both a b ⊗₁ id {R-obj R}) ∘ from-eiei ∎
+
+    ----------------------------------------------------------------------
+    -- ## `both-as-fire` — `Both a b` as a sequential single-box firing.
+    --
+    --   Bframed b (eout a) ∘ pvl(++-comm (eout a)(ein b)) ∘ Bframed a (ein b)
+    --     ≈ pvl(++-comm (eout a)(eout b)) ∘ Both a b
+    --
+    -- Box a fires at the front of `ein a ++ ein b` (residual `ein b`), the
+    -- block-swap `++-comm (eout a)(ein b)` brings box b's input `ein b` to
+    -- the front, then box b fires (residual `eout a`).  The result differs
+    -- from the both-at-front `Both a b` by the OUTPUT block-swap
+    -- `++-comm (eout a)(eout b)`.  No K / `Unique` needed: pure σ-naturality
+    -- (`σ∘[f⊗g]≈[g⊗f]∘σ`) + bifunctoriality + the σ↔permute bridge
+    -- `σ-block-comm` (proven in `BlockNFBraid`/`BlockNFVoutCoh`).
+    --
+    -- `BNV.σ-block-comm H.vlab` is DEFINITIONALLY at the local frames
+    -- (`BNV.uf++ H.vlab = uf++`, `BNV.Aof H.vlab = Aein/Aeout`,
+    -- `BNV.pvl H.vlab = pvl`).
+    private
+      σbc : (as bs : List (Fin H.nV))
+          → _≅_.to (uf++ bs as) ∘ (σ {unflatten (map H.vlab as)} {unflatten (map H.vlab bs)})
+              ∘ _≅_.from (uf++ as bs)
+            ≈Term pvl (PermProp.++-comm as bs)
+      σbc = BNV.σ-block-comm H.vlab
+
+    both-as-fire
+      : ∀ (a b : Fin H.nE)
+      → Bframed b (H.eout a)
+          ∘ pvl (PermProp.++-comm (H.eout a) (H.ein b))
+          ∘ Bframed a (H.ein b)
+        ≈Term pvl (PermProp.++-comm (H.eout a) (H.eout b)) ∘ Both a b
+    both-as-fire a b = begin
+        Bframed b (H.eout a) ∘ pvl (PermProp.++-comm (H.eout a) (H.ein b)) ∘ Bframed a (H.ein b)
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-refl ⟩  -- `Bframed e rest` unfolds definitionally
+        ( to-eobeoa ∘ box-b⊗ ∘ from-eibeoa )
+          ∘ ( pvl++c ∘ ( to-eoaeib ∘ box-a⊗ ∘ from-eiaeib ) )
+          -- (1) pull the LEADING box-b frame out to the front (assoc twice).
+          ≈⟨ FM.assoc ⟩
+        to-eobeoa
+          ∘ ( ( box-b⊗ ∘ from-eibeoa )
+            ∘ ( pvl++c ∘ ( to-eoaeib ∘ box-a⊗ ∘ from-eiaeib ) ) )
+          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+        to-eobeoa
+          ∘ ( box-b⊗
+            ∘ ( from-eibeoa
+              ∘ ( pvl++c ∘ ( to-eoaeib ∘ box-a⊗ ∘ from-eiaeib ) ) ) )
+          -- (2) inside, expose `from-eibeoa ∘ (pvl++c ∘ to-eoaeib)` = MID', then
+          --     `box-a⊗ ∘ from-eiaeib` as the tail.
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ expose ⟩
+        to-eobeoa
+          ∘ ( box-b⊗
+            ∘ ( ( from-eibeoa ∘ ( pvl++c ∘ to-eoaeib ) )
+              ∘ ( box-a⊗ ∘ from-eiaeib ) ) )
+          -- (3) MID' ≈ σ.
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ mid-σ ⟩∘⟨refl ⟩
+        to-eobeoa
+          ∘ ( box-b⊗ ∘ ( σ {Aeout a} {Aein b} ∘ ( box-a⊗ ∘ from-eiaeib ) ) )
+          -- (4) regroup so `box-b⊗ ∘ σ` is a unit; apply σ-nat-b.
+          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+        to-eobeoa
+          ∘ ( ( box-b⊗ ∘ σ {Aeout a} {Aein b} ) ∘ ( box-a⊗ ∘ from-eiaeib ) )
+          ≈⟨ refl⟩∘⟨ σ-nat-b ⟩∘⟨refl ⟩
+        to-eobeoa
+          ∘ ( ( σ {Aeout a} {Aeout b} ∘ (id {Aeout a} ⊗₁ box-e b) )
+            ∘ ( box-a⊗ ∘ from-eiaeib ) )
+          -- (5) regroup so `(id ⊗ box b) ∘ box-a⊗` is a unit; apply bifun.
+          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+        to-eobeoa
+          ∘ ( σ {Aeout a} {Aeout b}
+            ∘ ( (id {Aeout a} ⊗₁ box-e b) ∘ ( box-a⊗ ∘ from-eiaeib ) ) )
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+        to-eobeoa
+          ∘ ( σ {Aeout a} {Aeout b}
+            ∘ ( ( (id {Aeout a} ⊗₁ box-e b) ∘ box-a⊗ ) ∘ from-eiaeib ) )
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ bifun ⟩∘⟨refl ⟩
+        to-eobeoa
+          ∘ ( σ {Aeout a} {Aeout b}
+            ∘ ( (box-e a ⊗₁ box-e b) ∘ from-eiaeib ) )
+          -- (6) regroup so `to-eobeoa ∘ σ` is a unit; apply out-σ.
+          ≈⟨ FM.sym-assoc ⟩
+        ( to-eobeoa ∘ σ {Aeout a} {Aeout b} )
+          ∘ ( (box-e a ⊗₁ box-e b) ∘ from-eiaeib )
+          ≈⟨ out-σ ⟩∘⟨refl ⟩
+        ( pvl (PermProp.++-comm (H.eout a) (H.eout b)) ∘ to-eoaeob )
+          ∘ ( (box-e a ⊗₁ box-e b) ∘ from-eiaeib )
+          ≈⟨ FM.assoc ⟩
+        pvl (PermProp.++-comm (H.eout a) (H.eout b))
+          ∘ ( to-eoaeob ∘ ( (box-e a ⊗₁ box-e b) ∘ from-eiaeib ) ) ∎
+      where
+        box-b⊗ = box-e b ⊗₁ id {Aeout a}
+        box-a⊗ = box-e a ⊗₁ id {Aein b}
+        pvl++c = pvl (PermProp.++-comm (H.eout a) (H.ein b))
+        to-eobeoa  = _≅_.to   (uf++ (H.eout b) (H.eout a))
+        from-eibeoa = _≅_.from (uf++ (H.ein b) (H.eout a))
+        to-eibeoa  = _≅_.to   (uf++ (H.ein b) (H.eout a))
+        to-eoaeib  = _≅_.to   (uf++ (H.eout a) (H.ein b))
+        from-eoaeib = _≅_.from (uf++ (H.eout a) (H.ein b))
+        from-eiaeib = _≅_.from (uf++ (H.ein a) (H.ein b))
+        to-eoaeob  = _≅_.to   (uf++ (H.eout a) (H.eout b))
+        from-eoaeob = _≅_.from (uf++ (H.eout a) (H.eout b))
+
+        -- Reassociate `from-eibeoa ∘ (pvl++c ∘ (to-eoaeib ∘ (box-a⊗ ∘ from-eiaeib))))`
+        -- so that `from-eibeoa ∘ (pvl++c ∘ to-eoaeib)` (= MID') and
+        -- `box-a⊗ ∘ from-eiaeib` are the two top-level units (two `sym-assoc`s).
+        expose
+          : from-eibeoa ∘ ( pvl++c ∘ ( to-eoaeib ∘ box-a⊗ ∘ from-eiaeib ) )
+            ≈Term ( from-eibeoa ∘ ( pvl++c ∘ to-eoaeib ) ) ∘ ( box-a⊗ ∘ from-eiaeib )
+        expose = ≈-Term-trans (refl⟩∘⟨ FM.sym-assoc) FM.sym-assoc
+
+        -- the middle `from(uf ei-b eo-a) ∘ pvl(++-comm eo-a ei-b) ∘ to(uf eo-a ei-b)`
+        -- reduces to the bare braiding `σ {Aeout a} {Aein b}` (σ-block-comm + cancel).
+        mid-σ
+          : from-eibeoa ∘ pvl (PermProp.++-comm (H.eout a) (H.ein b)) ∘ to-eoaeib
+            ≈Term σ {Aeout a} {Aein b}
+        mid-σ = begin
+          from-eibeoa ∘ pvl (PermProp.++-comm (H.eout a) (H.ein b)) ∘ to-eoaeib
+            ≈⟨ refl⟩∘⟨ ≈-Term-sym (σbc (H.eout a) (H.ein b)) ⟩∘⟨refl ⟩
+          from-eibeoa ∘ (to-eibeoa ∘ σ {Aeout a} {Aein b} ∘ from-eoaeib) ∘ to-eoaeib
+            ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+          from-eibeoa ∘ to-eibeoa ∘ (σ {Aeout a} {Aein b} ∘ from-eoaeib) ∘ to-eoaeib
+            ≈⟨ FM.sym-assoc ⟩
+          (from-eibeoa ∘ to-eibeoa) ∘ (σ {Aeout a} {Aein b} ∘ from-eoaeib) ∘ to-eoaeib
+            ≈⟨ _≅_.isoʳ (uf++ (H.ein b) (H.eout a)) ⟩∘⟨refl ⟩
+          id ∘ (σ {Aeout a} {Aein b} ∘ from-eoaeib) ∘ to-eoaeib
+            ≈⟨ idˡ ⟩
+          (σ {Aeout a} {Aein b} ∘ from-eoaeib) ∘ to-eoaeib
+            ≈⟨ FM.assoc ⟩
+          σ {Aeout a} {Aein b} ∘ (from-eoaeib ∘ to-eoaeib)
+            ≈⟨ refl⟩∘⟨ _≅_.isoʳ (uf++ (H.eout a) (H.ein b)) ⟩
+          σ {Aeout a} {Aein b} ∘ id
+            ≈⟨ idʳ ⟩
+          σ {Aeout a} {Aein b} ∎
+
+        -- `(box b ⊗ id) ∘ σ ≈ σ ∘ (id ⊗ box b)` (σ-naturality).
+        σ-nat-b
+          : (box-e b ⊗₁ id {Aeout a}) ∘ σ {Aeout a} {Aein b}
+            ≈Term σ {Aeout a} {Aeout b} ∘ (id {Aeout a} ⊗₁ box-e b)
+        σ-nat-b = ≈-Term-sym σ∘[f⊗g]≈[g⊗f]∘σ
+
+        -- bifunctoriality: `(id ⊗ box b) ∘ (box a ⊗ id) ≈ box a ⊗ box b`.
+        bifun
+          : (id {Aeout a} ⊗₁ box-e b) ∘ (box-e a ⊗₁ id {Aein b})
+            ≈Term box-e a ⊗₁ box-e b
+        bifun = ≈-Term-trans (≈-Term-sym ⊗-∘-dist) (⊗-resp-≈ idˡ idʳ)
+
+        -- `to(uf eo-b eo-a) ∘ σ ≈ pvl(++-comm eo-a eo-b) ∘ to(uf eo-a eo-b)`.
+        out-σ
+          : to-eobeoa ∘ σ {Aeout a} {Aeout b}
+            ≈Term pvl (PermProp.++-comm (H.eout a) (H.eout b)) ∘ to-eoaeob
+        out-σ = begin
+          to-eobeoa ∘ σ {Aeout a} {Aeout b}
+            ≈⟨ ≈-Term-sym idʳ ⟩
+          (to-eobeoa ∘ σ {Aeout a} {Aeout b}) ∘ id
+            ≈⟨ refl⟩∘⟨ ≈-Term-sym (_≅_.isoʳ (uf++ (H.eout a) (H.eout b))) ⟩
+          (to-eobeoa ∘ σ {Aeout a} {Aeout b}) ∘ (from-eoaeob ∘ to-eoaeob)
+            ≈⟨ FM.assoc ⟩
+          to-eobeoa ∘ (σ {Aeout a} {Aeout b} ∘ (from-eoaeob ∘ to-eoaeob))
+            ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+          to-eobeoa ∘ ((σ {Aeout a} {Aeout b} ∘ from-eoaeob) ∘ to-eoaeob)
+            ≈⟨ FM.sym-assoc ⟩
+          (to-eobeoa ∘ (σ {Aeout a} {Aeout b} ∘ from-eoaeob)) ∘ to-eoaeob
+            ≈⟨ σbc (H.eout a) (H.eout b) ⟩∘⟨refl ⟩
+          pvl (PermProp.++-comm (H.eout a) (H.eout b)) ∘ to-eoaeob ∎
 
   ----------------------------------------------------------------------
   -- ## The single residual (scaffolding-stripped, block-symmetric).
