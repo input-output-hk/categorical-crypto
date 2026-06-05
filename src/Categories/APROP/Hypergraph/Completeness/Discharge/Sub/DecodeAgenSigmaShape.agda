@@ -46,13 +46,21 @@ open import Categories.FreeMonoidal using (v≤v)
 
 open import Categories.APROP.Hypergraph.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using (FlatGen; flatten; range; hSwap; domL-hSwap; codL-hSwap; ⟪_⟫; ⟪⟫-domL; ⟪⟫-codL
+  using (FlatGen; flatten; range; hSwap; hGen; domL-hSwap; codL-hSwap
+        ; domL-hGen; codL-hGen; ⟪_⟫; ⟪⟫-domL; ⟪⟫-codL
         ; map-lookup-range)
-open import Categories.APROP.Hypergraph.Invariant sig using (hSwap-cod-Unique)
+open import Categories.APROP.Hypergraph.Invariant sig
+  using (hSwap-cod-Unique; hGen-cod-Unique; hGen-dom-Unique)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-++-≅; unflatten-flatten-≈; _≅_; module ≅)
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
-  using (process-all-edges; extract-exact; decode-attempt)
+  using (process-all-edges; process-edges; edge-step; extract-exact; decode-attempt
+        ; Agen-edge-aux; extract-prefix; ++-[]-↭)
+open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
+  using (extract-prefix-self)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation sig
+  using (EdgeStepR; skipR; fireR; fire-term; fire-mid; box-of; box-of-cong
+        ; edge-step-sound)
 open import Categories.APROP.Hypergraph.Completeness.Permute sig
   using (permute-via-vlab; permute)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
@@ -71,12 +79,13 @@ open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal using (Monoidal)
 open import Categories.Category.Monoidal.Utilities Monoidal-FreeMonoidal using (_⊗ᵢ_)
+import Categories.Category.Monoidal.Properties Monoidal-FreeMonoidal as MonProp
 
 open import Data.Nat using (ℕ; _+_)
-open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_; splitAt)
+open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
 open import Data.List using (List; []; _∷_; _++_; map; length; lookup)
-open import Data.List.Properties using (map-++; map-∘; map-cong)
+open import Data.List.Properties using (map-++; map-∘; map-cong; ++-identityʳ)
 open import Data.Sum using ([_,_]′)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just)
@@ -150,6 +159,197 @@ private
       ≡ subst₂ HomTerm (trans p₁ p₂) (trans q₁ q₂) t
   subst₂-HomTerm-∘ refl refl refl refl t = refl
 
+  ------------------------------------------------------------------------
+  -- ## The empty-residual box collapse (`nil-frame`).
+  --
+  -- A `box-of`-style framing on the EMPTY residual `[]`, i.e.
+  -- `to(uff++ eoL []) ∘ (G ⊗₁ id {unit}) ∘ from(uff++ eiL [])`, collapses
+  -- (modulo the `++-identityʳ` boundary subst) to the bare `G`.  The two
+  -- right-unit isos `uff++ · []` ARE the right unitor up to the `++ []`
+  -- transport (`uff-nil-from`/`uff-nil-to`, by list-induction with base case
+  -- = the Kelly unit coherence `λ⇐ ≈ ρ⇐`), then `ρ⇒∘f⊗id≈f∘ρ⇒` slides `G`
+  -- past the `⊗₁ id {unit}` and the `ρ⇒ ∘ ρ⇐` units cancel.
+
+  -- `unflatten [] = unit`, recorded for the `uff++ · []` codomains.
+  U[] : ObjTerm
+  U[] = unflatten []
+
+  -- The domain-side `++-identityʳ` cast `unflatten (xs ++ []) → unflatten xs`.
+  dsub : (xs : List X) → HomTerm (unflatten (xs ++ [])) (unflatten xs)
+  dsub xs = subst (λ z → HomTerm (unflatten (xs ++ [])) (unflatten z))
+                  (++-identityʳ xs) id
+
+  -- The codomain-side `++-identityʳ` cast `unflatten xs → unflatten (xs ++ [])`.
+  csub : (xs : List X) → HomTerm (unflatten xs) (unflatten (xs ++ []))
+  csub xs = subst (λ z → HomTerm (unflatten z) (unflatten (xs ++ [])))
+                  (++-identityʳ xs) id
+
+  -- `unflatten ((x ∷ xs) ++ []) = Var x ⊗₀ unflatten (xs ++ [])`, so the
+  -- `dsub`/`csub` casts on a `Var x`-headed list factor as `id ⊗₁ ·`.
+  -- These reduce (at `e = refl`) to `id ⊗₁ id ≈Term id` (`id⊗id≈id`).
+  dsub-cons : ∀ (x : X) (xs : List X)
+            → (id {Var x} ⊗₁ dsub xs) ≈Term dsub (x ∷ xs)
+  dsub-cons x xs = lemma (++-identityʳ xs)
+    where
+      lemma : ∀ {ys} (e : xs ++ [] ≡ ys)
+            → (id {Var x} ⊗₁ subst (λ z → HomTerm (unflatten (xs ++ [])) (unflatten z)) e id)
+              ≈Term subst (λ z → HomTerm (Var x ⊗₀ unflatten (xs ++ [])) (unflatten z))
+                          (cong (x ∷_) e) id
+      lemma refl = id⊗id≈id
+
+  csub-cons : ∀ (x : X) (xs : List X)
+            → (id {Var x} ⊗₁ csub xs) ≈Term csub (x ∷ xs)
+  csub-cons x xs = lemma (++-identityʳ xs)
+    where
+      lemma : ∀ {ys} (e : xs ++ [] ≡ ys)
+            → (id {Var x} ⊗₁ subst (λ z → HomTerm (unflatten z) (unflatten (xs ++ []))) e id)
+              ≈Term subst (λ z → HomTerm (unflatten z) (Var x ⊗₀ unflatten (xs ++ [])))
+                          (cong (x ∷_) e) id
+      lemma refl = id⊗id≈id
+
+  -- `≅.from (unflatten-++-≅ xs []) ≈Term ρ⇐ ∘ dsub xs`.  By induction:
+  --   * `[]`:  `from (≅.sym unitorˡ) = λ⇐ ≈Term ρ⇐` (Kelly unit coherence),
+  --            and `dsub [] = id`.
+  --   * `x∷xs`: `from = α⇐ ∘ (id ⊗₁ from-IH)`; slide via `coherence-inv₂`
+  --            (`α⇐ ∘ (id ⊗₁ ρ⇐) ≈ ρ⇐`) + `dsub-cons`.
+  uff-nil-from
+    : ∀ (xs : List X)
+    → _≅_.from (unflatten-++-≅ xs []) ≈Term ρ⇐ ∘ dsub xs
+  uff-nil-from [] = begin
+    λ⇐ {U[]}      ≈⟨ MonProp.coherence-inv₃ ⟩
+    ρ⇐ {U[]}      ≈⟨ ≈-Term-sym idʳ ⟩
+    ρ⇐ ∘ id       ∎
+  uff-nil-from (x ∷ xs) = begin
+    α⇐ ∘ (id {Var x} ⊗₁ _≅_.from (unflatten-++-≅ xs []))
+      ≈⟨ refl⟩∘⟨ ⊗-resp-≈ ≈-Term-refl (uff-nil-from xs) ⟩
+    α⇐ ∘ (id {Var x} ⊗₁ (ρ⇐ ∘ dsub xs))
+      ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl ⟩
+    α⇐ ∘ ((id {Var x} ∘ id) ⊗₁ (ρ⇐ ∘ dsub xs))
+      ≈⟨ refl⟩∘⟨ ⊗-∘-dist ⟩
+    α⇐ ∘ ((id {Var x} ⊗₁ ρ⇐) ∘ (id {Var x} ⊗₁ dsub xs))
+      ≈⟨ ≈-Term-sym assoc ⟩
+    (α⇐ ∘ (id {Var x} ⊗₁ ρ⇐)) ∘ (id {Var x} ⊗₁ dsub xs)
+      ≈⟨ ∘-resp-≈ MonProp.coherence-inv₂ (dsub-cons x xs) ⟩
+    ρ⇐ ∘ dsub (x ∷ xs)
+      ∎
+
+  -- `≅.to (unflatten-++-≅ xs []) ≈Term csub xs ∘ ρ⇒` (the `.to` mirror).
+  --   * `[]`:  `to (≅.sym unitorˡ) = λ⇒ ≈Term ρ⇒` (Kelly), `csub [] = id`.
+  --   * `x∷xs`: `to = (id ⊗₁ to-IH) ∘ α⇒`; slide via `coherence₂`
+  --            (`(id ⊗₁ ρ⇒) ∘ α⇒ ≈ ρ⇒`) + `csub-cons`.
+  uff-nil-to
+    : ∀ (xs : List X)
+    → _≅_.to (unflatten-++-≅ xs []) ≈Term csub xs ∘ ρ⇒
+  uff-nil-to [] = begin
+    λ⇒ {U[]}      ≈⟨ MonProp.coherence₃ ⟩
+    ρ⇒ {U[]}      ≈⟨ ≈-Term-sym idˡ ⟩
+    id ∘ ρ⇒       ∎
+  uff-nil-to (x ∷ xs) = begin
+    (id {Var x} ⊗₁ _≅_.to (unflatten-++-≅ xs [])) ∘ α⇒
+      ≈⟨ ⊗-resp-≈ ≈-Term-refl (uff-nil-to xs) ⟩∘⟨refl ⟩
+    (id {Var x} ⊗₁ (csub xs ∘ ρ⇒)) ∘ α⇒
+      ≈⟨ ⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl ⟩∘⟨refl ⟩
+    ((id {Var x} ∘ id) ⊗₁ (csub xs ∘ ρ⇒)) ∘ α⇒
+      ≈⟨ ⊗-∘-dist ⟩∘⟨refl ⟩
+    ((id {Var x} ⊗₁ csub xs) ∘ (id {Var x} ⊗₁ ρ⇒)) ∘ α⇒
+      ≈⟨ assoc ⟩
+    (id {Var x} ⊗₁ csub xs) ∘ ((id {Var x} ⊗₁ ρ⇒) ∘ α⇒)
+      ≈⟨ ∘-resp-≈ (csub-cons x xs) MonProp.coherence₂ ⟩
+    csub (x ∷ xs) ∘ ρ⇒
+      ∎
+
+  -- A `subst`-`id`-conjugation peels to a `subst₂`.  `csub`/`dsub` are the
+  -- two conjugators; conjugating `G` by them = `subst₂ HomTerm` over the
+  -- `++-identityʳ` casts (reversed on the domain side).
+  -- A generic conjugation peeling.  `dd`/`cc` are the cast SOURCES (here
+  -- `eiL ++ []` / `eoL ++ []`); `pi : dd ≡ eiL`, `po : cc ≡ eoL` are the
+  -- `++-identityʳ` proofs.  The two `subst`-`id` conjugators collapse the
+  -- composite to a single `subst₂` over `sym pi`/`sym po`.
+  conj-peel
+    : ∀ {eiL eoL dd cc : List X} (pi : dd ≡ eiL) (po : cc ≡ eoL)
+        (G : HomTerm (unflatten eiL) (unflatten eoL))
+    → subst (λ z → HomTerm (unflatten z) (unflatten cc)) po id
+        ∘ G
+        ∘ subst (λ z → HomTerm (unflatten dd) (unflatten z)) pi id
+      ≈Term subst₂ HomTerm (cong unflatten (sym pi)) (cong unflatten (sym po)) G
+  conj-peel refl refl G = begin
+    id ∘ G ∘ id   ≈⟨ idˡ ⟩
+    G ∘ id        ≈⟨ idʳ ⟩
+    G             ∎
+
+  conj-to-subst₂
+    : ∀ {eiL eoL : List X} (G : HomTerm (unflatten eiL) (unflatten eoL))
+    → csub eoL ∘ G ∘ dsub eiL
+      ≈Term subst₂ HomTerm
+              (cong unflatten (sym (++-identityʳ eiL)))
+              (cong unflatten (sym (++-identityʳ eoL)))
+              G
+  conj-to-subst₂ {eiL} {eoL} G =
+    conj-peel (++-identityʳ eiL) (++-identityʳ eoL) G
+
+  -- ### `nil-frame` — the empty-residual box collapse.
+  nil-frame
+    : ∀ {eiL eoL : List X} (G : HomTerm (unflatten eiL) (unflatten eoL))
+    → _≅_.to (unflatten-++-≅ eoL []) ∘ (G ⊗₁ id {U[]}) ∘ _≅_.from (unflatten-++-≅ eiL [])
+      ≈Term subst₂ HomTerm
+              (cong unflatten (sym (++-identityʳ eiL)))
+              (cong unflatten (sym (++-identityʳ eoL)))
+              G
+  nil-frame {eiL} {eoL} G = begin
+    _≅_.to (unflatten-++-≅ eoL []) ∘ (G ⊗₁ id {U[]}) ∘ _≅_.from (unflatten-++-≅ eiL [])
+      ≈⟨ ∘-resp-≈ (uff-nil-to eoL) (refl⟩∘⟨ uff-nil-from eiL) ⟩
+    (csub eoL ∘ ρ⇒) ∘ (G ⊗₁ id {U[]}) ∘ (ρ⇐ ∘ dsub eiL)
+      ≈⟨ assoc ⟩
+    csub eoL ∘ (ρ⇒ ∘ (G ⊗₁ id {U[]}) ∘ (ρ⇐ ∘ dsub eiL))
+      ≈⟨ refl⟩∘⟨ ≈-Term-sym assoc ⟩
+    csub eoL ∘ ((ρ⇒ ∘ (G ⊗₁ id {U[]})) ∘ (ρ⇐ ∘ dsub eiL))
+      ≈⟨ refl⟩∘⟨ (ρ⇒∘f⊗id≈f∘ρ⇒ ⟩∘⟨refl) ⟩
+    csub eoL ∘ ((G ∘ ρ⇒) ∘ (ρ⇐ ∘ dsub eiL))
+      ≈⟨ refl⟩∘⟨ assoc ⟩
+    csub eoL ∘ (G ∘ (ρ⇒ ∘ (ρ⇐ ∘ dsub eiL)))
+      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym assoc ⟩
+    csub eoL ∘ (G ∘ ((ρ⇒ ∘ ρ⇐) ∘ dsub eiL))
+      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (ρ⇒∘ρ⇐≈id ⟩∘⟨refl) ⟩
+    csub eoL ∘ (G ∘ (id ∘ dsub eiL))
+      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
+    csub eoL ∘ G ∘ dsub eiL
+      ≈⟨ conj-to-subst₂ G ⟩
+    subst₂ HomTerm (cong unflatten (sym (++-identityʳ eiL))) (cong unflatten (sym (++-identityʳ eoL))) G
+      ∎
+
+  ------------------------------------------------------------------------
+  -- ## Permute / subst₂ plumbing for the cap-collapse (cloned idioms).
+
+  -- `subst₂ HomTerm` distributes over `∘` (= `FireMidEquivariant.subst₂-∘-distrib`).
+  subst₂-∘-distrib
+    : ∀ {As₁ As₂ Bs₁ Bs₂ Cs₁ Cs₂ : List X}
+        (p : As₁ ≡ As₂) (q : Bs₁ ≡ Bs₂) (r : Cs₁ ≡ Cs₂)
+        (f : HomTerm (unflatten Bs₁) (unflatten Cs₁))
+        (h : HomTerm (unflatten As₁) (unflatten Bs₁))
+    → subst₂ HomTerm (cong unflatten p) (cong unflatten r) (f ∘ h)
+      ≡ subst₂ HomTerm (cong unflatten q) (cong unflatten r) f
+        ∘ subst₂ HomTerm (cong unflatten p) (cong unflatten q) h
+  subst₂-∘-distrib refl refl refl _ _ = refl
+
+  -- `subst₂` on a `permute-via-vlab`, with block-frames of the form
+  -- `cong (map vlab) a`, pushes onto the underlying `↭` (= `FireMidEquivariant`
+  -- `permute-subst₂` specialised to `permute-via-vlab`).
+  pvl-subst₂
+    : ∀ {n} (vlab : Fin n → X) {xs xs' ys ys' : List (Fin n)}
+        (a : xs ≡ xs') (b : ys ≡ ys') (r : xs Perm.↭ ys)
+    → subst₂ HomTerm (cong unflatten (cong (map vlab) a))
+                     (cong unflatten (cong (map vlab) b))
+                     (permute-via-vlab vlab r)
+      ≡ permute-via-vlab vlab (subst₂ Perm._↭_ a b r)
+  pvl-subst₂ vlab refl refl r = refl
+
+  -- `permute-via-vlab vlab ↭-refl ≈Term id` (`map⁺ f refl = refl`,
+  -- `permute refl = id` — both definitional).
+  pvl-refl
+    : ∀ {n} (vlab : Fin n → X) (xs : List (Fin n))
+    → permute-via-vlab vlab (Perm.↭-refl {x = xs}) ≈Term id
+  pvl-refl vlab xs = ≈-Term-refl
+
 --------------------------------------------------------------------------------
 -- ## Algorithm extraction (sig-level), VERBATIM from `DecodeComposeShape`.
 --
@@ -174,6 +374,64 @@ decode-attempt-extract H t eq
     with extract-exact (Hypergraph.cod H) s_final
 ...    | just perm with eq
 ...       | refl = perm , refl
+
+--------------------------------------------------------------------------------
+-- ## Single-edge `process-all-edges` reduction (for `hGen g`).
+--
+-- `hGen g` has `nE = 1`, so `range 1 = zero ∷ []`; the single edge fires
+-- (its `ein` = `dom` = `L`, so `extract-prefix L L` succeeds via
+-- `extract-prefix-self` with empty residual).  `process-all-edges` collapses
+-- to `id ∘ (fire-mid zero [] ∘ permute-via-vlab vlab perm-self)`.
+
+module _ {A B : ObjTerm} (g : mor A B) where
+  private
+    H : Hypergraph FlatGen
+    H = hGen g
+    module H = Hypergraph H
+
+  -- The self-prefix permutation `dom ↭ ein zero ++ []` (= `L ↭ L ++ []`).
+  agen-self-perm : H.dom Perm.↭ H.ein zero ++ []
+  agen-self-perm = proj₁ (extract-prefix-self H.dom)
+
+  agen-self-eq : extract-prefix (H.ein zero) H.dom ≡ just ([] , agen-self-perm)
+  agen-self-eq = proj₂ (extract-prefix-self H.dom)
+
+  -- `edge-step H dom zero` IS the FIRE branch with empty residual.
+  agen-edge-step
+    : edge-step H H.dom zero
+      ≡ (H.eout zero ++ [] , fire-term H zero H.dom [] agen-self-perm)
+  agen-edge-step = edge-step-sound H (fireR [] agen-self-perm agen-self-eq)
+
+  -- The full `process-all-edges` pair reduces (the `range 1 = zero ∷ []`
+  -- single-edge walk: one FIRE edge, then the empty `process-edges []`
+  -- prepends an `id`).  Stated as a Σ-pair equality so both the final
+  -- stack AND the term land in one `rewrite agen-edge-step`.
+  agen-process-pair
+    : process-all-edges H H.dom
+      ≡ ( H.eout zero ++ []
+        , id ∘ fire-term H zero H.dom [] agen-self-perm )
+  agen-process-pair rewrite agen-edge-step = refl
+
+  -- The single edge's label is the `(sym (domL-hGen g))/(sym (codL-hGen g))`-
+  -- transport of the literal `flat g` (definitional — `hGen`'s internal
+  -- `lem-in`/`lem-out` are `sym (domL-hGen g)` / `sym (codL-hGen g)`).
+  agen-elab-eq
+    : H.elab zero
+      ≡ subst₂ FlatGen (sym (domL-hGen g)) (sym (codL-hGen g)) (FlatGen.flat g)
+  agen-elab-eq = refl
+
+  -- The `box-of (flatten A)(flatten B) [] (flat g)`, reframed onto the
+  -- `hGen` vlab-blocks `map vlab L`/`map vlab R` via `box-of-cong`.
+  agen-box-cong
+    : subst₂ HomTerm
+        (cong unflatten (cong₂ _++_ (sym (domL-hGen g)) refl))
+        (cong unflatten (cong₂ _++_ (sym (codL-hGen g)) refl))
+        (box-of (flatten A) (flatten B) [] (FlatGen.flat g))
+      ≡ box-of (map H.vlab (H.ein zero)) (map H.vlab (H.eout zero)) []
+               (H.elab zero)
+  agen-box-cong =
+    box-of-cong (sym (domL-hGen g)) (sym (codL-hGen g)) refl
+                (FlatGen.flat g) (H.elab zero) (sym agen-elab-eq)
 
 --------------------------------------------------------------------------------
 -- ## The main assembly.
@@ -456,4 +714,329 @@ module _
         bframe (flatten A) (flatten B)
           ≈⟨ step-bridge ⟨
         bridge σAB
+          ∎
+
+  --------------------------------------------------------------------------
+  -- ## `decode-Agen-collapse` (the Agen / single-edge case).
+  --
+  -- `decode (Agen g)` runs `hGen g` (one FIRE edge, no residual).  Its
+  -- algorithmic interior is `pvl perm-alg ∘ (id ∘ (fire-mid zero [] ∘ pvl
+  -- perm-self))`.  The empty-residual box `fire-mid zero []` collapses
+  -- (via `box-of-cong` to the `flatten`-blocks + `nil-frame`) to the bare
+  -- `Agen-edge-aux (flat g)`; the two `↭`-permutes collapse to the boundary
+  -- coherence by the keystone (Unique codomains `L`/`R`).  Everything is
+  -- reconciled with `bridge (Agen g) = Agen-edge-aux (flat g)` under
+  -- `objUIP`.
+
+  decode-Agen-collapse
+    : ∀ {A B} (g : mor A B) → decode (Agen g) ≈Term bridge (Agen g)
+  decode-Agen-collapse {A} {B} g = goal
+    where
+      H : Hypergraph FlatGen
+      H = hGen g
+      module H = Hypergraph H
+
+      vlab-c : Fin H.nV → X
+      vlab-c = H.vlab
+
+      pvl-c : {xs ys : List (Fin H.nV)}
+            → xs Perm.↭ ys
+            → HomTerm (unflatten (map vlab-c xs)) (unflatten (map vlab-c ys))
+      pvl-c = permute-via-vlab vlab-c
+
+      Lblk Rblk : List (Fin H.nV)
+      Lblk = H.ein zero
+      Rblk = H.eout zero
+
+      -- Boundary equations for `decode`.
+      domEq : domL H ≡ flatten A
+      domEq = domL-hGen g
+      codEq : codL H ≡ flatten B
+      codEq = codL-hGen g
+
+      -- The single-edge process reduction (from the upstream helper).
+      pp : process-all-edges H H.dom
+           ≡ ( Rblk ++ []
+             , id ∘ (fire-mid H zero []
+                     ∘ permute-via-vlab vlab-c (agen-self-perm g)) )
+      pp = agen-process-pair g
+
+      perm-self : H.dom Perm.↭ Lblk ++ []
+      perm-self = agen-self-perm g
+
+      -- (1) `decode (Agen g)` exposes its boundary-substituted interior.
+      ext : Σ[ perm ∈ proj₁ (process-all-edges H H.dom) Perm.↭ H.cod ]
+              proj₁ (decode-attempt-Linear (Agen g))
+              ≡ permute-via-vlab vlab-c perm
+                  ∘ proj₂ (process-all-edges H H.dom)
+      ext = decode-attempt-extract H
+              (proj₁ (decode-attempt-Linear (Agen g)))
+              (proj₂ (decode-attempt-Linear (Agen g)))
+
+      perm-alg : proj₁ (process-all-edges H H.dom) Perm.↭ H.cod
+      perm-alg = proj₁ ext
+
+      step-decode
+        : decode (Agen g)
+          ≈Term subst₂ HomTerm (cong unflatten domEq) (cong unflatten codEq)
+                  (permute-via-vlab vlab-c perm-alg
+                    ∘ proj₂ (process-all-edges H H.dom))
+      step-decode =
+        subst₂-resp-≈Term (cong unflatten domEq) (cong unflatten codEq)
+          (≡⇒≈Term (proj₂ ext))
+
+      -- `Agen-edge-aux` framed onto the `flatten`-blocks (= the RHS of
+      -- `interior`; equals `bridge (Agen g)` after the outer collapse).
+      BoxCore : HomTerm (unflatten (map vlab-c Lblk)) (unflatten (map vlab-c Rblk))
+      BoxCore = subst₂ HomTerm (cong unflatten (sym domEq)) (cong unflatten (sym codEq))
+                       (Agen-edge-aux (FlatGen.flat g))
+
+      -- `Agen-edge-aux`-naturality under `subst₂ FlatGen` (local clone).
+      subst₂-Agen-edge-aux-nat
+        : ∀ {ins₁ ins₂ outs₁ outs₂ : List X}
+            (p : ins₁ ≡ ins₂) (q : outs₁ ≡ outs₂) (x : FlatGen ins₁ outs₁)
+        → subst₂ HomTerm (cong unflatten p) (cong unflatten q) (Agen-edge-aux x)
+          ≡ Agen-edge-aux (subst₂ FlatGen p q x)
+      subst₂-Agen-edge-aux-nat refl refl _ = refl
+
+      -- The `_++ []` block-frames (list level).
+      lf : map vlab-c Lblk ≡ map vlab-c (Lblk ++ [])
+      lf = cong (map vlab-c) (sym (++-identityʳ Lblk))
+      rf : map vlab-c Rblk ≡ map vlab-c (Rblk ++ [])
+      rf = cong (map vlab-c) (sym (++-identityʳ Rblk))
+
+      -- (2) The FIRE box collapses: `box-of-cong` reframes the box onto the
+      -- `flatten`-blocks, `nil-frame` discharges the empty residual, and
+      -- `subst₂-Agen-edge-aux-nat` pushes the `(sym domEq)/(sym codEq)`
+      -- transport onto `Agen-edge-aux`.  All boundary `subst₂` merge under
+      -- `objUIP` into the single `_++ []` block-frame.
+      fire-eq
+        : fire-mid H zero []
+          ≈Term subst₂ HomTerm (cong unflatten lf) (cong unflatten rf) BoxCore
+      fire-eq = begin
+        -- `fire-mid H zero []` (definitionally the `map-++ · []`-framed box).
+        subst₂ HomTerm
+          (cong unflatten (sym (map-++ vlab-c Lblk [])))
+          (cong unflatten (sym (map-++ vlab-c Rblk [])))
+          (box-of (map vlab-c Lblk) (map vlab-c Rblk) [] (H.elab zero))
+          ≈⟨ subst₂-resp-≈Term _ _ box-collapse ⟩
+        subst₂ HomTerm
+          (cong unflatten (sym (map-++ vlab-c Lblk [])))
+          (cong unflatten (sym (map-++ vlab-c Rblk [])))
+          (subst₂ HomTerm bcd bcc
+            (subst₂ HomTerm nfd nfc (Agen-edge-aux (FlatGen.flat g))))
+          ≈⟨ subst₂-resp-≈Term
+                (cong unflatten (sym (map-++ vlab-c Lblk [])))
+                (cong unflatten (sym (map-++ vlab-c Rblk [])))
+                (≡⇒≈Term (subst₂-HomTerm-∘ nfd bcd nfc bcc
+                            (Agen-edge-aux (FlatGen.flat g)))) ⟩
+        subst₂ HomTerm
+          (cong unflatten (sym (map-++ vlab-c Lblk [])))
+          (cong unflatten (sym (map-++ vlab-c Rblk [])))
+          (subst₂ HomTerm (trans nfd bcd) (trans nfc bcc)
+            (Agen-edge-aux (FlatGen.flat g)))
+          ≈⟨ ≡⇒≈Term (subst₂-HomTerm-∘ (trans nfd bcd)
+                        (cong unflatten (sym (map-++ vlab-c Lblk [])))
+                        (trans nfc bcc)
+                        (cong unflatten (sym (map-++ vlab-c Rblk [])))
+                        (Agen-edge-aux (FlatGen.flat g))) ⟩
+        subst₂ HomTerm
+          (trans (trans nfd bcd) (cong unflatten (sym (map-++ vlab-c Lblk []))))
+          (trans (trans nfc bcc) (cong unflatten (sym (map-++ vlab-c Rblk []))))
+          (Agen-edge-aux (FlatGen.flat g))
+          ≈⟨ subst₂-HomTerm-irrel objUIP
+               (trans (trans nfd bcd) (cong unflatten (sym (map-++ vlab-c Lblk []))))
+               (trans (cong unflatten (sym domEq)) (cong unflatten lf))
+               (trans (trans nfc bcc) (cong unflatten (sym (map-++ vlab-c Rblk []))))
+               (trans (cong unflatten (sym codEq)) (cong unflatten rf))
+               (Agen-edge-aux (FlatGen.flat g)) ⟩
+        subst₂ HomTerm
+          (trans (cong unflatten (sym domEq)) (cong unflatten lf))
+          (trans (cong unflatten (sym codEq)) (cong unflatten rf))
+          (Agen-edge-aux (FlatGen.flat g))
+          ≈⟨ ≡⇒≈Term (sym (subst₂-HomTerm-∘
+                        (cong unflatten (sym domEq)) (cong unflatten lf)
+                        (cong unflatten (sym codEq)) (cong unflatten rf)
+                        (Agen-edge-aux (FlatGen.flat g)))) ⟩
+        subst₂ HomTerm (cong unflatten lf) (cong unflatten rf) BoxCore
+          ∎
+        where
+          bcd = cong unflatten (cong₂ _++_ (sym domEq) refl)
+          bcc = cong unflatten (cong₂ _++_ (sym codEq) refl)
+          nfd = cong unflatten (sym (++-identityʳ (flatten A)))
+          nfc = cong unflatten (sym (++-identityʳ (flatten B)))
+
+          box-collapse
+            : box-of (map vlab-c Lblk) (map vlab-c Rblk) [] (H.elab zero)
+              ≈Term subst₂ HomTerm bcd bcc
+                      (subst₂ HomTerm nfd nfc (Agen-edge-aux (FlatGen.flat g)))
+          box-collapse = begin
+            box-of (map vlab-c Lblk) (map vlab-c Rblk) [] (H.elab zero)
+              ≈⟨ ≡⇒≈Term (sym (agen-box-cong g)) ⟩
+            subst₂ HomTerm bcd bcc (box-of (flatten A) (flatten B) [] (FlatGen.flat g))
+              ≈⟨ subst₂-resp-≈Term bcd bcc (nil-frame (Agen-edge-aux (FlatGen.flat g))) ⟩
+            subst₂ HomTerm bcd bcc
+              (subst₂ HomTerm nfd nfc (Agen-edge-aux (FlatGen.flat g)))
+              ∎
+
+      -- The two structural permutes `pvl-c perm-self` (`Lblk ↭ Lblk ++ []`)
+      -- and `pvl-c perm-alg` (`Rblk ++ [] ↭ Rblk`) collapse against the
+      -- `_++ []` block-frames of `fire-eq`, by the keystone (Unique `Lblk`
+      -- / `Rblk` codomains), to leave the bare `BoxCore`.
+      interior
+        : permute-via-vlab vlab-c perm-alg
+            ∘ proj₂ (process-all-edges H H.dom)
+          ≈Term BoxCore
+      interior = interior-gen (process-all-edges H H.dom) perm-alg pp
+        where
+          -- `q-LL : Lblk ↭ Lblk` — `perm-self` with its `++ []` codomain
+          -- transported back; `pvl-c q-LL ≈ id` by the keystone (Unique Lblk).
+          q-LL : Lblk Perm.↭ Lblk
+          q-LL = subst₂ Perm._↭_ refl (++-identityʳ Lblk) perm-self
+
+          -- `pvl-c perm-self` re-expressed with the `lf` block-frame extracted.
+          pvl-self-eq
+            : permute-via-vlab vlab-c perm-self
+              ≡ subst₂ HomTerm refl (cong unflatten lf)
+                  (permute-via-vlab vlab-c q-LL)
+          pvl-self-eq =
+            trans (cong (permute-via-vlab vlab-c) self-recon)
+                  (sym (pvl-subst₂ vlab-c refl (sym (++-identityʳ Lblk)) q-LL))
+            where
+              -- `perm-self ≡ subst₂ ↭ refl (sym (++-id Lblk)) q-LL` (the
+              -- `++ []`-codomain transport round-trips).
+              self-recon
+                : perm-self
+                  ≡ subst₂ Perm._↭_ refl (sym (++-identityʳ Lblk)) q-LL
+              self-recon = lemma (++-identityʳ Lblk)
+                where
+                  lemma : ∀ {w} (e : Lblk ++ [] ≡ w)
+                        → perm-self
+                          ≡ subst₂ Perm._↭_ refl (sym e)
+                              (subst₂ Perm._↭_ refl e perm-self)
+                  lemma refl = refl
+
+          interior-gen
+            : (pr : Σ[ s ∈ List (Fin H.nV) ]
+                      HomTerm (unflatten (map vlab-c H.dom))
+                              (unflatten (map vlab-c s)))
+              (pa : proj₁ pr Perm.↭ H.cod)
+            → pr ≡ ( Rblk ++ []
+                   , id ∘ (fire-mid H zero []
+                           ∘ permute-via-vlab vlab-c perm-self) )
+            → permute-via-vlab vlab-c pa ∘ proj₂ pr ≈Term BoxCore
+          interior-gen _ pa refl = begin
+            permute-via-vlab vlab-c pa
+              ∘ (id ∘ (fire-mid H zero [] ∘ permute-via-vlab vlab-c perm-self))
+              ≈⟨ refl⟩∘⟨ idˡ ⟩
+            permute-via-vlab vlab-c pa
+              ∘ (fire-mid H zero [] ∘ permute-via-vlab vlab-c perm-self)
+              ≈⟨ refl⟩∘⟨ (fire-eq ⟩∘⟨ ≡⇒≈Term pvl-self-eq) ⟩
+            permute-via-vlab vlab-c pa
+              ∘ (subst₂ HomTerm (cong unflatten lf) (cong unflatten rf) BoxCore
+                  ∘ subst₂ HomTerm refl (cong unflatten lf)
+                      (permute-via-vlab vlab-c q-LL))
+              ≈⟨ refl⟩∘⟨ ≡⇒≈Term
+                   (sym (subst₂-∘-distrib refl
+                          (cong (map vlab-c) (sym (++-identityʳ Lblk)))
+                          (cong (map vlab-c) (sym (++-identityʳ Rblk)))
+                          BoxCore (permute-via-vlab vlab-c q-LL))) ⟩
+            permute-via-vlab vlab-c pa
+              ∘ subst₂ HomTerm refl (cong unflatten rf)
+                  (BoxCore ∘ permute-via-vlab vlab-c q-LL)
+              ≈⟨ refl⟩∘⟨ subst₂-resp-≈Term refl (cong unflatten rf)
+                          (refl⟩∘⟨ keystone-L) ⟩
+            permute-via-vlab vlab-c pa
+              ∘ subst₂ HomTerm refl (cong unflatten rf) (BoxCore ∘ id)
+              ≈⟨ refl⟩∘⟨ subst₂-resp-≈Term refl (cong unflatten rf) idʳ ⟩
+            permute-via-vlab vlab-c pa
+              ∘ subst₂ HomTerm refl (cong unflatten rf) BoxCore
+              ≈⟨ (≡⇒≈Term pvl-alg-eq) ⟩∘⟨refl ⟩
+            subst₂ HomTerm (cong unflatten rf) refl (permute-via-vlab vlab-c q-RR)
+              ∘ subst₂ HomTerm refl (cong unflatten rf) BoxCore
+              ≈⟨ ≡⇒≈Term
+                   (sym (subst₂-∘-distrib refl
+                          (cong (map vlab-c) (sym (++-identityʳ Rblk)))
+                          refl
+                          (permute-via-vlab vlab-c q-RR) BoxCore)) ⟩
+            subst₂ HomTerm refl refl (permute-via-vlab vlab-c q-RR ∘ BoxCore)
+              ≈⟨ ∘-resp-≈ keystone-R ≈-Term-refl ⟩
+            id ∘ BoxCore
+              ≈⟨ idˡ ⟩
+            BoxCore
+              ∎
+            where
+              -- `pvl-c q-LL ≈ id` (keystone @ Unique `Lblk` + `pvl-refl`).
+              keystone-L : permute-via-vlab vlab-c q-LL ≈Term id
+              keystone-L = ≈-Term-trans
+                (permute-via-vlab-≈Term-coherence-K Kf vlab-c
+                  (hGen-dom-Unique g) q-LL Perm.↭-refl)
+                (pvl-refl vlab-c Lblk)
+
+              -- `q-RR : Rblk ↭ Rblk` — `pa` with its `++ []` domain transported
+              -- back; `pvl-c q-RR ≈ id` by the keystone (Unique Rblk).
+              q-RR : Rblk Perm.↭ Rblk
+              q-RR = subst₂ Perm._↭_ (++-identityʳ Rblk) refl pa
+
+              keystone-R : permute-via-vlab vlab-c q-RR ≈Term id
+              keystone-R = ≈-Term-trans
+                (permute-via-vlab-≈Term-coherence-K Kf vlab-c
+                  (hGen-cod-Unique g) q-RR Perm.↭-refl)
+                (pvl-refl vlab-c Rblk)
+
+              -- `pvl-c pa` with the `rf` domain block-frame extracted.
+              pvl-alg-eq
+                : permute-via-vlab vlab-c pa
+                  ≡ subst₂ HomTerm (cong unflatten rf) refl
+                      (permute-via-vlab vlab-c q-RR)
+              pvl-alg-eq =
+                trans (cong (permute-via-vlab vlab-c) alg-recon)
+                      (sym (pvl-subst₂ vlab-c (sym (++-identityʳ Rblk)) refl q-RR))
+                where
+                  alg-recon
+                    : pa ≡ subst₂ Perm._↭_ (sym (++-identityʳ Rblk)) refl q-RR
+                  alg-recon = lemma (++-identityʳ Rblk)
+                    where
+                      lemma : ∀ {w} (e : Rblk ++ [] ≡ w)
+                            → pa ≡ subst₂ Perm._↭_ (sym e) refl
+                                     (subst₂ Perm._↭_ e refl pa)
+                      lemma refl = refl
+
+      -- Reconcile the boundary loop `subst₂ domEq codEq ∘ subst₂ (sym domEq)
+      -- (sym codEq)` under `objUIP` (it is the identity transport).
+      step-collapse
+        : subst₂ HomTerm (cong unflatten domEq) (cong unflatten codEq)
+            (subst₂ HomTerm (cong unflatten (sym domEq)) (cong unflatten (sym codEq))
+              (Agen-edge-aux (FlatGen.flat g)))
+          ≈Term Agen-edge-aux (FlatGen.flat g)
+      step-collapse = begin
+        subst₂ HomTerm (cong unflatten domEq) (cong unflatten codEq)
+          (subst₂ HomTerm (cong unflatten (sym domEq)) (cong unflatten (sym codEq))
+            (Agen-edge-aux (FlatGen.flat g)))
+          ≈⟨ ≡⇒≈Term (subst₂-HomTerm-∘
+                        (cong unflatten (sym domEq)) (cong unflatten domEq)
+                        (cong unflatten (sym codEq)) (cong unflatten codEq)
+                        (Agen-edge-aux (FlatGen.flat g))) ⟩
+        subst₂ HomTerm (trans (cong unflatten (sym domEq)) (cong unflatten domEq))
+                       (trans (cong unflatten (sym codEq)) (cong unflatten codEq))
+          (Agen-edge-aux (FlatGen.flat g))
+          ≈⟨ subst₂-HomTerm-irrel objUIP
+               (trans (cong unflatten (sym domEq)) (cong unflatten domEq)) refl
+               (trans (cong unflatten (sym codEq)) (cong unflatten codEq)) refl
+               (Agen-edge-aux (FlatGen.flat g)) ⟩
+        Agen-edge-aux (FlatGen.flat g)
+          ∎
+
+      goal : decode (Agen g) ≈Term bridge (Agen g)
+      goal = begin
+        decode (Agen g)
+          ≈⟨ step-decode ⟩
+        subst₂ HomTerm (cong unflatten domEq) (cong unflatten codEq)
+          (permute-via-vlab vlab-c perm-alg ∘ proj₂ (process-all-edges H H.dom))
+          ≈⟨ subst₂-resp-≈Term (cong unflatten domEq) (cong unflatten codEq) interior ⟩
+        subst₂ HomTerm (cong unflatten domEq) (cong unflatten codEq)
+          (subst₂ HomTerm (cong unflatten (sym domEq)) (cong unflatten (sym codEq))
+            (Agen-edge-aux (FlatGen.flat g)))
+          ≈⟨ step-collapse ⟩
+        Agen-edge-aux (FlatGen.flat g)
           ∎

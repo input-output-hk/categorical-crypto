@@ -97,9 +97,11 @@
 -- pruning-specific new trust is the two (B) bridges (factored through the
 -- single `decodePShapeResiduals` postulate).
 --
--- LIVE postulates in THIS module (4): `agenSigmaResiduals`,
--- `decode-rel-≈-decode-α⇒`, `decode-rel-≈-decode-α⇐`,
--- `decodePShapeResiduals`.  (`decodeShapeResiduals` is GONE.)
+-- LIVE postulates in THIS module (3): `decode-rel-≈-decode-α⇒`,
+-- `decode-rel-≈-decode-α⇐`, `decodePShapeResiduals`.
+-- (`decodeShapeResiduals` AND `agenSigmaResiduals` are GONE — both are now
+-- DEFINITIONS in `module Wired`, consuming the proven, postulate-free
+-- shape / single-edge-collapse lemmas.)
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -138,6 +140,10 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeShape sig
 -- turn `decodeShapeResiduals` from a postulate into a DEFINITION.
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeComposeShape sig as DCS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig as DTS
+-- The PROVEN, postulate-free single-edge collapses `decode-{Agen,σ}-collapse`
+-- (also in a top-level `module _ (objUIP)(Kf)`).  Consumed below to turn
+-- `agenSigmaResiduals` from a postulate into a DEFINITION.
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeAgenSigmaShape sig as DAS
 import Categories.APROP.Hypergraph.Completeness.Discharge.DecoderAgreementCases as Cases
 module Cases-sig = Cases sig
 import Categories.APROP.Hypergraph.Completeness.Discharge.DecoderAgreementRho as Rho
@@ -208,8 +214,6 @@ private
 --------------------------------------------------------------------------------
 
 postulate
-  -- (U/K) the unpruned single-edge collapses: `decode-{Agen,σ}-collapse`.
-  agenSigmaResiduals   : Residuals
   -- (U/M) the two atomic associator obligations (bare params upstream too).
   decode-rel-≈-decode-α⇒
     : ∀ {A B C} → decode-rel (α⇒ {A} {B} {C}) ≈Term decode (α⇒ {A} {B} {C})
@@ -348,8 +352,9 @@ postulate
 -- shape residuals is parameterised by `(objUIP)(K)`, and
 -- `DecodeRelRespIsoWired` passes its own `objUIP`/`K-faithfulness` at the
 -- consume site (`decode-rel-≈-decodeP = DRDP.decode-rel-≈-decodeP objUIP
--- K-faithfulness`).  `agenSigmaResiduals` / the α atomics / the pruned
--- `decodePShapeResiduals` stay parameter-free postulates.
+-- K-faithfulness`).  The α atomics / the pruned `decodePShapeResiduals`
+-- stay parameter-free postulates; `agenSigmaResiduals` is now also a
+-- `(objUIP)(K)`-parameterised DEFINITION (consuming `DAS`).
 --------------------------------------------------------------------------------
 
 module Wired
@@ -363,6 +368,16 @@ module Wired
   decodeShapeResiduals = record
     { decode-∘-shape-inner = DCS.decode-∘-shape-inner objUIP K
     ; decode-⊗-shape-inner = DTS.decode-⊗-shape-inner objUIP K
+    }
+
+  -- `agenSigmaResiduals` is now a DEFINITION consuming the two proven,
+  -- postulate-free single-edge collapses `decode-{Agen,σ}-collapse`
+  -- (`Sub.DecodeAgenSigmaShape`, each in a top-level `module _ (objUIP)(Kf)`).
+  -- The field types match `Residuals` exactly — no adapter needed.
+  agenSigmaResiduals : Residuals
+  agenSigmaResiduals = record
+    { decode-Agen-collapse = λ {A} {B} g → DAS.decode-Agen-collapse objUIP K g
+    ; decode-σ-collapse    = λ {A} {B} ⦃ s ⦄ → DAS.decode-σ-collapse objUIP K ⦃ s ⦄
     }
 
   -- Assemble the unpruned `DecoderAgreementAssumptions` from the residual
