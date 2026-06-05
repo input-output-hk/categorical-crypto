@@ -182,8 +182,14 @@ decodeP-≡-decodeOrd-range f =
 -- `nf-bracket`/`swap-atom-aligned`, the `∘`-shape `DecodeAttempt` straggler,
 -- and the shared UNPRUNED shape/ρ/Agen-σ/α residuals) live in
 -- `DecodeRelDecodeP` itself.
-decode-rel-≈-decodeP : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term decodeP f
-decode-rel-≈-decodeP = DRDP.decode-rel-≈-decodeP
+-- `DRDP.decode-rel-≈-decodeP` is now parameterised by the two shared
+-- K-inputs (`objUIP` + the Kelly `FaithfulnessResidual`): the unpruned
+-- shape residuals it consumes are the PROVEN, postulate-free lemmas
+-- `Sub.DecodeComposeShape.decode-∘-shape-inner` /
+-- `Sub.DecodeTensorShape.decode-⊗-shape-inner`, both of which take those
+-- two inputs.  We supply our own `objUIP`/`K-faithfulness` below (the
+-- binding is placed after they enter scope), exactly as
+-- `run-interchange-⟪⟫`/`decodeP-resp-iso` thread them.
 
 -- (decoder-boundary bridge) The former coarse residual is now PROVEN in
 -- `Discharge.DecodeOrdBoundary` GIVEN the TWO explicit K-inputs below:
@@ -203,6 +209,13 @@ postulate
 -- does not depend on the variant, so `{Symm}` is given explicitly.)
 objUIP : ∀ {a b : ObjTerm} (p q : a ≡ b) → p ≡ q
 objUIP = ObjUIP.objUIP′ {Symm} _≟X_
+
+-- (F) Structural ↔ pruned-algorithmic decoder agreement, with the two
+-- shared K-inputs threaded in (mirrors how `run-interchange-⟪⟫` /
+-- `decodeP-resp-iso` below supply `objUIP`/`K-faithfulness`).  `DRDP.decodeP
+-- f` is DEFINITIONALLY identical to the local `decodeP f`.
+decode-rel-≈-decodeP : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term decodeP f
+decode-rel-≈-decodeP = DRDP.decode-rel-≈-decodeP objUIP K-faithfulness
 
 -- (N / interchange residual) The per-swap `RunInterchange` witness that
 -- `SwapStep.swap-≈` consumes: for an adjacent INDEPENDENT pair of front
