@@ -6811,6 +6811,144 @@ module BlockFactor
       (edge-step-graph C-hg (map injR ys) (ψK e))
       pf pf1 uniq uniqK
 
+  ------------------------------------------------------------------------
+  -- ### `kfac-gen` — the generalised K-side perm-tracking induction.
+  --
+  -- The K-mirror of `gblock-factor`.  Because the K-edges PREPEND their
+  -- `eout` to the running stack, there is NO clean stack `≡` to thread (as
+  -- the G-side does with `mixed-stack-G`); instead we track the ACTUAL
+  -- running stack `s` together with a perm `pf : s ↭ map injL P ++ map injR
+  -- ys` to the clean form, and a perm `Br` from the clean target stack to
+  -- the actual post-run stack.  The structural induction mirrors
+  -- `gblock-factor`: the head edge-step is reconciled by `kfac-head` (over
+  -- the three `EdgeStepR` relation witnesses, internal to `kfac-head`), the
+  -- tail by the IH, and the clean blocks merge through `KClean-cons`.
+  --
+  --   pe-termC (map ψK es) s ≈Term pvlC Br ∘ KClean es P ys ∘ pvlC pf
+  --
+  -- The per-edge `pf1`/`res1`/`uniq1` are advanced exactly as in
+  -- `gblock-factor` (`edge-step-↑ʳ-on-perm` for the perm,
+  -- `edge-step-Reservoir≤1` for the freshness invariant).  Note that the
+  -- IH's braid `Br1` and `kfac-gen`'s `Br` share domain and codomain
+  -- DEFINITIONALLY (`pe-stackK (e∷es) ys = pe-stackK es (ys-step e ys)` and
+  -- `pe-stackC (map ψK (e∷es)) s = pe-stackC (map ψK es) s1`), so `Br` is
+  -- passed unchanged to the IH — no keystone reconcile of the braid needed.
+
+  -- The per-edge clean perm `pf1 : s1 ↭ map injL P ++ map injR (ys-step e
+  -- ys)`, read off `edge-step-↑ʳ-on-perm` (the per-edge K-prepend perm) at
+  -- `pf`, transported along the `edge-step` `≡` projection onto `s1`.
+  kfac-pf1
+    : (e : Fin K.nE) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+      (s : List (Fin C.nV))
+      (pf : s Perm.↭ map injL P ++ map injR ys)
+    → proj₁ (edge-step C-hg s (ψK e))
+      Perm.↭ map injL P ++ map injR (ys-step e ys)
+  kfac-pf1 e P ys s pf =
+    subst (Perm._↭ (map injL P ++ map injR (ys-step e ys)))
+          (sym (cong proj₁ eq))
+          perm
+    where
+      data4 : ∃[ s' ] ∃[ t ]
+                 edge-step C-hg s (ψK e) ≡ (s' , t)
+               × s' Perm.↭ map injL P ++ map injR (ys-step e ys)
+      data4 = edge-step-↑ʳ-on-perm G K e s P ys pf
+      eq   = proj₁ (proj₂ (proj₂ data4))
+      perm = proj₂ (proj₂ (proj₂ data4))
+
+  kfac-gen
+    : (es : List (Fin K.nE)) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+      (s : List (Fin C.nV))
+      (pf : s Perm.↭ map injL P ++ map injR ys)
+      (Br : map injL P ++ map injR (pe-stackK es ys)
+            Perm.↭ pe-stackC (map (G.nE ↑ʳ_) es) s)
+      (uniq : Unique s)
+    → SUR.Reservoir≤1 (hTensor G K) (map (G.nE ↑ʳ_) es) s
+    → pe-termC (map (G.nE ↑ʳ_) es) s
+      ≈Term pvlC Br ∘ KClean es P ys ∘ pvlC pf
+  kfac-gen [] P ys s pf Br uniq res = begin
+      id
+        ≈⟨ ≈-Term-sym (pvlC-cancel uniq pf Br) ⟩
+      pvlC Br ∘ pvlC pf
+        ≈⟨ refl⟩∘⟨ ≈-Term-sym idˡ ⟩
+      pvlC Br ∘ (id ∘ pvlC pf)
+        ≈⟨ refl⟩∘⟨ (≈-Term-sym (KClean-nil P ys) ⟩∘⟨refl) ⟩
+      pvlC Br ∘ (KClean [] P ys ∘ pvlC pf) ∎
+    where open FM.HomReasoning
+  kfac-gen (e ∷ es) P ys s pf Br uniq res = begin
+      pe-termC (map (G.nE ↑ʳ_) es) s1 ∘ tH
+        ≈⟨ IH ⟩∘⟨refl ⟩
+      (pvlC Br ∘ KClean es P (ys-step e ys) ∘ pvlC pf1) ∘ tH
+        ≈⟨ FM.assoc ⟩
+      pvlC Br ∘ (KClean es P (ys-step e ys) ∘ pvlC pf1) ∘ tH
+        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+      pvlC Br ∘ KClean es P (ys-step e ys) ∘ (pvlC pf1 ∘ tH)
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ head ⟩
+      pvlC Br ∘ KClean es P (ys-step e ys) ∘ (KCleanHead e P ys ∘ pvlC pf)
+        ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+      pvlC Br ∘ (KClean es P (ys-step e ys) ∘ KCleanHead e P ys) ∘ pvlC pf
+        ≈⟨ refl⟩∘⟨ ≈-Term-sym (KClean-cons e es P ys) ⟩∘⟨refl ⟩
+      pvlC Br ∘ KClean (e ∷ es) P ys ∘ pvlC pf ∎
+    where
+      open FM.HomReasoning
+      s1 = proj₁ (edge-step C-hg s (ψK e))
+      tH = proj₂ (edge-step C-hg s (ψK e))
+
+      -- per-edge clean perm.
+      pf1 : s1 Perm.↭ map injL P ++ map injR (ys-step e ys)
+      pf1 = kfac-pf1 e P ys s pf
+
+      -- reservoir / Unique advanced one edge for the tail.
+      res1 : SUR.Reservoir≤1 C-hg (map (G.nE ↑ʳ_) es) s1
+      res1 = SUR.edge-step-Reservoir≤1 C-hg (ψK e) (map (G.nE ↑ʳ_) es) s res
+
+      uniq1 : Unique s1
+      uniq1 = SUR.Reservoir≤1⇒Unique C-hg (map (G.nE ↑ʳ_) es) s1 res1
+
+      uniqK1 : Unique (map injL P ++ map injR (ys-step e ys))
+      uniqK1 = SU.Unique-resp-↭ pf1 uniq1
+
+      -- tail (IH).  `Br` reused: `Br1` shares dom/cod definitionally.
+      IH : pe-termC (map (G.nE ↑ʳ_) es) s1
+           ≈Term pvlC Br ∘ KClean es P (ys-step e ys) ∘ pvlC pf1
+      IH = kfac-gen es P (ys-step e ys) s1 pf1 Br uniq1 res1
+
+      -- head (per-edge reconciliation).
+      head : pvlC pf1 ∘ tH ≈Term KCleanHead e P ys ∘ pvlC pf
+      head = kfac-head e P ys s pf pf1 uniq uniqK1
+
+  -- ### `kblock-factor` — the K-side block factorization (the `s = clean,
+  -- pf = ↭-refl, Br = ↭-sym KBraid` instance of `kfac-gen`).
+  --
+  --   coeC (mixed-stack-K es P ys) (pe-termC (map ψK es) clean) ≈Term KFactored
+  --
+  -- `mixed-stack-K es P ys = refl`, so the codomain `coeC` collapses to `id`;
+  -- `pvlC ↭-refl ≈ id` collapses the input perm.
+  kblock-factor
+    : (es : List (Fin K.nE)) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → SUR.Reservoir≤1 (hTensor G K) (map (G.nE ↑ʳ_) es)
+        (map injL P ++ map injR ys)
+    → coeC {map injL P ++ map injR ys} (mixed-stack-K es P ys)
+        (pe-termC (map (G.nE ↑ʳ_) es) (map injL P ++ map injR ys))
+      ≈Term KFactored es P ys
+  kblock-factor es P ys res = begin
+      coeC {clean} (mixed-stack-K es P ys) (pe-termC (map (G.nE ↑ʳ_) es) clean)
+        ≈⟨ ≡⇒≈Term (cong (λ z → coeC {clean} z (pe-termC (map (G.nE ↑ʳ_) es) clean))
+                         (uipL (mixed-stack-K es P ys) refl)) ⟩
+      pe-termC (map (G.nE ↑ʳ_) es) clean
+        ≈⟨ kfac-gen es P ys clean Perm.↭-refl (Perm.↭-sym (KBraid es P ys))
+                    uniq-clean-s res ⟩
+      pvlC (Perm.↭-sym (KBraid es P ys)) ∘ KClean es P ys ∘ pvlC (Perm.↭-refl {x = clean})
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pvl-refl ⟩
+      pvlC (Perm.↭-sym (KBraid es P ys)) ∘ KClean es P ys ∘ id
+        ≈⟨ refl⟩∘⟨ idʳ ⟩
+      pvlC (Perm.↭-sym (KBraid es P ys)) ∘ KClean es P ys ∎
+    where
+      open FM.HomReasoning
+      clean = map injL P ++ map injR ys
+
+      uniq-clean-s : Unique clean
+      uniq-clean-s = SUR.Reservoir≤1⇒Unique C-hg (map (G.nE ↑ʳ_) es) clean res
+
 --------------------------------------------------------------------------------
 -- ## `Linear H ⇒ Unique (cod H)` (sig-level), verbatim from DecodeComposeShape.
 
