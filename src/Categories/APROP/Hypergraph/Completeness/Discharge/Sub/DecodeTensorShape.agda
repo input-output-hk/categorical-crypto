@@ -5844,10 +5844,31 @@ module BlockFactor
   -- The two base-case pieces below — `KClean-nil` (the `es = []` clean target
   -- collapses to `id`) and `pvlC-cancel` (the round-trip `pvlC Br ∘ pvlC pf`
   -- collapses to `id` on a `Unique` stack via the keystone) — discharge the
-  -- `es = []` case.  The remaining work is the per-edge FIRE/SKIP factorization
-  -- (the K-analogue of `edge-suffix-factor`/`fire-core`, combining
-  -- `box-braid-pvl` front→prefix + `head-factor-K` + keystone perm
-  -- reconciliation) and the `Kterm`/`KClean` cons.
+  -- `es = []` case.
+  --
+  -- The CLEAN-side `Kterm`/`KClean` cons telescoping is now PROVEN
+  -- (`Kterm-cons`/`KClean-cons`, just above the `Linear⇒cod-Unique` block):
+  --
+  --   KClean (e∷es) P ys ≈Term KClean es P (ys-step e ys) ∘ KCleanHead e P ys
+  --
+  -- where `KCleanHead e P ys = to(uf++) ∘ (id {prefix} ⊗₁ Khead-emb e ys) ∘
+  -- from(uf++)` is the clean pure-R single-edge head block.  This reduces the
+  -- cons step of `kfac-gen` (after identifying `Br ≈ Br1` via the keystone on
+  -- the common Unique codomain `pe-stackC (map ψK es) s1` and cancelling the
+  -- shared `pvlC Br1 ∘ KClean es P (ys-step e ys)` tail) to the single
+  -- per-edge HEAD reconciliation
+  --
+  --   kfac-head : pvlC pf1 ∘ tH ≈Term KCleanHead e P ys ∘ pvlC pf
+  --
+  -- (SKIP: both `tH`/`Khead-emb` are `id`, `KCleanHead ≈ id`, `pf1 ≈ pf` by
+  -- keystone.  FIRE: the actual FRONT box `fire-mid C (ψK e) rest ∘ pvlC perm`
+  -- on `s` is moved past the `map injL P` prefix by `box-braid-pvl`
+  -- (front→prefix) into `head-factor-K`'s prefix-held input, with the four
+  -- perms `pf`/`pf1`/`perm`/`permR` reconciled by the keystone `pvlC-coh` on
+  -- the Unique codomains and the box framings aligned via `objUIP`).  This
+  -- per-edge `kfac-head` (the K-analogue of `fire-core`) plus the `kfac-gen`
+  -- assembly are the LAST remaining structural pieces of decode-⊗-shape's
+  -- K-side.
   --
   -- `KClean [] P ys` collapses to the identity (`Kterm [] ys = id`).
   KClean-nil
@@ -5874,6 +5895,190 @@ module BlockFactor
   pvlC-cancel uniq pf Br =
     ≈-Term-trans (≈-Term-sym (pvlC-↭trans pf Br))
       (pvlC-coh uniq (Perm.↭-trans pf Br) Perm.↭-refl)
+
+  ------------------------------------------------------------------------
+  -- ### `kfac-gen` — the generalised K-side perm-tracking induction.
+  --
+  -- Mirror of `gblock-factor`, but tracking the K-prepend wrinkle: the
+  -- running stack `s` only `↭`s (via `pf`) the clean `map injL P ++ map injR
+  -- ys` form, and the post-run codomain `↭`s (via `Br`) the clean target.
+  --
+  --   pe-termC (map ψK es) s ≈Term pvlC Br ∘ KClean es P ys ∘ pvlC pf
+  --
+  -- `Reservoir≤1` (the SOUND freshness side-condition) supplies the
+  -- per-edge keystone `Unique` of the running stack.
+
+  -- ABBREVIATIONS shared by the helpers and `kfac-gen` itself.
+
+  -- The K-side edge-step on the pure-K stack (the "clean" stack tracker).
+  ys-step : (e : Fin K.nE) (ys : List (Fin K.nV)) → List (Fin K.nV)
+  ys-step e ys = proj₁ (edge-step K ys e)
+
+  -- `pe-stackK (e ∷ es) ys ≡ pe-stackK es (ys-step e ys)`  (definitional).
+  pe-stackK-cons
+    : (e : Fin K.nE) (es : List (Fin K.nE)) (ys : List (Fin K.nV))
+    → pe-stackK (e ∷ es) ys ≡ pe-stackK es (ys-step e ys)
+  pe-stackK-cons e es ys = refl
+
+  -- The clean pure-R head: `edge-step C (map injR ys) (ψK e)`.
+  zs1 : (e : Fin K.nE) (ys : List (Fin K.nV)) → List (Fin C.nV)
+  zs1 e ys = proj₁ (edge-step C-hg (map injR ys) (ψK e))
+
+  kHead : (e : Fin K.nE) (ys : List (Fin K.nV))
+        → HomTerm (unflatten (map C.vlab (map injR ys)))
+                  (unflatten (map C.vlab (zs1 e ys)))
+  kHead e ys = proj₂ (edge-step C-hg (map injR ys) (ψK e))
+
+  -- Pure-R head stack agreement: the clean head stack IS `map injR (ys-step)`.
+  zs1-emb
+    : (e : Fin K.nE) (ys : List (Fin K.nV))
+    → zs1 e ys ≡ map injR (ys-step e ys)
+  zs1-emb e ys = TK.edge-step-stack-emb e ys
+
+  -- The CLEAN K-side single-edge head, codomain-transported to `map injR
+  -- (ys-step e ys)`: the pure-R analogue of `head-factor`'s `tHL`.
+  Khead-emb
+    : (e : Fin K.nE) (ys : List (Fin K.nV))
+    → HomTerm (unflatten (map C.vlab (map injR ys)))
+              (unflatten (map C.vlab (map injR (ys-step e ys))))
+  Khead-emb e ys = coeC {map injR ys} (zs1-emb e ys) (kHead e ys)
+
+  -- `Kterm` cons telescoping: the pure-R run's head ∘ tail IS `Kterm (e∷es)`.
+  -- (Mirror of `Lterm-cons`; the pure-R run stays in `map injR _` form so
+  -- the stack agreements are genuine `≡`s — NO braid here.)  Generalise the
+  -- head stack `zs1ᵍ`/term `kHᵍ`/stack-emb `wEqK` so `zEqᵍ` matches at refl.
+  Kterm-cons
+    : ∀ (e : Fin K.nE) (es : List (Fin K.nE)) (ys : List (Fin K.nV))
+        (zs1ᵍ : List (Fin C.nV))
+        (kHᵍ : HomTerm (unflatten (map C.vlab (map injR ys)))
+                       (unflatten (map C.vlab zs1ᵍ)))
+        (zEqᵍ : zs1ᵍ ≡ map injR (ys-step e ys))
+        (wEqK : pe-stackC (map ψK es) zs1ᵍ
+                ≡ map injR (pe-stackK (e ∷ es) ys))
+    → Kterm es (ys-step e ys) ∘ coeC {map injR ys} zEqᵍ kHᵍ
+      ≈Term coeC {map injR ys} wEqK (pe-termC (map ψK es) zs1ᵍ ∘ kHᵍ)
+  Kterm-cons e es ys .(map injR (ys-step e ys)) kHᵍ refl wEqK =
+    ≡⇒≈Term
+      (trans (sym (coeC-∘ (proc-stack-emb-R es (ys-step e ys))
+                (pe-termC (map ψK es) (map injR (ys-step e ys))) kHᵍ))
+      (cong (λ z → coeC {map injR ys} z
+               (pe-termC (map ψK es) (map injR (ys-step e ys)) ∘ kHᵍ))
+            (uipL (proc-stack-emb-R es (ys-step e ys)) wEqK)))
+
+  -- The CLEAN single-K-edge block (the pure-R `(id ⊗₁ Khead-emb)` framed by
+  -- `BTC.uf++`) — the K-side analogue of `head-factor`'s RHS block.
+  KCleanHead
+    : (e : Fin K.nE) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → HomTerm (unflatten (map C.vlab (map injL P ++ map injR ys)))
+              (unflatten (map C.vlab (map injL P ++ map injR (ys-step e ys))))
+  KCleanHead e P ys =
+    _≅_.to (BTC.uf++ (map injL P) (map injR (ys-step e ys)))
+    ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys)
+    ∘ _≅_.from (BTC.uf++ (map injL P) (map injR ys))
+
+  -- `KClean` cons telescoping: the clean run `KClean (e∷es)` factors as the
+  -- clean tail `KClean es P (ys-step e ys)` post-composed with the clean head
+  -- block `KCleanHead e P ys`.  Mirror of `gblock-factor`'s `cancel-merge`
+  -- (LEFT/RIGHT swapped: prefix `map injL P` held by `id`, K-block on `injR`).
+  KClean-cons
+    : (e : Fin K.nE) (es : List (Fin K.nE)) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → KClean (e ∷ es) P ys
+      ≈Term KClean es P (ys-step e ys) ∘ KCleanHead e P ys
+  KClean-cons e es P ys = begin
+      KClean (e ∷ es) P ys
+        ≈⟨ refl⟩∘⟨ ⊗-resp-≈ ≈-Term-refl Kterm-fac ⟩∘⟨refl ⟩
+      to-cod
+        ∘ (id {RpreObj P} ⊗₁ (Kterm es (ys-step e ys) ∘ Khead-emb e ys))
+        ∘ from-dom
+        ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl ⟩∘⟨refl ⟩
+      to-cod
+        ∘ ((id {RpreObj P} ∘ id {RpreObj P})
+           ⊗₁ (Kterm es (ys-step e ys) ∘ Khead-emb e ys))
+        ∘ from-dom
+        ≈⟨ refl⟩∘⟨ ⊗-∘-dist ⟩∘⟨refl ⟩
+      to-cod
+        ∘ ((id {RpreObj P} ⊗₁ Kterm es (ys-step e ys))
+           ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys))
+        ∘ from-dom
+        ≈⟨ insert-mid ⟩
+      (to-cod
+        ∘ (id {RpreObj P} ⊗₁ Kterm es (ys-step e ys))
+        ∘ from-mid)
+        ∘ (to-mid
+           ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys)
+           ∘ from-dom) ∎
+    where
+      to-cod  = _≅_.to   (BTC.uf++ (map injL P) (map injR (pe-stackK (e ∷ es) ys)))
+      from-dom = _≅_.from (BTC.uf++ (map injL P) (map injR ys))
+      to-mid  = _≅_.to   (BTC.uf++ (map injL P) (map injR (ys-step e ys)))
+      from-mid = _≅_.from (BTC.uf++ (map injL P) (map injR (ys-step e ys)))
+
+      -- `Kterm (e∷es) ys ≈ Kterm es (ys-step) ∘ Khead-emb`, via `Kterm-cons`
+      -- at the REAL head stack `zs1 e ys`/term `kHead e ys`, matched at refl.
+      Kterm-fac
+        : Kterm (e ∷ es) ys
+          ≈Term Kterm es (ys-step e ys) ∘ Khead-emb e ys
+      Kterm-fac =
+        ≈-Term-sym
+          (≈-Term-trans
+            (Kterm-cons e es ys (zs1 e ys) (kHead e ys) (zs1-emb e ys)
+              (proc-stack-emb-R (e ∷ es) ys))
+            (≡⇒≈Term refl))
+
+      -- Insert the middle `from-mid ∘ to-mid = id` between the two ⊗-blocks
+      -- and regroup into the two `KClean`/`KCleanHead` composites.
+      insert-mid
+        : to-cod
+          ∘ ((id {RpreObj P} ⊗₁ Kterm es (ys-step e ys))
+             ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys))
+          ∘ from-dom
+          ≈Term (to-cod
+                  ∘ (id {RpreObj P} ⊗₁ Kterm es (ys-step e ys))
+                  ∘ from-mid)
+                ∘ (to-mid
+                   ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys)
+                   ∘ from-dom)
+      insert-mid = begin
+        to-cod
+          ∘ ((id {RpreObj P} ⊗₁ Kterm es (ys-step e ys))
+             ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys))
+          ∘ from-dom
+          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+        to-cod
+          ∘ (id {RpreObj P} ⊗₁ Kterm es (ys-step e ys))
+          ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys)
+          ∘ from-dom
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym idˡ ⟩
+        to-cod
+          ∘ (id {RpreObj P} ⊗₁ Kterm es (ys-step e ys))
+          ∘ id
+          ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys)
+          ∘ from-dom
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym (_≅_.isoʳ (BTC.uf++ (map injL P) (map injR (ys-step e ys)))) ⟩∘⟨refl ⟩
+        to-cod
+          ∘ (id {RpreObj P} ⊗₁ Kterm es (ys-step e ys))
+          ∘ (from-mid ∘ to-mid)
+          ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys)
+          ∘ from-dom
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
+        to-cod
+          ∘ (id {RpreObj P} ⊗₁ Kterm es (ys-step e ys))
+          ∘ from-mid
+          ∘ to-mid
+          ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys)
+          ∘ from-dom
+          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+        to-cod
+          ∘ ((id {RpreObj P} ⊗₁ Kterm es (ys-step e ys)) ∘ from-mid)
+          ∘ to-mid
+          ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys)
+          ∘ from-dom
+          ≈⟨ FM.sym-assoc ⟩
+        (to-cod
+          ∘ (id {RpreObj P} ⊗₁ Kterm es (ys-step e ys)) ∘ from-mid)
+          ∘ to-mid
+          ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys)
+          ∘ from-dom ∎
 
 --------------------------------------------------------------------------------
 -- ## `Linear H ⇒ Unique (cod H)` (sig-level), verbatim from DecodeComposeShape.
