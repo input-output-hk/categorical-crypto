@@ -2115,15 +2115,18 @@ module BoxAssoc where
 --------------------------------------------------------------------------------
 -- ## The G-side / K-side block factorizations — SHARED SCAFFOLDING.
 --
--- SCAFFOLDING ONLY (proven, postulate-free, hole-free).  The two TERM
--- companions of the STACK-only `process-edges-↑ˡ-on-mixed` /
--- `process-edges-↑ʳ-on-perm` — `gblock-factor` (Milestone 2a) and
--- `kblock-factor` (Milestone 2b) — are NOT yet assembled (see the RESIDUAL
--- note at the end of the file).  This module fixes the framing convention
--- (`BTC.uf++`, matching `pvv-block-tensor`) and the factored-form shapes
--- (`GFactored`, `Lterm`) those two inductions land on, plus the stack
--- agreements (`mixed-stack-G`, `proc-stack-emb-L`) and the per-edge
--- `box-of` residual-rewrite (`box-rest-rewrite`) they consume.
+-- PROVEN, postulate-free, hole-free.  The G-side TERM companion of the
+-- STACK-only `process-edges-↑ˡ-on-mixed` — `gblock-factor` (Milestone 2a) —
+-- is fully assembled below, along with the σ-mirror per-FIRE-edge tool
+-- `box-braid-pvl` (Milestone 1, front→prefix in `pvlC` form).  The K-side
+-- companion of `process-edges-↑ʳ-on-perm` — `kblock-factor` (Milestone 2b) —
+-- is NOT yet assembled (its base-case scaffolding `KClean-nil`/`pvlC-cancel`
+-- is proven; see the RESIDUAL note at the end of the file).  This module fixes
+-- the framing convention (`BTC.uf++`, matching `pvv-block-tensor`) and the
+-- factored-form shapes (`GFactored`, `Lterm`, `KFactored`, `KClean`, `Kterm`)
+-- those inductions land on, plus the stack agreements (`mixed-stack-G`,
+-- `proc-stack-emb-L`/`-R`) and the per-edge `box-of` residual-rewrite
+-- (`box-rest-rewrite`) they consume.
 
 module BlockFactor
   (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
@@ -5695,6 +5698,182 @@ module BlockFactor
               ≈⟨ refl⟩∘⟨ ≈-Term-sym to-uf-raw ⟩
             sidC (sym (++-assoc Pblk eoBlk rgBlk))
               ∘ _≅_.to (BTC.uf++ Pblk (eoBlk ++ rgBlk)) ∎
+
+  ------------------------------------------------------------------------
+  -- ### `box-braid-pvl` — Milestone 1.  The σ-mirror `box-braid` with both
+  -- block-swap braids `σ-in`/`σ-out` rewritten into the `BTC.uf++`-framed
+  -- `pvlC`-of-`shifts` form (via `Sin.σin-as-pvl` / `Sout.σout-as-pvl`).
+  --
+  -- The FRONT-acting box `box-of eiBlk eoBlk (Pblk++rgBlk) g` (un-split
+  -- residual) — reframed (`subst₂` over the two `dom-list` `map-++` bridges)
+  -- onto the `map C.vlab (·++(·++·))` endpoints — factors as
+  --
+  --   (pvlC(shifts Pblk eoBlk) ∘ to(uf++ Pblk (eoBlk++rgBlk)))
+  --     ∘ (id {U Pblk} ⊗₁ BoxSub)
+  --     ∘ (from(uf++ Pblk (eiBlk++rgBlk)) ∘ pvlC(shifts eiBlk Pblk))
+  --
+  -- where `BoxSub` is the SAME pure-block box `head-factor-K` uses (the
+  -- `map-++ C.vlab`-substituted `box-of` on the block lists `eiBlk`/`eoBlk`/
+  -- `rgBlk`).  This is the per-FIRE-edge tool that brings the actual mixed
+  -- FRONT box into `head-factor-K`'s prefix-held input for the K induction.
+  --
+  -- Proof: `box-braid` (at the `map C.vlab` images) gives the LHS box-of as
+  -- `σ-out-raw ∘ (id{Up} ⊗₁ box-of … rgBlk) ∘ σ-in-raw` (definitionally the
+  -- `Sin`/`Sout` raw σ-braids); the outer `subst₂` distributes over the
+  -- 3-composite (`subst₂-HomTerm-∘-dist`, inserting the two `Up ⊗₀ unflatten
+  -- cod-list` intermediate transports) into exactly the `σout-as-pvl` LHS, the
+  -- `⊗-push`'d middle (= `id{Up} ⊗₁ BoxSub`), and the `σin-as-pvl` LHS.
+  box-braid-pvl
+    : ∀ (eiBlk eoBlk Pblk rgBlk : List (Fin C.nV))
+        (g : FlatGen (map C.vlab eiBlk) (map C.vlab eoBlk))
+    → subst₂ HomTerm
+        (cong unflatten (Sin.dom-list eiBlk Pblk rgBlk))
+        (cong unflatten (Sout.dom-list eoBlk Pblk rgBlk))
+        (box-of (map C.vlab eiBlk) (map C.vlab eoBlk)
+                (map C.vlab Pblk ++ map C.vlab rgBlk) g)
+      ≈Term
+        ( pvlC (PermProp.shifts Pblk eoBlk {rgBlk})
+          ∘ _≅_.to (BTC.uf++ Pblk (eoBlk ++ rgBlk)) )
+        ∘ (id {unflatten (map C.vlab Pblk)}
+           ⊗₁ subst₂ HomTerm
+                (cong unflatten (sym (map-++ C.vlab eiBlk rgBlk)))
+                (cong unflatten (sym (map-++ C.vlab eoBlk rgBlk)))
+                (box-of (map C.vlab eiBlk) (map C.vlab eoBlk) (map C.vlab rgBlk) g))
+        ∘ ( _≅_.from (BTC.uf++ Pblk (eiBlk ++ rgBlk))
+            ∘ pvlC (PermProp.shifts eiBlk Pblk {rgBlk}) )
+  box-braid-pvl eiBlk eoBlk Pblk rgBlk g = ≈-Term-trans (≈-Term-trans braid-subst (≡⇒≈Term split)) reframe
+    where
+      module Si = Sin eiBlk Pblk rgBlk
+      module So = Sout eoBlk Pblk rgBlk
+
+      eiL = map C.vlab eiBlk
+      eoL = map C.vlab eoBlk
+      pL  = map C.vlab Pblk
+      rL  = map C.vlab rgBlk
+      Up  = unflatten pL
+
+      g-box-rest = box-of eiL eoL rL g
+      g-box-full = box-of eiL eoL (pL ++ rL) g
+
+      BoxSub = subst₂ HomTerm
+                 (cong unflatten (sym (map-++ C.vlab eiBlk rgBlk)))
+                 (cong unflatten (sym (map-++ C.vlab eoBlk rgBlk)))
+                 g-box-rest
+
+      -- the two intermediate `Up ⊗₀ unflatten (cod-list)` transports.
+      qi = cong (Up ⊗₀_) (cong unflatten (Si.cod-list))
+      qo = cong (Up ⊗₀_) (cong unflatten (So.cod-list))
+
+      mid0 = id {Up} ⊗₁ g-box-rest
+
+      -- `box-braid` (instantiated at the `map C.vlab` images); its `σ-in`/
+      -- `σ-out` ARE `Si.σ-in-raw`/`So.σ-out-raw` definitionally.
+      braid
+        : g-box-full
+          ≈Term So.σ-out-raw ∘ (id {Up} ⊗₁ g-box-rest) ∘ Si.σ-in-raw
+      braid = BoxAssoc.box-braid pL eiL eoL rL g
+
+      braid-subst
+        : subst₂ HomTerm
+            (cong unflatten (Si.dom-list)) (cong unflatten (So.dom-list)) g-box-full
+          ≈Term subst₂ HomTerm
+            (cong unflatten (Si.dom-list)) (cong unflatten (So.dom-list))
+            (So.σ-out-raw ∘ (id {Up} ⊗₁ g-box-rest) ∘ Si.σ-in-raw)
+      braid-subst =
+        subst₂-resp-≈Term (cong unflatten (Si.dom-list))
+                          (cong unflatten (So.dom-list)) braid
+
+      -- `id{Up} ⊗ subst₂ … box`-push (subst on the SECOND ⊗-factor).
+      ⊗-push
+        : ∀ {a₁ a₂ b₁ b₂ : List X} (r₁ : a₁ ≡ a₂) (r₂ : b₁ ≡ b₂)
+            (f : HomTerm (unflatten a₁) (unflatten b₁))
+        → subst₂ HomTerm (cong (Up ⊗₀_) (cong unflatten r₁))
+                         (cong (Up ⊗₀_) (cong unflatten r₂)) (id {Up} ⊗₁ f)
+          ≡ id {Up} ⊗₁ (subst₂ HomTerm (cong unflatten r₁) (cong unflatten r₂) f)
+      ⊗-push refl refl f = refl
+
+      mid-≡ : subst₂ HomTerm qi qo mid0 ≡ id {Up} ⊗₁ BoxSub
+      mid-≡ = ⊗-push (sym (map-++ C.vlab eiBlk rgBlk))
+                     (sym (map-++ C.vlab eoBlk rgBlk)) g-box-rest
+
+      -- distribute the outer `subst₂` over the 3-composite, inserting the two
+      -- intermediate `Up ⊗₀ unflatten cod-list` transports.
+      split
+        : subst₂ HomTerm
+            (cong unflatten (Si.dom-list)) (cong unflatten (So.dom-list))
+            (So.σ-out-raw ∘ (id {Up} ⊗₁ g-box-rest) ∘ Si.σ-in-raw)
+          ≡ (subst₂ HomTerm qo (cong unflatten (So.dom-list)) So.σ-out-raw)
+            ∘ (id {Up} ⊗₁ BoxSub)
+            ∘ (subst₂ HomTerm (cong unflatten (Si.dom-list)) qi Si.σ-in-raw)
+      split =
+        trans
+          (subst₂-HomTerm-∘-dist
+             (cong unflatten (Si.dom-list)) qo (cong unflatten (So.dom-list))
+             So.σ-out-raw ((id {Up} ⊗₁ g-box-rest) ∘ Si.σ-in-raw))
+          (cong (subst₂ HomTerm qo (cong unflatten (So.dom-list)) So.σ-out-raw ∘_)
+            (trans
+              (subst₂-HomTerm-∘-dist
+                 (cong unflatten (Si.dom-list)) qi qo mid0 Si.σ-in-raw)
+              (cong (_∘ subst₂ HomTerm (cong unflatten (Si.dom-list)) qi Si.σ-in-raw)
+                    mid-≡)))
+
+      reframe
+        : (subst₂ HomTerm qo (cong unflatten (So.dom-list)) So.σ-out-raw)
+          ∘ (id {Up} ⊗₁ BoxSub)
+          ∘ (subst₂ HomTerm (cong unflatten (Si.dom-list)) qi Si.σ-in-raw)
+          ≈Term
+          ( pvlC (PermProp.shifts Pblk eoBlk {rgBlk})
+            ∘ _≅_.to (BTC.uf++ Pblk (eoBlk ++ rgBlk)) )
+          ∘ (id {Up} ⊗₁ BoxSub)
+          ∘ ( _≅_.from (BTC.uf++ Pblk (eiBlk ++ rgBlk))
+              ∘ pvlC (PermProp.shifts eiBlk Pblk {rgBlk}) )
+      reframe =
+        ∘-resp-≈ So.σout-as-pvl
+          (∘-resp-≈ ≈-Term-refl Si.σin-as-pvl)
+
+  ------------------------------------------------------------------------
+  -- ### Milestone 2b proper: `kblock-factor` — base-case scaffolding.
+  --
+  -- `kblock-factor` proper is NOT yet assembled (see the RESIDUAL note at the
+  -- end of the file).  The intended vehicle is a generalised perm-tracking
+  -- induction `kfac-gen es P ys s (pf : s ↭ map injL P ++ map injR ys) Br res`
+  --   : pe-termC (map ψK es) s ≈Term pvlC Br ∘ KClean es P ys ∘ pvlC pf
+  -- (the K-prepend wrinkle forbids a clean stack `≡`, so the actual stack `s`
+  -- + a perm-to-clean `pf` are threaded, mirroring `process-edges-↑ʳ-on-perm`;
+  -- `kblock-factor` is the `s = clean, pf = ↭-refl, Br = ↭-sym KBraid` instance).
+  -- The two base-case pieces below — `KClean-nil` (the `es = []` clean target
+  -- collapses to `id`) and `pvlC-cancel` (the round-trip `pvlC Br ∘ pvlC pf`
+  -- collapses to `id` on a `Unique` stack via the keystone) — discharge the
+  -- `es = []` case.  The remaining work is the per-edge FIRE/SKIP factorization
+  -- (the K-analogue of `edge-suffix-factor`/`fire-core`, combining
+  -- `box-braid-pvl` front→prefix + `head-factor-K` + keystone perm
+  -- reconciliation) and the `Kterm`/`KClean` cons.
+  --
+  -- `KClean [] P ys` collapses to the identity (`Kterm [] ys = id`).
+  KClean-nil
+    : ∀ (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → KClean [] P ys ≈Term id {unflatten (map C.vlab (map injL P ++ map injR ys))}
+  KClean-nil P ys = begin
+      _≅_.to (BTC.uf++ (map injL P) (map injR ys))
+        ∘ (id {RpreObj P} ⊗₁ Kterm [] ys)
+        ∘ _≅_.from (BTC.uf++ (map injL P) (map injR ys))
+        ≈⟨ refl⟩∘⟨ ⊗-resp-≈ ≈-Term-refl ≈-Term-refl ⟩∘⟨refl ⟩
+      _≅_.to (BTC.uf++ (map injL P) (map injR ys))
+        ∘ (id {RpreObj P} ⊗₁ id {RsufObj ys})
+        ∘ _≅_.from (BTC.uf++ (map injL P) (map injR ys))
+        ≈⟨ ≈-Term-sym (id-as-tensor (map injL P) (map injR ys)) ⟩
+      id ∎
+
+  -- `pvlC Br ∘ pvlC pf ≈ id` when both compose round-trip on a `Unique` list.
+  -- (`pvlC` is a ↭-functor for `↭-trans`; the keystone reconciles the
+  -- round-trip `s ↭ s` to `↭-refl`.)
+  pvlC-cancel
+    : ∀ {s c : List (Fin C.nV)} → Unique s
+    → (pf : s Perm.↭ c) (Br : c Perm.↭ s)
+    → pvlC Br ∘ pvlC pf ≈Term id {unflatten (map C.vlab s)}
+  pvlC-cancel uniq pf Br =
+    ≈-Term-trans (≈-Term-sym (pvlC-↭trans pf Br))
+      (pvlC-coh uniq (Perm.↭-trans pf Br) Perm.↭-refl)
 
 --------------------------------------------------------------------------------
 -- ## `Linear H ⇒ Unique (cod H)` (sig-level), verbatim from DecodeComposeShape.
