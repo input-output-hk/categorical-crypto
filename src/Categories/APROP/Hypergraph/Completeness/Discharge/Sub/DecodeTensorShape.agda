@@ -4195,6 +4195,665 @@ module BlockFactor
                     (++-assoc (map C.vlab A) (map C.vlab B) (map C.vlab Cc)) id
   cif-probe A B Cc = c-iso-assoc-from (map C.vlab A) (map C.vlab B) (map C.vlab Cc)
 
+  ------------------------------------------------------------------------
+  -- ### `σin-as-pvl` — the final lemma.  box-braid's input braid `σ-in`,
+  -- inlined at the `map C.vlab` block images, equals the `BTC.uf++`-framed
+  -- `pvlC` of the block-shift permutation `shifts eiBlk Pblk rgBlk`.
+  --
+  -- The σ-in expression is reframed (via `subst₂`) onto the `map C.vlab (·)`
+  -- endpoints so the RHS is the pristine `from(uf++) ∘ pvlC(shifts)`.
+
+  module Sin (eiBlk Pblk rgBlk : List (Fin C.nV)) where
+    eL = map C.vlab eiBlk
+    pL = map C.vlab Pblk
+    rL = map C.vlab rgBlk
+    Up = unflatten pL
+    Ue = unflatten eL
+    Ur = unflatten rL
+
+    rTo : (a b : List X) → HomTerm (unflatten a ⊗₀ unflatten b) (unflatten (a ++ b))
+    rTo = rawTo₀
+    rFrom : (a b : List X) → HomTerm (unflatten (a ++ b)) (unflatten a ⊗₀ unflatten b)
+    rFrom = rawFrom₀
+
+    -- inlined σ-in (raw framing on the map-images), box-braid def verbatim.
+    σ-in-raw : HomTerm (unflatten (eL ++ (pL ++ rL))) (Up ⊗₀ unflatten (eL ++ rL))
+    σ-in-raw =
+        (id {Up} ⊗₁ rTo eL rL)
+      ∘ α⇒ {Up} {Ue} {Ur}
+      ∘ (σ {Ue} {Up} ⊗₁ id {Ur})
+      ∘ α⇐ {Ue} {Up} {Ur}
+      ∘ (id {Ue} ⊗₁ rFrom pL rL)
+      ∘ rFrom eL (pL ++ rL)
+
+    -- A subst-id over `unflatten` (domain side) self-cancels with its `sym`.
+    sid-self-cancelᵈ : ∀ {a b : List X} (e : a ≡ b)
+      → BoxAssoc.subst-id-dom e ∘ BoxAssoc.subst-id-dom (sym e) ≈Term id
+    sid-self-cancelᵈ refl = idˡ
+
+    -- A subst-id over `unflatten` (codomain side) self-cancels with its `sym`.
+    sid-self-cancelᶜ : ∀ {a b : List X} (e : a ≡ b)
+      → BoxAssoc.subst-id-cod e ∘ BoxAssoc.subst-id-cod (sym e) ≈Term id
+    sid-self-cancelᶜ refl = idˡ
+
+    -- cif, with the trailing subst reassociated to the outside.
+    cif-assoc :
+      α⇒ {Ue} {Up} {Ur} ∘ (rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL
+      ≈Term ((id {Ue} ⊗₁ rFrom pL rL) ∘ rFrom eL (pL ++ rL))
+            ∘ BoxAssoc.subst-id-cod (++-assoc eL pL rL)
+    cif-assoc = begin
+        α⇒ {Ue} {Up} {Ur} ∘ (rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL
+          ≈⟨ c-iso-assoc-from eL pL rL ⟩
+        (id {Ue} ⊗₁ rFrom pL rL)
+          ∘ rFrom eL (pL ++ rL)
+          ∘ BoxAssoc.subst-id-cod (++-assoc eL pL rL)
+          ≈⟨ FM.sym-assoc ⟩
+        ((id {Ue} ⊗₁ rFrom pL rL) ∘ rFrom eL (pL ++ rL))
+          ∘ BoxAssoc.subst-id-cod (++-assoc eL pL rL) ∎
+
+    -- the raw input view-from (left-nested), recovered from σ-in's tail.
+    in-frame :
+      α⇐ {Ue} {Up} {Ur} ∘ (id {Ue} ⊗₁ rFrom pL rL) ∘ rFrom eL (pL ++ rL)
+      ≈Term ((rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL)
+            ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+    in-frame = begin
+        α⇐ {Ue} {Up} {Ur} ∘ (id {Ue} ⊗₁ rFrom pL rL) ∘ rFrom eL (pL ++ rL)
+          ≈⟨ refl⟩∘⟨ tail-eq ⟩
+        α⇐ {Ue} {Up} {Ur}
+          ∘ (α⇒ {Ue} {Up} {Ur} ∘ (rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL)
+          ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+          ≈⟨ FM.sym-assoc ⟩
+        (α⇐ {Ue} {Up} {Ur}
+          ∘ (α⇒ {Ue} {Up} {Ur} ∘ (rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL))
+          ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+          ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
+        ((α⇐ {Ue} {Up} {Ur} ∘ α⇒ {Ue} {Up} {Ur})
+          ∘ (rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL)
+          ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+          ≈⟨ (α⇐∘α⇒≈id ⟩∘⟨refl) ⟩∘⟨refl ⟩
+        (id ∘ (rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL)
+          ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+          ≈⟨ idˡ ⟩∘⟨refl ⟩
+        ((rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL)
+          ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL)) ∎
+      where
+        -- `(id⊗rFrom)∘rFrom ≈ (α⇒∘(rFrom⊗id)∘rFrom) ∘ scod(sym ++-assoc)`.
+        tail-eq :
+          (id {Ue} ⊗₁ rFrom pL rL) ∘ rFrom eL (pL ++ rL)
+          ≈Term (α⇒ {Ue} {Up} {Ur} ∘ (rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL)
+                ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+        tail-eq = begin
+            (id {Ue} ⊗₁ rFrom pL rL) ∘ rFrom eL (pL ++ rL)
+              ≈⟨ ≈-Term-sym idʳ ⟩
+            ((id {Ue} ⊗₁ rFrom pL rL) ∘ rFrom eL (pL ++ rL)) ∘ id
+              ≈⟨ refl⟩∘⟨ ≈-Term-sym (sid-self-cancelᶜ (++-assoc eL pL rL)) ⟩
+            ((id {Ue} ⊗₁ rFrom pL rL) ∘ rFrom eL (pL ++ rL))
+              ∘ (BoxAssoc.subst-id-cod (++-assoc eL pL rL)
+                 ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL)))
+              ≈⟨ FM.sym-assoc ⟩
+            (((id {Ue} ⊗₁ rFrom pL rL) ∘ rFrom eL (pL ++ rL))
+              ∘ BoxAssoc.subst-id-cod (++-assoc eL pL rL))
+              ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+              ≈⟨ ≈-Term-sym cif-assoc ⟩∘⟨refl ⟩
+            (α⇒ {Ue} {Up} {Ur} ∘ (rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL)
+              ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL)) ∎
+
+    -- combined outer `map-++` reconciliations for the two view frames.
+    comb-in : (eL ++ pL) ++ rL ≡ map C.vlab ((eiBlk ++ Pblk) ++ rgBlk)
+    comb-in = trans (cong (_++ rL) (sym (map-++ C.vlab eiBlk Pblk)))
+                    (sym (map-++ C.vlab (eiBlk ++ Pblk) rgBlk))
+
+    comb-out : (pL ++ eL) ++ rL ≡ map C.vlab ((Pblk ++ eiBlk) ++ rgBlk)
+    comb-out = trans (cong (_++ rL) (sym (map-++ C.vlab Pblk eiBlk)))
+                     (sym (map-++ C.vlab (Pblk ++ eiBlk) rgBlk))
+
+    -- the raw left-nested input view-from, expressed via `from(view≅)`.
+    raw-as-view-in :
+      (rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL
+      ≈Term _≅_.from (BNV.view≅ C.vlab eiBlk Pblk rgBlk)
+            ∘ BoxAssoc.subst-id-dom (sym comb-in)
+    raw-as-view-in = begin
+        (rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL
+          ≈⟨ ≈-Term-sym idʳ ⟩
+        ((rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL) ∘ id
+          ≈⟨ refl⟩∘⟨ ≈-Term-sym (sid-self-cancelᵈ comb-in) ⟩
+        ((rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL)
+          ∘ (BoxAssoc.subst-id-dom comb-in ∘ BoxAssoc.subst-id-dom (sym comb-in))
+          ≈⟨ FM.sym-assoc ⟩
+        (((rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL)
+          ∘ BoxAssoc.subst-id-dom comb-in)
+          ∘ BoxAssoc.subst-id-dom (sym comb-in)
+          ≈⟨ ≈-Term-sym (view-from-raw-clean eiBlk Pblk rgBlk) ⟩∘⟨refl ⟩
+        _≅_.from (BNV.view≅ C.vlab eiBlk Pblk rgBlk)
+          ∘ BoxAssoc.subst-id-dom (sym comb-in) ∎
+
+    -- cif at `pL eL rL`, trailing subst reassociated out.
+    cif-assoc-out :
+      α⇒ {Up} {Ue} {Ur} ∘ (rFrom pL eL ⊗₁ id {Ur}) ∘ rFrom (pL ++ eL) rL
+      ≈Term ((id {Up} ⊗₁ rFrom eL rL) ∘ rFrom pL (eL ++ rL))
+            ∘ BoxAssoc.subst-id-cod (++-assoc pL eL rL)
+    cif-assoc-out = begin
+        α⇒ {Up} {Ue} {Ur} ∘ (rFrom pL eL ⊗₁ id {Ur}) ∘ rFrom (pL ++ eL) rL
+          ≈⟨ c-iso-assoc-from pL eL rL ⟩
+        (id {Up} ⊗₁ rFrom eL rL)
+          ∘ rFrom pL (eL ++ rL)
+          ∘ BoxAssoc.subst-id-cod (++-assoc pL eL rL)
+          ≈⟨ FM.sym-assoc ⟩
+        ((id {Up} ⊗₁ rFrom eL rL) ∘ rFrom pL (eL ++ rL))
+          ∘ BoxAssoc.subst-id-cod (++-assoc pL eL rL) ∎
+
+    -- the OUTPUT frame collapse: σ-in's leading `(id⊗rTo)∘α⇒`, composed onto
+    -- the output view-from, telescopes to the single-block `rFrom pL (eL++rL)`.
+    out-frame :
+      (id {Up} ⊗₁ rTo eL rL) ∘ α⇒ {Up} {Ue} {Ur}
+        ∘ _≅_.from (BNV.view≅ C.vlab Pblk eiBlk rgBlk)
+      ≈Term (rFrom pL (eL ++ rL) ∘ BoxAssoc.subst-id-cod (++-assoc pL eL rL))
+            ∘ BoxAssoc.subst-id-dom comb-out
+    out-frame = begin
+        (id {Up} ⊗₁ rTo eL rL) ∘ α⇒ {Up} {Ue} {Ur}
+          ∘ _≅_.from (BNV.view≅ C.vlab Pblk eiBlk rgBlk)
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ view-from-raw-clean Pblk eiBlk rgBlk ⟩
+        (id {Up} ⊗₁ rTo eL rL) ∘ α⇒ {Up} {Ue} {Ur}
+          ∘ (((rFrom pL eL ⊗₁ id {Ur}) ∘ rFrom (pL ++ eL) rL)
+             ∘ BoxAssoc.subst-id-dom comb-out)
+          -- regroup so `α⇒ ∘ (rFrom⊗id) ∘ rFrom` is adjacent (peel sdd out).
+          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+        (id {Up} ⊗₁ rTo eL rL)
+          ∘ (α⇒ {Up} {Ue} {Ur} ∘ (rFrom pL eL ⊗₁ id {Ur}) ∘ rFrom (pL ++ eL) rL)
+          ∘ BoxAssoc.subst-id-dom comb-out
+          ≈⟨ refl⟩∘⟨ cif-assoc-out ⟩∘⟨refl ⟩
+        (id {Up} ⊗₁ rTo eL rL)
+          ∘ (((id {Up} ⊗₁ rFrom eL rL) ∘ rFrom pL (eL ++ rL))
+             ∘ BoxAssoc.subst-id-cod (++-assoc pL eL rL))
+          ∘ BoxAssoc.subst-id-dom comb-out
+          -- right-associate the trailing substs onto `rFrom pL (eL++rL)`.
+          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+        (id {Up} ⊗₁ rTo eL rL)
+          ∘ (((id {Up} ⊗₁ rFrom eL rL) ∘ rFrom pL (eL ++ rL))
+             ∘ (BoxAssoc.subst-id-cod (++-assoc pL eL rL) ∘ BoxAssoc.subst-id-dom comb-out))
+          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+        (id {Up} ⊗₁ rTo eL rL)
+          ∘ (id {Up} ⊗₁ rFrom eL rL)
+          ∘ (rFrom pL (eL ++ rL)
+             ∘ (BoxAssoc.subst-id-cod (++-assoc pL eL rL) ∘ BoxAssoc.subst-id-dom comb-out))
+          -- collapse `(id⊗rTo) ∘ (id⊗rFrom) = id`.
+          ≈⟨ FM.sym-assoc ⟩
+        ((id {Up} ⊗₁ rTo eL rL) ∘ (id {Up} ⊗₁ rFrom eL rL))
+          ∘ (rFrom pL (eL ++ rL)
+             ∘ (BoxAssoc.subst-id-cod (++-assoc pL eL rL) ∘ BoxAssoc.subst-id-dom comb-out))
+          ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩∘⟨refl ⟩
+        ((id {Up} ∘ id {Up}) ⊗₁ (rTo eL rL ∘ rFrom eL rL))
+          ∘ (rFrom pL (eL ++ rL)
+             ∘ (BoxAssoc.subst-id-cod (++-assoc pL eL rL) ∘ BoxAssoc.subst-id-dom comb-out))
+          ≈⟨ ⊗-resp-≈ idˡ (_≅_.isoˡ (unflatten-++-≅ eL rL)) ⟩∘⟨refl ⟩
+        (id {Up} ⊗₁ id {unflatten (eL ++ rL)})
+          ∘ (rFrom pL (eL ++ rL)
+             ∘ (BoxAssoc.subst-id-cod (++-assoc pL eL rL) ∘ BoxAssoc.subst-id-dom comb-out))
+          ≈⟨ id⊗id≈id ⟩∘⟨refl ⟩
+        id ∘ (rFrom pL (eL ++ rL)
+             ∘ (BoxAssoc.subst-id-cod (++-assoc pL eL rL) ∘ BoxAssoc.subst-id-dom comb-out))
+          ≈⟨ idˡ ⟩
+        rFrom pL (eL ++ rL)
+          ∘ (BoxAssoc.subst-id-cod (++-assoc pL eL rL) ∘ BoxAssoc.subst-id-dom comb-out)
+          ≈⟨ FM.sym-assoc ⟩
+        (rFrom pL (eL ++ rL) ∘ BoxAssoc.subst-id-cod (++-assoc pL eL rL))
+          ∘ BoxAssoc.subst-id-dom comb-out ∎
+
+    -- the assembled raw composite: σ-in chained through in-frame,
+    -- raw-as-view-in, σ-frame-app-from, out-frame.
+    sin-assembled :
+      σ-in-raw
+      ≈Term ((rFrom pL (eL ++ rL) ∘ BoxAssoc.subst-id-cod (++-assoc pL eL rL))
+             ∘ BoxAssoc.subst-id-dom comb-out)
+            ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+            ∘ BoxAssoc.subst-id-dom (sym comb-in)
+            ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+    sin-assembled = begin
+        σ-in-raw
+          -- (1) in-frame on the tail (`α⇐ ∘ (id⊗rFrom pL rL) ∘ rFrom eL (pL++rL)`).
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ in-frame ⟩
+        (id {Up} ⊗₁ rTo eL rL)
+          ∘ α⇒ {Up} {Ue} {Ur}
+          ∘ (σ {Ue} {Up} ⊗₁ id {Ur})
+          ∘ (((rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL)
+             ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL)))
+          -- (2) raw-as-view-in on the left-nested input view.
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ raw-as-view-in ⟩∘⟨refl ⟩
+        (id {Up} ⊗₁ rTo eL rL)
+          ∘ α⇒ {Up} {Ue} {Ur}
+          ∘ (σ {Ue} {Up} ⊗₁ id {Ur})
+          ∘ (_≅_.from (BNV.view≅ C.vlab eiBlk Pblk rgBlk)
+             ∘ BoxAssoc.subst-id-dom (sym comb-in))
+            ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+          -- regroup so `(σ⊗id) ∘ from(view≅ ei P rg)` is adjacent.
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ regroup-σ ⟩
+        (id {Up} ⊗₁ rTo eL rL)
+          ∘ α⇒ {Up} {Ue} {Ur}
+          ∘ ((σ {Ue} {Up} ⊗₁ id {Ur}) ∘ _≅_.from (BNV.view≅ C.vlab eiBlk Pblk rgBlk))
+            ∘ BoxAssoc.subst-id-dom (sym comb-in)
+            ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+          -- (3) σ-frame-app-from.
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ BNV.σ-frame-app-from C.vlab Pblk eiBlk rgBlk ⟩∘⟨refl ⟩
+        (id {Up} ⊗₁ rTo eL rL)
+          ∘ α⇒ {Up} {Ue} {Ur}
+          ∘ (_≅_.from (BNV.view≅ C.vlab Pblk eiBlk rgBlk)
+             ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk))
+            ∘ BoxAssoc.subst-id-dom (sym comb-in)
+            ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+          -- regroup so `(id⊗rTo) ∘ α⇒ ∘ from(view≅ P ei rg)` is adjacent.
+          ≈⟨ regroup-out ⟩
+        ((id {Up} ⊗₁ rTo eL rL) ∘ α⇒ {Up} {Ue} {Ur}
+          ∘ _≅_.from (BNV.view≅ C.vlab Pblk eiBlk rgBlk))
+          ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+          ∘ BoxAssoc.subst-id-dom (sym comb-in)
+          ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+          -- (4) out-frame.
+          ≈⟨ out-frame ⟩∘⟨refl ⟩
+        ((rFrom pL (eL ++ rL) ∘ BoxAssoc.subst-id-cod (++-assoc pL eL rL))
+          ∘ BoxAssoc.subst-id-dom comb-out)
+          ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+          ∘ BoxAssoc.subst-id-dom (sym comb-in)
+          ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL)) ∎
+      where
+        -- regroup `(σ⊗id) ∘ (from(view≅) ∘ sdd) ∘ scod` so the σ-frame core is
+        -- a single factor, trailing substs peeled out.
+        regroup-σ :
+          (σ {Ue} {Up} ⊗₁ id {Ur})
+            ∘ (_≅_.from (BNV.view≅ C.vlab eiBlk Pblk rgBlk)
+               ∘ BoxAssoc.subst-id-dom (sym comb-in))
+              ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+          ≈Term ((σ {Ue} {Up} ⊗₁ id {Ur}) ∘ _≅_.from (BNV.view≅ C.vlab eiBlk Pblk rgBlk))
+                ∘ BoxAssoc.subst-id-dom (sym comb-in)
+                ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+        regroup-σ = begin
+            (σ {Ue} {Up} ⊗₁ id {Ur})
+              ∘ (_≅_.from (BNV.view≅ C.vlab eiBlk Pblk rgBlk)
+                 ∘ BoxAssoc.subst-id-dom (sym comb-in))
+                ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+              ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+            (σ {Ue} {Up} ⊗₁ id {Ur})
+              ∘ _≅_.from (BNV.view≅ C.vlab eiBlk Pblk rgBlk)
+              ∘ BoxAssoc.subst-id-dom (sym comb-in)
+                ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+              ≈⟨ FM.sym-assoc ⟩
+            ((σ {Ue} {Up} ⊗₁ id {Ur}) ∘ _≅_.from (BNV.view≅ C.vlab eiBlk Pblk rgBlk))
+              ∘ BoxAssoc.subst-id-dom (sym comb-in)
+                ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL)) ∎
+
+        -- regroup `(id⊗rTo) ∘ α⇒ ∘ (from(view≅ P ei rg) ∘ pvlC) ∘ ...` so that
+        -- `(id⊗rTo) ∘ α⇒ ∘ from(view≅ P ei rg)` is a single factor.
+        regroup-out :
+          (id {Up} ⊗₁ rTo eL rL)
+            ∘ α⇒ {Up} {Ue} {Ur}
+            ∘ (_≅_.from (BNV.view≅ C.vlab Pblk eiBlk rgBlk)
+               ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk))
+              ∘ BoxAssoc.subst-id-dom (sym comb-in)
+              ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+          ≈Term ((id {Up} ⊗₁ rTo eL rL) ∘ α⇒ {Up} {Ue} {Ur}
+                 ∘ _≅_.from (BNV.view≅ C.vlab Pblk eiBlk rgBlk))
+                ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+                ∘ BoxAssoc.subst-id-dom (sym comb-in)
+                ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+        regroup-out = begin
+            (id {Up} ⊗₁ rTo eL rL)
+              ∘ α⇒ {Up} {Ue} {Ur}
+              ∘ (_≅_.from (BNV.view≅ C.vlab Pblk eiBlk rgBlk)
+                 ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk))
+                ∘ BoxAssoc.subst-id-dom (sym comb-in)
+                ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+              -- peel the `pvlC ∘ sdd ∘ scod` tail out of the view-from factor.
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
+            (id {Up} ⊗₁ rTo eL rL)
+              ∘ α⇒ {Up} {Ue} {Ur}
+              ∘ _≅_.from (BNV.view≅ C.vlab Pblk eiBlk rgBlk)
+              ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+                ∘ BoxAssoc.subst-id-dom (sym comb-in)
+                ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+              ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+            (id {Up} ⊗₁ rTo eL rL)
+              ∘ (α⇒ {Up} {Ue} {Ur} ∘ _≅_.from (BNV.view≅ C.vlab Pblk eiBlk rgBlk))
+              ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+                ∘ BoxAssoc.subst-id-dom (sym comb-in)
+                ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+              ≈⟨ FM.sym-assoc ⟩
+            ((id {Up} ⊗₁ rTo eL rL)
+              ∘ (α⇒ {Up} {Ue} {Ur} ∘ _≅_.from (BNV.view≅ C.vlab Pblk eiBlk rgBlk)))
+              ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+                ∘ BoxAssoc.subst-id-dom (sym comb-in)
+                ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL)) ∎
+
+    ----------------------------------------------------------------------
+    -- ### Boundary reconciliation: the assembled raw composite vs the
+    -- pristine `from(uf++) ∘ pvlC(shifts)` form.  Pure subst-id bookkeeping.
+
+    -- domain reframe (σ-in's raw dom → `map`-image dom).
+    dom-list : eL ++ (pL ++ rL) ≡ map C.vlab (eiBlk ++ (Pblk ++ rgBlk))
+    dom-list = trans (cong (eL ++_) (sym (map-++ C.vlab Pblk rgBlk)))
+                     (sym (map-++ C.vlab eiBlk (Pblk ++ rgBlk)))
+
+    -- codomain reframe (σ-in's raw cod `Up ⊗ unflatten(eL++rL)` → tensor over
+    -- the combined `map(eiBlk++rgBlk)`).
+    cod-list : eL ++ rL ≡ map C.vlab (eiBlk ++ rgBlk)
+    cod-list = sym (map-++ C.vlab eiBlk rgBlk)
+
+    -- tensor-codomain subst-id morphism `Up ⊗ unflatten c → Up ⊗ unflatten d`.
+    tcod : ∀ {c d : List X} → c ≡ d → HomTerm (Up ⊗₀ unflatten c) (Up ⊗₀ unflatten d)
+    tcod {c} e = subst (λ z → HomTerm (Up ⊗₀ unflatten c) (Up ⊗₀ unflatten z)) e id
+
+    -- combined domain bridge for `from(uf++ Pblk (eiBlk++rgBlk))`'s raw form
+    -- (split the second block via `map-++`, then the outer `map-++`).
+    dom-uf : pL ++ (eL ++ rL) ≡ map C.vlab (Pblk ++ (eiBlk ++ rgBlk))
+    dom-uf = trans (cong (pL ++_) (sym (map-++ C.vlab eiBlk rgBlk)))
+                   (sym (map-++ C.vlab Pblk (eiBlk ++ rgBlk)))
+
+    -- the raw single-block `rawFrom₀ pL (map(ei++rg))` expressed via the raw
+    -- `rawFrom₀ pL (eL++rL)`, conjugated by the `map-++ eiBlk rgBlk` split
+    -- (`tcod` on the codomain, `subst-id-dom` on the inner domain).  `J` on
+    -- `cod-list`.
+    split-gen :
+      ∀ {W : List X} (e : eL ++ rL ≡ W)
+      → rFrom pL W
+        ≈Term tcod e ∘ rFrom pL (eL ++ rL) ∘ BoxAssoc.subst-id-dom (cong (pL ++_) e)
+    split-gen refl = ≈-Term-sym (≈-Term-trans idˡ idʳ)
+
+    split-eq :
+      rFrom pL (map C.vlab (eiBlk ++ rgBlk))
+      ≈Term tcod cod-list ∘ rFrom pL (eL ++ rL)
+            ∘ BoxAssoc.subst-id-dom (cong (pL ++_) cod-list)
+    split-eq = split-gen cod-list
+
+    -- the BTC.uf++ output iso `from`, in raw subst-conjugated form.
+    from-uf-raw : _≅_.from (BTC.uf++ Pblk (eiBlk ++ rgBlk))
+                ≈Term tcod cod-list
+                      ∘ rFrom pL (eL ++ rL)
+                      ∘ BoxAssoc.subst-id-dom dom-uf
+    from-uf-raw = begin
+        _≅_.from (BTC.uf++ Pblk (eiBlk ++ rgBlk))
+          ≈⟨ ≡⇒≈Term (from-BTC Pblk (eiBlk ++ rgBlk)) ⟩
+        subst₂ HomTerm (cong unflatten (sym (map-++ C.vlab Pblk (eiBlk ++ rgBlk)))) refl
+          (rFrom pL (map C.vlab (eiBlk ++ rgBlk)))
+          ≈⟨ subst-dom-conj (sym (map-++ C.vlab Pblk (eiBlk ++ rgBlk)))
+               (rFrom pL (map C.vlab (eiBlk ++ rgBlk))) ⟩
+        rFrom pL (map C.vlab (eiBlk ++ rgBlk))
+          ∘ BoxAssoc.subst-id-dom (sym (map-++ C.vlab Pblk (eiBlk ++ rgBlk)))
+          ≈⟨ split-eq ⟩∘⟨refl ⟩
+        (tcod cod-list ∘ rFrom pL (eL ++ rL)
+          ∘ BoxAssoc.subst-id-dom (cong (pL ++_) cod-list))
+          ∘ BoxAssoc.subst-id-dom (sym (map-++ C.vlab Pblk (eiBlk ++ rgBlk)))
+          ≈⟨ FM.assoc ⟩
+        tcod cod-list
+          ∘ (rFrom pL (eL ++ rL) ∘ BoxAssoc.subst-id-dom (cong (pL ++_) cod-list))
+          ∘ BoxAssoc.subst-id-dom (sym (map-++ C.vlab Pblk (eiBlk ++ rgBlk)))
+          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+        tcod cod-list
+          ∘ rFrom pL (eL ++ rL)
+          ∘ (BoxAssoc.subst-id-dom (cong (pL ++_) cod-list)
+             ∘ BoxAssoc.subst-id-dom (sym (map-++ C.vlab Pblk (eiBlk ++ rgBlk))))
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ sid-dom-∘ (cong (pL ++_) cod-list)
+                            (sym (map-++ C.vlab Pblk (eiBlk ++ rgBlk))) ⟩
+        tcod cod-list
+          ∘ rFrom pL (eL ++ rL)
+          ∘ BoxAssoc.subst-id-dom (trans (cong (pL ++_) cod-list)
+                                         (sym (map-++ C.vlab Pblk (eiBlk ++ rgBlk)))) ∎
+
+    ----------------------------------------------------------------------
+    -- ### subst-id morphisms as `subst₂ HomTerm _ _ id` (for uniqueness via
+    -- `subst₂-HomTerm-irrel`).
+
+    sdd₂ : ∀ {a b : List X} (p : a ≡ b)
+         → BoxAssoc.subst-id-dom p ≡ subst₂ HomTerm (cong unflatten p) refl (id {unflatten a})
+    sdd₂ refl = refl
+
+    scod₂ : ∀ {c d : List X} (q : c ≡ d)
+          → BoxAssoc.subst-id-cod q ≡ subst₂ HomTerm refl (cong unflatten q) (id {unflatten c})
+    scod₂ refl = refl
+
+    sidC₂ : ∀ {a b : List (Fin C.nV)} (q : a ≡ b)
+          → sidC q ≡ subst₂ HomTerm refl (cong unflatten (cong (map C.vlab) q))
+                            (id {unflatten (map C.vlab a)})
+    sidC₂ refl = refl
+
+    tcod₂ : ∀ {c d : List X} (q : c ≡ d)
+          → tcod q ≡ subst₂ HomTerm refl (cong (Up ⊗₀_) (cong unflatten q))
+                            (id {Up ⊗₀ unflatten c})
+    tcod₂ refl = refl
+
+    -- conjugation of σ-in-raw by the dom/cod reframes (cod over `Up ⊗ unflatten`).
+    subst₂-conj-tensor :
+      ∀ {a b : List X} {c d : List X} (p : a ≡ b) (q : c ≡ d)
+        (t : HomTerm (unflatten a) (Up ⊗₀ unflatten c))
+      → subst₂ HomTerm (cong unflatten p) (cong (Up ⊗₀_) (cong unflatten q)) t
+        ≈Term tcod q ∘ t ∘ BoxAssoc.subst-id-dom p
+    subst₂-conj-tensor refl refl t = ≈-Term-trans (≈-Term-sym idˡ) (refl⟩∘⟨ ≈-Term-sym idʳ)
+
+    ----------------------------------------------------------------------
+    -- ### A canonical subst-id morphism `sidX` (codomain transport of `id`
+    -- over `unflatten`) into which `sdd`/`scod`/`sidC` all collapse; it
+    -- composes along `trans` and is unique (by `objUIP`).
+
+    sidX : ∀ {a b : List X} → a ≡ b → HomTerm (unflatten a) (unflatten b)
+    sidX {a} e = subst (λ z → HomTerm (unflatten a) (unflatten z)) e id
+
+    sidX-∘ : ∀ {a b c : List X} (p : a ≡ b) (q : b ≡ c)
+           → sidX q ∘ sidX p ≈Term sidX (trans p q)
+    sidX-∘ refl refl = idˡ
+
+    sidX₂ : ∀ {a b : List X} (e : a ≡ b)
+          → sidX e ≡ subst₂ HomTerm refl (cong unflatten e) (id {unflatten a})
+    sidX₂ refl = refl
+
+    sidX-irrel : ∀ {a b : List X} (e e' : a ≡ b) → sidX e ≈Term sidX e'
+    sidX-irrel e e' =
+      ≈-Term-trans (≡⇒≈Term (sidX₂ e))
+        (≈-Term-trans (subst₂-HomTerm-irrel objUIP refl refl
+                         (cong unflatten e) (cong unflatten e') id)
+                      (≡⇒≈Term (sym (sidX₂ e'))))
+
+    -- conversions into `sidX`.
+    scod→sidX : ∀ {c d : List X} (q : c ≡ d) → BoxAssoc.subst-id-cod q ≈Term sidX q
+    scod→sidX refl = ≈-Term-refl
+
+    sdd→sidX : ∀ {a b : List X} (p : a ≡ b) → BoxAssoc.subst-id-dom p ≈Term sidX (sym p)
+    sdd→sidX refl = ≈-Term-refl
+
+    sidC→sidX : ∀ {a b : List (Fin C.nV)} (q : a ≡ b)
+              → sidC q ≈Term sidX (cong (map C.vlab) q)
+    sidC→sidX refl = ≈-Term-refl
+
+    ----------------------------------------------------------------------
+    -- ### The two boundary equalities (subst-id-morphism uniqueness).
+
+    -- RIGHT of `pvlC(app-swap)`: the assembled input substs vs `shifts`' first
+    -- bridge `sidC(sym(++-assoc eiBlk Pblk rgBlk))`.
+    right-eq :
+      (BoxAssoc.subst-id-dom (sym comb-in)
+        ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL)))
+        ∘ BoxAssoc.subst-id-dom dom-list
+      ≈Term sidC (sym (++-assoc eiBlk Pblk rgBlk))
+    right-eq = begin
+        (BoxAssoc.subst-id-dom (sym comb-in)
+          ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL)))
+          ∘ BoxAssoc.subst-id-dom dom-list
+          ≈⟨ (sdd→sidX (sym comb-in) ⟩∘⟨ scod→sidX (sym (++-assoc eL pL rL)))
+             ⟩∘⟨ sdd→sidX dom-list ⟩
+        (sidX (sym (sym comb-in)) ∘ sidX (sym (++-assoc eL pL rL)))
+          ∘ sidX (sym dom-list)
+          ≈⟨ sidX-∘ (sym (++-assoc eL pL rL)) (sym (sym comb-in)) ⟩∘⟨refl ⟩
+        sidX (trans (sym (++-assoc eL pL rL)) (sym (sym comb-in)))
+          ∘ sidX (sym dom-list)
+          ≈⟨ sidX-∘ (sym dom-list) (trans (sym (++-assoc eL pL rL)) (sym (sym comb-in))) ⟩
+        sidX (trans (sym dom-list) (trans (sym (++-assoc eL pL rL)) (sym (sym comb-in))))
+          ≈⟨ sidX-irrel _ (cong (map C.vlab) (sym (++-assoc eiBlk Pblk rgBlk))) ⟩
+        sidX (cong (map C.vlab) (sym (++-assoc eiBlk Pblk rgBlk)))
+          ≈⟨ ≈-Term-sym (sidC→sidX (sym (++-assoc eiBlk Pblk rgBlk))) ⟩
+        sidC (sym (++-assoc eiBlk Pblk rgBlk)) ∎
+
+    -- LEFT of `pvlC(app-swap)`: the assembled output substs vs `shifts`' second
+    -- bridge `sidC(++-assoc Pblk eiBlk rgBlk)`, modulo the shared `rFrom`.
+    left-eq :
+      (BoxAssoc.subst-id-cod (++-assoc pL eL rL) ∘ BoxAssoc.subst-id-dom comb-out)
+      ≈Term BoxAssoc.subst-id-dom dom-uf ∘ sidC (++-assoc Pblk eiBlk rgBlk)
+    left-eq = begin
+        BoxAssoc.subst-id-cod (++-assoc pL eL rL) ∘ BoxAssoc.subst-id-dom comb-out
+          ≈⟨ scod→sidX (++-assoc pL eL rL) ⟩∘⟨ sdd→sidX comb-out ⟩
+        sidX (++-assoc pL eL rL) ∘ sidX (sym comb-out)
+          ≈⟨ sidX-∘ (sym comb-out) (++-assoc pL eL rL) ⟩
+        sidX (trans (sym comb-out) (++-assoc pL eL rL))
+          ≈⟨ sidX-irrel _ (trans (cong (map C.vlab) (++-assoc Pblk eiBlk rgBlk)) (sym dom-uf)) ⟩
+        sidX (trans (cong (map C.vlab) (++-assoc Pblk eiBlk rgBlk)) (sym dom-uf))
+          ≈⟨ ≈-Term-sym (sidX-∘ (cong (map C.vlab) (++-assoc Pblk eiBlk rgBlk)) (sym dom-uf)) ⟩
+        sidX (sym dom-uf) ∘ sidX (cong (map C.vlab) (++-assoc Pblk eiBlk rgBlk))
+          ≈⟨ ≈-Term-sym (sdd→sidX dom-uf) ⟩∘⟨ ≈-Term-sym (sidC→sidX (++-assoc Pblk eiBlk rgBlk)) ⟩
+        BoxAssoc.subst-id-dom dom-uf ∘ sidC (++-assoc Pblk eiBlk rgBlk) ∎
+
+    ----------------------------------------------------------------------
+    -- ### The final lemma: box-braid's input braid `σ-in` (reframed onto the
+    -- `map C.vlab (·)` endpoints) is the `BTC.uf++`-framed `pvlC` of `shifts`.
+    σin-as-pvl :
+      subst₂ HomTerm (cong unflatten dom-list)
+                     (cong (Up ⊗₀_) (cong unflatten cod-list)) σ-in-raw
+      ≈Term _≅_.from (BTC.uf++ Pblk (eiBlk ++ rgBlk))
+            ∘ pvlC (PermProp.shifts eiBlk Pblk {rgBlk})
+    σin-as-pvl = begin
+        subst₂ HomTerm (cong unflatten dom-list)
+                       (cong (Up ⊗₀_) (cong unflatten cod-list)) σ-in-raw
+          ≈⟨ subst₂-conj-tensor dom-list cod-list σ-in-raw ⟩
+        tcod cod-list ∘ σ-in-raw ∘ BoxAssoc.subst-id-dom dom-list
+          ≈⟨ refl⟩∘⟨ sin-assembled ⟩∘⟨refl ⟩
+        tcod cod-list
+          ∘ (((rFrom pL (eL ++ rL) ∘ BoxAssoc.subst-id-cod (++-assoc pL eL rL))
+              ∘ BoxAssoc.subst-id-dom comb-out)
+             ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+             ∘ BoxAssoc.subst-id-dom (sym comb-in)
+             ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL)))
+          ∘ BoxAssoc.subst-id-dom dom-list
+          -- pull the `tcod cod-list` into the leading `rFrom`-block, and the
+          -- trailing `sdd dom-list` into the input-subst block.
+          ≈⟨ regroup ⟩
+        ((tcod cod-list ∘ rFrom pL (eL ++ rL))
+          ∘ (BoxAssoc.subst-id-cod (++-assoc pL eL rL) ∘ BoxAssoc.subst-id-dom comb-out))
+          ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+          ∘ ((BoxAssoc.subst-id-dom (sym comb-in)
+              ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL)))
+             ∘ BoxAssoc.subst-id-dom dom-list)
+          -- (LEFT) left-eq on the output substs; (RIGHT) right-eq on input substs.
+          ≈⟨ (refl⟩∘⟨ left-eq) ⟩∘⟨ (refl⟩∘⟨ right-eq) ⟩
+        ((tcod cod-list ∘ rFrom pL (eL ++ rL))
+          ∘ (BoxAssoc.subst-id-dom dom-uf ∘ sidC (++-assoc Pblk eiBlk rgBlk)))
+          ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+          ∘ sidC (sym (++-assoc eiBlk Pblk rgBlk))
+          -- reassemble the leading block into `from(uf++) ∘ sidC(++-assoc P ei rg)`.
+          ≈⟨ reassemble-left ⟩
+        (_≅_.from (BTC.uf++ Pblk (eiBlk ++ rgBlk)) ∘ sidC (++-assoc Pblk eiBlk rgBlk))
+          ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+          ∘ sidC (sym (++-assoc eiBlk Pblk rgBlk))
+          -- fold `sidC ∘ pvlC(app-swap) ∘ sidC` back into `pvlC(shifts)`.
+          ≈⟨ FM.assoc ⟩
+        _≅_.from (BTC.uf++ Pblk (eiBlk ++ rgBlk))
+          ∘ sidC (++-assoc Pblk eiBlk rgBlk)
+          ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+          ∘ sidC (sym (++-assoc eiBlk Pblk rgBlk))
+          ≈⟨ refl⟩∘⟨ ≈-Term-sym (pvlC-shifts eiBlk Pblk rgBlk) ⟩
+        _≅_.from (BTC.uf++ Pblk (eiBlk ++ rgBlk))
+          ∘ pvlC (PermProp.shifts eiBlk Pblk {rgBlk}) ∎
+      where
+        cA = BoxAssoc.subst-id-cod (++-assoc pL eL rL)
+        dCO = BoxAssoc.subst-id-dom comb-out
+        pA = pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+        dCI = BoxAssoc.subst-id-dom (sym comb-in)
+        cAs = BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL))
+        dDL = BoxAssoc.subst-id-dom dom-list
+
+        -- the big associativity regroup (pure ∘-reshuffle).
+        regroup :
+          tcod cod-list
+            ∘ (((rFrom pL (eL ++ rL) ∘ BoxAssoc.subst-id-cod (++-assoc pL eL rL))
+                ∘ BoxAssoc.subst-id-dom comb-out)
+               ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+               ∘ BoxAssoc.subst-id-dom (sym comb-in)
+               ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL)))
+            ∘ BoxAssoc.subst-id-dom dom-list
+          ≈Term ((tcod cod-list ∘ rFrom pL (eL ++ rL))
+            ∘ (BoxAssoc.subst-id-cod (++-assoc pL eL rL) ∘ BoxAssoc.subst-id-dom comb-out))
+            ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+            ∘ ((BoxAssoc.subst-id-dom (sym comb-in)
+                ∘ BoxAssoc.subst-id-cod (sym (++-assoc eL pL rL)))
+               ∘ BoxAssoc.subst-id-dom dom-list)
+        regroup = begin
+            tcod cod-list
+              ∘ (((rFrom pL (eL ++ rL) ∘ cA) ∘ dCO)
+                 ∘ pA ∘ dCI ∘ cAs)
+              ∘ dDL
+              -- bring `tcod` adjacent to the leading `(rFrom∘cA)∘dCO`.
+              ≈⟨ FM.sym-assoc ⟩
+            (tcod cod-list
+              ∘ (((rFrom pL (eL ++ rL) ∘ cA) ∘ dCO)
+                 ∘ pA ∘ dCI ∘ cAs))
+              ∘ dDL
+              ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
+            ((tcod cod-list ∘ (((rFrom pL (eL ++ rL) ∘ cA) ∘ dCO)))
+              ∘ pA ∘ dCI ∘ cAs)
+              ∘ dDL
+              ≈⟨ (FM.sym-assoc ⟩∘⟨refl) ⟩∘⟨refl ⟩
+            (((tcod cod-list ∘ ((rFrom pL (eL ++ rL) ∘ cA))) ∘ dCO)
+              ∘ pA ∘ dCI ∘ cAs)
+              ∘ dDL
+              ≈⟨ ((((FM.sym-assoc ⟩∘⟨refl)) ⟩∘⟨refl)) ⟩∘⟨refl ⟩
+            ((((tcod cod-list ∘ rFrom pL (eL ++ rL)) ∘ cA) ∘ dCO)
+              ∘ pA ∘ dCI ∘ cAs)
+              ∘ dDL
+              -- cluster `((tcod∘rFrom)∘(cA∘dCO))` on the left.
+              ≈⟨ (FM.assoc ⟩∘⟨refl) ⟩∘⟨refl ⟩
+            (((tcod cod-list ∘ rFrom pL (eL ++ rL)) ∘ (cA ∘ dCO))
+              ∘ pA ∘ dCI ∘ cAs)
+              ∘ dDL
+              -- now reassociate the whole `(LEFT ∘ (pA ∘ dCI ∘ cAs)) ∘ dDL`.
+              ≈⟨ FM.assoc ⟩
+            ((tcod cod-list ∘ rFrom pL (eL ++ rL)) ∘ (cA ∘ dCO))
+              ∘ ((pA ∘ dCI ∘ cAs) ∘ dDL)
+              ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+            ((tcod cod-list ∘ rFrom pL (eL ++ rL)) ∘ (cA ∘ dCO))
+              ∘ pA ∘ ((dCI ∘ cAs) ∘ dDL)
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
+            ((tcod cod-list ∘ rFrom pL (eL ++ rL)) ∘ (cA ∘ dCO))
+              ∘ pA ∘ (dCI ∘ cAs ∘ dDL)
+              -- re-cluster the input substs as `(dCI ∘ cAs) ∘ dDL`.
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+            ((tcod cod-list ∘ rFrom pL (eL ++ rL)) ∘ (cA ∘ dCO))
+              ∘ pA ∘ ((dCI ∘ cAs) ∘ dDL) ∎
+
+        reassemble-left :
+          ((tcod cod-list ∘ rFrom pL (eL ++ rL))
+            ∘ (BoxAssoc.subst-id-dom dom-uf ∘ sidC (++-assoc Pblk eiBlk rgBlk)))
+            ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+            ∘ sidC (sym (++-assoc eiBlk Pblk rgBlk))
+          ≈Term (_≅_.from (BTC.uf++ Pblk (eiBlk ++ rgBlk)) ∘ sidC (++-assoc Pblk eiBlk rgBlk))
+            ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+            ∘ sidC (sym (++-assoc eiBlk Pblk rgBlk))
+        reassemble-left = left-block-eq ⟩∘⟨refl
+          where
+            left-block-eq :
+              (tcod cod-list ∘ rFrom pL (eL ++ rL))
+                ∘ (BoxAssoc.subst-id-dom dom-uf ∘ sidC (++-assoc Pblk eiBlk rgBlk))
+              ≈Term _≅_.from (BTC.uf++ Pblk (eiBlk ++ rgBlk))
+                    ∘ sidC (++-assoc Pblk eiBlk rgBlk)
+            left-block-eq = begin
+                (tcod cod-list ∘ rFrom pL (eL ++ rL))
+                  ∘ (BoxAssoc.subst-id-dom dom-uf ∘ sidC (++-assoc Pblk eiBlk rgBlk))
+                  ≈⟨ FM.assoc ⟩
+                tcod cod-list ∘ rFrom pL (eL ++ rL)
+                  ∘ (BoxAssoc.subst-id-dom dom-uf ∘ sidC (++-assoc Pblk eiBlk rgBlk))
+                  ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+                tcod cod-list
+                  ∘ (rFrom pL (eL ++ rL) ∘ BoxAssoc.subst-id-dom dom-uf)
+                  ∘ sidC (++-assoc Pblk eiBlk rgBlk)
+                  ≈⟨ FM.sym-assoc ⟩
+                (tcod cod-list ∘ (rFrom pL (eL ++ rL) ∘ BoxAssoc.subst-id-dom dom-uf))
+                  ∘ sidC (++-assoc Pblk eiBlk rgBlk)
+                  ≈⟨ ≈-Term-sym from-uf-raw ⟩∘⟨refl ⟩
+                _≅_.from (BTC.uf++ Pblk (eiBlk ++ rgBlk))
+                  ∘ sidC (++-assoc Pblk eiBlk rgBlk) ∎
+
 --------------------------------------------------------------------------------
 -- ## `Linear H ⇒ Unique (cod H)` (sig-level), verbatim from DecodeComposeShape.
 
