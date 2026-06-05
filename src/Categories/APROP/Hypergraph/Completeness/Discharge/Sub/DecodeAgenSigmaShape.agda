@@ -48,7 +48,7 @@ open import Categories.APROP.Hypergraph.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.FromAPROP sig
   using (FlatGen; flatten; range; hSwap; hGen; domL-hSwap; codL-hSwap
         ; domL-hGen; codL-hGen; ⟪_⟫; ⟪⟫-domL; ⟪⟫-codL
-        ; map-lookup-range)
+        ; map-lookup-range; domL-hId; codL-hId)
 open import Categories.APROP.Hypergraph.Invariant sig
   using (hSwap-cod-Unique; hGen-cod-Unique; hGen-dom-Unique)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
@@ -64,7 +64,24 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation 
 open import Categories.APROP.Hypergraph.Completeness.Permute sig
   using (permute-via-vlab; permute)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
-  using (decode; bridge; decode-attempt-Linear)
+  using (decode; bridge; decode-attempt-Linear; decode-attempt-hId)
+
+-- The PROVEN ⊗-shape residual (parameterised by `objUIP` + `K`), reused to
+-- build `decode-id-is-id` for compound objects.  No new trust: it is the
+-- SAME shape lemma the completeness chain already threads.
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig as DTS
+
+-- The constructive (`--safe --with-K`) Mac-Lane list machinery for the
+-- associator collapse: `α⇒-form-list`, its `++-assoc`-transport `coh`
+-- characterisations, `bridge-id-is-id`, and the `subst₂-refl-{cod,dom}`
+-- bridges relating a one-sided `subst₂` to a `subst`.
+open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtripSafe sig
+  using ( α⇒-form-list; α⇐-form-list; α⇒-coh-list; α⇐-coh-list
+        ; α⇒-α⇐-iso; bridge-∘; bridge-id-is-id
+        ; subst₂-refl-cod; subst₂-refl-dom )
+-- The constructive (`--safe --with-K`, postulate-free) well-founded worker
+-- proving `bridge (α⇒ {A}{B}{C}) ≈Term α⇒-form-list …` for EVERY object `A`.
+import Categories.APROP.Hypergraph.Completeness.Discharge.BridgeAlphaFormCompound sig as BAFC
 
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.PermuteCoherenceK
   asFreeMonoidalData using (permute-via-vlab-≈Term-coherence-K)
@@ -82,10 +99,11 @@ open import Categories.Category.Monoidal.Utilities Monoidal-FreeMonoidal using (
 import Categories.Category.Monoidal.Properties Monoidal-FreeMonoidal as MonProp
 
 open import Data.Nat using (ℕ; _+_)
+open import Data.Nat.Induction using (<-wellFounded)
 open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
 open import Data.List using (List; []; _∷_; _++_; map; length; lookup)
-open import Data.List.Properties using (map-++; map-∘; map-cong; ++-identityʳ)
+open import Data.List.Properties using (map-++; map-∘; map-cong; ++-identityʳ; ++-assoc)
 open import Data.Sum using ([_,_]′)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just)
@@ -349,6 +367,40 @@ private
     : ∀ {n} (vlab : Fin n → X) (xs : List (Fin n))
     → permute-via-vlab vlab (Perm.↭-refl {x = xs}) ≈Term id
   pvl-refl vlab xs = ≈-Term-refl
+
+  ------------------------------------------------------------------------
+  -- ## `subst₂` cod/dom-`trans` split (cloned from `DecodeRoundtrip`,
+  -- `--with-K`; TRUE for all instances).  Used to reduce `decode (α⇒/α⇐)`
+  -- to the `++-assoc`-transport of `decode (id {(A ⊗₀ B) ⊗₀ C})`.
+
+  -- A `subst₂` whose cod equation factors as `trans q r` splits as the
+  -- outer `r`-transport of the inner `q`-transport.
+  subst₂-cod-trans
+    : ∀ {as as' bs bs' bs'' : List X}
+        (p : as ≡ as') (q : bs ≡ bs') (r : bs' ≡ bs'')
+        (x : HomTerm (unflatten as) (unflatten bs))
+    → subst₂ HomTerm (cong unflatten p) (cong unflatten (trans q r)) x
+      ≡ subst₂ HomTerm refl (cong unflatten r)
+               (subst₂ HomTerm (cong unflatten p) (cong unflatten q) x)
+  subst₂-cod-trans refl refl refl x = refl
+
+  -- Symmetric: a `subst₂` whose dom equation factors as `trans q r`.
+  subst₂-dom-trans
+    : ∀ {as as' as'' bs bs' : List X}
+        (q : as ≡ as') (r : as' ≡ as'') (p : bs ≡ bs')
+        (x : HomTerm (unflatten as) (unflatten bs))
+    → subst₂ HomTerm (cong unflatten (trans q r)) (cong unflatten p) x
+      ≡ subst₂ HomTerm (cong unflatten r) refl
+               (subst₂ HomTerm (cong unflatten q) (cong unflatten p) x)
+  subst₂-dom-trans refl refl refl x = refl
+
+  -- The complete constructive `bridge`-form for `α⇒` at EVERY object `A`:
+  -- `bridge (α⇒ {A}{B}{C}) ≈Term α⇒-form-list (flatten A)(flatten B)(flatten C)`
+  -- via the postulate-free well-founded worker in `BridgeAlphaFormCompound`.
+  bridge-α⇒-form-full
+    : ∀ A B C → bridge (α⇒ {A} {B} {C})
+              ≈Term α⇒-form-list (flatten A) (flatten B) (flatten C)
+  bridge-α⇒-form-full A B C = BAFC.Worker.work A B C (<-wellFounded _)
 
 --------------------------------------------------------------------------------
 -- ## Algorithm extraction (sig-level), VERBATIM from `DecodeComposeShape`.
@@ -1040,3 +1092,135 @@ module _
           ≈⟨ step-collapse ⟩
         Agen-edge-aux (FlatGen.flat g)
           ∎
+
+  --------------------------------------------------------------------------
+  -- ## `decode (id {A}) ≈Term id` (all objects).
+  --
+  -- The `unit`/`Var` base cases reduce definitionally; the `⊗` case uses the
+  -- PROVEN ⊗-shape residual `DTS.decode-⊗-shape-inner objUIP Kf` (the SAME
+  -- shape lemma the chain already threads) + the IH + the `unflatten-++-≅`
+  -- iso law.  This mirrors `DecodeRoundtrip.decode-id-is-id` but consumes the
+  -- proven shape lemma in place of the `decode-⊗-shape` postulate.
+  decode-id-is-id : ∀ A → decode (id {A}) ≈Term id
+  decode-id-is-id unit = begin
+    (id ∘ id) ∘ id   ≈⟨ idʳ ⟩
+    id ∘ id          ≈⟨ idˡ ⟩
+    id               ∎
+  decode-id-is-id (Var x) = begin
+    ((id ⊗₁ id) ∘ ((id ⊗₁ id) ∘ id)) ∘ id
+                                      ≈⟨ idʳ ⟩
+    (id ⊗₁ id) ∘ ((id ⊗₁ id) ∘ id)    ≈⟨ id⊗id≈id ⟩∘⟨refl ⟩
+    id ∘ ((id ⊗₁ id) ∘ id)            ≈⟨ idˡ ⟩
+    (id ⊗₁ id) ∘ id                   ≈⟨ idʳ ⟩
+    id ⊗₁ id                          ≈⟨ id⊗id≈id ⟩
+    id                                ∎
+  decode-id-is-id (A ⊗₀ B) = begin
+    decode (id {A ⊗₀ B})
+      ≈⟨ DTS.decode-⊗-shape-inner objUIP Kf (id {A}) (id {B}) ⟩
+    cAB-to ∘ (decode (id {A}) ⊗₁ decode (id {B})) ∘ cAB-from
+      ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (decode-id-is-id A) (decode-id-is-id B) ⟩∘⟨refl ⟩
+    cAB-to ∘ (id ⊗₁ id) ∘ cAB-from
+      ≈⟨ refl⟩∘⟨ id⊗id≈id ⟩∘⟨refl ⟩
+    cAB-to ∘ id ∘ cAB-from
+      ≈⟨ refl⟩∘⟨ idˡ ⟩
+    cAB-to ∘ cAB-from
+      ≈⟨ _≅_.isoˡ (unflatten-++-≅ (flatten A) (flatten B)) ⟩
+    id
+      ∎
+    where
+      cAB-to   = _≅_.to   (unflatten-++-≅ (flatten A) (flatten B))
+      cAB-from = _≅_.from (unflatten-++-≅ (flatten A) (flatten B))
+
+  --------------------------------------------------------------------------
+  -- ## `decode-α⇒-collapse` / `decode-α⇐-collapse`.
+  --
+  -- `⟪ α⇒ {A}{B}{C} ⟫ = hId ((A ⊗₀ B) ⊗₀ C)`, so the algorithm interior is
+  -- the SAME `decode-attempt-hId ((A ⊗₀ B) ⊗₀ C)` as `decode (id {(A⊗B)⊗C})`;
+  -- the two `decode`s differ ONLY in the codomain (α⇒) / domain (α⇐) boundary
+  -- equation, which factors as `trans (codL-hId …) (++-assoc …)`.  Peeling
+  -- that with `subst₂-cod-trans` (mirroring the PROVEN `rho⇒-shape`) gives
+  --   `decode (α⇒) ≡ subst₂ refl (cong unflatten (++-assoc …)) (decode (id …))`.
+  -- Then `decode-id-is-id` collapses the interior to `id`; `subst₂-refl-cod`
+  -- turns the one-sided `subst₂` into a `subst`; `α⇒-coh-list` recognises it
+  -- as the canonical `α⇒-form-list`; and `bridge-α⇒-form-full` (the PROVEN,
+  -- postulate-free Mac-Lane worker) reconciles with `bridge α⇒`.  α⇐ is the
+  -- domain-side mirror (`subst₂-dom-trans` + `subst₂-refl-dom` + `α⇐-coh-list`
+  -- + `bridge-α⇐-form` derived from α⇒ via the `α⇒/α⇐`-iso).
+
+  decode-α⇒-collapse
+    : ∀ {A B C} → decode (α⇒ {A} {B} {C}) ≈Term bridge (α⇒ {A} {B} {C})
+  decode-α⇒-collapse {A} {B} {C} = begin
+    decode (α⇒ {A} {B} {C})
+      ≈⟨ ≡⇒≈Term (subst₂-cod-trans (domL-hId D) (codL-hId D) assoc-eq
+                    (proj₁ (decode-attempt-hId D))) ⟩
+    subst₂ HomTerm refl (cong unflatten assoc-eq) (decode (id {D}))
+      ≈⟨ subst₂-resp-≈Term refl (cong unflatten assoc-eq) (decode-id-is-id D) ⟩
+    subst₂ HomTerm refl (cong unflatten assoc-eq) (id {unflatten (flatten D)})
+      ≈⟨ ≡⇒≈Term (subst₂-refl-cod assoc-eq) ⟩
+    subst (λ z → HomTerm (unflatten (flatten D)) (unflatten z)) assoc-eq id
+      ≈⟨ α⇒-coh-list (flatten A) (flatten B) (flatten C) ⟩
+    α⇒-form-list (flatten A) (flatten B) (flatten C)
+      ≈⟨ bridge-α⇒-form-full A B C ⟨
+    bridge (α⇒ {A} {B} {C})
+      ∎
+    where
+      D : ObjTerm
+      D = (A ⊗₀ B) ⊗₀ C
+      assoc-eq : flatten D ≡ flatten A ++ flatten B ++ flatten C
+      assoc-eq = ++-assoc (flatten A) (flatten B) (flatten C)
+
+  -- `bridge (α⇐ {A}{B}{C}) ≈Term α⇐-form-list …`, derived from
+  -- `bridge-α⇒-form-full` exactly as `BridgeAlphaFormCompound.derive-⇐`
+  -- (re-proven inline so we do not need that module's private helper).
+  private
+    bridge-resp-≈Term
+      : ∀ {A B} {f g : HomTerm A B} → f ≈Term g → bridge f ≈Term bridge g
+    bridge-resp-≈Term f≈g = refl⟩∘⟨ f≈g ⟩∘⟨refl
+
+    bridge-α⇐-form-full
+      : ∀ A B C → bridge (α⇐ {A} {B} {C})
+                ≈Term α⇐-form-list (flatten A) (flatten B) (flatten C)
+    bridge-α⇐-form-full A B C = begin
+      bridge (α⇐ {A} {B} {C})
+        ≈⟨ ≈-Term-sym idʳ ⟩
+      bridge (α⇐ {A} {B} {C}) ∘ id
+        ≈⟨ refl⟩∘⟨ ≈-Term-sym (α⇒-α⇐-iso (flatten A) (flatten B) (flatten C)) ⟩
+      bridge (α⇐ {A} {B} {C}) ∘ (αF ∘ αB)
+        ≈⟨ ≈-Term-sym assoc ⟩
+      (bridge (α⇐ {A} {B} {C}) ∘ αF) ∘ αB
+        ≈⟨ (refl⟩∘⟨ ≈-Term-sym (bridge-α⇒-form-full A B C)) ⟩∘⟨refl ⟩
+      (bridge (α⇐ {A} {B} {C}) ∘ bridge (α⇒ {A} {B} {C})) ∘ αB
+        ≈⟨ ≈-Term-sym (bridge-∘ (α⇐ {A} {B} {C}) (α⇒ {A} {B} {C})) ⟩∘⟨refl ⟩
+      bridge (α⇐ {A} {B} {C} ∘ α⇒ {A} {B} {C}) ∘ αB
+        ≈⟨ bridge-resp-≈Term α⇐∘α⇒≈id ⟩∘⟨refl ⟩
+      bridge (id {(A ⊗₀ B) ⊗₀ C}) ∘ αB
+        ≈⟨ bridge-id-is-id ((A ⊗₀ B) ⊗₀ C) ⟩∘⟨refl ⟩
+      id ∘ αB
+        ≈⟨ idˡ ⟩
+      α⇐-form-list (flatten A) (flatten B) (flatten C)
+        ∎
+      where
+        αF = α⇒-form-list (flatten A) (flatten B) (flatten C)
+        αB = α⇐-form-list (flatten A) (flatten B) (flatten C)
+
+  decode-α⇐-collapse
+    : ∀ {A B C} → decode (α⇐ {A} {B} {C}) ≈Term bridge (α⇐ {A} {B} {C})
+  decode-α⇐-collapse {A} {B} {C} = begin
+    decode (α⇐ {A} {B} {C})
+      ≈⟨ ≡⇒≈Term (subst₂-dom-trans (domL-hId D) assoc-eq (codL-hId D)
+                    (proj₁ (decode-attempt-hId D))) ⟩
+    subst₂ HomTerm (cong unflatten assoc-eq) refl (decode (id {D}))
+      ≈⟨ subst₂-resp-≈Term (cong unflatten assoc-eq) refl (decode-id-is-id D) ⟩
+    subst₂ HomTerm (cong unflatten assoc-eq) refl (id {unflatten (flatten D)})
+      ≈⟨ ≡⇒≈Term (subst₂-refl-dom assoc-eq) ⟩
+    subst (λ z → HomTerm (unflatten z) (unflatten (flatten D))) assoc-eq id
+      ≈⟨ α⇐-coh-list (flatten A) (flatten B) (flatten C) ⟩
+    α⇐-form-list (flatten A) (flatten B) (flatten C)
+      ≈⟨ bridge-α⇐-form-full A B C ⟨
+    bridge (α⇐ {A} {B} {C})
+      ∎
+    where
+      D : ObjTerm
+      D = (A ⊗₀ B) ⊗₀ C
+      assoc-eq : flatten D ≡ flatten A ++ flatten B ++ flatten C
+      assoc-eq = ++-assoc (flatten A) (flatten B) (flatten C)

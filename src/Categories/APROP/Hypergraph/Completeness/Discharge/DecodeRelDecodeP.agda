@@ -88,7 +88,10 @@
 --         `K-faithfulness`).
 --   * (U) `RhoShapeResidual`             — PROVEN (postulate-free)
 --   * (U) `DecodeRoundtripAgenSigma.Residuals` (K) — `decode-{Agen,σ}-collapse`
---   * (U) `decode-rel-≈-decode-α{⇒,⇐}`   — 2 atomic associator obligations
+--   * (U) `decode-rel-≈-decode-α{⇒,⇐}`   — NO LONGER POSTULATES.  Now
+--         DEFINITIONS (`Wired.decode-rel-≈-decode-α{⇒,⇐}`) consuming the
+--         PROVEN, postulate-free collapses
+--         `Sub.DecodeAgenSigmaShape.decode-α{⇒,⇐}-collapse objUIP K`.
 --   * (B) `decodeP-≈-decode-∘`           — pruned `∘` bridge
 --   * (B) `decodeP-≈-decode-⊗`           — pruned `⊗` bridge
 --
@@ -104,11 +107,13 @@
 -- machinery as the unpruned proof (tensor is not pruned), so it consumes
 -- NO `nf-bracket` / `swap-atom-aligned` kernel.
 --
--- LIVE postulates in THIS module (2): `decode-rel-≈-decode-α⇒`,
--- `decode-rel-≈-decode-α⇐`.
--- (`decodeShapeResiduals`, `agenSigmaResiduals` AND `decodePShapeResiduals`
--- are ALL GONE — each is now a DEFINITION in `module Wired`, consuming the
--- proven, postulate-free shape / single-edge-collapse / pruned-shape lemmas.)
+-- LIVE postulates in THIS module: NONE.  The postulate block is EMPTY.
+-- (`decodeShapeResiduals`, `agenSigmaResiduals`, `decodePShapeResiduals`
+-- AND the two α atomics `decode-rel-≈-decode-α{⇒,⇐}` are ALL now
+-- DEFINITIONS in `module Wired`, consuming the proven, postulate-free
+-- shape / single-edge-collapse / α-collapse / pruned-shape lemmas.)  The
+-- transitive live trust surface of part (I) is thus {K-faithfulness,
+-- nf-bracket}.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -225,12 +230,14 @@ private
 -- `FromAssumptions.DecodeRelDecode.decode-rel-≈-decode-impl`.)
 --------------------------------------------------------------------------------
 
-postulate
-  -- (U/M) the two atomic associator obligations (bare params upstream too).
-  decode-rel-≈-decode-α⇒
-    : ∀ {A B C} → decode-rel (α⇒ {A} {B} {C}) ≈Term decode (α⇒ {A} {B} {C})
-  decode-rel-≈-decode-α⇐
-    : ∀ {A B C} → decode-rel (α⇐ {A} {B} {C}) ≈Term decode (α⇐ {A} {B} {C})
+-- (U/M) The two atomic associator obligations are NO LONGER POSTULATES.
+-- They are now DEFINITIONS in `module Wired` below, derived from the
+-- PROVEN, postulate-free single-edge-style collapses
+-- `DAS.decode-α{⇒,⇐}-collapse objUIP K` (Sub.DecodeAgenSigmaShape):
+-- `decode-rel (α⇒) = bridge (α⇒)` DEFINITIONALLY (DecodeRel.agda), so
+-- each is `≈-Term-sym (decode-α{⇒,⇐}-collapse …)`.  This empties the
+-- DecodeRelDecodeP postulate block entirely; the live trust surface of
+-- the whole part-(I) chain is now exactly {K-faithfulness, nf-bracket}.
 
 --------------------------------------------------------------------------------
 -- ## (U/M) `rhoShapeResidual` — PROVEN (postulate-free).
@@ -396,6 +403,20 @@ module Wired
     { decode-Agen-collapse = λ {A} {B} g → DAS.decode-Agen-collapse objUIP K g
     ; decode-σ-collapse    = λ {A} {B} ⦃ s ⦄ → DAS.decode-σ-collapse objUIP K ⦃ s ⦄
     }
+
+  -- The two atomic associator obligations, now DEFINITIONS (no longer
+  -- postulates).  `decode-rel (α{⇒,⇐}) = bridge (α{⇒,⇐})` DEFINITIONALLY
+  -- (DecodeRel.agda), so each is `≈-Term-sym` of the PROVEN, postulate-free
+  -- collapse `DAS.decode-α{⇒,⇐}-collapse objUIP K` (Sub.DecodeAgenSigmaShape).
+  decode-rel-≈-decode-α⇒
+    : ∀ {A B C} → decode-rel (α⇒ {A} {B} {C}) ≈Term decode (α⇒ {A} {B} {C})
+  decode-rel-≈-decode-α⇒ {A} {B} {C} =
+    ≈-Term-sym (DAS.decode-α⇒-collapse objUIP K {A} {B} {C})
+
+  decode-rel-≈-decode-α⇐
+    : ∀ {A B C} → decode-rel (α⇐ {A} {B} {C}) ≈Term decode (α⇐ {A} {B} {C})
+  decode-rel-≈-decode-α⇐ {A} {B} {C} =
+    ≈-Term-sym (DAS.decode-α⇐-collapse objUIP K {A} {B} {C})
 
   -- `decodePShapeResiduals` is now a DEFINITION consuming the two proven,
   -- postulate-free PRUNED shape lemmas (no longer a postulate).  The field
