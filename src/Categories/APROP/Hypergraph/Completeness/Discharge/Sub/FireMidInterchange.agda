@@ -333,6 +333,11 @@ module _ (H : Hypergraph FlatGen)
     field
       -- `nf₁`: e-first single-order block normal form (the genuine
       -- Mac-Lane "two boxes on disjoint factors = tensor of boxes" chase).
+      -- Carries the two `Unique` witnesses the Kelly-faithfulness keystone
+      -- needs to reconcile the firing vs. block locating permutes:
+      --   * `us-sp  : Unique sp`              (the input stack)
+      --   * `us-cod : Unique (eout e' ++ r₂)` (THIS order's final stack —
+      --     `nf₁` fires `e ∷ e'`, landing in `eout e' ++ r₂`).
       nf₁-eq
         : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
             (sp : List (Fin H.nV))
@@ -340,13 +345,16 @@ module _ (H : Hypergraph FlatGen)
             (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
             (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
             (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+            (us-sp  : Unique sp) (us-cod : Unique (H.eout e' ++ r₂))
         → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
           in ( fire-mid H e' r₂ ∘ permute-via-vlab H.vlab p₂
                  ∘ fire-mid H e r₁ ∘ permute-via-vlab H.vlab p₁ )
              ≈Term ( permute-via-vlab H.vlab vout-loc₁ ∘ _≅_.to (view-out≅ e e' Rlist) )
                    ∘ ((box-e e ⊗₁ box-e e') ⊗₁ id)
                    ∘ ( _≅_.from (view-in≅ e e' Rlist) ∘ permute-via-vlab H.vlab loc₁ )
-      -- `nf₂`: e'-first single-order block normal form.
+      -- `nf₂`: e'-first single-order block normal form.  Mirror `Unique`
+      -- witnesses: `us-sp : Unique sp`, `us-cod : Unique (eout e ++ r₁')`
+      -- (THIS order fires `e' ∷ e`, landing in `eout e ++ r₁'`).
       nf₂-eq
         : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
             (sp : List (Fin H.nV))
@@ -354,6 +362,7 @@ module _ (H : Hypergraph FlatGen)
             (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
             (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
             (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+            (us-sp  : Unique sp) (us-cod : Unique (H.eout e ++ r₁'))
         → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
           in ( fire-mid H e r₁' ∘ permute-via-vlab H.vlab p₁'
                  ∘ fire-mid H e' r₂' ∘ permute-via-vlab H.vlab p₂' )
@@ -559,8 +568,8 @@ module _ (H : Hypergraph FlatGen)
   -- i.e. the genuine Mac-Lane kernel (`≈ swap-atom-aligned`, open under
   -- `--with-K` too).  This collapses the previous TWO `nf` postulates into ONE.
   postulate
-    nf-bracket : Nf2.BlockBracket H
-  private module NfInst = Nf2.Instantiate H nf-bracket dih lin
+    nf-bracket : Nf2.BlockBracket H K
+  private module NfInst = Nf2.Instantiate H K nf-bracket dih lin
   nf₁-eq′ = NfInst.nf₁-eq-derived
   nf₂-eq′ = NfInst.nf₂-eq-derived
 
@@ -593,12 +602,18 @@ module _ (H : Hypergraph FlatGen)
     ; r-stk = r-stk
     ; vin-coh  = vin-coh-eq  inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp
     ; vout-coh = vout-coh-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-cod
-    ; nf₁ = nf₁-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
-    ; nf₂ = nf₂-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+    ; nf₁ = nf₁-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod₁
+    ; nf₂ = nf₂-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod
     }
     where
       open BlockNFResidual block-nf-residual
       open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+      -- `nf₁` fires the `e ∷ e'` order, landing in `eout e' ++ r₂`.  Its
+      -- final-stack freshness is the e-first run's `us-cod` (the `e' ∷ e`
+      -- run's final stack `eout e ++ r₁'`) transported back across the
+      -- inter-order reshuffle `r-stk : eout e' ++ r₂ ↭ eout e ++ r₁'`.
+      us-cod₁ : Unique (H.eout e' ++ r₂)
+      us-cod₁ = SU.Unique-resp-↭ (Perm.↭-sym r-stk) us-cod
 
   fire-mid-interchange
     : ∀ {e e' : Fin H.nE} (inc : Incomp e e')

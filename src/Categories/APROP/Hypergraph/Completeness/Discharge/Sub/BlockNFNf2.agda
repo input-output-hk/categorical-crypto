@@ -68,16 +68,27 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidInterchangeComb sig as Comb
 
+-- The Kelly faithfulness residual `K` (over this signature's
+-- `asFreeMonoidalData`).  Carried as a module parameter below: the
+-- eventual proof of `block-bracket` needs it (via
+-- `permute-via-vlab-≈Term-coherence-K`) to reconcile the firing locating
+-- permutes against the block-locating permutes on the `Unique` codomains.
+open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
+  using (FaithfulnessResidual)
+
 open import Data.Fin using (Fin)
 open import Data.List using (List; _++_; map)
 open import Data.List.Properties using (map-++)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Data.Product using (proj₁; proj₂)
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; cong; subst₂)
 
-module _ (H : Hypergraph FlatGen) where
+module _ (H : Hypergraph FlatGen)
+         (K : FaithfulnessResidual)
+         where
   private module H = Hypergraph H
 
   private
@@ -152,6 +163,33 @@ module _ (H : Hypergraph FlatGen) where
   -- hypothesis, and the `FireMidInterchangeComb` dependency: the locating
   -- permutes are plain `↭` arguments.
 
+  -- ## SOUNDNESS: the `Unique` hypotheses (`us-sp` / `us-cod`) are NOT
+  -- decorative — without them the equation is FALSE-as-stated.
+  --
+  -- A proof must reconcile the FIRING locating permutes (`q-first` /
+  -- `q-second`, inside the LHS `fire-mid ∘ permute` boxes) against the
+  -- BLOCK locating permutes (`loc` / `vout-loc`, in the RHS view frames).
+  -- These are independent `↭`-derivations whose codomains are
+  -- re-bracketings of one another, and the ONLY device that equates
+  -- `permute-via-vlab p ≈Term permute-via-vlab q` for two such derivations
+  -- is the Kelly-faithfulness keystone
+  -- `permute-via-vlab-≈Term-coherence-K K vlab uniq p q`, which holds ONLY
+  -- when the (Fin-level) codomain `uniq` is `Unique` (the unrestricted
+  -- statement is FALSE — `PermuteCoherence.Sub.PermuteCoherence`
+  -- counter-example).  For a `sp` (or output stack) with a duplicated
+  -- vertex one can pick `q-first` / `loc` (resp. `vout-loc`) realising
+  -- DIFFERENT position bijections, and the equation fails.
+  --
+  --   * `us-sp  : Unique sp`              — gates the INPUT reconciliation
+  --     (`q-first`/`q-second`/`loc` all have codomains that are
+  --     `↭`-images of `sp`, hence `Unique` by `Unique-resp-↭`).
+  --   * `us-cod : Unique (H.eout b ++ s₂)` — gates the OUTPUT reconciliation
+  --     (`vout-loc`'s codomain is the FINAL stack `eout b ++ s₂`, whose
+  --     freshness is the post-run reservoir fact, NOT derivable from `us-sp`).
+  --
+  -- These are exactly the witnesses `FireMidInterchange.block-nf` already
+  -- threads (`Unique sp` + `Unique (eout e ++ r₁')`, the latter reshuffled
+  -- to the other order's final stack by `r-stk`).
   record BlockBracket : Set where
     field
       block-bracket
@@ -162,6 +200,8 @@ module _ (H : Hypergraph FlatGen) where
             (R  : List (Fin H.nV))
             (loc      : sp Perm.↭ (H.ein a ++ H.ein b) ++ R)
             (vout-loc : (H.eout a ++ H.eout b) ++ R Perm.↭ H.eout b ++ s₂)
+            (us-sp  : Unique sp)
+            (us-cod : Unique (H.eout b ++ s₂))
         → ( fire-mid H b s₂ ∘ permute-via-vlab H.vlab q-second
               ∘ fire-mid H a s₁ ∘ permute-via-vlab H.vlab q-first )
           ≈Term ( permute-via-vlab H.vlab vout-loc ∘ _≅_.to (view-out≅ a b R) )
@@ -187,6 +227,8 @@ module _ (H : Hypergraph FlatGen) where
           (R  : List (Fin H.nV))
           (loc      : sp Perm.↭ (H.ein a ++ H.ein b) ++ R)
           (vout-loc : (H.eout a ++ H.eout b) ++ R Perm.↭ H.eout b ++ s₂)
+          (us-sp  : Unique sp)
+          (us-cod : Unique (H.eout b ++ s₂))
       → ( fire-mid H b s₂ ∘ permute-via-vlab H.vlab q-second
             ∘ fire-mid H a s₁ ∘ permute-via-vlab H.vlab q-first )
         ≈Term ( permute-via-vlab H.vlab vout-loc ∘ _≅_.to (view-out≅ a b R) )
@@ -232,14 +274,15 @@ module _ (H : Hypergraph FlatGen) where
             (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
             (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
             (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+            (us-sp  : Unique sp) (us-cod : Unique (H.eout e ++ r₁'))
         → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
           in ( fire-mid H e r₁' ∘ permute-via-vlab H.vlab p₁'
                  ∘ fire-mid H e' r₂' ∘ permute-via-vlab H.vlab p₂' )
              ≈Term ( permute-via-vlab H.vlab vout-loc₂ ∘ _≅_.to (view-out≅ e' e Rlist) )
                    ∘ ((box-e e' ⊗₁ box-e e) ⊗₁ id)
                    ∘ ( _≅_.from (view-in≅ e' e Rlist) ∘ permute-via-vlab H.vlab loc₂ )
-      nf₂-eq-derived {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' =
-        block-nf-generic e' e sp r₂' p₂' r₁' p₁' Rlist loc₂ vout-loc₂
+      nf₂-eq-derived {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod =
+        block-nf-generic e' e sp r₂' p₂' r₁' p₁' Rlist loc₂ vout-loc₂ us-sp us-cod
         where open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
 
       -- `nf₁-eq′`: the e-first order (the MIRROR).  Blocks `a = e`,
@@ -252,12 +295,13 @@ module _ (H : Hypergraph FlatGen) where
             (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
             (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
             (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+            (us-sp  : Unique sp) (us-cod : Unique (H.eout e' ++ r₂))
         → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
           in ( fire-mid H e' r₂ ∘ permute-via-vlab H.vlab p₂
                  ∘ fire-mid H e r₁ ∘ permute-via-vlab H.vlab p₁ )
              ≈Term ( permute-via-vlab H.vlab vout-loc₁ ∘ _≅_.to (view-out≅ e e' Rlist) )
                    ∘ ((box-e e ⊗₁ box-e e') ⊗₁ id)
                    ∘ ( _≅_.from (view-in≅ e e' Rlist) ∘ permute-via-vlab H.vlab loc₁ )
-      nf₁-eq-derived {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' =
-        block-nf-generic e e' sp r₁ p₁ r₂ p₂ Rlist loc₁ vout-loc₁
+      nf₁-eq-derived {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod =
+        block-nf-generic e e' sp r₁ p₁ r₂ p₂ Rlist loc₁ vout-loc₁ us-sp us-cod
         where open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
