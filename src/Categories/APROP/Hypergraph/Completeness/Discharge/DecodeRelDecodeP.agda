@@ -78,8 +78,15 @@
 --
 -- ## Final residual surface of `decode-rel-≈-decodeP` (transitive)
 --
---   * (U) `DecodeShapeResiduals`         — 2 fields: `decode-{∘,⊗}-shape-inner`
---   * (U) `RhoShapeResidual`             — 2 fields: `decode-{ρ⇒,ρ⇐}-shape`
+--   * (U) `DecodeShapeResiduals`         — NO LONGER A POSTULATE.  Now a
+--         DEFINITION (`Wired.decodeShapeResiduals`) consuming the two
+--         PROVEN, postulate-free shape lemmas
+--         `Sub.DecodeComposeShape.decode-∘-shape-inner` /
+--         `Sub.DecodeTensorShape.decode-⊗-shape-inner` (parameterised by
+--         `objUIP` + `K : FaithfulnessResidual`, threaded from
+--         `DecodeRelRespIsoWired`'s discharged `objUIP` / postulated
+--         `K-faithfulness`).
+--   * (U) `RhoShapeResidual`             — PROVEN (postulate-free)
 --   * (U) `DecodeRoundtripAgenSigma.Residuals` (K) — `decode-{Agen,σ}-collapse`
 --   * (U) `decode-rel-≈-decode-α{⇒,⇐}`   — 2 atomic associator obligations
 --   * (B) `decodeP-≈-decode-∘`           — pruned `∘` bridge
@@ -87,7 +94,12 @@
 --
 -- All of (U) is the SHARED unpruned/interchange residual surface (no new
 -- trust beyond what the `decode`-side proof already assumes).  The only
--- pruning-specific new trust is the two (B) bridges.
+-- pruning-specific new trust is the two (B) bridges (factored through the
+-- single `decodePShapeResiduals` postulate).
+--
+-- LIVE postulates in THIS module (4): `agenSigmaResiduals`,
+-- `decode-rel-≈-decode-α⇒`, `decode-rel-≈-decode-α⇐`,
+-- `decodePShapeResiduals`.  (`decodeShapeResiduals` is GONE.)
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -121,6 +133,11 @@ open import Categories.APROP.Hypergraph.Completeness.DecoderAgreementSafe sig
         ; unapply-∘-shape; unapply-⊗-shape )
 open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeShape sig
   using (DecodeShapeResiduals; module DecodeShapeResiduals)
+-- The two PROVEN, postulate-free shape lemmas (the ∘-side and the ⊗-side),
+-- each in a top-level `module _ (objUIP)(Kf)`.  We consume them below to
+-- turn `decodeShapeResiduals` from a postulate into a DEFINITION.
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeComposeShape sig as DCS
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig as DTS
 import Categories.APROP.Hypergraph.Completeness.Discharge.DecoderAgreementCases as Cases
 module Cases-sig = Cases sig
 import Categories.APROP.Hypergraph.Completeness.Discharge.DecoderAgreementRho as Rho
@@ -133,6 +150,11 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRoundtripAg
 -- see §(B) below).
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.ProcessEdgesTermShape sig
   using (DecodePShapeResiduals; module Assemble)
+
+-- The Kelly faithfulness residual type, threaded (together with `objUIP`)
+-- from `DecodeRelRespIsoWired` down to the two proven shape lemmas.
+open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
+  using (FaithfulnessResidual)
 
 open import Categories.Category using (Category)
 open import Data.Product using (proj₁)
@@ -186,8 +208,6 @@ private
 --------------------------------------------------------------------------------
 
 postulate
-  -- (U/S) the unpruned shape residuals: `decode-{∘,⊗}-shape-inner`.
-  decodeShapeResiduals : DecodeShapeResiduals
   -- (U/K) the unpruned single-edge collapses: `decode-{Agen,σ}-collapse`.
   agenSigmaResiduals   : Residuals
   -- (U/M) the two atomic associator obligations (bare params upstream too).
@@ -277,56 +297,6 @@ rhoShapeResidual = record
   ; decode-ρ⇐-shape = rho⇐-shape
   }
 
--- Assemble the unpruned `DecoderAgreementAssumptions` from the residual
--- records (mirrors `FromAssumptions.DecodeRelDecode`, but inline with
--- `sig` only — the Agen/σ wiring `≈-Term-sym (decode-{Agen,σ}-collapse)`
--- is `sig`-level so we do not need `sig-dec`).
-private
-  module Shape = DecodeShapeResiduals decodeShapeResiduals
-  module AS    = Residuals agenSigmaResiduals
-
-  ty-⊗-shape : Ty-⊗-shape
-  ty-⊗-shape = unapply-⊗-shape (λ {A} {B} {C} {D} f g → Shape.decode-⊗-shape-inner f g)
-
-  ty-∘-shape : Ty-∘-shape
-  ty-∘-shape = unapply-∘-shape (λ {A} {B} {C} g f → Shape.decode-∘-shape-inner g f)
-
-  module CasesShape = Cases-sig.FromShape ty-⊗-shape
-  module RhoShape   = Rho-sig.FromShape ty-⊗-shape rhoShapeResidual
-
-  ty-Agen : Ty-Agen
-  ty-Agen = unapply-Agen (λ {A} {B} g → ≈-Term-sym (AS.decode-Agen-collapse g))
-
-  ty-σ : Ty-σ
-  ty-σ = unapply-σ (λ {A} {B} ⦃ s ⦄ → ≈-Term-sym (AS.decode-σ-collapse ⦃ s ⦄))
-
-  ty-α⇒ : Ty-α⇒
-  ty-α⇒ = unapply-α⇒ (λ {A} {B} {C} → decode-rel-≈-decode-α⇒ {A} {B} {C})
-
-  ty-α⇐ : Ty-α⇐
-  ty-α⇐ = unapply-α⇐ (λ {A} {B} {C} → decode-rel-≈-decode-α⇐ {A} {B} {C})
-
-  unprunedAssumptions : DecoderAgreementAssumptions
-  unprunedAssumptions = record
-    { decode-rel-≈-decode-Agen-T = ty-Agen
-    ; decode-rel-≈-decode-σ-T    = ty-σ
-    ; decode-rel-≈-decode-id-T   = CasesShape.ty-id
-    ; decode-rel-≈-decode-λ⇒-T  = CasesShape.ty-λ⇒
-    ; decode-rel-≈-decode-λ⇐-T  = CasesShape.ty-λ⇐
-    ; decode-rel-≈-decode-ρ⇒-T  = RhoShape.ty-ρ⇒
-    ; decode-rel-≈-decode-ρ⇐-T  = RhoShape.ty-ρ⇐
-    ; decode-rel-≈-decode-α⇒-T  = ty-α⇒
-    ; decode-rel-≈-decode-α⇐-T  = ty-α⇐
-    ; decode-∘-shape-T           = ty-∘-shape
-    ; decode-⊗-shape-T           = ty-⊗-shape
-    }
-
--- The unpruned dispatcher, derived constructively (induction on `f`) from
--- the assembled assumptions via `DecoderAgreementSafe.WithAssumptions`.
-decode-rel-≈-decode
-  : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term decode f
-decode-rel-≈-decode = WithAssumptions.decode-rel-≈-decode unprunedAssumptions
-
 --------------------------------------------------------------------------------
 -- ## (B) The pruned-vs-unpruned BRIDGE, factored through PRUNED shapes.
 --
@@ -364,58 +334,149 @@ postulate
   -- (B) the SOLE pruning-specific residual: the two PRUNED shape lemmas.
   decodePShapeResiduals : DecodePShapeResiduals
 
-private
-  -- The factoring assembler, instantiated with `decode`, the unpruned
-  -- shape residuals, and the pruned shape residuals.
-  module Asm = Assemble decode
-                 (λ {A} {B} {C} g f → Shape.decode-∘-shape-inner g f)
-                 (λ {A} {B} {C} {D} f g → Shape.decode-⊗-shape-inner f g)
-                 decodePShapeResiduals
+--------------------------------------------------------------------------------
+-- ## Threading `objUIP` + `K : FaithfulnessResidual`.
+--
+-- The two unpruned shape residuals `decode-{∘,⊗}-shape-inner` are now
+-- DEFINITIONS (postulate-free) in `Sub.DecodeComposeShape` /
+-- `Sub.DecodeTensorShape`, each parameterised by `objUIP` + a Kelly
+-- `FaithfulnessResidual`.  These are exactly the two K-inputs the rest of
+-- the completeness chain threads: `DecodeRelRespIsoWired` postulates a
+-- fresh `K-faithfulness` and DISCHARGES `objUIP` (Hedberg, via
+-- `Discharge.ObjUIP`), then supplies BOTH to `run-interchange-⟪⟫` /
+-- `decodeP-resp-iso`.  We mirror that here: everything that consumes the
+-- shape residuals is parameterised by `(objUIP)(K)`, and
+-- `DecodeRelRespIsoWired` passes its own `objUIP`/`K-faithfulness` at the
+-- consume site (`decode-rel-≈-decodeP = DRDP.decode-rel-≈-decodeP objUIP
+-- K-faithfulness`).  `agenSigmaResiduals` / the α atomics / the pruned
+-- `decodePShapeResiduals` stay parameter-free postulates.
+--------------------------------------------------------------------------------
 
--- The full pruned-vs-unpruned bridge, polymorphic in `f`.  ATOMIC cases:
--- `refl` (each `decodeP X ≡ decode X` definitionally).  Recursive cases:
--- the factoring assemblers, fed the recursion RESULTS on the
--- structurally-smaller sub-terms (so termination is visible).
-decodeP-≈-decode : ∀ {A B} (f : HomTerm A B) → decodeP f ≈Term decode f
-decodeP-≈-decode (Agen g)  = ≡⇒≈Term refl
-decodeP-≈-decode (σ ⦃ s ⦄) = ≡⇒≈Term refl
-decodeP-≈-decode id        = ≡⇒≈Term refl
-decodeP-≈-decode λ⇒        = ≡⇒≈Term refl
-decodeP-≈-decode λ⇐        = ≡⇒≈Term refl
-decodeP-≈-decode ρ⇒        = ≡⇒≈Term refl
-decodeP-≈-decode ρ⇐        = ≡⇒≈Term refl
-decodeP-≈-decode α⇒        = ≡⇒≈Term refl
-decodeP-≈-decode α⇐        = ≡⇒≈Term refl
-decodeP-≈-decode (g ∘ f)   =
-  Asm.decodeP-≈-decode-∘-from g f (decodeP-≈-decode g) (decodeP-≈-decode f)
-decodeP-≈-decode (f ⊗₁ g)  =
-  Asm.decodeP-≈-decode-⊗-from f g (decodeP-≈-decode f) (decodeP-≈-decode g)
+module Wired
+  (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
+  (K : FaithfulnessResidual)
+  where
 
--- The two bridge interfaces (same types as the old postulates), now
--- DERIVED.  Kept as named top-level values so `DecodeRelRespIsoWired`
--- (and any other consumer that referenced the old postulate names) can
--- still cite them directly.
-decodeP-≈-decode-∘
-  : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
-  → decodeP (g ∘ f) ≈Term decode (g ∘ f)
-decodeP-≈-decode-∘ g f = decodeP-≈-decode (g ∘ f)
+  -- `decodeShapeResiduals` is now a DEFINITION consuming the two proven,
+  -- postulate-free shape lemmas (no longer a postulate).
+  decodeShapeResiduals : DecodeShapeResiduals
+  decodeShapeResiduals = record
+    { decode-∘-shape-inner = DCS.decode-∘-shape-inner objUIP K
+    ; decode-⊗-shape-inner = DTS.decode-⊗-shape-inner objUIP K
+    }
 
-decodeP-≈-decode-⊗
-  : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
-  → decodeP (f ⊗₁ g) ≈Term decode (f ⊗₁ g)
-decodeP-≈-decode-⊗ f g = decodeP-≈-decode (f ⊗₁ g)
+  -- Assemble the unpruned `DecoderAgreementAssumptions` from the residual
+  -- records (mirrors `FromAssumptions.DecodeRelDecode`, but inline with
+  -- `sig` only — the Agen/σ wiring `≈-Term-sym (decode-{Agen,σ}-collapse)`
+  -- is `sig`-level so we do not need `sig-dec`).
+  private
+    module Shape = DecodeShapeResiduals decodeShapeResiduals
+    module AS    = Residuals agenSigmaResiduals
+
+    ty-⊗-shape : Ty-⊗-shape
+    ty-⊗-shape = unapply-⊗-shape (λ {A} {B} {C} {D} f g → Shape.decode-⊗-shape-inner f g)
+
+    ty-∘-shape : Ty-∘-shape
+    ty-∘-shape = unapply-∘-shape (λ {A} {B} {C} g f → Shape.decode-∘-shape-inner g f)
+
+    module CasesShape = Cases-sig.FromShape ty-⊗-shape
+    module RhoShape   = Rho-sig.FromShape ty-⊗-shape rhoShapeResidual
+
+    ty-Agen : Ty-Agen
+    ty-Agen = unapply-Agen (λ {A} {B} g → ≈-Term-sym (AS.decode-Agen-collapse g))
+
+    ty-σ : Ty-σ
+    ty-σ = unapply-σ (λ {A} {B} ⦃ s ⦄ → ≈-Term-sym (AS.decode-σ-collapse ⦃ s ⦄))
+
+    ty-α⇒ : Ty-α⇒
+    ty-α⇒ = unapply-α⇒ (λ {A} {B} {C} → decode-rel-≈-decode-α⇒ {A} {B} {C})
+
+    ty-α⇐ : Ty-α⇐
+    ty-α⇐ = unapply-α⇐ (λ {A} {B} {C} → decode-rel-≈-decode-α⇐ {A} {B} {C})
+
+    unprunedAssumptions : DecoderAgreementAssumptions
+    unprunedAssumptions = record
+      { decode-rel-≈-decode-Agen-T = ty-Agen
+      ; decode-rel-≈-decode-σ-T    = ty-σ
+      ; decode-rel-≈-decode-id-T   = CasesShape.ty-id
+      ; decode-rel-≈-decode-λ⇒-T  = CasesShape.ty-λ⇒
+      ; decode-rel-≈-decode-λ⇐-T  = CasesShape.ty-λ⇐
+      ; decode-rel-≈-decode-ρ⇒-T  = RhoShape.ty-ρ⇒
+      ; decode-rel-≈-decode-ρ⇐-T  = RhoShape.ty-ρ⇐
+      ; decode-rel-≈-decode-α⇒-T  = ty-α⇒
+      ; decode-rel-≈-decode-α⇐-T  = ty-α⇐
+      ; decode-∘-shape-T           = ty-∘-shape
+      ; decode-⊗-shape-T           = ty-⊗-shape
+      }
+
+  -- The unpruned dispatcher, derived constructively (induction on `f`) from
+  -- the assembled assumptions via `DecoderAgreementSafe.WithAssumptions`.
+  decode-rel-≈-decode
+    : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term decode f
+  decode-rel-≈-decode = WithAssumptions.decode-rel-≈-decode unprunedAssumptions
+
+  private
+    -- The factoring assembler, instantiated with `decode`, the unpruned
+    -- shape residuals, and the pruned shape residuals.
+    module Asm = Assemble decode
+                   (λ {A} {B} {C} g f → Shape.decode-∘-shape-inner g f)
+                   (λ {A} {B} {C} {D} f g → Shape.decode-⊗-shape-inner f g)
+                   decodePShapeResiduals
+
+  -- The full pruned-vs-unpruned bridge, polymorphic in `f`.  ATOMIC cases:
+  -- `refl` (each `decodeP X ≡ decode X` definitionally).  Recursive cases:
+  -- the factoring assemblers, fed the recursion RESULTS on the
+  -- structurally-smaller sub-terms (so termination is visible).
+  decodeP-≈-decode : ∀ {A B} (f : HomTerm A B) → decodeP f ≈Term decode f
+  decodeP-≈-decode (Agen g)  = ≡⇒≈Term refl
+  decodeP-≈-decode (σ ⦃ s ⦄) = ≡⇒≈Term refl
+  decodeP-≈-decode id        = ≡⇒≈Term refl
+  decodeP-≈-decode λ⇒        = ≡⇒≈Term refl
+  decodeP-≈-decode λ⇐        = ≡⇒≈Term refl
+  decodeP-≈-decode ρ⇒        = ≡⇒≈Term refl
+  decodeP-≈-decode ρ⇐        = ≡⇒≈Term refl
+  decodeP-≈-decode α⇒        = ≡⇒≈Term refl
+  decodeP-≈-decode α⇐        = ≡⇒≈Term refl
+  decodeP-≈-decode (g ∘ f)   =
+    Asm.decodeP-≈-decode-∘-from g f (decodeP-≈-decode g) (decodeP-≈-decode f)
+  decodeP-≈-decode (f ⊗₁ g)  =
+    Asm.decodeP-≈-decode-⊗-from f g (decodeP-≈-decode f) (decodeP-≈-decode g)
+
+  -- The two bridge interfaces (same types as the old postulates), now
+  -- DERIVED.  Kept as named values so consumers that referenced the old
+  -- postulate names can still cite them directly.
+  decodeP-≈-decode-∘
+    : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
+    → decodeP (g ∘ f) ≈Term decode (g ∘ f)
+  decodeP-≈-decode-∘ g f = decodeP-≈-decode (g ∘ f)
+
+  decodeP-≈-decode-⊗
+    : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
+    → decodeP (f ⊗₁ g) ≈Term decode (f ⊗₁ g)
+  decodeP-≈-decode-⊗ f g = decodeP-≈-decode (f ⊗₁ g)
+
+  --------------------------------------------------------------------------------
+  -- ## The dispatcher (public interface).
+  --
+  --     decode-rel f ≈⟨ decode-rel-≈-decode f ⟩ decode f
+  --                  ≈⟨ sym (decodeP-≈-decode f) ⟩ decodeP f
+  --
+  -- This is the value wired into `DecodeRelRespIsoWired` in place of the
+  -- wholesale postulate.
+  --------------------------------------------------------------------------------
+
+  decode-rel-≈-decodeP
+    : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term decodeP f
+  decode-rel-≈-decodeP f =
+    ≈-Term-trans (decode-rel-≈-decode f) (≈-Term-sym (decodeP-≈-decode f))
 
 --------------------------------------------------------------------------------
--- ## The dispatcher (public interface).
---
---     decode-rel f ≈⟨ decode-rel-≈-decode f ⟩ decode f
---                  ≈⟨ sym (decodeP-≈-decode f) ⟩ decodeP f
---
--- This is the value to wire into `DecodeRelRespIsoWired` in place of the
--- wholesale postulate.
+-- Top-level re-export: the dispatcher as a function of the two K-inputs.
+-- `DecodeRelRespIsoWired` applies it to its own `objUIP`/`K-faithfulness`.
 --------------------------------------------------------------------------------
 
 decode-rel-≈-decodeP
-  : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term decodeP f
-decode-rel-≈-decodeP f =
-  ≈-Term-trans (decode-rel-≈-decode f) (≈-Term-sym (decodeP-≈-decode f))
+  : (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
+    (K : FaithfulnessResidual)
+  → ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term decodeP f
+decode-rel-≈-decodeP objUIP K = Wired.decode-rel-≈-decodeP objUIP K
