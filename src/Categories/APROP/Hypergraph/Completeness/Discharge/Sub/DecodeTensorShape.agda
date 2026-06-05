@@ -84,10 +84,14 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (decode; decode-attempt-Linear
         ; process-edges-↑ˡ-on-mixed; process-edges-↑ʳ-on-perm
         ; edge-step-↑ˡ-on-mixed; edge-step-↑ˡ-on-mixed-just
-        ; edge-step-↑ˡ-on-mixed-nothing)
+        ; edge-step-↑ˡ-on-mixed-nothing
+        ; edge-step-↑ʳ-on-mixed-just; edge-step-↑ʳ-on-mixed-nothing
+        ; edge-step-↑ʳ-on-perm)
 open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
   using (extract-prefix-↑ˡ-on-mixed-just; extract-prefix-↑ˡ-on-mixed-nothing
-        ; extract-prefix-via-injective-just; extract-prefix-via-injective-nothing)
+        ; extract-prefix-via-injective-just; extract-prefix-via-injective-nothing
+        ; extract-prefix-↑ʳ-on-mixed-just; extract-prefix-↑ʳ-on-mixed-nothing
+        ; extract-prefix-↭-residual; extract-prefix-↭-nothing)
 import Categories.APROP.Hypergraph.Completeness.Linearity sig as Lin
 import Categories.APROP.Hypergraph.Invariant sig as Inv
 
@@ -108,7 +112,8 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.CIsoAssocFromCons
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
   using (Agen-edge-aux)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation sig
-  using (EdgeStepR; skipR; fireR; fire-term; fire-mid; box-of; box-of-cong; edge-step-graph)
+  using (EdgeStepR; skipR; fireR; fire-term; fire-mid; box-of; box-of-cong
+        ; edge-step-graph; edge-step-sound)
 
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
@@ -6079,6 +6084,732 @@ module BlockFactor
           ∘ to-mid
           ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys)
           ∘ from-dom ∎
+
+  ------------------------------------------------------------------------
+  -- ### `kfac-head` — the single-K-edge HEAD reconciliation (K-analogue of
+  -- `fire-core`/`edge-suffix-factor`).
+  --
+  --   pvlC pf1 ∘ tH ≈Term KCleanHead e P ys ∘ pvlC pf
+  --
+  -- where `tH = proj₂ (edge-step C (ψK e) s)`, `pf : s ↭ injL P ++ injR ys`
+  -- (the actual mixed stack only `↭`s the clean form — the K-prepend
+  -- wrinkle), and `pf1 : (proj₁ (edge-step C (ψK e) s)) ↭ injL P ++ injR
+  -- (ys-step e ys)` (the post-edge actual stack `↭`s the clean post-step).
+  --
+  -- Dispatched over THREE `EdgeStepR` relation witnesses (mirror of
+  -- `edge-suffix-factor`): the pure-K edge `EdgeStepR K ys e` (drives SKIP/
+  -- FIRE), the C-actual head `EdgeStepR C s (ψK e)` (= `tH`'s graph), and the
+  -- C-pure-R head `EdgeStepR C (map injR ys) (ψK e)` (governs `KCleanHead` via
+  -- `kHead`).  The four cross-cases are ruled out by the K↔C extract-prefix
+  -- liftings (`extract-prefix-↑ʳ-on-mixed-{just,nothing}` + the `↭`-residual/
+  -- nothing transports over `pf`, plus the pure-R injectivity liftings).
+
+  -- C.ein (ψK e) reduces to `map injR (K.ein e)` (the `ein-c-inj₂` bridge).
+  ψK-ein : (e : Fin K.nE) → C.ein (ψK e) ≡ map injR (K.ein e)
+  ψK-ein e = ein-c-inj₂-red e
+
+  -- Routing: K fires ⇒ C-actual head fires (residual ↭ injL P ++ injR rest).
+  clean-just
+    : ∀ (e : Fin K.nE) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+        (s : List (Fin C.nV)) (rest : List (Fin K.nV))
+        (pK : ys Perm.↭ K.ein e ++ rest)
+    → s Perm.↭ map injL P ++ map injR ys
+    → extract-prefix (K.ein e) ys ≡ just (rest , pK)
+    → ∃[ r ] ∃[ q ] extract-prefix (C.ein (ψK e)) s ≡ just (r , q)
+                  × (map injL P ++ map injR rest) Perm.↭ r
+  clean-just e P ys s rest pK pf eqK =
+    let lifted = extract-prefix-↑ʳ-on-mixed-just G.nV (K.ein e) P ys rest pK eqK
+        -- the lifted residual perm, on the std stack, retyped via ψK-ein.
+        std↭ : map injL P ++ map injR ys
+                 Perm.↭ C.ein (ψK e) ++ (map injL P ++ map injR rest)
+        std↭ = subst (λ ks → map injL P ++ map injR ys
+                               Perm.↭ ks ++ (map injL P ++ map injR rest))
+                     (sym (ψK-ein e)) (proj₁ lifted)
+        res    = extract-prefix-↭-residual (C.ein (ψK e)) s
+                   (map injL P ++ map injR rest)
+                   (Perm.↭-trans pf std↭)
+    in proj₁ res , proj₁ (proj₂ res) , proj₁ (proj₂ (proj₂ res))
+       , proj₂ (proj₂ (proj₂ res))
+
+  -- Routing: K skips ⇒ C-actual head skips.
+  clean-nothing
+    : ∀ (e : Fin K.nE) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+        (s : List (Fin C.nV))
+    → s Perm.↭ map injL P ++ map injR ys
+    → extract-prefix (K.ein e) ys ≡ nothing
+    → extract-prefix (C.ein (ψK e)) s ≡ nothing
+  clean-nothing e P ys s pf eqK =
+    extract-prefix-↭-nothing (C.ein (ψK e)) (map injL P ++ map injR ys) s
+      (Perm.↭-sym pf)
+      (subst (λ ks → extract-prefix ks (map injL P ++ map injR ys) ≡ nothing)
+             (sym (ψK-ein e))
+             (extract-prefix-↑ʳ-on-mixed-nothing G.nV (K.ein e) P ys eqK))
+
+  -- A GENERALISED clean head block, abstracting the K-step stack `ysK` and the
+  -- pure-R head term `kh : U(injR ys) → U(injR ysK)`.  `KCleanHead e P ys` is
+  -- the instance at `ysK = ys-step e ys`, `kh = Khead-emb e ys`.
+  KCleanHead-gen
+    : (P : List (Fin G.nV)) (ys ysK : List (Fin K.nV))
+      (kh : HomTerm (unflatten (map C.vlab (map injR ys)))
+                    (unflatten (map C.vlab (map injR ysK))))
+    → HomTerm (unflatten (map C.vlab (map injL P ++ map injR ys)))
+              (unflatten (map C.vlab (map injL P ++ map injR ysK)))
+  KCleanHead-gen P ys ysK kh =
+    _≅_.to (BTC.uf++ (map injL P) (map injR ysK))
+    ∘ (id {RpreObj P} ⊗₁ kh)
+    ∘ _≅_.from (BTC.uf++ (map injL P) (map injR ys))
+
+  -- `KCleanHead e P ys` is `KCleanHead-gen` at the real K-step + head.
+  KCleanHead-gen-real
+    : (e : Fin K.nE) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+    → KCleanHead e P ys
+      ≡ KCleanHead-gen P ys (ys-step e ys) (Khead-emb e ys)
+  KCleanHead-gen-real e P ys = refl
+
+  ------------------------------------------------------------------------
+  -- ### Shared abbreviations for the FIRE-core halves (split out to bound the
+  -- per-definition typechecking memory: `kfac-fire-lhs` and `kfac-fire-rhs`
+  -- elaborate independently).  All are deterministic functions of the FIRE
+  -- data, so the common middle `kf-mid` is the SAME term in both halves.
+  module _ (e : Fin K.nE) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+           (s : List (Fin C.nV))
+           (rA : List (Fin C.nV)) (pA : s Perm.↭ C.ein (ψK e) ++ rA)
+           (eqA : extract-prefix (C.ein (ψK e)) s ≡ just (rA , pA))
+           (rK : List (Fin K.nV)) (pK : ys Perm.↭ K.ein e ++ rK)
+           (eqK : extract-prefix (K.ein e) ys ≡ just (rK , pK))
+           (pf1 : C.eout (ψK e) ++ rA Perm.↭ map injL P ++ map injR (K.eout e ++ rK))
+           (pf  : s Perm.↭ map injL P ++ map injR ys)
+    where
+    private
+      kf-eiB = C.ein  (ψK e)
+      kf-eoB = C.eout (ψK e)
+      kf-g   = C.elab (ψK e)
+      kf-Pblk = map injL P
+      kf-rgBlk = map injR rK
+      kf-clean = kf-Pblk ++ kf-rgBlk
+
+    -- the residual perm `clean ↭ rA` (the actual residual only ↭s clean).
+    kf-r↭ : kf-clean Perm.↭ rA
+    kf-r↭ = subst (kf-clean Perm.↭_) rA≡ (proj₂ (proj₂ (proj₂ cj)))
+      where
+        cj = clean-just e P ys s rK pK pf eqK
+        rA≡ : proj₁ cj ≡ rA
+        rA≡ = cong proj₁ (just-injective
+                (trans (sym (proj₁ (proj₂ (proj₂ cj)))) eqA))
+
+    -- the clean front-perm: `s ↭ eiB ++ clean`.
+    kf-pA' : s Perm.↭ kf-eiB ++ kf-clean
+    kf-pA' = Perm.↭-trans pA (PermProp.++⁺ˡ kf-eiB (Perm.↭-sym kf-r↭))
+
+    kf-Box-sub : HomTerm
+                   (unflatten (map C.vlab (map injL P ++ (kf-eiB ++ kf-rgBlk))))
+                   (unflatten (map C.vlab (map injL P ++ (kf-eoB ++ kf-rgBlk))))
+    kf-Box-sub = subst₂ HomTerm
+                   (cong unflatten (whole-eq-K P kf-eiB kf-rgBlk))
+                   (cong unflatten (whole-eq-K P kf-eoB kf-rgBlk))
+                   (_≅_.to (unflatten-++-≅ (Pimg P) (map C.vlab kf-eoB ++ map C.vlab kf-rgBlk))
+                    ∘ (id {RpreObj P} ⊗₁ box-of (map C.vlab kf-eiB) (map C.vlab kf-eoB)
+                                               (map C.vlab kf-rgBlk) kf-g)
+                    ∘ _≅_.from (unflatten-++-≅ (Pimg P) (map C.vlab kf-eiB ++ map C.vlab kf-rgBlk)))
+
+    kf-pOut-L : kf-Pblk ++ (kf-eoB ++ kf-rgBlk) Perm.↭ kf-Pblk ++ map injR (K.eout e ++ rK)
+    kf-pOut-L = Perm.↭-trans
+                  (Perm.↭-trans (PermProp.shifts kf-Pblk kf-eoB {kf-rgBlk})
+                                (PermProp.++⁺ˡ kf-eoB kf-r↭))
+                  pf1
+    kf-pIn-L : s Perm.↭ kf-Pblk ++ (kf-eiB ++ kf-rgBlk)
+    kf-pIn-L = Perm.↭-trans kf-pA' (PermProp.shifts kf-eiB kf-Pblk {kf-rgBlk})
+
+    -- the common middle term.
+    kf-mid : HomTerm (unflatten (map C.vlab s))
+                     (unflatten (map C.vlab (kf-Pblk ++ map injR (K.eout e ++ rK))))
+    kf-mid = pvlC kf-pOut-L ∘ (kf-Box-sub ∘ pvlC kf-pIn-L)
+
+  ------------------------------------------------------------------------
+  -- ### `kfac-fire-lhs` — the LHS half: `pvlC pf1 ∘ fire-term … ≈ kf-mid`.
+  kfac-fire-lhs
+    : (e : Fin K.nE) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+      (s : List (Fin C.nV))
+      (rA : List (Fin C.nV)) (pA : s Perm.↭ C.ein (ψK e) ++ rA)
+      (eqA : extract-prefix (C.ein (ψK e)) s ≡ just (rA , pA))
+      (rK : List (Fin K.nV)) (pK : ys Perm.↭ K.ein e ++ rK)
+      (eqK : extract-prefix (K.ein e) ys ≡ just (rK , pK))
+      (pCR : map injR ys Perm.↭ C.ein (ψK e) ++ map injR rK)
+      (zEq : C.eout (ψK e) ++ map injR rK ≡ map injR (K.eout e ++ rK))
+      (pf  : s Perm.↭ map injL P ++ map injR ys)
+      (pf1 : C.eout (ψK e) ++ rA Perm.↭ map injL P ++ map injR (K.eout e ++ rK))
+      (uniq : Unique s)
+      (uniqK : Unique (map injL P ++ map injR (K.eout e ++ rK)))
+    → pvlC pf1 ∘ fire-term C-hg (ψK e) s rA pA
+      ≈Term kf-mid e P ys s rA pA eqA rK pK eqK pf1 pf
+  kfac-fire-lhs e P ys s rA pA eqA rK pK eqK pCR zEq pf pf1 uniq uniqK = lhs≈mid
+    where
+      open FM.HomReasoning
+      eiB = C.ein  (ψK e)
+      eoB = C.eout (ψK e)
+      g   = C.elab (ψK e)
+      Pblk = map injL P
+      rgBlk = map injR rK
+      clean = Pblk ++ rgBlk
+      ee = ψK e
+      r↭ = kf-r↭ e P ys s rA pA eqA rK pK eqK pf1 pf
+      pA' = kf-pA' e P ys s rA pA eqA rK pK eqK pf1 pf
+      Box-sub = kf-Box-sub e P ys s rA pA eqA rK pK eqK pf1 pf
+      pOut-L = kf-pOut-L e P ys s rA pA eqA rK pK eqK pf1 pf
+      pIn-L = kf-pIn-L e P ys s rA pA eqA rK pK eqK pf1 pf
+
+      BoxSub = subst₂ HomTerm
+                 (cong unflatten (sym (map-++ C.vlab eiB rgBlk)))
+                 (cong unflatten (sym (map-++ C.vlab eoB rgBlk)))
+                 (box-of (map C.vlab eiB) (map C.vlab eoB) (map C.vlab rgBlk) g)
+
+      module Si = Sin  eiB Pblk rgBlk
+      module So = Sout eoB Pblk rgBlk
+
+      eL  = map C.vlab eiB
+      eoL = map C.vlab eoB
+      pL  = map C.vlab Pblk
+      rL  = map C.vlab rgBlk
+
+      rsplit : map C.vlab clean ≡ pL ++ rL
+      rsplit = map-++ C.vlab Pblk rgBlk
+
+      box-clean = box-of eL eoL (map C.vlab clean) g
+
+      box-split≡ : box-of eL eoL (pL ++ rL) g
+                 ≡ subst₂ HomTerm
+                     (cong unflatten (cong (eL  ++_) rsplit))
+                     (cong unflatten (cong (eoL ++_) rsplit))
+                     box-clean
+      box-split≡ = sym (box-rest-rewrite eL eoL rsplit g)
+
+      fmclean≡braid
+        : fire-mid C-hg ee clean
+          ≡ subst₂ HomTerm
+              (cong unflatten (Si.dom-list)) (cong unflatten (So.dom-list))
+              (box-of eL eoL (pL ++ rL) g)
+      fmclean≡braid =
+        sym
+          (trans
+            (cong (subst₂ HomTerm (cong unflatten (Si.dom-list))
+                                  (cong unflatten (So.dom-list)))
+                  box-split≡)
+          (trans
+            (subst₂-HomTerm-∘
+               (cong unflatten (cong (eL  ++_) rsplit)) (cong unflatten (Si.dom-list))
+               (cong unflatten (cong (eoL ++_) rsplit)) (cong unflatten (So.dom-list))
+               box-clean)
+            (cong₂ (λ p q → subst₂ HomTerm p q box-clean)
+                   (objUIP _ (cong unflatten (sym (map-++ C.vlab eiB clean))))
+                   (objUIP _ (cong unflatten (sym (map-++ C.vlab eoB clean)))))))
+
+      to-eorg = _≅_.to   (BTC.uf++ Pblk (eoB ++ rgBlk))
+      from-eirg = _≅_.from (BTC.uf++ Pblk (eiB ++ rgBlk))
+
+      front-box-shifts
+        : subst₂ HomTerm
+            (cong unflatten (Si.dom-list)) (cong unflatten (So.dom-list))
+            (box-of eL eoL (pL ++ rL) g)
+          ≈Term pvlC (PermProp.shifts Pblk eoB {rgBlk})
+                ∘ Box-sub
+                ∘ pvlC (PermProp.shifts eiB Pblk {rgBlk})
+      front-box-shifts = begin
+          subst₂ HomTerm (cong unflatten (Si.dom-list)) (cong unflatten (So.dom-list))
+            (box-of eL eoL (pL ++ rL) g)
+            ≈⟨ box-braid-pvl eiB eoB Pblk rgBlk g ⟩
+          (pvlC (PermProp.shifts Pblk eoB {rgBlk}) ∘ to-eorg)
+            ∘ (id {RpreObj P} ⊗₁ BoxSub)
+            ∘ (from-eirg ∘ pvlC (PermProp.shifts eiB Pblk {rgBlk}))
+            ≈⟨ FM.assoc ⟩
+          pvlC (PermProp.shifts Pblk eoB {rgBlk})
+            ∘ (to-eorg
+               ∘ (id {RpreObj P} ⊗₁ BoxSub)
+               ∘ (from-eirg ∘ pvlC (PermProp.shifts eiB Pblk {rgBlk})))
+            ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ FM.sym-assoc) ⟩
+          pvlC (PermProp.shifts Pblk eoB {rgBlk})
+            ∘ (to-eorg
+               ∘ ((id {RpreObj P} ⊗₁ BoxSub) ∘ from-eirg)
+               ∘ pvlC (PermProp.shifts eiB Pblk {rgBlk}))
+            ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+          pvlC (PermProp.shifts Pblk eoB {rgBlk})
+            ∘ (to-eorg ∘ ((id {RpreObj P} ⊗₁ BoxSub) ∘ from-eirg))
+            ∘ pvlC (PermProp.shifts eiB Pblk {rgBlk})
+            ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩∘⟨refl ⟩
+          pvlC (PermProp.shifts Pblk eoB {rgBlk})
+            ∘ ((to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub)) ∘ from-eirg)
+            ∘ pvlC (PermProp.shifts eiB Pblk {rgBlk})
+            ≈⟨ refl⟩∘⟨ FM.assoc ⟩∘⟨refl ⟩
+          pvlC (PermProp.shifts Pblk eoB {rgBlk})
+            ∘ (to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub) ∘ from-eirg)
+            ∘ pvlC (PermProp.shifts eiB Pblk {rgBlk})
+            ≈⟨ refl⟩∘⟨ ≈-Term-sym (box-prefix-BTC P eiB eoB rgBlk g) ⟩∘⟨refl ⟩
+          pvlC (PermProp.shifts Pblk eoB {rgBlk})
+            ∘ Box-sub
+            ∘ pvlC (PermProp.shifts eiB Pblk {rgBlk}) ∎
+
+      fmclean-shifts
+        : fire-mid C-hg ee clean
+          ≈Term pvlC (PermProp.shifts Pblk eoB {rgBlk})
+                ∘ Box-sub
+                ∘ pvlC (PermProp.shifts eiB Pblk {rgBlk})
+      fmclean-shifts = ≈-Term-trans (≡⇒≈Term fmclean≡braid) front-box-shifts
+
+      out-collapse
+        : pvlC pf1
+          ∘ (pvlC (PermProp.++⁺ˡ eoB r↭) ∘ pvlC (PermProp.shifts Pblk eoB {rgBlk}))
+          ≈Term pvlC pOut-L
+      out-collapse =
+        ≈-Term-sym
+          (≈-Term-trans
+            (pvlC-↭trans (Perm.↭-trans (PermProp.shifts Pblk eoB {rgBlk})
+                                       (PermProp.++⁺ˡ eoB r↭)) pf1)
+            (∘-resp-≈ ≈-Term-refl
+              (pvlC-↭trans (PermProp.shifts Pblk eoB {rgBlk})
+                           (PermProp.++⁺ˡ eoB r↭))))
+
+      in-collapse
+        : pvlC (PermProp.shifts eiB Pblk {rgBlk})
+          ∘ (pvlC (PermProp.++⁺ˡ eiB (Perm.↭-sym r↭)) ∘ pvlC pA)
+          ≈Term pvlC pIn-L
+      in-collapse =
+        ≈-Term-sym
+          (≈-Term-trans
+            (pvlC-↭trans pA' (PermProp.shifts eiB Pblk {rgBlk}))
+            (∘-resp-≈ ≈-Term-refl
+              (pvlC-↭trans pA (PermProp.++⁺ˡ eiB (Perm.↭-sym r↭)))))
+
+      lhs≈mid : pvlC pf1 ∘ fire-term C-hg (ψK e) s rA pA
+                ≈Term pvlC pOut-L ∘ (Box-sub ∘ pvlC pIn-L)
+      lhs≈mid = begin
+          pvlC pf1 ∘ (fire-mid C-hg ee rA ∘ pvlC pA)
+            ≈⟨ refl⟩∘⟨ (fire-mid-equiv ⟩∘⟨refl) ⟩
+          pvlC pf1
+            ∘ ((pvlC (PermProp.++⁺ˡ eoB r↭)
+                ∘ (fire-mid C-hg ee clean
+                   ∘ pvlC (PermProp.++⁺ˡ eiB (Perm.↭-sym r↭))))
+               ∘ pvlC pA)
+            ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ (fmclean-shifts ⟩∘⟨refl)) ⟩∘⟨refl) ⟩
+          pvlC pf1
+            ∘ ((pvlC (PermProp.++⁺ˡ eoB r↭)
+                ∘ (((pvlC (PermProp.shifts Pblk eoB {rgBlk})
+                     ∘ Box-sub
+                     ∘ pvlC (PermProp.shifts eiB Pblk {rgBlk})))
+                   ∘ pvlC (PermProp.++⁺ˡ eiB (Perm.↭-sym r↭))))
+               ∘ pvlC pA)
+            ≈⟨ regroup ⟩
+          (pvlC pf1
+            ∘ (pvlC (PermProp.++⁺ˡ eoB r↭) ∘ pvlC (PermProp.shifts Pblk eoB {rgBlk})))
+            ∘ Box-sub
+            ∘ (pvlC (PermProp.shifts eiB Pblk {rgBlk})
+               ∘ (pvlC (PermProp.++⁺ˡ eiB (Perm.↭-sym r↭)) ∘ pvlC pA))
+            ≈⟨ ∘-resp-≈ out-collapse (∘-resp-≈ ≈-Term-refl in-collapse) ⟩
+          pvlC pOut-L ∘ (Box-sub ∘ pvlC pIn-L) ∎
+        where
+          fire-mid-equiv
+            : fire-mid C-hg ee rA
+              ≈Term pvlC (PermProp.++⁺ˡ eoB r↭)
+                    ∘ (fire-mid C-hg ee clean
+                       ∘ pvlC (PermProp.++⁺ˡ eiB (Perm.↭-sym r↭)))
+          fire-mid-equiv = FME.fire-mid-equivariant C-hg Kf ee r↭
+
+          regroup
+            : pvlC pf1
+              ∘ ((pvlC (PermProp.++⁺ˡ eoB r↭)
+                  ∘ (((pvlC (PermProp.shifts Pblk eoB {rgBlk})
+                       ∘ Box-sub
+                       ∘ pvlC (PermProp.shifts eiB Pblk {rgBlk})))
+                     ∘ pvlC (PermProp.++⁺ˡ eiB (Perm.↭-sym r↭))))
+                 ∘ pvlC pA)
+              ≈Term
+              (pvlC pf1
+                ∘ (pvlC (PermProp.++⁺ˡ eoB r↭) ∘ pvlC (PermProp.shifts Pblk eoB {rgBlk})))
+              ∘ Box-sub
+              ∘ (pvlC (PermProp.shifts eiB Pblk {rgBlk})
+                 ∘ (pvlC (PermProp.++⁺ˡ eiB (Perm.↭-sym r↭)) ∘ pvlC pA))
+          regroup =
+            ≈-Term-trans lhs→rn (≈-Term-sym rhs→rn)
+            where
+              A   = pvlC (PermProp.++⁺ˡ eoB r↭)
+              S1  = pvlC (PermProp.shifts Pblk eoB {rgBlk})
+              S2  = pvlC (PermProp.shifts eiB Pblk {rgBlk})
+              A'  = pvlC (PermProp.++⁺ˡ eiB (Perm.↭-sym r↭))
+              pAt = pvlC pA
+              Pf1 = pvlC pf1
+              B   = Box-sub
+              rn = Pf1 ∘ (A ∘ (S1 ∘ (B ∘ (S2 ∘ (A' ∘ pAt)))))
+
+              lhs→rn
+                : Pf1 ∘ ((A ∘ ((S1 ∘ (B ∘ S2)) ∘ A')) ∘ pAt) ≈Term rn
+              lhs→rn = begin
+                  Pf1 ∘ ((A ∘ ((S1 ∘ (B ∘ S2)) ∘ A')) ∘ pAt)
+                    ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+                  Pf1 ∘ (A ∘ ((S1 ∘ (B ∘ S2)) ∘ A') ∘ pAt)
+                    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
+                  Pf1 ∘ (A ∘ (S1 ∘ (B ∘ S2)) ∘ (A' ∘ pAt))
+                    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
+                  Pf1 ∘ (A ∘ (S1 ∘ ((B ∘ S2) ∘ (A' ∘ pAt))))
+                    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
+                  Pf1 ∘ (A ∘ (S1 ∘ (B ∘ (S2 ∘ (A' ∘ pAt))))) ∎
+
+              rhs→rn
+                : (Pf1 ∘ (A ∘ S1)) ∘ (B ∘ (S2 ∘ (A' ∘ pAt))) ≈Term rn
+              rhs→rn = begin
+                  (Pf1 ∘ (A ∘ S1)) ∘ (B ∘ (S2 ∘ (A' ∘ pAt)))
+                    ≈⟨ FM.assoc ⟩
+                  Pf1 ∘ ((A ∘ S1) ∘ (B ∘ (S2 ∘ (A' ∘ pAt))))
+                    ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+                  Pf1 ∘ (A ∘ (S1 ∘ (B ∘ (S2 ∘ (A' ∘ pAt))))) ∎
+
+  ------------------------------------------------------------------------
+  -- ### `kfac-fire-rhs` — the RHS half: `kf-mid ≈ KCleanHead-gen … ∘ pvlC pf`.
+  kfac-fire-rhs
+    : (e : Fin K.nE) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+      (s : List (Fin C.nV))
+      (rA : List (Fin C.nV)) (pA : s Perm.↭ C.ein (ψK e) ++ rA)
+      (eqA : extract-prefix (C.ein (ψK e)) s ≡ just (rA , pA))
+      (rK : List (Fin K.nV)) (pK : ys Perm.↭ K.ein e ++ rK)
+      (eqK : extract-prefix (K.ein e) ys ≡ just (rK , pK))
+      (pCR : map injR ys Perm.↭ C.ein (ψK e) ++ map injR rK)
+      (zEq : C.eout (ψK e) ++ map injR rK ≡ map injR (K.eout e ++ rK))
+      (pf  : s Perm.↭ map injL P ++ map injR ys)
+      (pf1 : C.eout (ψK e) ++ rA Perm.↭ map injL P ++ map injR (K.eout e ++ rK))
+      (uniq : Unique s)
+      (uniqK : Unique (map injL P ++ map injR (K.eout e ++ rK)))
+    → kf-mid e P ys s rA pA eqA rK pK eqK pf1 pf
+      ≈Term KCleanHead-gen P ys (K.eout e ++ rK)
+              (coeC {map injR ys} zEq
+                 (fire-term C-hg (ψK e) (map injR ys) (map injR rK) pCR))
+            ∘ pvlC pf
+  kfac-fire-rhs e P ys s rA pA eqA rK pK eqK pCR zEq pf pf1 uniq uniqK = mid≈rhs
+    where
+      open FM.HomReasoning
+      eiB = C.ein  (ψK e)
+      eoB = C.eout (ψK e)
+      g   = C.elab (ψK e)
+      Pblk = map injL P
+      rgBlk = map injR rK
+      Box-sub = kf-Box-sub e P ys s rA pA eqA rK pK eqK pf1 pf
+      pOut-L = kf-pOut-L e P ys s rA pA eqA rK pK eqK pf1 pf
+      pIn-L = kf-pIn-L e P ys s rA pA eqA rK pK eqK pf1 pf
+
+      BoxSub = subst₂ HomTerm
+                 (cong unflatten (sym (map-++ C.vlab eiB rgBlk)))
+                 (cong unflatten (sym (map-++ C.vlab eoB rgBlk)))
+                 (box-of (map C.vlab eiB) (map C.vlab eoB) (map C.vlab rgBlk) g)
+
+      pOut-R : Pblk ++ (eoB ++ rgBlk) Perm.↭ Pblk ++ map injR (K.eout e ++ rK)
+      pOut-R = Perm.↭-reflexive (cong (Pblk ++_) zEq)
+      pIn-R : s Perm.↭ Pblk ++ (eiB ++ rgBlk)
+      pIn-R = Perm.↭-trans pf (PermProp.++⁺ (Perm.↭-refl {x = Pblk}) pCR)
+
+      to-blk2-zEq
+        : ∀ {B B' : List (Fin C.nV)} (eq : B ≡ B')
+            (X : HomTerm (unflatten (map C.vlab (map injR ys)))
+                         (unflatten (map C.vlab B)))
+        → sidC (cong (Pblk ++_) eq)
+          ∘ (_≅_.to (BTC.uf++ Pblk B) ∘ (id {RpreObj P} ⊗₁ X))
+          ≈Term _≅_.to (BTC.uf++ Pblk B')
+                ∘ (id {RpreObj P} ⊗₁ coeC {map injR ys} eq X)
+      to-blk2-zEq refl X = idˡ
+
+      mid≈rhs : pvlC pOut-L ∘ (Box-sub ∘ pvlC pIn-L)
+                ≈Term KCleanHead-gen P ys (K.eout e ++ rK)
+                        (coeC {map injR ys} zEq
+                           (fire-term C-hg (ψK e) (map injR ys) (map injR rK) pCR))
+                      ∘ pvlC pf
+      mid≈rhs = begin
+          pvlC pOut-L ∘ (Box-sub ∘ pvlC pIn-L)
+            ≈⟨ ∘-resp-≈ (pvlC-coh uniqK pOut-L pOut-R)
+                        (∘-resp-≈ ≈-Term-refl
+                          (pvlC-coh (SU.Unique-resp-↭ pIn-L uniq) pIn-L pIn-R)) ⟩
+          pvlC pOut-R ∘ (Box-sub ∘ pvlC pIn-R)
+            ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ pvlC-↭trans pf (PermProp.++⁺ (Perm.↭-refl {x = Pblk}) pCR)) ⟩
+          pvlC pOut-R ∘ (Box-sub ∘ (pvlC (PermProp.++⁺ (Perm.↭-refl {x = Pblk}) pCR) ∘ pvlC pf))
+            ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+          pvlC pOut-R ∘ ((Box-sub ∘ pvlC (PermProp.++⁺ (Perm.↭-refl {x = Pblk}) pCR)) ∘ pvlC pf)
+            ≈⟨ refl⟩∘⟨ (head-factor-K P eiB eoB rgBlk ys g pCR ⟩∘⟨refl) ⟩
+          pvlC pOut-R
+            ∘ ((_≅_.to (BTC.uf++ Pblk (eoB ++ rgBlk))
+                ∘ (id {RpreObj P} ⊗₁ (BoxSub ∘ pvlC pCR))
+                ∘ _≅_.from (BTC.uf++ Pblk (map injR ys)))
+               ∘ pvlC pf)
+            ≈⟨ pOut-R-as-sidC ⟩∘⟨refl ⟩
+          sidC (cong (Pblk ++_) zEq)
+            ∘ ((_≅_.to (BTC.uf++ Pblk (eoB ++ rgBlk))
+                ∘ (id {RpreObj P} ⊗₁ (BoxSub ∘ pvlC pCR))
+                ∘ _≅_.from (BTC.uf++ Pblk (map injR ys)))
+               ∘ pvlC pf)
+            ≈⟨ reassoc-out ⟩
+          (sidC (cong (Pblk ++_) zEq)
+            ∘ (_≅_.to (BTC.uf++ Pblk (eoB ++ rgBlk))
+               ∘ (id {RpreObj P} ⊗₁ (BoxSub ∘ pvlC pCR))))
+            ∘ (_≅_.from (BTC.uf++ Pblk (map injR ys)) ∘ pvlC pf)
+            ≈⟨ to-blk2-zEq zEq (BoxSub ∘ pvlC pCR) ⟩∘⟨refl ⟩
+          (_≅_.to (BTC.uf++ Pblk (map injR (K.eout e ++ rK)))
+            ∘ (id {RpreObj P} ⊗₁ coeC {map injR ys} zEq (BoxSub ∘ pvlC pCR)))
+            ∘ (_≅_.from (BTC.uf++ Pblk (map injR ys)) ∘ pvlC pf)
+            ≈⟨ reassoc-back ⟩
+          KCleanHead-gen P ys (K.eout e ++ rK)
+            (coeC {map injR ys} zEq (fire-term C-hg (ψK e) (map injR ys) (map injR rK) pCR))
+            ∘ pvlC pf ∎
+        where
+          pOut-R-as-sidC : pvlC pOut-R ≈Term sidC (cong (Pblk ++_) zEq)
+          pOut-R-as-sidC = pvlC-reflexive-cod (cong (Pblk ++_) zEq)
+
+          reassoc-out
+            : sidC (cong (Pblk ++_) zEq)
+              ∘ ((_≅_.to (BTC.uf++ Pblk (eoB ++ rgBlk))
+                  ∘ (id {RpreObj P} ⊗₁ (BoxSub ∘ pvlC pCR))
+                  ∘ _≅_.from (BTC.uf++ Pblk (map injR ys)))
+                 ∘ pvlC pf)
+              ≈Term
+              (sidC (cong (Pblk ++_) zEq)
+                ∘ (_≅_.to (BTC.uf++ Pblk (eoB ++ rgBlk))
+                   ∘ (id {RpreObj P} ⊗₁ (BoxSub ∘ pvlC pCR))))
+              ∘ (_≅_.from (BTC.uf++ Pblk (map injR ys)) ∘ pvlC pf)
+          reassoc-out = begin
+              sidC (cong (Pblk ++_) zEq)
+                ∘ ((to-y ∘ (id {RpreObj P} ⊗₁ (BoxSub ∘ pvlC pCR)) ∘ from-y) ∘ pvlC pf)
+                ≈⟨ refl⟩∘⟨ (FM.sym-assoc ⟩∘⟨refl) ⟩
+              sidC (cong (Pblk ++_) zEq)
+                ∘ (((to-y ∘ (id {RpreObj P} ⊗₁ (BoxSub ∘ pvlC pCR))) ∘ from-y) ∘ pvlC pf)
+                ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+              sidC (cong (Pblk ++_) zEq)
+                ∘ ((to-y ∘ (id {RpreObj P} ⊗₁ (BoxSub ∘ pvlC pCR)))
+                   ∘ (from-y ∘ pvlC pf))
+                ≈⟨ FM.sym-assoc ⟩
+              (sidC (cong (Pblk ++_) zEq)
+                ∘ (to-y ∘ (id {RpreObj P} ⊗₁ (BoxSub ∘ pvlC pCR))))
+                ∘ (from-y ∘ pvlC pf) ∎
+            where
+              to-y   = _≅_.to   (BTC.uf++ Pblk (eoB ++ rgBlk))
+              from-y = _≅_.from (BTC.uf++ Pblk (map injR ys))
+
+          reassoc-back
+            : (_≅_.to (BTC.uf++ Pblk (map injR (K.eout e ++ rK)))
+                ∘ (id {RpreObj P} ⊗₁ coeC {map injR ys} zEq (BoxSub ∘ pvlC pCR)))
+              ∘ (_≅_.from (BTC.uf++ Pblk (map injR ys)) ∘ pvlC pf)
+              ≈Term
+              KCleanHead-gen P ys (K.eout e ++ rK)
+                (coeC {map injR ys} zEq (fire-term C-hg (ψK e) (map injR ys) (map injR rK) pCR))
+              ∘ pvlC pf
+          reassoc-back = begin
+              (to-K ∘ (id {RpreObj P} ⊗₁ coeC {map injR ys} zEq (BoxSub ∘ pvlC pCR)))
+                ∘ (from-y ∘ pvlC pf)
+                ≈⟨ FM.assoc ⟩
+              to-K ∘ ((id {RpreObj P} ⊗₁ coeC {map injR ys} zEq (BoxSub ∘ pvlC pCR))
+                      ∘ (from-y ∘ pvlC pf))
+                ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+              to-K ∘ ((id {RpreObj P} ⊗₁ coeC {map injR ys} zEq (BoxSub ∘ pvlC pCR))
+                      ∘ from-y)
+                   ∘ pvlC pf
+                ≈⟨ FM.sym-assoc ⟩
+              (to-K ∘ (id {RpreObj P} ⊗₁ coeC {map injR ys} zEq (BoxSub ∘ pvlC pCR))
+                    ∘ from-y)
+                ∘ pvlC pf ∎
+            where
+              to-K   = _≅_.to   (BTC.uf++ Pblk (map injR (K.eout e ++ rK)))
+              from-y = _≅_.from (BTC.uf++ Pblk (map injR ys))
+
+  ------------------------------------------------------------------------
+  -- ### `kfac-fire-core` — `kfac-fire` with the clean pure-R residual already
+  -- in canonical form `map injR rK`.  Assembled from the two halves.
+  kfac-fire-core
+    : (e : Fin K.nE) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+      (s : List (Fin C.nV))
+      (rA : List (Fin C.nV)) (pA : s Perm.↭ C.ein (ψK e) ++ rA)
+      (eqA : extract-prefix (C.ein (ψK e)) s ≡ just (rA , pA))
+      (rK : List (Fin K.nV)) (pK : ys Perm.↭ K.ein e ++ rK)
+      (eqK : extract-prefix (K.ein e) ys ≡ just (rK , pK))
+      (pCR : map injR ys Perm.↭ C.ein (ψK e) ++ map injR rK)
+      (zEq : C.eout (ψK e) ++ map injR rK ≡ map injR (K.eout e ++ rK))
+      (pf  : s Perm.↭ map injL P ++ map injR ys)
+      (pf1 : C.eout (ψK e) ++ rA Perm.↭ map injL P ++ map injR (K.eout e ++ rK))
+      (uniq : Unique s)
+      (uniqK : Unique (map injL P ++ map injR (K.eout e ++ rK)))
+    → pvlC pf1 ∘ fire-term C-hg (ψK e) s rA pA
+      ≈Term KCleanHead-gen P ys (K.eout e ++ rK)
+              (coeC {map injR ys} zEq
+                 (fire-term C-hg (ψK e) (map injR ys) (map injR rK) pCR))
+            ∘ pvlC pf
+  kfac-fire-core e P ys s rA pA eqA rK pK eqK pCR zEq pf pf1 uniq uniqK =
+    ≈-Term-trans
+      (kfac-fire-lhs e P ys s rA pA eqA rK pK eqK pCR zEq pf pf1 uniq uniqK)
+      (kfac-fire-rhs e P ys s rA pA eqA rK pK eqK pCR zEq pf pf1 uniq uniqK)
+
+  ------------------------------------------------------------------------
+  -- ### `kfac-fire` — the FIRE/FIRE/FIRE substantive head reconciliation.
+  --
+  -- The actual front box `fire-mid C (ψK e) rA ∘ pvlC pA` on the permuted
+  -- stack `s` is moved past the `map injL P` prefix into `head-factor-K`'s
+  -- prefix-held form, absorbing the residual-perm `r↭ : injL P ++ injR rK ↭
+  -- rA` (box-rest-perm) en route, then reconciled to `KCleanHead-gen ∘ pvlC pf`
+  -- by the keystone on the Unique codomains.
+  kfac-fire
+    : (e : Fin K.nE) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+      (s : List (Fin C.nV))
+      (rA : List (Fin C.nV)) (pA : s Perm.↭ C.ein (ψK e) ++ rA)
+      (eqA : extract-prefix (C.ein (ψK e)) s ≡ just (rA , pA))
+      (rK : List (Fin K.nV)) (pK : ys Perm.↭ K.ein e ++ rK)
+      (eqK : extract-prefix (K.ein e) ys ≡ just (rK , pK))
+      (rCR : List (Fin C.nV)) (pCR : map injR ys Perm.↭ C.ein (ψK e) ++ rCR)
+      (eqCR : extract-prefix (C.ein (ψK e)) (map injR ys) ≡ just (rCR , pCR))
+      (zEq : C.eout (ψK e) ++ rCR ≡ map injR (K.eout e ++ rK))
+      (pf  : s Perm.↭ map injL P ++ map injR ys)
+      (pf1 : C.eout (ψK e) ++ rA Perm.↭ map injL P ++ map injR (K.eout e ++ rK))
+      (uniq : Unique s)
+      (uniqK : Unique (map injL P ++ map injR (K.eout e ++ rK)))
+    → pvlC pf1 ∘ fire-term C-hg (ψK e) s rA pA
+      ≈Term KCleanHead-gen P ys (K.eout e ++ rK)
+              (coeC {map injR ys} zEq (fire-term C-hg (ψK e) (map injR ys) rCR pCR))
+            ∘ pvlC pf
+  kfac-fire e P ys s rA pA eqA rK pK eqK rCR pCR eqCR zEq pf pf1 uniq uniqK =
+    -- collapse the CLEAN pure-R residual `rCR` to its canonical value
+    -- `map injR rK` (exact, via the injective-lifting of `eqK`), matched at
+    -- refl, then run the core with `rCR = map injR rK`.
+    collapse rCR pCR eqCR zEq rCR≡
+    where
+      -- the pure-R residual is EXACTLY `map injR rK` (no perm wrinkle on the
+      -- clean side — the injective `injR`-lifting preserves the residual).
+      pureR-just
+        : ∃[ q ] extract-prefix (C.ein (ψK e)) (map injR ys)
+                   ≡ just (map injR rK , q)
+      pureR-just =
+        subst (λ ks → ∃[ q ] extract-prefix ks (map injR ys) ≡ just (map injR rK , q))
+              (sym (ψK-ein e))
+              (extract-prefix-via-injective-just injR
+                 (λ {x} {y} → ↑ʳ-injective G.nV x y) (K.ein e) ys rK pK eqK)
+
+      rCR≡ : rCR ≡ map injR rK
+      rCR≡ = cong proj₁ (just-injective (trans (sym eqCR) (proj₂ pureR-just)))
+
+      collapse
+        : ∀ (rCR₀ : List (Fin C.nV))
+            (pCR₀ : map injR ys Perm.↭ C.ein (ψK e) ++ rCR₀)
+            (eqCR₀ : extract-prefix (C.ein (ψK e)) (map injR ys) ≡ just (rCR₀ , pCR₀))
+            (zEq₀ : C.eout (ψK e) ++ rCR₀ ≡ map injR (K.eout e ++ rK))
+            (rCR₀≡ : rCR₀ ≡ map injR rK)
+        → pvlC pf1 ∘ fire-term C-hg (ψK e) s rA pA
+          ≈Term KCleanHead-gen P ys (K.eout e ++ rK)
+                  (coeC {map injR ys} zEq₀ (fire-term C-hg (ψK e) (map injR ys) rCR₀ pCR₀))
+                ∘ pvlC pf
+      collapse .(map injR rK) pCR₀ eqCR₀ zEq₀ refl =
+        kfac-fire-core e P ys s rA pA eqA rK pK eqK pCR₀ zEq₀ pf pf1 uniq uniqK
+
+  -- `Unique` of the clean form (the keystone codomain), via `Unique-resp-↭`.
+  uniq-clean
+    : ∀ {s : List (Fin C.nV)} {P : List (Fin G.nV)} {ys : List (Fin K.nV)}
+    → Unique s → s Perm.↭ map injL P ++ map injR ys
+    → Unique (map injL P ++ map injR ys)
+  uniq-clean uniq pf = SU.Unique-resp-↭ pf uniq
+
+  ------------------------------------------------------------------------
+  -- The generalised dispatch.  All stuck `edge-step` projections are fresh
+  -- pattern variables matched at the `EdgeStepR` witnesses.
+  kfac-head-disp
+    : (e : Fin K.nE) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+      (s : List (Fin C.nV))
+      {s'A : List (Fin C.nV)}
+      {tA  : HomTerm (unflatten (map C.vlab s)) (unflatten (map C.vlab s'A))}
+      {ysK : List (Fin K.nV)}
+      {tKr : HomTerm (unflatten (map K.vlab ys)) (unflatten (map K.vlab ysK))}
+      {zsC : List (Fin C.nV)}
+      {tCR : HomTerm (unflatten (map C.vlab (map injR ys)))
+                     (unflatten (map C.vlab zsC))}
+      (zEq : zsC ≡ map injR ysK)
+    → EdgeStepR C-hg s (ψK e) s'A tA
+    → EdgeStepR K ys e ysK tKr
+    → EdgeStepR C-hg (map injR ys) (ψK e) zsC tCR
+    → (pf  : s Perm.↭ map injL P ++ map injR ys)
+    → (pf1 : s'A Perm.↭ map injL P ++ map injR ysK)
+    → Unique s
+    → Unique (map injL P ++ map injR ysK)
+    → pvlC pf1 ∘ tA
+      ≈Term KCleanHead-gen P ys ysK (coeC {map injR ys} zEq tCR) ∘ pvlC pf
+
+  -- ============ SKIP / SKIP / SKIP ============
+  kfac-head-disp e P ys s zEq (skipR eqA) (skipR eqK) (skipR eqCR) pf pf1 uniq uniqK =
+    begin
+      pvlC pf1 ∘ id
+        ≈⟨ idʳ ⟩
+      pvlC pf1
+        ≈⟨ pvlC-coh (SU.Unique-resp-↭ pf uniq) pf1 pf ⟩
+      pvlC pf
+        ≈⟨ ≈-Term-sym idˡ ⟩
+      id ∘ pvlC pf
+        ≈⟨ ≈-Term-sym head≈id ⟩∘⟨refl ⟩
+      KCleanHead-gen P ys ys (coeC {map injR ys} zEq id) ∘ pvlC pf ∎
+    where
+      open FM.HomReasoning
+      -- `coeC zEq id = id` (zEq : injR ys ≡ injR ys, collapsed by uipL).
+      kh≈id : coeC {map injR ys} zEq id ≈Term id {unflatten (map C.vlab (map injR ys))}
+      kh≈id = ≡⇒≈Term
+                (trans (cong (λ z → coeC {map injR ys} z id) (uipL zEq refl)) refl)
+      head≈id : KCleanHead-gen P ys ys (coeC {map injR ys} zEq id)
+                ≈Term id {unflatten (map C.vlab (map injL P ++ map injR ys))}
+      head≈id =
+        ≈-Term-trans
+          (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ ≈-Term-refl kh≈id) ≈-Term-refl))
+          (≈-Term-sym (id-as-tensor (map injL P) (map injR ys)))
+
+  -- ============ impossible cross-cases ============
+  -- K skips but C-actual fires.
+  kfac-head-disp e P ys s zEq (fireR rA pA eqA) (skipR eqK) _ pf pf1 uniq uniqK =
+    ⊥-elim (just≢nothing (trans (sym eqA) (clean-nothing e P ys s pf eqK)))
+  -- K fires but C-actual skips.
+  kfac-head-disp e P ys s zEq (skipR eqA) (fireR rK pK eqK) _ pf pf1 uniq uniqK =
+    ⊥-elim (just≢nothing
+      (trans (sym (proj₁ (proj₂ (proj₂ (clean-just e P ys s rK pK pf eqK))))) eqA))
+  -- K skips but C-pure-R fires.
+  kfac-head-disp e P ys s zEq (skipR eqA) (skipR eqK) (fireR rCR pCR eqCR) pf pf1 uniq uniqK =
+    ⊥-elim (just≢nothing (trans (sym eqCR) pureR-nothing))
+    where
+      pureR-nothing : extract-prefix (C.ein (ψK e)) (map injR ys) ≡ nothing
+      pureR-nothing =
+        subst (λ ks → extract-prefix ks (map injR ys) ≡ nothing)
+              (sym (ψK-ein e))
+              (extract-prefix-via-injective-nothing injR
+                 (λ {x} {y} → ↑ʳ-injective G.nV x y) (K.ein e) ys eqK)
+  -- K fires but C-pure-R skips.
+  kfac-head-disp e P ys s zEq (fireR rA pA eqA) (fireR rK pK eqK) (skipR eqCR) pf pf1 uniq uniqK =
+    ⊥-elim (just≢nothing (trans (sym (proj₂ pureR-just)) eqCR))
+    where
+      pureR-just
+        : ∃[ q ] extract-prefix (C.ein (ψK e)) (map injR ys)
+                   ≡ just (map injR rK , q)
+      pureR-just =
+        subst (λ ks → ∃[ q ] extract-prefix ks (map injR ys) ≡ just (map injR rK , q))
+              (sym (ψK-ein e))
+              (extract-prefix-via-injective-just injR
+                 (λ {x} {y} → ↑ʳ-injective G.nV x y) (K.ein e) ys rK pK eqK)
+  -- ============ FIRE / FIRE / FIRE (the substantive case) ============
+  kfac-head-disp e P ys s zEq (fireR rA pA eqA) (fireR rK pK eqK) (fireR rCR pCR eqCR) pf pf1 uniq uniqK =
+    kfac-fire e P ys s rA pA eqA rK pK eqK rCR pCR eqCR zEq pf pf1 uniq uniqK
+
+  ------------------------------------------------------------------------
+  -- ### `kfac-head` — the public per-K-edge HEAD reconciliation.  Instantiates
+  -- `kfac-head-disp` at the three `edge-step-graph` relation witnesses (the
+  -- C-actual head on `s`, the pure-K edge on `ys`, the C-pure-R head on
+  -- `map injR ys`) + the real `zs1-emb` clean-stack agreement.
+  --
+  --   pvlC pf1 ∘ proj₂ (edge-step C (ψK e) s)
+  --     ≈Term KCleanHead e P ys ∘ pvlC pf
+  kfac-head
+    : (e : Fin K.nE) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
+      (s : List (Fin C.nV))
+      (pf  : s Perm.↭ map injL P ++ map injR ys)
+      (pf1 : proj₁ (edge-step C-hg s (ψK e))
+             Perm.↭ map injL P ++ map injR (ys-step e ys))
+      (uniq : Unique s)
+      (uniqK : Unique (map injL P ++ map injR (ys-step e ys)))
+    → pvlC pf1 ∘ proj₂ (edge-step C-hg s (ψK e))
+      ≈Term KCleanHead e P ys ∘ pvlC pf
+  kfac-head e P ys s pf pf1 uniq uniqK =
+    kfac-head-disp e P ys s (zs1-emb e ys)
+      (edge-step-graph C-hg s (ψK e))
+      (edge-step-graph K ys e)
+      (edge-step-graph C-hg (map injR ys) (ψK e))
+      pf pf1 uniq uniqK
 
 --------------------------------------------------------------------------------
 -- ## `Linear H ⇒ Unique (cod H)` (sig-level), verbatim from DecodeComposeShape.
