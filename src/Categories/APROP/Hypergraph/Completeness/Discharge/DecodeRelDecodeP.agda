@@ -90,18 +90,25 @@
 --   * (U) `DecodeRoundtripAgenSigma.Residuals` (K) — `decode-{Agen,σ}-collapse`
 --   * (U) `decode-rel-≈-decode-α{⇒,⇐}`   — 2 atomic associator obligations
 --   * (B) `decodeP-≈-decode-∘`           — pruned `∘` bridge
---   * (B) `decodeP-≈-decode-⊗`           — pruned `⊗` bridge (→ swap-atom-aligned)
+--   * (B) `decodeP-≈-decode-⊗`           — pruned `⊗` bridge
 --
 -- All of (U) is the SHARED unpruned/interchange residual surface (no new
--- trust beyond what the `decode`-side proof already assumes).  The only
--- pruning-specific new trust is the two (B) bridges (factored through the
--- single `decodePShapeResiduals` postulate).
+-- trust beyond what the `decode`-side proof already assumes).  The two (B)
+-- bridges are factored through `decodePShapeResiduals`, which is NO LONGER
+-- A POSTULATE: it is now a DEFINITION (`Wired.decodePShapeResiduals`)
+-- consuming the two PROVEN, postulate-free PRUNED shape lemmas
+-- `Sub.DecodeComposePruned.decodeP-∘-shape` /
+-- `Sub.DecodeTensorPruned.decodeP-⊗-shape` (the `decodeP` mirrors of the
+-- PROVEN unpruned `decode-{∘,⊗}-shape-inner`, parameterised by
+-- `objUIP` + `K`).  The pruned ⊗-shape reuses the SAME `hTensor` block
+-- machinery as the unpruned proof (tensor is not pruned), so it consumes
+-- NO `nf-bracket` / `swap-atom-aligned` kernel.
 --
--- LIVE postulates in THIS module (3): `decode-rel-≈-decode-α⇒`,
--- `decode-rel-≈-decode-α⇐`, `decodePShapeResiduals`.
--- (`decodeShapeResiduals` AND `agenSigmaResiduals` are GONE — both are now
--- DEFINITIONS in `module Wired`, consuming the proven, postulate-free
--- shape / single-edge-collapse lemmas.)
+-- LIVE postulates in THIS module (2): `decode-rel-≈-decode-α⇒`,
+-- `decode-rel-≈-decode-α⇐`.
+-- (`decodeShapeResiduals`, `agenSigmaResiduals` AND `decodePShapeResiduals`
+-- are ALL GONE — each is now a DEFINITION in `module Wired`, consuming the
+-- proven, postulate-free shape / single-edge-collapse / pruned-shape lemmas.)
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -140,6 +147,11 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeShape sig
 -- turn `decodeShapeResiduals` from a postulate into a DEFINITION.
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeComposeShape sig as DCS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig as DTS
+-- The two PROVEN, postulate-free PRUNED shape lemmas (the ∘-side and the
+-- ⊗-side), each in a top-level `module _ (objUIP)(Kf)`.  We consume them
+-- below to turn `decodePShapeResiduals` from a postulate into a DEFINITION.
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeComposePruned sig as DCP
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorPruned sig as DTP
 -- The PROVEN, postulate-free single-edge collapses `decode-{Agen,σ}-collapse`
 -- (also in a top-level `module _ (objUIP)(Kf)`).  Consumed below to turn
 -- `agenSigmaResiduals` from a postulate into a DEFINITION.
@@ -332,11 +344,16 @@ rhoShapeResidual = record
 -- The new module's `decodeP` is DEFINITIONALLY identical to this
 -- module's (`subst₂ HomTerm … (proj₁ (decode-attempt-LinearP f))`), so
 -- the `Assemble` results have exactly the bridge postulate types.
+--
+-- `decodePShapeResiduals` is NO LONGER A POSTULATE.  It is now a DEFINITION
+-- (`Wired.decodePShapeResiduals`) consuming the two PROVEN, postulate-free
+-- PRUNED shape lemmas `Sub.DecodeComposePruned.decodeP-∘-shape` /
+-- `Sub.DecodeTensorPruned.decodeP-⊗-shape` (each parameterised by `objUIP`
+-- + `K : FaithfulnessResidual`, threaded from `DecodeRelRespIsoWired`).
+-- The ⊗-side is the `decodeP` mirror of the PROVEN unpruned
+-- `decode-⊗-shape-inner` (tensor is NOT pruned, so the SAME `hTensor`
+-- block machinery applies); it does NOT consume any `nf-bracket` kernel.
 --------------------------------------------------------------------------------
-
-postulate
-  -- (B) the SOLE pruning-specific residual: the two PRUNED shape lemmas.
-  decodePShapeResiduals : DecodePShapeResiduals
 
 --------------------------------------------------------------------------------
 -- ## Threading `objUIP` + `K : FaithfulnessResidual`.
@@ -378,6 +395,17 @@ module Wired
   agenSigmaResiduals = record
     { decode-Agen-collapse = λ {A} {B} g → DAS.decode-Agen-collapse objUIP K g
     ; decode-σ-collapse    = λ {A} {B} ⦃ s ⦄ → DAS.decode-σ-collapse objUIP K ⦃ s ⦄
+    }
+
+  -- `decodePShapeResiduals` is now a DEFINITION consuming the two proven,
+  -- postulate-free PRUNED shape lemmas (no longer a postulate).  The field
+  -- types match `DecodePShapeResiduals` exactly — no adapter needed.  The
+  -- ⊗-field is the `decodeP` mirror of the PROVEN `decode-⊗-shape-inner`
+  -- (tensor is not pruned), so NO `nf-bracket` kernel is consumed.
+  decodePShapeResiduals : DecodePShapeResiduals
+  decodePShapeResiduals = record
+    { decodeP-∘-shape = λ {A} {B} {C} g f → DCP.decodeP-∘-shape objUIP K g f
+    ; decodeP-⊗-shape = λ {A} {B} {C} {D} f g → DTP.decodeP-⊗-shape objUIP K f g
     }
 
   -- Assemble the unpruned `DecoderAgreementAssumptions` from the residual
