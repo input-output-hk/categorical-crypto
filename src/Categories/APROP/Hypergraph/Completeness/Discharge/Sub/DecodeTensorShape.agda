@@ -101,6 +101,8 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.PermuteCohere
   asFreeMonoidalData using (permute-via-vlab-≈Term-coherence-K)
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFBraid
   asFreeMonoidalData as BNB
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFVoutCoh
+  asFreeMonoidalData as BNV
 open import Categories.APROP.Hypergraph.Completeness.Discharge.CIsoAssocFromCons sig
   using (c-iso-assoc-from)
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
@@ -3927,6 +3929,271 @@ module BlockFactor
                  (pe-stackC (map (G.nE ↑ʳ_) es) (map injL P ++ map injR ys))))
   KFactored es P ys =
     pvlC (Perm.↭-sym (KBraid es P ys)) ∘ KClean es P ys
+
+  ------------------------------------------------------------------------
+  -- ### Permute functor helpers for the σ-in→pvl reconciliation (step 3).
+  --
+  -- `pvlC` is a ↭-functor for the SMART `↭-trans` too (not just the raw
+  -- `Perm.trans` constructor): both reduce the `refl`-cases the same way.
+
+  -- `pvlC` sends smart `↭-trans` to `∘` (by case analysis on the refl-cases).
+  pvlC-↭trans
+    : ∀ {as bs cs : List (Fin C.nV)} (p : as Perm.↭ bs) (q : bs Perm.↭ cs)
+    → pvlC (Perm.↭-trans p q) ≈Term pvlC q ∘ pvlC p
+  pvlC-↭trans Perm.refl q = ≈-Term-sym idʳ
+  pvlC-↭trans (Perm.prep x p) Perm.refl = ≈-Term-sym idˡ
+  pvlC-↭trans (Perm.prep x p) (Perm.prep y q) = ≈-Term-refl
+  pvlC-↭trans (Perm.prep x p) (Perm.swap y z q) = ≈-Term-refl
+  pvlC-↭trans (Perm.prep x p) (Perm.trans q₁ q₂) = ≈-Term-refl
+  pvlC-↭trans (Perm.swap x y p) Perm.refl = ≈-Term-sym idˡ
+  pvlC-↭trans (Perm.swap x y p) (Perm.prep z q) = ≈-Term-refl
+  pvlC-↭trans (Perm.swap x y p) (Perm.swap z w q) = ≈-Term-refl
+  pvlC-↭trans (Perm.swap x y p) (Perm.trans q₁ q₂) = ≈-Term-refl
+  pvlC-↭trans (Perm.trans p₁ p₂) Perm.refl = ≈-Term-sym idˡ
+  pvlC-↭trans (Perm.trans p₁ p₂) (Perm.prep z q) = ≈-Term-refl
+  pvlC-↭trans (Perm.trans p₁ p₂) (Perm.swap z w q) = ≈-Term-refl
+  pvlC-↭trans (Perm.trans p₁ p₂) (Perm.trans q₁ q₂) = ≈-Term-refl
+
+  -- `pvlC (↭-reflexive eq)` is a `subst`-id codomain bridge (`subst-id-cod`).
+  pvlC-reflexive-cod
+    : ∀ {as bs : List (Fin C.nV)} (eq : as ≡ bs)
+    → pvlC (Perm.↭-reflexive eq)
+      ≈Term subst (λ z → HomTerm (unflatten (map C.vlab as)) (unflatten (map C.vlab z)))
+                  eq (id {unflatten (map C.vlab as)})
+  pvlC-reflexive-cod refl = ≈-Term-refl
+
+  -- `↭-sym (↭-reflexive eq) ≡ ↭-reflexive (sym eq)`.
+  sym-reflexive
+    : ∀ {as bs : List (Fin C.nV)} (eq : as ≡ bs)
+    → Perm.↭-sym (Perm.↭-reflexive eq) ≡ Perm.↭-reflexive (sym eq)
+  sym-reflexive refl = refl
+
+  -- `subst`-id codomain bridge over `map C.vlab`.
+  sidC : ∀ {as bs : List (Fin C.nV)} → as ≡ bs
+       → HomTerm (unflatten (map C.vlab as)) (unflatten (map C.vlab bs))
+  sidC {as} eq =
+    subst (λ z → HomTerm (unflatten (map C.vlab as)) (unflatten (map C.vlab z)))
+          eq (id {unflatten (map C.vlab as)})
+
+  -- `pvlC (shifts)` decomposed into the two `++-assoc` bridges and the
+  -- `app-swap` (= `++⁺ʳ rgBlk (++-comm eiBlk Pblk)`) front-swap.
+  pvlC-shifts
+    : ∀ (eiBlk Pblk rgBlk : List (Fin C.nV))
+    → pvlC (PermProp.shifts eiBlk Pblk {rgBlk})
+      ≈Term sidC (++-assoc Pblk eiBlk rgBlk)
+            ∘ pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+            ∘ sidC (sym (++-assoc eiBlk Pblk rgBlk))
+  pvlC-shifts eiBlk Pblk rgBlk = begin
+      pvlC (PermProp.shifts eiBlk Pblk {rgBlk})
+        ≈⟨ pvlC-↭trans A (Perm.↭-trans B (Perm.↭-trans C Perm.refl)) ⟩
+      pvlC (Perm.↭-trans B (Perm.↭-trans C Perm.refl)) ∘ pvlC A
+        ≈⟨ pvlC-↭trans B (Perm.↭-trans C Perm.refl) ⟩∘⟨refl ⟩
+      (pvlC (Perm.↭-trans C Perm.refl) ∘ pvlC B) ∘ pvlC A
+        ≈⟨ (pvlC-↭trans C Perm.refl ⟩∘⟨refl) ⟩∘⟨refl ⟩
+      ((pvlC (Perm.refl {xs = Pblk ++ (eiBlk ++ rgBlk)}) ∘ pvlC C) ∘ pvlC B) ∘ pvlC A
+        ≈⟨ (idˡ ⟩∘⟨refl) ⟩∘⟨refl ⟩
+      (pvlC C ∘ pvlC B) ∘ pvlC A
+        ≈⟨ FM.assoc ⟩
+      pvlC C ∘ (pvlC B ∘ pvlC A)
+        ≈⟨ pvlC-reflexive-cod (++-assoc Pblk eiBlk rgBlk) ⟩∘⟨ (refl⟩∘⟨ pvlC-A-eq) ⟩
+      sidC (++-assoc Pblk eiBlk rgBlk)
+        ∘ (pvlC (BNV.app-swap C.vlab eiBlk Pblk rgBlk)
+           ∘ sidC (sym (++-assoc eiBlk Pblk rgBlk))) ∎
+    where
+      A = Perm.↭-sym (Perm.↭-reflexive (++-assoc eiBlk Pblk rgBlk))
+      B = PermProp.++⁺ʳ rgBlk (PermProp.++-comm eiBlk Pblk)
+      C = Perm.↭-reflexive (++-assoc Pblk eiBlk rgBlk)
+
+      pvlC-A-eq : pvlC A ≈Term sidC (sym (++-assoc eiBlk Pblk rgBlk))
+      pvlC-A-eq =
+        ≈-Term-trans (≡⇒≈Term (cong pvlC (sym-reflexive (++-assoc eiBlk Pblk rgBlk))))
+                     (pvlC-reflexive-cod (sym (++-assoc eiBlk Pblk rgBlk)))
+
+  ------------------------------------------------------------------------
+  -- ### Infrastructure for `σin-as-pvl` — box-braid's `σ-in` (at `map C.vlab`
+  -- IMAGE block args) as the `BTC.uf++`-framed `pvlC` of the block-shift
+  -- permutation `shifts`.
+  --
+  -- The σ-mirror bridge: box-braid's input braid `σ-in` — the explicit
+  -- `(σ ⊗ id)`-conjugate that moves the front block `einR` past the prefix
+  -- `P` (carrying the residual `rest`) — equals
+  -- `from(uf++ P (einR++rest)) ∘ pvl(shifts einR P rest)`.  PATH 2 plan (the
+  -- PUBLIC vlab lemmas, NO raw private slide): `c-iso-assoc-from` reassociates
+  -- σ-in's right-nested `unflatten-++-≅` views into BNV's left-nested `view≅`
+  -- shape, `BNV.σ-frame-app-from` collapses the framed `(σ ⊗ id)` core into
+  -- `pvl (app-swap)`, and `pvlC-shifts` reconciles `app-swap` to `shifts`.
+  --
+  -- The permute side (`pvlC-↭trans`, `pvlC-reflexive-cod`, `sym-reflexive`,
+  -- `pvlC-shifts`) and the framing bridge `view-from-raw` (which re-expresses
+  -- `from (view≅ A B C)` via the raw `unflatten-++-≅` isos + the two
+  -- `map-++ C.vlab` subst-id conjugators) are PROVEN below.
+
+  -- σ-in's raw framing-iso abbreviations, at the `map C.vlab` images.
+  private
+    rawTo₀ : (a b : List X) → HomTerm (unflatten a ⊗₀ unflatten b) (unflatten (a ++ b))
+    rawTo₀ a b = _≅_.to (unflatten-++-≅ a b)
+
+    rawFrom₀ : (a b : List X) → HomTerm (unflatten (a ++ b)) (unflatten a ⊗₀ unflatten b)
+    rawFrom₀ a b = _≅_.from (unflatten-++-≅ a b)
+
+    -- domain-only subst (codomain `refl`) is right-conjugation by subst-id-dom,
+    -- for an ARBITRARY codomain object `Z` (e.g. a tensor — unlike
+    -- `subst₂-as-conj`, whose codomain must be `unflatten`-of-a-list).
+    subst-dom-conj
+      : ∀ {a b : List X} {Z : ObjTerm} (p : a ≡ b) (t : HomTerm (unflatten a) Z)
+      → subst₂ HomTerm (cong unflatten p) refl t
+        ≈Term t ∘ BoxAssoc.subst-id-dom p
+    subst-dom-conj refl t = ≈-Term-sym idʳ
+
+  -- `from (view≅ A B C)` expressed via the raw `unflatten-++-≅` isos, with the
+  -- two `map-++ C.vlab` domain reconciliations made explicit as subst-id
+  -- conjugators (from `from-BTC` + `subst₂-as-conj`).  The two view-`from`
+  -- factors are `(from(uf++ A B) ⊗ id) ∘ from(uf++ (A++B) C)`.
+  view-from-raw
+    : ∀ (A B Cc : List (Fin C.nV))
+    → _≅_.from (BNV.view≅ C.vlab A B Cc)
+      ≈Term (rawFrom₀ (map C.vlab A) (map C.vlab B) ⊗₁ id {unflatten (map C.vlab Cc)})
+            ∘ (BoxAssoc.subst-id-dom (sym (map-++ C.vlab A B))
+                 ⊗₁ id {unflatten (map C.vlab Cc)})
+            ∘ (rawFrom₀ (map C.vlab (A ++ B)) (map C.vlab Cc)
+               ∘ BoxAssoc.subst-id-dom (sym (map-++ C.vlab (A ++ B) Cc)))
+  view-from-raw A B Cc = begin
+      _≅_.from (BNV.view≅ C.vlab A B Cc)
+        ≈⟨ vfr-unfold ⟩
+      (_≅_.from (BTC.uf++ A B) ⊗₁ id {unflatten (map C.vlab Cc)})
+        ∘ _≅_.from (BTC.uf++ (A ++ B) Cc)
+        ≈⟨ ⊗-resp-≈ (≡⇒≈Term (from-BTC A B)) ≈-Term-refl ⟩∘⟨ ≡⇒≈Term (from-BTC (A ++ B) Cc) ⟩
+      (subst₂ HomTerm (cong unflatten (sym (map-++ C.vlab A B))) refl
+                (rawFrom₀ (map C.vlab A) (map C.vlab B)) ⊗₁ id)
+        ∘ subst₂ HomTerm (cong unflatten (sym (map-++ C.vlab (A ++ B) Cc))) refl
+                (rawFrom₀ (map C.vlab (A ++ B)) (map C.vlab Cc))
+        ≈⟨ ⊗-resp-≈ (subst-dom-conj (sym (map-++ C.vlab A B))
+                       (rawFrom₀ (map C.vlab A) (map C.vlab B))) ≈-Term-refl
+           ⟩∘⟨ subst-dom-conj (sym (map-++ C.vlab (A ++ B) Cc))
+                 (rawFrom₀ (map C.vlab (A ++ B)) (map C.vlab Cc)) ⟩
+      ((rawFrom₀ (map C.vlab A) (map C.vlab B)
+         ∘ BoxAssoc.subst-id-dom (sym (map-++ C.vlab A B))) ⊗₁ id)
+        ∘ (rawFrom₀ (map C.vlab (A ++ B)) (map C.vlab Cc)
+           ∘ BoxAssoc.subst-id-dom (sym (map-++ C.vlab (A ++ B) Cc)))
+        ≈⟨ ⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ) ⟩∘⟨refl ⟩
+      (((rawFrom₀ (map C.vlab A) (map C.vlab B)
+          ∘ BoxAssoc.subst-id-dom (sym (map-++ C.vlab A B))) ) ⊗₁ (id ∘ id))
+        ∘ (rawFrom₀ (map C.vlab (A ++ B)) (map C.vlab Cc)
+           ∘ BoxAssoc.subst-id-dom (sym (map-++ C.vlab (A ++ B) Cc)))
+        ≈⟨ ⊗-∘-dist ⟩∘⟨refl ⟩
+      ((rawFrom₀ (map C.vlab A) (map C.vlab B) ⊗₁ id)
+         ∘ (BoxAssoc.subst-id-dom (sym (map-++ C.vlab A B)) ⊗₁ id))
+        ∘ (rawFrom₀ (map C.vlab (A ++ B)) (map C.vlab Cc)
+           ∘ BoxAssoc.subst-id-dom (sym (map-++ C.vlab (A ++ B) Cc)))
+        ≈⟨ FM.assoc ⟩
+      (rawFrom₀ (map C.vlab A) (map C.vlab B) ⊗₁ id)
+        ∘ (BoxAssoc.subst-id-dom (sym (map-++ C.vlab A B)) ⊗₁ id)
+        ∘ (rawFrom₀ (map C.vlab (A ++ B)) (map C.vlab Cc)
+           ∘ BoxAssoc.subst-id-dom (sym (map-++ C.vlab (A ++ B) Cc))) ∎
+    where
+      vfr-unfold
+        : _≅_.from (BNV.view≅ C.vlab A B Cc)
+          ≈Term (_≅_.from (BTC.uf++ A B) ⊗₁ id {unflatten (map C.vlab Cc)})
+                ∘ _≅_.from (BTC.uf++ (A ++ B) Cc)
+      vfr-unfold = ≈-Term-refl
+
+  -- `rawFrom₀ (map (A++B)) (map C)` re-expressed with the first block split
+  -- into `map A ++ map B` (the `map-++ C.vlab A B` block-1 reconciliation),
+  -- via `from-blk1`.  (Pushes the `subst-id-dom (sym map-++)` conjugator in
+  -- `view-from-raw` through the iso onto the raw first-block-split form.)
+  rawFrom-blk1-split
+    : ∀ (A B Cc : List (Fin C.nV))
+    → (BoxAssoc.subst-id-dom (sym (map-++ C.vlab A B)) ⊗₁ id {unflatten (map C.vlab Cc)})
+        ∘ rawFrom₀ (map C.vlab (A ++ B)) (map C.vlab Cc)
+      ≈Term rawFrom₀ (map C.vlab A ++ map C.vlab B) (map C.vlab Cc)
+            ∘ BoxAssoc.subst-id-dom (cong (_++ map C.vlab Cc) (sym (map-++ C.vlab A B)))
+  rawFrom-blk1-split A B Cc = lemma (sym (map-++ C.vlab A B))
+    where
+      lemma
+        : ∀ {Lsplit Lwhole : List X} (e : Lsplit ≡ Lwhole)
+        → (BoxAssoc.subst-id-dom e ⊗₁ id {unflatten (map C.vlab Cc)})
+            ∘ rawFrom₀ Lwhole (map C.vlab Cc)
+          ≈Term rawFrom₀ Lsplit (map C.vlab Cc)
+                ∘ BoxAssoc.subst-id-dom (cong (_++ map C.vlab Cc) e)
+      lemma {Lsplit} refl = begin
+          (id {unflatten Lsplit} ⊗₁ id {unflatten (map C.vlab Cc)})
+            ∘ rawFrom₀ Lsplit (map C.vlab Cc)
+            ≈⟨ id⊗id≈id ⟩∘⟨refl ⟩
+          id ∘ rawFrom₀ Lsplit (map C.vlab Cc)
+            ≈⟨ idˡ ⟩
+          rawFrom₀ Lsplit (map C.vlab Cc)
+            ≈⟨ ≈-Term-sym idʳ ⟩
+          rawFrom₀ Lsplit (map C.vlab Cc) ∘ id ∎
+
+  -- two subst-id-doms compose into one subst-id-dom over `trans`.
+  private
+    sid-dom-∘
+      : ∀ {a b c : List X} (p : a ≡ b) (q : b ≡ c)
+      → BoxAssoc.subst-id-dom p ∘ BoxAssoc.subst-id-dom q
+        ≈Term BoxAssoc.subst-id-dom (trans p q)
+    sid-dom-∘ refl refl = idˡ
+
+  -- `from (view≅ A B C)` = the RAW left-nested view `from`
+  -- `(rawFrom₀(map A,map B) ⊗ id) ∘ rawFrom₀(map A++map B, map C)` precomposed
+  -- with a single subst-id-dom over the combined outer `map-++` reconciliation.
+  view-from-raw-clean
+    : ∀ (A B Cc : List (Fin C.nV))
+    → _≅_.from (BNV.view≅ C.vlab A B Cc)
+      ≈Term ((rawFrom₀ (map C.vlab A) (map C.vlab B) ⊗₁ id {unflatten (map C.vlab Cc)})
+             ∘ rawFrom₀ (map C.vlab A ++ map C.vlab B) (map C.vlab Cc))
+            ∘ BoxAssoc.subst-id-dom
+                (trans (cong (_++ map C.vlab Cc) (sym (map-++ C.vlab A B)))
+                       (sym (map-++ C.vlab (A ++ B) Cc)))
+  view-from-raw-clean A B Cc = begin
+      _≅_.from (BNV.view≅ C.vlab A B Cc)
+        ≈⟨ view-from-raw A B Cc ⟩
+      (rawFrom₀ (map C.vlab A) (map C.vlab B) ⊗₁ id)
+        ∘ (BoxAssoc.subst-id-dom (sym (map-++ C.vlab A B)) ⊗₁ id)
+        ∘ (rawFrom₀ (map C.vlab (A ++ B)) (map C.vlab Cc)
+           ∘ BoxAssoc.subst-id-dom (sym (map-++ C.vlab (A ++ B) Cc)))
+        ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+      (rawFrom₀ (map C.vlab A) (map C.vlab B) ⊗₁ id)
+        ∘ ((BoxAssoc.subst-id-dom (sym (map-++ C.vlab A B)) ⊗₁ id)
+           ∘ rawFrom₀ (map C.vlab (A ++ B)) (map C.vlab Cc))
+        ∘ BoxAssoc.subst-id-dom (sym (map-++ C.vlab (A ++ B) Cc))
+        ≈⟨ refl⟩∘⟨ rawFrom-blk1-split A B Cc ⟩∘⟨refl ⟩
+      (rawFrom₀ (map C.vlab A) (map C.vlab B) ⊗₁ id)
+        ∘ (rawFrom₀ (map C.vlab A ++ map C.vlab B) (map C.vlab Cc)
+           ∘ BoxAssoc.subst-id-dom (cong (_++ map C.vlab Cc) (sym (map-++ C.vlab A B))))
+        ∘ BoxAssoc.subst-id-dom (sym (map-++ C.vlab (A ++ B) Cc))
+        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+      (rawFrom₀ (map C.vlab A) (map C.vlab B) ⊗₁ id)
+        ∘ rawFrom₀ (map C.vlab A ++ map C.vlab B) (map C.vlab Cc)
+        ∘ (BoxAssoc.subst-id-dom (cong (_++ map C.vlab Cc) (sym (map-++ C.vlab A B)))
+           ∘ BoxAssoc.subst-id-dom (sym (map-++ C.vlab (A ++ B) Cc)))
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ sid-dom-∘ (cong (_++ map C.vlab Cc) (sym (map-++ C.vlab A B)))
+                              (sym (map-++ C.vlab (A ++ B) Cc)) ⟩
+      (rawFrom₀ (map C.vlab A) (map C.vlab B) ⊗₁ id)
+        ∘ rawFrom₀ (map C.vlab A ++ map C.vlab B) (map C.vlab Cc)
+        ∘ BoxAssoc.subst-id-dom
+            (trans (cong (_++ map C.vlab Cc) (sym (map-++ C.vlab A B)))
+                   (sym (map-++ C.vlab (A ++ B) Cc)))
+        ≈⟨ FM.sym-assoc ⟩
+      ((rawFrom₀ (map C.vlab A) (map C.vlab B) ⊗₁ id)
+        ∘ rawFrom₀ (map C.vlab A ++ map C.vlab B) (map C.vlab Cc))
+        ∘ BoxAssoc.subst-id-dom
+            (trans (cong (_++ map C.vlab Cc) (sym (map-++ C.vlab A B)))
+                   (sym (map-++ C.vlab (A ++ B) Cc))) ∎
+
+  -- c-iso-assoc-from at the `map C.vlab` images (the raw left-nested view
+  -- `from` reassociates to the right-nested one + the `++-assoc` subst-id).
+  cif-probe
+    : ∀ (A B Cc : List (Fin C.nV))
+    → α⇒ {unflatten (map C.vlab A)} {unflatten (map C.vlab B)} {unflatten (map C.vlab Cc)}
+        ∘ (rawFrom₀ (map C.vlab A) (map C.vlab B) ⊗₁ id)
+        ∘ rawFrom₀ (map C.vlab A ++ map C.vlab B) (map C.vlab Cc)
+      ≈Term (id {unflatten (map C.vlab A)} ⊗₁ rawFrom₀ (map C.vlab B) (map C.vlab Cc))
+            ∘ rawFrom₀ (map C.vlab A) (map C.vlab B ++ map C.vlab Cc)
+            ∘ subst (λ z → HomTerm
+                       (unflatten ((map C.vlab A ++ map C.vlab B) ++ map C.vlab Cc))
+                       (unflatten z))
+                    (++-assoc (map C.vlab A) (map C.vlab B) (map C.vlab Cc)) id
+  cif-probe A B Cc = c-iso-assoc-from (map C.vlab A) (map C.vlab B) (map C.vlab Cc)
 
 --------------------------------------------------------------------------------
 -- ## `Linear H ⇒ Unique (cod H)` (sig-level), verbatim from DecodeComposeShape.
