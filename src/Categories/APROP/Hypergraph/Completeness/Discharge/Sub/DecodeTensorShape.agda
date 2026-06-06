@@ -3601,6 +3601,34 @@ module BlockFactor
             → sidC q ≈Term sidX (cong (map C.vlab) q)
   sidC→sidX refl = ≈-Term-refl
 
+  -- `sidX`-fold normalizers: collapse a (left- or right-nested) product of
+  -- `sidX` morphisms into a single `sidX e` for ANY target path `e` with the
+  -- same endpoints (fold via `sidX-∘`, retarget via `sidX-irrel`).  These are
+  -- the shared body of the four `right-eq`/`left-eq` boundary proofs in
+  -- `Sin`/`Sout`, which differ only in nesting/factor-count and target.
+
+  -- two factors:  `sidX p₂ ∘ sidX p₁ ≈ sidX e`.
+  sidX-collapse₂ : ∀ {a b c : List X} (p₁ : a ≡ b) (p₂ : b ≡ c) (e : a ≡ c)
+                 → sidX p₂ ∘ sidX p₁ ≈Term sidX e
+  sidX-collapse₂ p₁ p₂ e =
+    ≈-Term-trans (sidX-∘ p₁ p₂) (sidX-irrel (trans p₁ p₂) e)
+
+  -- three factors, left-nested:  `(sidX p₃ ∘ sidX p₂) ∘ sidX p₁ ≈ sidX e`.
+  sidX-collapse₃ˡ : ∀ {a b c d : List X}
+                      (p₁ : a ≡ b) (p₂ : b ≡ c) (p₃ : c ≡ d) (e : a ≡ d)
+                  → (sidX p₃ ∘ sidX p₂) ∘ sidX p₁ ≈Term sidX e
+  sidX-collapse₃ˡ p₁ p₂ p₃ e =
+    ≈-Term-trans (sidX-∘ p₂ p₃ ⟩∘⟨refl)
+      (sidX-collapse₂ p₁ (trans p₂ p₃) e)
+
+  -- three factors, right-nested:  `sidX p₃ ∘ (sidX p₂ ∘ sidX p₁) ≈ sidX e`.
+  sidX-collapse₃ʳ : ∀ {a b c d : List X}
+                      (p₁ : a ≡ b) (p₂ : b ≡ c) (p₃ : c ≡ d) (e : a ≡ d)
+                  → sidX p₃ ∘ (sidX p₂ ∘ sidX p₁) ≈Term sidX e
+  sidX-collapse₃ʳ p₁ p₂ p₃ e =
+    ≈-Term-trans (refl⟩∘⟨ sidX-∘ p₁ p₂)
+      (sidX-collapse₂ (trans p₁ p₂) p₃ e)
+
   -- A subst-id over `unflatten` (domain side) self-cancels with its `sym`.
   sid-self-cancelᵈ : ∀ {a b : List X} (e : a ≡ b)
     → BoxAssoc.subst-id-dom e ∘ BoxAssoc.subst-id-dom (sym e) ≈Term id
@@ -4396,12 +4424,8 @@ module BlockFactor
              ⟩∘⟨ sdd→sidX dom-list ⟩
         (sidX (sym (sym comb-in)) ∘ sidX (sym (++-assoc eL pL rL)))
           ∘ sidX (sym dom-list)
-          ≈⟨ sidX-∘ (sym (++-assoc eL pL rL)) (sym (sym comb-in)) ⟩∘⟨refl ⟩
-        sidX (trans (sym (++-assoc eL pL rL)) (sym (sym comb-in)))
-          ∘ sidX (sym dom-list)
-          ≈⟨ sidX-∘ (sym dom-list) (trans (sym (++-assoc eL pL rL)) (sym (sym comb-in))) ⟩
-        sidX (trans (sym dom-list) (trans (sym (++-assoc eL pL rL)) (sym (sym comb-in))))
-          ≈⟨ sidX-irrel _ (cong (map C.vlab) (sym (++-assoc eiBlk Pblk rgBlk))) ⟩
+          ≈⟨ sidX-collapse₃ˡ (sym dom-list) (sym (++-assoc eL pL rL)) (sym (sym comb-in))
+                             (cong (map C.vlab) (sym (++-assoc eiBlk Pblk rgBlk))) ⟩
         sidX (cong (map C.vlab) (sym (++-assoc eiBlk Pblk rgBlk)))
           ≈⟨ ≈-Term-sym (sidC→sidX (sym (++-assoc eiBlk Pblk rgBlk))) ⟩
         sidC (sym (++-assoc eiBlk Pblk rgBlk)) ∎
@@ -4415,9 +4439,8 @@ module BlockFactor
         BoxAssoc.subst-id-cod (++-assoc pL eL rL) ∘ BoxAssoc.subst-id-dom comb-out
           ≈⟨ scod→sidX (++-assoc pL eL rL) ⟩∘⟨ sdd→sidX comb-out ⟩
         sidX (++-assoc pL eL rL) ∘ sidX (sym comb-out)
-          ≈⟨ sidX-∘ (sym comb-out) (++-assoc pL eL rL) ⟩
-        sidX (trans (sym comb-out) (++-assoc pL eL rL))
-          ≈⟨ sidX-irrel _ (trans (cong (map C.vlab) (++-assoc Pblk eiBlk rgBlk)) (sym dom-uf)) ⟩
+          ≈⟨ sidX-collapse₂ (sym comb-out) (++-assoc pL eL rL)
+                            (trans (cong (map C.vlab) (++-assoc Pblk eiBlk rgBlk)) (sym dom-uf)) ⟩
         sidX (trans (cong (map C.vlab) (++-assoc Pblk eiBlk rgBlk)) (sym dom-uf))
           ≈⟨ ≈-Term-sym (sidX-∘ (cong (map C.vlab) (++-assoc Pblk eiBlk rgBlk)) (sym dom-uf)) ⟩
         sidX (sym dom-uf) ∘ sidX (cong (map C.vlab) (++-assoc Pblk eiBlk rgBlk))
@@ -5061,12 +5084,8 @@ module BlockFactor
              ⟩∘⟨ (sdd→sidX (sym (++-assoc eL pL rL)) ⟩∘⟨ scod→sidX (sym bridge-eo)) ⟩
         sidX dom-list
           ∘ (sidX (sym (sym (++-assoc eL pL rL))) ∘ sidX (sym bridge-eo))
-          ≈⟨ refl⟩∘⟨ sidX-∘ (sym bridge-eo) (sym (sym (++-assoc eL pL rL))) ⟩
-        sidX dom-list
-          ∘ sidX (trans (sym bridge-eo) (sym (sym (++-assoc eL pL rL))))
-          ≈⟨ sidX-∘ (trans (sym bridge-eo) (sym (sym (++-assoc eL pL rL)))) dom-list ⟩
-        sidX (trans (trans (sym bridge-eo) (sym (sym (++-assoc eL pL rL)))) dom-list)
-          ≈⟨ sidX-irrel _ (cong (map C.vlab) (++-assoc eoBlk Pblk rgBlk)) ⟩
+          ≈⟨ sidX-collapse₃ʳ (sym bridge-eo) (sym (sym (++-assoc eL pL rL))) dom-list
+                             (cong (map C.vlab) (++-assoc eoBlk Pblk rgBlk)) ⟩
         sidX (cong (map C.vlab) (++-assoc eoBlk Pblk rgBlk))
           ≈⟨ ≈-Term-sym (sidC→sidX (++-assoc eoBlk Pblk rgBlk)) ⟩
         sidC (++-assoc eoBlk Pblk rgBlk) ∎
@@ -5081,9 +5100,8 @@ module BlockFactor
         BoxAssoc.subst-id-cod bridge-Po ∘ BoxAssoc.subst-id-dom (++-assoc pL eL rL)
           ≈⟨ scod→sidX bridge-Po ⟩∘⟨ sdd→sidX (++-assoc pL eL rL) ⟩
         sidX bridge-Po ∘ sidX (sym (++-assoc pL eL rL))
-          ≈⟨ sidX-∘ (sym (++-assoc pL eL rL)) bridge-Po ⟩
-        sidX (trans (sym (++-assoc pL eL rL)) bridge-Po)
-          ≈⟨ sidX-irrel _ (trans cod-uf (cong (map C.vlab) (sym (++-assoc Pblk eoBlk rgBlk)))) ⟩
+          ≈⟨ sidX-collapse₂ (sym (++-assoc pL eL rL)) bridge-Po
+                            (trans cod-uf (cong (map C.vlab) (sym (++-assoc Pblk eoBlk rgBlk)))) ⟩
         sidX (trans cod-uf (cong (map C.vlab) (sym (++-assoc Pblk eoBlk rgBlk))))
           ≈⟨ ≈-Term-sym (sidX-∘ cod-uf (cong (map C.vlab) (sym (++-assoc Pblk eoBlk rgBlk)))) ⟩
         sidX (cong (map C.vlab) (sym (++-assoc Pblk eoBlk rgBlk))) ∘ sidX cod-uf
