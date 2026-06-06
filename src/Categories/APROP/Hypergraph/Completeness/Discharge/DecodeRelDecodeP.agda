@@ -89,6 +89,8 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRoundtripAg
   using (Residuals; module Residuals)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.ProcessEdgesTermShape sig
   using (DecodePShapeResiduals; module Assemble)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
+  using (subst₂-cod-trans; subst₂-dom-trans)
 
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
@@ -132,27 +134,6 @@ private
 --------------------------------------------------------------------------------
 
 private
-  -- A `subst₂` whose cod equation factors as `trans q r` splits as the
-  -- outer `r`-transport of the inner `q`-transport.
-  subst₂-cod-trans
-    : ∀ {as as' bs bs' bs'' : List X}
-        (p : as ≡ as') (q : bs ≡ bs') (r : bs' ≡ bs'')
-        (x : HomTerm (unflatten as) (unflatten bs))
-    → subst₂ HomTerm (cong unflatten p) (cong unflatten (trans q r)) x
-      ≡ subst₂ HomTerm refl (cong unflatten r)
-               (subst₂ HomTerm (cong unflatten p) (cong unflatten q) x)
-  subst₂-cod-trans refl refl refl x = refl
-
-  -- Symmetric, on the dom equation.
-  subst₂-dom-trans
-    : ∀ {as as' as'' bs bs' : List X}
-        (q : as ≡ as') (r : as' ≡ as'') (p : bs ≡ bs')
-        (x : HomTerm (unflatten as) (unflatten bs))
-    → subst₂ HomTerm (cong unflatten (trans q r)) (cong unflatten p) x
-      ≡ subst₂ HomTerm (cong unflatten r) refl
-               (subst₂ HomTerm (cong unflatten q) (cong unflatten p) x)
-  subst₂-dom-trans refl refl refl x = refl
-
   rho⇒-shape
     : ∀ A → decode (ρ⇒ {A})
          ≡ subst₂ HomTerm refl (cong unflatten (++-identityʳ (flatten A)))

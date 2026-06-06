@@ -48,6 +48,8 @@ open import Categories.APROP.Hypergraph.Completeness.Decode sig
   using (Agen-edge-aux)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation sig
   using (box-of; fire-mid)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
+  using (subst₂-∘-distrib)
 
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual; permute-self-loop-id-wide)
@@ -71,17 +73,6 @@ open import Relation.Binary.PropositionalEquality.Properties using (sym-cong)
 
 ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
 ≡⇒≈Term refl = ≈-Term-refl
-
--- `subst₂ HomTerm` distributes over `∘`.
-subst₂-∘-distrib
-  : ∀ {As₁ As₂ Bs₁ Bs₂ Cs₁ Cs₂ : List X}
-      (p : As₁ ≡ As₂) (q : Bs₁ ≡ Bs₂) (r : Cs₁ ≡ Cs₂)
-      (f : HomTerm (unflatten Bs₁) (unflatten Cs₁))
-      (g : HomTerm (unflatten As₁) (unflatten Bs₁))
-  → subst₂ HomTerm (cong unflatten p) (cong unflatten r) (f ∘ g)
-    ≡ subst₂ HomTerm (cong unflatten q) (cong unflatten r) f
-      ∘ subst₂ HomTerm (cong unflatten p) (cong unflatten q) g
-subst₂-∘-distrib refl refl refl _ _ = refl
 
 -- `subst₂ HomTerm` pushed through `permute` onto the underlying `↭`.
 permute-subst₂

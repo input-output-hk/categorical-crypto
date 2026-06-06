@@ -32,6 +32,8 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
   using (extract-prefix-via-injective-just; extract-prefix-via-injective-nothing)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation sig
   using (EdgeStepR; skipR; fireR; fire-term; fire-mid; box-of; box-of-cong)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
+  using (subst₂-∘-distrib)
 
 open import Categories.APROP.Hypergraph.Completeness.Permute sig using (permute)
 open import Categories.Hypergraph.ExtractPrefixEvalPhi using (eval-coincide; ≈-fb-of-≡)
@@ -67,17 +69,6 @@ just-injective-fst
   : ∀ {a b} {A : Set a} {B : A → Set b} {x y : A} {p : B x} {q : B y}
   → just (x , p) ≡ just (y , q) → x ≡ y
 just-injective-fst refl = refl
-
--- `subst₂ HomTerm` distributes over `∘` (refl-pattern).
-subst₂-∘-distrib
-  : ∀ {As₁ As₂ Bs₁ Bs₂ Cs₁ Cs₂ : List X}
-      (p : As₁ ≡ As₂) (q : Bs₁ ≡ Bs₂) (r : Cs₁ ≡ Cs₂)
-      (f : HomTerm (unflatten Bs₁) (unflatten Cs₁))
-      (g : HomTerm (unflatten As₁) (unflatten Bs₁))
-  → subst₂ HomTerm (cong unflatten p) (cong unflatten r) (f ∘ g)
-    ≡ subst₂ HomTerm (cong unflatten q) (cong unflatten r) f
-      ∘ subst₂ HomTerm (cong unflatten p) (cong unflatten q) g
-subst₂-∘-distrib refl refl refl _ _ = refl
 
 -- Composition of two `subst₂ HomTerm` casts along trans (refl-pattern).
 subst₂-∘

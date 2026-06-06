@@ -52,6 +52,8 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation 
   using (edge-step-graph)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepNaturality sig
   using (edge-step-term-rel)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
+  using (subst₂-∘-distrib)
 
 open import Data.Fin.Base using (Fin; zero; suc)
 open import Data.Nat using (ℕ; suc)
@@ -106,17 +108,6 @@ private
 subst₂-HomTerm-id
   : ∀ {A B} (p : A ≡ B) → subst₂ HomTerm p p id ≡ id
 subst₂-HomTerm-id refl = refl
-
--- `subst₂ HomTerm` distributes over composition.
-subst₂-∘-distrib
-  : ∀ {As₁ As₂ Bs₁ Bs₂ Cs₁ Cs₂ : List X}
-      (p : As₁ ≡ As₂) (q : Bs₁ ≡ Bs₂) (r : Cs₁ ≡ Cs₂)
-      (f : HomTerm (unflatten Bs₁) (unflatten Cs₁))
-      (g : HomTerm (unflatten As₁) (unflatten Bs₁))
-  → subst₂ HomTerm (cong unflatten p) (cong unflatten r) (f ∘ g)
-    ≡ subst₂ HomTerm (cong unflatten q) (cong unflatten r) f
-      ∘ subst₂ HomTerm (cong unflatten p) (cong unflatten q) g
-subst₂-∘-distrib refl refl refl _ _ = refl
 
 --------------------------------------------------------------------------------
 -- §1.  Cross-iso module.  Mirrors `IsoInvarianceWiring`'s cross-iso

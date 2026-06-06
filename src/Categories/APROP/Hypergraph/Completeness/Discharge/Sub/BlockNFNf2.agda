@@ -63,6 +63,8 @@ open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.PermuteCoherenceK
   asFreeMonoidalData using (permute-via-vlab-≈Term-coherence-K)
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUnique sig as SU
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
+  using (subst₂-resp-≈Term)
 
 open import Categories.Category using (Category)
 open import Data.Fin using (Fin)
@@ -614,11 +616,6 @@ module _ (H : Hypergraph FlatGen)
 
       ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
       ≡⇒≈Term refl = ≈-Term-refl
-
-      subst₂-resp-≈Term
-        : ∀ {A A' B B'} (p : A ≡ A') (q : B ≡ B') {u v : HomTerm A B}
-        → u ≈Term v → subst₂ HomTerm p q u ≈Term subst₂ HomTerm p q v
-      subst₂-resp-≈Term refl refl u≈v = u≈v
 
       to-BTC : ∀ (As Bs : List (Fin H.nV))
              → _≅_.to (BT.uf++ As Bs)

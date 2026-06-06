@@ -103,49 +103,11 @@ private
   ----------------------------------------------------------------------
   -- `eval-map⁺` and its `subst₂`-on-FinBij algebra (J-only, no K).  Used
   -- to LIFT a vertex-level `≅↭` (from `residual-recon`) through `map⁺ vlab`
-  -- to the X-level `≅↭` that `permute-resp-≅↭` consumes.
+  -- to the X-level `≅↭` that `permute-resp-≅↭` consumes.  `eval-map⁺` is
+  -- imported from the canonical `PermuteCoherence.Map`.
   ----------------------------------------------------------------------
 
-  subst₂-FinBij-id : ∀ {n m} (e : n ≡ m) → subst₂ FinBij e e id-fb ≡ id-fb
-  subst₂-FinBij-id refl = refl
-
-  cons-cast
-    : ∀ {n n' m m'} (ex : n' ≡ n) (ey : m' ≡ m) (π : FinBij n m)
-    → cons-fb (subst₂ FinBij (sym ex) (sym ey) π)
-      ≡ subst₂ FinBij (sym (cong suc ex)) (sym (cong suc ey)) (cons-fb π)
-  cons-cast refl refl π = refl
-
-  swap-cast
-    : ∀ {n n' m m'} (ex : n' ≡ n) (ey : m' ≡ m) (π : FinBij n m)
-    → swap-fb m' ∘-fb cons-fb (cons-fb (subst₂ FinBij (sym ex) (sym ey) π))
-      ≡ subst₂ FinBij (sym (cong suc (cong suc ex)))
-                      (sym (cong suc (cong suc ey)))
-                      (swap-fb m ∘-fb cons-fb (cons-fb π))
-  swap-cast refl refl π = refl
-
-  comp-cast
-    : ∀ {n n' m m' k k'}
-        (ex : n' ≡ n) (ey : m' ≡ m) (ez : k' ≡ k)
-        (g : FinBij m k) (f : FinBij n m)
-    → subst₂ FinBij (sym ey) (sym ez) g ∘-fb subst₂ FinBij (sym ex) (sym ey) f
-      ≡ subst₂ FinBij (sym ex) (sym ez) (g ∘-fb f)
-  comp-cast refl refl refl g f = refl
-
-  eval-map⁺ : ∀ {A C : Set}
-    (h : A → C) {xs ys : List A} (p : xs Perm.↭ ys)
-    → eval-↭ (PermProp.map⁺ h p)
-      ≡ subst₂ FinBij (sym (length-map h xs)) (sym (length-map h ys)) (eval-↭ p)
-  eval-map⁺ h {xs = xs} Perm.refl = sym (subst₂-FinBij-id (sym (length-map h xs)))
-  eval-map⁺ h {xs = x ∷ xs} {ys = .x ∷ ys} (Perm.prep x p) =
-    trans (cong cons-fb (eval-map⁺ h p))
-          (cons-cast (length-map h xs) (length-map h ys) (eval-↭ p))
-  eval-map⁺ h {xs = x ∷ x' ∷ xs} {ys = y ∷ y' ∷ ys} (Perm.swap x y p) =
-    trans (cong (λ z → swap-fb (length (map h ys)) ∘-fb cons-fb (cons-fb z)) (eval-map⁺ h p))
-          (swap-cast (length-map h xs) (length-map h ys) (eval-↭ p))
-  eval-map⁺ h {xs = xs} {ys = zs} (Perm.trans {ys = ys} p q) =
-    trans (cong₂ _∘-fb_ (eval-map⁺ h q) (eval-map⁺ h p))
-          (comp-cast (length-map h xs) (length-map h ys) (length-map h zs)
-                     (eval-↭ q) (eval-↭ p))
+  open import Categories.PermuteCoherence.Map using (eval-map⁺)
 
   subst₂-FinBij-≈ : ∀ {n m n' m'} (a : n ≡ n') (b : m ≡ m') {π ρ : FinBij n m}
     → π ≈-fb ρ → subst₂ FinBij a b π ≈-fb subst₂ FinBij a b ρ
