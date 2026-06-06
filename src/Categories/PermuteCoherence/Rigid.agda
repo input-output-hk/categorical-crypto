@@ -44,22 +44,23 @@ private
 
 ------------------------------------------------------------------------
 -- `Unique` lists have injective `lookup` (inlined for self-containment).
+-- Public so `--without-K` consumers (IsoTransport) can reuse them
+-- directly instead of re-deriving copies.
 
-private
-  All-lookup : ∀ {p} {Q : A → Set p} {xs : List A}
-             → All Q xs → (i : Fin (length xs)) → Q (lookup xs i)
-  All-lookup (q ∷ _)  zero    = q
-  All-lookup (_ ∷ qs) (suc i) = All-lookup qs i
+All-lookup : ∀ {p} {Q : A → Set p} {xs : List A}
+           → All Q xs → (i : Fin (length xs)) → Q (lookup xs i)
+All-lookup (q ∷ _)  zero    = q
+All-lookup (_ ∷ qs) (suc i) = All-lookup qs i
 
-  lookup-injective-unique
-    : ∀ {xs : List A}
-    → Unique xs → (i j : Fin (length xs))
-    → lookup xs i ≡ lookup xs j
-    → i ≡ j
-  lookup-injective-unique (_  ∷ _ ) zero    zero    _  = refl
-  lookup-injective-unique (x≢ ∷ _ ) zero    (suc j) eq = ⊥-elim (All-lookup x≢ j eq)
-  lookup-injective-unique (x≢ ∷ _ ) (suc i) zero    eq = ⊥-elim (All-lookup x≢ i (sym eq))
-  lookup-injective-unique (_  ∷ uq) (suc i) (suc j) eq = cong suc (lookup-injective-unique uq i j eq)
+lookup-injective-unique
+  : ∀ {xs : List A}
+  → Unique xs → (i j : Fin (length xs))
+  → lookup xs i ≡ lookup xs j
+  → i ≡ j
+lookup-injective-unique (_  ∷ _ ) zero    zero    _  = refl
+lookup-injective-unique (x≢ ∷ _ ) zero    (suc j) eq = ⊥-elim (All-lookup x≢ j eq)
+lookup-injective-unique (x≢ ∷ _ ) (suc i) zero    eq = ⊥-elim (All-lookup x≢ i (sym eq))
+lookup-injective-unique (_  ∷ uq) (suc i) (suc j) eq = cong suc (lookup-injective-unique uq i j eq)
 
 ------------------------------------------------------------------------
 -- Lookup-soundness of `eval-↭`:  `eval-↭ p` carries position `i` of

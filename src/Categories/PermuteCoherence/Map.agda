@@ -3,7 +3,8 @@
 module Categories.PermuteCoherence.Map where
 
 open import Data.Nat.Base using (ℕ; zero; suc)
-open import Data.List.Base using (List; []; _∷_; length; map)
+open import Data.Fin.Base using (Fin) renaming (zero to fzero; suc to fsuc)
+open import Data.List.Base using (List; []; _∷_; length; lookup; map)
 open import Data.List.Properties using (length-map)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
@@ -140,3 +141,87 @@ map⁺-↭-reflexive h refl = refl
 ≈-fb-resp-≡ : ∀ {n m} {π π' ρ ρ' : FinBij n m}
   → π ≡ π' → ρ ≡ ρ' → π ≈-fb ρ → π' ≈-fb ρ'
 ≈-fb-resp-≡ refl refl eq = eq
+
+------------------------------------------------------------------------
+-- `subst Fin` cast algebra for the cross-iso (φ-equivariance) rigidity.
+-- (Relocated from the now-deleted `EvalRigidKFree`; sole consumer is
+-- `…/Completeness/Discharge/IsoTransport.agda`.)
+------------------------------------------------------------------------
+
+-- `subst Fin` along a `sym (cong suc _)` cast commutes with `suc`/`zero`.
+subst-Fin-sym-suc
+  : ∀ {n m : ℕ} (e : n ≡ m) (i : Fin m)
+  → subst Fin (sym (cong suc e)) (fsuc i) ≡ fsuc (subst Fin (sym e) i)
+subst-Fin-sym-suc refl i = refl
+
+subst-Fin-sym-zero
+  : ∀ {n m : ℕ} (e : n ≡ m)
+  → subst Fin (sym (cong suc e)) fzero ≡ fzero
+subst-Fin-sym-zero refl = refl
+
+-- `lookup` commutes with `map`, the index transported along `length-map`.
+lookup-map
+  : ∀ {A B : Set} (g : A → B) (xs : List A)
+      (i : Fin (length xs))
+  → lookup (map g xs) (subst Fin (sym (length-map g xs)) i) ≡ g (lookup xs i)
+lookup-map g (x ∷ xs) fzero =
+  cong (lookup (map g (x ∷ xs))) (subst-Fin-sym-zero (length-map g xs))
+lookup-map g (x ∷ xs) (fsuc i) =
+  trans (cong (lookup (map g (x ∷ xs))) (subst-Fin-sym-suc (length-map g xs) i))
+        (lookup-map g xs i)
+
+-- `eval-↭` commutes with `subst₂ _↭_` along list equalities.
+eval-subst₂-↭
+  : ∀ {a} {A : Set a} {xs xs' ys ys' : List A}
+      (p : xs ≡ xs') (q : ys ≡ ys') (r : xs Perm.↭ ys)
+  → eval-↭ (subst₂ Perm._↭_ p q r)
+    ≡ subst₂ FinBij (cong length p) (cong length q) (eval-↭ r)
+eval-subst₂-↭ refl refl r = refl
+
+-- `subst₂ FinBij` re-expressed as a pair of single `subst Fin`-casts on
+-- domain (precompose) and codomain (postcompose).
+subst₂-FinBij-as-subst
+  : ∀ {n n' m m'} (a : n ≡ n') (b : m ≡ m') (π : FinBij n m) (i : Fin n')
+  → (subst₂ FinBij a b π) P.⟨$⟩ʳ i
+    ≡ subst Fin b (π P.⟨$⟩ʳ subst Fin (sym a) i)
+subst₂-FinBij-as-subst refl refl π i = refl
+
+-- ℕ-equality is irrelevant (UIP from decidability), so `subst Fin` does
+-- not depend on the *proof* of a length equality, only its endpoints.
+cast-irr
+  : ∀ {n m : ℕ} (e e' : n ≡ m) (i : Fin n)
+  → subst Fin e i ≡ subst Fin e' i
+cast-irr e e' i = cong (λ z → subst Fin z i) (ℕ-≡-irrelevant e e')
+  where open import Data.Nat.Properties using () renaming (≡-irrelevant to ℕ-≡-irrelevant)
+
+-- Two nested `subst Fin`-casts collapse to a single one (matched at refl).
+subst-Fin-trans
+  : ∀ {n m k : ℕ} (e : n ≡ m) (e' : m ≡ k) (i : Fin n)
+  → subst Fin e' (subst Fin e i) ≡ subst Fin (trans e e') i
+subst-Fin-trans refl refl i = refl
+
+-- `lookup` along a list equality: transporting the index by the
+-- `cong length`-cast of `e : xs ≡ ys` re-indexes `ys` to agree with `xs`.
+lookup-subst-list
+  : ∀ {a} {A : Set a} {xs ys : List A} (e : xs ≡ ys) (k : Fin (length xs))
+  → lookup ys (subst Fin (cong length e) k) ≡ lookup xs k
+lookup-subst-list refl k = refl
+
+-- A `subst Fin` round-trip (cast then inverse cast) is the identity.
+subst-Fin-roundtrip
+  : ∀ {n m : ℕ} (e : n ≡ m) (i : Fin n)
+  → subst Fin (sym e) (subst Fin e i) ≡ i
+subst-Fin-roundtrip refl i = refl
+
+-- The other-direction round-trip:  `subst Fin e ∘ subst Fin (sym e) = id`.
+subst-Fin-roundtrip'
+  : ∀ {n m : ℕ} (e : n ≡ m) (i : Fin m)
+  → subst Fin e (subst Fin (sym e) i) ≡ i
+subst-Fin-roundtrip' refl i = refl
+
+-- `subst Fin (sym (sym e)) = subst Fin e` (cast-irr, since `sym (sym e)`
+-- and `e` have the same endpoints).
+subst-Fin-sym-sym
+  : ∀ {n m : ℕ} (e : n ≡ m) (i : Fin n)
+  → subst Fin (sym (sym e)) i ≡ subst Fin e i
+subst-Fin-sym-sym e i = cast-irr (sym (sym e)) e i

@@ -83,11 +83,12 @@ open import Categories.PermuteCoherence.FinBij
   using (FinBij; _≈-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 
-open import Categories.PermuteCoherence.EvalRigidKFree
-  using ( lookup-injective-unique; lookup-sound; lookup-map; eval-subst₂-↭
+open import Categories.PermuteCoherence.Rigid
+  using ( lookup-injective-unique; lookup-sound )
+open import Categories.PermuteCoherence.Map
+  using ( eval-map⁺; lookup-map; eval-subst₂-↭
         ; subst₂-FinBij-as-subst; cast-irr; subst-Fin-trans; lookup-subst-list
-        ; subst-Fin-roundtrip; subst-Fin-roundtrip'; subst-Fin-sym-sym
-        ; eval-map⁺ )
+        ; subst-Fin-roundtrip; subst-Fin-roundtrip'; subst-Fin-sym-sym )
 
 --------------------------------------------------------------------------------
 -- §0.  ≈Term plumbing.  `≡⇒≈Term` comes from `Categories.FreeMonoidal`
