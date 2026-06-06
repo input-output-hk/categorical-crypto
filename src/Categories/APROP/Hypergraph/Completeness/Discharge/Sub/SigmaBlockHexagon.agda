@@ -59,17 +59,15 @@ open FM.HomReasoning
           (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐) ∘ (id ⊗₁ (id ⊗₁ f))
             ≈⟨ assoc ⟩
           α⇒ ∘ ((σ ⊗₁ id) ∘ α⇐) ∘ (id ⊗₁ (id ⊗₁ f))
-            ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+            ≈⟨ refl⟩∘⟨ assoc ⟩
           α⇒ ∘ (σ ⊗₁ id) ∘ (α⇐ ∘ (id ⊗₁ (id ⊗₁ f)))
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl α⇐-comm) ⟩
+            ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ α⇐-comm) ⟩
           α⇒ ∘ (σ ⊗₁ id) ∘ (((id ⊗₁ id) ⊗₁ f) ∘ α⇐)
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+            ≈⟨ refl⟩∘⟨ (≈-Term-sym assoc) ⟩
           α⇒ ∘ ((σ ⊗₁ id) ∘ ((id ⊗₁ id) ⊗₁ f)) ∘ α⇐
-            ≈⟨ ∘-resp-≈ ≈-Term-refl
-                 (∘-resp-≈ (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                            (⊗-resp-≈ (≈-Term-trans (∘-resp-≈ ≈-Term-refl id⊗id≈id) idʳ)
-                                      idˡ))
-                          ≈-Term-refl) ⟩
+            ≈⟨ refl⟩∘⟨ ((≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+                            (⊗-resp-≈ (≈-Term-trans (refl⟩∘⟨ id⊗id≈id) idʳ)
+                                      idˡ)) ⟩∘⟨refl) ⟩
           α⇒ ∘ (σ ⊗₁ f) ∘ α⇐
         ∎
       rhs→common =
@@ -77,17 +75,15 @@ open FM.HomReasoning
           (id ⊗₁ (id ⊗₁ f)) ∘ (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐)
             ≈⟨ ≈-Term-sym assoc ⟩
           ((id ⊗₁ (id ⊗₁ f)) ∘ α⇒) ∘ ((σ ⊗₁ id) ∘ α⇐)
-            ≈⟨ ∘-resp-≈ (≈-Term-sym α-comm) ≈-Term-refl ⟩
+            ≈⟨ (≈-Term-sym α-comm) ⟩∘⟨refl ⟩
           (α⇒ ∘ ((id ⊗₁ id) ⊗₁ f)) ∘ ((σ ⊗₁ id) ∘ α⇐)
             ≈⟨ assoc ⟩
           α⇒ ∘ (((id ⊗₁ id) ⊗₁ f) ∘ ((σ ⊗₁ id) ∘ α⇐))
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+            ≈⟨ refl⟩∘⟨ (≈-Term-sym assoc) ⟩
           α⇒ ∘ ((((id ⊗₁ id) ⊗₁ f)) ∘ (σ ⊗₁ id)) ∘ α⇐
-            ≈⟨ ∘-resp-≈ ≈-Term-refl
-                 (∘-resp-≈ (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                            (⊗-resp-≈ (≈-Term-trans (∘-resp-≈ id⊗id≈id ≈-Term-refl) idˡ)
-                                      idʳ))
-                          ≈-Term-refl) ⟩
+            ≈⟨ refl⟩∘⟨ ((≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+                            (⊗-resp-≈ (≈-Term-trans (id⊗id≈id ⟩∘⟨refl) idˡ)
+                                      idʳ)) ⟩∘⟨refl) ⟩
           α⇒ ∘ (σ ⊗₁ f) ∘ α⇐
         ∎
   in ≈-Term-trans lhs→common (≈-Term-sym rhs→common)
@@ -105,33 +101,26 @@ open FM.HomReasoning
           (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐) ∘ (f ⊗₁ id)
             ≈⟨ assoc ⟩
           α⇒ ∘ ((σ ⊗₁ id) ∘ α⇐) ∘ (f ⊗₁ id)
-            ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+            ≈⟨ refl⟩∘⟨ assoc ⟩
           α⇒ ∘ (σ ⊗₁ id) ∘ (α⇐ ∘ (f ⊗₁ id))
-            ≈⟨ ∘-resp-≈ ≈-Term-refl
-                 (∘-resp-≈ ≈-Term-refl
-                   (≈-Term-trans
-                     (∘-resp-≈ ≈-Term-refl
-                       (⊗-resp-≈ ≈-Term-refl (≈-Term-sym id⊗id≈id)))
+            ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (≈-Term-trans
+                     (refl⟩∘⟨ (⊗-resp-≈ ≈-Term-refl (≈-Term-sym id⊗id≈id)))
                      α⇐-comm)) ⟩
           α⇒ ∘ (σ ⊗₁ id) ∘ (((f ⊗₁ id) ⊗₁ id) ∘ α⇐)
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+            ≈⟨ refl⟩∘⟨ (≈-Term-sym assoc) ⟩
           α⇒ ∘ ((σ ⊗₁ id) ∘ ((f ⊗₁ id) ⊗₁ id)) ∘ α⇐
-            ≈⟨ ∘-resp-≈ ≈-Term-refl
-                 (∘-resp-≈ (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                            (⊗-resp-≈ σ∘[f⊗g]≈[g⊗f]∘σ idˡ))
-                          ≈-Term-refl) ⟩
+            ≈⟨ refl⟩∘⟨ ((≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+                            (⊗-resp-≈ σ∘[f⊗g]≈[g⊗f]∘σ idˡ)) ⟩∘⟨refl) ⟩
           α⇒ ∘ (((id ⊗₁ f) ∘ σ) ⊗₁ id) ∘ α⇐
-            ≈⟨ ∘-resp-≈ ≈-Term-refl
-                 (∘-resp-≈ (≈-Term-trans
+            ≈⟨ refl⟩∘⟨ ((≈-Term-trans
                               (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ))
-                              ⊗-∘-dist)
-                          ≈-Term-refl) ⟩
+                              ⊗-∘-dist) ⟩∘⟨refl) ⟩
           α⇒ ∘ (((id ⊗₁ f) ⊗₁ id) ∘ ((σ ⊗₁ id))) ∘ α⇐
-            ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+            ≈⟨ refl⟩∘⟨ assoc ⟩
           α⇒ ∘ ((id ⊗₁ f) ⊗₁ id) ∘ (σ ⊗₁ id) ∘ α⇐
             ≈⟨ ≈-Term-sym assoc ⟩
           (α⇒ ∘ ((id ⊗₁ f) ⊗₁ id)) ∘ ((σ ⊗₁ id) ∘ α⇐)
-            ≈⟨ ∘-resp-≈ α-comm ≈-Term-refl ⟩
+            ≈⟨ α-comm ⟩∘⟨refl ⟩
           ((id ⊗₁ (f ⊗₁ id)) ∘ α⇒) ∘ ((σ ⊗₁ id) ∘ α⇐)
             ≈⟨ assoc ⟩
           (id ⊗₁ (f ⊗₁ id)) ∘ (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐)
@@ -159,24 +148,22 @@ private
         ≈⟨ assoc ⟩
       (id ⊗₁ σ) ∘ ((α⇒ ∘ (σ ⊗₁ id))
         ∘ ((σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+        ≈⟨ refl⟩∘⟨ assoc ⟩
       (id ⊗₁ σ) ∘ α⇒ ∘ ((σ ⊗₁ id)
         ∘ ((σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
+        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (≈-Term-sym assoc)) ⟩
       (id ⊗₁ σ) ∘ α⇒ ∘ ((σ ⊗₁ id) ∘ (σ ⊗₁ id))
         ∘ α⇐ ∘ (id ⊗₁ σ)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈
-              (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                            (≈-Term-trans (⊗-resp-≈ σ∘σ≈id idˡ) id⊗id≈id))
-              ≈-Term-refl)) ⟩
+        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ ((≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+                            (≈-Term-trans (⊗-resp-≈ σ∘σ≈id idˡ) id⊗id≈id)) ⟩∘⟨refl)) ⟩
       (id ⊗₁ σ) ∘ α⇒ ∘ id ∘ α⇐ ∘ (id ⊗₁ σ)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl idˡ) ⟩
+        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ idˡ) ⟩
       (id ⊗₁ σ) ∘ α⇒ ∘ (α⇐ ∘ (id ⊗₁ σ))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+        ≈⟨ refl⟩∘⟨ (≈-Term-sym assoc) ⟩
       (id ⊗₁ σ) ∘ (α⇒ ∘ α⇐) ∘ (id ⊗₁ σ)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ α⇒∘α⇐≈id ≈-Term-refl) ⟩
+        ≈⟨ refl⟩∘⟨ (α⇒∘α⇐≈id ⟩∘⟨refl) ⟩
       (id ⊗₁ σ) ∘ id ∘ (id ⊗₁ σ)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
+        ≈⟨ refl⟩∘⟨ idˡ ⟩
       (id ⊗₁ σ) ∘ (id ⊗₁ σ)
         ≈⟨ ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
              (≈-Term-trans (⊗-resp-≈ idˡ σ∘σ≈id) id⊗id≈id) ⟩
@@ -196,19 +183,19 @@ private
         ∘ (α⇐ ∘ σ ∘ α⇐)
         ≈⟨ assoc ⟩
       α⇒ ∘ ((σ ∘ α⇒) ∘ (α⇐ ∘ σ ∘ α⇐))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+        ≈⟨ refl⟩∘⟨ assoc ⟩
       α⇒ ∘ σ ∘ (α⇒ ∘ (α⇐ ∘ σ ∘ α⇐))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
+        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (≈-Term-sym assoc)) ⟩
       α⇒ ∘ σ ∘ ((α⇒ ∘ α⇐) ∘ σ ∘ α⇐)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ α⇒∘α⇐≈id ≈-Term-refl)) ⟩
+        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (α⇒∘α⇐≈id ⟩∘⟨refl)) ⟩
       α⇒ ∘ σ ∘ (id ∘ σ ∘ α⇐)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl idˡ) ⟩
+        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ idˡ) ⟩
       α⇒ ∘ σ ∘ (σ ∘ α⇐)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+        ≈⟨ refl⟩∘⟨ (≈-Term-sym assoc) ⟩
       α⇒ ∘ (σ ∘ σ) ∘ α⇐
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ σ∘σ≈id ≈-Term-refl) ⟩
+        ≈⟨ refl⟩∘⟨ (σ∘σ≈id ⟩∘⟨refl) ⟩
       α⇒ ∘ id ∘ α⇐
-        ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
+        ≈⟨ refl⟩∘⟨ idˡ ⟩
       α⇒ ∘ α⇐
         ≈⟨ α⇒∘α⇐≈id ⟩
       id
@@ -228,24 +215,22 @@ private
         ≈⟨ assoc ⟩
       (σ ⊗₁ id) ∘ ((α⇐ ∘ (id ⊗₁ σ))
         ∘ ((id ⊗₁ σ) ∘ α⇒ ∘ (σ ⊗₁ id)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+        ≈⟨ refl⟩∘⟨ assoc ⟩
       (σ ⊗₁ id) ∘ α⇐ ∘ ((id ⊗₁ σ)
         ∘ ((id ⊗₁ σ) ∘ α⇒ ∘ (σ ⊗₁ id)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
+        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (≈-Term-sym assoc)) ⟩
       (σ ⊗₁ id) ∘ α⇐ ∘ ((id ⊗₁ σ) ∘ (id ⊗₁ σ))
         ∘ α⇒ ∘ (σ ⊗₁ id)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈
-              (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                            (≈-Term-trans (⊗-resp-≈ idˡ σ∘σ≈id) id⊗id≈id))
-              ≈-Term-refl)) ⟩
+        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ ((≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+                            (≈-Term-trans (⊗-resp-≈ idˡ σ∘σ≈id) id⊗id≈id)) ⟩∘⟨refl)) ⟩
       (σ ⊗₁ id) ∘ α⇐ ∘ id ∘ α⇒ ∘ (σ ⊗₁ id)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl idˡ) ⟩
+        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ idˡ) ⟩
       (σ ⊗₁ id) ∘ α⇐ ∘ (α⇒ ∘ (σ ⊗₁ id))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+        ≈⟨ refl⟩∘⟨ (≈-Term-sym assoc) ⟩
       (σ ⊗₁ id) ∘ (α⇐ ∘ α⇒) ∘ (σ ⊗₁ id)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ α⇐∘α⇒≈id ≈-Term-refl) ⟩
+        ≈⟨ refl⟩∘⟨ (α⇐∘α⇒≈id ⟩∘⟨refl) ⟩
       (σ ⊗₁ id) ∘ id ∘ (σ ⊗₁ id)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
+        ≈⟨ refl⟩∘⟨ idˡ ⟩
       (σ ⊗₁ id) ∘ (σ ⊗₁ id)
         ≈⟨ ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
              (≈-Term-trans (⊗-resp-≈ σ∘σ≈id idˡ) id⊗id≈id) ⟩
@@ -271,13 +256,13 @@ hexagon₂ {X} {Y} {Z} =
     h₂L
       ≈⟨ ≈-Term-sym idʳ ⟩
     h₂L ∘ id
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym h₁R∘h₂R≈id) ⟩
+      ≈⟨ refl⟩∘⟨ (≈-Term-sym h₁R∘h₂R≈id) ⟩
     h₂L ∘ (h₁R ∘ h₂R)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym hexagon) ≈-Term-refl) ⟩
+      ≈⟨ refl⟩∘⟨ ((≈-Term-sym hexagon) ⟩∘⟨refl) ⟩
     h₂L ∘ (h₁L ∘ h₂R)
       ≈⟨ ≈-Term-sym assoc ⟩
     (h₂L ∘ h₁L) ∘ h₂R
-      ≈⟨ ∘-resp-≈ h₂L∘h₁L≈id ≈-Term-refl ⟩
+      ≈⟨ h₂L∘h₁L≈id ⟩∘⟨refl ⟩
     id ∘ h₂R
       ≈⟨ idˡ ⟩
     h₂R
@@ -373,8 +358,7 @@ private
   hexagon-with-tail {A} {B} {C} {W} =
     begin
       ((id ⊗₁ σ) ⊗₁ id) ∘ (α⇒ ⊗₁ id) ∘ ((σ ⊗₁ id) ⊗₁ id)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl
-             (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+        ≈⟨ refl⟩∘⟨ (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
                (⊗-resp-≈ ≈-Term-refl idˡ)) ⟩
       ((id ⊗₁ σ) ⊗₁ id) ∘ ((α⇒ ∘ (σ ⊗₁ id)) ⊗₁ id)
         ≈⟨ ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
@@ -384,8 +368,7 @@ private
       (α⇒ ∘ σ ∘ α⇒) ⊗₁ id
         ≈⟨ ≈-Term-trans (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⊗-∘-dist ⟩
       (α⇒ ⊗₁ id) ∘ ((σ ∘ α⇒) ⊗₁ id)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl
-             (≈-Term-trans (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⊗-∘-dist) ⟩
+        ≈⟨ refl⟩∘⟨ (≈-Term-trans (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⊗-∘-dist) ⟩
       (α⇒ ⊗₁ id) ∘ (σ ⊗₁ id) ∘ (α⇒ ⊗₁ id)
     ∎
 
@@ -405,16 +388,15 @@ private
   σ⊗id-collapse-middle {A} {B} {C} {D} =
     begin
       α⇐ ∘ (σ ⊗₁ id) ∘ α⇒
-        ≈⟨ ∘-resp-≈ ≈-Term-refl
-             (∘-resp-≈ (⊗-resp-≈ ≈-Term-refl (≈-Term-sym id⊗id≈id)) ≈-Term-refl) ⟩
+        ≈⟨ refl⟩∘⟨ ((⊗-resp-≈ ≈-Term-refl (≈-Term-sym id⊗id≈id)) ⟩∘⟨refl) ⟩
       α⇐ ∘ (σ ⊗₁ (id ⊗₁ id)) ∘ α⇒
         ≈⟨ ≈-Term-sym assoc ⟩
       (α⇐ ∘ (σ ⊗₁ (id ⊗₁ id))) ∘ α⇒
-        ≈⟨ ∘-resp-≈ α⇐-comm ≈-Term-refl ⟩
+        ≈⟨ α⇐-comm ⟩∘⟨refl ⟩
       (((σ ⊗₁ id) ⊗₁ id) ∘ α⇐) ∘ α⇒
         ≈⟨ assoc ⟩
       ((σ ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ α⇒)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl α⇐∘α⇒≈id ⟩
+        ≈⟨ refl⟩∘⟨ α⇐∘α⇒≈id ⟩
       ((σ ⊗₁ id) ⊗₁ id) ∘ id
         ≈⟨ idʳ ⟩
       ((σ ⊗₁ id) ⊗₁ id)
@@ -544,32 +526,27 @@ private
       σ
         ≈⟨ ≈-Term-sym idˡ ⟩
       id ∘ σ
-        ≈⟨ ∘-resp-≈ (≈-Term-sym α⇒∘α⇐≈id) ≈-Term-refl ⟩
+        ≈⟨ (≈-Term-sym α⇒∘α⇐≈id) ⟩∘⟨refl ⟩
       (α⇒ ∘ α⇐) ∘ σ
         ≈⟨ assoc ⟩
       α⇒ ∘ (α⇐ ∘ σ)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym idʳ) ⟩
+        ≈⟨ refl⟩∘⟨ (≈-Term-sym idʳ) ⟩
       α⇒ ∘ ((α⇐ ∘ σ) ∘ id)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym α⇐∘α⇒≈id)) ⟩
+        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (≈-Term-sym α⇐∘α⇒≈id)) ⟩
       α⇒ ∘ ((α⇐ ∘ σ) ∘ (α⇐ ∘ α⇒))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl
-             (≈-Term-trans (≈-Term-sym assoc)
-               (∘-resp-≈ assoc ≈-Term-refl)) ⟩
+        ≈⟨ refl⟩∘⟨ (≈-Term-trans (≈-Term-sym assoc)
+               (assoc ⟩∘⟨refl)) ⟩
       α⇒ ∘ ((α⇐ ∘ (σ ∘ α⇐)) ∘ α⇒)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym assoc) ≈-Term-refl) ⟩
+        ≈⟨ refl⟩∘⟨ ((≈-Term-sym assoc) ⟩∘⟨refl) ⟩
       α⇒ ∘ (((α⇐ ∘ σ) ∘ α⇐) ∘ α⇒)
         -- center α⇐ ∘ σ ∘ α⇐ rewritten by hexagon₂ (sym).
-        ≈⟨ ∘-resp-≈ ≈-Term-refl
-             (∘-resp-≈
-               (≈-Term-trans assoc (≈-Term-sym hexagon₂))
-               ≈-Term-refl) ⟩
+        ≈⟨ refl⟩∘⟨ ((≈-Term-trans assoc (≈-Term-sym hexagon₂)) ⟩∘⟨refl) ⟩
       α⇒ ∘ (((σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ)) ∘ α⇒)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+        ≈⟨ refl⟩∘⟨ assoc ⟩
       α⇒ ∘ ((σ ⊗₁ id) ∘ ((α⇐ ∘ (id ⊗₁ σ)) ∘ α⇒))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl assoc) ⟩
+        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ assoc) ⟩
       α⇒ ∘ ((σ ⊗₁ id) ∘ (α⇐ ∘ ((id ⊗₁ σ) ∘ α⇒)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl
-             (∘-resp-≈ ≈-Term-refl ≈-Term-refl)) ⟩
+        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ ≈-Term-refl)) ⟩
       α⇒ ∘ (σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒
     ∎
 
@@ -588,36 +565,36 @@ inner-eq
 inner-eq {A} {B} {C} =
     begin
       α⇐ ∘ (id ⊗₁ σ) ∘ σ
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl σ-A⊗B-expand) ⟩
+        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ σ-A⊗B-expand) ⟩
       α⇐ ∘ (id ⊗₁ σ) ∘ (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒)
         -- Reassociate to expose ((id ⊗ σ) ∘ α⇒ ∘ (σ ⊗ id)) for hexagon.
         ≈⟨ ≈-Term-sym assoc ⟩
       (α⇐ ∘ (id ⊗₁ σ)) ∘ (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+        ≈⟨ refl⟩∘⟨ (≈-Term-sym assoc) ⟩
       (α⇐ ∘ (id ⊗₁ σ)) ∘ ((α⇒ ∘ (σ ⊗₁ id)) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒)
         ≈⟨ ≈-Term-sym assoc ⟩
       ((α⇐ ∘ (id ⊗₁ σ)) ∘ (α⇒ ∘ (σ ⊗₁ id))) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒
-        ≈⟨ ∘-resp-≈ assoc ≈-Term-refl ⟩
+        ≈⟨ assoc ⟩∘⟨refl ⟩
       (α⇐ ∘ ((id ⊗₁ σ) ∘ (α⇒ ∘ (σ ⊗₁ id)))) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒
-        ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ≈-Term-refl ⟩
+        ≈⟨ (refl⟩∘⟨ (≈-Term-sym assoc)) ⟩∘⟨refl ⟩
       (α⇐ ∘ (((id ⊗₁ σ) ∘ α⇒) ∘ (σ ⊗₁ id))) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒
-        ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl assoc) ≈-Term-refl ⟩
+        ≈⟨ (refl⟩∘⟨ assoc) ⟩∘⟨refl ⟩
       (α⇐ ∘ ((id ⊗₁ σ) ∘ α⇒ ∘ (σ ⊗₁ id))) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒
-        ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl hexagon) ≈-Term-refl ⟩
+        ≈⟨ (refl⟩∘⟨ hexagon) ⟩∘⟨refl ⟩
       (α⇐ ∘ (α⇒ ∘ σ ∘ α⇒)) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒
-        ≈⟨ ∘-resp-≈ (≈-Term-sym assoc) ≈-Term-refl ⟩
+        ≈⟨ (≈-Term-sym assoc) ⟩∘⟨refl ⟩
       ((α⇐ ∘ α⇒) ∘ σ ∘ α⇒) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒
-        ≈⟨ ∘-resp-≈ (∘-resp-≈ α⇐∘α⇒≈id ≈-Term-refl) ≈-Term-refl ⟩
+        ≈⟨ (α⇐∘α⇒≈id ⟩∘⟨refl) ⟩∘⟨refl ⟩
       (id ∘ σ ∘ α⇒) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒
-        ≈⟨ ∘-resp-≈ idˡ ≈-Term-refl ⟩
+        ≈⟨ idˡ ⟩∘⟨refl ⟩
       (σ ∘ α⇒) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒
         ≈⟨ assoc ⟩
       σ ∘ (α⇒ ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+        ≈⟨ refl⟩∘⟨ (≈-Term-sym assoc) ⟩
       σ ∘ ((α⇒ ∘ α⇐) ∘ (id ⊗₁ σ) ∘ α⇒)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ α⇒∘α⇐≈id ≈-Term-refl) ⟩
+        ≈⟨ refl⟩∘⟨ (α⇒∘α⇐≈id ⟩∘⟨refl) ⟩
       σ ∘ (id ∘ (id ⊗₁ σ) ∘ α⇒)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
+        ≈⟨ refl⟩∘⟨ idˡ ⟩
       σ ∘ ((id ⊗₁ σ) ∘ α⇒)
         ≈⟨ ≈-Term-sym assoc ⟩
       (σ ∘ (id ⊗₁ σ)) ∘ α⇒
@@ -658,7 +635,7 @@ private
               ∘ (id ⊗₁ (σ {A = A} {B = B} ⊗₁ id {A = C}))
               ∘ (id ⊗₁ α⇐ {A = A} {B = B} {C = C})
   id⊗σ-block-expand =
-    ≈-Term-trans id⊗-dist (∘-resp-≈ ≈-Term-refl id⊗-dist)
+    ≈-Term-trans id⊗-dist (refl⟩∘⟨ id⊗-dist)
 
 --------------------------------------------------------------------------------
 -- LHS-to-NF-R: both sides reduce to NF-R via a chain of pentagon +
@@ -688,7 +665,7 @@ private
       ≈Term LHS-expanded {A} {B} {C} {D}
   LHS-to-expanded =
     ∘-resp-≈ id⊗σ-block-expand
-      (∘-resp-≈ ≈-Term-refl id⊗σ-block-expand)
+      (refl⟩∘⟨ id⊗σ-block-expand)
 
 --------------------------------------------------------------------------------
 -- `LHS-expanded ≈ NF-R` (= α⇒ ∘ α⇒ ∘ (inner-R ⊗ id) ∘ α⇐ ∘ α⇐) via the
@@ -717,14 +694,9 @@ private
         ∘ (id ⊗₁ α⇐ {A = B} {B = C} {C = D})
   step-A {A} {B} {C} {D} =
     ≈-Term-trans assoc
-      (≈-Term-trans (∘-resp-≈ ≈-Term-refl assoc)
-        (≈-Term-trans (∘-resp-≈ ≈-Term-refl
-                         (∘-resp-≈ ≈-Term-refl
-                           (∘-resp-≈ ≈-Term-refl assoc)))
-          (∘-resp-≈ ≈-Term-refl
-             (∘-resp-≈ ≈-Term-refl
-               (∘-resp-≈ ≈-Term-refl
-                 (∘-resp-≈ ≈-Term-refl assoc))))))
+      (≈-Term-trans (refl⟩∘⟨ assoc)
+        (≈-Term-trans (refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ assoc)))
+          (refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ assoc))))))
 
   -- Step B: pentagon-flip-right at the e3-e4 boundary, α⇐∘id⊗α⇒-rewrite
   -- at the e6-e7 boundary.
@@ -751,21 +723,21 @@ private
         ∘ (id ⊗₁ (σ {A = B} {B = C} ⊗₁ id {A = D}))
         ∘ (id ⊗₁ α⇐ {A = B} {B = C} {C = D})
   step-B {A} {B} {C} {D} =
-    ∘-resp-≈ ≈-Term-refl                  -- under e1
-      (∘-resp-≈ ≈-Term-refl              -- under e2
+    refl⟩∘⟨                  -- under e1
+      (refl⟩∘⟨              -- under e2
         (≈-Term-trans
           (≈-Term-trans (≈-Term-sym assoc)   -- e3 ∘ (e4 ∘ Y) → (e3 ∘ e4) ∘ Y
-            (≈-Term-trans (∘-resp-≈ pentagon-flip-right ≈-Term-refl)  -- (e3 ∘ e4) → p1 ∘ (p2 ∘ p3)
+            (≈-Term-trans (pentagon-flip-right ⟩∘⟨refl)  -- (e3 ∘ e4) → p1 ∘ (p2 ∘ p3)
               (≈-Term-trans assoc                  -- (p1 ∘ (p2 ∘ p3)) ∘ Y → p1 ∘ ((p2 ∘ p3) ∘ Y)
-                (∘-resp-≈ ≈-Term-refl assoc))))    -- p1 ∘ ((p2 ∘ p3) ∘ Y) → p1 ∘ (p2 ∘ (p3 ∘ Y))
-          (∘-resp-≈ ≈-Term-refl            -- under p1
-            (∘-resp-≈ ≈-Term-refl          -- under p2
-              (∘-resp-≈ ≈-Term-refl        -- under p3
-                (∘-resp-≈ ≈-Term-refl      -- under e5
+                (refl⟩∘⟨ assoc))))    -- p1 ∘ ((p2 ∘ p3) ∘ Y) → p1 ∘ (p2 ∘ (p3 ∘ Y))
+          (refl⟩∘⟨            -- under p1
+            (refl⟩∘⟨          -- under p2
+              (refl⟩∘⟨        -- under p3
+                (refl⟩∘⟨      -- under e5
                   (≈-Term-trans (≈-Term-sym assoc)  -- e6 ∘ (e7 ∘ Z) → (e6 ∘ e7) ∘ Z
-                    (≈-Term-trans (∘-resp-≈ α⇐∘id⊗α⇒-rewrite ≈-Term-refl)
+                    (≈-Term-trans (α⇐∘id⊗α⇒-rewrite ⟩∘⟨refl)
                       (≈-Term-trans assoc
-                        (∘-resp-≈ ≈-Term-refl assoc))))))))))
+                        (refl⟩∘⟨ assoc))))))))))
 
   -- Step C: group p3 ∘ e5 ∘ q1 = α⇐_{C⊗A,B,D} ∘ (σ⊗id) ∘ α⇒_{A⊗C,B,D} as a
   -- 3-element composition, ready for σ⊗id-collapse-middle.
@@ -794,12 +766,12 @@ private
             ∘ (id ⊗₁ (σ {A = B} {B = C} ⊗₁ id {A = D}))
             ∘ (id ⊗₁ α⇐ {A = B} {B = C} {C = D}))
   step-C {A} {B} {C} {D} =
-    ∘-resp-≈ ≈-Term-refl       -- under e1
-      (∘-resp-≈ ≈-Term-refl   -- under e2
-        (∘-resp-≈ ≈-Term-refl -- under p1
-          (∘-resp-≈ ≈-Term-refl -- under p2
+    refl⟩∘⟨       -- under e1
+      (refl⟩∘⟨   -- under e2
+        (refl⟩∘⟨ -- under p1
+          (refl⟩∘⟨ -- under p2
             (≈-Term-trans
-              (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc))
+              (refl⟩∘⟨ (≈-Term-sym assoc))
               (≈-Term-sym assoc)))))
 
   -- Step D: collapse the middle α⇐ ∘ (σ⊗id) ∘ α⇒ → ((σ⊗id_B) ⊗ id_D).
@@ -826,11 +798,7 @@ private
             ∘ (id ⊗₁ (σ {A = B} {B = C} ⊗₁ id {A = D}))
             ∘ (id ⊗₁ α⇐ {A = B} {B = C} {C = D}))
   step-D {A} {B} {C} {D} =
-    ∘-resp-≈ ≈-Term-refl
-      (∘-resp-≈ ≈-Term-refl
-        (∘-resp-≈ ≈-Term-refl
-          (∘-resp-≈ ≈-Term-refl
-            (∘-resp-≈ σ⊗id-collapse-middle ≈-Term-refl))))
+    refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ (σ⊗id-collapse-middle ⟩∘⟨refl))))
 
   -- Step E: via α-comm (sym) push e2 = (id_C ⊗ (σ_{A,B} ⊗ id_D)) past p1
   -- to ((id_C ⊗ σ_{A,B}) ⊗ id_D); via α⇐-comm push e8 = (id_A ⊗ (σ_{B,C}
@@ -856,20 +824,15 @@ private
         ∘ (α⇐ {A = A} {B = B ⊗₀ C} {C = D})
         ∘ (id {A = A} ⊗₁ α⇐ {A = B} {B = C} {C = D})
   step-E {A} {B} {C} {D} =
-    ∘-resp-≈ ≈-Term-refl                  -- under e1
+    refl⟩∘⟨                  -- under e1
       (≈-Term-trans                       -- rewrite (a): push e2 past p1
         (≈-Term-trans (≈-Term-sym assoc)
-          (≈-Term-trans (∘-resp-≈ (≈-Term-sym α-comm) ≈-Term-refl)
+          (≈-Term-trans ((≈-Term-sym α-comm) ⟩∘⟨refl)
             (≈-Term-trans assoc
               ≈-Term-refl)))
         -- rewrite (b): navigate 5 levels, push e8 past q3
-        (∘-resp-≈ ≈-Term-refl
-          (∘-resp-≈ ≈-Term-refl
-            (∘-resp-≈ ≈-Term-refl
-              (∘-resp-≈ ≈-Term-refl
-                (∘-resp-≈ ≈-Term-refl
-                  (≈-Term-trans (≈-Term-sym assoc)
-                    (≈-Term-trans (∘-resp-≈ α⇐-comm ≈-Term-refl)
+        (refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ (≈-Term-trans (≈-Term-sym assoc)
+                    (≈-Term-trans (α⇐-comm ⟩∘⟨refl)
                       assoc))))))
         ))
 
@@ -894,26 +857,22 @@ private
         ∘ (α⇐ {A = A} {B = B ⊗₀ C} {C = D})
         ∘ (id {A = A} ⊗₁ α⇐ {A = B} {B = C} {C = D})
   step-F {A} {B} {C} {D} =
-    ∘-resp-≈ ≈-Term-refl                       -- under e1
-      (∘-resp-≈ ≈-Term-refl                   -- under α⇒
+    refl⟩∘⟨                       -- under e1
+      (refl⟩∘⟨                   -- under α⇒
         (≈-Term-trans
           -- group pieces 3-4-5
           (≈-Term-trans
-            (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc))
+            (refl⟩∘⟨ (≈-Term-sym assoc))
             (≈-Term-sym assoc))
           -- hexagon-with-tail + cancel α⇒⊗id ∘ α⇐⊗id
           (≈-Term-trans
-            (∘-resp-≈ (hexagon-with-tail {A = A} {B = C} {C = B} {W = D}) ≈-Term-refl)
+            ((hexagon-with-tail {A = A} {B = C} {C = B} {W = D}) ⟩∘⟨refl)
             (≈-Term-trans assoc
-              (∘-resp-≈ ≈-Term-refl
-                (≈-Term-trans assoc
-                  (∘-resp-≈ ≈-Term-refl
-                    (≈-Term-trans (≈-Term-sym assoc)
+              (refl⟩∘⟨ (≈-Term-trans assoc
+                  (refl⟩∘⟨ (≈-Term-trans (≈-Term-sym assoc)
                       (≈-Term-trans
-                        (∘-resp-≈
-                          (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                            (≈-Term-trans (⊗-resp-≈ α⇒∘α⇐≈id idˡ) id⊗id≈id))
-                          ≈-Term-refl)
+                        ((≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+                            (≈-Term-trans (⊗-resp-≈ α⇒∘α⇐≈id idˡ) id⊗id≈id)) ⟩∘⟨refl)
                         idˡ)))))))))
 
   -- Step G: apply pentagon at the top boundary.
@@ -936,9 +895,9 @@ private
   step-G {A} {B} {C} {D} =
     -- group top 3, apply pentagon, distribute
     ≈-Term-trans
-      (≈-Term-trans (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc))
+      (≈-Term-trans (refl⟩∘⟨ (≈-Term-sym assoc))
         (≈-Term-sym assoc))
-      (≈-Term-trans (∘-resp-≈ pentagon ≈-Term-refl)
+      (≈-Term-trans (pentagon ⟩∘⟨refl)
         assoc)
 
   -- Step H: α⇐-stack-from-pentagon at the bottom boundary
@@ -959,10 +918,10 @@ private
         ∘ (α⇐ {A = A ⊗₀ B} {B = C} {C = D})
         ∘ (α⇐ {A = A} {B = B} {C = C ⊗₀ D})
   step-H {A} {B} {C} {D} =
-    ∘-resp-≈ ≈-Term-refl    -- under α⇒_{C,B,A⊗D}
-      (∘-resp-≈ ≈-Term-refl  -- under α⇒_{C⊗B,A,D}
-        (∘-resp-≈ ≈-Term-refl  -- under σ⊗id
-          (∘-resp-≈ ≈-Term-refl  -- under (id⊗σ)⊗id
+    refl⟩∘⟨    -- under α⇒_{C,B,A⊗D}
+      (refl⟩∘⟨  -- under α⇒_{C⊗B,A,D}
+        (refl⟩∘⟨  -- under σ⊗id
+          (refl⟩∘⟨  -- under (id⊗σ)⊗id
             α⇐-stack-from-pentagon)))
 
   -- Step I: factor the 3 (X ⊗ id_D) pieces into a single (inner-R ⊗ id_D).
@@ -976,20 +935,18 @@ private
         ∘ (α⇐ {A = A} {B = B} {C = C ⊗₀ D})
       ≈Term NF-R {A} {B} {C} {D}
   step-I {A} {B} {C} {D} =
-    ∘-resp-≈ ≈-Term-refl  -- under α⇒_{C,B,A⊗D}
-      (∘-resp-≈ ≈-Term-refl  -- under α⇒_{C⊗B,A,D}
+    refl⟩∘⟨  -- under α⇒_{C,B,A⊗D}
+      (refl⟩∘⟨  -- under α⇒_{C⊗B,A,D}
         (≈-Term-trans
-          (≈-Term-trans (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc))
+          (≈-Term-trans (refl⟩∘⟨ (≈-Term-sym assoc))
             (≈-Term-sym assoc))
-          (∘-resp-≈
+          (
             -- merge (σ⊗id) ∘ (((id⊗σ)⊗id) ∘ (α⇒⊗id)) into (inner-R ⊗ id_D)
             (≈-Term-trans
-              (∘-resp-≈ ≈-Term-refl
-                (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+              (refl⟩∘⟨ (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
                   (⊗-resp-≈ ≈-Term-refl idˡ)))
               (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                (⊗-resp-≈ ≈-Term-refl idˡ)))
-            ≈-Term-refl)))
+                (⊗-resp-≈ ≈-Term-refl idˡ))) ⟩∘⟨refl)))
 
   LHS-to-NF-R : ∀ {A B C D : ObjTerm}
               → LHS-expanded {A} {B} {C} {D} ≈Term NF-R {A} {B} {C} {D}
@@ -1028,8 +985,7 @@ private
         ∘ σ-block {A = A} {B = B} {C = C ⊗₀ D}
       ≈Term RHS-expanded {A} {B} {C} {D}
   RHS-to-expanded =
-    ∘-resp-≈ ≈-Term-refl
-      (∘-resp-≈ id⊗σ-block-expand ≈-Term-refl)
+    refl⟩∘⟨ (id⊗σ-block-expand ⟩∘⟨refl)
 
   -- RHS path step R-A: re-associate RHS-expanded into a 9-element flat
   -- right-associated chain.
@@ -1048,14 +1004,9 @@ private
   step-R-A {A} {B} {C} {D} =
     -- 4 assoc rotations (as step-A).
     ≈-Term-trans assoc
-      (≈-Term-trans (∘-resp-≈ ≈-Term-refl assoc)
-        (≈-Term-trans (∘-resp-≈ ≈-Term-refl
-                         (∘-resp-≈ ≈-Term-refl
-                           (∘-resp-≈ ≈-Term-refl assoc)))
-          (∘-resp-≈ ≈-Term-refl
-             (∘-resp-≈ ≈-Term-refl
-               (∘-resp-≈ ≈-Term-refl
-                 (∘-resp-≈ ≈-Term-refl assoc))))))
+      (≈-Term-trans (refl⟩∘⟨ assoc)
+        (≈-Term-trans (refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ assoc)))
+          (refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ assoc))))))
 
   -- Step R-B: apply α⇐∘id⊗α⇒-rewrite at r3-r4 boundary,
   -- and pentagon-flip-right at r6-r7 boundary.
@@ -1087,22 +1038,22 @@ private
         ∘ (σ {A = A} {B = B} ⊗₁ id {A = C ⊗₀ D})
         ∘ (α⇐ {A = A} {B = B} {C = C ⊗₀ D})
   step-R-B {A} {B} {C} {D} =
-    ∘-resp-≈ ≈-Term-refl                   -- under r1
-      (∘-resp-≈ ≈-Term-refl                -- under r2
+    refl⟩∘⟨                   -- under r1
+      (refl⟩∘⟨                -- under r2
         (≈-Term-trans
           (≈-Term-trans (≈-Term-sym assoc)
-            (≈-Term-trans (∘-resp-≈ α⇐∘id⊗α⇒-rewrite ≈-Term-refl)
+            (≈-Term-trans (α⇐∘id⊗α⇒-rewrite ⟩∘⟨refl)
               (≈-Term-trans assoc
-                (∘-resp-≈ ≈-Term-refl assoc))))
+                (refl⟩∘⟨ assoc))))
           -- navigate 4 levels to r6 ∘ r7, apply pentagon-flip-right
-          (∘-resp-≈ ≈-Term-refl    -- under α⇒_{B⊗C,A,D}
-            (∘-resp-≈ ≈-Term-refl  -- under (α⇐_{B,C,A}⊗id_D)
-              (∘-resp-≈ ≈-Term-refl  -- under α⇐_{B,C⊗A,D}
-                (∘-resp-≈ ≈-Term-refl  -- under r5
+          (refl⟩∘⟨    -- under α⇒_{B⊗C,A,D}
+            (refl⟩∘⟨  -- under (α⇐_{B,C,A}⊗id_D)
+              (refl⟩∘⟨  -- under α⇐_{B,C⊗A,D}
+                (refl⟩∘⟨  -- under r5
                   (≈-Term-trans (≈-Term-sym assoc)
-                    (≈-Term-trans (∘-resp-≈ pentagon-flip-right ≈-Term-refl)
+                    (≈-Term-trans (pentagon-flip-right ⟩∘⟨refl)
                       (≈-Term-trans assoc
-                        (∘-resp-≈ ≈-Term-refl assoc))))))))))
+                        (refl⟩∘⟨ assoc))))))))))
 
   -- Step R-C: α⇐-comm to push r5 past α⇐_{B,C⊗A,D}, then cancel
   -- α⇐_{B,A⊗C,D} ∘ α⇒_{B,A⊗C,D} = id.
@@ -1129,16 +1080,15 @@ private
         ∘ (σ {A = A} {B = B} ⊗₁ id {A = C ⊗₀ D})
         ∘ (α⇐ {A = A} {B = B} {C = C ⊗₀ D})
   step-R-C {A} {B} {C} {D} =
-    ∘-resp-≈ ≈-Term-refl  -- under r1
-      (∘-resp-≈ ≈-Term-refl  -- under r2
-        (∘-resp-≈ ≈-Term-refl  -- under α⇒_{B⊗C,A,D}
-          (∘-resp-≈ ≈-Term-refl  -- under (α⇐_{B,C,A}⊗id_D)
+    refl⟩∘⟨  -- under r1
+      (refl⟩∘⟨  -- under r2
+        (refl⟩∘⟨  -- under α⇒_{B⊗C,A,D}
+          (refl⟩∘⟨  -- under (α⇐_{B,C,A}⊗id_D)
             (≈-Term-trans (≈-Term-sym assoc)
-              (≈-Term-trans (∘-resp-≈ α⇐-comm ≈-Term-refl)
+              (≈-Term-trans (α⇐-comm ⟩∘⟨refl)
                 (≈-Term-trans assoc
-                  (∘-resp-≈ ≈-Term-refl
-                    (≈-Term-trans (≈-Term-sym assoc)
-                      (≈-Term-trans (∘-resp-≈ α⇐∘α⇒≈id ≈-Term-refl)
+                  (refl⟩∘⟨ (≈-Term-trans (≈-Term-sym assoc)
+                      (≈-Term-trans (α⇐∘α⇒≈id ⟩∘⟨refl)
                         idˡ)))))))))
 
   -- Step R-D: α-comm (sym) at the r2 ∘ α⇒_{B⊗C,A,D} boundary, α⇐-comm at
@@ -1164,28 +1114,18 @@ private
         ∘ (α⇐ {A = A ⊗₀ B} {B = C} {C = D})
         ∘ (α⇐ {A = A} {B = B} {C = C ⊗₀ D})
   step-R-D {A} {B} {C} {D} =
-    ∘-resp-≈ ≈-Term-refl              -- under r1
+    refl⟩∘⟨              -- under r1
       (≈-Term-trans
         -- rewrite (a): r2 ∘ (α⇒ ∘ Y) → α⇒_{C⊗B,A,D} ∘ (((σ⊗id_A)⊗id_D) ∘ Y)
-        (≈-Term-trans (∘-resp-≈
-          (⊗-resp-≈ ≈-Term-refl (≈-Term-sym id⊗id≈id))
-          ≈-Term-refl)
+        (≈-Term-trans ((⊗-resp-≈ ≈-Term-refl (≈-Term-sym id⊗id≈id)) ⟩∘⟨refl)
           (≈-Term-trans (≈-Term-sym assoc)
-            (≈-Term-trans (∘-resp-≈ (≈-Term-sym α-comm) ≈-Term-refl)
+            (≈-Term-trans ((≈-Term-sym α-comm) ⟩∘⟨refl)
               assoc)))
         -- rewrite (b): navigate 5 levels, α⇐_{B⊗A,C,D} ∘ (r8 ∘ r9) →
         -- ((σ_{A,B}⊗id_C)⊗id_D) ∘ (α⇐_{A⊗B,C,D} ∘ r9)
-        (∘-resp-≈ ≈-Term-refl
-          (∘-resp-≈ ≈-Term-refl
-            (∘-resp-≈ ≈-Term-refl
-              (∘-resp-≈ ≈-Term-refl
-                (∘-resp-≈ ≈-Term-refl
-                  (≈-Term-trans (≈-Term-sym assoc)
-                    (≈-Term-trans (∘-resp-≈
-                      (≈-Term-trans (∘-resp-≈ ≈-Term-refl
-                        (⊗-resp-≈ ≈-Term-refl (≈-Term-sym id⊗id≈id)))
-                        α⇐-comm)
-                      ≈-Term-refl)
+        (refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ (≈-Term-trans (≈-Term-sym assoc)
+                    (≈-Term-trans ((≈-Term-trans (refl⟩∘⟨ (⊗-resp-≈ ≈-Term-refl (≈-Term-sym id⊗id≈id)))
+                        α⇐-comm) ⟩∘⟨refl)
                       assoc)))))))
         )
 
@@ -1213,18 +1153,15 @@ private
         ∘ α⇒ {A = A} {B = B} {C = C}
   middleX-eq-inner-R {A} {B} {C} =
     ≈-Term-trans
-      (∘-resp-≈ ≈-Term-refl
-        (∘-resp-≈ ≈-Term-refl
-          hexagon))
+      (refl⟩∘⟨ (refl⟩∘⟨ hexagon))
       (≈-Term-trans
-        (∘-resp-≈ ≈-Term-refl
-          (≈-Term-trans (≈-Term-sym assoc)
-            (≈-Term-trans (∘-resp-≈ α⇐∘α⇒≈id ≈-Term-refl)
+        (refl⟩∘⟨ (≈-Term-trans (≈-Term-sym assoc)
+            (≈-Term-trans (α⇐∘α⇒≈id ⟩∘⟨refl)
               idˡ)))
         (≈-Term-trans
           (≈-Term-sym assoc)
           (≈-Term-trans
-            (∘-resp-≈ (≈-Term-sym σ∘[f⊗g]≈[g⊗f]∘σ) ≈-Term-refl)
+            ((≈-Term-sym σ∘[f⊗g]≈[g⊗f]∘σ) ⟩∘⟨refl)
             assoc)))
 
   -- Step R-E: the 5 (X ⊗ id_D) pieces between α⇒_{C⊗B,A,D} and α⇐_{A⊗B,C,D}
@@ -1243,42 +1180,31 @@ private
   step-R-E {A} {B} {C} {D} =
     -- Group the 5 middle (X ⊗ id_D) pieces into (middleX ⊗ id_D) (each
     -- merge: sym ⊗-∘-dist + idˡ inside ⊗), then apply middleX-eq-inner-R.
-    ∘-resp-≈ ≈-Term-refl  -- under α⇒_{C,B,A⊗D}
-      (∘-resp-≈ ≈-Term-refl  -- under α⇒_{C⊗B,A,D}
+    refl⟩∘⟨  -- under α⇒_{C,B,A⊗D}
+      (refl⟩∘⟨  -- under α⇒_{C⊗B,A,D}
         (≈-Term-trans
           -- flatten p3 ∘ … ∘ p7 to a left-grouped prefix ∘ Y
           (≈-Term-trans
-            (∘-resp-≈ ≈-Term-refl
-              (∘-resp-≈ ≈-Term-refl
-                (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc))))
+            (refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ (≈-Term-sym assoc))))
             (≈-Term-trans
-              (∘-resp-≈ ≈-Term-refl
-                (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)))
+              (refl⟩∘⟨ (refl⟩∘⟨ (≈-Term-sym assoc)))
               (≈-Term-trans
-                (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc))
+                (refl⟩∘⟨ (≈-Term-sym assoc))
                 (≈-Term-sym assoc))))
           -- merge the prefix into (middleX ⊗ id_D), then middleX-eq-inner-R
-          (∘-resp-≈
-            (≈-Term-trans
-              (∘-resp-≈ ≈-Term-refl
-                (∘-resp-≈ ≈-Term-refl
-                  (∘-resp-≈ ≈-Term-refl
-                    (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+          ((≈-Term-trans
+              (refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
                       (⊗-resp-≈ ≈-Term-refl idˡ)))))
               (≈-Term-trans
-                (∘-resp-≈ ≈-Term-refl
-                  (∘-resp-≈ ≈-Term-refl
-                    (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+                (refl⟩∘⟨ (refl⟩∘⟨ (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
                       (⊗-resp-≈ ≈-Term-refl idˡ))))
                 (≈-Term-trans
-                  (∘-resp-≈ ≈-Term-refl
-                    (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+                  (refl⟩∘⟨ (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
                       (⊗-resp-≈ ≈-Term-refl idˡ)))
                   (≈-Term-trans
                     (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
                       (⊗-resp-≈ ≈-Term-refl idˡ))
-                    (⊗-resp-≈ middleX-eq-inner-R ≈-Term-refl)))))
-            ≈-Term-refl)))
+                    (⊗-resp-≈ middleX-eq-inner-R ≈-Term-refl))))) ⟩∘⟨refl)))
 
   RHS-to-NF-R : ∀ {A B C D : ObjTerm}
               → RHS-expanded {A} {B} {C} {D} ≈Term NF-R {A} {B} {C} {D}
