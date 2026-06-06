@@ -52,9 +52,7 @@
 -- exactly as in `SwapValidity.two-edge-swap-stack-↭`.  Because the
 -- relevant stability lemmas (`e'-fires-stable` / `e'-skips-stable`) live in
 -- a `private` block of `SwapValidity.PerHG`, they are re-derived here
--- verbatim (copies of the proven, postulate-free originals); they depend on
--- the count/disjointness combinatorics, also copied from `SwapValidity`'s
--- top-level `private` block.
+-- (postulate-free); they depend on the count/disjointness combinatorics.
 --
 -- ## The single residual — `fire-mid-interchange` (M)
 --
@@ -65,17 +63,16 @@
 --
 --   box-interchange f g : g ⊗₁ f ≈Term σ ∘ ((f ⊗₁ g) ∘ σ)
 --
--- is ALREADY PROVEN in `SwapStep.FrontSwap` (the literal σ-naturality
+-- is proven in `SwapStep.FrontSwap` (the literal σ-naturality
 -- application).  Transporting it through the two `fire-mid` boxes'
 -- `box-of`/`unflatten-++-≅`/`subst₂` bracketing and the four locating
--- permutes is the genuine Mac-Lane chase that EVEN THE `--with-K`
--- development leaves open (`Sub/SwapAtomAligned.swap-mac-lane-residual`,
--- `Sub/AllFireEdgeSwap.agda`).  We DO NOT close it; we isolate it as a
--- SINGLE residual, stated over the UNPACKED fire data (no `Hypergraph`
--- record matching, no `with extract-prefix`, no `cod`, no final permute),
--- bundling the reshuffle existentially — exactly the posture of
--- `Sub/SwapAtomAligned.swap-mac-lane-residual` and the sibling
--- `Sub/StackEquivariance.fire-mid-equivariant`.
+-- permutes is the genuine Mac-Lane chase, isolated as a SINGLE residual
+-- `fire-mid-interchange`, stated over the UNPACKED fire data (no
+-- `Hypergraph` record matching, no `with extract-prefix`, no `cod`, no
+-- final permute), bundling the reshuffle existentially — the same posture
+-- as `Sub/SwapAtomAligned.swap-mac-lane-residual` and the sibling
+-- `Sub/StackEquivariance.fire-mid-equivariant`.  It is discharged by
+-- `Sub/FireMidInterchange.agda`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -139,8 +136,8 @@ private
   nothing≢just ()
 
 ------------------------------------------------------------------------
--- Generic `count` / `extract-prefix` combinatorics (H-agnostic), copied
--- VERBATIM from `SwapValidity.agda`'s top-level `private` block (they are
+-- Generic `count` / `extract-prefix` combinatorics (H-agnostic),
+-- re-derived from `SwapValidity.agda`'s top-level `private` block (they are
 -- inaccessible there).  All over `List (Fin n)`, all `--without-K`-clean.
 ------------------------------------------------------------------------
 
@@ -336,7 +333,7 @@ module _ (H : Hypergraph FlatGen)
         (subst (λ z → SUR.Reservoir≤1 H z H.dom) (sym (++-identityʳ o)) inv))
 
   ----------------------------------------------------------------------
-  -- FIRING STABILITY (Linear + Incomp), re-derived verbatim from the
+  -- FIRING STABILITY (Linear + Incomp), re-derived from the
   -- `private` blocks of `SwapValidity.PerHG`.
   ----------------------------------------------------------------------
 
@@ -457,8 +454,7 @@ module _ (H : Hypergraph FlatGen)
   -- NEITHER `cod` NOR the final permute, only the four unpacked fire
   -- witnesses and the two front runs.  It is the EXACT analogue of
   --   * `Sub/SwapAtomAligned.swap-mac-lane-residual` (the whole two-edge
-  --     `ProcessEdges↭Goal` obligation, unpacked, that the `--with-K`
-  --     development leaves open), and
+  --     `ProcessEdges↭Goal` obligation, unpacked), and
   --   * `Sub/StackEquivariance.fire-mid-equivariant` (a per-edge box
   --     residual of the same disjoint-block / σ-naturality flavour).
   -- TRUE because, the two edges being `Incomp` (DISJOINT wire blocks),
@@ -466,12 +462,11 @@ module _ (H : Hypergraph FlatGen)
   -- `σ ∘ (f ⊗ g) ≈ (g ⊗ f) ∘ σ` (= `box-interchange`).
   ----------------------------------------------------------------------
 
-  -- Reduced (no longer a free postulate here): discharged by the standalone
-  -- `Sub/FireMidInterchange.agda`, which PROVES the σ-interchange + permute
-  -- reconciliation around a single isolated `block-nf` residual (the pure
-  -- Mac-Lane block-normal-form `unflatten-++-≅`/`subst₂` bracketing — the part
-  -- even the --with-K development leaves open).
-  -- Now carries the two `Unique` witnesses `FMI.fire-mid-interchange`
+  -- Discharged by the standalone `Sub/FireMidInterchange.agda`, which proves
+  -- the σ-interchange + permute reconciliation around a single isolated
+  -- `block-nf` residual (the pure Mac-Lane block-normal-form
+  -- `unflatten-++-≅`/`subst₂` bracketing).
+  -- soundness: carries the two `Unique` witnesses `FMI.fire-mid-interchange`
   -- needs (`Unique sp` and `Unique (eout e ++ r₁')`) — its eval-coincidence
   -- residuals `coh-in`/`coh-out` are discharged by `eval-rigid` on those
   -- `Unique` codomains.  Both are supplied at the call site below from the

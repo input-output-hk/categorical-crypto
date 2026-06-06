@@ -1,13 +1,12 @@
 {-# OPTIONS --with-K #-}
 
 --------------------------------------------------------------------------------
--- A NEW, standalone discharge of the `nf₂-eq′` / `nf₁-eq′` block-normal-form
--- factorisations of `Sub/FireMidInterchange.agda` (the two postulates at
--- ~line 456/470 there).
+-- The `nf₂-eq′` / `nf₁-eq′` block-normal-form factorisations used by
+-- `Sub/FireMidInterchange.agda`.
 --
 -- ## What this file proves
 --
--- The two postulates `nf₁-eq′` / `nf₂-eq′` are MIRROR IMAGES of each other:
+-- The two factorisations `nf₁-eq′` / `nf₂-eq′` are MIRROR IMAGES of each other:
 -- `nf₂-eq′` is obtained from `nf₁-eq′` by the substitution
 --
 --   (e , e' , p₁ , p₂ , r₁ , r₂ , loc₁ , vout-loc₁)
@@ -19,25 +18,21 @@
 -- `block-nf-generic` is then instantiated BOTH ways, recovering exactly the
 -- types of `nf₂-eq′` (the target) and `nf₁-eq′` (the mirror).
 --
--- ## Status (be honest)
+-- ## Structure
 --
 -- The generic lemma reduces the located-firing factorisation to ONE
 -- residual `BlockBracket` — the single-order "two boxes located on
 -- disjoint factors = the 3-block tensor box" identity (the Mac-Lane /
 -- Kelly content) — stated over the `fire-mid` boxes + the four firing /
--- locating `↭`s + the `view-in≅`/`view-out≅` re-bracketings, but STRIPPED
--- of:
+-- locating `↭`s + the `view-in≅`/`view-out≅` re-bracketings, STRIPPED of:
 --
---   * the `Comb.SimLoc` record (the locating permutes are now plain args),
+--   * the `Comb.SimLoc` record (the locating permutes are plain args),
 --   * the `Incomp` disjointness hypothesis,
 --   * the `FireMidInterchangeComb` dependency.
 --
 -- `BlockBracket` is symmetric in the two block orders, so the SAME residual
--- field serves BOTH `nf₁-eq′` and `nf₂-eq′`.  This is exactly the Mac-Lane
--- chase the dedicated `--with-K` development
--- (`Sub/SwapAtomAligned.swap-mac-lane-residual`) ALSO leaves open; the
--- value here is the symmetric packaging + scaffolding strip, so that ONE
--- discharge of `BlockBracket` closes both single-order normal forms.
+-- field serves BOTH `nf₁-eq′` and `nf₂-eq′`; ONE discharge of `BlockBracket`
+-- (`nf-bracket-proof` below) closes both single-order normal forms.
 --
 -- Both `nf₂-eq-derived` (the target) and `nf₁-eq-derived` (the mirror) are
 -- produced as corollaries of the single generic lemma.
@@ -125,7 +120,7 @@ module _ (H : Hypergraph FlatGen)
     R-obj : List (Fin H.nV) → ObjTerm
     R-obj Rlist = unflatten (map H.vlab Rlist)
 
-    -- Map-bridged `unflatten-++-≅`, copied from `FireMidInterchange`.
+    -- Map-bridged `unflatten-++-≅`.
     uf++ : (As Bs : List (Fin H.nV))
          → unflatten (map H.vlab (As ++ Bs))
            ≅ unflatten (map H.vlab As) ⊗₀ unflatten (map H.vlab Bs)
@@ -636,8 +631,7 @@ module _ (H : Hypergraph FlatGen)
     -- ## `bframed-suffix` — the `++-assoc`-reframe lifting a framed box on
     -- a COMPOUND residual `rest ++ R` to `(Bframed e rest) ⊗ id` framed by
     -- `BT.uf++ (·++rest) R`.  This is `DTS.BoxAssoc.box-suffix` bridged
-    -- across the `map H.vlab` boundary — the verbatim port of
-    -- `DecodeTensorShape.box-suffix-BTC` specialised to the LOCAL `H.vlab`
+    -- across the `map H.vlab` boundary, specialised to the LOCAL `H.vlab`
     -- setting (residual `R : List (Fin H.nV)` directly, no `injR`).
     --
     -- Sound (no K): pure associativity / framing bookkeeping.
@@ -922,12 +916,8 @@ module _ (H : Hypergraph FlatGen)
     -- tensored with `id` on `R`, re-framed.  The `++-assoc`/`map-++`
     -- bookkeeping collapses `box-suffix-BNf` onto `Bframed`.
     --
-    -- PROVEN, postulate-free (the `box-suffix-BTC` template ported to the
-    -- local `H.vlab` setting).  This is the framing primitive needed to lift
-    -- `both-as-fire` to a common residual `R` for the `block-bracket`
-    -- assembly.  It is a ready-to-use building block; the `block-bracket`
-    -- proof that would consume it is NOT yet wired (see the `nf-bracket`
-    -- postulate note in `FireMidInterchange`).
+    -- Postulate-free.  The framing primitive that lifts `both-as-fire` to a
+    -- common residual `R` for the `block-bracket` assembly.
     asso : (l rest R : List (Fin H.nV))
          → map H.vlab (l ++ (rest ++ R)) ≡ map H.vlab ((l ++ rest) ++ R)
     asso l rest R = cong (map H.vlab) (sym (++-assoc l rest R))
@@ -1636,7 +1626,7 @@ module _ (H : Hypergraph FlatGen)
                 ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id)
                 ∘ ( _≅_.from (view-in≅ a b R) ∘ permute-via-vlab H.vlab loc )
 
-  -- The single residual is now PROVEN (postulate-free) by `block-bracket-pf`:
+  -- `BlockBracket` is discharged (postulate-free) by `block-bracket-pf`:
   -- the `both-as-fire-R` residual-`R` braiding + `bfR-fire` firing↔R bridge,
   -- with the four locating permutes reconciled by the Kelly keystone `K` on
   -- the three Unique codomains (`us-sp`-image / `us-mid` / `us-cod`).

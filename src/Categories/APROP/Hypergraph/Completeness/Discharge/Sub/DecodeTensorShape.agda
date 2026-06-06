@@ -42,20 +42,17 @@
 --     This is the per-edge step that unblocks the K-side induction.
 --   * `EmbedData.{TG,TK}` — the G-/K-side `TermEmbed` gate instances
 --     (φ = injL / injR, ψ = _↑ˡ K.nE / G.nE ↑ʳ_).
---   * `decode-attempt-extract`, `Linear⇒cod-Unique` — PROVEN (verbatim from
---     `DecodeComposeShape`).
+--   * `decode-attempt-extract`, `Linear⇒cod-Unique` — the `DecodeComposeShape`
+--     analogues.
 --
--- RESIDUAL (NOT in this file; see the `## The main assembly — RESIDUAL`
--- section): `decode-⊗-shape-inner` itself, which needs the two TERM-LEVEL
--- mixed-stack factorizations (term companions of the STACK-only
--- `process-edges-↑ˡ-on-mixed` / `process-edges-↑ʳ-on-perm`).  Unlike the `∘`
--- case — where `C.dom = map injL G.dom` is a PURE φ-image and the gate applies
--- directly — the `⊗` blocks run on the DISJOINT MIXED dom
--- `map injL G.dom ++ map injR K.dom`, so each block term must first be sliced
--- as `(canonical run ⊗₁ id)` (resp. `(id ⊗₁ canonical run)`) by a per-edge
+-- The target `decode-⊗-shape-inner` is assembled in this file (see the
+-- `## The FINAL ⊗ assembly` section).  Unlike the `∘` case — where
+-- `C.dom = map injL G.dom` is a PURE φ-image and the gate applies directly —
+-- the `⊗` blocks run on the DISJOINT MIXED dom
+-- `map injL G.dom ++ map injR K.dom`, so each block term is first sliced as
+-- `(canonical run ⊗₁ id)` (resp. `(id ⊗₁ canonical run)`) by a per-edge
 -- `box-of`-suffix/-prefix `unflatten-++-≅` coherence induction before the gate
--- and `pvv-block-tensor` apply.  These two inductions are the remaining work;
--- everything they need is proven here.  NO postulate, NO hole in this file.
+-- and `pvv-block-tensor` apply.  NO postulate, NO hole in this file.
 --
 -- Parameterised by `objUIP` and `K : FaithfulnessResidual`.
 --------------------------------------------------------------------------------
@@ -152,7 +149,7 @@ private
   just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
   just≢nothing ()
 
-  -- `subst₂ FlatGen` cancellations (`--with-K`), copied from DecodeComposeShape.
+  -- `subst₂ FlatGen` cancellations (`--with-K`).
   subst₂-FlatGen-cancel
     : ∀ {is is' os os' : List X} (p : is ≡ is') (q : os ≡ os')
         {is'' os'' : List X} (p' : is'' ≡ is') (q' : os'' ≡ os')
@@ -242,8 +239,8 @@ private
   eval-subst₂-↭ refl refl r = refl
 
   ------------------------------------------------------------------------
-  -- Permute relabel-freeness (the `permute`-level twin), copied from
-  -- DecodeComposeShape: for an injective, label-preserving embedding
+  -- Permute relabel-freeness (the `permute`-level twin): for an injective,
+  -- label-preserving embedding
   -- `φ` with `vJ ∘ φ ≗ vH`, the `vJ`-permute of the `φ`-relabel is the
   -- `vH`-permute, modulo the boundary transport.
   vlab-φ-lemma
@@ -2147,14 +2144,14 @@ module BoxAssoc where
 --------------------------------------------------------------------------------
 -- ## The G-side / K-side block factorizations — SHARED SCAFFOLDING.
 --
--- PROVEN, postulate-free, hole-free.  The G-side TERM companion of the
+-- Postulate-free, hole-free.  The G-side TERM companion of the
 -- STACK-only `process-edges-↑ˡ-on-mixed` — `gblock-factor` (Milestone 2a) —
--- is fully assembled below, along with the σ-mirror per-FIRE-edge tool
+-- is assembled below, along with the σ-mirror per-FIRE-edge tool
 -- `box-braid-pvl` (Milestone 1, front→prefix in `pvlC` form).  The K-side
 -- companion of `process-edges-↑ʳ-on-perm` — `kblock-factor` (Milestone 2b) —
--- is NOT yet assembled (its base-case scaffolding `KClean-nil`/`pvlC-cancel`
--- is proven; see the RESIDUAL note at the end of the file).  This module fixes
--- the framing convention (`BTC.uf++`, matching `pvv-block-tensor`) and the
+-- is assembled from its base-case scaffolding `KClean-nil`/`pvlC-cancel`.
+-- This module fixes the framing convention (`BTC.uf++`, matching
+-- `pvv-block-tensor`) and the
 -- factored-form shapes (`GFactored`, `Lterm`, `KFactored`, `KClean`, `Kterm`)
 -- those inductions land on, plus the stack agreements (`mixed-stack-G`,
 -- `proc-stack-emb-L`/`-R`) and the per-edge `box-of` residual-rewrite
@@ -4406,7 +4403,7 @@ module BlockFactor
     rFrom : (a b : List X) → HomTerm (unflatten (a ++ b)) (unflatten a ⊗₀ unflatten b)
     rFrom = rawFrom₀
 
-    -- inlined σ-in (raw framing on the map-images), box-braid def verbatim.
+    -- inlined σ-in (raw framing on the map-images), the box-braid definition.
     σ-in-raw : HomTerm (unflatten (eL ++ (pL ++ rL))) (Up ⊗₀ unflatten (eL ++ rL))
     σ-in-raw =
         (id {Up} ⊗₁ rTo eL rL)
@@ -5067,7 +5064,7 @@ module BlockFactor
     rFrom : (a b : List X) → HomTerm (unflatten (a ++ b)) (unflatten a ⊗₀ unflatten b)
     rFrom = rawFrom₀
 
-    -- inlined σ-out (raw framing on the map-images), box-braid def verbatim
+    -- inlined σ-out (raw framing on the map-images), the box-braid definition
     -- (with eoutR → eoBlk, P → Pblk, rest → rgBlk).
     σ-out-raw : HomTerm (Up ⊗₀ unflatten (eL ++ rL)) (unflatten (eL ++ (pL ++ rL)))
     σ-out-raw =
@@ -5866,9 +5863,9 @@ module BlockFactor
   ------------------------------------------------------------------------
   -- ### Milestone 2b proper: `kblock-factor` — base-case scaffolding.
   --
-  -- `kblock-factor` proper is NOT yet assembled (see the RESIDUAL note at the
-  -- end of the file).  The intended vehicle is a generalised perm-tracking
-  -- induction `kfac-gen es P ys s (pf : s ↭ map injL P ++ map injR ys) Br res`
+  -- `kblock-factor` (assembled below) goes through a generalised
+  -- perm-tracking induction `kfac-gen es P ys s (pf : s ↭ map injL P ++ map
+  -- injR ys) Br res`
   --   : pe-termC (map ψK es) s ≈Term pvlC Br ∘ KClean es P ys ∘ pvlC pf
   -- (the K-prepend wrinkle forbids a clean stack `≡`, so the actual stack `s`
   -- + a perm-to-clean `pf` are threaded, mirroring `process-edges-↑ʳ-on-perm`;
@@ -5878,8 +5875,8 @@ module BlockFactor
   -- collapses to `id` on a `Unique` stack via the keystone) — discharge the
   -- `es = []` case.
   --
-  -- The CLEAN-side `Kterm`/`KClean` cons telescoping is now PROVEN
-  -- (`Kterm-cons`/`KClean-cons`, just above the `Linear⇒cod-Unique` block):
+  -- The CLEAN-side `Kterm`/`KClean` cons telescoping
+  -- (`Kterm-cons`/`KClean-cons`, just above the `Linear⇒cod-Unique` block) is:
   --
   --   KClean (e∷es) P ys ≈Term KClean es P (ys-step e ys) ∘ KCleanHead e P ys
   --
@@ -5897,10 +5894,7 @@ module BlockFactor
   -- on `s` is moved past the `map injL P` prefix by `box-braid-pvl`
   -- (front→prefix) into `head-factor-K`'s prefix-held input, with the four
   -- perms `pf`/`pf1`/`perm`/`permR` reconciled by the keystone `pvlC-coh` on
-  -- the Unique codomains and the box framings aligned via `objUIP`).  This
-  -- per-edge `kfac-head` (the K-analogue of `fire-core`) plus the `kfac-gen`
-  -- assembly are the LAST remaining structural pieces of decode-⊗-shape's
-  -- K-side.
+  -- the Unique codomains and the box framings aligned via `objUIP`).
   --
   -- `KClean [] P ys` collapses to the identity (`Kterm [] ys = id`).
   KClean-nil
@@ -6977,7 +6971,7 @@ module BlockFactor
       uniq-clean-s = SUR.Reservoir≤1⇒Unique C-hg (map (G.nE ↑ʳ_) es) clean res
 
 --------------------------------------------------------------------------------
--- ## `Linear H ⇒ Unique (cod H)` (sig-level), verbatim from DecodeComposeShape.
+-- ## `Linear H ⇒ Unique (cod H)` (sig-level).
 
 private
   open import Data.Nat.Base using () renaming (_≤_ to _≤ⁿ_)
@@ -6997,7 +6991,7 @@ Linear⇒cod-Unique H (bal , bnd) = SU.count≤1⇒Unique cod-bnd
         (Nat.≤-trans (Nat.≤-reflexive (sym (bal v))) (bnd v))
 
 --------------------------------------------------------------------------------
--- ## Algorithm extraction (verbatim from DecodeComposeShape).
+-- ## Algorithm extraction.
 
 decode-attempt-extract
   : (H : Hypergraph FlatGen)
@@ -7017,7 +7011,7 @@ decode-attempt-extract H t eq
 ... | ()
 
 --------------------------------------------------------------------------------
--- ## The main assembly — RESIDUAL.
+-- ## The main assembly — structure.
 --
 -- The final `decode-⊗-shape-inner`
 --
@@ -7026,11 +7020,10 @@ decode-attempt-extract H t eq
 --            ∘ (decode f ⊗₁ decode g)
 --            ∘ from(unflatten-++-≅ (flatten A) (flatten C))
 --
--- is NOT YET assembled in this file.  It reduces, via the proven
--- infrastructure below, to two TERM-LEVEL mixed-stack factorizations — the
--- term companions of the STACK-only `process-edges-↑ˡ-on-mixed` /
--- `process-edges-↑ʳ-on-perm` (`DecodeAttempt`), which expose only `proj₁`
--- (the stack) and leave the per-edge term opaque behind an `∃[ t ]`:
+-- rests on two TERM-LEVEL mixed-stack factorizations — the term companions
+-- of the STACK-only `process-edges-↑ˡ-on-mixed` / `process-edges-↑ʳ-on-perm`
+-- (`DecodeAttempt`), which expose only `proj₁` (the stack) and leave the
+-- per-edge term opaque behind an `∃[ t ]`:
 --
 --   * G-block (φ = injL): the G-edge block run from the MIXED dom
 --     `C.dom = map injL G.dom ++ map injR K.dom` factors, modulo
@@ -7183,7 +7176,7 @@ module _
       res-K = subst (SUR.Reservoir≤1 Cht kblk) after-G-≡ res-K-aG
 
       ------------------------------------------------------------------
-      -- decode-extract bridges (verbatim shape from DecodeComposeShape).
+      -- decode-extract bridges.
       decode-f-≈
         : decode f ≈Term
           subst₂ HomTerm (cong unflatten (⟪⟫-domL f)) (cong unflatten (⟪⟫-codL f))

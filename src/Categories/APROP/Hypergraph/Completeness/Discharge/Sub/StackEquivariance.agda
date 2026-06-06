@@ -29,23 +29,22 @@
 --
 -- ("permute the input into canonical order, run, permute the output back").
 --
--- ## Status / residual
+-- ## Structure
 --
 -- The induction, the SKIP and impossible cross-cases, the list-level
 -- threading, the inverse/self-loop permute facts (via the Kelly residual
 -- `K : FaithfulnessResidual`), the FIRE-box naturality, and the FIRE-permute
--- reconciliation (via K) are PROVEN here — now POSTULATE-FREE:
+-- reconciliation (via K) are POSTULATE-FREE here:
 --
---   * `fire-mid-equivariant` — PROVEN (no longer a postulate): the per-edge
---     FIRE box is natural in its residual stack under a *permutation* of that
---     residual.  Discharged by the standalone `Sub/FireMidEquivariant.agda`.
+--   * `fire-mid-equivariant` — the per-edge FIRE box is natural in its
+--     residual stack under a *permutation* of that residual.  Discharged by
+--     the standalone `Sub/FireMidEquivariant.agda`.
 --
---   * `residual-recon` — NO LONGER A POSTULATE.  It reconciles the
---     `extract-prefix-↭-residual` output (the located perm `proj₁ (proj₂ st)`
---     re-attached to the residual reshuffle on the `rest` block) against the
---     input perm, as a `≅↭`:
+--   * `residual-recon` reconciles the `extract-prefix-↭-residual` output
+--     (the located perm `proj₁ (proj₂ st)` re-attached to the residual
+--     reshuffle on the `rest` block) against the input perm, as a `≅↭`:
 --       `trans (located) (++⁺ˡ ks (↭-sym residual-↭)) ≅↭ perm-in`.
---     It now DELEGATES to `StackUnique.residual-recon` (= `eval-rigid` on a
+--     It DELEGATES to `StackUnique.residual-recon` (= `eval-rigid` on a
 --     `Unique` codomain), which needs `Unique (ks ++ rest)`.  At the FIRE/FIRE
 --     call site (`locate-coherent`) that codomain `ein e ++ restH` is the
 --     `↭`-image of the decoder stack `s'`, so `Unique s' →` (via
@@ -333,9 +332,9 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
   -- `subst₂`/`unflatten-++-≅` bookkeeping makes the constructive chase
   -- long; isolated here as the box-naturality half.  No firing data,
   -- no `cod`.
-  -- PROVEN (no longer a postulate): discharged by the standalone
-  -- `Sub/FireMidEquivariant.agda` (box-naturality via `permute-++⁺ˡ-slide`
-  -- + `⊗-∘-dist` + the K self-loop inverse).
+  -- Discharged by the standalone `Sub/FireMidEquivariant.agda`
+  -- (box-naturality via `permute-++⁺ˡ-slide` + `⊗-∘-dist` + the K self-loop
+  -- inverse).
   fire-mid-equivariant
       : ∀ (e : Fin H.nE) {restH restH' : List (Fin H.nV)}
           (μ : restH Perm.↭ restH')
@@ -369,24 +368,23 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
   --
   --   trans (located) (++⁺ˡ ks (↭-sym residual-↭))  ≅↭  perm-in
   --
-  -- TRUE (machine-verified true + base case proven): the empty-prefix base
-  -- case `extract-prefix [] xs ≡ just (xs , refl)` makes `located = refl`
-  -- and `residual-↭ = ↭-sym perm-in`, so the LHS is `trans refl (↭-sym (↭-sym
-  -- perm-in)) ≅↭ perm-in` by `↭-sym-involutive` + eval; the cons case
-  -- reduces to `drop-∷` eval-faithfulness (a separate multi-session effort,
-  -- DEFERRED).  We do NOT try to prove it here.
+  -- The unconditional form is provable only in the empty-prefix base case
+  -- (`extract-prefix [] xs ≡ just (xs , refl)` makes `located = refl` and
+  -- `residual-↭ = ↭-sym perm-in`, so the LHS is `trans refl (↭-sym (↭-sym
+  -- perm-in)) ≅↭ perm-in` by `↭-sym-involutive` + eval); the cons case
+  -- reduces to `drop-∷` eval-faithfulness, hence the `Unique` hypothesis.
   --
-  -- A `Unique`-carrying drop-in IS available — `StackUnique.residual-recon`
-  -- proves the EXACT conclusion below, modulo a `Unique (ks ++ rest)`
-  -- hypothesis on the codomain (closed by `eval-rigid`).  This module now
-  -- THREADS a running-stack uniqueness witness `Unique s'` down to the
-  -- FIRE/FIRE call site (via the `Reservoir≤1` freshness invariant carried
-  -- through `process-edges-equivariant`, advanced by
+  -- soundness: `StackUnique.residual-recon` proves the EXACT conclusion
+  -- below, modulo a `Unique (ks ++ rest)` hypothesis on the codomain (closed
+  -- by `eval-rigid`).  This module THREADS a running-stack uniqueness
+  -- witness `Unique s'` down to the FIRE/FIRE call site (via the
+  -- `Reservoir≤1` freshness invariant carried through
+  -- `process-edges-equivariant`, advanced by
   -- `StackUniqueReach.edge-step-Reservoir≤1`); the `Linear H`-sourced
-  -- GLOBAL reservoir is supplied by the caller (`RunInterchangeTail`).  So
-  -- `residual-recon` is NO LONGER A POSTULATE: it delegates to
-  -- `StackUnique.residual-recon`, with the codomain `Unique (ks ++ rest)`
-  -- supplied at the call site as `Unique-resp-↭ perm-in (Unique s')`.
+  -- GLOBAL reservoir is supplied by the caller (`RunInterchangeTail`).
+  -- `residual-recon` delegates to `StackUnique.residual-recon`, with the
+  -- codomain `Unique (ks ++ rest)` supplied at the call site as
+  -- `Unique-resp-↭ perm-in (Unique s')`.
   residual-recon
     : ∀ {n} (ks xs rest : List (Fin n)) (perm-in : xs Perm.↭ ks ++ rest)
     → Unique (ks ++ rest)

@@ -1,20 +1,18 @@
--- NOT `--safe`: this module performs the swap-dependent assembly that used
--- to live (postulate-fed) inside `IsoInvarianceWiring.agda`'s `PerHG` and
--- cross-iso modules.  It now feeds the REAL discharged lemmas:
+-- NOT `--safe`: this module performs the swap-dependent assembly of the
+-- decoder's iso-invariance, fed the discharged lemmas:
 --
---   * `swap-≈`   — PROVEN in `Discharge.SwapStep` (modulo its own bottom
+--   * `swap-≈`   — from `Discharge.SwapStep` (modulo its own bottom
 --                  `front-swap-≈`), here applied at the right `H`.
---   * `NoInv-τ`  — PROVEN in `Discharge.WiringLemmas` (Lemma 4), here fed
+--   * `NoInv-τ`  — from `Discharge.WiringLemmas` (Lemma 4), here fed
 --                  J's `fin-order-NoInv` as the explicit hypothesis.
 --
--- The remaining inputs (`swap-validity`, `fin-order-NoInv`, `iso-transport`)
--- are still the open postulates kept in `IsoInvarianceWiring`.
+-- The other inputs are discharged lemmas too: `swap-validity` from
+-- `Discharge.SwapValidity`, `iso-transport` from `Discharge.IsoTransport`;
+-- `fin-order-NoInv` is supplied as an explicit hypothesis at the call site.
 --
--- `↝*⇒≈`, `order-invariant`, `decode-ord-resp-iso` below are EXACT copies
--- of the (deleted) `IsoInvarianceWiring` bodies, with `swap-≈`/`NoInv-τ`
--- now sourced from `SwapStep`/`WiringLemmas` instead of IW postulates.
--- `decode-ord-resp-iso`'s type matches `IW`'s former one verbatim so that
--- `DecodeRelRespIsoWired` consumes it as a drop-in.
+-- `↝*⇒≈`, `order-invariant`, `decode-ord-resp-iso` source `swap-≈`/`NoInv-τ`
+-- from `SwapStep`/`WiringLemmas`.  `decode-ord-resp-iso`'s type is the one
+-- `DecodeRelRespIsoWired` consumes as a drop-in.
 {-# OPTIONS --without-K #-}
 
 open import Categories.APROP
@@ -92,9 +90,9 @@ module PerHG (H : Hypergraph FlatGen)
          → decodeOrd o₁ p₁ ≈Term decodeOrd o₂ p₂
   swap-≈ = SS.swap-≈ H dih K uniq-cod run-interchange
 
-  -- Validity is preserved by an adjacent-independent swap.  Now PROVEN in
+  -- Validity is preserved by an adjacent-independent swap, via
   -- `Discharge.SwapValidity` (modulo its own `front-swap-stack-↭`), applied
-  -- at `H`; the former `IW.PerHG.swap-validity` postulate is GONE.
+  -- at `H`.
   swap-validity : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂ → Valid o₁ → Valid o₂
   swap-validity = SV.PerHG.swap-validity H dih lin
 
@@ -132,16 +130,16 @@ module PerHG (H : Hypergraph FlatGen)
     ↝*⇒≈ (connectivity p n₁ n₂) o₁↭range p₁
 
 ------------------------------------------------------------------------
--- Across an isomorphism: iso-invariance of the decoder, now fed the real
--- `WiringLemmas.NoInv-τ` (Lemma 4) and IW's kept `iso-transport`.
+-- Across an isomorphism: iso-invariance of the decoder, fed
+-- `WiringLemmas.NoInv-τ` (Lemma 4) and `IsoTransport.iso-transport`.
 ------------------------------------------------------------------------
 
 -- The two `Dep`-irreflexivity witnesses (`dihH`, `dihJ`) and the two
 -- natural-order no-inversion witnesses (`noInvH`, `noInvJ`) are threaded as
 -- explicit hypotheses: they are FALSE for arbitrary `H`/`J`, and supplied at
 -- the call site (`H = ⟪f⟫`, `J = ⟪g⟫`) from `DepIrrefl.dep-irrefl-⟪⟫` and
--- `FinOrderNoInv.fin-order-NoInv-⟪⟫`.  `iso-transport` is now sourced from
--- the proven `Discharge.IsoTransport` (was the deleted `IW.iso-transport`).
+-- `FinOrderNoInv.fin-order-NoInv-⟪⟫`.  `iso-transport` is sourced from
+-- `Discharge.IsoTransport`.
 --
 -- The analytic-step inputs are also threaded explicitly:
 --   * `K            : FaithfulnessResidual`   (the Kelly residual, shared

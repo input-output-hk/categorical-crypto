@@ -403,7 +403,7 @@ private
   bridge-α⇒-form-full A B C = BAFC.Worker.work A B C (<-wellFounded _)
 
 --------------------------------------------------------------------------------
--- ## Algorithm extraction (sig-level), VERBATIM from `DecodeComposeShape`.
+-- ## Algorithm extraction (sig-level).
 --
 -- From a successful `decode-attempt H` (the totality `decode-attempt-Linear`
 -- provides at `H = ⟪·⟫`), expose the returned term AS

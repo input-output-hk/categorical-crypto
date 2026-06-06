@@ -7,14 +7,13 @@
 --
 -- `DecodeRelRespIsoWired.decode-rel-resp-iso` proves
 --   ⟪f⟫ ≅ᴴ ⟪g⟫  →  decode-rel f ≈Term decode-rel g
--- over a trust surface of EXACTLY two postulates:
+-- over a trust surface of EXACTLY one postulate:
 --   * `K-faithfulness` (Kelly 1964 symmetric-monoidal permutation coherence)
---   * `nf-bracket`     (the per-swap Mac-Lane box-normal-form kernel)
--- — confirmed by transitive-closure audit.  Composed here with the proven
--- `decode-roundtrip-rel` round-trip and the `bridge`/`bridge⁻¹` cancellation,
--- it yields the completeness theorem `f ≈Term g`, resting on JUST those two.
+-- Composed here with the proven `decode-roundtrip-rel` round-trip and the
+-- `bridge`/`bridge⁻¹` cancellation, it yields the completeness theorem
+-- `f ≈Term g`, resting on JUST `K-faithfulness`.
 --
--- This module is therefore NOT `--safe` (it imports the two postulates), and
+-- This module is therefore NOT `--safe` (it imports that postulate), and
 -- is the wired analogue of `CompletenessFull.completeness-full` — the body is
 -- identical except that `decode-rel-resp-iso` replaces the `Build`-derived
 -- `decode-rel-resp-≅ᴴ-full`.  No `Build` instance is required.
@@ -38,7 +37,7 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
   using (decode-rel; decode-roundtrip-rel)
 
--- The standalone faithfulness chain, reduced to {K-faithfulness, nf-bracket}.
+-- The standalone faithfulness chain, reduced to the single axiom K-faithfulness.
 import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRelRespIsoWired
   sig _≟X_ as DRRIW
 
@@ -84,7 +83,7 @@ bridge-cancel {A} {B} f = begin
     to-B   = _≅_.to   (unflatten-flatten-≈ B)
 
 --------------------------------------------------------------------------------
--- The completeness theorem, over {K-faithfulness, nf-bracket}.
+-- The completeness theorem, over the single axiom K-faithfulness.
 
 completeness-full-wired
   : ∀ {A B} {f g : HomTerm A B}

@@ -171,28 +171,24 @@ decodeP-≡-decodeOrd-range f =
 ------------------------------------------------------------------------
 
 -- (F) Structural ↔ pruned-algorithmic decoder agreement.  The pruned
--- analogue of the existing `decode-rel-≈-decode` Build field.  No longer a
--- wholesale postulate: it is now the dispatcher proven in
--- `Discharge.DecodeRelDecodeP` (constructive induction on `f` via
--- `DecoderAgreementSafe.WithAssumptions` + the pruned/unpruned shape
--- bridge).  `DRDP.decodeP f` is DEFINITIONALLY identical to the local
+-- analogue of the existing `decode-rel-≈-decode` Build field: the
+-- dispatcher proven in `Discharge.DecodeRelDecodeP` (constructive induction
+-- on `f` via `DecoderAgreementSafe.WithAssumptions` + the pruned/unpruned
+-- shape bridge).  `DRDP.decodeP f` is DEFINITIONALLY identical to the local
 -- `decodeP f` (both are the `subst₂`-transport of
 -- `proj₁ (decode-attempt-LinearP f)`), so the result has exactly the type
--- below.  The narrower residuals it exposes (the pruned `⊗`-shape kernel =
--- `nf-bracket`/`swap-atom-aligned`, the `∘`-shape `DecodeAttempt` straggler,
--- and the shared UNPRUNED shape/ρ/Agen-σ/α residuals) live in
--- `DecodeRelDecodeP` itself.
--- `DRDP.decode-rel-≈-decodeP` is now parameterised by the two shared
--- K-inputs (`objUIP` + the Kelly `FaithfulnessResidual`): the unpruned
--- shape residuals it consumes are the PROVEN, postulate-free lemmas
+-- below.
+-- `DRDP.decode-rel-≈-decodeP` is parameterised by the two shared K-inputs
+-- (`objUIP` + the Kelly `FaithfulnessResidual`): the unpruned shape
+-- residuals it consumes are the lemmas
 -- `Sub.DecodeComposeShape.decode-∘-shape-inner` /
 -- `Sub.DecodeTensorShape.decode-⊗-shape-inner`, both of which take those
 -- two inputs.  We supply our own `objUIP`/`K-faithfulness` below (the
 -- binding is placed after they enter scope), exactly as
 -- `run-interchange-⟪⟫`/`decodeP-resp-iso` thread them.
 
--- (decoder-boundary bridge) The former coarse residual is now PROVEN in
--- `Discharge.DecodeOrdBoundary` GIVEN the TWO explicit K-inputs below:
+-- (decoder-boundary bridge) `Discharge.DecodeOrdBoundary` discharges the
+-- decoder-boundary obligation GIVEN the TWO explicit K-inputs below:
 --   * `K-faithfulness : FaithfulnessResidual` — the TRUE Kelly residual
 --     that gates the final permute throughout this development (a value of
 --     the `--without-K` record, postulated fresh here — NOT the `--with-K`
@@ -204,9 +200,9 @@ decodeP-≡-decodeOrd-range f =
 postulate
   K-faithfulness : FaithfulnessResidual
 
--- objUIP DISCHARGED (no longer a postulate): UIP on `ObjTerm` from
--- `DecidableEquality X` (Hedberg), via `Discharge.ObjUIP`.  (`ObjTerm`
--- does not depend on the variant, so `{Symm}` is given explicitly.)
+-- objUIP: UIP on `ObjTerm` from `DecidableEquality X` (Hedberg), via
+-- `Discharge.ObjUIP`.  (`ObjTerm` does not depend on the variant, so
+-- `{Symm}` is given explicitly.)
 objUIP : ∀ {a b : ObjTerm} (p q : a ≡ b) → p ≡ q
 objUIP = ObjUIP.objUIP′ {Symm} _≟X_
 
@@ -232,27 +228,23 @@ decode-rel-≈-decodeP = DRDP.decode-rel-≈-decodeP objUIP K-faithfulness
 --   * `run-interchange₀-⟪⟫`    — the EMPTY-TAIL core (`qs := []`): the
 --     genuine two-edge interchange at a single swap.  This is the
 --     substantive Mac-Lane / `box-interchange` content (the block normal
---     form `A_e ⊗ A_e' ⊗ R`); being attacked directly.
+--     form `A_e ⊗ A_e' ⊗ R`).
 --   * `run-interchange-tail-⟪⟫` — the ORTHOGONAL tail extension: lifting
 --     the empty-tail swap to an arbitrary suffix `qs`.  This is pure
 --     decoder equivariance under stack permutation — no box / associator
---     content (see `Sub/StackEquivariance.agda`).  PROVEN (no longer a
---     postulate) in `Sub/RunInterchangeTail.agda` via
---     `process-edges-equivariant`, instantiated below.
+--     content (see `Sub/StackEquivariance.agda`), via
+--     `Sub/RunInterchangeTail.agda`'s `process-edges-equivariant`.
 --
--- The general witness `run-interchange-⟪⟫` that the chain consumes is now
--- their composite (a DEFINITION, no longer a postulate), so nothing
--- downstream changes.
+-- The general witness `run-interchange-⟪⟫` that the chain consumes is their
+-- composite.
 --
--- The EMPTY-TAIL core is now a THEOREM too: it instantiates the generic
--- `RunInterchangeEmptyTail.run-interchange₀` (proven by the 4-case firing
--- split — three cases trivial, both-fire reduced to the single box-M
--- residual `fire-mid-interchange`) at `H = ⟪f⟫`, with `Linear ⟪f⟫` supplied
--- by `⟪⟫-LinearP f`.  So the live interchange obligation is no longer
--- `run-interchange₀-⟪⟫` itself, but the small box-M residuals it (and the
--- tail extension) bottom out in: `fire-mid-interchange`,
--- `fire-mid-equivariant`, `fire-locate-coherent`.
--- The EMPTY-TAIL core, fed the empty-tail swap-order reservoir
+-- The EMPTY-TAIL core instantiates the generic
+-- `RunInterchangeEmptyTail.run-interchange₀` (the 4-case firing split —
+-- three cases trivial, both-fire reduced to the single box-M residual
+-- `fire-mid-interchange`) at `H = ⟪f⟫`, with `Linear ⟪f⟫` supplied by
+-- `⟪⟫-LinearP f`.  It bottoms out in the small box-M residuals
+-- `fire-mid-interchange`, `fire-mid-equivariant`, `fire-locate-coherent`.
+-- soundness: the EMPTY-TAIL core is fed the empty-tail swap-order reservoir
 -- `Reservoir≤1 ⟪f⟫ (ps ++ e' ∷ e ∷ []) dom` (sourced below from the full
 -- swap-order `↭ range` provenance via a prefix drop).
 run-interchange₀-⟪⟫
@@ -267,10 +259,9 @@ run-interchange₀-⟪⟫ f ps inc res =
   RET.run-interchange₀ ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
     K-faithfulness (⟪ f ⟫-cod-unique) (⟪⟫-LinearP f) ps inc res
 
--- The tail extension is now a THEOREM: it instantiates the generic
--- `RunInterchangeTail.run-interchange-tail` (proven by decoder
--- stack-equivariance) at `H = ⟪f⟫`, fed the full swap-order `↭ range`
--- provenance.
+-- The tail extension instantiates the generic
+-- `RunInterchangeTail.run-interchange-tail` (decoder stack-equivariance) at
+-- `H = ⟪f⟫`, fed the full swap-order `↭ range` provenance.
 run-interchange-tail-⟪⟫
   : ∀ {A B} (f : HomTerm A B)
       (ps qs : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f))

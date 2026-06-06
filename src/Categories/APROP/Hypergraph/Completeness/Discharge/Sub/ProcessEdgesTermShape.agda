@@ -155,7 +155,7 @@ private
   module FM = Category FreeMonoidal
 
 --------------------------------------------------------------------------------
--- ## §1. The pruned decoder `decodeP` (verbatim from `DecodeRelDecodeP`).
+-- ## §1. The pruned decoder `decodeP`.
 --
 -- Replicated here so the residual record fields can be stated in terms
 -- of it without importing `DecodeRelDecodeP` (which would create a
@@ -369,7 +369,7 @@ module Assemble
 --     `map φ s` literally, after the caller absorbs the `↭` via the
 --     stack-level lifting).
 --
--- The proof mirrors `EdgeStepNaturality` verbatim (over `EdgeStepR`),
+-- The proof mirrors `EdgeStepNaturality` (over `EdgeStepR`),
 -- but parameterised by the embedding rather than an iso.  The two
 -- residual obligations of the per-edge FIRE case are:
 --   * box factor — PROVEN here (`fire-mid-emb`, via `box-of-cong`);
