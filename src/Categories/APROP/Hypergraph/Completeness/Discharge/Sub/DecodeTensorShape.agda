@@ -172,6 +172,14 @@ private
       ≡ _≅_.from (unflatten-++-≅ Xs' Ys')
   from-uf-cong refl refl = refl
 
+  -- A single-index `subst` over `HomTerm (f z) (h z)` re-expressed as the
+  -- two-index `subst₂` over `cong f`/`cong h`.  Shared by the block ladders.
+  subst-2 : ∀ {a b : List X} (f h : List X → ObjTerm) (r : a ≡ b)
+              (t : HomTerm (f a) (h a))
+          → subst (λ z → HomTerm (f z) (h z)) r t
+            ≡ subst₂ HomTerm (cong f r) (cong h r) t
+  subst-2 f h refl t = refl
+
 --------------------------------------------------------------------------------
 -- ## The block-tensor decomposition of `permute`: `permute (++⁺ p q)`
 -- slides through `unflatten-++-≅` as the tensor `permute p ⊗₁ permute q`,
@@ -531,6 +539,30 @@ module BoxAssoc where
                → HomTerm (unflatten c) (unflatten d)
   subst-id-cod {c} q = subst (λ z → HomTerm (unflatten c) (unflatten z)) q id
 
+  -- `subst₂ HomTerm p q t` re-expressed as the conjugation
+  -- `(subst on cod) ∘ t ∘ (subst on dom)` by `subst`-identity morphisms.
+  -- General over arbitrary `ObjTerm` boundaries; shared by
+  -- `box-suffix`/`box-prefix` (and the `tcod`/`tdom`-wrapped variants below).
+  conj-lemma
+    : ∀ {A B A' B' : ObjTerm} (p : A ≡ A') (q : B ≡ B') (t : HomTerm A B)
+    → subst₂ HomTerm p q t
+      ≈Term subst (λ z → HomTerm B z) q id
+            ∘ t
+            ∘ subst (λ z → HomTerm z A) p id
+  conj-lemma refl refl t = ≈-Term-trans (≈-Term-sym idˡ) (refl⟩∘⟨ ≈-Term-sym idʳ)
+
+  -- `subst`-on-left re-expressed across `cong unflatten (sym e)`/`e`.
+  bridge-dom : ∀ {a b : List X} (e : a ≡ b)
+             → subst (λ z → HomTerm z (unflatten b)) (cong unflatten (sym e)) id
+               ≡ subst (λ z → HomTerm (unflatten a) (unflatten z)) e id
+  bridge-dom refl = refl
+
+  -- `subst`-on-right re-expressed across `cong unflatten (sym e)`/`e`.
+  bridge-cod : ∀ {a b : List X} (e : a ≡ b)
+             → subst (λ z → HomTerm (unflatten b) z) (cong unflatten (sym e)) id
+               ≡ subst (λ z → HomTerm (unflatten z) (unflatten a)) e id
+  bridge-cod refl = refl
+
   ------------------------------------------------------------------------
   -- Shared associativity re-bracketing for `box-suffix`/`box-prefix`:
   -- `T ∘ (A ∘ (αc ∘ X ∘ ac) ∘ B) ∘ F ≈ (T ∘ A ∘ αc) ∘ X ∘ ac ∘ B ∘ F`.
@@ -620,36 +652,17 @@ module BoxAssoc where
       s-eo⁻ = subst (λ z → HomTerm (unflatten z) (unflatten ((eoutL ++ restG) ++ R)))
                     (++-assoc eoutL restG R) id
 
-      -- The LHS `subst₂` as the conjugation `s-eo⁻ ∘ bxRaw ∘ s-ei`.
-      conj-lemma
-        : ∀ {A B A' B' : ObjTerm} (p : A ≡ A') (q : B ≡ B') (t : HomTerm A B)
-        → subst₂ HomTerm p q t
-          ≈Term subst (λ z → HomTerm B z) q id
-                ∘ t
-                ∘ subst (λ z → HomTerm z A) p id
-      conj-lemma refl refl t = ≈-Term-trans (≈-Term-sym idˡ) (refl⟩∘⟨ ≈-Term-sym idʳ)
-
       -- `s-ei`/`s-eo⁻` re-expressed as `subst` over raw `HomTerm` arguments
       -- (matching `conj-lemma`'s conjugators).
       s-ei-as : subst (λ z → HomTerm z (unflatten (einL ++ (restG ++ R))))
                       (cong unflatten (sym (++-assoc einL restG R))) id
               ≡ s-ei
-      s-ei-as = bridge (++-assoc einL restG R)
-        where
-          bridge : ∀ {a b : List X} (e : a ≡ b)
-                 → subst (λ z → HomTerm z (unflatten b)) (cong unflatten (sym e)) id
-                   ≡ subst (λ z → HomTerm (unflatten a) (unflatten z)) e id
-          bridge refl = refl
+      s-ei-as = bridge-dom (++-assoc einL restG R)
 
       s-eo⁻-as : subst (λ z → HomTerm (unflatten (eoutL ++ (restG ++ R))) z)
                        (cong unflatten (sym (++-assoc eoutL restG R))) id
                ≡ s-eo⁻
-      s-eo⁻-as = bridge (++-assoc eoutL restG R)
-        where
-          bridge : ∀ {a b : List X} (e : a ≡ b)
-                 → subst (λ z → HomTerm (unflatten b) z) (cong unflatten (sym e)) id
-                   ≡ subst (λ z → HomTerm (unflatten z) (unflatten a)) e id
-          bridge refl = refl
+      s-eo⁻-as = bridge-cod (++-assoc eoutL restG R)
 
       lhs-conj :
         subst₂ HomTerm
@@ -927,33 +940,15 @@ module BoxAssoc where
       s-eo⁻ = subst (λ z → HomTerm (unflatten z) (unflatten ((P ++ eoutR) ++ restK)))
                     (++-assoc P eoutR restK) id
 
-      conj-lemma
-        : ∀ {A B A' B' : ObjTerm} (p : A ≡ A') (q : B ≡ B') (t : HomTerm A B)
-        → subst₂ HomTerm p q t
-          ≈Term subst (λ z → HomTerm B z) q id
-                ∘ t
-                ∘ subst (λ z → HomTerm z A) p id
-      conj-lemma refl refl t = ≈-Term-trans (≈-Term-sym idˡ) (refl⟩∘⟨ ≈-Term-sym idʳ)
-
       s-ei-as : subst (λ z → HomTerm z (unflatten (P ++ (einR ++ restK))))
                       (cong unflatten (sym (++-assoc P einR restK))) id
               ≡ s-ei
-      s-ei-as = bridge (++-assoc P einR restK)
-        where
-          bridge : ∀ {a b : List X} (e : a ≡ b)
-                 → subst (λ z → HomTerm z (unflatten b)) (cong unflatten (sym e)) id
-                   ≡ subst (λ z → HomTerm (unflatten a) (unflatten z)) e id
-          bridge refl = refl
+      s-ei-as = bridge-dom (++-assoc P einR restK)
 
       s-eo⁻-as : subst (λ z → HomTerm (unflatten (P ++ (eoutR ++ restK))) z)
                        (cong unflatten (sym (++-assoc P eoutR restK))) id
                ≡ s-eo⁻
-      s-eo⁻-as = bridge (++-assoc P eoutR restK)
-        where
-          bridge : ∀ {a b : List X} (e : a ≡ b)
-                 → subst (λ z → HomTerm (unflatten b) z) (cong unflatten (sym e)) id
-                   ≡ subst (λ z → HomTerm (unflatten z) (unflatten a)) e id
-          bridge refl = refl
+      s-eo⁻-as = bridge-cod (++-assoc P eoutR restK)
 
       lhs-conj :
         subst₂ HomTerm
@@ -1944,12 +1939,6 @@ module BlockBoxSuffix
                   (f ⊗₁ id {UR})
           ⊗-push refl refl f = refl
 
-          subst-2 : ∀ {a b : List X} (f h : List X → ObjTerm) (r : a ≡ b)
-                      (t : HomTerm (f a) (h a))
-                  → subst (λ z → HomTerm (f z) (h z)) r t
-                    ≡ subst₂ HomTerm (cong f r) (cong h r) t
-          subst-2 f h refl t = refl
-
           to-eo-≡ :
             _≅_.to (BT.uf++ eorg Rblk)
             ≡ subst₂ HomTerm
@@ -2507,13 +2496,6 @@ module BlockFactor
               (cong (λ z → UP ⊗₀ unflatten z) r₂)
               (id {UP} ⊗₁ f)
       ⊗-push refl refl f = refl
-
-      -- A `subst` over a 2-place `HomTerm` motive as a `subst₂`.
-      subst-2 : ∀ {a b : List X} (f h : List X → ObjTerm) (r : a ≡ b)
-                  (t : HomTerm (f a) (h a))
-              → subst (λ z → HomTerm (f z) (h z)) r t
-                ≡ subst₂ HomTerm (cong f r) (cong h r) t
-      subst-2 f h refl t = refl
 
       -- to/from(BTC) re-expressed on the SPLIT raw blocks (to-BTC/from-BTC +
       -- the blk2 `map-++ C.vlab` reconciliation, recast via `subst-2`),
@@ -4386,12 +4368,14 @@ module BlockFactor
     tcod₂ refl = refl
 
     -- conjugation of σ-in-raw by the dom/cod reframes (cod over `Up ⊗ unflatten`).
+    -- Thin specialization of `BoxAssoc.conj-lemma`: at `refl refl` the
+    -- `tcod`/`subst-id-dom` conjugators reduce to `id`, matching its body.
     subst₂-conj-tensor :
       ∀ {a b : List X} {c d : List X} (p : a ≡ b) (q : c ≡ d)
         (t : HomTerm (unflatten a) (Up ⊗₀ unflatten c))
       → subst₂ HomTerm (cong unflatten p) (cong (Up ⊗₀_) (cong unflatten q)) t
         ≈Term tcod q ∘ t ∘ BoxAssoc.subst-id-dom p
-    subst₂-conj-tensor refl refl t = ≈-Term-trans (≈-Term-sym idˡ) (refl⟩∘⟨ ≈-Term-sym idʳ)
+    subst₂-conj-tensor refl refl t = BoxAssoc.conj-lemma refl refl t
 
 
     ----------------------------------------------------------------------
@@ -5050,12 +5034,14 @@ module BlockFactor
     tdom₂ refl = refl
 
     -- conjugation of σ-out-raw by the dom/cod reframes (dom over `Up ⊗ unflatten`).
+    -- Thin specialization of `BoxAssoc.conj-lemma`: at `refl refl` the
+    -- `subst-id-cod`/`tdom` conjugators reduce to `id`, matching its body.
     subst₂-conj-tensor-dom :
       ∀ {a b : List X} {c d : List X} (p : a ≡ b) (q : c ≡ d)
         (t : HomTerm (Up ⊗₀ unflatten c) (unflatten a))
       → subst₂ HomTerm (cong (Up ⊗₀_) (cong unflatten q)) (cong unflatten p) t
         ≈Term BoxAssoc.subst-id-cod p ∘ t ∘ tdom q
-    subst₂-conj-tensor-dom refl refl t = ≈-Term-trans (≈-Term-sym idˡ) (refl⟩∘⟨ ≈-Term-sym idʳ)
+    subst₂-conj-tensor-dom refl refl t = BoxAssoc.conj-lemma refl refl t
 
     ----------------------------------------------------------------------
     -- ### The two boundary equalities (subst-id-morphism uniqueness).
