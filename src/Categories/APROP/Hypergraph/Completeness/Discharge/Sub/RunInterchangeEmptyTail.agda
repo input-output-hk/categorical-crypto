@@ -112,7 +112,7 @@ open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using (_≟_)
 open import Data.List using (List; []; _∷_; _++_; map; concat)
 open import Data.List.Base using (tabulate)
-open import Data.List.Properties using (++-identityʳ)
+open import Data.List.Properties using (++-identityʳ; ++-assoc)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Relation.Unary.Any using (here; there)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
@@ -483,7 +483,9 @@ module _ (H : Hypergraph FlatGen)
           (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
           (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
           (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-          (us-sp : Unique sp) (us-cod : Unique (H.eout e ++ r₁'))
+          (us-sp : Unique sp)
+          (us-mid₁ : Unique (H.eout e ++ r₁)) (us-mid₂ : Unique (H.eout e' ++ r₂'))
+          (us-cod : Unique (H.eout e ++ r₁'))
       → Σ[ r ∈ (H.eout e' ++ r₂) Perm.↭ (H.eout e ++ r₁') ]
           ( fire-term H e (H.eout e' ++ r₂') r₁' p₁'
               ∘ fire-term H e' sp r₂' p₂' )
@@ -535,6 +537,29 @@ module _ (H : Hypergraph FlatGen)
       res-ps : SUR.Reservoir≤1 H ps H.dom
       res-ps = SUR.reservoir-prefix H ps (e' ∷ e ∷ []) H.dom res
 
+      -- Reservoir for the e'-first INTERMEDIATE order `ps ++ e' ∷ []`, by
+      -- dropping the suffix `e ∷ []` from the full swap order (a prefix drop,
+      -- after re-associating `(ps ++ e' ∷ []) ++ e ∷ [] ≡ ps ++ e' ∷ e ∷ []`).
+      res-e' : SUR.Reservoir≤1 H (ps ++ e' ∷ []) H.dom
+      res-e' =
+        SUR.reservoir-prefix H (ps ++ e' ∷ []) (e ∷ []) H.dom
+          (subst (λ z → SUR.Reservoir≤1 H z H.dom)
+                 (sym (++-assoc ps (e' ∷ []) (e ∷ [])))
+                 res)
+
+      -- Reservoir for the e-first INTERMEDIATE order `ps ++ e ∷ []`.  The
+      -- swap order `ps ++ e' ∷ e ∷ []` is multiset-equal to `ps ++ e ∷ e' ∷ []`
+      -- (swap the last two edges; `reservoir-resp-↭`), from which `e' ∷ []` is
+      -- dropped as a suffix (re-associate, then `reservoir-prefix`).
+      res-e : SUR.Reservoir≤1 H (ps ++ e ∷ []) H.dom
+      res-e =
+        SUR.reservoir-prefix H (ps ++ e ∷ []) (e' ∷ []) H.dom
+          (subst (λ z → SUR.Reservoir≤1 H z H.dom)
+                 (sym (++-assoc ps (e ∷ []) (e' ∷ [])))
+                 (SUR.reservoir-resp-↭ H H.dom
+                   (PermProp.++⁺ˡ ps (Perm.swap e' e Perm.refl))
+                   res))
+
       ¬dep-ee' : ¬ (Dep H e e')
       ¬dep-ee' = proj₁ inc
       ¬dep-e'e : ¬ (Dep H e' e)
@@ -556,12 +581,17 @@ module _ (H : Hypergraph FlatGen)
       -- `Unique (eout e ++ r₁')`) to supply `fire-mid-interchange`'s
       -- `coh-out` `Unique`-codomain witness.  Supplied at the `Σr` call
       -- from `reached-Unique`.
+      -- `us-s1 : Unique s1` / `us-u1 : Unique u1` — the e-first / e'-first
+      -- INTERMEDIATE-stack uniqueness, used ONLY in the both-fire branch
+      -- (where they refine to `Unique (eout e ++ r₁)` / `Unique (eout e' ++ r₂')`)
+      -- to supply `fire-mid-interchange`'s two `us-mid` `q-second`-codomain
+      -- witnesses.  Supplied at the `Σr` call from `reached-Unique`.
       build
         : ∀ {s1 t1} (we  : EdgeStepR H sp e  s1 t1)
             {s2 t2} (we' : EdgeStepR H s1 e' s2 t2)
             {u1 v1} (ue  : EdgeStepR H sp e' u1 v1)
             {u2 w2} (ue' : EdgeStepR H u1 e  u2 w2)
-            (us-u2 : Unique u2)
+            (us-s1 : Unique s1) (us-u1 : Unique u1) (us-u2 : Unique u2)
         → Σ[ r ∈ s2 Perm.↭ u2 ]
             ((id ∘ w2) ∘ v1)
             ≈Term permute-via-vlab H.vlab r ∘ ((id ∘ t2) ∘ t1)
@@ -570,30 +600,30 @@ module _ (H : Hypergraph FlatGen)
       -- (1) e SKIPS sp.
       ------------------------------------------------------------
       -- BOTH-SKIP: t1=id,t2=id,v1=id,w2=id; s2=sp=u2; reshuffle refl.
-      build (skipR eqe) (skipR eqe') (skipR _) (skipR _) _ =
+      build (skipR eqe) (skipR eqe') (skipR _) (skipR _) _ _ _ =
         Perm.refl , ≈-Term-sym idˡ
       -- e skips sp, e' skips sp (e-run), but the e'-run FIRES e' from sp:
       -- contradiction (`we'` says e' skips sp; `ue` says e' fires sp).
-      build (skipR eqe) (skipR eqe') (fireR ur₂' up₂' ueqe') _ _ =
+      build (skipR eqe) (skipR eqe') (fireR ur₂' up₂' ueqe') _ _ _ _ =
         ⊥-elim (nothing≢just (trans (sym eqe') ueqe'))
       -- e skips sp, e' skips sp, e' skips sp (e'-run ⇒ u1 = sp), but the
       -- e'-run FIRES e from sp: contradiction (`eqe` says e skips sp).
-      build (skipR eqe) (skipR eqe') (skipR ueqe') (fireR ur₁ up₁ ueqe1) _ =
+      build (skipR eqe) (skipR eqe') (skipR ueqe') (fireR ur₁ up₁ ueqe1) _ _ _ =
         ⊥-elim (nothing≢just (trans (sym eqe) ueqe1))
       -- e skips sp but e' (after e skip ⇒ from sp) fires, yet the e'-run
       -- has e' SKIP from sp: contradiction (e' fires sp here, skips there).
-      build (skipR eqe) (fireR r₂' p₂' eqe') (skipR eqe'-bad) _ _ =
+      build (skipR eqe) (fireR r₂' p₂' eqe') (skipR eqe'-bad) _ _ _ _ =
         ⊥-elim (nothing≢just (trans (sym eqe'-bad) eqe'))
       -- e skips sp, e' fires sp; the e'-run fires e' (residual r₂') then
       -- decides e on the post-e' stack `eout e' ++ r₂'`.
       build (skipR eqe) (fireR r₂' p₂' eqe') (fireR ur₂' up₂' ueqe')
-            (fireR r₁' p₁' eqe1) _ =
+            (fireR r₁' p₁' eqe1) _ _ _ =
         -- e fires the post-e' stack — IMPOSSIBLE (e skips sp; stability).
         ⊥-elim (nothing≢just
           (trans (sym (e'-skips-stable (λ eq → e≢e' (sym eq)) ¬dep-e'e
                          ur₂' sp up₂' eqe)) eqe1))
       build (skipR eqe) (fireR r₂' p₂' eqe') (fireR ur₂' up₂' ueqe')
-            (skipR eqe1) _ =
+            (skipR eqe1) _ _ _ =
         -- run₁ ≡ (id ∘ fire-term e' sp …) ∘ id ; run₂ ≡ (id ∘ id) ∘ fire-term e' sp …
         -- The two `fire-term e' sp` agree once (ur₂',up₂') ≡ (r₂',p₂').
         pin (just-inj (trans (sym ueqe') eqe'))
@@ -614,17 +644,17 @@ module _ (H : Hypergraph FlatGen)
       ------------------------------------------------------------
       -- e' skips the post-e stack; the e'-run has e' fire from sp:
       -- IMPOSSIBLE by stability (e' fires sp ⇒ e' fires post-e).
-      build (fireR r₁ p₁ eqe) (skipR eqe2) (fireR ur₂' up₂' ueqe') _ _ =
+      build (fireR r₁ p₁ eqe) (skipR eqe2) (fireR ur₂' up₂' ueqe') _ _ _ _ =
         ⊥-elim (nothing≢just
           (trans (sym eqe2)
             (proj₂ (proj₂ (e'-fires-stable e≢e' ¬dep-ee' r₁ sp p₁ ueqe')))))
       -- e fires sp, e' skips post-e, e' also skips sp; the e'-run then
       -- fires e from sp (residual ur₁ ≡ r₁).
-      build (fireR r₁ p₁ eqe) (skipR eqe2) (skipR eqe'n) (skipR eqe-bad) _ =
+      build (fireR r₁ p₁ eqe) (skipR eqe2) (skipR eqe'n) (skipR eqe-bad) _ _ _ =
         -- e skips sp in the e'-run — contradicts `eqe`.
         ⊥-elim (nothing≢just (trans (sym eqe-bad) eqe))
       build (fireR r₁ p₁ eqe) (skipR eqe2) (skipR eqe'n)
-            (fireR ur₁ up₁ ueqe) _ =
+            (fireR ur₁ up₁ ueqe) _ _ _ =
         -- run₁ ≡ (id ∘ id) ∘ fire-term e sp r₁ p₁
         -- run₂ ≡ (id ∘ fire-term e sp ur₁ up₁) ∘ id, (ur₁,up₁) ≡ (r₁,p₁).
         pin (just-inj (trans (sym ueqe) eqe))
@@ -641,13 +671,13 @@ module _ (H : Hypergraph FlatGen)
                     -- run₁ = (id∘id)∘F ≈ id∘F ≈ F
       -- e fires sp, e' fires post-e; the e'-run has e' skip sp:
       -- IMPOSSIBLE by stability (e' fires post-e ⇒ e' fires sp).
-      build (fireR r₁ p₁ eqe) (fireR r₂ p₂ eqe2) (skipR eqe'n) _ _ =
+      build (fireR r₁ p₁ eqe) (fireR r₂ p₂ eqe2) (skipR eqe'n) _ _ _ _ =
         ⊥-elim (nothing≢just
           (trans (sym (e'-skips-stable e≢e' ¬dep-ee' r₁ sp p₁ eqe'n)) eqe2))
       -- e fires sp, e' fires post-e, e' fires sp, but e SKIPS post-e':
       -- IMPOSSIBLE by stability (e fires sp ⇒ e fires post-e').
       build (fireR r₁ p₁ eqe) (fireR r₂ p₂ eqe2) (fireR r₂' p₂' eqe')
-            (skipR eqe1) _ =
+            (skipR eqe1) _ _ _ =
         ⊥-elim (nothing≢just
           (trans (sym eqe1)
             (proj₂ (proj₂
@@ -655,7 +685,7 @@ module _ (H : Hypergraph FlatGen)
                 r₂' sp p₂' eqe)))))
       -- BOTH-FIRE — the genuine content, closed by the residual.
       build (fireR r₁ p₁ eqe) (fireR r₂ p₂ eqe2) (fireR r₂' p₂' eqe')
-            (fireR r₁' p₁' eqe1) us-u2 =
+            (fireR r₁' p₁' eqe1) us-s1 us-u1 us-u2 =
         r ,
         -- run₂ = (id ∘ uH') ∘ uH
         --      ≈ uH' ∘ uH                              [idˡ]
@@ -668,8 +698,13 @@ module _ (H : Hypergraph FlatGen)
             (∘-resp-≈ ≈-Term-refl
               (∘-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl)))
         where
+          -- The two INTERMEDIATE-stack `Unique`s `fire-mid-interchange` now
+          -- needs: `us-mid₁ = Unique (eout e ++ r₁)` is the e-first
+          -- intermediate `s1` (`we = fireR r₁ p₁ eqe`'s post-stack);
+          -- `us-mid₂ = Unique (eout e' ++ r₂')` is the e'-first intermediate
+          -- `u1` (`ue = fireR r₂' p₂' eqe'`'s post-stack).
           RI = fire-mid-interchange inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
-                 (reached-Unique-from ps res-ps) us-u2
+                 (reached-Unique-from ps res-ps) us-s1 us-u1 us-u2
           r  = proj₁ RI
           box-eq
             : ( fire-term H e (H.eout e' ++ r₂') r₁' p₁'
@@ -691,6 +726,15 @@ module _ (H : Hypergraph FlatGen)
                  (edge-step-graph H (proj₁ (edge-step H sp e)) e')
                  (edge-step-graph H sp e')
                  (edge-step-graph H (proj₁ (edge-step H sp e')) e)
+                 -- `s1 = pe-stack (e ∷ []) sp` (definitionally `proj₁ (edge-step
+                 -- H sp e)`); its uniqueness is `reached-Unique` of the e-first
+                 -- intermediate order `ps ++ e ∷ []`, transported across `++-stack`.
+                 (subst Unique (++-stack ps (e ∷ []) H.dom)
+                        (reached-Unique-from (ps ++ e ∷ []) res-e))
+                 -- `u1 = pe-stack (e' ∷ []) sp` — the e'-first intermediate;
+                 -- `reached-Unique` of `ps ++ e' ∷ []`, transported across `++-stack`.
+                 (subst Unique (++-stack ps (e' ∷ []) H.dom)
+                        (reached-Unique-from (ps ++ e' ∷ []) res-e'))
                  -- `u2 = pe-stack (e' ∷ e ∷ []) sp` (definitionally); its
                  -- uniqueness is `reached-Unique` of the combined order
                  -- `ps ++ e' ∷ e ∷ []`, transported across `++-stack`.

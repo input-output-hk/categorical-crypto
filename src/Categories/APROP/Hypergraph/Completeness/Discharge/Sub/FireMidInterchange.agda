@@ -345,7 +345,8 @@ module _ (H : Hypergraph FlatGen)
             (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
             (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
             (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-            (us-sp  : Unique sp) (us-cod : Unique (H.eout e' ++ r₂))
+            (us-sp  : Unique sp) (us-mid : Unique (H.ein e' ++ r₂))
+            (us-cod : Unique (H.eout e' ++ r₂))
         → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
           in ( fire-mid H e' r₂ ∘ permute-via-vlab H.vlab p₂
                  ∘ fire-mid H e r₁ ∘ permute-via-vlab H.vlab p₁ )
@@ -362,7 +363,8 @@ module _ (H : Hypergraph FlatGen)
             (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
             (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
             (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-            (us-sp  : Unique sp) (us-cod : Unique (H.eout e ++ r₁'))
+            (us-sp  : Unique sp) (us-mid : Unique (H.ein e ++ r₁'))
+            (us-cod : Unique (H.eout e ++ r₁'))
         → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
           in ( fire-mid H e r₁' ∘ permute-via-vlab H.vlab p₁'
                  ∘ fire-mid H e' r₂' ∘ permute-via-vlab H.vlab p₂' )
@@ -565,10 +567,18 @@ module _ (H : Hypergraph FlatGen)
   -- `nf₁-eq′`/`nf₂-eq′` are MIRROR images (swap the two block roles), so both
   -- instantiate ONE symmetric generic lemma whose SOLE residual is the
   -- `BlockBracket.block-bracket` field — the shared-block two-box interchange,
-  -- i.e. the genuine Mac-Lane kernel (`≈ swap-atom-aligned`, open under
-  -- `--with-K` too).  This collapses the previous TWO `nf` postulates into ONE.
-  postulate
-    nf-bracket : Nf2.BlockBracket H K
+  -- i.e. the genuine Mac-Lane kernel.
+  --
+  -- `block-bracket` is now PROVEN (postulate-free) by
+  -- `BlockNFNf2.nf-bracket-proof`: the `both-as-fire-R` residual-`R`
+  -- braiding (`both-as-fire` ⊗ id, framed by `uf++ … R`) plus the
+  -- `bfR-fire` firing↔block-residual bridge, with the four locating
+  -- permutes reconciled by the Kelly keystone `K` on the three Unique
+  -- codomains (`Unique sp`-image, `us-mid : Unique (ein b ++ s₂)`,
+  -- `us-cod : Unique (eout b ++ s₂)`).  So the SOLE remaining trust-surface
+  -- leaf of the completeness chain is `K` (Kelly faithfulness) itself.
+  nf-bracket : Nf2.BlockBracket H K
+  nf-bracket = Nf2.nf-bracket-proof H K
   private module NfInst = Nf2.Instantiate H K nf-bracket dih lin
   nf₁-eq′ = NfInst.nf₁-eq-derived
   nf₂-eq′ = NfInst.nf₂-eq-derived
@@ -591,9 +601,11 @@ module _ (H : Hypergraph FlatGen)
         (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
         (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
         (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-        (us-sp  : Unique sp) (us-cod : Unique (H.eout e ++ r₁'))
+        (us-sp  : Unique sp)
+        (us-mid₁ : Unique (H.eout e ++ r₁)) (us-mid₂ : Unique (H.eout e' ++ r₂'))
+        (us-cod : Unique (H.eout e ++ r₁'))
     → BlockNF inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
-  block-nf {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod = record
+  block-nf {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-mid₁ us-mid₂ us-cod = record
     { R     = R-obj Rlist
     ; vin₁  = _≅_.from (view-in≅ e e' Rlist) ∘ permute-via-vlab H.vlab loc₁
     ; vin₂  = _≅_.from (view-in≅ e' e Rlist) ∘ permute-via-vlab H.vlab loc₂
@@ -602,8 +614,8 @@ module _ (H : Hypergraph FlatGen)
     ; r-stk = r-stk
     ; vin-coh  = vin-coh-eq  inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp
     ; vout-coh = vout-coh-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-cod
-    ; nf₁ = nf₁-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod₁
-    ; nf₂ = nf₂-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod
+    ; nf₁ = nf₁-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-mid-nf₁ us-cod₁
+    ; nf₂ = nf₂-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-mid-nf₂ us-cod
     }
     where
       open BlockNFResidual block-nf-residual
@@ -614,6 +626,17 @@ module _ (H : Hypergraph FlatGen)
       -- inter-order reshuffle `r-stk : eout e' ++ r₂ ↭ eout e ++ r₁'`.
       us-cod₁ : Unique (H.eout e' ++ r₂)
       us-cod₁ = SU.Unique-resp-↭ (Perm.↭-sym r-stk) us-cod
+      -- The intermediate (`q-second`-codomain) `Unique` witnesses.
+      --   * `nf₁` (e-first, a=e, b=e'): `us-mid = Unique (ein e' ++ r₂)`,
+      --     the `↭`-image of the e-first intermediate `eout e ++ r₁` via
+      --     `p₂ : eout e ++ r₁ ↭ ein e' ++ r₂`.
+      --   * `nf₂` (e'-first, a=e', b=e): `us-mid = Unique (ein e ++ r₁')`,
+      --     the `↭`-image of the e'-first intermediate `eout e' ++ r₂'` via
+      --     `p₁' : eout e' ++ r₂' ↭ ein e ++ r₁'`.
+      us-mid-nf₁ : Unique (H.ein e' ++ r₂)
+      us-mid-nf₁ = SU.Unique-resp-↭ p₂ us-mid₁
+      us-mid-nf₂ : Unique (H.ein e ++ r₁')
+      us-mid-nf₂ = SU.Unique-resp-↭ p₁' us-mid₂
 
   fire-mid-interchange
     : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
@@ -622,18 +645,20 @@ module _ (H : Hypergraph FlatGen)
         (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
         (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
         (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-        (us-sp  : Unique sp) (us-cod : Unique (H.eout e ++ r₁'))
+        (us-sp  : Unique sp)
+        (us-mid₁ : Unique (H.eout e ++ r₁)) (us-mid₂ : Unique (H.eout e' ++ r₂'))
+        (us-cod : Unique (H.eout e ++ r₁'))
     → Σ[ r ∈ (H.eout e' ++ r₂) Perm.↭ (H.eout e ++ r₁') ]
         ( fire-term H e (H.eout e' ++ r₂') r₁' p₁'
             ∘ fire-term H e' sp r₂' p₂' )
         ≈Term permute-via-vlab H.vlab r
                 ∘ ( fire-term H e' (H.eout e ++ r₁) r₂ p₂
                       ∘ fire-term H e sp r₁ p₁ )
-  fire-mid-interchange {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod =
+  fire-mid-interchange {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-mid₁ us-mid₂ us-cod =
     BlockNF.r-stk nf , goal
     where
       nf : BlockNF inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
-      nf = block-nf inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod
+      nf = block-nf inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-mid₁ us-mid₂ us-cod
       open BlockNF nf
 
       -- The locating permutes.

@@ -95,7 +95,7 @@ import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUnique sig as
 
 open import Categories.Category using (Category)
 open import Data.Fin using (Fin)
-open import Data.List using (List; _++_; map)
+open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-++; ++-assoc)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
@@ -177,6 +177,8 @@ module _ (H : Hypergraph FlatGen)
   private
     module FM = Category FreeMonoidal
     open FM.HomReasoning
+    open import Categories.Morphism.Reasoning FreeMonoidal
+      using (cancelInner; cancelˡ; pullˡ; pullʳ)
 
     module BT = DTS.BlockTensor H.vlab
 
@@ -1021,6 +1023,554 @@ module _ (H : Hypergraph FlatGen)
                                     (cong unflatten (whole-eq (H.eout e) rest R)))
                     (sym bc))))
 
+    ----------------------------------------------------------------------
+    -- ## `both-as-fire-R` — the residual-`R` lift of `both-as-fire`.
+    --
+    -- `both-as-fire` is at the BARE box residuals (`ein b` for a, `eout a`
+    -- for b); here we lift it to a COMMON residual `R` carried under each
+    -- box.  Each `Bframed · (· ++ R)` is reframed by `bframed-suffix` as
+    -- `(Bframed · ·) ⊗ id` sandwiched by `uf++ (·++·) R`; the three
+    -- `uf++ … R` frames + `both-as-fire ⊗ id` + `core≡both-framed`
+    -- telescope into `Core a b R`, with the two block-swaps lifted to the
+    -- `(·++·)++R` shape by `pvv-++⁺ʳ`-style framing.  No K: pure
+    -- ⊗-functoriality + the proven framing primitives.
+    private
+      -- The compound-residual block swaps, framed at `R`.
+      --   inner-swap  : (eout a ++ ein b) ++ R ↭ (ein b ++ eout a) ++ R
+      --   outer-swap  : (eout a ++ eout b) ++ R ↭ (eout b ++ eout a) ++ R
+      -- (a `++⁺ʳ R` of the bare `++-comm` swap).
+      ++R : ∀ {xs ys : List (Fin H.nV)} → xs Perm.↭ ys → (R : List (Fin H.nV))
+          → xs ++ R Perm.↭ ys ++ R
+      ++R p R = PermProp.++⁺ʳ R p
+
+      -- Local block-prefix cancellation (`drop-∷`-iterated).
+      ++-cancelˡ : ∀ (xs : List (Fin H.nV)) {ys zs : List (Fin H.nV)}
+                 → xs ++ ys Perm.↭ xs ++ zs → ys Perm.↭ zs
+      ++-cancelˡ []       p = p
+      ++-cancelˡ (x ∷ xs) p = ++-cancelˡ xs (PermProp.drop-∷ p)
+
+      -- `Bf-R e rest R` — box `e` framed at the COMPOUND residual `rest ++ R`,
+      -- in the `(·++·)++R`-bracketed shape: this is exactly the RHS of
+      -- `bframed-suffix` (the `(Bframed e rest) ⊗ id` sandwiched by `uf++ … R`).
+      Bf-R : (e : Fin H.nE) (rest R : List (Fin H.nV))
+           → HomTerm (unflatten (map H.vlab ((H.ein  e ++ rest) ++ R)))
+                     (unflatten (map H.vlab ((H.eout e ++ rest) ++ R)))
+      Bf-R e rest R =
+        _≅_.to (BT.uf++ (H.eout e ++ rest) R)
+        ∘ (Bframed e rest ⊗₁ id {R-obj R})
+        ∘ _≅_.from (BT.uf++ (H.ein e ++ rest) R)
+
+      -- `coh-subst₂` — a `subst₂ HomTerm` over `cong unflatten (cong (map vlab) ·)`
+      -- list-equalities is conjugation by the `pvl`s of their `↭-reflexive`s.
+      -- (Path-induction on the two list `≡`s; at `refl refl` it is `f ≈ id∘(f∘id)`.)
+      coh-subst₂
+        : ∀ {As As' Bs Bs' : List (Fin H.nV)} (eA : As ≡ As') (eB : Bs ≡ Bs')
+            (f : HomTerm (unflatten (map H.vlab As)) (unflatten (map H.vlab Bs)))
+        → subst₂ HomTerm
+            (cong unflatten (cong (map H.vlab) eA))
+            (cong unflatten (cong (map H.vlab) eB)) f
+          ≈Term pvl (Perm.↭-reflexive eB)
+                ∘ ( f ∘ pvl (Perm.↭-reflexive (sym eA)) )
+      coh-subst₂ refl refl f = ≈-Term-sym (≈-Term-trans idˡ idʳ)
+
+    ----------------------------------------------------------------------
+    -- `both-as-fire-R` — the residual-`R` lift of `both-as-fire`.
+    --
+    --   Bf-R b (eout a) R ∘ pvl(++⁺ʳ R (++-comm (eout a)(ein b)))
+    --       ∘ Bf-R a (ein b) R
+    --     ≈ pvl(++⁺ʳ R (++-comm (eout a)(eout b))) ∘ Core a b R
+    --
+    -- Sound (no K): `both-as-fire a b` tensored with `id {R}` and framed by
+    -- the `uf++ … R` isos.  The three middle `uf++ … R` cancellations are
+    -- `BT.frame-ext` (the `++⁺ʳ R` slide), and `Core a b R` is recovered by
+    -- `core≡both-framed`.
+    both-as-fire-R
+      : ∀ (a b : Fin H.nE) (R : List (Fin H.nV))
+      → Bf-R b (H.eout a) R
+          ∘ pvl (PermProp.++⁺ʳ R (PermProp.++-comm (H.eout a) (H.ein b)))
+          ∘ Bf-R a (H.ein b) R
+        ≈Term pvl (PermProp.++⁺ʳ R (PermProp.++-comm (H.eout a) (H.eout b)))
+              ∘ Core a b R
+    both-as-fire-R a b R = begin
+        Bf-R b (H.eout a) R
+          ∘ pvl (PermProp.++⁺ʳ R (PermProp.++-comm (H.eout a) (H.ein b)))
+          ∘ Bf-R a (H.ein b) R
+          -- (1) re-express the middle `pvl-swap` via `frame-ext` as a
+          --     `uf++`-framed `(pvl swap ⊗ id)`.
+          ≈⟨ refl⟩∘⟨ ≈-Term-sym
+               (BT.frame-ext (H.eout a ++ H.ein b) (H.ein b ++ H.eout a) R
+                  (PermProp.++-comm (H.eout a) (H.ein b)))
+               ⟩∘⟨refl ⟩
+        Bf-R b (H.eout a) R
+          ∘ ( to-ba ∘ (pvl (PermProp.++-comm (H.eout a) (H.ein b)) ⊗₁ id {R-obj R}) ∘ from-ab )
+          ∘ Bf-R a (H.ein b) R
+          -- (2) telescope: cancel the two interior `from(uf++…R)∘to(uf++…R)=id`
+          --     pairs and merge the three `⊗ id` whiskers into one.
+          ≈⟨ telescope ⟩
+        _≅_.to (BT.uf++ (H.eout b ++ H.eout a) R)
+          ∘ ( ( Bframed b (H.eout a)
+                  ∘ pvl (PermProp.++-comm (H.eout a) (H.ein b))
+                  ∘ Bframed a (H.ein b) ) ⊗₁ id {R-obj R} )
+          ∘ _≅_.from (BT.uf++ (H.ein a ++ H.ein b) R)
+          -- (3) apply `both-as-fire` inside the `⊗ id`.
+          ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (both-as-fire a b) ≈-Term-refl ⟩∘⟨refl ⟩
+        _≅_.to (BT.uf++ (H.eout b ++ H.eout a) R)
+          ∘ ( ( pvl (PermProp.++-comm (H.eout a) (H.eout b)) ∘ Both a b ) ⊗₁ id {R-obj R} )
+          ∘ _≅_.from (BT.uf++ (H.ein a ++ H.ein b) R)
+          -- (4) split `(pvl-swap ∘ Both) ⊗ id` into `(pvl-swap ⊗ id) ∘ (Both ⊗ id)`.
+          ≈⟨ refl⟩∘⟨ ⊗id-∘ (pvl (PermProp.++-comm (H.eout a) (H.eout b))) (Both a b) ⟩∘⟨refl ⟩
+        _≅_.to (BT.uf++ (H.eout b ++ H.eout a) R)
+          ∘ ( (pvl (PermProp.++-comm (H.eout a) (H.eout b)) ⊗₁ id {R-obj R})
+              ∘ (Both a b ⊗₁ id {R-obj R}) )
+          ∘ _≅_.from (BT.uf++ (H.ein a ++ H.ein b) R)
+          -- (5) regroup so `to(uf++ (eo-b++eo-a) R) ∘ (pvl-swap ⊗ id) ∘
+          --     from(uf++ (eo-a++eo-b) R)` is a unit (insert `to∘from=id`),
+          --     and the trailing `to(uf++ (eo-a++eo-b) R) ∘ (Both⊗id) ∘ from(…)`
+          --     is `Core a b R` (`core≡both-framed`).
+          ≈⟨ regroup-out ⟩
+        ( _≅_.to (BT.uf++ (H.eout b ++ H.eout a) R)
+            ∘ (pvl (PermProp.++-comm (H.eout a) (H.eout b)) ⊗₁ id {R-obj R})
+            ∘ _≅_.from (BT.uf++ (H.eout a ++ H.eout b) R) )
+          ∘ ( _≅_.to (BT.uf++ (H.eout a ++ H.eout b) R)
+              ∘ (Both a b ⊗₁ id {R-obj R})
+              ∘ _≅_.from (BT.uf++ (H.ein a ++ H.ein b) R) )
+          ≈⟨ BT.frame-ext (H.eout a ++ H.eout b) (H.eout b ++ H.eout a) R
+                (PermProp.++-comm (H.eout a) (H.eout b))
+             ⟩∘⟨ ≈-Term-sym (core≡both-framed a b R) ⟩
+        pvl (PermProp.++⁺ʳ R (PermProp.++-comm (H.eout a) (H.eout b)))
+          ∘ Core a b R ∎
+      where
+        to-ba   = _≅_.to   (BT.uf++ (H.ein b ++ H.eout a) R)
+        from-ab = _≅_.from (BT.uf++ (H.eout a ++ H.ein b) R)
+
+        -- (h ∘ k) ⊗ id ≈ (h ⊗ id) ∘ (k ⊗ id).
+        ⊗id-∘ : ∀ {A B D} (h : HomTerm B D) (k : HomTerm A B)
+              → (h ∘ k) ⊗₁ id {R-obj R} ≈Term (h ⊗₁ id) ∘ (k ⊗₁ id)
+        ⊗id-∘ h k =
+          ≈-Term-trans (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⊗-∘-dist
+
+        -- abbreviations for the box / swap whiskers
+        Bb = Bframed b (H.eout a) ⊗₁ id {R-obj R}
+        Sw = pvl (PermProp.++-comm (H.eout a) (H.ein b)) ⊗₁ id {R-obj R}
+        Ba = Bframed a (H.ein b) ⊗₁ id {R-obj R}
+        to-bb   = _≅_.to   (BT.uf++ (H.eout b ++ H.eout a) R)
+        fr-bb   = _≅_.from (BT.uf++ (H.ein  b ++ H.eout a) R)
+        fr-aa   = _≅_.from (BT.uf++ (H.ein  a ++ H.ein  b) R)
+        to-ab   = _≅_.to   (BT.uf++ (H.eout a ++ H.ein  b) R)
+
+        -- merge three `⊗ id` whiskers: (Bb ∘ Sw ∘ Ba) = (boxes) ⊗ id.
+        merge3 : Bb ∘ Sw ∘ Ba
+               ≈Term ( Bframed b (H.eout a)
+                       ∘ pvl (PermProp.++-comm (H.eout a) (H.ein b))
+                       ∘ Bframed a (H.ein b) ) ⊗₁ id {R-obj R}
+        merge3 =
+          ≈-Term-trans (∘-resp-≈ ≈-Term-refl (≈-Term-sym (⊗id-∘ _ _)))
+            (≈-Term-sym (⊗id-∘ _ _))
+
+        -- `M ∘ Bf-R a (ein b) R`: cancel the interior `from-ab ∘ to-ab = id`.
+        --   (to-ba ∘ (Sw ∘ from-ab)) ∘ (to-ab ∘ (Ba ∘ fr-aa))
+        --     ≈ to-ba ∘ (Sw ∘ (Ba ∘ fr-aa))      [cancelInner isoʳ-ab]
+        glue-MBa
+          : ( to-ba ∘ Sw ∘ from-ab ) ∘ Bf-R a (H.ein b) R
+            ≈Term to-ba ∘ Sw ∘ Ba ∘ fr-aa
+        glue-MBa =
+          ≈-Term-trans FM.assoc
+            (refl⟩∘⟨ (≈-Term-trans FM.assoc
+              (refl⟩∘⟨ cancelˡ (_≅_.isoʳ (BT.uf++ (H.eout a ++ H.ein b) R)))))
+
+        -- `Bf-R b (eout a) R ∘ (to-ba ∘ Sw ∘ Ba ∘ fr-aa)`:
+        --   cancel the interior `fr-bb ∘ to-ba = id`.
+        glue-Bb
+          : Bf-R b (H.eout a) R ∘ ( to-ba ∘ Sw ∘ Ba ∘ fr-aa )
+            ≈Term to-bb ∘ Bb ∘ Sw ∘ Ba ∘ fr-aa
+        glue-Bb =
+          ≈-Term-trans FM.assoc
+            (refl⟩∘⟨ cancelInner (_≅_.isoʳ (BT.uf++ (H.ein b ++ H.eout a) R)))
+
+        telescope
+          : Bf-R b (H.eout a) R ∘ ( to-ba ∘ Sw ∘ from-ab ) ∘ Bf-R a (H.ein b) R
+            ≈Term to-bb
+                  ∘ ( ( Bframed b (H.eout a)
+                        ∘ pvl (PermProp.++-comm (H.eout a) (H.ein b))
+                        ∘ Bframed a (H.ein b) ) ⊗₁ id {R-obj R} )
+                  ∘ fr-aa
+        telescope = begin
+            Bf-R b (H.eout a) R ∘ ( to-ba ∘ Sw ∘ from-ab ) ∘ Bf-R a (H.ein b) R
+              ≈⟨ refl⟩∘⟨ glue-MBa ⟩
+            Bf-R b (H.eout a) R ∘ ( to-ba ∘ Sw ∘ Ba ∘ fr-aa )
+              ≈⟨ glue-Bb ⟩
+            to-bb ∘ Bb ∘ Sw ∘ Ba ∘ fr-aa
+              -- merge the three `⊗ id`
+              ≈⟨ refl⟩∘⟨ regroup3 ⟩
+            to-bb ∘ (Bb ∘ Sw ∘ Ba) ∘ fr-aa
+              ≈⟨ refl⟩∘⟨ merge3 ⟩∘⟨refl ⟩
+            to-bb
+              ∘ ( ( Bframed b (H.eout a)
+                    ∘ pvl (PermProp.++-comm (H.eout a) (H.ein b))
+                    ∘ Bframed a (H.ein b) ) ⊗₁ id {R-obj R} )
+              ∘ fr-aa ∎
+          where
+            regroup3 : Bb ∘ Sw ∘ Ba ∘ fr-aa ≈Term (Bb ∘ Sw ∘ Ba) ∘ fr-aa
+            regroup3 =
+              ≈-Term-trans (refl⟩∘⟨ FM.sym-assoc) FM.sym-assoc
+
+        regroup-out
+          : to-bb
+              ∘ ( (pvl (PermProp.++-comm (H.eout a) (H.eout b)) ⊗₁ id {R-obj R})
+                  ∘ (Both a b ⊗₁ id {R-obj R}) )
+              ∘ fr-aa
+            ≈Term ( to-bb
+                    ∘ (pvl (PermProp.++-comm (H.eout a) (H.eout b)) ⊗₁ id {R-obj R})
+                    ∘ _≅_.from (BT.uf++ (H.eout a ++ H.eout b) R) )
+                  ∘ ( _≅_.to (BT.uf++ (H.eout a ++ H.eout b) R)
+                      ∘ (Both a b ⊗₁ id {R-obj R})
+                      ∘ fr-aa )
+        regroup-out = begin
+            to-bb ∘ (Sout ∘ BothC) ∘ fr-aa
+              ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+            to-bb ∘ Sout ∘ BothC ∘ fr-aa
+              -- insert `from-eoeo ∘ to-eoeo = id` between Sout and BothC
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym idˡ ⟩
+            to-bb ∘ Sout ∘ id ∘ BothC ∘ fr-aa
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym (_≅_.isoʳ (BT.uf++ (H.eout a ++ H.eout b) R)) ⟩∘⟨refl ⟩
+            to-bb ∘ Sout ∘ (from-eoeo ∘ to-eoeo) ∘ BothC ∘ fr-aa
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
+            to-bb ∘ Sout ∘ from-eoeo ∘ to-eoeo ∘ BothC ∘ fr-aa
+              ≈⟨ regroup-final ⟩
+            ( to-bb ∘ Sout ∘ from-eoeo )
+              ∘ ( to-eoeo ∘ BothC ∘ fr-aa ) ∎
+          where
+            Sout    = pvl (PermProp.++-comm (H.eout a) (H.eout b)) ⊗₁ id {R-obj R}
+            BothC   = Both a b ⊗₁ id {R-obj R}
+            to-eoeo = _≅_.to   (BT.uf++ (H.eout a ++ H.eout b) R)
+            from-eoeo = _≅_.from (BT.uf++ (H.eout a ++ H.eout b) R)
+            regroup-final
+              : to-bb ∘ Sout ∘ from-eoeo ∘ to-eoeo ∘ BothC ∘ fr-aa
+                ≈Term ( to-bb ∘ Sout ∘ from-eoeo ) ∘ ( to-eoeo ∘ BothC ∘ fr-aa )
+            regroup-final =
+              ≈-Term-sym (≈-Term-trans FM.assoc (refl⟩∘⟨ FM.assoc))
+
+    ----------------------------------------------------------------------
+    -- ## The per-box bridge `Bf-R = ro ∘ Bframed(rest++R) ∘ ri` and the
+    -- residual-slide composite.  These connect a box framed at the FIRING
+    -- residual `s` (`Bframed e s`) to the same box framed at the COMMON
+    -- residual `R` (`Bf-R e rest R`), through the residual permute
+    -- `ρ : s ↭ rest ++ R`.  Pure framing (no K): `bframed-suffix` +
+    -- `coh-subst₂` for the `(·++·)++R`-reassociation, `box-resid-slide` for
+    -- the residual slide.
+    private
+      -- (B): `Bf-R e rest R` unfolded onto `Bframed e (rest++R)` conjugated
+      -- by the `↭-reflexive (++-assoc …)` coercions.
+      bfR-unfold
+        : ∀ (e : Fin H.nE) (rest R : List (Fin H.nV))
+        → Bf-R e rest R
+          ≈Term pvl (Perm.↭-reflexive (sym (++-assoc (H.eout e) rest R)))
+                ∘ ( Bframed e (rest ++ R)
+                    ∘ pvl (Perm.↭-reflexive (sym (sym (++-assoc (H.ein e) rest R)))) )
+      bfR-unfold e rest R =
+        ≈-Term-trans (≈-Term-sym (bframed-suffix e rest R))
+          (coh-subst₂ (sym (++-assoc (H.ein e) rest R))
+                      (sym (++-assoc (H.eout e) rest R))
+                      (Bframed e (rest ++ R)))
+
+      -- `bfR-fire` — `Bf-R e rest R` re-expressed onto the FIRING-residual box
+      -- `Bframed e s`, conjugated by `pvl`s of permutes with Unique endpoints.
+      -- The input side carries `pvl (↭-sym in-perm)` (an iso onto `ein e ++ s`),
+      -- the output `pvl out-perm`.  `in-perm`/`out-perm` are reconciled below
+      -- against `loc`/`vout-loc` at the (Unique) `(·++·)++R` codomains.
+      --
+      --   in-perm  : ein e ++ s ↭ (ein e ++ rest) ++ R
+      --   out-perm : eout e ++ s ↭ (eout e ++ rest) ++ R
+      bfR-fire
+        : ∀ (e : Fin H.nE) (s rest R : List (Fin H.nV)) (ρ : s Perm.↭ rest ++ R)
+        → (us-in : Unique (H.ein e ++ s))
+        → Bf-R e rest R
+          ≈Term pvl (Perm.trans (PermProp.++⁺ˡ (H.eout e) ρ)
+                       (Perm.↭-reflexive (sym (++-assoc (H.eout e) rest R))))
+                ∘ ( Bframed e s
+                    ∘ pvl (Perm.↭-sym
+                             (Perm.trans (PermProp.++⁺ˡ (H.ein e) ρ)
+                               (Perm.↭-reflexive (sym (++-assoc (H.ein e) rest R))))) )
+      bfR-fire e s rest R ρ us-in = begin
+          Bf-R e rest R
+            ≈⟨ bfR-unfold e rest R ⟩
+          pvl ro ∘ ( Bframed e (rest ++ R) ∘ pvl ri )
+            -- reconcile `ri` (at the Unique `ein e ++ (rest++R)`) so the box's
+            -- trailing permute is exactly `++⁺ˡ (ein e) ρ ∘ pvl(↭-sym in-perm)`.
+            ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ri≈ ⟩
+          pvl ro ∘ ( Bframed e (rest ++ R)
+                     ∘ ( pvl (PermProp.++⁺ˡ (H.ein e) ρ) ∘ pvl in-inv ) )
+            -- pull the box+slide unit together
+            ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+          pvl ro ∘ ( ( Bframed e (rest ++ R) ∘ pvl (PermProp.++⁺ˡ (H.ein e) ρ) )
+                     ∘ pvl in-inv )
+            -- box-resid-slide
+            ≈⟨ refl⟩∘⟨ box-resid-slide e ρ ⟩∘⟨refl ⟩
+          pvl ro ∘ ( ( pvl (PermProp.++⁺ˡ (H.eout e) ρ) ∘ Bframed e s )
+                     ∘ pvl in-inv )
+            -- regroup: `pvl ro ∘ (pvl out-slide ∘ Bframed e s) ∘ pvl in-inv`
+            ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+          pvl ro ∘ ( pvl (PermProp.++⁺ˡ (H.eout e) ρ)
+                     ∘ ( Bframed e s ∘ pvl in-inv ) )
+            ≈⟨ FM.sym-assoc ⟩
+          ( pvl ro ∘ pvl (PermProp.++⁺ˡ (H.eout e) ρ) )
+            ∘ ( Bframed e s ∘ pvl in-inv )
+            -- `pvl ro ∘ pvl out-slide = pvl (trans out-slide ro)` (definitional)
+            ≈⟨ ≈-Term-refl ⟩
+          pvl (Perm.trans (PermProp.++⁺ˡ (H.eout e) ρ) ro)
+            ∘ ( Bframed e s ∘ pvl in-inv ) ∎
+        where
+          ro = Perm.↭-reflexive (sym (++-assoc (H.eout e) rest R))
+          ri = Perm.↭-reflexive (sym (sym (++-assoc (H.ein e) rest R)))
+          in-perm = Perm.trans (PermProp.++⁺ˡ (H.ein e) ρ)
+                      (Perm.↭-reflexive (sym (++-assoc (H.ein e) rest R)))
+          in-inv  = Perm.↭-sym in-perm
+          -- `pvl ri = pvl (++⁺ˡ (ein e) ρ) ∘ pvl in-inv`.
+          --   `pvl (++⁺ˡ (ein e) ρ) ∘ pvl in-inv = pvl (trans in-inv (++⁺ˡ (ein e) ρ))`,
+          --   reconciled with `pvl ri` by K at the Unique cod `ein e ++ (rest++R)`
+          --   (image of the Unique `ein e ++ s` via `++⁺ˡ (ein e) ρ`).
+          ri≈ : pvl ri
+                ≈Term pvl (PermProp.++⁺ˡ (H.ein e) ρ) ∘ pvl in-inv
+          ri≈ =
+            pvl-coh
+              (SU.Unique-resp-↭ (PermProp.++⁺ˡ (H.ein e) ρ) us-in)
+              ri
+              (Perm.trans in-inv (PermProp.++⁺ˡ (H.ein e) ρ))
+
+    ----------------------------------------------------------------------
+    -- ## `block-bracket-pf` — the proof of the single residual.
+    --
+    -- Reconcile the FIRING-residual two-box composite (`fire-mid`) against the
+    -- block normal form `pvl vout-loc ∘ Core ∘ pvl loc` (= the goal RHS), via
+    -- `both-as-fire-R` (the residual-`R` braiding) and `bfR-fire` (firing↔R
+    -- bridge), with the locating permutes reconciled by `pvl-coh` (K) on the
+    -- three Unique codomains `ein a ++ s₁` (image of `us-sp`), `ein b ++ s₂`
+    -- (`us-mid`) and `eout b ++ s₂` (`us-cod`).
+    block-bracket-pf
+      : ∀ (a b : Fin H.nE)
+          (sp : List (Fin H.nV))
+          (s₁ : List (Fin H.nV)) (q-first  : sp Perm.↭ H.ein a ++ s₁)
+          (s₂ : List (Fin H.nV)) (q-second : H.eout a ++ s₁ Perm.↭ H.ein b ++ s₂)
+          (R  : List (Fin H.nV))
+          (loc      : sp Perm.↭ (H.ein a ++ H.ein b) ++ R)
+          (vout-loc : (H.eout a ++ H.eout b) ++ R Perm.↭ H.eout b ++ s₂)
+          (us-sp  : Unique sp)
+          (us-mid : Unique (H.ein b ++ s₂))
+          (us-cod : Unique (H.eout b ++ s₂))
+      → ( fire-mid H b s₂ ∘ pvl q-second ∘ fire-mid H a s₁ ∘ pvl q-first )
+        ≈Term ( pvl vout-loc ∘ _≅_.to (view-out≅ a b R) )
+              ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id)
+              ∘ ( _≅_.from (view-in≅ a b R) ∘ pvl loc )
+    block-bracket-pf a b sp s₁ q-first s₂ q-second R loc vout-loc us-sp us-mid us-cod =
+      begin
+        fire-mid H b s₂ ∘ pvl q-second ∘ fire-mid H a s₁ ∘ pvl q-first
+          -- (0) `fire-mid → Bframed`.
+          ≈⟨ fire≈Bframed b s₂ ⟩∘⟨ refl⟩∘⟨ fire≈Bframed a s₁ ⟩∘⟨refl ⟩
+        Bframed b s₂ ∘ pvl q-second ∘ Bframed a s₁ ∘ pvl q-first
+          -- (1) `pvl q-first ≈ pvl in-inv-a ∘ pvl loc`  [K at the Unique
+          --     `ein a ++ s₁` = image of `sp` via `q-first`].
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ q-first≈ ⟩
+        Bframed b s₂ ∘ pvl q-second ∘ Bframed a s₁ ∘ ( pvl in-inv-a ∘ pvl loc )
+          -- (2) regroup so `pvl loc` is the trailing unit.
+          ≈⟨ regroup-in ⟩
+        ( Bframed b s₂ ∘ pvl q-second ∘ Bframed a s₁ ∘ pvl in-inv-a ) ∘ pvl loc
+          -- (3) `master`: the bracketed run = `pvl vout-loc ∘ (pvl σo ∘ Core)`-ish.
+          ≈⟨ master ⟩∘⟨refl ⟩
+        ( pvl vout-loc ∘ Core a b R ) ∘ pvl loc
+          -- (4) regroup to the goal RHS.
+          ≈⟨ FM.assoc ⟩
+        pvl vout-loc ∘ ( Core a b R ∘ pvl loc )
+          ≈⟨ ≈-Term-sym core-reassoc ⟩
+        ( pvl vout-loc ∘ _≅_.to (view-out≅ a b R) )
+          ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id)
+          ∘ ( _≅_.from (view-in≅ a b R) ∘ pvl loc ) ∎
+      where
+        -- residual permutes from the locating permutes (block-prefix cancel).
+        --   ρ₁ : s₁ ↭ ein b ++ R   (from `q-first`/`loc`)
+        --   ρ₂ : s₂ ↭ eout a ++ R  (from `q-second`/`ρ₁`)
+        ρ₁ : s₁ Perm.↭ H.ein b ++ R
+        ρ₁ = ++-cancelˡ (H.ein a)
+               (Perm.trans (Perm.↭-sym q-first)
+                 (Perm.trans loc (Perm.↭-reflexive (++-assoc (H.ein a) (H.ein b) R))))
+        ρ₂ : s₂ Perm.↭ H.eout a ++ R
+        ρ₂ = ++-cancelˡ (H.ein b)
+               (Perm.trans (Perm.↭-sym q-second)
+                 (Perm.trans (PermProp.++⁺ˡ (H.eout a) ρ₁)
+                   (eo-shift)))
+          where
+            -- eout a ++ (ein b ++ R) ↭ ein b ++ (eout a ++ R)
+            eo-shift : H.eout a ++ (H.ein b ++ R) Perm.↭ H.ein b ++ (H.eout a ++ R)
+            eo-shift =
+              Perm.trans (Perm.↭-sym (Perm.↭-reflexive (++-assoc (H.eout a) (H.ein b) R)))
+                (Perm.trans (PermProp.++⁺ʳ R (PermProp.++-comm (H.eout a) (H.ein b)))
+                  (Perm.↭-reflexive (++-assoc (H.ein b) (H.eout a) R)))
+
+        us-in-a : Unique (H.ein a ++ s₁)
+        us-in-a = SU.Unique-resp-↭ q-first us-sp
+
+        -- the `bfR-fire` data for the two boxes.
+        ro-a = Perm.↭-reflexive (sym (++-assoc (H.eout a) (H.ein b) R))
+        ro-b = Perm.↭-reflexive (sym (++-assoc (H.eout b) (H.eout a) R))
+        out-a = Perm.trans (PermProp.++⁺ˡ (H.eout a) ρ₁) ro-a
+        out-b = Perm.trans (PermProp.++⁺ˡ (H.eout b) ρ₂) ro-b
+        in-perm-a = Perm.trans (PermProp.++⁺ˡ (H.ein a) ρ₁)
+                      (Perm.↭-reflexive (sym (++-assoc (H.ein a) (H.ein b) R)))
+        in-perm-b = Perm.trans (PermProp.++⁺ˡ (H.ein b) ρ₂)
+                      (Perm.↭-reflexive (sym (++-assoc (H.ein b) (H.eout a) R)))
+        in-inv-a = Perm.↭-sym in-perm-a
+        in-inv-b = Perm.↭-sym in-perm-b
+
+        σi = PermProp.++⁺ʳ R (PermProp.++-comm (H.eout a) (H.ein b))
+        σo = PermProp.++⁺ʳ R (PermProp.++-comm (H.eout a) (H.eout b))
+
+        -- (1) reconcile `q-first` with `trans loc in-inv-a`
+        --     (= `pvl in-inv-a ∘ pvl loc`) at the Unique `ein a ++ s₁`.
+        q-first≈ : pvl q-first ≈Term pvl in-inv-a ∘ pvl loc
+        q-first≈ = pvl-coh us-in-a q-first (Perm.trans loc in-inv-a)
+
+        regroup-in
+          : Bframed b s₂ ∘ pvl q-second ∘ Bframed a s₁ ∘ ( pvl in-inv-a ∘ pvl loc )
+            ≈Term ( Bframed b s₂ ∘ pvl q-second ∘ Bframed a s₁ ∘ pvl in-inv-a ) ∘ pvl loc
+        regroup-in =
+          ≈-Term-sym
+            (≈-Term-trans FM.assoc
+              (refl⟩∘⟨ (≈-Term-trans FM.assoc
+                (refl⟩∘⟨ FM.assoc))))
+
+        -- `Core a b R ∘ pvl loc` reassociated out of the goal RHS.
+        core-reassoc
+          : ( pvl vout-loc ∘ _≅_.to (view-out≅ a b R) )
+              ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id)
+              ∘ ( _≅_.from (view-in≅ a b R) ∘ pvl loc )
+            ≈Term pvl vout-loc ∘ ( Core a b R ∘ pvl loc )
+        core-reassoc = begin
+            ( pvl vout-loc ∘ _≅_.to (view-out≅ a b R) )
+              ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id)
+              ∘ ( _≅_.from (view-in≅ a b R) ∘ pvl loc )
+              ≈⟨ FM.assoc ⟩
+            pvl vout-loc ∘ ( _≅_.to (view-out≅ a b R)
+              ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id)
+              ∘ ( _≅_.from (view-in≅ a b R) ∘ pvl loc ) )
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+            pvl vout-loc ∘ ( _≅_.to (view-out≅ a b R)
+              ∘ ( ((box-e a ⊗₁ box-e b) ⊗₁ id)
+                  ∘ _≅_.from (view-in≅ a b R) ) ∘ pvl loc )
+              ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+            pvl vout-loc ∘ ( ( _≅_.to (view-out≅ a b R)
+              ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id)
+              ∘ _≅_.from (view-in≅ a b R) ) ∘ pvl loc ) ∎
+
+        ----------------------------------------------------------------
+        -- `master` — the bracketed firing run equals `pvl vout-loc ∘ Core`.
+        ----------------------------------------------------------------
+
+        -- the two `bfR-fire` instances.
+        bfa : Bf-R a (H.ein b) R
+              ≈Term pvl out-a ∘ ( Bframed a s₁ ∘ pvl in-inv-a )
+        bfa = bfR-fire a s₁ (H.ein b) R ρ₁ us-in-a
+
+        bfb : Bf-R b (H.eout a) R
+              ≈Term pvl out-b ∘ ( Bframed b s₂ ∘ pvl in-inv-b )
+        bfb = bfR-fire b s₂ (H.eout a) R ρ₂ us-mid
+
+        -- `MID : eout a ++ s₁ ↭ ein b ++ s₂`, grouped so that `pvl MID`
+        -- is the RIGHT-associated `pvl in-inv-b ∘ (pvl σi ∘ pvl out-a)`.
+        -- Reconciled with `q-second` at the Unique `ein b ++ s₂` (`us-mid`).
+        MID = Perm.trans (Perm.trans out-a σi) in-inv-b
+
+        q-second≈ : pvl MID ≈Term pvl q-second
+        q-second≈ = pvl-coh us-mid MID q-second
+
+        -- `assembled`: substitute `bfR-fire` into `both-as-fire-R`-LHS.  Both
+        -- sides are re-associated onto the common fully-right-associated form
+        --   pvl out-b ∘ (Bb ∘ (Ib ∘ (Si ∘ (Oa ∘ (Ba ∘ Ia))))).
+        assembled
+          : Bf-R b (H.eout a) R ∘ pvl σi ∘ Bf-R a (H.ein b) R
+            ≈Term pvl out-b
+                  ∘ ( Bframed b s₂ ∘ pvl MID ∘ Bframed a s₁ ∘ pvl in-inv-a )
+        assembled = begin
+            Bf-R b (H.eout a) R ∘ pvl σi ∘ Bf-R a (H.ein b) R
+              ≈⟨ bfb ⟩∘⟨ refl⟩∘⟨ bfa ⟩
+            ( pvl out-b ∘ ( Bframed b s₂ ∘ pvl in-inv-b ) )
+              ∘ pvl σi
+              ∘ ( pvl out-a ∘ ( Bframed a s₁ ∘ pvl in-inv-a ) )
+              ≈⟨ to-flat ⟩
+            pvl out-b ∘ ( Bframed b s₂
+              ∘ ( pvl in-inv-b ∘ ( pvl σi ∘ ( pvl out-a
+              ∘ ( Bframed a s₁ ∘ pvl in-inv-a ) ) ) ) )
+              ≈⟨ ≈-Term-sym from-flat ⟩
+            pvl out-b
+              ∘ ( Bframed b s₂ ∘ pvl MID ∘ Bframed a s₁ ∘ pvl in-inv-a ) ∎
+          where
+            -- LHS → fully right-associated flat form.
+            to-flat
+              : ( pvl out-b ∘ ( Bframed b s₂ ∘ pvl in-inv-b ) )
+                  ∘ pvl σi
+                  ∘ ( pvl out-a ∘ ( Bframed a s₁ ∘ pvl in-inv-a ) )
+                ≈Term pvl out-b ∘ ( Bframed b s₂
+                  ∘ ( pvl in-inv-b ∘ ( pvl σi ∘ ( pvl out-a
+                  ∘ ( Bframed a s₁ ∘ pvl in-inv-a ) ) ) ) )
+            to-flat =
+              ≈-Term-trans FM.assoc (refl⟩∘⟨ FM.assoc)
+            -- target `pvl MID`-form → the SAME flat form.
+            -- `pvl MID = pvl in-inv-b ∘ (pvl σi ∘ pvl out-a)`  (definitional),
+            -- so `Bb ∘ pvl MID ∘ Ba ∘ Ia` re-associates to the flat shape.
+            from-flat
+              : pvl out-b
+                  ∘ ( Bframed b s₂ ∘ pvl MID ∘ Bframed a s₁ ∘ pvl in-inv-a )
+                ≈Term pvl out-b ∘ ( Bframed b s₂
+                  ∘ ( pvl in-inv-b ∘ ( pvl σi ∘ ( pvl out-a
+                  ∘ ( Bframed a s₁ ∘ pvl in-inv-a ) ) ) ) )
+            from-flat =
+              refl⟩∘⟨ refl⟩∘⟨
+                (≈-Term-trans FM.assoc (refl⟩∘⟨ FM.assoc))
+
+        -- `master`: cancel `pvl out-b` and reconcile `q-second`/`vout-loc`.
+        master
+          : Bframed b s₂ ∘ pvl q-second ∘ Bframed a s₁ ∘ pvl in-inv-a
+            ≈Term pvl vout-loc ∘ Core a b R
+        master = begin
+            Bframed b s₂ ∘ pvl q-second ∘ Bframed a s₁ ∘ pvl in-inv-a
+              -- replace `q-second` by `MID` (K, us-mid).
+              ≈⟨ refl⟩∘⟨ ≈-Term-sym q-second≈ ⟩∘⟨refl ⟩
+            Bframed b s₂ ∘ pvl MID ∘ Bframed a s₁ ∘ pvl in-inv-a
+              -- prepend `pvl (↭-sym out-b) ∘ pvl out-b = id` (K, us-cod).
+              ≈⟨ ≈-Term-sym (cancel-out-b) ⟩
+            pvl (Perm.↭-sym out-b)
+              ∘ ( pvl out-b ∘ ( Bframed b s₂ ∘ pvl MID ∘ Bframed a s₁ ∘ pvl in-inv-a ) )
+              -- recognize the inner as `both-as-fire-R`-LHS via `assembled`.
+              ≈⟨ refl⟩∘⟨ ≈-Term-sym assembled ⟩
+            pvl (Perm.↭-sym out-b)
+              ∘ ( Bf-R b (H.eout a) R ∘ pvl σi ∘ Bf-R a (H.ein b) R )
+              ≈⟨ refl⟩∘⟨ both-as-fire-R a b R ⟩
+            pvl (Perm.↭-sym out-b) ∘ ( pvl σo ∘ Core a b R )
+              -- `pvl (↭-sym out-b) ∘ pvl σo = pvl (trans σo (↭-sym out-b))`
+              -- reconciled with `pvl vout-loc` (K, us-cod).
+              ≈⟨ FM.sym-assoc ⟩
+            ( pvl (Perm.↭-sym out-b) ∘ pvl σo ) ∘ Core a b R
+              ≈⟨ vout≈ ⟩∘⟨refl ⟩
+            pvl vout-loc ∘ Core a b R ∎
+          where
+            -- `pvl (↭-sym out-b) ∘ pvl out-b ≈ id`  [K at the Unique `eout b ++ s₂`].
+            cancel-out-b
+              : pvl (Perm.↭-sym out-b)
+                  ∘ ( pvl out-b ∘ ( Bframed b s₂ ∘ pvl MID ∘ Bframed a s₁ ∘ pvl in-inv-a ) )
+                ≈Term Bframed b s₂ ∘ pvl MID ∘ Bframed a s₁ ∘ pvl in-inv-a
+            cancel-out-b =
+              ≈-Term-trans FM.sym-assoc
+                (≈-Term-trans
+                  (∘-resp-≈ out-b-iso ≈-Term-refl)
+                  idˡ)
+              where
+                -- `pvl (↭-sym out-b) ∘ pvl out-b = pvl (trans out-b (↭-sym out-b))`
+                -- reconciled with `pvl refl = id` at the Unique `eout b ++ s₂`.
+                out-b-iso : pvl (Perm.↭-sym out-b) ∘ pvl out-b ≈Term id
+                out-b-iso =
+                  pvl-coh us-cod (Perm.trans out-b (Perm.↭-sym out-b)) Perm.refl
+            -- `pvl (↭-sym out-b) ∘ pvl σo = pvl (trans σo (↭-sym out-b)) ≈ pvl vout-loc`.
+            vout≈ : pvl (Perm.↭-sym out-b) ∘ pvl σo ≈Term pvl vout-loc
+            vout≈ = pvl-coh us-cod (Perm.trans σo (Perm.↭-sym out-b)) vout-loc
+
   ----------------------------------------------------------------------
   -- ## The single residual (scaffolding-stripped, block-symmetric).
   --
@@ -1078,12 +1628,20 @@ module _ (H : Hypergraph FlatGen)
             (loc      : sp Perm.↭ (H.ein a ++ H.ein b) ++ R)
             (vout-loc : (H.eout a ++ H.eout b) ++ R Perm.↭ H.eout b ++ s₂)
             (us-sp  : Unique sp)
+            (us-mid : Unique (H.ein b ++ s₂))
             (us-cod : Unique (H.eout b ++ s₂))
         → ( fire-mid H b s₂ ∘ permute-via-vlab H.vlab q-second
               ∘ fire-mid H a s₁ ∘ permute-via-vlab H.vlab q-first )
           ≈Term ( permute-via-vlab H.vlab vout-loc ∘ _≅_.to (view-out≅ a b R) )
                 ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id)
                 ∘ ( _≅_.from (view-in≅ a b R) ∘ permute-via-vlab H.vlab loc )
+
+  -- The single residual is now PROVEN (postulate-free) by `block-bracket-pf`:
+  -- the `both-as-fire-R` residual-`R` braiding + `bfR-fire` firing↔R bridge,
+  -- with the four locating permutes reconciled by the Kelly keystone `K` on
+  -- the three Unique codomains (`us-sp`-image / `us-mid` / `us-cod`).
+  nf-bracket-proof : BlockBracket
+  nf-bracket-proof = record { block-bracket = block-bracket-pf }
 
   ----------------------------------------------------------------------
   -- ## The generic block-normal-form factorisation.
@@ -1105,6 +1663,7 @@ module _ (H : Hypergraph FlatGen)
           (loc      : sp Perm.↭ (H.ein a ++ H.ein b) ++ R)
           (vout-loc : (H.eout a ++ H.eout b) ++ R Perm.↭ H.eout b ++ s₂)
           (us-sp  : Unique sp)
+          (us-mid : Unique (H.ein b ++ s₂))
           (us-cod : Unique (H.eout b ++ s₂))
       → ( fire-mid H b s₂ ∘ permute-via-vlab H.vlab q-second
             ∘ fire-mid H a s₁ ∘ permute-via-vlab H.vlab q-first )
@@ -1151,15 +1710,16 @@ module _ (H : Hypergraph FlatGen)
             (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
             (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
             (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-            (us-sp  : Unique sp) (us-cod : Unique (H.eout e ++ r₁'))
+            (us-sp  : Unique sp) (us-mid : Unique (H.ein e ++ r₁'))
+            (us-cod : Unique (H.eout e ++ r₁'))
         → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
           in ( fire-mid H e r₁' ∘ permute-via-vlab H.vlab p₁'
                  ∘ fire-mid H e' r₂' ∘ permute-via-vlab H.vlab p₂' )
              ≈Term ( permute-via-vlab H.vlab vout-loc₂ ∘ _≅_.to (view-out≅ e' e Rlist) )
                    ∘ ((box-e e' ⊗₁ box-e e) ⊗₁ id)
                    ∘ ( _≅_.from (view-in≅ e' e Rlist) ∘ permute-via-vlab H.vlab loc₂ )
-      nf₂-eq-derived {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod =
-        block-nf-generic e' e sp r₂' p₂' r₁' p₁' Rlist loc₂ vout-loc₂ us-sp us-cod
+      nf₂-eq-derived {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-mid us-cod =
+        block-nf-generic e' e sp r₂' p₂' r₁' p₁' Rlist loc₂ vout-loc₂ us-sp us-mid us-cod
         where open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
 
       -- `nf₁-eq′`: the e-first order (the MIRROR).  Blocks `a = e`,
@@ -1172,13 +1732,14 @@ module _ (H : Hypergraph FlatGen)
             (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
             (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
             (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-            (us-sp  : Unique sp) (us-cod : Unique (H.eout e' ++ r₂))
+            (us-sp  : Unique sp) (us-mid : Unique (H.ein e' ++ r₂))
+            (us-cod : Unique (H.eout e' ++ r₂))
         → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
           in ( fire-mid H e' r₂ ∘ permute-via-vlab H.vlab p₂
                  ∘ fire-mid H e r₁ ∘ permute-via-vlab H.vlab p₁ )
              ≈Term ( permute-via-vlab H.vlab vout-loc₁ ∘ _≅_.to (view-out≅ e e' Rlist) )
                    ∘ ((box-e e ⊗₁ box-e e') ⊗₁ id)
                    ∘ ( _≅_.from (view-in≅ e e' Rlist) ∘ permute-via-vlab H.vlab loc₁ )
-      nf₁-eq-derived {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod =
-        block-nf-generic e e' sp r₁ p₁ r₂ p₂ Rlist loc₁ vout-loc₁ us-sp us-cod
+      nf₁-eq-derived {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-mid us-cod =
+        block-nf-generic e e' sp r₁ p₁ r₂ p₂ Rlist loc₁ vout-loc₁ us-sp us-mid us-cod
         where open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
