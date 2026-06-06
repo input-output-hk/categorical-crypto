@@ -515,6 +515,101 @@ private
 -- the L-side) and K-bound (on the R-side) by computing `count v (map
 -- remap K.eb)` exactly.
 
+--------------------------------------------------------------------------------
+-- Combinatorial core of the K-side `remap` routing, shared (verbatim) by both
+-- `Linear-hCompose`'s where-block and `hCompose-Linear-utils`.  None of this
+-- needs `Linear G` / `Linear K`: it depends only on `G`, `K`, the boundary
+-- equation, and the generic `count` lemmas.  (The duplicate-freeness bound
+-- `count k K.dom ≤ 1` IS Linearity-dependent, so it is passed in as a
+-- parameter where needed — see `map-remap-K-dom-from-bnd`.)
+
+private
+  module remap-core
+    (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
+    where
+    private
+      module G = Hypergraph G
+      module K = Hypergraph K
+    open hCompose-impl G K bdy-eq
+
+    -- For `k ∉ K.dom`, `remap k ≡ injR k` (the recursion exhausts `K.dom`).
+    private-remap-noDom
+      : ∀ (ks : List (Fin K.nV)) (gs : List (Fin G.nV)) (k : Fin K.nV)
+      → count k ks ≡ 0
+      → remap' ks gs k ≡ injR k
+    private-remap-noDom []        _         k _ = refl
+    private-remap-noDom (_ ∷ _)   []        k _ = refl
+    private-remap-noDom (k' ∷ ks) (g ∷ gs)  k c with k ≟ k'
+    ... | no q = private-remap-noDom ks gs k c
+    ... | yes refl with c
+    ...               | ()
+
+    remap-noDom : ∀ k → count k K.dom ≡ 0 → remap k ≡ injR k
+    remap-noDom = private-remap-noDom K.dom G.cod
+
+    -- `length K.dom ≡ length G.cod` from the boundary equation.
+    length-K-dom : length K.dom ≡ length G.cod
+    length-K-dom =
+      trans (sym (length-map K.vlab K.dom))
+      (trans (cong length (sym bdy-eq))
+             (length-map G.vlab G.cod))
+
+    -- For dup-free `ks` (length-matched to `gs`), `map (remap' ks gs) ks ≡
+    -- map injL gs`.
+    private-map-remap-on-self
+      : ∀ (ks : List (Fin K.nV)) (gs : List (Fin G.nV))
+      → length ks ≡ length gs
+      → (∀ k → count k ks Nat.≤ 1)
+      → map (remap' ks gs) ks ≡ map injL gs
+    private-map-remap-on-self []        []         _   _     = refl
+    private-map-remap-on-self []        (_ ∷ _)    () _
+    private-map-remap-on-self (_ ∷ _)   []         () _
+    private-map-remap-on-self (k ∷ ks)  (g ∷ gs)   len bnd =
+      cong₂ _∷_ head-eq (trans shift-tail rest-eq)
+      where
+        head-eq : remap' (k ∷ ks) (g ∷ gs) k ≡ injL g
+        head-eq with k ≟ k
+        ... | yes _ = refl
+        ... | no  q = ⊥-elim (q refl)
+
+        k-not-in-ks : count k ks ≡ 0
+        k-not-in-ks =
+          Nat.≤-antisym
+            (Nat.s≤s⁻¹
+              (Nat.≤-trans (Nat.≤-reflexive (sym (count-cons-yes k ks)))
+                           (bnd k)))
+            z≤n
+
+        shift-step
+          : ∀ (xs : List (Fin K.nV))
+          → count k xs ≡ 0
+          → map (remap' (k ∷ ks) (g ∷ gs)) xs ≡ map (remap' ks gs) xs
+        shift-step []        _ = refl
+        shift-step (x ∷ xs)  c with k ≟ x
+        ... | no q = cong₂ _∷_ shift-head (shift-step xs c)
+          where
+            shift-head : remap' (k ∷ ks) (g ∷ gs) x ≡ remap' ks gs x
+            shift-head with x ≟ k
+            ... | yes p = ⊥-elim (q (sym p))
+            ... | no  _ = refl
+        ... | yes refl with c
+        ...               | ()
+
+        shift-tail : map (remap' (k ∷ ks) (g ∷ gs)) ks ≡ map (remap' ks gs) ks
+        shift-tail = shift-step ks k-not-in-ks
+
+        bnd-ks : ∀ k' → count k' ks Nat.≤ 1
+        bnd-ks k' = Nat.≤-trans (count-mono-cons k' k ks) (bnd k')
+
+        rest-eq : map (remap' ks gs) ks ≡ map injL gs
+        rest-eq = private-map-remap-on-self ks gs (Nat.suc-injective len) bnd-ks
+
+    -- `map remap K.dom ≡ map injL G.cod`, given the (Linearity-derived) bound.
+    map-remap-K-dom-from-bnd
+      : (∀ k → count k K.dom Nat.≤ 1) → map remap K.dom ≡ map injL G.cod
+    map-remap-K-dom-from-bnd bnd =
+      private-map-remap-on-self K.dom G.cod length-K-dom bnd
+
 Linear-hCompose
   : (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
   → Linear G → Linear K
@@ -581,100 +676,14 @@ Linear-hCompose G K bdy-eq (G-bal , G-bnd) (K-bal , K-bnd) =
         (K-bnd k)
 
     --------------------------------------------------------------------
-    -- For `k ∉ K.dom`, `remap k ≡ injR k` (the recursion exhausts
-    -- `K.dom` looking for k).
+    -- The Linearity-free combinatorial core (`remap-noDom`, `length-K-dom`,
+    -- and the `map remap K.dom ≡ map injL G.cod` engine) is shared via
+    -- `remap-core`; `map-remap-K-dom` just feeds in the K-bound above.
 
-    private-remap-noDom
-      : ∀ (ks : List (Fin K.nV)) (gs : List (Fin G.nV)) (k : Fin K.nV)
-      → count k ks ≡ 0
-      → remap' ks gs k ≡ injR k
-    private-remap-noDom []        _         k _ = refl
-    private-remap-noDom (_ ∷ _)   []        k _ = refl
-    private-remap-noDom (k' ∷ ks) (g ∷ gs)  k c with k ≟ k'
-    ... | no q = private-remap-noDom ks gs k c
-    ... | yes refl with c
-    ...               | ()
-
-    remap-noDom : ∀ k → count k K.dom ≡ 0 → remap k ≡ injR k
-    remap-noDom = private-remap-noDom K.dom G.cod
-
-    --------------------------------------------------------------------
-    -- `length K.dom ≡ length G.cod` from the runtime boundary equation
-    -- `bdy-eq : codL G ≡ domL K` (= `map G.vlab G.cod ≡ map K.vlab K.dom`).
-
-    length-K-dom : length K.dom ≡ length G.cod
-    length-K-dom =
-      trans (sym (length-map K.vlab K.dom))
-      (trans (cong length (sym bdy-eq))
-             (length-map G.vlab G.cod))
-
-    --------------------------------------------------------------------
-    -- Lemma X: `map remap K.dom ≡ map injL G.cod`.
-    --
-    -- For each idx ∈ Fin (length K.dom), `remap K.dom[idx] ≡ injL G.cod[idx]`,
-    -- relying on K.dom being duplicate-free (so the recursion finds
-    -- the right G.cod-image at the right depth).
-
-    private-map-remap-on-self
-      : ∀ (ks : List (Fin K.nV)) (gs : List (Fin G.nV))
-      → length ks ≡ length gs
-      → (∀ k → count k ks Nat.≤ 1)
-      → map (remap' ks gs) ks ≡ map injL gs
-    private-map-remap-on-self []        []         _   _     = refl
-    private-map-remap-on-self []        (_ ∷ _)    () _
-    private-map-remap-on-self (_ ∷ _)   []         () _
-    private-map-remap-on-self (k ∷ ks)  (g ∷ gs)   len bnd =
-      cong₂ _∷_ head-eq (trans shift-tail rest-eq)
-      where
-        -- Head: with k ≟ k = yes refl, remap' returns injL g.
-        head-eq : remap' (k ∷ ks) (g ∷ gs) k ≡ injL g
-        head-eq with k ≟ k
-        ... | yes _ = refl
-        ... | no  q = ⊥-elim (q refl)
-
-        -- count k ks ≡ 0: from bnd k (count k (k ∷ ks) ≤ 1) using
-        -- count-cons-yes (count k (k ∷ ks) = suc count k ks).
-        k-not-in-ks : count k ks ≡ 0
-        k-not-in-ks =
-          Nat.≤-antisym
-            (Nat.s≤s⁻¹
-              (Nat.≤-trans (Nat.≤-reflexive (sym (count-cons-yes k ks)))
-                           (bnd k)))
-            z≤n
-
-        -- For each x ∈ ks, x ≠ k (else k would appear in ks). So the
-        -- outer `remap' (k ∷ ks) (g ∷ gs)` reduces to `remap' ks gs`.
-        shift-step
-          : ∀ (xs : List (Fin K.nV))
-          → count k xs ≡ 0
-          → map (remap' (k ∷ ks) (g ∷ gs)) xs ≡ map (remap' ks gs) xs
-        shift-step []        _ = refl
-        shift-step (x ∷ xs)  c with k ≟ x
-        ... | no q = cong₂ _∷_ shift-head (shift-step xs c)
-          where
-            -- remap' (k ∷ ks) (g ∷ gs) x with x ≟ k = no (k≢x reversed).
-            shift-head : remap' (k ∷ ks) (g ∷ gs) x ≡ remap' ks gs x
-            shift-head with x ≟ k
-            ... | yes p = ⊥-elim (q (sym p))
-            ... | no  _ = refl
-        ... | yes refl with c
-        ...               | ()
-
-        shift-tail : map (remap' (k ∷ ks) (g ∷ gs)) ks ≡ map (remap' ks gs) ks
-        shift-tail = shift-step ks k-not-in-ks
-
-        -- IH on the shorter `ks`/`gs`.
-        bnd-ks : ∀ k' → count k' ks Nat.≤ 1
-        bnd-ks k' = Nat.≤-trans (count-mono-cons k' k ks) (bnd k')
-
-        rest-eq : map (remap' ks gs) ks ≡ map injL gs
-        rest-eq = private-map-remap-on-self ks gs (suc-injective′ len) bnd-ks
-          where
-            suc-injective′ : ∀ {n m} → suc n ≡ suc m → n ≡ m
-            suc-injective′ refl = refl
+    open remap-core G K bdy-eq
 
     map-remap-K-dom : map remap K.dom ≡ map injL G.cod
-    map-remap-K-dom = private-map-remap-on-self K.dom G.cod length-K-dom K-dom-bnd
+    map-remap-K-dom = map-remap-K-dom-from-bnd K-dom-bnd
 
     --------------------------------------------------------------------
     -- count v (map remap S) for the special K-side lists.
@@ -1020,6 +1029,11 @@ module hCompose-Linear-utils
   where
 
   open hCompose-impl G K bdy-eq public
+  -- The Linearity-free combinatorial core (`remap-noDom`, `length-K-dom`, and
+  -- the `map remap K.dom ≡ map injL G.cod` engine) is shared via `remap-core`
+  -- and re-exported here; only the duplicate-freeness bounds (`K-dom-bnd` /
+  -- `G-cod-bnd`) are Linearity-dependent and stay local.
+  open remap-core G K bdy-eq public
   private
     module G = Hypergraph G
     module K = Hypergraph K
@@ -1047,85 +1061,8 @@ module hCompose-Linear-utils
                    (Nat.≤-reflexive (sym (count-++ v G.cod G-ein-b))))
       (Nat.≤-trans (Nat.≤-reflexive (sym (G-bal v))) (G-bnd v))
 
-  -- length K.dom ≡ length G.cod (boundary equation).
-  length-K-dom : length K.dom ≡ length G.cod
-  length-K-dom =
-    trans (sym (length-map K.vlab K.dom))
-    (trans (cong length (sym bdy-eq))
-           (length-map G.vlab G.cod))
-
-  -- For k ∉ K.dom, `remap k ≡ injR k`.
-  private
-    private-remap-noDom
-      : ∀ (ks : List (Fin K.nV)) (gs : List (Fin G.nV)) (k : Fin K.nV)
-      → count k ks ≡ 0
-      → remap' ks gs k ≡ injR k
-    private-remap-noDom []        _         k _ = refl
-    private-remap-noDom (_ ∷ _)   []        k _ = refl
-    private-remap-noDom (k' ∷ ks) (g ∷ gs)  k c with k ≟ k'
-    ... | no _ = private-remap-noDom ks gs k c
-    ... | yes refl with c
-    ...               | ()
-
-  remap-noDom : ∀ k → count k K.dom ≡ 0 → remap k ≡ injR k
-  remap-noDom = private-remap-noDom K.dom G.cod
-
-  -- For dup-free `ks` with length-equal `gs`,
-  -- `map (remap' ks gs) ks ≡ map injL gs`.
-  private
-    suc-injective′ : ∀ {n m : ℕ} → suc n ≡ suc m → n ≡ m
-    suc-injective′ refl = refl
-
-    private-map-remap-on-self
-      : ∀ (ks : List (Fin K.nV)) (gs : List (Fin G.nV))
-      → length ks ≡ length gs
-      → (∀ k → count k ks Nat.≤ 1)
-      → map (remap' ks gs) ks ≡ map injL gs
-    private-map-remap-on-self []        []         _   _     = refl
-    private-map-remap-on-self []        (_ ∷ _)    () _
-    private-map-remap-on-self (_ ∷ _)   []         () _
-    private-map-remap-on-self (k ∷ ks)  (g ∷ gs)   len bnd =
-      cong₂ _∷_ head-eq (trans shift-tail rest-eq)
-      where
-        head-eq : remap' (k ∷ ks) (g ∷ gs) k ≡ injL g
-        head-eq with k ≟ k
-        ... | yes _ = refl
-        ... | no  q = ⊥-elim (q refl)
-
-        k-not-in-ks : count k ks ≡ 0
-        k-not-in-ks =
-          Nat.≤-antisym
-            (Nat.s≤s⁻¹
-              (Nat.≤-trans (Nat.≤-reflexive (sym (count-cons-yes k ks)))
-                           (bnd k)))
-            z≤n
-
-        shift-step
-          : ∀ (xs : List (Fin K.nV))
-          → count k xs ≡ 0
-          → map (remap' (k ∷ ks) (g ∷ gs)) xs ≡ map (remap' ks gs) xs
-        shift-step []        _ = refl
-        shift-step (x ∷ xs)  c with k ≟ x
-        ... | no q = cong₂ _∷_ shift-head (shift-step xs c)
-          where
-            shift-head : remap' (k ∷ ks) (g ∷ gs) x ≡ remap' ks gs x
-            shift-head with x ≟ k
-            ... | yes p = ⊥-elim (q (sym p))
-            ... | no  _ = refl
-        ... | yes refl with c
-        ...               | ()
-
-        shift-tail : map (remap' (k ∷ ks) (g ∷ gs)) ks ≡ map (remap' ks gs) ks
-        shift-tail = shift-step ks k-not-in-ks
-
-        bnd-ks : ∀ k' → count k' ks Nat.≤ 1
-        bnd-ks k' = Nat.≤-trans (count-mono-cons k' k ks) (bnd k')
-
-        rest-eq : map (remap' ks gs) ks ≡ map injL gs
-        rest-eq = private-map-remap-on-self ks gs (suc-injective′ len) bnd-ks
-
   map-remap-K-dom : map remap K.dom ≡ map injL G.cod
-  map-remap-K-dom = private-map-remap-on-self K.dom G.cod length-K-dom K-dom-bnd
+  map-remap-K-dom = map-remap-K-dom-from-bnd K-dom-bnd
 
   --------------------------------------------------------------------
   -- Auxiliary count lemmas for the remap-injective proof.
