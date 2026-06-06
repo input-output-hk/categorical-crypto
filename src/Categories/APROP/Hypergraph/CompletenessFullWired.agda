@@ -1,4 +1,4 @@
-{-# OPTIONS --with-K #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- Completeness theorem, wired through the standalone `DecodeRelRespIsoWired`
@@ -7,17 +7,16 @@
 --
 -- `DecodeRelRespIsoWired.decode-rel-resp-iso` proves
 --   ⟪f⟫ ≅ᴴ ⟪g⟫  →  decode-rel f ≈Term decode-rel g
--- over a trust surface of EXACTLY two postulates:
---   * `K-faithfulness` (Kelly 1964 symmetric-monoidal permutation coherence)
---   * `nf-bracket`     (the per-swap Mac-Lane box-normal-form kernel)
--- — confirmed by transitive-closure audit.  Composed here with the proven
--- `decode-roundtrip-rel` round-trip and the `bridge`/`bridge⁻¹` cancellation,
--- it yields the completeness theorem `f ≈Term g`, resting on JUST those two.
+-- with NO assumptions: the Kelly residual it needs is the PROVEN
+-- `FaithfulnessInductive.faithfulness` (constructive symmetric-monoidal
+-- permutation coherence).  Composed here with the proven `decode-roundtrip-rel`
+-- round-trip and the `bridge`/`bridge⁻¹` cancellation, it yields the
+-- completeness theorem `f ≈Term g`, FULLY AXIOM-FREE.
 --
--- This module is therefore NOT `--safe` (it imports the two postulates), and
--- is the wired analogue of `CompletenessFull.completeness-full` — the body is
--- identical except that `decode-rel-resp-iso` replaces the `Build`-derived
--- `decode-rel-resp-≅ᴴ-full`.  No `Build` instance is required.
+-- This module is `--safe --with-K` and postulate-free (the whole wired chain
+-- is `--safe`).  It is the wired analogue of `CompletenessFull.completeness-full`
+-- — the body is identical except that `decode-rel-resp-iso` replaces the
+-- `Build`-derived `decode-rel-resp-≅ᴴ-full`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -38,7 +37,8 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
   using (decode-rel; decode-roundtrip-rel)
 
--- The standalone faithfulness chain, reduced to {K-faithfulness, nf-bracket}.
+-- The standalone faithfulness chain.  Its Kelly residual is now the PROVEN
+-- `FaithfulnessInductive.faithfulness`, so this needs no assumption.
 import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRelRespIsoWired
   sig _≟X_ as DRRIW
 
@@ -84,7 +84,7 @@ bridge-cancel {A} {B} f = begin
     to-B   = _≅_.to   (unflatten-flatten-≈ B)
 
 --------------------------------------------------------------------------------
--- The completeness theorem, over {K-faithfulness, nf-bracket}.
+-- The completeness theorem — fully axiom-free.
 
 completeness-full-wired
   : ∀ {A B} {f g : HomTerm A B}

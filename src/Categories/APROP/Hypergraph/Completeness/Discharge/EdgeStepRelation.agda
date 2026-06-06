@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- The behaviour of `edge-step` as an inductive relation (its graph), plus the

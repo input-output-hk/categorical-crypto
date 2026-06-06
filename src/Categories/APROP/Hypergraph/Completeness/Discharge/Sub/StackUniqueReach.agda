@@ -1,4 +1,4 @@
-{-# OPTIONS --with-K #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- The stack-Uniqueness REACHABILITY invariant — the KEYSTONE that supplies the
@@ -508,6 +508,22 @@ module _ (H : Hypergraph FlatGen) where
         (Nat.≤-trans
           (Nat.m≤m+n (count v (reservoir o)) (count v (reservoir rest)))
           (Nat.≤-reflexive (sym (reservoir-++-count o rest v)))))
+      (inv v)
+
+  -- ORDER-`↭`-INVARIANCE of the `dom`-reservoir.  The reservoir's per-vertex
+  -- count depends only on the multiset of edges (`reservoir-↭-count`), so a
+  -- `Reservoir≤1 o₁ s` invariant transports along any `o₁ ↭ o₂`.  This lets a
+  -- swap-site reservoir for `ps ++ e' ∷ e ∷ []` feed the order
+  -- `ps ++ e ∷ e' ∷ []` (swap the last two edges), whence (by prefix drop) the
+  -- e-first intermediate order `ps ++ e ∷ []`.  SOUND: it is the same bound
+  -- under a multiset-preserving reordering, NOT a fresh assumption.
+  reservoir-resp-↭
+    : ∀ {o₁ o₂ : List (Fin H.nE)} (s : List (Fin H.nV))
+    → o₁ Perm.↭ o₂ → Reservoir≤1 o₁ s → Reservoir≤1 o₂ s
+  reservoir-resp-↭ s o₁↭o₂ inv v =
+    Nat.≤-trans
+      (Nat.+-monoʳ-≤ (count v s)
+        (Nat.≤-reflexive (sym (reservoir-↭-count o₁↭o₂ v))))
       (inv v)
 
   ------------------------------------------------------------------------

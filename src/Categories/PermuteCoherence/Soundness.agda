@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --cubical-compatible #-}
+{-# OPTIONS --safe --without-K #-}
 
 ------------------------------------------------------------------------
 -- Soundness of `eval-↭` and structural identities at the FinBij level.
@@ -31,15 +31,6 @@ private
     a : Level
     A : Set a
     n m k : ℕ
-
-------------------------------------------------------------------------
--- Equivalence lemmas for `_≈-fb_`.
-
-≈-fb-sym : {π ρ : FinBij n m} → π ≈-fb ρ → ρ ≈-fb π
-≈-fb-sym eq i = sym (eq i)
-
-≈-fb-trans : {π ρ σ : FinBij n m} → π ≈-fb ρ → ρ ≈-fb σ → π ≈-fb σ
-≈-fb-trans p q i rewrite p i = q i
 
 ------------------------------------------------------------------------
 -- 4.  cons-fb-functor-id

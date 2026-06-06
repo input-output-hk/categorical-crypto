@@ -1,39 +1,36 @@
-{-# OPTIONS --with-K #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- Standalone discharge of the `fire-mid-interchange` residual of
 -- `Discharge/Sub/RunInterchangeEmptyTail.agda` — the both-fire two-edge
 -- interchange.
 --
--- ## Status of `block-nf` (the Mac-Lane block-normal-form content)
+-- ## `block-nf` (the Mac-Lane block-normal-form content)
 --
--- `block-nf` is now CONSTRUCTED (no longer a flat postulate): the
--- combinatorial heart of the both-fire interchange — locating BOTH input
--- blocks at once (a common residual list `Rlist` shared by the two firing
--- orders, the two block-located input permutes, the two block-located
--- OUTPUT permutes, and the output reshuffle `r-stk`) — is PROVEN
--- constructively, postulate-free, in `Sub/FireMidInterchangeComb.agda`
--- (the `SimLoc` record), using only `count`/`_↭_` algebra plus the
--- `Incomp` + `Linear` disjointness.  From that located data we build the
--- concrete `BlockNF` frames (`R`, `vin₁`, `vin₂`, `vout₁`, `vout₂`,
--- `r-stk`) as `unflatten-++-≅` re-bracketings of the locating permutes.
+-- `block-nf` is CONSTRUCTED: the combinatorial heart of the both-fire
+-- interchange — locating BOTH input blocks at once (a common residual list
+-- `Rlist` shared by the two firing orders, the two block-located input
+-- permutes, the two block-located OUTPUT permutes, and the output reshuffle
+-- `r-stk`) — is proven constructively, postulate-free, in
+-- `Sub/FireMidInterchangeComb.agda` (the `SimLoc` record), using only
+-- `count`/`_↭_` algebra plus the `Incomp` + `Linear` disjointness.  From
+-- that located data we build the concrete `BlockNF` frames (`R`, `vin₁`,
+-- `vin₂`, `vout₁`, `vout₂`, `r-stk`) as `unflatten-++-≅` re-bracketings of
+-- the locating permutes.
 --
--- The SOLE remaining postulate is the four-equation residual
--- `block-nf-residual : BlockNFResidual`, packaging ONLY the categorical
--- equations over those now-PINNED frames:
+-- The four-equation residual `block-nf-residual : BlockNFResidual` packages
+-- the categorical equations over those PINNED frames:
 --
 --   * `nf₁-eq` / `nf₂-eq` — the two SINGLE-order block-normal-form
 --     factorisations (one firing order's box-composite, with its blocks
 --     LOCATED by the view frames, equals the 3-block tensor
 --     `(box ⊗ box) ⊗ id`).  This is the genuine Mac-Lane "two boxes on
---     disjoint factors compose to a tensor of boxes" chase, of the same
---     flavour the `--with-K` development leaves open
---     (`Sub/SwapAtomAligned.swap-mac-lane-residual`).
+--     disjoint factors compose to a tensor of boxes" chase, discharged via
+--     `Sub/BlockNFNf2.agda`.
 --   * `vin-coh-eq` / `vout-coh-eq` — the σ-coherence of the two view
 --     frames (the two block orders differ by the braiding on the two
---     `Aein`/`Aeout` factors).  A multi-block braiding↔`permute` bridge:
---     the same content as `FreeSMC.BraidPermute`/`BraidBlock` (both
---     `--with-K`), which provides it only at the single-atom level.
+--     `Aein`/`Aeout` factors).  A multi-block braiding↔`permute` bridge,
+--     the same content as `FreeSMC.BraidPermute`/`BraidBlock`.
 --
 -- NEITHER residual field is the full `fire-mid-interchange` goal: each
 -- `nfᵢ` concerns a SINGLE firing order in isolation, and the goal
@@ -72,9 +69,8 @@ import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUnique sig as
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackEquivariance sig as SE
 
 -- The `--with-K` block-braiding ↔ `permute` machinery that the two
--- σ-coherence residual fields reduce to (previously walled off by the
--- `--without-K` co-infectivity; importable now that this module is
--- `--with-K`).  Instantiated below at `asFreeMonoidalData`.
+-- σ-coherence residual fields reduce to.  Instantiated below at
+-- `asFreeMonoidalData`.
 import Categories.FreeSMC.BraidBlock
 import Categories.FreeSMC.BraidPermute
 
@@ -153,8 +149,8 @@ module _ (H : Hypergraph FlatGen)
   -- braiding `σ` on the two box factors), `box-core` is `box-e ⊗₁ box-e'`
   -- resp. `box-e' ⊗₁ box-e` tensored with `id` on `R`, and `Vin`/`Vout`
   -- are `permute`-built isos from/to the actual stack objects.  These
-  -- frames are CONSTRUCTED below from the located combinatorics; only the
-  -- four categorical equations over them remain postulated (see header).
+  -- frames are CONSTRUCTED below from the located combinatorics, and the
+  -- four categorical equations over them are discharged (see header).
   --
   --   * `nf₁` : the `e ∷ e'` order (RHS box-composite + outer `permute p₁`).
   --   * `nf₂` : the `e' ∷ e` order (LHS box-composite + outer `permute p₂'`).
@@ -222,15 +218,14 @@ module _ (H : Hypergraph FlatGen)
   -- `vout-loc₁`/`vout-loc₂` locate the two output blocks in the final
   -- stacks (`block-loc-e` applied to the *output* side).
   --
-  -- The REMAINING residual `BlockNFResidual` packages ONLY the four
-  -- categorical equations over these PINNED frames:
+  -- `BlockNFResidual` packages the four categorical equations over these
+  -- PINNED frames:
   --
   --   * `nf₁`/`nf₂` — the two single-order block-normal-form factorisations
   --     (each says: one firing order's box-composite, with its blocks now
   --     LOCATED by the view frames, IS the 3-block tensor `(box ⊗ box) ⊗ id`).
   --     This is the genuine Mac-Lane "two boxes on disjoint factors compose
-  --     to a tensor of boxes" chase that even the `--with-K` development
-  --     (`Sub/SwapAtomAligned.swap-mac-lane-residual`) leaves open.
+  --     to a tensor of boxes" chase, discharged via `Sub/BlockNFNf2.agda`.
   --   * `vin-coh`/`vout-coh` — the σ-coherence of the two view frames (the
   --     two block orders differ by the braiding on the two `Aein`/`Aeout`
   --     factors).  A pure `permute`-vs-`σ`-conjugate coherence over the
@@ -333,6 +328,11 @@ module _ (H : Hypergraph FlatGen)
     field
       -- `nf₁`: e-first single-order block normal form (the genuine
       -- Mac-Lane "two boxes on disjoint factors = tensor of boxes" chase).
+      -- Carries the two `Unique` witnesses the Kelly-faithfulness keystone
+      -- needs to reconcile the firing vs. block locating permutes:
+      --   * `us-sp  : Unique sp`              (the input stack)
+      --   * `us-cod : Unique (eout e' ++ r₂)` (THIS order's final stack —
+      --     `nf₁` fires `e ∷ e'`, landing in `eout e' ++ r₂`).
       nf₁-eq
         : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
             (sp : List (Fin H.nV))
@@ -340,13 +340,17 @@ module _ (H : Hypergraph FlatGen)
             (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
             (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
             (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+            (us-sp  : Unique sp) (us-mid : Unique (H.ein e' ++ r₂))
+            (us-cod : Unique (H.eout e' ++ r₂))
         → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
           in ( fire-mid H e' r₂ ∘ permute-via-vlab H.vlab p₂
                  ∘ fire-mid H e r₁ ∘ permute-via-vlab H.vlab p₁ )
              ≈Term ( permute-via-vlab H.vlab vout-loc₁ ∘ _≅_.to (view-out≅ e e' Rlist) )
                    ∘ ((box-e e ⊗₁ box-e e') ⊗₁ id)
                    ∘ ( _≅_.from (view-in≅ e e' Rlist) ∘ permute-via-vlab H.vlab loc₁ )
-      -- `nf₂`: e'-first single-order block normal form.
+      -- `nf₂`: e'-first single-order block normal form.  Mirror `Unique`
+      -- witnesses: `us-sp : Unique sp`, `us-cod : Unique (eout e ++ r₁')`
+      -- (THIS order fires `e' ∷ e`, landing in `eout e ++ r₁'`).
       nf₂-eq
         : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
             (sp : List (Fin H.nV))
@@ -354,6 +358,8 @@ module _ (H : Hypergraph FlatGen)
             (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
             (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
             (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
+            (us-sp  : Unique sp) (us-mid : Unique (H.ein e ++ r₁'))
+            (us-cod : Unique (H.eout e ++ r₁'))
         → let open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
           in ( fire-mid H e r₁' ∘ permute-via-vlab H.vlab p₁'
                  ∘ fire-mid H e' r₂' ∘ permute-via-vlab H.vlab p₂' )
@@ -393,43 +399,32 @@ module _ (H : Hypergraph FlatGen)
                    ∘ (σ ⊗₁ id)
 
   ----------------------------------------------------------------------
-  -- ## Discharge of `block-nf-residual` by CONSTRUCTION (no longer a bare
-  -- `postulate block-nf-residual : BlockNFResidual`).
+  -- ## Discharge of `block-nf-residual` by CONSTRUCTION.
   --
-  -- The single opaque record postulate is replaced by FOUR independent,
-  -- individually-typed postulates — one per `BlockNFResidual` field — each
-  -- carrying EXACTLY the type of the corresponding record field.  The
-  -- residual record is then BUILT from them.  This makes the trust surface
-  -- explicit per categorical equation (each is separately inspectable and
-  -- separately dischargeable) rather than a single opaque record, while
-  -- keeping the `BlockNFResidual` record type and the `block-nf` type below
-  -- BYTE-IDENTICAL so the downstream chain still wires.
+  -- The residual record is BUILT from one definition per `BlockNFResidual`
+  -- field, each carrying EXACTLY the type of the corresponding record field.
+  -- The `BlockNFResidual` record type and the `block-nf` type below stay
+  -- BYTE-IDENTICAL so the downstream chain wires.
   --
-  -- The four equations split into two genuinely different kinds (see the
-  -- module header):
+  -- The four equations split into two kinds (see the module header):
   --
   --   * `nf₁-eq` / `nf₂-eq` — the genuine Mac-Lane "two boxes on disjoint
-  --     factors compose to a tensor of boxes" chase on the located frames.
-  --     This is the SAME flavour the dedicated `--with-K` development
-  --     (`Sub/SwapAtomAligned.swap-mac-lane-residual`) ALSO leaves open —
-  --     no existing module discharges it, so it stays an explicit
-  --     postulate here, now isolated to its own named declaration.
+  --     factors compose to a tensor of boxes" chase on the located frames,
+  --     discharged via `Sub/BlockNFNf2.agda`.
   --
   --   * `vin-coh-eq` / `vout-coh-eq` — the σ-coherence of the two view
-  --     frames: a multi-block braiding ↔ `permute` bridge.  The proven
-  --     `--with-K` machinery for this lives in
-  --     `Categories.FreeSMC.{BraidBlock,BraidPermute}` (imported below for
-  --     reference / future discharge); bridging it through the concrete
-  --     `unflatten-++-≅`/`subst₂`-`map-++` view-frame wrappers is the
-  --     remaining Mac-Lane coherence work, isolated to its own named
-  --     declaration.
+  --     frames: a multi-block braiding ↔ `permute` bridge, via the
+  --     `--with-K` machinery in
+  --     `Categories.FreeSMC.{BraidBlock,BraidPermute}` (imported below),
+  --     bridged through the concrete `unflatten-++-≅`/`subst₂`-`map-++`
+  --     view-frame wrappers.
   ----------------------------------------------------------------------
 
   -- The `--with-K` block-braiding ↔ `permute` machinery the two
-  -- σ-coherence fields (`vin-coh-eq`/`vout-coh-eq`) reduce to.  Now
-  -- importable because this module is `--with-K`: `σ-block` (braid one
-  -- object past a nested pair) and `braid`/`braid-natural` (the iterated
-  -- block braiding), plus `permute-swap-refl-σ-block` / `permute-rotate`
+  -- σ-coherence fields (`vin-coh-eq`/`vout-coh-eq`) reduce to:
+  -- `σ-block` (braid one object past a nested pair) and
+  -- `braid`/`braid-natural` (the iterated block braiding), plus
+  -- `permute-swap-refl-σ-block` / `permute-rotate`
   -- (the atom-`permute` ↔ block-σ bridge).  Instantiated at this
   -- signature's `asFreeMonoidalData` (whose `v = Symm`, with the
   -- `Symm≤Symm` instance in scope).
@@ -439,10 +434,10 @@ module _ (H : Hypergraph FlatGen)
   -- The two σ-coherence equations of `BlockNFResidual` (the
   -- braiding ↔ `permute` bridge over the located view frames).
   --
-  -- NOW NARROWED: each is DERIVED from `BlockNFVoutCoh.{vin-coh,vout-coh}`
-  -- (the generic block-braiding consumers, proven from `σ-block-comm`
-  -- + `frame-ext` + the Kelly residual `K`), supplying the located
-  -- `SimLoc` data at `as = ein/eout e`, `bs = ein/eout e'`, `cs = Rlist`.
+  -- Each is DERIVED from `BlockNFVoutCoh.{vin-coh,vout-coh}` (the generic
+  -- block-braiding consumers, proven from `σ-block-comm` + `frame-ext` +
+  -- the Kelly residual `K`), supplying the located `SimLoc` data at
+  -- `as = ein/eout e`, `bs = ein/eout e'`, `cs = Rlist`.
   -- The `BVC` view frames / `pvl` are DEFINITIONALLY the local
   -- `view-{in,out}≅` / `permute-via-vlab`.  The ONLY residual that
   -- remains is the located-permute coherence `coh-in`/`coh-out` (a
@@ -455,9 +450,9 @@ module _ (H : Hypergraph FlatGen)
   -- `RunInterchange` interface (a deeper interface change).  So the
   -- residual is demoted to exactly these two `≅↭` location-coherences.
   --
-  -- NOW PROVEN (no longer postulates): each is a `eval-rigid`
-  -- ("two `↭`s into a `Unique` codomain agree") instance — `coh-fin-rigid`
-  -- at the vertex level, lifted through `map⁺ vlab` by `map⁺-lift-≅↭`.
+  -- Each `coh-in`/`coh-out` is a `eval-rigid` ("two `↭`s into a `Unique`
+  -- codomain agree") instance — `coh-fin-rigid` at the vertex level, lifted
+  -- through `map⁺ vlab` by `map⁺-lift-≅↭`.
   --
   --   * `coh-in`  compares `loc₁` and `trans loc₂ (app-swap …)`, BOTH
   --     `sp ↭ (ein e ++ ein e') ++ Rlist`.  The codomain is `Unique`
@@ -551,22 +546,29 @@ module _ (H : Hypergraph FlatGen)
       (coh-out inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-cod)
     where open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
 
-  -- The two single-order Mac-Lane block-normal-form factorisations are now
+  -- The two single-order Mac-Lane block-normal-form factorisations are
   -- DISCHARGED from a SINGLE shared residual, via `Sub/BlockNFNf2.agda`.
   -- `nf₁-eq′`/`nf₂-eq′` are MIRROR images (swap the two block roles), so both
   -- instantiate ONE symmetric generic lemma whose SOLE residual is the
   -- `BlockBracket.block-bracket` field — the shared-block two-box interchange,
-  -- i.e. the genuine Mac-Lane kernel (`≈ swap-atom-aligned`, open under
-  -- `--with-K` too).  This collapses the previous TWO `nf` postulates into ONE.
-  postulate
-    nf-bracket : Nf2.BlockBracket H
-  private module NfInst = Nf2.Instantiate H nf-bracket dih lin
+  -- i.e. the genuine Mac-Lane kernel.
+  --
+  -- `block-bracket` is discharged (postulate-free) by
+  -- `BlockNFNf2.nf-bracket-proof`: the `both-as-fire-R` residual-`R`
+  -- braiding (`both-as-fire` ⊗ id, framed by `uf++ … R`) plus the
+  -- `bfR-fire` firing↔block-residual bridge, with the four locating
+  -- permutes reconciled by the Kelly keystone `K` on the three Unique
+  -- codomains (`Unique sp`-image, `us-mid : Unique (ein b ++ s₂)`,
+  -- `us-cod : Unique (eout b ++ s₂)`).  So the SOLE trust-surface leaf of
+  -- the completeness chain is `K` (Kelly faithfulness) itself.
+  nf-bracket : Nf2.BlockBracket H K
+  nf-bracket = Nf2.nf-bracket-proof H K
+  private module NfInst = Nf2.Instantiate H K nf-bracket dih lin
   nf₁-eq′ = NfInst.nf₁-eq-derived
   nf₂-eq′ = NfInst.nf₂-eq-derived
 
-  -- The four-equation residual is now CONSTRUCTED from the four
-  -- individually-typed postulates above (no bare `block-nf-residual`
-  -- postulate of the opaque record).
+  -- The four-equation residual is CONSTRUCTED from the four field
+  -- definitions above.
   block-nf-residual : BlockNFResidual
   block-nf-residual = record
     { nf₁-eq      = nf₁-eq′
@@ -582,9 +584,11 @@ module _ (H : Hypergraph FlatGen)
         (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
         (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
         (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-        (us-sp  : Unique sp) (us-cod : Unique (H.eout e ++ r₁'))
+        (us-sp  : Unique sp)
+        (us-mid₁ : Unique (H.eout e ++ r₁)) (us-mid₂ : Unique (H.eout e' ++ r₂'))
+        (us-cod : Unique (H.eout e ++ r₁'))
     → BlockNF inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
-  block-nf {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod = record
+  block-nf {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-mid₁ us-mid₂ us-cod = record
     { R     = R-obj Rlist
     ; vin₁  = _≅_.from (view-in≅ e e' Rlist) ∘ permute-via-vlab H.vlab loc₁
     ; vin₂  = _≅_.from (view-in≅ e' e Rlist) ∘ permute-via-vlab H.vlab loc₂
@@ -593,12 +597,29 @@ module _ (H : Hypergraph FlatGen)
     ; r-stk = r-stk
     ; vin-coh  = vin-coh-eq  inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp
     ; vout-coh = vout-coh-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-cod
-    ; nf₁ = nf₁-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
-    ; nf₂ = nf₂-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+    ; nf₁ = nf₁-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-mid-nf₁ us-cod₁
+    ; nf₂ = nf₂-eq inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-mid-nf₂ us-cod
     }
     where
       open BlockNFResidual block-nf-residual
       open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
+      -- `nf₁` fires the `e ∷ e'` order, landing in `eout e' ++ r₂`.  Its
+      -- final-stack freshness is the e-first run's `us-cod` (the `e' ∷ e`
+      -- run's final stack `eout e ++ r₁'`) transported back across the
+      -- inter-order reshuffle `r-stk : eout e' ++ r₂ ↭ eout e ++ r₁'`.
+      us-cod₁ : Unique (H.eout e' ++ r₂)
+      us-cod₁ = SU.Unique-resp-↭ (Perm.↭-sym r-stk) us-cod
+      -- The intermediate (`q-second`-codomain) `Unique` witnesses.
+      --   * `nf₁` (e-first, a=e, b=e'): `us-mid = Unique (ein e' ++ r₂)`,
+      --     the `↭`-image of the e-first intermediate `eout e ++ r₁` via
+      --     `p₂ : eout e ++ r₁ ↭ ein e' ++ r₂`.
+      --   * `nf₂` (e'-first, a=e', b=e): `us-mid = Unique (ein e ++ r₁')`,
+      --     the `↭`-image of the e'-first intermediate `eout e' ++ r₂'` via
+      --     `p₁' : eout e' ++ r₂' ↭ ein e ++ r₁'`.
+      us-mid-nf₁ : Unique (H.ein e' ++ r₂)
+      us-mid-nf₁ = SU.Unique-resp-↭ p₂ us-mid₁
+      us-mid-nf₂ : Unique (H.ein e ++ r₁')
+      us-mid-nf₂ = SU.Unique-resp-↭ p₁' us-mid₂
 
   fire-mid-interchange
     : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
@@ -607,18 +628,20 @@ module _ (H : Hypergraph FlatGen)
         (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
         (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
         (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-        (us-sp  : Unique sp) (us-cod : Unique (H.eout e ++ r₁'))
+        (us-sp  : Unique sp)
+        (us-mid₁ : Unique (H.eout e ++ r₁)) (us-mid₂ : Unique (H.eout e' ++ r₂'))
+        (us-cod : Unique (H.eout e ++ r₁'))
     → Σ[ r ∈ (H.eout e' ++ r₂) Perm.↭ (H.eout e ++ r₁') ]
         ( fire-term H e (H.eout e' ++ r₂') r₁' p₁'
             ∘ fire-term H e' sp r₂' p₂' )
         ≈Term permute-via-vlab H.vlab r
                 ∘ ( fire-term H e' (H.eout e ++ r₁) r₂ p₂
                       ∘ fire-term H e sp r₁ p₁ )
-  fire-mid-interchange {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod =
+  fire-mid-interchange {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-mid₁ us-mid₂ us-cod =
     BlockNF.r-stk nf , goal
     where
       nf : BlockNF inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
-      nf = block-nf inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod
+      nf = block-nf inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-mid₁ us-mid₂ us-cod
       open BlockNF nf
 
       -- The locating permutes.

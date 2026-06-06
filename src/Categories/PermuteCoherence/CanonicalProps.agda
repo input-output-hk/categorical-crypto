@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --cubical-compatible #-}
+{-# OPTIONS --safe --without-K #-}
 
 ------------------------------------------------------------------------
 -- Propositional invariants of the canonical decoder

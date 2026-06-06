@@ -27,7 +27,7 @@
 -- The CENTRAL step, `order-invariant`, is a *real* proof: it is driven by
 -- `connectivity` and the validity-threaded closure-lift `↝*⇒≈`.
 -- `ψ-pres-dep` is a real use of Lemma A.
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 open import Categories.APROP
 

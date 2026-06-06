@@ -42,7 +42,7 @@
 -- K-free, J-only) helpers `eval-rigid`, `eval-map⁺`, `subst₂-FinBij-≈` are
 -- re-derived inline here.  The one genuinely K-dependent fact (UIP on
 -- `ObjTerm`) is an explicit parameter, alongside the Kelly residual.
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 open import Categories.APROP
 

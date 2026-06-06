@@ -16,7 +16,7 @@
 --   6. decodeOrd-boundary-resp-≈  — TODO postulate "given K" (StackEval template)
 --
 -- NOT `--safe`: contains clearly-marked `-- TODO:` postulates.
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 open import Categories.APROP
 

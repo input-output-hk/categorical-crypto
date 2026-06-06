@@ -18,7 +18,7 @@ open import Data.Fin.Patterns using (0F; 1F)
 import Data.Fin.Permutation as P
 open P using (Permutation; _∘ₚ_; transpose; lift₀)
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl)
+  using (_≡_; refl; sym; trans; cong)
 
 private
   variable
@@ -64,3 +64,15 @@ _≈-fb_ : FinBij n m → FinBij n m → Set
 
 ≈-fb-refl : {π : FinBij n m} → π ≈-fb π
 ≈-fb-refl _ = refl
+
+≈-fb-sym : {b b′ : FinBij n m} → b ≈-fb b′ → b′ ≈-fb b
+≈-fb-sym h x = sym (h x)
+
+≈-fb-trans : {b b′ b″ : FinBij n m} → b ≈-fb b′ → b′ ≈-fb b″ → b ≈-fb b″
+≈-fb-trans h₁ h₂ x = trans (h₁ x) (h₂ x)
+
+-- Left congruence of composition (the right factor fixed).  Definitional,
+-- since `(g ∘-fb f) ⟨$⟩ʳ x = g ⟨$⟩ʳ (f ⟨$⟩ʳ x)`.
+∘-fb-congˡ : (g : FinBij m k) {f f′ : FinBij n m}
+           → f ≈-fb f′ → (g ∘-fb f) ≈-fb (g ∘-fb f′)
+∘-fb-congˡ g h x = cong (g P.⟨$⟩ʳ_) (h x)

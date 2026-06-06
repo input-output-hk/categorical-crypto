@@ -1,4 +1,4 @@
-{-# OPTIONS --with-K #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- Generic OUTPUT-side block-braiding coherence underlying

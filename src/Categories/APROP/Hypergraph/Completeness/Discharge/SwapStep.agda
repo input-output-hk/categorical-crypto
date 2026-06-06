@@ -72,7 +72,7 @@
 -- Downstream rewiring supplies K (as in `DecodeOrdBoundary`), the
 -- vertex-level `cod` uniqueness (from `⟪_⟫-cod-unique`), and the
 -- `RunInterchange` (the interchange axiom on the two disjoint boxes).
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 open import Categories.APROP
 
