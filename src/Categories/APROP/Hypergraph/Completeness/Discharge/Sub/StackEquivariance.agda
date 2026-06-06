@@ -63,6 +63,8 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
   using (extract-prefix-↭-residual; extract-prefix-↭-nothing)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation sig
   using (EdgeStepR; skipR; fireR; fire-term; fire-mid; edge-step-graph; edge-step-sound)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
+  using (just≢nothing)
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidEquivariant sig as FME
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUniqueReach sig as SUR
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUnique sig as SU
@@ -97,21 +99,15 @@ private
   ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
   ≡⇒≈Term refl = ≈-Term-refl
 
-  just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
-  just≢nothing ()
-
   ----------------------------------------------------------------------
   -- `eval-map⁺` and its `subst₂`-on-FinBij algebra (J-only, no K).  Used
   -- to LIFT a vertex-level `≅↭` (from `residual-recon`) through `map⁺ vlab`
-  -- to the X-level `≅↭` that `permute-resp-≅↭` consumes.  `eval-map⁺` is
-  -- imported from the canonical `PermuteCoherence.Map`.
+  -- to the X-level `≅↭` that `permute-resp-≅↭` consumes.  Both `eval-map⁺`
+  -- and `subst₂-FinBij-≈` are imported from the canonical
+  -- `PermuteCoherence.Map`.
   ----------------------------------------------------------------------
 
-  open import Categories.PermuteCoherence.Map using (eval-map⁺)
-
-  subst₂-FinBij-≈ : ∀ {n m n' m'} (a : n ≡ n') (b : m ≡ m') {π ρ : FinBij n m}
-    → π ≈-fb ρ → subst₂ FinBij a b π ≈-fb subst₂ FinBij a b ρ
-  subst₂-FinBij-≈ refl refl eq = eq
+  open import Categories.PermuteCoherence.Map using (eval-map⁺; subst₂-FinBij-≈)
 
 --------------------------------------------------------------------------------
 

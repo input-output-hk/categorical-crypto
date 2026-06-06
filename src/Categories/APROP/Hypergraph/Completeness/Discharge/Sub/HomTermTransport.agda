@@ -54,6 +54,7 @@ open import Data.List using (List; []; _∷_; _++_; map; length)
 open import Data.List.Properties using (map-∘; map-cong; length-map)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Empty using (⊥)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
@@ -62,6 +63,23 @@ open import Relation.Binary.PropositionalEquality
 
 private
   module FM = Category FreeMonoidal
+
+-- `just ≢ nothing` (shared across the box-shape consumers).
+just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
+just≢nothing ()
+
+-- Transporting `id` along a diagonal boundary proof is `id` (refl).
+subst₂-HomTerm-id : ∀ {A B} (p : A ≡ B) → subst₂ HomTerm p p id ≡ id
+subst₂-HomTerm-id refl = refl
+
+-- SKIP closer: under `objUIP`, transporting `id` along ANY two boundary
+-- paths with equal endpoints is `≈Term id`.
+subst₂-id-≈
+  : (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
+    {A B : ObjTerm} (p q : A ≡ B) → subst₂ HomTerm p q id ≈Term id
+subst₂-id-≈ objUIP p q =
+  ≡⇒≈Term (trans (cong (λ z → subst₂ HomTerm z q id) (objUIP p q))
+                 (subst₂-HomTerm-id q))
 
 -- `subst₂ FlatGen` over `trans p (sym p')` cancels back to the inner
 -- `subst₂ FlatGen p q`.  (`--with-K`.)

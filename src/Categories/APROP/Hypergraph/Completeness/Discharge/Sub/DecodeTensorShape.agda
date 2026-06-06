@@ -124,13 +124,11 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransp
         ; subst₂-HomTerm-∘-dist; subst₂-⊗₁-dist
         ; permute-subst₂
         ; pvv-relabel
+        ; just≢nothing
         ; Linear⇒cod-Unique; decode-attempt-extract )
 
 private
   module FM = Category FreeMonoidal
-
-  just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
-  just≢nothing ()
 
   -- Generic middle-iso cancellation (shared by the `uf++`-framed block
   -- ladders): two 3-fold composites sharing a middle iso `Fm ∘ Tm ≈ id`

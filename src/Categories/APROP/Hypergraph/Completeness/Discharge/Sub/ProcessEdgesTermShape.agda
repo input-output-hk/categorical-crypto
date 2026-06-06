@@ -288,19 +288,15 @@ private
   ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
   ≡⇒≈Term refl = ≈-Term-refl
 
-  just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
-  just≢nothing ()
-
   just-injective-fst
     : ∀ {a b} {A : Set a} {B : A → Set b} {x y : A} {p : B x} {q : B y}
     → just (x , p) ≡ just (y , q) → x ≡ y
   just-injective-fst refl = refl
 
-  subst₂-HomTerm-id : ∀ {A B} (p : A ≡ B) → subst₂ HomTerm p p id ≡ id
-  subst₂-HomTerm-id refl = refl
-
   open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
-    using (subst₂-∘-distrib)
+    using ( subst₂-∘-distrib
+          ; just≢nothing; subst₂-HomTerm-id; subst₂-id-≈
+          ; permute-subst₂; eval-subst₂-↭ )
 
   subst₂-∘
     : ∀ {A A' A'' B B' B''}
@@ -309,20 +305,6 @@ private
     → subst₂ HomTerm p₂ q₂ (subst₂ HomTerm p₁ q₁ f)
       ≡ subst₂ HomTerm (trans p₁ p₂) (trans q₁ q₂) f
   subst₂-∘ refl refl refl refl f = refl
-
-  permute-subst₂
-    : ∀ {xs xs' ys ys' : List X} (p : xs ≡ xs') (q : ys ≡ ys')
-        (r : xs Perm.↭ ys)
-    → subst₂ HomTerm (cong unflatten p) (cong unflatten q) (permute r)
-      ≡ permute (subst₂ Perm._↭_ p q r)
-  permute-subst₂ refl refl r = refl
-
-  eval-subst₂-↭
-    : ∀ {a} {A : Set a} {xs xs' ys ys' : List A}
-        (p : xs ≡ xs') (q : ys ≡ ys') (r : xs Perm.↭ ys)
-    → eval-↭ (subst₂ Perm._↭_ p q r)
-      ≡ subst₂ FinBij (cong length p) (cong length q) (eval-↭ r)
-  eval-subst₂-↭ refl refl r = refl
 
 --------------------------------------------------------------------------------
 -- The generic embedding-based per-edge + process-edges term-twins.
@@ -373,12 +355,6 @@ module TermEmbed
                     extract-prefix ks (map φ sH) ≡ just (map φ restH , q))
           (sym (ψ-ein e))
           (extract-prefix-via-injective-just φ φ-inj (H.ein e) sH restH pH eqH)
-
-  -- SKIP closer (objUIP collapses the boundary loop).
-  subst₂-id-≈ : ∀ {A B : ObjTerm} (p q : A ≡ B) → subst₂ HomTerm p q id ≈Term id
-  subst₂-id-≈ p q =
-    ≡⇒≈Term (trans (cong (λ z → subst₂ HomTerm z q id) (objUIP p q))
-                   (subst₂-HomTerm-id q))
 
   -- FIRE box factor — PROVEN (box-of-cong + objUIP + ψ-elab).
   fire-mid-emb
@@ -505,7 +481,7 @@ module TermEmbed
         tJ
       ≈Term tH
   edge-step-term-emb e sH (skipR eqH) (skipR eqJ) stk =
-    subst₂-id-≈ (cong unflatten (vlab-φ sH))
+    subst₂-id-≈ objUIP (cong unflatten (vlab-φ sH))
                 (cong unflatten (trans (cong (map J.vlab) stk) (vlab-φ sH)))
   edge-step-term-emb e sH (skipR eqH) (fireR restJ permJ eqJ) stk =
     ⊥-elim (just≢nothing (trans (sym eqJ) (extract-prefix-J-nothing e sH eqH)))
@@ -574,7 +550,7 @@ module TermEmbed
         (proj₂ (process-edges J (map ψ es) sJ))
       ≈Term proj₂ (process-edges H es sH)
   process-edges-term-emb-gen [] sH sJ sJ≡ pDom pCod =
-    subst₂-id-≈ (cong unflatten pDom) (cong unflatten pCod)
+    subst₂-id-≈ objUIP (cong unflatten pDom) (cong unflatten pCod)
   process-edges-term-emb-gen (e ∷ es) sH sJ refl pDom pCod = goal
     where
       s'H  = proj₁ (edge-step H sH e)

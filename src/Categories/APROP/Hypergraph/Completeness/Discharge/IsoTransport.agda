@@ -53,7 +53,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation 
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepNaturality sig
   using (edge-step-term-rel)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
-  using (subst₂-∘-distrib)
+  using (subst₂-∘-distrib; just≢nothing)
 
 open import Data.Fin.Base using (Fin; zero; suc)
 open import Data.Nat using (ℕ; suc)
@@ -96,9 +96,6 @@ open import Categories.PermuteCoherence.EvalRigidKFree
 ≡⇒≈Term refl = ≈-Term-refl
 
 private
-  just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
-  just≢nothing ()
-
   just-injective-fst
     : ∀ {a b} {A : Set a} {B : A → Set b} {x y : A} {p : B x} {q : B y}
     → just (x , p) ≡ just (y , q) → x ≡ y

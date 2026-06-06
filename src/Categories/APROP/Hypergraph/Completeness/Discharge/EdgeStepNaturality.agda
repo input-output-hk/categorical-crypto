@@ -33,7 +33,9 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation sig
   using (EdgeStepR; skipR; fireR; fire-term; fire-mid; box-of; box-of-cong)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
-  using (subst₂-∘-distrib)
+  using ( subst₂-∘-distrib
+        ; just≢nothing; subst₂-HomTerm-id; subst₂-id-≈
+        ; permute-subst₂; eval-subst₂-↭ )
 
 open import Categories.APROP.Hypergraph.Completeness.Permute sig using (permute)
 open import Categories.Hypergraph.ExtractPrefixEvalPhi using (eval-coincide; ≈-fb-of-≡)
@@ -59,12 +61,6 @@ open import Relation.Binary.PropositionalEquality
 ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
 ≡⇒≈Term refl = ≈-Term-refl
 
-just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
-just≢nothing ()
-
-subst₂-HomTerm-id : ∀ {A B} (p : A ≡ B) → subst₂ HomTerm p p id ≡ id
-subst₂-HomTerm-id refl = refl
-
 just-injective-fst
   : ∀ {a b} {A : Set a} {B : A → Set b} {x y : A} {p : B x} {q : B y}
   → just (x , p) ≡ just (y , q) → x ≡ y
@@ -78,22 +74,6 @@ subst₂-∘
   → subst₂ HomTerm p₂ q₂ (subst₂ HomTerm p₁ q₁ f)
     ≡ subst₂ HomTerm (trans p₁ p₂) (trans q₁ q₂) f
 subst₂-∘ refl refl refl refl f = refl
-
--- `subst₂ HomTerm` pushed through `permute` onto the underlying `↭` (refl).
-permute-subst₂
-  : ∀ {xs xs' ys ys' : List X} (p : xs ≡ xs') (q : ys ≡ ys')
-      (r : xs Perm.↭ ys)
-  → subst₂ HomTerm (cong unflatten p) (cong unflatten q) (permute r)
-    ≡ permute (subst₂ Perm._↭_ p q r)
-permute-subst₂ refl refl r = refl
-
--- `eval-↭` commutes with `subst₂ _↭_` along list equalities (refl).
-eval-subst₂-↭
-  : ∀ {a} {A : Set a} {xs xs' ys ys' : List A}
-      (p : xs ≡ xs') (q : ys ≡ ys') (r : xs Perm.↭ ys)
-  → eval-↭ (subst₂ Perm._↭_ p q r)
-    ≡ subst₂ FinBij (cong length p) (cong length q) (eval-↭ r)
-eval-subst₂-↭ refl refl r = refl
 
 --------------------------------------------------------------------------------
 
@@ -134,13 +114,6 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
                     extract-prefix ks (map φ sH) ≡ just (map φ restH , q))
           (sym (ψ-ein e))
           (extract-prefix-via-injective-just φ φ-inj (H.ein e) sH restH pH eqH)
-
-  -- SKIP closer: under objUIP, transporting `id` along any two boundary
-  -- paths with equal endpoints is `≈Term id`.
-  subst₂-id-≈ : ∀ {A B : ObjTerm} (p q : A ≡ B) → subst₂ HomTerm p q id ≈Term id
-  subst₂-id-≈ p q =
-    ≡⇒≈Term (trans (cong (λ z → subst₂ HomTerm z q id) (objUIP p q))
-                   (subst₂-HomTerm-id q))
 
   -- FIRE box factor (M): the two `fire-mid`s agree after the boundary
   -- transport, by splitting each as `subst₂`-of-`box-of`, collapsing the
@@ -277,7 +250,7 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
         tJ
       ≈Term tH
   edge-step-term-rel e sH (skipR eqH) (skipR eqJ) stk =
-    subst₂-id-≈ (cong unflatten (vlab-φ sH))
+    subst₂-id-≈ objUIP (cong unflatten (vlab-φ sH))
                 (cong unflatten (trans (cong (map J.vlab) stk) (vlab-φ sH)))
   edge-step-term-rel e sH (skipR eqH) (fireR restJ permJ eqJ) stk =
     ⊥-elim (just≢nothing (trans (sym eqJ) (extract-prefix-J-nothing e sH eqH)))
