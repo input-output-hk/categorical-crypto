@@ -1,4 +1,4 @@
-{-# OPTIONS --with-K #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- The two PURE-BRAIDING residuals of `Sub/BlockNFVoutCoh.agda`, proven.

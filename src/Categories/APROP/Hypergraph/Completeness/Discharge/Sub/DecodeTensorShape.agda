@@ -1,4 +1,4 @@
-{-# OPTIONS --with-K #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- Towards the UNPRUNED `⊗` shape residual `decode-⊗-shape-inner` — the tensor

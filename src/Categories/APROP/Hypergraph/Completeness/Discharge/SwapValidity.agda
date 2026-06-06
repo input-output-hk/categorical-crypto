@@ -52,7 +52,7 @@
 --   (3) `swap-validity` — assembled from (1) + (2) + `Perm.↭`-transitivity;
 --       it now takes `lin : Linear H` (supplied downstream as the REAL proof
 --       `DecodeAttemptLinearP.⟪⟫-LinearP`, never a postulate).
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 open import Categories.APROP
 

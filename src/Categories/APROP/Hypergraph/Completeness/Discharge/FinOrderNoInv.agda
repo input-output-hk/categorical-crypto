@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- (LemC) The natural `Fin` edge-order of a TRANSLATED hypergraph is a

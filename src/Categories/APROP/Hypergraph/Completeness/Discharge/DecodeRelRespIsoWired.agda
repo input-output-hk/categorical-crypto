@@ -1,4 +1,5 @@
--- NOT `--safe` (has postulates), but now contains NO FALSE postulate.
+-- Postulate-FREE and `--safe`: the only assumption, the Kelly residual
+-- `K-faithfulness`, is a MODULE PARAMETER (supplied by the caller).
 --
 -- This connects the order-theory wiring (`IsoInvarianceWiring`) to the
 -- ACTUAL completeness lemma `decode-rel-resp-iso`, consuming the real
@@ -28,15 +29,24 @@
 -- `subst₂`-transport algebra plus the `permute`-proof-irrelevance (the
 -- TRUE Kelly faithfulness residual that gates the final-permute throughout
 -- this development).
-{-# OPTIONS --with-K #-}
+{-# OPTIONS --safe --with-K #-}
 
 open import Categories.APROP
 open import Relation.Binary using (DecidableEquality)
 open import Categories.FreeMonoidal using (Symm)
+import Categories.PermuteCoherence.Faithfulness as Faith
 
 module Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRelRespIsoWired
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig)) where
+  (_≟X_ : DecidableEquality (APROPSignature.X sig))
+  -- The Kelly faithfulness residual (Kelly 1964 symmetric-monoidal
+  -- permutation coherence) is taken as a MODULE PARAMETER — the single,
+  -- honest assumption of the whole completeness chain.  (`⦃ v≤v ⦄` supplies
+  -- the `Symm ≤ Symm` instance, which only enters automatic search after
+  -- `open APROP sig` in the body.)
+  (K-faithfulness :
+     Faith.FaithfulnessResidual (APROPSignature.asFreeMonoidalData sig) ⦃ v≤v ⦄)
+  where
 
 open APROP sig
 open import Categories.APROP.Hypergraph.Completeness.Discharge.ObjUIP
@@ -69,10 +79,10 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.FinOrderNoInv sig
   using (fin-order-NoInv-⟪⟫)
 
 -- The Kelly faithfulness residual type, from `PermuteCoherence.Faithfulness`.
--- We postulate a fresh value of it (the explicit Kelly axiom).  This module is
--- now `--with-K` (the completeness chain was switched off the `--without-K`
--- discipline, which bought nothing for the already-`--with-K` top theorem
--- `CompletenessFull` and only forced K-free re-derivation of the `--with-K`
+-- A value of it (`K-faithfulness`) is the module's sole parameter-assumption.
+-- This module is `--with-K` (the completeness chain was switched off the
+-- `--without-K` discipline, which bought nothing for the already-`--with-K`
+-- top theorem and only forced K-free re-derivation of the `--with-K`
 -- coherence machinery via co-infectivity).
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
@@ -190,15 +200,13 @@ decodeP-≡-decodeOrd-range f =
 -- (decoder-boundary bridge) `Discharge.DecodeOrdBoundary` discharges the
 -- decoder-boundary obligation GIVEN the TWO explicit K-inputs below:
 --   * `K-faithfulness : FaithfulnessResidual` — the TRUE Kelly residual
---     that gates the final permute throughout this development (a value of
---     the `--without-K` record, postulated fresh here — NOT the `--with-K`
+--     that gates the final permute throughout this development (the module
+--     parameter; a value of the `--without-K` record, NOT the `--with-K`
 --     `KellyCoherence`);
 --   * `objUIP` — uniqueness-of-identity-proofs on `ObjTerm`.
 -- `DecodeOrdBoundary.decodeOrd-boundary-resp-≈` discharges everything else
 -- (the two same-↭ final permutes agree via `eval-rigid` + K; the boundary
 -- transport is pure `subst₂` algebra under UIP).
-postulate
-  K-faithfulness : FaithfulnessResidual
 
 -- objUIP: UIP on `ObjTerm` from `DecidableEquality X` (Hedberg), via
 -- `Discharge.ObjUIP`.  (`ObjTerm` does not depend on the variant, so

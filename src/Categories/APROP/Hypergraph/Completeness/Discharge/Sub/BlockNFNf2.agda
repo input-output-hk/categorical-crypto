@@ -1,4 +1,4 @@
-{-# OPTIONS --with-K #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- The `nf₂-eq′` / `nf₁-eq′` block-normal-form factorisations used by

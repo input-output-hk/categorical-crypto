@@ -1,4 +1,4 @@
-{-# OPTIONS --with-K #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- The UNPRUNED `∘` shape residual `decode-∘-shape-inner`, PROVEN by

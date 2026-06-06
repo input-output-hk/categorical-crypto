@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 -- Discharges the `objUIP` postulate from
 -- `Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRelRespIsoWired`

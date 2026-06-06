@@ -1,4 +1,4 @@
-{-# OPTIONS --with-K #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- The stack-Uniqueness REACHABILITY invariant — the KEYSTONE that supplies the

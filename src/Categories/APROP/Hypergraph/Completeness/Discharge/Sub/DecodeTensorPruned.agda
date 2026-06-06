@@ -1,4 +1,4 @@
-{-# OPTIONS --with-K #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- The PRUNED `⊗` shape residual `decodeP-⊗-shape`, PROVEN by mirroring

@@ -13,7 +13,7 @@
 -- `↝*⇒≈`, `order-invariant`, `decode-ord-resp-iso` source `swap-≈`/`NoInv-τ`
 -- from `SwapStep`/`WiringLemmas`.  `decode-ord-resp-iso`'s type is the one
 -- `DecodeRelRespIsoWired` consumes as a drop-in.
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 open import Categories.APROP
 

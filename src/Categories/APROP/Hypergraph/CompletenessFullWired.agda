@@ -1,4 +1,4 @@
-{-# OPTIONS --with-K #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- Completeness theorem, wired through the standalone `DecodeRelRespIsoWired`
@@ -7,23 +7,31 @@
 --
 -- `DecodeRelRespIsoWired.decode-rel-resp-iso` proves
 --   ⟪f⟫ ≅ᴴ ⟪g⟫  →  decode-rel f ≈Term decode-rel g
--- over a trust surface of EXACTLY one postulate:
---   * `K-faithfulness` (Kelly 1964 symmetric-monoidal permutation coherence)
+-- over a trust surface of EXACTLY one assumption:
+--   * `K-faithfulness` (Kelly 1964 symmetric-monoidal permutation coherence),
+--     taken here as a MODULE PARAMETER and threaded down the chain.
 -- Composed here with the proven `decode-roundtrip-rel` round-trip and the
 -- `bridge`/`bridge⁻¹` cancellation, it yields the completeness theorem
--- `f ≈Term g`, resting on JUST `K-faithfulness`.
+-- `f ≈Term g`, resting on JUST that one parameter.
 --
--- This module is therefore NOT `--safe` (it imports that postulate), and
--- is the wired analogue of `CompletenessFull.completeness-full` — the body is
--- identical except that `decode-rel-resp-iso` replaces the `Build`-derived
--- `decode-rel-resp-≅ᴴ-full`.  No `Build` instance is required.
+-- This module is `--safe --with-K` and postulate-free (the whole wired chain
+-- is `--safe`).  It is the wired analogue of `CompletenessFull.completeness-full`
+-- — the body is identical except that `decode-rel-resp-iso` replaces the
+-- `Build`-derived `decode-rel-resp-≅ᴴ-full`, and the single Kelly axiom is the
+-- parameter rather than a `Build` field.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
 open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
+import Categories.PermuteCoherence.Faithfulness as Faith
 
 module Categories.APROP.Hypergraph.CompletenessFullWired
-  (sig-dec : APROPSignatureDec) where
+  (sig-dec : APROPSignatureDec)
+  -- The single Kelly assumption, threaded down into `DecodeRelRespIsoWired`.
+  (K-faithfulness :
+     Faith.FaithfulnessResidual
+       (APROPSignature.asFreeMonoidalData (APROPSignatureDec.sig sig-dec)) ⦃ v≤v ⦄)
+  where
 
 open APROPSignatureDec sig-dec using (sig; _≟X_)
 open APROP sig
@@ -37,9 +45,10 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
   using (decode-rel; decode-roundtrip-rel)
 
--- The standalone faithfulness chain, reduced to the single axiom K-faithfulness.
+-- The standalone faithfulness chain, reduced to the single axiom K-faithfulness
+-- (supplied here as the module parameter).
 import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRelRespIsoWired
-  sig _≟X_ as DRRIW
+  sig _≟X_ K-faithfulness as DRRIW
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)

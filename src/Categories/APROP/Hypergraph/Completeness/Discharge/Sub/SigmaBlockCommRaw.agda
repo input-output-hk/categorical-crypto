@@ -1,4 +1,4 @@
-{-# OPTIONS --with-K #-}
+{-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
 -- `σ-block-comm-raw` — the bare iterated TWO-BLOCK braiding at `List X`.
