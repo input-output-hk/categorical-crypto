@@ -3885,6 +3885,52 @@ module BlockFactor
     subst (λ z → HomTerm (unflatten (map C.vlab as)) (unflatten (map C.vlab z)))
           eq (id {unflatten (map C.vlab as)})
 
+  ------------------------------------------------------------------------
+  -- ### Shared subst-id (`sidX`) machinery, hoisted out of `Sin`/`Sout`
+  -- (which each used a verbatim copy).  A canonical subst-id morphism `sidX`
+  -- (codomain transport of `id` over `unflatten`) into which
+  -- `sdd`/`scod`/`sidC` all collapse; it composes along `trans` and is unique
+  -- (by `objUIP`).  Plus the dom/cod subst-id self-cancellations.
+
+  sidX : ∀ {a b : List X} → a ≡ b → HomTerm (unflatten a) (unflatten b)
+  sidX {a} e = subst (λ z → HomTerm (unflatten a) (unflatten z)) e id
+
+  sidX-∘ : ∀ {a b c : List X} (p : a ≡ b) (q : b ≡ c)
+         → sidX q ∘ sidX p ≈Term sidX (trans p q)
+  sidX-∘ refl refl = idˡ
+
+  sidX₂ : ∀ {a b : List X} (e : a ≡ b)
+        → sidX e ≡ subst₂ HomTerm refl (cong unflatten e) (id {unflatten a})
+  sidX₂ refl = refl
+
+  sidX-irrel : ∀ {a b : List X} (e e' : a ≡ b) → sidX e ≈Term sidX e'
+  sidX-irrel e e' =
+    ≈-Term-trans (≡⇒≈Term (sidX₂ e))
+      (≈-Term-trans (subst₂-HomTerm-irrel objUIP refl refl
+                       (cong unflatten e) (cong unflatten e') id)
+                    (≡⇒≈Term (sym (sidX₂ e'))))
+
+  -- conversions into `sidX`.
+  scod→sidX : ∀ {c d : List X} (q : c ≡ d) → BoxAssoc.subst-id-cod q ≈Term sidX q
+  scod→sidX refl = ≈-Term-refl
+
+  sdd→sidX : ∀ {a b : List X} (p : a ≡ b) → BoxAssoc.subst-id-dom p ≈Term sidX (sym p)
+  sdd→sidX refl = ≈-Term-refl
+
+  sidC→sidX : ∀ {a b : List (Fin C.nV)} (q : a ≡ b)
+            → sidC q ≈Term sidX (cong (map C.vlab) q)
+  sidC→sidX refl = ≈-Term-refl
+
+  -- A subst-id over `unflatten` (domain side) self-cancels with its `sym`.
+  sid-self-cancelᵈ : ∀ {a b : List X} (e : a ≡ b)
+    → BoxAssoc.subst-id-dom e ∘ BoxAssoc.subst-id-dom (sym e) ≈Term id
+  sid-self-cancelᵈ refl = idˡ
+
+  -- A subst-id over `unflatten` (codomain side) self-cancels with its `sym`.
+  sid-self-cancelᶜ : ∀ {a b : List X} (e : a ≡ b)
+    → BoxAssoc.subst-id-cod e ∘ BoxAssoc.subst-id-cod (sym e) ≈Term id
+  sid-self-cancelᶜ refl = idˡ
+
   -- `pvlC (shifts)` decomposed into the two `++-assoc` bridges and the
   -- `app-swap` (= `++⁺ʳ rgBlk (++-comm eiBlk Pblk)`) front-swap.
   pvlC-shifts
@@ -4276,16 +4322,6 @@ module BlockFactor
       ∘ (id {Ue} ⊗₁ rFrom pL rL)
       ∘ rFrom eL (pL ++ rL)
 
-    -- A subst-id over `unflatten` (domain side) self-cancels with its `sym`.
-    sid-self-cancelᵈ : ∀ {a b : List X} (e : a ≡ b)
-      → BoxAssoc.subst-id-dom e ∘ BoxAssoc.subst-id-dom (sym e) ≈Term id
-    sid-self-cancelᵈ refl = idˡ
-
-    -- A subst-id over `unflatten` (codomain side) self-cancels with its `sym`.
-    sid-self-cancelᶜ : ∀ {a b : List X} (e : a ≡ b)
-      → BoxAssoc.subst-id-cod e ∘ BoxAssoc.subst-id-cod (sym e) ≈Term id
-    sid-self-cancelᶜ refl = idˡ
-
     -- cif, with the trailing subst reassociated to the outside.
     cif-assoc :
       α⇒ {Ue} {Up} {Ur} ∘ (rFrom eL pL ⊗₁ id {Ur}) ∘ rFrom (eL ++ pL) rL
@@ -4676,39 +4712,6 @@ module BlockFactor
         ≈Term tcod q ∘ t ∘ BoxAssoc.subst-id-dom p
     subst₂-conj-tensor refl refl t = ≈-Term-trans (≈-Term-sym idˡ) (refl⟩∘⟨ ≈-Term-sym idʳ)
 
-    ----------------------------------------------------------------------
-    -- ### A canonical subst-id morphism `sidX` (codomain transport of `id`
-    -- over `unflatten`) into which `sdd`/`scod`/`sidC` all collapse; it
-    -- composes along `trans` and is unique (by `objUIP`).
-
-    sidX : ∀ {a b : List X} → a ≡ b → HomTerm (unflatten a) (unflatten b)
-    sidX {a} e = subst (λ z → HomTerm (unflatten a) (unflatten z)) e id
-
-    sidX-∘ : ∀ {a b c : List X} (p : a ≡ b) (q : b ≡ c)
-           → sidX q ∘ sidX p ≈Term sidX (trans p q)
-    sidX-∘ refl refl = idˡ
-
-    sidX₂ : ∀ {a b : List X} (e : a ≡ b)
-          → sidX e ≡ subst₂ HomTerm refl (cong unflatten e) (id {unflatten a})
-    sidX₂ refl = refl
-
-    sidX-irrel : ∀ {a b : List X} (e e' : a ≡ b) → sidX e ≈Term sidX e'
-    sidX-irrel e e' =
-      ≈-Term-trans (≡⇒≈Term (sidX₂ e))
-        (≈-Term-trans (subst₂-HomTerm-irrel objUIP refl refl
-                         (cong unflatten e) (cong unflatten e') id)
-                      (≡⇒≈Term (sym (sidX₂ e'))))
-
-    -- conversions into `sidX`.
-    scod→sidX : ∀ {c d : List X} (q : c ≡ d) → BoxAssoc.subst-id-cod q ≈Term sidX q
-    scod→sidX refl = ≈-Term-refl
-
-    sdd→sidX : ∀ {a b : List X} (p : a ≡ b) → BoxAssoc.subst-id-dom p ≈Term sidX (sym p)
-    sdd→sidX refl = ≈-Term-refl
-
-    sidC→sidX : ∀ {a b : List (Fin C.nV)} (q : a ≡ b)
-              → sidC q ≈Term sidX (cong (map C.vlab) q)
-    sidC→sidX refl = ≈-Term-refl
 
     ----------------------------------------------------------------------
     -- ### The two boundary equalities (subst-id-morphism uniqueness).
@@ -4937,15 +4940,6 @@ module BlockFactor
       ∘ (σ {Up} {Ue} ⊗₁ id {Ur})
       ∘ α⇐ {Up} {Ue} {Ur}
       ∘ (id {Up} ⊗₁ rFrom eL rL)
-
-    -- subst-id self-cancellation (dom/cod sides), copied from `Sin`.
-    sid-self-cancelᵈ : ∀ {a b : List X} (e : a ≡ b)
-      → BoxAssoc.subst-id-dom e ∘ BoxAssoc.subst-id-dom (sym e) ≈Term id
-    sid-self-cancelᵈ refl = idˡ
-
-    sid-self-cancelᶜ : ∀ {a b : List X} (e : a ≡ b)
-      → BoxAssoc.subst-id-cod e ∘ BoxAssoc.subst-id-cod (sym e) ≈Term id
-    sid-self-cancelᶜ refl = idˡ
 
     -- `c-iso-assoc-to eL pL rL`, trailing subst reassociated to the right
     -- (dual of `Sin.cif-assoc-out`).
@@ -5388,8 +5382,8 @@ module BlockFactor
         BoxAssoc.subst-id-cod cod-uf ∘ rTo pL (eL ++ rL) ∘ tdom cod-list ∎
 
     ----------------------------------------------------------------------
-    -- ### subst-id morphisms collapsed into a canonical `sidX` (dual mirror
-    -- of `Sin`'s `sidX` machinery).
+    -- ### tensor-dom reframe helpers (the shared `sidX` machinery lives in
+    -- `BlockFactor` scope; see `sidX`, `scod→sidX`, … above).
 
     tdom₂ : ∀ {c d : List X} (q : c ≡ d)
           → tdom q ≡ subst₂ HomTerm (cong (Up ⊗₀_) (cong unflatten q)) refl
@@ -5403,34 +5397,6 @@ module BlockFactor
       → subst₂ HomTerm (cong (Up ⊗₀_) (cong unflatten q)) (cong unflatten p) t
         ≈Term BoxAssoc.subst-id-cod p ∘ t ∘ tdom q
     subst₂-conj-tensor-dom refl refl t = ≈-Term-trans (≈-Term-sym idˡ) (refl⟩∘⟨ ≈-Term-sym idʳ)
-
-    sidX : ∀ {a b : List X} → a ≡ b → HomTerm (unflatten a) (unflatten b)
-    sidX {a} e = subst (λ z → HomTerm (unflatten a) (unflatten z)) e id
-
-    sidX-∘ : ∀ {a b c : List X} (p : a ≡ b) (q : b ≡ c)
-           → sidX q ∘ sidX p ≈Term sidX (trans p q)
-    sidX-∘ refl refl = idˡ
-
-    sidX₂ : ∀ {a b : List X} (e : a ≡ b)
-          → sidX e ≡ subst₂ HomTerm refl (cong unflatten e) (id {unflatten a})
-    sidX₂ refl = refl
-
-    sidX-irrel : ∀ {a b : List X} (e e' : a ≡ b) → sidX e ≈Term sidX e'
-    sidX-irrel e e' =
-      ≈-Term-trans (≡⇒≈Term (sidX₂ e))
-        (≈-Term-trans (subst₂-HomTerm-irrel objUIP refl refl
-                         (cong unflatten e) (cong unflatten e') id)
-                      (≡⇒≈Term (sym (sidX₂ e'))))
-
-    scod→sidX : ∀ {c d : List X} (q : c ≡ d) → BoxAssoc.subst-id-cod q ≈Term sidX q
-    scod→sidX refl = ≈-Term-refl
-
-    sdd→sidX : ∀ {a b : List X} (p : a ≡ b) → BoxAssoc.subst-id-dom p ≈Term sidX (sym p)
-    sdd→sidX refl = ≈-Term-refl
-
-    sidC→sidX : ∀ {a b : List (Fin C.nV)} (q : a ≡ b)
-              → sidC q ≈Term sidX (cong (map C.vlab) q)
-    sidC→sidX refl = ≈-Term-refl
 
     ----------------------------------------------------------------------
     -- ### The two boundary equalities (subst-id-morphism uniqueness).
