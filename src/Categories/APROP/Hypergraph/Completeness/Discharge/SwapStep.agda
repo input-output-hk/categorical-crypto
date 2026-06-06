@@ -62,8 +62,8 @@ open import Categories.PermuteCoherence.FinBij
   using (FinBij; _≈-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 
-open import Categories.PermuteCoherence.EvalRigidKFree
-  using (eval-rigid; eval-map⁺; subst₂-FinBij-≈)
+open import Categories.PermuteCoherence.Rigid using (eval-rigid)
+open import Categories.PermuteCoherence.Map using (eval-map⁺; subst₂-FinBij-≈)
 
 open import Data.Nat.Base using (ℕ; suc)
 open import Data.Fin using (Fin)

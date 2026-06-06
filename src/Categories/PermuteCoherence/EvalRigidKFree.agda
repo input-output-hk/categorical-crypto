@@ -1,23 +1,26 @@
 {-# OPTIONS --safe --without-K #-}
 
 ------------------------------------------------------------------------
--- Shared `--without-K` FinBij / `eval-↭` rigidity infrastructure.
+-- Cross-iso (φ-equivariance) `subst Fin`/`lookup` cast algebra.
 --
--- The intrinsically K-free, J-only lemmas that also live in the `--with-K`
--- modules `PermuteCoherence.{Rigid,Map}`.  Co-infectivity forbids importing
--- those into the `--without-K` consumers (`…/Completeness/Discharge/…`), so
--- this `--without-K` leaf hosts them once.  APROP-agnostic (every lemma is
--- generic over `FinBij`/`eval-↭`/stdlib lists).
+-- Originally this `--without-K` leaf hosted `--without-K` copies of the
+-- FinBij / `eval-↭` rigidity lemmas that also live in `PermuteCoherence.
+-- {Rigid,Map}`, because those were once `--with-K` and could not be
+-- imported into the `--without-K` `…/Completeness/Discharge/…` consumers.
 --
--- Contents: rigidity (`eval-rigid` + supporting `lookup` lemmas), the
--- `subst Fin`/`lookup` cast algebra, and `eval-map⁺` + its `subst₂`-on-
--- FinBij algebra.
+-- Now that `Rigid` and `Map` are themselves `--without-K`, the shared
+-- lemmas (`eval-rigid`, `lookup-sound`, `eval-map⁺`) are imported from
+-- there and re-exported `public`.  Only the genuinely-unique cast-algebra
+-- lemmas (the `subst Fin` family + `lookup-map`/`lookup-subst-list`/
+-- `eval-subst₂-↭`/`subst₂-FinBij-as-subst`) and the `Unique`-lookup
+-- injectivity helpers (`Rigid` keeps those `private`) are defined locally.
+--
+-- Sole consumer: `…/Completeness/Discharge/IsoTransport.agda`.
 ------------------------------------------------------------------------
 
 module Categories.PermuteCoherence.EvalRigidKFree where
 
-open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _≈-fb_; id-fb; cons-fb; swap-fb; _∘-fb_)
+open import Categories.PermuteCoherence.FinBij using (FinBij)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 
 open import Data.Fin.Base using (Fin; zero; suc)
@@ -29,13 +32,18 @@ open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.List.Relation.Unary.AllPairs using () renaming (_∷_ to _∷ᵘ_)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Empty using (⊥-elim)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; cong₂; sym; trans; subst; subst₂)
+  using (_≡_; refl; cong; sym; trans; subst; subst₂)
+
+-- Shared rigidity / map lemmas, now `--without-K` in their home modules.
+open import Categories.PermuteCoherence.Rigid public
+  using (lookup-sound; eval-rigid)
+open import Categories.PermuteCoherence.Map public
+  using (eval-map⁺)
 
 ------------------------------------------------------------------------
--- Rigidity of `eval-↭` on `Unique` codomains.
+-- `Unique`-codomain injectivity helpers (kept `private` in `Rigid`).
 ------------------------------------------------------------------------
 
 All-lookup : ∀ {a p} {A : Set a} {Q : A → Set p} {xs : List A}
@@ -54,30 +62,8 @@ lookup-injective-unique (x≢ ∷ᵘ _ ) (suc i) zero    eq = ⊥-elim (All-look
 lookup-injective-unique (_  ∷ᵘ uq) (suc i) (suc j) eq =
   cong suc (lookup-injective-unique uq i j eq)
 
-lookup-sound
-  : ∀ {a} {A : Set a} {xs ys : List A} (p : xs Perm.↭ ys) (i : Fin (length xs))
-  → lookup ys (eval-↭ p P.⟨$⟩ʳ i) ≡ lookup xs i
-lookup-sound Perm.refl              i                  = refl
-lookup-sound (Perm.prep x p)        zero               = refl
-lookup-sound (Perm.prep x p)        (suc i)            = lookup-sound p i
-lookup-sound (Perm.swap x y p)      zero               = refl
-lookup-sound (Perm.swap x y p)      (suc zero)         = refl
-lookup-sound (Perm.swap x y p)      (suc (suc i))      = lookup-sound p i
-lookup-sound (Perm.trans p q)       i                  =
-  trans (lookup-sound q (eval-↭ p P.⟨$⟩ʳ i)) (lookup-sound p i)
-
--- Rigidity of `eval-↭` on `Unique` codomains: any two derivations into
--- the same `Unique` list evaluate to the same finite bijection.
-eval-rigid
-  : ∀ {a} {A : Set a} {xs ys : List A} → Unique ys
-  → (p q : xs Perm.↭ ys)
-  → eval-↭ p ≈-fb eval-↭ q
-eval-rigid uniq p q i =
-  lookup-injective-unique uniq _ _
-    (trans (lookup-sound p i) (sym (lookup-sound q i)))
-
 ------------------------------------------------------------------------
--- Extra K-free helpers for the cross-iso rigidity (φ-equivariance).
+-- `subst Fin` cast algebra for the cross-iso (φ-equivariance) rigidity.
 ------------------------------------------------------------------------
 
 -- `subst Fin` along a `sym (cong suc _)` cast commutes with `suc`/`zero`.
@@ -157,52 +143,3 @@ subst-Fin-sym-sym
   : ∀ {n m : ℕ} (e : n ≡ m) (i : Fin n)
   → subst Fin (sym (sym e)) i ≡ subst Fin e i
 subst-Fin-sym-sym e i = cast-irr (sym (sym e)) e i
-
-------------------------------------------------------------------------
--- `eval-map⁺` and its `subst₂`-on-FinBij algebra.
-------------------------------------------------------------------------
-
-subst₂-FinBij-id : ∀ {n m} (e : n ≡ m) → subst₂ FinBij e e id-fb ≡ id-fb
-subst₂-FinBij-id refl = refl
-
-cons-cast
-  : ∀ {n n' m m'} (ex : n' ≡ n) (ey : m' ≡ m) (π : FinBij n m)
-  → cons-fb (subst₂ FinBij (sym ex) (sym ey) π)
-    ≡ subst₂ FinBij (sym (cong suc ex)) (sym (cong suc ey)) (cons-fb π)
-cons-cast refl refl π = refl
-
-swap-cast
-  : ∀ {n n' m m'} (ex : n' ≡ n) (ey : m' ≡ m) (π : FinBij n m)
-  → swap-fb m' ∘-fb cons-fb (cons-fb (subst₂ FinBij (sym ex) (sym ey) π))
-    ≡ subst₂ FinBij (sym (cong suc (cong suc ex)))
-                    (sym (cong suc (cong suc ey)))
-                    (swap-fb m ∘-fb cons-fb (cons-fb π))
-swap-cast refl refl π = refl
-
-comp-cast
-  : ∀ {n n' m m' k k'}
-      (ex : n' ≡ n) (ey : m' ≡ m) (ez : k' ≡ k)
-      (g : FinBij m k) (f : FinBij n m)
-  → subst₂ FinBij (sym ey) (sym ez) g ∘-fb subst₂ FinBij (sym ex) (sym ey) f
-    ≡ subst₂ FinBij (sym ex) (sym ez) (g ∘-fb f)
-comp-cast refl refl refl g f = refl
-
-eval-map⁺ : ∀ {a c} {A : Set a} {C : Set c}
-  (h : A → C) {xs ys : List A} (p : xs Perm.↭ ys)
-  → eval-↭ (PermProp.map⁺ h p)
-    ≡ subst₂ FinBij (sym (length-map h xs)) (sym (length-map h ys)) (eval-↭ p)
-eval-map⁺ h {xs = xs} Perm.refl = sym (subst₂-FinBij-id (sym (length-map h xs)))
-eval-map⁺ h {xs = x ∷ xs} {ys = .x ∷ ys} (Perm.prep x p) =
-  trans (cong cons-fb (eval-map⁺ h p))
-        (cons-cast (length-map h xs) (length-map h ys) (eval-↭ p))
-eval-map⁺ h {xs = x ∷ x' ∷ xs} {ys = y ∷ y' ∷ ys} (Perm.swap x y p) =
-  trans (cong (λ z → swap-fb (length (map h ys)) ∘-fb cons-fb (cons-fb z)) (eval-map⁺ h p))
-        (swap-cast (length-map h xs) (length-map h ys) (eval-↭ p))
-eval-map⁺ h {xs = xs} {ys = zs} (Perm.trans {ys = ys} p q) =
-  trans (cong₂ _∘-fb_ (eval-map⁺ h q) (eval-map⁺ h p))
-        (comp-cast (length-map h xs) (length-map h ys) (length-map h zs)
-                   (eval-↭ q) (eval-↭ p))
-
-subst₂-FinBij-≈ : ∀ {n m n' m'} (a : n ≡ n') (b : m ≡ m') {π ρ : FinBij n m}
-  → π ≈-fb ρ → subst₂ FinBij a b π ≈-fb subst₂ FinBij a b ρ
-subst₂-FinBij-≈ refl refl eq = eq
