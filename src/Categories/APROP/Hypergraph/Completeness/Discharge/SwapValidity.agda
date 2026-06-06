@@ -108,72 +108,19 @@ open import Relation.Binary.PropositionalEquality
 -- firing decision of `e'` STABLE between the pre-`e` stack `s` and the
 -- post-`e` stack `eout e ++ r₁` — so no order can fire an edge the other
 -- order skips.  All lemmas are over `List (Fin n)`.
+--
+-- The core lemmas live in the shared `CountCombinatorics` leaf; the
+-- specialised helpers (`extract-prefix-just→count-≤`,
+-- `count-concat-tabulate-≤`, …) are kept local.
 ------------------------------------------------------------------------
+
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.CountCombinatorics sig
+  using ( count-cons-yes; count-cons-no; ∈→count-pos; count-pos→∈
+        ; ↭⇒count; count-pos→extract-elem; count-≤→extract-prefix; ++-cancelˡ)
 
 private
   variable
     n : ℕ
-
-  -- count cons reductions.
-  count-cons-yes : (v : Fin n) (xs : List (Fin n))
-                 → count v (v ∷ xs) ≡ suc (count v xs)
-  count-cons-yes v xs with v ≟ v
-  ... | yes _ = refl
-  ... | no  q = ⊥-elim (q refl)
-
-  count-cons-no : (v x : Fin n) (xs : List (Fin n)) → ¬ (v ≡ x)
-                → count v (x ∷ xs) ≡ count v xs
-  count-cons-no v x xs v≢x with v ≟ x
-  ... | yes p = ⊥-elim (v≢x p)
-  ... | no  _ = refl
-
-  -- count ↔ membership.
-  ∈→count-pos : ∀ {v : Fin n} {xs} → v ∈ xs → 0 <ⁿ count v xs
-  ∈→count-pos {v = v} {x ∷ xs} (here refl)  rewrite count-cons-yes v xs = s≤sⁿ z≤nⁿ
-  ∈→count-pos {v = v} {x ∷ xs} (there v∈xs) with v ≟ x
-  ... | yes _ = s≤sⁿ z≤nⁿ
-  ... | no  _ = ∈→count-pos v∈xs
-
-  count-pos→∈ : ∀ {v : Fin n} {xs} → 0 <ⁿ count v xs → v ∈ xs
-  count-pos→∈ {v = v} {[]}     ()
-  count-pos→∈ {v = v} {x ∷ xs} c with v ≟ x
-  ... | yes refl = here refl
-  ... | no  _    = there (count-pos→∈ c)
-
-  -- Permutation preserves count (local copy of the private Linearity lemma).
-  ↭⇒count : {xs ys : List (Fin n)} → xs Perm.↭ ys → ∀ v → count v xs ≡ count v ys
-  ↭⇒count Perm.refl                       v = refl
-  ↭⇒count (Perm.prep x p)                 v with v ≟ x
-  ... | yes _ = cong suc (↭⇒count p v)
-  ... | no  _ = ↭⇒count p v
-  ↭⇒count (Perm.swap {xs = xs} {ys = ys} x y p) v = swap-case (v ≟ x) (v ≟ y)
-    where
-      swap-case : _ → _ → count v (x ∷ y ∷ xs) ≡ count v (y ∷ x ∷ ys)
-      swap-case (yes refl) (yes refl) =
-        trans (count-cons-yes v (v ∷ xs))
-        (trans (cong suc (count-cons-yes v xs))
-        (trans (cong suc (cong suc (↭⇒count p v)))
-        (trans (cong suc (sym (count-cons-yes v ys)))
-               (sym (count-cons-yes v (v ∷ ys))))))
-      swap-case (yes refl) (no  q) =
-        trans (count-cons-yes v (y ∷ xs))
-        (trans (cong suc (count-cons-no v y xs q))
-        (trans (cong suc (↭⇒count p v))
-        (trans (sym (count-cons-yes v ys))
-               (sym (count-cons-no v y (v ∷ ys) q)))))
-      swap-case (no  q) (yes refl) =
-        trans (count-cons-no v x (v ∷ xs) q)
-        (trans (count-cons-yes v xs)
-        (trans (cong suc (↭⇒count p v))
-        (trans (cong suc (sym (count-cons-no v x ys q)))
-               (sym (count-cons-yes v (x ∷ ys))))))
-      swap-case (no  q₁) (no  q₂) =
-        trans (count-cons-no v x (y ∷ xs) q₁)
-        (trans (count-cons-no v y xs q₂)
-        (trans (↭⇒count p v)
-        (trans (sym (count-cons-no v x ys q₁))
-               (sym (count-cons-no v y (x ∷ ys) q₂)))))
-  ↭⇒count (Perm.trans p₁ p₂)              v = trans (↭⇒count p₁ v) (↭⇒count p₂ v)
 
   -- (P1) A successful `extract-prefix` certifies the sub-multiset bound.
   extract-prefix-just→count-≤
@@ -183,50 +130,6 @@ private
     Nat.≤-trans (Nat.m≤m+n (count v ks) (count v rest))
                 (Nat.≤-reflexive (trans (sym (count-++ v ks rest))
                                         (sym (↭⇒count p v))))
-
-  -- `extract-elem` succeeds whenever the element's count is positive,
-  -- and the residual count equals the input minus one at the element.
-  count-pos→extract-elem
-    : (k : Fin n) (xs : List (Fin n)) → 0 <ⁿ count k xs
-    → Σ[ rest ∈ List (Fin n) ] Σ[ p ∈ xs Perm.↭ k ∷ rest ]
-        extract-elem k xs ≡ just (rest , p)
-  count-pos→extract-elem k []       ()
-  count-pos→extract-elem k (x ∷ xs) c with x ≟ k
-  ... | yes refl = xs , _ , refl
-  ... | no  x≢k  with count-pos→extract-elem k xs
-                      (subst (0 <ⁿ_) (count-cons-no k x xs (λ e → x≢k (sym e))) c)
-  ...   | rest , p , eq rewrite eq = x ∷ rest , _ , refl
-
-  -- (P2) The sub-multiset bound guarantees a successful `extract-prefix`.
-  count-≤→extract-prefix
-    : (ks xs : List (Fin n)) → (∀ v → count v ks ≤ⁿ count v xs)
-    → Σ[ rest ∈ List (Fin n) ] Σ[ p ∈ xs Perm.↭ ks ++ rest ]
-        extract-prefix ks xs ≡ just (rest , p)
-  count-≤→extract-prefix []       xs h = xs , Perm.refl , refl
-  count-≤→extract-prefix (k ∷ ks) xs h
-    with count-pos→extract-elem k xs
-           (Nat.<-≤-trans (s≤sⁿ z≤nⁿ)
-             (Nat.≤-trans (Nat.≤-reflexive (sym (count-cons-yes k ks))) (h k)))
-  ... | xs' , p , eq-elem
-      with count-≤→extract-prefix ks xs' h-rest
-    where
-      -- `xs ↭ k ∷ xs'`, so `count v xs = count v (k ∷ xs')`; combined with
-      -- `count v (k ∷ ks) ≤ⁿ count v xs` this gives `count v ks ≤ⁿ count v xs'`.
-      h-rest : ∀ v → count v ks ≤ⁿ count v xs'
-      h-rest v with v ≟ k
-      ... | yes refl =
-            s≤s⁻¹
-              (Nat.≤-trans (Nat.≤-reflexive (sym (count-cons-yes k ks)))
-              (Nat.≤-trans (h k)
-                           (Nat.≤-reflexive
-                             (trans (↭⇒count p k) (count-cons-yes k xs')))))
-      ... | no  v≢k =
-            Nat.≤-trans (Nat.≤-reflexive (sym (count-cons-no v k ks v≢k)))
-            (Nat.≤-trans (h v)
-                         (Nat.≤-reflexive
-                           (trans (↭⇒count p v) (count-cons-no v k xs' v≢k))))
-  ...   | rest , q , eq-rest rewrite eq-elem | eq-rest =
-          rest , _ , refl
 
   -- count distributes over a single `tabulate`/`concat` summand: every
   -- edge's `ein`-count is ≤ the total concat-count.
@@ -484,13 +387,6 @@ module PerHG (H : Hypergraph FlatGen)
   -- BOTH-FIRE multiset bridge (ported verbatim from
   -- `Sub/AllFireEdgeSwap.post-swap-stack-↭`; pure `_↭_` reasoning).
   ------------------------------------------------------------------------
-
-  ++-cancelˡ
-    : ∀ (xs : List (Fin H.nV)) {ys zs : List (Fin H.nV)}
-    → xs ++ ys Perm.↭ xs ++ zs
-    → ys Perm.↭ zs
-  ++-cancelˡ []       p = p
-  ++-cancelˡ (x ∷ xs) p = ++-cancelˡ xs (PermProp.drop-∷ p)
 
   post-swap-stack-↭
     : ∀ (e₁ e₂ : Fin H.nE)

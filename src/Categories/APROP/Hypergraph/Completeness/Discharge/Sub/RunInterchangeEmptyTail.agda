@@ -136,72 +136,17 @@ private
   nothing≢just ()
 
 ------------------------------------------------------------------------
--- Generic `count` / `extract-prefix` combinatorics (H-agnostic),
--- re-derived from `SwapValidity.agda`'s top-level `private` block (they are
--- inaccessible there).  All over `List (Fin n)`, all `--without-K`-clean.
+-- Generic `count` / `extract-prefix` combinatorics (H-agnostic).
+-- The core lemmas live in the shared `CountCombinatorics` leaf; the few
+-- specialised helpers below are kept local.
 ------------------------------------------------------------------------
+
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.CountCombinatorics sig
+  using (↭⇒count; count-pos→∈; count-≤→extract-prefix)
 
 private
   variable
     n : ℕ
-
-  count-cons-yes : (v : Fin n) (xs : List (Fin n))
-                 → count v (v ∷ xs) ≡ suc (count v xs)
-  count-cons-yes v xs with v ≟ v
-  ... | yes _ = refl
-  ... | no  q = ⊥-elim (q refl)
-
-  count-cons-no : (v x : Fin n) (xs : List (Fin n)) → ¬ (v ≡ x)
-                → count v (x ∷ xs) ≡ count v xs
-  count-cons-no v x xs v≢x with v ≟ x
-  ... | yes p = ⊥-elim (v≢x p)
-  ... | no  _ = refl
-
-  ∈→count-pos : ∀ {v : Fin n} {xs} → v ∈ xs → 0 <ⁿ count v xs
-  ∈→count-pos {v = v} {x ∷ xs} (here refl)  rewrite count-cons-yes v xs = s≤sⁿ z≤nⁿ
-  ∈→count-pos {v = v} {x ∷ xs} (there v∈xs) with v ≟ x
-  ... | yes _ = s≤sⁿ z≤nⁿ
-  ... | no  _ = ∈→count-pos v∈xs
-
-  count-pos→∈ : ∀ {v : Fin n} {xs} → 0 <ⁿ count v xs → v ∈ xs
-  count-pos→∈ {v = v} {[]}     ()
-  count-pos→∈ {v = v} {x ∷ xs} c with v ≟ x
-  ... | yes refl = here refl
-  ... | no  _    = there (count-pos→∈ c)
-
-  ↭⇒count : {xs ys : List (Fin n)} → xs Perm.↭ ys → ∀ v → count v xs ≡ count v ys
-  ↭⇒count Perm.refl                       v = refl
-  ↭⇒count (Perm.prep x p)                 v with v ≟ x
-  ... | yes _ = cong suc (↭⇒count p v)
-  ... | no  _ = ↭⇒count p v
-  ↭⇒count (Perm.swap {xs = xs} {ys = ys} x y p) v = swap-case (v ≟ x) (v ≟ y)
-    where
-      swap-case : _ → _ → count v (x ∷ y ∷ xs) ≡ count v (y ∷ x ∷ ys)
-      swap-case (yes refl) (yes refl) =
-        trans (count-cons-yes v (v ∷ xs))
-        (trans (cong suc (count-cons-yes v xs))
-        (trans (cong suc (cong suc (↭⇒count p v)))
-        (trans (cong suc (sym (count-cons-yes v ys)))
-               (sym (count-cons-yes v (v ∷ ys))))))
-      swap-case (yes refl) (no  q) =
-        trans (count-cons-yes v (y ∷ xs))
-        (trans (cong suc (count-cons-no v y xs q))
-        (trans (cong suc (↭⇒count p v))
-        (trans (sym (count-cons-yes v ys))
-               (sym (count-cons-no v y (v ∷ ys) q)))))
-      swap-case (no  q) (yes refl) =
-        trans (count-cons-no v x (v ∷ xs) q)
-        (trans (count-cons-yes v xs)
-        (trans (cong suc (↭⇒count p v))
-        (trans (cong suc (sym (count-cons-no v x ys q)))
-               (sym (count-cons-yes v (x ∷ ys))))))
-      swap-case (no  q₁) (no  q₂) =
-        trans (count-cons-no v x (y ∷ xs) q₁)
-        (trans (count-cons-no v y xs q₂)
-        (trans (↭⇒count p v)
-        (trans (sym (count-cons-no v x ys q₁))
-               (sym (count-cons-no v y (x ∷ ys) q₂)))))
-  ↭⇒count (Perm.trans p₁ p₂)              v = trans (↭⇒count p₁ v) (↭⇒count p₂ v)
 
   extract-prefix-just→count-≤
     : (ks xs rest : List (Fin n)) (p : xs Perm.↭ ks ++ rest)
@@ -210,45 +155,6 @@ private
     Nat.≤-trans (Nat.m≤m+n (count v ks) (count v rest))
                 (Nat.≤-reflexive (trans (sym (count-++ v ks rest))
                                         (sym (↭⇒count p v))))
-
-  count-pos→extract-elem
-    : (k : Fin n) (xs : List (Fin n)) → 0 <ⁿ count k xs
-    → Σ[ rest ∈ List (Fin n) ] Σ[ p ∈ xs Perm.↭ k ∷ rest ]
-        extract-elem k xs ≡ just (rest , p)
-  count-pos→extract-elem k []       ()
-  count-pos→extract-elem k (x ∷ xs) c with x ≟ k
-  ... | yes refl = xs , _ , refl
-  ... | no  x≢k  with count-pos→extract-elem k xs
-                      (subst (0 <ⁿ_) (count-cons-no k x xs (λ e → x≢k (sym e))) c)
-  ...   | rest , p , eq rewrite eq = x ∷ rest , _ , refl
-
-  count-≤→extract-prefix
-    : (ks xs : List (Fin n)) → (∀ v → count v ks ≤ⁿ count v xs)
-    → Σ[ rest ∈ List (Fin n) ] Σ[ p ∈ xs Perm.↭ ks ++ rest ]
-        extract-prefix ks xs ≡ just (rest , p)
-  count-≤→extract-prefix []       xs h = xs , Perm.refl , refl
-  count-≤→extract-prefix (k ∷ ks) xs h
-    with count-pos→extract-elem k xs
-           (Nat.<-≤-trans (s≤sⁿ z≤nⁿ)
-             (Nat.≤-trans (Nat.≤-reflexive (sym (count-cons-yes k ks))) (h k)))
-  ... | xs' , p , eq-elem
-      with count-≤→extract-prefix ks xs' h-rest
-    where
-      h-rest : ∀ v → count v ks ≤ⁿ count v xs'
-      h-rest v with v ≟ k
-      ... | yes refl =
-            s≤s⁻¹
-              (Nat.≤-trans (Nat.≤-reflexive (sym (count-cons-yes k ks)))
-              (Nat.≤-trans (h k)
-                           (Nat.≤-reflexive
-                             (trans (↭⇒count p k) (count-cons-yes k xs')))))
-      ... | no  v≢k =
-            Nat.≤-trans (Nat.≤-reflexive (sym (count-cons-no v k ks v≢k)))
-            (Nat.≤-trans (h v)
-                         (Nat.≤-reflexive
-                           (trans (↭⇒count p v) (count-cons-no v k xs' v≢k))))
-  ...   | rest , q , eq-rest rewrite eq-elem | eq-rest =
-          rest , _ , refl
 
   count-concat-tabulate-≤
     : ∀ {nE} (f : Fin nE → List (Fin n)) (e : Fin nE) (v : Fin n)

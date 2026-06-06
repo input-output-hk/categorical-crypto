@@ -85,20 +85,11 @@ open import Relation.Binary.PropositionalEquality using (_≢_)
 -- These mirror the `private`-block helpers inside `Linearity` (which are
 -- not exported).  Each is self-contained and small.
 
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.CountCombinatorics sig
+  using (count-cons-yes; count-cons-no)
+  renaming (↭⇒count to ↭⇒count-≡)
+
 private
-  count-cons-yes : ∀ {n} (v : Fin n) (xs : List (Fin n))
-                 → count v (v ∷ xs) ≡ suc (count v xs)
-  count-cons-yes v xs with v ≟ v
-  ... | yes _ = refl
-  ... | no  q = ⊥-elim (q refl)
-
-  count-cons-no : ∀ {n} (v x : Fin n) (xs : List (Fin n))
-                → ¬ (v ≡ x)
-                → count v (x ∷ xs) ≡ count v xs
-  count-cons-no v x xs v≢x with v ≟ x
-  ... | yes p = ⊥-elim (v≢x p)
-  ... | no  _ = refl
-
   count-mono-cons : ∀ {n} (v x : Fin n) (xs : List (Fin n))
                   → count v xs Nat.≤ count v (x ∷ xs)
   count-mono-cons v x xs with v ≟ x
@@ -122,44 +113,6 @@ private
   ... | yes refl = [] , xs , refl
   ... | no  _    with count-pos→split v xs c
   ...               | xs₁ , xs₂ , refl = (x ∷ xs₁) , xs₂ , refl
-
-  ↭⇒count-≡
-    : ∀ {n} {xs ys : List (Fin n)}
-    → xs Perm.↭ ys → ∀ v → count v xs ≡ count v ys
-  ↭⇒count-≡ Perm.refl              v = refl
-  ↭⇒count-≡ (Perm.prep x p)        v with v ≟ x
-  ... | yes _ = cong suc (↭⇒count-≡ p v)
-  ... | no  _ = ↭⇒count-≡ p v
-  ↭⇒count-≡ (Perm.swap {xs = xs'} {ys = ys'} x y p) v =
-    swap-case (v ≟ x) (v ≟ y)
-    where
-      swap-case : Dec (v ≡ x) → Dec (v ≡ y)
-                → count v (x ∷ y ∷ xs') ≡ count v (y ∷ x ∷ ys')
-      swap-case (yes refl) (yes refl) =
-        trans (count-cons-yes v (v ∷ xs'))
-        (trans (cong suc (count-cons-yes v xs'))
-        (trans (cong suc (cong suc (↭⇒count-≡ p v)))
-        (trans (cong suc (sym (count-cons-yes v ys')))
-               (sym (count-cons-yes v (v ∷ ys'))))))
-      swap-case (yes refl) (no  q) =
-        trans (count-cons-yes v (y ∷ xs'))
-        (trans (cong suc (count-cons-no v y xs' q))
-        (trans (cong suc (↭⇒count-≡ p v))
-        (trans (sym (count-cons-yes v ys'))
-               (sym (count-cons-no v y (v ∷ ys') q)))))
-      swap-case (no  q) (yes refl) =
-        trans (count-cons-no v x (v ∷ xs') q)
-        (trans (count-cons-yes v xs')
-        (trans (cong suc (↭⇒count-≡ p v))
-        (trans (cong suc (sym (count-cons-no v x ys' q)))
-               (sym (count-cons-yes v (x ∷ ys'))))))
-      swap-case (no  q₁) (no  q₂) =
-        trans (count-cons-no v x (y ∷ xs') q₁)
-        (trans (count-cons-no v y xs' q₂)
-        (trans (↭⇒count-≡ p v)
-        (trans (sym (count-cons-no v x ys' q₁))
-               (sym (count-cons-no v y (x ∷ ys') q₂)))))
-  ↭⇒count-≡ (Perm.trans p₁ p₂)     v = trans (↭⇒count-≡ p₁ v) (↭⇒count-≡ p₂ v)
 
   count-cancel-cons
     : ∀ {n} (v x : Fin n) (xs ys : List (Fin n))
