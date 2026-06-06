@@ -64,10 +64,9 @@ module Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph; domL; codL)
+open import Categories.APROP.Hypergraph.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.FromAPROP sig
   using (FlatGen; flatten; range; hTensor
-        ; domL-hTensor; codL-hTensor
         ; ⟪_⟫; ⟪⟫-domL; ⟪⟫-codL; map-via-inj; map-via-raise)
 import Categories.APROP.Hypergraph.FromAPROP sig as FA
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
@@ -94,7 +93,6 @@ import Categories.APROP.Hypergraph.Invariant sig as Inv
 
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.ProcessEdgesTermShape sig
   using (module TermEmbed; pe-term-++; pe-stack-++)
-import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackEquivariance sig as SE
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUniqueReach sig as SUR
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUnique sig as SU
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidEquivariant sig as FME
@@ -109,24 +107,19 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.CIsoAssocFromCons
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
   using (Agen-edge-aux)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation sig
-  using (EdgeStepR; skipR; fireR; fire-term; fire-mid; box-of; box-of-cong
-        ; edge-step-graph; edge-step-sound)
+  using (EdgeStepR; skipR; fireR; fire-term; fire-mid; box-of
+        ; edge-step-graph)
 
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
-open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_)
-open import Categories.PermuteCoherence.Eval using (eval-↭)
-open import Categories.Hypergraph.ExtractPrefixEvalPhi
-  using (eval-map⁺; cast-irrel; subst₂-FinBij-∘; ≈-fb-of-≡)
 
 open import Categories.Category using (Category)
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using (↑ˡ-injective; ↑ʳ-injective)
-open import Data.List using (List; []; _∷_; _++_; map; length)
-open import Data.List.Properties using (map-++; map-∘; map-cong; length-map; ++-assoc; ++-identityʳ)
+open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.List.Properties using (map-++; ++-assoc)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-import Data.List.Relation.Unary.Unique.Propositional.Properties as UniqueProp
 open import Data.List.Relation.Unary.AllPairs using ([]; _∷_)
 import Data.List.Relation.Unary.All.Properties as AllProp
 open import Data.Maybe using (Maybe; just; nothing)
@@ -134,7 +127,7 @@ open import Data.Maybe.Properties using (just-injective)
 open import Data.Empty using (⊥; ⊥-elim)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂; ∃; ∃-syntax)
+open import Data.Product using (_,_; _×_; proj₁; proj₂; ∃; ∃-syntax)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂; module ≡-Reasoning)
 open import Relation.Binary.PropositionalEquality.Properties
@@ -145,8 +138,8 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransp
         ; subst₂-FlatGen-cancel; subst₂-FlatGen-cancel′
         ; subst₂-HomTerm-irrel; subst₂-HomTerm-∘; subst₂-resp-≈Term
         ; subst₂-HomTerm-∘-dist; subst₂-⊗₁-dist
-        ; permute-subst₂; map⁺-subst₂; eval-subst₂-↭
-        ; vlab-φ-lemma; pvv-relabel
+        ; permute-subst₂
+        ; pvv-relabel
         ; Linear⇒cod-Unique; decode-attempt-extract )
 
 private
@@ -428,9 +421,6 @@ module EmbedData
 module BoxAssoc where
   open FM.HomReasoning
 
-  ≡⇒≈Term' : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-  ≡⇒≈Term' refl = ≈-Term-refl
-
   sym² : ∀ {a} {A : Set a} {x y : A} (p : x ≡ y) → sym (sym p) ≡ p
   sym² refl = refl
 
@@ -563,13 +553,6 @@ module BoxAssoc where
                → HomTerm (unflatten c) (unflatten d)
   subst-id-cod {c} q = subst (λ z → HomTerm (unflatten c) (unflatten z)) q id
 
-  subst₂-as-conj
-    : ∀ {a b c d : List X} (p : a ≡ b) (q : c ≡ d)
-        (t : HomTerm (unflatten a) (unflatten c))
-    → subst₂ HomTerm (cong unflatten p) (cong unflatten q) t
-      ≈Term subst-id-cod q ∘ t ∘ subst-id-dom p
-  subst₂-as-conj refl refl t = ≈-Term-trans (≈-Term-sym idˡ) (refl⟩∘⟨ ≈-Term-sym idʳ)
-
   ------------------------------------------------------------------------
   -- BOX-SUFFIX: a box on residual `restG ++ R` factors (modulo the
   -- `++-assoc` boundary transport) as `(box on restG) ⊗₁ id` framed by
@@ -659,8 +642,8 @@ module BoxAssoc where
         ≈-Term-trans
           (conj-lemma (cong unflatten (sym (++-assoc einL restG R)))
                       (cong unflatten (sym (++-assoc eoutL restG R))) bxRaw)
-          (∘-resp-≈ (≡⇒≈Term' s-eo⁻-as)
-            (∘-resp-≈ ≈-Term-refl (≡⇒≈Term' s-ei-as)))
+          (∘-resp-≈ (≡⇒≈Term s-eo⁻-as)
+            (∘-resp-≈ ≈-Term-refl (≡⇒≈Term s-ei-as)))
 
       goal :
         subst₂ HomTerm
@@ -1076,8 +1059,8 @@ module BoxAssoc where
         ≈-Term-trans
           (conj-lemma (cong unflatten (sym (++-assoc P einR restK)))
                       (cong unflatten (sym (++-assoc P eoutR restK))) bxRaw)
-          (∘-resp-≈ (≡⇒≈Term' s-eo⁻-as)
-            (∘-resp-≈ ≈-Term-refl (≡⇒≈Term' s-ei-as)))
+          (∘-resp-≈ (≡⇒≈Term s-eo⁻-as)
+            (∘-resp-≈ ≈-Term-refl (≡⇒≈Term s-ei-as)))
 
       goal :
         subst₂ HomTerm
@@ -1985,25 +1968,13 @@ module BoxAssoc where
                 ((id {Ueo} ⊗₁ to-P-rest)
                   ∘ (α⇒ {Ueo} {UP} {Ur} ∘ (((G ⊗₁ id {UP}) ⊗₁ id {Ur}) ∘ (α⇐ {Uei} {UP} {Ur} ∘ (id {Uei} ⊗₁ from-P-rest)))))
                   ∘ from-ei-Prest
-                  ≈⟨ reassoc-inner ⟩∘⟨refl ⟩
+                  ≈⟨ ≈-Term-refl ⟩∘⟨refl ⟩
                 ((id {Ueo} ⊗₁ to-P-rest)
                   ∘ α⇒ {Ueo} {UP} {Ur}
                   ∘ ((G ⊗₁ id {UP}) ⊗₁ id {Ur})
                   ∘ α⇐ {Uei} {UP} {Ur}
                   ∘ (id {Uei} ⊗₁ from-P-rest))
                   ∘ from-ei-Prest ∎)
-            where
-              -- reshuffle the inner block back to the right-nested shape.
-              reassoc-inner
-                : (id {Ueo} ⊗₁ to-P-rest)
-                  ∘ (α⇒ {Ueo} {UP} {Ur} ∘ (((G ⊗₁ id {UP}) ⊗₁ id {Ur}) ∘ (α⇐ {Uei} {UP} {Ur} ∘ (id {Uei} ⊗₁ from-P-rest))))
-                ≈Term
-                  (id {Ueo} ⊗₁ to-P-rest)
-                  ∘ α⇒ {Ueo} {UP} {Ur}
-                  ∘ ((G ⊗₁ id {UP}) ⊗₁ id {Ur})
-                  ∘ α⇐ {Uei} {UP} {Ur}
-                  ∘ (id {Uei} ⊗₁ from-P-rest)
-              reassoc-inner = ≈-Term-refl
 
 --------------------------------------------------------------------------------
 -- ## The GENERIC `vlab`-framed box-suffix reframe.
@@ -2508,23 +2479,6 @@ module BlockFactor
                    (_≅_.from (unflatten-++-≅ (map C.vlab As) (map C.vlab Bs)))
     from-BTC As Bs = BNB.from-subst₂-≅ (cong unflatten (sym (map-++ C.vlab As Bs)))
                        (unflatten-++-≅ (map C.vlab As) (map C.vlab Bs))
-
-    -- `unflatten-++-≅`'s to/from under a BLOCK-1 list equality `r : L ≡ L'`
-    -- (the `map-++ C.vlab` split between `box-suffix` and `BTC.uf++`),
-    -- expressed as a single `subst` over the block-1 list.
-    -- (`_≅_` from `Categories.Morphism`: `to : B ⇒ A`, `from : A ⇒ B`, so
-    -- `to (uf L R) : ⊗ ⇒ (++)` and `from (uf L R) : (++) ⇒ ⊗`.)
-    to-blk1 : ∀ (R L L' : List X) (r : L ≡ L')
-            → subst (λ z → HomTerm (unflatten z ⊗₀ unflatten R) (unflatten (z ++ R)))
-                    r (_≅_.to (unflatten-++-≅ L R))
-              ≡ _≅_.to (unflatten-++-≅ L' R)
-    to-blk1 R L .L refl = refl
-
-    from-blk1 : ∀ (R L L' : List X) (r : L ≡ L')
-              → subst (λ z → HomTerm (unflatten (z ++ R)) (unflatten z ⊗₀ unflatten R))
-                      r (_≅_.from (unflatten-++-≅ L R))
-                ≡ _≅_.from (unflatten-++-≅ L' R)
-    from-blk1 R L .L refl = refl
 
   private
     Rys-flat : (ys : List (Fin K.nV)) → List X
@@ -3874,15 +3828,6 @@ module BlockFactor
           (sym (cong proj₁ (proj₁ (proj₂ (proj₂ (KBraid-data es P ys))))))
           (proj₂ (proj₂ (proj₂ (KBraid-data es P ys))))
 
-  -- `mixed-stack-K` is REFLEXIVE: the codomain `coeC` transports `pe-termC`'s
-  -- codomain to is the ACTUAL mixed K-run stack (NO clean stack `≡` exists —
-  -- the K-edges prepend).  The braid to the clean target lives in `KFactored`.
-  mixed-stack-K
-    : (es : List (Fin K.nE)) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
-    → pe-stackC (map (G.nE ↑ʳ_) es) (map injL P ++ map injR ys)
-      ≡ pe-stackC (map (G.nE ↑ʳ_) es) (map injL P ++ map injR ys)
-  mixed-stack-K es P ys = refl
-
   -- The K-side factorization target: the clean `(id {prefix} ⊗₁ Kterm)`
   -- (`KClean`) followed by the K-prepend braid `pvlC (↭-sym KBraid)` carrying
   -- the clean codomain back to the actual mixed-run codomain.  (Mirror of
@@ -4299,21 +4244,6 @@ module BlockFactor
                (sym (map-++ C.vlab (A ++ B) Cc)))
         ∘ (rawTo₀ (map C.vlab A ++ map C.vlab B) (map C.vlab Cc)
            ∘ (rawTo₀ (map C.vlab A) (map C.vlab B) ⊗₁ id)) ∎
-
-  -- c-iso-assoc-from at the `map C.vlab` images (the raw left-nested view
-  -- `from` reassociates to the right-nested one + the `++-assoc` subst-id).
-  cif-probe
-    : ∀ (A B Cc : List (Fin C.nV))
-    → α⇒ {unflatten (map C.vlab A)} {unflatten (map C.vlab B)} {unflatten (map C.vlab Cc)}
-        ∘ (rawFrom₀ (map C.vlab A) (map C.vlab B) ⊗₁ id)
-        ∘ rawFrom₀ (map C.vlab A ++ map C.vlab B) (map C.vlab Cc)
-      ≈Term (id {unflatten (map C.vlab A)} ⊗₁ rawFrom₀ (map C.vlab B) (map C.vlab Cc))
-            ∘ rawFrom₀ (map C.vlab A) (map C.vlab B ++ map C.vlab Cc)
-            ∘ subst (λ z → HomTerm
-                       (unflatten ((map C.vlab A ++ map C.vlab B) ++ map C.vlab Cc))
-                       (unflatten z))
-                    (++-assoc (map C.vlab A) (map C.vlab B) (map C.vlab Cc)) id
-  cif-probe A B Cc = c-iso-assoc-from (map C.vlab A) (map C.vlab B) (map C.vlab Cc)
 
   ------------------------------------------------------------------------
   -- ### `σin-as-pvl` — the final lemma.  box-braid's input braid `σ-in`,
@@ -5873,12 +5803,6 @@ module BlockFactor
   ys-step : (e : Fin K.nE) (ys : List (Fin K.nV)) → List (Fin K.nV)
   ys-step e ys = proj₁ (edge-step K ys e)
 
-  -- `pe-stackK (e ∷ es) ys ≡ pe-stackK es (ys-step e ys)`  (definitional).
-  pe-stackK-cons
-    : (e : Fin K.nE) (es : List (Fin K.nE)) (ys : List (Fin K.nV))
-    → pe-stackK (e ∷ es) ys ≡ pe-stackK es (ys-step e ys)
-  pe-stackK-cons e es ys = refl
-
   -- The clean pure-R head: `edge-step C (map injR ys) (ψK e)`.
   zs1 : (e : Fin K.nE) (ys : List (Fin K.nV)) → List (Fin C.nV)
   zs1 e ys = proj₁ (edge-step C-hg (map injR ys) (ψK e))
@@ -6112,13 +6036,6 @@ module BlockFactor
     _≅_.to (BTC.uf++ (map injL P) (map injR ysK))
     ∘ (id {RpreObj P} ⊗₁ kh)
     ∘ _≅_.from (BTC.uf++ (map injL P) (map injR ys))
-
-  -- `KCleanHead e P ys` is `KCleanHead-gen` at the real K-step + head.
-  KCleanHead-gen-real
-    : (e : Fin K.nE) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
-    → KCleanHead e P ys
-      ≡ KCleanHead-gen P ys (ys-step e ys) (Khead-emb e ys)
-  KCleanHead-gen-real e P ys = refl
 
   ------------------------------------------------------------------------
   -- ### Shared abbreviations for the FIRE-core halves (split out to bound the
@@ -6881,13 +6798,13 @@ module BlockFactor
     : (es : List (Fin K.nE)) (P : List (Fin G.nV)) (ys : List (Fin K.nV))
     → SUR.Reservoir≤1 (hTensor G K) (map (G.nE ↑ʳ_) es)
         (map injL P ++ map injR ys)
-    → coeC {map injL P ++ map injR ys} (mixed-stack-K es P ys)
+    → coeC {map injL P ++ map injR ys} refl
         (pe-termC (map (G.nE ↑ʳ_) es) (map injL P ++ map injR ys))
       ≈Term KFactored es P ys
   kblock-factor es P ys res = begin
-      coeC {clean} (mixed-stack-K es P ys) (pe-termC (map (G.nE ↑ʳ_) es) clean)
+      coeC {clean} refl (pe-termC (map (G.nE ↑ʳ_) es) clean)
         ≈⟨ ≡⇒≈Term (cong (λ z → coeC {clean} z (pe-termC (map (G.nE ↑ʳ_) es) clean))
-                         (uipL (mixed-stack-K es P ys) refl)) ⟩
+                         (uipL refl refl)) ⟩
       pe-termC (map (G.nE ↑ʳ_) es) clean
         ≈⟨ kfac-gen es P ys clean Perm.↭-refl (Perm.↭-sym (KBraid es P ys))
                     uniq-clean-s res ⟩
