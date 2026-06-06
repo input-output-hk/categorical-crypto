@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- Pruned-vs-unpruned decoder shape, factored through PRUNED shape lemmas.

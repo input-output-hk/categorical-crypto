@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- Generic block-braiding coherence underlying `FireMidInterchange`'s
@@ -16,9 +16,12 @@
 --------------------------------------------------------------------------------
 
 open import Categories.FreeMonoidal
+open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFVoutCoh
-  (d : FreeMonoidalData) ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
+  (d : FreeMonoidalData)
+  (_≟X_ : DecidableEquality (FreeMonoidalData.X d))
+  ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
 
 open FreeMonoidalData d using (X)
 open FreeMonoidal d
@@ -27,7 +30,7 @@ open import Categories.PermuteCoherence.Faithfulness d
   using (unflatten; unflatten-++-≅; permute; FaithfulnessResidual)
 open import Categories.PermuteCoherence.Canonical using (_≅↭_)
 open import Categories.FreeSMC.Steps d using (permute-via-vlab)
-import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFBraid d
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFBraid d _≟X_
   as BlockNFBraid
 
 open import Categories.Category using (Category)

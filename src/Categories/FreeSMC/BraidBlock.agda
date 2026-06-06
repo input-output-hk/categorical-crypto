@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- Step ① foundation: the `σ-block` / `braid` keystone at the

@@ -13,7 +13,7 @@
 -- (the `decodeP-≡-decodeOrd-range` lemma).  The chain is axiom-free: the
 -- Kelly residual `K-faithfulness` is the proven
 -- `FaithfulnessInductive.faithfulness`.
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 open import Categories.APROP
 open import Relation.Binary using (DecidableEquality)
@@ -43,7 +43,7 @@ import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceWiring si
 import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceConcrete sig as IC
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.RunInterchangeTail sig as RIT
-import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.RunInterchangeEmptyTail sig as RET
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.RunInterchangeEmptyTail sig _≟X_ as RET
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUniqueReach sig as SUR
 open import Categories.APROP.Hypergraph.HomTermInvariant sig using (⟪_⟫-cod-unique)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.DepIrrefl sig
@@ -57,7 +57,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.FinOrderNoInv sig
 -- (`FaithfulnessInductive.faithfulness`), bound as `K-faithfulness`.
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
-open import Categories.PermuteCoherence.FaithfulnessInductive asFreeMonoidalData
+open import Categories.PermuteCoherence.FaithfulnessInductive asFreeMonoidalData _≟X_
   using () renaming (faithfulness to K-faithfulness)
 
 open import Data.Maybe using (Maybe; just; nothing)
@@ -71,7 +71,7 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; cong; subst; subst₂)
 
 import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeOrdBoundary sig as DOB
-import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRelDecodeP sig as DRDP
+import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRelDecodeP sig _≟X_ as DRDP
 
 ------------------------------------------------------------------------
 -- The pruned decoder: the pruned totality `decode-attempt-LinearP` plus

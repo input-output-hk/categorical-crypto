@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- Part (I) of the completeness proof: structural ↔ pruned-algorithmic
@@ -43,8 +43,11 @@
 
 open import Categories.APROP
 
+open import Relation.Binary using (DecidableEquality)
+
 module Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRelDecodeP
-  (sig : APROPSignature) where
+  (sig : APROPSignature)
+  (_≟X_ : DecidableEquality (APROPSignature.X sig)) where
 
 open APROP sig
 
@@ -71,12 +74,12 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeShape sig
   using (DecodeShapeResiduals; module DecodeShapeResiduals)
 -- The shape lemmas (∘-side, ⊗-side), each in a top-level `module _ (objUIP)(Kf)`.
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeComposeShape sig as DCS
-import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig as DTS
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig _≟X_ as DTS
 -- The PRUNED shape lemmas (∘-side, ⊗-side).
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeComposePruned sig as DCP
-import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorPruned sig as DTP
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorPruned sig _≟X_ as DTP
 -- The single-edge collapses `decode-{Agen,σ}-collapse`.
-import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeAgenSigmaShape sig as DAS
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeAgenSigmaShape sig _≟X_ as DAS
 import Categories.APROP.Hypergraph.Completeness.Discharge.DecoderAgreementCases as Cases
 module Cases-sig = Cases sig
 import Categories.APROP.Hypergraph.Completeness.Discharge.DecoderAgreementRho as Rho

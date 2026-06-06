@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- The σ-collapse of `agenSigmaResiduals`: `decode-σ-collapse`.
@@ -31,8 +31,11 @@
 
 open import Categories.APROP
 
+open import Relation.Binary using (DecidableEquality)
+
 module Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeAgenSigmaShape
-  (sig : APROPSignature) where
+  (sig : APROPSignature)
+  (_≟X_ : DecidableEquality (APROPSignature.X sig)) where
 
 open APROP sig
 open import Categories.FreeMonoidal using (v≤v)
@@ -61,7 +64,7 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
 
 -- The ⊗-shape residual (parameterised by `objUIP` + `K`), reused to build
 -- `decode-id-is-id` for compound objects.
-import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig as DTS
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig _≟X_ as DTS
 
 -- Mac-Lane list machinery for the associator collapse.
 open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtripSafe sig
@@ -75,9 +78,9 @@ import Categories.APROP.Hypergraph.Completeness.Discharge.BridgeAlphaFormCompoun
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.PermuteCoherenceK
   asFreeMonoidalData using (permute-via-vlab-≈Term-coherence-K)
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFVoutCoh
-  asFreeMonoidalData as BNV
+  asFreeMonoidalData _≟X_ as BNV
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFBraid
-  asFreeMonoidalData as BNB
+  asFreeMonoidalData _≟X_ as BNB
 
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)

@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 ------------------------------------------------------------------------
 -- Companion to `Faithfulness`, using --with-K.  Provides:

@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 ------------------------------------------------------------------------
 -- Rigidity of `eval-↭` on `Unique` codomains: if `ys` is `Unique`, then

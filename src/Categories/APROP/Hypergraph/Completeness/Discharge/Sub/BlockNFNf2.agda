@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- The `nf₂-eq′` / `nf₁-eq′` block-normal-form factorisations used by
@@ -19,8 +19,11 @@
 
 open import Categories.APROP
 
+open import Relation.Binary using (DecidableEquality)
+
 module Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFNf2
-  (sig : APROPSignature) where
+  (sig : APROPSignature)
+  (_≟X_ : DecidableEquality (APROPSignature.X sig)) where
 
 open APROP sig
 
@@ -46,11 +49,11 @@ import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidInterchange
 -- machinery.  Top-level submodules of `DecodeTensorShape` (parameterised
 -- only by `sig` / a `vlab`), so importing them does NOT pull in the decode
 -- machinery.  Acyclic: `DecodeTensorShape` does not import this module.
-import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig as DTS
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig _≟X_ as DTS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFBraid
-  asFreeMonoidalData as BNB
+  asFreeMonoidalData _≟X_ as BNB
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFVoutCoh
-  asFreeMonoidalData as BNV
+  asFreeMonoidalData _≟X_ as BNV
 
 -- The Kelly faithfulness residual `K`.  The proof of `block-bracket` needs
 -- it (via `permute-via-vlab-≈Term-coherence-K`) to reconcile the firing
@@ -74,7 +77,14 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂; module ≡-Reasoning)
 open import Relation.Binary.PropositionalEquality.Properties
   using (trans-cong; trans-reflʳ; cong-∘)
-open import Axiom.UniquenessOfIdentityProofs.WithK using (uip)
+
+-- Hedberg UIP on `ObjTerm` from decidable equality on `X` (replaces the
+-- `--with-K` `uip`, illegal under `--without-K`).
+open import Categories.APROP.Hypergraph.Completeness.Discharge.ObjUIP
+  using (module ObjUIP)
+
+uip : ∀ {a b : ObjTerm} (p q : a ≡ b) → p ≡ q
+uip = ObjUIP.objUIP′ {Symm} {X} _≟X_
 
 -- The H-only (K-FREE) "view frames": the `Aein`/`Aeout`/`box-e`/`R-obj`/
 -- `uf++`/`≅⊗id`/`view-in≅`/`view-out≅` block re-bracketings.  PUBLIC so

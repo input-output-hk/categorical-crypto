@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- The EMPTY-TAIL two-edge interchange core `run-interchange₀`.
@@ -55,8 +55,11 @@
 
 open import Categories.APROP
 
+open import Relation.Binary using (DecidableEquality)
+
 module Categories.APROP.Hypergraph.Completeness.Discharge.Sub.RunInterchangeEmptyTail
-  (sig : APROPSignature) where
+  (sig : APROPSignature)
+  (_≟X_ : DecidableEquality (APROPSignature.X sig)) where
 
 open APROP sig
 
@@ -76,7 +79,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
   using (Dep)
 
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
-import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidInterchange sig as FMI
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidInterchange sig _≟X_ as FMI
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUniqueReach sig as SUR
 
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData

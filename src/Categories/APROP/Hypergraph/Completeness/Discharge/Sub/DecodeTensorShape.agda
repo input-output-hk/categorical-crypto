@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- The UNPRUNED `⊗` shape residual `decode-⊗-shape-inner` (tensor analogue
@@ -37,8 +37,11 @@
 
 open import Categories.APROP
 
+open import Relation.Binary using (DecidableEquality)
+
 module Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape
-  (sig : APROPSignature) where
+  (sig : APROPSignature)
+  (_≟X_ : DecidableEquality (APROPSignature.X sig)) where
 
 open APROP sig
 
@@ -77,9 +80,9 @@ import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidEquivariant
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.PermuteCoherenceK
   asFreeMonoidalData using (permute-via-vlab-≈Term-coherence-K)
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFBraid
-  asFreeMonoidalData as BNB
+  asFreeMonoidalData _≟X_ as BNB
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFVoutCoh
-  asFreeMonoidalData as BNV
+  asFreeMonoidalData _≟X_ as BNV
 open import Categories.APROP.Hypergraph.Completeness.Discharge.CIsoAssocFromCons sig
   using (c-iso-assoc-from)
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
@@ -95,8 +98,11 @@ open import Categories.Category using (Category)
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using (↑ˡ-injective; ↑ʳ-injective)
+import Data.Fin.Properties as FinP
+import Axiom.UniquenessOfIdentityProofs as UIPmod
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-++; ++-assoc)
+open import Data.List.Properties using () renaming (≡-dec to List-≡-dec)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.List.Relation.Unary.AllPairs using ([]; _∷_)
 import Data.List.Relation.Unary.All.Properties as AllProp
@@ -2161,9 +2167,10 @@ module BlockFactor
   ------------------------------------------------------------------------
   -- ### Reusable per-edge pieces for the G-suffix induction.
 
-  -- UIP on the vertex-list type (`--with-K`).
+  -- UIP on the vertex-list type, via Hedberg (decidable equality on
+  -- `List (Fin C.nV)`), under `--without-K`.
   uipL : ∀ {a b : List (Fin C.nV)} (p q : a ≡ b) → p ≡ q
-  uipL refl refl = refl
+  uipL = UIPmod.Decidable⇒UIP.≡-irrelevant (List-≡-dec FinP._≟_)
 
   pvlC : {xs ys : List (Fin C.nV)} → xs Perm.↭ ys
        → HomTerm (unflatten (map C.vlab xs)) (unflatten (map C.vlab ys))

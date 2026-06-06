@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 ------------------------------------------------------------------------
 -- An INDUCTIVE variant of `≅↭`, and `K-faithfulness` from it.
@@ -26,9 +26,12 @@
 ------------------------------------------------------------------------
 
 open import Categories.FreeMonoidal
+open import Relation.Binary using (DecidableEquality)
 
 module Categories.PermuteCoherence.FaithfulnessInductive
-  (d : FreeMonoidalData) ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
+  (d : FreeMonoidalData)
+  (_≟X_ : DecidableEquality (FreeMonoidalData.X d))
+  ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
 
 open FreeMonoidal d
 open FreeMonoidalData d using (X)
@@ -38,12 +41,15 @@ import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 open import Data.Nat.Base using (ℕ; suc; pred)
 open import Data.Nat.Properties using (suc-injective)
+open import Data.Nat.Properties using () renaming (≡-irrelevant to ℕ-≡-irrelevant)
 open import Data.Fin.Base using (Fin) renaming (suc to fsuc)
 open import Data.Fin.Patterns using (0F)
 import Data.Fin.Permutation as P
 open import Relation.Binary.PropositionalEquality.Core using (_≡_; refl; sym; trans; cong; subst)
 open import Relation.Binary.PropositionalEquality using (subst₂)
 open import Relation.Binary.PropositionalEquality.Properties using (subst-subst)
+open import Data.List.Properties using () renaming (≡-dec to List-≡-dec)
+import Axiom.UniquenessOfIdentityProofs as UIPmod
 open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (↭-length)
 open import Data.Product using (Σ; _,_; proj₁; proj₂; Σ-syntax)
 
@@ -78,6 +84,12 @@ private
     x y z a b c e : X
     xs ys zs ws : List X
     xs′ ys′ zs′ : List X
+
+-- Hedberg UIP on `List X`, from decidable equality on the atom type `X`.
+-- Used to discharge constrained `List X` endpoint equalities in the
+-- heterogeneous wrapper without `--with-K`.
+uipX : ∀ {us vs : List X} (p q : us ≡ vs) → p ≡ q
+uipX = UIPmod.Decidable⇒UIP.≡-irrelevant (List-≡-dec _≟X_)
 
 ------------------------------------------------------------------------
 -- 1. The inductive congruence `_≅↭ⁱ_`.
@@ -385,7 +397,12 @@ prepᴴ (refl , refl , h) = refl , refl , prepc h
 
 trcᴴ : {p : xs ↭ ys} {q : ys ↭ zs} {p′ : xs′ ↭ ys′} {q′ : ys′ ↭ zs′}
      → p ≅↭ᴴ p′ → q ≅↭ᴴ q′ → Perm.trans p q ≅↭ᴴ Perm.trans p′ q′
-trcᴴ (refl , refl , h₁) (refl , refl , h₂) = refl , refl , trc h₁ h₂
+-- After matching the first wrapper to `(refl , refl , …)` the shared middle
+-- list `ys′` is unified with `ys`, so the second wrapper's domain equality
+-- `el₂ : ys ≡ ys` is constrained — it cannot be matched against `refl`
+-- under `--without-K`.  We bind it and collapse it via Hedberg UIP (`uipX`).
+trcᴴ {q = q} (refl , refl , h₁) (el₂ , refl , h₂) =
+  refl , refl , trc h₁ (subst (λ e → subst₂ Perm._↭_ e refl q ≅↭ⁱ _) (uipX el₂ refl) h₂)
 
 -- A single-generator piece is heterogeneously equal to another when its
 -- (index, list) inputs match (so the `∷c`/index-rewrite case is clean).
@@ -394,9 +411,13 @@ swapAt-↭-≅↭ᴴ : {n : ℕ} {i j : Fin n} → i ≡ j → (e : xs ≡ ys)
 swapAt-↭-≅↭ᴴ refl refl = hrefl
 
 -- Convert back to the homogeneous relation, once the endpoints coincide
--- (e.g. at `complete`, where `p q : xs ↭ ys`).
+-- (e.g. at `complete`, where `p q : xs ↭ ys`).  The endpoint equalities
+-- `el : xs ≡ xs`, `er : ys ≡ ys` are reflexive but not free, so we collapse
+-- them to `refl` via Hedberg UIP (`uipX`) instead of matching `--with-K`.
 toⁱ : {p q : xs ↭ ys} → p ≅↭ᴴ q → p ≅↭ⁱ q
-toⁱ (refl , refl , h) = h
+toⁱ {p = p} {q = q} (el , er , h) =
+  subst (λ e₂ → subst₂ Perm._↭_ refl e₂ p ≅↭ⁱ q) (uipX er refl)
+    (subst (λ e₁ → subst₂ Perm._↭_ e₁ er p ≅↭ⁱ q) (uipX el refl) h)
 
 -- Inject a homogeneous `≅↭ⁱ` into the wrapper.
 liftⁱ : {p q : xs ↭ ys} → p ≅↭ⁱ q → p ≅↭ᴴ q
@@ -604,10 +625,11 @@ flatten (Perm.swap {xs = []} {ys = ys′} x y p′) with flatten p′
 -- sandwiched between the two `flatten`-relations it yields `p ≅↭ⁱ q`.
 
 private
-  -- UIP on `Fin`-transports: independent of the length proof.
+  -- UIP on `Fin`-transports: independent of the length proof.  The two
+  -- `ℕ`-equalities are interchangeable by Hedberg UIP on `ℕ` (`--without-K`).
   subst-Fin-uip : {m m′ : ℕ} (e e′ : m ≡ m′) (k : Fin m)
                 → subst Fin e k ≡ subst Fin e′ k
-  subst-Fin-uip refl refl k = refl
+  subst-Fin-uip e e′ k = cong (λ z → subst Fin z k) (ℕ-≡-irrelevant e e′)
 
   subst₂-refl-l : {as bs cs : List X} (e : bs ≡ cs) (p : as ↭ bs)
                 → subst₂ Perm._↭_ refl e p ≡ subst (λ z → as ↭ z) e p
@@ -627,7 +649,8 @@ private
     → (k : Fin (suc (length zs)))
     → evalW w P.⟨$⟩ʳ k
       ≡ subst Fin (sym (↭-length p)) (eval-↭ p P.⟨$⟩ʳ k)
-  flatten-eval {z = z} {zs} {ys} p w (refl , er , h) k =
+  flatten-eval {z = z} {zs} {ys} p w (el , er , h) k
+    rewrite uipX el refl =
     trans (sym (eval-respect w (z ∷ zs) refl k))
     (trans (cast-push refl L (eval-↭ (⟦ w ⟧↭ (z ∷ zs))) k)
     (trans (cong (subst Fin L) (sym (sound h k)))

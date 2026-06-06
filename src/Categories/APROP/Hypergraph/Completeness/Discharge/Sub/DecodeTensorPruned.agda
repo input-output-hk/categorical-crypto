@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- The pruned `⊗` shape residual `decodeP-⊗-shape`:
@@ -15,8 +15,11 @@
 
 open import Categories.APROP
 
+open import Relation.Binary using (DecidableEquality)
+
 module Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorPruned
-  (sig : APROPSignature) where
+  (sig : APROPSignature)
+  (_≟X_ : DecidableEquality (APROPSignature.X sig)) where
 
 open APROP sig
 
@@ -31,7 +34,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeAttemptLine
   using (decode-attempt-LinearP; ⟪⟫-LinearP)
 
 -- The generic decoder-agnostic ⊗ assembly.
-open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig _≟X_
   using (module DecodeShapeGeneric)
 
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData

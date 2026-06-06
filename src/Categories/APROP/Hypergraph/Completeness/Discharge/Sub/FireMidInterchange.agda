@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- Discharge of the `fire-mid-interchange` residual of
@@ -23,8 +23,11 @@
 
 open import Categories.APROP
 
+open import Relation.Binary using (DecidableEquality)
+
 module Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidInterchange
-  (sig : APROPSignature) where
+  (sig : APROPSignature)
+  (_≟X_ : DecidableEquality (APROPSignature.X sig)) where
 
 open APROP sig
 
@@ -46,7 +49,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
 
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidInterchangeComb sig as Comb
-import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFNf2 sig as Nf2
+import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFNf2 sig _≟X_ as Nf2
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUnique sig as SU
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackEquivariance sig as SE
 
@@ -56,7 +59,7 @@ import Categories.FreeSMC.BraidBlock
 import Categories.FreeSMC.BraidPermute
 
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFVoutCoh
-  asFreeMonoidalData as BVC
+  asFreeMonoidalData _≟X_ as BVC
 
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)

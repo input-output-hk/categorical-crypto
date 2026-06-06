@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- `σ-block-⊗`: braiding a TENSOR block `(A₁ ⊗ A₂)` past `B` decomposes

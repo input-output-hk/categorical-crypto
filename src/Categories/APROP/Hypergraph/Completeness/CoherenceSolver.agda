@@ -1,4 +1,4 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- Use `Categories.MonoidalCoherence.Solver.solveM` (mechanised Mac Lane

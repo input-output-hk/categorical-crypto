@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- Discharge of `Ty-ρ⇒` and `Ty-ρ⇐` (two `DecoderAgreementAssumptions`

@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- The two pure-braiding residuals of `Sub/BlockNFVoutCoh.agda`, at the bare
@@ -21,8 +21,12 @@
 
 open import Categories.FreeMonoidal
 
+open import Relation.Binary using (DecidableEquality)
+
 module Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFBraid
-  (d : FreeMonoidalData) ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
+  (d : FreeMonoidalData)
+  (_≟X_ : DecidableEquality (FreeMonoidalData.X d))
+  ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
 
 open FreeMonoidalData d using (X)
 open FreeMonoidal d
@@ -45,15 +49,21 @@ open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-++)
+open import Data.List.Properties using () renaming (≡-dec to List-≡-dec)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 open import Relation.Binary.PropositionalEquality.Properties using (sym-cong)
-open import Axiom.UniquenessOfIdentityProofs.WithK using (uip)
+import Axiom.UniquenessOfIdentityProofs as UIPmod
 
 private
   module FM = Category FreeMonoidal
+
+-- Hedberg UIP on `List X`, from decidable equality on the atom type `X`.
+-- Replaces the `--with-K` `uip` (illegal under `--without-K`).
+uipX : ∀ {us vs : List X} (p q : us ≡ vs) → p ≡ q
+uipX = UIPmod.Decidable⇒UIP.≡-irrelevant (List-≡-dec _≟X_)
 
 open FM.HomReasoning
 
@@ -98,14 +108,16 @@ subst₂-↭-refl
   → subst₂ Perm._↭_ p p (Perm.refl {xs = us}) ≡ Perm.refl {xs = vs}
 subst₂-↭-refl refl = refl
 
--- Any two proofs of the same endpoint equalities are interchangeable
--- (UIP under `--with-K`).
+-- Any two proofs of the same endpoint equalities are interchangeable.
+-- Specialised to `B = X` (the only instantiation used) so that the
+-- Hedberg `uipX` (from `DecidableEquality X`) discharges the endpoint
+-- equalities under `--without-K`.
 subst₂-↭-irr
-  : ∀ {B : Set} {us us' vs vs' : List B}
+  : ∀ {us us' vs vs' : List X}
       (p p' : us ≡ us') (q q' : vs ≡ vs') (r : us Perm.↭ vs)
   → subst₂ Perm._↭_ p q r ≡ subst₂ Perm._↭_ p' q' r
 subst₂-↭-irr p p' q q' r =
-  cong₂ (λ a b → subst₂ Perm._↭_ a b r) (uip p p') (uip q q')
+  cong₂ (λ a b → subst₂ Perm._↭_ a b r) (uipX p p') (uipX q q')
 
 -- `↭-sym` commutes with `subst₂ _↭_` (swapping the endpoint paths).
 ↭-sym-subst₂
@@ -954,7 +966,7 @@ module _ {n : ℕ} (vlab : Fin n → X) where
     trans (map⁺-↭-sym vlab (PermProp.++-identityʳ fs))
     (trans (cong Perm.↭-sym (map⁺-↭-reflexive vlab (++-id fs)))
     (trans (cong (λ z → Perm.↭-sym (Perm.↭-reflexive z))
-              (uip (cong (map vlab) (++-id fs))
+              (uipX (cong (map vlab) (++-id fs))
                    (trans (sym (sym (map-++ vlab fs [])))
                           (trans (++-id (map vlab fs)) (sym (map-++ vlab [] fs))))))
     (trans (cong Perm.↭-sym
