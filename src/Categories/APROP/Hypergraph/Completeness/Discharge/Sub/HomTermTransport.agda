@@ -135,6 +135,22 @@ subst₂-⊗₁-dist
     ≡ subst₂ HomTerm p₁ q₁ a ⊗₁ subst₂ HomTerm p₂ q₂ b
 subst₂-⊗₁-dist refl refl refl refl a b = refl
 
+-- Whiskering by `_⊗₁ id {Z}` is functorial in the left factor: it carries
+-- composition to composition.  Shared by the block/fire-mid interchange
+-- consumers (`HomTerm`-generic; makes no use of `sig`).
+⊗id-∘ : ∀ {A B D} {Z : ObjTerm} (h : HomTerm B D) (k : HomTerm A B)
+      → (h ∘ k) ⊗₁ id {Z} ≈Term (h ⊗₁ id {Z}) ∘ (k ⊗₁ id {Z})
+⊗id-∘ h k =
+  ≈-Term-trans (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⊗-∘-dist
+
+-- Three-factor form, built from `⊗id-∘`.
+⊗id-∘∘ : ∀ {A B C D} {Z : ObjTerm}
+           (h : HomTerm C D) (k : HomTerm B C) (l : HomTerm A B)
+       → (h ∘ k ∘ l) ⊗₁ id {Z}
+         ≈Term (h ⊗₁ id {Z}) ∘ (k ⊗₁ id {Z}) ∘ (l ⊗₁ id {Z})
+⊗id-∘∘ h k l =
+  ≈-Term-trans (⊗id-∘ h (k ∘ l)) (∘-resp-≈ ≈-Term-refl (⊗id-∘ k l))
+
 ------------------------------------------------------------------------
 -- ## Box-shape `subst₂`/`pvl` transport algebra (shared across the
 --    box-shape consumers).

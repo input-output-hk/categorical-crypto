@@ -64,7 +64,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.PermuteCohere
   asFreeMonoidalData using (permute-via-vlab-≈Term-coherence-K)
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUnique sig as SU
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
-  using (subst₂-resp-≈Term)
+  using (subst₂-resp-≈Term; ⊗id-∘; ⊗id-∘∘)
 
 open import Categories.Category using (Category)
 open import Data.Fin using (Fin)
@@ -381,20 +381,6 @@ module _ (H : Hypergraph FlatGen)
       _≅_.to (view-out≅ a b R)
       ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id {R-obj R})
       ∘ _≅_.from (view-in≅ a b R)
-
-    private
-      ⊗id-∘∘ : ∀ {A B C D} {Z : ObjTerm}
-                 (h : HomTerm C D) (k : HomTerm B C) (l : HomTerm A B)
-             → (h ∘ k ∘ l) ⊗₁ id {Z}
-               ≈Term (h ⊗₁ id {Z}) ∘ (k ⊗₁ id {Z}) ∘ (l ⊗₁ id {Z})
-      ⊗id-∘∘ {Z = Z} h k l = begin
-        (h ∘ k ∘ l) ⊗₁ id {Z}
-          ≈⟨ ⊗-resp-≈ ≈-Term-refl (≈-Term-sym (≈-Term-trans idˡ idˡ)) ⟩
-        (h ∘ k ∘ l) ⊗₁ (id {Z} ∘ id {Z} ∘ id {Z})
-          ≈⟨ ⊗-∘-dist ⟩
-        (h ⊗₁ id {Z}) ∘ ((k ∘ l) ⊗₁ (id {Z} ∘ id {Z}))
-          ≈⟨ refl⟩∘⟨ ⊗-∘-dist ⟩
-        (h ⊗₁ id {Z}) ∘ (k ⊗₁ id {Z}) ∘ (l ⊗₁ id {Z}) ∎
 
     core≡both-framed
       : ∀ (a b : Fin H.nE) (R : List (Fin H.nV))
@@ -858,11 +844,6 @@ module _ (H : Hypergraph FlatGen)
       where
         to-ba   = _≅_.to   (BT.uf++ (H.ein b ++ H.eout a) R)
         from-ab = _≅_.from (BT.uf++ (H.eout a ++ H.ein b) R)
-
-        ⊗id-∘ : ∀ {A B D} (h : HomTerm B D) (k : HomTerm A B)
-              → (h ∘ k) ⊗₁ id {R-obj R} ≈Term (h ⊗₁ id) ∘ (k ⊗₁ id)
-        ⊗id-∘ h k =
-          ≈-Term-trans (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⊗-∘-dist
 
         Bb = Bframed b (H.eout a) ⊗₁ id {R-obj R}
         Sw = pvl (PermProp.++-comm (H.eout a) (H.ein b)) ⊗₁ id {R-obj R}

@@ -50,6 +50,8 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidInterchangeComb sig as Comb
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFNf2 sig _≟X_ as Nf2
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
+  using (⊗id-∘)
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUnique sig as SU
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackEquivariance sig as SE
 
@@ -434,11 +436,6 @@ module _ (H : Hypergraph FlatGen)
       ------------------------------------------------------------------
       bi : (bx' ⊗₁ bx) ≈Term σ ∘ ((bx ⊗₁ bx') ∘ σ)
       bi = box-interchange bx bx'
-
-      ⊗id-∘ : ∀ {A B D} (h : HomTerm B D) (k : HomTerm A B)
-            → (h ∘ k) ⊗₁ id {R} ≈Term (h ⊗₁ id) ∘ (k ⊗₁ id)
-      ⊗id-∘ h k =
-        ≈-Term-trans (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⊗-∘-dist
 
       core-swap : (bx' ⊗₁ bx) ⊗₁ id {R} ≈Term Sout ∘ (C ∘ Sin)
       core-swap =
