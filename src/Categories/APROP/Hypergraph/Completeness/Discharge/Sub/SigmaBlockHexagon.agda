@@ -29,6 +29,15 @@ open import Categories.Category using (Category)
 
 open import Categories.PermuteCoherence.Faithfulness d using (α⇐-comm)
 
+-- Mac-Lane coherence solver, used to discharge the pure-associator framing
+-- lemmas below (`pentagon-flip-right`, `α⇐∘id⊗α⇒-rewrite`,
+-- `α⇐-stack-from-pentagon`) in one line each.  Mirrors the setup in
+-- `Sub/SigmaBlockCommRaw.agda`.
+open import Categories.MonoidalCoherence using (module Solver)
+import Data.Vec as Vec
+open Vec using (Vec)
+open import Data.Fin using (Fin; zero; suc)
+
 private
   module FM = Category FreeMonoidal
 
@@ -287,33 +296,24 @@ private
       ≈Term α⇒ {A = P} {B = Q ⊗₀ R} {C = S}
               ∘ (α⇒ {A = P} {B = Q} {C = R} ⊗₁ id {A = S})
               ∘ α⇐ {A = P ⊗₀ Q} {B = R} {C = S}
-  pentagon-flip-right {P} {Q} {R} {S} =
-    begin
-      (id ⊗₁ α⇐) ∘ α⇒
-        ≈⟨ ≈-Term-sym idʳ ⟩
-      ((id ⊗₁ α⇐) ∘ α⇒) ∘ id
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym α⇒∘α⇐≈id) ⟩
-      ((id ⊗₁ α⇐) ∘ α⇒) ∘ (α⇒ ∘ α⇐)
-        ≈⟨ assoc ⟩
-      (id ⊗₁ α⇐) ∘ (α⇒ ∘ (α⇒ ∘ α⇐))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-      (id ⊗₁ α⇐) ∘ ((α⇒ ∘ α⇒) ∘ α⇐)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym pentagon) ≈-Term-refl) ⟩
-      (id ⊗₁ α⇐) ∘ (((id ⊗₁ α⇒) ∘ α⇒ ∘ (α⇒ ⊗₁ id)) ∘ α⇐)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-      (id ⊗₁ α⇐) ∘ ((id ⊗₁ α⇒) ∘ ((α⇒ ∘ (α⇒ ⊗₁ id)) ∘ α⇐))
-        ≈⟨ ≈-Term-sym assoc ⟩
-      ((id ⊗₁ α⇐) ∘ (id ⊗₁ α⇒)) ∘ ((α⇒ ∘ (α⇒ ⊗₁ id)) ∘ α⇐)
-        ≈⟨ ∘-resp-≈
-            (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-              (≈-Term-trans (⊗-resp-≈ idˡ α⇐∘α⇒≈id) id⊗id≈id))
-            ≈-Term-refl ⟩
-      id ∘ ((α⇒ ∘ (α⇒ ⊗₁ id)) ∘ α⇐)
-        ≈⟨ idˡ ⟩
-      (α⇒ ∘ (α⇒ ⊗₁ id)) ∘ α⇐
-        ≈⟨ assoc ⟩
-      α⇒ ∘ ((α⇒ ⊗₁ id) ∘ α⇐)
-    ∎
+  pentagon-flip-right {P} {Q} {R} {S} = solveM
+      ((idˢ ⊗₁ˢ α⇐ˢ {A = q} {r} {s}) ∘ˢ α⇒ˢ {A = p} {q} {r ⊗₀ˢ s})
+      (α⇒ˢ {A = p} {q ⊗₀ˢ r} {s}
+        ∘ˢ (α⇒ˢ {A = p} {q} {r} ⊗₁ˢ idˢ)
+        ∘ˢ α⇐ˢ {A = p ⊗₀ˢ q} {r} {s})
+    where
+      vars : Vec ObjTerm 4
+      vars = P Vec.∷ Q Vec.∷ R Vec.∷ S Vec.∷ Vec.[]
+      open Solver (record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal })
+                  {n = 4} vars
+        using (solveM)
+        renaming (α⇒ to α⇒ˢ; α⇐ to α⇐ˢ; id to idˢ; _∘_ to _∘ˢ_;
+                  _⊗₁_ to _⊗₁ˢ_; _⊗₀_ to _⊗₀ˢ_; Var to Varˢ)
+      p q r s : _
+      p = Varˢ zero
+      q = Varˢ (suc zero)
+      r = Varˢ (suc (suc zero))
+      s = Varˢ (suc (suc (suc zero)))
 
 --------------------------------------------------------------------------------
 -- α⇐∘id⊗α⇒-rewrite: α⇐_{P,Q,R⊗S} ∘ (id_P ⊗ α⇒_{Q,R,S})
@@ -327,54 +327,24 @@ private
       ≈Term α⇒ {A = P ⊗₀ Q} {B = R} {C = S}
               ∘ (α⇐ {A = P} {B = Q} {C = R} ⊗₁ id {A = S})
               ∘ α⇐ {A = P} {B = Q ⊗₀ R} {C = S}
-  α⇐∘id⊗α⇒-rewrite {P} {Q} {R} {S} =
-    begin
-      α⇐ ∘ (id ⊗₁ α⇒)
-        ≈⟨ ≈-Term-sym idʳ ⟩
-      (α⇐ ∘ (id ⊗₁ α⇒)) ∘ id
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym α⇒∘α⇐≈id) ⟩
-      (α⇐ ∘ (id ⊗₁ α⇒)) ∘ (α⇒ ∘ α⇐)
-        ≈⟨ assoc ⟩
-      α⇐ ∘ ((id ⊗₁ α⇒) ∘ (α⇒ ∘ α⇐))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-      α⇐ ∘ (((id ⊗₁ α⇒) ∘ α⇒) ∘ α⇐)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl
-            (∘-resp-≈
-              (begin
-                (id ⊗₁ α⇒) ∘ α⇒
-                  ≈⟨ ≈-Term-sym idʳ ⟩
-                ((id ⊗₁ α⇒) ∘ α⇒) ∘ id
-                  ≈⟨ ∘-resp-≈ ≈-Term-refl
-                      (≈-Term-sym
-                        (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                          (≈-Term-trans (⊗-resp-≈ α⇒∘α⇐≈id idˡ) id⊗id≈id))) ⟩
-                ((id ⊗₁ α⇒) ∘ α⇒) ∘ ((α⇒ ⊗₁ id) ∘ (α⇐ ⊗₁ id))
-                  ≈⟨ ≈-Term-sym assoc ⟩
-                (((id ⊗₁ α⇒) ∘ α⇒) ∘ (α⇒ ⊗₁ id)) ∘ (α⇐ ⊗₁ id)
-                  ≈⟨ ∘-resp-≈ assoc ≈-Term-refl ⟩
-                ((id ⊗₁ α⇒) ∘ (α⇒ ∘ (α⇒ ⊗₁ id))) ∘ (α⇐ ⊗₁ id)
-                  ≈⟨ ∘-resp-≈ (≈-Term-sym assoc) ≈-Term-refl ⟩
-                (((id ⊗₁ α⇒) ∘ α⇒) ∘ (α⇒ ⊗₁ id)) ∘ (α⇐ ⊗₁ id)
-                  ≈⟨ ∘-resp-≈ assoc ≈-Term-refl ⟩
-                ((id ⊗₁ α⇒) ∘ α⇒ ∘ (α⇒ ⊗₁ id)) ∘ (α⇐ ⊗₁ id)
-                  ≈⟨ ∘-resp-≈ pentagon ≈-Term-refl ⟩
-                (α⇒ ∘ α⇒) ∘ (α⇐ ⊗₁ id)
-                  ≈⟨ assoc ⟩
-                α⇒ ∘ (α⇒ ∘ (α⇐ ⊗₁ id))
-              ∎)
-              ≈-Term-refl) ⟩
-      α⇐ ∘ ((α⇒ ∘ (α⇒ ∘ (α⇐ ⊗₁ id))) ∘ α⇐)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-      α⇐ ∘ (α⇒ ∘ ((α⇒ ∘ (α⇐ ⊗₁ id)) ∘ α⇐))
-        ≈⟨ ≈-Term-sym assoc ⟩
-      (α⇐ ∘ α⇒) ∘ ((α⇒ ∘ (α⇐ ⊗₁ id)) ∘ α⇐)
-        ≈⟨ ∘-resp-≈ α⇐∘α⇒≈id ≈-Term-refl ⟩
-      id ∘ ((α⇒ ∘ (α⇐ ⊗₁ id)) ∘ α⇐)
-        ≈⟨ idˡ ⟩
-      (α⇒ ∘ (α⇐ ⊗₁ id)) ∘ α⇐
-        ≈⟨ assoc ⟩
-      α⇒ ∘ ((α⇐ ⊗₁ id) ∘ α⇐)
-    ∎
+  α⇐∘id⊗α⇒-rewrite {P} {Q} {R} {S} = solveM
+      (α⇐ˢ {A = p} {q} {r ⊗₀ˢ s} ∘ˢ (idˢ ⊗₁ˢ α⇒ˢ {A = q} {r} {s}))
+      (α⇒ˢ {A = p ⊗₀ˢ q} {r} {s}
+        ∘ˢ (α⇐ˢ {A = p} {q} {r} ⊗₁ˢ idˢ)
+        ∘ˢ α⇐ˢ {A = p} {q ⊗₀ˢ r} {s})
+    where
+      vars : Vec ObjTerm 4
+      vars = P Vec.∷ Q Vec.∷ R Vec.∷ S Vec.∷ Vec.[]
+      open Solver (record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal })
+                  {n = 4} vars
+        using (solveM)
+        renaming (α⇒ to α⇒ˢ; α⇐ to α⇐ˢ; id to idˢ; _∘_ to _∘ˢ_;
+                  _⊗₁_ to _⊗₁ˢ_; _⊗₀_ to _⊗₀ˢ_; Var to Varˢ)
+      p q r s : _
+      p = Varˢ zero
+      q = Varˢ (suc zero)
+      r = Varˢ (suc (suc zero))
+      s = Varˢ (suc (suc (suc zero)))
 
 --------------------------------------------------------------------------------
 -- σ-block-hexagon: Yang-Baxter braid at the σ-block level (4-object).
@@ -528,28 +498,24 @@ private
       ≈Term (α⇒ {A = P} {B = Q} {C = R} ⊗₁ id {A = S})
               ∘ α⇐ {A = P ⊗₀ Q} {B = R} {C = S}
               ∘ α⇐ {A = P} {B = Q} {C = R ⊗₀ S}
-  α⇐-stack-from-pentagon {P} {Q} {R} {S} =
-    begin
-      α⇐ ∘ (id ⊗₁ α⇐)
-        ≈⟨ ≈-Term-sym idʳ ⟩
-      (α⇐ ∘ (id ⊗₁ α⇐)) ∘ id
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym α⇒∘α⇐≈id) ⟩
-      (α⇐ ∘ (id ⊗₁ α⇐)) ∘ (α⇒ ∘ α⇐)
-        ≈⟨ ≈-Term-sym assoc ⟩
-      ((α⇐ ∘ (id ⊗₁ α⇐)) ∘ α⇒) ∘ α⇐
-        ≈⟨ ∘-resp-≈ assoc ≈-Term-refl ⟩
-      (α⇐ ∘ ((id ⊗₁ α⇐) ∘ α⇒)) ∘ α⇐
-        ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl pentagon-flip-right) ≈-Term-refl ⟩
-      (α⇐ ∘ (α⇒ ∘ (α⇒ ⊗₁ id) ∘ α⇐)) ∘ α⇐
-        ≈⟨ ∘-resp-≈ (≈-Term-sym assoc) ≈-Term-refl ⟩
-      ((α⇐ ∘ α⇒) ∘ (α⇒ ⊗₁ id) ∘ α⇐) ∘ α⇐
-        ≈⟨ ∘-resp-≈ (∘-resp-≈ α⇐∘α⇒≈id ≈-Term-refl) ≈-Term-refl ⟩
-      (id ∘ (α⇒ ⊗₁ id) ∘ α⇐) ∘ α⇐
-        ≈⟨ ∘-resp-≈ idˡ ≈-Term-refl ⟩
-      ((α⇒ ⊗₁ id) ∘ α⇐) ∘ α⇐
-        ≈⟨ assoc ⟩
-      (α⇒ ⊗₁ id) ∘ α⇐ ∘ α⇐
-    ∎
+  α⇐-stack-from-pentagon {P} {Q} {R} {S} = solveM
+      (α⇐ˢ {A = p} {q ⊗₀ˢ r} {s} ∘ˢ (idˢ ⊗₁ˢ α⇐ˢ {A = q} {r} {s}))
+      ((α⇒ˢ {A = p} {q} {r} ⊗₁ˢ idˢ)
+        ∘ˢ α⇐ˢ {A = p ⊗₀ˢ q} {r} {s}
+        ∘ˢ α⇐ˢ {A = p} {q} {r ⊗₀ˢ s})
+    where
+      vars : Vec ObjTerm 4
+      vars = P Vec.∷ Q Vec.∷ R Vec.∷ S Vec.∷ Vec.[]
+      open Solver (record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal })
+                  {n = 4} vars
+        using (solveM)
+        renaming (α⇒ to α⇒ˢ; α⇐ to α⇐ˢ; id to idˢ; _∘_ to _∘ˢ_;
+                  _⊗₁_ to _⊗₁ˢ_; _⊗₀_ to _⊗₀ˢ_; Var to Varˢ)
+      p q r s : _
+      p = Varˢ zero
+      q = Varˢ (suc zero)
+      r = Varˢ (suc (suc zero))
+      s = Varˢ (suc (suc (suc zero)))
 
 --------------------------------------------------------------------------------
 -- The σ-block-hexagon proof reduces both sides to a common inner-form
