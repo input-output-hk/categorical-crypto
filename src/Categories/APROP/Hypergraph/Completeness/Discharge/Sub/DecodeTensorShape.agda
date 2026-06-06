@@ -64,7 +64,7 @@ module Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.FromAPROP sig
   using (FlatGen; flatten; range; hTensor
         ; ⟪_⟫; ⟪⟫-domL; ⟪⟫-codL; map-via-inj; map-via-raise)
@@ -127,7 +127,7 @@ open import Data.Maybe.Properties using (just-injective)
 open import Data.Empty using (⊥; ⊥-elim)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-open import Data.Product using (_,_; _×_; proj₁; proj₂; ∃; ∃-syntax)
+open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂; ∃; ∃-syntax)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂; module ≡-Reasoning)
 open import Relation.Binary.PropositionalEquality.Properties
@@ -6892,11 +6892,591 @@ module BlockFactor
 -- final-permute collapses through `BlockTensor.pvv-block-tensor` into the
 -- `unflatten-++-≅ (flatten B/A) (flatten D/C)` framing.
 
+--------------------------------------------------------------------------------
+-- ## The GENERIC ⊗ assembly — `decode-⊗-generic`.
+--
+-- The decoder-agnostic core of `decode-⊗-shape-inner`.  Abstracted over the
+-- "decoder interface": the two sub-hypergraphs `G = ⟦f⟧` / `K = ⟦g⟧` (the
+-- composite being `hTensor G K`), the decoder terms (`dec-f`/`dec-g`/`dec-fg`),
+-- their `Linear` witnesses, the `decode-attempt … ≡ just t` totality data, the
+-- `domL`/`codL ≡ flatten` boundary equalities, and the `dec-? ≡ subst₂ …
+-- (proj₁ att-?)` defining equations.  Both the UNPRUNED `⟪_⟫`/`decode` and the
+-- PRUNED `⟪_⟫ₚ`/`decodeP` decoders instantiate this (with all interface
+-- equations holding `refl`), so the ~440-line assembly exists ONCE here.
+--
+-- All the heavy block machinery (`EmbedData`, `BlockFactor`, `BlockTensor`) is
+-- generic in `G`/`K` and reused verbatim.
+module DecodeShapeGeneric
+  (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
+  (Kf : FaithfulnessResidual)
+  {A B C₀ D : ObjTerm}
+  (G K : Hypergraph FlatGen)
+  (dec-f  : HomTerm (unflatten (flatten A))  (unflatten (flatten B)))
+  (dec-g  : HomTerm (unflatten (flatten C₀)) (unflatten (flatten D)))
+  (dec-fg : HomTerm (unflatten (flatten (A ⊗₀ C₀))) (unflatten (flatten (B ⊗₀ D))))
+  (lin-G : Lin.Linear G) (lin-K : Lin.Linear K) (lin-C : Lin.Linear (hTensor G K))
+  (att-f : Σ[ t ∈ HomTerm (unflatten (domL G)) (unflatten (codL G)) ]
+             decode-attempt G ≡ just t)
+  (att-g : Σ[ t ∈ HomTerm (unflatten (domL K)) (unflatten (codL K)) ]
+             decode-attempt K ≡ just t)
+  (att-C : Σ[ t ∈ HomTerm (unflatten (domL (hTensor G K))) (unflatten (codL (hTensor G K))) ]
+             decode-attempt (hTensor G K) ≡ just t)
+  (dDomf  : domL G ≡ flatten A)        (dCodf  : codL G ≡ flatten B)
+  (dDomg  : domL K ≡ flatten C₀)       (dCodg  : codL K ≡ flatten D)
+  (dDomfg : domL (hTensor G K) ≡ flatten (A ⊗₀ C₀))
+  (dCodfg : codL (hTensor G K) ≡ flatten (B ⊗₀ D))
+  (decf-eq  : dec-f  ≡ subst₂ HomTerm (cong unflatten dDomf)  (cong unflatten dCodf)  (proj₁ att-f))
+  (decg-eq  : dec-g  ≡ subst₂ HomTerm (cong unflatten dDomg)  (cong unflatten dCodg)  (proj₁ att-g))
+  (decfg-eq : dec-fg ≡ subst₂ HomTerm (cong unflatten dDomfg) (cong unflatten dCodfg) (proj₁ att-C))
+  where
+  open FaithfulnessResidual Kf using (permute-resp-≅↭)
+
+  module G = Hypergraph G
+  module K = Hypergraph K
+
+  Cht : Hypergraph FlatGen
+  Cht = hTensor G K
+  module C = Hypergraph Cht
+
+
+  open EmbedData objUIP Kf G K using (module TG; module TK)
+  open BlockFactor objUIP Kf G K
+
+  open FA.hTensor-impl G K using (injL; injR; vlab-c; vlab-injL; vlab-injR)
+  open FM.HomReasoning
+
+  ------------------------------------------------------------------
+  -- Edge blocks (definitional: `range C.nE = gblk ++ kblk`).
+  gblk = map (_↑ˡ K.nE) (range G.nE)
+  kblk = map (G.nE ↑ʳ_) (range K.nE)
+
+  ------------------------------------------------------------------
+  -- The whole composite C-run, extracted with its final-permute.
+  ext-C = decode-attempt-extract Cht
+            (proj₁ (att-C))
+            (proj₂ (att-C))
+  perm-C = proj₁ ext-C
+  ext-C-eq = proj₂ ext-C
+
+  -- The two sub-decoders, extracted.
+  ext-f = decode-attempt-extract G
+            (proj₁ (att-f)) (proj₂ (att-f))
+  perm-f = proj₁ ext-f
+  ext-f-eq = proj₂ ext-f
+  ext-g = decode-attempt-extract K
+            (proj₁ (att-g)) (proj₂ (att-g))
+  perm-g = proj₁ ext-g
+  ext-g-eq = proj₂ ext-g
+
+  -- Final G/K stacks.
+  sG : List (Fin G.nV)
+  sG = pe-stackG (range G.nE) G.dom
+  sK : List (Fin K.nV)
+  sK = pe-stackK (range K.nE) K.dom
+
+  -- `C.dom = map injL G.dom ++ map injR K.dom` (definitional).
+  after-G : List (Fin C.nV)
+  after-G = pe-stackC gblk C.dom
+
+  -- `after-G ≡ map injL sG ++ map injR K.dom` (G-edges leave a mixed
+  -- stack with a pure-injL prefix and the untouched injR suffix).
+  after-G-≡ : after-G ≡ map injL sG ++ map injR K.dom
+  after-G-≡ = mixed-stack-G (range G.nE) G.dom K.dom
+
+  after-K : List (Fin C.nV)
+  after-K = pe-stackC kblk after-G
+
+  -- `C.cod = map injL G.cod ++ map injR K.cod` (definitional).
+  uCcod : Unique C.cod
+  uCcod = Linear⇒cod-Unique Cht lin-C
+
+  ------------------------------------------------------------------
+  -- Reservoirs for each block, from `Linear Cht` via the provenance
+  -- (`gblk ++ kblk ↭ range C.nE`) + `reservoir-split`.
+  res-whole : SUR.Reservoir≤1 Cht (gblk ++ kblk) C.dom
+  res-whole = SUR.dom-reservoir-prov Cht (proj₂ lin-C) (gblk ++ kblk)
+                (Perm.↭-reflexive (sym (Inv.range-++ G.nE K.nE)))
+
+  res-G : SUR.Reservoir≤1 Cht gblk C.dom
+  res-G = SUR.reservoir-prefix Cht gblk kblk C.dom res-whole
+
+  res-K-aG : SUR.Reservoir≤1 Cht kblk after-G
+  res-K-aG = SUR.reservoir-split Cht gblk kblk C.dom res-whole
+
+  -- The K-reservoir transported to the clean stack `map injL sG ++ map injR K.dom`.
+  res-K : SUR.Reservoir≤1 Cht kblk (map injL sG ++ map injR K.dom)
+  res-K = subst (SUR.Reservoir≤1 Cht kblk) after-G-≡ res-K-aG
+
+  ------------------------------------------------------------------
+  -- decode-extract bridges.
+  decode-f-≈
+    : dec-f ≈Term
+      subst₂ HomTerm (cong unflatten (dDomf)) (cong unflatten (dCodf))
+        (permute-via-vlab G.vlab perm-f ∘ proj₂ (process-edges G (range G.nE) G.dom))
+  decode-f-≈ =
+    ≈-Term-trans (≡⇒≈Term decf-eq)
+      (≡⇒≈Term (cong (subst₂ HomTerm (cong unflatten (dDomf))
+                                      (cong unflatten (dCodf)))
+                     ext-f-eq))
+
+  decode-g-≈
+    : dec-g ≈Term
+      subst₂ HomTerm (cong unflatten (dDomg)) (cong unflatten (dCodg))
+        (permute-via-vlab K.vlab perm-g ∘ proj₂ (process-edges K (range K.nE) K.dom))
+  decode-g-≈ =
+    ≈-Term-trans (≡⇒≈Term decg-eq)
+      (≡⇒≈Term (cong (subst₂ HomTerm (cong unflatten (dDomg))
+                                      (cong unflatten (dCodg)))
+                     ext-g-eq))
+
+  decode-fg-≈
+    : dec-fg ≈Term
+      subst₂ HomTerm (cong unflatten (dDomfg))
+                     (cong unflatten (dCodfg))
+        (permute-via-vlab C.vlab perm-C
+         ∘ proj₂ (process-edges Cht (range C.nE) C.dom))
+  decode-fg-≈ =
+    ≈-Term-trans (≡⇒≈Term decfg-eq)
+      (≡⇒≈Term (cong (subst₂ HomTerm (cong unflatten (dDomfg))
+                                      (cong unflatten (dCodfg)))
+                     ext-C-eq))
+
+  ----------------------------------------------------------------
+  -- abbreviations for the whole-run / block C-level pieces.
+  PC = permute-via-vlab C.vlab perm-C
+  Pcomposite = pe-termC (range C.nE) C.dom
+  Cdom-obj = unflatten (map C.vlab C.dom)
+
+  gterm = pe-termC gblk C.dom
+  kterm-aG = pe-termC kblk after-G
+  pterm-f = proj₂ (process-edges G (range G.nE) G.dom)
+  pterm-g = proj₂ (process-edges K (range K.nE) K.dom)
+
+  Gpure = Lterm (range G.nE) G.dom
+  Kpure = Kterm (range K.nE) K.dom
+  clG = map injL sG ++ map injR K.dom
+
+  ----------------------------------------------------------------
+  -- ### C-level run-split + block factoring (mirror of compose steps 1–2).
+  run-split-term
+    : Pcomposite
+      ≈Term coeC {C.dom} (sym (cong (λ es → pe-stackC es C.dom)
+                                    (Inv.range-++ G.nE K.nE)))
+                 (pe-termC (gblk ++ kblk) C.dom)
+  run-split-term = elim (Inv.range-++ G.nE K.nE)
+    where
+      elim : ∀ {es : List (Fin C.nE)} (eq : range C.nE ≡ es)
+           → Pcomposite
+             ≈Term coeC {C.dom} (sym (cong (λ es' → pe-stackC es' C.dom) eq))
+                        (pe-termC es C.dom)
+      elim refl = ≈-Term-refl
+
+  block-fact = pe-term-++ Cht gblk kblk C.dom
+
+  absorb-coe
+    : ∀ {ys} {s s' : List (Fin C.nV)} (eq : s ≡ s')
+        (perm : s' Perm.↭ ys)
+        (t : HomTerm Cdom-obj (unflatten (map C.vlab s)))
+    → permute-via-vlab C.vlab perm
+        ∘ subst (λ z → HomTerm Cdom-obj (unflatten (map C.vlab z))) eq t
+      ≈Term permute-via-vlab C.vlab (subst (λ z → z Perm.↭ ys) (sym eq) perm) ∘ t
+  absorb-coe refl perm t = ≈-Term-refl
+
+  eqRS = sym (cong (λ es → pe-stackC es C.dom) (Inv.range-++ G.nE K.nE))
+  perm-C1 = subst (λ z → z Perm.↭ C.cod) (sym eqRS) perm-C
+
+  step1 : PC ∘ Pcomposite
+        ≈Term permute-via-vlab C.vlab perm-C1 ∘ pe-termC (gblk ++ kblk) C.dom
+  step1 = ≈-Term-trans (∘-resp-≈ ≈-Term-refl run-split-term)
+                       (absorb-coe eqRS perm-C (pe-termC (gblk ++ kblk) C.dom))
+
+  eqBF = sym (pe-stack-++ Cht gblk kblk C.dom)
+  perm-C2 = subst (λ z → z Perm.↭ C.cod) (sym eqBF) perm-C1
+
+  step2 : permute-via-vlab C.vlab perm-C1 ∘ pe-termC (gblk ++ kblk) C.dom
+        ≈Term permute-via-vlab C.vlab perm-C2 ∘ (kterm-aG ∘ gterm)
+  step2 = ≈-Term-trans (∘-resp-≈ ≈-Term-refl block-fact)
+                       (absorb-coe eqBF perm-C1 (kterm-aG ∘ gterm))
+
+  ----------------------------------------------------------------
+  -- ### Rebase the K-block + perm onto the CLEAN start stack `clG`.
+  -- (`to-clean` at `eqM = after-G-≡`; `refl`-match collapses the coeC/subst.)
+  perm-C2-cl : pe-stackC kblk clG Perm.↭ C.cod
+  perm-C2-cl = subst (λ z → pe-stackC kblk z Perm.↭ C.cod) after-G-≡ perm-C2
+
+  to-clean
+    : ∀ (mid : List (Fin C.nV)) (eqM : after-G ≡ mid)
+        (perm : pe-stackC kblk after-G Perm.↭ C.cod)
+    → permute-via-vlab C.vlab perm ∘ (kterm-aG ∘ gterm)
+      ≈Term permute-via-vlab C.vlab
+              (subst (λ z → pe-stackC kblk z Perm.↭ C.cod) eqM perm)
+            ∘ (pe-termC kblk mid ∘ coeC {C.dom} eqM gterm)
+  to-clean .after-G refl perm = ≈-Term-refl
+
+  step3 : permute-via-vlab C.vlab perm-C2 ∘ (kterm-aG ∘ gterm)
+        ≈Term permute-via-vlab C.vlab perm-C2-cl
+            ∘ (pe-termC kblk clG ∘ coeC {C.dom} after-G-≡ gterm)
+  step3 = to-clean clG after-G-≡ perm-C2
+
+  ----------------------------------------------------------------
+  -- ### Substitute the two block factors.
+  GF = GFactored (range G.nE) G.dom K.dom
+  gterm-GF : coeC {C.dom} after-G-≡ gterm ≈Term GF
+  gterm-GF = gblock-factor (range G.nE) G.dom K.dom res-G
+
+  KF = KFactored (range K.nE) sG K.dom
+  kterm-KF : pe-termC kblk clG ≈Term KF
+  kterm-KF = kblock-factor (range K.nE) sG K.dom res-K
+
+  step4 : permute-via-vlab C.vlab perm-C2-cl
+            ∘ (pe-termC kblk clG ∘ coeC {C.dom} after-G-≡ gterm)
+        ≈Term permute-via-vlab C.vlab perm-C2-cl ∘ (KF ∘ GF)
+  step4 = ∘-resp-≈ ≈-Term-refl (∘-resp-≈ kterm-KF gterm-GF)
+
+  ----------------------------------------------------------------
+  -- ### The pure-block C-terms, named, and the algebraic collapse.
+  KBr = KBraid (range K.nE) sG K.dom
+  KCl = KClean (range K.nE) sG K.dom
+
+  -- KF = pvlC (↭-sym KBr) ∘ KCl   (definitional).
+  -- combP : (injL sG ++ injR sK) ↭ C.cod, the post-braid perm.
+  combP : (map injL sG ++ map injR sK) Perm.↭ C.cod
+  combP = Perm.↭-trans (Perm.↭-sym KBr) perm-C2-cl
+
+  pfL : map injL sG Perm.↭ map injL G.cod
+  pfL = PermProp.map⁺ injL perm-f
+  pfR : map injR sK Perm.↭ map injR K.cod
+  pfR = PermProp.map⁺ injR perm-g
+
+  -- `combP ≈ ++⁺ pfL pfR` on the Unique codomain (keystone).
+  combP-coh : pvlC combP ≈Term pvlC (PermProp.++⁺ pfL pfR)
+  combP-coh = pvlC-coh uCcod combP (PermProp.++⁺ pfL pfR)
+
+  -- The whole middle collapse: `perm-C2-cl ∘ (KF ∘ GF) ≈ tensor-form`.
+  to-cod = _≅_.to   (BTC.uf++ (map injL G.cod) (map injR K.cod))
+  from-dom = _≅_.from (BTC.uf++ (map injL G.dom) (map injR K.dom))
+  Gᶜ = pvlC pfL ∘ Gpure
+  Kᶜ = pvlC pfR ∘ Kpure
+
+  collapse
+    : permute-via-vlab C.vlab perm-C2-cl ∘ (KF ∘ GF)
+      ≈Term to-cod ∘ (Gᶜ ⊗₁ Kᶜ) ∘ from-dom
+  collapse = begin
+    pvlC perm-C2-cl ∘ (KF ∘ GF)
+      ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+    pvlC perm-C2-cl ∘ (pvlC (Perm.↭-sym KBr) ∘ (KCl ∘ GF))
+      ≈⟨ FM.sym-assoc ⟩
+    (pvlC perm-C2-cl ∘ pvlC (Perm.↭-sym KBr)) ∘ (KCl ∘ GF)
+      ≈⟨ ≈-Term-sym (pvlC-↭trans (Perm.↭-sym KBr) perm-C2-cl) ⟩∘⟨refl ⟩
+    pvlC combP ∘ (KCl ∘ GF)
+      ≈⟨ refl⟩∘⟨ KCl∘GF ⟩
+    pvlC combP ∘ (to-mid ∘ (Gpure ⊗₁ Kpure) ∘ from-dom)
+      ≈⟨ FM.sym-assoc ⟩
+    (pvlC combP ∘ to-mid) ∘ ((Gpure ⊗₁ Kpure) ∘ from-dom)
+      ≈⟨ pvlC-collapse ⟩∘⟨refl ⟩
+    (to-cod ∘ (pvlC pfL ⊗₁ pvlC pfR)) ∘ ((Gpure ⊗₁ Kpure) ∘ from-dom)
+      ≈⟨ FM.assoc ⟩
+    to-cod ∘ ((pvlC pfL ⊗₁ pvlC pfR) ∘ ((Gpure ⊗₁ Kpure) ∘ from-dom))
+      ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+    to-cod ∘ (((pvlC pfL ⊗₁ pvlC pfR) ∘ (Gpure ⊗₁ Kpure)) ∘ from-dom)
+      ≈⟨ refl⟩∘⟨ (≈-Term-sym ⊗-∘-dist ⟩∘⟨refl) ⟩
+    to-cod ∘ ((Gᶜ ⊗₁ Kᶜ) ∘ from-dom) ∎
+    where
+      to-mid = _≅_.to (BTC.uf++ (map injL sG) (map injR sK))
+      to-isG = _≅_.to (BTC.uf++ (map injL sG) (map injR K.dom))
+      from-isG = _≅_.from (BTC.uf++ (map injL sG) (map injR K.dom))
+      from-sK = _≅_.from (BTC.uf++ (map injL sG) (map injR sK))
+
+      -- `KCl ∘ GF` middle iso cancellation + ⊗-merge.
+      KCl∘GF
+        : KCl ∘ GF ≈Term to-mid ∘ (Gpure ⊗₁ Kpure) ∘ from-dom
+      KCl∘GF = begin
+        (to-mid ∘ (id {RpreObj sG} ⊗₁ Kpure) ∘ from-isG)
+          ∘ (to-isG ∘ (Gpure ⊗₁ id {RsufObj K.dom}) ∘ from-dom)
+          ≈⟨ FM.assoc ⟩
+        to-mid ∘ ((id {RpreObj sG} ⊗₁ Kpure) ∘ from-isG)
+          ∘ (to-isG ∘ (Gpure ⊗₁ id {RsufObj K.dom}) ∘ from-dom)
+          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+        to-mid ∘ (id {RpreObj sG} ⊗₁ Kpure) ∘ from-isG
+          ∘ (to-isG ∘ (Gpure ⊗₁ id {RsufObj K.dom}) ∘ from-dom)
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+        to-mid ∘ (id {RpreObj sG} ⊗₁ Kpure) ∘ (from-isG ∘ to-isG)
+          ∘ (Gpure ⊗₁ id {RsufObj K.dom}) ∘ from-dom
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoʳ (BTC.uf++ (map injL sG) (map injR K.dom)) ⟩∘⟨refl ⟩
+        to-mid ∘ (id {RpreObj sG} ⊗₁ Kpure) ∘ id
+          ∘ (Gpure ⊗₁ id {RsufObj K.dom}) ∘ from-dom
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
+        to-mid ∘ (id {RpreObj sG} ⊗₁ Kpure) ∘ (Gpure ⊗₁ id {RsufObj K.dom}) ∘ from-dom
+          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+        to-mid ∘ ((id {RpreObj sG} ⊗₁ Kpure) ∘ (Gpure ⊗₁ id {RsufObj K.dom})) ∘ from-dom
+          ≈⟨ refl⟩∘⟨ (≈-Term-sym ⊗-∘-dist ⟩∘⟨refl) ⟩
+        to-mid ∘ ((id ∘ Gpure) ⊗₁ (Kpure ∘ id)) ∘ from-dom
+          ≈⟨ refl⟩∘⟨ ⊗-resp-≈ idˡ idʳ ⟩∘⟨refl ⟩
+        to-mid ∘ (Gpure ⊗₁ Kpure) ∘ from-dom ∎
+
+      -- `pvlC combP ∘ to-mid ≈ to-cod ∘ (pvlC pfL ⊗₁ pvlC pfR)`.
+      pvlC-collapse : pvlC combP ∘ to-mid ≈Term to-cod ∘ (pvlC pfL ⊗₁ pvlC pfR)
+      pvlC-collapse = begin
+        pvlC combP ∘ to-mid
+          ≈⟨ combP-coh ⟩∘⟨refl ⟩
+        pvlC (PermProp.++⁺ pfL pfR) ∘ to-mid
+          ≈⟨ BTC.pvv-block-tensor pfL pfR ⟩∘⟨refl ⟩
+        (to-cod ∘ (pvlC pfL ⊗₁ pvlC pfR) ∘ from-sK) ∘ to-mid
+          ≈⟨ FM.assoc ⟩
+        to-cod ∘ ((pvlC pfL ⊗₁ pvlC pfR) ∘ from-sK) ∘ to-mid
+          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+        to-cod ∘ (pvlC pfL ⊗₁ pvlC pfR) ∘ (from-sK ∘ to-mid)
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoʳ (BTC.uf++ (map injL sG) (map injR sK)) ⟩
+        to-cod ∘ (pvlC pfL ⊗₁ pvlC pfR) ∘ id
+          ≈⟨ refl⟩∘⟨ idʳ ⟩
+        to-cod ∘ (pvlC pfL ⊗₁ pvlC pfR) ∎
+
+  ----------------------------------------------------------------
+  -- ### Assemble the C-level transform.
+  Pcomp-eq : PC ∘ Pcomposite ≈Term to-cod ∘ (Gᶜ ⊗₁ Kᶜ) ∘ from-dom
+  Pcomp-eq =
+    ≈-Term-trans step1
+      (≈-Term-trans step2
+        (≈-Term-trans step3
+          (≈-Term-trans step4 collapse)))
+
+  ----------------------------------------------------------------
+  -- ### Boundary list-equalities (relabel injL/injR images to flatten).
+  eAdom : map C.vlab (map injL G.dom) ≡ flatten A
+  eAdom = trans (TG.vlab-φ G.dom) (dDomf)
+  eCdom : map C.vlab (map injR K.dom) ≡ flatten C₀
+  eCdom = trans (TK.vlab-φ K.dom) (dDomg)
+  eBcod : map C.vlab (map injL G.cod) ≡ flatten B
+  eBcod = trans (TG.vlab-φ G.cod) (dCodf)
+  eDcod : map C.vlab (map injR K.cod) ≡ flatten D
+  eDcod = trans (TK.vlab-φ K.cod) (dCodg)
+
+  domFG = cong unflatten (dDomfg)
+  codFG = cong unflatten (dCodfg)
+
+  -- The `⊗₀`-shaped mid objects (the `to`/`from` domain/codomain).
+  midⱽ = cong₂ _⊗₀_ (cong unflatten eBcod) (cong unflatten eDcod)
+  midᵂ = cong₂ _⊗₀_ (cong unflatten eAdom) (cong unflatten eCdom)
+
+  ----------------------------------------------------------------
+  -- ### Iso boundary glue: `to-cod`/`from-dom` (BTC-framed) → raw.
+  Xcod = map C.vlab (map injL G.cod)
+  Ycod = map C.vlab (map injR K.cod)
+  Xdom = map C.vlab (map injL G.dom)
+  Ydom = map C.vlab (map injR K.dom)
+
+  to-glue
+    : subst₂ HomTerm midⱽ codFG to-cod
+      ≡ _≅_.to (unflatten-++-≅ (flatten B) (flatten D))
+  to-glue =
+    trans (cong (subst₂ HomTerm midⱽ codFG)
+                (BNB.to-subst₂-≅ bdyCod (unflatten-++-≅ Xcod Ycod)))
+    (trans (subst₂-HomTerm-∘ refl midⱽ bdyCod codFG
+              (_≅_.to (unflatten-++-≅ Xcod Ycod)))
+    (trans (cong (λ z → subst₂ HomTerm midⱽ z (_≅_.to (unflatten-++-≅ Xcod Ycod)))
+                 (objUIP (trans bdyCod codFG)
+                         (cong unflatten (cong₂ _++_ eBcod eDcod))))
+           (to-uf-cong eBcod eDcod)))
+    where bdyCod = cong unflatten (sym (map-++ C.vlab (map injL G.cod) (map injR K.cod)))
+
+  from-glue
+    : subst₂ HomTerm domFG midᵂ from-dom
+      ≡ _≅_.from (unflatten-++-≅ (flatten A) (flatten C₀))
+  from-glue =
+    trans (cong (subst₂ HomTerm domFG midᵂ)
+                (BNB.from-subst₂-≅ bdyDom (unflatten-++-≅ Xdom Ydom)))
+    (trans (subst₂-HomTerm-∘ bdyDom domFG refl midᵂ
+              (_≅_.from (unflatten-++-≅ Xdom Ydom)))
+    (trans (cong (λ z → subst₂ HomTerm z midᵂ (_≅_.from (unflatten-++-≅ Xdom Ydom)))
+                 (objUIP (trans bdyDom domFG)
+                         (cong unflatten (cong₂ _++_ eAdom eCdom))))
+           (from-uf-cong eAdom eCdom)))
+    where bdyDom = cong unflatten (sym (map-++ C.vlab (map injL G.dom) (map injR K.dom)))
+
+  ----------------------------------------------------------------
+  -- ### Fold `Gᶜ`/`Kᶜ` into `dec-f`/`dec-g` (gate + pvv-relabel).
+  PF = permute-via-vlab G.vlab perm-f
+  PG = permute-via-vlab K.vlab perm-g
+
+  -- `coeC` re-expressed as a codomain-only `subst₂ HomTerm refl`.
+  coeC-is-subst₂
+    : ∀ {d s s' : List (Fin C.nV)} (eq : s ≡ s')
+        (t : HomTerm (unflatten (map C.vlab d)) (unflatten (map C.vlab s)))
+    → coeC {d} eq t
+      ≡ subst₂ HomTerm refl (cong unflatten (cong (map C.vlab) eq)) t
+  coeC-is-subst₂ refl t = refl
+
+  -- G-side twin: `subst₂ (vlab-φ G.dom)(vlab-φ G.cod) Gᶜ ≈ PF ∘ pterm-f`.
+  peL = proc-stack-emb-L (range G.nE) G.dom
+  M1G = cong unflatten
+          (trans (cong (map C.vlab) (TG.proc-stack-emb (range G.nE) G.dom))
+                 (TG.vlab-φ sG))
+
+  Gpure-twin
+    : subst₂ HomTerm (cong unflatten (TG.vlab-φ G.dom)) (cong unflatten (TG.vlab-φ sG))
+        Gpure
+      ≈Term pterm-f
+  Gpure-twin =
+    ≈-Term-trans
+      (≡⇒≈Term (cong (subst₂ HomTerm (cong unflatten (TG.vlab-φ G.dom))
+                                      (cong unflatten (TG.vlab-φ sG)))
+                     (coeC-is-subst₂ peL (pe-termC gblk (map injL G.dom)))))
+    (≈-Term-trans
+      (≡⇒≈Term (subst₂-HomTerm-∘
+                  refl (cong unflatten (TG.vlab-φ G.dom))
+                  (cong unflatten (cong (map C.vlab) peL))
+                  (cong unflatten (TG.vlab-φ sG))
+                  (pe-termC gblk (map injL G.dom))))
+      (≈-Term-trans
+        (subst₂-HomTerm-irrel objUIP
+          (cong unflatten (TG.vlab-φ G.dom)) (cong unflatten (TG.vlab-φ G.dom))
+          (trans (cong unflatten (cong (map C.vlab) peL))
+                 (cong unflatten (TG.vlab-φ sG)))
+          M1G
+          (pe-termC gblk (map injL G.dom)))
+        (TG.process-edges-term-emb (range G.nE) G.dom)))
+
+  PF-twin
+    : subst₂ HomTerm (cong unflatten (TG.vlab-φ sG)) (cong unflatten (TG.vlab-φ G.cod))
+        (pvlC pfL)
+      ≈Term PF
+  PF-twin = pvv-relabel Kf injL C.vlab G.vlab vlab-injL perm-f
+
+  Gᶜ-twin
+    : subst₂ HomTerm (cong unflatten (TG.vlab-φ G.dom)) (cong unflatten (TG.vlab-φ G.cod))
+        Gᶜ
+      ≈Term PF ∘ pterm-f
+  Gᶜ-twin =
+    ≈-Term-trans
+      (≡⇒≈Term (subst₂-HomTerm-∘-dist
+                  (cong unflatten (TG.vlab-φ G.dom)) (cong unflatten (TG.vlab-φ sG))
+                  (cong unflatten (TG.vlab-φ G.cod)) (pvlC pfL) Gpure))
+      (∘-resp-≈ PF-twin Gpure-twin)
+
+  Gpart : subst₂ HomTerm (cong unflatten eAdom) (cong unflatten eBcod) Gᶜ ≈Term dec-f
+  Gpart =
+    ≈-Term-trans
+      (subst₂-HomTerm-irrel objUIP
+        (cong unflatten eAdom)
+        (trans (cong unflatten (TG.vlab-φ G.dom)) (cong unflatten (dDomf)))
+        (cong unflatten eBcod)
+        (trans (cong unflatten (TG.vlab-φ G.cod)) (cong unflatten (dCodf)))
+        Gᶜ)
+    (≈-Term-trans
+      (≡⇒≈Term (sym (subst₂-HomTerm-∘
+                      (cong unflatten (TG.vlab-φ G.dom)) (cong unflatten (dDomf))
+                      (cong unflatten (TG.vlab-φ G.cod)) (cong unflatten (dCodf))
+                      Gᶜ)))
+    (≈-Term-trans
+      (subst₂-resp-≈Term (cong unflatten (dDomf)) (cong unflatten (dCodf)) Gᶜ-twin)
+      (≈-Term-sym decode-f-≈)))
+
+  -- K-side, mirror with `injR`/`vlab-injR`/`TK`.
+  peR = proc-stack-emb-R (range K.nE) K.dom
+  M1K = cong unflatten
+          (trans (cong (map C.vlab) (TK.proc-stack-emb (range K.nE) K.dom))
+                 (TK.vlab-φ sK))
+
+  Kpure-twin
+    : subst₂ HomTerm (cong unflatten (TK.vlab-φ K.dom)) (cong unflatten (TK.vlab-φ sK))
+        Kpure
+      ≈Term pterm-g
+  Kpure-twin =
+    ≈-Term-trans
+      (≡⇒≈Term (cong (subst₂ HomTerm (cong unflatten (TK.vlab-φ K.dom))
+                                      (cong unflatten (TK.vlab-φ sK)))
+                     (coeC-is-subst₂ peR (pe-termC kblk (map injR K.dom)))))
+    (≈-Term-trans
+      (≡⇒≈Term (subst₂-HomTerm-∘
+                  refl (cong unflatten (TK.vlab-φ K.dom))
+                  (cong unflatten (cong (map C.vlab) peR))
+                  (cong unflatten (TK.vlab-φ sK))
+                  (pe-termC kblk (map injR K.dom))))
+      (≈-Term-trans
+        (subst₂-HomTerm-irrel objUIP
+          (cong unflatten (TK.vlab-φ K.dom)) (cong unflatten (TK.vlab-φ K.dom))
+          (trans (cong unflatten (cong (map C.vlab) peR))
+                 (cong unflatten (TK.vlab-φ sK)))
+          M1K
+          (pe-termC kblk (map injR K.dom)))
+        (TK.process-edges-term-emb (range K.nE) K.dom)))
+
+  PG-twin
+    : subst₂ HomTerm (cong unflatten (TK.vlab-φ sK)) (cong unflatten (TK.vlab-φ K.cod))
+        (pvlC pfR)
+      ≈Term PG
+  PG-twin = pvv-relabel Kf injR C.vlab K.vlab vlab-injR perm-g
+
+  Kᶜ-twin
+    : subst₂ HomTerm (cong unflatten (TK.vlab-φ K.dom)) (cong unflatten (TK.vlab-φ K.cod))
+        Kᶜ
+      ≈Term PG ∘ pterm-g
+  Kᶜ-twin =
+    ≈-Term-trans
+      (≡⇒≈Term (subst₂-HomTerm-∘-dist
+                  (cong unflatten (TK.vlab-φ K.dom)) (cong unflatten (TK.vlab-φ sK))
+                  (cong unflatten (TK.vlab-φ K.cod)) (pvlC pfR) Kpure))
+      (∘-resp-≈ PG-twin Kpure-twin)
+
+  Kpart : subst₂ HomTerm (cong unflatten eCdom) (cong unflatten eDcod) Kᶜ ≈Term dec-g
+  Kpart =
+    ≈-Term-trans
+      (subst₂-HomTerm-irrel objUIP
+        (cong unflatten eCdom)
+        (trans (cong unflatten (TK.vlab-φ K.dom)) (cong unflatten (dDomg)))
+        (cong unflatten eDcod)
+        (trans (cong unflatten (TK.vlab-φ K.cod)) (cong unflatten (dCodg)))
+        Kᶜ)
+    (≈-Term-trans
+      (≡⇒≈Term (sym (subst₂-HomTerm-∘
+                      (cong unflatten (TK.vlab-φ K.dom)) (cong unflatten (dDomg))
+                      (cong unflatten (TK.vlab-φ K.cod)) (cong unflatten (dCodg))
+                      Kᶜ)))
+    (≈-Term-trans
+      (subst₂-resp-≈Term (cong unflatten (dDomg)) (cong unflatten (dCodg)) Kᶜ-twin)
+      (≈-Term-sym decode-g-≈)))
+
+  ----------------------------------------------------------------
+  -- ### Distribute the outer subst₂ and fold.
+  -- subst₂ domFG codFG (to-cod ∘ (Gᶜ⊗Kᶜ) ∘ from-dom)
+  --   ≡ subst₂ midⱽ codFG to-cod
+  --       ∘ (subst₂ midᵂ midⱽ (Gᶜ⊗Kᶜ) ∘ subst₂ domFG midᵂ from-dom)
+  dist
+    : subst₂ HomTerm domFG codFG (to-cod ∘ (Gᶜ ⊗₁ Kᶜ) ∘ from-dom)
+      ≡ subst₂ HomTerm midⱽ codFG to-cod
+          ∘ (subst₂ HomTerm midᵂ midⱽ (Gᶜ ⊗₁ Kᶜ)
+             ∘ subst₂ HomTerm domFG midᵂ from-dom)
+  dist =
+    trans (subst₂-HomTerm-∘-dist domFG midⱽ codFG to-cod ((Gᶜ ⊗₁ Kᶜ) ∘ from-dom))
+          (cong (subst₂ HomTerm midⱽ codFG to-cod ∘_)
+                (subst₂-HomTerm-∘-dist domFG midᵂ midⱽ (Gᶜ ⊗₁ Kᶜ) from-dom))
+
+  mid-fold
+    : subst₂ HomTerm midᵂ midⱽ (Gᶜ ⊗₁ Kᶜ) ≈Term dec-f ⊗₁ dec-g
+  mid-fold =
+    ≈-Term-trans
+      (≡⇒≈Term (subst₂-⊗₁-dist
+                  (cong unflatten eAdom) (cong unflatten eBcod)
+                  (cong unflatten eCdom) (cong unflatten eDcod) Gᶜ Kᶜ))
+      (⊗-resp-≈ Gpart Kpart)
+
+  goal : dec-fg
+       ≈Term _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
+            ∘ (dec-f ⊗₁ dec-g)
+            ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C₀))
+  goal =
+    ≈-Term-trans decode-fg-≈
+    (≈-Term-trans
+      (subst₂-resp-≈Term domFG codFG Pcomp-eq)
+    (≈-Term-trans
+      (≡⇒≈Term dist)
+      (∘-resp-≈ (≡⇒≈Term to-glue)
+        (∘-resp-≈ mid-fold (≡⇒≈Term from-glue)))))
+
 module _
   (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
   (Kf : FaithfulnessResidual)
   where
-  open FaithfulnessResidual Kf using (permute-resp-≅↭)
 
   decode-⊗-shape-inner
     : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
@@ -6904,552 +7484,11 @@ module _
     ≈Term _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
          ∘ (decode f ⊗₁ decode g)
          ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
-  decode-⊗-shape-inner {A} {B} {C₀} {D} f g = goal
-    where
-      G K : Hypergraph FlatGen
-      G = ⟪ f ⟫
-      K = ⟪ g ⟫
-      module G = Hypergraph G
-      module K = Hypergraph K
-
-      Cht : Hypergraph FlatGen
-      Cht = hTensor G K
-      module C = Hypergraph Cht
-
-      lin-G : Lin.Linear G
-      lin-G = Lin.⟪⟫-Linear f
-      lin-K : Lin.Linear K
-      lin-K = Lin.⟪⟫-Linear g
-      lin-C : Lin.Linear Cht
-      lin-C = Lin.⟪⟫-Linear (f ⊗₁ g)
-
-      open EmbedData objUIP Kf G K using (module TG; module TK)
-      open BlockFactor objUIP Kf G K
-
-      open FA.hTensor-impl G K using (injL; injR; vlab-c; vlab-injL; vlab-injR)
-      open FM.HomReasoning
-
-      ------------------------------------------------------------------
-      -- Edge blocks (definitional: `range C.nE = gblk ++ kblk`).
-      gblk = map (_↑ˡ K.nE) (range G.nE)
-      kblk = map (G.nE ↑ʳ_) (range K.nE)
-
-      ------------------------------------------------------------------
-      -- The whole composite C-run, extracted with its final-permute.
-      ext-C = decode-attempt-extract Cht
-                (proj₁ (decode-attempt-Linear (f ⊗₁ g)))
-                (proj₂ (decode-attempt-Linear (f ⊗₁ g)))
-      perm-C = proj₁ ext-C
-      ext-C-eq = proj₂ ext-C
-
-      -- The two sub-decoders, extracted.
-      ext-f = decode-attempt-extract G
-                (proj₁ (decode-attempt-Linear f)) (proj₂ (decode-attempt-Linear f))
-      perm-f = proj₁ ext-f
-      ext-f-eq = proj₂ ext-f
-      ext-g = decode-attempt-extract K
-                (proj₁ (decode-attempt-Linear g)) (proj₂ (decode-attempt-Linear g))
-      perm-g = proj₁ ext-g
-      ext-g-eq = proj₂ ext-g
-
-      -- Final G/K stacks.
-      sG : List (Fin G.nV)
-      sG = pe-stackG (range G.nE) G.dom
-      sK : List (Fin K.nV)
-      sK = pe-stackK (range K.nE) K.dom
-
-      -- `C.dom = map injL G.dom ++ map injR K.dom` (definitional).
-      after-G : List (Fin C.nV)
-      after-G = pe-stackC gblk C.dom
-
-      -- `after-G ≡ map injL sG ++ map injR K.dom` (G-edges leave a mixed
-      -- stack with a pure-injL prefix and the untouched injR suffix).
-      after-G-≡ : after-G ≡ map injL sG ++ map injR K.dom
-      after-G-≡ = mixed-stack-G (range G.nE) G.dom K.dom
-
-      after-K : List (Fin C.nV)
-      after-K = pe-stackC kblk after-G
-
-      -- `C.cod = map injL G.cod ++ map injR K.cod` (definitional).
-      uCcod : Unique C.cod
-      uCcod = Linear⇒cod-Unique Cht lin-C
-
-      ------------------------------------------------------------------
-      -- Reservoirs for each block, from `Linear Cht` via the provenance
-      -- (`gblk ++ kblk ↭ range C.nE`) + `reservoir-split`.
-      res-whole : SUR.Reservoir≤1 Cht (gblk ++ kblk) C.dom
-      res-whole = SUR.dom-reservoir-prov Cht (proj₂ lin-C) (gblk ++ kblk)
-                    (Perm.↭-reflexive (sym (Inv.range-++ G.nE K.nE)))
-
-      res-G : SUR.Reservoir≤1 Cht gblk C.dom
-      res-G = SUR.reservoir-prefix Cht gblk kblk C.dom res-whole
-
-      res-K-aG : SUR.Reservoir≤1 Cht kblk after-G
-      res-K-aG = SUR.reservoir-split Cht gblk kblk C.dom res-whole
-
-      -- The K-reservoir transported to the clean stack `map injL sG ++ map injR K.dom`.
-      res-K : SUR.Reservoir≤1 Cht kblk (map injL sG ++ map injR K.dom)
-      res-K = subst (SUR.Reservoir≤1 Cht kblk) after-G-≡ res-K-aG
-
-      ------------------------------------------------------------------
-      -- decode-extract bridges.
-      decode-f-≈
-        : decode f ≈Term
-          subst₂ HomTerm (cong unflatten (⟪⟫-domL f)) (cong unflatten (⟪⟫-codL f))
-            (permute-via-vlab G.vlab perm-f ∘ proj₂ (process-edges G (range G.nE) G.dom))
-      decode-f-≈ =
-        ≡⇒≈Term (cong (subst₂ HomTerm (cong unflatten (⟪⟫-domL f))
-                                       (cong unflatten (⟪⟫-codL f)))
-                      ext-f-eq)
-
-      decode-g-≈
-        : decode g ≈Term
-          subst₂ HomTerm (cong unflatten (⟪⟫-domL g)) (cong unflatten (⟪⟫-codL g))
-            (permute-via-vlab K.vlab perm-g ∘ proj₂ (process-edges K (range K.nE) K.dom))
-      decode-g-≈ =
-        ≡⇒≈Term (cong (subst₂ HomTerm (cong unflatten (⟪⟫-domL g))
-                                       (cong unflatten (⟪⟫-codL g)))
-                      ext-g-eq)
-
-      decode-fg-≈
-        : decode (f ⊗₁ g) ≈Term
-          subst₂ HomTerm (cong unflatten (⟪⟫-domL (f ⊗₁ g)))
-                         (cong unflatten (⟪⟫-codL (f ⊗₁ g)))
-            (permute-via-vlab C.vlab perm-C
-             ∘ proj₂ (process-edges Cht (range C.nE) C.dom))
-      decode-fg-≈ =
-        ≡⇒≈Term (cong (subst₂ HomTerm (cong unflatten (⟪⟫-domL (f ⊗₁ g)))
-                                       (cong unflatten (⟪⟫-codL (f ⊗₁ g))))
-                      ext-C-eq)
-
-      ----------------------------------------------------------------
-      -- abbreviations for the whole-run / block C-level pieces.
-      PC = permute-via-vlab C.vlab perm-C
-      Pcomposite = pe-termC (range C.nE) C.dom
-      Cdom-obj = unflatten (map C.vlab C.dom)
-
-      gterm = pe-termC gblk C.dom
-      kterm-aG = pe-termC kblk after-G
-      pterm-f = proj₂ (process-edges G (range G.nE) G.dom)
-      pterm-g = proj₂ (process-edges K (range K.nE) K.dom)
-
-      Gpure = Lterm (range G.nE) G.dom
-      Kpure = Kterm (range K.nE) K.dom
-      clG = map injL sG ++ map injR K.dom
-
-      ----------------------------------------------------------------
-      -- ### C-level run-split + block factoring (mirror of compose steps 1–2).
-      run-split-term
-        : Pcomposite
-          ≈Term coeC {C.dom} (sym (cong (λ es → pe-stackC es C.dom)
-                                        (Inv.range-++ G.nE K.nE)))
-                     (pe-termC (gblk ++ kblk) C.dom)
-      run-split-term = elim (Inv.range-++ G.nE K.nE)
-        where
-          elim : ∀ {es : List (Fin C.nE)} (eq : range C.nE ≡ es)
-               → Pcomposite
-                 ≈Term coeC {C.dom} (sym (cong (λ es' → pe-stackC es' C.dom) eq))
-                            (pe-termC es C.dom)
-          elim refl = ≈-Term-refl
-
-      block-fact = pe-term-++ Cht gblk kblk C.dom
-
-      absorb-coe
-        : ∀ {ys} {s s' : List (Fin C.nV)} (eq : s ≡ s')
-            (perm : s' Perm.↭ ys)
-            (t : HomTerm Cdom-obj (unflatten (map C.vlab s)))
-        → permute-via-vlab C.vlab perm
-            ∘ subst (λ z → HomTerm Cdom-obj (unflatten (map C.vlab z))) eq t
-          ≈Term permute-via-vlab C.vlab (subst (λ z → z Perm.↭ ys) (sym eq) perm) ∘ t
-      absorb-coe refl perm t = ≈-Term-refl
-
-      eqRS = sym (cong (λ es → pe-stackC es C.dom) (Inv.range-++ G.nE K.nE))
-      perm-C1 = subst (λ z → z Perm.↭ C.cod) (sym eqRS) perm-C
-
-      step1 : PC ∘ Pcomposite
-            ≈Term permute-via-vlab C.vlab perm-C1 ∘ pe-termC (gblk ++ kblk) C.dom
-      step1 = ≈-Term-trans (∘-resp-≈ ≈-Term-refl run-split-term)
-                           (absorb-coe eqRS perm-C (pe-termC (gblk ++ kblk) C.dom))
-
-      eqBF = sym (pe-stack-++ Cht gblk kblk C.dom)
-      perm-C2 = subst (λ z → z Perm.↭ C.cod) (sym eqBF) perm-C1
-
-      step2 : permute-via-vlab C.vlab perm-C1 ∘ pe-termC (gblk ++ kblk) C.dom
-            ≈Term permute-via-vlab C.vlab perm-C2 ∘ (kterm-aG ∘ gterm)
-      step2 = ≈-Term-trans (∘-resp-≈ ≈-Term-refl block-fact)
-                           (absorb-coe eqBF perm-C1 (kterm-aG ∘ gterm))
-
-      ----------------------------------------------------------------
-      -- ### Rebase the K-block + perm onto the CLEAN start stack `clG`.
-      -- (`to-clean` at `eqM = after-G-≡`; `refl`-match collapses the coeC/subst.)
-      perm-C2-cl : pe-stackC kblk clG Perm.↭ C.cod
-      perm-C2-cl = subst (λ z → pe-stackC kblk z Perm.↭ C.cod) after-G-≡ perm-C2
-
-      to-clean
-        : ∀ (mid : List (Fin C.nV)) (eqM : after-G ≡ mid)
-            (perm : pe-stackC kblk after-G Perm.↭ C.cod)
-        → permute-via-vlab C.vlab perm ∘ (kterm-aG ∘ gterm)
-          ≈Term permute-via-vlab C.vlab
-                  (subst (λ z → pe-stackC kblk z Perm.↭ C.cod) eqM perm)
-                ∘ (pe-termC kblk mid ∘ coeC {C.dom} eqM gterm)
-      to-clean .after-G refl perm = ≈-Term-refl
-
-      step3 : permute-via-vlab C.vlab perm-C2 ∘ (kterm-aG ∘ gterm)
-            ≈Term permute-via-vlab C.vlab perm-C2-cl
-                ∘ (pe-termC kblk clG ∘ coeC {C.dom} after-G-≡ gterm)
-      step3 = to-clean clG after-G-≡ perm-C2
-
-      ----------------------------------------------------------------
-      -- ### Substitute the two block factors.
-      GF = GFactored (range G.nE) G.dom K.dom
-      gterm-GF : coeC {C.dom} after-G-≡ gterm ≈Term GF
-      gterm-GF = gblock-factor (range G.nE) G.dom K.dom res-G
-
-      KF = KFactored (range K.nE) sG K.dom
-      kterm-KF : pe-termC kblk clG ≈Term KF
-      kterm-KF = kblock-factor (range K.nE) sG K.dom res-K
-
-      step4 : permute-via-vlab C.vlab perm-C2-cl
-                ∘ (pe-termC kblk clG ∘ coeC {C.dom} after-G-≡ gterm)
-            ≈Term permute-via-vlab C.vlab perm-C2-cl ∘ (KF ∘ GF)
-      step4 = ∘-resp-≈ ≈-Term-refl (∘-resp-≈ kterm-KF gterm-GF)
-
-      ----------------------------------------------------------------
-      -- ### The pure-block C-terms, named, and the algebraic collapse.
-      KBr = KBraid (range K.nE) sG K.dom
-      KCl = KClean (range K.nE) sG K.dom
-
-      -- KF = pvlC (↭-sym KBr) ∘ KCl   (definitional).
-      -- combP : (injL sG ++ injR sK) ↭ C.cod, the post-braid perm.
-      combP : (map injL sG ++ map injR sK) Perm.↭ C.cod
-      combP = Perm.↭-trans (Perm.↭-sym KBr) perm-C2-cl
-
-      pfL : map injL sG Perm.↭ map injL G.cod
-      pfL = PermProp.map⁺ injL perm-f
-      pfR : map injR sK Perm.↭ map injR K.cod
-      pfR = PermProp.map⁺ injR perm-g
-
-      -- `combP ≈ ++⁺ pfL pfR` on the Unique codomain (keystone).
-      combP-coh : pvlC combP ≈Term pvlC (PermProp.++⁺ pfL pfR)
-      combP-coh = pvlC-coh uCcod combP (PermProp.++⁺ pfL pfR)
-
-      -- The whole middle collapse: `perm-C2-cl ∘ (KF ∘ GF) ≈ tensor-form`.
-      to-cod = _≅_.to   (BTC.uf++ (map injL G.cod) (map injR K.cod))
-      from-dom = _≅_.from (BTC.uf++ (map injL G.dom) (map injR K.dom))
-      Gᶜ = pvlC pfL ∘ Gpure
-      Kᶜ = pvlC pfR ∘ Kpure
-
-      collapse
-        : permute-via-vlab C.vlab perm-C2-cl ∘ (KF ∘ GF)
-          ≈Term to-cod ∘ (Gᶜ ⊗₁ Kᶜ) ∘ from-dom
-      collapse = begin
-        pvlC perm-C2-cl ∘ (KF ∘ GF)
-          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-        pvlC perm-C2-cl ∘ (pvlC (Perm.↭-sym KBr) ∘ (KCl ∘ GF))
-          ≈⟨ FM.sym-assoc ⟩
-        (pvlC perm-C2-cl ∘ pvlC (Perm.↭-sym KBr)) ∘ (KCl ∘ GF)
-          ≈⟨ ≈-Term-sym (pvlC-↭trans (Perm.↭-sym KBr) perm-C2-cl) ⟩∘⟨refl ⟩
-        pvlC combP ∘ (KCl ∘ GF)
-          ≈⟨ refl⟩∘⟨ KCl∘GF ⟩
-        pvlC combP ∘ (to-mid ∘ (Gpure ⊗₁ Kpure) ∘ from-dom)
-          ≈⟨ FM.sym-assoc ⟩
-        (pvlC combP ∘ to-mid) ∘ ((Gpure ⊗₁ Kpure) ∘ from-dom)
-          ≈⟨ pvlC-collapse ⟩∘⟨refl ⟩
-        (to-cod ∘ (pvlC pfL ⊗₁ pvlC pfR)) ∘ ((Gpure ⊗₁ Kpure) ∘ from-dom)
-          ≈⟨ FM.assoc ⟩
-        to-cod ∘ ((pvlC pfL ⊗₁ pvlC pfR) ∘ ((Gpure ⊗₁ Kpure) ∘ from-dom))
-          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        to-cod ∘ (((pvlC pfL ⊗₁ pvlC pfR) ∘ (Gpure ⊗₁ Kpure)) ∘ from-dom)
-          ≈⟨ refl⟩∘⟨ (≈-Term-sym ⊗-∘-dist ⟩∘⟨refl) ⟩
-        to-cod ∘ ((Gᶜ ⊗₁ Kᶜ) ∘ from-dom) ∎
-        where
-          to-mid = _≅_.to (BTC.uf++ (map injL sG) (map injR sK))
-          to-isG = _≅_.to (BTC.uf++ (map injL sG) (map injR K.dom))
-          from-isG = _≅_.from (BTC.uf++ (map injL sG) (map injR K.dom))
-          from-sK = _≅_.from (BTC.uf++ (map injL sG) (map injR sK))
-
-          -- `KCl ∘ GF` middle iso cancellation + ⊗-merge.
-          KCl∘GF
-            : KCl ∘ GF ≈Term to-mid ∘ (Gpure ⊗₁ Kpure) ∘ from-dom
-          KCl∘GF = begin
-            (to-mid ∘ (id {RpreObj sG} ⊗₁ Kpure) ∘ from-isG)
-              ∘ (to-isG ∘ (Gpure ⊗₁ id {RsufObj K.dom}) ∘ from-dom)
-              ≈⟨ FM.assoc ⟩
-            to-mid ∘ ((id {RpreObj sG} ⊗₁ Kpure) ∘ from-isG)
-              ∘ (to-isG ∘ (Gpure ⊗₁ id {RsufObj K.dom}) ∘ from-dom)
-              ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-            to-mid ∘ (id {RpreObj sG} ⊗₁ Kpure) ∘ from-isG
-              ∘ (to-isG ∘ (Gpure ⊗₁ id {RsufObj K.dom}) ∘ from-dom)
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-            to-mid ∘ (id {RpreObj sG} ⊗₁ Kpure) ∘ (from-isG ∘ to-isG)
-              ∘ (Gpure ⊗₁ id {RsufObj K.dom}) ∘ from-dom
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoʳ (BTC.uf++ (map injL sG) (map injR K.dom)) ⟩∘⟨refl ⟩
-            to-mid ∘ (id {RpreObj sG} ⊗₁ Kpure) ∘ id
-              ∘ (Gpure ⊗₁ id {RsufObj K.dom}) ∘ from-dom
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
-            to-mid ∘ (id {RpreObj sG} ⊗₁ Kpure) ∘ (Gpure ⊗₁ id {RsufObj K.dom}) ∘ from-dom
-              ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-            to-mid ∘ ((id {RpreObj sG} ⊗₁ Kpure) ∘ (Gpure ⊗₁ id {RsufObj K.dom})) ∘ from-dom
-              ≈⟨ refl⟩∘⟨ (≈-Term-sym ⊗-∘-dist ⟩∘⟨refl) ⟩
-            to-mid ∘ ((id ∘ Gpure) ⊗₁ (Kpure ∘ id)) ∘ from-dom
-              ≈⟨ refl⟩∘⟨ ⊗-resp-≈ idˡ idʳ ⟩∘⟨refl ⟩
-            to-mid ∘ (Gpure ⊗₁ Kpure) ∘ from-dom ∎
-
-          -- `pvlC combP ∘ to-mid ≈ to-cod ∘ (pvlC pfL ⊗₁ pvlC pfR)`.
-          pvlC-collapse : pvlC combP ∘ to-mid ≈Term to-cod ∘ (pvlC pfL ⊗₁ pvlC pfR)
-          pvlC-collapse = begin
-            pvlC combP ∘ to-mid
-              ≈⟨ combP-coh ⟩∘⟨refl ⟩
-            pvlC (PermProp.++⁺ pfL pfR) ∘ to-mid
-              ≈⟨ BTC.pvv-block-tensor pfL pfR ⟩∘⟨refl ⟩
-            (to-cod ∘ (pvlC pfL ⊗₁ pvlC pfR) ∘ from-sK) ∘ to-mid
-              ≈⟨ FM.assoc ⟩
-            to-cod ∘ ((pvlC pfL ⊗₁ pvlC pfR) ∘ from-sK) ∘ to-mid
-              ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-            to-cod ∘ (pvlC pfL ⊗₁ pvlC pfR) ∘ (from-sK ∘ to-mid)
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoʳ (BTC.uf++ (map injL sG) (map injR sK)) ⟩
-            to-cod ∘ (pvlC pfL ⊗₁ pvlC pfR) ∘ id
-              ≈⟨ refl⟩∘⟨ idʳ ⟩
-            to-cod ∘ (pvlC pfL ⊗₁ pvlC pfR) ∎
-
-      ----------------------------------------------------------------
-      -- ### Assemble the C-level transform.
-      Pcomp-eq : PC ∘ Pcomposite ≈Term to-cod ∘ (Gᶜ ⊗₁ Kᶜ) ∘ from-dom
-      Pcomp-eq =
-        ≈-Term-trans step1
-          (≈-Term-trans step2
-            (≈-Term-trans step3
-              (≈-Term-trans step4 collapse)))
-
-      ----------------------------------------------------------------
-      -- ### Boundary list-equalities (relabel injL/injR images to flatten).
-      eAdom : map C.vlab (map injL G.dom) ≡ flatten A
-      eAdom = trans (TG.vlab-φ G.dom) (⟪⟫-domL f)
-      eCdom : map C.vlab (map injR K.dom) ≡ flatten C₀
-      eCdom = trans (TK.vlab-φ K.dom) (⟪⟫-domL g)
-      eBcod : map C.vlab (map injL G.cod) ≡ flatten B
-      eBcod = trans (TG.vlab-φ G.cod) (⟪⟫-codL f)
-      eDcod : map C.vlab (map injR K.cod) ≡ flatten D
-      eDcod = trans (TK.vlab-φ K.cod) (⟪⟫-codL g)
-
-      domFG = cong unflatten (⟪⟫-domL (f ⊗₁ g))
-      codFG = cong unflatten (⟪⟫-codL (f ⊗₁ g))
-
-      -- The `⊗₀`-shaped mid objects (the `to`/`from` domain/codomain).
-      midⱽ = cong₂ _⊗₀_ (cong unflatten eBcod) (cong unflatten eDcod)
-      midᵂ = cong₂ _⊗₀_ (cong unflatten eAdom) (cong unflatten eCdom)
-
-      ----------------------------------------------------------------
-      -- ### Iso boundary glue: `to-cod`/`from-dom` (BTC-framed) → raw.
-      Xcod = map C.vlab (map injL G.cod)
-      Ycod = map C.vlab (map injR K.cod)
-      Xdom = map C.vlab (map injL G.dom)
-      Ydom = map C.vlab (map injR K.dom)
-
-      to-glue
-        : subst₂ HomTerm midⱽ codFG to-cod
-          ≡ _≅_.to (unflatten-++-≅ (flatten B) (flatten D))
-      to-glue =
-        trans (cong (subst₂ HomTerm midⱽ codFG)
-                    (BNB.to-subst₂-≅ bdyCod (unflatten-++-≅ Xcod Ycod)))
-        (trans (subst₂-HomTerm-∘ refl midⱽ bdyCod codFG
-                  (_≅_.to (unflatten-++-≅ Xcod Ycod)))
-        (trans (cong (λ z → subst₂ HomTerm midⱽ z (_≅_.to (unflatten-++-≅ Xcod Ycod)))
-                     (objUIP (trans bdyCod codFG)
-                             (cong unflatten (cong₂ _++_ eBcod eDcod))))
-               (to-uf-cong eBcod eDcod)))
-        where bdyCod = cong unflatten (sym (map-++ C.vlab (map injL G.cod) (map injR K.cod)))
-
-      from-glue
-        : subst₂ HomTerm domFG midᵂ from-dom
-          ≡ _≅_.from (unflatten-++-≅ (flatten A) (flatten C₀))
-      from-glue =
-        trans (cong (subst₂ HomTerm domFG midᵂ)
-                    (BNB.from-subst₂-≅ bdyDom (unflatten-++-≅ Xdom Ydom)))
-        (trans (subst₂-HomTerm-∘ bdyDom domFG refl midᵂ
-                  (_≅_.from (unflatten-++-≅ Xdom Ydom)))
-        (trans (cong (λ z → subst₂ HomTerm z midᵂ (_≅_.from (unflatten-++-≅ Xdom Ydom)))
-                     (objUIP (trans bdyDom domFG)
-                             (cong unflatten (cong₂ _++_ eAdom eCdom))))
-               (from-uf-cong eAdom eCdom)))
-        where bdyDom = cong unflatten (sym (map-++ C.vlab (map injL G.dom) (map injR K.dom)))
-
-      ----------------------------------------------------------------
-      -- ### Fold `Gᶜ`/`Kᶜ` into `decode f`/`decode g` (gate + pvv-relabel).
-      PF = permute-via-vlab G.vlab perm-f
-      PG = permute-via-vlab K.vlab perm-g
-
-      -- `coeC` re-expressed as a codomain-only `subst₂ HomTerm refl`.
-      coeC-is-subst₂
-        : ∀ {d s s' : List (Fin C.nV)} (eq : s ≡ s')
-            (t : HomTerm (unflatten (map C.vlab d)) (unflatten (map C.vlab s)))
-        → coeC {d} eq t
-          ≡ subst₂ HomTerm refl (cong unflatten (cong (map C.vlab) eq)) t
-      coeC-is-subst₂ refl t = refl
-
-      -- G-side twin: `subst₂ (vlab-φ G.dom)(vlab-φ G.cod) Gᶜ ≈ PF ∘ pterm-f`.
-      peL = proc-stack-emb-L (range G.nE) G.dom
-      M1G = cong unflatten
-              (trans (cong (map C.vlab) (TG.proc-stack-emb (range G.nE) G.dom))
-                     (TG.vlab-φ sG))
-
-      Gpure-twin
-        : subst₂ HomTerm (cong unflatten (TG.vlab-φ G.dom)) (cong unflatten (TG.vlab-φ sG))
-            Gpure
-          ≈Term pterm-f
-      Gpure-twin =
-        ≈-Term-trans
-          (≡⇒≈Term (cong (subst₂ HomTerm (cong unflatten (TG.vlab-φ G.dom))
-                                          (cong unflatten (TG.vlab-φ sG)))
-                         (coeC-is-subst₂ peL (pe-termC gblk (map injL G.dom)))))
-        (≈-Term-trans
-          (≡⇒≈Term (subst₂-HomTerm-∘
-                      refl (cong unflatten (TG.vlab-φ G.dom))
-                      (cong unflatten (cong (map C.vlab) peL))
-                      (cong unflatten (TG.vlab-φ sG))
-                      (pe-termC gblk (map injL G.dom))))
-          (≈-Term-trans
-            (subst₂-HomTerm-irrel objUIP
-              (cong unflatten (TG.vlab-φ G.dom)) (cong unflatten (TG.vlab-φ G.dom))
-              (trans (cong unflatten (cong (map C.vlab) peL))
-                     (cong unflatten (TG.vlab-φ sG)))
-              M1G
-              (pe-termC gblk (map injL G.dom)))
-            (TG.process-edges-term-emb (range G.nE) G.dom)))
-
-      PF-twin
-        : subst₂ HomTerm (cong unflatten (TG.vlab-φ sG)) (cong unflatten (TG.vlab-φ G.cod))
-            (pvlC pfL)
-          ≈Term PF
-      PF-twin = pvv-relabel Kf injL C.vlab G.vlab vlab-injL perm-f
-
-      Gᶜ-twin
-        : subst₂ HomTerm (cong unflatten (TG.vlab-φ G.dom)) (cong unflatten (TG.vlab-φ G.cod))
-            Gᶜ
-          ≈Term PF ∘ pterm-f
-      Gᶜ-twin =
-        ≈-Term-trans
-          (≡⇒≈Term (subst₂-HomTerm-∘-dist
-                      (cong unflatten (TG.vlab-φ G.dom)) (cong unflatten (TG.vlab-φ sG))
-                      (cong unflatten (TG.vlab-φ G.cod)) (pvlC pfL) Gpure))
-          (∘-resp-≈ PF-twin Gpure-twin)
-
-      Gpart : subst₂ HomTerm (cong unflatten eAdom) (cong unflatten eBcod) Gᶜ ≈Term decode f
-      Gpart =
-        ≈-Term-trans
-          (subst₂-HomTerm-irrel objUIP
-            (cong unflatten eAdom)
-            (trans (cong unflatten (TG.vlab-φ G.dom)) (cong unflatten (⟪⟫-domL f)))
-            (cong unflatten eBcod)
-            (trans (cong unflatten (TG.vlab-φ G.cod)) (cong unflatten (⟪⟫-codL f)))
-            Gᶜ)
-        (≈-Term-trans
-          (≡⇒≈Term (sym (subst₂-HomTerm-∘
-                          (cong unflatten (TG.vlab-φ G.dom)) (cong unflatten (⟪⟫-domL f))
-                          (cong unflatten (TG.vlab-φ G.cod)) (cong unflatten (⟪⟫-codL f))
-                          Gᶜ)))
-        (≈-Term-trans
-          (subst₂-resp-≈Term (cong unflatten (⟪⟫-domL f)) (cong unflatten (⟪⟫-codL f)) Gᶜ-twin)
-          (≈-Term-sym decode-f-≈)))
-
-      -- K-side, mirror with `injR`/`vlab-injR`/`TK`.
-      peR = proc-stack-emb-R (range K.nE) K.dom
-      M1K = cong unflatten
-              (trans (cong (map C.vlab) (TK.proc-stack-emb (range K.nE) K.dom))
-                     (TK.vlab-φ sK))
-
-      Kpure-twin
-        : subst₂ HomTerm (cong unflatten (TK.vlab-φ K.dom)) (cong unflatten (TK.vlab-φ sK))
-            Kpure
-          ≈Term pterm-g
-      Kpure-twin =
-        ≈-Term-trans
-          (≡⇒≈Term (cong (subst₂ HomTerm (cong unflatten (TK.vlab-φ K.dom))
-                                          (cong unflatten (TK.vlab-φ sK)))
-                         (coeC-is-subst₂ peR (pe-termC kblk (map injR K.dom)))))
-        (≈-Term-trans
-          (≡⇒≈Term (subst₂-HomTerm-∘
-                      refl (cong unflatten (TK.vlab-φ K.dom))
-                      (cong unflatten (cong (map C.vlab) peR))
-                      (cong unflatten (TK.vlab-φ sK))
-                      (pe-termC kblk (map injR K.dom))))
-          (≈-Term-trans
-            (subst₂-HomTerm-irrel objUIP
-              (cong unflatten (TK.vlab-φ K.dom)) (cong unflatten (TK.vlab-φ K.dom))
-              (trans (cong unflatten (cong (map C.vlab) peR))
-                     (cong unflatten (TK.vlab-φ sK)))
-              M1K
-              (pe-termC kblk (map injR K.dom)))
-            (TK.process-edges-term-emb (range K.nE) K.dom)))
-
-      PG-twin
-        : subst₂ HomTerm (cong unflatten (TK.vlab-φ sK)) (cong unflatten (TK.vlab-φ K.cod))
-            (pvlC pfR)
-          ≈Term PG
-      PG-twin = pvv-relabel Kf injR C.vlab K.vlab vlab-injR perm-g
-
-      Kᶜ-twin
-        : subst₂ HomTerm (cong unflatten (TK.vlab-φ K.dom)) (cong unflatten (TK.vlab-φ K.cod))
-            Kᶜ
-          ≈Term PG ∘ pterm-g
-      Kᶜ-twin =
-        ≈-Term-trans
-          (≡⇒≈Term (subst₂-HomTerm-∘-dist
-                      (cong unflatten (TK.vlab-φ K.dom)) (cong unflatten (TK.vlab-φ sK))
-                      (cong unflatten (TK.vlab-φ K.cod)) (pvlC pfR) Kpure))
-          (∘-resp-≈ PG-twin Kpure-twin)
-
-      Kpart : subst₂ HomTerm (cong unflatten eCdom) (cong unflatten eDcod) Kᶜ ≈Term decode g
-      Kpart =
-        ≈-Term-trans
-          (subst₂-HomTerm-irrel objUIP
-            (cong unflatten eCdom)
-            (trans (cong unflatten (TK.vlab-φ K.dom)) (cong unflatten (⟪⟫-domL g)))
-            (cong unflatten eDcod)
-            (trans (cong unflatten (TK.vlab-φ K.cod)) (cong unflatten (⟪⟫-codL g)))
-            Kᶜ)
-        (≈-Term-trans
-          (≡⇒≈Term (sym (subst₂-HomTerm-∘
-                          (cong unflatten (TK.vlab-φ K.dom)) (cong unflatten (⟪⟫-domL g))
-                          (cong unflatten (TK.vlab-φ K.cod)) (cong unflatten (⟪⟫-codL g))
-                          Kᶜ)))
-        (≈-Term-trans
-          (subst₂-resp-≈Term (cong unflatten (⟪⟫-domL g)) (cong unflatten (⟪⟫-codL g)) Kᶜ-twin)
-          (≈-Term-sym decode-g-≈)))
-
-      ----------------------------------------------------------------
-      -- ### Distribute the outer subst₂ and fold.
-      -- subst₂ domFG codFG (to-cod ∘ (Gᶜ⊗Kᶜ) ∘ from-dom)
-      --   ≡ subst₂ midⱽ codFG to-cod
-      --       ∘ (subst₂ midᵂ midⱽ (Gᶜ⊗Kᶜ) ∘ subst₂ domFG midᵂ from-dom)
-      dist
-        : subst₂ HomTerm domFG codFG (to-cod ∘ (Gᶜ ⊗₁ Kᶜ) ∘ from-dom)
-          ≡ subst₂ HomTerm midⱽ codFG to-cod
-              ∘ (subst₂ HomTerm midᵂ midⱽ (Gᶜ ⊗₁ Kᶜ)
-                 ∘ subst₂ HomTerm domFG midᵂ from-dom)
-      dist =
-        trans (subst₂-HomTerm-∘-dist domFG midⱽ codFG to-cod ((Gᶜ ⊗₁ Kᶜ) ∘ from-dom))
-              (cong (subst₂ HomTerm midⱽ codFG to-cod ∘_)
-                    (subst₂-HomTerm-∘-dist domFG midᵂ midⱽ (Gᶜ ⊗₁ Kᶜ) from-dom))
-
-      mid-fold
-        : subst₂ HomTerm midᵂ midⱽ (Gᶜ ⊗₁ Kᶜ) ≈Term decode f ⊗₁ decode g
-      mid-fold =
-        ≈-Term-trans
-          (≡⇒≈Term (subst₂-⊗₁-dist
-                      (cong unflatten eAdom) (cong unflatten eBcod)
-                      (cong unflatten eCdom) (cong unflatten eDcod) Gᶜ Kᶜ))
-          (⊗-resp-≈ Gpart Kpart)
-
-      goal : decode (f ⊗₁ g)
-           ≈Term _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
-                ∘ (decode f ⊗₁ decode g)
-                ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C₀))
-      goal =
-        ≈-Term-trans decode-fg-≈
-        (≈-Term-trans
-          (subst₂-resp-≈Term domFG codFG Pcomp-eq)
-        (≈-Term-trans
-          (≡⇒≈Term dist)
-          (∘-resp-≈ (≡⇒≈Term to-glue)
-            (∘-resp-≈ mid-fold (≡⇒≈Term from-glue)))))
+  decode-⊗-shape-inner {A} {B} {C₀} {D} f g =
+    DecodeShapeGeneric.goal objUIP Kf {A} {B} {C₀} {D} ⟪ f ⟫ ⟪ g ⟫
+      (decode f) (decode g) (decode (f ⊗₁ g))
+      (Lin.⟪⟫-Linear f) (Lin.⟪⟫-Linear g) (Lin.⟪⟫-Linear (f ⊗₁ g))
+      (decode-attempt-Linear f) (decode-attempt-Linear g) (decode-attempt-Linear (f ⊗₁ g))
+      (⟪⟫-domL f) (⟪⟫-codL f) (⟪⟫-domL g) (⟪⟫-codL g)
+      (⟪⟫-domL (f ⊗₁ g)) (⟪⟫-codL (f ⊗₁ g))
+      refl refl refl
