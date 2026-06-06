@@ -2,10 +2,9 @@
 
 --------------------------------------------------------------------------------
 -- Smoke tests for `findIso`, threaded through `completeness-full-wired`.
--- The completeness theorem is now FULLY AXIOM-FREE (its Kelly residual is the
+-- The completeness theorem is FULLY AXIOM-FREE (its Kelly residual is the
 -- proven `FaithfulnessInductive.faithfulness`), so the tests below are closed
--- theorems requiring no assumption.  The (now parameterless) `WithAssumptions`
--- module is retained for `Solver/TestsTrust.agda`.
+-- `--safe` theorems requiring no assumption.
 --
 -- Each test is of the form
 --
@@ -90,11 +89,9 @@ open import Categories.APROP.Hypergraph.Solver.FindIso mySigDec using (findIso)
 open APROP mySig
 
 --------------------------------------------------------------------------------
--- The completeness theorem `completeness-full-wired` is now FULLY AXIOM-FREE
--- (its Kelly residual is the proven `FaithfulnessInductive.faithfulness`), so
--- the tests below are closed theorems — no assumption is needed.  The
--- `WithAssumptions` module is retained (now parameterless) for compatibility
--- with `Solver/TestsTrust.agda`.
+-- The completeness theorem `completeness-full-wired` is FULLY AXIOM-FREE (its
+-- Kelly residual is the proven `FaithfulnessInductive.faithfulness`), so the
+-- tests below are closed `--safe` theorems — no assumption, no trust module.
 
 open import Categories.APROP.Hypergraph.CompletenessFullWired mySigDec
   using (completeness-full-wired)

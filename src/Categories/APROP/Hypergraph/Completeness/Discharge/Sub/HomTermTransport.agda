@@ -243,10 +243,9 @@ pvv-relabel Kf φ vJ vH veq {xs} {ys} p =
 -- (the first `≤` by `count-++`-monotonicity, the `=` by the balance half
 -- of `Linear`, the last `≤` by the bound half).  Hence `Unique cod`.
 
-private
-  open import Data.Nat.Base using () renaming (_≤_ to _≤ⁿ_)
-  import Data.Nat.Properties as Nat
-  open import Data.List using (concat; tabulate)
+open import Data.Nat.Base using () renaming (_≤_ to _≤ⁿ_)
+import Data.Nat.Properties as Nat
+open import Data.List using (concat; tabulate)
 
 Linear⇒cod-Unique : (H : Hypergraph FlatGen) → Lin.Linear H → Unique (Hypergraph.cod H)
 Linear⇒cod-Unique H (bal , bnd) = SU.count≤1⇒Unique cod-bnd
