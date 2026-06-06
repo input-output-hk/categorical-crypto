@@ -253,46 +253,6 @@ module _ {n : ℕ} where
       open import Data.Product using (proj₂)
 
 --------------------------------------------------------------------------------
--- `any?` / `∈?` commute with `map` under an injection.
---
--- The decidable membership test is structural on the list — it walks each
--- element and checks `_≟ v`. Under an injection f, `f x ≟ f v` has the
--- same answer as `x ≟ v` (by injectivity in the yes case, vacuously in
--- the no case). So `any? (_≟ f v) (map f xs)` traces the same walk as
--- `any? (_≟ v) xs`, just with every element and the target wrapped in f.
---
--- This lemma is used by `Congruence.hComposeP-resp-≅ᴴ`'s `remapP-comm`,
--- via a `classify`-coherence lemma that reduces to this after some
--- `refl` chasing.
-
-module _ {m n : ℕ}
-         (φ : Fin m → Fin n)
-         (φ-inj : ∀ {x y : Fin m} → φ x ≡ φ y → x ≡ y)
-         where
-  open import Data.List.Membership.Propositional using (_∈_; _∉_)
-  open import Data.List.Relation.Unary.Any using (here; there)
-
-  -- Inverse of ∉-map-injective: `φ v ∈ map φ xs ⇒ v ∈ xs`.
-  -- Dual to `∉-map-injective` (which goes the other way).
-  ∈-map-injective⁻ : ∀ {xs : List (Fin m)} {v : Fin m}
-                   → φ v ∈ map φ xs → v ∈ xs
-  ∈-map-injective⁻ {xs = x ∷ xs} (here eq)    = here (φ-inj eq)
-  ∈-map-injective⁻ {xs = x ∷ xs} (there rest) =
-    there (∈-map-injective⁻ rest)
-
-  open import Data.Fin using (zero; suc; cast)
-  open import Data.List.Properties using (length-map)
-  open import Data.List.Membership.Propositional.Properties using (∈-map⁺)
-
-  -- `∈-map⁺ φ` preserves `Any.index` structurally.
-  ∈-map⁺-index-cast
-    : ∀ {xs : List (Fin m)} {v : Fin m} (v∈xs : v ∈ xs)
-    → index (∈-map⁺ φ v∈xs)
-    ≡ cast (sym (length-map φ xs)) (index v∈xs)
-  ∈-map⁺-index-cast {xs = x ∷ xs} (here refl) = refl
-  ∈-map⁺-index-cast {xs = x ∷ xs} (there p)  =
-    cong suc (∈-map⁺-index-cast p)
-
 -- Generic lookup-through-map commutation.
 module _ {ℓ₁ ℓ₂ : _} {A : Set ℓ₁} {B : Set ℓ₂} where
   open import Data.Fin using (cast)
@@ -384,9 +344,6 @@ module _ {m n : ℕ}
   -- Injectivity from the left-inverse property.
   φ-inj : ∀ {x y : Fin m} → φ x ≡ φ y → x ≡ y
   φ-inj {x} {y} eq = trans (sym (φ-left x)) (trans (cong φ⁻¹ eq) (φ-left y))
-
-  φ⁻¹-inj : ∀ {x y : Fin n} → φ⁻¹ x ≡ φ⁻¹ y → x ≡ y
-  φ⁻¹-inj {x} {y} eq = trans (sym (φ-right x)) (trans (cong φ eq) (φ-right y))
 
   -- If `φ⁻¹ v ∈ xs` then `v ∈ map φ xs` via `v = φ (φ⁻¹ v)`.
   -- Contrapositive: `v ∉ map φ xs → φ⁻¹ v ∉ xs`.

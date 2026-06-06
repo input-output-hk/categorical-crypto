@@ -64,7 +64,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
-  using (process-edges; edge-step; extract-prefix; extract-elem)
+  using (process-edges; edge-step; extract-prefix)
 open import Categories.APROP.Hypergraph.Completeness.DecodeProperties sig
   using (extract-prefix-↭-residual; extract-prefix-↭-nothing)
 open import Categories.APROP.Hypergraph.Completeness.Linearity sig
@@ -85,8 +85,6 @@ open import Data.Fin.Properties using (_≟_)
 open import Data.List using (List; []; _∷_; _++_; map; concat)
 open import Data.List.Base using (tabulate)
 open import Data.List.Properties using (++-assoc)
-open import Data.List.Membership.Propositional using (_∈_)
-open import Data.List.Relation.Unary.Any using (here; there)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (Maybe; just; nothing)
@@ -116,7 +114,7 @@ open import Relation.Binary.PropositionalEquality
 
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.CountCombinatorics sig
   using ( count-cons-yes; count-cons-no; ∈→count-pos; count-pos→∈
-        ; ↭⇒count; count-pos→extract-elem; count-≤→extract-prefix; ++-cancelˡ)
+        ; ↭⇒count; count-≤→extract-prefix; ++-cancelˡ)
 
 private
   variable
@@ -194,6 +192,10 @@ module PerHG (H : Hypergraph FlatGen)
   ------------------------------------------------------------------------
 
   private
+    -- `nothing ≡ just _` is absurd.  Shared by the stability dischargers below.
+    nothing≢just : ∀ {A : Set} {x : A} → nothing ≡ just x → ⊥
+    nothing≢just ()
+
     -- From `Linear`, the total consumption count of any vertex is ≤ 1.
     consume-bnd : ∀ (v : Fin H.nV) → count v (consumedList H) ≤ⁿ 1
     consume-bnd v = subst (_≤ⁿ 1) (proj₁ lin v) (proj₂ lin v)
@@ -679,8 +681,6 @@ module PerHG (H : Hypergraph FlatGen)
     e'-skips-stable {e} {e'} e≢e' ¬dep r₁ s p eqe' =
       go (extract-prefix (H.ein e') (H.eout e ++ r₁)) refl
       where
-        nothing≢just : ∀ {A : Set} {x : A} → nothing ≡ just x → ⊥
-        nothing≢just ()
         go : (m : Maybe (Σ[ r ∈ List (Fin H.nV) ]
                            H.eout e ++ r₁ Perm.↭ H.ein e' ++ r))
            → extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ m
@@ -847,9 +847,6 @@ module PerHG (H : Hypergraph FlatGen)
                 ⊥-elim (nothing≢just
                   (trans (sym eqe2)
                     (proj₂ (proj₂ (e'-fires-stable e≢e' ¬dep-ee' r₁ s p₁ eqe'j)))))
-                where
-                  nothing≢just : ∀ {A : Set} {x : A} → nothing ≡ just x → ⊥
-                  nothing≢just ()
           decide-e'-fire (just (r₂ , p₂)) eqe2 =
             decide-e'-from-s (extract-prefix (H.ein e') s) refl
             where
@@ -863,9 +860,6 @@ module PerHG (H : Hypergraph FlatGen)
               decide-e'-from-s nothing eqe'n =
                 ⊥-elim (nothing≢just
                   (trans (sym (e'-skips-stable e≢e' ¬dep-ee' r₁ s p₁ eqe'n)) eqe2))
-                where
-                  nothing≢just : ∀ {A : Set} {x : A} → nothing ≡ just x → ⊥
-                  nothing≢just ()
               decide-e'-from-s (just (r₂' , p₂')) eqe' =
                 decide-e-after-e'
                   (extract-prefix (H.ein e) (H.eout e' ++ r₂')) refl
@@ -889,9 +883,6 @@ module PerHG (H : Hypergraph FlatGen)
                         (proj₂ (proj₂
                           (e'-fires-stable (λ eq → e≢e' (sym eq)) ¬dep-e'e
                             r₂' s p₂' eqe)))))
-                    where
-                      nothing≢just : ∀ {A : Set} {x : A} → nothing ≡ just x → ⊥
-                      nothing≢just ()
 
   ------------------------------------------------------------------------
   -- `front-swap-stack-↭` — CONSTRUCTIVELY reduced to the two-edge head

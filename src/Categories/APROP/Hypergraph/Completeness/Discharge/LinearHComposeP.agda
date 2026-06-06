@@ -38,30 +38,30 @@ module Categories.APROP.Hypergraph.Completeness.Discharge.LinearHComposeP
 open APROP sig
 open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using (FlatGen; map-via-inj)
+  using (FlatGen)
 open import Categories.APROP.Hypergraph.Prune
   using ( count-non; nonMem; classify; remap
         ; remap-inj₁; remap-inj₂; remap-injective
         ; classify-lookup-Unique; classify-inj₁-lookup
-        ; nonMem-Unique; lookup-injective-unique)
+        ; lookup-injective-unique)
 open import Categories.APROP.Hypergraph.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
 open import Categories.APROP.Hypergraph.Completeness.Linearity sig
-  using ( count; count-++; count-map-↑ˡ; count-map-↑ʳ
-        ; count-map-↑ˡ-mismatch; count-map-↑ʳ-mismatch; count-swap
+  using ( count; count-++; count-map-↑ˡ
+        ; count-map-↑ˡ-mismatch; count-swap
         ; producedList; consumedList; Linear)
 
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt; cast; toℕ)
 open import Data.Fin.Properties using
-  ( _≟_; suc-injective; ↑ˡ-injective; ↑ʳ-injective
+  ( _≟_
   ; splitAt-↑ˡ; splitAt-↑ʳ; splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ
   ; toℕ-cast; toℕ-injective)
 open import Data.List as List using
   (List; []; _∷_; _++_; length; map; tabulate; concat; lookup)
 open import Data.List.Properties using
-  ( ++-identityʳ; ++-assoc; map-++; length-map
-  ; tabulate-cong; map-tabulate; concat-map; concat-++; map-cong)
+  ( ++-identityʳ; ++-assoc; map-++
+  ; tabulate-cong; map-tabulate; concat-map; concat-++)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 import Data.List.Relation.Unary.All as All
@@ -74,8 +74,8 @@ import Data.Nat.Properties as Nat
 open import Data.Product using (Σ-syntax; ∃-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; cong₂; sym; trans; subst; subst₂)
-open import Relation.Nullary.Decidable using (Dec; yes; no)
+  using (_≡_; refl; cong; cong₂; sym; trans; subst)
+open import Relation.Nullary.Decidable using (yes; no)
 open import Relation.Nullary.Negation using (¬_)
 open import Relation.Binary.PropositionalEquality using (_≢_)
 
@@ -90,6 +90,15 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.CountCombinat
   renaming (↭⇒count to ↭⇒count-≡)
 
 private
+  -- `tabulate` over a `Fin (m + n)` index splits as a `++` of the two
+  -- halves.  Used by `eout-comp-eq` / `ein-comp-eq` below.
+  tabulate-+ : ∀ {m n} {A : Set} (f : Fin (m + n) → A)
+             → tabulate f
+             ≡ tabulate (λ i → f (i ↑ˡ n)) ++ tabulate (λ j → f (m ↑ʳ j))
+  tabulate-+ {m = zero}          f = refl
+  tabulate-+ {m = suc m} {n = n} f =
+    cong (f zero ∷_) (tabulate-+ {m = m} {n = n} (f Fun.∘ suc))
+
   count-mono-cons : ∀ {n} (v x : Fin n) (xs : List (Fin n))
                   → count v xs Nat.≤ count v (x ∷ xs)
   count-mono-cons v x xs with v ≟ x
@@ -425,13 +434,6 @@ module _
                             (map (map remapP) (tabulate K.eout))))
            (cong₂ _++_ (concat-map (tabulate G.eout))
                        (concat-map (tabulate K.eout)))))
-    where
-      tabulate-+ : ∀ {m n} {A : Set} (f : Fin (m + n) → A)
-                 → tabulate f
-                 ≡ tabulate (λ i → f (i ↑ˡ n)) ++ tabulate (λ j → f (m ↑ʳ j))
-      tabulate-+ {m = zero}          f = refl
-      tabulate-+ {m = suc m} {n = n} f =
-        cong (f zero ∷_) (tabulate-+ {m = m} {n = n} (f Fun.∘ suc))
 
   ein-comp-eq
     : concat (tabulate ein-c)
@@ -448,13 +450,6 @@ module _
                             (map (map remapP) (tabulate K.ein))))
            (cong₂ _++_ (concat-map (tabulate G.ein))
                        (concat-map (tabulate K.ein)))))
-    where
-      tabulate-+ : ∀ {m n} {A : Set} (f : Fin (m + n) → A)
-                 → tabulate f
-                 ≡ tabulate (λ i → f (i ↑ˡ n)) ++ tabulate (λ j → f (m ↑ʳ j))
-      tabulate-+ {m = zero}          f = refl
-      tabulate-+ {m = suc m} {n = n} f =
-        cong (f zero ∷_) (tabulate-+ {m = m} {n = n} (f Fun.∘ suc))
 
   ------------------------------------------------------------------------
   -- The dom/cod of the composite (from `hComposeP`'s record):
