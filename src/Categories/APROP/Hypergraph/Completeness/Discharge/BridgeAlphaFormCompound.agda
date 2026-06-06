@@ -50,6 +50,12 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtripSafe sig
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
 open import Categories.Category.Monoidal using (Monoidal)
+-- Mac-Lane coherence solver, used to discharge the pure-coherence helpers
+-- `λ-cancel` / `collapse-α-iso-⊗id` below.  Mirrors `Sub/SigmaBlockCommRaw.agda`.
+open import Categories.MonoidalCoherence using (module Solver)
+import Data.Vec as Vec
+open Vec using (Vec)
+import Data.Fin as Fin
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.Nat using (ℕ; zero; suc; _+_; _<_; _≤_; s≤s; z≤n)
 open import Data.Nat.Properties
@@ -71,29 +77,44 @@ private
     : ∀ {X Y Z} → (λ⇒ {X} ⊗₁ id {Y ⊗₀ Z})
                    ∘ (λ⇐ {X} ⊗₁ (id {Y} ⊗₁ id {Z}))
                 ≈Term id
-  λ-cancel = begin
-    (λ⇒ ⊗₁ id) ∘ (λ⇐ ⊗₁ (id ⊗₁ id))
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (λ⇒ ∘ λ⇐) ⊗₁ (id ∘ (id ⊗₁ id))
-      ≈⟨ ⊗-resp-≈ λ⇒∘λ⇐≈id idˡ ⟩
-    id ⊗₁ (id ⊗₁ id)
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl id⊗id≈id ⟩
-    id ⊗₁ id
-      ≈⟨ id⊗id≈id ⟩
-    id ∎
+  λ-cancel {X} {Y} {Z} = solveM
+      ((λ⇒ˢ {x} ⊗₁ˢ idˢ {y ⊗₀ˢ z})
+        ∘ˢ (λ⇐ˢ {x} ⊗₁ˢ (idˢ {y} ⊗₁ˢ idˢ {z})))
+      (idˢ {x ⊗₀ˢ (y ⊗₀ˢ z)})
+    where
+      vars : Vec ObjTerm 3
+      vars = X Vec.∷ Y Vec.∷ Z Vec.∷ Vec.[]
+      open Solver (record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal })
+                  {n = 3} vars
+        using (solveM)
+        renaming (λ⇒ to λ⇒ˢ; λ⇐ to λ⇐ˢ; id to idˢ;
+                  _∘_ to _∘ˢ_; _⊗₁_ to _⊗₁ˢ_; _⊗₀_ to _⊗₀ˢ_; Var to Varˢ)
+      x y z : _
+      x = Varˢ Fin.zero
+      y = Varˢ (Fin.suc Fin.zero)
+      z = Varˢ (Fin.suc (Fin.suc Fin.zero))
 
   -- collapse-α-VAB: (α⇒ ⊗ id) ∘ (α⇐ ⊗ id) ≈ id.
   collapse-α-iso-⊗id
     : ∀ {X Y Z W : ObjTerm}
     → α⇒ {X} {Y} {Z} ⊗₁ id {W} ∘ α⇐ {X} {Y} {Z} ⊗₁ id {W} ≈Term id
-  collapse-α-iso-⊗id = begin
-    α⇒ ⊗₁ id ∘ α⇐ ⊗₁ id
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (α⇒ ∘ α⇐) ⊗₁ (id ∘ id)
-      ≈⟨ ⊗-resp-≈ α⇒∘α⇐≈id idˡ ⟩
-    id ⊗₁ id
-      ≈⟨ id⊗id≈id ⟩
-    id ∎
+  collapse-α-iso-⊗id {X} {Y} {Z} {W} = solveM
+      ((α⇒ˢ {A = x} {y} {z} ⊗₁ˢ idˢ {w})
+        ∘ˢ (α⇐ˢ {A = x} {y} {z} ⊗₁ˢ idˢ {w}))
+      (idˢ {(x ⊗₀ˢ (y ⊗₀ˢ z)) ⊗₀ˢ w})
+    where
+      vars : Vec ObjTerm 4
+      vars = X Vec.∷ Y Vec.∷ Z Vec.∷ W Vec.∷ Vec.[]
+      open Solver (record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal })
+                  {n = 4} vars
+        using (solveM)
+        renaming (α⇒ to α⇒ˢ; α⇐ to α⇐ˢ; id to idˢ;
+                  _∘_ to _∘ˢ_; _⊗₁_ to _⊗₁ˢ_; _⊗₀_ to _⊗₀ˢ_; Var to Varˢ)
+      x y z w : _
+      x = Varˢ Fin.zero
+      y = Varˢ (Fin.suc Fin.zero)
+      z = Varˢ (Fin.suc (Fin.suc Fin.zero))
+      w = Varˢ (Fin.suc (Fin.suc (Fin.suc Fin.zero)))
 
 --------------------------------------------------------------------------------
 -- F-decomp lemmas.
