@@ -14,12 +14,12 @@
 
 module Categories.PermuteCoherence.ExchangeBase where
 
-open import Data.Nat.Base using (ℕ; suc; _<_)
-open import Data.Nat.Properties using (<-cmp; 1+n≢n)
+open import Data.Nat.Base using (ℕ; suc; _<_; _≤_; s≤s)
+open import Data.Nat.Properties using (<-cmp; 1+n≢n; ≤-reflexive; ≤-trans; n≤1+n)
 open import Relation.Binary using (tri<; tri≈; tri>)
 open import Data.Fin.Base using (Fin; toℕ) renaming (suc to fsuc)
 open import Data.Fin.Properties using (toℕ-injective)
-open import Data.List.Base using (length)
+open import Data.List.Base using ([]; _∷_; length)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Product using (proj₁; proj₂)
 open import Data.Empty using (⊥-elim)
@@ -32,7 +32,7 @@ open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_; _∘-fb_
 open import Categories.PermuteCoherence.Word
   using (Word; canonW; evalW; eval-canonW; genFB)
 open import Categories.PermuteCoherence.Inversions using (inv; canonW-length)
-open import Categories.PermuteCoherence.InversionsCong using (inv-resp-≈)
+open import Categories.PermuteCoherence.InversionsCong using (inv-resp-≈; inv-id)
 open import Categories.PermuteCoherence.InversionsRec using (invS≡inv)
 open import Categories.PermuteCoherence.InversionsDichotomy
   using (invS-dichotomy; inj; suc-pos; toℕ-inj; toℕ-suc-pos)
@@ -87,6 +87,17 @@ inv-di i b with <-cmp (toℕ (b P.⟨$⟩ˡ inj i)) (toℕ (b P.⟨$⟩ˡ suc-po
   inj₂ (trans (cong suc (sym (invS≡inv (genFB i ∘-fb b))))
        (trans (proj₂ (invS-dichotomy i b) gt) (invS≡inv b)))
 ... | tri≈ _ eq _ = ⊥-elim (inj≢suc i (⟨$⟩ˡ-inj b (toℕ-injective eq)))
+
+------------------------------------------------------------------------
+-- `inv (evalW w) ≤ length w`: each generator changes `inv` by ±1.
+
+inv≤length : (w : Word n) → inv (evalW w) ≤ length w
+inv≤length {n} []          = ≤-reflexive (inv-id {n})
+inv≤length {suc n} (i ∷ w) with inv-di i (evalW w)
+... | inj₁ asc = ≤-trans (≤-reflexive asc) (s≤s (inv≤length w))
+... | inj₂ dsc =
+  ≤-trans (≤-trans (n≤1+n _) (≤-reflexive dsc))
+          (≤-trans (inv≤length w) (n≤1+n _))
 
 ------------------------------------------------------------------------
 -- 3. `canonW b` is reduced.

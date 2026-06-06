@@ -8,24 +8,25 @@
 -- INDUCTIVELY GENERATED congruence `_≅↭ⁱ_` on `↭`-derivations whose
 -- generators are exactly the relations of the free symmetric-monoidal
 -- structure (groupoid laws, bifunctoriality, σ-naturality, σ²=id,
--- far-commutativity, and the braid).
+-- and the braid).
 --
 -- Architecture (per the brainstorm):
 --
---     permute-resp-≅↭ p q (h : p ≅↭ q) = permute-resp-≅↭ⁱ (complete h)
+--     permute-resp-≅↭ p q (h : p ≅↭ q) = permute-resp-≅↭ⁱ (complete-proven h)
 --
 --   * `permute-resp-≅↭ⁱ : p ≅↭ⁱ q → permute p ≈Term permute q`
 --       PROVED by induction -- one SMC axiom per generator
 --       (`swap-braid ↦ hexagon`).
---   * `complete : eval-↭ p ≈-fb eval-↭ q → p ≅↭ⁱ q`
---       the SINGLE postulate -- a purely COMBINATORIAL statement about
+--   * `complete-proven : eval-↭ p ≈-fb eval-↭ q → p ≅↭ⁱ q`
+--       PROVED here (§10) -- a purely COMBINATORIAL statement about
 --       `↭`-derivations (no terms, no `subst`): the genuine Coxeter /
---       word-problem core, decoupled from all SMC bookkeeping.
+--       word-problem core, decoupled from all SMC bookkeeping.  No
+--       postulate remains in this file.
 --
 -- Minimised constructor set: `swap`-congruence is derivable from
--- `swap-nat` + `prep`-congruence, so it is omitted.  `swap-far` is kept
--- (it keeps `complete` honest; it may be derivable from the bifunctor
--- laws -- TODO).
+-- `swap-nat` + `prep`-congruence, so it is omitted; far-commutativity is
+-- derived (`far-nat`, §7) from `swap-nat` + `swap-nat-left` rather than
+-- taken as a generator.
 ------------------------------------------------------------------------
 
 open import Categories.FreeMonoidal
@@ -68,14 +69,13 @@ open import Categories.PermuteCoherence.Word
   using ( Word; liftW; _~ʷ_; ~refl; ~sym; ~trans; ∷c; c1; c2; c3
         ; Far; far0ˡ; far0ʳ; farS; Adj; adj0; adjS
         ; evalW; canonW; canonW-resp-≈
-        ; ∘-fb-cong; cons-fb-cong )
+        ; cons-fb-cong )
 -- `straightenW` moved out of `Word` (it needs the now-PROVED Insertion
 -- Lemma `insert-thm`); it lives in `InsertProof`, which retires `insert`.
 open import Categories.PermuteCoherence.InsertProof using (straightenW)
 open import Categories.PermuteCoherence.WordInterp {X = X}
   using ( swapAt; swapAt-↭; applyW; applyW-length; ⟦_⟧↭
-        ; swapAt-invol; swapAt-far; swapAt-braid; applyW-~
-        ; castFB; cast-push; eval-respect)
+        ; cast-push; eval-respect)
 open import Categories.PermuteCoherence.Map
   using ( eval-subst-cod )
 
@@ -134,13 +134,6 @@ data _≅↭ⁱ_ : {xs ys : List X} → xs ↭ ys → xs ↭ ys → Set where
                           (Perm.swap y x (Perm.refl {xs = xs}))
                ≅↭ⁱ Perm.refl {xs = x ∷ y ∷ xs}
 
-  -- far-commutativity: a front swap and a depth-2 swap commute
-  swap-far : Perm.trans (Perm.swap a b (Perm.refl {xs = c ∷ e ∷ xs}))
-                        (Perm.prep b (Perm.prep a (Perm.swap c e (Perm.refl {xs = xs}))))
-             ≅↭ⁱ
-             Perm.trans (Perm.prep a (Perm.prep b (Perm.swap c e (Perm.refl {xs = xs}))))
-                        (Perm.swap a b (Perm.refl {xs = e ∷ c ∷ xs}))
-
   -- the braid (Yang-Baxter): reversing three front elements, two ways
   swap-braid : Perm.trans (Perm.swap x y (Perm.refl {xs = z ∷ xs}))
                           (Perm.trans (Perm.prep y (Perm.swap x z (Perm.refl {xs = xs})))
@@ -151,13 +144,12 @@ data _≅↭ⁱ_ : {xs ys : List X} → xs ↭ ys → xs ↭ ys → Set where
                                       (Perm.prep z (Perm.swap x y (Perm.refl {xs = xs}))))
 
 ------------------------------------------------------------------------
--- 2. The three remaining term-level coherence lemmas (each one SMC
---    axiom).  ISOLATED here; to be discharged next.
+-- 2. The term-level coherence lemmas (each one SMC axiom).  ISOLATED
+--    here and discharged in-file:
 --      * resp-nat   : σ-naturality      (σ∘[f⊗g]≈[g⊗f]∘σ / σ-block-natural₃)
---      * resp-far   : interchange       (⊗-∘-dist)
 --      * resp-braid : the braid         (hexagon)        ← the meaty one
---    `swap-invol` is ALREADY discharged below via the exported
---    `σ-block-self-inverse-direct`, demonstrating the pattern.
+--    `swap-invol` is discharged below via the exported
+--    `σ-block-self-inverse-direct`.
 
 private
   -- Two associator/σ-block lemmas (re-derived from `FaithfulnessK`, where
@@ -213,6 +205,15 @@ private
                                      idʳ))
                                  ≈-Term-refl)))))
 
+  -- Collapse an `id ⊗ (id ⊗ id)` tower on the left of any composite.
+  collapse-id3
+    : ∀ {U V W P} {g : HomTerm P (U ⊗₀ (V ⊗₀ W))}
+    → (id {A = U} ⊗₁ (id {A = V} ⊗₁ id {A = W})) ∘ g ≈Term g
+  collapse-id3 {g = g} =
+    ≈-Term-trans
+      (∘-resp-≈ (≈-Term-trans (⊗-resp-≈ ≈-Term-refl id⊗id≈id) id⊗id≈id) ≈-Term-refl)
+      idˡ
+
   -- σ-naturality: `permute` respects `swap-nat`.
   resp-nat
     : {p : xs ↭ ys}
@@ -225,35 +226,7 @@ private
       (≈-Term-trans assoc
       (≈-Term-trans (∘-resp-≈ ≈-Term-refl σ-block-natural₃)
       (≈-Term-trans (≈-Term-sym assoc)
-                    (∘-resp-≈ collapse ≈-Term-refl))))
-    where
-    collapse : (id ⊗₁ (id ⊗₁ id)) ∘ (id ⊗₁ (id ⊗₁ permute p))
-               ≈Term id ⊗₁ (id ⊗₁ permute p)
-    collapse =
-      ≈-Term-trans
-        (∘-resp-≈ (≈-Term-trans (⊗-resp-≈ ≈-Term-refl id⊗id≈id) id⊗id≈id) ≈-Term-refl)
-        idˡ
-
-  -- Collapse an `id ⊗ (id ⊗ id)` tower on the left of any composite.
-  collapse-id3
-    : ∀ {U V W P} {g : HomTerm P (U ⊗₀ (V ⊗₀ W))}
-    → (id {A = U} ⊗₁ (id {A = V} ⊗₁ id {A = W})) ∘ g ≈Term g
-  collapse-id3 {g = g} =
-    ≈-Term-trans
-      (∘-resp-≈ (≈-Term-trans (⊗-resp-≈ ≈-Term-refl id⊗id≈id) id⊗id≈id) ≈-Term-refl)
-      idˡ
-
-  -- far-commutativity = `σ-block-natural₃` with the inner morphism a swap.
-  resp-far
-    : permute (Perm.trans (Perm.swap a b (Perm.refl {xs = c ∷ e ∷ xs}))
-                          (Perm.prep b (Perm.prep a (Perm.swap c e (Perm.refl {xs = xs})))))
-      ≈Term
-      permute (Perm.trans (Perm.prep a (Perm.prep b (Perm.swap c e (Perm.refl {xs = xs}))))
-                          (Perm.swap a b (Perm.refl {xs = e ∷ c ∷ xs})))
-  resp-far =
-    ≈-Term-trans (∘-resp-≈ ≈-Term-refl collapse-id3)
-    (≈-Term-trans (≈-Term-sym σ-block-natural₃)
-                  (∘-resp-≈ (≈-Term-sym collapse-id3) ≈-Term-refl))
+                    (∘-resp-≈ collapse-id3 ≈-Term-refl))))
 
   -- `permute` of one front swap is exactly `σ-block` (the `id`-tower
   -- collapses, via `collapse-id3`).
@@ -328,7 +301,6 @@ permute-resp-≅↭ⁱ prep-tr       =
 permute-resp-≅↭ⁱ swap-invol    = σ-block-self-inverse-direct id id idˡ
 permute-resp-≅↭ⁱ swap-nat      = resp-nat
 permute-resp-≅↭ⁱ swap-nat-left = ∘-resp-≈ ≈-Term-refl (≈-Term-sym collapse-id3)
-permute-resp-≅↭ⁱ swap-far      = resp-far
 permute-resp-≅↭ⁱ swap-braid    = resp-braid
 
 ------------------------------------------------------------------------
@@ -383,25 +355,12 @@ sound (swap-invol {xs = xs}) i =
                         P.⟨$⟩ʳ (cons-fb (cons-fb (id-fb {length xs})) P.⟨$⟩ʳ i)))
                      (cong (swap-fb (length xs) P.⟨$⟩ʳ_) (cons²-id i))))
         (swap-fb-involutive {length xs} i)
--- `swap-far`/`swap-braid` are proved POINTWISE (at a fixed index `i`).
+-- `swap-braid` is proved POINTWISE (at a fixed index `i`).
 -- A combinator-style proof fails: the `≈-fb` (= `P._≈_`) relation only
 -- constrains the FORWARD map of a permutation, so intermediate records
 -- built by `swap-fb-natural`/`yang-baxter` would leave their `.from`/
 -- `.to-cong`/`.inverse` fields as unsolvable metas.  Applying everything
 -- at `i` reduces to `_⟨$⟩ʳ_` (the forward map) and avoids that entirely.
-sound (swap-far {xs = xs}) i =
-  trans (cong (λ k → cc-sc P.⟨$⟩ʳ (S P.⟨$⟩ʳ k)) (cons²-id {suc (suc L)} i))
-  (trans (coll (S P.⟨$⟩ʳ i))
-  (trans (sym (swap-fb-natural (swap-fb L) i))
-         (cong (S P.⟨$⟩ʳ_)
-               (sym (trans (cons²-id {suc (suc L)} (cc-sc P.⟨$⟩ʳ i))
-                           (coll i))))))
-  where
-  L = length xs
-  S = swap-fb (suc (suc L))
-  cc-sc = cons-fb (cons-fb (swap-fb L ∘-fb cons-fb (cons-fb (id-fb {L}))))
-  coll : cc-sc ≈-fb cons-fb (cons-fb (swap-fb L))
-  coll = cons-fb-cong (cons-fb-cong (sw∘c≈sw {L}))
 sound (swap-braid {xs = xs}) i =
   trans lhsCollapse (trans (yang-baxter {L} i) (sym rhsCollapse))
   where
@@ -432,12 +391,12 @@ sound (swap-braid {xs = xs}) i =
                (cong (Sx P.⟨$⟩ʳ_) (collM i))))
 
 ------------------------------------------------------------------------
--- 5. `FaithfulnessResidual` is now closed via `complete-proven` (proved
+-- 5. `FaithfulnessResidual` is closed via `complete-proven` (proved
 --    below from the Word↔derivation bridge), so it is defined at the end
---    of the file (it must come after `complete-proven`).  The genuine
---    `complete` is NO LONGER a postulate; the only residual behind it is
---    the position-level `insert` (the Sₙ Insertion Lemma, in `Word`) used
---    transitively by `straightenW`, plus the easy `sound` above.
+--    of the file (it must come after `complete-proven`).  `complete-proven`
+--    is a theorem, not a postulate; the combinatorial endgame it relies on
+--    is the Sₙ Insertion Lemma `straightenW` (now PROVED, in `InsertProof`),
+--    plus the easy `sound` above.
 
 ------------------------------------------------------------------------
 -- 7. The heterogeneous wrapper `_≅↭ᴴ_` (Route 2 of the subst analysis).

@@ -23,7 +23,7 @@ open import Relation.Binary.PropositionalEquality.Core
 open import Categories.PermuteCoherence.FinBij
   using (FinBij; _∘-fb_; inv-fb; id-fb; _≈-fb_)
 open import Categories.PermuteCoherence.Word
-  using (rotate-fb; ∘-fb-cong)
+  using (rotate-fb; ∘-fb-cong; ≈ˡ)
 open import Categories.PermuteCoherence.Inversions using (inv)
 -- `residual-pw-cong` = `remove 0F` respects pointwise (`≈-fb`) equality.
 open import Categories.PermuteCoherence.CanonicalProps using (residual-pw-cong)
@@ -33,16 +33,9 @@ private
     n : ℕ
 
 ------------------------------------------------------------------------
--- The backward maps of pointwise-equal bijections agree.  (Same lemma
--- as `Word.≈ˡ`, kept local so this module stays self-contained.)
-
-≈ˡ : {N M : ℕ} {b b′ : FinBij N M} → b ≈-fb b′ → ∀ j → b P.⟨$⟩ˡ j ≡ b′ P.⟨$⟩ˡ j
-≈ˡ {b = b} {b′} eq j =
-  trans (sym (P.inverseˡ b′ {b P.⟨$⟩ˡ j}))
-        (cong (b′ P.⟨$⟩ˡ_) (trans (sym (eq (b P.⟨$⟩ˡ j))) (P.inverseʳ b {j})))
-
-------------------------------------------------------------------------
 -- (1) `inv` respects pointwise equality.
+--
+-- (The backward maps of pointwise-equal bijections agree: `Word.≈ˡ`.)
 --
 -- Mirrors `Word.canonW-resp-≈`: the head datum `b ⟨$⟩ˡ 0F` is determined
 -- by `≈ˡ`, so the rotation contribution `toℕ (b ⟨$⟩ˡ 0F)` matches; the
@@ -60,7 +53,7 @@ opaque
       (cong toℕ m≡)
     where
     m≡ : b P.⟨$⟩ˡ 0F ≡ b′ P.⟨$⟩ˡ 0F
-    m≡ = ≈ˡ {b = b} {b′ = b′} eq 0F
+    m≡ = ≈ˡ {f = b} {g = b′} eq 0F
 
     restb rest′ : FinBij (suc n) (suc n)
     restb = remove 0F (b  ∘-fb inv-fb (rotate-fb (b  P.⟨$⟩ˡ 0F)))

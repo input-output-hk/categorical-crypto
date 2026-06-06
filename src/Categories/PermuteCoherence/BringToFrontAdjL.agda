@@ -7,7 +7,7 @@ module Categories.PermuteCoherence.BringToFrontAdjL where
 
 open import Data.Nat.Base using (ℕ; suc; _<_; _≤_)
 open import Data.Nat.Properties
-  using (<-cmp; <-asym; <-trans; <-irrefl; 1+n≢n; suc-injective; ≤-refl; ≤-trans; n≤1+n; <⇒≤; 1+n≰n)
+  using (<-trans; 1+n≢n)
 open import Data.Fin.Base using (Fin; toℕ) renaming (suc to fsuc; zero to fz)
 open import Data.Fin.Properties using (toℕ-injective)
 open import Data.List.Base using (_∷_)

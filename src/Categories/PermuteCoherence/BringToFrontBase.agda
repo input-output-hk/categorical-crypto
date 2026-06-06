@@ -8,7 +8,7 @@ module Categories.PermuteCoherence.BringToFrontBase where
 
 open import Data.Nat.Base using (ℕ; zero; suc; _<_; _≤_; s≤s; z≤n; s<s)
 open import Data.Nat.Properties
-  using (<-cmp; <-asym; <-trans; <-irrefl; 1+n≢n; suc-injective; ≤-refl; ≤-trans; n≤1+n; <⇒≤; 1+n≰n)
+  using (<-cmp; <-trans; <-irrefl; 1+n≢n; suc-injective; ≤-trans; n≤1+n; 1+n≰n)
 open import Relation.Binary.Definitions using (tri<; tri≈; tri>)
 open import Data.Fin.Base using (Fin; toℕ) renaming (suc to fsuc; zero to fz)
 open import Data.Fin.Patterns using (0F; 1F)
@@ -27,9 +27,9 @@ open import Categories.PermuteCoherence.FinBij
 open import Categories.PermuteCoherence.Word
   using (Word; evalW; genFB; _~ʷ_; ~refl; ~sym; ~trans; ∷c; c1; c2; c3; Far; far0ˡ; far0ʳ; farS; Adj; adj0; adjS; ∷-cong; genFB-involutive; ~ʷ⇒≈)
 open import Categories.PermuteCoherence.Inversions using (inv)
-open import Categories.PermuteCoherence.InversionsCong using (inv-resp-≈; inv-id)
+open import Categories.PermuteCoherence.InversionsCong using (inv-resp-≈)
 open import Categories.PermuteCoherence.ExchangeBase
-  using (Reduced; descent; inv-di)
+  using (Reduced; descent; inv-di; inv≤length)
 open import Categories.PermuteCoherence.InversionsDichotomy
   using (inj; suc-pos; toℕ-inj; toℕ-suc-pos; swapℕ; swapℕ-k; swapℕ-sk; genFB-toℕ; invS-dichotomy)
 open import Categories.PermuteCoherence.InversionsRec using (invS≡inv)
@@ -323,23 +323,8 @@ descent-far {i = i} {j} {b} g dsc =
   posᵢ₊₁-eq = cong (λ z → toℕ (b P.⟨$⟩ˡ z)) (genFB-ˡ-fixes-suc-pos g)
 
 ------------------------------------------------------------------------
--- `inv ≤ length`, suffix-reducedness, and the head-descent fact.
-
--- Each generator changes `inv` by ±1, so `inv (evalW w) ≤ length w`.
-inv-le-length : (w : Word (suc n)) → inv (evalW w) ≤ length w
-inv-le-length {n} []  = subst (_≤ 0) (sym (inv-id {suc n})) ≤-refl
-inv-le-length {n} (j ∷ rest) with inv-di j (evalW rest)
-... | inj₁ up =
-  -- inv (genFB j ∘ b) ≡ suc (inv b) ≤ suc (length rest).
-  subst (_≤ suc (length rest)) (sym up) (s≤s (inv-le-length rest))
-... | inj₂ dsc =
-  -- descent: inv (genFB j ∘ b) < inv b ≤ length rest ≤ suc (length rest).
-  ≤-trans (<⇒≤ inv-gb<inv-b)
-          (≤-trans (inv-le-length rest) (n≤1+n (length rest)))
-  where
-  -- `suc (inv (genFB j ∘ b)) ≡ inv b` gives `inv (genFB j ∘ b) < inv b`.
-  inv-gb<inv-b : inv (genFB j ∘-fb evalW rest) < inv (evalW rest)
-  inv-gb<inv-b = subst (suc (inv (genFB j ∘-fb evalW rest)) ≤_) dsc ≤-refl
+-- Suffix-reducedness and the head-descent fact.  (`inv (evalW w) ≤
+-- length w` is `ExchangeBase.inv≤length`.)
 
 -- A suffix of a reduced word is reduced.
 Reduced-tail : {j : Fin (suc n)} {rest : Word (suc n)}
@@ -350,7 +335,7 @@ Reduced-tail {j = j} {rest} red with inv-di j (evalW rest)
   suc-injective (trans red up)
 ... | inj₂ dsc =
   -- descent would force inv b = suc (suc (length rest)) > length rest ≥ inv b.
-  ⊥-elim (1+n≰n (≤-trans bound (inv-le-length rest)))
+  ⊥-elim (1+n≰n (≤-trans bound (inv≤length rest)))
   where
   -- `inv b = suc (inv (genFB j ∘ b)) = suc (suc (length rest))`.
   inv-b≡ : inv (evalW rest) ≡ suc (suc (length rest))

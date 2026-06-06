@@ -8,7 +8,7 @@ module Categories.PermuteCoherence.BringToFrontCases where
 
 open import Data.Nat.Base using (ℕ; suc; _<_; _≤_)
 open import Data.Nat.Properties
-  using (<-cmp; <-asym; <-trans; <-irrefl; 1+n≢n; suc-injective; ≤-refl; ≤-trans; n≤1+n; <⇒≤; 1+n≰n)
+  using (≤-trans; n≤1+n)
 open import Data.Fin.Base using (Fin; toℕ) renaming (suc to fsuc; zero to fz)
 open import Data.List.Base using (_∷_; length)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)

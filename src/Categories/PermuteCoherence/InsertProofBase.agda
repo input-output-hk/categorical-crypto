@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 ------------------------------------------------------------------------
 -- Length/descent facts feeding the Insertion-Lemma endgame:
--- `inv≤length`, `reduced-head`, `len≡0→[]`.
+-- `reduced-head`, `len≡0→[]`.  (`inv≤length` lives in `ExchangeBase`.)
 ------------------------------------------------------------------------
 module Categories.PermuteCoherence.InsertProofBase where
 
@@ -19,26 +19,16 @@ import Data.Fin.Permutation as P
 open import Categories.PermuteCoherence.FinBij using (_∘-fb_)
 open import Categories.PermuteCoherence.Word using (Word; evalW; genFB; genFB∘genFB)
 open import Categories.PermuteCoherence.Inversions using (inv)
-open import Categories.PermuteCoherence.InversionsCong using (inv-resp-≈; inv-id)
-open import Categories.PermuteCoherence.ExchangeBase using (Reduced; descent; inv-di)
+open import Categories.PermuteCoherence.InversionsCong using (inv-resp-≈)
+open import Categories.PermuteCoherence.ExchangeBase using (Reduced; descent; inv-di; inv≤length)
 
 private
   variable
     n : ℕ
 
 ------------------------------------------------------------------------
--- `inv (evalW w) ≤ length w`: each generator changes `inv` by ±1.
-
-inv≤length : (w : Word n) → inv (evalW w) ≤ length w
-inv≤length {n} []          = ≤-reflexive (inv-id {n})
-inv≤length {suc n} (i ∷ w) with inv-di i (evalW w)
-... | inj₁ asc = ≤-trans (≤-reflexive asc) (s≤s (inv≤length w))
-... | inj₂ dsc =
-  ≤-trans (≤-trans (n≤1+n _) (≤-reflexive dsc))
-          (≤-trans (inv≤length w) (n≤1+n _))
-
-------------------------------------------------------------------------
 -- A reduced `i ∷ v′` has `i` a descent and `v′` reduced.
+-- (`inv (evalW w) ≤ length w` is `ExchangeBase.inv≤length`.)
 
 reduced-head : (i : Fin (suc n)) (v′ : Word (suc n))
              → Reduced (i ∷ v′) → descent i (evalW (i ∷ v′)) × Reduced v′
