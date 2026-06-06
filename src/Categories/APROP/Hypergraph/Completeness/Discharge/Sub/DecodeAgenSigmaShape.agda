@@ -121,7 +121,9 @@ open FM.HomReasoning
 
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
   using ( ≡⇒≈Term; subst₂-resp-≈Term; subst₂-HomTerm-irrel; subst₂-HomTerm-∘
-        ; decode-attempt-extract )
+        ; decode-attempt-extract
+        ; subst₂-∘-distrib; pvl-subst₂; pvl-refl
+        ; subst₂-cod-trans; subst₂-dom-trans )
 
 private
   -- The bare σ-block frame at `unflatten`-blocks (NO `map`-bridge):
@@ -315,63 +317,11 @@ private
       ∎
 
   ------------------------------------------------------------------------
-  -- ## Permute / subst₂ plumbing for the cap-collapse (cloned idioms).
-
-  -- `subst₂ HomTerm` distributes over `∘` (= `FireMidEquivariant.subst₂-∘-distrib`).
-  subst₂-∘-distrib
-    : ∀ {As₁ As₂ Bs₁ Bs₂ Cs₁ Cs₂ : List X}
-        (p : As₁ ≡ As₂) (q : Bs₁ ≡ Bs₂) (r : Cs₁ ≡ Cs₂)
-        (f : HomTerm (unflatten Bs₁) (unflatten Cs₁))
-        (h : HomTerm (unflatten As₁) (unflatten Bs₁))
-    → subst₂ HomTerm (cong unflatten p) (cong unflatten r) (f ∘ h)
-      ≡ subst₂ HomTerm (cong unflatten q) (cong unflatten r) f
-        ∘ subst₂ HomTerm (cong unflatten p) (cong unflatten q) h
-  subst₂-∘-distrib refl refl refl _ _ = refl
-
-  -- `subst₂` on a `permute-via-vlab`, with block-frames of the form
-  -- `cong (map vlab) a`, pushes onto the underlying `↭` (= `FireMidEquivariant`
-  -- `permute-subst₂` specialised to `permute-via-vlab`).
-  pvl-subst₂
-    : ∀ {n} (vlab : Fin n → X) {xs xs' ys ys' : List (Fin n)}
-        (a : xs ≡ xs') (b : ys ≡ ys') (r : xs Perm.↭ ys)
-    → subst₂ HomTerm (cong unflatten (cong (map vlab) a))
-                     (cong unflatten (cong (map vlab) b))
-                     (permute-via-vlab vlab r)
-      ≡ permute-via-vlab vlab (subst₂ Perm._↭_ a b r)
-  pvl-subst₂ vlab refl refl r = refl
-
-  -- `permute-via-vlab vlab ↭-refl ≈Term id` (`map⁺ f refl = refl`,
-  -- `permute refl = id` — both definitional).
-  pvl-refl
-    : ∀ {n} (vlab : Fin n → X) (xs : List (Fin n))
-    → permute-via-vlab vlab (Perm.↭-refl {x = xs}) ≈Term id
-  pvl-refl vlab xs = ≈-Term-refl
-
-  ------------------------------------------------------------------------
-  -- ## `subst₂` cod/dom-`trans` split (cloned from `DecodeRoundtrip`,
-  -- `--with-K`; TRUE for all instances).  Used to reduce `decode (α⇒/α⇐)`
-  -- to the `++-assoc`-transport of `decode (id {(A ⊗₀ B) ⊗₀ C})`.
-
-  -- A `subst₂` whose cod equation factors as `trans q r` splits as the
-  -- outer `r`-transport of the inner `q`-transport.
-  subst₂-cod-trans
-    : ∀ {as as' bs bs' bs'' : List X}
-        (p : as ≡ as') (q : bs ≡ bs') (r : bs' ≡ bs'')
-        (x : HomTerm (unflatten as) (unflatten bs))
-    → subst₂ HomTerm (cong unflatten p) (cong unflatten (trans q r)) x
-      ≡ subst₂ HomTerm refl (cong unflatten r)
-               (subst₂ HomTerm (cong unflatten p) (cong unflatten q) x)
-  subst₂-cod-trans refl refl refl x = refl
-
-  -- Symmetric: a `subst₂` whose dom equation factors as `trans q r`.
-  subst₂-dom-trans
-    : ∀ {as as' as'' bs bs' : List X}
-        (q : as ≡ as') (r : as' ≡ as'') (p : bs ≡ bs')
-        (x : HomTerm (unflatten as) (unflatten bs))
-    → subst₂ HomTerm (cong unflatten (trans q r)) (cong unflatten p) x
-      ≡ subst₂ HomTerm (cong unflatten r) refl
-               (subst₂ HomTerm (cong unflatten q) (cong unflatten p) x)
-  subst₂-dom-trans refl refl refl x = refl
+  -- ## Permute / subst₂ plumbing for the cap-collapse.
+  --
+  -- `subst₂-∘-distrib`, `pvl-subst₂`, `pvl-refl`, `subst₂-cod-trans`,
+  -- `subst₂-dom-trans` now live in the shared leaf `HomTermTransport`
+  -- (imported below); they were previously re-minted here byte-for-byte.
 
   -- The complete constructive `bridge`-form for `α⇒` at EVERY object `A`:
   -- `bridge (α⇒ {A}{B}{C}) ≈Term α⇒-form-list (flatten A)(flatten B)(flatten C)`

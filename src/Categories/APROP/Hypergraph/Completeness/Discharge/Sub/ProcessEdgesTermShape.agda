@@ -398,15 +398,10 @@ private
   subst₂-HomTerm-id : ∀ {A B} (p : A ≡ B) → subst₂ HomTerm p p id ≡ id
   subst₂-HomTerm-id refl = refl
 
-  subst₂-∘-distrib
-    : ∀ {As₁ As₂ Bs₁ Bs₂ Cs₁ Cs₂ : List X}
-        (p : As₁ ≡ As₂) (q : Bs₁ ≡ Bs₂) (r : Cs₁ ≡ Cs₂)
-        (f : HomTerm (unflatten Bs₁) (unflatten Cs₁))
-        (g : HomTerm (unflatten As₁) (unflatten Bs₁))
-    → subst₂ HomTerm (cong unflatten p) (cong unflatten r) (f ∘ g)
-      ≡ subst₂ HomTerm (cong unflatten q) (cong unflatten r) f
-        ∘ subst₂ HomTerm (cong unflatten p) (cong unflatten q) g
-  subst₂-∘-distrib refl refl refl _ _ = refl
+  -- `subst₂ HomTerm` distributes over `∘`: shared leaf `HomTermTransport`
+  -- (this file is `--with-K`, so the import is co-infectivity-clean).
+  open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
+    using (subst₂-∘-distrib)
 
   subst₂-∘
     : ∀ {A A' A'' B B' B''}

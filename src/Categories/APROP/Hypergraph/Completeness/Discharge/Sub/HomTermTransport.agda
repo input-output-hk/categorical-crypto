@@ -134,6 +134,61 @@ subst₂-⊗₁-dist
     ≡ subst₂ HomTerm p₁ q₁ a ⊗₁ subst₂ HomTerm p₂ q₂ b
 subst₂-⊗₁-dist refl refl refl refl a b = refl
 
+------------------------------------------------------------------------
+-- ## Box-shape `subst₂`/`pvl` transport algebra (hoisted from the
+--    `Decode{AgenSigma,…}Shape` / `Discharge.*` consumers, where they were
+--    re-minted byte-for-byte; signatures coincide across consumers).
+
+-- `subst₂ HomTerm` distributes over `∘` (`cong unflatten`-framed endpoints).
+subst₂-∘-distrib
+  : ∀ {As₁ As₂ Bs₁ Bs₂ Cs₁ Cs₂ : List X}
+      (p : As₁ ≡ As₂) (q : Bs₁ ≡ Bs₂) (r : Cs₁ ≡ Cs₂)
+      (f : HomTerm (unflatten Bs₁) (unflatten Cs₁))
+      (h : HomTerm (unflatten As₁) (unflatten Bs₁))
+  → subst₂ HomTerm (cong unflatten p) (cong unflatten r) (f ∘ h)
+    ≡ subst₂ HomTerm (cong unflatten q) (cong unflatten r) f
+      ∘ subst₂ HomTerm (cong unflatten p) (cong unflatten q) h
+subst₂-∘-distrib refl refl refl _ _ = refl
+
+-- `subst₂` on a `permute-via-vlab`, with block-frames of the form
+-- `cong (map vlab) a`, pushes onto the underlying `↭`.
+pvl-subst₂
+  : ∀ {n} (vlab : Fin n → X) {xs xs' ys ys' : List (Fin n)}
+      (a : xs ≡ xs') (b : ys ≡ ys') (r : xs Perm.↭ ys)
+  → subst₂ HomTerm (cong unflatten (cong (map vlab) a))
+                   (cong unflatten (cong (map vlab) b))
+                   (permute-via-vlab vlab r)
+    ≡ permute-via-vlab vlab (subst₂ Perm._↭_ a b r)
+pvl-subst₂ vlab refl refl r = refl
+
+-- `permute-via-vlab vlab ↭-refl ≈Term id` (`map⁺ f refl = refl`,
+-- `permute refl = id` — both definitional).
+pvl-refl
+  : ∀ {n} (vlab : Fin n → X) (xs : List (Fin n))
+  → permute-via-vlab vlab (Perm.↭-refl {x = xs}) ≈Term id
+pvl-refl vlab xs = ≈-Term-refl
+
+-- A `subst₂` whose cod equation factors as `trans q r` splits as the
+-- outer `r`-transport of the inner `q`-transport.
+subst₂-cod-trans
+  : ∀ {as as' bs bs' bs'' : List X}
+      (p : as ≡ as') (q : bs ≡ bs') (r : bs' ≡ bs'')
+      (x : HomTerm (unflatten as) (unflatten bs))
+  → subst₂ HomTerm (cong unflatten p) (cong unflatten (trans q r)) x
+    ≡ subst₂ HomTerm refl (cong unflatten r)
+             (subst₂ HomTerm (cong unflatten p) (cong unflatten q) x)
+subst₂-cod-trans refl refl refl x = refl
+
+-- Symmetric: a `subst₂` whose dom equation factors as `trans q r`.
+subst₂-dom-trans
+  : ∀ {as as' as'' bs bs' : List X}
+      (q : as ≡ as') (r : as' ≡ as'') (p : bs ≡ bs')
+      (x : HomTerm (unflatten as) (unflatten bs))
+  → subst₂ HomTerm (cong unflatten (trans q r)) (cong unflatten p) x
+    ≡ subst₂ HomTerm (cong unflatten r) refl
+             (subst₂ HomTerm (cong unflatten q) (cong unflatten p) x)
+subst₂-dom-trans refl refl refl x = refl
+
 -- `subst₂ HomTerm` over `cong unflatten` of two list-equalities pushes
 -- inside `permute`.
 permute-subst₂
