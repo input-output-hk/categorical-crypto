@@ -34,7 +34,7 @@ open import Categories.APROP.Hypergraph.FromAPROP sig using (flatten)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈; unflatten-++-≅)
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
-  using (decode; bridge)
+  using (bridge)
 open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtripSafe sig
   using ( bridge-∘
         ; bridge-⊗
@@ -43,12 +43,8 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtripSafe sig
         ; α⇐-form-list
         ; α⇒-α⇐-iso
         ; α⇐-α⇒-iso
-        ; α⇒-coh-list
-        ; α⇐-coh-list
         ; α⇒-λ⇐-collapse
         ; pentagon-rewrite
-        ; id-⊗-respects-∘
-        ; id-⊗-subst-bridge
         ; α⇐-comm-top
         ; λ⇐-naturality
         ; bridge-α⇒-form-Var
@@ -63,21 +59,12 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtripSafe sig
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
 open import Categories.Category.Monoidal using (Monoidal)
-open import Categories.Category.Monoidal.Properties Monoidal-FreeMonoidal
-  using (module Kelly's)
-open Kelly's using (coherence₁; coherence-inv₁; coherence₂; coherence-inv₂)
-open import Categories.Category.Monoidal.Utilities Monoidal-FreeMonoidal
-  using (triangle-inv)
 open import Data.List using (List; []; _∷_; _++_)
-open import Data.List.Properties using (++-assoc)
 open import Data.Nat using (ℕ; zero; suc; _+_; _<_; _≤_; s≤s; z≤n)
 open import Data.Nat.Properties
-  using (m<m+n; m<n+m; +-comm; +-assoc; <-trans; m≤m+n; m≤n+m; ≤-refl; ≤-trans
-        ; +-suc; n<1+n; m<n⇒m<1+n; +-identityʳ; n≤1+n)
+  using (m≤m+n; m≤n+m; n<1+n; +-identityʳ; n≤1+n)
 open import Data.Nat.Induction using (<-wellFounded)
-open import Induction.WellFounded using (Acc; acc; acc-inverse)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; sym; subst; subst₂)
+open import Induction.WellFounded using (Acc; acc)
 
 private
   module FM = Category FreeMonoidal
@@ -119,14 +106,6 @@ private
     id ⊗₁ id
       ≈⟨ id⊗id≈id ⟩
     id ∎
-
-  -- α⇐-comm: α⇐'s naturality.  Same as α⇐-comm-top from DecodeRoundtripSafe.
-  α⇐-comm
-    : ∀ {X Y Z X' Y' Z' : ObjTerm}
-      (f : HomTerm X X') (g : HomTerm Y Y') (h : HomTerm Z Z')
-    → α⇐ {X'} {Y'} {Z'} ∘ f ⊗₁ (g ⊗₁ h)
-    ≈Term (f ⊗₁ g) ⊗₁ h ∘ α⇐ {X} {Y} {Z}
-  α⇐-comm = α⇐-comm-top
 
 --------------------------------------------------------------------------------
 -- F-decomp lemmas (re-proven since DecodeRoundtripSafe doesn't ship them).
@@ -228,7 +207,7 @@ private
       ≈⟨ ⊗-resp-≈ FM.sym-assoc ≈-Term-refl ⟩∘⟨refl ⟩
     ((((id ⊗₁ T-A) ⊗₁ T-B) ∘ α⇐-fl1) ∘ id ⊗₁ c-A,B-from)
        ⊗₁ T-C ∘ α⇐-fl2 ∘ id ⊗₁ c-A⊗B,C-from
-      ≈⟨ ⊗-resp-≈ (≈-Term-sym (α⇐-comm id T-A T-B) ⟩∘⟨refl)
+      ≈⟨ ⊗-resp-≈ (≈-Term-sym (α⇐-comm-top id T-A T-B) ⟩∘⟨refl)
                   ≈-Term-refl ⟩∘⟨refl ⟩
     ((α⇐-A,B ∘ id ⊗₁ (T-A ⊗₁ T-B)) ∘ id ⊗₁ c-A,B-from)
        ⊗₁ T-C ∘ α⇐-fl2 ∘ id ⊗₁ c-A⊗B,C-from
@@ -249,7 +228,7 @@ private
     (α⇐-A,B ⊗₁ id) ∘ (id ⊗₁ T-A⊗B) ⊗₁ T-C ∘ α⇐-fl2 ∘ id ⊗₁ c-A⊗B,C-from
       ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
     (α⇐-A,B ⊗₁ id) ∘ ((id ⊗₁ T-A⊗B) ⊗₁ T-C ∘ α⇐-fl2) ∘ id ⊗₁ c-A⊗B,C-from
-      ≈⟨ refl⟩∘⟨ ≈-Term-sym (α⇐-comm id T-A⊗B T-C) ⟩∘⟨refl ⟩
+      ≈⟨ refl⟩∘⟨ ≈-Term-sym (α⇐-comm-top id T-A⊗B T-C) ⟩∘⟨refl ⟩
     (α⇐-A,B ⊗₁ id) ∘ (α⇐-AB,C ∘ id ⊗₁ (T-A⊗B ⊗₁ T-C)) ∘ id ⊗₁ c-A⊗B,C-from
       ≈⟨ refl⟩∘⟨ FM.assoc ⟩
     (α⇐-A,B ⊗₁ id) ∘ α⇐-AB,C ∘ id ⊗₁ (T-A⊗B ⊗₁ T-C) ∘ id ⊗₁ c-A⊗B,C-from

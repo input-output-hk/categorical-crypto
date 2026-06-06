@@ -47,7 +47,7 @@ open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
   using (FlatGen; flatten; ⟪_⟫; ⟪⟫-domL; ⟪⟫-codL; range;
          hEmpty; hVar; hId; hGen; hSwap; hTensor; hCompose;
-         module hTensor-impl; module hCompose-impl)
+         module hTensor-impl)
 open import Categories.APROP.Hypergraph.Completeness.Unflatten sig
   using (unflatten; unflatten-flatten-≈)
 open import Categories.APROP.Hypergraph.Completeness.Decode sig

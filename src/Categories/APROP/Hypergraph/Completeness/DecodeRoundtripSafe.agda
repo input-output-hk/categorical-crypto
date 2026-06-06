@@ -28,8 +28,6 @@
 --   * Var-base case `bridge-α⇒-form-Var`.
 --   * Unit/Var collapse helpers `F-unit⊗-collapse`, `T-unit⊗-collapse`,
 --     `F-Vx⊗-collapse`, `T-Vx⊗-collapse`.
---   * `c-iso-assoc-from-[]` (just the base case; the cons case is
---     postulated in DecodeRoundtrip).
 --
 -- NOT extracted (depend transitively on postulates):
 --   * `decode-id-is-id` for `A ⊗₀ B`: uses `decode-⊗-shape`.
@@ -65,7 +63,7 @@ open import Categories.Morphism FreeMonoidal using (_≅_)
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData using (α⇐-comm)
 open import Categories.Category.Monoidal.Properties Monoidal-FreeMonoidal
   using (module Kelly's)
-open Kelly's using (coherence₁; coherence-inv₁; coherence₂; coherence-inv₂; coherence₃; coherence-inv₃)
+open Kelly's using (coherence₁; coherence₂; coherence-inv₂; coherence₃)
 open import Categories.Category.Monoidal.Utilities Monoidal-FreeMonoidal
   using (triangle-inv)
 open import Data.List using (List; []; _∷_; _++_)
@@ -694,32 +692,6 @@ T-Vx⊗-collapse
   : ∀ x X → _≅_.to (unflatten-flatten-≈ (Var x ⊗₀ X))
           ≈Term id {Var x} ⊗₁ _≅_.to (unflatten-flatten-≈ X)
 T-Vx⊗-collapse x X = collapse-ρ⇒-α⇐-λ⇐ (_≅_.to (unflatten-flatten-≈ X))
-
---------------------------------------------------------------------------------
--- c-iso pentagon at the empty-list base case.  The cons case is
--- postulated in DecodeRoundtrip.agda (c-iso-assoc-from-cons), so we
--- only ship the base case here.
-
-c-iso-assoc-from-[]
-  : ∀ xs₂ ys
-  → α⇒ {unflatten []} {unflatten xs₂} {unflatten ys}
-    ∘ (_≅_.from (unflatten-++-≅ [] xs₂) ⊗₁ id)
-    ∘ _≅_.from (unflatten-++-≅ ([] ++ xs₂) ys)
-  ≈Term (id {unflatten []} ⊗₁ _≅_.from (unflatten-++-≅ xs₂ ys))
-        ∘ _≅_.from (unflatten-++-≅ [] (xs₂ ++ ys))
-        ∘ subst (λ z → HomTerm (unflatten (([] ++ xs₂) ++ ys))
-                                (unflatten z))
-                (++-assoc [] xs₂ ys) id
-c-iso-assoc-from-[] xs₂ ys = begin
-  α⇒ ∘ (λ⇐ ⊗₁ id) ∘ _≅_.from (unflatten-++-≅ xs₂ ys)
-    ≈⟨ FM.sym-assoc ⟩
-  (α⇒ ∘ (λ⇐ ⊗₁ id)) ∘ _≅_.from (unflatten-++-≅ xs₂ ys)
-    ≈⟨ α⇒-λ⇐-collapse ⟩∘⟨refl ⟩
-  λ⇐ ∘ _≅_.from (unflatten-++-≅ xs₂ ys)
-    ≈⟨ λ⇐-naturality (_≅_.from (unflatten-++-≅ xs₂ ys)) ⟩
-  id ⊗₁ _≅_.from (unflatten-++-≅ xs₂ ys) ∘ λ⇐
-    ≈⟨ refl⟩∘⟨ ≈-Term-sym idʳ ⟩
-  (id ⊗₁ _≅_.from (unflatten-++-≅ xs₂ ys)) ∘ λ⇐ ∘ id ∎
 
 --------------------------------------------------------------------------------
 -- Var-base case of bridge-α⇒-form (constructive: does not depend on

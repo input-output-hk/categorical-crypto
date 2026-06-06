@@ -14,9 +14,8 @@
 --   Single-list lemmas:
 --     * `extract-elem-self`             — head match returns just _.
 --     * `extract-elem-skip-{nothing,just}` — head ≢ k skipping.
---     * `extract-elem-{↑ʳ-on-↑ˡ,↑ˡ-on-↑ʳ}-list` — disjoint injection no-match.
+--     * `extract-elem-↑ˡ-on-↑ʳ-list` — disjoint injection no-match.
 --     * `extract-elem-{↑ˡ-on-↑ˡ,↑ʳ-on-↑ʳ}-list-nothing` — same-injection no-match.
---     * `extract-prefix-[]`             — empty prefix is trivial.
 --     * `extract-prefix-self`           — searching `xs` in `xs` succeeds.
 --     * `extract-exact-self`            — exact-match search of `xs` in `xs`.
 --
@@ -39,7 +38,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
   using (extract-elem; extract-prefix; extract-exact)
 open import Categories.APROP.Hypergraph.Invariant sig
-  using (inject+-inj; raise-inj; disj-L-R)
+  using (inject+-inj; raise-inj)
 
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_; splitAt)
@@ -50,7 +49,6 @@ open import Data.List.Relation.Unary.Any using (here; there)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Nat using (ℕ)
 open import Data.Product using (Σ-syntax; ∃-syntax; _,_; _×_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong)
@@ -117,15 +115,6 @@ private
   ↑ʳ≢↑ˡ : ∀ {nA nB} (i : Fin nA) (j : Fin nB) → ¬ (nA ↑ʳ j ≡ i ↑ˡ nB)
   ↑ʳ≢↑ˡ i j p = ↑ˡ≢↑ʳ i j (sym p)
 
-extract-elem-↑ʳ-on-↑ˡ-list
-  : ∀ {nA nB} (j : Fin nB) (xs : List (Fin nA))
-  → extract-elem (nA ↑ʳ j) (map (_↑ˡ nB) xs) ≡ nothing
-extract-elem-↑ʳ-on-↑ˡ-list j []       = refl
-extract-elem-↑ʳ-on-↑ˡ-list {nA} {nB} j (x ∷ xs) =
-  extract-elem-skip-nothing (nA ↑ʳ j) (x ↑ˡ nB) (map (_↑ˡ nB) xs)
-    (↑ˡ≢↑ʳ x j)
-    (extract-elem-↑ʳ-on-↑ˡ-list j xs)
-
 extract-elem-↑ˡ-on-↑ʳ-list
   : ∀ {nA nB} (i : Fin nA) (xs : List (Fin nB))
   → extract-elem (i ↑ˡ nB) (map (nA ↑ʳ_) xs) ≡ nothing
@@ -134,14 +123,6 @@ extract-elem-↑ˡ-on-↑ʳ-list {nA} {nB} i (x ∷ xs) =
   extract-elem-skip-nothing (i ↑ˡ nB) (nA ↑ʳ x) (map (nA ↑ʳ_) xs)
     (↑ʳ≢↑ˡ i x)
     (extract-elem-↑ˡ-on-↑ʳ-list i xs)
-
---------------------------------------------------------------------------------
--- (extract-prefix-[]): immediate from the definition.
-
-extract-prefix-[]
-  : ∀ {n} (xs : List (Fin n))
-  → extract-prefix [] xs ≡ just (xs , Perm.refl)
-extract-prefix-[] xs = refl
 
 --------------------------------------------------------------------------------
 -- (5) `extract-prefix-self`: searching for `xs` in `xs` itself
