@@ -1,4 +1,4 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --without-K #-}
 
 module Categories.MonoidalCoherence where
 
@@ -20,17 +20,28 @@ open import Categories.Properties
 
 open import Data.Empty
 open import Data.Fin using (Fin)
+import Data.Fin.Properties as FinP
 open import Data.List hiding ([_] ; lookup)
+open import Data.List.Properties using (≡-dec)
 open import Data.Product
 open import Data.Vec using (Vec ; lookup)
 
-module CoherenceThm (X : Set) where
+open import Relation.Binary.Definitions using (DecidableEquality; Irrelevant)
+open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
+
+module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
   open FreeMonoidal (record { v = Mon ; X = X ; mor = λ _ _ → ⊥ })
 
   open Commutation FreeMonoidal
   open Discrete (List X)
 
-  open import Relation.Binary.PropositionalEquality using (_≡_; refl; trans; cong)
+  open import Relation.Binary.PropositionalEquality using (_≡_; refl; trans; cong; subst)
+
+  -- UIP for the discrete-category objects `List X`, derived from decidable
+  -- equality of `X` (Hedberg).  This replaces the K-based `refl`-matches on
+  -- `Discrete (List X)` morphisms, keeping the development `--without-K`.
+  uipL : Irrelevant {A = List X} _≡_
+  uipL = Decidable⇒UIP.≡-irrelevant (≡-dec _≟X_)
   open import Categories.NaturalTransformation.NaturalIsomorphism as NI hiding (refl; trans; unitorˡ; unitorʳ; associator)
 
   module FM where
@@ -89,7 +100,8 @@ module CoherenceThm (X : Set) where
       ; F₁ = ι₁
       ; identity = FM.Equiv.refl
       ; homomorphism = λ where {_} {_} {_} {refl} {refl} → FM.HomReasoning.⟺ FM.identityˡ
-      ; F-resp-≈ = λ where {_} {_} {refl} {refl} _ → FM.Equiv.refl
+      ; F-resp-≈ = λ {_} {_} {f} {g} _ →
+          subst (λ h → FM._≈_ (ι₁ f) (ι₁ h)) (uipL f g) FM.Equiv.refl
       }
 
   Nf : Functor FreeMonoidal Discrete
@@ -138,7 +150,7 @@ module CoherenceThm (X : Set) where
         FM.≈ ι₁ (hom⇒≡⟦⟧' (id {A}) g) ∘ iso₁ (A , d₁)
 
     iso-comm : iso-comm-ty
-    iso-comm {A} {d} {d} {refl} = begin
+    iso-comm {A} {d} {_} {refl} = begin
       iso₁ (A , d) ∘ id ⊗₁ id
         ≈⟨ refl⟩∘⟨ FM.⊗.identity ○ id-comm ⟩
       id ∘ iso₁ (A , d) ∎
@@ -365,7 +377,7 @@ module Solver {o ℓ e} (C : MonoidalCategory o ℓ e)
   d : FreeMonoidalData
   d = record { v = Mon ; X = Fin n ; mor = λ _ _ → ⊥ }
   open FreeMonoidal d public
-  open CoherenceThm (Fin n) hiding (⟦_⟧₁)
+  open CoherenceThm (Fin n) FinP._≟_ hiding (⟦_⟧₁)
   open FreeFunctor {d = d} record
     { ⟦v⟧ = record { C = C .U ; Monoidal-C = C .monoidal ; Symmetric-C = λ where ⦃ () ⦄ }
     ; ⟦_⟧ᵖ₀ = lookup vars
