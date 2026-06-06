@@ -55,7 +55,7 @@ import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 
 open import Categories.PermuteCoherence.Faithfulness d
-  using (unflatten; permute)
+  using (unflatten; permute; α⇐-comm)
 
 ------------------------------------------------------------------------
 -- 1. The narrow algebraic residual: σ-block self-inverse.
@@ -193,22 +193,6 @@ module _ (R : SwapBlockInverseResidual) where
 -- hypothesis g ∘ f ≈ id.
 
 private
-  -- Dual associator commutativity (α⇐-comm), derived from α-comm.
-  α⇐-comm
-    : ∀ {a b c d e g : ObjTerm}
-        {h : HomTerm a d} {i : HomTerm b e} {j : HomTerm c g}
-    → α⇐ ∘ (h ⊗₁ (i ⊗₁ j)) ≈Term ((h ⊗₁ i) ⊗₁ j) ∘ α⇐
-  α⇐-comm {h = h} {i} {j} =
-    ≈-Term-trans (≈-Term-sym idʳ)
-    (≈-Term-trans (∘-resp-≈ ≈-Term-refl (≈-Term-sym α⇒∘α⇐≈id))
-    (≈-Term-trans assoc
-    (≈-Term-trans (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc))
-    (≈-Term-trans (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym α-comm) ≈-Term-refl))
-    (≈-Term-trans (∘-resp-≈ ≈-Term-refl assoc)
-    (≈-Term-trans (≈-Term-sym assoc)
-    (≈-Term-trans (∘-resp-≈ α⇐∘α⇒≈id ≈-Term-refl)
-                   idˡ)))))))
-
   σ-block-involutive
     : ∀ {A B C : ObjTerm}
     → (α⇒ {A = A} {B = B} {C = C} ∘ (σ ⊗₁ id) ∘ α⇐ {A = B} {B = A} {C = C})

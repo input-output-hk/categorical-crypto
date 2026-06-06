@@ -61,6 +61,8 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
+-- Shared dual-associator commutativity.
+open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData using (α⇐-comm)
 open import Categories.Category.Monoidal.Properties Monoidal-FreeMonoidal
   using (module Kelly's)
 open Kelly's using (coherence₁; coherence-inv₁; coherence₂; coherence-inv₂; coherence₃; coherence-inv₃)
@@ -591,31 +593,13 @@ id-⊗-respects-∘ f g = begin
     ≈⟨ ⊗-∘-dist ⟩
   id ⊗₁ g ∘ id ⊗₁ f ∎
 
+-- Explicit-argument wrapper around the shared `α⇐-comm` from `Faithfulness`.
 α⇐-comm-top
   : ∀ {X Y Z X' Y' Z' : ObjTerm}
     (f : HomTerm X X') (g : HomTerm Y Y') (h : HomTerm Z Z')
   → α⇐ {X'} {Y'} {Z'} ∘ f ⊗₁ (g ⊗₁ h)
   ≈Term (f ⊗₁ g) ⊗₁ h ∘ α⇐ {X} {Y} {Z}
-α⇐-comm-top f g h = begin
-  α⇐ ∘ f ⊗₁ (g ⊗₁ h)
-    ≈⟨ ≈-Term-sym idʳ ⟩
-  (α⇐ ∘ f ⊗₁ (g ⊗₁ h)) ∘ id
-    ≈⟨ refl⟩∘⟨ ≈-Term-sym α⇒∘α⇐≈id ⟩
-  (α⇐ ∘ f ⊗₁ (g ⊗₁ h)) ∘ (α⇒ ∘ α⇐)
-    ≈⟨ FM.assoc ⟩
-  α⇐ ∘ f ⊗₁ (g ⊗₁ h) ∘ α⇒ ∘ α⇐
-    ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-  α⇐ ∘ (f ⊗₁ (g ⊗₁ h) ∘ α⇒) ∘ α⇐
-    ≈⟨ refl⟩∘⟨ ≈-Term-sym α-comm ⟩∘⟨refl ⟩
-  α⇐ ∘ (α⇒ ∘ (f ⊗₁ g) ⊗₁ h) ∘ α⇐
-    ≈⟨ FM.sym-assoc ⟩
-  (α⇐ ∘ α⇒ ∘ (f ⊗₁ g) ⊗₁ h) ∘ α⇐
-    ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
-  ((α⇐ ∘ α⇒) ∘ (f ⊗₁ g) ⊗₁ h) ∘ α⇐
-    ≈⟨ (α⇐∘α⇒≈id ⟩∘⟨refl) ⟩∘⟨refl ⟩
-  (id ∘ (f ⊗₁ g) ⊗₁ h) ∘ α⇐
-    ≈⟨ idˡ ⟩∘⟨refl ⟩
-  (f ⊗₁ g) ⊗₁ h ∘ α⇐ ∎
+α⇐-comm-top f g h = α⇐-comm {h = f} {i = g} {j = h}
 
 λ⇐-naturality
   : ∀ {A B} (f : HomTerm A B) → λ⇐ {B} ∘ f ≈Term id ⊗₁ f ∘ λ⇐ {A}

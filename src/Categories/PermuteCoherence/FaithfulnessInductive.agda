@@ -58,7 +58,7 @@ open import Categories.PermuteCoherence.Soundness
   using ( cons-fb-functor-id; cons-fb-functor-comp; swap-fb-involutive
         ; swap-fb-natural; yang-baxter )
 open import Categories.PermuteCoherence.Faithfulness d
-  using (permute; unflatten; FaithfulnessResidual)
+  using (permute; unflatten; FaithfulnessResidual; α⇐-comm)
 open import Categories.PermuteCoherence.FaithfulnessK d
   using (σ-block-self-inverse-direct)
 -- The σ-block Yang-Baxter braid, derived from `hexagon` (postulate-free).
@@ -152,23 +152,9 @@ data _≅↭ⁱ_ : {xs ys : List X} → xs ↭ ys → xs ↭ ys → Set where
 --    `σ-block-self-inverse-direct`.
 
 private
-  -- Two associator/σ-block lemmas (re-derived from `FaithfulnessK`, where
-  -- they are `private`).  `--with-K`-clean equational reasoning.
-  α⇐-comm
-    : ∀ {a₀ b₀ c₀ d₀ e₀ g₀ : ObjTerm}
-        {h : HomTerm a₀ d₀} {i : HomTerm b₀ e₀} {j : HomTerm c₀ g₀}
-    → α⇐ ∘ (h ⊗₁ (i ⊗₁ j)) ≈Term ((h ⊗₁ i) ⊗₁ j) ∘ α⇐
-  α⇐-comm {h = h} {i} {j} =
-    ≈-Term-trans (≈-Term-sym idʳ)
-    (≈-Term-trans (∘-resp-≈ ≈-Term-refl (≈-Term-sym α⇒∘α⇐≈id))
-    (≈-Term-trans assoc
-    (≈-Term-trans (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc))
-    (≈-Term-trans (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym α-comm) ≈-Term-refl))
-    (≈-Term-trans (∘-resp-≈ ≈-Term-refl assoc)
-    (≈-Term-trans (≈-Term-sym assoc)
-    (≈-Term-trans (∘-resp-≈ α⇐∘α⇒≈id ≈-Term-refl)
-                   idˡ)))))))
-
+  -- σ-block naturality lemma (re-derived from `FaithfulnessK`, where it is
+  -- `private`).  `--with-K`-clean equational reasoning.  Uses the shared
+  -- `α⇐-comm` from `Faithfulness`.
   σ-block-natural₃
     : ∀ {A B C D : ObjTerm} {f : HomTerm C D}
     → (α⇒ ∘ (σ {A = A} {B = B} ⊗₁ id) ∘ α⇐) ∘ (id ⊗₁ (id ⊗₁ f))

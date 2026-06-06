@@ -58,6 +58,9 @@ open FreeMonoidal d
 
 open import Categories.Category using (Category)
 
+-- Shared dual-associator commutativity.
+open import Categories.PermuteCoherence.Faithfulness d using (α⇐-comm)
+
 private
   module FM = Category FreeMonoidal
 
@@ -73,36 +76,9 @@ open FM.HomReasoning
 σ-block = α⇒ ∘ (σ ⊗₁ id) ∘ α⇐
 
 --------------------------------------------------------------------------------
--- ## α⇐-comm: dual associator commutativity.
+-- ## α⇐-comm: dual associator commutativity (imported from `Faithfulness`).
 --
 -- α⇐ ∘ (h ⊗ (i ⊗ j)) ≈Term ((h ⊗ i) ⊗ j) ∘ α⇐.
-
-private
-  α⇐-comm
-    : ∀ {a b c d e g : ObjTerm}
-        {h : HomTerm a d} {i : HomTerm b e} {j : HomTerm c g}
-    → α⇐ ∘ (h ⊗₁ (i ⊗₁ j)) ≈Term ((h ⊗₁ i) ⊗₁ j) ∘ α⇐
-  α⇐-comm {h = h} {i} {j} = begin
-    α⇐ ∘ (h ⊗₁ (i ⊗₁ j))
-      ≈⟨ ≈-Term-sym idʳ ⟩
-    (α⇐ ∘ (h ⊗₁ (i ⊗₁ j))) ∘ id
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym α⇒∘α⇐≈id) ⟩
-    (α⇐ ∘ (h ⊗₁ (i ⊗₁ j))) ∘ (α⇒ ∘ α⇐)
-      ≈⟨ assoc ⟩
-    α⇐ ∘ ((h ⊗₁ (i ⊗₁ j)) ∘ (α⇒ ∘ α⇐))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    α⇐ ∘ ((h ⊗₁ (i ⊗₁ j)) ∘ α⇒) ∘ α⇐
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym α-comm) ≈-Term-refl) ⟩
-    α⇐ ∘ (α⇒ ∘ ((h ⊗₁ i) ⊗₁ j)) ∘ α⇐
-      ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-    α⇐ ∘ α⇒ ∘ (((h ⊗₁ i) ⊗₁ j) ∘ α⇐)
-      ≈⟨ ≈-Term-sym assoc ⟩
-    (α⇐ ∘ α⇒) ∘ (((h ⊗₁ i) ⊗₁ j) ∘ α⇐)
-      ≈⟨ ∘-resp-≈ α⇐∘α⇒≈id ≈-Term-refl ⟩
-    id ∘ (((h ⊗₁ i) ⊗₁ j) ∘ α⇐)
-      ≈⟨ idˡ ⟩
-    ((h ⊗₁ i) ⊗₁ j) ∘ α⇐
-      ∎
 
 --------------------------------------------------------------------------------
 -- ## σ-block-natural₃: σ-block is natural in the third argument.

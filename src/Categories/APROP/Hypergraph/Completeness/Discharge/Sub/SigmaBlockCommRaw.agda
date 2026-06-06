@@ -24,7 +24,7 @@ open FreeMonoidalData d using (X)
 open FreeMonoidal d
 
 open import Categories.PermuteCoherence.Faithfulness d
-  using (unflatten; unflatten-++-≅; permute)
+  using (unflatten; unflatten-++-≅; permute; α⇐-comm)
 open import Categories.FreeSMC.BraidBlock d
   using (σ-block)
 open import Categories.FreeSMC.BraidPermute d
@@ -406,28 +406,10 @@ private
         α⇒ ∘ ((id ⊗₁ σ₂) ⊗₁ id) ∘ α⇐
       ∎
       where
-        -- α⇐ ∘ (id ⊗ (f ⊗ id)) ≈ ((id ⊗ f) ⊗ id) ∘ α⇐  (from α-comm).
+        -- α⇐ ∘ (id ⊗ (f ⊗ id)) ≈ ((id ⊗ f) ⊗ id) ∘ α⇐  (shared `α⇐-comm`).
         α⇐-nat : ((id {A = B₁} ⊗₁ σ₂) ⊗₁ id {A = C}) ∘ α⇐ {A = B₁} {B = A ⊗₀ B₂} {C = C}
                  ≈Term α⇐ {A = B₁} {B = B₂ ⊗₀ A} {C = C} ∘ (id {A = B₁} ⊗₁ (σ₂ ⊗₁ id {A = C}))
-        α⇐-nat = begin
-            ((id ⊗₁ σ₂) ⊗₁ id) ∘ α⇐
-              ≈⟨ ≈-Term-sym idˡ ⟩
-            id ∘ ((id ⊗₁ σ₂) ⊗₁ id) ∘ α⇐
-              ≈⟨ (≈-Term-sym α⇐∘α⇒≈id) ⟩∘⟨refl ⟩
-            (α⇐ ∘ α⇒) ∘ ((id ⊗₁ σ₂) ⊗₁ id) ∘ α⇐
-              ≈⟨ assoc ⟩
-            α⇐ ∘ (α⇒ ∘ ((id ⊗₁ σ₂) ⊗₁ id) ∘ α⇐)
-              ≈⟨ refl⟩∘⟨ (≈-Term-sym assoc) ⟩
-            α⇐ ∘ ((α⇒ ∘ ((id ⊗₁ σ₂) ⊗₁ id)) ∘ α⇐)
-              ≈⟨ refl⟩∘⟨ (α-comm ⟩∘⟨refl) ⟩
-            α⇐ ∘ (((id ⊗₁ (σ₂ ⊗₁ id)) ∘ α⇒) ∘ α⇐)
-              ≈⟨ refl⟩∘⟨ assoc ⟩
-            α⇐ ∘ ((id ⊗₁ (σ₂ ⊗₁ id)) ∘ (α⇒ ∘ α⇐))
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ α⇒∘α⇐≈id ⟩
-            α⇐ ∘ ((id ⊗₁ (σ₂ ⊗₁ id)) ∘ id)
-              ≈⟨ refl⟩∘⟨ idʳ ⟩
-            α⇐ ∘ (id ⊗₁ (σ₂ ⊗₁ id))
-          ∎
+        α⇐-nat = ≈-Term-sym (α⇐-comm {h = id} {i = σ₂} {j = id})
 
     -- α-naturality to align the σ₁-cell: (σ₁ ⊗ id{B₂⊗C})
     --   = α⇒ ∘ ((σ₁ ⊗ id{B₂}) ⊗ id{C}) ∘ α⇐.
@@ -456,25 +438,7 @@ private
         α⇐-nat₁ : ((σ₁ ⊗₁ id {A = B₂}) ⊗₁ id {A = C}) ∘ α⇐ {A = A ⊗₀ B₁} {B = B₂} {C = C}
                   ≈Term α⇐ {A = B₁ ⊗₀ A} {B = B₂} {C = C}
                       ∘ (σ₁ ⊗₁ (id {A = B₂} ⊗₁ id {A = C}))
-        α⇐-nat₁ = begin
-            ((σ₁ ⊗₁ id) ⊗₁ id) ∘ α⇐
-              ≈⟨ ≈-Term-sym idˡ ⟩
-            id ∘ ((σ₁ ⊗₁ id) ⊗₁ id) ∘ α⇐
-              ≈⟨ (≈-Term-sym α⇐∘α⇒≈id) ⟩∘⟨refl ⟩
-            (α⇐ ∘ α⇒) ∘ ((σ₁ ⊗₁ id) ⊗₁ id) ∘ α⇐
-              ≈⟨ assoc ⟩
-            α⇐ ∘ (α⇒ ∘ ((σ₁ ⊗₁ id) ⊗₁ id) ∘ α⇐)
-              ≈⟨ refl⟩∘⟨ (≈-Term-sym assoc) ⟩
-            α⇐ ∘ ((α⇒ ∘ ((σ₁ ⊗₁ id) ⊗₁ id)) ∘ α⇐)
-              ≈⟨ refl⟩∘⟨ (α-comm ⟩∘⟨refl) ⟩
-            α⇐ ∘ (((σ₁ ⊗₁ (id ⊗₁ id)) ∘ α⇒) ∘ α⇐)
-              ≈⟨ refl⟩∘⟨ assoc ⟩
-            α⇐ ∘ ((σ₁ ⊗₁ (id ⊗₁ id)) ∘ (α⇒ ∘ α⇐))
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ α⇒∘α⇐≈id ⟩
-            α⇐ ∘ ((σ₁ ⊗₁ (id ⊗₁ id)) ∘ id)
-              ≈⟨ refl⟩∘⟨ idʳ ⟩
-            α⇐ ∘ (σ₁ ⊗₁ (id ⊗₁ id))
-          ∎
+        α⇐-nat₁ = ≈-Term-sym (α⇐-comm {h = σ₁} {i = id} {j = id})
 
     -- `id ⊗ (f ∘ g ∘ h) ≈ (id⊗f) ∘ (id⊗g) ∘ (id⊗h)`.
     id⊗-d : ∀ {Z Y₁ Y₂ Y₃ Y₄ : ObjTerm}

@@ -67,6 +67,29 @@ open import Categories.PermuteCoherence.Eval
 open import Categories.PermuteCoherence.Canonical
 
 ------------------------------------------------------------------------
+-- 0. Dual associator commutativity (`α⇐-comm`), derived from `α-comm`.
+--
+--   α⇐ ∘ (h ⊗₁ (i ⊗₁ j)) ≈Term ((h ⊗₁ i) ⊗₁ j) ∘ α⇐
+--
+-- A pure free-(symmetric)-monoidal fact (no permutation content); shared
+-- by the various coherence consumers that previously re-proved it locally.
+
+α⇐-comm
+  : ∀ {a b c a′ b′ c′ : ObjTerm}
+      {h : HomTerm a a′} {i : HomTerm b b′} {j : HomTerm c c′}
+  → α⇐ ∘ (h ⊗₁ (i ⊗₁ j)) ≈Term ((h ⊗₁ i) ⊗₁ j) ∘ α⇐
+α⇐-comm {h = h} {i} {j} =
+  ≈-Term-trans (≈-Term-sym idʳ)
+  (≈-Term-trans (∘-resp-≈ ≈-Term-refl (≈-Term-sym α⇒∘α⇐≈id))
+  (≈-Term-trans assoc
+  (≈-Term-trans (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc))
+  (≈-Term-trans (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym α-comm) ≈-Term-refl))
+  (≈-Term-trans (∘-resp-≈ ≈-Term-refl assoc)
+  (≈-Term-trans (≈-Term-sym assoc)
+  (≈-Term-trans (∘-resp-≈ α⇐∘α⇒≈id ≈-Term-refl)
+                 idˡ)))))))
+
+------------------------------------------------------------------------
 -- 1. Generic `unflatten` -- the right-associated, unit-padded decoder.
 
 unflatten : List X → ObjTerm
