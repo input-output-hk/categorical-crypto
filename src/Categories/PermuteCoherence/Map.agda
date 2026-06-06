@@ -107,8 +107,6 @@ eval-map⁺ h {xs = xs} {ys = zs} (Perm.trans {ys = ys} p q) =
 ------------------------------------------------------------------------
 -- More generic eval lemmas.
 
-open import Categories.PermuteCoherence.Soundness using (≈-fb-trans; ≈-fb-sym)
-
 -- eval of a reflexive permutation is id-fb, modulo the length cast.
 eval-↭-reflexive : {xs ys : List A} (eq : xs ≡ ys)
   → eval-↭ (Perm.↭-reflexive eq)

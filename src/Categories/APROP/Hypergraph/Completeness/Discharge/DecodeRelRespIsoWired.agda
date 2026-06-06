@@ -1,5 +1,6 @@
--- Postulate-FREE and `--safe`: the only assumption, the Kelly residual
--- `K-faithfulness`, is a MODULE PARAMETER (supplied by the caller).
+-- Postulate-FREE, `--safe`, and FULLY AXIOM-FREE: the Kelly residual
+-- `K-faithfulness` is the PROVEN value `FaithfulnessInductive.faithfulness`
+-- (the constructive symmetric-monoidal coherence theorem), not an assumption.
 --
 -- This connects the order-theory wiring (`IsoInvarianceWiring`) to the
 -- ACTUAL completeness lemma `decode-rel-resp-iso`, consuming the real
@@ -34,19 +35,10 @@
 open import Categories.APROP
 open import Relation.Binary using (DecidableEquality)
 open import Categories.FreeMonoidal using (Symm)
-import Categories.PermuteCoherence.Faithfulness as Faith
 
 module Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRelRespIsoWired
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
-  -- The Kelly faithfulness residual (Kelly 1964 symmetric-monoidal
-  -- permutation coherence) is taken as a MODULE PARAMETER — the single,
-  -- honest assumption of the whole completeness chain.  (`⦃ v≤v ⦄` supplies
-  -- the `Symm ≤ Symm` instance, which only enters automatic search after
-  -- `open APROP sig` in the body.)
-  (K-faithfulness :
-     Faith.FaithfulnessResidual (APROPSignature.asFreeMonoidalData sig) ⦃ v≤v ⦄)
-  where
+  (_≟X_ : DecidableEquality (APROPSignature.X sig)) where
 
 open APROP sig
 open import Categories.APROP.Hypergraph.Completeness.Discharge.ObjUIP
@@ -78,14 +70,17 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
 open import Categories.APROP.Hypergraph.Completeness.Discharge.FinOrderNoInv sig
   using (fin-order-NoInv-⟪⟫)
 
--- The Kelly faithfulness residual type, from `PermuteCoherence.Faithfulness`.
--- A value of it (`K-faithfulness`) is the module's sole parameter-assumption.
--- This module is `--with-K` (the completeness chain was switched off the
+-- The Kelly faithfulness residual type, from `PermuteCoherence.Faithfulness`,
+-- and the PROVEN value of it — `FaithfulnessInductive.faithfulness`, the
+-- constructive symmetric-monoidal permutation-coherence theorem (postulate-free
+-- and `--safe --with-K`).  Bound here as `K-faithfulness`, so the whole
+-- completeness chain is fully axiom-free.  (The chain is `--with-K`, off the
 -- `--without-K` discipline, which bought nothing for the already-`--with-K`
--- top theorem and only forced K-free re-derivation of the `--with-K`
--- coherence machinery via co-infectivity).
+-- top theorem.)
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
+open import Categories.PermuteCoherence.FaithfulnessInductive asFreeMonoidalData
+  using () renaming (faithfulness to K-faithfulness)
 
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Fin using (Fin)

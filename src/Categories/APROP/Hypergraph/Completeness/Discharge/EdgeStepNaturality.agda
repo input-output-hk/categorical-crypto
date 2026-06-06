@@ -46,8 +46,7 @@ open import Categories.Hypergraph.ExtractPrefixEvalPhi using (eval-coincide; ≈
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
-open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_)
-open import Categories.PermuteCoherence.Soundness using (≈-fb-trans)
+open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_; ≈-fb-trans)
 
 open import Data.Fin using (Fin)
 open import Data.List using (List; _++_; map; length)

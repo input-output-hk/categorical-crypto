@@ -2,12 +2,10 @@
 
 --------------------------------------------------------------------------------
 -- Smoke tests for `findIso`, threaded through `completeness-full-wired`.
--- `WithAssumptions` is parameterized by the SINGLE Kelly assumption
--- `K-faithfulness : FaithfulnessResidual` and routes the tests through
--- `CompletenessFullWired`, whose entire trust surface is exactly that one
--- parameter.  The trust is concentrated in the sibling module
--- `Solver/TestsTrust.agda`, which postulates the single residual and applies
--- the tests.
+-- The completeness theorem is now FULLY AXIOM-FREE (its Kelly residual is the
+-- proven `FaithfulnessInductive.faithfulness`), so the tests below are closed
+-- theorems requiring no assumption.  The (now parameterless) `WithAssumptions`
+-- module is retained for `Solver/TestsTrust.agda`.
 --
 -- Each test is of the form
 --
@@ -23,9 +21,8 @@
 -- vertex counts, so `findIso` succeeds on all equation-shaped
 -- `_≈Term_` constructors below.
 --
--- This module is `--safe --with-K` and postulate-free: `K-faithfulness` is a
--- parameter, postulated only in the non-safe `TestsTrust`.  The whole wired
--- coherence chain it imports is also `--safe`.
+-- This module is `--safe --with-K` and postulate-free; the whole wired
+-- coherence chain it imports is also `--safe` and postulate-free.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Solver.Tests where
@@ -92,120 +89,115 @@ open import Categories.APROP.Hypergraph.Translation mySig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.FindIso mySigDec using (findIso)
 open APROP mySig
 
--- The single Kelly assumption type, specialised to `mySig`.  (`open APROP
--- mySig` above puts the `Symm ≤ Symm` instance into scope for this open.)
-open import Categories.PermuteCoherence.Faithfulness
-  (APROPSignature.asFreeMonoidalData mySig) using (FaithfulnessResidual)
+--------------------------------------------------------------------------------
+-- The completeness theorem `completeness-full-wired` is now FULLY AXIOM-FREE
+-- (its Kelly residual is the proven `FaithfulnessInductive.faithfulness`), so
+-- the tests below are closed theorems — no assumption is needed.  The
+-- `WithAssumptions` module is retained (now parameterless) for compatibility
+-- with `Solver/TestsTrust.agda`.
+
+open import Categories.APROP.Hypergraph.CompletenessFullWired mySigDec
+  using (completeness-full-wired)
 
 --------------------------------------------------------------------------------
--- The tests are parameterized over the SINGLE Kelly assumption
--- `K-faithfulness`.  A non-safe sibling module `Solver/TestsTrust.agda`
--- supplies it via `postulate` and re-exports the tests.
+-- Tests for each equation-shaped `_≈Term_` constructor.
 
-module WithAssumptions (K-faithfulness : FaithfulnessResidual) where
+test-idˡ : id ∘ Agen f ≈Term Agen f
+test-idˡ = completeness-full-wired (from-just (findIso ⟪ id ∘ Agen f ⟫ ⟪ Agen f ⟫))
 
-  open import Categories.APROP.Hypergraph.CompletenessFullWired mySigDec K-faithfulness
-    using (completeness-full-wired)
+test-idʳ : Agen f ∘ id ≈Term Agen f
+test-idʳ = completeness-full-wired (from-just (findIso ⟪ Agen f ∘ id ⟫ ⟪ Agen f ⟫))
 
-  --------------------------------------------------------------------------------
-  -- Tests for each equation-shaped `_≈Term_` constructor.
+test-assoc : (Agen h ∘ Agen g) ∘ Agen f ≈Term Agen h ∘ (Agen g ∘ Agen f)
+test-assoc = completeness-full-wired
+  (from-just (findIso ⟪ (Agen h ∘ Agen g) ∘ Agen f ⟫
+                      ⟪ Agen h ∘ (Agen g ∘ Agen f) ⟫))
 
-  test-idˡ : id ∘ Agen f ≈Term Agen f
-  test-idˡ = completeness-full-wired (from-just (findIso ⟪ id ∘ Agen f ⟫ ⟪ Agen f ⟫))
+test-≈-refl : Agen f ≈Term Agen f
+test-≈-refl = completeness-full-wired (from-just (findIso ⟪ Agen f ⟫ ⟪ Agen f ⟫))
 
-  test-idʳ : Agen f ∘ id ≈Term Agen f
-  test-idʳ = completeness-full-wired (from-just (findIso ⟪ Agen f ∘ id ⟫ ⟪ Agen f ⟫))
+test-id⊗id : id {a₀} ⊗₁ id {a₁} ≈Term id {a₀ ⊗₀ a₁}
+test-id⊗id = completeness-full-wired
+  (from-just (findIso ⟪ id {a₀} ⊗₁ id {a₁} ⟫ ⟪ id {a₀ ⊗₀ a₁} ⟫))
 
-  test-assoc : (Agen h ∘ Agen g) ∘ Agen f ≈Term Agen h ∘ (Agen g ∘ Agen f)
-  test-assoc = completeness-full-wired
-    (from-just (findIso ⟪ (Agen h ∘ Agen g) ∘ Agen f ⟫
-                        ⟪ Agen h ∘ (Agen g ∘ Agen f) ⟫))
+test-⊗-∘-dist
+  : (Agen g ∘ Agen f) ⊗₁ (Agen f ∘ Agen h)
+  ≈Term Agen g ⊗₁ Agen f ∘ Agen f ⊗₁ Agen h
+test-⊗-∘-dist = completeness-full-wired (from-just (findIso
+  ⟪ (Agen g ∘ Agen f) ⊗₁ (Agen f ∘ Agen h) ⟫
+  ⟪ Agen g ⊗₁ Agen f ∘ Agen f ⊗₁ Agen h ⟫))
 
-  test-≈-refl : Agen f ≈Term Agen f
-  test-≈-refl = completeness-full-wired (from-just (findIso ⟪ Agen f ⟫ ⟪ Agen f ⟫))
+test-λ⇐∘λ⇒ : λ⇐ ∘ λ⇒ {a₀} ≈Term id {unit ⊗₀ a₀}
+test-λ⇐∘λ⇒ = completeness-full-wired
+  (from-just (findIso ⟪ λ⇐ ∘ λ⇒ {a₀} ⟫ ⟪ id {unit ⊗₀ a₀} ⟫))
 
-  test-id⊗id : id {a₀} ⊗₁ id {a₁} ≈Term id {a₀ ⊗₀ a₁}
-  test-id⊗id = completeness-full-wired
-    (from-just (findIso ⟪ id {a₀} ⊗₁ id {a₁} ⟫ ⟪ id {a₀ ⊗₀ a₁} ⟫))
+test-λ⇒∘λ⇐ : λ⇒ ∘ λ⇐ {a₀} ≈Term id {a₀}
+test-λ⇒∘λ⇐ = completeness-full-wired
+  (from-just (findIso ⟪ λ⇒ ∘ λ⇐ {a₀} ⟫ ⟪ id {a₀} ⟫))
 
-  test-⊗-∘-dist
-    : (Agen g ∘ Agen f) ⊗₁ (Agen f ∘ Agen h)
-    ≈Term Agen g ⊗₁ Agen f ∘ Agen f ⊗₁ Agen h
-  test-⊗-∘-dist = completeness-full-wired (from-just (findIso
-    ⟪ (Agen g ∘ Agen f) ⊗₁ (Agen f ∘ Agen h) ⟫
-    ⟪ Agen g ⊗₁ Agen f ∘ Agen f ⊗₁ Agen h ⟫))
+test-ρ⇐∘ρ⇒ : ρ⇐ ∘ ρ⇒ {a₀} ≈Term id {a₀ ⊗₀ unit}
+test-ρ⇐∘ρ⇒ = completeness-full-wired
+  (from-just (findIso ⟪ ρ⇐ ∘ ρ⇒ {a₀} ⟫ ⟪ id {a₀ ⊗₀ unit} ⟫))
 
-  test-λ⇐∘λ⇒ : λ⇐ ∘ λ⇒ {a₀} ≈Term id {unit ⊗₀ a₀}
-  test-λ⇐∘λ⇒ = completeness-full-wired
-    (from-just (findIso ⟪ λ⇐ ∘ λ⇒ {a₀} ⟫ ⟪ id {unit ⊗₀ a₀} ⟫))
+test-ρ⇒∘ρ⇐ : ρ⇒ ∘ ρ⇐ {a₀} ≈Term id {a₀}
+test-ρ⇒∘ρ⇐ = completeness-full-wired
+  (from-just (findIso ⟪ ρ⇒ ∘ ρ⇐ {a₀} ⟫ ⟪ id {a₀} ⟫))
 
-  test-λ⇒∘λ⇐ : λ⇒ ∘ λ⇐ {a₀} ≈Term id {a₀}
-  test-λ⇒∘λ⇐ = completeness-full-wired
-    (from-just (findIso ⟪ λ⇒ ∘ λ⇐ {a₀} ⟫ ⟪ id {a₀} ⟫))
+test-α⇐∘α⇒ : α⇐ ∘ α⇒ {a₀} {a₁} {a₂} ≈Term id {(a₀ ⊗₀ a₁) ⊗₀ a₂}
+test-α⇐∘α⇒ = completeness-full-wired (from-just (findIso
+  ⟪ α⇐ ∘ α⇒ {a₀} {a₁} {a₂} ⟫ ⟪ id {(a₀ ⊗₀ a₁) ⊗₀ a₂} ⟫))
 
-  test-ρ⇐∘ρ⇒ : ρ⇐ ∘ ρ⇒ {a₀} ≈Term id {a₀ ⊗₀ unit}
-  test-ρ⇐∘ρ⇒ = completeness-full-wired
-    (from-just (findIso ⟪ ρ⇐ ∘ ρ⇒ {a₀} ⟫ ⟪ id {a₀ ⊗₀ unit} ⟫))
+test-α⇒∘α⇐ : α⇒ ∘ α⇐ {a₀} {a₁} {a₂} ≈Term id {a₀ ⊗₀ (a₁ ⊗₀ a₂)}
+test-α⇒∘α⇐ = completeness-full-wired (from-just (findIso
+  ⟪ α⇒ ∘ α⇐ {a₀} {a₁} {a₂} ⟫ ⟪ id {a₀ ⊗₀ (a₁ ⊗₀ a₂)} ⟫))
 
-  test-ρ⇒∘ρ⇐ : ρ⇒ ∘ ρ⇐ {a₀} ≈Term id {a₀}
-  test-ρ⇒∘ρ⇐ = completeness-full-wired
-    (from-just (findIso ⟪ ρ⇒ ∘ ρ⇐ {a₀} ⟫ ⟪ id {a₀} ⟫))
+test-λ⇒∘id⊗f : λ⇒ ∘ (id {unit} ⊗₁ Agen f) ≈Term Agen f ∘ λ⇒
+test-λ⇒∘id⊗f = completeness-full-wired (from-just (findIso
+  ⟪ λ⇒ ∘ (id {unit} ⊗₁ Agen f) ⟫ ⟪ Agen f ∘ λ⇒ ⟫))
 
-  test-α⇐∘α⇒ : α⇐ ∘ α⇒ {a₀} {a₁} {a₂} ≈Term id {(a₀ ⊗₀ a₁) ⊗₀ a₂}
-  test-α⇐∘α⇒ = completeness-full-wired (from-just (findIso
-    ⟪ α⇐ ∘ α⇒ {a₀} {a₁} {a₂} ⟫ ⟪ id {(a₀ ⊗₀ a₁) ⊗₀ a₂} ⟫))
+test-ρ⇒∘f⊗id : ρ⇒ ∘ (Agen f ⊗₁ id {unit}) ≈Term Agen f ∘ ρ⇒
+test-ρ⇒∘f⊗id = completeness-full-wired (from-just (findIso
+  ⟪ ρ⇒ ∘ (Agen f ⊗₁ id {unit}) ⟫ ⟪ Agen f ∘ ρ⇒ ⟫))
 
-  test-α⇒∘α⇐ : α⇒ ∘ α⇐ {a₀} {a₁} {a₂} ≈Term id {a₀ ⊗₀ (a₁ ⊗₀ a₂)}
-  test-α⇒∘α⇐ = completeness-full-wired (from-just (findIso
-    ⟪ α⇒ ∘ α⇐ {a₀} {a₁} {a₂} ⟫ ⟪ id {a₀ ⊗₀ (a₁ ⊗₀ a₂)} ⟫))
+test-α-comm
+  : α⇒ ∘ ((Agen f ⊗₁ Agen g) ⊗₁ Agen h)
+  ≈Term (Agen f ⊗₁ (Agen g ⊗₁ Agen h)) ∘ α⇒
+test-α-comm = completeness-full-wired (from-just (findIso
+  ⟪ α⇒ ∘ ((Agen f ⊗₁ Agen g) ⊗₁ Agen h) ⟫
+  ⟪ (Agen f ⊗₁ (Agen g ⊗₁ Agen h)) ∘ α⇒ ⟫))
 
-  test-λ⇒∘id⊗f : λ⇒ ∘ (id {unit} ⊗₁ Agen f) ≈Term Agen f ∘ λ⇒
-  test-λ⇒∘id⊗f = completeness-full-wired (from-just (findIso
-    ⟪ λ⇒ ∘ (id {unit} ⊗₁ Agen f) ⟫ ⟪ Agen f ∘ λ⇒ ⟫))
+test-triangle
+  : id {a₀} ⊗₁ λ⇒ {a₁} ∘ α⇒ {a₀} {unit} {a₁}
+  ≈Term ρ⇒ {a₀} ⊗₁ id {a₁}
+test-triangle = completeness-full-wired (from-just (findIso
+  ⟪ id {a₀} ⊗₁ λ⇒ {a₁} ∘ α⇒ {a₀} {unit} {a₁} ⟫
+  ⟪ ρ⇒ {a₀} ⊗₁ id {a₁} ⟫))
 
-  test-ρ⇒∘f⊗id : ρ⇒ ∘ (Agen f ⊗₁ id {unit}) ≈Term Agen f ∘ ρ⇒
-  test-ρ⇒∘f⊗id = completeness-full-wired (from-just (findIso
-    ⟪ ρ⇒ ∘ (Agen f ⊗₁ id {unit}) ⟫ ⟪ Agen f ∘ ρ⇒ ⟫))
+test-pentagon
+  : (id {a₀} ⊗₁ α⇒ {a₁} {a₂} {a₀})
+       ∘ α⇒ {a₀} {a₁ ⊗₀ a₂} {a₀}
+       ∘ (α⇒ {a₀} {a₁} {a₂} ⊗₁ id {a₀})
+  ≈Term α⇒ {a₀} {a₁} {a₂ ⊗₀ a₀}
+       ∘ α⇒ {a₀ ⊗₀ a₁} {a₂} {a₀}
+test-pentagon = completeness-full-wired (from-just (findIso
+  ⟪ (id {a₀} ⊗₁ α⇒ {a₁} {a₂} {a₀})
+       ∘ α⇒ {a₀} {a₁ ⊗₀ a₂} {a₀}
+       ∘ (α⇒ {a₀} {a₁} {a₂} ⊗₁ id {a₀}) ⟫
+  ⟪ α⇒ {a₀} {a₁} {a₂ ⊗₀ a₀}
+       ∘ α⇒ {a₀ ⊗₀ a₁} {a₂} {a₀} ⟫))
 
-  test-α-comm
-    : α⇒ ∘ ((Agen f ⊗₁ Agen g) ⊗₁ Agen h)
-    ≈Term (Agen f ⊗₁ (Agen g ⊗₁ Agen h)) ∘ α⇒
-  test-α-comm = completeness-full-wired (from-just (findIso
-    ⟪ α⇒ ∘ ((Agen f ⊗₁ Agen g) ⊗₁ Agen h) ⟫
-    ⟪ (Agen f ⊗₁ (Agen g ⊗₁ Agen h)) ∘ α⇒ ⟫))
+test-σ∘σ : σ ∘ σ {a₀} {a₁} ≈Term id {a₀ ⊗₀ a₁}
+test-σ∘σ = completeness-full-wired
+  (from-just (findIso ⟪ σ ∘ σ {a₀} {a₁} ⟫ ⟪ id {a₀ ⊗₀ a₁} ⟫))
 
-  test-triangle
-    : id {a₀} ⊗₁ λ⇒ {a₁} ∘ α⇒ {a₀} {unit} {a₁}
-    ≈Term ρ⇒ {a₀} ⊗₁ id {a₁}
-  test-triangle = completeness-full-wired (from-just (findIso
-    ⟪ id {a₀} ⊗₁ λ⇒ {a₁} ∘ α⇒ {a₀} {unit} {a₁} ⟫
-    ⟪ ρ⇒ {a₀} ⊗₁ id {a₁} ⟫))
+test-σ∘[f⊗g] : σ ∘ (Agen f ⊗₁ Agen g) ≈Term (Agen g ⊗₁ Agen f) ∘ σ
+test-σ∘[f⊗g] = completeness-full-wired (from-just (findIso
+  ⟪ σ ∘ (Agen f ⊗₁ Agen g) ⟫
+  ⟪ (Agen g ⊗₁ Agen f) ∘ σ ⟫))
 
-  test-pentagon
-    : (id {a₀} ⊗₁ α⇒ {a₁} {a₂} {a₀})
-         ∘ α⇒ {a₀} {a₁ ⊗₀ a₂} {a₀}
-         ∘ (α⇒ {a₀} {a₁} {a₂} ⊗₁ id {a₀})
-    ≈Term α⇒ {a₀} {a₁} {a₂ ⊗₀ a₀}
-         ∘ α⇒ {a₀ ⊗₀ a₁} {a₂} {a₀}
-  test-pentagon = completeness-full-wired (from-just (findIso
-    ⟪ (id {a₀} ⊗₁ α⇒ {a₁} {a₂} {a₀})
-         ∘ α⇒ {a₀} {a₁ ⊗₀ a₂} {a₀}
-         ∘ (α⇒ {a₀} {a₁} {a₂} ⊗₁ id {a₀}) ⟫
-    ⟪ α⇒ {a₀} {a₁} {a₂ ⊗₀ a₀}
-         ∘ α⇒ {a₀ ⊗₀ a₁} {a₂} {a₀} ⟫))
-
-  test-σ∘σ : σ ∘ σ {a₀} {a₁} ≈Term id {a₀ ⊗₀ a₁}
-  test-σ∘σ = completeness-full-wired
-    (from-just (findIso ⟪ σ ∘ σ {a₀} {a₁} ⟫ ⟪ id {a₀ ⊗₀ a₁} ⟫))
-
-  test-σ∘[f⊗g] : σ ∘ (Agen f ⊗₁ Agen g) ≈Term (Agen g ⊗₁ Agen f) ∘ σ
-  test-σ∘[f⊗g] = completeness-full-wired (from-just (findIso
-    ⟪ σ ∘ (Agen f ⊗₁ Agen g) ⟫
-    ⟪ (Agen g ⊗₁ Agen f) ∘ σ ⟫))
-
-  test-hexagon
-    : id {a₁} ⊗₁ σ ∘ α⇒ {a₁} {a₀} {a₂} ∘ σ ⊗₁ id {a₂}
-    ≈Term α⇒ {a₁} {a₂} {a₀} ∘ σ {a₀} {a₁ ⊗₀ a₂} ∘ α⇒ {a₀} {a₁} {a₂}
-  test-hexagon = completeness-full-wired (from-just (findIso
-    ⟪ id {a₁} ⊗₁ σ ∘ α⇒ {a₁} {a₀} {a₂} ∘ σ ⊗₁ id {a₂} ⟫
-    ⟪ α⇒ {a₁} {a₂} {a₀} ∘ σ {a₀} {a₁ ⊗₀ a₂} ∘ α⇒ {a₀} {a₁} {a₂} ⟫))
+test-hexagon
+  : id {a₁} ⊗₁ σ ∘ α⇒ {a₁} {a₀} {a₂} ∘ σ ⊗₁ id {a₂}
+  ≈Term α⇒ {a₁} {a₂} {a₀} ∘ σ {a₀} {a₁ ⊗₀ a₂} ∘ α⇒ {a₀} {a₁} {a₂}
+test-hexagon = completeness-full-wired (from-just (findIso
+  ⟪ id {a₁} ⊗₁ σ ∘ α⇒ {a₁} {a₀} {a₂} ∘ σ ⊗₁ id {a₂} ⟫
+  ⟪ α⇒ {a₁} {a₂} {a₀} ∘ σ {a₀} {a₁ ⊗₀ a₂} ∘ α⇒ {a₀} {a₁} {a₂} ⟫))

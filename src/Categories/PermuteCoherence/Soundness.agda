@@ -33,15 +33,6 @@ private
     n m k : ℕ
 
 ------------------------------------------------------------------------
--- Equivalence lemmas for `_≈-fb_`.
-
-≈-fb-sym : {π ρ : FinBij n m} → π ≈-fb ρ → ρ ≈-fb π
-≈-fb-sym eq i = sym (eq i)
-
-≈-fb-trans : {π ρ σ : FinBij n m} → π ≈-fb ρ → ρ ≈-fb σ → π ≈-fb σ
-≈-fb-trans p q i rewrite p i = q i
-
-------------------------------------------------------------------------
 -- 4.  cons-fb-functor-id
 
 cons-fb-functor-id : cons-fb (id-fb {n = n}) ≈-fb id-fb {n = suc n}

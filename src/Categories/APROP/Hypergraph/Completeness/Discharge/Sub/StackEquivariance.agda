@@ -86,9 +86,9 @@ open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual; permute-self-loop-id-wide)
 open import Categories.PermuteCoherence.Canonical using (_≅↭_)
 open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _≈-fb_; id-fb; inv-fb; _∘-fb_; cons-fb; swap-fb)
+  using (FinBij; _≈-fb_; id-fb; inv-fb; _∘-fb_; cons-fb; swap-fb; ≈-fb-trans)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
-open import Categories.PermuteCoherence.Soundness using (≈-fb-trans; eval-↭-sym)
+open import Categories.PermuteCoherence.Soundness using (eval-↭-sym)
 
 open import Data.Fin using (Fin)
 open import Data.Nat.Base using (suc)

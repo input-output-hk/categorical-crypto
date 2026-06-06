@@ -95,10 +95,11 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst; subst₂)
 
 -- For the `eval-↭`-level rigidity lemma exposing the internal structure.
-open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_; id-fb; _∘-fb_)
+open import Categories.PermuteCoherence.FinBij
+  using (FinBij; _≈-fb_; id-fb; _∘-fb_; ≈-fb-trans; ≈-fb-sym)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.Soundness
-  using (≈-fb-trans; ≈-fb-sym; eval-↭-comp)
+  using (eval-↭-comp)
 open import Categories.PermuteCoherence.Rigid using (eval-rigid)
 open import Categories.PermuteCoherence.Map
   using (eval-map⁺; subst₂-FinBij-≈; map⁺-↭-reflexive; ≈-fb-of-≡
