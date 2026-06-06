@@ -86,8 +86,9 @@ open import Relation.Binary.PropositionalEquality using (_≢_)
 -- not exported).  Each is self-contained and small.
 
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.CountCombinatorics sig
-  using (count-cons-yes; count-cons-no)
-  renaming (↭⇒count to ↭⇒count-≡)
+  using ( count-cons-yes; count-cons-no
+        ; count-mono-cons; count-zero-empty; count-pos→split
+        ; count-cancel-cons; count-≡⇒↭; count-map-resp)
 
 private
   -- `tabulate` over a `Fin (m + n)` index splits as a `++` of the two
@@ -98,64 +99,6 @@ private
   tabulate-+ {m = zero}          f = refl
   tabulate-+ {m = suc m} {n = n} f =
     cong (f zero ∷_) (tabulate-+ {m = m} {n = n} (f Fun.∘ suc))
-
-  count-mono-cons : ∀ {n} (v x : Fin n) (xs : List (Fin n))
-                  → count v xs Nat.≤ count v (x ∷ xs)
-  count-mono-cons v x xs with v ≟ x
-  ... | yes _ = Nat.n≤1+n (count v xs)
-  ... | no  _ = Nat.≤-refl
-
-  count-zero-empty : ∀ {n} (xs : List (Fin n))
-                   → (∀ v → count v xs ≡ 0)
-                   → xs ≡ []
-  count-zero-empty []       _   = refl
-  count-zero-empty (x ∷ xs) hyp
-    with trans (sym (count-cons-yes x xs)) (hyp x)
-  ... | ()
-
-  count-pos→split
-    : ∀ {n} (v : Fin n) (xs : List (Fin n))
-    → 0 Nat.< count v xs
-    → Σ[ xs₁ ∈ List (Fin n) ] Σ[ xs₂ ∈ List (Fin n) ] xs ≡ xs₁ ++ v ∷ xs₂
-  count-pos→split v []       ()
-  count-pos→split v (x ∷ xs) c with v ≟ x
-  ... | yes refl = [] , xs , refl
-  ... | no  _    with count-pos→split v xs c
-  ...               | xs₁ , xs₂ , refl = (x ∷ xs₁) , xs₂ , refl
-
-  count-cancel-cons
-    : ∀ {n} (v x : Fin n) (xs ys : List (Fin n))
-    → count v (x ∷ xs) ≡ count v (x ∷ ys)
-    → count v xs ≡ count v ys
-  count-cancel-cons v x xs ys h with v ≟ x
-  ... | yes _ = Nat.suc-injective h
-  ... | no  _ = h
-
-  count-≡⇒↭
-    : ∀ {n} (xs ys : List (Fin n))
-    → (∀ v → count v xs ≡ count v ys)
-    → xs Perm.↭ ys
-  count-≡⇒↭ []       ys hyp
-    rewrite count-zero-empty ys (λ k → sym (hyp k)) = Perm.refl
-  count-≡⇒↭ (x ∷ xs) ys hyp
-    with count-pos→split x ys
-           (subst (0 Nat.<_) (trans (sym (count-cons-yes x xs)) (hyp x))
-                  (s≤s z≤n))
-  ... | ys₁ , ys₂ , refl =
-        Perm.trans (Perm.prep x (count-≡⇒↭ xs (ys₁ ++ ys₂) sub-hyp))
-                   (Perm.↭-sym (PermProp.shift x ys₁ ys₂))
-        where
-          sub-hyp : ∀ v → count v xs ≡ count v (ys₁ ++ ys₂)
-          sub-hyp v = count-cancel-cons v x xs (ys₁ ++ ys₂)
-                        (trans (hyp v)
-                               (↭⇒count-≡ (PermProp.shift x ys₁ ys₂) v))
-
-  count-map-resp
-    : ∀ {n m} (f : Fin n → Fin m) (xs ys : List (Fin n))
-    → (∀ k → count k xs ≡ count k ys)
-    → ∀ v → count v (map f xs) ≡ count v (map f ys)
-  count-map-resp f xs ys hyp v =
-    ↭⇒count-≡ (PermProp.map⁺ f (count-≡⇒↭ xs ys hyp)) v
 
   -- `cast eq` is injective (it preserves `toℕ`).  Stdlib 2.3 has no
   -- `cast-injective`, so we derive it from `toℕ-cast` + `toℕ-injective`.
