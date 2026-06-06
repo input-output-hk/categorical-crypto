@@ -45,7 +45,13 @@ import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SigmaBlockCommRaw 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_; module ≅; Iso)
 
-open import Data.Fin using (Fin)
+-- Mac-Lane coherence solver, used to discharge the pure-associator `pentagon⇐`
+-- lemma below in one line.  Mirrors the setup in `Sub/SigmaBlockCommRaw.agda`.
+open import Categories.MonoidalCoherence using (module Solver)
+import Data.Vec as Vec
+open Vec using (Vec)
+
+open import Data.Fin using (Fin; zero; suc)
 open import Data.Nat using (ℕ)
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-++)
@@ -295,83 +301,24 @@ private
         ∘ α⇐ {A = A} {B = B ⊗₀ C} {C = D}
         ∘ (id {A = A} ⊗₁ α⇐ {A = B} {B = C} {C = D})
       ≈Term α⇐ {A = A ⊗₀ B} {B = C} {C = D} ∘ α⇐ {A = A} {B = B} {C = C ⊗₀ D}
-  pentagon⇐ {A} {B} {C} {D} = begin
-      L⇐
-        ≈⟨ ≈-Term-sym idʳ ⟩
-      L⇐ ∘ id
-        ≈⟨ refl⟩∘⟨ ≈-Term-sym R⇒∘R⇐ ⟩
-      L⇐ ∘ (R⇒ ∘ R⇐)
-        ≈⟨ refl⟩∘⟨ (≈-Term-sym (pentagon {A = A} {B = B} {C = C} {D = D}) ⟩∘⟨refl) ⟩
-      L⇐ ∘ (L⇒ ∘ R⇐)
-        ≈⟨ FM.sym-assoc ⟩
-      (L⇐ ∘ L⇒) ∘ R⇐
-        ≈⟨ L⇐∘L⇒ ⟩∘⟨refl ⟩
-      id ∘ R⇐
-        ≈⟨ idˡ ⟩
-      R⇐ ∎
+  pentagon⇐ {A} {B} {C} {D} = solveM
+      ((α⇐ˢ {A = a₀} {b₀} {c₀} ⊗₁ˢ idˢ)
+        ∘ˢ α⇐ˢ {A = a₀} {b₀ ⊗₀ˢ c₀} {d₀}
+        ∘ˢ (idˢ ⊗₁ˢ α⇐ˢ {A = b₀} {c₀} {d₀}))
+      (α⇐ˢ {A = a₀ ⊗₀ˢ b₀} {c₀} {d₀} ∘ˢ α⇐ˢ {A = a₀} {b₀} {c₀ ⊗₀ˢ d₀})
     where
-      L⇒ = (id {A = A} ⊗₁ α⇒ {A = B} {B = C} {C = D})
-             ∘ α⇒ {A = A} {B = B ⊗₀ C} {C = D}
-             ∘ (α⇒ {A = A} {B = B} {C = C} ⊗₁ id {A = D})
-      R⇒ = α⇒ {A = A} {B = B} {C = C ⊗₀ D} ∘ α⇒ {A = A ⊗₀ B} {B = C} {C = D}
-      L⇐ = (α⇐ {A = A} {B = B} {C = C} ⊗₁ id {A = D})
-             ∘ α⇐ {A = A} {B = B ⊗₀ C} {C = D}
-             ∘ (id {A = A} ⊗₁ α⇐ {A = B} {B = C} {C = D})
-      R⇐ = α⇐ {A = A ⊗₀ B} {B = C} {C = D} ∘ α⇐ {A = A} {B = B} {C = C ⊗₀ D}
-
-      R⇒∘R⇐ : R⇒ ∘ R⇐ ≈Term id
-      R⇒∘R⇐ = begin
-        (α⇒ ∘ α⇒) ∘ (α⇐ ∘ α⇐)
-          ≈⟨ FM.assoc ⟩
-        α⇒ ∘ (α⇒ ∘ (α⇐ ∘ α⇐))
-          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        α⇒ ∘ ((α⇒ ∘ α⇐) ∘ α⇐)
-          ≈⟨ refl⟩∘⟨ (α⇒∘α⇐≈id ⟩∘⟨refl) ⟩
-        α⇒ ∘ (id ∘ α⇐)
-          ≈⟨ refl⟩∘⟨ idˡ ⟩
-        α⇒ ∘ α⇐
-          ≈⟨ α⇒∘α⇐≈id ⟩
-        id ∎
-
-      L⇐∘L⇒ : L⇐ ∘ L⇒ ≈Term id
-      L⇐∘L⇒ = begin
-        ((α⇐ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ α⇐))
-          ∘ ((id ⊗₁ α⇒) ∘ α⇒ ∘ (α⇒ ⊗₁ id))
-          ≈⟨ FM.assoc ⟩
-        (α⇐ ⊗₁ id) ∘ ((α⇐ ∘ (id ⊗₁ α⇐))
-          ∘ ((id ⊗₁ α⇒) ∘ α⇒ ∘ (α⇒ ⊗₁ id)))
-          ≈⟨ refl⟩∘⟨ inner ⟩
-        (α⇐ ⊗₁ id) ∘ (α⇒ ⊗₁ id)
-          ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-        (α⇐ ∘ α⇒) ⊗₁ (id ∘ id)
-          ≈⟨ ⊗-resp-≈ α⇐∘α⇒≈id idˡ ⟩
-        id ⊗₁ id
-          ≈⟨ id⊗id≈id ⟩
-        id ∎
-        where
-          inner
-            : (α⇐ ∘ (id ⊗₁ α⇐)) ∘ ((id ⊗₁ α⇒) ∘ α⇒ ∘ (α⇒ ⊗₁ id))
-              ≈Term (α⇒ ⊗₁ id)
-          inner = begin
-            (α⇐ ∘ (id ⊗₁ α⇐)) ∘ ((id ⊗₁ α⇒) ∘ α⇒ ∘ (α⇒ ⊗₁ id))
-              ≈⟨ FM.assoc ⟩
-            α⇐ ∘ ((id ⊗₁ α⇐) ∘ ((id ⊗₁ α⇒) ∘ α⇒ ∘ (α⇒ ⊗₁ id)))
-              ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-            α⇐ ∘ (((id ⊗₁ α⇐) ∘ (id ⊗₁ α⇒)) ∘ α⇒ ∘ (α⇒ ⊗₁ id))
-              ≈⟨ refl⟩∘⟨ (idid ⟩∘⟨refl) ⟩
-            α⇐ ∘ (id ∘ α⇒ ∘ (α⇒ ⊗₁ id))
-              ≈⟨ refl⟩∘⟨ idˡ ⟩
-            α⇐ ∘ (α⇒ ∘ (α⇒ ⊗₁ id))
-              ≈⟨ FM.sym-assoc ⟩
-            (α⇐ ∘ α⇒) ∘ (α⇒ ⊗₁ id)
-              ≈⟨ α⇐∘α⇒≈id ⟩∘⟨refl ⟩
-            id ∘ (α⇒ ⊗₁ id)
-              ≈⟨ idˡ ⟩
-            α⇒ ⊗₁ id ∎
-            where
-              idid : (id ⊗₁ α⇐) ∘ (id ⊗₁ α⇒) ≈Term id
-              idid = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                       (≈-Term-trans (⊗-resp-≈ idˡ α⇐∘α⇒≈id) id⊗id≈id)
+      vars : Vec ObjTerm 4
+      vars = A Vec.∷ B Vec.∷ C Vec.∷ D Vec.∷ Vec.[]
+      open Solver (record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal })
+                  {n = 4} vars
+        using (solveM)
+        renaming (α⇐ to α⇐ˢ; id to idˢ; _∘_ to _∘ˢ_;
+                  _⊗₁_ to _⊗₁ˢ_; _⊗₀_ to _⊗₀ˢ_; Var to Varˢ)
+      a₀ b₀ c₀ d₀ : _
+      a₀ = Varˢ zero
+      b₀ = Varˢ (suc zero)
+      c₀ = Varˢ (suc (suc zero))
+      d₀ = Varˢ (suc (suc (suc zero)))
 
   -- σ-block C-slot merge: braiding over `C₁ ⊗ C₂` equals braiding over `C₁`
   -- (tensored with `id_{C₂}`) framed by associators that re-bracket `C₂` out.
