@@ -267,6 +267,20 @@ subst-dom-cons
   ≈Term id {Var y} ⊗₁ subst (λ z → HomTerm (unflatten z) (unflatten as)) eq id
 subst-dom-cons y refl = ≈-Term-sym id⊗id≈id
 
+-- The first, shared step of all four `*-coh-list` cons cases: pushing the
+-- `cong (y ∷_)` of a `subst` through `unflatten` via `subst-∘`, re-binding the
+-- substituted variable from the cons'd list to its tail.  The four cases then
+-- finish with `subst-{cod,dom}-cons`.  `L`/`R` are the dom/cod endpoints
+-- (one constant fixed side, the other the moving `unflatten z`); the cod
+-- variants (ρ⇒, α⇒) and dom variants (ρ⇐, α⇐) only differ in which is which.
+cons-coh-step
+  : ∀ (y : X) {as as' : List X} (eq : as ≡ as') (L R : List X → ObjTerm)
+      (m : HomTerm (L (y ∷ as)) (R (y ∷ as)))
+  → subst (λ z → HomTerm (L z) (R z)) (cong (y ∷_) eq) m
+    ≈Term subst (λ z → HomTerm (L (y ∷ z)) (R (y ∷ z))) eq m
+cons-coh-step y eq L R m =
+  ≡⇒≈Term (sym (subst-∘ {P = λ z → HomTerm (L z) (R z)} {f = y ∷_} eq))
+
 --------------------------------------------------------------------------------
 -- Bridge form for ρ⇒.
 
@@ -361,9 +375,8 @@ bridge-ρ⇐-form A = begin
 ρ⇒-coh-list (y ∷ ys) = begin
   subst (λ z → HomTerm (Var y ⊗₀ unflatten (ys ++ [])) (unflatten z))
         (cong (y ∷_) (++-identityʳ ys)) id
-    ≈⟨ ≡⇒≈Term (sym (subst-∘ {P = λ z → HomTerm (Var y ⊗₀ unflatten (ys ++ [])) (unflatten z)}
-                              {f = y ∷_}
-                              (++-identityʳ ys))) ⟩
+    ≈⟨ cons-coh-step y (++-identityʳ ys)
+         (λ _ → Var y ⊗₀ unflatten (ys ++ [])) (λ z → unflatten z) id ⟩
   subst (λ z → HomTerm (Var y ⊗₀ unflatten (ys ++ []))
                         (Var y ⊗₀ unflatten z))
         (++-identityʳ ys) id
@@ -404,9 +417,8 @@ bridge-ρ⇐-form A = begin
 ρ⇐-coh-list (y ∷ ys) = begin
   subst (λ z → HomTerm (unflatten z) (Var y ⊗₀ unflatten (ys ++ [])))
         (cong (y ∷_) (++-identityʳ ys)) id
-    ≈⟨ ≡⇒≈Term (sym (subst-∘ {P = λ z → HomTerm (unflatten z) (Var y ⊗₀ unflatten (ys ++ []))}
-                              {f = y ∷_}
-                              (++-identityʳ ys))) ⟩
+    ≈⟨ cons-coh-step y (++-identityʳ ys)
+         (λ z → unflatten z) (λ _ → Var y ⊗₀ unflatten (ys ++ [])) id ⟩
   subst (λ z → HomTerm (Var y ⊗₀ unflatten z)
                         (Var y ⊗₀ unflatten (ys ++ [])))
         (++-identityʳ ys) id
@@ -493,9 +505,8 @@ bridge-ρ⇐-form A = begin
 α⇒-coh-list (x ∷ xs) ys zs = begin
   subst (λ z → HomTerm (Var x ⊗₀ unflatten ((xs ++ ys) ++ zs)) (unflatten z))
         (cong (x ∷_) (++-assoc xs ys zs)) id
-    ≈⟨ ≡⇒≈Term (sym (subst-∘ {P = λ z → HomTerm (Var x ⊗₀ unflatten ((xs ++ ys) ++ zs)) (unflatten z)}
-                              {f = x ∷_}
-                              (++-assoc xs ys zs))) ⟩
+    ≈⟨ cons-coh-step x (++-assoc xs ys zs)
+         (λ _ → Var x ⊗₀ unflatten ((xs ++ ys) ++ zs)) (λ z → unflatten z) id ⟩
   subst (λ z → HomTerm (Var x ⊗₀ unflatten ((xs ++ ys) ++ zs))
                         (Var x ⊗₀ unflatten z))
         (++-assoc xs ys zs) id
@@ -514,9 +525,8 @@ bridge-ρ⇐-form A = begin
 α⇐-coh-list (x ∷ xs) ys zs = begin
   subst (λ z → HomTerm (unflatten z) (Var x ⊗₀ unflatten ((xs ++ ys) ++ zs)))
         (cong (x ∷_) (++-assoc xs ys zs)) id
-    ≈⟨ ≡⇒≈Term (sym (subst-∘ {P = λ z → HomTerm (unflatten z) (Var x ⊗₀ unflatten ((xs ++ ys) ++ zs))}
-                              {f = x ∷_}
-                              (++-assoc xs ys zs))) ⟩
+    ≈⟨ cons-coh-step x (++-assoc xs ys zs)
+         (λ z → unflatten z) (λ _ → Var x ⊗₀ unflatten ((xs ++ ys) ++ zs)) id ⟩
   subst (λ z → HomTerm (Var x ⊗₀ unflatten z)
                         (Var x ⊗₀ unflatten ((xs ++ ys) ++ zs)))
         (++-assoc xs ys zs) id
@@ -529,15 +539,33 @@ bridge-ρ⇐-form A = begin
 --------------------------------------------------------------------------------
 -- α⇒-form / α⇐-form mutual inverses.
 
+-- The composite of `id {Var w} ⊗₁ F` with `id {Var w} ⊗₁ G` collapses to
+-- `id {Var w} ⊗₁ (F ∘ G)` — the cons summand shared by both α-form isos.
+⊗-cons-step
+  : ∀ {w} {A B : ObjTerm} (F : HomTerm A B) (G : HomTerm B A)
+  → (id {Var w} ⊗₁ F) ∘ (id {Var w} ⊗₁ G) ≈Term id {Var w} ⊗₁ (F ∘ G)
+⊗-cons-step F G = begin
+  (id ⊗₁ F) ∘ (id ⊗₁ G)
+    ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
+  (id ∘ id) ⊗₁ (F ∘ G)
+    ≈⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩
+  id ⊗₁ (F ∘ G) ∎
+
+-- Both α-form isos are the same `id {Var x} ⊗₁`-distributing induction with the
+-- two `*-form-list`s composed in opposite order; their cons cases share exactly
+-- the `⊗-cons-step` collapse above.  (The composites are endo at different
+-- objects — `unflatten ((xs ++ ys) ++ zs)` vs `unflatten (xs ++ ys ++ zs)` — so
+-- a single dependently-typed helper would have to transport across that; we
+-- instead keep the two short inductions and share their one nontrivial step.)
 α⇒-α⇐-iso
   : ∀ (xs ys zs : List X)
   → α⇒-form-list xs ys zs ∘ α⇐-form-list xs ys zs ≈Term id
 α⇒-α⇐-iso []       ys zs = idˡ
 α⇒-α⇐-iso (x ∷ xs) ys zs = begin
   (id {Var x} ⊗₁ α⇒-form-list xs ys zs) ∘ (id {Var x} ⊗₁ α⇐-form-list xs ys zs)
-    ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-  (id ∘ id) ⊗₁ (α⇒-form-list xs ys zs ∘ α⇐-form-list xs ys zs)
-    ≈⟨ ⊗-resp-≈ idˡ (α⇒-α⇐-iso xs ys zs) ⟩
+    ≈⟨ ⊗-cons-step (α⇒-form-list xs ys zs) (α⇐-form-list xs ys zs) ⟩
+  id ⊗₁ (α⇒-form-list xs ys zs ∘ α⇐-form-list xs ys zs)
+    ≈⟨ ⊗-resp-≈ ≈-Term-refl (α⇒-α⇐-iso xs ys zs) ⟩
   id ⊗₁ id
     ≈⟨ id⊗id≈id ⟩
   id ∎
@@ -548,9 +576,9 @@ bridge-ρ⇐-form A = begin
 α⇐-α⇒-iso []       ys zs = idˡ
 α⇐-α⇒-iso (x ∷ xs) ys zs = begin
   (id {Var x} ⊗₁ α⇐-form-list xs ys zs) ∘ (id {Var x} ⊗₁ α⇒-form-list xs ys zs)
-    ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-  (id ∘ id) ⊗₁ (α⇐-form-list xs ys zs ∘ α⇒-form-list xs ys zs)
-    ≈⟨ ⊗-resp-≈ idˡ (α⇐-α⇒-iso xs ys zs) ⟩
+    ≈⟨ ⊗-cons-step (α⇐-form-list xs ys zs) (α⇒-form-list xs ys zs) ⟩
+  id ⊗₁ (α⇐-form-list xs ys zs ∘ α⇒-form-list xs ys zs)
+    ≈⟨ ⊗-resp-≈ ≈-Term-refl (α⇐-α⇒-iso xs ys zs) ⟩
   id ⊗₁ id
     ≈⟨ id⊗id≈id ⟩
   id ∎
