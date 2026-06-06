@@ -56,10 +56,8 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 
 --------------------------------------------------------------------------------
--- ≈Term plumbing.
-
-≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-≡⇒≈Term refl = ≈-Term-refl
+-- ≈Term plumbing.  `≡⇒≈Term` comes from `Categories.FreeMonoidal`
+-- via `open APROP sig`.
 
 just-injective-fst
   : ∀ {a b} {A : Set a} {B : A → Set b} {x y : A} {p : B x} {q : B y}

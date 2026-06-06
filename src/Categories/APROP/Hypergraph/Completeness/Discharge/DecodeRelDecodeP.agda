@@ -118,9 +118,6 @@ decodeP {A} {B} f =
 private
   module FM = Category FreeMonoidal
 
-  ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-  ≡⇒≈Term refl = ≈-Term-refl
-
 --------------------------------------------------------------------------------
 -- ## `rhoShapeResidual`.
 --

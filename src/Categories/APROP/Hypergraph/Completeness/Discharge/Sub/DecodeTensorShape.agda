@@ -118,8 +118,7 @@ open import Relation.Binary.PropositionalEquality.Properties
   using (trans-cong; trans-reflʳ; cong-∘)
 
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
-  using ( ≡⇒≈Term
-        ; subst₂-FlatGen-cancel; subst₂-FlatGen-cancel′
+  using ( subst₂-FlatGen-cancel; subst₂-FlatGen-cancel′
         ; subst₂-HomTerm-irrel; subst₂-HomTerm-∘; subst₂-resp-≈Term
         ; subst₂-HomTerm-∘-dist; subst₂-⊗₁-dist
         ; permute-subst₂

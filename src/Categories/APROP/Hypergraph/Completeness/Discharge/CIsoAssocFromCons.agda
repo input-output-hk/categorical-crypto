@@ -44,9 +44,6 @@ open FM.HomReasoning
 -- Local helpers (re-proved here to avoid depending on non-`--safe`
 -- DecodeRoundtrip.agda).
 
-≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-≡⇒≈Term refl = ≈-Term-refl
-
 -- `pentagon-rewrite` from CoherenceSolver.
 pentagon-rewrite
   : ∀ {X Y Z W}

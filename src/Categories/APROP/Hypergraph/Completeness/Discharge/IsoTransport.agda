@@ -90,10 +90,8 @@ open import Categories.PermuteCoherence.EvalRigidKFree
         ; eval-map⁺ )
 
 --------------------------------------------------------------------------------
--- §0.  ≈Term plumbing.
-
-≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-≡⇒≈Term refl = ≈-Term-refl
+-- §0.  ≈Term plumbing.  `≡⇒≈Term` comes from `Categories.FreeMonoidal`
+-- via `open APROP sig`.
 
 private
   just-injective-fst

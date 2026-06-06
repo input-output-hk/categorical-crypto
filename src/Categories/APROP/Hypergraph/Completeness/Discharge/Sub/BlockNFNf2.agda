@@ -614,9 +614,6 @@ module _ (H : Hypergraph FlatGen)
           ≡ subst₂ HomTerm q r f ∘ subst₂ HomTerm p q h
       subst₂-HomTerm-∘-dist refl refl refl f h = refl
 
-      ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-      ≡⇒≈Term refl = ≈-Term-refl
-
       to-BTC : ∀ (As Bs : List (Fin H.nV))
              → _≅_.to (BT.uf++ As Bs)
                ≡ subst₂ HomTerm refl (cong unflatten (sym (map-++ H.vlab As Bs)))

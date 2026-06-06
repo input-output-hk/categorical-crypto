@@ -44,7 +44,6 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtripSafe sig
         ; T-unit⊗-collapse
         ; F-Vx⊗-collapse
         ; T-Vx⊗-collapse
-        ; ≡⇒≈Term
         )
 
 open import Categories.Category using (Category)

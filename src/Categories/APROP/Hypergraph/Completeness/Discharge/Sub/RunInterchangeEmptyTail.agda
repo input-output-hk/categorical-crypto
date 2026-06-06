@@ -110,9 +110,6 @@ open import Relation.Binary.PropositionalEquality
 -- ≈Term plumbing.
 
 private
-  ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-  ≡⇒≈Term refl = ≈-Term-refl
-
   nothing≢just : ∀ {A : Set} {x : A} → nothing ≡ just x → ⊥
   nothing≢just ()
 

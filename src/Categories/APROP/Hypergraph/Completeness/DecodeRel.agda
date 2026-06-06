@@ -76,10 +76,6 @@ private
   module FM = Category FreeMonoidal
 open FM.HomReasoning
 
-private
-  ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-  ≡⇒≈Term refl = ≈-Term-refl
-
 decode-roundtrip-rel-∘
   : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
   → decode-rel f ≈Term bridge f

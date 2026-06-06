@@ -96,9 +96,6 @@ open import Relation.Binary.PropositionalEquality
 -- ≈Term plumbing.
 
 private
-  ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-  ≡⇒≈Term refl = ≈-Term-refl
-
   ----------------------------------------------------------------------
   -- `eval-map⁺` and its `subst₂`-on-FinBij algebra (J-only, no K).  Used
   -- to LIFT a vertex-level `≅↭` (from `residual-recon`) through `map⁺ vlab`

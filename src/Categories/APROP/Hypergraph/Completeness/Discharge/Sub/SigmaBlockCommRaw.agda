@@ -54,9 +54,6 @@ private
 
 open FM.HomReasoning
 
-≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-≡⇒≈Term refl = ≈-Term-refl
-
 -- `↭-sym (shift x ys xs) ≡ rotate x ys xs`.
 shift-sym-rotate
   : ∀ (x : X) (ys xs : List X)

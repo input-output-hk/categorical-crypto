@@ -69,10 +69,8 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Binary.PropositionalEquality.Properties using (sym-cong)
 
 --------------------------------------------------------------------------------
--- subst₂ plumbing (copied idioms).
-
-≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-≡⇒≈Term refl = ≈-Term-refl
+-- subst₂ plumbing (copied idioms).  `≡⇒≈Term` comes from
+-- `Categories.FreeMonoidal` via `open APROP sig`.
 
 -- `subst₂ HomTerm` pushed through `permute` onto the underlying `↭`.
 permute-subst₂

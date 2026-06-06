@@ -283,11 +283,9 @@ module Assemble
 -- `objUIP` (UIP on `ObjTerm`) is a parameter, as in `EdgeStepNaturality`.
 --------------------------------------------------------------------------------
 
--- ≈Term / subst₂ plumbing.
+-- ≈Term / subst₂ plumbing.  `≡⇒≈Term` comes from `Categories.FreeMonoidal`
+-- via `open APROP sig`.
 private
-  ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-  ≡⇒≈Term refl = ≈-Term-refl
-
   just-injective-fst
     : ∀ {a b} {A : Set a} {B : A → Set b} {x y : A} {p : B x} {q : B y}
     → just (x , p) ≡ just (y , q) → x ≡ y

@@ -41,8 +41,7 @@ open import Categories.APROP.Hypergraph.Completeness.DecoderAgreementSafe sig
         ; unapply-ρ⇒; unapply-ρ⇐
         )
 open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtripSafe sig
-  using ( ≡⇒≈Term
-        ; subst₂-resp-≈Term
+  using ( subst₂-resp-≈Term
         ; ρ⇒-coherence
         ; ρ⇐-coherence
         )

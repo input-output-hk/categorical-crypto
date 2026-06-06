@@ -194,8 +194,8 @@ bridge-λ⇐-is-id A = begin
 -- Helpers for chaining `_≡_` and `≈Term`, and for transporting `≈Term`
 -- across `subst₂`.
 
-≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-≡⇒≈Term refl = ≈-Term-refl
+-- `≡⇒≈Term` lives in `Categories.FreeMonoidal`, reachable everywhere via
+-- `open APROP sig` (no longer re-defined / re-exported here).
 
 subst₂-resp-≈Term
   : ∀ {As Bs As' Bs' : List X} (eq-As : As ≡ As') (eq-Bs : Bs ≡ Bs')

@@ -77,8 +77,7 @@ private
   module FM = Category FreeMonoidal
 
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
-  using ( ≡⇒≈Term
-        ; subst₂-FlatGen-cancel; subst₂-FlatGen-cancel′
+  using ( subst₂-FlatGen-cancel; subst₂-FlatGen-cancel′
         ; subst₂-HomTerm-irrel; subst₂-HomTerm-∘; subst₂-resp-≈Term
         ; subst₂-HomTerm-∘-dist; permute-subst₂; map⁺-subst₂
         ; eval-subst₂-↭; vlab-φ-lemma; pvv-relabel

@@ -112,7 +112,7 @@ private
 open FM.HomReasoning
 
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
-  using ( ≡⇒≈Term; subst₂-resp-≈Term; subst₂-HomTerm-irrel; subst₂-HomTerm-∘
+  using ( subst₂-resp-≈Term; subst₂-HomTerm-irrel; subst₂-HomTerm-∘
         ; decode-attempt-extract
         ; subst₂-∘-distrib; pvl-subst₂; pvl-refl
         ; subst₂-cod-trans; subst₂-dom-trans )

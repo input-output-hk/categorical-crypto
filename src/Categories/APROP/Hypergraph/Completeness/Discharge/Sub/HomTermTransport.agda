@@ -35,9 +35,8 @@ open import Categories.APROP.Hypergraph.Completeness.Permute sig
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (decode; decode-attempt-Linear)
 import Categories.APROP.Hypergraph.Completeness.Linearity sig as Lin
--- `≡⇒≈Term` re-exported from `DecodeRoundtripSafe` for consumers.
-open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtripSafe sig
-  using (≡⇒≈Term) public
+-- `≡⇒≈Term` lives in `Categories.FreeMonoidal`; consumers reach it via
+-- their own `open APROP sig`.
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUnique sig as SU
 
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData

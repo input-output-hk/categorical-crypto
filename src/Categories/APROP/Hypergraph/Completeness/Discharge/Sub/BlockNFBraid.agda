@@ -73,9 +73,6 @@ uipX = UIPmod.Decidable⇒UIP.≡-irrelevant (List-≡-dec _≟X_)
 
 open FM.HomReasoning
 
-≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-≡⇒≈Term refl = ≈-Term-refl
-
 --------------------------------------------------------------------------------
 -- Generic `subst₂ _↭_` plumbing: push a permutation constructor through the
 -- two endpoint substs.
