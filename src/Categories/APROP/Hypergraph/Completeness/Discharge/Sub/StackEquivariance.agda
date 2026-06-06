@@ -115,11 +115,6 @@ private
   just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
   just≢nothing ()
 
-  just-injective-fst
-    : ∀ {a b} {A : Set a} {B : A → Set b} {x y : A} {p : B x} {q : B y}
-    → just (x , p) ≡ just (y , q) → x ≡ y
-  just-injective-fst refl = refl
-
   ----------------------------------------------------------------------
   -- `eval-map⁺` and its `subst₂`-on-FinBij algebra (copies of the
   -- `SwapStep.agda` private helpers / `PermuteCoherence.Map` lemmas;

@@ -672,17 +672,6 @@ module TermEmbed
   ... | _ | stepEq
       rewrite stepEq = proc-stack-emb es (proj₁ (edge-step H sH e))
 
-  -- Boundary-transport helper for the term recursion: a `subst₂` whose
-  -- codomain factors through the stack agreement at the head step.
-  private
-    coe-cod-φ
-      : ∀ {dH : List (Fin H.nV)} {sH sH' : List (Fin H.nV)} (eq : sH ≡ sH')
-      → HomTerm (unflatten (map H.vlab dH)) (unflatten (map H.vlab sH))
-      → HomTerm (unflatten (map H.vlab dH)) (unflatten (map H.vlab sH'))
-    coe-cod-φ {dH} eq = subst (λ z → HomTerm (unflatten (map H.vlab dH))
-                                              (unflatten (map H.vlab z)))
-                             eq
-
   -- The iterated term-twin, GENERALISED over the J-start stack `sJ`
   -- (with `sJ ≡ map φ sH`) so the head-step's post-stack equality
   -- (`edge-step-stack-emb`) threads cleanly into the recursion — and

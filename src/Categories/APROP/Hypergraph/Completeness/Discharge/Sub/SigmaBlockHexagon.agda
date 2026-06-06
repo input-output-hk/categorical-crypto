@@ -73,50 +73,6 @@ open FM.HomReasoning
 σ-block = α⇒ ∘ (σ ⊗₁ id) ∘ α⇐
 
 --------------------------------------------------------------------------------
--- ## σ-block-involutive: σ-block ∘ σ-block ≈ id.
-
-σ-block-involutive
-  : ∀ {A B C : ObjTerm}
-  → (α⇒ {A = A} {B = B} {C = C} ∘ (σ ⊗₁ id) ∘ α⇐ {A = B} {B = A} {C = C})
-      ∘ (α⇒ {A = B} {B = A} {C = C} ∘ (σ ⊗₁ id) ∘ α⇐ {A = A} {B = B} {C = C})
-    ≈Term id
-σ-block-involutive {A} {B} {C} =
-  let σ-AB = σ {A = A} {B = B}
-      σ-BA = σ {A = B} {B = A}
-      α⇒-ABC = α⇒ {A = A} {B = B} {C = C}
-      α⇐-ABC = α⇐ {A = A} {B = B} {C = C}
-      α⇒-BAC = α⇒ {A = B} {B = A} {C = C}
-      α⇐-BAC = α⇐ {A = B} {B = A} {C = C}
-  in begin
-       (α⇒-ABC ∘ (σ-BA ⊗₁ id) ∘ α⇐-BAC)
-         ∘ (α⇒-BAC ∘ (σ-AB ⊗₁ id) ∘ α⇐-ABC)
-         ≈⟨ assoc ⟩
-       α⇒-ABC ∘ ((σ-BA ⊗₁ id) ∘ α⇐-BAC)
-         ∘ (α⇒-BAC ∘ (σ-AB ⊗₁ id) ∘ α⇐-ABC)
-         ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-       α⇒-ABC ∘ (σ-BA ⊗₁ id) ∘ (α⇐-BAC ∘ α⇒-BAC ∘ (σ-AB ⊗₁ id) ∘ α⇐-ABC)
-         ≈⟨ ∘-resp-≈ ≈-Term-refl
-              (∘-resp-≈ ≈-Term-refl
-                (≈-Term-trans (≈-Term-sym assoc)
-                              (∘-resp-≈ α⇐∘α⇒≈id ≈-Term-refl))) ⟩
-       α⇒-ABC ∘ (σ-BA ⊗₁ id) ∘ id ∘ (σ-AB ⊗₁ id) ∘ α⇐-ABC
-         ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl idˡ) ⟩
-       α⇒-ABC ∘ (σ-BA ⊗₁ id) ∘ ((σ-AB ⊗₁ id) ∘ α⇐-ABC)
-         ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-       α⇒-ABC ∘ ((σ-BA ⊗₁ id) ∘ (σ-AB ⊗₁ id)) ∘ α⇐-ABC
-         ≈⟨ ∘-resp-≈ ≈-Term-refl
-              (∘-resp-≈ (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                          (≈-Term-trans (⊗-resp-≈ σ∘σ≈id idˡ)
-                                        id⊗id≈id))
-                       ≈-Term-refl) ⟩
-       α⇒-ABC ∘ id ∘ α⇐-ABC
-         ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
-       α⇒-ABC ∘ α⇐-ABC
-         ≈⟨ α⇒∘α⇐≈id ⟩
-       id
-     ∎
-
---------------------------------------------------------------------------------
 -- ## α⇐-comm: dual associator commutativity.
 --
 -- α⇐ ∘ (h ⊗ (i ⊗ j)) ≈Term ((h ⊗ i) ⊗ j) ∘ α⇐.
@@ -459,49 +415,6 @@ private
   -- pentagon-flip-right when needed.)
 
 --------------------------------------------------------------------------------
--- ## More pentagon-shifted helpers.
---
--- We add a few more α-coherence helpers needed for σ-block-hexagon.
-
-private
-  -- pentagon-flip-right-sym: α⇒_{P,Q⊗R,S} ∘ (α⇒_{P,Q,R} ⊗ id_S) ∘ α⇐_{P⊗Q,R,S}
-  --                       ≈ (id_P ⊗ α⇐_{Q,R,S}) ∘ α⇒_{P,Q,R⊗S}.
-  pentagon-flip-right-sym
-    : ∀ {P Q R S : ObjTerm}
-    → α⇒ {A = P} {B = Q ⊗₀ R} {C = S}
-        ∘ (α⇒ {A = P} {B = Q} {C = R} ⊗₁ id {A = S})
-        ∘ α⇐ {A = P ⊗₀ Q} {B = R} {C = S}
-      ≈Term (id {A = P} ⊗₁ α⇐ {A = Q} {B = R} {C = S})
-              ∘ α⇒ {A = P} {B = Q} {C = R ⊗₀ S}
-  pentagon-flip-right-sym = ≈-Term-sym pentagon-flip-right
-
-  -- pentagon-flip-α⇒-inside-tensor: (α⇒_{P,Q,R} ⊗ id_S) ∘ α⇐_{P⊗Q,R,S}
-  --                              ≈ α⇐_{P,Q⊗R,S} ∘ (id_P ⊗ α⇐_{Q,R,S}) ∘ α⇒_{P,Q,R⊗S}.
-  --
-  -- Derivation: pre-compose pentagon-flip-right with α⇐ on the left,
-  -- yielding α⇐ ∘ (id ⊗ α⇐) ∘ α⇒ ≈ α⇐ ∘ α⇒ ∘ (α⇒ ⊗ id) ∘ α⇐ ≈ (α⇒ ⊗ id) ∘ α⇐.
-  -- Now take ≈-Term-sym.
-  pentagon-flip-α⇒-inside-tensor
-    : ∀ {P Q R S : ObjTerm}
-    → (α⇒ {A = P} {B = Q} {C = R} ⊗₁ id {A = S})
-        ∘ α⇐ {A = P ⊗₀ Q} {B = R} {C = S}
-      ≈Term α⇐ {A = P} {B = Q ⊗₀ R} {C = S}
-              ∘ (id {A = P} ⊗₁ α⇐ {A = Q} {B = R} {C = S})
-              ∘ α⇒ {A = P} {B = Q} {C = R ⊗₀ S}
-  pentagon-flip-α⇒-inside-tensor {P} {Q} {R} {S} =
-    ≈-Term-sym (begin
-      α⇐ ∘ (id ⊗₁ α⇐) ∘ α⇒
-        ≈⟨ ∘-resp-≈ ≈-Term-refl pentagon-flip-right ⟩
-      α⇐ ∘ (α⇒ ∘ (α⇒ ⊗₁ id) ∘ α⇐)
-        ≈⟨ ≈-Term-sym assoc ⟩
-      (α⇐ ∘ α⇒) ∘ ((α⇒ ⊗₁ id) ∘ α⇐)
-        ≈⟨ ∘-resp-≈ α⇐∘α⇒≈id ≈-Term-refl ⟩
-      id ∘ ((α⇒ ⊗₁ id) ∘ α⇐)
-        ≈⟨ idˡ ⟩
-      (α⇒ ⊗₁ id) ∘ α⇐
-    ∎)
-
---------------------------------------------------------------------------------
 -- ## α⇐-flip-shifted: a related α-coherence lemma.
 --
 -- α⇐_{P,Q,R⊗S} ∘ (id_P ⊗ α⇒_{Q,R,S})
@@ -780,16 +693,6 @@ private
 -- The conjugation work alone is ~300 LOC of careful pentagon/α-comm
 -- chaining.  We do not inline it here.
 
-σ-block-hexagon-core
-  : ∀ {A B C D : ObjTerm}
-  → (((id {A = B} ⊗₁ σ {A = A} {B = C}) ⊗₁ id {A = D})
-      ∘ (α⇒ {A = B} {B = A} {C = C} ⊗₁ id {A = D})
-      ∘ ((σ {A = A} {B = B} ⊗₁ id {A = C}) ⊗₁ id {A = D}))
-    ≈Term ((α⇒ {A = B} {B = C} {C = A} ⊗₁ id {A = D})
-            ∘ (σ {A = A} {B = B ⊗₀ C} ⊗₁ id {A = D})
-            ∘ (α⇒ {A = A} {B = B} {C = C} ⊗₁ id {A = D}))
-σ-block-hexagon-core = hexagon-with-tail
-
 --------------------------------------------------------------------------------
 -- ## Pentagon-stack identities used in σ-block-hexagon.
 --
@@ -997,24 +900,10 @@ inner-eq {A} {B} {C} =
 -- The "common normal form" for σ-block-hexagon LHS and RHS.
 
 private
-  inner-L : ∀ {A B C : ObjTerm} → HomTerm ((A ⊗₀ B) ⊗₀ C) ((C ⊗₀ B) ⊗₀ A)
-  inner-L {A} {B} {C} = α⇐ {A = C} {B = B} {C = A}
-                      ∘ (id {A = C} ⊗₁ σ {A = A} {B = B})
-                      ∘ σ {A = A ⊗₀ B} {B = C}
-
   inner-R : ∀ {A B C : ObjTerm} → HomTerm ((A ⊗₀ B) ⊗₀ C) ((C ⊗₀ B) ⊗₀ A)
   inner-R {A} {B} {C} = σ {A = A} {B = C ⊗₀ B}
                       ∘ (id {A = A} ⊗₁ σ {A = B} {B = C})
                       ∘ α⇒ {A = A} {B = B} {C = C}
-
-  NF-L : ∀ {A B C D : ObjTerm}
-       → HomTerm (A ⊗₀ (B ⊗₀ (C ⊗₀ D))) (C ⊗₀ (B ⊗₀ (A ⊗₀ D)))
-  NF-L {A} {B} {C} {D}
-    = α⇒ {A = C} {B = B} {C = A ⊗₀ D}
-    ∘ α⇒ {A = C ⊗₀ B} {B = A} {C = D}
-    ∘ (inner-L {A} {B} {C} ⊗₁ id {A = D})
-    ∘ α⇐ {A = A ⊗₀ B} {B = C} {C = D}
-    ∘ α⇐ {A = A} {B = B} {C = C ⊗₀ D}
 
   NF-R : ∀ {A B C D : ObjTerm}
        → HomTerm (A ⊗₀ (B ⊗₀ (C ⊗₀ D))) (C ⊗₀ (B ⊗₀ (A ⊗₀ D)))
@@ -1025,26 +914,12 @@ private
     ∘ α⇐ {A = A ⊗₀ B} {B = C} {C = D}
     ∘ α⇐ {A = A} {B = B} {C = C ⊗₀ D}
 
-  NF-L-eq-NF-R : ∀ {A B C D : ObjTerm}
-               → NF-L {A} {B} {C} {D} ≈Term NF-R {A} {B} {C} {D}
-  NF-L-eq-NF-R = ∘-resp-≈ ≈-Term-refl
-                   (∘-resp-≈ ≈-Term-refl
-                     (∘-resp-≈ (⊗-resp-≈ inner-eq ≈-Term-refl)
-                                ≈-Term-refl))
-
   -- Helper: id ⊗ (f ∘ g) ≈ (id ⊗ f) ∘ (id ⊗ g).
   id⊗-dist
     : ∀ {X Y₁ Y₂ Y₃ : ObjTerm}
         {f : HomTerm Y₂ Y₃} {g : HomTerm Y₁ Y₂}
     → id {A = X} ⊗₁ (f ∘ g) ≈Term (id ⊗₁ f) ∘ (id ⊗₁ g)
   id⊗-dist = ≈-Term-trans (⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl) ⊗-∘-dist
-
-  -- Helper: f ⊗ id ≈ ... (analogous, but used less often).
-  ⊗id-dist
-    : ∀ {Y₁ Y₂ Y₃ X : ObjTerm}
-        {f : HomTerm Y₂ Y₃} {g : HomTerm Y₁ Y₂}
-    → (f ∘ g) ⊗₁ id {A = X} ≈Term (f ⊗₁ id) ∘ (g ⊗₁ id)
-  ⊗id-dist = ≈-Term-trans (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⊗-∘-dist
 
   -- Pre-LHS expansion: rewrite (id ⊗ σ-block) as three (id ⊗ ?) factors.
   id⊗σ-block-expand

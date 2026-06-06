@@ -656,8 +656,6 @@ private
             n0  = α⇒ {A = B₁ ⊗₀ B₂} {B = A} {C = C}
             n1  = α⇐ {A = B₁} {B = B₂} {C = A} ⊗₁ id {A = C}
             n3  = α⇒ {A = B₁} {B = A} {C = B₂} ⊗₁ id {A = C}
-            n5  = α⇐ {A = A} {B = B₁} {C = B₂} ⊗₁ id {A = C}
-            n6  = α⇐ {A = A} {B = B₁ ⊗₀ B₂} {C = C}
 
 -- The `rotate-cap` `ys = b∷ys'` step: the iteration of the IH past one fixed
 -- atom `Vb`, assembled from `σ-block-Bmerge` (peel `Vb` off the front of the
