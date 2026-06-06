@@ -177,6 +177,11 @@ module _ (H : Hypergraph FlatGen)
 
     module BT = DTS.BlockTensor H.vlab
 
+    -- The generic `vlab`-framed box-suffix reframe at `H.vlab`; `box-suffix-BNf`
+    -- is its `Rblk = R` instance (`BBS.BT.uf++` ≡ `BT.uf++`, both `BlockTensor
+    -- H.vlab`; `BBS.whole-eq` ≡ the local `whole-eq` below).
+    module BBS = DTS.BlockBoxSuffix H.vlab
+
     pvl : {xs ys : List (Fin H.nV)} → xs Perm.↭ ys
         → HomTerm (unflatten (map H.vlab xs)) (unflatten (map H.vlab ys))
     pvl = permute-via-vlab H.vlab
@@ -721,194 +726,11 @@ module _ (H : Hypergraph FlatGen)
                    (box-of (map H.vlab eiBlk) (map H.vlab eoBlk) (map H.vlab rgBlk) g)
                    ⊗₁ id {R-obj R})
               ∘ _≅_.from (BT.uf++ (eiBlk ++ rgBlk) R)
+    -- The `Bframed`-side box-suffix is the generic `BlockBoxSuffix H.vlab`
+    -- reframe at `Rblk = R` (the local `whole-eq`/`R-obj` agree with `BBS`'s
+    -- definitionally; same `BlockTensor H.vlab` framing).
     box-suffix-BNf eiBlk eoBlk rgBlk R g =
-      ≈-Term-trans (≡⇒≈Term decomp)
-        (≈-Term-trans (subst₂-resp-≈Term (cong unflatten Cei) (cong unflatten Ceo)
-                         (subst₂-resp-≈Term (cong unflatten Bei) (cong unflatten Beo)
-                            (DTS.BoxAssoc.box-suffix
-                               (map H.vlab eiBlk) (map H.vlab eoBlk)
-                               (map H.vlab rgBlk) (map H.vlab R) g)))
-                      reframe)
-      where
-        eiL = map H.vlab eiBlk
-        eoL = map H.vlab eoBlk
-        rgL = map H.vlab rgBlk
-        RL  = map H.vlab R
-
-        Aei = sym (++-assoc eiL rgL RL)
-        Aeo = sym (++-assoc eoL rgL RL)
-        Bei = cong (_++ RL) (sym (map-++ H.vlab eiBlk rgBlk))
-        Beo = cong (_++ RL) (sym (map-++ H.vlab eoBlk rgBlk))
-        Cei = sym (map-++ H.vlab (eiBlk ++ rgBlk) R)
-        Ceo = sym (map-++ H.vlab (eoBlk ++ rgBlk) R)
-
-        decomp :
-          subst₂ HomTerm
-            (cong unflatten (whole-eq eiBlk rgBlk R))
-            (cong unflatten (whole-eq eoBlk rgBlk R))
-            (box-of eiL eoL (rgL ++ RL) g)
-          ≡ subst₂ HomTerm (cong unflatten Cei) (cong unflatten Ceo)
-              (subst₂ HomTerm (cong unflatten Bei) (cong unflatten Beo)
-                 (subst₂ HomTerm (cong unflatten Aei) (cong unflatten Aeo)
-                    (box-of eiL eoL (rgL ++ RL) g)))
-        decomp =
-          trans
-            (cong₂ (λ p q → subst₂ HomTerm p q (box-of eiL eoL (rgL ++ RL) g))
-                   (cong-whole eiBlk) (cong-whole eoBlk))
-            (trans
-              (sym (subst₂-HomTerm-∘
-                      (cong unflatten Aei) (trans (cong unflatten Bei) (cong unflatten Cei))
-                      (cong unflatten Aeo) (trans (cong unflatten Beo) (cong unflatten Ceo))
-                      (box-of eiL eoL (rgL ++ RL) g)))
-              (sym (subst₂-HomTerm-∘
-                      (cong unflatten Bei) (cong unflatten Cei)
-                      (cong unflatten Beo) (cong unflatten Ceo)
-                      (subst₂ HomTerm (cong unflatten Aei) (cong unflatten Aeo)
-                         (box-of eiL eoL (rgL ++ RL) g)))))
-          where
-            cong-whole : ∀ (lBlk : List (Fin H.nV))
-                       → cong unflatten (whole-eq lBlk rgBlk R)
-                         ≡ trans (cong unflatten (sym (++-assoc (map H.vlab lBlk) rgL RL)))
-                             (trans (cong unflatten (cong (_++ RL) (sym (map-++ H.vlab lBlk rgBlk))))
-                                    (cong unflatten (sym (map-++ H.vlab (lBlk ++ rgBlk) R))))
-            cong-whole lBlk =
-              trans (sym (trans-cong {f = unflatten}
-                            (sym (++-assoc (map H.vlab lBlk) rgL RL))))
-                    (cong (trans (cong unflatten (sym (++-assoc (map H.vlab lBlk) rgL RL))))
-                          (sym (trans-cong {f = unflatten}
-                                  (cong (_++ RL) (sym (map-++ H.vlab lBlk rgBlk))))))
-
-        reframe :
-          subst₂ HomTerm (cong unflatten Cei) (cong unflatten Ceo)
-            (subst₂ HomTerm (cong unflatten Bei) (cong unflatten Beo)
-               (_≅_.to (unflatten-++-≅ (eoL ++ rgL) RL)
-                 ∘ (box-of eiL eoL rgL g ⊗₁ id {unflatten RL})
-                 ∘ _≅_.from (unflatten-++-≅ (eiL ++ rgL) RL)))
-          ≈Term _≅_.to (BT.uf++ (eoBlk ++ rgBlk) R)
-                ∘ (subst₂ HomTerm
-                     (cong unflatten (sym (map-++ H.vlab eiBlk rgBlk)))
-                     (cong unflatten (sym (map-++ H.vlab eoBlk rgBlk)))
-                     (box-of eiL eoL rgL g)
-                     ⊗₁ id {R-obj R})
-                ∘ _≅_.from (BT.uf++ (eiBlk ++ rgBlk) R)
-        reframe = ≈-Term-sym (≡⇒≈Term rhs-≡)
-          where
-            eirg = eiBlk ++ rgBlk
-            eorg = eoBlk ++ rgBlk
-            UR   = unflatten RL
-
-            boxRg = box-of eiL eoL rgL g
-
-            mpei = sym (map-++ H.vlab eiBlk rgBlk)
-            mpeo = sym (map-++ H.vlab eoBlk rgBlk)
-
-            ⊗-push
-              : ∀ {a₁ a₂ b₁ b₂ : List X} (r₁ : a₁ ≡ a₂) (r₂ : b₁ ≡ b₂)
-                  (f : HomTerm (unflatten a₁) (unflatten b₁))
-              → (subst₂ HomTerm (cong unflatten r₁) (cong unflatten r₂) f) ⊗₁ id {UR}
-                ≡ subst₂ HomTerm
-                    (cong (λ z → unflatten z ⊗₀ UR) r₁)
-                    (cong (λ z → unflatten z ⊗₀ UR) r₂)
-                    (f ⊗₁ id {UR})
-            ⊗-push refl refl f = refl
-
-            subst-2 : ∀ {a b : List X} (f h : List X → ObjTerm) (r : a ≡ b)
-                        (t : HomTerm (f a) (h a))
-                    → subst (λ z → HomTerm (f z) (h z)) r t
-                      ≡ subst₂ HomTerm (cong f r) (cong h r) t
-            subst-2 f h refl t = refl
-
-            to-eo-≡ :
-              _≅_.to (BT.uf++ eorg R)
-              ≡ subst₂ HomTerm
-                  (trans (cong (λ z → unflatten z ⊗₀ UR) mpeo) refl)
-                  (trans (cong (λ z → unflatten (z ++ RL)) mpeo) (cong unflatten Ceo))
-                  (_≅_.to (unflatten-++-≅ (eoL ++ rgL) RL))
-            to-eo-≡ =
-              trans (to-BTC eorg R)
-              (trans (cong (subst₂ HomTerm refl (cong unflatten Ceo))
-                           (trans (sym (to-blk1 RL (eoL ++ rgL) (map H.vlab eorg) mpeo))
-                                  (subst-2 (λ z → unflatten z ⊗₀ UR) (λ z → unflatten (z ++ RL))
-                                     mpeo
-                                     (_≅_.to (unflatten-++-≅ (eoL ++ rgL) RL)))))
-                     (subst₂-HomTerm-∘
-                        (cong (λ z → unflatten z ⊗₀ UR) mpeo) refl
-                        (cong (λ z → unflatten (z ++ RL)) mpeo) (cong unflatten Ceo)
-                        (_≅_.to (unflatten-++-≅ (eoL ++ rgL) RL))))
-
-            from-ei-≡ :
-              _≅_.from (BT.uf++ eirg R)
-              ≡ subst₂ HomTerm
-                  (trans (cong (λ z → unflatten (z ++ RL)) mpei) (cong unflatten Cei))
-                  (trans (cong (λ z → unflatten z ⊗₀ UR) mpei) refl)
-                  (_≅_.from (unflatten-++-≅ (eiL ++ rgL) RL))
-            from-ei-≡ =
-              trans (from-BTC eirg R)
-              (trans (cong (subst₂ HomTerm (cong unflatten Cei) refl)
-                           (trans (sym (from-blk1 RL (eiL ++ rgL) (map H.vlab eirg) mpei))
-                                  (subst-2 (λ z → unflatten (z ++ RL)) (λ z → unflatten z ⊗₀ UR)
-                                     mpei
-                                     (_≅_.from (unflatten-++-≅ (eiL ++ rgL) RL)))))
-                     (subst₂-HomTerm-∘
-                        (cong (λ z → unflatten (z ++ RL)) mpei) (cong unflatten Cei)
-                        (cong (λ z → unflatten z ⊗₀ UR) mpei) refl
-                        (_≅_.from (unflatten-++-≅ (eiL ++ rgL) RL))))
-
-            to-raw = _≅_.to   (unflatten-++-≅ (eoL ++ rgL) RL)
-            fr-raw = _≅_.from (unflatten-++-≅ (eiL ++ rgL) RL)
-            M      = boxRg ⊗₁ id {unflatten RL}
-
-            Qto = trans (cong (λ z → unflatten z ⊗₀ UR) mpeo) refl
-            Qfr = trans (cong (λ z → unflatten z ⊗₀ UR) mpei) refl
-            B'i = cong (λ z → unflatten (z ++ RL)) mpei
-            B'o = cong (λ z → unflatten (z ++ RL)) mpeo
-            P   = trans B'i (cong unflatten Cei)
-            Rc  = trans B'o (cong unflatten Ceo)
-
-            mid-≡ : (subst₂ HomTerm (cong unflatten mpei) (cong unflatten mpeo) boxRg)
-                      ⊗₁ id {R-obj R}
-                    ≡ subst₂ HomTerm Qfr Qto M
-            mid-≡ =
-              trans (⊗-push mpei mpeo boxRg)
-                    (cong₂ (λ p q → subst₂ HomTerm p q M)
-                           (sym (trans-reflʳ (cong (λ z → unflatten z ⊗₀ UR) mpei)))
-                           (sym (trans-reflʳ (cong (λ z → unflatten z ⊗₀ UR) mpeo))))
-
-            rhs-≡ :
-              _≅_.to (BT.uf++ eorg R)
-                ∘ ((subst₂ HomTerm (cong unflatten mpei) (cong unflatten mpeo) boxRg)
-                     ⊗₁ id {R-obj R})
-                ∘ _≅_.from (BT.uf++ eirg R)
-              ≡ subst₂ HomTerm (cong unflatten Cei) (cong unflatten Ceo)
-                  (subst₂ HomTerm (cong unflatten Bei) (cong unflatten Beo)
-                     (to-raw ∘ M ∘ fr-raw))
-            rhs-≡ = ≡R.begin
-                _≅_.to (BT.uf++ eorg R)
-                  ∘ ((subst₂ HomTerm (cong unflatten mpei) (cong unflatten mpeo) boxRg)
-                       ⊗₁ id {R-obj R})
-                  ∘ _≅_.from (BT.uf++ eirg R)
-                  ≡R.≡⟨ cong₃ (λ a b c → a ∘ b ∘ c) to-eo-≡ mid-≡ from-ei-≡ ⟩
-                subst₂ HomTerm Qto Rc to-raw
-                  ∘ subst₂ HomTerm Qfr Qto M
-                  ∘ subst₂ HomTerm P Qfr fr-raw
-                  ≡R.≡⟨ cong (λ w → subst₂ HomTerm Qto Rc to-raw ∘ w)
-                          (sym (subst₂-HomTerm-∘-dist P Qfr Qto M fr-raw)) ⟩
-                subst₂ HomTerm Qto Rc to-raw
-                  ∘ subst₂ HomTerm P Qto (M ∘ fr-raw)
-                  ≡R.≡⟨ sym (subst₂-HomTerm-∘-dist P Qto Rc to-raw (M ∘ fr-raw)) ⟩
-                subst₂ HomTerm P Rc (to-raw ∘ M ∘ fr-raw)
-                  ≡R.≡⟨ sym (subst₂-HomTerm-∘
-                            B'i (cong unflatten Cei)
-                            B'o (cong unflatten Ceo)
-                            (to-raw ∘ M ∘ fr-raw)) ⟩
-                subst₂ HomTerm (cong unflatten Cei) (cong unflatten Ceo)
-                  (subst₂ HomTerm B'i B'o (to-raw ∘ M ∘ fr-raw))
-                  ≡R.≡⟨ cong (λ p → subst₂ HomTerm (cong unflatten Cei) (cong unflatten Ceo) p)
-                          (cong₂ (λ a b → subst₂ HomTerm a b (to-raw ∘ M ∘ fr-raw))
-                                 (cong-∘ mpei) (cong-∘ mpeo)) ⟩
-                subst₂ HomTerm (cong unflatten (Cei)) (cong unflatten Ceo)
-                  (subst₂ HomTerm (cong unflatten Bei) (cong unflatten Beo)
-                     (to-raw ∘ M ∘ fr-raw)) ≡R.∎
+      BBS.box-suffix-framed eiBlk eoBlk rgBlk R g
 
     ----------------------------------------------------------------------
     -- `bframed-suffix` — the box on a COMPOUND residual `rest ++ R`,
