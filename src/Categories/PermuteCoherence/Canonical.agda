@@ -216,16 +216,3 @@ private
   ∘-fb-cong {g = eval-↭ q} {g′ = eval-↭ q′}
             {f = eval-↭ p} {f′ = eval-↭ p′}
             q≅q′ p≅p′
-
-------------------------------------------------------------------------
--- Canonical preimage of any derivation.  For `r : xs ↭ ys`, run the
--- decoder on `xs` and `eval-↭ r`.  (The claim `ys' = ys` and `≅↭`-equality
--- to `r` is `Faithfulness`'s target.)
-
-canon-of : ∀ {xs ys : List A} (r : xs ↭ ys) →
-           ∃[ ys′ ] (xs Perm.↭ ys′)
-canon-of {xs = xs} r =
-  canonical-go (length xs) xs refl (cast-bij (↭-length r) (eval-↭ r))
-  where
-  cast-bij : ∀ {n m} → n ≡ m → FinBij n m → FinBij n n
-  cast-bij refl b = b

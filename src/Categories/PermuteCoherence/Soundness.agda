@@ -88,25 +88,6 @@ eval-↭-comp : ∀ {xs ys zs : List A} (p : xs ↭ ys) (q : ys ↭ zs) →
               eval-↭ (Perm.trans p q) ≈-fb eval-↭ q ∘-fb eval-↭ p
 eval-↭-comp _ _ _ = refl
 
--- `inv-fb` distributes over composition.
-inv-fb-comp : ∀ {n m k} (g : FinBij m k) (f : FinBij n m) →
-              inv-fb (g ∘-fb f) ≈-fb inv-fb f ∘-fb inv-fb g
-inv-fb-comp _ _ _ = refl
-
-inv-fb-cons : ∀ {n m} (π : FinBij n m) →
-              inv-fb (cons-fb π) ≈-fb cons-fb (inv-fb π)
-inv-fb-cons π 0F      = refl
-inv-fb-cons π (suc i) = refl
-
--- `swap-fb` is self-inverse.
-inv-fb-swap : ∀ {n} → inv-fb (swap-fb n) ≈-fb swap-fb n
-inv-fb-swap 0F            = refl
-inv-fb-swap (suc 0F)      = refl
-inv-fb-swap (suc (suc i)) = refl
-
-inv-fb-id : inv-fb (id-fb {n = n}) ≈-fb id-fb
-inv-fb-id _ = refl
-
 -- Soundness of `eval-↭` with respect to `↭-sym`.
 eval-↭-sym : ∀ {xs ys : List A} (p : xs ↭ ys) →
              eval-↭ (Perm.↭-sym p) ≈-fb inv-fb (eval-↭ p)

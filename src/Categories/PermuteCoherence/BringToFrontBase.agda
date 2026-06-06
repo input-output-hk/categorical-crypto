@@ -67,20 +67,7 @@ swapℕ-fix-val (suc k) (suc a)       a≢k a≢sk =
   cong suc (swapℕ-fix-val k a (λ e → a≢k (cong suc e)) (λ e → a≢sk (cong suc e)))
 
 ------------------------------------------------------------------------
--- The action of a generator on the value-positions (`toℕ`): `genFB k`
--- swaps the values `k` and `k+1` and fixes every other value.
-
-genFB-on-inj : (k : Fin (suc n))
-             → toℕ (genFB k P.⟨$⟩ʳ inj k) ≡ suc (toℕ k)
-genFB-on-inj k =
-  trans (genFB-toℕ k (inj k))
-        (trans (cong (swapℕ (toℕ k)) (toℕ-inj k)) (swapℕ-k (toℕ k)))
-
-genFB-on-suc-pos : (k : Fin (suc n))
-                 → toℕ (genFB k P.⟨$⟩ʳ suc-pos k) ≡ toℕ k
-genFB-on-suc-pos k =
-  trans (genFB-toℕ k (suc-pos k))
-        (trans (cong (swapℕ (toℕ k)) (toℕ-suc-pos k)) (swapℕ-sk (toℕ k)))
+-- The action of a generator on the value-positions (`toℕ`).
 
 -- Fixing at a value `z` with `toℕ z` outside `{toℕ k, suc (toℕ k)}`.
 genFB-fix-val : (k : Fin (suc n)) (z : Fin (suc (suc n)))

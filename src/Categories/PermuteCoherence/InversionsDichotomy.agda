@@ -215,11 +215,6 @@ private
 cmpInv : FinBij (suc n) (suc n) → Fin (suc n) → Fin (suc n) → Bool
 cmpInv b x y = ⌊ (b P.⟨$⟩ʳ y) <?F (b P.⟨$⟩ʳ x) ⌋
 
--- `invAt` is `1if` of the first (`c`-independent) conjunct AND `cmpInv`.
-invAt-split : (b : FinBij (suc n) (suc n)) (x y : Fin (suc n))
-            → invAt b x y ≡ 1if (⌊ x <?F y ⌋ ∧ cmpInv b x y)
-invAt-split b x y = refl
-
 -- OFF the swapped value-pair (at distinct positions), `cmpInv` is
 -- unchanged by post-composing with `genFB i`.
 cmpInv-fix : (i : Fin (suc n′)) (b : FinBij (suc (suc n′)) (suc (suc n′)))

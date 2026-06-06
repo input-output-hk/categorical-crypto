@@ -105,11 +105,6 @@ eval-map⁺ h {xs = xs} {ys = zs} (Perm.trans {ys = ys} p q) =
 ------------------------------------------------------------------------
 -- More generic eval lemmas.
 
-eval-↭-reflexive : {xs ys : List A} (eq : xs ≡ ys)
-  → eval-↭ (Perm.↭-reflexive eq)
-    ≡ subst (λ n → FinBij (length xs) n) (cong length eq) id-fb
-eval-↭-reflexive refl = refl
-
 -- eval commutes with subst on the codomain.
 eval-subst-cod : {xs : List A} {C D : List A} (eq : C ≡ D) (p : xs ↭ C)
   → eval-↭ (subst (λ z → xs ↭ z) eq p)
@@ -120,18 +115,6 @@ eval-subst-cod refl p = refl
 subst₂-FinBij-≈ : ∀ {n m n' m'} (a : n ≡ n') (b : m ≡ m') {π ρ : FinBij n m}
   → π ≈-fb ρ → subst₂ FinBij a b π ≈-fb subst₂ FinBij a b ρ
 subst₂-FinBij-≈ refl refl eq = eq
-
--- ≈-fb is preserved by subst on the codomain.
-subst-FinBij-≈ : ∀ {n m m'} (b : m ≡ m') {π ρ : FinBij n m}
-  → π ≈-fb ρ
-  → subst (λ k → FinBij n k) b π ≈-fb subst (λ k → FinBij n k) b ρ
-subst-FinBij-≈ refl eq = eq
-
--- eval commutes with subst on the domain.
-eval-subst-dom : {C D : List A} {ys : List A} (eq : C ≡ D) (p : C ↭ ys)
-  → eval-↭ (subst (λ z → z ↭ ys) eq p)
-    ≡ subst (λ n → FinBij n (length ys)) (cong length eq) (eval-↭ p)
-eval-subst-dom refl p = refl
 
 -- `map⁺` of a reflexive permutation is the reflexive permutation of the
 -- mapped equality.
@@ -153,58 +136,6 @@ map⁺-↭-reflexive h refl = refl
 ∘-fb-assoc h g f i = refl
 
 ------------------------------------------------------------------------
--- Identity / inverse laws for `_∘-fb_` (pointwise).
-
-open import Relation.Binary.PropositionalEquality.Core using () renaming (refl to ≡refl)
-
-id-fb-left : ∀ {n m} (f : FinBij n m) → id-fb ∘-fb f ≈-fb f
-id-fb-left f i = ≡refl
-
-id-fb-right : ∀ {n m} (f : FinBij n m) → f ∘-fb id-fb ≈-fb f
-id-fb-right f i = ≡refl
-
--- `f` after `inv-fb f` is the identity:  f ∘-fb inv-fb f ≈ id.
-∘-fb-inv-right : ∀ {n m} (f : FinBij n m) → f ∘-fb inv-fb f ≈-fb id-fb
-∘-fb-inv-right f i = P.inverseʳ f
-
--- Cancellation:  f ∘-fb (inv-fb f ∘-fb z) ≈ z.
-∘-fb-cancel-left : ∀ {n m k} (f : FinBij m k) (z : FinBij n k)
-  → f ∘-fb (inv-fb f ∘-fb z) ≈-fb z
-∘-fb-cancel-left f z i = P.inverseʳ f
-
-------------------------------------------------------------------------
--- Codomain-cast (`subst` on the FinBij codomain) algebra.
-
-open import Categories.PermuteCoherence.FinBij using (inv-fb)
-
--- `inv-fb` is pointwise congruent.
-inv-fb-cong : ∀ {n m} {f g : FinBij n m} → f ≈-fb g → inv-fb f ≈-fb inv-fb g
-inv-fb-cong {f = f} {g} eq i =
-  trans (sym (P.inverseˡ g))
-        (cong (g P.⟨$⟩ˡ_) (trans (sym (eq (f P.⟨$⟩ˡ i))) (P.inverseʳ f)))
-
-cast-id-∘ : ∀ {n m m'} (e : m ≡ m') (f : FinBij n m)
-  → subst (λ k → FinBij m k) e id-fb ∘-fb f ≡ subst (λ k → FinBij n k) e f
-cast-id-∘ refl f = ≈refl
-  where open import Relation.Binary.PropositionalEquality.Core using () renaming (refl to ≈refl)
-
-inv-fb-cast-id : ∀ {m m'} (e : m ≡ m')
-  → inv-fb (subst (λ k → FinBij m k) e id-fb) ≡ subst (λ k → FinBij m' k) (sym e) id-fb
-inv-fb-cast-id refl = ≈refl
-  where open import Relation.Binary.PropositionalEquality.Core using () renaming (refl to ≈refl)
-
-subst-cod-comp : ∀ {n m₁ m₂ m₃} (e₁ : m₁ ≡ m₂) (e₂ : m₂ ≡ m₃) (f : FinBij n m₁)
-  → subst (λ k → FinBij n k) e₂ (subst (λ k → FinBij n k) e₁ f)
-    ≡ subst (λ k → FinBij n k) (trans e₁ e₂) f
-subst-cod-comp refl refl f = ≈refl
-  where open import Relation.Binary.PropositionalEquality.Core using () renaming (refl to ≈refl)
-
--- Codomain-subst proof-irrelevance (UIP via --with-K).
-subst-cod-irr : ∀ {n m m'} (e e' : m ≡ m') (f : FinBij n m)
-  → e ≡ e' → subst (λ k → FinBij n k) e f ≡ subst (λ k → FinBij n k) e' f
-subst-cod-irr e e' f refl = ≈refl
-  where open import Relation.Binary.PropositionalEquality.Core using () renaming (refl to ≈refl)
-
 -- Transport `≈-fb` along propositional equalities of both arguments.
 ≈-fb-resp-≡ : ∀ {n m} {π π' ρ ρ' : FinBij n m}
   → π ≡ π' → ρ ≡ ρ' → π ≈-fb ρ → π' ≈-fb ρ'
