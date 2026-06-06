@@ -107,13 +107,18 @@ open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
 
 -- K-free FinBij/eval infrastructure (`--cubical-compatible` modules).
 open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _≈-fb_; id-fb; _∘-fb_; cons-fb; swap-fb)
+  using (FinBij; _≈-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
+
+-- The shared `--without-K` FinBij/eval-rigid leaf (the union of the
+-- inlined K-free helpers, hosted once in `PermuteCoherence`).
+open import Categories.PermuteCoherence.EvalRigidKFree
+  using (eval-rigid; eval-map⁺; subst₂-FinBij-≈)
 
 open import Data.Nat.Base using (ℕ; suc)
 open import Data.Fin using (Fin)
 open import Data.Fin.Base using (zero; suc)
-open import Data.Fin.Patterns using (0F; 1F)
+open import Data.Fin.Patterns using (0F)
 open import Data.List using (List; []; _∷_; _++_; map; length; lookup)
 open import Data.List.Properties using (length-map)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
@@ -334,105 +339,10 @@ module PerHG (H : Hypergraph FlatGen)
 ------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
--- K-FREE helper infrastructure (inlined, J-only copies of the
--- intrinsically K-free lemmas that live in the `--with-K` modules
--- `PermuteCoherence.{Rigid,Map}`).  These are VERBATIM copies of the
--- §0 block of `Discharge/Sub/DecodeOrdBoundary.agda`; co-infectivity
--- forbids importing those `--with-K` modules into this `--without-K`
--- module, so the (intrinsically J-only) helpers are re-derived here.
+-- K-FREE helper infrastructure — now imported from the shared leaf
+-- `Categories.PermuteCoherence.EvalRigidKFree` (was inlined here as a
+-- VERBATIM copy of the `DecodeOrdBoundary` §0 block).
 ------------------------------------------------------------------------
-
-private
-  ----------------------------------------------------------------------
-  -- Rigidity of `eval-↭` on `Unique` codomains (copy of
-  -- `PermuteCoherence.Rigid.eval-rigid`; structural, no K).
-  ----------------------------------------------------------------------
-
-  All-lookup : ∀ {a p} {A : Set a} {Q : A → Set p} {xs : List A}
-             → All Q xs → (i : Fin (length xs)) → Q (lookup xs i)
-  All-lookup (q ∷ _)  zero    = q
-  All-lookup (_ ∷ qs) (suc i) = All-lookup qs i
-
-  lookup-injective-unique
-    : ∀ {a} {A : Set a} {xs : List A}
-    → Unique xs → (i j : Fin (length xs))
-    → lookup xs i ≡ lookup xs j
-    → i ≡ j
-  lookup-injective-unique (_  ∷ᵘ _ ) zero    zero    _  = refl
-  lookup-injective-unique (x≢ ∷ᵘ _ ) zero    (suc j) eq = ⊥-elim (All-lookup x≢ j eq)
-  lookup-injective-unique (x≢ ∷ᵘ _ ) (suc i) zero    eq = ⊥-elim (All-lookup x≢ i (sym eq))
-  lookup-injective-unique (_  ∷ᵘ uq) (suc i) (suc j) eq =
-    cong suc (lookup-injective-unique uq i j eq)
-
-  lookup-sound
-    : ∀ {a} {A : Set a} {xs ys : List A} (p : xs Perm.↭ ys) (i : Fin (length xs))
-    → lookup ys (eval-↭ p P.⟨$⟩ʳ i) ≡ lookup xs i
-  lookup-sound Perm.refl         i             = refl
-  lookup-sound (Perm.prep x p)   0F            = refl
-  lookup-sound (Perm.prep x p)   (suc i)       = lookup-sound p i
-  lookup-sound (Perm.swap x y p) 0F            = refl
-  lookup-sound (Perm.swap x y p) (suc 0F)      = refl
-  lookup-sound (Perm.swap x y p) (suc (suc i)) = lookup-sound p i
-  lookup-sound (Perm.trans p q)  i             =
-    trans (lookup-sound q (eval-↭ p P.⟨$⟩ʳ i)) (lookup-sound p i)
-
-  eval-rigid
-    : ∀ {a} {A : Set a} {xs ys : List A} → Unique ys
-    → (p q : xs Perm.↭ ys)
-    → eval-↭ p ≈-fb eval-↭ q
-  eval-rigid uniq p q i =
-    lookup-injective-unique uniq _ _
-      (trans (lookup-sound p i) (sym (lookup-sound q i)))
-
-  ----------------------------------------------------------------------
-  -- `eval-map⁺` and its `subst₂`-on-FinBij algebra (copies of the
-  -- `PermuteCoherence.Map` lemmas; all J-only, no K).
-  ----------------------------------------------------------------------
-
-  subst₂-FinBij-id : ∀ {n m} (e : n ≡ m) → subst₂ FinBij e e id-fb ≡ id-fb
-  subst₂-FinBij-id refl = refl
-
-  cons-cast
-    : ∀ {n n' m m'} (ex : n' ≡ n) (ey : m' ≡ m) (π : FinBij n m)
-    → cons-fb (subst₂ FinBij (sym ex) (sym ey) π)
-      ≡ subst₂ FinBij (sym (cong suc ex)) (sym (cong suc ey)) (cons-fb π)
-  cons-cast refl refl π = refl
-
-  swap-cast
-    : ∀ {n n' m m'} (ex : n' ≡ n) (ey : m' ≡ m) (π : FinBij n m)
-    → swap-fb m' ∘-fb cons-fb (cons-fb (subst₂ FinBij (sym ex) (sym ey) π))
-      ≡ subst₂ FinBij (sym (cong suc (cong suc ex)))
-                      (sym (cong suc (cong suc ey)))
-                      (swap-fb m ∘-fb cons-fb (cons-fb π))
-  swap-cast refl refl π = refl
-
-  comp-cast
-    : ∀ {n n' m m' k k'}
-        (ex : n' ≡ n) (ey : m' ≡ m) (ez : k' ≡ k)
-        (g : FinBij m k) (f : FinBij n m)
-    → subst₂ FinBij (sym ey) (sym ez) g ∘-fb subst₂ FinBij (sym ex) (sym ey) f
-      ≡ subst₂ FinBij (sym ex) (sym ez) (g ∘-fb f)
-  comp-cast refl refl refl g f = refl
-
-  eval-map⁺ : ∀ {A C : Set}
-    (h : A → C) {xs ys : List A} (p : xs Perm.↭ ys)
-    → eval-↭ (PermProp.map⁺ h p)
-      ≡ subst₂ FinBij (sym (length-map h xs)) (sym (length-map h ys)) (eval-↭ p)
-  eval-map⁺ h {xs = xs} Perm.refl = sym (subst₂-FinBij-id (sym (length-map h xs)))
-  eval-map⁺ h {xs = x ∷ xs} {ys = .x ∷ ys} (Perm.prep x p) =
-    trans (cong cons-fb (eval-map⁺ h p))
-          (cons-cast (length-map h xs) (length-map h ys) (eval-↭ p))
-  eval-map⁺ h {xs = x ∷ x' ∷ xs} {ys = y ∷ y' ∷ ys} (Perm.swap x y p) =
-    trans (cong (λ z → swap-fb (length (map h ys)) ∘-fb cons-fb (cons-fb z)) (eval-map⁺ h p))
-          (swap-cast (length-map h xs) (length-map h ys) (eval-↭ p))
-  eval-map⁺ h {xs = xs} {ys = zs} (Perm.trans {ys = ys} p q) =
-    trans (cong₂ _∘-fb_ (eval-map⁺ h q) (eval-map⁺ h p))
-          (comp-cast (length-map h xs) (length-map h ys) (length-map h zs)
-                     (eval-↭ q) (eval-↭ p))
-
-  subst₂-FinBij-≈ : ∀ {n m n' m'} (a : n ≡ n') (b : m ≡ m') {π ρ : FinBij n m}
-    → π ≈-fb ρ → subst₂ FinBij a b π ≈-fb subst₂ FinBij a b ρ
-  subst₂-FinBij-≈ refl refl eq = eq
 
 -- The `FrontSwap` module is now parameterised by the Kelly faithfulness
 -- residual `K : FaithfulnessResidual` (the SAME K threaded through

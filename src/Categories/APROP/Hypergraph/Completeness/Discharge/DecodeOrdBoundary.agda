@@ -73,8 +73,13 @@ open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
 
 -- K-free FinBij/eval infrastructure (`--cubical-compatible` modules).
 open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _≈-fb_; id-fb; _∘-fb_; cons-fb; swap-fb)
+  using (FinBij; _≈-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
+
+-- The shared `--without-K` FinBij/eval-rigid leaf (the union of the
+-- inlined K-free helpers, hosted once in `PermuteCoherence`).
+open import Categories.PermuteCoherence.EvalRigidKFree
+  using (eval-rigid; eval-map⁺; subst₂-FinBij-≈)
 
 open import Data.Nat.Base using (ℕ; suc)
 open import Data.Fin.Base using (Fin; zero; suc)
@@ -94,114 +99,9 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 
 ------------------------------------------------------------------------
--- §0. K-FREE helper infrastructure (inlined, J-only copies of the
---     intrinsically K-free lemmas that happen to live in `--with-K`
---     modules `PermuteCoherence.{Rigid,Map}`).
+-- §0. K-FREE helper infrastructure — now imported from the shared leaf
+--     `Categories.PermuteCoherence.EvalRigidKFree` (was inlined here).
 ------------------------------------------------------------------------
-
-private
-  ----------------------------------------------------------------------
-  -- 0a. Rigidity of `eval-↭` on `Unique` codomains (copy of
-  --     `PermuteCoherence.Rigid.eval-rigid`; structural, no K).
-  ----------------------------------------------------------------------
-
-  All-lookup : ∀ {a p} {A : Set a} {Q : A → Set p} {xs : List A}
-             → All Q xs → (i : Fin (length xs)) → Q (lookup xs i)
-  All-lookup (q ∷ _)  zero    = q
-  All-lookup (_ ∷ qs) (suc i) = All-lookup qs i
-
-  lookup-injective-unique
-    : ∀ {a} {A : Set a} {xs : List A}
-    → Unique xs → (i j : Fin (length xs))
-    → lookup xs i ≡ lookup xs j
-    → i ≡ j
-  lookup-injective-unique (_  ∷ᵘ _ ) zero    zero    _  = refl
-  lookup-injective-unique (x≢ ∷ᵘ _ ) zero    (suc j) eq = ⊥-elim (All-lookup x≢ j eq)
-  lookup-injective-unique (x≢ ∷ᵘ _ ) (suc i) zero    eq = ⊥-elim (All-lookup x≢ i (sym eq))
-  lookup-injective-unique (_  ∷ᵘ uq) (suc i) (suc j) eq =
-    cong suc (lookup-injective-unique uq i j eq)
-
-  lookup-sound
-    : ∀ {a} {A : Set a} {xs ys : List A} (p : xs ↭ ys) (i : Fin (length xs))
-    → lookup ys (eval-↭ p P.⟨$⟩ʳ i) ≡ lookup xs i
-  lookup-sound Perm.refl         i             = refl
-  lookup-sound (Perm.prep x p)   0F            = refl
-  lookup-sound (Perm.prep x p)   (suc i)       = lookup-sound p i
-  lookup-sound (Perm.swap x y p) 0F            = refl
-  lookup-sound (Perm.swap x y p) (suc 0F)      = refl
-  lookup-sound (Perm.swap x y p) (suc (suc i)) = lookup-sound p i
-  lookup-sound (Perm.trans p q)  i             =
-    trans (lookup-sound q (eval-↭ p P.⟨$⟩ʳ i)) (lookup-sound p i)
-
-  eval-rigid
-    : ∀ {a} {A : Set a} {xs ys : List A} → Unique ys
-    → (p q : xs ↭ ys)
-    → eval-↭ p ≈-fb eval-↭ q
-  eval-rigid uniq p q i =
-    lookup-injective-unique uniq _ _
-      (trans (lookup-sound p i) (sym (lookup-sound q i)))
-
-  ----------------------------------------------------------------------
-  -- 0b. `eval-map⁺` and its `subst₂`-on-FinBij algebra (copies of the
-  --     `PermuteCoherence.Map` lemmas; all J-only, no K).
-  ----------------------------------------------------------------------
-
-  -- All cast lemmas below are matched on the `length`-proofs at `refl`, so
-  -- NO higher-order unification on `suc`/`λ z → suc (suc z)` is required
-  -- (which `--without-K` would otherwise block).
-
-  subst₂-FinBij-id : ∀ {n m} (e : n ≡ m) → subst₂ FinBij e e id-fb ≡ id-fb
-  subst₂-FinBij-id refl = refl
-
-  -- cons cast: prepend identity commutes with the (sym) length cast.
-  cons-cast
-    : ∀ {n n' m m'} (ex : n' ≡ n) (ey : m' ≡ m) (π : FinBij n m)
-    → cons-fb (subst₂ FinBij (sym ex) (sym ey) π)
-      ≡ subst₂ FinBij (sym (cong suc ex)) (sym (cong suc ey)) (cons-fb π)
-  cons-cast refl refl π = refl
-
-  -- swap cast: a leading `swap-fb` block commutes with the (sym) length cast.
-  swap-cast
-    : ∀ {n n' m m'} (ex : n' ≡ n) (ey : m' ≡ m) (π : FinBij n m)
-    → swap-fb m' ∘-fb cons-fb (cons-fb (subst₂ FinBij (sym ex) (sym ey) π))
-      ≡ subst₂ FinBij (sym (cong suc (cong suc ex)))
-                      (sym (cong suc (cong suc ey)))
-                      (swap-fb m ∘-fb cons-fb (cons-fb π))
-  swap-cast refl refl π = refl
-
-  -- composition cast: `∘-fb` distributes over the (sym) length casts.
-  comp-cast
-    : ∀ {n n' m m' k k'}
-        (ex : n' ≡ n) (ey : m' ≡ m) (ez : k' ≡ k)
-        (g : FinBij m k) (f : FinBij n m)
-    → subst₂ FinBij (sym ey) (sym ez) g ∘-fb subst₂ FinBij (sym ex) (sym ey) f
-      ≡ subst₂ FinBij (sym ex) (sym ez) (g ∘-fb f)
-  comp-cast refl refl refl g f = refl
-
-  -- `eval-↭ (map⁺ h p)` is `eval-↭ p` transported along the length casts.
-  eval-map⁺ : ∀ {A C : Set}
-    (h : A → C) {xs ys : List A} (p : xs ↭ ys)
-    → eval-↭ (PermProp.map⁺ h p)
-      ≡ subst₂ FinBij (sym (length-map h xs)) (sym (length-map h ys)) (eval-↭ p)
-  eval-map⁺ h {xs = xs} Perm.refl = sym (subst₂-FinBij-id (sym (length-map h xs)))
-  eval-map⁺ h {xs = x ∷ xs} {ys = .x ∷ ys} (Perm.prep x p) =
-    -- eval (map⁺ (prep x p)) = cons-fb (eval (map⁺ p))
-    --   = cons-fb (subst₂ (sym (lm xs)) (sym (lm ys)) (eval p))   [IH]
-    --   = subst₂ (sym (cong suc (lm xs))) (sym (cong suc (lm ys))) (cons-fb (eval p))
-    -- and length-map h (x ∷ xs) = cong suc (length-map h xs) definitionally.
-    trans (cong cons-fb (eval-map⁺ h p))
-          (cons-cast (length-map h xs) (length-map h ys) (eval-↭ p))
-  eval-map⁺ h {xs = x ∷ x' ∷ xs} {ys = y ∷ y' ∷ ys} (Perm.swap x y p) =
-    trans (cong (λ z → swap-fb (length (map h ys)) ∘-fb cons-fb (cons-fb z)) (eval-map⁺ h p))
-          (swap-cast (length-map h xs) (length-map h ys) (eval-↭ p))
-  eval-map⁺ h {xs = xs} {ys = zs} (Perm.trans {ys = ys} p q) =
-    trans (cong₂ _∘-fb_ (eval-map⁺ h q) (eval-map⁺ h p))
-          (comp-cast (length-map h xs) (length-map h ys) (length-map h zs)
-                     (eval-↭ q) (eval-↭ p))
-
-  subst₂-FinBij-≈ : ∀ {n m n' m'} (a : n ≡ n') (b : m ≡ m') {π ρ : FinBij n m}
-    → π ≈-fb ρ → subst₂ FinBij a b π ≈-fb subst₂ FinBij a b ρ
-  subst₂-FinBij-≈ refl refl eq = eq
 
 ------------------------------------------------------------------------
 -- §1. The lemma, GIVEN K (the Kelly residual + ObjTerm-UIP).
