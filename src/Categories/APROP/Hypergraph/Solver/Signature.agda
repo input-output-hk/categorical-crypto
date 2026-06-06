@@ -1,29 +1,17 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Phase 4a.0: APROPSignatureDec extension (TensorRocq §4.2, arXiv:2604.17592).
+-- APROPSignatureDec extension (TensorRocq §4.2, arXiv:2604.17592).
 --
--- The decision procedure `findIso` for hypergraph isomorphism needs:
---   (1) decidable equality on `X` (atom labels, for vertex-label matching
---       and interface seeding), and
---   (2) decidable equality on `mor A B` (edge labels, for edge matching).
+-- The hypergraph-isomorphism decision procedure `findIso` needs decidable
+-- equality on `X` (atom labels) and on `mor A B` (edge labels).
+-- `APROPSignatureDec` wraps an `APROPSignature` with these two fields, and
+-- derives `_≟-ObjTerm_` (structural decidable equality, used for comparing
+-- labelled arities when matching edges).
 --
--- `APROPSignatureDec` wraps an existing `APROPSignature` and bolts on
--- these two extra fields. Existing `APROPSignature`-parameterised
--- modules (soundness, Triangle, Pentagon, SigmaNat, …) are untouched
--- and keep working unchanged. Only the solver (4a.1–4a.6) and the
--- `smcat` tactic (Phase 4b) need `APROPSignatureDec`.
---
--- We also derive `_≟-ObjTerm_` : DecidableEquality ObjTerm, from
--- `_≟X_`. It is a straightforward structural decidable equality on
--- the ObjTerm data type, and the solver uses it for comparing
--- labelled arities when matching edges.
---
--- Decidable equality on `FlatGen` itself is trickier (the constructor
--- `flat : ∀ {A B} → mor A B → FlatGen (flatten A) (flatten B)` is
--- generalised in `A, B`, and `flatten` is not injective in general).
--- We handle label comparison at edge-matching time (Phase 4a.3)
--- rather than as a generic `_≟-FlatGen_`.
+-- Decidable equality on `FlatGen` itself is avoided (its `flat` constructor
+-- is generalised in `A, B` and `flatten` is not injective in general);
+-- label comparison is handled at edge-matching time instead.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP using (APROPSignature)
@@ -46,7 +34,6 @@ record APROPSignatureDec : Set₁ where
     _≟X_    : DecidableEquality X
     _≟-mor_ : ∀ {A B} → DecidableEquality (mor A B)
 
-  --------------------------------------------------------------------------
   -- Derived: decidable equality on `ObjTerm` from `_≟X_`.
 
   open import Categories.FreeMonoidal

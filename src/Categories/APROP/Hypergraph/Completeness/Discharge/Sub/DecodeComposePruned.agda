@@ -1,32 +1,18 @@
 {-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
--- The PRUNED `∘` shape residual `decodeP-∘-shape`, PROVEN by mirroring
--- `Sub.DecodeComposeShape.decode-∘-shape-inner` with the UNPRUNED cospan
--- composition `hCompose` replaced by the PRUNED `hComposeP`:
---
+-- The PRUNED `∘` shape residual
 --     decodeP (g ∘ f) ≈Term decodeP g ∘ decodeP f
+-- proven by mirroring `DecodeComposeShape.decode-∘-shape-inner` with the
+-- unpruned cospan composition `hCompose` replaced by the pruned
+-- `hComposeP`.  Everything in the unpruned proof is generic in the
+-- hypergraph except the `∘`-specific embedding data, which is re-packaged
+-- via the `hComposeP-impl` reduction lemmas.
 --
--- Everything in the unpruned proof is generic in the hypergraph except the
--- `∘`-specific embedding data; we re-package that data via the
--- `hComposeP-impl` reduction lemmas (`injL = _↑ˡ count-non K.dom`,
--- `remapP`), feed the pruned `process-edges-↑ˡ-pure-L`
--- (`DecodeAttemptLinearP`) for the G-side pure-L stack, and reuse the
--- generic `StackEquivariance.process-edges-equivariant`,
--- `StackUniqueReach.*`, and `PermuteCoherenceK.*` exactly as the unpruned
--- proof does.
---
--- The two genuinely-pruned ingredients are imported from
--- `LinearHComposeP` (`remapP-injective`, `map-remapP-K-dom`) and
--- `DecodeAttemptLinearP` (`process-edges-↑ˡ-pure-L`).  The generic
--- term-twin gate `TermEmbed.process-edges-term-emb-gen`, the
--- `decode-attempt-extract` extraction, and `Linear⇒cod-Unique` are imported
--- from `ProcessEdgesTermShape` / `DecodeComposeShape`.
---
--- Parameterised by `objUIP` (UIP on `ObjTerm`) and `K : FaithfulnessResidual`
--- — the same two K-inputs threaded by the rest of the completeness chain.
---
--- No postulates: postulate-free over `objUIP` + `K`.
+-- The two genuinely-pruned ingredients are `remapP-injective` /
+-- `map-remapP-K-dom` (from `LinearHComposeP`) and `process-edges-↑ˡ-pure-L`
+-- (from `DecodeAttemptLinearP`).  Parameterised by `objUIP` (UIP on
+-- `ObjTerm`) and `Kf : FaithfulnessResidual`; postulate-free over those.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -59,12 +45,10 @@ import Categories.APROP.Hypergraph.Completeness.Linearity sig as Lin
 import Categories.APROP.Hypergraph.Invariant sig as Inv
 open Inv using (inject+-inj)
 
--- Pruned totality / pruned G-side pure-L lifting / pruned-Linear.
 open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeAttemptLinearP sig
   using (decode-attempt-LinearP; ⟪⟫-LinearP; process-edges-↑ˡ-pure-L)
 import Categories.APROP.Hypergraph.Completeness.Discharge.LinearHComposeP sig as LP
 
--- Generic term-twin gate + the importable extraction / Unique helpers.
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.ProcessEdgesTermShape sig
   using (module TermEmbed; pe-term-++; pe-stack-++)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
@@ -105,7 +89,7 @@ open import Relation.Binary.PropositionalEquality
 private
   module FM = Category FreeMonoidal
 
-  -- The pruned decoder `decodeP` (verbatim from `DecodeRelDecodeP`).
+  -- The pruned decoder.
   decodeP : ∀ {A B} (f : HomTerm A B)
           → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
   decodeP {A} {B} f =
@@ -114,9 +98,8 @@ private
 
 --------------------------------------------------------------------------------
 -- ## Embedding data for `hComposeP ⟪f⟫ₚ ⟪g⟫ₚ`.
---
---   * G-side : φ = injL,  ψ = _↑ˡ K.nE   (injectivity from `inject+-inj cn`).
---   * K-side : φ = remapP, ψ = G.nE ↑ʳ_   (injectivity from `remapP-injective`).
+--   * G-side : φ = injL,  ψ = _↑ˡ K.nE   (injectivity: `inject+-inj cn`).
+--   * K-side : φ = remapP, ψ = G.nE ↑ʳ_  (injectivity: `remapP-injective`).
 
 module EmbedData
   (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
@@ -139,9 +122,7 @@ module EmbedData
   remapP-injective : ∀ {v v'} → remapP v ≡ remapP v' → v ≡ v'
   remapP-injective = LP.remapP-injective G K bdy lin-G lin-K
 
-  ------------------------------------------------------------------------
   -- G-side embedding: φ = injL, ψ = _↑ˡ K.nE, H = G, J = C.
-  ------------------------------------------------------------------------
 
   ψG : Fin G.nE → Fin C.nE
   ψG eG = eG ↑ˡ K.nE
@@ -178,9 +159,7 @@ module EmbedData
                 ψG ein-c-inj₁-red eout-c-inj₁-red
                 atom-einG atom-eoutG ψ-elabG
 
-  ------------------------------------------------------------------------
   -- K-side embedding: φ = remapP, ψ = G.nE ↑ʳ_, H = K, J = C.
-  ------------------------------------------------------------------------
 
   ψK : Fin K.nE → Fin C.nE
   ψK eK = G.nE ↑ʳ eK
@@ -218,7 +197,7 @@ module EmbedData
                 atom-einK atom-eoutK ψ-elabK
 
 --------------------------------------------------------------------------------
--- ## The main assembly (mirror of `DecodeComposeShape.decode-∘-shape-inner`).
+-- ## The main assembly.
 
 module _
   (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
@@ -252,7 +231,6 @@ module _
       open EmbedData objUIP Kf G K bdy lin-G lin-K
       open hComposeP-impl G K bdy using (injL; remapP; map-via-remapP; vlab-injL; remapP-vlab)
 
-      -- pe-stack abbreviation.
       pe-stack : (H : Hypergraph FlatGen) → List (Fin (Hypergraph.nE H))
                → List (Fin (Hypergraph.nV H)) → List (Fin (Hypergraph.nV H))
       pe-stack H o s = proj₁ (process-edges H o s)
@@ -278,11 +256,9 @@ module _
       gblk = map (_↑ˡ K.nE) (range G.nE)
       kblk = map (G.nE ↑ʳ_) (range K.nE)
 
-      -- C.dom = map injL G.dom (definitional).
       after-G : List (Fin C.nV)
       after-G = pe-stack Chg gblk C.dom
 
-      ----------------------------------------------------------------
       -- The G-block term-twin (φ = injL).
       G-block-twin
         : subst₂ HomTerm
@@ -294,24 +270,22 @@ module _
           ≈Term proj₂ (process-edges G (range G.nE) G.dom)
       G-block-twin = TG.process-edges-term-emb (range G.nE) G.dom
 
-      -- The G-decoder's final stack.
       s_G_final : List (Fin G.nV)
       s_G_final = pe-stack G (range G.nE) G.dom
 
-      -- `after-G ≡ map injL s_G_final` (G-edges leave a pure-L stack).
+      -- G-edges leave a pure-L stack.
       after-G-≡ : after-G ≡ map injL s_G_final
       after-G-≡ = cong proj₁ (proj₂ (process-edges-↑ˡ-pure-L G K bdy lin-G lin-K
                                        (range G.nE) G.dom))
 
-      -- `after-G ↭ map remapP K.dom` (the canonical K-input).
+      -- The canonical K-input.
       after-G-↭ : after-G Perm.↭ map remapP K.dom
       after-G-↭ =
         Perm.↭-trans (Perm.↭-reflexive after-G-≡)
           (Perm.↭-trans (PermProp.map⁺ injL perm-f)
                         (Perm.↭-reflexive (sym (LP.map-remapP-K-dom G K bdy lin-G lin-K))))
 
-      ----------------------------------------------------------------
-      -- Reservoir for the K-block, from `Linear Chg` (= ⟪g∘f⟫ₚ-Linear).
+      -- Reservoir for the K-block, from `Linear Chg`.
       lin-C : Lin.Linear Chg
       lin-C = ⟪⟫-LinearP (g ∘ f)
 
@@ -326,7 +300,6 @@ module _
       ρf-K = proj₁ equiv-K
       equiv-K-eq = proj₂ equiv-K
 
-      ----------------------------------------------------------------
       -- The K-block term-twin (φ = remapP), on the CANONICAL start stack.
       K-block-twin
         : subst₂ HomTerm
@@ -338,7 +311,6 @@ module _
           ≈Term proj₂ (process-edges K (range K.nE) K.dom)
       K-block-twin = TK.process-edges-term-emb (range K.nE) K.dom
 
-      ----------------------------------------------------------------
       -- Run-split: the composite process-term factors into K-block ∘ G-block.
       coeC : ∀ {s s' : List (Fin C.nV)} → s ≡ s'
            → HomTerm (unflatten (map C.vlab C.dom)) (unflatten (map C.vlab s))
@@ -362,7 +334,6 @@ module _
 
       block-fact = pe-term-++ Chg gblk kblk C.dom
 
-      ----------------------------------------------------------------
       -- Expose `decodeP` of each term as the subst₂-transport.
       decode-f-≈
         : decodeP f ≈Term
@@ -393,7 +364,6 @@ module _
                                        (cong unflatten (⟪⟫ₚ-codL (g ∘ f))))
                       ext-C-eq)
 
-      ----------------------------------------------------------------
       -- The codomain `Unique`s.
       uGcod : Unique G.cod
       uGcod = Linear⇒cod-Unique G lin-G
@@ -417,7 +387,6 @@ module _
 
       kterm-aG = proj₂ (process-edges Chg kblk after-G)
 
-      -- `Unique (map remapP K.dom)` (= `map injL G.cod`).
       uRemapKdom : Unique (map remapP K.dom)
       uRemapKdom =
         subst Unique (sym (LP.map-remapP-K-dom G K bdy lin-G lin-K))
@@ -505,7 +474,6 @@ module _
             ≡ subst₂ HomTerm midGF codGF Xc ∘ subst₂ HomTerm domGF midGF Yc
       step5 = subst₂-HomTerm-∘-dist domGF midGF codGF Xc Yc
 
-      ----------------------------------------------------------------
       -- The G-block twin codomain proof.
       M1 = cong unflatten
              (trans (cong (map C.vlab) (TG.proc-stack-emb (range G.nE) G.dom))
@@ -515,7 +483,6 @@ module _
              ≈Term pterm-f
       gtwin' = G-block-twin
 
-      ----------------------------------------------------------------
       -- The G-block permute reconciliation.
       midG-cod : map C.vlab (map remapP K.dom) ≡ map G.vlab G.cod
       midG-cod = trans (cong (map C.vlab) (LP.map-remapP-K-dom G K bdy lin-G lin-K))
@@ -592,7 +559,6 @@ module _
           (subst₂-resp-≈Term domF codF Yc-twin)
           (≈-Term-sym decode-f-≈)))
 
-      ----------------------------------------------------------------
       -- ### The K-block.
       combP : pe-stack Chg kblk (map remapP K.dom) Perm.↭ C.cod
       combP = Perm.trans (Perm.↭-sym ρf-K) perm-C2

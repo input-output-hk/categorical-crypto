@@ -47,10 +47,6 @@ cons-fb-functor-comp g f i = sym (P.lift₀-comp f g i)
 
 ------------------------------------------------------------------------
 -- 3.  swap-fb-involutive
---
--- Use a small auxiliary saying that `PC.transpose i j` is symmetric in
--- `i, j`.
-
 
 swap-fb-involutive : swap-fb n ∘-fb swap-fb n ≈-fb id-fb
 swap-fb-involutive 0F            = refl
@@ -86,42 +82,32 @@ yang-baxter (suc (suc 0F))       = refl
 yang-baxter (suc (suc (suc i)))  = refl
 
 ------------------------------------------------------------------------
--- 1, 2.  eval-↭ on trans / sym
---
--- These are mostly definitional but stated for downstream use.
+-- 1, 2.  eval-↭ on trans / sym (mostly definitional, stated for reuse).
 
 eval-↭-comp : ∀ {xs ys zs : List A} (p : xs ↭ ys) (q : ys ↭ zs) →
               eval-↭ (Perm.trans p q) ≈-fb eval-↭ q ∘-fb eval-↭ p
 eval-↭-comp _ _ _ = refl
 
--- `inv-fb` distributes over composition (definitionally, at the level
--- of `_≈-fb_`).
-
+-- `inv-fb` distributes over composition.
 inv-fb-comp : ∀ {n m k} (g : FinBij m k) (f : FinBij n m) →
               inv-fb (g ∘-fb f) ≈-fb inv-fb f ∘-fb inv-fb g
 inv-fb-comp _ _ _ = refl
-
--- `inv-fb (cons-fb π) ≈ cons-fb (inv-fb π)`.
 
 inv-fb-cons : ∀ {n m} (π : FinBij n m) →
               inv-fb (cons-fb π) ≈-fb cons-fb (inv-fb π)
 inv-fb-cons π 0F      = refl
 inv-fb-cons π (suc i) = refl
 
--- `swap-fb` is self-inverse: `inv-fb (swap-fb n) ≈ swap-fb n`.
-
+-- `swap-fb` is self-inverse.
 inv-fb-swap : ∀ {n} → inv-fb (swap-fb n) ≈-fb swap-fb n
 inv-fb-swap 0F            = refl
 inv-fb-swap (suc 0F)      = refl
 inv-fb-swap (suc (suc i)) = refl
 
--- `inv-fb id-fb ≈ id-fb` (definitional).
-
 inv-fb-id : inv-fb (id-fb {n = n}) ≈-fb id-fb
 inv-fb-id _ = refl
 
 -- Soundness of `eval-↭` with respect to `↭-sym`.
-
 eval-↭-sym : ∀ {xs ys : List A} (p : xs ↭ ys) →
              eval-↭ (Perm.↭-sym p) ≈-fb inv-fb (eval-↭ p)
 eval-↭-sym Perm.refl _       = refl
@@ -144,11 +130,8 @@ eval-↭-sym (Perm.trans p q) i =
   step-trans refl q = q
 
 ------------------------------------------------------------------------
--- 8.  trans-refl normalisations.
---
--- Note: stdlib's `_↭_` constructor for `trans` does *not* identify
--- `trans refl p` with `p` definitionally; only the smart `↭-trans`
--- does.  We therefore phrase these lemmas on `Perm.trans` directly.
+-- 8.  trans-refl normalisations (phrased on `Perm.trans` directly, since
+-- the `trans` constructor does NOT identify `trans refl p` with `p`).
 
 eval-↭-trans-refl-l : ∀ {xs ys : List A} (p : xs ↭ ys) →
                       eval-↭ (Perm.trans Perm.refl p) ≈-fb eval-↭ p

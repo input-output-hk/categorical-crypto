@@ -72,10 +72,8 @@ btf : (w : Word (suc n)) (i : Fin (suc n))
 btf w i = btf′ (length w) w ≤-refl i
 
 ------------------------------------------------------------------------
--- The Exchange Condition (public form).
---
--- Project the one-letter-shorter witness out of `btf` and recover
--- `Reduced w′` uniformly from `reduced-of-witness`.
+-- The Exchange Condition (public form): project the one-letter-shorter
+-- witness out of `btf`, recover `Reduced w′` via `reduced-of-witness`.
 
 bring-to-front : {n : ℕ} (w : Word n) (i : Fin n)
                → Reduced w → descent i (evalW w)

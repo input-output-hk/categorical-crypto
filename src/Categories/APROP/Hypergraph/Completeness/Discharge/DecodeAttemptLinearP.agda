@@ -1,28 +1,17 @@
 {-# OPTIONS --without-K --safe #-}
 
 --------------------------------------------------------------------------------
--- Totality of the decoder on the PRUNED translation `⟪_⟫ₚ`.
+-- Totality of the decoder on the PRUNED translation `⟪_⟫ₚ`, whose `∘` case
+-- uses `hComposeP`.  Three pieces, mirroring the unpruned `DecodeAttempt` /
+-- `Linearity`:
+--   (#6) `decode-attempt-hComposeP` — port of `decode-attempt-hCompose`
+--        with `remap`→`remapP`, `_↑ˡ K.nV`→`injL = _↑ˡ cn`.
+--   (#7) `⟪⟫-LinearP`          — clone of `⟪⟫-Linear`; only `∘` differs.
+--   (#8) `decode-attempt-LinearP` — clone of `decode-attempt-Linear`.
 --
--- This mirrors `DecodeAttempt.decode-attempt-Linear` but for the pruned
--- translation `Categories.APROP.Hypergraph.Translation.⟪_⟫` (here aliased
--- `⟪_⟫ₚ`), whose `∘` case uses `hComposeP` instead of `hCompose`.
---
--- Three pieces:
---   (#6) `decode-attempt-hComposeP` — the load-bearing port of
---        `DecodeAttempt.decode-attempt-hCompose` with `hCompose`→`hComposeP`,
---        `remap`→`remapP`, `_↑ˡ K.nV`→`injL = _↑ˡ cn` (cn = count-non K.dom).
---   (#7) `⟪⟫-LinearP`  — clone of `Linearity.⟪⟫-Linear`; only `∘` differs
---        (uses `Linear-hComposeP` from the spike `LinearHComposeP`).
---   (#8) `decode-attempt-LinearP` — clone of `decode-attempt-Linear`; only
---        `∘` differs (uses `decode-attempt-hComposeP`).
---
--- The pruned/unpruned translations agree byte-for-byte on all 11 HomTerm
--- constructors EXCEPT `∘`; pruning removes only vertices, never edges
--- (same `nE`, same Fin order). Hence every atomic decode/linearity lemma is
--- reused verbatim from `DecodeAttempt` / `Linearity`; only the `∘` machinery
--- is re-proven, with the proof skeleton identical modulo the two renamings.
---
--- No postulates.
+-- Pruning removes only vertices, never edges (same `nE`, same Fin order),
+-- so every atomic lemma is reused verbatim and only the `∘` machinery is
+-- re-proven.  No postulates.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -57,7 +46,7 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.LinearHComposeP s
   using (Linear-hComposeP)
 import Categories.APROP.Hypergraph.Completeness.Discharge.LinearHComposeP sig as LP
 
--- Reused-as-is generic decode lemmas (mention only an arbitrary `H`).
+-- Reused-as-is generic decode lemmas (arbitrary `H`).
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (decode-attempt-perm-from-just; decode-attempt-from-perm;
          process-edges-++-stack;
@@ -76,13 +65,10 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst; subst₂; module ≡-Reasoning)
 
 --------------------------------------------------------------------------------
--- (#6) Per-edge / process-edges liftings for `hComposeP`.
---
--- Parallel to `DecodeAttempt`'s hCompose lifts, but:
---   * the G-side raise `_↑ˡ K.nV` becomes `injL = _↑ˡ cn`
---     (cn = count-non K.dom), from `hComposeP-impl`;
---   * the K-side `remap` becomes `remapP`, whose injectivity comes from
---     the spike `LinearHComposeP.remapP-injective` (needs Linear G + K).
+-- (#6) Per-edge / process-edges liftings for `hComposeP`.  Parallel to
+-- `DecodeAttempt`'s hCompose lifts, with the G-side raise `_↑ˡ K.nV`
+-- becoming `injL = _↑ˡ cn` and the K-side `remap` becoming `remapP` (whose
+-- injectivity needs Linear G + K).
 
 module _
   (G K : Hypergraph FlatGen)
@@ -97,17 +83,12 @@ module _
     using (remapP; injL; ein-c-inj₁-red; eout-c-inj₁-red;
            ein-c-inj₂-red; eout-c-inj₂-red)
 
-  -- From the spike: injectivity of remapP (needs the linearity invariants).
-  -- The spike's `remapP-injective` lives in an anonymous `module _ (G K
-  -- bdy-eq lin-G lin-K)`, so its contents are lifted to top-level functions
-  -- with those parameters prepended.
   remapP-injective : ∀ {v v'} → remapP v ≡ remapP v' → v ≡ v'
   remapP-injective = LP.remapP-injective G K bdy-eq lin-G lin-K
 
   cn : ℕ
   cn = count-non K.dom
 
-  --------------------------------------------------------------------
   -- G-side: per-edge lifting on a pure-L stack `map injL xs`.
 
   edge-step-↑ˡ-pure-L-just
@@ -204,9 +185,8 @@ module _
       rewrite eq-edge | eq-prefix = _ , refl
 
   --------------------------------------------------------------------
-  -- K-side: perm-respecting per-edge lifting via remapP.  Stack
-  -- assumed `↭ map remapP ys`; output stack `↭ map remapP (proj₁
-  -- (edge-step K ys eK))`.
+  -- K-side: perm-respecting per-edge lifting via remapP.  Input stack
+  -- `↭ map remapP ys`; output `↭ map remapP (proj₁ (edge-step K ys eK))`.
 
   edge-step-↑ʳ-via-remapP
     : ∀ (eK : Fin K.nE)
@@ -331,7 +311,7 @@ module _
       rewrite eq-edge | eq-rec = _ , _ , refl , perm-rec
 
 --------------------------------------------------------------------------------
--- (#6) `decode-attempt-hComposeP` — mirrors `decode-attempt-hCompose`.
+-- (#6) `decode-attempt-hComposeP`.
 
 decode-attempt-hComposeP
   : (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
@@ -351,7 +331,6 @@ decode-attempt-hComposeP G K bdy-eq lin-G lin-K ih-G ih-K =
     map-remapP-K-dom = LP.map-remapP-K-dom G K bdy-eq lin-G lin-K
     open Perm.PermutationReasoning
 
-    -- Extract from IHs.
     ih-G' = decode-attempt-perm-from-just G ih-G
     s_G_final = proj₁ ih-G'
     eq-G = proj₁ (proj₂ (proj₂ ih-G'))
@@ -364,7 +343,6 @@ decode-attempt-hComposeP G K bdy-eq lin-G lin-K ih-G ih-K =
 
     proc = process-all-edges (hComposeP G K bdy-eq) (Hypergraph.dom (hComposeP G K bdy-eq))
 
-    -- Stack after G-edges: equals `map injL s_G_final`.
     after-G-stack = proj₁ (process-edges (hComposeP G K bdy-eq)
                             (map (_↑ˡ K.nE) (range G.nE))
                             (Hypergraph.dom (hComposeP G K bdy-eq)))
@@ -375,7 +353,6 @@ decode-attempt-hComposeP G K bdy-eq lin-G lin-K ih-G ih-K =
     after-G-≡ = trans (cong proj₁ (proj₂ G-lift))
                        (cong (map injL) (cong proj₁ eq-G))
 
-    -- Bridge: after-G-stack ↭ map remapP K.dom.
     after-G-↭-remap-Kdom
       : after-G-stack Perm.↭ map remapP K.dom
     after-G-↭-remap-Kdom = begin
@@ -388,7 +365,6 @@ decode-attempt-hComposeP G K bdy-eq lin-G lin-K ih-G ih-K =
       map remapP K.dom
         ∎
 
-    -- K-side perm-respecting lift.
     K-lift = process-edges-↑ʳ-via-remapP G K bdy-eq lin-G lin-K
               (range K.nE) after-G-stack K.dom after-G-↭-remap-Kdom
 
@@ -426,7 +402,7 @@ decode-attempt-hComposeP G K bdy-eq lin-G lin-K ih-G ih-K =
         ∎
 
 --------------------------------------------------------------------------------
--- (#7) `⟪⟫-LinearP` — clone of `Linearity.⟪⟫-Linear`; only `∘` differs.
+-- (#7) `⟪⟫-LinearP`.
 
 ⟪⟫-LinearP : ∀ {A B} (f : HomTerm A B) → Lin.Linear ⟪ f ⟫ₚ
 ⟪⟫-LinearP (Agen g)        = Lin.Linear-hGen g
@@ -446,7 +422,7 @@ decode-attempt-hComposeP G K bdy-eq lin-G lin-K ih-G ih-K =
 ⟪⟫-LinearP (σ {A}{B})      = Lin.Linear-hSwap A B
 
 --------------------------------------------------------------------------------
--- (#8) `decode-attempt-LinearP` — clone of `decode-attempt-Linear`.
+-- (#8) `decode-attempt-LinearP`.
 
 decode-attempt-LinearP
   : ∀ {A B} (f : HomTerm A B)

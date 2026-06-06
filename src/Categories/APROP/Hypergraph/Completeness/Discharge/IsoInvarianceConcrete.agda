@@ -1,18 +1,8 @@
--- NOT `--safe`: this module performs the swap-dependent assembly of the
--- decoder's iso-invariance, fed the discharged lemmas:
---
---   * `swap-≈`   — from `Discharge.SwapStep` (modulo its own bottom
---                  `front-swap-≈`), here applied at the right `H`.
---   * `NoInv-τ`  — from `Discharge.WiringLemmas` (Lemma 4), here fed
---                  J's `fin-order-NoInv` as the explicit hypothesis.
---
--- The other inputs are discharged lemmas too: `swap-validity` from
--- `Discharge.SwapValidity`, `iso-transport` from `Discharge.IsoTransport`;
--- `fin-order-NoInv` is supplied as an explicit hypothesis at the call site.
---
--- `↝*⇒≈`, `order-invariant`, `decode-ord-resp-iso` source `swap-≈`/`NoInv-τ`
--- from `SwapStep`/`WiringLemmas`.  `decode-ord-resp-iso`'s type is the one
--- `DecodeRelRespIsoWired` consumes as a drop-in.
+-- The swap-dependent assembly of the decoder's iso-invariance, fed the
+-- discharged lemmas `swap-≈` (`SwapStep`), `swap-validity` (`SwapValidity`),
+-- `NoInv-τ` (`WiringLemmas` Lemma 4), `iso-transport` (`IsoTransport`).
+-- `↝*⇒≈`, `order-invariant`, `decode-ord-resp-iso` assemble these;
+-- `decode-ord-resp-iso`'s type is the one `DecodeRelRespIsoWired` consumes.
 {-# OPTIONS --safe --without-K #-}
 
 open import Categories.APROP
@@ -54,19 +44,15 @@ open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
 
 ------------------------------------------------------------------------
--- Per-hypergraph: the closure-lift and order-invariance, now fed the real
--- `SwapStep.swap-≈` (applied at `H`) and IW's kept `swap-validity`.
+-- Per-hypergraph: the closure-lift and order-invariance.
 ------------------------------------------------------------------------
 
--- The per-hypergraph module now threads the analytic-step inputs of
--- `SwapStep.swap-≈`:
---   * `K          : FaithfulnessResidual`     (the Kelly residual),
---   * `uniq-cod    : Unique (cod H)`           (VERTEX-level codomain
---     uniqueness — TRUE; NOT the X-level `Unique (map vlab cod)`),
---   * `run-interchange` — the per-swap `RunInterchange` (N) witness (the
---     genuine interchange-axiom residual).
--- All three are supplied at the call site (`H = ⟪f⟫`) by
--- `DecodeRelRespIsoWired`.
+-- Threads the analytic-step inputs of `SwapStep.swap-≈`, supplied at the
+-- call site (`H = ⟪f⟫`) by `DecodeRelRespIsoWired`:
+--   * `K : FaithfulnessResidual`  (the Kelly residual),
+--   * `uniq-cod : Unique (cod H)`  (VERTEX-level codomain uniqueness — TRUE;
+--     NOT the X-level `Unique (map vlab cod)`),
+--   * `run-interchange` — the per-swap `RunInterchange` (N) witness.
 module PerHG (H : Hypergraph FlatGen)
              (dih : ∀ {e} → ¬ (Dep H e e))
              (lin : Linear H)
@@ -82,30 +68,26 @@ module PerHG (H : Hypergraph FlatGen)
   open PH using (Order; Valid; decodeOrd; _↝_; _↝*_; NoInv; connectivity)
   open IW.PerHG.L H dih using (swap-step)
 
-  -- The real per-swap analytic step, proven in `SwapStep`, applied at `H`.
-  -- Now threaded the SWAP-SITE PROVENANCE `o₁ ↭ range nE`.
+  -- The per-swap analytic step (`SwapStep`), applied at `H`, threaded the
+  -- swap-site provenance `o₁ ↭ range nE`.
   swap-≈ : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂
          → o₁ Perm.↭ range (Hypergraph.nE H)
          → (p₁ : Valid o₁) (p₂ : Valid o₂)
          → decodeOrd o₁ p₁ ≈Term decodeOrd o₂ p₂
   swap-≈ = SS.swap-≈ H dih K uniq-cod run-interchange
 
-  -- Validity is preserved by an adjacent-independent swap, via
-  -- `Discharge.SwapValidity` (modulo its own `front-swap-stack-↭`), applied
-  -- at `H`.
+  -- Validity is preserved by an adjacent-independent swap (`SwapValidity`).
   swap-validity : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂ → Valid o₁ → Valid o₂
   swap-validity = SV.PerHG.swap-validity H dih lin
 
-  -- An adjacent-independent swap IS a permutation (a transposition under
-  -- the prefix `ps`), so it preserves the `↭ range nE` provenance along
-  -- the connectivity chase.
+  -- An adjacent-independent swap IS a permutation (a transposition under the
+  -- prefix `ps`), so it preserves the `↭ range nE` provenance.
   ↝⇒↭ : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂ → o₁ Perm.↭ o₂
   ↝⇒↭ (swap-step ps {x} {y} qs _) =
     PermProp.++⁺ˡ ps (Perm.swap x y Perm.refl)
 
   -- Lift the per-swap step to the reflexive-transitive closure, threading
-  -- BOTH the validity witness AND the `↭ range nE` provenance (preserved
-  -- at each swap by `↝⇒↭`).  REAL: dependent fold over the `Star`.
+  -- both the validity witness and the `↭ range nE` provenance.
   ↝*⇒≈ : ∀ {o₁ o₂ : Order} → o₁ ↝* o₂
        → o₁ Perm.↭ range (Hypergraph.nE H)
        → (p₁ : Valid o₁)
@@ -117,10 +99,8 @@ module PerHG (H : Hypergraph FlatGen)
         (p₂ , mid≈rec) = ↝*⇒≈ ss o-mid↭range p-mid
     in  p₂ , ≈-Term-trans (swap-≈ s o₁↭range p₁ p-mid) mid≈rec
 
-  -- Order-invariance of the decoder, driven by `connectivity`.  REAL:
-  -- this is the payoff of the two order-theory modules.  Now threaded the
-  -- starting order's `↭ range nE` provenance (supplied at the call site:
-  -- the chase starts from `τ ↭ range`).
+  -- Order-invariance of the decoder, driven by `connectivity`, threaded the
+  -- starting order's `↭ range nE` provenance (the chase starts from `τ`).
   order-invariant :
     ∀ (o₁ o₂ : Order) → o₁ Perm.↭ o₂ → NoInv o₁ → NoInv o₂ →
     o₁ Perm.↭ range (Hypergraph.nE H) →
@@ -130,24 +110,15 @@ module PerHG (H : Hypergraph FlatGen)
     ↝*⇒≈ (connectivity p n₁ n₂) o₁↭range p₁
 
 ------------------------------------------------------------------------
--- Across an isomorphism: iso-invariance of the decoder, fed
--- `WiringLemmas.NoInv-τ` (Lemma 4) and `IsoTransport.iso-transport`.
+-- Across an isomorphism: iso-invariance of the decoder.
 ------------------------------------------------------------------------
 
--- The two `Dep`-irreflexivity witnesses (`dihH`, `dihJ`) and the two
--- natural-order no-inversion witnesses (`noInvH`, `noInvJ`) are threaded as
--- explicit hypotheses: they are FALSE for arbitrary `H`/`J`, and supplied at
--- the call site (`H = ⟪f⟫`, `J = ⟪g⟫`) from `DepIrrefl.dep-irrefl-⟪⟫` and
--- `FinOrderNoInv.fin-order-NoInv-⟪⟫`.  `iso-transport` is sourced from
--- `Discharge.IsoTransport`.
---
--- The analytic-step inputs are also threaded explicitly:
---   * `K            : FaithfulnessResidual`   (the Kelly residual, shared
---     by `SwapStep` (via `PerHG H`) and `IsoTransport`),
---   * `codUniqueH    : Unique (cod H)`, `codUniqueJ : Unique (cod J)`
---     (VERTEX-level codomain uniqueness — TRUE; supplied from
---     `⟪_⟫-cod-unique`),
---   * `run-interchange-H` — H's per-swap `RunInterchange` (N) witness.
+-- `dihH`/`dihJ` (Dep-irreflexivity), `noInvH`/`noInvJ` (natural-order
+-- no-inversion), and `codUniqueH`/`codUniqueJ` (VERTEX-level codomain
+-- uniqueness — TRUE) are threaded as explicit hypotheses: they are FALSE
+-- for arbitrary `H`/`J` and supplied at the `H = ⟪f⟫`, `J = ⟪g⟫` call site.
+-- `K` (the Kelly residual) is shared by `SwapStep` and `IsoTransport`;
+-- `run-interchange-H` is H's per-swap `RunInterchange` (N) witness.
 module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
          (dihH : ∀ {e} → ¬ (Dep H e e))
          (dihJ : ∀ {e} → ¬ (Dep J e e))
@@ -170,15 +141,12 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
     module J   = Hypergraph J
     module L4  = WL.Lemma4 Φ dihH dihJ
 
-  -- The real `NoInv-τ` (WiringLemmas Lemma 4), fed J's natural-order
-  -- no-inversion `noInvJ` (the explicit hypothesis).
+  -- `NoInv-τ` (WiringLemmas Lemma 4), fed J's no-inversion `noInvJ`.
   NoInv-τ : PJ.NoInv (range J.nE) → PH.NoInv (IW.τ Φ)
   NoInv-τ noInvJ = L4.NoInv-τ noInvJ
 
-  -- Iso-invariance of the (order-indexed) decoder.  `order-invariant` is
-  -- sourced from `CPH` (= `PerHG H`, the real-swap-fed version), `NoInv-τ`
-  -- the proven one above, and `iso-transport` from `Discharge.IsoTransport`;
-  -- the two `fin-order-NoInv` facts are explicit hypotheses.
+  -- Iso-invariance of the (order-indexed) decoder, assembling
+  -- `order-invariant` (from `CPH`), `NoInv-τ`, and `iso-transport`.
   decode-ord-resp-iso :
       PH.NoInv (range H.nE) → PJ.NoInv (range J.nE)
       → (vJ : PJ.Valid (range J.nE))

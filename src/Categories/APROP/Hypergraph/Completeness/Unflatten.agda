@@ -1,13 +1,10 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Phase 3.5a — `unflatten` and round-trip on the boundary.
---
--- `unflatten : List X → ObjTerm` is the right-associated, `unit`-padded
--- decoder.  The composition `flatten ∘ unflatten` is propositionally the
--- identity on `List X`; the other direction `unflatten ∘ flatten` is only
--- equal up to `≈Term`, so we package it as an iso in the FreeMonoidal
--- category (built from α/λ/ρ).
+-- `unflatten : List X → ObjTerm`, the right-associated `unit`-padded
+-- decoder.  `flatten ∘ unflatten` is propositionally `id`; the reverse
+-- `unflatten ∘ flatten` holds only up to `≈Term`, so it is packaged as a
+-- FreeMonoidal iso built from α/λ/ρ.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -32,12 +29,9 @@ open import Categories.Morphism FreeMonoidal public
 open Monoidal Monoidal-FreeMonoidal using (unitorˡ; unitorʳ; associator)
 
 --------------------------------------------------------------------------------
--- Decode a flat atom list into a right-associated `ObjTerm`.
---
--- Re-exported from `Categories.PermuteCoherence.Faithfulness` (which has
--- the same definition over generic `FreeMonoidalData`) so that downstream
--- bridges to generic SMC infrastructure observe definitional equality
--- between the two unflattens.
+-- `unflatten` is re-exported from `PermuteCoherence.Faithfulness` (same
+-- definition over generic `FreeMonoidalData`) so SMC bridges observe
+-- definitional equality between the two unflattens.
 
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData public
   using (unflatten; unflatten-++-≅)

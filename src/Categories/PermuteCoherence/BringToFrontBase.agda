@@ -46,15 +46,12 @@ private
 2+n≢n (suc m) e = 2+n≢n m (suc-injective e)
 
 ------------------------------------------------------------------------
--- `genFB k` is an involution, so its backward and forward actions
---     agree pointwise.  (`genFB k ∘-fb genFB k ≈ id-fb`, hence
---     `genFB k ⟨$⟩ʳ` is its own inverse and equals `genFB k ⟨$⟩ˡ`.)
+-- `genFB k` is an involution, so its backward and forward actions agree
+-- pointwise.
 
 genFB-ˡ≡ʳ : (k : Fin (suc n)) (z : Fin (suc (suc n)))
           → genFB k P.⟨$⟩ˡ z ≡ genFB k P.⟨$⟩ʳ z
 genFB-ˡ≡ʳ k z =
-  -- rewrite `z` as `genFB k ⟨$⟩ʳ (genFB k ⟨$⟩ˡ z)`, then collapse the
-  -- double `⟨$⟩ʳ` by the involution.
   sym (trans (cong (genFB k P.⟨$⟩ʳ_) (sym (P.inverseʳ (genFB k) {z})))
              (genFB-involutive k (genFB k P.⟨$⟩ˡ z)))
 
@@ -70,14 +67,9 @@ swapℕ-fix-val (suc k) (suc a)       a≢k a≢sk =
   cong suc (swapℕ-fix-val k a (λ e → a≢k (cong suc e)) (λ e → a≢sk (cong suc e)))
 
 ------------------------------------------------------------------------
--- The action of a generator on the value-positions, read off `toℕ`.
---
--- `genFB k ⟨$⟩ʳ` swaps the two values `k` and `k+1` (its `toℕ` is
--- `swapℕ (toℕ k)`), and fixes every other value.  Via `genFB-ˡ≡ʳ` the
--- same holds for `genFB k ⟨$⟩ˡ`.
+-- The action of a generator on the value-positions (`toℕ`): `genFB k`
+-- swaps the values `k` and `k+1` and fixes every other value.
 
--- Forward action on `toℕ` at value `inj k`/`suc-pos k` (the swapped pair)
--- and at any third value.
 genFB-on-inj : (k : Fin (suc n))
              → toℕ (genFB k P.⟨$⟩ʳ inj k) ≡ suc (toℕ k)
 genFB-on-inj k =
@@ -90,7 +82,7 @@ genFB-on-suc-pos k =
   trans (genFB-toℕ k (suc-pos k))
         (trans (cong (swapℕ (toℕ k)) (toℕ-suc-pos k)) (swapℕ-sk (toℕ k)))
 
--- Fixing at a value `z` whose `toℕ` is outside `{toℕ k, suc (toℕ k)}`.
+-- Fixing at a value `z` with `toℕ z` outside `{toℕ k, suc (toℕ k)}`.
 genFB-fix-val : (k : Fin (suc n)) (z : Fin (suc (suc n)))
               → toℕ z ≢ toℕ k → toℕ z ≢ suc (toℕ k)
               → toℕ (genFB k P.⟨$⟩ʳ z) ≡ toℕ z
@@ -98,17 +90,11 @@ genFB-fix-val k z h₁ h₂ =
   trans (genFB-toℕ k z) (swapℕ-fix-val (toℕ k) (toℕ z) h₁ h₂)
 
 ------------------------------------------------------------------------
--- The position characterization of `descent`.
---
+-- The position characterization of `descent`:
 --   descent i b  ⟺  toℕ (b ⟨$⟩ˡ suc-pos i) < toℕ (b ⟨$⟩ˡ inj i)
---
--- i.e. `i` is a left descent of `b` exactly when the value `i+1` sits at
--- an earlier position than the value `i`.  Both directions come from the
--- inversion-count dichotomy `invS-dichotomy` (lifted to `inv` by
--- `invS≡inv`), with the impossible "ascent under descent" case excluded
--- by the fact that the count cannot increase and decrease at once.
+-- i.e. `i` is a left descent exactly when value `i+1` sits at an earlier
+-- position than value `i`.  Both directions come from `invS-dichotomy`.
 
--- The two value-positions, abbreviated.
 posᵢ : (i : Fin (suc n)) (b : FinBij (suc (suc n)) (suc (suc n))) → ℕ
 posᵢ i b = toℕ (b P.⟨$⟩ˡ inj i)
 
@@ -122,16 +108,13 @@ pos→descent i b lt =
   trans (cong suc (sym (invS≡inv (genFB i ∘-fb b))))
         (trans (proj₂ (invS-dichotomy i b) lt) (invS≡inv b))
 
--- (⇒) A descent gives the position inequality.  The other two trichotomy
--- branches are impossible: at equality the two positions would coincide
--- (but `inj i ≢ suc-pos i` and `b ⟨$⟩ˡ` is injective); at the strict
--- ascent the count would both rise and (by the descent hypothesis) fall.
+-- (⇒) A descent gives the position inequality.  The equality and ascent
+-- branches are impossible (injectivity of `b ⟨$⟩ˡ`; count can't both rise
+-- and fall).
 descent→pos : (i : Fin (suc n)) (b : FinBij (suc (suc n)) (suc (suc n)))
             → descent i b → posᵢ₊₁ i b < posᵢ i b
 descent→pos i b dsc with <-cmp (posᵢ i b) (posᵢ₊₁ i b)
 ... | tri< asc _ _ =
-  -- ascent: inv (genFB i ∘ b) ≡ suc (inv b); but descent says
-  -- suc (inv (genFB i ∘ b)) ≡ inv b — so suc (suc (inv b)) ≡ inv b.
   ⊥-elim (2+n≢n (inv b) (trans (sym (cong suc up)) dsc))
   where
   up : inv (genFB i ∘-fb b) ≡ suc (inv b)
@@ -139,7 +122,6 @@ descent→pos i b dsc with <-cmp (posᵢ i b) (posᵢ₊₁ i b)
              (trans (proj₁ (invS-dichotomy i b) asc) (cong suc (invS≡inv b)))
 ... | tri≈ _ eq _ = ⊥-elim (inj≢suc (⟨$⟩ˡ-inj (toℕ-injective eq)))
   where
-  -- `b ⟨$⟩ˡ` injective ⇒ the two value-positions are equal ⇒ inj ≡ suc-pos.
   ⟨$⟩ˡ-inj : b P.⟨$⟩ˡ inj i ≡ b P.⟨$⟩ˡ suc-pos i → inj i ≡ suc-pos i
   ⟨$⟩ˡ-inj e =
     trans (sym (P.inverseʳ b)) (trans (cong (b P.⟨$⟩ʳ_) e) (P.inverseʳ b))
@@ -149,14 +131,9 @@ descent→pos i b dsc with <-cmp (posᵢ i b) (posᵢ₊₁ i b)
 ... | tri> _ _ gt = gt
 
 ------------------------------------------------------------------------
--- `Reduced` of a one-letter-shorter `~ʷ`-witness, for free.
---
--- If `w` is reduced and `i` is a left descent, then ANY word `w′` with
---   * `(i ∷ w′) ~ʷ w`            (so `evalW w = genFB i ∘-fb evalW w′`)
---   * `suc (length w′) ≡ length w`   (it deletes exactly one letter)
--- is itself reduced.  This is the bookkeeping that lets the recursion
--- track `Reduced` without re-deriving the descent structure: the witness
--- always deletes one letter, and a descent removal lowers `inv` by one.
+-- `Reduced` of a one-letter-shorter `~ʷ`-witness: if `w` is reduced and
+-- `i` is a left descent, any `w′` with `(i ∷ w′) ~ʷ w` and
+-- `suc (length w′) ≡ length w` is itself reduced.
 
 reduced-of-witness :
     {w w′ : Word (suc n)} {i : Fin (suc n)}
@@ -168,10 +145,8 @@ reduced-of-witness {w = w} {w′} {i} red dsc lenEq rel =
         (trans (cong suc invw′≡invigb)
                (trans dsc (trans (sym red) (sym lenEq)))))
   where
-  -- evalW w ≈ genFB i ∘-fb evalW w′   (soundness of `i ∷ w′ ~ʷ w`).
   evalw≈ : evalW (i ∷ w′) ≈-fb evalW w
   evalw≈ = ~ʷ⇒≈ rel
-  -- evalW w′ ≈ genFB i ∘-fb evalW w   (apply genFB i and use involution).
   evalw′≈ : evalW w′ ≈-fb (genFB i ∘-fb evalW w)
   evalw′≈ p =
     trans (sym (genFB-involutive i (evalW w′ P.⟨$⟩ʳ p)))
@@ -189,10 +164,8 @@ evalW-tail≈ {i = i} {u} {rest} rel p =
         (cong (genFB i P.⟨$⟩ʳ_) (~ʷ⇒≈ rel p))
 
 ------------------------------------------------------------------------
--- Every pair of distinct generators is `Far` or `Adj` (some way).
---
--- Decided structurally: `0F` vs `1F` (= `fsuc 0F`) is `Adj`; `0F` vs
--- `fsuc (fsuc _)` is `Far`; deeper pairs recurse under `farS`/`adjS`.
+-- Every pair of distinct generators is `Far` or `Adj`, decided
+-- structurally (deeper pairs recurse under `farS`/`adjS`).
 
 data FarAdj {n : ℕ} (i j : Fin n) : Set where
   is-far-ij : Far i j → FarAdj i j
@@ -222,10 +195,9 @@ decide-FA1 {zero}  0F       0F       i≢j = ⊥-elim (i≢j refl)
 decide-FA1 {suc n} i        j        i≢j = decide-FA i j i≢j
 
 ------------------------------------------------------------------------
--- `Far` gives a `toℕ`-gap of at least two, hence the head generator
---     `genFB j` fixes BOTH value-positions `inj i` and `suc-pos i`.
+-- `Far` gives a `toℕ`-gap of ≥ 2, so `genFB j` fixes both value-positions
+-- `inj i` and `suc-pos i`.
 
--- `|toℕ i − toℕ j| ≥ 2`, packaged as a disjunction of strict gaps.
 Far→gap : {m : ℕ} {i j : Fin m} → Far i j
         → (suc (toℕ i) < toℕ j) ⊎ (suc (toℕ j) < toℕ i)
 Far→gap (far0ˡ {j = j}) = inj₁ (s<s (s≤s z≤n))
@@ -234,8 +206,6 @@ Far→gap (farS f) with Far→gap f
 ... | inj₁ lt = inj₁ (s<s lt)
 ... | inj₂ gt = inj₂ (s<s gt)
 
--- From a gap, the head generator `genFB j` fixes both value-positions of
--- `i` (their `toℕ`s lie outside `{toℕ j, suc (toℕ j)}`).
 private
   <⇒≢ : {a b : ℕ} → a < b → a ≢ b
   <⇒≢ a<b refl = <-irrefl refl a<b
@@ -255,7 +225,6 @@ Gap i j = (suc (toℕ i) < toℕ j) ⊎ (suc (toℕ j) < toℕ i)
 
 -- The four disequalities the fixing lemma needs, derived from a gap.
 private
-  -- toℕ i vs toℕ j  and  toℕ i vs suc (toℕ j)
   gap-a≢b : {i j : Fin (suc n)} → Gap i j → toℕ i ≢ toℕ j
   gap-a≢b {i = i} {j} (inj₁ lt) = <⇒≢ (<-trans (a<sa (toℕ i)) lt)
   gap-a≢b {i = i} {j} (inj₂ gt) = >⇒≢ (<-trans (a<sa (toℕ j)) gt)
@@ -265,7 +234,6 @@ private
     <⇒≢ (<-trans (a<sa (toℕ i)) (<-trans lt (a<sa (toℕ j))))
   gap-a≢sb {i = i} {j} (inj₂ gt) = >⇒≢ gt
 
-  -- suc (toℕ i) vs toℕ j  and  suc (toℕ i) vs suc (toℕ j)
   gap-sa≢b : {i j : Fin (suc n)} → Gap i j → suc (toℕ i) ≢ toℕ j
   gap-sa≢b {i = i} {j} (inj₁ lt) = <⇒≢ lt
   gap-sa≢b {i = i} {j} (inj₂ gt) =
@@ -292,14 +260,9 @@ genFB-fixes-suc-pos {i = i} {j} g =
     (subst (λ z → z ≢ suc (toℕ j)) (sym (toℕ-suc-pos i)) (gap-sa≢sb g))
 
 ------------------------------------------------------------------------
--- Descent transfer for the `Far` case.
---
--- When `i` and `j` are far apart, the head generator `genFB j` does not
--- move the value-positions of `i`, so `descent i (genFB j ∘-fb b)` is
--- equivalent to `descent i b`.  We need the right-to-left direction.
+-- Descent transfer for the `Far` case: `genFB j` does not move `i`'s
+-- value-positions, so `descent i (genFB j ∘-fb b) → descent i b`.
 
--- `genFB j ⟨$⟩ˡ` fixes `inj i` / `suc-pos i` under a gap (via the
--- involution `genFB-ˡ≡ʳ`, reducing to the forward fixing lemmas).
 genFB-ˡ-fixes-inj : {i j : Fin (suc n)} → Gap i j
                   → genFB j P.⟨$⟩ˡ inj i ≡ inj i
 genFB-ˡ-fixes-inj {i = i} {j} g =
@@ -315,8 +278,6 @@ descent-far : {i j : Fin (suc n)} {b : FinBij (suc (suc n)) (suc (suc n))}
 descent-far {i = i} {j} {b} g dsc =
   pos→descent i b (subst₂ _<_ posᵢ₊₁-eq posᵢ-eq (descent→pos i (genFB j ∘-fb b) dsc))
   where
-  -- `(genFB j ∘-fb b) ⟨$⟩ˡ y = b ⟨$⟩ˡ (genFB j ⟨$⟩ˡ y)`, with the inner
-  -- `genFB j ⟨$⟩ˡ` fixing both value-positions of `i`.
   posᵢ-eq : posᵢ i (genFB j ∘-fb b) ≡ posᵢ i b
   posᵢ-eq = cong (λ z → toℕ (b P.⟨$⟩ˡ z)) (genFB-ˡ-fixes-inj g)
   posᵢ₊₁-eq : posᵢ₊₁ i (genFB j ∘-fb b) ≡ posᵢ₊₁ i b
@@ -330,43 +291,35 @@ descent-far {i = i} {j} {b} g dsc =
 Reduced-tail : {j : Fin (suc n)} {rest : Word (suc n)}
              → Reduced (j ∷ rest) → Reduced rest
 Reduced-tail {j = j} {rest} red with inv-di j (evalW rest)
-... | inj₁ up =
-  -- suc (length rest) = inv (genFB j ∘ b) = suc (inv b) ⇒ length rest = inv b.
-  suc-injective (trans red up)
+... | inj₁ up = suc-injective (trans red up)
 ... | inj₂ dsc =
-  -- descent would force inv b = suc (suc (length rest)) > length rest ≥ inv b.
   ⊥-elim (1+n≰n (≤-trans bound (inv≤length rest)))
   where
-  -- `inv b = suc (inv (genFB j ∘ b)) = suc (suc (length rest))`.
   inv-b≡ : inv (evalW rest) ≡ suc (suc (length rest))
   inv-b≡ = trans (sym dsc) (sym (cong suc red))
   bound : suc (length rest) ≤ inv (evalW rest)
   bound = subst (suc (length rest) ≤_) (sym inv-b≡) (n≤1+n (suc (length rest)))
 
--- The head of a reduced word is a left descent.  (`evalW (j ∷ rest) =
--- genFB j ∘-fb b`; pre-composing with `genFB j` again returns `b`, whose
--- `inv` is `length rest`, one less than `inv (evalW (j ∷ rest))`.)
+-- The head of a reduced word is a left descent.
 head-descent : {j : Fin (suc n)} {rest : Word (suc n)}
              → Reduced (j ∷ rest) → descent j (evalW (j ∷ rest))
 head-descent {j = j} {rest} red =
   trans (cong suc inv-jjb≡invb)
         (trans (cong suc (sym (Reduced-tail {j = j} {rest = rest} red))) red)
   where
-  -- inv (genFB j ∘ (genFB j ∘ b)) ≡ inv b  (involution collapses the pair).
   inv-jjb≡invb : inv (genFB j ∘-fb (genFB j ∘-fb evalW rest)) ≡ inv (evalW rest)
   inv-jjb≡invb =
     inv-resp-≈ {b = genFB j ∘-fb (genFB j ∘-fb evalW rest)} {b′ = evalW rest}
       (λ p → genFB-involutive j (evalW rest P.⟨$⟩ʳ p))
 
 ------------------------------------------------------------------------
--- `Adj` gives a `toℕ`-step of one, and the value-level action of a
---      generator's *backward* map on the three relevant values.
+-- `Adj` gives a `toℕ`-step of one.
 
 Adj→suc : {m : ℕ} {j i : Fin m} → Adj j i → toℕ i ≡ suc (toℕ j)
 Adj→suc adj0     = refl
 Adj→suc (adjS a) = cong suc (Adj→suc a)
 
--- The backward action on `toℕ` (`genFB k ⟨$⟩ˡ` = `genFB k ⟨$⟩ʳ` here).
+-- The backward action on `toℕ`.
 genFB-ˡ-toℕ : (k : Fin (suc n)) (v : Fin (suc (suc n)))
             → toℕ (genFB k P.⟨$⟩ˡ v) ≡ swapℕ (toℕ k) (toℕ v)
 genFB-ˡ-toℕ k v = trans (cong toℕ (genFB-ˡ≡ʳ k v)) (genFB-toℕ k v)

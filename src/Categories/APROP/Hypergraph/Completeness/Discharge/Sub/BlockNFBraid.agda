@@ -1,40 +1,22 @@
 {-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
--- The two PURE-BRAIDING residuals of `Sub/BlockNFVoutCoh.agda`, proven.
+-- The two pure-braiding residuals of `Sub/BlockNFVoutCoh.agda`, at the bare
+-- `unflatten-++-≅` block level (no `view`/`σ⊗id` conjugation, no faithfulness):
 --
--- These are at the bare `unflatten-++-≅` block level (NO `view`/`σ⊗id`
--- conjugation, NO faithfulness):
+--   * `σ-block-comm as bs` — the two-block braiding: `σ` of the two
+--     `unflatten`-blocks `as`, `bs`, conjugated by the `unflatten-++-≅`
+--     rebracketings, equals `permute (++-comm)`.  Proven from the raw
+--     X-level residual `σ-block-comm-raw` (imported from SigmaBlockCommRaw)
+--     via the `map-++`/`map⁺` transport bridge.
 --
---   * `σ-block-comm as bs`  — the genuine TWO-BLOCK braiding: the braiding
---     `σ` of the two `unflatten`-blocks `as`, `bs`, conjugated by the
---     `unflatten-++-≅` rebracketings, equals the `permute` of the
---     append-commutativity permutation `as ++ bs ↭ bs ++ as` (at the
---     `map vlab` block level).  This is PROVEN from a single raw X-level
---     residual `σ-block-comm-raw` (below) by the full `map-++`/`map⁺`
---     transport bridge (`map⁺-++-comm`, `pvv-++-comm`, the `uf++`/`σ` subst
---     lemmas).  The raw residual `σ-block-comm-raw` — the bare two-block
---     braid = `permute (++-comm xs ys)` at `List X` — is the genuine
---     iterated `BraidBlock`/`BraidPermute` content (the "iteration + swap-core
---     assembly" flagged as remaining work in `BraidBlock`); it is left as the
---     SOLE postulate of this module.
+--   * `frame-ext es fs cs P` — residual-`cs` framing naturality (the `++⁺ʳ`
+--     mirror of `FireMidEquivariant.permute-++⁺ˡ-slide`): a block `permute P`
+--     framed by `unflatten-++-≅` over a fixed residual `cs` equals
+--     `permute (++⁺ʳ cs P)`.
 --
---   * `frame-ext es fs cs P`  — the residual-`cs` framing naturality: a
---     block `permute P` framed by `unflatten-++-≅` over a fixed residual
---     `cs` equals the `permute` of `P` extended over `cs` (`++⁺ʳ cs P`).
---     Pure `unflatten-++-≅` naturality, the `++⁺ʳ` mirror of
---     `FireMidEquivariant.permute-++⁺ˡ-slide`.  FULLY PROVEN (postulate-free),
---     including the genuine `swap`-case σ/α coherence (`pentagon⇐`,
---     `σ-block-merge`, `swap-refl-slide`) and the full `map vlab` bridge.
---
--- `frame-ext` is postulate-free; `σ-block-comm` rests on the single raw
--- residual `σ-block-comm-raw`.  `--with-K`.
---
--- The module replicates `BlockNFVoutCoh`'s `Aof`/`R-obj`/`uf++`/`pvl`
--- abbreviations VERBATIM so the two lemmas are stated at the matching types
--- and splice directly into `BlockNFVoutCoh` as
---   `σ-block-comm = BlockNFBraid.σ-block-comm vlab`
---   `frame-ext    = BlockNFBraid.frame-ext    vlab`.
+-- The `Aof`/`R-obj`/`uf++`/`pvl` abbreviations match `BlockNFVoutCoh` so the
+-- lemmas splice in directly.
 --------------------------------------------------------------------------------
 
 open import Categories.FreeMonoidal
@@ -79,8 +61,8 @@ open FM.HomReasoning
 ≡⇒≈Term refl = ≈-Term-refl
 
 --------------------------------------------------------------------------------
--- Generic `subst₂ _↭_` plumbing on the permutation constructors (copied
--- idioms; push the constructor through the two endpoint substs).
+-- Generic `subst₂ _↭_` plumbing: push a permutation constructor through the
+-- two endpoint substs.
 
 prep-subst₂
   : ∀ {B : Set} (b : B) {us us' vs vs' : List B} (p : us ≡ us') (q : vs ≡ vs')
@@ -105,21 +87,19 @@ trans-subst₂
     ≡ subst₂ Perm._↭_ p r (Perm.trans s₁ s₂)
 trans-subst₂ refl refl refl s₁ s₂ = refl
 
--- `cong (a∷_) (cong (b∷_) (sym p)) ≡ sym (cong (a∷_) (cong (b∷_) p))`.
 sym-cons₂
   : ∀ {B : Set} (a b : B) {us vs : List B} (p : us ≡ vs)
   → cong (a ∷_) (cong (b ∷_) (sym p))
     ≡ sym (cong (a ∷_) (cong (b ∷_) p))
 sym-cons₂ a b refl = refl
 
--- `subst₂ _↭_ p p refl ≡ refl`.
 subst₂-↭-refl
   : ∀ {B : Set} {us vs : List B} (p : us ≡ vs)
   → subst₂ Perm._↭_ p p (Perm.refl {xs = us}) ≡ Perm.refl {xs = vs}
 subst₂-↭-refl refl = refl
 
--- UIP-free rewriting of the two `subst₂ _↭_` paths (any two proofs of the
--- same endpoint equalities are equal under `--with-K`).
+-- Any two proofs of the same endpoint equalities are interchangeable
+-- (UIP under `--with-K`).
 subst₂-↭-irr
   : ∀ {B : Set} {us us' vs vs' : List B}
       (p p' : us ≡ us') (q q' : vs ≡ vs') (r : us Perm.↭ vs)
@@ -127,21 +107,21 @@ subst₂-↭-irr
 subst₂-↭-irr p p' q q' r =
   cong₂ (λ a b → subst₂ Perm._↭_ a b r) (uip p p') (uip q q')
 
--- `↭-sym` commutes with `subst₂ _↭_` (swapping the two endpoint paths).
+-- `↭-sym` commutes with `subst₂ _↭_` (swapping the endpoint paths).
 ↭-sym-subst₂
   : ∀ {B : Set} {us us' vs vs' : List B}
       (p : us ≡ us') (q : vs ≡ vs') (r : us Perm.↭ vs)
   → Perm.↭-sym (subst₂ Perm._↭_ p q r) ≡ subst₂ Perm._↭_ q p (Perm.↭-sym r)
 ↭-sym-subst₂ refl refl r = refl
 
--- `subst₂ _↭_` of a `↭-reflexive` collapses into one `↭-reflexive`.
+-- `subst₂ _↭_` of a `↭-reflexive` collapses to one `↭-reflexive`.
 subst₂-↭-reflexive
   : ∀ {B : Set} {us us' vs vs' : List B} (p : us ≡ us') (q : vs ≡ vs') (e : us ≡ vs)
   → subst₂ Perm._↭_ p q (Perm.↭-reflexive e)
     ≡ Perm.↭-reflexive (trans (sym p) (trans e q))
 subst₂-↭-reflexive refl refl refl = refl
 
--- `map⁺` commutes with the SMART `↭-trans` (case-split as `↭-trans` does).
+-- `map⁺` commutes with the smart `↭-trans` (case-split as it does).
 map⁺-↭-trans
   : ∀ {A B : Set} (f : A → B) {xs ys zs : List A}
       (a : xs Perm.↭ ys) (b : ys Perm.↭ zs)
@@ -161,8 +141,7 @@ map⁺-↭-trans f (Perm.trans a a')  (Perm.prep z b) = refl
 map⁺-↭-trans f (Perm.trans a a')  (Perm.swap z w b) = refl
 map⁺-↭-trans f (Perm.trans a a')  (Perm.trans b b') = refl
 
--- `↭-trans` (smart) commutes with `subst₂` at a fixed middle list (paths refl
--- there): we only need the form `↭-trans A (↭-trans B refl)` of `++-comm`.
+-- `↭-trans` (smart) commutes with `subst₂` at a fixed middle list.
 ↭-trans-subst₂
   : ∀ {B : Set} {us us' vs vs' ws ws' : List B}
       (p : us ≡ us') (q : vs ≡ vs') (r : ws ≡ ws')
@@ -171,7 +150,7 @@ map⁺-↭-trans f (Perm.trans a a')  (Perm.trans b b') = refl
     ≡ subst₂ Perm._↭_ p r (Perm.↭-trans s₁ s₂)
 ↭-trans-subst₂ refl refl refl s₁ s₂ = refl
 
--- `map⁺` commutes with `↭-sym` (copied from FireMidEquivariant).
+-- `map⁺` commutes with `↭-sym`.
 map⁺-↭-sym
   : ∀ {A B : Set} (f : A → B) {xs ys : List A} (ρ : xs Perm.↭ ys)
   → PermProp.map⁺ f (Perm.↭-sym ρ) ≡ Perm.↭-sym (PermProp.map⁺ f ρ)
@@ -181,15 +160,14 @@ map⁺-↭-sym f (Perm.swap x y ρ)  = cong (Perm.swap _ _) (map⁺-↭-sym f ρ
 map⁺-↭-sym f (Perm.trans p q)   =
   cong₂ Perm.trans (map⁺-↭-sym f q) (map⁺-↭-sym f p)
 
--- `map⁺` commutes with `↭-reflexive` (push the `≡`-witness through `map`).
+-- `map⁺` commutes with `↭-reflexive`.
 map⁺-↭-reflexive
   : ∀ {A B : Set} (f : A → B) {xs ys : List A} (eq : xs ≡ ys)
   → PermProp.map⁺ f (Perm.↭-reflexive eq) ≡ Perm.↭-reflexive (cong (map f) eq)
 map⁺-↭-reflexive f refl = refl
 
--- `map⁺ f (shift v xs ys)` equals the raw `shift (f v) (map f xs) (map f ys)`
--- modulo the `map-++` rewrites of the two endpoint lists.  By induction on
--- `xs` (the list `shift` recurses on).
+-- `map⁺ f (shift v xs ys)` equals `shift (f v) (map f xs) (map f ys)`
+-- modulo the `map-++` rewrites of the endpoints.
 map⁺-shift
   : ∀ {A B : Set} (f : A → B) (v : A) (xs ys : List A)
   → PermProp.map⁺ f (PermProp.shift v xs ys)
@@ -201,15 +179,15 @@ map⁺-shift f v []        ys = refl
 map⁺-shift f v (w ∷ xs') ys =
   -- LHS = trans (prep (f w) (map⁺ f (shift v xs' ys))) (swap (f w) (f v) refl)
   trans
-    -- (1) rewrite the prep factor by the IH (a subst₂), pushed through prep.
+    -- (1) rewrite the prep factor by the IH, pushed through prep
     (cong (λ r → Perm.trans r (Perm.swap (f w) (f v) Perm.refl))
       (trans (cong (Perm.prep (f w)) (map⁺-shift f v xs' ys))
              (prep-subst₂ (f w)
                 (sym (map-++ f xs' (v ∷ ys)))
                 (cong (f v ∷_) (sym (map-++ f xs' ys)))
                 (PermProp.shift (f v) (map f xs') (map f ys)))))
-    -- (2) rewrite the swap factor as a subst₂ of itself, fuse via trans-subst₂,
-    -- then correct the two endpoint paths (`sym-cong`).
+    -- (2) rewrite the swap factor as a subst₂, fuse via trans-subst₂,
+    -- correct the endpoint paths (`sym-cong`)
     (trans
       (trans
         (cong (Perm.trans
@@ -231,7 +209,6 @@ map⁺-shift f v (w ∷ xs') ys =
     mid   = cong (f w ∷_) (cong (f v ∷_) p₀)
     r-cod = cong (f v ∷_) (cong (f w ∷_) p₀)
 
-    -- swap (f w) (f v) refl  ≡  subst₂ _↭_ mid r-cod (swap (f w) (f v) refl)
     swap-as-subst₂
       : Perm.swap (f w) (f v) Perm.refl
         ≡ subst₂ Perm._↭_ mid r-cod (Perm.swap (f w) (f v) Perm.refl)
@@ -239,7 +216,6 @@ map⁺-shift f v (w ∷ xs') ys =
       trans (cong (Perm.swap (f w) (f v)) (sym (subst₂-↭-refl p₀)))
             (swap-subst₂ (f w) (f v) p₀ p₀ Perm.refl)
 
--- `to`/`from` of a domain-transported iso `subst₂ _≅_ p refl i`.
 to-subst₂-≅
   : ∀ {A A' B : ObjTerm} (p : A ≡ A') (i : A ≅ B)
   → _≅_.to (subst₂ _≅_ p refl i) ≡ subst₂ HomTerm refl p (_≅_.to i)
@@ -250,14 +226,13 @@ from-subst₂-≅
   → _≅_.from (subst₂ _≅_ p refl i) ≡ subst₂ HomTerm p refl (_≅_.from i)
 from-subst₂-≅ refl i = refl
 
--- `subst₂ HomTerm` respects `≈Term`.
 subst₂-resp-≈
   : ∀ {A A' B B' : ObjTerm} (p : A ≡ A') (q : B ≡ B') {u v : HomTerm A B}
   → u ≈Term v
   → subst₂ HomTerm p q u ≈Term subst₂ HomTerm p q v
 subst₂-resp-≈ refl refl h = h
 
--- split `subst₂ HomTerm` over `∘` at a FIXED middle object `B`.
+-- split `subst₂ HomTerm` over `∘` at a fixed middle object `B`.
 subst₂-∘-split
   : ∀ {A A' B C C' : ObjTerm} (p : A ≡ A') (r : C ≡ C')
       (f : HomTerm B C) (g : HomTerm A B)
@@ -265,8 +240,7 @@ subst₂-∘-split
     ≡ subst₂ HomTerm refl r f ∘ subst₂ HomTerm p refl g
 subst₂-∘-split refl refl f g = refl
 
--- `↭-sym (shift x ys xs) ≡ rotate x ys xs` (both recurse identically on `ys`:
--- `swap x b refl` then `prep b (recursion)`; base = `refl`).
+-- `↭-sym (shift x ys xs) ≡ rotate x ys xs`.
 shift-sym-rotate
   : ∀ (x : X) (ys xs : List X)
   → Perm.↭-sym (PermProp.shift x ys xs) ≡ rotate x ys xs
@@ -276,25 +250,18 @@ shift-sym-rotate x (b ∷ ys') xs =
        (shift-sym-rotate x ys' xs)
 
 --------------------------------------------------------------------------------
--- ## (A)  RAW (List X-level) `++⁺ʳ`-slide — the `++⁺ʳ` mirror of
--- `FireMidEquivariant.permute-++⁺ˡ-slide`.
+-- (A)  RAW (List X-level) `++⁺ʳ`-slide — the `++⁺ʳ` mirror of
+-- `FireMidEquivariant.permute-++⁺ˡ-slide`:
 --
 --   permute (++⁺ʳ cs P)
 --     ≈ to(unflatten-++-≅ fs cs) ∘ (permute P ⊗₁ id) ∘ from(unflatten-++-≅ es cs)
 --
--- Pure `unflatten-++-≅` naturality on the FIRST block argument.  By
--- induction on the derivation `P : es ↭ fs`.
+-- Pure `unflatten-++-≅` naturality on the first block argument, by
+-- induction on `P : es ↭ fs`.
 
 private
-  -- cons-step of `to`/`from (unflatten-++-≅ (x ∷ xs) ys)`.
-  --   from (uf (x∷xs) ys) = α⇐ ∘ (id ⊗₁ from (uf xs ys))
-  --   to   (uf (x∷xs) ys) = (id ⊗₁ to (uf xs ys)) ∘ α⇒
-  -- both hold DEFINITIONALLY (the def of `unflatten-++-≅` on a cons via
-  -- `≅.trans (≅.refl ⊗ᵢ _) (≅.sym associator)`).
-
-  -- A `swap x y R` derivation `permute`-decomposes (≈Term) into the swap
-  -- on the front two atoms (with refl tail) post-composed by the `R`-block.
-  -- Needs only `id⊗id≈id` + `idˡ` (the leading `id ⊗ (id ⊗ id)` collapses).
+  -- A `swap x y R` derivation decomposes into the front-two-atom swap
+  -- (refl tail) post-composed by the `R`-block.
   permute-swap-decomp
     : ∀ {x y : X} {es fs : List X} (R : es Perm.↭ fs)
     → permute (Perm.swap x y R)
@@ -309,8 +276,7 @@ private
       (id ⊗₁ (id ⊗₁ permute R))
         ∘ ((id ⊗₁ (id ⊗₁ id)) ∘ (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐)) ∎
 
-  -- The DUAL pentagon (α⇐ form), derived from the forward `pentagon` by
-  -- inverse-uniqueness:  (α⇐⊗id) ∘ α⇐ ∘ (id⊗α⇐) ≈ α⇐ ∘ α⇐.
+  -- Dual pentagon (α⇐ form): (α⇐⊗id) ∘ α⇐ ∘ (id⊗α⇐) ≈ α⇐ ∘ α⇐.
   pentagon⇐
     : ∀ {A B C D : ObjTerm}
     → (α⇐ {A = A} {B = B} {C = C} ⊗₁ id {A = D})
@@ -341,7 +307,6 @@ private
              ∘ (id {A = A} ⊗₁ α⇐ {A = B} {B = C} {C = D})
       R⇐ = α⇐ {A = A ⊗₀ B} {B = C} {C = D} ∘ α⇐ {A = A} {B = B} {C = C ⊗₀ D}
 
-      -- R⇒ ∘ R⇐ ≈ id
       R⇒∘R⇐ : R⇒ ∘ R⇐ ≈Term id
       R⇒∘R⇐ = begin
         (α⇒ ∘ α⇒) ∘ (α⇐ ∘ α⇐)
@@ -356,7 +321,6 @@ private
           ≈⟨ α⇒∘α⇐≈id ⟩
         id ∎
 
-      -- L⇐ ∘ L⇒ ≈ id
       L⇐∘L⇒ : L⇐ ∘ L⇒ ≈Term id
       L⇐∘L⇒ = begin
         ((α⇐ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ α⇐))
@@ -373,7 +337,6 @@ private
           ≈⟨ id⊗id≈id ⟩
         id ∎
         where
-          -- (α⇐ ∘ (id⊗α⇐)) ∘ ((id⊗α⇒) ∘ α⇒ ∘ (α⇒⊗id)) ≈ (α⇒⊗id)
           inner
             : (α⇐ ∘ (id ⊗₁ α⇐)) ∘ ((id ⊗₁ α⇒) ∘ α⇒ ∘ (α⇒ ⊗₁ id))
               ≈Term (α⇒ ⊗₁ id)
@@ -398,11 +361,9 @@ private
               idid = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
                        (≈-Term-trans (⊗-resp-≈ idˡ α⇐∘α⇒≈id) id⊗id≈id)
 
-  -- σ-block C-slot merge: braiding over a tensor C-slot `C₁ ⊗ C₂` equals
-  -- braiding over `C₁` (tensored with `id_{C₂}`), framed by the associators
-  -- that re-bracket the `C₂` factor out.  Pure Mac-Lane coherence (forward +
-  -- dual pentagon + α-comm + α-iso), no hexagon needed (σ is untouched).
-  --
+  -- σ-block C-slot merge: braiding over `C₁ ⊗ C₂` equals braiding over `C₁`
+  -- (tensored with `id_{C₂}`) framed by associators that re-bracket `C₂` out.
+  -- Pure Mac-Lane coherence (no hexagon, σ is untouched).
   --   σ-block{A}{B}{C₁⊗C₂}
   --     ≈ (id_B ⊗ α⇒) ∘ α⇒ ∘ ((σ-block{A}{B}{C₁}) ⊗ id_{C₂}) ∘ α⇐ ∘ (id_A ⊗ α⇐)
   σ-block-merge
@@ -414,9 +375,7 @@ private
               ∘ α⇐ {A = A} {B = B ⊗₀ C₁} {C = C₂}
               ∘ (id {A = A} ⊗₁ α⇐ {A = B} {B = C₁} {C = C₂})
   σ-block-merge {A} {B} {C₁} {C₂} = ≈-Term-sym (begin
-      -- RHS
       (id ⊗₁ α⇒) ∘ α⇒ ∘ (σb₁ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ α⇐)
-        -- distribute (σ-block{A}{B}{C₁} ⊗ id) = (α⇒⊗id)∘((σ⊗id)⊗id)∘(α⇐⊗id)
         ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (dist-σb ⟩∘⟨refl) ⟩
       (id ⊗₁ α⇒) ∘ α⇒
         ∘ ((α⇒ ⊗₁ id) ∘ ((σ ⊗₁ id) ⊗₁ id) ∘ (α⇐ ⊗₁ id))
@@ -434,7 +393,6 @@ private
     where
       σb₁ = σ-block {A} {B} {C₁}
 
-      -- (σ-block{A}{B}{C₁} ⊗ id{C₂}) ≈ (α⇒⊗id) ∘ ((σ⊗id)⊗id) ∘ (α⇐⊗id)
       dist-σb
         : (σb₁ ⊗₁ id {A = C₂})
           ≈Term (α⇒ ⊗₁ id) ∘ ((σ ⊗₁ id) ⊗₁ id) ∘ (α⇐ ⊗₁ id)
@@ -479,7 +437,6 @@ private
         ((id ⊗₁ α⇒) ∘ α⇒ ∘ (α⇒ ⊗₁ id))
           ∘ (((σ ⊗₁ id) ⊗₁ id) ∘ ((α⇐ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ α⇐))) ∎
 
-      -- (α⇒ ∘ α⇒) ∘ ((σ⊗id)⊗id) ∘ (α⇐ ∘ α⇐) ≈ α⇒ ∘ (σ⊗id) ∘ α⇐
       middle-collapse
         : (α⇒ ∘ α⇒) ∘ ((σ ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ α⇐)
           ≈Term α⇒ ∘ (σ ⊗₁ id {A = C₁ ⊗₀ C₂}) ∘ α⇐
@@ -502,9 +459,9 @@ private
           ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
         α⇒ ∘ ((σ ⊗₁ id) ∘ α⇐) ∎
 
-  -- The genuine σ/α base coherence: the front swap on `(x ∷ y ∷ es) ++ cs`
-  -- equals the front swap on `(x ∷ y ∷ es)`, framed by `uf++ · cs`.  The
-  -- residual `cs` is passive (σ only touches `Var x, Var y`).
+  -- σ/α base coherence: the front swap on `(x ∷ y ∷ es) ++ cs` equals the
+  -- front swap on `(x ∷ y ∷ es)` framed by `uf++ · cs` (σ only touches the
+  -- front two atoms, `cs` is passive).
   swap-refl-slide
     : ∀ (cs : List X) {x y : X} (es : List X)
     → permute (Perm.swap x y (Perm.refl {xs = es ++ cs}))
@@ -532,23 +489,21 @@ private
         : σ-block {Var x} {Var y} {unflatten (es ++ cs)}
           ≈Term toYX ∘ ((σbE ⊗₁ id) ∘ fromXY)
       core = begin
-        -- (1) σ-block at C-slot = unflatten(es++cs)
         σ-block {Var x} {Var y} {unflatten (es ++ cs)}
-        -- (2) insert id = toE ∘ fromE in the C-slot (iso law), via natural₃.
+        -- (2) insert id = toE ∘ fromE in the C-slot via natural₃
           ≈⟨ insert-iso ⟩
         (id ⊗₁ (id ⊗₁ toE))
           ∘ σ-block {Var x} {Var y} {E ⊗₀ Cc}
           ∘ (id ⊗₁ (id ⊗₁ fromE))
-        -- (3) expand the middle σ-block over the tensor C-slot E ⊗ Cc.
+        -- (3) expand the middle σ-block over E ⊗ Cc
           ≈⟨ refl⟩∘⟨ (σ-block-merge ⟩∘⟨refl) ⟩
         (id ⊗₁ (id ⊗₁ toE))
           ∘ ((id ⊗₁ α⇒) ∘ α⇒ ∘ (σbE ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ α⇐))
           ∘ (id ⊗₁ (id ⊗₁ fromE))
-        -- (4) regroup, recognising `toYX` (left) and `fromXY` (right).
+        -- (4) regroup, recognising `toYX` (left) and `fromXY` (right)
           ≈⟨ assemble ⟩
         toYX ∘ ((σbE ⊗₁ id) ∘ fromXY) ∎
         where
-          -- (2): σ-block{C} ≈ (id⊗(id⊗toE)) ∘ σ-block{E⊗Cc} ∘ (id⊗(id⊗fromE)).
           insert-iso
             : σ-block {Var x} {Var y} {unflatten (es ++ cs)}
               ≈Term (id ⊗₁ (id ⊗₁ toE))
@@ -572,7 +527,6 @@ private
               ∘ σ-block {Var x} {Var y} {E ⊗₀ Cc}
               ∘ (id ⊗₁ (id ⊗₁ fromE)) ∎
             where
-              -- (id⊗(id⊗toE)) ∘ (id⊗(id⊗fromE)) ≈ id   (C-slot iso law toE∘fromE=id)
               idid
                 : (id ⊗₁ (id ⊗₁ toE)) ∘ (id ⊗₁ (id ⊗₁ fromE)) ≈Term id
               idid = begin
@@ -587,8 +541,7 @@ private
                   ≈⟨ ≈-Term-trans (⊗-resp-≈ ≈-Term-refl id⊗id≈id) id⊗id≈id ⟩
                 id ∎
 
-          -- (4): regroup the merge-form into toYX ∘ (σbE ⊗ id) ∘ fromXY by
-          -- recognising the α-cascades (bifunctor distribution).
+          -- regroup the merge-form into toYX ∘ (σbE ⊗ id) ∘ fromXY
           assemble
             : (id ⊗₁ (id ⊗₁ toE))
                 ∘ ((id ⊗₁ α⇒) ∘ α⇒ ∘ (σbE ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ α⇐))
@@ -598,7 +551,6 @@ private
             (id ⊗₁ (id ⊗₁ toE))
               ∘ ((id ⊗₁ α⇒) ∘ α⇒ ∘ (σbE ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ α⇐))
               ∘ (id ⊗₁ (id ⊗₁ fromE))
-            -- pull the outer cap into the left α's, the inner cap into the right
               ≈⟨ shuffle ⟩
             ((id ⊗₁ (id ⊗₁ toE)) ∘ (id ⊗₁ α⇒) ∘ α⇒)
               ∘ (σbE ⊗₁ id)
@@ -607,7 +559,6 @@ private
                           (refl⟩∘⟨ (≈-Term-sym fromXY-unfold)) ⟩
             toYX ∘ ((σbE ⊗₁ id) ∘ fromXY) ∎
             where
-              -- toYX ≈ (id⊗(id⊗toE)) ∘ (id⊗α⇒) ∘ α⇒
               toYX-unfold
                 : toYX ≈Term (id ⊗₁ (id ⊗₁ toE)) ∘ (id ⊗₁ α⇒) ∘ α⇒
               toYX-unfold = begin
@@ -621,7 +572,6 @@ private
                   ≈⟨ FM.assoc ⟩
                 (id ⊗₁ (id ⊗₁ toE)) ∘ (id ⊗₁ α⇒) ∘ α⇒ ∎
 
-              -- fromXY ≈ α⇐ ∘ (id⊗α⇐) ∘ (id⊗(id⊗fromE))
               fromXY-unfold
                 : fromXY ≈Term α⇐ ∘ (id ⊗₁ α⇐) ∘ (id ⊗₁ (id ⊗₁ fromE))
               fromXY-unfold = begin
@@ -633,7 +583,7 @@ private
                   ≈⟨ refl⟩∘⟨ ⊗-∘-dist ⟩
                 α⇐ ∘ (id ⊗₁ α⇐) ∘ (id ⊗₁ (id ⊗₁ fromE)) ∎
 
-              -- pure reassociation moving caps into the framing α's.
+              -- reassociation moving the caps into the framing α's
               shuffle
                 : (id ⊗₁ (id ⊗₁ toE))
                     ∘ ((id ⊗₁ α⇒) ∘ α⇒ ∘ (σbE ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ α⇐))
@@ -667,12 +617,9 @@ private
                   ∘ (σbE ⊗₁ id)
                   ∘ (α⇐ ∘ (id ⊗₁ α⇐) ∘ (id ⊗₁ (id ⊗₁ fromE))) ∎
 
-  -- The prep cons-step, factored out so it can be reused (twice) in the swap
-  -- case without an extra structural recursion.  Given a slide of a tail
-  -- morphism `m` (framed by `uf++ · cs` over a `block : unflatten es →
-  -- unflatten fs`), produces the slide of `id_{Var z} ⊗₁ m` (framed at the
-  -- consed lists, over `id ⊗₁ block`).  Pure α-bracketing (the prep-case
-  -- algebra), no recursion.
+  -- The prep cons-step, factored out so the swap case can reuse it twice
+  -- without extra recursion.  Lifts a slide of a tail morphism `m` to the
+  -- slide of `id_{Var z} ⊗₁ m` (pure α-bracketing).
   prep-step
     : ∀ (cs : List X) (z : X) {es fs : List X}
         {block : HomTerm (unflatten es) (unflatten fs)}
@@ -741,9 +688,6 @@ private
       ≈Term _≅_.to (unflatten-++-≅ fs cs)
               ∘ (permute P ⊗₁ id {A = unflatten cs})
               ∘ _≅_.from (unflatten-++-≅ es cs)
-  -- refl: ++⁺ʳ cs refl = refl, permute refl = id; the conjugation collapses
-  -- via id⊗id≈id + the iso law from ∘ to = id (here to ∘ from for the
-  -- es ≡ fs orientation).
   permute-++⁺ʳ-slide cs {es} Perm.refl = begin
       id
         ≈⟨ ≈-Term-sym (Iso.isoˡ (_≅_.iso (unflatten-++-≅ es cs))) ⟩
@@ -757,12 +701,10 @@ private
   permute-++⁺ʳ-slide cs {x ∷ es} {x ∷ fs} (Perm.prep .x P) =
     prep-step cs x (permute-++⁺ʳ-slide cs P)
   permute-++⁺ʳ-slide cs {x ∷ y ∷ es} {y ∷ x ∷ fs} (Perm.swap .x .y P) = begin
-      -- LHS = permute (swap x y (++⁺ʳ cs P))
       permute (Perm.swap x y (PermProp.++⁺ʳ cs P))
-        -- decompose into the prep-prep block and the front swap on (es ++ cs)
+        -- decompose into the prep-prep block + the front swap on (es ++ cs)
         ≈⟨ permute-swap-decomp (PermProp.++⁺ʳ cs P) ⟩
       ppB ∘ permute (Perm.swap x y (Perm.refl {xs = es ++ cs}))
-        -- prep-prep slide (twice prep-step, no recursion) + swap-refl slide
         ≈⟨ ∘-resp-≈ ppB-slide (swap-refl-slide cs es) ⟩
       (toF2 ∘ (ppP ⊗₁ id) ∘ fromYX)
         ∘ (toYX ∘ (sw-es ⊗₁ id) ∘ fromE2)
@@ -774,9 +716,8 @@ private
       toYX  = _≅_.to   (unflatten-++-≅ (y ∷ x ∷ es) cs)
       fromYX = _≅_.from (unflatten-++-≅ (y ∷ x ∷ es) cs)
       sw-es = permute (Perm.swap x y (Perm.refl {xs = es}))
-      -- the prep-prep block `permute (prep y (prep x (++⁺ʳ cs P)))`.
+      -- the prep-prep block, and its underlying `block`
       ppB   = id {A = Var y} ⊗₁ (id {A = Var x} ⊗₁ permute (PermProp.++⁺ʳ cs P))
-      -- its `block`: `permute (prep y (prep x P))`.
       ppP   = id {A = Var y} ⊗₁ (id {A = Var x} ⊗₁ permute P)
 
       ppB-slide
@@ -805,7 +746,6 @@ private
           ≈⟨ refl⟩∘⟨ fuse ⟩∘⟨refl ⟩
         toF2 ∘ (permute (Perm.swap x y P) ⊗₁ id) ∘ fromE2 ∎
         where
-          -- (ppP ⊗ id) ∘ (sw-es ⊗ id) ≈ (ppP ∘ sw-es) ⊗ id ≈ permute(swap x y P) ⊗ id
           fuse : (ppP ⊗₁ id) ∘ (sw-es ⊗₁ id)
                  ≈Term permute (Perm.swap x y P) ⊗₁ id
           fuse = begin
@@ -815,7 +755,6 @@ private
               ≈⟨ ⊗-resp-≈ (≈-Term-sym (permute-swap-decomp P)) idˡ ⟩
             permute (Perm.swap x y P) ⊗₁ id ∎
   permute-++⁺ʳ-slide cs {es} {fs} (Perm.trans {ys = gs} P Q) = begin
-      -- LHS = permute(++⁺ʳ cs Q) ∘ permute(++⁺ʳ cs P)
       permute (PermProp.++⁺ʳ cs Q) ∘ permute (PermProp.++⁺ʳ cs P)
         ≈⟨ ∘-resp-≈ (permute-++⁺ʳ-slide cs Q) (permute-++⁺ʳ-slide cs P) ⟩
       (toF ∘ (permute Q ⊗₁ id) ∘ fromG)
@@ -830,7 +769,7 @@ private
       PP    = permute P ⊗₁ id {A = unflatten cs}
       QQ    = permute Q ⊗₁ id {A = unflatten cs}
 
-      -- cancel `fromG ∘ toG = id` in the middle and fuse the two ⊗-blocks.
+      -- cancel `fromG ∘ toG = id` and fuse the two ⊗-blocks
       collapse
         : (toF ∘ QQ ∘ fromG) ∘ (toG ∘ PP ∘ fromE)
           ≈Term toF ∘ (permute (Perm.trans P Q) ⊗₁ id) ∘ fromE
@@ -851,26 +790,16 @@ private
           ≈⟨ refl⟩∘⟨ fuse ⟩∘⟨refl ⟩
         toF ∘ ((permute Q ∘ permute P) ⊗₁ id) ∘ fromE ∎
         where
-          -- (permute Q ⊗ id) ∘ (permute P ⊗ id) ≈ (permute Q ∘ permute P) ⊗ id
           fuse : QQ ∘ PP ≈Term (permute Q ∘ permute P) ⊗₁ id
           fuse = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
                               (⊗-resp-≈ ≈-Term-refl idˡ)
 
   --------------------------------------------------------------------------
-  -- ## (A2)  RAW two-block braiding = `permute (++-comm)`.
-  --
+  -- (A2)  RAW two-block braiding = `permute (++-comm)`:
   --   to(unflatten-++-≅ ys xs) ∘ σ{unflatten xs}{unflatten ys}
   --       ∘ from(unflatten-++-≅ xs ys)
   --     ≈ permute (++-comm xs ys)
-  --
-  -- By induction on `xs`, mirroring `++-comm`'s recursion.  The cons step
-  -- decomposes the front-block braid `σ{Var x ⊗ unflatten xs'}{unflatten ys}`
-  -- via `σ⊗-from-hexagon₂` into braiding `Var x` past `ys` (a `σ-rotate`,
-  -- realised as `permute (rotate …)` = `permute (↭-sym (shift …))`) and
-  -- braiding `xs'` past `ys` (the IH).
-
-  -- DISCHARGED (no longer a postulate): proven in `Sub/SigmaBlockCommRaw.agda`
-  -- modulo only the pure associator/pentagon `σ-block-Bmerge` there.
+  -- Proven in `Sub/SigmaBlockCommRaw.agda`.
   σ-block-comm-raw
     : (xs ys : List X)
     → _≅_.to (unflatten-++-≅ ys xs)
@@ -880,10 +809,8 @@ private
   σ-block-comm-raw = SBC.σ-block-comm-raw
 
 --------------------------------------------------------------------------------
--- ## (B)  The `map vlab` block level — the two residuals of `BlockNFVoutCoh`.
---
--- The `Aof`/`R-obj`/`uf++`/`pvl` abbreviations are REPLICATED VERBATIM from
--- `BlockNFVoutCoh` so the two lemmas state at the matching types.
+-- (B)  The `map vlab` block level — the two residuals of `BlockNFVoutCoh`.
+-- The `Aof`/`R-obj`/`uf++`/`pvl` abbreviations match `BlockNFVoutCoh`.
 
 module _ {n : ℕ} (vlab : Fin n → X) where
 
@@ -907,9 +834,9 @@ module _ {n : ℕ} (vlab : Fin n → X) where
   pvl = permute-via-vlab vlab
 
   --------------------------------------------------------------------
-  -- ### subst plumbing bridging `uf++` / `pvl (++⁺ʳ …)` to the raw forms.
+  -- subst plumbing bridging `uf++` / `pvl (++⁺ʳ …)` to the raw forms.
 
-  -- `subst₂ HomTerm` distributes over `∘` (copied idiom).
+  -- `subst₂ HomTerm` distributes over `∘`.
   subst₂-∘-distrib
     : ∀ {As₁ As₂ Bs₁ Bs₂ Cs₁ Cs₂ : List X}
         (p : As₁ ≡ As₂) (q : Bs₁ ≡ Bs₂) (r : Cs₁ ≡ Cs₂)
@@ -920,7 +847,7 @@ module _ {n : ℕ} (vlab : Fin n → X) where
         ∘ subst₂ HomTerm (cong unflatten p) (cong unflatten q) g
   subst₂-∘-distrib refl refl refl _ _ = refl
 
-  -- `subst₂ HomTerm` pushed through `permute` onto the underlying `↭`.
+  -- `subst₂ HomTerm` pushed through `permute` onto the `↭`.
   permute-subst₂
     : ∀ {xs xs' ys ys' : List X} (p : xs ≡ xs') (q : ys ≡ ys')
         (r : xs Perm.↭ ys)
@@ -928,7 +855,7 @@ module _ {n : ℕ} (vlab : Fin n → X) where
       ≡ permute (subst₂ Perm._↭_ p q r)
   permute-subst₂ refl refl r = refl
 
-  -- `map⁺ vlab` commutes with `++⁺ʳ` (modulo the two `map-++` substs).
+  -- `map⁺ vlab` commutes with `++⁺ʳ` (modulo the `map-++` substs).
   map⁺-++⁺ʳ
     : ∀ (cs : List (Fin n)) {es fs : List (Fin n)} (P : es Perm.↭ fs)
     → PermProp.map⁺ vlab (PermProp.++⁺ʳ cs P)
@@ -962,7 +889,6 @@ module _ {n : ℕ} (vlab : Fin n → X) where
              (PermProp.++⁺ʳ (map vlab cs) (PermProp.map⁺ vlab P))
              (PermProp.++⁺ʳ (map vlab cs) (PermProp.map⁺ vlab Q)))
 
-  -- the `pvl (++⁺ʳ cs P)` reconciliation.
   pvv-++⁺ʳ
     : ∀ (cs : List (Fin n)) {es fs : List (Fin n)} (P : es Perm.↭ fs)
     → pvl (PermProp.++⁺ʳ cs P)
@@ -976,7 +902,7 @@ module _ {n : ℕ} (vlab : Fin n → X) where
                   (PermProp.++⁺ʳ (map vlab cs) (PermProp.map⁺ vlab P))))
 
   --------------------------------------------------------------------
-  -- ### `frame-ext` — RESIDUAL `++⁺ʳ` framing (BlockNFVoutCoh residual 2).
+  -- `frame-ext` — residual `++⁺ʳ` framing (BlockNFVoutCoh residual 2).
 
   frame-ext
     : (es fs cs : List (Fin n)) (P : es Perm.↭ fs)
@@ -1015,7 +941,7 @@ module _ {n : ℕ} (vlab : Fin n → X) where
       mid-eq = refl
 
   --------------------------------------------------------------------
-  -- ### `map⁺ vlab` commutes with `++-comm` (modulo the `map-++` substs).
+  -- `map⁺ vlab` commutes with `++-comm` (modulo the `map-++` substs).
 
   map⁺-++-comm
     : ∀ (es fs : List (Fin n))
@@ -1024,7 +950,7 @@ module _ {n : ℕ} (vlab : Fin n → X) where
           (PermProp.++-comm (map vlab es) (map vlab fs))
   map⁺-++-comm [] fs =
     -- ++-comm [] fs = ↭-sym (++-identityʳ fs); both sides are ↭-sym of a
-    -- ↭-reflexive of (UIP-equal) `[]`-identity paths.
+    -- ↭-reflexive of (UIP-equal) identity paths.
     trans (map⁺-↭-sym vlab (PermProp.++-identityʳ fs))
     (trans (cong Perm.↭-sym (map⁺-↭-reflexive vlab (++-id fs)))
     (trans (cong (λ z → Perm.↭-sym (Perm.↭-reflexive z))
@@ -1039,17 +965,17 @@ module _ {n : ℕ} (vlab : Fin n → X) where
     where
       open import Data.List.Properties using () renaming (++-identityʳ to ++-id)
   map⁺-++-comm (x ∷ es') fs =
-    -- ++-comm (x∷es') fs = ↭-trans A (↭-trans B refl)   (PermutationReasoning)
+    -- ++-comm (x∷es') fs = ↭-trans A (↭-trans B refl), where
     --   A = prep x (++-comm es' fs),  B = ↭-sym (shift x fs es').
     trans (map⁺-↭-trans vlab A (Perm.↭-trans B Perm.refl))
     (trans (cong (Perm.↭-trans (PermProp.map⁺ vlab A))
               (map⁺-↭-trans vlab B Perm.refl))
     (trans (cong₂ (λ a b → Perm.↭-trans a (Perm.↭-trans b (PermProp.map⁺ vlab Perm.refl)))
-             -- prep part: IH, pushed through prep.
+             -- prep part (IH pushed through prep)
              (trans (cong (Perm.prep (vlab x)) (map⁺-++-comm es' fs))
                     (prep-subst₂ (vlab x) pA-dom qMid
                        (PermProp.++-comm (map vlab es') (map vlab fs))))
-             -- shift part.
+             -- shift part
              shift-part)
     (trans (cong (λ z → Perm.↭-trans (subst₂ Perm._↭_ pA pMid A')
                           (Perm.↭-trans (subst₂ Perm._↭_ pMid qB B') z))
@@ -1069,10 +995,6 @@ module _ {n : ℕ} (vlab : Fin n → X) where
       qB   = sym (map-++ vlab fs (x ∷ es'))
       A'   = Perm.prep (vlab x) (PermProp.++-comm (map vlab es') (map vlab fs))
       B'   = Perm.↭-sym (PermProp.shift (vlab x) (map vlab fs) (map vlab es'))
-      -- map⁺ vlab (↭-sym (shift x fs es'))
-      --   ≡ subst₂ (cong(vlab x∷_)(sym(map-++ vlab fs es')))
-      --            (sym(map-++ vlab fs (x∷es')))
-      --            (↭-sym (shift (vlab x) (map vlab fs) (map vlab es')))
       shift-part
         : PermProp.map⁺ vlab (Perm.↭-sym (PermProp.shift x fs es'))
           ≡ subst₂ Perm._↭_
@@ -1087,7 +1009,6 @@ module _ {n : ℕ} (vlab : Fin n → X) where
                   (PermProp.shift (vlab x) (map vlab fs) (map vlab es')))
                refl))
 
-  -- the `pvl (++-comm as bs)` reconciliation.
   pvv-++-comm
     : ∀ (as bs : List (Fin n))
     → pvl (PermProp.++-comm as bs)
@@ -1101,9 +1022,8 @@ module _ {n : ℕ} (vlab : Fin n → X) where
                   (PermProp.++-comm (map vlab as) (map vlab bs))))
 
   --------------------------------------------------------------------
-  -- ### `σ-block-comm` — the two-block braiding (BlockNFVoutCoh residual 1).
-  -- Transports the raw two-block braid `σ-block-comm-raw` (the genuine
-  -- `BraidPermute` content) along the `map-++` substs (`uf++`, `pvl`).
+  -- `σ-block-comm` — the two-block braiding (BlockNFVoutCoh residual 1):
+  -- transports `σ-block-comm-raw` along the `map-++` substs (`uf++`, `pvl`).
 
   σ-block-comm
     : (as bs : List (Fin n))

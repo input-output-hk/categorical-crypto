@@ -3,22 +3,15 @@
 --------------------------------------------------------------------------------
 -- Pruned-vs-unpruned decoder shape, factored through PRUNED shape lemmas.
 --
--- This module supplies the two genuinely-pruning-specific residuals of
+-- Supplies the two pruning-specific residuals of
 -- `Discharge.DecodeRelDecodeP.decode-rel-≈-decodeP`:
 --
 --     decodeP-≈-decode-∘ : decodeP (g ∘ f)  ≈Term decode (g ∘ f)
 --     decodeP-≈-decode-⊗ : decodeP (f ⊗₁ g) ≈Term decode (f ⊗₁ g)
 --
--- It does so by FACTORING each bridge through a PRUNED shape lemma plus
--- the ALREADY-TRUSTED unpruned shape residual, so that NO pruned-vs-
--- unpruned obligation survives as new conceptual trust.
---
--- ## The factoring (the whole point of this module)
---
--- `decodeP-≈-decode` is structural recursion on the term.  In the two
--- recursive cases the goal is symmetric between the pruned (`decodeP`,
--- `hComposeP`/`hTensor` on `⟪·⟫ₚ`) and the unpruned (`decode`,
--- `hCompose`/`hTensor` on `⟪·⟫`) decoders, so a single chain
+-- It FACTORS each bridge through a PRUNED shape lemma plus the
+-- already-trusted unpruned shape residual, so no pruned-vs-unpruned
+-- obligation survives as new conceptual trust.  E.g. the `∘` bridge:
 --
 --     decodeP (g ∘ f)
 --       ≈⟨ decodeP-∘-shape g f ⟩          -- PRUNED ∘ shape (this module's residual)
@@ -28,78 +21,20 @@
 --       ≈⟨ sym (decode-∘-shape-inner g f) ⟩  -- UNPRUNED ∘ shape (SHARED trust)
 --     decode (g ∘ f)
 --
--- closes the `∘` bridge (and dually `⊗`), where:
+-- where `decode-{∘,⊗}-shape-inner` are the unpruned shape residuals
+-- (already part of the shared `DecodeShapeResiduals` trust surface) and
+-- `decodeP-{∘,⊗}-shape` are the pruned shape lemmas, packaged here as the
+-- record `DecodePShapeResiduals`.
 --
---   * `rec X = decodeP-≈-decode X` is the structural recursion supplied
---     by the caller (`DecodeRelDecodeP.decodeP-≈-decode`);
---   * `decode-∘-shape-inner` / `decode-⊗-shape-inner` are the UNPRUNED
---     shape residuals, ALREADY part of the shared `DecodeShapeResiduals`
---     trust surface that the unpruned completeness proof and the
---     interchange chain depend on (NO new trust); and
---   * `decodeP-∘-shape` / `decodeP-⊗-shape` are the PRUNED shape lemmas,
---     packaged here as the record `DecodePShapeResiduals`.
+-- The two `DecodePShapeResiduals` fields are the pruned mirror of the
+-- unpruned `DecodeShapeResiduals` fields (`decode` → `decodeP`).  The `⊗`
+-- one is the `swap-atom-aligned` kernel (the same `nf-bracket`/`block-nf`
+-- kernel the interchange side bottoms out in); since that kernel requires
+-- `APROPSignatureDec`, this `sig`-level module records the link in the
+-- field doc rather than importing it.
 --
--- ## What the residual record contains, and why it is the right narrowing
---
--- The two fields of `DecodePShapeResiduals` are STRUCTURALLY IDENTICAL
--- to the unpruned `DecodeShapeResiduals` fields, only with `decode`
--- replaced by `decodeP` (and `⟪·⟫`/`hCompose`/`hTensor` replaced by the
--- pruned `⟪·⟫ₚ`/`hComposeP`/`hTensor`).  Concretely:
---
---   * `decodeP-∘-shape g f : decodeP (g ∘ f) ≈Term decodeP g ∘ decodeP f`
---     — the PRUNED `∘` shape.  Its constructive content is the
---     `pe-term-++`-style block-decomposition of `process-edges` on the
---     `hComposeP` hypergraph (the f-block edges, routed through `injL`,
---     then the g-block edges, routed through `remapP`), reconciled with
---     the standalone `decodeP f` / `decodeP g` via the boundary lemmas
---     `domL-hComposeP` / `codL-hComposeP`.  The TERM-level `_++_`
---     factoring building block (`pe-term-++`) is PROVEN below; the
---     remaining gap is the term-level analogue of the STACK-only
---     `process-edges-↑ˡ-pure-L` / `process-edges-↑ʳ-via-remapP` (which
---     live in `DecodeAttemptLinearP` and `DecodeAttempt`, neither of
---     which this module may edit).
---
---   * `decodeP-⊗-shape f g : decodeP (f ⊗₁ g) ≈Term
---         to (unflatten-++-≅ …) ∘ (decodeP f ⊗₁ decodeP g) ∘ from (unflatten-++-≅ …)`
---     — the PRUNED `⊗` shape.  Tensor is NOT pruned
---     (`⟪ f ⊗₁ g ⟫ₚ = hTensor ⟪f⟫ₚ ⟪g⟫ₚ`, the SAME `hTensor` as
---     unpruned), so this is the analogue of `decode-⊗-shape-inner` for
---     `decodeP`.  Its term-level content is the reordering of the
---     INTERLEAVED disjoint-block edge stream of `hTensor` back into the
---     tensor `decodeP f ⊗₁ decodeP g` — i.e. the per-swap independent-
---     edge Mac-Lane chase isolated as
---     `Sub.SwapAtomAligned.SwapAtomAlignedResidual.swap-mac-lane-residual`
---     (`= swap-atom-aligned`), the SAME `nf-bracket`/`block-nf` kernel
---     the interchange side bottoms out in.  The explicit link is the
---     kernel statement `ProcessEdges↭Goal (hTensor ⟪f⟫ₚ ⟪g⟫ₚ)
---     (e₁∷e₂∷es) (e₂∷e₁∷es) s` under `IndependentSwap`: the `hTensor`
---     edge stream `map injL (range G.nE) ++ map injR (range K.nE)`
---     must be reordered into the two PER-SIDE runs, and each adjacent
---     transposition of a G-edge past a K-edge (disjoint blocks ⇒
---     `IndependentSwap`) is exactly one `swap-atom-aligned` step.  The
---     kernel lives in `Sub.SwapAtomAligned` / `Sub.ProcessTermAligned`,
---     both of which require `APROPSignatureDec`; this `sig`-level module
---     therefore cannot IMPORT it, so the link is recorded as the doc of
---     the `decodeP-⊗-shape` field, not as a defined alias.
---
--- So the SOLE pruning-specific trust of `decode-rel-≈-decodeP`, after
--- this factoring, is `DecodePShapeResiduals` — and BOTH its fields are
--- the pruned mirror of an obligation the unpruned proof already trusts
--- (`decode-∘-shape-inner`, `decode-⊗-shape-inner`), with the `⊗` one
--- confirmedly the `swap-atom-aligned` kernel.
---
--- ## Status
---
---   * `pe-term-++` — PROVEN (term-level `_++_` factoring of
---     `process-edges`, generic in `H`; the building block of the pruned
---     `∘` shape's block-decomposition).
---   * `DecodePShapeResiduals` — the two narrowed pruned shape residuals.
---   * `decodeP-≈-decode-∘-from` / `decodeP-≈-decode-⊗-from` — the
---     factoring assemblers (PROVEN; consume the pruned shapes + the
---     recursion + the unpruned shapes).
---
--- No `--with-K`-specific axioms; the only postulates are the two pruned
--- shape residual record fields (mirroring the unpruned trust surface).
+-- So the SOLE pruning-specific trust of `decode-rel-≈-decodeP`, after this
+-- factoring, is `DecodePShapeResiduals`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -131,8 +66,8 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeStepRelation 
          edge-step-graph)
 
 -- The eval-coincidence (injective relabel ⇒ same evaluated bijection) and
--- the `FaithfulnessResidual` keystone interface.  Both need ONLY the
--- injective + label-preserving embedding data, NOT a full iso.
+-- the `FaithfulnessResidual` keystone.  Both need ONLY the injective +
+-- label-preserving embedding data, NOT a full iso.
 open import Categories.Hypergraph.ExtractPrefixEvalPhi using (eval-coincide)
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
@@ -157,9 +92,8 @@ private
 --------------------------------------------------------------------------------
 -- ## §1. The pruned decoder `decodeP`.
 --
--- Replicated here so the residual record fields can be stated in terms
--- of it without importing `DecodeRelDecodeP` (which would create a
--- cycle, since `DecodeRelDecodeP` imports this module).
+-- Replicated here so the residual record fields can be stated without
+-- importing `DecodeRelDecodeP` (which would create a cycle).
 
 decodeP : ∀ {A B} (f : HomTerm A B)
         → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
@@ -168,36 +102,27 @@ decodeP {A} {B} f =
          (proj₁ (decode-attempt-LinearP f))
 
 --------------------------------------------------------------------------------
--- ## §2. The term-level `_++_` factoring of `process-edges` — PROVEN.
+-- ## §2. The term-level `_++_` factoring of `process-edges`.
 --
 -- Running `ps ++ rest` from a stack `s` is, on the TERM level, running
--- `rest` from the post-`ps` stack precomposed with running `ps` from
--- `s`, modulo the codomain transport along the STACK factoring
--- (`process-edges-++-stack`, which is propositional because
--- `process-edges` inducts under `with edge-step`).
---
--- This is the standalone, generic-`H`, importable form of
--- `SwapStep.PerHG.process-edges-++-≈` (which lives inside a `--without-K`
--- per-hypergraph module and is not directly reusable here).  It is the
+-- `rest` from the post-`ps` stack precomposed with running `ps` from `s`,
+-- modulo the codomain transport along the STACK factoring.  It is the
 -- building block of the pruned `∘` shape's block-decomposition: the
--- `hComposeP` edge list `range (G.nE + K.nE)` factors as `map injL
--- (range G.nE) ++ map remapP… (range K.nE)`, and `pe-term-++` peels the
--- composite term into the f-block term then the g-block term.
+-- `hComposeP` edge list factors as `map injL (range G.nE) ++ map remapP…
+-- (range K.nE)`, and `pe-term-++` peels the composite term into the
+-- f-block term then the g-block term.
 
 module _ (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
 
-  -- Stack of running `o` from stack `s`.
   pe-stack : List (Fin H.nE) → List (Fin H.nV) → List (Fin H.nV)
   pe-stack o s = proj₁ (process-edges H o s)
 
-  -- Composed term of running `o` from stack `s`.
   pe-term : (o : List (Fin H.nE)) (s : List (Fin H.nV))
           → HomTerm (unflatten (map H.vlab s))
                     (unflatten (map H.vlab (pe-stack o s)))
   pe-term o s = proj₂ (process-edges H o s)
 
-  -- Codomain transport along a stack equality.
   coe-cod
     : ∀ {d : List (Fin H.nV)} {s s' : List (Fin H.nV)} → s ≡ s'
     → HomTerm (unflatten (map H.vlab d)) (unflatten (map H.vlab s))
@@ -206,10 +131,8 @@ module _ (H : Hypergraph FlatGen) where
                                          (unflatten (map H.vlab z)))
                           eq
 
-  -- The STACK `_++_`-factoring of `process-edges` (re-derived here so
-  -- the term factoring is self-contained — it is the same statement as
-  -- `DecodeAttempt.process-edges-++-stack H`, proved by induction on the
-  -- prefix `ps`).
+  -- The STACK `_++_`-factoring of `process-edges` (re-derived here so the
+  -- term factoring is self-contained).  Induction on the prefix `ps`.
   pe-stack-++
     : ∀ (ps rest : List (Fin H.nE)) (s : List (Fin H.nV))
     → pe-stack (ps ++ rest) s ≡ pe-stack rest (pe-stack ps s)
@@ -217,8 +140,8 @@ module _ (H : Hypergraph FlatGen) where
   pe-stack-++ (e ∷ ps) rest s with edge-step H s e
   ... | s' , _ = pe-stack-++ ps rest s'
 
-  -- The TERM `_++_`-factoring — PROVEN by induction on `ps`, using
-  -- `assoc` to re-bracket the per-edge term out of the recursion.
+  -- The TERM `_++_`-factoring.  Induction on `ps`, using `assoc` to
+  -- re-bracket the per-edge term out of the recursion.
   pe-term-++
     : ∀ (ps rest : List (Fin H.nE)) (s : List (Fin H.nV))
     → pe-term (ps ++ rest) s
@@ -245,28 +168,23 @@ module _ (H : Hypergraph FlatGen) where
       coe-cod-assoc refl g f t0 = assoc
 
 --------------------------------------------------------------------------------
--- ## §3. The two narrowed PRUNED shape residuals.
---
--- These are the pruned mirror of `DecodeShape.DecodeShapeResiduals`,
--- stated with `decodeP` (pruned).  They are the SOLE pruning-specific
--- trust the `∘`/`⊗` bridges reduce to.
+-- ## §3. The two PRUNED shape residuals — the pruned mirror of
+-- `DecodeShape.DecodeShapeResiduals`, stated with `decodeP`.  These are
+-- the SOLE pruning-specific trust the `∘`/`⊗` bridges reduce to.
 
 record DecodePShapeResiduals : Set where
   field
     -- The pruned `∘` shape.  Constructive content: `pe-term-++` on the
-    -- `hComposeP` edge list + the term-level G-side (`injL`) / K-side
-    -- (`remapP`) liftings + the `domL-hComposeP` / `codL-hComposeP`
-    -- boundary reconciliation.  Structurally identical to the unpruned
-    -- `decode-∘-shape-inner` (with `decode` → `decodeP`,
-    -- `hCompose` → `hComposeP`).
+    -- `hComposeP` edge list + the G-side (`injL`) / K-side (`remapP`)
+    -- liftings + the `domL-hComposeP` / `codL-hComposeP` boundary
+    -- reconciliation.
     decodeP-∘-shape
       : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
       → decodeP (g ∘ f) ≈Term decodeP g ∘ decodeP f
 
-    -- The pruned `⊗` shape.  Tensor is NOT pruned, so this is the
-    -- analogue of `decode-⊗-shape-inner` for `decodeP`; its term-level
+    -- The pruned `⊗` shape.  Tensor is NOT pruned, so its term-level
     -- content is the interleaved disjoint-block reordering =
-    -- `swap-atom-aligned` (confirmed by `confirm-⊗-bottoms-out`).
+    -- `swap-atom-aligned`.
     decodeP-⊗-shape
       : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
       → decodeP (f ⊗₁ g)
@@ -275,22 +193,18 @@ record DecodePShapeResiduals : Set where
            ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
 
 --------------------------------------------------------------------------------
--- ## §4. The factoring assemblers — PROVEN.
+-- ## §4. The factoring assemblers.
 --
--- Given a `DecodePShapeResiduals` instance, the unpruned shape residuals
--- (as `≈Term` functions), and the structural recursion `rec`, derive the
--- two bridges.  These match the EXACT types of the postulates
--- `decodeP-≈-decode-∘` / `decodeP-≈-decode-⊗` in `DecodeRelDecodeP`.
---
--- The `decode`/`decodeP` arguments are passed as parameters (rather than
--- imported) to avoid a cycle and to keep this module's only `sig`-level
--- dependency the pruned decoder.
+-- Given a `DecodePShapeResiduals` instance, the unpruned shape residuals,
+-- and the structural recursion results, derive the two bridges.  These
+-- match the types of `decodeP-≈-decode-∘` / `decodeP-≈-decode-⊗` in
+-- `DecodeRelDecodeP`.  `decode`/`decodeP` are parameters (not imported) to
+-- avoid a cycle.
 
 module Assemble
   (decode : ∀ {A B} (f : HomTerm A B)
           → HomTerm (unflatten (flatten A)) (unflatten (flatten B)))
-  -- The UNPRUNED shape residuals, surfaced as `≈Term` functions (the
-  -- caller supplies them from `DecodeShapeResiduals`).
+  -- The UNPRUNED shape residuals (from the caller's `DecodeShapeResiduals`).
   (decode-∘-shape
     : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
     → decode (g ∘ f) ≈Term decode g ∘ decode f)
@@ -310,10 +224,9 @@ module Assemble
   --                 ≈ decode  g ∘ decode  f   [recursion under ∘]
   --                 ≈ decode (g∘f)            [sym unpruned ∘ shape]
   --
-  -- The recursion RESULTS `recg : decodeP g ≈Term decode g` and
-  -- `recf : decodeP f ≈Term decode f` are passed in directly (rather
-  -- than a recursion function), so the caller's termination checker sees
-  -- the structural decrease at the `decodeP-≈-decode g`/`f` call sites.
+  -- The recursion RESULTS are passed in directly (rather than a recursion
+  -- function), so the caller's termination checker sees the structural
+  -- decrease at the `decodeP-≈-decode g`/`f` call sites.
   decodeP-≈-decode-∘-from
     : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
     → decodeP g ≈Term decode g
@@ -343,46 +256,34 @@ module Assemble
 --------------------------------------------------------------------------------
 -- ## §5. The TERM-tracking `process-edges` extraction lemmas (the GATE).
 --
--- These are the term-level twins of the STACK-level liftings in
--- `DecodeAttempt`/`DecodeAttemptLinearP` (`process-edges-↑ˡ-pure-L`,
--- `process-edges-↑ʳ-via-remap{,P}`, `process-edges-↑ˡ-on-mixed`,
--- `process-edges-↑ʳ-on-perm`).  Where the stack liftings track only
--- `proj₁` (the stack) and leave the per-edge term opaque behind an
--- existential `∃[ t ]`, these expose `proj₂` — the actual composed
--- HomTerm — as the relabel-transport of the SUB-decoder's term.
+-- The term-level twins of the STACK-level liftings in
+-- `DecodeAttempt`/`DecodeAttemptLinearP`: where those track only the
+-- stack (leaving the per-edge term opaque), these expose the composed
+-- HomTerm as the relabel-transport of the SUB-decoder's term.
 --
 -- ### The embedding abstraction
 --
--- All four stack liftings instantiate ONE pattern: an *injective,
--- label-preserving vertex embedding* `φ : Fin H.nV → Fin J.nV` together
--- with an edge map `ψ : Fin H.nE → Fin J.nE` whose endpoints/labels are
--- the `map φ`-image of `H`'s.  This is exactly the data of a hypergraph
--- iso (`Iso._≅ᴴ_`) MINUS surjectivity (`φ⁻¹`/`φ-rght`/`ψ⁻¹`/…), which
--- the per-edge term reduction never uses (only `φ-inj` from a left
--- inverse, `φ-lab`, `ψ-ein`/`ψ-eout`, and the atom-level `ψ-elab`).
+-- All the stack liftings instantiate ONE pattern: an injective,
+-- label-preserving vertex embedding `φ : Fin H.nV → Fin J.nV` with an edge
+-- map `ψ : Fin H.nE → Fin J.nE` whose endpoints/labels are the `map
+-- φ`-image of `H`'s.  This is the data of a hypergraph iso MINUS
+-- surjectivity, which the per-edge term reduction never uses.
 --
---   * G-side of hCompose/hComposeP : `φ = injL`, `ψ = _↑ˡ K.nE`
---     (`vlab-injL`, `ein-c-inj₁-red`, `eout-c-inj₁-red`, `elab-c-inj₁`).
---   * K-side of hCompose/hComposeP : `φ = remap{,P}`, `ψ = G.nE ↑ʳ_`
---     (`remap-vlab`, `ein-c-inj₂-red`, …), run on a permutation-equivalent
---     stack (handled by `process-edges-term-emb` taking the stack as
---     `map φ s` literally, after the caller absorbs the `↭` via the
---     stack-level lifting).
+--   * G-side of hCompose/hComposeP : `φ = injL`, `ψ = _↑ˡ K.nE`.
+--   * K-side of hCompose/hComposeP : `φ = remap{,P}`, `ψ = G.nE ↑ʳ_`, run
+--     on a permutation-equivalent stack.
 --
--- The proof mirrors `EdgeStepNaturality` (over `EdgeStepR`),
--- but parameterised by the embedding rather than an iso.  The two
--- residual obligations of the per-edge FIRE case are:
---   * box factor — PROVEN here (`fire-mid-emb`, via `box-of-cong`);
---   * permute factor — reduced to the keystone `K` (`fire-perm-emb`,
---     via `eval-coincide` + `permute-resp-≅↭`).
+-- The proof mirrors `EdgeStepNaturality` (over `EdgeStepR`), but
+-- parameterised by the embedding rather than an iso.  The two residual
+-- obligations of the per-edge FIRE case are:
+--   * box factor — `fire-mid-emb`, via `box-of-cong`;
+--   * permute factor — reduced to the keystone `K` (`fire-perm-emb`, via
+--     `eval-coincide` + `permute-resp-≅↭`).
 --
--- `objUIP` (UIP on `ObjTerm`, available from `DecidableEquality X` via
--- `Discharge.ObjUIP.objUIP′`) is taken as a parameter exactly as in
--- `EdgeStepNaturality`.
+-- `objUIP` (UIP on `ObjTerm`) is a parameter, as in `EdgeStepNaturality`.
 --------------------------------------------------------------------------------
 
--- ≈Term / subst₂ plumbing (refl-pattern; local copies as in
--- `EdgeStepNaturality` §0).
+-- ≈Term / subst₂ plumbing.
 private
   ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
   ≡⇒≈Term refl = ≈-Term-refl
@@ -398,8 +299,6 @@ private
   subst₂-HomTerm-id : ∀ {A B} (p : A ≡ B) → subst₂ HomTerm p p id ≡ id
   subst₂-HomTerm-id refl = refl
 
-  -- `subst₂ HomTerm` distributes over `∘`: shared leaf `HomTermTransport`
-  -- (this file is `--with-K`, so the import is co-infectivity-clean).
   open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
     using (subst₂-∘-distrib)
 
@@ -453,7 +352,8 @@ module TermEmbed
   vlab-φ : ∀ (s : List (Fin H.nV)) → map J.vlab (map φ s) ≡ map H.vlab s
   vlab-φ s = trans (sym (map-∘ s)) (map-cong φ-lab s)
 
-  -- J-side extract-prefix results lock-step with the H-side ones.
+  -- J-side extract-prefix results lock-step with the H-side ones, via the
+  -- injective lemmas transported along `ψ-ein`.
   extract-prefix-J-nothing
     : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
     → extract-prefix (H.ein e) sH ≡ nothing
@@ -617,8 +517,6 @@ module TermEmbed
 
   --------------------------------------------------------------------
   -- Per-edge STACK agreement, derived from the relation (lock-step).
-  -- (The existing STACK liftings prove this for the concrete G/K cases;
-  -- here it falls out of `edge-step-term-emb`'s case split for free.)
 
   edge-step-stack-emb
     : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
@@ -644,16 +542,9 @@ module TermEmbed
                      (sym (map-++ φ (H.eout e) restH)))
 
   --------------------------------------------------------------------
-  -- The ITERATED `process-edges` term-twin (the GATE).
-  --
-  --   subst₂ HomTerm (vlab-φ sH) (vlab-φ (proc-stack es sH))
-  --     (proj₂ (process-edges J (map ψ es) (map φ sH)))
-  --   ≈Term proj₂ (process-edges H es sH)
-  --
-  -- modulo the stack agreement `proc-stack-emb` (J-side stack is the
-  -- `map φ`-image of H's).  This exposes the J-side composed term as the
-  -- relabel-transport of the H-side composed term — exactly the
-  -- `decode-attempt` block-decomposition the shape residuals consume.
+  -- The ITERATED `process-edges` term-twin (the GATE).  Exposes the
+  -- J-side composed term as the relabel-transport of the H-side composed
+  -- term — exactly the block-decomposition the shape residuals consume.
 
   -- J-side stack agreement, iterated.
   proc-stack-emb
@@ -667,16 +558,12 @@ module TermEmbed
   ... | _ | stepEq
       rewrite stepEq = proc-stack-emb es (proj₁ (edge-step H sH e))
 
-  -- The iterated term-twin, GENERALISED over the J-start stack `sJ`
-  -- (with `sJ ≡ map φ sH`) so the head-step's post-stack equality
-  -- (`edge-step-stack-emb`) threads cleanly into the recursion — and
-  -- the two `subst₂`s recombine over `∘` (`subst₂-∘-distrib`).
-  --
-  -- Both boundary equalities are taken as ARBITRARY list-equations
-  -- `pDom`/`pCod`; `subst₂-id-≈`/`objUIP` collapse the (necessarily
-  -- equal-endpoint) loops, so the conclusion is independent of which
-  -- equality proofs are supplied — this is what makes the recursion
-  -- well-typed without pinning the proc-stack equation by `with`.
+  -- The iterated term-twin, GENERALISED over the J-start stack `sJ` (with
+  -- `sJ ≡ map φ sH`) so the head-step's post-stack equality threads into
+  -- the recursion.  Both boundary equalities are ARBITRARY list-equations;
+  -- `subst₂-id-≈`/`objUIP` collapse the loops, so the conclusion is
+  -- independent of which equality proofs are supplied — this makes the
+  -- recursion well-typed without pinning the proc-stack equation by `with`.
   process-edges-term-emb-gen
     : ∀ (es : List (Fin H.nE)) (sH : List (Fin H.nV))
         (sJ : List (Fin J.nV)) (sJ≡ : sJ ≡ map φ sH)
@@ -699,9 +586,8 @@ module TermEmbed
       pMid : map J.vlab s'J ≡ map H.vlab s'H
       pMid = trans (cong (map J.vlab) stepStk) (vlab-φ s'H)
 
-      -- Head-step term twin: read off `edge-step-term-emb` (over the
-      -- relation witnesses), then bridge its fixed `vlab-φ sH`/`pMid`
-      -- transports to the supplied `pDom`/`pMid` via `objUIP`.
+      -- Head-step term twin: `edge-step-term-emb`, with its fixed
+      -- transports bridged to the supplied `pDom`/`pMid` via `objUIP`.
       headTwin
         : subst₂ HomTerm (cong unflatten pDom) (cong unflatten pMid)
             (proj₂ (edge-step J (map φ sH) (ψ e)))

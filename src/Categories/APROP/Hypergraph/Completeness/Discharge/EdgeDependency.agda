@@ -1,22 +1,10 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The edge dependency relation of a hypergraph, and the fact that a
--- hypergraph isomorphism is an isomorphism of that relation ("Lemma A").
---
--- The *immediate dependency relation* on edges is
---
---     e ≺ e'  :=  ∃ vertex v.  v ∈ eout e  ×  v ∈ ein e'
---
--- i.e. some wire produced by `e` is consumed by `e'`.  An isomorphism
--- `Φ : H ≅ᴴ J` carries a vertex bijection `φ` and an edge bijection `ψ`
--- with `J.eout (ψ e) ≡ map φ (H.eout e)` and `J.ein (ψ e) ≡ map φ (H.ein e)`
--- (fields `ψ-eout`, `ψ-ein`).  Lemma A says
---
---     e ≺_H e'   ⟺   ψ e ≺_J ψ e'.
---
--- This is a standalone sketch module; it is not wired into the
--- completeness proof and modifies no other file.
+-- The immediate edge-dependency relation `e ≺ e' := ∃ v. v ∈ eout e ×
+-- v ∈ ein e'` (a wire produced by `e` is consumed by `e'`), and Lemma A:
+-- a hypergraph isomorphism `Φ : H ≅ᴴ J` is an isomorphism of `_≺_`,
+--     e ≺_H e'  ⟺  ψ e ≺_J ψ e'.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency where
@@ -40,7 +28,6 @@ module _ {X : Set} {Gen : List X → List X → Set} where
   open Hypergraph
 
   -- `Dep G e e'`: edge `e` produces a wire that edge `e'` consumes.
-  -- (Written `e ≺[ G ] e'` via the syntax declaration below.)
   Dep : (G : Hypergraph Gen) → Fin (nE G) → Fin (nE G) → Set
   Dep G e e' = ∃[ v ] (v ∈ eout G e × v ∈ ein G e')
 
@@ -52,11 +39,10 @@ module _ {X : Set} {Gen : List X → List X → Set} where
 module _ {A B : Set} (φ : A → B)
          (φ-inj : ∀ {x y} → φ x ≡ φ y → x ≡ y) where
 
-  -- Forward: membership is preserved by `map φ`.  (Just stdlib `∈-map⁺`.)
   ∈-mapφ⁺ : ∀ {v} {l : List A} → v ∈ l → φ v ∈ map φ l
   ∈-mapφ⁺ = ∈-map⁺ φ
 
-  -- Backward: from `φ v ∈ map φ l` recover `v ∈ l`, using injectivity of φ.
+  -- From `φ v ∈ map φ l` recover `v ∈ l`, using injectivity of φ.
   ∈-mapφ⁻ : ∀ {v} {l : List A} → φ v ∈ map φ l → v ∈ l
   ∈-mapφ⁻ {v} {l} φv∈ with ∈-map⁻ φ φv∈
   ... | w , w∈l , φv≡φw = subst (_∈ l) (sym (φ-inj φv≡φw)) w∈l
@@ -73,7 +59,6 @@ module _ {X : Set} {Gen : List X → List X → Set}
     module H = Hypergraph H
     module J = Hypergraph J
 
-  -- φ is injective: φ-left exhibits φ⁻¹ as a left inverse.
   φ-inj : ∀ {x y} → φ x ≡ φ y → x ≡ y
   φ-inj {x} {y} eq = trans (sym (φ-left x)) (trans (cong φ⁻¹ eq) (φ-left y))
 
@@ -87,8 +72,8 @@ module _ {X : Set} {Gen : List X → List X → Set}
   -- Backward direction of Lemma A.
   ψ≺⇒≺ : ∀ {e e'} → ψ e ≺[ J ] ψ e' → e ≺[ H ] e'
   ψ≺⇒≺ {e} {e'} (w , w∈out , w∈in)
-    -- The shared vertex `w` lives in `J.eout (ψ e) ≡ map φ (H.eout e)`,
-    -- hence `w ≡ φ v` for some `v ∈ H.eout e`.
+    -- `w ∈ J.eout (ψ e) = map φ (H.eout e)`, so `w ≡ φ v` for some
+    -- `v ∈ H.eout e`.
     with ∈-map⁻ φ (subst (w ∈_) (ψ-eout e) w∈out)
   ... | v , v∈out , w≡φv =
     v
@@ -102,13 +87,5 @@ module _ {X : Set} {Gen : List X → List X → Set}
   lemmaA : ∀ {e e'} → (e ≺[ H ] e') ⇔ (ψ e ≺[ J ] ψ e')
   lemmaA = mk⇔ ≺⇒ψ≺ ψ≺⇒≺
 
-  -- Conventional name.
   ≺-resp-≅ᴴ : ∀ {e e'} → (e ≺[ H ] e') ⇔ (ψ e ≺[ J ] ψ e')
   ≺-resp-≅ᴴ = lemmaA
-
---------------------------------------------------------------------------------
--- The dependency *order* is the transitive closure of `_≺[ H ]_`.  Since
--- `ψ` is a bijection on edges and `lemmaA` transports `_≺_` in both
--- directions edge-by-edge, the closure is likewise transported (an easy
--- induction on `Relation.Binary.Construct.Closure.Transitive.Plus′`).
--- We leave the closure lift out of this first sketch.

@@ -1,19 +1,11 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Hypergraph isomorphism (TensorRocq §3.2). Two hypergraphs with the
--- same boundary atoms `(As, Bs)` are isomorphic when there is a
--- bijection of vertices and a bijection of edges that preserves
--- labels, endpoints, and the ordered boundary.
---
--- The record carries the bijection data primitively, plus two derived
--- atom-list equalities (`atom-ein`, `atom-eout`) that we expose as
--- fields so the reflexivity/sym/trans constructions can hand in
--- `refl`-like witnesses where possible.
---
--- This file just defines the relation and proves it is an equivalence.
--- Soundness of the translation (`⟪_⟫` preserves `_≈Term_`) is in
--- `Hypergraph.Soundness`.
+-- Hypergraph isomorphism (TensorRocq §3.2): two hypergraphs are isomorphic
+-- when there is a bijection of vertices and a bijection of edges that
+-- preserves labels, endpoints, and the ordered boundary.  Defines the
+-- relation and proves it is an equivalence; translation soundness lives
+-- in `Hypergraph.Soundness`.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Iso where
@@ -98,9 +90,8 @@ module _ {X : Set} {Gen : List X → List X → Set} where
       φ-dom  : K.dom ≡ map φ G.dom
       φ-cod  : K.cod ≡ map φ G.cod
 
-      -- Atom-list equalities at each edge. These are implied by the
-      -- fields above (via `φ-lab` and `ψ-ein`/`ψ-eout`) but we keep
-      -- them as fields so callers can supply `refl`-ish witnesses.
+      -- Atom-list equalities at each edge.  Implied by the fields above,
+      -- but kept as fields so callers can supply `refl`-ish witnesses.
       atom-ein  : ∀ e → map K.vlab (K.ein  (ψ e)) ≡ map G.vlab (G.ein e)
       atom-eout : ∀ e → map K.vlab (K.eout (ψ e)) ≡ map G.vlab (G.eout e)
 
@@ -173,11 +164,7 @@ module _ {X : Set} {Gen : List X → List X → Set} where
       map-φφ⁻¹ ys = trans (sym (map-∘ ys))
                    (trans (map-cong φ-rght ys) (map-id ys))
 
-      -- ein equation in the flipped direction.
-      --   G.ein (ψ⁻¹ e)
-      -- = map φ⁻¹ (map φ (G.ein (ψ⁻¹ e)))   -- by map-φ⁻¹φ, sym
-      -- = map φ⁻¹ (K.ein (ψ (ψ⁻¹ e)))       -- by sym ψ-ein
-      -- = map φ⁻¹ (K.ein e)                 -- by ψ-rght
+      -- ein equation in the flipped direction (via map-φ⁻¹φ + ψ-rght).
       ein-sym : ∀ e → G.ein (ψ⁻¹ e) ≡ map φ⁻¹ (K.ein e)
       ein-sym e =
         trans (sym (map-φ⁻¹φ (G.ein (ψ⁻¹ e))))
@@ -200,7 +187,6 @@ module _ {X : Set} {Gen : List X → List X → Set} where
       cod-sym = trans (sym (map-φ⁻¹φ G.cod))
                       (sym (cong (map φ⁻¹) φ-cod))
 
-      -- Atom equalities derived by `sym` and transporting along ψ-rght.
       atom-ein-sym : ∀ e → map G.vlab (G.ein (ψ⁻¹ e)) ≡ map K.vlab (K.ein e)
       atom-ein-sym e =
         trans (sym (atom-ein (ψ⁻¹ e)))
@@ -211,7 +197,6 @@ module _ {X : Set} {Gen : List X → List X → Set} where
         trans (sym (atom-eout (ψ⁻¹ e)))
               (cong (λ z → map K.vlab (K.eout z)) (ψ-rght e))
 
-      -- Helper: K.elab at equal indices.
       K-elab-cong : ∀ {e₁ e₂} (eq : e₁ ≡ e₂)
                   → K.elab e₂ ≡ subst₂ Gen
                                   (cong (λ z → map K.vlab (K.ein z)) eq)
@@ -224,7 +209,7 @@ module _ {X : Set} {Gen : List X → List X → Set} where
                        ≡ K.elab e
       elab-sym e =
         let
-          -- start from the original ψ-elab at (ψ⁻¹ e)
+          -- original ψ-elab at (ψ⁻¹ e)
           step₁ : subst₂ Gen (atom-ein (ψ⁻¹ e)) (atom-eout (ψ⁻¹ e))
                     (K.elab (ψ (ψ⁻¹ e)))
                   ≡ G.elab (ψ⁻¹ e)
@@ -348,7 +333,6 @@ module _ {X : Set} {Gen : List X → List X → Set} where
         ≡ G.elab e
       elab-trans e =
         let
-          -- Applying iso₂'s ψ-elab at (ψ₁ e) and iso₁'s ψ-elab at e.
           step₂ : subst₂ Gen (I₂.atom-ein (ψ₁ e)) (I₂.atom-eout (ψ₁ e))
                              (K.elab (ψ₂ (ψ₁ e)))
                   ≡ H.elab (ψ₁ e)
@@ -359,7 +343,6 @@ module _ {X : Set} {Gen : List X → List X → Set} where
                   ≡ G.elab e
           step₁ = I₁.ψ-elab e
 
-          -- Chain via subst₂-trans.
           chained : subst₂ Gen (trans (I₂.atom-ein (ψ₁ e)) (I₁.atom-ein e))
                                 (trans (I₂.atom-eout (ψ₁ e)) (I₁.atom-eout e))
                                 (K.elab (ψ₂ (ψ₁ e)))
@@ -374,18 +357,6 @@ module _ {X : Set} {Gen : List X → List X → Set} where
 
 
 --------------------------------------------------------------------------------
--- `subst₂` on the boundary indices preserves `_≅ᴴ_`. By J on both
--- equality proofs at refl, the iso passes through unchanged.
---
--- Used by ρ/α soundness proofs to chain
---   `subst₂ _ eq₁ eq₃ G₁ ≅ᴴ subst₂ _ eq₁ eq₃ G₂`
--- from a base iso `G₁ ≅ᴴ G₂`.
-
---------------------------------------------------------------------------------
--- DE-INDEXED REFACTOR PAYOFF: the old indexed Iso.agda exposed
--- `subst₂-resp-≅ᴴ`, `nV-subst₂`, `nE-subst₂`, `vlab-subst₂`,
--- `dom-subst₂`, `cod-subst₂` (~50 LOC), each a refl-refl pattern
--- match shuffling `subst₂ (Hypergraph Gen)` past a record projection.
--- With the de-indexed `Hypergraph Gen` (no As, Bs in the type) all
--- of these are now equalities between identical terms — definitionally
--- `refl` and not needed.
+-- With the de-indexed `Hypergraph Gen`, the `subst₂`-on-boundary
+-- compatibility lemmas the indexed version needed are now definitional
+-- `refl` and no longer required.

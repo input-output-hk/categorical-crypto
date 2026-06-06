@@ -1,47 +1,17 @@
--- Discharge of the `decodeOrd-boundary-resp-≈` residual postulated in
--- `DecodeRelRespIsoWired.agda`.
+-- Discharges the `decodeOrd-boundary-resp-≈` residual of
+-- `DecodeRelRespIsoWired`, GIVEN K.  It relates the two natural-order
+-- decodings of `⟪f⟫` and `⟪g⟫` (at the `flatten` boundary), with content:
 --
--- ## What this module proves (GIVEN K)
+--   (K₁) The two `Valid ⟪f⟫ (range)` witnesses derive the same endpoints,
+--        so their final `permute-via-vlab` factors agree by K
+--        (`permute-resp-≅↭`); the `≅↭` hypothesis comes for free from
+--        `eval-rigid` since the vertex-level `cod ⟪f⟫` is `Unique`.
+--   (K₂) Pure `subst₂`-transport algebra for the boundary, needing UIP
+--        on `ObjTerm`.
 --
--- The residual `decodeOrd-boundary-resp-≈` relates the two natural-order
--- decodings of `⟪f⟫` and `⟪g⟫` (transported to the user-facing `flatten`
--- boundary) given the wiring's iso-boundary hypothesis.  Its ONLY genuine
--- mathematical content is:
---
---   (K₁) Two `Valid ⟪f⟫ (range)` witnesses — `vrange f` (from totality)
---        and `vH` (threaded from the wiring) — are two `↭`-derivations of
---        the SAME endpoints `finalStack (range) ↭ cod ⟪f⟫`.  Their final
---        `permute-via-vlab` factors therefore agree up to `≈Term` by the
---        Kelly faithfulness residual `FaithfulnessResidual.permute-resp-≅↭`.
---        The `≅↭` (equal-evaluated-bijection) hypothesis it needs is
---        discharged FOR FREE by rigidity (`eval-rigid`, inlined below)
---        because the vertex-level codomain `cod ⟪f⟫` is `Unique`
---        (`⟪_⟫-cod-unique`).
---
---   (K₂) Pure `subst₂`-transport algebra for the boundary equalities,
---        which needs UIP on `ObjTerm` (the composite boundary paths agree).
---
--- Both K-inputs are taken as EXPLICIT module parameters:
---
---   * `K  : FaithfulnessResidual` — the TRUE Kelly residual that gates the
---     final-permute throughout this development (a record value, defined in
---     the `--without-K` module `PermuteCoherence.Faithfulness`).
---   * `objUIP` — uniqueness-of-identity-proofs on `ObjTerm` (a K-consequence
---     taken as a hypothesis so the module stays `--without-K`-importable).
---
--- Hence the headline lemma `decodeOrd-boundary-resp-≈` is proved **given K**,
--- with NO new postulate.  This mirrors `Discharge/Sub/StackEvalCoherence.agda`:
--- two `↭`-derivations into the same `Unique` codomain evaluate to the same
--- FinBij via `eval-rigid`, then K closes the gap; the boundary `subst₂` is
--- pure transport algebra.
---
--- ## --without-K
---
--- This module is `--without-K`.  Co-infectivity forbids importing the
--- `--with-K` modules `PermuteCoherence.{Rigid,Map}`, so the (intrinsically
--- K-free, J-only) helpers `eval-rigid`, `eval-map⁺`, `subst₂-FinBij-≈` are
--- re-derived inline here.  The one genuinely K-dependent fact (UIP on
--- `ObjTerm`) is an explicit parameter, alongside the Kelly residual.
+-- Both K-inputs are explicit parameters (`K`, `objUIP`).  The module is
+-- `--without-K`, so the J-only `eval-rigid`/`eval-map⁺`/`subst₂-FinBij-≈`
+-- helpers are imported from the shared K-free leaf.
 {-# OPTIONS --safe --without-K #-}
 
 open import Categories.APROP
@@ -65,19 +35,13 @@ import Categories.APROP.Hypergraph.Completeness.Discharge.IsoInvarianceWiring si
 open import Categories.APROP.Hypergraph.Completeness.Discharge.DepIrrefl sig
   using (dep-irrefl-⟪⟫)
 
--- The Kelly faithfulness residual K (`permute-resp-≅↭`), exposed as a
--- record in the `--without-K` module `PermuteCoherence.Faithfulness`,
--- parameterised over the APROP `FreeMonoidalData`.
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
 
--- K-free FinBij/eval infrastructure (`--cubical-compatible` modules).
 open import Categories.PermuteCoherence.FinBij
   using (FinBij; _≈-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 
--- The shared `--without-K` FinBij/eval-rigid leaf (the union of the
--- inlined K-free helpers, hosted once in `PermuteCoherence`).
 open import Categories.PermuteCoherence.EvalRigidKFree
   using (eval-rigid; eval-map⁺; subst₂-FinBij-≈)
 
@@ -99,12 +63,7 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 
 ------------------------------------------------------------------------
--- §0. K-FREE helper infrastructure — now imported from the shared leaf
---     `Categories.PermuteCoherence.EvalRigidKFree` (was inlined here).
-------------------------------------------------------------------------
-
-------------------------------------------------------------------------
--- §1. The lemma, GIVEN K (the Kelly residual + ObjTerm-UIP).
+-- The lemma, GIVEN K (the Kelly residual + ObjTerm-UIP).
 ------------------------------------------------------------------------
 
 module _ (K : FaithfulnessResidual)
@@ -113,19 +72,9 @@ module _ (K : FaithfulnessResidual)
 
   ----------------------------------------------------------------------
   -- (K₁) The two validity witnesses agree on their final permute, up to
-  -- ≈Term.
-  --
-  -- `permute-via-vlab vlab v = permute (PermProp.map⁺ vlab v)`
-  -- definitionally (Completeness.Permute = FreeSMC.Steps).  The two
-  -- derivations `map⁺ vlab v` and `map⁺ vlab w` evaluate to the same
-  -- FinBij:
-  --   * `eval-map⁺` rewrites each to `subst₂ FinBij _ _ (eval-↭ v)`,
-  --   * the inner `eval-↭ v ≈-fb eval-↭ w` holds by `eval-rigid` since
-  --     `cod ⟪f⟫` is `Unique` (`⟪_⟫-cod-unique f`),
-  --   * `subst₂-FinBij-≈` transports the equality through the (identical)
-  --     length casts.
-  -- This is exactly the `≅↭` hypothesis of `FaithfulnessResidual`, so K
-  -- (`permute-resp-≅↭`) closes it.
+  -- ≈Term.  Both derivations evaluate to the same FinBij (`eval-rigid`,
+  -- since `cod ⟪f⟫` is `Unique`, transported through `eval-map⁺` +
+  -- `subst₂-FinBij-≈`), which is the `≅↭` hypothesis K needs.
   ----------------------------------------------------------------------
 
   private
@@ -160,8 +109,7 @@ module _ (K : FaithfulnessResidual)
         (PermProp.map⁺ (Hypergraph.vlab ⟪ f ⟫) w)
         (permute-≅↭ f v w)
 
-    -- The two natural-order decodings of `⟪f⟫` differ ONLY in the
-    -- final-permute factor, so they agree up to ≈Term.
+    -- The two decodings differ only in the final-permute factor.
     decodeOrd-witness-coh
       : ∀ {A B} (f : HomTerm A B)
           (v w : IW.PerHG.Valid ⟪ f ⟫ (dep-irrefl-⟪⟫ f) (range (Hypergraph.nE ⟪ f ⟫)))
@@ -200,9 +148,7 @@ module _ (K : FaithfulnessResidual)
     ≈-of-≡ refl = ≈-Term-refl
 
   --------------------------------------------------------------------
-  -- The headline lemma — matches the EXACT type of the
-  -- `decodeOrd-boundary-resp-≈` postulate in `DecodeRelRespIsoWired.agda`
-  -- (with K threaded as the enclosing module argument).
+  -- The headline lemma.
   --------------------------------------------------------------------
 
   decodeOrd-boundary-resp-≈
@@ -220,9 +166,7 @@ module _ (K : FaithfulnessResidual)
         subst₂ HomTerm (cong unflatten (⟪⟫-domL g)) (cong unflatten (⟪⟫-codL g))
           (IW.PerHG.decodeOrd ⟪ g ⟫ (dep-irrefl-⟪⟫ g) (range (Hypergraph.nE ⟪ g ⟫)) vg) )
   decodeOrd-boundary-resp-≈ {A} {B} f g iso vf vg vH wiring≈ =
-    -- LHS ≈ subst₂(df,cf)(dOrd ⟪f⟫ vH)                       [K₁, step1]
-    --     ≈ subst₂(df,cf)(subst₂(di,ci)(dOrd ⟪g⟫))          [wiring≈, step2]
-    --     ≡ subst₂(dg,cg)(dOrd ⟪g⟫)                         [K₂, step3]
+    -- step1 (K₁), step2 (wiring≈), step3 (K₂).
     ≈-Term-trans step1 (≈-Term-trans step2 (≈-of-≡ step3))
     where
       df  = cong unflatten (⟪⟫-domL f)

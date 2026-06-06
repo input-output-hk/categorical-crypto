@@ -8,19 +8,14 @@
 -- all hold, produce the iso record. If any invariant fails, return
 -- `nothing`.
 --
--- Every proof field is verified by decidable checks against `_≟X_`,
--- `_≟-mor_`, and `_≟F_`. The trickiest is `ψ-elab` — edge-label
--- equality at the `FlatGen` level. Because `flatten : ObjTerm →
--- List X` is not injective, direct pattern matching on two `flat f,
--- flat g : FlatGen As Bs` gets stuck on the unification
--- `flatten A ≟ flatten A'`. We sidestep this via a `FlatView` record
--- that stores each value as `(A, B, ok-A, ok-B, f)` with explicit
--- equalities — no stuck unification at the extraction site.
---
--- The resulting `flat-match` is conservative: it returns `just (f ≡ g)`
--- when `A, B` agree on both sides and `f ≟-mor g`, and `nothing`
--- otherwise. That's enough for `findIso`: all its edge matches come
--- from `hGen`-generated edges where hidden indices are preserved.
+-- Every proof field is verified by decidable checks.  The trickiest is
+-- `ψ-elab` (edge-label equality at `FlatGen` level): since `flatten` is not
+-- injective, pattern matching on two `flat f, flat g : FlatGen As Bs` gets
+-- stuck on `flatten A ≟ flatten A'`.  We sidestep this via a `FlatView`
+-- record storing each value with explicit equalities.  The resulting
+-- `flat-match` is conservative (`just` only when the hidden `A, B` agree and
+-- `f ≟-mor g`) — enough for `findIso`, whose edge matches come from
+-- `hGen`-generated edges with preserved hidden indices.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
@@ -103,16 +98,12 @@ view : ∀ {As Bs} (x : FlatGen As Bs) → FlatView x
 view (flat {A} {B} f) = flatV A B refl refl f refl
 
 --------------------------------------------------------------------------------
--- Conservative `flat`-match: compare two values of `FlatGen As Bs` by
--- extracting views and deferring to `_≟-ObjTerm_` and `_≟-mor_`. Returns
--- `just _` only when the hidden `A, B` coincide on both sides and the
--- underlying `mor` values are equal.
+-- Conservative `flat`-match via the views, deferring to `_≟-ObjTerm_` and
+-- `_≟-mor_`.
 
 flat-match : ∀ {As Bs} (x y : FlatGen As Bs) → Maybe (x ≡ y)
 flat-match x y = step (view x) (view y)
   where
-    -- `step` takes the two views and dispatches on `A ≟-ObjTerm A'`
-    -- and `B ≟-ObjTerm B'`.
     step : FlatView x → FlatView y → Maybe (x ≡ y)
     step (flatV A B ok-A ok-B f ok-x) (flatV A' B' ok-A' ok-B' g ok-y) =
       dispatch (A ≟-ObjTerm A') (B ≟-ObjTerm B')
@@ -120,9 +111,6 @@ flat-match x y = step (view x) (view y)
         dispatch : _ → _ → Maybe (x ≡ y)
         dispatch (yes refl) (yes refl) = compare (f ≟-mor g)
           where
-            -- When A ≡ A' and B ≡ B', `f` and `g` are both in `mor A B`
-            -- and we can use `_≟-mor_`. The equality of `x, y` follows
-            -- from composing `ok-x, ok-y` around `cong (subst₂ …) (cong flat p)`.
             compare : _ → Maybe (x ≡ y)
             compare (yes p) =
               just (trans (sym ok-x)
@@ -130,8 +118,7 @@ flat-match x y = step (view x) (view y)
                           (trans (help-subst-eq ok-A ok-A' ok-B ok-B' (flat g))
                                  ok-y)))
               where
-                -- Two `subst₂` transports with equal sources/targets
-                -- are equal via UIP on the equality proofs.
+                -- Two `subst₂` transports with equal endpoints are equal (UIP).
                 help-subst-eq
                   : ∀ {A₁ A₂ B₁ B₂ : List X}
                       (p₁ p₂ : A₁ ≡ A₂) (q₁ q₂ : B₁ ≡ B₂)
@@ -157,9 +144,8 @@ module Verify (H J : Hypergraph FlatGen)
     _≟LF-J_ : DecidableEquality (List (Fin J.nV))
     _≟LF-J_ = ≡-dec _≟F_
 
-    -- Derive `map J.vlab ys ≡ map H.vlab xs` from `ys ≡ map φ xs` and
-    -- `J.vlab (φ i) ≡ H.vlab i`. Used to turn ψ-ein/ψ-eout + φ-lab into
-    -- atom-ein/atom-eout at each edge.
+    -- `map J.vlab ys ≡ map H.vlab xs` from `ys ≡ map φ xs` and
+    -- `J.vlab (φ i) ≡ H.vlab i` (turns ψ-ein/ψ-eout + φ-lab into atom-ein/-eout).
     deriveAtomEq
       : (φ : Fin H.nV → Fin J.nV)
       → (∀ i → J.vlab (φ i) ≡ H.vlab i)
@@ -171,17 +157,10 @@ module Verify (H J : Hypergraph FlatGen)
       (trans (sym (map-∘ xs))
              (map-cong φ-lab xs))
 
-    -- From `Total (forward p)` pointwise evidence, given `p i ≡ just j₁`
-    -- and `f i ≡ j₂`, conclude `j₁ ≡ j₂`. Used to convert totalised-
-    -- function values into equalities at specific indices.
-
   --------------------------------------------------------------------------
-  -- Main entry point.
-  --
-  -- Strategy: deeply nested `with` that extracts totals, then checks
-  -- bijection laws, vertex labels, edge endpoints, boundaries, and
-  -- finally the edge-label equalities. Every stage returns `nothing`
-  -- on first failure.
+  -- Main entry point: a nested `with` extracting totals, then checking
+  -- bijection laws, vertex labels, edge endpoints, boundaries, and finally
+  -- edge labels.  Every stage returns `nothing` on first failure.
 
   verify : Maybe (H ≅ᴴ J)
   verify with totalise (forward φB) | totalise (backward φB)

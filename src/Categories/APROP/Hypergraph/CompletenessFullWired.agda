@@ -1,22 +1,14 @@
 {-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
--- Completeness theorem, wired through the standalone `DecodeRelRespIsoWired`
--- chain instead of the `Build`/`DecodeRel.Inductive` route used by
--- `CompletenessFull.agda`.
+-- Completeness theorem, wired through `DecodeRelRespIsoWired`.
 --
 -- `DecodeRelRespIsoWired.decode-rel-resp-iso` proves
 --   ⟪f⟫ ≅ᴴ ⟪g⟫  →  decode-rel f ≈Term decode-rel g
--- with NO assumptions: the Kelly residual it needs is the PROVEN
--- `FaithfulnessInductive.faithfulness` (constructive symmetric-monoidal
--- permutation coherence).  Composed here with the proven `decode-roundtrip-rel`
--- round-trip and the `bridge`/`bridge⁻¹` cancellation, it yields the
--- completeness theorem `f ≈Term g`, FULLY AXIOM-FREE.
---
--- This module is `--safe --with-K` and postulate-free (the whole wired chain
--- is `--safe`).  It is the wired analogue of `CompletenessFull.completeness-full`
--- — the body is identical except that `decode-rel-resp-iso` replaces the
--- `Build`-derived `decode-rel-resp-≅ᴴ-full`.
+-- axiom-free (its Kelly residual is the proven
+-- `FaithfulnessInductive.faithfulness`).  Composed with the
+-- `decode-roundtrip-rel` round-trip and the `bridge`/`bridge⁻¹`
+-- cancellation, it yields `f ≈Term g`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -37,8 +29,6 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
 open import Categories.APROP.Hypergraph.Completeness.DecodeRel sig
   using (decode-rel; decode-roundtrip-rel)
 
--- The standalone faithfulness chain.  Its Kelly residual is now the PROVEN
--- `FaithfulnessInductive.faithfulness`, so this needs no assumption.
 import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRelRespIsoWired
   sig _≟X_ as DRRIW
 
@@ -51,7 +41,7 @@ private
 open FM.HomReasoning
 
 --------------------------------------------------------------------------------
--- Inverse bridge + cancellation (verbatim from `CompletenessFull.agda`).
+-- Inverse bridge + cancellation.
 
 bridge⁻¹
   : ∀ {A B}
@@ -84,7 +74,7 @@ bridge-cancel {A} {B} f = begin
     to-B   = _≅_.to   (unflatten-flatten-≈ B)
 
 --------------------------------------------------------------------------------
--- The completeness theorem — fully axiom-free.
+-- The completeness theorem.
 
 completeness-full-wired
   : ∀ {A B} {f g : HomTerm A B}

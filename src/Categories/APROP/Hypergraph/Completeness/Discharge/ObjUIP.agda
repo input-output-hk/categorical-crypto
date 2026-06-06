@@ -1,24 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Discharges the `objUIP` postulate from
--- `Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRelRespIsoWired`
--- as a CONDITIONAL theorem:
---
---   objUIP : DecidableEquality X → Irrelevant (_≡_ {A = ObjTerm})
---
--- i.e. uniqueness-of-identity-proofs on `ObjTerm = unit | _⊗₀_ | Var X`,
--- under `--without-K`, given decidable equality on the atom type `X`.
---
--- Route (Hedberg's theorem):
---   1. `DecidableEquality X ⇒ DecidableEquality ObjTerm`, by structural
---      recursion on the three constructors (`ObjTerm-≟`).
---   2. `DecidableEquality A ⇒ UIP A`, via the stdlib Hedberg lemma
---      `Axiom.UniquenessOfIdentityProofs.Decidable⇒UIP.≡-irrelevant`
---      (where `UIP A = Irrelevant {A = A} _≡_`).
---
--- No postulates.  This is the conditional lemma that supplies `objUIP`
--- once `X`-decidable-equality (`sig-dec`) is available; the live chain's
--- `objUIP` is over a bare `sig` with no DecEq, so it is consumed there.
+-- UIP on `ObjTerm` from decidable equality on the atom type `X`
+-- (Hedberg), under `--without-K`:
+--   1. `DecidableEquality X ⇒ DecidableEquality ObjTerm` (`ObjTerm-≟`),
+--   2. `DecidableEquality A ⇒ UIP A` via stdlib's Hedberg lemma.
 
 module Categories.APROP.Hypergraph.Completeness.Discharge.ObjUIP where
 
@@ -32,23 +17,13 @@ import Axiom.UniquenessOfIdentityProofs as UIPmod
 open import Categories.FreeMonoidal using (Variant)
 import Categories.FreeMonoidal as FM
 
-------------------------------------------------------------------------
--- Work generically over a `Variant` and an atom type `X`, so the result
--- specialises to the APROP `ObjTerm` (which is `FreeMonoidalHelper Symm X`).
-------------------------------------------------------------------------
-
+-- Generic over a `Variant` and atom type `X`, so it specialises to the
+-- APROP `ObjTerm` (`FreeMonoidalHelper Symm X`).
 module ObjUIP {v : Variant} {X : Set} where
 
   open FM.FreeMonoidalHelper v X using (ObjTerm; unit; _⊗₀_; Var)
 
-  ----------------------------------------------------------------------
-  -- Step 1: decidable equality on `ObjTerm` from decidable equality on X.
-  --
-  -- Done by direct structural recursion.  Injectivity of the
-  -- constructors (`⊗₀` and `Var`) is recovered by pattern-matching on
-  -- `refl`, which is sound under `--without-K`.
-  ----------------------------------------------------------------------
-
+  -- Step 1: decidable equality on `ObjTerm`, by structural recursion.
   ObjTerm-≟ : DecidableEquality X → DecidableEquality ObjTerm
 
   ObjTerm-≟ _≟X_ unit       unit       = yes refl
@@ -69,18 +44,13 @@ module ObjUIP {v : Variant} {X : Set} where
   ... | yes refl = yes refl
   ... | no  x≢y  = no λ where refl → x≢y refl
 
-  ----------------------------------------------------------------------
   -- Step 2: Hedberg.  Decidable equality ⇒ UIP / ≡-irrelevance.
-  ----------------------------------------------------------------------
-
   objUIP : DecidableEquality X → Irrelevant (_≡_ {A = ObjTerm})
   objUIP _≟X_ = UIPmod.Decidable⇒UIP.≡-irrelevant (ObjTerm-≟ _≟X_)
 
-  -- Same statement, packaged as the stdlib `UIP` abbreviation.
   objUIP-UIP : DecidableEquality X → UIP ObjTerm
   objUIP-UIP = objUIP
 
-  -- The exact shape of the discharged postulate in `DecodeRelRespIsoWired`:
-  --   objUIP : ∀ {a b : ObjTerm} (p q : a ≡ b) → p ≡ q
+  -- The shape consumed in `DecodeRelRespIsoWired`.
   objUIP′ : DecidableEquality X → ∀ {a b : ObjTerm} (p q : a ≡ b) → p ≡ q
   objUIP′ _≟X_ {a} {b} p q = objUIP _≟X_ p q

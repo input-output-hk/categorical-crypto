@@ -3,49 +3,18 @@
 --------------------------------------------------------------------------------
 -- TAIL-EXTENSION of the run-level interchange.
 --
--- The `SwapStep.FrontSwap.RunInterchange` record packages the per-swap
--- interchange between the two post-front runs `pe-term (e ∷ e' ∷ qs) sp`
--- and `pe-term (e' ∷ e ∷ qs) sp` for an arbitrary suffix `qs`.  The
--- substantive content sits at the EMPTY tail (`qs := []`) — the genuine
--- two-edge Mac-Lane interchange of the two disjoint edge boxes.  Lifting
--- that empty-tail witness to an arbitrary `qs` is PURE decoder
--- equivariance under a stack permutation: running the (already-proven)
+-- The `RunInterchange` record's substantive content sits at the EMPTY tail
+-- (the two-edge Mac-Lane interchange); lifting it to an arbitrary suffix
+-- `qs` is PURE decoder equivariance under a stack permutation: the
 -- `qs`-suffix on the two `↭`-related post-front stacks differs only by an
 -- input/output `permute`, with no box / associator content.
 --
--- This module proves exactly that lift, `run-interchange-tail`, using
--- `StackEquivariance.process-edges-equivariant` (the decoder
--- stack-equivariance lemma).  It is generator-OPAQUE; its only residuals
--- are the two clearly-flagged StackEquivariance sub-lemmas
--- (`fire-mid-equivariant`, `fire-locate-coherent`), inherited transitively
--- — NOT closed here.
---
--- ## Statement
---
---   run-interchange-tail ps qs inc
---     : RunInterchange ps [] inc → RunInterchange ps qs inc
---
--- ## Derivation
---
--- Let `sp = pe-stack ps dom`, `A = pe-stack (e ∷ e' ∷ []) sp`,
--- `B = pe-stack (e' ∷ e ∷ []) sp`.  From the empty-tail witness:
---   r₀ : A ↭ B
---   run-eq₀ : pe-term (e' ∷ e ∷ []) sp ≈ permute r₀ ∘ pe-term (e ∷ e' ∷ []) sp
--- Apply `process-edges-equivariant qs (↭-sym r₀)` (with `s = A`, `s' = B`)
--- to get `ρf : pe-stack qs B ↭ pe-stack qs A` and
---   eqv : pe-term qs B ≈ permute (↭-sym ρf) ∘ (pe-term qs A ∘ permute (↭-sym r₀))
---
--- Because `e ∷ e' ∷ []` is a CONCRETE 2-prefix, `pe-stack qs A ≡
--- pe-stack (e ∷ e' ∷ qs) sp` and `pe-stack qs B ≡ pe-stack (e' ∷ e ∷ qs) sp`
--- DEFINITIONALLY (process-edges unfolds on the concrete cons prefix and
--- `[] ++ qs = qs`); so `↭-sym ρf : fs₁ ↭ fs₂` is the `reshuffle` field.
---
--- The run equation is assembled by splitting both runs with
--- `process-edges-++-≈` at the concrete 2-prefix, feeding `eqv` on the tail
--- and `run-eq₀` on the head, telescoping the inner inverse permute
--- (`pvv-inverse-right`) and re-associating; the `coe-cod` codomain
--- transports are handled by abstracting the (propositional) `++-stack`
--- equality and matching it at `refl`.
+-- This module proves that lift, `run-interchange-tail`, via
+-- `StackEquivariance.process-edges-equivariant`.  Because `e ∷ e' ∷ []` is a
+-- CONCRETE 2-prefix, `pe-stack qs A ≡ pe-stack (e ∷ e' ∷ qs) sp` etc. hold
+-- DEFINITIONALLY, so `↭-sym ρf` is the `reshuffle` field; the run equation
+-- splits both runs at the 2-prefix, feeds `eqv`/`run-eq₀`, telescopes the
+-- inner inverse permute, and re-associates.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -83,10 +52,8 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; subst)
 
 ------------------------------------------------------------------------
--- Per-hypergraph: fix `H`, `dih`, the Kelly residual `K`, and the
--- vertex-level codomain uniqueness `uniq-cod`, matching `FrontSwap`'s
--- parameters; open the `PerHG` plumbing and the `RunInterchange` record,
--- and the StackEquivariance lemmas at `(H , K)`.
+-- Per-hypergraph: fix `H`, `dih`, the Kelly residual `K`, `uniq-cod`,
+-- matching `FrontSwap`'s parameters.
 ------------------------------------------------------------------------
 
 module _ (H : Hypergraph FlatGen)
@@ -100,33 +67,20 @@ module _ (H : Hypergraph FlatGen)
     using (Order; Incomp; pe-stack; pe-term)
   open SS.FrontSwap H dih K uniq-cod using (RunInterchange)
 
-  -- StackEquivariance lives in an ANONYMOUS `module _ (H) (K)`, so its
-  -- members are top-level functions taking `H` and `K` explicitly; bind
-  -- the two we need at the fixed `(H , K)`.
+  -- Bind the two StackEquivariance lemmas at the fixed `(H , K)`.
   process-edges-equivariant = SE.process-edges-equivariant H K
   pvv-inverse-left          = SE.pvv-inverse-left H K
 
   ----------------------------------------------------------------------
   -- ## Sourcing the running-stack freshness invariant `Reservoir≤1`.
   --
-  -- `process-edges-equivariant` (which discharges the `residual-recon`
-  -- eval-coincidence residual via `eval-rigid` on a `Unique` codomain)
-  -- now requires a `Reservoir≤1 qs s'` freshness invariant on the
-  -- PERMUTED tail-input stack `B = pe-stack (e' ∷ e ∷ []) sp`.  We descend
-  -- it from a GLOBAL reservoir on `H.dom` over the combined order
-  -- `ps ++ e' ∷ e ∷ qs` by the (proven) `StackUniqueReach.reservoir-split`,
-  -- iterated along the two prefixes `ps` then `(e' ∷ e ∷ [])`.
-  --
-  -- The GLOBAL reservoir `Reservoir≤1 (ps ++ e' ∷ e ∷ qs) H.dom` is the
-  -- *bound* half of `Linear H` (`proj₂ lin : count v producedList ≤ 1`)
-  -- SPECIALISED to the combined order — TRUE precisely because the combined
-  -- order is a PERMUTATION of `range nE` (`prov`, threaded from the
-  -- connectivity chase: every order it visits is `↝*`-reachable from
-  -- `range nE`, hence a permutation of it).  `StackUniqueReach.dom-reservoir-prov`
-  -- PROVES the reservoir from that `↭ range` provenance + the `Linear`
-  -- bound; NO false-as-stated `∀ o` postulate is used.
+  -- `process-edges-equivariant` needs a `Reservoir≤1 qs s'` freshness
+  -- invariant on the permuted tail-input stack.  We descend it from a GLOBAL
+  -- reservoir on `H.dom` over the combined order, which is the *bound* half
+  -- of `Linear H` specialised to that order — TRUE because the order is a
+  -- PERMUTATION of `range nE` (`prov`).  NO false-as-stated `∀ o` postulate.
+  ----------------------------------------------------------------------
 
-  -- The reservoir on the FULL swap order, PROVEN from the provenance.
   dom-reservoir-at
     : ∀ (o : Order) → o Perm.↭ range H.nE → SUR.Reservoir≤1 H o H.dom
   dom-reservoir-at o prov =
@@ -166,8 +120,6 @@ module _ (H : Hypergraph FlatGen)
       r₀ : A Perm.↭ B
       r₀ = RunInterchange.reshuffle RI₀
 
-      -- run-eq₀ : pe-term (e' ∷ e ∷ []) sp
-      --             ≈Term permute-via-vlab vlab r₀ ∘ pe-term (e ∷ e' ∷ []) sp
       run-eq₀
         : pe-term (e' ∷ e ∷ []) sp
           ≈Term permute-via-vlab H.vlab r₀ ∘ pe-term (e ∷ e' ∷ []) sp
@@ -196,20 +148,11 @@ module _ (H : Hypergraph FlatGen)
 
       ----------------------------------------------------------------
       -- Prefix-split of the two runs, by DEFINITIONAL unfolding of
-      -- `process-edges` on the concrete 2-edge prefix.  Writing
-      -- `P = pe-term qs B`, `ta`/`t1` for the two inner edge terms:
-      --
-      --   pe-term (e' ∷ e ∷ qs) sp  ≡  (P ∘ ta) ∘ t1
-      --   pe-term (e' ∷ e ∷ []) sp  ≡  (id ∘ ta) ∘ t1
-      --
-      -- with `B ≡ pe-stack (e' ∷ e ∷ []) sp` the post-2-prefix stack
-      -- (definitionally `proj₁ (edge-step (proj₁ (edge-step sp e')) e)`).
-      -- The two runs share the SAME stuck `edge-step` factors; the split
-      -- is pure `assoc`/`idˡ` bookkeeping — NO `coe-cod`, NO `++-stack`.
+      -- `process-edges` on the concrete 2-edge prefix.  The two runs share
+      -- the SAME stuck `edge-step` factors; the split is pure `assoc`/`idˡ`
+      -- bookkeeping — NO `coe-cod`, NO `++-stack`.
       ----------------------------------------------------------------
 
-      -- Split `pe-term (e' ∷ e ∷ qs) sp` over the concrete 2-prefix:
-      --   (P ∘ ta) ∘ t1 ≈ P ∘ (ta ∘ t1) ≈ P ∘ ((id ∘ ta) ∘ t1).
       split₂
         : pe-term (e' ∷ e ∷ qs) sp
           ≈Term pe-term qs B ∘ pe-term (e' ∷ e ∷ []) sp
@@ -217,8 +160,6 @@ module _ (H : Hypergraph FlatGen)
         ≈-Term-trans assoc
           (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl))
 
-      -- Split `pe-term (e ∷ e' ∷ qs) sp` over the concrete 2-prefix:
-      --   P' ∘ ((id ∘ ta') ∘ t1') ≈ P' ∘ (ta' ∘ t1') ≈ (P' ∘ ta') ∘ t1'.
       split₁
         : pe-term qs A ∘ pe-term (e ∷ e' ∷ []) sp
           ≈Term pe-term (e ∷ e' ∷ qs) sp
@@ -227,19 +168,8 @@ module _ (H : Hypergraph FlatGen)
           (∘-resp-≈ ≈-Term-refl (∘-resp-≈ idˡ ≈-Term-refl))
           (≈-Term-sym assoc)
 
-      ----------------------------------------------------------------
-      -- The run equation.  Chain:
-      --   pe-term (e' ∷ e ∷ qs) sp
-      --     ≈ pe-term qs B ∘ pe-term (e' ∷ e ∷ []) sp                  [split₂]
-      --     ≈ (permute(↭-sym ρf) ∘ (pe-term qs A ∘ permute(↭-sym r₀)))
-      --         ∘ (permute r₀ ∘ pe-term (e ∷ e' ∷ []) sp)              [eqv, run-eq₀]
-      --     ≈ permute(↭-sym ρf)
-      --         ∘ (pe-term qs A ∘ ((permute(↭-sym r₀) ∘ permute r₀)
-      --             ∘ pe-term (e ∷ e' ∷ []) sp))                       [assoc chase]
-      --     ≈ permute(↭-sym ρf)
-      --         ∘ (pe-term qs A ∘ pe-term (e ∷ e' ∷ []) sp)            [pvv-inv-right]
-      --     ≈ permute(↭-sym ρf) ∘ pe-term (e ∷ e' ∷ qs) sp            [split₁]
-      ----------------------------------------------------------------
+      -- The run equation: split₂, feed eqv/run-eq₀, reassoc, collapse the
+      -- inner inverse permute (pvv-inverse-left), re-glue via split₁.
       run-eq
         : pe-term (e' ∷ e ∷ qs) sp
           ≈Term permute-via-vlab H.vlab (Perm.↭-sym ρf)
@@ -249,10 +179,7 @@ module _ (H : Hypergraph FlatGen)
           (≈-Term-trans
             (∘-resp-≈ eqv run-eq₀)
             (≈-Term-trans
-              -- ((P ∘ (Q ∘ I)) ∘ (J ∘ Kk)) ≈ P ∘ (Q ∘ ((I ∘ J) ∘ Kk))
               reassoc
-              -- collapse the inner inverse permute and re-glue the split:
-              --   Q ∘ ((I∘J) ∘ Kk) ≈ Q ∘ Kk ≈ pe-term (e ∷ e' ∷ qs) sp
               (∘-resp-≈ ≈-Term-refl
                 (≈-Term-trans
                   (∘-resp-≈ ≈-Term-refl
@@ -261,10 +188,6 @@ module _ (H : Hypergraph FlatGen)
                       idˡ))
                   split₁))))
         where
-          -- ((P ∘ (Q ∘ I)) ∘ (J ∘ Kk)) ≈Term P ∘ (Q ∘ ((I ∘ J) ∘ Kk))
-          -- where P = permute(↭-sym ρf), Q = pe-term qs A,
-          --       I = permute(↭-sym r₀), J = permute r₀,
-          --       Kk = pe-term (e ∷ e' ∷ []) sp.
           reassoc
             : ( ( permute-via-vlab H.vlab (Perm.↭-sym ρf)
                     ∘ ( pe-term qs A

@@ -3,30 +3,15 @@
 ------------------------------------------------------------------------
 -- Shared `--without-K` FinBij / `eval-↭` rigidity infrastructure.
 --
--- These are the intrinsically K-free, J-only lemmas that *also* live in
--- the `--with-K` modules `Categories.PermuteCoherence.{Rigid,Map}`.
--- Co-infectivity forbids importing those `--with-K` modules into the
--- `--without-K` consumers in `…/Completeness/Discharge/…`, so the helpers
--- were previously re-derived VERBATIM in three of them
--- (`IsoTransport`, `SwapStep`, `DecodeOrdBoundary`).
+-- The intrinsically K-free, J-only lemmas that also live in the `--with-K`
+-- modules `PermuteCoherence.{Rigid,Map}`.  Co-infectivity forbids importing
+-- those into the `--without-K` consumers (`…/Completeness/Discharge/…`), so
+-- this `--without-K` leaf hosts them once.  APROP-agnostic (every lemma is
+-- generic over `FinBij`/`eval-↭`/stdlib lists).
 --
--- This module hosts the UNION of those three inlined copies once, as a
--- `--without-K` leaf depending only on stdlib + `PermuteCoherence.{FinBij,
--- Eval}`.  It is APROP-agnostic (NOT sig-parameterised): every lemma is
--- generic over `FinBij`/`eval-↭`/stdlib lists, so it lives next to
--- `FinBij`/`Eval`, not under `APROP`.
---
--- Contents (the IsoTransport superset):
---   * rigidity:   `All-lookup`, `lookup-injective-unique`,
---                 `lookup-sound`, `eval-rigid`;
---   * `subst Fin`/`lookup` algebra:  `subst-Fin-sym-suc`,
---                 `subst-Fin-sym-zero`, `lookup-map`, `eval-subst₂-↭`,
---                 `subst₂-FinBij-as-subst`, `cast-irr`, `subst-Fin-trans`,
---                 `lookup-subst-list`, `subst-Fin-roundtrip`,
---                 `subst-Fin-roundtrip'`, `subst-Fin-sym-sym`;
---   * `eval-map⁺` + its `subst₂`-on-FinBij algebra:  `subst₂-FinBij-id`,
---                 `cons-cast`, `swap-cast`, `comp-cast`, `eval-map⁺`,
---                 `subst₂-FinBij-≈`.
+-- Contents: rigidity (`eval-rigid` + supporting `lookup` lemmas), the
+-- `subst Fin`/`lookup` cast algebra, and `eval-map⁺` + its `subst₂`-on-
+-- FinBij algebra.
 ------------------------------------------------------------------------
 
 module Categories.PermuteCoherence.EvalRigidKFree where
@@ -50,8 +35,7 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂; sym; trans; subst; subst₂)
 
 ------------------------------------------------------------------------
--- Rigidity of `eval-↭` on `Unique` codomains (copy of
--- `PermuteCoherence.Rigid.eval-rigid`; structural, no K).
+-- Rigidity of `eval-↭` on `Unique` codomains.
 ------------------------------------------------------------------------
 
 All-lookup : ∀ {a p} {A : Set a} {Q : A → Set p} {xs : List A}
@@ -93,8 +77,7 @@ eval-rigid uniq p q i =
     (trans (lookup-sound p i) (sym (lookup-sound q i)))
 
 ------------------------------------------------------------------------
--- Extra K-free helpers for the CROSS-iso rigidity (φ-equivariance).
--- All are `refl`-matched on `Fin`/length proofs, so without-K clean.
+-- Extra K-free helpers for the cross-iso rigidity (φ-equivariance).
 ------------------------------------------------------------------------
 
 -- `subst Fin` along a `sym (cong suc _)` cast commutes with `suc`/`zero`.
@@ -119,8 +102,7 @@ lookup-map g (x ∷ xs) (suc i) =
   trans (cong (lookup (map g (x ∷ xs))) (subst-Fin-sym-suc (length-map g xs) i))
         (lookup-map g xs i)
 
--- `eval-↭` commutes with `subst₂ _↭_` along list equalities, matched at
--- `refl` (without-K clean).
+-- `eval-↭` commutes with `subst₂ _↭_` along list equalities.
 eval-subst₂-↭
   : ∀ {a} {A : Set a} {xs xs' ys ys' : List A}
       (p : xs ≡ xs') (q : ys ≡ ys') (r : xs Perm.↭ ys)
@@ -129,7 +111,7 @@ eval-subst₂-↭
 eval-subst₂-↭ refl refl r = refl
 
 -- `subst₂ FinBij` re-expressed as a pair of single `subst Fin`-casts on
--- domain (precompose) and codomain (postcompose), matched at `refl`.
+-- domain (precompose) and codomain (postcompose).
 subst₂-FinBij-as-subst
   : ∀ {n n' m m'} (a : n ≡ n') (b : m ≡ m') (π : FinBij n m) (i : Fin n')
   → (subst₂ FinBij a b π) P.⟨$⟩ʳ i
@@ -177,8 +159,7 @@ subst-Fin-sym-sym
 subst-Fin-sym-sym e i = cast-irr (sym (sym e)) e i
 
 ------------------------------------------------------------------------
--- `eval-map⁺` and its `subst₂`-on-FinBij algebra (copies of the
--- `--with-K` `PermuteCoherence.Map` lemmas; all J-only, no K).
+-- `eval-map⁺` and its `subst₂`-on-FinBij algebra.
 ------------------------------------------------------------------------
 
 subst₂-FinBij-id : ∀ {n m} (e : n ≡ m) → subst₂ FinBij e e id-fb ≡ id-fb

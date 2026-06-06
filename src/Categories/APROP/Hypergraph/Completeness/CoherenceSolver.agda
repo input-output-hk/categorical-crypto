@@ -1,18 +1,12 @@
 {-# OPTIONS --safe #-}
 
 --------------------------------------------------------------------------------
--- Experiment: use `Categories.MonoidalCoherence.Solver.solveM` to
--- discharge structural-morphism equations that currently appear as
--- postulates in `DecodeRoundtrip.agda`.
---
--- `solveM` is Mac Lane's coherence theorem mechanised: any two parallel
--- morphisms in a free monoidal category whose terms use only structural
--- pieces (α, λ, ρ, id, ⊗) are propositionally equal, lifted to the
--- target monoidal category via the freely-induced functor.
---
--- This requires K (so we drop `--without-K` here only).  The completeness
--- proof's surrounding files keep `--without-K`; this module is a thin
--- shim that exposes one or two helpers consumed elsewhere.
+-- Use `Categories.MonoidalCoherence.Solver.solveM` (mechanised Mac Lane
+-- coherence: parallel structural morphisms in a free monoidal category are
+-- propositionally equal, lifted to the target via the freely-induced
+-- functor) to discharge structural-morphism equations.  A thin shim
+-- exposing a couple of helpers; needs K (hence `--safe` only, not
+-- `--without-K`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -39,10 +33,7 @@ private
   module FM = Category FreeMonoidal
 
 --------------------------------------------------------------------------------
--- Sanity check: instantiate `solveM` at our target FreeMonoidal
--- category.  Using a fixed Vec of 3 atoms (a, b, c : X) gives us a
--- `solveM` that proves any structural-morphism equation whose terms
--- only mention these 3 atoms.
+-- Sanity check: `solveM` instantiated at FreeMonoidal with 3 atoms.
 
 module 3-atoms (a b c : X) where
   vars : Vec ObjTerm 3
@@ -58,10 +49,6 @@ module 3-atoms (a b c : X) where
               Var to Var')
     public
 
-  -- Simple test: pentagon-like equation between two structural
-  -- morphisms using α and id.  In the free category, the two sides are
-  -- (provably) equal by Mac Lane coherence; `solveM` discharges it.
-
   test-α-iso :
     -- α⇒ ∘ α⇐ ≈ id at (Var a ⊗₀ Var b) ⊗₀ Var c
     α⇒ {A = Var a} {Var b} {Var c} ∘ α⇐ {A = Var a} {Var b} {Var c} ≈Term id
@@ -70,14 +57,6 @@ module 3-atoms (a b c : X) where
                     ∘' α⇐')
                  id'
 
-  -- More interesting test: a chain of structural pieces that takes
-  -- ~10 lines of equational reasoning by hand becomes a 1-line solveM.
-  --
-  -- Goal: λ⇒ ∘ id ⊗ ρ⇒ ∘ α⇒ ∘ ρ⇐ ⊗ id ≈ id
-  --   at (Var a ⊗₀ unit) ⊗₀ Var c (assuming a = c... but the equation
-  --   holds even for distinct a, c if both sides have matching types).
-  --
-  -- Test: the more interesting case: triangle around α⇒.
   test-pentagon-instance :
     -- pentagon equation at concrete types
     let X = Var a; Y = Var b; Z = Var c
@@ -91,10 +70,8 @@ module 3-atoms (a b c : X) where
        ∘' α⇒' {A = Var' zero} {Var' (suc zero)} {Var' (suc (suc zero))} ⊗₁' id')
 
 --------------------------------------------------------------------------------
--- Solver-discharged structural lemmas, generic in arbitrary ObjTerm
--- parameters X, Y, ... .  Each takes the parameters as a Vec at
--- instantiation; Mac Lane coherence then settles the equation in one
--- `solveM` call regardless of what X, Y, ... actually are.
+-- Solver-discharged structural lemmas, generic in the ObjTerm parameters
+-- (passed as a Vec at instantiation; `solveM` settles each in one call).
 
 module 2-objs (X Y : ObjTerm) where
   vars : Vec ObjTerm 2
@@ -109,8 +86,7 @@ module 2-objs (X Y : ObjTerm) where
               unit to unit'; _⊗₀_ to _⊗₀'_; Var to Var')
     public
 
-  -- α⇒-λ⇐-collapse: α⇒_{unit, X, Y} ∘ (λ⇐_X ⊗ id_Y) ≈ λ⇐_{X⊗Y}.
-  -- Mac Lane corollary, used in `c-iso-assoc-from` (xs₁ = []) base case.
+  -- α⇒_{unit, X, Y} ∘ (λ⇐_X ⊗ id_Y) ≈ λ⇐_{X⊗Y}.
   α⇒-λ⇐-collapse
     : α⇒ {unit} {X} {Y} ∘ (λ⇐ {X} ⊗₁ id {Y}) ≈Term λ⇐ {X ⊗₀ Y}
   α⇒-λ⇐-collapse =
@@ -137,8 +113,7 @@ module 4-objs (X Y Z W : ObjTerm) where
     Z' = Var' (suc (suc zero))
     W' = Var' (suc (suc (suc zero)))
 
-  -- pentagon-rewrite: solve pentagon for α⇒_{X⊗Y, Z, W}.
-  -- Used by the cons case of `c-iso-assoc-from` to expand the outer α⇒.
+  -- Pentagon for α⇒_{X⊗Y, Z, W}.
   pentagon-rewrite
     : α⇒ {X ⊗₀ Y} {Z} {W}
     ≈Term α⇐ {X} {Y} {Z ⊗₀ W}

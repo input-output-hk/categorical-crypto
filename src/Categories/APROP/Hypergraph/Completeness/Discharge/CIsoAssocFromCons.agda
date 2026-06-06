@@ -4,35 +4,15 @@
 -- Constructive discharge of `c-iso-assoc-from-cons` from
 -- `Completeness/DecodeRoundtrip.agda`.
 --
--- This is the cons case of the c-iso pentagon (associativity of
--- `unflatten-++-≅` up to `++-assoc`).  Unblocks the α⇒/α⇐ cases of
--- axiom F (`decode-rel-≈-decode`).
+-- The cons case of the c-iso pentagon (associativity of `unflatten-++-≅`
+-- up to `++-assoc`); unblocks the α⇒/α⇐ cases of `decode-rel-≈-decode`.
 --
--- Strategy (matching the comments in DecodeRoundtrip.agda:1166-1181):
---   1. `pentagon-rewrite` to expand `α⇒_{Vx ⊗ U₁', U₂, U-ys}`.
---   2. `⊗-∘-dist` + `α⇒∘α⇐≈id` + `idˡ` to cancel an inner pair.
---   3. `α-comm` to push α⇒ past `((id ⊗ c-1) ⊗ id)`.
---   4. `α⇒∘α⇐≈id` + `idˡ` to cancel another pair.
---   5. `id-⊗-respects-∘` (×2) to combine three `id ⊗ _` factors.
---   6. IH: `c-iso-assoc-from xs₁' xs₂ ys`.
---   7. `id-⊗-respects-∘` (×2) to break the `id ⊗ _` of the IH RHS apart.
---   8. `α⇐-comm-top` to push α⇐ past `id ⊗ (id ⊗ c-3)`.
---   9. `id⊗id≈id` to simplify `(id ⊗ id) ⊗ c-3`.
---  10. Definitional reduction: `α⇐ ∘ (id ⊗ c-4) = c-from (x∷xs₁') (xs₂++ys)`.
---  11. `id-⊗-subst-bridge` + `≡⇒≈Term (subst-∘ ...)` to convert the
---      `id ⊗ subst-id-xs₁'` to `subst-id-(x∷xs₁')`.
---
--- Per the task description, we cannot import the postulated
--- `c-iso-assoc-from-cons` from `DecodeRoundtrip.agda` (which is not
--- --safe).  Instead, we re-define `c-iso-assoc-from` here constructively
--- (mutual recursion with the cons-case body), importing only the
--- Mac-Lane fragment helpers from `CoherenceSolver` (`pentagon-rewrite`,
--- `α⇒-λ⇐-collapse`) and re-proving the small categorical helpers
--- (`λ⇐-naturality`, `α⇐-comm-top`, `id-⊗-respects-∘`,
--- `id-⊗-subst-bridge`) inline.
---
--- File is `--safe --with-K`-clean.  (The `--with-K` flag is needed
--- because `CoherenceSolver.agda` requires K transitively.)
+-- `c-iso-assoc-from` is re-defined here constructively (rather than
+-- importing the non-`--safe` `DecodeRoundtrip` postulate), importing only
+-- the Mac-Lane helpers `pentagon-rewrite` / `α⇒-λ⇐-collapse` from
+-- `CoherenceSolver` and re-proving the small categorical helpers inline.
+-- The cons-case proof is a step-numbered Mac-Lane chase (see the body).
+-- `--with-K` is needed transitively via `CoherenceSolver`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -64,12 +44,10 @@ open FM.HomReasoning
 -- Local helpers (re-proved here to avoid depending on non-`--safe`
 -- DecodeRoundtrip.agda).
 
--- `f ≡ g → f ≈Term g`.
 ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
 ≡⇒≈Term refl = ≈-Term-refl
 
--- `pentagon-rewrite` from CoherenceSolver — solves the pentagon for
--- `α⇒_{X⊗Y, Z, W}`.
+-- `pentagon-rewrite` from CoherenceSolver.
 pentagon-rewrite
   : ∀ {X Y Z W}
   → α⇒ {X ⊗₀ Y} {Z} {W}
@@ -88,7 +66,6 @@ pentagon-rewrite {X} {Y} {Z} {W} = lemma
   where
     open 2-objs X Y renaming (α⇒-λ⇐-collapse to lemma)
 
--- λ⇐-naturality (derived from λ⇒-naturality + iso laws).
 λ⇐-naturality
   : ∀ {A B} (f : HomTerm A B) → λ⇐ {B} ∘ f ≈Term id ⊗₁ f ∘ λ⇐ {A}
 λ⇐-naturality f = begin
@@ -110,7 +87,7 @@ pentagon-rewrite {X} {Y} {Z} {W} = lemma
     ≈⟨ idˡ ⟩∘⟨refl ⟩
   id ⊗₁ f ∘ λ⇐ ∎
 
--- id-⊗-respects-∘: `id ⊗ (g ∘ f) ≈ (id ⊗ g) ∘ (id ⊗ f)`.
+-- `id ⊗ (g ∘ f) ≈ (id ⊗ g) ∘ (id ⊗ f)`.
 id-⊗-respects-∘
   : ∀ {X A B C} (f : HomTerm A B) (g : HomTerm B C)
   → id {X} ⊗₁ (g ∘ f) ≈Term (id {X} ⊗₁ g) ∘ (id {X} ⊗₁ f)
@@ -121,16 +98,15 @@ id-⊗-respects-∘ f g = begin
     ≈⟨ ⊗-∘-dist ⟩
   id ⊗₁ g ∘ id ⊗₁ f ∎
 
--- id-⊗-subst-bridge: relates `id ⊗ subst-id-along-e` to the subst-id
--- at the (Var x)-tensored predicate.  Provable by J on `e` (refl case
--- is `id⊗id≈id`).
+-- Relates `id ⊗ subst-id-along-e` to the subst-id at the (Var x)-tensored
+-- predicate (by J on `e`).
 id-⊗-subst-bridge
   : ∀ {x : X} {xs₁ ys'} (e : xs₁ ≡ ys')
   → (id {Var x} ⊗₁ subst (λ z → HomTerm (unflatten xs₁) (unflatten z)) e id)
   ≈Term subst (λ z → HomTerm (Var x ⊗₀ unflatten xs₁) (Var x ⊗₀ unflatten z)) e id
 id-⊗-subst-bridge refl = id⊗id≈id
 
--- α⇐-comm: α⇐'s naturality, derived from α-comm + α-iso laws.
+-- α⇐'s naturality, derived from α-comm + α-iso laws.
 α⇐-comm-top
   : ∀ {X Y Z X' Y' Z' : ObjTerm}
     (f : HomTerm X X') (g : HomTerm Y Y') (h : HomTerm Z Z')
@@ -198,13 +174,11 @@ c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
     c-4   = _≅_.from (unflatten-++-≅ xs₁' (xs₂ ++ ys))
 
     e     = ++-assoc xs₁' xs₂ ys
-    e'    = ++-assoc (x ∷ xs₁') xs₂ ys
-    -- e' = cong (x ∷_) e definitionally.
+    e'    = ++-assoc (x ∷ xs₁') xs₂ ys  -- = cong (x ∷_) e definitionally.
 
     subst-id-xs₁' = subst (λ z → HomTerm (unflatten ((xs₁' ++ xs₂) ++ ys))
                                           (unflatten z)) e id
 
-    -- IH on the recursive call.
     ih : α⇒ {U₁'} {U₂} {U-ys} ∘ (c-1 ⊗₁ id) ∘ c-2
        ≈Term (id {U₁'} ⊗₁ c-3) ∘ c-4 ∘ subst-id-xs₁'
     ih = c-iso-assoc-from xs₁' xs₂ ys
@@ -330,8 +304,7 @@ c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
                                                    (α⇒ {U₁'} {U₂} {U-ys})) ⟩
       α⇐
         ∘ id ⊗₁ (α⇒ {U₁'} {U₂} {U-ys} ∘ ((c-1 ⊗₁ id) ∘ c-2))
-        -- Step 6: apply IH inside id ⊗ _ (note: `α⇒ ∘ (f ⊗ g) ∘ h` already
-        -- parses as `α⇒ ∘ ((f ⊗ g) ∘ h)` via right-associative `_∘_`).
+        -- Step 6: apply IH inside id ⊗ _.
           ≈⟨ refl⟩∘⟨ ⊗-resp-≈ ≈-Term-refl ih ⟩
       α⇐
         ∘ id ⊗₁ ((id ⊗₁ c-3) ∘ c-4 ∘ subst-id-xs₁')
@@ -359,8 +332,8 @@ c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
       (id ⊗₁ c-3 ∘ α⇐ {Vx} {U₁'} {U-23})
         ∘ (id ⊗₁ c-4)
         ∘ (id ⊗₁ subst-id-xs₁')
-        -- Step 10: re-associate so that `α⇐ ∘ id ⊗ c-4` is grouped (this
-        --   is definitionally `_≅_.from (unflatten-++-≅ (x∷xs₁') (xs₂++ys))`).
+        -- Step 10: re-associate so `α⇐ ∘ id ⊗ c-4` is grouped (definitionally
+        --   `from (unflatten-++-≅ (x∷xs₁') (xs₂++ys))`).
           ≈⟨ FM.assoc ⟩
       id ⊗₁ c-3
         ∘ (α⇐ {Vx} {U₁'} {U-23}
@@ -370,10 +343,8 @@ c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
       id ⊗₁ c-3
         ∘ (α⇐ {Vx} {U₁'} {U-23} ∘ (id ⊗₁ c-4))
         ∘ (id ⊗₁ subst-id-xs₁')
-        -- Step 11: convert (id ⊗ subst-id-xs₁') to subst-id-(x∷xs₁').
-        --   First id-⊗-subst-bridge to push the `id ⊗ subst` to a `subst`
-        --   at the (Var x)-tensored predicate; then `subst-∘` to fold
-        --   the `(x ∷_)` into the propositional equation.
+        -- Step 11: convert (id ⊗ subst-id-xs₁') to subst-id-(x∷xs₁') via
+        --   id-⊗-subst-bridge then `subst-∘` (folding the `(x ∷_)`).
           ≈⟨ refl⟩∘⟨ refl⟩∘⟨ id-⊗-subst-bridge e ⟩
       id ⊗₁ c-3
         ∘ (α⇐ {Vx} {U₁'} {U-23} ∘ (id ⊗₁ c-4))
@@ -393,7 +364,7 @@ c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
 
 --------------------------------------------------------------------------------
 -- The cons case, exposed as a top-level lemma matching the postulated
--- signature in `DecodeRoundtrip.agda:1189-1198`.
+-- signature in `DecodeRoundtrip.agda`.
 
 c-iso-assoc-from-cons
   : ∀ x xs₁' xs₂ ys

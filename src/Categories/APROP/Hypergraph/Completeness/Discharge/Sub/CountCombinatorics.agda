@@ -3,18 +3,10 @@
 --------------------------------------------------------------------------------
 -- Shared `count` / `extract-prefix` combinatorics leaf (H-agnostic).
 --
--- These small, generic lemmas over `List (Fin n)` were duplicated verbatim as
--- `private` blocks across many `Discharge`/`Discharge/Sub` modules (each of
--- which re-derived them because the original copies live in inaccessible
--- `private` blocks of `Completeness.Linearity` / `SwapValidity`).  This module
--- collects them in ONE `--without-K` leaf so the consumers can import them.
---
--- `count` itself (and `count-++`) is defined in `Completeness.Linearity`, which
--- this module imports.  `extract-elem` / `extract-prefix` come from
--- `Completeness.Decode`.  All lemmas are FULLY CONSTRUCTIVE and postulate-free.
---
--- NOTE: this is a `--without-K` module; it can be imported by both `--with-K`
--- and `--without-K` consumers.
+-- Generic lemmas over `List (Fin n)`, collected in one `--without-K` leaf so
+-- both `--with-K` and `--without-K` consumers can import them.  `count` is
+-- from `Completeness.Linearity`; `extract-elem`/`extract-prefix` from
+-- `Completeness.Decode`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -170,12 +162,6 @@ count-≤→extract-prefix (k ∷ ks) xs h
 
 --------------------------------------------------------------------------------
 -- count monotonicity / split / cancellation, and the count ⇒ ↭ bridge.
---
--- These were previously duplicated as `private` blocks in
--- `Completeness.Linearity` and `Discharge.LinearHComposeP`.  They live here so
--- consumers can share them.  (`Linearity` itself cannot import them — it is
--- where `count` is defined and `CountCombinatorics` imports from it, so the
--- dependency would cycle; `Linearity` keeps its own copies.)
 
 count-mono-cons : ∀ {n} (v x : Fin n) (xs : List (Fin n))
                 → count v xs ≤ⁿ count v (x ∷ xs)

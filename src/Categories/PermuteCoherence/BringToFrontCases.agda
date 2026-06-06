@@ -34,16 +34,9 @@ private
   variable
     n : ℕ
 
--- The exchange induction.
---
--- `btf` returns a witness `w′` that deletes exactly one letter
--- (`suc (length w′) ≡ length w`) with `(i ∷ w′) ~ʷ w`; `Reduced w′` then
--- follows uniformly from `reduced-of-witness`.
-
 -- The result of one exchange step: a witness word `wit` that deletes
 -- exactly one letter (`len`) and reassociates to `w` with `i` at the
--- front (`rel`).  Well-founded on the fuel `length w ≤ k`: both recursive
--- calls shrink the length, so the recursion on `k` terminates.
+-- front (`rel`).
 record BtfOut {n : ℕ} (w : Word (suc n)) (i : Fin (suc n)) : Set where
   constructor btfOut
   field
@@ -75,7 +68,7 @@ module Cases {n k : ℕ} (rec : Rec n k)
     front-i : descent i b → BtfOut rest i
     front-i d = rec rest lr≤k i red-rest d
 
-    -- The post-braid bookkeeping: `j∷i∷j∷v ~ʷ j∷i∷u ~ʷ j∷rest`.
+    -- `j∷i∷j∷v ~ʷ j∷i∷u ~ʷ j∷rest`.
     chain : (u v : Word (suc n)) → (i ∷ u) ~ʷ rest → (j ∷ v) ~ʷ u
           → (j ∷ i ∷ j ∷ v) ~ʷ (j ∷ rest)
     chain u v rᵤ rᵥ = ~trans (∷-cong j (∷-cong i rᵥ)) (∷-cong j rᵤ)

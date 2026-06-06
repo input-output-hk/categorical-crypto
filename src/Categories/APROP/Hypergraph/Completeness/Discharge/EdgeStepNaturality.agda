@@ -2,25 +2,17 @@
 
 --------------------------------------------------------------------------------
 -- Per-edge term-level naturality of the decoder under a hypergraph
--- isomorphism, proved OVER the `edge-step` relation `EdgeStepR`
--- (`EdgeStepRelation.agda`) rather than over the opaque `with`-defined
--- `edge-step` — which is what makes the case analysis well-typed (no
--- green-slime with-abstraction).
+-- isomorphism, proved OVER the `edge-step` relation `EdgeStepR` (rather
+-- than the opaque `with`-defined `edge-step`) so the case analysis is
+-- well-typed (no green-slime with-abstraction).
 --
--- `edge-step-term-rel` is the per-edge-step `≈Term` naturality at the ALIGNED
--- form (H-edge `e`, J-stack literally `map φ sH`):
---   * SKIP/SKIP : both terms are `id`; closed by `objUIP` (UIP on `ObjTerm`),
---     which collapses the boundary loop;
+-- `edge-step-term-rel`, at the aligned form (H-edge `e`, J-stack `map φ sH`):
+--   * SKIP/SKIP : both terms `id`, closed by `objUIP`;
 --   * mixed     : impossible, via `extract-prefix-J-{just,nothing}`;
---   * FIRE/FIRE : the genuine content, ∘-split into box (`M`, PROVEN as
---     `fire-mid-rel` via `box-of-cong`+`objUIP`+`ψ-elab`) and permute (`K`,
---     the residual postulate `fire-perm-rel` — a §5b `permute-relabel-free`
---     clone + K).  This is the only postulate left here, strictly smaller than
---     the original per-edge-step `edge-step-term-φ` (now a theorem, bridged in
---     `IsoTransport`).
+--   * FIRE/FIRE : ∘-split into box (`fire-mid-rel`, via `box-of-cong` +
+--     `objUIP` + `ψ-elab`) and permute (`fire-perm-rel`, via K).
 --
--- The `objUIP` parameter is available downstream from `DecidableEquality X`
--- (`Discharge.ObjUIP.objUIP′`).
+-- `objUIP` is available downstream from `Discharge.ObjUIP.objUIP′`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -60,7 +52,7 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 
 --------------------------------------------------------------------------------
--- ≈Term plumbing (trivial; local copies, as in IsoTransport §0).
+-- ≈Term plumbing.
 
 ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
 ≡⇒≈Term refl = ≈-Term-refl
@@ -76,7 +68,7 @@ just-injective-fst
   → just (x , p) ≡ just (y , q) → x ≡ y
 just-injective-fst refl = refl
 
--- `subst₂ HomTerm` distributes over `∘` (refl-pattern; as in IsoTransport §0).
+-- `subst₂ HomTerm` distributes over `∘` (refl-pattern).
 subst₂-∘-distrib
   : ∀ {As₁ As₂ Bs₁ Bs₂ Cs₁ Cs₂ : List X}
       (p : As₁ ≡ As₂) (q : Bs₁ ≡ Bs₂) (r : Cs₁ ≡ Cs₂)
@@ -123,7 +115,6 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
   open _≅ᴴ_ Φ using (φ; φ⁻¹; ψ; φ-left; φ-lab; ψ-ein; atom-ein; atom-eout; ψ-elab)
   open FaithfulnessResidual K using (permute-resp-≅↭)
 
-  -- φ is injective (φ-left exhibits φ⁻¹ as a left inverse).
   φ-inj : ∀ {x y} → φ x ≡ φ y → x ≡ y
   φ-inj {x} {y} eq = trans (sym (φ-left x)) (trans (cong φ⁻¹ eq) (φ-left y))
 
@@ -131,8 +122,8 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
   vlab-φ : ∀ (s : List (Fin H.nV)) → map J.vlab (map φ s) ≡ map H.vlab s
   vlab-φ s = trans (sym (map-∘ s)) (map-cong φ-lab s)
 
-  -- J-side extract-prefix results from the H-side ones (lock-step), via the
-  -- injective lemmas transported along `ψ-ein e : J.ein (ψ e) ≡ map φ (H.ein e)`.
+  -- J-side extract-prefix results from the H-side ones, via the injective
+  -- lemmas transported along `ψ-ein e`.
   extract-prefix-J-nothing
     : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
     → extract-prefix (H.ein e) sH ≡ nothing
@@ -153,18 +144,17 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
           (sym (ψ-ein e))
           (extract-prefix-via-injective-just φ φ-inj (H.ein e) sH restH pH eqH)
 
-  -- SKIP closer: with objUIP, transporting `id` along any two boundary paths
-  -- with equal endpoints is `≈Term id`.
+  -- SKIP closer: under objUIP, transporting `id` along any two boundary
+  -- paths with equal endpoints is `≈Term id`.
   subst₂-id-≈ : ∀ {A B : ObjTerm} (p q : A ≡ B) → subst₂ HomTerm p q id ≈Term id
   subst₂-id-≈ p q =
     ≡⇒≈Term (trans (cong (λ z → subst₂ HomTerm z q id) (objUIP p q))
                    (subst₂-HomTerm-id q))
 
-  -- FIRE box factor (M): the generator-carrying `fire-mid` agrees after the
-  -- boundary transport.  PROVEN: split each `fire-mid` as `subst₂`-of-`box-of`,
-  -- collapse the boundary `subst₂`s with `subst₂-∘`, identify the resulting
-  -- ObjTerm paths via `objUIP`, and rewrite the core with `box-of-cong` fed by
-  -- the generator agreement `ψ-elab`.
+  -- FIRE box factor (M): the two `fire-mid`s agree after the boundary
+  -- transport, by splitting each as `subst₂`-of-`box-of`, collapsing the
+  -- transports (`subst₂-∘`, `objUIP`), and rewriting the core with
+  -- `box-of-cong` fed by `ψ-elab`.
   fire-mid-rel
     : ∀ (e : Fin H.nE)
         (restH : List (Fin H.nV)) (restJ : List (Fin J.nV))
@@ -201,13 +191,11 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
                      (box-of-cong (atom-ein e) (atom-eout e) rest-lab
                                   (J.elab (ψ e)) (H.elab e) (ψ-elab e)))))
 
-  -- FIRE permute factor (K): the two search-permutes agree after the boundary
-  -- transport.  PROVEN: the J-side search is the `map φ`-image of the H-side
-  -- (`extract-prefix-J-just` gives `restJ ≡ map φ restH`, then `rewrite ψ-ein`
-  -- brings the J-edge into `map φ`-form).  `permute-subst₂` pushes the boundary
-  -- `subst₂` through `permute`; the resulting derivations have coinciding
-  -- evaluated bijections (`eval-coincide`, via `eval-subst₂-↭`); K
-  -- (`permute-resp-≅↭`) closes the `≈Term`.
+  -- FIRE permute factor (K): the two search-permutes agree after the
+  -- boundary transport.  The J-side search is the `map φ`-image of the
+  -- H-side; `permute-subst₂` pushes the boundary `subst₂` through
+  -- `permute`, the derivations have coinciding evaluated bijections
+  -- (`eval-coincide`), and K closes the `≈Term`.
   fire-perm-rel
     : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
         (restH : List (Fin H.nV)) (permH : sH Perm.↭ H.ein e ++ restH)
@@ -223,8 +211,8 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
       (just-injective-fst
         (trans (sym eqJ) (proj₂ (extract-prefix-J-just e sH restH permH eqH))))
     where
-      -- All `restJ`-dependents abstracted as arguments, so matching
-      -- `restJ ≡ map φ restH` (then `rewrite ψ-ein e`) is well-typed.
+      -- `restJ`-dependents abstracted so matching `restJ ≡ map φ restH`
+      -- (then `rewrite ψ-ein e`) is well-typed.
       helper
         : (rJ : List (Fin J.nV))
           (pJ : map φ sH Perm.↭ J.ein (ψ e) ++ rJ)
@@ -248,8 +236,8 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
             eval-coincide φ φ-inj J.vlab H.vlab φ-lab
               (H.ein e) sH restH permH pJ p qq eqH eJ
 
-  -- FIRE/FIRE assembled: split `fire-mid ∘ permute` via `subst₂-∘-distrib`,
-  -- then box (`fire-mid-rel`) ∘ permute (`fire-perm-rel`).
+  -- FIRE/FIRE: split `fire-mid ∘ permute` (`subst₂-∘-distrib`), then box
+  -- (`fire-mid-rel`) ∘ permute (`fire-perm-rel`).
   edge-step-fire-rel
     : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
         (restH : List (Fin H.nV)) (permH : sH Perm.↭ H.ein e ++ restH)
@@ -282,7 +270,7 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
       rPath : map J.vlab (J.eout (ψ e) ++ restJ) ≡ map H.vlab (H.eout e ++ restH)
       rPath = trans (cong (map J.vlab) stk) (vlab-φ (H.eout e ++ restH))
 
-  -- The per-edge-step term naturality, over the `EdgeStepR` witnesses.
+  -- Per-edge-step term naturality, over the `EdgeStepR` witnesses.
   edge-step-term-rel
     : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
         {s'H : List (Fin H.nV)}

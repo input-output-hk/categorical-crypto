@@ -1,30 +1,19 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Phase 3.5f Step 3 — Constructive `decode` (cospan-form algorithm).
+-- The cospan-form decode algorithm.  For a hypergraph `H`, attempt to
+-- build a `HomTerm (unflatten As) (unflatten Bs)`:
 --
--- Given a hypergraph `H : Hypergraph FlatGen As Bs`, we attempt to build a
--- `HomTerm (unflatten As) (unflatten Bs)` using the cospan-form algorithm:
+--   1. Start with stack `s = H.dom`.
+--   2. For each edge `e` (in natural Fin order): if `H.ein e` is a
+--      sub-multiset prefix of the stack, permute + apply the edge
+--      generator + prepend `H.eout e`; otherwise skip (identity).
+--   3. Finally extract `H.cod` as a full sub-multiset of the final stack
+--      (empty residual ⇒ apply the permutation; else `nothing`).
 --
---   1. Initial stack `s = H.dom`.
---   2. For each edge `e : Fin H.nE` (in natural Fin order):
---      a. Search for `H.ein e` as a sub-multiset prefix of the current stack.
---      b. If found: permute, apply the edge generator, prepend `H.eout e`.
---      c. If not: skip (apply identity).
---   3. Final search: extract `H.cod` as a (full) sub-multiset of the final
---      stack.  If found with empty residual: apply the resulting permutation.
---      Otherwise: return `nothing`.
---
--- The algorithm returns `Maybe (HomTerm (unflatten As) (unflatten Bs))` —
--- the `nothing` case captures non-linear inputs (where the multisets
--- don't match) and linear-but-non-topologically-sound edge orders.
--- For hypergraphs translated from `⟪ f ⟫`, the natural Fin order *is*
--- topologically sound (by the smart constructors of `FromAPROP`), so
+-- The `nothing` case captures non-linear inputs and non-topologically-
+-- sound edge orders.  For `⟪ f ⟫` the natural Fin order is sound, so
 -- `decode-attempt ⟪ f ⟫` always returns `just _`.
---
--- The downstream `decode` postulate in `Decoder.agda` is still in place;
--- the eventual goal is to replace it with `from-just (decode-attempt H)`
--- guarded by a (postponed) totality lemma `decode-attempt-Linear`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -53,20 +42,14 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary using (yes; no)
 
 --------------------------------------------------------------------------------
--- Multiset search.  These are independent of the hypergraph and live
--- at top-level so foundation lemmas (`DecodeProperties.agda`) can talk
--- about them without H-parametrisation.
+-- Multiset search (hypergraph-independent).  `extract-elem`/`extract-prefix`
+-- are re-exported from a generic module so APROP and SMC versions are
+-- definitionally equal.
 
--- `extract-elem` and `extract-prefix` are re-exported from a generic
--- module so that downstream bridges (e.g.
--- `Categories.APROP.Hypergraph.Completeness.Discharge.APROPMacLaneFromSMC`)
--- observe definitional equality between APROP and SMC versions.
 open import Categories.Hypergraph.ExtractPrefix public
   using (extract-elem; extract-prefix)
 
--- `xs ++ [] ↭ xs`.  Lifted to module scope (was previously local to
--- `extract-exact`'s where-clause) so downstream lemmas can refer to it
--- when reasoning about `extract-exact`'s perm output.
+-- `xs ++ [] ↭ xs`, at module scope for downstream `extract-exact` reasoning.
 ++-[]-↭ : ∀ {n} (l : List (Fin n)) → l ++ [] Perm.↭ l
 ++-[]-↭ []       = Perm.refl
 ++-[]-↭ (x ∷ xs) = Perm.prep x (++-[]-↭ xs)
@@ -82,19 +65,10 @@ extract-exact ks xs with extract-prefix ks xs
 ... | just (_ ∷ _ , _) = nothing
 
 --------------------------------------------------------------------------------
--- Apply an edge: pattern-match `H.elab e` to recover the underlying
--- generator `g : mor A B`, then wrap with the unflatten-flatten
--- coherence iso on each side.
-
--- Auxiliary helper: pattern-match `FlatGen.flat` indirectly through
--- explicit propositional equalities.  The naive `with H.elab e | flat
--- g` doesn't work because Agda can't unify `flatten A` with the
--- generic `map H.vlab (H.ein e)`.
---
--- Top-level (not nested inside the `module _ (H : Hypergraph FlatGen)`
--- below) so downstream files can `cong`-rewrite under it when
--- transporting `Agen-edge` along `elab` equations — no `H` argument is
--- needed.
+-- Apply an edge: recover the generator `g : mor A B` from `FlatGen.flat`,
+-- then wrap with the unflatten-flatten coherence iso on each side.
+-- Top-level (not under the `H` module) so downstream files can
+-- `cong`-rewrite `Agen-edge` along `elab` equations without an `H` arg.
 Agen-edge-aux
   : ∀ {ins outs : List X} → FlatGen ins outs
   → HomTerm (unflatten ins) (unflatten outs)
@@ -102,7 +76,7 @@ Agen-edge-aux (FlatGen.flat {A} {B} g) =
   _≅_.from (unflatten-flatten-≈ B) ∘ Agen g ∘ _≅_.to (unflatten-flatten-≈ A)
 
 --------------------------------------------------------------------------------
--- Open H once at the module level for the cospan algorithm.
+-- The cospan algorithm, with `H` fixed.
 
 module _ (H : Hypergraph FlatGen) where
 
@@ -116,10 +90,9 @@ module _ (H : Hypergraph FlatGen) where
   Agen-edge e = Agen-edge-aux (H.elab e)
 
   --------------------------------------------------------------------
-  -- Per-edge step.  Search the stack for `H.ein e`; on success, permute
-  -- to bring `H.ein e` to the front, apply the edge generator (with
-  -- identity on the residual), then update the stack to
-  -- `H.eout e ++ rest`.  On failure, fall back to identity.
+  -- Per-edge step.  On finding `H.ein e` in the stack: permute it to the
+  -- front, apply the edge generator (identity on the residual), update the
+  -- stack to `H.eout e ++ rest`.  On failure: identity.
 
   edge-step
     : (s : List (Fin H.nV)) (e : Fin H.nE)
@@ -141,8 +114,7 @@ module _ (H : Hypergraph FlatGen) where
             ∘ (Agen-edge e ⊗₁ id)
             ∘ _≅_.from (unflatten-++-≅ ein-l  rest-l)
 
-      -- Bridge `map vlab (xs ++ ys) ≡ map vlab xs ++ map vlab ys`
-      -- (definitionally not, but propositionally via `map-++`).
+      -- Bridge `map vlab (xs ++ ys) ≡ map vlab xs ++ map vlab ys` (`map-++`).
       mid' : HomTerm (unflatten (map H.vlab (H.ein e  ++ rest)))
                      (unflatten (map H.vlab (H.eout e ++ rest)))
       mid' = subst₂ HomTerm
@@ -155,8 +127,8 @@ module _ (H : Hypergraph FlatGen) where
       bridged = mid' ∘ permute-via-vlab H.vlab perm
 
   --------------------------------------------------------------------
-  -- Process all edges in natural Fin order.  Returns the final stack
-  -- and a HomTerm from the original stack.
+  -- Process all edges in natural Fin order; returns the final stack and
+  -- a HomTerm from the original stack.
 
   process-edges
     : List (Fin H.nE) → ∀ (s : List (Fin H.nV))
@@ -177,14 +149,9 @@ module _ (H : Hypergraph FlatGen) where
   process-all-edges = process-edges (range H.nE)
 
   --------------------------------------------------------------------
-  -- Top-level.  Run the cospan-form algorithm starting from `H.dom`,
-  -- then attempt to bridge the final stack to `H.cod` via a final
-  -- permute.
+  -- Run the algorithm from `H.dom`, then bridge the final stack to
+  -- `H.cod` via a final permute.
 
-  -- With the de-indexed Hypergraph, `decode-attempt` returns at the
-  -- *computed* boundary type (`unflatten (domL H)` to `unflatten (codL H)`)
-  -- — no `subst₂ HomTerm` boundary wrap is needed, because there's no
-  -- index-level boundary equation to bridge across.
   decode-attempt
     : Maybe (HomTerm (unflatten (domL H)) (unflatten (codL H)))
   decode-attempt with process-all-edges H.dom

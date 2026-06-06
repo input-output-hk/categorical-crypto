@@ -1,25 +1,16 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The behaviour of `edge-step` as an inductive relation (its graph), plus the
--- "view" lemmas relating the function to the relation:
+-- `edge-step` as an inductive relation (`EdgeStepR`, its graph), with the
+-- two "view" lemmas:
+--   * `edge-step-graph` : the function realises the relation;
+--   * `edge-step-sound` : the relation pins the function value.
 --
---   * `edge-step-graph` : the function realises the relation
---                         (`edge-step G s e` satisfies `EdgeStepR`);
---   * `edge-step-sound` : the relation pins the function value
---                         (`EdgeStepR s e s' t → edge-step G s e ≡ (s' , t)`).
---
--- Together these are the "`edge-step` computes a value iff the relation holds"
--- correspondence.  Downstream, term-level naturality of the decoder under a
--- hypergraph isomorphism is proved by case analysis on the *relation's*
--- constructors (`skipR`/`fireR`) — clean inductive data — instead of on the
--- opaque `with`-defined `edge-step`, which avoids the green-slime
--- with-abstraction wall (the goal no longer embeds stuck `edge-step`/
--- `edge-step-stack-φ` calls in dependent positions).
---
--- `fire-term` reconstructs Decode's local `bridged` term so the `fireR`
--- constructor's HomTerm index is *definitionally* `proj₂ (edge-step G s e)` in
--- the FIRE branch (hence `edge-step-graph`'s `fireR` clause is `refl`-clean).
+-- Case analysis on the relation's constructors (`skipR`/`fireR`) avoids
+-- the green-slime with-abstraction of the opaque `edge-step`.  `fire-term`
+-- reconstructs Decode's local `bridged` term, so `fireR`'s HomTerm index
+-- is definitionally `proj₂ (edge-step G s e)` (and `edge-step-graph`'s
+-- `fireR` clause is `refl`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -48,8 +39,8 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; cong; cong₂; subst₂)
 
 --------------------------------------------------------------------------------
--- The FIRE "box" as a standalone function of its label lists + generator,
--- with a congruence lemma.  This is hypergraph-agnostic.
+-- The FIRE "box" as a standalone (hypergraph-agnostic) function of its
+-- label lists + generator, with a congruence lemma.
 
 box-of
   : ∀ (einL eoutL restL : List X) → FlatGen einL eoutL
@@ -75,9 +66,8 @@ box-of-cong refl refl refl _ _ refl = refl
 module _ (G : Hypergraph FlatGen) where
   private module G = Hypergraph G
 
-  -- The FIRE "box" factor (Decode's local `mid'`): applies the edge
-  -- generator at the front with identity on the residual, framed by the
-  -- `unflatten-++-≅` coercions.  Depends only on `e` and `rest`.
+  -- The FIRE "box" factor: the edge generator at the front with identity
+  -- on the residual, framed by the `unflatten-++-≅` coercions.
   fire-mid
     : ∀ (e : Fin G.nE) (rest : List (Fin G.nV))
     → HomTerm (unflatten (map G.vlab (G.ein  e ++ rest)))
@@ -89,8 +79,8 @@ module _ (G : Hypergraph FlatGen) where
       (box-of (map G.vlab (G.ein e)) (map G.vlab (G.eout e)) (map G.vlab rest)
               (G.elab e))
 
-  -- The reconstructed FIRE term: identical to Decode's local `bridged`, so
-  -- it is definitionally equal to `proj₂ (edge-step G s e)` on the FIRE branch.
+  -- The reconstructed FIRE term, definitionally `proj₂ (edge-step G s e)`
+  -- on the FIRE branch.
   fire-term
     : ∀ (e : Fin G.nE) (s rest : List (Fin G.nV))
     → s Perm.↭ G.ein e ++ rest
@@ -98,7 +88,6 @@ module _ (G : Hypergraph FlatGen) where
               (unflatten (map G.vlab (G.eout e ++ rest)))
   fire-term e s rest perm = fire-mid e rest ∘ permute-via-vlab G.vlab perm
 
-  -- The graph of `edge-step` as an inductive relation.
   data EdgeStepR (s : List (Fin G.nV)) (e : Fin G.nE)
        : (s' : List (Fin G.nV))
        → HomTerm (unflatten (map G.vlab s)) (unflatten (map G.vlab s'))
@@ -109,7 +98,7 @@ module _ (G : Hypergraph FlatGen) where
           → extract-prefix (G.ein e) s ≡ just (rest , perm)
           → EdgeStepR s e (G.eout e ++ rest) (fire-term e s rest perm)
 
-  -- The function realises the relation (cover / forward direction).
+  -- The function realises the relation.
   edge-step-graph
     : ∀ (s : List (Fin G.nV)) (e : Fin G.nE)
     → EdgeStepR s e (proj₁ (edge-step G s e)) (proj₂ (edge-step G s e))
@@ -117,7 +106,7 @@ module _ (G : Hypergraph FlatGen) where
   ... | nothing            = skipR eq
   ... | just (rest , perm) = fireR rest perm eq
 
-  -- The relation pins the function value (soundness / backward direction).
+  -- The relation pins the function value.
   edge-step-sound
     : ∀ {s : List (Fin G.nV)} {e : Fin G.nE}
         {s' : List (Fin G.nV)}

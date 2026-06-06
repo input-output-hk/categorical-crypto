@@ -1,55 +1,20 @@
 {-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
--- The permute-coherence *bridge* keystone, parameterised by a
--- `FaithfulnessResidual` value.
+-- The permute-coherence bridge keystone, parameterised by a
+-- `FaithfulnessResidual` value `K`.
 --
--- ## What this module proves
+-- Turns Kelly's `permute-resp-≅↭` obligation into a coherence statement
+-- on `Unique` codomains by feeding it the rigidity witness `eval-rigid`
+-- (whose result type is definitionally the `p ≅↭ q` argument K expects).
 --
--- The single one-liner that turns Kelly's `FaithfulnessResidual`
--- obligation (`permute-resp-≅↭`) into a *useful* coherence statement on
--- `Unique` codomains, by feeding it the rigidity witness `eval-rigid`:
+-- `Unique ys` (the CODOMAIN), not `Unique xs`: `eval-rigid` uses
+-- injectivity of `lookup ys`.  This is the `Unique`-guarded restriction
+-- of Kelly's coherence — the unrestricted X-level statement is FALSE.
 --
---   permute-≈Term-coherence-K
---     : (K : FaithfulnessResidual) {xs ys : List X}
---     → Unique ys → (p q : xs ↭ ys)
---     → permute p ≈Term permute q
---   permute-≈Term-coherence-K K uniq p q =
---     FaithfulnessResidual.permute-resp-≅↭ K p q (eval-rigid uniq p q)
---
--- The key alignment: `_≅↭_` is *definitionally* `eval-↭ p ≈-fb eval-↭ q`
--- (Canonical.agda:198-199), and `eval-rigid uniq p q` has *exactly* that
--- type (Rigid.agda:91-95).  So the result of `eval-rigid` is directly the
--- `p ≅↭ q` argument expected by `permute-resp-≅↭`
--- (Faithfulness.agda:108-114) — no glue needed at the X-level.
---
--- ## Why `Unique ys` (not `Unique xs`)
---
--- `eval-rigid` requires the *codomain* list `ys` to be duplicate-free
--- (it uses injectivity of `lookup ys`).  That is exactly the hypothesis
--- under which two `↭` derivations are forced to realise the same
--- position bijection, hence the coherence is genuinely TRUE here (this
--- is the `Unique`-guarded restriction of Kelly's coherence theorem; the
--- unrestricted X-level statement is FALSE — see the counter-example in
--- `Discharge/Sub/PermuteCoherence.agda`).
---
--- ## The downstream `permute-via-vlab` form
---
--- The actual completeness call sites permute *Fin-index* stacks that are
--- `Unique` at the Fin level, but apply `vlab : Fin n → X` afterwards (so
--- `map vlab ys` may have DUPLICATES — `vlab` need not be injective).  We
--- therefore cannot apply `eval-rigid` at the X-level after the map.
--- Instead the `permute-via-vlab-≈Term-coherence-K` corollary applies
--- `eval-rigid` at the *Fin* level (where `Unique` holds), then transports
--- the resulting `≈-fb` through `eval-map⁺` to obtain
--- `map⁺ vlab p ≅↭ map⁺ vlab q`, finally feeding `permute-resp-≅↭`.
---
--- ## Trust surface
---
--- This module introduces NO `postulate`.  It is parameterised over a
--- `FaithfulnessResidual` value `K`; all the residual categorical content
--- lives in `K`.  Everything else (`eval-rigid`, `eval-map⁺`,
--- `subst₂-FinBij-≈`) is constructively proven upstream.
+-- The `permute-via-vlab` corollary applies `eval-rigid` at the Fin level
+-- (where `Unique` holds; `vlab` need not be injective, so `map vlab ys`
+-- may have duplicates), then transports through `eval-map⁺`.
 --------------------------------------------------------------------------------
 
 open import Categories.FreeMonoidal
@@ -69,8 +34,6 @@ open Perm using (_↭_)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Relation.Binary.PropositionalEquality using (sym)
 
--- The generic `permute` / `permute-via-vlab` builders, the
--- `FaithfulnessResidual` record, and `_≅↭_`.
 open import Categories.PermuteCoherence.Faithfulness d
   using (permute; FaithfulnessResidual)
 open import Categories.FreeSMC.Steps d using (permute-via-vlab)
@@ -82,10 +45,8 @@ open import Categories.PermuteCoherence.Map
   using (eval-map⁺; subst₂-FinBij-≈; ≈-fb-resp-≡)
 
 --------------------------------------------------------------------------------
--- 1. The X-level keystone bridge lemma (exactly as posed).
---
--- `eval-rigid uniq p q : eval-↭ p ≈-fb eval-↭ q`, which is `p ≅↭ q` by
--- definition of `_≅↭_`.  Feed it straight into the residual.
+-- 1. The X-level keystone bridge: feed `eval-rigid uniq p q` (which is
+-- `p ≅↭ q` by definition) straight into the residual.
 
 permute-≈Term-coherence-K
   : (K : FaithfulnessResidual)
@@ -96,24 +57,11 @@ permute-≈Term-coherence-K K uniq p q =
   FaithfulnessResidual.permute-resp-≅↭ K p q (eval-rigid uniq p q)
 
 --------------------------------------------------------------------------------
--- 2. The downstream `permute-via-vlab` corollary.
---
--- `Unique` lives at the Fin-index level (so we apply `eval-rigid` there);
--- `vlab` is applied afterwards via `map⁺`, and `eval-map⁺` lets us
--- transport the Fin-level `≈-fb` to the X-level `≅↭` of the mapped
--- derivations.
---
---   permute-via-vlab vlab p = permute (map⁺ vlab p)
---
--- so the goal reduces to `permute (map⁺ vlab p) ≈Term permute (map⁺ vlab q)`,
--- which is `permute-resp-≅↭ K` applied to `map⁺ vlab p ≅↭ map⁺ vlab q`.
+-- 2. The downstream `permute-via-vlab` corollary: apply `eval-rigid` at
+-- the Fin level, then transport through `eval-map⁺` to the X-level `≅↭`.
 
 private
   -- `map⁺ vlab p ≅↭ map⁺ vlab q` from Fin-level rigidity.
-  --
-  -- `eval-rigid uniq p q : eval-↭ p ≈-fb eval-↭ q`.  Transport along the
-  -- `length-map` casts (`subst₂-FinBij-≈`), then rewrite both sides back
-  -- to `eval-↭ (map⁺ vlab _)` via `eval-map⁺`.
   map⁺-≅↭
     : ∀ {n} {xs ys : List (Fin n)}
         (vlab : Fin n → X)

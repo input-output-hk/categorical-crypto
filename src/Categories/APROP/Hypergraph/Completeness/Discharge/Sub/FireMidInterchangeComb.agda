@@ -1,29 +1,18 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Combinatorial scaffolding for `Sub/FireMidInterchange.block-nf`.
---
--- The SIMULTANEOUS-LOCATION combinatorics of the both-fire two-edge
--- interchange: from the four locating permutes (and the disjointness given
--- by `Incomp` + `Linear`), we locate BOTH input blocks at once, producing a
--- common residual list `Rlist` and the two "block" locating permutes
+-- Combinatorial scaffolding for `Sub/FireMidInterchange.block-nf`: the
+-- simultaneous-location combinatorics of the both-fire two-edge interchange.
+-- From the four locating permutes (plus disjointness from `Incomp` + `Linear`)
+-- it locates BOTH input blocks at once, producing a single shared residual
+-- `Rlist` with
 --
 --   loc₁ : sp ↭ (ein e ++ ein e') ++ Rlist
 --   loc₂ : sp ↭ (ein e' ++ ein e) ++ Rlist
 --
--- (note: a SINGLE shared `Rlist`, with the two orders differing only by the
--- swap of the two `ein` blocks).  Plus the output reshuffle
---
---   r-stk : eout e' ++ r₂ ↭ eout e ++ r₁'
---
--- (= `AllFireEdgeSwap.post-swap-stack-↭`, re-derived here over the
--- `--without-K`/non-`sig-dec` API).
---
--- All of this is pure `_↭_` / `count` combinatorics; it is FULLY
--- CONSTRUCTIVE and postulate-free.  It is the "located" half of the
--- block-normal-form chase: it tells us WHERE the two boxes' input/output
--- blocks live inside the stack, leaving only the categorical bracketing
--- (`block-nf`'s frame morphisms + `nf₁`/`nf₂`) to the consumer.
+-- (the two orders differing only by the `ein` block swap) plus the output
+-- reshuffle `r-stk : eout e' ++ r₂ ↭ eout e ++ r₁'`.  Pure `_↭_` / `count`
+-- combinatorics; the categorical bracketing is left to the consumer.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -64,9 +53,8 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst; subst₂)
 
 --------------------------------------------------------------------------------
--- ## Generic `count` / `extract-prefix` combinatorics (H-agnostic).
--- The core lemmas live in the shared `CountCombinatorics` leaf; the few
--- specialised helpers below are kept local.
+-- Generic `count` / `extract-prefix` combinatorics (H-agnostic).  Core
+-- lemmas live in the shared `CountCombinatorics` leaf.
 
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.CountCombinatorics sig
   using (↭⇒count; count-pos→∈; count-≤→extract-prefix; ++-cancelˡ)
@@ -122,8 +110,7 @@ module _ (H : Hypergraph FlatGen)
   private module H = Hypergraph H
 
   ----------------------------------------------------------------------
-  -- ## Disjointness from `Linear` + `Incomp`, copied from
-  -- `RunInterchangeEmptyTail.agda`'s `private` block.
+  -- Disjointness from `Linear` + `Incomp`.
   ----------------------------------------------------------------------
 
   private
@@ -161,16 +148,11 @@ module _ (H : Hypergraph FlatGen)
         ¬dep (v , count-pos→∈ v∈eout-e , count-pos→∈ v∈ein-e'))
 
   ----------------------------------------------------------------------
-  -- ## Extracting `ein e'` from the residual `r₁`.
-  --
-  -- From `p₂ : eout e ++ r₁ ↭ ein e' ++ r₂` plus `eout e ⊥ ein e'`, every
-  -- vertex of `ein e'` lives in `r₁` (not in `eout e`).  Hence `ein e'`
-  -- is a count-prefix of `r₁`, so we can extract a residual `Rlist` with
-  -- `r₁ ↭ ein e' ++ Rlist`.
+  -- Extracting `ein e'` from the residual `r₁`.  From `p₂` + `eout e ⊥
+  -- ein e'`, every vertex of `ein e'` lives in `r₁`, so `ein e'` is a
+  -- count-prefix of `r₁`, giving `r₁ ↭ ein e' ++ Rlist`.
   ----------------------------------------------------------------------
 
-  -- `count v (ein e') ≤ count v r₁` for all `v`, using disjointness of
-  -- `eout e` with `ein e'`.
   ein'-≤-r₁
     : ∀ {e e' : Fin H.nE} → ¬ (Dep H e e')
     → (r₁ r₂ : List (Fin H.nV)) → H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂
@@ -184,8 +166,6 @@ module _ (H : Hypergraph FlatGen)
       ... | suc _ = inj₁ (s≤sⁿ z≤nⁿ)
   ... | inj₂ z   = subst (_≤ⁿ count v r₁) (sym z) z≤nⁿ
   ... | inj₁ pos =
-        -- count v (eout e) + count v r₁ = count v (ein e') + count v r₂,
-        -- and count v (eout e) ≡ 0, so count v (ein e') ≤ count v r₁.
         Nat.≤-trans (Nat.m≤m+n (count v (H.ein e')) (count v r₂))
         (Nat.≤-reflexive
           (trans (sym (count-++ v (H.ein e') r₂))
@@ -204,16 +184,11 @@ module _ (H : Hypergraph FlatGen)
     in rest , q
 
   ----------------------------------------------------------------------
-  -- ## Simultaneous location.
-  --
-  -- For the BOTH-FIRE order `e ∷ e'`, with the residual `Rlist` extracted
-  -- above, the input stack `sp` locates BOTH input blocks at once:
-  --
+  -- Simultaneous location: for the `e ∷ e'` order with residual `Rlist`,
+  -- the input stack `sp` locates both input blocks at once:
   --   loc₁ : sp ↭ (ein e ++ ein e') ++ Rlist.
   ----------------------------------------------------------------------
 
-  -- The block-located permute for the `e ∷ e'` order, with residual
-  -- `Rlist`: `sp ↭ (ein e ++ ein e') ++ Rlist`.
   block-loc-e
     : ∀ {e e' : Fin H.nE} → ¬ (Dep H e e')
     → (sp r₁ r₂ : List (Fin H.nV))
@@ -233,11 +208,9 @@ module _ (H : Hypergraph FlatGen)
         (H.ein e ++ H.ein e') ++ Rlist       ∎
 
   ----------------------------------------------------------------------
-  -- ## The output reshuffle (= `AllFireEdgeSwap.post-swap-stack-↭`,
-  -- re-derived here over the `--without-K` API).
+  -- The output reshuffle between the two final stacks.
   ----------------------------------------------------------------------
 
-  -- The output reshuffle between the two final stacks.
   post-swap-stack-↭
     : ∀ (e₁ e₂ : Fin H.nE)
         (sp r₁ r₂ r₁' r₂' : List (Fin H.nV))
@@ -400,15 +373,12 @@ module _ (H : Hypergraph FlatGen)
       cancelled = ++-cancelˡ (H.ein e₁) cancelled-1
 
   ----------------------------------------------------------------------
-  -- ## The packaged simultaneous-location data for the both-fire pair.
-  --
-  -- A single `Rlist` (shared by both orders), the two block-located
-  -- input permutes (differing only by the `ein` block swap), and the
-  -- output reshuffle.
+  -- The packaged simultaneous-location data for the both-fire pair: a
+  -- shared `Rlist`, the two block-located input permutes, the output
+  -- reshuffle.
   ----------------------------------------------------------------------
 
-  -- From `p₂ : eout e ++ r₁ ↭ ein e' ++ r₂` and `q₁ : r₁ ↭ ein e' ++ Rlist`,
-  -- the e-output residual is `r₂ ↭ eout e ++ Rlist`.
+  -- From `p₂` and `q₁`, the e-output residual is `r₂ ↭ eout e ++ Rlist`.
   eout-residual
     : ∀ {e e' : Fin H.nE}
     → (r₁ r₂ Rlist : List (Fin H.nV))

@@ -2,14 +2,10 @@
 
 --------------------------------------------------------------------------------
 -- Translation ⟪_⟫ : HomTerm → Hypergraph using the PRUNED `hComposeP`.
---
--- Same as `FromAPROP.⟪_⟫` except `∘` uses `hComposeP` (Option A) rather
--- than `hCompose`. This version enables the group-(b)/(c) ≈Term axioms
--- (idˡ, idʳ, etc.) where the LHS would otherwise have strictly more
--- vertices than the RHS due to unreachable K-side dom vertices.
---
--- Separate file because `FromAPROP` can't import `PrunedCompose` — the
--- latter imports `FromAPROP` for `FlatGen`.
+-- Same as `FromAPROP.⟪_⟫` except `∘` uses `hComposeP`, which makes the
+-- group-(b)/(c) ≈Term laws (idˡ, idʳ, …) provable by lining up the vertex
+-- counts.  Separate file because `FromAPROP` cannot import `PrunedCompose`
+-- (the latter imports `FromAPROP` for `FlatGen`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -28,14 +24,9 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; trans; sym; cong; cong₂)
 
 --------------------------------------------------------------------------------
--- Translation from APROP terms.
---
--- Structurally identical to the original `FromAPROP.⟪_⟫`, except `∘`
--- dispatches to `hComposeP` for the canonical pruned cospan composition.
-
--- Mutual definition: `⟪_⟫` produces an unindexed hypergraph; the
--- boundary lemmas `⟪⟫-domL`/`⟪⟫-codL` witness that its `domL`/`codL`
--- agree with the term's source/target via `flatten`.
+-- Mutual definition: `⟪_⟫` produces the hypergraph; the boundary lemmas
+-- `⟪⟫-domL`/`⟪⟫-codL` witness that its `domL`/`codL` agree with the term's
+-- source/target via `flatten`.
 
 open import Categories.APROP.Hypergraph.FromAPROP sig
   using (domL-hId; codL-hId; domL-hTensor; codL-hTensor;
@@ -100,9 +91,7 @@ open import Categories.APROP.Hypergraph.PrunedCompose sig
 ⟪⟫-codL (α⇐ {A}{B}{C})  = codL-hId ((A ⊗₀ B) ⊗₀ C)
 ⟪⟫-codL (σ {A}{B})      = codL-hSwap A B
 
--- Mark `⟪_⟫` injective for type inference.  Without this, dispatching a
--- focused postulate like `pentagon-sound : ∀ {A B C D} → ⟪ LHS ⟫ ≅ᴴ
--- ⟪ RHS ⟫` can't solve the implicit {A B C D} from the goal's `⟪ LHS ⟫`
--- expression, because Agda can't invert `⟪_⟫` otherwise.  With this
--- pragma, `⟪ f₁ ⟫ = ⟪ f₂ ⟫` is taken to imply `f₁ = f₂`.
+-- Mark `⟪_⟫` injective for inference: lets Agda solve the implicit term
+-- args of a focused goal like `∀ {A B C D} → ⟪ LHS ⟫ ≅ᴴ ⟪ RHS ⟫` by
+-- inverting `⟪_⟫` on the goal's `⟪ LHS ⟫`.
 {-# INJECTIVE_FOR_INFERENCE ⟪_⟫ #-}

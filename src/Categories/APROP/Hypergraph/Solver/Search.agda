@@ -1,16 +1,12 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Phase 4a.4: Backtracking search (TensorRocq §4.2).
+-- Backtracking depth-first search (TensorRocq §4.2).
 --
--- Depth-first search over `matchEdge` results. Picks edges in natural
--- order (`Fin.zero` first), tries each candidate extension, recurses.
--- On exhaustion without a complete match, backtracks to the next
--- candidate. Terminates via a `fuel` argument (set by callers to
--- `H.nE × J.nE`, a bound on the search-tree size).
---
--- No heuristics. The plan (§4a.4) chooses simplicity over speed —
--- we emit the *first* complete match, not the best one.
+-- Picks edges in natural order, tries each candidate extension via
+-- `matchEdge`, recurses, and backtracks on failure.  Terminates via a
+-- `fuel` argument (bounded by `H.nE × J.nE`).  Emits the first complete
+-- match, not a best one.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
@@ -32,9 +28,8 @@ open import Data.Nat using (ℕ; _*_)
 open import Data.Product using (_×_; _,_)
 
 --------------------------------------------------------------------------------
--- Find the first unmatched H-edge (the first `e : Fin nEH` with
--- `forward ψ e ≡ nothing`). Returns `nothing` when all edges are
--- matched — the exit condition of the search.
+-- The first unmatched H-edge (`forward ψ e ≡ nothing`), or `nothing` when
+-- all edges are matched (the search exit condition).
 
 firstUnmatched
   : ∀ {nEH nEJ}
@@ -47,10 +42,6 @@ firstUnmatched {nEH} ψ = go nEH (λ i → i)
     go (ℕ.suc n) inj with forward ψ (inj zero)
     ... | nothing = just (inj zero)
     ... | just _  = go n (λ i → inj (suc i))
-
---------------------------------------------------------------------------------
--- Backtracking depth-first search. Iterates over `matchEdge` results,
--- recurses with `fuel - 1`. On fuel exhaustion, returns `nothing`.
 
 module _
          (H J : Hypergraph FlatGen) where
@@ -65,14 +56,12 @@ module _
     : (fuel : ℕ)
     → VertexBij H J → EdgeBij H J
     → Maybe (VertexBij H J × EdgeBij H J)
-  -- Even when fuel is exhausted, succeed if all edges are already
-  -- matched — `firstUnmatched` is the only termination signal that
-  -- matters.
+  -- Succeed if all edges are already matched, even at zero fuel.
   searchIso ℕ.zero    φ ψ with firstUnmatched ψ
   ... | nothing = just (φ , ψ)
   ... | just _  = nothing
   searchIso (ℕ.suc k) φ ψ with firstUnmatched ψ
-  ... | nothing = just (φ , ψ)          -- all edges matched — done
+  ... | nothing = just (φ , ψ)
   ... | just e  = tryAll (matchEdge H J φ ψ e)
     where
       tryAll : List (VertexBij H J × EdgeBij H J)
@@ -82,7 +71,7 @@ module _
       ... | just res = just res
       ... | nothing  = tryAll xs
 
-  -- Convenience: bound fuel by the search-tree upper bound.
+  -- Fuel bounded by the search-tree upper bound.
   searchIso-default : VertexBij H J → EdgeBij H J
                     → Maybe (VertexBij H J × EdgeBij H J)
   searchIso-default = searchIso (nEH * nEJ)

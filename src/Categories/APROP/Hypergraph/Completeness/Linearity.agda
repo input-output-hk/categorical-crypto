@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Phase 3.5f Step 1 — Linearity invariant on translated hypergraphs.
+-- Linearity invariant on translated hypergraphs.
 --
 -- A hypergraph `H` is *linear* when every vertex's "production" count
 -- (appearances in `dom ++ concat (tabulate eout)`) matches its
@@ -16,13 +16,7 @@
 -- decoded term).
 --
 -- The translation `⟪ f ⟫` always satisfies linearity (`⟪⟫-Linear`),
--- by structural induction on `f` using the side lemmas
--- `Linear-hTensor` / `Linear-hCompose`.
---
--- STATUS: complete.  Compositional side lemmas (`Linear-hTensor`,
--- `Linear-hCompose`), base cases (`Linear-hEmpty`, `Linear-hVar`,
--- `Linear-hId`, `Linear-hGen`, `Linear-hSwap`), and the `subst₂`
--- transport (`Linear-subst₂`) used for ρ⇒/ρ⇐/α⇒/α⇐ are all proved.
+-- by structural induction on `f` using `Linear-hTensor` / `Linear-hCompose`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -58,7 +52,6 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Decidable using (Dec; yes; no)
 open import Relation.Nullary.Negation using (¬_)
 
---------------------------------------------------------------------------------
 -- count v xs : number of occurrences of `v` in `xs`.
 
 count : ∀ {n} → Fin n → List (Fin n) → ℕ
@@ -67,7 +60,6 @@ count v (x ∷ xs) with v ≟ x
 ... | yes _ = suc (count v xs)
 ... | no  _ = count v xs
 
---------------------------------------------------------------------------------
 -- count distributes over `_++_`.
 
 count-++ : ∀ {n} (v : Fin n) (xs ys : List (Fin n))
@@ -77,7 +69,6 @@ count-++ v (x ∷ xs) ys with v ≟ x
 ... | yes _ = cong suc (count-++ v xs ys)
 ... | no  _ = count-++ v xs ys
 
---------------------------------------------------------------------------------
 -- count of `v` in `range n`: every Fin appears exactly once.
 
 private
@@ -106,7 +97,7 @@ count-range {n = suc n} (suc i) with suc i ≟ zero
 --------------------------------------------------------------------------------
 -- Counting along the disjoint injections `_↑ˡ_` and `_↑ʳ_`.
 
--- The "matching" cases: count i in xs ≡ count (i ↑ˡ nB) in (map (_↑ˡ nB) xs).
+-- The "matching" cases.
 count-map-↑ˡ : ∀ {nA} nB (i : Fin nA) (xs : List (Fin nA))
              → count (i ↑ˡ nB) (map (_↑ˡ nB) xs) ≡ count i xs
 count-map-↑ˡ nB i []       = refl
@@ -125,7 +116,7 @@ count-map-↑ʳ nA j (x ∷ xs) with (nA ↑ʳ j) ≟ (nA ↑ʳ x) | j ≟ x
 ... | no  q | yes p = ⊥-elim (q (cong (nA ↑ʳ_) p))
 ... | no  _ | no  _ = count-map-↑ʳ nA j xs
 
--- The "mismatch" cases: a `nA ↑ʳ j` doesn't appear in any `_↑ˡ_` image,
+-- The "mismatch" cases: a `nA ↑ʳ j` never appears in an `_↑ˡ_` image,
 -- and vice versa.
 
 private
@@ -149,8 +140,7 @@ count-map-↑ʳ-mismatch {nA} nB i (x ∷ xs) with (i ↑ˡ nB) ≟ (nA ↑ʳ x)
 ... | yes p = ⊥-elim (↑ˡ≢↑ʳ i x p)
 ... | no  _ = count-map-↑ʳ-mismatch nB i xs
 
---------------------------------------------------------------------------------
--- count is permutation-invariant under list concatenation reordering.
+-- count is invariant under swapping the two sides of a `_++_`.
 
 count-swap : ∀ {n} (v : Fin n) (xs ys : List (Fin n))
            → count v (xs ++ ys) ≡ count v (ys ++ xs)
@@ -159,7 +149,6 @@ count-swap v xs ys =
         (trans (Nat.+-comm (count v xs) (count v ys))
                (sym (count-++ v ys xs)))
 
---------------------------------------------------------------------------------
 -- `tabulate` over `Fin (m + n)` splits along the `↑ˡ`/`↑ʳ` boundary.
 
 private
@@ -169,7 +158,6 @@ private
   tabulate-+ {m = zero}              f = refl
   tabulate-+ {m = suc m} {n = n}     f = cong (f zero ∷_) (tabulate-+ {m = m} {n = n} (f Fun.∘ suc))
 
---------------------------------------------------------------------------------
 -- The combined `LL ++ RR` list contains every Fin (nA + nB) exactly once.
 
 private
@@ -194,7 +182,6 @@ private
                                                   (count-map-↑ˡ-mismatch nA j (range nA))
                                                   (trans (count-map-↑ʳ nA j (range nB)) (count-range j)))
 
---------------------------------------------------------------------------------
 -- Production / consumption lists of a hypergraph.
 
 producedList : (H : Hypergraph FlatGen) → List (Fin (Hypergraph.nV H))
@@ -205,18 +192,11 @@ consumedList : (H : Hypergraph FlatGen) → List (Fin (Hypergraph.nV H))
 consumedList H =
   Hypergraph.cod H ++ concat (tabulate (Hypergraph.ein H))
 
---------------------------------------------------------------------------------
 -- Linearity: matching production / consumption counts, each ≤ 1.
 
 Linear : Hypergraph FlatGen → Set
 Linear H = (∀ v → count v (producedList H) ≡ count v (consumedList H))
          × (∀ v → count v (producedList H) Nat.≤ 1)
-
---------------------------------------------------------------------------------
--- Compositional preservation lemmas.  These are the technical heart of
--- the linearity proof: hTensor preserves linearity by inj-disjointness,
--- and hCompose preserves it modulo stranded K.dom-vertices that get
--- count 0 on each side.
 
 --------------------------------------------------------------------------------
 -- Tensor preserves linearity.
@@ -235,8 +215,7 @@ Linear-hTensor G K (G-bal , G-bnd) (K-bal , K-bnd) = balance , bound
     module K = Hypergraph K
     open hTensor-impl G K
 
-    -- Decompose `concat (tabulate ein-c)` / `concat (tabulate eout-c)`
-    -- into the L/R-side blocks.
+    -- Decompose `concat (tabulate {ein,eout}-c)` into the L/R-side blocks.
 
     eout-tensor-eq
       : concat (tabulate eout-c)
@@ -272,8 +251,6 @@ Linear-hTensor G K (G-bal , G-bnd) (K-bal , K-bnd) = balance , bound
              (cong₂ _++_ (concat-map (tabulate G.ein))
                          (concat-map (tabulate K.ein)))))
 
-    -- count of `injL i` / `injR j` in `map injL xs ++ map injR ys`.
-
     count-injL-mixed
       : ∀ (i : Fin G.nV) (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
       → count (injL i) (map injL xs ++ map injR ys) ≡ count i xs
@@ -293,8 +270,8 @@ Linear-hTensor G K (G-bal , G-bnd) (K-bal , K-bnd) = balance , bound
               (count-map-↑ˡ-mismatch G.nV j xs)
               (count-map-↑ʳ G.nV j ys))
 
-    -- `count (injL i)` of the composite's produced/consumed lists
-    -- equals `count i` of G's.
+    -- `count (injL i)` of the composite's lists equals `count i` of G's;
+    -- `count (injR j)` equals `count j` of K's.
 
     count-injL-prod
       : ∀ (i : Fin G.nV)
@@ -372,18 +349,16 @@ Linear-hTensor G K (G-bal , G-bnd) (K-bal , K-bnd) = balance , bound
     ...                | refl rewrite count-injR-prod j = K-bnd j
 
 --------------------------------------------------------------------------------
--- Helpers for `Linear-hCompose`: count manipulation, list permutation /
--- count-equivalence, and an `extract-split` for lists with positive count.
+-- Helpers for `Linear-hCompose`: count manipulation and the
+-- count ↔ permutation correspondence.
 
 private
-  -- count of `v` at the head of `v ∷ xs` reduces to `suc (count v xs)`.
   count-cons-yes : ∀ {n} (v : Fin n) (xs : List (Fin n))
                  → count v (v ∷ xs) ≡ suc (count v xs)
   count-cons-yes v xs with v ≟ v
   ... | yes _ = refl
   ... | no  q = ⊥-elim (q refl)
 
-  -- count of `v` at the head of `x ∷ xs` reduces to `count v xs` when v ≢ x.
   count-cons-no : ∀ {n} (v x : Fin n) (xs : List (Fin n))
                 → ¬ (v ≡ x)
                 → count v (x ∷ xs) ≡ count v xs
@@ -391,14 +366,14 @@ private
   ... | yes p = ⊥-elim (v≢x p)
   ... | no  _ = refl
 
-  -- count is monotone: prepending a head can only ≥ the original count.
+  -- count is monotone under prepending a head.
   count-mono-cons : ∀ {n} (v x : Fin n) (xs : List (Fin n))
                   → count v xs Nat.≤ count v (x ∷ xs)
   count-mono-cons v x xs with v ≟ x
   ... | yes _ = Nat.n≤1+n (count v xs)
   ... | no  _ = Nat.≤-refl
 
-  -- count is empty iff `xs ≡ []`.
+  -- all counts zero iff `xs ≡ []`.
   count-zero-empty : ∀ {n} (xs : List (Fin n))
                    → (∀ v → count v xs ≡ 0)
                    → xs ≡ []
@@ -432,28 +407,24 @@ private
       swap-case : Dec (v ≡ x) → Dec (v ≡ y)
                 → count v (x ∷ y ∷ xs') ≡ count v (y ∷ x ∷ ys')
       swap-case (yes refl) (yes refl) =
-        -- LHS: count v (v ∷ v ∷ xs'); RHS: count v (v ∷ v ∷ ys').
         trans (count-cons-yes v (v ∷ xs'))
         (trans (cong suc (count-cons-yes v xs'))
         (trans (cong suc (cong suc (↭⇒count-≡ p v)))
         (trans (cong suc (sym (count-cons-yes v ys')))
                (sym (count-cons-yes v (v ∷ ys'))))))
       swap-case (yes refl) (no  q) =
-        -- LHS: count v (v ∷ y ∷ xs'); RHS: count v (y ∷ v ∷ ys'), with v ≢ y.
         trans (count-cons-yes v (y ∷ xs'))
         (trans (cong suc (count-cons-no v y xs' q))
         (trans (cong suc (↭⇒count-≡ p v))
         (trans (sym (count-cons-yes v ys'))
                (sym (count-cons-no v y (v ∷ ys') q)))))
       swap-case (no  q) (yes refl) =
-        -- LHS: count v (x ∷ v ∷ xs'); RHS: count v (v ∷ x ∷ ys'), with v ≢ x.
         trans (count-cons-no v x (v ∷ xs') q)
         (trans (count-cons-yes v xs')
         (trans (cong suc (↭⇒count-≡ p v))
         (trans (cong suc (sym (count-cons-no v x ys' q)))
                (sym (count-cons-yes v (x ∷ ys'))))))
       swap-case (no  q₁) (no  q₂) =
-        -- LHS: count v (x ∷ y ∷ xs'); RHS: count v (y ∷ x ∷ ys'), with v ≢ x, v ≢ y.
         trans (count-cons-no v x (y ∷ xs') q₁)
         (trans (count-cons-no v y xs' q₂)
         (trans (↭⇒count-≡ p v)
@@ -461,7 +432,7 @@ private
                (sym (count-cons-no v y (x ∷ ys') q₂)))))
   ↭⇒count-≡ (Perm.trans p₁ p₂)     v = trans (↭⇒count-≡ p₁ v) (↭⇒count-≡ p₂ v)
 
-  -- Cancel a single shared cons in count equality.
+  -- Cancel a shared cons in a count equality.
   count-cancel-cons
     : ∀ {n} (v x : Fin n) (xs ys : List (Fin n))
     → count v (x ∷ xs) ≡ count v (x ∷ ys)
@@ -470,7 +441,7 @@ private
   ... | yes _ = Nat.suc-injective h
   ... | no  _ = h
 
-  -- Count equality lifts to a permutation. Inductive on `xs`.
+  -- Count equality lifts to a permutation.
   count-≡⇒↭
     : ∀ {n} (xs ys : List (Fin n))
     → (∀ v → count v xs ≡ count v ys)
@@ -493,7 +464,6 @@ private
                         (trans (hyp v)
                                (↭⇒count-≡ (PermProp.shift x ys₁ ys₂) v))
 
-  -- count of `map f` is invariant under count-equal lists.
   count-map-resp
     : ∀ {n m} (f : Fin n → Fin m) (xs ys : List (Fin n))
     → (∀ k → count k xs ≡ count k ys)
@@ -507,21 +477,18 @@ private
 -- which sends each `K.dom`-vertex to the corresponding `G.cod`-vertex on
 -- the L-side, and leaves "non-domain" K-vertices untouched on the R-side.
 --
--- The proof structure parallels the count-↭ machinery: K-balance is a
--- count-equality, which lifts (via `map⁺` on `_↭_`) to a count-equality
--- of the `map remap`-images.  Combined with G-balance and the list
--- equation `map remap K.dom ≡ map injL G.cod`, we obtain the balance
--- equation for `hCompose G K`.  The bound proof reduces to G-bound (on
--- the L-side) and K-bound (on the R-side) by computing `count v (map
--- remap K.eb)` exactly.
+-- K-balance (a count-equality) lifts via `map⁺` on `_↭_` to a
+-- count-equality of the `map remap`-images.  Combined with G-balance and
+-- `map remap K.dom ≡ map injL G.cod`, this yields the balance equation;
+-- the bound reduces to G-bound (L-side) and K-bound (R-side).
 
 --------------------------------------------------------------------------------
--- Combinatorial core of the K-side `remap` routing, shared (verbatim) by both
--- `Linear-hCompose`'s where-block and `hCompose-Linear-utils`.  None of this
--- needs `Linear G` / `Linear K`: it depends only on `G`, `K`, the boundary
--- equation, and the generic `count` lemmas.  (The duplicate-freeness bound
--- `count k K.dom ≤ 1` IS Linearity-dependent, so it is passed in as a
--- parameter where needed — see `map-remap-K-dom-from-bnd`.)
+-- Combinatorial core of the K-side `remap` routing, shared by both
+-- `Linear-hCompose`'s where-block and `hCompose-Linear-utils`.  Depends
+-- only on `G`, `K`, the boundary equation, and the generic `count`
+-- lemmas — NOT on `Linear G` / `Linear K`.  The duplicate-freeness bound
+-- `count k K.dom ≤ 1` is Linearity-dependent and so is passed in as a
+-- parameter (see `map-remap-K-dom-from-bnd`).
 
 private
   module remap-core
@@ -547,15 +514,14 @@ private
     remap-noDom : ∀ k → count k K.dom ≡ 0 → remap k ≡ injR k
     remap-noDom = private-remap-noDom K.dom G.cod
 
-    -- `length K.dom ≡ length G.cod` from the boundary equation.
     length-K-dom : length K.dom ≡ length G.cod
     length-K-dom =
       trans (sym (length-map K.vlab K.dom))
       (trans (cong length (sym bdy-eq))
              (length-map G.vlab G.cod))
 
-    -- For dup-free `ks` (length-matched to `gs`), `map (remap' ks gs) ks ≡
-    -- map injL gs`.
+    -- For dup-free `ks` (length-matched to `gs`),
+    -- `map (remap' ks gs) ks ≡ map injL gs`.
     private-map-remap-on-self
       : ∀ (ks : List (Fin K.nV)) (gs : List (Fin G.nV))
       → length ks ≡ length gs
@@ -604,7 +570,6 @@ private
         rest-eq : map (remap' ks gs) ks ≡ map injL gs
         rest-eq = private-map-remap-on-self ks gs (Nat.suc-injective len) bnd-ks
 
-    -- `map remap K.dom ≡ map injL G.cod`, given the (Linearity-derived) bound.
     map-remap-K-dom-from-bnd
       : (∀ k → count k K.dom Nat.≤ 1) → map remap K.dom ≡ map injL G.cod
     map-remap-K-dom-from-bnd bnd =
@@ -626,10 +591,8 @@ Linear-hCompose G K bdy-eq (G-bal , G-bnd) (K-bal , K-bnd) =
     K-eb    = concat (tabulate K.eout)
     K-ein-b = concat (tabulate K.ein)
 
-    --------------------------------------------------------------------
-    -- Structural decompositions of `concat (tabulate eout-c)` and
-    -- `concat (tabulate ein-c)`.  Same shape as in `Linear-hTensor`,
-    -- but the K-side uses `remap` instead of `injR`.
+    -- Decompositions as in `Linear-hTensor`, but the K-side uses
+    -- `remap` instead of `injR`.
 
     eout-comp-eq
       : concat (tabulate eout-c)
@@ -663,9 +626,7 @@ Linear-hCompose G K bdy-eq (G-bal , G-bnd) (K-bal , K-bnd) =
              (cong₂ _++_ (concat-map (tabulate G.ein))
                          (concat-map (tabulate K.ein)))))
 
-    --------------------------------------------------------------------
-    -- K's domain is duplicate-free (each element appears at most once),
-    -- a corollary of the K-bound (count k K.producedList ≤ 1) since
+    -- K's domain is duplicate-free, a corollary of the K-bound since
     -- count k K.dom ≤ count k (K.dom ++ K-eb) = count k K.producedList.
 
     K-dom-bnd : ∀ k → count k K.dom Nat.≤ 1
@@ -675,17 +636,11 @@ Linear-hCompose G K bdy-eq (G-bal , G-bnd) (K-bal , K-bnd) =
                      (Nat.≤-reflexive (sym (count-++ k K.dom K-eb))))
         (K-bnd k)
 
-    --------------------------------------------------------------------
-    -- The Linearity-free combinatorial core (`remap-noDom`, `length-K-dom`,
-    -- and the `map remap K.dom ≡ map injL G.cod` engine) is shared via
-    -- `remap-core`; `map-remap-K-dom` just feeds in the K-bound above.
-
     open remap-core G K bdy-eq
 
     map-remap-K-dom : map remap K.dom ≡ map injL G.cod
     map-remap-K-dom = map-remap-K-dom-from-bnd K-dom-bnd
 
-    --------------------------------------------------------------------
     -- count v (map remap S) for the special K-side lists.
 
     count-map-remap-K-dom-injL
@@ -700,9 +655,8 @@ Linear-hCompose G K bdy-eq (G-bal , G-bnd) (K-bal , K-bnd) =
       trans (cong (count (injR j)) map-remap-K-dom)
             (count-map-↑ˡ-mismatch G.nV j G.cod)
 
-    --------------------------------------------------------------------
-    -- For `k ∈ K-eb` (count k K-eb ≥ 1), `count k K.dom ≡ 0` by K-bnd.
-    -- Hence each element of K-eb is mapped by `remap` to `injR`.
+    -- For `k ∈ K-eb`, `count k K.dom ≡ 0` by K-bnd; hence each element
+    -- of K-eb is mapped by `remap` to `injR`.
 
     K-eb-noDom : ∀ k → 0 Nat.< count k K-eb → count k K.dom ≡ 0
     K-eb-noDom k pos = Nat.≤-antisym le-0 z≤n
@@ -719,7 +673,6 @@ Linear-hCompose G K bdy-eq (G-bal , G-bnd) (K-bal , K-bnd) =
         le-0 : count k K.dom Nat.≤ 0
         le-0 = Nat.+-cancelʳ-≤ 1 (count k K.dom) 0 step
 
-    -- map-remap is "structural" on K-eb: each element gets injR'd.
     map-remap-eb : map remap K-eb ≡ map injR K-eb
     map-remap-eb = go K-eb (λ _ p → p)
       where
@@ -735,7 +688,6 @@ Linear-hCompose G K bdy-eq (G-bal , G-bnd) (K-bal , K-bnd) =
             x∈x∷xs : 0 Nat.< count x (x ∷ xs)
             x∈x∷xs = subst (0 Nat.<_) (sym (count-cons-yes x xs)) (s≤s z≤n)
 
-    --------------------------------------------------------------------
     -- count of `injL i` / `injR j` in `map injL xs ++ map remap S`.
 
     count-injL-mixed-remap
@@ -756,9 +708,8 @@ Linear-hCompose G K bdy-eq (G-bal , G-bnd) (K-bal , K-bnd) =
             (cong (Nat._+ count (injR j) (map remap ys))
                   (count-map-↑ˡ-mismatch G.nV j xs))
 
-    --------------------------------------------------------------------
-    -- K-bal lifted via `remap`: produced/consumed counts of the K-side
-    -- lists are still equal after applying `remap` pointwise.
+    -- K-bal lifted via `remap`: the K-side count-equality survives
+    -- applying `remap` pointwise.
 
     K-bal-via-remap
       : ∀ v
@@ -767,10 +718,8 @@ Linear-hCompose G K bdy-eq (G-bal , G-bnd) (K-bal , K-bnd) =
     K-bal-via-remap v =
       count-map-resp remap (K.dom ++ K-eb) (K.cod ++ K-ein-b) K-bal v
 
-    --------------------------------------------------------------------
-    -- `count v producedList (hCompose G K bdy-eq)` decomposed into G-side and
-    -- K-side contributions, both labeled by the appropriate map (injL
-    -- or remap).
+    -- producedList/consumedList counts decomposed into G-side and
+    -- K-side contributions (labelled by `injL` resp. `remap`).
 
     count-prod
       : ∀ v
@@ -800,12 +749,8 @@ Linear-hCompose G K bdy-eq (G-bal , G-bnd) (K-bal , K-bnd) =
                                  refl)))
              (sym (Nat.+-assoc (count v (map remap K.cod)) _ _)))
 
-    --------------------------------------------------------------------
-    -- The "L-side balance" and "R-side balance" identities used in the
-    -- proof of `balance`.  They combine G-bal with the
-    -- `map-remap-K-dom = map injL G.cod` characterisation of the
-    -- composite cospan.
-
+    -- The balance identity combining G-bal with the
+    -- `map-remap-K-dom = map injL G.cod` characterisation of the cospan.
     -- For v = injL i: count v (map injL G.dom) + count v (map injL G-eb)
     --                ≡ count v (map injL G-ein-b) + count v (map remap K.dom).
     -- For v = injR j: both sides are 0.
@@ -835,9 +780,6 @@ Linear-hCompose G K bdy-eq (G-bal , G-bnd) (K-bal , K-bnd) =
                                  (count-map-↑ˡ-mismatch G.nV j G-ein-b)
                                  (count-map-remap-K-dom-injR j)))
 
-    --------------------------------------------------------------------
-    -- Balance: combining all the pieces.
-
     balance : ∀ v → count v (producedList (hCompose G K bdy-eq))
                   ≡ count v (consumedList (hCompose G K bdy-eq))
     balance v =
@@ -862,19 +804,16 @@ Linear-hCompose G K bdy-eq (G-bal , G-bnd) (K-bal , K-bnd) =
         ζ = count v (map remap K-ein-b)
         η = count v (map remap K.dom)
 
-    --------------------------------------------------------------------
     -- Bound: case-split on `v` and use G-bnd / K-bnd.
 
-    -- `count (injL i) (map remap K-eb) ≡ 0`: each element of K-eb has
-    -- count 0 in K.dom, so `remap` injR's it; injR i ≠ injL anything.
+    -- `count (injL i) (map remap K-eb) ≡ 0`: each element of K-eb is
+    -- injR'd by `remap`, and injR i ≠ injL anything.
     count-injL-remap-K-eb-zero
       : ∀ (i : Fin G.nV) → count (injL i) (map remap K-eb) ≡ 0
     count-injL-remap-K-eb-zero i =
       trans (cong (count (injL i)) map-remap-eb)
             (count-map-↑ʳ-mismatch K.nV i K-eb)
 
-    -- `count (injR j) (map remap K-eb) ≡ count j K-eb`: structural via
-    -- `map-remap-eb` and `count-map-↑ʳ`.
     count-injR-remap-K-eb
       : ∀ (j : Fin K.nV) → count (injR j) (map remap K-eb) ≡ count j K-eb
     count-injR-remap-K-eb j =
@@ -885,7 +824,6 @@ Linear-hCompose G K bdy-eq (G-bal , G-bnd) (K-bal , K-bnd) =
     bound v with splitAt G.nV v in eq
     ... | inj₁ i with splitAt⁻¹-↑ˡ {n = K.nV} eq
     ...           | refl =
-                    -- = count i G.dom + count i G-eb + 0 ≤ 1 by G-bnd.
                     subst (Nat._≤ 1)
                       (sym (trans (count-prod (i ↑ˡ K.nV))
                             (trans (cong (Nat._+ count (injL i) (map remap K-eb))
@@ -899,8 +837,6 @@ Linear-hCompose G K bdy-eq (G-bal , G-bnd) (K-bal , K-bnd) =
                       (G-bnd i)
     bound v | inj₂ j with splitAt⁻¹-↑ʳ {m = G.nV} eq
     ...                | refl =
-                         -- = 0 + 0 + count j K-eb ≤ 1 by K-bnd applied
-                         -- (and dropping the K.dom contribution).
                          subst (Nat._≤ 1)
                            (sym (trans (count-prod (G.nV ↑ʳ j))
                                  (trans (cong (Nat._+ count (injR j) (map remap K-eb))
@@ -929,8 +865,7 @@ Linear-hVar x =
   , (λ { zero → s≤s z≤n })
 
 -- Symmetry: `dom = LL ++ RR`, `cod = RR ++ LL`, no edges.  Both sides
--- count `LL` and `RR` once each, just permuted; bound is 1 by
--- `count-LL-RR-eq-1`.
+-- count `LL`/`RR` once each, just permuted; bound by `count-LL-RR-eq-1`.
 Linear-hSwap : ∀ A B → Linear (hSwap A B)
 Linear-hSwap A B = balance , bound
   where
@@ -952,9 +887,7 @@ Linear-hSwap A B = balance , bound
       s≤s z≤n
 
 -- Generator edge: `dom = LL`, `cod = RR`; the single edge has
--- `ein _ = LL`, `eout _ = RR`.  After expanding `tabulate`/`concat`,
--- producedList is `LL ++ (RR ++ [])` and consumedList is
--- `RR ++ (LL ++ [])`.  Reduces to the same `LL ⊕ RR` story as hSwap.
+-- `ein _ = LL`, `eout _ = RR`.  Reduces to the same `LL ⊕ RR` story as hSwap.
 Linear-hGen : ∀ {A B} (g : mor A B) → Linear (hGen g)
 Linear-hGen {A} {B} _ = balance , bound
   where
@@ -975,7 +908,6 @@ Linear-hGen {A} {B} _ = balance , bound
     bound v rewrite ++-identityʳ RR | count-LL-RR-eq-1 nA nB v =
       s≤s z≤n
 
--- Identity is built recursively from `hEmpty`/`hVar`/`hTensor`.
 Linear-hId : ∀ A → Linear (hId A)
 Linear-hId unit       = Linear-hEmpty
 Linear-hId (Var x)    = Linear-hVar x
@@ -985,10 +917,9 @@ Linear-hId (A ⊗₀ B)   = Linear-hTensor (hId A) (hId B)
 --------------------------------------------------------------------------------
 -- The translation `⟪ f ⟫` is Linear.
 --
--- With the de-indexed Hypergraph, ρ/α/λ cases all unfold directly to
--- `Linear-hId` (no `subst₂` boundary transport needed): the boundary
--- equations live in `⟪⟫-domL`/`⟪⟫-codL` separately rather than being
--- woven into the type.
+-- ρ/α/λ cases unfold directly to `Linear-hId` (no `subst₂` boundary
+-- transport): the boundary equations live in `⟪⟫-domL`/`⟪⟫-codL`
+-- separately rather than being woven into the type.
 
 ⟪⟫-Linear : ∀ {A B} (f : HomTerm A B) → Linear ⟪ f ⟫
 ⟪⟫-Linear (Agen g)        = Linear-hGen g
@@ -1010,18 +941,11 @@ Linear-hId (A ⊗₀ B)   = Linear-hTensor (hId A) (hId B)
 --------------------------------------------------------------------------------
 -- Helpers for `decode-attempt-hCompose`'s K-side machinery.
 --
--- Given Linear G + Linear K, expose:
---   * `K-dom-bnd`, `G-cod-bnd`, `length-K-dom`
---   * `remap-noDom : k ∉ K.dom → remap k ≡ injR k`
---   * `map-remap-K-dom : map remap K.dom ≡ map injL G.cod`
---   * `remap-injective : remap is globally injective`
---
--- The first three groups are duplicated from `Linear-hCompose`'s
--- where-block (refactoring to share is left for later).  The
--- `remap-injective` proof is new: case-analyse on count behavior,
--- with the both-in-K.dom subcase using a count-based contradiction
--- (count ≥ 2 from K.dom ↭ x ∷ y ∷ rest, count ≤ 1 from
--- map-remap-K-dom + G-cod-bnd).
+-- Given Linear G + Linear K, expose `K-dom-bnd`, `G-cod-bnd`,
+-- `length-K-dom`, `remap-noDom`, `map-remap-K-dom`, and `remap-injective`
+-- (globally injective).  `remap-injective`'s both-in-K.dom subcase uses
+-- a count-based contradiction (count ≥ 2 from K.dom ↭ x ∷ y ∷ rest,
+-- count ≤ 1 from map-remap-K-dom + G-cod-bnd).
 
 module hCompose-Linear-utils
   (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
@@ -1029,9 +953,8 @@ module hCompose-Linear-utils
   where
 
   open hCompose-impl G K bdy-eq public
-  -- The Linearity-free combinatorial core (`remap-noDom`, `length-K-dom`, and
-  -- the `map remap K.dom ≡ map injL G.cod` engine) is shared via `remap-core`
-  -- and re-exported here; only the duplicate-freeness bounds (`K-dom-bnd` /
+  -- The Linearity-free combinatorial core is shared via `remap-core` and
+  -- re-exported here; only the duplicate-freeness bounds (`K-dom-bnd` /
   -- `G-cod-bnd`) are Linearity-dependent and stay local.
   open remap-core G K bdy-eq public
   private
@@ -1045,7 +968,7 @@ module hCompose-Linear-utils
     G-eb = concat (tabulate G.eout)
     G-ein-b = concat (tabulate G.ein)
 
-  -- K.dom is dup-free (each element appears at most once).
+  -- K.dom is dup-free.
   K-dom-bnd : ∀ k → count k K.dom Nat.≤ 1
   K-dom-bnd k =
     Nat.≤-trans
@@ -1053,7 +976,7 @@ module hCompose-Linear-utils
                    (Nat.≤-reflexive (sym (count-++ k K.dom K-eb))))
       (K-bnd k)
 
-  -- G.cod is dup-free, derived from balance + bound on G.
+  -- G.cod is dup-free, from balance + bound on G.
   G-cod-bnd : ∀ v → count v G.cod Nat.≤ 1
   G-cod-bnd v =
     Nat.≤-trans
@@ -1064,7 +987,6 @@ module hCompose-Linear-utils
   map-remap-K-dom : map remap K.dom ≡ map injL G.cod
   map-remap-K-dom = map-remap-K-dom-from-bnd K-dom-bnd
 
-  --------------------------------------------------------------------
   -- Auxiliary count lemmas for the remap-injective proof.
 
   -- count v (map f xs) ≥ count k xs whenever f k = v.
@@ -1084,7 +1006,6 @@ module hCompose-Linear-utils
                                                                     (Nat.n≤1+n _)
     ...                                                  | no  _ = count-map-≥-fiber f k eq xs
 
-  -- count v (map remap K.dom) ≤ 1 for any v, via map-remap-K-dom.
   private
     count-map-remap-K-dom-≤-1 : ∀ v → count v (map remap K.dom) Nat.≤ 1
     count-map-remap-K-dom-≤-1 v
@@ -1142,7 +1063,6 @@ module hCompose-Linear-utils
           x ∷ y ∷ (pre2 ++ post2)
             ∎
 
-  -- Helper for the both-Dom case of remap-injective.
   private
     count-cons-eq
       : ∀ {n} (v u : Fin n) (xs : List (Fin n))

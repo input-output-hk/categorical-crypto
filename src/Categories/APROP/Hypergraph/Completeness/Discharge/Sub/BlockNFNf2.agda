@@ -4,38 +4,17 @@
 -- The `nf₂-eq′` / `nf₁-eq′` block-normal-form factorisations used by
 -- `Sub/FireMidInterchange.agda`.
 --
--- ## What this file proves
---
--- The two factorisations `nf₁-eq′` / `nf₂-eq′` are MIRROR IMAGES of each other:
--- `nf₂-eq′` is obtained from `nf₁-eq′` by the substitution
---
---   (e , e' , p₁ , p₂ , r₁ , r₂ , loc₁ , vout-loc₁)
---     ↦ (e' , e , p₂' , p₁' , r₂' , r₁' , loc₂ , vout-loc₂).
---
--- So we factor BOTH through a SINGLE generic lemma `block-nf-generic`,
--- stated over a hypergraph `H` but with the locating permutes supplied as
--- PLAIN `↭` arguments (NOT via `Comb.SimLoc`, NOT via `Incomp`).
--- `block-nf-generic` is then instantiated BOTH ways, recovering exactly the
--- types of `nf₂-eq′` (the target) and `nf₁-eq′` (the mirror).
---
--- ## Structure
+-- The two factorisations are MIRROR IMAGES of each other, so we factor BOTH
+-- through a SINGLE generic lemma `block-nf-generic`, stated over a
+-- hypergraph `H` with the locating permutes supplied as PLAIN `↭` arguments
+-- (NOT via `Comb.SimLoc`, NOT via `Incomp`).  `block-nf-generic` is then
+-- instantiated BOTH ways, recovering the types of `nf₂-eq′` and `nf₁-eq′`.
 --
 -- The generic lemma reduces the located-firing factorisation to ONE
--- residual `BlockBracket` — the single-order "two boxes located on
--- disjoint factors = the 3-block tensor box" identity (the Mac-Lane /
--- Kelly content) — stated over the `fire-mid` boxes + the four firing /
--- locating `↭`s + the `view-in≅`/`view-out≅` re-bracketings, STRIPPED of:
---
---   * the `Comb.SimLoc` record (the locating permutes are plain args),
---   * the `Incomp` disjointness hypothesis,
---   * the `FireMidInterchangeComb` dependency.
---
--- `BlockBracket` is symmetric in the two block orders, so the SAME residual
--- field serves BOTH `nf₁-eq′` and `nf₂-eq′`; ONE discharge of `BlockBracket`
--- (`nf-bracket-proof` below) closes both single-order normal forms.
---
--- Both `nf₂-eq-derived` (the target) and `nf₁-eq-derived` (the mirror) are
--- produced as corollaries of the single generic lemma.
+-- residual `BlockBracket` — the single-order "two boxes located on disjoint
+-- factors = the 3-block tensor box" identity (the Mac-Lane / Kelly
+-- content).  `BlockBracket` is symmetric in the two block orders, so ONE
+-- discharge (`nf-bracket-proof`) closes both single-order normal forms.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -63,25 +42,19 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
 import Categories.APROP.Hypergraph.Completeness.Discharge.SwapStep sig as SS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.FireMidInterchangeComb sig as Comb
 
--- The generic, hypergraph-agnostic box / block-tensor primitives
--- (`BlockTensor.pvv-block-tensor`/`frame-ext`, `BoxAssoc.box-suffix`/
--- `box-prefix`/`box-braid`) reused as the structural template / box
--- machinery.  These are top-level submodules of `DecodeTensorShape`
--- (parameterised only by `sig` / a `vlab`), so importing them does NOT
--- pull in the `EmbedData`/`BlockFactor` decode machinery, and the cached
--- interface keeps the import cheap.  Acyclic: `DecodeTensorShape` does not
--- import this module.
+-- The hypergraph-agnostic box / block-tensor primitives, reused as the box
+-- machinery.  Top-level submodules of `DecodeTensorShape` (parameterised
+-- only by `sig` / a `vlab`), so importing them does NOT pull in the decode
+-- machinery.  Acyclic: `DecodeTensorShape` does not import this module.
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig as DTS
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFBraid
   asFreeMonoidalData as BNB
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.BlockNFVoutCoh
   asFreeMonoidalData as BNV
 
--- The Kelly faithfulness residual `K` (over this signature's
--- `asFreeMonoidalData`).  Carried as a module parameter below: the
--- eventual proof of `block-bracket` needs it (via
--- `permute-via-vlab-≈Term-coherence-K`) to reconcile the firing locating
--- permutes against the block-locating permutes on the `Unique` codomains.
+-- The Kelly faithfulness residual `K`.  The proof of `block-bracket` needs
+-- it (via `permute-via-vlab-≈Term-coherence-K`) to reconcile the firing
+-- locating permutes against the block-locating permutes on `Unique` codomains.
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.PermuteCoherenceK
@@ -104,11 +77,9 @@ open import Relation.Binary.PropositionalEquality.Properties
 open import Axiom.UniquenessOfIdentityProofs.WithK using (uip)
 
 -- The H-only (K-FREE) "view frames": the `Aein`/`Aeout`/`box-e`/`R-obj`/
--- `uf++`/`≅⊗id`/`view-in≅`/`view-out≅` block re-bracketings.  Factored into
--- a PUBLIC sub-module so `Sub/FireMidInterchange.agda` can share it verbatim
--- (`open Nf2.ViewFrames H`).  None of these depend on `K`.  The `uf++` here is
--- DEFINITIONALLY `BNB.uf++ H.vlab` (= `BT.uf++`), so the downstream
--- `uf++≡BT … = refl` continues to hold after the `open ViewFrames H` below.
+-- `uf++`/`≅⊗id`/`view-in≅`/`view-out≅` block re-bracketings.  PUBLIC so
+-- `Sub/FireMidInterchange.agda` can share it verbatim.  The `uf++` here is
+-- DEFINITIONALLY `BNB.uf++ H.vlab` (= `BT.uf++`).
 module ViewFrames (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
 
@@ -169,15 +140,13 @@ module _ (H : Hypergraph FlatGen)
          where
   private module H = Hypergraph H
 
-  -- The H-only view frames, shared with `FireMidInterchange` (K-FREE).
   open ViewFrames H
 
   ----------------------------------------------------------------------
   -- ## Box / permute machinery for the proof of `block-bracket`.
   --
-  -- `BT` is the generic block-tensor module instantiated at `H.vlab`; its
-  -- `uf++` is DEFINITIONALLY the local `uf++` above (both are `BNB.uf++
-  -- H.vlab`).  `pvl` is the local `permute-via-vlab H.vlab`.
+  -- `BT` is the block-tensor module at `H.vlab`; its `uf++` is
+  -- DEFINITIONALLY the local `uf++` above.  `pvl` is `permute-via-vlab H.vlab`.
   ----------------------------------------------------------------------
 
   private
@@ -188,16 +157,14 @@ module _ (H : Hypergraph FlatGen)
 
     module BT = DTS.BlockTensor H.vlab
 
-    -- The generic `vlab`-framed box-suffix reframe at `H.vlab`; `box-suffix-BNf`
-    -- is its `Rblk = R` instance (`BBS.BT.uf++` ≡ `BT.uf++`, both `BlockTensor
-    -- H.vlab`; `BBS.whole-eq` ≡ the local `whole-eq` below).
+    -- The `vlab`-framed box-suffix reframe; `box-suffix-BNf` is its `Rblk = R`
+    -- instance.
     module BBS = DTS.BlockBoxSuffix H.vlab
 
     pvl : {xs ys : List (Fin H.nV)} → xs Perm.↭ ys
         → HomTerm (unflatten (map H.vlab xs)) (unflatten (map H.vlab ys))
     pvl = permute-via-vlab H.vlab
 
-    -- `BT.uf++` ≡ the local `uf++` (both `BNB.uf++ H.vlab`).
     uf++≡BT : ∀ (As Bs : List (Fin H.nV)) → uf++ As Bs ≡ BT.uf++ As Bs
     uf++≡BT As Bs = refl
 
@@ -216,11 +183,8 @@ module _ (H : Hypergraph FlatGen)
     --   fire-mid e rest ≈ to(uf++ (eout e) rest) ∘ (box-e e ⊗₁ id)
     --                       ∘ from(uf++ (ein e) rest)
     --
-    -- `box-of (map vlab (ein e)) (map vlab (eout e)) (map vlab rest) (elab e)`
-    -- already IS `to(raw) ∘ (box-e e ⊗₁ id) ∘ from(raw)`; the `fire-mid`
-    -- `subst₂` over the `sym (map-++ …)` boundaries is exactly the
-    -- `to`/`from`-subst that turns the raw `unflatten-++-≅` into `BT.uf++`
-    -- (via `BNB.to-subst₂-≅`/`from-subst₂-≅`).
+    -- The `fire-mid` `subst₂` over the `sym (map-++ …)` boundaries is the
+    -- `to`/`from`-subst turning the raw `unflatten-++-≅` into `BT.uf++`.
     fire-mid-decomp
       : ∀ (e : Fin H.nE) (rest : List (Fin H.nV))
       → fire-mid H e rest
@@ -240,8 +204,7 @@ module _ (H : Hypergraph FlatGen)
         rawTo   = _≅_.to   (unflatten-++-≅ eoutL restL)
         rawFrom = _≅_.from (unflatten-++-≅ einL  restL)
 
-        -- box-of = rawTo ∘ ((Grp ⊗ id) ∘ rawFrom).  Split the `subst₂` over
-        -- `∘` at the two interior objects.
+        -- Split the `subst₂` over `∘` at the two interior objects.
         step
           : fire-mid H e rest
             ≡ subst₂ HomTerm refl pOut rawTo
@@ -261,8 +224,7 @@ module _ (H : Hypergraph FlatGen)
     ----------------------------------------------------------------------
     -- ## The framed single box, and the view-frame unfoldings.
     --
-    -- `Bframed e rest` = the `uf++`-framed `(box e ⊗ id)` (the RHS of
-    -- `fire-mid-decomp`).
+    -- `Bframed e rest` = the `uf++`-framed `(box e ⊗ id)`.
     Bframed : (e : Fin H.nE) (rest : List (Fin H.nV))
             → HomTerm (unflatten (map H.vlab (H.ein  e ++ rest)))
                       (unflatten (map H.vlab (H.eout e ++ rest)))
@@ -276,8 +238,7 @@ module _ (H : Hypergraph FlatGen)
     fire≈Bframed = fire-mid-decomp
 
     -- The view frames `from`/`to` unfold DEFINITIONALLY into a `⊗₁ id`-whisker
-    -- composed with the outer `uf++` (`≅.trans` is `from j ∘ from i` /
-    -- `to i ∘ to j`, and `≅⊗id`'s `from`/`to` are `· ⊗₁ id`).
+    -- composed with the outer `uf++`.
     from-view-in≡
       : ∀ (a b : Fin H.nE) (Rlist : List (Fin H.nV))
       → _≅_.from (view-in≅ a b Rlist)
@@ -293,17 +254,13 @@ module _ (H : Hypergraph FlatGen)
     to-view-out≡ a b Rlist = refl
 
     ----------------------------------------------------------------------
-    -- ## L1 — box residual-naturality (the `++⁺ˡ`-slide of a residual
-    -- permute through a framed box).
+    -- ## L1 — box residual-naturality: a residual permute `ρ : rest ↭ rest'`
+    -- slides through the box `box-e e` (which acts only on the front block).
     --
     --   Bframed e rest' ∘ pvl(++⁺ˡ (ein e) ρ)
     --     ≈ pvl(++⁺ˡ (eout e) ρ) ∘ Bframed e rest
     --
-    -- A residual permute `ρ : rest ↭ rest'` slides through the box `box-e e`
-    -- (which acts only on the front `ein e`/`eout e` block).  This is the
-    -- `pvv-++⁺ˡ-slide` left-slide on BOTH frames + bifunctoriality
-    -- (`box e ⊗ id` commutes with `id ⊗ pvl ρ`).  Sound (no K needed): it is
-    -- pure naturality of `⊗` and the `uf++` framing.
+    -- Sound (no K): pure naturality of `⊗` and the `uf++` framing.
     box-resid-slide
       : ∀ (e : Fin H.nE) {rest rest' : List (Fin H.nV)} (ρ : rest Perm.↭ rest')
       → Bframed e rest' ∘ pvl (PermProp.++⁺ˡ (H.ein e) ρ)
@@ -336,7 +293,7 @@ module _ (H : Hypergraph FlatGen)
         to-eo  = _≅_.to   (uf++ (H.eout e) rest)
         to-eo' = _≅_.to   (uf++ (H.eout e) rest')
 
-        -- `from-ei' ∘ to-ei' = id` cancellation in the middle (reassoc first).
+        -- `from-ei' ∘ to-ei' = id` cancellation in the middle.
         cancel-in
           : (to-eo' ∘ (box-e e ⊗₁ id {R-obj rest'}) ∘ from-ei')
               ∘ (to-ei' ∘ (id {Aein e} ⊗₁ pvl ρ) ∘ from-ei)
@@ -397,11 +354,6 @@ module _ (H : Hypergraph FlatGen)
     ----------------------------------------------------------------------
     -- ## The both-boxes-at-front morphism `Both a b`, and `Core` as `Both`
     -- framed at residual `R`.
-    --
-    --   Both a b = to(uf++ (eout a)(eout b)) ∘ (box a ⊗ box b)
-    --                ∘ from(uf++ (ein a)(ein b))
-    --     : unflatten (map vlab (ein a ++ ein b))
-    --       → unflatten (map vlab (eout a ++ eout b))
     Both : (a b : Fin H.nE)
          → HomTerm (unflatten (map H.vlab (H.ein a ++ H.ein b)))
                    (unflatten (map H.vlab (H.eout a ++ H.eout b)))
@@ -418,7 +370,6 @@ module _ (H : Hypergraph FlatGen)
       ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id {R-obj R})
       ∘ _≅_.from (view-in≅ a b R)
 
-    -- `(h ∘ k ∘ l) ⊗₁ id ≈ (h ⊗₁ id) ∘ (k ⊗₁ id) ∘ (l ⊗₁ id)`.
     private
       ⊗id-∘∘ : ∀ {A B C D} {Z : ObjTerm}
                  (h : HomTerm C D) (k : HomTerm B C) (l : HomTerm A B)
@@ -433,8 +384,6 @@ module _ (H : Hypergraph FlatGen)
           ≈⟨ refl⟩∘⟨ ⊗-∘-dist ⟩
         (h ⊗₁ id {Z}) ∘ (k ⊗₁ id {Z}) ∘ (l ⊗₁ id {Z}) ∎
 
-    -- `Core a b R ≈ to(uf++ (eout a ++ eout b) R) ∘ (Both a b ⊗ id)
-    --                ∘ from(uf++ (ein a ++ ein b) R)`.
     core≡both-framed
       : ∀ (a b : Fin H.nE) (R : List (Fin H.nV))
       → Core a b R
@@ -486,17 +435,9 @@ module _ (H : Hypergraph FlatGen)
     --   Bframed b (eout a) ∘ pvl(++-comm (eout a)(ein b)) ∘ Bframed a (ein b)
     --     ≈ pvl(++-comm (eout a)(eout b)) ∘ Both a b
     --
-    -- Box a fires at the front of `ein a ++ ein b` (residual `ein b`), the
-    -- block-swap `++-comm (eout a)(ein b)` brings box b's input `ein b` to
-    -- the front, then box b fires (residual `eout a`).  The result differs
-    -- from the both-at-front `Both a b` by the OUTPUT block-swap
-    -- `++-comm (eout a)(eout b)`.  No K / `Unique` needed: pure σ-naturality
-    -- (`σ∘[f⊗g]≈[g⊗f]∘σ`) + bifunctoriality + the σ↔permute bridge
-    -- `σ-block-comm` (proven in `BlockNFBraid`/`BlockNFVoutCoh`).
-    --
-    -- `BNV.σ-block-comm H.vlab` is DEFINITIONALLY at the local frames
-    -- (`BNV.uf++ H.vlab = uf++`, `BNV.Aof H.vlab = Aein/Aeout`,
-    -- `BNV.pvl H.vlab = pvl`).
+    -- The sequentially-fired result differs from the both-at-front `Both a b`
+    -- by the OUTPUT block-swap.  No K / `Unique` needed: pure σ-naturality +
+    -- bifunctoriality + the σ↔permute bridge `σ-block-comm`.
     private
       σbc : (as bs : List (Fin H.nV))
           → _≅_.to (uf++ bs as) ∘ (σ {unflatten (map H.vlab as)} {unflatten (map H.vlab bs)})
@@ -512,10 +453,9 @@ module _ (H : Hypergraph FlatGen)
         ≈Term pvl (PermProp.++-comm (H.eout a) (H.eout b)) ∘ Both a b
     both-as-fire a b = begin
         Bframed b (H.eout a) ∘ pvl (PermProp.++-comm (H.eout a) (H.ein b)) ∘ Bframed a (H.ein b)
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-refl ⟩  -- `Bframed e rest` unfolds definitionally
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-refl ⟩
         ( to-eobeoa ∘ box-b⊗ ∘ from-eibeoa )
           ∘ ( pvl++c ∘ ( to-eoaeib ∘ box-a⊗ ∘ from-eiaeib ) )
-          -- (1) pull the LEADING box-b frame out to the front (assoc twice).
           ≈⟨ FM.assoc ⟩
         to-eobeoa
           ∘ ( ( box-b⊗ ∘ from-eibeoa )
@@ -525,18 +465,15 @@ module _ (H : Hypergraph FlatGen)
           ∘ ( box-b⊗
             ∘ ( from-eibeoa
               ∘ ( pvl++c ∘ ( to-eoaeib ∘ box-a⊗ ∘ from-eiaeib ) ) ) )
-          -- (2) inside, expose `from-eibeoa ∘ (pvl++c ∘ to-eoaeib)` = MID', then
-          --     `box-a⊗ ∘ from-eiaeib` as the tail.
           ≈⟨ refl⟩∘⟨ refl⟩∘⟨ expose ⟩
         to-eobeoa
           ∘ ( box-b⊗
             ∘ ( ( from-eibeoa ∘ ( pvl++c ∘ to-eoaeib ) )
               ∘ ( box-a⊗ ∘ from-eiaeib ) ) )
-          -- (3) MID' ≈ σ.
+          -- MID' ≈ σ.
           ≈⟨ refl⟩∘⟨ refl⟩∘⟨ mid-σ ⟩∘⟨refl ⟩
         to-eobeoa
           ∘ ( box-b⊗ ∘ ( σ {Aeout a} {Aein b} ∘ ( box-a⊗ ∘ from-eiaeib ) ) )
-          -- (4) regroup so `box-b⊗ ∘ σ` is a unit; apply σ-nat-b.
           ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
         to-eobeoa
           ∘ ( ( box-b⊗ ∘ σ {Aeout a} {Aein b} ) ∘ ( box-a⊗ ∘ from-eiaeib ) )
@@ -544,7 +481,6 @@ module _ (H : Hypergraph FlatGen)
         to-eobeoa
           ∘ ( ( σ {Aeout a} {Aeout b} ∘ (id {Aeout a} ⊗₁ box-e b) )
             ∘ ( box-a⊗ ∘ from-eiaeib ) )
-          -- (5) regroup so `(id ⊗ box b) ∘ box-a⊗` is a unit; apply bifun.
           ≈⟨ refl⟩∘⟨ FM.assoc ⟩
         to-eobeoa
           ∘ ( σ {Aeout a} {Aeout b}
@@ -557,7 +493,6 @@ module _ (H : Hypergraph FlatGen)
         to-eobeoa
           ∘ ( σ {Aeout a} {Aeout b}
             ∘ ( (box-e a ⊗₁ box-e b) ∘ from-eiaeib ) )
-          -- (6) regroup so `to-eobeoa ∘ σ` is a unit; apply out-σ.
           ≈⟨ FM.sym-assoc ⟩
         ( to-eobeoa ∘ σ {Aeout a} {Aeout b} )
           ∘ ( (box-e a ⊗₁ box-e b) ∘ from-eiaeib )
@@ -580,16 +515,13 @@ module _ (H : Hypergraph FlatGen)
         to-eoaeob  = _≅_.to   (uf++ (H.eout a) (H.eout b))
         from-eoaeob = _≅_.from (uf++ (H.eout a) (H.eout b))
 
-        -- Reassociate `from-eibeoa ∘ (pvl++c ∘ (to-eoaeib ∘ (box-a⊗ ∘ from-eiaeib))))`
-        -- so that `from-eibeoa ∘ (pvl++c ∘ to-eoaeib)` (= MID') and
-        -- `box-a⊗ ∘ from-eiaeib` are the two top-level units (two `sym-assoc`s).
+        -- Reassociate so MID' and `box-a⊗ ∘ from-eiaeib` are the two top-level units.
         expose
           : from-eibeoa ∘ ( pvl++c ∘ ( to-eoaeib ∘ box-a⊗ ∘ from-eiaeib ) )
             ≈Term ( from-eibeoa ∘ ( pvl++c ∘ to-eoaeib ) ) ∘ ( box-a⊗ ∘ from-eiaeib )
         expose = ≈-Term-trans (refl⟩∘⟨ FM.sym-assoc) FM.sym-assoc
 
-        -- the middle `from(uf ei-b eo-a) ∘ pvl(++-comm eo-a ei-b) ∘ to(uf eo-a ei-b)`
-        -- reduces to the bare braiding `σ {Aeout a} {Aein b}` (σ-block-comm + cancel).
+        -- The middle reduces to the bare braiding `σ` (σ-block-comm + cancel).
         mid-σ
           : from-eibeoa ∘ pvl (PermProp.++-comm (H.eout a) (H.ein b)) ∘ to-eoaeib
             ≈Term σ {Aeout a} {Aein b}
@@ -612,19 +544,18 @@ module _ (H : Hypergraph FlatGen)
             ≈⟨ idʳ ⟩
           σ {Aeout a} {Aein b} ∎
 
-        -- `(box b ⊗ id) ∘ σ ≈ σ ∘ (id ⊗ box b)` (σ-naturality).
+        -- σ-naturality.
         σ-nat-b
           : (box-e b ⊗₁ id {Aeout a}) ∘ σ {Aeout a} {Aein b}
             ≈Term σ {Aeout a} {Aeout b} ∘ (id {Aeout a} ⊗₁ box-e b)
         σ-nat-b = ≈-Term-sym σ∘[f⊗g]≈[g⊗f]∘σ
 
-        -- bifunctoriality: `(id ⊗ box b) ∘ (box a ⊗ id) ≈ box a ⊗ box b`.
+        -- bifunctoriality.
         bifun
           : (id {Aeout a} ⊗₁ box-e b) ∘ (box-e a ⊗₁ id {Aein b})
             ≈Term box-e a ⊗₁ box-e b
         bifun = ≈-Term-trans (≈-Term-sym ⊗-∘-dist) (⊗-resp-≈ idˡ idʳ)
 
-        -- `to(uf eo-b eo-a) ∘ σ ≈ pvl(++-comm eo-a eo-b) ∘ to(uf eo-a eo-b)`.
         out-σ
           : to-eobeoa ∘ σ {Aeout a} {Aeout b}
             ≈Term pvl (PermProp.++-comm (H.eout a) (H.eout b)) ∘ to-eoaeob
@@ -646,11 +577,7 @@ module _ (H : Hypergraph FlatGen)
     ----------------------------------------------------------------------
     -- ## `bframed-suffix` — the `++-assoc`-reframe lifting a framed box on
     -- a COMPOUND residual `rest ++ R` to `(Bframed e rest) ⊗ id` framed by
-    -- `BT.uf++ (·++rest) R`.  This is `DTS.BoxAssoc.box-suffix` bridged
-    -- across the `map H.vlab` boundary, specialised to the LOCAL `H.vlab`
-    -- setting (residual `R : List (Fin H.nV)` directly, no `injR`).
-    --
-    -- Sound (no K): pure associativity / framing bookkeeping.
+    -- `BT.uf++ (·++rest) R`.  Sound (no K): associativity / framing bookkeeping.
     private
       module ≡R = ≡-Reasoning
 
@@ -683,7 +610,6 @@ module _ (H : Hypergraph FlatGen)
         → u ≈Term v → subst₂ HomTerm p q u ≈Term subst₂ HomTerm p q v
       subst₂-resp-≈Term refl refl u≈v = u≈v
 
-      -- to/from of `BT.uf++ As Bs` in terms of the raw `unflatten-++-≅`.
       to-BTC : ∀ (As Bs : List (Fin H.nV))
              → _≅_.to (BT.uf++ As Bs)
                ≡ subst₂ HomTerm refl (cong unflatten (sym (map-++ H.vlab As Bs)))
@@ -698,7 +624,6 @@ module _ (H : Hypergraph FlatGen)
       from-BTC As Bs = BNB.from-subst₂-≅ (cong unflatten (sym (map-++ H.vlab As Bs)))
                          (unflatten-++-≅ (map H.vlab As) (map H.vlab Bs))
 
-      -- `unflatten-++-≅`'s to/from under a BLOCK-1 list equality.
       to-blk1 : ∀ (Rr L L' : List X) (r : L ≡ L')
               → subst (λ z → HomTerm (unflatten z ⊗₀ unflatten Rr) (unflatten (z ++ Rr)))
                       r (_≅_.to (unflatten-++-≅ L Rr))
@@ -712,7 +637,7 @@ module _ (H : Hypergraph FlatGen)
       from-blk1 Rr L .L refl = refl
 
       -- The combined input/output transport: the `++-assoc` plus the two
-      -- `map-++ H.vlab` layers, one per box endpoint block.
+      -- `map-++ H.vlab` layers.
       whole-eq : ∀ (lBlk rgBlk R : List (Fin H.nV))
                → map H.vlab lBlk ++ (map H.vlab rgBlk ++ map H.vlab R)
                  ≡ map H.vlab ((lBlk ++ rgBlk) ++ R)
@@ -721,7 +646,7 @@ module _ (H : Hypergraph FlatGen)
         (trans (cong (_++ map H.vlab R) (sym (map-++ H.vlab lBlk rgBlk)))
                (sym (map-++ H.vlab (lBlk ++ rgBlk) R)))
 
-    -- `box-suffix` reframed into `BT.uf++` (the `Bframed`-side middle box).
+    -- `box-suffix` reframed into `BT.uf++`.
     box-suffix-BNf
       : ∀ (eiBlk eoBlk rgBlk R : List (Fin H.nV))
           (g : FlatGen (map H.vlab eiBlk) (map H.vlab eoBlk))
@@ -737,20 +662,14 @@ module _ (H : Hypergraph FlatGen)
                    (box-of (map H.vlab eiBlk) (map H.vlab eoBlk) (map H.vlab rgBlk) g)
                    ⊗₁ id {R-obj R})
               ∘ _≅_.from (BT.uf++ (eiBlk ++ rgBlk) R)
-    -- The `Bframed`-side box-suffix is the generic `BlockBoxSuffix H.vlab`
-    -- reframe at `Rblk = R` (the local `whole-eq`/`R-obj` agree with `BBS`'s
-    -- definitionally; same `BlockTensor H.vlab` framing).
     box-suffix-BNf eiBlk eoBlk rgBlk R g =
       BBS.box-suffix-framed eiBlk eoBlk rgBlk R g
 
     ----------------------------------------------------------------------
     -- `bframed-suffix` — the box on a COMPOUND residual `rest ++ R`,
     -- transported across the `++-assoc` boundary, equals the box on `rest`
-    -- tensored with `id` on `R`, re-framed.  The `++-assoc`/`map-++`
-    -- bookkeeping collapses `box-suffix-BNf` onto `Bframed`.
-    --
-    -- Postulate-free.  The framing primitive that lifts `both-as-fire` to a
-    -- common residual `R` for the `block-bracket` assembly.
+    -- tensored with `id` on `R`, re-framed.  The framing primitive that lifts
+    -- `both-as-fire` to a common residual `R` for the `block-bracket` assembly.
     asso : (l rest R : List (Fin H.nV))
          → map H.vlab (l ++ (rest ++ R)) ≡ map H.vlab ((l ++ rest) ++ R)
     asso l rest R = cong (map H.vlab) (sym (++-assoc l rest R))
@@ -774,9 +693,8 @@ module _ (H : Hypergraph FlatGen)
         subst₂ HomTerm (cong unflatten (asso (H.ein e) rest R))
                        (cong unflatten (asso (H.eout e) rest R))
           (fire-mid H e (rest ++ R))
-          -- `fire-mid e (rest++R) = subst₂ Pin Pout (box-of … (map vlab (rest++R)) …)`;
-          -- collapse the stacked substs to a single subst over `box-of (rest++R)`,
-          -- then UIP-collapse onto box-suffix-BNf's LHS subst.
+          -- collapse the stacked substs to a single subst, UIP-collapse onto
+          -- box-suffix-BNf's LHS subst.
           ≈⟨ ≡⇒≈Term collapse ⟩
         subst₂ HomTerm
           (cong unflatten (whole-eq (H.ein e) rest R))
@@ -798,7 +716,6 @@ module _ (H : Hypergraph FlatGen)
         Pin  = cong unflatten (sym (map-++ H.vlab (H.ein  e) (rest ++ R)))
         Pout = cong unflatten (sym (map-++ H.vlab (H.eout e) (rest ++ R)))
 
-        -- The `box-of-cong` residual reconciliation
         -- `map vlab (rest++R) ≡ map vlab rest ++ map vlab R`.
         Fin' : einL ++ map H.vlab (rest ++ R) ≡ einL ++ (map H.vlab rest ++ map H.vlab R)
         Fin' = cong₂ _++_ refl (map-++ H.vlab rest R)
@@ -849,32 +766,23 @@ module _ (H : Hypergraph FlatGen)
     ----------------------------------------------------------------------
     -- ## `both-as-fire-R` — the residual-`R` lift of `both-as-fire`.
     --
-    -- `both-as-fire` is at the BARE box residuals (`ein b` for a, `eout a`
-    -- for b); here we lift it to a COMMON residual `R` carried under each
-    -- box.  Each `Bframed · (· ++ R)` is reframed by `bframed-suffix` as
-    -- `(Bframed · ·) ⊗ id` sandwiched by `uf++ (·++·) R`; the three
-    -- `uf++ … R` frames + `both-as-fire ⊗ id` + `core≡both-framed`
-    -- telescope into `Core a b R`, with the two block-swaps lifted to the
-    -- `(·++·)++R` shape by `pvv-++⁺ʳ`-style framing.  No K: pure
-    -- ⊗-functoriality + the proven framing primitives.
+    -- `both-as-fire` is at the BARE box residuals; here we lift it to a
+    -- COMMON residual `R` carried under each box.  No K: pure ⊗-functoriality
+    -- + the proven framing primitives.
     private
-      -- The compound-residual block swaps, framed at `R`.
-      --   inner-swap  : (eout a ++ ein b) ++ R ↭ (ein b ++ eout a) ++ R
-      --   outer-swap  : (eout a ++ eout b) ++ R ↭ (eout b ++ eout a) ++ R
-      -- (a `++⁺ʳ R` of the bare `++-comm` swap).
+      -- The compound-residual block swaps, framed at `R` (a `++⁺ʳ R` of `++-comm`).
       ++R : ∀ {xs ys : List (Fin H.nV)} → xs Perm.↭ ys → (R : List (Fin H.nV))
           → xs ++ R Perm.↭ ys ++ R
       ++R p R = PermProp.++⁺ʳ R p
 
-      -- Local block-prefix cancellation (`drop-∷`-iterated).
+      -- Block-prefix cancellation.
       ++-cancelˡ : ∀ (xs : List (Fin H.nV)) {ys zs : List (Fin H.nV)}
                  → xs ++ ys Perm.↭ xs ++ zs → ys Perm.↭ zs
       ++-cancelˡ []       p = p
       ++-cancelˡ (x ∷ xs) p = ++-cancelˡ xs (PermProp.drop-∷ p)
 
       -- `Bf-R e rest R` — box `e` framed at the COMPOUND residual `rest ++ R`,
-      -- in the `(·++·)++R`-bracketed shape: this is exactly the RHS of
-      -- `bframed-suffix` (the `(Bframed e rest) ⊗ id` sandwiched by `uf++ … R`).
+      -- in the `(·++·)++R`-bracketed shape (the RHS of `bframed-suffix`).
       Bf-R : (e : Fin H.nE) (rest R : List (Fin H.nV))
            → HomTerm (unflatten (map H.vlab ((H.ein  e ++ rest) ++ R)))
                      (unflatten (map H.vlab ((H.eout e ++ rest) ++ R)))
@@ -883,9 +791,8 @@ module _ (H : Hypergraph FlatGen)
         ∘ (Bframed e rest ⊗₁ id {R-obj R})
         ∘ _≅_.from (BT.uf++ (H.ein e ++ rest) R)
 
-      -- `coh-subst₂` — a `subst₂ HomTerm` over `cong unflatten (cong (map vlab) ·)`
-      -- list-equalities is conjugation by the `pvl`s of their `↭-reflexive`s.
-      -- (Path-induction on the two list `≡`s; at `refl refl` it is `f ≈ id∘(f∘id)`.)
+      -- A `subst₂ HomTerm` over `cong unflatten (cong (map vlab) ·)` list-
+      -- equalities is conjugation by the `pvl`s of their `↭-reflexive`s.
       coh-subst₂
         : ∀ {As As' Bs Bs' : List (Fin H.nV)} (eA : As ≡ As') (eB : Bs ≡ Bs')
             (f : HomTerm (unflatten (map H.vlab As)) (unflatten (map H.vlab Bs)))
@@ -896,17 +803,9 @@ module _ (H : Hypergraph FlatGen)
                 ∘ ( f ∘ pvl (Perm.↭-reflexive (sym eA)) )
       coh-subst₂ refl refl f = ≈-Term-sym (≈-Term-trans idˡ idʳ)
 
-    ----------------------------------------------------------------------
-    -- `both-as-fire-R` — the residual-`R` lift of `both-as-fire`.
-    --
-    --   Bf-R b (eout a) R ∘ pvl(++⁺ʳ R (++-comm (eout a)(ein b)))
-    --       ∘ Bf-R a (ein b) R
-    --     ≈ pvl(++⁺ʳ R (++-comm (eout a)(eout b))) ∘ Core a b R
-    --
     -- Sound (no K): `both-as-fire a b` tensored with `id {R}` and framed by
-    -- the `uf++ … R` isos.  The three middle `uf++ … R` cancellations are
-    -- `BT.frame-ext` (the `++⁺ʳ R` slide), and `Core a b R` is recovered by
-    -- `core≡both-framed`.
+    -- the `uf++ … R` isos; the middle cancellations are `BT.frame-ext`, and
+    -- `Core a b R` is recovered by `core≡both-framed`.
     both-as-fire-R
       : ∀ (a b : Fin H.nE) (R : List (Fin H.nV))
       → Bf-R b (H.eout a) R
@@ -918,8 +817,6 @@ module _ (H : Hypergraph FlatGen)
         Bf-R b (H.eout a) R
           ∘ pvl (PermProp.++⁺ʳ R (PermProp.++-comm (H.eout a) (H.ein b)))
           ∘ Bf-R a (H.ein b) R
-          -- (1) re-express the middle `pvl-swap` via `frame-ext` as a
-          --     `uf++`-framed `(pvl swap ⊗ id)`.
           ≈⟨ refl⟩∘⟨ ≈-Term-sym
                (BT.frame-ext (H.eout a ++ H.ein b) (H.ein b ++ H.eout a) R
                   (PermProp.++-comm (H.eout a) (H.ein b)))
@@ -927,29 +824,21 @@ module _ (H : Hypergraph FlatGen)
         Bf-R b (H.eout a) R
           ∘ ( to-ba ∘ (pvl (PermProp.++-comm (H.eout a) (H.ein b)) ⊗₁ id {R-obj R}) ∘ from-ab )
           ∘ Bf-R a (H.ein b) R
-          -- (2) telescope: cancel the two interior `from(uf++…R)∘to(uf++…R)=id`
-          --     pairs and merge the three `⊗ id` whiskers into one.
           ≈⟨ telescope ⟩
         _≅_.to (BT.uf++ (H.eout b ++ H.eout a) R)
           ∘ ( ( Bframed b (H.eout a)
                   ∘ pvl (PermProp.++-comm (H.eout a) (H.ein b))
                   ∘ Bframed a (H.ein b) ) ⊗₁ id {R-obj R} )
           ∘ _≅_.from (BT.uf++ (H.ein a ++ H.ein b) R)
-          -- (3) apply `both-as-fire` inside the `⊗ id`.
           ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (both-as-fire a b) ≈-Term-refl ⟩∘⟨refl ⟩
         _≅_.to (BT.uf++ (H.eout b ++ H.eout a) R)
           ∘ ( ( pvl (PermProp.++-comm (H.eout a) (H.eout b)) ∘ Both a b ) ⊗₁ id {R-obj R} )
           ∘ _≅_.from (BT.uf++ (H.ein a ++ H.ein b) R)
-          -- (4) split `(pvl-swap ∘ Both) ⊗ id` into `(pvl-swap ⊗ id) ∘ (Both ⊗ id)`.
           ≈⟨ refl⟩∘⟨ ⊗id-∘ (pvl (PermProp.++-comm (H.eout a) (H.eout b))) (Both a b) ⟩∘⟨refl ⟩
         _≅_.to (BT.uf++ (H.eout b ++ H.eout a) R)
           ∘ ( (pvl (PermProp.++-comm (H.eout a) (H.eout b)) ⊗₁ id {R-obj R})
               ∘ (Both a b ⊗₁ id {R-obj R}) )
           ∘ _≅_.from (BT.uf++ (H.ein a ++ H.ein b) R)
-          -- (5) regroup so `to(uf++ (eo-b++eo-a) R) ∘ (pvl-swap ⊗ id) ∘
-          --     from(uf++ (eo-a++eo-b) R)` is a unit (insert `to∘from=id`),
-          --     and the trailing `to(uf++ (eo-a++eo-b) R) ∘ (Both⊗id) ∘ from(…)`
-          --     is `Core a b R` (`core≡both-framed`).
           ≈⟨ regroup-out ⟩
         ( _≅_.to (BT.uf++ (H.eout b ++ H.eout a) R)
             ∘ (pvl (PermProp.++-comm (H.eout a) (H.eout b)) ⊗₁ id {R-obj R})
@@ -966,13 +855,11 @@ module _ (H : Hypergraph FlatGen)
         to-ba   = _≅_.to   (BT.uf++ (H.ein b ++ H.eout a) R)
         from-ab = _≅_.from (BT.uf++ (H.eout a ++ H.ein b) R)
 
-        -- (h ∘ k) ⊗ id ≈ (h ⊗ id) ∘ (k ⊗ id).
         ⊗id-∘ : ∀ {A B D} (h : HomTerm B D) (k : HomTerm A B)
               → (h ∘ k) ⊗₁ id {R-obj R} ≈Term (h ⊗₁ id) ∘ (k ⊗₁ id)
         ⊗id-∘ h k =
           ≈-Term-trans (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⊗-∘-dist
 
-        -- abbreviations for the box / swap whiskers
         Bb = Bframed b (H.eout a) ⊗₁ id {R-obj R}
         Sw = pvl (PermProp.++-comm (H.eout a) (H.ein b)) ⊗₁ id {R-obj R}
         Ba = Bframed a (H.ein b) ⊗₁ id {R-obj R}
@@ -981,7 +868,7 @@ module _ (H : Hypergraph FlatGen)
         fr-aa   = _≅_.from (BT.uf++ (H.ein  a ++ H.ein  b) R)
         to-ab   = _≅_.to   (BT.uf++ (H.eout a ++ H.ein  b) R)
 
-        -- merge three `⊗ id` whiskers: (Bb ∘ Sw ∘ Ba) = (boxes) ⊗ id.
+        -- merge three `⊗ id` whiskers into (boxes) ⊗ id.
         merge3 : Bb ∘ Sw ∘ Ba
                ≈Term ( Bframed b (H.eout a)
                        ∘ pvl (PermProp.++-comm (H.eout a) (H.ein b))
@@ -991,8 +878,6 @@ module _ (H : Hypergraph FlatGen)
             (≈-Term-sym (⊗id-∘ _ _))
 
         -- `M ∘ Bf-R a (ein b) R`: cancel the interior `from-ab ∘ to-ab = id`.
-        --   (to-ba ∘ (Sw ∘ from-ab)) ∘ (to-ab ∘ (Ba ∘ fr-aa))
-        --     ≈ to-ba ∘ (Sw ∘ (Ba ∘ fr-aa))      [cancelInner isoʳ-ab]
         glue-MBa
           : ( to-ba ∘ Sw ∘ from-ab ) ∘ Bf-R a (H.ein b) R
             ≈Term to-ba ∘ Sw ∘ Ba ∘ fr-aa
@@ -1001,8 +886,7 @@ module _ (H : Hypergraph FlatGen)
             (refl⟩∘⟨ (≈-Term-trans FM.assoc
               (refl⟩∘⟨ cancelˡ (_≅_.isoʳ (BT.uf++ (H.eout a ++ H.ein b) R)))))
 
-        -- `Bf-R b (eout a) R ∘ (to-ba ∘ Sw ∘ Ba ∘ fr-aa)`:
-        --   cancel the interior `fr-bb ∘ to-ba = id`.
+        -- cancel the interior `fr-bb ∘ to-ba = id`.
         glue-Bb
           : Bf-R b (H.eout a) R ∘ ( to-ba ∘ Sw ∘ Ba ∘ fr-aa )
             ≈Term to-bb ∘ Bb ∘ Sw ∘ Ba ∘ fr-aa
@@ -1023,7 +907,6 @@ module _ (H : Hypergraph FlatGen)
             Bf-R b (H.eout a) R ∘ ( to-ba ∘ Sw ∘ Ba ∘ fr-aa )
               ≈⟨ glue-Bb ⟩
             to-bb ∘ Bb ∘ Sw ∘ Ba ∘ fr-aa
-              -- merge the three `⊗ id`
               ≈⟨ refl⟩∘⟨ regroup3 ⟩
             to-bb ∘ (Bb ∘ Sw ∘ Ba) ∘ fr-aa
               ≈⟨ refl⟩∘⟨ merge3 ⟩∘⟨refl ⟩
@@ -1052,7 +935,7 @@ module _ (H : Hypergraph FlatGen)
             to-bb ∘ (Sout ∘ BothC) ∘ fr-aa
               ≈⟨ refl⟩∘⟨ FM.assoc ⟩
             to-bb ∘ Sout ∘ BothC ∘ fr-aa
-              -- insert `from-eoeo ∘ to-eoeo = id` between Sout and BothC
+              -- insert `from-eoeo ∘ to-eoeo = id` between Sout and BothC.
               ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym idˡ ⟩
             to-bb ∘ Sout ∘ id ∘ BothC ∘ fr-aa
               ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym (_≅_.isoʳ (BT.uf++ (H.eout a ++ H.eout b) R)) ⟩∘⟨refl ⟩
@@ -1074,16 +957,13 @@ module _ (H : Hypergraph FlatGen)
               ≈-Term-sym (≈-Term-trans FM.assoc (refl⟩∘⟨ FM.assoc))
 
     ----------------------------------------------------------------------
-    -- ## The per-box bridge `Bf-R = ro ∘ Bframed(rest++R) ∘ ri` and the
-    -- residual-slide composite.  These connect a box framed at the FIRING
-    -- residual `s` (`Bframed e s`) to the same box framed at the COMMON
-    -- residual `R` (`Bf-R e rest R`), through the residual permute
-    -- `ρ : s ↭ rest ++ R`.  Pure framing (no K): `bframed-suffix` +
-    -- `coh-subst₂` for the `(·++·)++R`-reassociation, `box-resid-slide` for
-    -- the residual slide.
+    -- ## The per-box bridge connecting a box framed at the FIRING residual
+    -- `s` (`Bframed e s`) to the same box framed at the COMMON residual `R`
+    -- (`Bf-R e rest R`), through the residual permute `ρ : s ↭ rest ++ R`.
+    -- Pure framing (no K): `bframed-suffix` + `coh-subst₂` + `box-resid-slide`.
     private
-      -- (B): `Bf-R e rest R` unfolded onto `Bframed e (rest++R)` conjugated
-      -- by the `↭-reflexive (++-assoc …)` coercions.
+      -- `Bf-R e rest R` unfolded onto `Bframed e (rest++R)` conjugated by the
+      -- `↭-reflexive (++-assoc …)` coercions.
       bfR-unfold
         : ∀ (e : Fin H.nE) (rest R : List (Fin H.nV))
         → Bf-R e rest R
@@ -1096,14 +976,9 @@ module _ (H : Hypergraph FlatGen)
                       (sym (++-assoc (H.eout e) rest R))
                       (Bframed e (rest ++ R)))
 
-      -- `bfR-fire` — `Bf-R e rest R` re-expressed onto the FIRING-residual box
-      -- `Bframed e s`, conjugated by `pvl`s of permutes with Unique endpoints.
-      -- The input side carries `pvl (↭-sym in-perm)` (an iso onto `ein e ++ s`),
-      -- the output `pvl out-perm`.  `in-perm`/`out-perm` are reconciled below
-      -- against `loc`/`vout-loc` at the (Unique) `(·++·)++R` codomains.
-      --
-      --   in-perm  : ein e ++ s ↭ (ein e ++ rest) ++ R
-      --   out-perm : eout e ++ s ↭ (eout e ++ rest) ++ R
+      -- `Bf-R e rest R` re-expressed onto the FIRING-residual box
+      -- `Bframed e s`, conjugated by `pvl`s of permutes with Unique endpoints
+      -- (`in-perm`/`out-perm`, reconciled below against `loc`/`vout-loc`).
       bfR-fire
         : ∀ (e : Fin H.nE) (s rest R : List (Fin H.nV)) (ρ : s Perm.↭ rest ++ R)
         → (us-in : Unique (H.ein e ++ s))
@@ -1118,27 +993,22 @@ module _ (H : Hypergraph FlatGen)
           Bf-R e rest R
             ≈⟨ bfR-unfold e rest R ⟩
           pvl ro ∘ ( Bframed e (rest ++ R) ∘ pvl ri )
-            -- reconcile `ri` (at the Unique `ein e ++ (rest++R)`) so the box's
-            -- trailing permute is exactly `++⁺ˡ (ein e) ρ ∘ pvl(↭-sym in-perm)`.
+            -- reconcile `ri` (K at the Unique `ein e ++ (rest++R)`).
             ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ri≈ ⟩
           pvl ro ∘ ( Bframed e (rest ++ R)
                      ∘ ( pvl (PermProp.++⁺ˡ (H.ein e) ρ) ∘ pvl in-inv ) )
-            -- pull the box+slide unit together
             ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
           pvl ro ∘ ( ( Bframed e (rest ++ R) ∘ pvl (PermProp.++⁺ˡ (H.ein e) ρ) )
                      ∘ pvl in-inv )
-            -- box-resid-slide
             ≈⟨ refl⟩∘⟨ box-resid-slide e ρ ⟩∘⟨refl ⟩
           pvl ro ∘ ( ( pvl (PermProp.++⁺ˡ (H.eout e) ρ) ∘ Bframed e s )
                      ∘ pvl in-inv )
-            -- regroup: `pvl ro ∘ (pvl out-slide ∘ Bframed e s) ∘ pvl in-inv`
             ≈⟨ refl⟩∘⟨ FM.assoc ⟩
           pvl ro ∘ ( pvl (PermProp.++⁺ˡ (H.eout e) ρ)
                      ∘ ( Bframed e s ∘ pvl in-inv ) )
             ≈⟨ FM.sym-assoc ⟩
           ( pvl ro ∘ pvl (PermProp.++⁺ˡ (H.eout e) ρ) )
             ∘ ( Bframed e s ∘ pvl in-inv )
-            -- `pvl ro ∘ pvl out-slide = pvl (trans out-slide ro)` (definitional)
             ≈⟨ ≈-Term-refl ⟩
           pvl (Perm.trans (PermProp.++⁺ˡ (H.eout e) ρ) ro)
             ∘ ( Bframed e s ∘ pvl in-inv ) ∎
@@ -1148,10 +1018,7 @@ module _ (H : Hypergraph FlatGen)
           in-perm = Perm.trans (PermProp.++⁺ˡ (H.ein e) ρ)
                       (Perm.↭-reflexive (sym (++-assoc (H.ein e) rest R)))
           in-inv  = Perm.↭-sym in-perm
-          -- `pvl ri = pvl (++⁺ˡ (ein e) ρ) ∘ pvl in-inv`.
-          --   `pvl (++⁺ˡ (ein e) ρ) ∘ pvl in-inv = pvl (trans in-inv (++⁺ˡ (ein e) ρ))`,
-          --   reconciled with `pvl ri` by K at the Unique cod `ein e ++ (rest++R)`
-          --   (image of the Unique `ein e ++ s` via `++⁺ˡ (ein e) ρ`).
+          -- reconciled by K at the Unique cod `ein e ++ (rest++R)`.
           ri≈ : pvl ri
                 ≈Term pvl (PermProp.++⁺ˡ (H.ein e) ρ) ∘ pvl in-inv
           ri≈ =
@@ -1164,11 +1031,9 @@ module _ (H : Hypergraph FlatGen)
     -- ## `block-bracket-pf` — the proof of the single residual.
     --
     -- Reconcile the FIRING-residual two-box composite (`fire-mid`) against the
-    -- block normal form `pvl vout-loc ∘ Core ∘ pvl loc` (= the goal RHS), via
-    -- `both-as-fire-R` (the residual-`R` braiding) and `bfR-fire` (firing↔R
-    -- bridge), with the locating permutes reconciled by `pvl-coh` (K) on the
-    -- three Unique codomains `ein a ++ s₁` (image of `us-sp`), `ein b ++ s₂`
-    -- (`us-mid`) and `eout b ++ s₂` (`us-cod`).
+    -- block normal form (the goal RHS), via `both-as-fire-R` + `bfR-fire`,
+    -- with the locating permutes reconciled by `pvl-coh` (K) on the three
+    -- Unique codomains (`us-sp`-image / `us-mid` / `us-cod`).
     block-bracket-pf
       : ∀ (a b : Fin H.nE)
           (sp : List (Fin H.nV))
@@ -1187,20 +1052,15 @@ module _ (H : Hypergraph FlatGen)
     block-bracket-pf a b sp s₁ q-first s₂ q-second R loc vout-loc us-sp us-mid us-cod =
       begin
         fire-mid H b s₂ ∘ pvl q-second ∘ fire-mid H a s₁ ∘ pvl q-first
-          -- (0) `fire-mid → Bframed`.
           ≈⟨ fire≈Bframed b s₂ ⟩∘⟨ refl⟩∘⟨ fire≈Bframed a s₁ ⟩∘⟨refl ⟩
         Bframed b s₂ ∘ pvl q-second ∘ Bframed a s₁ ∘ pvl q-first
-          -- (1) `pvl q-first ≈ pvl in-inv-a ∘ pvl loc`  [K at the Unique
-          --     `ein a ++ s₁` = image of `sp` via `q-first`].
+          -- `pvl q-first ≈ pvl in-inv-a ∘ pvl loc`  [K at the Unique `ein a ++ s₁`].
           ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ q-first≈ ⟩
         Bframed b s₂ ∘ pvl q-second ∘ Bframed a s₁ ∘ ( pvl in-inv-a ∘ pvl loc )
-          -- (2) regroup so `pvl loc` is the trailing unit.
           ≈⟨ regroup-in ⟩
         ( Bframed b s₂ ∘ pvl q-second ∘ Bframed a s₁ ∘ pvl in-inv-a ) ∘ pvl loc
-          -- (3) `master`: the bracketed run = `pvl vout-loc ∘ (pvl σo ∘ Core)`-ish.
           ≈⟨ master ⟩∘⟨refl ⟩
         ( pvl vout-loc ∘ Core a b R ) ∘ pvl loc
-          -- (4) regroup to the goal RHS.
           ≈⟨ FM.assoc ⟩
         pvl vout-loc ∘ ( Core a b R ∘ pvl loc )
           ≈⟨ ≈-Term-sym core-reassoc ⟩
@@ -1209,8 +1069,6 @@ module _ (H : Hypergraph FlatGen)
           ∘ ( _≅_.from (view-in≅ a b R) ∘ pvl loc ) ∎
       where
         -- residual permutes from the locating permutes (block-prefix cancel).
-        --   ρ₁ : s₁ ↭ ein b ++ R   (from `q-first`/`loc`)
-        --   ρ₂ : s₂ ↭ eout a ++ R  (from `q-second`/`ρ₁`)
         ρ₁ : s₁ Perm.↭ H.ein b ++ R
         ρ₁ = ++-cancelˡ (H.ein a)
                (Perm.trans (Perm.↭-sym q-first)
@@ -1221,7 +1079,6 @@ module _ (H : Hypergraph FlatGen)
                  (Perm.trans (PermProp.++⁺ˡ (H.eout a) ρ₁)
                    (eo-shift)))
           where
-            -- eout a ++ (ein b ++ R) ↭ ein b ++ (eout a ++ R)
             eo-shift : H.eout a ++ (H.ein b ++ R) Perm.↭ H.ein b ++ (H.eout a ++ R)
             eo-shift =
               Perm.trans (Perm.↭-sym (Perm.↭-reflexive (++-assoc (H.eout a) (H.ein b) R)))
@@ -1246,8 +1103,7 @@ module _ (H : Hypergraph FlatGen)
         σi = PermProp.++⁺ʳ R (PermProp.++-comm (H.eout a) (H.ein b))
         σo = PermProp.++⁺ʳ R (PermProp.++-comm (H.eout a) (H.eout b))
 
-        -- (1) reconcile `q-first` with `trans loc in-inv-a`
-        --     (= `pvl in-inv-a ∘ pvl loc`) at the Unique `ein a ++ s₁`.
+        -- reconcile `q-first` with `trans loc in-inv-a` at the Unique `ein a ++ s₁`.
         q-first≈ : pvl q-first ≈Term pvl in-inv-a ∘ pvl loc
         q-first≈ = pvl-coh us-in-a q-first (Perm.trans loc in-inv-a)
 
@@ -1260,7 +1116,6 @@ module _ (H : Hypergraph FlatGen)
               (refl⟩∘⟨ (≈-Term-trans FM.assoc
                 (refl⟩∘⟨ FM.assoc))))
 
-        -- `Core a b R ∘ pvl loc` reassociated out of the goal RHS.
         core-reassoc
           : ( pvl vout-loc ∘ _≅_.to (view-out≅ a b R) )
               ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id)
@@ -1283,9 +1138,7 @@ module _ (H : Hypergraph FlatGen)
               ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id)
               ∘ _≅_.from (view-in≅ a b R) ) ∘ pvl loc ) ∎
 
-        ----------------------------------------------------------------
         -- `master` — the bracketed firing run equals `pvl vout-loc ∘ Core`.
-        ----------------------------------------------------------------
 
         -- the two `bfR-fire` instances.
         bfa : Bf-R a (H.ein b) R
@@ -1296,17 +1149,16 @@ module _ (H : Hypergraph FlatGen)
               ≈Term pvl out-b ∘ ( Bframed b s₂ ∘ pvl in-inv-b )
         bfb = bfR-fire b s₂ (H.eout a) R ρ₂ us-mid
 
-        -- `MID : eout a ++ s₁ ↭ ein b ++ s₂`, grouped so that `pvl MID`
-        -- is the RIGHT-associated `pvl in-inv-b ∘ (pvl σi ∘ pvl out-a)`.
-        -- Reconciled with `q-second` at the Unique `ein b ++ s₂` (`us-mid`).
+        -- `MID : eout a ++ s₁ ↭ ein b ++ s₂`, grouped so `pvl MID` is the
+        -- RIGHT-associated `pvl in-inv-b ∘ (pvl σi ∘ pvl out-a)`.  Reconciled
+        -- with `q-second` at the Unique `ein b ++ s₂`.
         MID = Perm.trans (Perm.trans out-a σi) in-inv-b
 
         q-second≈ : pvl MID ≈Term pvl q-second
         q-second≈ = pvl-coh us-mid MID q-second
 
-        -- `assembled`: substitute `bfR-fire` into `both-as-fire-R`-LHS.  Both
-        -- sides are re-associated onto the common fully-right-associated form
-        --   pvl out-b ∘ (Bb ∘ (Ib ∘ (Si ∘ (Oa ∘ (Ba ∘ Ia))))).
+        -- substitute `bfR-fire` into `both-as-fire-R`-LHS, both sides
+        -- re-associated onto the common fully-right-associated form.
         assembled
           : Bf-R b (H.eout a) R ∘ pvl σi ∘ Bf-R a (H.ein b) R
             ≈Term pvl out-b
@@ -1325,7 +1177,6 @@ module _ (H : Hypergraph FlatGen)
             pvl out-b
               ∘ ( Bframed b s₂ ∘ pvl MID ∘ Bframed a s₁ ∘ pvl in-inv-a ) ∎
           where
-            -- LHS → fully right-associated flat form.
             to-flat
               : ( pvl out-b ∘ ( Bframed b s₂ ∘ pvl in-inv-b ) )
                   ∘ pvl σi
@@ -1335,9 +1186,7 @@ module _ (H : Hypergraph FlatGen)
                   ∘ ( Bframed a s₁ ∘ pvl in-inv-a ) ) ) ) )
             to-flat =
               ≈-Term-trans FM.assoc (refl⟩∘⟨ FM.assoc)
-            -- target `pvl MID`-form → the SAME flat form.
-            -- `pvl MID = pvl in-inv-b ∘ (pvl σi ∘ pvl out-a)`  (definitional),
-            -- so `Bb ∘ pvl MID ∘ Ba ∘ Ia` re-associates to the flat shape.
+            -- `pvl MID = pvl in-inv-b ∘ (pvl σi ∘ pvl out-a)` (definitional).
             from-flat
               : pvl out-b
                   ∘ ( Bframed b s₂ ∘ pvl MID ∘ Bframed a s₁ ∘ pvl in-inv-a )
@@ -1361,14 +1210,11 @@ module _ (H : Hypergraph FlatGen)
               ≈⟨ ≈-Term-sym (cancel-out-b) ⟩
             pvl (Perm.↭-sym out-b)
               ∘ ( pvl out-b ∘ ( Bframed b s₂ ∘ pvl MID ∘ Bframed a s₁ ∘ pvl in-inv-a ) )
-              -- recognize the inner as `both-as-fire-R`-LHS via `assembled`.
               ≈⟨ refl⟩∘⟨ ≈-Term-sym assembled ⟩
             pvl (Perm.↭-sym out-b)
               ∘ ( Bf-R b (H.eout a) R ∘ pvl σi ∘ Bf-R a (H.ein b) R )
               ≈⟨ refl⟩∘⟨ both-as-fire-R a b R ⟩
             pvl (Perm.↭-sym out-b) ∘ ( pvl σo ∘ Core a b R )
-              -- `pvl (↭-sym out-b) ∘ pvl σo = pvl (trans σo (↭-sym out-b))`
-              -- reconciled with `pvl vout-loc` (K, us-cod).
               ≈⟨ FM.sym-assoc ⟩
             ( pvl (Perm.↭-sym out-b) ∘ pvl σo ) ∘ Core a b R
               ≈⟨ vout≈ ⟩∘⟨refl ⟩
@@ -1385,20 +1231,18 @@ module _ (H : Hypergraph FlatGen)
                   (∘-resp-≈ out-b-iso ≈-Term-refl)
                   idˡ)
               where
-                -- `pvl (↭-sym out-b) ∘ pvl out-b = pvl (trans out-b (↭-sym out-b))`
-                -- reconciled with `pvl refl = id` at the Unique `eout b ++ s₂`.
                 out-b-iso : pvl (Perm.↭-sym out-b) ∘ pvl out-b ≈Term id
                 out-b-iso =
                   pvl-coh us-cod (Perm.trans out-b (Perm.↭-sym out-b)) Perm.refl
-            -- `pvl (↭-sym out-b) ∘ pvl σo = pvl (trans σo (↭-sym out-b)) ≈ pvl vout-loc`.
+            -- reconciled with `pvl vout-loc` (K, us-cod).
             vout≈ : pvl (Perm.↭-sym out-b) ∘ pvl σo ≈Term pvl vout-loc
             vout≈ = pvl-coh us-cod (Perm.trans σo (Perm.↭-sym out-b)) vout-loc
 
   ----------------------------------------------------------------------
   -- ## The single residual (scaffolding-stripped, block-symmetric).
   --
-  -- For two edges `a`, `b` fired in the order `a ∷ b` from a stack `sp`,
-  -- with locating permutes
+  -- For two edges `a`, `b` fired in order `a ∷ b` from a stack `sp` with
+  -- locating permutes
   --
   --   q-first  : sp                  ↭ ein a ++ s₁
   --   q-second : eout a ++ s₁        ↭ ein b ++ s₂
@@ -1406,40 +1250,18 @@ module _ (H : Hypergraph FlatGen)
   --   vout-loc : (eout a ++ eout b) ++ R ↭ eout b ++ s₂
   --
   -- the located-firing composite factors as the 3-block normal form.  This
-  -- is symmetric under swapping (a,b) — so the SAME field serves the
-  -- e-first and e'-first orders.
+  -- is symmetric under swapping (a,b), so the SAME field serves both orders.
   --
-  -- The residual is STRIPPED of the `Comb.SimLoc` record, the `Incomp`
-  -- hypothesis, and the `FireMidInterchangeComb` dependency: the locating
-  -- permutes are plain `↭` arguments.
-
-  -- ## SOUNDNESS: the `Unique` hypotheses (`us-sp` / `us-cod`) are NOT
-  -- decorative — without them the equation is FALSE-as-stated.
-  --
-  -- A proof must reconcile the FIRING locating permutes (`q-first` /
-  -- `q-second`, inside the LHS `fire-mid ∘ permute` boxes) against the
-  -- BLOCK locating permutes (`loc` / `vout-loc`, in the RHS view frames).
-  -- These are independent `↭`-derivations whose codomains are
-  -- re-bracketings of one another, and the ONLY device that equates
-  -- `permute-via-vlab p ≈Term permute-via-vlab q` for two such derivations
-  -- is the Kelly-faithfulness keystone
-  -- `permute-via-vlab-≈Term-coherence-K K vlab uniq p q`, which holds ONLY
-  -- when the (Fin-level) codomain `uniq` is `Unique` (the unrestricted
-  -- statement is FALSE — `PermuteCoherence.Sub.PermuteCoherence`
-  -- counter-example).  For a `sp` (or output stack) with a duplicated
-  -- vertex one can pick `q-first` / `loc` (resp. `vout-loc`) realising
-  -- DIFFERENT position bijections, and the equation fails.
-  --
-  --   * `us-sp  : Unique sp`              — gates the INPUT reconciliation
-  --     (`q-first`/`q-second`/`loc` all have codomains that are
-  --     `↭`-images of `sp`, hence `Unique` by `Unique-resp-↭`).
-  --   * `us-cod : Unique (H.eout b ++ s₂)` — gates the OUTPUT reconciliation
-  --     (`vout-loc`'s codomain is the FINAL stack `eout b ++ s₂`, whose
-  --     freshness is the post-run reservoir fact, NOT derivable from `us-sp`).
-  --
-  -- These are exactly the witnesses `FireMidInterchange.block-nf` already
-  -- threads (`Unique sp` + `Unique (eout e ++ r₁')`, the latter reshuffled
-  -- to the other order's final stack by `r-stk`).
+  -- SOUNDNESS: the `Unique` hypotheses (`us-sp` / `us-cod`) are NOT
+  -- decorative — without them the equation is FALSE-as-stated.  A proof must
+  -- reconcile the FIRING locating permutes against the BLOCK locating
+  -- permutes; the only device that equates two such `↭`-derivations under
+  -- `permute-via-vlab` is the Kelly keystone, which holds ONLY when the
+  -- Fin-level codomain is `Unique` (the unrestricted statement is FALSE).
+  --   * `us-sp` gates the INPUT reconciliation (`q-first`/`q-second`/`loc`
+  --     have `↭`-images of `sp` as codomains).
+  --   * `us-cod` gates the OUTPUT reconciliation (`vout-loc`'s codomain is
+  --     the FINAL stack, whose freshness is NOT derivable from `us-sp`).
   record BlockBracket : Set where
     field
       block-bracket
@@ -1459,21 +1281,14 @@ module _ (H : Hypergraph FlatGen)
                 ∘ ((box-e a ⊗₁ box-e b) ⊗₁ id)
                 ∘ ( _≅_.from (view-in≅ a b R) ∘ permute-via-vlab H.vlab loc )
 
-  -- `BlockBracket` is discharged (postulate-free) by `block-bracket-pf`:
-  -- the `both-as-fire-R` residual-`R` braiding + `bfR-fire` firing↔R bridge,
-  -- with the four locating permutes reconciled by the Kelly keystone `K` on
-  -- the three Unique codomains (`us-sp`-image / `us-mid` / `us-cod`).
   nf-bracket-proof : BlockBracket
   nf-bracket-proof = record { block-bracket = block-bracket-pf }
 
   ----------------------------------------------------------------------
-  -- ## The generic block-normal-form factorisation.
-  --
-  -- Given the single residual, the located-firing factorisation for the
-  -- order `a ∷ b` holds for arbitrary locating permutes.  This is the
-  -- SYMMETRIC generic lemma: it is invariant under swapping the role of
-  -- the two blocks, so it serves both `nf₁` (order `e ∷ e'`) and `nf₂`
-  -- (order `e' ∷ e`).
+  -- ## The generic block-normal-form factorisation.  Given the single
+  -- residual, the located-firing factorisation holds for arbitrary locating
+  -- permutes.  Symmetric under swapping the two blocks, so it serves both
+  -- `nf₁` (order `e ∷ e'`) and `nf₂` (order `e' ∷ e`).
   module _ (bb : BlockBracket) where
     open BlockBracket bb
 
@@ -1496,13 +1311,10 @@ module _ (H : Hypergraph FlatGen)
     block-nf-generic = block-bracket
 
     ----------------------------------------------------------------------
-    -- ## The two instantiations, recovering EXACTLY the `nf₂-eq′` /
-    -- `nf₁-eq′` postulate types (modulo `Comb.SimLoc` being opened to
-    -- supply `Rlist`, `loc₁`/`loc₂`, `vout-loc₁`/`vout-loc₂`).
-    --
-    -- These take the `dih`/`lin` parameters needed to BUILD `Comb.SimLoc`
-    -- exactly as `FireMidInterchange` does.  They produce functions of the
-    -- SAME type as the postulates `nf₂-eq′` / `nf₁-eq′`.
+    -- ## The two instantiations, recovering the `nf₂-eq′` / `nf₁-eq′` types
+    -- (modulo `Comb.SimLoc` supplying `Rlist`, `loc₁`/`loc₂`,
+    -- `vout-loc₁`/`vout-loc₂`).  Takes the `dih`/`lin` parameters needed to
+    -- build `Comb.SimLoc` exactly as `FireMidInterchange` does.
     module Instantiate
       (dih : ∀ {e} → ¬ (Dep H e e))
       (lin : Linear H)
@@ -1523,9 +1335,8 @@ module _ (H : Hypergraph FlatGen)
           Comb.sim-loc H dih lin (proj₁ inc) (proj₂ inc)
                        sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
 
-      -- `nf₂-eq′`: the e'-first order (the TARGET of this task).  Blocks
-      -- `a = e'`, `b = e`, `s₁ = r₂'`, `s₂ = r₁'`, `loc = loc₂`,
-      -- `vout-loc = vout-loc₂`, `q-first = p₂'`, `q-second = p₁'`.
+      -- `nf₂-eq′`: the e'-first order.  Blocks `a = e'`, `b = e`, `s₁ = r₂'`,
+      -- `s₂ = r₁'`, `loc = loc₂`, `vout-loc = vout-loc₂`.
       nf₂-eq-derived
         : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
             (sp : List (Fin H.nV))
@@ -1545,9 +1356,8 @@ module _ (H : Hypergraph FlatGen)
         block-nf-generic e' e sp r₂' p₂' r₁' p₁' Rlist loc₂ vout-loc₂ us-sp us-mid us-cod
         where open Comb.SimLoc (SL inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
 
-      -- `nf₁-eq′`: the e-first order (the MIRROR).  Blocks `a = e`,
-      -- `b = e'`, `s₁ = r₁`, `s₂ = r₂`, `loc = loc₁`, `vout-loc = vout-loc₁`,
-      -- `q-first = p₁`, `q-second = p₂`.
+      -- `nf₁-eq′`: the e-first order (the MIRROR).  Blocks `a = e`, `b = e'`,
+      -- `s₁ = r₁`, `s₂ = r₂`, `loc = loc₁`, `vout-loc = vout-loc₁`.
       nf₁-eq-derived
         : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
             (sp : List (Fin H.nV))

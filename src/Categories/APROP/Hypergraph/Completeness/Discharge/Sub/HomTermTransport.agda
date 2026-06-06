@@ -3,24 +3,17 @@
 --------------------------------------------------------------------------------
 -- Shared `subst₂`/transport algebra for the box-shape decode residuals.
 --
--- This is a LEAF module (it imports NONE of the `Decode{Compose,Tensor,
--- AgenSigma}{Shape,Pruned}` box-shape modules).  It collects the
--- `subst₂`-cancellation / commutation / distributivity lemmas, the
--- `permute`-relabel-freeness lemma `pvv-relabel`, and the algorithm-
--- extraction pair `decode-attempt-extract` / `Linear⇒cod-Unique`, which
--- were previously duplicated byte-for-byte across the consumers
--- (`DecodeComposeShape`, `DecodeTensorShape`, `DecodeAgenSigmaShape`,
--- `DecodeComposePruned`, `DecodeTensorPruned`).
+-- LEAF module: imports NONE of the `Decode{Compose,Tensor,AgenSigma}
+-- {Shape,Pruned}` box-shape modules.  Collects the `subst₂`-cancellation /
+-- commutation / distributivity lemmas, the `permute`-relabel-freeness
+-- lemma `pvv-relabel`, and the extraction pair `decode-attempt-extract` /
+-- `Linear⇒cod-Unique`, shared across all box-shape consumers.
 --
--- `≡⇒≈Term` is re-exported from its canonical home `DecodeRoundtripSafe`
--- (NOT re-minted here).  `subst₂-resp-≈Term` is the GENERAL
--- (arbitrary-`ObjTerm`-endpoint) variant required by the consumers; it is
--- distinct from the `cong unflatten`-specialised one in `DecodeRoundtripSafe`
--- and so is defined here.
---
--- `objUIP` and `Kf : FaithfulnessResidual` are kept as EXPLICIT per-lemma
--- arguments (NOT module parameters), exactly as in the consumers, so call
--- sites are unchanged and the threaded `Kf` remains the postulated one.
+-- `subst₂-resp-≈Term` here is the GENERAL (arbitrary-`ObjTerm`-endpoint)
+-- variant, distinct from the `cong unflatten`-specialised one in
+-- `DecodeRoundtripSafe`.  `objUIP` and `Kf : FaithfulnessResidual` are
+-- EXPLICIT per-lemma arguments (not module parameters), matching the
+-- consumers' call sites.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -42,8 +35,7 @@ open import Categories.APROP.Hypergraph.Completeness.Permute sig
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (decode; decode-attempt-Linear)
 import Categories.APROP.Hypergraph.Completeness.Linearity sig as Lin
--- `≡⇒≈Term` is re-exported from its canonical home `DecodeRoundtripSafe`
--- (`open … public` so consumers can `using (≡⇒≈Term)` it from here).
+-- `≡⇒≈Term` re-exported from `DecodeRoundtripSafe` for consumers.
 open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtripSafe sig
   using (≡⇒≈Term) public
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUnique sig as SU
@@ -71,11 +63,8 @@ open import Relation.Binary.PropositionalEquality
 private
   module FM = Category FreeMonoidal
 
--- `≡⇒≈Term` is re-exported from `DecodeRoundtripSafe` (see `using` above).
-
--- `subst₂ FlatGen` over a `trans · (sym ·)` cancels back: feeding the
--- composite equation `trans p (sym q)` to `subst₂ FlatGen` and applying
--- it after `subst₂ FlatGen p q` recovers the original.  (`--with-K`.)
+-- `subst₂ FlatGen` over `trans p (sym p')` cancels back to the inner
+-- `subst₂ FlatGen p q`.  (`--with-K`.)
 subst₂-FlatGen-cancel
   : ∀ {is is' os os' : List X} (p : is ≡ is') (q : os ≡ os')
       {is'' os'' : List X} (p' : is'' ≡ is') (q' : os'' ≡ os')
@@ -84,15 +73,13 @@ subst₂-FlatGen-cancel
     ≡ subst₂ FlatGen (sym p') (sym q') (subst₂ FlatGen p q z)
 subst₂-FlatGen-cancel refl refl refl refl z = refl
 
--- `subst₂ FlatGen (sym p) (sym q) (subst₂ FlatGen p q z) ≡ z`.
 subst₂-FlatGen-cancel′
   : ∀ {is is' os os' : List X} (p : is ≡ is') (q : os ≡ os') (z : FlatGen is os)
   → subst₂ FlatGen (sym p) (sym q) (subst₂ FlatGen p q z) ≡ z
 subst₂-FlatGen-cancel′ refl refl z = refl
 
--- `subst₂ HomTerm` only cares about the ENDPOINTS, not the proof terms:
--- under `objUIP` any two boundary proofs with the same endpoints give the
--- same transported term.  (Stated as `≈Term` for ergonomic chaining.)
+-- `subst₂ HomTerm` only depends on the ENDPOINTS: under `objUIP` any two
+-- boundary proofs with equal endpoints give the same transported term.
 subst₂-HomTerm-irrel
   : (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
     {A A' B B' : ObjTerm} (p p' : A ≡ A') (q q' : B ≡ B') (t : HomTerm A B)
@@ -100,7 +87,6 @@ subst₂-HomTerm-irrel
 subst₂-HomTerm-irrel objUIP p p' q q' t =
   ≡⇒≈Term (cong₂ (λ x y → subst₂ HomTerm x y t) (objUIP p p') (objUIP q q'))
 
--- Compose two `subst₂ HomTerm` transports into one.
 subst₂-HomTerm-∘
   : ∀ {A A' A'' B B' B''}
       (p₁ : A ≡ A') (p₂ : A' ≡ A'') (q₁ : B ≡ B') (q₂ : B' ≡ B'') (t : HomTerm A B)
@@ -108,14 +94,12 @@ subst₂-HomTerm-∘
     ≡ subst₂ HomTerm (trans p₁ p₂) (trans q₁ q₂) t
 subst₂-HomTerm-∘ refl refl refl refl t = refl
 
--- `subst₂ HomTerm` respects `≈Term` (GENERAL endpoints — distinct from the
--- `cong unflatten`-specialised variant in `DecodeRoundtripSafe`).
+-- `subst₂ HomTerm` respects `≈Term` (GENERAL endpoints — see header).
 subst₂-resp-≈Term
   : ∀ {A A' B B'} (p : A ≡ A') (q : B ≡ B') {u v : HomTerm A B}
   → u ≈Term v → subst₂ HomTerm p q u ≈Term subst₂ HomTerm p q v
 subst₂-resp-≈Term refl refl u≈v = u≈v
 
--- `subst₂ HomTerm` distributes over `∘`.
 subst₂-HomTerm-∘-dist
   : ∀ {A A' B B' C C'}
       (p : A ≡ A') (q : B ≡ B') (r : C ≡ C')
@@ -124,8 +108,8 @@ subst₂-HomTerm-∘-dist
     ≡ subst₂ HomTerm q r f ∘ subst₂ HomTerm p q h
 subst₂-HomTerm-∘-dist refl refl refl f h = refl
 
--- `subst₂ HomTerm` of `a ⊗₁ b` over `⊗₀`-shaped endpoint equalities
--- distributes over the two factors (`refl`-match on the four equalities).
+-- `subst₂ HomTerm` of `a ⊗₁ b` over `⊗₀`-shaped endpoints distributes
+-- over the two factors.
 subst₂-⊗₁-dist
   : ∀ {A A' B B' C C' D D' : ObjTerm}
       (p₁ : A ≡ A') (q₁ : B ≡ B') (p₂ : C ≡ C') (q₂ : D ≡ D')
@@ -135,9 +119,8 @@ subst₂-⊗₁-dist
 subst₂-⊗₁-dist refl refl refl refl a b = refl
 
 ------------------------------------------------------------------------
--- ## Box-shape `subst₂`/`pvl` transport algebra (hoisted from the
---    `Decode{AgenSigma,…}Shape` / `Discharge.*` consumers, where they were
---    re-minted byte-for-byte; signatures coincide across consumers).
+-- ## Box-shape `subst₂`/`pvl` transport algebra (shared across the
+--    box-shape consumers).
 
 -- `subst₂ HomTerm` distributes over `∘` (`cong unflatten`-framed endpoints).
 subst₂-∘-distrib
@@ -161,15 +144,14 @@ pvl-subst₂
     ≡ permute-via-vlab vlab (subst₂ Perm._↭_ a b r)
 pvl-subst₂ vlab refl refl r = refl
 
--- `permute-via-vlab vlab ↭-refl ≈Term id` (`map⁺ f refl = refl`,
--- `permute refl = id` — both definitional).
+-- `permute-via-vlab vlab ↭-refl ≈Term id` (definitional).
 pvl-refl
   : ∀ {n} (vlab : Fin n → X) (xs : List (Fin n))
   → permute-via-vlab vlab (Perm.↭-refl {x = xs}) ≈Term id
 pvl-refl vlab xs = ≈-Term-refl
 
--- A `subst₂` whose cod equation factors as `trans q r` splits as the
--- outer `r`-transport of the inner `q`-transport.
+-- A `subst₂` whose cod equation factors as `trans q r` splits into outer
+-- `r` of inner `q`.
 subst₂-cod-trans
   : ∀ {as as' bs bs' bs'' : List X}
       (p : as ≡ as') (q : bs ≡ bs') (r : bs' ≡ bs'')
@@ -179,7 +161,7 @@ subst₂-cod-trans
              (subst₂ HomTerm (cong unflatten p) (cong unflatten q) x)
 subst₂-cod-trans refl refl refl x = refl
 
--- Symmetric: a `subst₂` whose dom equation factors as `trans q r`.
+-- Symmetric: dom equation factoring as `trans q r`.
 subst₂-dom-trans
   : ∀ {as as' as'' bs bs' : List X}
       (q : as ≡ as') (r : as' ≡ as'') (p : bs ≡ bs')
@@ -189,8 +171,7 @@ subst₂-dom-trans
              (subst₂ HomTerm (cong unflatten q) (cong unflatten p) x)
 subst₂-dom-trans refl refl refl x = refl
 
--- `subst₂ HomTerm` over `cong unflatten` of two list-equalities pushes
--- inside `permute`.
+-- `subst₂ HomTerm` over `cong unflatten` pushes inside `permute`.
 permute-subst₂
   : ∀ {xs xs' ys ys' : List X} (p : xs ≡ xs') (q : ys ≡ ys')
       (r : xs Perm.↭ ys)
@@ -206,7 +187,7 @@ map⁺-subst₂
     ≡ subst₂ Perm._↭_ (cong (map h) p) (cong (map h) q) (PermProp.map⁺ h r)
 map⁺-subst₂ h refl refl r = refl
 
--- `eval-↭` of a `subst₂`-transported permutation is a `subst₂ FinBij`
+-- `eval-↭` of a `subst₂`-transported permutation is `subst₂ FinBij`
 -- along the lengths.
 eval-subst₂-↭
   : ∀ {a} {A : Set a} {xs xs' ys ys' : List A}
@@ -216,16 +197,12 @@ eval-subst₂-↭
 eval-subst₂-↭ refl refl r = refl
 
 ------------------------------------------------------------------------
--- ## Permute relabel-freeness (the `permute`-level twin of the term
---    twins): for an injective, label-preserving embedding
---    `φ : Fin nH → Fin nJ` with `vJ ∘ φ ≗ vH`, the `vJ`-permute of the
---    `φ`-relabel `map⁺ φ p` is the `vH`-permute of `p`, modulo the
---    boundary transport `map vJ (map φ ·) ≡ map vH ·`.
---
--- The `≈-fb` coincidence is PURE length-cast bookkeeping (`eval` of a
--- `map⁺` ignores the labels — `eval-map⁺` reduces both to `eval-↭ p`);
--- the keystone `permute-resp-≅↭` only turns that coincidence into a
--- `≈Term`.
+-- ## Permute relabel-freeness: for an injective label-preserving
+--    embedding `φ : Fin nH → Fin nJ` with `vJ ∘ φ ≗ vH`, the `vJ`-permute
+--    of the `φ`-relabel `map⁺ φ p` is the `vH`-permute of `p`, modulo the
+--    boundary transport.  The `≈-fb` coincidence is PURE length-cast
+--    bookkeeping (`eval-map⁺` reduces both sides to `eval-↭ p`, ignoring
+--    labels); `permute-resp-≅↭` (K) turns it into `≈Term`.
 vlab-φ-lemma
   : ∀ {nH nJ : ℕ} (φ : Fin nH → Fin nJ) (vJ : Fin nJ → X) (vH : Fin nH → X)
       (veq : ∀ i → vJ (φ i) ≡ vH i) (s : List (Fin nH))
@@ -294,9 +271,8 @@ pvv-relabel Kf φ vJ vH veq {xs} {ys} p =
 --------------------------------------------------------------------------------
 -- ## `Linear H ⇒ Unique (cod H)` (sig-level).
 --
--- `count v cod ≤ count v consumedList = count v producedList ≤ 1`
--- (the first `≤` by `count-++`-monotonicity, the `=` by the balance half
--- of `Linear`, the last `≤` by the bound half).  Hence `Unique cod`.
+-- `count v cod ≤ count v consumedList = count v producedList ≤ 1`, by
+-- `count-++`-monotonicity, the balance half, and the bound half.
 
 open import Data.Nat.Base using () renaming (_≤_ to _≤ⁿ_)
 import Data.Nat.Properties as Nat
@@ -315,14 +291,10 @@ Linear⇒cod-Unique H (bal , bnd) = SU.count≤1⇒Unique cod-bnd
         (Nat.≤-trans (Nat.≤-reflexive (sym (bal v))) (bnd v))
 
 --------------------------------------------------------------------------------
--- ## Algorithm extraction (sig-level).
---
--- From a successful `decode-attempt H` (the totality `decode-attempt-Linear`
--- provides at `H = ⟪·⟫`), expose the returned term AS
--- `permute-via-vlab vlab perm ∘ process-term` for the SAME `process-term =
--- proj₂ (process-all-edges H dom)` and SOME `perm : s_final ↭ cod` (the one
--- `extract-exact` computed).  Mirrors `DecodeRelRespIsoWired`'s
--- `decode-attempt⇒decodeOrd-range`, but `Valid`-free.
+-- ## Algorithm extraction (sig-level).  From a successful `decode-attempt
+-- H`, expose the returned term as `permute-via-vlab vlab perm ∘
+-- process-term` for the SAME `process-term` and the `perm : s_final ↭ cod`
+-- that `extract-exact` computed.  `Valid`-free.
 
 decode-attempt-extract
   : (H : Hypergraph FlatGen)

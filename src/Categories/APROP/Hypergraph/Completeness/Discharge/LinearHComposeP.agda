@@ -1,33 +1,18 @@
 {-# OPTIONS --without-K --safe #-}
 
 --------------------------------------------------------------------------------
--- DE-RISKING SPIKE: does the linearity layer port from the UNPRUNED
--- composition `hCompose` to the PRUNED `hComposeP`?
---
--- This module proves, for the pruned cospan composition `hComposeP`:
+-- Linearity layer for the PRUNED cospan composition `hComposeP`:
 --
 --   (#1) `remapP-injective` : injectivity of the pruned K-side vertex remap
 --        `remapP = remap K.dom lookup-cod`.
 --   (#4) `Linear-hComposeP`  : `hComposeP` preserves the `Linear` invariant.
 --
--- It MIRRORS `Linearity.Linear-hCompose`, replacing the unpruned K-side
--- routing (`injR : Fin K.nV → Fin (G.nV + K.nV)`) by the pruned routing
--- baked into `remapP`:
+-- Mirrors `Linearity.Linear-hCompose`, replacing the unpruned K-side
+-- routing by the pruned routing baked into `remapP`:
 --   * members of K.dom go to `lookup-cod i ↑ˡ count-non K.dom`  (G-side),
 --   * non-members go to `G.nV ↑ʳ j`                            (pruned slot).
---
--- SPIKE FINDINGS — see the report.  In short, the port is MECHANICAL:
---   * `remapP-injective` is `Prune.remap-injective` applied with
---     `Unique K.dom` and `lookup-cod`-injectivity, both bridged from the
---     `count _ _ ≤ 1` bounds the linearity invariant already supplies.
---   * `Linear-hComposeP`'s count-algebra ports essentially verbatim from
---     `Linear-hCompose`; the only genuinely new lemma is
---     `map-remapP-K-dom : map remapP K.dom ≡ map (_↑ˡ count-non) G.cod`,
---     which replaces the unpruned `map remap K.dom ≡ map injL G.cod`.
---
--- No `--safe` because we re-derive a handful of private helpers from
--- `Linearity` (which is `--safe`); there is nothing unsafe here.  No
--- postulates.
+-- The only genuinely new lemma is
+-- `map-remapP-K-dom : map remapP K.dom ≡ map (_↑ˡ count-non) G.cod`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -80,10 +65,8 @@ open import Relation.Nullary.Negation using (¬_)
 open import Relation.Binary.PropositionalEquality using (_≢_)
 
 --------------------------------------------------------------------------------
--- Re-derived count / permutation helpers.
---
--- These mirror the `private`-block helpers inside `Linearity` (which are
--- not exported).  Each is self-contained and small.
+-- Re-derived count / permutation helpers (mirror `Linearity`'s unexported
+-- `private`-block helpers).
 
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.CountCombinatorics sig
   using ( count-cons-yes; count-cons-no
@@ -100,8 +83,8 @@ private
   tabulate-+ {m = suc m} {n = n} f =
     cong (f zero ∷_) (tabulate-+ {m = m} {n = n} (f Fun.∘ suc))
 
-  -- `cast eq` is injective (it preserves `toℕ`).  Stdlib 2.3 has no
-  -- `cast-injective`, so we derive it from `toℕ-cast` + `toℕ-injective`.
+  -- `cast eq` is injective (preserves `toℕ`).  Stdlib 2.3 lacks
+  -- `cast-injective`; derived from `toℕ-cast` + `toℕ-injective`.
   cast-injective : ∀ {m n} (eq : m ≡ n) {i j : Fin m}
                  → cast eq i ≡ cast eq j → i ≡ j
   cast-injective eq {i} {j} ci≡cj =
@@ -110,14 +93,11 @@ private
              (trans (cong toℕ ci≡cj) (toℕ-cast eq j)))
 
 --------------------------------------------------------------------------------
--- SPIKE QUESTION #1 — `count _ _ ≤ 1` ⇒ `Unique`.
---
--- `Prune.remap-injective` requires the stdlib `Unique xs` (= `AllPairs
--- _≢_ xs`), but the linearity invariant only hands us `count k xs ≤ 1`.
--- There is NO such bridge anywhere in the codebase, so we build it here.
--- It is a short induction: at the head `x ∷ xs`, `count x (x ∷ xs) ≤ 1`
--- forces `count x xs ≡ 0`, hence `x` differs from every element of `xs`
--- (an `All (x ≢_) xs`); the tail count-bound shrinks to give `Unique xs`.
+-- `count _ _ ≤ 1` ⇒ `Unique`.  `Prune.remap-injective` needs `Unique xs`
+-- (= `AllPairs _≢_ xs`), but the linearity invariant only supplies
+-- `count k xs ≤ 1`.  Short induction: at the head `x ∷ xs`, the bound
+-- forces `count x xs ≡ 0`, hence `All (x ≢_) xs`; the tail bound gives
+-- `Unique xs`.
 
 private
   -- `count x xs ≡ 0` ⇒ `x ≢` every element of `xs`.
@@ -147,8 +127,8 @@ count-bnd→Unique (x ∷ xs) bnd =
     tail-bnd v = Nat.≤-trans (count-mono-cons v x xs) (bnd v)
 
 --------------------------------------------------------------------------------
--- The main construction.  Mirrors `Linearity.Linear-hCompose` /
--- `hCompose-Linear-utils`, with `injR` replaced by the pruned routing.
+-- The main construction (mirrors `Linearity.Linear-hCompose`, with `injR`
+-- replaced by the pruned routing).
 
 module _
   (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
@@ -174,8 +154,7 @@ module _
     cn = count-non K.dom
 
   ------------------------------------------------------------------------
-  -- Bounds carried over from the linearity invariant (same as in
-  -- `hCompose-Linear-utils`).
+  -- Bounds carried over from the linearity invariant.
 
   K-dom-bnd : ∀ k → count k K.dom Nat.≤ 1
   K-dom-bnd k =
@@ -192,7 +171,7 @@ module _
       (Nat.≤-trans (Nat.≤-reflexive (sym (G-bal v))) (G-bnd v))
 
   ------------------------------------------------------------------------
-  -- SPIKE QUESTION #1+#2 — `remapP-injective`.
+  -- `remapP-injective`.
 
   K-dom-Unique : Unique K.dom
   K-dom-Unique = count-bnd→Unique K.dom K-dom-bnd
@@ -200,8 +179,8 @@ module _
   G-cod-Unique : Unique G.cod
   G-cod-Unique = count-bnd→Unique G.cod G-cod-bnd
 
-  -- `lookup-cod` is injective: it is `lookup G.cod` precomposed with the
-  -- (injective) `cast`, and `lookup G.cod` is injective on a Unique list.
+  -- `lookup-cod` is injective: `lookup G.cod` (injective on a Unique
+  -- list) precomposed with the injective `cast`.
   lookup-cod-injective
     : ∀ {i j : Fin (length K.dom)} → lookup-cod i ≡ lookup-cod j → i ≡ j
   lookup-cod-injective {i} {j} eq =
@@ -216,17 +195,12 @@ module _
     remap-injective K.dom lookup-cod K-dom-Unique lookup-cod-injective
 
   ------------------------------------------------------------------------
-  -- `map remapP K.dom ≡ map (_↑ˡ cn) G.cod`.
-  --
-  -- This is the pruned analogue of `Linear-hCompose`'s
-  -- `map-remap-K-dom : map remap K.dom ≡ map injL G.cod`.  Each member of
-  -- K.dom is routed (via `classify-lookup-Unique` + `remap-inj₁`) to
-  -- `lookup-cod idx ↑ˡ cn`, and `lookup-cod idx = lookup G.cod (cast … idx)`
-  -- walks G.cod in lockstep with K.dom (cast is index-preserving), so the
-  -- two mapped lists agree.
+  -- `map remapP K.dom ≡ map (_↑ˡ cn) G.cod` (pruned analogue of
+  -- `Linear-hCompose`'s `map-remap-K-dom`).  Each member of K.dom is
+  -- routed to `lookup-cod idx ↑ˡ cn`, and `lookup-cod` walks G.cod in
+  -- lockstep with K.dom, so the two mapped lists agree.
 
   private
-    -- length K.dom ≡ length G.cod.
     length-K-dom : length K.dom ≡ length G.cod
     length-K-dom = dom-cod-len
 
@@ -239,8 +213,7 @@ module _
         (classify-lookup-Unique K.dom K-dom-Unique idx)
 
     -- List-extensionality: two `map`s agree when their lengths agree and
-    -- they agree pointwise (up to `cast` on the index).  Same induction
-    -- as `PrunedCompose.lookup-boundary`, but at the list level.
+    -- they agree pointwise (up to `cast` on the index).
     map-ext-cast
       : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
           (f : A → B) (g : C → B)
@@ -254,10 +227,6 @@ module _
       cong₂ _∷_ (pt zero)
         (map-ext-cast f g xs ys (Nat.suc-injective len) (λ i → pt (suc i)))
 
-  -- `lookup-cod idx = lookup G.cod (cast dom-cod-len idx)` is definitional
-  -- and `length-K-dom = dom-cod-len`, so `remapP-on-dom idx` already lands
-  -- on `lookup G.cod (cast length-K-dom idx) ↑ˡ cn`, i.e. the pointwise
-  -- goal of `map-ext-cast`.
   map-remapP-K-dom : map remapP K.dom ≡ map (_↑ˡ cn) G.cod
   map-remapP-K-dom =
     map-ext-cast remapP (_↑ˡ cn) K.dom G.cod length-K-dom remapP-on-dom
@@ -276,18 +245,13 @@ module _
           (count-map-↑ˡ-mismatch G.nV j G.cod)
 
   ------------------------------------------------------------------------
-  -- `map remapP K-eb ≡ map (G.nV ↑ʳ_) (...)`?  NO — unlike the unpruned
-  -- case, K-eb members are NOT generally mapped to a single fixed `↑ʳ`
-  -- pattern indexed by the K-vertex itself; they go through the pruned
-  -- `nonMem`-index.  But for the BALANCE proof we never need that: we
-  -- only push K-balance through `remapP` via `count-map-resp`, which
-  -- treats `remapP` as an opaque function.  For the BOUND proof, however,
-  -- we DO need to bound `count v (map remapP K-eb)`.  We obtain that
-  -- bound directly from K-bound via `count-map-≥-fiber` below.
+  -- For BALANCE we only push K-balance through `remapP` via
+  -- `count-map-resp` (treating `remapP` opaquely); for BOUND we need to
+  -- bound `count v (map remapP K-eb)`, obtained from K-bound via the
+  -- fiber lemmas below.
 
   private
-    -- count v (map f xs) ≥ count k xs whenever f k = v.  (Copied from
-    -- `hCompose-Linear-utils`.)
+    -- count v (map f xs) ≥ count k xs whenever f k = v.
     count-map-≥-fiber
       : ∀ {n m} (f : Fin n → Fin m) (k : Fin n) {v : Fin m}
       → f k ≡ v
@@ -329,11 +293,10 @@ module _
       Nat.≤-antisym (count-map-≤-fiber f f-inj k eq xs)
                     (count-map-≥-fiber f k eq xs)
 
-    -- count v (map f xs) ≡ 0 when every preimage of v in `xs` has count 0
-    -- there (so no element of `xs` actually maps to v).  Phrased with a
-    -- count-zero hypothesis keyed on preimages, which threads through the
-    -- recursion without any `y ≟ x` case-split (avoiding `with`-abstraction
-    -- clashes with `count`'s own internal `≟`).
+    -- count v (map f xs) ≡ 0 when no element of `xs` maps to v.  The
+    -- count-zero hypothesis is keyed on preimages so it threads through
+    -- the recursion without a `y ≟ x` case-split (which would clash with
+    -- `count`'s internal `≟`).
     count-map-no-list-preimage
       : ∀ {n m} (f : Fin n → Fin m) {v : Fin m}
       → ∀ (xs : List (Fin n))
@@ -355,7 +318,6 @@ module _
 
   ------------------------------------------------------------------------
   -- Structural decompositions of `concat (tabulate eout-c / ein-c)`.
-  -- Identical in shape to `Linear-hCompose`, with `remap` → `remapP`.
 
   open hComposeP-impl G K bdy-eq
     using ( eout-c; ein-c
@@ -397,10 +359,6 @@ module _
   ------------------------------------------------------------------------
   -- The dom/cod of the composite (from `hComposeP`'s record):
   --   dom = map injL G.dom ,  cod = map remapP K.cod.
-  --
-  -- `producedList (hComposeP G K bdy-eq)`
-  --   = (map injL G.dom) ++ concat (tabulate eout-c)
-  -- and similarly for consumedList.
 
   count-prod
     : ∀ v
@@ -440,8 +398,7 @@ module _
 
   ------------------------------------------------------------------------
   -- The "L-side balance" identity.  For v = injL i it combines G-bal with
-  -- the `map-remapP-K-dom` characterisation; for v = raise j both sides
-  -- are 0.  Mirrors `Linear-hCompose`'s `αβ≡εη`.
+  -- `map-remapP-K-dom`; for v = raise j both sides are 0.
 
   αβ≡εη
     : ∀ v
@@ -470,8 +427,7 @@ module _
                                (count-map-remapP-K-dom-raise j)))
 
   ------------------------------------------------------------------------
-  -- Balance: combining all the pieces.  IDENTICAL algebra to
-  -- `Linear-hCompose.balance` (only `remap`→`remapP`).
+  -- Balance: combining all the pieces.
 
   balance : ∀ v → count v (producedList (hComposeP G K bdy-eq))
                 ≡ count v (consumedList (hComposeP G K bdy-eq))
@@ -498,19 +454,16 @@ module _
       η = count v (map remapP K.dom)
 
   ------------------------------------------------------------------------
-  -- Bound: case-split on `v`.
-  --
-  -- The produced count of `v` decomposes (count-prod) into the G.dom,
-  -- G-eb and (map remapP K-eb) contributions.
+  -- Bound: case-split on `v`.  The produced count decomposes (count-prod)
+  -- into the G.dom, G-eb and (map remapP K-eb) contributions.
   --
   --   * For v = raise j: the G-side terms are 0 and the K-eb term is ≤ 1
-  --     (it equals `count k K-eb` for the unique remapP-preimage k, by
-  --     injectivity of remapP, and `count k K-eb ≤ 1` by K-bound).
-  --   * For v = injL i: the G-side terms sum to `count i (G.dom ++ G-eb)`
-  --     ≤ 1 (G-bound), and the K-eb term is *exactly 0*: any preimage
-  --     `k ∈ K-eb` with `remapP k ≡ injL i` would have `k ∈ K.dom` (only
-  --     K.dom members route to injL slots), giving count ≥ 2 in
-  --     `K.dom ++ K-eb`, contradicting K-bound.
+  --     (it equals `count k K-eb` for the unique remapP-preimage, by
+  --     injectivity, bounded by K-bound).
+  --   * For v = injL i: the G-side terms sum to ≤ 1 (G-bound), and the
+  --     K-eb term is *exactly 0* — any `k ∈ K-eb` with `remapP k ≡ injL i`
+  --     would have `k ∈ K.dom` (only K.dom members route to injL slots),
+  --     giving count ≥ 2 in `K.dom ++ K-eb`, contradicting K-bound.
 
   private
     -- Disjointness of `_↑ˡ cn` and `G.nV ↑ʳ_` ranges.
@@ -533,15 +486,13 @@ module _
         (K-bnd k)
 
     -- count (any v) in (map remapP K-eb) ≤ 1, via injectivity of remapP.
-    -- Search K-eb for a preimage `k` of v.  If found, the v-count equals
-    -- `count k K-eb` (injectivity ⇒ `count-map-fiber`), bounded by K-bound.
-    -- If not, the search hands back a direct proof that the v-count is 0,
-    -- built inductively (no element of the list maps to v).
+    -- Search K-eb for a preimage of v: if found the v-count equals
+    -- `count k K-eb` (bounded by K-bound); else the v-count is 0.
     count-remapP-K-eb-≤1 : ∀ v → count v (map remapP K-eb) Nat.≤ 1
     count-remapP-K-eb-≤1 v with search K-eb
       where
         -- Either some element of `xs` is a preimage of v, or every
-        -- preimage of v has count 0 in `xs` (i.e. doesn't appear).
+        -- preimage of v has count 0 in `xs`.
         search : (xs : List (Fin K.nV))
                → (Σ[ k ∈ Fin K.nV ] remapP k ≡ v)
                ⊎ (∀ x → remapP x ≡ v → count x xs ≡ 0)
@@ -555,7 +506,6 @@ module _
             rec : ∀ y → remapP y ≡ v → count y (x ∷ xs) ≡ 0
             rec y rpy = trans (count-cons-no y x xs y≢x) (none y rpy)
               where
-                -- y ≢ x: else remapP y ≡ remapP x ≡ v contradicts q.
                 y≢x : ¬ (y ≡ x)
                 y≢x y≡x = q (subst (λ z → remapP z ≡ v) y≡x rpy)
     ... | inj₁ (k , rpk) =
@@ -587,8 +537,7 @@ module _
         lookup-count-pos (x ∷ xs) (suc i) {k} eq =
           Nat.<-≤-trans (lookup-count-pos xs i eq) (count-mono-cons k x xs)
 
-    -- Only K.dom members route to `↑ˡ`-slots (injL): if `remapP k ≡ injL i`
-    -- then `count k K.dom > 0`.
+    -- Only K.dom members route to `↑ˡ`-slots (injL).
     remapP-injL→inDom
       : ∀ (k : Fin K.nV) (i : Fin G.nV)
       → remapP k ≡ injL i → 0 Nat.< count k K.dom
@@ -674,7 +623,7 @@ module _
   Linear-hComposeP-internal = balance , bound
 
 --------------------------------------------------------------------------------
--- (#4) public face, in the exact requested form.
+-- (#4) public face.
 
 Linear-hComposeP
   : (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)

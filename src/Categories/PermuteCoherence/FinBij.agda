@@ -71,8 +71,7 @@ _≈-fb_ : FinBij n m → FinBij n m → Set
 ≈-fb-trans : {b b′ b″ : FinBij n m} → b ≈-fb b′ → b′ ≈-fb b″ → b ≈-fb b″
 ≈-fb-trans h₁ h₂ x = trans (h₁ x) (h₂ x)
 
--- Left congruence of composition (the right factor fixed).  Definitional,
--- since `(g ∘-fb f) ⟨$⟩ʳ x = g ⟨$⟩ʳ (f ⟨$⟩ʳ x)`.
+-- Left congruence of composition (right factor fixed), definitional.
 ∘-fb-congˡ : (g : FinBij m k) {f f′ : FinBij n m}
            → f ≈-fb f′ → (g ∘-fb f) ≈-fb (g ∘-fb f′)
 ∘-fb-congˡ g h x = cong (g P.⟨$⟩ʳ_) (h x)

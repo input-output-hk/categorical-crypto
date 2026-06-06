@@ -3,61 +3,46 @@
 --------------------------------------------------------------------------------
 -- Decoder STACK-EQUIVARIANCE.
 --
--- Running the hypergraph decoder's `process-edges` on a *permuted* input
--- stack equals running it on the original stack, sandwiched between an
--- input-permute (precompose) and an output-permute (postcompose).  This is
--- the lemma that lets the per-swap interchange `run-eq` of `SwapStep.agda`
--- (the `RunInterchange` record) be reduced from an arbitrary tail `qs` to
--- the empty-tail two-edge core: equivariance lets you strip a permutation of
--- the running stack and re-attach it as `permute`s on the boundary.
+-- Running the decoder's `process-edges` on a *permuted* input stack equals
+-- running it on the original stack, sandwiched between an input-permute
+-- (precompose) and an output-permute (postcompose).  This lets the per-swap
+-- interchange `run-eq` of `SwapStep.agda` be reduced from an arbitrary tail
+-- to the empty-tail two-edge core: equivariance strips a permutation of the
+-- running stack and re-attaches it as `permute`s on the boundary.
 --
--- It is generator-OPAQUE — it touches no generator box content, no
--- associator chase — only permute/permutation-coherence bookkeeping and
--- firing-stability.  Proven by induction on the edge list, over the
--- `EdgeStepR` relation view (`EdgeStepRelation.agda`) to dodge the
--- green-slime `with`-abstraction wall.
+-- Generator-OPAQUE — only permute/permutation-coherence bookkeeping and
+-- firing-stability, no generator box content.  Proven by induction on the
+-- edge list, over the `EdgeStepR` relation view (`EdgeStepRelation.agda`) to
+-- dodge the green-slime `with`-abstraction wall.
 --
--- ## Precise statement (`process-edges-equivariant`)
+-- ## Statement (`process-edges-equivariant`)
 --
--- For an edge list `qs`, stacks `s s'`, and a permutation `ρ : s' ↭ s`,
--- there is an induced output permutation `ρ_f : pe-stack qs s' ↭ pe-stack
--- qs s` with
+-- For an edge list `qs`, stacks `s s'`, and `ρ : s' ↭ s`, there is an
+-- induced output permutation `ρ_f : pe-stack qs s' ↭ pe-stack qs s` with
 --
 --   pe-term qs s'
 --     ≈Term  permute-via-vlab vlab (↭-sym ρ_f)
---              ∘ pe-term qs s ∘ permute-via-vlab vlab ρ
---
--- ("permute the input into canonical order, run, permute the output back").
+--              ∘ pe-term qs s ∘ permute-via-vlab vlab ρ.
 --
 -- ## Structure
 --
--- The induction, the SKIP and impossible cross-cases, the list-level
--- threading, the inverse/self-loop permute facts (via the Kelly residual
--- `K : FaithfulnessResidual`), the FIRE-box naturality, and the FIRE-permute
--- reconciliation (via K) are POSTULATE-FREE here:
---
 --   * `fire-mid-equivariant` — the per-edge FIRE box is natural in its
---     residual stack under a *permutation* of that residual.  Discharged by
---     the standalone `Sub/FireMidEquivariant.agda`.
+--     residual stack under a permutation of that residual.  Delegated to
+--     `Sub/FireMidEquivariant.agda`.
 --
 --   * `residual-recon` reconciles the `extract-prefix-↭-residual` output
---     (the located perm `proj₁ (proj₂ st)` re-attached to the residual
---     reshuffle on the `rest` block) against the input perm, as a `≅↭`:
---       `trans (located) (++⁺ˡ ks (↭-sym residual-↭)) ≅↭ perm-in`.
---     It DELEGATES to `StackUnique.residual-recon` (= `eval-rigid` on a
---     `Unique` codomain), which needs `Unique (ks ++ rest)`.  At the FIRE/FIRE
---     call site (`locate-coherent`) that codomain `ein e ++ restH` is the
---     `↭`-image of the decoder stack `s'`, so `Unique s' →` (via
---     `Unique-resp-↭`) supplies it.  `Unique s'` is THREADED through
+--     against the input perm, as a `≅↭`.  It delegates to
+--     `StackUnique.residual-recon` (= `eval-rigid` on a `Unique` codomain),
+--     which needs `Unique (ks ++ rest)`.  At the FIRE/FIRE call site that
+--     codomain is the `↭`-image of the decoder stack `s'`, so `Unique s'`
+--     (via `Unique-resp-↭`) supplies it.  `Unique s'` is THREADED through
 --     `process-edges-equivariant` as the `Reservoir≤1`-freshness invariant
---     (advanced one `edge-step` per recursion via
---     `StackUniqueReach.edge-step-Reservoir≤1`); the caller
---     `RunInterchangeTail` sources the GLOBAL reservoir from `Linear H`.
+--     (advanced per recursion via `StackUniqueReach.edge-step-Reservoir≤1`);
+--     the caller `RunInterchangeTail` sources the GLOBAL reservoir from
+--     `Linear H`.
 --
--- The only residual this module's recursion now carries is the
--- `Reservoir≤1`-freshness HYPOTHESIS on `process-edges-equivariant`, which
--- the caller must source (TRUE for the permutation-of-`range` orders the
--- downstream `swap-≈` consumes; see `RunInterchangeTail.dom-reservoir`).
+-- The only HYPOTHESIS the recursion carries is `Reservoir≤1`-freshness on
+-- `process-edges-equivariant`, which the caller must source.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -116,12 +101,9 @@ private
   just≢nothing ()
 
   ----------------------------------------------------------------------
-  -- `eval-map⁺` and its `subst₂`-on-FinBij algebra (copies of the
-  -- `SwapStep.agda` private helpers / `PermuteCoherence.Map` lemmas;
-  -- all J-only, no K).  Used to LIFT a vertex-level `≅↭` (from
-  -- `residual-recon`) through `map⁺ vlab` to the X-level `≅↭` that
-  -- `permute-resp-≅↭` consumes — the `SwapStep.permute-bridge-≅↭`
-  -- pattern, minus the `eval-rigid` step (we already HAVE the ≅↭).
+  -- `eval-map⁺` and its `subst₂`-on-FinBij algebra (J-only, no K).  Used
+  -- to LIFT a vertex-level `≅↭` (from `residual-recon`) through `map⁺ vlab`
+  -- to the X-level `≅↭` that `permute-resp-≅↭` consumes.
   ----------------------------------------------------------------------
 
   subst₂-FinBij-id : ∀ {n m} (e : n ≡ m) → subst₂ FinBij e e id-fb ≡ id-fb
@@ -185,11 +167,9 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
   pe-term qs s = proj₂ (process-edges H qs s)
 
   ----------------------------------------------------------------------
-  -- `permute-via-vlab` algebra (all under K / definitional).
-  --
-  -- `permute-via-vlab vlab p = permute (map⁺ vlab p)` definitionally;
-  -- `permute (trans p q) = permute q ∘ permute p` definitionally; and
-  -- `map⁺ vlab (trans p q) = trans (map⁺ vlab p) (map⁺ vlab q)`.
+  -- `permute-via-vlab` algebra.  `permute-via-vlab vlab p = permute (map⁺
+  -- vlab p)`, `permute (trans p q) = permute q ∘ permute p`, and `map⁺ vlab
+  -- (trans p q) = trans (map⁺ vlab p) (map⁺ vlab q)`, all definitional.
   ----------------------------------------------------------------------
 
   -- `permute-via-vlab` of a `trans` splits as a ∘ (postcompose the first).
@@ -199,8 +179,7 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
       ≈Term permute-via-vlab H.vlab q ∘ permute-via-vlab H.vlab p
   pvv-trans p q = ≈-Term-refl
 
-  -- `map⁺` commutes with `↭-sym` PROPOSITIONALLY (both are structural
-  -- recursions with matching shapes).  Pure induction on ρ; no K.
+  -- `map⁺` commutes with `↭-sym` propositionally.  Induction on ρ; no K.
   map⁺-↭-sym
     : ∀ {A B : Set} (f : A → B) {xs ys : List A} (ρ : xs Perm.↭ ys)
     → PermProp.map⁺ f (Perm.↭-sym ρ) ≡ Perm.↭-sym (PermProp.map⁺ f ρ)
@@ -210,8 +189,7 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
   map⁺-↭-sym f (Perm.trans p q)   =
     cong₂ Perm.trans (map⁺-↭-sym f q) (map⁺-↭-sym f p)
 
-  -- `↭-sym` commutes through `++⁺ˡ` (the fixed prefix is `prep`-built, and
-  -- `↭-sym (prep x p) = prep x (↭-sym p)`).  Induction on `xs`.
+  -- `↭-sym` commutes through `++⁺ˡ`.  Induction on `xs`.
   ++⁺ˡ-↭-sym
     : ∀ {A : Set} (xs : List A) {ys zs : List A} (p : ys Perm.↭ zs)
     → Perm.↭-sym (PermProp.++⁺ˡ xs p) ≡ PermProp.++⁺ˡ xs (Perm.↭-sym p)
@@ -229,7 +207,6 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
                     (PermProp.map⁺ H.vlab (Perm.trans ρ (Perm.↭-sym ρ)))
                     self-loop-id)
     where
-      -- The vertex-level bijection of ρ.
       e : FinBij _ _
       e = eval-↭ (PermProp.map⁺ H.vlab ρ)
 
@@ -239,12 +216,7 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
                        (sym (map⁺-↭-sym H.vlab ρ))
                        (eval-↭-sym (PermProp.map⁺ H.vlab ρ))
 
-      -- `eval (map⁺ vlab (trans ρ (↭-sym ρ))) = eval(map⁺ (↭-sym ρ)) ∘-fb e`
-      -- (definitional), and `inv-fb e ∘-fb e ≈-fb id-fb` by `P.inverseˡ`.
-      -- `eval (map⁺ vlab (trans ρ (↭-sym ρ))) ⟨$⟩ʳ i`
-      --   = eval(map⁺ (↭-sym ρ)) ⟨$⟩ʳ (e ⟨$⟩ʳ i)   (def: eval-trans + map⁺-trans)
-      --   = inv-fb e ⟨$⟩ʳ (e ⟨$⟩ʳ i)                (sym-eval, pointwise at e⟨$⟩ʳi)
-      --   = e ⟨$⟩ˡ (e ⟨$⟩ʳ i) = i                   (P.inverseˡ).
+      -- `inv-fb e ⟨$⟩ʳ (e ⟨$⟩ʳ i) = i` by `P.inverseˡ`.
       self-loop-id
         : eval-↭ (PermProp.map⁺ H.vlab (Perm.trans ρ (Perm.↭-sym ρ))) ≈-fb id-fb
       self-loop-id i =
@@ -268,19 +240,16 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
                        (sym (map⁺-↭-sym H.vlab ρ))
                        (eval-↭-sym (PermProp.map⁺ H.vlab ρ))
 
-      -- `eval (map⁺ (trans (↭-sym ρ) ρ)) ⟨$⟩ʳ i = e ⟨$⟩ʳ (eval(map⁺(↭-sym ρ)) ⟨$⟩ʳ i)`
-      --   = e ⟨$⟩ʳ (inv-fb e ⟨$⟩ʳ i) = e ⟨$⟩ʳ (e ⟨$⟩ˡ i) = i  (P.inverseʳ).
+      -- `e ⟨$⟩ʳ (inv-fb e ⟨$⟩ʳ i) = i` by `P.inverseʳ`.
       self-loop-id
         : eval-↭ (PermProp.map⁺ H.vlab (Perm.trans (Perm.↭-sym ρ) ρ)) ≈-fb id-fb
       self-loop-id i =
         trans (cong (e P.⟨$⟩ʳ_) (sym-eval i)) (P.inverseʳ e)
 
   ----------------------------------------------------------------------
-  -- FIRING STABILITY under a stack permutation.
-  --
-  -- Given `ρ : s' ↭ s`, an edge fires on `s` iff it fires on `s'`, and
-  -- the residual permutes.  Both directions are imported from
-  -- `DecodeProperties` (`extract-prefix-↭-residual` / `-↭-nothing`).
+  -- FIRING STABILITY under a stack permutation.  Given `ρ : s' ↭ s`, an
+  -- edge fires on `s` iff it fires on `s'`, and the residual permutes.
+  -- Both directions from `DecodeProperties`.
   ----------------------------------------------------------------------
 
   -- If `e` fires on `s` with residual `restH`, it fires on `s'` with a
@@ -312,24 +281,14 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
   --
   -- The FIRE "box" `fire-mid e rest` is `(Agen-edge e ⊗ id_rest)` framed
   -- by `unflatten-++-≅` coercions.  It depends on `rest` ONLY through the
-  -- `id`-on-`rest` block, so permuting the residual commutes with the box:
+  -- `id`-on-`rest` block, so permuting the residual slides through the box:
   --
   --   fire-mid e restH'
   --     ≈Term  permute-via-vlab vlab (++⁺ˡ (eout e) μ)
   --              ∘ fire-mid e restH
   --              ∘ permute-via-vlab vlab (++⁺ˡ (ein e) (↭-sym μ))
   --
-  -- for `μ : restH ↭ restH'`  (the input permute maps `ein e ++ restH'`
-  -- back to `ein e ++ restH`, the output permute maps `eout e ++ restH`
-  -- forward to `eout e ++ restH'`).  TRUE by the interchange law on
-  -- `(Agen-edge e) ⊗ (permute μ)` (the box is identity on the `id`-block,
-  -- so a permute of that block slides through), but the boundary
-  -- `subst₂`/`unflatten-++-≅` bookkeeping makes the constructive chase
-  -- long; isolated here as the box-naturality half.  No firing data,
-  -- no `cod`.
-  -- Discharged by the standalone `Sub/FireMidEquivariant.agda`
-  -- (box-naturality via `permute-++⁺ˡ-slide` + `⊗-∘-dist` + the K self-loop
-  -- inverse).
+  -- for `μ : restH ↭ restH'`.  Delegated to `Sub/FireMidEquivariant.agda`.
   fire-mid-equivariant
       : ∀ (e : Fin H.nE) {restH restH' : List (Fin H.nV)}
           (μ : restH Perm.↭ restH')
@@ -342,44 +301,23 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
   ----------------------------------------------------------------------
   -- RESIDUAL 2 — FIRE locating-permute coherence (CANONICAL residual).
   --
-  -- The two locating permutations (the one `extract-prefix` finds on `s'`
-  -- pushed through the box-residual permute, vs. the one found on `s`
-  -- precomposed with ρ) realise the SAME multiset prefix CANONICALLY, so
-  -- they coincide as vertex `↭`-derivations up to `≅↭`.
+  -- The two locating permutations realise the SAME multiset prefix
+  -- CANONICALLY, so they coincide as vertex `↭`-derivations up to `≅↭`.
   --
-  -- The previous `fire-locate-coherent` postulate was FALSE as stated: it
-  -- took FOUR UNCONSTRAINED permutations and asserted two separately-built
-  -- bijections coincide (a free `μ = swap` on a repeated-vertex residual
-  -- `[v,v]` is a machine-checked counterexample).  It is REPLACED by this
-  -- TRUE, CANONICAL form: `residual-recon` reconciles the SINGLE
-  -- `extract-prefix-↭-residual` output (which is exactly what
-  -- `edge-step-graph` returns at the call site) against the input perm.
-  --
-  -- For `st = extract-prefix-↭-residual ks xs rest perm-in`, with
-  -- `proj₁ (proj₂ st) : xs ↭ ks ++ rest'` the located perm and
-  -- `proj₂ (proj₂ (proj₂ st)) : rest ↭ rest'` the residual reshuffle,
-  -- re-attaching the residual reshuffle on the `rest` block recovers the
-  -- input perm:
+  -- CAVEAT: the unconstrained four-permutation form is FALSE (a free
+  -- `μ = swap` on a repeated-vertex residual `[v,v]` is a machine-checked
+  -- counterexample).  Hence the CANONICAL form below: `residual-recon`
+  -- reconciles the SINGLE `extract-prefix-↭-residual` output (exactly what
+  -- `edge-step-graph` returns at the call site) against the input perm,
+  -- re-attaching the residual reshuffle on the `rest` block:
   --
   --   trans (located) (++⁺ˡ ks (↭-sym residual-↭))  ≅↭  perm-in
   --
-  -- The unconditional form is provable only in the empty-prefix base case
-  -- (`extract-prefix [] xs ≡ just (xs , refl)` makes `located = refl` and
-  -- `residual-↭ = ↭-sym perm-in`, so the LHS is `trans refl (↭-sym (↭-sym
-  -- perm-in)) ≅↭ perm-in` by `↭-sym-involutive` + eval); the cons case
-  -- reduces to `drop-∷` eval-faithfulness, hence the `Unique` hypothesis.
-  --
-  -- soundness: `StackUnique.residual-recon` proves the EXACT conclusion
-  -- below, modulo a `Unique (ks ++ rest)` hypothesis on the codomain (closed
-  -- by `eval-rigid`).  This module THREADS a running-stack uniqueness
-  -- witness `Unique s'` down to the FIRE/FIRE call site (via the
-  -- `Reservoir≤1` freshness invariant carried through
-  -- `process-edges-equivariant`, advanced by
-  -- `StackUniqueReach.edge-step-Reservoir≤1`); the `Linear H`-sourced
-  -- GLOBAL reservoir is supplied by the caller (`RunInterchangeTail`).
-  -- `residual-recon` delegates to `StackUnique.residual-recon`, with the
-  -- codomain `Unique (ks ++ rest)` supplied at the call site as
-  -- `Unique-resp-↭ perm-in (Unique s')`.
+  -- Provable unconditionally only in the empty-prefix base case; the cons
+  -- case reduces to `drop-∷` eval-faithfulness, hence the `Unique`
+  -- hypothesis (closed by `eval-rigid`).  Delegates to
+  -- `StackUnique.residual-recon`; the codomain `Unique (ks ++ rest)` is
+  -- supplied at the call site as `Unique-resp-↭ perm-in (Unique s')`.
   residual-recon
     : ∀ {n} (ks xs rest : List (Fin n)) (perm-in : xs Perm.↭ ks ++ rest)
     → Unique (ks ++ rest)
@@ -390,12 +328,8 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
   residual-recon = SU.residual-recon
 
   ----------------------------------------------------------------------
-  -- map⁺ LIFT — vertex-level `≅↭` → X-level `≅↭` through `map⁺ vlab`.
-  --
-  -- This is the `SwapStep.permute-bridge-≅↭` map-lift pattern, MINUS the
-  -- `eval-rigid` step: we already HAVE the vertex-level `≅↭` (from
-  -- `residual-recon`), so we only transport it through `map⁺ vlab` via
-  -- `eval-map⁺` + `subst₂-FinBij-≈` (J-only, `--without-K`-clean).
+  -- map⁺ LIFT — vertex-level `≅↭` → X-level `≅↭` through `map⁺ vlab`, via
+  -- `eval-map⁺` + `subst₂-FinBij-≈` (J-only).
   ----------------------------------------------------------------------
   map⁺-lift-≅↭
     : ∀ {xs ys : List (Fin H.nV)} (p q : xs Perm.↭ ys)
@@ -414,11 +348,11 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
   ----------------------------------------------------------------------
   -- CANONICAL residual reshuffle `fire-μ` — the SINGLE source of the
   -- FIRE residual permutation, shared by `edge-step-fire-equivariant`
-  -- and `edge-step-equivariant`'s output witness.  It uses the RAW
+  -- and `edge-step-equivariant`'s output witness.  Uses the RAW
   -- `Perm.trans ρ permH` as the input perm so the `residual-recon`
-  -- reconciliation lands exactly on the `Perm.trans ρ permH` the goal's
-  -- right-hand factor needs.  The residual list it locates is `restH'`
-  -- by `extract-prefix` determinism (`eqH'`).
+  -- reconciliation lands exactly where the goal's right-hand factor needs.
+  -- The residual list it locates is `restH'` by `extract-prefix`
+  -- determinism (`eqH'`).
   ----------------------------------------------------------------------
   module _ (e : Fin H.nE) {s s' : List (Fin H.nV)} (ρ : s' Perm.↭ s)
            {restH restH' : List (Fin H.nV)}
@@ -436,7 +370,7 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
       eqHc    = proj₁ (proj₂ (proj₂ st))   -- extract-prefix … ≡ just (restHc , permHc)
       rpc     = proj₂ (proj₂ (proj₂ st))   -- restH ↭ restHc
 
-      -- determinism: the canonical Σ-pair IS the call-site one.
+      -- The canonical Σ-pair IS the call-site one (determinism).
       pair-eq : (restHc , permHc) ≡ (restH' , permH')
       pair-eq = just-injective (trans (sym eqHc) eqH')
 
@@ -450,19 +384,14 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
     ------------------------------------------------------------------
     -- LOCATING-PERMUTE COHERENCE — the X-level `≅↭` that
     -- `permute-resp-≅↭` consumes, derived from `residual-recon`.
-    --
-    --   map⁺ vlab (trans permH' (++⁺ˡ (ein e) (↭-sym fire-μ)))
-    --     ≅↭ map⁺ vlab (Perm.trans ρ permH)
-    --
-    -- `residual-recon` gives the VERTEX-level `≅↭`
-    --   trans permHc (++⁺ˡ (ein e) (↭-sym rpc)) ≅↭ Perm.trans ρ permH;
-    -- the determinism transport `restHc≡` identifies `(restHc, permHc, rpc)`
-    -- with `(restH', permH', fire-μ)` (matched at `refl`), and `map⁺-lift-≅↭`
-    -- lifts the result through `map⁺ vlab`.
+    -- `residual-recon` gives the vertex-level `≅↭`; the determinism
+    -- transport `restHc≡` identifies `(restHc, permHc, rpc)` with
+    -- `(restH', permH', fire-μ)`, and `map⁺-lift-≅↭` lifts it through
+    -- `map⁺ vlab`.
     ------------------------------------------------------------------
     private
-      -- The `restHc≡`-`refl`-matching collapse: the call-site
-      -- `permH'`/`fire-μ` ARE the canonical `permHc`/`rpc` after transport.
+      -- The call-site `permH'`/`fire-μ` ARE the canonical `permHc`/`rpc`
+      -- after the `restHc≡` transport (matched at `refl`).
       recon-collapse
         : ∀ {rc} (pc : s' Perm.↭ H.ein e ++ rc) (rp : restH Perm.↭ rc)
             (req : rc ≡ restH')
@@ -512,11 +441,9 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
 
   ----------------------------------------------------------------------
   -- FIRE/FIRE term equivariance — assembled from Residuals 1 & 2 + K.
-  -- The output factor is `permute (++⁺ˡ (eout e) μ)`, i.e. the forward
-  -- output permutation `eout e ++ restH ↭ eout e ++ restH'`.  The residual
-  -- `μ = fire-μ …` is the CANONICAL residual reshuffle, and the locating
-  -- coherence is `locate-coherent` (from the TRUE `residual-recon`), NOT
-  -- the old FALSE free-μ `fire-locate-coherent`.
+  -- The output factor is `permute (++⁺ˡ (eout e) μ)`, the forward output
+  -- permutation `eout e ++ restH ↭ eout e ++ restH'`, with `μ = fire-μ …`
+  -- the canonical residual reshuffle and `locate-coherent` the coherence.
   ----------------------------------------------------------------------
 
   edge-step-fire-equivariant
@@ -600,15 +527,11 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
       (let st = fire-stable-just e ρ permH eqH
        in trans (sym (proj₁ (proj₂ (proj₂ st)))) eqH'-as))
     where
-      -- `fire-stable-just` says `e` fires on `s'`, contradicting `eqH'`.
-      -- Re-expose `eqH'` after noting the residual that fires.
       eqH'-as : extract-prefix (H.ein e) s' ≡ nothing
       eqH'-as = eqH'
   -- FIRE/FIRE: the substantive case.  The residual from `s` permutes onto
-  -- the residual from `s'` (`fire-μ`, the canonical residual reshuffle);
-  -- the located `(restH'`,`permH')` agree with the canonical ones by
-  -- `extract-prefix` determinism, threaded inside `fire-μ`/`locate-coherent`
-  -- via `eqH'`.
+  -- the residual from `s'` (`fire-μ`, the canonical reshuffle); the located
+  -- pair agrees with the canonical one by `extract-prefix` determinism.
   edge-step-equivariant e {s} {s'} ρ
       (fireR restH permH eqH) (fireR restH' permH' eqH') us' =
         PermProp.++⁺ˡ (H.eout e) (Perm.↭-sym μ)
@@ -622,34 +545,22 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
                                 (PermProp.↭-sym-involutive μ))))
               (edge-step-fire-equivariant e ρ permH permH' eqH' us')
     where
-      -- `μ : restH ↭ restH'` is the CANONICAL residual reshuffle `fire-μ`,
-      -- the SAME one `edge-step-fire-equivariant` uses internally.
       μ : restH Perm.↭ restH'
       μ = fire-μ e ρ permH permH' eqH' us'
 
   ----------------------------------------------------------------------
   -- MAIN THEOREM — `process-edges-equivariant`.
   --
-  -- For an edge list `qs`, stacks `s s'`, and `ρ : s' ↭ s`, there is an
-  -- induced output permutation `ρf : pe-stack qs s' ↭ pe-stack qs s` with
-  --
-  --   pe-term qs s'
-  --     ≈Term permute-via-vlab vlab (↭-sym ρf)
-  --             ∘ ( pe-term qs s ∘ permute-via-vlab vlab ρ ).
-  --
   -- Induction on `qs`.  Empty: ρf = ρ, terms are id, inverse-left closes.
-  -- Cons: one `edge-step-equivariant` (over the `EdgeStepR` graph view) on
-  -- the head edge gives the per-step ρ1 + term relation; recurse on the
-  -- tail with ρ1; compose the two sandwiches (the middle permutes telescope
-  -- through `pvv-trans`-style ∘-reassociation, leaving the outer input
-  -- permute `ρ` and output permute `↭-sym ρf` intact).
+  -- Cons: one `edge-step-equivariant` on the head edge gives the per-step
+  -- ρ1 + term relation; recurse on the tail with ρ1; compose the two
+  -- sandwiches (the middle permutes telescope through ∘-reassociation,
+  -- leaving the outer `ρ` / `↭-sym ρf` intact).
+  --
+  -- The `Reservoir≤1` freshness invariant on the PERMUTED stack `s'` is
+  -- advanced one `edge-step` per recursion (so each `s'` is `Unique`); the
+  -- `Linear H`-sourced GLOBAL reservoir is supplied by the caller.
   ----------------------------------------------------------------------
-
-  -- The freshness invariant on the PERMUTED stack `s'`, advanced one
-  -- `edge-step` per recursion via `SUR.edge-step-Reservoir≤1` (so each
-  -- running stack `s'` is `Unique` via `SUR.Reservoir≤1⇒Unique`).  The
-  -- `Linear H`-sourced GLOBAL reservoir is supplied by the caller
-  -- (`RunInterchangeTail`, via the reservoir-split lemma).
   process-edges-equivariant
     : ∀ (qs : List (Fin H.nE)) {s s' : List (Fin H.nV)} (ρ : s' Perm.↭ s)
     → SUR.Reservoir≤1 H qs s'

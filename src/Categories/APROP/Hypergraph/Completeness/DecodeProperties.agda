@@ -1,33 +1,11 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Phase 3.5f Step 3.5f-A — Foundation lemmas for `extract-elem`,
--- `extract-prefix`, and `extract-exact` (defined in `Decode.agda`).
---
--- These reduce the per-case `decode-attempt-h*` postulates to
--- statements about disjoint Fin injections and `Unique` lists, which
--- are already proved on the soundness side (`Invariant.agda`,
--- `Linearity.agda`).
---
--- Provided here:
---
---   Single-list lemmas:
---     * `extract-elem-self`             — head match returns just _.
---     * `extract-elem-skip-{nothing,just}` — head ≢ k skipping.
---     * `extract-elem-↑ˡ-on-↑ʳ-list` — disjoint injection no-match.
---     * `extract-elem-{↑ˡ-on-↑ˡ,↑ʳ-on-↑ʳ}-list-nothing` — same-injection no-match.
---     * `extract-prefix-self`           — searching `xs` in `xs` succeeds.
---     * `extract-exact-self`            — exact-match search of `xs` in `xs`.
---
---   Membership / permutation lemmas:
---     * `extract-elem-found`            — `y ∈ xs` ⇒ search succeeds.
---     * `extract-prefix-from-↭`         — `xs ↭ ys` ⇒ exact-prefix search.
---
---   Mixed-injection lifting (for `decode-attempt-hTensor`):
---     * `extract-elem-↑ˡ-on-mixed-{nothing,just}`
---     * `extract-elem-↑ʳ-on-mixed-{nothing,just}`
---     * `extract-prefix-↑ˡ-on-mixed-just`
---     * `extract-prefix-↑ʳ-on-mixed-just`
+-- Foundation lemmas for `extract-elem`, `extract-prefix`, and
+-- `extract-exact` (defined in `Decode.agda`).  These reduce the per-case
+-- `decode-attempt-h*` obligations to facts about disjoint Fin injections
+-- and `Unique` lists.  Three families: single-list searches, membership /
+-- permutation lemmas, and mixed-injection liftings (for hTensor/hCompose).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -56,10 +34,9 @@ open import Relation.Nullary using (yes; no)
 open import Relation.Nullary.Negation using (¬_)
 
 --------------------------------------------------------------------------------
--- (1) `extract-elem` on a head match returns `just (xs , p)` for some
--- permutation `p`.  We don't pin `p` down to `Perm.refl` because
--- `extract-elem`'s body uses `subst (… ≡ …) p Perm.refl`, and `subst`
--- with a reflexive equation doesn't simplify under `--without-K`.
+-- `extract-elem` on a head match returns `just (xs , p)` for SOME `p`.
+-- `p` is not pinned to `Perm.refl`: `extract-elem`'s body uses
+-- `subst (… ≡ …) p Perm.refl`, which doesn't simplify under `--without-K`.
 
 extract-elem-self
   : ∀ {n} (k : Fin n) (xs : List (Fin n))
@@ -70,13 +47,8 @@ extract-elem-self k xs with k ≟ k
 ... | no  q = ⊥-elim (q refl)
 
 --------------------------------------------------------------------------------
--- (2) `extract-elem` skips a non-matching head.  Phrased as: when
--- `x ≢ k`, the result is whatever `extract-elem k xs` returns, with
--- the head prepended onto the residual (and the permutation extended
--- with a `prep + swap` step).
---
--- Stated in two halves to match the `Maybe` shape of `extract-elem`'s
--- output: a "nothing-stays-nothing" half and a "just-pre-pends" half.
+-- `extract-elem` skips a non-matching head `x ≢ k`, prepending `x` onto
+-- the residual.  Two halves matching the `Maybe` output shape.
 
 extract-elem-skip-nothing
   : ∀ {n} (k x : Fin n) (xs : List (Fin n))
@@ -100,10 +72,8 @@ extract-elem-skip-just k x xs rest p x≢k eq with x ≟ k
 ... | no  _ rewrite eq = refl
 
 --------------------------------------------------------------------------------
--- (3-3'): `extract-elem` on a disjoint-injection mismatch returns
--- `nothing` for any list whose elements are all on the wrong side.
--- Specialised to single-element heads first (the building block);
--- list-level lemmas come below.
+-- `extract-elem` on a disjoint-injection mismatch returns `nothing` for
+-- any list whose elements are all on the wrong side.
 
 private
   ↑ˡ≢↑ʳ : ∀ {nA nB} (i : Fin nA) (j : Fin nB) → ¬ (i ↑ˡ nB ≡ nA ↑ʳ j)
@@ -125,11 +95,9 @@ extract-elem-↑ˡ-on-↑ʳ-list {nA} {nB} i (x ∷ xs) =
     (extract-elem-↑ˡ-on-↑ʳ-list i xs)
 
 --------------------------------------------------------------------------------
--- (5) `extract-prefix-self`: searching for `xs` in `xs` itself
--- always succeeds with empty residual.  Independent of any
--- uniqueness hypothesis — even on lists with duplicates, the
--- algorithm peels off heads one at a time and `extract-elem k (k ∷ ks)`
--- always matches at the head.
+-- `extract-prefix-self`: searching for `xs` in `xs` always succeeds with
+-- empty residual.  No uniqueness needed — even with duplicates, each head
+-- `extract-elem k (k ∷ ks)` matches.
 
 extract-prefix-self
   : ∀ {n} (xs : List (Fin n))
@@ -141,8 +109,7 @@ extract-prefix-self (x ∷ xs) with extract-elem-self x xs
                   rewrite eq1 | eq2 = _ , refl
 
 --------------------------------------------------------------------------------
--- (8) `extract-exact-self`: searching for `xs` exactly in `xs`
--- succeeds.  Follows from (5) by composition.
+-- `extract-exact-self`: exact search of `xs` in `xs` succeeds.
 
 extract-exact-self
   : ∀ {n} (xs : List (Fin n))
@@ -151,17 +118,13 @@ extract-exact-self xs with extract-prefix-self xs
 ... | p , eq rewrite eq = _ , refl
 
 --------------------------------------------------------------------------------
--- Lifting `extract-elem` / `extract-prefix` through disjoint
--- injections (for `decode-attempt-hTensor`).
---
--- These lemmas relate searches on a "pure side" list (e.g. `xs`)
--- to searches on a "mixed" list (`map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys`)
--- when the key lives entirely on one side.
+-- Lifting `extract-elem` / `extract-prefix` through disjoint injections
+-- (for `decode-attempt-hTensor`).  These relate a search on a pure-side
+-- list to one on a "mixed" list `map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys` when
+-- the key lives entirely on one side.
 
---------------------------------------------------------------------------------
--- `nothing` direction.  If the underlying search returns `nothing`,
--- the lifted search on the mixed list also returns `nothing` (the L
--- side has no match, the R side mismatches by disjointness).
+-- `nothing` direction: the L side has no match, the R side mismatches by
+-- disjointness.
 
 extract-elem-↑ˡ-on-mixed-nothing
   : ∀ {nA} nB (k : Fin nA) (xs : List (Fin nA)) (ys : List (Fin nB))
@@ -183,7 +146,7 @@ extract-elem-↑ˡ-on-mixed-nothing {nA} nB k (x ∷ xs) ys eq | no  q
 ... | ()
 
 --------------------------------------------------------------------------------
--- Helper: pure-injection-mapped list, lookup on the same (R) side.
+-- Pure R-side injection-mapped list, lookup on the same side.
 
 extract-elem-↑ʳ-on-↑ʳ-list-nothing
   : ∀ nA {nB} (j : Fin nB) (ys : List (Fin nB))
@@ -219,10 +182,8 @@ extract-elem-↑ʳ-on-mixed-nothing nA j (x ∷ xs) ys eq =
     (extract-elem-↑ʳ-on-mixed-nothing nA j xs ys eq)
 
 --------------------------------------------------------------------------------
--- `just` direction (L-side).  If extract-elem k xs succeeds, the
--- lifted version on (mapL xs ++ mapR ys) also succeeds, with the
--- residual being the lifted underlying residual + the preserved R
--- side.
+-- `just` direction (L-side): the lifted residual is the lifted underlying
+-- residual + the preserved R side.
 
 extract-elem-↑ˡ-on-mixed-just
   : ∀ {nA} nB (k : Fin nA) (xs : List (Fin nA)) (ys : List (Fin nB))
@@ -253,7 +214,7 @@ extract-elem-↑ˡ-on-mixed-just {nA} nB k (x ∷ xs) ys rest p eq | no q₁ | j
                   rewrite eq-↑ˡ = _ , refl
 
 --------------------------------------------------------------------------------
--- `just` direction (R-side, symmetric).
+-- `just` direction (R-side).
 
 extract-elem-↑ʳ-on-mixed-just
   : ∀ nA {nB} (j : Fin nB) (xs : List (Fin nA)) (ys : List (Fin nB))
@@ -347,10 +308,8 @@ extract-prefix-↑ʳ-on-mixed-just nA (k ∷ ks) xs ys rest p eq
     rewrite eq-elem-↑ʳ | eq-prefix-↑ʳ = _ , refl
 
 --------------------------------------------------------------------------------
--- `extract-prefix` lifting: failure direction.  If the underlying
--- search returns `nothing`, the lifted search on the mixed list also
--- returns `nothing`.  Used by the per-edge lifting in `DecodeAttempt`
--- to handle the case where an edge cannot fire.
+-- `extract-prefix` lifting: failure direction (per-edge "edge cannot
+-- fire" case in `DecodeAttempt`).
 
 extract-prefix-↑ˡ-on-mixed-nothing
   : ∀ {nA} nB (ks xs : List (Fin nA)) (ys : List (Fin nB))
@@ -405,12 +364,8 @@ extract-prefix-↑ʳ-on-mixed-nothing nA (k ∷ ks) xs ys eq
 ... | ()
 
 --------------------------------------------------------------------------------
--- (9) `extract-elem-found`: a membership witness `y ∈ xs` constructively
--- produces a successful `extract-elem y xs ≡ just (rest, p)`.
---
--- Pattern-match the membership; in the `there mem'` case, recurse on
--- `xs` and lift via `extract-elem-skip-just` (the latter does its own
--- `with x ≟ y`, so we keep the outer signature clean).
+-- `extract-elem-found`: `y ∈ xs` constructively produces a successful
+-- `extract-elem y xs ≡ just (rest, p)`.
 
 extract-elem-found
   : ∀ {n} (y : Fin n) (xs : List (Fin n))
@@ -425,14 +380,9 @@ extract-elem-found y (x ∷ xs) (there mem) with x ≟ y
 ...              | _ , _ , eq rewrite eq = _ , _ , refl
 
 --------------------------------------------------------------------------------
--- (10) `extract-prefix-from-↭`: a permutation `xs ↭ ys` constructively
--- produces a successful `extract-prefix ys xs ≡ just ([], p)`.
---
--- This is THE key lemma for `decode-attempt-hSwap`: combined with
--- stdlib's `Perm.++-comm`, it discharges `extract-exact (R ++ L) (L ++ R)`.
--- Strategy: induct on `ys`, extracting the head element via `∈-resp-↭`
--- and `extract-elem-found`, then cancel via `drop-∷` for the recursive
--- call.
+-- `extract-prefix-from-↭`: `xs ↭ ys` ⇒ `extract-prefix ys xs ≡ just ([], p)`.
+-- THE key lemma for `decode-attempt-hSwap` (with `Perm.++-comm` it
+-- discharges `extract-exact (R ++ L) (L ++ R)`).
 
 extract-prefix-from-↭
   : ∀ {n} (xs ys : List (Fin n))
@@ -450,15 +400,9 @@ extract-prefix-from-↭ xs (y ∷ ys') p
     rewrite eq-extract | eq-prefix = _ , refl
 
 --------------------------------------------------------------------------------
--- (11) `extract-prefix-↭-residual`: the partial form of
--- `extract-prefix-from-↭`.  When `xs` permutes to `ks ++ rest`,
--- `extract-prefix ks xs` succeeds with a residual `rest'` that
--- permutes to `rest`.
---
--- Same proof shape as `extract-prefix-from-↭`: `extract-elem-found`
--- on the head, recurse via `drop-∷`.  Diverges only at the empty
--- prefix base case where `extract-prefix [] xs ≡ just (xs , refl)`
--- and we extract `rest ↭ xs` from the input perm.
+-- `extract-prefix-↭-residual`: partial form of `extract-prefix-from-↭`.
+-- When `xs ↭ ks ++ rest`, `extract-prefix ks xs` succeeds with a residual
+-- `rest'` permuting to `rest`.
 
 extract-prefix-↭-residual
   : ∀ {n} (ks xs rest : List (Fin n))
@@ -477,14 +421,9 @@ extract-prefix-↭-residual (k ∷ ks) xs rest perm-in
     rewrite eq-extract | eq-prefix = rest' , _ , refl , rest-perm
 
 --------------------------------------------------------------------------------
--- (12) `extract-prefix-↭-nothing`: the contrapositive direction.
--- If `extract-prefix ks xs ≡ nothing` and `xs ↭ xs'`, then
--- `extract-prefix ks xs' ≡ nothing`.  Used to lift the K-edge "edge
--- doesn't fire" case to permutation-equivalent stacks.
---
--- Proof by contradiction: if `extract-prefix ks xs' ≡ just (rest', _)`
--- then `xs' ↭ ks ++ rest'`, so `xs ↭ ks ++ rest'`, so by (11)
--- `extract-prefix ks xs` succeeds — contradicting the `nothing` input.
+-- `extract-prefix-↭-nothing`: contrapositive of the residual lemma.
+-- `extract-prefix ks xs ≡ nothing` and `xs ↭ xs'` ⇒ `extract-prefix ks
+-- xs' ≡ nothing`.  Lifts the "edge doesn't fire" case to ↭-stacks.
 
 extract-prefix-↭-nothing
   : ∀ {n} (ks xs xs' : List (Fin n))
@@ -502,16 +441,10 @@ extract-prefix-↭-nothing ks xs xs' xs↭xs' eq
 ... | ()
 
 --------------------------------------------------------------------------------
--- (13) `extract-elem`/`extract-prefix` lifting through an injective
--- function `f : Fin n → Fin m`.  The L-side `_↑ˡ_` and R-side `_↑ʳ_`
--- liftings (sections 7-8) are special cases; the K-side `remap` of
--- `hCompose` is another (provided remap is injective, which holds
--- when both `Linear G` and `Linear K` are assumed).
---
--- Only the `nothing` direction at the prefix level is needed by
--- `decode-attempt-hCompose` (the `just` direction goes through
--- `extract-prefix-↭-residual` instead).  The `extract-elem` half
--- needs both directions for the prefix `nothing` proof.
+-- `extract-elem`/`extract-prefix` lifting through an injective
+-- `f : Fin n → Fin m`.  The disjoint-injection liftings above are special
+-- cases; the K-side `remap` of `hCompose` is another (injective when both
+-- G and K are `Linear`).
 
 extract-elem-via-injective-nothing
   : ∀ {n m} (f : Fin n → Fin m)

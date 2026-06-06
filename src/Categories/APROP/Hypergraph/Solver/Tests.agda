@@ -2,26 +2,16 @@
 
 --------------------------------------------------------------------------------
 -- Smoke tests for `findIso`, threaded through `completeness-full-wired`.
--- The completeness theorem is FULLY AXIOM-FREE (its Kelly residual is the
--- proven `FaithfulnessInductive.faithfulness`), so the tests below are closed
--- `--safe` theorems requiring no assumption.
---
--- Each test is of the form
+-- Each test has the form
 --
 --   test : f ≈Term g
 --   test = completeness-full-wired (from-just (findIso ⟪ f ⟫ ⟪ g ⟫))
 --
--- which compels `findIso` to actually reduce to `just _` at type-check
--- time and routes the resulting hypergraph iso through the standalone
--- `DecodeRelRespIsoWired` chain to a syntactic `≈Term` equation.
---
--- `⟪_⟫` is imported from `Translation` (the *pruned* translation).
--- Under pruning, `⟪ id ∘ Agen f ⟫` and `⟪ Agen f ⟫` have matching
--- vertex counts, so `findIso` succeeds on all equation-shaped
--- `_≈Term_` constructors below.
---
--- This module is `--safe --with-K` and postulate-free; the whole wired
--- coherence chain it imports is also `--safe` and postulate-free.
+-- which compels `findIso` to reduce to `just _` at type-check time and
+-- routes the resulting hypergraph iso through `DecodeRelRespIsoWired` to a
+-- syntactic `≈Term` equation.  `⟪_⟫` is the *pruned* translation, under
+-- which the equation-shaped sides have matching vertex counts so `findIso`
+-- succeeds.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Solver.Tests where
@@ -53,9 +43,9 @@ private
   a₂ = Var (suc (suc zero))
 
 --------------------------------------------------------------------------------
--- Generator data type. Three constructors at distinct (dom, cod) — Agda
--- index unification rules out the cross cases automatically, so
--- `_≟-MyMor_` only needs to handle the diagonal.
+-- Generator data type.  Three constructors at distinct (dom, cod), so index
+-- unification rules out the cross cases and `_≟-MyMor_` need only handle the
+-- diagonal.
 
 data MyMor : ObjTerm → ObjTerm → Set where
   f : MyMor a₀ a₁
@@ -89,9 +79,7 @@ open import Categories.APROP.Hypergraph.Solver.FindIso mySigDec using (findIso)
 open APROP mySig
 
 --------------------------------------------------------------------------------
--- The completeness theorem `completeness-full-wired` is FULLY AXIOM-FREE (its
--- Kelly residual is the proven `FaithfulnessInductive.faithfulness`), so the
--- tests below are closed `--safe` theorems — no assumption, no trust module.
+-- The completeness theorem (axiom-free), giving closed `--safe` test theorems.
 
 open import Categories.APROP.Hypergraph.CompletenessFullWired mySigDec
   using (completeness-full-wired)

@@ -1,15 +1,7 @@
--- Postulate-FREE, `--safe`, and FULLY AXIOM-FREE: the Kelly residual
--- `K-faithfulness` is the PROVEN value `FaithfulnessInductive.faithfulness`
--- (the constructive symmetric-monoidal coherence theorem), not an assumption.
---
--- This connects the order-theory wiring (`IsoInvarianceWiring`) to the
--- ACTUAL completeness lemma `decode-rel-resp-iso`, consuming the real
--- PRUNED iso `⟪f⟫ ≅ᴴ ⟪g⟫` NATIVELY.  The previous version needed a
--- false bridge `iso-T⇒F : ⟪f⟫ ≅ᴴ ⟪g⟫ → ⟪f⟫F ≅ᴴ ⟪g⟫F` because the
--- decoder ran on the unpruned `⟪f⟫F`.  That is now GONE: we decode the
--- PRUNED graph via `decode-attempt-LinearP` (totality on `Translation.⟪_⟫`,
--- proven postulate-free in `DecodeAttemptLinearP`), so the wiring is
--- instantiated at `⟪f⟫` and the hypothesis applies directly.
+-- Connects the order-theory wiring (`IsoInvarianceWiring`) to the
+-- completeness lemma `decode-rel-resp-iso`, consuming the pruned iso
+-- `⟪f⟫ ≅ᴴ ⟪g⟫` natively (the decoder runs on the pruned graph via
+-- `decode-attempt-LinearP`):
 --
 --   iso : ⟪f⟫ ≅ᴴ ⟪g⟫
 --     ─(Lemma A)→ connectivity ─→ order-invariance
@@ -17,19 +9,10 @@
 --     ─(boundary bridge)→ decodeP iso-invariance
 --     ─(F-agreement)→ decode-rel iso-invariance
 --
--- `decodeP` is the genuine pruned decoder (uses `decode-attempt-LinearP`).
---
--- The CONCRETE order decoder `IW.PerHG.decodeOrd` is genuinely
--- load-bearing here: `decodeP f` *is* `decodeOrd ⟪f⟫ (range nE)` modulo
--- the boundary `subst₂` (the `decodeP-≡-decodeOrd-range` lemma is a real
--- proof, via the algorithm-reduction extraction lemma).  The former
--- standalone postulate `wiring⇒decodeP-resp-iso` is GONE: `decodeP-resp-iso`
--- is now a REAL PROOF consuming `IW.decode-ord-resp-iso` directly (with the
--- validity witness threaded from totality), leaving only the single,
--- clearly isolated `decodeOrd-boundary-resp-≈` residual — pure
--- `subst₂`-transport algebra plus the `permute`-proof-irrelevance (the
--- TRUE Kelly faithfulness residual that gates the final-permute throughout
--- this development).
+-- `decodeP f` is `decodeOrd ⟪f⟫ (range nE)` modulo the boundary `subst₂`
+-- (the `decodeP-≡-decodeOrd-range` lemma).  The chain is axiom-free: the
+-- Kelly residual `K-faithfulness` is the proven
+-- `FaithfulnessInductive.faithfulness`.
 {-# OPTIONS --safe --with-K #-}
 
 open import Categories.APROP
@@ -70,13 +53,8 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
 open import Categories.APROP.Hypergraph.Completeness.Discharge.FinOrderNoInv sig
   using (fin-order-NoInv-⟪⟫)
 
--- The Kelly faithfulness residual type, from `PermuteCoherence.Faithfulness`,
--- and the PROVEN value of it — `FaithfulnessInductive.faithfulness`, the
--- constructive symmetric-monoidal permutation-coherence theorem (postulate-free
--- and `--safe --with-K`).  Bound here as `K-faithfulness`, so the whole
--- completeness chain is fully axiom-free.  (The chain is `--with-K`, off the
--- `--without-K` discipline, which bought nothing for the already-`--with-K`
--- top theorem.)
+-- The Kelly faithfulness residual type and its proven value
+-- (`FaithfulnessInductive.faithfulness`), bound as `K-faithfulness`.
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
 open import Categories.PermuteCoherence.FaithfulnessInductive asFreeMonoidalData
@@ -96,10 +74,8 @@ import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeOrdBoundary sig 
 import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeRelDecodeP sig as DRDP
 
 ------------------------------------------------------------------------
--- The pruned decoder.  Genuinely built from the (postulate-free) pruned
--- totality `decode-attempt-LinearP`, with the boundary `subst₂` to the
--- user-facing type, exactly as the existing `decode` does for the
--- unpruned graph.
+-- The pruned decoder: the pruned totality `decode-attempt-LinearP` plus
+-- the boundary `subst₂` to the user-facing type.
 ------------------------------------------------------------------------
 
 decodeP : ∀ {A B} (f : HomTerm A B)
@@ -110,19 +86,10 @@ decodeP {A} {B} f =
 
 ------------------------------------------------------------------------
 -- Algorithm-reduction extraction.  From a successful `decode-attempt H`,
--- recover (a) a validity witness `v : Valid H (range nE)` and (b) the
--- propositional fact that the returned term *is* `decodeOrd H (range nE)
--- v`.  This is `decode-attempt-perm-from-just` strengthened to also
--- expose the term equality, via the SAME `with`-reduction of the
--- algorithm — so no `permute`-proof-irrelevance is needed: the perm
--- witness `v` is literally the one the algorithm computed.
---
--- `decodeOrd H (range nE) v = permute-via-vlab vlab v ∘
---    proj₂ (process-edges H (range nE) dom)`, and
---    `process-edges H (range nE) = process-all-edges H` definitionally;
--- `decode-attempt H` returns `permute-via-vlab vlab perm ∘ process-term`
--- with `process-term = proj₂ (process-all-edges H dom)` and `perm` the
--- `extract-exact` result.  Choosing `v = perm` makes the two equal.
+-- recover a validity witness `v : Valid H (range nE)` together with the
+-- fact that the returned term IS `decodeOrd H (range nE) v` (taking `v`
+-- to be the `extract-exact` result the algorithm computed, so no
+-- proof-irrelevance is needed).
 ------------------------------------------------------------------------
 
 decode-attempt⇒decodeOrd-range
@@ -144,15 +111,10 @@ decode-attempt⇒decodeOrd-range H dih t eq
 ... | ()
 
 ------------------------------------------------------------------------
--- `decodeP f` *is* `decodeOrd ⟪f⟫ (range nE)` modulo the boundary
--- `subst₂`.  Real proof: `decodeP f` is the `subst₂`-transport of
--- `proj₁ (decode-attempt-LinearP f)`, and the extraction lemma above
--- rewrites that to `decodeOrd ⟪f⟫ (range nE) (vrange f)`.
+-- `decodeP f` is `decodeOrd ⟪f⟫ (range nE)` modulo the boundary `subst₂`.
 ------------------------------------------------------------------------
 
 -- The validity witness for `f`'s natural order, extracted from totality.
--- The `Dep`-irreflexivity witness for `⟪f⟫` is the proven
--- `DepIrrefl.dep-irrefl-⟪⟫ f`.
 vrange : ∀ {A B} (f : HomTerm A B)
        → IW.PerHG.Valid ⟪ f ⟫ (dep-irrefl-⟪⟫ f) (range (Hypergraph.nE ⟪ f ⟫))
 vrange f =
@@ -172,84 +134,26 @@ decodeP-≡-decodeOrd-range f =
                  (proj₂ (decode-attempt-LinearP f))))
 
 ------------------------------------------------------------------------
--- The two honest bridging postulates (both TRUE).
+-- The two bridging inputs: `decode-rel-≈-decodeP` (decoder agreement)
+-- and `run-interchange-⟪⟫` (the interchange residual).
 ------------------------------------------------------------------------
 
--- (F) Structural ↔ pruned-algorithmic decoder agreement.  The pruned
--- analogue of the existing `decode-rel-≈-decode` Build field: the
--- dispatcher proven in `Discharge.DecodeRelDecodeP` (constructive induction
--- on `f` via `DecoderAgreementSafe.WithAssumptions` + the pruned/unpruned
--- shape bridge).  `DRDP.decodeP f` is DEFINITIONALLY identical to the local
--- `decodeP f` (both are the `subst₂`-transport of
--- `proj₁ (decode-attempt-LinearP f)`), so the result has exactly the type
--- below.
--- `DRDP.decode-rel-≈-decodeP` is parameterised by the two shared K-inputs
--- (`objUIP` + the Kelly `FaithfulnessResidual`): the unpruned shape
--- residuals it consumes are the lemmas
--- `Sub.DecodeComposeShape.decode-∘-shape-inner` /
--- `Sub.DecodeTensorShape.decode-⊗-shape-inner`, both of which take those
--- two inputs.  We supply our own `objUIP`/`K-faithfulness` below (the
--- binding is placed after they enter scope), exactly as
--- `run-interchange-⟪⟫`/`decodeP-resp-iso` thread them.
-
--- (decoder-boundary bridge) `Discharge.DecodeOrdBoundary` discharges the
--- decoder-boundary obligation GIVEN the TWO explicit K-inputs below:
---   * `K-faithfulness : FaithfulnessResidual` — the TRUE Kelly residual
---     that gates the final permute throughout this development (the module
---     parameter; a value of the `--without-K` record, NOT the `--with-K`
---     `KellyCoherence`);
---   * `objUIP` — uniqueness-of-identity-proofs on `ObjTerm`.
--- `DecodeOrdBoundary.decodeOrd-boundary-resp-≈` discharges everything else
--- (the two same-↭ final permutes agree via `eval-rigid` + K; the boundary
--- transport is pure `subst₂` algebra under UIP).
-
--- objUIP: UIP on `ObjTerm` from `DecidableEquality X` (Hedberg), via
--- `Discharge.ObjUIP`.  (`ObjTerm` does not depend on the variant, so
--- `{Symm}` is given explicitly.)
+-- objUIP: UIP on `ObjTerm` from `DecidableEquality X` (Hedberg).
 objUIP : ∀ {a b : ObjTerm} (p q : a ≡ b) → p ≡ q
 objUIP = ObjUIP.objUIP′ {Symm} _≟X_
 
--- (F) Structural ↔ pruned-algorithmic decoder agreement, with the two
--- shared K-inputs threaded in (mirrors how `run-interchange-⟪⟫` /
--- `decodeP-resp-iso` below supply `objUIP`/`K-faithfulness`).  `DRDP.decodeP
--- f` is DEFINITIONALLY identical to the local `decodeP f`.
+-- (F) Structural ↔ pruned-algorithmic decoder agreement.  `DRDP.decodeP f`
+-- is definitionally the local `decodeP f`.
 decode-rel-≈-decodeP : ∀ {A B} (f : HomTerm A B) → decode-rel f ≈Term decodeP f
 decode-rel-≈-decodeP = DRDP.decode-rel-≈-decodeP objUIP K-faithfulness
 
--- (N / interchange residual) The per-swap `RunInterchange` witness that
--- `SwapStep.swap-≈` consumes: for an adjacent INDEPENDENT pair of front
--- edges, running them in the swapped order equals running them in the
--- original order followed by a reshuffle.  This is the genuine
--- symmetric-monoidal interchange-axiom content (`σ ∘ (f ⊗ g) ≈ (g ⊗ f) ∘ σ`
--- on the two disjoint edge boxes).  Supplied at `H = ⟪f⟫` with the TRUE
--- Kelly residual and the VERTEX-level `Unique (cod ⟪f⟫)` (from
--- `⟪_⟫-cod-unique`).
---
--- SPLIT into two ORTHOGONAL obligations (per the informal proof, §"The
--- per-swap step in detail"):
---
---   * `run-interchange₀-⟪⟫`    — the EMPTY-TAIL core (`qs := []`): the
---     genuine two-edge interchange at a single swap.  This is the
---     substantive Mac-Lane / `box-interchange` content (the block normal
---     form `A_e ⊗ A_e' ⊗ R`).
---   * `run-interchange-tail-⟪⟫` — the ORTHOGONAL tail extension: lifting
---     the empty-tail swap to an arbitrary suffix `qs`.  This is pure
---     decoder equivariance under stack permutation — no box / associator
---     content (see `Sub/StackEquivariance.agda`), via
---     `Sub/RunInterchangeTail.agda`'s `process-edges-equivariant`.
---
--- The general witness `run-interchange-⟪⟫` that the chain consumes is their
--- composite.
---
--- The EMPTY-TAIL core instantiates the generic
--- `RunInterchangeEmptyTail.run-interchange₀` (the 4-case firing split —
--- three cases trivial, both-fire reduced to the single box-M residual
--- `fire-mid-interchange`) at `H = ⟪f⟫`, with `Linear ⟪f⟫` supplied by
--- `⟪⟫-LinearP f`.  It bottoms out in the small box-M residuals
--- `fire-mid-interchange`, `fire-mid-equivariant`, `fire-locate-coherent`.
--- soundness: the EMPTY-TAIL core is fed the empty-tail swap-order reservoir
--- `Reservoir≤1 ⟪f⟫ (ps ++ e' ∷ e ∷ []) dom` (sourced below from the full
--- swap-order `↭ range` provenance via a prefix drop).
+-- (N) The per-swap `RunInterchange` witness `SwapStep.swap-≈` consumes —
+-- the interchange axiom on the two disjoint edge boxes.  Split into two
+-- orthogonal parts whose composite is `run-interchange-⟪⟫`:
+--   * `run-interchange₀-⟪⟫` — the EMPTY-TAIL core (`qs := []`): the
+--     substantive two-edge box-M interchange.
+--   * `run-interchange-tail-⟪⟫` — the tail extension to a suffix `qs`,
+--     pure decoder equivariance (no box content).
 run-interchange₀-⟪⟫
   : ∀ {A B} (f : HomTerm A B)
       (ps : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f))
@@ -262,9 +166,7 @@ run-interchange₀-⟪⟫ f ps inc res =
   RET.run-interchange₀ ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
     K-faithfulness (⟪ f ⟫-cod-unique) (⟪⟫-LinearP f) ps inc res
 
--- The tail extension instantiates the generic
--- `RunInterchangeTail.run-interchange-tail` (decoder stack-equivariance) at
--- `H = ⟪f⟫`, fed the full swap-order `↭ range` provenance.
+-- The tail extension, fed the full swap-order `↭ range` provenance.
 run-interchange-tail-⟪⟫
   : ∀ {A B} (f : HomTerm A B)
       (ps qs : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f))
@@ -279,13 +181,10 @@ run-interchange-tail-⟪⟫ f ps qs inc prov =
   RIT.run-interchange-tail ⟪ f ⟫ (dep-irrefl-⟪⟫ f)
     K-faithfulness (⟪ f ⟫-cod-unique) (⟪⟫-LinearP f) ps qs inc prov
 
--- The general witness the chain consumes: now carries the SWAP-SITE
--- PROVENANCE `(ps ++ e' ∷ e ∷ qs) ↭ range nE`.  The full swap-order
--- reservoir is PROVEN from it by `StackUniqueReach.dom-reservoir-prov`
--- (with the `Linear ⟪f⟫` bound from `⟪⟫-LinearP f`); the EMPTY-TAIL
--- reservoir is the prefix-drop of that (the `++-assoc` re-bracketing of
--- `ps ++ e' ∷ e ∷ qs ≡ (ps ++ e' ∷ e ∷ []) ++ qs`).  NO false-as-stated
--- `∀ o` reservoir postulate is used anywhere on this path.
+-- The general witness the chain consumes, carrying the swap-site
+-- provenance `(ps ++ e' ∷ e ∷ qs) ↭ range nE`.  The full swap-order
+-- reservoir is proven from it (`dom-reservoir-prov`); the empty-tail
+-- reservoir is its prefix drop.
 run-interchange-⟪⟫
   : ∀ {A B} (f : HomTerm A B)
       (ps qs : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f))
@@ -298,14 +197,12 @@ run-interchange-⟪⟫ f ps qs {e} {e'} inc prov =
   run-interchange-tail-⟪⟫ f ps qs inc prov
     (run-interchange₀-⟪⟫ f ps inc res-empty-tail)
   where
-    -- Full swap-order reservoir, PROVEN from the `↭ range` provenance.
     res-full : SUR.Reservoir≤1 ⟪ f ⟫ (ps ++ e' ∷ e ∷ qs) (Hypergraph.dom ⟪ f ⟫)
     res-full =
       SUR.dom-reservoir-prov ⟪ f ⟫ (proj₂ (⟪⟫-LinearP f))
         (ps ++ e' ∷ e ∷ qs) prov
 
-    -- Empty-tail reservoir = prefix drop of `qs`, after re-bracketing
-    -- `ps ++ e' ∷ e ∷ qs ≡ (ps ++ e' ∷ e ∷ []) ++ qs`.
+    -- Prefix drop of `qs`, after re-bracketing.
     res-empty-tail
       : SUR.Reservoir≤1 ⟪ f ⟫ (ps ++ e' ∷ e ∷ []) (Hypergraph.dom ⟪ f ⟫)
     res-empty-tail =
@@ -317,14 +214,9 @@ run-interchange-⟪⟫ f ps qs {e} {e'} inc prov =
         assoc-eq = sym (++-assoc ps (e' ∷ e ∷ []) qs)
 
 ------------------------------------------------------------------------
--- Iso-invariance of the pruned decoder, consuming the real pruned iso.
--- The wiring is genuinely load-bearing: `IW.decode-ord-resp-iso`
--- (= `↝*⇒≈ (connectivity …)` under the hood) appears in the proof term,
--- applied DIRECTLY to the hypothesis `iso : ⟪f⟫ ≅ᴴ ⟪g⟫`, with the
--- validity witness `vrange g` threaded from the totality lemma.  The
--- `decodeP ↔ decodeOrd` boundary equalities are the REAL lemma
--- `decodeP-≡-decodeOrd-range`; only `decodeOrd-boundary-resp-≈` remains
--- postulated.
+-- Iso-invariance of the pruned decoder.  `IW.decode-ord-resp-iso` is
+-- applied directly to `iso`, with the boundary equalities supplied by
+-- `decodeP-≡-decodeOrd-range` and `DecodeOrdBoundary.decodeOrd-boundary-resp-≈`.
 ------------------------------------------------------------------------
 
 decodeP-resp-iso
@@ -336,12 +228,8 @@ decodeP-resp-iso f g iso =
          (DOB.decodeOrd-boundary-resp-≈ K-faithfulness objUIP
             f g iso (vrange f) (vrange g) vH wiring≈)
   where
-    -- The wiring's iso-invariance, fed J = ⟪g⟫'s natural-order validity,
-    -- the two `Dep`-irreflexivity witnesses (`dep-irrefl-⟪⟫`) and the two
-    -- natural-order no-inversion witnesses (`fin-order-NoInv-⟪⟫`).  Sourced
-    -- from `IsoInvarianceConcrete` (which feeds the real `SwapStep.swap-≈`,
-    -- `SwapValidity.swap-validity`, `WiringLemmas.NoInv-τ`,
-    -- `FinOrderNoInv.fin-order-NoInv-⟪⟫`, `IsoTransport.iso-transport`).
+    -- The wiring's iso-invariance (from `IsoInvarianceConcrete`), fed
+    -- `vrange g`, the two `dep-irrefl-⟪⟫` and `fin-order-NoInv-⟪⟫` witnesses.
     res = IC.decode-ord-resp-iso iso
             (dep-irrefl-⟪⟫ f) (dep-irrefl-⟪⟫ g)
             (⟪⟫-LinearP f)
@@ -354,11 +242,8 @@ decodeP-resp-iso f g iso =
     wiring≈ = proj₂ res
 
 ------------------------------------------------------------------------
--- The ACTUAL `decode-rel-resp-iso` (Translation-iso hypothesis, the type
--- consumed by `CompletenessFull`/`WithAssumptions`), now wired to the
--- order-theory core through `IsoInvarianceWiring` — with NO false
--- postulate.  (`decode-rel` is translation-agnostic, so no edit to the
--- existing decoder/cluster is required.)
+-- `decode-rel-resp-iso` (the type consumed by `CompletenessFull`),
+-- wired to the order-theory core via `decode-rel-≈-decodeP` + `decodeP-resp-iso`.
 ------------------------------------------------------------------------
 
 decode-rel-resp-iso

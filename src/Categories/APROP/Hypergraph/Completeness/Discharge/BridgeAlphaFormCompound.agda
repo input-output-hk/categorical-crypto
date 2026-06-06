@@ -1,26 +1,17 @@
 {-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
--- Constructive discharge of `bridge-α⇒-form-⊗-⊗` from
--- `Completeness/DecodeRoundtrip.agda` (lines 1411-1416).
+-- The `bridge`-form for `α⇒` at EVERY object:
 --
--- Phase 4 inductive case: A₁ = A₁₁ ⊗ A₁₂.
+--   bridge (α⇒ {A}{B}{C}) ≈Term α⇒-form-list (flatten A)(flatten B)(flatten C)
 --
--- Goal:
---   bridge α⇒_{(A₁₁⊗A₁₂)⊗A₂, B, C}
---   ≈Term α⇒-form-list ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂)
---                       (flatten B) (flatten C)
---
--- Strategy: a single well-founded recursion (`Worker.work`) on the number
--- of `⊗₀` nodes (`sz`) of the first object index.  The compound case
--- `((A₁₁⊗A₁₂)⊗A₂)` applies `pentagon-rewrite` to the bridge, distributes
--- via `bridge-∘`/`bridge-⊗`, and recurses on the strictly-smaller-`sz`
--- objects `A₁₁⊗A₁₂` (three times) and `A₂`; the α⇐ factor is derived
--- non-recursively (`derive-⇐`).  The residual bottoms out in a pure
--- list-level Mac-Lane coherence (`list-collapse-gen`, induction on the
--- prefix list).  Fully constructive — NO postulates.
---
--- This file is `--safe --with-K`-clean.
+-- via a single well-founded recursion (`Worker.work`) on the number of `⊗₀`
+-- nodes (`sz`) of the first object index.  The compound case
+-- `((A₁₁⊗A₁₂)⊗A₂)` applies `pentagon-rewrite`, distributes via
+-- `bridge-∘`/`bridge-⊗`, and recurses on the strictly-smaller-`sz` objects;
+-- the α⇐ factor is derived non-recursively (`derive-⇐`).  The residual
+-- bottoms out in a pure list-level Mac-Lane coherence (`list-collapse-gen`,
+-- induction on the prefix list).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -72,10 +63,7 @@ private
 open FM.HomReasoning
 
 --------------------------------------------------------------------------------
--- Local helpers re-proven (avoid depending on non-`--safe`
--- DecodeRoundtrip.agda).
-
--- `f ≡ g → f ≈Term g` is `≡⇒≈Term` from DecodeRoundtripSafe.
+-- Local helpers.
 
 -- λ-cancel: (λ⇒ ⊗ id) ∘ (λ⇐ ⊗ (id ⊗ id)) ≈ id.
 private
@@ -108,7 +96,7 @@ private
     id ∎
 
 --------------------------------------------------------------------------------
--- F-decomp lemmas (re-proven since DecodeRoundtripSafe doesn't ship them).
+-- F-decomp lemmas.
 
 private
   -- F-((unit⊗A)⊗(B⊗C)) ≈ F-(A⊗(B⊗C)) ∘ (λ⇒ ⊗ id).
@@ -252,35 +240,9 @@ private
       c-A⊗B,C-from = _≅_.from (unflatten-++-≅ (flatten A ++ flatten B) (flatten C))
 
 --------------------------------------------------------------------------------
--- The main lemma: bridge α⇒_{(A₁₁⊗A₁₂)⊗A₂, B, C}.
---
--- We give a single-recursion implementation by structural induction on A₁₁.
--- The recursion measure is the depth of A₁₁.
---
--- Base cases (A₁₁ = unit, A₁₁ = Var x): we directly apply the F/T decomp
--- lemmas and use chain manipulation to reach the form
--- `bridge α⇒_{A₁₂ ⊗ A₂, B, C}` (where we recursively use the dispatcher).
---
--- Inductive case (A₁₁ = A₁₁₁ ⊗ A₁₁₂): we use the pentagon at the leftmost
--- α⇒ to shift the bracketing, then recurse on A₁₁₁ (which is
--- structurally smaller).
---
--- For the dispatcher on the residual `bridge α⇒_{A₁₂ ⊗ A₂, B, C}`, we
--- need to handle the case where A₁₂ is itself compound — recursing back
--- to `bridge-α⇒-form-⊗-⊗`.  Termination follows from a careful joint
--- measure (TBD).
-
---------------------------------------------------------------------------------
 -- Well-founded recursion measure: the number of `⊗₀` nodes in an object.
---
--- Every recursive call made by the α⇒-form dispatcher (including the
--- compound `A₁₁⊗A₁₂` case via `pentagon-rewrite`, and the α⇐ factor it
--- introduces) targets an object with *strictly smaller* `sz`.  In
--- particular the pentagon-rewrite of `α⇒_{(A₁₁⊗A₁₂)⊗A₂,B,C}` yields
--- sub-`α⇒`'s whose first index is `A₁₁⊗A₁₂` (a proper subtree of
--- `(A₁₁⊗A₁₂)⊗A₂`) or `A₂`, both of strictly smaller `sz`.  So a single
--- well-founded recursion on `sz` of the first object index discharges
--- the whole dispatcher.
+-- Every recursive call (including the compound case via `pentagon-rewrite`
+-- and the α⇐ factor) targets an object with strictly smaller `sz`.
 
 sz : ObjTerm → ℕ
 sz unit       = 0
@@ -288,19 +250,12 @@ sz (Var _)    = 0
 sz (A ⊗₀ B)   = suc (sz A + sz B)
 
 -- The two `sz`-decrease facts needed in the compound case.
---   sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
---     = suc (sz (A₁₁ ⊗₀ A₁₂) + sz A₂)
---     = suc (suc (sz A₁₁ + sz A₁₂) + sz A₂)  (definitionally)
 private
-  -- sz (A₁₁ ⊗₀ A₁₂) < sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
-  --   i.e.  suc (sz A₁₁ + sz A₁₂) < suc (suc (sz A₁₁ + sz A₁₂) + sz A₂)
   sz-left< : ∀ A₁₁ A₁₂ A₂
            → sz (A₁₁ ⊗₀ A₁₂) < sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
   sz-left< A₁₁ A₁₂ A₂ =
     s≤s (m≤m+n (sz (A₁₁ ⊗₀ A₁₂)) (sz A₂))
 
-  -- sz A₂ < sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
-  --   i.e.  sz A₂ < suc (sz (A₁₁ ⊗₀ A₁₂) + sz A₂)
   sz-right< : ∀ A₁₁ A₁₂ A₂
             → sz A₂ < sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
   sz-right< A₁₁ A₁₂ A₂ =
@@ -308,9 +263,8 @@ private
 
 --------------------------------------------------------------------------------
 -- `derive-⇐`: the α⇐-form derived from the α⇒-form result at the SAME
--- object, via the α⇒/α⇐ iso (mirrors `bridge-α⇐-form` in
--- DecodeRoundtrip.agda).  Non-recursive: it takes the α⇒ result as an
--- explicit argument so it stays *outside* the well-founded recursion.
+-- object, via the α⇒/α⇐ iso.  Non-recursive (takes the α⇒ result as an
+-- explicit argument), so it stays outside the well-founded recursion.
 
 private
   bridge-resp-≈Term
@@ -347,10 +301,9 @@ private
     α⇐-form-list (flatten A) (flatten B) (flatten C) ∎
 
 --------------------------------------------------------------------------------
--- `list-collapse-gen`: the pure list-level Mac-Lane coherence that the
--- compound `pentagon-rewrite` decomposition bottoms out in.  Proven by
--- induction on the prefix list `p` (= flatten (A₁₁ ⊗₀ A₁₂)).  Every step is
--- a unitor/associator/`⊗-∘-dist` rewrite (σ-free, box-free).
+-- `list-collapse-gen`: the pure list-level Mac-Lane coherence the compound
+-- `pentagon-rewrite` decomposition bottoms out in.  Induction on the prefix
+-- list `p`; every step is a unitor/associator/`⊗-∘-dist` rewrite.
 
 private
   cto : (as bs : List X) → HomTerm (unflatten as ⊗₀ unflatten bs) (unflatten (as ++ bs))
@@ -370,8 +323,8 @@ private
           ∘ (α⇒-form-list p a b ⊗₁ id)
           ∘ cfrom ((p ++ a) ++ b) c )
       ≈Term α⇒-form-list (p ++ a) b c
-  -- Base case p = []:  all `α…-form-list [] …` are `id`; `cto [] = λ⇒`,
-  -- `cfrom [] = λ⇐`.  The two unitor frames cancel, leaving α⇒-form-list a b c.
+  -- Base p = []:  all `α…-form-list [] …` are `id`, `cto [] = λ⇒`, `cfrom []
+  -- = λ⇐`; the two unitor frames cancel.
   list-collapse-gen [] a b c = begin
     α⇐-form-list [] a (b ++ c)
       ∘ ( cto [] (a ++ b ++ c)
@@ -416,10 +369,9 @@ private
           ≈⟨ idʳ ⟩
         f ∎
 
-  -- Cons case p = x ∷ p':  peel `id{Var x} ⊗ _` from every factor (the
-  -- form-lists already have that shape; the two c-iso framed groups M1/M2
-  -- acquire it after cancelling the `α⇒/α⇐` introduced by `cto/cfrom (x∷_)`
-  -- via `α-comm`).  Then `⊗-∘-dist` collects them and the IH finishes.
+  -- Cons p = x ∷ p':  peel `id{Var x} ⊗ _` from every factor (M1/M2 acquire
+  -- it after cancelling the `α⇒/α⇐` from `cto/cfrom (x∷_)` via `α-comm`),
+  -- then `⊗-∘-dist` collects them and the IH finishes.
   list-collapse-gen (x ∷ p') a b c = begin
     α⇐-form-list (x ∷ p') a (b ++ c)
       ∘ ( cto (x ∷ p') (a ++ b ++ c)
@@ -580,30 +532,21 @@ private
         id {Vx} ⊗₁ M2' ∎
 
 --------------------------------------------------------------------------------
--- The well-founded worker.  `work A B C ac` proves the α⇒-form for the
--- object `A`, given accessibility evidence `ac : Acc _<_ (sz A)`.  The
--- α⇐-form factor needed by the compound case is derived (non-recursively)
--- from `work` at the SAME object via the α⇒-α⇐ iso.
+-- The well-founded worker.  `work A B C ac` proves the α⇒-form for `A` given
+-- `ac : Acc _<_ (sz A)`.  Pattern-matches `A` to a depth exposing the prefix
+-- shape, so every recursive call supplies a structurally-smaller `Acc`.
 
 module Worker where
 
-  -- The single well-founded worker.  Pattern-matches `A` to a depth that
-  -- exposes the prefix shape, so that ALL recursive calls supply a
-  -- structurally-smaller `Acc` (no lateral same-`Acc` hops, which the
-  -- termination checker rejects).
   work
     : ∀ A B C → Acc _<_ (sz A)
     → bridge (α⇒ {A} {B} {C})
     ≈Term α⇒-form-list (flatten A) (flatten B) (flatten C)
 
---------------------------------------------------------------------------------
--- Definitions (inside the Worker module).
-
   work unit    B C ac = bridge-α⇒-form-unit B C
   work (Var x) B C ac = bridge-α⇒-form-Var x B C
 
-  -- A₁ = unit: bridge α⇒_{unit ⊗ A₂, B, C} reduces via λ-machinery to
-  -- bridge α⇒_{A₂, B, C}.
+  -- A₁ = unit: reduces via λ-machinery to `bridge α⇒_{A₂, B, C}`.
   work (unit ⊗₀ A₂) B C (acc rs) = begin
     bridge (α⇒ {unit ⊗₀ A₂} {B} {C})
       ≈⟨ F-decomp-unit A₂ B C ⟩∘⟨ refl⟩∘⟨ T-decomp-unit A₂ B C ⟩
@@ -630,7 +573,7 @@ module Worker where
       α⇒-uA₂  = α⇒ {unit ⊗₀ A₂} {B} {C}
       α⇒-A₂   = α⇒ {A₂} {B} {C}
 
-  -- A₁ = Var x: similar, but with Var x prefix.
+  -- A₁ = Var x: similar, with a `Var x` prefix.
   work (Var x ⊗₀ A) B C (acc rs) = begin
     bridge (α⇒ {Var x ⊗₀ A} {B} {C})
       ≈⟨ F-decomp-Var x A B C ⟩∘⟨ refl⟩∘⟨ T-decomp-Var x A B C ⟩

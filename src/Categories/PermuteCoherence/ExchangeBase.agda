@@ -1,15 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
 ------------------------------------------------------------------------
--- Shared base for the exchange-condition endgame toward `insert`.
---
--- Lifts L1 (the inversion dichotomy, proved for `invS` in
--- `InversionsDichotomy` and transferred to `inv` via `invS≡inv`) to the
--- clean word-level facts the exchange/Matsumoto development needs:
---   * `Reduced w`     — `w` is a reduced word (length = inversions);
---   * `descent i b`   — `i` is a left descent of `b` (inv drops);
---   * `inv-di`        — every generator is an ascent or a descent;
---   * `canonW-reduced`— `canonW b` is reduced.
+-- Shared base for the exchange-condition endgame toward `insert`: lifts
+-- the inversion dichotomy to the word-level facts the exchange/Matsumoto
+-- development needs (`Reduced`, `descent`, `inv-di`, `canonW-reduced`).
 ------------------------------------------------------------------------
 
 module Categories.PermuteCoherence.ExchangeBase where
@@ -53,8 +47,7 @@ Reduced w = length w ≡ inv (evalW w)
 descent : Fin n → FinBij (suc n) (suc n) → Set
 descent i b = suc (inv (genFB i ∘-fb b)) ≡ inv b
 
--- `descent` depends on its bijection only through `inv`, which respects
--- `≈-fb`, so `descent j` does too.
+-- `descent j` respects `≈-fb` (it depends on `b` only through `inv`).
 descent-resp-≈ : {j : Fin (suc n)} {x y : FinBij (suc (suc n)) (suc (suc n))}
                → x ≈-fb y → descent j x → descent j y
 descent-resp-≈ {j = j} {x} {y} x≈y dsc =
@@ -66,13 +59,11 @@ descent-resp-≈ {j = j} {x} {y} x≈y dsc =
 -- 2. Every generator is an ascent or a descent.
 
 private
-  -- `b ⟨$⟩ˡ_` is injective (it is the inverse of a bijection).
   ⟨$⟩ˡ-inj : (b : FinBij (suc n) (suc n)) {x y : Fin (suc n)}
            → b P.⟨$⟩ˡ x ≡ b P.⟨$⟩ˡ y → x ≡ y
   ⟨$⟩ˡ-inj b {x} {y} eq =
     trans (sym (P.inverseʳ b)) (trans (cong (b P.⟨$⟩ʳ_) eq) (P.inverseʳ b))
 
-  -- The two swapped value-positions are distinct (their `toℕ`s differ).
   inj≢suc : (i : Fin (suc n)) → ¬ (inj i ≡ suc-pos i)
   inj≢suc i e =
     1+n≢n (sym (trans (sym (toℕ-inj i)) (trans (cong toℕ e) (toℕ-suc-pos i))))

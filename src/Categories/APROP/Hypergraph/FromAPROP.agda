@@ -20,10 +20,9 @@
 --   hCompose G K bdy-eq    cospan composition; `bdy-eq` witnesses
 --                          `codL G ≡ domL K`
 --
--- The benefit of de-indexing: `subst₂ (Hypergraph FlatGen)` no longer
--- shows up.  In particular, the ρ/α cases of `⟪_⟫` are *plain* `hId`
--- calls; the boundary equations `flatten A ++ [] ≡ flatten A` etc.
--- live in the boundary lemmas instead of being woven into the type.
+-- The benefit of de-indexing: `subst₂ (Hypergraph FlatGen)` no longer shows
+-- up; the ρ/α cases of `⟪_⟫` are plain `hId` calls, with the boundary
+-- equations living in the boundary lemmas rather than the type.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -152,8 +151,7 @@ module hTensor-impl (G K : Hypergraph FlatGen) where
                     (map-via-raise vlab-injR (K.eout eK))
                     (K.elab eK)
 
-  -- Pre-lemmas: ein-c / eout-c in each branch of the internal `with`
-  -- reduce to `map injL (G.ein/eout eG)` or `map injR (K.ein/eout eK)`.
+  -- ein-c / eout-c reduce in each branch of the internal `with`.
   ein-c-inj₁-red : ∀ (eG : Fin G.nE)
                  → ein-c (eG ↑ˡ K.nE) ≡ map injL (G.ein eG)
   ein-c-inj₁-red eG with splitAt G.nE (eG ↑ˡ K.nE)
@@ -220,9 +218,8 @@ hTensor G K = record
     module K = Hypergraph K
     open hTensor-impl G K
 
--- Boundary lemmas for hTensor: `domL (hTensor G K) ≡ domL G ++ domL K`
--- (and likewise for codL).  These take the place of `boundary-eq`'s
--- type-level role in the indexed version.
+-- Boundary lemmas for hTensor (replacing `boundary-eq`'s type-level role
+-- in the indexed version).
 
 module _ (G K : Hypergraph FlatGen) where
   private
@@ -424,7 +421,7 @@ module hCompose-impl
   vlab-injR : ∀ j → vlab-c (injR j) ≡ K.vlab j
   vlab-injR j = cong [ G.vlab , K.vlab ]′ (splitAt-↑ʳ G.nV K.nV j)
 
-  -- Positional remap of K-vertices: K.dom[i] ↦ injL G.cod[i].
+  -- Positional remap: K.dom[i] ↦ injL G.cod[i].
   remap' : List (Fin K.nV) → List (Fin G.nV) → Fin K.nV → Fin (G.nV + K.nV)
   remap' []        _          v = injR v
   remap' (_ ∷ _)   []         v = injR v
@@ -450,9 +447,7 @@ module hCompose-impl
   ... | yes refl = trans (vlab-injL g) (sym (∷-headEq eq))
   ... | no  _    = remap'-vlab ks gs (∷-tailEq eq) v
 
-  -- The boundary fact `map K.vlab K.dom ≡ map G.vlab G.cod` is now
-  -- exactly the `bdy-eq : codL G ≡ domL K` argument (after unfolding
-  -- `codL`/`domL`), inverted.
+  -- `map K.vlab K.dom ≡ map G.vlab G.cod` is the `bdy-eq` argument inverted.
   bdy-eq′ : map K.vlab K.dom ≡ map G.vlab G.cod
   bdy-eq′ = sym bdy-eq
 

@@ -1,18 +1,14 @@
 {-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
--- `σ-block-comm-raw` — the bare iterated TWO-BLOCK braiding at `List X`.
+-- `σ-block-comm-raw` — the bare iterated TWO-BLOCK braiding at `List X`:
 --
 --   to(unflatten-++-≅ ys xs) ∘ σ{unflatten xs}{unflatten ys}
 --       ∘ from(unflatten-++-≅ xs ys)
 --     ≈Term permute (++-comm xs ys)
 --
--- This is the genuine `BraidBlock`/`BraidPermute` "iteration + swap-core
--- assembly" flagged in `BraidBlock`'s header.  It is the sole remaining
--- postulate of `Sub/BlockNFBraid.agda`; this module proves it so it splices
--- as `σ-block-comm-raw = SigmaBlockCommRaw.σ-block-comm-raw`.
---
--- `--with-K`.
+-- The `BraidBlock`/`BraidPermute` "iteration + swap-core assembly"; consumed
+-- by `Sub/BlockNFBraid.agda` as `σ-block-comm-raw`.
 --------------------------------------------------------------------------------
 
 open import Categories.FreeMonoidal
@@ -96,11 +92,9 @@ permute-comm-cons x xs' (b ∷ ys') = begin
 
 --------------------------------------------------------------------------------
 -- ## `peel` — the hexagon "atom-off-the-front-of-the-moving-block" peel.
---
--- Braiding `Var x ⊗ unflatten xs'` past `unflatten ys` (pre-composed by the
--- `unflatten-++-≅ (x∷xs') ys` cap) splits into braiding the atom `Var x` past
--- `ys` (a `σ-block`) and braiding the tail block `xs'` past `ys` (carried in
--- the `id{Var x} ⊗ _` slot).  Pure `σ⊗-from-hexagon₂` + α-iso cancellation.
+-- Braiding `Var x ⊗ unflatten xs'` past `unflatten ys` splits into braiding
+-- the atom `Var x` past `ys` (a `σ-block`) and braiding the tail block `xs'`
+-- past `ys` (in the `id{Var x} ⊗ _` slot).  `σ⊗-from-hexagon₂` + α-iso cancel.
 
 peel
   : (x : X) (xs' ys : List X)
@@ -164,24 +158,22 @@ peel x xs' ys = begin
         F = fromxs
 
 --------------------------------------------------------------------------------
--- ## `rotate-cap` — the genuine single-atom braid / cap coherence.
+-- ## `rotate-cap` — the single-atom braid / cap coherence:
 --
 --   to(uf++ ys (x ∷ ts)) ∘ σ-block{Var x}{unflatten ys}{unflatten ts}
 --     ≈ σ-rotate x ys ts ∘ (id{Var x} ⊗ to(uf++ ys ts))
 --
--- By induction on `ys`.  `σ-rotate` and the `to`-caps both recurse on `ys`,
--- so this is the alignment that makes the iteration go through.  The `ys=[]`
--- base is the unit-braiding coherence (`coherence₁` + `braiding-coherence` +
--- `triangle`); the `ys=b∷ys'` step is the hexagon iteration (peeling `Vb` off
--- the FRONT of the fixed block).
+-- Induction on `ys`.  The `ys=[]` base is unit-braiding coherence; the
+-- `ys=b∷ys'` step is the hexagon iteration (peeling `Vb` off the FRONT of
+-- the fixed block).
 
 private
   _⟨≈≈⟩_ : ∀ {A B} {f g h : HomTerm A B} → f ≈Term g → g ≈Term h → f ≈Term h
   _⟨≈≈⟩_ = ≈-Term-trans
   infixr 4 _⟨≈≈⟩_
 
--- bare second-arg-tensor decomposition of `σ`, solved out of the `hexagon`
--- axiom.  (The genuine braiding content of the `ys`-step.)  PROVEN.
+-- Bare second-arg-tensor decomposition of `σ`, from the `hexagon` axiom
+-- (the genuine braiding content of the `ys`-step).
 σ-Bmerge-bare
   : ∀ {A B₁ B₂ : ObjTerm}
   → σ {A = A} {B = B₁ ⊗₀ B₂}
@@ -218,14 +210,11 @@ private
     σid = σ {A = A} {B = B₁} ⊗₁ id {A = B₂}
     α⇒' = α⇒ {A = A} {B = B₁} {C = B₂}
 
--- B-slot tensor decomposition of `σ-block`: the pure α-coherence "wrapping"
--- of `σ-Bmerge-bare` (the dual of `BlockNFBraid`'s private C-slot
--- `σ-block-merge`).  NO braiding content remains beyond `σ-Bmerge-bare`:
--- both sides reduce to a common normal form `nf` in which the two genuine
--- braid cells `σ{A}{B₁} ⊗ id` and `id ⊗ σ{A}{B₂}` are framed by associators;
--- `lhs≈nf` substitutes `σ-Bmerge-bare` into the bare `σ-block` LHS and
--- distributes the `⊗ id{C}`, while `rhs≈nf` slides the two RHS associators
--- across the two braid cells via `α-comm` / pentagon coherence.  PROVEN.
+-- B-slot tensor decomposition of `σ-block`: the pure α-coherence wrapping of
+-- `σ-Bmerge-bare`.  Both sides reduce to a common normal form `nf` in which
+-- the two braid cells are framed by associators; `lhs≈nf` substitutes
+-- `σ-Bmerge-bare` into the bare LHS and distributes `⊗ id{C}`, while `rhs≈nf`
+-- slides the RHS associators across the two cells via `α-comm`/pentagon.
 σ-block-Bmerge
   : ∀ {A B₁ B₂ C : ObjTerm}
   → σ-block {A} {B₁ ⊗₀ B₂} {C}
@@ -621,11 +610,10 @@ private
             n1  = α⇐ {A = B₁} {B = B₂} {C = A} ⊗₁ id {A = C}
             n3  = α⇒ {A = B₁} {B = A} {C = B₂} ⊗₁ id {A = C}
 
--- The `rotate-cap` `ys = b∷ys'` step: the iteration of the IH past one fixed
--- atom `Vb`, assembled from `σ-block-Bmerge` (peel `Vb` off the front of the
--- block), the IH (under `id{Vb} ⊗ _`), and `σ-block-natural₃` (slide the
--- `to`-cap through the residual `σ-block{Vx}{Vb}`).  PROVEN modulo
--- `σ-block-Bmerge`.
+-- The `rotate-cap` `ys = b∷ys'` step: iterate the IH past one fixed atom
+-- `Vb`, assembled from `σ-block-Bmerge` (peel `Vb` off the front), the IH
+-- (under `id{Vb} ⊗ _`), and `σ-block-natural₃` (slide the `to`-cap through
+-- the residual `σ-block{Vx}{Vb}`).
 rotate-cap-step
   : (x b : X) (ys' ts : List X)
   → _≅_.to (unflatten-++-≅ ys' (x ∷ ts)) ∘ σ-block {Var x} {unflatten ys'} {unflatten ts}
@@ -774,14 +762,11 @@ rotate-cap x []        ts = begin
 rotate-cap x (b ∷ ys') ts = rotate-cap-step x b ys' ts (rotate-cap x ys' ts)
 
 --------------------------------------------------------------------------------
--- ## `xs=[]` base case of the main theorem: braiding the EMPTY moving block.
---
--- `σ{unit}{Uys} ∘ from(uf++ [] ys) = σ{unit}{Uys} ∘ λ⇐ ≈ ρ⇐` (braiding with
--- unit), and `to(uf++ ys []) ∘ ρ⇐ ≈ permute(++-comm [] ys)` is the right-unit
--- coherence (`rid-subst`), with `permute(++-comm [] ys)` recognised as the
--- transported identity (`permute-↭-sym-refl`).
+-- ## `xs=[]` base case: braiding the EMPTY moving block.  `σ{unit}{Uys} ∘
+-- from(uf++ [] ys) ≈ ρ⇐` (braiding with unit), and `to(uf++ ys []) ∘ ρ⇐ ≈
+-- permute(++-comm [] ys)` is the right-unit coherence (`rid-subst`), with
+-- `permute(++-comm [] ys)` recognised as the transported identity.
 
--- `permute (↭-sym (↭-reflexive e)) = transported id`  (`J`, --with-K).
 permute-↭-sym-refl
   : ∀ {as bs : List X} (e : as ≡ bs)
   → permute (Perm.↭-sym (Perm.↭-reflexive e))

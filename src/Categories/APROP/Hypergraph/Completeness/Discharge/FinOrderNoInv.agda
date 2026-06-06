@@ -4,65 +4,38 @@
 -- (LemC) The natural `Fin` edge-order of a TRANSLATED hypergraph is a
 -- linear extension of its immediate dependency relation `Dep`.
 --
--- Goal:
---
---   fin-order-NoInv-⟪⟫
---     : ∀ {A B} (f : HomTerm A B) → PH.NoInv (range (Hypergraph.nE ⟪ f ⟫))
---
--- where `module PH = IW.PerHG ⟪ f ⟫`, so that `PH.NoInv` is
--- `Combinatorics.LinearExtension.NoInv` instantiated at `(Fin nE, Dep ⟪f⟫)`,
--- i.e.
---
---   PH.NoInv (range nE) = AllPairs (λ a b → ¬ Dep ⟪f⟫ b a) (range nE)
---
--- — "for edges `a` before `b` in `range`, `b` does not produce a wire that
--- `a` consumes" (no earlier-consumes-later inversion).
+-- Goal: `fin-order-NoInv-⟪⟫ : ∀ {A B} (f : HomTerm A B) → PH.NoInv (range
+-- nE)`, where `PH.NoInv (range nE) = AllPairs (λ a b → ¬ Dep ⟪f⟫ b a) (range
+-- nE)` — "for edges `a` before `b` in `range`, `b` does not produce a wire
+-- that `a` consumes" (no earlier-consumes-later inversion).
 --
 -- ## Route
 --
 -- A DIRECT structural induction on `f`.  This avoids the
--- `AllFire-natural-range ⇒ NoInv` bridge — `AllFire-natural-range` lives in a
--- module parameterised over `APROPSignatureDec` (it needs decidable equality
--- via `Linearity`), whereas this module is parameterised over a bare
--- `APROPSignature`, so that proven kernel is *not reachable* from here.  The
--- translation's smart constructors lay edges down in a topologically-sound
--- order, so the `NoInv` predicate follows constructor-by-constructor:
+-- `AllFire-natural-range ⇒ NoInv` bridge, which lives in an
+-- `APROPSignatureDec`-parameterised module (decidable equality) and so is
+-- NOT reachable from this bare-`APROPSignature` module.  The translation's
+-- smart constructors lay edges in a topologically-sound order, so `NoInv`
+-- follows constructor-by-constructor:
 --
---   * Zero-edge cases (`id`, `λ⇒/λ⇐`, `ρ⇒/ρ⇐`, `α⇒/α⇐`, `σ`): `nE = 0`, so
---     `range nE = []` and `AllPairs _ [] = []`.
---
---   * Single-edge case (`Agen g`): `nE = 1`, `range 1 = e ∷ []`; `AllPairs`
---     on a singleton is `[] ∷ []` (no pairs).
---
---   * Tensor case (`f ⊗₁ g`):  `hTensor G K` lays the G-edges (vertices via
---     `injL = _↑ˡ_`) before the K-edges (vertices via `injR = _↑ʳ_`).  The
---     two vertex images are DISJOINT (`Invariant.disj-L-R`), so NO
---     cross-block dependency exists in either direction; within each block,
---     dependency reflects through the injective vertex embedding to the
---     sub-hypergraph, where the IH applies.  FULLY CONSTRUCTIVE.
---
---   * Composition case (`g ∘ f`):  `hComposeP G K` lays the G-edges (`= ⟪f⟫`,
---     vertices via `injL`) before the K-edges (`= ⟪g⟫`, vertices via the
---     pruning `remapP`).  The G-block reflection (`compose-GG-reflect`) is
---     PROVEN exactly like the tensor's (it only touches the `injL` block).
---     The remaining two facts — the K-block reflection through `remapP`
---     (`compose-KK-reflect`) and the cross-block acyclicity (`remapP`-images
---     of K-outputs are never consumed by a G-edge, `compose-cross-acyclic`) —
---     rest on the FULL LINEARITY invariant of the translation.  They are now
---     also PROVEN, by threading `Linear ⟪f⟫`/`Linear ⟪g⟫` (the pruned-
---     translation linearity witness `⟪⟫-LinearP` from `DecodeAttemptLinearP`)
---     into the composition assembly:
---       - `compose-KK-reflect` reuses `LinearHComposeP.remapP-injective`
---         (injectivity of the pruning map on edge-port vertices; needs
---         `Linear G`, `Linear K`), mirroring `tensor-KK-reflect`;
---       - `compose-cross-acyclic` observes that a `remapP`-image of a K-output
---         that is also an `injL`-image forces the K-output vertex into
---         `K.dom`, so it occurs in BOTH summands of `producedList K`, giving
---         `count ≥ 2`, contradicting the `Linear K` bound `≤ 1`.
---     ALL reachable from a bare `APROPSignature`: both `Linearity` and the
---     spike `LinearHComposeP` / `DecodeAttemptLinearP` are bare-`sig` modules,
---     so NO `APROPSignatureDec` parameterisation is needed.  The whole `∘`
---     case is now constructive.
+--   * Zero-edge cases (`id`, `λ`, `ρ`, `α`, `σ`): `range 0 = []`.
+--   * Single-edge `Agen g`: singleton has no pairs.
+--   * Tensor `f ⊗₁ g`: `hTensor` lays G-edges (`injL = _↑ˡ_`) before K-edges
+--     (`injR = _↑ʳ_`); the two vertex images are DISJOINT (`disj-L-R`), so no
+--     cross-block dependency exists; within each block dependency reflects
+--     through the injective vertex embedding to the sub-hypergraph (IH).
+--   * Composition `g ∘ f`: `hComposeP` lays G-edges (`injL`) before K-edges
+--     (pruning `remapP`).  A K-edge MAY depend on a G-edge (forward flow), so
+--     the only things to rule out are the within-block reflections and the
+--     REVERSE flow.  The G-block reflection is like the tensor's; the K-block
+--     reflection and cross-block acyclicity rest on the LINEARITY invariant
+--     (`Linear`), threaded in as `Linear G`/`Linear K`:
+--       - `compose-KK-reflect` reuses `LinearHComposeP.remapP-injective`;
+--       - `compose-cross-acyclic`: a `remapP`-image of a K-output that is also
+--         an `injL`-image forces the K-output into `K.dom`, occurring in BOTH
+--         summands of `producedList K` (`count ≥ 2`), contradicting `Linear K`.
+--     `Linearity` and `LinearHComposeP`/`DecodeAttemptLinearP` are all
+--     bare-`sig` modules, so the whole `∘` case is reachable here.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -85,9 +58,8 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.EdgeDependency
 import Categories.APROP.Hypergraph.Invariant sig as Inv
 open Inv using (inject+-inj; raise-inj; disj-L-R; range-++)
 
--- Linearity layer (bare `APROPSignature`-parameterised): the `Linear`
--- invariant, `count`, the pruned-translation linearity witness, and the
--- pruning machinery needed to discharge the two composition postulates.
+-- Linearity layer: the `Linear` invariant, `count`, the pruned-translation
+-- linearity witness, and the pruning machinery for the `∘` case.
 open import Categories.APROP.Hypergraph.Completeness.Linearity sig
   using (Linear; count; count-++; producedList)
 import Categories.APROP.Hypergraph.Completeness.Discharge.LinearHComposeP sig as LHC
@@ -149,14 +121,12 @@ open import Relation.Binary.PropositionalEquality
 --------------------------------------------------------------------------------
 -- ## The `NoInv` predicate as a bare `AllPairs`.
 --
--- We work with the bare `AllPairs` form rather than `IW.PerHG.NoInv` so that
--- the proof is independent of the `Dep-irrefl` postulate hidden inside
--- `PerHG` (NoInv itself never uses irreflexivity).  The two coincide
--- definitionally — witnessed by the final `fin-order-NoInv-⟪⟫`, whose body is
--- just `NoInvH-range-⟪⟫` retyped at `IW.PerHG.NoInv`.
+-- We work with the bare `AllPairs` form rather than `IW.PerHG.NoInv` so the
+-- proof is independent of the `Dep-irrefl` field inside `PerHG` (NoInv never
+-- uses irreflexivity).  They coincide definitionally.
 
--- `BelowH H a b := ¬ Dep H b a` is the per-edge "no inversion" relation:
--- `b` (later) does not produce a wire that `a` (earlier) consumes.
+-- `BelowH H a b := ¬ Dep H b a`: `b` (later) does not produce a wire that
+-- `a` (earlier) consumes.
 BelowH : (H : Hypergraph FlatGen)
        → Fin (Hypergraph.nE H) → Fin (Hypergraph.nE H) → Set
 BelowH H a b = ¬ Dep H b a
@@ -166,13 +136,7 @@ NoInvH : (H : Hypergraph FlatGen) → List (Fin (Hypergraph.nE H)) → Set
 NoInvH H = AllPairs (BelowH H)
 
 --------------------------------------------------------------------------------
--- ## Generic membership bridge: a shared vertex witnessing `Dep`.
---
--- `Dep H e e'` is `∃ v. v ∈ eout H e × v ∈ ein H e'`.  We repeatedly need to
--- read off such a witness after rewriting `eout`/`ein` to a concrete `map`.
-
---------------------------------------------------------------------------------
--- ## Tensor case (FULLY CONSTRUCTIVE).
+-- ## Tensor case.
 
 module _ (G K : Hypergraph FlatGen) where
   private
@@ -278,23 +242,10 @@ module _ (G K : Hypergraph FlatGen) where
       (cross-all gs ks)
 
 --------------------------------------------------------------------------------
--- ## Composition case.
---
--- `hComposeP G K bdy` lays G-edges (vertices via `injL = _↑ˡ_`) before
--- K-edges (vertices via the pruning map `remapP`).  Unlike the tensor, a
--- K-edge MAY legitimately depend on a G-edge (data flows from `f` to `g`),
--- but the *order* keeps every G-edge before every K-edge, so the only thing
--- to rule out is the REVERSE flow plus the within-block reflections.
---
--- The G-block reflection is proven directly.  The remaining two facts (the
--- K-block reflection through `remapP`, and the cross-block acyclicity) hinge
--- on the full LINEARITY invariant of the translation (each wire
--- produced/consumed at most once; output-boundary vertices are never
--- re-consumed inside a block).  That invariant — `Linear` from
--- `Completeness.Linearity` — is reachable from a bare `APROPSignature`, so we
--- thread `Linear G`/`Linear K` in as module parameters and PROVE both facts
--- (no postulates); the call site supplies `⟪⟫-LinearP` for `G = ⟪f⟫`,
--- `K = ⟪g⟫`.
+-- ## Composition case.  `hComposeP G K bdy` lays G-edges (`injL = _↑ˡ_`)
+-- before K-edges (pruning `remapP`).  `Linear G`/`Linear K` are threaded in
+-- as parameters for the K-block reflection and cross-block acyclicity; the
+-- call site supplies `⟪⟫-LinearP`.
 
 module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
          (lin-G : Linear G) (lin-K : Linear K) where
@@ -311,10 +262,7 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
   injREc : Fin K.nE → Fin (G.nE + K.nE)
   injREc eK = G.nE ↑ʳ eK
 
-  -- G-block dependency reflects to G.  FULLY CONSTRUCTIVE — identical in
-  -- shape to `tensor-GG-reflect` (G-side vertices via `injL = _↑ˡ_`, the
-  -- `C.ein-c-inj₁-red`/`C.eout-c-inj₁-red` reductions, `inject+-inj` for the
-  -- vertex injection).  No Linearity content is required.
+  -- G-block dependency reflects to G (like `tensor-GG-reflect`; no Linearity).
   compose-GG-reflect : ∀ {ea eb : Fin G.nE}
                      → Dep Hc (injLEc eb) (injLEc ea) → Dep G eb ea
   compose-GG-reflect {ea} {eb} (v , v∈out , v∈in)
@@ -329,12 +277,9 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
               (inject+-inj _ (trans (sym v≡wa) v≡wb))
               wa∈
 
-  -- K-block dependency reflects to K.  PROVEN — identical in shape to
-  -- `tensor-KK-reflect`, with the K-side vertex injection `injR` replaced by
-  -- the pruning map `remapP` and `raise-inj` replaced by `remapP`'s
-  -- injectivity ON EDGE-PORT VERTICES.  That injectivity is precisely the
-  -- spike's `LinearHComposeP.remapP-injective`, which needs `Linear G` and
-  -- `Linear K` (both threaded in as module parameters).
+  -- K-block dependency reflects to K (like `tensor-KK-reflect`, with `injR`
+  -- replaced by `remapP` and `raise-inj` by `remapP`'s injectivity on
+  -- edge-port vertices = `LinearHComposeP.remapP-injective`).
   remapP-inj : ∀ {v v'} → C.remapP v ≡ C.remapP v' → v ≡ v'
   remapP-inj = LHC.remapP-injective G K bdy lin-G lin-K
 
@@ -352,16 +297,12 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
               (remapP-inj (trans (sym v≡wa) v≡wb))
               wa∈
 
-  -- The cross-block acyclicity — no K-block edge produces a wire that an
-  -- earlier G-block edge consumes.  PROVEN.  A shared vertex `v` would be both
-  -- a `remapP`-image of a K-output `k₀ ∈ K.eout eb` and an `injL`-image
-  -- (`_↑ˡ cn`) of a G-input.  Case-split `classify K.dom k₀`:
-  --   * `inj₂ j`: `remapP k₀ = G.nV ↑ʳ j`, which can't be an `_↑ˡ cn` image
-  --     (`↑ˡ-↑ʳ-disjoint`).
-  --   * `inj₁ i`: `k₀ ∈ K.dom`.  But also `k₀ ∈ K.eout eb`, so `k₀` occurs in
-  --     BOTH summands of `producedList K = K.dom ++ concat (tabulate K.eout)`,
-  --     giving `count k₀ (producedList K) ≥ 2`, contradicting the `Linear K`
-  --     bound `≤ 1`.  This is the linearity/acyclicity invariant.
+  -- The cross-block acyclicity — no K-block edge produces a wire an earlier
+  -- G-block edge consumes.  A shared vertex `v` would be both a `remapP`-image
+  -- of a K-output `k₀ ∈ K.eout eb` and an `injL`-image (`_↑ˡ cn`).  Then
+  -- `classify K.dom k₀`: `inj₂` routes to a `G.nV ↑ʳ_` slot, disjoint from
+  -- `_↑ˡ cn`; `inj₁` puts `k₀ ∈ K.dom`, so `k₀` occurs in BOTH summands of
+  -- `producedList K` (`count ≥ 2`), contradicting `Linear K`'s bound `≤ 1`.
   private
     cn = count-non K.dom
 
@@ -387,14 +328,9 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
                           (∈→count-pos k (concat (tabulate K.eout)) k∈eb))
 
     -- Only `K.dom` members route to the `_↑ˡ cn` (G-side) slots: if
-    -- `remapP k ≡ i ↑ˡ cn` then `k ∈ K.dom`.  We case-split `classify K.dom k`
-    -- (`rewrite`-ing the hypothesis so `remapP k` reduces along that branch):
-    -- the `inj₂` branch routes to a `G.nV ↑ʳ_` slot, disjoint from `_↑ˡ cn`.
-    -- Only `K.dom` members route to `_↑ˡ cn` (G-side) slots.  Case-split
-    -- `classify K.dom k`: `inj₁` gives `k ∈ K.dom` (`classify-inj₁-∈`).  In the
-    -- `inj₂ j` branch the `with`-abstraction reduces `C.remapP k` to its
-    -- non-member image, so `hyp` already reads `G.nV ↑ʳ j ≡ i ↑ˡ cn`, which is
-    -- absurd by `↑ˡ-↑ʳ-disjoint`.
+    -- `remapP k ≡ i ↑ˡ cn` then `k ∈ K.dom`.  Case-split `classify K.dom k`:
+    -- `inj₁` gives `k ∈ K.dom`; `inj₂ j` reduces `remapP k` to `G.nV ↑ʳ j`,
+    -- absurd against `i ↑ˡ cn` by `↑ˡ-↑ʳ-disjoint`.
     remapP-injL→dom
       : ∀ (k : Fin K.nV) (i : Fin G.nV) → C.remapP k ≡ i ↑ˡ cn → k ∈ K.dom
     remapP-injL→dom k i hyp with classify K.dom k in cls
@@ -409,15 +345,12 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
   ... | v∈out' | v∈in'
     with ∈-map⁻ C.remapP v∈out' | ∈-map⁻ C.injL v∈in'
   ... | k₀ , k₀∈out , v≡rk | i₀ , i₀∈in , v≡injL =
-        -- `C.remapP k₀ ≡ i₀ ↑ˡ cn`, so `k₀ ∈ K.dom`; but `k₀ ∈ K.eout eb`,
-        -- contradicting `Linear K`.
         dom-and-out→absurd k₀ eb
           (remapP-injL→dom k₀ i₀ (trans (sym v≡rk) v≡injL))
           k₀∈out
 
   ------------------------------------------------------------------------------
-  -- Assembly of `NoInvH Hc (range (G.nE + K.nE))` from the three facts above
-  -- plus the sub-NoInvs — entirely PARALLEL to the tensor assembly.
+  -- Assembly of `NoInvH Hc (range …)`, parallel to the tensor assembly.
 
   Below-injLEc : ∀ {a b : Fin G.nE} → BelowH G a b → BelowH Hc (injLEc a) (injLEc b)
   Below-injLEc noG dep = noG (compose-GG-reflect dep)
@@ -524,11 +457,7 @@ NoInvH-range-⟪⟫ (g ∘ f) =
     bdy = trans (⟪⟫-codL f) (sym (⟪⟫-domL g))
 
 --------------------------------------------------------------------------------
--- ## The target, in `IW.PerHG.NoInv` form.
---
--- `IW.PerHG.NoInv = LinExt.NoInv = AllPairs (λ a b → ¬ Dep ⟪f⟫ b a)`, which
--- is `NoInvH ⟪ f ⟫` definitionally; so the structural result above already
--- has the requested type.
+-- ## The target, in `IW.PerHG.NoInv` form (= `NoInvH ⟪ f ⟫` definitionally).
 
 fin-order-NoInv-⟪⟫
   : ∀ {A B} (f : HomTerm A B)

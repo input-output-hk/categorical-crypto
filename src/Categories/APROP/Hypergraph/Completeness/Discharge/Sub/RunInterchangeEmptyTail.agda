@@ -23,55 +23,33 @@
 -- ## Structure of the proof
 --
 -- We case-split the firing decisions of the two front edges over the
--- `EdgeStepRelation` view (`EdgeStepR`, `edge-step-graph`), exactly
--- mirroring `SwapValidity.two-edge-swap-stack-↭`'s four-way firing
--- split — but at the TERM level (not just the stack level).  Matching the
--- `EdgeStepR` constructors refines the (otherwise stuck) `edge-step`
--- redexes embedded in `pe-stack`/`pe-term` to `id` / `fire-term` WITHOUT
--- abstracting them in a dependent position, so no green-slime /
--- ill-typed-with-abstraction arises.  The trailing `id` of
--- `process-edges []` is stripped by `idˡ`.
+-- `EdgeStepRelation` view (`EdgeStepR`, `edge-step-graph`) at the TERM
+-- level.  Matching the `EdgeStepR` constructors refines the (otherwise
+-- stuck) `edge-step` redexes to `id` / `fire-term` WITHOUT abstracting them
+-- in a dependent position, so no green-slime arises.
 --
 -- The `RunInterchange` record's `reshuffle` and `run-eq` are built TOGETHER
--- per case (the reshuffle is whatever that case naturally yields), so NO
--- global Kelly-reconciliation of two reshuffle witnesses is needed — and in
--- particular no `Unique (pe-stack …)` hypothesis (which we do not have).
+-- per case, so NO global Kelly-reconciliation of two reshuffle witnesses is
+-- needed — in particular no `Unique (pe-stack …)` hypothesis.
 --
---   1. BOTH-SKIP    — both runs are `(id ∘ id) ∘ id`; `reshuffle = refl`;
---                     `run-eq` collapses via `idˡ` (`permute refl ≡ id`).
---   2. e FIRES, e' SKIPS — single layer `fire-term e` in both orders;
---                     `reshuffle = refl`; `run-eq` collapses via `idˡ`/`idʳ`.
---   3. e SKIPS, e' FIRES — symmetric to (2), single layer `fire-term e'`.
---   4. BOTH-FIRE    — THE genuine content: the two framed boxes
---                     `(Agen-edge ⊗ id)` on DISJOINT blocks commute via σ.
---                     Isolated as the SINGLE residual
---                     `fire-mid-interchange` (see below).
+--   1. BOTH-SKIP / 2. e FIRES,e' SKIPS / 3. e SKIPS,e' FIRES — `reshuffle =
+--      refl`; `run-eq` collapses via `idˡ`/`idʳ`.
+--   4. BOTH-FIRE — THE genuine content: the two framed boxes on DISJOINT
+--      blocks commute via σ.  Isolated as `fire-mid-interchange`.
 --
--- The impossible mixed firing cases (one order fires both edges, the other
--- only one) are ruled out by FIRING-STABILITY (`Linear` + `Incomp`),
--- exactly as in `SwapValidity.two-edge-swap-stack-↭`.  Because the
--- relevant stability lemmas (`e'-fires-stable` / `e'-skips-stable`) live in
--- a `private` block of `SwapValidity.PerHG`, they are re-derived here
--- (postulate-free); they depend on the count/disjointness combinatorics.
+-- The impossible mixed firing cases are ruled out by FIRING-STABILITY
+-- (`Linear` + `Incomp`).  The stability lemmas (`e'-fires-stable` /
+-- `e'-skips-stable`) live in a `private` block of `SwapValidity.PerHG`, so
+-- they are re-derived here (postulate-free).
 --
 -- ## The single residual — `fire-mid-interchange` (M)
 --
--- BOTH-FIRE reduces, after stripping the trailing `id`s and factoring each
--- fire layer via `EdgeStepRelation.fire-term = fire-mid ∘ permute`, to the
--- commutation of the two framed boxes `fire-mid e _` and `fire-mid e' _`
--- on DISJOINT wire blocks.  The hypergraph-free, K-free kernel
---
---   box-interchange f g : g ⊗₁ f ≈Term σ ∘ ((f ⊗₁ g) ∘ σ)
---
--- is proven in `SwapStep.FrontSwap` (the literal σ-naturality
--- application).  Transporting it through the two `fire-mid` boxes'
--- `box-of`/`unflatten-++-≅`/`subst₂` bracketing and the four locating
--- permutes is the genuine Mac-Lane chase, isolated as a SINGLE residual
--- `fire-mid-interchange`, stated over the UNPACKED fire data (no
--- `Hypergraph` record matching, no `with extract-prefix`, no `cod`, no
--- final permute), bundling the reshuffle existentially — the same posture
--- as `Sub/SwapAtomAligned.swap-mac-lane-residual` and the sibling
--- `Sub/StackEquivariance.fire-mid-equivariant`.  It is discharged by
+-- BOTH-FIRE reduces to the commutation of two framed boxes on DISJOINT wire
+-- blocks.  The K-free kernel `box-interchange f g : g ⊗₁ f ≈Term σ ∘ ((f ⊗₁
+-- g) ∘ σ)` is proven in `SwapStep.FrontSwap`; transporting it through the
+-- `fire-mid` bracketing and the four locating permutes is the Mac-Lane
+-- chase, isolated as `fire-mid-interchange` (the same posture as
+-- `Sub/SwapAtomAligned.swap-mac-lane-residual`).  Discharged by
 -- `Sub/FireMidInterchange.agda`.
 --------------------------------------------------------------------------------
 
@@ -209,28 +187,12 @@ module _ (H : Hypergraph FlatGen)
   -- ## Reachable-stack uniqueness, sourced from the `Linear`-backed
   -- reservoir invariant.
   --
-  -- `FireMidInterchange.fire-mid-interchange` now needs two `Unique`
-  -- witnesses (`Unique sp` and `Unique` of the e'-first run's final stack
-  -- `eout e ++ r₁'`) to discharge the eval-coincidence residuals
-  -- `coh-in`/`coh-out` via `eval-rigid`.  Both are instances of "every
-  -- stack reachable by `process-edges … H.dom` is `Unique`" — the
-  -- reservoir/freshness invariant of the decoder run
-  -- (`StackUniqueReach.pe-stack-Unique`), specialised to a mid-run order.
-  --
-  -- The reservoir over `H.dom` for an order `o` is the *bound* half of
-  -- `Linear H` (`proj₂ lin`) specialised to `o` — TRUE precisely when `o`
-  -- is duplicate-free (a permutation of `range nE`), which holds for every
-  -- order the downstream `swap-≈` consumes (all `↝*`-reachable from
-  -- `range nE`).  `StackUniqueReach.dom-reservoir-prov` PROVES the reservoir
-  -- from that `↭ range` provenance + the `Linear` bound, and
-  -- `reservoir-prefix` descends it to a PREFIX order; NO false-as-stated
-  -- `∀ o` reservoir postulate is used.  This (transitively) supplies the
-  -- two `Unique` witnesses `fire-mid-interchange` needs, so the two `≅↭`
-  -- eval-coincidence residuals `coh-in`/`coh-out` are THEOREMS.
-
-  -- Every stack reachable by running an order `o` from `H.dom` is `Unique`,
-  -- GIVEN the reservoir invariant for `o` (which is sourced from the
-  -- swap-site `↭ range` provenance, possibly via a prefix drop).
+  -- `fire-mid-interchange` needs `Unique` witnesses to discharge its
+  -- eval-coincidence residuals via `eval-rigid`.  These are instances of
+  -- "every stack reachable by `process-edges … H.dom` is `Unique`" — the
+  -- reservoir invariant of the decoder run, derived from the swap-site
+  -- `↭ range` provenance + the `Linear` bound (NO false-as-stated `∀ o`
+  -- reservoir postulate is used).
   reached-Unique-from
     : ∀ (o : Order) → SUR.Reservoir≤1 H o H.dom → Unique (pe-stack o H.dom)
   reached-Unique-from o inv =
@@ -348,35 +310,17 @@ module _ (H : Hypergraph FlatGen)
   ----------------------------------------------------------------------
   -- THE SINGLE RESIDUAL (M) — `fire-mid-interchange`.
   --
-  -- Both edges FIRE in both orders.  Unpacking the four `EdgeStepR`
-  -- fire-witnesses, the two runs (after `idˡ` strips the trailing `id`)
-  -- factor as composites of `fire-term`s.  The genuine content — the two
-  -- framed boxes `(Agen-edge ⊗ id)` on DISJOINT blocks commute via σ
-  -- (`box-interchange`), transported through the `fire-mid`/`box-of`/
-  -- `unflatten-++-≅`/`subst₂` bracketing and the locating permutes — is
-  -- isolated here, with the reshuffle bundled existentially.
+  -- BOTH-FIRE: the two framed boxes on DISJOINT blocks commute via σ
+  -- (`box-interchange`), transported through the `fire-mid` bracketing and
+  -- the locating permutes, with the reshuffle bundled existentially.  This
+  -- is the smallest true statement closing BOTH-FIRE: it mentions NEITHER
+  -- `cod` NOR the final permute, only the four unpacked fire witnesses.
+  -- TRUE because the two `Incomp` edges have DISJOINT wire blocks.
   --
-  -- This is the SMALLEST true statement closing BOTH-FIRE: it mentions
-  -- NEITHER `cod` NOR the final permute, only the four unpacked fire
-  -- witnesses and the two front runs.  It is the EXACT analogue of
-  --   * `Sub/SwapAtomAligned.swap-mac-lane-residual` (the whole two-edge
-  --     `ProcessEdges↭Goal` obligation, unpacked), and
-  --   * `Sub/StackEquivariance.fire-mid-equivariant` (a per-edge box
-  --     residual of the same disjoint-block / σ-naturality flavour).
-  -- TRUE because, the two edges being `Incomp` (DISJOINT wire blocks),
-  -- the boxes commute by the bifunctor/σ-naturality interchange axiom
-  -- `σ ∘ (f ⊗ g) ≈ (g ⊗ f) ∘ σ` (= `box-interchange`).
+  -- Discharged by `Sub/FireMidInterchange.agda`.  Carries the `Unique`
+  -- witnesses its eval-coincidence residuals need (supplied at the call site
+  -- from the `Linear`-backed reservoir invariant).
   ----------------------------------------------------------------------
-
-  -- Discharged by the standalone `Sub/FireMidInterchange.agda`, which proves
-  -- the σ-interchange + permute reconciliation around a single isolated
-  -- `block-nf` residual (the pure Mac-Lane block-normal-form
-  -- `unflatten-++-≅`/`subst₂` bracketing).
-  -- soundness: carries the two `Unique` witnesses `FMI.fire-mid-interchange`
-  -- needs (`Unique sp` and `Unique (eout e ++ r₁')`) — its eval-coincidence
-  -- residuals `coh-in`/`coh-out` are discharged by `eval-rigid` on those
-  -- `Unique` codomains.  Both are supplied at the call site below from the
-  -- `Linear`-backed reservoir invariant (`reached-Unique`).
   fire-mid-interchange
       : ∀ {e e' : Fin H.nE} (inc : Incomp e e')
           (sp : List (Fin H.nV))
@@ -397,35 +341,24 @@ module _ (H : Hypergraph FlatGen)
 
   ----------------------------------------------------------------------
   -- The EMPTY-TAIL interchange core.
-  ----------------------------------------------------------------------
-
-  ----------------------------------------------------------------------
-  -- The EMPTY-TAIL interchange core.
   --
-  -- The four-way firing split is performed by the helper `build`, whose
-  -- four `EdgeStepR` arguments carry FRESH index variables for the
-  -- post-edge stacks/terms; matching their `skipR`/`fireR` constructors
-  -- refines those variables to `id` / `fire-term` and to `s` /
-  -- `eout e ++ rest` respectively, with NO unification against the stuck
-  -- `edge-step` redex (this is the `Sub/StackEquivariance.edge-step-equivariant`
-  -- idiom that dodges the green-slime with-abstraction wall).  At the
-  -- call site the fresh indices specialise back to the `proj₁/proj₂
-  -- (edge-step …)` forms inside `pe-stack`/`pe-term`, so `build`'s output
-  -- has exactly the `RunInterchange` field types.
+  -- The four-way firing split is performed by `build`, whose four
+  -- `EdgeStepR` arguments carry FRESH index variables; matching their
+  -- `skipR`/`fireR` constructors refines those variables with NO unification
+  -- against the stuck `edge-step` redex (dodging the green-slime
+  -- with-abstraction wall).  At the call site the fresh indices specialise
+  -- back to the `pe-stack`/`pe-term` forms.
   ----------------------------------------------------------------------
 
-  -- `run-interchange₀` takes the EMPTY-TAIL swap-order reservoir
-  -- `Reservoir≤1 H (ps ++ e' ∷ e ∷ []) H.dom` (sourced upstream from the
-  -- full swap-order `↭ range` provenance via a prefix drop).  From it the
-  -- two `Unique` witnesses `fire-mid-interchange` needs are derived:
-  --   * `Unique (pe-stack ps H.dom)`              (prefix drop `e' ∷ e ∷ []`)
-  --   * `Unique (pe-stack (ps ++ e' ∷ e ∷ []) H.dom)`  (the reservoir itself)
+  -- `run-interchange₀` takes the swap-order reservoir; from it the `Unique`
+  -- witnesses `fire-mid-interchange` needs are derived (prefix drops + the
+  -- reservoir itself).
   run-interchange₀
     : ∀ (ps : Order) {e e' : Fin H.nE} (inc : Incomp e e')
     → SUR.Reservoir≤1 H (ps ++ e' ∷ e ∷ []) H.dom
     → RunInterchange ps [] inc
   run-interchange₀ ps {e} {e'} inc res with e ≟ e'
-  -- e ≡ e': the two orders are literally the same composition.
+  -- e ≡ e': the two orders are the same composition.
   ... | yes refl =
         record { reshuffle = Perm.refl ; run-eq = ≈-Term-sym idˡ }
   ... | no  e≢e' =
@@ -439,8 +372,7 @@ module _ (H : Hypergraph FlatGen)
       res-ps = SUR.reservoir-prefix H ps (e' ∷ e ∷ []) H.dom res
 
       -- Reservoir for the e'-first INTERMEDIATE order `ps ++ e' ∷ []`, by
-      -- dropping the suffix `e ∷ []` from the full swap order (a prefix drop,
-      -- after re-associating `(ps ++ e' ∷ []) ++ e ∷ [] ≡ ps ++ e' ∷ e ∷ []`).
+      -- dropping the suffix `e ∷ []` from the full swap order.
       res-e' : SUR.Reservoir≤1 H (ps ++ e' ∷ []) H.dom
       res-e' =
         SUR.reservoir-prefix H (ps ++ e' ∷ []) (e ∷ []) H.dom
@@ -448,10 +380,8 @@ module _ (H : Hypergraph FlatGen)
                  (sym (++-assoc ps (e' ∷ []) (e ∷ [])))
                  res)
 
-      -- Reservoir for the e-first INTERMEDIATE order `ps ++ e ∷ []`.  The
-      -- swap order `ps ++ e' ∷ e ∷ []` is multiset-equal to `ps ++ e ∷ e' ∷ []`
-      -- (swap the last two edges; `reservoir-resp-↭`), from which `e' ∷ []` is
-      -- dropped as a suffix (re-associate, then `reservoir-prefix`).
+      -- Reservoir for the e-first INTERMEDIATE order `ps ++ e ∷ []`.  Swap the
+      -- last two edges (`reservoir-resp-↭`), then drop `e' ∷ []` as a suffix.
       res-e : SUR.Reservoir≤1 H (ps ++ e ∷ []) H.dom
       res-e =
         SUR.reservoir-prefix H (ps ++ e ∷ []) (e' ∷ []) H.dom
@@ -471,22 +401,12 @@ module _ (H : Hypergraph FlatGen)
 
       --------------------------------------------------------------
       -- The abstract-index four-way build.  `we`/`we'` are the firing
-      -- witnesses of the `e ∷ e'` run (e from sp, e' from the post-e
-      -- stack `s1`); `ue`/`ue'` of the `e' ∷ e` run (e' from sp, e from
-      -- the post-e' stack `u1`).  The returned `Σ` is exactly
-      -- `run₂ ≈Term permute r ∘ run₁` with the trailing `id`s in place,
-      -- over the abstract stacks/terms.
+      -- witnesses of the `e ∷ e'` run; `ue`/`ue'` of the `e' ∷ e` run.  The
+      -- returned `Σ` is `run₂ ≈Term permute r ∘ run₁` with the trailing `id`s
+      -- in place, over the abstract stacks/terms.  The three `Unique`
+      -- arguments are used ONLY in the both-fire branch, supplying
+      -- `fire-mid-interchange`'s `us-mid`/`us-cod` witnesses.
       --------------------------------------------------------------
-      -- `us-u2 : Unique u2` — the e'-first run's FINAL-stack uniqueness,
-      -- used ONLY in the both-fire branch (where it refines to
-      -- `Unique (eout e ++ r₁')`) to supply `fire-mid-interchange`'s
-      -- `coh-out` `Unique`-codomain witness.  Supplied at the `Σr` call
-      -- from `reached-Unique`.
-      -- `us-s1 : Unique s1` / `us-u1 : Unique u1` — the e-first / e'-first
-      -- INTERMEDIATE-stack uniqueness, used ONLY in the both-fire branch
-      -- (where they refine to `Unique (eout e ++ r₁)` / `Unique (eout e' ++ r₂')`)
-      -- to supply `fire-mid-interchange`'s two `us-mid` `q-second`-codomain
-      -- witnesses.  Supplied at the `Σr` call from `reached-Unique`.
       build
         : ∀ {s1 t1} (we  : EdgeStepR H sp e  s1 t1)
             {s2 t2} (we' : EdgeStepR H s1 e' s2 t2)
@@ -500,83 +420,69 @@ module _ (H : Hypergraph FlatGen)
       ------------------------------------------------------------
       -- (1) e SKIPS sp.
       ------------------------------------------------------------
-      -- BOTH-SKIP: t1=id,t2=id,v1=id,w2=id; s2=sp=u2; reshuffle refl.
+      -- BOTH-SKIP.
       build (skipR eqe) (skipR eqe') (skipR _) (skipR _) _ _ _ =
         Perm.refl , ≈-Term-sym idˡ
-      -- e skips sp, e' skips sp (e-run), but the e'-run FIRES e' from sp:
-      -- contradiction (`we'` says e' skips sp; `ue` says e' fires sp).
+      -- impossible: `we'` says e' skips sp, `ue` says e' fires sp.
       build (skipR eqe) (skipR eqe') (fireR ur₂' up₂' ueqe') _ _ _ _ =
         ⊥-elim (nothing≢just (trans (sym eqe') ueqe'))
-      -- e skips sp, e' skips sp, e' skips sp (e'-run ⇒ u1 = sp), but the
-      -- e'-run FIRES e from sp: contradiction (`eqe` says e skips sp).
+      -- impossible: `eqe` says e skips sp, `ueqe1` says e fires sp.
       build (skipR eqe) (skipR eqe') (skipR ueqe') (fireR ur₁ up₁ ueqe1) _ _ _ =
         ⊥-elim (nothing≢just (trans (sym eqe) ueqe1))
-      -- e skips sp but e' (after e skip ⇒ from sp) fires, yet the e'-run
-      -- has e' SKIP from sp: contradiction (e' fires sp here, skips there).
+      -- impossible: e' fires sp here, skips there.
       build (skipR eqe) (fireR r₂' p₂' eqe') (skipR eqe'-bad) _ _ _ _ =
         ⊥-elim (nothing≢just (trans (sym eqe'-bad) eqe'))
-      -- e skips sp, e' fires sp; the e'-run fires e' (residual r₂') then
-      -- decides e on the post-e' stack `eout e' ++ r₂'`.
+      -- impossible: e skips sp, so by stability e skips the post-e' stack.
       build (skipR eqe) (fireR r₂' p₂' eqe') (fireR ur₂' up₂' ueqe')
             (fireR r₁' p₁' eqe1) _ _ _ =
-        -- e fires the post-e' stack — IMPOSSIBLE (e skips sp; stability).
         ⊥-elim (nothing≢just
           (trans (sym (e'-skips-stable (λ eq → e≢e' (sym eq)) ¬dep-e'e
                          ur₂' sp up₂' eqe)) eqe1))
+      -- single layer `fire-term e' sp`, once (ur₂',up₂') ≡ (r₂',p₂').
       build (skipR eqe) (fireR r₂' p₂' eqe') (fireR ur₂' up₂' ueqe')
             (skipR eqe1) _ _ _ =
-        -- run₁ ≡ (id ∘ fire-term e' sp …) ∘ id ; run₂ ≡ (id ∘ id) ∘ fire-term e' sp …
-        -- The two `fire-term e' sp` agree once (ur₂',up₂') ≡ (r₂',p₂').
         pin (just-inj (trans (sym ueqe') eqe'))
         where
           pin : (ur₂' , up₂') ≡ (r₂' , p₂') → _
           pin refl =
             Perm.refl ,
             ≈-Term-trans
-              (∘-resp-≈ idˡ ≈-Term-refl)   -- (id∘id)∘F ≈ id∘F
-              (≈-Term-trans idˡ            -- id∘F ≈ F
+              (∘-resp-≈ idˡ ≈-Term-refl)
+              (≈-Term-trans idˡ
                 (≈-Term-sym
-                  (≈-Term-trans idˡ        -- id∘run₁ ≈ run₁
+                  (≈-Term-trans idˡ
                     (≈-Term-trans (∘-resp-≈ idˡ ≈-Term-refl) idʳ))))
-                    -- run₁ = (id∘F)∘id ≈ F∘id ≈ F
 
       ------------------------------------------------------------
       -- (2) e FIRES sp (residual r₁).
       ------------------------------------------------------------
-      -- e' skips the post-e stack; the e'-run has e' fire from sp:
-      -- IMPOSSIBLE by stability (e' fires sp ⇒ e' fires post-e).
+      -- impossible by stability: e' fires sp ⇒ e' fires post-e.
       build (fireR r₁ p₁ eqe) (skipR eqe2) (fireR ur₂' up₂' ueqe') _ _ _ _ =
         ⊥-elim (nothing≢just
           (trans (sym eqe2)
             (proj₂ (proj₂ (e'-fires-stable e≢e' ¬dep-ee' r₁ sp p₁ ueqe')))))
-      -- e fires sp, e' skips post-e, e' also skips sp; the e'-run then
-      -- fires e from sp (residual ur₁ ≡ r₁).
+      -- impossible: e skips sp in the e'-run, contradicts `eqe`.
       build (fireR r₁ p₁ eqe) (skipR eqe2) (skipR eqe'n) (skipR eqe-bad) _ _ _ =
-        -- e skips sp in the e'-run — contradicts `eqe`.
         ⊥-elim (nothing≢just (trans (sym eqe-bad) eqe))
+      -- single layer `fire-term e sp`, once (ur₁,up₁) ≡ (r₁,p₁).
       build (fireR r₁ p₁ eqe) (skipR eqe2) (skipR eqe'n)
             (fireR ur₁ up₁ ueqe) _ _ _ =
-        -- run₁ ≡ (id ∘ id) ∘ fire-term e sp r₁ p₁
-        -- run₂ ≡ (id ∘ fire-term e sp ur₁ up₁) ∘ id, (ur₁,up₁) ≡ (r₁,p₁).
         pin (just-inj (trans (sym ueqe) eqe))
         where
           pin : (ur₁ , up₁) ≡ (r₁ , p₁) → _
           pin refl =
             Perm.refl ,
             ≈-Term-trans
-              (∘-resp-≈ idˡ ≈-Term-refl)   -- (id∘F)∘id ≈ F∘id
-              (≈-Term-trans idʳ            -- F∘id ≈ F
+              (∘-resp-≈ idˡ ≈-Term-refl)
+              (≈-Term-trans idʳ
                 (≈-Term-sym
-                  (≈-Term-trans idˡ        -- id∘run₁ ≈ run₁
+                  (≈-Term-trans idˡ
                     (≈-Term-trans (∘-resp-≈ idˡ ≈-Term-refl) idˡ))))
-                    -- run₁ = (id∘id)∘F ≈ id∘F ≈ F
-      -- e fires sp, e' fires post-e; the e'-run has e' skip sp:
-      -- IMPOSSIBLE by stability (e' fires post-e ⇒ e' fires sp).
+      -- impossible by stability: e' fires post-e ⇒ e' fires sp.
       build (fireR r₁ p₁ eqe) (fireR r₂ p₂ eqe2) (skipR eqe'n) _ _ _ _ =
         ⊥-elim (nothing≢just
           (trans (sym (e'-skips-stable e≢e' ¬dep-ee' r₁ sp p₁ eqe'n)) eqe2))
-      -- e fires sp, e' fires post-e, e' fires sp, but e SKIPS post-e':
-      -- IMPOSSIBLE by stability (e fires sp ⇒ e fires post-e').
+      -- impossible by stability: e fires sp ⇒ e fires post-e'.
       build (fireR r₁ p₁ eqe) (fireR r₂ p₂ eqe2) (fireR r₂' p₂' eqe')
             (skipR eqe1) _ _ _ =
         ⊥-elim (nothing≢just
@@ -588,22 +494,12 @@ module _ (H : Hypergraph FlatGen)
       build (fireR r₁ p₁ eqe) (fireR r₂ p₂ eqe2) (fireR r₂' p₂' eqe')
             (fireR r₁' p₁' eqe1) us-s1 us-u1 us-u2 =
         r ,
-        -- run₂ = (id ∘ uH') ∘ uH
-        --      ≈ uH' ∘ uH                              [idˡ]
-        --      ≈ permute r ∘ (tH' ∘ tH)                [box-eq]
-        --      ≈ permute r ∘ ((id ∘ tH') ∘ tH)         [≈-sym idˡ inside]
-        --      = permute r ∘ run₁.
         ≈-Term-trans
           (∘-resp-≈ idˡ ≈-Term-refl)
           (≈-Term-trans box-eq
             (∘-resp-≈ ≈-Term-refl
               (∘-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl)))
         where
-          -- The two INTERMEDIATE-stack `Unique`s `fire-mid-interchange` now
-          -- needs: `us-mid₁ = Unique (eout e ++ r₁)` is the e-first
-          -- intermediate `s1` (`we = fireR r₁ p₁ eqe`'s post-stack);
-          -- `us-mid₂ = Unique (eout e' ++ r₂')` is the e'-first intermediate
-          -- `u1` (`ue = fireR r₂' p₂' eqe'`'s post-stack).
           RI = fire-mid-interchange inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
                  (reached-Unique-from ps res-ps) us-s1 us-u1 us-u2
           r  = proj₁ RI
@@ -615,11 +511,9 @@ module _ (H : Hypergraph FlatGen)
                             ∘ fire-term H e sp r₁ p₁ )
           box-eq = proj₂ RI
 
-      --------------------------------------------------------------
-      -- Assemble the record by feeding the four `edge-step-graph`
-      -- witnesses; their indices specialise `build`'s fresh variables
-      -- to the `proj₁/proj₂ (edge-step …)` forms of `pe-stack`/`pe-term`.
-      --------------------------------------------------------------
+      -- Assemble the record by feeding the four `edge-step-graph` witnesses;
+      -- their indices specialise `build`'s fresh variables to the
+      -- `pe-stack`/`pe-term` forms.
       Σr : Σ[ r ∈ pe-stack (e ∷ e' ∷ []) sp Perm.↭ pe-stack (e' ∷ e ∷ []) sp ]
              pe-term (e' ∷ e ∷ []) sp
              ≈Term permute-via-vlab H.vlab r ∘ pe-term (e ∷ e' ∷ []) sp
@@ -627,17 +521,12 @@ module _ (H : Hypergraph FlatGen)
                  (edge-step-graph H (proj₁ (edge-step H sp e)) e')
                  (edge-step-graph H sp e')
                  (edge-step-graph H (proj₁ (edge-step H sp e')) e)
-                 -- `s1 = pe-stack (e ∷ []) sp` (definitionally `proj₁ (edge-step
-                 -- H sp e)`); its uniqueness is `reached-Unique` of the e-first
-                 -- intermediate order `ps ++ e ∷ []`, transported across `++-stack`.
+                 -- `Unique s1` (e-first intermediate `ps ++ e ∷ []`).
                  (subst Unique (++-stack ps (e ∷ []) H.dom)
                         (reached-Unique-from (ps ++ e ∷ []) res-e))
-                 -- `u1 = pe-stack (e' ∷ []) sp` — the e'-first intermediate;
-                 -- `reached-Unique` of `ps ++ e' ∷ []`, transported across `++-stack`.
+                 -- `Unique u1` (e'-first intermediate `ps ++ e' ∷ []`).
                  (subst Unique (++-stack ps (e' ∷ []) H.dom)
                         (reached-Unique-from (ps ++ e' ∷ []) res-e'))
-                 -- `u2 = pe-stack (e' ∷ e ∷ []) sp` (definitionally); its
-                 -- uniqueness is `reached-Unique` of the combined order
-                 -- `ps ++ e' ∷ e ∷ []`, transported across `++-stack`.
+                 -- `Unique u2` (the combined order `ps ++ e' ∷ e ∷ []`).
                  (subst Unique (++-stack ps (e' ∷ e ∷ []) H.dom)
                         (reached-Unique-from (ps ++ e' ∷ e ∷ []) res))

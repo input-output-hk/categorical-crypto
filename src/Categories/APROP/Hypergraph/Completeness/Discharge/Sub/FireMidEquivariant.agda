@@ -13,35 +13,22 @@
 --             ∘ ( fire-mid H e restH
 --                 ∘ permute-via-vlab vlab (++⁺ˡ (ein e) (↭-sym μ)) )
 --
--- for `μ : restH ↭ restH'`.  This is the `--without-K` analogue of the
--- box-naturality content (no firing data, no `cod`).  FULLY PROVEN here,
--- postulate-free.
+-- for `μ : restH ↭ restH'`.  The box-naturality content (no firing data,
+-- no `cod`).
 --
 -- ## Proof architecture
 --
---   1. `permute-++⁺ˡ-slide` — the CRUX helper: a `++⁺ˡ`-extended permutation
---      slides through `unflatten-++-≅` as `id ⊗₁ permute` on the suffix
---      block.  Pure coherence: list-induction; base case = unitor naturality
---      (`λ⇐-naturality`), cons case = associator naturality
---      (`α-comm` + `id⊗id≈id` + `α⇒∘α⇐≈id`).
---
---   2. `box-of-equivariant` — the generic (`List X`-level) statement.  The
---      input/output residual permutes are slid by (1); the two iso pairs
---      `from ∘ to ≈ id` cancel; the central
---      `(id⊗permute μ) ∘ (G⊗id) ∘ (id⊗permute (↭-sym μ))` collapses to
---      `G⊗id` by the bifunctor interchange `⊗-∘-dist` plus the self-loop
---      inverse `permute μ ∘ permute (↭-sym μ) ≈ id` (`permute-inv-right`,
---      via the Kelly residual `K : FaithfulnessResidual`).
---
---   3. Final assembly — transport `box-of-equivariant` (with `f = H.vlab`)
---      along the `map-++` substs to the `fire-mid` form, distributing the
---      `subst₂` over the two `∘` (`subst₂-∘-distrib`) and reconciling the
---      `permute-via-vlab (++⁺ˡ …)` factors with the `map f`-block-extended
---      permutes (`pvv-++⁺ˡ-out` / `pvv-++⁺ˡ-in`, built from the bridges
---      `map⁺-++⁺ˡ`, `map⁺-↭-sym`, `permute-subst₂`).
---
--- Splices into `StackEquivariance` (same `module _ (H)(K)` posture) as
---   `fire-mid-equivariant = FME.fire-mid-equivariant H K …`.
+--   1. `permute-++⁺ˡ-slide` — the CRUX: a `++⁺ˡ`-extended permutation slides
+--      through `unflatten-++-≅` as `id ⊗₁ permute` on the suffix block.
+--      List-induction; base = unitor naturality, cons = associator naturality.
+--   2. `box-of-equivariant` — the generic statement.  The residual permutes
+--      are slid by (1); the iso pairs `from ∘ to ≈ id` cancel; the central
+--      `(id⊗permute μ) ∘ (G⊗id) ∘ (id⊗permute (↭-sym μ))` collapses to `G⊗id`
+--      by bifunctor interchange + the self-loop inverse `permute-inv-right`
+--      (via the Kelly residual `K`).
+--   3. Final assembly — transport (2) (with `f = H.vlab`) along the `map-++`
+--      substs to the `fire-mid` form, distributing the `subst₂` over the two
+--      `∘` and reconciling the `permute-via-vlab (++⁺ˡ …)` factors.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -135,7 +122,6 @@ map⁺-++⁺ˡ f (x ∷ xs) {ys} {zs} μ =
   trans (cong (Perm.prep _) (map⁺-++⁺ˡ f xs {ys} {zs} μ))
   (trans (prep-subst₂ (f x) (sym (map-++ f xs ys)) (sym (map-++ f xs zs))
                       (PermProp.++⁺ˡ (map f xs) (PermProp.map⁺ f μ)))
-         -- rewrite the two `cong (f x ∷_) (sym …)` substs to `sym (map-++ (x∷xs) …)`.
          (cong₂ (λ p q → subst₂ Perm._↭_ p q
                            (PermProp.++⁺ˡ (f x ∷ map f xs) (PermProp.map⁺ f μ)))
                 (sym (sym-cong (map-++ f xs ys)))
@@ -149,7 +135,6 @@ open import Categories.Category using (Category)
 private module FM = Category FreeMonoidal
 open FM.HomReasoning
 
--- λ⇐-naturality (copied idiom from DecodeRoundtrip).
 λ⇐-naturality
   : ∀ {A B} (f : HomTerm A B) → λ⇐ {B} ∘ f ≈Term id ⊗₁ f ∘ λ⇐ {A}
 λ⇐-naturality f = begin
@@ -191,11 +176,9 @@ permute-++⁺ˡ-slide [] {as} {bs} ν = begin
     ≈⟨ FM.assoc ⟩
   λ⇒ ∘ (id ⊗₁ permute ν) ∘ λ⇐ ∎
 permute-++⁺ˡ-slide (w ∷ ws) {as} {bs} ν = begin
-  -- LHS: permute (prep w (++⁺ˡ ws ν)) = id ⊗₁ permute (++⁺ˡ ws ν)
   id ⊗₁ permute (PermProp.++⁺ˡ ws ν)
     ≈⟨ ⊗-resp-≈ ≈-Term-refl (permute-++⁺ˡ-slide ws ν) ⟩
   id ⊗₁ (toW' ∘ (id ⊗₁ permute ν) ∘ fromW')
-    -- split id ⊗₁ (g ∘ h) into (id ⊗₁ g) ∘ (id ⊗₁ h), twice
     ≈⟨ ⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl ⟩
   (id ∘ id) ⊗₁ (toW' ∘ (id ⊗₁ permute ν) ∘ fromW')
     ≈⟨ ⊗-∘-dist ⟩
@@ -204,17 +187,14 @@ permute-++⁺ˡ-slide (w ∷ ws) {as} {bs} ν = begin
   (id ⊗₁ toW') ∘ ((id ∘ id) ⊗₁ ((id ⊗₁ permute ν) ∘ fromW'))
     ≈⟨ refl⟩∘⟨ ⊗-∘-dist ⟩
   (id ⊗₁ toW') ∘ (id ⊗₁ (id ⊗₁ permute ν)) ∘ (id ⊗₁ fromW')
-    -- replace id ⊗₁ (id ⊗₁ permute ν) by α⇒ ∘ (id ⊗₁ permute ν) ∘ α⇐
     ≈⟨ refl⟩∘⟨ mid-assoc ⟩∘⟨refl ⟩
   (id ⊗₁ toW') ∘ (α⇒ ∘ (id ⊗₁ permute ν) ∘ α⇐) ∘ (id ⊗₁ fromW')
-    -- regroup to ((id ⊗₁ toW') ∘ α⇒) ∘ (id ⊗₁ permute ν) ∘ (α⇐ ∘ (id ⊗₁ fromW'))
     ≈⟨ reassoc ⟩
   ((id ⊗₁ toW') ∘ α⇒) ∘ (id ⊗₁ permute ν) ∘ (α⇐ ∘ (id ⊗₁ fromW')) ∎
   where
     toW'   = _≅_.to   (unflatten-++-≅ ws bs)
     fromW' = _≅_.from (unflatten-++-≅ ws as)
 
-    -- id ⊗₁ (id ⊗₁ permute ν) ≈ α⇒ ∘ (id ⊗₁ permute ν) ∘ α⇐
     mid-assoc
       : id ⊗₁ (id ⊗₁ permute ν)
         ≈Term α⇒ ∘ (id ⊗₁ permute ν) ∘ α⇐
@@ -250,7 +230,7 @@ permute-++⁺ˡ-slide (w ∷ ws) {as} {bs} ν = begin
 
 module _ (K : FaithfulnessResidual) where
 
-  -- permute ν ∘ permute (↭-sym ν) ≈Term id  (a self-loop, eval = id-fb).
+  -- permute ν ∘ permute (↭-sym ν) ≈Term id (a self-loop, eval = id-fb).
   permute-inv-right
     : ∀ {xs ys : List X} (ν : xs Perm.↭ ys)
     → permute ν ∘ permute (Perm.↭-sym ν) ≈Term id
@@ -263,7 +243,6 @@ module _ (K : FaithfulnessResidual) where
       sym-ev : eval-↭ (Perm.↭-sym ν) ≈-fb inv-fb ev
       sym-ev = eval-↭-sym ν
 
-      -- eval (trans (↭-sym ν) ν) = ev ∘-fb eval(↭-sym ν); pointwise = id.
       self-loop-id : eval-↭ (Perm.trans (Perm.↭-sym ν) ν) ≈-fb id-fb
       self-loop-id i =
         trans (cong (ev P.⟨$⟩ʳ_) (sym-ev i)) (P.inverseʳ ev)
@@ -279,7 +258,6 @@ module _ (K : FaithfulnessResidual) where
               ∘ ( box-of einL eoutL restL g
                   ∘ permute (PermProp.++⁺ˡ einL (Perm.↭-sym ν)) )
   box-of-equivariant einL eoutL {restL} {restL'} g ν = begin
-    -- LHS = box-of einL eoutL restL' g = to(eoutL,restL') ∘ (G ⊗₁ id) ∘ from(einL,restL')
     box-of einL eoutL restL' g
       ≈⟨ refl⟩∘⟨ (≈-Term-sym middle ⟩∘⟨refl) ⟩
     to-eo' ∘ (((id ⊗₁ permute ν) ∘ (G ⊗₁ id)) ∘ (id ⊗₁ permute (Perm.↭-sym ν))) ∘ from-ei'
@@ -312,8 +290,7 @@ module _ (K : FaithfulnessResidual) where
           ≈⟨ ⊗-resp-≈ idʳ (permute-inv-right ν) ⟩
         G ⊗₁ id ∎
 
-      -- Expand the three permutes in the RHS via the slide helper, then
-      -- cancel the two iso pairs `from ∘ to ≈ id`, collapsing to the LHS form.
+      -- Expand the three permutes via the slide helper, cancel the iso pairs.
       rhs-collapse
         : permute (PermProp.++⁺ˡ eoutL ν)
             ∘ (box-of einL eoutL restL g
@@ -355,7 +332,6 @@ module _ (K : FaithfulnessResidual) where
                   ≈Term ((P ∘ Q) ∘ R) ∘ from-ei'
               inner = begin
                 (P ∘ from-eo) ∘ ((to-eo ∘ Q ∘ from-ei) ∘ (to-ei ∘ R ∘ from-ei'))
-                  -- regroup: P ∘ (from-eo ∘ to-eo) ∘ Q ∘ (from-ei ∘ to-ei) ∘ R ∘ from-ei'
                   ≈⟨ FM.assoc ⟩
                 P ∘ from-eo ∘ ((to-eo ∘ Q ∘ from-ei) ∘ (to-ei ∘ R ∘ from-ei'))
                   ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
@@ -374,7 +350,6 @@ module _ (K : FaithfulnessResidual) where
                 P ∘ Q ∘ (id ∘ R ∘ from-ei')
                   ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
                 P ∘ Q ∘ (R ∘ from-ei')
-                  -- now reassociate to ((P ∘ Q) ∘ R) ∘ from-ei'
                   ≈⟨ FM.sym-assoc ⟩
                 (P ∘ Q) ∘ (R ∘ from-ei')
                   ≈⟨ FM.sym-assoc ⟩
@@ -387,10 +362,7 @@ module _ (K : FaithfulnessResidual) where
 module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
   private module H = Hypergraph H
 
-  -- The output-side permute reconciliation:
-  --   permute-via-vlab vlab (++⁺ˡ eout μ)
-  --     = subst₂ (map-++ eout restH)(map-++ eout restH')
-  --              (permute (++⁺ˡ (map vlab eout) (map⁺ vlab μ)))
+  -- The output-side permute reconciliation.
   pvv-++⁺ˡ-out
     : ∀ (eout : List (Fin H.nV)) {restH restH' : List (Fin H.nV)}
         (μ : restH Perm.↭ restH')
@@ -441,7 +413,7 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
       f    = H.vlab
 
       -- boundary `map-++` paths.
-      aein'  = sym (map-++ f ein  restH')   -- f ein ++ f restH' ≡ f (ein ++ restH')
+      aein'  = sym (map-++ f ein  restH')
       aeout' = sym (map-++ f eout restH')
       aein   = sym (map-++ f ein  restH)
       aeout  = sym (map-++ f eout restH)
@@ -452,15 +424,13 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
       νf : map f restH Perm.↭ map f restH'
       νf = PermProp.map⁺ f μ
 
-      -- RHS of box-of-equivariant (at f-level lists).
       out-p  = permute (PermProp.++⁺ˡ (map f eout) νf)
       in-p   = permute (PermProp.++⁺ˡ (map f ein) (Perm.↭-sym νf))
 
-      -- box-of-equivariant transported by subst₂ aein' aeout'.
       beq : box' ≈Term out-p ∘ (boxr ∘ in-p)
       beq = box-of-equivariant K (map f ein) (map f eout) (H.elab e) νf
 
-      -- LHS: fire-mid H e restH' = subst₂ aein' aeout' box'.
+      -- fire-mid H e restH' = subst₂ aein' aeout' box'.
       lhs-eq : fire-mid H e restH'
                ≡ subst₂ HomTerm (cong unflatten aein') (cong unflatten aeout') box'
       lhs-eq = refl
@@ -474,25 +444,22 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
         ≈-Term-trans
           (≡⇒≈Term lhs-eq)
           (≈-Term-trans
-            -- subst₂ respects ≈Term: transport beq
             (subst₂-resp-≈ (cong unflatten aein') (cong unflatten aeout') beq)
-            -- now: subst₂ aein' aeout' (out-p ∘ (boxr ∘ in-p)) ≈ RHS
             (≈-Term-trans
               (≡⇒≈Term
                 (subst₂-∘-distrib aein' aeout aeout' out-p (boxr ∘ in-p)))
               (∘-resp-≈
-                -- outer: subst₂ aeout aeout' out-p ≡ permute-via-vlab (++⁺ˡ eout μ)
+                -- outer ≡ permute-via-vlab (++⁺ˡ eout μ)
                 (≡⇒≈Term (sym (pvv-++⁺ˡ-out eout μ)))
                 (≈-Term-trans
                   (≡⇒≈Term
                     (subst₂-∘-distrib aein' aein aeout boxr in-p))
                   (∘-resp-≈
-                    -- middle: subst₂ aein aeout boxr ≡ fire-mid H e restH
+                    -- middle ≡ fire-mid H e restH
                     (≡⇒≈Term refl)
-                    -- inner: subst₂ aein' aein in-p ≡ permute-via-vlab (++⁺ˡ ein (↭-sym μ))
-                    (≡⇒≈Term (sym (pvv-++⁺ˡ-in ein μ)))))))) 
+                    -- inner ≡ permute-via-vlab (++⁺ˡ ein (↭-sym μ))
+                    (≡⇒≈Term (sym (pvv-++⁺ˡ-in ein μ))))))))
         where
-          -- subst₂ HomTerm respects ≈Term.
           subst₂-resp-≈
             : ∀ {A A' B B' : ObjTerm} (p : A ≡ A') (q : B ≡ B')
                 {u v : HomTerm A B}

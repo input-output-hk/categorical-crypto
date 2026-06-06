@@ -1,23 +1,17 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Phase 4a.2: Interface seeding (TensorRocq §4.2).
+-- Interface seeding.
 --
--- Given `H, J : Hypergraph FlatGen`, seed a partial vertex
--- bijection `φ₀` from the interfaces by pointwise pairing
--- `H.dom ↔ J.dom` and `H.cod ↔ J.cod`. This pins the boundary
--- of the isomorphism before any edge matching begins.
+-- Seed a partial vertex bijection from the interfaces by pointwise pairing
+-- `H.dom ↔ J.dom` and `H.cod ↔ J.cod`, pinning the boundary of the
+-- isomorphism before edge matching begins.
 --
--- Returns `nothing` when interfaces have inconsistent length
--- (never happens if the hypergraphs share `As, Bs`) or when
--- a paired vertex's `vlab` disagrees between H and J, which is a
--- genuine isomorphism obstruction the search cannot recover from.
---
--- The vertex-label preservation check is done *optionally* here —
--- strictly it follows from the boundaries agreeing with `As / Bs`
--- (via `dom-ok / cod-ok`), but running it early gives a cheap
--- failure path for malformed inputs and simplifies the
--- label-preservation invariant maintenance in `Match.agda`.
+-- Returns `nothing` when interfaces have inconsistent length, or when a
+-- paired vertex's `vlab` disagrees between H and J (a genuine iso
+-- obstruction).  The vertex-label check is done *optionally* here — it
+-- strictly follows from the boundaries, but running it early gives a cheap
+-- failure path and simplifies the label-preservation invariant in `Match`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
@@ -38,10 +32,9 @@ open import Data.Unit.Base using (⊤; tt)
 open import Relation.Nullary using (yes; no)
 
 --------------------------------------------------------------------------------
--- Optional vertex-label consistency check over a forward partial
--- map. Walks `Fin H.nV`; at each position `i` bound to some `j`,
--- verifies `J.vlab j ≡ H.vlab i`. Unbound positions are left for the
--- edge-matching phase to resolve.
+-- Optional vertex-label consistency check over a forward partial map.
+-- Walks `Fin H.nV`; at each position `i` bound to some `j`, verifies
+-- `J.vlab j ≡ H.vlab i`.  Unbound positions are left for edge-matching.
 
 check-vlab
   : ∀
@@ -50,10 +43,8 @@ check-vlab
   → Maybe ⊤
 check-vlab H J p = go (Hypergraph.nV H) λ i → i
   where
-    -- `count` tracks how many positions are left to examine;
-    -- `inj` injects a `Fin count` back into `Fin H.nV`. Each
-    -- recursive call shrinks `count` and post-composes `inj` with
-    -- `suc` to skip the head.
+    -- `count` = positions left to examine; `inj` injects `Fin count` back
+    -- into `Fin H.nV`, post-composed with `suc` each step to skip the head.
     go : (count : ℕ) → (Fin count → Fin (Hypergraph.nV H)) → Maybe ⊤
     go zero      _   = just tt
     go (suc n) inj = step (p (inj zero))

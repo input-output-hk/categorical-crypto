@@ -3,37 +3,30 @@
 --------------------------------------------------------------------------------
 -- The σ-collapse of `agenSigmaResiduals`: `decode-σ-collapse`.
 --
--- Target (= `DecodeRoundtrip.decode-roundtrip-σ`,
---          = `DecodeRoundtripAgenSigma.Residuals.decode-σ-collapse`):
+-- Target (= `DecodeRoundtripAgenSigma.Residuals.decode-σ-collapse`):
 --
 --   ∀ {A B} ⦃ s : Symm ≤ Symm ⦄
 --     → decode (σ {A = A} {B = B}) ≈Term bridge (σ {A = A} {B = B})
 --
--- where `σ` is the symmetric-braiding generator (EDGE-FREE, nE = 0), so the
--- algorithm output `decode (σ {A}{B})` reduces to a single `permute-via-vlab`
--- of the canonical append-commutativity permutation `(L ++ R) ↭ (R ++ L)`,
+-- where `σ` is the symmetric-braiding generator (EDGE-FREE, nE = 0), so
+-- `decode (σ {A}{B})` reduces to a single `permute-via-vlab` of the
+-- canonical append-commutativity permutation `(L ++ R) ↭ (R ++ L)`,
 -- composed with `id`.
 --
--- Proof chain (the recipe):
---   1. `decode-attempt-shape`-clone: expose
---        `proj₁ (decode-attempt-Linear σ) ≡ pvl-c perm-shape ∘ id`
---      (sig-level; cloned because `LinearExtracts` is `sig-dec`-parameterised).
+-- Proof chain:
+--   1. expose `proj₁ (decode-attempt-Linear σ) ≡ pvl-c perm-shape ∘ id`.
 --   2. KEYSTONE `permute-via-vlab-≈Term-coherence-K`: any two `↭`'s with the
 --      same `Unique` codomain give equal `pvl`, so `pvl-c perm-shape ≈
 --      pvl-c (++-comm L R)`.
 --   3. `BNV.σ-block-comm` (reversed): `pvl (++-comm L R) ≈ to(uf++ R L) ∘ σ
---      ∘ from(uf++ L R)` (block braiding, `Aof L = unflatten (map vlab-c L)`).
+--      ∘ from(uf++ L R)` (block braiding).
 --   4. Frame reconciliation: the BNV `uf++`/`Aof` frames are reconciled with
---      `bridge σ`'s `unflatten-flatten-≈ (A ⊗₀ B)` frames using
---      `lem-L : map vlab-c L ≡ flatten A`, `lem-R`, the boundary `subst₂`
---      peeling under `objUIP`, and the one-box braiding-naturality
+--      `bridge σ`'s `unflatten-flatten-≈ (A ⊗₀ B)` frames via `lem-L`/`lem-R`,
+--      boundary `subst₂` peeling under `objUIP`, and braiding-naturality
 --      `σ∘[f⊗g]≈[g⊗f]∘σ`.
 --
--- Parameterised by `objUIP` + `K : FaithfulnessResidual` (the two K-inputs
--- the rest of the completeness chain threads), exactly like
+-- Parameterised by `objUIP` + `K : FaithfulnessResidual`, as in
 -- `Sub/DecodeComposeShape.agda` / `Sub/DecodeTensorShape.agda`.
---
--- NO false-as-stated postulate.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -66,21 +59,17 @@ open import Categories.APROP.Hypergraph.Completeness.Permute sig
 open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
   using (decode; bridge; decode-attempt-Linear; decode-attempt-hId)
 
--- The PROVEN ⊗-shape residual (parameterised by `objUIP` + `K`), reused to
--- build `decode-id-is-id` for compound objects.  No new trust: it is the
--- SAME shape lemma the completeness chain already threads.
+-- The ⊗-shape residual (parameterised by `objUIP` + `K`), reused to build
+-- `decode-id-is-id` for compound objects.
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig as DTS
 
--- The constructive (`--safe --with-K`) Mac-Lane list machinery for the
--- associator collapse: `α⇒-form-list`, its `++-assoc`-transport `coh`
--- characterisations, `bridge-id-is-id`, and the `subst₂-refl-{cod,dom}`
--- bridges relating a one-sided `subst₂` to a `subst`.
+-- Mac-Lane list machinery for the associator collapse.
 open import Categories.APROP.Hypergraph.Completeness.DecodeRoundtripSafe sig
   using ( α⇒-form-list; α⇐-form-list; α⇒-coh-list; α⇐-coh-list
         ; α⇒-α⇐-iso; bridge-∘; bridge-id-is-id
         ; subst₂-refl-cod; subst₂-refl-dom )
--- The constructive (`--safe --with-K`, postulate-free) well-founded worker
--- proving `bridge (α⇒ {A}{B}{C}) ≈Term α⇒-form-list …` for EVERY object `A`.
+-- The well-founded worker proving `bridge (α⇒ {A}{B}{C}) ≈Term α⇒-form-list
+-- …` for EVERY object `A`.
 import Categories.APROP.Hypergraph.Completeness.Discharge.BridgeAlphaFormCompound sig as BAFC
 
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.PermuteCoherenceK
@@ -136,9 +125,7 @@ private
       ∘ (σ {unflatten l} {unflatten r})
       ∘ _≅_.from (unflatten-++-≅ l r)
 
-  -- `bframe` is `subst₂`-natural in its two block-lists: along `pl : l ≡ l'`,
-  -- `pr : r ≡ r'` it transports by `cong unflatten (cong₂ _++_ pl pr)` (dom)
-  -- and `cong unflatten (cong₂ _++_ pr pl)` (cod).  Pure `refl`-match.
+  -- `bframe` is `subst₂`-natural in its two block-lists.
   bframe-subst₂
     : ∀ {l l' r r' : List X} (pl : l ≡ l') (pr : r ≡ r')
     → subst₂ HomTerm (cong unflatten (cong₂ _++_ pl pr))
@@ -149,8 +136,7 @@ private
 
   -- Pull a codomain-`subst₂` on the outer-left factor and a domain-`subst₂`
   -- on the inner-rightmost factor of a right-associated triple composite out
-  -- to a single boundary `subst₂` (the middle stays at fixed objects).  Pure
-  -- `refl`-match on `p`, `q`.
+  -- to a single boundary `subst₂` (the middle stays at fixed objects).
   peel-∘-substs
     : ∀ {A A' B₀ B₁ C C'} (p : A ≡ A') (q : C ≡ C')
         (f : HomTerm B₁ C) (g : HomTerm B₀ B₁) (h : HomTerm A B₀)
@@ -161,31 +147,26 @@ private
   ------------------------------------------------------------------------
   -- ## The empty-residual box collapse (`nil-frame`).
   --
-  -- A `box-of`-style framing on the EMPTY residual `[]`, i.e.
-  -- `to(uff++ eoL []) ∘ (G ⊗₁ id {unit}) ∘ from(uff++ eiL [])`, collapses
-  -- (modulo the `++-identityʳ` boundary subst) to the bare `G`.  The two
-  -- right-unit isos `uff++ · []` ARE the right unitor up to the `++ []`
-  -- transport (`uff-nil-from`/`uff-nil-to`, by list-induction with base case
-  -- = the Kelly unit coherence `λ⇐ ≈ ρ⇐`), then `ρ⇒∘f⊗id≈f∘ρ⇒` slides `G`
-  -- past the `⊗₁ id {unit}` and the `ρ⇒ ∘ ρ⇐` units cancel.
+  -- A `box-of`-style framing on the EMPTY residual `[]` collapses (modulo
+  -- the `++-identityʳ` boundary subst) to the bare `G`.  The two right-unit
+  -- isos `uff++ · []` ARE the right unitor up to the `++ []` transport
+  -- (`uff-nil-from`/`uff-nil-to`, by list-induction with base case = the
+  -- Kelly unit coherence `λ⇐ ≈ ρ⇐`), then `ρ⇒∘f⊗id≈f∘ρ⇒` slides `G` past the
+  -- `⊗₁ id {unit}` and the `ρ⇒ ∘ ρ⇐` units cancel.
 
-  -- `unflatten [] = unit`, recorded for the `uff++ · []` codomains.
   U[] : ObjTerm
   U[] = unflatten []
 
-  -- The domain-side `++-identityʳ` cast `unflatten (xs ++ []) → unflatten xs`.
   dsub : (xs : List X) → HomTerm (unflatten (xs ++ [])) (unflatten xs)
   dsub xs = subst (λ z → HomTerm (unflatten (xs ++ [])) (unflatten z))
                   (++-identityʳ xs) id
 
-  -- The codomain-side `++-identityʳ` cast `unflatten xs → unflatten (xs ++ [])`.
   csub : (xs : List X) → HomTerm (unflatten xs) (unflatten (xs ++ []))
   csub xs = subst (λ z → HomTerm (unflatten z) (unflatten (xs ++ [])))
                   (++-identityʳ xs) id
 
-  -- `unflatten ((x ∷ xs) ++ []) = Var x ⊗₀ unflatten (xs ++ [])`, so the
-  -- `dsub`/`csub` casts on a `Var x`-headed list factor as `id ⊗₁ ·`.
-  -- These reduce (at `e = refl`) to `id ⊗₁ id ≈Term id` (`id⊗id≈id`).
+  -- On a `Var x`-headed list the `dsub`/`csub` casts factor as `id ⊗₁ ·`,
+  -- reducing (at `e = refl`) to `id ⊗₁ id ≈Term id`.
   dsub-cons : ∀ (x : X) (xs : List X)
             → (id {Var x} ⊗₁ dsub xs) ≈Term dsub (x ∷ xs)
   dsub-cons x xs = lemma (++-identityʳ xs)
@@ -257,13 +238,8 @@ private
     csub (x ∷ xs) ∘ ρ⇒
       ∎
 
-  -- A `subst`-`id`-conjugation peels to a `subst₂`.  `csub`/`dsub` are the
-  -- two conjugators; conjugating `G` by them = `subst₂ HomTerm` over the
-  -- `++-identityʳ` casts (reversed on the domain side).
-  -- A generic conjugation peeling.  `dd`/`cc` are the cast SOURCES (here
-  -- `eiL ++ []` / `eoL ++ []`); `pi : dd ≡ eiL`, `po : cc ≡ eoL` are the
-  -- `++-identityʳ` proofs.  The two `subst`-`id` conjugators collapse the
-  -- composite to a single `subst₂` over `sym pi`/`sym po`.
+  -- A generic conjugation peeling: the two `subst`-`id` conjugators collapse
+  -- the composite to a single `subst₂` over `sym pi`/`sym po`.
   conj-peel
     : ∀ {eiL eoL dd cc : List X} (pi : dd ≡ eiL) (po : cc ≡ eoL)
         (G : HomTerm (unflatten eiL) (unflatten eoL))
@@ -317,25 +293,12 @@ private
       ∎
 
   ------------------------------------------------------------------------
-  -- ## Permute / subst₂ plumbing for the cap-collapse.
-  --
-  -- `subst₂-∘-distrib`, `pvl-subst₂`, `pvl-refl`, `subst₂-cod-trans`,
-  -- `subst₂-dom-trans` now live in the shared leaf `HomTermTransport`
-  -- (imported below); they were previously re-minted here byte-for-byte.
-
-  -- The complete constructive `bridge`-form for `α⇒` at EVERY object `A`:
-  -- `bridge (α⇒ {A}{B}{C}) ≈Term α⇒-form-list (flatten A)(flatten B)(flatten C)`
-  -- via the postulate-free well-founded worker in `BridgeAlphaFormCompound`.
+  -- The `bridge`-form for `α⇒` at EVERY object `A`, via the well-founded
+  -- worker in `BridgeAlphaFormCompound`.
   bridge-α⇒-form-full
     : ∀ A B C → bridge (α⇒ {A} {B} {C})
               ≈Term α⇒-form-list (flatten A) (flatten B) (flatten C)
   bridge-α⇒-form-full A B C = BAFC.Worker.work A B C (<-wellFounded _)
-
---------------------------------------------------------------------------------
--- ## Algorithm extraction (sig-level).
---
--- `decode-attempt-extract` now lives in the shared leaf `HomTermTransport`
--- (imported at the top of this module).
 
 --------------------------------------------------------------------------------
 -- ## Single-edge `process-all-edges` reduction (for `hGen g`).
@@ -364,19 +327,17 @@ module _ {A B : ObjTerm} (g : mor A B) where
       ≡ (H.eout zero ++ [] , fire-term H zero H.dom [] agen-self-perm)
   agen-edge-step = edge-step-sound H (fireR [] agen-self-perm agen-self-eq)
 
-  -- The full `process-all-edges` pair reduces (the `range 1 = zero ∷ []`
-  -- single-edge walk: one FIRE edge, then the empty `process-edges []`
-  -- prepends an `id`).  Stated as a Σ-pair equality so both the final
-  -- stack AND the term land in one `rewrite agen-edge-step`.
+  -- The full `process-all-edges` pair (one FIRE edge then the empty
+  -- `process-edges []` prepends an `id`), as a Σ-pair equality so both the
+  -- final stack AND the term land in one `rewrite agen-edge-step`.
   agen-process-pair
     : process-all-edges H H.dom
       ≡ ( H.eout zero ++ []
         , id ∘ fire-term H zero H.dom [] agen-self-perm )
   agen-process-pair rewrite agen-edge-step = refl
 
-  -- The single edge's label is the `(sym (domL-hGen g))/(sym (codL-hGen g))`-
-  -- transport of the literal `flat g` (definitional — `hGen`'s internal
-  -- `lem-in`/`lem-out` are `sym (domL-hGen g)` / `sym (codL-hGen g)`).
+  -- The single edge's label is the `(sym domL/codL-hGen)`-transport of the
+  -- literal `flat g` (definitional).
   agen-elab-eq
     : H.elab zero
       ≡ subst₂ FlatGen (sym (domL-hGen g)) (sym (codL-hGen g)) (FlatGen.flat g)
@@ -428,8 +389,7 @@ module _
       vlab-c = H.vlab
 
       -- `vlab-c` resolves the two front blocks to `flatten A` / `flatten B`
-      -- (the `lem-L` / `lem-R` of `domL-hSwap`, reconstructed here so they
-      -- are usable in the frame reconciliation below).
+      -- (the `lem-L` / `lem-R` of `domL-hSwap`).
       vlab-inL : ∀ (i : Fin nA) → vlab-c (i ↑ˡ nB) ≡ lookup (flatten A) i
       vlab-inL i = cong [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt-↑ˡ nA i nB)
       vlab-inR : ∀ (i : Fin nB) → vlab-c (nA ↑ʳ i) ≡ lookup (flatten B) i
@@ -681,14 +641,11 @@ module _
   --------------------------------------------------------------------------
   -- ## `decode-Agen-collapse` (the Agen / single-edge case).
   --
-  -- `decode (Agen g)` runs `hGen g` (one FIRE edge, no residual).  Its
-  -- algorithmic interior is `pvl perm-alg ∘ (id ∘ (fire-mid zero [] ∘ pvl
-  -- perm-self))`.  The empty-residual box `fire-mid zero []` collapses
-  -- (via `box-of-cong` to the `flatten`-blocks + `nil-frame`) to the bare
-  -- `Agen-edge-aux (flat g)`; the two `↭`-permutes collapse to the boundary
-  -- coherence by the keystone (Unique codomains `L`/`R`).  Everything is
-  -- reconciled with `bridge (Agen g) = Agen-edge-aux (flat g)` under
-  -- `objUIP`.
+  -- `decode (Agen g)` runs `hGen g` (one FIRE edge, no residual).  The
+  -- empty-residual box `fire-mid zero []` collapses (via `box-of-cong` +
+  -- `nil-frame`) to the bare `Agen-edge-aux (flat g)`; the two `↭`-permutes
+  -- collapse by the keystone (Unique codomains `L`/`R`); everything is
+  -- reconciled with `bridge (Agen g)` under `objUIP`.
 
   decode-Agen-collapse
     : ∀ {A B} (g : mor A B) → decode (Agen g) ≈Term bridge (Agen g)
@@ -767,16 +724,14 @@ module _
       rf : map vlab-c Rblk ≡ map vlab-c (Rblk ++ [])
       rf = cong (map vlab-c) (sym (++-identityʳ Rblk))
 
-      -- (2) The FIRE box collapses: `box-of-cong` reframes the box onto the
+      -- (2) The FIRE box collapses: `box-of-cong` reframes onto the
       -- `flatten`-blocks, `nil-frame` discharges the empty residual, and
-      -- `subst₂-Agen-edge-aux-nat` pushes the `(sym domEq)/(sym codEq)`
-      -- transport onto `Agen-edge-aux`.  All boundary `subst₂` merge under
-      -- `objUIP` into the single `_++ []` block-frame.
+      -- `subst₂-Agen-edge-aux-nat` pushes the transport onto `Agen-edge-aux`;
+      -- all boundary `subst₂` merge under `objUIP`.
       fire-eq
         : fire-mid H zero []
           ≈Term subst₂ HomTerm (cong unflatten lf) (cong unflatten rf) BoxCore
       fire-eq = begin
-        -- `fire-mid H zero []` (definitionally the `map-++ · []`-framed box).
         subst₂ HomTerm
           (cong unflatten (sym (map-++ vlab-c Lblk [])))
           (cong unflatten (sym (map-++ vlab-c Rblk [])))
@@ -1006,11 +961,9 @@ module _
   --------------------------------------------------------------------------
   -- ## `decode (id {A}) ≈Term id` (all objects).
   --
-  -- The `unit`/`Var` base cases reduce definitionally; the `⊗` case uses the
-  -- PROVEN ⊗-shape residual `DTS.decode-⊗-shape-inner objUIP Kf` (the SAME
-  -- shape lemma the chain already threads) + the IH + the `unflatten-++-≅`
-  -- iso law.  This mirrors `DecodeRoundtrip.decode-id-is-id` but consumes the
-  -- proven shape lemma in place of the `decode-⊗-shape` postulate.
+  -- `unit`/`Var` reduce definitionally; the `⊗` case uses the ⊗-shape
+  -- residual `DTS.decode-⊗-shape-inner objUIP Kf` + the IH + the
+  -- `unflatten-++-≅` iso law.
   decode-id-is-id : ∀ A → decode (id {A}) ≈Term id
   decode-id-is-id unit = begin
     (id ∘ id) ∘ id   ≈⟨ idʳ ⟩
@@ -1044,18 +997,13 @@ module _
   --------------------------------------------------------------------------
   -- ## `decode-α⇒-collapse` / `decode-α⇐-collapse`.
   --
-  -- `⟪ α⇒ {A}{B}{C} ⟫ = hId ((A ⊗₀ B) ⊗₀ C)`, so the algorithm interior is
-  -- the SAME `decode-attempt-hId ((A ⊗₀ B) ⊗₀ C)` as `decode (id {(A⊗B)⊗C})`;
-  -- the two `decode`s differ ONLY in the codomain (α⇒) / domain (α⇐) boundary
-  -- equation, which factors as `trans (codL-hId …) (++-assoc …)`.  Peeling
-  -- that with `subst₂-cod-trans` (mirroring the PROVEN `rho⇒-shape`) gives
-  --   `decode (α⇒) ≡ subst₂ refl (cong unflatten (++-assoc …)) (decode (id …))`.
-  -- Then `decode-id-is-id` collapses the interior to `id`; `subst₂-refl-cod`
-  -- turns the one-sided `subst₂` into a `subst`; `α⇒-coh-list` recognises it
-  -- as the canonical `α⇒-form-list`; and `bridge-α⇒-form-full` (the PROVEN,
-  -- postulate-free Mac-Lane worker) reconciles with `bridge α⇒`.  α⇐ is the
-  -- domain-side mirror (`subst₂-dom-trans` + `subst₂-refl-dom` + `α⇐-coh-list`
-  -- + `bridge-α⇐-form` derived from α⇒ via the `α⇒/α⇐`-iso).
+  -- `⟪ α⇒ {A}{B}{C} ⟫ = hId ((A ⊗₀ B) ⊗₀ C)`, so the interior is the SAME
+  -- `decode-attempt-hId` as `decode (id {(A⊗B)⊗C})`; the two `decode`s differ
+  -- ONLY in the boundary equation (`trans (codL-hId …) (++-assoc …)`).  Peel
+  -- it with `subst₂-cod-trans`, collapse the interior by `decode-id-is-id`,
+  -- turn the one-sided `subst₂` into a `subst` (`subst₂-refl-cod`), recognise
+  -- it as `α⇒-form-list` (`α⇒-coh-list`), and reconcile with `bridge α⇒` via
+  -- `bridge-α⇒-form-full`.  α⇐ is the domain-side mirror.
 
   decode-α⇒-collapse
     : ∀ {A B C} → decode (α⇒ {A} {B} {C}) ≈Term bridge (α⇒ {A} {B} {C})
@@ -1080,8 +1028,7 @@ module _
       assoc-eq = ++-assoc (flatten A) (flatten B) (flatten C)
 
   -- `bridge (α⇐ {A}{B}{C}) ≈Term α⇐-form-list …`, derived from
-  -- `bridge-α⇒-form-full` exactly as `BridgeAlphaFormCompound.derive-⇐`
-  -- (re-proven inline so we do not need that module's private helper).
+  -- `bridge-α⇒-form-full` via the `α⇒/α⇐`-iso.
   private
     bridge-resp-≈Term
       : ∀ {A B} {f g : HomTerm A B} → f ≈Term g → bridge f ≈Term bridge g

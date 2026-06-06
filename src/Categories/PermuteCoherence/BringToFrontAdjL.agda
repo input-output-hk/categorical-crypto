@@ -38,11 +38,10 @@ module AdjL {n : ℕ} {j i : Fin (suc n)}
             (adj : Adj i j) where
 
   private
-    -- here `toℕ j ≡ suc (toℕ i)`.
     toℕj≡ : toℕ j ≡ suc (toℕ i)
     toℕj≡ = Adj→suc adj
 
-    -- `genFB j` swaps `inj j (=i+1)` and `suc-pos j (=i+2)`.
+    -- `genFB j` swaps `inj j` and `suc-pos j`.
     j-on-inj-j : genFB j P.⟨$⟩ˡ inj j ≡ suc-pos j
     j-on-inj-j = toℕ-injective
       (trans (genFB-ˡ-toℕ j (inj j))
@@ -55,12 +54,12 @@ module AdjL {n : ℕ} {j i : Fin (suc n)}
              (trans (cong (swapℕ (toℕ j)) (toℕ-suc-pos j))
                     (trans (swapℕ-sk (toℕ j)) (sym (toℕ-inj j)))))
 
-    -- `inj j` and `suc-pos i` denote the same value (`toℕ ≡ suc (toℕ i)`).
+    -- `inj j` and `suc-pos i` denote the same value.
     inj-j≡suc-i : inj j ≡ suc-pos i
     inj-j≡suc-i = toℕ-injective
       (trans (toℕ-inj j) (trans toℕj≡ (sym (toℕ-suc-pos i))))
 
-    -- `genFB j` fixes `inj i` (toℕ i, outside `{j, j+1} = {i+1, i+2}`).
+    -- `genFB j` fixes `inj i` (outside `{j, j+1}`).
     toℕii : toℕ (inj i) ≡ toℕ i
     toℕii = toℕ-inj i
 
@@ -75,15 +74,14 @@ module AdjL {n : ℕ} {j i : Fin (suc n)}
       ii≢sj e = 2+n≢n (toℕ i)
         (sym (trans (sym toℕii) (trans e (cong suc toℕj≡))))
 
-    -- `genFB j` sends `suc-pos i` (toℕ i+1 = toℕ j) to `suc-pos j` (toℕ j+1).
+    -- `genFB j` sends `suc-pos i` to `suc-pos j`.
     j-on-suc-i : genFB j P.⟨$⟩ˡ suc-pos i ≡ suc-pos j
     j-on-suc-i = toℕ-injective
       (trans (genFB-ˡ-toℕ j (suc-pos i))
              (trans (cong (swapℕ (toℕ j)) (trans (toℕ-suc-pos i) (sym toℕj≡)))
                     (trans (swapℕ-k (toℕ j)) (sym (toℕ-suc-pos j)))))
 
-    -- `genFB i` sends `inj j` (toℕ i+1) to `inj i` (toℕ i), and fixes
-    -- `suc-pos j` (toℕ i+2, outside `{i, i+1}`).
+    -- `genFB i` sends `inj j` to `inj i` and fixes `suc-pos j`.
     i-on-inj-j : genFB i P.⟨$⟩ˡ inj j ≡ inj i
     i-on-inj-j = toℕ-injective
       (trans (genFB-ˡ-toℕ i (inj j))
@@ -100,40 +98,40 @@ module AdjL {n : ℕ} {j i : Fin (suc n)}
                (λ e → 2+n≢n (toℕ i) (trans (sym toℕsj) e))
                (λ e → 1+n≢n (trans (sym toℕsj) e))))
 
-    -- The three relevant positions of `b`.
-    pa = toℕ (b P.⟨$⟩ˡ inj i)      -- position of value `i`
-    pc = toℕ (b P.⟨$⟩ˡ suc-pos i)  -- position of value `i+1`
-    pd = toℕ (b P.⟨$⟩ˡ suc-pos j)  -- position of value `i+2`
+    -- The positions of values `i`, `i+1`, `i+2` under `b`.
+    pa = toℕ (b P.⟨$⟩ˡ inj i)
+    pc = toℕ (b P.⟨$⟩ˡ suc-pos i)
+    pd = toℕ (b P.⟨$⟩ˡ suc-pos j)
 
-  -- `pc < pd`  (head `j` is a left descent of `genFB j ∘-fb b`).
+  -- `pc < pd` (head `j` is a left descent of `genFB j ∘-fb b`).
   head→pos : descent j (genFB j ∘-fb b) → pc < pd
   head→pos hd =
     subst₂ _<_
       (trans (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) j-on-suc-j)
-             (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) inj-j≡suc-i))   -- posⱼ₊₁ j (gjb) = pc
-      (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) j-on-inj-j)            -- posⱼ   j (gjb) = pd
+             (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) inj-j≡suc-i))
+      (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) j-on-inj-j)
       (descent→pos j (genFB j ∘-fb b) hd)
 
-  -- `pd < pa`  (the assumed descent of `i`, read through the head `j`).
+  -- `pd < pa` (the assumed descent of `i`, read through the head `j`).
   hyp→pos : descent i (genFB j ∘-fb b) → pd < pa
   hyp→pos hp =
     subst₂ _<_
-      (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) j-on-suc-i)   -- posᵢ₊₁ i (gjb) = pd
-      (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) j-fix-inj-i)  -- posᵢ   i (gjb) = pa
+      (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) j-on-suc-i)
+      (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) j-fix-inj-i)
       (descent→pos i (genFB j ∘-fb b) hp)
 
-  -- Output 1:  `descent i b`  (from `pc < pa`).  `abstract`: keep opaque.
   abstract
+    -- `descent i b` (from `pc < pa`).
     adj-descent-i : descent j (genFB j ∘-fb b) → descent i (genFB j ∘-fb b)
                   → descent i b
     adj-descent-i hd hp =
       pos→descent i b (<-trans (head→pos hd) (hyp→pos hp))
 
-    -- Output 2:  `descent j (genFB i ∘-fb b)`  (from `pd < pa`).
+    -- `descent j (genFB i ∘-fb b)` (from `pd < pa`).
     adj-descent-j : descent i (genFB j ∘-fb b) → descent j (genFB i ∘-fb b)
     adj-descent-j hp =
       pos→descent j (genFB i ∘-fb b)
         (subst₂ _<_
-          (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) (sym i-fix-suc-j))  -- pd = posⱼ₊₁ j (gib)
-          (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) (sym i-on-inj-j))   -- pa = posⱼ   j (gib)
+          (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) (sym i-fix-suc-j))
+          (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) (sym i-on-inj-j))
           (hyp→pos hp))

@@ -5,35 +5,17 @@
 -- their evaluated finite bijection produce ≈Term-equal `permute` terms
 -- in the free symmetric monoidal category.
 --
--- This module is parameterised over a `FreeMonoidalData`, so the very
--- same generic `permute` definition (which previously lived in
--- `Categories.APROP.Hypergraph.Completeness.Permute`) can be re-used in
--- any free (symmetric) monoidal category over an arbitrary atom set.
+-- Parameterised over `FreeMonoidalData`, so the generic `permute` is
+-- reusable in any free (symmetric) monoidal category.  This module
+-- exposes:
 --
--- The full faithfulness theorem requires σ-naturality + hexagon +
--- pentagon (precisely the machinery exposed by `FreeMonoidal.agda`).
--- Closing the proof in full constructively is the SMC coherence theorem
--- restricted to permute-built terms -- a substantial proof effort.
---
--- This module structures the development to expose:
---
---   * the generic `permute` definition (matches APROP-specific one),
---   * a strictly-narrow `FaithfulnessResidual` record packaging the
---     remaining categorical obligation (original, wide form),
---   * a STRICTLY NARROWER `TransSelfLoopResidual` packaging only the
---     `Perm.trans` self-loop case (sufficient for XSL),
---   * the headline corollary `permute-self-loop-id` proved
---     CONSTRUCTIVELY for the `refl`, `prep`, and `swap` cases, with
---     the `trans` case parameterised by the narrower residual,
---   * the headline corollary `faithfulness` parameterised by the wide
---     residual.
---
--- The narrower residual `TransSelfLoopResidual` is *strictly tighter*
--- than the original `FaithfulnessResidual`:
---
---    FaithfulnessResidual  ⇒  TransSelfLoopResidual
---
--- (the implication is proved as `wide⇒narrow`).
+--   * the generic `permute` definition,
+--   * the wide `FaithfulnessResidual` (the remaining categorical
+--     obligation) and the strictly narrower `TransSelfLoopResidual`
+--     (the `Perm.trans` self-loop case, sufficient for XSL; implied by
+--     the wide one via `wide⇒narrow`),
+--   * `permute-self-loop-id` (parameterised by the narrow residual) and
+--     `faithfulness` (parameterised by the wide one).
 ------------------------------------------------------------------------
 
 open import Categories.FreeMonoidal
@@ -67,12 +49,8 @@ open import Categories.PermuteCoherence.Eval
 open import Categories.PermuteCoherence.Canonical
 
 ------------------------------------------------------------------------
--- 0. Dual associator commutativity (`α⇐-comm`), derived from `α-comm`.
---
---   α⇐ ∘ (h ⊗₁ (i ⊗₁ j)) ≈Term ((h ⊗₁ i) ⊗₁ j) ∘ α⇐
---
--- A pure free-(symmetric)-monoidal fact (no permutation content); shared
--- by the various coherence consumers that previously re-proved it locally.
+-- 0. Dual associator commutativity, derived from `α-comm`:
+--    α⇐ ∘ (h ⊗₁ (i ⊗₁ j)) ≈Term ((h ⊗₁ i) ⊗₁ j) ∘ α⇐.
 
 α⇐-comm
   : ∀ {a b c a′ b′ c′ : ObjTerm}
@@ -97,9 +75,7 @@ unflatten []       = unit
 unflatten (x ∷ xs) = Var x ⊗₀ unflatten xs
 
 ------------------------------------------------------------------------
--- 1b. `unflatten-++-≅`: `unflatten` distributes over `_++_` up to a
--- coherence iso.  Re-used by APROP `Unflatten.agda` (which re-exports
--- this) so that the APROP and SMC definitions are definitionally equal.
+-- 1b. `unflatten` distributes over `_++_` up to a coherence iso.
 
 unflatten-++-≅
   : ∀ (xs ys : List X)
@@ -109,9 +85,7 @@ unflatten-++-≅ (x ∷ xs) ys =
   ≅.trans (≅.refl ⊗ᵢ unflatten-++-≅ xs ys) (≅.sym associator)
 
 ------------------------------------------------------------------------
--- 2. Generic `permute`.  This matches the structure of the
--- APROP-specific one in `APROP/Hypergraph/Completeness/Permute.agda`
--- modulo the parameterisation.
+-- 2. Generic `permute`.
 
 permute : ∀ {xs ys : List X} → xs Perm.↭ ys → HomTerm (unflatten xs) (unflatten ys)
 permute Perm.refl         = id
@@ -121,33 +95,20 @@ permute (Perm.swap x y p) =
 permute (Perm.trans p q)  = permute q ∘ permute p
 
 ------------------------------------------------------------------------
--- 3. The (wide) residual obligation.
---
--- `FaithfulnessResidual` packages the categorical obligation that
--- remains after the bijection-level canonical analysis (Canonical.agda)
--- has been performed.  Concretely: any two derivations whose evaluated
--- bijections coincide produce ≈Term-equal terms under `permute`.
+-- 3. The (wide) residual: any two derivations whose evaluated bijections
+-- coincide produce ≈Term-equal terms under `permute`.
 
 record FaithfulnessResidual : Set where
   field
-    -- ≈Term-equality of `permute` on canonically-equivalent derivations.
     permute-resp-≅↭
       : {xs ys : List X} (p q : xs Perm.↭ ys)
       → p ≅↭ q
       → permute p ≈Term permute q
 
 ------------------------------------------------------------------------
--- 4. The NARROW residual: trans self-loop case only.
---
--- This is the *strictly narrower* residual sufficient for the XSL
--- chain (the only downstream use-site, in
--- `APROP/.../Discharge/Sub/XSLByFinBij.agda`).  It states: a
--- self-loop derivation built as `Perm.trans p q` whose evaluated
--- bijection is the identity produces an identity term under
--- `permute`, up to ≈Term.
---
--- The other three cases (`refl`, `prep`, `swap`) are discharged
--- constructively below.
+-- 4. The NARROW residual (trans self-loop only): a self-loop built as
+-- `Perm.trans p q` with identity evaluated bijection produces an identity
+-- term under `permute`.  Sufficient for the XSL chain.
 
 record TransSelfLoopResidual : Set where
   field
@@ -167,61 +128,35 @@ wide⇒narrow R = record
   }
 
 ------------------------------------------------------------------------
--- 6. Constructive analysis of the swap self-loop case.
+-- 6. Headline corollary `permute-self-loop-id`, via the NARROW residual.
 --
--- A self-loop `Perm.swap x y p : (x ∷ y ∷ xs) ↭ (y ∷ x ∷ ys)` forces
--- `x ≡ y` and `xs ≡ ys` by injectivity of `_∷_`.  But its evaluated
--- bijection sends position 0 to position 1, hence it cannot equal
--- the identity bijection -- contradiction.
-
--- (No additional swap-case analysis required: the narrow residual
--- packages the entire self-loop obligation through `Perm.trans`.)
-
-------------------------------------------------------------------------
--- 7. Headline corollary: `permute-self-loop-id`, parameterised only
---    by the NARROW residual.
---
--- We discharge:
---   * `Perm.refl`        -- trivially.
---   * `Perm.prep`        -- by recursion + `⊗-resp-≈`.
---   * `Perm.swap`        -- impossible: bijection sends 0 to 1, ≠ id.
---   * `Perm.trans`       -- via the narrow residual.
+-- The narrow residual captures the trans self-loop case, which subsumes
+-- refl/prep/swap via `Perm.trans Perm.refl r` (matching `Perm.refl`
+-- directly is K-blocked under `--safe --without-K`).
 
 module _ (R : TransSelfLoopResidual) where
   open TransSelfLoopResidual R
 
-  -- We discharge `permute-self-loop-id` through the narrow residual.
-  -- The narrow residual exactly captures the trans self-loop case,
-  -- which subsumes the refl/prep/swap cases via `Perm.trans Perm.refl r`.
-  -- (Constructive reduction of refl/prep/swap individually requires
-  -- pattern-matching `Perm.refl : xs ↭ xs`, which is K-blocked under
-  -- `--safe --without-K`; the residual sidesteps this.)
   permute-self-loop-id
     : {xs : List X} (r : xs Perm.↭ xs)
     → eval-↭ r ≈-fb id-fb
     → permute r ≈Term id
   permute-self-loop-id r eq =
-    -- Apply the residual to `(Perm.refl, r)`:
-    --   eval-↭ Perm.refl ∘-fb eval-↭ r = id-fb ∘-fb eval-↭ r ≈-fb eval-↭ r ≈-fb id-fb
-    --   permute Perm.refl ∘ permute r = id ∘ permute r
-    -- The residual yields `id ∘ permute r ≈Term id`, and `idˡ` finishes.
     ≈-Term-trans (≈-Term-sym idˡ)
                  (permute-trans-self-loop-id r Perm.refl eq)
 
 ------------------------------------------------------------------------
--- 8. Headline corollary parameterised by the WIDE residual.
+-- 7. Headline corollary parameterised by the WIDE residual.
 
 module _ (R : FaithfulnessResidual) where
   open FaithfulnessResidual R
 
-  -- Direct re-export under the headline name.
   faithfulness
     : {xs ys : List X} (p q : xs Perm.↭ ys)
     → p ≅↭ q
     → permute p ≈Term permute q
   faithfulness = permute-resp-≅↭
 
-  -- Self-loop corollary, via the implication wide ⇒ narrow.
   permute-self-loop-id-wide
     : {xs : List X} (r : xs Perm.↭ xs)
     → eval-↭ r ≈-fb id-fb

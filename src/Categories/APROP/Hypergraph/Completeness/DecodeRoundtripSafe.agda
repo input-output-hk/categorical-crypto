@@ -1,46 +1,13 @@
 {-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
--- Safe extraction of constructive lemmas from `DecodeRoundtrip.agda`.
---
--- `DecodeRoundtrip.agda` co-resides with several postulates
--- (`decode-{∘,⊗,ρ⇒,ρ⇐,α⇒,α⇐}-shape`, `decode-roundtrip-{Agen,σ}`,
--- `c-iso-assoc-from-cons`, `bridge-α⇒-form-⊗-⊗`).  This file extracts
--- ONLY the constructive (postulate-free) content so it can be used in
--- `--safe` downstream code without inheriting those postulates.
---
--- Extracted (constructive):
---   * Bridge distributivity: `bridge-∘`, `bridge-⊗-decompose`, `bridge-⊗`.
---   * `decode-id-is-id-unit`, `decode-id-is-id-Var` (only the truly
---     constructive base-cases of `decode-id-is-id` — the `⊗₀` case
---     uses the `decode-⊗-shape` postulate).
---   * `bridge-id-is-id`, `bridge-λ⇒-is-id`, `bridge-λ⇐-is-id`.
---   * Subst helpers: `≡⇒≈Term`, `subst₂-resp-≈Term`,
---     `subst₂-refl-{cod,dom}`, `subst-{cod,dom}-cons`.
---   * Bridge forms for ρ: `bridge-ρ⇒-form`, `ρ⇐-naturality`,
---     `bridge-ρ⇐-form`.
---   * Coherence-list lemmas: `ρ⇒-coh-list`, `ρ⇐-coh-list`,
---     `α⇒-coh-list`, `α⇐-coh-list`, `α⇒-form-list`, `α⇐-form-list`.
---   * α-form isos: `α⇒-α⇐-iso`, `α⇐-α⇒-iso`.
---   * Mac Lane / solver helpers: `α⇒-λ⇐-collapse`, `pentagon-rewrite`,
---     `id-⊗-subst-bridge`, `id-⊗-respects-∘`, `α⇐-comm-top`,
---     `λ⇐-naturality`.
---   * Var-base case `bridge-α⇒-form-Var`.
---   * Unit/Var collapse helpers `F-unit⊗-collapse`, `T-unit⊗-collapse`,
---     `F-Vx⊗-collapse`, `T-Vx⊗-collapse`.
---
--- NOT extracted (depend transitively on postulates):
---   * `decode-id-is-id` for `A ⊗₀ B`: uses `decode-⊗-shape`.
---   * `decode-roundtrip-{∘,⊗₁,id,λ⇒,λ⇐,ρ⇒,ρ⇐,α⇒,α⇐}`: each chains via
---     a `decode-X-shape` postulate.
---   * `bridge-α⇒-form` for compound A: cons case relies on
---     `bridge-α⇒-form-⊗-⊗`.
---   * `bridge-α⇐-form`: depends on full `bridge-α⇒-form`.
---   * `c-iso-assoc-from` for cons: postulated cons-case.
---   * `α⇒-coherence`, `α⇐-coherence`: chain via `bridge-α⇒-form`.
---   * `ρ⇒-coherence`, `ρ⇐-coherence`: depend on `bridge-ρ⇒-form` (OK),
---     but the consumer-facing axiom needs `decode-ρ⇒-shape` (postulate),
---     so we ship the half that is constructive: `ρ⇒-coherence` itself.
+-- The constructive (postulate-free) content of `DecodeRoundtrip.agda`,
+-- extracted so `--safe` downstream code can use it without inheriting that
+-- file's postulates.  Covers bridge distributivity, the `bridge-X-is-id`
+-- lemmas, ρ/α bridge forms and list-coherence, the α-form isos, assorted
+-- Mac Lane / solver helpers, and the unit/Var base cases of `bridge-α⇒-form`.
+-- The cases depending transitively on postulates (e.g. compound `bridge-α⇒-form`
+-- via `bridge-α⇒-form-⊗-⊗`) are NOT extracted.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -59,7 +26,6 @@ open import Categories.APROP.Hypergraph.Completeness.DecodeAttempt sig
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
--- Shared dual-associator commutativity.
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData using (α⇐-comm)
 open import Categories.Category.Monoidal.Properties Monoidal-FreeMonoidal
   using (module Kelly's)
@@ -151,9 +117,8 @@ bridge-⊗ {A} {B} {C} {D} f g = begin
     cAC-from = _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
 
 --------------------------------------------------------------------------------
--- `decode (id {A})` base cases (constructive part only).  The `A ⊗₀ B`
--- case uses `decode-⊗-shape` (postulated in DecodeRoundtrip), so we
--- only extract the `unit` and `Var x` base-cases here.
+-- `decode (id {A})` base cases for `unit` and `Var x` (the `A ⊗₀ B` case
+-- needs the `decode-⊗-shape` postulate, so it is not extracted).
 
 decode-id-is-id-unit : decode (id {unit}) ≈Term id
 decode-id-is-id-unit = begin
@@ -267,12 +232,9 @@ subst-dom-cons
   ≈Term id {Var y} ⊗₁ subst (λ z → HomTerm (unflatten z) (unflatten as)) eq id
 subst-dom-cons y refl = ≈-Term-sym id⊗id≈id
 
--- The first, shared step of all four `*-coh-list` cons cases: pushing the
--- `cong (y ∷_)` of a `subst` through `unflatten` via `subst-∘`, re-binding the
--- substituted variable from the cons'd list to its tail.  The four cases then
--- finish with `subst-{cod,dom}-cons`.  `L`/`R` are the dom/cod endpoints
--- (one constant fixed side, the other the moving `unflatten z`); the cod
--- variants (ρ⇒, α⇒) and dom variants (ρ⇐, α⇐) only differ in which is which.
+-- The shared first step of all four `*-coh-list` cons cases: push the
+-- `cong (y ∷_)` of a `subst` through `unflatten` via `subst-∘`, re-binding
+-- the substituted variable to the tail.  `L`/`R` are the dom/cod endpoints.
 cons-coh-step
   : ∀ (y : X) {as as' : List X} (eq : as ≡ as') (L R : List X → ObjTerm)
       (m : HomTerm (L (y ∷ as)) (R (y ∷ as)))

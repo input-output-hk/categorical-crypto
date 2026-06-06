@@ -1,47 +1,22 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Dependency-irreflexivity for the PRUNED translation `⟪_⟫`.
---
--- For every APROP term `f` and every edge `e` of the translated hypergraph
--- `⟪ f ⟫`, the edge does not depend on itself:
+-- Dependency-irreflexivity for the PRUNED translation `⟪_⟫`:
 --
 --     dep-irrefl-⟪⟫ : ∀ {A B} (f : HomTerm A B) {e} → ¬ (Dep ⟪ f ⟫ e e)
 --
--- Recall `Dep G e e = ∃[ v ] (v ∈ eout G e × v ∈ ein G e)`, i.e. the
--- in-vertices and out-vertices of `e` share a vertex.  We prove this never
--- happens for a translated edge.
+-- i.e. no translated edge's in-vertices and out-vertices share a vertex.
 --
--- ROUTE: structural induction on `f`, following how `⟪_⟫` builds edges
--- (`hGen` / `hId` / `hSwap` / `hTensor` / `hComposeP`):
+-- ROUTE: structural induction on `f`.  Zero-edge cases are vacuous; `hGen`
+-- has `ein`/`eout` of disjoint `_↑ˡ_`/`_↑ʳ_` form; `hTensor`/`hComposeP`
+-- route each composite edge through an injective `h` (`injL`/`injR`/the
+-- pruned `remapP`), so `map-inj-disjoint` carries the sub-graph IH up.  For
+-- `hComposeP`, `remapP` is injective on a *translated* `K = ⟪g⟫` because
+-- `⟪g⟫.dom`/`⟪h⟫.cod` are `Unique` (`HomTermInvariant`).
 --
---   * `hId`, `hSwap`        : `nE = 0`, no edges — vacuous.
---   * `hGen f`              : the single edge has
---                              `ein  = map (_↑ˡ nB) (range nA)`  (left  Fins)
---                              `eout = map (nA ↑ʳ_) (range nB)`  (right Fins)
---                             which are disjoint by `↑ˡ-↑ʳ-disjoint`.
---   * `hTensor G K`         : an edge is a G-edge routed through `injL`
---                             (an `_↑ˡ_`, injective) or a K-edge routed
---                             through `injR` (a `_↑ʳ_`, injective).  In
---                             either case `ein`/`eout` of the composite
---                             edge are `map h (sub.ein/eout)`; an injective
---                             `h` carries the sub-graph's edge-disjointness
---                             (the IH) to the composite.
---   * `hComposeP G K`       : same, with the K-side routed through the
---                             pruned `remapP`.  `remapP` is injective on a
---                             *translated* `K = ⟪g⟫` because `⟪g⟫.dom` and
---                             `⟪h⟫.cod` are `Unique` (imported from
---                             `HomTermInvariant`), exactly the side
---                             conditions of `Prune.remap-injective`.
---
--- NOTE: the postulate in `IsoInvarianceWiring.PerHG` asks `∀ {e} → ¬ Dep H
--- e e` for an ARBITRARY `H`, which is FALSE in general (an arbitrary
--- hypergraph may have a self-loop edge).  This module proves the honest,
--- `⟪f⟫`-specific statement; wiring it into `PerHG` requires restructuring
--- `PerHG` to consume the `⟪f⟫` version rather than an arbitrary-`H` one.
---
--- This module is `--without-K` (not `--safe`) only because it imports
--- `HomTermInvariant`, which is itself `--without-K`.  It adds no postulates.
+-- NOTE: `IsoInvarianceWiring.PerHG` asks `¬ Dep H e e` for an ARBITRARY `H`,
+-- which is FALSE in general (a self-loop edge).  This module proves the
+-- honest `⟪f⟫`-specific statement, supplied at the `H = ⟪f⟫` call site.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -88,10 +63,8 @@ NoSelfDep : Hypergraph FlatGen → Set
 NoSelfDep G = ∀ {e} → ¬ Dep {X} {FlatGen} G e e
 
 --------------------------------------------------------------------------------
--- Disjointness of the `_↑ˡ k` and `m ↑ʳ_` ranges (a left Fin can never
--- equal a right Fin).  Local copy; `Prune.↑ˡ-↑ʳ-disjoint` lives in a module
--- parameterised on an unused `n`, which would leave a stray metavariable at
--- every call site.
+-- Disjointness of the `_↑ˡ k` and `m ↑ʳ_` ranges.  Local copy
+-- (`Prune.↑ˡ-↑ʳ-disjoint` is parameterised on an unused `n`).
 
 ↑ˡ≢↑ʳ : ∀ {m k} (i : Fin m) (j : Fin k) → i ↑ˡ k ≡ m ↑ʳ j → ⊥
 ↑ˡ≢↑ʳ {m} {k} i j eq
@@ -102,13 +75,9 @@ NoSelfDep G = ∀ {e} → ¬ Dep {X} {FlatGen} G e e
     case-absurd ()
 
 --------------------------------------------------------------------------------
--- Generic transport lemma.
---
--- If `h` is injective and the lists `xout`, `xin` share no vertex, then
--- `map h xout` and `map h xin` share no vertex.  This is the engine that
--- carries edge-disjointness from a sub-graph to a composite, since every
--- composite edge's `ein`/`eout` is `map h (sub.ein/eout)` for an injective
--- routing map `h`.
+-- If `h` is injective and `xout`/`xin` share no vertex, then `map h xout`/
+-- `map h xin` share no vertex.  The engine carrying edge-disjointness from a
+-- sub-graph to a composite.
 
 map-inj-disjoint
   : ∀ {p q} (h : Fin p → Fin q)
@@ -137,10 +106,8 @@ NoSelfDep-hSwap : ∀ A B → NoSelfDep (hSwap A B)
 NoSelfDep-hSwap A B {()}
 
 --------------------------------------------------------------------------------
--- `hGen f`: the unique edge `e = zero` has
---   `ein  e = map (_↑ˡ nB) (range nA)`   (all `_↑ˡ_` form),
---   `eout e = map (nA ↑ʳ_) (range nB)`   (all `_↑ʳ_` form).
--- A shared vertex `v` would be both `iA ↑ˡ nB` and `nA ↑ʳ jB`, impossible.
+-- `hGen f`: the unique edge has `ein` of `_↑ˡ_` form and `eout` of `_↑ʳ_`
+-- form, disjoint by `↑ˡ≢↑ʳ`.
 
 NoSelfDep-hGen : ∀ {A B} (f : mor A B) → NoSelfDep (hGen f)
 NoSelfDep-hGen {A} {B} f {zero} (v , v∈out , v∈in)
@@ -150,11 +117,8 @@ NoSelfDep-hGen {A} {B} f {zero} (v , v∈out , v∈in)
   ↑ˡ≢↑ʳ iA jB (trans (sym v≡inject) v≡raise)
 
 --------------------------------------------------------------------------------
--- Tensor: a composite edge `e : Fin (G.nE + K.nE)` is either a G-edge
--- (routed via `injL = _↑ˡ K.nV`, injective) or a K-edge (routed via
--- `injR = G.nV ↑ʳ_`, injective).  Either way `ein`/`eout` of the composite
--- edge are `map h (sub.ein/eout)`, so `map-inj-disjoint` plus the sub-graph
--- IH closes it.
+-- Tensor: a composite edge is a G-edge (via injective `injL`) or a K-edge
+-- (via injective `injR`); `map-inj-disjoint` + sub-graph IH closes it.
 
 NoSelfDep-hTensor
   : ∀ G K → NoSelfDep G → NoSelfDep K → NoSelfDep (hTensor G K)
@@ -203,14 +167,9 @@ NoSelfDep-hId (A ⊗₀ B)   {e} =
   NoSelfDep-hTensor (hId A) (hId B) (NoSelfDep-hId A) (NoSelfDep-hId B) {e}
 
 --------------------------------------------------------------------------------
--- Pruned composition.  Same structure as tensor, but the K-side routing
--- map is the pruned `remapP`.  `remapP` is injective whenever
--- `K.dom` and `G.cod` are `Unique` (the side conditions of
--- `Prune.remap-injective`); for `G = ⟪h⟫`, `K = ⟪g⟫` these come from
--- `HomTermInvariant.⟪_⟫-dom-unique` / `⟪_⟫-cod-unique`.
---
--- We parameterise on the proof `remapP-inj` so the geometric argument is
--- shared, then instantiate it at `⟪h⟫`/`⟪g⟫` in the `_∘_` case below.
+-- Pruned composition: like the tensor, but the K-side routing map is the
+-- pruned `remapP` (injective when `K.dom`/`G.cod` are `Unique`).
+-- Parameterised on `remapP-inj`, instantiated at `⟪h⟫`/`⟪g⟫` below.
 
 NoSelfDep-hComposeP
   : ∀ G K (bdy : codL G ≡ domL K)
@@ -248,8 +207,7 @@ NoSelfDep-hComposeP G K bdy remapP-inj G-nd K-nd {e} (v , v∈out , v∈in) =
 
 --------------------------------------------------------------------------------
 -- The `remapP`-injectivity instance for a pruned composition of two
--- *translated* hypergraphs `⟪h⟫`, `⟪g⟫`.  Mirrors the recipe in
--- `HomTermInvariant.⟪ g ∘ h ⟫-cod-unique`.
+-- *translated* hypergraphs `⟪h⟫`, `⟪g⟫`.
 
 module _ {A B C} (g : HomTerm B C) (h : HomTerm A B) where
   private

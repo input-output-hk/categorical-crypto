@@ -1,27 +1,18 @@
 {-# OPTIONS --safe --without-K #-}
 
 ------------------------------------------------------------------------
--- Interpreting `Word`s as `↭`-derivations  (the Word↔derivation bridge,
--- list-level layer).
---
--- `Categories.PermuteCoherence.Word` is a *position-level* model: words
--- in adjacent transpositions over `Fin`, with a Coxeter congruence
--- `_~ʷ_`.  To connect it to the `↭`/`≅↭ⁱ` world (where `complete`
--- lives) we interpret a word as an actual list permutation:
+-- Interpreting `Word`s (position-level adjacent transpositions over `Fin`
+-- with the Coxeter congruence `_~ʷ_`) as actual list `↭`-derivations:
 --
 --   * `swapAt i`  swaps list positions `i, i+1` (identity if the list is
 --     too short — a harmless junk case, never hit for valid lengths);
---   * `applyW w`  applies the whole word (tail first, matching `evalW`'s
---     right-to-left convention `evalW (i ∷ w) = genFB i ∘-fb evalW w`);
+--   * `applyW w`  applies the whole word tail-first, matching `evalW`'s
+--     right-to-left convention;
 --   * `⟦ w ⟧↭ xs : xs ↭ applyW w xs`  is the derivation.
 --
--- This module is `--without-K` and generic in the carrier `X`; it uses
--- NO `≅↭ⁱ` (that lives in `FaithfulnessInductive`, which imports this).
--- Here we establish the *list-level* facts: length preservation, and
--- the Coxeter relations C1 (involution) and C2 (far-commutativity) as
--- propositional equalities on the acted-upon list.  C3 (braid) is only
--- valid for lists of the matching length, so it is stated with a length
--- hypothesis.
+-- Generic in the carrier `X`.  Establishes the list-level facts: length
+-- preservation and the Coxeter relations C1/C2 (unconditional) and C3
+-- (only for lists of matching length, hence a length hypothesis).
 ------------------------------------------------------------------------
 
 module Categories.PermuteCoherence.WordInterp {a} {X : Set a} where
@@ -60,8 +51,7 @@ private
 ------------------------------------------------------------------------
 -- 1. The interpretation.
 
--- Swap list positions `i` and `i+1`.  Identity if the list is too short
--- for the requested position (junk; unreachable when `length xs ≡ suc n`).
+-- Swap list positions `i` and `i+1` (identity junk when too short).
 swapAt : {n : ℕ} → Fin n → List X → List X
 swapAt _        []              = []
 swapAt 0F       (a ∷ [])        = a ∷ []
@@ -81,7 +71,7 @@ swapAt-length 0F       (a ∷ [])        = refl
 swapAt-length 0F       (a ∷ b ∷ rest)  = refl
 swapAt-length (fsuc i) (a ∷ xs)        = cong suc (swapAt-length i xs)
 
--- Apply a whole word.  Tail first (right-to-left), matching `evalW`.
+-- Apply a whole word, tail-first (right-to-left), matching `evalW`.
 applyW : Word n → List X → List X
 applyW []      xs = xs
 applyW (i ∷ w) xs = swapAt i (applyW w xs)
@@ -90,7 +80,6 @@ applyW-length : (w : Word n) (xs : List X) → length (applyW w xs) ≡ length x
 applyW-length []      xs = refl
 applyW-length (i ∷ w) xs = trans (swapAt-length i (applyW w xs)) (applyW-length w xs)
 
--- The derivation interpreting a word.
 ⟦_⟧↭ : (w : Word n) (xs : List X) → xs ↭ applyW w xs
 ⟦ []    ⟧↭ xs = Perm.refl
 ⟦ i ∷ w ⟧↭ xs = Perm.trans (⟦ w ⟧↭ xs) (swapAt-↭ i (applyW w xs))
@@ -118,9 +107,9 @@ swapAt-far far0ʳ    (a ∷ b ∷ rest)  = refl
 swapAt-far (farS f) []              = refl
 swapAt-far (farS f) (a ∷ xs)        = cong (a ∷_) (swapAt-far f xs)
 
--- (C3) Braid (Yang–Baxter) — only valid when the list is long enough,
--- so it carries the matching-length hypothesis `length xs ≡ suc n`
--- (this rules out the short junk lists, on which the braid would fail).
+-- (C3) Braid (Yang–Baxter) — needs the matching-length hypothesis
+-- `length xs ≡ suc n`, which rules out the short junk lists on which the
+-- braid would fail.
 swapAt-braid : {i k : Fin n} → Adj i k → (xs : List X) → length xs ≡ suc n
              → swapAt i (swapAt k (swapAt i xs)) ≡ swapAt k (swapAt i (swapAt k xs))
 swapAt-braid adj0       (a ∷ b ∷ c ∷ rest) _   = refl
@@ -132,9 +121,8 @@ swapAt-braid (adjS adj) (a ∷ xs)           len =
   cong (a ∷_) (swapAt-braid adj xs (suc-injective len))
 
 ------------------------------------------------------------------------
--- 3. The endpoint lemma:  `~ʷ`-equal words act the same on a list (of
--- the matching length).  This is what makes `⟦ w ⟧↭ xs` and `⟦ w′ ⟧↭ xs`
--- have the *same* target, a prerequisite for relating them in `≅↭ⁱ`.
+-- 3. Endpoint lemma: `~ʷ`-equal words act the same on a matching-length
+-- list, so `⟦ w ⟧↭ xs` and `⟦ w′ ⟧↭ xs` share a target.
 applyW-~ : {w w′ : Word n} → w ~ʷ w′ → (xs : List X) → length xs ≡ suc n
          → applyW w xs ≡ applyW w′ xs
 applyW-~ ~refl          xs len = refl
@@ -147,43 +135,34 @@ applyW-~ (c3 {w = w} adj) xs len =
   swapAt-braid adj (applyW w xs) (trans (applyW-length w xs) len)
 
 ------------------------------------------------------------------------
--- 4. `eval-respect`:  the list-level derivation `⟦ w ⟧↭ xs` evaluates
--- (via `eval-↭`) to the SAME finite bijection as the position-level word
--- `w` (via `evalW`), once both are cast to `FinBij (suc n) (suc n)` using
--- the length hypothesis `length xs ≡ suc n`.
---
--- This is the keystone connecting the list-permutation evaluation
--- (`Eval.eval-↭`) with the abstract word evaluation (`Word.evalW`).
+-- 4. `eval-respect` (keystone): the list-level derivation `⟦ w ⟧↭ xs`
+-- evaluates (`eval-↭`) to the SAME finite bijection as the position-level
+-- word `w` (`evalW`), once both are cast to `FinBij (suc n) (suc n)`.
 
--- The cast: transport a `FinBij p q` to `FinBij (suc n) (suc n)` given
--- `p ≡ suc n` and `q ≡ suc n`.
+-- The cast: transport `FinBij p q` to `FinBij (suc n) (suc n)`.
 castFB : {p q : ℕ} → p ≡ suc n → q ≡ suc n
        → FinBij p q → FinBij (suc n) (suc n)
 castFB e₁ e₂ b = subst₂ P.Permutation e₁ e₂ b
 
--- Pushing the forward action through the `subst₂` cast.  With both
--- endpoint proofs `refl`, the cast is the identity.
+-- Pushing the forward action through the `subst₂` cast.
 cast-push : {p q : ℕ} (e₁ : p ≡ suc n) (e₂ : q ≡ suc n)
             (b : FinBij p q) (k : Fin (suc n))
           → castFB e₁ e₂ b P.⟨$⟩ʳ k
             ≡ subst Fin e₂ (b P.⟨$⟩ʳ subst Fin (sym e₁) k)
 cast-push refl refl b k = refl
 
--- The cast is irrelevant in its endpoint proofs (here only the codomain
--- proof varies); proved by transporting along the proof-of-proofs equality.
+-- The cast is irrelevant in its codomain endpoint proof.
 cast-recod : {p q : ℕ} (e₁ : p ≡ suc n) {e₂ e₂′ : q ≡ suc n} → e₂ ≡ e₂′
            → (b : FinBij p q) → castFB e₁ e₂ b ≈-fb castFB e₁ e₂′ b
 cast-recod e₁ {e₂} refl b _ = refl
 
--- `cons-fb` commutes with the cast:  casting then lifting equals lifting
--- then casting.  (Both endpoint proofs `refl` ⇒ identity on both sides.)
+-- `cons-fb` commutes with the cast.
 cons-cast : {p q : ℕ} (e₁ : p ≡ suc n) (e₂ : q ≡ suc n) (b : FinBij p q)
           → castFB (cong suc e₁) (cong suc e₂) (cons-fb b)
             ≈-fb cons-fb (castFB e₁ e₂ b)
 cons-cast refl refl b k = refl
 
--- The cast is a (contravariant-in-domain) functor:  it distributes over
--- composition, with the chosen middle proof `e₂`.
+-- The cast distributes over composition (middle proof `e₂`).
 comp-cast : {p q r : ℕ} (e₁ : p ≡ suc n) (e₂ : q ≡ suc n) (e₃ : r ≡ suc n)
             (g : FinBij q r) (f : FinBij p q)
           → castFB e₁ e₃ (g ∘-fb f)
@@ -195,13 +174,12 @@ cast-redom : {p q : ℕ} {e₁ e₁′ : p ≡ suc n} → e₁ ≡ e₁′ → (
            → (b : FinBij p q) → castFB e₁ e₂ b ≈-fb castFB e₁′ e₂ b
 cast-redom refl e₂ b _ = refl
 
--- Casting the identity (with equal endpoint proofs) is the identity.
+-- Casting the identity is the identity.
 cast-id : {p : ℕ} (e : p ≡ suc n) → castFB e e (id-fb {n = p}) ≈-fb id-fb
 cast-id refl _ = refl
 
 ------------------------------------------------------------------------
--- Tiny `cong suc` / `trans` bookkeeping (for the `cong suc`-shaped length
--- proofs that arise in the inductive step).
+-- `cong suc` / `trans` bookkeeping for the inductive step's length proofs.
 
 cong-suc-inj : {p q : ℕ} (e : suc p ≡ suc q) → cong suc (suc-injective e) ≡ e
 cong-suc-inj refl = refl
@@ -211,26 +189,20 @@ cong-suc-trans : {p q r : ℕ} (e₁ : p ≡ q) (e₂ : q ≡ r)
 cong-suc-trans refl e₂ = refl
 
 ------------------------------------------------------------------------
--- Helper:  the single-generator case.
---
+-- Helper: the single-generator case
 --   eval-↭ (swapAt-↭ i ys)  cast to FinBij (suc n)(suc n)  ≈-fb  genFB i
 
 gen-eval : {n : ℕ} (i : Fin n) (ys : List X) (len : length ys ≡ suc n)
          → castFB len (trans (swapAt-length i ys) len)
                   (eval-↭ (swapAt-↭ i ys))
            ≈-fb genFB i
--- `0F` on a two-or-more list:  swapAt-↭ 0F (a∷b∷rest) = swap a b refl, so
--- eval-↭ = swap-fb _ ∘-fb cons-fb (cons-fb id-fb) ≈ swap-fb _ = genFB 0F.
 gen-eval {suc n} 0F (a ∷ b ∷ rest) len k =
-  -- `swapAt-length 0F (a∷b∷rest) = refl`, so the codomain proof is `len`.
   trans (cast-push {n = suc n} len len
                    (eval-↭ (swapAt-↭ {n = suc n} 0F (a ∷ b ∷ rest))) k)
         (aux len k)
   where
-    -- Generalise `len : suc (suc (length rest)) ≡ suc m` and match it to
-    -- `refl`; that collapses both `subst`s and exposes the FinBij identity
-    --   eval-↭ (swap a b refl) = swap-fb _ ∘-fb cons-fb (cons-fb id-fb)
-    --                          ≈ swap-fb _ = genFB 0F.
+    -- Matching `len` to `refl` collapses both `subst`s and exposes
+    -- `eval-↭ (swap a b refl) ≈ swap-fb _ = genFB 0F`.
     aux : {m : ℕ} (e : suc (suc (length rest)) ≡ suc (suc m)) (j : Fin (suc (suc m)))
         → subst Fin e
             (eval-↭ (Perm.swap a b (Perm.refl {xs = rest}))
@@ -245,13 +217,10 @@ gen-eval {suc n} 0F (a ∷ b ∷ rest) len k =
                 (λ p → trans (cons-fb-cong (cons-fb-functor-id {n = length rest}) p)
                              (cons-fb-functor-id {n = suc (length rest)} p))
                 j
--- `fsuc i` on `a ∷ xs`:  swapAt-↭ (fsuc i) (a∷xs) = prep a (swapAt-↭ i xs),
--- so eval-↭ = cons-fb (eval-↭ (swapAt-↭ i xs)) ≈ cons-fb (genFB i) = genFB (fsuc i).
--- We move the cast through `cons-fb` (the cast is `cons`-natural, `cons-cast`)
+-- `fsuc i`: move the cast through `cons-fb` (cast is `cons`-natural)
 -- after recoding the `cong suc`-shaped length proofs, then apply the IH.
+-- Chained pointwise at `k` to avoid non-injective `≈-fb` middle-term metas.
 gen-eval {suc n} (fsuc i) (a ∷ xs) len k =
-  -- chained pointwise (at the index `k`) to keep the intermediate
-  -- bijections concrete and avoid non-injective `≈-fb` middle-term metas.
   trans (cast-redom {n = suc n} (sym (cong-suc-inj len)) cod
                     (cons-fb (eval-↭ (swapAt-↭ i xs))) k)
   (trans (cast-recod {n = suc n} (cong suc lenTail) codEq
@@ -262,12 +231,10 @@ gen-eval {suc n} (fsuc i) (a ∷ xs) len k =
   where
     lenTail : length xs ≡ suc n
     lenTail = suc-injective len
-    -- the codomain proof appearing in the goal (`swapAt-length (fsuc i) (a∷xs)`
-    -- reduces to `cong suc (swapAt-length i xs)`).
+    -- the goal's codomain proof (`swapAt-length (fsuc i) (a∷xs)` reduces
+    -- to `cong suc (swapAt-length i xs)`).
     cod : suc (length (swapAt i xs)) ≡ suc (suc n)
     cod = trans (cong suc (swapAt-length i xs)) len
-    -- after recoding the domain proof to `cong suc lenTail`, the codomain
-    -- proof must be recoded to `cong suc (trans (swapAt-length i xs) lenTail)`.
     codEq : cod ≡ cong suc (trans (swapAt-length i xs) lenTail)
     codEq =
       trans (cong (trans (cong suc (swapAt-length i xs))) (sym (cong-suc-inj len)))
@@ -280,18 +247,11 @@ eval-respect : {n : ℕ} (w : Word n) (xs : List X) (len : length xs ≡ suc n)
              → castFB len (trans (applyW-length w xs) len)
                       (eval-↭ (⟦ w ⟧↭ xs))
                ≈-fb evalW w
--- `w = []`:  ⟦[]⟧↭ xs = refl, eval-↭ refl = id-fb, evalW [] = id-fb,
--- so the goal is `castFB len len id-fb ≈-fb id-fb`.
 eval-respect [] xs len = cast-id len
--- `w = i ∷ w′`:  ⟦i∷w′⟧↭ xs = trans (⟦w′⟧↭ xs) (swapAt-↭ i (applyW w′ xs)),
--- so eval-↭ = eval-↭ (swapAt-↭ i (applyW w′ xs)) ∘-fb eval-↭ (⟦w′⟧↭ xs)
---           ≈ genFB i ∘-fb evalW w′ = evalW (i ∷ w′)
--- via gen-eval (head) and the IH eval-respect w′ (tail).
--- We split the cast over the composition (`comp-cast`), recoding the
--- middle/codomain length proof via associativity of `trans`, then apply
--- `gen-eval` to the head factor and the IH `eval-respect w` to the tail.
+-- `i ∷ w′`: split the cast over the composition (`comp-cast`), recode the
+-- middle/codomain length proof via `trans`-associativity, then apply
+-- `gen-eval` to the head factor and the IH to the tail.  Chained at `k`.
 eval-respect {n} (i ∷ w) xs len k =
-  -- chained pointwise (at the index `k`), as in `gen-eval`.
   trans (comp-cast {n = n} len lenMid lenCod
                    (eval-↭ (swapAt-↭ i (applyW w xs)))
                    (eval-↭ (⟦ w ⟧↭ xs)) k)
@@ -308,9 +268,7 @@ eval-respect {n} (i ∷ w) xs len k =
     lenMid = trans (applyW-length w xs) len
     lenCod : length (applyW (i ∷ w) xs) ≡ suc n
     lenCod = trans (applyW-length (i ∷ w) xs) len
-    -- The head factor:  recode `lenCod` to the `gen-eval`-shaped codomain
-    -- proof `trans (swapAt-length i (applyW w xs)) lenMid` (associativity),
-    -- then it is exactly `gen-eval i (applyW w xs) lenMid`.
+    -- Recode `lenCod` to `gen-eval`'s codomain shape, then apply `gen-eval`.
     headFactor : castFB lenMid lenCod (eval-↭ (swapAt-↭ i (applyW w xs)))
                  ≈-fb genFB i
     headFactor j =

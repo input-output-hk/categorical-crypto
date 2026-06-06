@@ -1,64 +1,27 @@
 {-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
--- The stack-Uniqueness REACHABILITY invariant — the KEYSTONE that supplies the
--- `Unique`-codomain witness the eval-coincidence family (`residual-recon`,
--- `located-fixes-0`, `coh-in`/`coh-out`) needs.
+-- The stack-Uniqueness reachability invariant — the keystone supplying the
+-- `Unique`-codomain witness the eval-coincidence family needs.
 --
--- ## What is proved
---
--- `pe-stack-Unique : (∀ v → count v (producedList H) ≤ 1)`
---                  → `Unique (proj₁ (process-edges H (range H.nE) H.dom))`
---
--- i.e. the natural-order decoder run, started at the dom stack, ends with a
--- `Unique` stack — under the SOLE hypothesis that `producedList H` has every
--- count ≤ 1.  That hypothesis is exactly the *bound* half of `Linear H`
--- (`proj₂ lin`), so `Linear H` ALONE suffices: no `⟪f⟫`/`FromAPROP` structure
--- is needed beyond what `Linear` already packages, and at `H = ⟪ f ⟫` it is
--- discharged by `Linearity.⟪⟫-Linear` (or its `DecodeAttemptLinearP` proof).
---
--- ## The reservoir invariant (why `disj` holds along the run)
---
--- `StackUnique` documents that per-edge-step `Unique`-preservation is FALSE for
--- an arbitrary `Unique s`: firing an edge whose `eout e` is already live
--- duplicates a wire.  It holds ALONG `process-edges` because the running stack
--- is "fresh".  We make that precise with a single count invariant on the
--- running edge list `qs` (the edges NOT YET processed):
+-- Per-edge-step `Unique`-preservation is FALSE for an arbitrary `Unique s`
+-- (firing an edge whose `eout e` is already live duplicates a wire); it
+-- holds ALONG `process-edges` because the running stack stays "fresh".
+-- We capture that with a count invariant on the not-yet-processed edges `qs`:
 --
 --   Reservoir qs s  :=  ∀ v → count v s + count v (reservoir qs) ≤ 1
 --      where reservoir qs = concat (map H.eout qs)
 --
--- This is preserved by every `process-edges` step:
+-- preserved by every step (SKIP shrinks the reservoir; FIRE moves `eout e`
+-- from reservoir to stack).  It gives `count v s ≤ 1`, i.e. `Unique s`, at
+-- every stage.  The bound flows entirely from the reservoir count, so the
+-- lemma holds for an ARBITRARY edge list (instantiated at `range H.nE`).
+-- The sole hypothesis `∀ v → count v (producedList H) ≤ 1` is the bound
+-- half of `Linear H`, so `Linear H` alone suffices.
 --
---   * SKIP (e doesn't fire): the stack is unchanged and the reservoir SHRINKS
---     by `eout e`, so `count v s + count v (reservoir qs)
---        ≤ count v s + count v (eout e ++ reservoir qs) ≤ 1`.
---   * FIRE (e fires, `s ↭ ein e ++ rest`): the new stack is `eout e ++ rest`;
---     since `count v s = count v (ein e) + count v rest`, the post-step sum
---     `count v (eout e ++ rest) + count v (reservoir qs)
---        = count v (eout e) + count v rest + count v (reservoir qs)
---        ≤ count v (ein e) + count v rest + count v (eout e)
---          + count v (reservoir qs)  =  pre-step sum  ≤ 1`.
---
--- The invariant trivially gives `count v s ≤ 1`, i.e. `Unique s`, at every
--- stage — in particular at the end.  No DISTINCTNESS of the edges in `qs` is
--- needed: the bound flows entirely from the reservoir count, so the lemma holds
--- for an ARBITRARY edge list (we then instantiate at `range H.nE`).
---
--- ## How it closes the eval-coincidence family
---
--- At the `StackEquivariance` / `ResidualRecon` call sites the codomain whose
--- `Unique`-ness `eval-rigid` requires is a `↭`-IMAGE of the decoder stack `s'`:
---   * `residual-recon (ein e) s' restH (trans ρ permH)` needs
---     `Unique (ein e ++ restH)` — and `s' ↭ ein e ++ restH`, so
---     `Unique-resp-↭ (trans ρ permH) (Unique s')` from `StackUnique` supplies it
---     once `Unique s'` is in hand.
---   * `located-fixes-0` / `coh-in` / `coh-out` (in `ExtractElemEval`) compare two
---     `↭`s with the SAME stack-image codomain; `coh-fin-rigid`/`eval-rigid`
---     close them given that same `Unique` witness.
--- This module is the source of `Unique s'`: threaded by giving
--- `StackEquivariance.process-edges-equivariant` a `Unique s` hypothesis, which
--- this lemma discharges at `H = ⟪ f ⟫`, `s = dom`, `qs = range nE`.
+-- Downstream (`StackEquivariance`/`ResidualRecon`), the `Unique` codomain
+-- `eval-rigid` requires is a `↭`-image of the decoder stack, supplied by
+-- `Unique-resp-↭` once this lemma gives `Unique s`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -93,7 +56,7 @@ open import Categories.APROP.Hypergraph.Completeness.Linearity sig
 open import Categories.APROP.Hypergraph.Completeness.Decode sig
   using (process-edges; edge-step; extract-prefix)
 
--- Re-use the (postulate-free) uniqueness ⇔ count-bound bridge from `StackUnique`.
+-- The uniqueness ⇔ count-bound bridge from `StackUnique`.
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUnique sig
   using (count≤1⇒Unique; Unique-resp-↭)
 
@@ -134,16 +97,10 @@ module _ (H : Hypergraph FlatGen) where
     reservoir-cons-count e qs v = count-++ v (H.eout e) (reservoir qs)
 
   ------------------------------------------------------------------------
-  -- 1b.  The SINGLE-EDGE invariant advance (the `inv-skip`/`inv-fire`
-  --      step of `process-edges-count≤1`, factored out so the
-  --      `StackEquivariance.process-edges-equivariant` recursion can
-  --      thread the invariant across one `edge-step` and recover
-  --      `Unique` of every running stack along the way).
-  --
-  --   * `Reservoir≤1⇒Unique`  : the invariant for the running stack
-  --      bounds its plain count by 1, hence `Unique`.
-  --   * `edge-step-Reservoir≤1` : the invariant survives one `edge-step`
-  --      (SKIP keeps the stack, FIRE replaces it by `eout e ++ rest`).
+  -- 1b.  The single-edge invariant advance.
+  --   * `Reservoir≤1⇒Unique`   : the invariant bounds the stack count, so
+  --     the stack is `Unique`.
+  --   * `edge-step-Reservoir≤1` : the invariant survives one `edge-step`.
 
   Reservoir≤1⇒Unique
     : ∀ (qs : List (Fin H.nE)) (s : List (Fin H.nV))
@@ -201,20 +158,10 @@ module _ (H : Hypergraph FlatGen) where
               (Nat.≤-trans arith (Nat.≤-reflexive (sym rhs≡)))
 
   ------------------------------------------------------------------------
-  -- 1c.  RESERVOIR-SPLIT — the GLOBAL reservoir specialises to a mid-run
-  --      context.  Iterating `edge-step-Reservoir≤1` along a prefix `ps`,
-  --      a `Reservoir≤1 (ps ++ qs) s` invariant for the full edge list
-  --      descends to a `Reservoir≤1 qs` invariant for the stack reached
-  --      AFTER running `ps` from `s`.  This lets a `Linear`-sourced GLOBAL
-  --      reservoir feed any mid-run `(qs , pe-stack ps s)`.
-  --
-  --   * `ps = []`     : `process-edges [] s = (s , id)` and `[] ++ qs = qs`,
-  --     so the invariant is unchanged.
-  --   * `ps = e ∷ ps'`: `(e ∷ ps') ++ qs = e ∷ (ps' ++ qs)`; one
-  --     `edge-step-Reservoir≤1` advances `s` to `proj₁ (edge-step H s e)`
-  --     and drops the head edge, then recurse on `ps'` (the running stack
-  --     of `process-edges (e ∷ ps') s` is exactly `process-edges ps'
-  --     (proj₁ (edge-step H s e))` definitionally).
+  -- 1c.  RESERVOIR-SPLIT.  A `Reservoir≤1 (ps ++ qs) s` invariant for the
+  --      full edge list descends to a `Reservoir≤1 qs` invariant for the
+  --      stack reached after running `ps` from `s` (iterating
+  --      `edge-step-Reservoir≤1` along `ps`).
 
   reservoir-split
     : ∀ (ps qs : List (Fin H.nE)) (s : List (Fin H.nV))
@@ -253,11 +200,8 @@ module _ (H : Hypergraph FlatGen) where
       cong concat (map-range≡tabulate H.eout)
 
   ------------------------------------------------------------------------
-  -- 3.  THE KEYSTONE.  Started at `H.dom` over the natural edge order
-  --     `range H.nE`, with `producedList H` count-bounded, the final stack
-  --     is `Unique`.
+  -- 3.  Initial reservoir condition from the `producedList` bound.
 
-  -- Initial reservoir condition from the `producedList` bound.
   private
     producedList-count
       : ∀ v → count v (producedList H)
@@ -268,22 +212,14 @@ module _ (H : Hypergraph FlatGen) where
                   (cong (count v) (sym reservoir-range≡concat-tabulate)))
 
   ------------------------------------------------------------------------
-  -- 3b.  PROVENANCE-SOURCED reservoir.  The `Reservoir≤1 H o H.dom`
-  --      invariant is NOT true for an arbitrary edge order `o` (a repeated
-  --      edge over-counts its `eout` in the reservoir).  But it IS true for
-  --      every order `o` that is a PERMUTATION of `range H.nE` — exactly the
-  --      orders the downstream connectivity chase visits (each `↝` swap is
-  --      an adjacent transposition, preserving the multiset).  We thread
-  --      that provenance `o ↭ range nE` here and discharge the reservoir
-  --      from the `Linear`-backed `range`-order bound (`pe-stack-Unique`'s
-  --      `inv-init`), using `↭`-invariance of the reservoir's per-vertex
-  --      count.
+  -- 3b.  PROVENANCE-SOURCED reservoir.  `Reservoir≤1 H o H.dom` is NOT
+  --      true for an arbitrary order `o` (a repeated edge over-counts its
+  --      `eout`), but IS true for `o ↭ range H.nE` — the orders the
+  --      connectivity chase visits.  We thread that provenance and
+  --      discharge the reservoir using `↭`-invariance of its per-vertex count.
 
   private
-    -- Per-vertex count of `concat (map H.eout xs)` is `↭`-invariant in
-    -- `xs` (a "weighted" version of the `↭⇒count` lemma above, weight
-    -- `count v (H.eout ·)`).  Inducts on the `↭`-derivation; each step
-    -- rearranges the `concat`/`++` blocks with `count-++` + arithmetic.
+    -- Per-vertex count of `concat (map H.eout xs)` is `↭`-invariant in `xs`.
     reservoir-↭-count
       : ∀ {xs ys : List (Fin H.nE)} → xs Perm.↭ ys
       → ∀ v → count v (reservoir xs) ≡ count v (reservoir ys)
@@ -293,8 +229,6 @@ module _ (H : Hypergraph FlatGen) where
       (trans (cong (count v (H.eout e) +_) (reservoir-↭-count p v))
              (sym (count-++ v (H.eout e) (reservoir ys))))
     reservoir-↭-count (Perm.swap {xs = xs} {ys = ys} e e' p) v =
-      -- reservoir (e ∷ e' ∷ xs) = eout e ++ (eout e' ++ reservoir xs)
-      -- reservoir (e' ∷ e ∷ ys) = eout e' ++ (eout e ++ reservoir ys)
       trans (count-++ v (H.eout e) (H.eout e' ++ reservoir xs))
       (trans (cong (count v (H.eout e) +_)
                    (count-++ v (H.eout e') (reservoir xs)))
@@ -312,14 +246,9 @@ module _ (H : Hypergraph FlatGen) where
     reservoir-↭-count (Perm.trans p₁ p₂) v =
       trans (reservoir-↭-count p₁ v) (reservoir-↭-count p₂ v)
 
-  -- THE PROVENANCE-SOURCED reservoir.  For any order `o ↭ range H.nE`, the
-  -- `dom`-reservoir invariant holds — the per-vertex reservoir count of `o`
-  -- equals that of `range H.nE` (`reservoir-↭-count`), and the `range`-order
-  -- bound `count v dom + count v (reservoir (range nE)) ≤ 1` is exactly the
-  -- `Linear`-backed `producedList` bound (`producedList-count` + `prod-bnd`).
-  --
-  -- This is the SOUND replacement for the (FALSE-as-stated) `∀ o → …`
-  -- reservoir: the `o ↭ range` hypothesis is the missing side condition.
+  -- For any `o ↭ range H.nE`, the `dom`-reservoir invariant holds: its
+  -- per-vertex count equals that of `range H.nE`, which is the
+  -- `Linear`-backed `producedList` bound.
   dom-reservoir-prov
     : (∀ v → count v (producedList H) ≤ⁿ 1)
     → ∀ (o : List (Fin H.nE)) → o Perm.↭ range H.nE
@@ -331,13 +260,8 @@ module _ (H : Hypergraph FlatGen) where
                (sym (producedList-count v))))
       (prod-bnd v)
 
-  -- PREFIX MONOTONICITY of the `dom`-reservoir.  A `Reservoir≤1` invariant
-  -- for the full order `o ++ rest` descends to its prefix `o`: the
-  -- reservoir of `o` is a sub-multiset of that of `o ++ rest`
-  -- (`reservoir (o ++ rest) = reservoir o ++ reservoir rest`), so every
-  -- per-vertex count only shrinks when `rest` is dropped, keeping the
-  -- bound ≤ 1.  This lets a swap-site reservoir feed the truncated orders
-  -- `ps` / `ps ++ e' ∷ e ∷ []` that the empty-tail core consumes.
+  -- Prefix monotonicity: a `Reservoir≤1 (o ++ rest) s` invariant descends
+  -- to its prefix `o` (dropping `rest` only shrinks each per-vertex count).
   private
     reservoir-++-count
       : ∀ (o rest : List (Fin H.nE)) (v : Fin H.nV)
@@ -360,13 +284,8 @@ module _ (H : Hypergraph FlatGen) where
           (Nat.≤-reflexive (sym (reservoir-++-count o rest v)))))
       (inv v)
 
-  -- ORDER-`↭`-INVARIANCE of the `dom`-reservoir.  The reservoir's per-vertex
-  -- count depends only on the multiset of edges (`reservoir-↭-count`), so a
-  -- `Reservoir≤1 o₁ s` invariant transports along any `o₁ ↭ o₂`.  This lets a
-  -- swap-site reservoir for `ps ++ e' ∷ e ∷ []` feed the order
-  -- `ps ++ e ∷ e' ∷ []` (swap the last two edges), whence (by prefix drop) the
-  -- e-first intermediate order `ps ++ e ∷ []`.  SOUND: it is the same bound
-  -- under a multiset-preserving reordering, NOT a fresh assumption.
+  -- Order-`↭`-invariance: a `Reservoir≤1 o₁ s` invariant transports along
+  -- any `o₁ ↭ o₂` (the reservoir count depends only on the edge multiset).
   reservoir-resp-↭
     : ∀ {o₁ o₂ : List (Fin H.nE)} (s : List (Fin H.nV))
     → o₁ Perm.↭ o₂ → Reservoir≤1 o₁ s → Reservoir≤1 o₂ s
@@ -375,16 +294,3 @@ module _ (H : Hypergraph FlatGen) where
       (Nat.+-monoʳ-≤ (count v s)
         (Nat.≤-reflexive (sym (reservoir-↭-count o₁↭o₂ v))))
       (inv v)
-
---------------------------------------------------------------------------------
--- ## Residual / verdict
---
--- The keystone `pe-stack-Unique` is PROVEN with the SOLE hypothesis
--- `∀ v → count v (producedList H) ≤ 1`, which is `proj₂ (lin : Linear H)`.
--- Hence `Linear H` ALONE suffices — NO `⟪f⟫`/`FromAPROP` structure is needed
--- (the natural-order run `range H.nE` and the dom-stack are the only
--- specialisations; the reservoir invariant tolerates an ARBITRARY edge list,
--- so even distinct-edges is not required).  At `H = ⟪ f ⟫` the hypothesis is
--- the REAL `Linearity.⟪⟫-Linear` (its `proj₂`), so the lemma is honestly leaf-
--- free: there is NO residual postulate.
---------------------------------------------------------------------------------

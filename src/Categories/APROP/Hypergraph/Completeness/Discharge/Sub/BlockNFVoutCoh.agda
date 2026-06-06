@@ -1,41 +1,18 @@
 {-# OPTIONS --safe --with-K #-}
 
 --------------------------------------------------------------------------------
--- Generic OUTPUT-side block-braiding coherence underlying
--- `FireMidInterchange.vout-coh-eq′` (the dual of `vin-coh-eq′`).
+-- Generic block-braiding coherence underlying `FireMidInterchange`'s
+-- `vin-coh-eq′` / `vout-coh-eq′`.
 --
--- ## What this module provides
+-- The keystone (`σ-frame-app-to` etc.): the braiding `σ` of two `unflatten`
+-- blocks `as`, `bs`, conjugated by the `unflatten-++-≅` rebracketings, is
+-- the `permute` of the append-commutativity permutation.  From it, two
+-- consumers `vin-coh` / `vout-coh`: once the `σ ⊗ id` factor is rewritten
+-- into a `permute`, the equation becomes `permute`-vs-`permute` between two
+-- permutations with the SAME endpoints, which faithfulness closes.
 --
--- A SINGLE generic block-braiding lemma `σ-block-app` (the keystone: the
--- braiding `σ` of two `unflatten` blocks `as`, `bs` — conjugated by the
--- `unflatten-++-≅` rebracketings — is exactly the `permute` of the
--- append-commutativity permutation `as ++ bs ↭ bs ++ as`), and from it two
--- consumer lemmas:
---
---   * `vin-coh`  — the FROM-orientation input-frame σ-coherence
---                  (the `vin-coh-eq′` content);
---   * `vout-coh` — the TO-orientation output-frame σ-coherence
---                  (the `vout-coh-eq′` content, the dual).
---
--- Both consumers are pure CONSEQUENCES of `σ-block-app` + faithfulness
--- (`FaithfulnessResidual.permute-resp-≅↭`): once the lone `σ ⊗ id` factor
--- is rewritten (via `σ-block-app`) into a `permute`, the entire equation
--- becomes a `permute`-vs-`permute` statement between two permutations with
--- the SAME endpoints, which faithfulness closes.
---
--- ## Generic setting
---
--- We work at the abstract `FreeMonoidalData d` level (as `BraidBlock` /
--- `BraidPermute` do), with an abstract vertex set `(n , vlab)` so that the
--- view frames are built from `permute-via-vlab` exactly as in
--- `FireMidInterchange`.  The three abstract block lists are
--- `as bs cs : List (Fin n)` — instantiated by `FireMidInterchange` at
--- `as = eout e`, `bs = eout e'`, `cs = Rlist`.
---
--- `--with-K`.  The only genuinely-axiomatic input is the supplied
--- `FaithfulnessResidual` (the standard `permute` coherence obligation,
--- already a parameter `K` of `FireMidInterchange`); `σ-block-app` and the
--- two consumers are proven structurally / postulate-free in this module.
+-- Worked at the abstract `FreeMonoidalData d` level with a vertex set
+-- `(n , vlab)`; the only axiomatic input is the supplied `FaithfulnessResidual`.
 --------------------------------------------------------------------------------
 
 open import Categories.FreeMonoidal
@@ -71,12 +48,8 @@ private
 open FM.HomReasoning
 
 --------------------------------------------------------------------------------
--- ## The view-frame isos, REPLICATED VERBATIM from `FireMidInterchange`
--- (`R-obj`, `uf++`, `view-in≅`, `view-out≅`) so the consumer instantiations
--- are DEFINITIONALLY equal to the private definitions there.
---
--- These are parameterised over the abstract vertex set `(n , vlab)` and the
--- three abstract block lists; no hypergraph is needed.
+-- ## The view-frame isos, REPLICATED VERBATIM from `FireMidInterchange` so
+-- the consumer instantiations are DEFINITIONALLY equal to its private defs.
 
 module _ {n : ℕ} (vlab : Fin n → X) where
 
@@ -86,7 +59,7 @@ module _ {n : ℕ} (vlab : Fin n → X) where
   R-obj : List (Fin n) → ObjTerm
   R-obj cs = unflatten (map vlab cs)
 
-  -- Map-bridged `unflatten-++-≅` (FireMidInterchange's `uf++`).
+  -- Map-bridged `unflatten-++-≅`.
   uf++ : (As Bs : List (Fin n))
        → unflatten (map vlab (As ++ Bs))
          ≅ unflatten (map vlab As) ⊗₀ unflatten (map vlab Bs)
@@ -96,7 +69,7 @@ module _ {n : ℕ} (vlab : Fin n → X) where
       refl
       (unflatten-++-≅ (map vlab As) (map vlab Bs))
 
-  -- Right-whisker an iso by `id` (FireMidInterchange's local `≅⊗id`).
+  -- Right-whisker an iso by `id`.
   ≅⊗id : ∀ {Z : ObjTerm} {U V : ObjTerm} → U ≅ V → U ⊗₀ Z ≅ V ⊗₀ Z
   ≅⊗id {Z} i = record
     { from = _≅_.from i ⊗₁ id
@@ -109,7 +82,6 @@ module _ {n : ℕ} (vlab : Fin n → X) where
       }
     }
 
-  -- Input/output view isos: identical shape on the corresponding blocks.
   view≅
     : (as bs cs : List (Fin n))
     → unflatten (map vlab ((as ++ bs) ++ cs))
@@ -118,20 +90,18 @@ module _ {n : ℕ} (vlab : Fin n → X) where
     ≅.trans (uf++ (as ++ bs) cs)
             (≅⊗id (uf++ as bs))
 
-  -- Short alias.
   pvl : {xs ys : List (Fin n)} → xs Perm.↭ ys
       → HomTerm (unflatten (map vlab xs)) (unflatten (map vlab ys))
   pvl = permute-via-vlab vlab
 
-  -- `permute-via-vlab` is a ↭-functor: it sends `trans` to `∘` (DEFINITIONALLY,
-  -- since both `map⁺` and `permute` recurse on `trans`).
+  -- `permute-via-vlab` is a ↭-functor: it sends `trans` to `∘` (DEFINITIONALLY).
   pvl-trans
     : {xs ys zs : List (Fin n)} (p : xs Perm.↭ ys) (q : ys Perm.↭ zs)
     → pvl (Perm.trans p q) ≈Term pvl q ∘ pvl p
   pvl-trans p q = ≈-Term-refl
 
-  -- The canonical block-swap permutation that the braiding realises:
-  -- swap the two front blocks `as`, `bs`, keeping the residual `cs` fixed.
+  -- The block-swap the braiding realises: swap the two front blocks,
+  -- keeping the residual `cs` fixed.
   app-swap : (as bs cs : List (Fin n))
            → (as ++ bs) ++ cs Perm.↭ (bs ++ as) ++ cs
   app-swap as bs cs = PermProp.++⁺ʳ cs (PermProp.++-comm as bs)
@@ -139,22 +109,11 @@ module _ {n : ℕ} (vlab : Fin n → X) where
   --------------------------------------------------------------------
   -- ## The two PURE structural residuals the keystone reduces to.
   --
-  -- These are stated WITHOUT any `view`/`σ⊗id` conjugation, `vl₁/vl₂`,
-  -- `r-stk`, or faithfulness — they are exactly the `unflatten-++-≅`
-  -- block-rebracketing facts (the `BraidBlock`/`BraidPermute`-shaped
-  -- coherence), isolated.
-  --
-  --   * `σ-block-comm`  — the bare two-block braiding: the braiding of the
-  --                       two `unflatten` blocks, conjugated by the
-  --                       `unflatten-++-≅` rebrackets, is the `permute` of
-  --                       the append-commutativity permutation.  This is
-  --                       the genuine `BraidPermute` content (iterated
-  --                       `σ-rotate`), at the `map vlab` block level.
-  --   * `frame-ext`     — the residual-`cs` framing: a block `permute P`
-  --                       (on the front `(as++bs)`-portion) tensored with
-  --                       `id` on `cs`, conjugated by `unflatten-++-≅`, is
-  --                       the `permute` of `P` extended over `cs`
-  --                       (`++⁺ʳ cs P`).  Pure `unflatten-++-≅` naturality.
+  --   * `σ-block-comm` — the bare two-block braiding (the `BraidPermute`
+  --                      content at the `map vlab` block level).
+  --   * `frame-ext`    — the residual-`cs` framing: a block `permute P` ⊗
+  --                      `id` on `cs`, conjugated by `unflatten-++-≅`, is the
+  --                      `permute` of `P` extended over `cs` (`++⁺ʳ cs P`).
   σ-block-comm
     : (as bs : List (Fin n))
     → _≅_.to (uf++ bs as) ∘ (σ {Aof as} {Aof bs}) ∘ _≅_.from (uf++ as bs)
@@ -168,11 +127,8 @@ module _ {n : ℕ} (vlab : Fin n → X) where
   frame-ext = BlockNFBraid.frame-ext vlab
 
   --------------------------------------------------------------------
-  -- ## The KEYSTONE (BraidBlock core), now PROVEN from the two pure
-  -- residuals by the `≅⊗id` / `⊗-∘-dist` conjugation algebra (the
-  -- braiding-glue, fully mechanized here): the `σ ⊗ id` factor conjugated
-  -- by the two swapped-order view frames is the `permute` of the canonical
-  -- block-swap.  TO-orientation; shared by `vin-coh` and `vout-coh`.
+  -- ## The KEYSTONE: the `σ ⊗ id` factor conjugated by the two swapped-order
+  -- view frames is the `permute` of the block-swap.  TO-orientation.
 
   σ-frame-app-to
     : (as bs cs : List (Fin n))
@@ -181,10 +137,8 @@ module _ {n : ℕ} (vlab : Fin n → X) where
         ∘ _≅_.from (view≅ as bs cs)
       ≈Term pvl (app-swap as bs cs)
   σ-frame-app-to as bs cs = begin
-      -- view≅ unfolds (definitionally) into the outer `uf++ (·) cs` frame
-      -- composed with the inner `≅⊗id (uf++ · ·)` whisker; `to`/`from` of
-      -- `≅⊗id` are `(· ⊗₁ id)`.  First reassociate to expose the inner
-      -- `(· ⊗ id)` chain to `collapse`.
+      -- view≅ unfolds into the outer `uf++ (·) cs` frame ∘ inner `≅⊗id`
+      -- whisker; reassociate to expose the `(· ⊗ id)` chain to `collapse`.
       (_≅_.to (uf++ (bs ++ as) cs) ∘ (_≅_.to (uf++ bs as) ⊗₁ id))
         ∘ ((σ ⊗₁ id)
         ∘ ((_≅_.from (uf++ as bs) ⊗₁ id) ∘ _≅_.from (uf++ (as ++ bs) cs)))
@@ -205,7 +159,6 @@ module _ {n : ℕ} (vlab : Fin n → X) where
       pvl (app-swap as bs cs)
     ∎
     where
-      -- `(g₃ ⊗ id) ∘ (g₂ ⊗ id) ∘ ((g₁ ⊗ id) ∘ h) ≈ ((g₃ ∘ g₂ ∘ g₁) ⊗ id) ∘ h`.
       collapse
         : ∀ {U V W Y Z : ObjTerm}
             {g₃ : HomTerm W Y} {g₂ : HomTerm V W} {g₁ : HomTerm U V}
@@ -233,8 +186,7 @@ module _ {n : ℕ} (vlab : Fin n → X) where
         ∎
 
   --------------------------------------------------------------------
-  -- ## (★)  The keystone re-stated with the braiding on the LEFT of the
-  -- FROM-frame (input orientation), derived from `σ-frame-app-to` by
+  -- ## The keystone in FROM-orientation (input), from `σ-frame-app-to` by
   -- cancelling one view-iso.  Shared by `vin-coh`.
 
   σ-frame-app-from
@@ -256,13 +208,8 @@ module _ {n : ℕ} (vlab : Fin n → X) where
     ∎
 
   --------------------------------------------------------------------
-  -- ## The keystone with the trailing `from`-iso cancelled (TO-orientation),
-  -- the form `vout-coh` consumes directly:
-  --
-  --   to(view≅ bs as cs) ∘ (σ ⊗ id)  ≈  pvl(app-swap) ∘ to(view≅ as bs cs)
-  --
-  -- (post-compose `σ-frame-app-to` with `to(view≅ as bs cs)` and cancel
-  -- `from ∘ to = id`).
+  -- ## The keystone with the trailing `from`-iso cancelled (the form
+  -- `vout-coh` consumes), from `σ-frame-app-to` + `from ∘ to = id`.
 
   σ-frame-app-to′
     : (as bs cs : List (Fin n))
@@ -282,7 +229,6 @@ module _ {n : ℕ} (vlab : Fin n → X) where
       pvl (app-swap as bs cs) ∘ _≅_.to (view≅ as bs cs)
     ∎
     where
-      -- (w ∘ x) ∘ (y ∘ z) ≈ (w ∘ x ∘ y) ∘ z   (pure reassociation)
       middle4
         : ∀ {A B C D E : ObjTerm}
             {w : HomTerm D E} {x : HomTerm C D} {y : HomTerm B C} {z : HomTerm A B}
@@ -296,16 +242,9 @@ module _ {n : ℕ} (vlab : Fin n → X) where
   --------------------------------------------------------------------
   -- ## CONSUMER 1 — `vout-coh` (the OUTPUT-side `vout-coh-eq′` content).
   --
-  -- The two swapped-order TO-frames are reconciled by the output locating
-  -- permutes `vl₁`/`vl₂` and the reshuffle `rstk`, modulo `σ ⊗ id` on the
-  -- two output factors.  Proven from the keystone `σ-frame-app-to′` plus a
-  -- single `≅↭`-coherence of the located permutes (discharged by
-  -- faithfulness `K`).
-  --
-  -- The residual hypothesis `coh-out` is the genuine SimLoc coherence: the
-  -- two ways from the bracketed output `(as++bs)++cs` to the final stack
-  -- `as++r₁'` — (LHS) locate-then-reshuffle `trans vl₁ rstk`, vs (RHS)
-  -- block-swap-then-locate `trans (app-swap) vl₂` — agree as bijections.
+  -- From the keystone `σ-frame-app-to′` + the `coh-out` `≅↭`-coherence of
+  -- the located permutes (the SimLoc coherence: locate-then-reshuffle vs
+  -- block-swap-then-locate agree as bijections; discharged by `K`).
   module _ (K : FaithfulnessResidual) where
     open FaithfulnessResidual K
 
@@ -340,11 +279,8 @@ module _ {n : ℕ} (vlab : Fin n → X) where
 
   --------------------------------------------------------------------
   -- ## CONSUMER 2 — `vin-coh` (the INPUT-side `vin-coh-eq′` content).
-  --
-  -- The SAME block-braiding keystone in FROM-orientation.  The two
-  -- swapped-order FROM-frames (input locating permutes `loc₁`/`loc₂`) are
-  -- related by `σ ⊗ id` on the two input factors, modulo a single
-  -- `≅↭`-coherence of the input permutes (discharged by `K`).
+  -- The same keystone in FROM-orientation, modulo a `coh-in` `≅↭`-coherence
+  -- of the input permutes (discharged by `K`).
   module _ (K : FaithfulnessResidual) where
     open FaithfulnessResidual K
 

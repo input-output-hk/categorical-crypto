@@ -1,11 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Safe subset of DecodeRoundtrip: the bridge-∘ / bridge-⊗ / bridge-⊗-decompose
--- distributivity lemmas.  These are fully constructive (no postulates) and
--- factored out so that downstream modules (DecodeRel, Inductive, CompletenessFull)
--- can transitively type-check under `--safe` without dragging in the rest of
--- DecodeRoundtrip's still-postulated content.
+-- The `bridge-∘` / `bridge-⊗` / `bridge-⊗-decompose` distributivity
+-- lemmas: fully constructive, factored out so downstream modules
+-- type-check under `--safe` without the rest of `DecodeRoundtrip`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -56,8 +54,7 @@ bridge-∘ {A} {B} {C} g f = ≈-Term-sym chain
       F-C ∘ (g ∘ f) ∘ T-A
         ∎
 
--- Helper: distribute ⊗ over the (≅.from ∘ _ ∘ ≅.to) composition that defines
--- `bridge`.
+-- Distribute ⊗ over the `(≅.from ∘ _ ∘ ≅.to)` composition defining `bridge`.
 bridge-⊗-decompose
   : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
   → bridge f ⊗₁ bridge g
