@@ -119,10 +119,11 @@ private
 
 open FM.HomReasoning
 
-private
-  ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-  ≡⇒≈Term refl = ≈-Term-refl
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
+  using ( ≡⇒≈Term; subst₂-resp-≈Term; subst₂-HomTerm-irrel; subst₂-HomTerm-∘
+        ; decode-attempt-extract )
 
+private
   -- The bare σ-block frame at `unflatten`-blocks (NO `map`-bridge):
   --   `to(uff++ r l) ∘ σ {unflatten l}{unflatten r} ∘ from(uff++ l r)`,
   -- a `HomTerm (unflatten (l ++ r)) (unflatten (r ++ l))`.
@@ -154,28 +155,6 @@ private
     → subst₂ HomTerm refl q f ∘ (g ∘ subst₂ HomTerm p refl h)
       ≡ subst₂ HomTerm p q (f ∘ (g ∘ h))
   peel-∘-substs refl refl f g h = refl
-
-  subst₂-resp-≈Term
-    : ∀ {A A' B B'} (p : A ≡ A') (q : B ≡ B') {u v : HomTerm A B}
-    → u ≈Term v → subst₂ HomTerm p q u ≈Term subst₂ HomTerm p q v
-  subst₂-resp-≈Term refl refl u≈v = u≈v
-
-  -- Under `objUIP`, `subst₂ HomTerm` only cares about endpoints.
-  subst₂-HomTerm-irrel
-    : (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
-      {A A' B B' : ObjTerm} (p p' : A ≡ A') (q q' : B ≡ B') (t : HomTerm A B)
-    → subst₂ HomTerm p q t ≈Term subst₂ HomTerm p' q' t
-  subst₂-HomTerm-irrel objUIP p p' q q' t =
-    ≡⇒≈Term (cong₂ (λ x y → subst₂ HomTerm x y t) (objUIP p p') (objUIP q q'))
-
-  -- Compose two boundary `subst₂ HomTerm` transports into one.
-  subst₂-HomTerm-∘
-    : ∀ {A₀ A₁ A₂ B₀ B₁ B₂}
-        (p₁ : A₀ ≡ A₁) (p₂ : A₁ ≡ A₂) (q₁ : B₀ ≡ B₁) (q₂ : B₁ ≡ B₂)
-        (t : HomTerm A₀ B₀)
-    → subst₂ HomTerm p₂ q₂ (subst₂ HomTerm p₁ q₁ t)
-      ≡ subst₂ HomTerm (trans p₁ p₂) (trans q₁ q₂) t
-  subst₂-HomTerm-∘ refl refl refl refl t = refl
 
   ------------------------------------------------------------------------
   -- ## The empty-residual box collapse (`nil-frame`).
@@ -405,27 +384,8 @@ private
 --------------------------------------------------------------------------------
 -- ## Algorithm extraction (sig-level).
 --
--- From a successful `decode-attempt H` (the totality `decode-attempt-Linear`
--- provides at `H = ⟪·⟫`), expose the returned term AS
--- `permute-via-vlab vlab perm ∘ process-term` for the SAME `process-term =
--- proj₂ (process-all-edges H dom)` and SOME `perm : s_final ↭ cod`.  This is
--- the `sig`-only clone of `LinearExtracts.decode-attempt-shape` (that module
--- is `sig-dec`-parameterised, so cannot be imported into this `sig`-only
--- site — hence we clone the lemma content).
-
-decode-attempt-extract
-  : (H : Hypergraph FlatGen)
-    (t : HomTerm (unflatten (domL H)) (unflatten (codL H)))
-  → decode-attempt H ≡ just t
-  → Σ[ perm ∈ proj₁ (process-all-edges H (Hypergraph.dom H)) Perm.↭ Hypergraph.cod H ]
-      t ≡ permute-via-vlab (Hypergraph.vlab H) perm
-            ∘ proj₂ (process-all-edges H (Hypergraph.dom H))
-decode-attempt-extract H t eq
-    with process-all-edges H (Hypergraph.dom H)
-... | s_final , process-term
-    with extract-exact (Hypergraph.cod H) s_final
-...    | just perm with eq
-...       | refl = perm , refl
+-- `decode-attempt-extract` now lives in the shared leaf `HomTermTransport`
+-- (imported at the top of this module).
 
 --------------------------------------------------------------------------------
 -- ## Single-edge `process-all-edges` reduction (for `hGen g`).

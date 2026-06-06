@@ -62,8 +62,13 @@ open import Categories.APROP.Hypergraph.Completeness.Discharge.DecodeAttemptLine
 -- generic tensor-block machinery (all generic in the sub-hypergraphs).
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.ProcessEdgesTermShape sig
   using (pe-term-++; pe-stack-++)
-open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeComposeShape sig
-  using (Linear⇒cod-Unique; decode-attempt-extract)
+open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.HomTermTransport sig
+  using ( ≡⇒≈Term
+        ; subst₂-HomTerm-irrel; subst₂-HomTerm-∘; subst₂-resp-≈Term
+        ; subst₂-HomTerm-∘-dist; subst₂-⊗₁-dist
+        ; permute-subst₂; map⁺-subst₂; eval-subst₂-↭
+        ; vlab-φ-lemma; pvv-relabel
+        ; Linear⇒cod-Unique; decode-attempt-extract )
 open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.DecodeTensorShape sig
   using (module EmbedData; module BlockFactor; module BlockTensor)
 import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.StackUniqueReach sig as SUR
@@ -94,9 +99,6 @@ open import Relation.Binary.PropositionalEquality
 private
   module FM = Category FreeMonoidal
 
-  ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
-  ≡⇒≈Term refl = ≈-Term-refl
-
   -- The pruned decoder `decodeP`.
   decodeP : ∀ {A B} (f : HomTerm A B)
           → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
@@ -105,42 +107,9 @@ private
            (proj₁ (decode-attempt-LinearP f))
 
   ------------------------------------------------------------------------
-  -- subst₂ / boundary algebra (copied verbatim from DecodeTensorShape).
-  subst₂-HomTerm-irrel
-    : (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
-      {A A' B B' : ObjTerm} (p p' : A ≡ A') (q q' : B ≡ B') (t : HomTerm A B)
-    → subst₂ HomTerm p q t ≈Term subst₂ HomTerm p' q' t
-  subst₂-HomTerm-irrel objUIP p p' q q' t =
-    ≡⇒≈Term (cong₂ (λ x y → subst₂ HomTerm x y t) (objUIP p p') (objUIP q q'))
-
-  subst₂-HomTerm-∘
-    : ∀ {A A' A'' B B' B''}
-        (p₁ : A ≡ A') (p₂ : A' ≡ A'') (q₁ : B ≡ B') (q₂ : B' ≡ B'') (t : HomTerm A B)
-    → subst₂ HomTerm p₂ q₂ (subst₂ HomTerm p₁ q₁ t)
-      ≡ subst₂ HomTerm (trans p₁ p₂) (trans q₁ q₂) t
-  subst₂-HomTerm-∘ refl refl refl refl t = refl
-
-  subst₂-resp-≈Term
-    : ∀ {A A' B B'} (p : A ≡ A') (q : B ≡ B') {u v : HomTerm A B}
-    → u ≈Term v → subst₂ HomTerm p q u ≈Term subst₂ HomTerm p q v
-  subst₂-resp-≈Term refl refl u≈v = u≈v
-
-  subst₂-HomTerm-∘-dist
-    : ∀ {A A' B B' C C'}
-        (p : A ≡ A') (q : B ≡ B') (r : C ≡ C')
-        (f : HomTerm B C) (h : HomTerm A B)
-    → subst₂ HomTerm p r (f ∘ h)
-      ≡ subst₂ HomTerm q r f ∘ subst₂ HomTerm p q h
-  subst₂-HomTerm-∘-dist refl refl refl f h = refl
-
-  subst₂-⊗₁-dist
-    : ∀ {A A' B B' C C' D D' : ObjTerm}
-        (p₁ : A ≡ A') (q₁ : B ≡ B') (p₂ : C ≡ C') (q₂ : D ≡ D')
-        (a : HomTerm A B) (b : HomTerm C D)
-    → subst₂ HomTerm (cong₂ _⊗₀_ p₁ p₂) (cong₂ _⊗₀_ q₁ q₂) (a ⊗₁ b)
-      ≡ subst₂ HomTerm p₁ q₁ a ⊗₁ subst₂ HomTerm p₂ q₂ b
-  subst₂-⊗₁-dist refl refl refl refl a b = refl
-
+  -- subst₂ / boundary algebra: the shared lemmas now live in the leaf
+  -- `HomTermTransport` (imported above); only the `unflatten-++-≅`
+  -- bridges `to-uf-cong`/`from-uf-cong` remain local here.
   to-uf-cong
     : ∀ {Xs Xs' Ys Ys' : List X} (pX : Xs ≡ Xs') (pY : Ys ≡ Ys')
     → subst₂ HomTerm (cong₂ _⊗₀_ (cong unflatten pX) (cong unflatten pY))
@@ -156,92 +125,6 @@ private
         (_≅_.from (unflatten-++-≅ Xs Ys))
       ≡ _≅_.from (unflatten-++-≅ Xs' Ys')
   from-uf-cong refl refl = refl
-
-  permute-subst₂
-    : ∀ {xs xs' ys ys' : List X} (p : xs ≡ xs') (q : ys ≡ ys')
-        (r : xs Perm.↭ ys)
-    → subst₂ HomTerm (cong unflatten p) (cong unflatten q) (permute r)
-      ≡ permute (subst₂ Perm._↭_ p q r)
-  permute-subst₂ refl refl r = refl
-
-  map⁺-subst₂
-    : ∀ {a b} {A : Set a} {B : Set b} (h : A → B)
-        {xs xs' ys ys' : List A} (p : xs ≡ xs') (q : ys ≡ ys') (r : xs Perm.↭ ys)
-    → PermProp.map⁺ h (subst₂ Perm._↭_ p q r)
-      ≡ subst₂ Perm._↭_ (cong (map h) p) (cong (map h) q) (PermProp.map⁺ h r)
-  map⁺-subst₂ h refl refl r = refl
-
-  eval-subst₂-↭
-    : ∀ {a} {A : Set a} {xs xs' ys ys' : List A}
-        (p : xs ≡ xs') (q : ys ≡ ys') (r : xs Perm.↭ ys)
-    → eval-↭ (subst₂ Perm._↭_ p q r)
-      ≡ subst₂ FinBij (cong length p) (cong length q) (eval-↭ r)
-  eval-subst₂-↭ refl refl r = refl
-
-  vlab-φ-lemma
-    : ∀ {nH nJ : ℕ} (φ : Fin nH → Fin nJ) (vJ : Fin nJ → X) (vH : Fin nH → X)
-        (veq : ∀ i → vJ (φ i) ≡ vH i) (s : List (Fin nH))
-    → map vJ (map φ s) ≡ map vH s
-  vlab-φ-lemma φ vJ vH veq s = trans (sym (map-∘ s)) (map-cong veq s)
-
-  pvv-relabel
-    : (Kf : FaithfulnessResidual)
-      {nH nJ : ℕ} (φ : Fin nH → Fin nJ)
-      (vJ : Fin nJ → X) (vH : Fin nH → X) (veq : ∀ i → vJ (φ i) ≡ vH i)
-      {xs ys : List (Fin nH)} (p : xs Perm.↭ ys)
-    → subst₂ HomTerm
-        (cong unflatten (vlab-φ-lemma φ vJ vH veq xs))
-        (cong unflatten (vlab-φ-lemma φ vJ vH veq ys))
-        (permute-via-vlab vJ (PermProp.map⁺ φ p))
-      ≈Term permute-via-vlab vH p
-  pvv-relabel Kf φ vJ vH veq {xs} {ys} p =
-    ≈-Term-trans
-      (≡⇒≈Term
-        (permute-subst₂ (vlab-φ-lemma φ vJ vH veq xs)
-                        (vlab-φ-lemma φ vJ vH veq ys)
-                        (PermProp.map⁺ vJ (PermProp.map⁺ φ p))))
-      (FaithfulnessResidual.permute-resp-≅↭ Kf
-        (subst₂ Perm._↭_ (vlab-φ-lemma φ vJ vH veq xs)
-                          (vlab-φ-lemma φ vJ vH veq ys)
-                          (PermProp.map⁺ vJ (PermProp.map⁺ φ p)))
-        (PermProp.map⁺ vH p)
-        coincide)
-    where
-      px = vlab-φ-lemma φ vJ vH veq xs
-      py = vlab-φ-lemma φ vJ vH veq ys
-
-      coincide
-        : eval-↭ (subst₂ Perm._↭_ px py (PermProp.map⁺ vJ (PermProp.map⁺ φ p)))
-        ≈-fb eval-↭ (PermProp.map⁺ vH p)
-      coincide =
-        ≈-fb-of-≡
-          (trans (eval-subst₂-↭ px py (PermProp.map⁺ vJ (PermProp.map⁺ φ p)))
-          (trans (cong (subst₂ FinBij (cong length px) (cong length py))
-                       (trans (eval-map⁺ vJ (PermProp.map⁺ φ p))
-                              (cong (subst₂ FinBij
-                                       (sym (length-map vJ (map φ xs)))
-                                       (sym (length-map vJ (map φ ys))))
-                                    (eval-map⁺ φ p))))
-          (trans (cong (subst₂ FinBij (cong length px) (cong length py))
-                       (subst₂-FinBij-∘
-                          (sym (length-map φ xs)) (sym (length-map vJ (map φ xs)))
-                          (sym (length-map φ ys)) (sym (length-map vJ (map φ ys)))
-                          (eval-↭ p)))
-          (trans (subst₂-FinBij-∘
-                    (trans (sym (length-map φ xs)) (sym (length-map vJ (map φ xs))))
-                    (cong length px)
-                    (trans (sym (length-map φ ys)) (sym (length-map vJ (map φ ys))))
-                    (cong length py)
-                    (eval-↭ p))
-          (trans (cast-irrel
-                    (trans (trans (sym (length-map φ xs)) (sym (length-map vJ (map φ xs))))
-                           (cong length px))
-                    (sym (length-map vH xs))
-                    (trans (trans (sym (length-map φ ys)) (sym (length-map vJ (map φ ys))))
-                           (cong length py))
-                    (sym (length-map vH ys))
-                    (eval-↭ p))
-                 (sym (eval-map⁺ vH p)))))))
 
 --------------------------------------------------------------------------------
 -- ## The FINAL pruned ⊗ assembly — `decodeP-⊗-shape`.
