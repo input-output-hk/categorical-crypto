@@ -240,15 +240,8 @@ module BlockTensor
       ≈⟨ BNB.subst₂-resp-≈ pAs pBs
            (FME.permute-++⁺ˡ-slide (map vlab ws) (PermProp.map⁺ vlab q)) ⟩
     subst₂ HomTerm pAs pBs (rawTO ∘ ((id ⊗₁ permute (PermProp.map⁺ vlab q)) ∘ rawFROM))
-      ≈⟨ ≡⇒≈Term (BNB.subst₂-∘-split pAs pBs
-                    rawTO ((id ⊗₁ permute (PermProp.map⁺ vlab q)) ∘ rawFROM)) ⟩
-    subst₂ HomTerm refl pBs rawTO
-      ∘ subst₂ HomTerm pAs refl ((id ⊗₁ permute (PermProp.map⁺ vlab q)) ∘ rawFROM)
-      ≈⟨ ∘-resp-≈ (≡⇒≈Term to-eq)
-           (≈-Term-trans
-             (≡⇒≈Term (BNB.subst₂-∘-split pAs refl
-                         (id ⊗₁ permute (PermProp.map⁺ vlab q)) rawFROM))
-             (∘-resp-≈ ≈-Term-refl (≡⇒≈Term from-eq))) ⟩
+      ≈⟨ BNB.frame-transport pAs pBs
+           rawTO (id ⊗₁ permute (PermProp.map⁺ vlab q)) rawFROM to-eq refl from-eq ⟩
     _≅_.to (uf++ ws bs) ∘ ((id ⊗₁ pvl q) ∘ _≅_.from (uf++ ws as)) ∎
     where
       pAs   = cong unflatten (sym (map-++ vlab ws as))

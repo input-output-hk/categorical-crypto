@@ -203,8 +203,12 @@ module _ (H : Hypergraph FlatGen)
         ≈Term _≅_.to (BT.uf++ (H.eout e) rest)
               ∘ (box-e e ⊗₁ id {R-obj rest})
               ∘ _≅_.from (BT.uf++ (H.ein e) rest)
+    -- `fire-mid H e rest` is DEFINITIONALLY `subst₂ pIn pOut (box-of …)`, and
+    -- `box-of` is the raw `rawTo ∘ ((Grp ⊗₁ id) ∘ rawFrom)`; the decomposition
+    -- is exactly the shared `BNB.frame-transport` (split + reframe outer isos).
     fire-mid-decomp e rest =
-      ≈-Term-trans (≡⇒≈ step) (∘-resp-≈ (≡⇒≈ (sym to≡)) (∘-resp-≈ ≈-Term-refl (≡⇒≈ (sym from≡))))
+      BNB.frame-transport pIn pOut rawTo (Grp ⊗₁ id {R-obj rest}) rawFrom
+        (sym to≡) refl (sym from≡)
       where
         einL  = map H.vlab (H.ein  e)
         eoutL = map H.vlab (H.eout e)
@@ -215,17 +219,6 @@ module _ (H : Hypergraph FlatGen)
         pOut  = cong unflatten (sym (map-++ H.vlab (H.eout e) rest))
         rawTo   = _≅_.to   (unflatten-++-≅ eoutL restL)
         rawFrom = _≅_.from (unflatten-++-≅ einL  restL)
-
-        -- Split the `subst₂` over `∘` at the two interior objects.
-        step
-          : fire-mid H e rest
-            ≡ subst₂ HomTerm refl pOut rawTo
-              ∘ ((Grp ⊗₁ id {R-obj rest}) ∘ subst₂ HomTerm pIn refl rawFrom)
-        step =
-          trans (BNB.subst₂-∘-split pIn pOut rawTo
-                   ((Grp ⊗₁ id {R-obj rest}) ∘ rawFrom))
-                (cong (subst₂ HomTerm refl pOut rawTo ∘_)
-                   (BNB.subst₂-∘-split pIn refl (Grp ⊗₁ id {R-obj rest}) rawFrom))
 
         to≡   : _≅_.to (BT.uf++ (H.eout e) rest) ≡ subst₂ HomTerm refl pOut rawTo
         to≡   = BNB.to-subst₂-≅ pOut (unflatten-++-≅ eoutL restL)

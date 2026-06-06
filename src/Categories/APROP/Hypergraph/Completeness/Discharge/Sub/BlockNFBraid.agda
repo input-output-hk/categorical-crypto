@@ -255,6 +255,31 @@ subst₂-∘-split
     ≡ subst₂ HomTerm refl r f ∘ subst₂ HomTerm p refl g
 subst₂-∘-split refl refl f g = refl
 
+-- Generic "transport a raw `to ∘ (mid ∘ from)` framing through the two endpoint
+-- `subst₂`s".  This is the shared body of `frame-ext`/`σ-block-comm` (and the
+-- `pvv-++⁺ˡ-slide` left slide): both split the boundary `subst₂` over the two
+-- interior objects, turn the outer raw isos into `uf++`-framed `to`/`from`, and
+-- leave the middle morphism (re)framed.  Parameterised by the raw MID and the
+-- three reframing equalities (`to-eq`, `mid-eq`, `from-eq`).
+frame-transport
+  : ∀ {A A' B B' M N : ObjTerm}
+      (pDom : A ≡ A') (pCod : B ≡ B')
+      (rawTO : HomTerm M B) (rawMID : HomTerm N M) (rawFROM : HomTerm A N)
+      {TO : HomTerm M B'} {FRAMED : HomTerm N M} {FROM : HomTerm A' N}
+  → subst₂ HomTerm refl pCod rawTO ≡ TO
+  → rawMID ≡ FRAMED
+  → subst₂ HomTerm pDom refl rawFROM ≡ FROM
+  → subst₂ HomTerm pDom pCod (rawTO ∘ (rawMID ∘ rawFROM))
+    ≈Term TO ∘ (FRAMED ∘ FROM)
+frame-transport pDom pCod rawTO rawMID rawFROM to-eq mid-eq from-eq = begin
+    subst₂ HomTerm pDom pCod (rawTO ∘ (rawMID ∘ rawFROM))
+      ≈⟨ ≡⇒≈Term (subst₂-∘-split pDom pCod rawTO (rawMID ∘ rawFROM)) ⟩
+    subst₂ HomTerm refl pCod rawTO ∘ subst₂ HomTerm pDom refl (rawMID ∘ rawFROM)
+      ≈⟨ ∘-resp-≈ (≡⇒≈Term to-eq)
+           (≈-Term-trans (≡⇒≈Term (subst₂-∘-split pDom refl rawMID rawFROM))
+             (∘-resp-≈ (≡⇒≈Term mid-eq) (≡⇒≈Term from-eq))) ⟩
+    _ ∘ (_ ∘ _) ∎
+
 -- `↭-sym (shift x ys xs) ≡ rotate x ys xs`.
 shift-sym-rotate
   : ∀ (x : X) (ys xs : List X)
@@ -871,11 +896,7 @@ module _ {n : ℕ} (vlab : Fin n → X) where
         ≈⟨ subst₂-resp-≈ pE pF
              (permute-++⁺ʳ-slide (map vlab cs) (PermProp.map⁺ vlab P)) ⟩
       subst₂ HomTerm pE pF (rawTO ∘ (MID ∘ FROM))
-        ≈⟨ ≡⇒≈Term (subst₂-∘-split pE pF rawTO (MID ∘ FROM)) ⟩
-      subst₂ HomTerm refl pF rawTO ∘ subst₂ HomTerm pE refl (MID ∘ FROM)
-        ≈⟨ ∘-resp-≈ (≡⇒≈Term to-eq)
-             (≈-Term-trans (≡⇒≈Term (subst₂-∘-split pE refl MID FROM))
-               (∘-resp-≈ (≡⇒≈Term mid-eq) (≡⇒≈Term from-eq))) ⟩
+        ≈⟨ frame-transport pE pF rawTO MID FROM to-eq mid-eq from-eq ⟩
       _≅_.to (uf++ fs cs) ∘ ((pvl P ⊗₁ id) ∘ _≅_.from (uf++ es cs)) ∎)
     where
       pE = cong unflatten (sym (map-++ vlab es cs))
@@ -995,12 +1016,7 @@ module _ {n : ℕ} (vlab : Fin n → X) where
         ≈⟨ subst₂-resp-≈ pAB pBA
              (≈-Term-sym (σ-block-comm-raw (map vlab as) (map vlab bs))) ⟩
       subst₂ HomTerm pAB pBA (rawTO ∘ (σm ∘ rawFROM))
-        ≈⟨ ≡⇒≈Term (subst₂-∘-split pAB pBA rawTO (σm ∘ rawFROM)) ⟩
-      subst₂ HomTerm refl pBA rawTO
-        ∘ subst₂ HomTerm pAB refl (σm ∘ rawFROM)
-        ≈⟨ ∘-resp-≈ (≡⇒≈Term to-eq)
-             (≈-Term-trans (≡⇒≈Term (subst₂-∘-split pAB refl σm rawFROM))
-               (∘-resp-≈ (≡⇒≈Term σ-eq) (≡⇒≈Term from-eq))) ⟩
+        ≈⟨ frame-transport pAB pBA rawTO σm rawFROM to-eq σ-eq from-eq ⟩
       _≅_.to (uf++ bs as) ∘ ((σ {A = Aof as} {B = Aof bs}) ∘ _≅_.from (uf++ as bs)) ∎)
     where
       pAB = cong unflatten (sym (map-++ vlab as bs))
