@@ -103,63 +103,74 @@ open import Relation.Binary.PropositionalEquality.Properties
   using (trans-cong; trans-reflʳ; cong-∘)
 open import Axiom.UniquenessOfIdentityProofs.WithK using (uip)
 
+-- The H-only (K-FREE) "view frames": the `Aein`/`Aeout`/`box-e`/`R-obj`/
+-- `uf++`/`≅⊗id`/`view-in≅`/`view-out≅` block re-bracketings.  Factored into
+-- a PUBLIC sub-module so `Sub/FireMidInterchange.agda` can share it verbatim
+-- (`open Nf2.ViewFrames H`).  None of these depend on `K`.  The `uf++` here is
+-- DEFINITIONALLY `BNB.uf++ H.vlab` (= `BT.uf++`), so the downstream
+-- `uf++≡BT … = refl` continues to hold after the `open ViewFrames H` below.
+module ViewFrames (H : Hypergraph FlatGen) where
+  private module H = Hypergraph H
+
+  Aein  : Fin H.nE → ObjTerm
+  Aein  e = unflatten (map H.vlab (H.ein  e))
+  Aeout : Fin H.nE → ObjTerm
+  Aeout e = unflatten (map H.vlab (H.eout e))
+
+  box-e : (e : Fin H.nE) → HomTerm (Aein e) (Aeout e)
+  box-e e = Agen-edge H e
+
+  R-obj : List (Fin H.nV) → ObjTerm
+  R-obj Rlist = unflatten (map H.vlab Rlist)
+
+  -- Map-bridged `unflatten-++-≅`.
+  uf++ : (As Bs : List (Fin H.nV))
+       → unflatten (map H.vlab (As ++ Bs))
+         ≅ unflatten (map H.vlab As) ⊗₀ unflatten (map H.vlab Bs)
+  uf++ As Bs =
+    subst₂ _≅_
+      (cong unflatten (sym (map-++ H.vlab As Bs)))
+      refl
+      (unflatten-++-≅ (map H.vlab As) (map H.vlab Bs))
+
+  open import Categories.Morphism FreeMonoidal using (module ≅)
+
+  ≅⊗id : ∀ {X Y : ObjTerm} (Rlist : List (Fin H.nV))
+       → X ≅ Y → X ⊗₀ R-obj Rlist ≅ Y ⊗₀ R-obj Rlist
+  ≅⊗id Rlist i = record
+    { from = _≅_.from i ⊗₁ id
+    ; to   = _≅_.to   i ⊗₁ id
+    ; iso  = record
+      { isoˡ = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+                 (≈-Term-trans (⊗-resp-≈ (_≅_.isoˡ i) idˡ) id⊗id≈id)
+      ; isoʳ = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+                 (≈-Term-trans (⊗-resp-≈ (_≅_.isoʳ i) idˡ) id⊗id≈id)
+      }
+    }
+
+  view-in≅
+    : (a b : Fin H.nE) (Rlist : List (Fin H.nV))
+    → unflatten (map H.vlab ((H.ein a ++ H.ein b) ++ Rlist))
+      ≅ (Aein a ⊗₀ Aein b) ⊗₀ R-obj Rlist
+  view-in≅ a b Rlist =
+    ≅.trans (uf++ (H.ein a ++ H.ein b) Rlist)
+            (≅⊗id Rlist (uf++ (H.ein a) (H.ein b)))
+
+  view-out≅
+    : (a b : Fin H.nE) (Rlist : List (Fin H.nV))
+    → unflatten (map H.vlab ((H.eout a ++ H.eout b) ++ Rlist))
+      ≅ (Aeout a ⊗₀ Aeout b) ⊗₀ R-obj Rlist
+  view-out≅ a b Rlist =
+    ≅.trans (uf++ (H.eout a ++ H.eout b) Rlist)
+            (≅⊗id Rlist (uf++ (H.eout a) (H.eout b)))
+
 module _ (H : Hypergraph FlatGen)
          (K : FaithfulnessResidual)
          where
   private module H = Hypergraph H
 
-  private
-    Aein  : Fin H.nE → ObjTerm
-    Aein  e = unflatten (map H.vlab (H.ein  e))
-    Aeout : Fin H.nE → ObjTerm
-    Aeout e = unflatten (map H.vlab (H.eout e))
-
-    box-e : (e : Fin H.nE) → HomTerm (Aein e) (Aeout e)
-    box-e e = Agen-edge H e
-
-    R-obj : List (Fin H.nV) → ObjTerm
-    R-obj Rlist = unflatten (map H.vlab Rlist)
-
-    -- Map-bridged `unflatten-++-≅`.
-    uf++ : (As Bs : List (Fin H.nV))
-         → unflatten (map H.vlab (As ++ Bs))
-           ≅ unflatten (map H.vlab As) ⊗₀ unflatten (map H.vlab Bs)
-    uf++ As Bs =
-      subst₂ _≅_
-        (cong unflatten (sym (map-++ H.vlab As Bs)))
-        refl
-        (unflatten-++-≅ (map H.vlab As) (map H.vlab Bs))
-
-    open import Categories.Morphism FreeMonoidal using (module ≅)
-
-    ≅⊗id : ∀ {X Y : ObjTerm} (Rlist : List (Fin H.nV))
-         → X ≅ Y → X ⊗₀ R-obj Rlist ≅ Y ⊗₀ R-obj Rlist
-    ≅⊗id Rlist i = record
-      { from = _≅_.from i ⊗₁ id
-      ; to   = _≅_.to   i ⊗₁ id
-      ; iso  = record
-        { isoˡ = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                   (≈-Term-trans (⊗-resp-≈ (_≅_.isoˡ i) idˡ) id⊗id≈id)
-        ; isoʳ = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                   (≈-Term-trans (⊗-resp-≈ (_≅_.isoʳ i) idˡ) id⊗id≈id)
-        }
-      }
-
-    view-in≅
-      : (a b : Fin H.nE) (Rlist : List (Fin H.nV))
-      → unflatten (map H.vlab ((H.ein a ++ H.ein b) ++ Rlist))
-        ≅ (Aein a ⊗₀ Aein b) ⊗₀ R-obj Rlist
-    view-in≅ a b Rlist =
-      ≅.trans (uf++ (H.ein a ++ H.ein b) Rlist)
-              (≅⊗id Rlist (uf++ (H.ein a) (H.ein b)))
-
-    view-out≅
-      : (a b : Fin H.nE) (Rlist : List (Fin H.nV))
-      → unflatten (map H.vlab ((H.eout a ++ H.eout b) ++ Rlist))
-        ≅ (Aeout a ⊗₀ Aeout b) ⊗₀ R-obj Rlist
-    view-out≅ a b Rlist =
-      ≅.trans (uf++ (H.eout a ++ H.eout b) Rlist)
-              (≅⊗id Rlist (uf++ (H.eout a) (H.eout b)))
+  -- The H-only view frames, shared with `FireMidInterchange` (K-FREE).
+  open ViewFrames H
 
   ----------------------------------------------------------------------
   -- ## Box / permute machinery for the proof of `block-bracket`.

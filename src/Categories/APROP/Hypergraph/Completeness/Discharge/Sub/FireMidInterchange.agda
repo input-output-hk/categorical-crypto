@@ -128,14 +128,9 @@ module _ (H : Hypergraph FlatGen)
   -- `box-interchange` literally swaps them.
   ----------------------------------------------------------------------
 
-  private
-    Aein  : Fin H.nE → ObjTerm
-    Aein  e = unflatten (map H.vlab (H.ein  e))
-    Aeout : Fin H.nE → ObjTerm
-    Aeout e = unflatten (map H.vlab (H.eout e))
-
-    box-e : (e : Fin H.nE) → HomTerm (Aein e) (Aeout e)
-    box-e e = Agen-edge H e
+  -- The H-only view frames (`Aein`/`Aeout`/`box-e`/`R-obj`/`uf++`/`≅⊗id`/
+  -- `view-in≅`/`view-out≅`), shared verbatim with `BlockNFNf2`.  K-FREE.
+  open Nf2.ViewFrames H
 
   -- The block-normal-form residual, per pair of disjoint edges and per the
   -- four locating permutes.  `R` is the shared residual block object.
@@ -238,66 +233,8 @@ module _ (H : Hypergraph FlatGen)
   -- glue in `fire-mid-interchange` below).
   ----------------------------------------------------------------------
 
-  private
-    R-obj : List (Fin H.nV) → ObjTerm
-    R-obj Rlist = unflatten (map H.vlab Rlist)
-
-    -- Map-bridged `unflatten-++-≅`: `unflatten (map vlab (As ++ Bs))`
-    -- re-brackets as `unflatten (map vlab As) ⊗₀ unflatten (map vlab Bs)`.
-    uf++ : (As Bs : List (Fin H.nV))
-         → unflatten (map H.vlab (As ++ Bs))
-           ≅ unflatten (map H.vlab As) ⊗₀ unflatten (map H.vlab Bs)
-    uf++ As Bs =
-      subst₂ _≅_
-        (cong unflatten (sym (map-++ H.vlab As Bs)))
-        refl
-        (unflatten-++-≅ (map H.vlab As) (map H.vlab Bs))
-
-    -- The input view iso: `unflatten (map vlab ((ein a ++ ein b) ++ Rlist))`
-    -- ≅ `(Aein a ⊗₀ Aein b) ⊗₀ R`.
-    view-in≅
-      : (a b : Fin H.nE) (Rlist : List (Fin H.nV))
-      → unflatten (map H.vlab ((H.ein a ++ H.ein b) ++ Rlist))
-        ≅ (Aein a ⊗₀ Aein b) ⊗₀ R-obj Rlist
-    view-in≅ a b Rlist =
-      ≅.trans (uf++ (H.ein a ++ H.ein b) Rlist)
-              (≅⊗id (uf++ (H.ein a) (H.ein b)))
-      where
-        open import Categories.Morphism FreeMonoidal using (module ≅)
-        -- `X ≅ Y → X ⊗₀ Z ≅ Y ⊗₀ Z` (right-whisker an iso by `id`).
-        ≅⊗id : ∀ {X Y : ObjTerm} → X ≅ Y → X ⊗₀ R-obj Rlist ≅ Y ⊗₀ R-obj Rlist
-        ≅⊗id i = record
-          { from = _≅_.from i ⊗₁ id
-          ; to   = _≅_.to   i ⊗₁ id
-          ; iso  = record
-            { isoˡ = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                       (≈-Term-trans (⊗-resp-≈ (_≅_.isoˡ i) idˡ) id⊗id≈id)
-            ; isoʳ = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                       (≈-Term-trans (⊗-resp-≈ (_≅_.isoʳ i) idˡ) id⊗id≈id)
-            }
-          }
-
-    -- The output view iso: identical shape on the `eout` blocks.
-    view-out≅
-      : (a b : Fin H.nE) (Rlist : List (Fin H.nV))
-      → unflatten (map H.vlab ((H.eout a ++ H.eout b) ++ Rlist))
-        ≅ (Aeout a ⊗₀ Aeout b) ⊗₀ R-obj Rlist
-    view-out≅ a b Rlist =
-      ≅.trans (uf++ (H.eout a ++ H.eout b) Rlist)
-              (≅⊗id (uf++ (H.eout a) (H.eout b)))
-      where
-        open import Categories.Morphism FreeMonoidal using (module ≅)
-        ≅⊗id : ∀ {X Y : ObjTerm} → X ≅ Y → X ⊗₀ R-obj Rlist ≅ Y ⊗₀ R-obj Rlist
-        ≅⊗id i = record
-          { from = _≅_.from i ⊗₁ id
-          ; to   = _≅_.to   i ⊗₁ id
-          ; iso  = record
-            { isoˡ = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                       (≈-Term-trans (⊗-resp-≈ (_≅_.isoˡ i) idˡ) id⊗id≈id)
-            ; isoʳ = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                       (≈-Term-trans (⊗-resp-≈ (_≅_.isoʳ i) idˡ) id⊗id≈id)
-            }
-          }
+  -- `R-obj`/`uf++`/`view-in≅`/`view-out≅` are now shared from
+  -- `Nf2.ViewFrames H` (opened above), where they were re-defined verbatim.
 
   ----------------------------------------------------------------------
   -- The CONCRETE located frames, built from `Comb.sim-loc`.  These pin
