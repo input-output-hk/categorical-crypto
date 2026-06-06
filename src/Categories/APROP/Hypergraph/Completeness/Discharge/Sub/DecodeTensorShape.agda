@@ -574,6 +574,52 @@ module BoxAssoc where
   subst-id-cod {c} q = subst (λ z → HomTerm (unflatten c) (unflatten z)) q id
 
   ------------------------------------------------------------------------
+  -- Shared associativity re-bracketing for `box-suffix` / `box-prefix`'s
+  -- `regroup-L` step: a `T ∘ (A ∘ (αc ∘ X ∘ ac) ∘ B) ∘ F` composite, with an
+  -- `αc ∘ X ∘ ac` core inside, re-brackets into the three target blocks
+  -- `(T ∘ A ∘ αc) ∘ X ∘ (ac ∘ B ∘ F)`.  Pure associativity (no use of the
+  -- `α`/`⊗` structure of the arguments), so it is fully generic.
+  bracket-αXα
+    : ∀ {O₀ O₁ O₂ O₃ O₄ O₅ O₆ O₇ : ObjTerm}
+        (T : HomTerm O₆ O₇) (A : HomTerm O₅ O₆) (αc : HomTerm O₄ O₅)
+        (X : HomTerm O₃ O₄) (ac : HomTerm O₂ O₃)
+        (B : HomTerm O₁ O₂) (F : HomTerm O₀ O₁)
+    → T ∘ (A ∘ (αc ∘ X ∘ ac) ∘ B) ∘ F
+      ≈Term (T ∘ A ∘ αc) ∘ X ∘ ac ∘ B ∘ F
+  bracket-αXα T A αc X ac B F = begin
+      T ∘ (A ∘ (αc ∘ X ∘ ac) ∘ B) ∘ F
+        ≈⟨ FM.sym-assoc ⟩
+      (T ∘ (A ∘ (αc ∘ X ∘ ac) ∘ B)) ∘ F
+        ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
+      ((T ∘ A) ∘ (αc ∘ X ∘ ac) ∘ B) ∘ F
+        ≈⟨ FM.assoc ⟩
+      (T ∘ A) ∘ ((αc ∘ X ∘ ac) ∘ B) ∘ F
+        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+      (T ∘ A) ∘ (αc ∘ X ∘ ac) ∘ B ∘ F
+        ≈⟨ FM.sym-assoc ⟩
+      ((T ∘ A) ∘ (αc ∘ X ∘ ac)) ∘ B ∘ F
+        ≈⟨ FM.assoc ⟩∘⟨refl ⟩
+      (T ∘ A ∘ (αc ∘ X ∘ ac)) ∘ B ∘ F
+        ≈⟨ (refl⟩∘⟨ FM.sym-assoc) ⟩∘⟨refl ⟩
+      (T ∘ (A ∘ αc) ∘ (X ∘ ac)) ∘ B ∘ F
+        ≈⟨ (refl⟩∘⟨ FM.sym-assoc) ⟩∘⟨refl ⟩
+      (T ∘ ((A ∘ αc) ∘ X) ∘ ac) ∘ B ∘ F
+        ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
+      ((T ∘ ((A ∘ αc) ∘ X)) ∘ ac) ∘ B ∘ F
+        ≈⟨ (FM.sym-assoc ⟩∘⟨refl) ⟩∘⟨refl ⟩
+      (((T ∘ (A ∘ αc)) ∘ X) ∘ ac) ∘ B ∘ F
+        ≈⟨ ((FM.sym-assoc ⟩∘⟨refl) ⟩∘⟨refl) ⟩∘⟨refl ⟩
+      ((((T ∘ A) ∘ αc) ∘ X) ∘ ac) ∘ B ∘ F
+        ≈⟨ ((FM.assoc ⟩∘⟨refl) ⟩∘⟨refl) ⟩∘⟨refl ⟩
+      (((T ∘ A ∘ αc) ∘ X) ∘ ac) ∘ B ∘ F
+        ≈⟨ FM.assoc ⟩∘⟨refl ⟩
+      ((T ∘ A ∘ αc) ∘ (X ∘ ac)) ∘ B ∘ F
+        ≈⟨ FM.assoc ⟩
+      (T ∘ A ∘ αc) ∘ (X ∘ ac) ∘ B ∘ F
+        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+      (T ∘ A ∘ αc) ∘ X ∘ ac ∘ B ∘ F ∎
+
+  ------------------------------------------------------------------------
   -- BOX-SUFFIX: a box on residual `restG ++ R` factors (modulo the
   -- `++-assoc` boundary transport) as `(box on restG) ⊗₁ id` framed by
   -- `unflatten-++-≅ (·++restG) R`.
@@ -809,100 +855,10 @@ module BoxAssoc where
                   ∘ (α⇒ {Uei} {Urg} {UR}
                      ∘ (from-ei-rg ⊗₁ id {UR})
                      ∘ from-eirg-R)
-              regroup-L = begin
-                to-eorg-R
-                  ∘ ((to-eo-rg ⊗₁ id {UR})
-                     ∘ (α⇐ ∘ (G ⊗₁ id {Urg ⊗₀ UR}) ∘ α⇒)
-                     ∘ (from-ei-rg ⊗₁ id {UR}))
-                  ∘ from-eirg-R
-                  -- push `to-eorg-R` into the inner block.
-                  ≈⟨ FM.sym-assoc ⟩
-                (to-eorg-R
-                  ∘ ((to-eo-rg ⊗₁ id {UR})
-                     ∘ (α⇐ ∘ (G ⊗₁ id {Urg ⊗₀ UR}) ∘ α⇒)
-                     ∘ (from-ei-rg ⊗₁ id {UR})))
-                  ∘ from-eirg-R
-                  ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
-                ((to-eorg-R ∘ (to-eo-rg ⊗₁ id {UR}))
-                  ∘ (α⇐ ∘ (G ⊗₁ id {Urg ⊗₀ UR}) ∘ α⇒)
-                  ∘ (from-ei-rg ⊗₁ id {UR}))
-                  ∘ from-eirg-R
-                  ≈⟨ FM.assoc ⟩
-                (to-eorg-R ∘ (to-eo-rg ⊗₁ id {UR}))
-                  ∘ ((α⇐ ∘ (G ⊗₁ id {Urg ⊗₀ UR}) ∘ α⇒)
-                     ∘ (from-ei-rg ⊗₁ id {UR}))
-                  ∘ from-eirg-R
-                  -- isolate `α⇐ ∘ G⊗id ∘ α⇒` so T-eo / F-ei brackets appear.
-                  ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-                (to-eorg-R ∘ (to-eo-rg ⊗₁ id {UR}))
-                  ∘ (α⇐ ∘ (G ⊗₁ id {Urg ⊗₀ UR}) ∘ α⇒)
-                  ∘ (from-ei-rg ⊗₁ id {UR})
-                  ∘ from-eirg-R
-                  ≈⟨ FM.sym-assoc ⟩
-                ((to-eorg-R ∘ (to-eo-rg ⊗₁ id {UR}))
-                  ∘ (α⇐ ∘ (G ⊗₁ id {Urg ⊗₀ UR}) ∘ α⇒))
-                  ∘ (from-ei-rg ⊗₁ id {UR})
-                  ∘ from-eirg-R
-                  ≈⟨ FM.assoc ⟩∘⟨refl ⟩
-                (to-eorg-R
-                  ∘ ((to-eo-rg ⊗₁ id {UR})
-                     ∘ (α⇐ ∘ (G ⊗₁ id {Urg ⊗₀ UR}) ∘ α⇒)))
-                  ∘ (from-ei-rg ⊗₁ id {UR})
-                  ∘ from-eirg-R
-                  ≈⟨ (refl⟩∘⟨ FM.sym-assoc) ⟩∘⟨refl ⟩
-                (to-eorg-R
-                  ∘ ((to-eo-rg ⊗₁ id {UR}) ∘ α⇐)
-                     ∘ ((G ⊗₁ id {Urg ⊗₀ UR}) ∘ α⇒))
-                  ∘ (from-ei-rg ⊗₁ id {UR})
-                  ∘ from-eirg-R
-                  ≈⟨ (refl⟩∘⟨ FM.sym-assoc) ⟩∘⟨refl ⟩
-                (to-eorg-R
-                  ∘ (((to-eo-rg ⊗₁ id {UR}) ∘ α⇐) ∘ (G ⊗₁ id {Urg ⊗₀ UR}))
-                     ∘ α⇒)
-                  ∘ (from-ei-rg ⊗₁ id {UR})
-                  ∘ from-eirg-R
-                  ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
-                ((to-eorg-R
-                  ∘ (((to-eo-rg ⊗₁ id {UR}) ∘ α⇐) ∘ (G ⊗₁ id {Urg ⊗₀ UR})))
-                     ∘ α⇒)
-                  ∘ (from-ei-rg ⊗₁ id {UR})
-                  ∘ from-eirg-R
-                  ≈⟨ (FM.sym-assoc ⟩∘⟨refl) ⟩∘⟨refl ⟩
-                (((to-eorg-R
-                  ∘ (((to-eo-rg ⊗₁ id {UR}) ∘ α⇐)))
-                     ∘ (G ⊗₁ id {Urg ⊗₀ UR}))
-                     ∘ α⇒)
-                  ∘ (from-ei-rg ⊗₁ id {UR})
-                  ∘ from-eirg-R
-                  ≈⟨ ((FM.sym-assoc ⟩∘⟨refl) ⟩∘⟨refl) ⟩∘⟨refl ⟩
-                ((((to-eorg-R ∘ (to-eo-rg ⊗₁ id {UR})) ∘ α⇐)
-                     ∘ (G ⊗₁ id {Urg ⊗₀ UR}))
-                     ∘ α⇒)
-                  ∘ (from-ei-rg ⊗₁ id {UR})
-                  ∘ from-eirg-R
-                  -- now re-associate into the three target blocks.
-                  ≈⟨ ((FM.assoc ⟩∘⟨refl) ⟩∘⟨refl) ⟩∘⟨refl ⟩
-                (((to-eorg-R ∘ (to-eo-rg ⊗₁ id {UR}) ∘ α⇐ {Ueo} {Urg} {UR})
-                     ∘ (G ⊗₁ id {Urg ⊗₀ UR}))
-                     ∘ α⇒ {Uei} {Urg} {UR})
-                  ∘ (from-ei-rg ⊗₁ id {UR})
-                  ∘ from-eirg-R
-                  ≈⟨ FM.assoc ⟩∘⟨refl ⟩
-                ((to-eorg-R ∘ (to-eo-rg ⊗₁ id {UR}) ∘ α⇐ {Ueo} {Urg} {UR})
-                     ∘ ((G ⊗₁ id {Urg ⊗₀ UR}) ∘ α⇒ {Uei} {Urg} {UR}))
-                  ∘ (from-ei-rg ⊗₁ id {UR})
-                  ∘ from-eirg-R
-                  ≈⟨ FM.assoc ⟩
-                (to-eorg-R ∘ (to-eo-rg ⊗₁ id {UR}) ∘ α⇐ {Ueo} {Urg} {UR})
-                  ∘ ((G ⊗₁ id {Urg ⊗₀ UR}) ∘ α⇒ {Uei} {Urg} {UR})
-                  ∘ (from-ei-rg ⊗₁ id {UR})
-                  ∘ from-eirg-R
-                  ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-                (to-eorg-R ∘ (to-eo-rg ⊗₁ id {UR}) ∘ α⇐ {Ueo} {Urg} {UR})
-                  ∘ (G ⊗₁ id {Urg ⊗₀ UR})
-                  ∘ α⇒ {Uei} {Urg} {UR}
-                  ∘ (from-ei-rg ⊗₁ id {UR})
-                  ∘ from-eirg-R ∎
+              regroup-L =
+                bracket-αXα to-eorg-R (to-eo-rg ⊗₁ id {UR}) (α⇐ {Ueo} {Urg} {UR})
+                  (G ⊗₁ id {Urg ⊗₀ UR}) (α⇒ {Uei} {Urg} {UR})
+                  (from-ei-rg ⊗₁ id {UR}) from-eirg-R
 
               regroup-mid :
                 (s-eo⁻ ∘ to-eo-rgR ∘ (id {Ueo} ⊗₁ to-rgR))
@@ -1224,97 +1180,10 @@ module BoxAssoc where
                   ∘ (α⇒ {UP} {Uei} {Urk}
                      ∘ (from-P-ei ⊗₁ id {Urk})
                      ∘ from-Pei-rk)
-              regroup-L = begin
-                to-Peo-rk
-                  ∘ ((to-P-eo ⊗₁ id {Urk})
-                     ∘ (α⇐ ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk})) ∘ α⇒)
-                     ∘ (from-P-ei ⊗₁ id {Urk}))
-                  ∘ from-Pei-rk
-                  ≈⟨ FM.sym-assoc ⟩
-                (to-Peo-rk
-                  ∘ ((to-P-eo ⊗₁ id {Urk})
-                     ∘ (α⇐ ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk})) ∘ α⇒)
-                     ∘ (from-P-ei ⊗₁ id {Urk})))
-                  ∘ from-Pei-rk
-                  ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
-                ((to-Peo-rk ∘ (to-P-eo ⊗₁ id {Urk}))
-                  ∘ (α⇐ ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk})) ∘ α⇒)
-                  ∘ (from-P-ei ⊗₁ id {Urk}))
-                  ∘ from-Pei-rk
-                  ≈⟨ FM.assoc ⟩
-                (to-Peo-rk ∘ (to-P-eo ⊗₁ id {Urk}))
-                  ∘ ((α⇐ ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk})) ∘ α⇒)
-                     ∘ (from-P-ei ⊗₁ id {Urk}))
-                  ∘ from-Pei-rk
-                  ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-                (to-Peo-rk ∘ (to-P-eo ⊗₁ id {Urk}))
-                  ∘ (α⇐ ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk})) ∘ α⇒)
-                  ∘ (from-P-ei ⊗₁ id {Urk})
-                  ∘ from-Pei-rk
-                  ≈⟨ FM.sym-assoc ⟩
-                ((to-Peo-rk ∘ (to-P-eo ⊗₁ id {Urk}))
-                  ∘ (α⇐ ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk})) ∘ α⇒))
-                  ∘ (from-P-ei ⊗₁ id {Urk})
-                  ∘ from-Pei-rk
-                  ≈⟨ FM.assoc ⟩∘⟨refl ⟩
-                (to-Peo-rk
-                  ∘ ((to-P-eo ⊗₁ id {Urk})
-                     ∘ (α⇐ ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk})) ∘ α⇒)))
-                  ∘ (from-P-ei ⊗₁ id {Urk})
-                  ∘ from-Pei-rk
-                  ≈⟨ (refl⟩∘⟨ FM.sym-assoc) ⟩∘⟨refl ⟩
-                (to-Peo-rk
-                  ∘ ((to-P-eo ⊗₁ id {Urk}) ∘ α⇐)
-                     ∘ ((id {UP} ⊗₁ (G ⊗₁ id {Urk})) ∘ α⇒))
-                  ∘ (from-P-ei ⊗₁ id {Urk})
-                  ∘ from-Pei-rk
-                  ≈⟨ (refl⟩∘⟨ FM.sym-assoc) ⟩∘⟨refl ⟩
-                (to-Peo-rk
-                  ∘ (((to-P-eo ⊗₁ id {Urk}) ∘ α⇐) ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk})))
-                     ∘ α⇒)
-                  ∘ (from-P-ei ⊗₁ id {Urk})
-                  ∘ from-Pei-rk
-                  ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
-                ((to-Peo-rk
-                  ∘ (((to-P-eo ⊗₁ id {Urk}) ∘ α⇐) ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))))
-                     ∘ α⇒)
-                  ∘ (from-P-ei ⊗₁ id {Urk})
-                  ∘ from-Pei-rk
-                  ≈⟨ (FM.sym-assoc ⟩∘⟨refl) ⟩∘⟨refl ⟩
-                (((to-Peo-rk
-                  ∘ ((to-P-eo ⊗₁ id {Urk}) ∘ α⇐))
-                     ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk})))
-                     ∘ α⇒)
-                  ∘ (from-P-ei ⊗₁ id {Urk})
-                  ∘ from-Pei-rk
-                  ≈⟨ ((FM.sym-assoc ⟩∘⟨refl) ⟩∘⟨refl) ⟩∘⟨refl ⟩
-                ((((to-Peo-rk ∘ (to-P-eo ⊗₁ id {Urk})) ∘ α⇐)
-                     ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk})))
-                     ∘ α⇒)
-                  ∘ (from-P-ei ⊗₁ id {Urk})
-                  ∘ from-Pei-rk
-                  ≈⟨ ((FM.assoc ⟩∘⟨refl) ⟩∘⟨refl) ⟩∘⟨refl ⟩
-                (((to-Peo-rk ∘ (to-P-eo ⊗₁ id {Urk}) ∘ α⇐ {UP} {Ueo} {Urk})
-                     ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk})))
-                     ∘ α⇒ {UP} {Uei} {Urk})
-                  ∘ (from-P-ei ⊗₁ id {Urk})
-                  ∘ from-Pei-rk
-                  ≈⟨ FM.assoc ⟩∘⟨refl ⟩
-                ((to-Peo-rk ∘ (to-P-eo ⊗₁ id {Urk}) ∘ α⇐ {UP} {Ueo} {Urk})
-                     ∘ ((id {UP} ⊗₁ (G ⊗₁ id {Urk})) ∘ α⇒ {UP} {Uei} {Urk}))
-                  ∘ (from-P-ei ⊗₁ id {Urk})
-                  ∘ from-Pei-rk
-                  ≈⟨ FM.assoc ⟩
-                (to-Peo-rk ∘ (to-P-eo ⊗₁ id {Urk}) ∘ α⇐ {UP} {Ueo} {Urk})
-                  ∘ ((id {UP} ⊗₁ (G ⊗₁ id {Urk})) ∘ α⇒ {UP} {Uei} {Urk})
-                  ∘ (from-P-ei ⊗₁ id {Urk})
-                  ∘ from-Pei-rk
-                  ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-                (to-Peo-rk ∘ (to-P-eo ⊗₁ id {Urk}) ∘ α⇐ {UP} {Ueo} {Urk})
-                  ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-                  ∘ α⇒ {UP} {Uei} {Urk}
-                  ∘ (from-P-ei ⊗₁ id {Urk})
-                  ∘ from-Pei-rk ∎
+              regroup-L =
+                bracket-αXα to-Peo-rk (to-P-eo ⊗₁ id {Urk}) (α⇐ {UP} {Ueo} {Urk})
+                  (id {UP} ⊗₁ (G ⊗₁ id {Urk})) (α⇒ {UP} {Uei} {Urk})
+                  (from-P-ei ⊗₁ id {Urk}) from-Pei-rk
 
               regroup-mid :
                 (s-eo⁻ ∘ to-P-eork ∘ (id {UP} ⊗₁ to-eo-rk))
