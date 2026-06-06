@@ -148,6 +148,35 @@ private
   just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
   just≢nothing ()
 
+  -- Generic middle-iso cancellation, shared by the `uf++`-framed block
+  -- ladders (`BlockTensor.pvv-block-tensor`'s and `BlockFactor`'s
+  -- `head-factor` / `head-factor-K` / `gblock-factor` / `KClean-cons`):
+  -- two 3-fold composites sharing a middle iso `Fm ∘ Tm ≈ id` cancel it,
+  -- leaving `To ∘ M₁ ∘ M₂ ∘ Ff`.  Pure associativity + the iso + `idˡ`;
+  -- it makes no assumption about `M₁`/`M₂` (the `⊗₁`-merge tail, which
+  -- differs per site, stays inline at the call sites).
+  cancel-mid-iso
+    : ∀ {A₀ A₁ A₂ A₃ A₄ A₅ : ObjTerm}
+        (To : HomTerm A₄ A₅) (M₁ : HomTerm A₂ A₄) (Fm : HomTerm A₃ A₂)
+        (Tm : HomTerm A₂ A₃) (M₂ : HomTerm A₁ A₂) (Ff : HomTerm A₀ A₁)
+    → FM._∘_ Fm Tm ≈Term FM.id
+    → FM._∘_ (FM._∘_ To (FM._∘_ M₁ Fm)) (FM._∘_ Tm (FM._∘_ M₂ Ff))
+      ≈Term FM._∘_ To (FM._∘_ M₁ (FM._∘_ M₂ Ff))
+  cancel-mid-iso To M₁ Fm Tm M₂ Ff m-iso =
+    let open FM.HomReasoning in
+    begin
+      (To ∘ M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
+        ≈⟨ FM.assoc ⟩
+      To ∘ (M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
+        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+      To ∘ M₁ ∘ Fm ∘ Tm ∘ M₂ ∘ Ff
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+      To ∘ M₁ ∘ (Fm ∘ Tm) ∘ M₂ ∘ Ff
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ m-iso ⟩∘⟨refl ⟩
+      To ∘ M₁ ∘ id ∘ M₂ ∘ Ff
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
+      To ∘ M₁ ∘ M₂ ∘ Ff ∎
+
   -- `unflatten-++-≅`'s `to`/`from` transported along block-list equalities.
   to-uf-cong
     : ∀ {Xs Xs' Ys Ys' : List X} (pX : Xs ≡ Xs') (pY : Ys ≡ Ys')
@@ -291,18 +320,9 @@ module BlockTensor
       cancel-mid
         : (to-bd ∘ (id ⊗₁ pvl q) ∘ from-bc) ∘ (to-bc ∘ (pvl p ⊗₁ id) ∘ from-ac)
           ≈Term to-bd ∘ (id ⊗₁ pvl q) ∘ (pvl p ⊗₁ id) ∘ from-ac
-      cancel-mid = begin
-        (to-bd ∘ (id ⊗₁ pvl q) ∘ from-bc) ∘ (to-bc ∘ (pvl p ⊗₁ id) ∘ from-ac)
-          ≈⟨ FM.assoc ⟩
-        to-bd ∘ ((id ⊗₁ pvl q) ∘ from-bc) ∘ (to-bc ∘ (pvl p ⊗₁ id) ∘ from-ac)
-          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-        to-bd ∘ (id ⊗₁ pvl q) ∘ from-bc ∘ to-bc ∘ (pvl p ⊗₁ id) ∘ from-ac
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        to-bd ∘ (id ⊗₁ pvl q) ∘ (from-bc ∘ to-bc) ∘ (pvl p ⊗₁ id) ∘ from-ac
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoʳ (uf++ bs cs) ⟩∘⟨refl ⟩
-        to-bd ∘ (id ⊗₁ pvl q) ∘ id ∘ (pvl p ⊗₁ id) ∘ from-ac
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
-        to-bd ∘ (id ⊗₁ pvl q) ∘ (pvl p ⊗₁ id) ∘ from-ac ∎
+      cancel-mid =
+        cancel-mid-iso to-bd (id ⊗₁ pvl q) from-bc to-bc (pvl p ⊗₁ id) from-ac
+          (_≅_.isoʳ (uf++ bs cs))
 
 --------------------------------------------------------------------------------
 -- ## Embedding data for `hTensor G K`.
@@ -2595,24 +2615,10 @@ module BlockFactor
             ∘ (to-eirg ∘ (pvlC p ⊗₁ id {RsufObj ys}) ∘ from-xs)
           ≈Term to-eorg ∘ (BoxSub ⊗₁ id {RsufObj ys})
                   ∘ (pvlC p ⊗₁ id {RsufObj ys}) ∘ from-xs
-      cancel-mid = begin
-        (to-eorg ∘ (BoxSub ⊗₁ id {RsufObj ys}) ∘ from-eirg)
-          ∘ (to-eirg ∘ (pvlC p ⊗₁ id {RsufObj ys}) ∘ from-xs)
-          ≈⟨ FM.assoc ⟩
-        to-eorg ∘ ((BoxSub ⊗₁ id {RsufObj ys}) ∘ from-eirg)
-          ∘ (to-eirg ∘ (pvlC p ⊗₁ id {RsufObj ys}) ∘ from-xs)
-          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-        to-eorg ∘ (BoxSub ⊗₁ id {RsufObj ys}) ∘ from-eirg
-          ∘ to-eirg ∘ (pvlC p ⊗₁ id {RsufObj ys}) ∘ from-xs
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        to-eorg ∘ (BoxSub ⊗₁ id {RsufObj ys}) ∘ (from-eirg ∘ to-eirg)
-          ∘ (pvlC p ⊗₁ id {RsufObj ys}) ∘ from-xs
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoʳ (BTC.uf++ (eiBlk ++ rgBlk) (map injR ys)) ⟩∘⟨refl ⟩
-        to-eorg ∘ (BoxSub ⊗₁ id {RsufObj ys}) ∘ id
-          ∘ (pvlC p ⊗₁ id {RsufObj ys}) ∘ from-xs
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
-        to-eorg ∘ (BoxSub ⊗₁ id {RsufObj ys})
-          ∘ (pvlC p ⊗₁ id {RsufObj ys}) ∘ from-xs ∎
+      cancel-mid =
+        cancel-mid-iso to-eorg (BoxSub ⊗₁ id {RsufObj ys}) from-eirg
+          to-eirg (pvlC p ⊗₁ id {RsufObj ys}) from-xs
+          (_≅_.isoʳ (BTC.uf++ (eiBlk ++ rgBlk) (map injR ys)))
 
   ------------------------------------------------------------------------
   -- ### `head-factor-K` — the K-side single-edge FIRE factorization
@@ -2972,24 +2978,10 @@ module BlockFactor
             ∘ (to-eirg ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys)
           ≈Term to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub)
                   ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys
-      cancel-mid = begin
-        (to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub) ∘ from-eirg)
-          ∘ (to-eirg ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys)
-          ≈⟨ FM.assoc ⟩
-        to-eorg ∘ ((id {RpreObj P} ⊗₁ BoxSub) ∘ from-eirg)
-          ∘ (to-eirg ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys)
-          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-        to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub) ∘ from-eirg
-          ∘ to-eirg ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub) ∘ (from-eirg ∘ to-eirg)
-          ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoʳ (BTC.uf++ (map injL P) (eiBlk ++ rgBlk)) ⟩∘⟨refl ⟩
-        to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub) ∘ id
-          ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
-        to-eorg ∘ (id {RpreObj P} ⊗₁ BoxSub)
-          ∘ (id {RpreObj P} ⊗₁ pvlC q) ∘ from-ys ∎
+      cancel-mid =
+        cancel-mid-iso to-eorg (id {RpreObj P} ⊗₁ BoxSub) from-eirg
+          to-eirg (id {RpreObj P} ⊗₁ pvlC q) from-ys
+          (_≅_.isoʳ (BTC.uf++ (map injL P) (eiBlk ++ rgBlk)))
 
   ------------------------------------------------------------------------
   -- ### `gblock-factor` — the G-side suffix-carry factorization.
@@ -3699,33 +3691,13 @@ module BlockFactor
               ∘ (_≅_.to (BTC.uf++ (map injL xs') Rys)
                  ∘ (Lhead ⊗₁ id {RsufObj ys})
                  ∘ _≅_.from (BTC.uf++ Lxs Rys))
-              ≈⟨ FM.assoc ⟩
-            _≅_.to (BTC.uf++ Lxs'' Rys)
-              ∘ ((Lterm es xs' ⊗₁ id {RsufObj ys}) ∘ _≅_.from (BTC.uf++ (map injL xs') Rys))
-              ∘ (_≅_.to (BTC.uf++ (map injL xs') Rys)
-                 ∘ (Lhead ⊗₁ id {RsufObj ys})
-                 ∘ _≅_.from (BTC.uf++ Lxs Rys))
-              ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-            _≅_.to (BTC.uf++ Lxs'' Rys)
-              ∘ (Lterm es xs' ⊗₁ id {RsufObj ys})
-              ∘ _≅_.from (BTC.uf++ (map injL xs') Rys)
-              ∘ _≅_.to (BTC.uf++ (map injL xs') Rys)
-              ∘ (Lhead ⊗₁ id {RsufObj ys})
-              ∘ _≅_.from (BTC.uf++ Lxs Rys)
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-            _≅_.to (BTC.uf++ Lxs'' Rys)
-              ∘ (Lterm es xs' ⊗₁ id {RsufObj ys})
-              ∘ (_≅_.from (BTC.uf++ (map injL xs') Rys)
-                 ∘ _≅_.to (BTC.uf++ (map injL xs') Rys))
-              ∘ (Lhead ⊗₁ id {RsufObj ys})
-              ∘ _≅_.from (BTC.uf++ Lxs Rys)
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoʳ (BTC.uf++ (map injL xs') Rys) ⟩∘⟨refl ⟩
-            _≅_.to (BTC.uf++ Lxs'' Rys)
-              ∘ (Lterm es xs' ⊗₁ id {RsufObj ys})
-              ∘ id
-              ∘ (Lhead ⊗₁ id {RsufObj ys})
-              ∘ _≅_.from (BTC.uf++ Lxs Rys)
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
+              ≈⟨ cancel-mid-iso (_≅_.to (BTC.uf++ Lxs'' Rys))
+                   (Lterm es xs' ⊗₁ id {RsufObj ys})
+                   (_≅_.from (BTC.uf++ (map injL xs') Rys))
+                   (_≅_.to (BTC.uf++ (map injL xs') Rys))
+                   (Lhead ⊗₁ id {RsufObj ys})
+                   (_≅_.from (BTC.uf++ Lxs Rys))
+                   (_≅_.isoʳ (BTC.uf++ (map injL xs') Rys)) ⟩
             _≅_.to (BTC.uf++ Lxs'' Rys)
               ∘ (Lterm es xs' ⊗₁ id {RsufObj ys})
               ∘ (Lhead ⊗₁ id {RsufObj ys})
@@ -5897,32 +5869,12 @@ module BlockFactor
           ∘ (id {RpreObj P} ⊗₁ Kterm es (ys-step e ys))
           ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys)
           ∘ from-dom
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym idˡ ⟩
-        to-cod
-          ∘ (id {RpreObj P} ⊗₁ Kterm es (ys-step e ys))
-          ∘ id
-          ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys)
-          ∘ from-dom
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym (_≅_.isoʳ (BTC.uf++ (map injL P) (map injR (ys-step e ys)))) ⟩∘⟨refl ⟩
-        to-cod
-          ∘ (id {RpreObj P} ⊗₁ Kterm es (ys-step e ys))
-          ∘ (from-mid ∘ to-mid)
-          ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys)
-          ∘ from-dom
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-        to-cod
-          ∘ (id {RpreObj P} ⊗₁ Kterm es (ys-step e ys))
-          ∘ from-mid
-          ∘ to-mid
-          ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys)
-          ∘ from-dom
-          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        to-cod
-          ∘ ((id {RpreObj P} ⊗₁ Kterm es (ys-step e ys)) ∘ from-mid)
-          ∘ to-mid
-          ∘ (id {RpreObj P} ⊗₁ Khead-emb e ys)
-          ∘ from-dom
-          ≈⟨ FM.sym-assoc ⟩
+          -- reverse of `cancel-mid-iso`: re-insert the middle `from-mid ∘ to-mid`.
+          ≈⟨ ≈-Term-sym
+               (cancel-mid-iso to-cod
+                  (id {RpreObj P} ⊗₁ Kterm es (ys-step e ys)) from-mid
+                  to-mid (id {RpreObj P} ⊗₁ Khead-emb e ys) from-dom
+                  (_≅_.isoʳ (BTC.uf++ (map injL P) (map injR (ys-step e ys))))) ⟩
         (to-cod
           ∘ (id {RpreObj P} ⊗₁ Kterm es (ys-step e ys)) ∘ from-mid)
           ∘ to-mid
