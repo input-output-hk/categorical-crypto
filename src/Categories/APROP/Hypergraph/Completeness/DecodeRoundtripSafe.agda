@@ -195,7 +195,7 @@ bridge-λ⇐-is-id A = begin
 -- across `subst₂`.
 
 -- `≡⇒≈Term` lives in `Categories.FreeMonoidal`, reachable everywhere via
--- `open APROP sig` (no longer re-defined / re-exported here).
+-- `open APROP sig`.
 
 subst₂-resp-≈Term
   : ∀ {As Bs As' Bs' : List X} (eq-As : As ≡ As') (eq-Bs : Bs ≡ Bs')

@@ -5,8 +5,7 @@
 -- coherence: parallel structural morphisms in a free monoidal category are
 -- propositionally equal, lifted to the target via the freely-induced
 -- functor) to discharge structural-morphism equations.  A thin shim
--- exposing a couple of helpers; needs K (hence `--safe` only, not
--- `--without-K`).
+-- exposing a couple of helpers.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

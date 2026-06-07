@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 ------------------------------------------------------------------------
--- Companion to `Faithfulness`, using --with-K.  Provides:
+-- Companion to `Faithfulness`.  Provides:
 --
 --   * `permute-inverse-left`  : permute (↭-sym p) ∘ permute p ≈Term id
 --   * `permute-inverse-right` : permute p ∘ permute (↭-sym p) ≈Term id

@@ -43,9 +43,8 @@ private
     A : Set a
 
 ------------------------------------------------------------------------
--- `Unique` lists have injective `lookup` (inlined for self-containment).
--- Public so `--without-K` consumers (IsoTransport) can reuse them
--- directly instead of re-deriving copies.
+-- `Unique` lists have injective `lookup`.  Public so `--without-K`
+-- consumers (IsoTransport) can reuse them directly.
 
 All-lookup : ∀ {p} {Q : A → Set p} {xs : List A}
            → All Q xs → (i : Fin (length xs)) → Q (lookup xs i)

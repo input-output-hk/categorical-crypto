@@ -3559,9 +3559,8 @@ module BlockFactor
           eq (id {unflatten (map C.vlab as)})
 
   ------------------------------------------------------------------------
-  -- ### Shared subst-id (`sidX`) machinery, hoisted out of `Sin`/`Sout`
-  -- (which each used a verbatim copy).  A canonical subst-id morphism `sidX`
-  -- (codomain transport of `id` over `unflatten`) into which
+  -- ### Shared subst-id (`sidX`) machinery.  A canonical subst-id morphism
+  -- `sidX` (codomain transport of `id` over `unflatten`) into which
   -- `sdd`/`scod`/`sidC` all collapse; it composes along `trans` and is unique
   -- (by `objUIP`).  Plus the dom/cod subst-id self-cancellations.
 
@@ -5328,7 +5327,7 @@ module BlockFactor
           (∘-resp-≈ ≈-Term-refl Si.σin-as-pvl)
 
   ------------------------------------------------------------------------
-  -- ### Milestone 2b proper: `kblock-factor` — base-case scaffolding.
+  -- ### Milestone 2b proper: `kblock-factor` — base cases.
   --
   -- `kblock-factor` goes through the generalised perm-tracking induction
   -- `kfac-gen`: the K-prepend wrinkle forbids a clean stack `≡`, so the

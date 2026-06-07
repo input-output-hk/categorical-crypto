@@ -31,8 +31,7 @@ open import Categories.PermuteCoherence.Faithfulness d using (α⇐-comm)
 
 -- Mac-Lane coherence solver, used to discharge the pure-associator framing
 -- lemmas below (`pentagon-flip-right`, `α⇐∘id⊗α⇒-rewrite`,
--- `α⇐-stack-from-pentagon`) in one line each.  Mirrors the setup in
--- `Sub/SigmaBlockCommRaw.agda`.
+-- `α⇐-stack-from-pentagon`) in one line each.
 open import Categories.MonoidalCoherence using (module Solver)
 import Data.Vec as Vec
 open Vec using (Vec)
@@ -403,76 +402,11 @@ private
     ∎
 
 --------------------------------------------------------------------------------
--- ## σ-block-hexagon, full 4-object Yang-Baxter braid at the σ-block level.
---
--- ### Proof status: SIMPLER VARIANT DERIVED.
---
--- We deliver a constructive SIMPLER VARIANT that captures the
--- algebraic core: the bare hexagon `tensored with id_D`, exposing
--- the σ-block hexagon as the bare hexagon "lifted" by a passive
--- trailing object.  This is `hexagon-with-tail` (already proved).
---
--- The full 4-object σ-block-hexagon equation, as stated below, is
--- the bare-hexagon-with-tail `(α⇒ ∘ σ ∘ α⇒) ⊗ id_D = (id⊗σ ∘ α⇒ ∘ σ⊗id) ⊗ id_D`
--- conjugated by α⇒/α⇐ towers on both ends.  The conjugation work is
--- mechanical but voluminous (~250-400 LOC of equational reasoning
--- per side).  We leave it as a future-work deliverable.
---
--- Specifically, the simpler variant we prove constructively here is:
---
---   σ-block-hexagon-core (DERIVED below):
---     `((id ⊗ σ) ⊗ id_D) ∘ (α⇒ ⊗ id_D) ∘ ((σ ⊗ id) ⊗ id_D)
---       ≈Term (α⇒ ⊗ id_D) ∘ (σ ⊗ id_D) ∘ (α⇒ ⊗ id_D)`
---
--- and this is precisely `hexagon-with-tail`.
---
--- The full σ-block-hexagon = hexagon-with-tail conjugated by:
---   * LHS-conjugate: pentagon-tower wrapping (σ-block expansions +
---     α-coherence rewrites) on both ends.
---   * RHS-conjugate: dual tower (with α⇐ instead of α⇒, mirror-image
---     pentagon-coherence rewrites).
---
--- These conjugates cancel symmetrically (by α⇒∘α⇐≈id and α⇐∘α⇒≈id
--- repeatedly), reducing σ-block-hexagon to hexagon-with-tail.
---
--- ### What's delivered constructively:
---   1. `hexagon-with-tail` (the algebraic core): bare hexagon ⊗ id_D.
---   2. `σ⊗id-collapse-middle` (key α-collapse lemma).
---   3. `pentagon-flip-right`, `α⇐∘id⊗α⇒-rewrite`, `pentagon-flip-α⇒-inside-tensor`
---      (all α-coherence helpers needed for the conjugate cancellations).
---   4. `σ-block-natural₁`, `σ-block-natural₃` (used in the conjugate work).
---   5. `σ-block-involutive`, `hexagon₂` (used in alternative discharge
---      paths).
---
--- The full σ-block-hexagon = `hexagon-with-tail` + conjugation work.
--- The conjugation work alone is ~300 LOC of careful pentagon/α-comm
--- chaining.  We do not inline it here.
-
---------------------------------------------------------------------------------
--- ## Pentagon-stack identities used in σ-block-hexagon.
---
--- The two "stacking" identities below are derived from pentagon.  They
--- show how to convert between α⇐ ∘ (id ⊗ α⇐) and (α⇒ ⊗ id) ∘ α⇐ ∘ α⇐:
---
+-- ## Pentagon-stack identity used in σ-block-hexagon:
 --   α⇐_{P,Q⊗R,S} ∘ (id_P ⊗ α⇐_{Q,R,S})
 --     ≈ (α⇒_{P,Q,R} ⊗ id_S) ∘ α⇐_{P⊗Q,R,S} ∘ α⇐_{P,Q,R⊗S}.
 
 private
-  -- Pentagon-inverse: derived directly from pentagon-flip-right.
-  --   From pentagon-flip-right: (id ⊗ α⇐) ∘ α⇒ ≈ α⇒ ∘ (α⇒ ⊗ id) ∘ α⇐.
-  --   Reading right-to-left: α⇐ ∘ ((id ⊗ α⇐) ∘ α⇒) ∘ (α⇐ ⊗ id) ∘ α⇐
-  --                        ≈ α⇐ ∘ α⇒ ∘ ... = ... → simplifies.
-  --
-  -- We need: α⇐ ∘ (id ⊗ α⇐) ≈ (α⇒ ⊗ id) ∘ α⇐ ∘ α⇐.
-  --
-  -- Take pentagon-flip-right and post-compose with α⇐:
-  --   (id ⊗ α⇐) ∘ α⇒ ∘ α⇐ ≈ α⇒ ∘ (α⇒ ⊗ id) ∘ α⇐ ∘ α⇐
-  --   (id ⊗ α⇐) ∘ id ≈ α⇒ ∘ (α⇒ ⊗ id) ∘ α⇐ ∘ α⇐
-  --   (id ⊗ α⇐) ≈ α⇒ ∘ (α⇒ ⊗ id) ∘ α⇐ ∘ α⇐.
-  -- Pre-compose with α⇐:
-  --   α⇐ ∘ (id ⊗ α⇐) ≈ α⇐ ∘ α⇒ ∘ (α⇒ ⊗ id) ∘ α⇐ ∘ α⇐
-  --                  ≈ (α⇒ ⊗ id) ∘ α⇐ ∘ α⇐.
-
   α⇐-stack-from-pentagon
     : ∀ {P Q R S : ObjTerm}
     → α⇐ {A = P} {B = Q ⊗₀ R} {C = S}
@@ -671,25 +605,14 @@ private
 -- `LHS-expanded ≈ NF-R` (= α⇒ ∘ α⇒ ∘ (inner-R ⊗ id) ∘ α⇐ ∘ α⇐) via the
 -- 9-step chain step-A … step-I:
 --   A: flatten the 3 grouped triples into a 9-morphism chain.
---   B: pentagon-flip-right + α⇐∘id⊗α⇒-rewrite at the two σ-block boundaries.
---   C/D: group and collapse the middle α⇐ ∘ (σ⊗id) ∘ α⇒ via σ⊗id-collapse-middle.
+--   B: pentagon-flip-right at e3-e4, α⇐∘id⊗α⇒-rewrite at e6-e7.
+--   C/D: group + collapse the middle α⇐ ∘ (σ⊗id) ∘ α⇒ via σ⊗id-collapse-middle.
 --   E: α-comm / α⇐-comm to convert (id ⊗ (σ⊗id_D)) to ((id⊗σ)⊗id).
---   F: hexagon at the inner (id_C⊗σ) ∘ α⇒ ∘ (σ⊗id_B).
+--   F: hexagon-with-tail at the inner (id_C⊗σ) ∘ α⇒ ∘ (σ⊗id_B), then cancel.
 --   G/H: pentagon / α⇐-stack-from-pentagon at the top/bottom boundaries.
 --   I: factor the 3 middle (X ⊗ id_D) pieces into (inner-R ⊗ id_D).
 
 private
-  -- LHS-expanded reduces to NF-R via the 9-step chain A … I.  Each step's body
-  -- is inlined as a `≈⟨ ⟩` justification so the (large) intermediate terms are
-  -- written exactly once; previously each was re-typed as the next step's
-  -- signature LHS.  The justifications (see header comment above for the math):
-  --   A: flatten the 3 grouped triples into a 9-morphism chain.
-  --   B: pentagon-flip-right at e3-e4, α⇐∘id⊗α⇒-rewrite at e6-e7.
-  --   C/D: group + collapse the middle α⇐ ∘ (σ⊗id) ∘ α⇒ via σ⊗id-collapse-middle.
-  --   E: α-comm / α⇐-comm to convert (id ⊗ (σ⊗id_D)) to ((id⊗σ)⊗id).
-  --   F: hexagon-with-tail at the inner (id_C⊗σ) ∘ α⇒ ∘ (σ⊗id_B), then cancel.
-  --   G/H: pentagon / α⇐-stack-from-pentagon at the top/bottom boundaries.
-  --   I: factor the 3 middle (X ⊗ id_D) pieces into (inner-R ⊗ id_D).
   LHS-to-NF-R : ∀ {A B C D : ObjTerm}
               → LHS-expanded {A} {B} {C} {D} ≈Term NF-R {A} {B} {C} {D}
   LHS-to-NF-R {A} {B} {C} {D} = begin
@@ -877,17 +800,8 @@ private
   RHS-to-expanded =
     refl⟩∘⟨ (id⊗σ-block-expand ⟩∘⟨refl)
 
-  -- Helper lemma: middleX ≈ inner-R.
-  -- middleX = (σ_{B,C} ⊗ id_A) ∘ α⇐_{B,C,A} ∘ (id_B ⊗ σ_{A,C}) ∘ α⇒_{B,A,C} ∘ (σ_{A,B} ⊗ id_C)
-  -- inner-R = σ_{A,C⊗B} ∘ (id_A ⊗ σ_{B,C}) ∘ α⇒_{A,B,C}
-  --
-  -- Proof:
-  --   middleX = (σ_{B,C} ⊗ id_A) ∘ α⇐_{B,C,A} ∘ ((id_B ⊗ σ_{A,C}) ∘ α⇒_{B,A,C} ∘ (σ_{A,B} ⊗ id_C))
-  --           = (σ_{B,C} ⊗ id_A) ∘ α⇐_{B,C,A} ∘ (α⇒_{B,C,A} ∘ σ_{A,B⊗C} ∘ α⇒_{A,B,C})    [hexagon]
-  --           = (σ_{B,C} ⊗ id_A) ∘ (α⇐ ∘ α⇒) ∘ σ_{A,B⊗C} ∘ α⇒_{A,B,C}
-  --           = (σ_{B,C} ⊗ id_A) ∘ σ_{A,B⊗C} ∘ α⇒_{A,B,C}                                 [α⇐∘α⇒≈id]
-  --           = σ_{A,C⊗B} ∘ (id_A ⊗ σ_{B,C}) ∘ α⇒_{A,B,C}                                 [σ-comm]
-  --           = inner-R
+  -- Helper lemma: middleX ≈ inner-R.  Apply hexagon at the inner triple,
+  -- cancel α⇐∘α⇒≈id, then σ-comm to re-bracket.
   middleX-eq-inner-R
     : ∀ {A B C : ObjTerm}
     → (σ {A = B} {B = C} ⊗₁ id {A = A})
@@ -912,10 +826,7 @@ private
             ((≈-Term-sym σ∘[f⊗g]≈[g⊗f]∘σ) ⟩∘⟨refl)
             assoc)))
 
-  -- RHS-expanded reduces to NF-R via the 5-step chain R-A … R-E.  Each step's
-  -- body is inlined as a `≈⟨ ⟩` justification so the (large) intermediate
-  -- terms are written exactly once; previously each was re-typed as the next
-  -- step's signature LHS.  The justifications:
+  -- RHS-expanded reduces to NF-R via the 5-step chain R-A … R-E:
   --   R-A: 4 assoc rotations into a flat 9-element right-associated chain.
   --   R-B: α⇐∘id⊗α⇒-rewrite at r3-r4, pentagon-flip-right at r6-r7.
   --   R-C: α⇐-comm to push r5, then cancel α⇐_{B,A⊗C,D} ∘ α⇒_{B,A⊗C,D} = id.

@@ -35,14 +35,11 @@
 --     `StackUnique.residual-recon` (= `eval-rigid` on a `Unique` codomain),
 --     which needs `Unique (ks ++ rest)`.  At the FIRE/FIRE call site that
 --     codomain is the `↭`-image of the decoder stack `s'`, so `Unique s'`
---     (via `Unique-resp-↭`) supplies it.  `Unique s'` is THREADED through
---     `process-edges-equivariant` as the `Reservoir≤1`-freshness invariant
---     (advanced per recursion via `StackUniqueReach.edge-step-Reservoir≤1`);
---     the caller `RunInterchangeTail` sources the GLOBAL reservoir from
---     `Linear H`.
+--     (via `Unique-resp-↭`) supplies it.
 --
 -- The only HYPOTHESIS the recursion carries is `Reservoir≤1`-freshness on
--- `process-edges-equivariant`, which the caller must source.
+-- `process-edges-equivariant` (giving `Unique s'` at every stage), which
+-- the caller must source.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -99,9 +96,7 @@ private
   ----------------------------------------------------------------------
   -- `eval-map⁺` and its `subst₂`-on-FinBij algebra (J-only, no K).  Used
   -- to LIFT a vertex-level `≅↭` (from `residual-recon`) through `map⁺ vlab`
-  -- to the X-level `≅↭` that `permute-resp-≅↭` consumes.  Both `eval-map⁺`
-  -- and `subst₂-FinBij-≈` are imported from the canonical
-  -- `PermuteCoherence.Map`.
+  -- to the X-level `≅↭` that `permute-resp-≅↭` consumes.
   ----------------------------------------------------------------------
 
   open import Categories.PermuteCoherence.Map using (eval-map⁺; subst₂-FinBij-≈)

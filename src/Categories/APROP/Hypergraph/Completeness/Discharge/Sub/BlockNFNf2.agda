@@ -80,8 +80,7 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Binary.PropositionalEquality.Properties
   using (trans-cong; trans-reflʳ; cong-∘)
 
--- Hedberg UIP on `ObjTerm` from decidable equality on `X` (replaces the
--- `--with-K` `uip`, illegal under `--without-K`).
+-- Hedberg UIP on `ObjTerm` from decidable equality on `X`.
 open import Categories.APROP.Hypergraph.Completeness.Discharge.ObjUIP
   using (module ObjUIP)
 
@@ -1217,7 +1216,7 @@ module _ (H : Hypergraph FlatGen)
             vout≈ = pvl-coh us-cod (Perm.trans σo (Perm.↭-sym out-b)) vout-loc
 
   ----------------------------------------------------------------------
-  -- ## The single residual (scaffolding-stripped, block-symmetric).
+  -- ## The single residual (block-symmetric).
   --
   -- For two edges `a`, `b` fired in order `a ∷ b` from a stack `sp` with
   -- locating permutes

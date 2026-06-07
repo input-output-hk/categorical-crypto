@@ -127,7 +127,7 @@ private
 -- process-edges content: `⟪ ρ⇒ {A} ⟫ = hId (A ⊗₀ unit) = ⟪ id {A ⊗₀ unit} ⟫`,
 -- so both decoders share the SAME inner term and differ ONLY in the
 -- boundary equations.  The identity follows from a generic
--- `subst₂`-over-`trans` split (a `--with-K` UIP-level transport fact).
+-- `subst₂`-over-`trans` split.
 --------------------------------------------------------------------------------
 
 private

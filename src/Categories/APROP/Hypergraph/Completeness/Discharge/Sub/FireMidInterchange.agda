@@ -225,8 +225,6 @@ module _ (H : Hypergraph FlatGen)
              ≈Term ( permute-via-vlab H.vlab vout-loc₂ ∘ _≅_.to (view-out≅ e' e Rlist) )
                    ∘ (σ ⊗₁ id)
 
-  -- The block-braiding ↔ `permute` machinery the two σ-coherence fields
-  -- reduce to.
   module BB = Categories.FreeSMC.BraidBlock   asFreeMonoidalData
   module BP = Categories.FreeSMC.BraidPermute asFreeMonoidalData
 
@@ -328,7 +326,6 @@ module _ (H : Hypergraph FlatGen)
   -- The two single-order block-normal-form factorisations are discharged
   -- from one shared residual (`BlockNFNf2.nf-bracket-proof`), reconciled
   -- by the Kelly keystone `K` — the sole trust-surface leaf of the chain.
-  -- `nf₁-eq′`/`nf₂-eq′` are mirror images instantiating one generic lemma.
   nf-bracket : Nf2.BlockBracket H K
   nf-bracket = Nf2.nf-bracket-proof H K
   private module NfInst = Nf2.Instantiate H K nf-bracket dih lin

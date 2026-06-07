@@ -61,7 +61,6 @@ permute-≈Term-coherence-K K uniq p q =
 -- the Fin level, then transport through `eval-map⁺` to the X-level `≅↭`.
 
 private
-  -- `map⁺ vlab p ≅↭ map⁺ vlab q` from Fin-level rigidity.
   map⁺-≅↭
     : ∀ {n} {xs ys : List (Fin n)}
         (vlab : Fin n → X)

@@ -131,8 +131,7 @@ module _ (H : Hypergraph FlatGen) where
                                          (unflatten (map H.vlab z)))
                           eq
 
-  -- The STACK `_++_`-factoring of `process-edges` (re-derived here so the
-  -- term factoring is self-contained).  Induction on the prefix `ps`.
+  -- The STACK `_++_`-factoring of `process-edges`, by induction on `ps`.
   pe-stack-++
     : ∀ (ps rest : List (Fin H.nE)) (s : List (Fin H.nV))
     → pe-stack (ps ++ rest) s ≡ pe-stack rest (pe-stack ps s)

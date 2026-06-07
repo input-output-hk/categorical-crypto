@@ -396,9 +396,7 @@ module _
         permute-via-vlab-≈Term-coherence-K Kf C.vlab uRemapKdom p q
 
       -- Absorb a codomain `subst`-transport into the precomposed
-      -- `permute`'s source:
-      --   permute-via-vlab C.vlab perm ∘ coe eq t
-      --     ≈ permute-via-vlab C.vlab (re-based perm) ∘ t.
+      -- `permute`'s source.
       Cdom-obj = unflatten (map C.vlab C.dom)
 
       absorb-coe

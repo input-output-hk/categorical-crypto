@@ -81,7 +81,7 @@ subst₂-id-≈ objUIP p q =
                  (subst₂-HomTerm-id q))
 
 -- `subst₂ FlatGen` over `trans p (sym p')` cancels back to the inner
--- `subst₂ FlatGen p q`.  (`--with-K`.)
+-- `subst₂ FlatGen p q`.
 subst₂-FlatGen-cancel
   : ∀ {is is' os os' : List X} (p : is ≡ is') (q : os ≡ os')
       {is'' os'' : List X} (p' : is'' ≡ is') (q' : os'' ≡ os')

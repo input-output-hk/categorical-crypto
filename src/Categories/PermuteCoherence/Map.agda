@@ -144,8 +144,6 @@ map⁺-↭-reflexive h refl = refl
 
 ------------------------------------------------------------------------
 -- `subst Fin` cast algebra for the cross-iso (φ-equivariance) rigidity.
--- (Relocated from the now-deleted `EvalRigidKFree`; sole consumer is
--- `…/Completeness/Discharge/IsoTransport.agda`.)
 ------------------------------------------------------------------------
 
 -- `subst Fin` along a `sym (cong suc _)` cast commutes with `suc`/`zero`.

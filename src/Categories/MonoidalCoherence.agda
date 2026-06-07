@@ -38,8 +38,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
   open import Relation.Binary.PropositionalEquality using (_≡_; refl; trans; cong; subst)
 
   -- UIP for the discrete-category objects `List X`, derived from decidable
-  -- equality of `X` (Hedberg).  This replaces the K-based `refl`-matches on
-  -- `Discrete (List X)` morphisms, keeping the development `--without-K`.
+  -- equality of `X` (Hedberg).
   uipL : Irrelevant {A = List X} _≡_
   uipL = Decidable⇒UIP.≡-irrelevant (≡-dec _≟X_)
   open import Categories.NaturalTransformation.NaturalIsomorphism as NI hiding (refl; trans; unitorˡ; unitorʳ; associator)

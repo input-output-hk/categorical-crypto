@@ -12,7 +12,6 @@
 -- the Mac-Lane helpers `pentagon-rewrite` / `α⇒-λ⇐-collapse` from
 -- `CoherenceSolver` and re-proving the small categorical helpers inline.
 -- The cons-case proof is a step-numbered Mac-Lane chase (see the body).
--- `--with-K` is needed transitively via `CoherenceSolver`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

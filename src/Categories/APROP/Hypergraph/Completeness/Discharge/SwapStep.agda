@@ -112,11 +112,9 @@ module PerHG (H : Hypergraph FlatGen)
   --------------------------------------------------------------------
   -- Abbreviations for the two `process-edges` projections.
 
-  -- Final stack of running `o` from stack `s`.
   pe-stack : Order → List (Fin H.nV) → List (Fin H.nV)
   pe-stack o s = proj₁ (process-edges H o s)
 
-  -- Composed term of running `o` from `s`.
   pe-term : (o : Order) (s : List (Fin H.nV))
           → HomTerm (unflatten (map H.vlab s))
                     (unflatten (map H.vlab (pe-stack o s)))

@@ -713,7 +713,7 @@ module _
       BoxCore = subst₂ HomTerm (cong unflatten (sym domEq)) (cong unflatten (sym codEq))
                        (Agen-edge-aux (FlatGen.flat g))
 
-      -- `Agen-edge-aux`-naturality under `subst₂ FlatGen` (local clone).
+      -- `Agen-edge-aux`-naturality under `subst₂ FlatGen`.
       subst₂-Agen-edge-aux-nat
         : ∀ {ins₁ ins₂ outs₁ outs₂ : List X}
             (p : ins₁ ≡ ins₂) (q : outs₁ ≡ outs₂) (x : FlatGen ins₁ outs₁)

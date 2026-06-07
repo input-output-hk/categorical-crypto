@@ -128,7 +128,7 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
   open FaithfulnessResidual K using (permute-resp-≅↭)
 
   ------------------------------------------------------------------------
-  -- §1.1  Injectivity of φ (re-derived locally; same as EdgeDependency).
+  -- §1.1  Injectivity of φ.
 
   φ-inj : ∀ {x y} → φ x ≡ φ y → x ≡ y
   φ-inj {x} {y} eq = trans (sym (φ-left x)) (trans (cong φ⁻¹ eq) (φ-left y))

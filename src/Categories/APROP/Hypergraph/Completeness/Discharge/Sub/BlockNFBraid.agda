@@ -67,7 +67,6 @@ private
   module FM = Category FreeMonoidal
 
 -- Hedberg UIP on `List X`, from decidable equality on the atom type `X`.
--- Replaces the `--with-K` `uip` (illegal under `--without-K`).
 uipX : ∀ {us vs : List X} (p q : us ≡ vs) → p ≡ q
 uipX = UIPmod.Decidable⇒UIP.≡-irrelevant (List-≡-dec _≟X_)
 
