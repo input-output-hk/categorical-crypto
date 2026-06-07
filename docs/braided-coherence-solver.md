@@ -113,10 +113,53 @@ representation). This cannot be settled by reading — it needs a spike.
    (it is 388 commits off the current soundness tree), and build the `FreeMonoidal ↔ strict`
    bridge needed to apply the solver to the soundness proof and to `GConstruction`.
 
+## Spike results (2026-06-07) — qualified GO; the math is done, the work is engineering
+
+A go/no-go spike on `smc-coherence` (baseline `SolverTests` builds green, EXIT 0) **inverted** the
+prior expectations:
+
+**Completeness core — GO (it genuinely collapses, does not relocate).** `≈D` encodes exactly
+(generator-permutation `π`) + (same labels) + (block agreement) (`WDiag.agda:76–87`);
+`reflect`/`canonicalize` already factor a morphism into structural-normalization
+(`normalize`/`flattenV`) + read-permutation (`readPerm`) + adjacent-transposition decomposition
+(`sortSwaps`/`swapAllHom`) + generator-peeling (`Reflect.agda:146–219`). The structural base case
+`structural-coherence` (`Diagram.agda:422`) is *exactly* a Kelly/FinBij statement — and the
+external kernel discharges it **constructively**: `PermuteCoherence.Faithfulness` typechecks
+against this branch's `FreeMonoidal` (EXIT 0), and `FaithfulnessInductive` proves
+`faithfulness : FaithfulnessResidual` (`eval π ≈ eval π' → permute π ≈ permute π'`) `--safe
+--without-K` with **no postulates**. So the deep combinatorial core already exists and reuses — the
+coherence problem collapses onto it.
+
+**Soundness tier — the surprise NO-GO (it is *not* routine).** Each `wdiagram-resp-≈ <axiom>` needs
+a bespoke symbolic-dimension Bool-matrix arithmetic proof (`sumB`/`classify`/`δ` identities over
+abstract `size`s); zero discharged cleanly, even `id⊗id≈id` (4-way case split + custom lemmas).
+Estimate **~50–90 LOC × ~21 axioms ≈ 1,000–1,900 LOC** of mechanical-but-laborious grind. No deep
+difficulty (pentagon/hexagon are `k=0`, no harder than the rest — the diagram doesn't "see"
+bracketing/braiding), but substantial. The author pre-built the toolkit (`δ-shift`/`δ-ne`/…,
+`Diagram.agda:219–298`), indicating it was always meant as laborious-mechanical.
+
+**Two further engineering costs surfaced.**
+- **Two-track split:** `solveSM` rests on `Coherence.matrix-faithful` over the **`matrix`/`≈M`
+  SetMatrix** track, but the FinBij-reduction machinery (`reflect-correct`/`structural-coherence`)
+  lives in the **separate `wdiagram`/`≈D` Bool-matrix** track, and `wdiagram-faithful` is consumed
+  by nothing. The reduction must be wired into the track `solveSM` actually uses (or `solveSM`
+  repointed). Resolve this first.
+- **Porting friction:** the kernel chain `PermuteCoherence` (~26 files) + `SigmaBlockHexagon`
+  (975 LOC) + the **experiments-branch `MonoidalCoherence`** (which diverged: added a
+  `DecidableEquality X` param + Hedberg UIP to go `--without-K`, universe-polymorphic `Solver`)
+  must be ported onto a common base. Confined to `MonoidalCoherence`, not pervasive, but it's the
+  `--safe`/`--without-K` friction point.
+
+**Remaining glue (genuine new work, but structural not coherence):** bridge `reflect`/`canonicalize`'s
+`flattenV`/`readPerm` to the kernel's `unflatten`/`permute`/`eval-↭`, show `≈M`/`≈D`-equality
+induces the equal-FinBij hypothesis `p ≅↭ q`, and assemble the generator-peeling induction (the
+kernel only covers the zero-generator base case).
+
 ## Bottom line
 
-A direct braided coherence solver is the correct strategic target, and the `SymmetricMonoidalCoherence`
-matrix solver is a strong, mostly-built substrate for it — soundness postulates aside, the entire
-bet is `matrix-faithful`. Recommend spiking `matrix-faithful`/`reflect-correct` (reusing the
-existing FinBij kernel) before any larger commitment; that single experiment determines whether
-Option 2 collapses the M+K bulk *and* fixes the solver, or merely relocates the coherence problem.
+**Verdict: qualified GO.** The strategic bet is sound — the deep coherence content collapses onto an
+already-proven, reusable FinBij kernel; it does **not** merely relocate the problem. But landing it
+is a **multi-session engineering effort**, not a quick win: ~1–1.9k LOC of mechanical matrix-arithmetic
+for the soundness tier, the representation-bridging glue + generator-peeling induction, plus a
+cross-branch `MonoidalCoherence`/kernel port with a `--safe`/`--without-K` reconciliation — and the
+two-track (`≈M` vs `≈D`) split must be resolved first. No open mathematics; substantial plumbing.
