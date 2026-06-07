@@ -85,6 +85,8 @@ import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.BlockNFVoutCoh
   asFreeMonoidalData _≟X_ as BNV
 open import Categories.APROP.Hypergraph.Soundness.Discharge.CIsoAssocFromCons sig
   using (c-iso-assoc-from)
+open import Categories.APROP.Hypergraph.Soundness.UnflattenMonoidal sig
+  using (c-iso-assoc-to; cancel-mid-iso)
 open import Categories.APROP.Hypergraph.Soundness.Decode sig
   using (Agen-edge-aux)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeStepRelation sig
@@ -129,31 +131,6 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.HomTermTransport
 private
   module FM = Category FreeMonoidal
 
-  -- Generic middle-iso cancellation (shared by the `uf++`-framed block
-  -- ladders): two 3-fold composites sharing a middle iso `Fm ∘ Tm ≈ id`
-  -- cancel it, leaving `To ∘ M₁ ∘ M₂ ∘ Ff`.  Makes no assumption about
-  -- `M₁`/`M₂` (the per-site `⊗₁`-merge tail stays inline at call sites).
-  cancel-mid-iso
-    : ∀ {A₀ A₁ A₂ A₃ A₄ A₅ : ObjTerm}
-        (To : HomTerm A₄ A₅) (M₁ : HomTerm A₂ A₄) (Fm : HomTerm A₃ A₂)
-        (Tm : HomTerm A₂ A₃) (M₂ : HomTerm A₁ A₂) (Ff : HomTerm A₀ A₁)
-    → FM._∘_ Fm Tm ≈Term FM.id
-    → FM._∘_ (FM._∘_ To (FM._∘_ M₁ Fm)) (FM._∘_ Tm (FM._∘_ M₂ Ff))
-      ≈Term FM._∘_ To (FM._∘_ M₁ (FM._∘_ M₂ Ff))
-  cancel-mid-iso To M₁ Fm Tm M₂ Ff m-iso =
-    let open FM.HomReasoning in
-    begin
-      (To ∘ M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
-        ≈⟨ FM.assoc ⟩
-      To ∘ (M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
-        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-      To ∘ M₁ ∘ Fm ∘ Tm ∘ M₂ ∘ Ff
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-      To ∘ M₁ ∘ (Fm ∘ Tm) ∘ M₂ ∘ Ff
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ m-iso ⟩∘⟨refl ⟩
-      To ∘ M₁ ∘ id ∘ M₂ ∘ Ff
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
-      To ∘ M₁ ∘ M₂ ∘ Ff ∎
 
   -- `unflatten-++-≅`'s `to`/`from` transported along block-list equalities.
   to-uf-cong
@@ -412,118 +389,6 @@ module BoxAssoc where
 
   -- `from`-side associativity kernel.
   assoc-from = c-iso-assoc-from
-
-  -- The `to`-side dual, derived from `c-iso-assoc-from` by composite
-  -- inversion (`Lhsinv ≈ Rhsinv ∘ Rhs ∘ Lhsinv ≈ Rhsinv ∘ Lhs ∘ Lhsinv ≈
-  -- Rhsinv`).
-  c-iso-assoc-to
-    : ∀ xs₁ xs₂ ys
-    → _≅_.to (unflatten-++-≅ (xs₁ ++ xs₂) ys)
-      ∘ (_≅_.to (unflatten-++-≅ xs₁ xs₂) ⊗₁ id)
-      ∘ α⇐ {unflatten xs₁} {unflatten xs₂} {unflatten ys}
-    ≈Term subst (λ z → HomTerm (unflatten z) (unflatten ((xs₁ ++ xs₂) ++ ys)))
-                (++-assoc xs₁ xs₂ ys) id
-          ∘ _≅_.to (unflatten-++-≅ xs₁ (xs₂ ++ ys))
-          ∘ (id {unflatten xs₁} ⊗₁ _≅_.to (unflatten-++-≅ xs₂ ys))
-  c-iso-assoc-to xs₁ xs₂ ys = begin
-    Lhsinv
-      ≈⟨ ≈-Term-sym idˡ ⟩
-    id ∘ Lhsinv
-      ≈⟨ ≈-Term-sym RhsinvRhs ⟩∘⟨refl ⟩
-    (Rhsinv ∘ Rhs) ∘ Lhsinv
-      ≈⟨ (refl⟩∘⟨ ≈-Term-sym (assoc-from xs₁ xs₂ ys)) ⟩∘⟨refl ⟩
-    (Rhsinv ∘ Lhs) ∘ Lhsinv
-      ≈⟨ FM.assoc ⟩
-    Rhsinv ∘ (Lhs ∘ Lhsinv)
-      ≈⟨ refl⟩∘⟨ LhsLhsinv ⟩
-    Rhsinv ∘ id
-      ≈⟨ idʳ ⟩
-    Rhsinv ∎
-    where
-      U₁  = unflatten xs₁
-      U₂  = unflatten xs₂
-      Uys = unflatten ys
-
-      from₁₂   = _≅_.from (unflatten-++-≅ xs₁ xs₂)
-      to₁₂     = _≅_.to   (unflatten-++-≅ xs₁ xs₂)
-      from₁₂ys = _≅_.from (unflatten-++-≅ (xs₁ ++ xs₂) ys)
-      to₁₂ys   = _≅_.to   (unflatten-++-≅ (xs₁ ++ xs₂) ys)
-      from₂₃   = _≅_.from (unflatten-++-≅ xs₂ ys)
-      to₂₃     = _≅_.to   (unflatten-++-≅ xs₂ ys)
-      from₁₂₃  = _≅_.from (unflatten-++-≅ xs₁ (xs₂ ++ ys))
-      to₁₂₃    = _≅_.to   (unflatten-++-≅ xs₁ (xs₂ ++ ys))
-
-      e   = ++-assoc xs₁ xs₂ ys
-      s-id : HomTerm (unflatten ((xs₁ ++ xs₂) ++ ys)) (unflatten (xs₁ ++ (xs₂ ++ ys)))
-      s-id = subst (λ z → HomTerm (unflatten ((xs₁ ++ xs₂) ++ ys)) (unflatten z)) e id
-      s-id⁻ : HomTerm (unflatten (xs₁ ++ (xs₂ ++ ys))) (unflatten ((xs₁ ++ xs₂) ++ ys))
-      s-id⁻ = subst (λ z → HomTerm (unflatten z) (unflatten ((xs₁ ++ xs₂) ++ ys))) e id
-
-      Lhs    = α⇒ {U₁} {U₂} {Uys} ∘ (from₁₂ ⊗₁ id) ∘ from₁₂ys
-      Rhs    = (id {U₁} ⊗₁ from₂₃) ∘ from₁₂₃ ∘ s-id
-      Lhsinv = to₁₂ys ∘ (to₁₂ ⊗₁ id) ∘ α⇐ {U₁} {U₂} {Uys}
-      Rhsinv = s-id⁻ ∘ to₁₂₃ ∘ (id {U₁} ⊗₁ to₂₃)
-
-      s-id⁻-s-id : s-id⁻ ∘ s-id ≈Term id
-      s-id⁻-s-id = lemma e
-        where
-          lemma : ∀ {a b : List X} (p : a ≡ b)
-                → subst (λ z → HomTerm (unflatten z) (unflatten a)) p id
-                  ∘ subst (λ z → HomTerm (unflatten a) (unflatten z)) p id
-                  ≈Term id
-          lemma refl = idˡ
-
-      LhsLhsinv : Lhs ∘ Lhsinv ≈Term id
-      LhsLhsinv = begin
-        (α⇒ ∘ (from₁₂ ⊗₁ id) ∘ from₁₂ys) ∘ (to₁₂ys ∘ (to₁₂ ⊗₁ id) ∘ α⇐)
-          ≈⟨ FM.assoc ⟩
-        α⇒ ∘ ((from₁₂ ⊗₁ id) ∘ from₁₂ys) ∘ (to₁₂ys ∘ (to₁₂ ⊗₁ id) ∘ α⇐)
-          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-        α⇒ ∘ (from₁₂ ⊗₁ id) ∘ from₁₂ys ∘ to₁₂ys ∘ (to₁₂ ⊗₁ id) ∘ α⇐
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        α⇒ ∘ (from₁₂ ⊗₁ id) ∘ (from₁₂ys ∘ to₁₂ys) ∘ (to₁₂ ⊗₁ id) ∘ α⇐
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoʳ (unflatten-++-≅ (xs₁ ++ xs₂) ys) ⟩∘⟨refl ⟩
-        α⇒ ∘ (from₁₂ ⊗₁ id) ∘ id ∘ (to₁₂ ⊗₁ id) ∘ α⇐
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
-        α⇒ ∘ (from₁₂ ⊗₁ id) ∘ (to₁₂ ⊗₁ id) ∘ α⇐
-          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        α⇒ ∘ ((from₁₂ ⊗₁ id) ∘ (to₁₂ ⊗₁ id)) ∘ α⇐
-          ≈⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩∘⟨refl ⟩
-        α⇒ ∘ ((from₁₂ ∘ to₁₂) ⊗₁ (id ∘ id)) ∘ α⇐
-          ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (_≅_.isoʳ (unflatten-++-≅ xs₁ xs₂)) idˡ ⟩∘⟨refl ⟩
-        α⇒ ∘ (id ⊗₁ id) ∘ α⇐
-          ≈⟨ refl⟩∘⟨ id⊗id≈id ⟩∘⟨refl ⟩
-        α⇒ ∘ id ∘ α⇐
-          ≈⟨ refl⟩∘⟨ idˡ ⟩
-        α⇒ ∘ α⇐
-          ≈⟨ α⇒∘α⇐≈id ⟩
-        id ∎
-
-      RhsinvRhs : Rhsinv ∘ Rhs ≈Term id
-      RhsinvRhs = begin
-        (s-id⁻ ∘ to₁₂₃ ∘ (id ⊗₁ to₂₃)) ∘ ((id ⊗₁ from₂₃) ∘ from₁₂₃ ∘ s-id)
-          ≈⟨ FM.assoc ⟩
-        s-id⁻ ∘ (to₁₂₃ ∘ (id ⊗₁ to₂₃)) ∘ ((id ⊗₁ from₂₃) ∘ from₁₂₃ ∘ s-id)
-          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-        s-id⁻ ∘ to₁₂₃ ∘ (id ⊗₁ to₂₃) ∘ (id ⊗₁ from₂₃) ∘ from₁₂₃ ∘ s-id
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        s-id⁻ ∘ to₁₂₃ ∘ ((id ⊗₁ to₂₃) ∘ (id ⊗₁ from₂₃)) ∘ from₁₂₃ ∘ s-id
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩∘⟨refl ⟩
-        s-id⁻ ∘ to₁₂₃ ∘ ((id ∘ id) ⊗₁ (to₂₃ ∘ from₂₃)) ∘ from₁₂₃ ∘ s-id
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ⊗-resp-≈ idˡ (_≅_.isoˡ (unflatten-++-≅ xs₂ ys)) ⟩∘⟨refl ⟩
-        s-id⁻ ∘ to₁₂₃ ∘ (id ⊗₁ id) ∘ from₁₂₃ ∘ s-id
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ id⊗id≈id ⟩∘⟨refl ⟩
-        s-id⁻ ∘ to₁₂₃ ∘ id ∘ from₁₂₃ ∘ s-id
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
-        s-id⁻ ∘ to₁₂₃ ∘ from₁₂₃ ∘ s-id
-          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        s-id⁻ ∘ (to₁₂₃ ∘ from₁₂₃) ∘ s-id
-          ≈⟨ refl⟩∘⟨ _≅_.isoˡ (unflatten-++-≅ xs₁ (xs₂ ++ ys)) ⟩∘⟨refl ⟩
-        s-id⁻ ∘ id ∘ s-id
-          ≈⟨ refl⟩∘⟨ idˡ ⟩
-        s-id⁻ ∘ s-id
-          ≈⟨ s-id⁻-s-id ⟩
-        id ∎
 
   ------------------------------------------------------------------------
   -- `subst₂ HomTerm (cong unflatten p) (cong unflatten q) t` as a
@@ -4569,7 +4434,7 @@ module BlockFactor
             ∘ (rTo eL (pL ++ rL) ∘ (id {Ue} ⊗₁ rTo pL rL))
     cit-assoc-head = begin
         rTo (eL ++ pL) rL ∘ (rTo eL pL ⊗₁ id {Ur}) ∘ α⇐ {Ue} {Up} {Ur}
-          ≈⟨ BoxAssoc.c-iso-assoc-to eL pL rL ⟩
+          ≈⟨ c-iso-assoc-to eL pL rL ⟩
         BoxAssoc.subst-id-dom (++-assoc eL pL rL)
           ∘ (rTo eL (pL ++ rL) ∘ (id {Ue} ⊗₁ rTo pL rL)) ∎
 
@@ -4694,7 +4559,7 @@ module BlockFactor
             ∘ (rTo pL (eL ++ rL) ∘ (id {Up} ⊗₁ rTo eL rL))
     cit-assoc-tail = begin
         rTo (pL ++ eL) rL ∘ (rTo pL eL ⊗₁ id {Ur}) ∘ α⇐ {Up} {Ue} {Ur}
-          ≈⟨ BoxAssoc.c-iso-assoc-to pL eL rL ⟩
+          ≈⟨ c-iso-assoc-to pL eL rL ⟩
         BoxAssoc.subst-id-dom (++-assoc pL eL rL)
           ∘ (rTo pL (eL ++ rL) ∘ (id {Up} ⊗₁ rTo eL rL)) ∎
 
