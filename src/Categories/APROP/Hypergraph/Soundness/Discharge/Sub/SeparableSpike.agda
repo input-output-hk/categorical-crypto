@@ -26,15 +26,15 @@
 --   * the whole induction + final block-merge glue (`process-edges-separable`).
 --
 -- The hard per-edge box leaf (`fire-mid-suffix`) is discharged by importing the
--- machine-checked `DecodeTensorShape.BlockBoxSuffix.box-suffix-framed` and
+-- machine-checked `BoxKernel.BlockBoxSuffix.box-suffix-framed` and
 -- reframing it onto `fire-mid` (the box term is DEFINITIONALLY the `box-of`
 -- subst in `box-suffix-framed`'s RHS, and the two LHS framings agree up to
 -- `objUIP` collapse).  `frame-ext` (the `++⁺ʳ` permute-slide) comes from
 -- `BlockNFBraid`.  `objUIP` is derived from `_≟X_` via Hedberg (`ObjUIP`).
 --
--- NOTE.  Importing `DecodeTensorShape` here is fine for this standalone
--- validation lemma; the leaf-extraction needed to break that import for
--- eventual integration is a separate task.
+-- NOTE.  The box leaf is taken from the lightweight `BoxKernel` leaf module
+-- (NOT the heavyweight `DecodeTensorShape`), so this file does not depend on
+-- `DecodeTensorShape` — the import cycle is broken.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -65,9 +65,9 @@ import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.BlockNFBraid
   asFreeMonoidalData _≟X_ as BNB
 
 -- The machine-checked per-edge box-suffix factorization (`box-suffix-framed`)
--- and the `box-of` ⇒ `fire-mid` bridge live in DecodeTensorShape.  Importing it
--- is acceptable for this standalone validation lemma.
-import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.DecodeTensorShape sig _≟X_
+-- lives in the lightweight `BoxKernel` leaf module (extracted from
+-- DecodeTensorShape), so this validation lemma no longer depends on it.
+import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.BoxKernel sig _≟X_
   as DTS
 
 -- `objUIP` (UIP on `ObjTerm`) from Hedberg over `_≟X_`.
