@@ -12,7 +12,7 @@
 #align(center)[
   #text(16pt, weight: "bold")[A hypergraph soundness theorem for \ free symmetric monoidal categories]
   #v(0.25em)
-  #text(11pt)[An informal proof and the status of its Agda mechanization]
+  #text(11pt)[An informal proof]
   #v(0.3em)
   #text(9pt, style: "italic")[`categorical-crypto` — the APROP soundness development]
 ]
@@ -25,13 +25,9 @@
   (PROP) on a signature: if two terms translate to isomorphic labelled hypergraphs, they are
   equal in the free category. The proof sequentialises a string diagram into a term via a
   *decoder*, and quotients by the order in which independent generator-boxes are processed.
-  We give the informal proof in full and then document its Agda mechanization. The proof is
-  *complete*: it type-checks under `--safe --without-K` with *zero postulates*. Its one
-  mathematical kernel — symmetric-monoidal coherence on the permutation fragment (Kelly 1964) —
-  is itself *proven*, not assumed; only the bijection-level (`FinBij`) coherence underneath it
-  is treated elsewhere and out of scope here. The sole hypothesis is decidable equality on the
-  signature's atoms — a module parameter met by every concrete signature, used for object-level
-  UIP under `--without-K`.]
+  Its one mathematical kernel is symmetric-monoidal coherence on the permutation fragment
+  (Kelly 1964); the bijection-level (`FinBij`) coherence underneath it is treated elsewhere and
+  out of scope here.]
 ])
 
 = Introduction
@@ -49,16 +45,8 @@ $ <main>
 — is the subject of this report. Faithfulness is exactly *coherence* for the free SMC:
 two terms with the same string diagram are interconvertible by the SMC axioms.
 
-This document accompanies the APROP soundness formalization in the `categorical-crypto`
-Agda development. It has two purposes:
-
-#enum(
-  [a *transparent informal proof* of @main, structured so that every step corresponds to a
-   concrete, checkable formal obligation;],
-  [a precise account of its *mechanization*: the proof is complete in Agda — `--safe
-   --without-K`, axiom-free, with the permutation-coherence kernel itself discharged — together
-   with a map of which module proves which step.],
-)
+This document gives a *transparent informal proof* of @main, structured so that every step is a
+concrete, checkable claim.
 
 *The proof in one line.* Every term equals the canonical *sequentialisation* (decoding) of
 its own hypergraph (part #strong[(I)]), and that decoding is invariant under hypergraph
@@ -69,9 +57,9 @@ same permutation.
 
 *Notation.* We write $approx$ for the free-category term equivalence $approx_("Term")$, and
 $tilde.equiv^("H")$ for hypergraph isomorphism ($#raw("≅ᴴ")$ in the source). Throughout,
-$bold(K)$, $bold(N)$, $bold(M)$, $bold(S)$ name the four kinds of ingredient catalogued in
-§8. Inline monospace names (e.g. `connectivity`) refer to definitions in the Agda
-development; §9 gives the module map.
+$bold(K)$, $bold(N)$, $bold(M)$, $bold(S)$ name the four kinds of ingredient catalogued near
+the end. Inline monospace names (e.g. `connectivity`) refer to definitions in the Agda
+development.
 
 = Objects
 
@@ -168,8 +156,7 @@ functor preserves isomorphisms"). The *content* of Lemma 0 is the step beyond �
 triangle $L_H approx L_J compose "Free"(phi, psi)$ commutes — and since functors out of a free
 category agree iff they agree on *generators*, it reduces to the per-edge
 $"layer"_e^H approx "layer"_(psi space e)^J$: object part = Lemma 0a, generator part = Lemma 0b.
-The edge-list induction in the mechanization is exactly this free extension from generators to
-paths.
+The edge-list induction is exactly this free extension from generators to paths.
 
 *Where $bold(K)$ comes from.* If states are taken as *unordered* collections, $"unflatten"(S)$
 is well-defined only up to the symmetric-coherence isomorphism — and that well-definedness *is*
@@ -367,13 +354,11 @@ Chaining over the linear-extension connection yields $"decode" ⟪f⟫ approx "d
   trace class; the factoring needs $bold(N)$ (firings commute) and $bold(K)$ (wiring).]
 ]
 
-== The per-swap step in detail (`run-eq`)
+== The per-swap step in detail
 
-The single adjacent-independent swap above is mechanized as the field `run-eq` of the record
-`SwapStep.FrontSwap.RunInterchange`. Write $D_(e e')$ for the decoder term of the order
-"process $e$, then $e'$, then the tail", and $D_(e' e)$ for the swapped order, both run from the
-shared post-prefix stack $s_p$; let $r$ be the *reshuffle* — the permutation between the two
-orders' post-front stacks. The swap equation is
+Write $D_(e e')$ for the decoder term of the order "process $e$, then $e'$, then the tail", and
+$D_(e' e)$ for the swapped order, both run from the shared post-prefix stack $s_p$; let $r$ be
+the *reshuffle* — the permutation between the two orders' post-front stacks. The swap equation is
 
 $
   D_(e' e) quad approx quad "permute"(r) compose D_(e e') .
@@ -386,15 +371,13 @@ $
 $
 i.e. *permute $"ein" e$ to the front, re-bracket the stack as
 $"unflatten"("ein") times.o "unflatten"("rest")$, apply the box, re-bracket back.* @runeq then
-decomposes into exactly one obligation per ledger class:
+decomposes into exactly one piece per ledger class:
 
 + *Disjointness ($bold(S)$).* Independence ($e, e'$ incomparable — neither consumes the other's
   output) together with linearity (each wire produced/consumed at most once) gives that
   $"ein" e$, $"ein" e'$ are disjoint, and $"eout" e$ is disjoint from $"ein" e'$ (and
   symmetrically). Hence the two edges occupy *disjoint wire-blocks*, both orders fire, and they
-  reach the *same stack-multiset* — the reshuffle $r$. Constructively this is
-  `SwapValidity.front-swap-stack-↭` (linearity gives `ein-ein-disjoint`, independence gives
-  `eout-ein-disjoint`).
+  reach the *same stack-multiset* — the reshuffle $r$.
 
 + *Box-commute ($bold(N)$).* Brought to disjoint adjacent factors, the two boxes
   $(#raw("Agen") g_e times.o "id")$ and $(#raw("Agen") g_(e') times.o "id")$ act on *disjoint
@@ -408,21 +391,18 @@ decomposes into exactly one obligation per ledger class:
   shapes (after $e$ fires, $e'$ sees residual $"eout" e ++ dots.c$; after $e'$ fires, $e$ sees
   $"eout" e' ++ dots.c$). To bring both boxes to the common disjoint-aligned form that
   `⊗-∘-dist` needs, the `unflatten-++-≅` coercions must be re-associated — pure Mac-Lane
-  coherence ($alpha, lambda, rho$ + coercion naturality). *This is the bulk of the proof
-  effort*: it has no canonical-form solver in the symmetric fragment, so it is hand-chased,
-  per positional case, under `--without-K` `subst₂` casts.
+  coherence ($alpha, lambda, rho$ + coercion naturality). This is the bulk of the work: it has
+  no canonical-form solver in the symmetric fragment, so it is chased per positional case.
 
 + *Reshuffle ($bold(K)$).* The two orders bring the input wires forward in different orders and
   leave the output blocks in swapped positions; the net difference is a pure wire-permutation,
   realised by $"permute"(r)$. Matching it is @K. Plus a tail recursion: the suffix runs on the
   reshuffled stack and commutes with $r$ by naturality.
 
-So @runeq is *$bold(S)$ (disjointness) $+ bold(N)$ (one `⊗-∘-dist`) $+ bold(M)$ (the
-re-association bulk) $+ bold(K)$ (the reshuffle)*, and all four are discharged. The substantive
-two-edge core (empty tail, $bold(M) + bold(N) + bold(K)$) is `RunInterchangeEmptyTail`; its
-extension to a suffix — pure decoder equivariance, no box content — is `RunInterchangeTail`; the
-interchange axiom @interchange on the boxes is the proven `SwapStep.box-interchange`. The bulk of
-the work is the $bold(M)$ re-bracketing, the solver-unfriendly heart of braided-monoidal
+So @runeq is *$bold(S)$ (disjointness) $+ bold(N)$ (one bifunctor interchange) $+ bold(M)$ (the
+re-association bulk) $+ bold(K)$ (the reshuffle)*. The boxes themselves commute by plain
+bifunctoriality; the braiding lives entirely in the reshuffle, absorbed by $bold(K)$; and the
+genuine bulk is the $bold(M)$ re-bracketing, the solver-unfriendly heart of braided-monoidal
 coherence.
 
 = The normal-form theorem, part (I)
@@ -458,140 +438,44 @@ By induction on $f$, using the action of $⟪dot.c⟫$ on each constructor:
 
 = The ingredients
 
-Every step above draws on one of four kinds of ingredient. This classification is what makes the
-mechanization status below legible.
+Every step above draws on one of four kinds of ingredient.
 
 #table(
-  columns: (auto, 1fr, auto),
+  columns: (auto, 1fr),
   inset: 7pt,
-  align: (left + horizon, left + horizon, left + horizon),
+  align: (left + horizon, left + horizon),
   stroke: 0.5pt + luma(70%),
-  table.header([*Ingredient*], [*Where used*], [*Nature*]),
+  table.header([*Ingredient*], [*Where used*]),
 
-  [$bold(K)$ — generator-free permutation \ coherence (Kelly 1964)],
-  [(II) wiring match; (I) $sigma$; \ Lemma 0b permute factor],
-  [*proven* \ (perm. coherence)],
+  [$bold(K)$ — generator-free permutation coherence (Kelly 1964)],
+  [(II) wiring match; (I) $sigma$; Lemma 0b permute factor],
 
-  [$bold(N)$ — interchange axiom \ $sigma compose (p times.o q) approx (q times.o p) compose sigma$],
+  [$bold(N)$ — interchange axiom $sigma compose (p times.o q) approx (q times.o p) compose sigma$],
   [(II) adjacent swap; (I) $times.o$-case],
-  [an `≈Term` axiom \ (*free*)],
 
-  [$bold(M)$ — monoidal ($alpha, lambda, rho$) \ coherence],
-  [(I) base/coercion cases; \ Lemma 0b box factor],
-  [*constructive*],
+  [$bold(M)$ — monoidal ($alpha, lambda, rho$) coherence],
+  [(I) base/coercion cases; Lemma 0b box factor],
 
-  [$bold(S)$ — structural combinatorics: \ Lemma 0a, Lemma A, connectivity, \ Lemma C, $compose$/$times.o$-shape],
+  [$bold(S)$ — structural combinatorics: Lemma 0a, Lemma A, connectivity, Lemma C, $compose$/$times.o$-shape],
   [(I), (II)],
-  [*constructive*],
 )
 
 $bold(K)$ is the one deep ingredient: the symmetric-monoidal coherence theorem restricted to the
 permutation fragment — two derivations of the same permutation give $approx$-equal $"permute"$
-terms. In this development $bold(K)$ is *proven*, not assumed (`FaithfulnessInductive.faithfulness`,
-`--without-K`): it routes the coherence through the *evaluated* bijection — $"permute"(pi) approx
-"permute"(pi')$ whenever $"eval"(pi) = "eval"(pi')$ in $"FinBij"$ — so the only residual content is
-coherence at the bijection level, which is treated separately and out of scope here. $bold(N)$ is
-literally one of the SMC equational axioms, applied to opaque boxes. $bold(M)$ and $bold(S)$ are
-monoidal coherence and finite combinatorics, all constructive.
-
-= Mechanization status
-
-The proof is mechanized in Agda under `--safe --without-K`, *axiom-free*. The top-level theorem
-`soundness-full-wired` @main is assembled in `SoundnessFullWired` from the iso-invariance lemma
-$
-  #raw("decode-rel-resp-iso") : quad ⟪f⟫ space tilde.equiv^("H") space ⟪g⟫ quad => quad "decode-rel" f approx "decode-rel" g
-$
-(where $"decode-rel"$ is the structural decoder) by composing with the proven round-trip
-$f approx "decode-rel" f$ and the `bridge`/`bridge⁻¹` boundary cancellation. The entire
-107-module import closure of the theorem is `--safe --without-K` with *zero postulates*.
-
-== Architecture
-
-The decoder operates on a *monogamous* translation, for which $tilde.equiv^("H")$ is a genuine
-congruence. Its totality (every $⟪f⟫$ decodes) is fully proven. The iso-invariance argument is
-assembled as follows; the order-theoretic core is signature-generic and `--safe`.
-
-#table(
-  columns: (auto, 1fr),
-  inset: 6pt,
-  align: (left + top, left + top),
-  stroke: 0.5pt + luma(75%),
-  table.header([*Module (role)*], [*Status*]),
-  [`Combinatorics.LinearExtension` — connectivity of linear extensions of a finite poset],
-  [`--safe`, postulate-free],
-  [`EdgeDependency` — Lemma A (dependency-order iso)],
-  [`--safe`, postulate-free],
-  [decoder totality + linearity (`LinearHComposeP`, `DecodeAttemptLinearP`)],
-  [postulate-free],
-  [order-indexed decoder + iso-invariance assembly (`IsoInvarianceWiring` / `…Concrete`)],
-  [postulate-free],
-  [`DepIrrefl` (acyclicity), `SwapValidity` (firing-stable swaps), `ObjUIP` (UIP)],
-  [postulate-free],
-  [iso-invariance of the structural decoder (`DecodeRelRespIsoWired`, top of chain)],
-  [postulate-free; Kelly residual $=$ proven `FaithfulnessInductive.faithfulness`],
-)
-
-== Trust surface
-
-The proof is *axiom-free*: zero postulates, `--safe --without-K`. The only hypothesis is
-`DecidableEquality` on the atom type $X$ — a module parameter, met by every concrete signature,
-used for Hedberg UIP on objects (`objUIP`) under `--without-K`. The three obligations that once
-stood as postulates are now all discharged:
-
-#table(
-  columns: (auto, auto, 1fr),
-  inset: 6pt,
-  align: (left + horizon, left + horizon, left + top),
-  stroke: 0.5pt + luma(75%),
-  table.header([*Former obligation*], [*Kind*], [*Discharged by*]),
-  [`K-faithfulness`], [$bold(K)$],
-  [`FaithfulnessInductive.faithfulness` (`--without-K`): permutation coherence (Kelly 1964), the
-   kernel shared by (I), (II) and Lemma 0b — proven through the *evaluated* bijection, its
-   `FinBij`-level core treated separately and out of scope here.],
-  [`run-interchange-⟪⟫`], [$bold(M)+bold(N)+bold(K)$],
-  [the per-swap interchange of (II) (`run-eq`, @runeq), split into the two-edge core
-   `RunInterchangeEmptyTail` — disjointness $bold(S)$ (`SwapValidity`), box-commute $bold(N)$
-   (`SwapStep.box-interchange`), the Mac-Lane re-bracketing $bold(M)$, reshuffle $bold(K)$ —
-   and the tail equivariance `RunInterchangeTail`.],
-  [`decode-rel-≈-decodeP`], [(I)],
-  [the normal-form theorem (`DecodeRelDecodeP`, via `objUIP` and $bold(K)$): decomposes per
-   constructor into the $compose$/$times.o$-shape lemmas ($bold(S)$), the monoidal atomics
-   ($bold(M)$), and the $sigma$/box atomics ($bold(K)$).],
-)
-
-Nothing remains open. The combinatorial backbone — Lemma A, Lemma C, the connectivity of linear
-extensions (`Combinatorics.LinearExtension`), decoder totality, the firing-stability of
-independent swaps — and *all of Lemma 0b* (`edge-step-term-φ`, once a postulate, proven via the
-relation-view of `edge-step`: box factor $bold(M)$, permute factor $bold(K)$) are fully verified,
-as is the kernel $bold(K)$ itself.
-
-== No false steps
-
-#enum(
-  [*No unsound shortcuts.* Several plausible-looking moves are false and were avoided: a
-   *pruned*-to-*unpruned* iso transfer (false — pruning changes vertex counts); an X-label-level
-   uniqueness $"Unique"("map" "vlab" "cod")$ (false when boundary atoms repeat); and an
-   independent-edge swap without a firing premise (false without monogamy). Each lemma is stated
-   at the level where it is true — which is what let them all be *proven* rather than postulated.],
-  [*The isomorphism is used, not discarded.* Lemma 0 makes precise that the vertex bijection
-   $phi$ is free only at the list level; the term-level reconciliation genuinely invokes
-   $bold(K)$, so the proof is not vacuous.],
-  [*The interchange content is not extra trust.* The "generator interchange" is the SMC
-   interchange axiom $bold(N)$ @interchange applied to opaque boxes; no generator-specific
-   coherence is ever required.],
-)
+terms. It reduces to coherence at the bijection (`FinBij`) level — $"permute"(pi) approx
+"permute"(pi')$ whenever $"eval"(pi) = "eval"(pi')$ — which is treated separately and out of scope
+here. $bold(N)$ is one of the SMC equational axioms, applied to opaque boxes; $bold(M)$ and
+$bold(S)$ are monoidal coherence and finite combinatorics.
 
 = Conclusion
 
-The soundness theorem @main is *fully proven* — informally in full, and in Agda under `--safe
---without-K` with zero postulates. Every step has a home: the round-trip and the decoder
-agreement (part (I)), the iso-invariance through linear-extension connectivity and the per-swap
-interchange (part (II)), the naturality of the decoder under relabelling (Lemma 0), and the
-permutation-coherence kernel $bold(K)$ itself. The faithfulness of the hypergraph representation
-of free symmetric monoidal categories is thereby established constructively, resting only on a
-`DecidableEquality` hypothesis on the atoms.
+The soundness theorem @main — the faithfulness of the hypergraph representation of free
+symmetric monoidal categories — follows from the round-trip and decoder agreement (part (I)),
+the iso-invariance through linear-extension connectivity and the per-swap interchange (part
+(II)), and the naturality of the decoder under relabelling (Lemma 0). Each step is one of the
+four ingredients $bold(K), bold(N), bold(M), bold(S)$, and the only deep one is the
+permutation-coherence kernel $bold(K)$.
 
-The one ingredient whose internal proof lives elsewhere is $bold(K)$: it bottoms out in coherence
-at the `FinBij` (bijection) level — in effect the word problem for the symmetric group, settled by
-a normalization-by-evaluation argument — which is out of scope for this report. Everything above
-the bijection level is covered here in full.
+$bold(K)$ bottoms out in coherence at the bijection (`FinBij`) level — in effect the word problem
+for the symmetric group — which is out of scope for this report. Everything above the bijection
+level is covered here in full.
