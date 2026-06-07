@@ -99,11 +99,63 @@ The two micro-tactics in `docs/proposed-tactics.md` (the `subst₂`/list-append 
 solver* and the `⊗`-regroup combinators) are the incremental, hand-rollable seeds of this
 solver — worth doing first as a proving ground even if the full solver is never built.
 
+### Validation findings (2026-06-07)
+
+- **The infrastructure is already started.** `src/Categories/FreeStrictMonoidal.agda` (262 LOC,
+  `--safe` disabled, 4 postulates, imported nowhere) already defines the right normal form
+  `HomTermⁿ` — a list of `(offset, box)` pairs, i.e. the **planar non-symmetric string-diagram
+  normal form** — plus an interchange rewrite `_→ʳ_`/`_→ʳ*_`. The open hard part is its
+  **confluence/normalization + `≈Term`-soundness/completeness** (and discharging the 4
+  prefix-arithmetic postulates). That completeness proof is the genuine, unbuilt cost — so the
+  "medium" confidence is right, leaning slightly optimistic on solver-construction effort.
+- **Why `solveM` structurally can't be reused as-is:** it normalizes via a functor into the
+  *Discrete* category on `List X` (every morphism `refl`), which forces `mor = ⊥`. With opaque
+  boxes the normal-form target must be the free *strict* monoidal category on the polygraph
+  (non-trivial morphisms), which is exactly what `FreeStrictMonoidal.HomTermⁿ` is.
+- **M-share is, if anything, *understated*.** The doc's table marked "box-braid = K,
+  untouchable", but `BoxKernel.box-braid` and `DecodeTensorShape` contain **zero `hexagon`** (the
+  deep-K axiom lives only in `SigmaBlockHexagon`/`BlockNFBraid`/`SigmaBlockCommRaw`); their
+  box-braid uses only one-box σ-naturality (`σ∘[f⊗g]≈[g⊗f]∘σ`, `σ∘σ≈id`) + α-coherence —
+  absorbable under the "σ-as-opaque-iso-with-naturality" sweetener. *Caveat:* `DecodeTensorShape`
+  still has genuine K (it calls `permute-via-vlab-≈Term-coherence-K`/`FaithfulnessResidual`), so
+  part of its non-M is real K, not absorbable.
+- **Confirmed solver-amenable:** `BridgeAlphaFormCompound` is ~100% M (zero σ/permute);
+  `solveM` is *already* called there for the two atom-free helpers, and the ~145 lines of
+  remaining hand-chasing are exactly the opaque-coercion-atom goals an extended solver absorbs.
+
 ---
 
 ## Lever 2 — go *pruned-only*: delete the unpruned `hCompose` universe (biggest non-`Sub` lever)
 
-**Estimate: ~1,000–1,300 LOC net (~3%).** Confidence: medium. Orthogonal to Lever 1.
+**Estimate: ~900 LOC net, VALIDATED (~2.5%); a further ~914 gated behind Lever 3.** Confidence: high
+for the validated part. Orthogonal to Lever 1.
+
+> **Validated by spike (2026-06-07).** Wrote `DirectBridgeSpike.agda` (228 LOC) proving
+> `decode-rel f ≈Term decodeP f` *directly* — `--safe`, EXIT 0, zero postulates — re-pointed the
+> live consumer `DecodeRelRespIsoWired` at it (one-line import swap), and `SoundnessFullWired`
+> rebuilt green. As a hard check, physically deleting `DecodeComposeShape` (677),
+> `DecodeRelDecodeP` (309), and `DecodeShape` (81, an orphan the original analysis missed) kept
+> `SoundnessFullWired --safe` green. All 9 atomic `decodeP X ≡ decode X` are `refl` (the central
+> claim holds).
+>
+> **Split verdict:**
+> - **Tier A — validated deletable now: ~1,137 gross − 228 spike = ~909 net.** The 3 orphaned
+>   files above + the orphaned `Assemble`/`DecodePShapeResiduals` glue in `ProcessEdgesTermShape`.
+>   Real, mechanical, a one-file replacement.
+> - **Tier B — ~914 more (`decode-attempt-hCompose` 95 + `Linearity.Linear-hCompose` block ~654 +
+>   `FromAPROP.hCompose` ~165) is BLOCKED for Lever 2 alone.** The unpruned `decode` survives
+>   because `DTS.decode-⊗-shape-inner`, `DecodeAgenSigmaShape`, and `DecodeRoundtripAgenSigma`
+>   consume `decode` over the *unpruned* translation at arbitrary sub-terms; since
+>   `decode-attempt-Linear` must stay total, its `∘`-case keeps `decode-attempt-hCompose →
+>   Linear-hCompose → FromAPROP.hCompose` alive. Deleting Tier B = migrating `decode`/`bridge`
+>   off the unpruned translation, which is **Lever 3**, not Lever 2.
+> - **Two corrections:** the `Linearity` block was **undercounted** (the earlier ~280–490 missed
+>   the 217-line `hCompose-Linear-utils` + the `remap-core` block; true ~654). And `DecodeShape`
+>   (81) is a third orphaned file not previously listed.
+>
+> So Lever 2 proper banks **~900 net**; the full ~1,800+ needs Lever 2 + Lever 3 together. Both
+> "NOT deletable" claims (DTS reused by the pruned tensor; `Congruence.hCompose-resp` already
+> gone) were re-confirmed.
 
 Two cospan-composition operators differ **only** in the composite's vertex count
 (`hCompose` nV = `G.nV + K.nV` vs `hComposeP` nV = `G.nV + count-non K.dom`, which drops the
@@ -158,16 +210,24 @@ pruned-only unless an unpruned consumer reappears.)
 
 ## Lever 3 — collapse the decode triple
 
-**Estimate: ~400–800 LOC (~1–2%).** Confidence: low.
+**Estimate: ~100–300 LOC (<1%).** Confidence: low → very low. *(Revised down after validation — see below.)*
 
 There are **three** decoders: the algorithmic `Maybe`-valued `decode-attempt`
-(`Decode` 164 + `DecodeAttempt` 1026 + `DecodeProperties` 543 + `DecodeRoundtripSafe` 824 —
-huge from `extract-prefix` permutation-recovery machinery), the structural `decode-rel`
-(`DecodeRel.agda` 129 — *trivial*: shape lemmas are `refl`, round-trip is `≈-Term-refl`;
-this is what the informal proof actually does), and the pruned `decodeP`. The round-trip is
-proved three times and reconciled. The final theorem uses only `decode-rel`; the
-algorithmic decoder is load-bearing only because iso-invariance runs on `decodeP`.
-Collapsing requires re-architecting iso-invariance to run on `decode-rel` directly.
+(`Decode` 164 + `DecodeAttempt` 1026 + `DecodeProperties` 543 + `DecodeRoundtripSafe` 824), the
+structural `decode-rel` (`DecodeRel.agda` 129 — *trivial*: shape lemmas are `refl`, round-trip
+is `≈-Term-refl`; this is what the informal proof actually does), and the pruned `decodeP`. The
+round-trip is proved three times and reconciled.
+
+**Validation correction (2026-06-07):** the earlier framing was too optimistic and partly wrong.
+(i) Iso-invariance runs on **`decodeOrd`** (the order-theoretic decoder), *not* `decodeP`;
+`decodeP` is only the bridge `decodeP f ≡ decodeOrd ⟪f⟫ (range nE) (vrange f)`. (ii) `decode-rel`
+is purely structural-on-the-term and has **no notion of edge order**, so it *cannot* drive
+iso-invariance (which is fundamentally about reordering edges) — re-architecting onto it would
+still need a `decode-rel ≈ decodeOrd` bridge carrying essentially today's content. (iii)
+`extract-prefix` is **not** isolated recovery machinery: it is used in ~20 files
+(`DecodeAttemptLinearP`, `StackUnique*`, `RunInterchangeEmptyTail`, `DecodeTensorShape`,
+`SwapValidity`, …) and will not retire. The genuine dedup is only among the three round-trip
+proofs (the structural one is already trivial) — realistically ~100–300 LOC, not 400–800.
 
 ---
 
@@ -243,7 +303,19 @@ strictification is for.
 (non-strict monoidal coherence). Strictification eliminates it by construction (coherence
 never appears); the solver decides it on demand. Strictification potentially removes *more*
 (the transport tax and its scaffolding both go), but costs a full re-statement plus the
-strictification bridge, and it is the more invasive of the two.
+strictification bridge, and it is the more invasive of the two. **They also share
+infrastructure:** both want the strict normal form already drafted in
+`src/Categories/FreeStrictMonoidal.agda` — so they are *not* independent build efforts, and the
+same unbuilt confluence/completeness proof gates both.
+
+**Validation note (2026-06-07).** The non-strictness is confirmed genuine and load-bearing:
+`unflatten-++-≅` (`PermuteCoherence/Faithfulness.agda:80-85`) is a recursive chain of
+`sym associator` (per cons) + `sym unitorˡ` (base) — definitively *not* `refl` — and every
+`box-suffix`/`c-iso-assoc`/`subst₂ (cong unflatten …)` exists to conjugate boxes through it. So
+the lever is real. But note the *current* `FreeStrictMonoidal.agda` draft only strictifies the
+*objects* (`ObjTerm = List X`, `⊗₀ = ++`); it still keeps α/λ/ρ as honest `HomTerm`
+constructors with `⊗₀-assoc = ++-assoc` propositional (TODO: "add strict equalities"), so an
+object-level transport tax partially survives until that is finished.
 
 **What it does *not* fix.** Strictification strictifies only the associator/unitor (the
 **M** part). The **braiding (K)** is not strictified — the σ-block coherence survives intact.
@@ -261,11 +333,13 @@ verification guarantee for size. This is a spectrum:
 - **Defensible (already the doc's stance).** Postulate the recognised-deep **K** kernel at
   its clean interface — `eval π ≡ eval π' → permute π ≈ permute π'`
   (`FaithfulnessResidual`). The doc *already* declares K "out of scope / treated elsewhere".
-  Postulating it deletes its construction: the `Categories/PermuteCoherence/*` proof subtree
-  (~2,000 LOC of Coxeter / word-problem / `BringToFront` / `Inversions`) and the
-  `SigmaBlockHexagon` algebra (975) that exists only to build the `swap-braid` case. Honest
-  and well-scoped — but note most of this lives *outside* the APROP/Hypergraph subtree, so
-  it shrinks the project more than the subtree.
+  K is currently a genuine **proof**: `Categories/PermuteCoherence/*` is **26 files / ~4,822
+  LOC, zero postulates** (`faithfulness : FaithfulnessResidual` at `FaithfulnessInductive.agda:694`).
+  Postulating the interface deletes that ~4,822 LOC — but it lives *outside* the
+  APROP/Hypergraph subtree, so it shrinks the **project**, not the headline 36,748. *Inside* the
+  subtree it additionally kills `SigmaBlockHexagon` (975, imported by the kernel for the
+  `swap-braid` case) and likely `BlockNFBraid` (1036) + `SigmaBlockCommRaw` (872) that feed it —
+  roughly **1,000–2,900 subtree LOC**, depending on how much σ-block algebra is reused elsewhere.
 - **Aggressive.** Postulate the big composite shape lemmas — `decode-⊗-shape`
   (deletes `DecodeTensorShape`, 4451, ~12% in one stroke), `decode-∘-shape`, or the
   part-(II) per-swap commutation. This buys size fast, but the postulates are large,
