@@ -180,6 +180,10 @@ private
             ≡ subst₂ HomTerm (cong f r) (cong h r) t
   subst-2 f h refl t = refl
 
+-- Library iso-cancellation combinators (agda-categories), for the
+-- `unflatten-++-≅` `from ∘ to ≈ id` eliminations.
+open import Categories.Morphism.Reasoning FreeMonoidal using (cancelˡ; cancelʳ)
+
 --------------------------------------------------------------------------------
 -- ## The block-tensor decomposition of `permute`: `permute (++⁺ p q)`
 -- slides through `unflatten-++-≅` as the tensor `permute p ⊗₁ permute q`,
@@ -1225,17 +1229,9 @@ module BoxAssoc where
             from-eo-rest ∘ (to-eo-rest ∘ (G ⊗₁ id {Ur}) ∘ from-ei-rest) ∘ to-ei-rest
               ≈⟨ refl⟩∘⟨ FM.assoc ⟩
             from-eo-rest ∘ to-eo-rest ∘ ((G ⊗₁ id {Ur}) ∘ from-ei-rest) ∘ to-ei-rest
-              ≈⟨ FM.sym-assoc ⟩
-            (from-eo-rest ∘ to-eo-rest) ∘ ((G ⊗₁ id {Ur}) ∘ from-ei-rest) ∘ to-ei-rest
-              ≈⟨ _≅_.isoʳ (unflatten-++-≅ eoutR rest) ⟩∘⟨refl ⟩
-            id ∘ ((G ⊗₁ id {Ur}) ∘ from-ei-rest) ∘ to-ei-rest
-              ≈⟨ idˡ ⟩
+              ≈⟨ cancelˡ (_≅_.isoʳ (unflatten-++-≅ eoutR rest)) ⟩
             ((G ⊗₁ id {Ur}) ∘ from-ei-rest) ∘ to-ei-rest
-              ≈⟨ FM.assoc ⟩
-            (G ⊗₁ id {Ur}) ∘ (from-ei-rest ∘ to-ei-rest)
-              ≈⟨ refl⟩∘⟨ _≅_.isoʳ (unflatten-++-≅ einR rest) ⟩
-            (G ⊗₁ id {Ur}) ∘ id
-              ≈⟨ idʳ ⟩
+              ≈⟨ cancelʳ (_≅_.isoʳ (unflatten-++-≅ einR rest)) ⟩
             G ⊗₁ id {Ur} ∎
 
       -- (2) CENTRAL collapse: `α⇐{UP}{Ueo}{Ur} ∘ (id{UP}⊗(G⊗id{Ur})) ∘ α⇒{UP}{Uei}{Ur}`
@@ -1253,12 +1249,7 @@ module BoxAssoc where
         α⇐ {UP} {Ueo} {Ur}
           ∘ α⇒ {UP} {Ueo} {Ur}
           ∘ ((id {UP} ⊗₁ G) ⊗₁ id {Ur})
-          ≈⟨ FM.sym-assoc ⟩
-        (α⇐ {UP} {Ueo} {Ur} ∘ α⇒ {UP} {Ueo} {Ur})
-          ∘ ((id {UP} ⊗₁ G) ⊗₁ id {Ur})
-          ≈⟨ α⇐∘α⇒≈id ⟩∘⟨refl ⟩
-        id ∘ ((id {UP} ⊗₁ G) ⊗₁ id {Ur})
-          ≈⟨ idˡ ⟩
+          ≈⟨ cancelˡ α⇐∘α⇒≈id ⟩
         (id {UP} ⊗₁ G) ⊗₁ id {Ur} ∎
 
       -- (3) σ-SLIDE: the ONE-BOX symmetry-naturality move.  The generator
