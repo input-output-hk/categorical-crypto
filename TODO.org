@@ -72,14 +72,14 @@ meantime.
       ~C.elab (inject+ K.nE (IG.ψ eG))~ and
       ~C.elab (raise G.nE (IK.ψ eK))~ for the ~x~ parameter.
 
-** DONE [#C] ~soundness-axiom~ catch-all eliminated
+** DONE [#C] ~completeness-axiom~ catch-all eliminated
    :PROPERTIES:
-   :file:     src/Categories/APROP/Hypergraph/Soundness.agda
+   :file:     src/Categories/APROP/Hypergraph/Completeness.agda
    :END:
 
-   The omnibus ~soundness-axiom~ catch-all is gone.  Every one of
+   The omnibus ~completeness-axiom~ catch-all is gone.  Every one of
    the 19 atomic ≈Term axioms has its own explicit dispatch to a
-   named focused lemma in ~SoundnessAxioms.agda~.  Of those 19:
+   named focused lemma in ~CompletenessAxioms.agda~.  Of those 19:
 
    - *11 fully proved* (possibly modulo two internal subst₂-cancel
      postulates): idˡ, idʳ, id⊗id, λ⇐∘λ⇒, λ⇒∘λ⇐, ρ⇐∘ρ⇒, ρ⇒∘ρ⇐,
@@ -90,7 +90,7 @@ meantime.
 
    Dispatch uses ~{-# INJECTIVE_FOR_INFERENCE ⟪_⟫ #-}~ (in
    ~Translation.agda~) plus ~--lossy-unification~ (on
-   ~Soundness.agda~).  Without both flags, dispatching any focused
+   ~Completeness.agda~).  Without both flags, dispatching any focused
    postulate whose type mentions a `hComposeP ... (hTensor ...)`
    chain triggers a ~25-minute unification blow-up.  With both,
    every dispatch typechecks in <1s.
@@ -213,7 +213,7 @@ meantime.
     5. DONE. Switched ~⟪ g ∘ f ⟫~ to ~hComposeP~ via new
        ~Hypergraph.Translation~ module (needed separate file since
        ~PrunedCompose~ imports ~FromAPROP~, can't import back).
-       ~Soundness.∘-resp-≈~ now dispatches through
+       ~Completeness.∘-resp-≈~ now dispatches through
        ~hComposeP-resp-≅ᴴ~ with ~⟪_⟫-dom-unique f~ as the ~Unique~
        witness (postulated for now).
 
@@ -258,16 +258,16 @@ meantime.
          (bridge lemma for λ/ρ coherence axioms).
        - ~idˡ-sound~ — the complete composition-identity iso.
        - ~⟪_⟫-dom-unique~ — lifts the catch-all postulate out of
-         `Soundness.agda`'s ∘-resp-≈ congruence.
+         `Completeness.agda`'s ∘-resp-≈ congruence.
 
        *Derived (also fully proved):*
        - ~λ⇐∘λ⇒-sound~ — via ~idˡ-sound~ + ~hTensor-hEmpty-hId-iso~.
        - ~λ⇒∘λ⇐-sound~ — via ~idˡ-sound~ directly.
 
-       *Dispatched in Soundness.agda:*
-       - ~soundness (idˡ {f = f}) = idˡ-sound f~
-       - ~soundness λ⇐∘λ⇒≈id = λ⇐∘λ⇒-sound~
-       - ~soundness λ⇒∘λ⇐≈id = λ⇒∘λ⇐-sound~
+       *Dispatched in Completeness.agda:*
+       - ~completeness (idˡ {f = f}) = idˡ-sound f~
+       - ~completeness λ⇐∘λ⇒≈id = λ⇐∘λ⇒-sound~
+       - ~completeness λ⇒∘λ⇐≈id = λ⇒∘λ⇐-sound~
 
        *Fully proved (zero postulates):*
        - ~idˡ-sound~, ~λ⇐∘λ⇒-sound~, ~λ⇒∘λ⇐-sound~
@@ -276,7 +276,7 @@ meantime.
          `idˡ-sound (id)`.
        - ~α⇐∘α⇒-sound~ — **NEW** same pattern.
 
-       *Dispatched in `soundness`:*
+       *Dispatched in `completeness`:*
        - idˡ, λ⇐∘λ⇒, λ⇒∘λ⇐, σ∘σ, ρ⇐∘ρ⇒, α⇐∘α⇒.
 
        (deprecated paragraph header below, see *Fully proved* list)
@@ -314,8 +314,8 @@ meantime.
     7. DONE. ~⟪_⟫-dom-unique~ in ~Hypergraph.HomTermInvariant~ by
        induction on ~HomTerm~. See above.
 
-    8. TODO. Promote ~Soundness.agda~ to ~--safe~ by discharging the
-       remaining ~soundness-axiom~ postulate.
+    8. TODO. Promote ~Completeness.agda~ to ~--safe~ by discharging the
+       remaining ~completeness-axiom~ postulate.
 
     *Rate-limiting factor:* each axiom's ≅ᴴ record has 16 fields.
     Routine fields (φ/ψ bijections, φ-lab, dom, atom-*) are ~5 lines
@@ -579,14 +579,14 @@ meantime.
    :effort: 0.5 day
    :END:
 
-   Named focused postulates live in `SoundnessAxioms.agda` for all
-   8 remaining axioms.  Soundness.agda dispatches each to its named
-   postulate.  The `soundness-axiom` catch-all is gone.
+   Named focused postulates live in `CompletenessAxioms.agda` for all
+   8 remaining axioms.  Completeness.agda dispatches each to its named
+   postulate.  The `completeness-axiom` catch-all is gone.
 
    The dispatch required two flags:
      * ~{-# INJECTIVE_FOR_INFERENCE ⟪_⟫ #-}~ in `Translation.agda`.
-     * ~--lossy-unification~ on `Soundness.agda`.
-   Details in `Soundness.agda`'s module header and in
+     * ~--lossy-unification~ on `Completeness.agda`.
+   Details in `Completeness.agda`'s module header and in
    `~/.claude/skills/agda-typecheck-profile/references/slow-unification.md`.
 
 ** TODO [#B] 6b. Prove ~ρ⇒∘f⊗id≈f∘ρ⇒-sound~ (ρ-naturality)
@@ -835,20 +835,20 @@ meantime.
 
 * Remaining phases
 
-** TODO Phase 3.5 — Completeness (inverse of soundness)
+** TODO Phase 3.5 — Soundness (inverse of completeness)
    :PROPERTIES:
-   :depends-on: Phase 3 (soundness)
+   :depends-on: Phase 3 (completeness)
    :effort: 1-2 months focused proof work
    :END:
 
    Prove the converse direction:
    #+begin_src agda
-     completeness
+     soundness
        : ∀ {A B} {f g : HomTerm A B}
        → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫  →  f ≈Term g
    #+end_src
    giving a full two-way correspondence:
-   ~f ≈Term g ⟺ ⟪ f ⟫ ≅ᴴ ⟪ g ⟫~ .  Together with ~soundness~
+   ~f ≈Term g ⟺ ⟪ f ⟫ ≅ᴴ ⟪ g ⟫~ .  Together with ~completeness~
    (already proved modulo the axiom postulates), this says the
    APROP equational theory is *exactly* captured by hypergraph
    isomorphism — the TensorRocq "canonical hypergraph" theorem.
@@ -863,7 +863,7 @@ meantime.
     :effort: ~3 h
     :END:
 
-    Implemented in [[file:src/Categories/APROP/Hypergraph/Completeness/Unflatten.agda]].
+    Implemented in [[file:src/Categories/APROP/Hypergraph/Soundness/Unflatten.agda]].
     `unflatten-flatten-≈ A : A ≅ unflatten (flatten A)` — the iso is the
     `_≅_` from `Categories.Morphism FreeMonoidal`, built compositionally
     from `unitorˡ`, `unitorʳ`, `associator`, and `_⊗ᵢ_`.
@@ -896,7 +896,7 @@ meantime.
     :END:
 
     *Status*: API landed in
-    ~src/Categories/APROP/Hypergraph/Completeness/CanonicalForm.agda~ via three
+    ~src/Categories/APROP/Hypergraph/Soundness/CanonicalForm.agda~ via three
     postulates (~canonify~, ~canonify-iso~, ~canonify-resp-≅ᴴ~).
 
     *Open question*: Do we actually need the canonical form?  The
@@ -918,7 +918,7 @@ meantime.
       via ~trans (sym ch) (trans (canonify-resp-≅ᴴ iso) ch')~.
 
     The module uses ~--without-K~ (no ~--safe~), matching the
-    existing ~SoundnessAxioms.agda~ pattern.  Constructive proofs of
+    existing ~CompletenessAxioms.agda~ pattern.  Constructive proofs of
     the three postulates are deferred — they are the bulk of the
     1-2 week effort estimate (vertex permutations and lex-sorted
     edge enumerations under ~--without-K~ require careful
@@ -966,7 +966,7 @@ meantime.
     :END:
 
     *Status*: API landed in
-    ~src/Categories/APROP/Hypergraph/Completeness/Decoder.agda~ via a
+    ~src/Categories/APROP/Hypergraph/Soundness/Decoder.agda~ via a
     single postulate ~decode~ matching the type below.  Constructive
     implementation is deferred (~1 week of work for topological
     sort, vertex-list permutation HomTerms, and stack-invariant
@@ -1014,7 +1014,7 @@ meantime.
     :END:
 
     *Status*: API landed alongside the decoder in
-    ~src/Categories/APROP/Hypergraph/Completeness/Decoder.agda~.
+    ~src/Categories/APROP/Hypergraph/Soundness/Decoder.agda~.
     ~bridge~ is defined constructively (composing ~f~ with the
     ~unflatten-flatten-≈~ iso on both ends), and ~decode-roundtrip~
     is postulated.  Constructive proof by induction on ~f~ deferred
@@ -1035,22 +1035,22 @@ meantime.
     - id, λ, ρ, α, σ: explicit computations.
     - ∘, ⊗: compositional.
 
-*** DONE Phase 3.5e — Completeness theorem (assembled, one new postulate)
+*** DONE Phase 3.5e — Soundness theorem (assembled, one new postulate)
     :PROPERTIES:
     :effort: ~2-3 days
     :END:
 
     *Status*: Final theorem landed in
-    ~src/Categories/APROP/Hypergraph/Completeness.agda~.
+    ~src/Categories/APROP/Hypergraph/Soundness.agda~.
     The file:
     - Defines ~bridge⁻¹~ as the dual composition.
     - *Constructively* proves ~bridge-cancel : bridge⁻¹ (bridge f) ≈Term f~
       using ~assoc~, the ~unflatten-flatten-≈~ ~isoˡ~ laws, and unitality
       (pure category theory, no postulates).
-    - *Constructively* proves ~completeness : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g~
+    - *Constructively* proves ~soundness : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g~
       from ~bridge-cancel~, ~decode-roundtrip~, and ~decode-resp-≅ᴴ~
       (the latter two postulated alongside ~decode~ in
-      ~Completeness/Decoder.agda~).
+      ~Soundness/Decoder.agda~).
 
     Total postulates across Phases 3.5b-e: 6 (canonify, canonify-iso,
     canonify-resp-≅ᴴ; decode; decode-roundtrip; decode-resp-≅ᴴ — but
@@ -1058,11 +1058,11 @@ meantime.
 
     Assemble the pieces:
     #+begin_src agda
-      completeness
+      soundness
         : ∀ {A B} {f g : HomTerm A B}
         → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
         → f ≈Term g
-      completeness iso =
+      soundness iso =
         -- f ≈ decode ⟪f⟫   [decode-roundtrip]
         -- ≈ decode ⟪g⟫     [decode respects ≅ᴴ via canonify-iso + canonical-iso→≡]
         -- ≈ g              [decode-roundtrip]
@@ -1088,7 +1088,7 @@ meantime.
     :END:
 
     All three remaining postulates of Phase 3.5 now live in
-    ~src/Categories/APROP/Hypergraph/Completeness/Decoder.agda~:
+    ~src/Categories/APROP/Hypergraph/Soundness/Decoder.agda~:
     ~decode~, ~decode-roundtrip~, ~decode-resp-≅ᴴ~.  The plan below
     breaks them down into discrete subtasks with effort estimates.
 
@@ -1128,7 +1128,7 @@ meantime.
      linearity under ~hCompose~/~hTensor~ (proved as side lemmas).
 
      *Status: complete.*  Proved in
-     ~src/Categories/APROP/Hypergraph/Completeness/Linearity.agda~:
+     ~src/Categories/APROP/Hypergraph/Soundness/Linearity.agda~:
      ~Linear-hEmpty~, ~Linear-hVar~, ~Linear-hId~, ~Linear-hGen~,
      ~Linear-hSwap~, ~Linear-hTensor~, ~Linear-hCompose~,
      ~Linear-subst₂~, and ~⟪⟫-Linear~.
@@ -1150,7 +1150,7 @@ meantime.
      monoidal coherence on the symmetric monoidal subcategory.
 
      *Status: complete.*  Proved in
-     ~src/Categories/APROP/Hypergraph/Completeness/Permute.agda~.
+     ~src/Categories/APROP/Hypergraph/Soundness/Permute.agda~.
 
      The implementation is a direct structural induction on the
      standard-library propositional permutation ~_↭_~:
@@ -1188,7 +1188,7 @@ meantime.
 
      *Status: complete (constructive happy path).*  The cospan-form
      algorithm is implemented in
-     ~src/Categories/APROP/Hypergraph/Completeness/Decode.agda~ as
+     ~src/Categories/APROP/Hypergraph/Soundness/Decode.agda~ as
      ~decode-attempt : Hypergraph → Maybe HomTerm~.  The exposed
      building blocks are:
      - ~extract-elem~ / ~extract-prefix~ / ~extract-exact~: multiset
@@ -1218,7 +1218,7 @@ meantime.
          → ∃ t. decode-attempt ⟪ f ⟫ ≡ just t
      #+end_src
      in
-     ~src/Categories/APROP/Hypergraph/Completeness/DecodeAttempt.agda~,
+     ~src/Categories/APROP/Hypergraph/Soundness/DecodeAttempt.agda~,
      using one *postulated* per-smart-constructor lemma per case
      (~decode-attempt-h{Gen,Id,Swap,Tensor,Compose}~) plus a
      ~decode-attempt-subst₂~ helper for the unitor / associator
@@ -1233,10 +1233,10 @@ meantime.
      #+end_src
      i.e. ~decode~ now takes a *term* ~f~ rather than a hypergraph +
      linearity witness — it is defined exclusively on translated
-     hypergraphs (the only inputs the completeness theorem ever feeds
+     hypergraphs (the only inputs the soundness theorem ever feeds
      it).  ~decode-roundtrip~ and ~decode-resp-≅ᴴ~ are restated to
      match: both now take terms ~f~ (and ~g~) and use ~decode f~,
-     ~decode g~.  ~Completeness.agda~ no longer needs to thread
+     ~decode g~.  ~Soundness.agda~ no longer needs to thread
      ~⟪⟫-Linear~ through.
 
      *Easy postulates discharged:*
@@ -1254,9 +1254,9 @@ meantime.
       Plan for the ~hSwap~, ~hGen~, ~hTensor~, ~hCompose~ cases of
       ~decode-attempt-Linear~.
 
-      ****** Reusable machinery from the soundness side
+      ****** Reusable machinery from the completeness side
 
-      The existing soundness chain has already invested heavily in the
+      The existing completeness chain has already invested heavily in the
       same kind of disjoint-injection / Fin-list reasoning that
       ~decode-attempt~ needs.  The following can be *reused directly*:
 
@@ -1412,7 +1412,7 @@ meantime.
       ~extract-elem~ was refactored from ~yes refl~ to ~yes p +
       subst~ so it reduces under `--without-K` even when both arguments
       are forced equal.  All consumers (~decode-attempt-hEmpty~,
-      ~decode-attempt-hVar~, ~Completeness.agda~) still compile.
+      ~decode-attempt-hVar~, ~Soundness.agda~) still compile.
 
       ****** DONE ~decode-attempt-hSwap A B~
 
@@ -1637,7 +1637,7 @@ meantime.
      this is the most fiddly part.
 
      *Status: inductive structure complete; per-case postulates
-     deferred.*  ~src/Categories/APROP/Hypergraph/Completeness/DecodeRoundtrip.agda~
+     deferred.*  ~src/Categories/APROP/Hypergraph/Soundness/DecodeRoundtrip.agda~
      postulates one ~decode-roundtrip-X~ per ~HomTerm~ constructor
      (~Agen~/~id~/~_∘_~/~_⊗₁_~/~λ⇒~/~λ⇐~/~ρ⇒~/~ρ⇐~/~α⇒~/~α⇐~/~σ~) and
      proves
@@ -1879,7 +1879,7 @@ meantime.
            leaving ~decode (ρ⇒ {A})~ opaque for symbolic ~A~.
 
            *Generalised* in
-           ~src/Categories/APROP/Hypergraph/Completeness/DecodeAttempt.agda~:
+           ~src/Categories/APROP/Hypergraph/Soundness/DecodeAttempt.agda~:
            the new definition produces, for any ~eq-As~/~eq-Bs~,
            an output whose first projection is the explicit transport
            ~subst₂ HomTerm (cong unflatten eq-As) (cong unflatten eq-Bs) t~,
@@ -1915,7 +1915,7 @@ meantime.
 
            *Resolution*: with Issue 1 fixed, both sides of the
            goal are now explicit ~subst₂ HomTerm~ transports.  In
-           ~src/Categories/APROP/Hypergraph/Completeness/DecodeRoundtrip.agda~
+           ~src/Categories/APROP/Hypergraph/Soundness/DecodeRoundtrip.agda~
            we add two helpers ~≡⇒≈Term~ and ~subst₂-resp-≈Term~,
            four small coherence postulates
            ~ρ⇒-coherence~/~ρ⇐-coherence~/~α⇒-coherence~/~α⇐-coherence~
@@ -2210,10 +2210,10 @@ meantime.
       canonification + decidable ~_≡_~).
     - Could the ~smcat~ tactic (Phase 4) be used to discharge
       3.5d's round-trip obligations?  NO — this is circular.  The
-      tactic needs completeness (3.5e) to emit proofs; using it
+      tactic needs soundness (3.5e) to emit proofs; using it
       inside 3.5d's proof would assume what we're trying to prove.
       *However*, a weaker tactic using only the already-proved
-      axioms (no appeal to completeness) *could* shrink 3.5d by
+      axioms (no appeal to soundness) *could* shrink 3.5d by
       auto-discharging purely equational obligations that use only
       those axioms.  That "partial smcat" would itself be a
       meaningful sub-project (perhaps as part of Phase 3 finishing
@@ -2221,7 +2221,7 @@ meantime.
 
 ** TODO Phase 4 — ~smcat~ tactic via hypergraph-iso decision procedure
    :PROPERTIES:
-   :depends-on: Phase 3 (soundness) + Phase 3.5 (completeness)
+   :depends-on: Phase 3 (completeness) + Phase 3.5 (soundness)
    :END:
 
    Following TensorRocq (Caldwell, Spencer, Rand — arXiv:2604.17592),
@@ -2285,11 +2285,11 @@ meantime.
       ~nEH × nEJ~ in ~searchIso-default~ is exact rather than
       generous.
 
-    *Soundness* (always): if ~findIso H J ≡ just iso~, then ~iso~
+    *Completeness* (always): if ~findIso H J ≡ just iso~, then ~iso~
     is a valid ~≅ᴴ~.  By construction — the procedure builds the
     iso record during the search.
 
-    *Completeness* (empirical, partial): in practice, ~findIso~
+    *Soundness* (empirical, partial): in practice, ~findIso~
     returns ~just~ for every pair arising from the translation of
     ≈Term-equivalent APROP terms.  TensorRocq confirms this
     empirically at the ~1s-for-dozens-of-edges scale.
@@ -2316,7 +2316,7 @@ meantime.
      #+end_src
 
      Signatures that don't provide decidable equality can still
-     use all the existing machinery (soundness, Triangle, Pentagon,
+     use all the existing machinery (completeness, Triangle, Pentagon,
      SigmaNat, …) unchanged.  Only ~findIso~ and the ~smcat~ tactic
      require ~APROPSignatureDec~ — they sit strictly downstream.
 
@@ -2489,7 +2489,7 @@ meantime.
      decidable equality succeeded).  But the iso needs to equate
      them *modulo* ~subst₂~ along the atom-list equalities.  The
      "strategic atom-ein" trick (used pervasively in
-     SoundnessProved) chooses ~atom-ein~ and ~atom-eout~ to match
+     CompletenessProved) chooses ~atom-ein~ and ~atom-eout~ to match
      the specific proof forms produced by ~matchEdge~'s label
      check, so ~ψ-elab~ reduces to ~refl~ or a single ~cong~.
 
@@ -2525,7 +2525,7 @@ meantime.
        ~idˡ-sound~'s iso up to ~≅ᴴ-cong~).
      - Negative tests: non-iso hypergraphs return ~nothing~.
 
-     Integration check: the ~Soundness~ module imports ~findIso~
+     Integration check: the ~Completeness~ module imports ~findIso~
      and can evaluate it on translated APROP terms.
 
 **** Phase 4a — dependency summary
@@ -2583,7 +2583,7 @@ meantime.
 *** TODO Phase 4b — Reflection tactic ~smcat~
     :PROPERTIES:
     :effort: ~1-2 weeks
-    :depends-on: Phase 4a + Phase 3.5 (completeness)
+    :depends-on: Phase 4a + Phase 3.5 (soundness)
     :END:
 
     An Agda reflection macro that dispatches goals of the form
@@ -2591,12 +2591,12 @@ meantime.
     1. Reify the goal; extract HomTerms ~f~, ~g~.
     2. Compute ~⟪ f ⟫~ and ~⟪ g ⟫~ by ordinary Agda reduction.
     3. Apply ~findIso ⟪ f ⟫ ⟪ g ⟫~.
-    4. On ~just iso~, emit the proof ~completeness iso~ (from
+    4. On ~just iso~, emit the proof ~soundness iso~ (from
        Phase 3.5).  On ~nothing~, fail the tactic with a useful
        error.
 
     The tactic is *sound* (only emits proofs when the iso exists
-    and completeness applies) and *partial-complete* (succeeds in
+    and soundness applies) and *partial-complete* (succeeds in
     practice for all cases arising in typical proofs).
 
     *Implementation notes*:
@@ -2613,7 +2613,7 @@ meantime.
     | Sub-phase | Depends on                  |
     |-----------+-----------------------------|
     | 4a        | Hypergraph.Core + Iso       |
-    | 4b        | 4a + Phase 3.5 completeness |
+    | 4b        | 4a + Phase 3.5 soundness |
 
     Critical path: Phase 3 → Phase 3.5 → 4a → 4b.
 
@@ -2627,7 +2627,7 @@ meantime.
     *Alternative tactic (no Phase 3.5)*: implement term-level
     confluent rewriting on HomTerms using only the already-proved
     ≈Term axioms.  Each rewrite step emits an ~≈Term~ proof
-    directly, so no appeal to completeness is needed.  Equivalent
+    directly, so no appeal to soundness is needed.  Equivalent
     in power; harder to ensure confluence without a canonical
     form, but avoids the Phase 3.5 dependency entirely.
 
@@ -2661,12 +2661,12 @@ Categories.APROP.Hypergraph.Prune             YES
 Categories.APROP.Hypergraph.Invariant         YES
 Categories.APROP.Hypergraph.HomTermInvariant  YES
 Categories.APROP.Hypergraph.Translation       YES
-Categories.APROP.Hypergraph.SoundnessProved   YES  (constructive proofs only)
+Categories.APROP.Hypergraph.CompletenessProved   YES  (constructive proofs only)
 Categories.APROP.Hypergraph.Triangle          YES  (fully constructive)
 Categories.APROP.Hypergraph.Pentagon          YES  (fully constructive)
-Categories.APROP.Hypergraph.SoundnessAxioms   NO   (7 postulates: 5 axioms + 2 helpers)
+Categories.APROP.Hypergraph.CompletenessAxioms   NO   (7 postulates: 5 axioms + 2 helpers)
 Categories.APROP.Hypergraph.AlphaCommSound    NO   (hTensor-assoc-iso postulate)
-Categories.APROP.Hypergraph.Soundness         NO   (uses SoundnessAxioms, --lossy-unification)
+Categories.APROP.Hypergraph.Completeness         NO   (uses CompletenessAxioms, --lossy-unification)
 Categories.APROP.Hypergraph.Solver.Signature  YES
 Categories.APROP.Hypergraph.Solver.PBij       YES
 Categories.APROP.Hypergraph.Solver.Seed       YES
@@ -2680,17 +2680,17 @@ Categories.APROP.Hypergraph.Solver.Tests      YES
 
 The Hypergraph tree is now mostly `--safe`: three dedicated axiom
 modules (`Triangle`, `Pentagon`, and the generic constructive layer
-`SoundnessProved`) are `--safe`, as is the whole Invariant /
+`CompletenessProved`) are `--safe`, as is the whole Invariant /
 Congruence / Translation infrastructure.  The only unsafe modules
 are:
 
-  * `SoundnessAxioms` — holds the 5 remaining flat axiom postulates
+  * `CompletenessAxioms` — holds the 5 remaining flat axiom postulates
     (ρ-nat, σ-nat, hexagon, assoc, ⊗-∘-dist) plus two focused
     structural postulates (`hTensor-G-hEmpty-iso-substed`,
     `subst₂-hId-assoc-cancel`).
   * `AlphaCommSound` — proves α-comm constructively modulo one
     focused postulate `hTensor-assoc-iso`.
-  * `Soundness` — dispatches every `≈Term` constructor.  Uses
+  * `Completeness` — dispatches every `≈Term` constructor.  Uses
     `--lossy-unification` (heuristic unifier, not a logical
     principle, but currently incompatible with `--safe`).
 

@@ -1,5 +1,5 @@
 #set document(
-  title: "A hypergraph completeness theorem for free symmetric monoidal categories",
+  title: "A hypergraph soundness theorem for free symmetric monoidal categories",
   author: "categorical-crypto",
 )
 #set page(numbering: "1", margin: (x: 2.2cm, y: 2.4cm))
@@ -10,26 +10,24 @@
 #set math.equation(numbering: "(1)")
 
 #align(center)[
-  #text(16pt, weight: "bold")[A hypergraph completeness theorem for \ free symmetric monoidal categories]
+  #text(16pt, weight: "bold")[A hypergraph soundness theorem for \ free symmetric monoidal categories]
   #v(0.25em)
-  #text(11pt)[An informal proof and the status of its Agda mechanization]
+  #text(11pt)[An informal proof]
   #v(0.3em)
-  #text(9pt, style: "italic")[`categorical-crypto` — the APROP completeness development]
+  #text(9pt, style: "italic")[`categorical-crypto` — the APROP soundness development]
 ]
 
 #v(0.6em)
 
 #block(inset: (x: 1.2em), [
-  #text(9.5pt)[*Abstract.* We prove the faithfulness (completeness) direction of the
+  #text(9.5pt)[*Abstract.* We prove the faithfulness (soundness) direction of the
   string-diagram / hypergraph correspondence for the *free symmetric monoidal category*
   (PROP) on a signature: if two terms translate to isomorphic labelled hypergraphs, they are
   equal in the free category. The proof sequentialises a string diagram into a term via a
   *decoder*, and quotients by the order in which independent generator-boxes are processed.
-  We give the informal proof in full and then document its Agda mechanization, which reduces
-  the entire theorem to *three* explicit obligations. The single irreducible mathematical
-  kernel is symmetric-monoidal coherence on the permutation fragment (Kelly 1964); the
-  remaining two obligations are one Mac-Lane re-bracketing chase and one decoder-agreement, all
-  identified precisely. No unsound assumptions remain in the development.]
+  Its one mathematical kernel is symmetric-monoidal coherence on the permutation fragment
+  (Kelly 1964); the bijection-level (`FinBij`) coherence underneath it is treated elsewhere and
+  out of scope here.]
 ])
 
 = Introduction
@@ -38,24 +36,17 @@ Morphisms of a free symmetric monoidal category (SMC) on a signature — equival
 — are *string diagrams*: networks of generator-boxes wired together, considered up to the
 symmetric-monoidal axioms. Such diagrams are faithfully represented by labelled *hypergraphs*
 taken up to isomorphism. The translation $⟪dot.c⟫$ sending a term $f : A -> B$ to its
-hypergraph $⟪f⟫$ is a strict symmetric monoidal functor; its *soundness*
+hypergraph $⟪f⟫$ is a strict symmetric monoidal functor; its *completeness*
 ($f approx_("Term") g => ⟪f⟫ tilde.equiv^("H") ⟪g⟫$) is routine, and its *faithfulness* —
-the completeness theorem
+the soundness theorem
 $
-  #raw("completeness-full") : quad ⟪f⟫ space tilde.equiv^("H") space ⟪g⟫ quad => quad f approx_("Term") g
+  #raw("soundness-full") : quad ⟪f⟫ space tilde.equiv^("H") space ⟪g⟫ quad => quad f approx_("Term") g
 $ <main>
 — is the subject of this report. Faithfulness is exactly *coherence* for the free SMC:
 two terms with the same string diagram are interconvertible by the SMC axioms.
 
-This document accompanies the APROP completeness formalization in the `categorical-crypto`
-Agda development. It has two purposes:
-
-#enum(
-  [a *transparent informal proof* of @main, structured so that every step corresponds to a
-   concrete, checkable formal obligation;],
-  [a precise account of the *current mechanization status*: which steps are fully verified in
-   Agda, and the exact *trust surface* — the three remaining postulates and what each is.],
-)
+This document gives a *transparent informal proof* of @main, structured so that every step is a
+concrete, checkable claim.
 
 *The proof in one line.* Every term equals the canonical *sequentialisation* (decoding) of
 its own hypergraph (part #strong[(I)]), and that decoding is invariant under hypergraph
@@ -66,9 +57,9 @@ same permutation.
 
 *Notation.* We write $approx$ for the free-category term equivalence $approx_("Term")$, and
 $tilde.equiv^("H")$ for hypergraph isomorphism ($#raw("≅ᴴ")$ in the source). Throughout,
-$bold(K)$, $bold(N)$, $bold(M)$, $bold(S)$ name the four kinds of ingredient catalogued in
-§8. Inline monospace names (e.g. `connectivity`) refer to definitions in the Agda
-development; §9 gives the module map.
+$bold(K)$, $bold(N)$, $bold(M)$, $bold(S)$ name the four kinds of ingredient catalogued near
+the end. Inline monospace names (e.g. `connectivity`) refer to definitions in the Agda
+development.
 
 = Objects
 
@@ -122,7 +113,7 @@ and $g_(psi e) = g_e$ up to the induced label equalities.
 
 = The skeleton of the proof
 
-The completeness theorem @main follows from the chain
+The soundness theorem @main follows from the chain
 
 $
   f quad underbrace(approx, "(I)") quad "decode" ⟪f⟫ quad underbrace(approx, "(II)") quad "decode" ⟪g⟫ quad underbrace(approx, "(I)") quad g,
@@ -142,50 +133,36 @@ The isomorphism hypothesis is used *only* in (II). We first read the whole proof
 
 = A categorical reading
 
-Before the proofs, one framing makes their *shape* inevitable: the whole theorem is the single
-statement *$"decode"$ is an inverse functor to the translation.* Parts (I) and (II) are the two
-halves of that statement, and Lemma 0 is its naturality in the iso.
+One framing makes the proof's *shape* inevitable: the whole theorem is the statement *$"decode"$
+is an inverse functor to the translation*; parts (I) and (II) are its two halves, and Lemma 0 is
+its naturality in the iso.
 
-*The firing category.* Read a hypergraph $H$ as a graph on *states* (sub-collections of its
-wires): a hyperedge $e$ is an arrow $S -> S'$ that removes $"ein" e$ and adds $"eout" e$,
-defined whenever $"ein" e$ is available in $S$ ("fire $e$"). Let $C(H)$ be the *free category*
-on this graph. Its objects are states; its morphisms are firing sequences; a morphism
-$"dom" -> "cod"$ is a *complete* firing sequence — a topological order of the edges, i.e. a
-choice of *decoding*.
-
-*The decoder is a functor.* By the universal property of the free category, the assignment
-$
-  L_H : C(H) -> "FreeSMC", quad S |-> "unflatten"(S), quad (e : S -> S') |-> "layer"_e
-$
-extends *uniquely* to a functor (a path maps to the composite of its layers), and
-$"decode" H = L_H(p)$ for the natural-order maximal path $p$. The completeness theorem @main is
-exactly that $L_(dot.c)$ assembles into an inverse to the translation functor
-$⟪dot.c⟫ : "FreeSMC" -> "HypProp"$, where $"HypProp"$ is the symmetric monoidal category whose
-morphisms are hypergraphs-with-boundary taken up to $tilde.equiv^("H")$: completeness is the
-*faithfulness* of $⟪dot.c⟫$. The two halves of the skeleton @skeleton are the two halves of
-"$L_(dot.c)$ is that inverse" — part (I) is the round-trip $"decode" compose ⟪dot.c⟫ approx
-"id"$; part (II) is well-definedness on $tilde.equiv^("H")$-classes (below, this is a *trace
-quotient*).
+*The firing category and the decoder functor.* Read a hypergraph $H$ as a graph on *states*
+(sub-collections of its wires): a hyperedge $e$ is an arrow $S -> S'$ removing $"ein" e$ and
+adding $"eout" e$, defined when $"ein" e$ is available in $S$ ("fire $e$"). Let $C(H)$ be the
+*free category* on this graph; a morphism $"dom" -> "cod"$ is a *complete* firing sequence — a
+topological order of the edges, i.e. a choice of *decoding*. By the universal property, the
+assignment $L_H : S |-> "unflatten"(S)$, $(e : S -> S') |-> "layer"_e$ extends *uniquely* to a
+functor, with $"decode" H = L_H(p)$ for the natural-order maximal path $p$. The soundness
+theorem @main is exactly that $L_(dot.c)$ is an inverse to $⟪dot.c⟫ : "FreeSMC" -> "HypProp"$
+(morphisms = hypergraphs-with-boundary up to $tilde.equiv^("H")$): soundness is the
+*faithfulness* of $⟪dot.c⟫$. The skeleton's two halves are the two halves of "$L_(dot.c)$ is that
+inverse" — (I) the round-trip $"decode" compose ⟪dot.c⟫ approx "id"$, (II) well-definedness on
+$tilde.equiv^("H")$-classes (a *trace quotient*).
 
 *Lemma 0 is a commuting triangle, reduced to generators.* An iso $(phi, psi)$ is an iso of
-firing graphs, so the free-category functor $"Free" : "Graph" -> "Cat"$ carries it to an iso of
-free categories $"Free"(phi, psi) : C(H) space tilde.equiv space C(J)$ — *automatically* (this
-is "a functor preserves isomorphisms", the cheap step). The *content* of Lemma 0, next, is the
-step beyond that: the triangle of decoders commutes,
-$
-  L_H quad approx quad L_J compose "Free"(phi, psi).
-$
-By the universal property, an agreement of two functors out of a free category is determined on
-*generators*; so it reduces to the per-edge $"layer"_e^H approx "layer"_(psi space e)^J$ — object
-part = Lemma 0a, generator part = Lemma 0b. This reduction-to-generators *is* the structure of
-the Lemma 0 proof below, and the induction over the edge-list in the mechanization is exactly
-this free extension from generators to paths.
+firing graphs, so $"Free"(phi, psi) : C(H) space tilde.equiv space C(J)$ *automatically* ("a
+functor preserves isomorphisms"). The *content* of Lemma 0 is the step beyond — the decoder
+triangle $L_H approx L_J compose "Free"(phi, psi)$ commutes — and since functors out of a free
+category agree iff they agree on *generators*, it reduces to the per-edge
+$"layer"_e^H approx "layer"_(psi space e)^J$: object part = Lemma 0a, generator part = Lemma 0b.
+The edge-list induction is exactly this free extension from generators to paths.
 
-*Where $bold(K)$ comes from.* If states are taken as genuinely *unordered* collections, then
-$"unflatten"(S)$ is well-defined only up to the symmetric-coherence isomorphism — and that
-well-definedness *is* $bold(K)$. So $bold(K)$ is precisely the price of forgetting wire-order:
-the coherence of the *braiding*, the only non-formal part of the symmetric monoidal structure
-that $⟪dot.c⟫$ and $L_(dot.c)$ must preserve. This is why the single deep obligation sits there.
+*Where $bold(K)$ comes from.* If states are taken as *unordered* collections, $"unflatten"(S)$
+is well-defined only up to the symmetric-coherence isomorphism — and that well-definedness *is*
+$bold(K)$. So $bold(K)$ is the price of forgetting wire-order: coherence of the *braiding*, the
+only non-formal part of the symmetric monoidal structure that $⟪dot.c⟫$ and $L_(dot.c)$ must
+preserve — which is why the single deep ingredient sits there.
 
 = Lemma 0: naturality of the decoder under relabelling
 
@@ -257,13 +234,12 @@ square (0b) invokes $bold(K)$ — which is exactly what makes the use of the iso
 Lemma 0b bottoms out in the same $bold(K) + bold(M)$ kernel as parts (I) and (II).
 
 #block(inset: (left: 1em), above: 0.6em, below: 0.6em)[
-  #text(9.5pt)[*Remark (the relabelling does not collapse $sigma$ and $"id"$).* Take
-  $sigma, "id" : A times.o A -> A times.o A$. Both translate to edge-free graphs with two
-  $A$-labelled wires and $"dom" = [v_0, v_1]$, but $"cod"_("id") = [v_0,v_1]$ while
-  $"cod"_sigma = [v_1, v_0]$. No $phi$ can match both $"dom"$ and the swapped $"cod"$, so
-  $⟪sigma⟫$ and $⟪"id"⟫$ are *not* $tilde.equiv^("H")$-related; and the final
-  $"permute"(pi_("cod"))$ reads the $"cod"$ ordering, so the decoder distinguishes them. The
-  wiring lives in the boundary *order*, which $phi$ must respect.]
+  #text(9.5pt)[*Remark (the relabelling does not collapse $sigma$ and $"id"$).* For
+  $sigma, "id" : A times.o A -> A times.o A$, both translate to edge-free graphs with
+  $"dom" = [v_0, v_1]$, but $"cod"_("id") = [v_0,v_1]$ while $"cod"_sigma = [v_1, v_0]$; no
+  $phi$ matches both, so $⟪sigma⟫$ and $⟪"id"⟫$ are *not* $tilde.equiv^("H")$-related, and the
+  final $"permute"(pi_("cod"))$ distinguishes them. The wiring lives in the boundary *order*,
+  which $phi$ must respect.]
 ]
 
 #block(stroke: (left: 1.5pt + luma(50%)), inset: (left: 10pt), above: 0.7em)[
@@ -371,23 +347,18 @@ Chaining over the linear-extension connection yields $"decode" ⟪f⟫ approx "d
 ]
 
 #block(inset: (left: 1em), above: 0.6em)[
-  #text(9.5pt)[*Categorically (§4): a trace quotient.* Two complete paths $"dom" -> "cod"$ are
-  *distinct* morphisms of the firing category $C(H)$; what (II) shows is that $L_H$ sends them
-  to $approx$-equal terms — i.e. $L_H$ *factors through the quotient of $C(H)$ by
-  independent-firing commutations*, the Mazurkiewicz *trace* category. The combinatorial fact
-  above (any two linear extensions are joined by adjacent independent transpositions) is the
-  classical statement that the linear extensions of a pomset form a single trace class;
-  $L_H$ respecting the quotient needs $bold(N)$ (independent firings commute) and $bold(K)$
-  (wiring).]
+  #text(9.5pt)[*Categorically: a trace quotient.* Part (II) says $L_H$ sends the *distinct*
+  complete paths of the firing category $C(H)$ to $approx$-equal terms — it *factors through the
+  Mazurkiewicz trace quotient* of $C(H)$ by independent-firing commutations. The combinatorial
+  fact above is the classical statement that the linear extensions of a pomset form a single
+  trace class; the factoring needs $bold(N)$ (firings commute) and $bold(K)$ (wiring).]
 ]
 
-== The per-swap step in detail (`run-eq`)
+== The per-swap step in detail
 
-The single adjacent-independent swap above is mechanized as the field `run-eq` of the record
-`SwapStep.FrontSwap.RunInterchange`. Write $D_(e e')$ for the decoder term of the order
-"process $e$, then $e'$, then the tail", and $D_(e' e)$ for the swapped order, both run from the
-shared post-prefix stack $s_p$; let $r$ be the *reshuffle* — the permutation between the two
-orders' post-front stacks. The swap equation is
+Write $D_(e e')$ for the decoder term of the order "process $e$, then $e'$, then the tail", and
+$D_(e' e)$ for the swapped order, both run from the shared post-prefix stack $s_p$; let $r$ be
+the *reshuffle* — the permutation between the two orders' post-front stacks. The swap equation is
 
 $
   D_(e' e) quad approx quad "permute"(r) compose D_(e e') .
@@ -400,16 +371,13 @@ $
 $
 i.e. *permute $"ein" e$ to the front, re-bracket the stack as
 $"unflatten"("ein") times.o "unflatten"("rest")$, apply the box, re-bracket back.* @runeq then
-decomposes into exactly one obligation per ledger class:
+decomposes into exactly one piece per ledger class:
 
 + *Disjointness ($bold(S)$).* Independence ($e, e'$ incomparable — neither consumes the other's
   output) together with linearity (each wire produced/consumed at most once) gives that
   $"ein" e$, $"ein" e'$ are disjoint, and $"eout" e$ is disjoint from $"ein" e'$ (and
   symmetrically). Hence the two edges occupy *disjoint wire-blocks*, both orders fire, and they
-  reach the *same stack-multiset* — the reshuffle $r$. _This half is now PROVEN_ —
-  `Sub/FiringSwap.front-swap-reshuffle`, a one-line bridge to the constructive
-  `SwapValidity.front-swap-stack-↭` (linearity gives `ein-ein-disjoint`, independence gives
-  `eout-ein-disjoint`).
+  reach the *same stack-multiset* — the reshuffle $r$.
 
 + *Box-commute ($bold(N)$).* Brought to disjoint adjacent factors, the two boxes
   $(#raw("Agen") g_e times.o "id")$ and $(#raw("Agen") g_(e') times.o "id")$ act on *disjoint
@@ -423,19 +391,19 @@ decomposes into exactly one obligation per ledger class:
   shapes (after $e$ fires, $e'$ sees residual $"eout" e ++ dots.c$; after $e'$ fires, $e$ sees
   $"eout" e' ++ dots.c$). To bring both boxes to the common disjoint-aligned form that
   `⊗-∘-dist` needs, the `unflatten-++-≅` coercions must be re-associated — pure Mac-Lane
-  coherence ($alpha, lambda, rho$ + coercion naturality). *This is the bulk of the open
-  transport*: it has no canonical-form solver in the symmetric fragment, so it is hand-chased,
-  per positional case, under `--without-K` `subst₂` casts.
+  coherence ($alpha, lambda, rho$ + coercion naturality). This is the bulk of the work: it has
+  no canonical-form solver in the symmetric fragment, so it is chased per positional case.
 
 + *Reshuffle ($bold(K)$).* The two orders bring the input wires forward in different orders and
   leave the output blocks in swapped positions; the net difference is a pure wire-permutation,
   realised by $"permute"(r)$. Matching it is @K. Plus a tail recursion: the suffix runs on the
   reshuffled stack and commutes with $r$ by naturality.
 
-So @runeq is *$bold(S)$ (done) $+ bold(N)$ (one `⊗-∘-dist`) $+ bold(M)$ (the re-association bulk)
-$+ bold(K)$ (the reshuffle)*. The genuine remaining cost is the $bold(M)$ re-bracketing — the
-solver-unfriendly heart of braided-monoidal coherence — *not* the interchange axiom @interchange
-itself, which is already proven (`SwapStep.box-interchange`).
+So @runeq is *$bold(S)$ (disjointness) $+ bold(N)$ (one bifunctor interchange) $+ bold(M)$ (the
+re-association bulk) $+ bold(K)$ (the reshuffle)*. The boxes themselves commute by plain
+bifunctoriality; the braiding lives entirely in the reshuffle, absorbed by $bold(K)$; and the
+genuine bulk is the $bold(M)$ re-bracketing, the solver-unfriendly heart of braided-monoidal
+coherence.
 
 = The normal-form theorem, part (I)
 
@@ -470,136 +438,44 @@ By induction on $f$, using the action of $⟪dot.c⟫$ on each constructor:
 
 = The ingredients
 
-Every step above draws on one of four kinds of ingredient. This classification is what makes
-the trust surface (§8) legible.
-
-#table(
-  columns: (auto, 1fr, auto),
-  inset: 7pt,
-  align: (left + horizon, left + horizon, left + horizon),
-  stroke: 0.5pt + luma(70%),
-  table.header([*Ingredient*], [*Where used*], [*Nature*]),
-
-  [$bold(K)$ — generator-free permutation \ coherence (Kelly 1964)],
-  [(II) wiring match; (I) $sigma$; \ Lemma 0b permute factor],
-  [a single classical \ *axiom*],
-
-  [$bold(N)$ — interchange axiom \ $sigma compose (p times.o q) approx (q times.o p) compose sigma$],
-  [(II) adjacent swap; (I) $times.o$-case],
-  [an `≈Term` axiom \ (*free*)],
-
-  [$bold(M)$ — monoidal ($alpha, lambda, rho$) \ coherence],
-  [(I) base/coercion cases; \ Lemma 0b box factor],
-  [*constructive*],
-
-  [$bold(S)$ — structural combinatorics: \ Lemma 0a, Lemma A, connectivity, \ Lemma C, $compose$/$times.o$-shape],
-  [(I), (II)],
-  [*constructive*],
-)
-
-$bold(K)$ is the only deep mathematical assumption: it is the symmetric-monoidal coherence
-theorem restricted to the permutation fragment — two derivations of the same permutation give
-$approx$-equal $"permute"$ terms. $bold(N)$ is literally one of the SMC equational axioms,
-applied to opaque boxes. $bold(M)$ and $bold(S)$ are coherence and finite combinatorics that
-are (or can be made) constructive.
-
-= Mechanization status
-
-The proof is mechanized in Agda (`--without-K`) in the `categorical-crypto` development. The
-top-level lemma
-$
-  #raw("decode-rel-resp-iso") : quad ⟪f⟫ space tilde.equiv^("H") space ⟪g⟫ quad => quad "decode-rel" f approx "decode-rel" g
-$
-type-checks, where $"decode-rel"$ is the structural decoder; the completeness theorem @main
-follows by composing with the (structural, proven) round-trip $f approx "decode-rel" f$.
-
-== Architecture
-
-The decoder operates on a *monogamous* translation, for which $tilde.equiv^("H")$ is a genuine
-congruence. Its totality (every $⟪f⟫$ decodes) is fully proven. The iso-invariance argument is
-assembled as follows; the order-theoretic core is signature-generic and `--safe`.
+Every step above draws on one of four kinds of ingredient.
 
 #table(
   columns: (auto, 1fr),
-  inset: 6pt,
-  align: (left + top, left + top),
-  stroke: 0.5pt + luma(75%),
-  table.header([*Module (role)*], [*Status*]),
-  [`Combinatorics.LinearExtension` — connectivity of linear extensions of a finite poset],
-  [`--safe`, postulate-free],
-  [`EdgeDependency` — Lemma A (dependency-order iso)],
-  [`--safe`, postulate-free],
-  [decoder totality + linearity (`LinearHComposeP`, `DecodeAttemptLinearP`)],
-  [postulate-free],
-  [order-indexed decoder + iso-invariance assembly (`IsoInvarianceWiring` / `…Concrete`)],
-  [postulate-free],
-  [`DepIrrefl` (acyclicity), `SwapValidity` (firing-stable swaps), `ObjUIP` (UIP)],
-  [postulate-free],
-  [iso-invariance of the structural decoder (`DecodeRelRespIsoWired`, top of chain)],
-  [3 postulates (below)],
+  inset: 7pt,
+  align: (left + horizon, left + horizon),
+  stroke: 0.5pt + luma(70%),
+  table.header([*Ingredient*], [*Where used*]),
+
+  [$bold(K)$ — generator-free permutation coherence (Kelly 1964)],
+  [(II) wiring match; (I) $sigma$; Lemma 0b permute factor],
+
+  [$bold(N)$ — interchange axiom $sigma compose (p times.o q) approx (q times.o p) compose sigma$],
+  [(II) adjacent swap; (I) $times.o$-case],
+
+  [$bold(M)$ — monoidal ($alpha, lambda, rho$) coherence],
+  [(I) base/coercion cases; Lemma 0b box factor],
+
+  [$bold(S)$ — structural combinatorics: Lemma 0a, Lemma A, connectivity, Lemma C, $compose$/$times.o$-shape],
+  [(I), (II)],
 )
 
-== Trust surface
-
-Completeness rests on exactly three postulates, plus a `DecidableEquality` hypothesis on the
-atom type (satisfied by any concrete signature, used to discharge UIP on objects). Every
-postulate is *true*; none is an unsound shortcut.
-
-#table(
-  columns: (auto, auto, 1fr),
-  inset: 6pt,
-  align: (left + horizon, left + horizon, left + top),
-  stroke: 0.5pt + luma(75%),
-  table.header([*Obligation*], [*Kind*], [*What it is*]),
-  [`K-faithfulness`], [$bold(K)$],
-  [the classical axiom: permutation coherence (Kelly 1964); the irreducible kernel, shared by
-   (I), (II), and Lemma 0b.],
-  [`run-interchange-⟪⟫`], [$bold(M)$],
-  [the analytic crux of (II) at one swap (`run-eq`, @runeq). Of its two halves the *firing*
-   half (`reshuffle`, $bold(S)$) is now proven (`Sub/FiringSwap`) and the interchange axiom
-   $bold(N)$ is isolated as a proven lemma (`box-interchange`); the residual is exactly the
-   Mac-Lane re-bracketing transport through the layer coercions.],
-  [`decode-rel-≈-decodeP`], [(I)],
-  [the normal-form theorem (decoder agreement): decomposes per constructor into the $compose$/
-   $times.o$-shape lemmas ($bold(S)$), the monoidal atomics ($bold(M)$), and the $sigma$/box
-   atomics ($bold(K)$).],
-)
-
-The three obligations are not independent: $bold(K)$ recurs in two of them, so the genuinely
-open mathematical content is *(a)* the coherence axiom $bold(K)$; *(b)* the Mac-Lane
-re-bracketing transport at one swap (`run-interchange-⟪⟫`, @runeq); and *(c)* the structural
-decoder-agreement (`decode-rel-≈-decodeP`). The combinatorial backbone — Lemma A, Lemma C, the
-connectivity of linear extensions, decoder totality, the firing-stability of independent swaps,
-and *all of Lemma 0b* (`edge-step-term-φ`, formerly a postulate, now proven via the
-relation-view of `edge-step` — its box factor $bold(M)$ and permute factor $bold(K)$ both
-discharged) — is fully verified.
-
-== Soundness notes
-
-#enum(
-  [*No false postulates.* Several plausible-looking shortcuts are unsound and were avoided: a
-   *pruned*-to-*unpruned* iso transfer (false — pruning changes vertex counts); an X-label-level
-   uniqueness $"Unique"("map" "vlab" "cod")$ (false when boundary atoms repeat); and an
-   independent-edge swap without a firing premise (false without monogamy). Each obligation is
-   stated at the level where it is true.],
-  [*The isomorphism is used, not discarded.* Lemma 0 makes precise that the vertex bijection
-   $phi$ is free only at the list level; the term-level reconciliation genuinely invokes
-   $bold(K)$, so the proof is not vacuous.],
-  [*The interchange content is not extra trust.* The "generator interchange" is the SMC
-   interchange axiom $bold(N)$ @interchange applied to opaque boxes; no generator-specific
-   coherence is ever required.],
-)
+$bold(K)$ is the one deep ingredient: the symmetric-monoidal coherence theorem restricted to the
+permutation fragment — two derivations of the same permutation give $approx$-equal $"permute"$
+terms. It reduces to coherence at the bijection (`FinBij`) level — $"permute"(pi) approx
+"permute"(pi')$ whenever $"eval"(pi) = "eval"(pi')$ — which is treated separately and out of scope
+here. $bold(N)$ is one of the SMC equational axioms, applied to opaque boxes; $bold(M)$ and
+$bold(S)$ are monoidal coherence and finite combinatorics.
 
 = Conclusion
 
-The completeness theorem @main is reduced — informally in full, and in Agda modulo three
-explicit, true obligations — to a single classical axiom together with one Mac-Lane
-re-bracketing chase and one decoder-agreement, all precisely located. The deep content is symmetric-monoidal coherence
-on the permutation fragment ($bold(K)$); everything genuinely combinatorial is verified.
+The soundness theorem @main — the faithfulness of the hypergraph representation of free
+symmetric monoidal categories — follows from the round-trip and decoder agreement (part (I)),
+the iso-invariance through linear-extension connectivity and the per-swap interchange (part
+(II)), and the naturality of the decoder under relabelling (Lemma 0). Each step is one of the
+four ingredients $bold(K), bold(N), bold(M), bold(S)$, and the only deep one is the
+permutation-coherence kernel $bold(K)$.
 
-Closing the remaining obligations is research-level work of a familiar kind: $bold(K)$ is the
-word problem for the symmetric group (amenable to a normalization-by-evaluation argument, for
-which the monoidal-fragment analogue is already mechanized in the development); the Mac-Lane
-transports and the decoder-agreement are coherence and structural decompositions that have long
-been the open frontier of this formalization. The contribution here is to have isolated that
-frontier exactly, on a sound footing, with the surrounding $80%$ of the argument mechanized.
+$bold(K)$ bottoms out in coherence at the bijection (`FinBij`) level — in effect the word problem
+for the symmetric group — which is out of scope for this report. Everything above the bijection
+level is covered here in full.
