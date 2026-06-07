@@ -86,7 +86,8 @@ import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.BlockNFVoutCoh
 open import Categories.APROP.Hypergraph.Soundness.Discharge.CIsoAssocFromCons sig
   using (c-iso-assoc-from)
 open import Categories.APROP.Hypergraph.Soundness.UnflattenMonoidal sig
-  using (c-iso-assoc-to; cancel-mid-iso)
+  using (c-iso-assoc-to; cancel-mid-iso; conj-lemma; bridge-dom; bridge-cod
+        ; to-uf-cong; from-uf-cong; subst-2)
 open import Categories.APROP.Hypergraph.Soundness.Decode sig
   using (Agen-edge-aux)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeStepRelation sig
@@ -132,30 +133,6 @@ private
   module FM = Category FreeMonoidal
 
 
-  -- `unflatten-++-≅`'s `to`/`from` transported along block-list equalities.
-  to-uf-cong
-    : ∀ {Xs Xs' Ys Ys' : List X} (pX : Xs ≡ Xs') (pY : Ys ≡ Ys')
-    → subst₂ HomTerm (cong₂ _⊗₀_ (cong unflatten pX) (cong unflatten pY))
-                     (cong unflatten (cong₂ _++_ pX pY))
-        (_≅_.to (unflatten-++-≅ Xs Ys))
-      ≡ _≅_.to (unflatten-++-≅ Xs' Ys')
-  to-uf-cong refl refl = refl
-
-  from-uf-cong
-    : ∀ {Xs Xs' Ys Ys' : List X} (pX : Xs ≡ Xs') (pY : Ys ≡ Ys')
-    → subst₂ HomTerm (cong unflatten (cong₂ _++_ pX pY))
-                     (cong₂ _⊗₀_ (cong unflatten pX) (cong unflatten pY))
-        (_≅_.from (unflatten-++-≅ Xs Ys))
-      ≡ _≅_.from (unflatten-++-≅ Xs' Ys')
-  from-uf-cong refl refl = refl
-
-  -- A single-index `subst` over `HomTerm (f z) (h z)` re-expressed as the
-  -- two-index `subst₂` over `cong f`/`cong h`.  Shared by the block ladders.
-  subst-2 : ∀ {a b : List X} (f h : List X → ObjTerm) (r : a ≡ b)
-              (t : HomTerm (f a) (h a))
-          → subst (λ z → HomTerm (f z) (h z)) r t
-            ≡ subst₂ HomTerm (cong f r) (cong h r) t
-  subst-2 f h refl t = refl
 
 -- Library iso-cancellation combinators (agda-categories), for the
 -- `unflatten-++-≅` `from ∘ to ≈ id` eliminations.
@@ -401,29 +378,6 @@ module BoxAssoc where
                → HomTerm (unflatten c) (unflatten d)
   subst-id-cod {c} q = subst (λ z → HomTerm (unflatten c) (unflatten z)) q id
 
-  -- `subst₂ HomTerm p q t` re-expressed as the conjugation
-  -- `(subst on cod) ∘ t ∘ (subst on dom)` by `subst`-identity morphisms.
-  -- General over arbitrary `ObjTerm` boundaries; shared by
-  -- `box-suffix`/`box-prefix` (and the `tcod`/`tdom`-wrapped variants below).
-  conj-lemma
-    : ∀ {A B A' B' : ObjTerm} (p : A ≡ A') (q : B ≡ B') (t : HomTerm A B)
-    → subst₂ HomTerm p q t
-      ≈Term subst (λ z → HomTerm B z) q id
-            ∘ t
-            ∘ subst (λ z → HomTerm z A) p id
-  conj-lemma refl refl t = ≈-Term-trans (≈-Term-sym idˡ) (refl⟩∘⟨ ≈-Term-sym idʳ)
-
-  -- `subst`-on-left re-expressed across `cong unflatten (sym e)`/`e`.
-  bridge-dom : ∀ {a b : List X} (e : a ≡ b)
-             → subst (λ z → HomTerm z (unflatten b)) (cong unflatten (sym e)) id
-               ≡ subst (λ z → HomTerm (unflatten a) (unflatten z)) e id
-  bridge-dom refl = refl
-
-  -- `subst`-on-right re-expressed across `cong unflatten (sym e)`/`e`.
-  bridge-cod : ∀ {a b : List X} (e : a ≡ b)
-             → subst (λ z → HomTerm (unflatten b) z) (cong unflatten (sym e)) id
-               ≡ subst (λ z → HomTerm (unflatten z) (unflatten a)) e id
-  bridge-cod refl = refl
 
   ------------------------------------------------------------------------
   -- Shared associativity re-bracketing for `box-suffix`/`box-prefix`:
@@ -4210,7 +4164,7 @@ module BlockFactor
         (t : HomTerm (unflatten a) (Up ⊗₀ unflatten c))
       → subst₂ HomTerm (cong unflatten p) (cong (Up ⊗₀_) (cong unflatten q)) t
         ≈Term tcod q ∘ t ∘ BoxAssoc.subst-id-dom p
-    subst₂-conj-tensor refl refl t = BoxAssoc.conj-lemma refl refl t
+    subst₂-conj-tensor refl refl t = conj-lemma refl refl t
 
 
     ----------------------------------------------------------------------
@@ -4871,7 +4825,7 @@ module BlockFactor
         (t : HomTerm (Up ⊗₀ unflatten c) (unflatten a))
       → subst₂ HomTerm (cong (Up ⊗₀_) (cong unflatten q)) (cong unflatten p) t
         ≈Term BoxAssoc.subst-id-cod p ∘ t ∘ tdom q
-    subst₂-conj-tensor-dom refl refl t = BoxAssoc.conj-lemma refl refl t
+    subst₂-conj-tensor-dom refl refl t = conj-lemma refl refl t
 
     ----------------------------------------------------------------------
     -- ### The two boundary equalities (subst-id-morphism uniqueness).
