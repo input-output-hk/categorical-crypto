@@ -2,31 +2,17 @@
 
 ------------------------------------------------------------------------
 -- The sum-of-inversions `invS` satisfies the Lehmer recursion (peeling
--- value 0), and hence equals the recursive `inv`.
+-- value 0), hence equals the recursive `inv` (`invS≡inv`).
 --
---   invS≡inv : invS b ≡ inv b
+-- The crux is the Lehmer recursion #inversions(b) = #inversions(residual)
+-- + #inversions involving value 0.  Value 0 sits at position `m = b ⟨$⟩ˡ
+-- 0F`; the `toℕ m` earlier positions each contribute one inversion with it,
+-- and ALL other inversions are exactly those of the residual.
 --
--- The crux is the Lehmer recursion of `invS`:
---
---   invS b ≡ invS (remove 0F (b ∘-fb inv-fb (rotate-fb (b ⟨$⟩ˡ 0F))))
---              + toℕ (b ⟨$⟩ˡ 0F)
---
--- i.e. #inversions(b) = #inversions(residual) + #inversions involving
--- value 0.  Value 0 sits at position `m = b ⟨$⟩ˡ 0F`; being the smallest
--- value, the `toℕ m` earlier positions each contribute exactly one
--- inversion with it, and ALL other inversions are exactly those of the
--- residual.
---
--- STRATEGY (no rotation/permutation algebra in the combinatorial core):
---   * `sumF-punch`  : pull index `m` out of a `Fin (suc N)`-sum,
---                     reindexing the rest by `punchIn m`.
---   * `invS-peel`   : if `b ⟨$⟩ʳ m ≡ 0F` then
---                       invS b ≡ toℕ m + invS (remove m b).
---                     (the genuine bijection bookkeeping, done purely on
---                      the right action `b ⟨$⟩ʳ` via `sumF-punch`.)
---   * the residual of `inv` is `≈-fb`-equal to `remove m b`
---     (the rotation only relocates value 0 to the front), discharged by
---     `rest≈remove-m` + `invS-resp-≈`.
+-- Strategy:
+--   * `sumF-punch` : pull index `m` out of a `Fin (suc N)`-sum.
+--   * `invS-peel`  : if `b ⟨$⟩ʳ m ≡ 0F` then invS b ≡ toℕ m + invS (remove m b).
+--   * the `inv`-residual is `≈-fb`-equal to `remove m b` (`rest≈remove-m`).
 ------------------------------------------------------------------------
 
 module Categories.PermuteCoherence.InversionsRec where
@@ -69,12 +55,8 @@ dec-cong (yes a) (no ¬b) f _ = ⊥-elim (¬b (f a))
 dec-cong (no ¬a) (yes b) _ g = ⊥-elim (¬a (g b))
 
 ------------------------------------------------------------------------
--- 1. Pull one index out of a `Fin (suc N)`-sum.
---
---   sumF g ≡ g m + sumF (g ∘ punchIn m)
---
--- `punchIn m` enumerates `Fin (suc N) ∖ {m}` (in order), so this is the
--- fundamental "isolate index m" lemma.  Induction on `m`.
+-- 1. Pull one index out of a `Fin (suc N)`-sum:
+--   sumF g ≡ g m + sumF (g ∘ punchIn m)  (`punchIn m` enumerates ∖ {m}).
 
 sumF-punch : {N : ℕ} (g : Fin (suc N) → ℕ) (m : Fin (suc N))
            → sumF g ≡ g m + sumF (λ j → g (punchIn m j))
@@ -84,24 +66,19 @@ sumF-punch {suc N} g (fsuc m) =
   trans (cong (g 0F +_) (sumF-punch (λ j → g (fsuc j)) m))
         (lemma (g 0F) (g (fsuc m)) (sumF (λ j → g (fsuc (punchIn m j)))))
   where
-  -- a + (c + S) ≡ c + (a + S)
   lemma : (a c S : ℕ) → a + (c + S) ≡ c + (a + S)
   lemma a c S =
     trans (sym (+-assoc a c S))
           (trans (cong (_+ S) (+-comm a c)) (+-assoc c a S))
 
 ------------------------------------------------------------------------
--- 2. `invS` respects pointwise (`≈-fb`) equality.
---
--- `invAt` is a function of `b ⟨$⟩ʳ` only, so `≈-fb` (equality of the
--- right action) suffices.
+-- 2. `invS` respects pointwise (`≈-fb`) equality (`invAt` uses `b ⟨$⟩ʳ` only).
 
 invAt-resp-≈ : {n : ℕ} {b b′ : FinBij (suc n) (suc n)} → b ≈-fb b′
              → ∀ x y → invAt b x y ≡ invAt b′ x y
 invAt-resp-≈ {b = b} {b′} eq x y =
   cong (λ z → 1if (⌊ x <? y ⌋ ∧ z)) brkt
   where
-  -- the second decidable bracket, rewritten by `eq`.
   brkt : ⌊ (b P.⟨$⟩ʳ y) <? (b P.⟨$⟩ʳ x) ⌋
        ≡ ⌊ (b′ P.⟨$⟩ʳ y) <? (b′ P.⟨$⟩ʳ x) ⌋
   brkt = dec-cong ((b P.⟨$⟩ʳ y) <? (b P.⟨$⟩ʳ x))
@@ -122,13 +99,10 @@ invS-resp-≈ {b = b} {b′} eq =
 ------------------------------------------------------------------------
 -- 3. Small arithmetic / order helpers.
 
--- A constantly-zero sum is zero.
 sumF-const0 : {N : ℕ} → sumF {N} (λ _ → 0) ≡ 0
 sumF-const0 {zero}  = refl
 sumF-const0 {suc N} = sumF-const0 {N}
 
--- `<`/`≤` on `Fin` are *definitionally* the corresponding `ℕ` relations
--- on `toℕ`, so the `ℕ` order conversions apply on the nose.
 open import Data.Nat.Properties using (<⇒≱; ≰⇒>)
 open import Data.Fin.Base using (_≤_)
 
@@ -153,7 +127,6 @@ remove-bridge b m bm≡0 k =
   trans (P.punchIn-permute b m k)
         (cong (λ z → punchIn z (remove m b P.⟨$⟩ʳ k)) bm≡0)
 
--- `⌊ suc a <? suc c ⌋ ≡ ⌊ a <? c ⌋`.
 suc-<-bracket : {N : ℕ} (a c : Fin N) → ⌊ fsuc a <? fsuc c ⌋ ≡ ⌊ a <? c ⌋
 suc-<-bracket a c = dec-cong (fsuc a <? fsuc c) (a <? c) s<s⁻¹ s<s
   where open import Data.Nat.Base using (s<s; s<s⁻¹)
@@ -167,9 +140,7 @@ remove-<-bracket b m bm≡0 i j =
   trans (cong₂ (λ p q → ⌊ p <? q ⌋) (remove-bridge b m bm≡0 j) (remove-bridge b m bm≡0 i))
         (suc-<-bracket (remove m b P.⟨$⟩ʳ j) (remove m b P.⟨$⟩ʳ i))
 
--- Count of positions strictly below `m`:  exactly `toℕ m`.
--- `punchIn m` enumerates the non-`m` positions; those landing `< m` are
--- precisely the `toℕ m`-many positions `0,…,m-1`.
+-- Count of non-`m` positions landing strictly below `m`: exactly `toℕ m`.
 countBelow : {N : ℕ} (m : Fin (suc N))
            → sumF (λ i → 1if ⌊ punchIn m i <? m ⌋) ≡ toℕ m
 countBelow {zero}  0F       = refl
@@ -180,17 +151,13 @@ countBelow {suc N} (fsuc m) =
            (countBelow m))
 
 ------------------------------------------------------------------------
--- 4. The value-0 peel of `invS` (the genuine bijection bookkeeping).
---
+-- 4. The value-0 peel of `invS`:
 --   b ⟨$⟩ʳ m ≡ 0F  ⟹  invS b ≡ toℕ m + invS (remove m b).
 --
--- Value 0 sits at position `m`.  Split every position pair by whether it
--- touches `m` (via `sumF-punch` at `m`, twice — once per coordinate):
---   * the `m`-row contributes 0 (value 0 is never the larger value),
---   * the `m`-column contributes `toℕ m` (every earlier position holds a
---     larger value), counted by `countBelow`,
---   * the remaining pairs reindex order-preservingly to the pairs of
---     `remove m b` (via `punchIn-<-bracket` / `remove-<-bracket`).
+-- Split every position pair by whether it touches `m` (`sumF-punch` at `m`,
+-- once per coordinate): the `m`-row contributes 0 (value 0 is never the
+-- larger), the `m`-column contributes `toℕ m` (`countBelow`), and the rest
+-- reindex order-preservingly to the pairs of `remove m b`.
 
 open import Data.Bool.Properties using (∧-zeroʳ; ∧-identityʳ)
 
@@ -204,8 +171,7 @@ module _ {N : ℕ} (b : FinBij (suc (suc N)) (suc (suc N))) (m : Fin (suc (suc N
                 bm≡0)
           (cong 1if (∧-zeroʳ ⌊ m <? y ⌋))
 
-  -- the `m`-column at position `punchIn m i`:
-  --   invAt b (punchIn m i) m ≡ 1if ⌊ punchIn m i <? m ⌋.
+  -- the `m`-column at position `punchIn m i`.
   col-m : ∀ i → invAt b (punchIn m i) m ≡ 1if ⌊ punchIn m i <? m ⌋
   col-m i =
     trans (cong (λ z → 1if (⌊ punchIn m i <? m ⌋ ∧ ⌊ z <? (b P.⟨$⟩ʳ (punchIn m i)) ⌋))
@@ -227,15 +193,13 @@ module _ {N : ℕ} (b : FinBij (suc (suc N)) (suc (suc N))) (m : Fin (suc (suc N
 
   invS-peel : invS b ≡ toℕ m + invS (remove m b)
   invS-peel =
-    -- outer punch at m, then drop the (vanishing) `m`-row;
-    -- `0 + sumF Rrow` reduces to `sumF Rrow`, so `goal` closes it.
+    -- outer punch at m, drop the vanishing `m`-row, then `goal`.
     trans (sumF-punch (λ x → sumF (λ y → invAt b x y)) m)
           (trans (cong (_+ sumF Rrow) Rm≡0) goal)
     where
     Rrow : Fin (suc N) → ℕ
     Rrow i = sumF (λ y → invAt b (punchIn m i) y)
 
-    -- each `Rrow i`, with its inner punch at `m`, decomposed.
     Rrow-split : ∀ i → Rrow i
                ≡ invAt b (punchIn m i) m
                  + sumF (λ j → invAt b (punchIn m i) (punchIn m j))
@@ -251,12 +215,9 @@ module _ {N : ℕ} (b : FinBij (suc (suc N)) (suc (suc N))) (m : Fin (suc (suc N
                (sumF-cong (λ i → sumF-cong (λ j → inner-m i j)))))
 
 ------------------------------------------------------------------------
--- 5. The `inv`-residual is `remove m b` (the rotation only relocates
--- value 0 to the front).
---
--- `m = b ⟨$⟩ˡ 0F`, `ρ = rotate-fb m`.  The inverse rotation sends `suc j`
--- to `punchIn m j` (it brings position `m` to the front, shifting the
--- earlier positions up), so `b ∘-fb inv-fb ρ` reads `b` skipping `m`.
+-- 5. The `inv`-residual is `remove m b` (`m = b ⟨$⟩ˡ 0F`): the inverse
+-- rotation sends `suc j` to `punchIn m j`, so `b ∘-fb inv-fb ρ` reads `b`
+-- skipping `m`.
 
 -- The inverse rotation, off the front, is `punchIn m`.
 rotate-punchIn : {N : ℕ} (m : Fin (suc N)) (j : Fin N)
@@ -268,12 +229,9 @@ rotate-punchIn {suc N} (fsuc m)  (fsuc j) =
 
 open import Categories.PermuteCoherence.Word using (inv-rotate-fb-0)
 
--- The `inv`-residual equals `remove m b` (pointwise), `m = b ⟨$⟩ˡ 0F`.
---
--- `c = b ∘-fb inv-fb ρ` fixes `0F` (`fix0`), so `lift₀-remove` gives
--- `suc (rest j) ≡ c (suc j)`; and `c (suc j) = b (ρ⁻¹ (suc j)) =
--- b (punchIn m j) = suc (remove m b j)` (rotate-punchIn + remove-bridge).
--- Strip the `suc`.
+-- The `inv`-residual equals `remove m b` (pointwise).  `c = b ∘-fb inv-fb
+-- ρ` fixes `0F`, so `lift₀-remove` + rotate-punchIn + remove-bridge give
+-- `suc (rest j) ≡ suc (remove m b j)`; strip the `suc`.
 rest≈remove-m
   : {n : ℕ} (b : FinBij (suc (suc n)) (suc (suc n)))
   → remove 0F (b ∘-fb inv-fb (rotate-fb (b P.⟨$⟩ˡ 0F))) ≈-fb remove (b P.⟨$⟩ˡ 0F) b
@@ -289,11 +247,9 @@ rest≈remove-m {n} b j = suc-injective suc-eq
   fix0 : c P.⟨$⟩ʳ 0F ≡ 0F
   fix0 = trans (cong (b P.⟨$⟩ʳ_) (inv-rotate-fb-0 m)) (P.inverseʳ b)
 
-  -- c (suc j) = b (ρ⁻¹ (suc j)) = b (punchIn m j).
   c-suc : c P.⟨$⟩ʳ fsuc j ≡ b P.⟨$⟩ʳ (punchIn m j)
   c-suc = cong (b P.⟨$⟩ʳ_) (rotate-punchIn m j)
 
-  -- suc (rest j) = c (suc j) = b (punchIn m j) = suc (remove m b j).
   suc-eq : fsuc (remove 0F c P.⟨$⟩ʳ j) ≡ fsuc (remove m b P.⟨$⟩ʳ j)
   suc-eq =
     trans (P.lift₀-remove c fix0 (fsuc j))
@@ -302,7 +258,6 @@ rest≈remove-m {n} b j = suc-injective suc-eq
 ------------------------------------------------------------------------
 -- 6. The Lehmer recursion of `invS`, and the bridge `invS ≡ inv`.
 
--- #inversions(b) = #inversions(residual) + #inversions involving value 0.
 invS-rec : {n : ℕ} (b : FinBij (suc (suc n)) (suc (suc n)))
          → invS b
          ≡ invS (remove 0F (b ∘-fb inv-fb (rotate-fb (b P.⟨$⟩ˡ 0F))))

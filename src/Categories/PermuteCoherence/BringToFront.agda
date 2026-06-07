@@ -14,7 +14,7 @@ module Categories.PermuteCoherence.BringToFront where
 
 open import Data.Nat.Base using (ℕ; zero; suc; _<_; _≤_; s≤s)
 open import Data.Nat.Properties
-  using (<-cmp; <-asym; <-trans; <-irrefl; 1+n≢n; suc-injective; ≤-refl; ≤-trans; n≤1+n; <⇒≤; 1+n≰n)
+  using (1+n≢n; ≤-refl)
 open import Data.Fin.Base using (Fin)
 open import Data.Fin.Properties using (_≟_)
 open import Data.List.Base using ([]; _∷_; length)
@@ -72,10 +72,8 @@ btf : (w : Word (suc n)) (i : Fin (suc n))
 btf w i = btf′ (length w) w ≤-refl i
 
 ------------------------------------------------------------------------
--- The Exchange Condition (public form).
---
--- Project the one-letter-shorter witness out of `btf` and recover
--- `Reduced w′` uniformly from `reduced-of-witness`.
+-- The Exchange Condition (public form): project the one-letter-shorter
+-- witness out of `btf`, recover `Reduced w′` via `reduced-of-witness`.
 
 bring-to-front : {n : ℕ} (w : Word n) (i : Fin n)
                → Reduced w → descent i (evalW w)

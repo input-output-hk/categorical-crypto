@@ -11,16 +11,9 @@
 -- underlying Fin-list data.  This avoids the subst₂-on-Hypergraph
 -- plumbing that previously arose from index-level boundary equations.
 --
--- For backwards compatibility with code that wants to fix boundaries
--- in the type, the alias `Hypergraphᵇ Gen As Bs` packages an
--- unindexed `Hypergraph Gen` together with two propositional witnesses
--- that its `domL`/`codL` agree with `As`/`Bs`.
---
--- Composition has the form
---   hCompose : (G K : Hypergraph Gen) → codL G ≡ domL K → Hypergraph Gen
--- and the translation `⟦_⟧` from APROP terms lives in `Hypergraph FlatGen`,
--- with the boundary fact `domL ⟦f⟧ ≡ flatten A` exposed as a separate
--- propositional lemma.
+-- For code that wants to fix boundaries in the type, `Hypergraphᵇ Gen As
+-- Bs` packages an unindexed `Hypergraph Gen` with witnesses that its
+-- `domL`/`codL` agree with `As`/`Bs`.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Core where

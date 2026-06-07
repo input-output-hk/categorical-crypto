@@ -66,7 +66,6 @@ insert-thm {suc n} i b with inv-di i b
   w′        = proj₁ bf
   i∷w′~ʷcb  = proj₁ (proj₂ bf)
   rw′       = proj₂ (proj₂ bf)
-  -- evalW w′ ≈ genFB i ∘-fb b
   evalw′≈ : evalW w′ ≈-fb (genFB i ∘-fb b)
   evalw′≈ = ≈-fb-trans {b = evalW w′} {b′ = genFB i ∘-fb (genFB i ∘-fb evalW w′)}
                     {b″ = genFB i ∘-fb b}

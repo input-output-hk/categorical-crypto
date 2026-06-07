@@ -1,26 +1,16 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Pruned cospan composition (TODO.org Option A).
+-- Pruned cospan composition.  Identical to `FromAPROP.hCompose` except the
+-- output's vertex count is `G.nV + count-non K.dom` (pruned) rather than
+-- `G.nV + K.nV`.  Pruning drops every K-side vertex in `K.dom`, since those
+-- positions are glued to the corresponding `G.cod` entry and are
+-- unreferenced in the composite.  Relies on `Hypergraph.Prune.remap` and
+-- its label-preservation lemmas.
 --
--- Identical to `FromAPROP.hCompose` except the output's vertex count is
---   G.nV + count-non K.dom       (pruned)
--- instead of
---   G.nV + K.nV                  (unpruned).
---
--- The pruning drops every K-side vertex that lives in `K.dom`, since those
--- positions have been "glued" to the corresponding `G.cod` entry and are
--- therefore unreferenced in the composite.
---
--- The construction relies on `Hypergraph.Prune.remap` plus its label-
--- preservation lemma `remap-vlab` / list-wise `map-via-remap`.
---
--- Usage downstream:
---   * Eventually `⟪ g ∘ f ⟫ = hComposeP ⟪ f ⟫ ⟪ g ⟫` (replaces the unpruned
---     version in `FromAPROP`).
---   * The group-(b)/(c) ≈Term axioms where LHS has strictly more vertices
---     than RHS become provable with `hComposeP`, because pruning lets the
---     vertex counts line up.
+-- DESIGN: pruning lets the vertex counts line up so the group-(b)/(c)
+-- ≈Term laws (where the unpruned LHS would have strictly more vertices
+-- than the RHS) become provable.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -45,11 +35,9 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; sym; trans; subst; subst₂)
 
 --------------------------------------------------------------------------------
--- Local helpers: "boundary lookup" lemma.
---
--- Given two lists with matching mapped images, their pointwise lookups agree
--- (up to `Fin.cast` across the length equality). This is the main ingredient
--- for `bdy-pt` below.
+-- "Boundary lookup" lemma: two lists with matching mapped images have
+-- pointwise-agreeing lookups (up to `Fin.cast`).  Main ingredient for
+-- `bdy-pt`.
 
 private
   ∷-head : ∀ {A : Set} {x y : A} {xs ys} → x ∷ xs ≡ y ∷ ys → x ≡ y
@@ -66,8 +54,6 @@ private
     trans (sym (length-map f xs))
           (trans (cong length eq) (length-map g ys))
 
-  -- The boundary lookup lemma. Pointwise image agreement from list-wise
-  -- image agreement: f (lookup xs i) ≡ g (lookup ys (cast ... i)).
   lookup-boundary : ∀ {A B Y : Set} (f : A → Y) (g : B → Y)
                       (xs : List A) (ys : List B)
                       (eq : map f xs ≡ map g ys)
@@ -79,9 +65,8 @@ private
     lookup-boundary f g xs ys (∷-tail eq) i
 
 --------------------------------------------------------------------------------
--- Module-parameterised construction.
---
--- Parallel to `FromAPROP.hCompose-impl` but with pruning.
+-- Module-parameterised construction (parallel to `FromAPROP.hCompose-impl`
+-- but with pruning).
 
 module hComposeP-impl
   (G K : Hypergraph FlatGen)
@@ -92,16 +77,15 @@ module hComposeP-impl
     module G = Hypergraph G
     module K = Hypergraph K
 
-  -- K.dom and G.cod have the same length: both are vertex-backings for Bs.
+  -- K.dom and G.cod have the same length (both vertex-backings for Bs).
   dom-cod-len : length K.dom ≡ length G.cod
   dom-cod-len =
     trans (sym (length-map K.vlab K.dom))
           (trans (cong length (sym bdy-eq))
                  (length-map G.vlab G.cod))
 
-  -- Lookup into G.cod indexed by a position in K.dom. Uses `Fin.cast`
-  -- (proof-irrelevant) so we can reason equationally without getting
-  -- stuck on specific proof terms.
+  -- Lookup into G.cod indexed by a position in K.dom.  Uses `Fin.cast`
+  -- (proof-irrelevant) to avoid getting stuck on specific proof terms.
   lookup-cod : Fin (length K.dom) → Fin G.nV
   lookup-cod i = lookup G.cod (cast dom-cod-len i)
 
@@ -110,7 +94,6 @@ module hComposeP-impl
   remapP : Fin K.nV → Fin (G.nV + count-non K.dom)
   remapP = remap K.dom lookup-cod
 
-  -- Pruned vertex count and labeling.
   nV-P : ℕ
   nV-P = G.nV + count-non K.dom
 
@@ -128,27 +111,22 @@ module hComposeP-impl
   vlab-injL i = cong [ G.vlab , λ-pruned ]′ (splitAt-↑ˡ G.nV i (count-non K.dom))
 
   --------------------------------------------------------------------------------
-  -- Boundary agreement and the key label lemma for remapP.
+  -- Boundary agreement and the label lemma for remapP.
 
-  -- Pointwise `K.vlab (K.dom[i]) ≡ G.vlab (lookup-cod i)`, derived from
-  -- the runtime boundary equation `bdy-eq : codL G ≡ domL K` (= `map G.vlab G.cod ≡ map K.vlab K.dom`).
+  -- Pointwise `K.vlab (K.dom[i]) ≡ G.vlab (lookup-cod i)`, from the
+  -- boundary equation `bdy-eq`.
   bdy-pt : ∀ i → K.vlab (lookup K.dom i) ≡ G.vlab (lookup-cod i)
   bdy-pt = lookup-boundary K.vlab G.vlab K.dom G.cod (sym bdy-eq)
 
-  -- Label preservation for remapP.
   remapP-vlab : ∀ v → vlab-P (remapP v) ≡ K.vlab v
   remapP-vlab = remap-vlab K.dom lookup-cod K.vlab G.vlab bdy-pt
 
-  -- List-wise label preservation.
   map-via-remapP : (xs : List (Fin K.nV))
                  → map K.vlab xs ≡ map vlab-P (map remapP xs)
   map-via-remapP = map-via-remap K.dom lookup-cod K.vlab G.vlab bdy-pt
 
   --------------------------------------------------------------------------------
-  -- Edge structure of the composite.
-  --
-  -- Same shape as `FromAPROP.hCompose-impl`: G-edges routed through injL,
-  -- K-edges routed through remapP.
+  -- Edge structure: G-edges routed through injL, K-edges through remapP.
 
   ein-c : Fin (G.nE + K.nE) → List (Fin nV-P)
   ein-c e = [ (λ eG → map injL (G.ein eG))
@@ -173,10 +151,8 @@ module hComposeP-impl
                     (K.elab eK)
 
   --------------------------------------------------------------------------------
-  -- Reduction lemmas (same shape as `FromAPROP.hCompose-impl`).
-  -- Callers (e.g. a future `hComposeP-resp-≅ᴴ` in a ported Congruence)
-  -- use these to peel the internal `splitAt` in `ein-c`, `eout-c`, `elab-c`
-  -- at inject+ / raise inputs.
+  -- Reduction lemmas: peel the internal `splitAt` in `ein-c`/`eout-c`/
+  -- `elab-c` at inject+ / raise inputs.
 
   ein-c-inj₁-red : ∀ (eG : Fin G.nE)
                  → ein-c (eG ↑ˡ K.nE) ≡ map injL (G.ein eG)
@@ -248,26 +224,8 @@ hComposeP G K bdy-eq = record
     open hComposeP-impl G K bdy-eq
 
 --------------------------------------------------------------------------------
--- hComposeP commutes with `subst₂` on the boundary types: any subst₂
--- transport applied to G's outer-As/middle-Bs and K's middle-Bs/outer-Cs
--- can be factored through a single subst₂ on the resulting composition.
---
--- Proved by refl-refl-refl pattern match on all three equalities.
--- For non-refl inputs the function is opaque, but the equality type is
--- still satisfied — the lemma serves as a type-correct bridge.
---
--- Used by the ρ/α soundness proofs to strip the `++-identityʳ` /
--- `++-assoc` substs out of `⟪ρ⇒⟫ / ⟪ρ⇐⟫ / ⟪α⇒⟫ / ⟪α⇐⟫` and reduce
--- the goal to `subst₂ _ (hComposeP (hId _) (hId _))`, which then
--- chains through `idˡ-sound (id _)` + a subst-elimination step.
-
--- DE-INDEXED REFACTOR: hComposeP-subst-both used to commute
--- `subst₂ (Hypergraph FlatGen)` past hComposeP.  Under de-indexing,
--- the type doesn't admit such substs at all, so the lemma is gone.
-
--- Boundary lemmas: `domL` of a pruned composition equals `domL G`,
--- and `codL` equals `codL K` (after applying remap).  These mirror
--- `FromAPROP.domL-hCompose` / `codL-hCompose`.
+-- Boundary lemmas: `domL` of a pruned composition equals `domL G`, and
+-- `codL` equals `codL K` (after applying remap).
 
 domL-hComposeP : ∀ G K bdy-eq → domL (hComposeP G K bdy-eq) ≡ domL G
 domL-hComposeP G K bdy-eq =

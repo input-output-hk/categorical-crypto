@@ -1,9 +1,10 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 module Categories.PermuteCoherence.Map where
 
 open import Data.Nat.Base using (ℕ; zero; suc)
-open import Data.List.Base using (List; []; _∷_; length; map)
+open import Data.Fin.Base using (Fin) renaming (zero to fzero; suc to fsuc)
+open import Data.List.Base using (List; []; _∷_; length; lookup; map)
 open import Data.List.Properties using (length-map)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
@@ -24,7 +25,7 @@ private
     A : Set a
     C : Set c
 
--- J-lemmas about subst₂ on FinBij
+-- J-lemmas about subst₂ on FinBij.
 subst₂-FinBij-id : ∀ {n m} (e : n ≡ m) → subst₂ FinBij e e id-fb ≡ id-fb
 subst₂-FinBij-id refl = refl
 
@@ -38,10 +39,9 @@ swap-fb-subst₂ : ∀ {n m n' m'} (a : n ≡ n') (b : m ≡ m') (π : FinBij n 
         (cons-fb (cons-fb π))
 swap-fb-subst₂ refl refl π = refl
 
--- Bridge: subst₂ along `cong f`-rewritten proofs equals subst₂ along the
--- recombined proof (needed since `length-map h (x∷xs)` reduces to
--- `cong suc (length-map h xs)`, but our recursion produces
--- `cong suc (sym (length-map h xs)) = subst₂` shape).
+-- subst₂ is proof-irrelevant: it depends only on the proof's value.
+-- (Needed to reconcile `length-map h (x∷xs)`'s `cong suc`-shaped proof
+-- with the `sym`-shaped proof our recursion produces.)
 subst₂-FinBij-irr : ∀ {n m n' m'} (a a' : n ≡ n') (b b' : m ≡ m') (π : FinBij n m)
   → a ≡ a' → b ≡ b' → subst₂ FinBij a b π ≡ subst₂ FinBij a' b' π
 subst₂-FinBij-irr a a' b b' π refl refl = refl
@@ -59,7 +59,6 @@ sym-cong-ss refl = refl
     ≡ subst₂ FinBij a cc (g ∘-fb f)
 ∘-fb-subst₂ refl refl refl g f = refl
 
--- swap-fb commutes trivially: swap-fb at size suc(suc n) under subst
 swap-gen-subst₂ : ∀ {n n'} (a : n ≡ n')
   → swap-fb n' ≡ subst₂ FinBij (cong (λ z → suc (suc z)) a) (cong (λ z → suc (suc z)) a) (swap-fb n)
 swap-gen-subst₂ refl = refl
@@ -107,39 +106,19 @@ eval-map⁺ h {xs = xs} {ys = zs} (Perm.trans {ys = ys} p q) =
 ------------------------------------------------------------------------
 -- More generic eval lemmas.
 
--- eval of a reflexive permutation is id-fb, modulo the length cast.
-eval-↭-reflexive : {xs ys : List A} (eq : xs ≡ ys)
-  → eval-↭ (Perm.↭-reflexive eq)
-    ≡ subst (λ n → FinBij (length xs) n) (cong length eq) id-fb
-eval-↭-reflexive refl = refl
-
--- eval commutes with subst on the codomain list.
+-- eval commutes with subst on the codomain.
 eval-subst-cod : {xs : List A} {C D : List A} (eq : C ≡ D) (p : xs ↭ C)
   → eval-↭ (subst (λ z → xs ↭ z) eq p)
     ≡ subst (λ n → FinBij (length xs) n) (cong length eq) (eval-↭ p)
 eval-subst-cod refl p = refl
 
--- ≈-fb is preserved by transporting both bijections along the SAME
--- length equalities (subst₂ on FinBij).
+-- ≈-fb is preserved by subst₂ on FinBij along the SAME length equalities.
 subst₂-FinBij-≈ : ∀ {n m n' m'} (a : n ≡ n') (b : m ≡ m') {π ρ : FinBij n m}
   → π ≈-fb ρ → subst₂ FinBij a b π ≈-fb subst₂ FinBij a b ρ
 subst₂-FinBij-≈ refl refl eq = eq
 
--- ≈-fb is preserved by transporting along subst on the codomain.
-subst-FinBij-≈ : ∀ {n m m'} (b : m ≡ m') {π ρ : FinBij n m}
-  → π ≈-fb ρ
-  → subst (λ k → FinBij n k) b π ≈-fb subst (λ k → FinBij n k) b ρ
-subst-FinBij-≈ refl eq = eq
-
--- eval commutes with subst on the DOMAIN list.
-eval-subst-dom : {C D : List A} {ys : List A} (eq : C ≡ D) (p : C ↭ ys)
-  → eval-↭ (subst (λ z → z ↭ ys) eq p)
-    ≡ subst (λ n → FinBij n (length ys)) (cong length eq) (eval-↭ p)
-eval-subst-dom refl p = refl
-
 -- `map⁺` of a reflexive permutation is the reflexive permutation of the
--- mapped equality (definitionally when the equality is `refl`; by J in
--- general).
+-- mapped equality.
 map⁺-↭-reflexive : (h : A → C) {xs ys : List A} (eq : xs ≡ ys)
   → PermProp.map⁺ h (Perm.↭-reflexive eq) ≡ Perm.↭-reflexive (cong (map h) eq)
 map⁺-↭-reflexive h refl = refl
@@ -158,65 +137,89 @@ map⁺-↭-reflexive h refl = refl
 ∘-fb-assoc h g f i = refl
 
 ------------------------------------------------------------------------
--- Identity / inverse laws for `_∘-fb_` (pointwise).
-
-open import Relation.Binary.PropositionalEquality.Core using () renaming (refl to ≡refl)
-
-id-fb-left : ∀ {n m} (f : FinBij n m) → id-fb ∘-fb f ≈-fb f
-id-fb-left f i = ≡refl
-
-id-fb-right : ∀ {n m} (f : FinBij n m) → f ∘-fb id-fb ≈-fb f
-id-fb-right f i = ≡refl
-
--- `f` after `inv-fb f` is the identity:  f ∘-fb inv-fb f ≈ id.
-∘-fb-inv-right : ∀ {n m} (f : FinBij n m) → f ∘-fb inv-fb f ≈-fb id-fb
-∘-fb-inv-right f i = P.inverseʳ f
-
--- Cancellation:  f ∘-fb (inv-fb f ∘-fb z) ≈ z.
-∘-fb-cancel-left : ∀ {n m k} (f : FinBij m k) (z : FinBij n k)
-  → f ∘-fb (inv-fb f ∘-fb z) ≈-fb z
-∘-fb-cancel-left f z i = P.inverseʳ f
-
-------------------------------------------------------------------------
--- Codomain-cast (`subst` on the FinBij codomain) algebra.
-
-open import Categories.PermuteCoherence.FinBij using (inv-fb)
-
--- `inv-fb` is pointwise congruent.  From `f ⟨$⟩ʳ ≡ g ⟨$⟩ʳ` pointwise:
---   f ⟨$⟩ˡ i = g ⟨$⟩ˡ (g ⟨$⟩ʳ (f ⟨$⟩ˡ i))
---           = g ⟨$⟩ˡ (f ⟨$⟩ʳ (f ⟨$⟩ˡ i))   (by eq)
---           = g ⟨$⟩ˡ i.
-inv-fb-cong : ∀ {n m} {f g : FinBij n m} → f ≈-fb g → inv-fb f ≈-fb inv-fb g
-inv-fb-cong {f = f} {g} eq i =
-  trans (sym (P.inverseˡ g))
-        (cong (g P.⟨$⟩ˡ_) (trans (sym (eq (f P.⟨$⟩ˡ i))) (P.inverseʳ f)))
-
--- Post-composing a codomain cast-identity transports the codomain.
-cast-id-∘ : ∀ {n m m'} (e : m ≡ m') (f : FinBij n m)
-  → subst (λ k → FinBij m k) e id-fb ∘-fb f ≡ subst (λ k → FinBij n k) e f
-cast-id-∘ refl f = ≈refl
-  where open import Relation.Binary.PropositionalEquality.Core using () renaming (refl to ≈refl)
-
--- The inverse of a codomain cast-identity is the reversed cast-identity.
-inv-fb-cast-id : ∀ {m m'} (e : m ≡ m')
-  → inv-fb (subst (λ k → FinBij m k) e id-fb) ≡ subst (λ k → FinBij m' k) (sym e) id-fb
-inv-fb-cast-id refl = ≈refl
-  where open import Relation.Binary.PropositionalEquality.Core using () renaming (refl to ≈refl)
-
--- Compose two codomain substs.
-subst-cod-comp : ∀ {n m₁ m₂ m₃} (e₁ : m₁ ≡ m₂) (e₂ : m₂ ≡ m₃) (f : FinBij n m₁)
-  → subst (λ k → FinBij n k) e₂ (subst (λ k → FinBij n k) e₁ f)
-    ≡ subst (λ k → FinBij n k) (trans e₁ e₂) f
-subst-cod-comp refl refl f = ≈refl
-  where open import Relation.Binary.PropositionalEquality.Core using () renaming (refl to ≈refl)
-
--- Codomain-subst proof-irrelevance (UIP via --with-K).
-subst-cod-irr : ∀ {n m m'} (e e' : m ≡ m') (f : FinBij n m)
-  → e ≡ e' → subst (λ k → FinBij n k) e f ≡ subst (λ k → FinBij n k) e' f
-subst-cod-irr e e' f refl = ≈refl
-  where open import Relation.Binary.PropositionalEquality.Core using () renaming (refl to ≈refl)
-
 -- Transport `≈-fb` along propositional equalities of both arguments.
 ≈-fb-resp-≡ : ∀ {n m} {π π' ρ ρ' : FinBij n m}
   → π ≡ π' → ρ ≡ ρ' → π ≈-fb ρ → π' ≈-fb ρ'
 ≈-fb-resp-≡ refl refl eq = eq
+
+------------------------------------------------------------------------
+-- `subst Fin` cast algebra for the cross-iso (φ-equivariance) rigidity.
+------------------------------------------------------------------------
+
+-- `subst Fin` along a `sym (cong suc _)` cast commutes with `suc`/`zero`.
+subst-Fin-sym-suc
+  : ∀ {n m : ℕ} (e : n ≡ m) (i : Fin m)
+  → subst Fin (sym (cong suc e)) (fsuc i) ≡ fsuc (subst Fin (sym e) i)
+subst-Fin-sym-suc refl i = refl
+
+subst-Fin-sym-zero
+  : ∀ {n m : ℕ} (e : n ≡ m)
+  → subst Fin (sym (cong suc e)) fzero ≡ fzero
+subst-Fin-sym-zero refl = refl
+
+-- `lookup` commutes with `map`, the index transported along `length-map`.
+lookup-map
+  : ∀ {A B : Set} (g : A → B) (xs : List A)
+      (i : Fin (length xs))
+  → lookup (map g xs) (subst Fin (sym (length-map g xs)) i) ≡ g (lookup xs i)
+lookup-map g (x ∷ xs) fzero =
+  cong (lookup (map g (x ∷ xs))) (subst-Fin-sym-zero (length-map g xs))
+lookup-map g (x ∷ xs) (fsuc i) =
+  trans (cong (lookup (map g (x ∷ xs))) (subst-Fin-sym-suc (length-map g xs) i))
+        (lookup-map g xs i)
+
+-- `eval-↭` commutes with `subst₂ _↭_` along list equalities.
+eval-subst₂-↭
+  : ∀ {a} {A : Set a} {xs xs' ys ys' : List A}
+      (p : xs ≡ xs') (q : ys ≡ ys') (r : xs Perm.↭ ys)
+  → eval-↭ (subst₂ Perm._↭_ p q r)
+    ≡ subst₂ FinBij (cong length p) (cong length q) (eval-↭ r)
+eval-subst₂-↭ refl refl r = refl
+
+-- `subst₂ FinBij` re-expressed as a pair of single `subst Fin`-casts on
+-- domain (precompose) and codomain (postcompose).
+subst₂-FinBij-as-subst
+  : ∀ {n n' m m'} (a : n ≡ n') (b : m ≡ m') (π : FinBij n m) (i : Fin n')
+  → (subst₂ FinBij a b π) P.⟨$⟩ʳ i
+    ≡ subst Fin b (π P.⟨$⟩ʳ subst Fin (sym a) i)
+subst₂-FinBij-as-subst refl refl π i = refl
+
+-- ℕ-equality is irrelevant (UIP from decidability), so `subst Fin` does
+-- not depend on the *proof* of a length equality, only its endpoints.
+cast-irr
+  : ∀ {n m : ℕ} (e e' : n ≡ m) (i : Fin n)
+  → subst Fin e i ≡ subst Fin e' i
+cast-irr e e' i = cong (λ z → subst Fin z i) (ℕ-≡-irrelevant e e')
+  where open import Data.Nat.Properties using () renaming (≡-irrelevant to ℕ-≡-irrelevant)
+
+-- Two nested `subst Fin`-casts collapse to a single one (matched at refl).
+subst-Fin-trans
+  : ∀ {n m k : ℕ} (e : n ≡ m) (e' : m ≡ k) (i : Fin n)
+  → subst Fin e' (subst Fin e i) ≡ subst Fin (trans e e') i
+subst-Fin-trans refl refl i = refl
+
+-- `lookup` along a list equality: transporting the index by the
+-- `cong length`-cast of `e : xs ≡ ys` re-indexes `ys` to agree with `xs`.
+lookup-subst-list
+  : ∀ {a} {A : Set a} {xs ys : List A} (e : xs ≡ ys) (k : Fin (length xs))
+  → lookup ys (subst Fin (cong length e) k) ≡ lookup xs k
+lookup-subst-list refl k = refl
+
+-- A `subst Fin` round-trip (cast then inverse cast) is the identity.
+subst-Fin-roundtrip
+  : ∀ {n m : ℕ} (e : n ≡ m) (i : Fin n)
+  → subst Fin (sym e) (subst Fin e i) ≡ i
+subst-Fin-roundtrip refl i = refl
+
+-- The other-direction round-trip:  `subst Fin e ∘ subst Fin (sym e) = id`.
+subst-Fin-roundtrip'
+  : ∀ {n m : ℕ} (e : n ≡ m) (i : Fin m)
+  → subst Fin e (subst Fin (sym e) i) ≡ i
+subst-Fin-roundtrip' refl i = refl
+
+-- `subst Fin (sym (sym e)) = subst Fin e` (cast-irr, since `sym (sym e)`
+-- and `e` have the same endpoints).
+subst-Fin-sym-sym
+  : ∀ {n m : ℕ} (e : n ≡ m) (i : Fin n)
+  → subst Fin (sym (sym e)) i ≡ subst Fin e i
+subst-Fin-sym-sym e i = cast-irr (sym (sym e)) e i

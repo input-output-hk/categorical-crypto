@@ -9,19 +9,14 @@
 -- `(φ', ψ')`. Returns a `List` of successful extensions; the
 -- back-tracker (Phase 4a.4) consumes this list.
 --
--- *Propagation* is implicit: pairing up `H.ein e [i] ↔ J.ein e' [i]`
--- adds `length (ein e) + length (eout e)` new vertex constraints to
--- `φ`, which prune future edge-match choices via `extend-bij`'s
+-- Propagation is implicit: pairing up `H.ein e [i] ↔ J.ein e' [i]` adds new
+-- vertex constraints to `φ`, pruning future choices via `extend-bij`'s
 -- conflict check.
 --
--- **No label equality check at the `FlatGen` level is done here.**
--- Labels live in `FlatGen (map vlab (ein e)) (map vlab (eout e))`,
--- and comparing them requires transport along atom-list equalities
--- that the search hasn't constructed yet. The final verification
--- (Phase 4a.5) pattern-matches both labels as `flat f / flat g`
--- and checks `f ≟-mor g` — at that point both sides have fully
--- determined types. Here we only cull candidates by arity and
--- atom-list shape, which is cheap and decidable.
+-- No label equality check at the `FlatGen` level happens here (comparing
+-- labels needs transport along atom-list equalities the search hasn't built
+-- yet; the final verification does it).  Here we only cull candidates by
+-- arity and atom-list shape, which is cheap and decidable.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
@@ -44,8 +39,8 @@ open import Data.Product using (_×_; _,_)
 open import Relation.Nullary using (does)
 
 --------------------------------------------------------------------------------
--- Shape compatibility — arity and atom lists agree between H-edge `e`
--- and J-edge `e'`. Cheap pre-filter before attempting to pairUp.
+-- Shape compatibility — arity and atom lists agree.  Cheap pre-filter
+-- before attempting `pairUp`.
 
 _≟L_ : (xs ys : List X) → _
 _≟L_ = ≡-dec _≟X_
@@ -102,8 +97,7 @@ module _
       viaEin (just φ')  = viaEout φ'
 
   --------------------------------------------------------------------------
-  -- Enumerate all matches of `e` against J-edges. Walks Fin positions
-  -- of `nEJ` from zero up and collects successful extensions.
+  -- Enumerate all matches of `e` against J-edges.
 
   matchEdge : VertexBij → EdgeBij → Fin nEH → List (VertexBij × EdgeBij)
   matchEdge φ ψ e = go nEJ (λ i → i)

@@ -1,28 +1,17 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Smoke tests for `findIso`, threaded through `completeness-full-wired`.
--- The completeness theorem is now FULLY AXIOM-FREE (its Kelly residual is the
--- proven `FaithfulnessInductive.faithfulness`), so the tests below are closed
--- theorems requiring no assumption.  The (now parameterless) `WithAssumptions`
--- module is retained for `Solver/TestsTrust.agda`.
---
--- Each test is of the form
+-- Smoke tests for `findIso`, threaded through `soundness-full-wired`.
+-- Each test has the form
 --
 --   test : f ≈Term g
---   test = completeness-full-wired (from-just (findIso ⟪ f ⟫ ⟪ g ⟫))
+--   test = soundness-full-wired (from-just (findIso ⟪ f ⟫ ⟪ g ⟫))
 --
--- which compels `findIso` to actually reduce to `just _` at type-check
--- time and routes the resulting hypergraph iso through the standalone
--- `DecodeRelRespIsoWired` chain to a syntactic `≈Term` equation.
---
--- `⟪_⟫` is imported from `Translation` (the *pruned* translation).
--- Under pruning, `⟪ id ∘ Agen f ⟫` and `⟪ Agen f ⟫` have matching
--- vertex counts, so `findIso` succeeds on all equation-shaped
--- `_≈Term_` constructors below.
---
--- This module is `--safe --with-K` and postulate-free; the whole wired
--- coherence chain it imports is also `--safe` and postulate-free.
+-- which compels `findIso` to reduce to `just _` at type-check time and
+-- routes the resulting hypergraph iso through `DecodeRelRespIsoWired` to a
+-- syntactic `≈Term` equation.  `⟪_⟫` is the *pruned* translation, under
+-- which the equation-shaped sides have matching vertex counts so `findIso`
+-- succeeds.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Solver.Tests where
@@ -54,9 +43,9 @@ private
   a₂ = Var (suc (suc zero))
 
 --------------------------------------------------------------------------------
--- Generator data type. Three constructors at distinct (dom, cod) — Agda
--- index unification rules out the cross cases automatically, so
--- `_≟-MyMor_` only needs to handle the diagonal.
+-- Generator data type.  Three constructors at distinct (dom, cod), so index
+-- unification rules out the cross cases and `_≟-MyMor_` need only handle the
+-- diagonal.
 
 data MyMor : ObjTerm → ObjTerm → Set where
   f : MyMor a₀ a₁
@@ -82,7 +71,7 @@ mySigDec = record
   }
 
 --------------------------------------------------------------------------------
--- Bring in the term language, the solver, and the completeness theorem.
+-- Bring in the term language, the solver, and the soundness theorem.
 
 open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Translation mySig using (⟪_⟫)
@@ -90,86 +79,82 @@ open import Categories.APROP.Hypergraph.Solver.FindIso mySigDec using (findIso)
 open APROP mySig
 
 --------------------------------------------------------------------------------
--- The completeness theorem `completeness-full-wired` is now FULLY AXIOM-FREE
--- (its Kelly residual is the proven `FaithfulnessInductive.faithfulness`), so
--- the tests below are closed theorems — no assumption is needed.  The
--- `WithAssumptions` module is retained (now parameterless) for compatibility
--- with `Solver/TestsTrust.agda`.
+-- The soundness theorem (axiom-free), giving closed `--safe` test theorems.
 
-open import Categories.APROP.Hypergraph.CompletenessFullWired mySigDec
-  using (completeness-full-wired)
+open import Categories.APROP.Hypergraph.SoundnessFullWired mySigDec
+  using (soundness-full-wired)
 
 --------------------------------------------------------------------------------
 -- Tests for each equation-shaped `_≈Term_` constructor.
 
 test-idˡ : id ∘ Agen f ≈Term Agen f
-test-idˡ = completeness-full-wired (from-just (findIso ⟪ id ∘ Agen f ⟫ ⟪ Agen f ⟫))
+test-idˡ = soundness-full-wired (from-just (findIso ⟪ id ∘ Agen f ⟫ ⟪ Agen f ⟫))
 
 test-idʳ : Agen f ∘ id ≈Term Agen f
-test-idʳ = completeness-full-wired (from-just (findIso ⟪ Agen f ∘ id ⟫ ⟪ Agen f ⟫))
+test-idʳ = soundness-full-wired (from-just (findIso ⟪ Agen f ∘ id ⟫ ⟪ Agen f ⟫))
 
 test-assoc : (Agen h ∘ Agen g) ∘ Agen f ≈Term Agen h ∘ (Agen g ∘ Agen f)
-test-assoc = completeness-full-wired
+test-assoc = soundness-full-wired
   (from-just (findIso ⟪ (Agen h ∘ Agen g) ∘ Agen f ⟫
                       ⟪ Agen h ∘ (Agen g ∘ Agen f) ⟫))
 
 test-≈-refl : Agen f ≈Term Agen f
-test-≈-refl = completeness-full-wired (from-just (findIso ⟪ Agen f ⟫ ⟪ Agen f ⟫))
+test-≈-refl = soundness-full-wired (from-just (findIso ⟪ Agen f ⟫ ⟪ Agen f ⟫))
 
 test-id⊗id : id {a₀} ⊗₁ id {a₁} ≈Term id {a₀ ⊗₀ a₁}
-test-id⊗id = completeness-full-wired
+test-id⊗id = soundness-full-wired
   (from-just (findIso ⟪ id {a₀} ⊗₁ id {a₁} ⟫ ⟪ id {a₀ ⊗₀ a₁} ⟫))
 
 test-⊗-∘-dist
   : (Agen g ∘ Agen f) ⊗₁ (Agen f ∘ Agen h)
   ≈Term Agen g ⊗₁ Agen f ∘ Agen f ⊗₁ Agen h
-test-⊗-∘-dist = completeness-full-wired (from-just (findIso
+test-⊗-∘-dist = soundness-full-wired (from-just (findIso
   ⟪ (Agen g ∘ Agen f) ⊗₁ (Agen f ∘ Agen h) ⟫
   ⟪ Agen g ⊗₁ Agen f ∘ Agen f ⊗₁ Agen h ⟫))
 
 test-λ⇐∘λ⇒ : λ⇐ ∘ λ⇒ {a₀} ≈Term id {unit ⊗₀ a₀}
-test-λ⇐∘λ⇒ = completeness-full-wired
+test-λ⇐∘λ⇒ = soundness-full-wired
   (from-just (findIso ⟪ λ⇐ ∘ λ⇒ {a₀} ⟫ ⟪ id {unit ⊗₀ a₀} ⟫))
 
 test-λ⇒∘λ⇐ : λ⇒ ∘ λ⇐ {a₀} ≈Term id {a₀}
-test-λ⇒∘λ⇐ = completeness-full-wired
+test-λ⇒∘λ⇐ = soundness-full-wired
   (from-just (findIso ⟪ λ⇒ ∘ λ⇐ {a₀} ⟫ ⟪ id {a₀} ⟫))
 
 test-ρ⇐∘ρ⇒ : ρ⇐ ∘ ρ⇒ {a₀} ≈Term id {a₀ ⊗₀ unit}
-test-ρ⇐∘ρ⇒ = completeness-full-wired
+test-ρ⇐∘ρ⇒ = soundness-full-wired
   (from-just (findIso ⟪ ρ⇐ ∘ ρ⇒ {a₀} ⟫ ⟪ id {a₀ ⊗₀ unit} ⟫))
 
 test-ρ⇒∘ρ⇐ : ρ⇒ ∘ ρ⇐ {a₀} ≈Term id {a₀}
-test-ρ⇒∘ρ⇐ = completeness-full-wired
+test-ρ⇒∘ρ⇐ = soundness-full-wired
   (from-just (findIso ⟪ ρ⇒ ∘ ρ⇐ {a₀} ⟫ ⟪ id {a₀} ⟫))
 
 test-α⇐∘α⇒ : α⇐ ∘ α⇒ {a₀} {a₁} {a₂} ≈Term id {(a₀ ⊗₀ a₁) ⊗₀ a₂}
-test-α⇐∘α⇒ = completeness-full-wired (from-just (findIso
+test-α⇐∘α⇒ = soundness-full-wired (from-just (findIso
   ⟪ α⇐ ∘ α⇒ {a₀} {a₁} {a₂} ⟫ ⟪ id {(a₀ ⊗₀ a₁) ⊗₀ a₂} ⟫))
 
 test-α⇒∘α⇐ : α⇒ ∘ α⇐ {a₀} {a₁} {a₂} ≈Term id {a₀ ⊗₀ (a₁ ⊗₀ a₂)}
-test-α⇒∘α⇐ = completeness-full-wired (from-just (findIso
+test-α⇒∘α⇐ = soundness-full-wired (from-just (findIso
   ⟪ α⇒ ∘ α⇐ {a₀} {a₁} {a₂} ⟫ ⟪ id {a₀ ⊗₀ (a₁ ⊗₀ a₂)} ⟫))
 
 test-λ⇒∘id⊗f : λ⇒ ∘ (id {unit} ⊗₁ Agen f) ≈Term Agen f ∘ λ⇒
-test-λ⇒∘id⊗f = completeness-full-wired (from-just (findIso
+test-λ⇒∘id⊗f = soundness-full-wired (from-just (findIso
   ⟪ λ⇒ ∘ (id {unit} ⊗₁ Agen f) ⟫ ⟪ Agen f ∘ λ⇒ ⟫))
 
 test-ρ⇒∘f⊗id : ρ⇒ ∘ (Agen f ⊗₁ id {unit}) ≈Term Agen f ∘ ρ⇒
-test-ρ⇒∘f⊗id = completeness-full-wired (from-just (findIso
+test-ρ⇒∘f⊗id = soundness-full-wired (from-just (findIso
   ⟪ ρ⇒ ∘ (Agen f ⊗₁ id {unit}) ⟫ ⟪ Agen f ∘ ρ⇒ ⟫))
 
 test-α-comm
   : α⇒ ∘ ((Agen f ⊗₁ Agen g) ⊗₁ Agen h)
   ≈Term (Agen f ⊗₁ (Agen g ⊗₁ Agen h)) ∘ α⇒
-test-α-comm = completeness-full-wired (from-just (findIso
+test-α-comm = soundness-full-wired (from-just (findIso
   ⟪ α⇒ ∘ ((Agen f ⊗₁ Agen g) ⊗₁ Agen h) ⟫
   ⟪ (Agen f ⊗₁ (Agen g ⊗₁ Agen h)) ∘ α⇒ ⟫))
 
 test-triangle
   : id {a₀} ⊗₁ λ⇒ {a₁} ∘ α⇒ {a₀} {unit} {a₁}
   ≈Term ρ⇒ {a₀} ⊗₁ id {a₁}
-test-triangle = completeness-full-wired (from-just (findIso
+test-triangle = soundness-full-wired (from-just (findIso
   ⟪ id {a₀} ⊗₁ λ⇒ {a₁} ∘ α⇒ {a₀} {unit} {a₁} ⟫
   ⟪ ρ⇒ {a₀} ⊗₁ id {a₁} ⟫))
 
@@ -179,7 +164,7 @@ test-pentagon
        ∘ (α⇒ {a₀} {a₁} {a₂} ⊗₁ id {a₀})
   ≈Term α⇒ {a₀} {a₁} {a₂ ⊗₀ a₀}
        ∘ α⇒ {a₀ ⊗₀ a₁} {a₂} {a₀}
-test-pentagon = completeness-full-wired (from-just (findIso
+test-pentagon = soundness-full-wired (from-just (findIso
   ⟪ (id {a₀} ⊗₁ α⇒ {a₁} {a₂} {a₀})
        ∘ α⇒ {a₀} {a₁ ⊗₀ a₂} {a₀}
        ∘ (α⇒ {a₀} {a₁} {a₂} ⊗₁ id {a₀}) ⟫
@@ -187,17 +172,17 @@ test-pentagon = completeness-full-wired (from-just (findIso
        ∘ α⇒ {a₀ ⊗₀ a₁} {a₂} {a₀} ⟫))
 
 test-σ∘σ : σ ∘ σ {a₀} {a₁} ≈Term id {a₀ ⊗₀ a₁}
-test-σ∘σ = completeness-full-wired
+test-σ∘σ = soundness-full-wired
   (from-just (findIso ⟪ σ ∘ σ {a₀} {a₁} ⟫ ⟪ id {a₀ ⊗₀ a₁} ⟫))
 
 test-σ∘[f⊗g] : σ ∘ (Agen f ⊗₁ Agen g) ≈Term (Agen g ⊗₁ Agen f) ∘ σ
-test-σ∘[f⊗g] = completeness-full-wired (from-just (findIso
+test-σ∘[f⊗g] = soundness-full-wired (from-just (findIso
   ⟪ σ ∘ (Agen f ⊗₁ Agen g) ⟫
   ⟪ (Agen g ⊗₁ Agen f) ∘ σ ⟫))
 
 test-hexagon
   : id {a₁} ⊗₁ σ ∘ α⇒ {a₁} {a₀} {a₂} ∘ σ ⊗₁ id {a₂}
   ≈Term α⇒ {a₁} {a₂} {a₀} ∘ σ {a₀} {a₁ ⊗₀ a₂} ∘ α⇒ {a₀} {a₁} {a₂}
-test-hexagon = completeness-full-wired (from-just (findIso
+test-hexagon = soundness-full-wired (from-just (findIso
   ⟪ id {a₁} ⊗₁ σ ∘ α⇒ {a₁} {a₀} {a₂} ∘ σ ⊗₁ id {a₂} ⟫
   ⟪ α⇒ {a₁} {a₂} {a₀} ∘ σ {a₀} {a₁ ⊗₀ a₂} ∘ α⇒ {a₀} {a₁} {a₂} ⟫))

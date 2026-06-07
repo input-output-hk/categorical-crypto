@@ -1,28 +1,19 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Pruning helpers for a canonical `hCompose` (TODO.org Option A).
+-- Pruning helpers for a canonical `hCompose`.
 --
 -- Given `xs : List (Fin n)` (typically `K.dom` of the right operand of a
--- cospan composition), we want to identify the Fin values NOT in `xs`.
--- After composition, the positions named in `xs` have been "glued" to the
--- left operand's `cod`, so they become unreferenced and can be pruned.
+-- cospan composition), identify the Fin values NOT in `xs`.  After
+-- composition the positions named in `xs` have been "glued" to the left
+-- operand's `cod`, so they become unreferenced and can be pruned.
 --
--- This module provides:
---   * `nonMem xs`     — the list of Fin values not in `xs`.
---   * `count-non xs`  — its length (the count of "survivors").
---   * `classify xs v` — cases `v : Fin n` as either a position in `xs`
---                       or a position in `nonMem xs`.
---   * `remap xs f`    — combinator that routes members of `xs` to an
---                       arbitrary target space via `f`, and non-members
---                       to the fresh pruned space of size `count-non xs`.
---
--- The canonical `hCompose` will have vertex count
---   `G.nV + count-non K.dom`
--- and a `remap` that sends each K-vertex to either:
---   * a G-side position (if the vertex was in `K.dom`), via
---     `f i = G.cod[i]` composed with `inject+`, or
---   * a fresh pruned-K-side position (via an index lookup in `nonMem K.dom`).
+--   * `nonMem xs`     — the Fin values not in `xs`.
+--   * `count-non xs`  — its length (the "survivors").
+--   * `classify xs v` — cases `v` as a position in `xs` or in `nonMem xs`.
+--   * `remap xs f`    — routes members of `xs` to an arbitrary target space
+--                       via `f`, non-members to the fresh pruned space of
+--                       size `count-non xs`.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Prune where
@@ -108,8 +99,8 @@ module _ {n : ℕ} where
     | yes v∈xs = sym (lookup-index v∈xs)
 
   -- Inversion: when classify returns `inj₂ j`, the non-member slot `j` in
-  -- `nonMem xs` looks back to `v`. This is the key lemma used by the
-  -- pruned `hCompose` to recover vertex labels from the pruned space.
+  -- `nonMem xs` looks back to `v`.  The key lemma the pruned `hCompose` uses
+  -- to recover vertex labels from the pruned space.
   classify-inj₂-lookup : (xs : List (Fin n)) (v : Fin n) (j : Fin (count-non xs))
                        → classify xs v ≡ inj₂ j
                        → lookup (nonMem xs) j ≡ v
@@ -149,9 +140,8 @@ module _ {n : ℕ} where
                   as Uniq-Prop
 
   -- Two ∈-filter⁺ constructions with the same value but different
-  -- non-membership proofs produce the same index into nonMem xs.
-  -- (By uniqueness of lookup in a Unique list, the index is determined
-  -- solely by the value v.)
+  -- non-membership proofs produce the same index into nonMem xs (the index
+  -- is determined solely by `v`, by uniqueness of lookup).
   index-∈-filter-irrelevant
     : ∀ (xs : List (Fin n)) (v : Fin n)
         (v∉₁ v∉₂ : v ∉ xs)
@@ -196,8 +186,6 @@ module _ {n : ℕ} where
   classify-inj₁-∈ () | no _
 
   -- For Unique xs, the classify index of `lookup xs j` is `j`.
-  -- (The first occurrence of v = lookup xs j in a Unique list xs
-  -- is at position j, since v appears only there.)
   classify-lookup-Unique
     : (xs : List (Fin n)) → Unique xs
     → (j : Fin (length xs))
@@ -214,14 +202,13 @@ module _ {n : ℕ} where
       ∈-lookup-helper = ∈-lookup-std j
 
   -- Dual to `classify-lookup-Unique`: for `j : Fin (count-non xs)`,
-  -- `classify xs (lookup (nonMem xs) j) ≡ inj₂ j`. Used by
-  -- `idʳ-sound` to show the "pruned side" of the bijection inverse.
+  -- `classify xs (lookup (nonMem xs) j) ≡ inj₂ j`.
   classify-lookup-nonMem
     : (xs : List (Fin n)) (j : Fin (count-non xs))
     → classify xs (lookup (nonMem xs) j) ≡ inj₂ j
   classify-lookup-nonMem xs j
     with lookup (nonMem xs) j ∈? xs
-  -- impossible: lookup (nonMem xs) j is by construction NOT in xs.
+  -- impossible: `lookup (nonMem xs) j` is by construction NOT in xs.
   ... | yes v∈ = ⊥-elim (nonMem-member-helper v∈)
     where
       open import Data.List.Membership.Propositional.Properties
@@ -253,46 +240,6 @@ module _ {n : ℕ} where
       open import Data.Product using (proj₂)
 
 --------------------------------------------------------------------------------
--- `any?` / `∈?` commute with `map` under an injection.
---
--- The decidable membership test is structural on the list — it walks each
--- element and checks `_≟ v`. Under an injection f, `f x ≟ f v` has the
--- same answer as `x ≟ v` (by injectivity in the yes case, vacuously in
--- the no case). So `any? (_≟ f v) (map f xs)` traces the same walk as
--- `any? (_≟ v) xs`, just with every element and the target wrapped in f.
---
--- This lemma is used by `Congruence.hComposeP-resp-≅ᴴ`'s `remapP-comm`,
--- via a `classify`-coherence lemma that reduces to this after some
--- `refl` chasing.
-
-module _ {m n : ℕ}
-         (φ : Fin m → Fin n)
-         (φ-inj : ∀ {x y : Fin m} → φ x ≡ φ y → x ≡ y)
-         where
-  open import Data.List.Membership.Propositional using (_∈_; _∉_)
-  open import Data.List.Relation.Unary.Any using (here; there)
-
-  -- Inverse of ∉-map-injective: `φ v ∈ map φ xs ⇒ v ∈ xs`.
-  -- Dual to `∉-map-injective` (which goes the other way).
-  ∈-map-injective⁻ : ∀ {xs : List (Fin m)} {v : Fin m}
-                   → φ v ∈ map φ xs → v ∈ xs
-  ∈-map-injective⁻ {xs = x ∷ xs} (here eq)    = here (φ-inj eq)
-  ∈-map-injective⁻ {xs = x ∷ xs} (there rest) =
-    there (∈-map-injective⁻ rest)
-
-  open import Data.Fin using (zero; suc; cast)
-  open import Data.List.Properties using (length-map)
-  open import Data.List.Membership.Propositional.Properties using (∈-map⁺)
-
-  -- `∈-map⁺ φ` preserves `Any.index` structurally.
-  ∈-map⁺-index-cast
-    : ∀ {xs : List (Fin m)} {v : Fin m} (v∈xs : v ∈ xs)
-    → index (∈-map⁺ φ v∈xs)
-    ≡ cast (sym (length-map φ xs)) (index v∈xs)
-  ∈-map⁺-index-cast {xs = x ∷ xs} (here refl) = refl
-  ∈-map⁺-index-cast {xs = x ∷ xs} (there p)  =
-    cong suc (∈-map⁺-index-cast p)
-
 -- Generic lookup-through-map commutation.
 module _ {ℓ₁ ℓ₂ : _} {A : Set ℓ₁} {B : Set ℓ₂} where
   open import Data.Fin using (cast)
@@ -305,7 +252,7 @@ module _ {ℓ₁ ℓ₂ : _} {A : Set ℓ₁} {B : Set ℓ₂} where
   lookup-map-cast f (x ∷ xs) (suc i) = lookup-map-cast f xs i
 
   -- Generalization: `lookup ys (cast chain i) ≡ f (lookup xs i)` when
-  -- ys ≡ map f xs. Proof by refl-pattern on the equality.
+  -- `ys ≡ map f xs`.
   lookup-≡-map-cast
     : ∀ (f : A → B) {xs : List A} {ys : List B}
         (eq : ys ≡ map f xs)
@@ -315,12 +262,8 @@ module _ {ℓ₁ ℓ₂ : _} {A : Set ℓ₁} {B : Set ℓ₂} where
   lookup-≡-map-cast f {xs = xs} refl i = lookup-map-cast f xs i
 
 --------------------------------------------------------------------------------
--- Injective maps transport (non-)membership.
---
--- If `φ` is injective and `v ∉ xs`, then `φ v ∉ map φ xs`. Used in the
--- eventual `hComposeP-resp-≅ᴴ` port to lift the K-side iso through the
--- pruned space: `K₂.dom ≡ map φ K₁.dom` means φ carries `nonMem K₁.dom`
--- into `nonMem K₂.dom`.
+-- Injective maps transport (non-)membership: if `φ` is injective and
+-- `v ∉ xs`, then `φ v ∉ map φ xs`.
 
 module _ {m n : ℕ} (φ : Fin m → Fin n)
          (φ-inj : ∀ {x y : Fin m} → φ x ≡ φ y → x ≡ y) where
@@ -335,13 +278,9 @@ module _ {m n : ℕ} (φ : Fin m → Fin n)
     ∉-map-injective (λ v∈xs → v∉xs (there v∈xs)) rest
 
 --------------------------------------------------------------------------------
--- Pruned-space transport.
---
--- If `φ : Fin m → Fin n` is an injection and `ys = map φ xs`, then the
--- non-members of `xs` map into non-members of `ys`, yielding
---   pruneMap : Fin (count-non xs) → Fin (count-non (map φ xs)).
--- The K-side vertex bijection in a ported `hComposeP-resp-≅ᴴ` routes
--- through this without leaving `--safe --without-K`.
+-- Pruned-space transport.  If `φ` is injective then `nonMem xs` maps into
+-- `nonMem (map φ xs)`, yielding `pruneMap : Fin (count-non xs) → Fin
+-- (count-non (map φ xs))`.
 
 module _ {m n : ℕ} (φ : Fin m → Fin n)
          (φ-inj : ∀ {x y : Fin m} → φ x ≡ φ y → x ≡ y) where
@@ -358,9 +297,7 @@ module _ {m n : ℕ} (φ : Fin m → Fin n)
                      (∈-allFin (φ (lookup (nonMem xs) j)))
                      (∉-map-injective φ φ-inj (nonMem-member xs j)))
 
-  -- Key identity: going through pruneMap and then looking up recovers
-  -- `φ v` where `v = lookup (nonMem xs) j`. Proved via `lookup-index`
-  -- on the `∈-filter⁺` witness inside `pruneMap`.
+  -- Key identity: pruneMap then lookup recovers `φ (lookup (nonMem xs) j)`.
   lookup-pruneMap : (xs : List (Fin m)) (j : Fin (count-non xs))
                   → lookup (nonMem (map φ xs)) (pruneMap xs j)
                   ≡ φ (lookup (nonMem xs) j)
@@ -371,8 +308,7 @@ module _ {m n : ℕ} (φ : Fin m → Fin n)
 
 --------------------------------------------------------------------------------
 -- Inverse transport: given a two-sided inverse pair `(φ, φ⁻¹)`, the
--- non-members travel back via `φ⁻¹`. Used for the φ⁻¹ side of the pruned
--- vertex bijection.
+-- non-members travel back via `φ⁻¹`.
 
 module _ {m n : ℕ}
          (φ   : Fin m → Fin n) (φ⁻¹ : Fin n → Fin m)
@@ -384,9 +320,6 @@ module _ {m n : ℕ}
   -- Injectivity from the left-inverse property.
   φ-inj : ∀ {x y : Fin m} → φ x ≡ φ y → x ≡ y
   φ-inj {x} {y} eq = trans (sym (φ-left x)) (trans (cong φ⁻¹ eq) (φ-left y))
-
-  φ⁻¹-inj : ∀ {x y : Fin n} → φ⁻¹ x ≡ φ⁻¹ y → x ≡ y
-  φ⁻¹-inj {x} {y} eq = trans (sym (φ-right x)) (trans (cong φ eq) (φ-right y))
 
   -- If `φ⁻¹ v ∈ xs` then `v ∈ map φ xs` via `v = φ (φ⁻¹ v)`.
   -- Contrapositive: `v ∉ map φ xs → φ⁻¹ v ∉ xs`.
@@ -403,9 +336,7 @@ module _ {m n : ℕ}
               → v ∉ map φ xs → φ⁻¹ v ∉ xs
   ∉-map-via-φ v∉ = λ φ⁻¹v∈xs → v∉ (∈-map-via-φ φ⁻¹v∈xs)
 
-  -- Backward direction of the pruned bijection: given k indexing into
-  -- nonMem (map φ xs), look up the Fin n value, apply φ⁻¹, and take its
-  -- index in nonMem xs.
+  -- Backward direction of the pruned bijection.
   open import Data.List.Membership.DecPropositional (_≟_ {n = m})
     using () renaming (_∈?_ to _∈m?_)
   open import Data.List.Membership.Propositional.Properties
@@ -418,8 +349,7 @@ module _ {m n : ℕ}
                      (∈-allFin (φ⁻¹ (lookup (nonMem (map φ xs)) k)))
                      (∉-map-via-φ (nonMem-member (map φ xs) k)))
 
-  -- Key identity: going through pruneMap⁻¹ and then looking up recovers
-  -- `φ⁻¹` of the chain.
+  -- Key identity: pruneMap⁻¹ then lookup recovers `φ⁻¹` of the chain.
   lookup-pruneMap⁻¹ : (xs : List (Fin m)) (k : Fin (count-non (map φ xs)))
                     → lookup (nonMem xs) (pruneMap⁻¹ xs k)
                     ≡ φ⁻¹ (lookup (nonMem (map φ xs)) k)
@@ -444,10 +374,6 @@ module _ {m n : ℕ}
   pruneMap-left-inverse xs j =
     lookup-injective-unique (nonMem-Unique xs) _ j eq
     where
-      -- lookup (nonMem xs) (pruneMap⁻¹ xs (pruneMap′ xs j))
-      -- = φ⁻¹ (lookup (nonMem (map φ xs)) (pruneMap′ xs j))   [lookup-pruneMap⁻¹]
-      -- = φ⁻¹ (φ (lookup (nonMem xs) j))                      [lookup-pruneMap′]
-      -- = lookup (nonMem xs) j                                [φ-left]
       eq : lookup (nonMem xs) (pruneMap⁻¹ xs (pruneMap′ xs j))
          ≡ lookup (nonMem xs) j
       eq = trans (lookup-pruneMap⁻¹ xs (pruneMap′ xs j))
@@ -467,12 +393,9 @@ module _ {m n : ℕ}
                         (φ-right (lookup (nonMem (map φ xs)) k)))
 
 --------------------------------------------------------------------------------
--- Remap combinator.
---
--- Given xs ⊂ Fin n and a target map f : Fin (length xs) → Fin m for
--- members of xs, produces Fin n → Fin (m + count-non xs) by routing
--- members to `inject+ (count-non xs) (f i)` and non-members to
--- `raise m j` where j is the non-member's index in `nonMem xs`.
+-- Remap combinator.  Given `xs ⊂ Fin n` and a target map `f : Fin (length
+-- xs) → Fin m`, produces `Fin n → Fin (m + count-non xs)` routing members to
+-- `f i ↑ˡ count-non xs` and non-members to `m ↑ʳ j`.
 
 module _ {n m : ℕ} where
   remap : (xs : List (Fin n)) → (Fin (length xs) → Fin m)
@@ -498,21 +421,11 @@ module _ {n m : ℕ} where
   remap-inj₂ xs f v j refl | inj₂ .j = refl
 
 --------------------------------------------------------------------------------
--- Label preservation.
---
--- The key lemma that makes the pruned `hCompose` work. Given:
---   * xs : List (Fin n)           — positions to prune (e.g., K.dom)
---   * f  : Fin (length xs) → Fin m — target map for member positions
---   * λK : Fin n → X              — labels for the source (K-side)
---   * λG : Fin m → X              — labels for the target (G-side)
---   * pointwise boundary agreement: ∀ i → λK (xs[i]) ≡ λG (f i)
---
--- The "pruned composite labeling" is
---   vlab-c : Fin (m + count-non xs) → X
---   vlab-c = [ λG , λ-non ]′ ∘ splitAt m
--- where λ-non j = λK (lookup (nonMem xs) j) reads back through the pruned
--- index. Then `vlab-c (remap xs f v) ≡ λK v` for every v : Fin n — the
--- pruning preserves K-side labels.
+-- Label preservation — the key lemma that makes the pruned `hCompose` work.
+-- Given source/target labelings `λK`/`λG` with pointwise boundary agreement
+-- `∀ i → λK (xs[i]) ≡ λG (f i)`, the pruned composite labeling `[ λG , λ-non
+-- ]′ ∘ splitAt m` (with `λ-non j = λK (lookup (nonMem xs) j)`) satisfies
+-- `vlab-c (remap xs f v) ≡ λK v` for every `v`.
 
 module _ {a} {X : Set a} {n m : ℕ} where
   open import Data.List.Membership.DecPropositional (_≟_ {n = n}) using (_∈?_)
@@ -528,16 +441,12 @@ module _ {a} {X : Set a} {n m : ℕ} where
              ≡ λK v
   remap-vlab xs f λK λG bdy v with v ∈? xs
   ... | yes v∈xs =
-    -- classify xs v reduces to inj₁ (index v∈xs), so
-    -- remap xs f v = f (index v∈xs) ↑ˡ count-non xs.
     trans
       (cong [ λG , (λ k → λK (lookup (nonMem xs) k)) ]′
         (splitAt-↑ˡ m (f (index v∈xs)) (count-non xs)))
       (trans (sym (bdy (index v∈xs)))
              (cong λK (sym (lookup-index v∈xs))))
   ... | no v∉xs =
-    -- classify xs v reduces to inj₂ (index v∈nonMem), so
-    -- remap xs f v = m ↑ʳ (index v∈nonMem).
     let v∈nonMem = ∈-filter⁺ (λ u → ¬? (u ∈? xs)) (∈-allFin v) v∉xs in
     trans
       (cong [ λG , (λ k → λK (lookup (nonMem xs) k)) ]′
@@ -560,15 +469,9 @@ module _ {a} {X : Set a} {n m : ℕ} where
 
 --------------------------------------------------------------------------------
 -- Global injectivity of `remap xs f`, assuming `Unique xs` and `f`
--- injective. The pruning routes members to `inject+` slots (one per
--- xs-index) and non-members to `raise` slots (one per nonMem-index);
--- distinct inputs yield distinct outputs because:
---   * lookup is injective on Unique xs (so distinct members of xs give
---     distinct xs-indices, hence distinct f-images, hence distinct
---     inject+ results);
---   * nonMem xs is Unique (filter of allFin), so distinct non-members
---     give distinct nonMem-indices, hence distinct raise results;
---   * inject+ and raise produce disjoint values (different splitAt sides).
+-- injective.  Members route to `↑ˡ` slots and non-members to `↑ʳ` slots;
+-- distinct inputs yield distinct outputs because lookup is injective on
+-- `Unique xs` / `nonMem xs`, and the two slot families are disjoint.
 
 module _ {n m : ℕ} where
   open import Data.List.Membership.DecPropositional (_≟_ {n = n}) using (_∈?_)
@@ -576,8 +479,7 @@ module _ {n m : ℕ} where
   open import Data.List.Membership.Propositional.Properties using (∈-filter⁺; ∈-allFin)
   open import Data.Sum using (inj₁; inj₂)
 
-  -- `_↑ˡ_ k` is injective for any fixed `k` (analogue of `inject+-inj`).
-  -- Re-derived locally to avoid pulling in the `Invariant` module.
+  -- `_↑ˡ k` is injective for any fixed `k` (local, to avoid `Invariant`).
   ↑ˡ-inj : ∀ {n} (k : ℕ) {i j : Fin n}
          → i ↑ˡ k ≡ j ↑ˡ k → i ≡ j
   ↑ˡ-inj {n} k {i} {j} eq
@@ -616,9 +518,7 @@ module _ {n m : ℕ} where
     → ∀ {v v' : Fin n} → remap xs f v ≡ remap xs f v' → v ≡ v'
   remap-injective xs f xs-uniq f-inj {v} {v'} eq with v ∈? xs | v' ∈? xs
   ... | yes v∈ | yes v'∈ =
-    -- Both members.  remap xs f v = f (index v∈) ↑ˡ count-non xs, same for v'.
-    -- inject+-inj reduces eq to `f (index v∈) ≡ f (index v'∈)`.
-    -- f-inj gives `index v∈ ≡ index v'∈`.  Then lookup-index closes.
+    -- Both members: `↑ˡ-inj` + `f-inj` + `lookup-index`.
     trans (lookup-index v∈)
       (trans (cong (lookup xs) idx-eq) (sym (lookup-index v'∈)))
     where
@@ -629,9 +529,7 @@ module _ {n m : ℕ} where
   ... | yes v∈ | no v'∉ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ _ eq)
   ... | no v∉  | yes v'∈ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ _ (sym eq))
   ... | no v∉  | no v'∉ =
-    -- Both non-members.  remap = m ↑ʳ (index ∈-filter⁺ ...).
-    -- ↑ʳ-inj reduces to index-equality on nonMem indices.
-    -- lookup-index then gives v ≡ v'.
+    -- Both non-members: `↑ʳ-inj` + `lookup-index` on `nonMem` indices.
     trans (lookup-index v∈nonMem)
       (trans (cong (lookup (nonMem xs)) idx-eq) (sym (lookup-index v'∈nonMem)))
     where

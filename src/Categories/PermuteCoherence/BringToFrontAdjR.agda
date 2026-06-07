@@ -7,7 +7,7 @@ module Categories.PermuteCoherence.BringToFrontAdjR where
 
 open import Data.Nat.Base using (ℕ; suc; _<_; _≤_)
 open import Data.Nat.Properties
-  using (<-cmp; <-asym; <-trans; <-irrefl; 1+n≢n; suc-injective; ≤-refl; ≤-trans; n≤1+n; <⇒≤; 1+n≰n)
+  using (<-trans; 1+n≢n)
 open import Data.Fin.Base using (Fin; toℕ) renaming (suc to fsuc; zero to fz)
 open import Data.Fin.Properties using (toℕ-injective)
 open import Data.List.Base using (_∷_)
@@ -41,7 +41,6 @@ module AdjR {n : ℕ} {j i : Fin (suc n)}
     toℕi≡ : toℕ i ≡ suc (toℕ j)
     toℕi≡ = Adj→suc adj
 
-    -- The backward action of `genFB j` on the four values it meets.
     -- `genFB j` swaps the values `j (=inj j)` and `j+1 (=suc-pos j=inj i)`,
     -- and fixes `j+2 (=suc-pos i)`.
     j-on-inj-j : genFB j P.⟨$⟩ˡ inj j ≡ suc-pos j
@@ -122,8 +121,9 @@ module AdjR {n : ℕ} {j i : Fin (suc n)}
       (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) j-on-inj-i)   -- posᵢ   i (gjb) = pj
       (descent→pos i (genFB j ∘-fb b) hp)
 
-  -- Output 1:  `descent i b`  (from `pj2 < pj1`).  `abstract` keeps these
-  -- large terms opaque so downstream (`btf′`) does not re-unfold them.
+  -- `abstract` keeps these large terms opaque so downstream (`btf′`) does
+  -- not re-unfold them.
+  -- Output 1: `descent i b` (from `pj2 < pj1`).
   abstract
     adj-descent-i : descent j (genFB j ∘-fb b) → descent i (genFB j ∘-fb b)
                   → descent i b

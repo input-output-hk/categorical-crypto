@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- `σ-block-⊗`: braiding a TENSOR block `(A₁ ⊗ A₂)` past `B` decomposes
@@ -18,7 +18,7 @@ module Categories.FreeSMC.SigmaBlockTensor
 
 open FreeMonoidal d
 
-open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SigmaBlockHexagon d
+open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SigmaBlockHexagon d
   using (σ-block; hexagon₂)
 
 open import Categories.Category using (Category)

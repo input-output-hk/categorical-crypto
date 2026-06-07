@@ -56,11 +56,8 @@ private
     n : ℕ
 
 ------------------------------------------------------------------------
--- 0.  The two swapped value-positions.
+-- 0.  The two values `genFB i` transposes: `i` and `i+1`.
 
--- `inj i`/`suc-pos i : Fin (suc (suc n))` are the two values that
--- `genFB i` transposes: the value `i` (`toℕ ≡ toℕ i`) and the value
--- `i+1` (`toℕ ≡ suc (toℕ i)`).
 inj : Fin (suc n) → Fin (suc (suc n))
 inj i = inject₁ i
 
@@ -76,8 +73,8 @@ toℕ-suc-pos i = refl
 ------------------------------------------------------------------------
 -- 1.  The ℕ-level adjacent transposition and `genFB`'s action on `toℕ`.
 
--- `swapℕ k` swaps `k` and `suc k`, fixing all other naturals.  The
--- recursion is arranged to mirror `genFB`'s `swap-fb`/`cons-fb` split.
+-- `swapℕ k` swaps `k` and `suc k`, fixing all other naturals; recursion
+-- arranged to mirror `genFB`'s `swap-fb`/`cons-fb` split.
 swapℕ : ℕ → ℕ → ℕ
 swapℕ zero    zero          = 1
 swapℕ zero    (suc zero)    = 0
@@ -110,8 +107,8 @@ cmpB-true {a} {b} a<b = trans (isYes≗does (a <?ℕ b)) (dec-true (a <?ℕ b) a
 cmpB-false : {a b : ℕ} → ¬ (a < b) → cmpB a b ≡ false
 cmpB-false {a} {b} ¬a<b = trans (isYes≗does (a <?ℕ b)) (dec-false (a <?ℕ b) ¬a<b)
 
--- A decision of `a < b` as plain data, obtained WITHOUT exposing
--- `cmpB`'s internal `<?` term (which would entangle the goal).
+-- A decision of `a < b` as plain data, WITHOUT exposing `cmpB`'s internal
+-- `<?` term (which would entangle the goal during case analysis).
 data Dec< (a b : ℕ) : Set where
   is<  : a < b → Dec< a b
   not< : ¬ (a < b) → Dec< a b
@@ -122,9 +119,7 @@ dec< a b with <-cmp a b
 ... | tri≈ ¬a<b _ _ = not< ¬a<b
 ... | tri> ¬a<b _ _ = not< ¬a<b
 
--- `cmpB` depends only on the underlying `<` proposition.  This is the
--- workhorse that avoids entangling `cmpB`'s internal decision with the
--- goal during case analysis.
+-- `cmpB` depends only on the underlying `<` proposition.
 cmpB-iff : {a b c d : ℕ} → (a < b → c < d) → (c < d → a < b)
          → cmpB a b ≡ cmpB c d
 cmpB-iff {a} {b} {c} {d} fwd bwd with dec< a b
@@ -170,36 +165,28 @@ swapℕ-flip k .(suc k) .k (inj₂ (refl , refl)) =
 -- Comparison against a value outside {k, suc k} is unchanged.
 swapℕ-fix : (k a b : ℕ) → a ≢ b → ¬ SwapPair k a b
           → cmpB (swapℕ k a) (swapℕ k b) ≡ cmpB a b
--- k = 0 : swap 0,1.
 swapℕ-fix zero zero zero a≢b _ = ⊥-elim (a≢b refl)
 swapℕ-fix zero zero (suc zero) _ ¬sp = ⊥-elim (¬sp (inj₁ (refl , refl)))
 swapℕ-fix zero zero (suc (suc m)) _ _ =
-  -- swapℕ 0 0 = 1, swapℕ 0 (2+m) = 2+m ; both 1<2+m and 0<2+m hold.
   trans (cmpB-true {1} {suc (suc m)} (s<s (s≤s z≤n)))
         (sym (cmpB-true {0} {suc (suc m)} (s≤s z≤n)))
 swapℕ-fix zero (suc zero) zero _ ¬sp = ⊥-elim (¬sp (inj₂ (refl , refl)))
 swapℕ-fix zero (suc zero) (suc zero) a≢b _ = ⊥-elim (a≢b refl)
 swapℕ-fix zero (suc zero) (suc (suc m)) _ _ =
-  -- swapℕ 0 1 = 0, swapℕ 0 (2+m) = 2+m ; both 0<2+m and 1<2+m hold.
   trans (cmpB-true {0} {suc (suc m)} (s≤s z≤n))
         (sym (cmpB-true {1} {suc (suc m)} (s<s (s≤s z≤n))))
 swapℕ-fix zero (suc (suc m)) zero _ _ =
-  -- swapℕ 0 (2+m) = 2+m, swapℕ 0 0 = 1 ; both ¬ 2+m<1 and ¬ 2+m<0.
   trans (cmpB-false {suc (suc m)} {1} (λ { (s≤s ()) }))
         (sym (cmpB-false {suc (suc m)} {0} (λ ())))
 swapℕ-fix zero (suc (suc m)) (suc zero) _ _ =
-  -- swapℕ 0 (2+m) = 2+m, swapℕ 0 1 = 0 ; both ¬ 2+m<0 and ¬ 2+m<1.
   trans (cmpB-false {suc (suc m)} {0} (λ ()))
         (sym (cmpB-false {suc (suc m)} {1} (λ { (s≤s ()) })))
 swapℕ-fix zero (suc (suc m)) (suc (suc m′)) _ _ = refl
--- k = suc k′ : 0 is fixed, recurse below.
 swapℕ-fix (suc k) zero zero a≢b _ = ⊥-elim (a≢b refl)
 swapℕ-fix (suc k) zero (suc b) _ _ =
-  -- swapℕ (suc k) 0 = 0, swapℕ (suc k)(suc b) = suc _ ; both 0<suc _.
   trans (cmpB-true {0} {suc (swapℕ k b)} (s≤s z≤n))
         (sym (cmpB-true {0} {suc b} (s≤s z≤n)))
 swapℕ-fix (suc k) (suc a) zero _ _ =
-  -- swapℕ (suc k)(suc a) = suc _, swapℕ (suc k) 0 = 0 ; both ¬ _<0.
   trans (cmpB-false {suc (swapℕ k a)} {0} (λ ()))
         (sym (cmpB-false {suc a} {0} (λ ())))
 swapℕ-fix (suc k) (suc a) (suc b) a≢b ¬sp =
@@ -228,12 +215,7 @@ private
 cmpInv : FinBij (suc n) (suc n) → Fin (suc n) → Fin (suc n) → Bool
 cmpInv b x y = ⌊ (b P.⟨$⟩ʳ y) <?F (b P.⟨$⟩ʳ x) ⌋
 
--- `invAt` is `1if` of the first (`c`-independent) conjunct AND `cmpInv`.
-invAt-split : (b : FinBij (suc n) (suc n)) (x y : Fin (suc n))
-            → invAt b x y ≡ 1if (⌊ x <?F y ⌋ ∧ cmpInv b x y)
-invAt-split b x y = refl
-
--- OFF the swapped value-pair (and at distinct positions), `cmpInv` is
+-- OFF the swapped value-pair (at distinct positions), `cmpInv` is
 -- unchanged by post-composing with `genFB i`.
 cmpInv-fix : (i : Fin (suc n′)) (b : FinBij (suc (suc n′)) (suc (suc n′)))
              {x y : Fin (suc (suc n′))} → x ≢ y
@@ -243,7 +225,6 @@ cmpInv-fix i b {x} {y} x≢y ¬sp =
   trans (cong₂ cmpB (genFB-toℕ i (b P.⟨$⟩ʳ y)) (genFB-toℕ i (b P.⟨$⟩ʳ x)))
         (swapℕ-fix (toℕ i) (toℕ (b P.⟨$⟩ʳ y)) (toℕ (b P.⟨$⟩ʳ x)) a≢b ¬sp)
   where
-  -- Distinct positions map to distinct values (b injective).
   a≢b : toℕ (b P.⟨$⟩ʳ y) ≢ toℕ (b P.⟨$⟩ʳ x)
   a≢b e = x≢y (sym (⟨$⟩ʳ-inj b (toℕ-injective e)))
 
@@ -277,7 +258,6 @@ invAt-agree i b x y ¬sp =
   1if-∧-cong ⌊ x <?F y ⌋
     (λ x<y → cmpInv-fix i b (λ e → <⇒≢ℕ (cmpB-true⁻ x<y) (cong toℕ e)) (¬sp x<y))
   where
-  -- `toℕ x < toℕ y` (from `⌊ x <?F y ⌋ ≡ true`) forces `x ≢ y`.
   <⇒≢ℕ : {a c : ℕ} → a < c → a ≢ c
   <⇒≢ℕ a<c refl = 1+n≰n a<c
 
@@ -306,7 +286,6 @@ module _ (i : Fin (suc n′)) (b : FinBij (suc (suc n′)) (suc (suc n′))) whe
   private
     c = genFB i ∘-fb b
     k = toℕ i
-    -- The two positions holding the swapped values.
     pk  = b P.⟨$⟩ˡ inj i       -- position of value `i`     (toℕ ≡ k)
     psk = b P.⟨$⟩ˡ suc-pos i   -- position of value `i+1`   (toℕ ≡ suc k)
 
@@ -337,9 +316,7 @@ module _ (i : Fin (suc n′)) (b : FinBij (suc (suc n′)) (suc (suc n′))) whe
   k≢sk e = 1+n≰n (subst (suc k ≤_) (sym e) ≤ℕ-refl)
 
   ----------------------------------------------------------------------
-  -- Locating the pair.  A `SwapPair` at positions `(x, y)` forces the
-  -- value-`k` position and the value-`suc k` position to be exactly `x`
-  -- and `y` — i.e. `{x, y} = {pk, psk}`.
+  -- A `SwapPair` at positions `(x, y)` forces `{x, y} = {pk, psk}`.
 
   unique : {x y : Fin (suc (suc n′))}
          → SwapPair k (toℕ (b P.⟨$⟩ʳ y)) (toℕ (b P.⟨$⟩ʳ x))
@@ -354,7 +331,6 @@ module _ (i : Fin (suc n′)) (b : FinBij (suc (suc n′)) (suc (suc n′))) whe
   c-toℕ : (z : Fin (suc (suc n′))) → toℕ (c P.⟨$⟩ʳ z) ≡ swapℕ k (toℕ (b P.⟨$⟩ʳ z))
   c-toℕ z = genFB-toℕ i (b P.⟨$⟩ʳ z)
 
-  -- ascent ordering pk < psk.
   invAtb-asc : toℕ pk < toℕ psk → invAt b pk psk ≡ 0
   invAtb-asc o =
     trans (invAt-pair b o)
@@ -367,7 +343,6 @@ module _ (i : Fin (suc n′)) (b : FinBij (suc (suc n′)) (suc (suc n′))) whe
                                        (trans (c-toℕ pk)  (trans (cong (swapℕ k) bpk)  (swapℕ-k k))))
                            (cmpB-true (self<suc k))))
 
-  -- descent ordering psk < pk.
   invAtb-desc : toℕ psk < toℕ pk → invAt b psk pk ≡ 1
   invAtb-desc o =
     trans (invAt-pair b o)
@@ -380,7 +355,6 @@ module _ (i : Fin (suc n′)) (b : FinBij (suc (suc n′)) (suc (suc n′))) whe
                                        (trans (c-toℕ psk) (trans (cong (swapℕ k) bpsk) (swapℕ-sk k))))
                            (cmpB-false (¬suc<self k))))
 
-  -- The two swapped positions are distinct.
   pk≢psk : pk ≢ psk
   pk≢psk e = k≢sk (trans (sym bpk) (trans (cong (λ z → toℕ (b P.⟨$⟩ʳ z)) e) bpsk))
 
@@ -434,17 +408,9 @@ module _ (i : Fin (suc n′)) (b : FinBij (suc (suc n′)) (suc (suc n′))) whe
     atCell = trans (invAtb-desc desc) (cong suc (sym (invAtc-desc desc)))
 
 ------------------------------------------------------------------------
--- 8.  The packaged dichotomy.
---
--- Post-composing with the generator `genFB i` (which swaps the values
--- `i, i+1`) changes `invS` by exactly one, with the sign given by the
--- order of the two positions holding values `i` and `i+1`:
---
---   * ascent : position-of-`i` before position-of-`i+1`  →  invS + 1
---   * descent: position-of-`i+1` before position-of-`i`  →  invS - 1
+-- 8.  The packaged dichotomy.  The sign is stated via `toℕ`-comparison
+-- of the two positions, which is the `Fin` `_<_` by definition.
 
--- (The sign is stated via `toℕ`-comparison of the two positions, which
---  is exactly the `Fin` `_<_` of `Data.Fin.Base` by definition.)
 invS-dichotomy :
     (i : Fin (suc n)) (b : FinBij (suc (suc n)) (suc (suc n)))
   → (toℕ (b P.⟨$⟩ˡ inj i) < toℕ (b P.⟨$⟩ˡ suc-pos i)

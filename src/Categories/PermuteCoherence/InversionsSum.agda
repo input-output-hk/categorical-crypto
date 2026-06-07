@@ -1,18 +1,16 @@
 {-# OPTIONS --safe --without-K #-}
 
 ------------------------------------------------------------------------
--- The inversion count as an explicit SUM over pairs, `invS`, and the
--- descent dichotomy `invS (genFB i ∘-fb b) = invS b ± 1` (L1).
+-- The inversion count as an explicit SUM over pairs, `invS`.
 --
--- The recursive (Lehmer) `inv` of `Inversions.agda` makes L2 clean but
--- its L1 `i=0` case is blocked (the two residuals peel value 0 from
--- different positions).  The genuine, UNIFORM L1 lives here: `invS`
--- counts inversion pairs directly, and a generator `genFB i` (which
--- transposes the two VALUES `i, i+1`) flips the status of EXACTLY ONE
--- pair — the positions holding values `i` and `i+1`.
+-- DESIGN: unlike the recursive (Lehmer) `inv` of `Inversions.agda` (whose
+-- L1 `i=0` case is blocked because the two residuals peel value 0 from
+-- different positions), `invS` counts inversion pairs directly.  A
+-- generator `genFB i` (transposing the VALUES `i, i+1`) then flips exactly
+-- one pair — the positions holding `i` and `i+1` — giving a uniform L1.
 --
--- This file builds: the bounded sum `sumF`, its bookkeeping lemmas, and
--- `invS`.  The dichotomy and the bridge `invS ≡ inv` follow.
+-- This file builds the bounded sum `sumF`, its bookkeeping lemmas, and
+-- `invS`.
 ------------------------------------------------------------------------
 
 module Categories.PermuteCoherence.InversionsSum where
@@ -63,8 +61,7 @@ sumF-+ {suc n} f g =
                         (trans (cong (_+ t) (+-comm b s)) (+-assoc s b t))))
            (sym (+-assoc a s (b + t))))
 
--- Isolate one term: if f, g agree off a single index k, and f k = suc (g k),
--- then sumF f = suc (sumF g).
+-- If f, g agree off index k and f k = suc (g k), then sumF f = suc (sumF g).
 sumF-step : {n : ℕ} (f g : Fin n → ℕ) (k : Fin n)
           → (∀ j → j ≢ k → f j ≡ g j) → f k ≡ suc (g k)
           → sumF f ≡ suc (sumF g)

@@ -4,7 +4,7 @@
 -- Generic "Steps" infrastructure over a FreeMonoidalData with Symm ≤ v.
 --
 -- This module mirrors APROP's process-edges machinery
--- (`Categories/APROP/Hypergraph/Completeness/{Decode,Permute,Unflatten}.agda`)
+-- (`Categories/APROP/Hypergraph/Soundness/{Decode,Permute,Unflatten}.agda`)
 -- minus the `Hypergraph FlatGen` wrapper.  Each `Step` packages a typed
 -- morphism with its own ein/eout vertex lists; a `Steps = List Step`
 -- replaces "list of edges of a hypergraph".

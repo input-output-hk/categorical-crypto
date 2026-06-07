@@ -45,34 +45,16 @@ private
     A : Set a
 
 ------------------------------------------------------------------------
--- 1. The canonical generator alphabet: adjacent transpositions.
---
--- `Adj n` is a position `i : Fin (suc n)` that says "swap positions i
--- and (i+1) within a list of length (2 + n)". We will accumulate these
--- in a `SwapSeq` together with an underlying list, so each step refers
--- to a definite list state.
-
--- The "canonical word" is a sequence of (list, swap-position) pairs:
--- starting from `xs`, performing each swap in order yields the final
--- `ys`. Concretely we represent the *result* of the canonical decoder
--- as the `_↭_` it produces.
-
-------------------------------------------------------------------------
--- 2. "Bubble-the-head" canonical motion.
---
--- Given a list of length (suc n) and a target `k : Fin (suc n)`,
--- produce a `_↭_` derivation that swaps the element at position k to
--- the head via (k) adjacent transpositions.
-
--- We need to talk about the element at a given position of a list.
+-- "Bubble-the-head" canonical motion: given a list of length (suc n) and
+-- a target `k : Fin (suc n)`, swap the element at position k to the head
+-- via k adjacent transpositions.
 
 lookup : (xs : List A) → Fin (length xs) → A
 lookup (x ∷ _)  zero    = x
 lookup (_ ∷ xs) (suc i) = lookup xs i
 
--- `bubble-to-front xs k = (ys , p)` where `p : xs ↭ (lookup xs k ∷ ys)`,
--- and crucially `length ys ≡ pred (length xs)`. We make that explicit
--- by parameterising over the predecessor length.
+-- `bubble-to-front xs k = (ys , p)` with `p : xs ↭ (lookup xs k ∷ ys)`,
+-- the predecessor length `n` made explicit as a parameter.
 
 bubble-to-front : ∀ {n} (xs : List A) (xs-len : length xs ≡ suc n)
                   (k : Fin (length xs)) →
@@ -95,11 +77,8 @@ bubble-to-front {n = suc n} (x ∷ y ∷ xs) xs-len (suc k)
              (Perm.swap x (lookup (y ∷ xs) k) Perm.refl)
 
 ------------------------------------------------------------------------
--- 3. Removing the head bijectively.
---
--- For a self-bijection `b : FinBij (suc n) (suc n)`, we have
--- `b ⟨$⟩ʳ 0F : Fin (suc n)` (where the head goes in the target). We
--- can then peel off the head and look at the residual bijection.
+-- Removing the head bijectively: `head-target` is where the head goes in
+-- the target, `residual` the bijection on the tail.
 
 head-target : ∀ {n} → FinBij (suc n) (suc n) → Fin (suc n)
 head-target b = b P.⟨$⟩ʳ 0F
@@ -108,19 +87,16 @@ residual : ∀ {n} → (b : FinBij (suc n) (suc n)) → FinBij n n
 residual b = remove 0F b
 
 ------------------------------------------------------------------------
--- 4. The canonical decoder.
---
--- Given a list `xs` and a self-bijection `b : FinBij (length xs)
--- (length xs)`, produce a target list `ys` and a derivation `xs ↭ ys`.
--- The construction is structural: at length (suc n), bubble position k
--- = head-target b to the front, then recurse on the tail with the
+-- The canonical decoder.  Given `xs` and a self-bijection `b`, produce a
+-- target list `ys` and a derivation `xs ↭ ys`.  At length (suc n): bubble
+-- position `head-target b` to the front, recurse on the tail with the
 -- residual bijection.
 
 private
   cast-fin-back : ∀ {p q} → p ≡ q → Fin q → Fin p
   cast-fin-back refl i = i
 
--- Helper: recurse on a natural-number bound on the list length.
+-- Recurses on a nat bound on the list length.
 canonical-go : ∀ (n : ℕ) (xs : List A) → length xs ≡ n →
                (b : FinBij n n) →
                ∃[ ys ] (xs Perm.↭ ys)
@@ -140,12 +116,8 @@ canonical : (xs : List A) (b : FinBij (length xs) (length xs)) →
 canonical xs b = canonical-go (length xs) xs refl b
 
 ------------------------------------------------------------------------
--- Propositional unfolding equations for `canonical-go`.
---
--- These expose the `with`-blocks of `canonical-go` as explicit
--- equations, which downstream consumers (see `CanonicalProps.agda`)
--- need in order to reason about `canonical-go` on abstract
--- bijections.  Each is proved by `refl`.
+-- Propositional unfolding equations for `canonical-go`, exposing its
+-- `with`-blocks so downstream consumers can reason on abstract bijections.
 
 canonical-go-zero
   : proj₁ (canonical-go zero ([] {A = A}) refl id-fb) ≡ []
@@ -161,10 +133,7 @@ canonical-go-suc-unfold
                             (residual b))
 canonical-go-suc-unfold x xs b = refl
 
--- The derivation-projection unfolding.  In particular, on `b = id-fb`
--- (where `head-target b ≡ 0F` and `bubble-to-front` at 0F yields
--- `Perm.refl`), this exposes `canonical-↭` as `Perm.trans Perm.refl
--- (Perm.prep _ (recursion))`.
+-- The derivation-projection unfolding.
 canonical-go-suc-unfold-↭
   : ∀ (x : A) (xs : List A) (b : FinBij (suc (length xs)) (suc (length xs)))
   → proj₂ (canonical-go (suc (length xs)) (x ∷ xs) refl b)
@@ -176,9 +145,6 @@ canonical-go-suc-unfold-↭
                               (residual b))))
 canonical-go-suc-unfold-↭ x xs b = refl
 
-
--- The first projections.
-
 canonical-target : (xs : List A) → FinBij (length xs) (length xs) → List A
 canonical-target xs b = proj₁ (canonical xs b)
 
@@ -187,18 +153,13 @@ canonical-↭ : (xs : List A) (b : FinBij (length xs) (length xs)) →
 canonical-↭ xs b = proj₂ (canonical xs b)
 
 ------------------------------------------------------------------------
--- 5. Canonical equivalence between `_↭_` derivations.
---
--- We declare two derivations *canonically equivalent* when they agree
--- on the underlying finite bijection. This is the property that
--- downstream coherence consumers (e.g. `Faithfulness.agda`) take as
--- input: it lets them quotient `_↭_` by `eval-↭`.
+-- Canonical equivalence: two derivations are canonically equivalent when
+-- they agree on the underlying finite bijection.  This is what coherence
+-- consumers (e.g. `Faithfulness`) use to quotient `_↭_` by `eval-↭`.
 
 infix 4 _≅↭_
 _≅↭_ : {xs ys : List A} → xs ↭ ys → xs ↭ ys → Set
 p ≅↭ q = eval-↭ p ≈-fb eval-↭ q
-
--- Reflexivity / symmetry / transitivity are inherited from `_≈-fb_`.
 
 ≅↭-refl : {xs ys : List A} {p : xs ↭ ys} → p ≅↭ p
 ≅↭-refl _ = refl
@@ -210,13 +171,9 @@ p ≅↭ q = eval-↭ p ≈-fb eval-↭ q
 ≅↭-trans p≡q q≡r i = trans (p≡q i) (q≡r i)
 
 ------------------------------------------------------------------------
--- 6. The "self-loop is canonically refl" lemma.
---
--- A self-loop derivation `r : xs ↭ xs` whose evaluated bijection is
--- the identity is canonically equivalent (in the `_≅↭_` sense) to
--- `refl`. Under `_≅↭_` this is by definition of evaluation on `refl`;
--- the *constructive* upgrade to ↭-equivalence is the job of
--- `Faithfulness.agda` downstream.
+-- A self-loop `r : xs ↭ xs` evaluating to the identity bijection is
+-- `≅↭`-equivalent to `refl`.  (The constructive upgrade to ↭-equivalence
+-- is `Faithfulness`'s job.)
 
 self-loop-canonical
   : {xs : List A} (r : xs Perm.↭ xs)
@@ -225,12 +182,7 @@ self-loop-canonical
 self-loop-canonical _ eq i = eq i
 
 ------------------------------------------------------------------------
--- 7. Congruence facts about `_≅↭_`.
---
--- These let downstream consumers rewrite under the four constructors
--- of `_↭_`. Each is proved by pointwise reduction of `eval-↭` and the
--- fact that `_∘-fb_` / `cons-fb` / `swap-fb` are themselves
--- pointwise-congruent.
+-- Congruence of `_≅↭_` under the four `_↭_` constructors.
 
 private
   ∘-fb-cong : ∀ {n m k} {g g′ : FinBij m k} {f f′ : FinBij n m} →
@@ -264,38 +216,3 @@ private
   ∘-fb-cong {g = eval-↭ q} {g′ = eval-↭ q′}
             {f = eval-↭ p} {f′ = eval-↭ p′}
             q≅q′ p≅p′
-
-------------------------------------------------------------------------
--- 8. Existence of a canonical preimage (relating raw `_↭_` to canon).
---
--- For any `r : xs ↭ ys`, the canonical decoder applied to `xs` and
--- `eval-↭ r` produces a list `ys'` and a derivation `xs ↭ ys'`. The
--- downstream faithfulness theorem will show `ys' = ys` propositionally
--- and the canonical derivation is `≅↭`-equal to `r`.
---
--- Here we expose the construction; the equality claim is left as the
--- target of `Faithfulness.agda`.
-
--- We exploit `↭-length : length xs ≡ length ys` from `Eval.agda`.
-canon-of : ∀ {xs ys : List A} (r : xs ↭ ys) →
-           ∃[ ys′ ] (xs Perm.↭ ys′)
-canon-of {xs = xs} r =
-  canonical-go (length xs) xs refl (cast-bij (↭-length r) (eval-↭ r))
-  where
-  cast-bij : ∀ {n m} → n ≡ m → FinBij n m → FinBij n n
-  cast-bij refl b = b
-
-------------------------------------------------------------------------
--- 9. Public API summary
---
---   * canonical            : decoder for `(xs, FinBij)` → `(ys, xs↭ys)`
---   * canonical-↭          : its derivation projection
---   * canonical-target     : its list projection
---   * bubble-to-front      : adjacent-swap bubble lemma
---   * lookup               : positional list element
---   * _≅↭_                 : canonical equivalence (= `≈-fb` on eval)
---   * ≅↭-refl/sym/trans    : it is an equivalence relation
---   * ≅↭-prep/swap         : congruence under the basic constructors
---   * ≅↭-trans-cong        : congruence under transitivity
---   * self-loop-canonical  : the key downstream lemma
---   * canon-of             : canonical preimage of any derivation

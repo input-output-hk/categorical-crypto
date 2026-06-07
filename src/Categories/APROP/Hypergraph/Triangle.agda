@@ -29,7 +29,7 @@ open import Categories.APROP.Hypergraph.Iso
 open import Categories.APROP.Hypergraph.PrunedCompose sig using (hComposeP)
 open import Categories.APROP.Hypergraph.Invariant sig using (hId-dom-Unique)
 open import Categories.APROP.Hypergraph.Congruence sig using (hTensor-resp-≅ᴴ)
-open import Categories.APROP.Hypergraph.SoundnessProved sig
+open import Categories.APROP.Hypergraph.CompletenessProved sig
   using (hCompose-hId-L-iso-flex; hTensor-G-hEmpty-iso)
 
 open import Data.List using (_++_)

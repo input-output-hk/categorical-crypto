@@ -1,24 +1,18 @@
-{-# OPTIONS --safe --with-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 ------------------------------------------------------------------------
--- Rigidity of `eval-↭` on `Unique` codomains.
+-- Rigidity of `eval-↭` on `Unique` codomains: if `ys` is `Unique`, then
+-- ANY two derivations `p, q : xs ↭ ys` evaluate to the SAME finite
+-- bijection (with distinct elements the position bijection is forced).
 --
--- If `ys` is `Unique` (no duplicate elements), then ANY two
--- list-permutation derivations `p, q : xs ↭ ys` evaluate to the SAME
--- finite bijection.  Intuitively: with distinct elements there is only
--- one way to rearrange `xs` into `ys`, so the underlying position
--- bijection is forced.
+-- This lets the APROP soundness consumer discharge the `≅↭` hypothesis
+-- of the Kelly residual purely from `Unique`-ness of the decoder stacks —
+-- NO label-injectivity of `vlab` is needed (rigidity is applied at the
+-- Fin-index level, where the stacks ARE `Unique`, even though the X-level
+-- lists may have duplicate labels).
 --
--- This is the key lemma that lets the APROP completeness consumer
--- discharge the `≅↭` (equal-evaluated-bijection) hypothesis of the
--- Kelly `FaithfulnessResidual`/`TransSelfLoopResidual` purely from the
--- `Unique`-ness of the decoder stacks — no label-injectivity of `vlab`
--- is needed (the X-level lists may have duplicate labels; rigidity is
--- applied at the Fin-index level where the stacks ARE `Unique`).
---
--- Proof: `eval-↭` is "lookup-sound" — `lookup ys (eval-↭ p ⟨$⟩ʳ i) ≡
--- lookup xs i` — so for `Unique ys` (hence injective `lookup ys`) the
--- forward map of `eval-↭ p` is determined pointwise.
+-- Proof: `eval-↭` is lookup-sound, so for `Unique ys` (injective `lookup
+-- ys`) the forward map of `eval-↭ p` is determined pointwise.
 ------------------------------------------------------------------------
 
 module Categories.PermuteCoherence.Rigid where
@@ -49,25 +43,23 @@ private
     A : Set a
 
 ------------------------------------------------------------------------
--- `Unique` lists have injective `lookup`.  (Inlined to keep this module
--- self-contained; identical to
--- `Categories.APROP.Hypergraph.Prune.lookup-injective-unique`.)
+-- `Unique` lists have injective `lookup`.  Public so `--without-K`
+-- consumers (IsoTransport) can reuse them directly.
 
-private
-  All-lookup : ∀ {p} {Q : A → Set p} {xs : List A}
-             → All Q xs → (i : Fin (length xs)) → Q (lookup xs i)
-  All-lookup (q ∷ _)  zero    = q
-  All-lookup (_ ∷ qs) (suc i) = All-lookup qs i
+All-lookup : ∀ {p} {Q : A → Set p} {xs : List A}
+           → All Q xs → (i : Fin (length xs)) → Q (lookup xs i)
+All-lookup (q ∷ _)  zero    = q
+All-lookup (_ ∷ qs) (suc i) = All-lookup qs i
 
-  lookup-injective-unique
-    : ∀ {xs : List A}
-    → Unique xs → (i j : Fin (length xs))
-    → lookup xs i ≡ lookup xs j
-    → i ≡ j
-  lookup-injective-unique (_  ∷ _ ) zero    zero    _  = refl
-  lookup-injective-unique (x≢ ∷ _ ) zero    (suc j) eq = ⊥-elim (All-lookup x≢ j eq)
-  lookup-injective-unique (x≢ ∷ _ ) (suc i) zero    eq = ⊥-elim (All-lookup x≢ i (sym eq))
-  lookup-injective-unique (_  ∷ uq) (suc i) (suc j) eq = cong suc (lookup-injective-unique uq i j eq)
+lookup-injective-unique
+  : ∀ {xs : List A}
+  → Unique xs → (i j : Fin (length xs))
+  → lookup xs i ≡ lookup xs j
+  → i ≡ j
+lookup-injective-unique (_  ∷ _ ) zero    zero    _  = refl
+lookup-injective-unique (x≢ ∷ _ ) zero    (suc j) eq = ⊥-elim (All-lookup x≢ j eq)
+lookup-injective-unique (x≢ ∷ _ ) (suc i) zero    eq = ⊥-elim (All-lookup x≢ i (sym eq))
+lookup-injective-unique (_  ∷ uq) (suc i) (suc j) eq = cong suc (lookup-injective-unique uq i j eq)
 
 ------------------------------------------------------------------------
 -- Lookup-soundness of `eval-↭`:  `eval-↭ p` carries position `i` of

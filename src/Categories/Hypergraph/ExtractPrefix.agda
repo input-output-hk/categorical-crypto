@@ -3,11 +3,11 @@
 --------------------------------------------------------------------------------
 -- Generic `extract-elem` / `extract-prefix` over `List (Fin n)`.
 --
--- Both `Categories.APROP.Hypergraph.Completeness.Decode` and
+-- Both `Categories.APROP.Hypergraph.Soundness.Decode` and
 -- `Categories.FreeSMC.Steps` re-export from here so they observe the
 -- SAME definition (definitional equality), which is required for the
 -- `process-edges ≡ process-steps-maybe` correspondence lemma in
--- `Categories.APROP.Hypergraph.Completeness.Discharge.APROPMacLaneFromSMC`.
+-- `Categories.APROP.Hypergraph.Soundness.Discharge.APROPMacLaneFromSMC`.
 --
 -- Bodies are verbatim copies of the original `Decode.extract-elem` /
 -- `Decode.extract-prefix` (which are generic in `Fin n` already; only

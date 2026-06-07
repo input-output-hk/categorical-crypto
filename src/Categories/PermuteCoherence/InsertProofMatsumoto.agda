@@ -49,7 +49,7 @@ matsumoto {suc n} (i ∷ v′) w rv rw he =
   i∷w′~ʷw  = proj₁ (proj₂ bf)
   rw′      = proj₂ (proj₂ bf)
   rv′      = proj₂ dr
-  -- evalW w′ ≈ evalW v′  (cancel `genFB i` on the left of the eval-equation)
+  -- evalW w′ ≈ evalW v′, cancelling `genFB i` on the left.
   he′ : evalW w′ ≈-fb evalW v′
   he′ = genFB-cancelˡ i {b = evalW w′} {b′ = evalW v′}
           (≈-fb-trans {b = evalW (i ∷ w′)} {b′ = evalW w} {b″ = evalW (i ∷ v′)}
