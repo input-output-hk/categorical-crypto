@@ -169,8 +169,8 @@ module _ (H : Hypergraph FlatGen)
 
     module BT = DTS.BlockTensor H.vlab
 
-    -- The `vlab`-framed box-suffix reframe; `box-suffix-BNf` is its `Rblk = R`
-    -- instance.
+    -- The `vlab`-framed box-suffix reframe (`BoxKernel.BlockBoxSuffix`);
+    -- `BBS.box-suffix-framed … R …` is the box-on-`rgBlk++R` factorization.
     module BBS = DTS.BlockBoxSuffix H.vlab
 
     pvl : {xs ys : List (Fin H.nV)} → xs Perm.↭ ys
@@ -629,25 +629,6 @@ module _ (H : Hypergraph FlatGen)
         (trans (cong (_++ map H.vlab R) (sym (map-++ H.vlab lBlk rgBlk)))
                (sym (map-++ H.vlab (lBlk ++ rgBlk) R)))
 
-    -- `box-suffix` reframed into `BT.uf++`.
-    box-suffix-BNf
-      : ∀ (eiBlk eoBlk rgBlk R : List (Fin H.nV))
-          (g : FlatGen (map H.vlab eiBlk) (map H.vlab eoBlk))
-      → subst₂ HomTerm
-          (cong unflatten (whole-eq eiBlk rgBlk R))
-          (cong unflatten (whole-eq eoBlk rgBlk R))
-          (box-of (map H.vlab eiBlk) (map H.vlab eoBlk)
-                  (map H.vlab rgBlk ++ map H.vlab R) g)
-        ≈Term _≅_.to (BT.uf++ (eoBlk ++ rgBlk) R)
-              ∘ (subst₂ HomTerm
-                   (cong unflatten (sym (map-++ H.vlab eiBlk rgBlk)))
-                   (cong unflatten (sym (map-++ H.vlab eoBlk rgBlk)))
-                   (box-of (map H.vlab eiBlk) (map H.vlab eoBlk) (map H.vlab rgBlk) g)
-                   ⊗₁ id {R-obj R})
-              ∘ _≅_.from (BT.uf++ (eiBlk ++ rgBlk) R)
-    box-suffix-BNf eiBlk eoBlk rgBlk R g =
-      BBS.box-suffix-framed eiBlk eoBlk rgBlk R g
-
     ----------------------------------------------------------------------
     -- `bframed-suffix` — the box on a COMPOUND residual `rest ++ R`,
     -- transported across the `++-assoc` boundary, equals the box on `rest`
@@ -677,13 +658,13 @@ module _ (H : Hypergraph FlatGen)
                        (cong unflatten (asso (H.eout e) rest R))
           (fire-mid H e (rest ++ R))
           -- collapse the stacked substs to a single subst, UIP-collapse onto
-          -- box-suffix-BNf's LHS subst.
+          -- `box-suffix-framed`'s LHS subst.
           ≈⟨ ≡⇒≈Term collapse ⟩
         subst₂ HomTerm
           (cong unflatten (whole-eq (H.ein e) rest R))
           (cong unflatten (whole-eq (H.eout e) rest R))
           (box-of einL eoutL (map H.vlab rest ++ map H.vlab R) g)
-          ≈⟨ box-suffix-BNf (H.ein e) (H.eout e) rest R g ⟩
+          ≈⟨ BBS.box-suffix-framed (H.ein e) (H.eout e) rest R g ⟩
         _≅_.to (BT.uf++ (H.eout e ++ rest) R)
           ∘ (FireRest ⊗₁ id {R-obj R})
           ∘ _≅_.from (BT.uf++ (H.ein e ++ rest) R)
