@@ -5,7 +5,7 @@
 -- ANY two derivations `p, q : xs ↭ ys` evaluate to the SAME finite
 -- bijection (with distinct elements the position bijection is forced).
 --
--- This lets the APROP completeness consumer discharge the `≅↭` hypothesis
+-- This lets the APROP soundness consumer discharge the `≅↭` hypothesis
 -- of the Kelly residual purely from `Unique`-ness of the decoder stacks —
 -- NO label-injectivity of `vlab` is needed (rigidity is applied at the
 -- Fin-index level, where the stacks ARE `Unique`, even though the X-level

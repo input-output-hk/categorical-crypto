@@ -4,8 +4,8 @@
 -- Hypergraph isomorphism (TensorRocq §3.2): two hypergraphs are isomorphic
 -- when there is a bijection of vertices and a bijection of edges that
 -- preserves labels, endpoints, and the ordered boundary.  Defines the
--- relation and proves it is an equivalence; translation soundness lives
--- in `Hypergraph.Soundness`.
+-- relation and proves it is an equivalence; translation completeness lives
+-- in `Hypergraph.Completeness`.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Iso where

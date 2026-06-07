@@ -5,7 +5,7 @@
 -- function as an inductive relation (its graph).
 --
 -- This is the technique used to discharge `edge-step-term-φ` (Lemma 0b of the
--- APROP completeness proof): see `Categories.APROP.Hypergraph.Completeness.
+-- APROP soundness proof): see `Categories.APROP.Hypergraph.Soundness.
 -- Discharge.EdgeStepRelation` / `EdgeStepNaturality`.  Here it is distilled to
 -- toy types (ℕ and `List ℕ`) so the pattern is visible in isolation.
 --

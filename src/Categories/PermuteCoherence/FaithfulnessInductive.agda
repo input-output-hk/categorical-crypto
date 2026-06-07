@@ -64,7 +64,7 @@ open import Categories.PermuteCoherence.Faithfulness d
 open import Categories.PermuteCoherence.FaithfulnessK d
   using (σ-block-self-inverse-direct)
 -- The σ-block Yang-Baxter braid, derived from `hexagon`.
-open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SigmaBlockHexagon d
+open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SigmaBlockHexagon d
   using (σ-block; σ-block-hexagon)
 -- The Word model (position level) and its list-level interpretation.
 open import Categories.PermuteCoherence.Word

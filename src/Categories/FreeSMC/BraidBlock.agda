@@ -38,7 +38,7 @@ open FM.HomReasoning
 -- `σ-block` and its slot-1 naturality now come from the (generalised)
 -- `SigmaBlockHexagon` so there is a single source of truth shared with
 -- the σ-block-⊗ development.
-open import Categories.APROP.Hypergraph.Completeness.Discharge.Sub.SigmaBlockHexagon d
+open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SigmaBlockHexagon d
   using (σ-block; σ-block-natural₁) public
 
 --------------------------------------------------------------------------------

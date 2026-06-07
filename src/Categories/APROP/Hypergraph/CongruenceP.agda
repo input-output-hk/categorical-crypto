@@ -5,7 +5,7 @@
 --
 -- Parallel to `Hypergraph.Congruence.hCompose-resp-≅ᴴ`. The existing
 -- Congruence proof operates on the unpruned `hCompose`; this module ports
--- the structural piece to the pruned variant so a future Soundness
+-- the structural piece to the pruned variant so a future Completeness
 -- rewrite can use `hComposeP` in its `∘-resp-≈` case and still get a
 -- congruence lemma out.
 --
@@ -35,7 +35,7 @@
 --
 -- Once assembled, `hComposeP-resp-≅ᴴ : G₁ ≅ᴴ G₂ → K₁ ≅ᴴ K₂
 --                                    → hComposeP G₁ K₁ bdy₁ ≅ᴴ hComposeP G₂ K₂ bdy₂`
--- discharges `∘-resp-≈` in a Soundness rewrite using `hComposeP`.
+-- discharges `∘-resp-≈` in a Completeness rewrite using `hComposeP`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

@@ -1,8 +1,8 @@
 {-# OPTIONS --without-K #-}
 
 --------------------------------------------------------------------------------
--- Structural congruences for `_≅ᴴ_`. Building these before soundness
--- lets the `∘-resp-≈` and `⊗-resp-≈` cases of the soundness theorem
+-- Structural congruences for `_≅ᴴ_`. Building these before completeness
+-- lets the `∘-resp-≈` and `⊗-resp-≈` cases of the completeness theorem
 -- in Phase 3c reduce to the underlying sub-hypergraph isos.
 --
 -- STATUS (Phase 3b): COMPLETE.
