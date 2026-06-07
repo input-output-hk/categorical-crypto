@@ -45,11 +45,12 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
 import Categories.APROP.Hypergraph.Soundness.Discharge.SwapStep sig as SS
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.FireMidInterchangeComb sig as Comb
 
--- The hypergraph-agnostic box / block-tensor primitives, reused as the box
--- machinery.  Top-level submodules of `DecodeTensorShape` (parameterised
--- only by `sig` / a `vlab`), so importing them does NOT pull in the decode
--- machinery.  Acyclic: `DecodeTensorShape` does not import this module.
-import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.DecodeTensorShape sig _≟X_ as DTS
+-- The hypergraph-agnostic box / block-tensor primitives (`BlockTensor`,
+-- `BlockBoxSuffix`), reused as the box machinery.  These live in the leaf
+-- module `BoxKernel` (parameterised only by `sig` / a `vlab`), so importing
+-- them does NOT pull in the decode machinery.  Acyclic: `BoxKernel` imports
+-- neither this module nor `DecodeTensorShape`.
+import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.BoxKernel sig _≟X_ as DTS
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.BlockNFBraid
   asFreeMonoidalData _≟X_ as BNB
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.BlockNFVoutCoh
