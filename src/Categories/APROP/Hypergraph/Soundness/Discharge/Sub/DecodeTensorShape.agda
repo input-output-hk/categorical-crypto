@@ -601,6 +601,46 @@ module BoxAssoc where
       (T ∘ A ∘ αc) ∘ X ∘ ac ∘ B ∘ F ∎
 
   ------------------------------------------------------------------------
+  -- Shared mid-reshuffle for `box-suffix`/`box-prefix`'s `regroup-mid`:
+  -- `(a ∘ b ∘ c) ∘ M ∘ (d ∘ e ∘ f) ≈ a ∘ b ∘ (c ∘ M ∘ d) ∘ e ∘ f`.
+  -- Pure associativity, fully generic in the arguments (mirror-shared).
+  bracket-mid
+    : ∀ {O₀ O₁ O₂ O₃ O₄ O₅ O₆ O₇ : ObjTerm}
+        (a : HomTerm O₆ O₇) (b : HomTerm O₅ O₆) (c : HomTerm O₄ O₅)
+        (M : HomTerm O₃ O₄) (d : HomTerm O₂ O₃)
+        (e : HomTerm O₁ O₂) (f : HomTerm O₀ O₁)
+    → (a ∘ b ∘ c) ∘ M ∘ (d ∘ e ∘ f)
+      ≈Term a ∘ b ∘ (c ∘ M ∘ d) ∘ e ∘ f
+  bracket-mid a b c M d e f = begin
+      (a ∘ b ∘ c) ∘ M ∘ (d ∘ e ∘ f)
+        ≈⟨ FM.assoc ⟩
+      a ∘ (b ∘ c) ∘ M ∘ (d ∘ e ∘ f)
+        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+      a ∘ b ∘ c ∘ M ∘ (d ∘ e ∘ f)
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+      a ∘ b ∘ (c ∘ M) ∘ (d ∘ e ∘ f)
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+      a ∘ b ∘ ((c ∘ M) ∘ d) ∘ e ∘ f
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩∘⟨refl ⟩
+      a ∘ b ∘ (c ∘ M ∘ d) ∘ e ∘ f ∎
+
+  ------------------------------------------------------------------------
+  -- Shared tail-reshuffle for `box-suffix`/`box-prefix`'s `regroup-R`:
+  -- `a ∘ b ∘ M ∘ c ∘ f ≈ a ∘ (b ∘ M ∘ c) ∘ f` (re-fold the raw box).
+  bracket-RR
+    : ∀ {O₀ O₁ O₂ O₃ O₄ O₅ : ObjTerm}
+        (a : HomTerm O₄ O₅) (b : HomTerm O₃ O₄) (M : HomTerm O₂ O₃)
+        (c : HomTerm O₁ O₂) (f : HomTerm O₀ O₁)
+    → a ∘ b ∘ M ∘ c ∘ f
+      ≈Term a ∘ (b ∘ M ∘ c) ∘ f
+  bracket-RR a b M c f = begin
+      a ∘ b ∘ M ∘ c ∘ f
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+      a ∘ b ∘ (M ∘ c) ∘ f
+        ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+      a ∘ (b ∘ M ∘ c) ∘ f ∎
+
+  ------------------------------------------------------------------------
   -- BOX-SUFFIX: a box on residual `restG ++ R` factors (modulo the
   -- `++-assoc` boundary transport) as `(box on restG) ⊗₁ id` framed by
   -- `unflatten-++-≅ (·++restG) R`.
@@ -824,39 +864,9 @@ module BoxAssoc where
                      ∘ (id {Uei} ⊗₁ from-rgR))
                   ∘ from-ei-rgR
                   ∘ s-ei
-              regroup-mid = begin
-                (s-eo⁻ ∘ to-eo-rgR ∘ (id {Ueo} ⊗₁ to-rgR))
-                  ∘ (G ⊗₁ id {Urg ⊗₀ UR})
-                  ∘ ((id {Uei} ⊗₁ from-rgR) ∘ from-ei-rgR ∘ s-ei)
-                  ≈⟨ FM.assoc ⟩
-                s-eo⁻
-                  ∘ (to-eo-rgR ∘ (id {Ueo} ⊗₁ to-rgR))
-                  ∘ (G ⊗₁ id {Urg ⊗₀ UR})
-                  ∘ ((id {Uei} ⊗₁ from-rgR) ∘ from-ei-rgR ∘ s-ei)
-                  ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-                s-eo⁻
-                  ∘ to-eo-rgR
-                  ∘ (id {Ueo} ⊗₁ to-rgR)
-                  ∘ (G ⊗₁ id {Urg ⊗₀ UR})
-                  ∘ ((id {Uei} ⊗₁ from-rgR) ∘ from-ei-rgR ∘ s-ei)
-                  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-                s-eo⁻
-                  ∘ to-eo-rgR
-                  ∘ ((id {Ueo} ⊗₁ to-rgR) ∘ (G ⊗₁ id {Urg ⊗₀ UR}))
-                  ∘ ((id {Uei} ⊗₁ from-rgR) ∘ from-ei-rgR ∘ s-ei)
-                  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-                s-eo⁻
-                  ∘ to-eo-rgR
-                  ∘ (((id {Ueo} ⊗₁ to-rgR) ∘ (G ⊗₁ id {Urg ⊗₀ UR}))
-                     ∘ (id {Uei} ⊗₁ from-rgR))
-                  ∘ (from-ei-rgR ∘ s-ei)
-                  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩∘⟨refl ⟩
-                s-eo⁻
-                  ∘ to-eo-rgR
-                  ∘ ((id {Ueo} ⊗₁ to-rgR)
-                     ∘ (G ⊗₁ id {Urg ⊗₀ UR})
-                     ∘ (id {Uei} ⊗₁ from-rgR))
-                  ∘ (from-ei-rgR ∘ s-ei) ∎
+              regroup-mid =
+                bracket-mid s-eo⁻ to-eo-rgR (id {Ueo} ⊗₁ to-rgR)
+                  (G ⊗₁ id {Urg ⊗₀ UR}) (id {Uei} ⊗₁ from-rgR) from-ei-rgR s-ei
 
               regroup-R :
                 s-eo⁻
@@ -865,19 +875,9 @@ module BoxAssoc where
                   ∘ from-ei-rgR
                   ∘ s-ei
                 ≈Term s-eo⁻ ∘ bxRaw ∘ s-ei
-              regroup-R = begin
-                s-eo⁻
-                  ∘ to-eo-rgR
-                  ∘ (G ⊗₁ id {unflatten (restG ++ R)})
-                  ∘ from-ei-rgR
-                  ∘ s-ei
-                  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-                s-eo⁻
-                  ∘ to-eo-rgR
-                  ∘ ((G ⊗₁ id {unflatten (restG ++ R)}) ∘ from-ei-rgR)
-                  ∘ s-ei
-                  ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-                s-eo⁻ ∘ bxRaw ∘ s-ei ∎
+              regroup-R =
+                bracket-RR s-eo⁻ to-eo-rgR (G ⊗₁ id {unflatten (restG ++ R)})
+                  from-ei-rgR s-ei
 
   ------------------------------------------------------------------------
   -- BOX-PREFIX: mirror of `box-suffix`.  A P-prefixed box (generator acting
@@ -1108,39 +1108,9 @@ module BoxAssoc where
                      ∘ (id {UP} ⊗₁ from-ei-rk))
                   ∘ from-P-eirk
                   ∘ s-ei
-              regroup-mid = begin
-                (s-eo⁻ ∘ to-P-eork ∘ (id {UP} ⊗₁ to-eo-rk))
-                  ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-                  ∘ ((id {UP} ⊗₁ from-ei-rk) ∘ from-P-eirk ∘ s-ei)
-                  ≈⟨ FM.assoc ⟩
-                s-eo⁻
-                  ∘ (to-P-eork ∘ (id {UP} ⊗₁ to-eo-rk))
-                  ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-                  ∘ ((id {UP} ⊗₁ from-ei-rk) ∘ from-P-eirk ∘ s-ei)
-                  ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-                s-eo⁻
-                  ∘ to-P-eork
-                  ∘ (id {UP} ⊗₁ to-eo-rk)
-                  ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-                  ∘ ((id {UP} ⊗₁ from-ei-rk) ∘ from-P-eirk ∘ s-ei)
-                  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-                s-eo⁻
-                  ∘ to-P-eork
-                  ∘ ((id {UP} ⊗₁ to-eo-rk) ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk})))
-                  ∘ ((id {UP} ⊗₁ from-ei-rk) ∘ from-P-eirk ∘ s-ei)
-                  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-                s-eo⁻
-                  ∘ to-P-eork
-                  ∘ (((id {UP} ⊗₁ to-eo-rk) ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk})))
-                     ∘ (id {UP} ⊗₁ from-ei-rk))
-                  ∘ (from-P-eirk ∘ s-ei)
-                  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩∘⟨refl ⟩
-                s-eo⁻
-                  ∘ to-P-eork
-                  ∘ ((id {UP} ⊗₁ to-eo-rk)
-                     ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-                     ∘ (id {UP} ⊗₁ from-ei-rk))
-                  ∘ (from-P-eirk ∘ s-ei) ∎
+              regroup-mid =
+                bracket-mid s-eo⁻ to-P-eork (id {UP} ⊗₁ to-eo-rk)
+                  (id {UP} ⊗₁ (G ⊗₁ id {Urk})) (id {UP} ⊗₁ from-ei-rk) from-P-eirk s-ei
 
               regroup-R :
                 s-eo⁻
@@ -1149,19 +1119,8 @@ module BoxAssoc where
                   ∘ from-P-eirk
                   ∘ s-ei
                 ≈Term s-eo⁻ ∘ bxRaw ∘ s-ei
-              regroup-R = begin
-                s-eo⁻
-                  ∘ to-P-eork
-                  ∘ (id {UP} ⊗₁ bx)
-                  ∘ from-P-eirk
-                  ∘ s-ei
-                  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-                s-eo⁻
-                  ∘ to-P-eork
-                  ∘ ((id {UP} ⊗₁ bx) ∘ from-P-eirk)
-                  ∘ s-ei
-                  ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-                s-eo⁻ ∘ bxRaw ∘ s-ei ∎
+              regroup-R =
+                bracket-RR s-eo⁻ to-P-eork (id {UP} ⊗₁ bx) from-P-eirk s-ei
 
   ------------------------------------------------------------------------
   -- BOX-BRAID: the σ-mirror of `box-suffix`.  A FRONT-acting box on the
