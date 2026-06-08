@@ -76,20 +76,21 @@ bridge-cancel {A} {B} f = begin
 --------------------------------------------------------------------------------
 -- The soundness theorem.
 
-soundness-full-wired
-  : ∀ {A B} {f g : HomTerm A B}
-  → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-  → f ≈Term g
-soundness-full-wired {f = f} {g = g} iso = begin
-  f
-    ≈⟨ bridge-cancel f ⟨
-  bridge⁻¹ (bridge f)
-    ≈⟨ ∘-resp-≈ FM.Equiv.refl (∘-resp-≈ bf≈bg FM.Equiv.refl) ⟩
-  bridge⁻¹ (bridge g)
-    ≈⟨ bridge-cancel g ⟩
-  g ∎
-  where
-    bf≈bg : bridge f ≈Term bridge g
-    bf≈bg = ≈-Term-trans (≈-Term-sym (decode-roundtrip-rel f))
-              (≈-Term-trans (DRRIW.decode-rel-resp-iso f g iso)
-                            (decode-roundtrip-rel g))
+opaque
+  soundness-full-wired
+    : ∀ {A B} {f g : HomTerm A B}
+    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
+    → f ≈Term g
+  soundness-full-wired {f = f} {g = g} iso = begin
+    f
+      ≈⟨ bridge-cancel f ⟨
+    bridge⁻¹ (bridge f)
+      ≈⟨ ∘-resp-≈ FM.Equiv.refl (∘-resp-≈ bf≈bg FM.Equiv.refl) ⟩
+    bridge⁻¹ (bridge g)
+      ≈⟨ bridge-cancel g ⟩
+    g ∎
+    where
+      bf≈bg : bridge f ≈Term bridge g
+      bf≈bg = ≈-Term-trans (≈-Term-sym (decode-roundtrip-rel f))
+                (≈-Term-trans (DRRIW.decode-rel-resp-iso f g iso)
+                              (decode-roundtrip-rel g))
