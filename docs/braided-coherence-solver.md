@@ -155,11 +155,63 @@ bracketing/braiding), but substantial. The author pre-built the toolkit (`δ-shi
 induces the equal-FinBij hypothesis `p ≅↭ q`, and assemble the generator-peeling induction (the
 kernel only covers the zero-generator base case).
 
+## Alternative route — derive `≅ᴴ` from `≈M` and reuse the existing soundness theorem
+
+Instead of proving `matrix-faithful` (`matrix f ≈M matrix g → f ≈Term g`) from scratch, **bridge the
+two representations and inherit faithfulness from the already-proven hypergraph soundness theorem**:
+
+```
+matrix f ≈M matrix g  ──(bridge, NEW)──▶  ⟪f⟫ ≅ᴴ ⟪g⟫  ──(soundness-full-wired, PROVEN)──▶  f ≈Term g
+```
+
+**Why it is plausible — they encode the same incidence data.** The matrix `BlockMatrix sA sB k ds cs`
+is indexed by rows `RowG` = `v⁻` (the `sA` domain wires) + `t⁺ i` (generator `i`'s output ports), and
+cols `ColG` = `t⁻ i` (generator `i`'s input ports) + `v⁺` (the `sB` codomain wires), with
+`Bool`/`Set` connectivity entries. That is exactly the hypergraph's incidence:
+`v⁻`/`v⁺` ↔ `dom`/`cod`; the `k` generators ↔ the `nE` edges; `t⁺`/`t⁻` ↔ `eout`/`ein`; entries ↔
+which wire feeds which port; `size A` ↔ wire count. So the bridge is a **constructive
+representation-correspondence lemma** (combinatorial, *not* coherence): the `≅ᴴ` vertex/edge
+bijections fall out of identifying matrix indices, proved by relating how `matrix` and `⟪_⟫` are each
+built from `f`. It is **direct** (not routed through `≈Term`), so it is not circular.
+
+**Why this may be the pragmatic winner (for a fast, *proven* solver):**
+1. `matrix-faithful` comes free from the existing soundness theorem — **no re-proving coherence**.
+2. It **replaces the slow `findIso` *search* with a deterministic *construction*** of the iso from
+   the (canonical) matrix — directly fixing the APROP solver's measured bottleneck
+   (`smc-solver-performance.md`: `findIso` is the residual cost after `opaque`).
+3. It **skips the entire soundness tier** (the ~1–1.9k-LOC `wdiagram-resp-≈` "≈Term ⇒ equal matrix"
+   direction) **and** `matrix-faithful`-via-FinBij — you only need the *completeness* direction
+   `matrix≈M → ≅ᴴ`. Plausibly *less* work than the route above.
+
+**Trade-off:** this makes the matrix solver **depend on** (not subsume) the 18k-LOC hypergraph tree.
+It is the path to **fast + proven**, not to **smaller**. Choose it if the goal is solver speed /
+closing `GConstruction`; choose the `matrix-faithful` route if the goal is shrinking the soundness
+development.
+
+**Risks / work:** (a) co-locate both worlds (port the matrix package + `MonoidalCoherence`
+reconciliation); (b) **reconcile the index schemes** — the fiddly core: hypergraph uses the *pruned*
+vertex indexing (`nV = G.nV + count-non K.dom`, `remap`) while the matrix uses `size`-flattened wires
++ a generator ordering, so the bridge must align cut/internal wires and generator order; (c) pin down
+`≈M`'s exact quotient — the spike found the `≈D` track carries an explicit permutation matching
+`≅ᴴ`'s bijection (encouraging), but `solveSM` is on the `≈M` track, so verify that one. Suggested
+de-risking spike: define the matrix↔hypergraph index correspondence on a small co-located example and
+check `matrix f ≈M matrix g → ⟪f⟫ ≅ᴴ ⟪g⟫` constructs cleanly.
+
 ## Bottom line
 
-**Verdict: qualified GO.** The strategic bet is sound — the deep coherence content collapses onto an
-already-proven, reusable FinBij kernel; it does **not** merely relocate the problem. But landing it
-is a **multi-session engineering effort**, not a quick win: ~1–1.9k LOC of mechanical matrix-arithmetic
-for the soundness tier, the representation-bridging glue + generator-peeling induction, plus a
-cross-branch `MonoidalCoherence`/kernel port with a `--safe`/`--without-K` reconciliation — and the
-two-track (`≈M` vs `≈D`) split must be resolved first. No open mathematics; substantial plumbing.
+**Verdict: qualified GO**, via either of two routes.
+- **`matrix-faithful` route:** the deep coherence content collapses onto the already-proven, reusable
+  FinBij kernel (it does *not* merely relocate the problem), but landing it is multi-session
+  engineering — ~1–1.9k LOC of mechanical matrix-arithmetic for the soundness tier, the
+  representation-bridging glue + generator-peeling induction, a cross-branch `MonoidalCoherence`/kernel
+  port with a `--safe`/`--without-K` reconciliation, and the two-track (`≈M` vs `≈D`) split resolved
+  first. No open mathematics; substantial plumbing. Pays off in *both* speed and (potentially) size.
+- **`≈M → ≅ᴴ` bridge route (likely cheaper for speed alone):** derive the hypergraph iso from matrix
+  equality and reuse the existing soundness theorem — replaces the slow `findIso` search with a
+  deterministic construction and skips the soundness tier + `matrix-faithful`. Gives a fast, *proven*
+  solver, but layers on the hypergraph tree rather than shrinking it. The new work is the
+  index-reconciliation bridge.
+
+Either way the mathematics is done; the work is plumbing. Recommend a de-risking spike on whichever
+route is chosen (the `reflect-correct`/FinBij core for the first; the index-correspondence for the
+second) before a larger commitment.
