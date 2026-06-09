@@ -67,12 +67,13 @@ open import Categories.APROP.Hypergraph.Solver.Verify sig-dec
 
 open import Data.Bool using (Bool; true; false; _∧_; _∨_; not)
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Fin using (Fin; zero; suc; toℕ)
+open import Data.Fin using (Fin; zero; suc; toℕ; cast)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_; length; lookup; map; _++_; foldr)
 open import Data.List.Properties using (map-∘; map-cong; ≡-dec)
-open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Maybe using (Maybe; just; nothing; _>>=_)
 open import Data.Nat using (ℕ; zero; suc; _<ᵇ_; _≡ᵇ_; _<_; s≤s; z≤n)
+open import Data.Nat.Properties using () renaming (_≟_ to _≟ℕ_)
 open import Data.Product using (_×_; _,_; proj₁; proj₂)
 open import Relation.Nullary using (yes; no)
 open import Relation.Binary.Definitions using (DecidableEquality)
@@ -263,6 +264,14 @@ private
   lookupD d []       _       = d
   lookupD d (x ∷ _)  zero    = x
   lookupD d (_ ∷ xs) (suc i) = lookupD d xs i
+
+  -- §2-empty.  The empty-`Fin` fix lives in `align'` (below): `align`
+  -- originally demanded explicit `Fin (nV J)` / `Fin (nE J)` defaults so that
+  -- `lookupD` had a fallback for its `[]` branch.  Those defaults are
+  -- UNINHABITED when a count is `0` (an edge-free structural equation has
+  -- `nE = 0`), so `align` could not even be *called* there.  `align'` derives
+  -- `lookupD`'s default FROM THE INPUT via `cast` along the count equality, so
+  -- no uninhabited `Fin 0` is ever demanded.  See `align'`.
 
 --------------------------------------------------------------------------------
 -- §2½.  PERMUTATION CALCULUS for `posIn` / `lookupD`.
@@ -472,6 +481,39 @@ align H J ecodeH ecodeJ dV dV' dE dE' = record
   ; φ⁻¹ = λ v → lookupD dV' (Canon.canonV H ecodeH) (posIn (Canon.canonV J ecodeJ) v)
   ; ψ   = λ e → lookupD dE  (Canon.canonE J ecodeJ) (posIn (Canon.canonE H ecodeH) e)
   ; ψ⁻¹ = λ e → lookupD dE' (Canon.canonE H ecodeH) (posIn (Canon.canonE J ecodeJ) e)
+  }
+
+--------------------------------------------------------------------------------
+-- §2-empty.  `align'` — the DEFAULT-FREE drop-in (the empty-`Fin` fix).
+--
+-- `align` above demands four uninhabited-when-zero `Fin` defaults
+-- (`dV/dV'/dE/dE'`), so it cannot be CALLED when a count is `0` (e.g. an
+-- edge-free structural equation has `nE = 0`, making `dE : Fin 0` impossible).
+--
+-- `align'` removes that obstruction.  It takes the two COUNT EQUALITIES
+-- (`nV H ≡ nV J` and `nE H ≡ nE J`) — exactly the data a candidate iso must
+-- satisfy, and which `findIsoᴮ` decides up front — and derives `lookupD`'s
+-- default FROM THE INPUT, under the binder, via `cast`:
+--
+--     φ v = lookupD (cast pV v) (canonV J) (posIn (canonV H) v)
+--
+-- `cast pV v : Fin (nV J)` is total for EVERY input `v` (no uninhabited value
+-- demanded), and is only ever consulted off-the-end — which never happens for
+-- in-range permutation lookups.  So `align'`'s observable behaviour on
+-- well-formed inputs is identical to `align`'s, and `align'` is callable for
+-- ALL counts, including `nE = 0` and `nV = 0` (where the corresponding map has
+-- empty domain and the default is vacuously fine).
+align' : (H J : Hypergraph FlatGen)
+       → (ecodeH : Fin (Hypergraph.nE H) → ℕ)
+       → (ecodeJ : Fin (Hypergraph.nE J) → ℕ)
+       → (pV : Hypergraph.nV H ≡ Hypergraph.nV J)
+       → (pE : Hypergraph.nE H ≡ Hypergraph.nE J)
+       → Alignment H J
+align' H J ecodeH ecodeJ pV pE = record
+  { φ   = λ v → lookupD (cast pV v)        (Canon.canonV J ecodeJ) (posIn (Canon.canonV H ecodeH) v)
+  ; φ⁻¹ = λ v → lookupD (cast (sym pV) v)  (Canon.canonV H ecodeH) (posIn (Canon.canonV J ecodeJ) v)
+  ; ψ   = λ e → lookupD (cast pE e)        (Canon.canonE J ecodeJ) (posIn (Canon.canonE H ecodeH) e)
+  ; ψ⁻¹ = λ e → lookupD (cast (sym pE) e)  (Canon.canonE H ecodeH) (posIn (Canon.canonE J ecodeJ) e)
   }
 
 --------------------------------------------------------------------------------
@@ -699,3 +741,71 @@ module _ {H J : Hypergraph FlatGen} where
               ; m-cod  = cod
               ; m-elab = elab
               }
+
+  -- ── `decBijLaws` : DECIDE the four bijection round-trips ───────────────────
+  -- The PURELY-DECIDED analogue of `align-bijLaws`: instead of assuming a
+  -- `CanonPerm` hypothesis, it decides each of the four round-trips
+  -- (`φ⁻¹ (φ i) ≡ i`, `φ (φ⁻¹ i) ≡ i`, `ψ⁻¹ (ψ e) ≡ e`, `ψ (ψ⁻¹ e) ≡ e`)
+  -- the SAME way `decCanonMatch` decides the incidence equations — via
+  -- `∀F?`/`dec→maybe` over `Data.Fin.Properties._≟_`.  A `just` therefore
+  -- carries genuine round-trip proofs, with NO `CanonPerm` input.  (If the
+  -- alignment's `φ`/`ψ` are not mutually inverse — e.g. a wrong `align`
+  -- read — some round-trip fails decidably and the result is `nothing`.)
+  decBijLaws : (al : Alignment H J) → Maybe (BijLaws al)
+  decBijLaws al
+    with ∀F? (λ i → dec→maybe (φ⁻¹ (φ i) ≟F i))
+       | ∀F? (λ i → dec→maybe (φ (φ⁻¹ i) ≟F i))
+       | ∀F? (λ e → dec→maybe (ψ⁻¹ (ψ e) ≟F e))
+       | ∀F? (λ e → dec→maybe (ψ (ψ⁻¹ e) ≟F e))
+    where φ   = Alignment.φ   al
+          φ⁻¹ = Alignment.φ⁻¹ al
+          ψ   = Alignment.ψ   al
+          ψ⁻¹ = Alignment.ψ⁻¹ al
+  ... | nothing | _ | _ | _ = nothing
+  ... | _ | nothing | _ | _ = nothing
+  ... | _ | _ | nothing | _ = nothing
+  ... | _ | _ | _ | nothing = nothing
+  ... | just φl | just φr | just ψl | just ψr = just record
+        { φ-left = φl
+        ; φ-rght = φr
+        ; ψ-left = ψl
+        ; ψ-rght = ψr
+        }
+
+--------------------------------------------------------------------------------
+-- §4.  `findIsoᴮ` : a SOUND, NO-SEARCH drop-in for `findIso`.
+--
+-- Builds the canonical alignment `align'` (the default-free variant, §2-empty)
+-- and assembles `H ≅ᴴ J` from the THREE purely-decided witnesses:
+--
+--   * the count equalities `nV H ≡ nV J`, `nE H ≡ nE J`, decided up front
+--     (a bijection is impossible unless they hold — so deciding them is sound
+--     and they are exactly what `align'` needs to drop its `Fin` defaults);
+--   * `decBijLaws  al` — the four bijection round-trips, decided;
+--   * `decCanonMatch al` — the eight incidence/label/boundary fields, decided.
+--
+-- Every field of the resulting `_≅ᴴ_` is a genuine proof produced by
+-- `matIso→hgIso` (no postulate anywhere in the iso path).  A wrong `align'`
+-- read is REJECTED by the deciders (`nothing`); a `just` is a genuine iso.
+--
+-- COVERAGE.  Unlike `findIso`, this is callable even for `nE = 0` (edge-free
+-- structural equations) and `nV = 0`, since `align'` demands no uninhabited
+-- `Fin` defaults.  It is SOUND for all inputs; it is COMPLETE on monogamous
+-- acyclic `⟪_⟫`-translations whose canonical reads agree under `ecodeH`/
+-- `ecodeJ` (a FAITHFUL pair of generator codes is needed to canonicalise
+-- input-free generator ties — a `const 0` ecode is still SOUND but only
+-- complete for non-tie cases; see §2).
+findIsoᴮ : (H J : Hypergraph FlatGen)
+         → (ecodeH : Fin (Hypergraph.nE H) → ℕ)
+         → (ecodeJ : Fin (Hypergraph.nE J) → ℕ)
+         → Maybe (H ≅ᴴ J)
+findIsoᴮ H J ecodeH ecodeJ
+  with Hypergraph.nV H ≟ℕ Hypergraph.nV J
+     | Hypergraph.nE H ≟ℕ Hypergraph.nE J
+... | no _  | _     = nothing
+... | _     | no _  = nothing
+... | yes pV | yes pE =
+      let al = align' H J ecodeH ecodeJ pV pE
+      in decBijLaws al >>= λ bij →
+         decCanonMatch al >>= λ mt →
+         just (matIso→hgIso al bij mt)
