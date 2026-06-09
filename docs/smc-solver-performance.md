@@ -336,10 +336,18 @@ sharing is the bottleneck.
    ~200–400 LOC of reflection code, no new math. Expected end state ≈ `tr` + cheap search: ~0.5–1 s
    instead of 8.3 s at N=16. (Bonus: literal graphs also un-stick the `refl`-style validations that
    currently require hand-built hypergraphs.)
-2. **Right-reassociation pre-pass (~2.4× on left-heavy goals, growing).** `isoL` shows the nesting
-   direction of `∘` compounds the `hComposeP` depth cost. A `reassoc : HomTerm → HomTerm` to
-   right-nested form with the trivial `reassoc-sound : reassoc t ≈Term t` (assoc + congruence only,
-   no coherence) lets the solver normalize association before translating. ~50–100 LOC.
+2. **Re-association pre-pass — but to BALANCED form, not right-nested (correction).** A follow-up
+   probe (16 and 32 generators) measured balanced `∘`-trees at **3,512 ms / 29.2 s** vs right-linear
+   **9,502 ms / 113.8 s** vs left-linear (20 s at 16) — i.e. **balanced < right < left, gaps growing**
+   (2.7× → 3.9× balanced-vs-right). So the originally-proposed *right*-reassociation would have
+   merely shifted cost: it helps left-heavy goals ~2.4× but *pessimizes* balanced ones ~2.7–3.9×.
+   The mechanism: every field access pays the `hComposeP` layers on its path, so what matters is
+   path *depth* — O(log n) balanced vs O(n) linear (modulated by the G/K asymmetry, which is why
+   right beats left among linear shapes). The correct lever is a **rebalancing** `reassoc` (same
+   trivial assoc-only `≈Term` proof, ~50–100 LOC): speeds linear inputs 2.7–5.7× (growing), no-op on
+   balanced. Note it is largely **subsumed by (1)**: literalization removes the per-access
+   multiplier, leaving shape sensitivity only in the single forced normalization (where balanced
+   still wins ~2×: `tr` 247 vs 491 ms) — so do (1) first; (2) is a compounding ~2× on top.
 3. **The ~1.1 s `soundness-full-wired`-application overhead** — real, paid once per solve even with
    the named-iso pattern; likely one re-normalization of the `⟪_⟫`-typed index during conversion.
    Bounded but worth a look after (1), since (1) makes the iso's type a literal too.
