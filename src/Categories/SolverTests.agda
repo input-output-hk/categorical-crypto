@@ -235,22 +235,67 @@ module Decision where
 -- so that `≈Term` equations transport via the free functor to C-level
 -- equalities.  All tests are genuine equations between morphisms of C.
 
-module Transport
-  {o ℓ e} (C : MonoidalCategory o ℓ e)
-  (⟦_⟧obj₀ : Ty → C .MonoidalCategory.U .Category.Obj)
-  where
+module Transport {o ℓ e} (C : MonoidalCategory o ℓ e) where
 
-  open SolveMor {o} {ℓ} {e} {Ty} Gen C ⟦_⟧obj₀
+  private
+    Obj = C .MonoidalCategory.U .Category.Obj
 
-  module WithMorphisms
-    (⟦Gen⟧ : ∀ {a b} → Gen a b
-           → C .MonoidalCategory.U [ ⟦ wires a ⟧obj , ⟦ wires b ⟧obj ])
-    where
+  ------------------------------------------------------------------------
+  -- Configuration: two disjoint endomorphisms on wire-objects WA and WB.
+  -- Following the Symmetric.Test convention: parameterised by the objects
+  -- and morphisms of C; `test-interchange` is a genuine C-level equation.
+  --
+  -- WA and WB are the WIRE-objects ⟦ wires (⋆ ∷ []) ⟧obj and
+  -- ⟦ wires (• ∷ []) ⟧obj respectively; the solver's right-nested
+  -- encoding makes these `A ⊗ unit` rather than bare `A`.  Supply
+  -- `sᴹ` and `tᴹ` at these types; in concrete categories the right
+  -- unitor gives a coercion from plain endomorphisms.
 
-    open WithMor ⟦Gen⟧
+  module DisjointEndos (A B : Obj) where
 
-    -- The disjoint interchange `s ‖ t` (s on ⋆, t on •) lifts to C.
-    test-interchange : C .MonoidalCategory.U
-                         [ ⟦ TwoBoxSwap.f-first [] [] [] s t ⟧₁
-                         ≈ ⟦ TwoBoxSwap.g-first [] [] [] s t ⟧₁ ]
-    test-interchange = interchange-target s t
+    -- Wire colours mapped to the two atom-objects.
+    private
+      ⟦_⟧₀ : Ty → Obj
+      ⟦ ⋆ ⟧₀ = A
+      ⟦ • ⟧₀ = B
+
+    -- Minimal two-generator signature (s on ⋆, t on •), Fin-indexed.
+    private
+      arity₂ : Fin 2 → List Ty × List Ty
+      arity₂ zero    = (⋆ ∷ []) , (⋆ ∷ [])
+      arity₂ (suc _) = (• ∷ []) , (• ∷ [])
+
+    data Gen₂ : List Ty → List Ty → Set where
+      gen₂ : (i : Fin 2) → Gen₂ (proj₁ (arity₂ i)) (proj₂ (arity₂ i))
+
+    private
+      s₂ = gen₂ zero
+      t₂ = gen₂ (suc zero)
+
+    -- U₂ is the Untyped machinery instantiated at Gen₂.  We need this
+    -- qualified alias because SolveMor opens Untyped internally without
+    -- re-exporting, so `wires` and `TwoBoxSwap` are not visible after
+    -- `open SolveMor`.  U₂.wires is definitionally equal to the `wires`
+    -- inside SolveMor Gen₂ (same module application).
+    private module U₂ = Untyped {Ty} Gen₂
+
+    -- Open the solver at Gen₂: brings ⟦_⟧obj and WithMor into scope.
+    open SolveMor {o} {ℓ} {e} {Ty} Gen₂ C ⟦_⟧₀
+
+    -- WithMorphisms: parameterised by sᴹ and tᴹ at the wire-object types.
+    module WithMorphisms
+      (sᴹ : C .MonoidalCategory.U [ ⟦ U₂.wires (⋆ ∷ []) ⟧obj
+                                   , ⟦ U₂.wires (⋆ ∷ []) ⟧obj ])
+      (tᴹ : C .MonoidalCategory.U [ ⟦ U₂.wires (• ∷ []) ⟧obj
+                                   , ⟦ U₂.wires (• ∷ []) ⟧obj ])
+      where
+
+      -- Pass the interpretation inline so Agda infers the exact Gen₂ type
+      -- from WithMor's expected argument, avoiding any wires-instance mismatch.
+      open WithMor (λ { (gen₂ zero) → sᴹ ; (gen₂ (suc _)) → tᴹ })
+
+      -- sᴹ (on A-wire) and tᴹ (on B-wire) commute: genuine C-level equation.
+      test-interchange : C .MonoidalCategory.U
+                           [ ⟦ U₂.TwoBoxSwap.f-first [] [] [] s₂ t₂ ⟧₁
+                           ≈ ⟦ U₂.TwoBoxSwap.g-first [] [] [] s₂ t₂ ⟧₁ ]
+      test-interchange = interchange-target s₂ t₂
