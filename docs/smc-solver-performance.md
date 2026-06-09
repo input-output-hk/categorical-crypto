@@ -203,6 +203,40 @@ So the hard evidence confirms and sharpens the verdict: the matrix–vs–hyperg
 cost is itself **super-linear** in size (dominated by pruned-`⟪_⟫` + `Verify`), which is exactly what
 a flat canonical form (matrix, or a DAG canonical labelling on the hypergraph) would replace.
 
+## The two `solveH!` variants, measured (2026-06-09) — the hypergraph bridge is *slower*
+
+With the `findIsoᴮ` bridge built (`MatrixBridge`/`InterpretBridge`), the two `solveH!` variants differ
+*only* in the iso finder — `findIso` (backtracking search) vs `findIsoᴮ` (canonical-form construction
+on hypergraphs); everything else (opaque `soundness-full-wired`, the abstract-`C` transport) is shared.
+Profiling the two iso finders on the same equations:
+
+| equation | `findIso` (search) | `findIsoᴮ` (bridge) |
+|---|---|---|
+| `idˡ` (nE=1) | <10 ms | 12 ms |
+| σ-naturality (nE=2) | 33 ms | 219 ms |
+| σσ-naturality (nE=2) | 25 ms | 187 ms |
+
+**`findIsoᴮ` is ~5–7× *slower*, not faster.** This looks like it contradicts the head-to-head above,
+but it doesn't — it sharpens it:
+
+- The ~16–25× head-to-head win belonged to the smc-coherence **flat Bool-matrix** solver
+  (`diagram f ≡ diagram g` by `refl` — a cheap array compare). `findIsoᴮ` is a *different* thing: it
+  **reconstructs a hypergraph isomorphism** (because `soundness-full-wired` consumes a `≅ᴴ`), via the
+  canonical labelling `align` + the two deciders `decBijLaws` + `decCanonMatch` + the `matIso→hgIso`
+  record assembly. `decCanonMatch` alone costs ≈ `findIso`'s `Verify`; `findIsoᴮ` then pays `align`
+  (peel + `posIn`/`lookupD` + `sortℕ`), `decBijLaws`, the per-edge `ecode` extraction, and the
+  12-field assembly *on top*. So it is strictly more work.
+- And the "no search" advantage buys nothing here, because — per the edge-scaling probe — `findIso`
+  **never backtracks** on monogamous `⟪_⟫` graphs. There was no search cost to eliminate.
+
+**Takeaway.** The hypergraph-native canonical bridge's value is *architectural* — a sound,
+postulate-free, no-search-*in-principle* `≅ᴴ` construction that demonstrably drops into `solveH!` — but
+it is **not** a speed win over `findIso`. A genuine speed win needs the **flat representation**: decide
+equality on the Bool/`SetMatrix` directly (the smc-coherence route) and reach `≈Term` via
+`matrix-faithful` — *not* by reconstructing the `≅ᴴ` that `findIso`/`findIsoᴮ` both produce. Equivalently:
+the cost is `⟪_⟫` + `Verify`-class scanning, which both finders pay; only abandoning the
+hypergraph-iso *reconstruction* (flat-matrix `≈M` + `matrix-faithful`) removes it.
+
 ## Implication
 
 The fix is the same as for shrinking the soundness proof itself: a real coherence solver
