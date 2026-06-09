@@ -189,13 +189,35 @@ closing `GConstruction`; choose the `matrix-faithful` route if the goal is shrin
 development.
 
 **Risks / work:** (a) co-locate both worlds (port the matrix package + `MonoidalCoherence`
-reconciliation); (b) **reconcile the index schemes** — the fiddly core: hypergraph uses the *pruned*
-vertex indexing (`nV = G.nV + count-non K.dom`, `remap`) while the matrix uses `size`-flattened wires
-+ a generator ordering, so the bridge must align cut/internal wires and generator order; (c) pin down
-`≈M`'s exact quotient — the spike found the `≈D` track carries an explicit permutation matching
-`≅ᴴ`'s bijection (encouraging), but `solveSM` is on the `≈M` track, so verify that one. Suggested
-de-risking spike: define the matrix↔hypergraph index correspondence on a small co-located example and
-check `matrix f ≈M matrix g → ⟪f⟫ ≅ᴴ ⟪g⟫` constructs cleanly.
+reconciliation); (b) **reconcile the index schemes**; (c) pin down `≈M`'s exact quotient.
+
+### De-risking spike (2026-06-09) — VIABLE; the feared index crux dissolves
+
+A spike built the pipeline `hg→mat → align → matIso→hgIso → soundness-full-wired` on the current
+branch (`Categories/APROP/Hypergraph/Solver/MatrixBridge.agda` + `Matrix.agda` ported from
+`smc-coherence`, one unused-`Biproduct` trim) and ran it end-to-end (builds EXIT 0), producing a
+real `σ-naturality : LHS ≈Term RHS` from two matrix-encoded hypergraphs. Findings:
+
+- **Index reconciliation (b) is CLEAN, not fiddly** — the surprise. Because `⟪_⟫` composes via the
+  *pruned* `hComposeP` (`nV = G.nV + count-non K.dom`), both sides of an equation collapse to the
+  **same** `nV`/`nE`, and the matrix's `Fin nV`-backed index *is* the pruned hypergraph vertex.
+  `hg→mat` reads the already-pruned `dom`/`cod`/`ein`/`eout` directly — **no separate flattening
+  reconciliation was needed**. (`hg→mat`: `BlockMatrix` with `sA = length dom`, `sB = length cod`,
+  `ds e = length (ein e)`, `cs e = length (eout e)`; each row/col index backed by a vertex via
+  `lookup`; Bool entry = "same vertex?". Verified by normalising concrete entries.)
+- **The translation functions genuinely compute**; only the **15 `≅ᴴ` preservation fields are
+  postulated** (deferred, as agreed).
+- **WIP gap:** `align` is currently an identity `subst Fin` coercion — it proves the *identity*
+  alignment, so the demo works because the two pruned hypergraphs share a layout. The real
+  canonical-form alignment (`readPerm`-style, the permutation read that handles genuinely
+  differently-laid-out iso hypergraphs) is the **next step** and the bulk of the remaining inverse-law
+  work; `Prune.pruneMap`/`pruneMap⁻¹` (both inverses already proven) is the reusable substrate.
+- **Cost of a proven version:** ≈ the existing `Verify` + `Match` + `Seed` stack re-expressed against
+  the matrix read (low-thousands LOC, multi-session), reusing `Prune`'s `pruneMap` inverses and
+  `Iso`'s `subst₂` lemmas. No fundamental blocker; the representations are compatible.
+
+Committed as a feasibility checkpoint (`MatrixBridge`/`MatrixBridgeDemo`, postulated preservation +
+identity `align`).
 
 ## Bottom line
 
