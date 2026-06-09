@@ -5,14 +5,16 @@
 -- *hypergraph*, by translating between the two worlds.
 --
 --   hg→mat  : Hypergraph FlatGen → BlockMatrix Bool …      (incidence encoding)
---   align   : matrices → candidate (φ , ψ) bijections        (canonical read)
+--   align   : (H J) → candidate (φ , ψ) bijections          (CANONICAL read)
 --   matIso→hgIso : (φ , ψ) → H ≅ᴴ J                          (record assembly)
 --
--- The proof fields of `_≅ᴴ_` (vlab/ein/eout/dom/cod/elab agreement) are
--- POSTULATED — this spike validates the *data flow* + surfaces the
--- index-reconciliation, it proves nothing.  The translation functions
--- themselves (`hg→mat`, `align`) genuinely compute; only the deferred
--- preservation proofs are postulated.
+-- `align` is now a REAL canonical-labelling read (no backtracking search):
+-- it computes a canonical DAG labelling of each hypergraph and reads the
+-- bijection off the canonical ranks.  See §2.  The proof fields of `_≅ᴴ_`
+-- (vlab/ein/eout/dom/cod/elab agreement) remain POSTULATED — this spike
+-- validates the *data flow* and `align`'s computational correctness (the
+-- demo discharges the incidence conditions by `refl` on a concrete
+-- non-identity example); it does not yet *prove* preservation in general.
 --
 -- Drops `--safe` (postulates + brings in the matrix world); the underlying
 -- hypergraph modules remain `--safe --without-K`.
@@ -34,11 +36,11 @@ open import Categories.SymmetricMonoidalCoherence.Matrix
   using (Matrix; tabulateM; BlockMatrix; RowG; ColG; v⁻; v⁺; t⁺; t⁻;
          module Sizes)
 
-open import Data.Bool using (Bool; true; false)
-open import Data.Fin using (Fin)
+open import Data.Bool using (Bool; true; false; _∧_; _∨_; not)
+open import Data.Fin using (Fin; zero; suc; toℕ)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; length; lookup)
-open import Data.Nat using (ℕ)
+open import Data.List using (List; []; _∷_; length; lookup; map; _++_; foldr)
+open import Data.Nat using (ℕ; zero; suc; _<ᵇ_; _≡ᵇ_)
 open import Relation.Nullary using (yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
@@ -106,24 +108,165 @@ module _ (H : Hypergraph FlatGen) where
   hg→mat r c = tabulateM (λ i j → same? (rowVtx r i) (colVtx c j))
 
 --------------------------------------------------------------------------------
--- §2.  Matrix-level alignment.
+-- §2.  Canonical alignment via DAG canonical labelling (NO search).
 --
--- Given the two encoded hypergraphs, compute candidate vertex/edge
--- bijections.  As permitted by the spike (NO correctness proof required),
--- this is a CANONICAL read rather than a backtracking search: we read the
--- alignment directly off the index ordering the matrices were built from.
+-- The input hypergraphs are `⟪_⟫`-translations: monogamous (each wire
+-- produced once / consumed once) and acyclic.  We compute a canonical
+-- labelling of each one and read the bijection straight off the canonical
+-- ranks.  This is the "canonical form, no backtracking" idea made real.
 --
--- The matrices `hg→mat H` and `hg→mat J` are laid out in a canonical order
--- (boundary wires first, then edges in `Fin nE` order, ports in
--- `Fin (ein/eout)` order).  For two hypergraphs that are translations of
--- structurally-equal terms, that canonical order already aligns them, so the
--- alignment is the identity-flavoured remap.  We make the *shape* of the read
--- explicit: alignment succeeds only when the index counts match, in which
--- case `φ`/`ψ` are the count-coercions read off the matrices.
+-- ALGORITHM (per hypergraph H):
 --
--- (This mirrors `Reflect.readPerm`'s "canonical form, no backtracking" idea:
--- the canonical layout IS the permutation witness; here it degenerates to the
--- coercion because both sides were built by the same layout convention.)
+--   1.  Canonical VERTEX order seeds with `H.dom` (boundary inputs, in
+--       order).  Subsequently, vertices enter in the order their producing
+--       edge is canonically peeled (every non-dom vertex is some edge's
+--       output, by monogamy).
+--
+--   2.  Canonical EDGE order is a topological peel: repeatedly take an edge
+--       all of whose input vertices are ALREADY ranked (boundary or an
+--       output of an already-peeled edge).  Among the ready edges, break
+--       ties by an INTRINSIC signature: the sorted list of the
+--       already-assigned canonical ranks of the edge's input vertices.  The
+--       tie-break uses ONLY ranks (intrinsic structural data), never the raw
+--       `Fin` edge index — so two isomorphic graphs with different index
+--       layouts get the SAME canonical edge order.
+--
+--   3.  After peeling an edge, append its `eout` vertices (in `eout` order)
+--       to the canonical vertex order.
+--
+--   The two canonical orders `canonV`/`canonE` are permutations of
+--   `Fin H.nV` / `Fin H.nE`.  The alignment is then
+--
+--       φ v = canonV J ‼ rank of v in canonV H
+--       ψ e = canonE J ‼ rank of e in canonE H
+--
+--   i.e. "the J-vertex/edge sitting at the same canonical slot".  This is a
+--   genuine computation (it produces a NON-identity permutation whenever the
+--   two layouts differ); it is NOT proven to be a bijection here.
+--
+-- TIE-BREAK SCOPE.  The signature distinguishes ready edges by which
+-- already-ranked vertices they consume.  It is fully intrinsic and correctly
+-- canonicalises any two graphs in which the ready edges at every peel step
+-- consume DISTINCT rank-multisets of inputs — in particular the σ-naturality
+-- example (the two generators read distinct boundary wires).  It does NOT
+-- distinguish two ready edges that consume the *identical* input-rank
+-- multiset (genuine automorphisms / parallel edges with equal arities); for
+-- those a generator-label code would be needed.  See the report.
+
+private
+  -- All indices of `Fin n`, in order: 0, 1, …, n-1.
+  allFins : (n : ℕ) → List (Fin n)
+  allFins zero    = []
+  allFins (suc n) = zero ∷ map suc (allFins n)
+
+  -- Lexicographic strict comparison of `ℕ` lists ("is xs < ys?").
+  ltList : List ℕ → List ℕ → Bool
+  ltList []       []       = false
+  ltList []       (_ ∷ _)  = true
+  ltList (_ ∷ _)  []       = false
+  ltList (x ∷ xs) (y ∷ ys) =
+    (x <ᵇ y) ∨ ((x ≡ᵇ y) ∧ ltList xs ys)
+
+  -- Insertion sort of an `ℕ` list (ascending).  Used to make the
+  -- input-rank signature order-independent.
+  insert-sorted : ℕ → List ℕ → List ℕ
+  insert-sorted x []       = x ∷ []
+  insert-sorted x (y ∷ ys) with x <ᵇ y
+  ... | true  = x ∷ y ∷ ys
+  ... | false = y ∷ insert-sorted x ys
+
+  sortℕ : List ℕ → List ℕ
+  sortℕ = foldr insert-sorted []
+
+  -- Position of `v` in a `Fin`-list, as a ℕ; returns `length xs`
+  -- (one-past-the-end, an "unranked" sentinel) when absent.
+  posIn : ∀ {n} → List (Fin n) → Fin n → ℕ
+  posIn []       _ = 0
+  posIn (x ∷ xs) v with x ≟F v
+  ... | yes _ = 0
+  ... | no  _ = suc (posIn xs v)
+
+  -- Membership test in a `Fin`-list.
+  memberOf : ∀ {n} → List (Fin n) → Fin n → Bool
+  memberOf []       _ = false
+  memberOf (x ∷ xs) v with x ≟F v
+  ... | yes _ = true
+  ... | no  _ = memberOf xs v
+
+  -- "Are all of `vs` present in `ranked`?"  (edge readiness)
+  allMember : ∀ {n} → List (Fin n) → List (Fin n) → Bool
+  allMember ranked []       = true
+  allMember ranked (v ∷ vs) = memberOf ranked v ∧ allMember ranked vs
+
+  -- The list lookup that DEFAULTS to its first arg when the index runs off
+  -- the end (used only with in-range indices in practice).
+  lookupD : ∀ {n} → Fin n → List (Fin n) → ℕ → Fin n
+  lookupD d []       _       = d
+  lookupD d (x ∷ _)  zero    = x
+  lookupD d (_ ∷ xs) (suc i) = lookupD d xs i
+
+module Canon (H : Hypergraph FlatGen) where
+  private module H = Hypergraph H
+  open import Data.Product using (_×_; _,_; proj₁; proj₂)
+
+  -- Signature of an edge given the current canonical vertex order
+  -- `rankedV`: the SORTED list of canonical ranks of its input vertices.
+  edgeSig : List (Fin H.nV) → Fin H.nE → List ℕ
+  edgeSig rankedV e = sortℕ (map (posIn rankedV) (H.ein e))
+
+  -- Is edge `e` ready to peel?  (all inputs already ranked, and e not yet
+  -- peeled).  `peeled` : edges already in canonical order.  `rankedV` :
+  -- vertices already ranked.
+  ready? : List (Fin H.nE) → List (Fin H.nV) → Fin H.nE → Bool
+  ready? peeled rankedV e =
+    not (memberOf peeled e) ∧ allMember rankedV (H.ein e)
+
+  open import Data.Maybe using (Maybe; just; nothing)
+
+  -- Among the scanned `candidates`, pick the ready edge of minimal
+  -- signature, carrying the best-so-far as a `Maybe (Fin nE × List ℕ)`.
+  -- Returns `nothing` iff no candidate is ready (cannot happen on a
+  -- well-formed acyclic monogamous DAG before all edges are peeled).
+  pickMin : List (Fin H.nE) → List (Fin H.nV)
+          → Maybe (Fin H.nE × List ℕ)    -- best edge so far + its sig
+          → List (Fin H.nE)               -- candidates to scan
+          → Maybe (Fin H.nE)
+  pickMin peeled rankedV nothing             [] = nothing
+  pickMin peeled rankedV (just (best , _))   [] = just best
+  pickMin peeled rankedV acc (e ∷ es) with ready? peeled rankedV e
+  ... | false = pickMin peeled rankedV acc es
+  ... | true  with acc
+  ...   | nothing = -- first ready edge: it's the new best
+                    pickMin peeled rankedV (just (e , edgeSig rankedV e)) es
+  ...   | just (best , bestSig) with ltList (edgeSig rankedV e) bestSig
+  ...     | true  = pickMin peeled rankedV (just (e , edgeSig rankedV e)) es
+  ...     | false = pickMin peeled rankedV (just (best , bestSig)) es
+
+  -- One peel step: choose the minimal ready edge, append it to `peeled`,
+  -- and append its outputs to `rankedV`.  If no edge is ready, the state is
+  -- returned unchanged (so `peelN` is a no-op past the last peelable edge).
+  step : List (Fin H.nE) × List (Fin H.nV)
+       → List (Fin H.nE) × List (Fin H.nV)
+  step (peeled , rankedV) with pickMin peeled rankedV nothing (allFins H.nE)
+  ... | nothing = (peeled , rankedV)
+  ... | just e  = (peeled ++ (e ∷ []) , rankedV ++ H.eout e)
+
+  -- Iterate `step` `fuel` times (fuel = nE suffices: one edge per step).
+  peelN : ℕ → List (Fin H.nE) × List (Fin H.nV)
+        → List (Fin H.nE) × List (Fin H.nV)
+  peelN zero    st = st
+  peelN (suc k) st = peelN k (step st)
+
+  -- Canonical orders.  The vertex order seeds with `H.dom`; the peel runs
+  -- for `nE` steps (each step peels one edge).
+  canonV-canonE : List (Fin H.nE) × List (Fin H.nV)
+  canonV-canonE = peelN H.nE ([] , H.dom)
+
+  canonE : List (Fin H.nE)
+  canonE = proj₁ canonV-canonE
+
+  canonV : List (Fin H.nV)
+  canonV = proj₂ canonV-canonE
 
 record Alignment (H J : Hypergraph FlatGen) : Set where
   field
@@ -132,36 +275,28 @@ record Alignment (H J : Hypergraph FlatGen) : Set where
     ψ   : Fin (Hypergraph.nE H) → Fin (Hypergraph.nE J)
     ψ⁻¹ : Fin (Hypergraph.nE J) → Fin (Hypergraph.nE H)
 
--- Read an alignment off the two matrices.  This `align` genuinely computes:
--- it pattern-matches on the vertex/edge counts and, when they agree, returns
--- the count-coercion bijection read from the canonical matrix layout.  (For
--- mismatched counts there is no candidate; the spike only exercises the
--- matching case, so we expose the matching-count constructor.)
+-- The REAL canonical read.  `align H J` computes the canonical labellings of
+-- both hypergraphs and composes H's rank with J's inverse-rank:
+--
+--   φ v  =  canonV J  at  (rank of v in canonV H)
+--
+-- This GENUINELY COMPUTES the aligning permutation.  No `nV ≡ nV` / `nE ≡ nE`
+-- arguments are needed; the orders carry the layout information.
+--
+-- `lookupD` needs a well-typed default in the TARGET space, only ever forced
+-- when a rank runs off the end (i.e. never, for in-range vertices/edges of
+-- well-formed iso graphs).  Defaults are provided as the second explicit
+-- argument of `align`; in the validating demo they are concrete `Fin`s.
 align : (H J : Hypergraph FlatGen)
-      → BlockMatrix (length (Hypergraph.dom H)) (length (Hypergraph.cod H))
-                    (Hypergraph.nE H)
-                    (λ e → length (Hypergraph.ein H e))
-                    (λ e → length (Hypergraph.eout H e))
-      → BlockMatrix (length (Hypergraph.dom J)) (length (Hypergraph.cod J))
-                    (Hypergraph.nE J)
-                    (λ e → length (Hypergraph.ein J e))
-                    (λ e → length (Hypergraph.eout J e))
-      → (Hypergraph.nV H ≡ Hypergraph.nV J)
-      → (Hypergraph.nE H ≡ Hypergraph.nE J)
+      → (dV  : Fin (Hypergraph.nV J)) (dV' : Fin (Hypergraph.nV H))
+      → (dE  : Fin (Hypergraph.nE J)) (dE' : Fin (Hypergraph.nE H))
       → Alignment H J
-align H J _ _ nV-eq nE-eq = record
-  { φ   = coerce nV-eq
-  ; φ⁻¹ = coerce (sym nV-eq)
-  ; ψ   = coerce nE-eq
-  ; ψ⁻¹ = coerce (sym nE-eq)
+align H J dV dV' dE dE' = record
+  { φ   = λ v → lookupD dV  (Canon.canonV J) (posIn (Canon.canonV H) v)
+  ; φ⁻¹ = λ v → lookupD dV' (Canon.canonV H) (posIn (Canon.canonV J) v)
+  ; ψ   = λ e → lookupD dE  (Canon.canonE J) (posIn (Canon.canonE H) e)
+  ; ψ⁻¹ = λ e → lookupD dE' (Canon.canonE H) (posIn (Canon.canonE J) e)
   }
-  where
-    open import Relation.Binary.PropositionalEquality using (sym; subst)
-    -- The canonical read: matrices built by the same layout convention put
-    -- vertex/edge k of H at the same canonical slot as that of J, so the
-    -- alignment is the count coercion `Fin m → Fin n` along `m ≡ n`.
-    coerce : ∀ {m n} → m ≡ n → Fin m → Fin n
-    coerce eq = subst Fin eq
 
 --------------------------------------------------------------------------------
 -- §3.  matIso→hgIso : turn an alignment into a hypergraph isomorphism.
