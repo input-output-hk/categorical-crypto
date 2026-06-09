@@ -34,6 +34,7 @@ open import Categories.DiagramRewriteUntyped
 open import Categories.SolverReflect
 open import Categories.SolverNormalize
 open import Categories.SolverCompare
+open import Categories.SolverFrontend using (module Frontend)
 
 ------------------------------------------------------------------------
 -- Wire colours, shared across all sub-modules.
@@ -227,11 +228,13 @@ module Decision where
   test-neg₂ = refl
 
 ------------------------------------------------------------------------
--- Module Transport: genuine C-level equations for abstract endomorphisms.
+-- Module Transport: genuine C-level equations for abstract endomorphisms,
+-- discharged by the solver FRONT-END (`Categories.SolverFrontend`).
 --
--- Parameterised by a monoidal category C and two objects A B.
--- `WithMorphisms` takes abstract endomorphisms sᴹ : A → A and tᴹ : B → B
--- and proves the two bifunctoriality laws directly from ⊗.homomorphism.
+-- Reference-style (cf. Categories.Coherence.Symmetric.Test): the generator
+-- signature lives at ObjTerm arities, the term language `S` interprets
+-- definitionally into C, and each test is `solveMor! lhs rhs` — reflect →
+-- normalize (interchange) → compare → bridge → transport, all hidden.
 
 module Transport {o ℓ e} (C : MonoidalCategory o ℓ e) where
 
@@ -240,29 +243,62 @@ module Transport {o ℓ e} (C : MonoidalCategory o ℓ e) where
 
   module DisjointEndos (A B : Obj) where
 
-    private module MC = MonoidalCategory C
+    -- two-generator signature at ObjTerm arities (Fin-indexed for DecEq).
+    private
+      arityT : Fin 2 → ObjTerm × ObjTerm
+      arityT zero    = Var ⋆ , Var ⋆
+      arityT (suc _) = Var • , Var •
+
+    data GenT : ObjTerm → ObjTerm → Set where
+      genT : (i : Fin 2) → GenT (proj₁ (arityT i)) (proj₂ (arityT i))
+
+    -- the front-end term language (the reference's `S`).
+    private module S = FreeMonoidalHelper.Mor Mon Ty GenT
+
+    open Frontend {Ty} GenT
+
+    private
+      _≟G_ : DecidableEquality GenΣ
+      (_ , _ , genT i) ≟G (_ , _ , genT j) with i ≟F j
+      ... | yes refl = yes refl
+      ... | no ¬p    = no λ where refl → ¬p refl
+
+      ⟦_⟧₀T : Ty → Obj
+      ⟦ ⋆ ⟧₀T = A
+      ⟦ • ⟧₀T = B
+
+    open Decide _≟Ty_ _≟G_
+    open Into C ⟦_⟧₀T
 
     module WithMorphisms
       (sᴹ : C .MonoidalCategory.U [ A , A ])
       (tᴹ : C .MonoidalCategory.U [ B , B ])
       where
 
-      open MC using (⊗) renaming (_⊗₁_ to _⊗C_)
+      open WithGen (λ { (genT zero) → sᴹ ; (genT (suc _)) → tᴹ })
 
-      -- (id ⊗ tᴹ) ∘ (sᴹ ⊗ id) ≈ sᴹ ⊗ tᴹ  by bifunctoriality
+      private module MC = MonoidalCategory C
+      open MC using () renaming (_⊗₁_ to _⊗C_)
+
+      private
+        sT = S.var (genT zero)
+        tT = S.var (genT (suc zero))
+
+      -- (id ⊗ tᴹ) ∘ (sᴹ ⊗ id) ≈ sᴹ ⊗ tᴹ  — firing orders agree after reflect.
       test-interchange-s-first
         : C .MonoidalCategory.U
             [ (MC.id ⊗C tᴹ) MC.∘ (sᴹ ⊗C MC.id) ≈ sᴹ ⊗C tᴹ ]
       test-interchange-s-first =
-        MC.Equiv.trans
-          (MC.Equiv.sym ⊗.homomorphism)
-          (⊗.F-resp-≈ (MC.identityˡ , MC.identityʳ))
+        solveMor! (S._∘_ (S._⊗₁_ S.id tT) (S._⊗₁_ sT S.id)) (S._⊗₁_ sT tT)
 
-      -- (sᴹ ⊗ id) ∘ (id ⊗ tᴹ) ≈ sᴹ ⊗ tᴹ  by bifunctoriality
+      -- (sᴹ ⊗ id) ∘ (id ⊗ tᴹ) ≈ sᴹ ⊗ tᴹ  — genuinely out of order: the
+      -- solver fires a real interchange swap (norm1) before comparing.
       test-interchange-t-first
         : C .MonoidalCategory.U
             [ (sᴹ ⊗C MC.id) MC.∘ (MC.id ⊗C tᴹ) ≈ sᴹ ⊗C tᴹ ]
       test-interchange-t-first =
-        MC.Equiv.trans
-          (MC.Equiv.sym ⊗.homomorphism)
-          (⊗.F-resp-≈ (MC.identityʳ , MC.identityˡ))
+        solveMor! (S._∘_ (S._⊗₁_ sT S.id) (S._⊗₁_ S.id tT)) (S._⊗₁_ sT tT)
+
+      -- structural sanity: identity laws through the same pipeline.
+      test-idˡ : C .MonoidalCategory.U [ MC.id MC.∘ sᴹ ≈ sᴹ ]
+      test-idˡ = solveMor! (S._∘_ S.id sT) sT
