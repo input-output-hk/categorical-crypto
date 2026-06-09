@@ -17,6 +17,7 @@
 
 module Categories.SolverTests where
 
+import Data.Fin
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_; _++_)
@@ -267,7 +268,7 @@ module Transport {o ℓ e} (C : MonoidalCategory o ℓ e) where
       ⟦ ⋆ ⟧₀T = A
       ⟦ • ⟧₀T = B
 
-    open Decide _≟Ty_ _≟G_
+    open Decide _≟Ty_ _≟G_ (λ { (_ , _ , genT i) → Data.Fin.toℕ i })
     open Into C ⟦_⟧₀T
 
     module WithMorphisms

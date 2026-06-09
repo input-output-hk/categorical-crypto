@@ -30,12 +30,13 @@
 --       carries a real `_≈Term_` proof, but `nothing` does not refute the
 --       equation.  L2 is a true equation answered `nothing`.
 --
---   L2 (same-offset empty-footprint pairs).  The bubble sort fires on a
---       recognised out-of-order pair; two SCALAR-like layers at the same
---       offset (both empty domain, empty mid: `mid ≡ [] ∧ by ≡ [] ∧ ax ≡
---       []`) fit the recogniser in BOTH orders, so no order is canonical
---       and the sort cannot separate them — `lim-scalar-order` pins
---       `u ∘ v ≈ v ∘ u` (true by Eckmann-Hilton-style interchange).
+--   L2 (ambiguous pairs need an injective rank).  Scalar-like layers at
+--       the same offset (`mid ≡ [] ∧ by ≡ [] ∧ ax ≡ []`) fit the swap
+--       recogniser in BOTH orders; they are canonicalized by the
+--       user-supplied `rank` tiebreak (`test-scalar-order` decides with
+--       the Fin-index rank), but with a NON-INJECTIVE rank the sort
+--       cannot separate them — `lim-equal-rank` pins `u ∘ v ≈ v ∘ u`
+--       under a constant rank.
 --
 --   L3 (monoidal only).  The front-end is at `Variant` `Mon`: no braiding,
 --       so symmetric/braided goals (anything mentioning σ) are not even
@@ -67,6 +68,8 @@ module Categories.SolverFrontendTests where
 
 open import Level using (Level)
 
+import Data.Fin
+import Data.Nat
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_)
@@ -125,7 +128,11 @@ _≟G_ : DecidableEquality GenΣ
 ... | yes refl = yes refl
 ... | no ¬p    = no λ where refl → ¬p refl
 
-open Decide _≟Ty_ _≟G_
+-- the tiebreak key: the Fin index (injective, so all ambiguous pairs sort).
+rankT : GenΣ → Data.Nat.ℕ
+rankT (_ , _ , genT i) = Data.Fin.toℕ i
+
+open Decide _≟Ty_ _≟G_ rankT
 
 -- readable term-language aliases.
 private
@@ -267,6 +274,12 @@ module Interchange where
   test-u-swap : (u' ⊗' id') ∘' (id' {unit} ⊗' s') ≈' u' ⊗' s'
   test-u-swap = solveTerm! ((u' ⊗' id') ∘' (id' ⊗' s')) (u' ⊗' s')
 
+  -- Eckmann-Hilton-style scalar reordering: the pair fits the swap
+  -- recogniser in BOTH orders, so it is canonicalized by the `rank`
+  -- tiebreak (u = index 5 fires before v = index 6).
+  test-scalar-order : u' ∘' v' ≈' v' ∘' u'
+  test-scalar-order = solveTerm! (u' ∘' v') (v' ∘' u')
+
   -- interchange is transparent to reassociation: the same two-box diagram
   -- stated across an associator conjugation.
   test-α-transparent
@@ -328,12 +341,13 @@ module Negative where
 
 module Limitations where
 
-  -- L2: two scalars at the SAME offset mutually fit the swap recogniser
-  -- (their reversal is also recognised), so the bubble sort has no
-  -- canonical order to converge to — scalar reordering (true by
-  -- Eckmann-Hilton-style interchange) is not decided.
-  lim-scalar-order : decide?F (u' ∘' v') (v' ∘' u') ≡ nothing
-  lim-scalar-order = refl
+  -- L2: ambiguous (mutually-fitting) pairs are ordered by the supplied
+  -- `rank`; with a NON-INJECTIVE rank (here: constant) the tiebreak never
+  -- fires and scalar reordering stays undecided.
+  private module D₀ = Decide _≟Ty_ _≟G_ (λ _ → 0)
+
+  lim-equal-rank : D₀.decide?F (u' ∘' v') (v' ∘' u') ≡ nothing
+  lim-equal-rank = refl
 
 ------------------------------------------------------------------------
 -- C-level showcase: statements read in the target's own vocabulary.

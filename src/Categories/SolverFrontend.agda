@@ -46,16 +46,18 @@
 --   firing order — the normalizer is a fuel-bounded bubble sort (`norm`,
 --   budget (#layers)²+1) firing genuine interchange swaps at ANY position,
 --   so multi-swap and non-head inversions decide — including multi-wire
---   boxes, empty-domain boxes and scalars.
+--   boxes, empty-domain boxes and scalars (Eckmann-Hilton-style scalar
+--   reordering decides via the `rank` tiebreak).
 --
 -- LIMITATIONS (precise; L2 machine-checked as `≡ nothing` in the tests):
 --   L1  Sound, NOT complete: every `just` is a real `_≈Term_` proof, but
 --       `nothing` does not refute the equation.
---   L2  Same-offset empty-footprint pairs: two scalar-like layers at the
+--   L2  Ambiguous pairs need an injective rank: scalar-like layers at the
 --       same offset (`mid ≡ [] ∧ by ≡ [] ∧ ax ≡ []`) fit the swap
---       recogniser in BOTH orders, so the sort has no canonical order for
---       them — scalar reordering `u ∘ v ≈ v ∘ u` (true by Eckmann-Hilton-
---       style interchange) is not decided (`Limitations.lim-scalar-order`).
+--       recogniser in BOTH orders and are ordered by the user-supplied
+--       `rank` tiebreak; under a NON-INJECTIVE rank the sort cannot
+--       separate them and `u ∘ v ≈ v ∘ u` stays undecided
+--       (`Limitations.lim-equal-rank`).
 --   L3  Monoidal only (`Variant` `Mon`): braided/symmetric goals are not
 --       expressible (no σ in the term language).
 --   L4  Decision-by-evaluation: requires a CONCRETE atom set (computing
@@ -79,8 +81,9 @@ module Categories.SolverFrontend where
 
 open import Level using (Level)
 
+open import Data.Bool using (Bool; true; false)
 open import Data.Empty using (⊥)
-open import Data.Nat using (ℕ; _*_) renaming (zero to nzero; suc to nsuc)
+open import Data.Nat using (ℕ; _*_; _<ᵇ_) renaming (zero to nzero; suc to nsuc)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
 open import Data.Maybe using (Maybe; just; nothing)
@@ -609,6 +612,8 @@ module Frontend
   module Decide
     (_≟X_ : DecidableEquality X)
     (_≟G_ : DecidableEquality GenΣ)
+    (rank : GenΣ → ℕ)   -- tiebreak key for ambiguous (mutually-fitting) pairs;
+                        -- for a Fin-indexed signature, `toℕ` of the index.
     where
 
     private module SC = SolverCompare _≟X_ MorW
@@ -720,15 +725,30 @@ module Frontend
               ≈⟨ idʳ ⟩
             ⟦ d' ⟧ ∎
 
+      -- the wire-level generator's tiebreak key.
+      rankW : ∀ {a b} → MorW a b → ℕ
+      rankW (mk {Y} {Z} g) = rank (Y , Z , g)
+
+      -- a fit is AMBIGUOUS when the reverse pair would also fit
+      -- (mid ≡ [] ∧ by ≡ [] ∧ ax ≡ []): firing it unconditionally would
+      -- oscillate, so such pairs are ordered by `rank` instead.
+      ambiguous? : List X → List X → List X → Bool
+      ambiguous? [] [] [] = true
+      ambiguous? _  _  _  = false
+
       -- destructure the SECOND layer at a generalized (variable) index.
       go : ∀ {ax bx} (px sx : List X) (fx : MorW ax bx)
            {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
          → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
       go px sx fx ([]_ m) meq = nothing
-      go px sx fx (_▸_∷_⟨_⟩ {ay} {by} py sy fy rest') meq
+      go {ax} {bx} px sx fx (_▸_∷_⟨_⟩ {ay} {by} py sy fy rest') meq
         with leftFit? px sx py sy fx fy
       ... | nothing  = nothing
-      ... | just fit = just (fire fit rest' meq)
+      ... | just fit
+        with ambiguous? ax by (LeftFit.mid fit) | rankW fy <ᵇ rankW fx
+      ...   | false | _     = just (fire fit rest' meq)
+      ...   | true  | true  = just (fire fit rest' meq)
+      ...   | true  | false = nothing
 
     -- one bubble step on the HEAD pair, or `nothing` when it is not an
     -- out-of-order independent pair (or fewer than two layers).
