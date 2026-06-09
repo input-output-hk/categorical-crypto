@@ -304,6 +304,49 @@ representational cost the doc above identifies. A genuine speed win over `findIs
 flat term-level `≈M` + `matrix-faithful` route (not reconstructing a `≅ᴴ`); `findIsoᴹ` is the cheapest
 of the `≅ᴴ`-reconstructing finders, not cheaper than search.
 
+## Cost attribution within `findIso` (2026-06-09) — it is *re-evaluation without sharing*
+
+A final attribution probe separated the components of the post-`opaque` per-use cost
+(`findIso ⟪f⟫ ⟪g⟫` on single-generator chains, `--profile=definitions`):
+
+| probe | N=8 | N=16 | meaning |
+|---|---:|---:|---|
+| `tr` — deep-force the translation once (`forceH ⟪chain N⟫`, no iso machinery) | 75 ms | 466 ms | **the translation itself is cheap** |
+| `tr2` — force it **twice in one definition** | 150 ms | — | **exactly 2× ⇒ Agda does NOT share**: syntactically identical subterms are fully re-evaluated |
+| `iso` — full `findIso` (right-nested chain) | 798 ms | 8,310 ms | 10.6× / **17.8×** the one-shot translation, growing |
+| `isoL` — same, **left-nested** chain | 1,041 ms | 20,028 ms | association matters: left-nesting is 1.3× / **2.4×** worse, diverging |
+| `snd-inline` — `soundness-full-wired (from-just (findIso …))` inlined | 1,900 ms | — | = iso + ~1.1 s application overhead |
+| `snd-hoisted` — `soundness-full-wired iso-8` (named iso) | 1,172 ms | — | the ~1.1 s overhead is paid either way (one ⟪⟫-type conversion); hoisting is program-neutral |
+
+**This revises the earlier attribution.** The translation `⟪f⟫` costs only ~5–10% of `findIso`
+when forced *once*; the other ~90–95% is `findIso`'s machinery **re-walking unshared thunks** —
+every field access re-pays the O(depth) `hComposeP` evaluation, and the redundancy multiplier
+(10.6× → 17.8×) grows with size. The hypergraph representation is fine; the evaluator's lack of
+sharing is the bottleneck.
+
+### The remaining levers, ranked (matrix-soundness route excluded)
+
+1. **Literalization of `⟪f⟫` before the search (the big one, est. ~10×, growing).** Force the
+   translation **once** into *literal* constructor data and run `findIso` over the literals (O(1)
+   per access). Note `tabulate`/`Vec` does **not** achieve this — its elements stay unshared thunks
+   (the `tr2` finding) — so the working implementation is a small **reflection macro**: `quoteTC` +
+   `normalise` each field of `⟪f⟫`, splice a literal `Hypergraph` value `Hf` plus a `refl`-checked
+   `Hf ≡ ⟪f⟫` (conversion pays one full normalization ≈ `tr`), then `subst₂`-transport
+   `findIso Hf Hg` back to `⟪f⟫ ≅ᴴ ⟪g⟫`. Sound, `--safe`-compatible (cf. `Categories.Tactic.Category`),
+   ~200–400 LOC of reflection code, no new math. Expected end state ≈ `tr` + cheap search: ~0.5–1 s
+   instead of 8.3 s at N=16. (Bonus: literal graphs also un-stick the `refl`-style validations that
+   currently require hand-built hypergraphs.)
+2. **Right-reassociation pre-pass (~2.4× on left-heavy goals, growing).** `isoL` shows the nesting
+   direction of `∘` compounds the `hComposeP` depth cost. A `reassoc : HomTerm → HomTerm` to
+   right-nested form with the trivial `reassoc-sound : reassoc t ≈Term t` (assoc + congruence only,
+   no coherence) lets the solver normalize association before translating. ~50–100 LOC.
+3. **The ~1.1 s `soundness-full-wired`-application overhead** — real, paid once per solve even with
+   the named-iso pattern; likely one re-normalization of the `⟪_⟫`-typed index during conversion.
+   Bounded but worth a look after (1), since (1) makes the iso's type a literal too.
+4. *(Workflow)* put expensive solver calls in **leaf modules** (paid once, cached in `.agdai`), and
+   split very large equations by `≈-Term-trans` into solver-sized steps — cost is super-linear in
+   size, so splitting wins.
+
 ## Implication
 
 The fix is the same as for shrinking the soundness proof itself: a real coherence solver
@@ -319,4 +362,5 @@ and verifying* the iso rather than *searching* for it, replacing it with an expl
 labelling (reusing the linear-extension + `FinBij` machinery) would port the matrix's speed-up to the
 hypergraph side **without** leaving the proven hypergraph world — complementary to the
 `≈M → ≅ᴴ` bridge (`braided-coherence-solver.md`), which reaches the same canonical form via the
-matrix representation.
+matrix representation. *(Superseded in part by the attribution probe above: the cheapest path is to
+keep `findIso` and remove the re-evaluation, via literalization.)*
