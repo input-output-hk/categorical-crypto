@@ -326,16 +326,35 @@ sharing is the bottleneck.
 
 ### The remaining levers, ranked (matrix-soundness route excluded)
 
-1. **Literalization of `⟪f⟫` before the search (the big one, est. ~10×, growing).** Force the
-   translation **once** into *literal* constructor data and run `findIso` over the literals (O(1)
-   per access). Note `tabulate`/`Vec` does **not** achieve this — its elements stay unshared thunks
-   (the `tr2` finding) — so the working implementation is a small **reflection macro**: `quoteTC` +
-   `normalise` each field of `⟪f⟫`, splice a literal `Hypergraph` value `Hf` plus a `refl`-checked
-   `Hf ≡ ⟪f⟫` (conversion pays one full normalization ≈ `tr`), then `subst₂`-transport
-   `findIso Hf Hg` back to `⟪f⟫ ≅ᴴ ⟪g⟫`. Sound, `--safe`-compatible (cf. `Categories.Tactic.Category`),
-   ~200–400 LOC of reflection code, no new math. Expected end state ≈ `tr` + cheap search: ~0.5–1 s
-   instead of 8.3 s at N=16. (Bonus: literal graphs also un-stick the `refl`-style validations that
-   currently require hand-built hypergraphs.)
+1. **Literalization of `⟪f⟫` before the search (the big one, est. ~10×, growing) — and it is
+   TC-free.** A strictness/sharing probe (N=16 workload, baseline force-once `p0 = 481 ms`)
+   settled the evaluator semantics:
+
+   | probe | time | meaning |
+   |---|---:|---|
+   | `pA` — `primForce big (λ _ → true)` | 478 ms | **`primForce`/`_$!_` DOES fire during type-checking** (the discarded argument was still forced) |
+   | `pB1` — `twice big` where `twice b = b ∧ b` | 479 ms | **= 1×: a function-argument thunk used twice IS shared — call-by-need** |
+   | `pB2` — inline redex `(λ b → b ∧ b) big` | 968 ms | = 2×: an inline beta-redex is substituted, **not** shared |
+   | `pC0`/`pC` — lazy list traversed once vs twice through one binding | 152 / 152 ms | sharing extends through lazy spines **and element cells** |
+   | `pD` — CPS-rebuild then traverse twice | 151 ms | adds nothing over the sharing that is already there |
+
+   So the evaluator is **call-by-need for clause-level function applications** (and the memoization
+   reaches into lazy data structures), while inline redexes and syntactically repeated terms
+   (`tr2`, `pB2`) are call-by-name. `findIso` is slow *despite* this because the hypergraph's
+   fields are **functions** — every `vlab v` is a fresh application whose body re-walks the
+   `hComposeP` tower, and no evaluator memoizes function *results*.
+
+   **The fix:** tabulate the function fields into lazy *data* (`Vec`/`List`) once —
+   `tab H = record { vlab = lookup (tabulate H.vlab); … }` — and run
+   `findIso (tab H) (tab J)`: inside `findIso` the arguments are env-bound (the `pB1` pattern), so
+   each tabulated cell is forced **at most once** and every later access reads the memoized value.
+   Transport the iso back along a once-proven `tab H ≅ᴴ H` (identity bijections +
+   `lookup∘tabulate`; `Iso.agda` has `trans-≅ᴴ`/`sym-≅ᴴ`). **No reflection/TC needed**; ~100–200 LOC
+   + the generic lemma. Implementation discipline: the shared values must flow through *named
+   function applications* (not `let`, which inlines, and not repeated inline terms). `_$!_` itself
+   is not the lever — it forces only to WHNF and sharing already does the memoization; it merely
+   controls *when* forcing happens. Expected end state ≈ one forced traversal + cheap search:
+   ~0.5–1 s instead of 8.3 s at N=16, with the gain growing with size.
 2. **Re-association pre-pass — but to BALANCED form, not right-nested (correction).** A follow-up
    probe (16 and 32 generators) measured balanced `∘`-trees at **3,512 ms / 29.2 s** vs right-linear
    **9,502 ms / 113.8 s** vs left-linear (20 s at 16) — i.e. **balanced < right < left, gaps growing**
