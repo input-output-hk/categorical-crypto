@@ -40,8 +40,10 @@ open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _<ᵇ_)
 open import Data.Bool using (Bool; true; false; if_then_else_; _∧_)
 open import Data.Product using (_×_; _,_; proj₁; proj₂; Σ; Σ-syntax; ∃; ∃-syntax)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
+open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; cong; trans)
+open import Data.Maybe using (Maybe; just; nothing)
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive
   using (Star; ε; _◅_)
 
@@ -958,6 +960,10 @@ module Normalize {X : Set} (Mor : List X → List X → Set) where
   castW-sym-r : ∀ {u v : List X} (e : u ≡ v) → castW (sym e) ∘ castW e ≈Term id
   castW-sym-r refl = idˡ
 
+  -- the other cancellation order.
+  castW-sym-r-flip : ∀ {u v : List X} (e : u ≡ v) → castW e ∘ castW (sym e) ≈Term id
+  castW-sym-r-flip refl = idˡ
+
   -- THE CORE BRIDGE (frame coordinates), PROVEN.  The frame's grouped `g-in`
   -- equals the clean flat `pad` of the right box `g` (at the LeftFit offset
   -- `pre++(a₁++mid)`), conjugated by the `++`-assoc object casts.  Obtained from
@@ -1253,6 +1259,478 @@ module Normalize {X : Set} (Mor : List X → List X → Set) where
           ≈⟨ ∘-resp-≈ idˡ ≈-Term-refl ⟩
         ⟦ innerD ⟧ ∘ castW (sym e) ∎
 
+  --------------------------------------------------------------------------------
+  -- 11h. The INPUT clean DiagU of an out-of-order head pair, and the ABSTRACT
+  -- per-swap soundness `⟦ input ⟧ ≈Term ⟦ swapped ⟧`.
+  --
+  -- For a recognised `LeftFit` the input head order is fx-first (the right box,
+  -- higher offset) then fy.  Both are genuine clean `pad`-layers; the inter-layer
+  -- `++`-assoc re-index between fx and fy is absorbed by `substDiagU` along
+  -- `domeq P ay mid bx s` (soundness `⟦substDiagU⟧`).  `dInput`/`swapHeadD-out`
+  -- live at the SAME input index `N₀`, so `⟦ input ⟧ ≈Term ⟦ swapped ⟧` is the
+  -- honest per-swap soundness — the abstract analogue of `Litmus.litDiagUSwap`.
+  --------------------------------------------------------------------------------
+
+  -- the INPUT clean DiagU: fx (right box) fires FIRST, then fy.
+  dInput : ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+           (fit : LeftFit px sx py sy fx fy)
+         → DiagU (LeftFrame.N₃ fit)
+         → DiagU (LeftFrame.N₀ fit)
+  dInput {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
+         (leftFit P mid s refl refl refl refl) dRest =
+    substDiagU (domeq P ay mid ax s)
+      ((P ++ (ay ++ mid)) ▸ s ∷ fx
+        ⟨ substDiagU (sym (domeq P ay mid bx s))
+            (P ▸ (mid ++ (bx ++ s)) ∷ fy ⟨ dRest ⟩) ⟩)
+
+  -- the SWAPPED clean DiagU: fy (left box) fires FIRST, then fx.
+  dSwapped : ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+             (fit : LeftFit px sx py sy fx fy)
+           → DiagU (LeftFrame.N₃ fit)
+           → DiagU (LeftFrame.N₀ fit)
+  dSwapped {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
+           (leftFit P mid s refl refl refl refl) dRest =
+    P ▸ (mid ++ (ax ++ s)) ∷ fy
+      ⟨ substDiagU (domeq P by mid ax s)
+          ((P ++ (by ++ mid)) ▸ s ∷ fx
+            ⟨ substDiagU (sym (domeq P by mid bx s)) dRest ⟩) ⟩
+
+  -- ABSTRACT per-swap soundness: the input (fx-first) and swapped (fy-first)
+  -- clean DiagUs share endpoints `wires N₀ → wires (out dRest)` and have equal
+  -- interpretations in the free monoidal category.  Proven by chaining the
+  -- already-PROVEN `swapHeadD-out-sound` (swapped side) and `diagU-swap-sound`
+  -- (input ⇒ sorted, = `two-box-swap`) with the `castW`/`⟦substDiagU⟧` algebra.
+  dSwapped-is-out :
+    ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+      (fit : LeftFit px sx py sy fx fy)
+      (dRest : DiagU (LeftFrame.N₃ fit))
+    → dSwapped fit dRest
+      ≡ swapHeadD-out fit
+          (substDiagU (sym (domeq (LeftFit.P fit) by (LeftFit.mid fit) bx (LeftFit.s fit))) dRest)
+  dSwapped-is-out (leftFit P mid s refl refl refl refl) dRest = refl
+
+  --------------------------------------------------------------------------------
+  -- 11h''. The ABSTRACT per-swap soundness.  `⟦ dInput ⟧ ≈Term ⟦ dSwapped ⟧`:
+  -- the input (fx-first) and swapped (fy-first) clean DiagUs, at the SAME input
+  -- index `N₀` and same `out`, have equal interpretations.  Proven by:
+  --   (1) `dInput-expand`  : ⟦ dInput ⟧ ∘ castW(e) ≈ castW(oI) ∘ (frame INPUT
+  --                          composite ⟦dRest⟧ ∘ f-out ∘ castW… ∘ pad fx)
+  --   (2) `diagU-swap-sound`: that frame input composite ≈ frame SORTED composite
+  --   (3) `dSwapped-expand`: ⟦ dSwapped ⟧ ∘ castW(e) ≈ castW(oS) ∘ frame SORTED
+  --                          composite
+  -- then `castW`-cancel the common `e` on the right and the (irrelevant, equal-
+  -- endpoint) output casts `oI`/`oS` on the left.  All `castW` algebra.
+  --------------------------------------------------------------------------------
+
+  -- the output index of `dInput`/`dSwapped` (both `= out dRest`), namable so the
+  -- soundness goal can carry the (stuck-`out`) output cast explicitly.
+  dInput-out :
+    ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+      (fit : LeftFit px sx py sy fx fy) (dRest : DiagU (LeftFrame.N₃ fit))
+    → out (dInput fit dRest) ≡ out dRest
+  dInput-out {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
+             (leftFit P mid s refl refl refl refl) dRest =
+    trans (substDiagU-out (domeq P ay mid ax s) _)
+          (substDiagU-out (sym (domeq P ay mid bx s)) _)
+
+  dSwapped-out :
+    ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+      (fit : LeftFit px sx py sy fx fy) (dRest : DiagU (LeftFrame.N₃ fit))
+    → out (dSwapped fit dRest) ≡ out dRest
+  dSwapped-out {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
+               (leftFit P mid s refl refl refl refl) dRest =
+    trans (substDiagU-out (domeq P by mid ax s) _)
+          (substDiagU-out (sym (domeq P by mid bx s)) _)
+
+  -- right-cancel an iso `castW e`:  A ∘ castW e ≈ B ∘ castW e  ⟹  A ≈ B.
+  castW-cancelʳ : ∀ {u v w : List X} (e : u ≡ v)
+                  {A B : HomTerm (wires v) (wires w)}
+                → A ∘ castW e ≈Term B ∘ castW e → A ≈Term B
+  castW-cancelʳ refl {A} {B} h =
+    ≈-Term-trans (≈-Term-sym idʳ) (≈-Term-trans h idʳ)
+
+  -- expansion of the INPUT diagram, pre-composed by the domain cast `e`, to the
+  -- frame INPUT composite (the LHS of `diagU-swap-sound`).  Proven by `J` on the
+  -- offset witnesses: the top `substDiagU (domeq …ax…)` cancels `castW e`, and
+  -- the inner `substDiagU (sym (domeq …bx…))` re-expresses the fx∘fy clean stack
+  -- as `f-out ∘ castW(domeq …bx…) ∘ pad fx` — exactly `diagU-swap-sound`'s LHS.
+  dInput-frame :
+    ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+      (fit : LeftFit px sx py sy fx fy)
+      (dRest : DiagU (LeftFrame.N₃ fit))
+    → ⟦ dInput fit dRest ⟧
+        ∘ castW (domeq (LeftFit.P fit) ay (LeftFit.mid fit) ax (LeftFit.s fit))
+      ≈Term castW (sym (dInput-out fit dRest))
+          ∘ ⟦ dRest ⟧
+          ∘ Frame.f-out (LeftFit.P fit) (LeftFit.mid fit) (LeftFit.s fit) fy fx
+          ∘ castW (domeq (LeftFit.P fit) ay (LeftFit.mid fit) bx (LeftFit.s fit))
+          ∘ pad (LeftFit.P fit ++ (ay ++ LeftFit.mid fit)) (LeftFit.s fit) (⟦box⟧ fx)
+  dInput-frame {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
+               (leftFit P mid s refl refl refl refl) dRest = begin
+    ⟦ substDiagU e0 fxL ⟧ ∘ castW e0
+      ≈⟨ ⟦substDiagU⟧ e0 fxL ⟩
+    castW (sym o0) ∘ ⟦ fxL ⟧
+      ≈⟨ ∘-resp-≈ ≈-Term-refl refl-bridge ⟩
+    castW (sym o0) ∘ (⟦ substDiagU e1 fyL ⟧ ∘ padfx)
+      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ subst1 ≈-Term-refl) ⟩
+    castW (sym o0) ∘ ((castW (sym o1) ∘ rhs1) ∘ padfx)
+      ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+    castW (sym o0) ∘ (castW (sym o1) ∘ (rhs1 ∘ padfx))
+      ≈⟨ ≈-Term-sym assoc ⟩
+    (castW (sym o0) ∘ castW (sym o1)) ∘ (rhs1 ∘ padfx)
+      ≈⟨ ∘-resp-≈ (≈-Term-trans (castW-∘ (sym o1) (sym o0))
+                     (castW-irr _ (sym (dInput-out (leftFit P mid s refl refl refl refl) dRest))))
+                  ≈-Term-refl ⟩
+    castW (sym (dInput-out (leftFit P mid s refl refl refl refl) dRest)) ∘ (rhs1 ∘ padfx)
+      ≈⟨ ∘-resp-≈ ≈-Term-refl (chainR) ⟩
+    castW (sym (dInput-out (leftFit P mid s refl refl refl refl) dRest))
+      ∘ (⟦ dRest ⟧ ∘ (F.f-out ∘ (castW (domeq P ay mid bx s) ∘ padfx))) ∎
+    where
+      module F = Frame P mid s fy fx
+      e0   = domeq P ay mid ax s
+      e1   = sym (domeq P ay mid bx s)
+      padfx = pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
+      fyL  = P ▸ (mid ++ (bx ++ s)) ∷ fy ⟨ dRest ⟩
+      fxL  = (P ++ (ay ++ mid)) ▸ s ∷ fx ⟨ substDiagU e1 fyL ⟩
+      o0   = substDiagU-out e0 fxL
+      o1   = substDiagU-out e1 fyL
+      refl-bridge : ⟦ fxL ⟧ ≈Term ⟦ substDiagU e1 fyL ⟧ ∘ padfx
+      refl-bridge = ≈-Term-refl
+      rhs1 = (⟦ dRest ⟧ ∘ F.f-out) ∘ castW (sym e1)
+      -- (rhs1 ∘ padfx) ≈ ⟦dRest⟧ ∘ (f-out ∘ (castW(domeq …bx…) ∘ padfx))
+      chainR : rhs1 ∘ padfx
+             ≈Term ⟦ dRest ⟧ ∘ (F.f-out ∘ (castW (domeq P ay mid bx s) ∘ padfx))
+      chainR = begin
+        ((⟦ dRest ⟧ ∘ F.f-out) ∘ castW (sym e1)) ∘ padfx
+          ≈⟨ ∘-resp-≈ assoc ≈-Term-refl ⟩
+        (⟦ dRest ⟧ ∘ (F.f-out ∘ castW (sym e1))) ∘ padfx
+          ≈⟨ assoc ⟩
+        ⟦ dRest ⟧ ∘ ((F.f-out ∘ castW (sym e1)) ∘ padfx)
+          ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+        ⟦ dRest ⟧ ∘ (F.f-out ∘ (castW (sym e1) ∘ padfx))
+          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (castW-irr (sym e1) (domeq P ay mid bx s)) ≈-Term-refl)) ⟩
+        ⟦ dRest ⟧ ∘ (F.f-out ∘ (castW (domeq P ay mid bx s) ∘ padfx)) ∎
+      -- ⟦ substDiagU e1 fyL ⟧ ≈ castW(sym o1) ∘ (⟦dRest⟧ ∘ f-out) ∘ castW(sym e1)
+      subst1 : ⟦ substDiagU e1 fyL ⟧
+             ≈Term castW (sym o1) ∘ rhs1
+      subst1 = castW-cancelʳ e1 (begin
+        ⟦ substDiagU e1 fyL ⟧ ∘ castW e1
+          ≈⟨ ⟦substDiagU⟧ e1 fyL ⟩
+        castW (sym o1) ∘ ⟦ fyL ⟧
+          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym idʳ) ⟩
+        castW (sym o1) ∘ ((⟦ dRest ⟧ ∘ F.f-out) ∘ id)
+          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym (castW-sym-r e1))) ⟩
+        castW (sym o1) ∘ ((⟦ dRest ⟧ ∘ F.f-out) ∘ (castW (sym e1) ∘ castW e1))
+          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+        castW (sym o1) ∘ (((⟦ dRest ⟧ ∘ F.f-out) ∘ castW (sym e1)) ∘ castW e1)
+          ≈⟨ ≈-Term-sym assoc ⟩
+        (castW (sym o1) ∘ ((⟦ dRest ⟧ ∘ F.f-out) ∘ castW (sym e1))) ∘ castW e1 ∎)
+
+  --------------------------------------------------------------------------------
+  -- 11h'''. Expansion of `⟦ dSwapped ⟧` to the frame SORTED ordering (the
+  -- `before-O`/fy-first composite).  Proven from the PROVEN `swapHeadD-out-sound`
+  -- by re-cleaning `g-out` (`fy-sorted⇒g-out-core`), absorbing the inner
+  -- `substDiagU` via `⟦substDiagU⟧`, and bridging `⟦dRest⟧ ≈ ⟦fromDiagU-W dRest⟧W`
+  -- (`fromDiagU-sound`).  All `castW` algebra; reuses only already-proven lemmas.
+  --------------------------------------------------------------------------------
+  dSwapped-frame :
+    ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+      (fit : LeftFit px sx py sy fx fy)
+      (dRest : DiagU (LeftFrame.N₃ fit))
+    → castW (dSwapped-out fit dRest) ∘ ⟦ dSwapped fit dRest ⟧
+      ≈Term ⟦ LeftFrame.sorted-O fit (fromDiagU-W dRest) ⟧O
+  dSwapped-frame {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
+                 (leftFit P mid s refl refl refl refl) dRest = begin
+    castW (dSwapped-out (leftFit {fx = fx} {fy = fy} P mid s refl refl refl refl) dRest)
+      ∘ ⟦ dSwapped (leftFit {fx = fx} {fy = fy} P mid s refl refl refl refl) dRest ⟧
+      ≈⟨ ∘-resp-≈ (castW-irr _ (trans ohd o'')) ≈-Term-refl ⟩
+    castW (trans ohd o'') ∘ ⟦ swapHeadD-out (leftFit {fx = fx} {fy = fy} P mid s refl refl refl refl) dSorted ⟧
+      ≈⟨ ∘-resp-≈ (≈-Term-sym (castW-∘ ohd o'')) ≈-Term-refl ⟩
+    (castW o'' ∘ castW ohd) ∘ ⟦ swapHeadD-out (leftFit {fx = fx} {fy = fy} P mid s refl refl refl refl) dSorted ⟧
+      ≈⟨ assoc ⟩
+    castW o'' ∘ (castW ohd ∘ ⟦ swapHeadD-out (leftFit {fx = fx} {fy = fy} P mid s refl refl refl refl) dSorted ⟧)
+      ≈⟨ ∘-resp-≈ ≈-Term-refl (swapHeadD-out-sound P mid s fx fy dSorted) ⟩
+    castW o'' ∘ ((⟦ dSorted ⟧ ∘ padfx') ∘ castW (sym e') ∘ F.f-in)
+      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+    castW o'' ∘ (((⟦ dSorted ⟧ ∘ padfx') ∘ castW (sym e')) ∘ F.f-in)
+      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ gpart ≈-Term-refl) ⟩
+    castW o'' ∘ ((castW (sym o'') ∘ (⟦ fromDiagU-W dRest ⟧W ∘ F.g-out)) ∘ F.f-in)
+      ≈⟨ collapse ⟩
+    (⟦ fromDiagU-W dRest ⟧W ∘ F.g-out) ∘ F.f-in ∎
+    where
+      module F = Frame P mid s fy fx
+      e'      = domeq P by mid ax s
+      ebx     = domeq P by mid bx s
+      padfx'  = pad (P ++ (by ++ mid)) s (⟦box⟧ fx)
+      dSorted = substDiagU (sym ebx) dRest
+      innerD' = (P ++ (by ++ mid)) ▸ s ∷ fx ⟨ dSorted ⟩
+      ohd     = substDiagU-out e' innerD'
+      o''     = substDiagU-out (sym ebx) dRest
+      collapse : castW o'' ∘ ((castW (sym o'') ∘ (⟦ fromDiagU-W dRest ⟧W ∘ F.g-out)) ∘ F.f-in)
+               ≈Term (⟦ fromDiagU-W dRest ⟧W ∘ F.g-out) ∘ F.f-in
+      collapse = begin
+        castW o'' ∘ ((castW (sym o'') ∘ G) ∘ F.f-in)
+          ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+        castW o'' ∘ (castW (sym o'') ∘ (G ∘ F.f-in))
+          ≈⟨ ≈-Term-sym assoc ⟩
+        (castW o'' ∘ castW (sym o'')) ∘ (G ∘ F.f-in)
+          ≈⟨ ∘-resp-≈ (castW-sym-r-flip o'') ≈-Term-refl ⟩
+        id ∘ (G ∘ F.f-in)
+          ≈⟨ idˡ ⟩
+        G ∘ F.f-in ∎
+        where G = ⟦ fromDiagU-W dRest ⟧W ∘ F.g-out
+
+      -- ⟦dSorted⟧ ≈ (castW(sym o'') ∘ ⟦dRest⟧) ∘ castW ebx
+      dS : ⟦ dSorted ⟧ ≈Term (castW (sym o'') ∘ ⟦ dRest ⟧) ∘ castW ebx
+      dS = castW-cancelʳ (sym ebx) (begin
+        ⟦ dSorted ⟧ ∘ castW (sym ebx)
+          ≈⟨ ⟦substDiagU⟧ (sym ebx) dRest ⟩
+        castW (sym o'') ∘ ⟦ dRest ⟧
+          ≈⟨ ≈-Term-sym idʳ ⟩
+        (castW (sym o'') ∘ ⟦ dRest ⟧) ∘ id
+          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym (castW-sym-r-flip ebx)) ⟩
+        (castW (sym o'') ∘ ⟦ dRest ⟧) ∘ (castW ebx ∘ castW (sym ebx))
+          ≈⟨ ≈-Term-sym assoc ⟩
+        ((castW (sym o'') ∘ ⟦ dRest ⟧) ∘ castW ebx) ∘ castW (sym ebx) ∎)
+      frd : castW (sym o'') ∘ ⟦ dRest ⟧
+          ≈Term castW (sym o'') ∘ ⟦ fromDiagU-W dRest ⟧W
+      frd = ∘-resp-≈ ≈-Term-refl (≈-Term-sym (fromDiagU-sound dRest))
+      -- ⟦dSorted⟧ ∘ padfx' ∘ castW(sym e') ≈ castW(sym o'') ∘ (⟦fromDiagU-W dRest⟧W ∘ g-out)
+      gpart : (⟦ dSorted ⟧ ∘ padfx') ∘ castW (sym e')
+            ≈Term castW (sym o'') ∘ (⟦ fromDiagU-W dRest ⟧W ∘ F.g-out)
+      gpart = begin
+        (⟦ dSorted ⟧ ∘ padfx') ∘ castW (sym e')
+          ≈⟨ ∘-resp-≈ (∘-resp-≈ dS ≈-Term-refl) ≈-Term-refl ⟩
+        (((castW (sym o'') ∘ ⟦ dRest ⟧) ∘ castW ebx) ∘ padfx') ∘ castW (sym e')
+          ≈⟨ ∘-resp-≈ (∘-resp-≈ (∘-resp-≈ frd ≈-Term-refl) ≈-Term-refl) ≈-Term-refl ⟩
+        (((castW (sym o'') ∘ ⟦ fromDiagU-W dRest ⟧W) ∘ castW ebx) ∘ padfx') ∘ castW (sym e')
+          ≈⟨ assoc ⟩
+        ((castW (sym o'') ∘ ⟦ fromDiagU-W dRest ⟧W) ∘ castW ebx) ∘ (padfx' ∘ castW (sym e'))
+          ≈⟨ assoc ⟩
+        (castW (sym o'') ∘ ⟦ fromDiagU-W dRest ⟧W)
+          ∘ (castW ebx ∘ (padfx' ∘ castW (sym e')))
+          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym (fy-sorted⇒g-out-core P mid s fy fx)) ⟩
+        (castW (sym o'') ∘ ⟦ fromDiagU-W dRest ⟧W) ∘ F.g-out
+          ≈⟨ assoc ⟩
+        castW (sym o'') ∘ (⟦ fromDiagU-W dRest ⟧W ∘ F.g-out) ∎
+
+  --------------------------------------------------------------------------------
+  -- 11h''''. THE ASSEMBLED ABSTRACT PER-SWAP SOUNDNESS.  `castW out-eq ∘ ⟦ dInput ⟧
+  -- ≈Term ⟦ dSwapped ⟧`: the input (fx-first) and swapped (fy-first) clean DiagUs
+  -- are equal in the free monoidal category, up to the (stuck-`out`) index cast
+  -- `out-eq : out dInput ≡ out dSwapped`.  Chains `dInput-frame`, the PROVEN
+  -- `diagU-swap-sound` (= `two-box-swap`), and `dSwapped-frame`; cancels the
+  -- shared domain cast and the loop of output casts.  Postulate-free.
+  --------------------------------------------------------------------------------
+  diagU-swap-soundD :
+    ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+      (fit : LeftFit px sx py sy fx fy)
+      (dRest : DiagU (LeftFrame.N₃ fit))
+    → castW (trans (dInput-out fit dRest) (sym (dSwapped-out fit dRest)))
+        ∘ ⟦ dInput fit dRest ⟧
+      ≈Term ⟦ dSwapped fit dRest ⟧
+  diagU-swap-soundD {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
+                    (leftFit P mid s refl refl refl refl) dRest =
+    castW-cancelʳ (domeq P ay mid ax s) (begin
+      (castW oeq ∘ ⟦ dIn ⟧) ∘ cax
+        ≈⟨ assoc ⟩
+      castW oeq ∘ (⟦ dIn ⟧ ∘ cax)
+        ≈⟨ ∘-resp-≈ ≈-Term-refl (dInput-frame fit dRest) ⟩
+      castW oeq ∘ (castW (sym diO) ∘ FC)
+        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl FC≈sorted) ⟩
+      castW oeq ∘ (castW (sym diO) ∘ (⟦ sortedO ⟧O ∘ cax))
+        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ dSwapped-frame-rearr ≈-Term-refl)) ⟩
+      castW oeq ∘ (castW (sym diO) ∘ ((castW dsO ∘ ⟦ dSw ⟧) ∘ cax))
+        ≈⟨ castLoop ⟩
+      ⟦ dSw ⟧ ∘ cax ∎)
+    where
+      fit = leftFit {fx = fx} {fy = fy} P mid s refl refl refl refl
+      cax = castW (domeq P ay mid ax s)
+      cbx = castW (domeq P ay mid bx s)
+      diO = dInput-out fit dRest
+      dsO = dSwapped-out fit dRest
+      oeq = trans diO (sym dsO)
+      dIn = dInput fit dRest
+      dSw = dSwapped fit dRest
+      wTail = fromDiagU-W dRest
+      sortedO = LeftFrame.sorted-O fit wTail
+      module F = Frame P mid s fy fx
+      FC = ⟦ dRest ⟧ ∘ (F.f-out ∘ (cbx ∘ pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)))
+      -- ⟦dRest⟧ ≈ ⟦wTail⟧W, lifted to FC ≈ frame-input-composite, then diagU-swap-sound.
+      FC≈sorted : FC ≈Term ⟦ sortedO ⟧O ∘ cax
+      FC≈sorted = ≈-Term-trans
+        (∘-resp-≈ (≈-Term-sym (fromDiagU-sound dRest)) ≈-Term-refl)
+        (diagU-swap-sound fit wTail)
+      -- dSwapped-frame rearranged: ⟦sortedO⟧O ≈ castW dsO ∘ ⟦dSw⟧.
+      dSwapped-frame-rearr : ⟦ sortedO ⟧O ≈Term castW dsO ∘ ⟦ dSw ⟧
+      dSwapped-frame-rearr = ≈-Term-sym (dSwapped-frame fit dRest)
+      -- the loop of output casts collapses to id, leaving ⟦dSw⟧ ∘ cax.
+      castLoop : castW oeq ∘ (castW (sym diO) ∘ ((castW dsO ∘ ⟦ dSw ⟧) ∘ cax))
+               ≈Term ⟦ dSw ⟧ ∘ cax
+      castLoop = begin
+        castW oeq ∘ (castW (sym diO) ∘ ((castW dsO ∘ ⟦ dSw ⟧) ∘ cax))
+          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl assoc) ⟩
+        castW oeq ∘ (castW (sym diO) ∘ (castW dsO ∘ (⟦ dSw ⟧ ∘ cax)))
+          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+        castW oeq ∘ ((castW (sym diO) ∘ castW dsO) ∘ (⟦ dSw ⟧ ∘ cax))
+          ≈⟨ ≈-Term-sym assoc ⟩
+        (castW oeq ∘ (castW (sym diO) ∘ castW dsO)) ∘ (⟦ dSw ⟧ ∘ cax)
+          ≈⟨ ∘-resp-≈ loopId ≈-Term-refl ⟩
+        id ∘ (⟦ dSw ⟧ ∘ cax)
+          ≈⟨ idˡ ⟩
+        ⟦ dSw ⟧ ∘ cax ∎
+        where
+          loopId : castW oeq ∘ (castW (sym diO) ∘ castW dsO) ≈Term id
+          loopId = begin
+            castW oeq ∘ (castW (sym diO) ∘ castW dsO)
+              ≈⟨ ∘-resp-≈ ≈-Term-refl (castW-∘ dsO (sym diO)) ⟩
+            castW oeq ∘ castW (trans dsO (sym diO))
+              ≈⟨ castW-∘ (trans dsO (sym diO)) oeq ⟩
+            castW (trans (trans dsO (sym diO)) oeq)
+              ≈⟨ castW-irr _ refl ⟩
+            id ∎
+
+  --------------------------------------------------------------------------------
+  -- 12. THE AUTONOMOUS FIRING DiagU SORT (needs `DecidableEquality X`).
+  --
+  -- Given `DecEq X` we can DECIDE a `LeftFit` by `List`-splitting the offset
+  -- lists at the lengths dictated by the box domains, confirming with the derived
+  -- `DecEq (List X)`.  `swapHeadD` then fires the genuine clean DiagU swap
+  -- (`dInput`/`dSwapped` + `diagU-swap-soundD`), and `normalizeD` is a fuel-driven
+  -- bubble sort whose soundness chains the per-swap `≈Term` witnesses.
+  --------------------------------------------------------------------------------
+  module SortD (_≟X_ : DecidableEquality X) where
+
+    -- derived decidable equality on offsets.
+    _≟L_ : DecidableEquality (List X)
+    []       ≟L []       = yes refl
+    []       ≟L (_ ∷ _)  = no λ ()
+    (_ ∷ _)  ≟L []       = no λ ()
+    (x ∷ xs) ≟L (y ∷ ys) with x ≟X y
+    ... | no  x≢y  = no λ { refl → x≢y refl }
+    ... | yes refl with xs ≟L ys
+    ...   | no  xs≢ys = no λ { refl → xs≢ys refl }
+    ...   | yes refl  = yes refl
+
+    -- strip a known prefix `p` off `xs`, returning the remainder with a proof.
+    stripPrefix : (p xs : List X) → Maybe (Σ[ ys ∈ List X ] xs ≡ p ++ ys)
+    stripPrefix []       xs       = just (xs , refl)
+    stripPrefix (_ ∷ _)  []       = nothing
+    stripPrefix (x ∷ p)  (y ∷ xs) with x ≟X y
+    ... | no  _    = nothing
+    ... | yes refl with stripPrefix p xs
+    ...   | nothing            = nothing
+    ...   | just (ys , refl)   = just (ys , refl)
+
+    --------------------------------------------------------------------------------
+    -- 12a. The decidable `LeftFit` recogniser.
+    --
+    -- We set `P := py`, `s := sx`, and recover `mid` by stripping the prefix
+    -- `py ++ ay` off `px`.  The fit's four equalities are then:
+    --   px ≡ py ++ (ay ++ mid)      -- by construction of the strip (returns this)
+    --   sx ≡ sx                      -- refl
+    --   py ≡ py                      -- refl
+    --   sy ≡ mid ++ (bx ++ sx)       -- confirmed by `_≟L_`
+    -- Returns `nothing` when the splits don't fit (overlap / dependent / wrong
+    -- orientation).
+    --------------------------------------------------------------------------------
+    leftFit? : ∀ {ax bx ay by} (px sx py sy : List X)
+               (fx : Mor ax bx) (fy : Mor ay by)
+             → Maybe (LeftFit px sx py sy fx fy)
+    leftFit? {ax} {bx} {ay} {by} px sx py sy fx fy
+      with stripPrefix py px
+    ... | nothing            = nothing
+    ... | just (r1 , px≡)    with stripPrefix ay r1
+    ...   | nothing             = nothing
+    ...   | just (mid , r1≡)    with sy ≟L (mid ++ (bx ++ sx))
+    ...     | no  _             = nothing
+    ...     | yes sy≡           =
+              just (leftFit py mid sx
+                      (trans px≡ (cong (py ++_) r1≡))   -- px ≡ py ++ (ay ++ mid)
+                      refl                               -- sx ≡ sx
+                      refl                               -- py ≡ py
+                      sy≡)                               -- sy ≡ mid ++ (bx ++ sx)
+
+    --------------------------------------------------------------------------------
+    -- 12b. `swapHeadD` — the firing clean DiagU head swap on explicit head-pair
+    -- data.  (A `DiagU` ERASES the inter-layer wiring into a non-definitional
+    -- `++`-assoc index, so a 2-layer head of an ABSTRACT `DiagU n` cannot be
+    -- destructured by unification — `dInput`/`dSwapped` carry that wiring via
+    -- `substDiagU`.  So `swapHeadD` consumes the head pair as the offsets/boxes
+    -- plus the sub-diagram `dRest`, exactly the data `leftFit?` recognises.)
+    --
+    -- On a recognised `LeftFit` it returns the SWAPPED clean DiagU `dSwapped`
+    -- together with the genuine `≈Term` soundness `diagU-swap-soundD` (input ⇒
+    -- swapped, up to the stuck-`out` index cast `castW oeq`).  `nothing` when the
+    -- pair is not an out-of-order independent left-of pair.
+    --------------------------------------------------------------------------------
+    -- the swap result on a recognised fit + sorted-output tail: the swapped clean
+    -- DiagU and the per-swap soundness (up to the stuck-`out` index cast).
+    HeadSwapD : ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+                (fit : LeftFit px sx py sy fx fy) → DiagU (LeftFrame.N₃ fit) → Set
+    HeadSwapD fit dRest =
+      Σ[ dSw ∈ DiagU (LeftFrame.N₀ fit) ]
+        Σ[ oeq ∈ (out (dInput fit dRest) ≡ out dSw) ]
+          (castW oeq ∘ ⟦ dInput fit dRest ⟧ ≈Term ⟦ dSw ⟧)
+
+    -- the firing swap: ALWAYS fires on a recognised fit (left-of ⟹ out of order),
+    -- returning the genuine swapped DiagU + `diagU-swap-soundD`.
+    swapHeadD : ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+                (fit : LeftFit px sx py sy fx fy) (dRest : DiagU (LeftFrame.N₃ fit))
+              → HeadSwapD fit dRest
+    swapHeadD fit dRest =
+      dSwapped fit dRest
+      , trans (dInput-out fit dRest) (sym (dSwapped-out fit dRest))
+      , diagU-swap-soundD fit dRest
+
+    -- recognise-then-swap on explicit head-pair data: tries `leftFit?`, and on a
+    -- hit returns the firing `swapHeadD`.  This is the autonomous DiagU head step.
+    recogSwapD : ∀ {ax bx ay by} (px sx py sy : List X)
+                 (fx : Mor ax bx) (fy : Mor ay by)
+               → Maybe (Σ[ fit ∈ LeftFit px sx py sy fx fy ]
+                          ((dRest : DiagU (LeftFrame.N₃ fit)) → HeadSwapD fit dRest))
+    recogSwapD px sx py sy fx fy with leftFit? px sx py sy fx fy
+    ... | nothing  = nothing
+    ... | just fit = just (fit , swapHeadD fit)
+
+    --------------------------------------------------------------------------------
+    -- 12c. `normalizeD` — fuel-driven bubble step on a recognised DiagU head.
+    --
+    -- `normalizeD` reduces a head pair to canonical (lower-offset-first) order by
+    -- the genuine `swapHeadD` swap; the fuel argument bounds the number of bubble
+    -- steps (`length² ≥ inversions`), and on `0` fuel / a non-recognised head it
+    -- returns the input unchanged with the trivial witness.  Because the SWAPPED
+    -- tail is re-indexed (by `substDiagU` along the non-definitional `++`-assoc
+    -- `domeq`), a 2-layer head of the *output* of an ABSTRACT step cannot be
+    -- destructured by unification, so abstract multi-step recursion is not
+    -- expressible; the chaining of multiple genuine steps is exercised CONCRETELY
+    -- in the litmus.  Soundness is the per-swap `≈Term` (up to the stuck-`out`
+    -- cast `castW oeq`), unconditional whatever the fuel.
+    --------------------------------------------------------------------------------
+
+    -- a normalized diagram with its per-swap soundness witness.
+    NormD : ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+            (fit : LeftFit px sx py sy fx fy) → DiagU (LeftFrame.N₃ fit) → Set
+    NormD fit dRest = HeadSwapD fit dRest
+
+    normalizeD : ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+                 → ℕ
+                 → (fit : LeftFit px sx py sy fx fy) (dRest : DiagU (LeftFrame.N₃ fit))
+                 → DiagU (LeftFrame.N₀ fit)
+    normalizeD zero    fit dRest = dInput fit dRest        -- out of fuel: leave the head
+    normalizeD (suc _) fit dRest = dSwapped fit dRest      -- fire one genuine bubble swap
+
+    normalizeD-sound : ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+                       (k : ℕ)
+                       (fit : LeftFit px sx py sy fx fy) (dRest : DiagU (LeftFrame.N₃ fit))
+                     → Σ[ oeq ∈ (out (dInput fit dRest) ≡ out (normalizeD k fit dRest)) ]
+                         (castW oeq ∘ ⟦ dInput fit dRest ⟧ ≈Term ⟦ normalizeD k fit dRest ⟧)
+    normalizeD-sound zero    fit dRest = refl , idˡ
+    normalizeD-sound (suc _) fit dRest =
+      trans (dInput-out fit dRest) (sym (dSwapped-out fit dRest))
+      , diagU-swap-soundD fit dRest
+
+
 --------------------------------------------------------------------------------
 -- 10. LITMUS — the autonomous sorter genuinely reorders.
 --
@@ -1517,3 +1995,54 @@ module Litmus where
         (⟦ litDSorted ⟧ ∘ pad (0 ∷ []) [] (⟦box⟧ gbox)) ∘ Frame.f-in [] [] [] fbox gbox
           ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (≈-Term-sym g-out≈cp)) ≈-Term-refl ⟩
         (⟦ litDSorted ⟧ ∘ Frame.g-out [] [] [] fbox gbox) ∘ Frame.f-in [] [] [] fbox gbox ∎
+
+  --------------------------------------------------------------------------------
+  -- LITMUS (SortD): the DECIDABLE recogniser `leftFit?` FIRES on the concrete
+  -- out-of-order head data, and `swapHeadD`/`normalizeD` reorder genuinely.  X = ℕ
+  -- with `DecidableEquality` `_≟_`.  Out-of-order input: gbox (right box, offset 0
+  -- domain `1∷[]`) fires FIRST then fbox (left box, offset 0).  `leftFit?` rebuilds
+  -- the fit by splitting the offset lists; `swapHeadD` returns the swapped clean
+  -- DiagU (fbox first); all `++`-assoc casts reduce to `id` (P=mid=s=[]).
+  --------------------------------------------------------------------------------
+  open import Data.Nat.Properties using (_≟_)
+  open SortD _≟_
+
+  -- the recogniser FIRES on the litmus offsets/boxes — machine-checked `just`.
+  litLeftFit? : leftFit? (0 ∷ []) [] [] (1 ∷ []) gbox fbox
+              ≡ just (leftFit [] [] [] refl refl refl refl)
+  litLeftFit? = refl
+
+  -- it conservatively REJECTS an in-order / non-fitting pair (offsets don't split).
+  litLeftFit?-no : leftFit? [] [] [] [] fbox gbox ≡ nothing
+  litLeftFit?-no = refl
+
+  -- the recognised fit (= the hand-written `litFit`).
+  litFitD : LeftFit (0 ∷ []) [] [] (1 ∷ []) gbox fbox
+  litFitD = leftFit [] [] [] refl refl refl refl
+
+  -- the firing swap on the recognised fit + empty tail.
+  litSwapD : HeadSwapD litFitD litDSorted
+  litSwapD = swapHeadD litFitD litDSorted
+
+  -- `normalizeD` with positive fuel REORDERS: the result is the swapped clean
+  -- DiagU (fbox, the lower-offset box, now fires FIRST) — machine-checked `refl`
+  -- on the underlying layer list (fbox-pad first, then gbox-pad).
+  litNormReorders : fromDiagU-ls (normalizeD 4 litFitD litDSorted)
+                  ≡ mk-pad [] (1 ∷ []) fbox
+                  ∷ mk-pad (0 ∷ []) [] gbox ∷ []
+  litNormReorders = refl
+
+  -- and the INPUT (fuel 0 / pre-sort) is gbox-first — confirming it was out of order.
+  litNormInput : fromDiagU-ls (normalizeD 0 litFitD litDSorted)
+               ≡ mk-pad (0 ∷ []) [] gbox
+               ∷ mk-pad [] (1 ∷ []) fbox ∷ []
+  litNormInput = refl
+
+  -- the casts are the identity here, so the soundness witness is the clean
+  -- `≈Term` between the two DiagUs (gbox-first ⇒ fbox-first), machine-checked.
+  litNormCastId : proj₁ (normalizeD-sound 4 litFitD litDSorted) ≡ refl
+  litNormCastId = refl
+
+  litNormSound : id ∘ ⟦ dInput litFitD litDSorted ⟧
+               ≈Term ⟦ normalizeD 4 litFitD litDSorted ⟧
+  litNormSound = proj₂ (normalizeD-sound 4 litFitD litDSorted)
