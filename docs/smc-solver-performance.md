@@ -374,6 +374,31 @@ sharing is the bottleneck.
    split very large equations by `≈-Term-trans` into solver-sized steps — cost is super-linear in
    size, so splitting wins.
 
+## GConstruction `assoc'-coherence` retried post-`opaque` (2026-06-09) — still infeasible; the bar is set
+
+The original motivating goal was re-measured with the now-`opaque` `soundness-full-wired`
+(the earlier 14 GB OOM predates that change). Calibration ladder (8 atoms, 3 generators,
+warm cache, `-M12g`, 1200 s timeout per rung):
+
+| rung | workload | time |
+|---|---|---:|
+| `α ∘ id ≈ α` (full solve; the old 113 s case) | 8-atom α | **52.9 s** (~2.1×, *not* a collapse) |
+| `β ∘ β ≈ id` (edge-free, full solve) | 6 morphisms | 5.3 s |
+| self-iso `⟪m₀⟫ ≅ᴴ ⟪m₀⟫` (pure `findIso`) | ~15 morphisms, 2 edges | 1.1 s |
+| self-iso `⟪m₀'⟫` | ~25 morphisms | 25.0 s |
+| self-iso `⟪lhs⟫` | ~50 morphisms, 3 edges | **>1100 s, killed; peak RSS 13.6 GB** |
+| full goal | — | not reached |
+
+Findings: `opaque` bought a fixed ~2× on the soundness-overhead component, but the bottleneck is
+the **size-scaling of `⟪_⟫` + `Verify`** (1.1 s → 25 s → >1100 s for 15 → 25 → 50 morphisms —
+super-polynomial), which `opaque` does not touch. Even the strictly-easier-than-the-goal
+*self*-iso of one side dies in the 25→50-morphism "death zone". **For `assoc'-coherence` to come
+into reach, the per-goal `⟪_⟫`/`Verify` evaluation must drop by roughly two orders of magnitude**
+— which is exactly what the tabulation/sharing lever above targets (the re-evaluation multiplier
+it removes was measured at 10–18× and *growing* with size, so its effect at the 50-morphism scale
+plausibly exceeds the headline N=16 number; whether it clears 100× is the open empirical
+question), possibly compounded by rebalancing and equation-splitting.
+
 ## Implication
 
 The fix is the same as for shrinking the soundness proof itself: a real coherence solver
