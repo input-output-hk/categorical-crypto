@@ -81,6 +81,17 @@ module Wiring
   module S = APROP finSig
   open Interp finSigDec public
     using (module Solver; module ObjInterp; focFrame; deepFrame)
+
+  -- The underlying search vocabulary, re-exported so clients (and the test
+  -- suite) can state facts about the engine — e.g. that a redex is or is not
+  -- locatable — in the frontend's own terms.
+  open import Categories.APROP.Hypergraph.Translation finSig public using (⟪_⟫)
+  open import Categories.APROP.Hypergraph.Solver.FindIso finSigDec public
+    using (findIso)
+  open import Categories.APROP.Hypergraph.Solver.Carve finSigDec public
+    using (Foc; focusAll; focusAtₙ; focusAt)
+  open import Categories.APROP.Hypergraph.Solver.Deep finSigDec public
+    using (deepFoc)
   open ObjInterp C ⟦_⟧ᵖ₀ public using (⟦_⟧₀)
 
   -- A generator interpretation, keyed by index: the `i`-th generator's morphism.
