@@ -1174,6 +1174,29 @@ module Untyped {X : Set} (Mor : List X → List X → Set) where
         ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym (pad≡liftW (pre ++ (b₁ ++ mid)) r (⟦box⟧ g))) ≈-Term-refl) ⟩
       reassocB-out ∘ pad (pre ++ (b₁ ++ mid)) r (⟦box⟧ g) ∘ reassocF-out ∎
 
+    -- The MIRROR of `g-out≈pad` for the `g-in` layer: `g-in` sits in the
+    -- *dom* (a₁) frame rather than the *cod* (b₁) frame, so the reassociators
+    -- use `a₁` in place of `b₁`.  Proven by the SAME machinery (`bridge-g` /
+    -- `gpad-reassoc` / `pad≡liftW`), mirrored to the a₁-side.
+    reassocF-in : HomTerm (wires (pre ++ (a₁ ++ (mid ++ (a₂ ++ r)))))
+                          (wires ((pre ++ (a₁ ++ mid)) ++ (a₂ ++ r)))
+    reassocF-in = assocW pre (a₁ ++ mid) (a₂ ++ r) ∘ liftW pre (assocW a₁ mid (a₂ ++ r))
+
+    reassocB-in : HomTerm (wires ((pre ++ (a₁ ++ mid)) ++ (b₂ ++ r)))
+                          (wires (pre ++ (a₁ ++ (mid ++ (b₂ ++ r)))))
+    reassocB-in = liftW pre (assocW⁻ a₁ mid (b₂ ++ r)) ∘ assocW⁻ pre (a₁ ++ mid) (b₂ ++ r)
+
+    g-in≈pad : g-in
+             ≈Term reassocB-in ∘ pad (pre ++ (a₁ ++ mid)) r (⟦box⟧ g) ∘ reassocF-in
+    g-in≈pad = begin
+      g-in
+        ≈⟨ bridge-g pre a₁ mid r (⟦box⟧ g) ⟩
+      liftW pre (liftW a₁ (liftW mid (rpad r (⟦box⟧ g))))
+        ≈⟨ gpad-reassoc pre a₁ mid (rpad r (⟦box⟧ g)) ⟩
+      reassocB-in ∘ liftW (pre ++ (a₁ ++ mid)) (rpad r (⟦box⟧ g)) ∘ reassocF-in
+        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym (pad≡liftW (pre ++ (a₁ ++ mid)) r (⟦box⟧ g))) ≈-Term-refl) ⟩
+      reassocB-in ∘ pad (pre ++ (a₁ ++ mid)) r (⟦box⟧ g) ∘ reassocF-in ∎
+
 --------------------------------------------------------------------------------
 -- Sanity check: the generalization genuinely subsumes the old single-object
 -- case.  Instantiating `X = ⊤` recovers wire-count-typed boxes (the wire

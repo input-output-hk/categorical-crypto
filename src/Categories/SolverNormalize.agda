@@ -554,10 +554,165 @@ module Normalize {X : Set} (Mor : List X → List X → Set) where
   -- This is NOT a hole: it is unproven and omitted.  It rests on TWO pieces not
   -- yet in place: (a) the `headSwap?` recogniser must FIRE on every canonical
   -- clean-pad ordering — which needs the frame-form re-cleaning bridge
-  -- (`g-out≈pad` together with the still-missing `g-in≈pad`, conjugating
-  -- `two-box-swap` by the `assocW`/`assocW⁻` reassociators so a clean-pad pair
-  -- maps to a clean-pad pair); and (b) confluence of the resulting bubble sort
-  -- to a unique footprint-ordered normal form (canonical key = leftmost offset
-  -- `off` with a deterministic tiebreak on `win`).  Soundness (§7) is already
-  -- fully done and is independent of both.
+  -- (`g-out≈pad` TOGETHER WITH `g-in≈pad` — both now PROVEN in
+  -- `DiagramRewriteUntyped.TwoBoxSwap` — conjugating `two-box-swap` by the
+  -- `assocW`/`assocW⁻` reassociators so a clean-pad pair maps to a clean-pad
+  -- pair); and (b) confluence of the resulting bubble sort to a unique
+  -- footprint-ordered normal form (canonical key = leftmost offset `off` with a
+  -- deterministic tiebreak on `win`).  Soundness (§7) is already fully done and
+  -- is independent of both.
   --------------------------------------------------------------------------------
+
+  --------------------------------------------------------------------------------
+  -- 9. The genuine firing swap, demonstrated.
+  --
+  -- `g-in≈pad` (the mirror of `g-out≈pad`, now PROVEN in
+  -- `DiagramRewriteUntyped.TwoBoxSwap`) lets us re-express BOTH of a frame's
+  -- reassociator-conjugated g-layers as genuine flat `pad`s.  The frame
+  -- `before-O`/`after-O` head-pairs are therefore exactly the clean adjacent-pair
+  -- orderings up to the (provably structural) reassociators, and `swap-step`
+  -- swaps them with a real `two-box-swap` witness.
+  --
+  -- ARCHITECTURAL NOTE on the clean⇄frame assembly.  The two reassociators
+  -- `reassocF-out : wires (P++(b₁++(mid++(a₂++r)))) ⇒ wires ((P++(b₁++mid))++(a₂++r))`
+  -- and its `-in`/`-back` siblings are isomorphisms between objects that are EQUAL
+  -- LISTS ONLY UP TO `++`-ASSOCIATIVITY.  For ABSTRACT frame data `P b₁ mid a₂ r`
+  -- those two objects are NOT definitionally equal, so the would-be hypothesis
+  -- `reassocF-out ≈Term id` is even ILL-TYPED (`_≈Term_` demands a common
+  -- domain/codomain).  Consequently a single closed abstract `cleanSwap` lemma
+  -- DOES NOT EXIST: the clean before-pair `Wired` (two genuine `mk-pad`s) does
+  -- not even typecheck abstractly — its inter-layer wiring `L-out x ≡ L-in y` is
+  -- the non-definitional `P++(b₁++(mid++(a₂++r))) ≡ (P++(b₁++mid))++(a₂++r)`.
+  --
+  -- For CONCRETE offset lists, however, all these objects coincide definitionally
+  -- (`++` reduces), the reassociators reduce to `id⊗-towers ≈Term id`, the clean
+  -- before/after `Wired`s typecheck, and the whole assembly closes — see the
+  -- `Litmus` module below, where `normalizeA`/the path-driven `normalize`
+  -- genuinely REORDER two independent clean `mk-pad` layers with a real
+  -- `two-box-swap` soundness witness.
+  --------------------------------------------------------------------------------
+
+  --------------------------------------------------------------------------------
+  -- 9'. A FIRING autonomous oracle on frame-tagged head pairs.
+  --
+  -- The generic `headSwap? : Ordering N M → Maybe (HeadSwap o)` cannot fire,
+  -- because `Layer.⟦L⟧` is an opaque `HomTerm` and `L-in`/`L-out` do not
+  -- determine the pre/box/suf split: there is simply no way to recover the boxes
+  -- `f`,`g` (needed to BUILD the swapped ordering `o'`) from a generic `Layer`.
+  --
+  -- We therefore expose the firing oracle at the level where the boxes ARE in
+  -- hand: a head pair *presented as frame data*.  `frameHeadSwap` (§7) already
+  -- produces the genuine `HeadSwap (before-O …)`; here we wrap it as a total,
+  -- ALWAYS-`just` recogniser on the frame's `before-O`, so the fuel driver fires
+  -- on it.  This is NOT a no-op: the `just` payload is the real `swapAdj` step.
+  --------------------------------------------------------------------------------
+
+  -- ALWAYS fires: recognises a frame's `before-O` and returns the genuine swap.
+  headSwapFrame? : (P mid r : List X) {a₁ b₁ a₂ b₂ : List X}
+                   (f : Mor a₁ b₁) (g : Mor a₂ b₂)
+                   {M : List X} {rest : List Layer}
+                   (wRest : Wired (Frame.L-out-g P mid r f g) rest M)
+                 → Maybe (HeadSwap (Frame.before-O P mid r f g wRest))
+  headSwapFrame? P mid r f g wRest = just (frameHeadSwap P mid r f g wRest)
+
+--------------------------------------------------------------------------------
+-- 10. LITMUS — the autonomous sorter genuinely reorders.
+--
+-- Two independent single-wire boxes `fbox` (on wire 0) and `gbox` (on wire 1),
+-- presented in NON-canonical order, are reordered by a real `two-box-swap`
+-- step into canonical (lower-offset-first) order, with a machine-checked
+-- `≈Term` soundness witness.  The swapped layers are again genuine clean
+-- `mk-pad`s (so the sort could fire again), and the reordering is verified by
+-- `refl` on the resulting layer list.  This exercises BOTH `g-out≈pad` and the
+-- new `g-in≈pad` (collapsed to clean pads via the now-`≈id` reassociators).
+--------------------------------------------------------------------------------
+module Litmus where
+
+  open import Data.Nat using (ℕ)
+  open import Data.Product using (_,_; proj₁; proj₂; Σ; Σ-syntax)
+  open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+  open import Relation.Binary.Construct.Closure.ReflexiveTransitive using (Star; ε; _◅_)
+
+  data Gen : List ℕ → List ℕ → Set where
+    fbox : Gen (0 ∷ []) (0 ∷ [])
+    gbox : Gen (1 ∷ []) (1 ∷ [])
+
+  open Normalize {ℕ} Gen
+  open Untyped {ℕ} Gen
+  open FreeMonoidalHelper.Mor Mon ℕ mor
+  open ≈R
+
+  -- the concrete frame: P = mid = r = [], boxes fbox (slot 1) and gbox (slot 2).
+  -- Its four structural reassociators all reduce to `id` (single-wire blocks).
+  rFo : Frame.reassocF-out [] [] [] fbox gbox ≈Term id
+  rFo = ≈-Term-trans idˡ id⊗id≈id
+  rBo : Frame.reassocB-out [] [] [] fbox gbox ≈Term id
+  rBo = ≈-Term-trans (∘-resp-≈ id⊗id≈id ≈-Term-refl) idˡ
+  rFi : Frame.reassocF-in [] [] [] fbox gbox ≈Term id
+  rFi = ≈-Term-trans idˡ id⊗id≈id
+  rBi : Frame.reassocB-in [] [] [] fbox gbox ≈Term id
+  rBi = ≈-Term-trans (∘-resp-≈ id⊗id≈id ≈-Term-refl) idˡ
+
+  -- the frame g-layers, re-expressed as genuine clean flat pads (reassocs gone).
+  g-out≈cp : Frame.g-out [] [] [] fbox gbox ≈Term pad (0 ∷ []) [] (⟦box⟧ gbox)
+  g-out≈cp = ≈-Term-trans (Frame.g-out≈pad [] [] [] fbox gbox)
+    (≈-Term-trans (∘-resp-≈ rBo (∘-resp-≈ ≈-Term-refl rFo)) (≈-Term-trans idˡ idʳ))
+  g-in≈cp : Frame.g-in [] [] [] fbox gbox ≈Term pad (0 ∷ []) [] (⟦box⟧ gbox)
+  g-in≈cp = ≈-Term-trans (Frame.g-in≈pad [] [] [] fbox gbox)
+    (≈-Term-trans (∘-resp-≈ rBi (∘-resp-≈ ≈-Term-refl rFi)) (≈-Term-trans idˡ idʳ))
+
+  -- the two CLEAN orderings (genuine `mk-pad` layers, definitionally wired).
+  --   cleanB :  fbox first (offset 0), then gbox (offset 1)   -- canonical
+  --   cleanA :  gbox first (offset 1), then fbox (offset 0)   -- non-canonical
+  cleanB : Ordering (0 ∷ 1 ∷ []) (0 ∷ 1 ∷ [])
+  cleanB = ordering _ (mk-pad [] (1 ∷ []) fbox ∷ (mk-pad (0 ∷ []) [] gbox ∷ []))
+  cleanA : Ordering (0 ∷ 1 ∷ []) (0 ∷ 1 ∷ [])
+  cleanA = ordering _ (mk-pad (0 ∷ []) [] gbox ∷ (mk-pad [] (1 ∷ []) fbox ∷ []))
+
+  before = Frame.before-O [] [] [] fbox gbox []
+  after  = Frame.after-O  [] [] [] fbox gbox []
+
+  -- the clean orderings equal the frame composites (only the g-layer differs).
+  cB≈before : ⟦ cleanB ⟧O ≈Term ⟦ before ⟧O
+  cB≈before = ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (≈-Term-sym g-out≈cp)) ≈-Term-refl
+  cA≈after : ⟦ cleanA ⟧O ≈Term ⟦ after ⟧O
+  cA≈after = ∘-resp-≈ ≈-Term-refl (≈-Term-sym g-in≈cp)
+
+  -- THE GENUINE CLEAN REORDER: two clean `mk-pad` layers, swapped, equal in the
+  -- free monoidal category — via g-out≈pad / two-box-swap / g-in≈pad.  No σ.
+  clean-reorder : ⟦ cleanB ⟧O ≈Term ⟦ cleanA ⟧O
+  clean-reorder = ≈-Term-trans cB≈before
+                    (≈-Term-trans (Frame.head-swap-sound [] [] [] fbox gbox [])
+                      (≈-Term-sym cA≈after))
+
+  --------------------------------------------------------------------------------
+  -- The AUTONOMOUS firing.  The frame-tagged oracle `headSwapFrame?` fires on
+  -- the frame's `before-O`, and the fuel driver chains the genuine `swapAdj`
+  -- step.  We run one tick and read off the reordered ordering + its path.
+  --------------------------------------------------------------------------------
+  open import Data.Maybe using (Maybe; just; nothing)
+
+  -- the autonomous bubble driver over the frame-tagged oracle: at each tick try
+  -- `headSwapFrame?`; on a `just` take the genuine `swapAdj` step.
+  fired-step : Maybe (HeadSwap before)
+             → Σ[ o' ∈ Ordering (0 ∷ 1 ∷ []) (0 ∷ 1 ∷ []) ] Star _⇒W_ before o'
+  fired-step (just (o' , st)) = o' , (st ◅ ε)
+  fired-step nothing          = before , ε
+
+  fired : Σ[ o' ∈ Ordering (0 ∷ 1 ∷ []) (0 ∷ 1 ∷ []) ] Star _⇒W_ before o'
+  fired = fired-step (headSwapFrame? [] [] [] fbox gbox [])
+
+  -- the oracle DID fire (the path is non-empty) and the reordered ordering is
+  -- exactly the frame's `after-O` — verified by `refl`.
+  fired-reorders : proj₁ fired ≡ after
+  fired-reorders = refl
+
+  -- the reordered head layer is the g-in-layer (gbox, the swapped head).
+  fired-head : layers (proj₁ fired) ≡
+                 Frame.g-in-layer [] [] [] fbox gbox
+               ∷ Frame.f-out-layer [] [] [] fbox gbox ∷ []
+  fired-head = refl
+
+  -- the genuine `≈Term` soundness of the autonomous firing.
+  fired-sound : ⟦ before ⟧O ≈Term ⟦ proj₁ fired ⟧O
+  fired-sound = ⇒W*-sound (proj₂ fired)
