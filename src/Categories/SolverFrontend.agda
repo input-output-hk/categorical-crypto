@@ -33,11 +33,42 @@
 --     wire-level coherence lemmas (`merge-ρ`, `merge-assoc`, `merge∘split`)
 --     transferred along `inj`;
 --
---   * `Decide.solveTerm!` packages reflect → compare → bridge → cancel into
---     a decision procedure for the front-end `_≈Term_`, and
+--   * `Decide.solveTerm!` packages reflect → normalize → compare → bridge →
+--     cancel into a decision procedure for the front-end `_≈Term_`, and
 --     `Decide.Into.solveMor!` transports the result into an arbitrary target
 --     monoidal category along the free functor — definitionally, so the
 --     equation's two sides appear in the target's own vocabulary.
+--
+-- WHAT DECIDES (verified in `Categories.SolverFrontendTests`):
+--   pure MacLane coherence (unitor/associator iso laws, triangle, pentagon,
+--   λ≈ρ on unit); unitor/associator NATURALITY through box generators;
+--   id/∘ laws and in-order ⊗-functoriality; disjoint-box interchange in
+--   EITHER firing order (one machine-fired swap per side), including
+--   multi-wire boxes, empty-domain boxes and scalars.
+--
+-- LIMITATIONS (precise; L2/L3 machine-checked as `≡ nothing` in the tests):
+--   L1  Sound, NOT complete: every `just` is a real `_≈Term_` proof, but
+--       `nothing` does not refute the equation.
+--   L2  Normalization inspects only the HEAD pair (first two fired layers):
+--       a true equation whose diagrams differ by a deeper inversion is not
+--       decided (`Limitations.lim-non-head-swap`).
+--   L3  At most ONE swap fires per side: diagrams ≥ 2 inversions apart are
+--       not decided (`Limitations.lim-three-desc`).  Generic multi-step
+--       recursion is blocked because the swapped tail sits behind
+--       `substDiagU`; a `DiagU` re-representation with equality-field
+--       wiring is the known follow-up.
+--   L4  Monoidal only (`Variant` `Mon`): braided/symmetric goals are not
+--       expressible (no σ in the term language).
+--   L5  Decision-by-evaluation: requires a CONCRETE atom set (computing
+--       `DecidableEquality`) and concrete arities; over abstract atoms the
+--       `++-identityʳ`/`++-assoc` casts in `reflectF` do not reduce, so the
+--       `IsJust` hit of `solveTerm!`/`solveMor!` cannot auto-discharge.
+--   L6  Generator equality is the supplied syntactic `_≟G_`: no
+--       generator-specific equations (naturality of a concrete box,
+--       Frobenius laws, …) are known to the solver — those belong to a
+--       rewriting layer on top, not to this decision procedure.
+--   L7  No canonicity/completeness theorem is claimed for `norm1 ∘ reflect`;
+--       the test suite documents which equation shapes decide.
 --
 -- Hole-free, postulate-free, --safe.
 --------------------------------------------------------------------------------
