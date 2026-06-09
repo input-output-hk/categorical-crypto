@@ -237,6 +237,35 @@ equality on the Bool/`SetMatrix` directly (the smc-coherence route) and reach `�
 the cost is `⟪_⟫` + `Verify`-class scanning, which both finders pay; only abandoning the
 hypergraph-iso *reconstruction* (flat-matrix `≈M` + `matrix-faithful`) removes it.
 
+## The `≈M → ≅ᴴ` bridge decision is measurably cheaper (2026-06-09)
+
+A follow-up spike asked the narrower question behind the `≈M → ≅ᴴ` bridge (derive `≅ᴴ` from matrix
+equivalence, reuse the existing soundness): is *deciding matrix-equivalence* cheaper than the
+`findIsoᴮ` deciders `decBijLaws + decCanonMatch`? Measured on single-generator chains `gᴺ`
+(`H = J`, no relabelling), forcing each decision:
+
+| N (nE) | `decBijLaws + decCanonMatch` | matrix floor `matSig(hg→mat)` | advantage |
+|---:|---:|---:|---:|
+| 4 (5)  | 2,057 ms  | 631 ms   | 3.3× |
+| 8 (9)  | 25,025 ms | 4,730 ms | 5.3× |
+| 16 (17)| 412,381 ms| 48,799 ms| 8.5× |
+
+So the matrix decision is **3–8× cheaper, widening with size** — and `matSig` is a strict *lower
+bound* (the real decision is that build plus a linear `≟` sweep). Two reasons, both of which the
+earlier "it'll tie" guess underweighted: (1) `decBijLaws` (the four bijection round-trips) is the
+dominant, steepest-exponent cost (~55%), and the bridge **avoids it** — the matrix permutation gives
+bijectivity structurally; (2) even `decCanonMatch` *alone* (909/10,874/177,393 ms) loses to the
+matrix floor, gap widening 1.4× → 3.6× — the flat Bool-matrix check genuinely beats the list-based
+incidence sweep. (Aside: `decBijLaws` could also be dropped in the hypergraph route by proving
+`canonV`/`canonE` are permutations, but even then `decCanonMatch` alone still loses to the matrix
+floor — the matrix representation is intrinsically cheaper for the decision.)
+
+**Verdict: the bridge's decision-cost is GO.** The remaining cost is the faithfulness proof
+`matrixEquiv → ≅ᴴ` — moderate (~half is the already-proven `matIso→hgIso`; the new part is recovering
+the ordered incidence from the positionally-indexed matrix plus enriching `hg→mat` to be
+*label-aware*, since the current Bool/connectivity-only matrix loses `vlab`/`elab`), with **no
+coherence content** (it's an encoding-correspondence, not the term-level `matrix-faithful`).
+
 ## Implication
 
 The fix is the same as for shrinking the soundness proof itself: a real coherence solver
