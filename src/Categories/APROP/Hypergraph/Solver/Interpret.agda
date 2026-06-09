@@ -36,12 +36,14 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.FindIso sig-dec using (findIso)
+open import Categories.APROP.Hypergraph.Solver.Carve sig-dec using (focusAt; Foc)
 open import Categories.APROP.Hypergraph.SoundnessFullWired sig-dec
   using (soundness-full-wired)
 
 open import Level using (Level)
 open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
 open import Data.Bool.Base using (T)
+open import Data.Product.Base using (_,_; proj₁; proj₂)
 
 private
   -- Extract the value of a `Maybe` from a proof (`T (is-just _)`) that it is
@@ -51,6 +53,15 @@ private
   -- `just`, and uninhabitable when it is `nothing`.
   fromWitness! : ∀ {a} {A : Set a} (m : Maybe A) → T (is-just m) → A
   fromWitness! (just x) _ = x
+
+  -- The frame `post ∘ (id {k} ⊗₁ mid) ∘ pre` for the focus `focusAt s lᵗ`
+  -- located in `s` (when it succeeds).  `mid := lᵗ` gives the L-frame whose
+  -- iso to `s` certifies the carve; `mid := rᵗ` gives the rewritten target.
+  focFrame : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)
+           → T (is-just (focusAt s lᵗ)) → HomTerm A B
+  focFrame s lᵗ mid found =
+    let (k , pre , post) = fromWitness! (focusAt s lᵗ) found
+    in post ∘ (id {k} ⊗₁ mid) ∘ pre
 
 --------------------------------------------------------------------------------
 -- The object interpretation `⟦_⟧₀ : ObjTerm → C.Obj`, which depends only on
@@ -123,3 +134,65 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → {_ : T (is-just (findIso ⟪ f ⟫ ⟪ g ⟫))}
     → ⟦ f ⟧₁ C.≈ ⟦ g ⟧₁
   solveH! f g {pf} = solveH f g (fromWitness! (findIso ⟪ f ⟫ ⟪ g ⟫) pf)
+
+  --------------------------------------------------------------------------------
+  -- Diagrammatic *rewriting* in `C`, in the style of `solveH!` but with a
+  -- rewrite rule as the extra input.  This is the string-diagram analogue of
+  -- TensorRocq's `srw`/`zxrw` tactics, and the soundness analogue of its
+  -- double-pushout rewrite `H ≅ C₁ ; (I ⊗ L) ; C₂`.
+  --
+  -- A *rule* is an equation `⟦ lᵗ ⟧₁ ≈ ⟦ rᵗ ⟧₁` in `C` between the
+  -- interpretations of two free-SMC terms `lᵗ rᵗ : HomTerm P Q` (definitionally
+  -- whatever raw `C`-equation the caller already has, e.g. a generator law).
+  -- A *position* is a free-SMC context: an input-side term `pre : A → k ⊗ P`
+  -- and an output-side term `post : k ⊗ Q → B`, so that the rule fires inside
+  -- the frame `post ∘ (id {k} ⊗₁ –) ∘ pre`.  The `id {k} ⊗₁ –` padding makes
+  -- this frame general for any *connected single-subdiagram* occurrence: σ/α
+  -- can reshape the occurrence into this shape, and the two `findIso` searches
+  -- below absorb exactly that reshaping.
+  --
+  -- The caller writes *both* endpoints `s t : HomTerm A B` in any SMC-equivalent
+  -- form they like; the two implicit `findIso` witnesses reconcile each side to
+  -- the corresponding frame.  Soundness (`soundness-full-wired`, via `solveH`)
+  -- discharges the two coherence reconciliations; the rule is transported across
+  -- by `C`'s `∘`/`⊗₁` congruence — no completeness and no hypergraph→term
+  -- extraction is needed, so this rests only on the proven, postulate-free half
+  -- of the triangle.
+  rewriteH!
+    : ∀ {A B P Q k}
+    → (s t : HomTerm A B)
+    → (pre : HomTerm A (k ⊗₀ P)) (post : HomTerm (k ⊗₀ Q) B)
+    → (lᵗ rᵗ : HomTerm P Q)
+    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
+    → {_ : T (is-just (findIso ⟪ s ⟫ ⟪ post ∘ (id {k} ⊗₁ lᵗ) ∘ pre ⟫))}
+    → {_ : T (is-just (findIso ⟪ t ⟫ ⟪ post ∘ (id {k} ⊗₁ rᵗ) ∘ pre ⟫))}
+    → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁
+  rewriteH! s t pre post lᵗ rᵗ rule {p₁} {p₂} =
+    C.Equiv.trans (solveH! s (post ∘ (id ⊗₁ lᵗ) ∘ pre) {p₁})
+      (C.Equiv.trans
+        (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule))))
+        (C.Equiv.sym (solveH! t (post ∘ (id ⊗₁ rᵗ) ∘ pre) {p₂})))
+
+  --------------------------------------------------------------------------------
+  -- Fully automatic rewriting: like `rewriteH!`, but the position (`pre`/`post`)
+  -- is *found* by `focusAt` (term-level focusing) rather than supplied.  The
+  -- caller gives only the term `s`, the rule `lᵗ ≈ rᵗ`, and the rule proof; the
+  -- rewritten target is computed as `focFrame s lᵗ rᵗ found`.
+  --
+  -- Two typecheck-time obligations, both discharged by reduction at the call
+  -- site (where `s`, `lᵗ` are concrete): `found` — `focusAt` located the redex;
+  -- `cert` — the located L-frame is hypergraph-iso to `s`.  The target is *by
+  -- construction* the R-frame, so no second iso search is needed: we transport
+  -- the rule across the located frame by `C`'s `∘`/`⊗₁` congruence directly.
+  rewriteAuto!
+    : ∀ {A B P Q}
+    → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q)
+    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
+    → {found : T (is-just (focusAt s lᵗ))}
+    → {_     : T (is-just (findIso ⟪ s ⟫ ⟪ focFrame s lᵗ lᵗ found ⟫))}
+    → ⟦ s ⟧₁ C.≈ ⟦ focFrame s lᵗ rᵗ found ⟧₁
+  rewriteAuto! s lᵗ rᵗ rule {found} {cert} =
+    C.Equiv.trans
+      (solveH s (focFrame s lᵗ lᵗ found)
+              (fromWitness! (findIso ⟪ s ⟫ ⟪ focFrame s lᵗ lᵗ found ⟫) cert))
+      (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule))))
