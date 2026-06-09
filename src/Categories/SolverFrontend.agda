@@ -42,32 +42,34 @@
 -- WHAT DECIDES (verified in `Categories.SolverFrontendTests`):
 --   pure MacLane coherence (unitor/associator iso laws, triangle, pentagon,
 --   λ≈ρ on unit); unitor/associator NATURALITY through box generators;
---   id/∘ laws and in-order ⊗-functoriality; disjoint-box interchange in
---   EITHER firing order (one machine-fired swap per side), including
---   multi-wire boxes, empty-domain boxes and scalars.
+--   id/∘ laws and ⊗-functoriality; disjoint-box interchange in EITHER
+--   firing order — the normalizer is a fuel-bounded bubble sort (`norm`,
+--   budget (#layers)²+1) firing genuine interchange swaps at ANY position,
+--   so multi-swap and non-head inversions decide — including multi-wire
+--   boxes, empty-domain boxes and scalars.
 --
--- LIMITATIONS (precise; L2/L3 machine-checked as `≡ nothing` in the tests):
+-- LIMITATIONS (precise; L2 machine-checked as `≡ nothing` in the tests):
 --   L1  Sound, NOT complete: every `just` is a real `_≈Term_` proof, but
 --       `nothing` does not refute the equation.
---   L2  Normalization inspects only the HEAD pair (first two fired layers):
---       a true equation whose diagrams differ by a deeper inversion is not
---       decided (`Limitations.lim-non-head-swap`).
---   L3  At most ONE swap fires per side: diagrams ≥ 2 inversions apart are
---       not decided (`Limitations.lim-three-desc`).  Generic multi-step
---       recursion is blocked because the swapped tail sits behind
---       `substDiagU`; a `DiagU` re-representation with equality-field
---       wiring is the known follow-up.
---   L4  Monoidal only (`Variant` `Mon`): braided/symmetric goals are not
+--   L2  Same-offset empty-footprint pairs: two scalar-like layers at the
+--       same offset (`mid ≡ [] ∧ by ≡ [] ∧ ax ≡ []`) fit the swap
+--       recogniser in BOTH orders, so the sort has no canonical order for
+--       them — scalar reordering `u ∘ v ≈ v ∘ u` (true by Eckmann-Hilton-
+--       style interchange) is not decided (`Limitations.lim-scalar-order`).
+--   L3  Monoidal only (`Variant` `Mon`): braided/symmetric goals are not
 --       expressible (no σ in the term language).
---   L5  Decision-by-evaluation: requires a CONCRETE atom set (computing
+--   L4  Decision-by-evaluation: requires a CONCRETE atom set (computing
 --       `DecidableEquality`) and concrete arities; over abstract atoms the
 --       `++-identityʳ`/`++-assoc` casts in `reflectF` do not reduce, so the
 --       `IsJust` hit of `solveTerm!`/`solveMor!` cannot auto-discharge.
---   L6  Generator equality is the supplied syntactic `_≟G_`: no
+--       (For the same reason `step?` only iterates productively on concrete
+--       diagrams: the `substDiagU` casts inside a swap result reduce only
+--       at concrete indices.)
+--   L5  Generator equality is the supplied syntactic `_≟G_`: no
 --       generator-specific equations (naturality of a concrete box,
 --       Frobenius laws, …) are known to the solver — those belong to a
 --       rewriting layer on top, not to this decision procedure.
---   L7  No canonicity/completeness theorem is claimed for `norm1 ∘ reflect`;
+--   L6  No canonicity/completeness theorem is claimed for `norm ∘ reflect`;
 --       the test suite documents which equation shapes decide.
 --
 -- Hole-free, postulate-free, --safe.
@@ -78,6 +80,7 @@ module Categories.SolverFrontend where
 open import Level using (Level)
 
 open import Data.Empty using (⊥)
+open import Data.Nat using (ℕ; _*_) renaming (zero to nzero; suc to nsuc)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
 open import Data.Maybe using (Maybe; just; nothing)
@@ -727,17 +730,73 @@ module Frontend
       ... | nothing  = nothing
       ... | just fit = just (fire fit rest' meq)
 
-    -- one bubble step, or `nothing` when the head pair is not an
+    -- one bubble step on the HEAD pair, or `nothing` when it is not an
     -- out-of-order independent pair (or fewer than two layers).
     swap2? : ∀ {n} (d : DiagU n) → Maybe (SwapRes d)
     swap2? ([]_ n)                = nothing
     swap2? (px ▸ sx ∷ fx ⟨ rest ⟩) = go px sx fx rest refl
 
-    -- normalize: fire the head swap when it applies, else leave unchanged.
-    norm1 : ∀ {n} (d : DiagU n) → SwapRes d
-    norm1 d with swap2? d
-    ... | just r  = r
-    ... | nothing = d , refl , idˡ
+    private
+      -- lift a tail swap-result under a layer (same input index, so the
+      -- rebuild is direct — no transport needed).
+      lift∷ : ∀ {a b} (px sx : List X) (fx : MorW a b)
+              {rest rest' : DiagU (px ++ (b ++ sx))}
+              (oeq : out rest ≡ out rest')
+            → castW oeq ∘ ⟦ rest ⟧ ≈Term ⟦ rest' ⟧
+            → castW oeq ∘ ⟦ px ▸ sx ∷ fx ⟨ rest ⟩ ⟧
+              ≈Term ⟦ px ▸ sx ∷ fx ⟨ rest' ⟩ ⟧
+      lift∷ px sx fx oeq snd =
+        ≈-Term-trans (≈-Term-sym assoc) (∘-resp-≈ snd ≈-Term-refl)
+
+      -- compose two swap-results (cast functoriality).
+      swapTrans : ∀ {n} {d d' d'' : DiagU n}
+                  (oeq : out d ≡ out d') (oeq' : out d' ≡ out d'')
+                → castW oeq  ∘ ⟦ d  ⟧ ≈Term ⟦ d'  ⟧
+                → castW oeq' ∘ ⟦ d' ⟧ ≈Term ⟦ d'' ⟧
+                → castW (trans oeq oeq') ∘ ⟦ d ⟧ ≈Term ⟦ d'' ⟧
+      swapTrans {d = d} {d' = d'} {d'' = d''} oeq oeq' p q = begin
+        castW (trans oeq oeq') ∘ ⟦ d ⟧
+          ≈⟨ ∘-resp-≈ (castW-∘ oeq oeq') ≈-Term-refl ⟨
+        (castW oeq' ∘ castW oeq) ∘ ⟦ d ⟧
+          ≈⟨ assoc ⟩
+        castW oeq' ∘ (castW oeq ∘ ⟦ d ⟧)
+          ≈⟨ ∘-resp-≈ ≈-Term-refl p ⟩
+        castW oeq' ∘ ⟦ d' ⟧
+          ≈⟨ q ⟩
+        ⟦ d'' ⟧ ∎
+
+    -- one swap at the FIRST applicable position: try the head pair, else
+    -- recurse into the tail.  (The recursion is unobstructed: only nested
+    -- PATTERN-MATCHING of a two-layer head is index-stuck; rebuilding a
+    -- layer over a normalized tail keeps the input index on the nose.)
+    step? : ∀ {n} (d : DiagU n) → Maybe (SwapRes d)
+    step? ([]_ n) = nothing
+    step? (px ▸ sx ∷ fx ⟨ rest ⟩) with go px sx fx rest refl
+    ... | just r  = just r
+    ... | nothing with step? rest
+    ...   | nothing                  = nothing
+    ...   | just (rest' , oeq , snd) =
+            just (px ▸ sx ∷ fx ⟨ rest' ⟩ , oeq , lift∷ px sx fx oeq snd)
+
+    -- fuel-bounded bubble sort: fire the first applicable swap, repeat.
+    -- On CONCRETE input the `substDiagU` casts inside each swap result
+    -- compute away (their equalities reduce to refl), so successive steps
+    -- keep firing; soundness is unconditional whatever the fuel.
+    normFuel : ∀ {n} → ℕ → (d : DiagU n) → SwapRes d
+    normFuel nzero    d = d , refl , idˡ
+    normFuel (nsuc k) d with step? d
+    ... | nothing               = d , refl , idˡ
+    ... | just (d' , oeq , snd) with normFuel k d'
+    ...   | (d'' , oeq' , snd') =
+            d'' , trans oeq oeq' , swapTrans oeq oeq' snd snd'
+
+    -- layer count, and the worst-case bubble budget (≥ #inversions).
+    depth : ∀ {n} → DiagU n → ℕ
+    depth ([]_ n)            = nzero
+    depth (_ ▸ _ ∷ _ ⟨ d ⟩) = nsuc (depth d)
+
+    norm : ∀ {n} (d : DiagU n) → SwapRes d
+    norm d = normFuel (nsuc (depth d * depth d)) d
 
     ------------------------------------------------------------------------
     -- The wire-level decision: reflect both sides to DiagU, normalize,
@@ -745,7 +804,7 @@ module Frontend
     ------------------------------------------------------------------------
 
     decide?W : ∀ {n m} (f g : WTerm n m) → Maybe (embed f ≈Term embed g)
-    decide?W {n} {m} f g with norm1 (reflect f) | norm1 (reflect g)
+    decide?W {n} {m} f g with norm (reflect f) | norm (reflect g)
     ... | (df' , oeqf , sndf) | (dg' , oeqg , sndg) with df' ≟DiagU dg'
     ...   | no  _  = nothing
     ...   | yes eq = just (chain (≈NF⇒≡ eq))

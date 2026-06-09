@@ -14,8 +14,9 @@
 --   * `Functorial`    — id/∘ laws and in-order ⊗-functoriality.
 --   * `Interchange`   — disjoint boxes in either firing order, including
 --                       multi-wire boxes (μ), empty-domain boxes (η) and
---                       scalars (u : unit → unit); the out-of-order variants
---                       exercise a genuine machine-fired interchange swap.
+--                       scalars (u : unit → unit); out-of-order variants
+--                       exercise machine-fired interchange swaps, including
+--                       NON-HEAD inversions and a 3-swap full sort.
 --   * `Negative`      — sound rejections (distinct generators, dependent /
 --                       overlapping boxes, sequential order on a wire).
 --   * `Limitations`   — TRUE equations the solver does NOT decide, each
@@ -23,48 +24,41 @@
 --   * `Target`        — C-level showcase: `solveMor!` one-liners whose
 --                       statements read in the target's own vocabulary.
 --
--- LIMITATION CATALOGUE (precise statements; L2/L3 machine-checked below):
+-- LIMITATION CATALOGUE (precise statements; L2 machine-checked below):
 --
 --   L1 (soundness only).  `decide?F` is sound but NOT complete: every `just`
 --       carries a real `_≈Term_` proof, but `nothing` does not refute the
---       equation.  L2/L3 are true equations answered `nothing`.
+--       equation.  L2 is a true equation answered `nothing`.
 --
---   L2 (head-only normalization).  The interchange normalizer `norm1` fires
---       at most ONE bubble swap, and only on the HEAD pair (the first two
---       fired layers).  A true equation whose diagrams differ by an
---       inversion deeper in the layer list is not decided —
---       `lim-non-head-swap` pins the ⊗-functoriality composite
---       `(s' ∘ s) ⊗ t ≈ (s' ⊗ id) ∘ (s ⊗ t)`, whose right side has its
---       inversion at layers 2-3.
+--   L2 (same-offset empty-footprint pairs).  The bubble sort fires on a
+--       recognised out-of-order pair; two SCALAR-like layers at the same
+--       offset (both empty domain, empty mid: `mid ≡ [] ∧ by ≡ [] ∧ ax ≡
+--       []`) fit the recogniser in BOTH orders, so no order is canonical
+--       and the sort cannot separate them — `lim-scalar-order` pins
+--       `u ∘ v ≈ v ∘ u` (true by Eckmann-Hilton-style interchange).
 --
---   L3 (single swap).  Diagrams needing ≥ 2 swaps are not decided —
---       `lim-three-desc` pins three independent boxes fired in fully
---       descending order against ascending order (needs 3 swaps).
---       (Generic multi-step recursion is blocked because the swapped tail
---       sits behind `substDiagU`; a re-representation of `DiagU` with
---       equality-field wiring is the known follow-up.)
---
---   L4 (monoidal only).  The front-end is at `Variant` `Mon`: no braiding,
+--   L3 (monoidal only).  The front-end is at `Variant` `Mon`: no braiding,
 --       so symmetric/braided goals (anything mentioning σ) are not even
 --       expressible in the term language.
 --
---   L5 (concrete signatures only).  The decision computes by evaluation:
+--   L4 (concrete signatures only).  The decision computes by evaluation:
 --       it requires a concrete atom set with computing `DecidableEquality`
 --       and concrete generator arities.  Over ABSTRACT atoms the
 --       `++-identityʳ`/`++-assoc` casts inside `reflectF` do not reduce, so
 --       `IsJust (decide?F …)` does not normalize and the implicit hit of
 --       `solveTerm!`/`solveMor!` cannot be auto-discharged.
 --
---   L6 (syntactic generators).  Generator equality is the supplied
+--   L5 (syntactic generators).  Generator equality is the supplied
 --       syntactic `≟G`; no generator-specific equations (naturality of a
 --       concrete box, Frobenius laws, …) are known to the solver — see
 --       `neg-distinct-endos`/`neg-sequential-order`.  Such equations belong
 --       to a rewriting layer on top (cf. `rewriteH!` in the hypergraph
 --       solver), not to this coherence+interchange decision procedure.
 --
---   L7 (no canonicity claim).  `norm1 ∘ reflect` is not claimed to be a
---       canonical form; the test suite documents which equation SHAPES
---       decide, not a completeness theorem for some fragment.
+--   L6 (no canonicity claim).  `norm ∘ reflect` (a fuel-bounded
+--       first-applicable-swap bubble sort, budget (#layers)²+1) is not
+--       claimed to be a canonical form; the test suite documents which
+--       equation SHAPES decide, not a completeness theorem for a fragment.
 --
 -- Hole-free, postulate-free, --safe.
 --------------------------------------------------------------------------------
@@ -96,6 +90,7 @@ open import Categories.SolverFrontend using (module Frontend)
 --   3 → s' : ⋆ → ⋆          (second endo on ⋆)
 --   4 → t  : • → •          (endo on •)
 --   5 → u  : unit → unit    (scalar)
+--   6 → v  : unit → unit    (second scalar, for the L2 exhibit)
 
 data Ty : Set where ⋆ • : Ty
 
@@ -107,16 +102,16 @@ _≟Ty_ : DecidableEquality Ty
 
 open FreeMonoidalHelper Mon Ty using (ObjTerm; unit; _⊗₀_; Var)
 
-arityT : Fin 6 → ObjTerm × ObjTerm
+arityT : Fin 7 → ObjTerm × ObjTerm
 arityT zero                            = Var ⋆ ⊗₀ Var ⋆ , Var ⋆
 arityT (suc zero)                      = unit , Var ⋆
 arityT (suc (suc zero))                = Var ⋆ , Var ⋆
 arityT (suc (suc (suc zero)))          = Var ⋆ , Var ⋆
 arityT (suc (suc (suc (suc zero))))    = Var • , Var •
-arityT (suc (suc (suc (suc (suc _))))) = unit , unit
+arityT (suc (suc (suc (suc (suc _))))) = unit , unit   -- 5 → u, 6 → v
 
 data GenT : ObjTerm → ObjTerm → Set where
-  genT : (i : Fin 6) → GenT (proj₁ (arityT i)) (proj₂ (arityT i))
+  genT : (i : Fin 7) → GenT (proj₁ (arityT i)) (proj₂ (arityT i))
 
 ------------------------------------------------------------------------
 -- The front-end term language and the solver instance.
@@ -152,6 +147,7 @@ private
   s'' = S.var (genT (suc (suc (suc zero))))
   t'  = S.var (genT (suc (suc (suc (suc zero)))))
   u'  = S.var (genT (suc (suc (suc (suc (suc zero))))))
+  v'  = S.var (genT (suc (suc (suc (suc (suc (suc zero)))))))
 
 ------------------------------------------------------------------------
 -- Coherence: pure MacLane equations decide (both sides reflect to the
@@ -286,6 +282,29 @@ module Interchange where
     solveTerm! ((s'' ⊗' id') ∘' (s' ⊗' id') ∘' (id' ⊗' t'))
                ((s'' ⊗' id') ∘' (id' ⊗' t') ∘' (s' ⊗' id'))
 
+  -- a NON-HEAD inversion (layers 2-3): the bubble sort walks past the
+  -- in-order head pair and fires deeper.  (Former limitation L2.)
+  test-non-head-swap
+    : (s'' ∘' s') ⊗' t' ≈' (s'' ⊗' id') ∘' (s' ⊗' t')
+  test-non-head-swap =
+    solveTerm! ((s'' ∘' s') ⊗' t') ((s'' ⊗' id') ∘' (s' ⊗' t'))
+
+  -- three independent boxes fired fully descending vs ascending: the
+  -- sort fires THREE genuine swaps.  (Former limitation L3.)
+  private
+    W₃' = Var ⋆ ⊗₀ (Var ⋆ ⊗₀ Var ⋆)
+    desc₃ : S.HomTerm W₃' W₃'
+    desc₃ = (s' ⊗' (id' ⊗' id'))
+         ∘' (id' ⊗' (s' ⊗' id'))
+         ∘' (id' ⊗' (id' ⊗' s'))
+    asc₃ : S.HomTerm W₃' W₃'
+    asc₃ = (id' ⊗' (id' ⊗' s'))
+        ∘' (id' ⊗' (s' ⊗' id'))
+        ∘' (s' ⊗' (id' ⊗' id'))
+
+  test-three-desc : desc₃ ≈' asc₃
+  test-three-desc = solveTerm! desc₃ asc₃
+
 ------------------------------------------------------------------------
 -- Sound rejections: the solver answers `nothing` on non-equations.
 
@@ -309,27 +328,12 @@ module Negative where
 
 module Limitations where
 
-  -- L2: the inversion sits at layers 2-3, not at the head; `norm1` only
-  -- inspects the head pair.  (True by bifunctoriality.)
-  lim-non-head-swap
-    : decide?F ((s'' ∘' s') ⊗' t') ((s'' ⊗' id') ∘' (s' ⊗' t')) ≡ nothing
-  lim-non-head-swap = refl
-
-  -- L3: three independent boxes fired in fully descending order vs
-  -- ascending order need 3 swaps; `norm1` fires one.
-  private
-    W₃ = Var ⋆ ⊗₀ (Var ⋆ ⊗₀ Var ⋆)
-    desc : S.HomTerm W₃ W₃
-    desc = (s' ⊗' (id' ⊗' id'))
-        ∘' (id' ⊗' (s' ⊗' id'))
-        ∘' (id' ⊗' (id' ⊗' s'))
-    asc : S.HomTerm W₃ W₃
-    asc = (id' ⊗' (id' ⊗' s'))
-       ∘' (id' ⊗' (s' ⊗' id'))
-       ∘' (s' ⊗' (id' ⊗' id'))
-
-  lim-three-desc : decide?F desc asc ≡ nothing
-  lim-three-desc = refl
+  -- L2: two scalars at the SAME offset mutually fit the swap recogniser
+  -- (their reversal is also recognised), so the bubble sort has no
+  -- canonical order to converge to — scalar reordering (true by
+  -- Eckmann-Hilton-style interchange) is not decided.
+  lim-scalar-order : decide?F (u' ∘' v') (v' ∘' u') ≡ nothing
+  lim-scalar-order = refl
 
 ------------------------------------------------------------------------
 -- C-level showcase: statements read in the target's own vocabulary.
