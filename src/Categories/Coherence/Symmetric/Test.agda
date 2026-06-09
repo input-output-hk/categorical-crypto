@@ -344,3 +344,14 @@ module DeepRewrite (A₀ A₁ A₂ : C.Obj)
                    (w S.∘ p)                      -- lᵗ
                    (w S.∘ q)                      -- rᵗ
                    collapse
+
+    -- The practical idiom: the deep rewrite lands on the (gnarly) carved
+    -- frame; one `solveH!` step lands it back on a CLEAN right-hand side.
+    -- `deepFrame` names the intermediate term; its witness argument is `_`
+    -- (it reduces to `tt` since the search concretely succeeds).
+    test-deep-chain : (wᴹ ⊗₁ wᴹ) ∘ (pᴹ ⊗₁ qᴹ) ≈ (wᴹ ⊗₁ wᴹ) ∘ (qᴹ ⊗₁ qᴹ)
+    test-deep-chain =
+      C.Equiv.trans
+        (rewriteDeep! ((w S.⊗₁ w) S.∘ (p S.⊗₁ q)) (w S.∘ p) (w S.∘ q) collapse)
+        (solveH! (deepFrame ((w S.⊗₁ w) S.∘ (p S.⊗₁ q)) (w S.∘ p) (w S.∘ q) _)
+                 ((w S.⊗₁ w) S.∘ (q S.⊗₁ q)))

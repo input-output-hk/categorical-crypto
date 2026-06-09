@@ -13,10 +13,14 @@
 -- vertex constraints to `φ`, pruning future choices via `extend-bij`'s
 -- conflict check.
 --
--- No label equality check at the `FlatGen` level happens here (comparing
--- labels needs transport along atom-list equalities the search hasn't built
--- yet; the final verification does it).  Here we only cull candidates by
--- arity and atom-list shape, which is cheap and decidable.
+-- Candidates are culled by arity/atom-list shape AND by edge label: the
+-- shape check produces exactly the atom-list equalities needed to transport
+-- the J-label to the H-index, where `flat-match` (the same conservative
+-- comparison the final verification uses) decides label equality.  Without
+-- the label cull, a signature with many same-shaped generators lets the
+-- search lock onto a label-mismatched (but connectivity-consistent) match,
+-- which the verification stage then rejects — and since verification
+-- failures do not re-enter the search, the whole query fails spuriously.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
@@ -28,6 +32,7 @@ open import Categories.APROP.Hypergraph.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Solver.PBij
   using (PBij; extend-bij; pairUp)
+open import Categories.APROP.Hypergraph.Solver.Verify sig-dec using (flat-match)
 
 open import Data.Bool.Base using (Bool; false; true; _∧_)
 open import Data.Fin using (Fin; zero; suc)
@@ -36,7 +41,8 @@ open import Data.List.Properties using (≡-dec)
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Nat using (ℕ)
 open import Data.Product using (_×_; _,_)
-open import Relation.Nullary using (does)
+open import Relation.Binary.PropositionalEquality using (sym; subst₂)
+open import Relation.Nullary using (does; yes; no)
 
 --------------------------------------------------------------------------------
 -- Shape compatibility — arity and atom lists agree.  Cheap pre-filter
@@ -81,9 +87,19 @@ module _
     : VertexBij → EdgeBij
     → Fin nEH → Fin nEJ
     → Maybe (VertexBij × EdgeBij)
-  tryEdge φ ψ e e' with shape-ok? H J e e'
-  ... | false = nothing
-  ... | true  = viaEin (pairUp φ (Hypergraph.ein H e) (Hypergraph.ein J e'))
+  tryEdge φ ψ e e'
+    with map (Hypergraph.vlab H) (Hypergraph.ein  H e)
+           ≟L map (Hypergraph.vlab J) (Hypergraph.ein  J e')
+       | map (Hypergraph.vlab H) (Hypergraph.eout H e)
+           ≟L map (Hypergraph.vlab J) (Hypergraph.eout J e')
+  ... | no _  | _     = nothing
+  ... | _     | no _  = nothing
+  ... | yes p | yes q
+    -- Shape agrees; transport J's label to H's index and compare.
+    with flat-match (subst₂ FlatGen (sym p) (sym q) (Hypergraph.elab J e'))
+                    (Hypergraph.elab H e)
+  ... | nothing = nothing
+  ... | just _  = viaEin (pairUp φ (Hypergraph.ein H e) (Hypergraph.ein J e'))
     where
       viaEout : VertexBij → Maybe (VertexBij × EdgeBij)
       viaEout φ' with pairUp φ' (Hypergraph.eout H e) (Hypergraph.eout J e')

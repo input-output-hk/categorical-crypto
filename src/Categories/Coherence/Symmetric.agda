@@ -79,7 +79,8 @@ module Wiring
   where
   open FinSig _≟A_ arity public using (dom; cod; gen; genElim; finSig; finSigDec)
   module S = APROP finSig
-  open Interp finSigDec public using (module Solver; module ObjInterp)
+  open Interp finSigDec public
+    using (module Solver; module ObjInterp; focFrame; deepFrame)
   open ObjInterp C ⟦_⟧ᵖ₀ public using (⟦_⟧₀)
 
   -- A generator interpretation, keyed by index: the `i`-th generator's morphism.

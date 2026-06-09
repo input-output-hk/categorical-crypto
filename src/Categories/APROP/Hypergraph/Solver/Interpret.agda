@@ -56,21 +56,24 @@ private
   fromWitness! : ∀ {a} {A : Set a} (m : Maybe A) → T (is-just m) → A
   fromWitness! (just x) _ = x
 
-  -- The frame `post ∘ (id {k} ⊗₁ mid) ∘ pre` for the `n`-th focus position of
-  -- `lᵗ` in `s` (when it exists).  `mid := lᵗ` gives the L-frame whose iso to
-  -- `s` certifies the carve; `mid := rᵗ` gives the rewritten target.
-  focFrame : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)
-           → (n : ℕ) → T (is-just (focusAtₙ s lᵗ n)) → HomTerm A B
-  focFrame s lᵗ mid n found =
-    let (k , pre , post) = fromWitness! (focusAtₙ s lᵗ n) found
-    in post ∘ (id {k} ⊗₁ mid) ∘ pre
+-- The frame `post ∘ (id {k} ⊗₁ mid) ∘ pre` for the `n`-th focus position of
+-- `lᵗ` in `s` (when it exists).  `mid := lᵗ` gives the L-frame whose iso to
+-- `s` certifies the carve; `mid := rᵗ` gives the rewritten target.  Public so
+-- callers can *name* the term a rewrite lands on (e.g. to continue a
+-- `HomReasoning` chain from it); the witness argument is `tt` at any call
+-- site where the search concretely succeeds, so `_` fills it.
+focFrame : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)
+         → (n : ℕ) → T (is-just (focusAtₙ s lᵗ n)) → HomTerm A B
+focFrame s lᵗ mid n found =
+  let (k , pre , post) = fromWitness! (focusAtₙ s lᵗ n) found
+  in post ∘ (id {k} ⊗₁ mid) ∘ pre
 
-  -- As `focFrame`, but for the hypergraph-level (`deepFoc`) position search.
-  deepFrame : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)
-            → T (is-just (deepFoc s lᵗ)) → HomTerm A B
-  deepFrame s lᵗ mid found =
-    let (k , pre , post) = fromWitness! (deepFoc s lᵗ) found
-    in post ∘ (id {k} ⊗₁ mid) ∘ pre
+-- As `focFrame`, but for the hypergraph-level (`deepFoc`) position search.
+deepFrame : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)
+          → T (is-just (deepFoc s lᵗ)) → HomTerm A B
+deepFrame s lᵗ mid found =
+  let (k , pre , post) = fromWitness! (deepFoc s lᵗ) found
+  in post ∘ (id {k} ⊗₁ mid) ∘ pre
 
 --------------------------------------------------------------------------------
 -- The object interpretation `⟦_⟧₀ : ObjTerm → C.Obj`, which depends only on

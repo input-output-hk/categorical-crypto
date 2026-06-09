@@ -119,3 +119,44 @@ two-occ-0 = refl
 
 two-occ-1 : is-just (findIso ⟪ s2 ⟫ ⟪ frame2-1 ⟫) ≡ true
 two-occ-1 = refl
+
+--------------------------------------------------------------------------------
+-- Precision probes for the syntactic engine.
+
+-- Exactly the expected number of occurrences are enumerated: in `s2` the
+-- redex occurs twice (plus no spurious whole-term/leaf matches).
+open import Data.List.Base using (length)
+open import Categories.APROP.Hypergraph.Solver.Carve mySigDec using (focusAll)
+
+occurrence-count : length (focusAll s2 lᵗ) ≡ 2
+occurrence-count = refl
+
+-- An out-of-range occurrence index is rejected (the `found` obligation of
+-- `rewriteAutoₙ!` becomes unsatisfiable).
+out-of-range : is-just (focusAtₙ s2 lᵗ 2) ≡ false
+out-of-range = refl
+
+-- Boundary case: the redex IS the whole term; the leaf frame (pad `unit`,
+-- λ-contexts) certifies.
+private
+  focW  = from-just (focusAt lᵗ lᵗ)
+  frameW : HomTerm (unit ⊗₀ a₀) a₀
+  frameW = proj₂ (proj₂ focW) ∘ (id {proj₁ focW} ⊗₁ lᵗ) ∘ proj₁ (proj₂ focW)
+
+whole-term-leaf : is-just (findIso ⟪ lᵗ ⟫ ⟪ frameW ⟫) ≡ true
+whole-term-leaf = refl
+
+-- The leaf test is up-to-SMC (it uses `findIso`, not syntactic equality):
+-- a subterm written with extra structural noise (`(… ∘ id) ∘ (σ ∘ σ)`) still
+-- matches the clean rule LHS — only the *interface objects* `P`, `Q` must
+-- coincide literally.
+private
+  noisy : HomTerm (unit ⊗₀ a₀) a₀
+  noisy = (Agen m ∘ (Agen u ⊗₁ id) ∘ id) ∘ (σ ∘ σ)
+
+  focN = from-just (focusAt noisy lᵗ)
+  frameN : HomTerm (unit ⊗₀ a₀) a₀
+  frameN = proj₂ (proj₂ focN) ∘ (id {proj₁ focN} ⊗₁ lᵗ) ∘ proj₁ (proj₂ focN)
+
+leaf-up-to-smc : is-just (findIso ⟪ noisy ⟫ ⟪ frameN ⟫) ≡ true
+leaf-up-to-smc = refl
