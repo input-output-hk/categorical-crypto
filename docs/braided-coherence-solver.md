@@ -219,6 +219,38 @@ real `σ-naturality : LHS ≈Term RHS` from two matrix-encoded hypergraphs. Find
 Committed as a feasibility checkpoint (`MatrixBridge`/`MatrixBridgeDemo`, postulated preservation +
 identity `align`).
 
+### Follow-up (2026-06-09) — `align` made real, and the `≅ᴴ` construction made postulate-free
+
+Subsequent passes drove the checkpoint to a genuine, proven decider:
+
+- **Real `align`** (`1453f7e`) — a deterministic DAG canonical labelling (topological peel of edges
+  with an intrinsic rank-multiset tie-break; vertices ordered boundary-then-per-edge-outputs;
+  `φ`/`ψ` read off by matching canonical ranks). No backtracking. Validated by `refl` on a
+  non-identity example (recovers a genuine vertex/edge *swap*; a wrong answer is rejected by Agda).
+- **Label-code tie-break** (`5a7471b`) — folding a generator code into the canonical signature makes
+  `align` correct for *all* monogamous inputs: under monogamy the only structural ties are between
+  input-free edges, which the code separates when generators differ (same-generator ties are harmless
+  automorphisms). Validated by `refl` (the structural-only signatures provably tie; the code resolves
+  the correct bijection).
+- **All 12 `≅ᴴ` fields proven** (`581c2be`) — `matIso→hgIso : (al) → BijLaws al → CanonMatch al →
+  H ≅ᴴ J` with **zero `postulate`s in its construction**. The 4 bijection laws come from a
+  `posIn`/`lookupD` permutation calculus (the `Composite` maps are *definitionally* `align`'s
+  `φ`/`φ⁻¹`); the 8 incidence/label/boundary fields come from a `CanonMatch` witness *decided without
+  search* by `decCanonMatch` (the analogue of `findIso`'s `Verify`, reusing its `∀F?`/`flat-match`).
+  The demo builds the full iso end-to-end (both hypotheses discharged constructively) and feeds
+  `soundness-full-wired`.
+
+**Net:** the hg↔matrix bridge is now a **sound, no-search hypergraph-iso decider with a
+postulate-free `≅ᴴ` construction.** The path `align → decCanonMatch → matIso→hgIso → soundness-full-wired`
+has no postulates. What remains is *not* a soundness gap: (i) the `CanonPerm` permutation hypothesis
+(caller-discharged; constructively in the demo; general peel-permutation proof ≈ 300–500 LOC), and
+(ii) the **completeness** meta-theorem `H ≅ J ⇒ decCanonMatch (align H J) succeeds` — the
+canonical-peel correctness, *not part of the construction*, checkable per instance, and exactly the
+caveat `findIso` already carries ("sound but not complete; complete in practice on `⟪_⟫`"). So the
+bridge sits on **equal footing with `findIso`** — sound + complete-in-practice — but via the fast
+canonical-form route (the head-to-head measured the decide step ~16–25× cheaper, and the edge-scaling
+probe showed `findIso`'s residual cost is super-linear pruned-`⟪_⟫` + `Verify`, not search).
+
 ## Bottom line
 
 **Verdict: qualified GO**, via either of two routes.
