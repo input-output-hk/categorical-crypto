@@ -37,6 +37,7 @@ open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.FindIso sig-dec using (findIso)
 open import Categories.APROP.Hypergraph.Solver.Carve sig-dec using (focusAtₙ; Foc)
+open import Categories.APROP.Hypergraph.Solver.Deep sig-dec using (deepFoc)
 open import Categories.APROP.Hypergraph.SoundnessFullWired sig-dec
   using (soundness-full-wired)
 
@@ -62,6 +63,13 @@ private
            → (n : ℕ) → T (is-just (focusAtₙ s lᵗ n)) → HomTerm A B
   focFrame s lᵗ mid n found =
     let (k , pre , post) = fromWitness! (focusAtₙ s lᵗ n) found
+    in post ∘ (id {k} ⊗₁ mid) ∘ pre
+
+  -- As `focFrame`, but for the hypergraph-level (`deepFoc`) position search.
+  deepFrame : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)
+            → T (is-just (deepFoc s lᵗ)) → HomTerm A B
+  deepFrame s lᵗ mid found =
+    let (k , pre , post) = fromWitness! (deepFoc s lᵗ) found
     in post ∘ (id {k} ⊗₁ mid) ∘ pre
 
 --------------------------------------------------------------------------------
@@ -209,3 +217,21 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → ⟦ s ⟧₁ C.≈ ⟦ focFrame s lᵗ rᵗ zero found ⟧₁
   rewriteAuto! s lᵗ rᵗ rule {found} {cert} =
     rewriteAutoₙ! s lᵗ rᵗ zero rule {found} {cert}
+
+  --------------------------------------------------------------------------------
+  -- As `rewriteAuto!`, but the position is found on the *hypergraph* (via
+  -- `deepFoc`: subMatch → hole-carve → decode), so the redex need not be a
+  -- subterm of `s` as written — it only has to be a connected sub-diagram of
+  -- `⟪ s ⟫`, e.g. a sequential rule firing across an interchange.
+  rewriteDeep!
+    : ∀ {A B P Q}
+    → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q)
+    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
+    → {found : T (is-just (deepFoc s lᵗ))}
+    → {_     : T (is-just (findIso ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ found ⟫))}
+    → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ found ⟧₁
+  rewriteDeep! s lᵗ rᵗ rule {found} {cert} =
+    C.Equiv.trans
+      (solveH s (deepFrame s lᵗ lᵗ found)
+              (fromWitness! (findIso ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ found ⟫) cert))
+      (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule))))

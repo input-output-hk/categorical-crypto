@@ -306,3 +306,41 @@ module MonoidRewrite (A : C.Obj)
                    ((m S.∘ (S.id {a₀} S.⊗₁ S.λ⇒)) S.∘ S.id) ⟩
       (mᴹ ∘ (id {A} ⊗₁ λ⇒)) ∘ id ∎
       where open C.HomReasoning
+
+--------------------------------------------------------------------------------
+-- Configuration 5: deep (hypergraph-level) rewriting.  Two parallel arrows
+-- p, q : a₀ → a₁ and w : a₁ → a₂, with a rule on the *composite* `w ∘ p`.
+-- In the target `(w ⊗ w) ∘ (p ⊗ q)` that redex is split across the outer
+-- `∘` by interchange — it is NOT a subterm — so `rewriteAuto!` cannot fire,
+-- but `rewriteDeep!` locates it on the hypergraph and rewrites.
+
+module DeepRewrite (A₀ A₁ A₂ : C.Obj)
+  (pᴹ qᴹ : A₀ C.⇒ A₁) (wᴹ : A₁ C.⇒ A₂)
+  where
+
+  open Atoms3 A₀ A₁ A₂
+
+  arity : Fin 3 → ObjTerm × ObjTerm
+  arity zero          = a₀ , a₁
+  arity (suc zero)    = a₀ , a₁
+  arity (suc (suc _)) = a₁ , a₂
+
+  open Setup _≟F_ arity ⟦_⟧ᵖ₀ (λ where
+    zero          → pᴹ
+    (suc zero)    → qᴹ
+    (suc (suc _)) → wᴹ)
+
+  private
+    p q w : S.HomTerm _ _
+    p = S.Agen (gen zero)
+    q = S.Agen (gen (suc zero))
+    w = S.Agen (gen (suc (suc zero)))
+
+  module _ (collapse : wᴹ ∘ pᴹ ≈ wᴹ ∘ qᴹ) where
+
+    test-deep-rewrite : (wᴹ ⊗₁ wᴹ) ∘ (pᴹ ⊗₁ qᴹ) ≈ _
+    test-deep-rewrite =
+      rewriteDeep! ((w S.⊗₁ w) S.∘ (p S.⊗₁ q))   -- s   (redex NOT a subterm)
+                   (w S.∘ p)                      -- lᵗ
+                   (w S.∘ q)                      -- rᵗ
+                   collapse

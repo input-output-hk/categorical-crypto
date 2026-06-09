@@ -24,7 +24,13 @@
 --                   · `rewriteAuto!` — as `rewriteH!`, but the position is
 --                                  *found* automatically (term-level focusing);
 --                                  the caller supplies only the term, the rule
---                                  sides, and the rule proof;
+--                                  sides, and the rule proof (`rewriteAutoₙ!`
+--                                  picks the `n`-th occurrence);
+--                   · `rewriteDeep!` — as `rewriteAuto!`, but the position is
+--                                  found on the *hypergraph* (subMatch →
+--                                  hole-carve → decode), so the redex need
+--                                  only be a connected sub-diagram of `⟪s⟫`,
+--                                  not a subterm of `s` as written;
 --                   · `S`        — the free-SMC term language (`S.Agen`, `S.∘`,
 --                                  `S.⊗₁`, `S.σ`, `S.α⇒`, …);
 --                   · `gen`      — the `i`-th generator as a free term;
