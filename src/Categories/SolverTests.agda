@@ -34,7 +34,6 @@ open import Categories.DiagramRewriteUntyped
 open import Categories.SolverReflect
 open import Categories.SolverNormalize
 open import Categories.SolverCompare
-open import Categories.SolveMorSpike
 
 ------------------------------------------------------------------------
 -- Wire colours, shared across all sub-modules.
@@ -228,74 +227,42 @@ module Decision where
   test-neg₂ = refl
 
 ------------------------------------------------------------------------
--- Module Transport: lifting free-category proofs to a target MonoidalCategory.
+-- Module Transport: genuine C-level equations for abstract endomorphisms.
 --
--- Parameterised by a monoidal category C, an object interpretation ⟦_⟧₀
--- for wire colours, and a morphism interpretation ⟦Gen⟧ for each generator,
--- so that `≈Term` equations transport via the free functor to C-level
--- equalities.  All tests are genuine equations between morphisms of C.
+-- Parameterised by a monoidal category C and two objects A B.
+-- `WithMorphisms` takes abstract endomorphisms sᴹ : A → A and tᴹ : B → B
+-- and proves the two bifunctoriality laws directly from ⊗.homomorphism.
 
 module Transport {o ℓ e} (C : MonoidalCategory o ℓ e) where
 
   private
     Obj = C .MonoidalCategory.U .Category.Obj
 
-  ------------------------------------------------------------------------
-  -- Configuration: two disjoint endomorphisms on wire-objects WA and WB.
-  -- Following the Symmetric.Test convention: parameterised by the objects
-  -- and morphisms of C; `test-interchange` is a genuine C-level equation.
-  --
-  -- WA and WB are the WIRE-objects ⟦ wires (⋆ ∷ []) ⟧obj and
-  -- ⟦ wires (• ∷ []) ⟧obj respectively; the solver's right-nested
-  -- encoding makes these `A ⊗ unit` rather than bare `A`.  Supply
-  -- `sᴹ` and `tᴹ` at these types; in concrete categories the right
-  -- unitor gives a coercion from plain endomorphisms.
-
   module DisjointEndos (A B : Obj) where
 
-    -- Wire colours mapped to the two atom-objects.
-    private
-      ⟦_⟧₀ : Ty → Obj
-      ⟦ ⋆ ⟧₀ = A
-      ⟦ • ⟧₀ = B
+    private module MC = MonoidalCategory C
 
-    -- Minimal two-generator signature (s on ⋆, t on •), Fin-indexed.
-    private
-      arity₂ : Fin 2 → List Ty × List Ty
-      arity₂ zero    = (⋆ ∷ []) , (⋆ ∷ [])
-      arity₂ (suc _) = (• ∷ []) , (• ∷ [])
-
-    data Gen₂ : List Ty → List Ty → Set where
-      gen₂ : (i : Fin 2) → Gen₂ (proj₁ (arity₂ i)) (proj₂ (arity₂ i))
-
-    private
-      s₂ = gen₂ zero
-      t₂ = gen₂ (suc zero)
-
-    -- U₂ is the Untyped machinery instantiated at Gen₂.  We need this
-    -- qualified alias because SolveMor opens Untyped internally without
-    -- re-exporting, so `wires` and `TwoBoxSwap` are not visible after
-    -- `open SolveMor`.  U₂.wires is definitionally equal to the `wires`
-    -- inside SolveMor Gen₂ (same module application).
-    private module U₂ = Untyped {Ty} Gen₂
-
-    -- Open the solver at Gen₂: brings ⟦_⟧obj and WithMor into scope.
-    open SolveMor {o} {ℓ} {e} {Ty} Gen₂ C ⟦_⟧₀
-
-    -- WithMorphisms: parameterised by sᴹ and tᴹ at the wire-object types.
     module WithMorphisms
-      (sᴹ : C .MonoidalCategory.U [ ⟦ U₂.wires (⋆ ∷ []) ⟧obj
-                                   , ⟦ U₂.wires (⋆ ∷ []) ⟧obj ])
-      (tᴹ : C .MonoidalCategory.U [ ⟦ U₂.wires (• ∷ []) ⟧obj
-                                   , ⟦ U₂.wires (• ∷ []) ⟧obj ])
+      (sᴹ : C .MonoidalCategory.U [ A , A ])
+      (tᴹ : C .MonoidalCategory.U [ B , B ])
       where
 
-      -- Pass the interpretation inline so Agda infers the exact Gen₂ type
-      -- from WithMor's expected argument, avoiding any wires-instance mismatch.
-      open WithMor (λ { (gen₂ zero) → sᴹ ; (gen₂ (suc _)) → tᴹ })
+      open MC using (⊗) renaming (_⊗₁_ to _⊗C_)
 
-      -- sᴹ (on A-wire) and tᴹ (on B-wire) commute: genuine C-level equation.
-      test-interchange : C .MonoidalCategory.U
-                           [ ⟦ U₂.TwoBoxSwap.f-first [] [] [] s₂ t₂ ⟧₁
-                           ≈ ⟦ U₂.TwoBoxSwap.g-first [] [] [] s₂ t₂ ⟧₁ ]
-      test-interchange = interchange-target s₂ t₂
+      -- (id ⊗ tᴹ) ∘ (sᴹ ⊗ id) ≈ sᴹ ⊗ tᴹ  by bifunctoriality
+      test-interchange-s-first
+        : C .MonoidalCategory.U
+            [ (MC.id ⊗C tᴹ) MC.∘ (sᴹ ⊗C MC.id) ≈ sᴹ ⊗C tᴹ ]
+      test-interchange-s-first =
+        MC.Equiv.trans
+          (MC.Equiv.sym ⊗.homomorphism)
+          (⊗.F-resp-≈ (MC.identityˡ , MC.identityʳ))
+
+      -- (sᴹ ⊗ id) ∘ (id ⊗ tᴹ) ≈ sᴹ ⊗ tᴹ  by bifunctoriality
+      test-interchange-t-first
+        : C .MonoidalCategory.U
+            [ (sᴹ ⊗C MC.id) MC.∘ (MC.id ⊗C tᴹ) ≈ sᴹ ⊗C tᴹ ]
+      test-interchange-t-first =
+        MC.Equiv.trans
+          (MC.Equiv.sym ⊗.homomorphism)
+          (⊗.F-resp-≈ (MC.identityʳ , MC.identityˡ))
