@@ -615,6 +615,644 @@ module Normalize {X : Set} (Mor : List X → List X → Set) where
                  → Maybe (HeadSwap (Frame.before-O P mid r f g wRest))
   headSwapFrame? P mid r f g wRest = just (frameHeadSwap P mid r f g wRest)
 
+  --------------------------------------------------------------------------------
+  -- 11. AUTONOMOUS DiagU-level recognition: reading frame data off the boxes.
+  --
+  -- The blocker for the generic `headSwap? : Ordering N M → Maybe (HeadSwap o)`
+  -- is that a `Layer` ERASES its `pre`/`suf`/box into the opaque `⟦L⟧`.  A
+  -- `DiagU` layer `px ▸ sx ∷ fx ⟨ rest ⟩` does NOT: it carries the box `fx`
+  -- (hence its `dom`/`cod`) and the flat offsets `px sx` explicitly.  So a
+  -- recogniser CAN read off the footprint and decide independence/orientation.
+  --
+  -- We work on a head pair of a `DiagU`, i.e. on the constructor pattern
+  --   px ▸ sx ∷ fx ⟨ py ▸ sy ∷ fy ⟨ rest ⟩ ⟩
+  -- where `fx : Mor ax bx` fires FIRST and `fy : Mor ay by` SECOND.  The
+  -- `DiagU` typing forces the inter-layer wiring DEFINITIONALLY:
+  --
+  --   py ++ (ay ++ sy)  ≡  px ++ (bx ++ sx)            -- (★)  the index of the
+  --                                                    --      inner sub-diagram
+  --------------------------------------------------------------------------------
+
+  open import Data.Nat.Properties using (_≟_)
+
+  -- Footprint of a single DiagU head layer, read directly off `pre`/box.
+  fpHead : ∀ {a b} (pre suf : List X) → Mor a b → Footprint
+  fpHead {a} {b} pre suf f = footprint (length pre) (length a) (length b)
+
+  -- The canonical key for the sort: a layer's leftmost wire index `length pre`.
+  keyHead : ∀ {a b} (pre suf : List X) → Mor a b → ℕ
+  keyHead pre suf f = length pre
+
+  --------------------------------------------------------------------------------
+  -- 11a. The LEFT-OF frame fit (the canonical / out-of-order case).
+  --
+  -- The head pair is OUT of canonical order exactly when the second box `fy`
+  -- sits strictly LEFT of the first box `fx` on the shared wire context — i.e.
+  -- after we *swap* them, `fy` (lower offset) comes first.  Equivalently, in
+  -- the current `px ▸ sx ∷ fx ⟨ py ▸ sy ∷ fy ⟨…⟩ ⟩`, `fx` lives to the right of
+  -- `fy`, so `fy`'s block lies inside `px`'s PREFIX.
+  --
+  -- We capture "fits a left-of frame with f = fy (left) and g = fx (right)"
+  -- as the data of three idle blocks `P mid s` together with the propositional
+  -- witnesses that the two layers' offsets factor through the 4-block frame
+  --   P ++ (ay ++ (mid ++ (ax ++ s)))            -- fy in slot 1, fx in slot 2.
+  --
+  -- Concretely, with `fy` the LEFT box (slot 1, dom ay/cod by) and `fx` the
+  -- RIGHT box (slot 2, dom ax/cod bx), the frame's two firing orders are:
+  --
+  --   * "fy then fx"  (canonical, sorted)  = Frame.before-O … fy fx
+  --   * "fx then fy"  (the input order)     = Frame.after-O  … fy fx
+  --
+  -- so the INPUT diagram's head pair is the frame's *after* pair and the sorted
+  -- output is the frame's *before* pair — the swap step runs `after ⇒ before`
+  -- by `≈-Term-sym` of `head-swap-sound`.
+  --
+  -- The data witnessing the fit:
+  record LeftFit {ax bx ay by : List X}
+                 (px sx py sy : List X) (fx : Mor ax bx) (fy : Mor ay by) : Set where
+    constructor leftFit
+    field
+      P mid s : List X
+      -- fx (fires FIRST) is the RIGHT box (slot 2).  When it fires fy has NOT
+      -- yet fired, so fx sees `ay` (fy's dom) in slot 1:
+      px≡   : px ≡ P ++ (ay ++ mid)
+      sx≡   : sx ≡ s
+      -- fy (fires SECOND) is the LEFT box (slot 1).  By now fx HAS fired, so
+      -- fy sees `bx` (fx's cod) in slot 2:
+      py≡   : py ≡ P
+      sy≡   : sy ≡ mid ++ (bx ++ s)
+
+  --------------------------------------------------------------------------------
+  -- 11b. Decidable recognition.
+  --
+  -- Given the four offset lists and the two boxes, we try to build a `LeftFit`.
+  -- This is pure `List`-prefix surgery driven by lengths; we expose it as a
+  -- `Maybe`.  (A `nothing` result simply means "not an out-of-order independent
+  -- pair in left-of form" — the driver then leaves the pair in place.)
+  --
+  -- We do NOT need `DecidableEquality X`: the recognised data is reconstructed
+  -- from the offset lists themselves, and the equalities (★)-style are supplied
+  -- by the caller (the DiagU constructor) — see `recogLeft-from-wiring`.
+  --------------------------------------------------------------------------------
+
+  -- The orientation decision purely on footprints (reuses §5' `orient`).
+  headOrient : ∀ {ax bx ay by} (px sx py sy : List X)
+               (fx : Mor ax bx) (fy : Mor ay by) → Orient
+  headOrient {ax} {bx} {ay} {by} px sx py sy fx fy =
+    orient (fpHead px sx fx) (fpHead py sy fy)
+
+  --------------------------------------------------------------------------------
+  -- 11c. The frame underlying a `LeftFit`, and the FULLY SOUND swap between its
+  --      two firing orders.
+  --
+  -- For a `LeftFit P mid s` with left box `fy` (slot 1, dom ay/cod by) and
+  -- right box `fx` (slot 2, dom ax/cod bx), the frame is `Frame P mid s fy fx`.
+  -- Its `before-O`/`after-O` orderings live on the frame's NATIVE right-nested
+  -- objects (`N₀`/`N₃`), so they are well-typed for ABSTRACT `P mid s`, and the
+  -- swap step between them is exactly `Frame.swap-step`, i.e. `two-box-swap`.
+  --
+  --   * input  order  (fx first, then fy) = `Frame.after-O  P mid s fy fx`
+  --   * sorted order  (fy first, then fx) = `Frame.before-O P mid s fy fx`
+  --
+  -- so the autonomous bubble step runs  after ⇒ before  (= `≈-Term-sym` of the
+  -- proven `head-swap-sound`).  This is the genuine per-swap soundness at the
+  -- frame level, autonomous in `P mid s` and reusing `two-box-swap`/`g-out≈pad`/
+  -- `g-in≈pad` through `head-swap-sound`.
+  --------------------------------------------------------------------------------
+
+  -- the wired tail for a frame built from a LeftFit, landing on the frame's
+  -- common output `N₃ = P ++ (by ++ (mid ++ (bx ++ s)))`.
+  module LeftFrame {ax bx ay by : List X}
+                   {px sx py sy : List X} {fx : Mor ax bx} {fy : Mor ay by}
+                   (fit : LeftFit px sx py sy fx fy) where
+
+    open LeftFit fit
+
+    -- the frame with fy in the left slot, fx in the right slot.
+    open module F = Frame P mid s fy fx public using
+      ( N₀ ; N₃ ; L-out-g
+      ; f-in-layer ; g-out-layer ; g-in-layer ; f-out-layer
+      ; before-O ; after-O ; head-swap-sound )
+
+    -- the sorted (canonical) order: fy fires first.
+    sorted-O : ∀ {M rest} → Wired N₃ rest M → Ordering N₀ M
+    sorted-O wRest = before-O wRest
+
+    -- the input order: fx fires first.
+    input-O : ∀ {M rest} → Wired N₃ rest M → Ordering N₀ M
+    input-O wRest = after-O wRest
+
+    -- THE SOUND SWAP STEP, input ⇒ sorted.  Reuses `head-swap-sound`
+    -- (= `two-box-swap`).  Endpoints are the frame's native objects, so this
+    -- typechecks for ABSTRACT `P mid s` — no `subst`, no reassociator residue.
+    input⇒sorted : ∀ {M rest} (wRest : Wired N₃ rest M)
+                 → input-O wRest ⇒W sorted-O wRest
+    input⇒sorted wRest = wstep (≈-Term-sym (head-swap-sound wRest))
+
+  --------------------------------------------------------------------------------
+  -- 11d. The CLEAN ↔ FRAME bridge for the `fy` (left) layer — PROVEN clean.
+  --
+  -- For a `LeftFit`, the SECOND DiagU layer `pad py sy ⟦fy⟧` (fy fires second)
+  -- equals the frame's `f-out` layer DEFINITIONALLY once we rewrite `py≡P` and
+  -- `sy≡mid++(bx++s)`:  `f-out = pad P (mid ++ (bx ++ s)) ⟦fy⟧`.  No reassociator
+  -- residue on the fy side — it is a genuine clean flat `pad`.  We record this
+  -- as a `≡` of layers (after the offset rewrites) to confirm the fit is exact.
+  --------------------------------------------------------------------------------
+
+  fy-layer≡f-out : ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+                   (fit : LeftFit px sx py sy fx fy)
+                 → mk-pad (LeftFit.P fit) (LeftFit.mid fit ++ (bx ++ LeftFit.s fit)) fy
+                   ≡ LeftFrame.f-out-layer fit
+  fy-layer≡f-out fit = refl
+
+  --------------------------------------------------------------------------------
+  -- 11d'. THE `castW` OBJECT-TRANSPORT ALGEBRA (the genuine coherence content).
+  --
+  -- `castW : u ≡ v → HomTerm (wires u) (wires v)` is the `++`-assoc object
+  -- transport realised as `subst`-of-`id`.  The structural reassociators
+  -- `assocW`/`assocW⁻`/`liftW` (built purely from `id` and `id ⊗₁ -`, α-free)
+  -- COLLAPSE to single `castW`s; combined with `castW`-functoriality this lets
+  -- the `g-in≈pad` reassociators cancel against the index casts.  All proven by
+  -- `J` (pattern-matching the equality to `refl`); no postulates, no holes.
+  --------------------------------------------------------------------------------
+
+  open import Data.List.Properties using (++-assoc)
+
+  -- the object transport: realised as `subst`-of-`id`, so `castW refl = id`.
+  castW : ∀ {u v : List X} → u ≡ v → HomTerm (wires u) (wires v)
+  castW refl = id
+
+  -- functoriality of `castW` (composition of transports).
+  castW-∘ : ∀ {u v w : List X} (e₁ : u ≡ v) (e₂ : v ≡ w)
+          → castW e₂ ∘ castW e₁ ≈Term castW (trans e₁ e₂)
+  castW-∘ refl refl = idˡ
+
+  -- `castW` is determined by its endpoints (proof-irrelevance via UIP; --safe
+  -- here is with-K, so this is a clean `refl`-match on both equalities).
+  castW-irr : ∀ {u v : List X} (e e' : u ≡ v) → castW e ≈Term castW e'
+  castW-irr refl refl = ≈-Term-refl
+
+  -- prepending one wire to a transport.
+  castW-∷ : ∀ {x : X} {u v : List X} (e : u ≡ v)
+          → id ⊗₁ castW e ≈Term castW (cong (x ∷_) e)
+  castW-∷ refl = id⊗id≈id
+
+  -- `liftW p` of a transport is the transport prefixed by `p`.
+  liftW-castW : ∀ (p : List X) {u v : List X} (e : u ≡ v)
+              → liftW p (castW e) ≈Term castW (cong (p ++_) e)
+  liftW-castW []      e = castW-irr e (cong (_++_ []) e)
+  liftW-castW (x ∷ p) e = begin
+    id ⊗₁ liftW p (castW e)
+      ≈⟨ ⊗-resp-≈ ≈-Term-refl (liftW-castW p e) ⟩
+    id ⊗₁ castW (cong (p ++_) e)
+      ≈⟨ castW-∷ (cong (p ++_) e) ⟩
+    castW (cong (x ∷_) (cong (p ++_) e))
+      ≈⟨ castW-irr _ _ ⟩
+    castW (cong ((x ∷ p) ++_) e) ∎
+
+  -- the structural +-associator IS the `++`-assoc transport (both α-free).
+  assocW-castW : ∀ (p q s : List X)
+               → assocW p q s ≈Term castW (sym (++-assoc p q s))
+  assocW-castW []      q s = ≈-Term-refl
+  assocW-castW (x ∷ p) q s = begin
+    id ⊗₁ assocW p q s
+      ≈⟨ ⊗-resp-≈ ≈-Term-refl (assocW-castW p q s) ⟩
+    id ⊗₁ castW (sym (++-assoc p q s))
+      ≈⟨ castW-∷ (sym (++-assoc p q s)) ⟩
+    castW (cong (x ∷_) (sym (++-assoc p q s)))
+      ≈⟨ castW-irr _ _ ⟩
+    castW (sym (++-assoc (x ∷ p) q s)) ∎
+
+  assocW⁻-castW : ∀ (p q s : List X)
+                → assocW⁻ p q s ≈Term castW (++-assoc p q s)
+  assocW⁻-castW []      q s = ≈-Term-refl
+  assocW⁻-castW (x ∷ p) q s = begin
+    id ⊗₁ assocW⁻ p q s
+      ≈⟨ ⊗-resp-≈ ≈-Term-refl (assocW⁻-castW p q s) ⟩
+    id ⊗₁ castW (++-assoc p q s)
+      ≈⟨ castW-∷ (++-assoc p q s) ⟩
+    castW (cong (x ∷_) (++-assoc p q s))
+      ≈⟨ castW-irr _ _ ⟩
+    castW (++-assoc (x ∷ p) q s) ∎
+
+  --------------------------------------------------------------------------------
+  -- 11e. (ISOLATED, Tier-3 residual) The CLEAN ↔ FRAME bridge for the `fx`
+  --      (right) layer, and the DiagU index transport.
+  --
+  -- The FIRST DiagU layer `pad px sx ⟦fx⟧` (fx fires first) is, after the
+  -- `LeftFit` rewrites `px≡P++(ay++mid)`, `sx≡s`, the genuine clean flat pad
+  --   pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
+  -- on the object  (P ++ (ay ++ mid)) ++ (ax ++ s).  The frame's `g-in` layer is
+  -- the SAME box in grouped form, on the right-nested object
+  --   N₀ = P ++ (ay ++ (mid ++ (ax ++ s)))
+  -- and `Frame.g-in≈pad` (PROVEN in DiagramRewriteUntyped) relates them by the
+  -- structural reassociators `reassocF-in`/`reassocB-in`:
+  --
+  --   g-in ≈Term reassocB-in ∘ pad (P++(ay++mid)) s (⟦box⟧ fx) ∘ reassocF-in.
+  --
+  -- The two objects differ by `++`-associativity ONLY; for ABSTRACT `P ay mid
+  -- ax s` they are not definitionally equal, so the clean fx pad and `g-in` do
+  -- not have a common (dom,cod) and `_≈Term_` between them is ILL-TYPED.  The
+  -- bridge therefore requires a propositional index transport along
+  --   ++-assoc : (P++(ay++mid)) ++ (ax++s) ≡ P ++ ((ay++mid) ++ (ax++s))   …etc.
+  -- composed with the structural reassociators `reassocF-in`/`reassocB-in`
+  -- (which the reassociators precisely realise as morphisms).  Collapsing the
+  -- transport+reassociators to the identity is the single remaining surgery.
+  --
+  -- THE INDEX-CAST OBSTRUCTION (precise).  A DiagU built with the `LeftFit`
+  -- offsets has OUTER index `px ++ (ax ++ sx) = (P ++ (ay ++ mid)) ++ (ax ++ s)`
+  -- (left-nested at the top split), whereas the frame's `input-O` has domain
+  -- `N₀ = P ++ (ay ++ (mid ++ (ax ++ s)))` (right-nested).  For ABSTRACT lists
+  -- these are EQUAL only up to `++-assoc`, hence `⟦ fromDiagU … ⟧O` and
+  -- `⟦ input-O … ⟧O` do NOT share a domain and `_≈Term_` between them is
+  -- literally ILL-TYPED.  So the bridge needs a propositional object cast
+  --   castₒ : (P++(ay++mid))++(ax++s) ≡ N₀                 (from ++-assoc)
+  -- on the domain (and a matching one on the codomain), realised as the
+  -- structural reassociators of `g-in≈pad`.
+  --
+  -- The PRECISE residual lemma (exact type), stated but NOT proven here so the
+  -- module stays postulate-free and `--safe`.  Writing `n₀ = px ++ (ax ++ sx)`
+  -- for the DiagU index and `castW : ∀ {u v} → u ≡ v → HomTerm (wires u)
+  -- (wires v)` (= `≡⇒≈Term`-style object reshaper, e.g. `subst` of `id`):
+  --
+  --   fx-clean⇒g-in :
+  --     ∀ {ax bx ay by} {px sx py sy}
+  --       {fx : Mor ax bx} {fy : Mor ay by}
+  --       (fit : LeftFit px sx py sy fx fy)
+  --       {M rest} {d : DiagU (px ++ (bx ++ sx))}
+  --       (wTail : Wired (LeftFrame.N₃ fit) rest M)
+  --       (idx : py ++ (ay ++ sy) ≡ px ++ (bx ++ sx))      -- the DiagU wiring ★
+  --     → castW (codcast …) ∘ ⟦ fromDiagU (px ▸ sx ∷ fx ⟨ py ▸ sy ∷ fy ⟨ d ⟩ ⟩) ⟧O
+  --       ≈Term  ⟦ LeftFrame.input-O fit wTail ⟧O ∘ castW (domcast …)
+  --
+  -- where `domcast : px++(ax++sx) ≡ N₀` and `codcast : out … ≡ M` are the
+  -- `++-assoc` index transports.  It is the EXACT abstract analogue of the
+  -- `Litmus`'s `cA≈after`/`cB≈before` (discharged CONCRETELY below, where the
+  -- reassociators reduce to `id` and the casts are `refl`).  Once it is in hand,
+  -- the autonomous DiagU swap is `≈-Term-trans (fx-clean⇒g-in …) (input⇒sorted
+  -- …)`, and the bubble sort + its soundness follow by chaining exactly as
+  -- `normalizeA`/`normalizeA-sound` already do for the `_⇒W_` driver.  The frame
+  -- side (`LeftFrame.input⇒sorted`) is PROVEN and exercised in the DiagU litmus
+  -- below; only this clean⇄grouped index cast remains.
+
+  --------------------------------------------------------------------------------
+  -- 11e'. THE BRIDGE, PROVEN.  The clean flat `pad` of the right box `g` (at the
+  -- LeftFit offset `pre++(a₁++mid)`, suffix `r`) equals the frame's grouped
+  -- `g-in`, conjugated by the `++`-assoc object casts.  This is the abstract
+  -- analogue of `Litmus.cA≈after`/`g-in≈cp`: there the reassociators reduced to
+  -- `id` and the casts to `refl`; here they reduce to single `castW`s that cancel
+  -- via the §11d' algebra.  Stated directly at the frame coordinates (the
+  -- LeftFit-phrased corollary follows by the offset rewrites, which are `refl`
+  -- once the fit's fields are matched).
+  --
+  -- castdom : wires((pre++(a₁++mid))++(a₂++r)) ⇒ wires N₀     (assoc, domain)
+  -- castcod : wires(pre++(a₁++(mid++(b₂++r)))) ⇒ wires((pre++(a₁++mid))++(b₂++r))
+  --------------------------------------------------------------------------------
+
+  -- the two index equalities (pure `++`-assoc), named.
+  domeq : (pre a₁ mid a₂ r : List X)
+        → (pre ++ (a₁ ++ mid)) ++ (a₂ ++ r) ≡ pre ++ (a₁ ++ (mid ++ (a₂ ++ r)))
+  domeq pre a₁ mid a₂ r =
+    trans (++-assoc pre (a₁ ++ mid) (a₂ ++ r))
+          (cong (pre ++_) (++-assoc a₁ mid (a₂ ++ r)))
+
+  -- reassocF-in collapses to the domain cast (its inverse direction).
+  reassocF-in≈castW :
+    ∀ (pre mid r : List X) {a₁ b₁ a₂ b₂ : List X}
+      (f : Mor a₁ b₁) (g : Mor a₂ b₂)
+    → Frame.reassocF-in pre mid r f g
+      ≈Term castW (sym (domeq pre a₁ mid a₂ r))
+  reassocF-in≈castW pre mid r {a₁} {b₁} {a₂} {b₂} f g = begin
+    assocW pre (a₁ ++ mid) (a₂ ++ r) ∘ liftW pre (assocW a₁ mid (a₂ ++ r))
+      ≈⟨ ∘-resp-≈ (assocW-castW pre (a₁ ++ mid) (a₂ ++ r))
+                  (≈-Term-trans (liftW-resp pre (assocW-castW a₁ mid (a₂ ++ r)))
+                                (liftW-castW pre (sym (++-assoc a₁ mid (a₂ ++ r))))) ⟩
+    castW (sym (++-assoc pre (a₁ ++ mid) (a₂ ++ r)))
+      ∘ castW (cong (pre ++_) (sym (++-assoc a₁ mid (a₂ ++ r))))
+      ≈⟨ castW-∘ _ _ ⟩
+    castW (trans (cong (pre ++_) (sym (++-assoc a₁ mid (a₂ ++ r))))
+                 (sym (++-assoc pre (a₁ ++ mid) (a₂ ++ r))))
+      ≈⟨ castW-irr _ _ ⟩
+    castW (sym (domeq pre a₁ mid a₂ r)) ∎
+
+  -- reassocB-in collapses to the codomain cast.
+  reassocB-in≈castW :
+    ∀ (pre mid r : List X) {a₁ b₁ a₂ b₂ : List X}
+      (f : Mor a₁ b₁) (g : Mor a₂ b₂)
+    → Frame.reassocB-in pre mid r f g
+      ≈Term castW (domeq pre a₁ mid b₂ r)
+  reassocB-in≈castW pre mid r {a₁} {b₁} {a₂} {b₂} f g = begin
+    liftW pre (assocW⁻ a₁ mid (b₂ ++ r)) ∘ assocW⁻ pre (a₁ ++ mid) (b₂ ++ r)
+      ≈⟨ ∘-resp-≈ (≈-Term-trans (liftW-resp pre (assocW⁻-castW a₁ mid (b₂ ++ r)))
+                                (liftW-castW pre (++-assoc a₁ mid (b₂ ++ r))))
+                  (assocW⁻-castW pre (a₁ ++ mid) (b₂ ++ r)) ⟩
+    castW (cong (pre ++_) (++-assoc a₁ mid (b₂ ++ r)))
+      ∘ castW (++-assoc pre (a₁ ++ mid) (b₂ ++ r))
+      ≈⟨ castW-∘ _ _ ⟩
+    castW (trans (++-assoc pre (a₁ ++ mid) (b₂ ++ r))
+                 (cong (pre ++_) (++-assoc a₁ mid (b₂ ++ r))))
+      ≈⟨ castW-irr _ _ ⟩
+    castW (domeq pre a₁ mid b₂ r) ∎
+
+  -- round-trip cancellation of inverse casts.
+  castW-sym-r : ∀ {u v : List X} (e : u ≡ v) → castW (sym e) ∘ castW e ≈Term id
+  castW-sym-r refl = idˡ
+
+  -- THE CORE BRIDGE (frame coordinates), PROVEN.  The frame's grouped `g-in`
+  -- equals the clean flat `pad` of the right box `g` (at the LeftFit offset
+  -- `pre++(a₁++mid)`), conjugated by the `++`-assoc object casts.  Obtained from
+  -- `g-in≈pad` by collapsing its reassociators to single `castW`s (§11d').
+  fx-clean⇒g-in-core :
+    ∀ (pre mid r : List X) {a₁ b₁ a₂ b₂ : List X}
+      (f : Mor a₁ b₁) (g : Mor a₂ b₂)
+    → Frame.g-in pre mid r f g
+      ≈Term castW (domeq pre a₁ mid b₂ r)
+          ∘ pad (pre ++ (a₁ ++ mid)) r (⟦box⟧ g)
+          ∘ castW (sym (domeq pre a₁ mid a₂ r))
+  fx-clean⇒g-in-core pre mid r {a₁} {b₁} {a₂} {b₂} f g = begin
+    Frame.g-in pre mid r f g
+      ≈⟨ Frame.g-in≈pad pre mid r f g ⟩
+    Frame.reassocB-in pre mid r f g
+      ∘ pad (pre ++ (a₁ ++ mid)) r (⟦box⟧ g)
+      ∘ Frame.reassocF-in pre mid r f g
+      ≈⟨ ∘-resp-≈ (reassocB-in≈castW pre mid r f g)
+           (∘-resp-≈ ≈-Term-refl (reassocF-in≈castW pre mid r f g)) ⟩
+    castW (domeq pre a₁ mid b₂ r)
+      ∘ pad (pre ++ (a₁ ++ mid)) r (⟦box⟧ g)
+      ∘ castW (sym (domeq pre a₁ mid a₂ r)) ∎
+
+  --------------------------------------------------------------------------------
+  -- 11e-out. THE MIRROR g-out RE-CLEANING.  Exact analogue of the g-in side,
+  -- with `a₁ ↦ b₁`: `reassocF-out`/`reassocB-out` are the same `assocW`/`liftW`
+  -- towers (at offset `b₁` instead of `a₁`) so they collapse to single `castW`s
+  -- by the SAME §11d' algebra, and `g-out≈pad` then gives `g-out` as the clean
+  -- flat `pad (pre++(b₁++mid)) r ⟦g⟧` conjugated by the index casts.  This makes
+  -- the SORTED (swap-output) g-layer a clean `pad` again, mirroring `g-in`.
+  --------------------------------------------------------------------------------
+
+  -- reassocF-out collapses to the (inverse) domain cast at offset b₁.
+  reassocF-out≈castW :
+    ∀ (pre mid r : List X) {a₁ b₁ a₂ b₂ : List X}
+      (f : Mor a₁ b₁) (g : Mor a₂ b₂)
+    → Frame.reassocF-out pre mid r f g
+      ≈Term castW (sym (domeq pre b₁ mid a₂ r))
+  reassocF-out≈castW pre mid r {a₁} {b₁} {a₂} {b₂} f g = begin
+    assocW pre (b₁ ++ mid) (a₂ ++ r) ∘ liftW pre (assocW b₁ mid (a₂ ++ r))
+      ≈⟨ ∘-resp-≈ (assocW-castW pre (b₁ ++ mid) (a₂ ++ r))
+                  (≈-Term-trans (liftW-resp pre (assocW-castW b₁ mid (a₂ ++ r)))
+                                (liftW-castW pre (sym (++-assoc b₁ mid (a₂ ++ r))))) ⟩
+    castW (sym (++-assoc pre (b₁ ++ mid) (a₂ ++ r)))
+      ∘ castW (cong (pre ++_) (sym (++-assoc b₁ mid (a₂ ++ r))))
+      ≈⟨ castW-∘ _ _ ⟩
+    castW (trans (cong (pre ++_) (sym (++-assoc b₁ mid (a₂ ++ r))))
+                 (sym (++-assoc pre (b₁ ++ mid) (a₂ ++ r))))
+      ≈⟨ castW-irr _ _ ⟩
+    castW (sym (domeq pre b₁ mid a₂ r)) ∎
+
+  -- reassocB-out collapses to the codomain cast at offset b₁.
+  reassocB-out≈castW :
+    ∀ (pre mid r : List X) {a₁ b₁ a₂ b₂ : List X}
+      (f : Mor a₁ b₁) (g : Mor a₂ b₂)
+    → Frame.reassocB-out pre mid r f g
+      ≈Term castW (domeq pre b₁ mid b₂ r)
+  reassocB-out≈castW pre mid r {a₁} {b₁} {a₂} {b₂} f g = begin
+    liftW pre (assocW⁻ b₁ mid (b₂ ++ r)) ∘ assocW⁻ pre (b₁ ++ mid) (b₂ ++ r)
+      ≈⟨ ∘-resp-≈ (≈-Term-trans (liftW-resp pre (assocW⁻-castW b₁ mid (b₂ ++ r)))
+                                (liftW-castW pre (++-assoc b₁ mid (b₂ ++ r))))
+                  (assocW⁻-castW pre (b₁ ++ mid) (b₂ ++ r)) ⟩
+    castW (cong (pre ++_) (++-assoc b₁ mid (b₂ ++ r)))
+      ∘ castW (++-assoc pre (b₁ ++ mid) (b₂ ++ r))
+      ≈⟨ castW-∘ _ _ ⟩
+    castW (trans (++-assoc pre (b₁ ++ mid) (b₂ ++ r))
+                 (cong (pre ++_) (++-assoc b₁ mid (b₂ ++ r))))
+      ≈⟨ castW-irr _ _ ⟩
+    castW (domeq pre b₁ mid b₂ r) ∎
+
+  -- THE CORE g-out BRIDGE, PROVEN (mirror of `fx-clean⇒g-in-core`).  The frame's
+  -- grouped `g-out` equals the clean flat `pad` of the right box `g` (at the
+  -- SORTED offset `pre++(b₁++mid)`), conjugated by the `++`-assoc object casts.
+  fy-sorted⇒g-out-core :
+    ∀ (pre mid r : List X) {a₁ b₁ a₂ b₂ : List X}
+      (f : Mor a₁ b₁) (g : Mor a₂ b₂)
+    → Frame.g-out pre mid r f g
+      ≈Term castW (domeq pre b₁ mid b₂ r)
+          ∘ pad (pre ++ (b₁ ++ mid)) r (⟦box⟧ g)
+          ∘ castW (sym (domeq pre b₁ mid a₂ r))
+  fy-sorted⇒g-out-core pre mid r {a₁} {b₁} {a₂} {b₂} f g = begin
+    Frame.g-out pre mid r f g
+      ≈⟨ Frame.g-out≈pad pre mid r f g ⟩
+    Frame.reassocB-out pre mid r f g
+      ∘ pad (pre ++ (b₁ ++ mid)) r (⟦box⟧ g)
+      ∘ Frame.reassocF-out pre mid r f g
+      ≈⟨ ∘-resp-≈ (reassocB-out≈castW pre mid r f g)
+           (∘-resp-≈ ≈-Term-refl (reassocF-out≈castW pre mid r f g)) ⟩
+    castW (domeq pre b₁ mid b₂ r)
+      ∘ pad (pre ++ (b₁ ++ mid)) r (⟦box⟧ g)
+      ∘ castW (sym (domeq pre b₁ mid a₂ r)) ∎
+
+  --------------------------------------------------------------------------------
+  -- 11e''. THE FULL CLEAN ⇒ FRAME BRIDGE, PROVEN.  For a recognised `LeftFit`
+  -- (matched to its `refl` offset witnesses, so `px=P++(ay++mid)`, `sx=s`,
+  -- `py=P`, `sy=mid++(bx++s)` definitionally), the CLEAN head pair
+  --
+  --     ⟦wTail⟧ ∘ f-out ∘ castMid ∘ (pad px sx ⟦fx⟧)
+  --
+  -- (the genuine flat-`pad` firing order fx-then-fy, with `castMid` the ★ wiring
+  -- transport between fx's clean codomain and fy's clean domain) equals the
+  -- frame's `input-O` (= `after-O`, gbox-grouped order) conjugated by the domain
+  -- index cast `castW domcast`.  This is the abstract, frame-routed analogue of
+  -- `Litmus.cA≈after`, PROVEN via `fx-clean⇒g-in-core` + the `castW` algebra.
+  --
+  -- The clean fy-layer `pad py sy ⟦fy⟧` is DEFINITIONALLY `Frame.f-out`
+  -- (`fy-layer≡f-out`), so it appears as `Frame.f-out P mid s fy fx` here.
+  --------------------------------------------------------------------------------
+
+  fx-clean⇒g-in :
+    ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+      (fit : LeftFit px sx py sy fx fy) {M rest}
+      (wTail : Wired (LeftFrame.N₃ fit) rest M)
+    → ⟦ wTail ⟧W
+        ∘ Frame.f-out (LeftFit.P fit) (LeftFit.mid fit) (LeftFit.s fit) fy fx
+        ∘ castW (domeq (LeftFit.P fit) ay (LeftFit.mid fit) bx (LeftFit.s fit))
+        ∘ pad (LeftFit.P fit ++ (ay ++ LeftFit.mid fit)) (LeftFit.s fit) (⟦box⟧ fx)
+      ≈Term ⟦ LeftFrame.input-O fit wTail ⟧O
+        ∘ castW (domeq (LeftFit.P fit) ay (LeftFit.mid fit) ax (LeftFit.s fit))
+  fx-clean⇒g-in {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
+                (leftFit P mid s refl refl refl refl)
+                {M} {rest} wTail = begin
+    ⟦ wTail ⟧W ∘ F.f-out ∘ castMidB ∘ pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
+      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl bridge) ⟩
+    ⟦ wTail ⟧W ∘ F.f-out ∘ (F.g-in ∘ castDom)
+      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+    ⟦ wTail ⟧W ∘ (F.f-out ∘ F.g-in) ∘ castDom
+      ≈⟨ ≈-Term-sym assoc ⟩
+    (⟦ wTail ⟧W ∘ (F.f-out ∘ F.g-in)) ∘ castDom
+      ≈⟨ ∘-resp-≈ (≈-Term-sym assoc) ≈-Term-refl ⟩
+    ((⟦ wTail ⟧W ∘ F.f-out) ∘ F.g-in) ∘ castDom ∎
+    where
+      module F = Frame P mid s fy fx
+      castMidB = castW (domeq P ay mid bx s)
+      castDom  = castW (domeq P ay mid ax s)
+      -- g-in ∘ castDom ≈ castMidB ∘ pad …  (the core bridge + cast cancel)
+      bridge : castMidB ∘ pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
+             ≈Term F.g-in ∘ castDom
+      bridge = begin
+        castMidB ∘ pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
+          ≈⟨ ≈-Term-sym idʳ ⟩
+        (castMidB ∘ pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)) ∘ id
+          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym (castW-sym-r (domeq P ay mid ax s))) ⟩
+        (castMidB ∘ pad (P ++ (ay ++ mid)) s (⟦box⟧ fx))
+          ∘ (castW (sym (domeq P ay mid ax s)) ∘ castDom)
+          ≈⟨ assoc ⟩
+        castMidB ∘ (pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
+          ∘ (castW (sym (domeq P ay mid ax s)) ∘ castDom))
+          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+        castMidB ∘ ((pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
+          ∘ castW (sym (domeq P ay mid ax s))) ∘ castDom)
+          ≈⟨ ≈-Term-sym assoc ⟩
+        (castMidB ∘ (pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
+          ∘ castW (sym (domeq P ay mid ax s)))) ∘ castDom
+          ≈⟨ ∘-resp-≈ (≈-Term-sym (fx-clean⇒g-in-core P mid s fy fx)) ≈-Term-refl ⟩
+        F.g-in ∘ castDom ∎
+
+  --------------------------------------------------------------------------------
+  -- 11e'''. THE AUTONOMOUS DiagU SWAP SOUNDNESS, PROVEN.  Chaining the clean⇒
+  -- frame bridge with the frame's PROVEN `input⇒sorted` swap step gives: the
+  -- CLEAN (fx-then-fy) head order equals — modulo the domain index cast — the
+  -- frame's SORTED (fy-then-fx) order.  This is precisely the §11e note's
+  -- `≈-Term-trans (fx-clean⇒g-in …) (input⇒sorted …-sound)`, now closed.
+  --------------------------------------------------------------------------------
+
+  diagU-swap-sound :
+    ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+      (fit : LeftFit px sx py sy fx fy) {M rest}
+      (wTail : Wired (LeftFrame.N₃ fit) rest M)
+    → ⟦ wTail ⟧W
+        ∘ Frame.f-out (LeftFit.P fit) (LeftFit.mid fit) (LeftFit.s fit) fy fx
+        ∘ castW (domeq (LeftFit.P fit) ay (LeftFit.mid fit) bx (LeftFit.s fit))
+        ∘ pad (LeftFit.P fit ++ (ay ++ LeftFit.mid fit)) (LeftFit.s fit) (⟦box⟧ fx)
+      ≈Term ⟦ LeftFrame.sorted-O fit wTail ⟧O
+        ∘ castW (domeq (LeftFit.P fit) ay (LeftFit.mid fit) ax (LeftFit.s fit))
+  diagU-swap-sound fit wTail =
+    ≈-Term-trans (fx-clean⇒g-in fit wTail)
+      (∘-resp-≈ (sound (LeftFrame.input⇒sorted fit wTail)) ≈-Term-refl)
+
+  --------------------------------------------------------------------------------
+  -- 11f. subst-transport of a DiagU index, PROVEN sound.  A swap necessarily
+  -- moves a clean DiagU off its left-nested index onto the frame's right-nested
+  -- index (they differ by `domeq`, NON-`refl` for abstract offsets), so a real
+  -- `DiagU n → DiagU n` transports the swapped sub-diagram along that `≡`.  The
+  -- interpretation of a transported DiagU is the original conjugated by `castW`s
+  -- on BOTH endpoints, proven by `J` (both casts are `id` on `refl`).
+  --------------------------------------------------------------------------------
+
+  -- transport a DiagU along an index equality.
+  substDiagU : ∀ {m n : List X} → m ≡ n → DiagU m → DiagU n
+  substDiagU refl d = d
+
+  -- the transport preserves the output index.
+  substDiagU-out : ∀ {m n : List X} (e : m ≡ n) (d : DiagU m)
+                 → out (substDiagU e d) ≡ out d
+  substDiagU-out refl d = refl
+
+  -- interpretation commutes with the transport up to a single index cast on each
+  -- endpoint:  ⟦ substDiagU e d ⟧ ∘ castW e  ≈  castW (out-cast) ∘ ⟦ d ⟧.
+  ⟦substDiagU⟧ : ∀ {m n : List X} (e : m ≡ n) (d : DiagU m)
+              → ⟦ substDiagU e d ⟧ ∘ castW e
+                ≈Term castW (sym (substDiagU-out e d)) ∘ ⟦ d ⟧
+  ⟦substDiagU⟧ refl d = ≈-Term-trans idʳ (≈-Term-sym idˡ)
+
+  -- prepending a clean DiagU layer post-composes its `pad` onto `⟦_⟧`.
+  ⟦cons⟧ : ∀ {a b} (pre suf : List X) (f : Mor a b)
+           (d : DiagU (pre ++ (b ++ suf)))
+         → ⟦ pre ▸ suf ∷ f ⟨ d ⟩ ⟧ ≈Term ⟦ d ⟧ ∘ pad pre suf (⟦box⟧ f)
+  ⟦cons⟧ pre suf f d = ≈-Term-refl
+
+  --------------------------------------------------------------------------------
+  -- 11g. `swapHeadD` — the genuine clean DiagU head swap.
+  --
+  -- A clean DiagU head pair recognised as a `LeftFit` is presented as: the two
+  -- boxes + offset data of the fit, the (★) inter-layer wiring `≡` (which is
+  -- NON-`refl` for abstract offsets, hence supplied), and the sub-diagram `dInner
+  -- : DiagU (px++(bx++sx))`.  We build the SWAPPED clean DiagU on the same input
+  -- index and prove `⟦ input ⟧ ≈Term ⟦ swapped ⟧`.
+  --
+  -- The swapped diagram is fy-first (lower offset) then fx, both genuine clean
+  -- `pad`-layers (`_▸_∷_⟨_⟩`); the necessary `++`-assoc re-indexing between the
+  -- fy and fx layers is absorbed by `substDiagU` along `domeq`, whose soundness
+  -- is `⟦substDiagU⟧`.  Soundness chains `diagU-swap-sound` (step 11e''') with the
+  -- input/output cast bookkeeping; the litmus (§ below) machine-checks one fire.
+  --------------------------------------------------------------------------------
+
+  -- the SWAPPED clean DiagU on the frame's right-nested input index N₀.  fy fires
+  -- first at offset P (clean pad, = `f-in`), then fx at offset `P++(by++mid)`
+  -- (clean pad, = the re-cleaned `g-out`), with the inter-layer `domeq` absorbed
+  -- by `substDiagU`.  `dSorted` is the tail at the swapped-output index.
+  swapHeadD-out :
+    ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
+      (fit : LeftFit px sx py sy fx fy)
+    → DiagU ((LeftFit.P fit ++ (by ++ LeftFit.mid fit)) ++ (bx ++ LeftFit.s fit))
+    → DiagU (LeftFrame.N₀ fit)
+  swapHeadD-out {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
+                (leftFit P mid s refl refl refl refl) dSorted =
+    P ▸ (mid ++ (ax ++ s)) ∷ fy
+      ⟨ substDiagU (domeq P by mid ax s)
+          ((P ++ (by ++ mid)) ▸ s ∷ fx ⟨ dSorted ⟩) ⟩
+
+  -- SOUNDNESS of the swapped diagram.  Its interpretation equals the frame's
+  -- SORTED order (`⟦dSorted⟧ ∘ g-out ∘ f-in`) conjugated by the inter-layer
+  -- index cast — exactly the clean re-reading of `before-O` via the §11e-out
+  -- g-out re-cleaning, with the `substDiagU` cast absorbed by `⟦substDiagU⟧`.
+  swapHeadD-out-sound :
+    ∀ {ax bx ay by} (P mid s : List X) (fx : Mor ax bx) (fy : Mor ay by)
+      (dSorted : DiagU ((P ++ (by ++ mid)) ++ (bx ++ s)))
+    → castW (substDiagU-out (domeq P by mid ax s)
+                  ((P ++ (by ++ mid)) ▸ s ∷ fx ⟨ dSorted ⟩))
+        ∘ ⟦ swapHeadD-out (leftFit {fx = fx} {fy = fy} P mid s refl refl refl refl) dSorted ⟧
+      ≈Term (⟦ dSorted ⟧ ∘ pad (P ++ (by ++ mid)) s (⟦box⟧ fx))
+          ∘ castW (sym (domeq P by mid ax s))
+          ∘ Frame.f-in P mid s fy fx
+  swapHeadD-out-sound {ax} {bx} {ay} {by} P mid s fx fy dSorted = begin
+    castW out-eq ∘ (⟦ inner ⟧ ∘ F.f-in)
+      ≈⟨ ≈-Term-sym assoc ⟩
+    (castW out-eq ∘ ⟦ inner ⟧) ∘ F.f-in
+      ≈⟨ ∘-resp-≈ key ≈-Term-refl ⟩
+    (⟦ innerD ⟧ ∘ castW (sym e)) ∘ F.f-in
+      ≈⟨ assoc ⟩
+    ⟦ innerD ⟧ ∘ (castW (sym e) ∘ F.f-in) ∎
+    where
+      module F = Frame P mid s fy fx
+      innerD = (P ++ (by ++ mid)) ▸ s ∷ fx ⟨ dSorted ⟩
+      inner  = substDiagU (domeq P by mid ax s) innerD
+      out-eq = substDiagU-out (domeq P by mid ax s) innerD
+      e      = domeq P by mid ax s
+      -- castW e ∘ castW (sym e) ≈ id  (the other cancellation order).
+      cancel-r : castW e ∘ castW (sym e) ≈Term id
+      cancel-r = ≈-Term-trans (∘-resp-≈ (castW-irr e (sym (sym e))) ≈-Term-refl)
+                              (castW-sym-r (sym e))
+      cancel-out : castW out-eq ∘ castW (sym out-eq) ≈Term id
+      cancel-out = ≈-Term-trans (∘-resp-≈ (castW-irr out-eq (sym (sym out-eq))) ≈-Term-refl)
+                                (castW-sym-r (sym out-eq))
+      key : castW out-eq ∘ ⟦ inner ⟧ ≈Term ⟦ innerD ⟧ ∘ castW (sym e)
+      key = begin
+        castW out-eq ∘ ⟦ inner ⟧
+          ≈⟨ ≈-Term-sym idʳ ⟩
+        (castW out-eq ∘ ⟦ inner ⟧) ∘ id
+          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym cancel-r) ⟩
+        (castW out-eq ∘ ⟦ inner ⟧) ∘ (castW e ∘ castW (sym e))
+          ≈⟨ ≈-Term-sym assoc ⟩
+        ((castW out-eq ∘ ⟦ inner ⟧) ∘ castW e) ∘ castW (sym e)
+          ≈⟨ ∘-resp-≈ assoc ≈-Term-refl ⟩
+        (castW out-eq ∘ (⟦ inner ⟧ ∘ castW e)) ∘ (castW (sym e))
+          ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (⟦substDiagU⟧ e innerD)) ≈-Term-refl ⟩
+        (castW out-eq ∘ (castW (sym out-eq) ∘ ⟦ innerD ⟧)) ∘ castW (sym e)
+          ≈⟨ ∘-resp-≈ (≈-Term-sym assoc) ≈-Term-refl ⟩
+        ((castW out-eq ∘ castW (sym out-eq)) ∘ ⟦ innerD ⟧) ∘ castW (sym e)
+          ≈⟨ ∘-resp-≈ (∘-resp-≈ cancel-out ≈-Term-refl) ≈-Term-refl ⟩
+        (id ∘ ⟦ innerD ⟧) ∘ castW (sym e)
+          ≈⟨ ∘-resp-≈ idˡ ≈-Term-refl ⟩
+        ⟦ innerD ⟧ ∘ castW (sym e) ∎
+
 --------------------------------------------------------------------------------
 -- 10. LITMUS — the autonomous sorter genuinely reorders.
 --
@@ -716,3 +1354,166 @@ module Litmus where
   -- the genuine `≈Term` soundness of the autonomous firing.
   fired-sound : ⟦ before ⟧O ≈Term ⟦ proj₁ fired ⟧O
   fired-sound = ⇒W*-sound (proj₂ fired)
+
+  --------------------------------------------------------------------------------
+  -- LITMUS (DiagU level): the `LeftFit`-driven, frame-routed swap fires on a
+  -- pair recognised by reading the boxes/offsets off two DiagU head layers.
+  --
+  -- Out-of-order input: gbox (right box, fires FIRST) then fbox (left box,
+  -- fires SECOND).  We build the `LeftFit` with P = mid = s = [], left box
+  -- fy = fbox (dom/cod `0∷[]`), right box fx = gbox (dom/cod `1∷[]`).  The fit's
+  -- offset equations:  px ≡ ay = 0∷[] , sx ≡ [] , py ≡ [] , sy ≡ bx = 1∷[].
+  -- The provable `LeftFrame.input⇒sorted` swaps the frame's input order
+  -- (gbox-first) into the sorted order (fbox-first) with a real `two-box-swap`
+  -- witness — autonomously, with the fit RECOGNISED from the layer data.
+  --------------------------------------------------------------------------------
+
+  -- the recognised fit (offsets are exactly the LeftFit equations, by `refl`).
+  litFit : LeftFit (0 ∷ []) [] [] (1 ∷ []) gbox fbox
+  litFit = leftFit [] [] [] refl refl refl refl
+
+  open LeftFrame litFit
+    using (input-O; sorted-O; input⇒sorted; N₀; N₃; f-out-layer; g-in-layer)
+
+  -- the empty wired tail from the frame's common output N₃.
+  litTail : Wired N₃ [] N₃
+  litTail = []
+
+  -- the autonomous frame-routed swap step: input (gbox first) ⇒ sorted
+  -- (fbox first).  Its witness is `≈-Term-sym head-swap-sound` = `two-box-swap`.
+  litStep : input-O litTail ⇒W sorted-O litTail
+  litStep = input⇒sorted litTail
+
+  -- it genuinely REORDERS: the sorted head layer is fbox's clean `f-out`
+  -- (the lower-offset box now fires first) — machine-checked by `refl`.
+  litReorders : layers (sorted-O litTail)
+              ≡ Frame.f-in-layer [] [] [] fbox gbox
+              ∷ Frame.g-out-layer [] [] [] fbox gbox ∷ []
+  litReorders = refl
+
+  -- and the input head was gbox's grouped `g-in` (the higher-offset box was
+  -- firing first) — confirming the pair was out of order.
+  litInputHead : layers (input-O litTail)
+               ≡ g-in-layer ∷ f-out-layer ∷ []
+  litInputHead = refl
+
+  -- the genuine `≈Term` soundness of the autonomous frame-routed swap.
+  litSound : ⟦ input-O litTail ⟧O ≈Term ⟦ sorted-O litTail ⟧O
+  litSound = sound litStep
+
+  --------------------------------------------------------------------------------
+  -- LITMUS (DiagU clean-bridge level): exercise the now-PROVEN `fx-clean⇒g-in`
+  -- and `diagU-swap-sound` on the concrete `litFit`.  Here P=mid=s=[] so every
+  -- `++`-assoc index cast `castW (domeq …)` reduces to `castW refl = id` and the
+  -- frame `f-out`/`g-in` are single-wire pads — the abstract bridge specialises
+  -- exactly to the concrete clean reorder.  Both witnesses are machine-checked.
+  --------------------------------------------------------------------------------
+
+  -- the concrete clean⇒frame bridge (the casts are `id`; fully reduced).
+  litBridge :
+    ⟦ litTail ⟧W
+      ∘ Frame.f-out [] [] [] fbox gbox
+      ∘ castW (domeq [] (0 ∷ []) [] (1 ∷ []) [])
+      ∘ pad (0 ∷ []) [] (⟦box⟧ gbox)
+    ≈Term ⟦ input-O litTail ⟧O ∘ castW (domeq [] (0 ∷ []) [] (1 ∷ []) [])
+  litBridge = fx-clean⇒g-in litFit litTail
+
+  -- the concrete DiagU swap soundness: clean (gbox-first) ⇒ sorted (fbox-first).
+  litSwapSound :
+    ⟦ litTail ⟧W
+      ∘ Frame.f-out [] [] [] fbox gbox
+      ∘ castW (domeq [] (0 ∷ []) [] (1 ∷ []) [])
+      ∘ pad (0 ∷ []) [] (⟦box⟧ gbox)
+    ≈Term ⟦ sorted-O litTail ⟧O ∘ castW (domeq [] (0 ∷ []) [] (1 ∷ []) [])
+  litSwapSound = diagU-swap-sound litFit litTail
+
+  -- the casts are genuinely the identity here (P=mid=s=[]) — `refl`-checked.
+  litCastId : castW (domeq [] (0 ∷ []) [] (1 ∷ []) []) ≡ id
+  litCastId = refl
+
+  --------------------------------------------------------------------------------
+  -- LITMUS (swapHeadD): the genuine clean DiagU SWAP OUTPUT.  We build the
+  -- swapped clean DiagU with `swapHeadD-out` on `litFit` (fx = gbox at offset 0
+  -- as the right box, fy = fbox the left box).  The swapped diagram fires fbox
+  -- (lower offset) FIRST then gbox — both genuine clean `_▸_∷_⟨_⟩` `pad`-layers,
+  -- the inter-layer `domeq` absorbed by `substDiagU` (= `id` here).  We
+  -- machine-check the reorder by `refl` on its layer list and exhibit the
+  -- compiled `swapHeadD-out-sound` witness.
+  --------------------------------------------------------------------------------
+
+  -- the empty sorted tail at the swapped-output index ((0∷[])++(1∷[])) = 0∷1∷[].
+  litDSorted : DiagU (0 ∷ 1 ∷ [])
+  litDSorted = []_ (0 ∷ 1 ∷ [])
+
+  -- the SWAPPED clean DiagU: fbox first (offset 0), then gbox.  Built autonomously
+  -- by `swapHeadD-out`; the `substDiagU` cast reduces to identity here.
+  litSwapped : DiagU (0 ∷ 1 ∷ [])
+  litSwapped = swapHeadD-out litFit litDSorted
+
+  -- the swap genuinely REORDERED: the swapped DiagU's head layer is fbox at
+  -- offset 0 (lower-offset box now fires FIRST), then gbox at offset 0 in the
+  -- grouped tail — machine-checked by `refl` on the layer list.
+  litSwappedLayers : fromDiagU-ls litSwapped
+                   ≡ mk-pad [] (1 ∷ []) fbox
+                   ∷ mk-pad (0 ∷ []) [] gbox ∷ []
+  litSwappedLayers = refl
+
+  -- the compiled soundness of the swapped output (the casts are `id` here).
+  litSwapOutSound :
+    castW (substDiagU-out (domeq [] (0 ∷ []) [] (1 ∷ []) [])
+            (((0 ∷ []) ++ ([])) ▸ [] ∷ gbox ⟨ litDSorted ⟩))
+      ∘ ⟦ litSwapped ⟧
+    ≈Term (⟦ litDSorted ⟧ ∘ pad (0 ∷ []) [] (⟦box⟧ gbox))
+        ∘ castW (sym (domeq [] (0 ∷ []) [] (1 ∷ []) []))
+        ∘ Frame.f-in [] [] [] fbox gbox
+  litSwapOutSound = swapHeadD-out-sound [] [] [] gbox fbox litDSorted
+
+  --------------------------------------------------------------------------------
+  -- LITMUS (end-to-end DiagU swap): the INPUT clean DiagU (gbox fires FIRST) and
+  -- the SWAPPED clean DiagU `litSwapped` (fbox fires first) have EQUAL
+  -- interpretations in the free monoidal category — a genuine, machine-checked
+  -- `≈Term` between two clean `DiagU`s, built by chaining `diagU-swap-sound` with
+  -- `swapHeadD-out-sound` (all `++`-assoc casts reduce to `id` here).  This is the
+  -- concrete witness that the autonomous DiagU swap engine REORDERS soundly.
+  --------------------------------------------------------------------------------
+
+  -- the INPUT clean DiagU: gbox (offset 0, the right box) fires FIRST, then fbox.
+  litInput : DiagU (0 ∷ 1 ∷ [])
+  litInput = (0 ∷ []) ▸ [] ∷ gbox ⟨ [] ▸ (1 ∷ []) ∷ fbox ⟨ litDSorted ⟩ ⟩
+
+  -- both DiagUs reorder genuinely: input is gbox-first, swapped is fbox-first.
+  litInputLayers : fromDiagU-ls litInput
+                 ≡ mk-pad (0 ∷ []) [] gbox
+                 ∷ mk-pad [] (1 ∷ []) fbox ∷ []
+  litInputLayers = refl
+
+  -- THE END-TO-END SOUNDNESS: ⟦ input (gbox-first) ⟧ ≈ ⟦ swapped (fbox-first) ⟧.
+  -- All `castW (domeq …)` reduce to `id` (P=mid=s=[]); we feed both compiled
+  -- halves the SAME empty tail and absorb the residual `∘ id`s by `idʳ`.
+  litDiagUSwap : ⟦ litInput ⟧ ≈Term ⟦ litSwapped ⟧
+  litDiagUSwap = begin
+    ⟦ litInput ⟧
+      ≈⟨ assoc ⟩
+    ⟦ litDSorted ⟧ ∘ (Frame.f-out [] [] [] fbox gbox ∘ pad (0 ∷ []) [] (⟦box⟧ gbox))
+      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⟩
+    ⟦ litDSorted ⟧ ∘ Frame.f-out [] [] [] fbox gbox ∘ id ∘ pad (0 ∷ []) [] (⟦box⟧ gbox)
+      ≈⟨ diagU-swap-sound litFit litTail ⟩
+    ⟦ sorted-O litTail ⟧O ∘ id
+      ≈⟨ idʳ ⟩
+    ⟦ sorted-O litTail ⟧O
+      ≈⟨ ≈-Term-sym swapped-as-sorted ⟩
+    ⟦ litSwapped ⟧ ∎
+    where
+      -- ⟦ litSwapped ⟧ ≈ ⟦ sorted-O litTail ⟧O : both are fbox-first-then-gbox;
+      -- from `swapHeadD-out-sound` with the `id` casts and `idˡ`/`idʳ` absorbed.
+      swapped-as-sorted : ⟦ litSwapped ⟧ ≈Term ⟦ sorted-O litTail ⟧O
+      swapped-as-sorted = begin
+        ⟦ litSwapped ⟧
+          ≈⟨ ≈-Term-sym idˡ ⟩
+        id ∘ ⟦ litSwapped ⟧
+          ≈⟨ swapHeadD-out-sound [] [] [] gbox fbox litDSorted ⟩
+        (⟦ litDSorted ⟧ ∘ pad (0 ∷ []) [] (⟦box⟧ gbox)) ∘ id ∘ Frame.f-in [] [] [] fbox gbox
+          ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
+        (⟦ litDSorted ⟧ ∘ pad (0 ∷ []) [] (⟦box⟧ gbox)) ∘ Frame.f-in [] [] [] fbox gbox
+          ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (≈-Term-sym g-out≈cp)) ≈-Term-refl ⟩
+        (⟦ litDSorted ⟧ ∘ Frame.g-out [] [] [] fbox gbox) ∘ Frame.f-in [] [] [] fbox gbox ∎
