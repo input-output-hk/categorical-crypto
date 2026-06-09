@@ -380,6 +380,9 @@ sharing is the bottleneck.
    balanced. Note it is largely **subsumed by (1)**: literalization removes the per-access
    multiplier, leaving shape sensitivity only in the single forced normalization (where balanced
    still wins ~2×: `tr` 247 vs 491 ms) — so do (1) first; (2) is a compounding ~2× on top.
+   *(Post-tabulation correction: with `findIsoᵀ` measured at 2.7 s for N=16 while the forced
+   traversal is only ~466 ms of it (~17%), rebalancing's ~2× on that component is ~10% end-to-end.
+   Demoted — not worth building unless the residual search/Verify cost is reduced first.)*
 3. **The ~1.1 s `soundness-full-wired`-application overhead** — real, paid once per solve even with
    the named-iso pattern; likely one re-normalization of the `⟪_⟫`-typed index during conversion.
    Bounded but worth a look after (1), since (1) makes the iso's type a literal too.
