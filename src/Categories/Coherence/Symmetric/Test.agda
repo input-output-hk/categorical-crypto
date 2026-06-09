@@ -285,6 +285,15 @@ module MonoidRewrite (A : C.Obj)
                    S.λ⇒                     -- rᵗ
                    unitLawˡ
 
+    -- Occurrence selection: with two copies of the redex side by side,
+    -- `rewriteAutoₙ!` rewrites the chosen one (index 1, the left factor) and
+    -- leaves the other.
+    test-unitˡ-auto-occ1
+      : (mᴹ ∘ (uᴹ ⊗₁ id {A})) ⊗₁ (mᴹ ∘ (uᴹ ⊗₁ id {A})) ≈ _
+    test-unitˡ-auto-occ1 =
+      rewriteAutoₙ! ((m S.∘ (u S.⊗₁ S.id)) S.⊗₁ (m S.∘ (u S.⊗₁ S.id)))
+                    (m S.∘ (u S.⊗₁ S.id)) S.λ⇒ 1 unitLawˡ
+
     -- The same step composed with the coherence solver `solveH!` in a single
     -- `HomReasoning` chain: rewrite, then massage the result up to SMC structure.
     test-rewrite-then-coherence

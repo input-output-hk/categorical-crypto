@@ -34,6 +34,8 @@ open APROP sig
 
 open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
 open import Data.Bool.Base using (Bool; true; false)
+open import Data.List.Base using (List; []; _∷_; _++_; map)
+open import Data.Nat using (ℕ; zero; suc)
 open import Data.Product using (Σ; _×_; _,_)
 open import Relation.Nullary using (yes; no)
 open import Relation.Binary.PropositionalEquality using (refl)
@@ -59,30 +61,45 @@ leaf-try {A} {B} {P} {Q} s lᵗ with A ≟-ObjTerm P | B ≟-ObjTerm Q
 leaf-try _ _ | _ | _ = nothing
 
 --------------------------------------------------------------------------------
--- Structural focusing.
+-- Enumerate *all* focus positions, in a fixed order: the whole-term (leaf)
+-- match first, then — for `∘` — the right operand's positions before the left
+-- operand's, and — for `⊗` — the right factor's before the left factor's.
+-- The context-extension wrappers are exactly the per-position frame builders.
+
+focusAll : ∀ {A B P Q} → HomTerm A B → HomTerm P Q → List (Foc A B P Q)
+
+go-all : ∀ {A B P Q} → HomTerm A B → HomTerm P Q → List (Foc A B P Q)
+go-all (g ∘ f) lᵗ =
+     map (λ { (k , pre , post) → (k , pre , g ∘ post) }) (focusAll f lᵗ)   -- redex in f
+  ++ map (λ { (k , pre , post) → (k , pre ∘ f , post) }) (focusAll g lᵗ)   -- redex in g
+go-all (_⊗₁_ {A₁} {_} {A₂} a b) lᵗ =
+     map (λ { (k , pre , post) →                                          -- right factor
+            (A₁ ⊗₀ k , α⇐ ∘ (id {A₁} ⊗₁ pre) , (a ⊗₁ post) ∘ α⇒) })
+         (focusAll b lᵗ)
+  ++ map (λ { (k , pre , post) →                                          -- left factor
+            -- route A₂ (b's wire) left past P/Q with σ so lᵗ stays rightmost;
+            -- `b` is absorbed into `post`.
+            ( k ⊗₀ A₂
+            , α⇐ ∘ (id {k} ⊗₁ σ) ∘ α⇒ ∘ (pre ⊗₁ id {A₂})
+            , (post ⊗₁ b) ∘ α⇐ ∘ (id {k} ⊗₁ σ) ∘ α⇒ ) })
+         (focusAll a lᵗ)
+go-all _ _ = []
+
+focusAll s lᵗ with leaf-try s lᵗ
+... | just r  = r ∷ go-all s lᵗ
+... | nothing = go-all s lᵗ
+
+--------------------------------------------------------------------------------
+-- Indexed entry point: the `n`-th focus position (0-based, in the order above),
+-- and `focusAt` as the first one.
+
+lookupMaybe : ∀ {a} {A : Set a} → List A → ℕ → Maybe A
+lookupMaybe []       _       = nothing
+lookupMaybe (x ∷ _)  zero    = just x
+lookupMaybe (_ ∷ xs) (suc n) = lookupMaybe xs n
+
+focusAtₙ : ∀ {A B P Q} → HomTerm A B → HomTerm P Q → ℕ → Maybe (Foc A B P Q)
+focusAtₙ s lᵗ n = lookupMaybe (focusAll s lᵗ) n
 
 focusAt : ∀ {A B P Q} → HomTerm A B → HomTerm P Q → Maybe (Foc A B P Q)
-
--- Recurse into the two `∘` operands / the right `⊗` factor.
-go : ∀ {A B P Q} → HomTerm A B → HomTerm P Q → Maybe (Foc A B P Q)
-go (g ∘ f) lᵗ with focusAt f lᵗ
-... | just (k , pre , post) = just (k , pre , g ∘ post)        -- redex in f
-... | nothing with focusAt g lᵗ
-...   | just (k , pre , post) = just (k , pre ∘ f , post)      -- redex in g
-...   | nothing               = nothing
-go (_⊗₁_ {A₁} {_} {A₂} a b) lᵗ with focusAt b lᵗ
-... | just (k , pre , post) =                                  -- redex in right factor
-        just (A₁ ⊗₀ k , α⇐ ∘ (id {A₁} ⊗₁ pre) , (a ⊗₁ post) ∘ α⇒)
-... | nothing with focusAt a lᵗ
-...   | just (k , pre , post) =                                -- redex in left factor
-          just ( k ⊗₀ A₂
-               -- route A₂ (b's wire) left past P/Q with σ so lᵗ stays rightmost;
-               -- `b` is absorbed into `post`.
-               , α⇐ ∘ (id {k} ⊗₁ σ) ∘ α⇒ ∘ (pre ⊗₁ id {A₂})
-               , (post ⊗₁ b) ∘ α⇐ ∘ (id {k} ⊗₁ σ) ∘ α⇒ )
-...   | nothing = nothing
-go _ _ = nothing
-
-focusAt s lᵗ with leaf-try s lᵗ
-... | just r  = just r
-... | nothing = go s lᵗ
+focusAt s lᵗ = focusAtₙ s lᵗ 0

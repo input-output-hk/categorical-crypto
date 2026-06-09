@@ -36,13 +36,14 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.FindIso sig-dec using (findIso)
-open import Categories.APROP.Hypergraph.Solver.Carve sig-dec using (focusAt; Foc)
+open import Categories.APROP.Hypergraph.Solver.Carve sig-dec using (focusAtₙ; Foc)
 open import Categories.APROP.Hypergraph.SoundnessFullWired sig-dec
   using (soundness-full-wired)
 
 open import Level using (Level)
 open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
 open import Data.Bool.Base using (T)
+open import Data.Nat.Base using (ℕ; zero)
 open import Data.Product.Base using (_,_; proj₁; proj₂)
 
 private
@@ -54,13 +55,13 @@ private
   fromWitness! : ∀ {a} {A : Set a} (m : Maybe A) → T (is-just m) → A
   fromWitness! (just x) _ = x
 
-  -- The frame `post ∘ (id {k} ⊗₁ mid) ∘ pre` for the focus `focusAt s lᵗ`
-  -- located in `s` (when it succeeds).  `mid := lᵗ` gives the L-frame whose
-  -- iso to `s` certifies the carve; `mid := rᵗ` gives the rewritten target.
+  -- The frame `post ∘ (id {k} ⊗₁ mid) ∘ pre` for the `n`-th focus position of
+  -- `lᵗ` in `s` (when it exists).  `mid := lᵗ` gives the L-frame whose iso to
+  -- `s` certifies the carve; `mid := rᵗ` gives the rewritten target.
   focFrame : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)
-           → T (is-just (focusAt s lᵗ)) → HomTerm A B
-  focFrame s lᵗ mid found =
-    let (k , pre , post) = fromWitness! (focusAt s lᵗ) found
+           → (n : ℕ) → T (is-just (focusAtₙ s lᵗ n)) → HomTerm A B
+  focFrame s lᵗ mid n found =
+    let (k , pre , post) = fromWitness! (focusAtₙ s lᵗ n) found
     in post ∘ (id {k} ⊗₁ mid) ∘ pre
 
 --------------------------------------------------------------------------------
@@ -180,19 +181,31 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   -- rewritten target is computed as `focFrame s lᵗ rᵗ found`.
   --
   -- Two typecheck-time obligations, both discharged by reduction at the call
-  -- site (where `s`, `lᵗ` are concrete): `found` — `focusAt` located the redex;
-  -- `cert` — the located L-frame is hypergraph-iso to `s`.  The target is *by
-  -- construction* the R-frame, so no second iso search is needed: we transport
-  -- the rule across the located frame by `C`'s `∘`/`⊗₁` congruence directly.
+  -- site (where `s`, `lᵗ`, `n` are concrete): `found` — the `n`-th focus
+  -- position of `lᵗ` in `s` exists; `cert` — that L-frame is hypergraph-iso to
+  -- `s`.  The target is *by construction* the R-frame, so no second iso search
+  -- is needed: we transport the rule across the located frame by `C`'s
+  -- `∘`/`⊗₁` congruence directly.  `n` selects which occurrence to rewrite.
+  rewriteAutoₙ!
+    : ∀ {A B P Q}
+    → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
+    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
+    → {found : T (is-just (focusAtₙ s lᵗ n))}
+    → {_     : T (is-just (findIso ⟪ s ⟫ ⟪ focFrame s lᵗ lᵗ n found ⟫))}
+    → ⟦ s ⟧₁ C.≈ ⟦ focFrame s lᵗ rᵗ n found ⟧₁
+  rewriteAutoₙ! s lᵗ rᵗ n rule {found} {cert} =
+    C.Equiv.trans
+      (solveH s (focFrame s lᵗ lᵗ n found)
+              (fromWitness! (findIso ⟪ s ⟫ ⟪ focFrame s lᵗ lᵗ n found ⟫) cert))
+      (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule))))
+
+  -- The first occurrence (`n = 0`).
   rewriteAuto!
     : ∀ {A B P Q}
     → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
-    → {found : T (is-just (focusAt s lᵗ))}
-    → {_     : T (is-just (findIso ⟪ s ⟫ ⟪ focFrame s lᵗ lᵗ found ⟫))}
-    → ⟦ s ⟧₁ C.≈ ⟦ focFrame s lᵗ rᵗ found ⟧₁
+    → {found : T (is-just (focusAtₙ s lᵗ zero))}
+    → {_     : T (is-just (findIso ⟪ s ⟫ ⟪ focFrame s lᵗ lᵗ zero found ⟫))}
+    → ⟦ s ⟧₁ C.≈ ⟦ focFrame s lᵗ rᵗ zero found ⟧₁
   rewriteAuto! s lᵗ rᵗ rule {found} {cert} =
-    C.Equiv.trans
-      (solveH s (focFrame s lᵗ lᵗ found)
-              (fromWitness! (findIso ⟪ s ⟫ ⟪ focFrame s lᵗ lᵗ found ⟫) cert))
-      (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule))))
+    rewriteAutoₙ! s lᵗ rᵗ zero rule {found} {cert}

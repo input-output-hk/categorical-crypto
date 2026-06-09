@@ -51,7 +51,8 @@ mySigDec = record { sig = mySig ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-MyMor_ }
 
 open import Categories.APROP.Hypergraph.Translation mySig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.FindIso mySigDec using (findIso)
-open import Categories.APROP.Hypergraph.Solver.Carve mySigDec using (focusAt)
+open import Categories.APROP.Hypergraph.Solver.Carve mySigDec using (focusAt; focusAtₙ)
+open import Data.Nat.Base using (ℕ)
 open APROP mySig hiding (ObjTerm; Var; unit; _⊗₀_)
 
 --------------------------------------------------------------------------------
@@ -96,3 +97,25 @@ private
 
 carve-left-certifies : is-just (findIso ⟪ sL ⟫ ⟪ frameL ⟫) ≡ true
 carve-left-certifies = refl
+
+--------------------------------------------------------------------------------
+-- Occurrence selection: two copies of the redex, side by side.  `focusAtₙ`
+-- locates each (index 0 = right factor, index 1 = left factor) and both frames
+-- certify.
+
+private
+  s2 : HomTerm ((unit ⊗₀ a₀) ⊗₀ (unit ⊗₀ a₀)) (a₀ ⊗₀ a₀)
+  s2 = (Agen m ∘ (Agen u ⊗₁ id)) ⊗₁ (Agen m ∘ (Agen u ⊗₁ id))
+
+  foc2-0 = from-just (focusAtₙ s2 lᵗ 0)
+  foc2-1 = from-just (focusAtₙ s2 lᵗ 1)
+
+  frame2-0 frame2-1 : HomTerm ((unit ⊗₀ a₀) ⊗₀ (unit ⊗₀ a₀)) (a₀ ⊗₀ a₀)
+  frame2-0 = proj₂ (proj₂ foc2-0) ∘ (id {proj₁ foc2-0} ⊗₁ lᵗ) ∘ proj₁ (proj₂ foc2-0)
+  frame2-1 = proj₂ (proj₂ foc2-1) ∘ (id {proj₁ foc2-1} ⊗₁ lᵗ) ∘ proj₁ (proj₂ foc2-1)
+
+two-occ-0 : is-just (findIso ⟪ s2 ⟫ ⟪ frame2-0 ⟫) ≡ true
+two-occ-0 = refl
+
+two-occ-1 : is-just (findIso ⟪ s2 ⟫ ⟪ frame2-1 ⟫) ≡ true
+two-occ-1 = refl
