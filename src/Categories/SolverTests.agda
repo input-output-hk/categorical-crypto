@@ -17,10 +17,12 @@
 
 module Categories.SolverTests where
 
+open import Data.Fin using (Fin; zero; suc)
+open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.Maybe using (Maybe; just; nothing; Is-just; to-witness)
 open import Data.Maybe.Relation.Unary.Any using (just)
-open import Data.Product using (Σ; _,_; proj₁; proj₂)
+open import Data.Product using (Σ; _×_; _,_; proj₁; proj₂)
 open import Relation.Nullary using (Dec; yes; no)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
@@ -47,16 +49,36 @@ _≟Ty_ : DecidableEquality Ty
 
 ------------------------------------------------------------------------
 -- Generator signature: Frobenius/bialgebra kit on Ty.
---   μ : ⋆⋆ → ⋆   η : · → ⋆   δ : ⋆ → ⋆⋆   ε : ⋆ → ·
---   s : ⋆ → ⋆  (endo on ⋆)    t : • → •  (endo on •)
+--
+-- We index generators by Fin 6 (as in the Symmetric.Test convention)
+-- so that decidable equality comes for free from _≟F_.
+--
+--   0 → μ : ⋆⋆ → ⋆      (multiply)
+--   1 → η : · → ⋆        (unit)
+--   2 → δ : ⋆ → ⋆⋆      (comultiply)
+--   3 → ε : ⋆ → ·        (counit)
+--   4 → s : ⋆ → ⋆        (endo on ⋆)
+--   5 → t : • → •        (endo on •)
+
+arity : Fin 6 → List Ty × List Ty
+arity zero                             = (⋆ ∷ ⋆ ∷ []) , (⋆ ∷ [])
+arity (suc zero)                       = [] , (⋆ ∷ [])
+arity (suc (suc zero))                 = (⋆ ∷ []) , (⋆ ∷ ⋆ ∷ [])
+arity (suc (suc (suc zero)))           = (⋆ ∷ []) , []
+arity (suc (suc (suc (suc zero))))     = (⋆ ∷ []) , (⋆ ∷ [])
+arity (suc (suc (suc (suc (suc _))))) = (• ∷ []) , (• ∷ [])
 
 data Gen : List Ty → List Ty → Set where
-  μ : Gen (⋆ ∷ ⋆ ∷ []) (⋆ ∷ [])
-  η : Gen []             (⋆ ∷ [])
-  δ : Gen (⋆ ∷ [])      (⋆ ∷ ⋆ ∷ [])
-  ε : Gen (⋆ ∷ [])      []
-  s : Gen (⋆ ∷ [])      (⋆ ∷ [])
-  t : Gen (• ∷ [])      (• ∷ [])
+  gen : (i : Fin 6) → Gen (proj₁ (arity i)) (proj₂ (arity i))
+
+-- Readable aliases matching the reference convention.
+private
+  μ = gen zero
+  η = gen (suc zero)
+  δ = gen (suc (suc zero))
+  ε = gen (suc (suc (suc zero)))
+  s = gen (suc (suc (suc (suc zero))))
+  t = gen (suc (suc (suc (suc (suc zero)))))
 
 ------------------------------------------------------------------------
 -- Solver machinery at this signature.
@@ -159,44 +181,12 @@ module Decision where
 
   open SolverCompare _≟Ty_ Gen using () renaming (Gen to GenΣ)
 
+  -- Decidable equality on GenΣ via _≟F_ on the Fin 6 index.
   private
     _≟Gen_ : DecidableEquality GenΣ
-    (_ , _ , μ) ≟Gen (_ , _ , μ) = yes refl
-    (_ , _ , η) ≟Gen (_ , _ , η) = yes refl
-    (_ , _ , δ) ≟Gen (_ , _ , δ) = yes refl
-    (_ , _ , ε) ≟Gen (_ , _ , ε) = yes refl
-    (_ , _ , s) ≟Gen (_ , _ , s) = yes refl
-    (_ , _ , t) ≟Gen (_ , _ , t) = yes refl
-    (_ , _ , μ) ≟Gen (_ , _ , η) = no λ ()
-    (_ , _ , μ) ≟Gen (_ , _ , δ) = no λ ()
-    (_ , _ , μ) ≟Gen (_ , _ , ε) = no λ ()
-    (_ , _ , μ) ≟Gen (_ , _ , s) = no λ ()
-    (_ , _ , μ) ≟Gen (_ , _ , t) = no λ ()
-    (_ , _ , η) ≟Gen (_ , _ , μ) = no λ ()
-    (_ , _ , η) ≟Gen (_ , _ , δ) = no λ ()
-    (_ , _ , η) ≟Gen (_ , _ , ε) = no λ ()
-    (_ , _ , η) ≟Gen (_ , _ , s) = no λ ()
-    (_ , _ , η) ≟Gen (_ , _ , t) = no λ ()
-    (_ , _ , δ) ≟Gen (_ , _ , μ) = no λ ()
-    (_ , _ , δ) ≟Gen (_ , _ , η) = no λ ()
-    (_ , _ , δ) ≟Gen (_ , _ , ε) = no λ ()
-    (_ , _ , δ) ≟Gen (_ , _ , s) = no λ ()
-    (_ , _ , δ) ≟Gen (_ , _ , t) = no λ ()
-    (_ , _ , ε) ≟Gen (_ , _ , μ) = no λ ()
-    (_ , _ , ε) ≟Gen (_ , _ , η) = no λ ()
-    (_ , _ , ε) ≟Gen (_ , _ , δ) = no λ ()
-    (_ , _ , ε) ≟Gen (_ , _ , s) = no λ ()
-    (_ , _ , ε) ≟Gen (_ , _ , t) = no λ ()
-    (_ , _ , s) ≟Gen (_ , _ , μ) = no λ ()
-    (_ , _ , s) ≟Gen (_ , _ , η) = no λ ()
-    (_ , _ , s) ≟Gen (_ , _ , δ) = no λ ()
-    (_ , _ , s) ≟Gen (_ , _ , ε) = no λ ()
-    (_ , _ , s) ≟Gen (_ , _ , t) = no λ ()
-    (_ , _ , t) ≟Gen (_ , _ , μ) = no λ ()
-    (_ , _ , t) ≟Gen (_ , _ , η) = no λ ()
-    (_ , _ , t) ≟Gen (_ , _ , δ) = no λ ()
-    (_ , _ , t) ≟Gen (_ , _ , ε) = no λ ()
-    (_ , _ , t) ≟Gen (_ , _ , s) = no λ ()
+    (_ , _ , gen i) ≟Gen (_ , _ , gen j) with i ≟F j
+    ... | yes refl = yes refl
+    ... | no ¬p    = no λ where refl → ¬p refl
 
   open SolverCompare.Decide _≟Ty_ Gen _≟Gen_
     using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
