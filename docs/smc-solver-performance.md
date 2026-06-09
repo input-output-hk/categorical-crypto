@@ -415,6 +415,31 @@ it removes was measured at 10–18× and *growing* with size, so its effect at t
 plausibly exceeds the headline N=16 number; whether it clears 100× is the open empirical
 question), possibly compounded by rebalancing and equation-splitting.
 
+## Splitting as an automatic solver heuristic (2026-06-10, design)
+
+Equation splitting need not stay a manual workflow: it works as a sound, automatic front-end.
+`solveSplit? f g` (a term-level recursion computing a `Maybe (f ≈Term g)`):
+
+1. **refl peeling** — syntactically equal subterms (decidable from `sig-dec`) discharge by
+   `≈-Term-refl`, zero solver cost. Captures the dominant practical case: a local rewrite inside
+   a large shared context.
+2. **aligned-cut recursion** — `f = f₂ ∘ f₁`, `g = g₂ ∘ g₁` with the same (decidable) cut object:
+   recurse on the pairs, compose by `∘-resp-≈`; dually for `⊗₁` with `⊗-resp-≈`. Each success
+   halves the goal, and the measured super-polynomial cost curve makes that a large, compounding
+   win.
+3. **windowed fallback** — assoc-normalize both sides to `∘`-chains (assoc-only lemma), peel the
+   maximal common prefix/suffix by refl, run the full `findIsoᵀ` solve once on the differing
+   middle window. (Reassociation re-enters here as *cut exposure*, not as the demoted perf
+   pre-pass; the `nV`/`nE` count check is a fast-fail pre-filter at each leaf.)
+4. **fallback** — the current whole-term solve, so completeness is unchanged.
+
+Sound by construction (every piece solver-proven, composed by congruence; failures only fall
+back). Honest scope: it does **not** decompose equations whose content crosses every syntactic
+cut (interchange/braiding migrations — σ-naturality itself, GConstruction's full equation); there
+the cost is today's plus cheap failed attempts. Effort ≈ 150–300 LOC + decidable `HomTerm`
+equality at fixed endpoints; same architectural family as the `rewriteH!` front-end on the
+parallel branch.
+
 ## Implication
 
 The fix is the same as for shrinking the soundness proof itself: a real coherence solver
