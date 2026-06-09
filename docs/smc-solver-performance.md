@@ -175,11 +175,33 @@ tie-break for automorphic/independent edges (the matrix sidesteps it via the ter
 intrinsic labelling must pick a canonical representative) — but that is exactly what the
 no-inversion / linear-extension lemmas already reason about.
 
-**Caveat on the evidence.** The "representational, not algorithmic" conclusion rests on the
-structural argument that `findIso` doesn't backtrack on monogamous acyclic graphs, plus the existing
-16–25× numbers. To turn it into hard evidence one would profile `findIso` on terms with growing edge
-counts (e.g. `g ∘ g ∘ … ∘ g`, and parallel `g ⊗ … ⊗ g`) and confirm the cost is linear in edges (no
-super-linear backtracking) — not yet done.
+**Edge-scaling probe (2026-06-09).** Profiling `from-just (findIso ⟪f⟫ ⟪f⟫)` for one generator
+`g : a → a`, increasing the edge count:
+
+| N edges | chain `g∘…∘g` | parallel `g⊗…⊗g` |
+|--------:|--------------:|------------------:|
+| 4       | 95 ms         | 22 ms             |
+| 8       | 746 ms (7.9×) | 96 ms (4.4×)      |
+| 16      | 8351 ms (11.2×) | 581 ms (6.0×)   |
+
+Two findings:
+- **No exponential backtracking.** The *parallel* case — `N` independent edges with the *identical*
+  label/shape, exactly the configuration that would make an iso-search branch — is the **cheaper**
+  one and scales with the **lower** exponent (~N^2.3) than the chain (~N^3). If `findIso` were
+  back-tracking over the `N!` candidate matchings of identical parallel edges it would blow up
+  exponentially; instead it is sub-cubic. So the boundary seed + monogamy do kill the branching,
+  confirming the "deterministic in practice" claim — the algorithm is **not** pathological.
+- **But the per-size cost is super-linear (~N²–N³), and it is representational.** The cost is *not*
+  search; it is building `⟪_⟫` (the *pruned* composition machinery `hComposeP` — `count-non`/`remap`
+  over growing vertex lists, the same pruned-`∘` cost seen elsewhere) plus `Verify` (decidable-equality
+  scans over all vertices), all evaluated in Agda's term evaluator. Tellingly the **chain** (deep
+  nested `hComposeP`) is *worse* than the **parallel** (flat `hTensor`, no pruning) — i.e. the cost
+  tracks the translation/verify machinery, not the matching.
+
+So the hard evidence confirms and sharpens the verdict: the matrix–vs–hypergraph gap is
+**representational, not a search-vs-no-search algorithmic gap** — and the hypergraph representation's
+cost is itself **super-linear** in size (dominated by pruned-`⟪_⟫` + `Verify`), which is exactly what
+a flat canonical form (matrix, or a DAG canonical labelling on the hypergraph) would replace.
 
 ## Implication
 
