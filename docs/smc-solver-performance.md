@@ -368,6 +368,20 @@ sharing is the bottleneck.
    super-polynomial, so cutting the ~50-morphism goal into ≤25-morphism `≈-Term-trans` steps —
    e.g. along `assoc'`'s own 11-step chain — brings each step into the 1–25 s zone, where the
    tabulated solver makes the total a feasible one-time leaf-module cost).
+
+   *Refinements from the builder's full profile (slower sandbox, ratios comparable; its
+   2.4×/5.5×/4.2× at N=8/16/32 brackets the 2.4×/3.2×/4.2× verified here — constants vary by
+   signature/machine):* (i) the right floor is **2× `tr`** (two graphs, each forced once) — against
+   that floor the re-evaluation multiplier genuinely collapses (baseline `findIso`/`tr` ≈ 7.5–14.5×;
+   tabulated ≈ 2.4–3.2×), i.e. the lever did what the sharing probes predicted; the "missing"
+   factor vs the ~10× estimate is that the floor is two traversals, not one. (ii) `tr` itself is
+   **super-linear** (`tr`₃₂ ≈ 12.5× `tr`₁₆ — the single forced `hComposeP` walk is ~O(N²)), so the
+   forced translation's *share* of `findIsoᵀ` grows with N (≈34% at N=16 here, ≈76–84% on the
+   builder's runs at 16–32). Consequently the **rebalancing demotion above is size-dependent**: ~10%
+   at N=16, but approaching ~1.3–2× end-to-end at large N as the traversal dominates — partially
+   un-demoted for big goals, though still secondary to splitting. (iii) The lever is
+   depth-specific: parallel (shallow) graphs gain only ~1.26×, σ-naturality is parity (no
+   regression anywhere); `tabH` overhead ≈2%, the iso transport is free.
 2. **Re-association pre-pass — but to BALANCED form, not right-nested (correction).** A follow-up
    probe (16 and 32 generators) measured balanced `∘`-trees at **3,512 ms / 29.2 s** vs right-linear
    **9,502 ms / 113.8 s** vs left-linear (20 s at 16) — i.e. **balanced < right < left, gaps growing**
