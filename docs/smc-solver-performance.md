@@ -355,6 +355,19 @@ sharing is the bottleneck.
    is not the lever — it forces only to WHNF and sharing already does the memoization; it merely
    controls *when* forcing happens. Expected end state ≈ one forced traversal + cheap search:
    ~0.5–1 s instead of 8.3 s at N=16, with the gain growing with size.
+
+   **BUILT + MEASURED (commit `9bf0650`: `Tabulate.agda`/`FindIsoTab.agda`/`solveH!ᵀ`, all
+   `--safe`, `tab-≅ᴴ` postulate-free).** Verified same-run: `findIso` 781 ms / 8.6 s / 117 s vs
+   `findIsoᵀ` **332 ms / 2.7 s / 28.1 s** at N = 8/16/32 — **2.4× / 3.2× / 4.2×, growing**, and
+   the non-self σ-naturality runs through the transport in 184 ms with the witness
+   auto-discharging. So the lever is real but lands **below the ~10× estimate**: `findIsoᵀ` still
+   sits ~6× above the force-once floor, the residual being the literal-data search + `Verify`'s
+   `Dec`-proof construction + O(i) `Vec`-spine lookups + the per-access `elab` transport. Against
+   the GConstruction bar (~100×): tabulation alone (~4–5× at that scale) + rebalancing (~2×) is
+   far short — **the remaining big multiplier must come from equation splitting** (the cost is
+   super-polynomial, so cutting the ~50-morphism goal into ≤25-morphism `≈-Term-trans` steps —
+   e.g. along `assoc'`'s own 11-step chain — brings each step into the 1–25 s zone, where the
+   tabulated solver makes the total a feasible one-time leaf-module cost).
 2. **Re-association pre-pass — but to BALANCED form, not right-nested (correction).** A follow-up
    probe (16 and 32 generators) measured balanced `∘`-trees at **3,512 ms / 29.2 s** vs right-linear
    **9,502 ms / 113.8 s** vs left-linear (20 s at 16) — i.e. **balanced < right < left, gaps growing**
