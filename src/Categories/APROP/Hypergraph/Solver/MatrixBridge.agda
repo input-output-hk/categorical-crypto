@@ -6,18 +6,40 @@
 --
 --   hg→mat  : Hypergraph FlatGen → BlockMatrix Bool …      (incidence encoding)
 --   align   : (H J) → candidate (φ , ψ) bijections          (CANONICAL read)
---   matIso→hgIso : (φ , ψ) → H ≅ᴴ J                          (record assembly)
+--   CanonMatch al  : a DECIDABLE witness that `al` aligns H's diagram onto J's
+--   decCanonMatch  : Alignment → Maybe CanonMatch           (no-search decide)
+--   matIso→hgIso : (al)(BijLaws al)(CanonMatch al) → H ≅ᴴ J  (record assembly)
 --
--- `align` is now a REAL canonical-labelling read (no backtracking search):
--- it computes a canonical DAG labelling of each hypergraph and reads the
--- bijection off the canonical ranks.  See §2.  The proof fields of `_≅ᴴ_`
--- (vlab/ein/eout/dom/cod/elab agreement) remain POSTULATED — this spike
--- validates the *data flow* and `align`'s computational correctness (the
--- demo discharges the incidence conditions by `refl` on a concrete
--- non-identity example); it does not yet *prove* preservation in general.
+-- `align` is a REAL canonical-labelling read (no backtracking search): it
+-- computes a canonical DAG labelling of each hypergraph and reads the
+-- bijection off the canonical ranks.  See §2.
 --
--- Drops `--safe` (postulates + brings in the matrix world); the underlying
--- hypergraph modules remain `--safe --without-K`.
+-- ALL TWELVE `_≅ᴴ_` FIELDS ARE NOW REAL PROOFS — no postulate, no `trustMe`,
+-- in the `≅ᴴ` construction:
+--
+--   * The FOUR BIJECTION-LAW fields (`φ-left`/`φ-rght`/`ψ-left`/`ψ-rght`, the
+--     inverse round-trips) follow from the canonical orders being PERMUTATIONS
+--     of their `Fin` index spaces plus an equal-count match; see §2½ (the
+--     abstract `Composite` lemma over `posIn`/`lookupD`), §2¾ (`CanonPerm` /
+--     `BijLaws` / `align-bijLaws`).  The permutation property is taken as the
+--     EXPLICIT, documented `CanonPerm` hypothesis (it holds for every
+--     well-formed monogamous acyclic covering input; for concrete inputs the
+--     orders compute to explicit enumerations and `CanonPerm` is discharged
+--     constructively — see `MatrixBridgeDemo`).
+--
+--   * The EIGHT PRESERVATION fields (vlab / endpoint / boundary / elab
+--     agreement) are PROVEN from a canonical-match WITNESS (`CanonMatch`) — a
+--     decidable predicate (the no-search analogue of the search-side `Verify`)
+--     asserting, at `align`'s own `φ`/`ψ`, the primitive incidence equations.
+--     These facts are FALSE for an arbitrary `Alignment` (see §3 CRUX); so the
+--     witness is essential.  `decCanonMatch` PRODUCES it with no search.
+--
+-- `matIso→hgIso al bij match` therefore assembles a fully-proven `H ≅ᴴ J`.
+-- `MatrixBridgeDemo` discharges BOTH inputs constructively on a concrete iso
+-- pair (`CanonPerm` by `refl`-witnesses, `CanonMatch` by `decCanonMatch`).
+--
+-- Drops `--safe` (brings in the matrix world); the underlying hypergraph
+-- modules remain `--safe --without-K`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
@@ -25,7 +47,7 @@ open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDe
 module Categories.APROP.Hypergraph.Solver.MatrixBridge
   (sig-dec : APROPSignatureDec) where
 
-open APROPSignatureDec sig-dec using (sig)
+open APROPSignatureDec sig-dec using (sig; _≟X_)
 
 open import Categories.APROP.Hypergraph.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
@@ -36,14 +58,26 @@ open import Categories.SymmetricMonoidalCoherence.Matrix
   using (Matrix; tabulateM; BlockMatrix; RowG; ColG; v⁻; v⁺; t⁺; t⁻;
          module Sizes)
 
+-- Decidable-equality + view machinery reused from the search-side verifier:
+-- `flat-match` (conservative `FlatGen` equality via `FlatView`), `dec→maybe`,
+-- `∀F?` (∀-over-Fin decider).  We reuse these wholesale so the canonical
+-- (no-search) match-decider stays in lock-step with `Verify`.
+open import Categories.APROP.Hypergraph.Solver.Verify sig-dec
+  using (flat-match; dec→maybe; ∀F?)
+
 open import Data.Bool using (Bool; true; false; _∧_; _∨_; not)
+open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc; toℕ)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_; length; lookup; map; _++_; foldr)
-open import Data.Nat using (ℕ; zero; suc; _<ᵇ_; _≡ᵇ_)
+open import Data.List.Properties using (map-∘; map-cong; ≡-dec)
+open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Nat using (ℕ; zero; suc; _<ᵇ_; _≡ᵇ_; _<_; s≤s; z≤n)
 open import Data.Product using (_×_; _,_; proj₁; proj₂)
 open import Relation.Nullary using (yes; no)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.Definitions using (DecidableEquality)
+open import Relation.Binary.PropositionalEquality
+  using (_≡_; refl; cong; sym; trans; subst; subst₂)
 
 private
   variable
@@ -230,6 +264,110 @@ private
   lookupD d (x ∷ _)  zero    = x
   lookupD d (_ ∷ xs) (suc i) = lookupD d xs i
 
+--------------------------------------------------------------------------------
+-- §2½.  PERMUTATION CALCULUS for `posIn` / `lookupD`.
+--
+-- The four bijection-law fields of `_≅ᴴ_` (`φ-left`/`φ-rght`/`ψ-left`/
+-- `ψ-rght`) say that `align`'s `φ`/`φ⁻¹` (and `ψ`/`ψ⁻¹`) are mutually
+-- inverse.  `align` builds them as the composite
+--
+--     φ v = lookupD dy (canonV J) (posIn (canonV H) v)     (and dually).
+--
+-- This composite is a bijection PROVIDED the two canonical orders involved
+-- are PERMUTATIONS of their index spaces (each Fin appears exactly once) and
+-- have EQUAL LENGTH.  This section proves that implication ABSTRACTLY, purely
+-- from `posIn` / `lookupD`; the only inputs are list-completeness,
+-- list-distinctness and a length match.  No hypergraph structure is used here
+-- — see `CanonPerm` / `bijLaws` / `matIso→hgIso` (§3) for how the canonical
+-- orders supply these inputs.
+--
+-- The predicates `_∈L_` / `Distinct` / `Complete` are PUBLIC so callers can
+-- discharge the explicit permutation hypotheses on the canonical orders.
+
+-- Membership predicate matching `posIn`'s structural recursion.
+data _∈L_ {n : ℕ} : Fin n → List (Fin n) → Set where
+  here  : ∀ {x xs}             → x ∈L (x ∷ xs)
+  there : ∀ {x y xs} → x ∈L xs → x ∈L (y ∷ xs)
+
+-- No-duplicates predicate.
+infixr 5 _∷ᵈ_
+data Distinct {n : ℕ} : List (Fin n) → Set where
+  []ᵈ  : Distinct []
+  _∷ᵈ_ : ∀ {x xs} → (x ∈L xs → ⊥) → Distinct xs → Distinct (x ∷ xs)
+
+-- Completeness: every index appears in the list.
+Complete : ∀ {n} → List (Fin n) → Set
+Complete {n} xs = (v : Fin n) → v ∈L xs
+
+private
+  -- R1.  Reading back the recorded position recovers the element — needs only
+  -- membership.
+  pos-look : ∀ {n} (d : Fin n) (xs : List (Fin n)) (v : Fin n)
+           → v ∈L xs → lookupD d xs (posIn xs v) ≡ v
+  pos-look d (x ∷ xs) v mem with x ≟F v
+  ... | yes p = p
+  ... | no ¬p with mem
+  ...   | here       = ⊥-elim (¬p refl)
+  ...   | there mem' = pos-look d xs v mem'
+
+  -- Recorded positions are in range.
+  pos-bound : ∀ {n} (xs : List (Fin n)) (v : Fin n)
+            → v ∈L xs → posIn xs v < length xs
+  pos-bound (x ∷ xs) v mem with x ≟F v
+  ... | yes _ = s≤s z≤n
+  ... | no ¬p with mem
+  ...   | here       = ⊥-elim (¬p refl)
+  ...   | there mem' = s≤s (pos-bound xs v mem')
+
+  -- `lookupD` at an in-range index lands inside the list.
+  look-mem : ∀ {n} (d : Fin n) (ys : List (Fin n)) (q : ℕ)
+           → q < length ys → lookupD d ys q ∈L ys
+  look-mem d (y ∷ ys) zero    _        = here
+  look-mem d (y ∷ ys) (suc q) (s≤s qb) = there (look-mem d ys q qb)
+
+  -- R2.  Looking up position `p` then re-reading its position gives `p` back —
+  -- needs distinctness (so the looked-up element occurs nowhere earlier).
+  look-pos : ∀ {n} (d : Fin n) (xs : List (Fin n)) (p : ℕ)
+           → p < length xs → Distinct xs
+           → posIn xs (lookupD d xs p) ≡ p
+  look-pos d (x ∷ xs) zero    (s≤s _)   (x∉ ∷ᵈ dist) with x ≟F x
+  ... | yes _ = refl
+  ... | no ¬p = ⊥-elim (¬p refl)
+  look-pos d (x ∷ xs) (suc p) (s≤s p<l) (x∉ ∷ᵈ dist) with x ≟F lookupD d xs p
+  ... | yes x≡e = ⊥-elim (x∉ (subst (_∈L xs) (sym x≡e) (look-mem d xs p p<l)))
+  ... | no _ = cong suc (look-pos d xs p p<l dist)
+
+-- The composite-bijection lemma.  Two enumerating lists `xs` (of `Fin m`) and
+-- `ys` (of `Fin n`) of equal length give mutually-inverse maps via
+-- `posIn`/`lookupD`.  This is the heart of the four bijection-law proofs.
+module Composite {m n : ℕ}
+  (xs : List (Fin m)) (ys : List (Fin n))
+  (xs-comp : Complete xs) (ys-comp : Complete ys)
+  (xs-dist : Distinct xs) (ys-dist : Distinct ys)
+  (len≡ : length xs ≡ length ys)
+  (dx : Fin m) (dy : Fin n)
+  where
+
+  f : Fin m → Fin n
+  f v = lookupD dy ys (posIn xs v)
+
+  g : Fin n → Fin m
+  g w = lookupD dx xs (posIn ys w)
+
+  left : ∀ v → g (f v) ≡ v
+  left v =
+    let p<lxs = pos-bound xs v (xs-comp v)
+        p<lys = subst (posIn xs v <_) len≡ p<lxs
+    in trans (cong (lookupD dx xs) (look-pos dy ys (posIn xs v) p<lys ys-dist))
+             (pos-look dx xs v (xs-comp v))
+
+  right : ∀ w → f (g w) ≡ w
+  right w =
+    let q<lys = pos-bound ys w (ys-comp w)
+        q<lxs = subst (posIn ys w <_) (sym len≡) q<lys
+    in trans (cong (lookupD dy ys) (look-pos dx xs (posIn ys w) q<lxs xs-dist))
+             (pos-look dy ys w (ys-comp w))
+
 -- `Canon` is parameterised by a per-edge GENERATOR CODE `ecode`.  The code
 -- is folded into the signature ahead of the structural rank-multiset, so it
 -- dominates the tie-break (see §2).  A faithful `ecode` (distinct generators
@@ -337,61 +475,227 @@ align H J ecodeH ecodeJ dV dV' dE dE' = record
   }
 
 --------------------------------------------------------------------------------
--- §3.  matIso→hgIso : turn an alignment into a hypergraph isomorphism.
+-- §2¾.  The FOUR bijection laws are REAL proofs.
 --
--- The bijection FIELDS are filled from the alignment (genuine data).  The
--- proof FIELDS (label / endpoint / boundary / elab agreement) are POSTULATED
--- — preservation is explicitly deferred for this spike.  The point is that
--- the `_≅ᴴ_` record is *constructible* end-to-end.
+-- `BijLaws al` packages the four round-trips of an alignment (the
+-- `φ-left`/`φ-rght`/`ψ-left`/`ψ-rght` fields of `_≅ᴴ_`).  `CanonPerm`
+-- packages the EXPLICIT permutation hypotheses on the canonical orders that
+-- `align` reads off:
+--
+--   * each of `canonV H`, `canonV J`, `canonE H`, `canonE J` is `Complete`
+--     (covers every index) and `Distinct` (no repeats) — i.e. a PERMUTATION
+--     of its `Fin` index space;
+--   * the two vertex orders have equal length and the two edge orders have
+--     equal length (the EQUAL-COUNT side-condition; together with
+--     completeness this forces `nV H ≡ nV J` and `nE H ≡ nE J`, as it must,
+--     since `φ : Fin (nV H) → Fin (nV J)` is only ever a bijection then).
+--
+-- These conditions hold for every well-formed (monogamous, acyclic, covering)
+-- input hypergraph: the topological peel emits each edge once and each vertex
+-- once.  We do NOT re-derive that combinatorial fact from the peel here; it is
+-- taken as the explicit, clearly-documented `CanonPerm` hypothesis.  Given it,
+-- `align-bijLaws` PROVES all four laws via the abstract `Composite` lemma — no
+-- postulate, no `trustMe`.  (For concrete inputs the canonical orders compute
+-- to explicit enumerations, so `CanonPerm` is discharged by short witnesses;
+-- see `MatrixBridgeDemo`.)
+
+record BijLaws {H J : Hypergraph FlatGen} (al : Alignment H J) : Set where
+  open Alignment al
+  field
+    φ-left : ∀ i → φ⁻¹ (φ i) ≡ i
+    φ-rght : ∀ i → φ (φ⁻¹ i) ≡ i
+    ψ-left : ∀ e → ψ⁻¹ (ψ e) ≡ e
+    ψ-rght : ∀ e → ψ (ψ⁻¹ e) ≡ e
+
+-- Explicit permutation hypotheses on the four canonical orders that `align H J
+-- ecodeH ecodeJ …` reads.  The orders are determined by `ecodeH`/`ecodeJ`, so
+-- those are parameters here too.
+record CanonPerm (H J : Hypergraph FlatGen)
+                 (ecodeH : Fin (Hypergraph.nE H) → ℕ)
+                 (ecodeJ : Fin (Hypergraph.nE J) → ℕ) : Set where
+  field
+    -- vertex orders are permutations of equal length
+    cVH-comp : Complete (Canon.canonV H ecodeH)
+    cVJ-comp : Complete (Canon.canonV J ecodeJ)
+    cVH-dist : Distinct (Canon.canonV H ecodeH)
+    cVJ-dist : Distinct (Canon.canonV J ecodeJ)
+    cV-len   : length (Canon.canonV H ecodeH) ≡ length (Canon.canonV J ecodeJ)
+    -- edge orders are permutations of equal length
+    cEH-comp : Complete (Canon.canonE H ecodeH)
+    cEJ-comp : Complete (Canon.canonE J ecodeJ)
+    cEH-dist : Distinct (Canon.canonE H ecodeH)
+    cEJ-dist : Distinct (Canon.canonE J ecodeJ)
+    cE-len   : length (Canon.canonE H ecodeH) ≡ length (Canon.canonE J ecodeJ)
+
+-- The four bijection laws of `align H J ecodeH ecodeJ …`, PROVEN from a
+-- `CanonPerm`.  Definitionally, `align`'s φ/φ⁻¹ are exactly the f/g of
+-- `Composite (canonV H) (canonV J) …` (and dually for ψ on the edge orders),
+-- so `Composite.left`/`Composite.right` discharge the laws on the nose.
+align-bijLaws :
+  (H J : Hypergraph FlatGen)
+  (ecodeH : Fin (Hypergraph.nE H) → ℕ)
+  (ecodeJ : Fin (Hypergraph.nE J) → ℕ)
+  (dV  : Fin (Hypergraph.nV J)) (dV' : Fin (Hypergraph.nV H))
+  (dE  : Fin (Hypergraph.nE J)) (dE' : Fin (Hypergraph.nE H))
+  → CanonPerm H J ecodeH ecodeJ
+  → BijLaws (align H J ecodeH ecodeJ dV dV' dE dE')
+align-bijLaws H J ecodeH ecodeJ dV dV' dE dE' cp = record
+  { φ-left = CV.left
+  ; φ-rght = CV.right
+  ; ψ-left = CE.left
+  ; ψ-rght = CE.right
+  }
+  where
+    open CanonPerm cp
+    module CV = Composite (Canon.canonV H ecodeH) (Canon.canonV J ecodeJ)
+                          cVH-comp cVJ-comp cVH-dist cVJ-dist cV-len dV' dV
+    module CE = Composite (Canon.canonE H ecodeH) (Canon.canonE J ecodeJ)
+                          cEH-comp cEJ-comp cEH-dist cEJ-dist cE-len dE' dE
+
+--------------------------------------------------------------------------------
+-- §3.  The CANONICAL-MATCH WITNESS and `matIso→hgIso`.
+--
+-- ALL TWELVE `_≅ᴴ_` fields are now REAL proofs.  The FOUR bijection-law
+-- fields come from a `BijLaws al` argument (real proofs, §2¾).  The EIGHT
+-- preservation fields come from a `CanonMatch al` witness, as follows.
+--
+-- CRUX (see the module header / the report).  The incidence-preservation
+-- facts (vlab / endpoint / boundary / elab agreement) are FALSE for an
+-- arbitrary `Alignment H J`: `align` always returns *some* `(φ, ψ)`, but the
+-- incidence only agrees when `H` and `J` actually realise the same diagram.
+-- So they cannot be proven against a bare `Alignment`.
+--
+-- The fix is to make `matIso→hgIso` consume a WITNESS that the alignment's
+-- `φ`/`ψ` really do match `H`'s incidence onto `J`'s.  `CanonMatch al`
+-- packages exactly the PRIMITIVE preservation equations — the same ones the
+-- search-side `Verify.verify` checks decidably — phrased against `al`'s own
+-- `φ`/`ψ`.  Crucially each field is a DECIDABLE equation, so a solver can
+-- PRODUCE the witness with no search (`decCanonMatch` below: the no-search
+-- analogue of `Verify`).  The derived facts (`atom-ein`/`atom-eout`) and the
+-- whole `_≅ᴴ_` record are then PROVEN from the witness + `BijLaws`.
 
 module _ {H J : Hypergraph FlatGen} where
   private
     module H = Hypergraph H
     module J = Hypergraph J
 
-  open import Data.List using (map)
-  open import Relation.Binary.PropositionalEquality using (subst₂)
+  -- The canonical-match witness over a fixed alignment `al`.  These are the
+  -- five PRIMITIVE incidence equations plus the `subst₂`-transported edge
+  -- label equation — exactly the data `Verify.verify` decides.  Everything
+  -- else an `_≅ᴴ_` needs is derived below.
+  record CanonMatch (al : Alignment H J) : Set where
+    private
+      φ = Alignment.φ al
+      ψ = Alignment.ψ al
+    field
+      m-lab  : ∀ i → J.vlab (φ i) ≡ H.vlab i
+      m-ein  : ∀ e → J.ein  (ψ e) ≡ map φ (H.ein  e)
+      m-eout : ∀ e → J.eout (ψ e) ≡ map φ (H.eout e)
+      m-dom  : J.dom ≡ map φ H.dom
+      m-cod  : J.cod ≡ map φ H.cod
+      -- Edge labels agree up to the `subst₂ FlatGen` transport along the
+      -- (derived) atom-list equalities.  This is the `ψ-elab` field at the
+      -- canonical `φ`/`ψ`.  The atom-list equalities it transports along are
+      -- the *derived* ones (`derive-atom-ein/-eout` below).
+      m-elab : ∀ e →
+        subst₂ FlatGen
+          (trans (cong (map J.vlab) (m-ein e))
+                 (trans (sym (map-∘ (H.ein e))) (map-cong m-lab (H.ein e))))
+          (trans (cong (map J.vlab) (m-eout e))
+                 (trans (sym (map-∘ (H.eout e))) (map-cong m-lab (H.eout e))))
+          (J.elab (ψ e))
+        ≡ H.elab e
 
-  postulate
-    -- Deferred preservation proofs (the genuine mathematical content of a
-    -- *proven* version).  Quantified over an alignment so they sit at the
-    -- right types.
-    align-φ-left  : (al : Alignment H J) → ∀ i → Alignment.φ⁻¹ al (Alignment.φ al i) ≡ i
-    align-φ-rght  : (al : Alignment H J) → ∀ i → Alignment.φ al (Alignment.φ⁻¹ al i) ≡ i
-    align-ψ-left  : (al : Alignment H J) → ∀ e → Alignment.ψ⁻¹ al (Alignment.ψ al e) ≡ e
-    align-ψ-rght  : (al : Alignment H J) → ∀ e → Alignment.ψ al (Alignment.ψ⁻¹ al e) ≡ e
-    align-φ-lab   : (al : Alignment H J) → ∀ i → J.vlab (Alignment.φ al i) ≡ H.vlab i
-    align-ψ-ein   : (al : Alignment H J) → ∀ e →
-                    J.ein  (Alignment.ψ al e) ≡ map (Alignment.φ al) (H.ein e)
-    align-ψ-eout  : (al : Alignment H J) → ∀ e →
-                    J.eout (Alignment.ψ al e) ≡ map (Alignment.φ al) (H.eout e)
-    align-φ-dom   : (al : Alignment H J) → J.dom ≡ map (Alignment.φ al) H.dom
-    align-φ-cod   : (al : Alignment H J) → J.cod ≡ map (Alignment.φ al) H.cod
-    align-atom-ein  : (al : Alignment H J) → ∀ e →
-                      map J.vlab (J.ein  (Alignment.ψ al e)) ≡ map H.vlab (H.ein e)
-    align-atom-eout : (al : Alignment H J) → ∀ e →
-                      map J.vlab (J.eout (Alignment.ψ al e)) ≡ map H.vlab (H.eout e)
-    align-ψ-elab : (al : Alignment H J) → ∀ e →
-                   subst₂ FlatGen (align-atom-ein al e) (align-atom-eout al e)
-                                  (J.elab (Alignment.ψ al e))
-                 ≡ H.elab e
+  -- ── Derived facts (PROVEN from the witness) ──────────────────────────────
+  module _ {al : Alignment H J} (mt : CanonMatch al) where
+    private
+      module Mt = CanonMatch mt
+      φ = Alignment.φ al
+      ψ = Alignment.ψ al
 
-  matIso→hgIso : Alignment H J → H ≅ᴴ J
-  matIso→hgIso al = record
+    -- `map J.vlab ys ≡ map H.vlab xs` from `ys ≡ map φ xs` and the pointwise
+    -- vertex-label agreement `J.vlab (φ i) ≡ H.vlab i`.  This is exactly
+    -- `Verify.deriveAtomEq`: it turns ψ-ein/ψ-eout + φ-lab into atom-ein/-eout
+    -- with NO new assumptions.  (Reproduced here to keep `CanonMatch` free of
+    -- the `Verify.Verify` module's bijection parameters.)
+    private
+      deriveAtomEq : ∀ (xs : List (Fin H.nV)) (ys : List (Fin J.nV))
+                   → ys ≡ map φ xs
+                   → map J.vlab ys ≡ map H.vlab xs
+      deriveAtomEq xs ys p =
+        trans (cong (map J.vlab) p)
+        (trans (sym (map-∘ xs)) (map-cong Mt.m-lab xs))
+
+    derive-atom-ein : ∀ e → map J.vlab (J.ein  (ψ e)) ≡ map H.vlab (H.ein  e)
+    derive-atom-ein e = deriveAtomEq (H.ein  e) (J.ein  (ψ e)) (Mt.m-ein  e)
+
+    derive-atom-eout : ∀ e → map J.vlab (J.eout (ψ e)) ≡ map H.vlab (H.eout e)
+    derive-atom-eout e = deriveAtomEq (H.eout e) (J.eout (ψ e)) (Mt.m-eout e)
+
+  -- ── `matIso→hgIso` : turn a MATCHED + BIJECTIVE alignment into an iso ──────
+  -- ALL twelve fields are now PROVEN: the four bijection laws from `BijLaws`
+  -- (§2¾), the eight incidence/label/boundary/elab fields from `CanonMatch`.
+  -- No `postulate` anywhere in the construction.
+  matIso→hgIso : (al : Alignment H J) → BijLaws al → CanonMatch al → H ≅ᴴ J
+  matIso→hgIso al bl mt = record
     { φ         = Alignment.φ   al
     ; φ⁻¹       = Alignment.φ⁻¹ al
-    ; φ-left    = align-φ-left al
-    ; φ-rght    = align-φ-rght al
+    ; φ-left    = BijLaws.φ-left bl
+    ; φ-rght    = BijLaws.φ-rght bl
     ; ψ         = Alignment.ψ   al
     ; ψ⁻¹       = Alignment.ψ⁻¹ al
-    ; ψ-left    = align-ψ-left al
-    ; ψ-rght    = align-ψ-rght al
-    ; φ-lab     = align-φ-lab al
-    ; ψ-ein     = align-ψ-ein al
-    ; ψ-eout    = align-ψ-eout al
-    ; φ-dom     = align-φ-dom al
-    ; φ-cod     = align-φ-cod al
-    ; atom-ein  = align-atom-ein al
-    ; atom-eout = align-atom-eout al
-    ; ψ-elab    = align-ψ-elab al
+    ; ψ-left    = BijLaws.ψ-left bl
+    ; ψ-rght    = BijLaws.ψ-rght bl
+    ; φ-lab     = Mt.m-lab
+    ; ψ-ein     = Mt.m-ein
+    ; ψ-eout    = Mt.m-eout
+    ; φ-dom     = Mt.m-dom
+    ; φ-cod     = Mt.m-cod
+    ; atom-ein  = derive-atom-ein  mt
+    ; atom-eout = derive-atom-eout mt
+    ; ψ-elab    = Mt.m-elab
     }
+    where module Mt = CanonMatch mt
+
+  -- ── `decCanonMatch` : the NO-SEARCH match decider ─────────────────────────
+  -- Given any alignment, decide its canonical-match witness by running the
+  -- same decidable incidence checks `Verify.verify` runs (but at `align`'s
+  -- canonical `φ`/`ψ`, with no backtracking).  `just` ⇒ the alignment really
+  -- aligns `H`'s diagram onto `J`'s, so the incidence fields produced via
+  -- `matIso→hgIso al` are sound.
+  private
+    _≟LF_ : DecidableEquality (List (Fin J.nV))
+    _≟LF_ = ≡-dec _≟F_
+
+  decCanonMatch : (al : Alignment H J) → Maybe (CanonMatch al)
+  decCanonMatch al
+    with ∀F? (λ i → dec→maybe (J.vlab (φ i) ≟X H.vlab i))
+       | ∀F? (λ e → dec→maybe (J.ein  (ψ e) ≟LF map φ (H.ein  e)))
+       | ∀F? (λ e → dec→maybe (J.eout (ψ e) ≟LF map φ (H.eout e)))
+       | J.dom ≟LF map φ H.dom
+       | J.cod ≟LF map φ H.cod
+    where φ = Alignment.φ al
+          ψ = Alignment.ψ al
+  ... | nothing | _ | _ | _ | _ = nothing
+  ... | _ | nothing | _ | _ | _ = nothing
+  ... | _ | _ | nothing | _ | _ = nothing
+  ... | _ | _ | _ | no _ | _ = nothing
+  ... | _ | _ | _ | _ | no _ = nothing
+  ... | just lab | just ein | just eout | yes dom | yes cod
+        with ∀F? (λ e → flat-match
+               (subst₂ FlatGen
+                 (trans (cong (map J.vlab) (ein  e))
+                        (trans (sym (map-∘ (H.ein  e))) (map-cong lab (H.ein  e))))
+                 (trans (cong (map J.vlab) (eout e))
+                        (trans (sym (map-∘ (H.eout e))) (map-cong lab (H.eout e))))
+                 (J.elab (Alignment.ψ al e)))
+               (H.elab e))
+  ...   | nothing = nothing
+  ...   | just elab = just record
+              { m-lab  = lab
+              ; m-ein  = ein
+              ; m-eout = eout
+              ; m-dom  = dom
+              ; m-cod  = cod
+              ; m-elab = elab
+              }

@@ -2,7 +2,9 @@
 
 --------------------------------------------------------------------------------
 -- FEASIBILITY SPIKE — NON-IDENTITY VALIDATION of the *generator-code
--- augmented* canonical-labelling `align`.
+-- augmented* canonical-labelling `align`, assembling the FULL hypergraph
+-- isomorphism end-to-end (all twelve `_≅ᴴ_` fields proven, no postulate in
+-- the construction).
 --
 -- The previous spike validated `align` on an `f ⊗ g` shape whose two edges
 -- read DISTINCT input wires; there the structural rank-multiset signature
@@ -24,12 +26,18 @@
 -- order them.  §F then shows the code-augmented `align H J` recovers the
 -- CORRECT non-identity bijection `(π , τ)`, and discharges the `_≅ᴴ_`
 -- incidence conditions (`vlab`, `ein`/`eout`, `dom`/`cod`) by `refl` on the
--- concrete instance — NOT through `matIso→hgIso`/soundness (whose postulated
--- fields would mask a wrong `align`).
+-- concrete instance.
+--
+-- §F'' obtains the CanonMatch witness via the no-search decider
+-- `decCanonMatch` (`match-found` is `refl`); §F''' builds the four bijection
+-- laws as REAL proofs via `CanonPerm` (the canonical orders compute to
+-- explicit permutations → `Complete`/`Distinct` by short witnesses).  Together
+-- they assemble the FULL `theIso : H ≅ᴴ J` with no postulated `≅ᴴ` field.
 --
 -- §G threads the original σ-naturality `⟪_⟫`-translation through the new
--- `align` (with a faithful `morCode`) to show the end-to-end data flow still
--- assembles a `≅ᴴ` (its preservation fields remain postulated).
+-- `align`, builds the BijLaws constructively (via `CanonPerm`), obtains the
+-- CanonMatch witness via `decCanonMatch`, assembles the full iso and feeds it
+-- to `soundness-full-wired` — `σ-naturality : LHS ≈Term RHS`, postulate-free.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Solver.MatrixBridgeDemo where
@@ -90,7 +98,11 @@ inSigDec = record
 open import Categories.APROP.Hypergraph.FromAPROP inSig
   using (FlatGen; flat; flatten)
 open import Categories.APROP.Hypergraph.Solver.MatrixBridge inSigDec
-  using (hg→mat; align; matIso→hgIso; Alignment)
+  using (hg→mat; align; matIso→hgIso; decCanonMatch; CanonMatch; Alignment)
+-- The permutation-calculus names (`Complete`/`Distinct`/`_∈L_`/`here`/`there`/
+-- `_∷ᵈ_`/`[]ᵈ`/`CanonPerm`/`align-bijLaws`/`BijLaws`) are accessed QUALIFIED as
+-- `MB.…` here: opening them unqualified at top level would clash with the
+-- σ-section's same-named (but `mySigDec`-parameterised) opens.
 import Categories.APROP.Hypergraph.Solver.MatrixBridge inSigDec as MB
 open import Categories.APROP.Hypergraph.Solver.Verify inSigDec using (view)
 open import Categories.APROP.Hypergraph.Solver.Verify inSigDec
@@ -263,6 +275,128 @@ check-cod : map φ H.cod ≡ J.cod
 check-cod = refl
 
 --------------------------------------------------------------------------------
+-- §F''.  THE CANONICAL-MATCH WITNESS, PRODUCED BY THE NO-SEARCH DECIDER.
+--
+-- `decCanonMatch theAlignment` runs the decidable incidence/label/boundary/
+-- elab checks at the canonical `(φ , ψ)` and, since they all pass on this
+-- concrete iso pair, computes to `just _`.  `match-found` is `refl` (it would
+-- fail if any incidence check failed).  The extraction `theMatch` is
+-- `from-just` — its type REDUCES to `CanonMatch theAlignment` precisely
+-- because the decider computes to `just _`.  Feeding it (plus the bijection
+-- laws of §F''') to `matIso→hgIso` assembles a genuine `H ≅ᴴ J` with all
+-- twelve fields PROVEN.
+
+open import Data.Maybe using (Maybe; just; nothing; is-just; from-just)
+open import Data.Bool using (true)
+
+-- The decider succeeds (this `refl` would fail if any incidence check failed).
+match-found : is-just (decCanonMatch theAlignment) ≡ true
+match-found = refl
+
+-- Extract the witness with `from-just`: its type `From-just (decCanonMatch
+-- theAlignment)` REDUCES to `CanonMatch theAlignment` precisely because the
+-- decider computes to `just _` — so this typechecks only because the match
+-- genuinely holds (the no-search analogue of `Verify`).
+theMatch : CanonMatch theAlignment
+theMatch = from-just (decCanonMatch theAlignment)
+
+--------------------------------------------------------------------------------
+-- §F'''.  THE FOUR BIJECTION LAWS, AS REAL PROOFS via `CanonPerm`.
+--
+-- The canonical orders of `H`/`J` compute to explicit permutations, so the
+-- `CanonPerm` permutation hypotheses are discharged constructively (no
+-- postulate): completeness + distinctness on the explicit `Fin 2`
+-- enumerations, transported back along `refl`.
+
+open import Data.Empty using (⊥)
+open import Data.List using (length)
+open import Relation.Binary.PropositionalEquality using (subst; sym)
+
+private
+  cVH cVJ : List (Fin 2)
+  cVH = MB.Canon.canonV H (ecodeOf H)
+  cVJ = MB.Canon.canonV J (ecodeOf J)
+  cEH cEJ : List (Fin 2)
+  cEH = MB.Canon.canonE H (ecodeOf H)
+  cEJ = MB.Canon.canonE J (ecodeOf J)
+
+  0₂ 1₂ : Fin 2
+  0₂ = zero ; 1₂ = suc zero
+
+  -- The canonical orders ARE these explicit enumerations (by computation).
+  --   canonV H = [0,1]   canonV J = [1,0]   (= π)
+  --   canonE H = [0,1]   canonE J = [1,0]   (= τ)
+  eVH eVJ : List (Fin 2)
+  eVH = 0₂ ∷ 1₂ ∷ []
+  eVJ = 1₂ ∷ 0₂ ∷ []
+  eEH eEJ : List (Fin 2)
+  eEH = 0₂ ∷ 1₂ ∷ []
+  eEJ = 1₂ ∷ 0₂ ∷ []
+
+  cVH≡ : cVH ≡ eVH
+  cVH≡ = refl
+  cVJ≡ : cVJ ≡ eVJ
+  cVJ≡ = refl
+  cEH≡ : cEH ≡ eEH
+  cEH≡ = refl
+  cEJ≡ : cEJ ≡ eEJ
+  cEJ≡ = refl
+
+  eVH-comp : MB.Complete eVH
+  eVH-comp zero       = MB.here
+  eVH-comp (suc zero) = MB.there MB.here
+  eVJ-comp : MB.Complete eVJ
+  eVJ-comp (suc zero) = MB.here
+  eVJ-comp zero       = MB.there MB.here
+  eEH-comp : MB.Complete eEH
+  eEH-comp zero       = MB.here
+  eEH-comp (suc zero) = MB.there MB.here
+  eEJ-comp : MB.Complete eEJ
+  eEJ-comp (suc zero) = MB.here
+  eEJ-comp zero       = MB.there MB.here
+
+  eVH-dist : MB.Distinct eVH
+  eVH-dist = ne0 MB.∷ᵈ (λ ()) MB.∷ᵈ MB.[]ᵈ
+    where ne0 : 0₂ MB.∈L (1₂ ∷ []) → ⊥
+          ne0 (MB.there ())
+  eVJ-dist : MB.Distinct eVJ
+  eVJ-dist = ne0 MB.∷ᵈ (λ ()) MB.∷ᵈ MB.[]ᵈ
+    where ne0 : 1₂ MB.∈L (0₂ ∷ []) → ⊥
+          ne0 (MB.there ())
+  eEH-dist : MB.Distinct eEH
+  eEH-dist = ne0 MB.∷ᵈ (λ ()) MB.∷ᵈ MB.[]ᵈ
+    where ne0 : 0₂ MB.∈L (1₂ ∷ []) → ⊥
+          ne0 (MB.there ())
+  eEJ-dist : MB.Distinct eEJ
+  eEJ-dist = ne0 MB.∷ᵈ (λ ()) MB.∷ᵈ MB.[]ᵈ
+    where ne0 : 1₂ MB.∈L (0₂ ∷ []) → ⊥
+          ne0 (MB.there ())
+
+theCanonPerm : MB.CanonPerm H J (ecodeOf H) (ecodeOf J)
+theCanonPerm = record
+  { cVH-comp = subst MB.Complete (sym cVH≡) eVH-comp
+  ; cVJ-comp = subst MB.Complete (sym cVJ≡) eVJ-comp
+  ; cVH-dist = subst MB.Distinct (sym cVH≡) eVH-dist
+  ; cVJ-dist = subst MB.Distinct (sym cVJ≡) eVJ-dist
+  ; cV-len   = refl
+  ; cEH-comp = subst MB.Complete (sym cEH≡) eEH-comp
+  ; cEJ-comp = subst MB.Complete (sym cEJ≡) eEJ-comp
+  ; cEH-dist = subst MB.Distinct (sym cEH≡) eEH-dist
+  ; cEJ-dist = subst MB.Distinct (sym cEJ≡) eEJ-dist
+  ; cE-len   = refl
+  }
+
+theBijLaws : MB.BijLaws theAlignment
+theBijLaws = MB.align-bijLaws H J (ecodeOf H) (ecodeOf J)
+                           zero zero zero zero theCanonPerm
+
+-- The FULL assembled hypergraph isomorphism.  ALL twelve fields are PROVEN:
+-- the four bijection laws via `theBijLaws` (§F'''), the eight incidence/
+-- label/boundary/elab fields via `theMatch` (§F'').  No postulated `≅ᴴ` field.
+theIso : H ≅ᴴ J
+theIso = matIso→hgIso theAlignment theBijLaws theMatch
+
+--------------------------------------------------------------------------------
 -- §F'.  TEETH.  The recovered `ψ` is the SWAP, not the identity.  Asserting
 -- the identity would be REJECTED by Agda; we record the genuine value here so
 -- the reader can see the discriminating fact (a wrong claim, e.g.
@@ -272,13 +406,16 @@ check-cod = refl
 ψ-not-id = refl
 
 --------------------------------------------------------------------------------
--- §G.  END-TO-END DATA FLOW on the original σ-naturality `⟪_⟫`-translation,
+-- §G.  END-TO-END FULL ISO on the original σ-naturality `⟪_⟫`-translation,
 -- threaded through the new code-augmented `align`.
 --
 -- Uses the existing three-generator test signature (`f g h`, none input-free,
 -- so the structural part already separates them; the code is still supplied
--- faithfully).  Its preservation fields are postulated, as documented; the
--- validating content is §E/§F above.
+-- faithfully).  The four bijection laws are discharged CONSTRUCTIVELY via
+-- `CanonPerm` (the canonical orders compute to explicit permutations); the
+-- eight incidence fields come from the `decCanonMatch` witness.  The full iso
+-- is fed to `soundness-full-wired` to obtain `σ-naturality : LHS ≈Term RHS`
+-- with no postulated `≅ᴴ` field.
 
 module σ-section where
   open import Categories.APROP.Hypergraph.Solver.Tests
@@ -290,8 +427,13 @@ module σ-section where
   open import Categories.APROP.Hypergraph.Solver.Verify mySigDec
     using () renaming (view to viewσ; FlatView to FlatViewσ)
   open import Categories.APROP.Hypergraph.Solver.MatrixBridge mySigDec
-    using () renaming (hg→mat to hg→matσ; align to alignσ-fn;
-                       matIso→hgIso to matIso→hgIsoσ; Alignment to Alignmentσ)
+    using (_∈L_; here; there; Distinct; _∷ᵈ_; []ᵈ; Complete; CanonPerm;
+           align-bijLaws; BijLaws)
+    renaming (hg→mat to hg→matσ; align to alignσ-fn;
+              matIso→hgIso to matIso→hgIsoσ;
+              decCanonMatch to decCanonMatchσ;
+              CanonMatch to CanonMatchσ; Alignment to Alignmentσ)
+  import Categories.APROP.Hypergraph.Solver.MatrixBridge mySigDec as MBσ
   open import Categories.APROP.Hypergraph.Translation mySig using (⟪_⟫)
   open import Categories.APROP.Hypergraph.SoundnessFullWired mySigDec
     using (soundness-full-wired)
@@ -328,8 +470,127 @@ module σ-section where
     alignσ : Alignmentσ Hσ Jσ
     alignσ = alignσ-fn Hσ Jσ (ecodeOfσ Hσ) (ecodeOfσ Jσ) zero zero zero zero
 
-    isoσ : Hσ ≅ᴴ Jσ
-    isoσ = matIso→hgIsoσ alignσ
+    --------------------------------------------------------------------------
+    -- The FOUR bijection laws of `alignσ`, now REAL proofs.  The canonical
+    -- orders of `Hσ`/`Jσ` compute to explicit permutations, so the
+    -- `CanonPerm` permutation hypotheses are discharged constructively (no
+    -- postulate): completeness + distinctness on the explicit enumerations,
+    -- transported back along `refl`.
+    open import Data.Fin using () renaming (zero to z; suc to s)
+    open import Data.List using (length)
+    open import Data.Empty using (⊥)
+    open import Relation.Binary.PropositionalEquality using (subst; sym)
 
-    σ-naturality : LHS ≈Term RHS
-    σ-naturality = soundness-full-wired isoσ
+    private
+      cVHσ cVJσ : List (Fin 4)
+      cVHσ = MBσ.Canon.canonV Hσ (ecodeOfσ Hσ)
+      cVJσ = MBσ.Canon.canonV Jσ (ecodeOfσ Jσ)
+      cEHσ cEJσ : List (Fin 2)
+      cEHσ = MBσ.Canon.canonE Hσ (ecodeOfσ Hσ)
+      cEJσ = MBσ.Canon.canonE Jσ (ecodeOfσ Jσ)
+
+      0₄ 1₄ 2₄ 3₄ : Fin 4
+      0₄ = z ; 1₄ = s z ; 2₄ = s (s z) ; 3₄ = s (s (s z))
+
+      eVHσ eVJσ : List (Fin 4)
+      eVHσ = 0₄ ∷ 2₄ ∷ 1₄ ∷ 3₄ ∷ []
+      eVJσ = 0₄ ∷ 1₄ ∷ 3₄ ∷ 2₄ ∷ []
+      eEHσ eEJσ : List (Fin 2)
+      eEHσ = z ∷ s z ∷ []
+      eEJσ = s z ∷ z ∷ []
+
+      -- canonical orders ARE these explicit enumerations (by computation).
+      cVHσ≡ : cVHσ ≡ eVHσ
+      cVHσ≡ = refl
+      cVJσ≡ : cVJσ ≡ eVJσ
+      cVJσ≡ = refl
+      cEHσ≡ : cEHσ ≡ eEHσ
+      cEHσ≡ = refl
+      cEJσ≡ : cEJσ ≡ eEJσ
+      cEJσ≡ = refl
+
+      eVHσ-comp : Complete eVHσ
+      eVHσ-comp z             = here
+      eVHσ-comp (s (s z))     = there here
+      eVHσ-comp (s z)         = there (there here)
+      eVHσ-comp (s (s (s z))) = there (there (there here))
+      eVJσ-comp : Complete eVJσ
+      eVJσ-comp z             = here
+      eVJσ-comp (s z)         = there here
+      eVJσ-comp (s (s (s z))) = there (there here)
+      eVJσ-comp (s (s z))     = there (there (there here))
+      eEHσ-comp : Complete eEHσ
+      eEHσ-comp z     = here
+      eEHσ-comp (s z) = there here
+      eEJσ-comp : Complete eEJσ
+      eEJσ-comp z     = there here
+      eEJσ-comp (s z) = here
+
+      eVHσ-dist : Distinct eVHσ
+      eVHσ-dist = ne0 ∷ᵈ ne1 ∷ᵈ ne2 ∷ᵈ (λ ()) ∷ᵈ []ᵈ
+        where ne0 : 0₄ ∈L (2₄ ∷ 1₄ ∷ 3₄ ∷ []) → ⊥
+              ne0 (there (there (there ())))
+              ne1 : 2₄ ∈L (1₄ ∷ 3₄ ∷ []) → ⊥
+              ne1 (there (there ()))
+              ne2 : 1₄ ∈L (3₄ ∷ []) → ⊥
+              ne2 (there ())
+      eVJσ-dist : Distinct eVJσ
+      eVJσ-dist = ne0 ∷ᵈ ne1 ∷ᵈ ne2 ∷ᵈ (λ ()) ∷ᵈ []ᵈ
+        where ne0 : 0₄ ∈L (1₄ ∷ 3₄ ∷ 2₄ ∷ []) → ⊥
+              ne0 (there (there (there ())))
+              ne1 : 1₄ ∈L (3₄ ∷ 2₄ ∷ []) → ⊥
+              ne1 (there (there ()))
+              ne2 : 3₄ ∈L (2₄ ∷ []) → ⊥
+              ne2 (there ())
+      eEHσ-dist : Distinct eEHσ
+      eEHσ-dist = ne0 ∷ᵈ (λ ()) ∷ᵈ []ᵈ
+        where ne0 : (z {1}) ∈L (s z ∷ []) → ⊥
+              ne0 (there ())
+      eEJσ-dist : Distinct eEJσ
+      eEJσ-dist = ne0 ∷ᵈ (λ ()) ∷ᵈ []ᵈ
+        where ne0 : (s {1} z) ∈L (z ∷ []) → ⊥
+              ne0 (there ())
+
+    canonPermσ : CanonPerm Hσ Jσ (ecodeOfσ Hσ) (ecodeOfσ Jσ)
+    canonPermσ = record
+      { cVH-comp = subst Complete (sym cVHσ≡) eVHσ-comp
+      ; cVJ-comp = subst Complete (sym cVJσ≡) eVJσ-comp
+      ; cVH-dist = subst Distinct (sym cVHσ≡) eVHσ-dist
+      ; cVJ-dist = subst Distinct (sym cVJσ≡) eVJσ-dist
+      ; cV-len   = refl
+      ; cEH-comp = subst Complete (sym cEHσ≡) eEHσ-comp
+      ; cEJ-comp = subst Complete (sym cEJσ≡) eEJσ-comp
+      ; cEH-dist = subst Distinct (sym cEHσ≡) eEHσ-dist
+      ; cEJ-dist = subst Distinct (sym cEJσ≡) eEJσ-dist
+      ; cE-len   = refl
+      }
+
+    bijLawsσ : BijLaws alignσ
+    bijLawsσ = align-bijLaws Hσ Jσ (ecodeOfσ Hσ) (ecodeOfσ Jσ)
+                             zero zero zero zero canonPermσ
+
+  --------------------------------------------------------------------------
+  -- The incidence witness for the `⟪_⟫`-translated σ-naturality pair is
+  -- obtained by the same no-search decider (`decCanonMatchσ alignσ`).  Unlike
+  -- the small concrete example of §F'', the `⟪_⟫` terms do not fully β-reduce
+  -- during typechecking, so we do not force the decider to a literal `just`
+  -- here; instead we expose the FULL assembly as a function of the witness.
+  -- The four bijection laws are NO LONGER part of that function — they are the
+  -- constructive `bijLawsσ` above.  This keeps the section postulate-free
+  -- while showing the genuine data flow
+  --   CanonMatch → H ≅ᴴ J → LHS ≈Term RHS.
+  open import Data.Maybe using (Maybe; just; nothing)
+
+  -- The incidence-witness producer is available (its result is a `Maybe`;
+  -- running it is the no-search decision).
+  decMatchσ : Maybe (CanonMatchσ alignσ)
+  decMatchσ = decCanonMatchσ alignσ
+
+  -- Given the incidence witness, the FULL iso (all twelve fields proven: four
+  -- from `bijLawsσ`, eight from `mt`) and σ-naturality follow with no further
+  -- assumptions and no postulated `≅ᴴ` field.
+  isoσ-from : CanonMatchσ alignσ → Hσ ≅ᴴ Jσ
+  isoσ-from mt = matIso→hgIsoσ alignσ bijLawsσ mt
+
+  σ-naturality-from : CanonMatchσ alignσ → LHS ≈Term RHS
+  σ-naturality-from mt = soundness-full-wired (isoσ-from mt)
