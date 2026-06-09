@@ -41,6 +41,7 @@ open import Data.Fin using (Fin; zero; suc; toℕ)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_; length; lookup; map; _++_; foldr)
 open import Data.Nat using (ℕ; zero; suc; _<ᵇ_; _≡ᵇ_)
+open import Data.Product using (_×_; _,_; proj₁; proj₂)
 open import Relation.Nullary using (yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
@@ -144,14 +145,31 @@ module _ (H : Hypergraph FlatGen) where
 --   genuine computation (it produces a NON-identity permutation whenever the
 --   two layouts differ); it is NOT proven to be a bijection here.
 --
--- TIE-BREAK SCOPE.  The signature distinguishes ready edges by which
--- already-ranked vertices they consume.  It is fully intrinsic and correctly
--- canonicalises any two graphs in which the ready edges at every peel step
--- consume DISTINCT rank-multisets of inputs — in particular the σ-naturality
--- example (the two generators read distinct boundary wires).  It does NOT
--- distinguish two ready edges that consume the *identical* input-rank
--- multiset (genuine automorphisms / parallel edges with equal arities); for
--- those a generator-label code would be needed.  See the report.
+-- TIE-BREAK SCOPE.  The signature distinguishes ready edges by a pair
+--
+--     edgeSig e = (ecode e , sortℕ (map (rank) (ein e)))
+--
+-- compared LEXICOGRAPHICALLY with the GENERATOR CODE first.  `ecode` is a
+-- per-edge ℕ supplied by the caller (`Canon`/`align` are parameterised by
+-- it): it is the position of the edge's generator in some fixed enumeration
+-- of the signature's generators (the demo builds a concrete one off each
+-- edge's `FlatGen` label — see `MatrixBridgeDemo`).
+--
+-- WHY THE CODE MATTERS.  Under MONOGAMY (each wire produced once / consumed
+-- once — true of every `⟪_⟫` translation) two distinct *non-input-free*
+-- edges read DISJOINT input vertices, hence disjoint canonical ranks, hence
+-- DISTINCT rank-multisets: they never tie on the structural part alone.  The
+-- ONLY structural ties are between INPUT-FREE edges (`ein = []`, so the
+-- rank-multiset is `[]` for all of them).  Among input-free edges:
+--   * DIFFERENT generators (e.g. two distinct states `u v : unit → X`) used
+--     to tie on `[]` and got mis-ordered between two differently-laid-out
+--     iso graphs.  The generator code RESOLVES this: `u`/`v` get distinct
+--     codes, so the lexicographic compare separates them canonically.
+--   * SAME generator (two copies of one state) → a genuine automorphism; any
+--     pairing is a valid iso, so the residual index tie-break is harmless.
+-- So with a faithful `ecode` the canonical read is correct for ALL
+-- monogamous inputs except genuine same-generator automorphisms (harmless).
+-- See the report / `MatrixBridgeDemo`.
 
 private
   -- All indices of `Fin n`, in order: 0, 1, …, n-1.
@@ -166,6 +184,13 @@ private
   ltList (_ ∷ _)  []       = false
   ltList (x ∷ xs) (y ∷ ys) =
     (x <ᵇ y) ∨ ((x ≡ᵇ y) ∧ ltList xs ys)
+
+  -- Lexicographic strict comparison of an edge signature
+  -- `(code , rank-multiset)`, GENERATOR CODE FIRST: a smaller code wins
+  -- outright; on a code tie, fall back to the structural rank-multiset.
+  ltSig : (ℕ × List ℕ) → (ℕ × List ℕ) → Bool
+  ltSig (c , xs) (d , ys) =
+    (c <ᵇ d) ∨ ((c ≡ᵇ d) ∧ ltList xs ys)
 
   -- Insertion sort of an `ℕ` list (ascending).  Used to make the
   -- input-rank signature order-independent.
@@ -205,14 +230,19 @@ private
   lookupD d (x ∷ _)  zero    = x
   lookupD d (_ ∷ xs) (suc i) = lookupD d xs i
 
-module Canon (H : Hypergraph FlatGen) where
+-- `Canon` is parameterised by a per-edge GENERATOR CODE `ecode`.  The code
+-- is folded into the signature ahead of the structural rank-multiset, so it
+-- dominates the tie-break (see §2).  A faithful `ecode` (distinct generators
+-- ↦ distinct codes) makes the canonical read correct for all monogamous
+-- inputs except same-generator automorphisms.
+module Canon (H : Hypergraph FlatGen) (ecode : Fin (Hypergraph.nE H) → ℕ) where
   private module H = Hypergraph H
-  open import Data.Product using (_×_; _,_; proj₁; proj₂)
 
   -- Signature of an edge given the current canonical vertex order
-  -- `rankedV`: the SORTED list of canonical ranks of its input vertices.
-  edgeSig : List (Fin H.nV) → Fin H.nE → List ℕ
-  edgeSig rankedV e = sortℕ (map (posIn rankedV) (H.ein e))
+  -- `rankedV`: the pair (generator code, SORTED canonical ranks of the
+  -- edge's input vertices), compared lexicographically with the code first.
+  edgeSig : List (Fin H.nV) → Fin H.nE → ℕ × List ℕ
+  edgeSig rankedV e = (ecode e , sortℕ (map (posIn rankedV) (H.ein e)))
 
   -- Is edge `e` ready to peel?  (all inputs already ranked, and e not yet
   -- peeled).  `peeled` : edges already in canonical order.  `rankedV` :
@@ -224,12 +254,12 @@ module Canon (H : Hypergraph FlatGen) where
   open import Data.Maybe using (Maybe; just; nothing)
 
   -- Among the scanned `candidates`, pick the ready edge of minimal
-  -- signature, carrying the best-so-far as a `Maybe (Fin nE × List ℕ)`.
+  -- signature, carrying the best-so-far as a `Maybe (Fin nE × (ℕ × List ℕ))`.
   -- Returns `nothing` iff no candidate is ready (cannot happen on a
   -- well-formed acyclic monogamous DAG before all edges are peeled).
   pickMin : List (Fin H.nE) → List (Fin H.nV)
-          → Maybe (Fin H.nE × List ℕ)    -- best edge so far + its sig
-          → List (Fin H.nE)               -- candidates to scan
+          → Maybe (Fin H.nE × (ℕ × List ℕ))  -- best edge so far + its sig
+          → List (Fin H.nE)                    -- candidates to scan
           → Maybe (Fin H.nE)
   pickMin peeled rankedV nothing             [] = nothing
   pickMin peeled rankedV (just (best , _))   [] = just best
@@ -238,7 +268,7 @@ module Canon (H : Hypergraph FlatGen) where
   ... | true  with acc
   ...   | nothing = -- first ready edge: it's the new best
                     pickMin peeled rankedV (just (e , edgeSig rankedV e)) es
-  ...   | just (best , bestSig) with ltList (edgeSig rankedV e) bestSig
+  ...   | just (best , bestSig) with ltSig (edgeSig rankedV e) bestSig
   ...     | true  = pickMin peeled rankedV (just (e , edgeSig rankedV e)) es
   ...     | false = pickMin peeled rankedV (just (best , bestSig)) es
 
@@ -285,17 +315,25 @@ record Alignment (H J : Hypergraph FlatGen) : Set where
 --
 -- `lookupD` needs a well-typed default in the TARGET space, only ever forced
 -- when a rank runs off the end (i.e. never, for in-range vertices/edges of
--- well-formed iso graphs).  Defaults are provided as the second explicit
--- argument of `align`; in the validating demo they are concrete `Fin`s.
+-- well-formed iso graphs).  Defaults are provided as explicit arguments of
+-- `align`; in the validating demo they are concrete `Fin`s.
+--
+-- `align` is parameterised by the two generator-code functions `ecodeH`,
+-- `ecodeJ` (one per hypergraph), fed straight into `Canon`.  For the canonical
+-- reads of `H` and `J` to MATCH, the two codes must agree on corresponding
+-- edges — i.e. they should both be the same `morCode ∘ (generator of edge)`,
+-- as the demo arranges.
 align : (H J : Hypergraph FlatGen)
+      → (ecodeH : Fin (Hypergraph.nE H) → ℕ)
+      → (ecodeJ : Fin (Hypergraph.nE J) → ℕ)
       → (dV  : Fin (Hypergraph.nV J)) (dV' : Fin (Hypergraph.nV H))
       → (dE  : Fin (Hypergraph.nE J)) (dE' : Fin (Hypergraph.nE H))
       → Alignment H J
-align H J dV dV' dE dE' = record
-  { φ   = λ v → lookupD dV  (Canon.canonV J) (posIn (Canon.canonV H) v)
-  ; φ⁻¹ = λ v → lookupD dV' (Canon.canonV H) (posIn (Canon.canonV J) v)
-  ; ψ   = λ e → lookupD dE  (Canon.canonE J) (posIn (Canon.canonE H) e)
-  ; ψ⁻¹ = λ e → lookupD dE' (Canon.canonE H) (posIn (Canon.canonE J) e)
+align H J ecodeH ecodeJ dV dV' dE dE' = record
+  { φ   = λ v → lookupD dV  (Canon.canonV J ecodeJ) (posIn (Canon.canonV H ecodeH) v)
+  ; φ⁻¹ = λ v → lookupD dV' (Canon.canonV H ecodeH) (posIn (Canon.canonV J ecodeJ) v)
+  ; ψ   = λ e → lookupD dE  (Canon.canonE J ecodeJ) (posIn (Canon.canonE H ecodeH) e)
+  ; ψ⁻¹ = λ e → lookupD dE' (Canon.canonE H ecodeH) (posIn (Canon.canonE J ecodeJ) e)
   }
 
 --------------------------------------------------------------------------------
