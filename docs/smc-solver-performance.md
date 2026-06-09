@@ -266,6 +266,44 @@ the ordered incidence from the positionally-indexed matrix plus enriching `hg→
 *label-aware*, since the current Bool/connectivity-only matrix loses `vlab`/`elab`), with **no
 coherence content** (it's an encoding-correspondence, not the term-level `matrix-faithful`).
 
+## The `≈M → ≅ᴴ` bridge built + profiled END-TO-END (2026-06-09)
+
+The bridge is now built: `Solver.MatrixBridgeM` (`canonMat` — a *label-aware* canonical matrix
+recording, in canonical order, the vertex labels + edge codes + reindexed incidence; `matrixEquiv H
+J := canonMat H ≡ canonMat J`; `decideMatrixEquiv` — the cheap flat compare; `matEquiv→hgIso`, made
+`opaque`; `findIsoᴹ`) and `Solver.InterpretBridgeM` (`solveH!ᴹ`). `findIsoᴹ ⟪f⟫ ⟪g⟫` genuinely
+reduces to `just` (the implicit `T (is-just …)` auto-discharges on σ-nat / idˡ / σσ-nat / the
+edge-free σ-involution), and the opaque `matEquiv→hgIso` keeps the per-use decision = the matrix
+compare only.
+
+Profiling the THREE iso finders (`--profile=definitions`, `from-just (find… : Maybe (H ≅ᴴ J))`) on
+the single-generator chain family `gᴺ` (`H = J`, no relabelling) + σ-naturality, with the shared
+`⟪_⟫` translations hoisted into their own definitions so each timing is the finder cost alone:
+
+| N (nE) | `findIso` (search) | `findIsoᴮ` (decBijLaws+decCanonMatch) | `findIsoᴹ` (matrix bridge) | ᴮ→ᴹ |
+|---:|---:|---:|---:|---:|
+| 4 (4)   |    68 ms |     845 ms |     202 ms | 4.2× |
+| 8 (8)   |   685 ms |  15,737 ms |   3,044 ms | 5.2× |
+| 16 (16) | 8,131 ms | 421,182 ms |  56,703 ms | 7.4× |
+| σ-nat (2)| 18 ms  |     264 ms |      69 ms | 3.8× |
+
+**`findIsoᴹ` realizes the predicted decision win over `findIsoᴮ`: 4–7×, widening with size** — exactly
+the 3–8× the head-to-head spike measured for the *decision* alone, now realized END-TO-END (the
+opaque faithfulness never enters the per-use path). The win is the two avoided deciders: `findIsoᴮ`
+pays `decBijLaws` (the four bijection round-trips — the steepest cost) + `decCanonMatch`, whereas
+`findIsoᴹ` pays one flat structural compare of two `CanonData` records; bijectivity is supplied
+*structurally* by the (opaque) `CanonPerm`-derived `BijLaws`, never decided.
+
+**But `findIsoᴹ` is still 3–7× *slower* than the backtracking `findIso`.** This is the honest caveat:
+`findIsoᴹ`'s residual cost is *building the two `canonMat`s* — the full topological peel
+(`Canon.canonV`/`canonE`) + the per-edge `posIn` reindexing — which on these monogamous `⟪_⟫` graphs
+is heavier than `findIso`'s `Verify` sweep (and `findIso` never backtracks here, so there was no
+search cost to beat). The matrix bridge wins against its true peer (`findIsoᴮ`, the other no-search
+`≅ᴴ` *reconstruction*), but the canonical-labelling build is itself super-linear — the same
+representational cost the doc above identifies. A genuine speed win over `findIso` still needs the
+flat term-level `≈M` + `matrix-faithful` route (not reconstructing a `≅ᴴ`); `findIsoᴹ` is the cheapest
+of the `≅ᴴ`-reconstructing finders, not cheaper than search.
+
 ## Implication
 
 The fix is the same as for shrinking the soundness proof itself: a real coherence solver
