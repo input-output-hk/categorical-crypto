@@ -121,6 +121,66 @@ matrix and comparing.
 downstream *use* of the theorem cheap without weakening it. Worth keeping independent of any solver
 work.)
 
+## Are the two algorithms actually different? (2026-06-09)
+
+The matrix variant and the hypergraph `findIso` solve the *same* problem — decide whether two
+diagrams are equal, i.e. whether the two wirings agree up to relabelling. But the algorithms read
+very differently:
+
+- **`findIso` (hypergraph) — boundary-seeded search + verify.** `Solver/Search.agda`: seed `φ` from
+  the `dom`/`cod` correspondence, then a backtracking DFS (`matchEdge` enumerates shape-compatible
+  candidate J-edges → recurse → backtrack; fuel `nE×nE`), then `Verify` checks every `≅ᴴ` invariant
+  with decidable equality. It *constructs and verifies an isomorphism*.
+- **Matrix — deterministic canonical form.** `Reflect.agda`: `isMinimal` peels generators in
+  dependency order (a topological sort), and `swapAll`/bubble-sort decomposes the wiring permutation
+  into adjacent transpositions; equality is then a literal comparison of the canonical Bool/Set
+  matrix. It *normalizes and compares*. No search.
+
+**…but on the actual input class they nearly coincide.** Every `⟪f⟫` is **monogamous and acyclic**
+(each wire produced once / consumed once; the producer/consumer relation is a strict order). For
+such a graph, seeding from the boundary makes propagation **forced**: following each edge's
+incidence determines the next vertex pairing, so `matchEdge` almost never has a real branch — hence
+FindIso's own note, *"complete in practice on `⟪_⟫`-translated graphs."* So `findIso`'s search
+**degenerates to deterministic, boundary-seeded propagation** — the same topological canonicalization
+the matrix does explicitly. The genuine difference is therefore **representational, not algorithmic**:
+the matrix is a flat array (cheap to build and compare); `findIso` threads `Fin`-indexed
+vertex/edge lists and builds the `≅ᴴ` record incrementally, then re-scans it in `Verify` with
+decidable equality + UIP + `FlatView`.
+
+**Is there clear evidence which is better?** The head-to-head (above) gives the only hard numbers:
+the matrix decide step is ~16–25× faster on the shared `Fin-3` equations. But that gap is the
+**representational** one (flat matrix vs hypergraph-list + `≅ᴴ`-proof-via-`Verify`) — *not* a
+search-vs-no-search result, because on these (small, mostly edge-free) graphs `findIso` does not
+backtrack. There is **no evidence of an algorithmic (backtracking) advantage** either way, and it is
+hard to manufacture: monogamy is exactly what kills the branching that would distinguish a search
+from a canonical form. So the honest verdict is *the matrix representation is cheaper to compute and
+compare; the underlying algorithms are essentially the same deterministic topological canonicalization.*
+
+**Could we port the matrix algorithm to hypergraphs, keeping its characteristics?** Yes — and the
+characteristic worth porting is the **explicit flat canonical form + literal comparison**, replacing
+`findIso`'s construct-and-`Verify`. The ingredients already exist in the soundness development:
+
+- a canonical **topological edge order** — `decode`'s "natural order", the linear-extension /
+  no-inversion machinery (`Combinatorics/LinearExtension`, Lemma C, `EdgeDependency`);
+- the **permutation layer** — `PermuteCoherence` (`FinBij`/`eval`), the analogue of the matrix's
+  bubble-sort transposition decomposition.
+
+So a canonical-form hypergraph decision procedure = *canonically label `⟪f⟫` and `⟪g⟫` via the
+topological order (intrinsic to the graph, with a fixed tie-break for independent edges), compare
+the flat labelled incidence, and read the bijection off the two relabellings* — no search, no
+incremental `≅ᴴ`-proof. This is the standard **DAG canonical-labelling** approach (polynomial,
+because the graphs are acyclic — unlike general graph canonical labelling), and it would inherit the
+matrix's representational speed-up directly on the hypergraph side. The one careful part is the
+tie-break for automorphic/independent edges (the matrix sidesteps it via the term-induced order; an
+intrinsic labelling must pick a canonical representative) — but that is exactly what the
+no-inversion / linear-extension lemmas already reason about.
+
+**Caveat on the evidence.** The "representational, not algorithmic" conclusion rests on the
+structural argument that `findIso` doesn't backtrack on monogamous acyclic graphs, plus the existing
+16–25× numbers. To turn it into hard evidence one would profile `findIso` on terms with growing edge
+counts (e.g. `g ∘ g ∘ … ∘ g`, and parallel `g ⊗ … ⊗ g`) and confirm the cost is linear in edges (no
+super-linear backtracking) — not yet done.
+
 ## Implication
 
 The fix is the same as for shrinking the soundness proof itself: a real coherence solver
@@ -130,3 +190,10 @@ that explode here. The head-to-head confirms the *representation* matters: the m
 decide step is an order of magnitude cheaper than the hypergraph round-trip, so a finished direct
 solver would be both fast and (unlike the APROP one) non-circular. Until then, the APROP solver is
 practical only at roughly pentagon/hexagon size — and should at minimum be `opaque` at the top.
+
+The algorithm comparison adds a cheaper near-term option: since `findIso`'s cost here is *building
+and verifying* the iso rather than *searching* for it, replacing it with an explicit DAG canonical
+labelling (reusing the linear-extension + `FinBij` machinery) would port the matrix's speed-up to the
+hypergraph side **without** leaving the proven hypergraph world — complementary to the
+`≈M → ≅ᴴ` bridge (`braided-coherence-solver.md`), which reaches the same canonical form via the
+matrix representation.
