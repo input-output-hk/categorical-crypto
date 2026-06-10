@@ -111,6 +111,23 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
     using (refl⟩⊗⟨_; _⟩⊗⟨refl; _⟩⊗⟨_; ⊗-distrib-over-∘;
            serialize₁₂; serialize₂₁; split₁ˡ; split₁ʳ; split₂ˡ; split₂ʳ)
 
+  open ≈R
+
+  -- fuse two id-tensored factors:  id⊗₁P ∘ id⊗₁Q ≈ id⊗₁(P∘Q)
+  id⊗-∘ : ∀ {Z} {A B C} (P : HomTerm B C) (Q : HomTerm A B)
+        → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ≈Term id {Z} ⊗₁ (P ∘ Q)
+  id⊗-∘ P Q = (⟺ ⊗-∘-dist) ○ (idˡ ⟩⊗⟨refl)
+
+  -- collapse three id-tensored factors:  id⊗₁P ∘ id⊗₁Q ∘ id⊗₁R ≈ id⊗₁(P∘Q∘R)
+  id⊗-∘3 : ∀ {Z} {A B C D} (P : HomTerm C D) (Q : HomTerm B C) (R : HomTerm A B)
+         → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ∘ id {Z} ⊗₁ R ≈Term id {Z} ⊗₁ (P ∘ Q ∘ R)
+  id⊗-∘3 {Z} P Q R = (refl⟩∘⟨ id⊗-∘ Q R) ○ id⊗-∘ P (Q ∘ R)
+
+  -- cancel two id-tensored mutually-inverse factors outright
+  id⊗-cancel : ∀ {Z} {A B} {P : HomTerm B A} {Q : HomTerm A B}
+             → P ∘ Q ≈Term id → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ≈Term id
+  id⊗-cancel {P = P} {Q} PQ = id⊗-∘ P Q ○ (refl⟩⊗⟨ PQ) ○ id⊗id≈id
+
   -- (merge / split now live in `WireSig` — re-exported by the public open
   -- above — so that ⟦box⟧ interpretations can be built from them.)
 
@@ -160,28 +177,20 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
         → HomTerm (A ⊗₀ M ⊗₀ C ⊗₀ R) (A' ⊗₀ M ⊗₀ C' ⊗₀ R)
     blk x y = x ⊗₁ id ⊗₁ y ⊗₁ id
 
-    open ≈R
-
     -- idle-block functoriality: blk (g∘f) (g'∘f') ≈ blk g g' ∘ blk f f'
     blk-∘ : ∀ {A B A2 C D C2} (g : HomTerm B A2) (f : HomTerm A B)
               (g' : HomTerm D C2) (f' : HomTerm C D)
           → blk (g ∘ f) (g' ∘ f') ≈Term blk g g' ∘ blk f f'
     blk-∘ g f g' f' = begin
       (g ∘ f) ⊗₁ (id ⊗₁ ((g' ∘ f') ⊗₁ id))
-        ≈⟨ idsplit ⟩
+        ≈⟨ refl⟩⊗⟨ ((⟺ idˡ) ⟩⊗⟨ (refl⟩⊗⟨ (⟺ idˡ))) ⟩
       (g ∘ f) ⊗₁ ((id ∘ id) ⊗₁ ((g' ∘ f') ⊗₁ (id ∘ id)))
-        ≈⟨ ⊗-resp-≈ ≈-Term-refl (⊗-resp-≈ ≈-Term-refl ⊗-∘-dist) ⟩
+        ≈⟨ refl⟩⊗⟨ (refl⟩⊗⟨ ⊗-∘-dist) ⟩
       (g ∘ f) ⊗₁ ((id ∘ id) ⊗₁ ((g' ⊗₁ id) ∘ (f' ⊗₁ id)))
-        ≈⟨ ⊗-resp-≈ ≈-Term-refl ⊗-∘-dist ⟩
+        ≈⟨ refl⟩⊗⟨ ⊗-∘-dist ⟩
       (g ∘ f) ⊗₁ ((id ⊗₁ (g' ⊗₁ id)) ∘ (id ⊗₁ (f' ⊗₁ id)))
         ≈⟨ ⊗-∘-dist ⟩
       blk g g' ∘ blk f f' ∎
-      where
-        idsplit : (g ∘ f) ⊗₁ (id ⊗₁ ((g' ∘ f') ⊗₁ id))
-                ≈Term (g ∘ f) ⊗₁ ((id ∘ id) ⊗₁ ((g' ∘ f') ⊗₁ (id ∘ id)))
-        idsplit = ⊗-resp-≈ ≈-Term-refl
-                  (⊗-resp-≈ (≈-Term-sym idˡ)
-                  (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)))
 
     -- the interchange itself: blk f id ∘ blk id g ≈ blk id g ∘ blk f id
     -- (boxes in disjoint blocks commute), via blk-∘ both ways through the
@@ -192,55 +201,24 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
       blk f id ∘ blk id g
         ≈⟨ blk-∘ f id id g ⟨
       blk (f ∘ id) (id ∘ g)
-        ≈⟨ ⊗-resp-≈ idʳ (⊗-resp-≈ ≈-Term-refl (⊗-resp-≈ idˡ ≈-Term-refl)) ⟩
+        ≈⟨ idʳ ⟩⊗⟨ (refl⟩⊗⟨ (idˡ ⟩⊗⟨refl)) ⟩
       blk f g
-        ≈⟨ ⊗-resp-≈ (≈-Term-sym idˡ) (⊗-resp-≈ ≈-Term-refl (⊗-resp-≈ (≈-Term-sym idʳ) ≈-Term-refl)) ⟩
+        ≈⟨ (⟺ idˡ) ⟩⊗⟨ (refl⟩⊗⟨ ((⟺ idʳ) ⟩⊗⟨refl)) ⟩
       blk (id ∘ f) (g ∘ id)
         ≈⟨ blk-∘ id f g id ⟩
       blk id g ∘ blk f id ∎
 
   --------------------------------------------------------------------------------
-  -- merge / split are mutually inverse (pure coherence, proven by hand).
+  -- merge / split are mutually inverse (pure coherence: the α-pair cancels
+  -- in the middle, and the id-tensored recursive pair cancels by IH).
   --------------------------------------------------------------------------------
-  open ≈R
-
   merge∘split : ∀ (a : List X) {suf} → merge a {suf} ∘ split a ≈Term id
-  merge∘split []       = λ⇒∘λ⇐≈id
-  merge∘split (x ∷ a) = begin
-    (id ⊗₁ merge a ∘ α⇒) ∘ (α⇐ ∘ id ⊗₁ split a)
-      ≈⟨ assoc ⟩
-    id ⊗₁ merge a ∘ (α⇒ ∘ (α⇐ ∘ id ⊗₁ split a))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    id ⊗₁ merge a ∘ ((α⇒ ∘ α⇐) ∘ id ⊗₁ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ α⇒∘α⇐≈id ≈-Term-refl) ⟩
-    id ⊗₁ merge a ∘ (id ∘ id ⊗₁ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
-    id ⊗₁ merge a ∘ id ⊗₁ split a
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (id ∘ id) ⊗₁ (merge a ∘ split a)
-      ≈⟨ ⊗-resp-≈ idˡ (merge∘split a) ⟩
-    id ⊗₁ id
-      ≈⟨ id⊗id≈id ⟩
-    id ∎
+  merge∘split []      = λ⇒∘λ⇐≈id
+  merge∘split (x ∷ a) = cancelInner α⇒∘α⇐≈id ○ id⊗-cancel (merge∘split a)
 
   split∘merge : ∀ (a : List X) {suf} → split a {suf} ∘ merge a ≈Term id
-  split∘merge []       = λ⇐∘λ⇒≈id
-  split∘merge (x ∷ a) = begin
-    (α⇐ ∘ id ⊗₁ split a) ∘ (id ⊗₁ merge a ∘ α⇒)
-      ≈⟨ assoc ⟩
-    α⇐ ∘ (id ⊗₁ split a ∘ (id ⊗₁ merge a ∘ α⇒))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    α⇐ ∘ ((id ⊗₁ split a ∘ id ⊗₁ merge a) ∘ α⇒)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym ⊗-∘-dist) ≈-Term-refl) ⟩
-    α⇐ ∘ ((id ∘ id) ⊗₁ (split a ∘ merge a) ∘ α⇒)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ idˡ (split∘merge a)) ≈-Term-refl) ⟩
-    α⇐ ∘ (id ⊗₁ id ∘ α⇒)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ id⊗id≈id ≈-Term-refl) ⟩
-    α⇐ ∘ (id ∘ α⇒)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
-    α⇐ ∘ α⇒
-      ≈⟨ α⇐∘α⇒≈id ⟩
-    id ∎
+  split∘merge []      = λ⇐∘λ⇒≈id
+  split∘merge (x ∷ a) = cancelInner (id⊗-cancel (split∘merge a)) ○ α⇐∘α⇒≈id
 
   --------------------------------------------------------------------------------
   -- Bridging the flat `pad` to the grouped `blk` form.
@@ -271,28 +249,16 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
 
   underP-resp : ∀ {A B} (p : List X) {h k : HomTerm A B} → h ≈Term k → underP p h ≈Term underP p k
   underP-resp []      eq = eq
-  underP-resp (x ∷ p) eq = ⊗-resp-≈ ≈-Term-refl (underP-resp p eq)
+  underP-resp (x ∷ p) eq = refl⟩⊗⟨ underP-resp p eq
 
   underP-id : ∀ {A} (p : List X) → underP p (id {A}) ≈Term id
   underP-id []      = ≈-Term-refl
-  underP-id (x ∷ p) = begin
-    id ⊗₁ underP p id
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (underP-id p) ⟩
-    id ⊗₁ id
-      ≈⟨ id⊗id≈id ⟩
-    id ∎
+  underP-id (x ∷ p) = (refl⟩⊗⟨ underP-id p) ○ id⊗id≈id
 
   underP-∘ : ∀ {A B C} (p : List X) (g : HomTerm B C) (f : HomTerm A B)
            → underP p (g ∘ f) ≈Term underP p g ∘ underP p f
   underP-∘ []      g f = ≈-Term-refl
-  underP-∘ (x ∷ p) g f = begin
-    id ⊗₁ underP p (g ∘ f)
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (underP-∘ p g f) ⟩
-    id ⊗₁ (underP p g ∘ underP p f)
-      ≈⟨ ⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl ⟩
-    (id ∘ id) ⊗₁ (underP p g ∘ underP p f)
-      ≈⟨ ⊗-∘-dist ⟩
-    id ⊗₁ underP p g ∘ id ⊗₁ underP p f ∎
+  underP-∘ (x ∷ p) g f = (refl⟩⊗⟨ underP-∘ p g f) ○ (⟺ (id⊗-∘ _ _))
 
   --------------------------------------------------------------------------------
   -- Grouped diagrams and the sound head-swap.
@@ -349,7 +315,7 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
       underP pre (blk (id {wires b₁}) (⟦box⟧ g)) ∘ underP pre (blk (⟦box⟧ f) (id {wires a₂}))
         ≈⟨ underP-∘ pre _ _ ⟨
       underP pre (blk (id {wires b₁}) (⟦box⟧ g) ∘ blk (⟦box⟧ f) (id {wires a₂}))
-        ≈⟨ underP-resp pre (≈-Term-sym (blk-swap (⟦box⟧ f) (⟦box⟧ g))) ⟩
+        ≈⟨ underP-resp pre (⟺ (blk-swap (⟦box⟧ f) (⟦box⟧ g))) ⟩
       underP pre (blk (⟦box⟧ f) (id {wires b₂}) ∘ blk (id {wires a₁}) (⟦box⟧ g))
         ≈⟨ underP-∘ pre _ _ ⟩
       underP pre (blk (⟦box⟧ f) (id {wires b₂})) ∘ underP pre (blk (id {wires a₁}) (⟦box⟧ g)) ∎
@@ -382,40 +348,10 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   sunflat m c {d} = (id ⊗₁ split c {d}) ∘ split m
 
   sflat∘sunflat : ∀ (m c : List X) {d} → sflat m c {d} ∘ sunflat m c ≈Term id
-  sflat∘sunflat m c {d} = begin
-    (merge m ∘ (id ⊗₁ merge c)) ∘ ((id ⊗₁ split c) ∘ split m)
-      ≈⟨ assoc ⟩
-    merge m ∘ ((id ⊗₁ merge c) ∘ ((id ⊗₁ split c) ∘ split m))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    merge m ∘ (((id ⊗₁ merge c) ∘ (id ⊗₁ split c)) ∘ split m)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym ⊗-∘-dist) ≈-Term-refl) ⟩
-    merge m ∘ (((id ∘ id) ⊗₁ (merge c ∘ split c)) ∘ split m)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ idˡ (merge∘split c)) ≈-Term-refl) ⟩
-    merge m ∘ ((id ⊗₁ id) ∘ split m)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ id⊗id≈id ≈-Term-refl) ⟩
-    merge m ∘ (id ∘ split m)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
-    merge m ∘ split m
-      ≈⟨ merge∘split m ⟩
-    id ∎
+  sflat∘sunflat m c {d} = cancelInner (id⊗-cancel (merge∘split c)) ○ merge∘split m
 
   sunflat∘sflat : ∀ (m c : List X) {d} → sunflat m c {d} ∘ sflat m c ≈Term id
-  sunflat∘sflat m c {d} = begin
-    ((id ⊗₁ split c) ∘ split m) ∘ (merge m ∘ (id ⊗₁ merge c))
-      ≈⟨ assoc ⟩
-    (id ⊗₁ split c) ∘ (split m ∘ (merge m ∘ (id ⊗₁ merge c)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    (id ⊗₁ split c) ∘ ((split m ∘ merge m) ∘ (id ⊗₁ merge c))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (split∘merge m) ≈-Term-refl) ⟩
-    (id ⊗₁ split c) ∘ (id ∘ (id ⊗₁ merge c))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
-    (id ⊗₁ split c) ∘ (id ⊗₁ merge c)
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (id ∘ id) ⊗₁ (split c ∘ merge c)
-      ≈⟨ ⊗-resp-≈ idˡ (split∘merge c) ⟩
-    id ⊗₁ id
-      ≈⟨ id⊗id≈id ⟩
-    id ∎
+  sunflat∘sflat m c {d} = cancelInner (split∘merge m) ○ id⊗-cancel (split∘merge c)
 
   -- Inner 4-block flattener:  wires x ⊗₀ (suffix 3-block)  →  wires (x ++ (m ++ (c ++ d))).
   iflat : (x m c : List X) {d : List X}
@@ -442,32 +378,10 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
 
   punflat∘pflat : ∀ (pre : List X) {n} → punflat pre {n} ∘ pflat pre ≈Term id
   punflat∘pflat []      = idˡ
-  punflat∘pflat (x ∷ p) = begin
-    id ⊗₁ punflat p ∘ id ⊗₁ pflat p
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (id ∘ id) ⊗₁ (punflat p ∘ pflat p)
-      ≈⟨ ⊗-resp-≈ idˡ (punflat∘pflat p) ⟩
-    id ⊗₁ id
-      ≈⟨ id⊗id≈id ⟩
-    id ∎
+  punflat∘pflat (x ∷ p) = id⊗-cancel (punflat∘pflat p)
 
   iunflat∘iflat : ∀ (x m c : List X) {d} → iunflat x m c {d} ∘ iflat x m c ≈Term id
-  iunflat∘iflat x m c {d} = begin
-    ((id ⊗₁ sunflat m c) ∘ split x) ∘ (merge x ∘ (id ⊗₁ sflat m c))
-      ≈⟨ assoc ⟩
-    (id ⊗₁ sunflat m c) ∘ (split x ∘ (merge x ∘ (id ⊗₁ sflat m c)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    (id ⊗₁ sunflat m c) ∘ ((split x ∘ merge x) ∘ (id ⊗₁ sflat m c))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (split∘merge x) ≈-Term-refl) ⟩
-    (id ⊗₁ sunflat m c) ∘ (id ∘ (id ⊗₁ sflat m c))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
-    (id ⊗₁ sunflat m c) ∘ (id ⊗₁ sflat m c)
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (id ∘ id) ⊗₁ (sunflat m c ∘ sflat m c)
-      ≈⟨ ⊗-resp-≈ idˡ (sunflat∘sflat m c) ⟩
-    id ⊗₁ id
-      ≈⟨ id⊗id≈id ⟩
-    id ∎
+  iunflat∘iflat x m c {d} = cancelInner (split∘merge x) ○ id⊗-cancel (sunflat∘sflat m c)
 
   -- Global flattener: grouped 4-block frame  →  flat wires object.
   gflat : (pre x m c : List X) {d : List X}
@@ -482,22 +396,11 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
 
   gunflat∘gflat : ∀ (pre x m c : List X) {d}
                 → gunflat pre x m c {d} ∘ gflat pre x m c ≈Term id
-  gunflat∘gflat pre x m c {d} = begin
-    (underP pre (iunflat x m c) ∘ punflat pre) ∘ (pflat pre ∘ underP pre (iflat x m c))
-      ≈⟨ assoc ⟩
-    underP pre (iunflat x m c) ∘ (punflat pre ∘ (pflat pre ∘ underP pre (iflat x m c)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    underP pre (iunflat x m c) ∘ ((punflat pre ∘ pflat pre) ∘ underP pre (iflat x m c))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (punflat∘pflat pre) ≈-Term-refl) ⟩
-    underP pre (iunflat x m c) ∘ (id ∘ underP pre (iflat x m c))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
-    underP pre (iunflat x m c) ∘ underP pre (iflat x m c)
-      ≈⟨ ≈-Term-sym (underP-∘ pre _ _) ⟩
-    underP pre (iunflat x m c ∘ iflat x m c)
-      ≈⟨ underP-resp pre (iunflat∘iflat x m c) ⟩
-    underP pre id
-      ≈⟨ underP-id pre ⟩
-    id ∎
+  gunflat∘gflat pre x m c {d} =
+    cancelInner (punflat∘pflat pre)
+      ○ (⟺ (underP-∘ pre _ _))
+      ○ underP-resp pre (iunflat∘iflat x m c)
+      ○ underP-id pre
 
   --------------------------------------------------------------------------------
   -- Core bridge (pre = 0): the flat `rpad` of a left-block box equals the
@@ -512,43 +415,22 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   rpad-iconj : ∀ {a b} (m c : List X) {d : List X} (h : HomTerm (wires a) (wires b))
              → iflat b m c {d} ∘ (h ⊗₁ id {wires m ⊗₀ wires c ⊗₀ wires d}) ∘ iunflat a m c
                ≈Term rpad (m ++ (c ++ d)) h
-  rpad-iconj {a} {b} m c {d} h = begin
-    (merge b ∘ (id ⊗₁ sflat m c)) ∘ (h ⊗₁ id) ∘ ((id ⊗₁ sunflat m c) ∘ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    (merge b ∘ (id ⊗₁ sflat m c)) ∘ (((h ⊗₁ id) ∘ (id ⊗₁ sunflat m c)) ∘ split a)
-      ≈⟨ assoc ⟩
-    merge b ∘ ((id ⊗₁ sflat m c) ∘ (((h ⊗₁ id) ∘ (id ⊗₁ sunflat m c)) ∘ split a))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    merge b ∘ (((id ⊗₁ sflat m c) ∘ ((h ⊗₁ id) ∘ (id ⊗₁ sunflat m c))) ∘ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym assoc) ≈-Term-refl) ⟩
-    merge b ∘ ((((id ⊗₁ sflat m c) ∘ (h ⊗₁ id)) ∘ (id ⊗₁ sunflat m c)) ∘ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (∘-resp-≈ (≈-Term-sym ⊗-∘-dist) ≈-Term-refl) ≈-Term-refl) ⟩
-    merge b ∘ ((((id ∘ h) ⊗₁ (sflat m c ∘ id)) ∘ (id ⊗₁ sunflat m c)) ∘ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (∘-resp-≈ (⊗-resp-≈ idˡ idʳ) ≈-Term-refl) ≈-Term-refl) ⟩
-    merge b ∘ (((h ⊗₁ sflat m c) ∘ (id ⊗₁ sunflat m c)) ∘ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym ⊗-∘-dist) ≈-Term-refl) ⟩
-    merge b ∘ (((h ∘ id) ⊗₁ (sflat m c ∘ sunflat m c)) ∘ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ idʳ (sflat∘sunflat m c)) ≈-Term-refl) ⟩
-    merge b ∘ ((h ⊗₁ id) ∘ split a) ∎
+  rpad-iconj {a} {b} m c {d} h = pullʳ ((refl⟩∘⟨ pullˡ step₁) ○ pullˡ step₂)
+    where
+      -- slide the box past the (un)flattener: pure bifunctoriality
+      step₁ : (h ⊗₁ id) ∘ (id ⊗₁ sunflat m c {d}) ≈Term h ⊗₁ sunflat m c {d}
+      step₁ = (⟺ ⊗-distrib-over-∘) ○ (idʳ ⟩⊗⟨ idˡ)
+      step₂ : (id ⊗₁ sflat m c {d}) ∘ (h ⊗₁ sunflat m c {d}) ≈Term h ⊗₁ id
+      step₂ = (⟺ ⊗-distrib-over-∘) ○ (idˡ ⟩⊗⟨ sflat∘sunflat m c)
 
   -- blk with the idle box on the right is the box left-tensored with a
   -- single idle block over the whole suffix.
   blk-left-id : ∀ {m c d : List X} {a b} (h : HomTerm (wires a) (wires b))
               → blk {M = wires m} {R = wires d} h (id {wires c})
                 ≈Term h ⊗₁ id {wires m ⊗₀ wires c ⊗₀ wires d}
-  blk-left-id {m} {c} {d} h = ⊗-resp-≈ ≈-Term-refl
-    (≈-Term-trans (⊗-resp-≈ ≈-Term-refl id⊗id≈id) id⊗id≈id)
+  blk-left-id {m} {c} {d} h = refl⟩⊗⟨ ((refl⟩⊗⟨ id⊗id≈id) ○ id⊗id≈id)
 
-  -- fuse two id-tensored factors:  id⊗₁P ∘ id⊗₁Q ≈ id⊗₁(P∘Q)
-  id⊗-∘ : ∀ {Z} {A B C} (P : HomTerm B C) (Q : HomTerm A B)
-        → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ≈Term id {Z} ⊗₁ (P ∘ Q)
-  id⊗-∘ P Q = ≈-Term-trans (≈-Term-sym ⊗-∘-dist) (⊗-resp-≈ idˡ ≈-Term-refl)
-
-  -- collapse three id-tensored factors:  id⊗₁P ∘ id⊗₁Q ∘ id⊗₁R ≈ id⊗₁(P∘Q∘R)
-  id⊗-∘3 : ∀ {Z} {A B C D} (P : HomTerm C D) (Q : HomTerm B C) (R : HomTerm A B)
-         → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ∘ id {Z} ⊗₁ R ≈Term id {Z} ⊗₁ (P ∘ Q ∘ R)
-  id⊗-∘3 {Z} P Q R =
-    ≈-Term-trans (∘-resp-≈ ≈-Term-refl (id⊗-∘ Q R)) (id⊗-∘ P (Q ∘ R))
+  -- (id⊗-∘ / id⊗-∘3 / id⊗-cancel live next to ≈R at the top of `UntypedI`.)
 
   --------------------------------------------------------------------------------
   -- `liftW p W` : prepend `p` idle wires to a flat morphism W on `wires u`.
@@ -563,34 +445,13 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   -- Lemma A: the flat shift equals the merge/split conjugation.
   liftW-merge : ∀ (p : List X) {u v} (W : HomTerm (wires u) (wires v))
               → liftW p W ≈Term merge p {v} ∘ (id {wires p} ⊗₁ W) ∘ split p {u}
-  liftW-merge []      W = begin
-    W
-      ≈⟨ ≈-Term-sym idʳ ⟩
-    W ∘ id
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym λ⇒∘λ⇐≈id) ⟩
-    W ∘ (λ⇒ ∘ λ⇐)
-      ≈⟨ ≈-Term-sym assoc ⟩
-    (W ∘ λ⇒) ∘ λ⇐
-      ≈⟨ ∘-resp-≈ (≈-Term-sym λ⇒∘id⊗f≈f∘λ⇒) ≈-Term-refl ⟩
-    (λ⇒ ∘ id ⊗₁ W) ∘ λ⇐
-      ≈⟨ assoc ⟩
-    λ⇒ ∘ (id ⊗₁ W ∘ λ⇐) ∎
-  liftW-merge (x ∷ p) {u} {v} W = begin
-    id ⊗₁ liftW p W
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (liftW-merge p W) ⟩
-    id ⊗₁ (merge p ∘ (id ⊗₁ W) ∘ split p)
-      ≈⟨ ⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl ⟩
-    (id ∘ id) ⊗₁ (merge p ∘ (id ⊗₁ W) ∘ split p)
-      ≈⟨ ⊗-∘-dist ⟩
-    id ⊗₁ merge p ∘ id ⊗₁ ((id ⊗₁ W) ∘ split p)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl) ⟩
-    id ⊗₁ merge p ∘ (id ∘ id) ⊗₁ ((id ⊗₁ W) ∘ split p)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl ⊗-∘-dist ⟩
-    id ⊗₁ merge p ∘ (id ⊗₁ (id ⊗₁ W) ∘ id ⊗₁ split p)
-      ≈⟨ reassoc-suc ⟩
-    (id ⊗₁ merge p ∘ α⇒) ∘ id ⊗₁ W ∘ (α⇐ ∘ id ⊗₁ split p) ∎
+  liftW-merge []      W =
+    introʳ λ⇒∘λ⇐≈id ○ pullˡ (⟺ λ⇒∘id⊗f≈f∘λ⇒) ○ assoc
+  liftW-merge (x ∷ p) {u} {v} W =
+    (refl⟩⊗⟨ liftW-merge p W)
+      ○ (⟺ (id⊗-∘3 (merge p) (id ⊗₁ W) (split p)))
+      ○ reassoc-suc
     where
-      open ≈R
       -- insert α⇒∘α⇐ = id in the middle and reassociate to expose
       -- merge (suc p) = id⊗₁merge p ∘ α⇒ and split (suc p) = α⇐ ∘ id⊗₁split p.
       reassoc-suc :
@@ -598,30 +459,18 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
         ≈Term (id ⊗₁ merge p ∘ α⇒) ∘ id ⊗₁ W ∘ (α⇐ ∘ id ⊗₁ split p)
       reassoc-suc = begin
         id ⊗₁ merge p ∘ (id ⊗₁ (id ⊗₁ W) ∘ id ⊗₁ split p)
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym idʳ) ≈-Term-refl) ⟩
-        id ⊗₁ merge p ∘ ((id ⊗₁ (id ⊗₁ W) ∘ id) ∘ id ⊗₁ split p)
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (∘-resp-≈ ≈-Term-refl (≈-Term-sym α⇒∘α⇐≈id)) ≈-Term-refl) ⟩
-        id ⊗₁ merge p ∘ ((id ⊗₁ (id ⊗₁ W) ∘ (α⇒ ∘ α⇐)) ∘ id ⊗₁ split p)
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym assoc) ≈-Term-refl) ⟩
-        id ⊗₁ merge p ∘ (((id ⊗₁ (id ⊗₁ W) ∘ α⇒) ∘ α⇐) ∘ id ⊗₁ split p)
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (∘-resp-≈ (≈-Term-sym α-comm) ≈-Term-refl) ≈-Term-refl) ⟩
-        id ⊗₁ merge p ∘ (((α⇒ ∘ (id ⊗₁ id) ⊗₁ W) ∘ α⇐) ∘ id ⊗₁ split p)
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ assoc ≈-Term-refl) ⟩
-        id ⊗₁ merge p ∘ ((α⇒ ∘ ((id ⊗₁ id) ⊗₁ W ∘ α⇐)) ∘ id ⊗₁ split p)
-          ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-        id ⊗₁ merge p ∘ (α⇒ ∘ (((id ⊗₁ id) ⊗₁ W ∘ α⇐) ∘ id ⊗₁ split p))
-          ≈⟨ ≈-Term-sym assoc ⟩
-        (id ⊗₁ merge p ∘ α⇒) ∘ (((id ⊗₁ id) ⊗₁ W ∘ α⇐) ∘ id ⊗₁ split p)
-          ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-        (id ⊗₁ merge p ∘ α⇒) ∘ ((id ⊗₁ id) ⊗₁ W ∘ (α⇐ ∘ id ⊗₁ split p))
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ id⊗id≈id ≈-Term-refl) ≈-Term-refl) ⟩
-        (id ⊗₁ merge p ∘ α⇒) ∘ (id ⊗₁ W ∘ (α⇐ ∘ id ⊗₁ split p)) ∎
+          ≈⟨ refl⟩∘⟨ insertInner α⇒∘α⇐≈id ⟩
+        id ⊗₁ merge p ∘ ((id ⊗₁ (id ⊗₁ W) ∘ α⇒) ∘ (α⇐ ∘ id ⊗₁ split p))
+          ≈⟨ refl⟩∘⟨ ((⟺ α-comm) ○ (refl⟩∘⟨ (id⊗id≈id ⟩⊗⟨refl))) ⟩∘⟨refl ⟩
+        id ⊗₁ merge p ∘ ((α⇒ ∘ id ⊗₁ W) ∘ (α⇐ ∘ id ⊗₁ split p))
+          ≈⟨ center ≈-Term-refl ⟨
+        (id ⊗₁ merge p ∘ α⇒) ∘ id ⊗₁ W ∘ (α⇐ ∘ id ⊗₁ split p) ∎
 
   -- `pad` is literally the wire-shift of `rpad`.
   pad≡liftW : ∀ {a b} (pre suf : List X) (g : HomTerm (wires a) (wires b))
             → pad pre suf g ≈Term liftW pre (rpad suf g)
   pad≡liftW []      suf g = ≈-Term-refl
-  pad≡liftW (x ∷ p) suf g = ⊗-resp-≈ ≈-Term-refl (pad≡liftW p suf g)
+  pad≡liftW (x ∷ p) suf g = refl⟩⊗⟨ pad≡liftW p suf g
 
   --------------------------------------------------------------------------------
   -- Structural ++-associativity iso on flat wire objects, built from
@@ -643,58 +492,30 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   -- pflat-conjugation of a prefix-lifted wire morphism is its flat shift.
   pflatconj : ∀ (pre : List X) {u v} (Y : HomTerm (wires u) (wires v))
             → pflat pre {v} ∘ underP pre Y ∘ punflat pre {u} ≈Term liftW pre Y
-  pflatconj []      Y = ≈-Term-trans idˡ idʳ
-  pflatconj (x ∷ p) {u} {v} Y = begin
-    id ⊗₁ pflat p ∘ id ⊗₁ underP p Y ∘ id ⊗₁ punflat p
-      ≈⟨ id⊗-∘3 (pflat p) (underP p Y) (punflat p) ⟩
-    id ⊗₁ (pflat p ∘ underP p Y ∘ punflat p)
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (pflatconj p Y) ⟩
-    id ⊗₁ liftW p Y ∎
+  pflatconj []      Y = idˡ ○ idʳ
+  pflatconj (x ∷ p) {u} {v} Y =
+    id⊗-∘3 (pflat p) (underP p Y) (punflat p) ○ (refl⟩⊗⟨ pflatconj p Y)
 
   -- Lemma B: lifting by (x+m) vs lifting by x then m, bridged by assocW.
   liftW-assoc : ∀ (x m : List X) {u v} (W : HomTerm (wires u) (wires v))
               → liftW (x ++ m) W ∘ assocW x m u
                 ≈Term assocW x m v ∘ liftW x (liftW m W)
-  liftW-assoc []       m W = ≈-Term-trans idʳ (≈-Term-sym idˡ)
-  liftW-assoc (y ∷ x) m {u} {v} W = begin
-    id ⊗₁ liftW (x ++ m) W ∘ id ⊗₁ assocW x m u
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (id ∘ id) ⊗₁ (liftW (x ++ m) W ∘ assocW x m u)
-      ≈⟨ ⊗-resp-≈ idˡ (liftW-assoc x m W) ⟩
-    id ⊗₁ (assocW x m v ∘ liftW x (liftW m W))
-      ≈⟨ ⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl ⟩
-    (id ∘ id) ⊗₁ (assocW x m v ∘ liftW x (liftW m W))
-      ≈⟨ ⊗-∘-dist ⟩
-    id ⊗₁ assocW x m v ∘ id ⊗₁ liftW x (liftW m W) ∎
+  liftW-assoc []       m W = idʳ ○ (⟺ idˡ)
+  liftW-assoc (y ∷ x) m {u} {v} W =
+    id⊗-∘ _ _ ○ (refl⟩⊗⟨ liftW-assoc x m W) ○ (⟺ (id⊗-∘ _ _))
 
   -- pad as a conjugation by the prefix-flattener of a prefix-lifted rpad.
   padP-bridge : ∀ {a b} (pre suf : List X) (h : HomTerm (wires a) (wires b))
               → pad pre suf h
                 ≈Term pflat pre ∘ underP pre (rpad suf h) ∘ punflat pre
-  padP-bridge []      suf h = ≈-Term-sym (≈-Term-trans idˡ idʳ)
-  padP-bridge (x ∷ p) suf h = begin
-    id ⊗₁ pad p suf h
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (padP-bridge p suf h) ⟩
-    id ⊗₁ (pflat p ∘ underP p (rpad suf h) ∘ punflat p)
-      ≈⟨ ⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl ⟩
-    (id ∘ id) ⊗₁ (pflat p ∘ underP p (rpad suf h) ∘ punflat p)
-      ≈⟨ ⊗-∘-dist ⟩
-    id ⊗₁ pflat p ∘ id ⊗₁ (underP p (rpad suf h) ∘ punflat p)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl) ⟩
-    id ⊗₁ pflat p ∘ (id ∘ id) ⊗₁ (underP p (rpad suf h) ∘ punflat p)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl ⊗-∘-dist ⟩
-    id ⊗₁ pflat p ∘ id ⊗₁ underP p (rpad suf h) ∘ id ⊗₁ punflat p ∎
+  padP-bridge []      suf h = ⟺ (idˡ ○ idʳ)
+  padP-bridge (x ∷ p) suf h =
+    (refl⟩⊗⟨ padP-bridge p suf h)
+      ○ (⟺ (id⊗-∘3 (pflat p) (underP p (rpad suf h)) (punflat p)))
 
   assocW⁻∘assocW : ∀ (p q s : List X) → assocW⁻ p q s ∘ assocW p q s ≈Term id
   assocW⁻∘assocW []      q s = idˡ
-  assocW⁻∘assocW (x ∷ p) q s = begin
-    id ⊗₁ assocW⁻ p q s ∘ id ⊗₁ assocW p q s
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (id ∘ id) ⊗₁ (assocW⁻ p q s ∘ assocW p q s)
-      ≈⟨ ⊗-resp-≈ idˡ (assocW⁻∘assocW p q s) ⟩
-    id ⊗₁ id
-      ≈⟨ id⊗id≈id ⟩
-    id ∎
+  assocW⁻∘assocW (x ∷ p) q s = id⊗-cancel (assocW⁻∘assocW p q s)
 
   --------------------------------------------------------------------------------
   -- Generic conjugation collapse: gflat ∘ underP pre X ∘ gunflat folds the
@@ -711,19 +532,12 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
     (pflat pre ∘ underP pre (iflat x m c))
       ∘ underP pre X
       ∘ (underP pre (iunflat x' m c') ∘ punflat pre)
-      ≈⟨ assoc ⟩
-    pflat pre ∘ (underP pre (iflat x m c)
-      ∘ (underP pre X ∘ (underP pre (iunflat x' m c') ∘ punflat pre)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
-    pflat pre ∘ (underP pre (iflat x m c)
-      ∘ ((underP pre X ∘ underP pre (iunflat x' m c')) ∘ punflat pre))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    pflat pre ∘ ((underP pre (iflat x m c)
-      ∘ (underP pre X ∘ underP pre (iunflat x' m c'))) ∘ punflat pre)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (∘-resp-≈ ≈-Term-refl (≈-Term-sym (underP-∘ pre _ _))) ≈-Term-refl) ⟩
-    pflat pre ∘ ((underP pre (iflat x m c)
-      ∘ underP pre (X ∘ iunflat x' m c')) ∘ punflat pre)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym (underP-∘ pre _ _)) ≈-Term-refl) ⟩
+      ≈⟨ center (⟺ (underP-∘ pre _ _)) ⟩
+    pflat pre ∘ (underP pre (iflat x m c ∘ X)
+      ∘ (underP pre (iunflat x' m c') ∘ punflat pre))
+      ≈⟨ refl⟩∘⟨ pullˡ (⟺ (underP-∘ pre _ _)) ⟩
+    pflat pre ∘ (underP pre ((iflat x m c ∘ X) ∘ iunflat x' m c') ∘ punflat pre)
+      ≈⟨ refl⟩∘⟨ underP-resp pre assoc ⟩∘⟨refl ⟩
     pflat pre ∘ (underP pre (iflat x m c ∘ (X ∘ iunflat x' m c')) ∘ punflat pre) ∎
 
   -- Bridge-f: the flat pad of f equals the grouped f-block conjugated by gflat.
@@ -736,9 +550,9 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
     pad pre (m ++ (c ++ r)) h
       ≈⟨ padP-bridge pre (m ++ (c ++ r)) h ⟩
     pflat pre ∘ underP pre (rpad (m ++ (c ++ r)) h) ∘ punflat pre
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (underP-resp pre (≈-Term-sym core)) ≈-Term-refl) ⟩
+      ≈⟨ refl⟩∘⟨ underP-resp pre (⟺ core) ⟩∘⟨refl ⟩
     pflat pre ∘ underP pre (iflat b m c ∘ (blk h (id {wires c})) ∘ iunflat a m c) ∘ punflat pre
-      ≈⟨ ≈-Term-sym (gconj pre b m c a c h-block) ⟩
+      ≈⟨ gconj pre b m c a c h-block ⟨
     gflat pre b m c ∘ underP pre (blk h (id {wires c})) ∘ gunflat pre a m c ∎
     where
       h-block : HomTerm (wires a ⊗₀ wires m ⊗₀ wires c ⊗₀ wires r)
@@ -746,18 +560,13 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
       h-block = blk {M = wires m} {R = wires r} h (id {wires c})
       core : iflat b m c {r} ∘ (blk h (id {wires c})) ∘ iunflat a m c
              ≈Term rpad (m ++ (c ++ r)) h
-      core = begin
-        iflat b m c ∘ (blk h (id {wires c})) ∘ iunflat a m c
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (blk-left-id h) ≈-Term-refl) ⟩
-        iflat b m c ∘ (h ⊗₁ id) ∘ iunflat a m c
-          ≈⟨ rpad-iconj m c h ⟩
-        rpad (m ++ (c ++ r)) h ∎
+      core = (refl⟩∘⟨ blk-left-id h ⟩∘⟨refl) ○ rpad-iconj m c h
 
   -- merge-conjugation of a wire morphism is its flat shift (liftW), stated
   -- in the convenient direction.
   merge-shift : ∀ (p : List X) {u v} (W : HomTerm (wires u) (wires v))
               → merge p {v} ∘ (id {wires p} ⊗₁ W) ∘ split p {u} ≈Term liftW p W
-  merge-shift p W = ≈-Term-sym (liftW-merge p W)
+  merge-shift p W = ⟺ (liftW-merge p W)
 
   -- The g-core: the right-block box, conjugated by the inner flatteners,
   -- is the double flat-shift of g's right-pad.  (g in block 3 / slot c.)
@@ -768,49 +577,27 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
     iflat x m b ∘ (blk (id {wires x}) g) ∘ iunflat x m a
       ≈⟨⟩  -- blk id g = id ⊗₁ (id ⊗₁ (g ⊗₁ id)) = id ⊗₁ Bg, definitionally
     (merge x ∘ (id ⊗₁ sflat m b)) ∘ (id ⊗₁ Bg) ∘ ((id ⊗₁ sunflat m a) ∘ split x)
-      ≈⟨ regroup ⟩
-    merge x ∘ ((id ⊗₁ sflat m b) ∘ (id ⊗₁ Bg) ∘ (id ⊗₁ sunflat m a)) ∘ split x
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (id⊗-∘3 (sflat m b) Bg (sunflat m a)) ≈-Term-refl) ⟩
-    merge x ∘ (id ⊗₁ (sflat m b ∘ Bg ∘ sunflat m a)) ∘ split x
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ ≈-Term-refl innerY) ≈-Term-refl) ⟩
-    merge x ∘ (id ⊗₁ liftW m (rpad d g)) ∘ split x
+      ≈⟨ center (id⊗-∘ (sflat m b) Bg) ⟩
+    merge x ∘ (id ⊗₁ (sflat m b ∘ Bg) ∘ ((id ⊗₁ sunflat m a) ∘ split x))
+      ≈⟨ refl⟩∘⟨ pullˡ (id⊗-∘ (sflat m b ∘ Bg) (sunflat m a)) ⟩
+    merge x ∘ (id ⊗₁ ((sflat m b ∘ Bg) ∘ sunflat m a) ∘ split x)
+      ≈⟨ refl⟩∘⟨ (refl⟩⊗⟨ (assoc ○ innerY)) ⟩∘⟨refl ⟩
+    merge x ∘ (id ⊗₁ liftW m (rpad d g) ∘ split x)
       ≈⟨ merge-shift x (liftW m (rpad d g)) ⟩
     liftW x (liftW m (rpad d g)) ∎
     where
-      open ≈R
       Bg : HomTerm (wires m ⊗₀ wires a ⊗₀ wires d) (wires m ⊗₀ wires b ⊗₀ wires d)
       Bg = id {wires m} ⊗₁ (g ⊗₁ id {wires d})
-      -- bracket bookkeeping helpers (pure associativity)
-      regroup :
-          (merge x ∘ (id ⊗₁ sflat m b)) ∘ (id ⊗₁ Bg) ∘ ((id ⊗₁ sunflat m a) ∘ split x)
-        ≈Term merge x ∘ ((id ⊗₁ sflat m b) ∘ (id ⊗₁ Bg) ∘ (id ⊗₁ sunflat m a)) ∘ split x
-      regroup = begin
-        (merge x ∘ (id ⊗₁ sflat m b)) ∘ (id ⊗₁ Bg) ∘ ((id ⊗₁ sunflat m a) ∘ split x)
-          ≈⟨ assoc ⟩
-        merge x ∘ ((id ⊗₁ sflat m b) ∘ ((id ⊗₁ Bg) ∘ ((id ⊗₁ sunflat m a) ∘ split x)))
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
-        merge x ∘ ((id ⊗₁ sflat m b) ∘ (((id ⊗₁ Bg) ∘ (id ⊗₁ sunflat m a)) ∘ split x))
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-        merge x ∘ (((id ⊗₁ sflat m b) ∘ ((id ⊗₁ Bg) ∘ (id ⊗₁ sunflat m a))) ∘ split x) ∎
-      regroupY :
-          (merge m ∘ (id ⊗₁ merge b)) ∘ Bg ∘ ((id ⊗₁ split a) ∘ split m)
-        ≈Term merge m ∘ ((id ⊗₁ merge b) ∘ Bg ∘ (id ⊗₁ split a)) ∘ split m
-      regroupY = begin
-        (merge m ∘ (id ⊗₁ merge b)) ∘ Bg ∘ ((id ⊗₁ split a) ∘ split m)
-          ≈⟨ assoc ⟩
-        merge m ∘ ((id ⊗₁ merge b) ∘ (Bg ∘ ((id ⊗₁ split a) ∘ split m)))
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
-        merge m ∘ ((id ⊗₁ merge b) ∘ ((Bg ∘ (id ⊗₁ split a)) ∘ split m))
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-        merge m ∘ (((id ⊗₁ merge b) ∘ (Bg ∘ (id ⊗₁ split a))) ∘ split m) ∎
       -- inner collapse: sflat m b ∘ Bg ∘ sunflat m a ≈ liftW m (rpad d g)
       innerY : sflat m b ∘ Bg ∘ sunflat m a ≈Term liftW m (rpad d g)
       innerY = begin
         (merge m ∘ (id ⊗₁ merge b)) ∘ Bg ∘ ((id ⊗₁ split a) ∘ split m)
-          ≈⟨ regroupY ⟩
-        merge m ∘ ((id ⊗₁ merge b) ∘ Bg ∘ (id ⊗₁ split a)) ∘ split m
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (id⊗-∘3 (merge b) (g ⊗₁ id) (split a)) ≈-Term-refl) ⟩
-        merge m ∘ (id ⊗₁ (merge b ∘ (g ⊗₁ id) ∘ split a)) ∘ split m
+          ≈⟨ center (id⊗-∘ (merge b) (g ⊗₁ id)) ⟩
+        merge m ∘ (id ⊗₁ (merge b ∘ g ⊗₁ id) ∘ ((id ⊗₁ split a) ∘ split m))
+          ≈⟨ refl⟩∘⟨ pullˡ (id⊗-∘ (merge b ∘ g ⊗₁ id) (split a)) ⟩
+        merge m ∘ (id ⊗₁ ((merge b ∘ g ⊗₁ id) ∘ split a) ∘ split m)
+          ≈⟨ refl⟩∘⟨ (refl⟩⊗⟨ assoc) ⟩∘⟨refl ⟩
+        merge m ∘ (id ⊗₁ (merge b ∘ (g ⊗₁ id) ∘ split a) ∘ split m)
           ≈⟨ merge-shift m (rpad d g) ⟩
         liftW m (rpad d g) ∎
 
@@ -825,7 +612,7 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
     gflat pre x m b ∘ underP pre (blk (id {wires x}) g) ∘ gunflat pre x m a
       ≈⟨ gconj pre x m b x a (blk (id {wires x}) g) ⟩
     pflat pre ∘ underP pre (iflat x m b ∘ (blk (id {wires x}) g) ∘ iunflat x m a) ∘ punflat pre
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (underP-resp pre (gcore x m g)) ≈-Term-refl) ⟩
+      ≈⟨ refl⟩∘⟨ underP-resp pre (gcore x m g) ⟩∘⟨refl ⟩
     pflat pre ∘ underP pre (liftW x (liftW m (rpad r g))) ∘ punflat pre
       ≈⟨ pflatconj pre (liftW x (liftW m (rpad r g))) ⟩
     liftW pre (liftW x (liftW m (rpad r g))) ∎
@@ -834,34 +621,19 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   liftW-resp : ∀ (p : List X) {u v} {P Q : HomTerm (wires u) (wires v)}
              → P ≈Term Q → liftW p P ≈Term liftW p Q
   liftW-resp []      eq = eq
-  liftW-resp (x ∷ p) eq = ⊗-resp-≈ ≈-Term-refl (liftW-resp p eq)
+  liftW-resp (x ∷ p) eq = refl⟩⊗⟨ liftW-resp p eq
 
   liftW-∘ : ∀ (p : List X) {u v w} (P : HomTerm (wires v) (wires w)) (Q : HomTerm (wires u) (wires v))
           → liftW p (P ∘ Q) ≈Term liftW p P ∘ liftW p Q
   liftW-∘ []      P Q = ≈-Term-refl
-  liftW-∘ (x ∷ p) P Q = begin
-    id ⊗₁ liftW p (P ∘ Q)
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (liftW-∘ p P Q) ⟩
-    id ⊗₁ (liftW p P ∘ liftW p Q)
-      ≈⟨ ⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl ⟩
-    (id ∘ id) ⊗₁ (liftW p P ∘ liftW p Q)
-      ≈⟨ ⊗-∘-dist ⟩
-    id ⊗₁ liftW p P ∘ id ⊗₁ liftW p Q ∎
+  liftW-∘ (x ∷ p) P Q = (refl⟩⊗⟨ liftW-∘ p P Q) ○ (⟺ (id⊗-∘ _ _))
 
   -- rearranged Lemma B (both directions of conjugation made explicit).
   liftW-assoc' : ∀ (x m : List X) {u v} (W : HomTerm (wires u) (wires v))
                → liftW x (liftW m W)
                  ≈Term assocW⁻ x m v ∘ liftW (x ++ m) W ∘ assocW x m u
-  liftW-assoc' x m {u} {v} W = begin
-    liftW x (liftW m W)
-      ≈⟨ ≈-Term-sym idˡ ⟩
-    id ∘ liftW x (liftW m W)
-      ≈⟨ ∘-resp-≈ (≈-Term-sym (assocW⁻∘assocW x m v)) ≈-Term-refl ⟩
-    (assocW⁻ x m v ∘ assocW x m v) ∘ liftW x (liftW m W)
-      ≈⟨ assoc ⟩
-    assocW⁻ x m v ∘ (assocW x m v ∘ liftW x (liftW m W))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym (liftW-assoc x m W)) ⟩
-    assocW⁻ x m v ∘ (liftW (x ++ m) W ∘ assocW x m u) ∎
+  liftW-assoc' x m {u} {v} W =
+    introˡ (assocW⁻∘assocW x m v) ○ pullʳ (⟺ (liftW-assoc x m W))
 
   -- The double flat-shift equals the flat shift at the summed offset,
   -- conjugated by structural ++-associativity isos `assocW` (merge/split-built).
@@ -876,37 +648,16 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
     liftW pre (assocW⁻ x m v ∘ liftW (x ++ m) W ∘ assocW x m u)
       ≈⟨ liftW-∘ pre _ _ ⟩
     liftW pre (assocW⁻ x m v) ∘ liftW pre (liftW (x ++ m) W ∘ assocW x m u)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (liftW-∘ pre _ _) ⟩
+      ≈⟨ refl⟩∘⟨ liftW-∘ pre _ _ ⟩
     liftW pre (assocW⁻ x m v) ∘ liftW pre (liftW (x ++ m) W) ∘ liftW pre (assocW x m u)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (liftW-assoc' pre (x ++ m) W) ≈-Term-refl) ⟩
+      ≈⟨ refl⟩∘⟨ liftW-assoc' pre (x ++ m) W ⟩∘⟨refl ⟩
     liftW pre (assocW⁻ x m v)
       ∘ (assocW⁻ pre (x ++ m) v ∘ liftW (pre ++ (x ++ m)) W ∘ assocW pre (x ++ m) u)
       ∘ liftW pre (assocW x m u)
-      ≈⟨ regroupG ⟩
+      ≈⟨ (refl⟩∘⟨ (((⟺ assoc) ⟩∘⟨refl) ○ assoc)) ○ (⟺ (center ≈-Term-refl)) ⟩
     (liftW pre (assocW⁻ x m v) ∘ assocW⁻ pre (x ++ m) v)
       ∘ liftW (pre ++ (x ++ m)) W
       ∘ (assocW pre (x ++ m) u ∘ liftW pre (assocW x m u)) ∎
-    where
-      open ≈R
-      A1 = liftW pre (assocW⁻ x m v)
-      A2 = assocW⁻ pre (x ++ m) v
-      WW = liftW (pre ++ (x ++ m)) W
-      B2 = assocW pre (x ++ m) u
-      B1 = liftW pre (assocW x m u)
-      regroupG : A1 ∘ (A2 ∘ WW ∘ B2) ∘ B1
-               ≈Term (A1 ∘ A2) ∘ WW ∘ (B2 ∘ B1)
-      regroupG = begin
-        A1 ∘ (A2 ∘ WW ∘ B2) ∘ B1
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym assoc) ≈-Term-refl) ⟩
-        A1 ∘ ((A2 ∘ WW) ∘ B2) ∘ B1
-          ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-        A1 ∘ ((A2 ∘ WW) ∘ (B2 ∘ B1))
-          ≈⟨ ≈-Term-sym assoc ⟩
-        (A1 ∘ (A2 ∘ WW)) ∘ (B2 ∘ B1)
-          ≈⟨ ∘-resp-≈ (≈-Term-sym assoc) ≈-Term-refl ⟩
-        ((A1 ∘ A2) ∘ WW) ∘ (B2 ∘ B1)
-          ≈⟨ assoc ⟩
-        (A1 ∘ A2) ∘ (WW ∘ (B2 ∘ B1)) ∎
 
   --------------------------------------------------------------------------------
   -- THE BRIDGE THEOREM.  Two adjacent, disjoint, non-crossing boxes commute
@@ -962,75 +713,27 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
                       (wires (pre ++ (b₁ ++ (mid ++ (b₂ ++ r)))))
     g-first = f-out ∘ g-in
 
+    private
+      -- shared collapse for f-first≈ / g-first≈: two conjugated layers whose
+      -- inner flattener pair cancels (U₁ ∘ G₂ ≈ id).
+      conj-cancel : ∀ {A B C D F G : ObjTerm}
+                      {G₁ : HomTerm F G} {L₁ : HomTerm C F} {U₁ : HomTerm D C}
+                      {G₂ : HomTerm C D} {L₂ : HomTerm B C} {U₂ : HomTerm A B}
+                  → U₁ ∘ G₂ ≈Term id
+                  → (G₁ ∘ L₁ ∘ U₁) ∘ (G₂ ∘ L₂ ∘ U₂) ≈Term G₁ ∘ (L₁ ∘ L₂) ∘ U₂
+      conj-cancel inv = assoc ○ (refl⟩∘⟨ (cancelInner inv ○ (⟺ assoc)))
+
     -- Each flat composite equals the grouped composite conjugated by ONE pair
     -- of global flatteners (the inner pair cancels).
     f-first≈ : f-first ≈Term gflat pre b₁ mid b₂ {r} ∘ f-then-g ∘ gunflat pre a₁ mid a₂ {r}
-    f-first≈ = begin
-      g-out ∘ f-in
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (bridge-f pre mid a₂ r (⟦box⟧ f)) ⟩
-      (gflat pre b₁ mid b₂ ∘ Lg-out ∘ gunflat pre b₁ mid a₂)
-        ∘ (gflat pre b₁ mid a₂ ∘ Lf-in ∘ gunflat pre a₁ mid a₂)
-        ≈⟨ cancel-mid ⟩
-      gflat pre b₁ mid b₂ ∘ (Lg-out ∘ Lf-in) ∘ gunflat pre a₁ mid a₂ ∎
-      where
-        Lf-in  = underP pre (blk {M = wires mid} {R = wires r} (⟦box⟧ f) (id {wires a₂}))
-        Lg-out = underP pre (blk {M = wires mid} {R = wires r} (id {wires b₁}) (⟦box⟧ g))
-        cancel-mid :
-            (gflat pre b₁ mid b₂ ∘ Lg-out ∘ gunflat pre b₁ mid a₂)
-              ∘ (gflat pre b₁ mid a₂ ∘ Lf-in ∘ gunflat pre a₁ mid a₂)
-          ≈Term gflat pre b₁ mid b₂ ∘ (Lg-out ∘ Lf-in) ∘ gunflat pre a₁ mid a₂
-        cancel-mid = begin
-          (gflat pre b₁ mid b₂ ∘ Lg-out ∘ gunflat pre b₁ mid a₂)
-            ∘ (gflat pre b₁ mid a₂ ∘ Lf-in ∘ gunflat pre a₁ mid a₂)
-            ≈⟨ assoc ⟩
-          gflat pre b₁ mid b₂ ∘ ((Lg-out ∘ gunflat pre b₁ mid a₂)
-            ∘ (gflat pre b₁ mid a₂ ∘ Lf-in ∘ gunflat pre a₁ mid a₂))
-            ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-          gflat pre b₁ mid b₂ ∘ (Lg-out ∘ (gunflat pre b₁ mid a₂
-            ∘ (gflat pre b₁ mid a₂ ∘ Lf-in ∘ gunflat pre a₁ mid a₂)))
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
-          gflat pre b₁ mid b₂ ∘ (Lg-out ∘ ((gunflat pre b₁ mid a₂
-            ∘ gflat pre b₁ mid a₂) ∘ (Lf-in ∘ gunflat pre a₁ mid a₂)))
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (gunflat∘gflat pre b₁ mid a₂) ≈-Term-refl)) ⟩
-          gflat pre b₁ mid b₂ ∘ (Lg-out ∘ (id ∘ (Lf-in ∘ gunflat pre a₁ mid a₂)))
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl idˡ) ⟩
-          gflat pre b₁ mid b₂ ∘ (Lg-out ∘ (Lf-in ∘ gunflat pre a₁ mid a₂))
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-          gflat pre b₁ mid b₂ ∘ ((Lg-out ∘ Lf-in) ∘ gunflat pre a₁ mid a₂) ∎
+    f-first≈ =
+      (refl⟩∘⟨ bridge-f pre mid a₂ r (⟦box⟧ f))
+        ○ conj-cancel (gunflat∘gflat pre b₁ mid a₂)
 
     g-first≈ : g-first ≈Term gflat pre b₁ mid b₂ {r} ∘ g-then-f ∘ gunflat pre a₁ mid a₂ {r}
-    g-first≈ = begin
-      f-out ∘ g-in
-        ≈⟨ ∘-resp-≈ (bridge-f pre mid b₂ r (⟦box⟧ f)) ≈-Term-refl ⟩
-      (gflat pre b₁ mid b₂ ∘ Lf-out ∘ gunflat pre a₁ mid b₂)
-        ∘ (gflat pre a₁ mid b₂ ∘ Lg-in ∘ gunflat pre a₁ mid a₂)
-        ≈⟨ cancel-mid ⟩
-      gflat pre b₁ mid b₂ ∘ (Lf-out ∘ Lg-in) ∘ gunflat pre a₁ mid a₂ ∎
-      where
-        Lf-out = underP pre (blk {M = wires mid} {R = wires r} (⟦box⟧ f) (id {wires b₂}))
-        Lg-in  = underP pre (blk {M = wires mid} {R = wires r} (id {wires a₁}) (⟦box⟧ g))
-        cancel-mid :
-            (gflat pre b₁ mid b₂ ∘ Lf-out ∘ gunflat pre a₁ mid b₂)
-              ∘ (gflat pre a₁ mid b₂ ∘ Lg-in ∘ gunflat pre a₁ mid a₂)
-          ≈Term gflat pre b₁ mid b₂ ∘ (Lf-out ∘ Lg-in) ∘ gunflat pre a₁ mid a₂
-        cancel-mid = begin
-          (gflat pre b₁ mid b₂ ∘ Lf-out ∘ gunflat pre a₁ mid b₂)
-            ∘ (gflat pre a₁ mid b₂ ∘ Lg-in ∘ gunflat pre a₁ mid a₂)
-            ≈⟨ assoc ⟩
-          gflat pre b₁ mid b₂ ∘ ((Lf-out ∘ gunflat pre a₁ mid b₂)
-            ∘ (gflat pre a₁ mid b₂ ∘ Lg-in ∘ gunflat pre a₁ mid a₂))
-            ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-          gflat pre b₁ mid b₂ ∘ (Lf-out ∘ (gunflat pre a₁ mid b₂
-            ∘ (gflat pre a₁ mid b₂ ∘ Lg-in ∘ gunflat pre a₁ mid a₂)))
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
-          gflat pre b₁ mid b₂ ∘ (Lf-out ∘ ((gunflat pre a₁ mid b₂
-            ∘ gflat pre a₁ mid b₂) ∘ (Lg-in ∘ gunflat pre a₁ mid a₂)))
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (gunflat∘gflat pre a₁ mid b₂) ≈-Term-refl)) ⟩
-          gflat pre b₁ mid b₂ ∘ (Lf-out ∘ (id ∘ (Lg-in ∘ gunflat pre a₁ mid a₂)))
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl idˡ) ⟩
-          gflat pre b₁ mid b₂ ∘ (Lf-out ∘ (Lg-in ∘ gunflat pre a₁ mid a₂))
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-          gflat pre b₁ mid b₂ ∘ ((Lf-out ∘ Lg-in) ∘ gunflat pre a₁ mid a₂) ∎
+    g-first≈ =
+      (bridge-f pre mid b₂ r (⟦box⟧ f) ⟩∘⟨refl)
+        ○ conj-cancel (gunflat∘gflat pre a₁ mid b₂)
 
     -- THE THEOREM: the two flat orders are equal.  Reuses HeadSwap.swap-sound,
     -- conjugated by gflat/gunflat.  No braiding σ anywhere.
@@ -1039,9 +742,9 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
       f-first
         ≈⟨ f-first≈ ⟩
       gflat pre b₁ mid b₂ ∘ f-then-g ∘ gunflat pre a₁ mid a₂
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ swap-sound ≈-Term-refl) ⟩
+        ≈⟨ refl⟩∘⟨ swap-sound ⟩∘⟨refl ⟩
       gflat pre b₁ mid b₂ ∘ g-then-f ∘ gunflat pre a₁ mid a₂
-        ≈⟨ ≈-Term-sym g-first≈ ⟩
+        ≈⟨ g-first≈ ⟨
       g-first ∎
 
     -- Corollary: the g-out layer IS a genuine flat `pad` of g at the shifted
@@ -1064,7 +767,7 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
       liftW pre (liftW b₁ (liftW mid (rpad r (⟦box⟧ g))))
         ≈⟨ liftW-reassoc pre b₁ mid (rpad r (⟦box⟧ g)) ⟩
       reassocB-out ∘ liftW (pre ++ (b₁ ++ mid)) (rpad r (⟦box⟧ g)) ∘ reassocF-out
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym (pad≡liftW (pre ++ (b₁ ++ mid)) r (⟦box⟧ g))) ≈-Term-refl) ⟩
+        ≈⟨ refl⟩∘⟨ (⟺ (pad≡liftW (pre ++ (b₁ ++ mid)) r (⟦box⟧ g))) ⟩∘⟨refl ⟩
       reassocB-out ∘ pad (pre ++ (b₁ ++ mid)) r (⟦box⟧ g) ∘ reassocF-out ∎
 
     -- The MIRROR of `g-out≈pad` for the `g-in` layer: `g-in` sits in the
@@ -1087,7 +790,7 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
       liftW pre (liftW a₁ (liftW mid (rpad r (⟦box⟧ g))))
         ≈⟨ liftW-reassoc pre a₁ mid (rpad r (⟦box⟧ g)) ⟩
       reassocB-in ∘ liftW (pre ++ (a₁ ++ mid)) (rpad r (⟦box⟧ g)) ∘ reassocF-in
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym (pad≡liftW (pre ++ (a₁ ++ mid)) r (⟦box⟧ g))) ≈-Term-refl) ⟩
+        ≈⟨ refl⟩∘⟨ (⟺ (pad≡liftW (pre ++ (a₁ ++ mid)) r (⟦box⟧ g))) ⟩∘⟨refl ⟩
       reassocB-in ∘ pad (pre ++ (a₁ ++ mid)) r (⟦box⟧ g) ∘ reassocF-in ∎
 
 --------------------------------------------------------------------------------
