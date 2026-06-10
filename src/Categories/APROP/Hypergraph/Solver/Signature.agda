@@ -23,20 +23,15 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂)
 open import Relation.Nullary using (yes; no)
 open import Relation.Nullary.Decidable using (map′)
+open import Categories.FreeMonoidal
 
-record APROPSignatureDec : Set₁ where
-  field
-    sig : APROPSignature
+--------------------------------------------------------------------------------
+-- Structural decidable equality on `ObjTerm` over an atom set `X`, derived
+-- from decidable equality on `X`.  Factored out (parameterised over `_≟X_`)
+-- so it can be reused independently of the `APROPSignatureDec` record — e.g.
+-- to discharge UIP obligations when building `mor` out of `ObjTerm` proofs.
 
-  open APROPSignature sig public
-
-  field
-    _≟X_    : DecidableEquality X
-    _≟-mor_ : ∀ {A B} → DecidableEquality (mor A B)
-
-  -- Derived: decidable equality on `ObjTerm` from `_≟X_`.
-
-  open import Categories.FreeMonoidal
+module ObjTermDec {X : Set} (_≟X_ : DecidableEquality X) where
   open FreeMonoidalHelper Symm X using (ObjTerm; unit; _⊗₀_; Var) public
 
   private
@@ -49,16 +44,32 @@ record APROPSignatureDec : Set₁ where
     Var-inj : ∀ {x y : X} → Var x ≡ Var y → x ≡ y
     Var-inj refl = refl
 
-  _≟-ObjTerm_ : DecidableEquality ObjTerm
-  unit     ≟-ObjTerm unit      = yes refl
-  unit     ≟-ObjTerm (_ ⊗₀ _)  = no λ ()
-  unit     ≟-ObjTerm Var _     = no λ ()
-  (_ ⊗₀ _) ≟-ObjTerm unit      = no λ ()
-  (A ⊗₀ B) ≟-ObjTerm (A' ⊗₀ B') with A ≟-ObjTerm A' | B ≟-ObjTerm B'
+  ≟-ObjTerm : DecidableEquality ObjTerm
+  ≟-ObjTerm unit     unit       = yes refl
+  ≟-ObjTerm unit     (_ ⊗₀ _)   = no λ ()
+  ≟-ObjTerm unit     (Var _)    = no λ ()
+  ≟-ObjTerm (_ ⊗₀ _) unit       = no λ ()
+  ≟-ObjTerm (A ⊗₀ B) (A' ⊗₀ B') with ≟-ObjTerm A A' | ≟-ObjTerm B B'
   ... | yes p | yes q = yes (cong₂ _⊗₀_ p q)
   ... | yes _ | no ¬q = no (λ eq → ¬q (⊗-injʳ eq))
   ... | no ¬p | _     = no (λ eq → ¬p (⊗-injˡ eq))
-  (_ ⊗₀ _) ≟-ObjTerm Var _     = no λ ()
-  Var _    ≟-ObjTerm unit      = no λ ()
-  Var _    ≟-ObjTerm (_ ⊗₀ _)  = no λ ()
-  Var x    ≟-ObjTerm Var y     = map′ (cong Var) Var-inj (x ≟X y)
+  ≟-ObjTerm (_ ⊗₀ _) (Var _)    = no λ ()
+  ≟-ObjTerm (Var _)  unit       = no λ ()
+  ≟-ObjTerm (Var _)  (_ ⊗₀ _)   = no λ ()
+  ≟-ObjTerm (Var x)  (Var y)    = map′ (cong Var) Var-inj (x ≟X y)
+
+record APROPSignatureDec : Set₁ where
+  field
+    sig : APROPSignature
+
+  open APROPSignature sig public
+
+  field
+    _≟X_    : DecidableEquality X
+    _≟-mor_ : ∀ {A B} → DecidableEquality (mor A B)
+
+  -- Derived: decidable equality on `ObjTerm` from `_≟X_`.
+  open ObjTermDec _≟X_ public using (ObjTerm; unit; _⊗₀_; Var)
+
+  _≟-ObjTerm_ : DecidableEquality ObjTerm
+  _≟-ObjTerm_ = ObjTermDec.≟-ObjTerm _≟X_

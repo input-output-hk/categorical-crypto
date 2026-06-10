@@ -89,17 +89,10 @@ open import Data.Empty using (⊥; ⊥-elim)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 
+open import Categories.PermuteCoherence.Map using (eval-map⁺; subst₂-FinBij-≈)
+
 --------------------------------------------------------------------------------
 -- ≈Term plumbing.
-
-private
-  ----------------------------------------------------------------------
-  -- `eval-map⁺` and its `subst₂`-on-FinBij algebra (J-only, no K).  Used
-  -- to LIFT a vertex-level `≅↭` (from `residual-recon`) through `map⁺ vlab`
-  -- to the X-level `≅↭` that `permute-resp-≅↭` consumes.
-  ----------------------------------------------------------------------
-
-  open import Categories.PermuteCoherence.Map using (eval-map⁺; subst₂-FinBij-≈)
 
 --------------------------------------------------------------------------------
 

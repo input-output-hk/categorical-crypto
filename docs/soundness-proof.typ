@@ -51,13 +51,13 @@ concrete, checkable claim.
 *The proof in one line.* Every term equals the canonical *sequentialisation* (decoding) of
 its own hypergraph (part #strong[(I)]), and that decoding is invariant under hypergraph
 isomorphism (part #strong[(II)]); an isomorphism only *relabels* wires (which the decoder
-does not see) and *reorders independent* generator-boxes (which the interchange law absorbs).
+does not see) and *reorders independent* generator-boxes (which bifunctoriality absorbs).
 The single hard ingredient is the coherence needed to identify two wirings that realise the
 same permutation.
 
 *Notation.* We write $approx$ for the free-category term equivalence $approx_("Term")$, and
 $tilde.equiv^("H")$ for hypergraph isomorphism ($#raw("≅ᴴ")$ in the source). Throughout,
-$bold(K)$, $bold(N)$, $bold(M)$, $bold(S)$ name the four kinds of ingredient catalogued near
+$bold(K)$, $bold(M)$, $bold(S)$ name the three kinds of ingredient catalogued near
 the end. Inline monospace names (e.g. `connectivity`) refer to definitions in the Agda
 development.
 
@@ -319,14 +319,15 @@ $
 
 Since $e, e'$ are independent, $"ein" e'$ is disjoint from $"eout" e$ (and conversely): the two
 boxes act on disjoint blocks of wires, and both orders reach the same stack-multiset. The two
-local composites are equal by the *interchange (symmetry-naturality) axiom*
+local composites are equal because, brought to disjoint tensor factors, the two boxes
+$p = ("Agen" g_e times.o "id")$ and $q = ("Agen" g_(e') times.o "id")$ commute by plain
+*bifunctoriality*
 
 $
-  sigma compose (p times.o q) quad approx quad (q times.o p) compose sigma,
-$ <interchange>
+  (p times.o "id") compose ("id" times.o q) quad = quad p times.o q quad = quad ("id" times.o q) compose (p times.o "id"),
+$
 
-at $p = ("Agen" g_e times.o "id")$, $q = ("Agen" g_(e') times.o "id")$ — *parametric in the
-boxes, treating them as opaque*. The surrounding wire-permutations differ between the two
+*parametric in the boxes, treating them as opaque*. The surrounding wire-permutations differ between the two
 orders, but the *total $"dom" -> "cod"$ wiring of the whole composite is the same bijection*
 (it is fixed by the hypergraph's incidence; reordering boxes does not move wires). Matching the
 two permutation-terms is the generator-free coherence
@@ -351,7 +352,8 @@ Chaining over the linear-extension connection yields $"decode" ⟪f⟫ approx "d
   complete paths of the firing category $C(H)$ to $approx$-equal terms — it *factors through the
   Mazurkiewicz trace quotient* of $C(H)$ by independent-firing commutations. The combinatorial
   fact above is the classical statement that the linear extensions of a pomset form a single
-  trace class; the factoring needs $bold(N)$ (firings commute) and $bold(K)$ (wiring).]
+  trace class; the factoring needs the commuting of independent firings (plain bifunctoriality)
+  and $bold(K)$ (wiring).]
 ]
 
 == The per-swap step in detail
@@ -379,13 +381,13 @@ decomposes into exactly one piece per ledger class:
   symmetrically). Hence the two edges occupy *disjoint wire-blocks*, both orders fire, and they
   reach the *same stack-multiset* — the reshuffle $r$.
 
-+ *Box-commute ($bold(N)$).* Brought to disjoint adjacent factors, the two boxes
++ *Box-commute (bifunctoriality).* Brought to disjoint adjacent factors, the two boxes
   $(#raw("Agen") g_e times.o "id")$ and $(#raw("Agen") g_(e') times.o "id")$ act on *disjoint
-  tensor factors* and commute by the *bifunctor interchange*
-  $(a times.o b) compose (c times.o d) = (a compose c) times.o (b compose d)$ (`⊗-∘-dist`). This
-  is the literal "independent firings commute". The braided form @interchange is its conjugate;
-  but for disjoint *aligned* blocks plain bifunctoriality suffices — there is *no braiding on the
-  boxes themselves* (the braiding lives entirely in the reshuffle, item 4).
+  tensor factors* and commute by plain *bifunctoriality*
+  $(a times.o b) compose (c times.o d) = (a compose c) times.o (b compose d)$ (`⊗-∘-dist`) — a
+  basic $times.o$ functor law, not a deep ingredient. This is the literal "independent firings
+  commute"; for disjoint *aligned* blocks plain bifunctoriality suffices, so there is *no braiding
+  on the boxes themselves* (the braiding lives entirely in the reshuffle, item 4).
 
 + *Re-bracketing ($bold(M)$).* The two orders thread the stack through *different* intermediate
   shapes (after $e$ fires, $e'$ sees residual $"eout" e ++ dots.c$; after $e'$ fires, $e$ sees
@@ -399,11 +401,11 @@ decomposes into exactly one piece per ledger class:
   realised by $"permute"(r)$. Matching it is @K. Plus a tail recursion: the suffix runs on the
   reshuffled stack and commutes with $r$ by naturality.
 
-So @runeq is *$bold(S)$ (disjointness) $+ bold(N)$ (one bifunctor interchange) $+ bold(M)$ (the
-re-association bulk) $+ bold(K)$ (the reshuffle)*. The boxes themselves commute by plain
-bifunctoriality; the braiding lives entirely in the reshuffle, absorbed by $bold(K)$; and the
-genuine bulk is the $bold(M)$ re-bracketing, the solver-unfriendly heart of braided-monoidal
-coherence.
+So @runeq is *$bold(S)$ (disjointness) $+$ plain bifunctoriality (the boxes commute) $+ bold(M)$
+(the re-association bulk) $+ bold(K)$ (the reshuffle)*. The braiding lives entirely in the
+reshuffle, absorbed by $bold(K)$; and the genuine bulk is the $bold(M)$ re-bracketing — the
+solver-unfriendly heart of braided-monoidal coherence, and by far the largest part of the
+formalization (the `Sub/BlockNF*` re-bracketing here, `Sub/DecodeTensorShape` in part (I)).
 
 = The normal-form theorem, part (I)
 
@@ -414,24 +416,35 @@ By induction on $f$, using the action of $⟪dot.c⟫$ on each constructor:
   stroke: none,
   inset: (x: 4pt, y: 5pt),
   align: (left + top, left + top),
-  [*$"id"$, $alpha, lambda, rho$*],
+  [*$"id"$, $lambda, rho$*],
   [translate to edge-free graphs (pure rewiring); $"decode"$ is a single $"permute"$ realising
-   the identity/reassociation bijection, equal to the term by monoidal coherence ($bold(M)$).],
+   the identity bijection, equal to the term by monoidal coherence ($bold(M)$). Cheap.],
+  [*$alpha$*],
+  [edge-free, but *not* cheap: $"decode" ⟪alpha⟫$ is a $"permute"$ matched to the associator by a
+   well-founded recursion over the object's $times.o$-structure plus a pentagon / `c-iso-assoc` step —
+   $bold(M)$ (`BridgeAlphaFormCompound`, `CIsoAssocFromCons`; together over a thousand lines).],
   [*$sigma$*],
-  [edge-free; $"decode" ⟪sigma⟫$ is $"permute"$ of the swap bijection, equal to $sigma$ by
-   $bold(K)$ (a one-transposition instance).],
+  [edge-free; $sigma$ is the generator $sigma_(A,B)$, so $"decode" ⟪sigma⟫$ is the $"permute"$ of
+   the *block* swap of $"flatten" A$, $"flatten" B$ — an iterated braiding, *not* a single
+   transposition — matched to $sigma$ by $bold(K)$ on top of the $sigma$-block braiding algebra
+   (`DecodeAgenSigmaShape`, `SigmaBlockCommRaw`, `BlockNFBraid`).],
   [*$"Agen" u$*],
   [one edge; $"decode" ⟪"Agen" u⟫ = ("coerce") compose ("Agen" u times.o "id") compose ("coerce") compose "permute"("id")$,
    equal to $"Agen" u$ by $bold(M)$ (unitor/associator isos around the single box).],
   [*$g compose h$*],
   [$⟪g compose h⟫$ glues $"cod" ⟪h⟫$ to $"dom" ⟪g⟫$ and unions edges; $"decode"$ factors as
    $"decode" ⟪g⟫ compose "decode" ⟪h⟫$ (the stack at the gluing frontier *is*
-   $"decode" ⟪h⟫$'s output) — the $compose$-shape lemma ($bold(S)$) — then the IH.],
+   $"decode" ⟪h⟫$'s output) — the $compose$-shape lemma — then the IH. The shape lemma itself is
+   $bold(M)$ (frame re-bracketing) $+ bold(K)$ (final-permute collapse), *not* mere combinatorics
+   (`DecodeComposeShape`).],
   [*$g times.o h$*],
   [$⟪g times.o h⟫$ is the disjoint juxtaposition; $"decode"$ factors as
    $("coerce") compose ("decode" ⟪g⟫ times.o "decode" ⟪h⟫) compose ("coerce")$ after
-   interleaving the two edge-streams — the $times.o$-shape lemma ($bold(S)$), using interchange
-   ($bold(N)$) to separate the blocks — then the IH.],
+   interleaving the two edge-streams — the $times.o$-shape lemma — then the IH. This lemma is the
+   *single largest part of the whole development* (`Sub/DecodeTensorShape`, $approx 7000$
+   lines): its bulk is the per-edge `box-suffix` / `box-prefix` Mac-Lane re-bracketing ($bold(M)$)
+   that aligns the two box-streams onto disjoint factors, closed by $bold(K)$ — not the light
+   $bold(S)$ glue the one-line shape equation suggests.],
 )
 
 #h(1fr) $square.stroked$
@@ -447,34 +460,39 @@ Every step above draws on one of four kinds of ingredient.
   stroke: 0.5pt + luma(70%),
   table.header([*Ingredient*], [*Where used*]),
 
-  [$bold(K)$ — generator-free permutation coherence (Kelly 1964)],
-  [(II) wiring match; (I) $sigma$; Lemma 0b permute factor],
+  [$bold(K)$ — generator-free permutation coherence (Kelly 1964); *deep, but out of scope*],
+  [(I) $sigma$ block-swap, the final-permute collapse of the $compose$/$times.o$-shape lemmas;
+   (II) wiring match; Lemma 0b permute factor],
 
-  [$bold(N)$ — interchange axiom $sigma compose (p times.o q) approx (q times.o p) compose sigma$],
-  [(II) adjacent swap; (I) $times.o$-case],
+  [$bold(M)$ — monoidal ($alpha, lambda, rho$) coherence $+$ plain bifunctoriality; *the bulk of
+   the formalization*],
+  [(I) $alpha$, $"Agen"$, base / coercion cases, *and the box re-bracketing inside the
+   $compose$/$times.o$-shape lemmas* (`DecodeTensorShape`, the largest module); (II) the per-swap
+   re-bracketing (`BlockNF*`); Lemma 0b box factor],
 
-  [$bold(M)$ — monoidal ($alpha, lambda, rho$) coherence],
-  [(I) base/coercion cases; Lemma 0b box factor],
-
-  [$bold(S)$ — structural combinatorics: Lemma 0a, Lemma A, connectivity, Lemma C, $compose$/$times.o$-shape],
+  [$bold(S)$ — structural combinatorics: Lemma 0a, Lemma A, connectivity, Lemma C, monogamy],
   [(I), (II)],
 )
 
-$bold(K)$ is the one deep ingredient: the symmetric-monoidal coherence theorem restricted to the
-permutation fragment — two derivations of the same permutation give $approx$-equal $"permute"$
-terms. It reduces to coherence at the bijection (`FinBij`) level — $"permute"(pi) approx
-"permute"(pi')$ whenever $"eval"(pi) = "eval"(pi')$ — which is treated separately and out of scope
-here. $bold(N)$ is one of the SMC equational axioms, applied to opaque boxes; $bold(M)$ and
-$bold(S)$ are monoidal coherence and finite combinatorics.
+$bold(K)$ is the one *conceptually deep* ingredient: the symmetric-monoidal coherence theorem
+restricted to the permutation fragment — two derivations of the same permutation give
+$approx$-equal $"permute"$ terms. It reduces to coherence at the bijection (`FinBij`) level —
+$"permute"(pi) approx "permute"(pi')$ whenever $"eval"(pi) = "eval"(pi')$ — which is treated
+separately and out of scope here. $bold(M)$ — Mac-Lane (associator / unitor) coherence with plain
+bifunctoriality — is by contrast the one *large* ingredient: it has no canonical-form solver in
+the symmetric fragment, so it is chased per positional case, and the box re-bracketing it demands
+(`Sub/DecodeTensorShape`, the `Sub/BlockNF*` family) is by far the largest part of the
+formalization. $bold(S)$ is finite combinatorics.
 
 = Conclusion
 
 The soundness theorem @main — the faithfulness of the hypergraph representation of free
 symmetric monoidal categories — follows from the round-trip and decoder agreement (part (I)),
-the iso-invariance through linear-extension connectivity and the per-swap interchange (part
+the iso-invariance through linear-extension connectivity and the per-swap commutation (part
 (II)), and the naturality of the decoder under relabelling (Lemma 0). Each step is one of the
-four ingredients $bold(K), bold(N), bold(M), bold(S)$, and the only deep one is the
-permutation-coherence kernel $bold(K)$.
+three ingredients $bold(K), bold(M), bold(S)$; the only *conceptually deep* one is the
+permutation-coherence kernel $bold(K)$, while the *bulk* of the formalization is the Mac-Lane
+re-bracketing $bold(M)$.
 
 $bold(K)$ bottoms out in coherence at the bijection (`FinBij`) level — in effect the word problem
 for the symmetric group — which is out of scope for this report. Everything above the bijection
