@@ -40,17 +40,31 @@
 -- boxes among mutually-fitting pairs, and the caller's relative order on
 -- boxes is preserved.
 --
--- STAGE B (the naturality-slide CORE, see the bottom module):
+-- STAGE B (the naturality-slide CORE):
 --   * `slide-core` : the block-level slide — a box firing inside the
 --     b-block AFTER the crossing equals the box firing BEFORE the crossing
 --     at its pre-cross position.  ONE σ-naturality axiom instance; stated
 --     for an ARBITRARY block update `h : wires b ⇒ wires b'`, fully
---     cast-free.
+--     cast-free.  (`slide-core-a` is the a-block mirror.)
 --   * `slide-pad` : the same under an arbitrary `pad pq sq` frame — still
 --     cast-free (grouped coordinates).
 --   * the re-cleaning of the two grouped box-layers into genuine clean
---     DiagU pads (`slide-clean`) — this is where the `++`-assoc castW tax
---     lives (`rpad-rpad`, `rpad-liftW`, `liftW-fuse`).
+--     DiagU pads (`slide-clean`/`slide-clean-a`) — this is where the
+--     `++`-assoc castW tax lives (`rpad-rpad`, `rpad-liftW`, `liftW-fuse`).
+--
+-- STAGE C (the DiagU-level slide, WIRED into the driver):
+--   * `Decide.fireRepl` : a generic sound two-layer head REPLACEMENT,
+--     justified by a caller-supplied key equation between the two padded
+--     two-layer composites (pure `substDiagU`/`castW` algebra around it);
+--   * `Decide.goSlideB`/`Decide.goSlideA` : the slide recognisers — pure
+--     `stripPrefix` list surgery exhibiting the second-layer box inside
+--     the crossing's b-image (resp. a-image) block — instantiating the
+--     key with `slide-clean-box` (resp. `slide-clean-box-a`);
+--   * `Decide.stepσ?` now tries, in order: σσ-cancel, b-image slide,
+--     a-image slide, disjoint interchange.  Each slide strictly decreases
+--     the number of (cross-before-box) inversions, so the existing
+--     depth³-ish fuel still over-approximates; termination stays trivial
+--     by fuel.
 --
 -- Hole-free, postulate-free, --safe --without-K.
 --------------------------------------------------------------------------------
@@ -242,338 +256,13 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     ; assocW-castW; assocW⁻-castW; liftW-castW; castW-∷
     ; castW-sym-r; castW-sym-r-flip; castW-cancelʳ
     ; module SortD )
-  open SortD using (leftFit?)
+  open SortD using (leftFit?; stripPrefix)
 
   private module SCmp = SolverCompareI Symm {X} _≟X_ MorS ⟦box⟧S
 
   -- the caller-facing generator triples (on the UNDERLYING `Mor`).
   GenM : Set
   GenM = Σ[ a ∈ List X ] Σ[ b ∈ List X ] Mor a b
-
-  ------------------------------------------------------------------------
-  -- The decision module.  Parameters mirror the front-end's `Decide`: a
-  -- decidable equality on the underlying generator triples and a rank
-  -- tiebreak for ambiguous (mutually-fitting, scalar-like) pairs.
-  ------------------------------------------------------------------------
-  module Decide
-    (_≟G_ : DecidableEquality GenM)
-    (rank : GenM → ℕ)
-    where
-
-    private
-      _≟L_ : DecidableEquality (List X)
-      _≟L_ = ≡-dec _≟X_
-
-    ------------------------------------------------------------------------
-    -- Decidable equality on the EXTENDED generator triples, no-K style:
-    -- the negative cases go through first-order projection functions
-    -- (`tagS`/`boxPay`/`crossPay`), never a refl-match at the forced
-    -- `++`-composite indices of `cross`.
-    ------------------------------------------------------------------------
-
-    private
-      tagS : SCmp.Gen → Bool
-      tagS (_ , _ , box _)     = true
-      tagS (_ , _ , cross _ _) = false
-
-      boxPay : SCmp.Gen → Maybe GenM
-      boxPay (a , b , box f)     = just (a , b , f)
-      boxPay (_ , _ , cross _ _) = nothing
-
-      crossPay : SCmp.Gen → Maybe (List X × List X)
-      crossPay (_ , _ , box _)     = nothing
-      crossPay (_ , _ , cross a b) = just (a , b)
-
-      true≢false : true ≡ false → ⊥
-      true≢false ()
-
-    _≟GS_ : DecidableEquality SCmp.Gen
-    (a , b , box f) ≟GS (a' , b' , box g) with (a , b , f) ≟G (a' , b' , g)
-    ... | yes refl = yes refl
-    ... | no ¬p    = no λ e → ¬p (just-injective (cong boxPay e))
-    (a , b , box f)     ≟GS (_ , _ , cross c d) = no λ e → true≢false (cong tagS e)
-    (_ , _ , cross a b) ≟GS (a' , b' , box g)   = no λ e → true≢false (sym (cong tagS e))
-    (_ , _ , cross a b) ≟GS (_ , _ , cross c d) with a ≟L c | b ≟L d
-    ... | yes refl | yes refl = yes refl
-    ... | no ¬p    | _        =
-          no λ e → ¬p (cong proj₁ (just-injective (cong crossPay e)))
-    ... | yes _    | no ¬q    =
-          no λ e → ¬q (cong proj₂ (just-injective (cong crossPay e)))
-
-    open SCmp.Decide _≟GS_ using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
-
-    -- RANK: crosses sort below all boxes among ambiguous pairs; the
-    -- caller's relative order on boxes is preserved.
-    rankS : ∀ {a b} → MorS a b → ℕ
-    rankS (box {a} {b} f) = suc (rank (a , b , f))
-    rankS (cross _ _)     = zero
-
-    ------------------------------------------------------------------------
-    -- The one-step oracle: σσ-CANCEL first, then disjoint interchange.
-    -- (Mirrors the front-end `Decide`'s `SwapRes`/`go`/`fire`/`step?`
-    -- architecture: the inner index is GENERALIZED to a variable `m`
-    -- carried with a propositional wiring equality `meq`, discharged by
-    -- the Hedberg UIP on wire lists — never matched.)
-    ------------------------------------------------------------------------
-
-    SwapRes : ∀ {n} → DiagU n → Set
-    SwapRes {n} d = Σ[ d' ∈ DiagU n ] Σ[ oeq ∈ out d ≡ out d' ]
-                      (castW oeq ∘ ⟦ d ⟧ ≈Term ⟦ d' ⟧)
-
-    private
-      castW-cancel : ∀ {u v} (e : u ≡ v) → castW (sym e) ∘ castW e ≈Term id
-      castW-cancel refl = idˡ
-
-      unwrapCast : ∀ {u v} {A} (e : u ≡ v)
-                   {x : HomTerm A (wires u)} {y : HomTerm A (wires v)}
-                 → castW e ∘ x ≈Term y → x ≈Term castW (sym e) ∘ y
-      unwrapCast refl eq =
-        ≈-Term-trans (≈-Term-sym idˡ) (≈-Term-trans eq (≈-Term-sym idˡ))
-
-      coeCod'-as-castW : ∀ {n p q} (e : p ≡ q) (h : HomTerm (wires n) (wires p))
-                       → coeCod' e h ≈Term castW e ∘ h
-      coeCod'-as-castW refl h = ≈-Term-sym idˡ
-
-      ------------------------------------------------------------------
-      -- THE σσ-CANCEL FIRE.  On a recognised adjacent inverse cross-pair
-      -- (same pre/suf, blocks reversed) BOTH layers are removed; the tail
-      -- lives at the SAME input index, so no diagram transport is needed
-      -- and the soundness is `pad-σσ` + assoc/id algebra.
-      ------------------------------------------------------------------
-      fireσ : ∀ (px sx a b : List X)
-              (rest' : DiagU (px ++ ((a ++ b) ++ sx)))
-            → SwapRes (px ▸ sx ∷ cross a b ⟨ px ▸ sx ∷ cross b a ⟨ rest' ⟩ ⟩)
-      fireσ px sx a b rest' = rest' , refl , (begin
-        castW refl ∘ ((⟦ rest' ⟧ ∘ P₂) ∘ P₁)
-          ≈⟨ idˡ ⟩
-        (⟦ rest' ⟧ ∘ P₂) ∘ P₁
-          ≈⟨ assoc ⟩
-        ⟦ rest' ⟧ ∘ (P₂ ∘ P₁)
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (pad-σσ px sx a b) ⟩
-        ⟦ rest' ⟧ ∘ id
-          ≈⟨ idʳ ⟩
-        ⟦ rest' ⟧ ∎)
-        where
-          P₁ = pad px sx (⟦box⟧S (cross a b))
-          P₂ = pad px sx (⟦box⟧S (cross b a))
-
-      -- the σσ recogniser at the generalized inner index: fires exactly
-      -- when the head layer is `cross a b` at (px,sx) and the next layer
-      -- is `cross b a` at the SAME (px,sx).
-      goσ : ∀ {ax bx} (px sx : List X) (fx : MorS ax bx)
-            {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
-          → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
-      goσ px sx (box f)     rest meq = nothing
-      goσ px sx (cross a b) ([]_ m) meq = nothing
-      goσ px sx (cross a b) (_▸_∷_⟨_⟩ {ay} {by} py sy (box f) rest') meq = nothing
-      goσ px sx (cross a b) (_▸_∷_⟨_⟩ py sy (cross c d) rest') meq
-        with px ≟L py | sx ≟L sy | c ≟L b | d ≟L a
-      ... | yes refl | yes refl | yes refl | yes refl
-            rewrite ≡-irrelevantL meq refl = just (fireσ px sx a b rest')
-      ... | no _  | _     | _     | _     = nothing
-      ... | yes _ | no _  | _     | _     = nothing
-      ... | yes _ | yes _ | no _  | _     = nothing
-      ... | yes _ | yes _ | yes _ | no _  = nothing
-
-      ------------------------------------------------------------------
-      -- The interchange fire (verbatim from the front-end `Decide`, at
-      -- MorS): one genuine swap on a recognised out-of-order head pair.
-      ------------------------------------------------------------------
-      fire : ∀ {ax bx ay by} {px sx py sy : List X}
-             {fx : MorS ax bx} {fy : MorS ay by}
-             (fit : LeftFit px sx py sy fx fy)
-             (rest' : DiagU (py ++ (by ++ sy)))
-             (meq : px ++ (bx ++ sx) ≡ py ++ (ay ++ sy))
-           → SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) (py ▸ sy ∷ fy ⟨ rest' ⟩) ⟩)
-      fire {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
-           (leftFit P mid s refl refl refl refl) rest' meq
-        rewrite ≡-irrelevantL meq (domeq P ay mid bx s)
-        = d' , oeq , snd
-        where
-          fit' : LeftFit (P ++ (ay ++ mid)) s P (mid ++ (bx ++ s)) fx fy
-          fit' = leftFit P mid s refl refl refl refl
-          eᵒ = domeq P ay mid ax s
-          dBody : DiagU ((P ++ (ay ++ mid)) ++ (ax ++ s))
-          dBody = (P ++ (ay ++ mid)) ▸ s ∷ fx
-                    ⟨ substDiagU (sym (domeq P ay mid bx s))
-                        (P ▸ (mid ++ (bx ++ s)) ∷ fy ⟨ rest' ⟩) ⟩
-          dIn = dInput fit' rest'
-          dSw = dSwapped fit' rest'
-          d' : DiagU ((P ++ (ay ++ mid)) ++ (ax ++ s))
-          d' = substDiagU (sym eᵒ) dSw
-          e₁ = sym (substDiagU-out eᵒ dBody)
-          q  = trans (dInput-out fit' rest') (sym (dSwapped-out fit' rest'))
-          e₃ = sym (substDiagU-out (sym eᵒ) dSw)
-          oeq = trans e₁ (trans q e₃)
-          snd : castW oeq ∘ ⟦ dBody ⟧ ≈Term ⟦ d' ⟧
-          snd = begin
-            castW oeq ∘ ⟦ dBody ⟧
-              ≈⟨ ∘-resp-≈ (castW-irr oeq (trans (trans e₁ q) e₃)) ≈-Term-refl ⟩
-            castW (trans (trans e₁ q) e₃) ∘ ⟦ dBody ⟧
-              ≈⟨ ∘-resp-≈ (castW-∘ (trans e₁ q) e₃) ≈-Term-refl ⟨
-            (castW e₃ ∘ castW (trans e₁ q)) ∘ ⟦ dBody ⟧
-              ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (castW-∘ e₁ q)) ≈-Term-refl ⟨
-            (castW e₃ ∘ (castW q ∘ castW e₁)) ∘ ⟦ dBody ⟧
-              ≈⟨ assoc ⟩
-            castW e₃ ∘ ((castW q ∘ castW e₁) ∘ ⟦ dBody ⟧)
-              ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-            castW e₃ ∘ (castW q ∘ (castW e₁ ∘ ⟦ dBody ⟧))
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (⟦substDiagU⟧ eᵒ dBody)) ⟨
-            castW e₃ ∘ (castW q ∘ (⟦ dIn ⟧ ∘ castW eᵒ))
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-            castW e₃ ∘ ((castW q ∘ ⟦ dIn ⟧) ∘ castW eᵒ)
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (diagU-swap-soundD fit' rest') ≈-Term-refl) ⟩
-            castW e₃ ∘ (⟦ dSw ⟧ ∘ castW eᵒ)
-              ≈⟨ ≈-Term-sym assoc ⟩
-            (castW e₃ ∘ ⟦ dSw ⟧) ∘ castW eᵒ
-              ≈⟨ ∘-resp-≈ (⟦substDiagU⟧ (sym eᵒ) dSw) ≈-Term-refl ⟨
-            (⟦ d' ⟧ ∘ castW (sym eᵒ)) ∘ castW eᵒ
-              ≈⟨ assoc ⟩
-            ⟦ d' ⟧ ∘ (castW (sym eᵒ) ∘ castW eᵒ)
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (castW-cancel eᵒ) ⟩
-            ⟦ d' ⟧ ∘ id
-              ≈⟨ idʳ ⟩
-            ⟦ d' ⟧ ∎
-
-      -- a fit is AMBIGUOUS when the reverse pair would also fit; such
-      -- pairs are ordered by `rankS` instead.
-      ambiguous? : List X → List X → List X → Bool
-      ambiguous? [] [] [] = true
-      ambiguous? _  _  _  = false
-
-      -- the interchange recogniser at the generalized inner index.
-      goSwap : ∀ {ax bx} (px sx : List X) (fx : MorS ax bx)
-               {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
-             → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
-      goSwap px sx fx ([]_ m) meq = nothing
-      goSwap {ax} {bx} px sx fx (_▸_∷_⟨_⟩ {ay} {by} py sy fy rest') meq
-        with leftFit? px sx py sy fx fy
-      ... | nothing  = nothing
-      ... | just fit
-        with ambiguous? ax by (LeftFit.mid fit) | rankS fy <ᵇ rankS fx
-      ...   | false | _     = just (fire fit rest' meq)
-      ...   | true  | true  = just (fire fit rest' meq)
-      ...   | true  | false = nothing
-
-      -- the combined per-position oracle: cancel first, then interchange.
-      go : ∀ {ax bx} (px sx : List X) (fx : MorS ax bx)
-           {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
-         → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
-      go px sx fx rest meq with goσ px sx fx rest meq
-      ... | just r  = just r
-      ... | nothing = goSwap px sx fx rest meq
-
-      -- lift a tail swap-result under a layer.
-      lift∷ : ∀ {a b} (px sx : List X) (fx : MorS a b)
-              {rest rest' : DiagU (px ++ (b ++ sx))}
-              (oeq : out rest ≡ out rest')
-            → castW oeq ∘ ⟦ rest ⟧ ≈Term ⟦ rest' ⟧
-            → castW oeq ∘ ⟦ px ▸ sx ∷ fx ⟨ rest ⟩ ⟧
-              ≈Term ⟦ px ▸ sx ∷ fx ⟨ rest' ⟩ ⟧
-      lift∷ px sx fx oeq snd =
-        ≈-Term-trans (≈-Term-sym assoc) (∘-resp-≈ snd ≈-Term-refl)
-
-      -- compose two swap-results (cast functoriality).
-      swapTrans : ∀ {n} {d d' d'' : DiagU n}
-                  (oeq : out d ≡ out d') (oeq' : out d' ≡ out d'')
-                → castW oeq  ∘ ⟦ d  ⟧ ≈Term ⟦ d'  ⟧
-                → castW oeq' ∘ ⟦ d' ⟧ ≈Term ⟦ d'' ⟧
-                → castW (trans oeq oeq') ∘ ⟦ d ⟧ ≈Term ⟦ d'' ⟧
-      swapTrans {d = d} {d' = d'} {d'' = d''} oeq oeq' p q = begin
-        castW (trans oeq oeq') ∘ ⟦ d ⟧
-          ≈⟨ ∘-resp-≈ (castW-∘ oeq oeq') ≈-Term-refl ⟨
-        (castW oeq' ∘ castW oeq) ∘ ⟦ d ⟧
-          ≈⟨ assoc ⟩
-        castW oeq' ∘ (castW oeq ∘ ⟦ d ⟧)
-          ≈⟨ ∘-resp-≈ ≈-Term-refl p ⟩
-        castW oeq' ∘ ⟦ d' ⟧
-          ≈⟨ q ⟩
-        ⟦ d'' ⟧ ∎
-
-    -- one cancel-or-swap at the FIRST applicable position.
-    stepσ? : ∀ {n} (d : DiagU n) → Maybe (SwapRes d)
-    stepσ? ([]_ n) = nothing
-    stepσ? (px ▸ sx ∷ fx ⟨ rest ⟩) with go px sx fx rest refl
-    ... | just r  = just r
-    ... | nothing with stepσ? rest
-    ...   | nothing                  = nothing
-    ...   | just (rest' , oeq , snd) =
-            just (px ▸ sx ∷ fx ⟨ rest' ⟩ , oeq , lift∷ px sx fx oeq snd)
-
-    -- fuel-bounded driver: fire the first applicable move, repeat.
-    normσFuel : ∀ {n} → ℕ → (d : DiagU n) → SwapRes d
-    normσFuel zero    d = d , refl , idˡ
-    normσFuel (suc k) d with stepσ? d
-    ... | nothing               = d , refl , idˡ
-    ... | just (d' , oeq , snd) with normσFuel k d'
-    ...   | (d'' , oeq' , snd') =
-            d'' , trans oeq oeq' , swapTrans oeq oeq' snd snd'
-
-    depth : ∀ {n} → DiagU n → ℕ
-    depth ([]_ n)            = zero
-    depth (_ ▸ _ ∷ _ ⟨ d ⟩) = suc (depth d)
-
-    -- budget: a cancellation shrinks the diagram (so at most depth/2 of
-    -- them), and each shrunken phase needs at most depth² bubble swaps —
-    -- depth³ + depth² + depth + 1 over-approximates the total.
-    normσ : ∀ {n} (d : DiagU n) → SwapRes d
-    normσ d = normσFuel (suc (k * k * k + k * k + k)) d
-      where k = depth d
-
-    ------------------------------------------------------------------------
-    -- The decision entry, mirroring the front-end's `decide?W`:
-    -- reflect → normσ → ≟DiagU → chain the soundness witnesses.
-    ------------------------------------------------------------------------
-    decideσ? : ∀ {n m} (f g : WTerm n m) → Maybe (embed f ≈Term embed g)
-    decideσ? {n} {m} f g with normσ (reflect f) | normσ (reflect g)
-    ... | (df' , oeqf , sndf) | (dg' , oeqg , sndg) with df' ≟DiagU dg'
-    ...   | no  _  = nothing
-    ...   | yes eq = just (chain (≈NF⇒≡ eq))
-      where
-        half : ∀ (t : WTerm n m) (d' : DiagU n) (oeq : out (reflect t) ≡ out d')
-             → castW oeq ∘ ⟦ reflect t ⟧ ≈Term ⟦ d' ⟧
-             → embed t ≈Term castW (trans (sym oeq) (out-reflect t)) ∘ ⟦ d' ⟧
-        half t d' oeq snd = begin
-          embed t
-            ≈⟨ reflect-sound boxSound t ⟨
-          coeCod' (out-reflect t) ⟦ reflect t ⟧
-            ≈⟨ coeCod'-as-castW (out-reflect t) ⟦ reflect t ⟧ ⟩
-          castW (out-reflect t) ∘ ⟦ reflect t ⟧
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (unwrapCast oeq snd) ⟩
-          castW (out-reflect t) ∘ (castW (sym oeq) ∘ ⟦ d' ⟧)
-            ≈⟨ ≈-Term-sym assoc ⟩
-          (castW (out-reflect t) ∘ castW (sym oeq)) ∘ ⟦ d' ⟧
-            ≈⟨ ∘-resp-≈ (castW-∘ (sym oeq) (out-reflect t)) ≈-Term-refl ⟩
-          castW (trans (sym oeq) (out-reflect t)) ∘ ⟦ d' ⟧ ∎
-
-        chain : df' ≡ dg' → embed f ≈Term embed g
-        chain deq = begin
-          embed f
-            ≈⟨ half f df' oeqf sndf ⟩
-          castW (trans (sym oeqf) (out-reflect f)) ∘ ⟦ df' ⟧
-            ≈⟨ step deq ⟩
-          castW (trans (sym oeqg) (out-reflect g)) ∘ ⟦ dg' ⟧
-            ≈⟨ half g dg' oeqg sndg ⟨
-          embed g ∎
-          where
-            step : df' ≡ dg'
-                 → castW (trans (sym oeqf) (out-reflect f)) ∘ ⟦ df' ⟧
-                   ≈Term castW (trans (sym oeqg) (out-reflect g)) ∘ ⟦ dg' ⟧
-            step refl = ∘-resp-≈ (castW-irr _ _) ≈-Term-refl
-
-    -- the computing hit-witness (normalizes to ⊤ exactly on a hit).
-    IsJust : ∀ {a} {A : Set a} → Maybe A → Set
-    IsJust (just _) = ⊤
-    IsJust nothing  = ⊥
-
-    private
-      extract : ∀ {a} {A : Set a} (x : Maybe A) → IsJust x → A
-      extract (just a) _ = a
-
-    -- reference-style entry point.
-    solveσ! : ∀ {n m} (f g : WTerm n m)
-              {hit : IsJust (decideσ? f g)} → embed f ≈Term embed g
-    solveσ! f g {hit} = extract (decideσ? f g) hit
 
   ------------------------------------------------------------------------
   -- STAGE B: the naturality-slide CORE.
@@ -1164,6 +853,641 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
         ∘ castW e₄
   slide-clean-box pq sq a p₁ s₁ f = slide-clean pq sq a p₁ s₁ (⟦box⟧S (box f))
 
+  ------------------------------------------------------------------------
+  -- THE a-BLOCK MIRROR.  The same slide for a box living inside the
+  -- crossing's a-image block (the SUFFIX of the cross's output; the
+  -- PREFIX of its input).  The core is `slide-core-a`; the two grouped
+  -- box-layers re-clean through the SAME two lemmas with the roles of
+  -- `padBoxIn`/`padBoxSlid` swapped (the input-order layer is now the
+  -- prefix-lift `liftW b`, the slid layer the suffix-pad `rpad b`).
+  ------------------------------------------------------------------------
+
+  -- the padded a-block slide (mirror of `slide-pad`).
+  slide-pad-a : ∀ (pq sq b : List X) {a a'} (g : HomTerm (wires a) (wires a'))
+              → pad pq sq (⟦box⟧S (cross a' b)) ∘ pad pq sq (rpad b g)
+                ≈Term pad pq sq (liftW b g) ∘ pad pq sq (⟦box⟧S (cross a b))
+  slide-pad-a pq sq b {a} {a'} g = begin
+    pad pq sq (⟦box⟧S (cross a' b)) ∘ pad pq sq (rpad b g)
+      ≈⟨ pad-∘ pq sq (⟦box⟧S (cross a' b)) (rpad b g) ⟨
+    pad pq sq (⟦box⟧S (cross a' b) ∘ rpad b g)
+      ≈⟨ pad-resp pq sq (slide-core-a b g) ⟩
+    pad pq sq (liftW b g ∘ ⟦box⟧S (cross a b))
+      ≈⟨ pad-∘ pq sq (liftW b g) (⟦box⟧S (cross a b)) ⟩
+    pad pq sq (liftW b g) ∘ pad pq sq (⟦box⟧S (cross a b)) ∎
+
+  -- the assembled clean a-block slide.  The input order (crossing first,
+  -- then the box inside its a-image) equals the slid order (box first at
+  -- its pre-cross position — the a-block is the PREFIX of the cross's
+  -- input — then the crossing with the updated a-block u ↦ v).
+  slide-clean-a :
+    ∀ (pq sq b p₁ s₁ : List X) {u v} (G : HomTerm (wires u) (wires v))
+      (e₁ : pq ++ ((b ++ (p₁ ++ (u ++ s₁))) ++ sq)
+          ≡ (pq ++ (b ++ p₁)) ++ (u ++ (s₁ ++ sq)))
+      (e₂ : pq ++ ((b ++ (p₁ ++ (v ++ s₁))) ++ sq)
+          ≡ (pq ++ (b ++ p₁)) ++ (v ++ (s₁ ++ sq)))
+      (e₃ : (pq ++ p₁) ++ (v ++ (s₁ ++ (b ++ sq)))
+          ≡ pq ++ (((p₁ ++ (v ++ s₁)) ++ b) ++ sq))
+      (e₄ : pq ++ (((p₁ ++ (u ++ s₁)) ++ b) ++ sq)
+          ≡ (pq ++ p₁) ++ (u ++ (s₁ ++ (b ++ sq))))
+    → pad (pq ++ (b ++ p₁)) (s₁ ++ sq) G
+        ∘ castW e₁
+        ∘ pad pq sq (⟦box⟧S (cross (p₁ ++ (u ++ s₁)) b))
+      ≈Term castW e₂
+        ∘ pad pq sq (⟦box⟧S (cross (p₁ ++ (v ++ s₁)) b))
+        ∘ castW e₃
+        ∘ pad (pq ++ p₁) (s₁ ++ (b ++ sq)) G
+        ∘ castW e₄
+  slide-clean-a pq sq b p₁ s₁ {u} {v} G e₁ e₂ e₃ e₄ = begin
+    padIn ∘ (castW e₁ ∘ Cab)
+      ≈⟨ ∘-resp-≈ flipλ ≈-Term-refl ⟩
+    (castW (sym (sym e₂)) ∘ (Gλ ∘ castW (sym e₁))) ∘ (castW e₁ ∘ Cab)
+      ≈⟨ assoc ⟩
+    castW (sym (sym e₂)) ∘ ((Gλ ∘ castW (sym e₁)) ∘ (castW e₁ ∘ Cab))
+      ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+    castW (sym (sym e₂)) ∘ (Gλ ∘ (castW (sym e₁) ∘ (castW e₁ ∘ Cab)))
+      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
+    castW (sym (sym e₂)) ∘ (Gλ ∘ ((castW (sym e₁) ∘ castW e₁) ∘ Cab))
+      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (castW-sym-r e₁) ≈-Term-refl)) ⟩
+    castW (sym (sym e₂)) ∘ (Gλ ∘ (id ∘ Cab))
+      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl idˡ) ⟩
+    castW (sym (sym e₂)) ∘ (Gλ ∘ Cab)
+      ≈⟨ ∘-resp-≈ (castW-irr _ e₂) (≈-Term-sym (slide-pad-a pq sq b hₐ)) ⟩
+    castW e₂ ∘ (Cab' ∘ Gρ)
+      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl
+           (padBoxIn pq sq b p₁ s₁ G e₃ e₄)) ⟩
+    castW e₂ ∘ (Cab' ∘ (castW e₃ ∘ padSlid ∘ castW e₄)) ∎
+    where
+      hₐ      = pad p₁ s₁ G
+      Cab     = pad pq sq (⟦box⟧S (cross (p₁ ++ (u ++ s₁)) b))
+      Cab'    = pad pq sq (⟦box⟧S (cross (p₁ ++ (v ++ s₁)) b))
+      padIn   = pad (pq ++ (b ++ p₁)) (s₁ ++ sq) G
+      padSlid = pad (pq ++ p₁) (s₁ ++ (b ++ sq)) G
+      Gρ      = pad pq sq (rpad b hₐ)
+      Gλ      = pad pq sq (liftW b hₐ)
+      flipλ : padIn ≈Term castW (sym (sym e₂)) ∘ Gλ ∘ castW (sym e₁)
+      flipλ = sand-flip (padBoxSlid pq sq b p₁ s₁ G (sym e₂) e₁)
+
+  -- the DiagU instance of the a-block slide.
+  slide-clean-box-a :
+    ∀ (pq sq b p₁ s₁ : List X) {c d} (f : Mor c d)
+      (e₁ : pq ++ ((b ++ (p₁ ++ (c ++ s₁))) ++ sq)
+          ≡ (pq ++ (b ++ p₁)) ++ (c ++ (s₁ ++ sq)))
+      (e₂ : pq ++ ((b ++ (p₁ ++ (d ++ s₁))) ++ sq)
+          ≡ (pq ++ (b ++ p₁)) ++ (d ++ (s₁ ++ sq)))
+      (e₃ : (pq ++ p₁) ++ (d ++ (s₁ ++ (b ++ sq)))
+          ≡ pq ++ (((p₁ ++ (d ++ s₁)) ++ b) ++ sq))
+      (e₄ : pq ++ (((p₁ ++ (c ++ s₁)) ++ b) ++ sq)
+          ≡ (pq ++ p₁) ++ (c ++ (s₁ ++ (b ++ sq))))
+    → pad (pq ++ (b ++ p₁)) (s₁ ++ sq) (⟦box⟧S (box f))
+        ∘ castW e₁
+        ∘ pad pq sq (⟦box⟧S (cross (p₁ ++ (c ++ s₁)) b))
+      ≈Term castW e₂
+        ∘ pad pq sq (⟦box⟧S (cross (p₁ ++ (d ++ s₁)) b))
+        ∘ castW e₃
+        ∘ pad (pq ++ p₁) (s₁ ++ (b ++ sq)) (⟦box⟧S (box f))
+        ∘ castW e₄
+  slide-clean-box-a pq sq b p₁ s₁ f = slide-clean-a pq sq b p₁ s₁ (⟦box⟧S (box f))
+
+  ------------------------------------------------------------------------
+  -- The decision module.  Parameters mirror the front-end's `Decide`: a
+  -- decidable equality on the underlying generator triples and a rank
+  -- tiebreak for ambiguous (mutually-fitting, scalar-like) pairs.
+  ------------------------------------------------------------------------
+  module Decide
+    (_≟G_ : DecidableEquality GenM)
+    (rank : GenM → ℕ)
+    where
+
+    private
+      _≟L_ : DecidableEquality (List X)
+      _≟L_ = ≡-dec _≟X_
+
+    ------------------------------------------------------------------------
+    -- Decidable equality on the EXTENDED generator triples, no-K style:
+    -- the negative cases go through first-order projection functions
+    -- (`tagS`/`boxPay`/`crossPay`), never a refl-match at the forced
+    -- `++`-composite indices of `cross`.
+    ------------------------------------------------------------------------
+
+    private
+      tagS : SCmp.Gen → Bool
+      tagS (_ , _ , box _)     = true
+      tagS (_ , _ , cross _ _) = false
+
+      boxPay : SCmp.Gen → Maybe GenM
+      boxPay (a , b , box f)     = just (a , b , f)
+      boxPay (_ , _ , cross _ _) = nothing
+
+      crossPay : SCmp.Gen → Maybe (List X × List X)
+      crossPay (_ , _ , box _)     = nothing
+      crossPay (_ , _ , cross a b) = just (a , b)
+
+      true≢false : true ≡ false → ⊥
+      true≢false ()
+
+    _≟GS_ : DecidableEquality SCmp.Gen
+    (a , b , box f) ≟GS (a' , b' , box g) with (a , b , f) ≟G (a' , b' , g)
+    ... | yes refl = yes refl
+    ... | no ¬p    = no λ e → ¬p (just-injective (cong boxPay e))
+    (a , b , box f)     ≟GS (_ , _ , cross c d) = no λ e → true≢false (cong tagS e)
+    (_ , _ , cross a b) ≟GS (a' , b' , box g)   = no λ e → true≢false (sym (cong tagS e))
+    (_ , _ , cross a b) ≟GS (_ , _ , cross c d) with a ≟L c | b ≟L d
+    ... | yes refl | yes refl = yes refl
+    ... | no ¬p    | _        =
+          no λ e → ¬p (cong proj₁ (just-injective (cong crossPay e)))
+    ... | yes _    | no ¬q    =
+          no λ e → ¬q (cong proj₂ (just-injective (cong crossPay e)))
+
+    open SCmp.Decide _≟GS_ using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
+
+    -- RANK: crosses sort below all boxes among ambiguous pairs; the
+    -- caller's relative order on boxes is preserved.
+    rankS : ∀ {a b} → MorS a b → ℕ
+    rankS (box {a} {b} f) = suc (rank (a , b , f))
+    rankS (cross _ _)     = zero
+
+    ------------------------------------------------------------------------
+    -- The one-step oracle: σσ-CANCEL first, then disjoint interchange.
+    -- (Mirrors the front-end `Decide`'s `SwapRes`/`go`/`fire`/`step?`
+    -- architecture: the inner index is GENERALIZED to a variable `m`
+    -- carried with a propositional wiring equality `meq`, discharged by
+    -- the Hedberg UIP on wire lists — never matched.)
+    ------------------------------------------------------------------------
+
+    SwapRes : ∀ {n} → DiagU n → Set
+    SwapRes {n} d = Σ[ d' ∈ DiagU n ] Σ[ oeq ∈ out d ≡ out d' ]
+                      (castW oeq ∘ ⟦ d ⟧ ≈Term ⟦ d' ⟧)
+
+    private
+      castW-cancel : ∀ {u v} (e : u ≡ v) → castW (sym e) ∘ castW e ≈Term id
+      castW-cancel refl = idˡ
+
+      unwrapCast : ∀ {u v} {A} (e : u ≡ v)
+                   {x : HomTerm A (wires u)} {y : HomTerm A (wires v)}
+                 → castW e ∘ x ≈Term y → x ≈Term castW (sym e) ∘ y
+      unwrapCast refl eq =
+        ≈-Term-trans (≈-Term-sym idˡ) (≈-Term-trans eq (≈-Term-sym idˡ))
+
+      coeCod'-as-castW : ∀ {n p q} (e : p ≡ q) (h : HomTerm (wires n) (wires p))
+                       → coeCod' e h ≈Term castW e ∘ h
+      coeCod'-as-castW refl h = ≈-Term-sym idˡ
+
+      ------------------------------------------------------------------
+      -- THE σσ-CANCEL FIRE.  On a recognised adjacent inverse cross-pair
+      -- (same pre/suf, blocks reversed) BOTH layers are removed; the tail
+      -- lives at the SAME input index, so no diagram transport is needed
+      -- and the soundness is `pad-σσ` + assoc/id algebra.
+      ------------------------------------------------------------------
+      fireσ : ∀ (px sx a b : List X)
+              (rest' : DiagU (px ++ ((a ++ b) ++ sx)))
+            → SwapRes (px ▸ sx ∷ cross a b ⟨ px ▸ sx ∷ cross b a ⟨ rest' ⟩ ⟩)
+      fireσ px sx a b rest' = rest' , refl , (begin
+        castW refl ∘ ((⟦ rest' ⟧ ∘ P₂) ∘ P₁)
+          ≈⟨ idˡ ⟩
+        (⟦ rest' ⟧ ∘ P₂) ∘ P₁
+          ≈⟨ assoc ⟩
+        ⟦ rest' ⟧ ∘ (P₂ ∘ P₁)
+          ≈⟨ ∘-resp-≈ ≈-Term-refl (pad-σσ px sx a b) ⟩
+        ⟦ rest' ⟧ ∘ id
+          ≈⟨ idʳ ⟩
+        ⟦ rest' ⟧ ∎)
+        where
+          P₁ = pad px sx (⟦box⟧S (cross a b))
+          P₂ = pad px sx (⟦box⟧S (cross b a))
+
+      -- the σσ recogniser at the generalized inner index: fires exactly
+      -- when the head layer is `cross a b` at (px,sx) and the next layer
+      -- is `cross b a` at the SAME (px,sx).
+      goσ : ∀ {ax bx} (px sx : List X) (fx : MorS ax bx)
+            {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
+          → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
+      goσ px sx (box f)     rest meq = nothing
+      goσ px sx (cross a b) ([]_ m) meq = nothing
+      goσ px sx (cross a b) (_▸_∷_⟨_⟩ {ay} {by} py sy (box f) rest') meq = nothing
+      goσ px sx (cross a b) (_▸_∷_⟨_⟩ py sy (cross c d) rest') meq
+        with px ≟L py | sx ≟L sy | c ≟L b | d ≟L a
+      ... | yes refl | yes refl | yes refl | yes refl
+            rewrite ≡-irrelevantL meq refl = just (fireσ px sx a b rest')
+      ... | no _  | _     | _     | _     = nothing
+      ... | yes _ | no _  | _     | _     = nothing
+      ... | yes _ | yes _ | no _  | _     = nothing
+      ... | yes _ | yes _ | yes _ | no _  = nothing
+
+      ------------------------------------------------------------------
+      -- THE NATURALITY-SLIDE FIRE.  `fireRepl` is a generic sound
+      -- two-layer head REPLACEMENT: the recognised head pair (g₁ fires,
+      -- then g₂, inter-layer index bridged by `meq`) is replaced by the
+      -- pair (g₃ then g₄, bridged by E₃), with the outer/inner
+      -- re-indexings E₄/E₂ and a caller-supplied KEY equation between
+      -- the two padded two-layer composites.  Soundness is pure
+      -- `substDiagU`/`castW` algebra around the key; the slide
+      -- instantiates the key with `slide-clean-box` (b-image block) or
+      -- `slide-clean-box-a` (a-image block) at the discovered offsets.
+      ------------------------------------------------------------------
+
+      -- `substDiagU (sym e)` expanded to a two-sided cast conjugation.
+      substExpand : ∀ {m n : List X} (e : m ≡ n) (d : DiagU n)
+                  → ⟦ substDiagU (sym e) d ⟧
+                    ≈Term castW (sym (substDiagU-out (sym e) d)) ∘ (⟦ d ⟧ ∘ castW e)
+      substExpand refl d = ≈-Term-sym (≈-Term-trans idˡ idʳ)
+
+      -- (c ∘ (r ∘ q)) ∘ p ≈ c ∘ (r ∘ (q ∘ p))
+      assoc² : ∀ {A B C D E : ObjTerm} {c : HomTerm D E} {r : HomTerm C D}
+               {q : HomTerm B C} {p : HomTerm A B}
+             → (c ∘ (r ∘ q)) ∘ p ≈Term c ∘ (r ∘ (q ∘ p))
+      assoc² = ≈-Term-trans assoc (∘-resp-≈ ≈-Term-refl assoc)
+
+      -- `++`-assoc rebracketings for the slide's four index gaps.
+      eq₁ : ∀ (pq p₁ x s₁ a sq : List X)
+          → pq ++ (((p₁ ++ (x ++ s₁)) ++ a) ++ sq)
+            ≡ (pq ++ p₁) ++ (x ++ (s₁ ++ (a ++ sq)))
+      eq₁ pq p₁ x s₁ a sq =
+        trans (cong (pq ++_)
+                (trans (++-assoc (p₁ ++ (x ++ s₁)) a sq)
+                  (trans (++-assoc p₁ (x ++ s₁) (a ++ sq))
+                    (cong (p₁ ++_) (++-assoc x s₁ (a ++ sq))))))
+              (sym (++-assoc pq p₁ (x ++ (s₁ ++ (a ++ sq)))))
+
+      eq₃ : ∀ (pq a p₁ x s₁ sq : List X)
+          → (pq ++ (a ++ p₁)) ++ (x ++ (s₁ ++ sq))
+            ≡ pq ++ ((a ++ (p₁ ++ (x ++ s₁))) ++ sq)
+      eq₃ pq a p₁ x s₁ sq =
+        trans (++-assoc pq (a ++ p₁) (x ++ (s₁ ++ sq)))
+          (trans (cong (pq ++_) (++-assoc a p₁ (x ++ (s₁ ++ sq))))
+            (sym (cong (pq ++_)
+              (trans (++-assoc a (p₁ ++ (x ++ s₁)) sq)
+                (cong (a ++_)
+                  (trans (++-assoc p₁ (x ++ s₁) sq)
+                    (cong (p₁ ++_) (++-assoc x s₁ sq))))))))
+
+      fireRepl :
+        ∀ {a₁ b₁ a₂ b₂ a₃ b₃ a₄ b₄ : List X}
+          {p₁L s₁L p₂L s₂L : List X} (p₃L s₃L p₄L s₄L : List X)
+          {g₁ : MorS a₁ b₁} {g₂ : MorS a₂ b₂}
+          (g₃ : MorS a₃ b₃) (g₄ : MorS a₄ b₄)
+          (rest' : DiagU (p₂L ++ (b₂ ++ s₂L)))
+          (meq : p₁L ++ (b₁ ++ s₁L) ≡ p₂L ++ (a₂ ++ s₂L))
+          (E₂ : p₄L ++ (b₄ ++ s₄L) ≡ p₂L ++ (b₂ ++ s₂L))
+          (E₃ : p₃L ++ (b₃ ++ s₃L) ≡ p₄L ++ (a₄ ++ s₄L))
+          (E₄ : p₁L ++ (a₁ ++ s₁L) ≡ p₃L ++ (a₃ ++ s₃L))
+          (key : pad p₂L s₂L (⟦box⟧S g₂) ∘ castW meq ∘ pad p₁L s₁L (⟦box⟧S g₁)
+                 ≈Term castW E₂ ∘ pad p₄L s₄L (⟦box⟧S g₄) ∘ castW E₃
+                       ∘ pad p₃L s₃L (⟦box⟧S g₃) ∘ castW E₄)
+        → SwapRes (p₁L ▸ s₁L ∷ g₁ ⟨ substDiagU (sym meq) (p₂L ▸ s₂L ∷ g₂ ⟨ rest' ⟩) ⟩)
+      fireRepl {a₁ = a₁} {p₁L = p₁L} {s₁L} {p₂L} {s₂L} p₃L s₃L p₄L s₄L
+               {g₁} {g₂} g₃ g₄ rest' meq E₂ E₃ E₄ key
+        = d' , oeq , snd
+        where
+          P₁ = pad p₁L s₁L (⟦box⟧S g₁)
+          P₂ = pad p₂L s₂L (⟦box⟧S g₂)
+          P₃ = pad p₃L s₃L (⟦box⟧S g₃)
+          P₄ = pad p₄L s₄L (⟦box⟧S g₄)
+          boxL   = p₂L ▸ s₂L ∷ g₂ ⟨ rest' ⟩
+          dBody  = p₁L ▸ s₁L ∷ g₁ ⟨ substDiagU (sym meq) boxL ⟩
+          inner₂ = substDiagU (sym E₂) rest'
+          crossL = p₄L ▸ s₄L ∷ g₄ ⟨ inner₂ ⟩
+          inner₃ = substDiagU (sym E₃) crossL
+          slidL  = p₃L ▸ s₃L ∷ g₃ ⟨ inner₃ ⟩
+          d' : DiagU (p₁L ++ (a₁ ++ s₁L))
+          d' = substDiagU (sym E₄) slidL
+          o₁ = substDiagU-out (sym meq) boxL
+          o₂ = substDiagU-out (sym E₂) rest'
+          o₃ = substDiagU-out (sym E₃) crossL
+          o₄ = substDiagU-out (sym E₄) slidL
+          cAll = trans (trans (sym o₂) (sym o₃)) (sym o₄)
+          oeq : out dBody ≡ out d'
+          oeq = trans o₁ cAll
+          M = ⟦ rest' ⟧ ∘ (castW E₂ ∘ (P₄ ∘ (castW E₃ ∘ (P₃ ∘ castW E₄))))
+          lemA : ⟦ dBody ⟧ ≈Term castW (sym o₁) ∘ M
+          lemA = begin
+            ⟦ substDiagU (sym meq) boxL ⟧ ∘ P₁
+              ≈⟨ ∘-resp-≈ (substExpand meq boxL) ≈-Term-refl ⟩
+            (castW (sym o₁) ∘ ((⟦ rest' ⟧ ∘ P₂) ∘ castW meq)) ∘ P₁
+              ≈⟨ assoc² ⟩
+            castW (sym o₁) ∘ ((⟦ rest' ⟧ ∘ P₂) ∘ (castW meq ∘ P₁))
+              ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+            castW (sym o₁) ∘ (⟦ rest' ⟧ ∘ (P₂ ∘ (castW meq ∘ P₁)))
+              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl key) ⟩
+            castW (sym o₁) ∘ (⟦ rest' ⟧ ∘ (castW E₂ ∘ (P₄ ∘ (castW E₃ ∘ (P₃ ∘ castW E₄))))) ∎
+          lemB : ⟦ d' ⟧ ≈Term castW cAll ∘ M
+          lemB = begin
+            ⟦ substDiagU (sym E₄) slidL ⟧
+              ≈⟨ substExpand E₄ slidL ⟩
+            castW (sym o₄) ∘ ((⟦ inner₃ ⟧ ∘ P₃) ∘ castW E₄)
+              ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+            castW (sym o₄) ∘ (⟦ inner₃ ⟧ ∘ (P₃ ∘ castW E₄))
+              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (substExpand E₃ crossL) ≈-Term-refl) ⟩
+            castW (sym o₄) ∘ ((castW (sym o₃) ∘ ((⟦ inner₂ ⟧ ∘ P₄) ∘ castW E₃)) ∘ (P₃ ∘ castW E₄))
+              ≈⟨ ∘-resp-≈ ≈-Term-refl assoc² ⟩
+            castW (sym o₄) ∘ (castW (sym o₃) ∘ ((⟦ inner₂ ⟧ ∘ P₄) ∘ (castW E₃ ∘ (P₃ ∘ castW E₄))))
+              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl assoc) ⟩
+            castW (sym o₄) ∘ (castW (sym o₃) ∘ (⟦ inner₂ ⟧ ∘ (P₄ ∘ (castW E₃ ∘ (P₃ ∘ castW E₄)))))
+              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl
+                   (∘-resp-≈ (substExpand E₂ rest') ≈-Term-refl)) ⟩
+            castW (sym o₄) ∘ (castW (sym o₃)
+              ∘ ((castW (sym o₂) ∘ (⟦ rest' ⟧ ∘ castW E₂)) ∘ (P₄ ∘ (castW E₃ ∘ (P₃ ∘ castW E₄)))))
+              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl assoc²) ⟩
+            castW (sym o₄) ∘ (castW (sym o₃) ∘ (castW (sym o₂)
+              ∘ (⟦ rest' ⟧ ∘ (castW E₂ ∘ (P₄ ∘ (castW E₃ ∘ (P₃ ∘ castW E₄)))))))
+              ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+            castW (sym o₄) ∘ ((castW (sym o₃) ∘ castW (sym o₂)) ∘ M)
+              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (castW-∘ (sym o₂) (sym o₃)) ≈-Term-refl) ⟩
+            castW (sym o₄) ∘ (castW (trans (sym o₂) (sym o₃)) ∘ M)
+              ≈⟨ ≈-Term-sym assoc ⟩
+            (castW (sym o₄) ∘ castW (trans (sym o₂) (sym o₃))) ∘ M
+              ≈⟨ ∘-resp-≈ (castW-∘ (trans (sym o₂) (sym o₃)) (sym o₄)) ≈-Term-refl ⟩
+            castW cAll ∘ M ∎
+          snd : castW oeq ∘ ⟦ dBody ⟧ ≈Term ⟦ d' ⟧
+          snd = begin
+            castW oeq ∘ ⟦ dBody ⟧
+              ≈⟨ ∘-resp-≈ ≈-Term-refl lemA ⟩
+            castW oeq ∘ (castW (sym o₁) ∘ M)
+              ≈⟨ ≈-Term-sym assoc ⟩
+            (castW oeq ∘ castW (sym o₁)) ∘ M
+              ≈⟨ ∘-resp-≈ (castW-∘ (sym o₁) oeq) ≈-Term-refl ⟩
+            castW (trans (sym o₁) oeq) ∘ M
+              ≈⟨ ∘-resp-≈ (castW-irr (trans (sym o₁) oeq) cAll) ≈-Term-refl ⟩
+            castW cAll ∘ M
+              ≈⟨ lemB ⟨
+            ⟦ d' ⟧ ∎
+
+      -- the b-IMAGE slide recogniser: head `cross a b` at (px,sx), second
+      -- layer a box exhibited inside the crossing's b-image block
+      -- (py = px ++ p₁ with b = p₁ ++ (u ++ s₁) and sy = s₁ ++ (a ++ sx)).
+      -- On a hit the box slides BEFORE the crossing, to its pre-cross
+      -- offset px ++ (a ++ p₁); the crossing's b-block updates u ↦ v.
+      goSlideB : ∀ {ax bx} (px sx : List X) (fx : MorS ax bx)
+                 {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
+               → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
+      goSlideB px sx (box f)     rest meq = nothing
+      goSlideB px sx (cross a b) ([]_ m) meq = nothing
+      goSlideB px sx (cross a b) (_▸_∷_⟨_⟩ py sy (cross c d) rest') meq = nothing
+      goSlideB px sx (cross a b) (_▸_∷_⟨_⟩ {u} {v} py sy (box f) rest') meq
+        with stripPrefix px py
+      ... | nothing = nothing
+      ... | just (p₁ , refl) with stripPrefix p₁ b
+      ...   | nothing = nothing
+      ...   | just (r₁ , refl) with stripPrefix u r₁
+      ...     | nothing = nothing
+      ...     | just (s₁ , refl) with sy ≟L (s₁ ++ (a ++ sx))
+      ...       | no _ = nothing
+      ...       | yes refl =
+                  just (fireRepl (px ++ (a ++ p₁)) (s₁ ++ sx) px sx
+                          (box f) (cross a (p₁ ++ (v ++ s₁)))
+                          rest' meq
+                          (eq₁ px p₁ v s₁ a sx)
+                          (eq₃ px a p₁ v s₁ sx)
+                          (sym (eq₃ px a p₁ u s₁ sx))
+                          (slide-clean-box px sx a p₁ s₁ f meq
+                            (eq₁ px p₁ v s₁ a sx)
+                            (eq₃ px a p₁ v s₁ sx)
+                            (sym (eq₃ px a p₁ u s₁ sx))))
+
+      -- the a-IMAGE slide recogniser: head `cross a b` at (px,sx), second
+      -- layer a box exhibited inside the crossing's a-image block
+      -- (py = px ++ (b ++ p₁) with a = p₁ ++ (u ++ s₁) and sy = s₁ ++ sx).
+      -- On a hit the box slides BEFORE the crossing, to its pre-cross
+      -- offset px ++ p₁; the crossing's a-block updates u ↦ v.
+      goSlideA : ∀ {ax bx} (px sx : List X) (fx : MorS ax bx)
+                 {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
+               → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
+      goSlideA px sx (box f)     rest meq = nothing
+      goSlideA px sx (cross a b) ([]_ m) meq = nothing
+      goSlideA px sx (cross a b) (_▸_∷_⟨_⟩ py sy (cross c d) rest') meq = nothing
+      goSlideA px sx (cross a b) (_▸_∷_⟨_⟩ {u} {v} py sy (box f) rest') meq
+        with stripPrefix px py
+      ... | nothing = nothing
+      ... | just (r₀ , refl) with stripPrefix b r₀
+      ...   | nothing = nothing
+      ...   | just (p₁ , refl) with stripPrefix p₁ a
+      ...     | nothing = nothing
+      ...     | just (r₂ , refl) with stripPrefix u r₂
+      ...       | nothing = nothing
+      ...       | just (s₁ , refl) with sy ≟L (s₁ ++ sx)
+      ...         | no _ = nothing
+      ...         | yes refl =
+                    just (fireRepl (px ++ p₁) (s₁ ++ (b ++ sx)) px sx
+                            (box f) (cross (p₁ ++ (v ++ s₁)) b)
+                            rest' meq
+                            (sym (eq₃ px b p₁ v s₁ sx))
+                            (sym (eq₁ px p₁ v s₁ b sx))
+                            (eq₁ px p₁ u s₁ b sx)
+                            (slide-clean-box-a px sx b p₁ s₁ f meq
+                              (sym (eq₃ px b p₁ v s₁ sx))
+                              (sym (eq₁ px p₁ v s₁ b sx))
+                              (eq₁ px p₁ u s₁ b sx)))
+
+      ------------------------------------------------------------------
+      -- The interchange fire (verbatim from the front-end `Decide`, at
+      -- MorS): one genuine swap on a recognised out-of-order head pair.
+      ------------------------------------------------------------------
+      fire : ∀ {ax bx ay by} {px sx py sy : List X}
+             {fx : MorS ax bx} {fy : MorS ay by}
+             (fit : LeftFit px sx py sy fx fy)
+             (rest' : DiagU (py ++ (by ++ sy)))
+             (meq : px ++ (bx ++ sx) ≡ py ++ (ay ++ sy))
+           → SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) (py ▸ sy ∷ fy ⟨ rest' ⟩) ⟩)
+      fire {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
+           (leftFit P mid s refl refl refl refl) rest' meq
+        rewrite ≡-irrelevantL meq (domeq P ay mid bx s)
+        = d' , oeq , snd
+        where
+          fit' : LeftFit (P ++ (ay ++ mid)) s P (mid ++ (bx ++ s)) fx fy
+          fit' = leftFit P mid s refl refl refl refl
+          eᵒ = domeq P ay mid ax s
+          dBody : DiagU ((P ++ (ay ++ mid)) ++ (ax ++ s))
+          dBody = (P ++ (ay ++ mid)) ▸ s ∷ fx
+                    ⟨ substDiagU (sym (domeq P ay mid bx s))
+                        (P ▸ (mid ++ (bx ++ s)) ∷ fy ⟨ rest' ⟩) ⟩
+          dIn = dInput fit' rest'
+          dSw = dSwapped fit' rest'
+          d' : DiagU ((P ++ (ay ++ mid)) ++ (ax ++ s))
+          d' = substDiagU (sym eᵒ) dSw
+          e₁ = sym (substDiagU-out eᵒ dBody)
+          q  = trans (dInput-out fit' rest') (sym (dSwapped-out fit' rest'))
+          e₃ = sym (substDiagU-out (sym eᵒ) dSw)
+          oeq = trans e₁ (trans q e₃)
+          snd : castW oeq ∘ ⟦ dBody ⟧ ≈Term ⟦ d' ⟧
+          snd = begin
+            castW oeq ∘ ⟦ dBody ⟧
+              ≈⟨ ∘-resp-≈ (castW-irr oeq (trans (trans e₁ q) e₃)) ≈-Term-refl ⟩
+            castW (trans (trans e₁ q) e₃) ∘ ⟦ dBody ⟧
+              ≈⟨ ∘-resp-≈ (castW-∘ (trans e₁ q) e₃) ≈-Term-refl ⟨
+            (castW e₃ ∘ castW (trans e₁ q)) ∘ ⟦ dBody ⟧
+              ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (castW-∘ e₁ q)) ≈-Term-refl ⟨
+            (castW e₃ ∘ (castW q ∘ castW e₁)) ∘ ⟦ dBody ⟧
+              ≈⟨ assoc ⟩
+            castW e₃ ∘ ((castW q ∘ castW e₁) ∘ ⟦ dBody ⟧)
+              ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+            castW e₃ ∘ (castW q ∘ (castW e₁ ∘ ⟦ dBody ⟧))
+              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (⟦substDiagU⟧ eᵒ dBody)) ⟨
+            castW e₃ ∘ (castW q ∘ (⟦ dIn ⟧ ∘ castW eᵒ))
+              ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+            castW e₃ ∘ ((castW q ∘ ⟦ dIn ⟧) ∘ castW eᵒ)
+              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (diagU-swap-soundD fit' rest') ≈-Term-refl) ⟩
+            castW e₃ ∘ (⟦ dSw ⟧ ∘ castW eᵒ)
+              ≈⟨ ≈-Term-sym assoc ⟩
+            (castW e₃ ∘ ⟦ dSw ⟧) ∘ castW eᵒ
+              ≈⟨ ∘-resp-≈ (⟦substDiagU⟧ (sym eᵒ) dSw) ≈-Term-refl ⟨
+            (⟦ d' ⟧ ∘ castW (sym eᵒ)) ∘ castW eᵒ
+              ≈⟨ assoc ⟩
+            ⟦ d' ⟧ ∘ (castW (sym eᵒ) ∘ castW eᵒ)
+              ≈⟨ ∘-resp-≈ ≈-Term-refl (castW-cancel eᵒ) ⟩
+            ⟦ d' ⟧ ∘ id
+              ≈⟨ idʳ ⟩
+            ⟦ d' ⟧ ∎
+
+      -- a fit is AMBIGUOUS when the reverse pair would also fit; such
+      -- pairs are ordered by `rankS` instead.
+      ambiguous? : List X → List X → List X → Bool
+      ambiguous? [] [] [] = true
+      ambiguous? _  _  _  = false
+
+      -- the interchange recogniser at the generalized inner index.
+      goSwap : ∀ {ax bx} (px sx : List X) (fx : MorS ax bx)
+               {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
+             → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
+      goSwap px sx fx ([]_ m) meq = nothing
+      goSwap {ax} {bx} px sx fx (_▸_∷_⟨_⟩ {ay} {by} py sy fy rest') meq
+        with leftFit? px sx py sy fx fy
+      ... | nothing  = nothing
+      ... | just fit
+        with ambiguous? ax by (LeftFit.mid fit) | rankS fy <ᵇ rankS fx
+      ...   | false | _     = just (fire fit rest' meq)
+      ...   | true  | true  = just (fire fit rest' meq)
+      ...   | true  | false = nothing
+
+      -- the combined per-position oracle: σσ-cancel first, then the two
+      -- naturality slides (b-image, then a-image), then interchange.
+      go : ∀ {ax bx} (px sx : List X) (fx : MorS ax bx)
+           {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
+         → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
+      go px sx fx rest meq with goσ px sx fx rest meq
+      ... | just r  = just r
+      ... | nothing with goSlideB px sx fx rest meq
+      ...   | just r  = just r
+      ...   | nothing with goSlideA px sx fx rest meq
+      ...     | just r  = just r
+      ...     | nothing = goSwap px sx fx rest meq
+
+      -- lift a tail swap-result under a layer.
+      lift∷ : ∀ {a b} (px sx : List X) (fx : MorS a b)
+              {rest rest' : DiagU (px ++ (b ++ sx))}
+              (oeq : out rest ≡ out rest')
+            → castW oeq ∘ ⟦ rest ⟧ ≈Term ⟦ rest' ⟧
+            → castW oeq ∘ ⟦ px ▸ sx ∷ fx ⟨ rest ⟩ ⟧
+              ≈Term ⟦ px ▸ sx ∷ fx ⟨ rest' ⟩ ⟧
+      lift∷ px sx fx oeq snd =
+        ≈-Term-trans (≈-Term-sym assoc) (∘-resp-≈ snd ≈-Term-refl)
+
+      -- compose two swap-results (cast functoriality).
+      swapTrans : ∀ {n} {d d' d'' : DiagU n}
+                  (oeq : out d ≡ out d') (oeq' : out d' ≡ out d'')
+                → castW oeq  ∘ ⟦ d  ⟧ ≈Term ⟦ d'  ⟧
+                → castW oeq' ∘ ⟦ d' ⟧ ≈Term ⟦ d'' ⟧
+                → castW (trans oeq oeq') ∘ ⟦ d ⟧ ≈Term ⟦ d'' ⟧
+      swapTrans {d = d} {d' = d'} {d'' = d''} oeq oeq' p q = begin
+        castW (trans oeq oeq') ∘ ⟦ d ⟧
+          ≈⟨ ∘-resp-≈ (castW-∘ oeq oeq') ≈-Term-refl ⟨
+        (castW oeq' ∘ castW oeq) ∘ ⟦ d ⟧
+          ≈⟨ assoc ⟩
+        castW oeq' ∘ (castW oeq ∘ ⟦ d ⟧)
+          ≈⟨ ∘-resp-≈ ≈-Term-refl p ⟩
+        castW oeq' ∘ ⟦ d' ⟧
+          ≈⟨ q ⟩
+        ⟦ d'' ⟧ ∎
+
+    -- one cancel-or-swap at the FIRST applicable position.
+    stepσ? : ∀ {n} (d : DiagU n) → Maybe (SwapRes d)
+    stepσ? ([]_ n) = nothing
+    stepσ? (px ▸ sx ∷ fx ⟨ rest ⟩) with go px sx fx rest refl
+    ... | just r  = just r
+    ... | nothing with stepσ? rest
+    ...   | nothing                  = nothing
+    ...   | just (rest' , oeq , snd) =
+            just (px ▸ sx ∷ fx ⟨ rest' ⟩ , oeq , lift∷ px sx fx oeq snd)
+
+    -- fuel-bounded driver: fire the first applicable move, repeat.
+    normσFuel : ∀ {n} → ℕ → (d : DiagU n) → SwapRes d
+    normσFuel zero    d = d , refl , idˡ
+    normσFuel (suc k) d with stepσ? d
+    ... | nothing               = d , refl , idˡ
+    ... | just (d' , oeq , snd) with normσFuel k d'
+    ...   | (d'' , oeq' , snd') =
+            d'' , trans oeq oeq' , swapTrans oeq oeq' snd snd'
+
+    depth : ∀ {n} → DiagU n → ℕ
+    depth ([]_ n)            = zero
+    depth (_ ▸ _ ∷ _ ⟨ d ⟩) = suc (depth d)
+
+    -- budget: a cancellation shrinks the diagram (so at most depth/2 of
+    -- them); within a phase every move is monotone — an interchange swap
+    -- removes one layer inversion and a slide removes one
+    -- (cross-before-box) inversion while updating the cross's block — so
+    -- each phase needs at most depth² moves.  depth³ + depth² + depth + 1
+    -- over-approximates the total.  (Degenerate scalar-arity boxes at a
+    -- block edge can make a slide and an interchange oscillate; the fuel
+    -- then runs out and the pair is left undecided — soundness is
+    -- unconditional whatever the fuel.)
+    normσ : ∀ {n} (d : DiagU n) → SwapRes d
+    normσ d = normσFuel (suc (k * k * k + k * k + k)) d
+      where k = depth d
+
+    ------------------------------------------------------------------------
+    -- The decision entry, mirroring the front-end's `decide?W`:
+    -- reflect → normσ → ≟DiagU → chain the soundness witnesses.
+    ------------------------------------------------------------------------
+    decideσ? : ∀ {n m} (f g : WTerm n m) → Maybe (embed f ≈Term embed g)
+    decideσ? {n} {m} f g with normσ (reflect f) | normσ (reflect g)
+    ... | (df' , oeqf , sndf) | (dg' , oeqg , sndg) with df' ≟DiagU dg'
+    ...   | no  _  = nothing
+    ...   | yes eq = just (chain (≈NF⇒≡ eq))
+      where
+        half : ∀ (t : WTerm n m) (d' : DiagU n) (oeq : out (reflect t) ≡ out d')
+             → castW oeq ∘ ⟦ reflect t ⟧ ≈Term ⟦ d' ⟧
+             → embed t ≈Term castW (trans (sym oeq) (out-reflect t)) ∘ ⟦ d' ⟧
+        half t d' oeq snd = begin
+          embed t
+            ≈⟨ reflect-sound boxSound t ⟨
+          coeCod' (out-reflect t) ⟦ reflect t ⟧
+            ≈⟨ coeCod'-as-castW (out-reflect t) ⟦ reflect t ⟧ ⟩
+          castW (out-reflect t) ∘ ⟦ reflect t ⟧
+            ≈⟨ ∘-resp-≈ ≈-Term-refl (unwrapCast oeq snd) ⟩
+          castW (out-reflect t) ∘ (castW (sym oeq) ∘ ⟦ d' ⟧)
+            ≈⟨ ≈-Term-sym assoc ⟩
+          (castW (out-reflect t) ∘ castW (sym oeq)) ∘ ⟦ d' ⟧
+            ≈⟨ ∘-resp-≈ (castW-∘ (sym oeq) (out-reflect t)) ≈-Term-refl ⟩
+          castW (trans (sym oeq) (out-reflect t)) ∘ ⟦ d' ⟧ ∎
+
+        chain : df' ≡ dg' → embed f ≈Term embed g
+        chain deq = begin
+          embed f
+            ≈⟨ half f df' oeqf sndf ⟩
+          castW (trans (sym oeqf) (out-reflect f)) ∘ ⟦ df' ⟧
+            ≈⟨ step deq ⟩
+          castW (trans (sym oeqg) (out-reflect g)) ∘ ⟦ dg' ⟧
+            ≈⟨ half g dg' oeqg sndg ⟨
+          embed g ∎
+          where
+            step : df' ≡ dg'
+                 → castW (trans (sym oeqf) (out-reflect f)) ∘ ⟦ df' ⟧
+                   ≈Term castW (trans (sym oeqg) (out-reflect g)) ∘ ⟦ dg' ⟧
+            step refl = ∘-resp-≈ (castW-irr _ _) ≈-Term-refl
+
+    -- the computing hit-witness (normalizes to ⊤ exactly on a hit).
+    IsJust : ∀ {a} {A : Set a} → Maybe A → Set
+    IsJust (just _) = ⊤
+    IsJust nothing  = ⊥
+
+    private
+      extract : ∀ {a} {A : Set a} (x : Maybe A) → IsJust x → A
+      extract (just a) _ = a
+
+    -- reference-style entry point.
+    solveσ! : ∀ {n m} (f g : WTerm n m)
+              {hit : IsJust (decideσ? f g)} → embed f ≈Term embed g
+    solveσ! f g {hit} = extract (decideσ? f g) hit
+
 --------------------------------------------------------------------------------
 -- TESTS: a concrete signature over ℕ-labelled wires.  Three 1-wire boxes
 -- (two on wire colour 0 — distinguishable only by `_≟G2_`/rank — and one on
@@ -1183,6 +1507,8 @@ module SigmaTests where
     kbox  : Gen2 (0 ∷ []) (0 ∷ [])
     k2box : Gen2 (0 ∷ []) (0 ∷ [])
     mbox  : Gen2 (2 ∷ []) (2 ∷ [])
+    wbox  : Gen2 (1 ∷ 0 ∷ []) (1 ∷ 0 ∷ [])   -- 2-wire boxes, for the
+    w2box : Gen2 (0 ∷ 1 ∷ []) (0 ∷ 1 ∷ [])   -- straddle negative
 
   open Sigma _≟ℕ_ Gen2
 
@@ -1191,17 +1517,35 @@ module SigmaTests where
     (_ , _ , kbox)  ≟G2 (_ , _ , kbox)  = yes refl
     (_ , _ , kbox)  ≟G2 (_ , _ , k2box) = no λ ()
     (_ , _ , kbox)  ≟G2 (_ , _ , mbox)  = no λ ()
+    (_ , _ , kbox)  ≟G2 (_ , _ , wbox)  = no λ ()
+    (_ , _ , kbox)  ≟G2 (_ , _ , w2box) = no λ ()
     (_ , _ , k2box) ≟G2 (_ , _ , kbox)  = no λ ()
     (_ , _ , k2box) ≟G2 (_ , _ , k2box) = yes refl
     (_ , _ , k2box) ≟G2 (_ , _ , mbox)  = no λ ()
+    (_ , _ , k2box) ≟G2 (_ , _ , wbox)  = no λ ()
+    (_ , _ , k2box) ≟G2 (_ , _ , w2box) = no λ ()
     (_ , _ , mbox)  ≟G2 (_ , _ , kbox)  = no λ ()
     (_ , _ , mbox)  ≟G2 (_ , _ , k2box) = no λ ()
     (_ , _ , mbox)  ≟G2 (_ , _ , mbox)  = yes refl
+    (_ , _ , mbox)  ≟G2 (_ , _ , wbox)  = no λ ()
+    (_ , _ , mbox)  ≟G2 (_ , _ , w2box) = no λ ()
+    (_ , _ , wbox)  ≟G2 (_ , _ , kbox)  = no λ ()
+    (_ , _ , wbox)  ≟G2 (_ , _ , k2box) = no λ ()
+    (_ , _ , wbox)  ≟G2 (_ , _ , mbox)  = no λ ()
+    (_ , _ , wbox)  ≟G2 (_ , _ , wbox)  = yes refl
+    (_ , _ , wbox)  ≟G2 (_ , _ , w2box) = no λ ()
+    (_ , _ , w2box) ≟G2 (_ , _ , kbox)  = no λ ()
+    (_ , _ , w2box) ≟G2 (_ , _ , k2box) = no λ ()
+    (_ , _ , w2box) ≟G2 (_ , _ , mbox)  = no λ ()
+    (_ , _ , w2box) ≟G2 (_ , _ , wbox)  = no λ ()
+    (_ , _ , w2box) ≟G2 (_ , _ , w2box) = yes refl
 
     rank2 : GenM → ℕ
     rank2 (_ , _ , kbox)  = 0
     rank2 (_ , _ , k2box) = 1
     rank2 (_ , _ , mbox)  = 2
+    rank2 (_ , _ , wbox)  = 3
+    rank2 (_ , _ , w2box) = 4
 
   open Decide _≟G2_ rank2
 
@@ -1270,3 +1614,59 @@ module SigmaTests where
   ------------------------------------------------------------------------
   litSlide : _
   litSlide = slide-clean-box [] [] (1 ∷ []) [] [] kbox refl refl refl refl
+
+  ------------------------------------------------------------------------
+  -- (iv) the DiagU-level naturality SLIDE, wired into the driver.
+  ------------------------------------------------------------------------
+  w10 : List ℕ
+  w10 = 1 ∷ 0 ∷ []
+
+  -- b-image slide: kbox after the crossing (in the b-image prefix) is the
+  -- same as kbox before the crossing (in the b suffix).
+  tSlideL tSlideR : WTerm w10 w01
+  tSlideL = (boxʷ (box kbox) ⊗ʷ idʷ {1 ∷ []}) ∘ʷ boxʷ (cross (1 ∷ []) (0 ∷ []))
+  tSlideR = boxʷ (cross (1 ∷ []) (0 ∷ [])) ∘ʷ (idʷ {1 ∷ []} ⊗ʷ boxʷ (box kbox))
+
+  testSlide : IsJust (decideσ? tSlideL tSlideR)
+  testSlide = tt
+
+  -- the same slide fires deep: below a leading k2box layer.
+  tSlideDeepL tSlideDeepR : WTerm w10 w01
+  tSlideDeepL = tSlideL ∘ʷ (idʷ {1 ∷ []} ⊗ʷ boxʷ (box k2box))
+  tSlideDeepR = tSlideR ∘ʷ (idʷ {1 ∷ []} ⊗ʷ boxʷ (box k2box))
+
+  testSlideDeep : IsJust (decideσ? tSlideDeepL tSlideDeepR)
+  testSlideDeep = tt
+
+  -- a-image slide + σσ-cancel combined: a box conjugated by an inverse
+  -- cross-pair (sitting in the a-image between them) is the bare box.
+  tSlideCancelL tSlideCancelR : WTerm w01 w01
+  tSlideCancelL = boxʷ (cross (1 ∷ []) (0 ∷ []))
+               ∘ʷ (idʷ {1 ∷ []} ⊗ʷ boxʷ (box kbox))
+               ∘ʷ boxʷ (cross (0 ∷ []) (1 ∷ []))
+  tSlideCancelR = boxʷ (box kbox) ⊗ʷ idʷ {1 ∷ []}
+
+  testSlideCancel : IsJust (decideσ? tSlideCancelL tSlideCancelR)
+  testSlideCancel = tt
+
+  -- σ-naturality at the wire level: TWO slides (kbox through the a-image,
+  -- mbox through the b-image) reconcile box-before-cross with
+  -- box-after-cross.
+  w02 : List ℕ
+  w02 = 0 ∷ 2 ∷ []
+
+  tNatL tNatR : WTerm w02 (2 ∷ 0 ∷ [])
+  tNatL = boxʷ (cross (0 ∷ []) (2 ∷ [])) ∘ʷ (boxʷ (box kbox) ⊗ʷ boxʷ (box mbox))
+  tNatR = (boxʷ (box mbox) ⊗ʷ boxʷ (box kbox)) ∘ʷ boxʷ (cross (0 ∷ []) (2 ∷ []))
+
+  testSlideNat : IsJust (decideσ? tNatL tNatR)
+  testSlideNat = tt
+
+  -- NEGATIVE: a box STRADDLING the two image blocks does not slide (and
+  -- the pair is genuinely not decided).
+  tStraddleL tStraddleR : WTerm w01 w10
+  tStraddleL = boxʷ (box wbox) ∘ʷ boxʷ (cross (0 ∷ []) (1 ∷ []))
+  tStraddleR = boxʷ (cross (0 ∷ []) (1 ∷ [])) ∘ʷ boxʷ (box w2box)
+
+  testNegStraddle : decideσ? tStraddleL tStraddleR ≡ nothing
+  testNegStraddle = refl
