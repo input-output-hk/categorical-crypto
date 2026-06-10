@@ -6,8 +6,8 @@ module Categories.DiagramRewriteUntyped where
 -- An *untyped* normal form for free monoidal-category diagrams with
 -- morphism generators.
 --
--- A diagram is a list of boxes, each box carrying plain ℕ wire-offsets
--- and ℕ domain/range wire-counts.  We give:
+-- A diagram is a list of boxes, each box carrying `List X` wire-label
+-- offsets (prefix/suffix) and `List X` domain/range wire-labels.  We give:
 --   * an interpretation ⟦_⟧ reflecting such a list into a HomTerm of the
 --     free monoidal category, where the objects are flat "n-wire" objects
 --     wires n;
@@ -22,10 +22,7 @@ module Categories.DiagramRewriteUntyped where
 -- coherence lemmas — and never touches the braiding σ.
 --------------------------------------------------------------------------------
 
-open import Data.Unit using (⊤; tt)
 open import Data.List using (List; []; _∷_; _++_)
-open import Data.Maybe using (Maybe; just; nothing)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 open import Categories.FreeMonoidal
 
@@ -64,11 +61,11 @@ module WireSig (v : Variant) {X : Set} (Mor : List X → List X → Set) where
       using (HomTerm; id; _∘_; _⊗₁_; λ⇒; λ⇐; α⇒; α⇐)
 
   merge : (a : List X) {suf : List X} → HomTerm (wires a ⊗₀ wires suf) (wires (a ++ suf))
-  merge []       = λ⇒
+  merge []      = λ⇒
   merge (x ∷ a) = id ⊗₁ merge a ∘ α⇒
 
   split : (a : List X) {suf : List X} → HomTerm (wires (a ++ suf)) (wires a ⊗₀ wires suf)
-  split []       = λ⇐
+  split []      = λ⇐
   split (x ∷ a) = α⇐ ∘ id ⊗₁ split a
 
 --------------------------------------------------------------------------------
@@ -88,7 +85,7 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   open FreeMonoidalHelper v X using (ObjTerm; unit; _⊗₀_; Var)
   open FreeMonoidalHelper.Mor v X mor
 
-  -- minimal equational reasoning for the index-heterogeneous _≈Term_
+  -- minimal equational reasoning for the (homogeneous) _≈Term_
   module ≈R where
     infix  3 _∎
     infixr 2 step-≈ step-≈˘ _≈⟨⟩_
@@ -106,15 +103,12 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
     syntax step-≈  f gh fg = f ≈⟨ fg ⟩ gh
     syntax step-≈˘ f gh gf = f ≈⟨ gf ⟨ gh
 
-  idW : (n : List X) → HomTerm (wires n) (wires n)
-  idW n = id
-
   -- (merge / split now live in `WireSig` — re-exported by the public open
   -- above — so that ⟦box⟧ interpretations can be built from them.)
 
   -- right-pad a morphism g : wires a ⇒ wires b by `suf` idle wires
   rpad : ∀ {a b} (suf : List X) → HomTerm (wires a) (wires b) → HomTerm (wires (a ++ suf)) (wires (b ++ suf))
-  rpad {a} {b} suf g = merge b ∘ (g ⊗₁ idW suf) ∘ split a
+  rpad {a} {b} suf g = merge b ∘ (g ⊗₁ id {wires suf}) ∘ split a
 
   -- full padding: `pre` idle wires, the box, then `suf` idle wires.
   pad : ∀ {a b} (pre : List X) (suf : List X) → HomTerm (wires a) (wires b)
@@ -125,9 +119,9 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   --------------------------------------------------------------------------------
   -- Diagrams: a list of layers.  Each layer is a box `f : Mor a b` placed
   -- at offset `pre`, with `suf` idle wires after it.  The diagram is
-  -- indexed by its input wire-count; consing a layer in front turns a
-  -- diagram of input width `pre + (b + suf)` into one of input width
-  -- `pre + (a + suf)`.  The list is read left-to-right = bottom-to-top:
+  -- indexed by its input wire-list; consing a layer in front turns a
+  -- diagram of input width `pre ++ (b ++ suf)` into one of input width
+  -- `pre ++ (a ++ suf)`.  The list is read left-to-right = bottom-to-top:
   -- the head layer is applied first.
   --------------------------------------------------------------------------------
   infixr 5 _▸_∷_⟨_⟩
@@ -143,7 +137,7 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
 
   -- interpretation into the free monoidal category: head applied first.
   ⟦_⟧ : ∀ {n} (d : DiagU n) → HomTerm (wires n) (wires (out d))
-  ⟦ []_ n ⟧             = idW n
+  ⟦ []_ n ⟧             = id {wires n}
   ⟦ pre ▸ suf ∷ f ⟨ d ⟩ ⟧ = ⟦ d ⟧ ∘ pad pre suf (⟦box⟧ f)
 
   --------------------------------------------------------------------------------
@@ -243,11 +237,10 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   --------------------------------------------------------------------------------
   -- Bridging the flat `pad` to the grouped `blk` form.
   --
-  -- The flat layer  pad pre suf g : wires(pre+(a+suf)) ⇒ wires(pre+(b+suf))
-  -- equals, up to the structural merge/split isos, the grouped block
-  --   blk{wires pre}{unit}{wires suf} g id    (here M = unit, the 4th box id)
-  -- post/pre-composed with flatteners.  We package the conjugation so that
-  -- consecutive layers' flatteners cancel.
+  -- The flat layer  pad pre suf g : wires (pre ++ (a ++ suf)) ⇒ wires (pre ++ (b ++ suf))
+  -- equals, up to the structural prefix-flatteners `pflat`/`punflat` below,
+  -- the prefix-lifted right-pad  underP pre (rpad suf g)  (`padP-bridge`).
+  -- We package the conjugation so that consecutive layers' flatteners cancel.
   --
   -- We use the two-block (binary) special case of interchange, which is
   -- exactly bifunctoriality, to slide a box past a disjoint neighbour at
@@ -258,64 +251,6 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   pfx : List X → ObjTerm → ObjTerm
   pfx []      Y = Y
   pfx (x ∷ p) Y = Var x ⊗₀ pfx p Y
-
-  -- A box placed at offset `pre` with `suf` idle wires, but kept in the
-  -- grouped object  pfx pre (wires a ⊗₀ wires suf).  Definitionally this
-  -- is id-tensoring on the prefix; it needs no arithmetic.
-  gpad : ∀ {a b} (pre suf : List X) → HomTerm (wires a) (wires b)
-       → HomTerm (pfx pre (wires a ⊗₀ wires suf)) (pfx pre (wires b ⊗₀ wires suf))
-  gpad []      suf g = g ⊗₁ id
-  gpad (x ∷ p) suf g = id ⊗₁ gpad p suf g
-
-  -- flatten the grouped layer object to the flat wire object
-  flat : (pre : List X) {a suf : List X}
-       → HomTerm (pfx pre (wires a ⊗₀ wires suf)) (wires (pre ++ (a ++ suf)))
-  flat []      {a} = merge a
-  flat (x ∷ p) {a} = id ⊗₁ flat p
-
-  unflat : (pre : List X) {a suf : List X}
-         → HomTerm (wires (pre ++ (a ++ suf))) (pfx pre (wires a ⊗₀ wires suf))
-  unflat []      {a} = split a
-  unflat (x ∷ p) {a} = id ⊗₁ unflat p
-
-  flat∘unflat : ∀ (pre : List X) {a suf} → flat pre {a} {suf} ∘ unflat pre ≈Term id
-  flat∘unflat []      = merge∘split _
-  flat∘unflat (x ∷ p) = begin
-    id ⊗₁ flat p ∘ id ⊗₁ unflat p
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (id ∘ id) ⊗₁ (flat p ∘ unflat p)
-      ≈⟨ ⊗-resp-≈ idˡ (flat∘unflat p) ⟩
-    id ⊗₁ id
-      ≈⟨ id⊗id≈id ⟩
-    id ∎
-
-  unflat∘flat : ∀ (pre : List X) {a suf} → unflat pre {a} {suf} ∘ flat pre ≈Term id
-  unflat∘flat []      = split∘merge _
-  unflat∘flat (x ∷ p) = begin
-    id ⊗₁ unflat p ∘ id ⊗₁ flat p
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (id ∘ id) ⊗₁ (unflat p ∘ flat p)
-      ≈⟨ ⊗-resp-≈ idˡ (unflat∘flat p) ⟩
-    id ⊗₁ id
-      ≈⟨ id⊗id≈id ⟩
-    id ∎
-
-  -- the flat pad equals the conjugated grouped pad
-  pad≈ : ∀ {a b} (pre suf : List X) (g : HomTerm (wires a) (wires b))
-       → pad pre suf g ≈Term flat pre ∘ gpad pre suf g ∘ unflat pre
-  pad≈ []      suf g = ≈-Term-refl
-  pad≈ (x ∷ p) suf g = begin
-    id ⊗₁ pad p suf g
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (pad≈ p suf g) ⟩
-    id ⊗₁ (flat p ∘ gpad p suf g ∘ unflat p)
-      ≈⟨ ≈-Term-sym (⊗-resp-≈ idˡ ≈-Term-refl) ⟩
-    (id ∘ id) ⊗₁ (flat p ∘ gpad p suf g ∘ unflat p)
-      ≈⟨ ⊗-∘-dist ⟩
-    id ⊗₁ flat p ∘ id ⊗₁ (gpad p suf g ∘ unflat p)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym (⊗-resp-≈ idˡ ≈-Term-refl)) ⟩
-    id ⊗₁ flat p ∘ (id ∘ id) ⊗₁ (gpad p suf g ∘ unflat p)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl ⊗-∘-dist ⟩
-    id ⊗₁ flat p ∘ id ⊗₁ gpad p suf g ∘ id ⊗₁ unflat p ∎
 
   --------------------------------------------------------------------------------
   -- Prefix lifting: an equation between two morphisms over an object Y is
@@ -354,7 +289,7 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   --------------------------------------------------------------------------------
   -- Grouped diagrams and the sound head-swap.
   --
-  -- A *grouped* layer records, with plain-ℕ offsets, where a box sits:
+  -- A *grouped* layer records, with wire-label-list offsets, where a box sits:
   --   pre   : idle wires to the left of the working region
   --   mid   : idle wires between the two interacting slots
   --   r     : idle wires to the right
@@ -417,11 +352,11 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   --
   -- We build a global flattener `gflat` taking the grouped 4-block frame
   --   pfx pre (wires x ⊗₀ wires m ⊗₀ wires c ⊗₀ wires d)
-  -- to the flat object  wires (pre + (x + (m + (c + d)))) , together with
+  -- to the flat object  wires (pre ++ (x ++ (m ++ (c ++ d)))) , together with
   -- its inverse `gunflat`.  Each flat layer (`pad`) then equals the
   -- corresponding grouped block (`underP pre (blk … …)`) conjugated by the
   -- global flatteners; conjugation by an iso preserves ≈Term, and the
-  -- inter-layer flatteners + the +-associativity reassoc telescope to the
+  -- inter-layer flatteners + the ++-associativity reassoc telescope to the
   -- identity, so `swap-sound` transports to the flat orders.
   --------------------------------------------------------------------------------
 
@@ -429,7 +364,7 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   -- We re-introduce the 4-block box at the flat level by conjugation.
 
   -- Inner flattener for the 3-block suffix  wires m ⊗₀ wires c ⊗₀ wires d
-  --   → wires (m + (c + d)).
+  --   → wires (m ++ (c ++ d)).
   sflat : (m c : List X) {d : List X}
         → HomTerm (wires m ⊗₀ wires c ⊗₀ wires d) (wires (m ++ (c ++ d)))
   sflat m c {d} = merge m ∘ (id ⊗₁ merge c {d})
@@ -474,7 +409,7 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
       ≈⟨ id⊗id≈id ⟩
     id ∎
 
-  -- Inner 4-block flattener:  wires x ⊗₀ (suffix 3-block)  →  wires (x + (m+(c+d))).
+  -- Inner 4-block flattener:  wires x ⊗₀ (suffix 3-block)  →  wires (x ++ (m ++ (c ++ d))).
   iflat : (x m c : List X) {d : List X}
         → HomTerm (wires x ⊗₀ wires m ⊗₀ wires c ⊗₀ wires d)
                   (wires (x ++ (m ++ (c ++ d))))
@@ -485,27 +420,9 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
                     (wires x ⊗₀ wires m ⊗₀ wires c ⊗₀ wires d)
   iunflat x m c {d} = (id ⊗₁ sunflat m c {d}) ∘ split x
 
-  iflat∘iunflat : ∀ (x m c : List X) {d} → iflat x m c {d} ∘ iunflat x m c ≈Term id
-  iflat∘iunflat x m c {d} = begin
-    (merge x ∘ (id ⊗₁ sflat m c)) ∘ ((id ⊗₁ sunflat m c) ∘ split x)
-      ≈⟨ assoc ⟩
-    merge x ∘ ((id ⊗₁ sflat m c) ∘ ((id ⊗₁ sunflat m c) ∘ split x))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    merge x ∘ (((id ⊗₁ sflat m c) ∘ (id ⊗₁ sunflat m c)) ∘ split x)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym ⊗-∘-dist) ≈-Term-refl) ⟩
-    merge x ∘ (((id ∘ id) ⊗₁ (sflat m c ∘ sunflat m c)) ∘ split x)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ idˡ (sflat∘sunflat m c)) ≈-Term-refl) ⟩
-    merge x ∘ ((id ⊗₁ id) ∘ split x)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ id⊗id≈id ≈-Term-refl) ⟩
-    merge x ∘ (id ∘ split x)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
-    merge x ∘ split x
-      ≈⟨ merge∘split x ⟩
-    id ∎
-
   -- prefix flattener: reshape a right-nested prefix of `pre` wires sitting
-  -- on top of an already-flat tail `wires n` into the flat `wires (pre+n)`.
-  -- (Definitionally an identity on objects via `suc p + n = suc (p+n)`,
+  -- on top of an already-flat tail `wires n` into the flat `wires (pre ++ n)`.
+  -- (Definitionally an identity on objects via `(x ∷ p) ++ n = x ∷ (p ++ n)`,
   -- but it must be threaded through ⊗₁ to retype.)
   pflat : (pre : List X) {n : List X} → HomTerm (pfx pre (wires n)) (wires (pre ++ n))
   pflat []      = id
@@ -514,17 +431,6 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   punflat : (pre : List X) {n : List X} → HomTerm (wires (pre ++ n)) (pfx pre (wires n))
   punflat []      = id
   punflat (x ∷ p) = id ⊗₁ punflat p
-
-  pflat∘punflat : ∀ (pre : List X) {n} → pflat pre {n} ∘ punflat pre ≈Term id
-  pflat∘punflat []      = idˡ
-  pflat∘punflat (x ∷ p) = begin
-    id ⊗₁ pflat p ∘ id ⊗₁ punflat p
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (id ∘ id) ⊗₁ (pflat p ∘ punflat p)
-      ≈⟨ ⊗-resp-≈ idˡ (pflat∘punflat p) ⟩
-    id ⊗₁ id
-      ≈⟨ id⊗id≈id ⟩
-    id ∎
 
   punflat∘pflat : ∀ (pre : List X) {n} → punflat pre {n} ∘ pflat pre ≈Term id
   punflat∘pflat []      = idˡ
@@ -566,25 +472,6 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
                     (pfx pre (wires x ⊗₀ wires m ⊗₀ wires c ⊗₀ wires d))
   gunflat pre x m c {d} = underP pre (iunflat x m c {d}) ∘ punflat pre
 
-  gflat∘gunflat : ∀ (pre x m c : List X) {d}
-                → gflat pre x m c {d} ∘ gunflat pre x m c ≈Term id
-  gflat∘gunflat pre x m c {d} = begin
-    (pflat pre ∘ underP pre (iflat x m c)) ∘ (underP pre (iunflat x m c) ∘ punflat pre)
-      ≈⟨ assoc ⟩
-    pflat pre ∘ (underP pre (iflat x m c) ∘ (underP pre (iunflat x m c) ∘ punflat pre))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    pflat pre ∘ ((underP pre (iflat x m c) ∘ underP pre (iunflat x m c)) ∘ punflat pre)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym (underP-∘ pre _ _)) ≈-Term-refl) ⟩
-    pflat pre ∘ (underP pre (iflat x m c ∘ iunflat x m c) ∘ punflat pre)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (underP-resp pre (iflat∘iunflat x m c)) ≈-Term-refl) ⟩
-    pflat pre ∘ (underP pre id ∘ punflat pre)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (underP-id pre) ≈-Term-refl) ⟩
-    pflat pre ∘ (id ∘ punflat pre)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
-    pflat pre ∘ punflat pre
-      ≈⟨ pflat∘punflat pre ⟩
-    id ∎
-
   gunflat∘gflat : ∀ (pre x m c : List X) {d}
                 → gunflat pre x m c {d} ∘ gflat pre x m c ≈Term id
   gunflat∘gflat pre x m c {d} = begin
@@ -609,11 +496,11 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   -- grouped block conjugated by the inner flatteners.
   --
   -- A box `h : wires a ⇒ wires b` placed in block 1 of the 4-block frame
-  -- (everything else idle) flattens to  rpad (m+(c+d)) h.
+  -- (everything else idle) flattens to  rpad (m ++ (c ++ d)) h.
   --------------------------------------------------------------------------------
 
   -- the f-side block at pre = 0:  h ⊗₁ id ⊗₁ id ⊗₁ id
-  -- iflat b ∘ (h ⊗₁ idsuffix) ∘ iunflat a  ≈  rpad (m+(c+d)) h
+  -- iflat b ∘ (h ⊗₁ idsuffix) ∘ iunflat a  ≈  rpad (m ++ (c ++ d)) h
   rpad-iconj : ∀ {a b} (m c : List X) {d : List X} (h : HomTerm (wires a) (wires b))
              → iflat b m c {d} ∘ (h ⊗₁ id {wires m ⊗₀ wires c ⊗₀ wires d}) ∘ iunflat a m c
                ≈Term rpad (m ++ (c ++ d)) h
@@ -634,10 +521,6 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
       ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym ⊗-∘-dist) ≈-Term-refl) ⟩
     merge b ∘ (((h ∘ id) ⊗₁ (sflat m c ∘ sunflat m c)) ∘ split a)
       ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ idʳ (sflat∘sunflat m c)) ≈-Term-refl) ⟩
-    merge b ∘ ((h ⊗₁ id) ∘ split a)
-      ≈⟨ ≈-Term-sym assoc ⟩
-    (merge b ∘ (h ⊗₁ id)) ∘ split a
-      ≈⟨ assoc ⟩
     merge b ∘ ((h ⊗₁ id) ∘ split a) ∎
 
   -- blk with the idle box on the right is the box left-tensored with a
@@ -736,14 +619,14 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   pad≡liftW (x ∷ p) suf g = ⊗-resp-≈ ≈-Term-refl (pad≡liftW p suf g)
 
   --------------------------------------------------------------------------------
-  -- Structural +-associativity iso on flat wire objects, built from
+  -- Structural ++-associativity iso on flat wire objects, built from
   -- merge/split (NOT propositional subst).  Used to bridge the gap between
-  -- f's codomain  wires (pre + (b₁ + (mid + (a₂+r))))  and g's domain
-  -- written as a flat pad at offset  pre + (b₁ + mid).
+  -- f's codomain  wires (pre ++ (b₁ ++ (mid ++ (a₂ ++ r))))  and g's domain
+  -- written as a flat pad at offset  pre ++ (b₁ ++ mid).
   --------------------------------------------------------------------------------
-  -- defined by recursion on p: at each `suc` both indices grow by one `suc`,
+  -- defined by recursion on p: at each `∷` both indices grow by one label,
   -- so it is an id-reshape threaded through ⊗₁ (base case is genuinely id
-  -- since 0+(q+s) = q+s = (0+q)+s definitionally).
+  -- since [] ++ (q ++ s) = q ++ s = ([] ++ q) ++ s definitionally).
   assocW : (p q s : List X) → HomTerm (wires (p ++ (q ++ s))) (wires ((p ++ q) ++ s))
   assocW []      q s = id
   assocW (x ∷ p) q s = id ⊗₁ assocW p q s
@@ -752,26 +635,10 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   assocW⁻ []      q s = id
   assocW⁻ (x ∷ p) q s = id ⊗₁ assocW⁻ p q s
 
-  assocW∘assocW⁻ : ∀ (p q s : List X) → assocW p q s ∘ assocW⁻ p q s ≈Term id
-  assocW∘assocW⁻ []      q s = idˡ
-  assocW∘assocW⁻ (x ∷ p) q s = begin
-    id ⊗₁ assocW p q s ∘ id ⊗₁ assocW⁻ p q s
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (id ∘ id) ⊗₁ (assocW p q s ∘ assocW⁻ p q s)
-      ≈⟨ ⊗-resp-≈ idˡ (assocW∘assocW⁻ p q s) ⟩
-    id ⊗₁ id
-      ≈⟨ id⊗id≈id ⟩
-    id ∎
-
   -- pflat-conjugation of a prefix-lifted wire morphism is its flat shift.
   pflatconj : ∀ (pre : List X) {u v} (Y : HomTerm (wires u) (wires v))
             → pflat pre {v} ∘ underP pre Y ∘ punflat pre {u} ≈Term liftW pre Y
-  pflatconj []      Y = begin
-    id ∘ Y ∘ id
-      ≈⟨ idˡ ⟩
-    Y ∘ id
-      ≈⟨ idʳ ⟩
-    Y ∎
+  pflatconj []      Y = ≈-Term-trans idˡ idʳ
   pflatconj (x ∷ p) {u} {v} Y = begin
     id ⊗₁ pflat p ∘ id ⊗₁ underP p Y ∘ id ⊗₁ punflat p
       ≈⟨ id⊗-∘3 (pflat p) (underP p Y) (punflat p) ⟩
@@ -799,12 +666,7 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   padP-bridge : ∀ {a b} (pre suf : List X) (h : HomTerm (wires a) (wires b))
               → pad pre suf h
                 ≈Term pflat pre ∘ underP pre (rpad suf h) ∘ punflat pre
-  padP-bridge []      suf h = begin
-    rpad suf h
-      ≈⟨ ≈-Term-sym idˡ ⟩
-    id ∘ rpad suf h
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym idʳ) ⟩
-    id ∘ rpad suf h ∘ id ∎
+  padP-bridge []      suf h = ≈-Term-sym (≈-Term-trans idˡ idʳ)
   padP-bridge (x ∷ p) suf h = begin
     id ⊗₁ pad p suf h
       ≈⟨ ⊗-resp-≈ ≈-Term-refl (padP-bridge p suf h) ⟩
@@ -899,7 +761,7 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
           ≈Term liftW x (liftW m (rpad d g))
   gcore x m {a} {b} {d} g = begin
     iflat x m b ∘ (blk (id {wires x}) g) ∘ iunflat x m a
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ blk≈ ≈-Term-refl) ⟩
+      ≈⟨⟩  -- blk id g = id ⊗₁ (id ⊗₁ (g ⊗₁ id)) = id ⊗₁ Bg, definitionally
     (merge x ∘ (id ⊗₁ sflat m b)) ∘ (id ⊗₁ Bg) ∘ ((id ⊗₁ sunflat m a) ∘ split x)
       ≈⟨ regroup ⟩
     merge x ∘ ((id ⊗₁ sflat m b) ∘ (id ⊗₁ Bg) ∘ (id ⊗₁ sunflat m a)) ∘ split x
@@ -913,9 +775,6 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
       open ≈R
       Bg : HomTerm (wires m ⊗₀ wires a ⊗₀ wires d) (wires m ⊗₀ wires b ⊗₀ wires d)
       Bg = id {wires m} ⊗₁ (g ⊗₁ id {wires d})
-      -- blk id g = id ⊗₁ (id ⊗₁ (g ⊗₁ id)) = id ⊗₁ Bg
-      blk≈ : blk {M = wires m} {R = wires d} (id {wires x}) g ≈Term id {wires x} ⊗₁ Bg
-      blk≈ = ≈-Term-refl
       -- bracket bookkeeping helpers (pure associativity)
       regroup :
           (merge x ∘ (id ⊗₁ sflat m b)) ∘ (id ⊗₁ Bg) ∘ ((id ⊗₁ sunflat m a) ∘ split x)
@@ -1000,13 +859,13 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
     assocW⁻ x m v ∘ (liftW (x ++ m) W ∘ assocW x m u) ∎
 
   -- The double flat-shift equals the flat shift at the summed offset,
-  -- conjugated by structural +-associativity isos `assocW` (merge/split-built).
-  gpad-reassoc : ∀ (pre x m : List X) {u v} (W : HomTerm (wires u) (wires v))
+  -- conjugated by structural ++-associativity isos `assocW` (merge/split-built).
+  liftW-reassoc : ∀ (pre x m : List X) {u v} (W : HomTerm (wires u) (wires v))
                → liftW pre (liftW x (liftW m W))
                  ≈Term (liftW pre (assocW⁻ x m v) ∘ assocW⁻ pre (x ++ m) v)
                      ∘ liftW (pre ++ (x ++ m)) W
                      ∘ (assocW pre (x ++ m) u ∘ liftW pre (assocW x m u))
-  gpad-reassoc pre x m {u} {v} W = begin
+  liftW-reassoc pre x m {u} {v} W = begin
     liftW pre (liftW x (liftW m W))
       ≈⟨ liftW-resp pre (liftW-assoc' x m W) ⟩
     liftW pre (assocW⁻ x m v ∘ liftW (x ++ m) W ∘ assocW x m u)
@@ -1051,10 +910,10 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   -- We work in a frame  pre | a₁/b₁ | mid | a₂/b₂ | r  of flat wires.  The two
   -- orders are:
   --   f-first:  apply f at offset `pre`  (suffix mid+(a₂+r)), then g at offset
-  --             `pre+(b₁+mid)`  (suffix r) — the g-layer being a genuine flat
-  --             pad bridged across the +-associativity gap by the structural
-  --             iso `reassoc` (built from merge/split via assocW).
-  --   g-first:  apply g at offset `pre+(a₁+mid)`, then f at offset `pre`.
+  --             `pre ++ (b₁ ++ mid)`  (suffix r) — the g-layer being a genuine
+  --             flat pad bridged across the ++-associativity gap by the
+  --             structural iso `reassoc` (built from merge/split via assocW).
+  --   g-first:  apply g at offset `pre ++ (a₁ ++ mid)`, then f at offset `pre`.
   -- Both orders have the SAME flat domain and codomain and are EQUAL.
   --
   -- The proof reuses `HeadSwap.swap-sound` verbatim, conjugated by the global
@@ -1181,9 +1040,9 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
       g-first ∎
 
     -- Corollary: the g-out layer IS a genuine flat `pad` of g at the shifted
-    -- offset  pre + (b₁ + mid) , conjugated by the structural +-associativity
+    -- offset  pre ++ (b₁ ++ mid) , conjugated by the structural ++-associativity
     -- reassoc isos (built from merge/split via assocW).  This realises the
-    -- "g-layer = pad (pre+(b₁+mid)) r ⟦g⟧ ∘ reassoc" reading of the bridge.
+    -- "g-layer = pad (pre ++ (b₁ ++ mid)) r ⟦g⟧ ∘ reassoc" reading of the bridge.
     reassocF-out : HomTerm (wires (pre ++ (b₁ ++ (mid ++ (a₂ ++ r)))))
                            (wires ((pre ++ (b₁ ++ mid)) ++ (a₂ ++ r)))
     reassocF-out = assocW pre (b₁ ++ mid) (a₂ ++ r) ∘ liftW pre (assocW b₁ mid (a₂ ++ r))
@@ -1198,7 +1057,7 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
       g-out
         ≈⟨ bridge-g pre b₁ mid r (⟦box⟧ g) ⟩
       liftW pre (liftW b₁ (liftW mid (rpad r (⟦box⟧ g))))
-        ≈⟨ gpad-reassoc pre b₁ mid (rpad r (⟦box⟧ g)) ⟩
+        ≈⟨ liftW-reassoc pre b₁ mid (rpad r (⟦box⟧ g)) ⟩
       reassocB-out ∘ liftW (pre ++ (b₁ ++ mid)) (rpad r (⟦box⟧ g)) ∘ reassocF-out
         ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym (pad≡liftW (pre ++ (b₁ ++ mid)) r (⟦box⟧ g))) ≈-Term-refl) ⟩
       reassocB-out ∘ pad (pre ++ (b₁ ++ mid)) r (⟦box⟧ g) ∘ reassocF-out ∎
@@ -1206,7 +1065,7 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
     -- The MIRROR of `g-out≈pad` for the `g-in` layer: `g-in` sits in the
     -- *dom* (a₁) frame rather than the *cod* (b₁) frame, so the reassociators
     -- use `a₁` in place of `b₁`.  Proven by the SAME machinery (`bridge-g` /
-    -- `gpad-reassoc` / `pad≡liftW`), mirrored to the a₁-side.
+    -- `liftW-reassoc` / `pad≡liftW`), mirrored to the a₁-side.
     reassocF-in : HomTerm (wires (pre ++ (a₁ ++ (mid ++ (a₂ ++ r)))))
                           (wires ((pre ++ (a₁ ++ mid)) ++ (a₂ ++ r)))
     reassocF-in = assocW pre (a₁ ++ mid) (a₂ ++ r) ∘ liftW pre (assocW a₁ mid (a₂ ++ r))
@@ -1221,7 +1080,7 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
       g-in
         ≈⟨ bridge-g pre a₁ mid r (⟦box⟧ g) ⟩
       liftW pre (liftW a₁ (liftW mid (rpad r (⟦box⟧ g))))
-        ≈⟨ gpad-reassoc pre a₁ mid (rpad r (⟦box⟧ g)) ⟩
+        ≈⟨ liftW-reassoc pre a₁ mid (rpad r (⟦box⟧ g)) ⟩
       reassocB-in ∘ liftW (pre ++ (a₁ ++ mid)) (rpad r (⟦box⟧ g)) ∘ reassocF-in
         ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym (pad≡liftW (pre ++ (a₁ ++ mid)) r (⟦box⟧ g))) ≈-Term-refl) ⟩
       reassocB-in ∘ pad (pre ++ (a₁ ++ mid)) r (⟦box⟧ g) ∘ reassocF-in ∎
@@ -1241,21 +1100,3 @@ module Untyped (v : Variant) {X : Set} (Mor : List X → List X → Set) where
   ⟦box⟧ f = var (box f)
 
   open UntypedI v {X} Mor ⟦box⟧ public
-
---------------------------------------------------------------------------------
--- Sanity check: the generalization genuinely subsumes the old single-object
--- case.  Instantiating `X = ⊤` recovers wire-count-typed boxes (the wire
--- counts are now `List ⊤`, i.e. unary ℕ), and `two-box-swap` still holds with
--- exactly the same statement and proof — still σ-free.
---------------------------------------------------------------------------------
-private
-  module SingleObjectExample (Mor : List ⊤ → List ⊤ → Set) where
-    open Untyped Mon {⊤} Mor
-
-    -- the headline result transports verbatim to the ⊤-instance: for any two
-    -- disjoint boxes, the two flat orders are equal (`f-first ≈Term g-first`),
-    -- still proven σ-free by the same `TwoBoxSwap.two-box-swap`.  The type is
-    -- inferred (it is exactly `f-first ≈Term g-first` of the ⊤-instance).
-    swap⊤ : ∀ (pre mid r : List ⊤) {a₁ b₁ a₂ b₂ : List ⊤}
-              (f : Mor a₁ b₁) (g : Mor a₂ b₂) → _
-    swap⊤ pre mid r f g = TwoBoxSwap.two-box-swap pre mid r f g
