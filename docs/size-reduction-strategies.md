@@ -461,3 +461,10 @@ Remaining refactor menu: EdgeStep equivariance kernel (~600, needs spike),
 BlockNFBraid permutation-subst₂ extraction (~150–200), σ-block-Bmerge framing
 (~80–120), PermuteCoherence Inversions unification (~150–200).
 (`ProbabilisticLogic.agda` has pre-existing holes at 67/107/134 — unrelated WIP.)
+
+**Post-merge of `worktree-smc-solver-cleanup` (670801a):** Lever 1 (solveMor!/
+solveMorσ!) landed on top — BoxKernel 1650→1143, SigmaBlockCommRaw 872→517,
+BridgeAlphaFormCompound 797→696, DecodeRoundtripSafe 824→723, CIsoAssocFromCons
+375→234, CoherenceSolver retired.  The solver stack itself (+10,071 LOC) lives
+outside the APROP subtree as reusable infrastructure.  **Session total: APROP
+tree 45,047 → 37,053 (−17.7%); live closure 38,287 → 35,025 (−8.5%).**
