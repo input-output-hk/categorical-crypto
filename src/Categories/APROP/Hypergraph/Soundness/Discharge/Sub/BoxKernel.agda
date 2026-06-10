@@ -61,8 +61,13 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeStepRelation sig
   using (box-of)
 
 open import Categories.Category using (Category)
+open import Categories.Category.Monoidal using (MonoidalCategory)
+open import Categories.SolverSigmaFrontend using (module FinSetupσ)
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
+open import Data.Product using (_,_)
+import Data.Fin as Fin
+import Data.Vec as Vec
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-++; ++-assoc)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
@@ -924,21 +929,34 @@ module BoxAssoc where
       -- (3) σ-SLIDE: the ONE-BOX symmetry-naturality move.  The generator
       --     `G` slides through the two braids `σ{UP}{Ueo}` / `σ{Uei}{UP}`,
       --     which then cancel via `σ∘σ≈id`, leaving `G ⊗ id{UP}`.
+      --     DISCHARGED BY THE σ-SOLVER (`solveMorσ!`, the free SMC itself
+      --     as the target through `FinSetupσ`): UP/Uei/Ueo are the three
+      --     object atoms, `G` the one generator; the solver fires the
+      --     a-image naturality slide and the σσ-cancellation.
       sigma-slide
         : σ {UP} {Ueo} ∘ (id {UP} ⊗₁ G) ∘ σ {Uei} {UP}
           ≈Term G ⊗₁ id {UP}
-      sigma-slide = begin
-        σ {UP} {Ueo} ∘ (id {UP} ⊗₁ G) ∘ σ {Uei} {UP}
-          ≈⟨ FM.sym-assoc ⟩
-        (σ {UP} {Ueo} ∘ (id {UP} ⊗₁ G)) ∘ σ {Uei} {UP}
-          ≈⟨ σ∘[f⊗g]≈[g⊗f]∘σ ⟩∘⟨refl ⟩
-        ((G ⊗₁ id {UP}) ∘ σ {UP} {Uei}) ∘ σ {Uei} {UP}
-          ≈⟨ FM.assoc ⟩
-        (G ⊗₁ id {UP}) ∘ (σ {UP} {Uei} ∘ σ {Uei} {UP})
-          ≈⟨ refl⟩∘⟨ σ∘σ≈id ⟩
-        (G ⊗₁ id {UP}) ∘ id
-          ≈⟨ idʳ ⟩
-        G ⊗₁ id {UP} ∎
+      sigma-slide = solveMorσ!
+          (Sσ._∘_ σ-eo (Sσ._∘_ (Sσ._⊗₁_ idP gᵗ) σ-ei))
+          (Sσ._⊗₁_ gᵗ idP)
+        where
+          FMC : MonoidalCategory _ _ _
+          FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
+          open FinSetupσ FMC Symmetric-Monoidal (UP Vec.∷ Uei Vec.∷ Ueo Vec.∷ Vec.[])
+          open Sig {1} (λ { Fin.zero → V (Fin.suc Fin.zero)
+                                     , V (Fin.suc (Fin.suc Fin.zero)) })
+            renaming (module S to Sσ)
+          open WithGen (λ { (genS Fin.zero) → G })
+          aP  = V Fin.zero
+          aEi = V (Fin.suc Fin.zero)
+          aEo = V (Fin.suc (Fin.suc Fin.zero))
+          gᵗ  = gen Fin.zero
+          idP : Sσ.HomTerm aP aP
+          idP = Sσ.id
+          σ-ei : Sσ.HomTerm (aEi ⊗ᵒ aP) (aP ⊗ᵒ aEi)
+          σ-ei = Sσ.σ
+          σ-eo : Sσ.HomTerm (aP ⊗ᵒ aEo) (aEo ⊗ᵒ aP)
+          σ-eo = Sσ.σ
 
       -- (4) TAIL collapse: the eo-side framing (`α⇒{Ueo}{UP}{Ur}` past the
       --     output `G⊗id{UP}`, then the `id{Ueo}⊗to-P-rest` / `id{Uei}⊗from-P-rest`
