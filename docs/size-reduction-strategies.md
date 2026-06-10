@@ -432,3 +432,32 @@ Adding the non-live mass (~4.7k) gets the *tree* to ~15%, but doesn't shrink the
 The conclusion of the main document stands: beyond Lever 1 (the morphism solver,
 in progress), only Option A (strictification) and Option B (postulating K / shape
 lemmas) reach materially further, and both change what is proved.
+
+### EXECUTED 2026-06-10 (commits c9bd476..26bd871): tree 45,047 → 38,403 (−6,644, −14.8%)
+
+- `d8e83e5` non-live mass: legacy `Completeness*` cluster + MatrixBridge chain
+  (17 files, −4,698; preserved on branch `archive/completeness-and-matrix-bridge`).
+- `7341d44`+`4b39d72` **unpruned decoder fully retired** (−1,399): the agreement
+  chain (DRS id-collapses, DecoderAgreement{Safe,Cases,Rho}, DAS collapses,
+  DecodeRelDecodeP) re-stated over `decodeP` via import-renaming (atomic
+  constructors are definitionally equal under pruning, so proof bodies were
+  unchanged — the migration compiled first try); then deleted `FromAPROP.hCompose`
+  + unpruned `⟪_⟫` (608→395), `Linearity` hCompose/⟪⟫-Linear blocks (1158→411),
+  `DecodeAttempt` hCompose-lifts/`decode-attempt-Linear`/`decode` (1027→653),
+  DTS unpruned instantiation tail (4451→4431).  `decodeP` hoisted into
+  `DecodeAttemptLinearP` (was defined locally 4×).  The pruned decoder is now
+  the ONLY decoder; tensor/atomic machinery and `bridge` are shared.
+- `70ae988`+`6d75ec9`+`26bd871` dead-code rounds (−539): orphan
+  DecodeRoundtripAgenSigma; Invariant σ∘σ-era leftovers incl. the covers/cast
+  families (544→329); ProcessEdgesTermShape `DecodePShapeResiduals`/`Assemble`
+  layer + 4th local decodeP (611→490); `Prune` pruneMap subsystem + AllIn chain
+  (541→333).  Root cause throughout: support code stranded by the deleted
+  `CompletenessProved` cluster (σ∘σ-sound's chases) and the unpruned decoder.
+
+Live closure of `SoundnessFullWired`/`Solver.Tests`: 38,287 → **36,375 (−1,912,
+−5.0%)**, still 102 files, axiom-free `--safe --without-K`, full rebuild green
+(Tests + Coherence.Symmetric.Test + GConstruction + all solver test roots).
+Remaining refactor menu: EdgeStep equivariance kernel (~600, needs spike),
+BlockNFBraid permutation-subst₂ extraction (~150–200), σ-block-Bmerge framing
+(~80–120), PermuteCoherence Inversions unification (~150–200).
+(`ProbabilisticLogic.agda` has pre-existing holes at 67/107/134 — unrelated WIP.)
