@@ -50,6 +50,7 @@ open import Categories.MonoidalCoherence using (module Solver)
 -- as single `solveMor!` calls at the free monoidal category itself.
 open import Categories.SolverFrontend using (module FinSetup)
 open import Data.Product using (_,_)
+open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F; 7F; 8F)
 import Data.Vec as Vec
 open Vec using (Vec)
 import Data.Fin as Fin
@@ -92,8 +93,8 @@ private
                   _∘_ to _∘ˢ_; _⊗₁_ to _⊗₁ˢ_; _⊗₀_ to _⊗₀ˢ_; Var to Varˢ)
       x y z : _
       x = Varˢ Fin.zero
-      y = Varˢ (Fin.suc Fin.zero)
-      z = Varˢ (Fin.suc (Fin.suc Fin.zero))
+      y = Varˢ 1F
+      z = Varˢ 2F
 
   -- collapse-α-VAB: (α⇒ ⊗ id) ∘ (α⇐ ⊗ id) ≈ id.
   collapse-α-iso-⊗id
@@ -113,9 +114,9 @@ private
                   _∘_ to _∘ˢ_; _⊗₁_ to _⊗₁ˢ_; _⊗₀_ to _⊗₀ˢ_; Var to Varˢ)
       x y z w : _
       x = Varˢ Fin.zero
-      y = Varˢ (Fin.suc Fin.zero)
-      z = Varˢ (Fin.suc (Fin.suc Fin.zero))
-      w = Varˢ (Fin.suc (Fin.suc (Fin.suc Fin.zero)))
+      y = Varˢ 1F
+      z = Varˢ 2F
+      w = Varˢ 3F
 
 --------------------------------------------------------------------------------
 -- F-decomp lemmas.
@@ -134,19 +135,17 @@ private
         ( A Vec.∷ unflatten (flatten A)
             Vec.∷ (B ⊗₀ C) Vec.∷ unflatten (flatten B ++ flatten C)
             Vec.∷ unflatten (flatten A ++ (flatten B ++ flatten C)) Vec.∷ Vec.[] )
-      v0 = V Fin.zero ; v1 = V (Fin.suc Fin.zero) ; v2 = V (Fin.suc (Fin.suc Fin.zero))
-      v3 = V (Fin.suc (Fin.suc (Fin.suc Fin.zero)))
-      v4 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))
+      v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
       -- generators: F-A, F-BC, c-A,BC-to
-      open Sig {3} (λ { Fin.zero            → v0 , v1
-                      ; (Fin.suc Fin.zero)  → v2 , v3
-                      ; (Fin.suc (Fin.suc _)) → v1 ⊗ᵒ v3 , v4 })
-      open WithGen (λ { (genS Fin.zero)           → _≅_.from (unflatten-flatten-≈ A)
-                      ; (genS (Fin.suc Fin.zero)) → _≅_.from (unflatten-flatten-≈ (B ⊗₀ C))
-                      ; (genS (Fin.suc (Fin.suc _))) →
+      open Sig {3} (λ { 0F →  v0 , v1
+                      ; 1F →  v2 , v3
+                      ; 2F →  v1 ⊗ᵒ v3 , v4 })
+      open WithGen (λ { (genS 0F) → _≅_.from (unflatten-flatten-≈ A)
+                      ; (genS 1F) → _≅_.from (unflatten-flatten-≈ (B ⊗₀ C))
+                      ; (genS 2F) →
                           _≅_.to (unflatten-++-≅ (flatten A) (flatten B ++ flatten C)) })
-      gFA = gen Fin.zero ; gFBC = gen (Fin.suc Fin.zero)
-      gc  = gen (Fin.suc (Fin.suc Fin.zero))
+      gFA = gen 0F ; gFBC = gen 1F
+      gc  = gen 2F
       lhsᵗ = S._∘_ gc (S._⊗₁_ (S._∘_ S.λ⇒ (S._⊗₁_ S.id gFA)) gFBC)
       rhsᵗ = S._∘_ (S._∘_ gc (S._⊗₁_ gFA gFBC)) (S._⊗₁_ S.λ⇒ S.id)
 
@@ -166,29 +165,23 @@ private
             Vec.∷ unflatten (flatten C)
             Vec.∷ unflatten (flatten A ++ flatten B)
             Vec.∷ unflatten ((flatten A ++ flatten B) ++ flatten C) Vec.∷ Vec.[] )
-      v0 = V Fin.zero ; v1 = V (Fin.suc Fin.zero) ; v2 = V (Fin.suc (Fin.suc Fin.zero))
-      v3 = V (Fin.suc (Fin.suc (Fin.suc Fin.zero)))
-      v4 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))
-      v5 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero)))))
-      v6 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))))
-      v7 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero)))))))
+      v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
+      v5 = V 5F ; v6 = V 6F ; v7 = V 7F
       -- generators: T-A, T-B, T-C, c-A,B-from, c-AB,C-from
-      open Sig {5} (λ { Fin.zero                      → v3 , v0
-                      ; (Fin.suc Fin.zero)            → v4 , v1
-                      ; (Fin.suc (Fin.suc Fin.zero))  → v5 , v2
-                      ; (Fin.suc (Fin.suc (Fin.suc Fin.zero))) → v6 , v3 ⊗ᵒ v4
-                      ; (Fin.suc (Fin.suc (Fin.suc (Fin.suc _)))) → v7 , v6 ⊗ᵒ v5 })
-      open WithGen (λ { (genS Fin.zero)           → _≅_.to (unflatten-flatten-≈ A)
-                      ; (genS (Fin.suc Fin.zero)) → _≅_.to (unflatten-flatten-≈ B)
-                      ; (genS (Fin.suc (Fin.suc Fin.zero))) → _≅_.to (unflatten-flatten-≈ C)
-                      ; (genS (Fin.suc (Fin.suc (Fin.suc Fin.zero)))) →
+      open Sig {5} (λ { 0F →  v3 , v0
+                      ; 1F →  v4 , v1
+                      ; 2F →  v5 , v2
+                      ; 3F →  v6 , v3 ⊗ᵒ v4
+                      ; 4F →  v7 , v6 ⊗ᵒ v5 })
+      open WithGen (λ { (genS 0F) → _≅_.to (unflatten-flatten-≈ A)
+                      ; (genS 1F) → _≅_.to (unflatten-flatten-≈ B)
+                      ; (genS 2F) → _≅_.to (unflatten-flatten-≈ C)
+                      ; (genS 3F) →
                           _≅_.from (unflatten-++-≅ (flatten A) (flatten B))
-                      ; (genS (Fin.suc (Fin.suc (Fin.suc (Fin.suc _))))) →
+                      ; (genS 4F) →
                           _≅_.from (unflatten-++-≅ (flatten A ++ flatten B) (flatten C)) })
-      gTA = gen Fin.zero ; gTB = gen (Fin.suc Fin.zero)
-      gTC = gen (Fin.suc (Fin.suc Fin.zero))
-      gcAB  = gen (Fin.suc (Fin.suc (Fin.suc Fin.zero)))
-      gcABC = gen (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))
+      gTA = gen 0F ; gTB = gen 1F ; gTC = gen 2F
+      gcAB = gen 3F ; gcABC = gen 4F
       lhsᵗ rhsᵗ : S.HomTerm v7 (((unitᵒ ⊗ᵒ v0) ⊗ᵒ v1) ⊗ᵒ v2)
       lhsᵗ = S._∘_ (S._⊗₁_ (S._∘_ (S._⊗₁_ (S._∘_ (S._⊗₁_ S.id gTA) S.λ⇐) gTB) gcAB) gTC) gcABC
       rhsᵗ = S._∘_ (S._⊗₁_ (S._⊗₁_ S.λ⇐ S.id) S.id)
@@ -209,20 +202,18 @@ private
             Vec.∷ unflatten (flatten A)
             Vec.∷ unflatten (flatten B ++ flatten C)
             Vec.∷ unflatten (flatten A ++ (flatten B ++ flatten C)) Vec.∷ Vec.[] )
-      v0 = V Fin.zero ; v1 = V (Fin.suc Fin.zero) ; v2 = V (Fin.suc (Fin.suc Fin.zero))
-      v3 = V (Fin.suc (Fin.suc (Fin.suc Fin.zero)))
-      v4 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))
-      v5 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero)))))
+      v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
+      v5 = V 5F
       -- generators: F-A, F-BC, c-A,BC-to
-      open Sig {3} (λ { Fin.zero            → v1 , v3
-                      ; (Fin.suc Fin.zero)  → v2 , v4
-                      ; (Fin.suc (Fin.suc _)) → v3 ⊗ᵒ v4 , v5 })
-      open WithGen (λ { (genS Fin.zero)           → _≅_.from (unflatten-flatten-≈ A)
-                      ; (genS (Fin.suc Fin.zero)) → _≅_.from (unflatten-flatten-≈ (B ⊗₀ C))
-                      ; (genS (Fin.suc (Fin.suc _))) →
+      open Sig {3} (λ { 0F →  v1 , v3
+                      ; 1F →  v2 , v4
+                      ; 2F →  v3 ⊗ᵒ v4 , v5 })
+      open WithGen (λ { (genS 0F) → _≅_.from (unflatten-flatten-≈ A)
+                      ; (genS 1F) → _≅_.from (unflatten-flatten-≈ (B ⊗₀ C))
+                      ; (genS 2F) →
                           _≅_.to (unflatten-++-≅ (flatten A) (flatten B ++ flatten C)) })
-      gFA = gen Fin.zero ; gFBC = gen (Fin.suc Fin.zero)
-      gc  = gen (Fin.suc (Fin.suc Fin.zero))
+      gFA = gen 0F ; gFBC = gen 1F
+      gc  = gen 2F
       lhsᵗ rhsᵗ : S.HomTerm ((v0 ⊗ᵒ v1) ⊗ᵒ v2) (v0 ⊗ᵒ v5)
       lhsᵗ = S._∘_ (S._∘_ (S._⊗₁_ S.id gc) S.α⇒)
                    (S._⊗₁_ (S._∘_ (S._∘_ (S._⊗₁_ S.id S.λ⇒) S.α⇒) (S._⊗₁_ S.ρ⇐ gFA)) gFBC)
@@ -245,30 +236,23 @@ private
             Vec.∷ unflatten (flatten C)
             Vec.∷ unflatten (flatten A ++ flatten B)
             Vec.∷ unflatten ((flatten A ++ flatten B) ++ flatten C) Vec.∷ Vec.[] )
-      v0 = V Fin.zero ; v1 = V (Fin.suc Fin.zero) ; v2 = V (Fin.suc (Fin.suc Fin.zero))
-      v3 = V (Fin.suc (Fin.suc (Fin.suc Fin.zero)))
-      v4 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))
-      v5 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero)))))
-      v6 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))))
-      v7 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero)))))))
-      v8 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))))))
+      v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
+      v5 = V 5F ; v6 = V 6F ; v7 = V 7F ; v8 = V 8F
       -- generators: T-A, T-B, T-C, c-A,B-from, c-A⊗B,C-from
-      open Sig {5} (λ { Fin.zero                      → v4 , v1
-                      ; (Fin.suc Fin.zero)            → v5 , v2
-                      ; (Fin.suc (Fin.suc Fin.zero))  → v6 , v3
-                      ; (Fin.suc (Fin.suc (Fin.suc Fin.zero))) → v7 , v4 ⊗ᵒ v5
-                      ; (Fin.suc (Fin.suc (Fin.suc (Fin.suc _)))) → v8 , v7 ⊗ᵒ v6 })
-      open WithGen (λ { (genS Fin.zero)           → _≅_.to (unflatten-flatten-≈ A)
-                      ; (genS (Fin.suc Fin.zero)) → _≅_.to (unflatten-flatten-≈ B)
-                      ; (genS (Fin.suc (Fin.suc Fin.zero))) → _≅_.to (unflatten-flatten-≈ C)
-                      ; (genS (Fin.suc (Fin.suc (Fin.suc Fin.zero)))) →
+      open Sig {5} (λ { 0F →  v4 , v1
+                      ; 1F →  v5 , v2
+                      ; 2F →  v6 , v3
+                      ; 3F →  v7 , v4 ⊗ᵒ v5
+                      ; 4F →  v8 , v7 ⊗ᵒ v6 })
+      open WithGen (λ { (genS 0F) → _≅_.to (unflatten-flatten-≈ A)
+                      ; (genS 1F) → _≅_.to (unflatten-flatten-≈ B)
+                      ; (genS 2F) → _≅_.to (unflatten-flatten-≈ C)
+                      ; (genS 3F) →
                           _≅_.from (unflatten-++-≅ (flatten A) (flatten B))
-                      ; (genS (Fin.suc (Fin.suc (Fin.suc (Fin.suc _))))) →
+                      ; (genS 4F) →
                           _≅_.from (unflatten-++-≅ (flatten A ++ flatten B) (flatten C)) })
-      gTA = gen Fin.zero ; gTB = gen (Fin.suc Fin.zero)
-      gTC = gen (Fin.suc (Fin.suc Fin.zero))
-      gcAB  = gen (Fin.suc (Fin.suc (Fin.suc Fin.zero)))
-      gcABC = gen (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))
+      gTA = gen 0F ; gTB = gen 1F ; gTC = gen 2F
+      gcAB = gen 3F ; gcABC = gen 4F
       lhsᵗ rhsᵗ : S.HomTerm (v0 ⊗ᵒ v8) (((v0 ⊗ᵒ v1) ⊗ᵒ v2) ⊗ᵒ v3)
       lhsᵗ = S._∘_
                (S._⊗₁_
