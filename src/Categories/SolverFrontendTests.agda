@@ -1,4 +1,4 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- Test suite for the solver front-end (`Categories.SolverFrontend.solveMor!`).
@@ -68,16 +68,16 @@ module Categories.SolverFrontendTests where
 
 open import Level using (Level)
 
-import Data.Fin
-import Data.Nat
-open import Data.Fin using (Fin; zero; suc)
+open import Data.Fin using (Fin; zero; suc; toℕ)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_)
 open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Nat using (ℕ)
 open import Data.Product using (_×_; _,_; proj₁; proj₂)
-open import Relation.Nullary using (Dec; yes; no)
+open import Function using (case_of_)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Nullary using (Dec; yes; no)
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
@@ -124,13 +124,13 @@ private module S = FreeMonoidalHelper.Mor Mon Ty GenT
 open Frontend {Ty} _≟Ty_ GenT
 
 _≟G_ : DecidableEquality GenΣ
-(_ , _ , genT i) ≟G (_ , _ , genT j) with i ≟F j
-... | yes refl = yes refl
-... | no ¬p    = no λ where refl → ¬p refl
+(_ , _ , genT i) ≟G (_ , _ , genT j) = case i ≟F j of λ where
+  (yes refl) → yes refl
+  (no ¬p)    → no λ where refl → ¬p refl
 
 -- the tiebreak key: the Fin index (injective, so all ambiguous pairs sort).
-rankT : GenΣ → Data.Nat.ℕ
-rankT (_ , _ , genT i) = Data.Fin.toℕ i
+rankT : GenΣ → ℕ
+rankT (_ , _ , genT i) = toℕ i
 
 open Decide _≟G_ rankT
 
@@ -233,7 +233,7 @@ module Functorial where
 
 ------------------------------------------------------------------------
 -- Interchange: disjoint boxes in either firing order.  The out-of-order
--- sides exercise a genuine machine-fired swap inside `norm1`.
+-- sides exercise a genuine machine-fired swap inside `norm`.
 
 module Interchange where
 
@@ -296,14 +296,16 @@ module Interchange where
                ((s'' ⊗' id') ∘' (id' ⊗' t') ∘' (s' ⊗' id'))
 
   -- a NON-HEAD inversion (layers 2-3): the bubble sort walks past the
-  -- in-order head pair and fires deeper.  (Former limitation L2.)
+  -- in-order head pair and fires deeper.  (A limitation of an earlier
+  -- head-only normalizer; unrelated to the current L2.)
   test-non-head-swap
     : (s'' ∘' s') ⊗' t' ≈' (s'' ⊗' id') ∘' (s' ⊗' t')
   test-non-head-swap =
     solveTerm! ((s'' ∘' s') ⊗' t') ((s'' ⊗' id') ∘' (s' ⊗' t'))
 
   -- three independent boxes fired fully descending vs ascending: the
-  -- sort fires THREE genuine swaps.  (Former limitation L3.)
+  -- sort fires THREE genuine swaps.  (A limitation of an earlier one-swap
+  -- normalizer; unrelated to the current L3.)
   private
     W₃' = Var ⋆ ⊗₀ (Var ⋆ ⊗₀ Var ⋆)
     desc₃ : S.HomTerm W₃' W₃'
@@ -331,7 +333,7 @@ module Negative where
   neg-sequential-order : decide?F (s'' ∘' s') (s' ∘' s'') ≡ nothing
   neg-sequential-order = refl
 
-  -- generator naturality is NOT known to the solver (L6): s' past μ.
+  -- generator naturality is NOT known to the solver (L5): s' past μ.
   neg-generator-naturality
     : decide?F (s' ∘' μ') (μ' ∘' (s' ⊗' id')) ≡ nothing
   neg-generator-naturality = refl

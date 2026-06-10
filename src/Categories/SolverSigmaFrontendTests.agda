@@ -28,17 +28,17 @@ module Categories.SolverSigmaFrontendTests where
 
 open import Level using (Level)
 
-import Data.Fin
-import Data.Nat
-open import Data.Fin using (Fin; zero; suc)
+open import Data.Fin using (Fin; zero; suc; toℕ)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_)
 open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Nat using (ℕ)
 open import Data.Product using (_×_; _,_; proj₁; proj₂)
 open import Data.Vec using (_∷_; [])
-open import Relation.Nullary using (Dec; yes; no)
+open import Function using (case_of_)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Nullary using (Dec; yes; no)
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
@@ -84,12 +84,12 @@ private module S = FreeMonoidalHelper.Mor Symm Ty GenT
 open FrontendS {Ty} _≟Ty_ GenT
 
 _≟G_ : DecidableEquality GenΣ
-(_ , _ , genT i) ≟G (_ , _ , genT j) with i ≟F j
-... | yes refl = yes refl
-... | no ¬p    = no λ where refl → ¬p refl
+(_ , _ , genT i) ≟G (_ , _ , genT j) = case i ≟F j of λ where
+  (yes refl) → yes refl
+  (no ¬p)    → no λ where refl → ¬p refl
 
-rankT : GenΣ → Data.Nat.ℕ
-rankT (_ , _ , genT i) = Data.Fin.toℕ i
+rankT : GenΣ → ℕ
+rankT (_ , _ , genT i) = toℕ i
 
 open Decide _≟G_ rankT
 
