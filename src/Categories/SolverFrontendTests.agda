@@ -398,3 +398,81 @@ module Target {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
       : C .MonoidalCategory.U
           [ MC.unitorʳ.from MC.∘ (sᴹ ⊗C MC.id) ≈ sᴹ MC.∘ MC.unitorʳ.from ]
     test-ρ-nat = solveMor! (S.ρ⇒ ∘' (s' ⊗' id')) (s' ∘' S.ρ⇒)
+
+------------------------------------------------------------------------
+-- Rewriting: rule application in context (the Mon analogue of the SMC
+-- solver's rewriteH!/rewriteAuto!).  A rule is any C-equation between
+-- interpretations of front-end terms — here abstract hypotheses
+-- (commuting endos, an inverse law), exactly the shapes the solver
+-- alone cannot know (limitation L5): the rewrite layer carries the
+-- rule across, the solver absorbs all surrounding structure.
+
+module Rewrite {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
+
+  private module MC = MonoidalCategory C
+
+  module At
+    (A B : MC.Obj)
+    (μᴹ  : C .MonoidalCategory.U [ MC._⊗₀_ A A , A ])
+    (ηᴹ  : C .MonoidalCategory.U [ MC.unit , A ])
+    (sᴹ  : C .MonoidalCategory.U [ A , A ])
+    (s'ᴹ : C .MonoidalCategory.U [ A , A ])
+    (tᴹ  : C .MonoidalCategory.U [ B , B ])
+    (uᴹ  : C .MonoidalCategory.U [ MC.unit , MC.unit ])
+    -- the rules: abstract hypotheses about the generators.
+    (comm : C .MonoidalCategory.U [ s'ᴹ MC.∘ sᴹ ≈ sᴹ MC.∘ s'ᴹ ])
+    (inv  : C .MonoidalCategory.U [ sᴹ MC.∘ s'ᴹ ≈ MC.id ])
+    where
+
+    private
+      ⟦_⟧₀T : Ty → MC.Obj
+      ⟦ ⋆ ⟧₀T = A
+      ⟦ • ⟧₀T = B
+
+    open Into C ⟦_⟧₀T
+    open WithGen (λ { (genT zero)                            → μᴹ
+                    ; (genT (suc zero))                      → ηᴹ
+                    ; (genT (suc (suc zero)))                → sᴹ
+                    ; (genT (suc (suc (suc zero))))          → s'ᴹ
+                    ; (genT (suc (suc (suc (suc zero)))))    → tᴹ
+                    ; (genT (suc (suc (suc (suc (suc _)))))) → uᴹ })
+
+    open MC using () renaming (_⊗₁_ to _⊗C_)
+
+    -- the rule fires in the RIGHT factor of a tensor (auto-positioned).
+    test-rw-right
+      : C .MonoidalCategory.U
+          [ tᴹ ⊗C (s'ᴹ MC.∘ sᴹ) ≈ tᴹ ⊗C (sᴹ MC.∘ s'ᴹ) ]
+    test-rw-right =
+      rewriteMorAuto! (t' ⊗' (s'' ∘' s')) (t' ⊗' (s' ∘' s''))
+                      (s'' ∘' s') (s' ∘' s'') comm
+
+    -- the rule fires in the LEFT factor (the two-sided pad replaces the
+    -- σ-routing of the symmetric version).
+    test-rw-left
+      : C .MonoidalCategory.U
+          [ (s'ᴹ MC.∘ sᴹ) ⊗C tᴹ ≈ (sᴹ MC.∘ s'ᴹ) ⊗C tᴹ ]
+    test-rw-left =
+      rewriteMorAuto! ((s'' ∘' s') ⊗' t') ((s' ∘' s'') ⊗' t')
+                      (s'' ∘' s') (s' ∘' s'') comm
+
+    -- the redex is NOT a syntactic subterm (it is split across an
+    -- interchange): the manual frame + the solver's reconciliation
+    -- absorb the reshaping.
+    test-rw-interchange
+      : C .MonoidalCategory.U
+          [ (s'ᴹ ⊗C MC.id) MC.∘ (sᴹ ⊗C tᴹ) ≈ (sᴹ ⊗C MC.id) MC.∘ (s'ᴹ ⊗C tᴹ) ]
+    test-rw-interchange =
+      rewriteMor! ((s'' ⊗' id') ∘' (s' ⊗' t')) ((s' ⊗' id') ∘' (s'' ⊗' t'))
+                  (S.λ⇐ ∘' (id' ⊗' t')) S.λ⇒
+                  (s'' ∘' s') (s' ∘' s'') comm
+
+    -- iso-cancellation as a rewrite: the inverse law collapses the
+    -- composite to id inside a context (the APROP `from ∘ to ≈ id`
+    -- pattern).
+    test-rw-cancel
+      : C .MonoidalCategory.U
+          [ tᴹ ⊗C (sᴹ MC.∘ s'ᴹ) ≈ tᴹ ⊗C MC.id ]
+    test-rw-cancel =
+      rewriteMorAuto! (t' ⊗' (s' ∘' s'')) (t' ⊗' id')
+                      (s' ∘' s'') id' inv

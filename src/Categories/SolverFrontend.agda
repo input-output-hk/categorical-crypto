@@ -69,8 +69,11 @@
 --       at concrete indices.)
 --   L5  Generator equality is the supplied syntactic `_≟G_`: no
 --       generator-specific equations (naturality of a concrete box,
---       Frobenius laws, …) are known to the solver — those belong to a
---       rewriting layer on top, not to this decision procedure.
+--       Frobenius laws, …) are known to the DECISION procedure.  The
+--       rewriting layer (`rewriteMor!`/`rewriteMorₙ!`/`rewriteMorAuto!`)
+--       carries such equations across as RULES: the rule fires inside a
+--       two-sided frame `post ∘ (id ⊗ (– ⊗ id)) ∘ pre` (supplied, or
+--       located by `focusAtₙ`), and the solver reconciles the endpoints.
 --   L6  No canonicity/completeness theorem is claimed for `norm ∘ reflect`;
 --       the test suite documents which equation shapes decide.
 --
@@ -87,7 +90,7 @@ open import Data.Fin using (Fin; toℕ)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
 open import Data.Nat using (ℕ; _*_; _<ᵇ_) renaming (zero to nzero; suc to nsuc)
 open import Data.Vec using (Vec; lookup)
-open import Data.List using (List; []; _∷_; _++_)
+open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (++-assoc; ++-identityʳ; ≡-dec)
 open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 open import Data.Maybe using (Maybe; just; nothing)
@@ -892,6 +895,105 @@ module Frontend
     solveTerm! l r {hit} = extract (decide?F l r) hit
 
     ------------------------------------------------------------------------
+    -- Term-level FOCUSING (the Mon analogue of the SMC solver's `Carve`):
+    -- find a frame  `post ∘ (id {k} ⊗ (– ⊗ id {m})) ∘ pre`  exhibiting an
+    -- occurrence of a redex `lᵗ` inside `s`.  The symmetric version routes
+    -- a left-factor wire past the redex with σ; the Mon fragment has no
+    -- braiding, so the frame is TWO-SIDED (pads on both sides of the hole).
+    -- The search is unverified: a `focusAtₙ` hit is certified downstream by
+    -- `decide?F s (plug foc lᵗ)`, so soundness rests solely on the solver.
+    ------------------------------------------------------------------------
+
+    -- decidable equality on front-end objects (no-K style: the negative
+    -- cases go through injectivity lemmas, never a refl-match at a
+    -- partially-forced index).
+    private
+      ⊗₀-inj₁ : ∀ {a b a' b'} → (a ⊗₀ b) ≡ (a' ⊗₀ b') → a ≡ a'
+      ⊗₀-inj₁ refl = refl
+      ⊗₀-inj₂ : ∀ {a b a' b'} → (a ⊗₀ b) ≡ (a' ⊗₀ b') → b ≡ b'
+      ⊗₀-inj₂ refl = refl
+      Var-inj : ∀ {x y} → Var x ≡ Var y → x ≡ y
+      Var-inj refl = refl
+
+    _≟O_ : DecidableEquality ObjTerm
+    unit      ≟O unit       = yes refl
+    unit      ≟O (_ ⊗₀ _)   = no λ ()
+    unit      ≟O Var _      = no λ ()
+    (_ ⊗₀ _)  ≟O unit       = no λ ()
+    (a ⊗₀ b)  ≟O (a' ⊗₀ b') with a ≟O a' | b ≟O b'
+    ... | yes refl | yes refl = yes refl
+    ... | no ¬p    | _        = no λ eq → ¬p (⊗₀-inj₁ eq)
+    ... | yes _    | no ¬q    = no λ eq → ¬q (⊗₀-inj₂ eq)
+    (_ ⊗₀ _)  ≟O Var _      = no λ ()
+    Var _     ≟O unit       = no λ ()
+    Var _     ≟O (_ ⊗₀ _)   = no λ ()
+    Var x     ≟O Var y      with x ≟X y
+    ... | yes refl = yes refl
+    ... | no ¬p    = no λ eq → ¬p (Var-inj eq)
+
+    -- a focus: the two pad objects and the two context terms.
+    Foc : (A B P Q : ObjTerm) → Set
+    Foc A B P Q = Σ[ k ∈ ObjTerm ] Σ[ m ∈ ObjTerm ]
+                    (F.HomTerm A (k ⊗₀ (P ⊗₀ m)) × F.HomTerm (k ⊗₀ (Q ⊗₀ m)) B)
+
+    -- plug a morphism into the frame of a focus.
+    plug : ∀ {A B P Q} → Foc A B P Q → F.HomTerm P Q → F.HomTerm A B
+    plug (k , m , pre , post) mid =
+      F._∘_ post (F._∘_ (F._⊗₁_ F.id (F._⊗₁_ mid F.id)) pre)
+
+    private
+      -- leaf: the whole of `s` is the redex (up to the solver).
+      leaf-try : ∀ {A B P Q} → F.HomTerm A B → F.HomTerm P Q → Maybe (Foc A B P Q)
+      leaf-try {A} {B} {P} {Q} s lᵗ with A ≟O P | B ≟O Q
+      ... | yes refl | yes refl with decide?F s lᵗ
+      ...   | just _  = just (unit , unit , F._∘_ F.λ⇐ F.ρ⇐ , F._∘_ F.ρ⇒ F.λ⇒)
+      ...   | nothing = nothing
+      leaf-try _ _ | _ | _ = nothing
+
+    -- enumerate all focus positions: whole-term first, then — for `∘` — the
+    -- first-applied operand's positions before the second's, and — for `⊗` —
+    -- the left factor's before the right's.
+    focusAll : ∀ {A B P Q} → F.HomTerm A B → F.HomTerm P Q → List (Foc A B P Q)
+
+    private
+      go-all : ∀ {A B P Q} → F.HomTerm A B → F.HomTerm P Q → List (Foc A B P Q)
+      go-all (F._∘_ g f) lᵗ =
+           map (λ { (k , m , pre , post) → (k , m , pre , F._∘_ g post) })
+               (focusAll f lᵗ)
+        ++ map (λ { (k , m , pre , post) → (k , m , F._∘_ pre f , post) })
+               (focusAll g lᵗ)
+      go-all (F._⊗₁_ {A = A₁} {C = A₂} a b) lᵗ =
+           map (λ { (k , m , pre , post) →                       -- redex in a
+                  ( k , m ⊗₀ A₂
+                  , F._∘_ (F._⊗₁_ F.id F.α⇒) (F._∘_ F.α⇒ (F._⊗₁_ pre F.id))
+                  , F._∘_ (F._⊗₁_ post b) (F._∘_ F.α⇐ (F._⊗₁_ F.id F.α⇐)) ) })
+               (focusAll a lᵗ)
+        ++ map (λ { (k , m , pre , post) →                       -- redex in b
+                  ( A₁ ⊗₀ k , m
+                  , F._∘_ F.α⇐ (F._⊗₁_ F.id pre)
+                  , F._∘_ (F._⊗₁_ a post) F.α⇒ ) })
+               (focusAll b lᵗ)
+      go-all _ _ = []
+
+    focusAll s lᵗ with leaf-try s lᵗ
+    ... | just r  = r ∷ go-all s lᵗ
+    ... | nothing = go-all s lᵗ
+
+    private
+      lookupMaybe : ∀ {a} {A : Set a} → List A → ℕ → Maybe A
+      lookupMaybe []       _         = nothing
+      lookupMaybe (x ∷ _)  nzero     = just x
+      lookupMaybe (_ ∷ xs) (nsuc n)  = lookupMaybe xs n
+
+    -- the n-th focus position (0-based, in the order above).
+    focusAtₙ : ∀ {A B P Q} → F.HomTerm A B → F.HomTerm P Q → ℕ → Maybe (Foc A B P Q)
+    focusAtₙ s lᵗ n = lookupMaybe (focusAll s lᵗ) n
+
+    -- extract a focus from a computed hit.
+    fromHit : ∀ {a} {A : Set a} (x : Maybe A) → IsJust x → A
+    fromHit (just a) _ = a
+
+    ------------------------------------------------------------------------
     -- Transport into an arbitrary target monoidal category, along the free
     -- functor at the ObjTerm-arity generators.  The interpretation is
     -- definitional on every term constructor, so `solveMor!`'s equation
@@ -935,6 +1037,74 @@ module Frontend
                     {hit : IsJust (decide?F l r)}
                   → C .MonoidalCategory.U [ ⟦ l ⟧₁ ≈ ⟦ r ⟧₁ ]
         solveMor! l r {hit} = ⟦⟧-resp-≈ (solveTerm! l r {hit})
+
+        ------------------------------------------------------------------------
+        -- Diagrammatic REWRITING in C (the Mon analogue of the SMC solver's
+        -- `rewriteH!`/`rewriteAutoₙ!`).  A *rule* is any C-equation
+        -- `⟦ lᵗ ⟧₁ ≈ ⟦ rᵗ ⟧₁` between interpretations of front-end terms —
+        -- definitionally whatever raw C-equation the caller has (a generator
+        -- law, an opaque-iso cancellation, an induction hypothesis, …).  The
+        -- rule fires inside the two-sided frame
+        --     post ∘ (id {k} ⊗ (– ⊗ id {m})) ∘ pre
+        -- and the solver reconciles the caller's terms with the frames, so
+        -- only the rule itself crosses the congruence.
+        ------------------------------------------------------------------------
+
+        private
+          module MCc = MonoidalCategory C
+
+          -- transport a rule across the frame of a focus, by congruence.
+          plugCong : ∀ {A B P Q} (foc : Foc A B P Q) (l r : F.HomTerm P Q)
+                   → C .MonoidalCategory.U [ ⟦ l ⟧₁ ≈ ⟦ r ⟧₁ ]
+                   → C .MonoidalCategory.U [ ⟦ plug foc l ⟧₁ ≈ ⟦ plug foc r ⟧₁ ]
+          plugCong (k , m , pre , post) l r rule =
+            MCc.∘-resp-≈ʳ (MCc.∘-resp-≈ˡ
+              (MCc.⊗.F-resp-≈ (MCc.Equiv.refl , MCc.⊗.F-resp-≈ (rule , MCc.Equiv.refl))))
+
+        -- manual position: the caller supplies the frame (`pre`/`post`).
+        rewriteMor!
+          : ∀ {A B P Q k m}
+          → (s t : F.HomTerm A B)
+          → (pre : F.HomTerm A (k ⊗₀ (P ⊗₀ m))) (post : F.HomTerm (k ⊗₀ (Q ⊗₀ m)) B)
+          → (lᵗ rᵗ : F.HomTerm P Q)
+          → C .MonoidalCategory.U [ ⟦ lᵗ ⟧₁ ≈ ⟦ rᵗ ⟧₁ ]
+          → {h₁ : IsJust (decide?F s (plug (k , m , pre , post) lᵗ))}
+          → {h₂ : IsJust (decide?F t (plug (k , m , pre , post) rᵗ))}
+          → C .MonoidalCategory.U [ ⟦ s ⟧₁ ≈ ⟦ t ⟧₁ ]
+        rewriteMor! {k = k} {m = m} s t pre post lᵗ rᵗ rule {h₁} {h₂} =
+          MCc.Equiv.trans (solveMor! s (plug foc lᵗ) {h₁})
+            (MCc.Equiv.trans (plugCong foc lᵗ rᵗ rule)
+              (MCc.Equiv.sym (solveMor! t (plug foc rᵗ) {h₂})))
+          where foc = (k , m , pre , post)
+
+        -- automatic position: the n-th occurrence of `lᵗ` in `s` is located
+        -- by `focusAtₙ`; both endpoints are stated by the caller, so the
+        -- located frame never appears in the exposed type.
+        rewriteMorₙ!
+          : ∀ {A B P Q}
+          → (s t : F.HomTerm A B) (lᵗ rᵗ : F.HomTerm P Q) (n : ℕ)
+          → C .MonoidalCategory.U [ ⟦ lᵗ ⟧₁ ≈ ⟦ rᵗ ⟧₁ ]
+          → {found : IsJust (focusAtₙ s lᵗ n)}
+          → {h₁ : IsJust (decide?F s (plug (fromHit (focusAtₙ s lᵗ n) found) lᵗ))}
+          → {h₂ : IsJust (decide?F t (plug (fromHit (focusAtₙ s lᵗ n) found) rᵗ))}
+          → C .MonoidalCategory.U [ ⟦ s ⟧₁ ≈ ⟦ t ⟧₁ ]
+        rewriteMorₙ! s t lᵗ rᵗ n rule {found} {h₁} {h₂} =
+          MCc.Equiv.trans (solveMor! s (plug foc lᵗ) {h₁})
+            (MCc.Equiv.trans (plugCong foc lᵗ rᵗ rule)
+              (MCc.Equiv.sym (solveMor! t (plug foc rᵗ) {h₂})))
+          where foc = fromHit (focusAtₙ s lᵗ n) found
+
+        -- the first occurrence.
+        rewriteMorAuto!
+          : ∀ {A B P Q}
+          → (s t : F.HomTerm A B) (lᵗ rᵗ : F.HomTerm P Q)
+          → C .MonoidalCategory.U [ ⟦ lᵗ ⟧₁ ≈ ⟦ rᵗ ⟧₁ ]
+          → {found : IsJust (focusAtₙ s lᵗ 0)}
+          → {h₁ : IsJust (decide?F s (plug (fromHit (focusAtₙ s lᵗ 0) found) lᵗ))}
+          → {h₂ : IsJust (decide?F t (plug (fromHit (focusAtₙ s lᵗ 0) found) rᵗ))}
+          → C .MonoidalCategory.U [ ⟦ s ⟧₁ ≈ ⟦ t ⟧₁ ]
+        rewriteMorAuto! s t lᵗ rᵗ rule {found} {h₁} {h₂} =
+          rewriteMorₙ! s t lᵗ rᵗ 0 rule {found} {h₁} {h₂}
 
 --------------------------------------------------------------------------------
 -- `FinSetup`: the call-site convenience wrapper (the analogue of the
@@ -990,5 +1160,7 @@ module FinSetup
       rankS : GenΣ → ℕ
       rankS (_ , _ , genS i) = toℕ i
 
-    open Decide _≟G_ rankS public using (decide?F; IsJust; solveTerm!; module Into)
+    open Decide _≟G_ rankS public
+      using (decide?F; IsJust; solveTerm!; module Into
+            ; Foc; plug; focusAll; focusAtₙ; fromHit; _≟O_)
     open Into C (lookup vars) public
