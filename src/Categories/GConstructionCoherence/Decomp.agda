@@ -15,30 +15,45 @@
 --     only on the small (D , D') pair (1–3 boxes, ≤ ~19 morphisms).
 --------------------------------------------------------------------------------
 
--- STATUS (2026-06-10): DESIGN COMPLETE, TYPE-VALIDATED; OBLIGATION EVALUATION
--- EXCEEDS INTERACTIVE COMPUTE.  Terms.agda (all segment interfaces + routing
--- isos) typechecks.  The solver obligations in Wiring0/1/2 are well-typed but
--- each forces a findIsoᵀ evaluation whose per-call cost at this 8-atom
--- signature is dominated by raw-⟪⟫ type-conversion overhead (ob₂, the
--- SMALLEST: >20 min, timed out).  Residual options: (a) batch/overnight
--- compute, (b) hand-prove the three 1-box naturality squares with free
--- combinators (~150-400 LOC, no solver), (c) eliminate the per-call
--- type-conversion overhead.  See docs/smc-solver-performance.md.
+-- STATUS (2026-06-10): COMPLETE.  The whole chain typechecks in ~2.5 min
+-- (obligations ~30 s each) after fixing two call-pattern performance bugs —
+-- see docs/smc-solver-performance.md ("the 8-atom wall: RESOLVED"):
+--   * forcing must be routed through refl-checked equations (`force!`),
+--     never `from-just`/inferred witnesses (slow elaborator path);
+--   * instantiated types must be SPELLED as the consuming signature spells
+--     them (Translation (APROPSignatureDec.sig gSigDec), not Translation gSig).
 module Categories.GConstructionCoherence.Decomp where
 
-open import Data.Maybe.Base using (from-just)
+open import Data.Bool.Base using (true)
+open import Data.Maybe.Base using (Maybe; just; is-just)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 open import Categories.GConstructionCoherence.Terms
 open import Categories.APROP.Hypergraph.Solver.Split gSigDec
   using (solveSplit?; solveSplitR?)
 
 private
+  Dom Cod : ObjTerm
+  Dom = ((A⁺ ⊗₀ E⁻) ⊗₀ (D⁻ ⊗₀ D⁺)) ⊗₀ (B⁻ ⊗₀ B⁺)
+  Cod = ((A⁻ ⊗₀ E⁺) ⊗₀ (D⁻ ⊗₀ D⁺)) ⊗₀ (B⁻ ⊗₀ B⁺)
+
+  _⊕_ : ∀ {f g h : HomTerm Dom Cod} → f ≈Term g → g ≈Term h → f ≈Term h
   _⊕_ = ≈-Term-trans
   infixr 4 _⊕_
 
+  -- refl-routed forcing (never from-just: see "the 8-atom wall")
+  force! : ∀ {a} {A : Set a} (m : Maybe A) → is-just m ≡ true → A
+  force! (just x) _ = x
+
+  step!  : ∀ {A B} (f g : HomTerm A B) → is-just (solveSplit?  f g) ≡ true → f ≈Term g
+  step!  f g ok = force! (solveSplit?  f g) ok
+
+  stepR! : ∀ {A B} (f g : HomTerm A B) → is-just (solveSplitR? f g) ≡ true → f ≈Term g
+  stepR! f g ok = force! (solveSplitR? f g) ok
+
 -- ===== lhs ==================================================================
 private
-  lA lB lC : HomTerm _ _
+  lA lB lC : HomTerm Dom Cod
   lA = βᵗ ∘ ((αᵗ ⊗₁ id) ∘ (βᵗ ∘ ((m₀ᵗ ⊗₁ id) ∘ (βᵗ ∘ (((id ⊗₁ f' ∘ γᵗ) ⊗₁ id) ∘ βᵗ)))))
   lB = βᵗ ∘ ((αᵗ ⊗₁ id) ∘ (βᵗ ∘ ((m₀ᵗ ⊗₁ id) ∘ (βᵗ ∘ ((((id ⊗₁ f') ⊗₁ id) ∘ (γᵗ ⊗₁ id)) ∘ βᵗ)))))
   lC = βᵗ ∘ ((αᵗ ⊗₁ id) ∘ (βᵗ ∘ (((αᵗ ⊗₁ id) ∘ (((h' ⊗₁ id) ⊗₁ id) ∘ (((id ⊗₁ g') ⊗₁ id) ∘ (γᵗ ⊗₁ id))))
@@ -46,14 +61,14 @@ private
 
 lhs-decomp : lhsᵗ ≈Term (L₂ᵗ ∘ L₁ᵗ ∘ L₀ᵗ)
 lhs-decomp =
-      from-just (solveSplitR? lhsᵗ lA)             -- pure assoc
-  ⊕ from-just (solveSplit?  lA   lB)               -- leaf: expand (id⊗f'∘γ)⊗id
-  ⊕ from-just (solveSplit?  lB   lC)               -- leaf: expand+serialize m₀⊗id
-  ⊕ from-just (solveSplitR? lC (L₂ᵗ ∘ L₁ᵗ ∘ L₀ᵗ))  -- pure assoc regroup
+      stepR! lhsᵗ lA refl             -- pure assoc
+  ⊕ step! lA lB refl               -- leaf: expand (id⊗f'∘γ)⊗id
+  ⊕ step! lB lC refl               -- leaf: expand+serialize m₀⊗id
+  ⊕ stepR! lC (L₂ᵗ ∘ L₁ᵗ ∘ L₀ᵗ) refl  -- pure assoc regroup
 
 -- ===== rhs ==================================================================
 private
-  rA rB rB' rC rC' rD rD' rE rE' rF : HomTerm _ _
+  rA rB rB' rC rC' rD rD' rE rE' rF : HomTerm Dom Cod
   -- pure assoc of rhsᵗ
   rA  = (αᵗ ⊗₁ id) ∘ (α⇐ ∘ ((id ⊗₁ k₀ᵗ) ∘ (α⇒ ∘ (((h' ⊗₁ id ∘ γᵗ) ⊗₁ id)))))
   -- leaf: expand (h'⊗id ∘ γ)⊗id
@@ -79,14 +94,14 @@ private
 
 rhs-decomp : rhsᵗ ≈Term (R₂ᵗ ∘ R₁ᵗ ∘ R₀ᵗ)
 rhs-decomp =
-      from-just (solveSplitR? rhsᵗ rA)
-  ⊕ from-just (solveSplit?  rA   rB)
-  ⊕ from-just (solveSplitR? rB   rB')
-  ⊕ from-just (solveSplit?  rB'  rC)
-  ⊕ from-just (solveSplitR? rC   rC')
-  ⊕ from-just (solveSplit?  rC'  rD)
-  ⊕ from-just (solveSplitR? rD   rD')
-  ⊕ from-just (solveSplit?  rD'  rE)
-  ⊕ from-just (solveSplitR? rE   rE')
-  ⊕ from-just (solveSplit?  rE'  rF)
-  ⊕ from-just (solveSplitR? rF (R₂ᵗ ∘ R₁ᵗ ∘ R₀ᵗ))
+      stepR! rhsᵗ rA refl
+  ⊕ step! rA rB refl
+  ⊕ stepR! rB rB' refl
+  ⊕ step! rB' rC refl
+  ⊕ stepR! rC rC' refl
+  ⊕ step! rC' rD refl
+  ⊕ stepR! rD rD' refl
+  ⊕ step! rD' rE refl
+  ⊕ stepR! rE rE' refl
+  ⊕ step! rE' rF refl
+  ⊕ stepR! rF (R₂ᵗ ∘ R₁ᵗ ∘ R₀ᵗ) refl

@@ -18,15 +18,13 @@
 -- `assoc'-coherence` goal.
 --------------------------------------------------------------------------------
 
--- STATUS (2026-06-10): DESIGN COMPLETE, TYPE-VALIDATED; OBLIGATION EVALUATION
--- EXCEEDS INTERACTIVE COMPUTE.  Terms.agda (all segment interfaces + routing
--- isos) typechecks.  The solver obligations in Wiring0/1/2 are well-typed but
--- each forces a findIsoᵀ evaluation whose per-call cost at this 8-atom
--- signature is dominated by raw-⟪⟫ type-conversion overhead (ob₂, the
--- SMALLEST: >20 min, timed out).  Residual options: (a) batch/overnight
--- compute, (b) hand-prove the three 1-box naturality squares with free
--- combinators (~150-400 LOC, no solver), (c) eliminate the per-call
--- type-conversion overhead.  See docs/smc-solver-performance.md.
+-- STATUS (2026-06-10): COMPLETE.  The whole chain typechecks in ~2.5 min
+-- (obligations ~30 s each) after fixing two call-pattern performance bugs —
+-- see docs/smc-solver-performance.md ("the 8-atom wall: RESOLVED"):
+--   * forcing must be routed through refl-checked equations (`force!`),
+--     never `from-just`/inferred witnesses (slow elaborator path);
+--   * instantiated types must be SPELLED as the consuming signature spells
+--     them (Translation (APROPSignatureDec.sig gSigDec), not Translation gSig).
 module Categories.GConstructionCoherence where
 
 open import Level using (Level)

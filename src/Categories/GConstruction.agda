@@ -25,10 +25,14 @@ import Categories.Category.Monoidal.Braided.Properties
 import Categories.Category.Monoidal.Utilities as U
 
 open import Categories.Tactic.Category
+import Categories.GConstructionCoherence as GCoh
 
 module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced Monoidal) where
 
   private
+    Cᵤ : Category a b c
+    Cᵤ = C
+
     module C where
       open Category C public
       open Traced Traced public
@@ -405,5 +409,9 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
             --   assoc-commute-from/to: naturality of associator
             --   braiding.⇒.commute: naturality of braiding
             --   Functor.homomorphism C.⊗: (f ∘ g) ⊗₁ (h ∘ k) ≈ (f ⊗₁ h) ∘ (g ⊗₁ k)
-            assoc'-coherence f' g' h' = {!!}
+            assoc'-coherence {A⁺} {A⁻'} {B⁺'} {B⁻'} {D⁺'} {D⁻'} {E⁺'} {E⁻'} f' g' h' =
+              GCoh.Transport.WithGens.coherence
+                (record { U = Cᵤ ; monoidal = Monoidal ; symmetric = C.symmetric })
+                A⁺ A⁻' B⁺' B⁻' D⁺' D⁻' E⁺' E⁻'
+                f' g' h'
 

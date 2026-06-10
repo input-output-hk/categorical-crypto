@@ -474,7 +474,7 @@ worker at fully general endpoints carrying explicit endpoint equalities, collaps
 `≟-ObjTerm`. v1 limits as designed: no common-suffix peel under differing prefix lengths;
 cut-crossing equations pay WHOLE + the fixed overhead.
 
-## The 8-atom wall: per-call cost is signature/object-size-sensitive (2026-06-10)
+## The 8-atom wall (2026-06-10) — RESOLVED: two call-pattern bugs, not solver cost
 
 The `assoc'-coherence` campaign (see `src/Categories/GConstructionCoherence/`) produced one more
 hard data point. Its architecture reduces the infeasible 50-morphism equation to **three 1-box
@@ -489,6 +489,27 @@ value-level search, not the type-level conversion). Consequence: solver-leaf-bas
 Remaining levers for this wall: extend literalization to the type-level interface (state the
 obligations against *named, pre-normalized* hypergraph values with a once-checked `≡`), or
 hand-prove such 1-box squares with free combinators (no solver), or accept batch compute.
+
+**RESOLVED (same day).** A strict bisect (`chk` 27 s / `from-just` >20 min / underscore-witness
+OOM / refl-routed-but-misspelled >19 min / aligned 16 s) decomposed the wall into **two
+call-pattern bugs**, neither in the solver:
+
+1. **Slow-path forcing.** `from-just m` computes the type `From-just m`, reducing the entire
+   solver run on the slow, non-sharing elaborator evaluator; an inferred `_ : T (is-just m)`
+   witness does the same via meta-solving. *Fix:* route every forcing through a refl-checked
+   equation — `force! : (m : Maybe A) → is-just m ≡ true → A` applied to a stated `refl`, whose
+   validation runs on the fast call-by-need conversion machine.
+2. **Type-spelling mismatch.** Writing `Translation gSig` where the consuming signature
+   (`SoundnessFullWired gSigDec`) elaborates `Translation (APROPSignatureDec.sig gSigDec)`:
+   definitionally equal by one projection step, but the missed *syntactic* fast path sends
+   conversion into field-by-field deep normalization of both translated hypergraphs. Invisible at
+   Fin-3 (no committed test ever saw it); catastrophic at 8 atoms. *Fix:* spell instantiated
+   types exactly as the consuming signature spells them.
+
+With both fixes the `assoc'-coherence` chain completes interactively: obligations 27/24/33 s, the
+15-hop Decomp 25 s, assembly + transport ~30 s, and the GConstruction fill 27 s — **`assoc'` is
+proven end-to-end in ~2.5 min of one-time leaf-module checking**, with the 50-morphism equation
+never solved whole.
 
 ## Implication
 
