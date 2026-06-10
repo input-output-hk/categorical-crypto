@@ -436,15 +436,9 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     ρ⇒ ∘ ((⟦box⟧ g ⊗₁ id) ∘ coeD (++-identityʳ a) (split a {[]}))
       ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (split-ρ a)) ⟩
     ρ⇒ ∘ ((⟦box⟧ g ⊗₁ id) ∘ ρ⇐)
-      ≈⟨ ⟺ assoc ⟩
-    (ρ⇒ ∘ (⟦box⟧ g ⊗₁ id)) ∘ ρ⇐
-      ≈⟨ ρ⇒∘f⊗id≈f∘ρ⇒ ⟩∘⟨refl ⟩
+      ≈⟨ pullˡ ρ⇒∘f⊗id≈f∘ρ⇒ ⟩
     (⟦box⟧ g ∘ ρ⇒) ∘ ρ⇐
-      ≈⟨ assoc ⟩
-    ⟦box⟧ g ∘ (ρ⇒ ∘ ρ⇐)
-      ≈⟨ refl⟩∘⟨ ρ⇒∘ρ⇐≈id ⟩
-    ⟦box⟧ g ∘ id
-      ≈⟨ idʳ ⟩
+      ≈⟨ cancelʳ ρ⇒∘ρ⇐≈id ⟩
     ⟦box⟧ g ∎
     where
       rest : HomTerm (wires (a ++ [])) (wires b ⊗₀ wires [])
@@ -605,21 +599,11 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
          → rpad rt (P ∘ Q) ≈Term rpad rt P ∘ rpad rt Q
   rpad-∘ rt {u} {v} {w} P Q = begin
     merge w ∘ ((P ∘ Q) ⊗₁ id) ∘ split u
-      ≈⟨ refl⟩∘⟨ ((refl⟩⊗⟨ (⟺ idˡ)) ⟩∘⟨refl) ⟩
-    merge w ∘ ((P ∘ Q) ⊗₁ (id ∘ id)) ∘ split u
-      ≈⟨ refl⟩∘⟨ (⊗-∘-dist ⟩∘⟨refl) ⟩
+      ≈⟨ refl⟩∘⟨ (split₁ʳ ⟩∘⟨refl) ⟩
     merge w ∘ ((P ⊗₁ id ∘ Q ⊗₁ id)) ∘ split u
-      ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ ((⟺ idˡ) ○ ((⟺ (split∘merge v)) ⟩∘⟨refl))) ⟩∘⟨refl) ⟩
-    merge w ∘ ((P ⊗₁ id ∘ ((split v ∘ merge v) ∘ Q ⊗₁ id))) ∘ split u
-      ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ assoc) ⟩∘⟨refl) ⟩
-    merge w ∘ ((P ⊗₁ id ∘ (split v ∘ (merge v ∘ Q ⊗₁ id)))) ∘ split u
-      ≈⟨ refl⟩∘⟨ ((⟺ assoc) ⟩∘⟨refl) ⟩
+      ≈⟨ refl⟩∘⟨ (insertInner (split∘merge v) ⟩∘⟨refl) ⟩
     merge w ∘ (((P ⊗₁ id ∘ split v) ∘ (merge v ∘ Q ⊗₁ id))) ∘ split u
-      ≈⟨ refl⟩∘⟨ assoc ⟩
-    merge w ∘ ((P ⊗₁ id ∘ split v) ∘ ((merge v ∘ Q ⊗₁ id) ∘ split u))
-      ≈⟨ ⟺ assoc ⟩
-    (merge w ∘ (P ⊗₁ id ∘ split v)) ∘ ((merge v ∘ Q ⊗₁ id) ∘ split u)
-      ≈⟨ refl⟩∘⟨ assoc ⟩
+      ≈⟨ center⁻¹ ≈-Term-refl assoc ⟩
     (merge w ∘ (P ⊗₁ id ∘ split v)) ∘ (merge v ∘ (Q ⊗₁ id ∘ split u)) ∎
 
   -- `merge` associativity (built from `coherence₁` and α-naturality):
@@ -630,15 +614,9 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
                 ≈Term coeC (++-assoc p q r) (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
   merge-assoc []      q r = begin
     λ⇒ ∘ (id {unit} ⊗₁ merge q {r}) ∘ α⇒
-      ≈⟨ refl⟩∘⟨ (≈-Term-refl) ⟩
-    λ⇒ ∘ ((id {unit} ⊗₁ merge q {r}) ∘ α⇒)
-      ≈⟨ ⟺ assoc ⟩
-    (λ⇒ ∘ (id {unit} ⊗₁ merge q {r})) ∘ α⇒
-      ≈⟨ λ⇒∘id⊗f≈f∘λ⇒ ⟩∘⟨refl ⟩
+      ≈⟨ pullˡ λ⇒∘id⊗f≈f∘λ⇒ ⟩
     (merge q {r} ∘ λ⇒) ∘ α⇒
-      ≈⟨ assoc ⟩
-    merge q {r} ∘ (λ⇒ ∘ α⇒)
-      ≈⟨ refl⟩∘⟨ λ⇒∘α⇒≈λ⇒⊗id ⟩
+      ≈⟨ pullʳ λ⇒∘α⇒≈λ⇒⊗id ⟩
     merge q {r} ∘ (λ⇒ ⊗₁ id) ∎
   merge-assoc (x ∷ p) q r = begin
     -- LHS = merge(x∷p){q++r} ∘ (id{wires(x∷p)} ⊗ merge q) ∘ α⇒
@@ -647,20 +625,11 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈⟨ refl⟩∘⟨ (((⟺ id⊗id≈id) ⟩⊗⟨refl) ⟩∘⟨refl) ⟩
     (id {Var x} ⊗₁ merge p {q ++ r} ∘ α⇒ {Var x} {wires p} {wires (q ++ r)})
       ∘ ((id {Var x} ⊗₁ id {wires p}) ⊗₁ merge q {r}) ∘ α⇒ {Var x ⊗₀ wires p} {wires q} {wires r}
-      ≈⟨ ≈-Term-refl ⟩
-    (id ⊗₁ merge p ∘ α⇒ {Var x} {wires p} {wires (q ++ r)})
-      ∘ (((id ⊗₁ id) ⊗₁ merge q) ∘ α⇒ {Var x ⊗₀ wires p} {wires q} {wires r})
+      ≈⟨ center α-comm ⟩
+    id ⊗₁ merge p ∘ ((id ⊗₁ (id ⊗₁ merge q) ∘ α⇒) ∘ α⇒)
       ≈⟨ ⟺ assoc ⟩
-    ((id ⊗₁ merge p ∘ α⇒) ∘ ((id ⊗₁ id) ⊗₁ merge q)) ∘ α⇒
-      ≈⟨ assoc ⟩∘⟨refl ⟩
-    (id ⊗₁ merge p ∘ (α⇒ ∘ (id ⊗₁ id) ⊗₁ merge q)) ∘ α⇒
-      ≈⟨ (refl⟩∘⟨ α-comm) ⟩∘⟨refl ⟩
     (id ⊗₁ merge p ∘ (id ⊗₁ (id ⊗₁ merge q) ∘ α⇒)) ∘ α⇒
-      ≈⟨ (⟺ assoc) ⟩∘⟨refl ⟩
-    ((id ⊗₁ merge p ∘ id ⊗₁ (id ⊗₁ merge q)) ∘ α⇒) ∘ α⇒
-      ≈⟨ ((⟺ ⊗-∘-dist) ⟩∘⟨refl) ⟩∘⟨refl ⟩
-    (((id ∘ id) ⊗₁ (merge p {q ++ r} ∘ (id ⊗₁ merge q {r}))) ∘ α⇒) ∘ α⇒
-      ≈⟨ ((idˡ ⟩⊗⟨refl) ⟩∘⟨refl) ⟩∘⟨refl ⟩
+      ≈⟨ (pullˡ (id⊗-∘ (merge p {q ++ r}) (id ⊗₁ merge q {r}))) ⟩∘⟨refl ⟩
     ((id ⊗₁ (merge p {q ++ r} ∘ (id ⊗₁ merge q {r})) )
        ∘ α⇒ {Var x} {wires p} {wires q ⊗₀ wires r}) ∘ α⇒ {Var x ⊗₀ wires p} {wires q} {wires r}
       ≈⟨ pent ⟩
@@ -690,20 +659,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
            → (X ∘ α⇒ {Var x} {wires p} {wires q ⊗₀ wires r}) ∘ α⇒ {Var x ⊗₀ wires p} {wires q} {wires r}
              ≈Term (X ∘ id {Var x} ⊗₁ α⇒ {wires p} {wires q} {wires r})
                    ∘ (α⇒ {Var x} {wires p ⊗₀ wires q} {wires r} ∘ α⇒ {Var x} {wires p} {wires q} ⊗₁ id {wires r})
-      pent {X = X} = begin
-        (X ∘ α⇒) ∘ α⇒
-          ≈⟨ assoc ⟩
-        X ∘ (α⇒ ∘ α⇒)
-          ≈⟨ refl⟩∘⟨ (⟺ pentagon) ⟩
-        X ∘ (id ⊗₁ α⇒ ∘ α⇒ ∘ α⇒ ⊗₁ id)
-          ≈⟨ refl⟩∘⟨ (⟺ assoc) ⟩
-        X ∘ ((id ⊗₁ α⇒ ∘ α⇒) ∘ α⇒ ⊗₁ id)
-          ≈⟨ ⟺ assoc ⟩
-        (X ∘ (id ⊗₁ α⇒ ∘ α⇒)) ∘ α⇒ ⊗₁ id
-          ≈⟨ (⟺ assoc) ⟩∘⟨refl ⟩
-        ((X ∘ id ⊗₁ α⇒) ∘ α⇒) ∘ α⇒ ⊗₁ id
-          ≈⟨ assoc ⟩
-        (X ∘ id ⊗₁ α⇒) ∘ (α⇒ ∘ α⇒ ⊗₁ id) ∎
+      pent {X = X} = pullʳ (⟺ pentagon) ○ ⟺ assoc
       -- expand the RHS tail (id⊗(merge(p++q) ∘ (merge p ⊗ id))) ∘ (α⇒ ∘ α⇒⊗id)
       -- into the cons-merge form  (id⊗merge(p++q) ∘ α⇒) ∘ ((id⊗merge p ∘ α⇒)⊗id).
       tailRHS : (id {Var x} ⊗₁ (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r})))
@@ -713,21 +669,11 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
                     ∘ ((id {Var x} ⊗₁ merge p {q} ∘ α⇒) ⊗₁ id {wires r})
       tailRHS = begin
         (id ⊗₁ (merge (p ++ q) ∘ (merge p ⊗₁ id))) ∘ (α⇒ ∘ α⇒ ⊗₁ id)
-          ≈⟨ ((⟺ idˡ) ⟩⊗⟨refl) ⟩∘⟨refl ⟩
-        ((id ∘ id) ⊗₁ (merge (p ++ q) ∘ (merge p ⊗₁ id))) ∘ (α⇒ ∘ α⇒ ⊗₁ id)
-          ≈⟨ ⊗-∘-dist ⟩∘⟨refl ⟩
+          ≈⟨ (⟺ (id⊗-∘ (merge (p ++ q) {r}) (merge p {q} ⊗₁ id))) ⟩∘⟨refl ⟩
         (id ⊗₁ merge (p ++ q) ∘ id ⊗₁ (merge p ⊗₁ id)) ∘ (α⇒ ∘ α⇒ ⊗₁ id)
-          ≈⟨ assoc ⟩
-        id ⊗₁ merge (p ++ q) ∘ (id ⊗₁ (merge p ⊗₁ id) ∘ (α⇒ ∘ α⇒ ⊗₁ id))
-          ≈⟨ refl⟩∘⟨ (⟺ assoc) ⟩
-        id ⊗₁ merge (p ++ q) ∘ ((id ⊗₁ (merge p ⊗₁ id) ∘ α⇒) ∘ α⇒ ⊗₁ id)
-          ≈⟨ refl⟩∘⟨ ((⟺ α-comm) ⟩∘⟨refl) ⟩
+          ≈⟨ center (⟺ α-comm) ⟩
         id ⊗₁ merge (p ++ q) ∘ ((α⇒ ∘ (id ⊗₁ merge p) ⊗₁ id) ∘ α⇒ ⊗₁ id)
-          ≈⟨ refl⟩∘⟨ assoc ⟩
-        id ⊗₁ merge (p ++ q) ∘ (α⇒ ∘ ((id ⊗₁ merge p) ⊗₁ id ∘ α⇒ ⊗₁ id))
-          ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (⟺ ⊗-∘-dist)) ⟩
-        id ⊗₁ merge (p ++ q) ∘ (α⇒ ∘ ((id ⊗₁ merge p ∘ α⇒) ⊗₁ (id ∘ id)))
-          ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (refl⟩⊗⟨ idˡ)) ⟩
+          ≈⟨ refl⟩∘⟨ pullʳ (⟺ split₁ʳ) ⟩
         id ⊗₁ merge (p ++ q) ∘ (α⇒ ∘ ((id ⊗₁ merge p ∘ α⇒) ⊗₁ id))
           ≈⟨ ⟺ assoc ⟩
         (id ⊗₁ merge (p ++ q) ∘ α⇒) ∘ ((id ⊗₁ merge p ∘ α⇒) ⊗₁ id) ∎
@@ -756,43 +702,15 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       inv-resp : ∀ {A B} {f : HomTerm A B} {g : HomTerm A B}
                    {fi gi : HomTerm B A}
                → fi ∘ f ≈Term id → g ∘ gi ≈Term id → f ≈Term g → fi ≈Term gi
-      inv-resp {f = f} {g} {fi} {gi} fif ggi f≈g = begin
-        fi
-          ≈⟨ ⟺ idʳ ⟩
-        fi ∘ id
-          ≈⟨ refl⟩∘⟨ (⟺ ggi) ⟩
-        fi ∘ (g ∘ gi)
-          ≈⟨ refl⟩∘⟨ ((⟺ f≈g) ⟩∘⟨refl) ⟩
-        fi ∘ (f ∘ gi)
-          ≈⟨ ⟺ assoc ⟩
-        (fi ∘ f) ∘ gi
-          ≈⟨ fif ⟩∘⟨refl ⟩
-        id ∘ gi
-          ≈⟨ idˡ ⟩
-        gi ∎
+      inv-resp {f = f} {g} {fi} {gi} fif ggi f≈g =
+        introʳ ggi ○ (refl⟩∘⟨ ((⟺ f≈g) ⟩∘⟨refl)) ○ cancelˡ fif
       -- fi ∘ mL ≈ id  (mutual inverses, cancelling split∘merge and α⇐∘α⇒).
       fi-f : fi ∘ mL ≈Term id
       fi-f = begin
         (α⇐ ∘ (id ⊗₁ split q) ∘ split p) ∘ (merge p ∘ (id ⊗₁ merge q) ∘ α⇒)
-          ≈⟨ assoc ⟩
-        α⇐ ∘ (((id ⊗₁ split q) ∘ split p) ∘ (merge p ∘ (id ⊗₁ merge q) ∘ α⇒))
-          ≈⟨ refl⟩∘⟨ assoc ⟩
-        α⇐ ∘ ((id ⊗₁ split q) ∘ (split p ∘ (merge p ∘ (id ⊗₁ merge q) ∘ α⇒)))
-          ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (⟺ assoc)) ⟩
-        α⇐ ∘ ((id ⊗₁ split q) ∘ ((split p ∘ merge p) ∘ ((id ⊗₁ merge q) ∘ α⇒)))
-          ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ ((split∘merge p) ⟩∘⟨refl)) ⟩
-        α⇐ ∘ ((id ⊗₁ split q) ∘ (id ∘ ((id ⊗₁ merge q) ∘ α⇒)))
-          ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ idˡ) ⟩
+          ≈⟨ center (cancelʳ (split∘merge p)) ⟩
         α⇐ ∘ ((id ⊗₁ split q) ∘ ((id ⊗₁ merge q) ∘ α⇒))
-          ≈⟨ refl⟩∘⟨ (⟺ assoc) ⟩
-        α⇐ ∘ (((id ⊗₁ split q) ∘ (id ⊗₁ merge q)) ∘ α⇒)
-          ≈⟨ refl⟩∘⟨ ((⟺ ⊗-∘-dist) ⟩∘⟨refl) ⟩
-        α⇐ ∘ (((id ∘ id) ⊗₁ (split q ∘ merge q)) ∘ α⇒)
-          ≈⟨ refl⟩∘⟨ ((idˡ ⟩⊗⟨ (split∘merge q)) ⟩∘⟨refl) ⟩
-        α⇐ ∘ ((id ⊗₁ id) ∘ α⇒)
-          ≈⟨ refl⟩∘⟨ (id⊗id≈id ⟩∘⟨refl) ⟩
-        α⇐ ∘ (id ∘ α⇒)
-          ≈⟨ refl⟩∘⟨ idˡ ⟩
+          ≈⟨ refl⟩∘⟨ cancelˡ (id⊗-cancel (split∘merge q)) ⟩
         α⇐ ∘ α⇒
           ≈⟨ α⇐∘α⇒≈id ⟩
         id ∎
@@ -806,22 +724,9 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
                      → M ∘ N ≈Term id → coeC eq M ∘ coeD eq N ≈Term id
           coe-cancel refl M N eq = eq
           mR-giU : mR ∘ giU ≈Term id
-          mR-giU = begin
-            (merge (p ++ q) ∘ (merge p ⊗₁ id)) ∘ ((split p ⊗₁ id) ∘ split (p ++ q))
-              ≈⟨ assoc ⟩
-            merge (p ++ q) ∘ ((merge p ⊗₁ id) ∘ ((split p ⊗₁ id) ∘ split (p ++ q)))
-              ≈⟨ refl⟩∘⟨ (⟺ assoc) ⟩
-            merge (p ++ q) ∘ (((merge p ⊗₁ id) ∘ (split p ⊗₁ id)) ∘ split (p ++ q))
-              ≈⟨ refl⟩∘⟨ ((⟺ ⊗-∘-dist) ⟩∘⟨refl) ⟩
-            merge (p ++ q) ∘ (((merge p ∘ split p) ⊗₁ (id ∘ id)) ∘ split (p ++ q))
-              ≈⟨ refl⟩∘⟨ (((merge∘split p) ⟩⊗⟨ idˡ) ⟩∘⟨refl) ⟩
-            merge (p ++ q) ∘ ((id ⊗₁ id) ∘ split (p ++ q))
-              ≈⟨ refl⟩∘⟨ (id⊗id≈id ⟩∘⟨refl) ⟩
-            merge (p ++ q) ∘ (id ∘ split (p ++ q))
-              ≈⟨ refl⟩∘⟨ idˡ ⟩
-            merge (p ++ q) ∘ split (p ++ q)
-              ≈⟨ merge∘split (p ++ q) ⟩
-            id ∎
+          mR-giU =
+            cancelInner ((⟺ ⊗-∘-dist) ○ ((merge∘split p) ⟩⊗⟨ idˡ) ○ id⊗id≈id)
+              ○ merge∘split (p ++ q)
 
   -- `rpad` suffix-fusion:  rpad rt (rpad suf g) is the wider rpad (suf++rt) g,
   -- up to +-associativity reindex on its endpoints.  This is the base case of
@@ -867,16 +772,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       -- bookkeeping regroup of the 5-fold composite.
       regroup5 : merge (b ++ suf) ∘ (merge b ⊗₁ id ∘ ((g ⊗₁ id) ⊗₁ id ∘ split a ⊗₁ id)) ∘ split (a ++ suf)
                ≈Term (merge (b ++ suf) ∘ merge b ⊗₁ id) ∘ ((g ⊗₁ id {wires suf}) ⊗₁ id {wires rt}) ∘ (split a ⊗₁ id ∘ split (a ++ suf))
-      regroup5 = begin
-        merge (b ++ suf) ∘ (merge b ⊗₁ id ∘ ((g ⊗₁ id) ⊗₁ id ∘ split a ⊗₁ id)) ∘ split (a ++ suf)
-          ≈⟨ ⟺ assoc ⟩
-        (merge (b ++ suf) ∘ (merge b ⊗₁ id ∘ ((g ⊗₁ id) ⊗₁ id ∘ split a ⊗₁ id))) ∘ split (a ++ suf)
-          ≈⟨ (⟺ assoc) ⟩∘⟨refl ⟩
-        ((merge (b ++ suf) ∘ merge b ⊗₁ id) ∘ ((g ⊗₁ id) ⊗₁ id ∘ split a ⊗₁ id)) ∘ split (a ++ suf)
-          ≈⟨ assoc ⟩
-        (merge (b ++ suf) ∘ merge b ⊗₁ id) ∘ (((g ⊗₁ id) ⊗₁ id ∘ split a ⊗₁ id) ∘ split (a ++ suf))
-          ≈⟨ refl⟩∘⟨ assoc ⟩
-        (merge (b ++ suf) ∘ merge b ⊗₁ id) ∘ ((g ⊗₁ id) ⊗₁ id ∘ (split a ⊗₁ id ∘ split (a ++ suf))) ∎
+      regroup5 = center⁻¹ ≈-Term-refl assoc
       -- pull the coeC / coeD coercions out of the composite to the ends.
       pull-coe :
           coeC (sym (++-assoc b suf rt)) (merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒)
@@ -926,52 +822,25 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
           coreRegroup = (lhsNF ○ (⟺ rhsNF))
             where
               lhsNF : (m1 ∘ m2 ∘ m3) ∘ (m4 ∘ (m5 ∘ m6 ∘ m7)) ≈Term rNF
-              lhsNF = begin
-                (m1 ∘ (m2 ∘ m3)) ∘ (m4 ∘ (m5 ∘ (m6 ∘ m7)))
-                  ≈⟨ assoc ⟩
-                m1 ∘ ((m2 ∘ m3) ∘ (m4 ∘ (m5 ∘ (m6 ∘ m7))))
-                  ≈⟨ refl⟩∘⟨ assoc ⟩
-                m1 ∘ (m2 ∘ (m3 ∘ (m4 ∘ (m5 ∘ (m6 ∘ m7))))) ∎
+              lhsNF = assoc ○ (refl⟩∘⟨ assoc)
               rhsNF : m1 ∘ ((m2 ∘ (m3 ∘ (m4 ∘ m5)) ∘ m6) ∘ m7) ≈Term rNF
-              rhsNF = begin
-                m1 ∘ ((m2 ∘ ((m3 ∘ (m4 ∘ m5)) ∘ m6)) ∘ m7)
-                  ≈⟨ refl⟩∘⟨ assoc ⟩
-                m1 ∘ (m2 ∘ (((m3 ∘ (m4 ∘ m5)) ∘ m6) ∘ m7))
-                  ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ assoc) ⟩
-                m1 ∘ (m2 ∘ ((m3 ∘ (m4 ∘ m5)) ∘ (m6 ∘ m7)))
-                  ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ assoc) ⟩
-                m1 ∘ (m2 ∘ (m3 ∘ ((m4 ∘ m5) ∘ (m6 ∘ m7))))
-                  ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ assoc)) ⟩
-                m1 ∘ (m2 ∘ (m3 ∘ (m4 ∘ (m5 ∘ (m6 ∘ m7))))) ∎
+              rhsNF = refl⟩∘⟨ pullʳ (assoc ○ pullʳ assoc)
           -- α⇒ ∘ ((g⊗id)⊗id) ∘ α⇐ ≈ g⊗(id⊗id)
           midα : α⇒ ∘ ((g ⊗₁ id {wires suf}) ⊗₁ id {wires rt}) ∘ α⇐
                ≈Term g ⊗₁ (id {wires suf} ⊗₁ id {wires rt})
-          midα = begin
-            α⇒ ∘ ((g ⊗₁ id) ⊗₁ id) ∘ α⇐
-              ≈⟨ ⟺ assoc ⟩
-            (α⇒ ∘ (g ⊗₁ id) ⊗₁ id) ∘ α⇐
-              ≈⟨ α-comm ⟩∘⟨refl ⟩
-            (g ⊗₁ (id ⊗₁ id) ∘ α⇒) ∘ α⇐
-              ≈⟨ assoc ⟩
-            g ⊗₁ (id ⊗₁ id) ∘ (α⇒ ∘ α⇐)
-              ≈⟨ refl⟩∘⟨ α⇒∘α⇐≈id ⟩
-            g ⊗₁ (id ⊗₁ id) ∘ id
-              ≈⟨ idʳ ⟩
-            g ⊗₁ (id ⊗₁ id) ∎
+          midα = pullˡ α-comm ○ cancelʳ α⇒∘α⇐≈id
           -- (id⊗merge suf) ∘ (g⊗(id⊗id)) ∘ (id⊗split suf) ≈ g ⊗ id{suf++rt}
           midColl : (id {wires b} ⊗₁ merge suf {rt}) ∘ (g ⊗₁ (id {wires suf} ⊗₁ id {wires rt})) ∘ (id {wires a} ⊗₁ split suf {rt})
                   ≈Term g ⊗₁ id {wires (suf ++ rt)}
           midColl = begin
             (id ⊗₁ merge suf) ∘ (g ⊗₁ (id ⊗₁ id)) ∘ (id ⊗₁ split suf)
-              ≈⟨ refl⟩∘⟨ (⟺ ⊗-∘-dist) ⟩
-            (id ⊗₁ merge suf) ∘ ((g ∘ id) ⊗₁ ((id ⊗₁ id) ∘ split suf))
+              ≈⟨ refl⟩∘⟨ ((refl⟩⊗⟨ id⊗id≈id) ⟩∘⟨refl) ⟩
+            (id ⊗₁ merge suf) ∘ (g ⊗₁ id) ∘ (id ⊗₁ split suf)
+              ≈⟨ refl⟩∘⟨ (⟺ serialize₁₂) ⟩
+            (id ⊗₁ merge suf) ∘ (g ⊗₁ split suf)
               ≈⟨ ⟺ ⊗-∘-dist ⟩
-            (id ∘ (g ∘ id)) ⊗₁ (merge suf ∘ ((id ⊗₁ id) ∘ split suf))
-              ≈⟨ (idˡ ○ idʳ) ⟩⊗⟨ (refl⟩∘⟨ (id⊗id≈id ⟩∘⟨refl)) ⟩
-            g ⊗₁ (merge suf ∘ (id ∘ split suf))
-              ≈⟨ refl⟩⊗⟨ (refl⟩∘⟨ idˡ) ⟩
-            g ⊗₁ (merge suf {rt} ∘ split suf {rt})
-              ≈⟨ refl⟩⊗⟨ (merge∘split suf) ⟩
+            (id ∘ g) ⊗₁ (merge suf {rt} ∘ split suf {rt})
+              ≈⟨ idˡ ⟩⊗⟨ (merge∘split suf) ⟩
             g ⊗₁ id ∎
 
   -- rpad commutes with the prefix `id {Var x} ⊗₁ _` (no coercion needed):
@@ -992,30 +861,10 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       -- α⇒ ∘ ((id⊗h)⊗id) ∘ α⇐ ≈ id ⊗ (h⊗id).
       midα : α⇒ ∘ ((id {Var x} ⊗₁ h) ⊗₁ id {wires rt}) ∘ α⇐
            ≈Term id {Var x} ⊗₁ (h ⊗₁ id {wires rt})
-      midα = begin
-        α⇒ ∘ ((id ⊗₁ h) ⊗₁ id) ∘ α⇐
-          ≈⟨ ⟺ assoc ⟩
-        (α⇒ ∘ (id ⊗₁ h) ⊗₁ id) ∘ α⇐
-          ≈⟨ α-comm ⟩∘⟨refl ⟩
-        (id ⊗₁ (h ⊗₁ id) ∘ α⇒) ∘ α⇐
-          ≈⟨ assoc ⟩
-        id ⊗₁ (h ⊗₁ id) ∘ (α⇒ ∘ α⇐)
-          ≈⟨ refl⟩∘⟨ α⇒∘α⇐≈id ⟩
-        id ⊗₁ (h ⊗₁ id) ∘ id
-          ≈⟨ idʳ ⟩
-        id ⊗₁ (h ⊗₁ id) ∎
+      midα = pullˡ α-comm ○ cancelʳ α⇒∘α⇐≈id
       reB : (id {Var x} ⊗₁ merge v {rt} ∘ α⇒) ∘ ((id {Var x} ⊗₁ h) ⊗₁ id {wires rt}) ∘ (α⇐ ∘ id {Var x} ⊗₁ split u {rt})
           ≈Term id {Var x} ⊗₁ merge v {rt} ∘ ((α⇒ ∘ ((id {Var x} ⊗₁ h) ⊗₁ id {wires rt}) ∘ α⇐) ∘ id {Var x} ⊗₁ split u {rt})
-      reB = begin
-        (id ⊗₁ merge v ∘ α⇒) ∘ ((id ⊗₁ h) ⊗₁ id) ∘ (α⇐ ∘ id ⊗₁ split u)
-          ≈⟨ assoc ⟩
-        id ⊗₁ merge v ∘ (α⇒ ∘ (((id ⊗₁ h) ⊗₁ id) ∘ (α⇐ ∘ id ⊗₁ split u)))
-          ≈⟨ refl⟩∘⟨ (⟺ assoc) ⟩
-        id ⊗₁ merge v ∘ ((α⇒ ∘ ((id ⊗₁ h) ⊗₁ id)) ∘ (α⇐ ∘ id ⊗₁ split u))
-          ≈⟨ refl⟩∘⟨ (⟺ assoc) ⟩
-        id ⊗₁ merge v ∘ (((α⇒ ∘ ((id ⊗₁ h) ⊗₁ id)) ∘ α⇐) ∘ id ⊗₁ split u)
-          ≈⟨ refl⟩∘⟨ (assoc ⟩∘⟨refl) ⟩
-        id ⊗₁ merge v ∘ ((α⇒ ∘ ((id ⊗₁ h) ⊗₁ id) ∘ α⇐) ∘ id ⊗₁ split u) ∎
+      reB = assoc ○ (refl⟩∘⟨ assoc²εβ)
 
   -- rpad / pad relation (suffix analogue of liftW-pad), by induction on pre.
   rpad-pad : ∀ {a b} (pre suf rt : List X) (g : HomTerm (wires a) (wires b))
@@ -1193,40 +1042,10 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
         ≈Term merge (out dl) {out dr} ∘ (⟦ dl ⟧ ⊗₁ ⟦ dr ⟧) ∘ split nl {nr}
       collapse = begin
         (merge (out dl) ∘ (id ⊗₁ ⟦ dr ⟧) ∘ split (out dl)) ∘ (merge (out dl) ∘ (⟦ dl ⟧ ⊗₁ id) ∘ split nl)
-          ≈⟨ regroupT ⟩
-        merge (out dl) ∘ ((id ⊗₁ ⟦ dr ⟧) ∘ (split (out dl) ∘ merge (out dl)) ∘ (⟦ dl ⟧ ⊗₁ id)) ∘ split nl
-          ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ ((split∘merge (out dl)) ⟩∘⟨refl)) ⟩∘⟨refl) ⟩
-        merge (out dl) ∘ ((id ⊗₁ ⟦ dr ⟧) ∘ (id ∘ (⟦ dl ⟧ ⊗₁ id))) ∘ split nl
-          ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ idˡ) ⟩∘⟨refl) ⟩
-        merge (out dl) ∘ ((id ⊗₁ ⟦ dr ⟧) ∘ (⟦ dl ⟧ ⊗₁ id)) ∘ split nl
-          ≈⟨ refl⟩∘⟨ ((⟺ ⊗-∘-dist) ⟩∘⟨refl) ⟩
-        merge (out dl) ∘ ((id ∘ ⟦ dl ⟧) ⊗₁ (⟦ dr ⟧ ∘ id)) ∘ split nl
-          ≈⟨ refl⟩∘⟨ ((idˡ ⟩⊗⟨ idʳ) ⟩∘⟨refl) ⟩
+          ≈⟨ center (cancelʳ (split∘merge (out dl))) ⟩
+        merge (out dl) ∘ ((id ⊗₁ ⟦ dr ⟧) ∘ ((⟦ dl ⟧ ⊗₁ id) ∘ split nl))
+          ≈⟨ refl⟩∘⟨ pullˡ (⟺ serialize₂₁) ⟩
         merge (out dl) ∘ (⟦ dl ⟧ ⊗₁ ⟦ dr ⟧) ∘ split nl ∎
-        where
-          regroupT :
-              (merge (out dl) ∘ (id ⊗₁ ⟦ dr ⟧) ∘ split (out dl)) ∘ (merge (out dl) ∘ (⟦ dl ⟧ ⊗₁ id) ∘ split nl)
-            ≈Term merge (out dl) ∘ ((id ⊗₁ ⟦ dr ⟧) ∘ (split (out dl) ∘ merge (out dl)) ∘ (⟦ dl ⟧ ⊗₁ id)) ∘ split nl
-          regroupT = begin
-            (merge (out dl) ∘ ((id ⊗₁ ⟦ dr ⟧) ∘ split (out dl))) ∘ (merge (out dl) ∘ ((⟦ dl ⟧ ⊗₁ id) ∘ split nl))
-              ≈⟨ assoc ⟩
-            merge (out dl) ∘ (((id ⊗₁ ⟦ dr ⟧) ∘ split (out dl)) ∘ (merge (out dl) ∘ ((⟦ dl ⟧ ⊗₁ id) ∘ split nl)))
-              ≈⟨ refl⟩∘⟨ assoc ⟩
-            merge (out dl) ∘ ((id ⊗₁ ⟦ dr ⟧) ∘ (split (out dl) ∘ (merge (out dl) ∘ ((⟦ dl ⟧ ⊗₁ id) ∘ split nl))))
-              ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (⟺ assoc)) ⟩
-            merge (out dl) ∘ ((id ⊗₁ ⟦ dr ⟧) ∘ ((split (out dl) ∘ merge (out dl)) ∘ ((⟦ dl ⟧ ⊗₁ id) ∘ split nl)))
-              ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (⟺ assoc)) ⟩
-            merge (out dl) ∘ ((id ⊗₁ ⟦ dr ⟧) ∘ (((split (out dl) ∘ merge (out dl)) ∘ (⟦ dl ⟧ ⊗₁ id)) ∘ split nl))
-              ≈⟨ refl⟩∘⟨ (⟺ assoc) ⟩
-            merge (out dl) ∘ (((id ⊗₁ ⟦ dr ⟧) ∘ ((split (out dl) ∘ merge (out dl)) ∘ (⟦ dl ⟧ ⊗₁ id))) ∘ split nl)
-              ≈⟨ refl⟩∘⟨ ((⟺ assoc) ⟩∘⟨refl) ⟩
-            merge (out dl) ∘ ((((id ⊗₁ ⟦ dr ⟧) ∘ (split (out dl) ∘ merge (out dl))) ∘ (⟦ dl ⟧ ⊗₁ id)) ∘ split nl)
-              ≈⟨ refl⟩∘⟨ (assoc ⟩∘⟨refl) ⟩
-            merge (out dl) ∘ (((id ⊗₁ ⟦ dr ⟧) ∘ (split (out dl) ∘ merge (out dl)) ∘ (⟦ dl ⟧ ⊗₁ id)) ∘ split nl)
-              ≈⟨ ⟺ assoc ⟩
-            (merge (out dl) ∘ ((id ⊗₁ ⟦ dr ⟧) ∘ (split (out dl) ∘ merge (out dl)) ∘ (⟦ dl ⟧ ⊗₁ id))) ∘ split nl
-              ≈⟨ assoc ⟩
-            merge (out dl) ∘ (((id ⊗₁ ⟦ dr ⟧) ∘ (split (out dl) ∘ merge (out dl)) ∘ (⟦ dl ⟧ ⊗₁ id)) ∘ split nl) ∎
 
   --   coeC (out-reflect t) ⟦ reflect t ⟧  ≈Term  embed t
   -- i.e. the reflected diagram, with its codomain reindexed to match, equals
