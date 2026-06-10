@@ -49,6 +49,28 @@ module WireSig (v : Variant) {X : Set} (Mor : List X → List X → Set) where
   data mor : ObjTerm → ObjTerm → Set where
     box : ∀ {a b} → Mor a b → mor (wires a) (wires b)
 
+  --------------------------------------------------------------------------------
+  -- Structural merge / split isos between `wires a ⊗₀ wires suf` and the
+  -- flat `wires (a ++ suf)`.  Defined by recursion on `a`; only λ/α
+  -- coherence morphisms appear, so all their laws are pure coherence.
+  -- They are ⟦box⟧-INDEPENDENT, so they live here (not in `UntypedI`):
+  -- callers can use them to BUILD a custom `⟦box⟧` (e.g. the σ-conjugated
+  -- block braiding of `Categories.SolverSigma`) before instantiating the
+  -- engine.  (The `FreeMonoidalHelper.Mor` open is `using`-scoped and not
+  -- public, so WireSig's export surface grows by exactly merge/split.)
+  --------------------------------------------------------------------------------
+  private
+    open module MorW = FreeMonoidalHelper.Mor v X mor
+      using (HomTerm; id; _∘_; _⊗₁_; λ⇒; λ⇐; α⇒; α⇐)
+
+  merge : (a : List X) {suf : List X} → HomTerm (wires a ⊗₀ wires suf) (wires (a ++ suf))
+  merge []       = λ⇒
+  merge (x ∷ a) = id ⊗₁ merge a ∘ α⇒
+
+  split : (a : List X) {suf : List X} → HomTerm (wires (a ++ suf)) (wires a ⊗₀ wires suf)
+  split []       = λ⇐
+  split (x ∷ a) = α⇐ ∘ id ⊗₁ split a
+
 --------------------------------------------------------------------------------
 -- The engine, parametric in the variant `v` (Mon or Symm) and in the
 -- interpretation `⟦box⟧` of a diagram-layer generator into the wire-level
@@ -87,19 +109,8 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   idW : (n : List X) → HomTerm (wires n) (wires n)
   idW n = id
 
-  --------------------------------------------------------------------------------
-  -- Structural merge / split isos between `wires a ⊗₀ wires suf` and the
-  -- flat `wires (a + suf)`.  Defined by recursion on `a`; only λ/α
-  -- coherence morphisms appear, so all their laws are pure coherence.
-  --------------------------------------------------------------------------------
-
-  merge : (a : List X) {suf : List X} → HomTerm (wires a ⊗₀ wires suf) (wires (a ++ suf))
-  merge []       = λ⇒
-  merge (x ∷ a) = id ⊗₁ merge a ∘ α⇒
-
-  split : (a : List X) {suf : List X} → HomTerm (wires (a ++ suf)) (wires a ⊗₀ wires suf)
-  split []       = λ⇐
-  split (x ∷ a) = α⇐ ∘ id ⊗₁ split a
+  -- (merge / split now live in `WireSig` — re-exported by the public open
+  -- above — so that ⟦box⟧ interpretations can be built from them.)
 
   -- right-pad a morphism g : wires a ⇒ wires b by `suf` idle wires
   rpad : ∀ {a b} (suf : List X) → HomTerm (wires a) (wires b) → HomTerm (wires (a ++ suf)) (wires (b ++ suf))
