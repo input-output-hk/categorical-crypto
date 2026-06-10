@@ -35,7 +35,7 @@ open APROP sig
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List.Base using (List; []; _∷_; _++_; map; length; lookup)
+open import Data.List.Base using (List; []; _∷_; _++_; map; concatMap; length; lookup)
 open import Data.List.Properties using (≡-dec)
 open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
 import Data.Maybe.Base as Maybe
@@ -215,11 +215,94 @@ module At (P Q : ObjTerm) where
       ... | nothing  = collect es
 
 --------------------------------------------------------------------------------
--- Top-level entry points.
+-- Pad handling.  A rule LHS with a bare identity wire (`x ⊗ id {Var w}` or
+-- `id {Var w} ⊗ x`) is not edge-matchable as written — the wire's vertex is
+-- incident to no edge.  But its soundness proof may be available ONLY at the
+-- padded type (`⊗` is not faithful, so `f ⊗ id ≈ g ⊗ id` does not yield
+-- `f ≈ g`).  We therefore strip the padding from the match QUERY only: find
+-- positions of the stripped core, then REPAD each resulting frame — peel a
+-- wire of matching atom type out of the pad object `k` and route it (by a
+-- σ/α coherence term) to sit beside the core, so the frame can use the
+-- original padded `lᵗ`/`rᵗ` and the original soundness proof at their own
+-- types.  Any same-typed parallel wire works diagrammatically (the wire just
+-- passes through the rule's vacuous slot); the downstream `findIso`
+-- certificates remain the gate.
+--
+-- v1 scope: pad layers of shape `– ⊗ id {Var w}` / `id {Var w} ⊗ –`,
+-- syntactically outermost, recursively (state multi-wire pads as nested
+-- single-atom layers).
+
+private
+  -- Ways to extract one `w`-atom wire from `k`, routing it to the RIGHT of
+  -- a parametric block `Xo` (and back: the contexts need both directions).
+  Peel : (k : ObjTerm) (w : X) (place : ObjTerm → ObjTerm) → Set
+  Peel k w place =
+    Σ ObjTerm λ k₁ →
+      (∀ Xo → HomTerm (k ⊗₀ Xo) (k₁ ⊗₀ place Xo))
+      × (∀ Xo → HomTerm (k₁ ⊗₀ place Xo) (k ⊗₀ Xo))
+
+  peelR : (k : ObjTerm) (w : X) → List (Peel k w (λ Xo → Xo ⊗₀ Var w))
+  peelR unit       w = []
+  peelR (Var w')   w with w' ≟X w
+  ... | yes refl = (unit , (λ Xo → λ⇐ ∘ σ) , (λ Xo → σ ∘ λ⇒)) ∷ []
+  ... | no  _    = []
+  peelR (kl ⊗₀ kr) w =
+       map liftL (peelR kl w) ++ map liftR (peelR kr w)
+    where
+      liftL : Peel kl w _ → Peel (kl ⊗₀ kr) w _
+      liftL (k₁ , r , u) = k₁ ⊗₀ kr
+        , (λ Xo → α⇐ ∘ (id ⊗₁ α⇒) ∘ r (kr ⊗₀ Xo) ∘ α⇒)
+        , (λ Xo → α⇐ ∘ u (kr ⊗₀ Xo) ∘ (id ⊗₁ α⇐) ∘ α⇒)
+      liftR : Peel kr w _ → Peel (kl ⊗₀ kr) w _
+      liftR (k₁ , r , u) = kl ⊗₀ k₁
+        , (λ Xo → α⇐ ∘ (id ⊗₁ r Xo) ∘ α⇒)
+        , (λ Xo → α⇐ ∘ (id ⊗₁ u Xo) ∘ α⇒)
+
+  -- … and to the LEFT of the block (for `id {Var w} ⊗ –` pads).
+  peelL : (k : ObjTerm) (w : X) → List (Peel k w (λ Xo → Var w ⊗₀ Xo))
+  peelL unit       w = []
+  peelL (Var w')   w with w' ≟X w
+  ... | yes refl = (unit , (λ Xo → λ⇐) , (λ Xo → λ⇒)) ∷ []
+  ... | no  _    = []
+  peelL (kl ⊗₀ kr) w =
+       map liftL (peelL kl w) ++ map liftR (peelL kr w)
+    where
+      swapIn : ∀ {Y Z} → HomTerm (Var w ⊗₀ (Y ⊗₀ Z)) (Y ⊗₀ (Var w ⊗₀ Z))
+      swapIn = α⇒ ∘ (σ ⊗₁ id) ∘ α⇐
+      swapOut : ∀ {Y Z} → HomTerm (Y ⊗₀ (Var w ⊗₀ Z)) (Var w ⊗₀ (Y ⊗₀ Z))
+      swapOut = α⇒ ∘ (σ ⊗₁ id) ∘ α⇐
+      liftL : Peel kl w _ → Peel (kl ⊗₀ kr) w _
+      liftL (k₁ , r , u) = k₁ ⊗₀ kr
+        , (λ Xo → α⇐ ∘ (id ⊗₁ swapIn) ∘ r (kr ⊗₀ Xo) ∘ α⇒)
+        , (λ Xo → α⇐ ∘ u (kr ⊗₀ Xo) ∘ (id ⊗₁ swapOut) ∘ α⇒)
+      liftR : Peel kr w _ → Peel (kl ⊗₀ kr) w _
+      liftR (k₁ , r , u) = kl ⊗₀ k₁
+        , (λ Xo → α⇐ ∘ (id ⊗₁ r Xo) ∘ α⇒)
+        , (λ Xo → α⇐ ∘ (id ⊗₁ u Xo) ∘ α⇒)
+
+  -- Repad one frame for each peel candidate.
+  repadR : ∀ {A B P Q} (w : X)
+         → Foc A B P Q → List (Foc A B (P ⊗₀ Var w) (Q ⊗₀ Var w))
+  repadR {P = P} {Q = Q} w (k , pre , post) = map step (peelR k w)
+    where
+      step : Peel k w _ → Foc _ _ _ _
+      step (k₁ , r , u) = k₁ , r P ∘ pre , post ∘ u Q
+
+  repadL : ∀ {A B P Q} (w : X)
+         → Foc A B P Q → List (Foc A B (Var w ⊗₀ P) (Var w ⊗₀ Q))
+  repadL {P = P} {Q = Q} w (k , pre , post) = map step (peelL k w)
+    where
+      step : Peel k w _ → Foc _ _ _ _
+      step (k₁ , r , u) = k₁ , r P ∘ pre , post ∘ u Q
+
+--------------------------------------------------------------------------------
+-- Top-level entry points (pad-aware).
 
 deepFocAll : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q)
            → List (Foc A B P Q)
-deepFocAll {P = P} {Q = Q} = At.deepFocAllAt P Q
+deepFocAll s (x ⊗₁ id {Var w}) = concatMap (repadR w) (deepFocAll s x)
+deepFocAll s (id {Var w} ⊗₁ x) = concatMap (repadL w) (deepFocAll s x)
+deepFocAll {P = P} {Q = Q} s lᵗ = At.deepFocAllAt P Q s lᵗ
 
 deepFocₙ : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) → ℕ
          → Maybe (Foc A B P Q)

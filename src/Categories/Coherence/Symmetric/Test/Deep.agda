@@ -140,17 +140,46 @@ module DeepRewrite (A₀ A₁ A₂ : C.Obj)
     : is-just (deepFoc (w S.∘ p) (p S.⊗₁ w)) ≡ false
   deep-overlap-rejected = refl
 
-  -- Identity wires in a rule LHS: `⟪ p ⊗ id ⟫` has a bare wire vertex
-  -- incident to no edge, which the edge-driven matcher can never bind.
-  -- State the rule without the padding (`p`, not `p ⊗ id`) — the rewrite
-  -- frame's own `id {k} ⊗ –` pad plays that role — or use `rewriteH!`.
-  deep-id-wire-limitation
-    : is-just (deepFoc (p S.⊗₁ q) (p S.⊗₁ S.id {a₀})) ≡ false
-  deep-id-wire-limitation = refl
-
   -- Purely structural rule LHS (`σ`, `id`, any coherence morphism): its
   -- hypergraph has NO edges, so there is nothing to match.  Such "rules"
   -- are free coherence facts — `solveH!`'s job, not a rewrite's.
   deep-structural-limitation
     : is-just (deepFoc (S.σ S.∘ (p S.⊗₁ q)) (S.σ {a₁} {a₁})) ≡ false
   deep-structural-limitation = refl
+
+  ------------------------------------------------------------------------------
+  -- PADDED RULES.  A rule LHS with a bare identity wire (`p ⊗ id`) is not
+  -- edge-matchable as written; and since `⊗` is not faithful, a proof of the
+  -- padded equation does NOT yield the unpadded one — the padded rule may be
+  -- all the client has.  The engine strips the pad from the match query and
+  -- threads a same-typed parallel wire of the context through the rule's
+  -- vacuous slot (repadding), so the padded rule and its padded proof are
+  -- used at their own types.  (v1: pads are syntactically outermost
+  -- single-atom layers, `– ⊗ id {Var w}` / `id {Var w} ⊗ –`.)
+
+  -- Right pad: the rule's spare wire is matched by `q`'s input wire.
+  module _ (padded : pᴹ ⊗₁ id {A₀} ≈ qᴹ ⊗₁ id {A₀}) where
+
+    test-deep-padded-rule : pᴹ ⊗₁ qᴹ ≈ _
+    test-deep-padded-rule =
+      rewriteDeep! (p S.⊗₁ q)
+                   (p S.⊗₁ S.id {a₀}) (q S.⊗₁ S.id {a₀}) padded
+
+  -- Left pad (the routing inserts a braiding), threaded through `w`'s
+  -- input wire.
+  module _ (paddedL : id {A₁} ⊗₁ pᴹ ≈ id {A₁} ⊗₁ qᴹ) where
+
+    test-deep-padded-left : wᴹ ⊗₁ pᴹ ≈ _
+    test-deep-padded-left =
+      rewriteDeep! (w S.⊗₁ p)
+                   (S.id {a₁} S.⊗₁ p) (S.id {a₁} S.⊗₁ q) paddedL
+
+  -- Two stacked pad layers (state multi-wire pads as nested single-atom
+  -- layers): the spare wires thread `q`'s and `w`'s input wires.
+  module _ (padded² : (pᴹ ⊗₁ id {A₀}) ⊗₁ id {A₁} ≈ (qᴹ ⊗₁ id {A₀}) ⊗₁ id {A₁}) where
+
+    test-deep-padded-two : (pᴹ ⊗₁ qᴹ) ⊗₁ wᴹ ≈ _
+    test-deep-padded-two =
+      rewriteDeep! ((p S.⊗₁ q) S.⊗₁ w)
+                   ((p S.⊗₁ S.id {a₀}) S.⊗₁ S.id {a₁})
+                   ((q S.⊗₁ S.id {a₀}) S.⊗₁ S.id {a₁}) padded²

@@ -52,9 +52,12 @@
 --
 -- KNOWN LIMITATIONS (each demonstrated by a probe in the file cited):
 --
---   * Rule LHSs with bare identity wires (`p ⊗ id`) are not matchable by the
---     edge-driven deep search — state the rule without padding, or use
---     `rewriteH!`.                       → `Test.Deep.deep-id-wire-limitation`
+--   * PADDED rule LHSs (`p ⊗ id {Var w}` / `id {Var w} ⊗ p` — possibly the
+--     only type at which the rule's proof exists, since `⊗` is not faithful)
+--     ARE handled: the pad is stripped from the match query and a same-typed
+--     parallel context wire is threaded through the rule's vacuous slot.
+--     v1 caveat: pads must be syntactically outermost single-atom layers.
+--                              → `Test.Deep.test-deep-padded-{rule,left,two}`
 --   * Purely structural rule LHSs (`σ`, `id`, coherence morphisms) have
 --     edge-free hypergraphs — they are coherence facts; use `solveH!`.
 --                                     → `Test.Deep.deep-structural-limitation`
