@@ -454,6 +454,26 @@ the cost is today's plus cheap failed attempts. Effort ≈ 150–300 LOC + decid
 equality at fixed endpoints; same architectural family as the `rewriteH!` front-end on the
 parallel branch.
 
+**BUILT + MEASURED (commit `166e26f`: `Split.agda`/`SplitTests.agda`/`solveH!ˢ`, all `--safe`,
+0 postulates).** Benchmark — σ-naturality core under k context generators, same-run profile:
+
+| k | WHOLE (`findIsoᵀ`) | SPLIT (`solveSplitR?`) | speedup |
+|---:|---:|---:|---:|
+| 0 (overhead case) | 34 ms | 182 ms | 0.19× (+148 ms fixed) |
+| 8 | 2,284 ms | 517 ms | 4.4× |
+| 16 | 19,216 ms | 740 ms | 26× |
+| 24 | 74,067 ms | **1,309 ms** | **57×** |
+
+SPLIT is near-flat in k (residual = O(k²) `eq?` suffix re-walks) while WHOLE is super-linear —
+solver cost now scales with the **semantic diff**, not the goal size, for congruence-shaped
+goals. The overhead on non-decomposable goals is a fixed ~150 ms (reassoc thunks + failed
+`eq?`/middle compares around the same `findIsoᵀ` call), not the predicted parity — negligible
+from k≥8. Implementation notes: the naive `Dec`-style double-match on `HomTerm` gets stuck under
+`--without-K` (reflexive index equations); the working pattern is `Verify.flat-match`-style — a
+worker at fully general endpoints carrying explicit endpoint equalities, collapsed by UIP from
+`≟-ObjTerm`. v1 limits as designed: no common-suffix peel under differing prefix lengths;
+cut-crossing equations pay WHOLE + the fixed overhead.
+
 ## Implication
 
 The fix is the same as for shrinking the soundness proof itself: a real coherence solver
