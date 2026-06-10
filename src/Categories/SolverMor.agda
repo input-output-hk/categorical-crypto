@@ -83,7 +83,7 @@ module SolverMor
   open ≈R
 
   -- the reflect milestone (with TASK A's `boxSound` already discharged).
-  open Reflect {X} Mor
+  open Reflect {X} _≟X_ Mor
     using ( WTerm; boxʷ; idʷ; _∘ʷ_; embed; reflect; out-reflect
           ; reflect-sound; boxSound; BoxSound; coeCod' )
 
@@ -173,7 +173,7 @@ module SolverMorTarget
   open import Categories.SolveMorSpike using (module SolveMor)
 
   open Untyped {X} Mor using (wires; mor)
-  open Reflect {X} Mor using (WTerm; embed)
+  open Reflect {X} _≟X_ Mor using (WTerm; embed)
 
   open SolverMor {X} _≟X_ Mor using (module Solve)
   open Solve _≟Mor_ using (solveMorW?)
@@ -220,7 +220,7 @@ module Litmus where
 
   open SolverMor {⊤} _≟⊤_ M
   open Untyped {⊤} M using (mor)
-  open Reflect {⊤} M using (WTerm; boxʷ; idʷ; _∘ʷ_; embed)
+  open Reflect {⊤} _≟⊤_ M using (WTerm; boxʷ; idʷ; _∘ʷ_; embed)
   open SolverCompare {⊤} _≟⊤_ M using (Gen; _≟L_)
   open FreeMonoidalHelper.Mor Mon ⊤ mor using (_≈Term_)
 

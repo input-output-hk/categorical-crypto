@@ -121,7 +121,7 @@ data GenT : ObjTerm → ObjTerm → Set where
 
 private module S = FreeMonoidalHelper.Mor Mon Ty GenT
 
-open Frontend {Ty} GenT
+open Frontend {Ty} _≟Ty_ GenT
 
 _≟G_ : DecidableEquality GenΣ
 (_ , _ , genT i) ≟G (_ , _ , genT j) with i ≟F j
@@ -132,7 +132,7 @@ _≟G_ : DecidableEquality GenΣ
 rankT : GenΣ → Data.Nat.ℕ
 rankT (_ , _ , genT i) = Data.Fin.toℕ i
 
-open Decide _≟Ty_ _≟G_ rankT
+open Decide _≟G_ rankT
 
 -- readable term-language aliases.
 private
@@ -344,7 +344,7 @@ module Limitations where
   -- L2: ambiguous (mutually-fitting) pairs are ordered by the supplied
   -- `rank`; with a NON-INJECTIVE rank (here: constant) the tiebreak never
   -- fires and scalar reordering stays undecided.
-  private module D₀ = Decide _≟Ty_ _≟G_ (λ _ → 0)
+  private module D₀ = Decide _≟G_ (λ _ → 0)
 
   lim-equal-rank : D₀.decide?F (u' ∘' v') (v' ∘' u') ≡ nothing
   lim-equal-rank = refl

@@ -1,4 +1,4 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- Decidable normal-form equality on `DiagU` together with the final solver
@@ -29,7 +29,11 @@
 module Categories.SolverCompare where
 
 open import Data.List using (List; []; _∷_; _++_)
-open import Data.Product using (Σ; _,_; _×_; Σ-syntax)
+open import Data.List.Properties using (≡-dec; ∷-injective)
+import Data.List.Properties as ListProp
+open import Data.Product using (Σ; _,_; _×_; Σ-syntax; proj₁; proj₂)
+import Data.Product.Properties as ProdProp
+open import Function using () renaming (_∘_ to _∙f_)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Relation.Binary using (DecidableEquality)
@@ -61,14 +65,7 @@ module SolverCompare
   -- Decidable equality on offsets (List X), derived from DecidableEquality X.
   --------------------------------------------------------------------------------
   _≟L_ : DecidableEquality (List X)
-  []       ≟L []       = yes refl
-  []       ≟L (_ ∷ _)  = no λ ()
-  (_ ∷ _)  ≟L []       = no λ ()
-  (x ∷ xs) ≟L (y ∷ ys) with x ≟X y
-  ... | no  x≢y  = no λ { refl → x≢y refl }
-  ... | yes refl with xs ≟L ys
-  ...   | no  xs≢ys = no λ { refl → xs≢ys refl }
-  ...   | yes refl  = yes refl
+  _≟L_ = ≡-dec _≟X_
 
   --------------------------------------------------------------------------------
   -- The "same generator" heterogeneous decidable equality.
@@ -119,47 +116,77 @@ module SolverCompare
     ≈NF⇒width (nf∷ f eq)  = refl
 
     --------------------------------------------------------------------------------
-    -- The decision procedure is itself stated *heterogeneously* (`d : DiagU n`,
-    -- `d' : DiagU n'` with possibly different widths).  This is essential: with
-    -- a single shared width, matching the second cons against `DiagU (pre ++
-    -- (a ++ suf))` would again provoke the `_++_` unification that Agda gets
-    -- stuck on.  Independent widths let both cons constructors split freely;
-    -- the structural relation `_≈NF_` then carries the equality, and matching
-    -- the generator-triple `refl` retypes the box and tail in one step.
+    -- The decision goes through a FIRST-ORDER layer encoding: deciding the
+    -- encoded layer lists (plus the input width) avoids every match against
+    -- the `++`-composite indices — matching `_≈NF_`/`DiagU` constructors
+    -- happens only inside the two conversion lemmas, at fully-general
+    -- (variable) indices, so the procedure is `--without-K`-compatible.
     --------------------------------------------------------------------------------
+
+    -- one layer, first-order: offset, suffix, and the generator triple.
+    LayerE : Set
+    LayerE = List X × (List X × Gen)
+
+    encode : ∀ {n} → DiagU n → List LayerE
+    encode ([]_ n)               = []
+    encode (pre ▸ suf ∷ f ⟨ d ⟩) = (pre , suf , gen f) ∷ encode d
+
+    private
+      _≟E_ : DecidableEquality (List LayerE)
+      _≟E_ = ListProp.≡-dec
+               (ProdProp.≡-dec _≟L_ (ProdProp.≡-dec _≟L_ _≟Mor_))
+
+      -- an ≈NF witness yields equal widths and equal encodings.
+      ≈NF⇒encode : ∀ {n n'} {d : DiagU n} {d' : DiagU n'}
+                 → d ≈NF d' → encode d ≡ encode d'
+      ≈NF⇒encode nf[]       = refl
+      ≈NF⇒encode (nf∷ f eq) = cong (_ ∷_) (≈NF⇒encode eq)
+
+      -- equal widths + equal encodings rebuild an ≈NF witness.  All
+      -- constructor matches here are at fully-general indices.
+      encode⇒≈NF : ∀ {n n'} (d : DiagU n) (d' : DiagU n')
+                 → n ≡ n' → encode d ≡ encode d' → d ≈NF d'
+      encode⇒≈NF ([]_ n) ([]_ n') refl _ = nf[]
+      encode⇒≈NF ([]_ n) (pre' ▸ suf' ∷ f' ⟨ d' ⟩) _ ()
+      encode⇒≈NF (pre ▸ suf ∷ f ⟨ d ⟩) ([]_ n') _ ()
+      encode⇒≈NF (pre ▸ suf ∷ f ⟨ d ⟩) (pre' ▸ suf' ∷ f' ⟨ d' ⟩) en ee
+        with ∷-injective ee
+      ... | he , te with cong proj₁ he | cong (proj₁ ∙f proj₂) he | cong (proj₂ ∙f proj₂) he
+      ...   | refl | refl | refl = nf∷ f (encode⇒≈NF d d' refl te)
+
     infix 4 _≟DiagU_
 
     _≟DiagU_ : ∀ {n n'} (d : DiagU n) (d' : DiagU n') → Dec (d ≈NF d')
-
-    -- []/[] : equal iff the two (now independent) widths agree.
-    ([]_ n)               ≟DiagU ([]_ n')               with n ≟L n'
-    ... | yes refl = yes nf[]
-    ... | no  n≢   = no λ { nf[] → n≢ refl }
-
-    -- []/cons and cons/[] : structurally distinct head constructors.
-    ([]_ n)               ≟DiagU (pre ▸ suf ∷ f ⟨ d' ⟩) = no λ ()
-    (pre ▸ suf ∷ f ⟨ d ⟩) ≟DiagU ([]_ n)                = no λ ()
-
-    -- cons/cons : decide pre, suf and the generator triple, then recurse.
-    (pre ▸ suf ∷ f ⟨ d ⟩) ≟DiagU (pre' ▸ suf' ∷ f' ⟨ d' ⟩)
-      with pre ≟L pre' | suf ≟L suf' | gen f ≟Mor gen f'
-    ... | no  pre≢ | _        | _        = no λ { (nf∷ _ _) → pre≢ refl }
-    ... | yes _    | no suf≢  | _        = no λ { (nf∷ _ _) → suf≢ refl }
-    ... | yes _    | yes _    | no gen≢  = no λ { (nf∷ _ _) → gen≢ refl }
-    ... | yes refl | yes refl | yes refl with d ≟DiagU d'
-    ...   | yes eq  = yes (nf∷ f eq)
-    ...   | no  d≢  = no λ { (nf∷ _ eq) → d≢ eq }
+    _≟DiagU_ {n} {n'} d d' with n ≟L n' | encode d ≟E encode d'
+    ... | yes en | yes ee = yes (encode⇒≈NF d d' en ee)
+    ... | no  n≢ | _      = no λ eq → n≢ (≈NF⇒width eq)
+    ... | yes _  | no e≢  = no λ eq → e≢ (≈NF⇒encode eq)
 
     --------------------------------------------------------------------------------
-    -- `_≈NF_` is observationally propositional equality: its constructors only
-    -- ever relate equal-width diagrams that agree on every field, so a witness
-    -- collapses to a real `≡`.  (Because the two index args of `_≈NF_` are
-    -- forced equal by each constructor, we may state this homogeneously.)
+    -- `_≈NF_` is observationally propositional equality: a witness collapses
+    -- to a real `≡` of equal-width diagrams.  Matching an `_≈NF_` value at a
+    -- HOMOGENEOUS type is `--without-K`-stuck (the duplicated width index),
+    -- so we go through the first-order encoding: `encode` is injective on
+    -- equal-width diagrams, with the residual reflexive width equation
+    -- discharged by the Hedberg UIP on `List X`.
     --------------------------------------------------------------------------------
+    private
+      uipL : ∀ {x y : List X} (e e' : x ≡ y) → e ≡ e'
+      uipL = UIPmod.Decidable⇒UIP.≡-irrelevant _≟L_
+
+      encode-inj : ∀ {n n'} (d : DiagU n) (d' : DiagU n') (en : n ≡ n')
+                 → encode d ≡ encode d' → subst DiagU en d ≡ d'
+      encode-inj ([]_ n) ([]_ n') refl _ = refl
+      encode-inj ([]_ n) (pre' ▸ suf' ∷ f' ⟨ d' ⟩) _ ()
+      encode-inj (pre ▸ suf ∷ f ⟨ d ⟩) ([]_ n') _ ()
+      encode-inj (pre ▸ suf ∷ f ⟨ d ⟩) (pre' ▸ suf' ∷ f' ⟨ d' ⟩) en ee
+        with ∷-injective ee
+      ... | he , te with cong proj₁ he | cong (proj₁ ∙f proj₂) he | cong (proj₂ ∙f proj₂) he
+      ...   | refl | refl | refl rewrite uipL en refl =
+              cong (λ z → pre ▸ suf ∷ f ⟨ z ⟩) (encode-inj d d' refl te)
+
     ≈NF⇒≡ : ∀ {n} {d d' : DiagU n} → d ≈NF d' → d ≡ d'
-    ≈NF⇒≡ nf[]                              = refl
-    ≈NF⇒≡ (nf∷ {pre = pre} {suf = suf} f eq) =
-      cong (λ z → pre ▸ suf ∷ f ⟨ z ⟩) (≈NF⇒≡ eq)
+    ≈NF⇒≡ {d = d} {d' = d'} eq = encode-inj d d' refl (≈NF⇒encode eq)
 
     --------------------------------------------------------------------------------
     -- (B) The final assembly, parameterized over the reflect / normalize

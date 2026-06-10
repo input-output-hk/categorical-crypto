@@ -1,4 +1,4 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- A reflection  HomTerm → DiagU  with soundness, for the untyped free
@@ -28,18 +28,22 @@
 module Categories.SolverReflect where
 
 open import Data.List using (List; []; _∷_; _++_)
-open import Data.List.Properties using (++-assoc; ++-identityʳ)
+open import Data.List.Properties using (++-assoc; ++-identityʳ; ≡-dec)
+open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; cong; cong₂; subst)
-
--- UIP, available since this development is --safe *with* K.
-≡-irrelevant : ∀ {a} {A : Set a} {x y : A} (e e' : x ≡ y) → e ≡ e'
-≡-irrelevant refl refl = refl
+open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 
 open import Categories.FreeMonoidal
 open import Categories.DiagramRewriteUntyped
 import Categories.Category.Monoidal.Properties as MonProps
 
-module Reflect {X : Set} (Mor : List X → List X → Set) where
+module Reflect {X : Set} (_≟X_ : DecidableEquality X)
+               (Mor : List X → List X → Set) where
+
+  -- UIP on the wire lists, via Hedberg (decidable equality), --without-K.
+  private
+    ≡-irrelevant : ∀ {x y : List X} (e e' : x ≡ y) → e ≡ e'
+    ≡-irrelevant = Decidable⇒UIP.≡-irrelevant (≡-dec _≟X_)
 
   open Untyped {X} Mor
   open FreeMonoidalHelper Mon X using (ObjTerm; unit; _⊗₀_; Var)
@@ -1417,7 +1421,7 @@ module Reflect {X : Set} (Mor : List X → List X → Set) where
           -- any two codomain coercions with the same source & target agree (UIP).
           coeCod'-uip : ∀ {N P} (e e' : P ≡ k) (h : HomTerm (wires N) (wires P))
                       → coeCod' e h ≈Term coeCod' e' h
-          coeCod'-uip refl refl h = ≈-Term-refl
+          coeCod'-uip e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
           -- retype the middle object of a composite (transports cancel).
           mid-retype : ∀ {N P Q} (eq : P ≡ Q) (h : HomTerm (wires P) (wires k))
                          (j : HomTerm (wires N) (wires P))
@@ -1443,7 +1447,7 @@ module Reflect {X : Set} (Mor : List X → List X → Set) where
             where
               coeCod'-cast : ∀ {N P} (e e' : P ≡ k) (h : HomTerm (wires N) (wires P))
                            → coeCod' e h ≈Term coeCod' e' h
-              coeCod'-cast refl refl h = ≈-Term-refl
+              coeCod'-cast e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
               -- collapse two stacked domain coercions.
               coeDom-trans : ∀ {a b c p} (e1 : a ≡ b) (e2 : b ≡ c) (h : HomTerm (wires a) (wires p))
                            → coeDom e2 (coeDom e1 h) ≈Term coeDom (trans e1 e2) h
@@ -1451,7 +1455,7 @@ module Reflect {X : Set} (Mor : List X → List X → Set) where
               -- recast a domain coe along a propositionally-equal (UIP) eq.
               coeDom-cast : ∀ {N} (e e' : m ≡ m) (h : HomTerm (wires m) (wires N))
                           → coeDom e h ≈Term coeDom e' h
-              coeDom-cast refl refl h = ≈-Term-refl
+              coeDom-cast e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
           df-sound : coeCod' ef ⟦ df ⟧ ≈Term embed f
           df-sound = reflect-sound bs f
   reflect-sound bs (boxʷ {a} {b} g) = goal

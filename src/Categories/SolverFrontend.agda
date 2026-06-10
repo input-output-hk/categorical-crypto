@@ -1,4 +1,4 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- The solver FRONT-END: from wire-list diagrams to ObjTerm-arity generators.
@@ -85,7 +85,8 @@ open import Data.Bool using (Bool; true; false)
 open import Data.Empty using (⊥)
 open import Data.Nat using (ℕ; _*_; _<ᵇ_) renaming (zero to nzero; suc to nsuc)
 open import Data.List using (List; []; _∷_; _++_)
-open import Data.List.Properties using (++-assoc; ++-identityʳ)
+open import Data.List.Properties using (++-assoc; ++-identityʳ; ≡-dec)
+open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ; _,_; Σ-syntax)
 open import Data.Unit using (⊤; tt)
@@ -98,15 +99,21 @@ open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
 open import Categories.FreeMonoidal
 open import Categories.DiagramRewriteUntyped using (module Untyped)
-open import Categories.SolverReflect using (module Reflect; ≡-irrelevant)
+open import Categories.SolverReflect using (module Reflect)
 open import Categories.SolverNormalize using (module Normalize)
 open import Categories.SolverCompare using (module SolverCompare)
 
 module Frontend
   {X : Set}
+  (_≟X_ : DecidableEquality X)
   (let open FreeMonoidalHelper Mon X using (ObjTerm; unit; _⊗₀_; Var))
   (GenF : ObjTerm → ObjTerm → Set)
   where
+
+  -- UIP on the wire lists, via Hedberg (decidable equality), --without-K.
+  private
+    ≡-irrelevantL : ∀ {x y : List X} (e e' : x ≡ y) → e ≡ e'
+    ≡-irrelevantL = Decidable⇒UIP.≡-irrelevant (≡-dec _≟X_)
 
   ------------------------------------------------------------------------
   -- Object flattening and the wire-level generator family.
@@ -123,7 +130,7 @@ module Frontend
   -- Wire-level machinery at MorW.
   open Untyped {X} MorW                    -- wires, mor, box, ⟦box⟧, merge, split, …
   open FreeMonoidalHelper.Mor Mon X mor    -- W-side HomTerm, _≈Term_, …
-  open Reflect {X} MorW                    -- WTerm, embed, reflect, coeC, merge-ρ, …
+  open Reflect {X} _≟X_ MorW               -- WTerm, embed, reflect, coeC, merge-ρ, …
   open ≈R
 
   -- Front-end free category: HomTerm over GenF, qualified `F`.
@@ -610,7 +617,6 @@ module Frontend
   GenΣ = Σ[ Y ∈ ObjTerm ] Σ[ Z ∈ ObjTerm ] GenF Y Z
 
   module Decide
-    (_≟X_ : DecidableEquality X)
     (_≟G_ : DecidableEquality GenΣ)
     (rank : GenΣ → ℕ)   -- tiebreak key for ambiguous (mutually-fitting) pairs;
                         -- for a Fin-indexed signature, `toℕ` of the index.
@@ -629,13 +635,13 @@ module Frontend
 
     open SC.Decide _≟W_ using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
 
-    open Normalize {X} MorW using
+    open Normalize {X} _≟X_ MorW using
       ( castW; castW-∘; castW-irr
       ; substDiagU; substDiagU-out; ⟦substDiagU⟧
       ; LeftFit; leftFit
       ; dInput; dSwapped; dInput-out; dSwapped-out; diagU-swap-soundD; domeq
       ; module SortD )
-    open SortD _≟X_ using (leftFit?)
+    open SortD using (leftFit?)
 
     ------------------------------------------------------------------------
     -- A generic one-bubble interchange step on a clean DiagU.
@@ -647,7 +653,7 @@ module Frontend
     -- the obstruction by GENERALIZING the inner index to a fresh variable `m`
     -- carried with a propositional wiring equality `meq` — the inner cons
     -- then matches at a variable index, and `meq` is never matched, only
-    -- discharged against `domeq` by UIP (`≡-irrelevant`, --safe-with-K).
+    -- discharged against `domeq` by the Hedberg UIP on wire lists.
     ------------------------------------------------------------------------
 
     SwapRes : ∀ {n} → DiagU n → Set
@@ -677,7 +683,7 @@ module Frontend
            → SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) (py ▸ sy ∷ fy ⟨ rest' ⟩) ⟩)
       fire {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
            (leftFit P mid s refl refl refl refl) rest' meq
-        rewrite ≡-irrelevant meq (domeq P ay mid bx s)
+        rewrite ≡-irrelevantL meq (domeq P ay mid bx s)
         = d' , oeq , snd
         where
           fit' : LeftFit (P ++ (ay ++ mid)) s P (mid ++ (bx ++ s)) fx fy

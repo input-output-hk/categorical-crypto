@@ -85,12 +85,12 @@ private
 -- Solver machinery at this signature.
 
 open Untyped {Ty} Gen
-open Reflect  {Ty} Gen
-open Normalize {Ty} Gen
+open Reflect  {Ty} _≟Ty_ Gen
+open Normalize {Ty} _≟Ty_ Gen
 open FreeMonoidalHelper Mon Ty using (ObjTerm; unit; _⊗₀_; Var)
 open FreeMonoidalHelper.Mor Mon Ty mor
 open ≈R
-open SortD _≟Ty_
+open SortD
 
 private bs : BoxSound
         bs = boxSound
@@ -256,7 +256,7 @@ module Transport {o ℓ e} (C : MonoidalCategory o ℓ e) where
     -- the front-end term language (the reference's `S`).
     private module S = FreeMonoidalHelper.Mor Mon Ty GenT
 
-    open Frontend {Ty} GenT
+    open Frontend {Ty} _≟Ty_ GenT
 
     private
       _≟G_ : DecidableEquality GenΣ
@@ -268,7 +268,7 @@ module Transport {o ℓ e} (C : MonoidalCategory o ℓ e) where
       ⟦ ⋆ ⟧₀T = A
       ⟦ • ⟧₀T = B
 
-    open Decide _≟Ty_ _≟G_ (λ { (_ , _ , genT i) → Data.Fin.toℕ i })
+    open Decide _≟G_ (λ { (_ , _ , genT i) → Data.Fin.toℕ i })
     open Into C ⟦_⟧₀T
 
     module WithMorphisms

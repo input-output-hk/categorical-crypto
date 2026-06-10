@@ -1,4 +1,4 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- Normalising untyped monoidal diagrams by reordering independent boxes.
@@ -47,10 +47,19 @@ open import Data.Maybe using (Maybe; just; nothing)
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive
   using (Star; ε; _◅_)
 
+open import Data.List.Properties using (≡-dec)
+open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
+
 open import Categories.FreeMonoidal
 open import Categories.DiagramRewriteUntyped
 
-module Normalize {X : Set} (Mor : List X → List X → Set) where
+module Normalize {X : Set} (_≟X_ : DecidableEquality X)
+                 (Mor : List X → List X → Set) where
+
+  -- UIP on the wire lists, via Hedberg (decidable equality), --without-K.
+  private
+    ≡-irrelevantL : ∀ {x y : List X} (e e' : x ≡ y) → e ≡ e'
+    ≡-irrelevantL = Decidable⇒UIP.≡-irrelevant (≡-dec _≟X_)
 
   open Untyped {X} Mor
   open FreeMonoidalHelper Mon X using (ObjTerm)
@@ -789,10 +798,10 @@ module Normalize {X : Set} (Mor : List X → List X → Set) where
           → castW e₂ ∘ castW e₁ ≈Term castW (trans e₁ e₂)
   castW-∘ refl refl = idˡ
 
-  -- `castW` is determined by its endpoints (proof-irrelevance via UIP; --safe
-  -- here is with-K, so this is a clean `refl`-match on both equalities).
+  -- `castW` is determined by its endpoints (proof-irrelevance via the
+  -- Hedberg UIP on wire lists; --without-K).
   castW-irr : ∀ {u v : List X} (e e' : u ≡ v) → castW e ≈Term castW e'
-  castW-irr refl refl = ≈-Term-refl
+  castW-irr e e' rewrite ≡-irrelevantL e e' = ≈-Term-refl
 
   -- prepending one wire to a transport.
   castW-∷ : ∀ {x : X} {u v : List X} (e : u ≡ v)
@@ -1599,18 +1608,11 @@ module Normalize {X : Set} (Mor : List X → List X → Set) where
   -- (`dInput`/`dSwapped` + `diagU-swap-soundD`), and `normalizeD` is a fuel-driven
   -- bubble sort whose soundness chains the per-swap `≈Term` witnesses.
   --------------------------------------------------------------------------------
-  module SortD (_≟X_ : DecidableEquality X) where
+  module SortD where
 
-    -- derived decidable equality on offsets.
+    -- derived decidable equality on offsets (stdlib, --without-K friendly).
     _≟L_ : DecidableEquality (List X)
-    []       ≟L []       = yes refl
-    []       ≟L (_ ∷ _)  = no λ ()
-    (_ ∷ _)  ≟L []       = no λ ()
-    (x ∷ xs) ≟L (y ∷ ys) with x ≟X y
-    ... | no  x≢y  = no λ { refl → x≢y refl }
-    ... | yes refl with xs ≟L ys
-    ...   | no  xs≢ys = no λ { refl → xs≢ys refl }
-    ...   | yes refl  = yes refl
+    _≟L_ = ≡-dec _≟X_
 
     -- strip a known prefix `p` off `xs`, returning the remainder with a proof.
     stripPrefix : (p xs : List X) → Maybe (Σ[ ys ∈ List X ] xs ≡ p ++ ys)
@@ -1745,6 +1747,7 @@ module Normalize {X : Set} (Mor : List X → List X → Set) where
 module Litmus where
 
   open import Data.Nat using (ℕ)
+  open import Data.Nat.Properties using () renaming (_≟_ to _≟ℕ_)
   open import Data.Product using (_,_; proj₁; proj₂; Σ; Σ-syntax)
   open import Relation.Binary.PropositionalEquality using (_≡_; refl)
   open import Relation.Binary.Construct.Closure.ReflexiveTransitive using (Star; ε; _◅_)
@@ -1753,7 +1756,7 @@ module Litmus where
     fbox : Gen (0 ∷ []) (0 ∷ [])
     gbox : Gen (1 ∷ []) (1 ∷ [])
 
-  open Normalize {ℕ} Gen
+  open Normalize {ℕ} _≟ℕ_ Gen
   open Untyped {ℕ} Gen
   open FreeMonoidalHelper.Mor Mon ℕ mor
   open ≈R
@@ -2004,8 +2007,7 @@ module Litmus where
   -- the fit by splitting the offset lists; `swapHeadD` returns the swapped clean
   -- DiagU (fbox first); all `++`-assoc casts reduce to `id` (P=mid=s=[]).
   --------------------------------------------------------------------------------
-  open import Data.Nat.Properties using (_≟_)
-  open SortD _≟_
+  open SortD
 
   -- the recogniser FIRES on the litmus offsets/boxes — machine-checked `just`.
   litLeftFit? : leftFit? (0 ∷ []) [] [] (1 ∷ []) gbox fbox
