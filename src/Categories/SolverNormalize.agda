@@ -9,49 +9,41 @@
 -- interpretation `⟦_⟧`.  That single-pair fact is `TwoBoxSwap.two-box-swap`,
 -- which is σ-free (pure interchange / bifunctoriality).
 --
--- This module turns the single-pair swap into a constructive `normalize`
--- together with an UNCONDITIONAL soundness proof `normalize-sound`.
+-- The deliverable is the clean-DiagU swap engine `SortD` (§12): a decidable
+-- recogniser `leftFit?` for an out-of-order independent head pair, the firing
+-- swap `swapHeadD` with its per-swap soundness `diagU-swap-soundD` (proven by
+-- conjugating `two-box-swap` with the `castW` object-transport algebra of
+-- §11d'), and the one-step driver `normalizeD` — plus the `Normalize` wrapper
+-- at the standard interpretation.  Everything is unconditional: no module
+-- parameters beyond the box signature, no postulates.
 --
--- DESIGN (the representation fix)
--- ------------------------------------------------------------------------------
--- The earlier design stored ABSOLUTE offsets in each list element and tried to
--- realise a bare verbatim transposition of two elements as a swap.  That fails:
--- a verbatim transposition of two records with absolute offsets is ill-wired,
--- because after a box of a different width fires the next box's absolute offset
--- shifts; the equality the swap needs holds only up to `++`-associativity,
--- never definitionally.
---
--- The fix here is to make the adjacent swap a CONSTRUCTIVE FUNCTION `swapAdj`
--- that BUILDS the output ordering with RECOMPUTED offsets, so well-typedness is
--- under our control rather than an uninhabitable premise.  The genuinely hard
--- (load-bearing) lemma is the soundness of one such swap, which we discharge by
--- reusing `TwoBoxSwap.two-box-swap` together with the offset-reframing bridge
--- `TwoBoxSwap.g-out≈pad` (the `assocW`/`assocW⁻` reassociators).
---
--- We carry the (already proven) `≈Term` witness alongside each swap step, so
--- that `normalize-sound` is an unconditional chaining of those witnesses by
--- transitivity — there are NO module parameters and NO postulates.
+-- DESIGN.  A verbatim transposition of two layers with absolute offsets is
+-- ill-wired: after a box of a different width fires, the next box's absolute
+-- offset shifts, so the equality the swap needs holds only up to
+-- `++`-associativity, never definitionally.  The swap therefore BUILDS its
+-- output with RECOMPUTED offsets (`dSwapped`), absorbing the non-definitional
+-- re-indexing with `substDiagU`, and its soundness is discharged by reusing
+-- `TwoBoxSwap.two-box-swap` together with the offset-reframing bridges
+-- `TwoBoxSwap.g-out≈pad` / `g-in≈pad` (the `assocW`/`assocW⁻` reassociators,
+-- collapsed to `castW` transports).
 --------------------------------------------------------------------------------
 
 module Categories.SolverNormalize where
 
-open import Data.List using (List; []; _∷_; _++_; length)
-open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _<ᵇ_)
-open import Data.Bool using (Bool; true; false; if_then_else_; _∧_)
-open import Data.Product using (_×_; _,_; proj₁; proj₂; Σ; Σ-syntax; ∃; ∃-syntax)
-open import Relation.Nullary using (Dec; yes; no; ¬_)
+open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
+open import Data.List using (List; []; _∷_; _++_)
+open import Data.List.Properties using (≡-dec; ++-assoc)
+open import Data.Maybe as Maybe using (Maybe; just; nothing; _>>=_)
+open import Data.Nat using (ℕ; zero; suc)
+open import Data.Product using (_,_; Σ; Σ-syntax)
+open import Function.Base using (case_of_)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; cong; trans)
-open import Data.Maybe using (Maybe; just; nothing)
-open import Relation.Binary.Construct.Closure.ReflexiveTransitive
-  using (Star; ε; _◅_)
+  using (_≡_; refl; sym; cong; cong₂; trans)
+open import Relation.Nullary using (yes; no)
 
-open import Data.List.Properties using (≡-dec)
-open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
-
-open import Categories.FreeMonoidal
 open import Categories.DiagramRewriteUntyped
+open import Categories.FreeMonoidal
 
 module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
                   (Mor : List X → List X → Set)
@@ -81,9 +73,9 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- `TwoBoxSwap.g-out≈pad`) — is also expressible as a `Layer`, with its
   -- well-typedness under our control rather than an uninhabitable premise.
   --
-  -- Crucially we never transpose `Layer`s verbatim: the adjacent swap `swapAdj`
-  -- (§3) BUILDS the swapped layers (with recomputed offsets / reframed
-  -- interpretations) from scratch.
+  -- Crucially we never transpose `Layer`s verbatim: the swap (§11g) BUILDS the
+  -- swapped layers (with recomputed offsets / reframed interpretations) from
+  -- scratch.
   --------------------------------------------------------------------------------
 
   record Layer : Set where
@@ -131,14 +123,12 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   ⟦ ordering _ w ⟧O = ⟦ w ⟧W
 
   --------------------------------------------------------------------------------
-  -- 2'. Witness-carrying swap steps and their reflexive-transitive closure.
+  -- 2'. Witness-carrying swap steps.
   --
   -- A swap step `o ⇒W o'` is an ordering rewrite that already carries a proof
-  -- that the two interpretations agree.  `⇒W*-sound` lifts any `Star`-path of
-  -- such steps to a single `≈Term` by transitivity — the standard chaining
-  -- pattern, no `subst`, fixed endpoints.  Each genuine adjacent-disjoint swap
-  -- is realised as such a step by `swapAdj` (§4), whose soundness is the single
-  -- load-bearing lemma (reusing `TwoBoxSwap`).
+  -- that the two interpretations agree.  Each genuine adjacent-disjoint swap is
+  -- realised as such a step by `LeftFrame.input⇒sorted` (§11c), whose soundness
+  -- is the single load-bearing lemma (reusing `TwoBoxSwap`).
   --------------------------------------------------------------------------------
 
   record _⇒W_ {N M : List X} (o o' : Ordering N M) : Set where
@@ -147,10 +137,6 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       sound : ⟦ o ⟧O ≈Term ⟦ o' ⟧O
 
   open _⇒W_ public
-
-  ⇒W*-sound : ∀ {N M} {o o' : Ordering N M} → Star _⇒W_ o o' → ⟦ o ⟧O ≈Term ⟦ o' ⟧O
-  ⇒W*-sound ε        = ≈-Term-refl
-  ⇒W*-sound (s ◅ ss) = ≈-Term-trans (sound s) (⇒W*-sound ss)
 
   --------------------------------------------------------------------------------
   -- 3. The four canonical layers of an adjacent disjoint pair, from a frame.
@@ -230,164 +216,12 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
         ≈⟨ ≈-Term-sym assoc ⟩
       (⟦ wRest ⟧W ∘ f-out) ∘ g-in ∎
 
-    -- the two orderings (same fixed endpoints) and the swap step between them.
+    -- the two orderings (same fixed endpoints).
     before-O : ∀ {M rest} → Wired (L-out g-out-layer) rest M → Ordering (L-in f-in-layer) M
     before-O wRest = ordering _ (before-wired wRest)
 
     after-O : ∀ {M rest} → Wired (L-out f-out-layer) rest M → Ordering (L-in g-in-layer) M
     after-O wRest = ordering _ (after-wired wRest)
-
-    swap-step : ∀ {M rest} (wRest : Wired (L-out g-out-layer) rest M)
-              → before-O wRest ⇒W after-O wRest
-    swap-step wRest = wstep (head-swap-sound wRest)
-
-  --------------------------------------------------------------------------------
-  -- 4. The constructive adjacent swap `swapAdj`.
-  --
-  -- Given a frame (`Frame P mid r f g`) and any wired tail from the common
-  -- output `N₃` onwards, `swapAdj` returns the swapped ordering together with a
-  -- proof (a `_⇒W_` step) that the interpretation is preserved.  This is the
-  -- constructive function that BUILDS `d'` with recomputed offsets / reframed
-  -- interpretations; its soundness is `head-swap-sound` = `two-box-swap`.
-  --
-  -- `out`-preservation is definitional here (both orderings share the same `M`).
-  --------------------------------------------------------------------------------
-
-  swapAdj : (P mid r : List X) {a₁ b₁ a₂ b₂ : List X}
-            (f : Mor a₁ b₁) (g : Mor a₂ b₂)
-            {M : List X} {rest : List Layer}
-          → (wRest : Wired (Frame.L-out-g P mid r f g) rest M)
-          → Σ[ o' ∈ Ordering (Frame.N₀ P mid r f g) M ]
-              (Frame.before-O P mid r f g wRest ⇒W o')
-  swapAdj P mid r f g wRest =
-    Frame.after-O P mid r f g wRest , Frame.swap-step P mid r f g wRest
-
-  --------------------------------------------------------------------------------
-  -- 4'. Prepending a fixed prefix to a swap step (congruence).
-  --
-  -- A `_⇒W_` step only ever swaps a HEAD-PAIR.  To run it deeper in a list we
-  -- prepend a fixed prefix of layers in front of both sides.  Since `⟦_⟧W` folds
-  -- compositionally (`⟦ l ∷ ws ⟧W = ⟦ ws ⟧W ∘ ⟦L⟧ l`), prepending a layer is a
-  -- post-composition, so `∘-resp-≈` lifts the witness.  Iterating gives the
-  -- prefix-lift for an arbitrary wired prefix.
-  --
-  -- We package prefixes as `Wired`-on-the-left data via `_⊕O_`, which glues a
-  -- wired prefix `Wired P pre N` onto an ordering `Ordering N M`.
-  --------------------------------------------------------------------------------
-
-  -- glue a wired prefix in front of an ordering's layer-list
-  _⊕W_ : ∀ {P N M} {pre : List Layer} {ls : List Layer}
-       → Wired P pre N → Wired N ls M → Wired P (pre ++ ls) M
-  _⊕W_ []         w = w
-  _⊕W_ (l ∷ wpre) w = l ∷ (wpre ⊕W w)
-
-  -- the glued ordering
-  _⊕O_ : ∀ {P N M} {pre : List Layer}
-       → Wired P pre N → (o : Ordering N M) → Ordering P M
-  _⊕O_ wpre (ordering ls w) = ordering _ (wpre ⊕W w)
-
-  -- gluing a prefix is a post-composition on interpretations
-  ⊕W-⟦⟧ : ∀ {P N M} {pre : List Layer}
-          (wpre : Wired P pre N) (o : Ordering N M)
-        → ⟦ wpre ⊕O o ⟧O ≈Term ⟦ o ⟧O ∘ ⟦ wpre ⟧W
-  ⊕W-⟦⟧ []         o              = ≈-Term-sym idʳ
-  ⊕W-⟦⟧ (l ∷ wpre) (ordering ls w) = begin
-    ⟦ (wpre ⊕W w) ⟧W ∘ ⟦L⟧ l
-      ≈⟨ ∘-resp-≈ (⊕W-⟦⟧ wpre (ordering ls w)) ≈-Term-refl ⟩
-    (⟦ w ⟧W ∘ ⟦ wpre ⟧W) ∘ ⟦L⟧ l
-      ≈⟨ assoc ⟩
-    ⟦ w ⟧W ∘ (⟦ wpre ⟧W ∘ ⟦L⟧ l) ∎
-
-  -- prefix-lift of a single swap step
-  ⇒W-prefix : ∀ {P N M} {pre : List Layer}
-              (wpre : Wired P pre N) {o o' : Ordering N M}
-            → o ⇒W o' → (wpre ⊕O o) ⇒W (wpre ⊕O o')
-  ⇒W-prefix wpre {o} {o'} s = wstep (begin
-    ⟦ wpre ⊕O o ⟧O
-      ≈⟨ ⊕W-⟦⟧ wpre o ⟩
-    ⟦ o ⟧O ∘ ⟦ wpre ⟧W
-      ≈⟨ ∘-resp-≈ (sound s) ≈-Term-refl ⟩
-    ⟦ o' ⟧O ∘ ⟦ wpre ⟧W
-      ≈⟨ ≈-Term-sym (⊕W-⟦⟧ wpre o') ⟩
-    ⟦ wpre ⊕O o' ⟧O ∎)
-
-  -- prefix-lift of a whole path
-  ⇒W*-prefix : ∀ {P N M} {pre : List Layer}
-               (wpre : Wired P pre N) {o o' : Ordering N M}
-             → Star _⇒W_ o o' → Star _⇒W_ (wpre ⊕O o) (wpre ⊕O o')
-  ⇒W*-prefix wpre ε        = ε
-  ⇒W*-prefix wpre (s ◅ ss) = ⇒W-prefix wpre s ◅ ⇒W*-prefix wpre ss
-
-  --------------------------------------------------------------------------------
-  -- 5. `normalize` and the UNCONDITIONAL `normalize-sound`.
-  --
-  -- A `normalize` driven by a swap path returns the target ordering; its
-  -- soundness is immediate from `⇒W*-sound`.  This is unconditional: no module
-  -- parameters, no postulates, and the steps in the path are GENUINE adjacent
-  -- swaps produced by `swapAdj` (each carrying a real `two-box-swap` witness).
-  --
-  -- (A canonical *insertion sort* producing the path automatically — sort key =
-  -- leftmost offset with a tiebreak — is the natural T3 follow-up; the
-  -- soundness infrastructure here already accepts any such generated path.)
-  --------------------------------------------------------------------------------
-
-  normalize : ∀ {N M} (src tgt : Ordering N M) → Star _⇒W_ src tgt → Ordering N M
-  normalize _ tgt _ = tgt
-
-  normalize-sound : ∀ {N M} (src tgt : Ordering N M) (path : Star _⇒W_ src tgt)
-                  → ⟦ src ⟧O ≈Term ⟦ normalize src tgt path ⟧O
-  normalize-sound src tgt path = ⇒W*-sound path
-
-  --------------------------------------------------------------------------------
-  -- 5'. Decidable adjacent-disjointness / orientation test.
-  --
-  -- A canonical layer `mk-pad pre suf f` (for `f : Mor a b`) occupies the flat
-  -- wire-interval `[ off , off + win )` on its INPUT layout, where `off =
-  -- length pre` and `win = length a`.  Two adjacent canonical layers are
-  -- *independent* (so `swapAdj` applies) iff their input intervals are disjoint;
-  -- the one with the smaller offset is the LEFT box.  The test below is a pure
-  -- ℕ computation on the offset/width data, hence decidable with no use of
-  -- `DecidableEquality X`.
-  --
-  -- We expose a `Footprint` record carrying the ℕ offset and the in/out widths,
-  -- a Boolean orientation test, and a three-way `Orient` result.  The sort
-  -- driver (§7) reads footprints off the `DiagU`/placed-layer representation.
-  --------------------------------------------------------------------------------
-
-  record Footprint : Set where
-    constructor footprint
-    field
-      off : ℕ      -- length of `pre`  (leftmost wire index)
-      win : ℕ      -- length of the box input  (interval width on the input)
-      wout : ℕ     -- length of the box output (interval width on the output)
-
-  open Footprint public
-
-  -- `left` ends (exclusively) at `off + win` on its OUTPUT layout; `right`'s
-  -- input offset must be ≥ that for the pair to be disjoint and non-crossing.
-  -- Canonically the right box sits after the left box's *output* block, so the
-  -- comparison uses the left box's output width `wout`.
-  data Orient : Set where
-    left-of  : Orient      -- fp₁ is strictly left of fp₂, disjoint
-    right-of : Orient      -- fp₂ is strictly left of fp₁, disjoint
-    crossing  : Orient      -- intervals touch/cross: NOT independent
-
-  -- the orientation of an adjacent ordered pair (fp₁ fires first / is the head)
-  orient : Footprint → Footprint → Orient
-  orient fp₁ fp₂ =
-    if (off fp₁ + wout fp₁) <ᵇ suc (off fp₂)
-      then left-of
-      else if (off fp₂ + win fp₂) <ᵇ suc (off fp₁)
-             then right-of
-             else crossing
-
-  -- decidable adjacency-swap applicability: returns whether the pair is
-  -- independent (either orientation) — a `Bool` view of `orient`.
-  independent? : Footprint → Footprint → Bool
-  independent? fp₁ fp₂ with orient fp₁ fp₂
-  ... | left-of  = true
-  ... | right-of = true
-  ... | crossing  = false
 
   --------------------------------------------------------------------------------
   -- 6. The `DiagU ↔ Ordering` bridge.
@@ -396,8 +230,8 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- `Layer` (whose `⟦L⟧` is exactly `pad pre suf (⟦box⟧ f)`); the empty diagram
   -- `[]_ n` becomes the empty `Wired`.  Since `⟦_⟧W` folds head-applied-first
   -- with the SAME shape as `DiagU`'s `⟦_⟧`, the bridge soundness is definitional
-  -- (`≈-Term-refl`).  This lets `reflect`'s `DiagU` output feed `normalizeA`, and
-  -- the sorted result feed `SolverCompare`.
+  -- (`≈-Term-refl`).  This lets `reflect`'s `DiagU` output feed the `SortD`
+  -- engine (§12), and the sorted result feed `SolverCompare`.
   --------------------------------------------------------------------------------
 
   -- the layer-list underlying a diagram
@@ -410,233 +244,30 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   fromDiagU-W ([]_ n)             = []
   fromDiagU-W (pre ▸ suf ∷ f ⟨ d ⟩) = mk-pad pre suf f ∷ fromDiagU-W d
 
-  fromDiagU : ∀ {n} (d : DiagU n) → Ordering n (out d)
-  fromDiagU d = ordering (fromDiagU-ls d) (fromDiagU-W d)
-
   -- bridge soundness: definitional (head-applied-first fold matches `⟦_⟧`).
-  fromDiagU-sound : ∀ {n} (d : DiagU n) → ⟦ fromDiagU d ⟧O ≈Term ⟦ d ⟧
+  fromDiagU-sound : ∀ {n} (d : DiagU n) → ⟦ fromDiagU-W d ⟧W ≈Term ⟦ d ⟧
   fromDiagU-sound ([]_ n)             = ≈-Term-refl
   fromDiagU-sound (pre ▸ suf ∷ f ⟨ d ⟩) =
     ∘-resp-≈ (fromDiagU-sound d) ≈-Term-refl
 
   --------------------------------------------------------------------------------
-  -- 7. The autonomous sort `sortpath`.
-  --
-  -- `sortpath o` repeatedly looks for the first adjacent pair that is out of
-  -- canonical order AND independent, performs the genuine `swapAdj` swap there
-  -- (lifted past the fixed prefix by `⇒W-prefix`), and recurses — accumulating a
-  -- `Star _⇒W_` path to the returned ordering.  TERMINATION is by explicit FUEL
-  -- (`length²`): if the fuel runs out we return the current ordering together
-  -- with the path built so far.  Because every emitted step is a real `_⇒W_`
-  -- witness, soundness (`normalizeA-sound`) is UNCONDITIONAL regardless of how
-  -- much sorting actually happened — running out of fuel only weakens canonicity
-  -- (§8), never soundness.
-  --
-  -- THE STEP ORACLE.  A single bubble step needs, at a chosen adjacent position,
-  -- a `_⇒W_` witness swapping that pair.  The genuine producer is `swapAdj`,
-  -- whose `before-O` head-pair is `f-in-layer ∷ g-out-layer` — the LEFT box a
-  -- clean `pad`, the RIGHT box the reassociator-conjugated `g-out`.  Recovering
-  -- that frame shape from the OPAQUE `Layer.⟦L⟧` carrier of a generic ordering is
-  -- not definitional (the right box of a clean canonical ordering differs from
-  -- `g-out` by the `assocW`/`assocW⁻` reassociators of `g-out≈pad`, which do not
-  -- cancel for a single pair).  We therefore expose the step oracle as a total
-  -- `Maybe`-valued recognizer `headSwap?`; it FIRES (returns a real `swapAdj`
-  -- step) exactly on orderings already in frame form, and conservatively returns
-  -- `nothing` otherwise.  The driver below is fully autonomous and sound for any
-  -- oracle of this shape; supplying the frame-form re-cleaning recogniser that
-  -- makes it fire on every canonical clean-pad ordering is the precisely-stated
-  -- open follow-up (see §8 / the module note).
-  --------------------------------------------------------------------------------
-
-  open import Data.Maybe using (Maybe; just; nothing)
-
-  -- a head-swap candidate: a target ordering with the same endpoints and a real
-  -- `_⇒W_` witness to it.
-  HeadSwap : ∀ {N M} → Ordering N M → Set
-  HeadSwap {N} {M} o = Σ[ o' ∈ Ordering N M ] (o ⇒W o')
-
-  -- The genuine head-swap on a frame's `before-O`: this is exactly `swapAdj`,
-  -- repackaged as a `HeadSwap`.  It witnesses that the oracle's `just` branch is
-  -- inhabited by real `two-box-swap` content (it is NOT a stub).
-  frameHeadSwap : (P mid r : List X) {a₁ b₁ a₂ b₂ : List X}
-                  (f : Mor a₁ b₁) (g : Mor a₂ b₂)
-                  {M : List X} {rest : List Layer}
-                  (wRest : Wired (Frame.L-out-g P mid r f g) rest M)
-                → HeadSwap (Frame.before-O P mid r f g wRest)
-  frameHeadSwap P mid r f g wRest = swapAdj P mid r f g wRest
-
-  -- The conservative recogniser over generic orderings.  Returns `nothing`
-  -- because frame-recovery from `Layer.⟦L⟧` is not definitional (see §7 note);
-  -- the `just` branch is reserved for the frame-form re-cleaning recogniser
-  -- (the stated open follow-up).  The driver is sound for either result.
-  headSwap? : ∀ {N M} (o : Ordering N M) → Maybe (HeadSwap o)
-  headSwap? o = nothing
-
-  -- Fuel-driven bubble driver.  At each fuel tick we try the head oracle; on a
-  -- hit we take the real step and recurse from the new ordering; on a miss (or
-  -- out of fuel) we stop with the empty remaining path.  Each branch returns a
-  -- target ordering paired with a `Star _⇒W_` path to it.
-  sortFuel : ∀ {N M} → ℕ → (o : Ordering N M)
-           → Σ[ o' ∈ Ordering N M ] Star _⇒W_ o o'
-  sortFuel zero    o = o , ε
-  sortFuel (suc k) o with headSwap? o
-  ... | nothing        = o , ε
-  ... | just (o' , st) =
-    let (o'' , p) = sortFuel k o' in o'' , (st ◅ p)
-
-  -- canonical fuel budget: `length²` of the layer list (worst-case bubble-sort
-  -- swap count).  Any fuel ≥ the number of inversions suffices for full sorting
-  -- once the recogniser fires; soundness is independent of the amount.
-  sortFuelFor : ∀ {N M} → Ordering N M → ℕ
-  sortFuelFor o = let n = length (layers o) in n + n * n
-
-  sortpath : ∀ {N M} (o : Ordering N M)
-           → Σ[ o' ∈ Ordering N M ] Star _⇒W_ o o'
-  sortpath o = sortFuel (sortFuelFor o) o
-
-  --------------------------------------------------------------------------------
-  -- `normalizeA` and the UNCONDITIONAL, AUTONOMOUS `normalizeA-sound`.
-  --
-  -- `normalizeA = proj₁ ∘ sortpath`; its soundness is `⇒W*-sound` of the
-  -- generated path.  No module parameters beyond the ambient `Mor`, no supplied
-  -- path, no postulates.
-  --------------------------------------------------------------------------------
-
-  normalizeA : ∀ {N M} → Ordering N M → Ordering N M
-  normalizeA o = proj₁ (sortpath o)
-
-  normalizeA-sound : ∀ {N M} (o : Ordering N M) → ⟦ o ⟧O ≈Term ⟦ normalizeA o ⟧O
-  normalizeA-sound o = ⇒W*-sound (proj₂ (sortpath o))
-
-  -- end-to-end: a diagram, reflected to an ordering and sorted, is sound.
-  normalizeA-fromDiagU-sound : ∀ {n} (d : DiagU n)
-                             → ⟦ d ⟧ ≈Term ⟦ normalizeA (fromDiagU d) ⟧O
-  normalizeA-fromDiagU-sound d =
-    ≈-Term-trans (≈-Term-sym (fromDiagU-sound d)) (normalizeA-sound (fromDiagU d))
-
-  --------------------------------------------------------------------------------
-  -- 7'. The genuine swap capability is NOT a stub.
-  --
-  -- The driver above is generic over the head oracle.  The following shows the
-  -- oracle's `just` branch is inhabited by REAL `two-box-swap` content, lifted to
-  -- ANY depth in the list by `⇒W-prefix`: given a wired prefix landing on a
-  -- frame's common input, and any wired tail from the frame's output, we emit a
-  -- genuine, non-empty `Star _⇒W_` path that swaps that interior pair.  This is
-  -- the swap the sort fires whenever its head pair is in frame form.
-  --------------------------------------------------------------------------------
-
-  -- a real interior swap step, anywhere in the list, from genuine frame data.
-  interiorSwap : ∀ {P M : List X} {prefL : List Layer}
-                 (P₀ mid r : List X) {a₁ b₁ a₂ b₂ : List X}
-                 (f : Mor a₁ b₁) (g : Mor a₂ b₂)
-                 {rest : List Layer}
-                 (wpre  : Wired P prefL (Frame.N₀ P₀ mid r f g))
-                 (wRest : Wired (Frame.L-out-g P₀ mid r f g) rest M)
-               → Σ[ o' ∈ Ordering P M ]
-                   ((wpre ⊕O Frame.before-O P₀ mid r f g wRest) ⇒W o')
-  interiorSwap P₀ mid r f g wpre wRest =
-    let (o' , st) = swapAdj P₀ mid r f g wRest
-    in (wpre ⊕O o') , ⇒W-prefix wpre st
-
-  -- ...and as a one-step path (a genuine, non-empty `Star _⇒W_`).
-  interiorSwap-path : ∀ {P M : List X} {prefL : List Layer}
-                      (P₀ mid r : List X) {a₁ b₁ a₂ b₂ : List X}
-                      (f : Mor a₁ b₁) (g : Mor a₂ b₂)
-                      {rest : List Layer}
-                      (wpre  : Wired P prefL (Frame.N₀ P₀ mid r f g))
-                      (wRest : Wired (Frame.L-out-g P₀ mid r f g) rest M)
-                    → Σ[ o' ∈ Ordering P M ]
-                        Star _⇒W_ (wpre ⊕O Frame.before-O P₀ mid r f g wRest) o'
-  interiorSwap-path P₀ mid r f g wpre wRest =
-    let (o' , st) = interiorSwap P₀ mid r f g wpre wRest
-    in o' , (st ◅ ε)
-
-  --------------------------------------------------------------------------------
   -- 8. (Open) canonicity / completeness.
   --
-  -- The completeness property the decision procedure needs is:
-  --
-  --   normalizeA-canonical :
-  --     ∀ {N M} (o₁ o₂ : Ordering N M)
-  --     → SamePlacedMultiset o₁ o₂          -- same multiset of (box, footprint)
-  --     → normalizeA o₁ ≡ normalizeA o₂     -- identical sorted ordering
-  --
-  -- i.e. two orderings differing only by independent (interchange) reorderings
-  -- normalise to the SAME `Ordering`, so interchange-equal diagrams have equal
-  -- normal forms and `SolverCompare`'s `_≟DiagU_` decides ≈Term-equality.
-  --
-  -- This is NOT a hole: it is unproven and omitted.  It rests on TWO pieces not
-  -- yet in place: (a) the `headSwap?` recogniser must FIRE on every canonical
-  -- clean-pad ordering — which needs the frame-form re-cleaning bridge
-  -- (`g-out≈pad` TOGETHER WITH `g-in≈pad` — both now PROVEN in
-  -- `DiagramRewriteUntyped.TwoBoxSwap` — conjugating `two-box-swap` by the
-  -- `assocW`/`assocW⁻` reassociators so a clean-pad pair maps to a clean-pad
-  -- pair); and (b) confluence of the resulting bubble sort to a unique
-  -- footprint-ordered normal form (canonical key = leftmost offset `off` with a
-  -- deterministic tiebreak on `win`).  Soundness (§7) is already fully done and
-  -- is independent of both.
+  -- Soundness of the swap engine below is unconditional; what remains OPEN is
+  -- canonicity: that interchange-equal diagrams reach the SAME normal form (so
+  -- that `SolverCompare`'s `_≟DiagU_` decides `≈Term`-equality).  This needs
+  -- confluence of the bubble sort to a footprint-ordered normal form (canonical
+  -- key = leftmost offset, deterministic tiebreak on the input width).
   --------------------------------------------------------------------------------
 
   --------------------------------------------------------------------------------
-  -- 9. The genuine firing swap, demonstrated.
+  -- 11. DiagU-level recognition: reading frame data off the boxes.
   --
-  -- `g-in≈pad` (the mirror of `g-out≈pad`, now PROVEN in
-  -- `DiagramRewriteUntyped.TwoBoxSwap`) lets us re-express BOTH of a frame's
-  -- reassociator-conjugated g-layers as genuine flat `pad`s.  The frame
-  -- `before-O`/`after-O` head-pairs are therefore exactly the clean adjacent-pair
-  -- orderings up to the (provably structural) reassociators, and `swap-step`
-  -- swaps them with a real `two-box-swap` witness.
-  --
-  -- ARCHITECTURAL NOTE on the clean⇄frame assembly.  The two reassociators
-  -- `reassocF-out : wires (P++(b₁++(mid++(a₂++r)))) ⇒ wires ((P++(b₁++mid))++(a₂++r))`
-  -- and its `-in`/`-back` siblings are isomorphisms between objects that are EQUAL
-  -- LISTS ONLY UP TO `++`-ASSOCIATIVITY.  For ABSTRACT frame data `P b₁ mid a₂ r`
-  -- those two objects are NOT definitionally equal, so the would-be hypothesis
-  -- `reassocF-out ≈Term id` is even ILL-TYPED (`_≈Term_` demands a common
-  -- domain/codomain).  Consequently a single closed abstract `cleanSwap` lemma
-  -- DOES NOT EXIST: the clean before-pair `Wired` (two genuine `mk-pad`s) does
-  -- not even typecheck abstractly — its inter-layer wiring `L-out x ≡ L-in y` is
-  -- the non-definitional `P++(b₁++(mid++(a₂++r))) ≡ (P++(b₁++mid))++(a₂++r)`.
-  --
-  -- For CONCRETE offset lists, however, all these objects coincide definitionally
-  -- (`++` reduces), the reassociators reduce to `id⊗-towers ≈Term id`, the clean
-  -- before/after `Wired`s typecheck, and the whole assembly closes — see the
-  -- `Litmus` module below, where `normalizeA`/the path-driven `normalize`
-  -- genuinely REORDER two independent clean `mk-pad` layers with a real
-  -- `two-box-swap` soundness witness.
-  --------------------------------------------------------------------------------
-
-  --------------------------------------------------------------------------------
-  -- 9'. A FIRING autonomous oracle on frame-tagged head pairs.
-  --
-  -- The generic `headSwap? : Ordering N M → Maybe (HeadSwap o)` cannot fire,
-  -- because `Layer.⟦L⟧` is an opaque `HomTerm` and `L-in`/`L-out` do not
-  -- determine the pre/box/suf split: there is simply no way to recover the boxes
-  -- `f`,`g` (needed to BUILD the swapped ordering `o'`) from a generic `Layer`.
-  --
-  -- We therefore expose the firing oracle at the level where the boxes ARE in
-  -- hand: a head pair *presented as frame data*.  `frameHeadSwap` (§7) already
-  -- produces the genuine `HeadSwap (before-O …)`; here we wrap it as a total,
-  -- ALWAYS-`just` recogniser on the frame's `before-O`, so the fuel driver fires
-  -- on it.  This is NOT a no-op: the `just` payload is the real `swapAdj` step.
-  --------------------------------------------------------------------------------
-
-  -- ALWAYS fires: recognises a frame's `before-O` and returns the genuine swap.
-  headSwapFrame? : (P mid r : List X) {a₁ b₁ a₂ b₂ : List X}
-                   (f : Mor a₁ b₁) (g : Mor a₂ b₂)
-                   {M : List X} {rest : List Layer}
-                   (wRest : Wired (Frame.L-out-g P mid r f g) rest M)
-                 → Maybe (HeadSwap (Frame.before-O P mid r f g wRest))
-  headSwapFrame? P mid r f g wRest = just (frameHeadSwap P mid r f g wRest)
-
-  --------------------------------------------------------------------------------
-  -- 11. AUTONOMOUS DiagU-level recognition: reading frame data off the boxes.
-  --
-  -- The blocker for the generic `headSwap? : Ordering N M → Maybe (HeadSwap o)`
-  -- is that a `Layer` ERASES its `pre`/`suf`/box into the opaque `⟦L⟧`.  A
-  -- `DiagU` layer `px ▸ sx ∷ fx ⟨ rest ⟩` does NOT: it carries the box `fx`
-  -- (hence its `dom`/`cod`) and the flat offsets `px sx` explicitly.  So a
-  -- recogniser CAN read off the footprint and decide independence/orientation.
+  -- A `Layer` ERASES its `pre`/`suf`/box into the opaque `⟦L⟧`, so no recogniser
+  -- can fire on a generic `Ordering`.  A `DiagU` layer `px ▸ sx ∷ fx ⟨ rest ⟩`
+  -- does NOT: it carries the box `fx` (hence its `dom`/`cod`) and the flat
+  -- offsets `px sx` explicitly.  So a recogniser CAN read off the offsets and
+  -- decide independence/orientation.
   --
   -- We work on a head pair of a `DiagU`, i.e. on the constructor pattern
   --   px ▸ sx ∷ fx ⟨ py ▸ sy ∷ fy ⟨ rest ⟩ ⟩
@@ -646,16 +277,6 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --   py ++ (ay ++ sy)  ≡  px ++ (bx ++ sx)            -- (★)  the index of the
   --                                                    --      inner sub-diagram
   --------------------------------------------------------------------------------
-
-  open import Data.Nat.Properties using (_≟_)
-
-  -- Footprint of a single DiagU head layer, read directly off `pre`/box.
-  fpHead : ∀ {a b} (pre suf : List X) → Mor a b → Footprint
-  fpHead {a} {b} pre suf f = footprint (length pre) (length a) (length b)
-
-  -- The canonical key for the sort: a layer's leftmost wire index `length pre`.
-  keyHead : ∀ {a b} (pre suf : List X) → Mor a b → ℕ
-  keyHead pre suf f = length pre
 
   --------------------------------------------------------------------------------
   -- 11a. The LEFT-OF frame fit (the canonical / out-of-order case).
@@ -706,14 +327,8 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --
   -- We do NOT need `DecidableEquality X`: the recognised data is reconstructed
   -- from the offset lists themselves, and the equalities (★)-style are supplied
-  -- by the caller (the DiagU constructor) — see `recogLeft-from-wiring`.
+  -- by the caller (the DiagU constructor).
   --------------------------------------------------------------------------------
-
-  -- The orientation decision purely on footprints (reuses §5' `orient`).
-  headOrient : ∀ {ax bx ay by} (px sx py sy : List X)
-               (fx : Mor ax bx) (fy : Mor ay by) → Orient
-  headOrient {ax} {bx} {ay} {by} px sx py sy fx fy =
-    orient (fpHead px sx fx) (fpHead py sy fy)
 
   --------------------------------------------------------------------------------
   -- 11c. The frame underlying a `LeftFit`, and the FULLY SOUND swap between its
@@ -764,22 +379,6 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     input⇒sorted wRest = wstep (≈-Term-sym (head-swap-sound wRest))
 
   --------------------------------------------------------------------------------
-  -- 11d. The CLEAN ↔ FRAME bridge for the `fy` (left) layer — PROVEN clean.
-  --
-  -- For a `LeftFit`, the SECOND DiagU layer `pad py sy ⟦fy⟧` (fy fires second)
-  -- equals the frame's `f-out` layer DEFINITIONALLY once we rewrite `py≡P` and
-  -- `sy≡mid++(bx++s)`:  `f-out = pad P (mid ++ (bx ++ s)) ⟦fy⟧`.  No reassociator
-  -- residue on the fy side — it is a genuine clean flat `pad`.  We record this
-  -- as a `≡` of layers (after the offset rewrites) to confirm the fit is exact.
-  --------------------------------------------------------------------------------
-
-  fy-layer≡f-out : ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
-                   (fit : LeftFit px sx py sy fx fy)
-                 → mk-pad (LeftFit.P fit) (LeftFit.mid fit ++ (bx ++ LeftFit.s fit)) fy
-                   ≡ LeftFrame.f-out-layer fit
-  fy-layer≡f-out fit = refl
-
-  --------------------------------------------------------------------------------
   -- 11d'. THE `castW` OBJECT-TRANSPORT ALGEBRA (the genuine coherence content).
   --
   -- `castW : u ≡ v → HomTerm (wires u) (wires v)` is the `++`-assoc object
@@ -790,7 +389,6 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- `J` (pattern-matching the equality to `refl`); no postulates, no holes.
   --------------------------------------------------------------------------------
 
-  open import Data.List.Properties using (++-assoc)
 
   -- the object transport: realised as `subst`-of-`id`, so `castW refl = id`.
   castW : ∀ {u v : List X} → u ≡ v → HomTerm (wires u) (wires v)
@@ -804,7 +402,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- `castW` is determined by its endpoints (proof-irrelevance via the
   -- Hedberg UIP on wire lists; --without-K).
   castW-irr : ∀ {u v : List X} (e e' : u ≡ v) → castW e ≈Term castW e'
-  castW-irr e e' rewrite ≡-irrelevantL e e' = ≈-Term-refl
+  castW-irr e e' = ≡⇒≈Term (cong castW (≡-irrelevantL e e'))
 
   -- prepending one wire to a transport.
   castW-∷ : ∀ {x : X} {u v : List X} (e : u ≡ v)
@@ -850,64 +448,18 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     castW (++-assoc (x ∷ p) q s) ∎
 
   --------------------------------------------------------------------------------
-  -- 11e. (ISOLATED, Tier-3 residual) The CLEAN ↔ FRAME bridge for the `fx`
-  --      (right) layer, and the DiagU index transport.
+  -- 11e. The CLEAN ↔ FRAME bridge for the `fx` (right) layer.
   --
-  -- The FIRST DiagU layer `pad px sx ⟦fx⟧` (fx fires first) is, after the
-  -- `LeftFit` rewrites `px≡P++(ay++mid)`, `sx≡s`, the genuine clean flat pad
-  --   pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
-  -- on the object  (P ++ (ay ++ mid)) ++ (ax ++ s).  The frame's `g-in` layer is
-  -- the SAME box in grouped form, on the right-nested object
-  --   N₀ = P ++ (ay ++ (mid ++ (ax ++ s)))
-  -- and `Frame.g-in≈pad` (PROVEN in DiagramRewriteUntyped) relates them by the
-  -- structural reassociators `reassocF-in`/`reassocB-in`:
-  --
-  --   g-in ≈Term reassocB-in ∘ pad (P++(ay++mid)) s (⟦box⟧ fx) ∘ reassocF-in.
-  --
-  -- The two objects differ by `++`-associativity ONLY; for ABSTRACT `P ay mid
-  -- ax s` they are not definitionally equal, so the clean fx pad and `g-in` do
-  -- not have a common (dom,cod) and `_≈Term_` between them is ILL-TYPED.  The
-  -- bridge therefore requires a propositional index transport along
-  --   ++-assoc : (P++(ay++mid)) ++ (ax++s) ≡ P ++ ((ay++mid) ++ (ax++s))   …etc.
-  -- composed with the structural reassociators `reassocF-in`/`reassocB-in`
-  -- (which the reassociators precisely realise as morphisms).  Collapsing the
-  -- transport+reassociators to the identity is the single remaining surgery.
-  --
-  -- THE INDEX-CAST OBSTRUCTION (precise).  A DiagU built with the `LeftFit`
-  -- offsets has OUTER index `px ++ (ax ++ sx) = (P ++ (ay ++ mid)) ++ (ax ++ s)`
-  -- (left-nested at the top split), whereas the frame's `input-O` has domain
-  -- `N₀ = P ++ (ay ++ (mid ++ (ax ++ s)))` (right-nested).  For ABSTRACT lists
-  -- these are EQUAL only up to `++-assoc`, hence `⟦ fromDiagU … ⟧O` and
-  -- `⟦ input-O … ⟧O` do NOT share a domain and `_≈Term_` between them is
-  -- literally ILL-TYPED.  So the bridge needs a propositional object cast
-  --   castₒ : (P++(ay++mid))++(ax++s) ≡ N₀                 (from ++-assoc)
-  -- on the domain (and a matching one on the codomain), realised as the
-  -- structural reassociators of `g-in≈pad`.
-  --
-  -- The PRECISE residual lemma (exact type), stated but NOT proven here so the
-  -- module stays postulate-free and `--safe`.  Writing `n₀ = px ++ (ax ++ sx)`
-  -- for the DiagU index and `castW : ∀ {u v} → u ≡ v → HomTerm (wires u)
-  -- (wires v)` (= `≡⇒≈Term`-style object reshaper, e.g. `subst` of `id`):
-  --
-  --   fx-clean⇒g-in :
-  --     ∀ {ax bx ay by} {px sx py sy}
-  --       {fx : Mor ax bx} {fy : Mor ay by}
-  --       (fit : LeftFit px sx py sy fx fy)
-  --       {M rest} {d : DiagU (px ++ (bx ++ sx))}
-  --       (wTail : Wired (LeftFrame.N₃ fit) rest M)
-  --       (idx : py ++ (ay ++ sy) ≡ px ++ (bx ++ sx))      -- the DiagU wiring ★
-  --     → castW (codcast …) ∘ ⟦ fromDiagU (px ▸ sx ∷ fx ⟨ py ▸ sy ∷ fy ⟨ d ⟩ ⟩) ⟧O
-  --       ≈Term  ⟦ LeftFrame.input-O fit wTail ⟧O ∘ castW (domcast …)
-  --
-  -- where `domcast : px++(ax++sx) ≡ N₀` and `codcast : out … ≡ M` are the
-  -- `++-assoc` index transports.  It is the EXACT abstract analogue of the
-  -- `Litmus`'s `cA≈after`/`cB≈before` (discharged CONCRETELY below, where the
-  -- reassociators reduce to `id` and the casts are `refl`).  Once it is in hand,
-  -- the autonomous DiagU swap is `≈-Term-trans (fx-clean⇒g-in …) (input⇒sorted
-  -- …)`, and the bubble sort + its soundness follow by chaining exactly as
-  -- `normalizeA`/`normalizeA-sound` already do for the `_⇒W_` driver.  The frame
-  -- side (`LeftFrame.input⇒sorted`) is PROVEN and exercised in the DiagU litmus
-  -- below; only this clean⇄grouped index cast remains.
+  -- The clean flat pad of the right box lives on the LEFT-nested object
+  -- `(P ++ (ay ++ mid)) ++ (ax ++ s)`, the frame's `g-in` on the RIGHT-nested
+  -- `N₀ = P ++ (ay ++ (mid ++ (ax ++ s)))`; for abstract offsets these are
+  -- equal only up to `++`-assoc, so the bridge needs the propositional index
+  -- casts `castW (domeq …)` — `_≈Term_` between the uncast sides is ill-typed.
+  -- The bridge is PROVEN below: `fx-clean⇒g-in-core` (§11e') collapses
+  -- `g-in≈pad`'s reassociators to single `castW`s via the §11d' algebra, and
+  -- `fx-clean⇒g-in` (§11e'') assembles the full clean ⇒ frame bridge, from
+  -- which the autonomous DiagU swap soundness follows (§11e''').
+  --------------------------------------------------------------------------------
 
   --------------------------------------------------------------------------------
   -- 11e'. THE BRIDGE, PROVEN.  The clean flat `pad` of the right box `g` (at the
@@ -1081,8 +633,8 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- index cast `castW domcast`.  This is the abstract, frame-routed analogue of
   -- `Litmus.cA≈after`, PROVEN via `fx-clean⇒g-in-core` + the `castW` algebra.
   --
-  -- The clean fy-layer `pad py sy ⟦fy⟧` is DEFINITIONALLY `Frame.f-out`
-  -- (`fy-layer≡f-out`), so it appears as `Frame.f-out P mid s fy fx` here.
+  -- The clean fy-layer `pad py sy ⟦fy⟧` is DEFINITIONALLY `Frame.f-out`, so it
+  -- appears as `Frame.f-out P mid s fy fx` here.
   --------------------------------------------------------------------------------
 
   fx-clean⇒g-in :
@@ -1180,12 +732,6 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
                 ≈Term castW (sym (substDiagU-out e d)) ∘ ⟦ d ⟧
   ⟦substDiagU⟧ refl d = ≈-Term-trans idʳ (≈-Term-sym idˡ)
 
-  -- prepending a clean DiagU layer post-composes its `pad` onto `⟦_⟧`.
-  ⟦cons⟧ : ∀ {a b} (pre suf : List X) (f : Mor a b)
-           (d : DiagU (pre ++ (b ++ suf)))
-         → ⟦ pre ▸ suf ∷ f ⟨ d ⟩ ⟧ ≈Term ⟦ d ⟧ ∘ pad pre suf (⟦box⟧ f)
-  ⟦cons⟧ pre suf f d = ≈-Term-refl
-
   --------------------------------------------------------------------------------
   -- 11g. `swapHeadD` — the genuine clean DiagU head swap.
   --
@@ -1199,7 +745,8 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- `pad`-layers (`_▸_∷_⟨_⟩`); the necessary `++`-assoc re-indexing between the
   -- fy and fx layers is absorbed by `substDiagU` along `domeq`, whose soundness
   -- is `⟦substDiagU⟧`.  Soundness chains `diagU-swap-sound` (step 11e''') with the
-  -- input/output cast bookkeeping; the litmus (§ below) machine-checks one fire.
+  -- input/output cast bookkeeping; the litmus
+  -- (`Categories.SolverNormalizeTests`) machine-checks one fire.
   --------------------------------------------------------------------------------
 
   -- the SWAPPED clean DiagU on the frame's right-nested input index N₀.  fy fires
@@ -1244,19 +791,12 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       inner  = substDiagU (domeq P by mid ax s) innerD
       out-eq = substDiagU-out (domeq P by mid ax s) innerD
       e      = domeq P by mid ax s
-      -- castW e ∘ castW (sym e) ≈ id  (the other cancellation order).
-      cancel-r : castW e ∘ castW (sym e) ≈Term id
-      cancel-r = ≈-Term-trans (∘-resp-≈ (castW-irr e (sym (sym e))) ≈-Term-refl)
-                              (castW-sym-r (sym e))
-      cancel-out : castW out-eq ∘ castW (sym out-eq) ≈Term id
-      cancel-out = ≈-Term-trans (∘-resp-≈ (castW-irr out-eq (sym (sym out-eq))) ≈-Term-refl)
-                                (castW-sym-r (sym out-eq))
       key : castW out-eq ∘ ⟦ inner ⟧ ≈Term ⟦ innerD ⟧ ∘ castW (sym e)
       key = begin
         castW out-eq ∘ ⟦ inner ⟧
           ≈⟨ ≈-Term-sym idʳ ⟩
         (castW out-eq ∘ ⟦ inner ⟧) ∘ id
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym cancel-r) ⟩
+          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym (castW-sym-r-flip e)) ⟩
         (castW out-eq ∘ ⟦ inner ⟧) ∘ (castW e ∘ castW (sym e))
           ≈⟨ ≈-Term-sym assoc ⟩
         ((castW out-eq ∘ ⟦ inner ⟧) ∘ castW e) ∘ castW (sym e)
@@ -1266,7 +806,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
         (castW out-eq ∘ (castW (sym out-eq) ∘ ⟦ innerD ⟧)) ∘ castW (sym e)
           ≈⟨ ∘-resp-≈ (≈-Term-sym assoc) ≈-Term-refl ⟩
         ((castW out-eq ∘ castW (sym out-eq)) ∘ ⟦ innerD ⟧) ∘ castW (sym e)
-          ≈⟨ ∘-resp-≈ (∘-resp-≈ cancel-out ≈-Term-refl) ≈-Term-refl ⟩
+          ≈⟨ ∘-resp-≈ (∘-resp-≈ (castW-sym-r-flip out-eq) ≈-Term-refl) ≈-Term-refl ⟩
         (id ∘ ⟦ innerD ⟧) ∘ castW (sym e)
           ≈⟨ ∘-resp-≈ idˡ ≈-Term-refl ⟩
         ⟦ innerD ⟧ ∘ castW (sym e) ∎
@@ -1280,7 +820,8 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- `++`-assoc re-index between fx and fy is absorbed by `substDiagU` along
   -- `domeq P ay mid bx s` (soundness `⟦substDiagU⟧`).  `dInput`/`swapHeadD-out`
   -- live at the SAME input index `N₀`, so `⟦ input ⟧ ≈Term ⟦ swapped ⟧` is the
-  -- honest per-swap soundness — the abstract analogue of `Litmus.litDiagUSwap`.
+  -- honest per-swap soundness — exercised concretely in
+  -- `Categories.SolverNormalizeTests` (`litDiagUSwap`).
   --------------------------------------------------------------------------------
 
   -- the INPUT clean DiagU: fx (right box) fires FIRST, then fy.
@@ -1301,25 +842,8 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
            → DiagU (LeftFrame.N₃ fit)
            → DiagU (LeftFrame.N₀ fit)
   dSwapped {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
-           (leftFit P mid s refl refl refl refl) dRest =
-    P ▸ (mid ++ (ax ++ s)) ∷ fy
-      ⟨ substDiagU (domeq P by mid ax s)
-          ((P ++ (by ++ mid)) ▸ s ∷ fx
-            ⟨ substDiagU (sym (domeq P by mid bx s)) dRest ⟩) ⟩
-
-  -- ABSTRACT per-swap soundness: the input (fx-first) and swapped (fy-first)
-  -- clean DiagUs share endpoints `wires N₀ → wires (out dRest)` and have equal
-  -- interpretations in the free monoidal category.  Proven by chaining the
-  -- already-PROVEN `swapHeadD-out-sound` (swapped side) and `diagU-swap-sound`
-  -- (input ⇒ sorted, = `two-box-swap`) with the `castW`/`⟦substDiagU⟧` algebra.
-  dSwapped-is-out :
-    ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
-      (fit : LeftFit px sx py sy fx fy)
-      (dRest : DiagU (LeftFrame.N₃ fit))
-    → dSwapped fit dRest
-      ≡ swapHeadD-out fit
-          (substDiagU (sym (domeq (LeftFit.P fit) by (LeftFit.mid fit) bx (LeftFit.s fit))) dRest)
-  dSwapped-is-out (leftFit P mid s refl refl refl refl) dRest = refl
+           fit@(leftFit P mid s refl refl refl refl) dRest =
+    swapHeadD-out fit (substDiagU (sym (domeq P by mid bx s)) dRest)
 
   --------------------------------------------------------------------------------
   -- 11h''. The ABSTRACT per-swap soundness.  `⟦ dInput ⟧ ≈Term ⟦ dSwapped ⟧`:
@@ -1621,11 +1145,10 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     stripPrefix : (p xs : List X) → Maybe (Σ[ ys ∈ List X ] xs ≡ p ++ ys)
     stripPrefix []       xs       = just (xs , refl)
     stripPrefix (_ ∷ _)  []       = nothing
-    stripPrefix (x ∷ p)  (y ∷ xs) with x ≟X y
-    ... | no  _    = nothing
-    ... | yes refl with stripPrefix p xs
-    ...   | nothing            = nothing
-    ...   | just (ys , refl)   = just (ys , refl)
+    stripPrefix (x ∷ p)  (y ∷ xs) = case x ≟X y of λ where
+      (no  _)   → nothing
+      (yes x≡y) → Maybe.map (λ (ys , eq) → ys , cong₂ _∷_ (sym x≡y) eq)
+                            (stripPrefix p xs)
 
     --------------------------------------------------------------------------------
     -- 12a. The decidable `LeftFit` recogniser.
@@ -1642,19 +1165,17 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     leftFit? : ∀ {ax bx ay by} (px sx py sy : List X)
                (fx : Mor ax bx) (fy : Mor ay by)
              → Maybe (LeftFit px sx py sy fx fy)
-    leftFit? {ax} {bx} {ay} {by} px sx py sy fx fy
-      with stripPrefix py px
-    ... | nothing            = nothing
-    ... | just (r1 , px≡)    with stripPrefix ay r1
-    ...   | nothing             = nothing
-    ...   | just (mid , r1≡)    with sy ≟L (mid ++ (bx ++ sx))
-    ...     | no  _             = nothing
-    ...     | yes sy≡           =
-              just (leftFit py mid sx
-                      (trans px≡ (cong (py ++_) r1≡))   -- px ≡ py ++ (ay ++ mid)
-                      refl                               -- sx ≡ sx
-                      refl                               -- py ≡ py
-                      sy≡)                               -- sy ≡ mid ++ (bx ++ sx)
+    leftFit? {ax} {bx} {ay} {by} px sx py sy fx fy =
+      stripPrefix py px >>= λ (r1 , px≡) →
+      stripPrefix ay r1 >>= λ (mid , r1≡) →
+      case sy ≟L (mid ++ (bx ++ sx)) of λ where
+        (no  _)   → nothing
+        (yes sy≡) →
+          just (leftFit py mid sx
+                  (trans px≡ (cong (py ++_) r1≡))   -- px ≡ py ++ (ay ++ mid)
+                  refl                               -- sx ≡ sx
+                  refl                               -- py ≡ py
+                  sy≡)                               -- sy ≡ mid ++ (bx ++ sx)
 
     --------------------------------------------------------------------------------
     -- 12b. `swapHeadD` — the firing clean DiagU head swap on explicit head-pair
@@ -1688,35 +1209,20 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       , trans (dInput-out fit dRest) (sym (dSwapped-out fit dRest))
       , diagU-swap-soundD fit dRest
 
-    -- recognise-then-swap on explicit head-pair data: tries `leftFit?`, and on a
-    -- hit returns the firing `swapHeadD`.  This is the autonomous DiagU head step.
-    recogSwapD : ∀ {ax bx ay by} (px sx py sy : List X)
-                 (fx : Mor ax bx) (fy : Mor ay by)
-               → Maybe (Σ[ fit ∈ LeftFit px sx py sy fx fy ]
-                          ((dRest : DiagU (LeftFrame.N₃ fit)) → HeadSwapD fit dRest))
-    recogSwapD px sx py sy fx fy with leftFit? px sx py sy fx fy
-    ... | nothing  = nothing
-    ... | just fit = just (fit , swapHeadD fit)
-
     --------------------------------------------------------------------------------
-    -- 12c. `normalizeD` — fuel-driven bubble step on a recognised DiagU head.
+    -- 12c. `normalizeD` — the one-step swap driver on a recognised DiagU head.
     --
-    -- `normalizeD` reduces a head pair to canonical (lower-offset-first) order by
-    -- the genuine `swapHeadD` swap; the fuel argument bounds the number of bubble
-    -- steps (`length² ≥ inversions`), and on `0` fuel / a non-recognised head it
-    -- returns the input unchanged with the trivial witness.  Because the SWAPPED
-    -- tail is re-indexed (by `substDiagU` along the non-definitional `++`-assoc
-    -- `domeq`), a 2-layer head of the *output* of an ABSTRACT step cannot be
-    -- destructured by unification, so abstract multi-step recursion is not
-    -- expressible; the chaining of multiple genuine steps is exercised CONCRETELY
-    -- in the litmus.  Soundness is the per-swap `≈Term` (up to the stuck-`out`
-    -- cast `castW oeq`), unconditional whatever the fuel.
+    -- `normalizeD` performs AT MOST ONE swap: on `0` fuel it returns the input
+    -- head order unchanged (trivial witness); on positive fuel it fires the
+    -- single genuine swap of the recognised head pair.  It is NOT a multi-step
+    -- bubble sort: the SWAPPED tail is re-indexed (by `substDiagU` along the
+    -- non-definitional `++`-assoc `domeq`), so a 2-layer head of the *output* of
+    -- an ABSTRACT step cannot be destructured by unification, and abstract
+    -- multi-step recursion is not expressible; chaining of multiple genuine
+    -- steps is exercised CONCRETELY in the litmus.  Soundness is the per-swap
+    -- `≈Term` (up to the stuck-`out` cast `castW oeq`), unconditional whatever
+    -- the fuel.
     --------------------------------------------------------------------------------
-
-    -- a normalized diagram with its per-swap soundness witness.
-    NormD : ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
-            (fit : LeftFit px sx py sy fx fy) → DiagU (LeftFrame.N₃ fit) → Set
-    NormD fit dRest = HeadSwapD fit dRest
 
     normalizeD : ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
                  → ℕ
@@ -1737,17 +1243,6 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 
 
 --------------------------------------------------------------------------------
--- 10. LITMUS — the autonomous sorter genuinely reorders.
---
--- Two independent single-wire boxes `fbox` (on wire 0) and `gbox` (on wire 1),
--- presented in NON-canonical order, are reordered by a real `two-box-swap`
--- step into canonical (lower-offset-first) order, with a machine-checked
--- `≈Term` soundness witness.  The swapped layers are again genuine clean
--- `mk-pad`s (so the sort could fire again), and the reordering is verified by
--- `refl` on the resulting layer list.  This exercises BOTH `g-out≈pad` and the
--- new `g-in≈pad` (collapsed to clean pads via the now-`≈id` reassociators).
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 -- Compatibility wrapper: `NormalizeI` at the standard interpretation
 -- `Untyped.⟦box⟧` (= `var ∘ box`).  Old consumers keep working, gaining
 -- only the leading variant argument.
@@ -1757,308 +1252,3 @@ module Normalize (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 
   open Untyped v {X} Mor using (⟦box⟧)
   open NormalizeI v {X} _≟X_ Mor ⟦box⟧ public
-
-module Litmus where
-
-  open import Data.Nat using (ℕ)
-  open import Data.Nat.Properties using () renaming (_≟_ to _≟ℕ_)
-  open import Data.Product using (_,_; proj₁; proj₂; Σ; Σ-syntax)
-  open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-  open import Relation.Binary.Construct.Closure.ReflexiveTransitive using (Star; ε; _◅_)
-
-  data Gen : List ℕ → List ℕ → Set where
-    fbox : Gen (0 ∷ []) (0 ∷ [])
-    gbox : Gen (1 ∷ []) (1 ∷ [])
-
-  open Normalize Mon {ℕ} _≟ℕ_ Gen
-  open Untyped Mon {ℕ} Gen
-  open FreeMonoidalHelper.Mor Mon ℕ mor
-  open ≈R
-
-  -- the concrete frame: P = mid = r = [], boxes fbox (slot 1) and gbox (slot 2).
-  -- Its four structural reassociators all reduce to `id` (single-wire blocks).
-  rFo : Frame.reassocF-out [] [] [] fbox gbox ≈Term id
-  rFo = ≈-Term-trans idˡ id⊗id≈id
-  rBo : Frame.reassocB-out [] [] [] fbox gbox ≈Term id
-  rBo = ≈-Term-trans (∘-resp-≈ id⊗id≈id ≈-Term-refl) idˡ
-  rFi : Frame.reassocF-in [] [] [] fbox gbox ≈Term id
-  rFi = ≈-Term-trans idˡ id⊗id≈id
-  rBi : Frame.reassocB-in [] [] [] fbox gbox ≈Term id
-  rBi = ≈-Term-trans (∘-resp-≈ id⊗id≈id ≈-Term-refl) idˡ
-
-  -- the frame g-layers, re-expressed as genuine clean flat pads (reassocs gone).
-  g-out≈cp : Frame.g-out [] [] [] fbox gbox ≈Term pad (0 ∷ []) [] (⟦box⟧ gbox)
-  g-out≈cp = ≈-Term-trans (Frame.g-out≈pad [] [] [] fbox gbox)
-    (≈-Term-trans (∘-resp-≈ rBo (∘-resp-≈ ≈-Term-refl rFo)) (≈-Term-trans idˡ idʳ))
-  g-in≈cp : Frame.g-in [] [] [] fbox gbox ≈Term pad (0 ∷ []) [] (⟦box⟧ gbox)
-  g-in≈cp = ≈-Term-trans (Frame.g-in≈pad [] [] [] fbox gbox)
-    (≈-Term-trans (∘-resp-≈ rBi (∘-resp-≈ ≈-Term-refl rFi)) (≈-Term-trans idˡ idʳ))
-
-  -- the two CLEAN orderings (genuine `mk-pad` layers, definitionally wired).
-  --   cleanB :  fbox first (offset 0), then gbox (offset 1)   -- canonical
-  --   cleanA :  gbox first (offset 1), then fbox (offset 0)   -- non-canonical
-  cleanB : Ordering (0 ∷ 1 ∷ []) (0 ∷ 1 ∷ [])
-  cleanB = ordering _ (mk-pad [] (1 ∷ []) fbox ∷ (mk-pad (0 ∷ []) [] gbox ∷ []))
-  cleanA : Ordering (0 ∷ 1 ∷ []) (0 ∷ 1 ∷ [])
-  cleanA = ordering _ (mk-pad (0 ∷ []) [] gbox ∷ (mk-pad [] (1 ∷ []) fbox ∷ []))
-
-  before = Frame.before-O [] [] [] fbox gbox []
-  after  = Frame.after-O  [] [] [] fbox gbox []
-
-  -- the clean orderings equal the frame composites (only the g-layer differs).
-  cB≈before : ⟦ cleanB ⟧O ≈Term ⟦ before ⟧O
-  cB≈before = ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (≈-Term-sym g-out≈cp)) ≈-Term-refl
-  cA≈after : ⟦ cleanA ⟧O ≈Term ⟦ after ⟧O
-  cA≈after = ∘-resp-≈ ≈-Term-refl (≈-Term-sym g-in≈cp)
-
-  -- THE GENUINE CLEAN REORDER: two clean `mk-pad` layers, swapped, equal in the
-  -- free monoidal category — via g-out≈pad / two-box-swap / g-in≈pad.  No σ.
-  clean-reorder : ⟦ cleanB ⟧O ≈Term ⟦ cleanA ⟧O
-  clean-reorder = ≈-Term-trans cB≈before
-                    (≈-Term-trans (Frame.head-swap-sound [] [] [] fbox gbox [])
-                      (≈-Term-sym cA≈after))
-
-  --------------------------------------------------------------------------------
-  -- The AUTONOMOUS firing.  The frame-tagged oracle `headSwapFrame?` fires on
-  -- the frame's `before-O`, and the fuel driver chains the genuine `swapAdj`
-  -- step.  We run one tick and read off the reordered ordering + its path.
-  --------------------------------------------------------------------------------
-  open import Data.Maybe using (Maybe; just; nothing)
-
-  -- the autonomous bubble driver over the frame-tagged oracle: at each tick try
-  -- `headSwapFrame?`; on a `just` take the genuine `swapAdj` step.
-  fired-step : Maybe (HeadSwap before)
-             → Σ[ o' ∈ Ordering (0 ∷ 1 ∷ []) (0 ∷ 1 ∷ []) ] Star _⇒W_ before o'
-  fired-step (just (o' , st)) = o' , (st ◅ ε)
-  fired-step nothing          = before , ε
-
-  fired : Σ[ o' ∈ Ordering (0 ∷ 1 ∷ []) (0 ∷ 1 ∷ []) ] Star _⇒W_ before o'
-  fired = fired-step (headSwapFrame? [] [] [] fbox gbox [])
-
-  -- the oracle DID fire (the path is non-empty) and the reordered ordering is
-  -- exactly the frame's `after-O` — verified by `refl`.
-  fired-reorders : proj₁ fired ≡ after
-  fired-reorders = refl
-
-  -- the reordered head layer is the g-in-layer (gbox, the swapped head).
-  fired-head : layers (proj₁ fired) ≡
-                 Frame.g-in-layer [] [] [] fbox gbox
-               ∷ Frame.f-out-layer [] [] [] fbox gbox ∷ []
-  fired-head = refl
-
-  -- the genuine `≈Term` soundness of the autonomous firing.
-  fired-sound : ⟦ before ⟧O ≈Term ⟦ proj₁ fired ⟧O
-  fired-sound = ⇒W*-sound (proj₂ fired)
-
-  --------------------------------------------------------------------------------
-  -- LITMUS (DiagU level): the `LeftFit`-driven, frame-routed swap fires on a
-  -- pair recognised by reading the boxes/offsets off two DiagU head layers.
-  --
-  -- Out-of-order input: gbox (right box, fires FIRST) then fbox (left box,
-  -- fires SECOND).  We build the `LeftFit` with P = mid = s = [], left box
-  -- fy = fbox (dom/cod `0∷[]`), right box fx = gbox (dom/cod `1∷[]`).  The fit's
-  -- offset equations:  px ≡ ay = 0∷[] , sx ≡ [] , py ≡ [] , sy ≡ bx = 1∷[].
-  -- The provable `LeftFrame.input⇒sorted` swaps the frame's input order
-  -- (gbox-first) into the sorted order (fbox-first) with a real `two-box-swap`
-  -- witness — autonomously, with the fit RECOGNISED from the layer data.
-  --------------------------------------------------------------------------------
-
-  -- the recognised fit (offsets are exactly the LeftFit equations, by `refl`).
-  litFit : LeftFit (0 ∷ []) [] [] (1 ∷ []) gbox fbox
-  litFit = leftFit [] [] [] refl refl refl refl
-
-  open LeftFrame litFit
-    using (input-O; sorted-O; input⇒sorted; N₀; N₃; f-out-layer; g-in-layer)
-
-  -- the empty wired tail from the frame's common output N₃.
-  litTail : Wired N₃ [] N₃
-  litTail = []
-
-  -- the autonomous frame-routed swap step: input (gbox first) ⇒ sorted
-  -- (fbox first).  Its witness is `≈-Term-sym head-swap-sound` = `two-box-swap`.
-  litStep : input-O litTail ⇒W sorted-O litTail
-  litStep = input⇒sorted litTail
-
-  -- it genuinely REORDERS: the sorted head layer is fbox's clean `f-out`
-  -- (the lower-offset box now fires first) — machine-checked by `refl`.
-  litReorders : layers (sorted-O litTail)
-              ≡ Frame.f-in-layer [] [] [] fbox gbox
-              ∷ Frame.g-out-layer [] [] [] fbox gbox ∷ []
-  litReorders = refl
-
-  -- and the input head was gbox's grouped `g-in` (the higher-offset box was
-  -- firing first) — confirming the pair was out of order.
-  litInputHead : layers (input-O litTail)
-               ≡ g-in-layer ∷ f-out-layer ∷ []
-  litInputHead = refl
-
-  -- the genuine `≈Term` soundness of the autonomous frame-routed swap.
-  litSound : ⟦ input-O litTail ⟧O ≈Term ⟦ sorted-O litTail ⟧O
-  litSound = sound litStep
-
-  --------------------------------------------------------------------------------
-  -- LITMUS (DiagU clean-bridge level): exercise the now-PROVEN `fx-clean⇒g-in`
-  -- and `diagU-swap-sound` on the concrete `litFit`.  Here P=mid=s=[] so every
-  -- `++`-assoc index cast `castW (domeq …)` reduces to `castW refl = id` and the
-  -- frame `f-out`/`g-in` are single-wire pads — the abstract bridge specialises
-  -- exactly to the concrete clean reorder.  Both witnesses are machine-checked.
-  --------------------------------------------------------------------------------
-
-  -- the concrete clean⇒frame bridge (the casts are `id`; fully reduced).
-  litBridge :
-    ⟦ litTail ⟧W
-      ∘ Frame.f-out [] [] [] fbox gbox
-      ∘ castW (domeq [] (0 ∷ []) [] (1 ∷ []) [])
-      ∘ pad (0 ∷ []) [] (⟦box⟧ gbox)
-    ≈Term ⟦ input-O litTail ⟧O ∘ castW (domeq [] (0 ∷ []) [] (1 ∷ []) [])
-  litBridge = fx-clean⇒g-in litFit litTail
-
-  -- the concrete DiagU swap soundness: clean (gbox-first) ⇒ sorted (fbox-first).
-  litSwapSound :
-    ⟦ litTail ⟧W
-      ∘ Frame.f-out [] [] [] fbox gbox
-      ∘ castW (domeq [] (0 ∷ []) [] (1 ∷ []) [])
-      ∘ pad (0 ∷ []) [] (⟦box⟧ gbox)
-    ≈Term ⟦ sorted-O litTail ⟧O ∘ castW (domeq [] (0 ∷ []) [] (1 ∷ []) [])
-  litSwapSound = diagU-swap-sound litFit litTail
-
-  -- the casts are genuinely the identity here (P=mid=s=[]) — `refl`-checked.
-  litCastId : castW (domeq [] (0 ∷ []) [] (1 ∷ []) []) ≡ id
-  litCastId = refl
-
-  --------------------------------------------------------------------------------
-  -- LITMUS (swapHeadD): the genuine clean DiagU SWAP OUTPUT.  We build the
-  -- swapped clean DiagU with `swapHeadD-out` on `litFit` (fx = gbox at offset 0
-  -- as the right box, fy = fbox the left box).  The swapped diagram fires fbox
-  -- (lower offset) FIRST then gbox — both genuine clean `_▸_∷_⟨_⟩` `pad`-layers,
-  -- the inter-layer `domeq` absorbed by `substDiagU` (= `id` here).  We
-  -- machine-check the reorder by `refl` on its layer list and exhibit the
-  -- compiled `swapHeadD-out-sound` witness.
-  --------------------------------------------------------------------------------
-
-  -- the empty sorted tail at the swapped-output index ((0∷[])++(1∷[])) = 0∷1∷[].
-  litDSorted : DiagU (0 ∷ 1 ∷ [])
-  litDSorted = []_ (0 ∷ 1 ∷ [])
-
-  -- the SWAPPED clean DiagU: fbox first (offset 0), then gbox.  Built autonomously
-  -- by `swapHeadD-out`; the `substDiagU` cast reduces to identity here.
-  litSwapped : DiagU (0 ∷ 1 ∷ [])
-  litSwapped = swapHeadD-out litFit litDSorted
-
-  -- the swap genuinely REORDERED: the swapped DiagU's head layer is fbox at
-  -- offset 0 (lower-offset box now fires FIRST), then gbox at offset 0 in the
-  -- grouped tail — machine-checked by `refl` on the layer list.
-  litSwappedLayers : fromDiagU-ls litSwapped
-                   ≡ mk-pad [] (1 ∷ []) fbox
-                   ∷ mk-pad (0 ∷ []) [] gbox ∷ []
-  litSwappedLayers = refl
-
-  -- the compiled soundness of the swapped output (the casts are `id` here).
-  litSwapOutSound :
-    castW (substDiagU-out (domeq [] (0 ∷ []) [] (1 ∷ []) [])
-            (((0 ∷ []) ++ ([])) ▸ [] ∷ gbox ⟨ litDSorted ⟩))
-      ∘ ⟦ litSwapped ⟧
-    ≈Term (⟦ litDSorted ⟧ ∘ pad (0 ∷ []) [] (⟦box⟧ gbox))
-        ∘ castW (sym (domeq [] (0 ∷ []) [] (1 ∷ []) []))
-        ∘ Frame.f-in [] [] [] fbox gbox
-  litSwapOutSound = swapHeadD-out-sound [] [] [] gbox fbox litDSorted
-
-  --------------------------------------------------------------------------------
-  -- LITMUS (end-to-end DiagU swap): the INPUT clean DiagU (gbox fires FIRST) and
-  -- the SWAPPED clean DiagU `litSwapped` (fbox fires first) have EQUAL
-  -- interpretations in the free monoidal category — a genuine, machine-checked
-  -- `≈Term` between two clean `DiagU`s, built by chaining `diagU-swap-sound` with
-  -- `swapHeadD-out-sound` (all `++`-assoc casts reduce to `id` here).  This is the
-  -- concrete witness that the autonomous DiagU swap engine REORDERS soundly.
-  --------------------------------------------------------------------------------
-
-  -- the INPUT clean DiagU: gbox (offset 0, the right box) fires FIRST, then fbox.
-  litInput : DiagU (0 ∷ 1 ∷ [])
-  litInput = (0 ∷ []) ▸ [] ∷ gbox ⟨ [] ▸ (1 ∷ []) ∷ fbox ⟨ litDSorted ⟩ ⟩
-
-  -- both DiagUs reorder genuinely: input is gbox-first, swapped is fbox-first.
-  litInputLayers : fromDiagU-ls litInput
-                 ≡ mk-pad (0 ∷ []) [] gbox
-                 ∷ mk-pad [] (1 ∷ []) fbox ∷ []
-  litInputLayers = refl
-
-  -- THE END-TO-END SOUNDNESS: ⟦ input (gbox-first) ⟧ ≈ ⟦ swapped (fbox-first) ⟧.
-  -- All `castW (domeq …)` reduce to `id` (P=mid=s=[]); we feed both compiled
-  -- halves the SAME empty tail and absorb the residual `∘ id`s by `idʳ`.
-  litDiagUSwap : ⟦ litInput ⟧ ≈Term ⟦ litSwapped ⟧
-  litDiagUSwap = begin
-    ⟦ litInput ⟧
-      ≈⟨ assoc ⟩
-    ⟦ litDSorted ⟧ ∘ (Frame.f-out [] [] [] fbox gbox ∘ pad (0 ∷ []) [] (⟦box⟧ gbox))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⟩
-    ⟦ litDSorted ⟧ ∘ Frame.f-out [] [] [] fbox gbox ∘ id ∘ pad (0 ∷ []) [] (⟦box⟧ gbox)
-      ≈⟨ diagU-swap-sound litFit litTail ⟩
-    ⟦ sorted-O litTail ⟧O ∘ id
-      ≈⟨ idʳ ⟩
-    ⟦ sorted-O litTail ⟧O
-      ≈⟨ ≈-Term-sym swapped-as-sorted ⟩
-    ⟦ litSwapped ⟧ ∎
-    where
-      -- ⟦ litSwapped ⟧ ≈ ⟦ sorted-O litTail ⟧O : both are fbox-first-then-gbox;
-      -- from `swapHeadD-out-sound` with the `id` casts and `idˡ`/`idʳ` absorbed.
-      swapped-as-sorted : ⟦ litSwapped ⟧ ≈Term ⟦ sorted-O litTail ⟧O
-      swapped-as-sorted = begin
-        ⟦ litSwapped ⟧
-          ≈⟨ ≈-Term-sym idˡ ⟩
-        id ∘ ⟦ litSwapped ⟧
-          ≈⟨ swapHeadD-out-sound [] [] [] gbox fbox litDSorted ⟩
-        (⟦ litDSorted ⟧ ∘ pad (0 ∷ []) [] (⟦box⟧ gbox)) ∘ id ∘ Frame.f-in [] [] [] fbox gbox
-          ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
-        (⟦ litDSorted ⟧ ∘ pad (0 ∷ []) [] (⟦box⟧ gbox)) ∘ Frame.f-in [] [] [] fbox gbox
-          ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (≈-Term-sym g-out≈cp)) ≈-Term-refl ⟩
-        (⟦ litDSorted ⟧ ∘ Frame.g-out [] [] [] fbox gbox) ∘ Frame.f-in [] [] [] fbox gbox ∎
-
-  --------------------------------------------------------------------------------
-  -- LITMUS (SortD): the DECIDABLE recogniser `leftFit?` FIRES on the concrete
-  -- out-of-order head data, and `swapHeadD`/`normalizeD` reorder genuinely.  X = ℕ
-  -- with `DecidableEquality` `_≟_`.  Out-of-order input: gbox (right box, offset 0
-  -- domain `1∷[]`) fires FIRST then fbox (left box, offset 0).  `leftFit?` rebuilds
-  -- the fit by splitting the offset lists; `swapHeadD` returns the swapped clean
-  -- DiagU (fbox first); all `++`-assoc casts reduce to `id` (P=mid=s=[]).
-  --------------------------------------------------------------------------------
-  open SortD
-
-  -- the recogniser FIRES on the litmus offsets/boxes — machine-checked `just`.
-  litLeftFit? : leftFit? (0 ∷ []) [] [] (1 ∷ []) gbox fbox
-              ≡ just (leftFit [] [] [] refl refl refl refl)
-  litLeftFit? = refl
-
-  -- it conservatively REJECTS an in-order / non-fitting pair (offsets don't split).
-  litLeftFit?-no : leftFit? [] [] [] [] fbox gbox ≡ nothing
-  litLeftFit?-no = refl
-
-  -- the recognised fit (= the hand-written `litFit`).
-  litFitD : LeftFit (0 ∷ []) [] [] (1 ∷ []) gbox fbox
-  litFitD = leftFit [] [] [] refl refl refl refl
-
-  -- the firing swap on the recognised fit + empty tail.
-  litSwapD : HeadSwapD litFitD litDSorted
-  litSwapD = swapHeadD litFitD litDSorted
-
-  -- `normalizeD` with positive fuel REORDERS: the result is the swapped clean
-  -- DiagU (fbox, the lower-offset box, now fires FIRST) — machine-checked `refl`
-  -- on the underlying layer list (fbox-pad first, then gbox-pad).
-  litNormReorders : fromDiagU-ls (normalizeD 4 litFitD litDSorted)
-                  ≡ mk-pad [] (1 ∷ []) fbox
-                  ∷ mk-pad (0 ∷ []) [] gbox ∷ []
-  litNormReorders = refl
-
-  -- and the INPUT (fuel 0 / pre-sort) is gbox-first — confirming it was out of order.
-  litNormInput : fromDiagU-ls (normalizeD 0 litFitD litDSorted)
-               ≡ mk-pad (0 ∷ []) [] gbox
-               ∷ mk-pad [] (1 ∷ []) fbox ∷ []
-  litNormInput = refl
-
-  -- the casts are the identity here, so the soundness witness is the clean
-  -- `≈Term` between the two DiagUs (gbox-first ⇒ fbox-first), machine-checked.
-  litNormCastId : proj₁ (normalizeD-sound 4 litFitD litDSorted) ≡ refl
-  litNormCastId = refl
-
-  litNormSound : id ∘ ⟦ dInput litFitD litDSorted ⟧
-               ≈Term ⟦ normalizeD 4 litFitD litDSorted ⟧
-  litNormSound = proj₂ (normalizeD-sound 4 litFitD litDSorted)
