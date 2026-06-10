@@ -531,19 +531,16 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   blk-left-id {m} {c} {d} h = ⊗-resp-≈ ≈-Term-refl
     (≈-Term-trans (⊗-resp-≈ ≈-Term-refl id⊗id≈id) id⊗id≈id)
 
+  -- fuse two id-tensored factors:  id⊗₁P ∘ id⊗₁Q ≈ id⊗₁(P∘Q)
+  id⊗-∘ : ∀ {Z} {A B C} (P : HomTerm B C) (Q : HomTerm A B)
+        → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ≈Term id {Z} ⊗₁ (P ∘ Q)
+  id⊗-∘ P Q = ≈-Term-trans (≈-Term-sym ⊗-∘-dist) (⊗-resp-≈ idˡ ≈-Term-refl)
+
   -- collapse three id-tensored factors:  id⊗₁P ∘ id⊗₁Q ∘ id⊗₁R ≈ id⊗₁(P∘Q∘R)
   id⊗-∘3 : ∀ {Z} {A B C D} (P : HomTerm C D) (Q : HomTerm B C) (R : HomTerm A B)
          → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ∘ id {Z} ⊗₁ R ≈Term id {Z} ⊗₁ (P ∘ Q ∘ R)
-  id⊗-∘3 {Z} P Q R = begin
-    id ⊗₁ P ∘ (id ⊗₁ Q ∘ id ⊗₁ R)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym ⊗-∘-dist) ⟩
-    id ⊗₁ P ∘ (id ∘ id) ⊗₁ (Q ∘ R)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (⊗-resp-≈ idˡ ≈-Term-refl) ⟩
-    id ⊗₁ P ∘ id ⊗₁ (Q ∘ R)
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (id ∘ id) ⊗₁ (P ∘ (Q ∘ R))
-      ≈⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩
-    id ⊗₁ (P ∘ Q ∘ R) ∎
+  id⊗-∘3 {Z} P Q R =
+    ≈-Term-trans (∘-resp-≈ ≈-Term-refl (id⊗-∘ Q R)) (id⊗-∘ P (Q ∘ R))
 
   --------------------------------------------------------------------------------
   -- `liftW p W` : prepend `p` idle wires to a flat morphism W on `wires u`.
