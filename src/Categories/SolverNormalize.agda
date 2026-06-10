@@ -42,6 +42,9 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; cong; cong₂; trans)
 open import Relation.Nullary using (yes; no)
 
+import Categories.Category.Monoidal.Reasoning as MonR
+import Categories.Morphism.Reasoning as MR
+
 open import Categories.DiagramRewriteUntyped
 open import Categories.FreeMonoidal
 
@@ -60,6 +63,13 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   open FreeMonoidalHelper v X using (ObjTerm)
   open FreeMonoidalHelper.Mor v X mor
   open ≈R
+
+  -- stock associativity/cancellation combinators (same idiom as
+  -- DiagramRewriteUntyped/SolverReflect): plain non-public opens, proofs-only.
+  open MR FreeMonoidal
+    using (pullˡ; pullʳ; pushˡ; pushʳ; cancelˡ; insertʳ)
+  open MonR Monoidal-FreeMonoidal
+    using (refl⟩⊗⟨_)
 
   --------------------------------------------------------------------------------
   -- 1. Layers and wired layer-lists.
@@ -207,14 +217,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     head-swap-sound : ∀ {M rest}
                       (wRest : Wired (L-out g-out-layer) rest M)
                     → ⟦ before-wired wRest ⟧W ≈Term ⟦ after-wired wRest ⟧W
-    head-swap-sound wRest = begin
-      (⟦ wRest ⟧W ∘ g-out) ∘ f-in
-        ≈⟨ assoc ⟩
-      ⟦ wRest ⟧W ∘ (g-out ∘ f-in)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl two-box-swap ⟩
-      ⟦ wRest ⟧W ∘ (f-out ∘ g-in)
-        ≈⟨ ≈-Term-sym assoc ⟩
-      (⟦ wRest ⟧W ∘ f-out) ∘ g-in ∎
+    head-swap-sound wRest = pullʳ two-box-swap ○ ⟺ assoc
 
     -- the two orderings (same fixed endpoints).
     before-O : ∀ {M rest} → Wired (L-out g-out-layer) rest M → Ordering (L-in f-in-layer) M
@@ -247,8 +250,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- bridge soundness: definitional (head-applied-first fold matches `⟦_⟧`).
   fromDiagU-sound : ∀ {n} (d : DiagU n) → ⟦ fromDiagU-W d ⟧W ≈Term ⟦ d ⟧
   fromDiagU-sound ([]_ n)             = ≈-Term-refl
-  fromDiagU-sound (pre ▸ suf ∷ f ⟨ d ⟩) =
-    ∘-resp-≈ (fromDiagU-sound d) ≈-Term-refl
+  fromDiagU-sound (pre ▸ suf ∷ f ⟨ d ⟩) = fromDiagU-sound d ⟩∘⟨refl
 
   --------------------------------------------------------------------------------
   -- 8. (Open) canonicity / completeness.
@@ -376,7 +378,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     -- typechecks for ABSTRACT `P mid s` — no `subst`, no reassociator residue.
     input⇒sorted : ∀ {M rest} (wRest : Wired N₃ rest M)
                  → input-O wRest ⇒W sorted-O wRest
-    input⇒sorted wRest = wstep (≈-Term-sym (head-swap-sound wRest))
+    input⇒sorted wRest = wstep (⟺ (head-swap-sound wRest))
 
   --------------------------------------------------------------------------------
   -- 11d'. THE `castW` OBJECT-TRANSPORT ALGEBRA (the genuine coherence content).
@@ -413,39 +415,21 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   liftW-castW : ∀ (p : List X) {u v : List X} (e : u ≡ v)
               → liftW p (castW e) ≈Term castW (cong (p ++_) e)
   liftW-castW []      e = castW-irr e (cong (_++_ []) e)
-  liftW-castW (x ∷ p) e = begin
-    id ⊗₁ liftW p (castW e)
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (liftW-castW p e) ⟩
-    id ⊗₁ castW (cong (p ++_) e)
-      ≈⟨ castW-∷ (cong (p ++_) e) ⟩
-    castW (cong (x ∷_) (cong (p ++_) e))
-      ≈⟨ castW-irr _ _ ⟩
-    castW (cong ((x ∷ p) ++_) e) ∎
+  liftW-castW (x ∷ p) e =
+    (refl⟩⊗⟨ liftW-castW p e) ○ castW-∷ (cong (p ++_) e) ○ castW-irr _ _
 
   -- the structural +-associator IS the `++`-assoc transport (both α-free).
   assocW-castW : ∀ (p q s : List X)
                → assocW p q s ≈Term castW (sym (++-assoc p q s))
   assocW-castW []      q s = ≈-Term-refl
-  assocW-castW (x ∷ p) q s = begin
-    id ⊗₁ assocW p q s
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (assocW-castW p q s) ⟩
-    id ⊗₁ castW (sym (++-assoc p q s))
-      ≈⟨ castW-∷ (sym (++-assoc p q s)) ⟩
-    castW (cong (x ∷_) (sym (++-assoc p q s)))
-      ≈⟨ castW-irr _ _ ⟩
-    castW (sym (++-assoc (x ∷ p) q s)) ∎
+  assocW-castW (x ∷ p) q s =
+    (refl⟩⊗⟨ assocW-castW p q s) ○ castW-∷ (sym (++-assoc p q s)) ○ castW-irr _ _
 
   assocW⁻-castW : ∀ (p q s : List X)
                 → assocW⁻ p q s ≈Term castW (++-assoc p q s)
   assocW⁻-castW []      q s = ≈-Term-refl
-  assocW⁻-castW (x ∷ p) q s = begin
-    id ⊗₁ assocW⁻ p q s
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (assocW⁻-castW p q s) ⟩
-    id ⊗₁ castW (++-assoc p q s)
-      ≈⟨ castW-∷ (++-assoc p q s) ⟩
-    castW (cong (x ∷_) (++-assoc p q s))
-      ≈⟨ castW-irr _ _ ⟩
-    castW (++-assoc (x ∷ p) q s) ∎
+  assocW⁻-castW (x ∷ p) q s =
+    (refl⟩⊗⟨ assocW⁻-castW p q s) ○ castW-∷ (++-assoc p q s) ○ castW-irr _ _
 
   -- the frame reassociators are two-level assocW/liftW TOWERS; both directions
   -- collapse to a single `castW` (instantiated four times below, at the frame's
@@ -454,34 +438,20 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
                    → assocW pre (c ++ mid) t ∘ liftW pre (assocW c mid t)
                      ≈Term castW (sym (trans (++-assoc pre (c ++ mid) t)
                                              (cong (pre ++_) (++-assoc c mid t))))
-  assocTower≈castW pre c mid t = begin
-    assocW pre (c ++ mid) t ∘ liftW pre (assocW c mid t)
-      ≈⟨ ∘-resp-≈ (assocW-castW pre (c ++ mid) t)
-                  (≈-Term-trans (liftW-resp pre (assocW-castW c mid t))
-                                (liftW-castW pre (sym (++-assoc c mid t)))) ⟩
-    castW (sym (++-assoc pre (c ++ mid) t))
-      ∘ castW (cong (pre ++_) (sym (++-assoc c mid t)))
-      ≈⟨ castW-∘ _ _ ⟩
-    castW (trans (cong (pre ++_) (sym (++-assoc c mid t)))
-                 (sym (++-assoc pre (c ++ mid) t)))
-      ≈⟨ castW-irr _ _ ⟩
-    castW (sym (trans (++-assoc pre (c ++ mid) t)
-                      (cong (pre ++_) (++-assoc c mid t)))) ∎
+  assocTower≈castW pre c mid t =
+    (assocW-castW pre (c ++ mid) t
+       ⟩∘⟨ (liftW-resp pre (assocW-castW c mid t)
+              ○ liftW-castW pre (sym (++-assoc c mid t))))
+    ○ castW-∘ _ _ ○ castW-irr _ _
 
   assocTower⁻≈castW : ∀ (pre c mid t : List X)
                     → liftW pre (assocW⁻ c mid t) ∘ assocW⁻ pre (c ++ mid) t
                       ≈Term castW (trans (++-assoc pre (c ++ mid) t)
                                          (cong (pre ++_) (++-assoc c mid t)))
-  assocTower⁻≈castW pre c mid t = begin
-    liftW pre (assocW⁻ c mid t) ∘ assocW⁻ pre (c ++ mid) t
-      ≈⟨ ∘-resp-≈ (≈-Term-trans (liftW-resp pre (assocW⁻-castW c mid t))
-                                (liftW-castW pre (++-assoc c mid t)))
-                  (assocW⁻-castW pre (c ++ mid) t) ⟩
-    castW (cong (pre ++_) (++-assoc c mid t))
-      ∘ castW (++-assoc pre (c ++ mid) t)
-      ≈⟨ castW-∘ _ _ ⟩
-    castW (trans (++-assoc pre (c ++ mid) t)
-                 (cong (pre ++_) (++-assoc c mid t))) ∎
+  assocTower⁻≈castW pre c mid t =
+    ((liftW-resp pre (assocW⁻-castW c mid t) ○ liftW-castW pre (++-assoc c mid t))
+       ⟩∘⟨ assocW⁻-castW pre (c ++ mid) t)
+    ○ castW-∘ _ _
 
   --------------------------------------------------------------------------------
   -- 11e. The CLEAN ↔ FRAME bridge for the `fx` (right) layer.
@@ -555,17 +525,10 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈Term castW (domeq pre a₁ mid b₂ r)
           ∘ pad (pre ++ (a₁ ++ mid)) r (⟦box⟧ g)
           ∘ castW (sym (domeq pre a₁ mid a₂ r))
-  fx-clean⇒g-in-core pre mid r {a₁} {b₁} {a₂} {b₂} f g = begin
-    Frame.g-in pre mid r f g
-      ≈⟨ Frame.g-in≈pad pre mid r f g ⟩
-    Frame.reassocB-in pre mid r f g
-      ∘ pad (pre ++ (a₁ ++ mid)) r (⟦box⟧ g)
-      ∘ Frame.reassocF-in pre mid r f g
-      ≈⟨ ∘-resp-≈ (reassocB-in≈castW pre mid r f g)
-           (∘-resp-≈ ≈-Term-refl (reassocF-in≈castW pre mid r f g)) ⟩
-    castW (domeq pre a₁ mid b₂ r)
-      ∘ pad (pre ++ (a₁ ++ mid)) r (⟦box⟧ g)
-      ∘ castW (sym (domeq pre a₁ mid a₂ r)) ∎
+  fx-clean⇒g-in-core pre mid r {a₁} {b₁} {a₂} {b₂} f g =
+    Frame.g-in≈pad pre mid r f g
+      ○ (reassocB-in≈castW pre mid r f g
+           ⟩∘⟨ refl⟩∘⟨ reassocF-in≈castW pre mid r f g)
 
   --------------------------------------------------------------------------------
   -- 11e-out. THE MIRROR g-out RE-CLEANING.  Exact analogue of the g-in side,
@@ -604,17 +567,10 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈Term castW (domeq pre b₁ mid b₂ r)
           ∘ pad (pre ++ (b₁ ++ mid)) r (⟦box⟧ g)
           ∘ castW (sym (domeq pre b₁ mid a₂ r))
-  fy-sorted⇒g-out-core pre mid r {a₁} {b₁} {a₂} {b₂} f g = begin
-    Frame.g-out pre mid r f g
-      ≈⟨ Frame.g-out≈pad pre mid r f g ⟩
-    Frame.reassocB-out pre mid r f g
-      ∘ pad (pre ++ (b₁ ++ mid)) r (⟦box⟧ g)
-      ∘ Frame.reassocF-out pre mid r f g
-      ≈⟨ ∘-resp-≈ (reassocB-out≈castW pre mid r f g)
-           (∘-resp-≈ ≈-Term-refl (reassocF-out≈castW pre mid r f g)) ⟩
-    castW (domeq pre b₁ mid b₂ r)
-      ∘ pad (pre ++ (b₁ ++ mid)) r (⟦box⟧ g)
-      ∘ castW (sym (domeq pre b₁ mid a₂ r)) ∎
+  fy-sorted⇒g-out-core pre mid r {a₁} {b₁} {a₂} {b₂} f g =
+    Frame.g-out≈pad pre mid r f g
+      ○ (reassocB-out≈castW pre mid r f g
+           ⟩∘⟨ refl⟩∘⟨ reassocF-out≈castW pre mid r f g)
 
   --------------------------------------------------------------------------------
   -- 11e''. THE FULL CLEAN ⇒ FRAME BRIDGE, PROVEN.  For a recognised `LeftFit`
@@ -645,41 +601,18 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
         ∘ castW (domeq (LeftFit.P fit) ay (LeftFit.mid fit) ax (LeftFit.s fit))
   fx-clean⇒g-in {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
                 (leftFit P mid s refl refl refl refl)
-                {M} {rest} wTail = begin
-    ⟦ wTail ⟧W ∘ F.f-out ∘ castMidB ∘ pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl bridge) ⟩
-    ⟦ wTail ⟧W ∘ F.f-out ∘ (F.g-in ∘ castDom)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    ⟦ wTail ⟧W ∘ (F.f-out ∘ F.g-in) ∘ castDom
-      ≈⟨ ≈-Term-sym assoc ⟩
-    (⟦ wTail ⟧W ∘ (F.f-out ∘ F.g-in)) ∘ castDom
-      ≈⟨ ∘-resp-≈ (≈-Term-sym assoc) ≈-Term-refl ⟩
-    ((⟦ wTail ⟧W ∘ F.f-out) ∘ F.g-in) ∘ castDom ∎
+                {M} {rest} wTail =
+    pushʳ (pushʳ bridge) ○ (⟺ assoc ⟩∘⟨refl)
     where
       module F = Frame P mid s fy fx
       castMidB = castW (domeq P ay mid bx s)
       castDom  = castW (domeq P ay mid ax s)
-      -- g-in ∘ castDom ≈ castMidB ∘ pad …  (the core bridge + cast cancel)
+      -- castMidB ∘ pad … ≈ g-in ∘ castDom: insert the inverse-cast pair on the
+      -- right, then fold the core bridge.
       bridge : castMidB ∘ pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
              ≈Term F.g-in ∘ castDom
-      bridge = begin
-        castMidB ∘ pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
-          ≈⟨ ≈-Term-sym idʳ ⟩
-        (castMidB ∘ pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)) ∘ id
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym (castW-sym-r (domeq P ay mid ax s))) ⟩
-        (castMidB ∘ pad (P ++ (ay ++ mid)) s (⟦box⟧ fx))
-          ∘ (castW (sym (domeq P ay mid ax s)) ∘ castDom)
-          ≈⟨ assoc ⟩
-        castMidB ∘ (pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
-          ∘ (castW (sym (domeq P ay mid ax s)) ∘ castDom))
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-        castMidB ∘ ((pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
-          ∘ castW (sym (domeq P ay mid ax s))) ∘ castDom)
-          ≈⟨ ≈-Term-sym assoc ⟩
-        (castMidB ∘ (pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
-          ∘ castW (sym (domeq P ay mid ax s)))) ∘ castDom
-          ≈⟨ ∘-resp-≈ (≈-Term-sym (fx-clean⇒g-in-core P mid s fy fx)) ≈-Term-refl ⟩
-        F.g-in ∘ castDom ∎
+      bridge = insertʳ (castW-sym-r (domeq P ay mid ax s))
+             ○ ((assoc ○ ⟺ (fx-clean⇒g-in-core P mid s fy fx)) ⟩∘⟨refl)
 
   --------------------------------------------------------------------------------
   -- 11e'''. THE AUTONOMOUS DiagU SWAP SOUNDNESS, PROVEN.  Chaining the clean⇒
@@ -700,8 +633,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈Term ⟦ LeftFrame.sorted-O fit wTail ⟧O
         ∘ castW (domeq (LeftFit.P fit) ay (LeftFit.mid fit) ax (LeftFit.s fit))
   diagU-swap-sound fit wTail =
-    ≈-Term-trans (fx-clean⇒g-in fit wTail)
-      (∘-resp-≈ (sound (LeftFrame.input⇒sorted fit wTail)) ≈-Term-refl)
+    fx-clean⇒g-in fit wTail ○ (sound (LeftFrame.input⇒sorted fit wTail) ⟩∘⟨refl)
 
   --------------------------------------------------------------------------------
   -- 11f. subst-transport of a DiagU index, PROVEN sound.  A swap necessarily
@@ -726,7 +658,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   ⟦substDiagU⟧ : ∀ {m n : List X} (e : m ≡ n) (d : DiagU m)
               → ⟦ substDiagU e d ⟧ ∘ castW e
                 ≈Term castW (sym (substDiagU-out e d)) ∘ ⟦ d ⟧
-  ⟦substDiagU⟧ refl d = ≈-Term-trans idʳ (≈-Term-sym idˡ)
+  ⟦substDiagU⟧ refl d = idʳ ○ ⟺ idˡ
 
   --------------------------------------------------------------------------------
   -- 11g. `swapHeadD` — the genuine clean DiagU head swap.
@@ -773,39 +705,20 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈Term (⟦ dSorted ⟧ ∘ pad (P ++ (by ++ mid)) s (⟦box⟧ fx))
           ∘ castW (sym (domeq P by mid ax s))
           ∘ Frame.f-in P mid s fy fx
-  swapHeadD-out-sound {ax} {bx} {ay} {by} P mid s fx fy dSorted = begin
-    castW out-eq ∘ (⟦ inner ⟧ ∘ F.f-in)
-      ≈⟨ ≈-Term-sym assoc ⟩
-    (castW out-eq ∘ ⟦ inner ⟧) ∘ F.f-in
-      ≈⟨ ∘-resp-≈ key ≈-Term-refl ⟩
-    (⟦ innerD ⟧ ∘ castW (sym e)) ∘ F.f-in
-      ≈⟨ assoc ⟩
-    ⟦ innerD ⟧ ∘ (castW (sym e) ∘ F.f-in) ∎
+  swapHeadD-out-sound {ax} {bx} {ay} {by} P mid s fx fy dSorted =
+    pullˡ key ○ assoc
     where
       module F = Frame P mid s fy fx
       innerD = (P ++ (by ++ mid)) ▸ s ∷ fx ⟨ dSorted ⟩
       inner  = substDiagU (domeq P by mid ax s) innerD
       out-eq = substDiagU-out (domeq P by mid ax s) innerD
       e      = domeq P by mid ax s
+      -- insert the inverse-cast pair on the right, absorb `substDiagU` via
+      -- `⟦substDiagU⟧`, cancel the output-cast pair on the left.
       key : castW out-eq ∘ ⟦ inner ⟧ ≈Term ⟦ innerD ⟧ ∘ castW (sym e)
-      key = begin
-        castW out-eq ∘ ⟦ inner ⟧
-          ≈⟨ ≈-Term-sym idʳ ⟩
-        (castW out-eq ∘ ⟦ inner ⟧) ∘ id
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym (castW-sym-r-flip e)) ⟩
-        (castW out-eq ∘ ⟦ inner ⟧) ∘ (castW e ∘ castW (sym e))
-          ≈⟨ ≈-Term-sym assoc ⟩
-        ((castW out-eq ∘ ⟦ inner ⟧) ∘ castW e) ∘ castW (sym e)
-          ≈⟨ ∘-resp-≈ assoc ≈-Term-refl ⟩
-        (castW out-eq ∘ (⟦ inner ⟧ ∘ castW e)) ∘ (castW (sym e))
-          ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (⟦substDiagU⟧ e innerD)) ≈-Term-refl ⟩
-        (castW out-eq ∘ (castW (sym out-eq) ∘ ⟦ innerD ⟧)) ∘ castW (sym e)
-          ≈⟨ ∘-resp-≈ (≈-Term-sym assoc) ≈-Term-refl ⟩
-        ((castW out-eq ∘ castW (sym out-eq)) ∘ ⟦ innerD ⟧) ∘ castW (sym e)
-          ≈⟨ ∘-resp-≈ (∘-resp-≈ (castW-sym-r-flip out-eq) ≈-Term-refl) ≈-Term-refl ⟩
-        (id ∘ ⟦ innerD ⟧) ∘ castW (sym e)
-          ≈⟨ ∘-resp-≈ idˡ ≈-Term-refl ⟩
-        ⟦ innerD ⟧ ∘ castW (sym e) ∎
+      key = insertʳ (castW-sym-r-flip e)
+          ○ ((pullʳ (⟦substDiagU⟧ e innerD)
+                ○ cancelˡ (castW-sym-r-flip out-eq)) ⟩∘⟨refl)
 
   --------------------------------------------------------------------------------
   -- 11h. The INPUT clean DiagU of an out-of-order head pair, and the ABSTRACT
@@ -878,8 +791,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   castW-cancelʳ : ∀ {u v w : List X} (e : u ≡ v)
                   {A B : HomTerm (wires v) (wires w)}
                 → A ∘ castW e ≈Term B ∘ castW e → A ≈Term B
-  castW-cancelʳ refl {A} {B} h =
-    ≈-Term-trans (≈-Term-sym idʳ) (≈-Term-trans h idʳ)
+  castW-cancelʳ refl {A} {B} h = ⟺ idʳ ○ h ○ idʳ
 
   -- expansion of the INPUT diagram, pre-composed by the domain cast `e`, to the
   -- frame INPUT composite (the LHS of `diagU-swap-sound`).  Proven by `J` on the
@@ -898,25 +810,12 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
           ∘ castW (domeq (LeftFit.P fit) ay (LeftFit.mid fit) bx (LeftFit.s fit))
           ∘ pad (LeftFit.P fit ++ (ay ++ LeftFit.mid fit)) (LeftFit.s fit) (⟦box⟧ fx)
   dInput-frame {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
-               (leftFit P mid s refl refl refl refl) dRest = begin
-    ⟦ substDiagU e0 fxL ⟧ ∘ castW e0
-      ≈⟨ ⟦substDiagU⟧ e0 fxL ⟩
-    castW (sym o0) ∘ ⟦ fxL ⟧
-      ≈⟨ ∘-resp-≈ ≈-Term-refl refl-bridge ⟩
-    castW (sym o0) ∘ (⟦ substDiagU e1 fyL ⟧ ∘ padfx)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ subst1 ≈-Term-refl) ⟩
-    castW (sym o0) ∘ ((castW (sym o1) ∘ rhs1) ∘ padfx)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-    castW (sym o0) ∘ (castW (sym o1) ∘ (rhs1 ∘ padfx))
-      ≈⟨ ≈-Term-sym assoc ⟩
-    (castW (sym o0) ∘ castW (sym o1)) ∘ (rhs1 ∘ padfx)
-      ≈⟨ ∘-resp-≈ (≈-Term-trans (castW-∘ (sym o1) (sym o0))
-                     (castW-irr _ (sym (dInput-out (leftFit P mid s refl refl refl refl) dRest))))
-                  ≈-Term-refl ⟩
-    castW (sym (dInput-out (leftFit P mid s refl refl refl refl) dRest)) ∘ (rhs1 ∘ padfx)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (chainR) ⟩
-    castW (sym (dInput-out (leftFit P mid s refl refl refl refl) dRest))
-      ∘ (⟦ dRest ⟧ ∘ (F.f-out ∘ (castW (domeq P ay mid bx s) ∘ padfx))) ∎
+               (leftFit P mid s refl refl refl refl) dRest =
+    ⟦substDiagU⟧ e0 fxL
+      ○ (refl⟩∘⟨ pushˡ subst1)
+      ○ pullˡ (castW-∘ (sym o1) (sym o0)
+                 ○ castW-irr _ (sym (dInput-out (leftFit P mid s refl refl refl refl) dRest)))
+      ○ (refl⟩∘⟨ chainR)
     where
       module F = Frame P mid s fy fx
       e0   = domeq P ay mid ax s
@@ -926,37 +825,19 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       fxL  = (P ++ (ay ++ mid)) ▸ s ∷ fx ⟨ substDiagU e1 fyL ⟩
       o0   = substDiagU-out e0 fxL
       o1   = substDiagU-out e1 fyL
-      refl-bridge : ⟦ fxL ⟧ ≈Term ⟦ substDiagU e1 fyL ⟧ ∘ padfx
-      refl-bridge = ≈-Term-refl
       rhs1 = (⟦ dRest ⟧ ∘ F.f-out) ∘ castW (sym e1)
-      -- (rhs1 ∘ padfx) ≈ ⟦dRest⟧ ∘ (f-out ∘ (castW(domeq …bx…) ∘ padfx))
+      -- (rhs1 ∘ padfx) ≈ ⟦dRest⟧ ∘ (f-out ∘ (castW(domeq …bx…) ∘ padfx)):
+      -- pure reassociation + one castW-irr (sym (sym _) vs _).
       chainR : rhs1 ∘ padfx
              ≈Term ⟦ dRest ⟧ ∘ (F.f-out ∘ (castW (domeq P ay mid bx s) ∘ padfx))
-      chainR = begin
-        ((⟦ dRest ⟧ ∘ F.f-out) ∘ castW (sym e1)) ∘ padfx
-          ≈⟨ ∘-resp-≈ assoc ≈-Term-refl ⟩
-        (⟦ dRest ⟧ ∘ (F.f-out ∘ castW (sym e1))) ∘ padfx
-          ≈⟨ assoc ⟩
-        ⟦ dRest ⟧ ∘ ((F.f-out ∘ castW (sym e1)) ∘ padfx)
-          ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-        ⟦ dRest ⟧ ∘ (F.f-out ∘ (castW (sym e1) ∘ padfx))
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (castW-irr (sym e1) (domeq P ay mid bx s)) ≈-Term-refl)) ⟩
-        ⟦ dRest ⟧ ∘ (F.f-out ∘ (castW (domeq P ay mid bx s) ∘ padfx)) ∎
-      -- ⟦ substDiagU e1 fyL ⟧ ≈ castW(sym o1) ∘ (⟦dRest⟧ ∘ f-out) ∘ castW(sym e1)
+      chainR = assoc ○ assoc
+        ○ (refl⟩∘⟨ refl⟩∘⟨ (castW-irr (sym e1) (domeq P ay mid bx s) ⟩∘⟨refl))
+      -- ⟦ substDiagU e1 fyL ⟧ ≈ castW(sym o1) ∘ (⟦dRest⟧ ∘ f-out) ∘ castW(sym e1):
+      -- absorb the substDiagU, insert the inverse-cast pair on the right.
       subst1 : ⟦ substDiagU e1 fyL ⟧
              ≈Term castW (sym o1) ∘ rhs1
-      subst1 = castW-cancelʳ e1 (begin
-        ⟦ substDiagU e1 fyL ⟧ ∘ castW e1
-          ≈⟨ ⟦substDiagU⟧ e1 fyL ⟩
-        castW (sym o1) ∘ ⟦ fyL ⟧
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym idʳ) ⟩
-        castW (sym o1) ∘ ((⟦ dRest ⟧ ∘ F.f-out) ∘ id)
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym (castW-sym-r e1))) ⟩
-        castW (sym o1) ∘ ((⟦ dRest ⟧ ∘ F.f-out) ∘ (castW (sym e1) ∘ castW e1))
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-        castW (sym o1) ∘ (((⟦ dRest ⟧ ∘ F.f-out) ∘ castW (sym e1)) ∘ castW e1)
-          ≈⟨ ≈-Term-sym assoc ⟩
-        (castW (sym o1) ∘ ((⟦ dRest ⟧ ∘ F.f-out) ∘ castW (sym e1))) ∘ castW e1 ∎)
+      subst1 = castW-cancelʳ e1
+        (⟦substDiagU⟧ e1 fyL ○ insertʳ (castW-sym-r e1) ○ (assoc ⟩∘⟨refl))
 
   --------------------------------------------------------------------------------
   -- 11h'''. Expansion of `⟦ dSwapped ⟧` to the frame SORTED ordering (the
@@ -972,23 +853,11 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     → castW (dSwapped-out fit dRest) ∘ ⟦ dSwapped fit dRest ⟧
       ≈Term ⟦ LeftFrame.sorted-O fit (fromDiagU-W dRest) ⟧O
   dSwapped-frame {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
-                 (leftFit P mid s refl refl refl refl) dRest = begin
-    castW (dSwapped-out (leftFit {fx = fx} {fy = fy} P mid s refl refl refl refl) dRest)
-      ∘ ⟦ dSwapped (leftFit {fx = fx} {fy = fy} P mid s refl refl refl refl) dRest ⟧
-      ≈⟨ ∘-resp-≈ (castW-irr _ (trans ohd o'')) ≈-Term-refl ⟩
-    castW (trans ohd o'') ∘ ⟦ swapHeadD-out (leftFit {fx = fx} {fy = fy} P mid s refl refl refl refl) dSorted ⟧
-      ≈⟨ ∘-resp-≈ (≈-Term-sym (castW-∘ ohd o'')) ≈-Term-refl ⟩
-    (castW o'' ∘ castW ohd) ∘ ⟦ swapHeadD-out (leftFit {fx = fx} {fy = fy} P mid s refl refl refl refl) dSorted ⟧
-      ≈⟨ assoc ⟩
-    castW o'' ∘ (castW ohd ∘ ⟦ swapHeadD-out (leftFit {fx = fx} {fy = fy} P mid s refl refl refl refl) dSorted ⟧)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (swapHeadD-out-sound P mid s fx fy dSorted) ⟩
-    castW o'' ∘ ((⟦ dSorted ⟧ ∘ padfx') ∘ castW (sym e') ∘ F.f-in)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    castW o'' ∘ (((⟦ dSorted ⟧ ∘ padfx') ∘ castW (sym e')) ∘ F.f-in)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ gpart ≈-Term-refl) ⟩
-    castW o'' ∘ ((castW (sym o'') ∘ (⟦ fromDiagU-W dRest ⟧W ∘ F.g-out)) ∘ F.f-in)
-      ≈⟨ collapse ⟩
-    (⟦ fromDiagU-W dRest ⟧W ∘ F.g-out) ∘ F.f-in ∎
+                 (leftFit P mid s refl refl refl refl) dRest =
+    pushˡ (castW-irr _ (trans ohd o'') ○ ⟺ (castW-∘ ohd o''))
+      ○ (refl⟩∘⟨ (swapHeadD-out-sound P mid s fx fy dSorted
+                    ○ ⟺ assoc ○ (gpart ⟩∘⟨refl) ○ assoc))
+      ○ cancelˡ (castW-sym-r-flip o'')
     where
       module F = Frame P mid s fy fx
       e'      = domeq P by mid ax s
@@ -998,53 +867,23 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       innerD' = (P ++ (by ++ mid)) ▸ s ∷ fx ⟨ dSorted ⟩
       ohd     = substDiagU-out e' innerD'
       o''     = substDiagU-out (sym ebx) dRest
-      collapse : castW o'' ∘ ((castW (sym o'') ∘ (⟦ fromDiagU-W dRest ⟧W ∘ F.g-out)) ∘ F.f-in)
-               ≈Term (⟦ fromDiagU-W dRest ⟧W ∘ F.g-out) ∘ F.f-in
-      collapse = begin
-        castW o'' ∘ ((castW (sym o'') ∘ G) ∘ F.f-in)
-          ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-        castW o'' ∘ (castW (sym o'') ∘ (G ∘ F.f-in))
-          ≈⟨ ≈-Term-sym assoc ⟩
-        (castW o'' ∘ castW (sym o'')) ∘ (G ∘ F.f-in)
-          ≈⟨ ∘-resp-≈ (castW-sym-r-flip o'') ≈-Term-refl ⟩
-        id ∘ (G ∘ F.f-in)
-          ≈⟨ idˡ ⟩
-        G ∘ F.f-in ∎
-        where G = ⟦ fromDiagU-W dRest ⟧W ∘ F.g-out
-
-      -- ⟦dSorted⟧ ≈ (castW(sym o'') ∘ ⟦dRest⟧) ∘ castW ebx
-      dS : ⟦ dSorted ⟧ ≈Term (castW (sym o'') ∘ ⟦ dRest ⟧) ∘ castW ebx
-      dS = castW-cancelʳ (sym ebx) (begin
-        ⟦ dSorted ⟧ ∘ castW (sym ebx)
-          ≈⟨ ⟦substDiagU⟧ (sym ebx) dRest ⟩
-        castW (sym o'') ∘ ⟦ dRest ⟧
-          ≈⟨ ≈-Term-sym idʳ ⟩
-        (castW (sym o'') ∘ ⟦ dRest ⟧) ∘ id
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym (castW-sym-r-flip ebx)) ⟩
-        (castW (sym o'') ∘ ⟦ dRest ⟧) ∘ (castW ebx ∘ castW (sym ebx))
-          ≈⟨ ≈-Term-sym assoc ⟩
-        ((castW (sym o'') ∘ ⟦ dRest ⟧) ∘ castW ebx) ∘ castW (sym ebx) ∎)
-      frd : castW (sym o'') ∘ ⟦ dRest ⟧
-          ≈Term castW (sym o'') ∘ ⟦ fromDiagU-W dRest ⟧W
-      frd = ∘-resp-≈ ≈-Term-refl (≈-Term-sym (fromDiagU-sound dRest))
-      -- ⟦dSorted⟧ ∘ padfx' ∘ castW(sym e') ≈ castW(sym o'') ∘ (⟦fromDiagU-W dRest⟧W ∘ g-out)
+      -- ⟦dSorted⟧ ≈ (castW(sym o'') ∘ ⟦fromDiagU-W dRest⟧W) ∘ castW ebx:
+      -- absorb the substDiagU, bridge ⟦dRest⟧ to the wired fold, insert the
+      -- inverse-cast pair on the right.
+      dS : ⟦ dSorted ⟧
+         ≈Term (castW (sym o'') ∘ ⟦ fromDiagU-W dRest ⟧W) ∘ castW ebx
+      dS = castW-cancelʳ (sym ebx)
+        (⟦substDiagU⟧ (sym ebx) dRest
+          ○ (refl⟩∘⟨ ⟺ (fromDiagU-sound dRest))
+          ○ insertʳ (castW-sym-r-flip ebx))
+      -- ⟦dSorted⟧ ∘ padfx' ∘ castW(sym e') ≈ castW(sym o'') ∘ (⟦fromDiagU-W dRest⟧W ∘ g-out):
+      -- expand dS, reassociate, fold the re-cleaned g-out.
       gpart : (⟦ dSorted ⟧ ∘ padfx') ∘ castW (sym e')
             ≈Term castW (sym o'') ∘ (⟦ fromDiagU-W dRest ⟧W ∘ F.g-out)
-      gpart = begin
-        (⟦ dSorted ⟧ ∘ padfx') ∘ castW (sym e')
-          ≈⟨ ∘-resp-≈ (∘-resp-≈ dS ≈-Term-refl) ≈-Term-refl ⟩
-        (((castW (sym o'') ∘ ⟦ dRest ⟧) ∘ castW ebx) ∘ padfx') ∘ castW (sym e')
-          ≈⟨ ∘-resp-≈ (∘-resp-≈ (∘-resp-≈ frd ≈-Term-refl) ≈-Term-refl) ≈-Term-refl ⟩
-        (((castW (sym o'') ∘ ⟦ fromDiagU-W dRest ⟧W) ∘ castW ebx) ∘ padfx') ∘ castW (sym e')
-          ≈⟨ assoc ⟩
-        ((castW (sym o'') ∘ ⟦ fromDiagU-W dRest ⟧W) ∘ castW ebx) ∘ (padfx' ∘ castW (sym e'))
-          ≈⟨ assoc ⟩
-        (castW (sym o'') ∘ ⟦ fromDiagU-W dRest ⟧W)
-          ∘ (castW ebx ∘ (padfx' ∘ castW (sym e')))
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym (fy-sorted⇒g-out-core P mid s fy fx)) ⟩
-        (castW (sym o'') ∘ ⟦ fromDiagU-W dRest ⟧W) ∘ F.g-out
-          ≈⟨ assoc ⟩
-        castW (sym o'') ∘ (⟦ fromDiagU-W dRest ⟧W ∘ F.g-out) ∎
+      gpart = ((dS ⟩∘⟨refl) ⟩∘⟨refl)
+            ○ assoc ○ assoc
+            ○ (refl⟩∘⟨ ⟺ (fy-sorted⇒g-out-core P mid s fy fx))
+            ○ assoc
 
   --------------------------------------------------------------------------------
   -- 11h''''. THE ASSEMBLED ABSTRACT PER-SWAP SOUNDNESS.  `castW out-eq ∘ ⟦ dInput ⟧
@@ -1063,18 +902,11 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈Term ⟦ dSwapped fit dRest ⟧
   diagU-swap-soundD {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
                     (leftFit P mid s refl refl refl refl) dRest =
-    castW-cancelʳ (domeq P ay mid ax s) (begin
-      (castW oeq ∘ ⟦ dIn ⟧) ∘ cax
-        ≈⟨ assoc ⟩
-      castW oeq ∘ (⟦ dIn ⟧ ∘ cax)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (dInput-frame fit dRest) ⟩
-      castW oeq ∘ (castW (sym diO) ∘ FC)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl FC≈sorted) ⟩
-      castW oeq ∘ (castW (sym diO) ∘ (⟦ sortedO ⟧O ∘ cax))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ dSwapped-frame-rearr ≈-Term-refl)) ⟩
-      castW oeq ∘ (castW (sym diO) ∘ ((castW dsO ∘ ⟦ dSw ⟧) ∘ cax))
-        ≈⟨ castLoop ⟩
-      ⟦ dSw ⟧ ∘ cax ∎)
+    castW-cancelʳ (domeq P ay mid ax s)
+      (assoc
+        ○ (refl⟩∘⟨ (dInput-frame fit dRest
+             ○ (refl⟩∘⟨ (FC≈sorted ○ (dSwapped-frame-rearr ⟩∘⟨refl)))))
+        ○ castLoop)
     where
       fit = leftFit {fx = fx} {fy = fy} P mid s refl refl refl refl
       cax = castW (domeq P ay mid ax s)
@@ -1090,37 +922,21 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       FC = ⟦ dRest ⟧ ∘ (F.f-out ∘ (cbx ∘ pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)))
       -- ⟦dRest⟧ ≈ ⟦wTail⟧W, lifted to FC ≈ frame-input-composite, then diagU-swap-sound.
       FC≈sorted : FC ≈Term ⟦ sortedO ⟧O ∘ cax
-      FC≈sorted = ≈-Term-trans
-        (∘-resp-≈ (≈-Term-sym (fromDiagU-sound dRest)) ≈-Term-refl)
-        (diagU-swap-sound fit wTail)
+      FC≈sorted =
+        (⟺ (fromDiagU-sound dRest) ⟩∘⟨refl) ○ diagU-swap-sound fit wTail
       -- dSwapped-frame rearranged: ⟦sortedO⟧O ≈ castW dsO ∘ ⟦dSw⟧.
       dSwapped-frame-rearr : ⟦ sortedO ⟧O ≈Term castW dsO ∘ ⟦ dSw ⟧
-      dSwapped-frame-rearr = ≈-Term-sym (dSwapped-frame fit dRest)
+      dSwapped-frame-rearr = ⟺ (dSwapped-frame fit dRest)
       -- the loop of output casts collapses to id, leaving ⟦dSw⟧ ∘ cax.
       castLoop : castW oeq ∘ (castW (sym diO) ∘ ((castW dsO ∘ ⟦ dSw ⟧) ∘ cax))
                ≈Term ⟦ dSw ⟧ ∘ cax
-      castLoop = begin
-        castW oeq ∘ (castW (sym diO) ∘ ((castW dsO ∘ ⟦ dSw ⟧) ∘ cax))
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl assoc) ⟩
-        castW oeq ∘ (castW (sym diO) ∘ (castW dsO ∘ (⟦ dSw ⟧ ∘ cax)))
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-        castW oeq ∘ ((castW (sym diO) ∘ castW dsO) ∘ (⟦ dSw ⟧ ∘ cax))
-          ≈⟨ ≈-Term-sym assoc ⟩
-        (castW oeq ∘ (castW (sym diO) ∘ castW dsO)) ∘ (⟦ dSw ⟧ ∘ cax)
-          ≈⟨ ∘-resp-≈ loopId ≈-Term-refl ⟩
-        id ∘ (⟦ dSw ⟧ ∘ cax)
-          ≈⟨ idˡ ⟩
-        ⟦ dSw ⟧ ∘ cax ∎
+      castLoop = (refl⟩∘⟨ ((refl⟩∘⟨ assoc) ○ ⟺ assoc)) ○ cancelˡ loopId
         where
+          -- the genuine castW-∘ content: the three output casts compose to id.
           loopId : castW oeq ∘ (castW (sym diO) ∘ castW dsO) ≈Term id
-          loopId = begin
-            castW oeq ∘ (castW (sym diO) ∘ castW dsO)
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (castW-∘ dsO (sym diO)) ⟩
-            castW oeq ∘ castW (trans dsO (sym diO))
-              ≈⟨ castW-∘ (trans dsO (sym diO)) oeq ⟩
-            castW (trans (trans dsO (sym diO)) oeq)
-              ≈⟨ castW-irr _ refl ⟩
-            id ∎
+          loopId = (refl⟩∘⟨ castW-∘ dsO (sym diO))
+                 ○ castW-∘ (trans dsO (sym diO)) oeq
+                 ○ castW-irr _ refl
 
   --------------------------------------------------------------------------------
   -- 12. THE AUTONOMOUS FIRING DiagU SORT (needs `DecidableEquality X`).
