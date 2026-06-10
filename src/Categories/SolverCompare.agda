@@ -182,12 +182,6 @@ module SolverCompareI
     ≈NF⇒≡ : ∀ {n} {d d' : DiagU n} → d ≈NF d' → d ≡ d'
     ≈NF⇒≡ {d = d} {d' = d'} eq = encode-inj d d' refl (≈NF⇒encode eq)
 
-    -- coerce a flat HomTerm along an equality of its output width.  Downstream
-    -- solver assemblies state their soundness lemmas at the common codomain
-    -- type via this coercion.
-    coeW : ∀ {n p q} → p ≡ q → HomTerm (wires n) (wires p) → HomTerm (wires n) (wires q)
-    coeW p≡q = subst (λ w → HomTerm (wires _) (wires w)) p≡q
-
 --------------------------------------------------------------------------------
 -- Compatibility wrapper: `SolverCompareI` at the standard interpretation
 -- `Untyped.⟦box⟧` (= `var ∘ box`), re-exported alongside it to preserve the
