@@ -1,41 +1,42 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
 -- Tests for the morphism-variable monoidal-diagram solver.
 --
 -- The module sets up a shared two-colour wire type `Ty` and a
 -- Frobenius/bialgebra-flavoured generator signature `Gen`.  Tests are grouped
--- into four sub-modules, each focused on one aspect of the pipeline:
+-- into three sub-modules, each focused on one aspect of the pipeline:
 --
 --   * `Sound`       — `reflect-sound` on representative WTerms.
 --   * `Interchange` — disjoint-box interchange, via the kernel and normalizeD.
 --   * `Decision`    — the `decide?` procedure (positive and negative).
---   * `Transport`   — lifting free-category equations into a target MonoidalCategory.
+--
+-- (Transport of free-category equations into a target MonoidalCategory is
+-- covered by `Categories.SolverFrontendTests`; the raw swap-engine litmus
+-- lives in `Categories.SolverNormalizeTests`.)
 --
 -- Hole-free, postulate-free, --safe.
 --------------------------------------------------------------------------------
 
 module Categories.SolverTests where
 
-import Data.Fin
+open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_; _++_)
-open import Data.Maybe using (Maybe; just; nothing; Is-just; to-witness)
+open import Data.List.Properties using (≡-dec)
+open import Data.Maybe using (Maybe; just; nothing; Is-just)
 open import Data.Maybe.Relation.Unary.Any using (just)
-open import Data.Product using (Σ; _×_; _,_; proj₁; proj₂)
-open import Relation.Nullary using (Dec; yes; no)
+open import Data.Product using (_×_; _,_; proj₁; proj₂)
 open import Relation.Binary using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
+open import Relation.Nullary using (yes; no)
 
-open import Categories.Category using (Category; _[_,_]; _[_≈_])
-open import Categories.Category.Monoidal using (MonoidalCategory)
-open import Categories.FreeMonoidal
 open import Categories.DiagramRewriteUntyped
-open import Categories.SolverReflect
-open import Categories.SolverNormalize
+open import Categories.FreeMonoidal
 open import Categories.SolverCompare
-open import Categories.SolverFrontend using (module Frontend)
+open import Categories.SolverNormalize
+open import Categories.SolverReflect
 
 ------------------------------------------------------------------------
 -- Wire colours, shared across all sub-modules.
@@ -47,6 +48,11 @@ _≟Ty_ : DecidableEquality Ty
 ⋆ ≟Ty • = no λ ()
 • ≟Ty ⋆ = no λ ()
 • ≟Ty • = yes refl
+
+-- UIP on wire lists, via Hedberg (decidable equality), --without-K.
+private
+  uipLTy : ∀ {x y : List Ty} (e e' : x ≡ y) → e ≡ e'
+  uipLTy = Decidable⇒UIP.≡-irrelevant (≡-dec _≟Ty_)
 
 ------------------------------------------------------------------------
 -- Generator signature: Frobenius/bialgebra kit on Ty.
@@ -87,13 +93,13 @@ private
 open Untyped Mon {Ty} Gen
 open Reflect  Mon {Ty} _≟Ty_ Gen
 open Normalize Mon {Ty} _≟Ty_ Gen
-open FreeMonoidalHelper Mon Ty using (ObjTerm; unit; _⊗₀_; Var)
 open FreeMonoidalHelper.Mor Mon Ty mor
 open ≈R
 open SortD
 
-private bs : BoxSound
-        bs = boxSound
+private
+  bs : BoxSound
+  bs = boxSound
 
 ------------------------------------------------------------------------
 -- Module Sound: reflect soundness.
@@ -210,7 +216,8 @@ module Decision where
           eq-≈Term : ∀ {n p} {d d' : DiagU n}
                        (e : d ≡ d') (q₁ : out d ≡ p) (q₂ : out d' ≡ p)
                    → coeCod' q₁ ⟦ d ⟧ ≈Term coeCod' q₂ ⟦ d' ⟧
-          eq-≈Term refl refl refl = ≈-Term-refl
+          eq-≈Term {d = d} refl q₁ q₂ =
+            ≡⇒≈Term (cong (λ q → coeCod' q ⟦ d ⟧) (uipLTy q₁ q₂))
 
   -- Positive: `id ∘ μ` and `μ` reflect to the same diagram.
   test-pos₁ : Is-just (decide? (idʷ ∘ʷ boxʷ μ) (boxʷ μ))
@@ -227,79 +234,3 @@ module Decision where
   -- Negative: `δ` vs `δ ∘ s`.
   test-neg₂ : decide? (boxʷ δ) (boxʷ δ ∘ʷ boxʷ s) ≡ nothing
   test-neg₂ = refl
-
-------------------------------------------------------------------------
--- Module Transport: genuine C-level equations for abstract endomorphisms,
--- discharged by the solver FRONT-END (`Categories.SolverFrontend`).
---
--- Reference-style (cf. Categories.Coherence.Symmetric.Test): the generator
--- signature lives at ObjTerm arities, the term language `S` interprets
--- definitionally into C, and each test is `solveMor! lhs rhs` — reflect →
--- normalize (interchange) → compare → bridge → transport, all hidden.
-
-module Transport {o ℓ e} (C : MonoidalCategory o ℓ e) where
-
-  private
-    Obj = C .MonoidalCategory.U .Category.Obj
-
-  module DisjointEndos (A B : Obj) where
-
-    -- two-generator signature at ObjTerm arities (Fin-indexed for DecEq).
-    private
-      arityT : Fin 2 → ObjTerm × ObjTerm
-      arityT zero    = Var ⋆ , Var ⋆
-      arityT (suc _) = Var • , Var •
-
-    data GenT : ObjTerm → ObjTerm → Set where
-      genT : (i : Fin 2) → GenT (proj₁ (arityT i)) (proj₂ (arityT i))
-
-    -- the front-end term language (the reference's `S`).
-    private module S = FreeMonoidalHelper.Mor Mon Ty GenT
-
-    open Frontend {Ty} _≟Ty_ GenT
-
-    private
-      _≟G_ : DecidableEquality GenΣ
-      (_ , _ , genT i) ≟G (_ , _ , genT j) with i ≟F j
-      ... | yes refl = yes refl
-      ... | no ¬p    = no λ where refl → ¬p refl
-
-      ⟦_⟧₀T : Ty → Obj
-      ⟦ ⋆ ⟧₀T = A
-      ⟦ • ⟧₀T = B
-
-    open Decide _≟G_ (λ { (_ , _ , genT i) → Data.Fin.toℕ i })
-    open Into C ⟦_⟧₀T
-
-    module WithMorphisms
-      (sᴹ : C .MonoidalCategory.U [ A , A ])
-      (tᴹ : C .MonoidalCategory.U [ B , B ])
-      where
-
-      open WithGen (λ { (genT zero) → sᴹ ; (genT (suc _)) → tᴹ })
-
-      private module MC = MonoidalCategory C
-      open MC using () renaming (_⊗₁_ to _⊗C_)
-
-      private
-        sT = S.var (genT zero)
-        tT = S.var (genT (suc zero))
-
-      -- (id ⊗ tᴹ) ∘ (sᴹ ⊗ id) ≈ sᴹ ⊗ tᴹ  — firing orders agree after reflect.
-      test-interchange-s-first
-        : C .MonoidalCategory.U
-            [ (MC.id ⊗C tᴹ) MC.∘ (sᴹ ⊗C MC.id) ≈ sᴹ ⊗C tᴹ ]
-      test-interchange-s-first =
-        solveMor! (S._∘_ (S._⊗₁_ S.id tT) (S._⊗₁_ sT S.id)) (S._⊗₁_ sT tT)
-
-      -- (sᴹ ⊗ id) ∘ (id ⊗ tᴹ) ≈ sᴹ ⊗ tᴹ  — genuinely out of order: the
-      -- solver fires a real interchange swap (norm1) before comparing.
-      test-interchange-t-first
-        : C .MonoidalCategory.U
-            [ (sᴹ ⊗C MC.id) MC.∘ (MC.id ⊗C tᴹ) ≈ sᴹ ⊗C tᴹ ]
-      test-interchange-t-first =
-        solveMor! (S._∘_ (S._⊗₁_ sT S.id) (S._⊗₁_ S.id tT)) (S._⊗₁_ sT tT)
-
-      -- structural sanity: identity laws through the same pipeline.
-      test-idˡ : C .MonoidalCategory.U [ MC.id MC.∘ sᴹ ≈ sᴹ ]
-      test-idˡ = solveMor! (S._∘_ S.id sT) sT
