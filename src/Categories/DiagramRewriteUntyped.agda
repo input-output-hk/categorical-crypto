@@ -24,6 +24,10 @@ module Categories.DiagramRewriteUntyped where
 
 open import Data.List using (List; []; _∷_; _++_)
 
+open import Categories.Category using (Category)
+import Categories.Morphism.Reasoning as MR
+import Categories.Category.Monoidal.Reasoning as MonR
+
 open import Categories.FreeMonoidal
 
 --------------------------------------------------------------------------------
@@ -85,23 +89,27 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   open FreeMonoidalHelper v X using (ObjTerm; unit; _⊗₀_; Var)
   open FreeMonoidalHelper.Mor v X mor
 
-  -- minimal equational reasoning for the (homogeneous) _≈Term_
+  -- equational reasoning for the (homogeneous) _≈Term_: since
+  -- FreeMonoidal's _≈_ IS _≈Term_ definitionally, agda-categories' stock
+  -- HomReasoning applies directly.  It also provides refl⟩∘⟨_, _⟩∘⟨refl,
+  -- _⟩∘⟨_ (= ∘-resp-≈), ⟺ (= sym) and _○_ (= trans).  The display step
+  -- _≈⟨⟩_ is a local shim (the stock module only has the _≡⟨⟩_ spelling).
   module ≈R where
-    infix  3 _∎
-    infixr 2 step-≈ step-≈˘ _≈⟨⟩_
-    infix  1 begin_
-    begin_ : ∀ {A B} {f g : HomTerm A B} → f ≈Term g → f ≈Term g
-    begin x = x
-    _≈⟨⟩_ : ∀ {A B} (f : HomTerm A B) {g} → f ≈Term g → f ≈Term g
+    open Category.HomReasoning FreeMonoidal public
+    infixr 2 _≈⟨⟩_
+    _≈⟨⟩_ : ∀ {A B} (f : HomTerm A B) {g} → f IsRelatedTo g → f IsRelatedTo g
     _ ≈⟨⟩ x = x
-    step-≈ : ∀ {A B} (f : HomTerm A B) {g h} → g ≈Term h → f ≈Term g → f ≈Term h
-    step-≈ _ gh fg = ≈-Term-trans fg gh
-    step-≈˘ : ∀ {A B} (f : HomTerm A B) {g h} → g ≈Term h → g ≈Term f → f ≈Term h
-    step-≈˘ _ gh gf = ≈-Term-trans (≈-Term-sym gf) gh
-    _∎ : ∀ {A B} (f : HomTerm A B) → f ≈Term f
-    _ ∎ = ≈-Term-refl
-    syntax step-≈  f gh fg = f ≈⟨ fg ⟩ gh
-    syntax step-≈˘ f gh gf = f ≈⟨ gf ⟨ gh
+
+  -- stock associativity/cancellation combinators on FreeMonoidal
+  -- (pullˡ/pullʳ/pushˡ/pushʳ/center/cancel…/elim…), and ⊗-step
+  -- combinators on Monoidal-FreeMonoidal (refl⟩⊗⟨_ etc.).  Plain `open`
+  -- (not public): these are for the proofs in this file only.
+  open MR FreeMonoidal
+    using (pullˡ; pullʳ; pushˡ; pushʳ; center; center⁻¹;
+           cancelˡ; cancelʳ; cancelInner; insertInner; elimˡ; elimʳ; introˡ; introʳ)
+  open MonR Monoidal-FreeMonoidal
+    using (refl⟩⊗⟨_; _⟩⊗⟨refl; _⟩⊗⟨_; ⊗-distrib-over-∘;
+           serialize₁₂; serialize₂₁; split₁ˡ; split₁ʳ; split₂ˡ; split₂ʳ)
 
   -- (merge / split now live in `WireSig` — re-exported by the public open
   -- above — so that ⟦box⟧ interpretations can be built from them.)
