@@ -1,40 +1,17 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Pruned-vs-unpruned decoder shape, factored through PRUNED shape lemmas.
+-- Term-level `process-edges` machinery shared by the pruned shape lemmas:
 --
--- Supplies the two pruning-specific residuals of
--- `Discharge.DecodeRelDecodeP.decode-rel-≈-decodeP`:
+--   * §2 `pe-stack-++` / `pe-term-++` — running `ps ++ rest` factors, on
+--     the TERM level, into the `rest`-run precomposed with the `ps`-run
+--     (modulo codomain transport along the stack factoring).  Building
+--     block of `DecodeComposePruned.decodeP-∘-shape`'s block decomposition.
+--   * §5 `TermEmbed` — the TERM-tracking `process-edges` extraction gate.
 --
---     decodeP-≈-decode-∘ : decodeP (g ∘ f)  ≈Term decode (g ∘ f)
---     decodeP-≈-decode-⊗ : decodeP (f ⊗₁ g) ≈Term decode (f ⊗₁ g)
---
--- It FACTORS each bridge through a PRUNED shape lemma plus the
--- already-trusted unpruned shape residual, so no pruned-vs-unpruned
--- obligation survives as new conceptual trust.  E.g. the `∘` bridge:
---
---     decodeP (g ∘ f)
---       ≈⟨ decodeP-∘-shape g f ⟩          -- PRUNED ∘ shape (this module's residual)
---     decodeP g ∘ decodeP f
---       ≈⟨ ∘-resp-≈ (rec g) (rec f) ⟩     -- recursion (decodeP X ≈Term decode X)
---     decode g ∘ decode f
---       ≈⟨ sym (decode-∘-shape-inner g f) ⟩  -- UNPRUNED ∘ shape (SHARED trust)
---     decode (g ∘ f)
---
--- where `decode-{∘,⊗}-shape-inner` are the unpruned shape residuals
--- (already part of the shared `DecodeShapeResiduals` trust surface) and
--- `decodeP-{∘,⊗}-shape` are the pruned shape lemmas, packaged here as the
--- record `DecodePShapeResiduals`.
---
--- The two `DecodePShapeResiduals` fields are the pruned mirror of the
--- unpruned `DecodeShapeResiduals` fields (`decode` → `decodeP`).  The `⊗`
--- one is the `swap-atom-aligned` kernel (the same `nf-bracket`/`block-nf`
--- kernel the interchange side bottoms out in); since that kernel requires
--- `APROPSignatureDec`, this `sig`-level module records the link in the
--- field doc rather than importing it.
---
--- So the SOLE pruning-specific trust of `decode-rel-≈-decodeP`, after this
--- factoring, is `DecodePShapeResiduals`.
+-- (The historical `DecodePShapeResiduals`/`Assemble` unpruned-vs-pruned
+-- bridging layer died when the unpruned decoder was retired; see
+-- docs/size-reduction-strategies.md, 2026-06-10 addendum.)
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -88,18 +65,6 @@ open import Relation.Binary.PropositionalEquality
 
 private
   module FM = Category FreeMonoidal
-
---------------------------------------------------------------------------------
--- ## §1. The pruned decoder `decodeP`.
---
--- Replicated here so the residual record fields can be stated without
--- importing `DecodeRelDecodeP` (which would create a cycle).
-
-decodeP : ∀ {A B} (f : HomTerm A B)
-        → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
-decodeP {A} {B} f =
-  subst₂ HomTerm (cong unflatten (⟪⟫ₚ-domL f)) (cong unflatten (⟪⟫ₚ-codL f))
-         (proj₁ (decode-attempt-LinearP f))
 
 --------------------------------------------------------------------------------
 -- ## §2. The term-level `_++_` factoring of `process-edges`.
@@ -165,92 +130,6 @@ module _ (H : Hypergraph FlatGen) where
         → coe-cod eq (g ∘ f) ∘ t0
           ≈Term coe-cod eq (g ∘ (f ∘ t0))
       coe-cod-assoc refl g f t0 = assoc
-
---------------------------------------------------------------------------------
--- ## §3. The two PRUNED shape residuals — the pruned mirror of
--- `DecodeShape.DecodeShapeResiduals`, stated with `decodeP`.  These are
--- the SOLE pruning-specific trust the `∘`/`⊗` bridges reduce to.
-
-record DecodePShapeResiduals : Set where
-  field
-    -- The pruned `∘` shape.  Constructive content: `pe-term-++` on the
-    -- `hComposeP` edge list + the G-side (`injL`) / K-side (`remapP`)
-    -- liftings + the `domL-hComposeP` / `codL-hComposeP` boundary
-    -- reconciliation.
-    decodeP-∘-shape
-      : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
-      → decodeP (g ∘ f) ≈Term decodeP g ∘ decodeP f
-
-    -- The pruned `⊗` shape.  Tensor is NOT pruned, so its term-level
-    -- content is the interleaved disjoint-block reordering =
-    -- `swap-atom-aligned`.
-    decodeP-⊗-shape
-      : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
-      → decodeP (f ⊗₁ g)
-      ≈Term _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
-           ∘ (decodeP f ⊗₁ decodeP g)
-           ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
-
---------------------------------------------------------------------------------
--- ## §4. The factoring assemblers.
---
--- Given a `DecodePShapeResiduals` instance, the unpruned shape residuals,
--- and the structural recursion results, derive the two bridges.  These
--- match the types of `decodeP-≈-decode-∘` / `decodeP-≈-decode-⊗` in
--- `DecodeRelDecodeP`.  `decode`/`decodeP` are parameters (not imported) to
--- avoid a cycle.
-
-module Assemble
-  (decode : ∀ {A B} (f : HomTerm A B)
-          → HomTerm (unflatten (flatten A)) (unflatten (flatten B)))
-  -- The UNPRUNED shape residuals (from the caller's `DecodeShapeResiduals`).
-  (decode-∘-shape
-    : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
-    → decode (g ∘ f) ≈Term decode g ∘ decode f)
-  (decode-⊗-shape
-    : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
-    → decode (f ⊗₁ g)
-    ≈Term _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
-         ∘ (decode f ⊗₁ decode g)
-         ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C)))
-  -- The PRUNED shape residuals.
-  (pshape : DecodePShapeResiduals)
-  where
-  open DecodePShapeResiduals pshape
-
-  -- The ∘ bridge, factored:
-  --   decodeP (g∘f) ≈ decodeP g ∘ decodeP f   [pruned ∘ shape]
-  --                 ≈ decode  g ∘ decode  f   [recursion under ∘]
-  --                 ≈ decode (g∘f)            [sym unpruned ∘ shape]
-  --
-  -- The recursion RESULTS are passed in directly (rather than a recursion
-  -- function), so the caller's termination checker sees the structural
-  -- decrease at the `decodeP-≈-decode g`/`f` call sites.
-  decodeP-≈-decode-∘-from
-    : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
-    → decodeP g ≈Term decode g
-    → decodeP f ≈Term decode f
-    → decodeP (g ∘ f) ≈Term decode (g ∘ f)
-  decodeP-≈-decode-∘-from g f recg recf =
-    ≈-Term-trans (decodeP-∘-shape g f)
-      (≈-Term-trans (∘-resp-≈ recg recf)
-        (≈-Term-sym (decode-∘-shape g f)))
-
-  -- The ⊗ bridge, factored:
-  --   decodeP (f⊗g) ≈ to ∘ (decodeP f ⊗ decodeP g) ∘ from   [pruned ⊗ shape]
-  --                 ≈ to ∘ (decode  f ⊗ decode  g) ∘ from   [recursion in the block]
-  --                 ≈ decode (f⊗g)                          [sym unpruned ⊗ shape]
-  decodeP-≈-decode-⊗-from
-    : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
-    → decodeP f ≈Term decode f
-    → decodeP g ≈Term decode g
-    → decodeP (f ⊗₁ g) ≈Term decode (f ⊗₁ g)
-  decodeP-≈-decode-⊗-from f g recf recg =
-    ≈-Term-trans (decodeP-⊗-shape f g)
-      (≈-Term-trans
-        (∘-resp-≈ ≈-Term-refl
-          (∘-resp-≈ (⊗-resp-≈ recf recg) ≈-Term-refl))
-        (≈-Term-sym (decode-⊗-shape f g)))
 
 --------------------------------------------------------------------------------
 -- ## §5. The TERM-tracking `process-edges` extraction lemmas (the GATE).

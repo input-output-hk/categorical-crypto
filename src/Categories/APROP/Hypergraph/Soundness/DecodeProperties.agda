@@ -109,15 +109,6 @@ extract-prefix-self (x ∷ xs) with extract-elem-self x xs
                   rewrite eq1 | eq2 = _ , refl
 
 --------------------------------------------------------------------------------
--- `extract-exact-self`: exact search of `xs` in `xs` succeeds.
-
-extract-exact-self
-  : ∀ {n} (xs : List (Fin n))
-  → Σ[ p ∈ (xs Perm.↭ xs) ] extract-exact xs xs ≡ just p
-extract-exact-self xs with extract-prefix-self xs
-... | p , eq rewrite eq = _ , refl
-
---------------------------------------------------------------------------------
 -- Lifting `extract-elem` / `extract-prefix` through disjoint injections
 -- (for `decode-attempt-hTensor`).  These relate a search on a pure-side
 -- list to one on a "mixed" list `map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys` when
