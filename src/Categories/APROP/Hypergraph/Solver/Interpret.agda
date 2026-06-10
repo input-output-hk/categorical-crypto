@@ -37,6 +37,7 @@ open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.FindIso sig-dec using (findIso)
 open import Categories.APROP.Hypergraph.Solver.FindIsoTab sig-dec using (findIsoᵀ)
+open import Categories.APROP.Hypergraph.Solver.Split sig-dec using (solveSplitR?)
 open import Categories.APROP.Hypergraph.SoundnessFullWired sig-dec
   using (soundness-full-wired)
 
@@ -136,3 +137,17 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → {_ : T (is-just (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫))}
     → ⟦ f ⟧₁ C.≈ ⟦ g ⟧₁
   solveH!ᵀ f g {pf} = solveH f g (fromWitness! (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫) pf)
+
+  -- Same, but the witness is produced by the equation-splitting front-end
+  -- `solveSplitR?`: both sides are reassociated to right-nested `∘`-chains,
+  -- shared syntactic structure is peeled by `refl`/congruence, and only the
+  -- differing windows go to the hypergraph solver (`findIsoᵀ`), with the
+  -- whole-term solve as fallback — so anything `solveH!ᵀ` solves, this
+  -- solves too.  `solveSplitR?` already yields a `f ≈Term g`, so it is
+  -- transported by `F-resp-≈` directly (no `solveH`).
+  solveH!ˢ
+    : ∀ {A B} (f g : HomTerm A B)
+    → {_ : T (is-just (solveSplitR? f g))}
+    → ⟦ f ⟧₁ C.≈ ⟦ g ⟧₁
+  solveH!ˢ f g {pf} =
+    Functor.F-resp-≈ freeFunctor (fromWitness! (solveSplitR? f g) pf)
