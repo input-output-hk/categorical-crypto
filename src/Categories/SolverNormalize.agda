@@ -447,6 +447,42 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈⟨ castW-irr _ _ ⟩
     castW (++-assoc (x ∷ p) q s) ∎
 
+  -- the frame reassociators are two-level assocW/liftW TOWERS; both directions
+  -- collapse to a single `castW` (instantiated four times below, at the frame's
+  -- `domeq` indices).
+  assocTower≈castW : ∀ (pre c mid t : List X)
+                   → assocW pre (c ++ mid) t ∘ liftW pre (assocW c mid t)
+                     ≈Term castW (sym (trans (++-assoc pre (c ++ mid) t)
+                                             (cong (pre ++_) (++-assoc c mid t))))
+  assocTower≈castW pre c mid t = begin
+    assocW pre (c ++ mid) t ∘ liftW pre (assocW c mid t)
+      ≈⟨ ∘-resp-≈ (assocW-castW pre (c ++ mid) t)
+                  (≈-Term-trans (liftW-resp pre (assocW-castW c mid t))
+                                (liftW-castW pre (sym (++-assoc c mid t)))) ⟩
+    castW (sym (++-assoc pre (c ++ mid) t))
+      ∘ castW (cong (pre ++_) (sym (++-assoc c mid t)))
+      ≈⟨ castW-∘ _ _ ⟩
+    castW (trans (cong (pre ++_) (sym (++-assoc c mid t)))
+                 (sym (++-assoc pre (c ++ mid) t)))
+      ≈⟨ castW-irr _ _ ⟩
+    castW (sym (trans (++-assoc pre (c ++ mid) t)
+                      (cong (pre ++_) (++-assoc c mid t)))) ∎
+
+  assocTower⁻≈castW : ∀ (pre c mid t : List X)
+                    → liftW pre (assocW⁻ c mid t) ∘ assocW⁻ pre (c ++ mid) t
+                      ≈Term castW (trans (++-assoc pre (c ++ mid) t)
+                                         (cong (pre ++_) (++-assoc c mid t)))
+  assocTower⁻≈castW pre c mid t = begin
+    liftW pre (assocW⁻ c mid t) ∘ assocW⁻ pre (c ++ mid) t
+      ≈⟨ ∘-resp-≈ (≈-Term-trans (liftW-resp pre (assocW⁻-castW c mid t))
+                                (liftW-castW pre (++-assoc c mid t)))
+                  (assocW⁻-castW pre (c ++ mid) t) ⟩
+    castW (cong (pre ++_) (++-assoc c mid t))
+      ∘ castW (++-assoc pre (c ++ mid) t)
+      ≈⟨ castW-∘ _ _ ⟩
+    castW (trans (++-assoc pre (c ++ mid) t)
+                 (cong (pre ++_) (++-assoc c mid t))) ∎
+
   --------------------------------------------------------------------------------
   -- 11e. The CLEAN ↔ FRAME bridge for the `fx` (right) layer.
   --
@@ -488,18 +524,8 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       (f : Mor a₁ b₁) (g : Mor a₂ b₂)
     → Frame.reassocF-in pre mid r f g
       ≈Term castW (sym (domeq pre a₁ mid a₂ r))
-  reassocF-in≈castW pre mid r {a₁} {b₁} {a₂} {b₂} f g = begin
-    assocW pre (a₁ ++ mid) (a₂ ++ r) ∘ liftW pre (assocW a₁ mid (a₂ ++ r))
-      ≈⟨ ∘-resp-≈ (assocW-castW pre (a₁ ++ mid) (a₂ ++ r))
-                  (≈-Term-trans (liftW-resp pre (assocW-castW a₁ mid (a₂ ++ r)))
-                                (liftW-castW pre (sym (++-assoc a₁ mid (a₂ ++ r))))) ⟩
-    castW (sym (++-assoc pre (a₁ ++ mid) (a₂ ++ r)))
-      ∘ castW (cong (pre ++_) (sym (++-assoc a₁ mid (a₂ ++ r))))
-      ≈⟨ castW-∘ _ _ ⟩
-    castW (trans (cong (pre ++_) (sym (++-assoc a₁ mid (a₂ ++ r))))
-                 (sym (++-assoc pre (a₁ ++ mid) (a₂ ++ r))))
-      ≈⟨ castW-irr _ _ ⟩
-    castW (sym (domeq pre a₁ mid a₂ r)) ∎
+  reassocF-in≈castW pre mid r {a₁} {b₁} {a₂} {b₂} f g =
+    assocTower≈castW pre a₁ mid (a₂ ++ r)
 
   -- reassocB-in collapses to the codomain cast.
   reassocB-in≈castW :
@@ -507,18 +533,8 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       (f : Mor a₁ b₁) (g : Mor a₂ b₂)
     → Frame.reassocB-in pre mid r f g
       ≈Term castW (domeq pre a₁ mid b₂ r)
-  reassocB-in≈castW pre mid r {a₁} {b₁} {a₂} {b₂} f g = begin
-    liftW pre (assocW⁻ a₁ mid (b₂ ++ r)) ∘ assocW⁻ pre (a₁ ++ mid) (b₂ ++ r)
-      ≈⟨ ∘-resp-≈ (≈-Term-trans (liftW-resp pre (assocW⁻-castW a₁ mid (b₂ ++ r)))
-                                (liftW-castW pre (++-assoc a₁ mid (b₂ ++ r))))
-                  (assocW⁻-castW pre (a₁ ++ mid) (b₂ ++ r)) ⟩
-    castW (cong (pre ++_) (++-assoc a₁ mid (b₂ ++ r)))
-      ∘ castW (++-assoc pre (a₁ ++ mid) (b₂ ++ r))
-      ≈⟨ castW-∘ _ _ ⟩
-    castW (trans (++-assoc pre (a₁ ++ mid) (b₂ ++ r))
-                 (cong (pre ++_) (++-assoc a₁ mid (b₂ ++ r))))
-      ≈⟨ castW-irr _ _ ⟩
-    castW (domeq pre a₁ mid b₂ r) ∎
+  reassocB-in≈castW pre mid r {a₁} {b₁} {a₂} {b₂} f g =
+    assocTower⁻≈castW pre a₁ mid (b₂ ++ r)
 
   -- round-trip cancellation of inverse casts.
   castW-sym-r : ∀ {u v : List X} (e : u ≡ v) → castW (sym e) ∘ castW e ≈Term id
@@ -566,18 +582,8 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       (f : Mor a₁ b₁) (g : Mor a₂ b₂)
     → Frame.reassocF-out pre mid r f g
       ≈Term castW (sym (domeq pre b₁ mid a₂ r))
-  reassocF-out≈castW pre mid r {a₁} {b₁} {a₂} {b₂} f g = begin
-    assocW pre (b₁ ++ mid) (a₂ ++ r) ∘ liftW pre (assocW b₁ mid (a₂ ++ r))
-      ≈⟨ ∘-resp-≈ (assocW-castW pre (b₁ ++ mid) (a₂ ++ r))
-                  (≈-Term-trans (liftW-resp pre (assocW-castW b₁ mid (a₂ ++ r)))
-                                (liftW-castW pre (sym (++-assoc b₁ mid (a₂ ++ r))))) ⟩
-    castW (sym (++-assoc pre (b₁ ++ mid) (a₂ ++ r)))
-      ∘ castW (cong (pre ++_) (sym (++-assoc b₁ mid (a₂ ++ r))))
-      ≈⟨ castW-∘ _ _ ⟩
-    castW (trans (cong (pre ++_) (sym (++-assoc b₁ mid (a₂ ++ r))))
-                 (sym (++-assoc pre (b₁ ++ mid) (a₂ ++ r))))
-      ≈⟨ castW-irr _ _ ⟩
-    castW (sym (domeq pre b₁ mid a₂ r)) ∎
+  reassocF-out≈castW pre mid r {a₁} {b₁} {a₂} {b₂} f g =
+    assocTower≈castW pre b₁ mid (a₂ ++ r)
 
   -- reassocB-out collapses to the codomain cast at offset b₁.
   reassocB-out≈castW :
@@ -585,18 +591,8 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       (f : Mor a₁ b₁) (g : Mor a₂ b₂)
     → Frame.reassocB-out pre mid r f g
       ≈Term castW (domeq pre b₁ mid b₂ r)
-  reassocB-out≈castW pre mid r {a₁} {b₁} {a₂} {b₂} f g = begin
-    liftW pre (assocW⁻ b₁ mid (b₂ ++ r)) ∘ assocW⁻ pre (b₁ ++ mid) (b₂ ++ r)
-      ≈⟨ ∘-resp-≈ (≈-Term-trans (liftW-resp pre (assocW⁻-castW b₁ mid (b₂ ++ r)))
-                                (liftW-castW pre (++-assoc b₁ mid (b₂ ++ r))))
-                  (assocW⁻-castW pre (b₁ ++ mid) (b₂ ++ r)) ⟩
-    castW (cong (pre ++_) (++-assoc b₁ mid (b₂ ++ r)))
-      ∘ castW (++-assoc pre (b₁ ++ mid) (b₂ ++ r))
-      ≈⟨ castW-∘ _ _ ⟩
-    castW (trans (++-assoc pre (b₁ ++ mid) (b₂ ++ r))
-                 (cong (pre ++_) (++-assoc b₁ mid (b₂ ++ r))))
-      ≈⟨ castW-irr _ _ ⟩
-    castW (domeq pre b₁ mid b₂ r) ∎
+  reassocB-out≈castW pre mid r {a₁} {b₁} {a₂} {b₂} f g =
+    assocTower⁻≈castW pre b₁ mid (b₂ ++ r)
 
   -- THE CORE g-out BRIDGE, PROVEN (mirror of `fx-clean⇒g-in-core`).  The frame's
   -- grouped `g-out` equals the clean flat `pad` of the right box `g` (at the
