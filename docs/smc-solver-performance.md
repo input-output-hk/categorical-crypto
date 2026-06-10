@@ -518,11 +518,22 @@ interfaces) and a 9–18 s decision, with the soundness application now costing 
 aggregator → **46 s**; the per-module split was only a workaround for the dead slow-path OOM);
 (ii) **plain `findIso` beats `findIsoᵀ` ~20% on these 1-box cross-pairs** (decP 13.9 s vs decT
 17.6 s — tabulation pays on deep many-re-access chains, not here). Remaining ranked levers:
-rebalance the segment spellings in `Terms` (~2× on the translation pass, pure re-bracketing);
-shrink obligation inputs by free pre-cancellation (super-linear cost ⇒ small trims pay);
-Bool-reflection `Verify` (only if a finer probe shows verify dominating the decision);
-strictification of `⟪_⟫` as the sole asymptotic lever. Note the whole chain is one-time
-`.agdai`-cached leaf cost — downstream consumers never re-pay it.
+rebalance the segment spellings (~2× predicted on the translation pass); shrink obligation inputs
+by free pre-cancellation (super-linear cost ⇒ small trims pay); Bool-reflection `Verify` (only if
+a finer probe shows verify dominating the decision); strictification of `⟪_⟫` as the sole
+asymptotic lever. Note the whole chain is one-time `.agdai`-cached leaf cost — downstream
+consumers never re-pay it.
+
+**Rebalancing measured + banked (same day).** Balanced ∘-spellings of the obligation sides
+(`α/γ` router internals included) vs the right-linear segment forms, same run:
+ob₂'s pair **13.8 s → 2.2 s (6.4×)** — beating the 2× prediction because the α-heavy internals
+gain most — and ob₀'s 6.8 s → 4.0 s (1.7×). Integrated non-invasively: the balanced spellings
+live in `Wiring` only (Terms untouched, so Decomp's bracket-sensitive hops are unaffected),
+stated as `obᵢᵇ` and bridged to the segment statements by near-free pure-assoc `solveSplitR?`
+conversions (`assoc!`). The obligations module: 100 s (3 modules) → 46 s (consolidated, plain
+`findIso`) → **28 s** (balanced); whole `assoc'` chain ≈ 1.9 min from clean. General rule for
+solver inputs: **spell heavy terms with balanced `∘`-trees** — the translation walks the
+composition tree per access path, so balance is ~free speed.
 
 ## Implication
 
