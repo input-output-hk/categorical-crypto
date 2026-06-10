@@ -26,11 +26,16 @@
 --                                  the caller supplies only the term, the rule
 --                                  sides, and the rule proof (`rewriteAutoₙ!`
 --                                  picks the `n`-th occurrence);
---                   · `rewriteDeep!` — as `rewriteAuto!`, but the position is
---                                  found on the *hypergraph* (subMatch →
---                                  hole-carve → decode), so the redex need
---                                  only be a connected sub-diagram of `⟪s⟫`,
---                                  not a subterm of `s` as written;
+--                   · `rewriteDeep(ₙ)!` — as `rewriteAuto!`, but the position
+--                                  is found on the *hypergraph* (sub-match
+--                                  enumeration → hole-carve with retry →
+--                                  decode), so the redex need only be a
+--                                  connected sub-diagram of `⟪s⟫`, not a
+--                                  subterm of `s` as written;
+--                   · `rewriteDeepTo!` — `rewriteDeepₙ!` landing on a stated
+--                                  clean term; the step for chained
+--                                  derivations (keeps the carved frame out
+--                                  of all exposed types);
 --                   · `S`        — the free-SMC term language (`S.Agen`, `S.∘`,
 --                                  `S.⊗₁`, `S.σ`, `S.α⇒`, …);
 --                   · `gen`      — the `i`-th generator as a free term;
@@ -91,7 +96,7 @@ module Wiring
   open import Categories.APROP.Hypergraph.Solver.Carve finSigDec public
     using (Foc; focusAll; focusAtₙ; focusAt)
   open import Categories.APROP.Hypergraph.Solver.Deep finSigDec public
-    using (deepFoc)
+    using (deepFocAll; deepFocₙ; deepFoc)
   open ObjInterp C ⟦_⟧ᵖ₀ public using (⟦_⟧₀)
 
   -- A generator interpretation, keyed by index: the `i`-th generator's morphism.

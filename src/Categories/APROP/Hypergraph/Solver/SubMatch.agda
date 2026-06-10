@@ -42,14 +42,14 @@ open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen; flat; flat
 open import Categories.APROP.Hypergraph.Solver.PBij
   using (PBij; forward; backward; emptyBij)
 open import Categories.APROP.Hypergraph.Solver.Search sig-dec
-  using (searchIso-default)
+  using (searchAll-default)
 open import Categories.APROP.Hypergraph.Solver.Totals using (Total; totalise)
 open import Categories.APROP.Hypergraph.Solver.Verify sig-dec
   using (flat-match; ∀F?; dec→maybe)
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List.Base using (List; map)
+open import Data.List.Base using (List; []; _∷_; map)
 open import Data.List.Properties using (map-∘; map-cong) renaming (≡-dec to ≡-decL)
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Maybe.Properties using () renaming (≡-dec to ≡-decM)
@@ -182,8 +182,22 @@ module Verify-Sub (L S : Hypergraph FlatGen)
 
 --------------------------------------------------------------------------------
 -- Top-level: search (no interface seed) then verify.
+--
+-- `subMatchAll` enumerates every verified embedding, in the DFS's order.
+-- Consumers with acceptance criteria beyond the embedding itself — notably
+-- the rewrite carve, which also needs the occurrence to be *convex* — must
+-- retry down this list rather than committing to the first match.
+
+subMatchAll : (L S : Hypergraph FlatGen) → List (L ↪ᴴ S)
+subMatchAll L S = collect (searchAll-default L S emptyBij emptyBij)
+  where
+    collect : List _ → List (L ↪ᴴ S)
+    collect []               = []
+    collect ((φB , ψB) ∷ xs) with Verify-Sub.verifySub L S φB ψB
+    ... | just emb = emb ∷ collect xs
+    ... | nothing  = collect xs
 
 subMatch : (L S : Hypergraph FlatGen) → Maybe (L ↪ᴴ S)
-subMatch L S with searchIso-default L S emptyBij emptyBij
-... | nothing          = nothing
-... | just (φB , ψB)   = Verify-Sub.verifySub L S φB ψB
+subMatch L S with subMatchAll L S
+... | []      = nothing
+... | emb ∷ _ = just emb

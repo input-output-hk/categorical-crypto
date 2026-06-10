@@ -37,7 +37,7 @@ open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.FindIso sig-dec using (findIso)
 open import Categories.APROP.Hypergraph.Solver.Carve sig-dec using (focusAtₙ; Foc)
-open import Categories.APROP.Hypergraph.Solver.Deep sig-dec using (deepFoc)
+open import Categories.APROP.Hypergraph.Solver.Deep sig-dec using (deepFocₙ)
 open import Categories.APROP.Hypergraph.SoundnessFullWired sig-dec
   using (soundness-full-wired)
 
@@ -68,11 +68,11 @@ focFrame s lᵗ mid n found =
   let (k , pre , post) = fromWitness! (focusAtₙ s lᵗ n) found
   in post ∘ (id {k} ⊗₁ mid) ∘ pre
 
--- As `focFrame`, but for the hypergraph-level (`deepFoc`) position search.
+-- As `focFrame`, but for the hypergraph-level (`deepFocₙ`) position search.
 deepFrame : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)
-          → T (is-just (deepFoc s lᵗ)) → HomTerm A B
-deepFrame s lᵗ mid found =
-  let (k , pre , post) = fromWitness! (deepFoc s lᵗ) found
+          → (n : ℕ) → T (is-just (deepFocₙ s lᵗ n)) → HomTerm A B
+deepFrame s lᵗ mid n found =
+  let (k , pre , post) = fromWitness! (deepFocₙ s lᵗ n) found
   in post ∘ (id {k} ⊗₁ mid) ∘ pre
 
 --------------------------------------------------------------------------------
@@ -222,19 +222,55 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     rewriteAutoₙ! s lᵗ rᵗ zero rule {found} {cert}
 
   --------------------------------------------------------------------------------
-  -- As `rewriteAuto!`, but the position is found on the *hypergraph* (via
-  -- `deepFoc`: subMatch → hole-carve → decode), so the redex need not be a
-  -- subterm of `s` as written — it only has to be a connected sub-diagram of
-  -- `⟪ s ⟫`, e.g. a sequential rule firing across an interchange.
+  -- As `rewriteAutoₙ!`, but the position is found on the *hypergraph* (via
+  -- `deepFocₙ`: sub-match enumeration → hole-carve with retry → decode), so
+  -- the redex need not be a subterm of `s` as written — it only has to be a
+  -- connected sub-diagram of `⟪ s ⟫`, e.g. a sequential rule firing across an
+  -- interchange.  `n` indexes the *carvable* (convex) occurrences in match
+  -- order; non-convex matches are skipped, not counted.
+  rewriteDeepₙ!
+    : ∀ {A B P Q}
+    → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
+    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
+    → {found : T (is-just (deepFocₙ s lᵗ n))}
+    → {_     : T (is-just (findIso ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫))}
+    → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ n found ⟧₁
+  rewriteDeepₙ! s lᵗ rᵗ n rule {found} {cert} =
+    C.Equiv.trans
+      (solveH s (deepFrame s lᵗ lᵗ n found)
+              (fromWitness! (findIso ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫) cert))
+      (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule))))
+
+  -- The first carvable occurrence (`n = 0`).
   rewriteDeep!
     : ∀ {A B P Q}
     → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
-    → {found : T (is-just (deepFoc s lᵗ))}
-    → {_     : T (is-just (findIso ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ found ⟫))}
-    → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ found ⟧₁
+    → {found : T (is-just (deepFocₙ s lᵗ zero))}
+    → {_     : T (is-just (findIso ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ zero found ⟫))}
+    → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ zero found ⟧₁
   rewriteDeep! s lᵗ rᵗ rule {found} {cert} =
+    rewriteDeepₙ! s lᵗ rᵗ zero rule {found} {cert}
+
+  --------------------------------------------------------------------------------
+  -- As `rewriteDeepₙ!`, but landing on a caller-stated CLEAN term `t` (the
+  -- second `findIso` reconciles the rewritten frame with `t` up to SMC
+  -- structure).  This is the workhorse for multi-step derivations: the
+  -- carved frame never appears in the exposed type — only `⟦ s ⟧₁ ≈ ⟦ t ⟧₁`
+  -- — so steps chain by transitivity without the type-checker ever
+  -- conversion-checking two large frame terms against each other (which is
+  -- prohibitively slow; see the test suite's chain tests).
+  rewriteDeepTo!
+    : ∀ {A B P Q}
+    → (s t : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
+    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
+    → {found : T (is-just (deepFocₙ s lᵗ n))}
+    → {_     : T (is-just (findIso ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫))}
+    → {_     : T (is-just (findIso ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫))}
+    → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁
+  rewriteDeepTo! s t lᵗ rᵗ n rule {found} {c₁} {c₂} =
     C.Equiv.trans
-      (solveH s (deepFrame s lᵗ lᵗ found)
-              (fromWitness! (findIso ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ found ⟫) cert))
-      (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule))))
+      (rewriteDeepₙ! s lᵗ rᵗ n rule {found} {c₁})
+      (C.Equiv.sym
+        (solveH t (deepFrame s lᵗ rᵗ n found)
+                (fromWitness! (findIso ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫) c₂)))

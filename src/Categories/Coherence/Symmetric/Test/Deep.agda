@@ -107,16 +107,16 @@ module DeepRewrite (A₀ A₁ A₂ : C.Obj)
       rewriteDeep! ((w S.⊗₁ w) S.∘ (p S.⊗₁ q) S.∘ S.σ {a₀} {a₀})
                    (w S.∘ p) (w S.∘ q) collapse
 
-    -- The practical idiom: the deep rewrite lands on the (gnarly) carved
-    -- frame; one `solveH!` step lands it back on a CLEAN right-hand side.
-    -- `deepFrame` names the intermediate term; its witness argument is `_`
-    -- (it reduces to `tt` since the search concretely succeeds).
+    -- The practical idiom for multi-step derivations: a deep rewrite landing
+    -- directly on a caller-stated CLEAN term (`rewriteDeepTo!`), so the
+    -- carved frame never appears in any exposed type and steps chain by
+    -- plain transitivity.  (Naming the frame with `deepFrame` and cleaning
+    -- up with a separate `solveH!` also works, but makes the type-checker
+    -- conversion-check two large frame terms — prohibitively slow.)
     test-deep-chain : (wᴹ ⊗₁ wᴹ) ∘ (pᴹ ⊗₁ qᴹ) ≈ (wᴹ ⊗₁ wᴹ) ∘ (qᴹ ⊗₁ qᴹ)
     test-deep-chain =
-      C.Equiv.trans
-        (rewriteDeep! ((w S.⊗₁ w) S.∘ (p S.⊗₁ q)) (w S.∘ p) (w S.∘ q) collapse)
-        (solveH! (deepFrame ((w S.⊗₁ w) S.∘ (p S.⊗₁ q)) (w S.∘ p) (w S.∘ q) _)
-                 ((w S.⊗₁ w) S.∘ (q S.⊗₁ q)))
+      rewriteDeepTo! ((w S.⊗₁ w) S.∘ (p S.⊗₁ q)) ((w S.⊗₁ w) S.∘ (q S.⊗₁ q))
+                     (w S.∘ p) (w S.∘ q) 0 collapse
 
   module _ (commute : pᴹ ⊗₁ qᴹ ≈ qᴹ ⊗₁ pᴹ) where
 
@@ -131,14 +131,14 @@ module DeepRewrite (A₀ A₁ A₂ : C.Obj)
   ------------------------------------------------------------------------------
   -- KNOWN LIMITATIONS (each `deepFoc` failure is a search failing *closed*).
 
-  -- Non-convex occurrence rejected: in the sequential `w ∘ p` the
-  -- disconnected redex `p ⊗ w` matches edge-wise, but the complement path
-  -- leaves the redex and re-enters it, so the carved graph is cyclic through
-  -- the hole.  A non-convex match has no pushout complement — there is no
-  -- context to rewrite in — and the topological carve detects exactly this.
-  deep-non-convex-rejected
+  -- Adjacent overlap rejected at *search* time: matching `p ⊗ w` against the
+  -- sequential `w ∘ p` would need the redex's two boundary wires to map to
+  -- the SAME vertex (p's output = w's input), and the vertex map of an
+  -- embedding is injective.  (For occurrences rejected later, at the *carve*,
+  -- see `deep-non-convex-rejected` in `Test.DeepArity`.)
+  deep-overlap-rejected
     : is-just (deepFoc (w S.∘ p) (p S.⊗₁ w)) ≡ false
-  deep-non-convex-rejected = refl
+  deep-overlap-rejected = refl
 
   -- Identity wires in a rule LHS: `⟪ p ⊗ id ⟫` has a bare wire vertex
   -- incident to no edge, which the edge-driven matcher can never bind.
@@ -154,67 +154,3 @@ module DeepRewrite (A₀ A₁ A₂ : C.Obj)
   deep-structural-limitation
     : is-just (deepFoc (S.σ S.∘ (p S.⊗₁ q)) (S.σ {a₁} {a₁})) ≡ false
   deep-structural-limitation = refl
-
---------------------------------------------------------------------------------
--- Configuration 2: multi-arity generators — a merge `m : a ⊗ a → a`, a split
--- `e : a → a ⊗ a`, a unary `k : a → a`, and a scalar-ish `u : unit → a`.
-
-module DeepArity (A : C.Obj)
-  (mᴹ : (A C.⊗₀ A) C.⇒ A) (eᴹ : A C.⇒ (A C.⊗₀ A))
-  (kᴹ : A C.⇒ A) (uᴹ : C.unit C.⇒ A)
-  where
-
-  open FreeMonoidalHelper Symm (Fin 1) using (ObjTerm; Var; _⊗₀_)
-    renaming (unit to unitᵗ)
-
-  a : ObjTerm
-  a = Var zero
-
-  ⟦_⟧ᵖ₀ : Fin 1 → C.Obj
-  ⟦ _ ⟧ᵖ₀ = A
-
-  arity : Fin 4 → ObjTerm × ObjTerm
-  arity zero                = (a ⊗₀ a) , a
-  arity (suc zero)          = a , (a ⊗₀ a)
-  arity (suc (suc zero))    = a , a
-  arity (suc (suc (suc _))) = unitᵗ , a
-
-  open Setup _≟F_ arity ⟦_⟧ᵖ₀ (λ where
-    zero                → mᴹ
-    (suc zero)          → eᴹ
-    (suc (suc zero))    → kᴹ
-    (suc (suc (suc _))) → uᴹ)
-
-  private
-    m sp k u : S.HomTerm _ _
-    m  = S.Agen (gen zero)
-    sp = S.Agen (gen (suc zero))
-    k  = S.Agen (gen (suc (suc zero)))
-    u  = S.Agen (gen (suc (suc (suc zero))))
-
-  -- Multi-wire redex: the split-then-process composite `(k ⊗ k) ∘ e`,
-  -- carved out from under the closing merge `m`.
-  module _ (fuse : (kᴹ ⊗₁ kᴹ) ∘ eᴹ ≈ eᴹ) where
-
-    test-deep-multiwire : mᴹ ∘ (kᴹ ⊗₁ kᴹ) ∘ eᴹ ≈ _
-    test-deep-multiwire =
-      rewriteDeep! (m S.∘ (k S.⊗₁ k) S.∘ sp)
-                   ((k S.⊗₁ k) S.∘ sp) sp fuse
-
-  -- Scalar redex: `u : unit → a` has an EMPTY input interface, so the carved
-  -- hole has no inputs and the frame's `pre` context ends in a unit wire.
-  module _ (grow : uᴹ ≈ kᴹ ∘ uᴹ) where
-
-    test-deep-scalar : mᴹ ∘ (uᴹ ⊗₁ kᴹ) ≈ _
-    test-deep-scalar =
-      rewriteDeep! (m S.∘ (u S.⊗₁ k)) u (k S.∘ u) grow
-
-  -- Swapped merge arguments: in `m ∘ σ ∘ (k ⊗ k)` the merge consumes the two
-  -- `k` outputs in swapped order; matching the rule's `m ∘ (k ⊗ k)` forces
-  -- the (identically labelled) `k`-edges to be paired crosswise.
-  module _ (slide : mᴹ ∘ (kᴹ ⊗₁ kᴹ) ≈ kᴹ ∘ mᴹ) where
-
-    test-deep-swapped-merge : mᴹ ∘ σ ∘ (kᴹ ⊗₁ kᴹ) ≈ _
-    test-deep-swapped-merge =
-      rewriteDeep! (m S.∘ S.σ S.∘ (k S.⊗₁ k))
-                   (m S.∘ (k S.⊗₁ k)) (k S.∘ m) slide

@@ -50,8 +50,9 @@ open import Categories.APROP.Hypergraph.FromAPROP sig
   using (FlatGen; flatten; range)
 open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.SubMatch sig-dec
-  using (subMatch; _↪ᴴ_)
-open import Categories.APROP.Hypergraph.Solver.Carve sig-dec using (Foc)
+  using (subMatchAll; _↪ᴴ_)
+open import Categories.APROP.Hypergraph.Solver.Carve sig-dec
+  using (Foc; lookupMaybe)
 open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
   using (unflatten; unflatten-flatten-≈; _≅_)
 
@@ -174,12 +175,14 @@ module At (P Q : ObjTerm) where
       in Maybe.map assemble (kahn (suc (length pending)) S.dom pending)
 
   ------------------------------------------------------------------------------
-  -- The bridge (Phase C): match, carve, decode, focus the hole, retract, glue.
+  -- The bridge (Phase C): carve, decode, focus the hole, retract, glue —
+  -- attempted per embedding.  A `nothing` here (non-convex occurrence, or any
+  -- glue mismatch) sends the caller on to the NEXT match, so a bad first
+  -- match cannot mask a rewritable later one.
 
-  deepFocAt : ∀ {A B} (s : HomTerm A B) (lᵗ : HomTerm P Q)
-            → Maybe (Foc A B P Q)
-  deepFocAt {A} {B} s lᵗ =
-    subMatch ⟪ lᵗ ⟫ ⟪ s ⟫                      >>= λ emb →
+  tryEmb : ∀ {A B} (s : HomTerm A B) (lᵗ : HomTerm P Q)
+         → ⟪ lᵗ ⟫ ↪ᴴ ⟪ s ⟫ → Maybe (Foc A B P Q)
+  tryEmb {A} {B} s lᵗ emb =
     Build.holeGraph ⟪ lᵗ ⟫ ⟪ s ⟫ emb           >>= λ H' →
     D⁺.decode-attempt H'                       >>= λ ctx →
     C⁺.focusAtₙ ctx (Agen⁺ hole!) 0            >>= λ { (k , pre⁺ , post⁺) →
@@ -200,9 +203,28 @@ module At (P Q : ObjTerm) where
       ... | yes p = just p
       ... | no  _ = nothing
 
+  -- All carvable positions, one per successful embedding, in match order.
+  deepFocAllAt : ∀ {A B} (s : HomTerm A B) (lᵗ : HomTerm P Q)
+               → List (Foc A B P Q)
+  deepFocAllAt s lᵗ = collect (subMatchAll ⟪ lᵗ ⟫ ⟪ s ⟫)
+    where
+      collect : List (⟪ lᵗ ⟫ ↪ᴴ ⟪ s ⟫) → List (Foc _ _ P Q)
+      collect []         = []
+      collect (emb ∷ es) with tryEmb s lᵗ emb
+      ... | just foc = foc ∷ collect es
+      ... | nothing  = collect es
+
 --------------------------------------------------------------------------------
--- Top-level entry point.
+-- Top-level entry points.
+
+deepFocAll : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q)
+           → List (Foc A B P Q)
+deepFocAll {P = P} {Q = Q} = At.deepFocAllAt P Q
+
+deepFocₙ : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) → ℕ
+         → Maybe (Foc A B P Q)
+deepFocₙ s lᵗ n = lookupMaybe (deepFocAll s lᵗ) n
 
 deepFoc : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q)
         → Maybe (Foc A B P Q)
-deepFoc {P = P} {Q = Q} = At.deepFocAt P Q
+deepFoc s lᵗ = deepFocₙ s lᵗ 0
