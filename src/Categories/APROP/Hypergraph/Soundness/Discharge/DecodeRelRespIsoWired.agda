@@ -37,7 +37,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Permute sig
   using (permute-via-vlab)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
-  using (decode-attempt-LinearP; ⟪⟫-LinearP)
+  using (decode-attempt-LinearP; ⟪⟫-LinearP; decodeP)
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceConcrete sig as IC
@@ -72,17 +72,6 @@ open import Relation.Binary.PropositionalEquality
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeOrdBoundary sig as DOB
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeRelDecodeP sig _≟X_ as DRDP
-
-------------------------------------------------------------------------
--- The pruned decoder: the pruned totality `decode-attempt-LinearP` plus
--- the boundary `subst₂` to the user-facing type.
-------------------------------------------------------------------------
-
-decodeP : ∀ {A B} (f : HomTerm A B)
-        → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
-decodeP {A} {B} f =
-  subst₂ HomTerm (cong unflatten (⟪⟫-domL f)) (cong unflatten (⟪⟫-codL f))
-         (proj₁ (decode-attempt-LinearP f))
 
 ------------------------------------------------------------------------
 -- Algorithm-reduction extraction.  From a successful `decode-attempt H`,

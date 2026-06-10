@@ -32,7 +32,10 @@ open import Categories.APROP.Hypergraph.FromAPROP sig
 open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
   using (unflatten)
 open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig
-  using (decode; bridge)
+  using (bridge)
+-- `decode` = the PRUNED total decoder `decodeP` (matches DecoderAgreementSafe).
+open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
+  using () renaming (decodeP to decode)
 open import Categories.APROP.Hypergraph.Soundness.DecodeRel sig
   using (decode-rel)
 open import Categories.APROP.Hypergraph.Soundness.DecoderAgreementSafe sig

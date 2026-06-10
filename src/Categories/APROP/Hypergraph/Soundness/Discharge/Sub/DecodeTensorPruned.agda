@@ -31,7 +31,7 @@ open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
   using (unflatten; unflatten-++-≅; _≅_)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
-  using (decode-attempt-LinearP; ⟪⟫-LinearP)
+  using (decode-attempt-LinearP; ⟪⟫-LinearP; decodeP)
 
 -- The generic decoder-agnostic ⊗ assembly.
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.DecodeTensorShape sig _≟X_
@@ -40,16 +40,8 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.DecodeTensorShap
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
   using (FaithfulnessResidual)
 
-open import Data.Product using (proj₁)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; subst₂)
-
-private
-  decodeP : ∀ {A B} (f : HomTerm A B)
-          → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
-  decodeP {A} {B} f =
-    subst₂ HomTerm (cong unflatten (⟪⟫ₚ-domL f)) (cong unflatten (⟪⟫ₚ-codL f))
-           (proj₁ (decode-attempt-LinearP f))
+  using (_≡_; refl)
 
 --------------------------------------------------------------------------------
 -- `decodeP-⊗-shape`: the pruned ⊗ assembly, via `DecodeShapeGeneric.goal`.

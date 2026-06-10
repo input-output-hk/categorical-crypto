@@ -22,7 +22,12 @@ open import Categories.APROP.Hypergraph.FromAPROP sig
 open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
   using (unflatten; unflatten-flatten-≈; unflatten-++-≅)
 open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig
-  using (decode; bridge)
+  using (bridge)
+-- `decode` here is the PRUNED total decoder `decodeP` (the two coincide
+-- definitionally on every atomic constructor, the only places this module
+-- mentions it: `decode-id-is-id-unit` / `decode-id-is-id-Var`).
+open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
+  using () renaming (decodeP to decode)
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)

@@ -85,7 +85,11 @@ open import Categories.APROP.Hypergraph.Soundness.Unflatten mySig
 open import Categories.APROP.Hypergraph.Soundness.Decode mySig
   using (decode-attempt)
 open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt mySig
-  using (decode-attempt-Linear; bridge)
+  using (bridge)
+-- `decode-attempt-Linear` = the PRUNED totality (matches the pruned `⟪_⟫`
+-- imported above; the two totalities coincide on `∘`-free terms like `f`).
+open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP mySig
+  using () renaming (decode-attempt-LinearP to decode-attempt-Linear)
 open import Categories.APROP.Hypergraph.Soundness.DecodeRel mySig
   using (decode-rel; decode-roundtrip-rel)
 open import Categories.APROP.Hypergraph.SoundnessFullWired mySigDec

@@ -27,8 +27,10 @@ open import Categories.APROP.Hypergraph.FromAPROP sig
   using (flatten)
 open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
   using (unflatten-++-≅)
-open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig
-  using (decode)
+-- `decode` here is the PRUNED total decoder `decodeP`: every `Ty-X`
+-- carrier and the agreement dispatcher are stated over the pruned decoder.
+open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
+  using () renaming (decodeP to decode)
 open import Categories.APROP.Hypergraph.Soundness.DecodeRel sig
   using (decode-rel)
 

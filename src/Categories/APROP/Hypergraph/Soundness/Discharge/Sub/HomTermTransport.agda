@@ -32,8 +32,6 @@ open import Categories.APROP.Hypergraph.Soundness.Decode sig
   using (process-all-edges; decode-attempt; extract-exact)
 open import Categories.APROP.Hypergraph.Soundness.Permute sig
   using (permute-via-vlab; permute)
-open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig
-  using (decode; decode-attempt-Linear)
 import Categories.APROP.Hypergraph.Soundness.Linearity sig as Lin
 -- `≡⇒≈Term` lives in `Categories.FreeMonoidal`; consumers reach it via
 -- their own `open APROP sig`.
