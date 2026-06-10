@@ -27,10 +27,22 @@
 --                            (`focusAt`/`focusAll`); the redex must be a
 --                            *subterm* of `s` (occurrence `n` selectable).
 --                                                          → `Test.Rewrite`
---   * `rewriteDeep!`       — the position is found on the *hypergraph*
---                            (`deepFoc`: sub-match → hole-carve → decode), so
---                            the redex need only be a connected sub-diagram —
---                            rewriting modulo deformation.    → `Test.Deep`
+--   * `rewriteDeep(ₙ)!`    — the position is found on the *hypergraph*
+--                            (`deepFocₙ`: sub-match enumeration → hole-carve
+--                            with retry → decode), so the redex need only be
+--                            a connected sub-diagram — rewriting modulo
+--                            deformation.  `n` indexes the carvable (convex)
+--                            occurrences in match order.
+--                                          → `Test.Deep`, `Test.DeepArity`
+--   * `rewriteDeepTo!`     — `rewriteDeepₙ!` landing on a caller-stated clean
+--                            term: the step form for chained derivations (it
+--                            keeps the carved frame out of all exposed types,
+--                            which is essential for type-checking speed).
+--                                          → `Test.Deep`, `Test.Frobenius`
+--
+-- SHOWCASE: `Test.Frobenius` derives the two alternative formulations of the
+-- Frobenius law from the standard one by chains of deep rewrites — the
+-- TensorRocq §5 worked example, end-to-end.
 --
 -- KNOWN LIMITATIONS (each demonstrated by a probe in the file cited):
 --
@@ -40,13 +52,16 @@
 --   * Purely structural rule LHSs (`σ`, `id`, coherence morphisms) have
 --     edge-free hypergraphs — they are coherence facts; use `solveH!`.
 --                                     → `Test.Deep.deep-structural-limitation`
---   * Non-convex occurrences are rejected by the carve (correctly: no
---     pushout complement exists).      → `Test.Deep.deep-non-convex-rejected`
+--   * Occurrences overlapping themselves are rejected at the search's
+--     injectivity check.                 → `Test.Deep.deep-overlap-rejected`
+--   * Non-convex occurrences are rejected at the carve (correctly: no
+--     pushout complement exists); the match retry skips them, so they never
+--     mask a convex occurrence elsewhere.
+--                            → `Test.DeepArity.deep-non-convex-rejected`,
+--                              `Test.DeepArity.test-deep-retry`
 --   * `focusAt`'s leaf test compares the rule's interface objects `P`, `Q`
 --     literally (decidable `ObjTerm` equality); inside the redex matching is
 --     up to SMC structure.              → `Test.Rewrite.test-unitˡ-noisy`
---   * `deepFoc` takes the first match (no occurrence index yet); the
---     syntactic path has `rewriteAutoₙ!`.
 --
 -- Backend-internal smoke tests (raw `findIso`/`subMatch`/`solveH` at fixed
 -- signatures) live next to their subjects in
@@ -62,7 +77,11 @@ module Categories.Coherence.Symmetric.Test
 import Categories.Coherence.Symmetric.Test.Coherence
 import Categories.Coherence.Symmetric.Test.Rewrite
 import Categories.Coherence.Symmetric.Test.Deep
+import Categories.Coherence.Symmetric.Test.DeepArity
+import Categories.Coherence.Symmetric.Test.Frobenius
 
 module Coherence = Categories.Coherence.Symmetric.Test.Coherence C
 module Rewrite   = Categories.Coherence.Symmetric.Test.Rewrite   C
 module Deep      = Categories.Coherence.Symmetric.Test.Deep      C
+module DeepArity = Categories.Coherence.Symmetric.Test.DeepArity C
+module Frobenius = Categories.Coherence.Symmetric.Test.Frobenius C
