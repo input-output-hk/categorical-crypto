@@ -26,6 +26,7 @@ import Categories.Category.Monoidal.Utilities as U
 
 open import Categories.Tactic.Category
 import Categories.GConstructionCoherence as GCoh
+import Categories.GConstructionIdentityCoherence as GCohId
 
 module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced Monoidal) where
 
@@ -92,23 +93,64 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
           C.∘ C.id C.⊗₁ C.α⇐ C.∘ C.α⇒ C.∘ C.id C.⊗₁ C.σ⇒
 
         -- Identity laws.
-        -- Strategy: expand α, γ, simplify the 14-morphism composition
-        -- using assoc-commute, braiding naturality, and hexagon identities,
-        -- then apply vanishing₁ or yanking.
-        -- Note: α and γ are polymorphic, so their implicits change when
-        -- σ⇒ is composed with f vs id — direct factoring doesn't work.
+        -- Strategy: split the two-wire loop with vanishing₂, rewrite each
+        -- one-wire loop body into a framed yanking canonical form (the SMC
+        -- coherence steps are solver lemmas in GConstructionIdentityCoherence),
+        -- then collapse with trace-∘ˡ/∘ʳ + superposing + yanking.
+
+        -- trace of the yanking core: β at Q = R = X swaps the loop wire with
+        -- a parallel copy of itself, so its trace is the identity.
+        trace-βyank : ∀ {Y X : C.Obj} → C.trace (β {Y} {X} {X}) C.≈ C.id
+        trace-βyank =
+          C.Equiv.trans C.superposing
+          (C.Equiv.trans (Functor.F-resp-≈ C.⊗ (C.Equiv.refl , C.yanking))
+                         (Functor.identity C.⊗))
+
+        -- framed yanking: a loop whose body is a yanking core followed by
+        -- loop-independent processing g collapses to g.
+        trace-gyank : ∀ {Y X B' : C.Obj} {g : Y C.⊗₀ X C.⇒ B'} →
+                      C.trace (g C.⊗₁ C.id C.∘ β {Y} {X} {X}) C.≈ g
+        trace-gyank =
+          C.Equiv.trans (C.Equiv.sym trace-∘ˡ)
+          (C.Equiv.trans (C.∘-resp-≈ʳ trace-βyank) C.identityʳ)
 
         -- identityˡ: id ∘G f ≈ f, i.e. trace(α ∘ σ⇒ ⊗₁ f ∘ γ) ≈ f
         identityˡ' : ∀ {A B : C.Obj × C.Obj}
                        {f : proj₁ A C.⊗₀ proj₂ B C.⇒ proj₂ A C.⊗₀ proj₁ B} →
                      C.trace (α C.∘ C.σ⇒ C.⊗₁ f C.∘ γ) C.≈ f
-        identityˡ' = {!!}
+        identityˡ' {A} {B} {f} =
+          C.Equiv.trans (C.Equiv.sym (C.vanishing₂ {X = proj₂ B} {Y = proj₁ B}))
+          (C.Equiv.trans (trace-resp-≈ (trace-resp-≈ ICW.C1L))
+          (C.Equiv.trans (trace-resp-≈ (C.Equiv.sym trace-∘ʳ))
+          (C.Equiv.trans (trace-resp-≈ (C.∘-resp-≈ˡ trace-gyank))
+          (C.Equiv.trans (trace-resp-≈ ICW.C3L)
+          trace-gyank))))
+          where
+            module ICW = GCohId.Transport.WithGen
+              (record { U = Cᵤ ; monoidal = Monoidal ; symmetric = C.symmetric })
+              (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) f
 
         -- identityʳ: f ∘G id ≈ f, i.e. trace(α ∘ f ⊗₁ σ⇒ ∘ γ) ≈ f
         identityʳ' : ∀ {A B : C.Obj × C.Obj}
                        {f : proj₁ A C.⊗₀ proj₂ B C.⇒ proj₂ A C.⊗₀ proj₁ B} →
                      C.trace (α C.∘ f C.⊗₁ C.σ⇒ C.∘ γ) C.≈ f
-        identityʳ' = {!!}
+        identityʳ' {A} {B} {f} =
+          C.Equiv.trans (C.Equiv.sym (C.vanishing₂ {X = proj₂ A} {Y = proj₁ A}))
+          (C.Equiv.trans (trace-resp-≈ (trace-resp-≈ ICW.C1R))
+          (C.Equiv.trans (trace-resp-≈
+            (C.Equiv.trans (C.Equiv.sym trace-∘ˡ)
+            (C.∘-resp-≈ʳ (C.Equiv.trans (C.Equiv.sym trace-∘ʳ)
+                         (C.Equiv.trans (C.∘-resp-≈ˡ trace-βyank) C.identityˡ)))))
+          (C.Equiv.trans (trace-resp-≈ ICW.C3R)
+          (C.Equiv.trans (C.Equiv.sym trace-∘ʳ)
+          (C.Equiv.trans (C.∘-resp-≈ˡ trace-gyank)
+          (C.Equiv.trans (C.Equiv.sym C.assoc)
+          (C.Equiv.trans (C.∘-resp-≈ˡ C.commutative)
+          C.identityˡ)))))))
+          where
+            module ICW = GCohId.Transport.WithGen
+              (record { U = Cᵤ ; monoidal = Monoidal ; symmetric = C.symmetric })
+              (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) f
 
         -- ⊗ bifunctoriality helpers
         serialize₁₂ : ∀ {X₁ Y₁ X₂ Y₂ : C.Obj} {f' : X₁ C.⇒ Y₁} {g' : X₂ C.⇒ Y₂} →
