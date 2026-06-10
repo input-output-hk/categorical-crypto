@@ -22,7 +22,7 @@ open import Categories.APROP.Hypergraph.Solver.Match sig-dec
   using (matchEdge; VertexBij; EdgeBij)
 
 open import Data.Fin using (Fin; zero; suc)
-open import Data.List.Base using (List; []; _∷_)
+open import Data.List.Base using (List; []; _∷_; _++_)
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Nat using (ℕ; _*_)
 open import Data.Product using (_×_; _,_)
@@ -75,3 +75,27 @@ module _
   searchIso-default : VertexBij H J → EdgeBij H J
                     → Maybe (VertexBij H J × EdgeBij H J)
   searchIso-default = searchIso (nEH * nEJ)
+
+  -- Enumerate ALL complete matches (in DFS order), not just the first.
+  -- Needed by consumers whose acceptance criterion is stricter than the
+  -- search's (e.g. the rewrite carve, which additionally requires the
+  -- matched occurrence to be convex): they retry down this list.
+  searchAll
+    : (fuel : ℕ)
+    → VertexBij H J → EdgeBij H J
+    → List (VertexBij H J × EdgeBij H J)
+  searchAll ℕ.zero    φ ψ with firstUnmatched ψ
+  ... | nothing = (φ , ψ) ∷ []
+  ... | just _  = []
+  searchAll (ℕ.suc k) φ ψ with firstUnmatched ψ
+  ... | nothing = (φ , ψ) ∷ []
+  ... | just e  = tryAll (matchEdge H J φ ψ e)
+    where
+      tryAll : List (VertexBij H J × EdgeBij H J)
+             → List (VertexBij H J × EdgeBij H J)
+      tryAll []               = []
+      tryAll ((φ' , ψ') ∷ xs) = searchAll k φ' ψ' ++ tryAll xs
+
+  searchAll-default : VertexBij H J → EdgeBij H J
+                    → List (VertexBij H J × EdgeBij H J)
+  searchAll-default = searchAll (nEH * nEJ)

@@ -61,6 +61,33 @@ private
 open FM.HomReasoning
 
 --------------------------------------------------------------------------------
+-- ## 0.  Generic middle-iso cancellation.
+--
+-- Two 3-fold composites sharing a middle iso `Fm ∘ Tm ≈ id` cancel it, leaving
+-- `To ∘ M₁ ∘ M₂ ∘ Ff`.  No assumption on `M₁` / `M₂`.  (Part of the
+-- transport-absorption algebra of §2, hoisted above §1 because the
+-- `c-iso-assoc-to` inversion chases below consume it.)
+cancel-mid-iso
+  : ∀ {A₀ A₁ A₂ A₃ A₄ A₅ : ObjTerm}
+      (To : HomTerm A₄ A₅) (M₁ : HomTerm A₂ A₄) (Fm : HomTerm A₃ A₂)
+      (Tm : HomTerm A₂ A₃) (M₂ : HomTerm A₁ A₂) (Ff : HomTerm A₀ A₁)
+  → Fm ∘ Tm ≈Term id
+  → (To ∘ M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
+    ≈Term To ∘ M₁ ∘ M₂ ∘ Ff
+cancel-mid-iso To M₁ Fm Tm M₂ Ff m-iso = begin
+  (To ∘ M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
+    ≈⟨ FM.assoc ⟩
+  To ∘ (M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
+    ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+  To ∘ M₁ ∘ Fm ∘ Tm ∘ M₂ ∘ Ff
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+  To ∘ M₁ ∘ (Fm ∘ Tm) ∘ M₂ ∘ Ff
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ m-iso ⟩∘⟨refl ⟩
+  To ∘ M₁ ∘ id ∘ M₂ ∘ Ff
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
+  To ∘ M₁ ∘ M₂ ∘ Ff ∎
+
+--------------------------------------------------------------------------------
 -- ## 1.  Associativity coherence, `to`-side.
 --
 -- `c-iso-assoc-from` (re-exported above) is the `from`-side pentagon.  Its
@@ -129,15 +156,8 @@ c-iso-assoc-to xs₁ xs₂ ys = begin
     LhsLhsinv : Lhs ∘ Lhsinv ≈Term id
     LhsLhsinv = begin
       (α⇒ ∘ (from₁₂ ⊗₁ id) ∘ from₁₂ys) ∘ (to₁₂ys ∘ (to₁₂ ⊗₁ id) ∘ α⇐)
-        ≈⟨ FM.assoc ⟩
-      α⇒ ∘ ((from₁₂ ⊗₁ id) ∘ from₁₂ys) ∘ (to₁₂ys ∘ (to₁₂ ⊗₁ id) ∘ α⇐)
-        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-      α⇒ ∘ (from₁₂ ⊗₁ id) ∘ from₁₂ys ∘ to₁₂ys ∘ (to₁₂ ⊗₁ id) ∘ α⇐
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-      α⇒ ∘ (from₁₂ ⊗₁ id) ∘ (from₁₂ys ∘ to₁₂ys) ∘ (to₁₂ ⊗₁ id) ∘ α⇐
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoʳ (unflatten-++-≅ (xs₁ ++ xs₂) ys) ⟩∘⟨refl ⟩
-      α⇒ ∘ (from₁₂ ⊗₁ id) ∘ id ∘ (to₁₂ ⊗₁ id) ∘ α⇐
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
+        ≈⟨ cancel-mid-iso α⇒ (from₁₂ ⊗₁ id) from₁₂ys to₁₂ys (to₁₂ ⊗₁ id) α⇐
+             (_≅_.isoʳ (unflatten-++-≅ (xs₁ ++ xs₂) ys)) ⟩
       α⇒ ∘ (from₁₂ ⊗₁ id) ∘ (to₁₂ ⊗₁ id) ∘ α⇐
         ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
       α⇒ ∘ ((from₁₂ ⊗₁ id) ∘ (to₁₂ ⊗₁ id)) ∘ α⇐
@@ -155,19 +175,8 @@ c-iso-assoc-to xs₁ xs₂ ys = begin
     RhsinvRhs : Rhsinv ∘ Rhs ≈Term id
     RhsinvRhs = begin
       (s-id⁻ ∘ to₁₂₃ ∘ (id ⊗₁ to₂₃)) ∘ ((id ⊗₁ from₂₃) ∘ from₁₂₃ ∘ s-id)
-        ≈⟨ FM.assoc ⟩
-      s-id⁻ ∘ (to₁₂₃ ∘ (id ⊗₁ to₂₃)) ∘ ((id ⊗₁ from₂₃) ∘ from₁₂₃ ∘ s-id)
-        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-      s-id⁻ ∘ to₁₂₃ ∘ (id ⊗₁ to₂₃) ∘ (id ⊗₁ from₂₃) ∘ from₁₂₃ ∘ s-id
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-      s-id⁻ ∘ to₁₂₃ ∘ ((id ⊗₁ to₂₃) ∘ (id ⊗₁ from₂₃)) ∘ from₁₂₃ ∘ s-id
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩∘⟨refl ⟩
-      s-id⁻ ∘ to₁₂₃ ∘ ((id ∘ id) ⊗₁ (to₂₃ ∘ from₂₃)) ∘ from₁₂₃ ∘ s-id
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ⊗-resp-≈ idˡ (_≅_.isoˡ (unflatten-++-≅ xs₂ ys)) ⟩∘⟨refl ⟩
-      s-id⁻ ∘ to₁₂₃ ∘ (id ⊗₁ id) ∘ from₁₂₃ ∘ s-id
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ id⊗id≈id ⟩∘⟨refl ⟩
-      s-id⁻ ∘ to₁₂₃ ∘ id ∘ from₁₂₃ ∘ s-id
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
+        ≈⟨ cancel-mid-iso s-id⁻ to₁₂₃ (id ⊗₁ to₂₃) (id ⊗₁ from₂₃) from₁₂₃ s-id
+             mid-iso ⟩
       s-id⁻ ∘ to₁₂₃ ∘ from₁₂₃ ∘ s-id
         ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
       s-id⁻ ∘ (to₁₂₃ ∘ from₁₂₃) ∘ s-id
@@ -177,6 +186,12 @@ c-iso-assoc-to xs₁ xs₂ ys = begin
       s-id⁻ ∘ s-id
         ≈⟨ s-id⁻-s-id ⟩
       id ∎
+      where
+        mid-iso : (id {U₁} ⊗₁ to₂₃) ∘ (id ⊗₁ from₂₃) ≈Term id
+        mid-iso =
+          ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
+            (≈-Term-trans (⊗-resp-≈ idˡ (_≅_.isoˡ (unflatten-++-≅ xs₂ ys)))
+                          id⊗id≈id)
 
 --------------------------------------------------------------------------------
 -- ## 2.  Transport-absorption algebra.
@@ -184,28 +199,7 @@ c-iso-assoc-to xs₁ xs₂ ys = begin
 -- These are the `subst`/`subst₂`-shuffling lemmas the block ladders use to
 -- move list-equality transports across composition, tensor, and the laxator.
 
--- Generic middle-iso cancellation: two 3-fold composites sharing a middle iso
--- `Fm ∘ Tm ≈ id` cancel it, leaving `To ∘ M₁ ∘ M₂ ∘ Ff`.  No assumption on
--- `M₁` / `M₂`.
-cancel-mid-iso
-  : ∀ {A₀ A₁ A₂ A₃ A₄ A₅ : ObjTerm}
-      (To : HomTerm A₄ A₅) (M₁ : HomTerm A₂ A₄) (Fm : HomTerm A₃ A₂)
-      (Tm : HomTerm A₂ A₃) (M₂ : HomTerm A₁ A₂) (Ff : HomTerm A₀ A₁)
-  → Fm ∘ Tm ≈Term id
-  → (To ∘ M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
-    ≈Term To ∘ M₁ ∘ M₂ ∘ Ff
-cancel-mid-iso To M₁ Fm Tm M₂ Ff m-iso = begin
-  (To ∘ M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
-    ≈⟨ FM.assoc ⟩
-  To ∘ (M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
-    ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-  To ∘ M₁ ∘ Fm ∘ Tm ∘ M₂ ∘ Ff
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-  To ∘ M₁ ∘ (Fm ∘ Tm) ∘ M₂ ∘ Ff
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ m-iso ⟩∘⟨refl ⟩
-  To ∘ M₁ ∘ id ∘ M₂ ∘ Ff
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
-  To ∘ M₁ ∘ M₂ ∘ Ff ∎
+-- (`cancel-mid-iso`, the generic middle-iso cancellation, lives in §0 above.)
 
 -- `subst₂ HomTerm p q t` re-expressed as the conjugation
 -- `(subst on cod) ∘ t ∘ (subst on dom)` by `subst`-identity morphisms.

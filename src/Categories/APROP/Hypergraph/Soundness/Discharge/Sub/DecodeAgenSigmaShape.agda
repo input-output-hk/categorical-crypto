@@ -43,8 +43,12 @@ open import Categories.FreeMonoidal using (v≤v)
 open import Categories.APROP.Hypergraph.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.FromAPROP sig
   using (FlatGen; flatten; range; hSwap; hGen; domL-hSwap; codL-hSwap
-        ; domL-hGen; codL-hGen; ⟪_⟫; ⟪⟫-domL; ⟪⟫-codL
+        ; domL-hGen; codL-hGen
         ; map-lookup-range; domL-hId; codL-hId)
+-- The PRUNED translation (identical to the unpruned one on every atomic
+-- constructor, the only places this module evaluates it).
+open import Categories.APROP.Hypergraph.Translation sig
+  using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Invariant sig
   using (hSwap-cod-Unique; hGen-cod-Unique; hGen-dom-Unique)
 open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
@@ -60,11 +64,16 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeStepRelation sig
 open import Categories.APROP.Hypergraph.Soundness.Permute sig
   using (permute-via-vlab; permute)
 open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig
-  using (decode; bridge; decode-attempt-Linear; decode-attempt-hId)
+  using (bridge; decode-attempt-hId)
+-- `decode`/`decode-attempt-Linear` here are the PRUNED `decodeP`/
+-- `decode-attempt-LinearP` (identical to the unpruned twins on every atomic
+-- constructor, the only places this module evaluates them).
+open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
+  using () renaming (decodeP to decode; decode-attempt-LinearP to decode-attempt-Linear)
 
--- The ⊗-shape residual (parameterised by `objUIP` + `K`), reused to build
+-- The PRUNED ⊗-shape (parameterised by `objUIP` + `K`), reused to build
 -- `decode-id-is-id` for compound objects.
-import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.DecodeTensorShape sig _≟X_ as DTS
+import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.DecodeTensorPruned sig _≟X_ as DTP
 
 -- Mac-Lane list machinery for the associator collapse.
 open import Categories.APROP.Hypergraph.Soundness.DecodeRoundtripSafe sig
@@ -965,7 +974,7 @@ module _
   -- ## `decode (id {A}) ≈Term id` (all objects).
   --
   -- `unit`/`Var` reduce definitionally; the `⊗` case uses the ⊗-shape
-  -- residual `DTS.decode-⊗-shape-inner objUIP Kf` + the IH + the
+  -- residual `DTP.decodeP-⊗-shape objUIP Kf` + the IH + the
   -- `unflatten-++-≅` iso law.
   decode-id-is-id : ∀ A → decode (id {A}) ≈Term id
   decode-id-is-id unit = begin
@@ -982,7 +991,7 @@ module _
     id                                ∎
   decode-id-is-id (A ⊗₀ B) = begin
     decode (id {A ⊗₀ B})
-      ≈⟨ DTS.decode-⊗-shape-inner objUIP Kf (id {A}) (id {B}) ⟩
+      ≈⟨ DTP.decodeP-⊗-shape objUIP Kf (id {A}) (id {B}) ⟩
     cAB-to ∘ (decode (id {A}) ⊗₁ decode (id {B})) ∘ cAB-from
       ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (decode-id-is-id A) (decode-id-is-id B) ⟩∘⟨refl ⟩
     cAB-to ∘ (id ⊗₁ id) ∘ cAB-from

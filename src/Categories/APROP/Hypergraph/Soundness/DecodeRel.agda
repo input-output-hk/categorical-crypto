@@ -15,7 +15,7 @@ module Categories.APROP.Hypergraph.Soundness.DecodeRel (sig : APROPSignature) wh
 
 open APROP sig
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using (flatten; ⟪_⟫)
+  using (flatten)
 open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
   using (unflatten; unflatten-++-≅)
 open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig

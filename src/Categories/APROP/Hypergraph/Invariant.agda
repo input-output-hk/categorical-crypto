@@ -16,9 +16,6 @@ module Categories.APROP.Hypergraph.Invariant (sig : APROPSignature) where
 open APROP sig
 open import Categories.APROP.Hypergraph.Core
 open import Categories.APROP.Hypergraph.FromAPROP sig
-open import Categories.APROP.Hypergraph.Prune
-  using (AllIn; count-non; AllIn→count-non-zero)
-
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.Fin.Properties using
@@ -38,47 +35,6 @@ open import Data.Sum using (inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; subst)
 open import Relation.Binary.PropositionalEquality as PE using (cong; cong₂)
-
---------------------------------------------------------------------------------
--- Helper: every vertex of `G + K` is in `map injL G-dom ++ map injR K-dom`
--- provided the two sides individually cover. Phrased generically on lists.
-
-private
-  tensor-covers : ∀ {m n : ℕ} (xs : List (Fin m)) (ys : List (Fin n))
-                → (∀ i → i ∈ xs) → (∀ j → j ∈ ys)
-                → (∀ v → v ∈ map (_↑ˡ n) xs ++ map (m ↑ʳ_) ys)
-  tensor-covers {m} {n} xs ys cov-x cov-y v with splitAt m v in eq
-  ... | inj₁ i = subst (_∈ _) (splitAt⁻¹-↑ˡ eq)
-                       (∈-++⁺ˡ (∈-map⁺ (_↑ˡ n) (cov-x i)))
-  ... | inj₂ j = subst (_∈ _) (splitAt⁻¹-↑ʳ eq)
-                       (∈-++⁺ʳ (map (_↑ˡ n) xs) (∈-map⁺ (m ↑ʳ_) (cov-y j)))
-
---------------------------------------------------------------------------------
--- hId's dom (and cod) cover all vertices.
-
-hId-dom-covers : ∀ A → AllIn (Hypergraph.dom (hId A))
-hId-cod-covers : ∀ A → AllIn (Hypergraph.cod (hId A))
-
-hId-dom-covers unit      = λ ()
-hId-dom-covers (Var x)   = λ { zero → here refl }
-hId-dom-covers (A ⊗₀ B) v =
-  tensor-covers (Hypergraph.dom (hId A)) (Hypergraph.dom (hId B))
-                (hId-dom-covers A) (hId-dom-covers B) v
-
-hId-cod-covers unit      = λ ()
-hId-cod-covers (Var x)   = λ { zero → here refl }
-hId-cod-covers (A ⊗₀ B) v =
-  tensor-covers (Hypergraph.cod (hId A)) (Hypergraph.cod (hId B))
-                (hId-cod-covers A) (hId-cod-covers B) v
-
---------------------------------------------------------------------------------
--- Corollary: `count-non (hId A).dom ≡ 0` — the cornerstone of `idˡ`.
-
-hId-count-non-dom : ∀ A → count-non (Hypergraph.dom (hId A)) ≡ 0
-hId-count-non-dom A = AllIn→count-non-zero (hId-dom-covers A)
-
-hId-count-non-cod : ∀ A → count-non (Hypergraph.cod (hId A)) ≡ 0
-hId-count-non-cod A = AllIn→count-non-zero (hId-cod-covers A)
 
 --------------------------------------------------------------------------------
 -- For identity hypergraphs, `dom ≡ cod` as lists (every `hId` branch uses
@@ -201,39 +157,6 @@ hGen-cod-Unique : ∀ {A B : ObjTerm} (f : mor A B) → Unique (Hypergraph.cod (
 hGen-cod-Unique {A} f = Uniq-Prop.map⁺ (raise-inj _) (range-Unique _)
 
 --------------------------------------------------------------------------------
--- `range n` covers all of Fin n.
-
-range-covers : ∀ (n : ℕ) (v : Fin n) → v ∈ range n
-range-covers (suc n) zero     = here refl
-range-covers (suc n) (suc v)  = there (∈-map⁺ Fin.suc (range-covers n v))
-
---------------------------------------------------------------------------------
--- hSwap's dom and cod each cover all vertices (base requirement for `σ∘σ`).
-
-hSwap-dom-covers : ∀ A B → AllIn (Hypergraph.dom (hSwap A B))
-hSwap-dom-covers A B v =
-  tensor-covers (range (length (flatten A))) (range (length (flatten B)))
-                (range-covers _) (range-covers _) v
-
-hSwap-cod-covers : ∀ A B → AllIn (Hypergraph.cod (hSwap A B))
-hSwap-cod-covers A B v
-  with splitAt (length (flatten A)) v in eq
-... | inj₁ i = subst (_∈ _) (splitAt⁻¹-↑ˡ eq)
-                     (∈-++⁺ʳ (map (length (flatten A) ↑ʳ_) _)
-                             (∈-map⁺ (_↑ˡ length (flatten B)) (range-covers _ i)))
-... | inj₂ j = subst (_∈ _) (splitAt⁻¹-↑ʳ eq)
-                     (∈-++⁺ˡ (∈-map⁺ (length (flatten A) ↑ʳ_) (range-covers _ j)))
-
-hSwap-count-non-dom : ∀ A B → count-non (Hypergraph.dom (hSwap A B)) ≡ 0
-hSwap-count-non-dom A B = AllIn→count-non-zero (hSwap-dom-covers A B)
-
-hSwap-count-non-cod : ∀ A B → count-non (Hypergraph.cod (hSwap A B)) ≡ 0
-hSwap-count-non-cod A B = AllIn→count-non-zero (hSwap-cod-covers A B)
-
-hSwap-nE : ∀ A B → Hypergraph.nE (hSwap A B) ≡ 0
-hSwap-nE A B = refl
-
---------------------------------------------------------------------------------
 -- `(hId A).nV ≡ length (flatten A)` — propositionally only (the tensor case
 -- needs `length-++`).
 
@@ -280,26 +203,6 @@ private
     → lookup (xs ++ ys) (cast-rai+ xs ys j) ≡ lookup ys j
   lookup-++-rai []       ys j = cong (lookup ys) (cast-is-id refl j)
   lookup-++-rai (x ∷ xs) ys j = lookup-++-rai xs ys j
-
--- Cast commutes with `inject+`/`raise` up to toℕ-equality.  Public — used
--- by σ∘σ-sound's φ-dom/φ-cod.
-cast-inject+-comm
-  : ∀ {m m'} (eq-m : m ≡ m') (n : ℕ) (i : Fin m)
-  → cast (cong (_+ n) eq-m) (i ↑ˡ n) ≡ cast eq-m i ↑ˡ n
-cast-inject+-comm eq-m n i = toℕ-injective
-  (trans (toℕ-cast _ (i ↑ˡ n))
-  (trans (toℕ-↑ˡ i n)
-  (trans (sym (toℕ-cast eq-m i))
-         (sym (toℕ-↑ˡ (cast eq-m i) n)))))
-
-cast-raise-comm
-  : ∀ (m : ℕ) {n n'} (eq-n : n ≡ n') (j : Fin n)
-  → cast (cong (m +_) eq-n) (m ↑ʳ j) ≡ m ↑ʳ cast eq-n j
-cast-raise-comm m eq-n j = toℕ-injective
-  (trans (toℕ-cast _ (m ↑ʳ j))
-  (trans (toℕ-↑ʳ m j)
-  (trans (cong (m +_) (sym (toℕ-cast eq-n j)))
-         (sym (toℕ-↑ʳ m (cast eq-n j))))))
 
 -- Two-variable `cong₂` form (pattern-match both eqs as refl, then
 -- `cast-is-id` cancels the residual casts).
@@ -421,124 +324,3 @@ hId-dom≡range (A ⊗₀ B) =
           (cong (map (_↑ˡ Hypergraph.nV (hId B))) (hId-dom≡range A))
           (cong (map (Hypergraph.nV (hId A) ↑ʳ_)) (hId-dom≡range B)))
         (sym (range-++ (Hypergraph.nV (hId A)) (Hypergraph.nV (hId B))))
-
-hId-cod≡range : ∀ A → Hypergraph.cod (hId A) ≡ range (Hypergraph.nV (hId A))
-hId-cod≡range A = trans (hId-cod≡dom A) (hId-dom≡range A)
-
---------------------------------------------------------------------------------
--- splitAt commutes with `cast` across a `cong₂ _+_` on the indices.  Used by
--- σ∘σ's φ-lab chase.
-
-splitAt-cast
-  : ∀ {m m' n n'} (eq-m : m ≡ m') (eq-n : n ≡ n') (i : Fin (m + n))
-  → splitAt m' (cast (cong₂ _+_ eq-m eq-n) i)
-  ≡ [ (λ a → inj₁ (cast eq-m a))
-    , (λ b → inj₂ (cast eq-n b))
-    ]′ (splitAt m i)
-splitAt-cast {m} {m'} {n} {n'} refl refl i
-  rewrite cast-is-id (cong₂ _+_ (refl {x = m}) (refl {x = n})) i
-        = splitAt-cast-refl i
-  where
-    splitAt-cast-refl
-      : (i : Fin (m + n))
-      → splitAt m i
-      ≡ [ (λ a → inj₁ (cast (refl {x = m}) a))
-        , (λ b → inj₂ (cast (refl {x = n}) b))
-        ]′ (splitAt m i)
-    splitAt-cast-refl i with splitAt m i
-    ... | inj₁ a = cong inj₁ (sym (cast-is-id refl a))
-    ... | inj₂ b = cong inj₂ (sym (cast-is-id refl b))
-
---------------------------------------------------------------------------------
--- `map (cast eq) (range m)` = `range m'` when eq : m ≡ m'.
-
-map-cast-range
-  : ∀ {m m'} (eq : m ≡ m') → map (cast eq) (range m) ≡ range m'
-map-cast-range refl =
-  trans (map-cong (λ i → cast-is-id refl i) (range _))
-        (map-id (range _))
-  where open import Data.List.Properties using (map-id; map-cong)
-
-length-range : (n : ℕ) → length (range n) ≡ n
-length-range zero    = refl
-length-range (suc n) = cong suc
-  (trans (length-map Fin.suc (range n)) (length-range n))
-  where
-    import Data.Fin as Fin
-    open import Data.List.Properties using (length-map)
-
--- `range n ≡ allFin n`.  Enables stdlib's allFin/tabulate/lookup machinery
--- on `range`-generated lists.
-
-private
-  open import Data.List using (allFin)
-  import Data.Fin as FinMod
-  open import Data.List.Properties using (map-tabulate)
-
-  range≡allFin : ∀ n → range n ≡ allFin n
-  range≡allFin zero    = refl
-  range≡allFin (suc n) = cong (zero ∷_)
-    (trans (cong (map FinMod.suc) (range≡allFin n))
-           (map-tabulate (λ i → i) FinMod.suc))
-
--- Public alias (the local `range≡allFin` is private).
-range≡allFin-pub : ∀ n → range n ≡ allFin n
-range≡allFin-pub = range≡allFin
-  where open import Data.List using (allFin)
-
--- `toℕ (lookup (range n) j) ≡ toℕ j`.  Needed by σ∘σ-sound's `lookup-cod-*`.
-
-open import Data.Fin using (toℕ)
-
-lookup-range
-  : ∀ n (j : Fin (length (range n)))
-  → toℕ (lookup (range n) j) ≡ toℕ j
-lookup-range (suc n) zero    = refl
-lookup-range (suc n) (suc j) =
-  trans (cong toℕ (lookup-map-Fsuc {xs = range n} j))
-  (cong suc
-    (trans (lookup-range n (cast (length-map Fin.suc (range n)) j))
-           (toℕ-cast _ j)))
-  where
-    import Data.Fin as Fin
-    open import Data.List.Properties using (length-map)
-
-    lookup-map-Fsuc
-      : ∀ {xs : List (Fin n)} (j : Fin (length (map Fin.suc xs)))
-      → lookup (map Fin.suc xs) j
-      ≡ Fin.suc (lookup xs (cast (length-map Fin.suc xs) j))
-    lookup-map-Fsuc {x ∷ xs} zero    = refl
-    lookup-map-Fsuc {x ∷ xs} (suc j) = lookup-map-Fsuc {xs} j
-
---------------------------------------------------------------------------------
--- toℕ-position of a ∈-witness under `∈-++⁺ˡ` (preserved) / `∈-++⁺ʳ`
--- (shifted by `length xs`).
-
-open import Data.List.Relation.Unary.Any using (Any; here; there; index)
-open import Data.List.Relation.Unary.Any.Properties
-  using () renaming (++⁺ˡ to Any-++⁺ˡ; ++⁺ʳ to Any-++⁺ʳ)
-
-toℕ-index-++⁺ˡ
-  : ∀ {ℓ p} {A : Set ℓ} {P : A → Set p} {xs : List A} {ys : List A}
-    (w : Any P xs)
-  → toℕ (index (Any-++⁺ˡ {ys = ys} w)) ≡ toℕ (index w)
-toℕ-index-++⁺ˡ (here _)  = refl
-toℕ-index-++⁺ˡ (there w) = cong suc (toℕ-index-++⁺ˡ w)
-
-toℕ-index-++⁺ʳ
-  : ∀ {ℓ p} {A : Set ℓ} {P : A → Set p} (xs : List A) {ys : List A}
-    (w : Any P ys)
-  → toℕ (index (Any-++⁺ʳ xs w)) ≡ length xs + toℕ (index w)
-toℕ-index-++⁺ʳ []       w = refl
-toℕ-index-++⁺ʳ (x ∷ xs) w = cong suc (toℕ-index-++⁺ʳ xs w)
-
---------------------------------------------------------------------------------
--- `toℕ (index (range-covers n v)) ≡ toℕ v`.
-
-toℕ-index-range-covers
-  : ∀ n (v : Fin n)
-  → toℕ (index (range-covers n v)) ≡ toℕ v
-toℕ-index-range-covers n v = trans
-  (sym (lookup-range n (index (range-covers n v))))
-  (cong toℕ (sym (lookup-index (range-covers n v))))
-  where open import Data.List.Relation.Unary.Any.Properties using (lookup-index)

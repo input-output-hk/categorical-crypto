@@ -445,3 +445,17 @@ decode-attempt-LinearP (ρ⇐ {A})        = decode-attempt-hId (A ⊗₀ unit)
 decode-attempt-LinearP (α⇒ {A}{B}{C})  = decode-attempt-hId ((A ⊗₀ B) ⊗₀ C)
 decode-attempt-LinearP (α⇐ {A}{B}{C})  = decode-attempt-hId ((A ⊗₀ B) ⊗₀ C)
 decode-attempt-LinearP (σ {A}{B})      = decode-attempt-hSwap A B
+
+--------------------------------------------------------------------------------
+-- (#8) `decodeP` — the total pruned decoder, the pruned twin of
+-- `DecodeAttempt.decode`.  The boundary subst relates the algorithm's
+-- natural type to the user-facing
+-- `HomTerm (unflatten (flatten A)) (unflatten (flatten B))`.
+-- Shared by `DecodeTensorPruned`, `DecodeRelDecodeP`,
+-- `DecodeRelRespIsoWired` and the decoder-agreement modules.
+
+decodeP : ∀ {A B} (f : HomTerm A B)
+        → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
+decodeP {A} {B} f =
+  subst₂ HomTerm (cong unflatten (⟪⟫ₚ-domL f)) (cong unflatten (⟪⟫ₚ-codL f))
+         (proj₁ (decode-attempt-LinearP f))

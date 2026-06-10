@@ -121,29 +121,23 @@ map⁺-++⁺ˡ f (x ∷ xs) {ys} {zs} μ =
 -- as `id ⊗₁ permute` through `unflatten-++-≅`.
 
 open import Categories.Category using (Category)
-private module FM = Category FreeMonoidal
-open FM.HomReasoning
+open import Categories.Category.Monoidal using (MonoidalCategory)
+-- Morphism-variable monoidal solver: discharges the free-fragment chases
+-- (coherence + naturality + interchange around the opaque permutes and
+-- `unflatten-++-≅` legs) as single `solveMor!` calls.
+open import Categories.SolverFrontend using (module FinSetup)
+open import Data.Product using (_,_)
+open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F)
+import Data.Vec as Vec
 
-λ⇐-naturality
-  : ∀ {A B} (f : HomTerm A B) → λ⇐ {B} ∘ f ≈Term id ⊗₁ f ∘ λ⇐ {A}
-λ⇐-naturality f = begin
-  λ⇐ ∘ f
-    ≈⟨ ≈-Term-sym idʳ ⟩
-  (λ⇐ ∘ f) ∘ id
-    ≈⟨ refl⟩∘⟨ ≈-Term-sym λ⇒∘λ⇐≈id ⟩
-  (λ⇐ ∘ f) ∘ λ⇒ ∘ λ⇐
-    ≈⟨ FM.sym-assoc ⟩
-  ((λ⇐ ∘ f) ∘ λ⇒) ∘ λ⇐
-    ≈⟨ FM.assoc ⟩∘⟨refl ⟩
-  (λ⇐ ∘ f ∘ λ⇒) ∘ λ⇐
-    ≈⟨ (refl⟩∘⟨ ≈-Term-sym λ⇒∘id⊗f≈f∘λ⇒) ⟩∘⟨refl ⟩
-  (λ⇐ ∘ λ⇒ ∘ id ⊗₁ f) ∘ λ⇐
-    ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
-  ((λ⇐ ∘ λ⇒) ∘ id ⊗₁ f) ∘ λ⇐
-    ≈⟨ (λ⇐∘λ⇒≈id ⟩∘⟨refl) ⟩∘⟨refl ⟩
-  (id ∘ id ⊗₁ f) ∘ λ⇐
-    ≈⟨ idˡ ⟩∘⟨refl ⟩
-  id ⊗₁ f ∘ λ⇐ ∎
+private
+  module FM = Category FreeMonoidal
+
+  -- the free monoidal category itself, as the solver's target bundle.
+  FMC : MonoidalCategory _ _ _
+  FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
+
+open FM.HomReasoning
 
 -- permute (++⁺ˡ ws ν) = to(ws,bs) ∘ (id ⊗₁ permute ν) ∘ from(ws,as).
 permute-++⁺ˡ-slide
@@ -152,67 +146,54 @@ permute-++⁺ˡ-slide
     ≈Term _≅_.to (unflatten-++-≅ ws bs)
             ∘ (id ⊗₁ permute ν)
             ∘ _≅_.from (unflatten-++-≅ ws as)
-permute-++⁺ˡ-slide [] {as} {bs} ν = begin
-  permute ν
-    ≈⟨ ≈-Term-sym idʳ ⟩
-  permute ν ∘ id
-    ≈⟨ refl⟩∘⟨ ≈-Term-sym λ⇒∘λ⇐≈id ⟩
-  permute ν ∘ λ⇒ ∘ λ⇐
-    ≈⟨ FM.sym-assoc ⟩
-  (permute ν ∘ λ⇒) ∘ λ⇐
-    ≈⟨ ≈-Term-sym λ⇒∘id⊗f≈f∘λ⇒ ⟩∘⟨refl ⟩
-  (λ⇒ ∘ id ⊗₁ permute ν) ∘ λ⇐
-    ≈⟨ FM.assoc ⟩
-  λ⇒ ∘ (id ⊗₁ permute ν) ∘ λ⇐ ∎
+permute-++⁺ˡ-slide [] {as} {bs} ν = solveMor! lhsᵗ rhsᵗ
+  where
+    -- atoms: 0 ↦ uf as, 1 ↦ uf bs; generator: permute ν
+    open FinSetup FMC ( unflatten as Vec.∷ unflatten bs Vec.∷ Vec.[] )
+    v0 = V 0F ; v1 = V 1F
+    open Sig {1} (λ { 0F → v0 , v1 })
+    open WithGen (λ { (genS 0F) → permute ν })
+    gν = gen 0F
+    lhsᵗ rhsᵗ : S.HomTerm v0 v1
+    lhsᵗ = gν
+    rhsᵗ = S._∘_ S.λ⇒ (S._∘_ (S._⊗₁_ S.id gν) S.λ⇐)
 permute-++⁺ˡ-slide (w ∷ ws) {as} {bs} ν = begin
   id ⊗₁ permute (PermProp.++⁺ˡ ws ν)
     ≈⟨ ⊗-resp-≈ ≈-Term-refl (permute-++⁺ˡ-slide ws ν) ⟩
   id ⊗₁ (toW' ∘ (id ⊗₁ permute ν) ∘ fromW')
-    ≈⟨ ⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl ⟩
-  (id ∘ id) ⊗₁ (toW' ∘ (id ⊗₁ permute ν) ∘ fromW')
-    ≈⟨ ⊗-∘-dist ⟩
-  (id ⊗₁ toW') ∘ (id ⊗₁ ((id ⊗₁ permute ν) ∘ fromW'))
-    ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl ⟩
-  (id ⊗₁ toW') ∘ ((id ∘ id) ⊗₁ ((id ⊗₁ permute ν) ∘ fromW'))
-    ≈⟨ refl⟩∘⟨ ⊗-∘-dist ⟩
-  (id ⊗₁ toW') ∘ (id ⊗₁ (id ⊗₁ permute ν)) ∘ (id ⊗₁ fromW')
-    ≈⟨ refl⟩∘⟨ mid-assoc ⟩∘⟨refl ⟩
-  (id ⊗₁ toW') ∘ (α⇒ ∘ (id ⊗₁ permute ν) ∘ α⇐) ∘ (id ⊗₁ fromW')
-    ≈⟨ reassoc ⟩
+    ≈⟨ shuffle ⟩
   ((id ⊗₁ toW') ∘ α⇒) ∘ (id ⊗₁ permute ν) ∘ (α⇐ ∘ (id ⊗₁ fromW')) ∎
   where
     toW'   = _≅_.to   (unflatten-++-≅ ws bs)
     fromW' = _≅_.from (unflatten-++-≅ ws as)
 
-    mid-assoc
-      : id ⊗₁ (id ⊗₁ permute ν)
-        ≈Term α⇒ ∘ (id ⊗₁ permute ν) ∘ α⇐
-    mid-assoc = begin
-      id ⊗₁ (id ⊗₁ permute ν)
-        ≈⟨ ≈-Term-sym idʳ ⟩
-      (id ⊗₁ (id ⊗₁ permute ν)) ∘ id
-        ≈⟨ refl⟩∘⟨ ≈-Term-sym α⇒∘α⇐≈id ⟩
-      (id ⊗₁ (id ⊗₁ permute ν)) ∘ α⇒ ∘ α⇐
-        ≈⟨ FM.sym-assoc ⟩
-      ((id ⊗₁ (id ⊗₁ permute ν)) ∘ α⇒) ∘ α⇐
-        ≈⟨ ≈-Term-sym α-comm ⟩∘⟨refl ⟩
-      (α⇒ ∘ (id ⊗₁ id) ⊗₁ permute ν) ∘ α⇐
-        ≈⟨ (refl⟩∘⟨ ⊗-resp-≈ id⊗id≈id ≈-Term-refl) ⟩∘⟨refl ⟩
-      (α⇒ ∘ id ⊗₁ permute ν) ∘ α⇐
-        ≈⟨ FM.assoc ⟩
-      α⇒ ∘ (id ⊗₁ permute ν) ∘ α⇐ ∎
-
-    reassoc
-      : (id ⊗₁ toW') ∘ (α⇒ ∘ (id ⊗₁ permute ν) ∘ α⇐) ∘ (id ⊗₁ fromW')
+    -- the free part: associator naturality + interchange around the three
+    -- opaque morphisms `toW'`, `fromW'`, `permute ν`.
+    shuffle
+      : id ⊗₁ (toW' ∘ (id ⊗₁ permute ν) ∘ fromW')
         ≈Term ((id ⊗₁ toW') ∘ α⇒) ∘ (id ⊗₁ permute ν) ∘ (α⇐ ∘ (id ⊗₁ fromW'))
-    reassoc = begin
-      (id ⊗₁ toW') ∘ (α⇒ ∘ (id ⊗₁ permute ν) ∘ α⇐) ∘ (id ⊗₁ fromW')
-        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-      (id ⊗₁ toW') ∘ α⇒ ∘ ((id ⊗₁ permute ν) ∘ α⇐) ∘ (id ⊗₁ fromW')
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-      (id ⊗₁ toW') ∘ α⇒ ∘ (id ⊗₁ permute ν) ∘ α⇐ ∘ (id ⊗₁ fromW')
-        ≈⟨ FM.sym-assoc ⟩
-      ((id ⊗₁ toW') ∘ α⇒) ∘ (id ⊗₁ permute ν) ∘ α⇐ ∘ (id ⊗₁ fromW') ∎
+    shuffle = solveMor! lhsᵗ rhsᵗ
+      where
+        -- atoms: 0 ↦ Var w, 1 ↦ uf ws, 2 ↦ uf as, 3 ↦ uf bs,
+        -- 4 ↦ uf (ws++as), 5 ↦ uf (ws++bs)
+        open FinSetup FMC
+          ( Var w Vec.∷ unflatten ws
+              Vec.∷ unflatten as Vec.∷ unflatten bs
+              Vec.∷ unflatten (ws ++ as) Vec.∷ unflatten (ws ++ bs) Vec.∷ Vec.[] )
+        v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
+        v5 = V 5F
+        -- generators: permute ν, toW', fromW'
+        open Sig {3} (λ { 0F → v2 , v3
+                        ; 1F → v1 ⊗ᵒ v3 , v5
+                        ; 2F → v4 , v1 ⊗ᵒ v2 })
+        open WithGen (λ { (genS 0F) → permute ν
+                        ; (genS 1F) → toW'
+                        ; (genS 2F) → fromW' })
+        gν = gen 0F ; gto = gen 1F ; gfrom = gen 2F
+        lhsᵗ rhsᵗ : S.HomTerm (v0 ⊗ᵒ v4) (v0 ⊗ᵒ v5)
+        lhsᵗ = S._⊗₁_ S.id (S._∘_ gto (S._∘_ (S._⊗₁_ S.id gν) gfrom))
+        rhsᵗ = S._∘_ (S._∘_ (S._⊗₁_ S.id gto) S.α⇒)
+                     (S._∘_ (S._⊗₁_ S.id gν) (S._∘_ S.α⇐ (S._⊗₁_ S.id gfrom)))
 
 --------------------------------------------------------------------------------
 -- The plain-permute self-loop inverse, via K.

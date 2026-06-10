@@ -8,10 +8,10 @@
 -- up to `++-assoc`); unblocks the α⇒/α⇐ cases of `decode-rel-≈-decode`.
 --
 -- `c-iso-assoc-from` is re-defined here constructively (rather than
--- importing the non-`--safe` `DecodeRoundtrip` postulate), importing only
--- the Mac-Lane helpers `pentagon-rewrite` / `α⇒-λ⇐-collapse` from
--- `CoherenceSolver` and re-proving the small categorical helpers inline.
--- The cons-case proof is a step-numbered Mac-Lane chase (see the body).
+-- importing the non-`--safe` `DecodeRoundtrip` postulate).  The base case
+-- and the two free-monoidal segments of the cons case (everything except
+-- the IH application and the final subst-folding) are discharged by the
+-- morphism-variable solver `solveMor!` at the free monoidal category.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -23,11 +23,15 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
   using (unflatten; unflatten-++-≅)
-open import Categories.APROP.Hypergraph.Soundness.CoherenceSolver sig
-  using (module 2-objs; module 4-objs)
 
 open import Categories.Category using (Category)
+open import Categories.Category.Monoidal using (MonoidalCategory)
 open import Categories.Morphism FreeMonoidal using (_≅_)
+-- Morphism-variable monoidal solver (cf. `BridgeAlphaFormCompound.agda`).
+open import Categories.SolverFrontend using (module FinSetup)
+open import Data.Product using (_,_)
+open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F)
+import Data.Vec as Vec
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc)
 open import Relation.Binary.PropositionalEquality
@@ -37,62 +41,15 @@ open import Relation.Binary.PropositionalEquality.Properties using (subst-∘)
 private
   module FM = Category FreeMonoidal
 
+  -- the free monoidal category itself, as the solver's target bundle.
+  FMC : MonoidalCategory _ _ _
+  FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
+
 open FM.HomReasoning
 
 --------------------------------------------------------------------------------
--- Local helpers (re-proved here to avoid depending on non-`--safe`
+-- Local helper (re-proved here to avoid depending on non-`--safe`
 -- DecodeRoundtrip.agda).
-
--- `pentagon-rewrite` from CoherenceSolver.
-pentagon-rewrite
-  : ∀ {X Y Z W}
-  → α⇒ {X ⊗₀ Y} {Z} {W}
-  ≈Term α⇐ {X} {Y} {Z ⊗₀ W}
-        ∘ id {X} ⊗₁ α⇒ {Y} {Z} {W}
-        ∘ α⇒ {X} {Y ⊗₀ Z} {W}
-        ∘ α⇒ {X} {Y} {Z} ⊗₁ id {W}
-pentagon-rewrite {X} {Y} {Z} {W} = lemma
-  where
-    open 4-objs X Y Z W renaming (pentagon-rewrite to lemma)
-
--- `α⇒-λ⇐-collapse` from CoherenceSolver.
-α⇒-λ⇐-collapse
-  : ∀ {X Y} → α⇒ {unit} {X} {Y} ∘ (λ⇐ {X} ⊗₁ id {Y}) ≈Term λ⇐ {X ⊗₀ Y}
-α⇒-λ⇐-collapse {X} {Y} = lemma
-  where
-    open 2-objs X Y renaming (α⇒-λ⇐-collapse to lemma)
-
-λ⇐-naturality
-  : ∀ {A B} (f : HomTerm A B) → λ⇐ {B} ∘ f ≈Term id ⊗₁ f ∘ λ⇐ {A}
-λ⇐-naturality f = begin
-  λ⇐ ∘ f
-    ≈⟨ ≈-Term-sym idʳ ⟩
-  (λ⇐ ∘ f) ∘ id
-    ≈⟨ refl⟩∘⟨ ≈-Term-sym λ⇒∘λ⇐≈id ⟩
-  (λ⇐ ∘ f) ∘ λ⇒ ∘ λ⇐
-    ≈⟨ FM.sym-assoc ⟩
-  ((λ⇐ ∘ f) ∘ λ⇒) ∘ λ⇐
-    ≈⟨ FM.assoc ⟩∘⟨refl ⟩
-  (λ⇐ ∘ f ∘ λ⇒) ∘ λ⇐
-    ≈⟨ (refl⟩∘⟨ ≈-Term-sym λ⇒∘id⊗f≈f∘λ⇒) ⟩∘⟨refl ⟩
-  (λ⇐ ∘ λ⇒ ∘ id ⊗₁ f) ∘ λ⇐
-    ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
-  ((λ⇐ ∘ λ⇒) ∘ id ⊗₁ f) ∘ λ⇐
-    ≈⟨ (λ⇐∘λ⇒≈id ⟩∘⟨refl) ⟩∘⟨refl ⟩
-  (id ∘ id ⊗₁ f) ∘ λ⇐
-    ≈⟨ idˡ ⟩∘⟨refl ⟩
-  id ⊗₁ f ∘ λ⇐ ∎
-
--- `id ⊗ (g ∘ f) ≈ (id ⊗ g) ∘ (id ⊗ f)`.
-id-⊗-respects-∘
-  : ∀ {X A B C} (f : HomTerm A B) (g : HomTerm B C)
-  → id {X} ⊗₁ (g ∘ f) ≈Term (id {X} ⊗₁ g) ∘ (id {X} ⊗₁ f)
-id-⊗-respects-∘ f g = begin
-  id ⊗₁ (g ∘ f)
-    ≈⟨ ⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl ⟩
-  (id ∘ id) ⊗₁ (g ∘ f)
-    ≈⟨ ⊗-∘-dist ⟩
-  id ⊗₁ g ∘ id ⊗₁ f ∎
 
 -- Relates `id ⊗ subst-id-along-e` to the subst-id at the (Var x)-tensored
 -- predicate (by J on `e`).
@@ -101,33 +58,6 @@ id-⊗-subst-bridge
   → (id {Var x} ⊗₁ subst (λ z → HomTerm (unflatten xs₁) (unflatten z)) e id)
   ≈Term subst (λ z → HomTerm (Var x ⊗₀ unflatten xs₁) (Var x ⊗₀ unflatten z)) e id
 id-⊗-subst-bridge refl = id⊗id≈id
-
--- α⇐'s naturality, derived from α-comm + α-iso laws.
-α⇐-comm-top
-  : ∀ {X Y Z X' Y' Z' : ObjTerm}
-    (f : HomTerm X X') (g : HomTerm Y Y') (h : HomTerm Z Z')
-  → α⇐ {X'} {Y'} {Z'} ∘ f ⊗₁ (g ⊗₁ h)
-  ≈Term (f ⊗₁ g) ⊗₁ h ∘ α⇐ {X} {Y} {Z}
-α⇐-comm-top f g h = begin
-  α⇐ ∘ f ⊗₁ (g ⊗₁ h)
-    ≈⟨ ≈-Term-sym idʳ ⟩
-  (α⇐ ∘ f ⊗₁ (g ⊗₁ h)) ∘ id
-    ≈⟨ refl⟩∘⟨ ≈-Term-sym α⇒∘α⇐≈id ⟩
-  (α⇐ ∘ f ⊗₁ (g ⊗₁ h)) ∘ (α⇒ ∘ α⇐)
-    ≈⟨ FM.assoc ⟩
-  α⇐ ∘ f ⊗₁ (g ⊗₁ h) ∘ α⇒ ∘ α⇐
-    ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-  α⇐ ∘ (f ⊗₁ (g ⊗₁ h) ∘ α⇒) ∘ α⇐
-    ≈⟨ refl⟩∘⟨ ≈-Term-sym α-comm ⟩∘⟨refl ⟩
-  α⇐ ∘ (α⇒ ∘ (f ⊗₁ g) ⊗₁ h) ∘ α⇐
-    ≈⟨ FM.sym-assoc ⟩
-  (α⇐ ∘ α⇒ ∘ (f ⊗₁ g) ⊗₁ h) ∘ α⇐
-    ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
-  ((α⇐ ∘ α⇒) ∘ (f ⊗₁ g) ⊗₁ h) ∘ α⇐
-    ≈⟨ (α⇐∘α⇒≈id ⟩∘⟨refl) ⟩∘⟨refl ⟩
-  (id ∘ (f ⊗₁ g) ⊗₁ h) ∘ α⇐
-    ≈⟨ idˡ ⟩∘⟨refl ⟩
-  (f ⊗₁ g) ⊗₁ h ∘ α⇐ ∎
 
 --------------------------------------------------------------------------------
 -- The c-iso pentagon, by list induction on xs₁.
@@ -143,16 +73,19 @@ c-iso-assoc-from
                 (++-assoc xs₁ xs₂ ys) id
 
 -- Base case: xs₁ = [].
-c-iso-assoc-from [] xs₂ ys = begin
-  α⇒ ∘ (λ⇐ ⊗₁ id) ∘ _≅_.from (unflatten-++-≅ xs₂ ys)
-    ≈⟨ FM.sym-assoc ⟩
-  (α⇒ ∘ (λ⇐ ⊗₁ id)) ∘ _≅_.from (unflatten-++-≅ xs₂ ys)
-    ≈⟨ α⇒-λ⇐-collapse ⟩∘⟨refl ⟩
-  λ⇐ ∘ _≅_.from (unflatten-++-≅ xs₂ ys)
-    ≈⟨ λ⇐-naturality (_≅_.from (unflatten-++-≅ xs₂ ys)) ⟩
-  id ⊗₁ _≅_.from (unflatten-++-≅ xs₂ ys) ∘ λ⇐
-    ≈⟨ refl⟩∘⟨ ≈-Term-sym idʳ ⟩
-  (id ⊗₁ _≅_.from (unflatten-++-≅ xs₂ ys)) ∘ λ⇐ ∘ id ∎
+c-iso-assoc-from [] xs₂ ys = solveMor! lhsᵗ rhsᵗ
+  where
+    -- atoms: 0 ↦ unflatten xs₂, 1 ↦ unflatten ys, 2 ↦ unflatten (xs₂ ++ ys)
+    open FinSetup FMC
+      ( unflatten xs₂ Vec.∷ unflatten ys Vec.∷ unflatten (xs₂ ++ ys) Vec.∷ Vec.[] )
+    v0 = V 0F ; v1 = V 1F ; v2 = V 2F
+    -- generator: c-3 = from (unflatten-++-≅ xs₂ ys)
+    open Sig {1} (λ { 0F → v2 , v0 ⊗ᵒ v1 })
+    open WithGen (λ { (genS 0F) → _≅_.from (unflatten-++-≅ xs₂ ys) })
+    g0 = gen 0F
+    lhsᵗ rhsᵗ : S.HomTerm v2 (unitᵒ ⊗ᵒ (v0 ⊗ᵒ v1))
+    lhsᵗ = S._∘_ S.α⇒ (S._∘_ (S._⊗₁_ S.λ⇐ S.id) g0)
+    rhsᵗ = S._∘_ (S._⊗₁_ S.id g0) (S._∘_ S.λ⇐ S.id)
 
 -- Cons case: xs₁ = x ∷ xs₁'.
 c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
@@ -179,6 +112,64 @@ c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
        ≈Term (id {U₁'} ⊗₁ c-3) ∘ c-4 ∘ subst-id-xs₁'
     ih = c-iso-assoc-from xs₁' xs₂ ys
 
+    -- The free pre-IH shuffle (old steps 1-5: pentagon-rewrite, ⊗-∘-dist,
+    -- α-comm, α-iso cancellations, id-⊗ collection), as one solver call.
+    shuffle₁
+      : α⇒ {Vx ⊗₀ U₁'} {U₂} {U-ys}
+          ∘ ((α⇐ ∘ id ⊗₁ c-1) ⊗₁ id)
+          ∘ (α⇐ ∘ id ⊗₁ c-2)
+      ≈Term α⇐ ∘ id ⊗₁ (α⇒ {U₁'} {U₂} {U-ys} ∘ (c-1 ⊗₁ id) ∘ c-2)
+    shuffle₁ = solveMor! lhsᵗ rhsᵗ
+      where
+        -- atoms: 0 ↦ Var x, 1 ↦ U₁', 2 ↦ U₂, 3 ↦ U-ys, 4 ↦ U-12,
+        -- 5 ↦ unflatten ((xs₁' ++ xs₂) ++ ys)
+        open FinSetup FMC
+          ( Vx Vec.∷ U₁' Vec.∷ U₂ Vec.∷ U-ys Vec.∷ U-12
+              Vec.∷ unflatten ((xs₁' ++ xs₂) ++ ys) Vec.∷ Vec.[] )
+        v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
+        v5 = V 5F
+        -- generators: c-1, c-2
+        open Sig {2} (λ { 0F → v4 , v1 ⊗ᵒ v2
+                        ; 1F → v5 , v4 ⊗ᵒ v3 })
+        open WithGen (λ { (genS 0F) → c-1 ; (genS 1F) → c-2 })
+        g1 = gen 0F ; g2 = gen 1F
+        lhsᵗ rhsᵗ : S.HomTerm (v0 ⊗ᵒ v5) ((v0 ⊗ᵒ v1) ⊗ᵒ (v2 ⊗ᵒ v3))
+        lhsᵗ = S._∘_ S.α⇒
+                 (S._∘_ (S._⊗₁_ (S._∘_ S.α⇐ (S._⊗₁_ S.id g1)) S.id)
+                        (S._∘_ S.α⇐ (S._⊗₁_ S.id g2)))
+        rhsᵗ = S._∘_ S.α⇐
+                 (S._⊗₁_ S.id (S._∘_ S.α⇒ (S._∘_ (S._⊗₁_ g1 S.id) g2)))
+
+    -- The free post-IH shuffle (old steps 7-10: id-⊗ distribution,
+    -- α⇐-comm-top, regrouping), as one solver call.
+    shuffle₂
+      : α⇐ ∘ id ⊗₁ ((id {U₁'} ⊗₁ c-3) ∘ c-4 ∘ subst-id-xs₁')
+      ≈Term id ⊗₁ c-3
+            ∘ (α⇐ {Vx} {U₁'} {U-23} ∘ (id ⊗₁ c-4))
+            ∘ (id ⊗₁ subst-id-xs₁')
+    shuffle₂ = solveMor! lhsᵗ rhsᵗ
+      where
+        -- atoms: 0 ↦ Var x, 1 ↦ U₁', 2 ↦ U₂, 3 ↦ U-ys, 4 ↦ U-23,
+        -- 5 ↦ unflatten ((xs₁' ++ xs₂) ++ ys), 6 ↦ unflatten (xs₁' ++ xs₂ ++ ys)
+        open FinSetup FMC
+          ( Vx Vec.∷ U₁' Vec.∷ U₂ Vec.∷ U-ys Vec.∷ U-23
+              Vec.∷ unflatten ((xs₁' ++ xs₂) ++ ys)
+              Vec.∷ unflatten (xs₁' ++ xs₂ ++ ys) Vec.∷ Vec.[] )
+        v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
+        v5 = V 5F ; v6 = V 6F
+        -- generators: c-3, c-4, subst-id-xs₁'
+        open Sig {3} (λ { 0F → v4 , v2 ⊗ᵒ v3
+                        ; 1F → v6 , v1 ⊗ᵒ v4
+                        ; 2F → v5 , v6 })
+        open WithGen (λ { (genS 0F) → c-3 ; (genS 1F) → c-4
+                        ; (genS 2F) → subst-id-xs₁' })
+        g3 = gen 0F ; g4 = gen 1F ; gs = gen 2F
+        lhsᵗ rhsᵗ : S.HomTerm (v0 ⊗ᵒ v5) ((v0 ⊗ᵒ v1) ⊗ᵒ (v2 ⊗ᵒ v3))
+        lhsᵗ = S._∘_ S.α⇐
+                 (S._⊗₁_ S.id (S._∘_ (S._⊗₁_ S.id g3) (S._∘_ g4 gs)))
+        rhsᵗ = S._∘_ (S._⊗₁_ S.id g3)
+                 (S._∘_ (S._∘_ S.α⇐ (S._⊗₁_ S.id g4)) (S._⊗₁_ S.id gs))
+
     body :
       α⇒ {unflatten (x ∷ xs₁')} {unflatten xs₂} {unflatten ys}
         ∘ (_≅_.from (unflatten-++-≅ (x ∷ xs₁') xs₂) ⊗₁ id)
@@ -189,157 +180,25 @@ c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
                                     (unflatten z))
                     (++-assoc (x ∷ xs₁') xs₂ ys) id
     body = begin
-      -- Step 1: expand outer α⇒ via pentagon-rewrite.
+      -- Step 1 (solver): the free pre-IH shuffle — pentagon, α-naturality,
+      -- interchange, and the structural-iso cancellations.
       α⇒ {Vx ⊗₀ U₁'} {U₂} {U-ys}
         ∘ ((α⇐ ∘ id ⊗₁ c-1) ⊗₁ id)
         ∘ (α⇐ ∘ id ⊗₁ c-2)
-          ≈⟨ pentagon-rewrite ⟩∘⟨refl ⟩
-      (α⇐ {Vx} {U₁'} {U₂ ⊗₀ U-ys}
-        ∘ id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-        ∘ α⇒ {Vx} {U₁' ⊗₀ U₂} {U-ys}
-        ∘ α⇒ {Vx} {U₁'} {U₂} ⊗₁ id)
-        ∘ ((α⇐ ∘ id ⊗₁ c-1) ⊗₁ id)
-        ∘ (α⇐ ∘ id ⊗₁ c-2)
-        -- Associate to expose `(α⇒ ⊗ id) ∘ ((α⇐ ∘ id⊗c-1) ⊗ id)`.
-          ≈⟨ FM.assoc ⟩
+          ≈⟨ shuffle₁ ⟩
       α⇐
-        ∘ ((id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-            ∘ α⇒ {Vx} {U₁' ⊗₀ U₂} {U-ys}
-            ∘ α⇒ {Vx} {U₁'} {U₂} ⊗₁ id)
-           ∘ ((α⇐ ∘ id ⊗₁ c-1) ⊗₁ id)
-           ∘ (α⇐ ∘ id ⊗₁ c-2))
-          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-      α⇐
-        ∘ id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-        ∘ ((α⇒ {Vx} {U₁' ⊗₀ U₂} {U-ys}
-            ∘ α⇒ {Vx} {U₁'} {U₂} ⊗₁ id)
-           ∘ ((α⇐ ∘ id ⊗₁ c-1) ⊗₁ id)
-           ∘ (α⇐ ∘ id ⊗₁ c-2))
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-      α⇐
-        ∘ id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-        ∘ α⇒ {Vx} {U₁' ⊗₀ U₂} {U-ys}
-        ∘ ((α⇒ {Vx} {U₁'} {U₂} ⊗₁ id)
-           ∘ ((α⇐ ∘ id ⊗₁ c-1) ⊗₁ id)
-           ∘ (α⇐ ∘ id ⊗₁ c-2))
-        -- Step 2: combine (α⇒ ⊗ id) ∘ ((α⇐ ∘ id⊗c-1) ⊗ id) via ⊗-∘-dist.
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-      α⇐
-        ∘ id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-        ∘ α⇒ {Vx} {U₁' ⊗₀ U₂} {U-ys}
-        ∘ ((α⇒ {Vx} {U₁'} {U₂} ⊗₁ id)
-           ∘ ((α⇐ ∘ id ⊗₁ c-1) ⊗₁ id))
-           ∘ (α⇐ ∘ id ⊗₁ c-2)
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩∘⟨refl ⟩
-      α⇐
-        ∘ id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-        ∘ α⇒ {Vx} {U₁' ⊗₀ U₂} {U-ys}
-        ∘ ((α⇒ {Vx} {U₁'} {U₂} ∘ (α⇐ ∘ id ⊗₁ c-1)) ⊗₁ (id ∘ id))
-           ∘ (α⇐ ∘ id ⊗₁ c-2)
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ ⊗-resp-≈ FM.sym-assoc idˡ ⟩∘⟨refl ⟩
-      α⇐
-        ∘ id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-        ∘ α⇒ {Vx} {U₁' ⊗₀ U₂} {U-ys}
-        ∘ (((α⇒ {Vx} {U₁'} {U₂} ∘ α⇐) ∘ id ⊗₁ c-1) ⊗₁ id)
-           ∘ (α⇐ ∘ id ⊗₁ c-2)
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ ⊗-resp-≈ (α⇒∘α⇐≈id ⟩∘⟨refl) ≈-Term-refl ⟩∘⟨refl ⟩
-      α⇐
-        ∘ id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-        ∘ α⇒ {Vx} {U₁' ⊗₀ U₂} {U-ys}
-        ∘ ((id ∘ id ⊗₁ c-1) ⊗₁ id)
-           ∘ (α⇐ ∘ id ⊗₁ c-2)
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩∘⟨refl ⟩
-      α⇐
-        ∘ id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-        ∘ α⇒ {Vx} {U₁' ⊗₀ U₂} {U-ys}
-        ∘ ((id ⊗₁ c-1) ⊗₁ id)
-           ∘ (α⇐ ∘ id ⊗₁ c-2)
-        -- Step 3: α-comm on α⇒_{Vx,U₁'⊗U₂,U-ys} ∘ ((id⊗c-1) ⊗ id).
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-      α⇐
-        ∘ id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-        ∘ (α⇒ {Vx} {U₁' ⊗₀ U₂} {U-ys}
-           ∘ ((id ⊗₁ c-1) ⊗₁ id))
-           ∘ (α⇐ ∘ id ⊗₁ c-2)
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ α-comm ⟩∘⟨refl ⟩
-      α⇐
-        ∘ id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-        ∘ ((id ⊗₁ (c-1 ⊗₁ id))
-           ∘ α⇒ {Vx} {U-12} {U-ys})
-           ∘ (α⇐ ∘ id ⊗₁ c-2)
-        -- Step 4: cancel α⇒_{Vx,U-12,U-ys} ∘ α⇐_{Vx,U-12,U-ys} = id.
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-      α⇐
-        ∘ id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-        ∘ id ⊗₁ (c-1 ⊗₁ id)
-           ∘ α⇒ {Vx} {U-12} {U-ys}
-           ∘ (α⇐ ∘ id ⊗₁ c-2)
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-      α⇐
-        ∘ id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-        ∘ id ⊗₁ (c-1 ⊗₁ id)
-           ∘ (α⇒ {Vx} {U-12} {U-ys} ∘ α⇐)
-           ∘ id ⊗₁ c-2
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ α⇒∘α⇐≈id ⟩∘⟨refl ⟩
-      α⇐
-        ∘ id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-        ∘ id ⊗₁ (c-1 ⊗₁ id)
-           ∘ id
-           ∘ id ⊗₁ c-2
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
-      α⇐
-        ∘ id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-        ∘ id ⊗₁ (c-1 ⊗₁ id)
-           ∘ id ⊗₁ c-2
-        -- Step 5: combine three `id ⊗ _` factors via id-⊗-respects-∘.
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym (id-⊗-respects-∘ c-2 (c-1 ⊗₁ id)) ⟩
-      α⇐
-        ∘ id ⊗₁ α⇒ {U₁'} {U₂} {U-ys}
-        ∘ id ⊗₁ ((c-1 ⊗₁ id) ∘ c-2)
-          ≈⟨ refl⟩∘⟨ ≈-Term-sym (id-⊗-respects-∘ ((c-1 ⊗₁ id) ∘ c-2)
-                                                   (α⇒ {U₁'} {U₂} {U-ys})) ⟩
-      α⇐
-        ∘ id ⊗₁ (α⇒ {U₁'} {U₂} {U-ys} ∘ ((c-1 ⊗₁ id) ∘ c-2))
-        -- Step 6: apply IH inside id ⊗ _.
+        ∘ id ⊗₁ (α⇒ {U₁'} {U₂} {U-ys} ∘ (c-1 ⊗₁ id) ∘ c-2)
+        -- Step 2: apply IH inside id ⊗ _.
           ≈⟨ refl⟩∘⟨ ⊗-resp-≈ ≈-Term-refl ih ⟩
       α⇐
         ∘ id ⊗₁ ((id ⊗₁ c-3) ∘ c-4 ∘ subst-id-xs₁')
-        -- Step 7: distribute `id ⊗ _` over composition.
-          ≈⟨ refl⟩∘⟨ id-⊗-respects-∘ (c-4 ∘ subst-id-xs₁') (id ⊗₁ c-3) ⟩
-      α⇐
-        ∘ (id ⊗₁ (id ⊗₁ c-3))
-        ∘ id ⊗₁ (c-4 ∘ subst-id-xs₁')
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ id-⊗-respects-∘ subst-id-xs₁' c-4 ⟩
-      α⇐
-        ∘ (id ⊗₁ (id ⊗₁ c-3))
-        ∘ (id ⊗₁ c-4)
-        ∘ (id ⊗₁ subst-id-xs₁')
-        -- Step 8: push α⇐ past (id ⊗ (id ⊗ c-3)) via α⇐-comm-top.
-          ≈⟨ FM.sym-assoc ⟩
-      (α⇐ ∘ (id ⊗₁ (id ⊗₁ c-3)))
-        ∘ (id ⊗₁ c-4)
-        ∘ (id ⊗₁ subst-id-xs₁')
-          ≈⟨ α⇐-comm-top id id c-3 ⟩∘⟨refl ⟩
-      ((id ⊗₁ id) ⊗₁ c-3 ∘ α⇐ {Vx} {U₁'} {U-23})
-        ∘ (id ⊗₁ c-4)
-        ∘ (id ⊗₁ subst-id-xs₁')
-        -- Step 9: simplify (id ⊗ id) ⊗ c-3 to id ⊗ c-3.
-          ≈⟨ (⊗-resp-≈ id⊗id≈id ≈-Term-refl ⟩∘⟨refl) ⟩∘⟨refl ⟩
-      (id ⊗₁ c-3 ∘ α⇐ {Vx} {U₁'} {U-23})
-        ∘ (id ⊗₁ c-4)
-        ∘ (id ⊗₁ subst-id-xs₁')
-        -- Step 10: re-associate so `α⇐ ∘ id ⊗ c-4` is grouped (definitionally
-        --   `from (unflatten-++-≅ (x∷xs₁') (xs₂++ys))`).
-          ≈⟨ FM.assoc ⟩
-      id ⊗₁ c-3
-        ∘ (α⇐ {Vx} {U₁'} {U-23}
-           ∘ (id ⊗₁ c-4)
-           ∘ (id ⊗₁ subst-id-xs₁'))
-          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+        -- Step 3 (solver): the free post-IH shuffle — α⇐-naturality +
+        -- interchange, regrouping around the subst-id factor.
+          ≈⟨ shuffle₂ ⟩
       id ⊗₁ c-3
         ∘ (α⇐ {Vx} {U₁'} {U-23} ∘ (id ⊗₁ c-4))
         ∘ (id ⊗₁ subst-id-xs₁')
-        -- Step 11: convert (id ⊗ subst-id-xs₁') to subst-id-(x∷xs₁') via
+        -- Step 4: convert (id ⊗ subst-id-xs₁') to subst-id-(x∷xs₁') via
         --   id-⊗-subst-bridge then `subst-∘` (folding the `(x ∷_)`).
           ≈⟨ refl⟩∘⟨ refl⟩∘⟨ id-⊗-subst-bridge e ⟩
       id ⊗₁ c-3
