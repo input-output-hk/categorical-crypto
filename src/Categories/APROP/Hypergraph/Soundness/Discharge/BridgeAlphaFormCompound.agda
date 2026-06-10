@@ -42,15 +42,12 @@ open import Categories.APROP.Hypergraph.Soundness.DecodeRoundtripSafe sig
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
 open import Categories.Category.Monoidal using (Monoidal; MonoidalCategory)
--- Mac-Lane coherence solver, used to discharge the pure-coherence helpers
--- `λ-cancel` / `collapse-α-iso-⊗id` below.  Mirrors `Sub/SigmaBlockCommRaw.agda`.
-open import Categories.MonoidalCoherence using (module Solver)
 -- Morphism-variable monoidal solver: discharges the F-/T-decomp chases
 -- (coherence + naturality + interchange around the opaque unflatten isos)
 -- as single `solveMor!` calls at the free monoidal category itself.
 open import Categories.SolverFrontend using (module FinSetup)
 open import Data.Product using (_,_)
-open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F; 7F; 8F)
+open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F; 7F; 8F; 9F)
 import Data.Vec as Vec
 open Vec using (Vec)
 import Data.Fin as Fin
@@ -69,54 +66,6 @@ private
   FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
 
 open FM.HomReasoning
-
---------------------------------------------------------------------------------
--- Local helpers.
-
--- λ-cancel: (λ⇒ ⊗ id) ∘ (λ⇐ ⊗ (id ⊗ id)) ≈ id.
-private
-  λ-cancel
-    : ∀ {X Y Z} → (λ⇒ {X} ⊗₁ id {Y ⊗₀ Z})
-                   ∘ (λ⇐ {X} ⊗₁ (id {Y} ⊗₁ id {Z}))
-                ≈Term id
-  λ-cancel {X} {Y} {Z} = solveM
-      ((λ⇒ˢ {x} ⊗₁ˢ idˢ {y ⊗₀ˢ z})
-        ∘ˢ (λ⇐ˢ {x} ⊗₁ˢ (idˢ {y} ⊗₁ˢ idˢ {z})))
-      (idˢ {x ⊗₀ˢ (y ⊗₀ˢ z)})
-    where
-      vars : Vec ObjTerm 3
-      vars = X Vec.∷ Y Vec.∷ Z Vec.∷ Vec.[]
-      open Solver (record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal })
-                  {n = 3} vars
-        using (solveM)
-        renaming (λ⇒ to λ⇒ˢ; λ⇐ to λ⇐ˢ; id to idˢ;
-                  _∘_ to _∘ˢ_; _⊗₁_ to _⊗₁ˢ_; _⊗₀_ to _⊗₀ˢ_; Var to Varˢ)
-      x y z : _
-      x = Varˢ Fin.zero
-      y = Varˢ 1F
-      z = Varˢ 2F
-
-  -- collapse-α-VAB: (α⇒ ⊗ id) ∘ (α⇐ ⊗ id) ≈ id.
-  collapse-α-iso-⊗id
-    : ∀ {X Y Z W : ObjTerm}
-    → α⇒ {X} {Y} {Z} ⊗₁ id {W} ∘ α⇐ {X} {Y} {Z} ⊗₁ id {W} ≈Term id
-  collapse-α-iso-⊗id {X} {Y} {Z} {W} = solveM
-      ((α⇒ˢ {A = x} {y} {z} ⊗₁ˢ idˢ {w})
-        ∘ˢ (α⇐ˢ {A = x} {y} {z} ⊗₁ˢ idˢ {w}))
-      (idˢ {(x ⊗₀ˢ (y ⊗₀ˢ z)) ⊗₀ˢ w})
-    where
-      vars : Vec ObjTerm 4
-      vars = X Vec.∷ Y Vec.∷ Z Vec.∷ W Vec.∷ Vec.[]
-      open Solver (record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal })
-                  {n = 4} vars
-        using (solveM)
-        renaming (α⇒ to α⇒ˢ; α⇐ to α⇐ˢ; id to idˢ;
-                  _∘_ to _∘ˢ_; _⊗₁_ to _⊗₁ˢ_; _⊗₀_ to _⊗₀ˢ_; Var to Varˢ)
-      x y z w : _
-      x = Varˢ Fin.zero
-      y = Varˢ 1F
-      z = Varˢ 2F
-      w = Varˢ 3F
 
 --------------------------------------------------------------------------------
 -- F-decomp lemmas.
@@ -353,7 +302,8 @@ private
           ∘ cfrom ((p ++ a) ++ b) c )
       ≈Term α⇒-form-list (p ++ a) b c
   -- Base p = []:  all `α…-form-list [] …` are `id`, `cto [] = λ⇒`, `cfrom []
-  -- = λ⇐`; the two unitor frames cancel.
+  -- = λ⇐`; one free shuffle collapses the unitor frames and brings the
+  -- `cto/cfrom` legs adjacent; the iso law finishes.
   list-collapse-gen [] a b c = begin
     α⇐-form-list [] a (b ++ c)
       ∘ ( cto [] (a ++ b ++ c)
@@ -363,202 +313,146 @@ private
       ∘ ( cto (a ++ b) c
         ∘ (α⇒-form-list [] a b ⊗₁ id {unflatten c})
         ∘ cfrom (a ++ b) c )
-      ≈⟨ idˡ ⟩
-    ( λ⇒ ∘ (id ⊗₁ α⇒-form-list a b c) ∘ λ⇐ )
-      ∘ id
-      ∘ ( cto (a ++ b) c
-        ∘ (id {unflatten (a ++ b)} ⊗₁ id {unflatten c})
-        ∘ cfrom (a ++ b) c )
-      ≈⟨ refl⟩∘⟨ idˡ ⟩
-    ( λ⇒ ∘ (id ⊗₁ α⇒-form-list a b c) ∘ λ⇐ )
-      ∘ ( cto (a ++ b) c
-        ∘ (id ⊗₁ id)
-        ∘ cfrom (a ++ b) c )
-      ≈⟨ λ-collapse (α⇒-form-list a b c) ⟩∘⟨ (refl⟩∘⟨ id⊗id≈id ⟩∘⟨refl) ⟩
-    α⇒-form-list a b c ∘ ( cto (a ++ b) c ∘ id ∘ cfrom (a ++ b) c )
-      ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ idˡ) ⟩
+      ≈⟨ shuffle ⟩
     α⇒-form-list a b c ∘ ( cto (a ++ b) c ∘ cfrom (a ++ b) c )
       ≈⟨ refl⟩∘⟨ _≅_.isoˡ (unflatten-++-≅ (a ++ b) c) ⟩
     α⇒-form-list a b c ∘ id
       ≈⟨ idʳ ⟩
     α⇒-form-list a b c ∎
     where
-      -- λ⇒ ∘ (id ⊗ f) ∘ λ⇐ ≈ f  (λ-naturality cancellation).
-      λ-collapse : ∀ {Y Y'} (f : HomTerm Y Y') → λ⇒ ∘ (id ⊗₁ f) ∘ λ⇐ ≈Term f
-      λ-collapse f = begin
-        λ⇒ ∘ (id ⊗₁ f) ∘ λ⇐
-          ≈⟨ FM.sym-assoc ⟩
-        (λ⇒ ∘ (id ⊗₁ f)) ∘ λ⇐
-          ≈⟨ λ⇒∘id⊗f≈f∘λ⇒ ⟩∘⟨refl ⟩
-        (f ∘ λ⇒) ∘ λ⇐
-          ≈⟨ FM.assoc ⟩
-        f ∘ λ⇒ ∘ λ⇐
-          ≈⟨ refl⟩∘⟨ λ⇒∘λ⇐≈id ⟩
-        f ∘ id
-          ≈⟨ idʳ ⟩
-        f ∎
+      shuffle
+        : α⇐-form-list [] a (b ++ c)
+            ∘ ( cto [] (a ++ b ++ c)
+              ∘ (id ⊗₁ α⇒-form-list a b c)
+              ∘ cfrom [] ((a ++ b) ++ c) )
+            ∘ α⇒-form-list [] (a ++ b) c
+            ∘ ( cto (a ++ b) c
+              ∘ (α⇒-form-list [] a b ⊗₁ id {unflatten c})
+              ∘ cfrom (a ++ b) c )
+        ≈Term α⇒-form-list a b c ∘ ( cto (a ++ b) c ∘ cfrom (a ++ b) c )
+      shuffle = solveMor! lhsᵗ rhsᵗ
+        where
+          -- atoms: 0 ↦ uf (a++b), 1 ↦ uf c, 2 ↦ uf ((a++b)++c),
+          -- 3 ↦ uf (a++(b++c))
+          open FinSetup FMC
+            ( unflatten (a ++ b) Vec.∷ unflatten c
+                Vec.∷ unflatten ((a ++ b) ++ c)
+                Vec.∷ unflatten (a ++ b ++ c) Vec.∷ Vec.[] )
+          v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F
+          -- generators: α⇒-form-list a b c, cto (a++b) c, cfrom (a++b) c
+          open Sig {3} (λ { 0F → v2 , v3
+                          ; 1F → v0 ⊗ᵒ v1 , v2
+                          ; 2F → v2 , v0 ⊗ᵒ v1 })
+          open WithGen (λ { (genS 0F) → α⇒-form-list a b c
+                          ; (genS 1F) → cto (a ++ b) c
+                          ; (genS 2F) → cfrom (a ++ b) c })
+          gα = gen 0F ; gcto = gen 1F ; gcfrom = gen 2F
+          lhsᵗ rhsᵗ : S.HomTerm v2 v3
+          lhsᵗ = S._∘_ S.id
+                   (S._∘_ (S._∘_ S.λ⇒ (S._∘_ (S._⊗₁_ S.id gα) S.λ⇐))
+                          (S._∘_ S.id
+                            (S._∘_ gcto (S._∘_ (S._⊗₁_ S.id S.id) gcfrom))))
+          rhsᵗ = S._∘_ gα (S._∘_ gcto gcfrom)
 
-  -- Cons p = x ∷ p':  peel `id{Var x} ⊗ _` from every factor (M1/M2 acquire
-  -- it after cancelling the `α⇒/α⇐` from `cto/cfrom (x∷_)` via `α-comm`),
-  -- then `⊗-∘-dist` collects them and the IH finishes.
+  -- Cons p = x ∷ p':  peel `id{Var x} ⊗ _` off the whole 4-fold composite in
+  -- one free shuffle (the `cto/cfrom (x∷_)` associator frames slide across the
+  -- opaque factors and cancel), then the IH finishes.
   list-collapse-gen (x ∷ p') a b c = begin
     α⇐-form-list (x ∷ p') a (b ++ c)
       ∘ ( cto (x ∷ p') (a ++ b ++ c)
-        ∘ (idₚ ⊗₁ α⇒-form-list a b c)
+        ∘ (id {Var x ⊗₀ unflatten p'} ⊗₁ α⇒-form-list a b c)
         ∘ cfrom (x ∷ p') ((a ++ b) ++ c) )
       ∘ α⇒-form-list (x ∷ p') (a ++ b) c
       ∘ ( cto ((x ∷ p') ++ a ++ b) c
         ∘ (α⇒-form-list (x ∷ p') a b ⊗₁ id {unflatten c})
         ∘ cfrom (((x ∷ p') ++ a) ++ b) c )
-      -- peel M1 and M2 to `id{Var x} ⊗ _`.
-      ≈⟨ refl⟩∘⟨ peel-M1 ⟩∘⟨ refl⟩∘⟨ peel-M2 ⟩
-    (id {Var x} ⊗₁ α⇐-form-list p' a (b ++ c))
-      ∘ (id {Var x} ⊗₁ M1')
-      ∘ (id {Var x} ⊗₁ α⇒-form-list p' (a ++ b) c)
-      ∘ (id {Var x} ⊗₁ M2')
-      -- collect the four `id{Var x} ⊗ _` via ⊗-∘-dist.
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ⊗-∘-dist-id ⟩
-    (id {Var x} ⊗₁ α⇐-form-list p' a (b ++ c))
-      ∘ (id {Var x} ⊗₁ M1')
-      ∘ (id {Var x} ⊗₁ (α⇒-form-list p' (a ++ b) c ∘ M2'))
-      ≈⟨ refl⟩∘⟨ ⊗-∘-dist-id ⟩
-    (id {Var x} ⊗₁ α⇐-form-list p' a (b ++ c))
-      ∘ (id {Var x} ⊗₁ (M1' ∘ α⇒-form-list p' (a ++ b) c ∘ M2'))
-      ≈⟨ ⊗-∘-dist-id ⟩
+      ≈⟨ peel ⟩
     id {Var x} ⊗₁ ( α⇐-form-list p' a (b ++ c)
-                  ∘ M1'
+                  ∘ ( cto p' (a ++ b ++ c)
+                    ∘ (id ⊗₁ α⇒-form-list a b c)
+                    ∘ cfrom p' ((a ++ b) ++ c) )
                   ∘ α⇒-form-list p' (a ++ b) c
-                  ∘ M2' )
+                  ∘ ( cto (p' ++ a ++ b) c
+                    ∘ (α⇒-form-list p' a b ⊗₁ id {unflatten c})
+                    ∘ cfrom ((p' ++ a) ++ b) c ) )
       ≈⟨ ⊗-resp-≈ ≈-Term-refl (list-collapse-gen p' a b c) ⟩
     id {Var x} ⊗₁ α⇒-form-list (p' ++ a) b c ∎
     where
-      Vx  = Var x
-      P'  = unflatten p'
-      idₚ = id {Vx ⊗₀ P'}
-      αfl-abc = α⇒-form-list a b c
-
-      M1' M2' : _
-      M1' = cto p' (a ++ b ++ c)
-          ∘ (id ⊗₁ αfl-abc)
-          ∘ cfrom p' ((a ++ b) ++ c)
-      M2' = cto (p' ++ a ++ b) c
-          ∘ (α⇒-form-list p' a b ⊗₁ id {unflatten c})
-          ∘ cfrom ((p' ++ a) ++ b) c
-
-      -- `(id{Vx} ⊗ g) ∘ (id{Vx} ⊗ f) ≈ id{Vx} ⊗ (g ∘ f)`.
-      ⊗-∘-dist-id : ∀ {Y₁ Y₂ Y₃} {g : HomTerm Y₂ Y₃} {f : HomTerm Y₁ Y₂}
-                  → (id {Vx} ⊗₁ g) ∘ (id {Vx} ⊗₁ f) ≈Term id {Vx} ⊗₁ (g ∘ f)
-      ⊗-∘-dist-id {g = g} {f} = begin
-        (id ⊗₁ g) ∘ (id ⊗₁ f)
-          ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-        (id ∘ id) ⊗₁ (g ∘ f)
-          ≈⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩
-        id ⊗₁ (g ∘ f) ∎
-
-      -- α⇒_{Vx,P',W'} ∘ (id{Vx⊗P'} ⊗ f) ∘ α⇐_{Vx,P',W} ≈ id{Vx} ⊗ (id{P'} ⊗ f).
-      α-slide
-        : ∀ {W W'} (f : HomTerm W W')
-        → α⇒ {Vx} {P'} {W'} ∘ (idₚ ⊗₁ f) ∘ α⇐ {Vx} {P'} {W}
-          ≈Term id {Vx} ⊗₁ (id {P'} ⊗₁ f)
-      α-slide f = begin
-        α⇒ ∘ (idₚ ⊗₁ f) ∘ α⇐
-          ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (≈-Term-sym id⊗id≈id) ≈-Term-refl ⟩∘⟨refl ⟩
-        α⇒ ∘ ((id ⊗₁ id) ⊗₁ f) ∘ α⇐
-          ≈⟨ FM.sym-assoc ⟩
-        (α⇒ ∘ ((id ⊗₁ id) ⊗₁ f)) ∘ α⇐
-          ≈⟨ α-comm ⟩∘⟨refl ⟩
-        (id ⊗₁ (id ⊗₁ f) ∘ α⇒) ∘ α⇐
-          ≈⟨ FM.assoc ⟩
-        id ⊗₁ (id ⊗₁ f) ∘ α⇒ ∘ α⇐
-          ≈⟨ refl⟩∘⟨ α⇒∘α⇐≈id ⟩
-        id ⊗₁ (id ⊗₁ f) ∘ id
-          ≈⟨ idʳ ⟩
-        id ⊗₁ (id ⊗₁ f) ∎
-
-      peel-M1
-        : cto (x ∷ p') (a ++ b ++ c)
-          ∘ (idₚ ⊗₁ αfl-abc)
-          ∘ cfrom (x ∷ p') ((a ++ b) ++ c)
-          ≈Term id {Vx} ⊗₁ M1'
-      peel-M1 = begin
-        ((id ⊗₁ cto p' (a ++ b ++ c)) ∘ α⇒)
-          ∘ (idₚ ⊗₁ αfl-abc)
-          ∘ (α⇐ ∘ (id ⊗₁ cfrom p' ((a ++ b) ++ c)))
-          ≈⟨ FM.assoc ⟩
-        (id ⊗₁ cto p' (a ++ b ++ c))
-          ∘ α⇒
-          ∘ (idₚ ⊗₁ αfl-abc)
-          ∘ (α⇐ ∘ (id ⊗₁ cfrom p' ((a ++ b) ++ c)))
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        (id ⊗₁ cto p' (a ++ b ++ c))
-          ∘ α⇒
-          ∘ ((idₚ ⊗₁ αfl-abc) ∘ α⇐)
-          ∘ (id ⊗₁ cfrom p' ((a ++ b) ++ c))
-          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        (id ⊗₁ cto p' (a ++ b ++ c))
-          ∘ (α⇒ ∘ ((idₚ ⊗₁ αfl-abc) ∘ α⇐))
-          ∘ (id ⊗₁ cfrom p' ((a ++ b) ++ c))
-          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩∘⟨refl ⟩
-        (id ⊗₁ cto p' (a ++ b ++ c))
-          ∘ ((α⇒ ∘ (idₚ ⊗₁ αfl-abc)) ∘ α⇐)
-          ∘ (id ⊗₁ cfrom p' ((a ++ b) ++ c))
-          ≈⟨ refl⟩∘⟨ FM.assoc ⟩∘⟨refl ⟩
-        (id ⊗₁ cto p' (a ++ b ++ c))
-          ∘ (α⇒ ∘ (idₚ ⊗₁ αfl-abc) ∘ α⇐)
-          ∘ (id ⊗₁ cfrom p' ((a ++ b) ++ c))
-          ≈⟨ refl⟩∘⟨ α-slide αfl-abc ⟩∘⟨refl ⟩
-        (id ⊗₁ cto p' (a ++ b ++ c))
-          ∘ (id ⊗₁ (id ⊗₁ αfl-abc))
-          ∘ (id ⊗₁ cfrom p' ((a ++ b) ++ c))
-          ≈⟨ refl⟩∘⟨ ⊗-∘-dist-id ⟩
-        (id ⊗₁ cto p' (a ++ b ++ c))
-          ∘ (id ⊗₁ ((id ⊗₁ αfl-abc) ∘ cfrom p' ((a ++ b) ++ c)))
-          ≈⟨ ⊗-∘-dist-id ⟩
-        id {Vx} ⊗₁ M1' ∎
-
-      peel-M2
-        : cto ((x ∷ p') ++ a ++ b) c
-          ∘ (α⇒-form-list (x ∷ p') a b ⊗₁ id {unflatten c})
-          ∘ cfrom (((x ∷ p') ++ a) ++ b) c
-          ≈Term id {Vx} ⊗₁ M2'
-      peel-M2 = begin
-        ((id ⊗₁ cto (p' ++ a ++ b) c) ∘ α⇒)
-          ∘ ((id {Vx} ⊗₁ α⇒-form-list p' a b) ⊗₁ id {unflatten c})
-          ∘ (α⇐ ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c))
-          ≈⟨ FM.assoc ⟩
-        (id ⊗₁ cto (p' ++ a ++ b) c)
-          ∘ α⇒
-          ∘ ((id {Vx} ⊗₁ α⇒-form-list p' a b) ⊗₁ id {unflatten c})
-          ∘ (α⇐ ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c))
-          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        (id ⊗₁ cto (p' ++ a ++ b) c)
-          ∘ (α⇒ ∘ ((id {Vx} ⊗₁ α⇒-form-list p' a b) ⊗₁ id))
-          ∘ (α⇐ ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c))
-          ≈⟨ refl⟩∘⟨ α-comm ⟩∘⟨refl ⟩
-        (id ⊗₁ cto (p' ++ a ++ b) c)
-          ∘ ((id ⊗₁ (α⇒-form-list p' a b ⊗₁ id)) ∘ α⇒)
-          ∘ (α⇐ ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c))
-          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-        (id ⊗₁ cto (p' ++ a ++ b) c)
-          ∘ (id ⊗₁ (α⇒-form-list p' a b ⊗₁ id))
-          ∘ (α⇒ ∘ α⇐ ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c))
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        (id ⊗₁ cto (p' ++ a ++ b) c)
-          ∘ (id ⊗₁ (α⇒-form-list p' a b ⊗₁ id))
-          ∘ ((α⇒ ∘ α⇐) ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c))
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ α⇒∘α⇐≈id ⟩∘⟨refl ⟩
-        (id ⊗₁ cto (p' ++ a ++ b) c)
-          ∘ (id ⊗₁ (α⇒-form-list p' a b ⊗₁ id))
-          ∘ (id ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c))
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
-        (id ⊗₁ cto (p' ++ a ++ b) c)
-          ∘ (id ⊗₁ (α⇒-form-list p' a b ⊗₁ id))
-          ∘ (id ⊗₁ cfrom ((p' ++ a) ++ b) c)
-          ≈⟨ refl⟩∘⟨ ⊗-∘-dist-id ⟩
-        (id ⊗₁ cto (p' ++ a ++ b) c)
-          ∘ (id ⊗₁ ((α⇒-form-list p' a b ⊗₁ id) ∘ cfrom ((p' ++ a) ++ b) c))
-          ≈⟨ ⊗-∘-dist-id ⟩
-        id {Vx} ⊗₁ M2' ∎
+      peel
+        : α⇐-form-list (x ∷ p') a (b ++ c)
+            ∘ ( cto (x ∷ p') (a ++ b ++ c)
+              ∘ (id {Var x ⊗₀ unflatten p'} ⊗₁ α⇒-form-list a b c)
+              ∘ cfrom (x ∷ p') ((a ++ b) ++ c) )
+            ∘ α⇒-form-list (x ∷ p') (a ++ b) c
+            ∘ ( cto ((x ∷ p') ++ a ++ b) c
+              ∘ (α⇒-form-list (x ∷ p') a b ⊗₁ id {unflatten c})
+              ∘ cfrom (((x ∷ p') ++ a) ++ b) c )
+        ≈Term id {Var x} ⊗₁ ( α⇐-form-list p' a (b ++ c)
+                            ∘ ( cto p' (a ++ b ++ c)
+                              ∘ (id ⊗₁ α⇒-form-list a b c)
+                              ∘ cfrom p' ((a ++ b) ++ c) )
+                            ∘ α⇒-form-list p' (a ++ b) c
+                            ∘ ( cto (p' ++ a ++ b) c
+                              ∘ (α⇒-form-list p' a b ⊗₁ id {unflatten c})
+                              ∘ cfrom ((p' ++ a) ++ b) c ) )
+      peel = solveMor! lhsᵗ rhsᵗ
+        where
+          -- atoms: 0 ↦ Var x, 1 ↦ uf p', 2 ↦ uf ((a++b)++c),
+          -- 3 ↦ uf (a++(b++c)), 4 ↦ uf c, 5 ↦ uf ((p'++a)++b),
+          -- 6 ↦ uf (p'++(a++b)), 7 ↦ uf (((p'++a)++b)++c),
+          -- 8 ↦ uf ((p'++(a++b))++c), 9 ↦ uf (p'++((a++b)++c)),
+          -- 10 ↦ uf (p'++(a++(b++c))), 11 ↦ uf ((p'++a)++(b++c))
+          open FinSetup FMC
+            ( Var x Vec.∷ unflatten p'
+                Vec.∷ unflatten ((a ++ b) ++ c)
+                Vec.∷ unflatten (a ++ b ++ c)
+                Vec.∷ unflatten c
+                Vec.∷ unflatten ((p' ++ a) ++ b)
+                Vec.∷ unflatten (p' ++ a ++ b)
+                Vec.∷ unflatten (((p' ++ a) ++ b) ++ c)
+                Vec.∷ unflatten ((p' ++ a ++ b) ++ c)
+                Vec.∷ unflatten (p' ++ (a ++ b) ++ c)
+                Vec.∷ unflatten (p' ++ a ++ b ++ c)
+                Vec.∷ unflatten ((p' ++ a) ++ b ++ c) Vec.∷ Vec.[] )
+          v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
+          v5 = V 5F ; v6 = V 6F ; v7 = V 7F ; v8 = V 8F ; v9 = V 9F
+          v10 = V (Fin.suc 9F) ; v11 = V (Fin.suc (Fin.suc 9F))
+          -- generators: αfl-abc, α⇐fl-p', α⇒fl-p'-ab-c, α⇒fl-p'-a-b,
+          -- cto p', cfrom p', cto (p'++a++b) c, cfrom ((p'++a)++b) c
+          open Sig {8} (λ { 0F → v2 , v3
+                          ; 1F → v10 , v11
+                          ; 2F → v8 , v9
+                          ; 3F → v5 , v6
+                          ; 4F → v1 ⊗ᵒ v3 , v10
+                          ; 5F → v9 , v1 ⊗ᵒ v2
+                          ; 6F → v6 ⊗ᵒ v4 , v8
+                          ; 7F → v7 , v5 ⊗ᵒ v4 })
+          open WithGen (λ { (genS 0F) → α⇒-form-list a b c
+                          ; (genS 1F) → α⇐-form-list p' a (b ++ c)
+                          ; (genS 2F) → α⇒-form-list p' (a ++ b) c
+                          ; (genS 3F) → α⇒-form-list p' a b
+                          ; (genS 4F) → cto p' (a ++ b ++ c)
+                          ; (genS 5F) → cfrom p' ((a ++ b) ++ c)
+                          ; (genS 6F) → cto (p' ++ a ++ b) c
+                          ; (genS 7F) → cfrom ((p' ++ a) ++ b) c })
+          gαabc = gen 0F ; g⇐ = gen 1F ; g⇒₂ = gen 2F ; g⇒₃ = gen 3F
+          gcto₁ = gen 4F ; gcfrom₁ = gen 5F ; gcto₂ = gen 6F ; gcfrom₂ = gen 7F
+          lhsᵗ rhsᵗ : S.HomTerm (v0 ⊗ᵒ v7) (v0 ⊗ᵒ v11)
+          lhsᵗ = S._∘_ (S._⊗₁_ S.id g⇐)
+                   (S._∘_
+                     (S._∘_ (S._∘_ (S._⊗₁_ S.id gcto₁) S.α⇒)
+                            (S._∘_ (S._⊗₁_ S.id gαabc)
+                                   (S._∘_ S.α⇐ (S._⊗₁_ S.id gcfrom₁))))
+                     (S._∘_ (S._⊗₁_ S.id g⇒₂)
+                       (S._∘_ (S._∘_ (S._⊗₁_ S.id gcto₂) S.α⇒)
+                              (S._∘_ (S._⊗₁_ (S._⊗₁_ S.id g⇒₃) S.id)
+                                     (S._∘_ S.α⇐ (S._⊗₁_ S.id gcfrom₂))))))
+          rhsᵗ = S._⊗₁_ S.id
+                   (S._∘_ g⇐
+                     (S._∘_ (S._∘_ gcto₁ (S._∘_ (S._⊗₁_ S.id gαabc) gcfrom₁))
+                            (S._∘_ g⇒₂
+                              (S._∘_ gcto₂
+                                     (S._∘_ (S._⊗₁_ g⇒₃ S.id) gcfrom₂)))))
 
 --------------------------------------------------------------------------------
 -- The well-founded worker.  `work A B C ac` proves the α⇒-form for `A` given
@@ -575,24 +469,13 @@ module Worker where
   work unit    B C ac = bridge-α⇒-form-unit B C
   work (Var x) B C ac = bridge-α⇒-form-Var x B C
 
-  -- A₁ = unit: reduces via λ-machinery to `bridge α⇒_{A₂, B, C}`.
+  -- A₁ = unit: F/T-decomp expose the λ-frames; the entire λ-machinery
+  -- collapse is one free shuffle around the opaque F/T legs; then recurse.
   work (unit ⊗₀ A₂) B C (acc rs) = begin
     bridge (α⇒ {unit ⊗₀ A₂} {B} {C})
       ≈⟨ F-decomp-unit A₂ B C ⟩∘⟨ refl⟩∘⟨ T-decomp-unit A₂ B C ⟩
     (F-A₂BC ∘ (λ⇒ ⊗₁ id)) ∘ α⇒-uA₂ ∘ (((λ⇐ ⊗₁ id) ⊗₁ id) ∘ T-A₂BC)
-      ≈⟨ FM.assoc ⟩
-    F-A₂BC ∘ (λ⇒ ⊗₁ id) ∘ α⇒-uA₂ ∘ ((λ⇐ ⊗₁ id) ⊗₁ id) ∘ T-A₂BC
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-    F-A₂BC ∘ (λ⇒ ⊗₁ id) ∘ (α⇒-uA₂ ∘ ((λ⇐ ⊗₁ id) ⊗₁ id)) ∘ T-A₂BC
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ α-comm ⟩∘⟨refl ⟩
-    F-A₂BC ∘ (λ⇒ ⊗₁ id) ∘ ((λ⇐ ⊗₁ (id ⊗₁ id)) ∘ α⇒-A₂) ∘ T-A₂BC
-      ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-    F-A₂BC ∘ ((λ⇒ ⊗₁ id) ∘ (λ⇐ ⊗₁ (id ⊗₁ id)) ∘ α⇒-A₂) ∘ T-A₂BC
-      ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩∘⟨refl ⟩
-    F-A₂BC ∘ (((λ⇒ ⊗₁ id) ∘ (λ⇐ ⊗₁ (id ⊗₁ id))) ∘ α⇒-A₂) ∘ T-A₂BC
-      ≈⟨ refl⟩∘⟨ λ-cancel ⟩∘⟨refl ⟩∘⟨refl ⟩
-    F-A₂BC ∘ (id ∘ α⇒-A₂) ∘ T-A₂BC
-      ≈⟨ refl⟩∘⟨ idˡ ⟩∘⟨refl ⟩
+      ≈⟨ shuffle ⟩
     F-A₂BC ∘ α⇒-A₂ ∘ T-A₂BC
       ≈⟨ work A₂ B C (rs (n<1+n (sz A₂))) ⟩
     α⇒-form-list (flatten A₂) (flatten B) (flatten C) ∎
@@ -602,44 +485,36 @@ module Worker where
       α⇒-uA₂  = α⇒ {unit ⊗₀ A₂} {B} {C}
       α⇒-A₂   = α⇒ {A₂} {B} {C}
 
-  -- A₁ = Var x: similar, with a `Var x` prefix.
+      shuffle
+        : (F-A₂BC ∘ (λ⇒ ⊗₁ id)) ∘ α⇒-uA₂ ∘ (((λ⇐ ⊗₁ id) ⊗₁ id) ∘ T-A₂BC)
+        ≈Term F-A₂BC ∘ α⇒-A₂ ∘ T-A₂BC
+      shuffle = solveMor! lhsᵗ rhsᵗ
+        where
+          -- atoms: 0 ↦ A₂, 1 ↦ B, 2 ↦ C, 3 ↦ uf (fl (A₂⊗(B⊗C))),
+          -- 4 ↦ uf (fl ((A₂⊗B)⊗C))
+          open FinSetup FMC
+            ( A₂ Vec.∷ B Vec.∷ C
+                Vec.∷ unflatten (flatten (A₂ ⊗₀ (B ⊗₀ C)))
+                Vec.∷ unflatten (flatten ((A₂ ⊗₀ B) ⊗₀ C)) Vec.∷ Vec.[] )
+          v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
+          -- generators: F-A₂BC, T-A₂BC
+          open Sig {2} (λ { 0F → v0 ⊗ᵒ (v1 ⊗ᵒ v2) , v3
+                          ; 1F → v4 , (v0 ⊗ᵒ v1) ⊗ᵒ v2 })
+          open WithGen (λ { (genS 0F) → F-A₂BC ; (genS 1F) → T-A₂BC })
+          gF = gen 0F ; gT = gen 1F
+          lhsᵗ rhsᵗ : S.HomTerm v4 v3
+          lhsᵗ = S._∘_ (S._∘_ gF (S._⊗₁_ S.λ⇒ S.id))
+                       (S._∘_ S.α⇒
+                         (S._∘_ (S._⊗₁_ (S._⊗₁_ S.λ⇐ S.id) S.id) gT))
+          rhsᵗ = S._∘_ gF (S._∘_ S.α⇒ gT)
+
+  -- A₁ = Var x: similar, with a `Var x` prefix.  The pentagon + α-collapse
+  -- machinery is one free shuffle around the opaque F/T legs; then recurse.
   work (Var x ⊗₀ A) B C (acc rs) = begin
     bridge (α⇒ {Var x ⊗₀ A} {B} {C})
       ≈⟨ F-decomp-Var x A B C ⟩∘⟨ refl⟩∘⟨ T-decomp-Var x A B C ⟩
     ((id ⊗₁ F-ABC) ∘ α⇒-V,A,BC) ∘ α⇒-V⊗A ∘ ((α⇐-A,B ⊗₁ id) ∘ α⇐-AB,C ∘ (id ⊗₁ T-AB⊗C))
-      ≈⟨ FM.assoc ⟩
-    (id ⊗₁ F-ABC) ∘ α⇒-V,A,BC ∘ α⇒-V⊗A ∘ ((α⇐-A,B ⊗₁ id) ∘ α⇐-AB,C ∘ (id ⊗₁ T-AB⊗C))
-      ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-    (id ⊗₁ F-ABC) ∘ (α⇒-V,A,BC ∘ α⇒-V⊗A) ∘ ((α⇐-A,B ⊗₁ id) ∘ α⇐-AB,C ∘ (id ⊗₁ T-AB⊗C))
-      ≈⟨ refl⟩∘⟨ pentagon-V ⟩∘⟨refl ⟩
-    (id ⊗₁ F-ABC) ∘ (id ⊗₁ α⇒-A,B,C ∘ α⇒-V,AB,C ∘ α⇒-V,A,B ⊗₁ id)
-                   ∘ ((α⇐-A,B ⊗₁ id) ∘ α⇐-AB,C ∘ (id ⊗₁ T-AB⊗C))
-      ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-    (id ⊗₁ F-ABC) ∘ id ⊗₁ α⇒-A,B,C ∘ (α⇒-V,AB,C ∘ α⇒-V,A,B ⊗₁ id)
-                   ∘ ((α⇐-A,B ⊗₁ id) ∘ α⇐-AB,C ∘ (id ⊗₁ T-AB⊗C))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-    (id ⊗₁ F-ABC) ∘ id ⊗₁ α⇒-A,B,C ∘ α⇒-V,AB,C ∘ α⇒-V,A,B ⊗₁ id
-                   ∘ ((α⇐-A,B ⊗₁ id) ∘ α⇐-AB,C ∘ (id ⊗₁ T-AB⊗C))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-    (id ⊗₁ F-ABC) ∘ id ⊗₁ α⇒-A,B,C ∘ α⇒-V,AB,C ∘
-      (α⇒-V,A,B ⊗₁ id ∘ (α⇐-A,B ⊗₁ id)) ∘ α⇐-AB,C ∘ (id ⊗₁ T-AB⊗C)
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ collapse-α-VAB ⟩∘⟨refl ⟩
-    (id ⊗₁ F-ABC) ∘ id ⊗₁ α⇒-A,B,C ∘ α⇒-V,AB,C ∘ id ∘ α⇐-AB,C ∘ (id ⊗₁ T-AB⊗C)
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
-    (id ⊗₁ F-ABC) ∘ id ⊗₁ α⇒-A,B,C ∘ α⇒-V,AB,C ∘ α⇐-AB,C ∘ (id ⊗₁ T-AB⊗C)
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-    (id ⊗₁ F-ABC) ∘ id ⊗₁ α⇒-A,B,C ∘ (α⇒-V,AB,C ∘ α⇐-AB,C) ∘ (id ⊗₁ T-AB⊗C)
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ α⇒∘α⇐≈id ⟩∘⟨refl ⟩
-    (id ⊗₁ F-ABC) ∘ id ⊗₁ α⇒-A,B,C ∘ id ∘ (id ⊗₁ T-AB⊗C)
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
-    (id ⊗₁ F-ABC) ∘ id ⊗₁ α⇒-A,B,C ∘ (id ⊗₁ T-AB⊗C)
-      ≈⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (id ⊗₁ F-ABC) ∘ (id ∘ id) ⊗₁ (α⇒-A,B,C ∘ T-AB⊗C)
-      ≈⟨ refl⟩∘⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩
-    (id ⊗₁ F-ABC) ∘ id ⊗₁ (α⇒-A,B,C ∘ T-AB⊗C)
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (id ∘ id) ⊗₁ (F-ABC ∘ α⇒-A,B,C ∘ T-AB⊗C)
-      ≈⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩
+      ≈⟨ shuffle ⟩
     id ⊗₁ (F-ABC ∘ α⇒-A,B,C ∘ T-AB⊗C)
       ≈⟨ ⊗-resp-≈ ≈-Term-refl (work A B C (rs (n<1+n (sz A)))) ⟩
     id ⊗₁ α⇒-form-list (flatten A) (flatten B) (flatten C) ∎
@@ -649,19 +524,34 @@ module Worker where
       α⇒-V,A,BC  = α⇒ {Var x} {A} {B ⊗₀ C}
       α⇒-V⊗A     = α⇒ {Var x ⊗₀ A} {B} {C}
       α⇒-A,B,C   = α⇒ {A} {B} {C}
-      α⇒-V,AB,C  = α⇒ {Var x} {A ⊗₀ B} {C}
-      α⇒-V,A,B   = α⇒ {Var x} {A} {B}
       α⇐-A,B     = α⇐ {Var x} {A} {B}
       α⇐-AB,C    = α⇐ {Var x} {A ⊗₀ B} {C}
 
-      -- The pentagon (from FreeMonoidal directly).
-      pentagon-V : α⇒-V,A,BC ∘ α⇒-V⊗A
-                 ≈Term id ⊗₁ α⇒-A,B,C ∘ α⇒-V,AB,C ∘ α⇒-V,A,B ⊗₁ id
-      pentagon-V = ≈-Term-sym pentagon
-
-      collapse-α-VAB
-        : α⇒-V,A,B ⊗₁ id {C} ∘ α⇐-A,B ⊗₁ id {C} ≈Term id
-      collapse-α-VAB = collapse-α-iso-⊗id
+      shuffle
+        : ((id ⊗₁ F-ABC) ∘ α⇒-V,A,BC) ∘ α⇒-V⊗A
+            ∘ ((α⇐-A,B ⊗₁ id) ∘ α⇐-AB,C ∘ (id ⊗₁ T-AB⊗C))
+        ≈Term id ⊗₁ (F-ABC ∘ α⇒-A,B,C ∘ T-AB⊗C)
+      shuffle = solveMor! lhsᵗ rhsᵗ
+        where
+          -- atoms: 0 ↦ Var x, 1 ↦ A, 2 ↦ B, 3 ↦ C, 4 ↦ uf (fl (A⊗(B⊗C))),
+          -- 5 ↦ uf (fl ((A⊗B)⊗C))
+          open FinSetup FMC
+            ( Var x Vec.∷ A Vec.∷ B Vec.∷ C
+                Vec.∷ unflatten (flatten (A ⊗₀ (B ⊗₀ C)))
+                Vec.∷ unflatten (flatten ((A ⊗₀ B) ⊗₀ C)) Vec.∷ Vec.[] )
+          v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
+          v5 = V 5F
+          -- generators: F-ABC, T-AB⊗C
+          open Sig {2} (λ { 0F → v1 ⊗ᵒ (v2 ⊗ᵒ v3) , v4
+                          ; 1F → v5 , (v1 ⊗ᵒ v2) ⊗ᵒ v3 })
+          open WithGen (λ { (genS 0F) → F-ABC ; (genS 1F) → T-AB⊗C })
+          gF = gen 0F ; gT = gen 1F
+          lhsᵗ rhsᵗ : S.HomTerm (v0 ⊗ᵒ v5) (v0 ⊗ᵒ v4)
+          lhsᵗ = S._∘_ (S._∘_ (S._⊗₁_ S.id gF) S.α⇒)
+                       (S._∘_ S.α⇒
+                         (S._∘_ (S._⊗₁_ S.α⇐ S.id)
+                                (S._∘_ S.α⇐ (S._⊗₁_ S.id gT))))
+          rhsᵗ = S._⊗₁_ S.id (S._∘_ gF (S._∘_ S.α⇒ gT))
 
   -- A₁ = A₁₁ ⊗ A₁₂: the genuinely compound case, by `pentagon-rewrite` +
   -- `bridge-∘` + recursion on strictly-smaller-`sz` objects.
