@@ -18,6 +18,7 @@ open import Categories.FreeMonoidal
 open import Categories.NaturalTransformationHelper
 open import Categories.Properties
 
+open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 open import Data.Empty
 open import Data.Fin using (Fin)
 import Data.Fin.Properties as FinP
@@ -27,7 +28,6 @@ open import Data.Product
 open import Data.Vec using (Vec ; lookup)
 
 open import Relation.Binary.Definitions using (DecidableEquality; Irrelevant)
-open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 
 module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
   open FreeMonoidal (record { v = Mon ; X = X ; mor = λ _ _ → ⊥ })
@@ -36,12 +36,12 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
   open Discrete (List X)
 
   open import Relation.Binary.PropositionalEquality using (_≡_; refl; trans; cong; subst)
+  open import Categories.NaturalTransformation.NaturalIsomorphism as NI hiding (refl; trans; unitorˡ; unitorʳ; associator)
 
   -- UIP for the discrete-category objects `List X`, derived from decidable
   -- equality of `X` (Hedberg).
   uipL : Irrelevant {A = List X} _≡_
   uipL = Decidable⇒UIP.≡-irrelevant (≡-dec _≟X_)
-  open import Categories.NaturalTransformation.NaturalIsomorphism as NI hiding (refl; trans; unitorˡ; unitorʳ; associator)
 
   module FM where
     open Category FreeMonoidal public
