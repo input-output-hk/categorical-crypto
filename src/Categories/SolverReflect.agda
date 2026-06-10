@@ -6,7 +6,7 @@
 --
 -- We work in the layered-composite wire fragment (M1): morphisms whose
 -- source and target are already `wires`-shaped flat objects, built from
---   id, _∘_, var (box _),
+--   id, _∘_, var (box _), _⊗₁_,
 -- captured by the inductive `WTerm n m` with embedding
 -- `embed : WTerm n m → HomTerm (wires n) (wires m)`.  We define, all under
 -- `--safe` and fully postulate-free / hole-free:
@@ -14,28 +14,31 @@
 --                     soundness `∘ᵈ-sound : ⟦ d₁ ∘ᵈ d₂ ⟧ ≈ ⟦ d₂ ⟧ ∘ ⟦ d₁ ⟧`
 --                     (codomain reindexed).  This is the `_∘_` case.
 --   * `shiftL` / `shiftR` : prefix / suffix idle-wire shifts on diagrams
---                     (the offset-bookkeeping building blocks for a `tensorD`),
---                     with their `out` computed; soundness of these shifts and
---                     the full `tensorD`/`_⊗₁_` case are NOT included here.
+--                     (the offset-bookkeeping building blocks for `tensorD`),
+--                     with their `out` computed and soundness proven
+--                     (`shiftL-sound` / `shiftR-sound`).
+--   * `tensorD`     : horizontal tensor of diagrams (the `_⊗₁_` case), with
+--                     `out-tensorD` and `tensorD-sound`.
 --   * `reflect`     : WTerm n m → DiagU n  with `out-reflect : out (reflect t) ≡ m`.
 --   * `reflect-sound`: ⟦ reflect t ⟧ ≈ embed t (codomain reindexed), proven by
---                     induction.  The single box-leaf right-unitor coherence
---                     (`merge a {[]} ≈ ρ⇒`, forbidden as a `--safe` postulate)
---                     is taken as the explicit hypothesis `BoxSound`; the id/∘
---                     structural logic is fully discharged.
+--                     induction on all four constructors.  The single box-leaf
+--                     right-unitor coherence (`merge a {[]} ≈ ρ⇒`) is isolated
+--                     as the hypothesis `BoxSound` and discharged in-file by
+--                     `boxSound` (a Kelly unit-coherence derivation).
 --------------------------------------------------------------------------------
 
 module Categories.SolverReflect where
 
+open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ; ≡-dec)
 open import Relation.Binary using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; cong; cong₂; subst)
-open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; cong₂)
 
-open import Categories.FreeMonoidal
-open import Categories.DiagramRewriteUntyped
 import Categories.Category.Monoidal.Properties as MonProps
+
+open import Categories.DiagramRewriteUntyped
+open import Categories.FreeMonoidal
 
 module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
                 (Mor : List X → List X → Set)
@@ -77,10 +80,6 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- coherence₁ : λ⇒ ∘ α⇒ ≈Term λ⇒ ⊗₁ id  at  (unit ⊗₀ A) ⊗₀ B
   λ⇒∘α⇒≈λ⇒⊗id : ∀ {A B} → λ⇒ {A ⊗₀ B} ∘ α⇒ {unit} {A} {B} ≈Term λ⇒ ⊗₁ id
   λ⇒∘α⇒≈λ⇒⊗id = K.coherence₁
-
-  -- coherence-inv₁ : α⇐ ∘ λ⇐ ≈Term λ⇐ ⊗₁ id  (inverse of coherence₁)
-  α⇐∘λ⇐≈λ⇐⊗id : ∀ {A B} → α⇐ {unit} {A} {B} ∘ λ⇐ {A ⊗₀ B} ≈Term λ⇐ ⊗₁ id
-  α⇐∘λ⇐≈λ⇐⊗id = K.coherence-inv₁
 
   --------------------------------------------------------------------------------
   -- M1 fragment: the wire-typed terms.
@@ -177,7 +176,6 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ((lt ++ pre) ▸ suf ∷ f ⟨ reidx (sym (++-assoc lt pre (b ++ suf))) (shiftL lt d) ⟩)
 
   -- Suffix-shift: append `rt` idle wires (suffix suf ↦ suf++rt).
-  open import Relation.Binary.PropositionalEquality using (trans)
 
   -- associativity:  (p ++ (a ++ s)) ++ r  ≡  p ++ (a ++ (s ++ r))
   reassoc++ : ∀ (p a s r : List X) → (p ++ (a ++ s)) ++ r ≡ p ++ (a ++ (s ++ r))
@@ -238,8 +236,8 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --
   -- The single box `g : Mor a b` is placed with empty offsets; its layer has
   -- domain index  [] ++ (a ++ [])  =  a ++ []  (note the trailing []), so the
-  -- leaf carries a `++-identityʳ` reindex.  See the report for the remaining
-  -- right-unitor coherence needed to fully discharge `⟦boxD⟧`.
+  -- leaf carries a `++-identityʳ` reindex.  The remaining right-unitor
+  -- coherence on this leaf is discharged below by `boxSound`.
   --------------------------------------------------------------------------------
 
   -- single-box diagram, living over  a ++ []  (trailing idle empty suffix).
@@ -305,14 +303,13 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --            = id ∘ (merge b {[]} ∘ (⟦box⟧ g ⊗₁ id{unit}) ∘ split a {[]}).
   -- The empty-suffix merge/split are the (transported) right-unitor iso, so
   -- this collapses to ⟦box⟧ g.  This last collapse is the pure right-unitor
-  -- coherence  merge a {[]} ≈ ρ⇒  (up to a++[]≡a); see report.  We isolate it
-  -- as the SINGLE remaining obligation `boxD-sound`.
+  -- coherence  merge a {[]} ≈ ρ⇒  (up to a++[]≡a).  We isolate it as the
+  -- SINGLE obligation `BoxSound`, discharged below by `boxSound`.
   --------------------------------------------------------------------------------
-  -- Box-leaf soundness obligation, isolated as a hypothesis (it is the pure
-  -- right-unitor coherence  merge a {[]} ≈ ρ⇒  up to a++[]≡a — discharged
-  -- by `Categories.MonoidalCoherence.Solver.solveM` on the box-free subgoal,
-  -- or by an explicit Kelly derivation; both are box-free coherence and so
-  -- are independent of the reflection logic below).  See report.
+  -- Box-leaf soundness obligation, isolated as a hypothesis: it is the pure
+  -- right-unitor coherence  merge a {[]} ≈ ρ⇒  up to a++[]≡a — box-free
+  -- coherence, and so independent of the reflection logic below.  It is
+  -- discharged in-file by `boxSound` via an explicit Kelly derivation.
   BoxSound : Set
   BoxSound = ∀ {a b} (g : Mor a b)
            → coeDom (++-identityʳ a) (coeCod' (++-identityʳ b) ⟦ boxD g ⟧)
@@ -636,10 +633,6 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
          → HomTerm (wires (u ++ rt)) (wires (v ++ rt))
   rliftW rt {u} {v} W = rpad {u} {v} rt W
 
-  rliftW-resp : ∀ (rt : List X) {u v} {P Q : HomTerm (wires u) (wires v)}
-              → P ≈Term Q → rliftW rt P ≈Term rliftW rt Q
-  rliftW-resp rt eq = ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ eq ≈-Term-refl) ≈-Term-refl)
-
   rliftW-id : ∀ (rt : List X) {u} → rliftW rt (id {wires u}) ≈Term id
   rliftW-id rt {u} = begin
     merge u {rt} ∘ (id {wires u} ⊗₁ id {wires rt}) ∘ split u {rt}
@@ -682,10 +675,6 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   coeCA-∘ : ∀ {A R} {p q} (e : p ≡ q) (h : HomTerm R (wires p)) (j : HomTerm A R)
           → coeCA e (h ∘ j) ≈Term coeCA e h ∘ j
   coeCA-∘ refl h j = ≈-Term-refl
-  -- coeCA on a flat (wires-domain) morphism coincides with coeCod'.
-  coeCA≈coeCod' : ∀ {N p q} (e : p ≡ q) (h : HomTerm (wires N) (wires p))
-                → coeCA e h ≈Term coeCod' e h
-  coeCA≈coeCod' refl h = ≈-Term-refl
 
   -- `merge` associativity (built from `coherence₁` and α-naturality):
   --   merge p {q++r} ∘ (id ⊗₁ merge q {r}) ∘ α⇒
