@@ -1,12 +1,12 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The UNPRUNED `⊗` shape residual `decode-⊗-shape-inner` (tensor analogue
--- of `Sub/DecodeComposeShape.agda`):
+-- The generic (decoder-agnostic) `⊗` shape assembly `DecodeShapeGeneric`,
+-- instantiated by `DecodeTensorPruned.decodeP-⊗-shape`:
 --
---   decode (f ⊗₁ g)
+--   decodeP (f ⊗₁ g)
 --     ≈Term to(unflatten-++-≅ (flatten B) (flatten D))
---            ∘ (decode f ⊗₁ decode g)
+--            ∘ (decodeP f ⊗₁ decodeP g)
 --            ∘ from(unflatten-++-≅ (flatten A) (flatten C))
 --
 -- Postulate-free over `objUIP` + `K : FaithfulnessResidual`.  Key pieces:
@@ -48,7 +48,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.FromAPROP sig
   using (FlatGen; flatten; range; hTensor
-        ; ⟪_⟫; ⟪⟫-domL; ⟪⟫-codL; map-via-inj; map-via-raise)
+        ; map-via-inj; map-via-raise)
 import Categories.APROP.Hypergraph.FromAPROP sig as FA
 open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
   using (unflatten; unflatten-++-≅; _≅_)
@@ -58,8 +58,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Permute sig
   using (permute-via-vlab; permute)
 open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig
-  using (decode; decode-attempt-Linear
-        ; process-edges-↑ˡ-on-mixed; process-edges-↑ʳ-on-perm
+  using ( process-edges-↑ˡ-on-mixed; process-edges-↑ʳ-on-perm
         ; edge-step-↑ˡ-on-mixed; edge-step-↑ˡ-on-mixed-just
         ; edge-step-↑ˡ-on-mixed-nothing
         ; edge-step-↑ʳ-on-mixed-just; edge-step-↑ʳ-on-mixed-nothing
@@ -4429,23 +4428,3 @@ module DecodeShapeGeneric
       (≡⇒≈Term dist)
       (∘-resp-≈ (≡⇒≈Term to-glue)
         (∘-resp-≈ mid-fold (≡⇒≈Term from-glue)))))
-
-module _
-  (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
-  (Kf : FaithfulnessResidual)
-  where
-
-  decode-⊗-shape-inner
-    : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
-    → decode (f ⊗₁ g)
-    ≈Term _≅_.to   (unflatten-++-≅ (flatten B) (flatten D))
-         ∘ (decode f ⊗₁ decode g)
-         ∘ _≅_.from (unflatten-++-≅ (flatten A) (flatten C))
-  decode-⊗-shape-inner {A} {B} {C₀} {D} f g =
-    DecodeShapeGeneric.goal objUIP Kf {A} {B} {C₀} {D} ⟪ f ⟫ ⟪ g ⟫
-      (decode f) (decode g) (decode (f ⊗₁ g))
-      (Lin.⟪⟫-Linear f) (Lin.⟪⟫-Linear g) (Lin.⟪⟫-Linear (f ⊗₁ g))
-      (decode-attempt-Linear f) (decode-attempt-Linear g) (decode-attempt-Linear (f ⊗₁ g))
-      (⟪⟫-domL f) (⟪⟫-codL f) (⟪⟫-domL g) (⟪⟫-codL g)
-      (⟪⟫-domL (f ⊗₁ g)) (⟪⟫-codL (f ⊗₁ g))
-      refl refl refl

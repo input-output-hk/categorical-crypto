@@ -46,7 +46,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.FromAPROP sig
-  using (FlatGen; flatten; hCompose; hTensor)
+  using (FlatGen; flatten; hTensor)
 open import Categories.APROP.Hypergraph.PrunedCompose sig
   using (hComposeP; domL-hComposeP; codL-hComposeP)
 open import Categories.APROP.Hypergraph.Translation sig
