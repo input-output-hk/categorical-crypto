@@ -20,6 +20,7 @@ open import Categories.NaturalTransformation hiding (id)
 open import Categories.NaturalTransformation.NaturalIsomorphism.Properties
 
 open import Data.Product
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 data Variant : Set where
   Mon Symm : Variant
@@ -99,6 +100,9 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
       σ∘σ≈id : ⦃ _ : Symm ≤ v ⦄ → σ ∘ σ ≈Term id {A ⊗₀ B}
       σ∘[f⊗g]≈[g⊗f]∘σ : ⦃ _ : Symm ≤ v ⦄ {f : HomTerm A B} {g : HomTerm C D} → σ ∘ (f ⊗₁ g) ≈Term (g ⊗₁ f) ∘ σ
       hexagon : ⦃ _ : Symm ≤ v ⦄ → id ⊗₁ σ ∘ α⇒ ∘ σ ⊗₁ id ≈Term α⇒ ∘ σ ∘ α⇒ {A} {B} {C}
+
+    ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
+    ≡⇒≈Term refl = ≈-Term-refl
 
     FreeMonoidal : Category ℓ0 ℓ0 ℓ0
     FreeMonoidal = categoryHelper record
