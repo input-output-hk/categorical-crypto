@@ -39,6 +39,12 @@
 --                            keeps the carved frame out of all exposed types,
 --                            which is essential for type-checking speed).
 --                                          → `Test.Deep`, `Test.Frobenius`
+--   * `normalize(To)!`     — DRIVERS: fire a `List Rule` (oriented rewrites
+--                            with soundness proofs) at the first applicable
+--                            position, repeatedly, to fuel-bounded
+--                            exhaustion.  Re-searches after every firing, so
+--                            a singleton list is "rewrite everywhere"; the
+--                            search carries its own proof.  → `Test.Drivers`
 --
 -- SHOWCASE: `Test.Frobenius` derives the two alternative formulations of the
 -- Frobenius law from the standard one by chains of deep rewrites — the
@@ -78,10 +84,12 @@ import Categories.Coherence.Symmetric.Test.Coherence
 import Categories.Coherence.Symmetric.Test.Rewrite
 import Categories.Coherence.Symmetric.Test.Deep
 import Categories.Coherence.Symmetric.Test.DeepArity
+import Categories.Coherence.Symmetric.Test.Drivers
 import Categories.Coherence.Symmetric.Test.Frobenius
 
 module Coherence = Categories.Coherence.Symmetric.Test.Coherence C
 module Rewrite   = Categories.Coherence.Symmetric.Test.Rewrite   C
 module Deep      = Categories.Coherence.Symmetric.Test.Deep      C
 module DeepArity = Categories.Coherence.Symmetric.Test.DeepArity C
+module Drivers   = Categories.Coherence.Symmetric.Test.Drivers   C
 module Frobenius = Categories.Coherence.Symmetric.Test.Frobenius C

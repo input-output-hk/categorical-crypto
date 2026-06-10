@@ -36,6 +36,10 @@
 --                                  clean term; the step for chained
 --                                  derivations (keeps the carved frame out
 --                                  of all exposed types);
+--                   · `normalize(To)!` — rewrite DRIVERS: fire a `List Rule`
+--                                  (oriented rewrites with soundness proofs)
+--                                  to fuel-bounded exhaustion; the search
+--                                  carries its own proof;
 --                   · `S`        — the free-SMC term language (`S.Agen`, `S.∘`,
 --                                  `S.⊗₁`, `S.σ`, `S.α⇒`, …);
 --                   · `gen`      — the `i`-th generator as a free term;

@@ -41,11 +41,12 @@ open import Categories.APROP.Hypergraph.Solver.Deep sig-dec using (deepFocₙ)
 open import Categories.APROP.Hypergraph.SoundnessFullWired sig-dec
   using (soundness-full-wired)
 
-open import Level using (Level)
+open import Level using (Level; _⊔_)
+open import Data.List.Base using (List; []; _∷_)
 open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
 open import Data.Bool.Base using (T)
-open import Data.Nat.Base using (ℕ; zero)
-open import Data.Product.Base using (_,_; proj₁; proj₂)
+open import Data.Nat.Base using (ℕ; zero; suc)
+open import Data.Product.Base using (Σ; _,_; proj₁; proj₂)
 
 private
   -- Extract the value of a `Maybe` from a proof (`T (is-just _)`) that it is
@@ -274,3 +275,71 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
       (C.Equiv.sym
         (solveH t (deepFrame s lᵗ rᵗ n found)
                 (fromWitness! (findIso ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫) c₂)))
+
+  --------------------------------------------------------------------------------
+  -- Rewrite DRIVERS: normalisation with respect to a list of rules.
+  --
+  -- A `Rule` packages an oriented rewrite `lhs ↝ rhs` with its soundness
+  -- proof in `C`.  `drive` repeatedly fires the first applicable rule at its
+  -- first carvable (deep) position until no rule applies or the fuel runs
+  -- out — and, unlike the single-step tools, it carries its own proof: each
+  -- step's `findIso` certificate is found at *value* level during the
+  -- search, so a step that fails to certify simply doesn't fire (the search
+  -- moves on to the next rule), and the result needs no typecheck-time
+  -- witness plumbing.
+  --
+  -- A rule fires at every occurrence eventually (re-searching from scratch
+  -- each round), so a singleton list with sufficient fuel is "rewrite
+  -- everywhere".  Rule LHSs must be deep-matchable (generator-ful, no bare
+  -- identity wires); RHSs are unrestricted.
+
+  record Rule : Set (o ⊔ ℓ ⊔ e) where
+    constructor mkRule
+    field
+      {P Q} : ObjTerm
+      lhs rhs : HomTerm P Q
+      sound   : ⟦ lhs ⟧₁ C.≈ ⟦ rhs ⟧₁
+
+  -- One firing: the first rule with a carvable, certifiable position.
+  driveStep : List Rule → ∀ {A B} (s : HomTerm A B)
+            → Maybe (Σ (HomTerm A B) (λ t → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁))
+  driveStep []       s = nothing
+  driveStep (r ∷ rs) s with deepFocₙ s (Rule.lhs r) zero
+  ... | nothing = driveStep rs s
+  ... | just (k , pre , post)
+        with findIso ⟪ s ⟫ ⟪ post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ pre ⟫
+  ...   | nothing  = driveStep rs s
+  ...   | just iso = just
+          ( post ∘ (id {k} ⊗₁ Rule.rhs r) ∘ pre
+          , C.Equiv.trans
+              (solveH s (post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ pre) iso)
+              (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ
+                 (C.⊗.F-resp-≈ (C.Equiv.refl , Rule.sound r)))) )
+
+  -- Iterate to (fuel-bounded) exhaustion, accumulating the proof.
+  drive : List Rule → ℕ → ∀ {A B} (s : HomTerm A B)
+        → Σ (HomTerm A B) (λ t → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁)
+  drive rs zero       s = s , C.Equiv.refl
+  drive rs (suc fuel) s with driveStep rs s
+  ... | nothing       = s , C.Equiv.refl
+  ... | just (t , pf) =
+        proj₁ rec , C.Equiv.trans pf (proj₂ rec)
+    where rec = drive rs fuel t
+
+  -- Normalise and land wherever the driver stops (the `≈ _` form; prefer
+  -- `normalizeTo!` whenever the step participates in a larger chain).
+  normalize!
+    : (rules : List Rule) (fuel : ℕ) → ∀ {A B} (s : HomTerm A B)
+    → ⟦ s ⟧₁ C.≈ ⟦ proj₁ (drive rules fuel s) ⟧₁
+  normalize! rules fuel s = proj₂ (drive rules fuel s)
+
+  -- Normalise and land on a caller-stated CLEAN term (reconciled with the
+  -- driver's stopping point by one `findIso`); the chain-safe form.
+  normalizeTo!
+    : ∀ {A B} (s t : HomTerm A B) (rules : List Rule) (fuel : ℕ)
+    → {_ : T (is-just (findIso ⟪ proj₁ (drive rules fuel s) ⟫ ⟪ t ⟫))}
+    → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁
+  normalizeTo! s t rules fuel {c} =
+    C.Equiv.trans (proj₂ D)
+      (solveH (proj₁ D) t (fromWitness! (findIso ⟪ proj₁ D ⟫ ⟪ t ⟫) c))
+    where D = drive rules fuel s
