@@ -511,6 +511,19 @@ With both fixes the `assoc'-coherence` chain completes interactively: obligation
 proven end-to-end in ~2.5 min of one-time leaf-module checking**, with the 50-morphism equation
 never solved whole.
 
+**Post-fix attribution + two more banked levers (same day).** A consolidated profile split the
+~30 s/obligation into: **~15 s fixed per module** (startup + loading the soundness tree's
+interfaces) and a 9–18 s decision, with the soundness application now costing ~0. Banked:
+(i) **consolidate** — all three obligations in one module pays the 15 s once (84 s + 16 s
+aggregator → **46 s**; the per-module split was only a workaround for the dead slow-path OOM);
+(ii) **plain `findIso` beats `findIsoᵀ` ~20% on these 1-box cross-pairs** (decP 13.9 s vs decT
+17.6 s — tabulation pays on deep many-re-access chains, not here). Remaining ranked levers:
+rebalance the segment spellings in `Terms` (~2× on the translation pass, pure re-bracketing);
+shrink obligation inputs by free pre-cancellation (super-linear cost ⇒ small trims pay);
+Bool-reflection `Verify` (only if a finer probe shows verify dominating the decision);
+strictification of `⟪_⟫` as the sole asymptotic lever. Note the whole chain is one-time
+`.agdai`-cached leaf cost — downstream consumers never re-pay it.
+
 ## Implication
 
 The fix is the same as for shrinking the soundness proof itself: a real coherence solver
