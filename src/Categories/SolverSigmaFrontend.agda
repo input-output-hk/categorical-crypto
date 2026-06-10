@@ -238,18 +238,10 @@ module FrontendS
              → h F.≈Term h' → coeCF e h F.≈Term coeCF e h'
   coeCF-resp refl eq = eq
 
-  -- inj commutes with the wire-level coercions (all definitional on refl).
+  -- inj commutes with the wire-level coercion (definitional on refl).
   inj-coeC : ∀ {A p q} (e : p ≡ q) (h : HomTerm A (wires p))
            → inj (coeC e h) ≡ coeCF e (inj h)
   inj-coeC refl h = refl
-
-  inj-coeCA : ∀ {A p q} (e : p ≡ q) (h : HomTerm A (wires p))
-            → inj (coeCA e h) ≡ coeCF e (inj h)
-  inj-coeCA refl h = refl
-
-  inj-coeCod' : ∀ {n p q} (e : p ≡ q) (h : HomTerm (wires n) (wires p))
-              → inj (coeCod' e h) ≡ coeCF e (inj h)
-  inj-coeCod' refl h = refl
 
   ------------------------------------------------------------------------
   -- Structural lemmas transferred from the wire level along inj.
@@ -286,10 +278,10 @@ module FrontendS
              ≡ F._∘_ (mergeF p {q ++ r})
                  (F._∘_ (F._⊗₁_ (F.id {wires p}) (mergeF q {r})) F.α⇒)
       lhs-eq rewrite inj-merge p {q ++ r} | inj-merge q {r} = refl
-      rhs-eq : inj (coeCA (++-assoc p q r) (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r})))
+      rhs-eq : inj (coeC (++-assoc p q r) (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r})))
              ≡ coeCF (++-assoc p q r)
                  (F._∘_ (mergeF (p ++ q) {r}) (F._⊗₁_ (mergeF p {q}) (F.id {wires r})))
-      rhs-eq rewrite inj-coeCA (++-assoc p q r) (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
+      rhs-eq rewrite inj-coeC (++-assoc p q r) (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
                    | inj-merge (p ++ q) {r} | inj-merge p {q} = refl
 
   ------------------------------------------------------------------------
@@ -332,7 +324,7 @@ module FrontendS
   castʷ refl refl t = t
 
   embed-castʷ : ∀ {n n' m m'} (p : n ≡ n') (q : m ≡ m') (t : WTerm n m)
-              → embed (castʷ p q t) ≈Term coeDom p (coeCod' q (embed t))
+              → embed (castʷ p q t) ≈Term coeD p (coeC q (embed t))
   embed-castʷ refl refl t = ≈-Term-refl
 
   reflectF : ∀ {Y Z} → F.HomTerm Y Z → WTerm (flatten Y) (flatten Z)
@@ -372,7 +364,7 @@ module FrontendS
   cast-half {P} {p} {q} e h = beginF
     inj (embed (castʷ refl e (idʷ {p}))) ∘F h
       ≈F⟨ F.∘-resp-≈ (F.≈-Term-trans (inj-resp-≈ (embed-castʷ refl e idʷ))
-                                     (F.≡⇒≈Term (inj-coeCod' e id))) reflF ⟩
+                                     (F.≡⇒≈Term (inj-coeC e id))) reflF ⟩
     coeCF e idF ∘F h
       ≈F⟨ coeCF-∘ˡ e idF h ⟨
     coeCF e (idF ∘F h)

@@ -134,6 +134,9 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   open UntypedI Symm {X} MorS ⟦box⟧S public
   open ≈R
 
+  -- the reflection stack (and its rpad/coercion lemma families), re-exported.
+  open ReflectI Symm {X} _≟X_ MorS ⟦box⟧S public
+
   ------------------------------------------------------------------------
   -- STAGE A1: the block involution.  σ-naturality is NOT needed — only
   -- split∘merge cancellation, σ∘σ≈id, and assoc/id algebra.
@@ -166,57 +169,16 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   -- of the involution to padded layers.
   ------------------------------------------------------------------------
 
-  rpad-resp : ∀ {a b} (suf : List X) {g g' : HomTerm (wires a) (wires b)}
-            → g ≈Term g' → rpad suf g ≈Term rpad suf g'
-  rpad-resp suf eq =
-    ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ eq ≈-Term-refl) ≈-Term-refl)
-
+  -- (`rpad-resp` / `rpad-id` / `rpad-∘` come from ReflectI above.)
   pad-resp : ∀ {a b} (pre suf : List X) {g g' : HomTerm (wires a) (wires b)}
            → g ≈Term g' → pad pre suf g ≈Term pad pre suf g'
   pad-resp []      suf eq = rpad-resp suf eq
   pad-resp (x ∷ p) suf eq = ⊗-resp-≈ ≈-Term-refl (pad-resp p suf eq)
 
-  rpad-id : ∀ {a} (suf : List X) → rpad suf (id {wires a}) ≈Term id
-  rpad-id {a} suf = begin
-    merge a ∘ (id ⊗₁ id) ∘ split a
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ id⊗id≈id ≈-Term-refl) ⟩
-    merge a ∘ (id ∘ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
-    merge a ∘ split a
-      ≈⟨ merge∘split a ⟩
-    id ∎
-
   pad-id : ∀ {a} (pre suf : List X) → pad pre suf (id {wires a}) ≈Term id
   pad-id []      suf = rpad-id suf
   pad-id (x ∷ p) suf =
     ≈-Term-trans (⊗-resp-≈ ≈-Term-refl (pad-id p suf)) id⊗id≈id
-
-  rpad-∘ : ∀ {a b c} (suf : List X)
-             (g : HomTerm (wires b) (wires c)) (f : HomTerm (wires a) (wires b))
-         → rpad suf (g ∘ f) ≈Term rpad suf g ∘ rpad suf f
-  rpad-∘ {a} {b} {c} suf g f = begin
-    merge c ∘ ((g ∘ f) ⊗₁ id) ∘ split a
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ≈-Term-refl) ⟩
-    merge c ∘ ((g ∘ f) ⊗₁ (id ∘ id)) ∘ split a
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ⊗-∘-dist ≈-Term-refl) ⟩
-    merge c ∘ ((g ⊗₁ id) ∘ (f ⊗₁ id)) ∘ split a
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (∘-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ≈-Term-refl) ⟩
-    merge c ∘ ((g ⊗₁ id) ∘ (id ∘ (f ⊗₁ id))) ∘ split a
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (∘-resp-≈ ≈-Term-refl
-           (∘-resp-≈ (≈-Term-sym (split∘merge b)) ≈-Term-refl)) ≈-Term-refl) ⟩
-    merge c ∘ ((g ⊗₁ id) ∘ ((split b ∘ merge b) ∘ (f ⊗₁ id))) ∘ split a
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (∘-resp-≈ ≈-Term-refl assoc) ≈-Term-refl) ⟩
-    merge c ∘ ((g ⊗₁ id) ∘ (split b ∘ (merge b ∘ (f ⊗₁ id)))) ∘ split a
-      ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-    merge c ∘ ((g ⊗₁ id) ∘ ((split b ∘ (merge b ∘ (f ⊗₁ id))) ∘ split a))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl assoc) ⟩
-    merge c ∘ ((g ⊗₁ id) ∘ (split b ∘ ((merge b ∘ (f ⊗₁ id)) ∘ split a)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    merge c ∘ (((g ⊗₁ id) ∘ split b) ∘ ((merge b ∘ (f ⊗₁ id)) ∘ split a))
-      ≈⟨ ≈-Term-sym assoc ⟩
-    (merge c ∘ ((g ⊗₁ id) ∘ split b)) ∘ ((merge b ∘ (f ⊗₁ id)) ∘ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-    (merge c ∘ (g ⊗₁ id) ∘ split b) ∘ (merge b ∘ (f ⊗₁ id) ∘ split a) ∎
 
   pad-∘ : ∀ {a b c} (pre suf : List X)
             (g : HomTerm (wires b) (wires c)) (f : HomTerm (wires a) (wires b))
@@ -246,9 +208,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     id ∎
 
   ------------------------------------------------------------------------
-  -- The reflect / normalize / compare stack at (Symm, MorS, ⟦box⟧S).
+  -- The normalize / compare stack at (Symm, MorS, ⟦box⟧S).
   ------------------------------------------------------------------------
-  open ReflectI Symm {X} _≟X_ MorS ⟦box⟧S public
   open NormalizeI Symm {X} _≟X_ MorS ⟦box⟧S using
     ( castW; castW-∘; castW-irr
     ; substDiagU; substDiagU-out; ⟦substDiagU⟧
@@ -509,17 +470,17 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
         ∘ liftW (x ∷ p) (rpad sq W)
         ∘ castW (++-assoc (x ∷ p) u sq) ∎
 
-    -- coeCA (ReflectI's arbitrary-domain codomain coercion) is a castW.
-    coeCA-as-castW : ∀ {A} {p q : List X} (e : p ≡ q) (h : HomTerm A (wires p))
-                   → coeCA e h ≈Term castW e ∘ h
-    coeCA-as-castW refl h = ≈-Term-sym idˡ
+    -- coeC (ReflectI's arbitrary-domain codomain coercion) is a castW.
+    coeC-as-castW : ∀ {A} {p q : List X} (e : p ≡ q) (h : HomTerm A (wires p))
+                  → coeC e h ≈Term castW e ∘ h
+    coeC-as-castW refl h = ≈-Term-sym idˡ
 
     -- merge-assoc, rearranged:  castW e ∘ A ≈ B  (grouped ↦ nested form).
     mmB : ∀ (w s sq : List X)
         → castW (++-assoc w s sq) ∘ (merge (w ++ s) {sq} ∘ (merge w {s} ⊗₁ id {wires sq}))
           ≈Term merge w {s ++ sq} ∘ (id ⊗₁ merge s {sq}) ∘ α⇒
     mmB w s sq =
-      ≈-Term-trans (≈-Term-sym (coeCA-as-castW (++-assoc w s sq) _))
+      ≈-Term-trans (≈-Term-sym (coeC-as-castW (++-assoc w s sq) _))
                    (≈-Term-sym (merge-assoc w s sq))
 
     -- the merge-merge fusion:  A ≈ castW (sym e) ∘ B.
@@ -1023,10 +984,6 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       unwrapCast refl eq =
         ≈-Term-trans (≈-Term-sym idˡ) (≈-Term-trans eq (≈-Term-sym idˡ))
 
-      coeCod'-as-castW : ∀ {n p q} (e : p ≡ q) (h : HomTerm (wires n) (wires p))
-                       → coeCod' e h ≈Term castW e ∘ h
-      coeCod'-as-castW refl h = ≈-Term-sym idˡ
-
       ------------------------------------------------------------------
       -- THE σσ-CANCEL FIRE.  On a recognised adjacent inverse cross-pair
       -- (same pre/suf, blocks reversed) BOTH layers are removed; the tail
@@ -1440,9 +1397,9 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
              → embed t ≈Term castW (trans (sym oeq) (out-reflect t)) ∘ ⟦ d' ⟧
         half t d' oeq snd = begin
           embed t
-            ≈⟨ reflect-sound boxSound t ⟨
-          coeCod' (out-reflect t) ⟦ reflect t ⟧
-            ≈⟨ coeCod'-as-castW (out-reflect t) ⟦ reflect t ⟧ ⟩
+            ≈⟨ reflect-sound t ⟨
+          coeC (out-reflect t) ⟦ reflect t ⟧
+            ≈⟨ coeC-as-castW (out-reflect t) ⟦ reflect t ⟧ ⟩
           castW (out-reflect t) ∘ ⟦ reflect t ⟧
             ≈⟨ ∘-resp-≈ ≈-Term-refl (unwrapCast oeq snd) ⟩
           castW (out-reflect t) ∘ (castW (sym oeq) ∘ ⟦ d' ⟧)

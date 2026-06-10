@@ -97,15 +97,11 @@ open FreeMonoidalHelper.Mor Mon Ty mor
 open ≈R
 open SortD
 
-private
-  bs : BoxSound
-  bs = boxSound
-
 ------------------------------------------------------------------------
 -- Module Sound: reflect soundness.
 --
--- For each WTerm `t`, `reflect-sound bs t` is a machine-checked witness
--- that `coeCod' (out-reflect t) ⟦ reflect t ⟧ ≈Term embed t`.
+-- For each WTerm `t`, `reflect-sound t` is a machine-checked witness
+-- that `coeC (out-reflect t) ⟦ reflect t ⟧ ≈Term embed t`.
 -- The ⊗ʷ cases exercise boxes at non-trivial wire offsets.
 
 module Sound where
@@ -116,17 +112,17 @@ module Sound where
     tμ⊗η  = boxʷ μ ⊗ʷ boxʷ η
     ts⊗id = boxʷ s ⊗ʷ idʷ {⋆ ∷ []}
 
-  test-μ     : coeCod' (out-reflect tμ)    ⟦ reflect tμ    ⟧ ≈Term embed tμ
-  test-μ     = reflect-sound bs tμ
+  test-μ     : coeC (out-reflect tμ)    ⟦ reflect tμ    ⟧ ≈Term embed tμ
+  test-μ     = reflect-sound tμ
 
-  test-δ∘μ   : coeCod' (out-reflect tδμ)   ⟦ reflect tδμ   ⟧ ≈Term embed tδμ
-  test-δ∘μ   = reflect-sound bs tδμ
+  test-δ∘μ   : coeC (out-reflect tδμ)   ⟦ reflect tδμ   ⟧ ≈Term embed tδμ
+  test-δ∘μ   = reflect-sound tδμ
 
-  test-μ⊗η   : coeCod' (out-reflect tμ⊗η)  ⟦ reflect tμ⊗η  ⟧ ≈Term embed tμ⊗η
-  test-μ⊗η   = reflect-sound bs tμ⊗η
+  test-μ⊗η   : coeC (out-reflect tμ⊗η)  ⟦ reflect tμ⊗η  ⟧ ≈Term embed tμ⊗η
+  test-μ⊗η   = reflect-sound tμ⊗η
 
-  test-s⊗id  : coeCod' (out-reflect ts⊗id) ⟦ reflect ts⊗id ⟧ ≈Term embed ts⊗id
-  test-s⊗id  = reflect-sound bs ts⊗id
+  test-s⊗id  : coeC (out-reflect ts⊗id) ⟦ reflect ts⊗id ⟧ ≈Term embed ts⊗id
+  test-s⊗id  = reflect-sound ts⊗id
 
 ------------------------------------------------------------------------
 -- Module Interchange: disjoint-box interchange, two ways.
@@ -206,18 +202,18 @@ module Decision where
       chain : reflect f ≈NF reflect g → embed f ≈Term embed g
       chain eq = begin
         embed f
-          ≈⟨ reflect-sound bs f ⟨
-        coeCod' (out-reflect f) ⟦ reflect f ⟧
+          ≈⟨ reflect-sound f ⟨
+        coeC (out-reflect f) ⟦ reflect f ⟧
           ≈⟨ eq-≈Term (≈NF⇒≡ eq) (out-reflect f) (out-reflect g) ⟩
-        coeCod' (out-reflect g) ⟦ reflect g ⟧
-          ≈⟨ reflect-sound bs g ⟩
+        coeC (out-reflect g) ⟦ reflect g ⟧
+          ≈⟨ reflect-sound g ⟩
         embed g ∎
         where
           eq-≈Term : ∀ {n p} {d d' : DiagU n}
                        (e : d ≡ d') (q₁ : out d ≡ p) (q₂ : out d' ≡ p)
-                   → coeCod' q₁ ⟦ d ⟧ ≈Term coeCod' q₂ ⟦ d' ⟧
+                   → coeC q₁ ⟦ d ⟧ ≈Term coeC q₂ ⟦ d' ⟧
           eq-≈Term {d = d} refl q₁ q₂ =
-            ≡⇒≈Term (cong (λ q → coeCod' q ⟦ d ⟧) (uipLTy q₁ q₂))
+            ≡⇒≈Term (cong (λ q → coeC q ⟦ d ⟧) (uipLTy q₁ q₂))
 
   -- Positive: `id ∘ μ` and `μ` reflect to the same diagram.
   test-pos₁ : Is-just (decide? (idʷ ∘ʷ boxʷ μ) (boxʷ μ))

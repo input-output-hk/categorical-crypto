@@ -23,8 +23,9 @@
 --   * `reflect-sound`: ⟦ reflect t ⟧ ≈ embed t (codomain reindexed), proven by
 --                     induction on all four constructors.  The single box-leaf
 --                     right-unitor coherence (`merge a {[]} ≈ ρ⇒`) is isolated
---                     as the hypothesis `BoxSound` and discharged in-file by
---                     `boxSound` (a Kelly unit-coherence derivation).
+--                     as the statement `BoxSound` and discharged in-file by
+--                     `boxSound` (a Kelly unit-coherence derivation), which
+--                     `reflect-sound` uses directly.
 --------------------------------------------------------------------------------
 
 module Categories.SolverReflect where
@@ -117,23 +118,91 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   out-∘ᵈ ([]_ m)               d₂ = refl
   out-∘ᵈ (pre ▸ suf ∷ f ⟨ d ⟩) d₂ = out-∘ᵈ d d₂
 
-  -- Coerce a HomTerm along a propositional equality of its codomain index.
-  coeCod' : ∀ {n p q} → p ≡ q → HomTerm (wires n) (wires p) → HomTerm (wires n) (wires q)
-  coeCod' refl h = h
+  --------------------------------------------------------------------------------
+  -- The coercion vocabulary: retype a HomTerm along a propositional equality
+  -- of its codomain (`coeC`) / domain (`coeD`) wire list.  The other end is
+  -- an ARBITRARY object (the merge/split steps below need bracketed tensors
+  -- of wires, not flat ones), so these two cover every coercion in the file.
+  --------------------------------------------------------------------------------
+  coeC : ∀ {A} {p q : List X} → p ≡ q → HomTerm A (wires p) → HomTerm A (wires q)
+  coeC refl h = h
 
-  coeCod'-∘ : ∀ {n p q r} (eq : p ≡ q) (h : HomTerm (wires r) (wires p))
-                (k : HomTerm (wires n) (wires r))
-            → coeCod' eq (h ∘ k) ≈Term coeCod' eq h ∘ k
-  coeCod'-∘ refl h k = ≈-Term-refl
+  coeD : ∀ {B} {p q : List X} → p ≡ q → HomTerm (wires p) B → HomTerm (wires q) B
+  coeD refl h = h
+
+  -- congruence.
+  coeC-resp : ∀ {A p q} (e : p ≡ q) {h h' : HomTerm A (wires p)}
+            → h ≈Term h' → coeC e h ≈Term coeC e h'
+  coeC-resp refl eq = eq
+
+  coeD-resp : ∀ {B p q} (e : p ≡ q) {h h' : HomTerm (wires p) B}
+            → h ≈Term h' → coeD e h ≈Term coeD e h'
+  coeD-resp refl eq = eq
+
+  -- recast along a propositionally-equal index (UIP on the wire lists).
+  coeC-castU : ∀ {A p q} (e e' : p ≡ q) (h : HomTerm A (wires p))
+             → coeC e h ≈Term coeC e' h
+  coeC-castU e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
+
+  coeD-castU : ∀ {B p q} (e e' : p ≡ q) (h : HomTerm (wires p) B)
+             → coeD e h ≈Term coeD e' h
+  coeD-castU e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
+
+  -- collapse two stacked coercions.
+  coeC-trans : ∀ {A p q s} (e1 : p ≡ q) (e2 : q ≡ s) (h : HomTerm A (wires p))
+             → coeC e2 (coeC e1 h) ≈Term coeC (trans e1 e2) h
+  coeC-trans refl refl h = ≈-Term-refl
+
+  coeD-trans : ∀ {B p q s} (e1 : p ≡ q) (e2 : q ≡ s) (h : HomTerm (wires p) B)
+             → coeD e2 (coeD e1 h) ≈Term coeD (trans e1 e2) h
+  coeD-trans refl refl h = ≈-Term-refl
+
+  -- coeC and coeD commute (independent ends).
+  coe-comm : ∀ {p q p' q'} (e1 : p' ≡ q') (e2 : p ≡ q) (h : HomTerm (wires p') (wires p))
+           → coeC e2 (coeD e1 h) ≈Term coeD e1 (coeC e2 h)
+  coe-comm refl refl h = ≈-Term-refl
+
+  -- push coeC through `∘` onto the left (codomain) factor.
+  coeC-∘ˡ : ∀ {A R p q} (e : p ≡ q) (h : HomTerm R (wires p)) (j : HomTerm A R)
+          → coeC e (h ∘ j) ≈Term coeC e h ∘ j
+  coeC-∘ˡ refl h j = ≈-Term-refl
+
+  -- push coeD through `∘` onto the right (domain) factor.
+  coeD-∘ʳ : ∀ {B R p q} (e : p ≡ q) (h : HomTerm R B) (j : HomTerm (wires p) R)
+          → coeD e (h ∘ j) ≈Term h ∘ coeD e j
+  coeD-∘ʳ refl h j = ≈-Term-refl
+
+  -- retype the middle object of a composite (the two transports cancel).
+  mid-retype : ∀ {A B p q} (e : p ≡ q) (h : HomTerm (wires p) B) (j : HomTerm A (wires p))
+             → h ∘ j ≈Term coeD e h ∘ coeC e j
+  mid-retype refl h j = ≈-Term-refl
+
+  -- push a coercion along `cong (x ∷_)` under the prefix `id {Var x} ⊗₁ _`.
+  coeC-id⊗ : ∀ {R} (x : X) {p q : List X} (e : p ≡ q) (h : HomTerm R (wires p))
+           → coeC (cong (x ∷_) e) (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ coeC e h
+  coeC-id⊗ x refl h = ≈-Term-refl
+
+  coeD-id⊗ : ∀ {R} (x : X) {p q : List X} (e : p ≡ q) (h : HomTerm (wires p) R)
+           → coeD (cong (x ∷_) e) (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ coeD e h
+  coeD-id⊗ x refl h = ≈-Term-refl
+
+  -- invert a coercion equation:  h ≈ coe eq k  ⇒  coe (sym eq) h ≈ k.
+  coeC-invert : ∀ {A p q} (eq : p ≡ q) (h : HomTerm A (wires q)) (k : HomTerm A (wires p))
+              → h ≈Term coeC eq k → coeC (sym eq) h ≈Term k
+  coeC-invert refl h k e = e
+
+  coeD-invert : ∀ {B p q} (eq : p ≡ q) (h : HomTerm (wires q) B) (k : HomTerm (wires p) B)
+              → h ≈Term coeD eq k → coeD (sym eq) h ≈Term k
+  coeD-invert refl h k e = e
 
   -- Soundness of append:  ⟦ d₁ ∘ᵈ d₂ ⟧ ≈ ⟦ d₂ ⟧ ∘ ⟦ d₁ ⟧ (codomain coerced).
   ∘ᵈ-sound : ∀ {m} (d₁ : DiagU m) (d₂ : DiagU (out d₁))
-           → coeCod' (out-∘ᵈ d₁ d₂) ⟦ d₁ ∘ᵈ d₂ ⟧ ≈Term ⟦ d₂ ⟧ ∘ ⟦ d₁ ⟧
+           → coeC (out-∘ᵈ d₁ d₂) ⟦ d₁ ∘ᵈ d₂ ⟧ ≈Term ⟦ d₂ ⟧ ∘ ⟦ d₁ ⟧
   ∘ᵈ-sound ([]_ m) d₂ = ≈-Term-sym idʳ
   ∘ᵈ-sound (pre ▸ suf ∷ f ⟨ d ⟩) d₂ = begin
-    coeCod' (out-∘ᵈ d d₂) (⟦ d ∘ᵈ d₂ ⟧ ∘ pad pre suf (⟦box⟧ f))
-      ≈⟨ coeCod'-∘ (out-∘ᵈ d d₂) ⟦ d ∘ᵈ d₂ ⟧ (pad pre suf (⟦box⟧ f)) ⟩
-    coeCod' (out-∘ᵈ d d₂) ⟦ d ∘ᵈ d₂ ⟧ ∘ pad pre suf (⟦box⟧ f)
+    coeC (out-∘ᵈ d d₂) (⟦ d ∘ᵈ d₂ ⟧ ∘ pad pre suf (⟦box⟧ f))
+      ≈⟨ coeC-∘ˡ (out-∘ᵈ d d₂) ⟦ d ∘ᵈ d₂ ⟧ (pad pre suf (⟦box⟧ f)) ⟩
+    coeC (out-∘ᵈ d d₂) ⟦ d ∘ᵈ d₂ ⟧ ∘ pad pre suf (⟦box⟧ f)
       ≈⟨ ∘-resp-≈ (∘ᵈ-sound d d₂) ≈-Term-refl ⟩
     (⟦ d₂ ⟧ ∘ ⟦ d ⟧) ∘ pad pre suf (⟦box⟧ f)
       ≈⟨ assoc ⟩
@@ -143,9 +212,6 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- Reindexing a diagram along a propositional equality of its input index.
   -- For `refl` it is the identity, and `⟦_⟧` transports definitionally.
   --------------------------------------------------------------------------------
-  coeDom : ∀ {a b p} → a ≡ b → HomTerm (wires a) (wires p) → HomTerm (wires b) (wires p)
-  coeDom refl h = h
-
   reidx : ∀ {n n'} → n ≡ n' → DiagU n → DiagU n'
   reidx refl d = d
 
@@ -154,7 +220,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 
   -- transport lemma: reindexing only retypes the interpretation via the coes.
   ⟦reidx⟧ : ∀ {n n'} (eq : n ≡ n') (d : DiagU n)
-          → ⟦ reidx eq d ⟧ ≈Term coeDom eq (coeCod' (sym (out-reidx eq d)) ⟦ d ⟧)
+          → ⟦ reidx eq d ⟧ ≈Term coeD eq (coeC (sym (out-reidx eq d)) ⟦ d ⟧)
   ⟦reidx⟧ refl d = ≈-Term-refl
 
   --------------------------------------------------------------------------------
@@ -275,27 +341,6 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
           (cong₂ _++_ (out-reflect s) (out-reflect t))
 
   --------------------------------------------------------------------------------
-  -- Transport algebra for coeDom / coeCod'.
-  --------------------------------------------------------------------------------
-  coeCod'-resp : ∀ {n p q} (eq : p ≡ q) {h h' : HomTerm (wires n) (wires p)}
-               → h ≈Term h' → coeCod' eq h ≈Term coeCod' eq h'
-  coeCod'-resp refl e = e
-
-  coeDom-resp : ∀ {a b p} (eq : a ≡ b) {h h' : HomTerm (wires a) (wires p)}
-              → h ≈Term h' → coeDom eq h ≈Term coeDom eq h'
-  coeDom-resp refl e = e
-
-  -- collapse two stacked codomain coercions.
-  coeCod'-trans : ∀ {n p q s} (e1 : p ≡ q) (e2 : q ≡ s) (h : HomTerm (wires n) (wires p))
-                → coeCod' e2 (coeCod' e1 h) ≈Term coeCod' (trans e1 e2) h
-  coeCod'-trans refl refl h = ≈-Term-refl
-
-  -- coeCod' and coeDom commute (independent ends).
-  coe-comm : ∀ {a b p q} (e1 : a ≡ b) (e2 : p ≡ q) (h : HomTerm (wires a) (wires p))
-           → coeCod' e2 (coeDom e1 h) ≈Term coeDom e1 (coeCod' e2 h)
-  coe-comm refl refl h = ≈-Term-refl
-
-  --------------------------------------------------------------------------------
   -- Box-leaf soundness:  ⟦ boxD g ⟧, transported across the structural
   --   a ++ [] ≡ a   and   b ++ [] ≡ b   reindices, equals ⟦box⟧ g.
   --
@@ -312,7 +357,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- discharged in-file by `boxSound` via an explicit Kelly derivation.
   BoxSound : Set
   BoxSound = ∀ {a b} (g : Mor a b)
-           → coeDom (++-identityʳ a) (coeCod' (++-identityʳ b) ⟦ boxD g ⟧)
+           → coeD (++-identityʳ a) (coeC (++-identityʳ b) ⟦ boxD g ⟧)
              ≈Term ⟦box⟧ g
 
   --------------------------------------------------------------------------------
@@ -327,34 +372,13 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- naturality.  No new postulates / holes.
   --------------------------------------------------------------------------------
 
-  -- codomain coercion with ARBITRARY domain object (the merge step's domain
-  -- `(Var x ⊗₀ wires a) ⊗₀ unit` is not `wires`-shaped), driven by a List eq.
-  coeC : ∀ {A} {p q : List X} → p ≡ q → HomTerm A (wires p) → HomTerm A (wires q)
-  coeC refl h = h
-
-  coeC-resp : ∀ {A} {p q} (e : p ≡ q) {h h' : HomTerm A (wires p)}
-            → h ≈Term h' → coeC e h ≈Term coeC e h'
-  coeC-resp refl eq = eq
-
-  -- coeC over `cong (x ∷_) e` factors through `∘` (right factor untouched).
-  coeC-∘ : ∀ {A R} (x : X) {p q : List X} (e : p ≡ q)
-             (h : HomTerm R (Var x ⊗₀ wires p)) (j : HomTerm A R)
-         → coeC (cong (x ∷_) e) (h ∘ j) ≈Term coeC (cong (x ∷_) e) h ∘ j
-  coeC-∘ x refl h j = ≈-Term-refl
-
-  -- coeC over `cong (x ∷_) e` pushes under the right factor of  id ⊗₁ _ .
-  coeC-id⊗ : ∀ {R} (x : X) {p q : List X} (e : p ≡ q)
-               (h : HomTerm R (wires p))
-           → coeC (cong (x ∷_) e) (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ coeC e h
-  coeC-id⊗ x refl h = ≈-Term-refl
-
   -- the right-unitor coherence on the flat merge:  merge a {[]} ≈ ρ⇒ (retyped).
   merge-ρ : (a : List X) → coeC {wires a ⊗₀ unit} (++-identityʳ a) (merge a {[]})
                           ≈Term ρ⇒ {wires a}
   merge-ρ []      = λ⇒≈ρ⇒
   merge-ρ (x ∷ a) = begin
     coeC (++-identityʳ (x ∷ a)) (id {Var x} ⊗₁ merge a ∘ α⇒)
-      ≈⟨ coeC-∘ x (++-identityʳ a) (id ⊗₁ merge a) α⇒ ⟩
+      ≈⟨ coeC-∘ˡ (cong (x ∷_) (++-identityʳ a)) (id ⊗₁ merge a) α⇒ ⟩
     coeC (cong (x ∷_) (++-identityʳ a)) (id {Var x} ⊗₁ merge a) ∘ α⇒
       ≈⟨ ∘-resp-≈ (coeC-id⊗ x (++-identityʳ a) (merge a)) ≈-Term-refl ⟩
     id {Var x} ⊗₁ coeC (++-identityʳ a) (merge a) ∘ α⇒
@@ -363,27 +387,13 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈⟨ idρ∘α≈ρ ⟩
     ρ⇒ ∎
 
-  -- domain coercion with ARBITRARY codomain object, driven by a List eq.
-  coeD : ∀ {B} {p q : List X} → p ≡ q → HomTerm (wires p) B → HomTerm (wires q) B
-  coeD refl h = h
-
-  coeD-∘ : ∀ {B R} (x : X) {p q : List X} (e : p ≡ q)
-             (h : HomTerm R B) (j : HomTerm (Var x ⊗₀ wires p) R)
-         → coeD (cong (x ∷_) e) (h ∘ j) ≈Term h ∘ coeD (cong (x ∷_) e) j
-  coeD-∘ x refl h j = ≈-Term-refl
-
-  coeD-id⊗ : ∀ {R} (x : X) {p q : List X} (e : p ≡ q)
-               (h : HomTerm (wires p) R)
-           → coeD (cong (x ∷_) e) (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ coeD e h
-  coeD-id⊗ x refl h = ≈-Term-refl
-
   -- the right-unitor coherence on the flat split:  split a {[]} ≈ ρ⇐ (retyped).
   split-ρ : (a : List X) → coeD {wires a ⊗₀ unit} (++-identityʳ a) (split a {[]})
                           ≈Term ρ⇐ {wires a}
   split-ρ []      = λ⇐≈ρ⇐
   split-ρ (x ∷ a) = begin
     coeD (++-identityʳ (x ∷ a)) (α⇐ ∘ id {Var x} ⊗₁ split a)
-      ≈⟨ coeD-∘ x (++-identityʳ a) α⇐ (id ⊗₁ split a) ⟩
+      ≈⟨ coeD-∘ʳ (cong (x ∷_) (++-identityʳ a)) α⇐ (id ⊗₁ split a) ⟩
     α⇐ ∘ coeD (cong (x ∷_) (++-identityʳ a)) (id {Var x} ⊗₁ split a)
       ≈⟨ ∘-resp-≈ ≈-Term-refl (coeD-id⊗ x (++-identityʳ a) (split a)) ⟩
     α⇐ ∘ id {Var x} ⊗₁ coeD (++-identityʳ a) (split a)
@@ -401,32 +411,8 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- collapses by right-unitor naturality `ρ⇒∘f⊗id≈f∘ρ⇒` and `ρ⇒∘ρ⇐≈id`.
   --------------------------------------------------------------------------------
 
-  -- coeCod' (codomain `wires`) agrees with the arbitrary-domain coeC.
-  coeCod'≈coeC : ∀ {n p q} (e : p ≡ q) (h : HomTerm (wires n) (wires p))
-               → coeCod' e h ≈Term coeC e h
-  coeCod'≈coeC refl h = ≈-Term-refl
-
-  -- coeDom (domain `wires`) agrees with the arbitrary-codomain coeD.
-  coeDom≈coeD : ∀ {p q r} (e : p ≡ q) (h : HomTerm (wires p) (wires r))
-              → coeDom e h ≈Term coeD e h
-  coeDom≈coeD refl h = ≈-Term-refl
-
-  -- push coeC through `∘` onto the left (codomain) factor (any inner equality).
-  coeC-∘ˡ : ∀ {A R p q} (e : p ≡ q) (h : HomTerm R (wires p)) (j : HomTerm A R)
-          → coeC e (h ∘ j) ≈Term coeC e h ∘ j
-  coeC-∘ˡ refl h j = ≈-Term-refl
-
-  -- push coeD through `∘` onto the right (domain) factor (any inner equality).
-  coeD-∘ʳ : ∀ {B R p q} (e : p ≡ q) (h : HomTerm R B) (j : HomTerm (wires p) R)
-          → coeD e (h ∘ j) ≈Term h ∘ coeD e j
-  coeD-∘ʳ refl h j = ≈-Term-refl
-
   boxSound : BoxSound
   boxSound {a} {b} g = begin
-    coeDom (++-identityʳ a) (coeCod' (++-identityʳ b) ⟦ boxD g ⟧)
-      ≈⟨ coeDom≈coeD (++-identityʳ a) _ ⟩
-    coeD (++-identityʳ a) (coeCod' (++-identityʳ b) ⟦ boxD g ⟧)
-      ≈⟨ coeD-resp (++-identityʳ a) (coeCod'≈coeC (++-identityʳ b) ⟦ boxD g ⟧) ⟩
     coeD (++-identityʳ a) (coeC (++-identityʳ b) ⟦ boxD g ⟧)
       ≈⟨ coeD-resp (++-identityʳ a) (coeC-resp (++-identityʳ b) idˡ) ⟩
     coeD (++-identityʳ a) (coeC (++-identityʳ b) body)
@@ -453,9 +439,6 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       rest = (⟦box⟧ g ⊗₁ id {wires []}) ∘ split a {[]}
       body : HomTerm (wires (a ++ [])) (wires (b ++ []))
       body = merge b {[]} ∘ rest
-      coeD-resp : ∀ {B p q} (e : p ≡ q) {h h' : HomTerm (wires p) B}
-                → h ≈Term h' → coeD e h ≈Term coeD e h'
-      coeD-resp refl eq = eq
 
   --------------------------------------------------------------------------------
   -- TASK 1: soundness of the offset shifts `shiftL` / `shiftR`.
@@ -463,9 +446,9 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --   shiftL lt d  is  liftW lt ⟦ d ⟧  up to the +-associativity reindexing
   --   absorbed by the `reidx` wrappers, and analogously for `shiftR`.  We state
   --   them in the codomain-reindexed form (mirroring `∘ᵈ-sound`):
-  --     coeCod' (out-shiftL lt d) ⟦ shiftL lt d ⟧ ≈Term liftW lt ⟦ d ⟧
-  --     coeCod' (out-shiftR rt d) ⟦ shiftR rt d ⟧ ≈Term rliftW rt ⟦ d ⟧
-  --   where `rliftW` is the suffix flat-shift (defined below).
+  --     coeC (out-shiftL lt d) ⟦ shiftL lt d ⟧ ≈Term liftW lt ⟦ d ⟧
+  --     coeC (out-shiftR rt d) ⟦ shiftR rt d ⟧ ≈Term rpad rt ⟦ d ⟧
+  --   where `rpad` is the suffix flat-shift (from DiagramRewriteUntyped).
   --------------------------------------------------------------------------------
 
   -- liftW of an identity is an identity (functoriality, unit).
@@ -478,60 +461,37 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈⟨ id⊗id≈id ⟩
     id ∎
 
-  -- push coeDom through `∘` onto the right (domain) factor (codomain `wires`).
-  coeDom-∘ : ∀ {a b r p} (eq : a ≡ b) (h : HomTerm (wires r) (wires p))
-               (k : HomTerm (wires a) (wires r))
-           → coeDom eq (h ∘ k) ≈Term h ∘ coeDom eq k
-  coeDom-∘ refl h k = ≈-Term-refl
-
-  -- coeDom / coeCod' commute with the prefix `id {Var x} ⊗₁ _` along `cong (x ∷_)`.
-  coeDom-id⊗ʷ : ∀ (x : X) {p q r} (e : p ≡ q) (h : HomTerm (wires p) (wires r))
-              → coeDom (cong (x ∷_) e) (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ coeDom e h
-  coeDom-id⊗ʷ x refl h = ≈-Term-refl
-
-  coeCod'-id⊗ʷ : ∀ (x : X) {r p q} (e : p ≡ q) (h : HomTerm (wires r) (wires p))
-               → coeCod' (cong (x ∷_) e) (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ coeCod' e h
-  coeCod'-id⊗ʷ x refl h = ≈-Term-refl
-
-  -- recast a coeDom / coeCod' along a propositionally-equal index (UIP).
-  coeDom-castU : ∀ {p q r} (e e' : p ≡ q) (h : HomTerm (wires p) (wires r))
-               → coeDom e h ≈Term coeDom e' h
-  coeDom-castU e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
-  coeCod'-castU : ∀ {r p q} (e e' : p ≡ q) (h : HomTerm (wires r) (wires p))
-                → coeCod' e h ≈Term coeCod' e' h
-  coeCod'-castU e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
-
   -- `liftW lt (pad pre suf g)` is the wider `pad (lt ++ pre) suf g`, up to the
   -- +-associativity reindex on its endpoints.  This is the layer-level content
   -- of `shiftL`'s `reidx` wrappers.  Proven by induction on `lt`, mirroring
   -- `shiftL`'s own recursion.
   liftW-pad : ∀ {a b} (lt pre suf : List X) (g : HomTerm (wires a) (wires b))
             → liftW lt (pad pre suf g)
-              ≈Term coeDom (++-assoc lt pre (a ++ suf))
-                      (coeCod' (++-assoc lt pre (b ++ suf))
+              ≈Term coeD (++-assoc lt pre (a ++ suf))
+                      (coeC (++-assoc lt pre (b ++ suf))
                         (pad (lt ++ pre) suf g))
   liftW-pad []      pre suf g = ≈-Term-refl
   liftW-pad {a} {b} (x ∷ lt) pre suf g = begin
     id ⊗₁ liftW lt (pad pre suf g)
       ≈⟨ ⊗-resp-≈ ≈-Term-refl (liftW-pad lt pre suf g) ⟩
-    id {Var x} ⊗₁ coeDom (++-assoc lt pre (a ++ suf))
-                    (coeCod' (++-assoc lt pre (b ++ suf)) (pad (lt ++ pre) suf g))
-      ≈⟨ ≈-Term-sym (coeDom-id⊗ʷ x (++-assoc lt pre (a ++ suf)) _) ⟩
-    coeDom (cong (x ∷_) (++-assoc lt pre (a ++ suf)))
-      (id {Var x} ⊗₁ coeCod' (++-assoc lt pre (b ++ suf)) (pad (lt ++ pre) suf g))
-      ≈⟨ coeDom-resp _ (≈-Term-sym (coeCod'-id⊗ʷ x (++-assoc lt pre (b ++ suf)) _)) ⟩
-    coeDom (cong (x ∷_) (++-assoc lt pre (a ++ suf)))
-      (coeCod' (cong (x ∷_) (++-assoc lt pre (b ++ suf))) (id {Var x} ⊗₁ pad (lt ++ pre) suf g))
-      ≈⟨ coeDom-castU (cong (x ∷_) (++-assoc lt pre (a ++ suf))) (++-assoc (x ∷ lt) pre (a ++ suf)) _ ⟩
-    coeDom (++-assoc (x ∷ lt) pre (a ++ suf))
-      (coeCod' (cong (x ∷_) (++-assoc lt pre (b ++ suf))) (id {Var x} ⊗₁ pad (lt ++ pre) suf g))
-      ≈⟨ coeDom-resp _ (coeCod'-castU (cong (x ∷_) (++-assoc lt pre (b ++ suf))) (++-assoc (x ∷ lt) pre (b ++ suf)) _) ⟩
-    coeDom (++-assoc (x ∷ lt) pre (a ++ suf))
-      (coeCod' (++-assoc (x ∷ lt) pre (b ++ suf)) (id {Var x} ⊗₁ pad (lt ++ pre) suf g)) ∎
+    id {Var x} ⊗₁ coeD (++-assoc lt pre (a ++ suf))
+                    (coeC (++-assoc lt pre (b ++ suf)) (pad (lt ++ pre) suf g))
+      ≈⟨ ≈-Term-sym (coeD-id⊗ x (++-assoc lt pre (a ++ suf)) _) ⟩
+    coeD (cong (x ∷_) (++-assoc lt pre (a ++ suf)))
+      (id {Var x} ⊗₁ coeC (++-assoc lt pre (b ++ suf)) (pad (lt ++ pre) suf g))
+      ≈⟨ coeD-resp _ (≈-Term-sym (coeC-id⊗ x (++-assoc lt pre (b ++ suf)) _)) ⟩
+    coeD (cong (x ∷_) (++-assoc lt pre (a ++ suf)))
+      (coeC (cong (x ∷_) (++-assoc lt pre (b ++ suf))) (id {Var x} ⊗₁ pad (lt ++ pre) suf g))
+      ≈⟨ coeD-castU (cong (x ∷_) (++-assoc lt pre (a ++ suf))) (++-assoc (x ∷ lt) pre (a ++ suf)) _ ⟩
+    coeD (++-assoc (x ∷ lt) pre (a ++ suf))
+      (coeC (cong (x ∷_) (++-assoc lt pre (b ++ suf))) (id {Var x} ⊗₁ pad (lt ++ pre) suf g))
+      ≈⟨ coeD-resp _ (coeC-castU (cong (x ∷_) (++-assoc lt pre (b ++ suf))) (++-assoc (x ∷ lt) pre (b ++ suf)) _) ⟩
+    coeD (++-assoc (x ∷ lt) pre (a ++ suf))
+      (coeC (++-assoc (x ∷ lt) pre (b ++ suf)) (id {Var x} ⊗₁ pad (lt ++ pre) suf g)) ∎
 
   -- shiftL soundness.
   shiftL-sound : ∀ {n} (lt : List X) (d : DiagU n)
-               → coeCod' (out-shiftL lt d) ⟦ shiftL lt d ⟧ ≈Term liftW lt ⟦ d ⟧
+               → coeC (out-shiftL lt d) ⟦ shiftL lt d ⟧ ≈Term liftW lt ⟦ d ⟧
   shiftL-sound lt ([]_ n) = ≈-Term-sym (liftW-id lt)
   shiftL-sound lt (_▸_∷_⟨_⟩ {a} {b} pre suf f d) = goal
     where
@@ -557,24 +517,24 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       eBridge : out (reidx E2 d') ≡ lt ++ out d
       eBridge = trans (out-reidx E2 d') (out-shiftL lt d)
 
-      goal : coeCod' OUTcons ⟦ reidx E1 ((lt ++ pre) ▸ suf ∷ f ⟨ reidx E2 d' ⟩) ⟧
+      goal : coeC OUTcons ⟦ reidx E1 ((lt ++ pre) ▸ suf ∷ f ⟨ reidx E2 d' ⟩) ⟧
              ≈Term liftW lt (⟦ d ⟧ ∘ pad pre suf g)
       goal = begin
-        coeCod' OUTcons ⟦ reidx E1 LAYER ⟧
-          ≈⟨ coeCod'-resp OUTcons (⟦reidx⟧ E1 LAYER) ⟩
-        coeCod' OUTcons (coeDom E1 (coeCod' (sym (out-reidx E1 LAYER)) ⟦LAYER⟧))
+        coeC OUTcons ⟦ reidx E1 LAYER ⟧
+          ≈⟨ coeC-resp OUTcons (⟦reidx⟧ E1 LAYER) ⟩
+        coeC OUTcons (coeD E1 (coeC (sym (out-reidx E1 LAYER)) ⟦LAYER⟧))
           ≈⟨ coe-comm E1 OUTcons _ ⟩
-        coeDom E1 (coeCod' OUTcons (coeCod' (sym (out-reidx E1 LAYER)) ⟦LAYER⟧))
-          ≈⟨ coeDom-resp E1 (coeCod'-trans (sym (out-reidx E1 LAYER)) OUTcons ⟦LAYER⟧) ⟩
-        coeDom E1 (coeCod' (trans (sym (out-reidx E1 LAYER)) OUTcons) ⟦LAYER⟧)
-          ≈⟨ coeDom-resp E1 (coeCod'-castB (trans (sym (out-reidx E1 LAYER)) OUTcons) eBridge ⟦LAYER⟧) ⟩
-        coeDom E1 (coeCod' eBridge ⟦LAYER⟧)
-          ≈⟨ coeDom-resp E1 (coeCod'-∘ eBridge ⟦ reidx E2 d' ⟧ (pad (lt ++ pre) suf g)) ⟩
-        coeDom E1 (coeCod' eBridge ⟦ reidx E2 d' ⟧ ∘ pad (lt ++ pre) suf g)
-          ≈⟨ coeDom-∘ E1 (coeCod' eBridge ⟦ reidx E2 d' ⟧) (pad (lt ++ pre) suf g) ⟩
-        coeCod' eBridge ⟦ reidx E2 d' ⟧ ∘ coeDom E1 (pad (lt ++ pre) suf g)
-          ≈⟨ mid-retype eM (coeCod' eBridge ⟦ reidx E2 d' ⟧) (coeDom E1 (pad (lt ++ pre) suf g)) ⟩
-        coeDom eM (coeCod' eBridge ⟦ reidx E2 d' ⟧) ∘ coeCod' eM (coeDom E1 (pad (lt ++ pre) suf g))
+        coeD E1 (coeC OUTcons (coeC (sym (out-reidx E1 LAYER)) ⟦LAYER⟧))
+          ≈⟨ coeD-resp E1 (coeC-trans (sym (out-reidx E1 LAYER)) OUTcons ⟦LAYER⟧) ⟩
+        coeD E1 (coeC (trans (sym (out-reidx E1 LAYER)) OUTcons) ⟦LAYER⟧)
+          ≈⟨ coeD-resp E1 (coeC-castU (trans (sym (out-reidx E1 LAYER)) OUTcons) eBridge ⟦LAYER⟧) ⟩
+        coeD E1 (coeC eBridge ⟦LAYER⟧)
+          ≈⟨ coeD-resp E1 (coeC-∘ˡ eBridge ⟦ reidx E2 d' ⟧ (pad (lt ++ pre) suf g)) ⟩
+        coeD E1 (coeC eBridge ⟦ reidx E2 d' ⟧ ∘ pad (lt ++ pre) suf g)
+          ≈⟨ coeD-∘ʳ E1 (coeC eBridge ⟦ reidx E2 d' ⟧) (pad (lt ++ pre) suf g) ⟩
+        coeC eBridge ⟦ reidx E2 d' ⟧ ∘ coeD E1 (pad (lt ++ pre) suf g)
+          ≈⟨ mid-retype eM (coeC eBridge ⟦ reidx E2 d' ⟧) (coeD E1 (pad (lt ++ pre) suf g)) ⟩
+        coeD eM (coeC eBridge ⟦ reidx E2 d' ⟧) ∘ coeC eM (coeD E1 (pad (lt ++ pre) suf g))
           ≈⟨ ∘-resp-≈ tailFold padFold ⟩
         liftW lt ⟦ d ⟧ ∘ liftW lt (pad pre suf g)
           ≈⟨ ≈-Term-sym (liftW-∘ lt ⟦ d ⟧ (pad pre suf g)) ⟩
@@ -583,58 +543,44 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
           -- middle-object retype eq:  (lt++pre)++(b++suf) ≡ lt++(pre++(b++suf)).
           eM : (lt ++ pre) ++ (b ++ suf) ≡ lt ++ (pre ++ (b ++ suf))
           eM = ++-assoc lt pre (b ++ suf)
-          coeCod'-castB : ∀ {N P Q} (e e' : P ≡ Q) (h : HomTerm (wires N) (wires P))
-                        → coeCod' e h ≈Term coeCod' e' h
-          coeCod'-castB e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
-          coeDom-castB : ∀ {P r} (e e' : P ≡ P) (h : HomTerm (wires P) (wires r))
-                       → coeDom e h ≈Term coeDom e' h
-          coeDom-castB e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
-          coeDom-trans2 : ∀ {p q s r} (e1 : p ≡ q) (e2 : q ≡ s) (h : HomTerm (wires p) (wires r))
-                        → coeDom e2 (coeDom e1 h) ≈Term coeDom (trans e1 e2) h
-          coeDom-trans2 refl refl h = ≈-Term-refl
-          -- retype the middle object of a composite (transports cancel).
-          mid-retype : ∀ {N P Q R} (eq : P ≡ Q) (h : HomTerm (wires P) (wires R))
-                         (j : HomTerm (wires N) (wires P))
-                     → h ∘ j ≈Term coeDom eq h ∘ coeCod' eq j
-          mid-retype refl h j = ≈-Term-refl
           -- the tail folds (via reidx-transport + recursion + cancellation of
           -- the eM/E2 coercions) to liftW lt ⟦d⟧.
-          tailFold : coeDom eM (coeCod' eBridge ⟦ reidx E2 d' ⟧) ≈Term liftW lt ⟦ d ⟧
+          tailFold : coeD eM (coeC eBridge ⟦ reidx E2 d' ⟧) ≈Term liftW lt ⟦ d ⟧
           tailFold = begin
-            coeDom eM (coeCod' eBridge ⟦ reidx E2 d' ⟧)
-              ≈⟨ coeDom-resp eM (coeCod'-resp eBridge (⟦reidx⟧ E2 d')) ⟩
-            coeDom eM (coeCod' eBridge (coeDom E2 (coeCod' (sym eR) ⟦ d' ⟧)))
-              ≈⟨ coeDom-resp eM (coe-comm E2 eBridge _) ⟩
-            coeDom eM (coeDom E2 (coeCod' eBridge (coeCod' (sym eR) ⟦ d' ⟧)))
-              ≈⟨ coeDom-trans2 E2 eM (coeCod' eBridge (coeCod' (sym eR) ⟦ d' ⟧)) ⟩
-            coeDom (trans E2 eM) (coeCod' eBridge (coeCod' (sym eR) ⟦ d' ⟧))
-              ≈⟨ coeDom-castB (trans E2 eM) refl (coeCod' eBridge (coeCod' (sym eR) ⟦ d' ⟧)) ⟩
-            coeCod' eBridge (coeCod' (sym eR) ⟦ d' ⟧)
-              ≈⟨ coeCod'-trans (sym eR) eBridge ⟦ d' ⟧ ⟩
-            coeCod' (trans (sym eR) eBridge) ⟦ d' ⟧
-              ≈⟨ coeCod'-castB (trans (sym eR) eBridge) (out-shiftL lt d) ⟦ d' ⟧ ⟩
-            coeCod' (out-shiftL lt d) ⟦ d' ⟧
+            coeD eM (coeC eBridge ⟦ reidx E2 d' ⟧)
+              ≈⟨ coeD-resp eM (coeC-resp eBridge (⟦reidx⟧ E2 d')) ⟩
+            coeD eM (coeC eBridge (coeD E2 (coeC (sym eR) ⟦ d' ⟧)))
+              ≈⟨ coeD-resp eM (coe-comm E2 eBridge _) ⟩
+            coeD eM (coeD E2 (coeC eBridge (coeC (sym eR) ⟦ d' ⟧)))
+              ≈⟨ coeD-trans E2 eM (coeC eBridge (coeC (sym eR) ⟦ d' ⟧)) ⟩
+            coeD (trans E2 eM) (coeC eBridge (coeC (sym eR) ⟦ d' ⟧))
+              ≈⟨ coeD-castU (trans E2 eM) refl (coeC eBridge (coeC (sym eR) ⟦ d' ⟧)) ⟩
+            coeC eBridge (coeC (sym eR) ⟦ d' ⟧)
+              ≈⟨ coeC-trans (sym eR) eBridge ⟦ d' ⟧ ⟩
+            coeC (trans (sym eR) eBridge) ⟦ d' ⟧
+              ≈⟨ coeC-castU (trans (sym eR) eBridge) (out-shiftL lt d) ⟦ d' ⟧ ⟩
+            coeC (out-shiftL lt d) ⟦ d' ⟧
               ≈⟨ shiftL-sound lt d ⟩
             liftW lt ⟦ d ⟧ ∎
-          padFold : coeCod' eM (coeDom E1 (pad (lt ++ pre) suf g)) ≈Term liftW lt (pad pre suf g)
+          padFold : coeC eM (coeD E1 (pad (lt ++ pre) suf g)) ≈Term liftW lt (pad pre suf g)
           padFold = begin
-            coeCod' eM (coeDom E1 (pad (lt ++ pre) suf g))
+            coeC eM (coeD E1 (pad (lt ++ pre) suf g))
               ≈⟨ coe-comm E1 eM (pad (lt ++ pre) suf g) ⟩
-            coeDom E1 (coeCod' eM (pad (lt ++ pre) suf g))
+            coeD E1 (coeC eM (pad (lt ++ pre) suf g))
               ≈⟨ ≈-Term-sym (liftW-pad lt pre suf g) ⟩
             liftW lt (pad pre suf g) ∎
 
   --------------------------------------------------------------------------------
-  -- Suffix shift `rliftW` (:= rpad) and its soundness for `shiftR`.
+  -- The suffix flat-shift `rpad` lemma family, and its soundness for `shiftR`.
   --------------------------------------------------------------------------------
 
-  -- the suffix flat-shift is exactly `rpad` (append rt idle wires on the right).
-  rliftW : (rt : List X) {u v : List X} → HomTerm (wires u) (wires v)
-         → HomTerm (wires (u ++ rt)) (wires (v ++ rt))
-  rliftW rt {u} {v} W = rpad {u} {v} rt W
+  rpad-resp : ∀ {a b} (suf : List X) {g g' : HomTerm (wires a) (wires b)}
+            → g ≈Term g' → rpad suf g ≈Term rpad suf g'
+  rpad-resp suf eq =
+    ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ eq ≈-Term-refl) ≈-Term-refl)
 
-  rliftW-id : ∀ (rt : List X) {u} → rliftW rt (id {wires u}) ≈Term id
-  rliftW-id rt {u} = begin
+  rpad-id : ∀ (rt : List X) {u} → rpad rt (id {wires u}) ≈Term id
+  rpad-id rt {u} = begin
     merge u {rt} ∘ (id {wires u} ⊗₁ id {wires rt}) ∘ split u {rt}
       ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ id⊗id≈id ≈-Term-refl) ⟩
     merge u {rt} ∘ (id ∘ split u {rt})
@@ -643,9 +589,9 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈⟨ merge∘split u ⟩
     id ∎
 
-  rliftW-∘ : ∀ (rt : List X) {u v w} (P : HomTerm (wires v) (wires w)) (Q : HomTerm (wires u) (wires v))
-           → rliftW rt (P ∘ Q) ≈Term rliftW rt P ∘ rliftW rt Q
-  rliftW-∘ rt {u} {v} {w} P Q = begin
+  rpad-∘ : ∀ (rt : List X) {u v w} (P : HomTerm (wires v) (wires w)) (Q : HomTerm (wires u) (wires v))
+         → rpad rt (P ∘ Q) ≈Term rpad rt P ∘ rpad rt Q
+  rpad-∘ rt {u} {v} {w} P Q = begin
     merge w ∘ ((P ∘ Q) ⊗₁ id) ∘ split u
       ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ≈-Term-refl) ⟩
     merge w ∘ ((P ∘ Q) ⊗₁ (id ∘ id)) ∘ split u
@@ -664,24 +610,12 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
     (merge w ∘ (P ⊗₁ id ∘ split v)) ∘ (merge v ∘ (Q ⊗₁ id ∘ split u)) ∎
 
-  -- coeCod' / coeDom respect for ARBITRARY (non-wires) domain / codomain
-  -- objects (needed for the merge-associativity coherences, whose ends are
-  -- bracketed tensors of wires, not flat).
-  coeCA : ∀ {A} {p q : List X} → p ≡ q → HomTerm A (wires p) → HomTerm A (wires q)
-  coeCA refl h = h
-  coeCA-resp : ∀ {A} {p q} (e : p ≡ q) {h h' : HomTerm A (wires p)}
-             → h ≈Term h' → coeCA e h ≈Term coeCA e h'
-  coeCA-resp refl eq = eq
-  coeCA-∘ : ∀ {A R} {p q} (e : p ≡ q) (h : HomTerm R (wires p)) (j : HomTerm A R)
-          → coeCA e (h ∘ j) ≈Term coeCA e h ∘ j
-  coeCA-∘ refl h j = ≈-Term-refl
-
   -- `merge` associativity (built from `coherence₁` and α-naturality):
   --   merge p {q++r} ∘ (id ⊗₁ merge q {r}) ∘ α⇒
-  --     ≈ coeCA (++-assoc p q r) (merge (p++q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
+  --     ≈ coeC (++-assoc p q r) (merge (p++q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
   merge-assoc : ∀ (p q r : List X)
               → merge p {q ++ r} ∘ (id {wires p} ⊗₁ merge q {r}) ∘ α⇒
-                ≈Term coeCA (++-assoc p q r) (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
+                ≈Term coeC (++-assoc p q r) (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
   merge-assoc []      q r = begin
     λ⇒ ∘ (id {unit} ⊗₁ merge q {r}) ∘ α⇒
       ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl ≈-Term-refl) ⟩
@@ -719,39 +653,24 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
        ∘ α⇒ {Var x} {wires p} {wires q ⊗₀ wires r}) ∘ α⇒ {Var x ⊗₀ wires p} {wires q} {wires r}
       ≈⟨ pent ⟩
     (id {Var x} ⊗₁ (merge p {q ++ r} ∘ (id ⊗₁ merge q {r})) ∘ id {Var x} ⊗₁ α⇒ {wires p} {wires q} {wires r}) ∘ (α⇒ ∘ α⇒ ⊗₁ id)
-      ≈⟨ ∘-resp-≈ (id⊗-fuse (merge p {q ++ r} ∘ (id ⊗₁ merge q {r})) (α⇒ {wires p} {wires q} {wires r})) ≈-Term-refl ⟩
+      ≈⟨ ∘-resp-≈ (id⊗-∘ (merge p {q ++ r} ∘ (id ⊗₁ merge q {r})) (α⇒ {wires p} {wires q} {wires r})) ≈-Term-refl ⟩
     (id {Var x} ⊗₁ ((merge p {q ++ r} ∘ (id ⊗₁ merge q {r})) ∘ α⇒ {wires p} {wires q} {wires r})) ∘ (α⇒ ∘ α⇒ ⊗₁ id)
       ≈⟨ ∘-resp-≈ (⊗-resp-≈ ≈-Term-refl (≈-Term-trans assoc (merge-assoc p q r))) ≈-Term-refl ⟩
-    (id ⊗₁ coeCA (++-assoc p q r) (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r})))
+    (id ⊗₁ coeC (++-assoc p q r) (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r})))
       ∘ (α⇒ ∘ α⇒ ⊗₁ id)
-      ≈⟨ ∘-resp-≈ (push-id⊗-coeCA x (++-assoc p q r) _) ≈-Term-refl ⟩
-    coeCA (cong (x ∷_) (++-assoc p q r)) (id ⊗₁ (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id)))
+      ≈⟨ ∘-resp-≈ (≈-Term-sym (coeC-id⊗ x (++-assoc p q r) _)) ≈-Term-refl ⟩
+    coeC (cong (x ∷_) (++-assoc p q r)) (id ⊗₁ (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id)))
       ∘ (α⇒ ∘ α⇒ ⊗₁ id)
-      ≈⟨ ≈-Term-sym (coeCA-∘ (cong (x ∷_) (++-assoc p q r)) _ (α⇒ ∘ α⇒ ⊗₁ id)) ⟩
-    coeCA (cong (x ∷_) (++-assoc p q r))
+      ≈⟨ ≈-Term-sym (coeC-∘ˡ (cong (x ∷_) (++-assoc p q r)) _ (α⇒ ∘ α⇒ ⊗₁ id)) ⟩
+    coeC (cong (x ∷_) (++-assoc p q r))
       ((id ⊗₁ (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id))) ∘ (α⇒ ∘ α⇒ ⊗₁ id))
-      ≈⟨ coeCA-resp _ tailRHS ⟩
-    coeCA (cong (x ∷_) (++-assoc p q r))
+      ≈⟨ coeC-resp _ tailRHS ⟩
+    coeC (cong (x ∷_) (++-assoc p q r))
       (((id ⊗₁ merge (p ++ q) {r}) ∘ α⇒) ∘ ((id ⊗₁ merge p {q} ∘ α⇒) ⊗₁ id {wires r}))
-      ≈⟨ coeCA-cast (cong (x ∷_) (++-assoc p q r)) (++-assoc (x ∷ p) q r) _ ⟩
-    coeCA (++-assoc (x ∷ p) q r)
+      ≈⟨ coeC-castU (cong (x ∷_) (++-assoc p q r)) (++-assoc (x ∷ p) q r) _ ⟩
+    coeC (++-assoc (x ∷ p) q r)
       (((id ⊗₁ merge (p ++ q) {r}) ∘ α⇒) ∘ ((id ⊗₁ merge p {q} ∘ α⇒) ⊗₁ id {wires r})) ∎
     where
-      push-id⊗-coeCA : ∀ {R} (x : X) {p' q'} (e : p' ≡ q') (h : HomTerm R (wires p'))
-                     → id {Var x} ⊗₁ coeCA e h ≈Term coeCA (cong (x ∷_) e) (id {Var x} ⊗₁ h)
-      push-id⊗-coeCA x refl h = ≈-Term-refl
-      -- fuse two prefixed-id tensors:  id⊗A ∘ id⊗B ≈ id⊗(A∘B).
-      id⊗-fuse : ∀ {Z A B C} (A' : HomTerm B C) (B' : HomTerm A B)
-               → id {Z} ⊗₁ A' ∘ id {Z} ⊗₁ B' ≈Term id {Z} ⊗₁ (A' ∘ B')
-      id⊗-fuse A' B' = begin
-        id ⊗₁ A' ∘ id ⊗₁ B'
-          ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-        (id ∘ id) ⊗₁ (A' ∘ B')
-          ≈⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩
-        id ⊗₁ (A' ∘ B') ∎
-      coeCA-cast : ∀ {A} {p' q'} (e e' : p' ≡ q') (h : HomTerm A (wires p'))
-                 → coeCA e h ≈Term coeCA e' h
-      coeCA-cast e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
       -- pentagon rebracketing of the two trailing associators:
       --   (X ∘ α⇒) ∘ α⇒  ≈  (X ∘ id⊗α⇒) ∘ (α⇒ ∘ α⇒⊗id)
       -- where X = id ⊗ (…).  Uses `pentagon`.
@@ -865,14 +784,14 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
         α⇐ ∘ α⇒
           ≈⟨ α⇐∘α⇒≈id ⟩
         id ∎
-      -- (coeCA e mR) ∘ (coeD e giU) ≈ id  via mR ∘ giU ≈ id and coercion cancel.
-      g-gi : coeCA e mR ∘ coeD e giU ≈Term id
+      -- (coeC e mR) ∘ (coeD e giU) ≈ id  via mR ∘ giU ≈ id and coercion cancel.
+      g-gi : coeC e mR ∘ coeD e giU ≈Term id
       g-gi = coe-cancel e mR giU mR-giU
         where
           coe-cancel : ∀ {p' q'} (eq : p' ≡ q')
                          (M : HomTerm ((wires p ⊗₀ wires q) ⊗₀ wires r) (wires p'))
                          (N : HomTerm (wires p') ((wires p ⊗₀ wires q) ⊗₀ wires r))
-                     → M ∘ N ≈Term id → coeCA eq M ∘ coeD eq N ≈Term id
+                     → M ∘ N ≈Term id → coeC eq M ∘ coeD eq N ≈Term id
           coe-cancel refl M N eq = eq
           mR-giU : mR ∘ giU ≈Term id
           mR-giU = begin
@@ -892,21 +811,13 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
               ≈⟨ merge∘split (p ++ q) ⟩
             id ∎
 
-  -- invert a coeCA equation:  h ≈ coeCA eq k  ⇒  coeCA (sym eq) h ≈ k.
-  coeCA-invert : ∀ {A p q} (eq : p ≡ q) (h : HomTerm A (wires q)) (k : HomTerm A (wires p))
-               → h ≈Term coeCA eq k → coeCA (sym eq) h ≈Term k
-  coeCA-invert refl h k e = e
-  coeD-invert : ∀ {B p q} (eq : p ≡ q) (h : HomTerm (wires q) B) (k : HomTerm (wires p) B)
-              → h ≈Term coeD eq k → coeD (sym eq) h ≈Term k
-  coeD-invert refl h k e = e
-
   -- `rpad` suffix-fusion:  rpad rt (rpad suf g) is the wider rpad (suf++rt) g,
   -- up to +-associativity reindex on its endpoints.  This is the base case of
   -- the suffix shift / pad relation.  Assembled from `merge-assoc`/`split-assoc`.
   rpad-fuse : ∀ {a b} (suf rt : List X) (g : HomTerm (wires a) (wires b))
             → rpad rt (rpad suf g)
               ≈Term coeD (sym (++-assoc a suf rt))
-                      (coeCA (sym (++-assoc b suf rt)) (rpad (suf ++ rt) g))
+                      (coeC (sym (++-assoc b suf rt)) (rpad (suf ++ rt) g))
   rpad-fuse {a} {b} suf rt g = begin
     merge (b ++ suf) {rt} ∘ ((merge b {suf} ∘ (g ⊗₁ id {wires suf}) ∘ split a {suf}) ⊗₁ id {wires rt}) ∘ split (a ++ suf) {rt}
       ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ≈-Term-refl) ⟩
@@ -920,30 +831,27 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈⟨ regroup5 ⟩
     (merge (b ++ suf) ∘ merge b ⊗₁ id) ∘ ((g ⊗₁ id {wires suf}) ⊗₁ id {wires rt}) ∘ (split a ⊗₁ id ∘ split (a ++ suf))
       ≈⟨ ∘-resp-≈ mergeStep (∘-resp-≈ ≈-Term-refl splitStep) ⟩
-    coeCA (sym (++-assoc b suf rt)) (merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒)
+    coeC (sym (++-assoc b suf rt)) (merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒)
       ∘ ((g ⊗₁ id) ⊗₁ id)
       ∘ coeD (sym (++-assoc a suf rt)) (α⇐ ∘ (id {wires a} ⊗₁ split suf {rt}) ∘ split a {suf ++ rt})
       ≈⟨ pull-coe ⟩
     coeD (sym (++-assoc a suf rt))
-      (coeCA (sym (++-assoc b suf rt))
+      (coeC (sym (++-assoc b suf rt))
         ((merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒)
           ∘ ((g ⊗₁ id {wires suf}) ⊗₁ id {wires rt})
           ∘ (α⇐ ∘ (id {wires a} ⊗₁ split suf {rt}) ∘ split a {suf ++ rt})))
-      ≈⟨ coeD-resp2 (sym (++-assoc a suf rt)) (coeCA-resp (sym (++-assoc b suf rt)) core) ⟩
+      ≈⟨ coeD-resp (sym (++-assoc a suf rt)) (coeC-resp (sym (++-assoc b suf rt)) core) ⟩
     coeD (sym (++-assoc a suf rt))
-      (coeCA (sym (++-assoc b suf rt)) (rpad (suf ++ rt) g)) ∎
+      (coeC (sym (++-assoc b suf rt)) (rpad (suf ++ rt) g)) ∎
     where
-      -- mergeStep:  merge(b++suf)∘(merge b⊗id) ≈ coeCA(sym e_b)(merge b{suf++rt}∘(id⊗merge suf)∘α⇒)
+      -- mergeStep:  merge(b++suf)∘(merge b⊗id) ≈ coeC(sym e_b)(merge b{suf++rt}∘(id⊗merge suf)∘α⇒)
       mergeStep : merge (b ++ suf) {rt} ∘ (merge b {suf} ⊗₁ id {wires rt})
-                ≈Term coeCA (sym (++-assoc b suf rt)) (merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒)
-      mergeStep = ≈-Term-sym (coeCA-invert (++-assoc b suf rt) _ _ (merge-assoc b suf rt))
+                ≈Term coeC (sym (++-assoc b suf rt)) (merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒)
+      mergeStep = ≈-Term-sym (coeC-invert (++-assoc b suf rt) _ _ (merge-assoc b suf rt))
       -- splitStep:  (split a⊗id)∘split(a++suf) ≈ coeD(sym e_a)(α⇐∘(id⊗split suf)∘split a{suf++rt})
       splitStep : (split a {suf} ⊗₁ id {wires rt}) ∘ split (a ++ suf) {rt}
                 ≈Term coeD (sym (++-assoc a suf rt)) (α⇐ ∘ (id {wires a} ⊗₁ split suf {rt}) ∘ split a {suf ++ rt})
       splitStep = ≈-Term-sym (coeD-invert (++-assoc a suf rt) _ _ (split-assoc a suf rt))
-      coeD-resp2 : ∀ {B p q} (eq : p ≡ q) {h h' : HomTerm (wires p) B}
-                 → h ≈Term h' → coeD eq h ≈Term coeD eq h'
-      coeD-resp2 refl e = e
       -- bookkeeping regroup of the 5-fold composite.
       regroup5 : merge (b ++ suf) ∘ (merge b ⊗₁ id ∘ ((g ⊗₁ id) ⊗₁ id ∘ split a ⊗₁ id)) ∘ split (a ++ suf)
                ≈Term (merge (b ++ suf) ∘ merge b ⊗₁ id) ∘ ((g ⊗₁ id {wires suf}) ⊗₁ id {wires rt}) ∘ (split a ⊗₁ id ∘ split (a ++ suf))
@@ -957,13 +865,13 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
         (merge (b ++ suf) ∘ merge b ⊗₁ id) ∘ (((g ⊗₁ id) ⊗₁ id ∘ split a ⊗₁ id) ∘ split (a ++ suf))
           ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
         (merge (b ++ suf) ∘ merge b ⊗₁ id) ∘ ((g ⊗₁ id) ⊗₁ id ∘ (split a ⊗₁ id ∘ split (a ++ suf))) ∎
-      -- pull the coeCA / coeD coercions out of the composite to the ends.
+      -- pull the coeC / coeD coercions out of the composite to the ends.
       pull-coe :
-          coeCA (sym (++-assoc b suf rt)) (merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒)
+          coeC (sym (++-assoc b suf rt)) (merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒)
             ∘ ((g ⊗₁ id {wires suf}) ⊗₁ id {wires rt})
             ∘ coeD (sym (++-assoc a suf rt)) (α⇐ ∘ (id {wires a} ⊗₁ split suf {rt}) ∘ split a {suf ++ rt})
         ≈Term coeD (sym (++-assoc a suf rt))
-                (coeCA (sym (++-assoc b suf rt))
+                (coeC (sym (++-assoc b suf rt))
                   ((merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒)
                     ∘ ((g ⊗₁ id {wires suf}) ⊗₁ id {wires rt})
                     ∘ (α⇐ ∘ (id {wires a} ⊗₁ split suf {rt}) ∘ split a {suf ++ rt})))
@@ -974,8 +882,8 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
                    (L : HomTerm C (wires pb))
                    (Mid : HomTerm D C)
                    (Rt : HomTerm (wires pa) D)
-               → coeCA eb L ∘ Mid ∘ coeD ea Rt
-                 ≈Term coeD ea (coeCA eb (L ∘ Mid ∘ Rt))
+               → coeC eb L ∘ Mid ∘ coeD ea Rt
+                 ≈Term coeD ea (coeC eb (L ∘ Mid ∘ Rt))
           pull refl refl L Mid Rt = ≈-Term-refl
       -- the core box-conjugation collapse (pure bifunctoriality + α + iso).
       core : (merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒)
@@ -1054,24 +962,21 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
               ≈⟨ ⊗-resp-≈ ≈-Term-refl (merge∘split suf) ⟩
             g ⊗₁ id ∎
 
-  -- rliftW commutes with the prefix `id {Var x} ⊗₁ _` (no coercion needed):
+  -- rpad commutes with the prefix `id {Var x} ⊗₁ _` (no coercion needed):
   --   merge(x∷v)∘((id⊗h)⊗id)∘split(x∷u)  ≈  id ⊗ (merge v ∘ (h⊗id) ∘ split u).
-  rliftW-id⊗ : ∀ (rt : List X) (x : X) {u v} (h : HomTerm (wires u) (wires v))
-             → rliftW rt (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ rliftW rt h
-  rliftW-id⊗ rt x {u} {v} h = begin
+  rpad-id⊗ : ∀ (rt : List X) (x : X) {u v} (h : HomTerm (wires u) (wires v))
+             → rpad rt (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ rpad rt h
+  rpad-id⊗ rt x {u} {v} h = begin
     (id {Var x} ⊗₁ merge v {rt} ∘ α⇒) ∘ ((id {Var x} ⊗₁ h) ⊗₁ id {wires rt}) ∘ (α⇐ ∘ id {Var x} ⊗₁ split u {rt})
       ≈⟨ reB ⟩
     id {Var x} ⊗₁ merge v {rt} ∘ ((α⇒ ∘ ((id {Var x} ⊗₁ h) ⊗₁ id {wires rt}) ∘ α⇐) ∘ id {Var x} ⊗₁ split u {rt})
       ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ midα ≈-Term-refl) ⟩
     id {Var x} ⊗₁ merge v {rt} ∘ ((id {Var x} ⊗₁ (h ⊗₁ id {wires rt})) ∘ id {Var x} ⊗₁ split u {rt})
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (id⊗-fuse (h ⊗₁ id {wires rt}) (split u {rt})) ⟩
+      ≈⟨ ∘-resp-≈ ≈-Term-refl (id⊗-∘ (h ⊗₁ id {wires rt}) (split u {rt})) ⟩
     id {Var x} ⊗₁ merge v {rt} ∘ id {Var x} ⊗₁ ((h ⊗₁ id {wires rt}) ∘ split u {rt})
-      ≈⟨ id⊗-fuse (merge v {rt}) ((h ⊗₁ id {wires rt}) ∘ split u {rt}) ⟩
+      ≈⟨ id⊗-∘ (merge v {rt}) ((h ⊗₁ id {wires rt}) ∘ split u {rt}) ⟩
     id {Var x} ⊗₁ (merge v {rt} ∘ ((h ⊗₁ id {wires rt}) ∘ split u {rt})) ∎
     where
-      id⊗-fuse : ∀ {Z A B C} (A' : HomTerm B C) (B' : HomTerm A B)
-               → id {Z} ⊗₁ A' ∘ id {Z} ⊗₁ B' ≈Term id {Z} ⊗₁ (A' ∘ B')
-      id⊗-fuse A' B' = ≈-Term-trans (≈-Term-sym ⊗-∘-dist) (⊗-resp-≈ idˡ ≈-Term-refl)
       -- α⇒ ∘ ((id⊗h)⊗id) ∘ α⇐ ≈ id ⊗ (h⊗id).
       midα : α⇒ ∘ ((id {Var x} ⊗₁ h) ⊗₁ id {wires rt}) ∘ α⇐
            ≈Term id {Var x} ⊗₁ (h ⊗₁ id {wires rt})
@@ -1100,64 +1005,41 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
           ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ assoc ≈-Term-refl) ⟩
         id ⊗₁ merge v ∘ ((α⇒ ∘ ((id ⊗₁ h) ⊗₁ id) ∘ α⇐) ∘ id ⊗₁ split u) ∎
 
-  -- rliftW / pad relation (suffix analogue of liftW-pad), by induction on pre.
-  rliftW-pad : ∀ {a b} (pre suf rt : List X) (g : HomTerm (wires a) (wires b))
-             → rliftW rt (pad pre suf g)
+  -- rpad / pad relation (suffix analogue of liftW-pad), by induction on pre.
+  rpad-pad : ∀ {a b} (pre suf rt : List X) (g : HomTerm (wires a) (wires b))
+             → rpad rt (pad pre suf g)
                ≈Term coeD (sym (reassoc++ pre a suf rt))
-                       (coeCA (sym (reassoc++ pre b suf rt)) (pad pre (suf ++ rt) g))
-  rliftW-pad {a} {b} []      suf rt g = begin
-    rliftW rt (rpad suf g)
+                       (coeC (sym (reassoc++ pre b suf rt)) (pad pre (suf ++ rt) g))
+  rpad-pad {a} {b} []      suf rt g = begin
+    rpad rt (rpad suf g)
       ≈⟨ rpad-fuse suf rt g ⟩
-    coeD (sym (++-assoc a suf rt)) (coeCA (sym (++-assoc b suf rt)) (rpad (suf ++ rt) g))
-      ≈⟨ castD (sym (++-assoc a suf rt)) (sym (reassoc++ [] a suf rt)) _ ⟩
-    coeD (sym (reassoc++ [] a suf rt)) (coeCA (sym (++-assoc b suf rt)) (rpad (suf ++ rt) g))
-      ≈⟨ castD-resp _ (castCA (sym (++-assoc b suf rt)) (sym (reassoc++ [] b suf rt)) _) ⟩
-    coeD (sym (reassoc++ [] a suf rt)) (coeCA (sym (reassoc++ [] b suf rt)) (rpad (suf ++ rt) g)) ∎
-    where
-      castD : ∀ {B p q} (e e' : p ≡ q) (h : HomTerm (wires p) B) → coeD e h ≈Term coeD e' h
-      castD e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
-      castCA : ∀ {A p q} (e e' : p ≡ q) (h : HomTerm A (wires p)) → coeCA e h ≈Term coeCA e' h
-      castCA e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
-      castD-resp : ∀ {B p q} (e : p ≡ q) {h h' : HomTerm (wires p) B} → h ≈Term h' → coeD e h ≈Term coeD e h'
-      castD-resp refl e = e
-  rliftW-pad {a} {b} (x ∷ p) suf rt g = begin
-    rliftW rt (id {Var x} ⊗₁ pad p suf g)
-      ≈⟨ rliftW-id⊗ rt x (pad p suf g) ⟩
-    id {Var x} ⊗₁ rliftW rt (pad p suf g)
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (rliftW-pad p suf rt g) ⟩
-    id {Var x} ⊗₁ coeD (sym (reassoc++ p a suf rt)) (coeCA (sym (reassoc++ p b suf rt)) (pad p (suf ++ rt) g))
-      ≈⟨ ≈-Term-sym (push-id⊗-coeD x (sym (reassoc++ p a suf rt)) _) ⟩
-    coeD (cong (x ∷_) (sym (reassoc++ p a suf rt))) (id {Var x} ⊗₁ coeCA (sym (reassoc++ p b suf rt)) (pad p (suf ++ rt) g))
-      ≈⟨ coeD-resp3 _ (≈-Term-sym (push-id⊗-coeCA2 x (sym (reassoc++ p b suf rt)) _)) ⟩
+    coeD (sym (++-assoc a suf rt)) (coeC (sym (++-assoc b suf rt)) (rpad (suf ++ rt) g))
+      ≈⟨ coeD-castU (sym (++-assoc a suf rt)) (sym (reassoc++ [] a suf rt)) _ ⟩
+    coeD (sym (reassoc++ [] a suf rt)) (coeC (sym (++-assoc b suf rt)) (rpad (suf ++ rt) g))
+      ≈⟨ coeD-resp _ (coeC-castU (sym (++-assoc b suf rt)) (sym (reassoc++ [] b suf rt)) _) ⟩
+    coeD (sym (reassoc++ [] a suf rt)) (coeC (sym (reassoc++ [] b suf rt)) (rpad (suf ++ rt) g)) ∎
+  rpad-pad {a} {b} (x ∷ p) suf rt g = begin
+    rpad rt (id {Var x} ⊗₁ pad p suf g)
+      ≈⟨ rpad-id⊗ rt x (pad p suf g) ⟩
+    id {Var x} ⊗₁ rpad rt (pad p suf g)
+      ≈⟨ ⊗-resp-≈ ≈-Term-refl (rpad-pad p suf rt g) ⟩
+    id {Var x} ⊗₁ coeD (sym (reassoc++ p a suf rt)) (coeC (sym (reassoc++ p b suf rt)) (pad p (suf ++ rt) g))
+      ≈⟨ ≈-Term-sym (coeD-id⊗ x (sym (reassoc++ p a suf rt)) _) ⟩
+    coeD (cong (x ∷_) (sym (reassoc++ p a suf rt))) (id {Var x} ⊗₁ coeC (sym (reassoc++ p b suf rt)) (pad p (suf ++ rt) g))
+      ≈⟨ coeD-resp _ (≈-Term-sym (coeC-id⊗ x (sym (reassoc++ p b suf rt)) _)) ⟩
     coeD (cong (x ∷_) (sym (reassoc++ p a suf rt)))
-      (coeCA (cong (x ∷_) (sym (reassoc++ p b suf rt))) (id {Var x} ⊗₁ pad p (suf ++ rt) g))
-      ≈⟨ coeD-castE (cong (x ∷_) (sym (reassoc++ p a suf rt))) (sym (reassoc++ (x ∷ p) a suf rt)) _ ⟩
+      (coeC (cong (x ∷_) (sym (reassoc++ p b suf rt))) (id {Var x} ⊗₁ pad p (suf ++ rt) g))
+      ≈⟨ coeD-castU (cong (x ∷_) (sym (reassoc++ p a suf rt))) (sym (reassoc++ (x ∷ p) a suf rt)) _ ⟩
     coeD (sym (reassoc++ (x ∷ p) a suf rt))
-      (coeCA (cong (x ∷_) (sym (reassoc++ p b suf rt))) (id {Var x} ⊗₁ pad p (suf ++ rt) g))
-      ≈⟨ coeD-resp3 _ (coeCA-castE (cong (x ∷_) (sym (reassoc++ p b suf rt))) (sym (reassoc++ (x ∷ p) b suf rt)) _) ⟩
+      (coeC (cong (x ∷_) (sym (reassoc++ p b suf rt))) (id {Var x} ⊗₁ pad p (suf ++ rt) g))
+      ≈⟨ coeD-resp _ (coeC-castU (cong (x ∷_) (sym (reassoc++ p b suf rt))) (sym (reassoc++ (x ∷ p) b suf rt)) _) ⟩
     coeD (sym (reassoc++ (x ∷ p) a suf rt))
-      (coeCA (sym (reassoc++ (x ∷ p) b suf rt)) (id {Var x} ⊗₁ pad p (suf ++ rt) g)) ∎
-    where
-      push-id⊗-coeD : ∀ (x : X) {p' q' B} (e : p' ≡ q') (h : HomTerm (wires p') B)
-                    → coeD (cong (x ∷_) e) (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ coeD e h
-      push-id⊗-coeD x refl h = ≈-Term-refl
-      push-id⊗-coeCA2 : ∀ (x : X) {R p' q'} (e : p' ≡ q') (h : HomTerm R (wires p'))
-                      → coeCA (cong (x ∷_) e) (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ coeCA e h
-      push-id⊗-coeCA2 x refl h = ≈-Term-refl
-      coeD-resp3 : ∀ {p' q' B} (e : p' ≡ q') {h h' : HomTerm (wires p') B}
-                 → h ≈Term h' → coeD e h ≈Term coeD e h'
-      coeD-resp3 refl e = e
-      coeD-castE : ∀ {p' q' B} (e e' : p' ≡ q') (h : HomTerm (wires p') B)
-                 → coeD e h ≈Term coeD e' h
-      coeD-castE e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
-      coeCA-castE : ∀ {A p' q'} (e e' : p' ≡ q') (h : HomTerm A (wires p'))
-                  → coeCA e h ≈Term coeCA e' h
-      coeCA-castE e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
+      (coeC (sym (reassoc++ (x ∷ p) b suf rt)) (id {Var x} ⊗₁ pad p (suf ++ rt) g)) ∎
 
-  -- shiftR soundness:  coeCod' (out-shiftR rt d) ⟦ shiftR rt d ⟧ ≈ rliftW rt ⟦ d ⟧.
+  -- shiftR soundness:  coeC (out-shiftR rt d) ⟦ shiftR rt d ⟧ ≈ rpad rt ⟦ d ⟧.
   shiftR-sound : ∀ {n} (rt : List X) (d : DiagU n)
-               → coeCod' (out-shiftR rt d) ⟦ shiftR rt d ⟧ ≈Term rliftW rt ⟦ d ⟧
-  shiftR-sound rt ([]_ n) = ≈-Term-sym (rliftW-id rt)
+               → coeC (out-shiftR rt d) ⟦ shiftR rt d ⟧ ≈Term rpad rt ⟦ d ⟧
+  shiftR-sound rt ([]_ n) = ≈-Term-sym (rpad-id rt)
   shiftR-sound rt (_▸_∷_⟨_⟩ {a} {b} pre suf f d) = goal
     where
       g = ⟦box⟧ f
@@ -1179,103 +1061,80 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       -- middle-object retype eq:  (pre++(b++suf))++rt ≡ pre++(b++(suf++rt)).
       eM : (pre ++ (b ++ suf)) ++ rt ≡ pre ++ (b ++ (suf ++ rt))
       eM = reassoc++ pre b suf rt
-      goal : coeCod' OUTcons ⟦ reidx (sym E1) ((pre ▸ (suf ++ rt) ∷ f ⟨ reidx E2 d' ⟩)) ⟧
-             ≈Term rliftW rt (⟦ d ⟧ ∘ pad pre suf g)
+      goal : coeC OUTcons ⟦ reidx (sym E1) ((pre ▸ (suf ++ rt) ∷ f ⟨ reidx E2 d' ⟩)) ⟧
+             ≈Term rpad rt (⟦ d ⟧ ∘ pad pre suf g)
       goal = begin
-        coeCod' OUTcons ⟦ reidx (sym E1) LAYER ⟧
-          ≈⟨ coeCod'-resp OUTcons (⟦reidx⟧ (sym E1) LAYER) ⟩
-        coeCod' OUTcons (coeDom (sym E1) (coeCod' (sym (out-reidx (sym E1) LAYER)) ⟦LAYER⟧))
+        coeC OUTcons ⟦ reidx (sym E1) LAYER ⟧
+          ≈⟨ coeC-resp OUTcons (⟦reidx⟧ (sym E1) LAYER) ⟩
+        coeC OUTcons (coeD (sym E1) (coeC (sym (out-reidx (sym E1) LAYER)) ⟦LAYER⟧))
           ≈⟨ coe-comm (sym E1) OUTcons _ ⟩
-        coeDom (sym E1) (coeCod' OUTcons (coeCod' (sym (out-reidx (sym E1) LAYER)) ⟦LAYER⟧))
-          ≈⟨ coeDom-resp (sym E1) (coeCod'-trans (sym (out-reidx (sym E1) LAYER)) OUTcons ⟦LAYER⟧) ⟩
-        coeDom (sym E1) (coeCod' (trans (sym (out-reidx (sym E1) LAYER)) OUTcons) ⟦LAYER⟧)
-          ≈⟨ coeDom-resp (sym E1) (coeCod'-castR (trans (sym (out-reidx (sym E1) LAYER)) OUTcons) eBridge ⟦LAYER⟧) ⟩
-        coeDom (sym E1) (coeCod' eBridge ⟦LAYER⟧)
-          ≈⟨ coeDom-resp (sym E1) (coeCod'-∘ eBridge ⟦ reidx E2 d' ⟧ (pad pre (suf ++ rt) g)) ⟩
-        coeDom (sym E1) (coeCod' eBridge ⟦ reidx E2 d' ⟧ ∘ pad pre (suf ++ rt) g)
-          ≈⟨ coeDom-∘R (sym E1) (coeCod' eBridge ⟦ reidx E2 d' ⟧) (pad pre (suf ++ rt) g) ⟩
-        coeCod' eBridge ⟦ reidx E2 d' ⟧ ∘ coeDom (sym E1) (pad pre (suf ++ rt) g)
-          ≈⟨ mid-retype eMrev (coeCod' eBridge ⟦ reidx E2 d' ⟧) (coeDom (sym E1) (pad pre (suf ++ rt) g)) ⟩
-        coeDom eMrev (coeCod' eBridge ⟦ reidx E2 d' ⟧) ∘ coeCod' eMrev (coeDom (sym E1) (pad pre (suf ++ rt) g))
+        coeD (sym E1) (coeC OUTcons (coeC (sym (out-reidx (sym E1) LAYER)) ⟦LAYER⟧))
+          ≈⟨ coeD-resp (sym E1) (coeC-trans (sym (out-reidx (sym E1) LAYER)) OUTcons ⟦LAYER⟧) ⟩
+        coeD (sym E1) (coeC (trans (sym (out-reidx (sym E1) LAYER)) OUTcons) ⟦LAYER⟧)
+          ≈⟨ coeD-resp (sym E1) (coeC-castU (trans (sym (out-reidx (sym E1) LAYER)) OUTcons) eBridge ⟦LAYER⟧) ⟩
+        coeD (sym E1) (coeC eBridge ⟦LAYER⟧)
+          ≈⟨ coeD-resp (sym E1) (coeC-∘ˡ eBridge ⟦ reidx E2 d' ⟧ (pad pre (suf ++ rt) g)) ⟩
+        coeD (sym E1) (coeC eBridge ⟦ reidx E2 d' ⟧ ∘ pad pre (suf ++ rt) g)
+          ≈⟨ coeD-∘ʳ (sym E1) (coeC eBridge ⟦ reidx E2 d' ⟧) (pad pre (suf ++ rt) g) ⟩
+        coeC eBridge ⟦ reidx E2 d' ⟧ ∘ coeD (sym E1) (pad pre (suf ++ rt) g)
+          ≈⟨ mid-retype eMrev (coeC eBridge ⟦ reidx E2 d' ⟧) (coeD (sym E1) (pad pre (suf ++ rt) g)) ⟩
+        coeD eMrev (coeC eBridge ⟦ reidx E2 d' ⟧) ∘ coeC eMrev (coeD (sym E1) (pad pre (suf ++ rt) g))
           ≈⟨ ∘-resp-≈ tailFold padFold ⟩
-        rliftW rt ⟦ d ⟧ ∘ rliftW rt (pad pre suf g)
-          ≈⟨ ≈-Term-sym (rliftW-∘ rt ⟦ d ⟧ (pad pre suf g)) ⟩
-        rliftW rt (⟦ d ⟧ ∘ pad pre suf g) ∎
+        rpad rt ⟦ d ⟧ ∘ rpad rt (pad pre suf g)
+          ≈⟨ ≈-Term-sym (rpad-∘ rt ⟦ d ⟧ (pad pre suf g)) ⟩
+        rpad rt (⟦ d ⟧ ∘ pad pre suf g) ∎
         where
           -- middle retype eq:  out(reidx E2 d') = out d ++ rt side
           --  domain of left factor = pre++(b++(suf++rt)); we retype it to
-          --  (pre++(b++suf))++rt to match rliftW rt ⟦d⟧ domain.
+          --  (pre++(b++suf))++rt to match rpad rt ⟦d⟧ domain.
           eMrev : pre ++ (b ++ (suf ++ rt)) ≡ (pre ++ (b ++ suf)) ++ rt
           eMrev = sym eM
-          coeCod'-castR : ∀ {N P Q} (e e' : P ≡ Q) (h : HomTerm (wires N) (wires P))
-                        → coeCod' e h ≈Term coeCod' e' h
-          coeCod'-castR e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
-          coeDom-∘R : ∀ {a' b' r p} (eq : a' ≡ b') (h : HomTerm (wires r) (wires p))
-                        (k : HomTerm (wires a') (wires r))
-                    → coeDom eq (h ∘ k) ≈Term h ∘ coeDom eq k
-          coeDom-∘R refl h k = ≈-Term-refl
-          mid-retype : ∀ {N P Q R} (eq : P ≡ Q) (h : HomTerm (wires P) (wires R))
-                         (j : HomTerm (wires N) (wires P))
-                     → h ∘ j ≈Term coeDom eq h ∘ coeCod' eq j
-          mid-retype refl h j = ≈-Term-refl
-          coeDom-trans2 : ∀ {p q s r} (e1 : p ≡ q) (e2 : q ≡ s) (h : HomTerm (wires p) (wires r))
-                        → coeDom e2 (coeDom e1 h) ≈Term coeDom (trans e1 e2) h
-          coeDom-trans2 refl refl h = ≈-Term-refl
-          coeDom-castR : ∀ {P r} (e e' : P ≡ P) (h : HomTerm (wires P) (wires r))
-                       → coeDom e h ≈Term coeDom e' h
-          coeDom-castR e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
-          tailFold : coeDom eMrev (coeCod' eBridge ⟦ reidx E2 d' ⟧) ≈Term rliftW rt ⟦ d ⟧
+          tailFold : coeD eMrev (coeC eBridge ⟦ reidx E2 d' ⟧) ≈Term rpad rt ⟦ d ⟧
           tailFold = begin
-            coeDom eMrev (coeCod' eBridge ⟦ reidx E2 d' ⟧)
-              ≈⟨ coeDom-resp eMrev (coeCod'-resp eBridge (⟦reidx⟧ E2 d')) ⟩
-            coeDom eMrev (coeCod' eBridge (coeDom E2 (coeCod' (sym eR) ⟦ d' ⟧)))
-              ≈⟨ coeDom-resp eMrev (coe-comm E2 eBridge _) ⟩
-            coeDom eMrev (coeDom E2 (coeCod' eBridge (coeCod' (sym eR) ⟦ d' ⟧)))
-              ≈⟨ coeDom-trans2 E2 eMrev (coeCod' eBridge (coeCod' (sym eR) ⟦ d' ⟧)) ⟩
-            coeDom (trans E2 eMrev) (coeCod' eBridge (coeCod' (sym eR) ⟦ d' ⟧))
-              ≈⟨ coeDom-castR (trans E2 eMrev) refl (coeCod' eBridge (coeCod' (sym eR) ⟦ d' ⟧)) ⟩
-            coeCod' eBridge (coeCod' (sym eR) ⟦ d' ⟧)
-              ≈⟨ coeCod'-trans (sym eR) eBridge ⟦ d' ⟧ ⟩
-            coeCod' (trans (sym eR) eBridge) ⟦ d' ⟧
-              ≈⟨ coeCod'-castR (trans (sym eR) eBridge) (out-shiftR rt d) ⟦ d' ⟧ ⟩
-            coeCod' (out-shiftR rt d) ⟦ d' ⟧
+            coeD eMrev (coeC eBridge ⟦ reidx E2 d' ⟧)
+              ≈⟨ coeD-resp eMrev (coeC-resp eBridge (⟦reidx⟧ E2 d')) ⟩
+            coeD eMrev (coeC eBridge (coeD E2 (coeC (sym eR) ⟦ d' ⟧)))
+              ≈⟨ coeD-resp eMrev (coe-comm E2 eBridge _) ⟩
+            coeD eMrev (coeD E2 (coeC eBridge (coeC (sym eR) ⟦ d' ⟧)))
+              ≈⟨ coeD-trans E2 eMrev (coeC eBridge (coeC (sym eR) ⟦ d' ⟧)) ⟩
+            coeD (trans E2 eMrev) (coeC eBridge (coeC (sym eR) ⟦ d' ⟧))
+              ≈⟨ coeD-castU (trans E2 eMrev) refl (coeC eBridge (coeC (sym eR) ⟦ d' ⟧)) ⟩
+            coeC eBridge (coeC (sym eR) ⟦ d' ⟧)
+              ≈⟨ coeC-trans (sym eR) eBridge ⟦ d' ⟧ ⟩
+            coeC (trans (sym eR) eBridge) ⟦ d' ⟧
+              ≈⟨ coeC-castU (trans (sym eR) eBridge) (out-shiftR rt d) ⟦ d' ⟧ ⟩
+            coeC (out-shiftR rt d) ⟦ d' ⟧
               ≈⟨ shiftR-sound rt d ⟩
-            rliftW rt ⟦ d ⟧ ∎
-          padFold : coeCod' eMrev (coeDom (sym E1) (pad pre (suf ++ rt) g)) ≈Term rliftW rt (pad pre suf g)
+            rpad rt ⟦ d ⟧ ∎
+          padFold : coeC eMrev (coeD (sym E1) (pad pre (suf ++ rt) g)) ≈Term rpad rt (pad pre suf g)
           padFold = begin
-            coeCod' eMrev (coeDom (sym E1) (pad pre (suf ++ rt) g))
-              ≈⟨ swap eMrev (sym E1) (pad pre (suf ++ rt) g) ⟩
-            coeD (sym E1) (coeCA eMrev (pad pre (suf ++ rt) g))
-              ≈⟨ ≈-Term-sym (rliftW-pad pre suf rt g) ⟩
-            rliftW rt (pad pre suf g) ∎
-            where
-              -- coeCod' (codomain) and coeDom (domain) are coeCA / coeD and commute.
-              swap : ∀ {p q p' q'} (ec : p ≡ q) (ed : p' ≡ q')
-                       (h : HomTerm (wires p') (wires p))
-                   → coeCod' ec (coeDom ed h) ≈Term coeD ed (coeCA ec h)
-              swap refl refl h = ≈-Term-refl
+            coeC eMrev (coeD (sym E1) (pad pre (suf ++ rt) g))
+              ≈⟨ coe-comm (sym E1) eMrev (pad pre (suf ++ rt) g) ⟩
+            coeD (sym E1) (coeC eMrev (pad pre (suf ++ rt) g))
+              ≈⟨ ≈-Term-sym (rpad-pad pre suf rt g) ⟩
+            rpad rt (pad pre suf g) ∎
 
   --------------------------------------------------------------------------------
   -- tensorD soundness (pure bifunctoriality, no σ):
-  --   coeCod' (out-tensorD dl dr) ⟦ tensorD dl dr ⟧
+  --   coeC (out-tensorD dl dr) ⟦ tensorD dl dr ⟧
   --     ≈ merge (out dl) ∘ (⟦ dl ⟧ ⊗₁ ⟦ dr ⟧) ∘ split nl
   -- the wire-grouping bridge between `wires nl ⊗₀ wires nr` and `wires (nl++nr)`.
   --------------------------------------------------------------------------------
   tensorD-sound : ∀ {nl nr} (dl : DiagU nl) (dr : DiagU nr)
-                → coeCod' (out-tensorD dl dr) ⟦ tensorD dl dr ⟧
+                → coeC (out-tensorD dl dr) ⟦ tensorD dl dr ⟧
                   ≈Term merge (out dl) {out dr} ∘ (⟦ dl ⟧ ⊗₁ ⟦ dr ⟧) ∘ split nl {nr}
   tensorD-sound {nl} {nr} dl dr = begin
-    coeCod' (out-tensorD dl dr) ⟦ shiftR nr dl ∘ᵈ d2 ⟧
-      ≈⟨ coeCod'-uipT (out-tensorD dl dr) (trans (out-∘ᵈ (shiftR nr dl) d2) eBr) ⟦ shiftR nr dl ∘ᵈ d2 ⟧ ⟩
-    coeCod' (trans (out-∘ᵈ (shiftR nr dl) d2) eBr) ⟦ shiftR nr dl ∘ᵈ d2 ⟧
-      ≈⟨ ≈-Term-sym (coeCod'-trans (out-∘ᵈ (shiftR nr dl) d2) eBr ⟦ shiftR nr dl ∘ᵈ d2 ⟧) ⟩
-    coeCod' eBr (coeCod' (out-∘ᵈ (shiftR nr dl) d2) ⟦ shiftR nr dl ∘ᵈ d2 ⟧)
-      ≈⟨ coeCod'-resp eBr (∘ᵈ-sound (shiftR nr dl) d2) ⟩
-    coeCod' eBr (⟦ d2 ⟧ ∘ ⟦ shiftR nr dl ⟧)
-      ≈⟨ coeCod'-∘ eBr ⟦ d2 ⟧ ⟦ shiftR nr dl ⟧ ⟩
-    coeCod' eBr ⟦ d2 ⟧ ∘ ⟦ shiftR nr dl ⟧
-      ≈⟨ mid-retype eSR (coeCod' eBr ⟦ d2 ⟧) ⟦ shiftR nr dl ⟧ ⟩
-    coeDom eSR (coeCod' eBr ⟦ d2 ⟧) ∘ coeCod' eSR ⟦ shiftR nr dl ⟧
+    coeC (out-tensorD dl dr) ⟦ shiftR nr dl ∘ᵈ d2 ⟧
+      ≈⟨ coeC-castU (out-tensorD dl dr) (trans (out-∘ᵈ (shiftR nr dl) d2) eBr) ⟦ shiftR nr dl ∘ᵈ d2 ⟧ ⟩
+    coeC (trans (out-∘ᵈ (shiftR nr dl) d2) eBr) ⟦ shiftR nr dl ∘ᵈ d2 ⟧
+      ≈⟨ ≈-Term-sym (coeC-trans (out-∘ᵈ (shiftR nr dl) d2) eBr ⟦ shiftR nr dl ∘ᵈ d2 ⟧) ⟩
+    coeC eBr (coeC (out-∘ᵈ (shiftR nr dl) d2) ⟦ shiftR nr dl ∘ᵈ d2 ⟧)
+      ≈⟨ coeC-resp eBr (∘ᵈ-sound (shiftR nr dl) d2) ⟩
+    coeC eBr (⟦ d2 ⟧ ∘ ⟦ shiftR nr dl ⟧)
+      ≈⟨ coeC-∘ˡ eBr ⟦ d2 ⟧ ⟦ shiftR nr dl ⟧ ⟩
+    coeC eBr ⟦ d2 ⟧ ∘ ⟦ shiftR nr dl ⟧
+      ≈⟨ mid-retype eSR (coeC eBr ⟦ d2 ⟧) ⟦ shiftR nr dl ⟧ ⟩
+    coeD eSR (coeC eBr ⟦ d2 ⟧) ∘ coeC eSR ⟦ shiftR nr dl ⟧
       ≈⟨ ∘-resp-≈ d2Fold shiftRfold ⟩
     (merge (out dl) {out dr} ∘ (id {wires (out dl)} ⊗₁ ⟦ dr ⟧) ∘ split (out dl) {nr})
       ∘ (merge (out dl) {nr} ∘ (⟦ dl ⟧ ⊗₁ id {wires nr}) ∘ split nl {nr})
@@ -1290,49 +1149,31 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       -- bridge:  out d2 ≡ out dl ++ out dr.
       eBr : out d2 ≡ out dl ++ out dr
       eBr = trans eR2 (out-shiftL (out dl) dr)
-      coeCod'-uipT : ∀ {N P} (e e' : P ≡ out dl ++ out dr) (h : HomTerm (wires N) (wires P))
-                   → coeCod' e h ≈Term coeCod' e' h
-      coeCod'-uipT e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
-      -- retype the middle object `out (shiftR nr dl)` ≡ `out dl ++ nr`.
-      mid-retype : ∀ {N P Q R} (eq : P ≡ Q) (h : HomTerm (wires P) (wires R))
-                     (j : HomTerm (wires N) (wires P))
-                 → h ∘ j ≈Term coeDom eq h ∘ coeCod' eq j
-      mid-retype refl h j = ≈-Term-refl
-      -- ⟦ shiftR nr dl ⟧, codomain-retyped, folds to rliftW nr ⟦dl⟧.
-      shiftRfold : coeCod' eSR ⟦ shiftR nr dl ⟧
+      -- ⟦ shiftR nr dl ⟧, codomain-retyped, folds to rpad nr ⟦dl⟧.
+      shiftRfold : coeC eSR ⟦ shiftR nr dl ⟧
                  ≈Term merge (out dl) {nr} ∘ (⟦ dl ⟧ ⊗₁ id {wires nr}) ∘ split nl {nr}
       shiftRfold = shiftR-sound nr dl
-      -- coeDom eSR (coeCod' eBr ⟦ d2 ⟧) folds to liftW (out dl) ⟦dr⟧ = bridge form.
-      d2Fold : coeDom eSR (coeCod' eBr ⟦ d2 ⟧)
+      -- coeD eSR (coeC eBr ⟦ d2 ⟧) folds to liftW (out dl) ⟦dr⟧ = bridge form.
+      d2Fold : coeD eSR (coeC eBr ⟦ d2 ⟧)
              ≈Term merge (out dl) {out dr} ∘ (id {wires (out dl)} ⊗₁ ⟦ dr ⟧) ∘ split (out dl) {nr}
       d2Fold = begin
-        coeDom eSR (coeCod' eBr ⟦ d2 ⟧)
-          ≈⟨ coeDom-resp eSR (coeCod'-resp eBr (⟦reidx⟧ (sym (out-shiftR nr dl)) (shiftL (out dl) dr))) ⟩
-        coeDom eSR (coeCod' eBr (coeDom (sym eSR) (coeCod' (sym eR2) ⟦ shiftL (out dl) dr ⟧)))
-          ≈⟨ coeDom-resp eSR (coe-comm (sym eSR) eBr _) ⟩
-        coeDom eSR (coeDom (sym eSR) (coeCod' eBr (coeCod' (sym eR2) ⟦ shiftL (out dl) dr ⟧)))
-          ≈⟨ coeDom-trans2T (sym eSR) eSR (coeCod' eBr (coeCod' (sym eR2) ⟦ shiftL (out dl) dr ⟧)) ⟩
-        coeDom (trans (sym eSR) eSR) (coeCod' eBr (coeCod' (sym eR2) ⟦ shiftL (out dl) dr ⟧))
-          ≈⟨ coeDom-castT (trans (sym eSR) eSR) refl (coeCod' eBr (coeCod' (sym eR2) ⟦ shiftL (out dl) dr ⟧)) ⟩
-        coeCod' eBr (coeCod' (sym eR2) ⟦ shiftL (out dl) dr ⟧)
-          ≈⟨ coeCod'-trans (sym eR2) eBr ⟦ shiftL (out dl) dr ⟧ ⟩
-        coeCod' (trans (sym eR2) eBr) ⟦ shiftL (out dl) dr ⟧
-          ≈⟨ coeCod'-castT (trans (sym eR2) eBr) (out-shiftL (out dl) dr) ⟦ shiftL (out dl) dr ⟧ ⟩
-        coeCod' (out-shiftL (out dl) dr) ⟦ shiftL (out dl) dr ⟧
+        coeD eSR (coeC eBr ⟦ d2 ⟧)
+          ≈⟨ coeD-resp eSR (coeC-resp eBr (⟦reidx⟧ (sym (out-shiftR nr dl)) (shiftL (out dl) dr))) ⟩
+        coeD eSR (coeC eBr (coeD (sym eSR) (coeC (sym eR2) ⟦ shiftL (out dl) dr ⟧)))
+          ≈⟨ coeD-resp eSR (coe-comm (sym eSR) eBr _) ⟩
+        coeD eSR (coeD (sym eSR) (coeC eBr (coeC (sym eR2) ⟦ shiftL (out dl) dr ⟧)))
+          ≈⟨ coeD-trans (sym eSR) eSR (coeC eBr (coeC (sym eR2) ⟦ shiftL (out dl) dr ⟧)) ⟩
+        coeD (trans (sym eSR) eSR) (coeC eBr (coeC (sym eR2) ⟦ shiftL (out dl) dr ⟧))
+          ≈⟨ coeD-castU (trans (sym eSR) eSR) refl (coeC eBr (coeC (sym eR2) ⟦ shiftL (out dl) dr ⟧)) ⟩
+        coeC eBr (coeC (sym eR2) ⟦ shiftL (out dl) dr ⟧)
+          ≈⟨ coeC-trans (sym eR2) eBr ⟦ shiftL (out dl) dr ⟧ ⟩
+        coeC (trans (sym eR2) eBr) ⟦ shiftL (out dl) dr ⟧
+          ≈⟨ coeC-castU (trans (sym eR2) eBr) (out-shiftL (out dl) dr) ⟦ shiftL (out dl) dr ⟧ ⟩
+        coeC (out-shiftL (out dl) dr) ⟦ shiftL (out dl) dr ⟧
           ≈⟨ shiftL-sound (out dl) dr ⟩
         liftW (out dl) ⟦ dr ⟧
           ≈⟨ liftW-merge (out dl) ⟦ dr ⟧ ⟩
         merge (out dl) {out dr} ∘ (id {wires (out dl)} ⊗₁ ⟦ dr ⟧) ∘ split (out dl) {nr} ∎
-        where
-          coeCod'-castT : ∀ {N P Q} (e e' : P ≡ Q) (h : HomTerm (wires N) (wires P))
-                        → coeCod' e h ≈Term coeCod' e' h
-          coeCod'-castT e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
-          coeDom-trans2T : ∀ {p q s r} (e1 : p ≡ q) (e2 : q ≡ s) (h : HomTerm (wires p) (wires r))
-                         → coeDom e2 (coeDom e1 h) ≈Term coeDom (trans e1 e2) h
-          coeDom-trans2T refl refl h = ≈-Term-refl
-          coeDom-castT : ∀ {P r} (e e' : P ≡ P) (h : HomTerm (wires P) (wires r))
-                       → coeDom e h ≈Term coeDom e' h
-          coeDom-castT e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
       -- the central bifunctoriality collapse.
       collapse :
           (merge (out dl) {out dr} ∘ (id {wires (out dl)} ⊗₁ ⟦ dr ⟧) ∘ split (out dl) {nr})
@@ -1375,14 +1216,14 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
               ≈⟨ assoc ⟩
             merge (out dl) ∘ (((id ⊗₁ ⟦ dr ⟧) ∘ (split (out dl) ∘ merge (out dl)) ∘ (⟦ dl ⟧ ⊗₁ id)) ∘ split nl) ∎
 
-  --   coeCod' (out-reflect t) ⟦ reflect t ⟧  ≈Term  embed t
+  --   coeC (out-reflect t) ⟦ reflect t ⟧  ≈Term  embed t
   -- i.e. the reflected diagram, with its codomain reindexed to match, equals
   -- the original wire-fragment morphism.
   --------------------------------------------------------------------------------
-  reflect-sound : BoxSound → ∀ {n m} (t : WTerm n m)
-                → coeCod' (out-reflect t) ⟦ reflect t ⟧ ≈Term embed t
-  reflect-sound bs idʷ = ≈-Term-refl
-  reflect-sound bs (_∘ʷ_ {n} {m} {k} g f) = goal
+  reflect-sound : ∀ {n m} (t : WTerm n m)
+                → coeC (out-reflect t) ⟦ reflect t ⟧ ≈Term embed t
+  reflect-sound idʷ = ≈-Term-refl
+  reflect-sound (_∘ʷ_ {n} {m} {k} g f) = goal
     where
       -- abbreviations
       df = reflect f
@@ -1390,88 +1231,63 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ef = out-reflect f                -- out df ≡ m
       dg' = reidx (sym ef) dg           -- DiagU (out df)
       eg' = out-reidx (sym ef) dg       -- out dg' ≡ out dg
-      -- step 1: push coeCod' through ∘ᵈ-sound.
-      goal : coeCod' (out-reflect (g ∘ʷ f)) ⟦ df ∘ᵈ dg' ⟧ ≈Term embed g ∘ embed f
+      -- step 1: push coeC through ∘ᵈ-sound.
+      goal : coeC (out-reflect (g ∘ʷ f)) ⟦ df ∘ᵈ dg' ⟧ ≈Term embed g ∘ embed f
       goal = begin
-        coeCod' (out-reflect (g ∘ʷ f)) ⟦ df ∘ᵈ dg' ⟧
-          ≈⟨ coeCod'-uip (out-reflect (g ∘ʷ f)) (trans (out-∘ᵈ df dg') eg-bridge) ⟦ df ∘ᵈ dg' ⟧ ⟩
-        coeCod' (trans (out-∘ᵈ df dg') eg-bridge) ⟦ df ∘ᵈ dg' ⟧
-          ≈⟨ ≈-Term-sym (coeCod'-trans (out-∘ᵈ df dg') eg-bridge ⟦ df ∘ᵈ dg' ⟧) ⟩
-        coeCod' eg-bridge (coeCod' (out-∘ᵈ df dg') ⟦ df ∘ᵈ dg' ⟧)
-          ≈⟨ coeCod'-resp eg-bridge (∘ᵈ-sound df dg') ⟩
-        coeCod' eg-bridge (⟦ dg' ⟧ ∘ ⟦ df ⟧)
-          ≈⟨ coeCod'-∘ eg-bridge ⟦ dg' ⟧ ⟦ df ⟧ ⟩
-        coeCod' eg-bridge ⟦ dg' ⟧ ∘ ⟦ df ⟧
-          ≈⟨ mid-retype ef (coeCod' eg-bridge ⟦ dg' ⟧) ⟦ df ⟧ ⟩
-        coeDom ef (coeCod' eg-bridge ⟦ dg' ⟧) ∘ coeCod' ef ⟦ df ⟧
+        coeC (out-reflect (g ∘ʷ f)) ⟦ df ∘ᵈ dg' ⟧
+          ≈⟨ coeC-castU (out-reflect (g ∘ʷ f)) (trans (out-∘ᵈ df dg') eg-bridge) ⟦ df ∘ᵈ dg' ⟧ ⟩
+        coeC (trans (out-∘ᵈ df dg') eg-bridge) ⟦ df ∘ᵈ dg' ⟧
+          ≈⟨ ≈-Term-sym (coeC-trans (out-∘ᵈ df dg') eg-bridge ⟦ df ∘ᵈ dg' ⟧) ⟩
+        coeC eg-bridge (coeC (out-∘ᵈ df dg') ⟦ df ∘ᵈ dg' ⟧)
+          ≈⟨ coeC-resp eg-bridge (∘ᵈ-sound df dg') ⟩
+        coeC eg-bridge (⟦ dg' ⟧ ∘ ⟦ df ⟧)
+          ≈⟨ coeC-∘ˡ eg-bridge ⟦ dg' ⟧ ⟦ df ⟧ ⟩
+        coeC eg-bridge ⟦ dg' ⟧ ∘ ⟦ df ⟧
+          ≈⟨ mid-retype ef (coeC eg-bridge ⟦ dg' ⟧) ⟦ df ⟧ ⟩
+        coeD ef (coeC eg-bridge ⟦ dg' ⟧) ∘ coeC ef ⟦ df ⟧
           ≈⟨ ∘-resp-≈ dg'-sound df-sound ⟩
         embed g ∘ embed f ∎
         where
           -- bridge:  out dg' ≡ k   (out dg' = out (reidx (sym ef) dg) ≡ out dg ≡ k)
           eg-bridge : out dg' ≡ k
           eg-bridge = trans (out-reidx (sym ef) dg) (out-reflect g)
-          -- any two codomain coercions with the same source & target agree (UIP).
-          coeCod'-uip : ∀ {N P} (e e' : P ≡ k) (h : HomTerm (wires N) (wires P))
-                      → coeCod' e h ≈Term coeCod' e' h
-          coeCod'-uip e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
-          -- retype the middle object of a composite (transports cancel).
-          mid-retype : ∀ {N P Q} (eq : P ≡ Q) (h : HomTerm (wires P) (wires k))
-                         (j : HomTerm (wires N) (wires P))
-                     → h ∘ j ≈Term coeDom eq h ∘ coeCod' eq j
-          mid-retype refl h j = ≈-Term-refl
-          dg'-sound : coeDom ef (coeCod' eg-bridge ⟦ dg' ⟧) ≈Term embed g
+          dg'-sound : coeD ef (coeC eg-bridge ⟦ dg' ⟧) ≈Term embed g
           dg'-sound = begin
-            coeDom ef (coeCod' eg-bridge ⟦ dg' ⟧)
-              ≈⟨ coeDom-resp ef (coeCod'-resp eg-bridge (⟦reidx⟧ (sym ef) dg)) ⟩
-            coeDom ef (coeCod' eg-bridge (coeDom (sym ef) (coeCod' (sym eg') ⟦ dg ⟧)))
-              ≈⟨ coeDom-resp ef (coe-comm (sym ef) eg-bridge (coeCod' (sym eg') ⟦ dg ⟧)) ⟩
-            coeDom ef (coeDom (sym ef) (coeCod' eg-bridge (coeCod' (sym eg') ⟦ dg ⟧)))
-              ≈⟨ coeDom-trans (sym ef) ef (coeCod' eg-bridge (coeCod' (sym eg') ⟦ dg ⟧)) ⟩
-            coeDom (trans (sym ef) ef) (coeCod' eg-bridge (coeCod' (sym eg') ⟦ dg ⟧))
-              ≈⟨ coeDom-cast (trans (sym ef) ef) refl (coeCod' eg-bridge (coeCod' (sym eg') ⟦ dg ⟧)) ⟩
-            coeCod' eg-bridge (coeCod' (sym eg') ⟦ dg ⟧)
-              ≈⟨ coeCod'-trans (sym eg') eg-bridge ⟦ dg ⟧ ⟩
-            coeCod' (trans (sym eg') eg-bridge) ⟦ dg ⟧
-              ≈⟨ coeCod'-cast (trans (sym eg') eg-bridge) (out-reflect g) ⟦ dg ⟧ ⟩
-            coeCod' (out-reflect g) ⟦ dg ⟧
-              ≈⟨ reflect-sound bs g ⟩
+            coeD ef (coeC eg-bridge ⟦ dg' ⟧)
+              ≈⟨ coeD-resp ef (coeC-resp eg-bridge (⟦reidx⟧ (sym ef) dg)) ⟩
+            coeD ef (coeC eg-bridge (coeD (sym ef) (coeC (sym eg') ⟦ dg ⟧)))
+              ≈⟨ coeD-resp ef (coe-comm (sym ef) eg-bridge (coeC (sym eg') ⟦ dg ⟧)) ⟩
+            coeD ef (coeD (sym ef) (coeC eg-bridge (coeC (sym eg') ⟦ dg ⟧)))
+              ≈⟨ coeD-trans (sym ef) ef (coeC eg-bridge (coeC (sym eg') ⟦ dg ⟧)) ⟩
+            coeD (trans (sym ef) ef) (coeC eg-bridge (coeC (sym eg') ⟦ dg ⟧))
+              ≈⟨ coeD-castU (trans (sym ef) ef) refl (coeC eg-bridge (coeC (sym eg') ⟦ dg ⟧)) ⟩
+            coeC eg-bridge (coeC (sym eg') ⟦ dg ⟧)
+              ≈⟨ coeC-trans (sym eg') eg-bridge ⟦ dg ⟧ ⟩
+            coeC (trans (sym eg') eg-bridge) ⟦ dg ⟧
+              ≈⟨ coeC-castU (trans (sym eg') eg-bridge) (out-reflect g) ⟦ dg ⟧ ⟩
+            coeC (out-reflect g) ⟦ dg ⟧
+              ≈⟨ reflect-sound g ⟩
             embed g ∎
-            where
-              coeCod'-cast : ∀ {N P} (e e' : P ≡ k) (h : HomTerm (wires N) (wires P))
-                           → coeCod' e h ≈Term coeCod' e' h
-              coeCod'-cast e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
-              -- collapse two stacked domain coercions.
-              coeDom-trans : ∀ {a b c p} (e1 : a ≡ b) (e2 : b ≡ c) (h : HomTerm (wires a) (wires p))
-                           → coeDom e2 (coeDom e1 h) ≈Term coeDom (trans e1 e2) h
-              coeDom-trans refl refl h = ≈-Term-refl
-              -- recast a domain coe along a propositionally-equal (UIP) eq.
-              coeDom-cast : ∀ {N} (e e' : m ≡ m) (h : HomTerm (wires m) (wires N))
-                          → coeDom e h ≈Term coeDom e' h
-              coeDom-cast e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
-          df-sound : coeCod' ef ⟦ df ⟧ ≈Term embed f
-          df-sound = reflect-sound bs f
-  reflect-sound bs (boxʷ {a} {b} g) = goal
+          df-sound : coeC ef ⟦ df ⟧ ≈Term embed f
+          df-sound = reflect-sound f
+  reflect-sound (boxʷ {a} {b} g) = goal
     where
-      goal : coeCod' (out-reflect (boxʷ g)) ⟦ reflect (boxʷ g) ⟧ ≈Term ⟦box⟧ g
+      goal : coeC (out-reflect (boxʷ g)) ⟦ reflect (boxʷ g) ⟧ ≈Term ⟦box⟧ g
       goal = begin
-        coeCod' (out-reflect (boxʷ g)) ⟦ reidx (++-identityʳ a) (boxD g) ⟧
-          ≈⟨ coeCod'-resp _ (⟦reidx⟧ (++-identityʳ a) (boxD g)) ⟩
-        coeCod' (out-reflect (boxʷ g))
-          (coeDom (++-identityʳ a) (coeCod' (sym (out-reidx (++-identityʳ a) (boxD g))) ⟦ boxD g ⟧))
+        coeC (out-reflect (boxʷ g)) ⟦ reidx (++-identityʳ a) (boxD g) ⟧
+          ≈⟨ coeC-resp _ (⟦reidx⟧ (++-identityʳ a) (boxD g)) ⟩
+        coeC (out-reflect (boxʷ g))
+          (coeD (++-identityʳ a) (coeC (sym (out-reidx (++-identityʳ a) (boxD g))) ⟦ boxD g ⟧))
           ≈⟨ coe-comm (++-identityʳ a) (out-reflect (boxʷ g)) _ ⟩
-        coeDom (++-identityʳ a)
-          (coeCod' (out-reflect (boxʷ g)) (coeCod' (sym (out-reidx (++-identityʳ a) (boxD g))) ⟦ boxD g ⟧))
-          ≈⟨ coeDom-resp (++-identityʳ a) (coeCod'-trans (sym (out-reidx (++-identityʳ a) (boxD g))) (out-reflect (boxʷ g)) ⟦ boxD g ⟧) ⟩
-        coeDom (++-identityʳ a) (coeCod' (trans (sym (out-reidx (++-identityʳ a) (boxD g))) (out-reflect (boxʷ g))) ⟦ boxD g ⟧)
-          ≈⟨ coeDom-resp (++-identityʳ a) (coeCod'-cast2 (trans (sym (out-reidx (++-identityʳ a) (boxD g))) (out-reflect (boxʷ g))) (++-identityʳ b) ⟦ boxD g ⟧) ⟩
-        coeDom (++-identityʳ a) (coeCod' (++-identityʳ b) ⟦ boxD g ⟧)
-          ≈⟨ bs g ⟩
+        coeD (++-identityʳ a)
+          (coeC (out-reflect (boxʷ g)) (coeC (sym (out-reidx (++-identityʳ a) (boxD g))) ⟦ boxD g ⟧))
+          ≈⟨ coeD-resp (++-identityʳ a) (coeC-trans (sym (out-reidx (++-identityʳ a) (boxD g))) (out-reflect (boxʷ g)) ⟦ boxD g ⟧) ⟩
+        coeD (++-identityʳ a) (coeC (trans (sym (out-reidx (++-identityʳ a) (boxD g))) (out-reflect (boxʷ g))) ⟦ boxD g ⟧)
+          ≈⟨ coeD-resp (++-identityʳ a) (coeC-castU (trans (sym (out-reidx (++-identityʳ a) (boxD g))) (out-reflect (boxʷ g))) (++-identityʳ b) ⟦ boxD g ⟧) ⟩
+        coeD (++-identityʳ a) (coeC (++-identityʳ b) ⟦ boxD g ⟧)
+          ≈⟨ boxSound g ⟩
         ⟦box⟧ g ∎
-        where
-          coeCod'-cast2 : ∀ {N P Q} (e e' : P ≡ Q) (h : HomTerm (wires N) (wires P))
-                        → coeCod' e h ≈Term coeCod' e' h
-          coeCod'-cast2 e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
-  reflect-sound bs (_⊗ʷ_ {nl} {ml} {nr} {mr} s t) = goal
+  reflect-sound (_⊗ʷ_ {nl} {ml} {nr} {mr} s t) = goal
     where
       ds = reflect s
       dt = reflect t
@@ -1479,29 +1295,26 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       es = out-reflect s
       et : out dt ≡ mr
       et = out-reflect t
-      goal : coeCod' (out-reflect (s ⊗ʷ t)) ⟦ tensorD ds dt ⟧
+      goal : coeC (out-reflect (s ⊗ʷ t)) ⟦ tensorD ds dt ⟧
              ≈Term merge ml {mr} ∘ (embed s ⊗₁ embed t) ∘ split nl {nr}
       goal = begin
-        coeCod' (out-reflect (s ⊗ʷ t)) ⟦ tensorD ds dt ⟧
-          ≈⟨ coeCod'-uipG (out-reflect (s ⊗ʷ t)) (trans (out-tensorD ds dt) (cong₂ _++_ es et)) ⟦ tensorD ds dt ⟧ ⟩
-        coeCod' (trans (out-tensorD ds dt) (cong₂ _++_ es et)) ⟦ tensorD ds dt ⟧
-          ≈⟨ ≈-Term-sym (coeCod'-trans (out-tensorD ds dt) (cong₂ _++_ es et) ⟦ tensorD ds dt ⟧) ⟩
-        coeCod' (cong₂ _++_ es et) (coeCod' (out-tensorD ds dt) ⟦ tensorD ds dt ⟧)
-          ≈⟨ coeCod'-resp (cong₂ _++_ es et) (tensorD-sound ds dt) ⟩
-        coeCod' (cong₂ _++_ es et) (merge (out ds) {out dt} ∘ (⟦ ds ⟧ ⊗₁ ⟦ dt ⟧) ∘ split nl {nr})
+        coeC (out-reflect (s ⊗ʷ t)) ⟦ tensorD ds dt ⟧
+          ≈⟨ coeC-castU (out-reflect (s ⊗ʷ t)) (trans (out-tensorD ds dt) (cong₂ _++_ es et)) ⟦ tensorD ds dt ⟧ ⟩
+        coeC (trans (out-tensorD ds dt) (cong₂ _++_ es et)) ⟦ tensorD ds dt ⟧
+          ≈⟨ ≈-Term-sym (coeC-trans (out-tensorD ds dt) (cong₂ _++_ es et) ⟦ tensorD ds dt ⟧) ⟩
+        coeC (cong₂ _++_ es et) (coeC (out-tensorD ds dt) ⟦ tensorD ds dt ⟧)
+          ≈⟨ coeC-resp (cong₂ _++_ es et) (tensorD-sound ds dt) ⟩
+        coeC (cong₂ _++_ es et) (merge (out ds) {out dt} ∘ (⟦ ds ⟧ ⊗₁ ⟦ dt ⟧) ∘ split nl {nr})
           ≈⟨ tensorBridge es et ⟩
-        merge ml {mr} ∘ ((coeCod' es ⟦ ds ⟧ ⊗₁ coeCod' et ⟦ dt ⟧)) ∘ split nl {nr}
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ (reflect-sound bs s) (reflect-sound bs t)) ≈-Term-refl) ⟩
+        merge ml {mr} ∘ ((coeC es ⟦ ds ⟧ ⊗₁ coeC et ⟦ dt ⟧)) ∘ split nl {nr}
+          ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ (reflect-sound s) (reflect-sound t)) ≈-Term-refl) ⟩
         merge ml {mr} ∘ (embed s ⊗₁ embed t) ∘ split nl {nr} ∎
         where
-          coeCod'-uipG : ∀ {N P} (e e' : P ≡ ml ++ mr) (h : HomTerm (wires N) (wires P))
-                       → coeCod' e h ≈Term coeCod' e' h
-          coeCod'-uipG e e' h rewrite ≡-irrelevant e e' = ≈-Term-refl
           -- transport the merge-bridge along  out ds ≡ ml,  out dt ≡ mr.
           tensorBridge : ∀ {ml' mr'} (es : out ds ≡ ml') (et : out dt ≡ mr')
-                       → coeCod' (cong₂ _++_ es et)
+                       → coeC (cong₂ _++_ es et)
                            (merge (out ds) {out dt} ∘ (⟦ ds ⟧ ⊗₁ ⟦ dt ⟧) ∘ split nl {nr})
-                         ≈Term merge ml' {mr'} ∘ ((coeCod' es ⟦ ds ⟧ ⊗₁ coeCod' et ⟦ dt ⟧)) ∘ split nl {nr}
+                         ≈Term merge ml' {mr'} ∘ ((coeC es ⟦ ds ⟧ ⊗₁ coeC et ⟦ dt ⟧)) ∘ split nl {nr}
           tensorBridge refl refl = ≈-Term-refl
 
 --------------------------------------------------------------------------------
