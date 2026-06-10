@@ -71,26 +71,27 @@
 
 module Categories.SolverSigma where
 
-open import Data.Bool using (Bool; true; false)
+open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
+open import Data.Bool using (Bool; true; false; not; _∨_; if_then_else_)
 open import Data.Empty using (⊥)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc; ≡-dec)
-open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Maybe using (Maybe; just; nothing; _<∣>_)
 open import Data.Maybe.Properties using (just-injective)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _<ᵇ_)
 open import Data.Product using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Unit using (⊤; tt)
-open import Relation.Nullary using (Dec; yes; no; ¬_)
+open import Function using (case_of_)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong)
-open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
+open import Relation.Nullary using (Dec; yes; no; ¬_)
 
-open import Categories.FreeMonoidal
 open import Categories.DiagramRewriteUntyped using (module WireSig; module UntypedI)
-open import Categories.SolverReflect using (module ReflectI)
-open import Categories.SolverNormalize using (module NormalizeI)
+open import Categories.FreeMonoidal
 open import Categories.SolverCompare using (module SolverCompareI)
+open import Categories.SolverNormalize using (module NormalizeI)
+open import Categories.SolverReflect using (module ReflectI)
 
 module Sigma {X : Set} (_≟X_ : DecidableEquality X)
              (Mor : List X → List X → Set) where
@@ -254,7 +255,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     ; LeftFit; leftFit
     ; dInput; dSwapped; dInput-out; dSwapped-out; diagU-swap-soundD; domeq
     ; assocW-castW; assocW⁻-castW; liftW-castW; castW-∷
-    ; castW-sym-r; castW-sym-r-flip; castW-cancelʳ
+    ; castW-sym-r
     ; module SortD )
   open SortD using (leftFit?; stripPrefix)
 
@@ -350,8 +351,6 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       ≈⟨ ∘-resp-≈ (≈-Term-sym assoc) ≈-Term-refl ⟩
     ((merge b ∘ ((id ⊗₁ g) ∘ split b)) ∘ merge b) ∘ (σ ∘ split a)
       ≈⟨ assoc ⟩
-    (merge b ∘ ((id ⊗₁ g) ∘ split b)) ∘ (merge b ∘ (σ ∘ split a))
-      ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl ≈-Term-refl) ≈-Term-refl ⟩
     (merge b ∘ (id ⊗₁ g) ∘ split b) ∘ (merge b ∘ σ ∘ split a)
       ≈⟨ ∘-resp-≈ (≈-Term-sym (liftW-merge b g)) ≈-Term-refl ⟩
     liftW b g ∘ (merge b ∘ σ ∘ split a) ∎
@@ -986,17 +985,16 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       true≢false ()
 
     _≟GS_ : DecidableEquality SCmp.Gen
-    (a , b , box f) ≟GS (a' , b' , box g) with (a , b , f) ≟G (a' , b' , g)
-    ... | yes refl = yes refl
-    ... | no ¬p    = no λ e → ¬p (just-injective (cong boxPay e))
+    (a , b , box f) ≟GS (a' , b' , box g) = case (a , b , f) ≟G (a' , b' , g) of λ where
+      (yes refl) → yes refl
+      (no ¬p)    → no λ e → ¬p (just-injective (cong boxPay e))
     (a , b , box f)     ≟GS (_ , _ , cross c d) = no λ e → true≢false (cong tagS e)
     (_ , _ , cross a b) ≟GS (a' , b' , box g)   = no λ e → true≢false (sym (cong tagS e))
-    (_ , _ , cross a b) ≟GS (_ , _ , cross c d) with a ≟L c | b ≟L d
-    ... | yes refl | yes refl = yes refl
-    ... | no ¬p    | _        =
-          no λ e → ¬p (cong proj₁ (just-injective (cong crossPay e)))
-    ... | yes _    | no ¬q    =
-          no λ e → ¬q (cong proj₂ (just-injective (cong crossPay e)))
+    (_ , _ , cross a b) ≟GS (_ , _ , cross c d) = case a ≟L c of λ where
+      (no ¬p)    → no λ e → ¬p (cong proj₁ (just-injective (cong crossPay e)))
+      (yes refl) → case b ≟L d of λ where
+        (yes refl) → yes refl
+        (no ¬q)    → no λ e → ¬q (cong proj₂ (just-injective (cong crossPay e)))
 
     open SCmp.Decide _≟GS_ using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
 
@@ -1019,9 +1017,6 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
                       (castW oeq ∘ ⟦ d ⟧ ≈Term ⟦ d' ⟧)
 
     private
-      castW-cancel : ∀ {u v} (e : u ≡ v) → castW (sym e) ∘ castW e ≈Term id
-      castW-cancel refl = idˡ
-
       unwrapCast : ∀ {u v} {A} (e : u ≡ v)
                    {x : HomTerm A (wires u)} {y : HomTerm A (wires v)}
                  → castW e ∘ x ≈Term y → x ≈Term castW (sym e) ∘ y
@@ -1332,7 +1327,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
             (⟦ d' ⟧ ∘ castW (sym eᵒ)) ∘ castW eᵒ
               ≈⟨ assoc ⟩
             ⟦ d' ⟧ ∘ (castW (sym eᵒ) ∘ castW eᵒ)
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (castW-cancel eᵒ) ⟩
+              ≈⟨ ∘-resp-≈ ≈-Term-refl (castW-sym-r eᵒ) ⟩
             ⟦ d' ⟧ ∘ id
               ≈⟨ idʳ ⟩
             ⟦ d' ⟧ ∎
@@ -1348,27 +1343,24 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
                {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
              → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
       goSwap px sx fx ([]_ m) meq = nothing
-      goSwap {ax} {bx} px sx fx (_▸_∷_⟨_⟩ {ay} {by} py sy fy rest') meq
-        with leftFit? px sx py sy fx fy
-      ... | nothing  = nothing
-      ... | just fit
-        with ambiguous? ax by (LeftFit.mid fit) | rankS fy <ᵇ rankS fx
-      ...   | false | _     = just (fire fit rest' meq)
-      ...   | true  | true  = just (fire fit rest' meq)
-      ...   | true  | false = nothing
+      goSwap {ax} {bx} px sx fx (_▸_∷_⟨_⟩ {ay} {by} py sy fy rest') meq =
+        case leftFit? px sx py sy fx fy of λ where
+          nothing    → nothing
+          (just fit) →
+            if not (ambiguous? ax by (LeftFit.mid fit)) ∨ (rankS fy <ᵇ rankS fx)
+              then just (fire fit rest' meq)
+              else nothing
 
       -- the combined per-position oracle: σσ-cancel first, then the two
       -- naturality slides (b-image, then a-image), then interchange.
       go : ∀ {ax bx} (px sx : List X) (fx : MorS ax bx)
            {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
          → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
-      go px sx fx rest meq with goσ px sx fx rest meq
-      ... | just r  = just r
-      ... | nothing with goSlideB px sx fx rest meq
-      ...   | just r  = just r
-      ...   | nothing with goSlideA px sx fx rest meq
-      ...     | just r  = just r
-      ...     | nothing = goSwap px sx fx rest meq
+      go px sx fx rest meq =
+        goσ      px sx fx rest meq <∣>
+        goSlideB px sx fx rest meq <∣>
+        goSlideA px sx fx rest meq <∣>
+        goSwap   px sx fx rest meq
 
       -- lift a tail swap-result under a layer.
       lift∷ : ∀ {a b} (px sx : List X) (fx : MorS a b)
@@ -1400,21 +1392,21 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     -- one cancel-or-swap at the FIRST applicable position.
     stepσ? : ∀ {n} (d : DiagU n) → Maybe (SwapRes d)
     stepσ? ([]_ n) = nothing
-    stepσ? (px ▸ sx ∷ fx ⟨ rest ⟩) with go px sx fx rest refl
-    ... | just r  = just r
-    ... | nothing with stepσ? rest
-    ...   | nothing                  = nothing
-    ...   | just (rest' , oeq , snd) =
-            just (px ▸ sx ∷ fx ⟨ rest' ⟩ , oeq , lift∷ px sx fx oeq snd)
+    stepσ? (px ▸ sx ∷ fx ⟨ rest ⟩) =
+      go px sx fx rest refl <∣>
+      Data.Maybe.map
+        (λ { (rest' , oeq , snd) →
+             px ▸ sx ∷ fx ⟨ rest' ⟩ , oeq , lift∷ px sx fx oeq snd })
+        (stepσ? rest)
 
     -- fuel-bounded driver: fire the first applicable move, repeat.
     normσFuel : ∀ {n} → ℕ → (d : DiagU n) → SwapRes d
     normσFuel zero    d = d , refl , idˡ
-    normσFuel (suc k) d with stepσ? d
-    ... | nothing               = d , refl , idˡ
-    ... | just (d' , oeq , snd) with normσFuel k d'
-    ...   | (d'' , oeq' , snd') =
-            d'' , trans oeq oeq' , swapTrans oeq oeq' snd snd'
+    normσFuel (suc k) d = case stepσ? d of λ where
+      nothing                 → d , refl , idˡ
+      (just (d' , oeq , snd)) →
+        let (d'' , oeq' , snd') = normσFuel k d'
+        in  d'' , trans oeq oeq' , swapTrans oeq oeq' snd snd'
 
     depth : ∀ {n} → DiagU n → ℕ
     depth ([]_ n)            = zero
@@ -1489,14 +1481,19 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     solveσ! f g {hit} = extract (decideσ? f g) hit
 
 --------------------------------------------------------------------------------
--- TESTS: a concrete signature over ℕ-labelled wires.  Three 1-wire boxes
--- (two on wire colour 0 — distinguishable only by `_≟G2_`/rank — and one on
--- colour 2).  Machine-checked:
+-- TESTS: a concrete signature over ℕ-labelled wires.  Five generators:
+-- three 1-wire boxes (kbox/k2box on wire colour 0 — distinguishable only by
+-- `_≟G2_`/rank — and mbox on colour 2) and two 2-wire boxes (wbox/w2box,
+-- for the straddle negative).  Machine-checked:
 --   (i)   a σσ-cancellation hit (adjacent inverse cross-pair deletes), both
 --         at the head and below a box layer;
 --   (ii)  disjoint cross-box interchange (the crossing participates in the
 --         bubble sort like an ordinary box);
---   (iii) negative cases (distinct boxes; a non-cancelling diagram).
+--   (iii) negative cases (distinct boxes; a non-cancelling diagram);
+--   (iv)  the Stage-B/C naturality slides wired into the driver: b-image
+--         and a-image slides (head and deep), slide+cancel combined,
+--         wire-level σ-naturality via two slides, and the negative
+--         straddling-box case.
 --------------------------------------------------------------------------------
 module SigmaTests where
 
