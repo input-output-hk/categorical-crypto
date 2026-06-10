@@ -359,3 +359,76 @@ Option B (axiomatising K, and optionally the shape lemmas) is the only way to re
 essential K/S residue. Together they could approach 50% — but the resulting artefact proves
 a *different* (strict, and/or more-postulated) theorem than the current one. Whether that is
 acceptable depends entirely on what downstream trust the soundness theorem must carry.
+
+---
+
+## Addendum 2026-06-10 — re-audit of the non-solver avenues
+
+Re-census: the APROP + PermuteCoherence subtree is now **45,047 LOC / 132 files**; the live
+import closure of `SoundnessFullWired` / `Solver.Tests` is **38,287 LOC / 102 files**
+(Sub 17,865 · Discharge 6,833 · Soundness 5,084 · PermuteCoherence 4,822 · Hypergraph root
+2,678 · Solver 970). Four targeted audits (σ-block family, decoder subsystem,
+PermuteCoherence, kernel/equivariance cluster) produced the following, with the
+load-bearing claims re-verified by hand.
+
+### Non-live mass (~4.7k LOC outside any live path — deletion is a policy decision)
+
+- **Legacy `Completeness*` universe (~2,495 LOC)**: `Completeness` (157, imported by
+  nothing) + `CompletenessAxioms` (146, 7 postulates) + `CompletenessProved` (888) +
+  `Congruence` (404) + `CongruenceP` (658) + `CoherenceHelpers`/`Triangle`/`Pentagon`/
+  `AlphaCommSound`/`SigmaNat` (~242). This is the stalled converse-direction
+  (`≈Term → ≅ᴴ`) research, blocked architecturally (see the completeness-blockers notes).
+  Not part of the axiom-free deliverable.
+- **MatrixBridge chain (~2,203 LOC)**: `MatrixBridge` (811) + `MatrixBridgeM` (322) +
+  `MatrixBridgeDemo` (596) + `InterpretBridge`/`InterpretBridgeM` + their tests — the
+  no-search `findIsoᴮ` canonical-labelling path; consumed only by its own tests/demo.
+  A working feature, but parallel to the live `Interpret`/`Deep`/`Split`/`Carve` front-end.
+
+### Corrections to earlier claims (verified by grep, 2026-06-10)
+
+- **Tier B is still blocked.** `decode-attempt-Linear` (unpruned totality) is consumed at
+  arbitrary subterms by `DecodeTensorShape` (l. 4447–4448) and `DecodeAgenSigmaShape`
+  (σ/Agen collapses), so its `∘`-case keeps `decode-attempt-hCompose` (~95) →
+  `Linearity.Linear-hCompose` (~326–654) → `FromAPROP.hCompose` (~165) alive.
+  (Two audit agents claimed this block dead; the grep disproves it.)
+- `DecodeRoundtripAgenSigma.agda` (34) **is** now a true orphan — deletable.
+- `ProcessEdgesTermShape.Assemble` + `DecodePShapeResiduals` (~51–115) still dead,
+  still interleaved with live private helpers (careful surgery, a previous sed attempt
+  broke the build).
+
+### New lever — retire the unpruned decoder (the one real structural avenue left)
+
+The XF-2 refactor made `decode-⊗-shape` generic over a decoder interface, instantiated
+twice; `DecodeRelDecodeP` consumes the *unpruned* instantiation (`DTS.decode-⊗-shape-inner`)
+and the four unpruned `DAS.decode-*-collapse` lemmas alongside the pruned `DTP`. Since
+tensor never prunes and all atomic `decodeP X ≡ decode X` are `refl`, re-stating the DAS
+collapses and the `unapply-⊗-shape` route over `decodeP` would orphan the entire unpruned
+totality chain (`decode`, `decode-attempt-Linear`'s `∘`-case, `decode-attempt-hCompose`,
+`Linear-hCompose`, `FromAPROP.hCompose`): **~900–1,100 LOC gross, medium confidence,
+multi-session** (the migration cost lands in DAS + the `DecodeRelDecodeP` assembly).
+
+### Audit verdicts on the remaining big clusters
+
+- **σ-block family (~5.6k)**: near-irreducible. Only ~230–320 LOC of safe wins —
+  extract `BlockNFBraid`'s ~800-LOC permutation-`subst₂` plumbing into a reusable
+  module (~150–200, high confidence) + tighten `σ-block-Bmerge` framing (~80–120,
+  medium). Merging the files or genericizing the LHS/RHS step chains: rejected
+  (high risk, ~zero net).
+- **PermuteCoherence (4,822)**: well-engineered, no dead code, no stdlib delegation
+  possible (stdlib has no Coxeter infrastructure). Single viable lever: unify
+  `InversionsDichotomy` + `InversionsRec` shared comparison arithmetic (~150–200,
+  medium confidence). Alternative proof strategies (Lehmer, insertion sort): not worth it.
+- **FireMid\*/RunInterchange\*/StackEquivariance cluster (~3.0k)**: all reason about
+  `process-edges` under stack permutation via `EdgeStepR` SKIP/FIRE dispatch; an
+  `EdgeStepEquivariance` kernel could absorb ~600 LOC (low-medium confidence,
+  needs a spike).
+
+### Updated honest verdict (non-solver avenues only)
+
+Verified deletions (~85–150) + unpruned-decoder retirement (~900–1,100) + equivariance
+kernel (~600, speculative) + σ-block plumbing (~300) + PermuteCoherence (~200)
+≈ **2.1–2.4k LOC ≈ 5–6% of the live closure** — an order of magnitude short of 50%.
+Adding the non-live mass (~4.7k) gets the *tree* to ~15%, but doesn't shrink the proof.
+The conclusion of the main document stands: beyond Lever 1 (the morphism solver,
+in progress), only Option A (strictification) and Option B (postulating K / shape
+lemmas) reach materially further, and both change what is proved.
