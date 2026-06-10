@@ -555,9 +555,15 @@ pentagon-rewrite
         ∘ id {X} ⊗₁ α⇒ {Y} {Z} {W}
         ∘ α⇒ {X} {Y ⊗₀ Z} {W}
         ∘ α⇒ {X} {Y} {Z} ⊗₁ id {W}
-pentagon-rewrite {X} {Y} {Z} {W} = lemma
-  where open import Categories.APROP.Hypergraph.Soundness.CoherenceSolver sig
-        open 4-objs X Y Z W renaming (pentagon-rewrite to lemma)
+pentagon-rewrite {X} {Y} {Z} {W} = solveMor! lhsᵗ rhsᵗ
+  where
+    open FinSetup FMC ( X Vec.∷ Y Vec.∷ Z Vec.∷ W Vec.∷ Vec.[] )
+    v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F
+    open Sig {0} (λ ())
+    open WithGen (λ { (genS ()) })
+    lhsᵗ rhsᵗ : S.HomTerm (((v0 ⊗ᵒ v1) ⊗ᵒ v2) ⊗ᵒ v3) ((v0 ⊗ᵒ v1) ⊗ᵒ (v2 ⊗ᵒ v3))
+    lhsᵗ = S.α⇒
+    rhsᵗ = S._∘_ S.α⇐ (S._∘_ (S._⊗₁_ S.id S.α⇒) (S._∘_ S.α⇒ (S._⊗₁_ S.α⇒ S.id)))
 
 --------------------------------------------------------------------------------
 -- Shared iso-collapse for the two bridge-α⇒ base cases below: after the
