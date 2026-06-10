@@ -17,11 +17,13 @@
 --   * `BoxAssoc.box-suffix` / `box-prefix` — per-edge `box-of`
 --     reassociations pulling an untouched far suffix (resp. left prefix)
 --     out of a box as `(box …) ⊗₁ id` (resp. `id ⊗₁ box …`).  Mac-Lane
---     coherences (⊗-functoriality + α-comm + c-iso-assoc + bifunctor
---     mid-collapse).  Plus `box-braid` — the σ-mirror of `box-suffix`: a
---     front-acting box on `P ++ rest` factors as the box held AFTER `P`,
---     conjugated by block-swap braids.  Uses one-box symmetry-naturality +
---     σ∘σ≈id + α-coherence (NOT the two-box `nf-bracket` kernel).
+--     coherences, discharged by the σ-solver (`solveMorσ!`) around the
+--     `c-iso-assoc` hand steps.  Plus `box-braid` — the σ-mirror of
+--     `box-suffix`: a front-acting box on `P ++ rest` factors as the box
+--     held AFTER `P`, conjugated by block-swap braids.  One-box
+--     symmetry-naturality + σ∘σ≈id + α-coherence (NOT the two-box
+--     `nf-bracket` kernel), all solver-fired; only the framing-iso
+--     cancellations remain by hand.
 --   * `BlockBoxSuffix.box-suffix-framed` — `BoxAssoc.box-suffix` reframed into
 --     the `BlockTensor vlab` `uf++` convention, generic in the suffix block.
 --
@@ -61,8 +63,14 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeStepRelation sig
   using (box-of)
 
 open import Categories.Category using (Category)
+open import Categories.Category.Monoidal using (MonoidalCategory)
+open import Categories.SolverSigmaFrontend using (module FinSetupσ)
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
+open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F; 7F; 8F; 9F)
+open import Data.Product using (_,_)
+import Data.Fin as Fin
+import Data.Vec as Vec
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-++; ++-assoc)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
@@ -80,10 +88,6 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.HomTermTransport
 
 private
   module FM = Category FreeMonoidal
-
--- Library iso-cancellation combinators (agda-categories), for the
--- `unflatten-++-≅` `from ∘ to ≈ id` eliminations.
-open import Categories.Morphism.Reasoning FreeMonoidal using (cancelˡ; cancelʳ)
 
 --------------------------------------------------------------------------------
 -- ## The block-tensor decomposition of `permute`: `permute (++⁺ p q)`
@@ -211,9 +215,6 @@ module BlockTensor
 module BoxAssoc where
   open FM.HomReasoning
 
-  sym² : ∀ {a} {A : Set a} {x y : A} (p : x ≡ y) → sym (sym p) ≡ p
-  sym² refl = refl
-
   -- `from`-side associativity kernel.
   assoc-from = c-iso-assoc-from
 
@@ -228,90 +229,6 @@ module BoxAssoc where
                → HomTerm (unflatten c) (unflatten d)
   subst-id-cod {c} q = subst (λ z → HomTerm (unflatten c) (unflatten z)) q id
 
-
-  ------------------------------------------------------------------------
-  -- Shared associativity re-bracketing for `box-suffix`/`box-prefix`:
-  -- `T ∘ (A ∘ (αc ∘ X ∘ ac) ∘ B) ∘ F ≈ (T ∘ A ∘ αc) ∘ X ∘ ac ∘ B ∘ F`.
-  -- Pure associativity, fully generic in the arguments.
-  bracket-αXα
-    : ∀ {O₀ O₁ O₂ O₃ O₄ O₅ O₆ O₇ : ObjTerm}
-        (T : HomTerm O₆ O₇) (A : HomTerm O₅ O₆) (αc : HomTerm O₄ O₅)
-        (X : HomTerm O₃ O₄) (ac : HomTerm O₂ O₃)
-        (B : HomTerm O₁ O₂) (F : HomTerm O₀ O₁)
-    → T ∘ (A ∘ (αc ∘ X ∘ ac) ∘ B) ∘ F
-      ≈Term (T ∘ A ∘ αc) ∘ X ∘ ac ∘ B ∘ F
-  bracket-αXα T A αc X ac B F = begin
-      T ∘ (A ∘ (αc ∘ X ∘ ac) ∘ B) ∘ F
-        ≈⟨ FM.sym-assoc ⟩
-      (T ∘ (A ∘ (αc ∘ X ∘ ac) ∘ B)) ∘ F
-        ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
-      ((T ∘ A) ∘ (αc ∘ X ∘ ac) ∘ B) ∘ F
-        ≈⟨ FM.assoc ⟩
-      (T ∘ A) ∘ ((αc ∘ X ∘ ac) ∘ B) ∘ F
-        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-      (T ∘ A) ∘ (αc ∘ X ∘ ac) ∘ B ∘ F
-        ≈⟨ FM.sym-assoc ⟩
-      ((T ∘ A) ∘ (αc ∘ X ∘ ac)) ∘ B ∘ F
-        ≈⟨ FM.assoc ⟩∘⟨refl ⟩
-      (T ∘ A ∘ (αc ∘ X ∘ ac)) ∘ B ∘ F
-        ≈⟨ (refl⟩∘⟨ FM.sym-assoc) ⟩∘⟨refl ⟩
-      (T ∘ (A ∘ αc) ∘ (X ∘ ac)) ∘ B ∘ F
-        ≈⟨ (refl⟩∘⟨ FM.sym-assoc) ⟩∘⟨refl ⟩
-      (T ∘ ((A ∘ αc) ∘ X) ∘ ac) ∘ B ∘ F
-        ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
-      ((T ∘ ((A ∘ αc) ∘ X)) ∘ ac) ∘ B ∘ F
-        ≈⟨ (FM.sym-assoc ⟩∘⟨refl) ⟩∘⟨refl ⟩
-      (((T ∘ (A ∘ αc)) ∘ X) ∘ ac) ∘ B ∘ F
-        ≈⟨ ((FM.sym-assoc ⟩∘⟨refl) ⟩∘⟨refl) ⟩∘⟨refl ⟩
-      ((((T ∘ A) ∘ αc) ∘ X) ∘ ac) ∘ B ∘ F
-        ≈⟨ ((FM.assoc ⟩∘⟨refl) ⟩∘⟨refl) ⟩∘⟨refl ⟩
-      (((T ∘ A ∘ αc) ∘ X) ∘ ac) ∘ B ∘ F
-        ≈⟨ FM.assoc ⟩∘⟨refl ⟩
-      ((T ∘ A ∘ αc) ∘ (X ∘ ac)) ∘ B ∘ F
-        ≈⟨ FM.assoc ⟩
-      (T ∘ A ∘ αc) ∘ (X ∘ ac) ∘ B ∘ F
-        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-      (T ∘ A ∘ αc) ∘ X ∘ ac ∘ B ∘ F ∎
-
-  ------------------------------------------------------------------------
-  -- Shared mid-reshuffle for `box-suffix`/`box-prefix`'s `regroup-mid`:
-  -- `(a ∘ b ∘ c) ∘ M ∘ (d ∘ e ∘ f) ≈ a ∘ b ∘ (c ∘ M ∘ d) ∘ e ∘ f`.
-  -- Pure associativity, fully generic in the arguments (mirror-shared).
-  bracket-mid
-    : ∀ {O₀ O₁ O₂ O₃ O₄ O₅ O₆ O₇ : ObjTerm}
-        (a : HomTerm O₆ O₇) (b : HomTerm O₅ O₆) (c : HomTerm O₄ O₅)
-        (M : HomTerm O₃ O₄) (d : HomTerm O₂ O₃)
-        (e : HomTerm O₁ O₂) (f : HomTerm O₀ O₁)
-    → (a ∘ b ∘ c) ∘ M ∘ (d ∘ e ∘ f)
-      ≈Term a ∘ b ∘ (c ∘ M ∘ d) ∘ e ∘ f
-  bracket-mid a b c M d e f = begin
-      (a ∘ b ∘ c) ∘ M ∘ (d ∘ e ∘ f)
-        ≈⟨ FM.assoc ⟩
-      a ∘ (b ∘ c) ∘ M ∘ (d ∘ e ∘ f)
-        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-      a ∘ b ∘ c ∘ M ∘ (d ∘ e ∘ f)
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-      a ∘ b ∘ (c ∘ M) ∘ (d ∘ e ∘ f)
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-      a ∘ b ∘ ((c ∘ M) ∘ d) ∘ e ∘ f
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩∘⟨refl ⟩
-      a ∘ b ∘ (c ∘ M ∘ d) ∘ e ∘ f ∎
-
-  ------------------------------------------------------------------------
-  -- Shared tail-reshuffle for `box-suffix`/`box-prefix`'s `regroup-R`:
-  -- `a ∘ b ∘ M ∘ c ∘ f ≈ a ∘ (b ∘ M ∘ c) ∘ f` (re-fold the raw box).
-  bracket-RR
-    : ∀ {O₀ O₁ O₂ O₃ O₄ O₅ : ObjTerm}
-        (a : HomTerm O₄ O₅) (b : HomTerm O₃ O₄) (M : HomTerm O₂ O₃)
-        (c : HomTerm O₁ O₂) (f : HomTerm O₀ O₁)
-    → a ∘ b ∘ M ∘ c ∘ f
-      ≈Term a ∘ (b ∘ M ∘ c) ∘ f
-  bracket-RR a b M c f = begin
-      a ∘ b ∘ M ∘ c ∘ f
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-      a ∘ b ∘ (M ∘ c) ∘ f
-        ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-      a ∘ (b ∘ M ∘ c) ∘ f ∎
 
   ------------------------------------------------------------------------
   -- BOX-SUFFIX: a box on residual `restG ++ R` factors (modulo the
@@ -398,159 +315,132 @@ module BoxAssoc where
           --          ≈ s-eo⁻ ∘ to-eo-rgR ∘ (id ⊗₁ to-rgR)`.
           T-eo = c-iso-assoc-to eoutL restG R
 
-          -- the middle bifunctor collapse:
-          --   (id ⊗₁ to-rgR) ∘ (G ⊗₁ id_{Urg⊗UR}) ∘ (id ⊗₁ from-rgR)
-          --     ≈ G ⊗₁ id_{U(restG++R)}.
-          mid-collapse
-            : (id {Ueo} ⊗₁ to-rgR) ∘ (G ⊗₁ id {Urg ⊗₀ UR}) ∘ (id {Uei} ⊗₁ from-rgR)
-              ≈Term G ⊗₁ id {unflatten (restG ++ R)}
-          mid-collapse = begin
-            (id ⊗₁ to-rgR) ∘ (G ⊗₁ id {Urg ⊗₀ UR}) ∘ (id ⊗₁ from-rgR)
-              ≈⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩
-            (id ⊗₁ to-rgR) ∘ ((G ∘ id) ⊗₁ (id {Urg ⊗₀ UR} ∘ from-rgR))
-              ≈⟨ refl⟩∘⟨ ⊗-resp-≈ idʳ idˡ ⟩
-            (id ⊗₁ to-rgR) ∘ (G ⊗₁ from-rgR)
-              ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-            (id ∘ G) ⊗₁ (to-rgR ∘ from-rgR)
-              ≈⟨ ⊗-resp-≈ idˡ (_≅_.isoˡ (unflatten-++-≅ restG R)) ⟩
-            G ⊗₁ id {unflatten (restG ++ R)} ∎
+          ------------------------------------------------------------
+          -- σ-solver setup (Mon-fragment goals; same hybrid pattern as
+          -- `box-braid`): the four block objects plus the seven
+          -- list-level `unflatten`s as atoms, `G`, the framing-iso legs
+          -- and the `subst`-id bridges as opaque generators.  The two
+          -- solver steps decide the ⊗-functoriality expansion +
+          -- α-naturality + regrouping shells (the old `bx⊗id-expand`/
+          -- `mid-nat`/`regroup-L/mid/R`/`mid-collapse`); the `to ∘ from`
+          -- iso cancellation stays by hand.
+          FMC : MonoidalCategory _ _ _
+          FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
 
-          -- ⊗-functoriality: `bx ⊗₁ id` distributes over `bx`'s three
-          -- factors (the `mid-collapse`-style `⊗-∘-dist` expansion).
-          bx⊗id-expand
-            : (bx ⊗₁ id {UR})
-              ≈Term (to-eo-rg ⊗₁ id {UR})
-                    ∘ ((G ⊗₁ id {Urg}) ⊗₁ id {UR})
-                    ∘ (from-ei-rg ⊗₁ id {UR})
-          bx⊗id-expand = begin
-            bx ⊗₁ id {UR}
-              ≈⟨ ⊗-resp-≈ ≈-Term-refl (≈-Term-sym (≈-Term-trans idˡ idˡ)) ⟩
-            (to-eo-rg ∘ (G ⊗₁ id {Urg}) ∘ from-ei-rg) ⊗₁ (id ∘ id ∘ id)
-              ≈⟨ ⊗-∘-dist ⟩
-            (to-eo-rg ⊗₁ id {UR})
-              ∘ (((G ⊗₁ id {Urg}) ∘ from-ei-rg) ⊗₁ (id ∘ id))
-              ≈⟨ refl⟩∘⟨ ⊗-∘-dist ⟩
-            (to-eo-rg ⊗₁ id {UR})
-              ∘ ((G ⊗₁ id {Urg}) ⊗₁ id {UR})
-              ∘ (from-ei-rg ⊗₁ id {UR}) ∎
+          open FinSetupσ FMC Symmetric-Monoidal
+            ( Uei Vec.∷ Ueo Vec.∷ Urg Vec.∷ UR Vec.∷
+              unflatten (restG ++ R) Vec.∷
+              unflatten (einL ++ restG) Vec.∷
+              unflatten (eoutL ++ restG) Vec.∷
+              unflatten ((einL ++ restG) ++ R) Vec.∷
+              unflatten ((eoutL ++ restG) ++ R) Vec.∷
+              unflatten (einL ++ (restG ++ R)) Vec.∷
+              unflatten (eoutL ++ (restG ++ R)) Vec.∷ Vec.[] )
 
-          -- associator naturality (the `α-comm` instance, f = G, g/h = id):
-          --   `(G ⊗ id_{Urg}) ⊗ id_{UR} ≈ α⇐ ∘ (G ⊗ id_{Urg⊗UR}) ∘ α⇒`.
-          mid-nat
-            : ((G ⊗₁ id {Urg}) ⊗₁ id {UR})
-              ≈Term α⇐ {Ueo} {Urg} {UR}
-                    ∘ (G ⊗₁ id {Urg ⊗₀ UR})
-                    ∘ α⇒ {Uei} {Urg} {UR}
-          mid-nat = begin
-            (G ⊗₁ id {Urg}) ⊗₁ id {UR}
-              ≈⟨ ≈-Term-sym idˡ ⟩
-            id ∘ ((G ⊗₁ id {Urg}) ⊗₁ id {UR})
-              ≈⟨ ≈-Term-sym α⇐∘α⇒≈id ⟩∘⟨refl ⟩
-            (α⇐ {Ueo} {Urg} {UR} ∘ α⇒ {Ueo} {Urg} {UR})
-              ∘ ((G ⊗₁ id {Urg}) ⊗₁ id {UR})
-              ≈⟨ FM.assoc ⟩
-            α⇐ {Ueo} {Urg} {UR}
-              ∘ (α⇒ {Ueo} {Urg} {UR} ∘ ((G ⊗₁ id {Urg}) ⊗₁ id {UR}))
-              ≈⟨ refl⟩∘⟨ α-comm ⟩
-            α⇐ {Ueo} {Urg} {UR}
-              ∘ ((G ⊗₁ (id {Urg} ⊗₁ id {UR})) ∘ α⇒ {Uei} {Urg} {UR})
-              ≈⟨ refl⟩∘⟨ ⊗-resp-≈ ≈-Term-refl id⊗id≈id ⟩∘⟨refl ⟩
-            α⇐ {Ueo} {Urg} {UR}
-              ∘ (G ⊗₁ id {Urg ⊗₀ UR})
-              ∘ α⇒ {Uei} {Urg} {UR} ∎
+          aEi     = V 0F
+          aEo     = V 1F
+          aRg     = V 2F
+          aR      = V 3F
+          aRgR    = V 4F
+          aEiRg   = V 5F
+          aEoRg   = V 6F
+          aBigIn  = V 7F
+          aBigOut = V 8F
+          aEiRgR  = V 9F
+          aEoRgR  = V (Fin.suc 9F)
+
+          open Sig {11} (λ { 0F → aEi , aEo                  -- G
+                           ; 1F → (aEoRg ⊗ᵒ aR) , aBigOut    -- to-eorg-R
+                           ; 2F → aBigIn , (aEiRg ⊗ᵒ aR)     -- from-eirg-R
+                           ; 3F → (aEo ⊗ᵒ aRg) , aEoRg       -- to-eo-rg
+                           ; 4F → aEiRg , (aEi ⊗ᵒ aRg)       -- from-ei-rg
+                           ; 5F → (aEo ⊗ᵒ aRgR) , aEoRgR     -- to-eo-rgR
+                           ; 6F → aEiRgR , (aEi ⊗ᵒ aRgR)     -- from-ei-rgR
+                           ; 7F → (aRg ⊗ᵒ aR) , aRgR         -- to-rgR
+                           ; 8F → aRgR , (aRg ⊗ᵒ aR)         -- from-rgR
+                           ; 9F → aBigIn , aEiRgR            -- s-ei
+                           ; (Fin.suc 9F) → aEoRgR , aBigOut })  -- s-eo⁻
+            renaming (module S to Sσ)
+
+          open WithGen (λ { (genS 0F) → G
+                          ; (genS 1F) → to-eorg-R
+                          ; (genS 2F) → from-eirg-R
+                          ; (genS 3F) → to-eo-rg
+                          ; (genS 4F) → from-ei-rg
+                          ; (genS 5F) → to-eo-rgR
+                          ; (genS 6F) → from-ei-rgR
+                          ; (genS 7F) → to-rgR
+                          ; (genS 8F) → from-rgR
+                          ; (genS 9F) → s-ei
+                          ; (genS (Fin.suc 9F)) → s-eo⁻ })
+
+          open Sσ using ()
+            renaming (_∘_ to infixr 9 _∘ᵗ_; _⊗₁_ to infixr 10 _⊗ᵗ_)
+
+          gᵗ      = gen 0F
+          tBigᵗ   = gen 1F
+          fBigᵗ   = gen 2F
+          tEoRgᵗ  = gen 3F
+          fEiRgᵗ  = gen 4F
+          tEoRgRᵗ = gen 5F
+          fEiRgRᵗ = gen 6F
+          tRgRᵗ   = gen 7F
+          fRgRᵗ   = gen 8F
+          sEiᵗ    = gen 9F
+          sEoᵗ    = gen (Fin.suc 9F)
+
+          -- id/α with their implicit OBJECT arguments pinned term-side.
+          idEiᵗ : Sσ.HomTerm aEi aEi
+          idEiᵗ = Sσ.id
+          idEoᵗ : Sσ.HomTerm aEo aEo
+          idEoᵗ = Sσ.id
+          idRgᵗ : Sσ.HomTerm aRg aRg
+          idRgᵗ = Sσ.id
+          idRᵗ : Sσ.HomTerm aR aR
+          idRᵗ = Sσ.id
+          idRgxRᵗ : Sσ.HomTerm (aRg ⊗ᵒ aR) (aRg ⊗ᵒ aR)
+          idRgxRᵗ = Sσ.id
+
+          α⇐ᵗ : Sσ.HomTerm (aEo ⊗ᵒ (aRg ⊗ᵒ aR)) ((aEo ⊗ᵒ aRg) ⊗ᵒ aR)
+          α⇐ᵗ = Sσ.α⇐
+          α⇒ᵗ : Sσ.HomTerm ((aEi ⊗ᵒ aRg) ⊗ᵒ aR) (aEi ⊗ᵒ (aRg ⊗ᵒ aR))
+          α⇒ᵗ = Sσ.α⇒
+
+          bxᵗ : Sσ.HomTerm aEiRg aEoRg
+          bxᵗ = tEoRgᵗ ∘ᵗ (gᵗ ⊗ᵗ idRgᵗ) ∘ᵗ fEiRgᵗ
+
+          lhs1ᵗ rhs1ᵗ lhs2ᵗ rhs2ᵗ : Sσ.HomTerm aBigIn aBigOut
+          lhs1ᵗ = tBigᵗ ∘ᵗ (bxᵗ ⊗ᵗ idRᵗ) ∘ᵗ fBigᵗ
+          rhs1ᵗ = (tBigᵗ ∘ᵗ (tEoRgᵗ ⊗ᵗ idRᵗ) ∘ᵗ α⇐ᵗ)
+                    ∘ᵗ (gᵗ ⊗ᵗ idRgxRᵗ)
+                    ∘ᵗ (α⇒ᵗ ∘ᵗ (fEiRgᵗ ⊗ᵗ idRᵗ) ∘ᵗ fBigᵗ)
+          lhs2ᵗ = (sEoᵗ ∘ᵗ tEoRgRᵗ ∘ᵗ (idEoᵗ ⊗ᵗ tRgRᵗ))
+                    ∘ᵗ (gᵗ ⊗ᵗ idRgxRᵗ)
+                    ∘ᵗ ((idEiᵗ ⊗ᵗ fRgRᵗ) ∘ᵗ fEiRgRᵗ ∘ᵗ sEiᵗ)
+          rhs2ᵗ = sEoᵗ ∘ᵗ (tEoRgRᵗ ∘ᵗ (gᵗ ⊗ᵗ (tRgRᵗ ∘ᵗ fRgRᵗ)) ∘ᵗ fEiRgRᵗ) ∘ᵗ sEiᵗ
 
           rhs-chase
             : to-eorg-R ∘ (bx ⊗₁ id {UR}) ∘ from-eirg-R
               ≈Term s-eo⁻ ∘ bxRaw ∘ s-ei
           rhs-chase = begin
             to-eorg-R ∘ (bx ⊗₁ id {UR}) ∘ from-eirg-R
-              ≈⟨ refl⟩∘⟨ bx⊗id-expand ⟩∘⟨refl ⟩
-            to-eorg-R
-              ∘ ((to-eo-rg ⊗₁ id {UR})
-                 ∘ ((G ⊗₁ id {Urg}) ⊗₁ id {UR})
-                 ∘ (from-ei-rg ⊗₁ id {UR}))
-              ∘ from-eirg-R
-              ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ mid-nat ⟩∘⟨refl) ⟩∘⟨refl ⟩
-            to-eorg-R
-              ∘ ((to-eo-rg ⊗₁ id {UR})
-                 ∘ (α⇐ {Ueo} {Urg} {UR}
-                    ∘ (G ⊗₁ id {Urg ⊗₀ UR})
-                    ∘ α⇒ {Uei} {Urg} {UR})
-                 ∘ (from-ei-rg ⊗₁ id {UR}))
-              ∘ from-eirg-R
-              ≈⟨ regroup-L ⟩
+              ≈⟨ solveMorσ! lhs1ᵗ rhs1ᵗ ⟩
             (to-eorg-R ∘ (to-eo-rg ⊗₁ id {UR}) ∘ α⇐ {Ueo} {Urg} {UR})
               ∘ (G ⊗₁ id {Urg ⊗₀ UR})
-              ∘ (α⇒ {Uei} {Urg} {UR}
-                 ∘ (from-ei-rg ⊗₁ id {UR})
-                 ∘ from-eirg-R)
+              ∘ (α⇒ {Uei} {Urg} {UR} ∘ (from-ei-rg ⊗₁ id {UR}) ∘ from-eirg-R)
               ≈⟨ T-eo ⟩∘⟨ refl⟩∘⟨ F-ei ⟩
             (s-eo⁻ ∘ to-eo-rgR ∘ (id {Ueo} ⊗₁ to-rgR))
               ∘ (G ⊗₁ id {Urg ⊗₀ UR})
               ∘ ((id {Uei} ⊗₁ from-rgR) ∘ from-ei-rgR ∘ s-ei)
-              ≈⟨ regroup-mid ⟩
+              ≈⟨ solveMorσ! lhs2ᵗ rhs2ᵗ ⟩
             s-eo⁻
-              ∘ to-eo-rgR
-              ∘ ((id {Ueo} ⊗₁ to-rgR)
-                 ∘ (G ⊗₁ id {Urg ⊗₀ UR})
-                 ∘ (id {Uei} ⊗₁ from-rgR))
-              ∘ from-ei-rgR
+              ∘ (to-eo-rgR ∘ (G ⊗₁ (to-rgR ∘ from-rgR)) ∘ from-ei-rgR)
               ∘ s-ei
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ mid-collapse ⟩∘⟨refl ⟩
-            s-eo⁻
-              ∘ to-eo-rgR
-              ∘ (G ⊗₁ id {unflatten (restG ++ R)})
-              ∘ from-ei-rgR
-              ∘ s-ei
-              ≈⟨ regroup-R ⟩
+              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈
+                   (refl⟩∘⟨ ⊗-resp-≈ ≈-Term-refl
+                              (_≅_.isoˡ (unflatten-++-≅ restG R)) ⟩∘⟨refl)
+                   ≈-Term-refl) ⟩
             s-eo⁻ ∘ bxRaw ∘ s-ei ∎
-            where
-              -- The three pure-associativity reshuffles.
-              regroup-L :
-                to-eorg-R
-                  ∘ ((to-eo-rg ⊗₁ id {UR})
-                     ∘ (α⇐ {Ueo} {Urg} {UR}
-                        ∘ (G ⊗₁ id {Urg ⊗₀ UR})
-                        ∘ α⇒ {Uei} {Urg} {UR})
-                     ∘ (from-ei-rg ⊗₁ id {UR}))
-                  ∘ from-eirg-R
-                ≈Term
-                (to-eorg-R ∘ (to-eo-rg ⊗₁ id {UR}) ∘ α⇐ {Ueo} {Urg} {UR})
-                  ∘ (G ⊗₁ id {Urg ⊗₀ UR})
-                  ∘ (α⇒ {Uei} {Urg} {UR}
-                     ∘ (from-ei-rg ⊗₁ id {UR})
-                     ∘ from-eirg-R)
-              regroup-L =
-                bracket-αXα to-eorg-R (to-eo-rg ⊗₁ id {UR}) (α⇐ {Ueo} {Urg} {UR})
-                  (G ⊗₁ id {Urg ⊗₀ UR}) (α⇒ {Uei} {Urg} {UR})
-                  (from-ei-rg ⊗₁ id {UR}) from-eirg-R
-
-              regroup-mid :
-                (s-eo⁻ ∘ to-eo-rgR ∘ (id {Ueo} ⊗₁ to-rgR))
-                  ∘ (G ⊗₁ id {Urg ⊗₀ UR})
-                  ∘ ((id {Uei} ⊗₁ from-rgR) ∘ from-ei-rgR ∘ s-ei)
-                ≈Term
-                s-eo⁻
-                  ∘ to-eo-rgR
-                  ∘ ((id {Ueo} ⊗₁ to-rgR)
-                     ∘ (G ⊗₁ id {Urg ⊗₀ UR})
-                     ∘ (id {Uei} ⊗₁ from-rgR))
-                  ∘ from-ei-rgR
-                  ∘ s-ei
-              regroup-mid =
-                bracket-mid s-eo⁻ to-eo-rgR (id {Ueo} ⊗₁ to-rgR)
-                  (G ⊗₁ id {Urg ⊗₀ UR}) (id {Uei} ⊗₁ from-rgR) from-ei-rgR s-ei
-
-              regroup-R :
-                s-eo⁻
-                  ∘ to-eo-rgR
-                  ∘ (G ⊗₁ id {unflatten (restG ++ R)})
-                  ∘ from-ei-rgR
-                  ∘ s-ei
-                ≈Term s-eo⁻ ∘ bxRaw ∘ s-ei
-              regroup-R =
-                bracket-RR s-eo⁻ to-eo-rgR (G ⊗₁ id {unflatten (restG ++ R)})
-                  from-ei-rgR s-ei
 
   ------------------------------------------------------------------------
   -- BOX-PREFIX: mirror of `box-suffix`.  A P-prefixed box (generator acting
@@ -640,160 +530,120 @@ module BoxAssoc where
           F-ei = c-iso-assoc-from P einR restK
           T-eo = c-iso-assoc-to P eoutR restK
 
-          -- the middle bifunctor collapse (generator on the right factor):
-          --   (id_UP ⊗ to-eo-rk) ∘ (id_UP ⊗ (G⊗id)) ∘ (id_UP ⊗ from-ei-rk)
-          --     ≈ id_UP ⊗ bx.
-          mid-collapse
-            : (id {UP} ⊗₁ to-eo-rk)
-              ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-              ∘ (id {UP} ⊗₁ from-ei-rk)
-              ≈Term id {UP} ⊗₁ bx
-          mid-collapse = begin
-            (id {UP} ⊗₁ to-eo-rk)
-              ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-              ∘ (id {UP} ⊗₁ from-ei-rk)
-              ≈⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩
-            (id {UP} ⊗₁ to-eo-rk)
-              ∘ ((id ∘ id) ⊗₁ ((G ⊗₁ id {Urk}) ∘ from-ei-rk))
-              ≈⟨ refl⟩∘⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩
-            (id {UP} ⊗₁ to-eo-rk)
-              ∘ (id ⊗₁ ((G ⊗₁ id {Urk}) ∘ from-ei-rk))
-              ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-            (id ∘ id) ⊗₁ (to-eo-rk ∘ (G ⊗₁ id {Urk}) ∘ from-ei-rk)
-              ≈⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩
-            id {UP} ⊗₁ bx ∎
+          ------------------------------------------------------------
+          -- σ-solver setup (mirror of `box-suffix`; generator on the
+          -- RIGHT factor).  No iso cancellation is needed here — the
+          -- inner `to-eo-rk`/`from-ei-rk` legs REFOLD into `bx` rather
+          -- than cancel — so the chain is two solver steps around the
+          -- `c-iso-assoc` hand step.
+          FMC : MonoidalCategory _ _ _
+          FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
 
-          -- ⊗-functoriality: `bx' ⊗ id` distributes over bx''s three factors.
-          bx'⊗id-expand
-            : (bx' ⊗₁ id {Urk})
-              ≈Term (to-P-eo ⊗₁ id {Urk})
-                    ∘ ((id {UP} ⊗₁ G) ⊗₁ id {Urk})
-                    ∘ (from-P-ei ⊗₁ id {Urk})
-          bx'⊗id-expand = begin
-            bx' ⊗₁ id {Urk}
-              ≈⟨ ⊗-resp-≈ ≈-Term-refl (≈-Term-sym (≈-Term-trans idˡ idˡ)) ⟩
-            (to-P-eo ∘ (id {UP} ⊗₁ G) ∘ from-P-ei) ⊗₁ (id ∘ id ∘ id)
-              ≈⟨ ⊗-∘-dist ⟩
-            (to-P-eo ⊗₁ id {Urk})
-              ∘ (((id {UP} ⊗₁ G) ∘ from-P-ei) ⊗₁ (id ∘ id))
-              ≈⟨ refl⟩∘⟨ ⊗-∘-dist ⟩
-            (to-P-eo ⊗₁ id {Urk})
-              ∘ ((id {UP} ⊗₁ G) ⊗₁ id {Urk})
-              ∘ (from-P-ei ⊗₁ id {Urk}) ∎
+          open FinSetupσ FMC Symmetric-Monoidal
+            ( UP Vec.∷ Uei Vec.∷ Ueo Vec.∷ Urk Vec.∷
+              unflatten (einR ++ restK) Vec.∷
+              unflatten (eoutR ++ restK) Vec.∷
+              unflatten (P ++ einR) Vec.∷
+              unflatten (P ++ eoutR) Vec.∷
+              unflatten ((P ++ einR) ++ restK) Vec.∷
+              unflatten ((P ++ eoutR) ++ restK) Vec.∷
+              unflatten (P ++ (einR ++ restK)) Vec.∷
+              unflatten (P ++ (eoutR ++ restK)) Vec.∷ Vec.[] )
 
-          -- associator naturality (the `α-comm` instance, on the left
-          -- prefix `id {UP}` past the box middle):
-          --   `(id_UP ⊗ G) ⊗ id_Urk ≈ α⇐ ∘ (id_UP ⊗ (G⊗id)) ∘ α⇒`.
-          mid-nat
-            : ((id {UP} ⊗₁ G) ⊗₁ id {Urk})
-              ≈Term α⇐ {UP} {Ueo} {Urk}
-                    ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-                    ∘ α⇒ {UP} {Uei} {Urk}
-          mid-nat = begin
-            (id {UP} ⊗₁ G) ⊗₁ id {Urk}
-              ≈⟨ ≈-Term-sym idˡ ⟩
-            id ∘ ((id {UP} ⊗₁ G) ⊗₁ id {Urk})
-              ≈⟨ ≈-Term-sym α⇐∘α⇒≈id ⟩∘⟨refl ⟩
-            (α⇐ {UP} {Ueo} {Urk} ∘ α⇒ {UP} {Ueo} {Urk})
-              ∘ ((id {UP} ⊗₁ G) ⊗₁ id {Urk})
-              ≈⟨ FM.assoc ⟩
-            α⇐ {UP} {Ueo} {Urk}
-              ∘ (α⇒ {UP} {Ueo} {Urk} ∘ ((id {UP} ⊗₁ G) ⊗₁ id {Urk}))
-              ≈⟨ refl⟩∘⟨ α-comm ⟩
-            α⇐ {UP} {Ueo} {Urk}
-              ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-              ∘ α⇒ {UP} {Uei} {Urk} ∎
+          aP      = V 0F
+          aEi     = V 1F
+          aEo     = V 2F
+          aRk     = V 3F
+          aEiRk   = V 4F
+          aEoRk   = V 5F
+          aPEi    = V 6F
+          aPEo    = V 7F
+          aBigIn  = V 8F
+          aBigOut = V 9F
+          aPEiRk  = V (Fin.suc 9F)
+          aPEoRk  = V (Fin.suc (Fin.suc 9F))
+
+          open Sig {11} (λ { 0F → aEi , aEo                  -- G
+                           ; 1F → (aPEo ⊗ᵒ aRk) , aBigOut    -- to-Peo-rk
+                           ; 2F → aBigIn , (aPEi ⊗ᵒ aRk)     -- from-Pei-rk
+                           ; 3F → (aP ⊗ᵒ aEo) , aPEo         -- to-P-eo
+                           ; 4F → aPEi , (aP ⊗ᵒ aEi)         -- from-P-ei
+                           ; 5F → (aP ⊗ᵒ aEoRk) , aPEoRk     -- to-P-eork
+                           ; 6F → aPEiRk , (aP ⊗ᵒ aEiRk)     -- from-P-eirk
+                           ; 7F → (aEo ⊗ᵒ aRk) , aEoRk       -- to-eo-rk
+                           ; 8F → aEiRk , (aEi ⊗ᵒ aRk)       -- from-ei-rk
+                           ; 9F → aBigIn , aPEiRk            -- s-ei
+                           ; (Fin.suc 9F) → aPEoRk , aBigOut })  -- s-eo⁻
+            renaming (module S to Sσ)
+
+          open WithGen (λ { (genS 0F) → G
+                          ; (genS 1F) → to-Peo-rk
+                          ; (genS 2F) → from-Pei-rk
+                          ; (genS 3F) → to-P-eo
+                          ; (genS 4F) → from-P-ei
+                          ; (genS 5F) → to-P-eork
+                          ; (genS 6F) → from-P-eirk
+                          ; (genS 7F) → to-eo-rk
+                          ; (genS 8F) → from-ei-rk
+                          ; (genS 9F) → s-ei
+                          ; (genS (Fin.suc 9F)) → s-eo⁻ })
+
+          open Sσ using ()
+            renaming (_∘_ to infixr 9 _∘ᵗ_; _⊗₁_ to infixr 10 _⊗ᵗ_)
+
+          gᵗ      = gen 0F
+          tBigᵗ   = gen 1F
+          fBigᵗ   = gen 2F
+          tPeoᵗ   = gen 3F
+          fPeiᵗ   = gen 4F
+          tPeorkᵗ = gen 5F
+          fPeirkᵗ = gen 6F
+          tEoRkᵗ  = gen 7F
+          fEiRkᵗ  = gen 8F
+          sEiᵗ    = gen 9F
+          sEoᵗ    = gen (Fin.suc 9F)
+
+          -- id/α with their implicit OBJECT arguments pinned term-side.
+          idPᵗ : Sσ.HomTerm aP aP
+          idPᵗ = Sσ.id
+          idRkᵗ : Sσ.HomTerm aRk aRk
+          idRkᵗ = Sσ.id
+
+          α⇐ᵗ : Sσ.HomTerm (aP ⊗ᵒ (aEo ⊗ᵒ aRk)) ((aP ⊗ᵒ aEo) ⊗ᵒ aRk)
+          α⇐ᵗ = Sσ.α⇐
+          α⇒ᵗ : Sσ.HomTerm ((aP ⊗ᵒ aEi) ⊗ᵒ aRk) (aP ⊗ᵒ (aEi ⊗ᵒ aRk))
+          α⇒ᵗ = Sσ.α⇒
+
+          bx'ᵗ : Sσ.HomTerm aPEi aPEo
+          bx'ᵗ = tPeoᵗ ∘ᵗ (idPᵗ ⊗ᵗ gᵗ) ∘ᵗ fPeiᵗ
+          bxᵗ : Sσ.HomTerm aEiRk aEoRk
+          bxᵗ = tEoRkᵗ ∘ᵗ (gᵗ ⊗ᵗ idRkᵗ) ∘ᵗ fEiRkᵗ
+
+          lhs1ᵗ rhs1ᵗ lhs2ᵗ rhs2ᵗ : Sσ.HomTerm aBigIn aBigOut
+          lhs1ᵗ = tBigᵗ ∘ᵗ (bx'ᵗ ⊗ᵗ idRkᵗ) ∘ᵗ fBigᵗ
+          rhs1ᵗ = (tBigᵗ ∘ᵗ (tPeoᵗ ⊗ᵗ idRkᵗ) ∘ᵗ α⇐ᵗ)
+                    ∘ᵗ (idPᵗ ⊗ᵗ (gᵗ ⊗ᵗ idRkᵗ))
+                    ∘ᵗ (α⇒ᵗ ∘ᵗ (fPeiᵗ ⊗ᵗ idRkᵗ) ∘ᵗ fBigᵗ)
+          lhs2ᵗ = (sEoᵗ ∘ᵗ tPeorkᵗ ∘ᵗ (idPᵗ ⊗ᵗ tEoRkᵗ))
+                    ∘ᵗ (idPᵗ ⊗ᵗ (gᵗ ⊗ᵗ idRkᵗ))
+                    ∘ᵗ ((idPᵗ ⊗ᵗ fEiRkᵗ) ∘ᵗ fPeirkᵗ ∘ᵗ sEiᵗ)
+          rhs2ᵗ = sEoᵗ ∘ᵗ (tPeorkᵗ ∘ᵗ (idPᵗ ⊗ᵗ bxᵗ) ∘ᵗ fPeirkᵗ) ∘ᵗ sEiᵗ
 
           rhs-chase
             : to-Peo-rk ∘ (bx' ⊗₁ id {Urk}) ∘ from-Pei-rk
               ≈Term s-eo⁻ ∘ bxRaw ∘ s-ei
           rhs-chase = begin
             to-Peo-rk ∘ (bx' ⊗₁ id {Urk}) ∘ from-Pei-rk
-              ≈⟨ refl⟩∘⟨ bx'⊗id-expand ⟩∘⟨refl ⟩
-            to-Peo-rk
-              ∘ ((to-P-eo ⊗₁ id {Urk})
-                 ∘ ((id {UP} ⊗₁ G) ⊗₁ id {Urk})
-                 ∘ (from-P-ei ⊗₁ id {Urk}))
-              ∘ from-Pei-rk
-              ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ mid-nat ⟩∘⟨refl) ⟩∘⟨refl ⟩
-            to-Peo-rk
-              ∘ ((to-P-eo ⊗₁ id {Urk})
-                 ∘ (α⇐ {UP} {Ueo} {Urk}
-                    ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-                    ∘ α⇒ {UP} {Uei} {Urk})
-                 ∘ (from-P-ei ⊗₁ id {Urk}))
-              ∘ from-Pei-rk
-              ≈⟨ regroup-L ⟩
+              ≈⟨ solveMorσ! lhs1ᵗ rhs1ᵗ ⟩
             (to-Peo-rk ∘ (to-P-eo ⊗₁ id {Urk}) ∘ α⇐ {UP} {Ueo} {Urk})
               ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-              ∘ (α⇒ {UP} {Uei} {Urk}
-                 ∘ (from-P-ei ⊗₁ id {Urk})
-                 ∘ from-Pei-rk)
+              ∘ (α⇒ {UP} {Uei} {Urk} ∘ (from-P-ei ⊗₁ id {Urk}) ∘ from-Pei-rk)
               ≈⟨ T-eo ⟩∘⟨ refl⟩∘⟨ F-ei ⟩
             (s-eo⁻ ∘ to-P-eork ∘ (id {UP} ⊗₁ to-eo-rk))
               ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
               ∘ ((id {UP} ⊗₁ from-ei-rk) ∘ from-P-eirk ∘ s-ei)
-              ≈⟨ regroup-mid ⟩
-            s-eo⁻
-              ∘ to-P-eork
-              ∘ ((id {UP} ⊗₁ to-eo-rk)
-                 ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-                 ∘ (id {UP} ⊗₁ from-ei-rk))
-              ∘ from-P-eirk
-              ∘ s-ei
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ mid-collapse ⟩∘⟨refl ⟩
-            s-eo⁻
-              ∘ to-P-eork
-              ∘ (id {UP} ⊗₁ bx)
-              ∘ from-P-eirk
-              ∘ s-ei
-              ≈⟨ regroup-R ⟩
+              ≈⟨ solveMorσ! lhs2ᵗ rhs2ᵗ ⟩
             s-eo⁻ ∘ bxRaw ∘ s-ei ∎
-            where
-              regroup-L :
-                to-Peo-rk
-                  ∘ ((to-P-eo ⊗₁ id {Urk})
-                     ∘ (α⇐ {UP} {Ueo} {Urk}
-                        ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-                        ∘ α⇒ {UP} {Uei} {Urk})
-                     ∘ (from-P-ei ⊗₁ id {Urk}))
-                  ∘ from-Pei-rk
-                ≈Term
-                (to-Peo-rk ∘ (to-P-eo ⊗₁ id {Urk}) ∘ α⇐ {UP} {Ueo} {Urk})
-                  ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-                  ∘ (α⇒ {UP} {Uei} {Urk}
-                     ∘ (from-P-ei ⊗₁ id {Urk})
-                     ∘ from-Pei-rk)
-              regroup-L =
-                bracket-αXα to-Peo-rk (to-P-eo ⊗₁ id {Urk}) (α⇐ {UP} {Ueo} {Urk})
-                  (id {UP} ⊗₁ (G ⊗₁ id {Urk})) (α⇒ {UP} {Uei} {Urk})
-                  (from-P-ei ⊗₁ id {Urk}) from-Pei-rk
-
-              regroup-mid :
-                (s-eo⁻ ∘ to-P-eork ∘ (id {UP} ⊗₁ to-eo-rk))
-                  ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-                  ∘ ((id {UP} ⊗₁ from-ei-rk) ∘ from-P-eirk ∘ s-ei)
-                ≈Term
-                s-eo⁻
-                  ∘ to-P-eork
-                  ∘ ((id {UP} ⊗₁ to-eo-rk)
-                     ∘ (id {UP} ⊗₁ (G ⊗₁ id {Urk}))
-                     ∘ (id {UP} ⊗₁ from-ei-rk))
-                  ∘ from-P-eirk
-                  ∘ s-ei
-              regroup-mid =
-                bracket-mid s-eo⁻ to-P-eork (id {UP} ⊗₁ to-eo-rk)
-                  (id {UP} ⊗₁ (G ⊗₁ id {Urk})) (id {UP} ⊗₁ from-ei-rk) from-P-eirk s-ei
-
-              regroup-R :
-                s-eo⁻
-                  ∘ to-P-eork
-                  ∘ (id {UP} ⊗₁ bx)
-                  ∘ from-P-eirk
-                  ∘ s-ei
-                ≈Term s-eo⁻ ∘ bxRaw ∘ s-ei
-              regroup-R =
-                bracket-RR s-eo⁻ to-P-eork (id {UP} ⊗₁ bx) from-P-eirk s-ei
 
   ------------------------------------------------------------------------
   -- BOX-BRAID: the σ-mirror of `box-suffix`.  A FRONT-acting box on the
@@ -870,519 +720,162 @@ module BoxAssoc where
           ∘ α⇐ {UP} {Ueo} {Ur}
           ∘ (id {UP} ⊗₁ from-eo-rest)
 
-      -- (1) FRONT collapse: the eo-/ei-rest framing inside `id{UP} ⊗ box`
-      --     cancels the `id{UP} ⊗ from-eo-rest` / `id{UP} ⊗ to-ei-rest`
-      --     factors, leaving `id{UP} ⊗ (G ⊗ id{Ur})`.
-      front-collapse
-        : (id {UP} ⊗₁ from-eo-rest)
-          ∘ (id {UP} ⊗₁ box)
-          ∘ (id {UP} ⊗₁ to-ei-rest)
-          ≈Term id {UP} ⊗₁ (G ⊗₁ id {Ur})
-      front-collapse = begin
-        (id {UP} ⊗₁ from-eo-rest)
-          ∘ (id {UP} ⊗₁ box)
-          ∘ (id {UP} ⊗₁ to-ei-rest)
-          ≈⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩
-        (id {UP} ⊗₁ from-eo-rest)
-          ∘ ((id ∘ id) ⊗₁ (box ∘ to-ei-rest))
-          ≈⟨ refl⟩∘⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩
-        (id {UP} ⊗₁ from-eo-rest)
-          ∘ (id ⊗₁ (box ∘ to-ei-rest))
-          ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-        (id ∘ id) ⊗₁ (from-eo-rest ∘ box ∘ to-ei-rest)
-          ≈⟨ ⊗-resp-≈ idˡ inner ⟩
-        id {UP} ⊗₁ (G ⊗₁ id {Ur}) ∎
-        where
-          inner : from-eo-rest ∘ box ∘ to-ei-rest ≈Term G ⊗₁ id {Ur}
-          inner = begin
-            from-eo-rest ∘ (to-eo-rest ∘ (G ⊗₁ id {Ur}) ∘ from-ei-rest) ∘ to-ei-rest
-              ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-            from-eo-rest ∘ to-eo-rest ∘ ((G ⊗₁ id {Ur}) ∘ from-ei-rest) ∘ to-ei-rest
-              ≈⟨ cancelˡ (_≅_.isoʳ (unflatten-++-≅ eoutR rest)) ⟩
-            ((G ⊗₁ id {Ur}) ∘ from-ei-rest) ∘ to-ei-rest
-              ≈⟨ cancelʳ (_≅_.isoʳ (unflatten-++-≅ einR rest)) ⟩
-            G ⊗₁ id {Ur} ∎
+      ------------------------------------------------------------------
+      -- σ-SOLVER SETUP (`solveMorσ!` via `FinSetupσ`, the free SMC itself
+      -- as the target): the five block objects and the four list-level
+      -- `unflatten`s are the atoms; `G`
+      -- and the eight framing-iso legs are opaque generators; σ/α/id/∘/⊗
+      -- are structural.  The two solver steps in the master chain decide
+      -- (i) the associativity/⊗-functoriality regrouping that isolates
+      -- the framing-iso pairs (the old `regroup-front`/`front-collapse`
+      -- outer shells) and (ii) the σ-naturality slide + σσ-cancellation +
+      -- α-coherence core (the old `central-collapse`/`sigma-slide`/
+      -- `tail-collapse` chain); the framing-iso cancellations themselves
+      -- (generator-specific `from ∘ to ≈ id`) are the two remaining hand
+      -- steps — the established hybrid pattern.
+      FMC : MonoidalCategory _ _ _
+      FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
 
-      -- (2) CENTRAL collapse: `α⇐{UP}{Ueo}{Ur} ∘ (id{UP}⊗(G⊗id{Ur})) ∘ α⇒{UP}{Uei}{Ur}`
-      --     collapses via α-comm + α⇐∘α⇒≈id to `(id{UP}⊗G) ⊗ id{Ur}`.
-      central-collapse
-        : α⇐ {UP} {Ueo} {Ur}
-          ∘ (id {UP} ⊗₁ (G ⊗₁ id {Ur}))
-          ∘ α⇒ {UP} {Uei} {Ur}
-          ≈Term (id {UP} ⊗₁ G) ⊗₁ id {Ur}
-      central-collapse = begin
-        α⇐ {UP} {Ueo} {Ur}
-          ∘ (id {UP} ⊗₁ (G ⊗₁ id {Ur}))
-          ∘ α⇒ {UP} {Uei} {Ur}
-          ≈⟨ refl⟩∘⟨ ≈-Term-sym α-comm ⟩
-        α⇐ {UP} {Ueo} {Ur}
-          ∘ α⇒ {UP} {Ueo} {Ur}
-          ∘ ((id {UP} ⊗₁ G) ⊗₁ id {Ur})
-          ≈⟨ cancelˡ α⇐∘α⇒≈id ⟩
-        (id {UP} ⊗₁ G) ⊗₁ id {Ur} ∎
+      open FinSetupσ FMC Symmetric-Monoidal
+        ( UP Vec.∷ Uei Vec.∷ Ueo Vec.∷ Ur Vec.∷ UPr Vec.∷
+          unflatten (eoutR ++ (P ++ rest)) Vec.∷
+          unflatten (einR ++ (P ++ rest)) Vec.∷
+          unflatten (einR ++ rest) Vec.∷
+          unflatten (eoutR ++ rest) Vec.∷ Vec.[] )
 
-      -- (3) σ-SLIDE: the ONE-BOX symmetry-naturality move.  The generator
-      --     `G` slides through the two braids `σ{UP}{Ueo}` / `σ{Uei}{UP}`,
-      --     which then cancel via `σ∘σ≈id`, leaving `G ⊗ id{UP}`.
-      sigma-slide
-        : σ {UP} {Ueo} ∘ (id {UP} ⊗₁ G) ∘ σ {Uei} {UP}
-          ≈Term G ⊗₁ id {UP}
-      sigma-slide = begin
-        σ {UP} {Ueo} ∘ (id {UP} ⊗₁ G) ∘ σ {Uei} {UP}
-          ≈⟨ FM.sym-assoc ⟩
-        (σ {UP} {Ueo} ∘ (id {UP} ⊗₁ G)) ∘ σ {Uei} {UP}
-          ≈⟨ σ∘[f⊗g]≈[g⊗f]∘σ ⟩∘⟨refl ⟩
-        ((G ⊗₁ id {UP}) ∘ σ {UP} {Uei}) ∘ σ {Uei} {UP}
-          ≈⟨ FM.assoc ⟩
-        (G ⊗₁ id {UP}) ∘ (σ {UP} {Uei} ∘ σ {Uei} {UP})
-          ≈⟨ refl⟩∘⟨ σ∘σ≈id ⟩
-        (G ⊗₁ id {UP}) ∘ id
-          ≈⟨ idʳ ⟩
-        G ⊗₁ id {UP} ∎
+      aP    = V 0F
+      aEi   = V 1F
+      aEo   = V 2F
+      aR    = V 3F
+      aPr   = V 4F
+      aEoPr = V 5F
+      aEiPr = V 6F
+      aEir  = V 7F
+      aEor  = V 8F
 
-      -- (4) TAIL collapse: the eo-side framing (`α⇒{Ueo}{UP}{Ur}` past the
-      --     output `G⊗id{UP}`, then the `id{Ueo}⊗to-P-rest` / `id{Uei}⊗from-P-rest`
-      --     framings) collapses `(G⊗id{UP}) ⊗ id{Ur}` into `G ⊗ id{UPr}`,
-      --     framed by `to-P-rest`/`from-P-rest`.
-      tail-collapse
-        : (id {Ueo} ⊗₁ to-P-rest)
-          ∘ α⇒ {Ueo} {UP} {Ur}
-          ∘ ((G ⊗₁ id {UP}) ⊗₁ id {Ur})
-          ∘ α⇐ {Uei} {UP} {Ur}
-          ∘ (id {Uei} ⊗₁ from-P-rest)
-          ≈Term G ⊗₁ id {UPr}
-      tail-collapse = begin
-        (id {Ueo} ⊗₁ to-P-rest)
-          ∘ α⇒ {Ueo} {UP} {Ur}
-          ∘ ((G ⊗₁ id {UP}) ⊗₁ id {Ur})
-          ∘ α⇐ {Uei} {UP} {Ur}
-          ∘ (id {Uei} ⊗₁ from-P-rest)
-          ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        (id {Ueo} ⊗₁ to-P-rest)
-          ∘ (α⇒ {Ueo} {UP} {Ur} ∘ ((G ⊗₁ id {UP}) ⊗₁ id {Ur}))
-          ∘ α⇐ {Uei} {UP} {Ur}
-          ∘ (id {Uei} ⊗₁ from-P-rest)
-          ≈⟨ refl⟩∘⟨ α-comm ⟩∘⟨refl ⟩
-        (id {Ueo} ⊗₁ to-P-rest)
-          ∘ ((G ⊗₁ (id {UP} ⊗₁ id {Ur})) ∘ α⇒ {Uei} {UP} {Ur})
-          ∘ α⇐ {Uei} {UP} {Ur}
-          ∘ (id {Uei} ⊗₁ from-P-rest)
-          ≈⟨ refl⟩∘⟨ (⊗-resp-≈ ≈-Term-refl id⊗id≈id ⟩∘⟨refl) ⟩∘⟨refl ⟩
-        (id {Ueo} ⊗₁ to-P-rest)
-          ∘ ((G ⊗₁ id {UP ⊗₀ Ur}) ∘ α⇒ {Uei} {UP} {Ur})
-          ∘ α⇐ {Uei} {UP} {Ur}
-          ∘ (id {Uei} ⊗₁ from-P-rest)
-          ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-        (id {Ueo} ⊗₁ to-P-rest)
-          ∘ (G ⊗₁ id {UP ⊗₀ Ur})
-          ∘ α⇒ {Uei} {UP} {Ur}
-          ∘ α⇐ {Uei} {UP} {Ur}
-          ∘ (id {Uei} ⊗₁ from-P-rest)
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-        (id {Ueo} ⊗₁ to-P-rest)
-          ∘ (G ⊗₁ id {UP ⊗₀ Ur})
-          ∘ (α⇒ {Uei} {UP} {Ur} ∘ α⇐ {Uei} {UP} {Ur})
-          ∘ (id {Uei} ⊗₁ from-P-rest)
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ α⇒∘α⇐≈id ⟩∘⟨refl ⟩
-        (id {Ueo} ⊗₁ to-P-rest)
-          ∘ (G ⊗₁ id {UP ⊗₀ Ur})
-          ∘ id
-          ∘ (id {Uei} ⊗₁ from-P-rest)
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
-        (id {Ueo} ⊗₁ to-P-rest)
-          ∘ (G ⊗₁ id {UP ⊗₀ Ur})
-          ∘ (id {Uei} ⊗₁ from-P-rest)
-          ≈⟨ FM.sym-assoc ⟩
-        ((id {Ueo} ⊗₁ to-P-rest) ∘ (G ⊗₁ id {UP ⊗₀ Ur}))
-          ∘ (id {Uei} ⊗₁ from-P-rest)
-          ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩∘⟨refl ⟩
-        ((id {Ueo} ∘ G) ⊗₁ (to-P-rest ∘ id {UP ⊗₀ Ur}))
-          ∘ (id {Uei} ⊗₁ from-P-rest)
-          ≈⟨ ⊗-resp-≈ idˡ idʳ ⟩∘⟨refl ⟩
-        (G ⊗₁ to-P-rest) ∘ (id {Uei} ⊗₁ from-P-rest)
-          ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-        (G ∘ id {Uei}) ⊗₁ (to-P-rest ∘ from-P-rest)
-          ≈⟨ ⊗-resp-≈ idʳ (_≅_.isoˡ (unflatten-++-≅ P rest)) ⟩
-        G ⊗₁ id {UPr} ∎
+      open Sig {9} (λ { 0F → aEi , aEo                 -- G
+                      ; 1F → (aEo ⊗ᵒ aPr) , aEoPr      -- to-eo-Prest
+                      ; 2F → aEiPr , (aEi ⊗ᵒ aPr)      -- from-ei-Prest
+                      ; 3F → (aP ⊗ᵒ aR) , aPr          -- to-P-rest
+                      ; 4F → aPr , (aP ⊗ᵒ aR)          -- from-P-rest
+                      ; 5F → (aEi ⊗ᵒ aR) , aEir        -- to-ei-rest
+                      ; 6F → aEor , (aEo ⊗ᵒ aR)        -- from-eo-rest
+                      ; 7F → (aEo ⊗ᵒ aR) , aEor        -- to-eo-rest
+                      ; 8F → aEir , (aEi ⊗ᵒ aR) })     -- from-ei-rest
+        renaming (module S to Sσ)
+
+      open WithGen (λ { (genS 0F) → G
+                      ; (genS 1F) → to-eo-Prest
+                      ; (genS 2F) → from-ei-Prest
+                      ; (genS 3F) → to-P-rest
+                      ; (genS 4F) → from-P-rest
+                      ; (genS 5F) → to-ei-rest
+                      ; (genS 6F) → from-eo-rest
+                      ; (genS 7F) → to-eo-rest
+                      ; (genS 8F) → from-ei-rest })
+
+      open Sσ using ()
+        renaming (_∘_ to infixr 9 _∘ᵗ_; _⊗₁_ to infixr 10 _⊗ᵗ_)
+
+      gᵗ    = gen 0F
+      tEoPᵗ = gen 1F
+      fEiPᵗ = gen 2F
+      tPᵗ   = gen 3F
+      fPᵗ   = gen 4F
+      tEiᵗ  = gen 5F
+      fEoᵗ  = gen 6F
+      tEoᵗ  = gen 7F
+      fEiᵗ  = gen 8F
+
+      -- id/σ/α with their implicit OBJECT arguments pinned term-side (the
+      -- object interpretation is not injective).
+      idPᵗ : Sσ.HomTerm aP aP
+      idPᵗ = Sσ.id
+      idEiᵗ : Sσ.HomTerm aEi aEi
+      idEiᵗ = Sσ.id
+      idEoᵗ : Sσ.HomTerm aEo aEo
+      idEoᵗ = Sσ.id
+      idRᵗ : Sσ.HomTerm aR aR
+      idRᵗ = Sσ.id
+      idEoRᵗ : Sσ.HomTerm (aEo ⊗ᵒ aR) (aEo ⊗ᵒ aR)
+      idEoRᵗ = Sσ.id
+      idEiRᵗ : Sσ.HomTerm (aEi ⊗ᵒ aR) (aEi ⊗ᵒ aR)
+      idEiRᵗ = Sσ.id
+
+      σPEoᵗ : Sσ.HomTerm (aP ⊗ᵒ aEo) (aEo ⊗ᵒ aP)
+      σPEoᵗ = Sσ.σ
+      σEiPᵗ : Sσ.HomTerm (aEi ⊗ᵒ aP) (aP ⊗ᵒ aEi)
+      σEiPᵗ = Sσ.σ
+
+      α⇒EoPRᵗ : Sσ.HomTerm ((aEo ⊗ᵒ aP) ⊗ᵒ aR) (aEo ⊗ᵒ (aP ⊗ᵒ aR))
+      α⇒EoPRᵗ = Sσ.α⇒
+      α⇐PEoRᵗ : Sσ.HomTerm (aP ⊗ᵒ (aEo ⊗ᵒ aR)) ((aP ⊗ᵒ aEo) ⊗ᵒ aR)
+      α⇐PEoRᵗ = Sσ.α⇐
+      α⇒PEiRᵗ : Sσ.HomTerm ((aP ⊗ᵒ aEi) ⊗ᵒ aR) (aP ⊗ᵒ (aEi ⊗ᵒ aR))
+      α⇒PEiRᵗ = Sσ.α⇒
+      α⇐EiPRᵗ : Sσ.HomTerm (aEi ⊗ᵒ (aP ⊗ᵒ aR)) ((aEi ⊗ᵒ aP) ⊗ᵒ aR)
+      α⇐EiPRᵗ = Sσ.α⇐
+
+      boxᵗ : Sσ.HomTerm aEir aEor
+      boxᵗ   = tEoᵗ ∘ᵗ ((gᵗ ⊗ᵗ idRᵗ) ∘ᵗ fEiᵗ)
+      σ-inᵗ : Sσ.HomTerm aEiPr (aP ⊗ᵒ aEir)
+      σ-inᵗ  = (idPᵗ ⊗ᵗ tEiᵗ) ∘ᵗ α⇒PEiRᵗ ∘ᵗ (σEiPᵗ ⊗ᵗ idRᵗ)
+                 ∘ᵗ α⇐EiPRᵗ ∘ᵗ (idEiᵗ ⊗ᵗ fPᵗ) ∘ᵗ fEiPᵗ
+      σ-outᵗ : Sσ.HomTerm (aP ⊗ᵒ aEor) aEoPr
+      σ-outᵗ = tEoPᵗ ∘ᵗ (idEoᵗ ⊗ᵗ tPᵗ) ∘ᵗ α⇒EoPRᵗ ∘ᵗ (σPEoᵗ ⊗ᵗ idRᵗ)
+                 ∘ᵗ α⇐PEoRᵗ ∘ᵗ (idPᵗ ⊗ᵗ fEoᵗ)
+
+      lhs1ᵗ rhs1ᵗ mid3ᵗ rhs3ᵗ : Sσ.HomTerm aEiPr aEoPr
+      lhs1ᵗ = σ-outᵗ ∘ᵗ (idPᵗ ⊗ᵗ boxᵗ) ∘ᵗ σ-inᵗ
+      rhs1ᵗ = tEoPᵗ ∘ᵗ (idEoᵗ ⊗ᵗ tPᵗ) ∘ᵗ α⇒EoPRᵗ ∘ᵗ (σPEoᵗ ⊗ᵗ idRᵗ) ∘ᵗ α⇐PEoRᵗ
+                ∘ᵗ (idPᵗ ⊗ᵗ (fEoᵗ ∘ᵗ tEoᵗ)) ∘ᵗ (idPᵗ ⊗ᵗ (gᵗ ⊗ᵗ idRᵗ))
+                ∘ᵗ (idPᵗ ⊗ᵗ (fEiᵗ ∘ᵗ tEiᵗ))
+                ∘ᵗ α⇒PEiRᵗ ∘ᵗ (σEiPᵗ ⊗ᵗ idRᵗ) ∘ᵗ α⇐EiPRᵗ ∘ᵗ (idEiᵗ ⊗ᵗ fPᵗ) ∘ᵗ fEiPᵗ
+      mid3ᵗ = tEoPᵗ ∘ᵗ (idEoᵗ ⊗ᵗ tPᵗ) ∘ᵗ α⇒EoPRᵗ ∘ᵗ (σPEoᵗ ⊗ᵗ idRᵗ) ∘ᵗ α⇐PEoRᵗ
+                ∘ᵗ (idPᵗ ⊗ᵗ idEoRᵗ) ∘ᵗ (idPᵗ ⊗ᵗ (gᵗ ⊗ᵗ idRᵗ)) ∘ᵗ (idPᵗ ⊗ᵗ idEiRᵗ)
+                ∘ᵗ α⇒PEiRᵗ ∘ᵗ (σEiPᵗ ⊗ᵗ idRᵗ) ∘ᵗ α⇐EiPRᵗ ∘ᵗ (idEiᵗ ⊗ᵗ fPᵗ) ∘ᵗ fEiPᵗ
+      rhs3ᵗ = tEoPᵗ ∘ᵗ (gᵗ ⊗ᵗ (tPᵗ ∘ᵗ fPᵗ)) ∘ᵗ fEiPᵗ
 
       -- the master chain: σ-out ∘ (id{UP} ⊗ box) ∘ σ-in ≈ boxR.
       rhs-chase
         : σ-out ∘ (id {UP} ⊗₁ box) ∘ σ-in ≈Term boxR
       rhs-chase = begin
         σ-out ∘ (id {UP} ⊗₁ box) ∘ σ-in
-          ≈⟨ regroup-front ⟩
+          ≈⟨ solveMorσ! lhs1ᵗ rhs1ᵗ ⟩
         to-eo-Prest
           ∘ (id {Ueo} ⊗₁ to-P-rest)
           ∘ α⇒ {Ueo} {UP} {Ur}
           ∘ (σ {UP} {Ueo} ⊗₁ id {Ur})
           ∘ α⇐ {UP} {Ueo} {Ur}
-          ∘ ((id {UP} ⊗₁ from-eo-rest)
-             ∘ (id {UP} ⊗₁ box)
-             ∘ (id {UP} ⊗₁ to-ei-rest))
-          ∘ α⇒ {UP} {Uei} {Ur}
-          ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-          ∘ α⇐ {Uei} {UP} {Ur}
-          ∘ (id {Uei} ⊗₁ from-P-rest)
-          ∘ from-ei-Prest
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ front-collapse ⟩∘⟨refl ⟩
-        to-eo-Prest
-          ∘ (id {Ueo} ⊗₁ to-P-rest)
-          ∘ α⇒ {Ueo} {UP} {Ur}
-          ∘ (σ {UP} {Ueo} ⊗₁ id {Ur})
-          ∘ α⇐ {UP} {Ueo} {Ur}
+          ∘ (id {UP} ⊗₁ (from-eo-rest ∘ to-eo-rest))
           ∘ (id {UP} ⊗₁ (G ⊗₁ id {Ur}))
+          ∘ (id {UP} ⊗₁ (from-ei-rest ∘ to-ei-rest))
           ∘ α⇒ {UP} {Uei} {Ur}
           ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
           ∘ α⇐ {Uei} {UP} {Ur}
           ∘ (id {Uei} ⊗₁ from-P-rest)
           ∘ from-ei-Prest
-          ≈⟨ regroup-central ⟩
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨
+             ⊗-resp-≈ ≈-Term-refl (_≅_.isoʳ (unflatten-++-≅ eoutR rest)) ⟩∘⟨
+             refl⟩∘⟨
+             ⊗-resp-≈ ≈-Term-refl (_≅_.isoʳ (unflatten-++-≅ einR rest)) ⟩∘⟨refl ⟩
         to-eo-Prest
           ∘ (id {Ueo} ⊗₁ to-P-rest)
           ∘ α⇒ {Ueo} {UP} {Ur}
           ∘ (σ {UP} {Ueo} ⊗₁ id {Ur})
-          ∘ (α⇐ {UP} {Ueo} {Ur}
-             ∘ (id {UP} ⊗₁ (G ⊗₁ id {Ur}))
-             ∘ α⇒ {UP} {Uei} {Ur})
+          ∘ α⇐ {UP} {Ueo} {Ur}
+          ∘ (id {UP} ⊗₁ id {Ueo ⊗₀ Ur})
+          ∘ (id {UP} ⊗₁ (G ⊗₁ id {Ur}))
+          ∘ (id {UP} ⊗₁ id {Uei ⊗₀ Ur})
+          ∘ α⇒ {UP} {Uei} {Ur}
           ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
           ∘ α⇐ {Uei} {UP} {Ur}
           ∘ (id {Uei} ⊗₁ from-P-rest)
           ∘ from-ei-Prest
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ central-collapse ⟩∘⟨refl ⟩
-        to-eo-Prest
-          ∘ (id {Ueo} ⊗₁ to-P-rest)
-          ∘ α⇒ {Ueo} {UP} {Ur}
-          ∘ (σ {UP} {Ueo} ⊗₁ id {Ur})
-          ∘ ((id {UP} ⊗₁ G) ⊗₁ id {Ur})
-          ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-          ∘ α⇐ {Uei} {UP} {Ur}
-          ∘ (id {Uei} ⊗₁ from-P-rest)
-          ∘ from-ei-Prest
-          ≈⟨ regroup-sigma ⟩
-        to-eo-Prest
-          ∘ (id {Ueo} ⊗₁ to-P-rest)
-          ∘ α⇒ {Ueo} {UP} {Ur}
-          ∘ ((σ {UP} {Ueo} ∘ (id {UP} ⊗₁ G) ∘ σ {Uei} {UP}) ⊗₁ id {Ur})
-          ∘ α⇐ {Uei} {UP} {Ur}
-          ∘ (id {Uei} ⊗₁ from-P-rest)
-          ∘ from-ei-Prest
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ ⊗-resp-≈ sigma-slide ≈-Term-refl ⟩∘⟨refl ⟩
-        to-eo-Prest
-          ∘ (id {Ueo} ⊗₁ to-P-rest)
-          ∘ α⇒ {Ueo} {UP} {Ur}
-          ∘ ((G ⊗₁ id {UP}) ⊗₁ id {Ur})
-          ∘ α⇐ {Uei} {UP} {Ur}
-          ∘ (id {Uei} ⊗₁ from-P-rest)
-          ∘ from-ei-Prest
-          ≈⟨ regroup-tail ⟩
-        to-eo-Prest
-          ∘ ((id {Ueo} ⊗₁ to-P-rest)
-             ∘ α⇒ {Ueo} {UP} {Ur}
-             ∘ ((G ⊗₁ id {UP}) ⊗₁ id {Ur})
-             ∘ α⇐ {Uei} {UP} {Ur}
-             ∘ (id {Uei} ⊗₁ from-P-rest))
-          ∘ from-ei-Prest
-          ≈⟨ refl⟩∘⟨ tail-collapse ⟩∘⟨refl ⟩
+          ≈⟨ solveMorσ! mid3ᵗ rhs3ᵗ ⟩
+        to-eo-Prest ∘ (G ⊗₁ (to-P-rest ∘ from-P-rest)) ∘ from-ei-Prest
+          ≈⟨ refl⟩∘⟨ ⊗-resp-≈ ≈-Term-refl (_≅_.isoˡ (unflatten-++-≅ P rest)) ⟩∘⟨refl ⟩
         to-eo-Prest ∘ (G ⊗₁ id {UPr}) ∘ from-ei-Prest ∎
-        where
-          -- pure-associativity reshuffles (the `≈⟨ ⟩` glue between collapses).
-          regroup-front
-            : σ-out ∘ (id {UP} ⊗₁ box) ∘ σ-in
-            ≈Term
-              to-eo-Prest
-                ∘ (id {Ueo} ⊗₁ to-P-rest)
-                ∘ α⇒ {Ueo} {UP} {Ur}
-                ∘ (σ {UP} {Ueo} ⊗₁ id {Ur})
-                ∘ α⇐ {UP} {Ueo} {Ur}
-                ∘ ((id {UP} ⊗₁ from-eo-rest)
-                   ∘ (id {UP} ⊗₁ box)
-                   ∘ (id {UP} ⊗₁ to-ei-rest))
-                ∘ α⇒ {UP} {Uei} {Ur}
-                ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-                ∘ α⇐ {Uei} {UP} {Ur}
-                ∘ (id {Uei} ⊗₁ from-P-rest)
-                ∘ from-ei-Prest
-          regroup-front = begin
-            σ-out ∘ (id {UP} ⊗₁ box) ∘ σ-in
-              ≈⟨ FM.assoc ⟩
-            to-eo-Prest
-              ∘ ((id {Ueo} ⊗₁ to-P-rest)
-                 ∘ α⇒ {Ueo} {UP} {Ur}
-                 ∘ (σ {UP} {Ueo} ⊗₁ id {Ur})
-                 ∘ α⇐ {UP} {Ueo} {Ur}
-                 ∘ (id {UP} ⊗₁ from-eo-rest))
-              ∘ (id {UP} ⊗₁ box) ∘ σ-in
-              ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-            to-eo-Prest
-              ∘ (id {Ueo} ⊗₁ to-P-rest)
-              ∘ (α⇒ {Ueo} {UP} {Ur}
-                 ∘ (σ {UP} {Ueo} ⊗₁ id {Ur})
-                 ∘ α⇐ {UP} {Ueo} {Ur}
-                 ∘ (id {UP} ⊗₁ from-eo-rest))
-              ∘ (id {UP} ⊗₁ box) ∘ σ-in
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-            to-eo-Prest
-              ∘ (id {Ueo} ⊗₁ to-P-rest)
-              ∘ α⇒ {Ueo} {UP} {Ur}
-              ∘ ((σ {UP} {Ueo} ⊗₁ id {Ur})
-                 ∘ α⇐ {UP} {Ueo} {Ur}
-                 ∘ (id {UP} ⊗₁ from-eo-rest))
-              ∘ (id {UP} ⊗₁ box) ∘ σ-in
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-            to-eo-Prest
-              ∘ (id {Ueo} ⊗₁ to-P-rest)
-              ∘ α⇒ {Ueo} {UP} {Ur}
-              ∘ (σ {UP} {Ueo} ⊗₁ id {Ur})
-              ∘ (α⇐ {UP} {Ueo} {Ur}
-                 ∘ (id {UP} ⊗₁ from-eo-rest))
-              ∘ (id {UP} ⊗₁ box) ∘ σ-in
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-            to-eo-Prest
-              ∘ (id {Ueo} ⊗₁ to-P-rest)
-              ∘ α⇒ {Ueo} {UP} {Ur}
-              ∘ (σ {UP} {Ueo} ⊗₁ id {Ur})
-              ∘ α⇐ {UP} {Ueo} {Ur}
-              ∘ (id {UP} ⊗₁ from-eo-rest)
-              ∘ (id {UP} ⊗₁ box) ∘ σ-in
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ middle ⟩
-            to-eo-Prest
-              ∘ (id {Ueo} ⊗₁ to-P-rest)
-              ∘ α⇒ {Ueo} {UP} {Ur}
-              ∘ (σ {UP} {Ueo} ⊗₁ id {Ur})
-              ∘ α⇐ {UP} {Ueo} {Ur}
-              ∘ ((id {UP} ⊗₁ from-eo-rest)
-                 ∘ (id {UP} ⊗₁ box)
-                 ∘ (id {UP} ⊗₁ to-ei-rest))
-              ∘ α⇒ {UP} {Uei} {Ur}
-              ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-              ∘ α⇐ {Uei} {UP} {Ur}
-              ∘ (id {Uei} ⊗₁ from-P-rest)
-              ∘ from-ei-Prest ∎
-            where
-              -- the only non-trivial part: re-associate
-              --   (id{UP}⊗from-eo-rest) ∘ [ (id{UP}⊗box) ∘ σ-in-tail ]
-              -- so the front-triple is parenthesised.  Everything else is the
-              -- definitional unfolding of σ-out / σ-in (already aligned).
-              middle
-                : (id {UP} ⊗₁ from-eo-rest)
-                  ∘ (id {UP} ⊗₁ box)
-                  ∘ ((id {UP} ⊗₁ to-ei-rest)
-                     ∘ α⇒ {UP} {Uei} {Ur}
-                     ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-                     ∘ α⇐ {Uei} {UP} {Ur}
-                     ∘ (id {Uei} ⊗₁ from-P-rest)
-                     ∘ from-ei-Prest)
-                ≈Term
-                  ((id {UP} ⊗₁ from-eo-rest)
-                   ∘ (id {UP} ⊗₁ box)
-                   ∘ (id {UP} ⊗₁ to-ei-rest))
-                  ∘ α⇒ {UP} {Uei} {Ur}
-                  ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-                  ∘ α⇐ {Uei} {UP} {Ur}
-                  ∘ (id {Uei} ⊗₁ from-P-rest)
-                  ∘ from-ei-Prest
-              middle = begin
-                (id {UP} ⊗₁ from-eo-rest)
-                  ∘ (id {UP} ⊗₁ box)
-                  ∘ ((id {UP} ⊗₁ to-ei-rest) ∘ tail)
-                  ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-                (id {UP} ⊗₁ from-eo-rest)
-                  ∘ ((id {UP} ⊗₁ box) ∘ (id {UP} ⊗₁ to-ei-rest))
-                  ∘ tail
-                  ≈⟨ FM.sym-assoc ⟩
-                ((id {UP} ⊗₁ from-eo-rest)
-                  ∘ ((id {UP} ⊗₁ box) ∘ (id {UP} ⊗₁ to-ei-rest)))
-                  ∘ tail
-                  ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
-                (((id {UP} ⊗₁ from-eo-rest) ∘ (id {UP} ⊗₁ box))
-                  ∘ (id {UP} ⊗₁ to-ei-rest))
-                  ∘ tail
-                  ≈⟨ FM.assoc ⟩∘⟨refl ⟩
-                ((id {UP} ⊗₁ from-eo-rest)
-                  ∘ (id {UP} ⊗₁ box)
-                  ∘ (id {UP} ⊗₁ to-ei-rest))
-                  ∘ α⇒ {UP} {Uei} {Ur}
-                  ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-                  ∘ α⇐ {Uei} {UP} {Ur}
-                  ∘ (id {Uei} ⊗₁ from-P-rest)
-                  ∘ from-ei-Prest ∎
-                where
-                  tail =
-                      α⇒ {UP} {Uei} {Ur}
-                    ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-                    ∘ α⇐ {Uei} {UP} {Ur}
-                    ∘ (id {Uei} ⊗₁ from-P-rest)
-                    ∘ from-ei-Prest
-
-          regroup-central
-            : to-eo-Prest
-                ∘ (id {Ueo} ⊗₁ to-P-rest)
-                ∘ α⇒ {Ueo} {UP} {Ur}
-                ∘ (σ {UP} {Ueo} ⊗₁ id {Ur})
-                ∘ α⇐ {UP} {Ueo} {Ur}
-                ∘ (id {UP} ⊗₁ (G ⊗₁ id {Ur}))
-                ∘ α⇒ {UP} {Uei} {Ur}
-                ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-                ∘ α⇐ {Uei} {UP} {Ur}
-                ∘ (id {Uei} ⊗₁ from-P-rest)
-                ∘ from-ei-Prest
-            ≈Term
-              to-eo-Prest
-                ∘ (id {Ueo} ⊗₁ to-P-rest)
-                ∘ α⇒ {Ueo} {UP} {Ur}
-                ∘ (σ {UP} {Ueo} ⊗₁ id {Ur})
-                ∘ (α⇐ {UP} {Ueo} {Ur}
-                   ∘ (id {UP} ⊗₁ (G ⊗₁ id {Ur}))
-                   ∘ α⇒ {UP} {Uei} {Ur})
-                ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-                ∘ α⇐ {Uei} {UP} {Ur}
-                ∘ (id {Uei} ⊗₁ from-P-rest)
-                ∘ from-ei-Prest
-          regroup-central =
-            refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨
-              (begin
-                α⇐ {UP} {Ueo} {Ur}
-                  ∘ (id {UP} ⊗₁ (G ⊗₁ id {Ur}))
-                  ∘ α⇒ {UP} {Uei} {Ur}
-                  ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-                  ∘ α⇐ {Uei} {UP} {Ur}
-                  ∘ (id {Uei} ⊗₁ from-P-rest)
-                  ∘ from-ei-Prest
-                  ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-                α⇐ {UP} {Ueo} {Ur}
-                  ∘ ((id {UP} ⊗₁ (G ⊗₁ id {Ur})) ∘ α⇒ {UP} {Uei} {Ur})
-                  ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-                  ∘ α⇐ {Uei} {UP} {Ur}
-                  ∘ (id {Uei} ⊗₁ from-P-rest)
-                  ∘ from-ei-Prest
-                  ≈⟨ FM.sym-assoc ⟩
-                (α⇐ {UP} {Ueo} {Ur}
-                  ∘ ((id {UP} ⊗₁ (G ⊗₁ id {Ur})) ∘ α⇒ {UP} {Uei} {Ur}))
-                  ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-                  ∘ α⇐ {Uei} {UP} {Ur}
-                  ∘ (id {Uei} ⊗₁ from-P-rest)
-                  ∘ from-ei-Prest
-                  ≈⟨ FM.sym-assoc ⟩∘⟨refl ⟩
-                ((α⇐ {UP} {Ueo} {Ur} ∘ (id {UP} ⊗₁ (G ⊗₁ id {Ur})))
-                  ∘ α⇒ {UP} {Uei} {Ur})
-                  ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-                  ∘ α⇐ {Uei} {UP} {Ur}
-                  ∘ (id {Uei} ⊗₁ from-P-rest)
-                  ∘ from-ei-Prest
-                  ≈⟨ FM.assoc ⟩∘⟨refl ⟩
-                (α⇐ {UP} {Ueo} {Ur}
-                  ∘ (id {UP} ⊗₁ (G ⊗₁ id {Ur}))
-                  ∘ α⇒ {UP} {Uei} {Ur})
-                  ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-                  ∘ α⇐ {Uei} {UP} {Ur}
-                  ∘ (id {Uei} ⊗₁ from-P-rest)
-                  ∘ from-ei-Prest ∎)
-
-          regroup-sigma
-            : to-eo-Prest
-                ∘ (id {Ueo} ⊗₁ to-P-rest)
-                ∘ α⇒ {Ueo} {UP} {Ur}
-                ∘ (σ {UP} {Ueo} ⊗₁ id {Ur})
-                ∘ ((id {UP} ⊗₁ G) ⊗₁ id {Ur})
-                ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-                ∘ α⇐ {Uei} {UP} {Ur}
-                ∘ (id {Uei} ⊗₁ from-P-rest)
-                ∘ from-ei-Prest
-            ≈Term
-              to-eo-Prest
-                ∘ (id {Ueo} ⊗₁ to-P-rest)
-                ∘ α⇒ {Ueo} {UP} {Ur}
-                ∘ ((σ {UP} {Ueo} ∘ (id {UP} ⊗₁ G) ∘ σ {Uei} {UP}) ⊗₁ id {Ur})
-                ∘ α⇐ {Uei} {UP} {Ur}
-                ∘ (id {Uei} ⊗₁ from-P-rest)
-                ∘ from-ei-Prest
-          regroup-sigma =
-            refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨
-              (begin
-                (σ {UP} {Ueo} ⊗₁ id {Ur})
-                  ∘ ((id {UP} ⊗₁ G) ⊗₁ id {Ur})
-                  ∘ (σ {Uei} {UP} ⊗₁ id {Ur})
-                  ∘ rest-tail
-                  ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-                (σ {UP} {Ueo} ⊗₁ id {Ur})
-                  ∘ (((id {UP} ⊗₁ G) ⊗₁ id {Ur}) ∘ (σ {Uei} {UP} ⊗₁ id {Ur}))
-                  ∘ rest-tail
-                  ≈⟨ FM.sym-assoc ⟩
-                ((σ {UP} {Ueo} ⊗₁ id {Ur})
-                  ∘ (((id {UP} ⊗₁ G) ⊗₁ id {Ur}) ∘ (σ {Uei} {UP} ⊗₁ id {Ur})))
-                  ∘ rest-tail
-                  ≈⟨ (refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist) ⟩∘⟨refl ⟩
-                ((σ {UP} {Ueo} ⊗₁ id {Ur})
-                  ∘ (((id {UP} ⊗₁ G) ∘ σ {Uei} {UP}) ⊗₁ (id {Ur} ∘ id {Ur})))
-                  ∘ rest-tail
-                  ≈⟨ (refl⟩∘⟨ ⊗-resp-≈ ≈-Term-refl idˡ) ⟩∘⟨refl ⟩
-                ((σ {UP} {Ueo} ⊗₁ id {Ur})
-                  ∘ (((id {UP} ⊗₁ G) ∘ σ {Uei} {UP}) ⊗₁ id {Ur}))
-                  ∘ rest-tail
-                  ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩∘⟨refl ⟩
-                ((σ {UP} {Ueo} ∘ ((id {UP} ⊗₁ G) ∘ σ {Uei} {UP}))
-                  ⊗₁ (id {Ur} ∘ id {Ur}))
-                  ∘ rest-tail
-                  ≈⟨ ⊗-resp-≈ ≈-Term-refl idˡ ⟩∘⟨refl ⟩
-                ((σ {UP} {Ueo} ∘ (id {UP} ⊗₁ G) ∘ σ {Uei} {UP}) ⊗₁ id {Ur})
-                  ∘ rest-tail ∎)
-            where
-              rest-tail =
-                  α⇐ {Uei} {UP} {Ur}
-                ∘ (id {Uei} ⊗₁ from-P-rest)
-                ∘ from-ei-Prest
-
-          regroup-tail
-            : to-eo-Prest
-                ∘ (id {Ueo} ⊗₁ to-P-rest)
-                ∘ α⇒ {Ueo} {UP} {Ur}
-                ∘ ((G ⊗₁ id {UP}) ⊗₁ id {Ur})
-                ∘ α⇐ {Uei} {UP} {Ur}
-                ∘ (id {Uei} ⊗₁ from-P-rest)
-                ∘ from-ei-Prest
-            ≈Term
-              to-eo-Prest
-                ∘ ((id {Ueo} ⊗₁ to-P-rest)
-                   ∘ α⇒ {Ueo} {UP} {Ur}
-                   ∘ ((G ⊗₁ id {UP}) ⊗₁ id {Ur})
-                   ∘ α⇐ {Uei} {UP} {Ur}
-                   ∘ (id {Uei} ⊗₁ from-P-rest))
-                ∘ from-ei-Prest
-          regroup-tail =
-            refl⟩∘⟨
-              (begin
-                (id {Ueo} ⊗₁ to-P-rest)
-                  ∘ α⇒ {Ueo} {UP} {Ur}
-                  ∘ ((G ⊗₁ id {UP}) ⊗₁ id {Ur})
-                  ∘ α⇐ {Uei} {UP} {Ur}
-                  ∘ (id {Uei} ⊗₁ from-P-rest)
-                  ∘ from-ei-Prest
-                  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-                (id {Ueo} ⊗₁ to-P-rest)
-                  ∘ α⇒ {Ueo} {UP} {Ur}
-                  ∘ ((G ⊗₁ id {UP}) ⊗₁ id {Ur})
-                  ∘ (α⇐ {Uei} {UP} {Ur} ∘ (id {Uei} ⊗₁ from-P-rest))
-                  ∘ from-ei-Prest
-                  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-                (id {Ueo} ⊗₁ to-P-rest)
-                  ∘ α⇒ {Ueo} {UP} {Ur}
-                  ∘ (((G ⊗₁ id {UP}) ⊗₁ id {Ur}) ∘ (α⇐ {Uei} {UP} {Ur} ∘ (id {Uei} ⊗₁ from-P-rest)))
-                  ∘ from-ei-Prest
-                  ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-                (id {Ueo} ⊗₁ to-P-rest)
-                  ∘ (α⇒ {Ueo} {UP} {Ur} ∘ (((G ⊗₁ id {UP}) ⊗₁ id {Ur}) ∘ (α⇐ {Uei} {UP} {Ur} ∘ (id {Uei} ⊗₁ from-P-rest))))
-                  ∘ from-ei-Prest
-                  ≈⟨ FM.sym-assoc ⟩
-                ((id {Ueo} ⊗₁ to-P-rest)
-                  ∘ (α⇒ {Ueo} {UP} {Ur} ∘ (((G ⊗₁ id {UP}) ⊗₁ id {Ur}) ∘ (α⇐ {Uei} {UP} {Ur} ∘ (id {Uei} ⊗₁ from-P-rest)))))
-                  ∘ from-ei-Prest
-                  ≈⟨ ≈-Term-refl ⟩∘⟨refl ⟩
-                ((id {Ueo} ⊗₁ to-P-rest)
-                  ∘ α⇒ {Ueo} {UP} {Ur}
-                  ∘ ((G ⊗₁ id {UP}) ⊗₁ id {Ur})
-                  ∘ α⇐ {Uei} {UP} {Ur}
-                  ∘ (id {Uei} ⊗₁ from-P-rest))
-                  ∘ from-ei-Prest ∎)
 
 --------------------------------------------------------------------------------
 -- ## The GENERIC `vlab`-framed box-suffix reframe.
