@@ -474,6 +474,22 @@ worker at fully general endpoints carrying explicit endpoint equalities, collaps
 `≟-ObjTerm`. v1 limits as designed: no common-suffix peel under differing prefix lengths;
 cut-crossing equations pay WHOLE + the fixed overhead.
 
+## The 8-atom wall: per-call cost is signature/object-size-sensitive (2026-06-10)
+
+The `assoc'-coherence` campaign (see `src/Categories/GConstructionCoherence/`) produced one more
+hard data point. Its architecture reduces the infeasible 50-morphism equation to **three 1-box
+segment obligations** (naturality squares, sides 18–33 layers) — sizes that the Fin-1/Fin-3
+ladders predict at seconds-to-a-minute. Measured: **`ob₂`, the smallest (24-layer 1-box pair,
+`findIsoᵀ`), exceeds 20 minutes.** This is the `s1 = 53 s` anomaly (an ~8-layer goal at the
+8-atom signature costing 1000× its Fin-3 analogue) scaled up by layer count: the per-solver-call
+cost is dominated by **raw-`⟪_⟫` normalization inside type conversion** — the iso's
+`⟪f⟫ ≅ᴴ ⟪g⟫`-typed interface — which the tabulation lever does **not** reach (tabH literalizes the
+value-level search, not the type-level conversion). Consequence: solver-leaf-based proofs at
+8-atom/8-wire signatures cost tens of minutes **per call** regardless of how small the leaf is.
+Remaining levers for this wall: extend literalization to the type-level interface (state the
+obligations against *named, pre-normalized* hypergraph values with a once-checked `≡`), or
+hand-prove such 1-box squares with free combinators (no solver), or accept batch compute.
+
 ## Implication
 
 The fix is the same as for shrinking the soundness proof itself: a real coherence solver
