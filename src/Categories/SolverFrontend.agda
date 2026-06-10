@@ -83,12 +83,15 @@ open import Level using (Level)
 
 open import Data.Bool using (Bool; true; false)
 open import Data.Empty using (⊥)
+open import Data.Fin using (Fin; toℕ)
+open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
 open import Data.Nat using (ℕ; _*_; _<ᵇ_) renaming (zero to nzero; suc to nsuc)
+open import Data.Vec using (Vec; lookup)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ; ≡-dec)
 open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Product using (Σ; _,_; Σ-syntax)
+open import Data.Product using (Σ; _,_; _×_; Σ-syntax; proj₁; proj₂)
 open import Data.Unit using (⊤; tt)
 open import Relation.Nullary using (Dec; yes; no)
 open import Relation.Binary using (DecidableEquality)
@@ -932,3 +935,60 @@ module Frontend
                     {hit : IsJust (decide?F l r)}
                   → C .MonoidalCategory.U [ ⟦ l ⟧₁ ≈ ⟦ r ⟧₁ ]
         solveMor! l r {hit} = ⟦⟧-resp-≈ (solveTerm! l r {hit})
+
+--------------------------------------------------------------------------------
+-- `FinSetup`: the call-site convenience wrapper (the analogue of the
+-- hypergraph solver's `Coherence.Symmetric.Setup`).  From
+--
+--   * a target monoidal category `C`,
+--   * a `Vec` of object atoms (the opaque objects of the goal), and
+--   * a Fin-indexed `arity` table of generator arities (ObjTerms over the
+--     atom indices),
+--
+-- it assembles the signature, decidable equalities and the rank tiebreak,
+-- exposing the term language `S`, the generator embedding `gen`, the
+-- object interpretation `⟦_⟧ₒ`, and — after `WithGen` supplies the
+-- generator interpretations — the `solveMor!` entry point.
+--
+-- Typical use, discharging a C-equation between composites of opaque
+-- morphisms and structural isos (cf. SolverFrontendTests.Target):
+--
+--   open FinSetup C (A ∷ B ∷ []) (λ { zero → Var zero , Var zero ; … })
+--   open WithGen  (λ { (genS zero) → f ; … })
+--   goal = solveMor! lhsᵗ rhsᵗ
+--------------------------------------------------------------------------------
+
+module FinSetup
+  {o ℓ e : Level} (C : MonoidalCategory o ℓ e)
+  {nA : ℕ} (vars : Vec (C .MonoidalCategory.U .Category.Obj) nA)
+  where
+
+  -- the object language over the atom indices, with constructors renamed so
+  -- they coexist with a caller's own free-category vocabulary.
+  open FreeMonoidalHelper Mon (Fin nA) public
+    using (ObjTerm) renaming (Var to V; unit to unitᵒ; _⊗₀_ to _⊗ᵒ_)
+
+  module Sig {nG : ℕ} (arity : Fin nG → ObjTerm × ObjTerm) where
+
+    data GenS : ObjTerm → ObjTerm → Set where
+      genS : (i : Fin nG) → GenS (proj₁ (arity i)) (proj₂ (arity i))
+
+    -- the front-end term language over the assembled signature.
+    module S = FreeMonoidalHelper.Mor Mon (Fin nA) GenS
+
+    gen : (i : Fin nG) → S.HomTerm (proj₁ (arity i)) (proj₂ (arity i))
+    gen i = S.var (genS i)
+
+    open Frontend {Fin nA} _≟Fin_ GenS using (GenΣ; module Decide)
+
+    private
+      _≟G_ : DecidableEquality GenΣ
+      (_ , _ , genS i) ≟G (_ , _ , genS j) with i ≟Fin j
+      ... | yes refl = yes refl
+      ... | no ¬p    = no λ where refl → ¬p refl
+
+      rankS : GenΣ → ℕ
+      rankS (_ , _ , genS i) = toℕ i
+
+    open Decide _≟G_ rankS public using (decide?F; IsJust; solveTerm!; module Into)
+    open Into C (lookup vars) public

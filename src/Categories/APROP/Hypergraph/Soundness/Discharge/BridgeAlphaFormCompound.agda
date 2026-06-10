@@ -34,24 +34,22 @@ open import Categories.APROP.Hypergraph.Soundness.DecodeRoundtripSafe sig
         ; α⇐-form-list
         ; α⇒-α⇐-iso
         ; α⇐-α⇒-iso
-        ; α⇒-λ⇐-collapse
         ; pentagon-rewrite
-        ; α⇐-comm-top
-        ; λ⇐-naturality
         ; bridge-α⇒-form-Var
         ; bridge-α⇒-form-unit
-        ; F-unit⊗-collapse
-        ; T-unit⊗-collapse
-        ; F-Vx⊗-collapse
-        ; T-Vx⊗-collapse
         )
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
-open import Categories.Category.Monoidal using (Monoidal)
+open import Categories.Category.Monoidal using (Monoidal; MonoidalCategory)
 -- Mac-Lane coherence solver, used to discharge the pure-coherence helpers
 -- `λ-cancel` / `collapse-α-iso-⊗id` below.  Mirrors `Sub/SigmaBlockCommRaw.agda`.
 open import Categories.MonoidalCoherence using (module Solver)
+-- Morphism-variable monoidal solver: discharges the F-/T-decomp chases
+-- (coherence + naturality + interchange around the opaque unflatten isos)
+-- as single `solveMor!` calls at the free monoidal category itself.
+open import Categories.SolverFrontend using (module FinSetup)
+open import Data.Product using (_,_)
 import Data.Vec as Vec
 open Vec using (Vec)
 import Data.Fin as Fin
@@ -64,6 +62,10 @@ open import Induction.WellFounded using (Acc; acc)
 
 private
   module FM = Category FreeMonoidal
+
+  -- the free monoidal category itself, as the solver's target bundle.
+  FMC : MonoidalCategory _ _ _
+  FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
 
 open FM.HomReasoning
 
@@ -125,20 +127,28 @@ private
     → _≅_.from (unflatten-flatten-≈ ((unit ⊗₀ A) ⊗₀ (B ⊗₀ C)))
     ≈Term _≅_.from (unflatten-flatten-≈ (A ⊗₀ (B ⊗₀ C)))
           ∘ (λ⇒ {A} ⊗₁ id {B ⊗₀ C})
-  F-decomp-unit A B C = begin
-    c-A,BC-to ∘ ((λ⇒ ∘ id ⊗₁ F-A) ⊗₁ F-BC)
-      ≈⟨ refl⟩∘⟨ ⊗-resp-≈ λ⇒∘id⊗f≈f∘λ⇒ ≈-Term-refl ⟩
-    c-A,BC-to ∘ ((F-A ∘ λ⇒) ⊗₁ F-BC)
-      ≈⟨ refl⟩∘⟨ ⊗-resp-≈ ≈-Term-refl (≈-Term-sym idʳ) ⟩
-    c-A,BC-to ∘ ((F-A ∘ λ⇒) ⊗₁ (F-BC ∘ id))
-      ≈⟨ refl⟩∘⟨ ⊗-∘-dist ⟩
-    c-A,BC-to ∘ (F-A ⊗₁ F-BC) ∘ (λ⇒ ⊗₁ id)
-      ≈⟨ FM.sym-assoc ⟩
-    (c-A,BC-to ∘ F-A ⊗₁ F-BC) ∘ (λ⇒ ⊗₁ id) ∎
+  F-decomp-unit A B C = solveMor! lhsᵗ rhsᵗ
     where
-      F-A     = _≅_.from (unflatten-flatten-≈ A)
-      F-BC    = _≅_.from (unflatten-flatten-≈ (B ⊗₀ C))
-      c-A,BC-to = _≅_.to (unflatten-++-≅ (flatten A) (flatten B ++ flatten C))
+      -- atoms: 0 ↦ A, 1 ↦ uf A, 2 ↦ B⊗C, 3 ↦ uf (B⊗C), 4 ↦ unflatten (fA++fBC)
+      open FinSetup FMC
+        ( A Vec.∷ unflatten (flatten A)
+            Vec.∷ (B ⊗₀ C) Vec.∷ unflatten (flatten B ++ flatten C)
+            Vec.∷ unflatten (flatten A ++ (flatten B ++ flatten C)) Vec.∷ Vec.[] )
+      v0 = V Fin.zero ; v1 = V (Fin.suc Fin.zero) ; v2 = V (Fin.suc (Fin.suc Fin.zero))
+      v3 = V (Fin.suc (Fin.suc (Fin.suc Fin.zero)))
+      v4 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))
+      -- generators: F-A, F-BC, c-A,BC-to
+      open Sig {3} (λ { Fin.zero            → v0 , v1
+                      ; (Fin.suc Fin.zero)  → v2 , v3
+                      ; (Fin.suc (Fin.suc _)) → v1 ⊗ᵒ v3 , v4 })
+      open WithGen (λ { (genS Fin.zero)           → _≅_.from (unflatten-flatten-≈ A)
+                      ; (genS (Fin.suc Fin.zero)) → _≅_.from (unflatten-flatten-≈ (B ⊗₀ C))
+                      ; (genS (Fin.suc (Fin.suc _))) →
+                          _≅_.to (unflatten-++-≅ (flatten A) (flatten B ++ flatten C)) })
+      gFA = gen Fin.zero ; gFBC = gen (Fin.suc Fin.zero)
+      gc  = gen (Fin.suc (Fin.suc Fin.zero))
+      lhsᵗ = S._∘_ gc (S._⊗₁_ (S._∘_ S.λ⇒ (S._⊗₁_ S.id gFA)) gFBC)
+      rhsᵗ = S._∘_ (S._∘_ gc (S._⊗₁_ gFA gFBC)) (S._⊗₁_ S.λ⇒ S.id)
 
   -- T-(((unit⊗A)⊗B)⊗C) ≈ ((λ⇐ ⊗ id) ⊗ id) ∘ T-((A⊗B)⊗C).
   T-decomp-unit
@@ -146,28 +156,43 @@ private
     → _≅_.to (unflatten-flatten-≈ (((unit ⊗₀ A) ⊗₀ B) ⊗₀ C))
     ≈Term ((λ⇐ {A} ⊗₁ id {B}) ⊗₁ id {C})
           ∘ _≅_.to (unflatten-flatten-≈ ((A ⊗₀ B) ⊗₀ C))
-  T-decomp-unit A B C = begin
-    (((id ⊗₁ T-A ∘ λ⇐) ⊗₁ T-B ∘ c-A,B-from) ⊗₁ T-C) ∘ c-AB,C-from
-      ≈⟨ ⊗-resp-≈ (⊗-resp-≈ (≈-Term-sym (λ⇐-naturality T-A)) ≈-Term-refl ⟩∘⟨refl) ≈-Term-refl ⟩∘⟨refl ⟩
-    (((λ⇐ ∘ T-A) ⊗₁ T-B ∘ c-A,B-from) ⊗₁ T-C) ∘ c-AB,C-from
-      ≈⟨ ⊗-resp-≈ (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ) ⟩∘⟨refl) ≈-Term-refl ⟩∘⟨refl ⟩
-    (((λ⇐ ∘ T-A) ⊗₁ (id ∘ T-B) ∘ c-A,B-from) ⊗₁ T-C) ∘ c-AB,C-from
-      ≈⟨ ⊗-resp-≈ (⊗-∘-dist ⟩∘⟨refl) ≈-Term-refl ⟩∘⟨refl ⟩
-    ((((λ⇐ ⊗₁ id) ∘ (T-A ⊗₁ T-B)) ∘ c-A,B-from) ⊗₁ T-C) ∘ c-AB,C-from
-      ≈⟨ ⊗-resp-≈ FM.assoc ≈-Term-refl ⟩∘⟨refl ⟩
-    (((λ⇐ ⊗₁ id) ∘ (T-A ⊗₁ T-B) ∘ c-A,B-from) ⊗₁ T-C) ∘ c-AB,C-from
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ) ⟩∘⟨refl ⟩
-    (((λ⇐ ⊗₁ id) ∘ (T-A ⊗₁ T-B) ∘ c-A,B-from) ⊗₁ (id ∘ T-C)) ∘ c-AB,C-from
-      ≈⟨ ⊗-∘-dist ⟩∘⟨refl ⟩
-    (((λ⇐ ⊗₁ id) ⊗₁ id) ∘ (((T-A ⊗₁ T-B) ∘ c-A,B-from) ⊗₁ T-C)) ∘ c-AB,C-from
-      ≈⟨ FM.assoc ⟩
-    ((λ⇐ ⊗₁ id) ⊗₁ id) ∘ (((T-A ⊗₁ T-B) ∘ c-A,B-from) ⊗₁ T-C) ∘ c-AB,C-from ∎
+  T-decomp-unit A B C = solveMor! lhsᵗ rhsᵗ
     where
-      T-A         = _≅_.to (unflatten-flatten-≈ A)
-      T-B         = _≅_.to (unflatten-flatten-≈ B)
-      T-C         = _≅_.to (unflatten-flatten-≈ C)
-      c-A,B-from  = _≅_.from (unflatten-++-≅ (flatten A) (flatten B))
-      c-AB,C-from = _≅_.from (unflatten-++-≅ (flatten A ++ flatten B) (flatten C))
+      -- atoms: 0 ↦ A, 1 ↦ B, 2 ↦ C, 3-5 ↦ their unflattens, 6 ↦ unflatten
+      -- (fA++fB), 7 ↦ unflatten ((fA++fB)++fC)
+      open FinSetup FMC
+        ( A Vec.∷ B Vec.∷ C
+            Vec.∷ unflatten (flatten A) Vec.∷ unflatten (flatten B)
+            Vec.∷ unflatten (flatten C)
+            Vec.∷ unflatten (flatten A ++ flatten B)
+            Vec.∷ unflatten ((flatten A ++ flatten B) ++ flatten C) Vec.∷ Vec.[] )
+      v0 = V Fin.zero ; v1 = V (Fin.suc Fin.zero) ; v2 = V (Fin.suc (Fin.suc Fin.zero))
+      v3 = V (Fin.suc (Fin.suc (Fin.suc Fin.zero)))
+      v4 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))
+      v5 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero)))))
+      v6 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))))
+      v7 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero)))))))
+      -- generators: T-A, T-B, T-C, c-A,B-from, c-AB,C-from
+      open Sig {5} (λ { Fin.zero                      → v3 , v0
+                      ; (Fin.suc Fin.zero)            → v4 , v1
+                      ; (Fin.suc (Fin.suc Fin.zero))  → v5 , v2
+                      ; (Fin.suc (Fin.suc (Fin.suc Fin.zero))) → v6 , v3 ⊗ᵒ v4
+                      ; (Fin.suc (Fin.suc (Fin.suc (Fin.suc _)))) → v7 , v6 ⊗ᵒ v5 })
+      open WithGen (λ { (genS Fin.zero)           → _≅_.to (unflatten-flatten-≈ A)
+                      ; (genS (Fin.suc Fin.zero)) → _≅_.to (unflatten-flatten-≈ B)
+                      ; (genS (Fin.suc (Fin.suc Fin.zero))) → _≅_.to (unflatten-flatten-≈ C)
+                      ; (genS (Fin.suc (Fin.suc (Fin.suc Fin.zero)))) →
+                          _≅_.from (unflatten-++-≅ (flatten A) (flatten B))
+                      ; (genS (Fin.suc (Fin.suc (Fin.suc (Fin.suc _))))) →
+                          _≅_.from (unflatten-++-≅ (flatten A ++ flatten B) (flatten C)) })
+      gTA = gen Fin.zero ; gTB = gen (Fin.suc Fin.zero)
+      gTC = gen (Fin.suc (Fin.suc Fin.zero))
+      gcAB  = gen (Fin.suc (Fin.suc (Fin.suc Fin.zero)))
+      gcABC = gen (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))
+      lhsᵗ rhsᵗ : S.HomTerm v7 (((unitᵒ ⊗ᵒ v0) ⊗ᵒ v1) ⊗ᵒ v2)
+      lhsᵗ = S._∘_ (S._⊗₁_ (S._∘_ (S._⊗₁_ (S._∘_ (S._⊗₁_ S.id gTA) S.λ⇐) gTB) gcAB) gTC) gcABC
+      rhsᵗ = S._∘_ (S._⊗₁_ (S._⊗₁_ S.λ⇐ S.id) S.id)
+                   (S._∘_ (S._⊗₁_ (S._∘_ (S._⊗₁_ gTA gTB) gcAB) gTC) gcABC)
 
   -- F-((Var x ⊗ A)⊗(B⊗C)) ≈ (id ⊗ F-(A⊗(B⊗C))) ∘ α⇒_{Var x, A, B⊗C}.
   F-decomp-Var
@@ -175,28 +200,33 @@ private
     → _≅_.from (unflatten-flatten-≈ ((Var x ⊗₀ A) ⊗₀ (B ⊗₀ C)))
     ≈Term (id {Var x} ⊗₁ _≅_.from (unflatten-flatten-≈ (A ⊗₀ (B ⊗₀ C))))
           ∘ α⇒ {Var x} {A} {B ⊗₀ C}
-  F-decomp-Var x A B C = begin
-    ((id ⊗₁ c-A,BC-to) ∘ α⇒-flat) ∘ F-V⊗A ⊗₁ F-BC
-      ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (F-Vx⊗-collapse x A) ≈-Term-refl ⟩
-    ((id ⊗₁ c-A,BC-to) ∘ α⇒-flat) ∘ (id ⊗₁ F-A) ⊗₁ F-BC
-      ≈⟨ FM.assoc ⟩
-    (id ⊗₁ c-A,BC-to) ∘ α⇒-flat ∘ (id ⊗₁ F-A) ⊗₁ F-BC
-      ≈⟨ refl⟩∘⟨ α-comm ⟩
-    (id ⊗₁ c-A,BC-to) ∘ id ⊗₁ (F-A ⊗₁ F-BC) ∘ α⇒-struct
-      ≈⟨ FM.sym-assoc ⟩
-    ((id ⊗₁ c-A,BC-to) ∘ id ⊗₁ (F-A ⊗₁ F-BC)) ∘ α⇒-struct
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩∘⟨refl ⟩
-    (id ∘ id) ⊗₁ (c-A,BC-to ∘ F-A ⊗₁ F-BC) ∘ α⇒-struct
-      ≈⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩∘⟨refl ⟩
-    id ⊗₁ (c-A,BC-to ∘ F-A ⊗₁ F-BC) ∘ α⇒-struct ∎
+  F-decomp-Var x A B C = solveMor! lhsᵗ rhsᵗ
     where
-      F-A       = _≅_.from (unflatten-flatten-≈ A)
-      F-BC      = _≅_.from (unflatten-flatten-≈ (B ⊗₀ C))
-      F-V⊗A     = _≅_.from (unflatten-flatten-≈ (Var x ⊗₀ A))
-      c-A,BC-to = _≅_.to   (unflatten-++-≅ (flatten A) (flatten B ++ flatten C))
-      α⇒-flat   = α⇒ {Var x} {unflatten (flatten A)}
-                    {unflatten (flatten B ++ flatten C)}
-      α⇒-struct = α⇒ {Var x} {A} {B ⊗₀ C}
+      -- atoms: 0 ↦ Var x, 1 ↦ A, 2 ↦ B⊗C, 3 ↦ uf A, 4 ↦ uf (B⊗C),
+      -- 5 ↦ unflatten (fA++fBC)
+      open FinSetup FMC
+        ( Var x Vec.∷ A Vec.∷ (B ⊗₀ C)
+            Vec.∷ unflatten (flatten A)
+            Vec.∷ unflatten (flatten B ++ flatten C)
+            Vec.∷ unflatten (flatten A ++ (flatten B ++ flatten C)) Vec.∷ Vec.[] )
+      v0 = V Fin.zero ; v1 = V (Fin.suc Fin.zero) ; v2 = V (Fin.suc (Fin.suc Fin.zero))
+      v3 = V (Fin.suc (Fin.suc (Fin.suc Fin.zero)))
+      v4 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))
+      v5 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero)))))
+      -- generators: F-A, F-BC, c-A,BC-to
+      open Sig {3} (λ { Fin.zero            → v1 , v3
+                      ; (Fin.suc Fin.zero)  → v2 , v4
+                      ; (Fin.suc (Fin.suc _)) → v3 ⊗ᵒ v4 , v5 })
+      open WithGen (λ { (genS Fin.zero)           → _≅_.from (unflatten-flatten-≈ A)
+                      ; (genS (Fin.suc Fin.zero)) → _≅_.from (unflatten-flatten-≈ (B ⊗₀ C))
+                      ; (genS (Fin.suc (Fin.suc _))) →
+                          _≅_.to (unflatten-++-≅ (flatten A) (flatten B ++ flatten C)) })
+      gFA = gen Fin.zero ; gFBC = gen (Fin.suc Fin.zero)
+      gc  = gen (Fin.suc (Fin.suc Fin.zero))
+      lhsᵗ rhsᵗ : S.HomTerm ((v0 ⊗ᵒ v1) ⊗ᵒ v2) (v0 ⊗ᵒ v5)
+      lhsᵗ = S._∘_ (S._∘_ (S._⊗₁_ S.id gc) S.α⇒)
+                   (S._⊗₁_ (S._∘_ (S._∘_ (S._⊗₁_ S.id S.λ⇒) S.α⇒) (S._⊗₁_ S.ρ⇐ gFA)) gFBC)
+      rhsᵗ = S._∘_ (S._⊗₁_ S.id (S._∘_ gc (S._⊗₁_ gFA gFBC))) S.α⇒
 
   -- T-(((Var x ⊗ A)⊗B)⊗C) ≈ (α⇐_{V,A,B} ⊗ id) ∘ α⇐_{V,A⊗B,C} ∘ (id ⊗ T-((A⊗B)⊗C)).
   T-decomp-Var
@@ -205,59 +235,54 @@ private
     ≈Term (α⇐ {Var x} {A} {B} ⊗₁ id {C})
           ∘ α⇐ {Var x} {A ⊗₀ B} {C}
           ∘ (id {Var x} ⊗₁ _≅_.to (unflatten-flatten-≈ ((A ⊗₀ B) ⊗₀ C)))
-  T-decomp-Var x A B C = begin
-    ((((ρ⇒ ⊗₁ T-A) ∘ α⇐-fl0 ∘ id ⊗₁ λ⇐) ⊗₁ T-B ∘ α⇐-fl1 ∘ id ⊗₁ c-A,B-from)
-       ⊗₁ T-C) ∘ α⇐-fl2 ∘ id ⊗₁ c-A⊗B,C-from
-      ≈⟨ ⊗-resp-≈ (⊗-resp-≈ (T-Vx⊗-collapse x A) ≈-Term-refl
-                    ⟩∘⟨refl) ≈-Term-refl ⟩∘⟨refl ⟩
-    ((((id ⊗₁ T-A) ⊗₁ T-B ∘ α⇐-fl1 ∘ id ⊗₁ c-A,B-from)
-       ⊗₁ T-C) ∘ α⇐-fl2 ∘ id ⊗₁ c-A⊗B,C-from)
-      ≈⟨ ⊗-resp-≈ FM.sym-assoc ≈-Term-refl ⟩∘⟨refl ⟩
-    ((((id ⊗₁ T-A) ⊗₁ T-B) ∘ α⇐-fl1) ∘ id ⊗₁ c-A,B-from)
-       ⊗₁ T-C ∘ α⇐-fl2 ∘ id ⊗₁ c-A⊗B,C-from
-      ≈⟨ ⊗-resp-≈ (≈-Term-sym (α⇐-comm-top id T-A T-B) ⟩∘⟨refl)
-                  ≈-Term-refl ⟩∘⟨refl ⟩
-    ((α⇐-A,B ∘ id ⊗₁ (T-A ⊗₁ T-B)) ∘ id ⊗₁ c-A,B-from)
-       ⊗₁ T-C ∘ α⇐-fl2 ∘ id ⊗₁ c-A⊗B,C-from
-      ≈⟨ ⊗-resp-≈ FM.assoc ≈-Term-refl ⟩∘⟨refl ⟩
-    (α⇐-A,B ∘ id ⊗₁ (T-A ⊗₁ T-B) ∘ id ⊗₁ c-A,B-from)
-       ⊗₁ T-C ∘ α⇐-fl2 ∘ id ⊗₁ c-A⊗B,C-from
-      ≈⟨ ⊗-resp-≈ (refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist) ≈-Term-refl ⟩∘⟨refl ⟩
-    (α⇐-A,B ∘ (id ∘ id) ⊗₁ ((T-A ⊗₁ T-B) ∘ c-A,B-from))
-       ⊗₁ T-C ∘ α⇐-fl2 ∘ id ⊗₁ c-A⊗B,C-from
-      ≈⟨ ⊗-resp-≈ (refl⟩∘⟨ ⊗-resp-≈ idˡ ≈-Term-refl)
-                  ≈-Term-refl ⟩∘⟨refl ⟩
-    (α⇐-A,B ∘ id ⊗₁ T-A⊗B) ⊗₁ T-C ∘ α⇐-fl2 ∘ id ⊗₁ c-A⊗B,C-from
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ) ⟩∘⟨refl ⟩
-    (α⇐-A,B ∘ id ⊗₁ T-A⊗B) ⊗₁ (id ∘ T-C) ∘ α⇐-fl2 ∘ id ⊗₁ c-A⊗B,C-from
-      ≈⟨ ⊗-∘-dist ⟩∘⟨refl ⟩
-    ((α⇐-A,B ⊗₁ id) ∘ (id ⊗₁ T-A⊗B) ⊗₁ T-C) ∘ α⇐-fl2 ∘ id ⊗₁ c-A⊗B,C-from
-      ≈⟨ FM.assoc ⟩
-    (α⇐-A,B ⊗₁ id) ∘ (id ⊗₁ T-A⊗B) ⊗₁ T-C ∘ α⇐-fl2 ∘ id ⊗₁ c-A⊗B,C-from
-      ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-    (α⇐-A,B ⊗₁ id) ∘ ((id ⊗₁ T-A⊗B) ⊗₁ T-C ∘ α⇐-fl2) ∘ id ⊗₁ c-A⊗B,C-from
-      ≈⟨ refl⟩∘⟨ ≈-Term-sym (α⇐-comm-top id T-A⊗B T-C) ⟩∘⟨refl ⟩
-    (α⇐-A,B ⊗₁ id) ∘ (α⇐-AB,C ∘ id ⊗₁ (T-A⊗B ⊗₁ T-C)) ∘ id ⊗₁ c-A⊗B,C-from
-      ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-    (α⇐-A,B ⊗₁ id) ∘ α⇐-AB,C ∘ id ⊗₁ (T-A⊗B ⊗₁ T-C) ∘ id ⊗₁ c-A⊗B,C-from
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (α⇐-A,B ⊗₁ id) ∘ α⇐-AB,C ∘ (id ∘ id) ⊗₁ ((T-A⊗B ⊗₁ T-C) ∘ c-A⊗B,C-from)
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩
-    (α⇐-A,B ⊗₁ id) ∘ α⇐-AB,C ∘ id ⊗₁ T-AB⊗C ∎
+  T-decomp-Var x A B C = solveMor! lhsᵗ rhsᵗ
     where
-      T-A          = _≅_.to   (unflatten-flatten-≈ A)
-      T-B          = _≅_.to   (unflatten-flatten-≈ B)
-      T-C          = _≅_.to   (unflatten-flatten-≈ C)
-      T-A⊗B        = _≅_.to   (unflatten-flatten-≈ (A ⊗₀ B))
-      T-AB⊗C       = _≅_.to   (unflatten-flatten-≈ ((A ⊗₀ B) ⊗₀ C))
-      α⇐-fl0       = α⇐ {Var x} {unit} {unflatten (flatten A)}
-      α⇐-fl1       = α⇐ {Var x} {unflatten (flatten A)} {unflatten (flatten B)}
-      α⇐-fl2       = α⇐ {Var x} {unflatten (flatten A ++ flatten B)}
-                       {unflatten (flatten C)}
-      α⇐-A,B       = α⇐ {Var x} {A} {B}
-      α⇐-AB,C      = α⇐ {Var x} {A ⊗₀ B} {C}
-      c-A,B-from   = _≅_.from (unflatten-++-≅ (flatten A) (flatten B))
-      c-A⊗B,C-from = _≅_.from (unflatten-++-≅ (flatten A ++ flatten B) (flatten C))
+      -- atoms: 0 ↦ Var x, 1 ↦ A, 2 ↦ B, 3 ↦ C, 4-6 ↦ their unflattens,
+      -- 7 ↦ unflatten (fA++fB), 8 ↦ unflatten ((fA++fB)++fC)
+      open FinSetup FMC
+        ( Var x Vec.∷ A Vec.∷ B Vec.∷ C
+            Vec.∷ unflatten (flatten A) Vec.∷ unflatten (flatten B)
+            Vec.∷ unflatten (flatten C)
+            Vec.∷ unflatten (flatten A ++ flatten B)
+            Vec.∷ unflatten ((flatten A ++ flatten B) ++ flatten C) Vec.∷ Vec.[] )
+      v0 = V Fin.zero ; v1 = V (Fin.suc Fin.zero) ; v2 = V (Fin.suc (Fin.suc Fin.zero))
+      v3 = V (Fin.suc (Fin.suc (Fin.suc Fin.zero)))
+      v4 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))
+      v5 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero)))))
+      v6 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))))
+      v7 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero)))))))
+      v8 = V (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))))))
+      -- generators: T-A, T-B, T-C, c-A,B-from, c-A⊗B,C-from
+      open Sig {5} (λ { Fin.zero                      → v4 , v1
+                      ; (Fin.suc Fin.zero)            → v5 , v2
+                      ; (Fin.suc (Fin.suc Fin.zero))  → v6 , v3
+                      ; (Fin.suc (Fin.suc (Fin.suc Fin.zero))) → v7 , v4 ⊗ᵒ v5
+                      ; (Fin.suc (Fin.suc (Fin.suc (Fin.suc _)))) → v8 , v7 ⊗ᵒ v6 })
+      open WithGen (λ { (genS Fin.zero)           → _≅_.to (unflatten-flatten-≈ A)
+                      ; (genS (Fin.suc Fin.zero)) → _≅_.to (unflatten-flatten-≈ B)
+                      ; (genS (Fin.suc (Fin.suc Fin.zero))) → _≅_.to (unflatten-flatten-≈ C)
+                      ; (genS (Fin.suc (Fin.suc (Fin.suc Fin.zero)))) →
+                          _≅_.from (unflatten-++-≅ (flatten A) (flatten B))
+                      ; (genS (Fin.suc (Fin.suc (Fin.suc (Fin.suc _))))) →
+                          _≅_.from (unflatten-++-≅ (flatten A ++ flatten B) (flatten C)) })
+      gTA = gen Fin.zero ; gTB = gen (Fin.suc Fin.zero)
+      gTC = gen (Fin.suc (Fin.suc Fin.zero))
+      gcAB  = gen (Fin.suc (Fin.suc (Fin.suc Fin.zero)))
+      gcABC = gen (Fin.suc (Fin.suc (Fin.suc (Fin.suc Fin.zero))))
+      lhsᵗ rhsᵗ : S.HomTerm (v0 ⊗ᵒ v8) (((v0 ⊗ᵒ v1) ⊗ᵒ v2) ⊗ᵒ v3)
+      lhsᵗ = S._∘_
+               (S._⊗₁_
+                 (S._∘_
+                   (S._⊗₁_
+                     (S._∘_ (S._⊗₁_ S.ρ⇒ gTA) (S._∘_ S.α⇐ (S._⊗₁_ S.id S.λ⇐)))
+                     gTB)
+                   (S._∘_ S.α⇐ (S._⊗₁_ S.id gcAB)))
+                 gTC)
+               (S._∘_ S.α⇐ (S._⊗₁_ S.id gcABC))
+      rhsᵗ = S._∘_ (S._⊗₁_ S.α⇐ S.id)
+                   (S._∘_ S.α⇐
+                     (S._⊗₁_ S.id
+                       (S._∘_ (S._⊗₁_ (S._∘_ (S._⊗₁_ gTA gTB) gcAB) gTC) gcABC)))
 
 --------------------------------------------------------------------------------
 -- Well-founded recursion measure: the number of `⊗₀` nodes in an object.
