@@ -77,18 +77,18 @@ module SolverMor
   where
 
   -- the diagram / term machinery (shared definitionally across all modules).
-  open Untyped {X} Mor
+  open Untyped Mon {X} Mor
   open FreeMonoidalHelper Mon X using (ObjTerm; unit; _⊗₀_; Var)
   open FreeMonoidalHelper.Mor Mon X mor
   open ≈R
 
   -- the reflect milestone (with TASK A's `boxSound` already discharged).
-  open Reflect {X} _≟X_ Mor
+  open Reflect Mon {X} _≟X_ Mor
     using ( WTerm; boxʷ; idʷ; _∘ʷ_; embed; reflect; out-reflect
           ; reflect-sound; boxSound; BoxSound; coeCod' )
 
   -- the compare milestone.
-  open SolverCompare {X} _≟X_ Mor
+  open SolverCompare Mon {X} _≟X_ Mor
     using (Gen; gen; module Decide)
 
   module Solve (_≟Mor_ : DecidableEquality Gen) where
@@ -165,15 +165,15 @@ module SolverMorTarget
   {X : Set}
   (_≟X_ : DecidableEquality X)
   (Mor  : List X → List X → Set)
-  (_≟Mor_ : DecidableEquality (SolverCompare.Gen {X} _≟X_ Mor))
+  (_≟Mor_ : DecidableEquality (SolverCompare.Gen Mon {X} _≟X_ Mor))
   (C : MonoidalCategory o ℓ e)
   (⟦_⟧ᵖ₀ : X → C .MonoidalCategory.U .Category.Obj)
   where
 
   open import Categories.SolveMorSpike using (module SolveMor)
 
-  open Untyped {X} Mor using (wires; mor)
-  open Reflect {X} _≟X_ Mor using (WTerm; embed)
+  open Untyped Mon {X} Mor using (wires; mor)
+  open Reflect Mon {X} _≟X_ Mor using (WTerm; embed)
 
   open SolverMor {X} _≟X_ Mor using (module Solve)
   open Solve _≟Mor_ using (solveMorW?)
@@ -219,9 +219,9 @@ module Litmus where
   M _ _ = ⊤
 
   open SolverMor {⊤} _≟⊤_ M
-  open Untyped {⊤} M using (mor)
-  open Reflect {⊤} _≟⊤_ M using (WTerm; boxʷ; idʷ; _∘ʷ_; embed)
-  open SolverCompare {⊤} _≟⊤_ M using (Gen; _≟L_)
+  open Untyped Mon {⊤} M using (mor)
+  open Reflect Mon {⊤} _≟⊤_ M using (WTerm; boxʷ; idʷ; _∘ʷ_; embed)
+  open SolverCompare Mon {⊤} _≟⊤_ M using (Gen; _≟L_)
   open FreeMonoidalHelper.Mor Mon ⊤ mor using (_≈Term_)
 
   -- decidable equality on the generator triples  (a , b , tt).

@@ -134,9 +134,9 @@ module Frontend
     mk : ∀ {Y Z} → GenF Y Z → MorW (flatten Y) (flatten Z)
 
   -- Wire-level machinery at MorW.
-  open Untyped {X} MorW                    -- wires, mor, box, ⟦box⟧, merge, split, …
+  open Untyped Mon {X} MorW                -- wires, mor, box, ⟦box⟧, merge, split, …
   open FreeMonoidalHelper.Mor Mon X mor    -- W-side HomTerm, _≈Term_, …
-  open Reflect {X} _≟X_ MorW               -- WTerm, embed, reflect, coeC, merge-ρ, …
+  open Reflect Mon {X} _≟X_ MorW           -- WTerm, embed, reflect, coeC, merge-ρ, …
   open ≈R
 
   -- Front-end free category: HomTerm over GenF, qualified `F`.
@@ -628,7 +628,7 @@ module Frontend
                         -- for a Fin-indexed signature, `toℕ` of the index.
     where
 
-    private module SC = SolverCompare _≟X_ MorW
+    private module SC = SolverCompare Mon _≟X_ MorW
 
     -- decidable equality on the Σ-packaged wire-level generators, derived
     -- from the front-end one (mk is injective on the ObjTerm triple).
@@ -641,7 +641,7 @@ module Frontend
 
     open SC.Decide _≟W_ using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
 
-    open Normalize {X} _≟X_ MorW using
+    open Normalize Mon {X} _≟X_ MorW using
       ( castW; castW-∘; castW-irr
       ; substDiagU; substDiagU-out; ⟦substDiagU⟧
       ; LeftFit; leftFit

@@ -37,17 +37,20 @@ open import Categories.FreeMonoidal
 open import Categories.DiagramRewriteUntyped
 import Categories.Category.Monoidal.Properties as MonProps
 
-module Reflect {X : Set} (_≟X_ : DecidableEquality X)
-               (Mor : List X → List X → Set) where
+module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
+                (Mor : List X → List X → Set)
+                (let open WireSig v {X} Mor using () renaming (wires to wires↑; mor to mor↑))
+                (let open FreeMonoidalHelper.Mor v X mor↑ using () renaming (HomTerm to HomTerm↑))
+                (⟦box⟧ : ∀ {a b} → Mor a b → HomTerm↑ (wires↑ a) (wires↑ b)) where
 
   -- UIP on the wire lists, via Hedberg (decidable equality), --without-K.
   private
     ≡-irrelevant : ∀ {x y : List X} (e e' : x ≡ y) → e ≡ e'
     ≡-irrelevant = Decidable⇒UIP.≡-irrelevant (≡-dec _≟X_)
 
-  open Untyped {X} Mor
-  open FreeMonoidalHelper Mon X using (ObjTerm; unit; _⊗₀_; Var)
-  open FreeMonoidalHelper.Mor Mon X mor
+  open UntypedI v {X} Mor ⟦box⟧
+  open FreeMonoidalHelper v X using (ObjTerm; unit; _⊗₀_; Var)
+  open FreeMonoidalHelper.Mor v X mor
   open ≈R
 
   -- Mac Lane / Kelly unit coherence laws, instantiated at the *free* monoidal
@@ -1511,3 +1514,14 @@ module Reflect {X : Set} (_≟X_ : DecidableEquality X)
                            (merge (out ds) {out dt} ∘ (⟦ ds ⟧ ⊗₁ ⟦ dt ⟧) ∘ split nl {nr})
                          ≈Term merge ml' {mr'} ∘ ((coeCod' es ⟦ ds ⟧ ⊗₁ coeCod' et ⟦ dt ⟧)) ∘ split nl {nr}
           tensorBridge refl refl = ≈-Term-refl
+
+--------------------------------------------------------------------------------
+-- Compatibility wrapper: `ReflectI` at the standard interpretation
+-- `Untyped.⟦box⟧` (= `var ∘ box`).  Old consumers keep working, gaining
+-- only the leading variant argument.
+--------------------------------------------------------------------------------
+module Reflect (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
+               (Mor : List X → List X → Set) where
+
+  open Untyped v {X} Mor using (⟦box⟧)
+  open ReflectI v {X} _≟X_ Mor ⟦box⟧ public

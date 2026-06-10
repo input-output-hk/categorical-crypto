@@ -53,17 +53,20 @@ open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 open import Categories.FreeMonoidal
 open import Categories.DiagramRewriteUntyped
 
-module Normalize {X : Set} (_≟X_ : DecidableEquality X)
-                 (Mor : List X → List X → Set) where
+module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
+                  (Mor : List X → List X → Set)
+                  (let open WireSig v {X} Mor using () renaming (wires to wires↑; mor to mor↑))
+                  (let open FreeMonoidalHelper.Mor v X mor↑ using () renaming (HomTerm to HomTerm↑))
+                  (⟦box⟧ : ∀ {a b} → Mor a b → HomTerm↑ (wires↑ a) (wires↑ b)) where
 
   -- UIP on the wire lists, via Hedberg (decidable equality), --without-K.
   private
     ≡-irrelevantL : ∀ {x y : List X} (e e' : x ≡ y) → e ≡ e'
     ≡-irrelevantL = Decidable⇒UIP.≡-irrelevant (≡-dec _≟X_)
 
-  open Untyped {X} Mor
-  open FreeMonoidalHelper Mon X using (ObjTerm)
-  open FreeMonoidalHelper.Mor Mon X mor
+  open UntypedI v {X} Mor ⟦box⟧
+  open FreeMonoidalHelper v X using (ObjTerm)
+  open FreeMonoidalHelper.Mor v X mor
   open ≈R
 
   --------------------------------------------------------------------------------
@@ -1744,6 +1747,17 @@ module Normalize {X : Set} (_≟X_ : DecidableEquality X)
 -- `refl` on the resulting layer list.  This exercises BOTH `g-out≈pad` and the
 -- new `g-in≈pad` (collapsed to clean pads via the now-`≈id` reassociators).
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Compatibility wrapper: `NormalizeI` at the standard interpretation
+-- `Untyped.⟦box⟧` (= `var ∘ box`).  Old consumers keep working, gaining
+-- only the leading variant argument.
+--------------------------------------------------------------------------------
+module Normalize (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
+                 (Mor : List X → List X → Set) where
+
+  open Untyped v {X} Mor using (⟦box⟧)
+  open NormalizeI v {X} _≟X_ Mor ⟦box⟧ public
+
 module Litmus where
 
   open import Data.Nat using (ℕ)
@@ -1756,8 +1770,8 @@ module Litmus where
     fbox : Gen (0 ∷ []) (0 ∷ [])
     gbox : Gen (1 ∷ []) (1 ∷ [])
 
-  open Normalize {ℕ} _≟ℕ_ Gen
-  open Untyped {ℕ} Gen
+  open Normalize Mon {ℕ} _≟ℕ_ Gen
+  open Untyped Mon {ℕ} Gen
   open FreeMonoidalHelper.Mor Mon ℕ mor
   open ≈R
 

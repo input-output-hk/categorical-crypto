@@ -84,9 +84,9 @@ private
 ------------------------------------------------------------------------
 -- Solver machinery at this signature.
 
-open Untyped {Ty} Gen
-open Reflect  {Ty} _≟Ty_ Gen
-open Normalize {Ty} _≟Ty_ Gen
+open Untyped Mon {Ty} Gen
+open Reflect  Mon {Ty} _≟Ty_ Gen
+open Normalize Mon {Ty} _≟Ty_ Gen
 open FreeMonoidalHelper Mon Ty using (ObjTerm; unit; _⊗₀_; Var)
 open FreeMonoidalHelper.Mor Mon Ty mor
 open ≈R
@@ -180,7 +180,7 @@ module Interchange where
 
 module Decision where
 
-  open SolverCompare _≟Ty_ Gen using () renaming (Gen to GenΣ)
+  open SolverCompare Mon _≟Ty_ Gen using () renaming (Gen to GenΣ)
 
   -- Decidable equality on GenΣ via _≟F_ on the Fin 6 index.
   private
@@ -189,7 +189,7 @@ module Decision where
     ... | yes refl = yes refl
     ... | no ¬p    = no λ where refl → ¬p refl
 
-  open SolverCompare.Decide _≟Ty_ Gen _≟Gen_
+  open SolverCompare.Decide Mon _≟Ty_ Gen _≟Gen_
     using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
 
   decide? : ∀ {n m} (f g : WTerm n m) → Maybe (embed f ≈Term embed g)

@@ -68,7 +68,7 @@ module SolveMor
 
   -- Bring `Untyped`'s machinery (wires, box, mor, ⟦_⟧, TwoBoxSwap, …) into
   -- scope.  `Untyped` itself opens `FreeMonoidalHelper.Mor Mon X mor`.
-  open Untyped {X} Mor
+  open Untyped Mon {X} Mor
 
   -- The free monoidal data whose generators ARE `Untyped`'s boxes.
   -- `mor` here is the `data mor` of `Untyped`, so `FreeMonoidal d`'s HomTerm

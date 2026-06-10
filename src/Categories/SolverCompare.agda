@@ -43,23 +43,28 @@ open import Relation.Binary.PropositionalEquality
 import Axiom.UniquenessOfIdentityProofs as UIPmod
 
 open import Categories.FreeMonoidal
-open import Categories.DiagramRewriteUntyped using (module Untyped)
+open import Categories.DiagramRewriteUntyped using (module WireSig; module UntypedI; module Untyped)
 
 --------------------------------------------------------------------------------
 -- The development is relative to a label set `X` with decidable equality and a
--- morphism-generator family `Mor`.
+-- morphism-generator family `Mor`, parametric in the variant `v` and in the
+-- interpretation `⟦box⟧` of the diagram-layer generators.
 --------------------------------------------------------------------------------
-module SolverCompare
+module SolverCompareI
+  (v : Variant)
   {X : Set}
   (_≟X_ : DecidableEquality X)
   (Mor : List X → List X → Set)
+  (let open WireSig v {X} Mor using () renaming (wires to wires↑; mor to mor↑))
+  (let open FreeMonoidalHelper.Mor v X mor↑ using () renaming (HomTerm to HomTerm↑))
+  (⟦box⟧ : ∀ {a b} → Mor a b → HomTerm↑ (wires↑ a) (wires↑ b))
   where
 
-  open Untyped {X = X} Mor public
-  open FreeMonoidalHelper Mon X using (ObjTerm)
+  open UntypedI v {X} Mor ⟦box⟧ public
+  open FreeMonoidalHelper v X using (ObjTerm)
   -- re-export the term language / equational theory used by the interpretation
-  -- (Untyped opens these internally without `public`).
-  open FreeMonoidalHelper.Mor Mon X mor public
+  -- (UntypedI opens these internally without `public`).
+  open FreeMonoidalHelper.Mor v X mor public
 
   --------------------------------------------------------------------------------
   -- Decidable equality on offsets (List X), derived from DecidableEquality X.
@@ -294,3 +299,19 @@ module SolverCompare
               coeW (nf-out g) ⟦ nf g ⟧
                 ≈⟨ nf-sound g ⟩
               g ∎)
+
+--------------------------------------------------------------------------------
+-- Compatibility wrapper: `SolverCompareI` at the standard interpretation
+-- `Untyped.⟦box⟧` (= `var ∘ box`), re-exported alongside it to preserve the
+-- old `open Untyped … public` surface.  Old consumers keep working, gaining
+-- only the leading variant argument.
+--------------------------------------------------------------------------------
+module SolverCompare
+  (v : Variant)
+  {X : Set}
+  (_≟X_ : DecidableEquality X)
+  (Mor : List X → List X → Set)
+  where
+
+  open Untyped v {X} Mor using (⟦box⟧) public
+  open SolverCompareI v {X} _≟X_ Mor ⟦box⟧ public

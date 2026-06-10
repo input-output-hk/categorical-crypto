@@ -29,9 +29,15 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 open import Categories.FreeMonoidal
 
-module Untyped {X : Set} (Mor : List X → List X → Set) where
+--------------------------------------------------------------------------------
+-- The wire-level signature, split out so that callers can TYPE a custom
+-- `⟦box⟧` interpretation of the diagram-layer generators BEFORE
+-- instantiating the engine (`UntypedI`) — breaking the chicken-and-egg
+-- between the generator datatype `mor` and the interpretation parameter.
+--------------------------------------------------------------------------------
+module WireSig (v : Variant) {X : Set} (Mor : List X → List X → Set) where
 
-  open FreeMonoidalHelper Mon X using (ObjTerm; unit; _⊗₀_; Var)
+  open FreeMonoidalHelper v X using (ObjTerm; unit; _⊗₀_; Var)
 
   -- the parallel wires named by a list of labels, right-nested
   wires : List X → ObjTerm
@@ -43,7 +49,22 @@ module Untyped {X : Set} (Mor : List X → List X → Set) where
   data mor : ObjTerm → ObjTerm → Set where
     box : ∀ {a b} → Mor a b → mor (wires a) (wires b)
 
-  open FreeMonoidalHelper.Mor Mon X mor
+--------------------------------------------------------------------------------
+-- The engine, parametric in the variant `v` (Mon or Symm) and in the
+-- interpretation `⟦box⟧` of a diagram-layer generator into the wire-level
+-- free category.  Every proof below uses only the Mon-fragment axioms, so
+-- the whole development typechecks at abstract `v`.  (The telescope opens
+-- are `renaming`-isolated: re-opening `WireSig` publicly in the body would
+-- otherwise make `wires`/`mor` ambiguous at use sites.)
+--------------------------------------------------------------------------------
+module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
+                (let open WireSig v {X} Mor using () renaming (wires to wires↑; mor to mor↑))
+                (let open FreeMonoidalHelper.Mor v X mor↑ using () renaming (HomTerm to HomTerm↑))
+                (⟦box⟧ : ∀ {a b} → Mor a b → HomTerm↑ (wires↑ a) (wires↑ b)) where
+
+  open WireSig v {X} Mor public
+  open FreeMonoidalHelper v X using (ObjTerm; unit; _⊗₀_; Var)
+  open FreeMonoidalHelper.Mor v X mor
 
   -- minimal equational reasoning for the index-heterogeneous _≈Term_
   module ≈R where
@@ -62,9 +83,6 @@ module Untyped {X : Set} (Mor : List X → List X → Set) where
     _ ∎ = ≈-Term-refl
     syntax step-≈  f gh fg = f ≈⟨ fg ⟩ gh
     syntax step-≈˘ f gh gf = f ≈⟨ gf ⟨ gh
-
-  ⟦box⟧ : ∀ {a b} → Mor a b → HomTerm (wires a) (wires b)
-  ⟦box⟧ f = var (box f)
 
   idW : (n : List X) → HomTerm (wires n) (wires n)
   idW n = id
@@ -1198,6 +1216,22 @@ module Untyped {X : Set} (Mor : List X → List X → Set) where
       reassocB-in ∘ pad (pre ++ (a₁ ++ mid)) r (⟦box⟧ g) ∘ reassocF-in ∎
 
 --------------------------------------------------------------------------------
+-- Compatibility wrapper: the engine at the standard interpretation
+-- `⟦box⟧ f = var (box f)` (each generator becomes an opaque wire-level
+-- generator).  Old consumers keep working, gaining only the leading `v`
+-- argument (instantiated at `Mon`).
+--------------------------------------------------------------------------------
+module Untyped (v : Variant) {X : Set} (Mor : List X → List X → Set) where
+
+  open WireSig v {X} Mor
+  open FreeMonoidalHelper.Mor v X mor using (HomTerm; var)
+
+  ⟦box⟧ : ∀ {a b} → Mor a b → HomTerm (wires a) (wires b)
+  ⟦box⟧ f = var (box f)
+
+  open UntypedI v {X} Mor ⟦box⟧ public
+
+--------------------------------------------------------------------------------
 -- Sanity check: the generalization genuinely subsumes the old single-object
 -- case.  Instantiating `X = ⊤` recovers wire-count-typed boxes (the wire
 -- counts are now `List ⊤`, i.e. unary ℕ), and `two-box-swap` still holds with
@@ -1205,7 +1239,7 @@ module Untyped {X : Set} (Mor : List X → List X → Set) where
 --------------------------------------------------------------------------------
 private
   module SingleObjectExample (Mor : List ⊤ → List ⊤ → Set) where
-    open Untyped {⊤} Mor
+    open Untyped Mon {⊤} Mor
 
     -- the headline result transports verbatim to the ⊤-instance: for any two
     -- disjoint boxes, the two flat orders are equal (`f-first ≈Term g-first`),
