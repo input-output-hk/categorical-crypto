@@ -42,7 +42,11 @@
 -- through box generators (TWO machine-fired slides, one per image block),
 -- and mixes of σ-cancellation with coherence/functoriality.
 --
--- LIMITATIONS: the Mon front-end's L1/L2/L4/L5/L6 carry over verbatim.
+-- LIMITATIONS: the Mon front-end's L1/L2/L4/L6 carry over verbatim, and so
+-- does L5's negative half (generator-specific equations are unknown to the
+-- decision procedure) — but with NO mitigation: this front-end has no
+-- rewriting/focusing layer (`rewriteMor!`/`focusAtₙ` exist only in the Mon
+-- front-end).
 -- The braiding-specific boundary (machine-checked in the tests):
 --   Lσ1  HEXAGON-shaped goals do not decide: the normalizer never splits
 --        or merges crossing BLOCKS (`cross a b` vs `cross a (b₁ ++ b₂)`
@@ -56,26 +60,27 @@
 
 module Categories.SolverSigmaFrontend where
 
-open import Level using (Level)
-
+open import Data.Empty using (⊥)
 open import Data.Fin using (Fin; toℕ)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
-open import Data.Nat using (ℕ)
-open import Data.Vec using (Vec; lookup)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ; ≡-dec)
 open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Nat using (ℕ)
 open import Data.Product using (Σ; _,_; _×_; Σ-syntax; proj₁; proj₂)
-open import Data.Unit using (⊤; tt)
-open import Data.Empty using (⊥)
-open import Relation.Nullary using (Dec; yes; no)
+open import Data.Unit using (⊤)
+open import Data.Vec using (Vec; lookup)
+open import Function using (case_of_)
+open import Level using (Level)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂)
+open import Relation.Nullary using (Dec; yes; no)
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
 open import Categories.Category.Monoidal.Symmetric using (Symmetric)
+
 open import Categories.FreeMonoidal
 open import Categories.SolverSigma using (module Sigma)
 
@@ -250,25 +255,11 @@ module FrontendS
   -- Structural lemmas transferred from the wire level along inj.
   ------------------------------------------------------------------------
 
-  mergeF∘splitF : ∀ (a : List X) {suf} → F._∘_ (mergeF a {suf}) (splitF a) F.≈Term F.id
-  mergeF∘splitF a {suf} =
-    F.≈-Term-trans
-      (F.≡⇒≈Term (cong₂′ (sym (inj-merge a {suf})) (sym (inj-split a {suf}))))
-      (inj-resp-≈ (merge∘split a))
-    where
-      cong₂′ : ∀ {A B C : ObjTerm} {h h' : F.HomTerm B C} {j j' : F.HomTerm A B}
-             → h ≡ h' → j ≡ j' → F._∘_ h j ≡ F._∘_ h' j'
-      cong₂′ refl refl = refl
-
   splitF∘mergeF : ∀ (a : List X) {suf} → F._∘_ (splitF a {suf}) (mergeF a) F.≈Term F.id
   splitF∘mergeF a {suf} =
     F.≈-Term-trans
-      (F.≡⇒≈Term (cong₂′ (sym (inj-split a {suf})) (sym (inj-merge a {suf}))))
+      (F.≡⇒≈Term (cong₂ F._∘_ (sym (inj-split a {suf})) (sym (inj-merge a {suf}))))
       (inj-resp-≈ (split∘merge a))
-    where
-      cong₂′ : ∀ {A B C : ObjTerm} {h h' : F.HomTerm B C} {j j' : F.HomTerm A B}
-             → h ≡ h' → j ≡ j' → F._∘_ h j ≡ F._∘_ h' j'
-      cong₂′ refl refl = refl
 
   -- right-unitor coherence on the F-side merge (transfer of merge-ρ).
   mergeF-ρ : ∀ (a : List X)
@@ -343,14 +334,6 @@ module FrontendS
   embed-castʷ : ∀ {n n' m m'} (p : n ≡ n') (q : m ≡ m') (t : WTerm n m)
               → embed (castʷ p q t) ≈Term coeDom p (coeCod' q (embed t))
   embed-castʷ refl refl t = ≈-Term-refl
-
-  coeDF : ∀ {p q : List X} {B} → p ≡ q
-        → F.HomTerm (wires p) B → F.HomTerm (wires q) B
-  coeDF refl h = h
-
-  inj-coeDom : ∀ {p q r} (e : p ≡ q) (h : HomTerm (wires p) (wires r))
-             → inj (coeDom e h) ≡ coeDF e (inj h)
-  inj-coeDom refl h = refl
 
   reflectF : ∀ {Y Z} → F.HomTerm Y Z → WTerm (flatten Y) (flatten Z)
   reflectF (F.var g)            = boxʷ (box (mk g))
@@ -557,7 +540,8 @@ module FrontendS
              F.α⇒∘α⇐≈id (fwd-α A B C))
   bridgeF (F.σ {A} {B} ⦃ v≤v ⦄) = beginF
     inj (embed (reflectF (F.σ {A} {B}))) ∘F (mergeF fA {fB} ∘F (f⇒A ⊗F f⇒B))
-      ≈F⟨ F.∘-resp-≈ (F.≡⇒≈Term (cong-σ (inj-merge fB {fA}) (inj-split fA {fB}))) reflF ⟩
+      ≈F⟨ F.∘-resp-≈ (F.≡⇒≈Term (cong₂ (λ h j → h ∘F (σF ∘F j))
+                                       (inj-merge fB {fA}) (inj-split fA {fB}))) reflF ⟩
     (mergeF fB {fA} ∘F (F.σ ∘F splitF fA {fB})) ∘F (mergeF fA {fB} ∘F (f⇒A ⊗F f⇒B))
       ≈F⟨ F.assoc ⟩
     mergeF fB {fA} ∘F ((F.σ ∘F splitF fA {fB}) ∘F (mergeF fA {fB} ∘F (f⇒A ⊗F f⇒B)))
@@ -577,11 +561,6 @@ module FrontendS
       f⇒A = flat⇒ A ; f⇒B = flat⇒ B
       σF : F.HomTerm (wires fA ⊗₀ wires fB) (wires fB ⊗₀ wires fA)
       σF = F.σ
-      cong-σ : {h h' : F.HomTerm (wires fB ⊗₀ wires fA) (wires (fB ++ fA))}
-               {j j' : F.HomTerm (wires (fA ++ fB)) (wires fA ⊗₀ wires fB)}
-             → h ≡ h' → j ≡ j'
-             → F._∘_ h (F._∘_ σF j) ≡ F._∘_ h' (F._∘_ σF j')
-      cong-σ refl refl = refl
 
   ------------------------------------------------------------------------
   -- The cancellation: a wire-level equality of the two reflections is a
@@ -637,10 +616,10 @@ module FrontendS
     -- derived from the front-end ones (mk is injective on the triple).
     private
       _≟GM_ : DecidableEquality GenM
-      (_ , _ , mk {Y} {Z} g) ≟GM (_ , _ , mk {Y'} {Z'} g')
-        with (Y , Z , g) ≟G (Y' , Z' , g')
-      ... | yes refl = yes refl
-      ... | no ¬p    = no λ { refl → ¬p refl }
+      (_ , _ , mk {Y} {Z} g) ≟GM (_ , _ , mk {Y'} {Z'} g') =
+        case (Y , Z , g) ≟G (Y' , Z' , g') of λ where
+          (yes refl) → yes refl
+          (no ¬p)    → no λ { refl → ¬p refl }
 
       rankM : GenM → ℕ
       rankM (_ , _ , mk {Y} {Z} g) = rank (Y , Z , g)
@@ -650,9 +629,7 @@ module FrontendS
     -- front-end decision: a hit is a genuine `_≈Term_` of the free
     -- SYMMETRIC monoidal category over the ObjTerm-arity generators.
     decide?F : ∀ {Y Z} (l r : F.HomTerm Y Z) → Maybe (l F.≈Term r)
-    decide?F l r with DW.decideσ? (reflectF l) (reflectF r)
-    ... | nothing = nothing
-    ... | just eq = just (solveF eq)
+    decide?F l r = Data.Maybe.map solveF (DW.decideσ? (reflectF l) (reflectF r))
 
     -- the computing hit-witness: normalizes to ⊤ exactly on a solver hit, so
     -- the implicit is auto-discharged at concrete test sites.
@@ -757,9 +734,9 @@ module FinSetupσ
 
     private
       _≟G_ : DecidableEquality GenΣ
-      (_ , _ , genS i) ≟G (_ , _ , genS j) with i ≟Fin j
-      ... | yes refl = yes refl
-      ... | no ¬p    = no λ where refl → ¬p refl
+      (_ , _ , genS i) ≟G (_ , _ , genS j) = case i ≟Fin j of λ where
+        (yes refl) → yes refl
+        (no ¬p)    → no λ where refl → ¬p refl
 
       rankS : GenΣ → ℕ
       rankS (_ , _ , genS i) = toℕ i

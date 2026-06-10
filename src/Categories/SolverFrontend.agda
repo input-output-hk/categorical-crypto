@@ -82,32 +82,33 @@
 
 module Categories.SolverFrontend where
 
-open import Level using (Level)
-
-open import Data.Bool using (Bool; true; false)
+open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
+open import Data.Bool using (Bool; true; false; not; _∨_; if_then_else_)
 open import Data.Empty using (⊥)
 open import Data.Fin using (Fin; toℕ)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
-open import Data.Nat using (ℕ; _*_; _<ᵇ_) renaming (zero to nzero; suc to nsuc)
-open import Data.Vec using (Vec; lookup)
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (++-assoc; ++-identityʳ; ≡-dec)
-open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
-open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Maybe using (Maybe; just; nothing; _<∣>_)
+open import Data.Nat using (ℕ; _*_; _<ᵇ_) renaming (zero to nzero; suc to nsuc)
 open import Data.Product using (Σ; _,_; _×_; Σ-syntax; proj₁; proj₂)
-open import Data.Unit using (⊤; tt)
-open import Relation.Nullary using (Dec; yes; no)
+open import Data.Unit using (⊤)
+open import Data.Vec using (Vec; lookup)
+open import Function using (case_of_)
+open import Level using (Level)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂)
+open import Relation.Nullary using (Dec; yes; no)
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
-open import Categories.FreeMonoidal
+
 open import Categories.DiagramRewriteUntyped using (module Untyped)
-open import Categories.SolverReflect using (module Reflect)
-open import Categories.SolverNormalize using (module Normalize)
+open import Categories.FreeMonoidal
 open import Categories.SolverCompare using (module SolverCompare)
+open import Categories.SolverNormalize using (module Normalize)
+open import Categories.SolverReflect using (module Reflect)
 
 module Frontend
   {X : Set}
@@ -254,12 +255,6 @@ module Frontend
              → h F.≈Term h' → coeCF e h F.≈Term coeCF e h'
   coeCF-resp refl eq = eq
 
-  -- the two opposite coercions of identities cancel.
-  coeCF-inv : ∀ {p q} (e : p ≡ q)
-            → F._∘_ (coeCF (sym e) (F.id {wires q})) (coeCF e (F.id {wires p}))
-              F.≈Term F.id
-  coeCF-inv refl = F.idˡ
-
   -- inj commutes with the wire-level coercions (all definitional on refl).
   inj-coeC : ∀ {A p q} (e : p ≡ q) (h : HomTerm A (wires p))
            → inj (coeC e h) ≡ coeCF e (inj h)
@@ -277,25 +272,11 @@ module Frontend
   -- Structural lemmas transferred from the wire level along inj.
   ------------------------------------------------------------------------
 
-  mergeF∘splitF : ∀ (a : List X) {suf} → F._∘_ (mergeF a {suf}) (splitF a) F.≈Term F.id
-  mergeF∘splitF a {suf} =
-    F.≈-Term-trans
-      (F.≡⇒≈Term (cong₂′ (sym (inj-merge a {suf})) (sym (inj-split a {suf}))))
-      (inj-resp-≈ (merge∘split a))
-    where
-      cong₂′ : ∀ {A B C : ObjTerm} {h h' : F.HomTerm B C} {j j' : F.HomTerm A B}
-             → h ≡ h' → j ≡ j' → F._∘_ h j ≡ F._∘_ h' j'
-      cong₂′ refl refl = refl
-
   splitF∘mergeF : ∀ (a : List X) {suf} → F._∘_ (splitF a {suf}) (mergeF a) F.≈Term F.id
   splitF∘mergeF a {suf} =
     F.≈-Term-trans
-      (F.≡⇒≈Term (cong₂′ (sym (inj-split a {suf})) (sym (inj-merge a {suf}))))
+      (F.≡⇒≈Term (cong₂ F._∘_ (sym (inj-split a {suf})) (sym (inj-merge a {suf}))))
       (inj-resp-≈ (split∘merge a))
-    where
-      cong₂′ : ∀ {A B C : ObjTerm} {h h' : F.HomTerm B C} {j j' : F.HomTerm A B}
-             → h ≡ h' → j ≡ j' → F._∘_ h j ≡ F._∘_ h' j'
-      cong₂′ refl refl = refl
 
   -- right-unitor coherence on the F-side merge (transfer of merge-ρ).
   mergeF-ρ : ∀ (a : List X)
@@ -368,14 +349,6 @@ module Frontend
   embed-castʷ : ∀ {n n' m m'} (p : n ≡ n') (q : m ≡ m') (t : WTerm n m)
               → embed (castʷ p q t) ≈Term coeDom p (coeCod' q (embed t))
   embed-castʷ refl refl t = ≈-Term-refl
-
-  coeDF : ∀ {p q : List X} {B} → p ≡ q
-        → F.HomTerm (wires p) B → F.HomTerm (wires q) B
-  coeDF refl h = h
-
-  inj-coeDom : ∀ {p q r} (e : p ≡ q) (h : HomTerm (wires p) (wires r))
-             → inj (coeDom e h) ≡ coeDF e (inj h)
-  inj-coeDom refl h = refl
 
   reflectF : ∀ {Y Z} → F.HomTerm Y Z → WTerm (flatten Y) (flatten Z)
   reflectF (F.var g)            = boxʷ (mk g)
@@ -634,15 +607,15 @@ module Frontend
     -- from the front-end one (mk is injective on the ObjTerm triple).
     private
       _≟W_ : DecidableEquality SC.Gen
-      (_ , _ , mk {Y} {Z} g) ≟W (_ , _ , mk {Y'} {Z'} g')
-        with (Y , Z , g) ≟G (Y' , Z' , g')
-      ... | yes refl = yes refl
-      ... | no ¬p    = no λ { refl → ¬p refl }
+      (_ , _ , mk {Y} {Z} g) ≟W (_ , _ , mk {Y'} {Z'} g') =
+        case (Y , Z , g) ≟G (Y' , Z' , g') of λ where
+          (yes refl) → yes refl
+          (no ¬p)    → no λ { refl → ¬p refl }
 
     open SC.Decide _≟W_ using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
 
     open Normalize Mon {X} _≟X_ MorW using
-      ( castW; castW-∘; castW-irr
+      ( castW; castW-∘; castW-irr; castW-sym-r
       ; substDiagU; substDiagU-out; ⟦substDiagU⟧
       ; LeftFit; leftFit
       ; dInput; dSwapped; dInput-out; dSwapped-out; diagU-swap-soundD; domeq
@@ -667,9 +640,6 @@ module Frontend
                       (castW oeq ∘ ⟦ d ⟧ ≈Term ⟦ d' ⟧)
 
     private
-      castW-cancel : ∀ {u v} (e : u ≡ v) → castW (sym e) ∘ castW e ≈Term id
-      castW-cancel refl = idˡ
-
       unwrapCast : ∀ {u v} {A} (e : u ≡ v)
                    {x : HomTerm A (wires u)} {y : HomTerm A (wires v)}
                  → castW e ∘ x ≈Term y → x ≈Term castW (sym e) ∘ y
@@ -732,7 +702,7 @@ module Frontend
             (⟦ d' ⟧ ∘ castW (sym eᵒ)) ∘ castW eᵒ
               ≈⟨ assoc ⟩
             ⟦ d' ⟧ ∘ (castW (sym eᵒ) ∘ castW eᵒ)
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (castW-cancel eᵒ) ⟩
+              ≈⟨ ∘-resp-≈ ≈-Term-refl (castW-sym-r eᵒ) ⟩
             ⟦ d' ⟧ ∘ id
               ≈⟨ idʳ ⟩
             ⟦ d' ⟧ ∎
@@ -753,14 +723,13 @@ module Frontend
            {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
          → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
       go px sx fx ([]_ m) meq = nothing
-      go {ax} {bx} px sx fx (_▸_∷_⟨_⟩ {ay} {by} py sy fy rest') meq
-        with leftFit? px sx py sy fx fy
-      ... | nothing  = nothing
-      ... | just fit
-        with ambiguous? ax by (LeftFit.mid fit) | rankW fy <ᵇ rankW fx
-      ...   | false | _     = just (fire fit rest' meq)
-      ...   | true  | true  = just (fire fit rest' meq)
-      ...   | true  | false = nothing
+      go {ax} {bx} px sx fx (_▸_∷_⟨_⟩ {ay} {by} py sy fy rest') meq =
+        case leftFit? px sx py sy fx fy of λ where
+          nothing    → nothing
+          (just fit) →
+            if not (ambiguous? ax by (LeftFit.mid fit)) ∨ (rankW fy <ᵇ rankW fx)
+              then just (fire fit rest' meq)
+              else nothing
 
     -- one bubble step on the HEAD pair, or `nothing` when it is not an
     -- out-of-order independent pair (or fewer than two layers).
@@ -803,12 +772,12 @@ module Frontend
     -- layer over a normalized tail keeps the input index on the nose.)
     step? : ∀ {n} (d : DiagU n) → Maybe (SwapRes d)
     step? ([]_ n) = nothing
-    step? (px ▸ sx ∷ fx ⟨ rest ⟩) with go px sx fx rest refl
-    ... | just r  = just r
-    ... | nothing with step? rest
-    ...   | nothing                  = nothing
-    ...   | just (rest' , oeq , snd) =
-            just (px ▸ sx ∷ fx ⟨ rest' ⟩ , oeq , lift∷ px sx fx oeq snd)
+    step? (px ▸ sx ∷ fx ⟨ rest ⟩) =
+      go px sx fx rest refl <∣>
+      Data.Maybe.map
+        (λ { (rest' , oeq , snd) →
+             px ▸ sx ∷ fx ⟨ rest' ⟩ , oeq , lift∷ px sx fx oeq snd })
+        (step? rest)
 
     -- fuel-bounded bubble sort: fire the first applicable swap, repeat.
     -- On CONCRETE input the `substDiagU` casts inside each swap result
@@ -816,11 +785,11 @@ module Frontend
     -- keep firing; soundness is unconditional whatever the fuel.
     normFuel : ∀ {n} → ℕ → (d : DiagU n) → SwapRes d
     normFuel nzero    d = d , refl , idˡ
-    normFuel (nsuc k) d with step? d
-    ... | nothing               = d , refl , idˡ
-    ... | just (d' , oeq , snd) with normFuel k d'
-    ...   | (d'' , oeq' , snd') =
-            d'' , trans oeq oeq' , swapTrans oeq oeq' snd snd'
+    normFuel (nsuc k) d = case step? d of λ where
+      nothing                 → d , refl , idˡ
+      (just (d' , oeq , snd)) →
+        let (d'' , oeq' , snd') = normFuel k d'
+        in  d'' , trans oeq oeq' , swapTrans oeq oeq' snd snd'
 
     -- layer count, and the worst-case bubble budget (≥ #inversions).
     depth : ∀ {n} → DiagU n → ℕ
@@ -875,9 +844,7 @@ module Frontend
     -- front-end decision: a hit is a genuine `_≈Term_` of the free
     -- monoidal category over the ObjTerm-arity generators.
     decide?F : ∀ {Y Z} (l r : F.HomTerm Y Z) → Maybe (l F.≈Term r)
-    decide?F l r with decide?W (reflectF l) (reflectF r)
-    ... | nothing = nothing
-    ... | just eq = just (solveF eq)
+    decide?F l r = Data.Maybe.map solveF (decide?W (reflectF l) (reflectF r))
 
     -- the computing hit-witness: normalizes to ⊤ exactly on a solver hit, so
     -- the implicit is auto-discharged at concrete test sites.
@@ -885,14 +852,14 @@ module Frontend
     IsJust (just _) = ⊤
     IsJust nothing  = ⊥
 
-    private
-      extract : ∀ {a} {A : Set a} (x : Maybe A) → IsJust x → A
-      extract (just a) _ = a
+    -- extract the value of a computed hit (a solver witness, a focus, …).
+    fromHit : ∀ {a} {A : Set a} (x : Maybe A) → IsJust x → A
+    fromHit (just a) _ = a
 
     -- reference-style entry point at the free level.
     solveTerm! : ∀ {Y Z} (l r : F.HomTerm Y Z)
                  {hit : IsJust (decide?F l r)} → l F.≈Term r
-    solveTerm! l r {hit} = extract (decide?F l r) hit
+    solveTerm! l r {hit} = fromHit (decide?F l r) hit
 
     ------------------------------------------------------------------------
     -- Term-level FOCUSING (the Mon analogue of the SMC solver's `Carve`):
@@ -920,16 +887,17 @@ module Frontend
     unit      ≟O (_ ⊗₀ _)   = no λ ()
     unit      ≟O Var _      = no λ ()
     (_ ⊗₀ _)  ≟O unit       = no λ ()
-    (a ⊗₀ b)  ≟O (a' ⊗₀ b') with a ≟O a' | b ≟O b'
-    ... | yes refl | yes refl = yes refl
-    ... | no ¬p    | _        = no λ eq → ¬p (⊗₀-inj₁ eq)
-    ... | yes _    | no ¬q    = no λ eq → ¬q (⊗₀-inj₂ eq)
+    (a ⊗₀ b)  ≟O (a' ⊗₀ b') = case a ≟O a' of λ where
+      (no ¬p)    → no λ eq → ¬p (⊗₀-inj₁ eq)
+      (yes refl) → case b ≟O b' of λ where
+        (yes refl) → yes refl
+        (no ¬q)    → no λ eq → ¬q (⊗₀-inj₂ eq)
     (_ ⊗₀ _)  ≟O Var _      = no λ ()
     Var _     ≟O unit       = no λ ()
     Var _     ≟O (_ ⊗₀ _)   = no λ ()
-    Var x     ≟O Var y      with x ≟X y
-    ... | yes refl = yes refl
-    ... | no ¬p    = no λ eq → ¬p (Var-inj eq)
+    Var x     ≟O Var y      = case x ≟X y of λ where
+      (yes refl) → yes refl
+      (no ¬p)    → no λ eq → ¬p (Var-inj eq)
 
     -- a focus: the two pad objects and the two context terms.
     Foc : (A B P Q : ObjTerm) → Set
@@ -944,11 +912,13 @@ module Frontend
     private
       -- leaf: the whole of `s` is the redex (up to the solver).
       leaf-try : ∀ {A B P Q} → F.HomTerm A B → F.HomTerm P Q → Maybe (Foc A B P Q)
-      leaf-try {A} {B} {P} {Q} s lᵗ with A ≟O P | B ≟O Q
-      ... | yes refl | yes refl with decide?F s lᵗ
-      ...   | just _  = just (unit , unit , F._∘_ F.λ⇐ F.ρ⇐ , F._∘_ F.ρ⇒ F.λ⇒)
-      ...   | nothing = nothing
-      leaf-try _ _ | _ | _ = nothing
+      leaf-try {A} {B} {P} {Q} s lᵗ = case A ≟O P of λ where
+        (no _)     → nothing
+        (yes refl) → case B ≟O Q of λ where
+          (no _)     → nothing
+          (yes refl) → case decide?F s lᵗ of λ where
+            (just _) → just (unit , unit , F._∘_ F.λ⇐ F.ρ⇐ , F._∘_ F.ρ⇒ F.λ⇒)
+            nothing  → nothing
 
     -- enumerate all focus positions: whole-term first, then — for `∘` — the
     -- first-applied operand's positions before the second's, and — for `⊗` —
@@ -975,9 +945,9 @@ module Frontend
                (focusAll b lᵗ)
       go-all _ _ = []
 
-    focusAll s lᵗ with leaf-try s lᵗ
-    ... | just r  = r ∷ go-all s lᵗ
-    ... | nothing = go-all s lᵗ
+    focusAll s lᵗ = case leaf-try s lᵗ of λ where
+      (just r) → r ∷ go-all s lᵗ
+      nothing  → go-all s lᵗ
 
     private
       lookupMaybe : ∀ {a} {A : Set a} → List A → ℕ → Maybe A
@@ -988,10 +958,6 @@ module Frontend
     -- the n-th focus position (0-based, in the order above).
     focusAtₙ : ∀ {A B P Q} → F.HomTerm A B → F.HomTerm P Q → ℕ → Maybe (Foc A B P Q)
     focusAtₙ s lᵗ n = lookupMaybe (focusAll s lᵗ) n
-
-    -- extract a focus from a computed hit.
-    fromHit : ∀ {a} {A : Set a} (x : Maybe A) → IsJust x → A
-    fromHit (just a) _ = a
 
     ------------------------------------------------------------------------
     -- Transport into an arbitrary target monoidal category, along the free
@@ -1153,9 +1119,9 @@ module FinSetup
 
     private
       _≟G_ : DecidableEquality GenΣ
-      (_ , _ , genS i) ≟G (_ , _ , genS j) with i ≟Fin j
-      ... | yes refl = yes refl
-      ... | no ¬p    = no λ where refl → ¬p refl
+      (_ , _ , genS i) ≟G (_ , _ , genS j) = case i ≟Fin j of λ where
+        (yes refl) → yes refl
+        (no ¬p)    → no λ where refl → ¬p refl
 
       rankS : GenΣ → ℕ
       rankS (_ , _ , genS i) = toℕ i
