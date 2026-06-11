@@ -130,6 +130,12 @@ opaque
   destruct-⊗ {m = Out} = id
   destruct-⊗ {m = In} = id
 
+  -- Inverse of destruct-⊗: rebuild the opaque tensor-mode type from a
+  -- sum. Inside the opaque block both forms are definitionally id.
+  construct-⊗ : ∀ {A B m} → modeType m A ⊎ modeType m B → modeType m (A ⊗₀ B)
+  construct-⊗ {m = Out} = id
+  construct-⊗ {m = In}  = id
+
 -----------------------------------
 -- Forwarding tensorial products --
 -----------------------------------

@@ -1,10 +1,6 @@
-{-# OPTIONS --allow-unsolved-metas --no-require-unique-meta-solutions #-}
-
 ------------------------------------------------------------------------
 -- Plan (new strategy):
 --   Machine ≅ Hom in (G-construction ∘ GradedKleisli ∘ SFunM)-built category
---
--- This file sketches the correspondence. Actual definitions are TODO.
 --
 -- ---------------------------------------------------------------------
 -- The categorical picture
@@ -76,9 +72,7 @@ import Categories.GradedKleisli as GK
 -- The `GConstruction` module takes four trace-naturality axioms as
 -- module parameters. These are derivable from the basic traced-monoidal
 -- structure (Hasegawa 1997, Thm 2.3) but the derivation is non-trivial
--- at setoid level. We postulate them here; the inner identity-law and
--- assoc'-coherence holes inside GConstruction.agda remain unsolved
--- (hence `--allow-unsolved-metas`).
+-- at setoid level. We postulate them here.
 
 private
   -- β swaps the last two factors: (P ⊎ Q) ⊎ R → (P ⊎ R) ⊎ Q.
@@ -103,24 +97,18 @@ postulate
                    → tr {X = X} (tr {X = Y} f)
                      ≈ᵉ tr {X = Y} (tr {X = X} (β-fn ∘ᵉ (f ∘ᵉ β-fn)))
 
-  -- Dinaturality (sliding): a morphism h on the trace variable can
-  -- slide between f's output and input sides of the trace.
-  SFunᵉ-trace-dinatural : ∀ {X Y A B}
-                          {f : SFunᵉ (A ⊎ X) (B ⊎ Y)}
-                          {h : SFunᵉ Y X}
-                        → tr {X = X} ((idᵉ {B} ⊗ᵉ h) ∘ᵉ f)
-                          ≈ᵉ tr {X = Y} (f ∘ᵉ (idᵉ {A} ⊗ᵉ h))
-
 -- The G-construction applied to SFunᵉ. Objects are channel-shaped
 -- pairs; morphisms are bidirectional step functions.
 SFunᵉ-GConstruction : Category _ _ _
 SFunᵉ-GConstruction =
   GC.GConstruction SFunᵉ-Category SFunᵉ-monoidal SFunᵉ-traced
     SFunᵉ-trace-resp-≈
-    SFunᵉ-trace-∘ˡ
+    -- The implicits are passed explicitly: leaving them to unification
+    -- makes the conversion checker unfold `tr`/`≈ᵉ` against an
+    -- eta-expanded meta, which gets stuck on higher-order constraints.
+    (λ {X} {A} {B} {B'} {g} {f} → SFunᵉ-trace-∘ˡ {X} {A} {B} {B'} {g} {f})
     SFunᵉ-trace-∘ʳ
     SFunᵉ-trace-comm
-    SFunᵉ-trace-dinatural
 
 ------------------------------------------------------------------------
 -- Step 4.  Apply `GradedKleisli` over the G-constructed category.
@@ -133,14 +121,15 @@ SFunᵉ-GConstruction =
 -- morphism `A ⇒ T₀ ⋆ B` in G(SFunᵉ) unfolds to
 -- `SFunᵉ(A⁺ ⊎ B⁻, A⁻ ⊎ (B⁺ ⊎ ⊤))`, which under the canonical iso
 -- `Maybe X ≅ X ⊎ ⊤` is the `MaybeHom` hom-set shape. `return` and `ext`
--- are concrete (Tier 1); the eight non-trivial graded-Kleisli laws on
--- `ext`/`sub-commute` are postulated for now — discharging them is
--- substantial setoid-level work (Tier 2/3).
+-- are concrete (Tier 1); the five triple laws involving `ext` (and
+-- `sub-commute`) are postulated for now — discharging them is
+-- substantial setoid-level work (Tier 2/3) — while the three `sub`-only
+-- laws are proven directly.
 --
 -- We grade by the terminal monoidal category `One` — i.e. the unit
 -- monoid — so all subsumption maps `sub` are identities.
 
-One-MonoidalCategory : MonoidalCategory _ _ _
+One-MonoidalCategory : MonoidalCategory zeroˡ zeroˡ zeroˡ
 One-MonoidalCategory = record { U = One ; monoidal = One-Monoidal }
 
 private
@@ -154,7 +143,11 @@ private
 -- G(SFunᵉ) unfolds to SFunᵉ(A⁺ ⊎ B⁻, A⁻ ⊎ (B⁺ ⊎ ⊤)), which is the
 -- shape of `MaybeHom A B` (up to the canonical iso
 -- `Maybe X ≅ X ⊎ ⊤` applied at A⁻ ⊎ B⁺).
-MaybeT₀ : Category.Obj One → GC-C.Obj → GC-C.Obj
+-- The (singleton) object type of the grading category `One`.
+OneObj : Type
+OneObj = Category.Obj (One {zeroˡ} {zeroˡ} {zeroˡ})
+
+MaybeT₀ : OneObj → GC-C.Obj → GC-C.Obj
 MaybeT₀ _ (A⁺ , A⁻) = (A⁺ ⊎ ⊤) , A⁻
 
 -- The unit (`return`) at A : G-Hom A (MaybeT₀ ⋆ A).
@@ -186,9 +179,9 @@ MaybeT-ext f = record
 -- into T₀ B carry an optional "no emission" on their output coproduct);
 -- return and ext are the concrete unit and Kleisli-extension realising
 -- this. sub is identity (the grading category V = One has only one
--- morphism). The eight graded-Kleisli laws involving `ext` are
+-- morphism). The five graded-Kleisli laws involving `ext` are
 -- substantial (equations in SFunᵉ-GConstruction's hom-equivalence over
--- list-trace evaluation) and are postulated here; the four sub-only
+-- list-trace evaluation) and are postulated here; the three sub-only
 -- laws are proved from `SFunᵉ-GConstruction`'s identity laws directly.
 --
 -- Proof sketches for each ext-related postulate (Tier 3 roadmap):
@@ -253,14 +246,14 @@ private
       → GC-C.id GC-C.∘ MaybeT-ext (MaybeT-return {A}) GC-C.≈ GC-C.id {MaybeT₀ u A}
     MaybeT-ext-identityʳ : ∀ {u A B} {f : A GC-C.⇒ MaybeT₀ u B}
       → GC-C.id GC-C.∘ MaybeT-ext f GC-C.∘ MaybeT-return GC-C.≈ f
-    MaybeT-ext-assoc : ∀ {u v w A B C}
+    MaybeT-ext-assoc : ∀ {u : OneObj} {v w A B C}
       {f : B GC-C.⇒ MaybeT₀ w C} {g : A GC-C.⇒ MaybeT₀ v B}
       → MaybeT-ext (MaybeT-ext f GC-C.∘ g)
         GC-C.≈ GC-C.id GC-C.∘ (MaybeT-ext f GC-C.∘ MaybeT-ext g)
-    MaybeT-ext-resp-≈ : ∀ {u v A B} {f g : A GC-C.⇒ MaybeT₀ v B}
+    MaybeT-ext-resp-≈ : ∀ {u : OneObj} {v A B} {f g : A GC-C.⇒ MaybeT₀ v B}
       → f GC-C.≈ g → MaybeT-ext {A} {B} f GC-C.≈ MaybeT-ext g
-    MaybeT-sub-commute : ∀ {u₁ u₂ v₁ v₂ A B}
-      {α : Lift _ ⊤} {β : Lift _ ⊤} {f : A GC-C.⇒ MaybeT₀ u₂ B}
+    MaybeT-sub-commute : ∀ {u₁ u₂ v₁ v₂ : OneObj} {A B}
+      {α : Lift zeroˡ ⊤} {β : Lift zeroˡ ⊤} {f : A GC-C.⇒ MaybeT₀ u₂ B}
       → MaybeT-ext (GC-C.id GC-C.∘ f) GC-C.∘ GC-C.id
         GC-C.≈ GC-C.id GC-C.∘ MaybeT-ext {A} {B} f
 
@@ -296,13 +289,13 @@ SFunᵉ-GradedKleisli =
 -- an object. A `Machine A B`'s `stepRel` has the same shape as a hom
 -- in `SFunᵉ-GConstruction` from (inType A , outType A) to
 -- (inType B , outType B), modulo the relation-vs-function and
--- Maybe-output gaps documented in (a)–(d) at the top of the file.
+-- Maybe-output gaps bridged by `MaybeHom` below.
 --
 -- Target category. We use `SFunᵉ-GConstruction` directly rather than
--- `SFunᵉ-GradedKleisli`, because the postulated `SFunᵉ-GradedTriple`
--- keeps `T₀` opaque — and an opaque `T₀ k d` blocks constructing
--- explicit hom-set elements. The graded layer can be reinstated once a
--- concrete `Maybe`-graded triple is built.
+-- `SFunᵉ-GradedKleisli`: with the grading collapsed to `One`, the
+-- graded layer only wraps the same underlying data in an existential
+-- grade plus subsumption bookkeeping, which gets in the way of
+-- constructing explicit hom-set elements.
 
 Channel→Obj : Channel → GC-C.Obj
 Channel→Obj A = Channel.inType A , Channel.outType A
@@ -334,10 +327,11 @@ GC-Hom A B = (Channel→Obj A) GC-C.⇒ (Channel→Obj B)
 -- with `of-rel` providing the relation→M bridge in the forward
 -- direction).
 --
--- This `MaybeHom` is what the postulated `SFunᵉ-GradedTriple` of
--- Step 4 would produce once instantiated to the concrete `Maybe`-graded
--- triple over `M`. It plays the role of "hom in the Maybe-graded
--- Kleisli category over SFunᵉ-GConstruction".
+-- This `MaybeHom` is the hom-shape produced by the `Maybe`-graded
+-- triple `SFunᵉ-GradedTriple` of Step 4 — a hom `A ⇒ T₀ ⋆ B` in
+-- G(SFunᵉ), read through the canonical iso `Maybe X ≅ X ⊎ ⊤`. It plays
+-- the role of "hom in the Maybe-graded Kleisli category over
+-- SFunᵉ-GConstruction".
 
 record MaybeHom (A B : Channel) : Type₁ where
   constructor MkMaybeHom
@@ -370,11 +364,11 @@ MaybeHom-Kl A B = (Channel→Obj A) GC-C.⇒ MaybeT₀ _ (Channel→Obj B)
 
 private
   -- Maybe X ↔ X ⊎ ⊤ at the value level.
-  maybe→sum-⊤ : ∀ {X} → Maybe X → X ⊎ ⊤
+  maybe→sum-⊤ : ∀ {X : Type} → Maybe X → X ⊎ ⊤
   maybe→sum-⊤ (just x) = inj₁ x
   maybe→sum-⊤ nothing  = inj₂ tt
 
-  sum-⊤→maybe : ∀ {X} → X ⊎ ⊤ → Maybe X
+  sum-⊤→maybe : ∀ {X : Type} → X ⊎ ⊤ → Maybe X
   sum-⊤→maybe (inj₁ x) = just x
   sum-⊤→maybe (inj₂ _) = nothing
 
@@ -550,9 +544,9 @@ TotalFunctionMachine'→Hom p q = FunctionMachine→Hom
 -- The MaybeHomCategory laws below are stated, not yet proven. They are
 -- the categorical analogue of MachineCategory's laws and will be
 -- discharged in a future iteration by transporting from
--- SFunᵉ-GradedKleisli (once the postulated `SFunᵉ-GradedTriple` is
--- replaced by a concrete `Maybe`-graded triple). The transport from
--- MaybeHomCategory back to MachineCategory is the final piece below.
+-- SFunᵉ-GradedKleisli (once the five postulated `MaybeT-ext-*` laws of
+-- the triple are discharged). The transport from MaybeHomCategory back
+-- to MachineCategory is the final piece below.
 
 idᴹᴴ : ∀ {A : Channel} → MaybeHom A A
 idᴹᴴ = Machine→Hom MC.id
@@ -573,8 +567,9 @@ _≈ᴹᴴ_ MH₁ MH₂ = Hom→Machine MH₁ ≈ℰ Hom→Machine MH₂
 
 -- MaybeHomCategory's category laws. Stated here as the "categorical"
 -- residue of MachineCategory's laws — they will hold by transport from
--- `SFunᵉ-GradedKleisli` when its underlying triple is concrete and the
--- GConstruction holes are filled.
+-- `SFunᵉ-GradedKleisli` once the triple's postulated `ext` laws are
+-- discharged (the category laws of `Categories.GradedKleisli` itself
+-- are fully proven).
 --
 -- Two routes to discharge each of these (Tier 3 roadmap):
 --
@@ -594,9 +589,8 @@ _≈ᴹᴴ_ MH₁ MH₂ = Hom→Machine MH₁ ≈ℰ Hom→Machine MH₂
 -- law. Specifically:
 --   MaybeHom-Kl forms a category via the GradedKleisli construction;
 --   the iso Kl→MaybeHom takes that category's laws to MaybeHomCategory's
---   laws — modulo (a) the 5 postulated `MaybeT-ext-*` laws above,
---   (b) the 4 holes in `Categories.GradedKleisli`, and (c) showing
---   the iso is functorial (preserves id and ∘ up to ≈ᴹᴴ).
+--   laws — modulo (a) the 5 postulated `MaybeT-ext-*` laws above, and
+--   (b) showing the iso is functorial (preserves id and ∘ up to ≈ᴹᴴ).
 -- Both routes are substantial but the framework is in place for
 -- either to be pursued.
 postulate
