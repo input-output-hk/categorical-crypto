@@ -33,8 +33,9 @@ module Categories.SolverNormalize where
 open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (≡-dec; ++-assoc)
-open import Data.Maybe as Maybe using (Maybe; just; nothing; _>>=_)
-open import Data.Nat using (ℕ; zero; suc)
+open import Data.Bool using (Bool; true; false; not; _∨_; if_then_else_)
+open import Data.Maybe as Maybe using (Maybe; just; nothing; _>>=_; _<∣>_)
+open import Data.Nat using (ℕ; zero; suc; _<ᵇ_)
 open import Data.Product using (_,_; Σ; Σ-syntax)
 open import Function.Base using (case_of_)
 open import Relation.Binary using (DecidableEquality)
@@ -67,7 +68,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- stock associativity/cancellation combinators (same idiom as
   -- DiagramRewriteUntyped/SolverReflect): plain non-public opens, proofs-only.
   open MR FreeMonoidal
-    using (pullˡ; pullʳ; pushˡ; pushʳ; cancelˡ; insertʳ)
+    using (pullˡ; pullʳ; pushˡ; pushʳ; cancelˡ; cancelʳ; insertʳ)
   open MonR Monoidal-FreeMonoidal
     using (refl⟩⊗⟨_)
 
@@ -383,33 +384,19 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --------------------------------------------------------------------------------
   -- 11d'. THE `castW` OBJECT-TRANSPORT ALGEBRA (the genuine coherence content).
   --
-  -- `castW : u ≡ v → HomTerm (wires u) (wires v)` is the `++`-assoc object
-  -- transport realised as `subst`-of-`id`.  The structural reassociators
-  -- `assocW`/`assocW⁻`/`liftW` (built purely from `id` and `id ⊗₁ -`, α-free)
-  -- COLLAPSE to single `castW`s; combined with `castW`-functoriality this lets
-  -- the `g-in≈pad` reassociators cancel against the index casts.  All proven by
-  -- `J` (pattern-matching the equality to `refl`); no postulates, no holes.
+  -- castW, castW-∘, castW-∷, castW-sym-r, castW-sym-r-flip, castW-cancelʳ now
+  -- live in UntypedI (DiagramRewriteUntyped) and are available via the
+  -- `open UntypedI … public` above.
+  --
+  -- The remaining DecidableEquality-dependent pieces live here:
+  --   castW-irr, liftW-castW, assocW-castW, assocW⁻-castW,
+  --   assocTower≈castW, assocTower⁻≈castW.
   --------------------------------------------------------------------------------
-
-
-  -- the object transport: realised as `subst`-of-`id`, so `castW refl = id`.
-  castW : ∀ {u v : List X} → u ≡ v → HomTerm (wires u) (wires v)
-  castW refl = id
-
-  -- functoriality of `castW` (composition of transports).
-  castW-∘ : ∀ {u v w : List X} (e₁ : u ≡ v) (e₂ : v ≡ w)
-          → castW e₂ ∘ castW e₁ ≈Term castW (trans e₁ e₂)
-  castW-∘ refl refl = idˡ
 
   -- `castW` is determined by its endpoints (proof-irrelevance via the
   -- Hedberg UIP on wire lists; --without-K).
   castW-irr : ∀ {u v : List X} (e e' : u ≡ v) → castW e ≈Term castW e'
   castW-irr e e' = ≡⇒≈Term (cong castW (≡-irrelevantL e e'))
-
-  -- prepending one wire to a transport.
-  castW-∷ : ∀ {x : X} {u v : List X} (e : u ≡ v)
-          → id ⊗₁ castW e ≈Term castW (cong (x ∷_) e)
-  castW-∷ refl = id⊗id≈id
 
   -- `liftW p` of a transport is the transport prefixed by `p`.
   liftW-castW : ∀ (p : List X) {u v : List X} (e : u ≡ v)
@@ -505,14 +492,6 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈Term castW (domeq pre a₁ mid b₂ r)
   reassocB-in≈castW pre mid r {a₁} {b₁} {a₂} {b₂} f g =
     assocTower⁻≈castW pre a₁ mid (b₂ ++ r)
-
-  -- round-trip cancellation of inverse casts.
-  castW-sym-r : ∀ {u v : List X} (e : u ≡ v) → castW (sym e) ∘ castW e ≈Term id
-  castW-sym-r refl = idˡ
-
-  -- the other cancellation order.
-  castW-sym-r-flip : ∀ {u v : List X} (e : u ≡ v) → castW e ∘ castW (sym e) ≈Term id
-  castW-sym-r-flip refl = idˡ
 
   -- THE CORE BRIDGE (frame coordinates), PROVEN.  The frame's grouped `g-in`
   -- equals the clean flat `pad` of the right box `g` (at the LeftFit offset
@@ -787,11 +766,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     trans (substDiagU-out (domeq P by mid ax s) _)
           (substDiagU-out (sym (domeq P by mid bx s)) _)
 
-  -- right-cancel an iso `castW e`:  A ∘ castW e ≈ B ∘ castW e  ⟹  A ≈ B.
-  castW-cancelʳ : ∀ {u v w : List X} (e : u ≡ v)
-                  {A B : HomTerm (wires v) (wires w)}
-                → A ∘ castW e ≈Term B ∘ castW e → A ≈Term B
-  castW-cancelʳ refl {A} {B} h = ⟺ idʳ ○ h ○ idʳ
+  -- (`castW-cancelʳ` now lives in UntypedI.)
 
   -- expansion of the INPUT diagram, pre-composed by the domain cast `e`, to the
   -- frame INPUT composite (the LHS of `diagU-swap-sound`).  Proven by `J` on the
@@ -1052,6 +1027,129 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     normalizeD-sound (suc _) fit dRest =
       trans (dInput-out fit dRest) (sym (dSwapped-out fit dRest))
       , diagU-swap-soundD fit dRest
+
+    --------------------------------------------------------------------------------
+    -- 12d. THE GENERIC DRIVER: shared normalizer machinery parametrised over a
+    -- one-step oracle (the per-variant `step?` function).
+    --
+    -- Both `SolverFrontend.Decide` (monoidal, pure interchange) and
+    -- `SolverSigma.Decide` (symmetric, interchange + σσ-cancel + slides) implement
+    -- the same fuel-driven bubble-sort loop around a custom per-position oracle
+    -- `go`.  The machinery below factors out everything that is INDEPENDENT of
+    -- that oracle:
+    --
+    --   SwapRes     — the canonical soundness-carrying step result type;
+    --   fire        — the single genuine interchange swap (wraps dInput/dSwapped);
+    --   ambiguous?  — the head-pair ambiguity guard (shared by both oracles);
+    --   lift∷       — lift a tail result under a head layer;
+    --   swapTrans   — chain two consecutive results;
+    --   depthD      — layer count;
+    --   normFuelWith — fuel-bounded loop driven by a caller-supplied one-step fn.
+    --
+    -- Each `Decide` module passes its own `step?` to `normFuelWith`, keeping ONLY
+    -- its per-variant oracle in its own scope.
+    --------------------------------------------------------------------------------
+
+    -- The canonical result type: a new diagram with the same input index, an
+    -- output-equality proof, and a semantic bridge.
+    SwapRes : ∀ {n} → DiagU n → Set
+    SwapRes {n} d = Σ[ d' ∈ DiagU n ] Σ[ oeq ∈ out d ≡ out d' ]
+                      (castW oeq ∘ ⟦ d ⟧ ≈Term ⟦ d' ⟧)
+
+    -- Unwrap a cast from the LHS of a soundness equation.
+    unwrapCast : ∀ {u v} {A} (e : u ≡ v)
+                 {x : HomTerm A (wires u)} {y : HomTerm A (wires v)}
+               → castW e ∘ x ≈Term y → x ≈Term castW (sym e) ∘ y
+    unwrapCast refl eq = ⟺ idˡ ○ eq ○ ⟺ idˡ
+
+    -- A head-pair is AMBIGUOUS when the reverse pair would ALSO fit
+    -- (mid ≡ [] ∧ by ≡ [] ∧ ax ≡ []); such pairs are ordered by rank instead.
+    ambiguous? : List X → List X → List X → Bool
+    ambiguous? [] [] [] = true
+    ambiguous? _  _  _  = false
+
+    -- Fire one genuine swap on a recognised out-of-order head pair.
+    -- Identical in SolverFrontend.Decide and SolverSigma.Decide.
+    fire : ∀ {ax bx ay by} {px sx py sy : List X}
+           {fx : Mor ax bx} {fy : Mor ay by}
+           (fit : LeftFit px sx py sy fx fy)
+           (rest' : DiagU (py ++ (by ++ sy)))
+           (meq : px ++ (bx ++ sx) ≡ py ++ (ay ++ sy))
+         → SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) (py ▸ sy ∷ fy ⟨ rest' ⟩) ⟩)
+    fire {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
+         (leftFit P mid s refl refl refl refl) rest' meq
+      rewrite ≡-irrelevantL meq (domeq P ay mid bx s)
+      = d' , oeq , snd
+      where
+        fit' : LeftFit (P ++ (ay ++ mid)) s P (mid ++ (bx ++ s)) fx fy
+        fit' = leftFit P mid s refl refl refl refl
+        eᵒ = domeq P ay mid ax s
+        dBody : DiagU ((P ++ (ay ++ mid)) ++ (ax ++ s))
+        dBody = (P ++ (ay ++ mid)) ▸ s ∷ fx
+                  ⟨ substDiagU (sym (domeq P ay mid bx s))
+                      (P ▸ (mid ++ (bx ++ s)) ∷ fy ⟨ rest' ⟩) ⟩
+        dIn = dInput fit' rest'
+        dSw = dSwapped fit' rest'
+        d' : DiagU ((P ++ (ay ++ mid)) ++ (ax ++ s))
+        d' = substDiagU (sym eᵒ) dSw
+        e₁ = sym (substDiagU-out eᵒ dBody)
+        q  = trans (dInput-out fit' rest') (sym (dSwapped-out fit' rest'))
+        e₃ = sym (substDiagU-out (sym eᵒ) dSw)
+        oeq = trans e₁ (trans q e₃)
+        snd : castW oeq ∘ ⟦ dBody ⟧ ≈Term ⟦ d' ⟧
+        snd = begin
+          castW oeq ∘ ⟦ dBody ⟧
+            ≈⟨ castW-irr oeq (trans (trans e₁ q) e₃) ⟩∘⟨refl ⟩
+          castW (trans (trans e₁ q) e₃) ∘ ⟦ dBody ⟧
+            ≈⟨ pushˡ (⟺ (castW-∘ (trans e₁ q) e₃)) ⟩
+          castW e₃ ∘ (castW (trans e₁ q) ∘ ⟦ dBody ⟧)
+            ≈⟨ refl⟩∘⟨ pushˡ (⟺ (castW-∘ e₁ q)) ⟩
+          castW e₃ ∘ (castW q ∘ (castW e₁ ∘ ⟦ dBody ⟧))
+            ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ⟦substDiagU⟧ eᵒ dBody ⟨
+          castW e₃ ∘ (castW q ∘ (⟦ dIn ⟧ ∘ castW eᵒ))
+            ≈⟨ refl⟩∘⟨ pullˡ (diagU-swap-soundD fit' rest') ⟩
+          castW e₃ ∘ (⟦ dSw ⟧ ∘ castW eᵒ)
+            ≈⟨ pullˡ (⟺ (⟦substDiagU⟧ (sym eᵒ) dSw)) ⟩
+          (⟦ d' ⟧ ∘ castW (sym eᵒ)) ∘ castW eᵒ
+            ≈⟨ cancelʳ (castW-sym-r eᵒ) ⟩
+          ⟦ d' ⟧ ∎
+
+    -- Lift a tail SwapRes result under a head layer (same input index — no
+    -- transport needed).
+    lift∷ : ∀ {a b} (px sx : List X) (fx : Mor a b)
+            {rest rest' : DiagU (px ++ (b ++ sx))}
+            (oeq : out rest ≡ out rest')
+          → castW oeq ∘ ⟦ rest ⟧ ≈Term ⟦ rest' ⟧
+          → castW oeq ∘ ⟦ px ▸ sx ∷ fx ⟨ rest ⟩ ⟧
+            ≈Term ⟦ px ▸ sx ∷ fx ⟨ rest' ⟩ ⟧
+    lift∷ px sx fx oeq snd = pullˡ snd
+
+    -- Chain two consecutive SwapRes results (cast functoriality).
+    swapTrans : ∀ {n} {d d' d'' : DiagU n}
+                (oeq : out d ≡ out d') (oeq' : out d' ≡ out d'')
+              → castW oeq  ∘ ⟦ d  ⟧ ≈Term ⟦ d'  ⟧
+              → castW oeq' ∘ ⟦ d' ⟧ ≈Term ⟦ d'' ⟧
+              → castW (trans oeq oeq') ∘ ⟦ d ⟧ ≈Term ⟦ d'' ⟧
+    swapTrans oeq oeq' p q =
+      pushˡ (⟺ (castW-∘ oeq oeq')) ○ (refl⟩∘⟨ p) ○ q
+
+    -- Layer count of a DiagU.
+    depthD : ∀ {n} → DiagU n → ℕ
+    depthD ([]_ n)            = zero
+    depthD (_ ▸ _ ∷ _ ⟨ d ⟩) = suc (depthD d)
+
+    -- Fuel-bounded normalizer driven by a caller-supplied one-step function.
+    -- Soundness is unconditional whatever the fuel; when `step?With` returns
+    -- `nothing` the result is the input diagram with a trivial witness.
+    normFuelWith : ∀ {n}
+                 → (∀ {m} (d : DiagU m) → Maybe (SwapRes d))
+                 → ℕ → (d : DiagU n) → SwapRes d
+    normFuelWith _    zero    d = d , refl , idˡ
+    normFuelWith step (suc k) d = case step d of λ where
+      nothing                 → d , refl , idˡ
+      (just (d' , oeq , snd)) →
+        let (d'' , oeq' , snd') = normFuelWith step k d'
+        in  d'' , trans oeq oeq' , swapTrans oeq oeq' snd snd'
 
 
 --------------------------------------------------------------------------------

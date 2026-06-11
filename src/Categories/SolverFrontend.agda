@@ -526,98 +526,27 @@ module Frontend
 
     open SC.Decide _≟W_ using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
 
+    -- castW / castW-∘ / castW-sym-r now come from the `open Untyped` above
+    -- (they moved into the engine).
     open Normalize Mon {X} _≟X_ MorW using
-      ( castW; castW-∘; castW-irr; castW-sym-r
+      ( castW-irr
       ; substDiagU; substDiagU-out; ⟦substDiagU⟧
       ; LeftFit; leftFit
       ; dInput; dSwapped; dInput-out; dSwapped-out; diagU-swap-soundD; domeq
       ; module SortD )
-    open SortD using (leftFit?)
-
-    ------------------------------------------------------------------------
-    -- A generic one-bubble interchange step on a clean DiagU.
-    --
-    -- The SortD engine (`dInput`/`dSwapped`/`diagU-swap-soundD`) consumes the
-    -- head pair as explicit offsets/boxes because a two-layer head of an
-    -- ABSTRACT `DiagU n` cannot be destructured (the inter-layer index
-    -- `pre ++ (b ++ suf)` is `++`-rigid, so unification is stuck).  We dodge
-    -- the obstruction by GENERALIZING the inner index to a fresh variable `m`
-    -- carried with a propositional wiring equality `meq` — the inner cons
-    -- then matches at a variable index, and `meq` is never matched, only
-    -- discharged against `domeq` by the Hedberg UIP on wire lists.
-    ------------------------------------------------------------------------
-
-    SwapRes : ∀ {n} → DiagU n → Set
-    SwapRes {n} d = Σ[ d' ∈ DiagU n ] Σ[ oeq ∈ out d ≡ out d' ]
-                      (castW oeq ∘ ⟦ d ⟧ ≈Term ⟦ d' ⟧)
+    open SortD using (leftFit?; SwapRes; fire; ambiguous?; lift∷; swapTrans; depthD; normFuelWith; unwrapCast)
 
     private
-      unwrapCast : ∀ {u v} {A} (e : u ≡ v)
-                   {x : HomTerm A (wires u)} {y : HomTerm A (wires v)}
-                 → castW e ∘ x ≈Term y → x ≈Term castW (sym e) ∘ y
-      unwrapCast refl eq = ⟺ idˡ ○ eq ○ ⟺ idˡ
-
       coeC-as-castW : ∀ {n p q} (e : p ≡ q) (h : HomTerm (wires n) (wires p))
                     → coeC e h ≈Term castW e ∘ h
       coeC-as-castW refl h = ⟺ idˡ
-
-      -- fire one genuine swap on a recognised out-of-order head pair.
-      fire : ∀ {ax bx ay by} {px sx py sy : List X}
-             {fx : MorW ax bx} {fy : MorW ay by}
-             (fit : LeftFit px sx py sy fx fy)
-             (rest' : DiagU (py ++ (by ++ sy)))
-             (meq : px ++ (bx ++ sx) ≡ py ++ (ay ++ sy))
-           → SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) (py ▸ sy ∷ fy ⟨ rest' ⟩) ⟩)
-      fire {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
-           (leftFit P mid s refl refl refl refl) rest' meq
-        rewrite ≡-irrelevantL meq (domeq P ay mid bx s)
-        = d' , oeq , snd
-        where
-          fit' : LeftFit (P ++ (ay ++ mid)) s P (mid ++ (bx ++ s)) fx fy
-          fit' = leftFit P mid s refl refl refl refl
-          eᵒ = domeq P ay mid ax s
-          dBody : DiagU ((P ++ (ay ++ mid)) ++ (ax ++ s))
-          dBody = (P ++ (ay ++ mid)) ▸ s ∷ fx
-                    ⟨ substDiagU (sym (domeq P ay mid bx s))
-                        (P ▸ (mid ++ (bx ++ s)) ∷ fy ⟨ rest' ⟩) ⟩
-          dIn = dInput fit' rest'          -- = substDiagU eᵒ dBody, definitionally
-          dSw = dSwapped fit' rest'
-          d' : DiagU ((P ++ (ay ++ mid)) ++ (ax ++ s))
-          d' = substDiagU (sym eᵒ) dSw
-          e₁ = sym (substDiagU-out eᵒ dBody)               -- out dBody ≡ out dIn
-          q  = trans (dInput-out fit' rest') (sym (dSwapped-out fit' rest'))
-          e₃ = sym (substDiagU-out (sym eᵒ) dSw)           -- out dSw ≡ out d'
-          oeq = trans e₁ (trans q e₃)
-          snd : castW oeq ∘ ⟦ dBody ⟧ ≈Term ⟦ d' ⟧
-          snd = begin
-            castW oeq ∘ ⟦ dBody ⟧
-              ≈⟨ castW-irr oeq (trans (trans e₁ q) e₃) ⟩∘⟨refl ⟩
-            castW (trans (trans e₁ q) e₃) ∘ ⟦ dBody ⟧
-              ≈⟨ pushˡ (⟺ (castW-∘ (trans e₁ q) e₃)) ⟩
-            castW e₃ ∘ (castW (trans e₁ q) ∘ ⟦ dBody ⟧)
-              ≈⟨ refl⟩∘⟨ pushˡ (⟺ (castW-∘ e₁ q)) ⟩
-            castW e₃ ∘ (castW q ∘ (castW e₁ ∘ ⟦ dBody ⟧))
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ⟦substDiagU⟧ eᵒ dBody ⟨
-            castW e₃ ∘ (castW q ∘ (⟦ dIn ⟧ ∘ castW eᵒ))
-              ≈⟨ refl⟩∘⟨ pullˡ (diagU-swap-soundD fit' rest') ⟩
-            castW e₃ ∘ (⟦ dSw ⟧ ∘ castW eᵒ)
-              ≈⟨ pullˡ (⟺ (⟦substDiagU⟧ (sym eᵒ) dSw)) ⟩
-            (⟦ d' ⟧ ∘ castW (sym eᵒ)) ∘ castW eᵒ
-              ≈⟨ cancelʳ (castW-sym-r eᵒ) ⟩
-            ⟦ d' ⟧ ∎
 
       -- the wire-level generator's tiebreak key.
       rankW : ∀ {a b} → MorW a b → ℕ
       rankW (mk {Y} {Z} g) = rank (Y , Z , g)
 
-      -- a fit is AMBIGUOUS when the reverse pair would also fit
-      -- (mid ≡ [] ∧ by ≡ [] ∧ ax ≡ []): firing it unconditionally would
-      -- oscillate, so such pairs are ordered by `rank` instead.
-      ambiguous? : List X → List X → List X → Bool
-      ambiguous? [] [] [] = true
-      ambiguous? _  _  _  = false
-
       -- destructure the SECOND layer at a generalized (variable) index.
+      -- (The ambiguity? guard and `fire` are shared via SortD.Driver above.)
       go : ∀ {ax bx} (px sx : List X) (fx : MorW ax bx)
            {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
          → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
@@ -636,30 +565,8 @@ module Frontend
     swap2? ([]_ n)                = nothing
     swap2? (px ▸ sx ∷ fx ⟨ rest ⟩) = go px sx fx rest refl
 
-    private
-      -- lift a tail swap-result under a layer (same input index, so the
-      -- rebuild is direct — no transport needed).
-      lift∷ : ∀ {a b} (px sx : List X) (fx : MorW a b)
-              {rest rest' : DiagU (px ++ (b ++ sx))}
-              (oeq : out rest ≡ out rest')
-            → castW oeq ∘ ⟦ rest ⟧ ≈Term ⟦ rest' ⟧
-            → castW oeq ∘ ⟦ px ▸ sx ∷ fx ⟨ rest ⟩ ⟧
-              ≈Term ⟦ px ▸ sx ∷ fx ⟨ rest' ⟩ ⟧
-      lift∷ px sx fx oeq snd = pullˡ snd
-
-      -- compose two swap-results (cast functoriality).
-      swapTrans : ∀ {n} {d d' d'' : DiagU n}
-                  (oeq : out d ≡ out d') (oeq' : out d' ≡ out d'')
-                → castW oeq  ∘ ⟦ d  ⟧ ≈Term ⟦ d'  ⟧
-                → castW oeq' ∘ ⟦ d' ⟧ ≈Term ⟦ d'' ⟧
-                → castW (trans oeq oeq') ∘ ⟦ d ⟧ ≈Term ⟦ d'' ⟧
-      swapTrans oeq oeq' p q =
-        pushˡ (⟺ (castW-∘ oeq oeq')) ○ (refl⟩∘⟨ p) ○ q
-
     -- one swap at the FIRST applicable position: try the head pair, else
-    -- recurse into the tail.  (The recursion is unobstructed: only nested
-    -- PATTERN-MATCHING of a two-layer head is index-stuck; rebuilding a
-    -- layer over a normalized tail keeps the input index on the nose.)
+    -- recurse into the tail.
     step? : ∀ {n} (d : DiagU n) → Maybe (SwapRes d)
     step? ([]_ n) = nothing
     step? (px ▸ sx ∷ fx ⟨ rest ⟩) =
@@ -669,25 +576,9 @@ module Frontend
              px ▸ sx ∷ fx ⟨ rest' ⟩ , oeq , lift∷ px sx fx oeq snd })
         (step? rest)
 
-    -- fuel-bounded bubble sort: fire the first applicable swap, repeat.
-    -- On CONCRETE input the `substDiagU` casts inside each swap result
-    -- compute away (their equalities reduce to refl), so successive steps
-    -- keep firing; soundness is unconditional whatever the fuel.
-    normFuel : ∀ {n} → ℕ → (d : DiagU n) → SwapRes d
-    normFuel nzero    d = d , refl , idˡ
-    normFuel (nsuc k) d = case step? d of λ where
-      nothing                 → d , refl , idˡ
-      (just (d' , oeq , snd)) →
-        let (d'' , oeq' , snd') = normFuel k d'
-        in  d'' , trans oeq oeq' , swapTrans oeq oeq' snd snd'
-
     -- layer count, and the worst-case bubble budget (≥ #inversions).
-    depth : ∀ {n} → DiagU n → ℕ
-    depth ([]_ n)            = nzero
-    depth (_ ▸ _ ∷ _ ⟨ d ⟩) = nsuc (depth d)
-
     norm : ∀ {n} (d : DiagU n) → SwapRes d
-    norm d = normFuel (nsuc (depth d * depth d)) d
+    norm d = normFuelWith step? (nsuc (depthD d * depthD d)) d
 
     ------------------------------------------------------------------------
     -- The wire-level decision: reflect both sides to DiagU, normalize,

@@ -457,15 +457,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --   where `rpad` is the suffix flat-shift (from DiagramRewriteUntyped).
   --------------------------------------------------------------------------------
 
-  -- liftW of an identity is an identity (functoriality, unit).
-  liftW-id : ∀ (p : List X) {u} → liftW p (id {wires u}) ≈Term id
-  liftW-id []      = ≈-Term-refl
-  liftW-id (x ∷ p) = begin
-    id ⊗₁ liftW p id
-      ≈⟨ refl⟩⊗⟨ (liftW-id p) ⟩
-    id ⊗₁ id
-      ≈⟨ id⊗id≈id ⟩
-    id ∎
+  -- (`liftW-id` now lives in UntypedI; available via the open above.)
 
   -- `liftW lt (pad pre suf g)` is the wider `pad (lt ++ pre) suf g`, up to the
   -- +-associativity reindex on its endpoints.  This is the layer-level content
@@ -578,33 +570,8 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 
   --------------------------------------------------------------------------------
   -- The suffix flat-shift `rpad` lemma family, and its soundness for `shiftR`.
+  -- (`rpad-resp` / `rpad-id` / `rpad-∘` now live in UntypedI.)
   --------------------------------------------------------------------------------
-
-  rpad-resp : ∀ {a b} (suf : List X) {g g' : HomTerm (wires a) (wires b)}
-            → g ≈Term g' → rpad suf g ≈Term rpad suf g'
-  rpad-resp suf eq =
-    refl⟩∘⟨ ((eq ⟩⊗⟨refl) ⟩∘⟨refl)
-
-  rpad-id : ∀ (rt : List X) {u} → rpad rt (id {wires u}) ≈Term id
-  rpad-id rt {u} = begin
-    merge u {rt} ∘ (id {wires u} ⊗₁ id {wires rt}) ∘ split u {rt}
-      ≈⟨ refl⟩∘⟨ (id⊗id≈id ⟩∘⟨refl) ⟩
-    merge u {rt} ∘ (id ∘ split u {rt})
-      ≈⟨ refl⟩∘⟨ idˡ ⟩
-    merge u {rt} ∘ split u {rt}
-      ≈⟨ merge∘split u ⟩
-    id ∎
-
-  rpad-∘ : ∀ (rt : List X) {u v w} (P : HomTerm (wires v) (wires w)) (Q : HomTerm (wires u) (wires v))
-         → rpad rt (P ∘ Q) ≈Term rpad rt P ∘ rpad rt Q
-  rpad-∘ rt {u} {v} {w} P Q = begin
-    merge w ∘ ((P ∘ Q) ⊗₁ id) ∘ split u
-      ≈⟨ refl⟩∘⟨ (split₁ʳ ⟩∘⟨refl) ⟩
-    merge w ∘ ((P ⊗₁ id ∘ Q ⊗₁ id)) ∘ split u
-      ≈⟨ refl⟩∘⟨ (insertInner (split∘merge v) ⟩∘⟨refl) ⟩
-    merge w ∘ (((P ⊗₁ id ∘ split v) ∘ (merge v ∘ Q ⊗₁ id))) ∘ split u
-      ≈⟨ center⁻¹ ≈-Term-refl assoc ⟩
-    (merge w ∘ (P ⊗₁ id ∘ split v)) ∘ (merge v ∘ (Q ⊗₁ id ∘ split u)) ∎
 
   -- `merge` associativity (built from `coherence₁` and α-naturality):
   --   merge p {q++r} ∘ (id ⊗₁ merge q {r}) ∘ α⇒
@@ -843,28 +810,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
               ≈⟨ idˡ ⟩⊗⟨ (merge∘split suf) ⟩
             g ⊗₁ id ∎
 
-  -- rpad commutes with the prefix `id {Var x} ⊗₁ _` (no coercion needed):
-  --   merge(x∷v)∘((id⊗h)⊗id)∘split(x∷u)  ≈  id ⊗ (merge v ∘ (h⊗id) ∘ split u).
-  rpad-id⊗ : ∀ (rt : List X) (x : X) {u v} (h : HomTerm (wires u) (wires v))
-             → rpad rt (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ rpad rt h
-  rpad-id⊗ rt x {u} {v} h = begin
-    (id {Var x} ⊗₁ merge v {rt} ∘ α⇒) ∘ ((id {Var x} ⊗₁ h) ⊗₁ id {wires rt}) ∘ (α⇐ ∘ id {Var x} ⊗₁ split u {rt})
-      ≈⟨ reB ⟩
-    id {Var x} ⊗₁ merge v {rt} ∘ ((α⇒ ∘ ((id {Var x} ⊗₁ h) ⊗₁ id {wires rt}) ∘ α⇐) ∘ id {Var x} ⊗₁ split u {rt})
-      ≈⟨ refl⟩∘⟨ (midα ⟩∘⟨refl) ⟩
-    id {Var x} ⊗₁ merge v {rt} ∘ ((id {Var x} ⊗₁ (h ⊗₁ id {wires rt})) ∘ id {Var x} ⊗₁ split u {rt})
-      ≈⟨ refl⟩∘⟨ (id⊗-∘ (h ⊗₁ id {wires rt}) (split u {rt})) ⟩
-    id {Var x} ⊗₁ merge v {rt} ∘ id {Var x} ⊗₁ ((h ⊗₁ id {wires rt}) ∘ split u {rt})
-      ≈⟨ id⊗-∘ (merge v {rt}) ((h ⊗₁ id {wires rt}) ∘ split u {rt}) ⟩
-    id {Var x} ⊗₁ (merge v {rt} ∘ ((h ⊗₁ id {wires rt}) ∘ split u {rt})) ∎
-    where
-      -- α⇒ ∘ ((id⊗h)⊗id) ∘ α⇐ ≈ id ⊗ (h⊗id).
-      midα : α⇒ ∘ ((id {Var x} ⊗₁ h) ⊗₁ id {wires rt}) ∘ α⇐
-           ≈Term id {Var x} ⊗₁ (h ⊗₁ id {wires rt})
-      midα = pullˡ α-comm ○ cancelʳ α⇒∘α⇐≈id
-      reB : (id {Var x} ⊗₁ merge v {rt} ∘ α⇒) ∘ ((id {Var x} ⊗₁ h) ⊗₁ id {wires rt}) ∘ (α⇐ ∘ id {Var x} ⊗₁ split u {rt})
-          ≈Term id {Var x} ⊗₁ merge v {rt} ∘ ((α⇒ ∘ ((id {Var x} ⊗₁ h) ⊗₁ id {wires rt}) ∘ α⇐) ∘ id {Var x} ⊗₁ split u {rt})
-      reB = assoc ○ (refl⟩∘⟨ assoc²εβ)
+  -- (`rpad-id⊗` now lives in UntypedI.)
 
   -- rpad / pad relation (suffix analogue of liftW-pad), by induction on pre.
   rpad-pad : ∀ {a b} (pre suf rt : List X) (g : HomTerm (wires a) (wires b))
