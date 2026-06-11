@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- Plan (new strategy):
+-- Overview:
 --   Machine ≅ Hom in (G-construction ∘ GradedKleisli ∘ SFunM)-built category
 --
 -- ---------------------------------------------------------------------
@@ -1241,12 +1241,9 @@ TotalFunctionMachine'→Hom p q = FunctionMachine→Hom
 -- (we have it pointwise via `member-η`, but Agda needs it at the
 -- record level).
 --
--- The MaybeHomCategory laws below are stated, not yet proven. They are
--- the categorical analogue of MachineCategory's laws and will be
--- discharged in a future iteration by transporting from
--- SFunᵉ-GradedKleisli (whose triple laws are now fully proven). The
--- transport from MaybeHomCategory back to MachineCategory is the final
--- piece below.
+-- The MaybeHomCategory laws are proven below by transporting the
+-- machine-level bisimulations (`∘-identityˡ-≅ᴹ`/`∘-identityʳ-≅ᴹ`/
+-- `∘-assoc-≅ᴹ`, proven in `Machine.Iso`) through the round-trip.
 
 idᴹᴴ : ∀ {A : Channel} → MaybeHom A A
 idᴹᴴ = Machine→Hom MC.id
@@ -1362,8 +1359,8 @@ private
   unfold-idᴹᴴ = Hom-Machine-roundtrip-≡ MC.id
 
 -- The four MaybeHomCategory laws, by transport of the machine-level
--- laws through the round-trip. ∘-resp-≈ needs no new machine-level
--- postulate beyond associativity: it is the congruence `∘-resp-≅ℰ`.
+-- laws through the round-trip. ∘-resp-≈ needs no machine-level law
+-- beyond associativity: it is the congruence `∘-resp-≅ℰ`.
 
 MaybeHomCategory-identityˡ :
   ∀ {A B} {f : MaybeHom A B} → (idᴹᴴ ∘ᴹᴴ f) ≈ᴹᴴ f
