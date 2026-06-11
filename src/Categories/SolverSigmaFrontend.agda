@@ -81,6 +81,8 @@ open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
 open import Categories.Category.Monoidal.Symmetric using (Symmetric)
 
+import Categories.Category.Monoidal.Reasoning as MonR
+
 open import Categories.FreeMonoidal
 open import Categories.SolverSigma using (module Sigma)
 
@@ -134,6 +136,15 @@ module FrontendS
     syntax stepF-≈  f gh fg = f ≈F⟨ fg ⟩ gh
     syntax stepF-≈˘ f gh gf = f ≈F⟨ gf ⟨ gh
   open F≈R
+
+  -- stock combinators at the F-side free category (proofs-only, not exported);
+  -- same idiom as SolverFrontend.
+  open MonR F.Monoidal-FreeMonoidal
+    using ()
+    renaming (refl⟩∘⟨_ to infixr 4 reflF⟩∘⟨_; _⟩∘⟨refl to infixl 5 _⟩∘F⟨refl;
+              refl⟩⊗⟨_ to infixr 6 reflF⟩⊗⟨_; _⟩⊗⟨refl to infixl 7 _⟩⊗F⟨refl;
+              _⟩⊗⟨_ to infixr 6 _⟩⊗F⟨_;
+              ⟺ to ⟺F; _○_ to infixr 3 _○F_)
 
   ------------------------------------------------------------------------
   -- F-side structural merge/split (same recursion as the wire-level ones).
@@ -193,8 +204,8 @@ module FrontendS
   inj-resp-≈ assoc               = F.assoc
   inj-resp-≈ (∘-resp-≈ p q)      = F.∘-resp-≈ (inj-resp-≈ p) (inj-resp-≈ q)
   inj-resp-≈ ≈-Term-refl         = F.≈-Term-refl
-  inj-resp-≈ (≈-Term-sym p)      = F.≈-Term-sym (inj-resp-≈ p)
-  inj-resp-≈ (≈-Term-trans p q)  = F.≈-Term-trans (inj-resp-≈ p) (inj-resp-≈ q)
+  inj-resp-≈ (≈-Term-sym p)      = ⟺F (inj-resp-≈ p)
+  inj-resp-≈ (≈-Term-trans p q)  = ((inj-resp-≈ p) ○F (inj-resp-≈ q))
   inj-resp-≈ id⊗id≈id            = F.id⊗id≈id
   inj-resp-≈ (⊗-resp-≈ p q)      = F.⊗-resp-≈ (inj-resp-≈ p) (inj-resp-≈ q)
   inj-resp-≈ ⊗-∘-dist            = F.⊗-∘-dist
@@ -249,18 +260,16 @@ module FrontendS
 
   splitF∘mergeF : ∀ (a : List X) {suf} → F._∘_ (splitF a {suf}) (mergeF a) F.≈Term F.id
   splitF∘mergeF a {suf} =
-    F.≈-Term-trans
-      (F.≡⇒≈Term (cong₂ F._∘_ (sym (inj-split a {suf})) (sym (inj-merge a {suf}))))
-      (inj-resp-≈ (split∘merge a))
+    F.≡⇒≈Term (cong₂ F._∘_ (sym (inj-split a {suf})) (sym (inj-merge a {suf})))
+      ○F inj-resp-≈ (split∘merge a)
 
   -- right-unitor coherence on the F-side merge (transfer of merge-ρ).
   mergeF-ρ : ∀ (a : List X)
            → coeCF (++-identityʳ a) (mergeF a {[]}) F.≈Term F.ρ⇒
   mergeF-ρ a =
-    F.≈-Term-trans
-      (F.≡⇒≈Term (trans (cong (coeCF (++-identityʳ a)) (sym (inj-merge a)))
-                        (sym (inj-coeC (++-identityʳ a) (merge a {[]})))))
-      (inj-resp-≈ (merge-ρ a))
+    F.≡⇒≈Term (trans (cong (coeCF (++-identityʳ a)) (sym (inj-merge a)))
+                     (sym (inj-coeC (++-identityʳ a) (merge a {[]}))))
+      ○F inj-resp-≈ (merge-ρ a)
 
   -- merge associativity on the F side (transfer of merge-assoc).
   mergeF-assoc : ∀ (p q r : List X)
@@ -268,11 +277,9 @@ module FrontendS
       F.≈Term coeCF (++-assoc p q r)
                 (F._∘_ (mergeF (p ++ q) {r}) (F._⊗₁_ (mergeF p {q}) (F.id {wires r})))
   mergeF-assoc p q r =
-    F.≈-Term-trans
-      (F.≡⇒≈Term (sym (lhs-eq)))
-      (F.≈-Term-trans
-        (inj-resp-≈ (merge-assoc p q r))
-        (F.≡⇒≈Term rhs-eq))
+    F.≡⇒≈Term (sym (lhs-eq))
+      ○F inj-resp-≈ (merge-assoc p q r)
+      ○F F.≡⇒≈Term rhs-eq
     where
       lhs-eq : inj (merge p {q ++ r} ∘ (id {wires p} ⊗₁ merge q {r}) ∘ α⇒)
              ≡ F._∘_ (mergeF p {q ++ r})
@@ -297,18 +304,18 @@ module FrontendS
     F._∘_ (F._⊗₁_ (flat⇐ Y) (flat⇐ Z))
           (F._∘_ (splitF (flatten Y))
                  (F._∘_ (mergeF (flatten Y)) (F._⊗₁_ (flat⇒ Y) (flat⇒ Z))))
-      ≈F⟨ F.∘-resp-≈ F.≈-Term-refl (F.≈-Term-sym F.assoc) ⟩
+      ≈F⟨ reflF⟩∘⟨ (⟺F F.assoc) ⟩
     F._∘_ (F._⊗₁_ (flat⇐ Y) (flat⇐ Z))
           (F._∘_ (F._∘_ (splitF (flatten Y)) (mergeF (flatten Y)))
                  (F._⊗₁_ (flat⇒ Y) (flat⇒ Z)))
-      ≈F⟨ F.∘-resp-≈ F.≈-Term-refl (F.∘-resp-≈ (splitF∘mergeF (flatten Y)) F.≈-Term-refl) ⟩
+      ≈F⟨ reflF⟩∘⟨ ((splitF∘mergeF (flatten Y)) ⟩∘F⟨refl) ⟩
     F._∘_ (F._⊗₁_ (flat⇐ Y) (flat⇐ Z))
           (F._∘_ F.id (F._⊗₁_ (flat⇒ Y) (flat⇒ Z)))
-      ≈F⟨ F.∘-resp-≈ F.≈-Term-refl F.idˡ ⟩
+      ≈F⟨ reflF⟩∘⟨ F.idˡ ⟩
     F._∘_ (F._⊗₁_ (flat⇐ Y) (flat⇐ Z)) (F._⊗₁_ (flat⇒ Y) (flat⇒ Z))
       ≈F⟨ F.⊗-∘-dist ⟨
     F._⊗₁_ (F._∘_ (flat⇐ Y) (flat⇒ Y)) (F._∘_ (flat⇐ Z) (flat⇒ Z))
-      ≈F⟨ F.⊗-resp-≈ (flat⇐∘flat⇒ Y) (flat⇐∘flat⇒ Z) ⟩
+      ≈F⟨ flat⇐∘flat⇒ Y ⟩⊗F⟨ flat⇐∘flat⇒ Z ⟩
     F._⊗₁_ F.id F.id
       ≈F⟨ F.id⊗id≈id ⟩
     F.id ∎F
@@ -363,8 +370,8 @@ module FrontendS
             → inj (embed (castʷ refl e (idʷ {p}))) ∘F h F.≈Term coeCF e h
   cast-half {P} {p} {q} e h = beginF
     inj (embed (castʷ refl e (idʷ {p}))) ∘F h
-      ≈F⟨ F.∘-resp-≈ (F.≈-Term-trans (inj-resp-≈ (embed-castʷ refl e idʷ))
-                                     (F.≡⇒≈Term (inj-coeC e id))) reflF ⟩
+      ≈F⟨ (inj-resp-≈ (embed-castʷ refl e idʷ)
+            ○F F.≡⇒≈Term (inj-coeC e id)) ⟩∘F⟨refl ⟩
     coeCF e idF ∘F h
       ≈F⟨ coeCF-∘ˡ e idF h ⟨
     coeCF e (idF ∘F h)
@@ -387,7 +394,7 @@ module FrontendS
     coeCF e (mergeF fA {[]} ∘F (flat⇒ A ⊗F idF))
       ≈F⟨ coeCF-∘ˡ e (mergeF fA {[]}) (flat⇒ A ⊗F idF) ⟩
     coeCF e (mergeF fA {[]}) ∘F (flat⇒ A ⊗F idF)
-      ≈F⟨ F.∘-resp-≈ (mergeF-ρ fA) reflF ⟩
+      ≈F⟨ (mergeF-ρ fA) ⟩∘F⟨refl ⟩
     F.ρ⇒ ∘F (flat⇒ A ⊗F idF)
       ≈F⟨ F.ρ⇒∘f⊗id≈f∘ρ⇒ ⟩
     flat⇒ A ∘F F.ρ⇒ ∎F
@@ -401,28 +408,26 @@ module FrontendS
           F.≈Term flat⇒ (A ⊗₀ (B ⊗₀ C)) ∘F F.α⇒
   fwd-α A B C = beginF
     coeCF e (mergeF (fA ++ fB) {fC} ∘F ((mergeF fA {fB} ∘F (f⇒A ⊗F f⇒B)) ⊗F f⇒C))
-      ≈F⟨ coeCF-resp e (F.∘-resp-≈ reflF
-            (F.≈-Term-trans (F.⊗-resp-≈ reflF (F.≈-Term-sym F.idˡ)) F.⊗-∘-dist)) ⟩
+      ≈F⟨ coeCF-resp e (reflF⟩∘⟨
+            ((reflF⟩⊗⟨ (⟺F F.idˡ)) ○F F.⊗-∘-dist)) ⟩
     coeCF e (mergeF (fA ++ fB) {fC} ∘F ((mergeF fA {fB} ⊗F idF) ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C)))
-      ≈F⟨ coeCF-resp e (F.≈-Term-sym F.assoc) ⟩
+      ≈F⟨ coeCF-resp e (⟺F F.assoc) ⟩
     coeCF e ((mergeF (fA ++ fB) {fC} ∘F (mergeF fA {fB} ⊗F idF)) ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C))
       ≈F⟨ coeCF-∘ˡ e (mergeF (fA ++ fB) {fC} ∘F (mergeF fA {fB} ⊗F idF)) ((f⇒A ⊗F f⇒B) ⊗F f⇒C) ⟩
     coeCF e (mergeF (fA ++ fB) {fC} ∘F (mergeF fA {fB} ⊗F idF)) ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C)
-      ≈F⟨ F.∘-resp-≈ (mergeF-assoc fA fB fC) reflF ⟨
+      ≈F⟨ (mergeF-assoc fA fB fC) ⟩∘F⟨refl ⟨
     (mergeF fA {fB ++ fC} ∘F ((idF ⊗F mergeF fB {fC}) ∘F F.α⇒)) ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C)
       ≈F⟨ F.assoc ⟩
     mergeF fA {fB ++ fC} ∘F (((idF ⊗F mergeF fB {fC}) ∘F F.α⇒) ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C))
-      ≈F⟨ F.∘-resp-≈ reflF F.assoc ⟩
+      ≈F⟨ reflF⟩∘⟨ F.assoc ⟩
     mergeF fA {fB ++ fC} ∘F ((idF ⊗F mergeF fB {fC}) ∘F (F.α⇒ ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C)))
-      ≈F⟨ F.∘-resp-≈ reflF (F.∘-resp-≈ reflF F.α-comm) ⟩
+      ≈F⟨ reflF⟩∘⟨ (reflF⟩∘⟨ F.α-comm) ⟩
     mergeF fA {fB ++ fC} ∘F ((idF ⊗F mergeF fB {fC}) ∘F ((f⇒A ⊗F (f⇒B ⊗F f⇒C)) ∘F F.α⇒))
-      ≈F⟨ F.∘-resp-≈ reflF (F.≈-Term-sym F.assoc) ⟩
+      ≈F⟨ reflF⟩∘⟨ (⟺F F.assoc) ⟩
     mergeF fA {fB ++ fC} ∘F (((idF ⊗F mergeF fB {fC}) ∘F (f⇒A ⊗F (f⇒B ⊗F f⇒C))) ∘F F.α⇒)
-      ≈F⟨ F.∘-resp-≈ reflF (F.∘-resp-≈
-            (F.≈-Term-trans (F.≈-Term-sym F.⊗-∘-dist)
-                            (F.⊗-resp-≈ F.idˡ reflF)) reflF) ⟩
+      ≈F⟨ reflF⟩∘⟨ (((⟺F F.⊗-∘-dist) ○F (F.idˡ ⟩⊗F⟨ reflF)) ⟩∘F⟨refl) ⟩
     mergeF fA {fB ++ fC} ∘F ((f⇒A ⊗F (mergeF fB {fC} ∘F (f⇒B ⊗F f⇒C))) ∘F F.α⇒)
-      ≈F⟨ F.≈-Term-sym F.assoc ⟩
+      ≈F⟨ ⟺F F.assoc ⟩
     (mergeF fA {fB ++ fC} ∘F (f⇒A ⊗F (mergeF fB {fC} ∘F (f⇒B ⊗F f⇒C)))) ∘F F.α⇒ ∎F
     where
       fA = flatten A ; fB = flatten B ; fC = flatten C
@@ -436,17 +441,17 @@ module FrontendS
         → c ∘F c⁻¹ F.≈Term idF
         → coeCF e h⇒P F.≈Term h⇒Q ∘F c
         → coeCF (sym e) h⇒Q F.≈Term h⇒P ∘F c⁻¹
-  flipF e h⇒P h⇒Q {c} {c⁻¹} iso fwd = F.≈-Term-sym (beginF
+  flipF e h⇒P h⇒Q {c} {c⁻¹} iso fwd = ⟺F (beginF
     h⇒P ∘F c⁻¹
-      ≈F⟨ F.∘-resp-≈ (F.≡⇒≈Term (coe-coe e h⇒P)) reflF ⟨
+      ≈F⟨ (F.≡⇒≈Term (coe-coe e h⇒P)) ⟩∘F⟨refl ⟨
     coeCF (sym e) (coeCF e h⇒P) ∘F c⁻¹
-      ≈F⟨ F.∘-resp-≈ (coeCF-resp (sym e) fwd) reflF ⟩
+      ≈F⟨ (coeCF-resp (sym e) fwd) ⟩∘F⟨refl ⟩
     coeCF (sym e) (h⇒Q ∘F c) ∘F c⁻¹
-      ≈F⟨ F.∘-resp-≈ (coeCF-∘ˡ (sym e) h⇒Q c) reflF ⟩
+      ≈F⟨ (coeCF-∘ˡ (sym e) h⇒Q c) ⟩∘F⟨refl ⟩
     (coeCF (sym e) h⇒Q ∘F c) ∘F c⁻¹
       ≈F⟨ F.assoc ⟩
     coeCF (sym e) h⇒Q ∘F (c ∘F c⁻¹)
-      ≈F⟨ F.∘-resp-≈ reflF iso ⟩
+      ≈F⟨ reflF⟩∘⟨ iso ⟩
     coeCF (sym e) h⇒Q ∘F idF
       ≈F⟨ F.idʳ ⟩
     coeCF (sym e) h⇒Q ∎F)
@@ -464,89 +469,86 @@ module FrontendS
     (flat⇒ Z ∘F (F.var g ∘F flat⇐ Y)) ∘F flat⇒ Y
       ≈F⟨ F.assoc ⟩
     flat⇒ Z ∘F ((F.var g ∘F flat⇐ Y) ∘F flat⇒ Y)
-      ≈F⟨ F.∘-resp-≈ reflF F.assoc ⟩
+      ≈F⟨ reflF⟩∘⟨ F.assoc ⟩
     flat⇒ Z ∘F (F.var g ∘F (flat⇐ Y ∘F flat⇒ Y))
-      ≈F⟨ F.∘-resp-≈ reflF (F.∘-resp-≈ reflF (flat⇐∘flat⇒ Y)) ⟩
+      ≈F⟨ reflF⟩∘⟨ (reflF⟩∘⟨ (flat⇐∘flat⇒ Y)) ⟩
     flat⇒ Z ∘F (F.var g ∘F idF)
-      ≈F⟨ F.∘-resp-≈ reflF F.idʳ ⟩
+      ≈F⟨ reflF⟩∘⟨ F.idʳ ⟩
     flat⇒ Z ∘F F.var g ∎F
-  bridgeF {Y} {.Y} F.id = F.≈-Term-trans F.idˡ (F.≈-Term-sym F.idʳ)
+  bridgeF {Y} {.Y} F.id = F.idˡ ○F ⟺F F.idʳ
   bridgeF {Y} {Z} (F._∘_ {B = M} g f) = beginF
     (inj (embed (reflectF g)) ∘F inj (embed (reflectF f))) ∘F flat⇒ Y
       ≈F⟨ F.assoc ⟩
     inj (embed (reflectF g)) ∘F (inj (embed (reflectF f)) ∘F flat⇒ Y)
-      ≈F⟨ F.∘-resp-≈ reflF (bridgeF f) ⟩
+      ≈F⟨ reflF⟩∘⟨ (bridgeF f) ⟩
     inj (embed (reflectF g)) ∘F (flat⇒ M ∘F f)
-      ≈F⟨ F.≈-Term-sym F.assoc ⟩
+      ≈F⟨ ⟺F F.assoc ⟩
     (inj (embed (reflectF g)) ∘F flat⇒ M) ∘F f
-      ≈F⟨ F.∘-resp-≈ (bridgeF g) reflF ⟩
+      ≈F⟨ (bridgeF g) ⟩∘F⟨refl ⟩
     (flat⇒ Z ∘F g) ∘F f
       ≈F⟨ F.assoc ⟩
     flat⇒ Z ∘F (g ∘F f) ∎F
   bridgeF (F._⊗₁_ {A = Y} {B = Z} {C = Y'} {D = Z'} f g) = beginF
     inj (embed (reflectF f ⊗ʷ reflectF g)) ∘F (mergeF fY {fY'} ∘F (f⇒Y ⊗F f⇒Y'))
-      ≈F⟨ F.∘-resp-≈ (F.≡⇒≈Term (cong₂ (λ m s → m ∘F ((IF ⊗F IG) ∘F s))
-                                       (inj-merge fZ {fZ'}) (inj-split fY {fY'}))) reflF ⟩
+      ≈F⟨ F.≡⇒≈Term (cong₂ (λ m s → m ∘F ((IF ⊗F IG) ∘F s))
+                     (inj-merge fZ {fZ'}) (inj-split fY {fY'})) ⟩∘F⟨refl ⟩
     (mergeF fZ {fZ'} ∘F ((IF ⊗F IG) ∘F splitF fY {fY'})) ∘F (mergeF fY {fY'} ∘F (f⇒Y ⊗F f⇒Y'))
       ≈F⟨ F.assoc ⟩
     mergeF fZ {fZ'} ∘F (((IF ⊗F IG) ∘F splitF fY {fY'}) ∘F (mergeF fY {fY'} ∘F (f⇒Y ⊗F f⇒Y')))
-      ≈F⟨ F.∘-resp-≈ reflF F.assoc ⟩
+      ≈F⟨ reflF⟩∘⟨ F.assoc ⟩
     mergeF fZ {fZ'} ∘F ((IF ⊗F IG) ∘F (splitF fY {fY'} ∘F (mergeF fY {fY'} ∘F (f⇒Y ⊗F f⇒Y'))))
-      ≈F⟨ F.∘-resp-≈ reflF (F.∘-resp-≈ reflF (F.≈-Term-sym F.assoc)) ⟩
+      ≈F⟨ reflF⟩∘⟨ (reflF⟩∘⟨ (⟺F F.assoc)) ⟩
     mergeF fZ {fZ'} ∘F ((IF ⊗F IG) ∘F ((splitF fY {fY'} ∘F mergeF fY {fY'}) ∘F (f⇒Y ⊗F f⇒Y')))
-      ≈F⟨ F.∘-resp-≈ reflF (F.∘-resp-≈ reflF
-            (F.≈-Term-trans (F.∘-resp-≈ (splitF∘mergeF fY {fY'}) reflF) F.idˡ)) ⟩
+      ≈F⟨ reflF⟩∘⟨ (reflF⟩∘⟨
+            ((((splitF∘mergeF fY {fY'}) ⟩∘F⟨refl)) ○F F.idˡ)) ⟩
     mergeF fZ {fZ'} ∘F ((IF ⊗F IG) ∘F (f⇒Y ⊗F f⇒Y'))
-      ≈F⟨ F.∘-resp-≈ reflF F.⊗-∘-dist ⟨
+      ≈F⟨ reflF⟩∘⟨ F.⊗-∘-dist ⟨
     mergeF fZ {fZ'} ∘F ((IF ∘F f⇒Y) ⊗F (IG ∘F f⇒Y'))
-      ≈F⟨ F.∘-resp-≈ reflF (F.⊗-resp-≈ (bridgeF f) (bridgeF g)) ⟩
+      ≈F⟨ reflF⟩∘⟨ (bridgeF f ⟩⊗F⟨ bridgeF g) ⟩
     mergeF fZ {fZ'} ∘F ((f⇒Z ∘F f) ⊗F (f⇒Z' ∘F g))
-      ≈F⟨ F.∘-resp-≈ reflF F.⊗-∘-dist ⟩
+      ≈F⟨ reflF⟩∘⟨ F.⊗-∘-dist ⟩
     mergeF fZ {fZ'} ∘F ((f⇒Z ⊗F f⇒Z') ∘F (f ⊗F g))
-      ≈F⟨ F.≈-Term-sym F.assoc ⟩
+      ≈F⟨ ⟺F F.assoc ⟩
     (mergeF fZ {fZ'} ∘F (f⇒Z ⊗F f⇒Z')) ∘F (f ⊗F g) ∎F
     where
       fY = flatten Y ; fY' = flatten Y' ; fZ = flatten Z ; fZ' = flatten Z'
       f⇒Y = flat⇒ Y ; f⇒Y' = flat⇒ Y' ; f⇒Z = flat⇒ Z ; f⇒Z' = flat⇒ Z'
       IF = inj (embed (reflectF f))
       IG = inj (embed (reflectF g))
-  bridgeF (F.λ⇒ {A}) = F.≈-Term-trans F.idˡ (fwd-λ A)
+  bridgeF (F.λ⇒ {A}) = F.idˡ ○F fwd-λ A
   bridgeF (F.λ⇐ {A}) =
-    F.≈-Term-trans F.idˡ
-      (flipF refl (flat⇒ (unit ⊗₀ A)) (flat⇒ A) F.λ⇒∘λ⇐≈id (fwd-λ A))
+    F.idˡ ○F flipF refl (flat⇒ (unit ⊗₀ A)) (flat⇒ A) F.λ⇒∘λ⇐≈id (fwd-λ A)
   bridgeF (F.ρ⇒ {A}) =
-    F.≈-Term-trans (cast-half (++-identityʳ (flatten A)) (flat⇒ (A ⊗₀ unit))) (fwd-ρ A)
+    ((cast-half (++-identityʳ (flatten A)) (flat⇒ (A ⊗₀ unit))) ○F (fwd-ρ A))
   bridgeF (F.ρ⇐ {A}) =
-    F.≈-Term-trans (cast-half (sym (++-identityʳ (flatten A))) (flat⇒ A))
-      (flipF (++-identityʳ (flatten A)) (flat⇒ (A ⊗₀ unit)) (flat⇒ A)
-             F.ρ⇒∘ρ⇐≈id (fwd-ρ A))
+    cast-half (sym (++-identityʳ (flatten A))) (flat⇒ A)
+      ○F flipF (++-identityʳ (flatten A)) (flat⇒ (A ⊗₀ unit)) (flat⇒ A)
+               F.ρ⇒∘ρ⇐≈id (fwd-ρ A)
   bridgeF (F.α⇒ {A} {B} {C}) =
-    F.≈-Term-trans
-      (cast-half (++-assoc (flatten A) (flatten B) (flatten C)) (flat⇒ ((A ⊗₀ B) ⊗₀ C)))
-      (fwd-α A B C)
+    cast-half (++-assoc (flatten A) (flatten B) (flatten C)) (flat⇒ ((A ⊗₀ B) ⊗₀ C))
+      ○F fwd-α A B C
   bridgeF (F.α⇐ {A} {B} {C}) =
-    F.≈-Term-trans
-      (cast-half (sym (++-assoc (flatten A) (flatten B) (flatten C))) (flat⇒ (A ⊗₀ (B ⊗₀ C))))
-      (flipF (++-assoc (flatten A) (flatten B) (flatten C))
-             (flat⇒ ((A ⊗₀ B) ⊗₀ C)) (flat⇒ (A ⊗₀ (B ⊗₀ C)))
-             F.α⇒∘α⇐≈id (fwd-α A B C))
+    cast-half (sym (++-assoc (flatten A) (flatten B) (flatten C))) (flat⇒ (A ⊗₀ (B ⊗₀ C)))
+      ○F flipF (++-assoc (flatten A) (flatten B) (flatten C))
+               (flat⇒ ((A ⊗₀ B) ⊗₀ C)) (flat⇒ (A ⊗₀ (B ⊗₀ C)))
+               F.α⇒∘α⇐≈id (fwd-α A B C)
   bridgeF (F.σ {A} {B} ⦃ v≤v ⦄) = beginF
     inj (embed (reflectF (F.σ {A} {B}))) ∘F (mergeF fA {fB} ∘F (f⇒A ⊗F f⇒B))
-      ≈F⟨ F.∘-resp-≈ (F.≡⇒≈Term (cong₂ (λ h j → h ∘F (σF ∘F j))
-                                       (inj-merge fB {fA}) (inj-split fA {fB}))) reflF ⟩
+      ≈F⟨ F.≡⇒≈Term (cong₂ (λ h j → h ∘F (σF ∘F j))
+                     (inj-merge fB {fA}) (inj-split fA {fB})) ⟩∘F⟨refl ⟩
     (mergeF fB {fA} ∘F (F.σ ∘F splitF fA {fB})) ∘F (mergeF fA {fB} ∘F (f⇒A ⊗F f⇒B))
       ≈F⟨ F.assoc ⟩
     mergeF fB {fA} ∘F ((F.σ ∘F splitF fA {fB}) ∘F (mergeF fA {fB} ∘F (f⇒A ⊗F f⇒B)))
-      ≈F⟨ F.∘-resp-≈ reflF F.assoc ⟩
+      ≈F⟨ reflF⟩∘⟨ F.assoc ⟩
     mergeF fB {fA} ∘F (F.σ ∘F (splitF fA {fB} ∘F (mergeF fA {fB} ∘F (f⇒A ⊗F f⇒B))))
-      ≈F⟨ F.∘-resp-≈ reflF (F.∘-resp-≈ reflF (F.≈-Term-sym F.assoc)) ⟩
+      ≈F⟨ reflF⟩∘⟨ (reflF⟩∘⟨ (⟺F F.assoc)) ⟩
     mergeF fB {fA} ∘F (F.σ ∘F ((splitF fA {fB} ∘F mergeF fA {fB}) ∘F (f⇒A ⊗F f⇒B)))
-      ≈F⟨ F.∘-resp-≈ reflF (F.∘-resp-≈ reflF
-            (F.≈-Term-trans (F.∘-resp-≈ (splitF∘mergeF fA {fB}) reflF) F.idˡ)) ⟩
+      ≈F⟨ reflF⟩∘⟨ (reflF⟩∘⟨
+            ((((splitF∘mergeF fA {fB}) ⟩∘F⟨refl)) ○F F.idˡ)) ⟩
     mergeF fB {fA} ∘F (F.σ ∘F (f⇒A ⊗F f⇒B))
-      ≈F⟨ F.∘-resp-≈ reflF F.σ∘[f⊗g]≈[g⊗f]∘σ ⟩
+      ≈F⟨ reflF⟩∘⟨ F.σ∘[f⊗g]≈[g⊗f]∘σ ⟩
     mergeF fB {fA} ∘F ((f⇒B ⊗F f⇒A) ∘F F.σ)
-      ≈F⟨ F.≈-Term-sym F.assoc ⟩
+      ≈F⟨ ⟺F F.assoc ⟩
     (mergeF fB {fA} ∘F (f⇒B ⊗F f⇒A)) ∘F F.σ ∎F
     where
       fA = flatten A ; fB = flatten B
@@ -566,15 +568,15 @@ module FrontendS
     l
       ≈F⟨ F.idˡ ⟨
     idF ∘F l
-      ≈F⟨ F.∘-resp-≈ (flat⇐∘flat⇒ Z) reflF ⟨
+      ≈F⟨ (flat⇐∘flat⇒ Z) ⟩∘F⟨refl ⟨
     (flat⇐ Z ∘F flat⇒ Z) ∘F l
       ≈F⟨ F.assoc ⟩
     flat⇐ Z ∘F (flat⇒ Z ∘F l)
-      ≈F⟨ F.∘-resp-≈ reflF main ⟩
+      ≈F⟨ reflF⟩∘⟨ main ⟩
     flat⇐ Z ∘F (flat⇒ Z ∘F r)
-      ≈F⟨ F.≈-Term-sym F.assoc ⟩
+      ≈F⟨ ⟺F F.assoc ⟩
     (flat⇐ Z ∘F flat⇒ Z) ∘F r
-      ≈F⟨ F.∘-resp-≈ (flat⇐∘flat⇒ Z) reflF ⟩
+      ≈F⟨ (flat⇐∘flat⇒ Z) ⟩∘F⟨refl ⟩
     idF ∘F r
       ≈F⟨ F.idˡ ⟩
     r ∎F
@@ -584,7 +586,7 @@ module FrontendS
         flat⇒ Z ∘F l
           ≈F⟨ bridgeF l ⟨
         inj (embed (reflectF l)) ∘F flat⇒ Y
-          ≈F⟨ F.∘-resp-≈ (inj-resp-≈ eq) reflF ⟩
+          ≈F⟨ (inj-resp-≈ eq) ⟩∘F⟨refl ⟩
         inj (embed (reflectF r)) ∘F flat⇒ Y
           ≈F⟨ bridgeF r ⟩
         flat⇒ Z ∘F r ∎F
