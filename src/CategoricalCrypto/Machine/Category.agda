@@ -42,7 +42,6 @@ open import CategoricalCrypto.Machine.Iso
 
 module CategoricalCrypto.Machine.Category {M : Type↑}
   ⦃ Monad-M       : Monad M            ⦄
-  ⦃ F-Laws        : FunctorLaws M      ⦄
   ⦃ M-Laws        : MonadLaws M        ⦄
   ⦃ M-Extensional : ExtensionalMonad M ⦄
   ⦃ M-Comm        : CommutativeMonad M ⦄
@@ -51,11 +50,11 @@ module CategoricalCrypto.Machine.Category {M : Type↑}
   where
 
 open import CategoricalCrypto.SFunM
-  ⦃ Monad-M ⦄ ⦃ F-Laws ⦄ ⦃ M-Laws ⦄ ⦃ M-Extensional ⦄ ⦃ M-Comm ⦄
+  ⦃ Monad-M ⦄ ⦃ M-Laws ⦄ ⦃ M-Extensional ⦄ ⦃ M-Comm ⦄
 open import CategoricalCrypto.SFunM.Monoidal
-  ⦃ Monad-M ⦄ ⦃ F-Laws ⦄ ⦃ M-Laws ⦄ ⦃ M-Extensional ⦄ ⦃ M-Comm ⦄
+  ⦃ Monad-M ⦄ ⦃ M-Laws ⦄ ⦃ M-Extensional ⦄ ⦃ M-Comm ⦄
 open import CategoricalCrypto.SFunM.Traced
-  ⦃ Monad-M ⦄ ⦃ F-Laws ⦄ ⦃ M-Laws ⦄ ⦃ M-Extensional ⦄ ⦃ M-Comm ⦄ ⦃ M-Iter ⦄
+  ⦃ Monad-M ⦄ ⦃ M-Laws ⦄ ⦃ M-Extensional ⦄ ⦃ M-Comm ⦄ ⦃ M-Iter ⦄
 
 import Categories.GConstruction as GC
 import Categories.GradedKleisli as GK

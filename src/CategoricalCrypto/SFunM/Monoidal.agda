@@ -30,14 +30,13 @@ open import Class.Monad.Ext
 
 module CategoricalCrypto.SFunM.Monoidal {M : Type↑}
   ⦃ Monad-M       : Monad M            ⦄
-  ⦃ F-Laws        : FunctorLaws M      ⦄
   ⦃ M-Laws        : MonadLaws M        ⦄
   ⦃ M-Extensional : ExtensionalMonad M ⦄
   ⦃ M-Comm        : CommutativeMonad M ⦄
   where
 
 open import CategoricalCrypto.SFunM
-  ⦃ Monad-M ⦄ ⦃ F-Laws ⦄ ⦃ M-Laws ⦄ ⦃ M-Extensional ⦄ ⦃ M-Comm ⦄
+  ⦃ Monad-M ⦄ ⦃ M-Laws ⦄ ⦃ M-Extensional ⦄ ⦃ M-Comm ⦄
 
 open import Categories.Morphism SFunᵉ-Category using (_≅_)
 

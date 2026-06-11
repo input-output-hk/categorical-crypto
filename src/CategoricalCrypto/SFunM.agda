@@ -15,7 +15,6 @@ import Relation.Binary.Reasoning.Setoid as R-Setoid
 
 module CategoricalCrypto.SFunM {M : Type↑}
   ⦃ Monad-M       : Monad M            ⦄
-  ⦃ F-Laws        : FunctorLaws M      ⦄
   ⦃ M-Laws        : MonadLaws M        ⦄
   ⦃ M-Extensional : ExtensionalMonad M ⦄
   ⦃ M-Comm        : CommutativeMonad M ⦄

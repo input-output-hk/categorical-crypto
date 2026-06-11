@@ -40,7 +40,6 @@ open import Class.Monad.Iterative
 
 module CategoricalCrypto.SFunM.Traced {M : Type↑}
   ⦃ Monad-M       : Monad M            ⦄
-  ⦃ F-Laws        : FunctorLaws M      ⦄
   ⦃ M-Laws        : MonadLaws M        ⦄
   ⦃ M-Extensional : ExtensionalMonad M ⦄
   ⦃ M-Comm        : CommutativeMonad M ⦄
@@ -48,10 +47,10 @@ module CategoricalCrypto.SFunM.Traced {M : Type↑}
   where
 
 open import CategoricalCrypto.SFunM
-  ⦃ Monad-M ⦄ ⦃ F-Laws ⦄ ⦃ M-Laws ⦄ ⦃ M-Extensional ⦄ ⦃ M-Comm ⦄
+  ⦃ Monad-M ⦄ ⦃ M-Laws ⦄ ⦃ M-Extensional ⦄ ⦃ M-Comm ⦄
 
 open import CategoricalCrypto.SFunM.Monoidal
-  ⦃ Monad-M ⦄ ⦃ F-Laws ⦄ ⦃ M-Laws ⦄ ⦃ M-Extensional ⦄ ⦃ M-Comm ⦄
+  ⦃ Monad-M ⦄ ⦃ M-Laws ⦄ ⦃ M-Extensional ⦄ ⦃ M-Comm ⦄
 
 open Sym SFunᵉ-monoidal using (Symmetric; symmetricHelper)
 open Br  SFunᵉ-monoidal using (Braided)

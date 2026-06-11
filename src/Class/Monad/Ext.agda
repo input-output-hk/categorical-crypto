@@ -71,7 +71,7 @@ open import Categories.Category.Construction.Kleisli
 open import Categories.Category.Instance.Sets
 open import Categories.Monad.Construction.Kleisli
 
-module _ {M : Type↑} ⦃ Monad-M : Monad M ⦄ ⦃ F-Laws : FunctorLaws M ⦄
+module _ {M : Type↑} ⦃ Monad-M : Monad M ⦄
   ⦃ M-Laws : MonadLaws M ⦄ ⦃ M-Extensional : ExtensionalMonad M ⦄ where
 
   KleisliTriple-M : ∀ {a} → KleisliTriple (Sets a)
