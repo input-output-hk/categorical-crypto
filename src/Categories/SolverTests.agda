@@ -101,7 +101,7 @@ open SortD
 -- Module Sound: reflect soundness.
 --
 -- For each WTerm `t`, `reflect-sound t` is a machine-checked witness
--- that `coeC (out-reflect t) ⟦ reflect t ⟧ ≈Term embed t`.
+-- that `castW (out-reflect t) ∘ ⟦ reflect t ⟧ ≈Term embed t`.
 -- The ⊗ʷ cases exercise boxes at non-trivial wire offsets.
 
 module Sound where
@@ -112,16 +112,16 @@ module Sound where
     tμ⊗η  = boxʷ μ ⊗ʷ boxʷ η
     ts⊗id = boxʷ s ⊗ʷ idʷ {⋆ ∷ []}
 
-  test-μ     : coeC (out-reflect tμ)    ⟦ reflect tμ    ⟧ ≈Term embed tμ
+  test-μ     : castW (out-reflect tμ)    ∘ ⟦ reflect tμ    ⟧ ≈Term embed tμ
   test-μ     = reflect-sound tμ
 
-  test-δ∘μ   : coeC (out-reflect tδμ)   ⟦ reflect tδμ   ⟧ ≈Term embed tδμ
+  test-δ∘μ   : castW (out-reflect tδμ)   ∘ ⟦ reflect tδμ   ⟧ ≈Term embed tδμ
   test-δ∘μ   = reflect-sound tδμ
 
-  test-μ⊗η   : coeC (out-reflect tμ⊗η)  ⟦ reflect tμ⊗η  ⟧ ≈Term embed tμ⊗η
+  test-μ⊗η   : castW (out-reflect tμ⊗η)  ∘ ⟦ reflect tμ⊗η  ⟧ ≈Term embed tμ⊗η
   test-μ⊗η   = reflect-sound tμ⊗η
 
-  test-s⊗id  : coeC (out-reflect ts⊗id) ⟦ reflect ts⊗id ⟧ ≈Term embed ts⊗id
+  test-s⊗id  : castW (out-reflect ts⊗id) ∘ ⟦ reflect ts⊗id ⟧ ≈Term embed ts⊗id
   test-s⊗id  = reflect-sound ts⊗id
 
 ------------------------------------------------------------------------
@@ -203,17 +203,17 @@ module Decision where
       chain eq = begin
         embed f
           ≈⟨ reflect-sound f ⟨
-        coeC (out-reflect f) ⟦ reflect f ⟧
+        castW (out-reflect f) ∘ ⟦ reflect f ⟧
           ≈⟨ eq-≈Term (≈NF⇒≡ eq) (out-reflect f) (out-reflect g) ⟩
-        coeC (out-reflect g) ⟦ reflect g ⟧
+        castW (out-reflect g) ∘ ⟦ reflect g ⟧
           ≈⟨ reflect-sound g ⟩
         embed g ∎
         where
           eq-≈Term : ∀ {n p} {d d' : DiagU n}
                        (e : d ≡ d') (q₁ : out d ≡ p) (q₂ : out d' ≡ p)
-                   → coeC q₁ ⟦ d ⟧ ≈Term coeC q₂ ⟦ d' ⟧
+                   → castW q₁ ∘ ⟦ d ⟧ ≈Term castW q₂ ∘ ⟦ d' ⟧
           eq-≈Term {d = d} refl q₁ q₂ =
-            ≡⇒≈Term (cong (λ q → coeC q ⟦ d ⟧) (uipLTy q₁ q₂))
+            ≡⇒≈Term (cong (λ q → castW q ∘ ⟦ d ⟧) (uipLTy q₁ q₂))
 
   -- Positive: `id ∘ μ` and `μ` reflect to the same diagram.
   test-pos₁ : Is-just (decide? (idʷ ∘ʷ boxʷ μ) (boxʷ μ))

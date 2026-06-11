@@ -138,7 +138,7 @@ module Frontend
   -- Wire-level machinery at MorW.
   open Untyped Mon {X} MorW                -- wires, mor, box, ⟦box⟧, merge, split, …
   open FreeMonoidalHelper.Mor Mon X mor    -- W-side HomTerm, _≈Term_, …
-  open Reflect Mon {X} _≟X_ MorW           -- WTerm, embed, reflect, coeC, merge-ρ, …
+  open Reflect Mon {X} _≟X_ MorW           -- WTerm, embed, reflect, castW, merge-ρ, …
   open ≈R
 
   -- Front-end free category: HomTerm over GenF, qualified `F`.
@@ -176,7 +176,7 @@ module Frontend
 
   private module FBI = FB.WithInj injBox reflectVarM (λ ⦃ s ⦄ A B → reflectσM ⦃ s ⦄ A B)
   open FBI public
-    using (inj; inj-resp-≈; inj-merge; inj-split; inj-coeC; reflectF;
+    using (inj; inj-resp-≈; inj-merge; inj-split; reflectF;
            splitF∘mergeF; mergeF-ρ; mergeF-assoc; flat⇐∘flat⇒;
            cast-half; fwd-ρ; fwd-α)
 

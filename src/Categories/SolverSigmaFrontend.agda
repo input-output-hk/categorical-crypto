@@ -155,7 +155,7 @@ module FrontendS
 
   private module FBI = FB.WithInj injBox reflectVarS (λ ⦃ s ⦄ A B → reflectσS ⦃ s ⦄ A B)
   open FBI public
-    using (inj; inj-resp-≈; inj-merge; inj-split; inj-coeC; reflectF;
+    using (inj; inj-resp-≈; inj-merge; inj-split; reflectF;
            splitF∘mergeF; mergeF-ρ; mergeF-assoc; flat⇐∘flat⇒;
            cast-half; fwd-ρ; fwd-α)
 

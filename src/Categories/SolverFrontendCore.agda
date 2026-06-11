@@ -237,9 +237,9 @@ module FBridge
   -- the engine surface, at EXACTLY the front-ends' instantiation — all
   -- names below are the same symbols the front-ends have in scope.
   open WireSig v {X} MorEng using (wires; mor; box; merge; split)
-  open UntypedI v {X} MorEng ⟦box⟧ using (split∘merge)
+  open UntypedI v {X} MorEng ⟦box⟧ using (split∘merge; castW)
   open ReflectI v {X} _≟X_ MorEng ⟦box⟧
-    using (WTerm; boxʷ; idʷ; _∘ʷ_; _⊗ʷ_; embed; coeC; coeD; merge-ρ; merge-assoc)
+    using (WTerm; boxʷ; idʷ; _∘ʷ_; _⊗ʷ_; embed; merge-ρ; merge-assoc)
 
   -- the wire-level free category (unqualified, as in the front-ends).
   open FreeMonoidalHelper.Mor v X mor
@@ -334,8 +334,8 @@ module FBridge
   castʷ refl refl t = t
 
   embed-castʷ : ∀ {n n' m m'} (p : n ≡ n') (q : m ≡ m') (t : WTerm n m)
-              → embed (castʷ p q t) ≈Term coeD p (coeC q (embed t))
-  embed-castʷ refl refl t = ≈-Term-refl
+              → embed (castʷ p q t) ≈Term (castW q ∘ embed t) ∘ castW (sym p)
+  embed-castʷ refl refl t = ≈-Term-trans (≈-Term-sym idˡ) (≈-Term-sym idʳ)
 
   ------------------------------------------------------------------------
   -- Forward structural λ-law and the law flipper (engine-independent).
@@ -428,10 +428,21 @@ module FBridge
     inj-split []      = refl
     inj-split (x ∷ a) = cong (λ h → F._∘_ F.α⇐ (F._⊗₁_ F.id h)) (inj-split a)
 
-    -- inj commutes with the wire-level coercion (definitional on refl).
-    inj-coeC : ∀ {A p q} (e : p ≡ q) (h : HomTerm A (wires p))
-             → inj (coeC e h) ≡ coeCF e (inj h)
-    inj-coeC refl h = refl
+    -- inj of a bare wire-level `castW` is the F-side coercion of the identity.
+    inj-castW0 : ∀ {p q} (e : p ≡ q) → inj (castW e) ≡ coeCF e (idF {wires p})
+    inj-castW0 refl = refl
+
+    -- helper: coeCF e idF can be cancelled on the left.
+    coeCF-idˡ : ∀ {A p q} (e : p ≡ q) (j : F.HomTerm A (wires p))
+              → F._∘_ (coeCF e (idF {wires p})) j F.≈Term coeCF e j
+    coeCF-idˡ refl j = F.idˡ
+
+    -- inj commutes with the wire-level coercion `castW e ∘ -` (up to idˡ).
+    inj-castW : ∀ {A p q} (e : p ≡ q) (h : HomTerm A (wires p))
+              → inj (castW e ∘ h) F.≈Term coeCF e (inj h)
+    inj-castW e h =
+      F.≡⇒≈Term (cong (λ z → F._∘_ z (inj h)) (inj-castW0 e))
+      ○F coeCF-idˡ e (inj h)
 
     ----------------------------------------------------------------------
     -- Front-end reflection: structural constructors die into (casted)
@@ -464,8 +475,8 @@ module FBridge
     mergeF-ρ : ∀ (a : List X)
              → coeCF (++-identityʳ a) (mergeF a {[]}) F.≈Term F.ρ⇒
     mergeF-ρ a =
-      F.≡⇒≈Term (trans (cong (coeCF (++-identityʳ a)) (sym (inj-merge a)))
-                       (sym (inj-coeC (++-identityʳ a) (merge a {[]}))))
+      F.≡⇒≈Term (cong (coeCF (++-identityʳ a)) (sym (inj-merge a)))
+      ○F ⟺F (inj-castW (++-identityʳ a) (merge a {[]}))
       ○F inj-resp-≈ (merge-ρ a)
 
     -- merge associativity on the F side (transfer of merge-assoc).
@@ -474,17 +485,18 @@ module FBridge
         F.≈Term coeCF (++-assoc p q r)
                   (F._∘_ (mergeF (p ++ q) {r}) (F._⊗₁_ (mergeF p {q}) (F.id {wires r})))
     mergeF-assoc p q r =
-      F.≡⇒≈Term (sym lhs-eq) ○F inj-resp-≈ (merge-assoc p q r) ○F F.≡⇒≈Term rhs-eq
+      F.≡⇒≈Term (sym lhs-eq)
+      ○F inj-resp-≈ (merge-assoc p q r)
+      ○F inj-castW (++-assoc p q r) (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
+      ○F coeCF-resp (++-assoc p q r) (F.≡⇒≈Term rhs-eq)
       where
         lhs-eq : inj (merge p {q ++ r} ∘ (id {wires p} ⊗₁ merge q {r}) ∘ α⇒)
                ≡ F._∘_ (mergeF p {q ++ r})
                    (F._∘_ (F._⊗₁_ (F.id {wires p}) (mergeF q {r})) F.α⇒)
         lhs-eq rewrite inj-merge p {q ++ r} | inj-merge q {r} = refl
-        rhs-eq : inj (coeC (++-assoc p q r) (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r})))
-               ≡ coeCF (++-assoc p q r)
-                   (F._∘_ (mergeF (p ++ q) {r}) (F._⊗₁_ (mergeF p {q}) (F.id {wires r})))
-        rhs-eq rewrite inj-coeC (++-assoc p q r) (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
-                     | inj-merge (p ++ q) {r} | inj-merge p {q} = refl
+        rhs-eq : inj (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
+               ≡ F._∘_ (mergeF (p ++ q) {r}) (F._⊗₁_ (mergeF p {q}) (F.id {wires r}))
+        rhs-eq rewrite inj-merge (p ++ q) {r} | inj-merge p {q} = refl
 
     ----------------------------------------------------------------------
     -- The canonical iso laws (only the retraction is needed downstream).
@@ -507,9 +519,10 @@ module FBridge
     cast-half : ∀ {P} {p q : List X} (e : p ≡ q) (h : F.HomTerm P (wires p))
               → inj (embed (castʷ refl e (idʷ {p}))) ∘F h F.≈Term coeCF e h
     cast-half {P} {p} {q} e h =
-      ((inj-resp-≈ (embed-castʷ refl e idʷ) ○F F.≡⇒≈Term (inj-coeC e id)) ⟩∘F⟨refl)
-      ○F ⟺F (coeCF-∘ˡ e idF h)
-      ○F coeCF-resp e F.idˡ
+      ((inj-resp-≈ (embed-castʷ refl e idʷ)
+         ○F F.idʳ
+         ○F inj-castW e id) ⟩∘F⟨refl)
+      ○F coeCF-idˡ e h
 
     ----------------------------------------------------------------------
     -- Forward structural laws: flattening intertwines the unitors and the
