@@ -424,27 +424,19 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
         ∘ liftW (x ∷ p) (rpad sq W)
         ∘ castW (++-assoc (x ∷ p) u sq) ∎
 
-    -- coeC-as-castW (ReflectI's arbitrary-other-end coercion as a castW) is now
-    -- the shared public lemma from ReflectI (opened above); coeD's mirror stays
-    -- local (only `rpad-rpad` uses it).
-    coeD-as-castW : ∀ {B} {p q : List X} (e : p ≡ q) (h : HomTerm (wires p) B)
-                  → coeD e h ≈Term h ∘ castW (sym e)
-    coeD-as-castW refl h = ⟺ idʳ
-
-    -- NEW COHERENCE 2: suffix-pad fusion — ReflectI's `rpad-fuse`, recast
-    -- from coeC/coeD form into the castW sandwich.
+    -- NEW COHERENCE 2: suffix-pad fusion — ReflectI's `rpad-fuse` is already in
+    -- the castW sandwich form; we only reassociate and normalise the trailing
+    -- `castW (sym (sym _))` to `castW _` (UIP via `castW-irr`).
     rpad-rpad : ∀ (s sq : List X) {u v} (W : HomTerm (wires u) (wires v))
               → Sand (sym (++-assoc v s sq)) (++-assoc u s sq)
                      (rpad sq (rpad s W)) (rpad (s ++ sq) W)
     rpad-rpad s sq {u} {v} W = begin
       rpad sq (rpad s W)
         ≈⟨ rpad-fuse s sq W ⟩
-      coeD (sym (++-assoc u s sq)) (coeC (sym (++-assoc v s sq)) (rpad (s ++ sq) W))
-        ≈⟨ coeD-as-castW (sym (++-assoc u s sq)) _ ⟩
-      coeC (sym (++-assoc v s sq)) (rpad (s ++ sq) W) ∘ castW (sym (sym (++-assoc u s sq)))
-        ≈⟨ coeC-as-castW (sym (++-assoc v s sq)) _ ⟩∘⟨ castW-irr _ (++-assoc u s sq) ⟩
-      (castW (sym (++-assoc v s sq)) ∘ rpad (s ++ sq) W) ∘ castW (++-assoc u s sq)
+      (castW (sym (++-assoc v s sq)) ∘ rpad (s ++ sq) W) ∘ castW (sym (sym (++-assoc u s sq)))
         ≈⟨ assoc ⟩
+      castW (sym (++-assoc v s sq)) ∘ rpad (s ++ sq) W ∘ castW (sym (sym (++-assoc u s sq)))
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ castW-irr (sym (sym (++-assoc u s sq))) (++-assoc u s sq) ⟩
       castW (sym (++-assoc v s sq)) ∘ rpad (s ++ sq) W ∘ castW (++-assoc u s sq) ∎
 
   ------------------------------------------------------------------------
