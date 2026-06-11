@@ -488,8 +488,8 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --   shiftL lt d  is  liftW lt ⟦ d ⟧  up to the +-associativity reindexing
   --   absorbed by the `substDiagU` wrappers, and analogously for `shiftR`.  We state
   --   them in the codomain-reindexed form (mirroring `∘ᵈ-sound`):
-  --     coeC (out-shiftL lt d) ⟦ shiftL lt d ⟧ ≈Term liftW lt ⟦ d ⟧
-  --     coeC (out-shiftR rt d) ⟦ shiftR rt d ⟧ ≈Term rpad rt ⟦ d ⟧
+  --     castW (out-shiftL lt d) ∘ ⟦ shiftL lt d ⟧ ≈Term liftW lt ⟦ d ⟧
+  --     castW (out-shiftR rt d) ∘ ⟦ shiftR rt d ⟧ ≈Term rpad rt ⟦ d ⟧
   --   where `rpad` is the suffix flat-shift (from DiagramRewriteUntyped).
   --------------------------------------------------------------------------------
 

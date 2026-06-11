@@ -25,7 +25,7 @@
 --     generator family (`MorW` for Mon, `MorS MorW` for Symm) and `⟦box⟧`
 --     its interpretation; the module opens `WireSig` / `UntypedI` /
 --     `ReflectI` at exactly these arguments, so `wires`, `mor`, `merge`,
---     `split`, `coeC`, `WTerm`, `embed`, … are THE SAME symbols as in the
+--     `split`, `castW`, `WTerm`, `embed`, … are THE SAME symbols as in the
 --     front-ends' engine opens — every definitional unfolding available in
 --     the front-ends is available here.  Body: `mergeF`/`splitF`,
 --     `flat⇒`/`flat⇐`, `coeCF` + lemmas, `coe-coe`, `castʷ`/`embed-castʷ`,
