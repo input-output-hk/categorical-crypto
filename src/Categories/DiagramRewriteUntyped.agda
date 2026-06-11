@@ -106,7 +106,8 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
   -- (not public): these are for the proofs in this file only.
   open MR FreeMonoidal
     using (pullˡ; pullʳ; pushˡ; pushʳ; center; center⁻¹;
-           cancelˡ; cancelʳ; cancelInner; insertInner; elimˡ; elimʳ; introˡ; introʳ)
+           cancelˡ; cancelʳ; cancelInner; insertInner; elimˡ; elimʳ; introˡ; introʳ;
+           assoc²εβ)
   open MonR Monoidal-FreeMonoidal
     using (refl⟩⊗⟨_; _⟩⊗⟨refl; _⟩⊗⟨_; ⊗-distrib-over-∘;
            serialize₁₂; serialize₂₁; split₁ˡ; split₁ʳ; split₂ˡ; split₂ʳ)
@@ -627,6 +628,57 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
           → liftW p (P ∘ Q) ≈Term liftW p P ∘ liftW p Q
   liftW-∘ []      P Q = ≈-Term-refl
   liftW-∘ (x ∷ p) P Q = (refl⟩⊗⟨ liftW-∘ p P Q) ○ (⟺ (id⊗-∘ _ _))
+
+  --------------------------------------------------------------------------------
+  -- Generic rpad / liftW lemmas (coercion-free; no DecidableEquality needed).
+  -- These lived in SolverReflect.ReflectI before the Tier-4 relayer; they are
+  -- variant-generic and ⟦box⟧-independent, so the engine layer is their home.
+  --------------------------------------------------------------------------------
+
+  -- liftW of an identity is an identity.
+  liftW-id : ∀ (p : List X) {u} → liftW p (id {wires u}) ≈Term id
+  liftW-id []      = ≈-Term-refl
+  liftW-id (x ∷ p) = (refl⟩⊗⟨ liftW-id p) ○ id⊗id≈id
+
+  -- rpad respects ≈.
+  rpad-resp : ∀ {a b} (suf : List X) {g g' : HomTerm (wires a) (wires b)}
+            → g ≈Term g' → rpad suf g ≈Term rpad suf g'
+  rpad-resp suf eq = refl⟩∘⟨ ((eq ⟩⊗⟨refl) ⟩∘⟨refl)
+
+  -- rpad of an identity is an identity.
+  rpad-id : ∀ (rt : List X) {u} → rpad rt (id {wires u}) ≈Term id
+  rpad-id rt {u} =
+    refl⟩∘⟨ (id⊗id≈id ⟩∘⟨refl)
+    ○ refl⟩∘⟨ idˡ
+    ○ merge∘split u
+
+  -- rpad distributes over ∘.
+  rpad-∘ : ∀ (rt : List X) {u v w} (P : HomTerm (wires v) (wires w)) (Q : HomTerm (wires u) (wires v))
+         → rpad rt (P ∘ Q) ≈Term rpad rt P ∘ rpad rt Q
+  rpad-∘ rt {u} {v} {w} P Q =
+    refl⟩∘⟨ (split₁ʳ ⟩∘⟨refl)
+    ○ refl⟩∘⟨ (insertInner (split∘merge v) ⟩∘⟨refl)
+    ○ center⁻¹ ≈-Term-refl assoc
+
+  -- rpad commutes with the prefix id⊗₁: rpad rt (id⊗₁ h) ≈ id⊗₁ (rpad rt h).
+  rpad-id⊗ : ∀ (rt : List X) (x : X) {u v} (h : HomTerm (wires u) (wires v))
+           → rpad rt (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ rpad rt h
+  rpad-id⊗ rt x {u} {v} h =
+    reB
+    ○ refl⟩∘⟨ (midα ⟩∘⟨refl)
+    ○ refl⟩∘⟨ (id⊗-∘ (h ⊗₁ id) (split u))
+    ○ id⊗-∘ (merge v) ((h ⊗₁ id) ∘ split u)
+    where
+      midα : α⇒ ∘ ((id {Var x} ⊗₁ h) ⊗₁ id) ∘ α⇐
+           ≈Term id {Var x} ⊗₁ (h ⊗₁ id)
+      midα = pullˡ α-comm ○ cancelʳ α⇒∘α⇐≈id
+      reB : (id {Var x} ⊗₁ merge v {rt} ∘ α⇒)
+              ∘ ((id {Var x} ⊗₁ h) ⊗₁ id {wires rt})
+              ∘ (α⇐ ∘ id {Var x} ⊗₁ split u {rt})
+          ≈Term id {Var x} ⊗₁ merge v {rt}
+              ∘ ((α⇒ ∘ ((id {Var x} ⊗₁ h) ⊗₁ id {wires rt}) ∘ α⇐)
+                 ∘ id {Var x} ⊗₁ split u {rt})
+      reB = assoc ○ (refl⟩∘⟨ assoc²εβ)
 
   -- rearranged Lemma B (both directions of conjugation made explicit).
   liftW-assoc' : ∀ (x m : List X) {u v} (W : HomTerm (wires u) (wires v))
