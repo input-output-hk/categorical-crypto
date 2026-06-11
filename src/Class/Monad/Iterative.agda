@@ -85,6 +85,17 @@ vanishing-2-dispatch : ∀ {M : Type↑} ⦃ _ : Monad M ⦄ {S A X Y : Type}
 vanishing-2-dispatch iter₀ fx fy (s' , inj₁ a) = return (s' , a)
 vanishing-2-dispatch iter₀ fx fy (s' , inj₂ x) = iter₀ (combine fx fy) (s' , inj₁ x)
 
+-- X-direction mirror of `vanishing-2-dispatch`: routes the fx-iter's
+-- terminator output. A-output terminates; Y-output continues into the
+-- flat combine iter at inj₂ y.
+vanishing-2-dispatch-x : ∀ {M : Type↑} ⦃ _ : Monad M ⦄ {S A X Y : Type}
+  (iter₀ : ∀ {A X : Type} → (X → M (X ⊎ A)) → X → M A)
+  (fx : (S × X) → M ((S × X) ⊎ (S × (A ⊎ Y))))
+  (fy : (S × Y) → M ((S × Y) ⊎ (S × (A ⊎ X))))
+  → (S × (A ⊎ Y)) → M (S × A)
+vanishing-2-dispatch-x iter₀ fx fy (s' , inj₁ a) = return (s' , a)
+vanishing-2-dispatch-x iter₀ fx fy (s' , inj₂ y) = iter₀ (combine fx fy) (s' , inj₂ y)
+
 record IterativeMonad (M : Type↑)
   ⦃ Monad-M : Monad M     ⦄
   ⦃ M-Laws  : MonadLaws M ⦄
@@ -171,6 +182,17 @@ record IterativeMonad (M : Type↑)
       (s : S) (y : Y)
       → (iter fy (s , y) >>= vanishing-2-dispatch iter fx fy)
         ≡ iter (combine fx fy) (s , inj₂ y)
+
+    -- X-direction mirror of `iter-vanishing-2`: starting by looping X
+    -- (with Y-output continuing into the flat combine iter) equals
+    -- routing directly into combine at inj₁ x. Symmetric counterpart,
+    -- in the same way `iter-codiag-y` mirrors `iter-codiag`.
+    iter-vanishing-2-x : ∀ {A X Y S : Type}
+      (fx : (S × X) → M ((S × X) ⊎ (S × (A ⊎ Y))))
+      (fy : (S × Y) → M ((S × Y) ⊎ (S × (A ⊎ X))))
+      (s : S) (x : X)
+      → (iter fx (s , x) >>= vanishing-2-dispatch-x iter fx fy)
+        ≡ iter (combine fx fy) (s , inj₁ x)
 
     -- "Uniformity" / "conjugation": if body `g` on `(φ s, x)` is f's
     -- behaviour on `(s, x)` with states pushed through `φ : S₁ → S₂`

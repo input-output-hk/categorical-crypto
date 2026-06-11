@@ -137,6 +137,29 @@ trace-∘ {sg = sg} {sf} {g} {f} (a ∷ as) = begin
   trace (g ∘ᵉ' f) (sg , sf) (a ∷ as) ∎
   where open ≡-Reasoning
 
+-- Simulation: if `g` mimics `f` pointwise along a state map `h`, then
+-- their traces agree along `h`. The workhorse for proving `≈ᵉ`
+-- equations between morphisms whose states differ only by (pure)
+-- repackaging.
+trace-sim : ∀ {SF SG : Type} (h : SF → SG)
+            {f : SFunType A B SF} {g : SFunType A B SG}
+          → (∀ s x → (f (s , x) >>= λ (s' , b) → return (h s' , b)) ≡ g (h s , x))
+          → ∀ s xs → trace f s xs ≡ trace g (h s) xs
+trace-sim h hyp s [] = refl
+trace-sim h {f} {g} hyp s (x ∷ xs) = begin
+  (f (s , x) >>= λ (s' , b) → trace f s' xs >>= λ bs → return (b ∷ bs))
+    ≡⟨ refl⟩>>=⟨ (λ (s' , b) → trace-sim h hyp s' xs ⟩>>=⟨refl) ⟩
+  (f (s , x) >>= λ (s' , b) → trace g (h s') xs >>= λ bs → return (b ∷ bs))
+    ≡⟨ refl⟩>>=⟨ (λ (s' , b) → sym >>=-identityˡ) ⟩
+  (f (s , x) >>= λ (s' , b) → return (h s' , b) >>= λ (s'' , b') →
+    trace g s'' xs >>= λ bs → return (b' ∷ bs))
+    ≡⟨ sym (>>=-assoc (f (s , x))) ⟩
+  ((f (s , x) >>= λ (s' , b) → return (h s' , b)) >>= λ (s'' , b') →
+    trace g s'' xs >>= λ bs → return (b' ∷ bs))
+    ≡⟨ hyp s x ⟩>>=⟨refl ⟩
+  (g (h s , x) >>= λ (s'' , b') → trace g s'' xs >>= λ bs → return (b' ∷ bs)) ∎
+  where open ≡-Reasoning
+
 _≈ᵉ_ : SFunᵉ A B → SFunᵉ A B → Type
 _≈ᵉ_ = _≗_ on eval
 

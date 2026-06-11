@@ -1,8 +1,10 @@
 -- The four JSV traced-monoidal laws (vanishing₁, vanishing₂,
 -- superposing, yanking) are fully derived from the `IterativeMonad`
--- axiomatisation. Axioms used: iter-fix, iter-cong, iter-nat,
+-- axiomatisation, as are the trace-naturality laws (trace-∘ˡ-ᵉ,
+-- trace-∘ʳ-ᵉ) and the Fubini exchange of nested traces (trace-comm-ᵉ)
+-- at the end of this file. Axioms used: iter-fix, iter-cong, iter-nat,
 -- iter-strengthen, iter-codiag, iter-codiag-y, iter-conjugate,
--- iter-vanishing-2.
+-- iter-vanishing-2, iter-vanishing-2-x.
 {-# OPTIONS --safe #-}
 
 ------------------------------------------------------------------------
@@ -1601,3 +1603,1063 @@ SFunᵉ-traced = record
   ; superposing = superposing-ᵉ
   ; yanking     = yanking-ᵉ
   }
+
+------------------------------------------------------------------------
+-- Trace naturality (right): tr f ∘ᵉ h ≈ᵉ tr (f ∘ᵉ (h ⊗ᵉ idᵉ)).
+--
+-- The pre-composed `h` runs once per external input, before the loop;
+-- inside the loop the (h ⊗ᵉ idᵉ)-layer is the identity, so the loops
+-- coincide via `iter-conjugate` (state padded by h's final state).
+
+private
+  module _ {A' A B X : Type} (f : SFunᵉ (A ⊎ X) (B ⊎ X)) (h : SFunᵉ A' A) where
+
+    -- State padding: LHS state (Sf × Sh) to RHS state (Sf × (Sh × ⊤)).
+    ∘ʳ-st : SFunᵉ.State f × SFunᵉ.State h → SFunᵉ.State (f ∘ᵉ (h ⊗ᵉ idᵉ))
+    ∘ʳ-st (sf , sh) = sf , (sh , tt)
+
+    -- The composed body on a loop input: the (h ⊗ᵉ idᵉ)-layer is pure.
+    ∘ʳ-body-loop : ∀ sf sh (x : X)
+      → SFunᵉ.fun (f ∘ᵉ (h ⊗ᵉ idᵉ)) ((sf , (sh , tt)) , inj₂ x)
+        ≡ (SFunᵉ.fun f (sf , inj₂ x) >>= λ (sf' , w) →
+            return ((sf' , (sh , tt)) , w))
+    ∘ʳ-body-loop sf sh x = begin
+      (SFunᵉ.fun (h ⊗ᵉ idᵉ) ((sh , tt) , inj₂ x) >>= λ (sht' , w₀) →
+        SFunᵉ.fun f (sf , w₀) >>= λ (sf' , u) → return ((sf' , sht') , u))
+        ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+      (return ((sh , tt) , inj₂ x) >>= λ (sht' , w₀) →
+        SFunᵉ.fun f (sf , w₀) >>= λ (sf' , u) → return ((sf' , sht') , u))
+        ≡⟨ >>=-identityˡ ⟩
+      (SFunᵉ.fun f (sf , inj₂ x) >>= λ (sf' , u) →
+        return ((sf' , (sh , tt)) , u)) ∎
+      where open ≡-Reasoning
+
+    -- The composed body on the entry input: h runs, then f.
+    ∘ʳ-body-entry : ∀ sf sh (a' : A')
+      → SFunᵉ.fun (f ∘ᵉ (h ⊗ᵉ idᵉ)) ((sf , (sh , tt)) , inj₁ a')
+        ≡ (SFunᵉ.fun h (sh , a') >>= λ (sh' , a) →
+            SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) →
+              return ((sf' , (sh' , tt)) , w))
+    ∘ʳ-body-entry sf sh a' = begin
+      ((SFunᵉ.fun h (sh , a') >>= λ (sh' , a) → return ((sh' , tt) , inj₁ a))
+        >>= λ (sht' , w₀) →
+          SFunᵉ.fun f (sf , w₀) >>= λ (sf' , u) → return ((sf' , sht') , u))
+        ≡⟨ >>=-assoc _ ⟩
+      (SFunᵉ.fun h (sh , a') >>= λ (sh' , a) →
+        return ((sh' , tt) , inj₁ a) >>= λ (sht' , w₀) →
+          SFunᵉ.fun f (sf , w₀) >>= λ (sf' , u) → return ((sf' , sht') , u))
+        ≡⟨ refl⟩>>=⟨ (λ _ → >>=-identityˡ) ⟩
+      (SFunᵉ.fun h (sh , a') >>= λ (sh' , a) →
+        SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , u) →
+          return ((sf' , (sh' , tt)) , u)) ∎
+      where open ≡-Reasoning
+
+    -- Premise of iter-conjugate: the composed body's tr-step at padded
+    -- state is f's tr-step, with output routed through iter-conj-step.
+    ∘ʳ-premise : ∀ sh sf (x : X)
+      → tr-step (f ∘ᵉ (h ⊗ᵉ idᵉ)) ((sf , (sh , tt)) , x)
+        ≡ (tr-step f (sf , x) >>=
+            iter-conj-step (λ sf' → ∘ʳ-st (sf' , sh)) (λ b → b))
+    ∘ʳ-premise sh sf x = begin
+      (SFunᵉ.fun (f ∘ᵉ (h ⊗ᵉ idᵉ)) ((sf , (sh , tt)) , inj₂ x) >>= tr-cont)
+        ≡⟨ ∘ʳ-body-loop sf sh x ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun f (sf , inj₂ x) >>= λ (sf' , w) →
+         return ((sf' , (sh , tt)) , w)) >>= tr-cont)
+        ≡⟨ >>=-assoc _ ⟩
+      (SFunᵉ.fun f (sf , inj₂ x) >>= λ (sf' , w) →
+        return ((sf' , (sh , tt)) , w) >>= tr-cont)
+        ≡⟨ refl⟩>>=⟨ (λ _ → >>=-identityˡ) ⟩
+      (SFunᵉ.fun f (sf , inj₂ x) >>= λ (sf' , w) →
+        tr-cont ((sf' , (sh , tt)) , w))
+        ≡⟨ refl⟩>>=⟨ (λ (sf' , w) → pointwise sf' w) ⟩
+      (SFunᵉ.fun f (sf , inj₂ x) >>= λ (sf' , w) →
+        tr-cont (sf' , w) >>=
+          iter-conj-step (λ sf'' → ∘ʳ-st (sf'' , sh)) (λ b → b))
+        ≡˘⟨ >>=-assoc _ ⟩
+      ((SFunᵉ.fun f (sf , inj₂ x) >>= tr-cont)
+        >>= iter-conj-step (λ sf'' → ∘ʳ-st (sf'' , sh)) (λ b → b)) ∎
+      where
+        open ≡-Reasoning
+        pointwise : ∀ sf' (w : B ⊎ X)
+          → tr-cont ((sf' , (sh , tt)) , w)
+            ≡ (tr-cont (sf' , w) >>=
+                iter-conj-step (λ sf'' → ∘ʳ-st (sf'' , sh)) (λ b → b))
+        pointwise sf' (inj₁ b)  = sym >>=-identityˡ
+        pointwise sf' (inj₂ x') = sym >>=-identityˡ
+
+    -- The loops coincide modulo state padding.
+    ∘ʳ-iter-equiv : ∀ sh sf (x : X)
+      → iter (tr-step (f ∘ᵉ (h ⊗ᵉ idᵉ))) ((sf , (sh , tt)) , x)
+        ≡ (iter (tr-step f) (sf , x) >>= λ (sf' , b) →
+            return (∘ʳ-st (sf' , sh) , b))
+    ∘ʳ-iter-equiv sh sf x =
+      iter-conjugate
+        (λ sf' → ∘ʳ-st (sf' , sh)) (λ b → b)
+        (tr-step f)
+        (tr-step (f ∘ᵉ (h ⊗ᵉ idᵉ)))
+        (λ s₁ x' → ∘ʳ-premise sh s₁ x')
+        sf x
+
+    -- The fun-level simulation hypothesis.
+    ∘ʳ-hyp : ∀ s (a' : A')
+      → (SFunᵉ.fun (tr {X = X} f ∘ᵉ h) (s , a') >>= λ (s' , b) →
+          return (∘ʳ-st s' , b))
+        ≡ SFunᵉ.fun (tr {X = X} (f ∘ᵉ (h ⊗ᵉ idᵉ))) (∘ʳ-st s , a')
+    ∘ʳ-hyp (sf , sh) a' = trans lhs-chain (sym rhs-chain)
+      where
+        open ≡-Reasoning
+
+        branch : ∀ sh' sf' (w : B ⊎ X)
+          → (tr-fun-cont (iter (tr-step f)) (sf' , w) >>= λ (sf'' , b) →
+              return ((sf'' , (sh' , tt)) , b))
+            ≡ tr-fun-cont (iter (tr-step (f ∘ᵉ (h ⊗ᵉ idᵉ))))
+                          ((sf' , (sh' , tt)) , w)
+        branch sh' sf' (inj₁ b) = >>=-identityˡ
+        branch sh' sf' (inj₂ x) = sym (∘ʳ-iter-equiv sh' sf' x)
+
+        lhs-chain :
+          (SFunᵉ.fun (tr {X = X} f ∘ᵉ h) ((sf , sh) , a') >>= λ (s' , b) →
+            return (∘ʳ-st s' , b))
+          ≡ (SFunᵉ.fun h (sh , a') >>= λ (sh' , a) →
+              SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) →
+                tr-fun-cont (iter (tr-step (f ∘ᵉ (h ⊗ᵉ idᵉ))))
+                            ((sf' , (sh' , tt)) , w))
+        lhs-chain = begin
+          ((SFunᵉ.fun h (sh , a') >>= λ (sh' , a) →
+             SFunᵉ.fun (tr {X = X} f) (sf , a) >>= λ (sf' , b) →
+               return ((sf' , sh') , b))
+            >>= λ (s' , b) → return (∘ʳ-st s' , b))
+            ≡⟨ >>=-assoc _ ⟩
+          (SFunᵉ.fun h (sh , a') >>= λ (sh' , a) →
+            (SFunᵉ.fun (tr {X = X} f) (sf , a) >>= λ (sf' , b) →
+              return ((sf' , sh') , b))
+              >>= λ (s' , b) → return (∘ʳ-st s' , b))
+            ≡⟨ refl⟩>>=⟨ (λ (sh' , a) → >>=-assoc _) ⟩
+          (SFunᵉ.fun h (sh , a') >>= λ (sh' , a) →
+            SFunᵉ.fun (tr {X = X} f) (sf , a) >>= λ (sf' , b) →
+              return ((sf' , sh') , b) >>= λ (s' , b') → return (∘ʳ-st s' , b'))
+            ≡⟨ refl⟩>>=⟨ (λ (sh' , a) → refl⟩>>=⟨ (λ (sf' , b) → >>=-identityˡ)) ⟩
+          (SFunᵉ.fun h (sh , a') >>= λ (sh' , a) →
+            SFunᵉ.fun (tr {X = X} f) (sf , a) >>= λ (sf' , b) →
+              return ((sf' , (sh' , tt)) , b))
+            ≡⟨ refl⟩>>=⟨ (λ (sh' , a) → >>=-assoc _) ⟩
+          (SFunᵉ.fun h (sh , a') >>= λ (sh' , a) →
+            SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) →
+              tr-fun-cont (iter (tr-step f)) (sf' , w) >>= λ (sf'' , b) →
+                return ((sf'' , (sh' , tt)) , b))
+            ≡⟨ refl⟩>>=⟨ (λ (sh' , a) → refl⟩>>=⟨ (λ (sf' , w) → branch sh' sf' w)) ⟩
+          (SFunᵉ.fun h (sh , a') >>= λ (sh' , a) →
+            SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) →
+              tr-fun-cont (iter (tr-step (f ∘ᵉ (h ⊗ᵉ idᵉ))))
+                          ((sf' , (sh' , tt)) , w)) ∎
+
+        rhs-chain :
+          SFunᵉ.fun (tr {X = X} (f ∘ᵉ (h ⊗ᵉ idᵉ))) ((sf , (sh , tt)) , a')
+          ≡ (SFunᵉ.fun h (sh , a') >>= λ (sh' , a) →
+              SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) →
+                tr-fun-cont (iter (tr-step (f ∘ᵉ (h ⊗ᵉ idᵉ))))
+                            ((sf' , (sh' , tt)) , w))
+        rhs-chain = begin
+          (SFunᵉ.fun (f ∘ᵉ (h ⊗ᵉ idᵉ)) ((sf , (sh , tt)) , inj₁ a')
+            >>= tr-fun-cont (iter (tr-step (f ∘ᵉ (h ⊗ᵉ idᵉ)))))
+            ≡⟨ ∘ʳ-body-entry sf sh a' ⟩>>=⟨refl ⟩
+          ((SFunᵉ.fun h (sh , a') >>= λ (sh' , a) →
+             SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) →
+               return ((sf' , (sh' , tt)) , w))
+            >>= tr-fun-cont (iter (tr-step (f ∘ᵉ (h ⊗ᵉ idᵉ)))))
+            ≡⟨ >>=-assoc _ ⟩
+          (SFunᵉ.fun h (sh , a') >>= λ (sh' , a) →
+            (SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) →
+              return ((sf' , (sh' , tt)) , w))
+              >>= tr-fun-cont (iter (tr-step (f ∘ᵉ (h ⊗ᵉ idᵉ)))))
+            ≡⟨ refl⟩>>=⟨ (λ (sh' , a) → >>=-assoc _) ⟩
+          (SFunᵉ.fun h (sh , a') >>= λ (sh' , a) →
+            SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) →
+              return ((sf' , (sh' , tt)) , w)
+                >>= tr-fun-cont (iter (tr-step (f ∘ᵉ (h ⊗ᵉ idᵉ)))))
+            ≡⟨ refl⟩>>=⟨ (λ _ → refl⟩>>=⟨ (λ _ → >>=-identityˡ)) ⟩
+          (SFunᵉ.fun h (sh , a') >>= λ (sh' , a) →
+            SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) →
+              tr-fun-cont (iter (tr-step (f ∘ᵉ (h ⊗ᵉ idᵉ))))
+                          ((sf' , (sh' , tt)) , w)) ∎
+
+trace-∘ʳ-ᵉ : ∀ {X A A' B} {f : SFunᵉ (A ⊎ X) (B ⊎ X)} {h : SFunᵉ A' A}
+           → (tr {X = X} f ∘ᵉ h) ≈ᵉ tr {X = X} (f ∘ᵉ (h ⊗ᵉ idᵉ))
+trace-∘ʳ-ᵉ {f = f} {h} xs =
+  trace-sim (∘ʳ-st f h) (∘ʳ-hyp f h)
+            (SFunᵉ.init f , SFunᵉ.init h) xs
+
+------------------------------------------------------------------------
+-- Trace naturality (left): g ∘ᵉ tr f ≈ᵉ tr ((g ⊗ᵉ idᵉ) ∘ᵉ f).
+--
+-- Here `g` runs once per external input — *after* the loop on the LHS,
+-- but *inside* the final loop iteration on the RHS. The bridge works
+-- in three stages over an intermediate loop on state (Sg × Sf):
+--   (iii) pad f's loop with a constant g-state   (iter-conjugate)
+--   (ii)  move g's exit-effect into the loop body (iter-nat)
+--   (i)   repackage the state to the RHS's shape  (iter-conjugate)
+
+private
+  module _ {A B B' X : Type} (g : SFunᵉ B B') (f : SFunᵉ (A ⊎ X) (B ⊎ X)) where
+
+    -- State repackaging: LHS state (Sg × Sf) to RHS state ((Sg × ⊤) × Sf).
+    ∘ˡ-st : SFunᵉ.State g × SFunᵉ.State f → SFunᵉ.State ((g ⊗ᵉ idᵉ) ∘ᵉ f)
+    ∘ˡ-st (sg , sf) = (sg , tt) , sf
+
+    -- Intermediate loop bodies on the carrier (Sg × Sf) × X.
+    ∘ˡ-pure-route : (sg : SFunᵉ.State g)
+      → (SFunᵉ.State f × X) ⊎ (SFunᵉ.State f × B)
+      → M (((SFunᵉ.State g × SFunᵉ.State f) × X) ⊎
+            ((SFunᵉ.State g × SFunᵉ.State f) × B))
+    ∘ˡ-pure-route sg (inj₁ (sf' , x')) = return (inj₁ ((sg , sf') , x'))
+    ∘ˡ-pure-route sg (inj₂ (sf' , b))  = return (inj₂ ((sg , sf') , b))
+
+    ∘ˡ-pure-step : ((SFunᵉ.State g × SFunᵉ.State f) × X)
+      → M ((((SFunᵉ.State g × SFunᵉ.State f) × X)) ⊎
+            ((SFunᵉ.State g × SFunᵉ.State f) × B))
+    ∘ˡ-pure-step ((sg , sf) , x) = tr-step f (sf , x) >>= ∘ˡ-pure-route sg
+
+    ∘ˡ-mid-route : (sg : SFunᵉ.State g)
+      → (SFunᵉ.State f × X) ⊎ (SFunᵉ.State f × B)
+      → M (((SFunᵉ.State g × SFunᵉ.State f) × X) ⊎
+            ((SFunᵉ.State g × SFunᵉ.State f) × B'))
+    ∘ˡ-mid-route sg (inj₁ (sf' , x')) = return (inj₁ ((sg , sf') , x'))
+    ∘ˡ-mid-route sg (inj₂ (sf' , b))  =
+      SFunᵉ.fun g (sg , b) >>= λ (sg' , b') → return (inj₂ ((sg' , sf') , b'))
+
+    ∘ˡ-mid-step : ((SFunᵉ.State g × SFunᵉ.State f) × X)
+      → M (((SFunᵉ.State g × SFunᵉ.State f) × X) ⊎
+            ((SFunᵉ.State g × SFunᵉ.State f) × B'))
+    ∘ˡ-mid-step ((sg , sf) , x) = tr-step f (sf , x) >>= ∘ˡ-mid-route sg
+
+    -- The exit-effect, as iter-nat's post-processing.
+    ∘ˡ-exit : ((SFunᵉ.State g × SFunᵉ.State f) × B)
+      → M ((SFunᵉ.State g × SFunᵉ.State f) × B')
+    ∘ˡ-exit ((sg , sf') , b) =
+      SFunᵉ.fun g (sg , b) >>= λ (sg' , b') → return ((sg' , sf') , b')
+
+    -- (iii) Padding f's loop with a constant g-state.
+    ∘ˡ-stage₃ : ∀ sg sf (x : X)
+      → iter ∘ˡ-pure-step ((sg , sf) , x)
+        ≡ (iter (tr-step f) (sf , x) >>= λ (sf' , b) → return ((sg , sf') , b))
+    ∘ˡ-stage₃ sg sf x =
+      iter-conjugate
+        (λ sf' → (sg , sf')) (λ b → b)
+        (tr-step f) ∘ˡ-pure-step
+        (λ s₁ x' → refl⟩>>=⟨ (λ where
+          (inj₁ (sf' , x'')) → refl
+          (inj₂ (sf' , b))   → refl))
+        sf x
+
+    -- (ii) Moving g's exit-effect into the loop body.
+    ∘ˡ-stage₂ : ∀ sg sf (x : X)
+      → iter ∘ˡ-mid-step ((sg , sf) , x)
+        ≡ (iter ∘ˡ-pure-step ((sg , sf) , x) >>= ∘ˡ-exit)
+    ∘ˡ-stage₂ sg sf x =
+      trans
+        (iter-cong
+          (λ ((sg₀ , sf₀) , x₀) →
+            trans (refl⟩>>=⟨ (λ where
+              (inj₁ (sf' , x')) → sym >>=-identityˡ
+              (inj₂ (sf' , b))  →
+                sym (trans >>=-identityˡ
+                      (trans (>>=-assoc _)
+                             (refl⟩>>=⟨ (λ _ → >>=-identityˡ))))))
+              (sym (>>=-assoc _)))
+          ((sg , sf) , x))
+        (sym (iter-nat ∘ˡ-pure-step ∘ˡ-exit ((sg , sf) , x)))
+
+    -- (i) Premise: the RHS body's tr-step at repackaged state is the
+    -- intermediate body routed through iter-conj-step.
+    ∘ˡ-premise : ∀ sg sf (x : X)
+      → tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f) (((sg , tt) , sf) , x)
+        ≡ (∘ˡ-mid-step ((sg , sf) , x) >>= iter-conj-step ∘ˡ-st (λ b → b))
+    ∘ˡ-premise sg sf x = trans lhs-chain (sym rhs-chain)
+      where
+        open ≡-Reasoning
+
+        common : SFunᵉ.State f → B ⊎ X
+               → M ((((SFunᵉ.State g × ⊤) × SFunᵉ.State f) × X) ⊎
+                     (((SFunᵉ.State g × ⊤) × SFunᵉ.State f) × B'))
+        common sf' (inj₁ b)  = SFunᵉ.fun g (sg , b) >>= λ (sg' , b₁) →
+                                 return (inj₂ (((sg' , tt) , sf') , b₁))
+        common sf' (inj₂ x') = return (inj₁ (((sg , tt) , sf') , x'))
+
+        lhs-branch : ∀ sf' (w : B ⊎ X)
+          → ((SFunᵉ.fun (g ⊗ᵉ idᵉ) ((sg , tt) , w) >>= λ (sgt' , u) →
+               return ((sgt' , sf') , u)) >>= tr-cont)
+            ≡ common sf' w
+        lhs-branch sf' (inj₁ b) = begin
+          (((SFunᵉ.fun g (sg , b) >>= λ (sg' , b₁) → return ((sg' , tt) , inj₁ b₁))
+            >>= λ (sgt' , u) → return ((sgt' , sf') , u)) >>= tr-cont)
+            ≡⟨ >>=-assoc _ ⟩>>=⟨refl ⟩
+          ((SFunᵉ.fun g (sg , b) >>= λ (sg' , b₁) →
+            return ((sg' , tt) , inj₁ b₁) >>= λ (sgt' , u) →
+              return ((sgt' , sf') , u)) >>= tr-cont)
+            ≡⟨ (refl⟩>>=⟨ (λ _ → >>=-identityˡ)) ⟩>>=⟨refl ⟩
+          ((SFunᵉ.fun g (sg , b) >>= λ (sg' , b₁) →
+            return (((sg' , tt) , sf') , inj₁ b₁)) >>= tr-cont)
+            ≡⟨ >>=-assoc _ ⟩
+          (SFunᵉ.fun g (sg , b) >>= λ (sg' , b₁) →
+            return (((sg' , tt) , sf') , inj₁ b₁) >>= tr-cont)
+            ≡⟨ refl⟩>>=⟨ (λ _ → >>=-identityˡ) ⟩
+          (SFunᵉ.fun g (sg , b) >>= λ (sg' , b₁) →
+            return (inj₂ (((sg' , tt) , sf') , b₁))) ∎
+        lhs-branch sf' (inj₂ x') = begin
+          (((return (tt , x') >>= λ (st' , d) → return ((sg , st') , inj₂ d))
+            >>= λ (sgt' , u) → return ((sgt' , sf') , u)) >>= tr-cont)
+            ≡⟨ (>>=-identityˡ ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+          ((return ((sg , tt) , inj₂ x') >>= λ (sgt' , u) →
+            return ((sgt' , sf') , u)) >>= tr-cont)
+            ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+          (return (((sg , tt) , sf') , inj₂ x') >>= tr-cont)
+            ≡⟨ >>=-identityˡ ⟩
+          return (inj₁ (((sg , tt) , sf') , x')) ∎
+
+        rhs-branch : ∀ sf' (w : B ⊎ X)
+          → ((tr-cont (sf' , w) >>= ∘ˡ-mid-route sg)
+              >>= iter-conj-step ∘ˡ-st (λ b → b))
+            ≡ common sf' w
+        rhs-branch sf' (inj₁ b) = begin
+          ((tr-cont (sf' , inj₁ b) >>= ∘ˡ-mid-route sg)
+            >>= iter-conj-step ∘ˡ-st (λ b₀ → b₀))
+            ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+          ((SFunᵉ.fun g (sg , b) >>= λ (sg' , b') → return (inj₂ ((sg' , sf') , b')))
+            >>= iter-conj-step ∘ˡ-st (λ b₀ → b₀))
+            ≡⟨ >>=-assoc _ ⟩
+          (SFunᵉ.fun g (sg , b) >>= λ (sg' , b') →
+            return (inj₂ ((sg' , sf') , b')) >>= iter-conj-step ∘ˡ-st (λ b₀ → b₀))
+            ≡⟨ refl⟩>>=⟨ (λ _ → >>=-identityˡ) ⟩
+          (SFunᵉ.fun g (sg , b) >>= λ (sg' , b') →
+            return (inj₂ (((sg' , tt) , sf') , b'))) ∎
+        rhs-branch sf' (inj₂ x') = begin
+          ((tr-cont (sf' , inj₂ x') >>= ∘ˡ-mid-route sg)
+            >>= iter-conj-step ∘ˡ-st (λ b₀ → b₀))
+            ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+          (return (inj₁ ((sg , sf') , x')) >>= iter-conj-step ∘ˡ-st (λ b₀ → b₀))
+            ≡⟨ >>=-identityˡ ⟩
+          return (inj₁ (((sg , tt) , sf') , x')) ∎
+
+        lhs-chain :
+          tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f) (((sg , tt) , sf) , x)
+          ≡ (SFunᵉ.fun f (sf , inj₂ x) >>= λ (sf' , w) → common sf' w)
+        lhs-chain = begin
+          ((SFunᵉ.fun f (sf , inj₂ x) >>= λ (sf' , w) →
+            SFunᵉ.fun (g ⊗ᵉ idᵉ) ((sg , tt) , w) >>= λ (sgt' , u) →
+              return ((sgt' , sf') , u)) >>= tr-cont)
+            ≡⟨ >>=-assoc _ ⟩
+          (SFunᵉ.fun f (sf , inj₂ x) >>= λ (sf' , w) →
+            (SFunᵉ.fun (g ⊗ᵉ idᵉ) ((sg , tt) , w) >>= λ (sgt' , u) →
+              return ((sgt' , sf') , u)) >>= tr-cont)
+            ≡⟨ refl⟩>>=⟨ (λ (sf' , w) → lhs-branch sf' w) ⟩
+          (SFunᵉ.fun f (sf , inj₂ x) >>= λ (sf' , w) → common sf' w) ∎
+
+        rhs-chain :
+          (∘ˡ-mid-step ((sg , sf) , x) >>= iter-conj-step ∘ˡ-st (λ b → b))
+          ≡ (SFunᵉ.fun f (sf , inj₂ x) >>= λ (sf' , w) → common sf' w)
+        rhs-chain = begin
+          (((SFunᵉ.fun f (sf , inj₂ x) >>= tr-cont) >>= ∘ˡ-mid-route sg)
+            >>= iter-conj-step ∘ˡ-st (λ b → b))
+            ≡⟨ >>=-assoc _ ⟩>>=⟨refl ⟩
+          ((SFunᵉ.fun f (sf , inj₂ x) >>= λ (sf' , w) →
+             tr-cont (sf' , w) >>= ∘ˡ-mid-route sg)
+            >>= iter-conj-step ∘ˡ-st (λ b → b))
+            ≡⟨ >>=-assoc _ ⟩
+          (SFunᵉ.fun f (sf , inj₂ x) >>= λ (sf' , w) →
+            (tr-cont (sf' , w) >>= ∘ˡ-mid-route sg)
+              >>= iter-conj-step ∘ˡ-st (λ b → b))
+            ≡⟨ refl⟩>>=⟨ (λ (sf' , w) → rhs-branch sf' w) ⟩
+          (SFunᵉ.fun f (sf , inj₂ x) >>= λ (sf' , w) → common sf' w) ∎
+
+    -- (i) applied.
+    ∘ˡ-stage₁ : ∀ sg sf (x : X)
+      → iter (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f)) (((sg , tt) , sf) , x)
+        ≡ (iter ∘ˡ-mid-step ((sg , sf) , x) >>= λ (s' , b') →
+            return (∘ˡ-st s' , b'))
+    ∘ˡ-stage₁ sg sf x =
+      iter-conjugate
+        ∘ˡ-st (λ b → b)
+        ∘ˡ-mid-step
+        (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f))
+        (λ (sg₀ , sf₀) x' → ∘ˡ-premise sg₀ sf₀ x')
+        (sg , sf) x
+
+    -- The combined bridge: the RHS loop equals f's loop followed by g.
+    ∘ˡ-bridge : ∀ sg sf (x : X)
+      → iter (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f)) (((sg , tt) , sf) , x)
+        ≡ (iter (tr-step f) (sf , x) >>= λ (sf' , b) →
+            SFunᵉ.fun g (sg , b) >>= λ (sg' , b') →
+              return (((sg' , tt) , sf') , b'))
+    ∘ˡ-bridge sg sf x = begin
+      iter (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f)) (((sg , tt) , sf) , x)
+        ≡⟨ ∘ˡ-stage₁ sg sf x ⟩
+      (iter ∘ˡ-mid-step ((sg , sf) , x) >>= λ (s' , b') → return (∘ˡ-st s' , b'))
+        ≡⟨ ∘ˡ-stage₂ sg sf x ⟩>>=⟨refl ⟩
+      ((iter ∘ˡ-pure-step ((sg , sf) , x) >>= ∘ˡ-exit)
+        >>= λ (s' , b') → return (∘ˡ-st s' , b'))
+        ≡⟨ (∘ˡ-stage₃ sg sf x ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+      (((iter (tr-step f) (sf , x) >>= λ (sf' , b) → return ((sg , sf') , b))
+         >>= ∘ˡ-exit)
+        >>= λ (s' , b') → return (∘ˡ-st s' , b'))
+        ≡⟨ >>=-assoc _ ⟩>>=⟨refl ⟩
+      ((iter (tr-step f) (sf , x) >>= λ (sf' , b) →
+         return ((sg , sf') , b) >>= ∘ˡ-exit)
+        >>= λ (s' , b') → return (∘ˡ-st s' , b'))
+        ≡⟨ (refl⟩>>=⟨ (λ _ → >>=-identityˡ)) ⟩>>=⟨refl ⟩
+      ((iter (tr-step f) (sf , x) >>= λ (sf' , b) → ∘ˡ-exit ((sg , sf') , b))
+        >>= λ (s' , b') → return (∘ˡ-st s' , b'))
+        ≡⟨ >>=-assoc _ ⟩
+      (iter (tr-step f) (sf , x) >>= λ (sf' , b) →
+        ∘ˡ-exit ((sg , sf') , b) >>= λ (s' , b') → return (∘ˡ-st s' , b'))
+        ≡⟨ refl⟩>>=⟨ (λ (sf' , b) →
+             trans (>>=-assoc _) (refl⟩>>=⟨ (λ _ → >>=-identityˡ))) ⟩
+      (iter (tr-step f) (sf , x) >>= λ (sf' , b) →
+        SFunᵉ.fun g (sg , b) >>= λ (sg' , b') →
+          return (((sg' , tt) , sf') , b')) ∎
+      where open ≡-Reasoning
+
+    -- The fun-level simulation hypothesis.
+    ∘ˡ-hyp : ∀ s (a : A)
+      → (SFunᵉ.fun (g ∘ᵉ tr {X = X} f) (s , a) >>= λ (s' , b) →
+          return (∘ˡ-st s' , b))
+        ≡ SFunᵉ.fun (tr {X = X} ((g ⊗ᵉ idᵉ) ∘ᵉ f)) (∘ˡ-st s , a)
+    ∘ˡ-hyp (sg , sf) a = trans lhs-chain (sym rhs-chain)
+      where
+        open ≡-Reasoning
+
+        common : SFunᵉ.State f → B ⊎ X
+               → M (((SFunᵉ.State g × ⊤) × SFunᵉ.State f) × B')
+        common sf' (inj₁ b) = SFunᵉ.fun g (sg , b) >>= λ (sg' , b') →
+                                return (((sg' , tt) , sf') , b')
+        common sf' (inj₂ x) = iter (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f))
+                                   (((sg , tt) , sf') , x)
+
+        lhs-branch : ∀ sf' (w : B ⊎ X)
+          → (tr-fun-cont (iter (tr-step f)) (sf' , w) >>= λ (sf'' , b) →
+              SFunᵉ.fun g (sg , b) >>= λ (sg' , b') →
+                return (((sg' , tt) , sf'') , b'))
+            ≡ common sf' w
+        lhs-branch sf' (inj₁ b) = >>=-identityˡ
+        lhs-branch sf' (inj₂ x) = sym (∘ˡ-bridge sg sf' x)
+
+        lhs-chain :
+          (SFunᵉ.fun (g ∘ᵉ tr {X = X} f) ((sg , sf) , a) >>= λ (s' , b) →
+            return (∘ˡ-st s' , b))
+          ≡ (SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) → common sf' w)
+        lhs-chain = begin
+          ((SFunᵉ.fun (tr {X = X} f) (sf , a) >>= λ (sf' , b) →
+             SFunᵉ.fun g (sg , b) >>= λ (sg' , b') → return ((sg' , sf') , b'))
+            >>= λ (s' , b) → return (∘ˡ-st s' , b))
+            ≡⟨ >>=-assoc _ ⟩
+          (SFunᵉ.fun (tr {X = X} f) (sf , a) >>= λ (sf' , b) →
+            (SFunᵉ.fun g (sg , b) >>= λ (sg' , b') → return ((sg' , sf') , b'))
+              >>= λ (s' , b₁) → return (∘ˡ-st s' , b₁))
+            ≡⟨ refl⟩>>=⟨ (λ (sf' , b) →
+                 trans (>>=-assoc _) (refl⟩>>=⟨ (λ _ → >>=-identityˡ))) ⟩
+          (SFunᵉ.fun (tr {X = X} f) (sf , a) >>= λ (sf' , b) →
+            SFunᵉ.fun g (sg , b) >>= λ (sg' , b') →
+              return (((sg' , tt) , sf') , b'))
+            ≡⟨ >>=-assoc _ ⟩
+          (SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) →
+            tr-fun-cont (iter (tr-step f)) (sf' , w) >>= λ (sf'' , b) →
+              SFunᵉ.fun g (sg , b) >>= λ (sg' , b') →
+                return (((sg' , tt) , sf'') , b'))
+            ≡⟨ refl⟩>>=⟨ (λ (sf' , w) → lhs-branch sf' w) ⟩
+          (SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) → common sf' w) ∎
+
+        rhs-branch : ∀ sf' (w : B ⊎ X)
+          → ((SFunᵉ.fun (g ⊗ᵉ idᵉ) ((sg , tt) , w) >>= λ (sgt' , u) →
+               return ((sgt' , sf') , u))
+              >>= tr-fun-cont (iter (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f))))
+            ≡ common sf' w
+        rhs-branch sf' (inj₁ b) = begin
+          (((SFunᵉ.fun g (sg , b) >>= λ (sg' , b₁) → return ((sg' , tt) , inj₁ b₁))
+            >>= λ (sgt' , u) → return ((sgt' , sf') , u))
+            >>= tr-fun-cont (iter (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f))))
+            ≡⟨ >>=-assoc _ ⟩>>=⟨refl ⟩
+          ((SFunᵉ.fun g (sg , b) >>= λ (sg' , b₁) →
+            return ((sg' , tt) , inj₁ b₁) >>= λ (sgt' , u) →
+              return ((sgt' , sf') , u))
+            >>= tr-fun-cont (iter (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f))))
+            ≡⟨ (refl⟩>>=⟨ (λ _ → >>=-identityˡ)) ⟩>>=⟨refl ⟩
+          ((SFunᵉ.fun g (sg , b) >>= λ (sg' , b₁) →
+            return (((sg' , tt) , sf') , inj₁ b₁))
+            >>= tr-fun-cont (iter (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f))))
+            ≡⟨ >>=-assoc _ ⟩
+          (SFunᵉ.fun g (sg , b) >>= λ (sg' , b₁) →
+            return (((sg' , tt) , sf') , inj₁ b₁)
+              >>= tr-fun-cont (iter (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f))))
+            ≡⟨ refl⟩>>=⟨ (λ _ → >>=-identityˡ) ⟩
+          (SFunᵉ.fun g (sg , b) >>= λ (sg' , b₁) →
+            return (((sg' , tt) , sf') , b₁)) ∎
+        rhs-branch sf' (inj₂ x) = begin
+          (((return (tt , x) >>= λ (st' , d) → return ((sg , st') , inj₂ d))
+            >>= λ (sgt' , u) → return ((sgt' , sf') , u))
+            >>= tr-fun-cont (iter (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f))))
+            ≡⟨ (>>=-identityˡ ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+          ((return ((sg , tt) , inj₂ x) >>= λ (sgt' , u) →
+            return ((sgt' , sf') , u))
+            >>= tr-fun-cont (iter (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f))))
+            ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+          (return (((sg , tt) , sf') , inj₂ x)
+            >>= tr-fun-cont (iter (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f))))
+            ≡⟨ >>=-identityˡ ⟩
+          iter (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f)) (((sg , tt) , sf') , x) ∎
+
+        rhs-chain :
+          SFunᵉ.fun (tr {X = X} ((g ⊗ᵉ idᵉ) ∘ᵉ f)) (((sg , tt) , sf) , a)
+          ≡ (SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) → common sf' w)
+        rhs-chain = begin
+          ((SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) →
+            SFunᵉ.fun (g ⊗ᵉ idᵉ) ((sg , tt) , w) >>= λ (sgt' , u) →
+              return ((sgt' , sf') , u))
+            >>= tr-fun-cont (iter (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f))))
+            ≡⟨ >>=-assoc _ ⟩
+          (SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) →
+            (SFunᵉ.fun (g ⊗ᵉ idᵉ) ((sg , tt) , w) >>= λ (sgt' , u) →
+              return ((sgt' , sf') , u))
+              >>= tr-fun-cont (iter (tr-step ((g ⊗ᵉ idᵉ) ∘ᵉ f))))
+            ≡⟨ refl⟩>>=⟨ (λ (sf' , w) → rhs-branch sf' w) ⟩
+          (SFunᵉ.fun f (sf , inj₁ a) >>= λ (sf' , w) → common sf' w) ∎
+
+trace-∘ˡ-ᵉ : ∀ {X A B B' : Type} {g : SFunᵉ B B'} {f : SFunᵉ (A ⊎ X) (B ⊎ X)}
+           → (g ∘ᵉ tr {X = X} f) ≈ᵉ tr {X = X} ((g ⊗ᵉ idᵉ) ∘ᵉ f)
+trace-∘ˡ-ᵉ {g = g} {f} xs =
+  trace-sim (∘ˡ-st g f) (∘ˡ-hyp g f)
+            (SFunᵉ.init g , SFunᵉ.init f) xs
+
+------------------------------------------------------------------------
+-- Trace exchange (Fubini):
+--   tr_X (tr_Y f) ≈ᵉ tr_Y (tr_X (β ∘ᵉ (f ∘ᵉ β)))
+-- where β = α⇐ᵉ ∘ᵉ ((idᵉ ⊗ᵉ σᵉ) ∘ᵉ α⇒ᵉ) swaps the last two factors.
+--
+-- Strategy: both nestings reduce to a single flat iter over the
+-- combined loop X ⊎ Y (body `combine comm-fx (tr-step f)`), via
+-- iter-codiag / iter-codiag-y for the loops entered on the outer
+-- channel and iter-vanishing-2 / iter-vanishing-2-x for the loops
+-- entered on the inner channel. The β-layers of the RHS are pure and
+-- only contribute constant state padding (`iter-conjugate`).
+
+private
+  module _ {A B X Y : Type} (f : SFunᵉ ((A ⊎ X) ⊎ Y) ((B ⊎ X) ⊎ Y)) where
+
+    private
+      βᵉ : ∀ {P Q R : Type} → SFunᵉ ((P ⊎ Q) ⊎ R) ((P ⊎ R) ⊎ Q)
+      βᵉ = α⇐ᵉ ∘ᵉ ((idᵉ ⊗ᵉ σᵉ) ∘ᵉ α⇒ᵉ)
+
+      g₀ : SFunᵉ ((A ⊎ Y) ⊎ X) ((B ⊎ Y) ⊎ X)
+      g₀ = βᵉ ∘ᵉ (f ∘ᵉ βᵉ)
+
+    -- Value-level behaviour of β.
+    β-route : {P Q R : Type} → (P ⊎ Q) ⊎ R → (P ⊎ R) ⊎ Q
+    β-route (inj₁ (inj₁ p)) = inj₁ (inj₁ p)
+    β-route (inj₁ (inj₂ q)) = inj₂ q
+    β-route (inj₂ r)        = inj₁ (inj₂ r)
+
+    β-char : ∀ {P Q R : Type} s (z : (P ⊎ Q) ⊎ R)
+           → SFunᵉ.fun (βᵉ {P} {Q} {R}) (s , z) ≡ return (s , β-route z)
+    β-char (s⇐ , ((sid , sσ) , s⇒)) (inj₁ (inj₁ p)) = begin
+      ((return (tt , inj₁ p) >>= λ (s⇒' , w₀) →
+         SFunᵉ.fun (idᵉ ⊗ᵉ σᵉ) ((sid , sσ) , w₀) >>= λ (sidσ' , u) →
+           return ((sidσ' , s⇒') , u))
+        >>= λ (sR' , w₁) → SFunᵉ.fun α⇐ᵉ (s⇐ , w₁) >>= λ (s⇐' , u) →
+          return ((s⇐' , sR') , u))
+        ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun (idᵉ ⊗ᵉ σᵉ) ((sid , sσ) , inj₁ p) >>= λ (sidσ' , u) →
+         return ((sidσ' , tt) , u))
+        >>= λ (sR' , w₁) → SFunᵉ.fun α⇐ᵉ (s⇐ , w₁) >>= λ (s⇐' , u) →
+          return ((s⇐' , sR') , u))
+        ≡⟨ (>>=-identityˡ ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+      ((return ((tt , sσ) , inj₁ p) >>= λ (sidσ' , u) →
+         return ((sidσ' , tt) , u))
+        >>= λ (sR' , w₁) → SFunᵉ.fun α⇐ᵉ (s⇐ , w₁) >>= λ (s⇐' , u) →
+          return ((s⇐' , sR') , u))
+        ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+      (return (((tt , sσ) , tt) , inj₁ p)
+        >>= λ (sR' , w₁) → SFunᵉ.fun α⇐ᵉ (s⇐ , w₁) >>= λ (s⇐' , u) →
+          return ((s⇐' , sR') , u))
+        ≡⟨ >>=-identityˡ ⟩
+      (SFunᵉ.fun α⇐ᵉ (s⇐ , inj₁ p) >>= λ (s⇐' , u) →
+        return ((s⇐' , ((tt , sσ) , tt)) , u))
+        ≡⟨ >>=-identityˡ ⟩
+      return ((tt , ((tt , sσ) , tt)) , inj₁ (inj₁ p)) ∎
+      where open ≡-Reasoning
+    β-char (s⇐ , ((sid , sσ) , s⇒)) (inj₁ (inj₂ q)) = begin
+      ((return (tt , inj₂ (inj₁ q)) >>= λ (s⇒' , w₀) →
+         SFunᵉ.fun (idᵉ ⊗ᵉ σᵉ) ((sid , sσ) , w₀) >>= λ (sidσ' , u) →
+           return ((sidσ' , s⇒') , u))
+        >>= λ (sR' , w₁) → SFunᵉ.fun α⇐ᵉ (s⇐ , w₁) >>= λ (s⇐' , u) →
+          return ((s⇐' , sR') , u))
+        ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun (idᵉ ⊗ᵉ σᵉ) ((sid , sσ) , inj₂ (inj₁ q)) >>= λ (sidσ' , u) →
+         return ((sidσ' , tt) , u))
+        >>= λ (sR' , w₁) → SFunᵉ.fun α⇐ᵉ (s⇐ , w₁) >>= λ (s⇐' , u) →
+          return ((s⇐' , sR') , u))
+        ≡⟨ (>>=-identityˡ ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+      ((return ((sid , tt) , inj₂ (inj₂ q)) >>= λ (sidσ' , u) →
+         return ((sidσ' , tt) , u))
+        >>= λ (sR' , w₁) → SFunᵉ.fun α⇐ᵉ (s⇐ , w₁) >>= λ (s⇐' , u) →
+          return ((s⇐' , sR') , u))
+        ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+      (return (((sid , tt) , tt) , inj₂ (inj₂ q))
+        >>= λ (sR' , w₁) → SFunᵉ.fun α⇐ᵉ (s⇐ , w₁) >>= λ (s⇐' , u) →
+          return ((s⇐' , sR') , u))
+        ≡⟨ >>=-identityˡ ⟩
+      (SFunᵉ.fun α⇐ᵉ (s⇐ , inj₂ (inj₂ q)) >>= λ (s⇐' , u) →
+        return ((s⇐' , ((sid , tt) , tt)) , u))
+        ≡⟨ >>=-identityˡ ⟩
+      return ((tt , ((sid , tt) , tt)) , inj₂ q) ∎
+      where open ≡-Reasoning
+    β-char (s⇐ , ((sid , sσ) , s⇒)) (inj₂ r) = begin
+      ((return (tt , inj₂ (inj₂ r)) >>= λ (s⇒' , w₀) →
+         SFunᵉ.fun (idᵉ ⊗ᵉ σᵉ) ((sid , sσ) , w₀) >>= λ (sidσ' , u) →
+           return ((sidσ' , s⇒') , u))
+        >>= λ (sR' , w₁) → SFunᵉ.fun α⇐ᵉ (s⇐ , w₁) >>= λ (s⇐' , u) →
+          return ((s⇐' , sR') , u))
+        ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun (idᵉ ⊗ᵉ σᵉ) ((sid , sσ) , inj₂ (inj₂ r)) >>= λ (sidσ' , u) →
+         return ((sidσ' , tt) , u))
+        >>= λ (sR' , w₁) → SFunᵉ.fun α⇐ᵉ (s⇐ , w₁) >>= λ (s⇐' , u) →
+          return ((s⇐' , sR') , u))
+        ≡⟨ (>>=-identityˡ ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+      ((return ((sid , tt) , inj₂ (inj₁ r)) >>= λ (sidσ' , u) →
+         return ((sidσ' , tt) , u))
+        >>= λ (sR' , w₁) → SFunᵉ.fun α⇐ᵉ (s⇐ , w₁) >>= λ (s⇐' , u) →
+          return ((s⇐' , sR') , u))
+        ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+      (return (((sid , tt) , tt) , inj₂ (inj₁ r))
+        >>= λ (sR' , w₁) → SFunᵉ.fun α⇐ᵉ (s⇐ , w₁) >>= λ (s⇐' , u) →
+          return ((s⇐' , sR') , u))
+        ≡⟨ >>=-identityˡ ⟩
+      (SFunᵉ.fun α⇐ᵉ (s⇐ , inj₂ (inj₁ r)) >>= λ (s⇐' , u) →
+        return ((s⇐' , ((sid , tt) , tt)) , u))
+        ≡⟨ >>=-identityˡ ⟩
+      return ((tt , ((sid , tt) , tt)) , inj₁ (inj₂ r)) ∎
+      where open ≡-Reasoning
+
+    -- g₀'s pointwise behaviour: f conjugated by the (pure) β's.
+    g₀-char : ∀ sβ₁ sf sβ₂ (z : (A ⊎ Y) ⊎ X)
+      → SFunᵉ.fun g₀ ((sβ₁ , (sf , sβ₂)) , z)
+        ≡ (SFunᵉ.fun f (sf , β-route z) >>= λ (sf' , w) →
+            return ((sβ₁ , (sf' , sβ₂)) , β-route w))
+    g₀-char sβ₁ sf sβ₂ z = begin
+      (SFunᵉ.fun (f ∘ᵉ βᵉ) ((sf , sβ₂) , z) >>= λ (sR' , w₁) →
+        SFunᵉ.fun βᵉ (sβ₁ , w₁) >>= λ (sβ₁' , u) → return ((sβ₁' , sR') , u))
+        ≡⟨ inner ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun f (sf , β-route z) >>= λ (sf' , w) →
+         return ((sf' , sβ₂) , w))
+        >>= λ (sR' , w₁) →
+          SFunᵉ.fun βᵉ (sβ₁ , w₁) >>= λ (sβ₁' , u) → return ((sβ₁' , sR') , u))
+        ≡⟨ >>=-assoc _ ⟩
+      (SFunᵉ.fun f (sf , β-route z) >>= λ (sf' , w) →
+        return ((sf' , sβ₂) , w) >>= λ (sR' , w₁) →
+          SFunᵉ.fun βᵉ (sβ₁ , w₁) >>= λ (sβ₁' , u) → return ((sβ₁' , sR') , u))
+        ≡⟨ refl⟩>>=⟨ (λ _ → >>=-identityˡ) ⟩
+      (SFunᵉ.fun f (sf , β-route z) >>= λ (sf' , w) →
+        SFunᵉ.fun βᵉ (sβ₁ , w) >>= λ (sβ₁' , u) →
+          return ((sβ₁' , (sf' , sβ₂)) , u))
+        ≡⟨ refl⟩>>=⟨ (λ (sf' , w) → β-char sβ₁ w ⟩>>=⟨refl) ⟩
+      (SFunᵉ.fun f (sf , β-route z) >>= λ (sf' , w) →
+        return (sβ₁ , β-route w) >>= λ (sβ₁' , u) →
+          return ((sβ₁' , (sf' , sβ₂)) , u))
+        ≡⟨ refl⟩>>=⟨ (λ _ → >>=-identityˡ) ⟩
+      (SFunᵉ.fun f (sf , β-route z) >>= λ (sf' , w) →
+        return ((sβ₁ , (sf' , sβ₂)) , β-route w)) ∎
+      where
+        open ≡-Reasoning
+        inner : SFunᵉ.fun (f ∘ᵉ βᵉ) ((sf , sβ₂) , z)
+              ≡ (SFunᵉ.fun f (sf , β-route z) >>= λ (sf' , w) →
+                  return ((sf' , sβ₂) , w))
+        inner = begin
+          (SFunᵉ.fun βᵉ (sβ₂ , z) >>= λ (sβ₂' , w₀) →
+            SFunᵉ.fun f (sf , w₀) >>= λ (sf' , u) → return ((sf' , sβ₂') , u))
+            ≡⟨ β-char sβ₂ z ⟩>>=⟨refl ⟩
+          (return (sβ₂ , β-route z) >>= λ (sβ₂' , w₀) →
+            SFunᵉ.fun f (sf , w₀) >>= λ (sf' , u) → return ((sf' , sβ₂') , u))
+            ≡⟨ >>=-identityˡ ⟩
+          (SFunᵉ.fun f (sf , β-route z) >>= λ (sf' , u) →
+            return ((sf' , sβ₂) , u)) ∎
+
+    -- The X-channel loop body derived from f (the Y-channel one is
+    -- literally `tr-step f`).
+    comm-fx-route : SFunᵉ.State f × ((B ⊎ X) ⊎ Y)
+                  → M ((SFunᵉ.State f × X) ⊎ (SFunᵉ.State f × (B ⊎ Y)))
+    comm-fx-route (sf' , inj₁ (inj₁ b))  = return (inj₂ (sf' , inj₁ b))
+    comm-fx-route (sf' , inj₁ (inj₂ x')) = return (inj₁ (sf' , x'))
+    comm-fx-route (sf' , inj₂ y)         = return (inj₂ (sf' , inj₂ y))
+
+    comm-fx : (SFunᵉ.State f × X)
+            → M ((SFunᵉ.State f × X) ⊎ (SFunᵉ.State f × (B ⊎ Y)))
+    comm-fx (sf , x) = SFunᵉ.fun f (sf , inj₁ (inj₂ x)) >>= comm-fx-route
+
+    -- The common flat-loop entry continuation.
+    comm-entry : SFunᵉ.State f × ((B ⊎ X) ⊎ Y) → M (SFunᵉ.State f × B)
+    comm-entry (sf' , inj₁ (inj₁ b)) = return (sf' , b)
+    comm-entry (sf' , inj₁ (inj₂ x)) =
+      iter (combine comm-fx (tr-step f)) (sf' , inj₁ x)
+    comm-entry (sf' , inj₂ y)        =
+      iter (combine comm-fx (tr-step f)) (sf' , inj₂ y)
+
+    -- State padding for the RHS (the β-layers carry only ⊤'s).
+    comm-pad : SFunᵉ.State f → SFunᵉ.State g₀
+    comm-pad sf = (tt , ((tt , tt) , tt)) , (sf , (tt , ((tt , tt) , tt)))
+
+    comm-padloop : SFunᵉ.State f × (B ⊎ Y) → M (SFunᵉ.State g₀ × (B ⊎ Y))
+    comm-padloop (sf , w) = return (comm-pad sf , w)
+
+    comm-padexit : SFunᵉ.State f × B → M (SFunᵉ.State g₀ × B)
+    comm-padexit (sf , b) = return (comm-pad sf , b)
+
+    -- ────────────────────────────────────────────────────────────────
+    -- LHS: tr_X (tr_Y f).
+
+    comm-outer-route : (SFunᵉ.State f × X) ⊎ (SFunᵉ.State f × (B ⊎ Y))
+                     → M ((SFunᵉ.State f × X) ⊎ (SFunᵉ.State f × B))
+    comm-outer-route (inj₁ p)              = return (inj₁ p)
+    comm-outer-route (inj₂ (sf' , inj₁ b)) = return (inj₂ (sf' , b))
+    comm-outer-route (inj₂ (sf' , inj₂ y)) =
+      iter (tr-step f) (sf' , y) >>= tr-cont
+
+    L-outer-char : ∀ p
+      → tr-step (tr {X = Y} f) p ≡ (comm-fx p >>= comm-outer-route)
+    L-outer-char (sf , x) = begin
+      ((SFunᵉ.fun f (sf , inj₁ (inj₂ x)) >>= tr-fun-cont (iter (tr-step f)))
+        >>= tr-cont)
+        ≡⟨ >>=-assoc _ ⟩
+      (SFunᵉ.fun f (sf , inj₁ (inj₂ x)) >>= λ (sf' , w) →
+        tr-fun-cont (iter (tr-step f)) (sf' , w) >>= tr-cont)
+        ≡⟨ refl⟩>>=⟨ (λ (sf' , w) → branch sf' w) ⟩
+      (SFunᵉ.fun f (sf , inj₁ (inj₂ x)) >>= λ (sf' , w) →
+        comm-fx-route (sf' , w) >>= comm-outer-route)
+        ≡˘⟨ >>=-assoc _ ⟩
+      ((SFunᵉ.fun f (sf , inj₁ (inj₂ x)) >>= comm-fx-route)
+        >>= comm-outer-route) ∎
+      where
+        open ≡-Reasoning
+        branch : ∀ sf' (w : (B ⊎ X) ⊎ Y)
+          → (tr-fun-cont (iter (tr-step f)) (sf' , w) >>= tr-cont)
+            ≡ (comm-fx-route (sf' , w) >>= comm-outer-route)
+        branch sf' (inj₁ (inj₁ b))  = trans >>=-identityˡ (sym >>=-identityˡ)
+        branch sf' (inj₁ (inj₂ x')) = trans >>=-identityˡ (sym >>=-identityˡ)
+        branch sf' (inj₂ y)         = sym >>=-identityˡ
+
+    L-outer-as-codiag : ∀ sf (x : X)
+      → iter (tr-step (tr {X = Y} f)) (sf , x)
+        ≡ iter (combine comm-fx (tr-step f)) (sf , inj₁ x)
+    L-outer-as-codiag sf x =
+      trans
+        (iter-cong
+          (λ p → trans (L-outer-char p)
+            (refl⟩>>=⟨ (λ where
+              (inj₁ q)               → refl
+              (inj₂ (sf' , inj₁ b))  → refl
+              (inj₂ (sf' , inj₂ y))  →
+                refl⟩>>=⟨ (λ where
+                  (sf'' , inj₁ b)  → refl
+                  (sf'' , inj₂ x') → refl))))
+          (sf , x))
+        (sym (iter-codiag comm-fx (tr-step f) sf x))
+
+    L-fun-char : ∀ sf (a : A)
+      → SFunᵉ.fun (tr {X = X} (tr {X = Y} f)) (sf , a)
+        ≡ (SFunᵉ.fun f (sf , inj₁ (inj₁ a)) >>= comm-entry)
+    L-fun-char sf a = begin
+      ((SFunᵉ.fun f (sf , inj₁ (inj₁ a)) >>= tr-fun-cont (iter (tr-step f)))
+        >>= tr-fun-cont (iter (tr-step (tr {X = Y} f))))
+        ≡⟨ >>=-assoc _ ⟩
+      (SFunᵉ.fun f (sf , inj₁ (inj₁ a)) >>= λ (sf' , w) →
+        tr-fun-cont (iter (tr-step f)) (sf' , w)
+          >>= tr-fun-cont (iter (tr-step (tr {X = Y} f))))
+        ≡⟨ refl⟩>>=⟨ (λ (sf' , w) → branch sf' w) ⟩
+      (SFunᵉ.fun f (sf , inj₁ (inj₁ a)) >>= comm-entry) ∎
+      where
+        open ≡-Reasoning
+        branch : ∀ sf' (w : (B ⊎ X) ⊎ Y)
+          → (tr-fun-cont (iter (tr-step f)) (sf' , w)
+              >>= tr-fun-cont (iter (tr-step (tr {X = Y} f))))
+            ≡ comm-entry (sf' , w)
+        branch sf' (inj₁ (inj₁ b)) = >>=-identityˡ
+        branch sf' (inj₁ (inj₂ x)) =
+          trans >>=-identityˡ (L-outer-as-codiag sf' x)
+        branch sf' (inj₂ y) =
+          trans
+            (refl⟩>>=⟨ (λ where
+              (sf'' , inj₁ b) → refl
+              (sf'' , inj₂ x) → L-outer-as-codiag sf'' x))
+            (iter-vanishing-2 comm-fx (tr-step f) sf' y)
+
+    -- ────────────────────────────────────────────────────────────────
+    -- RHS: tr_Y (tr_X g₀).
+
+    R-inner-premise : ∀ sf (x : X)
+      → tr-step g₀ (comm-pad sf , x)
+        ≡ (comm-fx (sf , x) >>= iter-conj-step comm-pad (λ b → b))
+    R-inner-premise sf x = begin
+      (SFunᵉ.fun g₀ (comm-pad sf , inj₂ x) >>= tr-cont)
+        ≡⟨ g₀-char _ sf _ (inj₂ x) ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun f (sf , inj₁ (inj₂ x)) >>= λ (sf' , w) →
+         return (comm-pad sf' , β-route w)) >>= tr-cont)
+        ≡⟨ >>=-assoc _ ⟩
+      (SFunᵉ.fun f (sf , inj₁ (inj₂ x)) >>= λ (sf' , w) →
+        return (comm-pad sf' , β-route w) >>= tr-cont)
+        ≡⟨ refl⟩>>=⟨ (λ _ → >>=-identityˡ) ⟩
+      (SFunᵉ.fun f (sf , inj₁ (inj₂ x)) >>= λ (sf' , w) →
+        tr-cont (comm-pad sf' , β-route w))
+        ≡⟨ refl⟩>>=⟨ (λ (sf' , w) → branch sf' w) ⟩
+      (SFunᵉ.fun f (sf , inj₁ (inj₂ x)) >>= λ (sf' , w) →
+        comm-fx-route (sf' , w) >>= iter-conj-step comm-pad (λ b → b))
+        ≡˘⟨ >>=-assoc _ ⟩
+      ((SFunᵉ.fun f (sf , inj₁ (inj₂ x)) >>= comm-fx-route)
+        >>= iter-conj-step comm-pad (λ b → b)) ∎
+      where
+        open ≡-Reasoning
+        branch : ∀ sf' (w : (B ⊎ X) ⊎ Y)
+          → tr-cont (comm-pad sf' , β-route w)
+            ≡ (comm-fx-route (sf' , w) >>= iter-conj-step comm-pad (λ b → b))
+        branch sf' (inj₁ (inj₁ b))  = sym >>=-identityˡ
+        branch sf' (inj₁ (inj₂ x')) = sym >>=-identityˡ
+        branch sf' (inj₂ y)         = sym >>=-identityˡ
+
+    R-inner-equiv : ∀ sf (x : X)
+      → iter (tr-step g₀) (comm-pad sf , x)
+        ≡ (iter comm-fx (sf , x) >>= comm-padloop)
+    R-inner-equiv sf x =
+      iter-conjugate
+        comm-pad (λ b → b)
+        comm-fx (tr-step g₀)
+        (λ s₁ x' → R-inner-premise s₁ x')
+        sf x
+
+    R-outer-route : (SFunᵉ.State f × Y) ⊎ (SFunᵉ.State f × (B ⊎ X))
+                  → M ((SFunᵉ.State f × Y) ⊎ (SFunᵉ.State f × B))
+    R-outer-route (inj₁ q)              = return (inj₁ q)
+    R-outer-route (inj₂ (sf' , inj₁ b)) = return (inj₂ (sf' , b))
+    R-outer-route (inj₂ (sf' , inj₂ x)) =
+      iter comm-fx (sf' , x) >>= tr-cont
+
+    R-outer-body : (SFunᵉ.State f × Y)
+                 → M ((SFunᵉ.State f × Y) ⊎ (SFunᵉ.State f × B))
+    R-outer-body (sf , y) = tr-step f (sf , y) >>= R-outer-route
+
+    R-outer-premise : ∀ sf (y : Y)
+      → tr-step (tr {X = X} g₀) (comm-pad sf , y)
+        ≡ (R-outer-body (sf , y) >>= iter-conj-step comm-pad (λ b → b))
+    R-outer-premise sf y = trans lhs-chain (sym rhs-chain)
+      where
+        open ≡-Reasoning
+
+        common : SFunᵉ.State f → (B ⊎ X) ⊎ Y
+               → M ((SFunᵉ.State g₀ × Y) ⊎ (SFunᵉ.State g₀ × B))
+        common sf' (inj₁ (inj₁ b)) = return (inj₂ (comm-pad sf' , b))
+        common sf' (inj₁ (inj₂ x)) =
+          iter comm-fx (sf' , x) >>= λ (sf'' , w₀) →
+            tr-cont (sf'' , w₀) >>= iter-conj-step comm-pad (λ b → b)
+        common sf' (inj₂ y')       = return (inj₁ (comm-pad sf' , y'))
+
+        lhs-branch : ∀ sf' (w : (B ⊎ X) ⊎ Y)
+          → (tr-fun-cont (iter (tr-step g₀)) (comm-pad sf' , β-route w)
+              >>= tr-cont)
+            ≡ common sf' w
+        lhs-branch sf' (inj₁ (inj₁ b)) = >>=-identityˡ
+        lhs-branch sf' (inj₂ y')       = >>=-identityˡ
+        lhs-branch sf' (inj₁ (inj₂ x)) = begin
+          (iter (tr-step g₀) (comm-pad sf' , x) >>= tr-cont)
+            ≡⟨ R-inner-equiv sf' x ⟩>>=⟨refl ⟩
+          ((iter comm-fx (sf' , x) >>= comm-padloop) >>= tr-cont)
+            ≡⟨ >>=-assoc _ ⟩
+          (iter comm-fx (sf' , x) >>= λ (sf'' , w₀) →
+            comm-padloop (sf'' , w₀) >>= tr-cont)
+            ≡⟨ refl⟩>>=⟨ (λ _ → >>=-identityˡ) ⟩
+          (iter comm-fx (sf' , x) >>= λ (sf'' , w₀) →
+            tr-cont (comm-pad sf'' , w₀))
+            ≡⟨ refl⟩>>=⟨ (λ where
+                 (sf'' , inj₁ b)  → sym >>=-identityˡ
+                 (sf'' , inj₂ y') → sym >>=-identityˡ) ⟩
+          (iter comm-fx (sf' , x) >>= λ (sf'' , w₀) →
+            tr-cont (sf'' , w₀) >>= iter-conj-step comm-pad (λ b → b)) ∎
+
+        lhs-chain :
+          tr-step (tr {X = X} g₀) (comm-pad sf , y)
+          ≡ (SFunᵉ.fun f (sf , inj₂ y) >>= λ (sf' , w) → common sf' w)
+        lhs-chain = begin
+          ((SFunᵉ.fun g₀ (comm-pad sf , inj₁ (inj₂ y))
+             >>= tr-fun-cont (iter (tr-step g₀)))
+            >>= tr-cont)
+            ≡⟨ (g₀-char _ sf _ (inj₁ (inj₂ y)) ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+          (((SFunᵉ.fun f (sf , inj₂ y) >>= λ (sf' , w) →
+              return (comm-pad sf' , β-route w))
+             >>= tr-fun-cont (iter (tr-step g₀)))
+            >>= tr-cont)
+            ≡⟨ >>=-assoc _ ⟩>>=⟨refl ⟩
+          ((SFunᵉ.fun f (sf , inj₂ y) >>= λ (sf' , w) →
+             return (comm-pad sf' , β-route w)
+               >>= tr-fun-cont (iter (tr-step g₀)))
+            >>= tr-cont)
+            ≡⟨ ((refl⟩>>=⟨ (λ _ → >>=-identityˡ))) ⟩>>=⟨refl ⟩
+          ((SFunᵉ.fun f (sf , inj₂ y) >>= λ (sf' , w) →
+             tr-fun-cont (iter (tr-step g₀)) (comm-pad sf' , β-route w))
+            >>= tr-cont)
+            ≡⟨ >>=-assoc _ ⟩
+          (SFunᵉ.fun f (sf , inj₂ y) >>= λ (sf' , w) →
+            tr-fun-cont (iter (tr-step g₀)) (comm-pad sf' , β-route w)
+              >>= tr-cont)
+            ≡⟨ refl⟩>>=⟨ (λ (sf' , w) → lhs-branch sf' w) ⟩
+          (SFunᵉ.fun f (sf , inj₂ y) >>= λ (sf' , w) → common sf' w) ∎
+
+        rhs-branch : ∀ sf' (w : (B ⊎ X) ⊎ Y)
+          → ((tr-cont (sf' , w) >>= R-outer-route)
+              >>= iter-conj-step comm-pad (λ b → b))
+            ≡ common sf' w
+        rhs-branch sf' (inj₁ (inj₁ b)) =
+          trans (>>=-identityˡ ⟩>>=⟨refl) >>=-identityˡ
+        rhs-branch sf' (inj₂ y') =
+          trans (>>=-identityˡ ⟩>>=⟨refl) >>=-identityˡ
+        rhs-branch sf' (inj₁ (inj₂ x)) = begin
+          ((tr-cont (sf' , inj₁ (inj₂ x)) >>= R-outer-route)
+            >>= iter-conj-step comm-pad (λ b → b))
+            ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+          (R-outer-route (inj₂ (sf' , inj₂ x))
+            >>= iter-conj-step comm-pad (λ b → b))
+            ≡⟨ >>=-assoc _ ⟩
+          (iter comm-fx (sf' , x) >>= λ (sf'' , w₀) →
+            tr-cont (sf'' , w₀) >>= iter-conj-step comm-pad (λ b → b)) ∎
+
+        rhs-chain :
+          (R-outer-body (sf , y) >>= iter-conj-step comm-pad (λ b → b))
+          ≡ (SFunᵉ.fun f (sf , inj₂ y) >>= λ (sf' , w) → common sf' w)
+        rhs-chain = begin
+          (((SFunᵉ.fun f (sf , inj₂ y) >>= tr-cont) >>= R-outer-route)
+            >>= iter-conj-step comm-pad (λ b → b))
+            ≡⟨ >>=-assoc _ ⟩>>=⟨refl ⟩
+          ((SFunᵉ.fun f (sf , inj₂ y) >>= λ (sf' , w) →
+             tr-cont (sf' , w) >>= R-outer-route)
+            >>= iter-conj-step comm-pad (λ b → b))
+            ≡⟨ >>=-assoc _ ⟩
+          (SFunᵉ.fun f (sf , inj₂ y) >>= λ (sf' , w) →
+            (tr-cont (sf' , w) >>= R-outer-route)
+              >>= iter-conj-step comm-pad (λ b → b))
+            ≡⟨ refl⟩>>=⟨ (λ (sf' , w) → rhs-branch sf' w) ⟩
+          (SFunᵉ.fun f (sf , inj₂ y) >>= λ (sf' , w) → common sf' w) ∎
+
+    R-outer-equiv : ∀ sf (y : Y)
+      → iter (tr-step (tr {X = X} g₀)) (comm-pad sf , y)
+        ≡ (iter R-outer-body (sf , y) >>= comm-padexit)
+    R-outer-equiv sf y =
+      iter-conjugate
+        comm-pad (λ b → b)
+        R-outer-body (tr-step (tr {X = X} g₀))
+        (λ s₁ y' → R-outer-premise s₁ y')
+        sf y
+
+    R-outer-as-codiag : ∀ sf (y : Y)
+      → iter R-outer-body (sf , y)
+        ≡ iter (combine comm-fx (tr-step f)) (sf , inj₂ y)
+    R-outer-as-codiag sf y =
+      trans
+        (iter-cong
+          (λ p → refl⟩>>=⟨ (λ where
+            (inj₁ q)               → refl
+            (inj₂ (sf' , inj₁ b))  → refl
+            (inj₂ (sf' , inj₂ x))  →
+              refl⟩>>=⟨ (λ where
+                (sf'' , inj₁ b)  → refl
+                (sf'' , inj₂ y') → refl)))
+          (sf , y))
+        (sym (iter-codiag-y comm-fx (tr-step f) sf y))
+
+    R-outer-full : ∀ sf (y : Y)
+      → iter (tr-step (tr {X = X} g₀)) (comm-pad sf , y)
+        ≡ (iter (combine comm-fx (tr-step f)) (sf , inj₂ y) >>= comm-padexit)
+    R-outer-full sf y =
+      trans (R-outer-equiv sf y) (R-outer-as-codiag sf y ⟩>>=⟨refl)
+
+    R-entry-branch : ∀ sf' (w : (B ⊎ X) ⊎ Y)
+      → (tr-fun-cont (iter (tr-step g₀)) (comm-pad sf' , β-route w)
+          >>= tr-fun-cont (iter (tr-step (tr {X = X} g₀))))
+        ≡ (comm-entry (sf' , w) >>= comm-padexit)
+    R-entry-branch sf' (inj₁ (inj₁ b)) =
+      trans >>=-identityˡ (sym >>=-identityˡ)
+    R-entry-branch sf' (inj₂ y) =
+      trans >>=-identityˡ (R-outer-full sf' y)
+    R-entry-branch sf' (inj₁ (inj₂ x)) = begin
+      (iter (tr-step g₀) (comm-pad sf' , x)
+        >>= tr-fun-cont (iter (tr-step (tr {X = X} g₀))))
+        ≡⟨ R-inner-equiv sf' x ⟩>>=⟨refl ⟩
+      ((iter comm-fx (sf' , x) >>= comm-padloop)
+        >>= tr-fun-cont (iter (tr-step (tr {X = X} g₀))))
+        ≡⟨ >>=-assoc _ ⟩
+      (iter comm-fx (sf' , x) >>= λ (sf'' , w₀) →
+        comm-padloop (sf'' , w₀)
+          >>= tr-fun-cont (iter (tr-step (tr {X = X} g₀))))
+        ≡⟨ refl⟩>>=⟨ (λ _ → >>=-identityˡ) ⟩
+      (iter comm-fx (sf' , x) >>= λ (sf'' , w₀) →
+        tr-fun-cont (iter (tr-step (tr {X = X} g₀))) (comm-pad sf'' , w₀))
+        ≡⟨ refl⟩>>=⟨ (λ where
+             (sf'' , inj₁ b) → sym >>=-identityˡ
+             (sf'' , inj₂ y) → R-outer-full sf'' y) ⟩
+      (iter comm-fx (sf' , x) >>= λ q →
+        vanishing-2-dispatch-x iter comm-fx (tr-step f) q >>= comm-padexit)
+        ≡˘⟨ >>=-assoc _ ⟩
+      ((iter comm-fx (sf' , x)
+         >>= vanishing-2-dispatch-x iter comm-fx (tr-step f))
+        >>= comm-padexit)
+        ≡⟨ iter-vanishing-2-x comm-fx (tr-step f) sf' x ⟩>>=⟨refl ⟩
+      (iter (combine comm-fx (tr-step f)) (sf' , inj₁ x) >>= comm-padexit) ∎
+      where open ≡-Reasoning
+
+    R-fun-char : ∀ sf (a : A)
+      → SFunᵉ.fun (tr {X = Y} (tr {X = X} g₀)) (comm-pad sf , a)
+        ≡ (SFunᵉ.fun f (sf , inj₁ (inj₁ a)) >>= λ (sf' , w) →
+            comm-entry (sf' , w) >>= comm-padexit)
+    R-fun-char sf a = begin
+      ((SFunᵉ.fun g₀ (comm-pad sf , inj₁ (inj₁ a))
+         >>= tr-fun-cont (iter (tr-step g₀)))
+        >>= tr-fun-cont (iter (tr-step (tr {X = X} g₀))))
+        ≡⟨ (g₀-char _ sf _ (inj₁ (inj₁ a)) ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+      (((SFunᵉ.fun f (sf , inj₁ (inj₁ a)) >>= λ (sf' , w) →
+          return (comm-pad sf' , β-route w))
+         >>= tr-fun-cont (iter (tr-step g₀)))
+        >>= tr-fun-cont (iter (tr-step (tr {X = X} g₀))))
+        ≡⟨ >>=-assoc _ ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun f (sf , inj₁ (inj₁ a)) >>= λ (sf' , w) →
+         return (comm-pad sf' , β-route w)
+           >>= tr-fun-cont (iter (tr-step g₀)))
+        >>= tr-fun-cont (iter (tr-step (tr {X = X} g₀))))
+        ≡⟨ (refl⟩>>=⟨ (λ _ → >>=-identityˡ)) ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun f (sf , inj₁ (inj₁ a)) >>= λ (sf' , w) →
+         tr-fun-cont (iter (tr-step g₀)) (comm-pad sf' , β-route w))
+        >>= tr-fun-cont (iter (tr-step (tr {X = X} g₀))))
+        ≡⟨ >>=-assoc _ ⟩
+      (SFunᵉ.fun f (sf , inj₁ (inj₁ a)) >>= λ (sf' , w) →
+        tr-fun-cont (iter (tr-step g₀)) (comm-pad sf' , β-route w)
+          >>= tr-fun-cont (iter (tr-step (tr {X = X} g₀))))
+        ≡⟨ refl⟩>>=⟨ (λ (sf' , w) → R-entry-branch sf' w) ⟩
+      (SFunᵉ.fun f (sf , inj₁ (inj₁ a)) >>= λ (sf' , w) →
+        comm-entry (sf' , w) >>= comm-padexit) ∎
+      where open ≡-Reasoning
+
+    comm-hyp : ∀ sf (a : A)
+      → (SFunᵉ.fun (tr {X = X} (tr {X = Y} f)) (sf , a) >>= λ (s' , b) →
+          return (comm-pad s' , b))
+        ≡ SFunᵉ.fun (tr {X = Y} (tr {X = X} g₀)) (comm-pad sf , a)
+    comm-hyp sf a = begin
+      (SFunᵉ.fun (tr {X = X} (tr {X = Y} f)) (sf , a) >>= λ (s' , b) →
+        return (comm-pad s' , b))
+        ≡⟨ L-fun-char sf a ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun f (sf , inj₁ (inj₁ a)) >>= comm-entry) >>= λ (s' , b) →
+        return (comm-pad s' , b))
+        ≡⟨ >>=-assoc _ ⟩
+      (SFunᵉ.fun f (sf , inj₁ (inj₁ a)) >>= λ (sf' , w) →
+        comm-entry (sf' , w) >>= λ (s' , b) → return (comm-pad s' , b))
+        ≡˘⟨ R-fun-char sf a ⟩
+      SFunᵉ.fun (tr {X = Y} (tr {X = X} g₀)) (comm-pad sf , a) ∎
+      where open ≡-Reasoning
+
+trace-comm-ᵉ : ∀ {X Y A B : Type}
+  {f : SFunᵉ ((A ⊎ X) ⊎ Y) ((B ⊎ X) ⊎ Y)}
+  → tr {X = X} (tr {X = Y} f)
+    ≈ᵉ tr {X = Y} (tr {X = X}
+        ((α⇐ᵉ ∘ᵉ ((idᵉ ⊗ᵉ σᵉ) ∘ᵉ α⇒ᵉ)) ∘ᵉ
+          (f ∘ᵉ (α⇐ᵉ ∘ᵉ ((idᵉ ⊗ᵉ σᵉ) ∘ᵉ α⇒ᵉ)))))
+trace-comm-ᵉ {f = f} xs =
+  trace-sim (comm-pad f) (comm-hyp f) (SFunᵉ.init f) xs
