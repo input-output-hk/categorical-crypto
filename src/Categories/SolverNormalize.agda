@@ -383,33 +383,19 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --------------------------------------------------------------------------------
   -- 11d'. THE `castW` OBJECT-TRANSPORT ALGEBRA (the genuine coherence content).
   --
-  -- `castW : u ≡ v → HomTerm (wires u) (wires v)` is the `++`-assoc object
-  -- transport realised as `subst`-of-`id`.  The structural reassociators
-  -- `assocW`/`assocW⁻`/`liftW` (built purely from `id` and `id ⊗₁ -`, α-free)
-  -- COLLAPSE to single `castW`s; combined with `castW`-functoriality this lets
-  -- the `g-in≈pad` reassociators cancel against the index casts.  All proven by
-  -- `J` (pattern-matching the equality to `refl`); no postulates, no holes.
+  -- castW, castW-∘, castW-∷, castW-sym-r, castW-sym-r-flip, castW-cancelʳ now
+  -- live in UntypedI (DiagramRewriteUntyped) and are available via the
+  -- `open UntypedI … public` above.
+  --
+  -- The remaining DecidableEquality-dependent pieces live here:
+  --   castW-irr, liftW-castW, assocW-castW, assocW⁻-castW,
+  --   assocTower≈castW, assocTower⁻≈castW.
   --------------------------------------------------------------------------------
-
-
-  -- the object transport: realised as `subst`-of-`id`, so `castW refl = id`.
-  castW : ∀ {u v : List X} → u ≡ v → HomTerm (wires u) (wires v)
-  castW refl = id
-
-  -- functoriality of `castW` (composition of transports).
-  castW-∘ : ∀ {u v w : List X} (e₁ : u ≡ v) (e₂ : v ≡ w)
-          → castW e₂ ∘ castW e₁ ≈Term castW (trans e₁ e₂)
-  castW-∘ refl refl = idˡ
 
   -- `castW` is determined by its endpoints (proof-irrelevance via the
   -- Hedberg UIP on wire lists; --without-K).
   castW-irr : ∀ {u v : List X} (e e' : u ≡ v) → castW e ≈Term castW e'
   castW-irr e e' = ≡⇒≈Term (cong castW (≡-irrelevantL e e'))
-
-  -- prepending one wire to a transport.
-  castW-∷ : ∀ {x : X} {u v : List X} (e : u ≡ v)
-          → id ⊗₁ castW e ≈Term castW (cong (x ∷_) e)
-  castW-∷ refl = id⊗id≈id
 
   -- `liftW p` of a transport is the transport prefixed by `p`.
   liftW-castW : ∀ (p : List X) {u v : List X} (e : u ≡ v)
@@ -505,14 +491,6 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈Term castW (domeq pre a₁ mid b₂ r)
   reassocB-in≈castW pre mid r {a₁} {b₁} {a₂} {b₂} f g =
     assocTower⁻≈castW pre a₁ mid (b₂ ++ r)
-
-  -- round-trip cancellation of inverse casts.
-  castW-sym-r : ∀ {u v : List X} (e : u ≡ v) → castW (sym e) ∘ castW e ≈Term id
-  castW-sym-r refl = idˡ
-
-  -- the other cancellation order.
-  castW-sym-r-flip : ∀ {u v : List X} (e : u ≡ v) → castW e ∘ castW (sym e) ≈Term id
-  castW-sym-r-flip refl = idˡ
 
   -- THE CORE BRIDGE (frame coordinates), PROVEN.  The frame's grouped `g-in`
   -- equals the clean flat `pad` of the right box `g` (at the LeftFit offset
@@ -787,11 +765,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     trans (substDiagU-out (domeq P by mid ax s) _)
           (substDiagU-out (sym (domeq P by mid bx s)) _)
 
-  -- right-cancel an iso `castW e`:  A ∘ castW e ≈ B ∘ castW e  ⟹  A ≈ B.
-  castW-cancelʳ : ∀ {u v w : List X} (e : u ≡ v)
-                  {A B : HomTerm (wires v) (wires w)}
-                → A ∘ castW e ≈Term B ∘ castW e → A ≈Term B
-  castW-cancelʳ refl {A} {B} h = ⟺ idʳ ○ h ○ idʳ
+  -- (`castW-cancelʳ` now lives in UntypedI.)
 
   -- expansion of the INPUT diagram, pre-composed by the domain cast `e`, to the
   -- frame INPUT composite (the LHS of `diagU-swap-sound`).  Proven by `J` on the

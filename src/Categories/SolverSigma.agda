@@ -202,13 +202,15 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   ------------------------------------------------------------------------
   -- The normalize / compare stack at (Symm, MorS, ⟦box⟧S).
   ------------------------------------------------------------------------
+  -- castW / castW-∘ / castW-∷ / castW-sym-r now come from the UntypedI open
+  -- above (they moved into the engine); only the DecEq-dependent algebra and
+  -- the swap machinery still come from NormalizeI.
   open NormalizeI Symm {X} _≟X_ MorS ⟦box⟧S using
-    ( castW; castW-∘; castW-irr
+    ( castW-irr
     ; substDiagU; substDiagU-out; ⟦substDiagU⟧
     ; LeftFit; leftFit
     ; dInput; dSwapped; dInput-out; dSwapped-out; diagU-swap-soundD; domeq
-    ; assocW-castW; assocW⁻-castW; liftW-castW; castW-∷
-    ; castW-sym-r
+    ; assocW-castW; assocW⁻-castW; liftW-castW
     ; module SortD )
   open SortD using (leftFit?; stripPrefix)
 
