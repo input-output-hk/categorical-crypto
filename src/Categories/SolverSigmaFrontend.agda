@@ -80,7 +80,7 @@ import Categories.Category.Monoidal.Reasoning as MonR
 
 open import Categories.FreeMonoidal
 open import Categories.SolverFrontendCore
-  using (module MaybeHit; module FCore; module FBridge; module IntoCore)
+  using (module MaybeHit; module FCore; module FBridge; module IntoCore; module FinSig)
 open import Categories.SolverSigma using (module Sigma)
 
 module FrontendS
@@ -295,25 +295,11 @@ module FinSetupσ
 
   module Sig {nG : ℕ} (arity : Fin nG → ObjTerm × ObjTerm) where
 
-    data GenS : ObjTerm → ObjTerm → Set where
-      genS : (i : Fin nG) → GenS (proj₁ (arity i)) (proj₂ (arity i))
+    -- the variant-generic Fin-signature prelude (GenS / S / gen / _≟G_ /
+    -- rankS / GenΣ), shared with the Mon `FinSetup` via the core.
+    open FinSig Symm {nA} arity public using (GenS; genS; module S; gen; GenΣ; _≟G_; rankS)
 
-    -- the front-end term language over the assembled signature.
-    module S = FreeMonoidalHelper.Mor Symm (Fin nA) GenS
-
-    gen : (i : Fin nG) → S.HomTerm (proj₁ (arity i)) (proj₂ (arity i))
-    gen i = S.var (genS i)
-
-    open FrontendS {Fin nA} _≟Fin_ GenS using (GenΣ; module Decide)
-
-    private
-      _≟G_ : DecidableEquality GenΣ
-      (_ , _ , genS i) ≟G (_ , _ , genS j) = case i ≟Fin j of λ where
-        (yes refl) → yes refl
-        (no ¬p)    → no λ where refl → ¬p refl
-
-      rankS : GenΣ → ℕ
-      rankS (_ , _ , genS i) = toℕ i
+    open FrontendS {Fin nA} _≟Fin_ GenS using (module Decide)
 
     open Decide _≟G_ rankS public
       using (decide?F; IsJust; solveTerm!; module Into)

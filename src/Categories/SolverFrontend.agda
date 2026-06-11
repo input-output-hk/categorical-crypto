@@ -117,7 +117,7 @@ open import Categories.DiagramRewriteUntyped using (module Untyped)
 open import Categories.FreeMonoidal
 open import Categories.SolverCompare using (module SolverCompare)
 open import Categories.SolverFrontendCore
-  using (module MaybeHit; module FCore; module FBridge; module IntoCore)
+  using (module MaybeHit; module FCore; module FBridge; module IntoCore; module FinSig)
 open import Categories.SolverNormalize using (module Normalize)
 open import Categories.SolverReflect using (module Reflect; module DecideCore)
 
@@ -481,25 +481,11 @@ module FinSetup
 
   module Sig {nG : ℕ} (arity : Fin nG → ObjTerm × ObjTerm) where
 
-    data GenS : ObjTerm → ObjTerm → Set where
-      genS : (i : Fin nG) → GenS (proj₁ (arity i)) (proj₂ (arity i))
+    -- the variant-generic Fin-signature prelude (GenS / S / gen / _≟G_ /
+    -- rankS / GenΣ), shared with `FinSetupσ` via the core.
+    open FinSig Mon {nA} arity public using (GenS; genS; module S; gen; GenΣ; _≟G_; rankS)
 
-    -- the front-end term language over the assembled signature.
-    module S = FreeMonoidalHelper.Mor Mon (Fin nA) GenS
-
-    gen : (i : Fin nG) → S.HomTerm (proj₁ (arity i)) (proj₂ (arity i))
-    gen i = S.var (genS i)
-
-    open Frontend {Fin nA} _≟Fin_ GenS using (GenΣ; module Decide)
-
-    private
-      _≟G_ : DecidableEquality GenΣ
-      (_ , _ , genS i) ≟G (_ , _ , genS j) = case i ≟Fin j of λ where
-        (yes refl) → yes refl
-        (no ¬p)    → no λ where refl → ¬p refl
-
-      rankS : GenΣ → ℕ
-      rankS (_ , _ , genS i) = toℕ i
+    open Frontend {Fin nA} _≟Fin_ GenS using (module Decide)
 
     open Decide _≟G_ rankS public
       using (decide?F; IsJust; solveTerm!; module Into

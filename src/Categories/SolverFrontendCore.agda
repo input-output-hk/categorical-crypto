@@ -75,11 +75,13 @@
 module Categories.SolverFrontendCore where
 
 open import Data.Empty using (⊥)
+open import Data.Fin using (Fin; toℕ)
+open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Nat using (ℕ)
-open import Data.Product using (Σ; _,_; Σ-syntax)
+open import Data.Product using (Σ; _,_; _×_; Σ-syntax; proj₁; proj₂)
 open import Data.Unit using (⊤)
 open import Function using (case_of_)
 open import Level using (Level)
@@ -175,6 +177,46 @@ module FCore
     _ ∎F = F.≈-Term-refl
     syntax stepF-≈  f gh fg = f ≈F⟨ fg ⟩ gh
     syntax stepF-≈˘ f gh gf = f ≈F⟨ gf ⟨ gh
+
+------------------------------------------------------------------------
+-- FinSig: the shared Fin-indexed signature prelude for the call-site
+-- wrappers (`FinSetup` / `FinSetupσ`).
+--
+-- The generator family `GenS` is a `Fin nG`-indexed data family at the
+-- ObjTerm arities — crucially NOT parametrized by any target category, so a
+-- single signature can be reused across targets (the old per-target `GenS`,
+-- declared inside `module FinSetup C …`, lifted `C` into `GenS`'s parameters
+-- and made two `FinSetup`s over the same signature at different targets
+-- incompatible).  The decidable equality and rank come for free from `Fin`.
+------------------------------------------------------------------------
+
+module FinSig
+  (v : Variant)
+  {nA : ℕ}
+  (let open FreeMonoidalHelper v (Fin nA) using (ObjTerm))
+  {nG : ℕ}
+  (arity : Fin nG → ObjTerm × ObjTerm)
+  where
+
+  data GenS : ObjTerm → ObjTerm → Set where
+    genS : (i : Fin nG) → GenS (proj₁ (arity i)) (proj₂ (arity i))
+
+  -- the front-end term language over the assembled signature.
+  module S = FreeMonoidalHelper.Mor v (Fin nA) GenS
+
+  gen : (i : Fin nG) → S.HomTerm (proj₁ (arity i)) (proj₂ (arity i))
+  gen i = S.var (genS i)
+
+  -- the Σ-packaged front-end generators, and the Fin-derived DecEq / rank.
+  open FCore v {Fin nA} GenS public using (GenΣ)
+
+  _≟G_ : DecidableEquality GenΣ
+  (_ , _ , genS i) ≟G (_ , _ , genS j) = case i ≟Fin j of λ where
+    (yes refl) → yes refl
+    (no ¬p)    → no λ where refl → ¬p refl
+
+  rankS : GenΣ → ℕ
+  rankS (_ , _ , genS i) = toℕ i
 
 ------------------------------------------------------------------------
 -- FBridge: the engine-generic layer.
