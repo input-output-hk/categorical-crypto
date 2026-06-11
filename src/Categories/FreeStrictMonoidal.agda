@@ -1,4 +1,4 @@
--- {-# OPTIONS --safe #-}
+{-# OPTIONS --safe #-}
 
 module Categories.FreeStrictMonoidal where
 
@@ -162,10 +162,32 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
       ≼-IsPartialOrder' : ≼-IsPartialOrder-ty
       ≼-IsPartialOrder' = Properties.isPartialOrder ≡.isPartialOrder
 
-    postulate X≼X⊗Y : ∀ {X Y} → X ≼ X ⊗₀ Y
-              prefix-remainder : ∀ {X Y} → X ≼ Y → ∃[ Z ] X ⊗₀ Z ≡ Y
-              ⊗-cancelˡ : ∀ X {Y Z} → X ⊗₀ Y ≡ X ⊗₀ Z → Y ≡ Z
-              ≼-IsPartialOrder : IsPartialOrder _≡_ _≼_ -- Pointwise _≡_ ⇔ _≡_
+    opaque
+      unfolding _≼_
+
+      X≼X⊗Y : ∀ {X Y} → X ≼ X ⊗₀ Y
+      X≼X⊗Y {X} {Y} = IsPartialOrder.refl ≼-IsPartialOrder' ++ᵖ Y
+
+      prefix-remainder : ∀ {X Y} → X ≼ Y → ∃[ Z ] X ⊗₀ Z ≡ Y
+      prefix-remainder {Y = Y} [] = Y , ≡.refl
+      prefix-remainder (≡.refl ∷ X≼Y) =
+        let Z , eq = prefix-remainder X≼Y in Z , cong (_ ∷_) eq
+
+      ⊗-cancelˡ : ∀ X {Y Z} → X ⊗₀ Y ≡ X ⊗₀ Z → Y ≡ Z
+      ⊗-cancelˡ X = ++-cancelˡ X _ _
+
+      -- `≼-IsPartialOrder'` is a partial order up to `Pointwise _≡_`;
+      -- since `Pointwise _≡_ ⇔ _≡_`, it is also one up to `_≡_`.
+      ≼-IsPartialOrder : IsPartialOrder _≡_ _≼_
+      ≼-IsPartialOrder = record
+        { isPreorder = record
+            { isEquivalence = ≡.isEquivalence
+            ; reflexive     = λ where ≡.refl → PO.refl
+            ; trans         = PO.trans
+            }
+        ; antisym = λ X≼Y Y≼X → Pointwise.Pointwise-≡⇒≡ (PO.antisym X≼Y Y≼X)
+        }
+        where module PO = IsPartialOrder ≼-IsPartialOrder'
 
     ↑' : ∀ {X Y Z} → X ⊗₀ Y ≼ Z → ObjTerm
     ↑' X⊗Y≼Z = proj₁ (prefix-remainder X⊗Y≼Z)
