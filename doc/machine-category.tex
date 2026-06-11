@@ -49,13 +49,21 @@
 \begin{abstract}
 We construct the category $\Machine$ whose objects are bidirectional
 typed channels and whose morphisms are stateful processes
-(``machines'') by stacking five well-known categorical constructions
-on top of a commutative, extensional, iterative monad $M$.  The end
-result equips the relational process calculus of \texttt{Machine.Core}
-with the categorical structure of a traced compact-closed
-graded-Kleisli category, transporting categorical laws (associativity,
-identity, congruence of composition) along a bijection of hom-sets
-rather than proving them by per-axiom bisimulation.
+(``machines'').  The construction has two halves.  First, stacking
+five well-known categorical constructions on top of a commutative,
+extensional, iterative monad $M$ produces a traced compact-closed
+graded-Kleisli category whose hom-sets are, up to a bijection
+mediated by a relations-into-$M$ bridge, exactly the machines of the
+relational process calculus \texttt{Machine.Core}; this explains
+\emph{why} machines compose the way they do (tensor two machines,
+trace out the shared channel).  Second, the category laws themselves
+--- associativity, the two identity laws, congruence of composition
+--- are proven directly as \emph{machine bisimulations}
+(\texttt{Machine.Iso}) with respect to an equality
+$\cong_\mathcal{E}$ coarser than propositional equality: machine
+isomorphism under every environment.  The same bisimulations
+transport along the hom-set bijection to give the categorical laws of
+the graded-Kleisli side.  The Agda artefact is postulate-free.
 \end{abstract}
 
 \section{Setup}
@@ -78,10 +86,23 @@ with
         symmetric counterpart of codiagonal that starts the
         Bek\v{c}i\'c unfolding on the right summand; vanishing-$2$
         is the nested-iter law identifying $\mathrm{iter}\,fy \bind
-        \mathrm{dispatch}$ with $\mathrm{iter}\,(\mathrm{combine}\,fx\,fy)$;
+        \mathrm{dispatch}$ with $\mathrm{iter}\,(\mathrm{combine}\,fx\,fy)$
+        (one axiom per direction).  The class additionally carries a
+        \emph{trace-congruence} axiom \texttt{iter-trace-cong}:
+        feedback via $\mathrm{iter}$ respects \emph{observational}
+        (list-trace--level) equality of step functions.  This is a
+        genuine semantic assumption --- the Bloom--\'Esik axioms only
+        give congruence for \emph{pointwise-equal} step functions ---
+        and it is what makes the trace operator of Step~3 a setoid
+        morphism;
   \item a ``relations-into-$M$'' map (\S\ref{sec:MonadOfRel}) used
         when bridging relational machines to functional homs.
 \end{itemize}
+
+\noindent
+(These are all the assumptions: the formalisation needs no functor-law
+class beyond the monad laws, no function extensionality, and no
+postulates.)
 
 Throughout, we write $f \circ g$ for composition in $\mathbf{Type}$ and
 $f \mathbin{;}_K g$ for Kleisli composition $f \bind \lambda x. \, g(x)$
@@ -272,11 +293,16 @@ In Agda these are \texttt{MaybeT₀}, \texttt{MaybeT-return}, and
 \texttt{MaybeT-ext} in \texttt{Machine.Category}.  They assemble
 into \texttt{SFunᵉ-GradedTriple}, which in turn yields the graded
 Kleisli category \texttt{SFunᵉ-GradedKleisli} via
-\texttt{Categories.GradedKleisli}.  The four sub-only graded-Kleisli
-laws (\texttt{sub-identity}, \texttt{sub-homomorphism},
-\texttt{sub-resp-≈}) are proved from G-construction identities; the
-five $\mathrm{ext}$-related laws are postulated with concrete proof
-sketches inline (Tier-3 roadmap).
+\texttt{Categories.GradedKleisli}.  All ten triple laws are proven:
+the sub-only laws (\texttt{sub-identity}, \texttt{sub-homomorphism},
+\texttt{sub-resp-≈}) from G-construction identities, and the five
+$\mathrm{ext}$-related laws (\texttt{ext-identityˡ},
+\texttt{ext-identityʳ}, \texttt{ext-assoc}, \texttt{ext-resp-≈},
+\texttt{sub-commute}) by exploiting that the G-construction's
+coherence reshapes and \texttt{MaybeT-return} are \emph{pure}
+(stateless, effect-free) morphisms, so each law reduces --- via an
+\texttt{IsPure} characterisation and trace congruence --- to a
+list-trace computation discharged by the monad laws.
 
 \subsection{Step 6: machines and the $\Machine \leftrightarrow \mathrm{Hom}$ bijection}
 
@@ -307,7 +333,8 @@ $(S, \stepRel)$ with $S$ a hidden \emph{state} type and
 i.e.\ a four-place \emph{relation} parameterised by (current state,
 input message, optional output message, next state).  In Agda this
 is the record \texttt{Machine.Core.Machine}, with fields
-\texttt{State}, \texttt{init}, and \texttt{stepRel}.
+\texttt{State} (implicit) and \texttt{stepRel}; machines carry no
+initial state.
 
 Two structural features distinguish this from a $G\SFunM$ hom:
 \begin{enumerate}
@@ -387,6 +414,15 @@ The two arrows are inverse up to:
 Both follow from the two $\mathrm{MonadOfRel}$ laws above.
 \end{lemma}
 
+Since the round-trip preserves the \texttt{State} type on the nose
+and the two implications are exactly the step-transport data of a
+machine isomorphism (\S\ref{sec:machine-iso}), the Machine-side
+round-trip upgrades to an honest isomorphism of machines,
+$\mathrm{Hom{\to}Machine}(\mathrm{Machine{\to}Hom}(M)) \cong^{\!M} M$
+(\texttt{Hom-Machine-roundtrip-≅ᴹ} in Agda) --- no
+Machine-extensionality (propositional equality of \texttt{Machine}
+records) is needed anywhere.
+
 \subsection{Step 7: the category $\Machine$}
 
 We finally bundle Channels and Machines as a category.
@@ -396,54 +432,119 @@ Define
 \begin{itemize}
   \item objects: $\Obj(\Machine) = \Channel$;
   \item morphisms: $\Hom_\Machine(A, B) = \Machine(A, B)$;
-  \item identity: the obvious stateless ``always-forward'' machine;
+  \item identity: the stateless relay machine --- its $\stepRel$
+        holds exactly when the output is \texttt{just} the input
+        message routed to the opposite side of the channel;
   \item composition $M_2 \circ M_1$: tensor the two machines and trace
-        out the shared channel (this is the relational analogue of
-        $G\SFunM$ composition);
-  \item equivalence $\sim_\mathcal{E}$: \emph{perfect indistinguishability
-        under environments}, $M_1 \sim_\mathcal{E} M_2$ iff for every
-        environment $E : B \to \mathcal{E}$ we have
-        $E \circ M_1 = E \circ M_2$ as machines (using whatever
-        ambient notion of machine equality).
+        out the shared channel.  Concretely, a single step of
+        $M_2 \circ M_1$ is an inductive \emph{trace chain}
+        (\texttt{TraceRel}): a step of one component whose
+        middle-channel output, if any, is fed as input to the next
+        link, until a step emits externally (or stays silent).  This
+        is the relational analogue of $G\SFunM$ composition
+        ($\mathrm{tr} \circ \otimes$, Step 4).
 \end{itemize}
 \end{construction}
 
-In Agda the identity is \texttt{Machine.Core.idᴹ}, the tensor product
+In Agda the identity is \texttt{Machine.Core.id}, the tensor product
 of machines is \texttt{Machine.Core.\_⊗₁\_}, the trace is
 \texttt{Machine.Core.tr} (built from the inductive \texttt{TraceRel}),
-composition is \texttt{Machine.Core.\_∘\_}, and the environment-based
-equivalence is \texttt{Machine.Core.\_≈ℰ\_}.  The category instance
-on $\Machine$ is assembled in \texttt{Machine.Category}.
+and composition is \texttt{Machine.Core.\_∘\_}.
 
-\begin{theorem}[Categorical laws via transport]
-The triple $(\Channel, \Machine, \sim_\mathcal{E})$ satisfies the
-category axioms (associativity, left/right identity, congruence of
-composition).
+\subsubsection{Machine equalities: $\cong^{M}$ and
+$\cong_\mathcal{E}$}\label{sec:machine-iso}
+
+Which equality should the hom-setoids carry?  The strictest
+environment-based candidate,
+\[
+  M_1 \approx_\mathcal{E} M_2
+  \quad:\iff\quad
+  \forall E.\;\; E \circ M_1 \,=\, E \circ M_2
+  \qquad (\text{propositional equality of \texttt{Machine} records}),
+\]
+(\texttt{Machine.Core.\_≈ℰ\_}, where $E$ ranges over
+\emph{environments} --- machines $B \to \mathcal{E}_{\mathrm{out}}$
+closing off the open end of the channel) is \emph{too strong} to be a
+category equality: propositional equality of records forces the
+\texttt{State} \emph{types} to be equal, but the category operations
+repackage state.  For the left identity law, e.g., the two sides have
+states $(S \times \top) \times T$ versus $S \times T$ --- isomorphic,
+but not provably equal without univalence (nor refutable).
+$\approx_\mathcal{E}$ is therefore kept only for the
+universal-composability definitions downstream, and the category uses
+a bisimulation equality instead (\texttt{Machine.Iso}):
+
+\begin{itemize}
+  \item \emph{Machine isomorphism} $M_1 \cong^{M} M_2$
+        (\texttt{\_≅ᴹ\_}): a bijection
+        $\mathrm{to}/\mathrm{from}$ between the state types together
+        with transports of $\stepRel$ in both directions along it ---
+        i.e.\ a functional bisimulation.  It is an equivalence
+        relation and a congruence for composition
+        (\texttt{∘-resp-≅ᴹ}).
+  \item \emph{Environment equivalence} $M_1 \cong_\mathcal{E} M_2$
+        (\texttt{\_≅ℰ\_}): $E \circ M_1 \cong^{M} E \circ M_2$ for
+        every environment $E$.  Machine isomorphism implies
+        environment equivalence (\texttt{≅ᴹ⇒≅ℰ}).
+\end{itemize}
+
+\subsubsection{The category laws as bisimulations}
+
+\begin{theorem}[\texttt{Machine.Iso}]\label{thm:bisim}
+For all machines $f : A \to B$, $g : B \to C$, $h : C \to D$:
+\[
+  \id \circ f \;\cong^{M}\; f, \qquad
+  f \circ \id \;\cong^{M}\; f, \qquad
+  (h \circ g) \circ f \;\cong^{M}\; h \circ (g \circ f).
+\]
 \end{theorem}
 
 \begin{proof}[Proof sketch]
-$\sim_\mathcal{E}$ is an equivalence because $=$ is.  The other three
-laws transport along the bijection of \S~6: any equation
-$f \sim_\mathcal{E} g$ for $\Machine$ unfolds, via
-$\mathrm{Machine} \to \mathrm{Hom}$, to the corresponding equation in
-$\mathrm{MaybeHom}$.  Modulo functoriality of the bijection (which is
-immediate from the bijection-induced composition on $\mathrm{MaybeHom}$),
-the law in $\mathrm{MaybeHom}$ pulls back to the desired law in
-$\Machine$.
+For the identity laws the state bijection is
+$S \times \top \cong S$, and the step correspondence is finite: a
+composite step of $\id \circ f$ is a trace chain in which the
+deterministic relay $\id$ contributes at most two hops, so each of
+the six external input/output configurations embeds as a concrete
+chain of one $f$-step plus relays, and conversely every chain is
+inverted to exactly one $f$-step.
 
-The $\mathrm{MaybeHom}$ laws themselves are the categorical residue of
-the construction --- they hold whenever
-\begin{itemize}
-  \item the $G\SFunM$ category laws hold (Step 4),
-  \item $\mathrm{MaybeHom}$ composition is the Kleisli composition over
-        the appropriate Maybe-graded monad on $G\SFunM$ (a
-        substitution of Step 5's graded triple).
-\end{itemize}
-With the trivial identity graded triple used here, the
-$\mathrm{MaybeHom}$ laws reduce to the $G\SFunM$ laws plus a
-$\Maybe$-bookkeeping; with a richer triple the
-$\Maybe$-augmentation lives inside the categorical machinery itself.
+Associativity is genuinely harder: a step of $(h \circ g) \circ f$
+is a chain whose links are themselves chains (of $g$- and $h$-steps),
+and chains are unbounded --- messages may ping-pong arbitrarily long
+between neighbouring machines through the middle channels $B$ and
+$C$.  The proof flattens both bracketings into a common normal form:
+an inductive three-machine interleaving relation (\emph{TriTrace})
+whose constructors describe exactly which machine fires next and
+which middle message it passes ($f \leftrightarrow g$ messages on
+$B$, $g \leftrightarrow h$ messages on $C$).  Each bracketing is
+shown isomorphic to the TriTrace machine --- embedding is structural
+recursion over the TriTrace term; inversion is structural recursion
+over the (outer, inner) chains --- and the two isomorphisms compose.
 \end{proof}
+
+\begin{construction}[The category]
+$\Machine$ carries the hom-equality $\cong_\mathcal{E}$.  Its laws
+are Theorem~\ref{thm:bisim} composed with
+\texttt{≅ᴹ⇒≅ℰ}; congruence of composition
+(\texttt{∘-resp-≅ℰ}) follows from \texttt{∘-resp-≅ᴹ} and
+associativity (to re-bracket the environment onto the composite).
+The Agda instance is \texttt{Machine.Category.MachineCategory}.
+\end{construction}
+
+\subsubsection{Transport to the graded-Kleisli side}
+
+The bijection of Step 6 now pays off in the \emph{other} direction:
+endowing $\mathrm{MaybeHom}$ with the bijection-induced operations
+($\id^{\mathrm{MH}} = \mathrm{Machine{\to}Hom}(\id)$, $g \circ^{\mathrm{MH}} f =
+\mathrm{Machine{\to}Hom}(\mathrm{Hom{\to}Machine}(g) \circ
+\mathrm{Hom{\to}Machine}(f))$) and the hom-equality
+$f \approx^{\mathrm{MH}} g :\iff \mathrm{Hom{\to}Machine}(f)
+\cong_\mathcal{E} \mathrm{Hom{\to}Machine}(g)$, the four category laws
+of \texttt{MaybeHomCategory} follow from Theorem~\ref{thm:bisim} by
+collapsing round-trips with \texttt{Hom-Machine-roundtrip-≅ᴹ}.
+$\mathrm{Machine{\to}Hom}$ is then a functor: it preserves identities
+definitionally (\texttt{functor-id}) and composition up to
+$\approx^{\mathrm{MH}}$ (\texttt{functor-∘}).
 
 \section{The whole picture}
 
@@ -484,41 +585,45 @@ The final bijection $\mathrm{MaybeHom} \cong \Machine$ uses the
 \texttt{Class.Monad.OfRel} bridge to absorb the
 relation-vs-function distinction.
 
-\section{Outstanding theoretical content not yet captured constructively}
+\section{Formalisation status}
 
-The following items are mathematically routine but, at present,
-postulated in the Agda development:
+The Agda development is \emph{postulate-free}:
+\texttt{Machine.Category} carries the \texttt{--safe} flag, as do
+\texttt{Machine.Iso} and the supporting modules.  In particular, all
+of the following are proven:
 \begin{itemize}
-  \item \emph{Trace naturality} (\S\ref{lem:traced}, $\mathrm{tr}$-resp,
-        left/right naturality, Fubini) for $\SFunM$.  Derivable from
-        the basic vanishing/superposing/yanking axioms via
-        Hasegawa's setoid-level proofs.
-  \item $G\SFunM$'s \emph{identity laws} and \emph{associativity
-        coherence}.  These are standard for any traced symmetric
-        monoidal category but require careful manipulation of
-        $\alpha$, $\sigma$, $\gamma$.
-  \item Graded Kleisli's category laws (assoc/identity).  Standard
-        for any graded monad.
-  \item The Machine-extensionality form of the round-trip
-        (\emph{propositional} Machine equality, vs.\ stepRel-level
-        logical equivalence).
-  \item The five $\mathrm{ext}$-related laws of the Maybe-graded
-        triple (\texttt{ext-identityˡ}, \texttt{ext-identityʳ},
-        \texttt{ext-assoc}, \texttt{ext-resp-≈},
-        \texttt{sub-commute}).  These are equations in
-        $\SFunM$-$G$-construction's hom-equivalence under list-trace
-        evaluation; the file ships Tier-3 proof-sketch comments at
-        each postulate.  Once discharged, the four
-        $\mathrm{MaybeHom}$ category laws follow by transport through
-        the $\mathrm{MaybeHom} \cong \mathrm{MaybeHom\text{-}Kl}$
-        iso of Step~6 — modulo also (i) the four upstream holes in
-        \texttt{Categories.GradedKleisli}, and (ii) showing the iso
-        is functorial.
+  \item \emph{Trace naturality and Fubini} for $\SFunM$
+        (\texttt{trace-∘ˡ-ᵉ}, \texttt{trace-∘ʳ-ᵉ},
+        \texttt{trace-comm-ᵉ} in \texttt{SFunM.Traced}), from the
+        \texttt{IterativeMonad} axioms.
+  \item The \texttt{Categories.GradedKleisli} category laws, and all
+        ten laws of the Maybe-graded triple (Step 5).
+  \item The three machine-level bisimulations of
+        Theorem~\ref{thm:bisim}, including associativity via the
+        TriTrace normal form.
+  \item The Machine round-trip as a machine isomorphism
+        (\texttt{Hom-Machine-roundtrip-≅ᴹ}); no Machine-extensionality
+        axiom appears anywhere.
 \end{itemize}
 
-None of these obstructions affect the mathematical claim that
-$\Machine$ is a category; they are loose ends in the formal Agda
-artefact, listed here for transparency.
+What \emph{is} assumed lives entirely in the type-class
+axiomatisation of the ambient monad $M$ (so the construction is
+parametric in any $M$ satisfying it):
+\begin{itemize}
+  \item \texttt{Monad}, \texttt{MonadLaws},
+        \texttt{ExtensionalMonad} (extensional bind,
+        Appendix~\ref{sec:extbind}), \texttt{CommutativeMonad};
+  \item \texttt{IterativeMonad}: the Bloom--\'Esik iteration axioms
+        of \S\ref{sec:setup} plus the trace-congruence axiom
+        \texttt{iter-trace-cong}.  The latter is genuinely
+        independent of the former (they give congruence only for
+        pointwise-equal step functions, whereas trace-congruence is
+        about observational equality);
+  \item \texttt{MonadOfRel}: the relations-into-$M$ bridge of
+        \S\ref{sec:MonadOfRel}.
+\end{itemize}
+All of these hold for the intended relational instance
+$M = \Set^{(-)}$.
 
 \appendix
 
