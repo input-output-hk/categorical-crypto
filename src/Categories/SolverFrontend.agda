@@ -104,6 +104,9 @@ open import Relation.Nullary using (Dec; yes; no)
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
 
+import Categories.Category.Monoidal.Reasoning as MonR
+import Categories.Morphism.Reasoning as MR
+
 open import Categories.DiagramRewriteUntyped using (module Untyped)
 open import Categories.FreeMonoidal
 open import Categories.SolverCompare using (module SolverCompare)
@@ -159,6 +162,21 @@ module Frontend
     syntax stepF-≈  f gh fg = f ≈F⟨ fg ⟩ gh
     syntax stepF-≈˘ f gh gf = f ≈F⟨ gf ⟨ gh
   open F≈R
+
+  -- stock combinators at BOTH free-category instances (proofs-only, not
+  -- exported): the wire-level ones under their usual names, the F-side
+  -- ones suffixed F (the unsuffixed names belong to the wire-level ≈R).
+  open MR FreeMonoidal using (pullˡ; pushˡ; cancelʳ)
+  open MR F.FreeMonoidal
+    using ()
+    renaming (pullˡ to pullˡF; cancelˡ to cancelˡF; cancelʳ to cancelʳF;
+              cancelInner to cancelInnerF; insertˡ to insertˡF;
+              assoc²βε to assoc²βεF)
+  open MonR F.Monoidal-FreeMonoidal
+    using ()
+    renaming (refl⟩∘⟨_ to infixr 4 reflF⟩∘⟨_; _⟩∘⟨refl to infixl 5 _⟩∘F⟨refl;
+              ⟺ to ⟺F; _○_ to infixr 3 _○F_;
+              _⟩⊗⟨_ to infixr 6 _⟩⊗F⟨_; split₁ˡ to split₁ˡF)
 
   ------------------------------------------------------------------------
   -- F-side structural merge/split (same recursion as the wire-level ones).
@@ -266,18 +284,16 @@ module Frontend
 
   splitF∘mergeF : ∀ (a : List X) {suf} → F._∘_ (splitF a {suf}) (mergeF a) F.≈Term F.id
   splitF∘mergeF a {suf} =
-    F.≈-Term-trans
-      (F.≡⇒≈Term (cong₂ F._∘_ (sym (inj-split a {suf})) (sym (inj-merge a {suf}))))
-      (inj-resp-≈ (split∘merge a))
+    F.≡⇒≈Term (cong₂ F._∘_ (sym (inj-split a {suf})) (sym (inj-merge a {suf})))
+    ○F inj-resp-≈ (split∘merge a)
 
   -- right-unitor coherence on the F-side merge (transfer of merge-ρ).
   mergeF-ρ : ∀ (a : List X)
            → coeCF (++-identityʳ a) (mergeF a {[]}) F.≈Term F.ρ⇒
   mergeF-ρ a =
-    F.≈-Term-trans
-      (F.≡⇒≈Term (trans (cong (coeCF (++-identityʳ a)) (sym (inj-merge a)))
-                        (sym (inj-coeC (++-identityʳ a) (merge a {[]})))))
-      (inj-resp-≈ (merge-ρ a))
+    F.≡⇒≈Term (trans (cong (coeCF (++-identityʳ a)) (sym (inj-merge a)))
+                     (sym (inj-coeC (++-identityʳ a) (merge a {[]}))))
+    ○F inj-resp-≈ (merge-ρ a)
 
   -- merge associativity on the F side (transfer of merge-assoc).
   mergeF-assoc : ∀ (p q r : List X)
@@ -285,11 +301,7 @@ module Frontend
       F.≈Term coeCF (++-assoc p q r)
                 (F._∘_ (mergeF (p ++ q) {r}) (F._⊗₁_ (mergeF p {q}) (F.id {wires r})))
   mergeF-assoc p q r =
-    F.≈-Term-trans
-      (F.≡⇒≈Term (sym (lhs-eq)))
-      (F.≈-Term-trans
-        (inj-resp-≈ (merge-assoc p q r))
-        (F.≡⇒≈Term rhs-eq))
+    F.≡⇒≈Term (sym lhs-eq) ○F inj-resp-≈ (merge-assoc p q r) ○F F.≡⇒≈Term rhs-eq
     where
       lhs-eq : inj (merge p {q ++ r} ∘ (id {wires p} ⊗₁ merge q {r}) ∘ α⇒)
              ≡ F._∘_ (mergeF p {q ++ r})
@@ -307,28 +319,11 @@ module Frontend
 
   flat⇐∘flat⇒ : ∀ (Y : ObjTerm) → F._∘_ (flat⇐ Y) (flat⇒ Y) F.≈Term F.id
   flat⇐∘flat⇒ unit = F.idˡ
-  flat⇐∘flat⇒ (Y ⊗₀ Z) = beginF
-    F._∘_ (F._∘_ (F._⊗₁_ (flat⇐ Y) (flat⇐ Z)) (splitF (flatten Y)))
-          (F._∘_ (mergeF (flatten Y)) (F._⊗₁_ (flat⇒ Y) (flat⇒ Z)))
-      ≈F⟨ F.assoc ⟩
-    F._∘_ (F._⊗₁_ (flat⇐ Y) (flat⇐ Z))
-          (F._∘_ (splitF (flatten Y))
-                 (F._∘_ (mergeF (flatten Y)) (F._⊗₁_ (flat⇒ Y) (flat⇒ Z))))
-      ≈F⟨ F.∘-resp-≈ F.≈-Term-refl (F.≈-Term-sym F.assoc) ⟩
-    F._∘_ (F._⊗₁_ (flat⇐ Y) (flat⇐ Z))
-          (F._∘_ (F._∘_ (splitF (flatten Y)) (mergeF (flatten Y)))
-                 (F._⊗₁_ (flat⇒ Y) (flat⇒ Z)))
-      ≈F⟨ F.∘-resp-≈ F.≈-Term-refl (F.∘-resp-≈ (splitF∘mergeF (flatten Y)) F.≈-Term-refl) ⟩
-    F._∘_ (F._⊗₁_ (flat⇐ Y) (flat⇐ Z))
-          (F._∘_ F.id (F._⊗₁_ (flat⇒ Y) (flat⇒ Z)))
-      ≈F⟨ F.∘-resp-≈ F.≈-Term-refl F.idˡ ⟩
-    F._∘_ (F._⊗₁_ (flat⇐ Y) (flat⇐ Z)) (F._⊗₁_ (flat⇒ Y) (flat⇒ Z))
-      ≈F⟨ F.⊗-∘-dist ⟨
-    F._⊗₁_ (F._∘_ (flat⇐ Y) (flat⇒ Y)) (F._∘_ (flat⇐ Z) (flat⇒ Z))
-      ≈F⟨ F.⊗-resp-≈ (flat⇐∘flat⇒ Y) (flat⇐∘flat⇒ Z) ⟩
-    F._⊗₁_ F.id F.id
-      ≈F⟨ F.id⊗id≈id ⟩
-    F.id ∎F
+  flat⇐∘flat⇒ (Y ⊗₀ Z) =
+    cancelInnerF (splitF∘mergeF (flatten Y))
+    ○F ⟺F F.⊗-∘-dist
+    ○F (flat⇐∘flat⇒ Y ⟩⊗F⟨ flat⇐∘flat⇒ Z)
+    ○F F.id⊗id≈id
   flat⇐∘flat⇒ (Var x) = F.ρ⇒∘ρ⇐≈id
 
   ------------------------------------------------------------------------
@@ -375,15 +370,10 @@ module Frontend
   -- it is composed onto.
   cast-half : ∀ {P} {p q : List X} (e : p ≡ q) (h : F.HomTerm P (wires p))
             → inj (embed (castʷ refl e (idʷ {p}))) ∘F h F.≈Term coeCF e h
-  cast-half {P} {p} {q} e h = beginF
-    inj (embed (castʷ refl e (idʷ {p}))) ∘F h
-      ≈F⟨ F.∘-resp-≈ (F.≈-Term-trans (inj-resp-≈ (embed-castʷ refl e idʷ))
-                                     (F.≡⇒≈Term (inj-coeC e id))) reflF ⟩
-    coeCF e idF ∘F h
-      ≈F⟨ coeCF-∘ˡ e idF h ⟨
-    coeCF e (idF ∘F h)
-      ≈F⟨ coeCF-resp e F.idˡ ⟩
-    coeCF e h ∎F
+  cast-half {P} {p} {q} e h =
+    ((inj-resp-≈ (embed-castʷ refl e idʷ) ○F F.≡⇒≈Term (inj-coeC e id)) ⟩∘F⟨refl)
+    ○F ⟺F (coeCF-∘ˡ e idF h)
+    ○F coeCF-resp e F.idˡ
 
   -- the two opposite coercions cancel (UIP-free: by matching e).
   coe-coe : ∀ {A} {p q : List X} (e : p ≡ q) (h : F.HomTerm A (wires p))
@@ -401,7 +391,7 @@ module Frontend
     coeCF e (mergeF fA {[]} ∘F (flat⇒ A ⊗F idF))
       ≈F⟨ coeCF-∘ˡ e (mergeF fA {[]}) (flat⇒ A ⊗F idF) ⟩
     coeCF e (mergeF fA {[]}) ∘F (flat⇒ A ⊗F idF)
-      ≈F⟨ F.∘-resp-≈ (mergeF-ρ fA) reflF ⟩
+      ≈F⟨ mergeF-ρ fA ⟩∘F⟨refl ⟩
     F.ρ⇒ ∘F (flat⇒ A ⊗F idF)
       ≈F⟨ F.ρ⇒∘f⊗id≈f∘ρ⇒ ⟩
     flat⇒ A ∘F F.ρ⇒ ∎F
@@ -415,28 +405,17 @@ module Frontend
           F.≈Term flat⇒ (A ⊗₀ (B ⊗₀ C)) ∘F F.α⇒
   fwd-α A B C = beginF
     coeCF e (mergeF (fA ++ fB) {fC} ∘F ((mergeF fA {fB} ∘F (f⇒A ⊗F f⇒B)) ⊗F f⇒C))
-      ≈F⟨ coeCF-resp e (F.∘-resp-≈ reflF
-            (F.≈-Term-trans (F.⊗-resp-≈ reflF (F.≈-Term-sym F.idˡ)) F.⊗-∘-dist)) ⟩
-    coeCF e (mergeF (fA ++ fB) {fC} ∘F ((mergeF fA {fB} ⊗F idF) ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C)))
-      ≈F⟨ coeCF-resp e (F.≈-Term-sym F.assoc) ⟩
+      ≈F⟨ coeCF-resp e ((reflF⟩∘⟨ split₁ˡF) ○F ⟺F F.assoc) ⟩
     coeCF e ((mergeF (fA ++ fB) {fC} ∘F (mergeF fA {fB} ⊗F idF)) ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C))
       ≈F⟨ coeCF-∘ˡ e (mergeF (fA ++ fB) {fC} ∘F (mergeF fA {fB} ⊗F idF)) ((f⇒A ⊗F f⇒B) ⊗F f⇒C) ⟩
     coeCF e (mergeF (fA ++ fB) {fC} ∘F (mergeF fA {fB} ⊗F idF)) ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C)
-      ≈F⟨ F.∘-resp-≈ (mergeF-assoc fA fB fC) reflF ⟨
+      ≈F⟨ mergeF-assoc fA fB fC ⟩∘F⟨refl ⟨
     (mergeF fA {fB ++ fC} ∘F ((idF ⊗F mergeF fB {fC}) ∘F F.α⇒)) ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C)
-      ≈F⟨ F.assoc ⟩
-    mergeF fA {fB ++ fC} ∘F (((idF ⊗F mergeF fB {fC}) ∘F F.α⇒) ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C))
-      ≈F⟨ F.∘-resp-≈ reflF F.assoc ⟩
+      ≈F⟨ assoc²βεF ⟩
     mergeF fA {fB ++ fC} ∘F ((idF ⊗F mergeF fB {fC}) ∘F (F.α⇒ ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C)))
-      ≈F⟨ F.∘-resp-≈ reflF (F.∘-resp-≈ reflF F.α-comm) ⟩
-    mergeF fA {fB ++ fC} ∘F ((idF ⊗F mergeF fB {fC}) ∘F ((f⇒A ⊗F (f⇒B ⊗F f⇒C)) ∘F F.α⇒))
-      ≈F⟨ F.∘-resp-≈ reflF (F.≈-Term-sym F.assoc) ⟩
-    mergeF fA {fB ++ fC} ∘F (((idF ⊗F mergeF fB {fC}) ∘F (f⇒A ⊗F (f⇒B ⊗F f⇒C))) ∘F F.α⇒)
-      ≈F⟨ F.∘-resp-≈ reflF (F.∘-resp-≈
-            (F.≈-Term-trans (F.≈-Term-sym F.⊗-∘-dist)
-                            (F.⊗-resp-≈ F.idˡ reflF)) reflF) ⟩
+      ≈F⟨ reflF⟩∘⟨ ((reflF⟩∘⟨ F.α-comm) ○F pullˡF (⟺F F.⊗-∘-dist ○F (F.idˡ ⟩⊗F⟨ reflF))) ⟩
     mergeF fA {fB ++ fC} ∘F ((f⇒A ⊗F (mergeF fB {fC} ∘F (f⇒B ⊗F f⇒C))) ∘F F.α⇒)
-      ≈F⟨ F.≈-Term-sym F.assoc ⟩
+      ≈F⟨ ⟺F F.assoc ⟩
     (mergeF fA {fB ++ fC} ∘F (f⇒A ⊗F (mergeF fB {fC} ∘F (f⇒B ⊗F f⇒C)))) ∘F F.α⇒ ∎F
     where
       fA = flatten A ; fB = flatten B ; fC = flatten C
@@ -452,17 +431,11 @@ module Frontend
         → coeCF (sym e) h⇒Q F.≈Term h⇒P ∘F c⁻¹
   flipF e h⇒P h⇒Q {c} {c⁻¹} iso fwd = F.≈-Term-sym (beginF
     h⇒P ∘F c⁻¹
-      ≈F⟨ F.∘-resp-≈ (F.≡⇒≈Term (coe-coe e h⇒P)) reflF ⟨
+      ≈F⟨ F.≡⇒≈Term (coe-coe e h⇒P) ⟩∘F⟨refl ⟨
     coeCF (sym e) (coeCF e h⇒P) ∘F c⁻¹
-      ≈F⟨ F.∘-resp-≈ (coeCF-resp (sym e) fwd) reflF ⟩
-    coeCF (sym e) (h⇒Q ∘F c) ∘F c⁻¹
-      ≈F⟨ F.∘-resp-≈ (coeCF-∘ˡ (sym e) h⇒Q c) reflF ⟩
+      ≈F⟨ (coeCF-resp (sym e) fwd ○F coeCF-∘ˡ (sym e) h⇒Q c) ⟩∘F⟨refl ⟩
     (coeCF (sym e) h⇒Q ∘F c) ∘F c⁻¹
-      ≈F⟨ F.assoc ⟩
-    coeCF (sym e) h⇒Q ∘F (c ∘F c⁻¹)
-      ≈F⟨ F.∘-resp-≈ reflF iso ⟩
-    coeCF (sym e) h⇒Q ∘F idF
-      ≈F⟨ F.idʳ ⟩
+      ≈F⟨ cancelʳF iso ⟩
     coeCF (sym e) h⇒Q ∎F)
 
   ------------------------------------------------------------------------
@@ -471,76 +444,44 @@ module Frontend
 
   bridgeF : ∀ {Y Z} (t : F.HomTerm Y Z)
           → inj (embed (reflectF t)) ∘F flat⇒ Y F.≈Term flat⇒ Z ∘F t
-  bridgeF {Y} {Z} (F.var g) = beginF
-    (flat⇒ Z ∘F (F.var g ∘F flat⇐ Y)) ∘F flat⇒ Y
-      ≈F⟨ F.assoc ⟩
-    flat⇒ Z ∘F ((F.var g ∘F flat⇐ Y) ∘F flat⇒ Y)
-      ≈F⟨ F.∘-resp-≈ reflF F.assoc ⟩
-    flat⇒ Z ∘F (F.var g ∘F (flat⇐ Y ∘F flat⇒ Y))
-      ≈F⟨ F.∘-resp-≈ reflF (F.∘-resp-≈ reflF (flat⇐∘flat⇒ Y)) ⟩
-    flat⇒ Z ∘F (F.var g ∘F idF)
-      ≈F⟨ F.∘-resp-≈ reflF F.idʳ ⟩
-    flat⇒ Z ∘F F.var g ∎F
-  bridgeF {Y} {.Y} F.id = F.≈-Term-trans F.idˡ (F.≈-Term-sym F.idʳ)
-  bridgeF {Y} {Z} (F._∘_ {B = M} g f) = beginF
-    (inj (embed (reflectF g)) ∘F inj (embed (reflectF f))) ∘F flat⇒ Y
-      ≈F⟨ F.assoc ⟩
-    inj (embed (reflectF g)) ∘F (inj (embed (reflectF f)) ∘F flat⇒ Y)
-      ≈F⟨ F.∘-resp-≈ reflF (bridgeF f) ⟩
-    inj (embed (reflectF g)) ∘F (flat⇒ M ∘F f)
-      ≈F⟨ F.≈-Term-sym F.assoc ⟩
-    (inj (embed (reflectF g)) ∘F flat⇒ M) ∘F f
-      ≈F⟨ F.∘-resp-≈ (bridgeF g) reflF ⟩
-    (flat⇒ Z ∘F g) ∘F f
-      ≈F⟨ F.assoc ⟩
-    flat⇒ Z ∘F (g ∘F f) ∎F
+  bridgeF {Y} {Z} (F.var g) =
+    F.assoc ○F (reflF⟩∘⟨ cancelʳF (flat⇐∘flat⇒ Y))
+  bridgeF {Y} {.Y} F.id = F.idˡ ○F ⟺F F.idʳ
+  bridgeF {Y} {Z} (F._∘_ {B = M} g f) =
+    F.assoc ○F (reflF⟩∘⟨ bridgeF f) ○F pullˡF (bridgeF g) ○F F.assoc
   bridgeF (F._⊗₁_ {A = Y} {B = Z} {C = Y'} {D = Z'} f g) = beginF
     inj (embed (reflectF f ⊗ʷ reflectF g)) ∘F (mergeF fY {fY'} ∘F (f⇒Y ⊗F f⇒Y'))
-      ≈F⟨ F.∘-resp-≈ (F.≡⇒≈Term (cong₂ (λ m s → m ∘F ((IF ⊗F IG) ∘F s))
-                                       (inj-merge fZ {fZ'}) (inj-split fY {fY'}))) reflF ⟩
+      ≈F⟨ F.≡⇒≈Term (cong₂ (λ m s → m ∘F ((IF ⊗F IG) ∘F s))
+                           (inj-merge fZ {fZ'}) (inj-split fY {fY'})) ⟩∘F⟨refl ⟩
     (mergeF fZ {fZ'} ∘F ((IF ⊗F IG) ∘F splitF fY {fY'})) ∘F (mergeF fY {fY'} ∘F (f⇒Y ⊗F f⇒Y'))
-      ≈F⟨ F.assoc ⟩
-    mergeF fZ {fZ'} ∘F (((IF ⊗F IG) ∘F splitF fY {fY'}) ∘F (mergeF fY {fY'} ∘F (f⇒Y ⊗F f⇒Y')))
-      ≈F⟨ F.∘-resp-≈ reflF F.assoc ⟩
-    mergeF fZ {fZ'} ∘F ((IF ⊗F IG) ∘F (splitF fY {fY'} ∘F (mergeF fY {fY'} ∘F (f⇒Y ⊗F f⇒Y'))))
-      ≈F⟨ F.∘-resp-≈ reflF (F.∘-resp-≈ reflF (F.≈-Term-sym F.assoc)) ⟩
-    mergeF fZ {fZ'} ∘F ((IF ⊗F IG) ∘F ((splitF fY {fY'} ∘F mergeF fY {fY'}) ∘F (f⇒Y ⊗F f⇒Y')))
-      ≈F⟨ F.∘-resp-≈ reflF (F.∘-resp-≈ reflF
-            (F.≈-Term-trans (F.∘-resp-≈ (splitF∘mergeF fY {fY'}) reflF) F.idˡ)) ⟩
+      ≈F⟨ assoc²βεF ○F (reflF⟩∘⟨ (reflF⟩∘⟨ cancelˡF (splitF∘mergeF fY {fY'}))) ⟩
     mergeF fZ {fZ'} ∘F ((IF ⊗F IG) ∘F (f⇒Y ⊗F f⇒Y'))
-      ≈F⟨ F.∘-resp-≈ reflF F.⊗-∘-dist ⟨
-    mergeF fZ {fZ'} ∘F ((IF ∘F f⇒Y) ⊗F (IG ∘F f⇒Y'))
-      ≈F⟨ F.∘-resp-≈ reflF (F.⊗-resp-≈ (bridgeF f) (bridgeF g)) ⟩
-    mergeF fZ {fZ'} ∘F ((f⇒Z ∘F f) ⊗F (f⇒Z' ∘F g))
-      ≈F⟨ F.∘-resp-≈ reflF F.⊗-∘-dist ⟩
+      ≈F⟨ reflF⟩∘⟨ (⟺F F.⊗-∘-dist ○F (bridgeF f ⟩⊗F⟨ bridgeF g) ○F F.⊗-∘-dist) ⟩
     mergeF fZ {fZ'} ∘F ((f⇒Z ⊗F f⇒Z') ∘F (f ⊗F g))
-      ≈F⟨ F.≈-Term-sym F.assoc ⟩
+      ≈F⟨ ⟺F F.assoc ⟩
     (mergeF fZ {fZ'} ∘F (f⇒Z ⊗F f⇒Z')) ∘F (f ⊗F g) ∎F
     where
       fY = flatten Y ; fY' = flatten Y' ; fZ = flatten Z ; fZ' = flatten Z'
       f⇒Y = flat⇒ Y ; f⇒Y' = flat⇒ Y' ; f⇒Z = flat⇒ Z ; f⇒Z' = flat⇒ Z'
       IF = inj (embed (reflectF f))
       IG = inj (embed (reflectF g))
-  bridgeF (F.λ⇒ {A}) = F.≈-Term-trans F.idˡ (fwd-λ A)
+  bridgeF (F.λ⇒ {A}) = F.idˡ ○F fwd-λ A
   bridgeF (F.λ⇐ {A}) =
-    F.≈-Term-trans F.idˡ
-      (flipF refl (flat⇒ (unit ⊗₀ A)) (flat⇒ A) F.λ⇒∘λ⇐≈id (fwd-λ A))
+    F.idˡ ○F flipF refl (flat⇒ (unit ⊗₀ A)) (flat⇒ A) F.λ⇒∘λ⇐≈id (fwd-λ A)
   bridgeF (F.ρ⇒ {A}) =
-    F.≈-Term-trans (cast-half (++-identityʳ (flatten A)) (flat⇒ (A ⊗₀ unit))) (fwd-ρ A)
+    cast-half (++-identityʳ (flatten A)) (flat⇒ (A ⊗₀ unit)) ○F fwd-ρ A
   bridgeF (F.ρ⇐ {A}) =
-    F.≈-Term-trans (cast-half (sym (++-identityʳ (flatten A))) (flat⇒ A))
-      (flipF (++-identityʳ (flatten A)) (flat⇒ (A ⊗₀ unit)) (flat⇒ A)
-             F.ρ⇒∘ρ⇐≈id (fwd-ρ A))
+    cast-half (sym (++-identityʳ (flatten A))) (flat⇒ A)
+    ○F flipF (++-identityʳ (flatten A)) (flat⇒ (A ⊗₀ unit)) (flat⇒ A)
+             F.ρ⇒∘ρ⇐≈id (fwd-ρ A)
   bridgeF (F.α⇒ {A} {B} {C}) =
-    F.≈-Term-trans
-      (cast-half (++-assoc (flatten A) (flatten B) (flatten C)) (flat⇒ ((A ⊗₀ B) ⊗₀ C)))
-      (fwd-α A B C)
+    cast-half (++-assoc (flatten A) (flatten B) (flatten C)) (flat⇒ ((A ⊗₀ B) ⊗₀ C))
+    ○F fwd-α A B C
   bridgeF (F.α⇐ {A} {B} {C}) =
-    F.≈-Term-trans
-      (cast-half (sym (++-assoc (flatten A) (flatten B) (flatten C))) (flat⇒ (A ⊗₀ (B ⊗₀ C))))
-      (flipF (++-assoc (flatten A) (flatten B) (flatten C))
+    cast-half (sym (++-assoc (flatten A) (flatten B) (flatten C))) (flat⇒ (A ⊗₀ (B ⊗₀ C)))
+    ○F flipF (++-assoc (flatten A) (flatten B) (flatten C))
              (flat⇒ ((A ⊗₀ B) ⊗₀ C)) (flat⇒ (A ⊗₀ (B ⊗₀ C)))
-             F.α⇒∘α⇐≈id (fwd-α A B C))
+             F.α⇒∘α⇐≈id (fwd-α A B C)
 
   ------------------------------------------------------------------------
   -- The cancellation: a wire-level equality of the two reflections is a
@@ -550,32 +491,11 @@ module Frontend
   solveF : ∀ {Y Z} {l r : F.HomTerm Y Z}
          → embed (reflectF l) ≈Term embed (reflectF r)
          → l F.≈Term r
-  solveF {Y} {Z} {l} {r} eq = beginF
-    l
-      ≈F⟨ F.idˡ ⟨
-    idF ∘F l
-      ≈F⟨ F.∘-resp-≈ (flat⇐∘flat⇒ Z) reflF ⟨
-    (flat⇐ Z ∘F flat⇒ Z) ∘F l
-      ≈F⟨ F.assoc ⟩
-    flat⇐ Z ∘F (flat⇒ Z ∘F l)
-      ≈F⟨ F.∘-resp-≈ reflF main ⟩
-    flat⇐ Z ∘F (flat⇒ Z ∘F r)
-      ≈F⟨ F.≈-Term-sym F.assoc ⟩
-    (flat⇐ Z ∘F flat⇒ Z) ∘F r
-      ≈F⟨ F.∘-resp-≈ (flat⇐∘flat⇒ Z) reflF ⟩
-    idF ∘F r
-      ≈F⟨ F.idˡ ⟩
-    r ∎F
+  solveF {Y} {Z} {l} {r} eq =
+    insertˡF (flat⇐∘flat⇒ Z) ○F (reflF⟩∘⟨ main) ○F cancelˡF (flat⇐∘flat⇒ Z)
     where
       main : flat⇒ Z ∘F l F.≈Term flat⇒ Z ∘F r
-      main = beginF
-        flat⇒ Z ∘F l
-          ≈F⟨ bridgeF l ⟨
-        inj (embed (reflectF l)) ∘F flat⇒ Y
-          ≈F⟨ F.∘-resp-≈ (inj-resp-≈ eq) reflF ⟩
-        inj (embed (reflectF r)) ∘F flat⇒ Y
-          ≈F⟨ bridgeF r ⟩
-        flat⇒ Z ∘F r ∎F
+      main = ⟺F (bridgeF l) ○F (inj-resp-≈ eq ⟩∘F⟨refl) ○F bridgeF r
 
   ------------------------------------------------------------------------
   -- The decision procedure: reflect both sides to DiagU, decide NF
@@ -635,12 +555,11 @@ module Frontend
       unwrapCast : ∀ {u v} {A} (e : u ≡ v)
                    {x : HomTerm A (wires u)} {y : HomTerm A (wires v)}
                  → castW e ∘ x ≈Term y → x ≈Term castW (sym e) ∘ y
-      unwrapCast refl eq =
-        ≈-Term-trans (≈-Term-sym idˡ) (≈-Term-trans eq (≈-Term-sym idˡ))
+      unwrapCast refl eq = ⟺ idˡ ○ eq ○ ⟺ idˡ
 
       coeC-as-castW : ∀ {n p q} (e : p ≡ q) (h : HomTerm (wires n) (wires p))
                     → coeC e h ≈Term castW e ∘ h
-      coeC-as-castW refl h = ≈-Term-sym idˡ
+      coeC-as-castW refl h = ⟺ idˡ
 
       -- fire one genuine swap on a recognised out-of-order head pair.
       fire : ∀ {ax bx ay by} {px sx py sy : List X}
@@ -672,31 +591,19 @@ module Frontend
           snd : castW oeq ∘ ⟦ dBody ⟧ ≈Term ⟦ d' ⟧
           snd = begin
             castW oeq ∘ ⟦ dBody ⟧
-              ≈⟨ ∘-resp-≈ (castW-irr oeq (trans (trans e₁ q) e₃)) ≈-Term-refl ⟩
+              ≈⟨ castW-irr oeq (trans (trans e₁ q) e₃) ⟩∘⟨refl ⟩
             castW (trans (trans e₁ q) e₃) ∘ ⟦ dBody ⟧
-              ≈⟨ ∘-resp-≈ (castW-∘ (trans e₁ q) e₃) ≈-Term-refl ⟨
-            (castW e₃ ∘ castW (trans e₁ q)) ∘ ⟦ dBody ⟧
-              ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (castW-∘ e₁ q)) ≈-Term-refl ⟨
-            (castW e₃ ∘ (castW q ∘ castW e₁)) ∘ ⟦ dBody ⟧
-              ≈⟨ assoc ⟩
-            castW e₃ ∘ ((castW q ∘ castW e₁) ∘ ⟦ dBody ⟧)
-              ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+              ≈⟨ pushˡ (⟺ (castW-∘ (trans e₁ q) e₃)) ⟩
+            castW e₃ ∘ (castW (trans e₁ q) ∘ ⟦ dBody ⟧)
+              ≈⟨ refl⟩∘⟨ pushˡ (⟺ (castW-∘ e₁ q)) ⟩
             castW e₃ ∘ (castW q ∘ (castW e₁ ∘ ⟦ dBody ⟧))
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (⟦substDiagU⟧ eᵒ dBody)) ⟨
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ⟦substDiagU⟧ eᵒ dBody ⟨
             castW e₃ ∘ (castW q ∘ (⟦ dIn ⟧ ∘ castW eᵒ))
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-            castW e₃ ∘ ((castW q ∘ ⟦ dIn ⟧) ∘ castW eᵒ)
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (diagU-swap-soundD fit' rest') ≈-Term-refl) ⟩
+              ≈⟨ refl⟩∘⟨ pullˡ (diagU-swap-soundD fit' rest') ⟩
             castW e₃ ∘ (⟦ dSw ⟧ ∘ castW eᵒ)
-              ≈⟨ ≈-Term-sym assoc ⟩
-            (castW e₃ ∘ ⟦ dSw ⟧) ∘ castW eᵒ
-              ≈⟨ ∘-resp-≈ (⟦substDiagU⟧ (sym eᵒ) dSw) ≈-Term-refl ⟨
+              ≈⟨ pullˡ (⟺ (⟦substDiagU⟧ (sym eᵒ) dSw)) ⟩
             (⟦ d' ⟧ ∘ castW (sym eᵒ)) ∘ castW eᵒ
-              ≈⟨ assoc ⟩
-            ⟦ d' ⟧ ∘ (castW (sym eᵒ) ∘ castW eᵒ)
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (castW-sym-r eᵒ) ⟩
-            ⟦ d' ⟧ ∘ id
-              ≈⟨ idʳ ⟩
+              ≈⟨ cancelʳ (castW-sym-r eᵒ) ⟩
             ⟦ d' ⟧ ∎
 
       -- the wire-level generator's tiebreak key.
@@ -738,8 +645,7 @@ module Frontend
             → castW oeq ∘ ⟦ rest ⟧ ≈Term ⟦ rest' ⟧
             → castW oeq ∘ ⟦ px ▸ sx ∷ fx ⟨ rest ⟩ ⟧
               ≈Term ⟦ px ▸ sx ∷ fx ⟨ rest' ⟩ ⟧
-      lift∷ px sx fx oeq snd =
-        ≈-Term-trans (≈-Term-sym assoc) (∘-resp-≈ snd ≈-Term-refl)
+      lift∷ px sx fx oeq snd = pullˡ snd
 
       -- compose two swap-results (cast functoriality).
       swapTrans : ∀ {n} {d d' d'' : DiagU n}
@@ -747,16 +653,8 @@ module Frontend
                 → castW oeq  ∘ ⟦ d  ⟧ ≈Term ⟦ d'  ⟧
                 → castW oeq' ∘ ⟦ d' ⟧ ≈Term ⟦ d'' ⟧
                 → castW (trans oeq oeq') ∘ ⟦ d ⟧ ≈Term ⟦ d'' ⟧
-      swapTrans {d = d} {d' = d'} {d'' = d''} oeq oeq' p q = begin
-        castW (trans oeq oeq') ∘ ⟦ d ⟧
-          ≈⟨ ∘-resp-≈ (castW-∘ oeq oeq') ≈-Term-refl ⟨
-        (castW oeq' ∘ castW oeq) ∘ ⟦ d ⟧
-          ≈⟨ assoc ⟩
-        castW oeq' ∘ (castW oeq ∘ ⟦ d ⟧)
-          ≈⟨ ∘-resp-≈ ≈-Term-refl p ⟩
-        castW oeq' ∘ ⟦ d' ⟧
-          ≈⟨ q ⟩
-        ⟦ d'' ⟧ ∎
+      swapTrans oeq oeq' p q =
+        pushˡ (⟺ (castW-∘ oeq oeq')) ○ (refl⟩∘⟨ p) ○ q
 
     -- one swap at the FIRST applicable position: try the head pair, else
     -- recurse into the tail.  (The recursion is unobstructed: only nested
@@ -805,18 +703,11 @@ module Frontend
         half : ∀ (t : WTerm n m) (d' : DiagU n) (oeq : out (reflect t) ≡ out d')
              → castW oeq ∘ ⟦ reflect t ⟧ ≈Term ⟦ d' ⟧
              → embed t ≈Term castW (trans (sym oeq) (out-reflect t)) ∘ ⟦ d' ⟧
-        half t d' oeq snd = begin
-          embed t
-            ≈⟨ reflect-sound t ⟨
-          coeC (out-reflect t) ⟦ reflect t ⟧
-            ≈⟨ coeC-as-castW (out-reflect t) ⟦ reflect t ⟧ ⟩
-          castW (out-reflect t) ∘ ⟦ reflect t ⟧
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (unwrapCast oeq snd) ⟩
-          castW (out-reflect t) ∘ (castW (sym oeq) ∘ ⟦ d' ⟧)
-            ≈⟨ ≈-Term-sym assoc ⟩
-          (castW (out-reflect t) ∘ castW (sym oeq)) ∘ ⟦ d' ⟧
-            ≈⟨ ∘-resp-≈ (castW-∘ (sym oeq) (out-reflect t)) ≈-Term-refl ⟩
-          castW (trans (sym oeq) (out-reflect t)) ∘ ⟦ d' ⟧ ∎
+        half t d' oeq snd =
+          ⟺ (reflect-sound t)
+          ○ coeC-as-castW (out-reflect t) ⟦ reflect t ⟧
+          ○ (refl⟩∘⟨ unwrapCast oeq snd)
+          ○ pullˡ (castW-∘ (sym oeq) (out-reflect t))
 
         chain : df' ≡ dg' → embed f ≈Term embed g
         chain deq = begin
@@ -831,7 +722,7 @@ module Frontend
             step : df' ≡ dg'
                  → castW (trans (sym oeqf) (out-reflect f)) ∘ ⟦ df' ⟧
                    ≈Term castW (trans (sym oeqg) (out-reflect g)) ∘ ⟦ dg' ⟧
-            step refl = ∘-resp-≈ (castW-irr _ _) ≈-Term-refl
+            step refl = castW-irr _ _ ⟩∘⟨refl
 
     -- front-end decision: a hit is a genuine `_≈Term_` of the free
     -- monoidal category over the ObjTerm-arity generators.

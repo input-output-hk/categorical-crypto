@@ -87,6 +87,9 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 
+import Categories.Category.Monoidal.Reasoning as MonR
+import Categories.Morphism.Reasoning as MR
+
 open import Categories.DiagramRewriteUntyped using (module WireSig; module UntypedI)
 open import Categories.FreeMonoidal
 open import Categories.SolverCompare using (module SolverCompareI)
@@ -134,6 +137,15 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   open UntypedI Symm {X} MorS ⟦box⟧S public
   open ≈R
 
+  -- stock associativity/cancellation combinators (same idiom as
+  -- DiagramRewriteUntyped/SolverReflect): plain non-public opens,
+  -- proofs-only.
+  open MR FreeMonoidal
+    using (pullˡ; pullʳ; pushˡ; cancelˡ; cancelʳ; cancelInner; insertInner;
+           elimʳ; introˡ; assoc²βε)
+  open MonR Monoidal-FreeMonoidal
+    using (refl⟩⊗⟨_; _⟩⊗⟨refl; _⟩⊗⟨_; split₁ʳ)
+
   -- the reflection stack (and its rpad/coercion lemma families), re-exported.
   open ReflectI Symm {X} _≟X_ MorS ⟦box⟧S public
 
@@ -145,21 +157,9 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
            → ⟦box⟧S (cross b a) ∘ ⟦box⟧S (cross a b) ≈Term id
   σσ-block a b = begin
     (merge a ∘ σ ∘ split b) ∘ (merge b ∘ σ ∘ split a)
-      ≈⟨ assoc ⟩
-    merge a ∘ ((σ ∘ split b) ∘ (merge b ∘ σ ∘ split a))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-    merge a ∘ (σ ∘ (split b ∘ (merge b ∘ σ ∘ split a)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
-    merge a ∘ (σ ∘ ((split b ∘ merge b) ∘ (σ ∘ split a)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (split∘merge b) ≈-Term-refl)) ⟩
-    merge a ∘ (σ ∘ (id ∘ (σ ∘ split a)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl idˡ) ⟩
+      ≈⟨ pullʳ (cancelInner (split∘merge b)) ⟩
     merge a ∘ (σ ∘ (σ ∘ split a))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    merge a ∘ ((σ ∘ σ) ∘ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ σ∘σ≈id ≈-Term-refl) ⟩
-    merge a ∘ (id ∘ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
+      ≈⟨ refl⟩∘⟨ cancelˡ σ∘σ≈id ⟩
     merge a ∘ split a
       ≈⟨ merge∘split a ⟩
     id ∎
@@ -173,25 +173,17 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   pad-resp : ∀ {a b} (pre suf : List X) {g g' : HomTerm (wires a) (wires b)}
            → g ≈Term g' → pad pre suf g ≈Term pad pre suf g'
   pad-resp []      suf eq = rpad-resp suf eq
-  pad-resp (x ∷ p) suf eq = ⊗-resp-≈ ≈-Term-refl (pad-resp p suf eq)
+  pad-resp (x ∷ p) suf eq = refl⟩⊗⟨ pad-resp p suf eq
 
   pad-id : ∀ {a} (pre suf : List X) → pad pre suf (id {wires a}) ≈Term id
   pad-id []      suf = rpad-id suf
-  pad-id (x ∷ p) suf =
-    ≈-Term-trans (⊗-resp-≈ ≈-Term-refl (pad-id p suf)) id⊗id≈id
+  pad-id (x ∷ p) suf = (refl⟩⊗⟨ pad-id p suf) ○ id⊗id≈id
 
   pad-∘ : ∀ {a b c} (pre suf : List X)
             (g : HomTerm (wires b) (wires c)) (f : HomTerm (wires a) (wires b))
         → pad pre suf (g ∘ f) ≈Term pad pre suf g ∘ pad pre suf f
   pad-∘ []      suf g f = rpad-∘ suf g f
-  pad-∘ (x ∷ p) suf g f = begin
-    id ⊗₁ pad p suf (g ∘ f)
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (pad-∘ p suf g f) ⟩
-    id ⊗₁ (pad p suf g ∘ pad p suf f)
-      ≈⟨ ⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl ⟩
-    (id ∘ id) ⊗₁ (pad p suf g ∘ pad p suf f)
-      ≈⟨ ⊗-∘-dist ⟩
-    id ⊗₁ pad p suf g ∘ id ⊗₁ pad p suf f ∎
+  pad-∘ (x ∷ p) suf g f = (refl⟩⊗⟨ pad-∘ p suf g f) ○ ⟺ (id⊗-∘ _ _)
 
   -- the padded involution: an adjacent inverse cross-pair at the SAME
   -- offsets is the identity.
@@ -250,33 +242,17 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
                ≈Term rpad a h ∘ ⟦box⟧S (cross a b)
   slide-core a {b} {b'} h = begin
     (merge b' ∘ σ ∘ split a) ∘ liftW a h
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (liftW-merge a h) ⟩
+      ≈⟨ refl⟩∘⟨ liftW-merge a h ⟩
     (merge b' ∘ σ ∘ split a) ∘ (merge a ∘ (id ⊗₁ h) ∘ split a)
-      ≈⟨ assoc ⟩
-    merge b' ∘ ((σ ∘ split a) ∘ (merge a ∘ (id ⊗₁ h) ∘ split a))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-    merge b' ∘ (σ ∘ (split a ∘ (merge a ∘ (id ⊗₁ h) ∘ split a)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
-    merge b' ∘ (σ ∘ ((split a ∘ merge a) ∘ ((id ⊗₁ h) ∘ split a)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (split∘merge a) ≈-Term-refl)) ⟩
-    merge b' ∘ (σ ∘ (id ∘ ((id ⊗₁ h) ∘ split a)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl idˡ) ⟩
+      ≈⟨ pullʳ (cancelInner (split∘merge a)) ⟩
     merge b' ∘ (σ ∘ ((id ⊗₁ h) ∘ split a))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    merge b' ∘ ((σ ∘ (id ⊗₁ h)) ∘ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ σ∘[f⊗g]≈[g⊗f]∘σ ≈-Term-refl) ⟩
+      ≈⟨ refl⟩∘⟨ pullˡ σ∘[f⊗g]≈[g⊗f]∘σ ⟩
     merge b' ∘ (((h ⊗₁ id) ∘ σ) ∘ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+      ≈⟨ refl⟩∘⟨ assoc ⟩
     merge b' ∘ ((h ⊗₁ id) ∘ (σ ∘ split a))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⟩
-    merge b' ∘ ((h ⊗₁ id) ∘ (id ∘ (σ ∘ split a)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (split∘merge b) ≈-Term-refl)) ⟨
-    merge b' ∘ ((h ⊗₁ id) ∘ ((split b ∘ merge b) ∘ (σ ∘ split a)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl assoc) ⟩
-    merge b' ∘ ((h ⊗₁ id) ∘ (split b ∘ (merge b ∘ (σ ∘ split a))))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
+      ≈⟨ refl⟩∘⟨ insertInner (split∘merge b) ⟩
     merge b' ∘ (((h ⊗₁ id) ∘ split b) ∘ (merge b ∘ (σ ∘ split a)))
-      ≈⟨ ≈-Term-sym assoc ⟩
+      ≈⟨ assoc ⟨
     (merge b' ∘ (h ⊗₁ id) ∘ split b) ∘ (merge b ∘ σ ∘ split a) ∎
 
   -- the symmetric a-block case (update g : wires a ⇒ wires a').
@@ -285,35 +261,17 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
                  ≈Term liftW b g ∘ ⟦box⟧S (cross a b)
   slide-core-a b {a} {a'} g = begin
     (merge b ∘ σ ∘ split a') ∘ (merge a' ∘ (g ⊗₁ id) ∘ split a)
-      ≈⟨ assoc ⟩
-    merge b ∘ ((σ ∘ split a') ∘ (merge a' ∘ (g ⊗₁ id) ∘ split a))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-    merge b ∘ (σ ∘ (split a' ∘ (merge a' ∘ (g ⊗₁ id) ∘ split a)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
-    merge b ∘ (σ ∘ ((split a' ∘ merge a') ∘ ((g ⊗₁ id) ∘ split a)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (split∘merge a') ≈-Term-refl)) ⟩
-    merge b ∘ (σ ∘ (id ∘ ((g ⊗₁ id) ∘ split a)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl idˡ) ⟩
+      ≈⟨ pullʳ (cancelInner (split∘merge a')) ⟩
     merge b ∘ (σ ∘ ((g ⊗₁ id) ∘ split a))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-    merge b ∘ ((σ ∘ (g ⊗₁ id)) ∘ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ σ∘[f⊗g]≈[g⊗f]∘σ ≈-Term-refl) ⟩
+      ≈⟨ refl⟩∘⟨ pullˡ σ∘[f⊗g]≈[g⊗f]∘σ ⟩
     merge b ∘ (((id ⊗₁ g) ∘ σ) ∘ split a)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+      ≈⟨ refl⟩∘⟨ assoc ⟩
     merge b ∘ ((id ⊗₁ g) ∘ (σ ∘ split a))
-      ≈⟨ ≈-Term-sym assoc ⟩
-    (merge b ∘ (id ⊗₁ g)) ∘ (σ ∘ split a)
-      ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (≈-Term-sym idʳ)) ≈-Term-refl ⟩
-    (merge b ∘ ((id ⊗₁ g) ∘ id)) ∘ (σ ∘ split a)
-      ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym (split∘merge b)))) ≈-Term-refl ⟩
-    (merge b ∘ ((id ⊗₁ g) ∘ (split b ∘ merge b))) ∘ (σ ∘ split a)
-      ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ≈-Term-refl ⟩
-    (merge b ∘ (((id ⊗₁ g) ∘ split b) ∘ merge b)) ∘ (σ ∘ split a)
-      ≈⟨ ∘-resp-≈ (≈-Term-sym assoc) ≈-Term-refl ⟩
-    ((merge b ∘ ((id ⊗₁ g) ∘ split b)) ∘ merge b) ∘ (σ ∘ split a)
-      ≈⟨ assoc ⟩
+      ≈⟨ refl⟩∘⟨ insertInner (split∘merge b) ⟩
+    merge b ∘ (((id ⊗₁ g) ∘ split b) ∘ (merge b ∘ (σ ∘ split a)))
+      ≈⟨ assoc ⟨
     (merge b ∘ (id ⊗₁ g) ∘ split b) ∘ (merge b ∘ σ ∘ split a)
-      ≈⟨ ∘-resp-≈ (≈-Term-sym (liftW-merge b g)) ≈-Term-refl ⟩
+      ≈⟨ liftW-merge b g ⟩∘⟨refl ⟨
     liftW b g ∘ (merge b ∘ σ ∘ split a) ∎
 
   -- THE PADDED SLIDE (grouped coordinates): the same equation under an
@@ -357,17 +315,14 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
                  {eC : t ≡ q} {eD : p ≡ w} {fC : t' ≡ t} {fD : w ≡ w'}
                → Sand eC eD Y Z → Sand fC fD Z V
                → Sand (trans fC eC) (trans eD fD) Y V
-    sand-trans {eC = refl} {refl} {refl} {refl} hy hz =
-      ≈-Term-trans hy (≈-Term-trans idˡ (≈-Term-trans idʳ hz))
+    sand-trans {eC = refl} {refl} {refl} {refl} hy hz = hy ○ idˡ ○ idʳ ○ hz
 
     sand-flip : ∀ {p q w t}
                 {Y : HomTerm (wires p) (wires q)}
                 {Z : HomTerm (wires w) (wires t)}
                 {eC : t ≡ q} {eD : p ≡ w}
               → Sand eC eD Y Z → Sand (sym eC) (sym eD) Z Y
-    sand-flip {eC = refl} {refl} hy =
-      ≈-Term-trans (≈-Term-sym (≈-Term-trans hy (≈-Term-trans idˡ idʳ)))
-                   (≈-Term-sym (≈-Term-trans idˡ idʳ))
+    sand-flip {eC = refl} {refl} hy = ⟺ (hy ○ idˡ ○ idʳ) ○ ⟺ (idˡ ○ idʳ)
 
     sand-irr : ∀ {p q w t}
                {Y : HomTerm (wires p) (wires q)}
@@ -375,23 +330,33 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
                {eC eC' : t ≡ q} {eD eD' : p ≡ w}
              → Sand eC eD Y Z → Sand eC' eD' Y Z
     sand-irr {eC = eC} {eC'} {eD} {eD'} s =
-      ≈-Term-trans s (∘-resp-≈ (castW-irr eC eC')
-                                (∘-resp-≈ ≈-Term-refl (castW-irr eD eD')))
+      s ○ (castW-irr eC eC' ⟩∘⟨ refl⟩∘⟨ castW-irr eD eD')
 
     sand-≈ˡ : ∀ {p q w t}
               {Y' Y : HomTerm (wires p) (wires q)}
               {Z : HomTerm (wires w) (wires t)}
               {eC : t ≡ q} {eD : p ≡ w}
             → Y' ≈Term Y → Sand eC eD Y Z → Sand eC eD Y' Z
-    sand-≈ˡ e s = ≈-Term-trans e s
+    sand-≈ˡ e s = e ○ s
 
     sand-mid : ∀ {p q w t}
                {Y : HomTerm (wires p) (wires q)}
                {Z Z' : HomTerm (wires w) (wires t)}
                {eC : t ≡ q} {eD : p ≡ w}
              → Sand eC eD Y Z → Z ≈Term Z' → Sand eC eD Y Z'
-    sand-mid s e =
-      ≈-Term-trans s (∘-resp-≈ ≈-Term-refl (∘-resp-≈ e ≈-Term-refl))
+    sand-mid s e = s ○ (refl⟩∘⟨ (e ⟩∘⟨refl))
+
+    -- the sandwich-cancellation used by both clean slides: flip the
+    -- sandwich onto the left factor, then cancel the inverse cast pair
+    -- `castW (sym eD) ∘ castW eD` against the caller's cast.
+    sand-cancel : ∀ {p q w t} {A : ObjTerm}
+                  {Y : HomTerm (wires p) (wires q)}
+                  {Z : HomTerm (wires w) (wires t)}
+                  {eC : t ≡ q} (eD : p ≡ w) (C : HomTerm A (wires p))
+                → Sand eC eD Y Z
+                → Z ∘ (castW eD ∘ C) ≈Term castW (sym eC) ∘ (Y ∘ C)
+    sand-cancel eD C s =
+      (sand-flip s ⟩∘⟨refl) ○ assoc ○ (refl⟩∘⟨ cancelInner (castW-sym-r eD))
 
     -- prefix-lift of a sandwich.
     liftW-sand : ∀ (p : List X) {pp q w t}
@@ -406,9 +371,9 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       liftW p (castW eC ∘ Z ∘ castW eD)
         ≈⟨ liftW-∘ p (castW eC) (Z ∘ castW eD) ⟩
       liftW p (castW eC) ∘ liftW p (Z ∘ castW eD)
-        ≈⟨ ∘-resp-≈ (liftW-castW p eC) (liftW-∘ p Z (castW eD)) ⟩
+        ≈⟨ liftW-castW p eC ⟩∘⟨ liftW-∘ p Z (castW eD) ⟩
       castW (cong (p ++_) eC) ∘ (liftW p Z ∘ liftW p (castW eD))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (liftW-castW p eD)) ⟩
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ liftW-castW p eD ⟩
       castW (cong (p ++_) eC) ∘ (liftW p Z ∘ castW (cong (p ++_) eD)) ∎
 
     -- prefix-lift fusion, as a sandwich (assocW towers collapse to castW).
@@ -419,8 +384,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       liftW x (liftW m W)
         ≈⟨ liftW-assoc' x m W ⟩
       assocW⁻ x m v ∘ liftW (x ++ m) W ∘ assocW x m u
-        ≈⟨ ∘-resp-≈ (assocW⁻-castW x m v)
-                    (∘-resp-≈ ≈-Term-refl (assocW-castW x m u)) ⟩
+        ≈⟨ assocW⁻-castW x m v ⟩∘⟨ refl⟩∘⟨ assocW-castW x m u ⟩
       castW (++-assoc x m v) ∘ liftW (x ++ m) W ∘ castW (sym (++-assoc x m u)) ∎
 
     -- a suffix-pad slides under a single prefix wire (α-naturality).
@@ -428,19 +392,9 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
                 → rpad sq (id {Var x} ⊗₁ V) ≈Term id {Var x} ⊗₁ rpad sq V
     rpad-⊗-peel sq x {n} {n'} V = begin
       (id ⊗₁ merge n' ∘ α⇒) ∘ ((id ⊗₁ V) ⊗₁ id) ∘ (α⇐ ∘ id ⊗₁ split n)
-        ≈⟨ assoc ⟩
-      id ⊗₁ merge n' ∘ (α⇒ ∘ (((id ⊗₁ V) ⊗₁ id) ∘ (α⇐ ∘ id ⊗₁ split n)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-      id ⊗₁ merge n' ∘ ((α⇒ ∘ ((id ⊗₁ V) ⊗₁ id)) ∘ (α⇐ ∘ id ⊗₁ split n))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ α-comm ≈-Term-refl) ⟩
+        ≈⟨ pullʳ (pullˡ α-comm) ⟩
       id ⊗₁ merge n' ∘ ((id ⊗₁ (V ⊗₁ id) ∘ α⇒) ∘ (α⇐ ∘ id ⊗₁ split n))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-      id ⊗₁ merge n' ∘ (id ⊗₁ (V ⊗₁ id) ∘ (α⇒ ∘ (α⇐ ∘ id ⊗₁ split n)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
-      id ⊗₁ merge n' ∘ (id ⊗₁ (V ⊗₁ id) ∘ ((α⇒ ∘ α⇐) ∘ id ⊗₁ split n))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ α⇒∘α⇐≈id ≈-Term-refl)) ⟩
-      id ⊗₁ merge n' ∘ (id ⊗₁ (V ⊗₁ id) ∘ (id ∘ id ⊗₁ split n))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl idˡ) ⟩
+        ≈⟨ refl⟩∘⟨ cancelInner α⇒∘α⇐≈id ⟩
       id ⊗₁ merge n' ∘ (id ⊗₁ (V ⊗₁ id) ∘ id ⊗₁ split n)
         ≈⟨ id⊗-∘3 (merge n') (V ⊗₁ id) (split n) ⟩
       id ⊗₁ (merge n' ∘ (V ⊗₁ id) ∘ split n) ∎
@@ -449,23 +403,22 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     rpad-liftW : ∀ (sq p : List X) {u v} (W : HomTerm (wires u) (wires v))
                → Sand (sym (++-assoc p v sq)) (++-assoc p u sq)
                       (rpad sq (liftW p W)) (liftW p (rpad sq W))
-    rpad-liftW sq [] {u} {v} W = ≈-Term-sym (≈-Term-trans idˡ idʳ)
+    rpad-liftW sq [] {u} {v} W = ⟺ (idˡ ○ idʳ)
     rpad-liftW sq (x ∷ p) {u} {v} W = begin
       rpad sq (liftW (x ∷ p) W)
         ≈⟨ rpad-⊗-peel sq x (liftW p W) ⟩
       id ⊗₁ rpad sq (liftW p W)
-        ≈⟨ ⊗-resp-≈ ≈-Term-refl (rpad-liftW sq p W) ⟩
+        ≈⟨ refl⟩⊗⟨ rpad-liftW sq p W ⟩
       id ⊗₁ (castW (sym (++-assoc p v sq)) ∘ liftW p (rpad sq W) ∘ castW (++-assoc p u sq))
         ≈⟨ id⊗-∘3 _ _ _ ⟨
       id ⊗₁ castW (sym (++-assoc p v sq))
         ∘ id ⊗₁ liftW p (rpad sq W)
         ∘ id ⊗₁ castW (++-assoc p u sq)
-        ≈⟨ ∘-resp-≈ (castW-∷ (sym (++-assoc p v sq)))
-                    (∘-resp-≈ ≈-Term-refl (castW-∷ (++-assoc p u sq))) ⟩
+        ≈⟨ castW-∷ (sym (++-assoc p v sq)) ⟩∘⟨ refl⟩∘⟨ castW-∷ (++-assoc p u sq) ⟩
       castW (cong (x ∷_) (sym (++-assoc p v sq)))
         ∘ liftW (x ∷ p) (rpad sq W)
         ∘ castW (cong (x ∷_) (++-assoc p u sq))
-        ≈⟨ ∘-resp-≈ (castW-irr _ _) (∘-resp-≈ ≈-Term-refl (castW-irr _ _)) ⟩
+        ≈⟨ castW-irr _ _ ⟩∘⟨ refl⟩∘⟨ castW-irr _ _ ⟩
       castW (sym (++-assoc (x ∷ p) v sq))
         ∘ liftW (x ∷ p) (rpad sq W)
         ∘ castW (++-assoc (x ∷ p) u sq) ∎
@@ -473,116 +426,47 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     -- coeC (ReflectI's arbitrary-domain codomain coercion) is a castW.
     coeC-as-castW : ∀ {A} {p q : List X} (e : p ≡ q) (h : HomTerm A (wires p))
                   → coeC e h ≈Term castW e ∘ h
-    coeC-as-castW refl h = ≈-Term-sym idˡ
+    coeC-as-castW refl h = ⟺ idˡ
 
     -- merge-assoc, rearranged:  castW e ∘ A ≈ B  (grouped ↦ nested form).
     mmB : ∀ (w s sq : List X)
         → castW (++-assoc w s sq) ∘ (merge (w ++ s) {sq} ∘ (merge w {s} ⊗₁ id {wires sq}))
           ≈Term merge w {s ++ sq} ∘ (id ⊗₁ merge s {sq}) ∘ α⇒
     mmB w s sq =
-      ≈-Term-trans (≈-Term-sym (coeC-as-castW (++-assoc w s sq) _))
-                   (≈-Term-sym (merge-assoc w s sq))
+      ⟺ (coeC-as-castW (++-assoc w s sq) _) ○ ⟺ (merge-assoc w s sq)
 
     -- the merge-merge fusion:  A ≈ castW (sym e) ∘ B.
     mm : ∀ (w s sq : List X)
        → merge (w ++ s) {sq} ∘ (merge w {s} ⊗₁ id {wires sq})
          ≈Term castW (sym (++-assoc w s sq))
              ∘ (merge w {s ++ sq} ∘ (id ⊗₁ merge s {sq}) ∘ α⇒)
-    mm w s sq = begin
-      merge (w ++ s) ∘ (merge w ⊗₁ id)
-        ≈⟨ idˡ ⟨
-      id ∘ (merge (w ++ s) ∘ (merge w ⊗₁ id))
-        ≈⟨ ∘-resp-≈ (castW-sym-r (++-assoc w s sq)) ≈-Term-refl ⟨
-      (castW (sym (++-assoc w s sq)) ∘ castW (++-assoc w s sq))
-        ∘ (merge (w ++ s) ∘ (merge w ⊗₁ id))
-        ≈⟨ assoc ⟩
-      castW (sym (++-assoc w s sq))
-        ∘ (castW (++-assoc w s sq) ∘ (merge (w ++ s) ∘ (merge w ⊗₁ id)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (mmB w s sq) ⟩
-      castW (sym (++-assoc w s sq)) ∘ (merge w ∘ (id ⊗₁ merge s) ∘ α⇒) ∎
+    mm w s sq = introˡ (castW-sym-r (++-assoc w s sq)) ○ pullʳ (mmB w s sq)
 
     -- the grouped merge pair is split-inverse...
     ms-iso : ∀ (w s sq : List X)
            → (merge (w ++ s) {sq} ∘ (merge w {s} ⊗₁ id {wires sq}))
              ∘ ((split w {s} ⊗₁ id {wires sq}) ∘ split (w ++ s) {sq}) ≈Term id
-    ms-iso w s sq = begin
-      (merge (w ++ s) ∘ (merge w ⊗₁ id)) ∘ ((split w ⊗₁ id) ∘ split (w ++ s))
-        ≈⟨ assoc ⟩
-      merge (w ++ s) ∘ ((merge w ⊗₁ id) ∘ ((split w ⊗₁ id) ∘ split (w ++ s)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-      merge (w ++ s) ∘ (((merge w ⊗₁ id) ∘ (split w ⊗₁ id)) ∘ split (w ++ s))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym ⊗-∘-dist) ≈-Term-refl) ⟩
-      merge (w ++ s) ∘ (((merge w ∘ split w) ⊗₁ (id ∘ id)) ∘ split (w ++ s))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ (merge∘split w) idˡ) ≈-Term-refl) ⟩
-      merge (w ++ s) ∘ ((id ⊗₁ id) ∘ split (w ++ s))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ id⊗id≈id ≈-Term-refl) ⟩
-      merge (w ++ s) ∘ (id ∘ split (w ++ s))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
-      merge (w ++ s) ∘ split (w ++ s)
-        ≈⟨ merge∘split (w ++ s) ⟩
-      id ∎
+    ms-iso w s sq =
+      cancelInner (⟺ ⊗-∘-dist ○ (merge∘split w ⟩⊗⟨ idˡ) ○ id⊗id≈id)
+      ○ merge∘split (w ++ s)
 
     -- ...and so is the nested pair (the other inverse order).
     gb-iso : ∀ (w s sq : List X)
            → (α⇐ ∘ (id {wires w} ⊗₁ split s {sq}) ∘ split w {s ++ sq})
              ∘ (merge w {s ++ sq} ∘ (id ⊗₁ merge s {sq}) ∘ α⇒) ≈Term id
-    gb-iso w s sq = begin
-      (α⇐ ∘ (id ⊗₁ split s) ∘ split w) ∘ (merge w ∘ (id ⊗₁ merge s) ∘ α⇒)
-        ≈⟨ assoc ⟩
-      α⇐ ∘ (((id ⊗₁ split s) ∘ split w) ∘ (merge w ∘ (id ⊗₁ merge s) ∘ α⇒))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-      α⇐ ∘ ((id ⊗₁ split s) ∘ (split w ∘ (merge w ∘ (id ⊗₁ merge s) ∘ α⇒)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
-      α⇐ ∘ ((id ⊗₁ split s) ∘ ((split w ∘ merge w) ∘ ((id ⊗₁ merge s) ∘ α⇒)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (split∘merge w) ≈-Term-refl)) ⟩
-      α⇐ ∘ ((id ⊗₁ split s) ∘ (id ∘ ((id ⊗₁ merge s) ∘ α⇒)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl idˡ) ⟩
-      α⇐ ∘ ((id ⊗₁ split s) ∘ ((id ⊗₁ merge s) ∘ α⇒))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-      α⇐ ∘ (((id ⊗₁ split s) ∘ (id ⊗₁ merge s)) ∘ α⇒)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym ⊗-∘-dist) ≈-Term-refl) ⟩
-      α⇐ ∘ (((id ∘ id) ⊗₁ (split s ∘ merge s)) ∘ α⇒)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ idˡ (split∘merge s)) ≈-Term-refl) ⟩
-      α⇐ ∘ ((id ⊗₁ id) ∘ α⇒)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ id⊗id≈id ≈-Term-refl) ⟩
-      α⇐ ∘ (id ∘ α⇒)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
-      α⇐ ∘ α⇒
-        ≈⟨ α⇐∘α⇒≈id ⟩
-      id ∎
+    gb-iso w s sq =
+      pullʳ (cancelInner (split∘merge w))
+      ○ (refl⟩∘⟨ cancelˡ (id⊗-cancel (split∘merge s)))
+      ○ α⇐∘α⇒≈id
 
     -- the split-split fusion (derived from `mm` by inverse algebra).
     ss : ∀ (w s sq : List X)
        → (split w {s} ⊗₁ id {wires sq}) ∘ split (w ++ s) {sq}
          ≈Term (α⇐ ∘ (id ⊗₁ split s {sq}) ∘ split w {s ++ sq})
              ∘ castW (++-assoc w s sq)
-    ss w s sq = begin
-      (split w ⊗₁ id) ∘ split (w ++ s)
-        ≈⟨ idˡ ⟨
-      id ∘ ((split w ⊗₁ id) ∘ split (w ++ s))
-        ≈⟨ ∘-resp-≈ (gb-iso w s sq) ≈-Term-refl ⟨
-      ((α⇐ ∘ (id ⊗₁ split s) ∘ split w) ∘ (merge w ∘ (id ⊗₁ merge s) ∘ α⇒))
-        ∘ ((split w ⊗₁ id) ∘ split (w ++ s))
-        ≈⟨ assoc ⟩
-      (α⇐ ∘ (id ⊗₁ split s) ∘ split w)
-        ∘ ((merge w ∘ (id ⊗₁ merge s) ∘ α⇒) ∘ ((split w ⊗₁ id) ∘ split (w ++ s)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (mmB w s sq) ≈-Term-refl) ⟨
-      (α⇐ ∘ (id ⊗₁ split s) ∘ split w)
-        ∘ ((castW (++-assoc w s sq) ∘ (merge (w ++ s) ∘ (merge w ⊗₁ id)))
-           ∘ ((split w ⊗₁ id) ∘ split (w ++ s)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-      (α⇐ ∘ (id ⊗₁ split s) ∘ split w)
-        ∘ (castW (++-assoc w s sq)
-           ∘ ((merge (w ++ s) ∘ (merge w ⊗₁ id)) ∘ ((split w ⊗₁ id) ∘ split (w ++ s))))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (ms-iso w s sq)) ⟩
-      (α⇐ ∘ (id ⊗₁ split s) ∘ split w) ∘ (castW (++-assoc w s sq) ∘ id)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl idʳ ⟩
-      (α⇐ ∘ (id ⊗₁ split s) ∘ split w) ∘ castW (++-assoc w s sq) ∎
-
-    -- tensoring a composite with a single idle block.
-    ⊗id-∘ : ∀ {A B C Z : ObjTerm} (P : HomTerm B C) (Q : HomTerm A B)
-          → (P ∘ Q) ⊗₁ id {Z} ≈Term (P ⊗₁ id) ∘ (Q ⊗₁ id)
-    ⊗id-∘ P Q = ≈-Term-trans (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⊗-∘-dist
+    ss w s sq =
+      introˡ (gb-iso w s sq)
+      ○ pullʳ ((⟺ (mmB w s sq) ⟩∘⟨refl) ○ cancelʳ (ms-iso w s sq))
 
     -- the nested middle collapses to the fused suffix-pad.
     midColl : ∀ (s sq : List X) {u v} (W : HomTerm (wires u) (wires v))
@@ -593,44 +477,14 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     midColl s sq {u} {v} W = begin
       (merge v ∘ (id ⊗₁ merge s) ∘ α⇒)
         ∘ (((W ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ (id ⊗₁ split s) ∘ split u))
-        ≈⟨ assoc ⟩
-      merge v ∘ (((id ⊗₁ merge s) ∘ α⇒)
-        ∘ (((W ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ (id ⊗₁ split s) ∘ split u)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+        ≈⟨ assoc ○ (refl⟩∘⟨ assoc) ⟩
       merge v ∘ ((id ⊗₁ merge s)
         ∘ (α⇒ ∘ (((W ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ (id ⊗₁ split s) ∘ split u))))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
-      merge v ∘ ((id ⊗₁ merge s)
-        ∘ ((α⇒ ∘ ((W ⊗₁ id) ⊗₁ id)) ∘ (α⇐ ∘ (id ⊗₁ split s) ∘ split u)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ α-comm ≈-Term-refl)) ⟩
-      merge v ∘ ((id ⊗₁ merge s)
-        ∘ ((W ⊗₁ id ⊗₁ id ∘ α⇒) ∘ (α⇐ ∘ (id ⊗₁ split s) ∘ split u)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl assoc) ⟩
-      merge v ∘ ((id ⊗₁ merge s)
-        ∘ ((W ⊗₁ id ⊗₁ id) ∘ (α⇒ ∘ (α⇐ ∘ (id ⊗₁ split s) ∘ split u))))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl
-             (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc))) ⟩
-      merge v ∘ ((id ⊗₁ merge s)
-        ∘ ((W ⊗₁ id ⊗₁ id) ∘ ((α⇒ ∘ α⇐) ∘ ((id ⊗₁ split s) ∘ split u))))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl
-             (∘-resp-≈ ≈-Term-refl (∘-resp-≈ α⇒∘α⇐≈id ≈-Term-refl))) ⟩
-      merge v ∘ ((id ⊗₁ merge s)
-        ∘ ((W ⊗₁ id ⊗₁ id) ∘ (id ∘ ((id ⊗₁ split s) ∘ split u))))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl idˡ)) ⟩
+        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (pullˡ α-comm ○ cancelInner α⇒∘α⇐≈id) ⟩
       merge v ∘ ((id ⊗₁ merge s) ∘ ((W ⊗₁ id ⊗₁ id) ∘ ((id ⊗₁ split s) ∘ split u)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-      merge v ∘ (((id ⊗₁ merge s) ∘ (W ⊗₁ id ⊗₁ id)) ∘ ((id ⊗₁ split s) ∘ split u))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym ⊗-∘-dist) ≈-Term-refl) ⟩
-      merge v ∘ (((id ∘ W) ⊗₁ (merge s ∘ id ⊗₁ id)) ∘ ((id ⊗₁ split s) ∘ split u))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈
-             (⊗-resp-≈ idˡ (≈-Term-trans (∘-resp-≈ ≈-Term-refl id⊗id≈id) idʳ))
-             ≈-Term-refl) ⟩
+        ≈⟨ refl⟩∘⟨ pullˡ (⟺ ⊗-∘-dist ○ (idˡ ⟩⊗⟨ elimʳ id⊗id≈id)) ⟩
       merge v ∘ ((W ⊗₁ merge s) ∘ ((id ⊗₁ split s) ∘ split u))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-      merge v ∘ (((W ⊗₁ merge s) ∘ (id ⊗₁ split s)) ∘ split u)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym ⊗-∘-dist) ≈-Term-refl) ⟩
-      merge v ∘ (((W ∘ id) ⊗₁ (merge s ∘ split s)) ∘ split u)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (⊗-resp-≈ idʳ (merge∘split s)) ≈-Term-refl) ⟩
+        ≈⟨ refl⟩∘⟨ pullˡ (⟺ ⊗-∘-dist ○ (idʳ ⟩⊗⟨ merge∘split s)) ⟩
       merge v ∘ ((W ⊗₁ id) ∘ split u) ∎
 
     -- NEW COHERENCE 2: suffix-pad fusion.
@@ -639,48 +493,27 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
                      (rpad sq (rpad s W)) (rpad (s ++ sq) W)
     rpad-rpad s sq {u} {v} W = begin
       merge (v ++ s) ∘ (rpad s W ⊗₁ id) ∘ split (u ++ s)
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ expand ≈-Term-refl) ⟩
+        ≈⟨ refl⟩∘⟨ (expand ⟩∘⟨refl) ⟩
       merge (v ++ s)
         ∘ (((merge v ⊗₁ id) ∘ ((W ⊗₁ id) ⊗₁ id) ∘ (split u ⊗₁ id)) ∘ split (u ++ s))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-      merge (v ++ s)
-        ∘ ((merge v ⊗₁ id) ∘ ((((W ⊗₁ id) ⊗₁ id) ∘ (split u ⊗₁ id)) ∘ split (u ++ s)))
-        ≈⟨ ≈-Term-sym assoc ⟩
+        ≈⟨ (refl⟩∘⟨ assoc) ○ ⟺ assoc ○ (refl⟩∘⟨ assoc) ⟩
       (merge (v ++ s) ∘ (merge v ⊗₁ id))
-        ∘ ((((W ⊗₁ id) ⊗₁ id) ∘ (split u ⊗₁ id)) ∘ split (u ++ s))
-        ≈⟨ ∘-resp-≈ (mm v s sq) assoc ⟩
-      (castW (sym (++-assoc v s sq)) ∘ (merge v ∘ (id ⊗₁ merge s) ∘ α⇒))
         ∘ (((W ⊗₁ id) ⊗₁ id) ∘ ((split u ⊗₁ id) ∘ split (u ++ s)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (ss u s sq)) ⟩
+        ≈⟨ mm v s sq ⟩∘⟨ (refl⟩∘⟨ ss u s sq) ⟩
       (castW (sym (++-assoc v s sq)) ∘ (merge v ∘ (id ⊗₁ merge s) ∘ α⇒))
         ∘ (((W ⊗₁ id) ⊗₁ id)
            ∘ ((α⇐ ∘ (id ⊗₁ split s) ∘ split u) ∘ castW (++-assoc u s sq)))
-        ≈⟨ assoc ⟩
-      castW (sym (++-assoc v s sq))
-        ∘ ((merge v ∘ (id ⊗₁ merge s) ∘ α⇒)
-           ∘ (((W ⊗₁ id) ⊗₁ id)
-              ∘ ((α⇐ ∘ (id ⊗₁ split s) ∘ split u) ∘ castW (++-assoc u s sq))))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
+        ≈⟨ assoc ○ (refl⟩∘⟨ refl⟩∘⟨ ⟺ assoc) ⟩
       castW (sym (++-assoc v s sq))
         ∘ ((merge v ∘ (id ⊗₁ merge s) ∘ α⇒)
            ∘ ((((W ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ (id ⊗₁ split s) ∘ split u))
               ∘ castW (++-assoc u s sq)))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-      castW (sym (++-assoc v s sq))
-        ∘ (((merge v ∘ (id ⊗₁ merge s) ∘ α⇒)
-            ∘ (((W ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ (id ⊗₁ split s) ∘ split u)))
-           ∘ castW (++-assoc u s sq))
-        ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (midColl s sq W) ≈-Term-refl) ⟩
+        ≈⟨ refl⟩∘⟨ pullˡ (midColl s sq W) ⟩
       castW (sym (++-assoc v s sq)) ∘ (rpad (s ++ sq) W ∘ castW (++-assoc u s sq)) ∎
       where
         expand : rpad s W ⊗₁ id {wires sq}
                ≈Term (merge v ⊗₁ id) ∘ ((W ⊗₁ id) ⊗₁ id) ∘ (split u ⊗₁ id)
-        expand = begin
-          (merge v ∘ (W ⊗₁ id) ∘ split u) ⊗₁ id
-            ≈⟨ ⊗id-∘ (merge v) ((W ⊗₁ id) ∘ split u) ⟩
-          (merge v ⊗₁ id) ∘ (((W ⊗₁ id) ∘ split u) ⊗₁ id)
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (⊗id-∘ (W ⊗₁ id) (split u)) ⟩
-          (merge v ⊗₁ id) ∘ (((W ⊗₁ id) ⊗₁ id) ∘ (split u ⊗₁ id)) ∎
+        expand = split₁ʳ ○ (refl⟩∘⟨ split₁ʳ)
 
   ------------------------------------------------------------------------
   -- THE TWO RE-CLEANINGS.  With the concrete block update `h = pad p₁ s₁
@@ -709,7 +542,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       S2'' = sand-trans S2' (liftW-fuse a p₁ R)
       S1 = sand-≈ˡ (pad≡liftW pq sq (liftW a (pad p₁ s₁ G))) (liftW-sand pq S2'')
       S0 = sand-trans S1 (liftW-fuse pq (a ++ p₁) R)
-      SF = sand-mid S0 (≈-Term-sym (pad≡liftW (pq ++ (a ++ p₁)) (s₁ ++ sq) G))
+      SF = sand-mid S0 (⟺ (pad≡liftW (pq ++ (a ++ p₁)) (s₁ ++ sq) G))
 
   -- the INPUT-order box layer (box after the crossing, inside the b-image
   -- at offset pq++p₁).
@@ -731,7 +564,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       T2' = sand-trans T2 T3'
       T1 = sand-≈ˡ (pad≡liftW pq sq (rpad a (pad p₁ s₁ G))) (liftW-sand pq T2')
       T0 = sand-trans T1 (liftW-fuse pq p₁ R)
-      TF = sand-mid T0 (≈-Term-sym (pad≡liftW (pq ++ p₁) (s₁ ++ (a ++ sq)) G))
+      TF = sand-mid T0 (⟺ (pad≡liftW (pq ++ p₁) (s₁ ++ (a ++ sq)) G))
 
   ------------------------------------------------------------------------
   -- THE ASSEMBLED CLEAN SLIDE.  Both box-layers are genuine clean DiagU
@@ -761,22 +594,11 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
         ∘ castW e₄
   slide-clean pq sq a p₁ s₁ {u} {v} G e₁ e₂ e₃ e₄ = begin
     padIn ∘ (castW e₁ ∘ Cab)
-      ≈⟨ ∘-resp-≈ flipβ ≈-Term-refl ⟩
-    (castW (sym (sym e₂)) ∘ (Gβ ∘ castW (sym e₁))) ∘ (castW e₁ ∘ Cab)
-      ≈⟨ assoc ⟩
-    castW (sym (sym e₂)) ∘ ((Gβ ∘ castW (sym e₁)) ∘ (castW e₁ ∘ Cab))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-    castW (sym (sym e₂)) ∘ (Gβ ∘ (castW (sym e₁) ∘ (castW e₁ ∘ Cab)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
-    castW (sym (sym e₂)) ∘ (Gβ ∘ ((castW (sym e₁) ∘ castW e₁) ∘ Cab))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (castW-sym-r e₁) ≈-Term-refl)) ⟩
-    castW (sym (sym e₂)) ∘ (Gβ ∘ (id ∘ Cab))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl idˡ) ⟩
+      ≈⟨ sand-cancel e₁ Cab (padBoxIn pq sq a p₁ s₁ G (sym e₂) e₁) ⟩
     castW (sym (sym e₂)) ∘ (Gβ ∘ Cab)
-      ≈⟨ ∘-resp-≈ (castW-irr _ e₂) (≈-Term-sym (slide-pad pq sq a hᵇ)) ⟩
+      ≈⟨ castW-irr _ e₂ ⟩∘⟨ ⟺ (slide-pad pq sq a hᵇ) ⟩
     castW e₂ ∘ (Cab' ∘ Gα)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl
-           (padBoxSlid pq sq a p₁ s₁ G e₃ e₄)) ⟩
+      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ padBoxSlid pq sq a p₁ s₁ G e₃ e₄ ⟩
     castW e₂ ∘ (Cab' ∘ (castW e₃ ∘ padSlid ∘ castW e₄)) ∎
     where
       hᵇ      = pad p₁ s₁ G
@@ -786,8 +608,6 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       padSlid = pad (pq ++ (a ++ p₁)) (s₁ ++ sq) G
       Gβ      = pad pq sq (rpad a hᵇ)
       Gα      = pad pq sq (liftW a hᵇ)
-      flipβ : padIn ≈Term castW (sym (sym e₂)) ∘ Gβ ∘ castW (sym e₁)
-      flipβ = sand-flip (padBoxIn pq sq a p₁ s₁ G (sym e₂) e₁)
 
   -- the DiagU instance: the block update is a genuine BOX `f : Mor c d`
   -- (`G = ⟦box⟧S (box f)`), i.e. the input order `cross a (p₁++(c++s₁))`
@@ -859,22 +679,11 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
         ∘ castW e₄
   slide-clean-a pq sq b p₁ s₁ {u} {v} G e₁ e₂ e₃ e₄ = begin
     padIn ∘ (castW e₁ ∘ Cab)
-      ≈⟨ ∘-resp-≈ flipλ ≈-Term-refl ⟩
-    (castW (sym (sym e₂)) ∘ (Gλ ∘ castW (sym e₁))) ∘ (castW e₁ ∘ Cab)
-      ≈⟨ assoc ⟩
-    castW (sym (sym e₂)) ∘ ((Gλ ∘ castW (sym e₁)) ∘ (castW e₁ ∘ Cab))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-    castW (sym (sym e₂)) ∘ (Gλ ∘ (castW (sym e₁) ∘ (castW e₁ ∘ Cab)))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc)) ⟩
-    castW (sym (sym e₂)) ∘ (Gλ ∘ ((castW (sym e₁) ∘ castW e₁) ∘ Cab))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (castW-sym-r e₁) ≈-Term-refl)) ⟩
-    castW (sym (sym e₂)) ∘ (Gλ ∘ (id ∘ Cab))
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl idˡ) ⟩
+      ≈⟨ sand-cancel e₁ Cab (padBoxSlid pq sq b p₁ s₁ G (sym e₂) e₁) ⟩
     castW (sym (sym e₂)) ∘ (Gλ ∘ Cab)
-      ≈⟨ ∘-resp-≈ (castW-irr _ e₂) (≈-Term-sym (slide-pad-a pq sq b hₐ)) ⟩
+      ≈⟨ castW-irr _ e₂ ⟩∘⟨ ⟺ (slide-pad-a pq sq b hₐ) ⟩
     castW e₂ ∘ (Cab' ∘ Gρ)
-      ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl
-           (padBoxIn pq sq b p₁ s₁ G e₃ e₄)) ⟩
+      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ padBoxIn pq sq b p₁ s₁ G e₃ e₄ ⟩
     castW e₂ ∘ (Cab' ∘ (castW e₃ ∘ padSlid ∘ castW e₄)) ∎
     where
       hₐ      = pad p₁ s₁ G
@@ -884,8 +693,6 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       padSlid = pad (pq ++ p₁) (s₁ ++ (b ++ sq)) G
       Gρ      = pad pq sq (rpad b hₐ)
       Gλ      = pad pq sq (liftW b hₐ)
-      flipλ : padIn ≈Term castW (sym (sym e₂)) ∘ Gλ ∘ castW (sym e₁)
-      flipλ = sand-flip (padBoxSlid pq sq b p₁ s₁ G (sym e₂) e₁)
 
   -- the DiagU instance of the a-block slide.
   slide-clean-box-a :
@@ -981,8 +788,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       unwrapCast : ∀ {u v} {A} (e : u ≡ v)
                    {x : HomTerm A (wires u)} {y : HomTerm A (wires v)}
                  → castW e ∘ x ≈Term y → x ≈Term castW (sym e) ∘ y
-      unwrapCast refl eq =
-        ≈-Term-trans (≈-Term-sym idˡ) (≈-Term-trans eq (≈-Term-sym idˡ))
+      unwrapCast refl eq = ⟺ idˡ ○ eq ○ ⟺ idˡ
 
       ------------------------------------------------------------------
       -- THE σσ-CANCEL FIRE.  On a recognised adjacent inverse cross-pair
@@ -993,19 +799,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       fireσ : ∀ (px sx a b : List X)
               (rest' : DiagU (px ++ ((a ++ b) ++ sx)))
             → SwapRes (px ▸ sx ∷ cross a b ⟨ px ▸ sx ∷ cross b a ⟨ rest' ⟩ ⟩)
-      fireσ px sx a b rest' = rest' , refl , (begin
-        castW refl ∘ ((⟦ rest' ⟧ ∘ P₂) ∘ P₁)
-          ≈⟨ idˡ ⟩
-        (⟦ rest' ⟧ ∘ P₂) ∘ P₁
-          ≈⟨ assoc ⟩
-        ⟦ rest' ⟧ ∘ (P₂ ∘ P₁)
-          ≈⟨ ∘-resp-≈ ≈-Term-refl (pad-σσ px sx a b) ⟩
-        ⟦ rest' ⟧ ∘ id
-          ≈⟨ idʳ ⟩
-        ⟦ rest' ⟧ ∎)
-        where
-          P₁ = pad px sx (⟦box⟧S (cross a b))
-          P₂ = pad px sx (⟦box⟧S (cross b a))
+      fireσ px sx a b rest' =
+        rest' , refl , (idˡ ○ assoc ○ elimʳ (pad-σσ px sx a b))
 
       -- the σσ recogniser at the generalized inner index: fires exactly
       -- when the head layer is `cross a b` at (px,sx) and the next layer
@@ -1041,13 +836,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       substExpand : ∀ {m n : List X} (e : m ≡ n) (d : DiagU n)
                   → ⟦ substDiagU (sym e) d ⟧
                     ≈Term castW (sym (substDiagU-out (sym e) d)) ∘ (⟦ d ⟧ ∘ castW e)
-      substExpand refl d = ≈-Term-sym (≈-Term-trans idˡ idʳ)
-
-      -- (c ∘ (r ∘ q)) ∘ p ≈ c ∘ (r ∘ (q ∘ p))
-      assoc² : ∀ {A B C D E : ObjTerm} {c : HomTerm D E} {r : HomTerm C D}
-               {q : HomTerm B C} {p : HomTerm A B}
-             → (c ∘ (r ∘ q)) ∘ p ≈Term c ∘ (r ∘ (q ∘ p))
-      assoc² = ≈-Term-trans assoc (∘-resp-≈ ≈-Term-refl assoc)
+      substExpand refl d = ⟺ (idˡ ○ idʳ)
 
       -- `++`-assoc rebracketings for the slide's four index gaps.
       eq₁ : ∀ (pq p₁ x s₁ a sq : List X)
@@ -1110,58 +899,24 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
           oeq : out dBody ≡ out d'
           oeq = trans o₁ cAll
           M = ⟦ rest' ⟧ ∘ (castW E₂ ∘ (P₄ ∘ (castW E₃ ∘ (P₃ ∘ castW E₄))))
+          -- peel the substDiagU casts off ⟦ dBody ⟧, then fire the key.
           lemA : ⟦ dBody ⟧ ≈Term castW (sym o₁) ∘ M
-          lemA = begin
-            ⟦ substDiagU (sym meq) boxL ⟧ ∘ P₁
-              ≈⟨ ∘-resp-≈ (substExpand meq boxL) ≈-Term-refl ⟩
-            (castW (sym o₁) ∘ ((⟦ rest' ⟧ ∘ P₂) ∘ castW meq)) ∘ P₁
-              ≈⟨ assoc² ⟩
-            castW (sym o₁) ∘ ((⟦ rest' ⟧ ∘ P₂) ∘ (castW meq ∘ P₁))
-              ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-            castW (sym o₁) ∘ (⟦ rest' ⟧ ∘ (P₂ ∘ (castW meq ∘ P₁)))
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl key) ⟩
-            castW (sym o₁) ∘ (⟦ rest' ⟧ ∘ (castW E₂ ∘ (P₄ ∘ (castW E₃ ∘ (P₃ ∘ castW E₄))))) ∎
+          lemA = (substExpand meq boxL ⟩∘⟨refl) ○ assoc²βε
+               ○ (refl⟩∘⟨ (assoc ○ (refl⟩∘⟨ key)))
+          -- peel the three substDiagU casts off ⟦ d' ⟧ and fuse them.
           lemB : ⟦ d' ⟧ ≈Term castW cAll ∘ M
-          lemB = begin
-            ⟦ substDiagU (sym E₄) slidL ⟧
-              ≈⟨ substExpand E₄ slidL ⟩
-            castW (sym o₄) ∘ ((⟦ inner₃ ⟧ ∘ P₃) ∘ castW E₄)
-              ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
-            castW (sym o₄) ∘ (⟦ inner₃ ⟧ ∘ (P₃ ∘ castW E₄))
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (substExpand E₃ crossL) ≈-Term-refl) ⟩
-            castW (sym o₄) ∘ ((castW (sym o₃) ∘ ((⟦ inner₂ ⟧ ∘ P₄) ∘ castW E₃)) ∘ (P₃ ∘ castW E₄))
-              ≈⟨ ∘-resp-≈ ≈-Term-refl assoc² ⟩
-            castW (sym o₄) ∘ (castW (sym o₃) ∘ ((⟦ inner₂ ⟧ ∘ P₄) ∘ (castW E₃ ∘ (P₃ ∘ castW E₄))))
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl assoc) ⟩
-            castW (sym o₄) ∘ (castW (sym o₃) ∘ (⟦ inner₂ ⟧ ∘ (P₄ ∘ (castW E₃ ∘ (P₃ ∘ castW E₄)))))
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl
-                   (∘-resp-≈ (substExpand E₂ rest') ≈-Term-refl)) ⟩
-            castW (sym o₄) ∘ (castW (sym o₃)
-              ∘ ((castW (sym o₂) ∘ (⟦ rest' ⟧ ∘ castW E₂)) ∘ (P₄ ∘ (castW E₃ ∘ (P₃ ∘ castW E₄)))))
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl assoc²) ⟩
-            castW (sym o₄) ∘ (castW (sym o₃) ∘ (castW (sym o₂)
-              ∘ (⟦ rest' ⟧ ∘ (castW E₂ ∘ (P₄ ∘ (castW E₃ ∘ (P₃ ∘ castW E₄)))))))
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-            castW (sym o₄) ∘ ((castW (sym o₃) ∘ castW (sym o₂)) ∘ M)
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (castW-∘ (sym o₂) (sym o₃)) ≈-Term-refl) ⟩
-            castW (sym o₄) ∘ (castW (trans (sym o₂) (sym o₃)) ∘ M)
-              ≈⟨ ≈-Term-sym assoc ⟩
-            (castW (sym o₄) ∘ castW (trans (sym o₂) (sym o₃))) ∘ M
-              ≈⟨ ∘-resp-≈ (castW-∘ (trans (sym o₂) (sym o₃)) (sym o₄)) ≈-Term-refl ⟩
-            castW cAll ∘ M ∎
+          lemB = substExpand E₄ slidL
+               ○ (refl⟩∘⟨ assoc)
+               ○ (refl⟩∘⟨ ((substExpand E₃ crossL ⟩∘⟨refl) ○ assoc²βε))
+               ○ (refl⟩∘⟨ refl⟩∘⟨
+                    (assoc ○ (substExpand E₂ rest' ⟩∘⟨refl) ○ assoc²βε))
+               ○ (refl⟩∘⟨ pullˡ (castW-∘ (sym o₂) (sym o₃)))
+               ○ pullˡ (castW-∘ (trans (sym o₂) (sym o₃)) (sym o₄))
           snd : castW oeq ∘ ⟦ dBody ⟧ ≈Term ⟦ d' ⟧
-          snd = begin
-            castW oeq ∘ ⟦ dBody ⟧
-              ≈⟨ ∘-resp-≈ ≈-Term-refl lemA ⟩
-            castW oeq ∘ (castW (sym o₁) ∘ M)
-              ≈⟨ ≈-Term-sym assoc ⟩
-            (castW oeq ∘ castW (sym o₁)) ∘ M
-              ≈⟨ ∘-resp-≈ (castW-∘ (sym o₁) oeq) ≈-Term-refl ⟩
-            castW (trans (sym o₁) oeq) ∘ M
-              ≈⟨ ∘-resp-≈ (castW-irr (trans (sym o₁) oeq) cAll) ≈-Term-refl ⟩
-            castW cAll ∘ M
-              ≈⟨ lemB ⟨
-            ⟦ d' ⟧ ∎
+          snd = (refl⟩∘⟨ lemA)
+              ○ pullˡ (castW-∘ (sym o₁) oeq)
+              ○ (castW-irr (trans (sym o₁) oeq) cAll ⟩∘⟨refl)
+              ○ ⟺ lemB
 
       -- the b-IMAGE slide recogniser: head `cross a b` at (px,sx), second
       -- layer a box exhibited inside the crossing's b-image block
@@ -1262,31 +1017,19 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
           snd : castW oeq ∘ ⟦ dBody ⟧ ≈Term ⟦ d' ⟧
           snd = begin
             castW oeq ∘ ⟦ dBody ⟧
-              ≈⟨ ∘-resp-≈ (castW-irr oeq (trans (trans e₁ q) e₃)) ≈-Term-refl ⟩
+              ≈⟨ castW-irr oeq (trans (trans e₁ q) e₃) ⟩∘⟨refl ⟩
             castW (trans (trans e₁ q) e₃) ∘ ⟦ dBody ⟧
-              ≈⟨ ∘-resp-≈ (castW-∘ (trans e₁ q) e₃) ≈-Term-refl ⟨
-            (castW e₃ ∘ castW (trans e₁ q)) ∘ ⟦ dBody ⟧
-              ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (castW-∘ e₁ q)) ≈-Term-refl ⟨
-            (castW e₃ ∘ (castW q ∘ castW e₁)) ∘ ⟦ dBody ⟧
-              ≈⟨ assoc ⟩
-            castW e₃ ∘ ((castW q ∘ castW e₁) ∘ ⟦ dBody ⟧)
-              ≈⟨ ∘-resp-≈ ≈-Term-refl assoc ⟩
+              ≈⟨ pushˡ (⟺ (castW-∘ (trans e₁ q) e₃)) ⟩
+            castW e₃ ∘ (castW (trans e₁ q) ∘ ⟦ dBody ⟧)
+              ≈⟨ refl⟩∘⟨ pushˡ (⟺ (castW-∘ e₁ q)) ⟩
             castW e₃ ∘ (castW q ∘ (castW e₁ ∘ ⟦ dBody ⟧))
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (⟦substDiagU⟧ eᵒ dBody)) ⟨
+              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ⟦substDiagU⟧ eᵒ dBody ⟨
             castW e₃ ∘ (castW q ∘ (⟦ dIn ⟧ ∘ castW eᵒ))
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc) ⟩
-            castW e₃ ∘ ((castW q ∘ ⟦ dIn ⟧) ∘ castW eᵒ)
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ (diagU-swap-soundD fit' rest') ≈-Term-refl) ⟩
+              ≈⟨ refl⟩∘⟨ pullˡ (diagU-swap-soundD fit' rest') ⟩
             castW e₃ ∘ (⟦ dSw ⟧ ∘ castW eᵒ)
-              ≈⟨ ≈-Term-sym assoc ⟩
-            (castW e₃ ∘ ⟦ dSw ⟧) ∘ castW eᵒ
-              ≈⟨ ∘-resp-≈ (⟦substDiagU⟧ (sym eᵒ) dSw) ≈-Term-refl ⟨
+              ≈⟨ pullˡ (⟺ (⟦substDiagU⟧ (sym eᵒ) dSw)) ⟩
             (⟦ d' ⟧ ∘ castW (sym eᵒ)) ∘ castW eᵒ
-              ≈⟨ assoc ⟩
-            ⟦ d' ⟧ ∘ (castW (sym eᵒ) ∘ castW eᵒ)
-              ≈⟨ ∘-resp-≈ ≈-Term-refl (castW-sym-r eᵒ) ⟩
-            ⟦ d' ⟧ ∘ id
-              ≈⟨ idʳ ⟩
+              ≈⟨ cancelʳ (castW-sym-r eᵒ) ⟩
             ⟦ d' ⟧ ∎
 
       -- a fit is AMBIGUOUS when the reverse pair would also fit; such
@@ -1326,8 +1069,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
             → castW oeq ∘ ⟦ rest ⟧ ≈Term ⟦ rest' ⟧
             → castW oeq ∘ ⟦ px ▸ sx ∷ fx ⟨ rest ⟩ ⟧
               ≈Term ⟦ px ▸ sx ∷ fx ⟨ rest' ⟩ ⟧
-      lift∷ px sx fx oeq snd =
-        ≈-Term-trans (≈-Term-sym assoc) (∘-resp-≈ snd ≈-Term-refl)
+      lift∷ px sx fx oeq snd = pullˡ snd
 
       -- compose two swap-results (cast functoriality).
       swapTrans : ∀ {n} {d d' d'' : DiagU n}
@@ -1335,16 +1077,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
                 → castW oeq  ∘ ⟦ d  ⟧ ≈Term ⟦ d'  ⟧
                 → castW oeq' ∘ ⟦ d' ⟧ ≈Term ⟦ d'' ⟧
                 → castW (trans oeq oeq') ∘ ⟦ d ⟧ ≈Term ⟦ d'' ⟧
-      swapTrans {d = d} {d' = d'} {d'' = d''} oeq oeq' p q = begin
-        castW (trans oeq oeq') ∘ ⟦ d ⟧
-          ≈⟨ ∘-resp-≈ (castW-∘ oeq oeq') ≈-Term-refl ⟨
-        (castW oeq' ∘ castW oeq) ∘ ⟦ d ⟧
-          ≈⟨ assoc ⟩
-        castW oeq' ∘ (castW oeq ∘ ⟦ d ⟧)
-          ≈⟨ ∘-resp-≈ ≈-Term-refl p ⟩
-        castW oeq' ∘ ⟦ d' ⟧
-          ≈⟨ q ⟩
-        ⟦ d'' ⟧ ∎
+      swapTrans oeq oeq' p q =
+        pushˡ (⟺ (castW-∘ oeq oeq')) ○ (refl⟩∘⟨ p) ○ q
 
     -- one cancel-or-swap at the FIRST applicable position.
     stepσ? : ∀ {n} (d : DiagU n) → Maybe (SwapRes d)
@@ -1395,18 +1129,11 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
         half : ∀ (t : WTerm n m) (d' : DiagU n) (oeq : out (reflect t) ≡ out d')
              → castW oeq ∘ ⟦ reflect t ⟧ ≈Term ⟦ d' ⟧
              → embed t ≈Term castW (trans (sym oeq) (out-reflect t)) ∘ ⟦ d' ⟧
-        half t d' oeq snd = begin
-          embed t
-            ≈⟨ reflect-sound t ⟨
-          coeC (out-reflect t) ⟦ reflect t ⟧
-            ≈⟨ coeC-as-castW (out-reflect t) ⟦ reflect t ⟧ ⟩
-          castW (out-reflect t) ∘ ⟦ reflect t ⟧
-            ≈⟨ ∘-resp-≈ ≈-Term-refl (unwrapCast oeq snd) ⟩
-          castW (out-reflect t) ∘ (castW (sym oeq) ∘ ⟦ d' ⟧)
-            ≈⟨ ≈-Term-sym assoc ⟩
-          (castW (out-reflect t) ∘ castW (sym oeq)) ∘ ⟦ d' ⟧
-            ≈⟨ ∘-resp-≈ (castW-∘ (sym oeq) (out-reflect t)) ≈-Term-refl ⟩
-          castW (trans (sym oeq) (out-reflect t)) ∘ ⟦ d' ⟧ ∎
+        half t d' oeq snd =
+          ⟺ (reflect-sound t)
+          ○ coeC-as-castW (out-reflect t) ⟦ reflect t ⟧
+          ○ (refl⟩∘⟨ unwrapCast oeq snd)
+          ○ pullˡ (castW-∘ (sym oeq) (out-reflect t))
 
         chain : df' ≡ dg' → embed f ≈Term embed g
         chain deq = begin
@@ -1421,7 +1148,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
             step : df' ≡ dg'
                  → castW (trans (sym oeqf) (out-reflect f)) ∘ ⟦ df' ⟧
                    ≈Term castW (trans (sym oeqg) (out-reflect g)) ∘ ⟦ dg' ⟧
-            step refl = ∘-resp-≈ (castW-irr _ _) ≈-Term-refl
+            step refl = castW-irr _ _ ⟩∘⟨refl
 
     -- the computing hit-witness (normalizes to ⊤ exactly on a hit).
     IsJust : ∀ {a} {A : Set a} → Maybe A → Set
