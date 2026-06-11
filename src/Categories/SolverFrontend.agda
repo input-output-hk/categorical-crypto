@@ -39,6 +39,14 @@
 --     monoidal category along the free functor — definitionally, so the
 --     equation's two sides appear in the target's own vocabulary.
 --
+-- The shared machinery (flatten/MorW, mergeF/splitF, flat⇒/flat⇐, inj,
+-- reflectF, the transfer lemmas, bridgeF, solveF) lives in
+-- `Categories.SolverFrontendCore` (`FCore`/`FBridge`), instantiated here at
+-- (Mon, MorW, ⟦box⟧); this file supplies the Mon-specific clauses (the
+-- conjugated-box `injBox`, `reflectVar`, and the vacuous σ clauses on the
+-- empty `Symm ≤ Mon`), the `Decide` layer (the bubble-sort normalizer
+-- driver, term-level focusing, the rewriting layer) and `FinSetup`.
+--
 -- WHAT DECIDES (verified in `Categories.SolverFrontendTests`):
 --   pure MacLane coherence (unitor/associator iso laws, triangle, pentagon,
 --   λ≈ρ on unit); unitor/associator NATURALITY through box generators;
@@ -82,17 +90,14 @@
 
 module Categories.SolverFrontend where
 
-open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 open import Data.Bool using (Bool; true; false; not; _∨_; if_then_else_)
-open import Data.Empty using (⊥)
 open import Data.Fin using (Fin; toℕ)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
 open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (++-assoc; ++-identityʳ; ≡-dec)
+open import Data.List.Properties using (++-assoc; ++-identityʳ)
 open import Data.Maybe using (Maybe; just; nothing; _<∣>_)
 open import Data.Nat using (ℕ; _*_; _<ᵇ_) renaming (zero to nzero; suc to nsuc)
 open import Data.Product using (Σ; _,_; _×_; Σ-syntax; proj₁; proj₂)
-open import Data.Unit using (⊤)
 open import Data.Vec using (Vec; lookup)
 open import Function using (case_of_)
 open import Level using (Level)
@@ -104,12 +109,12 @@ open import Relation.Nullary using (Dec; yes; no)
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
 
-import Categories.Category.Monoidal.Reasoning as MonR
 import Categories.Morphism.Reasoning as MR
 
 open import Categories.DiagramRewriteUntyped using (module Untyped)
 open import Categories.FreeMonoidal
 open import Categories.SolverCompare using (module SolverCompare)
+open import Categories.SolverFrontendCore using (module MaybeHit; module FCore; module FBridge)
 open import Categories.SolverNormalize using (module Normalize)
 open import Categories.SolverReflect using (module Reflect)
 
@@ -120,22 +125,12 @@ module Frontend
   (GenF : ObjTerm → ObjTerm → Set)
   where
 
-  -- UIP on the wire lists, via Hedberg (decidable equality), --without-K.
-  private
-    ≡-irrelevantL : ∀ {x y : List X} (e e' : x ≡ y) → e ≡ e'
-    ≡-irrelevantL = Decidable⇒UIP.≡-irrelevant (≡-dec _≟X_)
-
   ------------------------------------------------------------------------
-  -- Object flattening and the wire-level generator family.
+  -- The engine-free shared layer: flatten, MorW, GenΣ, F≈R.
   ------------------------------------------------------------------------
 
-  flatten : ObjTerm → List X
-  flatten unit      = []
-  flatten (Y ⊗₀ Z) = flatten Y ++ flatten Z
-  flatten (Var x)   = x ∷ []
-
-  data MorW : List X → List X → Set where
-    mk : ∀ {Y Z} → GenF Y Z → MorW (flatten Y) (flatten Z)
+  private module Core = FCore Mon {X = X} GenF
+  open Core public using (flatten; MorW; mk; GenΣ; module F≈R)
 
   -- Wire-level machinery at MorW.
   open Untyped Mon {X} MorW                -- wires, mor, box, ⟦box⟧, merge, split, …
@@ -146,356 +141,50 @@ module Frontend
   -- Front-end free category: HomTerm over GenF, qualified `F`.
   private module F = FreeMonoidalHelper.Mor Mon X GenF
 
-  -- F-side equational reasoning (mirror of ≈R).
-  module F≈R where
-    infix  3 _∎F
-    infixr 2 stepF-≈ stepF-≈˘
-    infix  1 beginF_
-    beginF_ : ∀ {A B} {f g : F.HomTerm A B} → f F.≈Term g → f F.≈Term g
-    beginF_ x = x
-    stepF-≈ : ∀ {A B} (f : F.HomTerm A B) {g h} → g F.≈Term h → f F.≈Term g → f F.≈Term h
-    stepF-≈ _ gh fg = F.≈-Term-trans fg gh
-    stepF-≈˘ : ∀ {A B} (f : F.HomTerm A B) {g h} → g F.≈Term h → g F.≈Term f → f F.≈Term h
-    stepF-≈˘ _ gh gf = F.≈-Term-trans (F.≈-Term-sym gf) gh
-    _∎F : ∀ {A B} (f : F.HomTerm A B) → f F.≈Term f
-    _ ∎F = F.≈-Term-refl
-    syntax stepF-≈  f gh fg = f ≈F⟨ fg ⟩ gh
-    syntax stepF-≈˘ f gh gf = f ≈F⟨ gf ⟨ gh
-  open F≈R
-
-  -- stock combinators at BOTH free-category instances (proofs-only, not
-  -- exported): the wire-level ones under their usual names, the F-side
-  -- ones suffixed F (the unsuffixed names belong to the wire-level ≈R).
-  open MR FreeMonoidal using (pullˡ; pushˡ; cancelʳ)
-  open MR F.FreeMonoidal
-    using ()
-    renaming (pullˡ to pullˡF; cancelˡ to cancelˡF; cancelʳ to cancelʳF;
-              cancelInner to cancelInnerF; insertˡ to insertˡF;
-              assoc²βε to assoc²βεF)
-  open MonR F.Monoidal-FreeMonoidal
-    using ()
-    renaming (refl⟩∘⟨_ to infixr 4 reflF⟩∘⟨_; _⟩∘⟨refl to infixl 5 _⟩∘F⟨refl;
-              ⟺ to ⟺F; _○_ to infixr 3 _○F_;
-              _⟩⊗⟨_ to infixr 6 _⟩⊗F⟨_; split₁ˡ to split₁ˡF)
+  -- stock combinators at the wire-level free category (proofs-only, not
+  -- exported; used by the `Decide` layer below).
+  open MR FreeMonoidal using (pullˡ)
 
   ------------------------------------------------------------------------
-  -- F-side structural merge/split (same recursion as the wire-level ones).
+  -- The engine-generic shared layer, at (Mon, MorW, ⟦box⟧).
   ------------------------------------------------------------------------
 
-  mergeF : (a : List X) {suf : List X}
-         → F.HomTerm (wires a ⊗₀ wires suf) (wires (a ++ suf))
-  mergeF []      = F.λ⇒
-  mergeF (x ∷ a) = F._∘_ (F._⊗₁_ F.id (mergeF a)) F.α⇒
-
-  splitF : (a : List X) {suf : List X}
-         → F.HomTerm (wires (a ++ suf)) (wires a ⊗₀ wires suf)
-  splitF []      = F.λ⇐
-  splitF (x ∷ a) = F._∘_ F.α⇐ (F._⊗₁_ F.id (splitF a))
+  private module FB = FBridge Mon _≟X_ GenF MorW ⟦box⟧
+  open FB public
+    using (mergeF; splitF; flat⇒; flat⇐;
+           coeCF; coeCF-∘ˡ; coeCF-resp; coe-coe;
+           castʷ; embed-castʷ; fwd-λ; flipF)
 
   ------------------------------------------------------------------------
-  -- The canonical structural iso  Y ≅ wires (flatten Y), in F.
+  -- The Mon-specific clauses: a box generator is conjugated by the
+  -- canonical iso; the σ clauses are vacuous (`Symm ≤ Mon` is empty).
   ------------------------------------------------------------------------
 
-  flat⇒ : (Y : ObjTerm) → F.HomTerm Y (wires (flatten Y))
-  flat⇒ unit      = F.id
-  flat⇒ (Y ⊗₀ Z) = F._∘_ (mergeF (flatten Y)) (F._⊗₁_ (flat⇒ Y) (flat⇒ Z))
-  flat⇒ (Var x)   = F.ρ⇐
-
-  flat⇐ : (Y : ObjTerm) → F.HomTerm (wires (flatten Y)) Y
-  flat⇐ unit      = F.id
-  flat⇐ (Y ⊗₀ Z) = F._∘_ (F._⊗₁_ (flat⇐ Y) (flat⇐ Z)) (splitF (flatten Y))
-  flat⇐ (Var x)   = F.ρ⇒
-
-  ------------------------------------------------------------------------
-  -- `inj`: the wire-level free category into the front-end free category.
-  -- Homomorphic on all constructors; a box generator gets conjugated by
-  -- the canonical iso.
-  ------------------------------------------------------------------------
-
-  inj : ∀ {A B} → HomTerm A B → F.HomTerm A B
-  inj (var (box (mk {Y} {Z} g))) = F._∘_ (flat⇒ Z) (F._∘_ (F.var g) (flat⇐ Y))
-  inj id         = F.id
-  inj (g ∘ f)    = F._∘_ (inj g) (inj f)
-  inj (f ⊗₁ g)   = F._⊗₁_ (inj f) (inj g)
-  inj λ⇒         = F.λ⇒
-  inj λ⇐         = F.λ⇐
-  inj ρ⇒         = F.ρ⇒
-  inj ρ⇐         = F.ρ⇐
-  inj α⇒         = F.α⇒
-  inj α⇐         = F.α⇐
-
-  -- inj preserves the equational theory (each axiom maps to the same axiom).
-  inj-resp-≈ : ∀ {A B} {f g : HomTerm A B} → f ≈Term g → inj f F.≈Term inj g
-  inj-resp-≈ idˡ                 = F.idˡ
-  inj-resp-≈ idʳ                 = F.idʳ
-  inj-resp-≈ assoc               = F.assoc
-  inj-resp-≈ (∘-resp-≈ p q)      = F.∘-resp-≈ (inj-resp-≈ p) (inj-resp-≈ q)
-  inj-resp-≈ ≈-Term-refl         = F.≈-Term-refl
-  inj-resp-≈ (≈-Term-sym p)      = F.≈-Term-sym (inj-resp-≈ p)
-  inj-resp-≈ (≈-Term-trans p q)  = F.≈-Term-trans (inj-resp-≈ p) (inj-resp-≈ q)
-  inj-resp-≈ id⊗id≈id            = F.id⊗id≈id
-  inj-resp-≈ (⊗-resp-≈ p q)      = F.⊗-resp-≈ (inj-resp-≈ p) (inj-resp-≈ q)
-  inj-resp-≈ ⊗-∘-dist            = F.⊗-∘-dist
-  inj-resp-≈ λ⇐∘λ⇒≈id            = F.λ⇐∘λ⇒≈id
-  inj-resp-≈ λ⇒∘λ⇐≈id            = F.λ⇒∘λ⇐≈id
-  inj-resp-≈ ρ⇐∘ρ⇒≈id            = F.ρ⇐∘ρ⇒≈id
-  inj-resp-≈ ρ⇒∘ρ⇐≈id            = F.ρ⇒∘ρ⇐≈id
-  inj-resp-≈ α⇐∘α⇒≈id            = F.α⇐∘α⇒≈id
-  inj-resp-≈ α⇒∘α⇐≈id            = F.α⇒∘α⇐≈id
-  inj-resp-≈ λ⇒∘id⊗f≈f∘λ⇒        = F.λ⇒∘id⊗f≈f∘λ⇒
-  inj-resp-≈ ρ⇒∘f⊗id≈f∘ρ⇒        = F.ρ⇒∘f⊗id≈f∘ρ⇒
-  inj-resp-≈ α-comm              = F.α-comm
-  inj-resp-≈ triangle            = F.triangle
-  inj-resp-≈ pentagon            = F.pentagon
-
-  -- inj maps the wire-level merge/split to the F-side ones, on the nose.
-  inj-merge : ∀ (a : List X) {suf} → inj (merge a {suf}) ≡ mergeF a {suf}
-  inj-merge []      = refl
-  inj-merge (x ∷ a) = cong (λ h → F._∘_ (F._⊗₁_ F.id h) F.α⇒) (inj-merge a)
-
-  inj-split : ∀ (a : List X) {suf} → inj (split a {suf}) ≡ splitF a {suf}
-  inj-split []      = refl
-  inj-split (x ∷ a) = cong (λ h → F._∘_ F.α⇐ (F._⊗₁_ F.id h)) (inj-split a)
-
-  ------------------------------------------------------------------------
-  -- F-side coercion along a wire-list equality, and the inj-commutations.
-  ------------------------------------------------------------------------
-
-  coeCF : ∀ {A} {p q : List X} → p ≡ q
-        → F.HomTerm A (wires p) → F.HomTerm A (wires q)
-  coeCF refl h = h
-
-  coeCF-∘ˡ : ∀ {A R p q} (e : p ≡ q) (h : F.HomTerm R (wires p)) (j : F.HomTerm A R)
-           → coeCF e (F._∘_ h j) F.≈Term F._∘_ (coeCF e h) j
-  coeCF-∘ˡ refl h j = F.≈-Term-refl
-
-  coeCF-resp : ∀ {A p q} (e : p ≡ q) {h h' : F.HomTerm A (wires p)}
-             → h F.≈Term h' → coeCF e h F.≈Term coeCF e h'
-  coeCF-resp refl eq = eq
-
-  -- inj commutes with the wire-level coercion (definitional on refl).
-  inj-coeC : ∀ {A p q} (e : p ≡ q) (h : HomTerm A (wires p))
-           → inj (coeC e h) ≡ coeCF e (inj h)
-  inj-coeC refl h = refl
-
-  ------------------------------------------------------------------------
-  -- Structural lemmas transferred from the wire level along inj.
-  ------------------------------------------------------------------------
-
-  splitF∘mergeF : ∀ (a : List X) {suf} → F._∘_ (splitF a {suf}) (mergeF a) F.≈Term F.id
-  splitF∘mergeF a {suf} =
-    F.≡⇒≈Term (cong₂ F._∘_ (sym (inj-split a {suf})) (sym (inj-merge a {suf})))
-    ○F inj-resp-≈ (split∘merge a)
-
-  -- right-unitor coherence on the F-side merge (transfer of merge-ρ).
-  mergeF-ρ : ∀ (a : List X)
-           → coeCF (++-identityʳ a) (mergeF a {[]}) F.≈Term F.ρ⇒
-  mergeF-ρ a =
-    F.≡⇒≈Term (trans (cong (coeCF (++-identityʳ a)) (sym (inj-merge a)))
-                     (sym (inj-coeC (++-identityʳ a) (merge a {[]}))))
-    ○F inj-resp-≈ (merge-ρ a)
-
-  -- merge associativity on the F side (transfer of merge-assoc).
-  mergeF-assoc : ∀ (p q r : List X)
-    → F._∘_ (mergeF p {q ++ r}) (F._∘_ (F._⊗₁_ (F.id {wires p}) (mergeF q {r})) F.α⇒)
-      F.≈Term coeCF (++-assoc p q r)
-                (F._∘_ (mergeF (p ++ q) {r}) (F._⊗₁_ (mergeF p {q}) (F.id {wires r})))
-  mergeF-assoc p q r =
-    F.≡⇒≈Term (sym lhs-eq) ○F inj-resp-≈ (merge-assoc p q r) ○F F.≡⇒≈Term rhs-eq
-    where
-      lhs-eq : inj (merge p {q ++ r} ∘ (id {wires p} ⊗₁ merge q {r}) ∘ α⇒)
-             ≡ F._∘_ (mergeF p {q ++ r})
-                 (F._∘_ (F._⊗₁_ (F.id {wires p}) (mergeF q {r})) F.α⇒)
-      lhs-eq rewrite inj-merge p {q ++ r} | inj-merge q {r} = refl
-      rhs-eq : inj (coeC (++-assoc p q r) (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r})))
-             ≡ coeCF (++-assoc p q r)
-                 (F._∘_ (mergeF (p ++ q) {r}) (F._⊗₁_ (mergeF p {q}) (F.id {wires r})))
-      rhs-eq rewrite inj-coeC (++-assoc p q r) (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
-                   | inj-merge (p ++ q) {r} | inj-merge p {q} = refl
-
-  ------------------------------------------------------------------------
-  -- The canonical iso laws (only the retraction is needed downstream).
-  ------------------------------------------------------------------------
-
-  flat⇐∘flat⇒ : ∀ (Y : ObjTerm) → F._∘_ (flat⇐ Y) (flat⇒ Y) F.≈Term F.id
-  flat⇐∘flat⇒ unit = F.idˡ
-  flat⇐∘flat⇒ (Y ⊗₀ Z) =
-    cancelInnerF (splitF∘mergeF (flatten Y))
-    ○F ⟺F F.⊗-∘-dist
-    ○F (flat⇐∘flat⇒ Y ⟩⊗F⟨ flat⇐∘flat⇒ Z)
-    ○F F.id⊗id≈id
-  flat⇐∘flat⇒ (Var x) = F.ρ⇒∘ρ⇐≈id
-
-  ------------------------------------------------------------------------
-  -- Front-end reflection: structural constructors die into (casted) idʷ.
-  ------------------------------------------------------------------------
-
-  castʷ : ∀ {n n' m m'} → n ≡ n' → m ≡ m' → WTerm n m → WTerm n' m'
-  castʷ refl refl t = t
-
-  embed-castʷ : ∀ {n n' m m'} (p : n ≡ n') (q : m ≡ m') (t : WTerm n m)
-              → embed (castʷ p q t) ≈Term coeD p (coeC q (embed t))
-  embed-castʷ refl refl t = ≈-Term-refl
-
-  reflectF : ∀ {Y Z} → F.HomTerm Y Z → WTerm (flatten Y) (flatten Z)
-  reflectF (F.var g)            = boxʷ (mk g)
-  reflectF F.id                 = idʷ
-  reflectF (F._∘_ g f)          = reflectF g ∘ʷ reflectF f
-  reflectF (F._⊗₁_ f g)         = reflectF f ⊗ʷ reflectF g
-  reflectF (F.λ⇒ {A})           = idʷ
-  reflectF (F.λ⇐ {A})           = idʷ
-  reflectF (F.ρ⇒ {A})           = castʷ refl (++-identityʳ (flatten A)) idʷ
-  reflectF (F.ρ⇐ {A})           = castʷ refl (sym (++-identityʳ (flatten A))) idʷ
-  reflectF (F.α⇒ {A} {B} {C})   = castʷ refl (++-assoc (flatten A) (flatten B) (flatten C)) idʷ
-  reflectF (F.α⇐ {A} {B} {C})   = castʷ refl (sym (++-assoc (flatten A) (flatten B) (flatten C))) idʷ
-
-  ------------------------------------------------------------------------
-  -- The soundness bridge.  All stated in the front-end free category.
-  ------------------------------------------------------------------------
-
-  -- readability aliases (function aliases of the F constructors)
   private
-    infixr 9 _∘F_
-    infixr 10 _⊗F_
-    _∘F_ : ∀ {A B C} → F.HomTerm B C → F.HomTerm A B → F.HomTerm A C
-    _∘F_ = F._∘_
-    _⊗F_ : ∀ {A B C D} → F.HomTerm A B → F.HomTerm C D → F.HomTerm (A ⊗₀ C) (B ⊗₀ D)
-    _⊗F_ = F._⊗₁_
-    idF : ∀ {A} → F.HomTerm A A
-    idF = F.id
-    reflF : ∀ {A B} {f : F.HomTerm A B} → f F.≈Term f
-    reflF = F.≈-Term-refl
+    injBox : ∀ {a b} → MorW a b → F.HomTerm (wires a) (wires b)
+    injBox (mk {Y} {Z} g) = F._∘_ (flat⇒ Z) (F._∘_ (F.var g) (flat⇐ Y))
 
-  -- a casted idʷ, embedded and injected, is the F-side coercion of whatever
-  -- it is composed onto.
-  cast-half : ∀ {P} {p q : List X} (e : p ≡ q) (h : F.HomTerm P (wires p))
-            → inj (embed (castʷ refl e (idʷ {p}))) ∘F h F.≈Term coeCF e h
-  cast-half {P} {p} {q} e h =
-    ((inj-resp-≈ (embed-castʷ refl e idʷ) ○F F.≡⇒≈Term (inj-coeC e id)) ⟩∘F⟨refl)
-    ○F ⟺F (coeCF-∘ˡ e idF h)
-    ○F coeCF-resp e F.idˡ
+    reflectVarM : ∀ {Y Z} → GenF Y Z → WTerm (flatten Y) (flatten Z)
+    reflectVarM g = boxʷ (mk g)
 
-  -- the two opposite coercions cancel (UIP-free: by matching e).
-  coe-coe : ∀ {A} {p q : List X} (e : p ≡ q) (h : F.HomTerm A (wires p))
-          → coeCF (sym e) (coeCF e h) ≡ h
-  coe-coe refl h = refl
+    reflectσM : ∀ ⦃ s : Symm ≤ Mon ⦄ (A B : ObjTerm)
+              → WTerm (flatten A ++ flatten B) (flatten B ++ flatten A)
+    reflectσM ⦃ () ⦄
 
-  -- forward structural laws: flattening intertwines the unitors/associator.
-  fwd-λ : ∀ (A : ObjTerm) → flat⇒ (unit ⊗₀ A) F.≈Term flat⇒ A ∘F F.λ⇒
-  fwd-λ A = F.λ⇒∘id⊗f≈f∘λ⇒
+  private module FBI = FB.WithInj injBox reflectVarM (λ ⦃ s ⦄ A B → reflectσM ⦃ s ⦄ A B)
+  open FBI public
+    using (inj; inj-resp-≈; inj-merge; inj-split; inj-coeC; reflectF;
+           splitF∘mergeF; mergeF-ρ; mergeF-assoc; flat⇐∘flat⇒;
+           cast-half; fwd-ρ; fwd-α)
 
-  fwd-ρ : ∀ (A : ObjTerm)
-        → coeCF (++-identityʳ (flatten A)) (flat⇒ (A ⊗₀ unit))
-          F.≈Term flat⇒ A ∘F F.ρ⇒
-  fwd-ρ A = beginF
-    coeCF e (mergeF fA {[]} ∘F (flat⇒ A ⊗F idF))
-      ≈F⟨ coeCF-∘ˡ e (mergeF fA {[]}) (flat⇒ A ⊗F idF) ⟩
-    coeCF e (mergeF fA {[]}) ∘F (flat⇒ A ⊗F idF)
-      ≈F⟨ mergeF-ρ fA ⟩∘F⟨refl ⟩
-    F.ρ⇒ ∘F (flat⇒ A ⊗F idF)
-      ≈F⟨ F.ρ⇒∘f⊗id≈f∘ρ⇒ ⟩
-    flat⇒ A ∘F F.ρ⇒ ∎F
-    where
-      fA = flatten A
-      e  = ++-identityʳ fA
+  private
+    bridge-σM : ∀ {A B : ObjTerm} ⦃ s : Symm ≤ Mon ⦄
+              → F._∘_ (inj (embed (reflectσM ⦃ s ⦄ A B))) (flat⇒ (A ⊗₀ B))
+                F.≈Term F._∘_ (flat⇒ (B ⊗₀ A)) (F.σ ⦃ s ⦄)
+    bridge-σM ⦃ () ⦄
 
-  fwd-α : ∀ (A B C : ObjTerm)
-        → coeCF (++-assoc (flatten A) (flatten B) (flatten C))
-                (flat⇒ ((A ⊗₀ B) ⊗₀ C))
-          F.≈Term flat⇒ (A ⊗₀ (B ⊗₀ C)) ∘F F.α⇒
-  fwd-α A B C = beginF
-    coeCF e (mergeF (fA ++ fB) {fC} ∘F ((mergeF fA {fB} ∘F (f⇒A ⊗F f⇒B)) ⊗F f⇒C))
-      ≈F⟨ coeCF-resp e ((reflF⟩∘⟨ split₁ˡF) ○F ⟺F F.assoc) ⟩
-    coeCF e ((mergeF (fA ++ fB) {fC} ∘F (mergeF fA {fB} ⊗F idF)) ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C))
-      ≈F⟨ coeCF-∘ˡ e (mergeF (fA ++ fB) {fC} ∘F (mergeF fA {fB} ⊗F idF)) ((f⇒A ⊗F f⇒B) ⊗F f⇒C) ⟩
-    coeCF e (mergeF (fA ++ fB) {fC} ∘F (mergeF fA {fB} ⊗F idF)) ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C)
-      ≈F⟨ mergeF-assoc fA fB fC ⟩∘F⟨refl ⟨
-    (mergeF fA {fB ++ fC} ∘F ((idF ⊗F mergeF fB {fC}) ∘F F.α⇒)) ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C)
-      ≈F⟨ assoc²βεF ⟩
-    mergeF fA {fB ++ fC} ∘F ((idF ⊗F mergeF fB {fC}) ∘F (F.α⇒ ∘F ((f⇒A ⊗F f⇒B) ⊗F f⇒C)))
-      ≈F⟨ reflF⟩∘⟨ ((reflF⟩∘⟨ F.α-comm) ○F pullˡF (⟺F F.⊗-∘-dist ○F (F.idˡ ⟩⊗F⟨ reflF))) ⟩
-    mergeF fA {fB ++ fC} ∘F ((f⇒A ⊗F (mergeF fB {fC} ∘F (f⇒B ⊗F f⇒C))) ∘F F.α⇒)
-      ≈F⟨ ⟺F F.assoc ⟩
-    (mergeF fA {fB ++ fC} ∘F (f⇒A ⊗F (mergeF fB {fC} ∘F (f⇒B ⊗F f⇒C)))) ∘F F.α⇒ ∎F
-    where
-      fA = flatten A ; fB = flatten B ; fC = flatten C
-      e  = ++-assoc fA fB fC
-      f⇒A = flat⇒ A ; f⇒B = flat⇒ B ; f⇒C = flat⇒ C
-
-  -- flip a forward law to its inverse structural morphism.
-  flipF : ∀ {P Q} {p q : List X} (e : p ≡ q)
-            (h⇒P : F.HomTerm P (wires p)) (h⇒Q : F.HomTerm Q (wires q))
-            {c : F.HomTerm P Q} {c⁻¹ : F.HomTerm Q P}
-        → c ∘F c⁻¹ F.≈Term idF
-        → coeCF e h⇒P F.≈Term h⇒Q ∘F c
-        → coeCF (sym e) h⇒Q F.≈Term h⇒P ∘F c⁻¹
-  flipF e h⇒P h⇒Q {c} {c⁻¹} iso fwd = F.≈-Term-sym (beginF
-    h⇒P ∘F c⁻¹
-      ≈F⟨ F.≡⇒≈Term (coe-coe e h⇒P) ⟩∘F⟨refl ⟨
-    coeCF (sym e) (coeCF e h⇒P) ∘F c⁻¹
-      ≈F⟨ (coeCF-resp (sym e) fwd ○F coeCF-∘ˡ (sym e) h⇒Q c) ⟩∘F⟨refl ⟩
-    (coeCF (sym e) h⇒Q ∘F c) ∘F c⁻¹
-      ≈F⟨ cancelʳF iso ⟩
-    coeCF (sym e) h⇒Q ∎F)
-
-  ------------------------------------------------------------------------
-  -- bridgeF: the front-end reflection is sound, up to the canonical iso.
-  ------------------------------------------------------------------------
-
-  bridgeF : ∀ {Y Z} (t : F.HomTerm Y Z)
-          → inj (embed (reflectF t)) ∘F flat⇒ Y F.≈Term flat⇒ Z ∘F t
-  bridgeF {Y} {Z} (F.var g) =
-    F.assoc ○F (reflF⟩∘⟨ cancelʳF (flat⇐∘flat⇒ Y))
-  bridgeF {Y} {.Y} F.id = F.idˡ ○F ⟺F F.idʳ
-  bridgeF {Y} {Z} (F._∘_ {B = M} g f) =
-    F.assoc ○F (reflF⟩∘⟨ bridgeF f) ○F pullˡF (bridgeF g) ○F F.assoc
-  bridgeF (F._⊗₁_ {A = Y} {B = Z} {C = Y'} {D = Z'} f g) = beginF
-    inj (embed (reflectF f ⊗ʷ reflectF g)) ∘F (mergeF fY {fY'} ∘F (f⇒Y ⊗F f⇒Y'))
-      ≈F⟨ F.≡⇒≈Term (cong₂ (λ m s → m ∘F ((IF ⊗F IG) ∘F s))
-                           (inj-merge fZ {fZ'}) (inj-split fY {fY'})) ⟩∘F⟨refl ⟩
-    (mergeF fZ {fZ'} ∘F ((IF ⊗F IG) ∘F splitF fY {fY'})) ∘F (mergeF fY {fY'} ∘F (f⇒Y ⊗F f⇒Y'))
-      ≈F⟨ assoc²βεF ○F (reflF⟩∘⟨ (reflF⟩∘⟨ cancelˡF (splitF∘mergeF fY {fY'}))) ⟩
-    mergeF fZ {fZ'} ∘F ((IF ⊗F IG) ∘F (f⇒Y ⊗F f⇒Y'))
-      ≈F⟨ reflF⟩∘⟨ (⟺F F.⊗-∘-dist ○F (bridgeF f ⟩⊗F⟨ bridgeF g) ○F F.⊗-∘-dist) ⟩
-    mergeF fZ {fZ'} ∘F ((f⇒Z ⊗F f⇒Z') ∘F (f ⊗F g))
-      ≈F⟨ ⟺F F.assoc ⟩
-    (mergeF fZ {fZ'} ∘F (f⇒Z ⊗F f⇒Z')) ∘F (f ⊗F g) ∎F
-    where
-      fY = flatten Y ; fY' = flatten Y' ; fZ = flatten Z ; fZ' = flatten Z'
-      f⇒Y = flat⇒ Y ; f⇒Y' = flat⇒ Y' ; f⇒Z = flat⇒ Z ; f⇒Z' = flat⇒ Z'
-      IF = inj (embed (reflectF f))
-      IG = inj (embed (reflectF g))
-  bridgeF (F.λ⇒ {A}) = F.idˡ ○F fwd-λ A
-  bridgeF (F.λ⇐ {A}) =
-    F.idˡ ○F flipF refl (flat⇒ (unit ⊗₀ A)) (flat⇒ A) F.λ⇒∘λ⇐≈id (fwd-λ A)
-  bridgeF (F.ρ⇒ {A}) =
-    cast-half (++-identityʳ (flatten A)) (flat⇒ (A ⊗₀ unit)) ○F fwd-ρ A
-  bridgeF (F.ρ⇐ {A}) =
-    cast-half (sym (++-identityʳ (flatten A))) (flat⇒ A)
-    ○F flipF (++-identityʳ (flatten A)) (flat⇒ (A ⊗₀ unit)) (flat⇒ A)
-             F.ρ⇒∘ρ⇐≈id (fwd-ρ A)
-  bridgeF (F.α⇒ {A} {B} {C}) =
-    cast-half (++-assoc (flatten A) (flatten B) (flatten C)) (flat⇒ ((A ⊗₀ B) ⊗₀ C))
-    ○F fwd-α A B C
-  bridgeF (F.α⇐ {A} {B} {C}) =
-    cast-half (sym (++-assoc (flatten A) (flatten B) (flatten C))) (flat⇒ (A ⊗₀ (B ⊗₀ C)))
-    ○F flipF (++-assoc (flatten A) (flatten B) (flatten C))
-             (flat⇒ ((A ⊗₀ B) ⊗₀ C)) (flat⇒ (A ⊗₀ (B ⊗₀ C)))
-             F.α⇒∘α⇐≈id (fwd-α A B C)
-
-  ------------------------------------------------------------------------
-  -- The cancellation: a wire-level equality of the two reflections is a
-  -- front-end equality of the original terms.
-  ------------------------------------------------------------------------
-
-  solveF : ∀ {Y Z} {l r : F.HomTerm Y Z}
-         → embed (reflectF l) ≈Term embed (reflectF r)
-         → l F.≈Term r
-  solveF {Y} {Z} {l} {r} eq =
-    insertˡF (flat⇐∘flat⇒ Z) ○F (reflF⟩∘⟨ main) ○F cancelˡF (flat⇐∘flat⇒ Z)
-    where
-      main : flat⇒ Z ∘F l F.≈Term flat⇒ Z ∘F r
-      main = ⟺F (bridgeF l) ○F (inj-resp-≈ eq ⟩∘F⟨refl) ○F bridgeF r
+  private module FBB = FBI.Bridge (λ g → refl) (λ {A} {B} ⦃ s ⦄ → bridge-σM {A} {B} ⦃ s ⦄)
+  open FBB public using (bridgeF; solveF)
 
   ------------------------------------------------------------------------
   -- The decision procedure: reflect both sides to DiagU, decide NF
@@ -503,9 +192,6 @@ module Frontend
   -- bridge.  `Decide` needs decidable equality on labels and on the
   -- (Σ-packaged) front-end generators.
   ------------------------------------------------------------------------
-
-  GenΣ : Set
-  GenΣ = Σ[ Y ∈ ObjTerm ] Σ[ Z ∈ ObjTerm ] GenF Y Z
 
   module Decide
     (_≟G_ : DecidableEquality GenΣ)
@@ -516,13 +202,10 @@ module Frontend
     private module SC = SolverCompare Mon _≟X_ MorW
 
     -- decidable equality on the Σ-packaged wire-level generators, derived
-    -- from the front-end one (mk is injective on the ObjTerm triple).
+    -- from the front-end one (via the shared core helper).
     private
       _≟W_ : DecidableEquality SC.Gen
-      (_ , _ , mk {Y} {Z} g) ≟W (_ , _ , mk {Y'} {Z'} g') =
-        case (Y , Z , g) ≟G (Y' , Z' , g') of λ where
-          (yes refl) → yes refl
-          (no ¬p)    → no λ { refl → ¬p refl }
+      _≟W_ = Core.decMorW _≟G_
 
     open SC.Decide _≟W_ using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
 
@@ -543,7 +226,7 @@ module Frontend
 
       -- the wire-level generator's tiebreak key.
       rankW : ∀ {a b} → MorW a b → ℕ
-      rankW (mk {Y} {Z} g) = rank (Y , Z , g)
+      rankW = Core.rankMorW rank
 
       -- destructure the SECOND layer at a generalized (variable) index.
       -- (The ambiguity? guard and `fire` are shared via SortD.Driver above.)
@@ -620,15 +303,9 @@ module Frontend
     decide?F : ∀ {Y Z} (l r : F.HomTerm Y Z) → Maybe (l F.≈Term r)
     decide?F l r = Data.Maybe.map solveF (decide?W (reflectF l) (reflectF r))
 
-    -- the computing hit-witness: normalizes to ⊤ exactly on a solver hit, so
-    -- the implicit is auto-discharged at concrete test sites.
-    IsJust : ∀ {a} {A : Set a} → Maybe A → Set
-    IsJust (just _) = ⊤
-    IsJust nothing  = ⊥
-
-    -- extract the value of a computed hit (a solver witness, a focus, …).
-    fromHit : ∀ {a} {A : Set a} (x : Maybe A) → IsJust x → A
-    fromHit (just a) _ = a
+    -- the computing hit-witness (`IsJust` normalizes to ⊤ exactly on a
+    -- solver hit) and the hit extractor, shared via the core.
+    open MaybeHit public using (IsJust; fromHit)
 
     -- reference-style entry point at the free level.
     solveTerm! : ∀ {Y Z} (l r : F.HomTerm Y Z)
