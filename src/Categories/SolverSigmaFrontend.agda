@@ -42,9 +42,10 @@
 --
 -- LIMITATIONS: the Mon front-end's L1/L2/L4/L6 carry over verbatim, and so
 -- does L5's negative half (generator-specific equations are unknown to the
--- decision procedure) — but with NO mitigation: this front-end has no
--- rewriting/focusing layer (`rewriteMor!`/`focusAtₙ` exist only in the Mon
--- front-end).
+-- decision procedure) — but L5's MITIGATION now applies here too: this
+-- front-end shares the core's focusing/rewriting layer (`focusAtₙ`,
+-- `rewriteMorσ!`/`rewriteMorσₙ!`/`rewriteMorσAuto!`), so generator-specific
+-- equations can be carried across as rules exactly as in the Mon front-end.
 -- The braiding-specific boundary (machine-checked in the tests):
 --   Lσ1  HEXAGON-shaped goals do not decide: the normalizer never splits
 --        or merges crossing BLOCKS (`cross a b` vs `cross a (b₁ ++ b₂)`
@@ -80,7 +81,7 @@ import Categories.Category.Monoidal.Reasoning as MonR
 
 open import Categories.FreeMonoidal
 open import Categories.SolverFrontendCore
-  using (module MaybeHit; module FCore; module FBridge; module IntoCore; module FinSig)
+  using (module MaybeHit; module FCore; module FBridge; module IntoCore; module FinSig; module FFocus)
 open import Categories.SolverSigma using (module Sigma)
 
 module FrontendS
@@ -234,6 +235,12 @@ module FrontendS
                  {hit : IsJust (decide?F l r)} → l F.≈Term r
     solveTerm! l r {hit} = fromHit (decide?F l r) hit
 
+    -- the term-level focusing layer (now shared with the Mon front-end via
+    -- the core).  A single shared application `FF`, reused below for the
+    -- rewrite layer (`FF.Rewrite`).
+    module FF = FFocus Symm {X} _≟X_ GenF decide?F
+    open FF public using (_≟O_; Foc; plug; focusAll; focusAtₙ)
+
     ------------------------------------------------------------------------
     -- Transport into an arbitrary target SYMMETRIC monoidal category (a
     -- monoidal category bundled with a `Symmetric` structure), along the
@@ -267,6 +274,31 @@ module FrontendS
                      {hit : IsJust (decide?F l r)}
                    → C .MonoidalCategory.U [ ⟦ l ⟧₁ ≈ ⟦ r ⟧₁ ]
         solveMorσ! l r {hit} = ⟦⟧-resp-≈ (solveTerm! l r {hit})
+
+        ------------------------------------------------------------------------
+        -- Diagrammatic REWRITING in C, shared from the core's focusing/rewrite
+        -- layer (the σ-named exports `rewriteMorσ!`/`rewriteMorσₙ!`/
+        -- `rewriteMorσAuto!`).  A *rule* is any C-equation `⟦ lᵗ ⟧₁ ≈ ⟦ rᵗ ⟧₁`
+        -- between interpretations of front-end terms; it fires inside the
+        -- two-sided frame `post ∘ (id {k} ⊗ (– ⊗ id {m})) ∘ pre`.
+        ------------------------------------------------------------------------
+
+        private
+          module MCc = MonoidalCategory C
+
+          -- transport a rule across the frame of a focus, by congruence.
+          -- (Reduction-sensitive: stays here where `⟦_⟧₁` is concrete.)
+          plugCong : ∀ {A B P Q} (foc : Foc A B P Q) (l r : F.HomTerm P Q)
+                   → C .MonoidalCategory.U [ ⟦ l ⟧₁ ≈ ⟦ r ⟧₁ ]
+                   → C .MonoidalCategory.U [ ⟦ plug foc l ⟧₁ ≈ ⟦ plug foc r ⟧₁ ]
+          plugCong (k , m , pre , post) l r rule =
+            MCc.∘-resp-≈ʳ (MCc.∘-resp-≈ˡ
+              (MCc.⊗.F-resp-≈ (MCc.Equiv.refl , MCc.⊗.F-resp-≈ (rule , MCc.Equiv.refl))))
+
+        open FF.Rewrite C ⟦_⟧ₒ ⟦_⟧₁ solveMorσ! plugCong public
+          using ()
+          renaming (rewriteMor! to rewriteMorσ!; rewriteMorₙ! to rewriteMorσₙ!;
+                    rewriteMorAuto! to rewriteMorσAuto!)
 
 --------------------------------------------------------------------------------
 -- `FinSetupσ`: the call-site convenience wrapper (the σ-analogue of the Mon
@@ -302,5 +334,6 @@ module FinSetupσ
     open FrontendS {Fin nA} _≟Fin_ GenS using (module Decide)
 
     open Decide _≟G_ rankS public
-      using (decide?F; IsJust; solveTerm!; module Into)
+      using (decide?F; IsJust; solveTerm!; module Into
+            ; Foc; plug; focusAll; focusAtₙ; fromHit; _≟O_)
     open Into C Sym (lookup vars) public

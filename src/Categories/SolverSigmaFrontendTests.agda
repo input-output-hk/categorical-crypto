@@ -207,6 +207,9 @@ module Target {o ℓ e : Level}
     (A B : MC.Obj)
     (sᴹ : C .MonoidalCategory.U [ A , A ])
     (tᴹ : C .MonoidalCategory.U [ B , B ])
+    -- a rule hypothesis, for the shared rewriting layer (Wave B: the σ
+    -- front-end now exposes `rewriteMorσ!`/`rewriteMorσAuto!`).
+    (invσ : C .MonoidalCategory.U [ sᴹ MC.∘ sᴹ ≈ MC.id ])
     where
 
     open FinSetupσ C Sym (A ∷ B ∷ [])
@@ -244,3 +247,13 @@ module Target {o ℓ e : Level}
           [ σC MC.∘ (sᴹ ⊗C tᴹ) ≈ (tᴹ ⊗C sᴹ) MC.∘ σC ]
     test-σ-nat-C =
       solveMorσ! (Sσ._∘_ σᵗ (Sσ._⊗₁_ sᵗ tᵗ)) (Sσ._∘_ (Sσ._⊗₁_ tᵗ sᵗ) σᵗ)
+
+    -- Wave B (additive): the shared rewriting layer, now also in the σ
+    -- front-end.  The rule `sᴹ ∘ sᴹ ≈ id` fires (auto-positioned) in the
+    -- right factor of a tensor, collapsing the composite to `id` in context.
+    test-rwσ-cancel
+      : C .MonoidalCategory.U
+          [ tᴹ ⊗C (sᴹ MC.∘ sᴹ) ≈ tᴹ ⊗C MC.id ]
+    test-rwσ-cancel =
+      rewriteMorσAuto! (Sσ._⊗₁_ tᵗ (Sσ._∘_ sᵗ sᵗ)) (Sσ._⊗₁_ tᵗ Sσ.id)
+                       (Sσ._∘_ sᵗ sᵗ) Sσ.id invσ
