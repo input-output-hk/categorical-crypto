@@ -96,6 +96,58 @@ vanishing-2-dispatch-x : ∀ {M : Type↑} ⦃ _ : Monad M ⦄ {S A X Y : Type}
 vanishing-2-dispatch-x iter₀ fx fy (s' , inj₁ a) = return (s' , a)
 vanishing-2-dispatch-x iter₀ fx fy (s' , inj₂ y) = iter₀ (combine fx fy) (s' , inj₂ y)
 
+------------------------------------------------------------------------
+-- Generic list-trace machinery, used to state the observational
+-- congruence axiom `iter-trace-cong` below. These replicate (on raw
+-- step functions `S × A → M (S × B)`) the `trace`/`tr` constructions
+-- of `CategoricalCrypto.SFunM[.Traced]`, which cannot be imported here
+-- without creating an import cycle. They are kept clause-for-clause
+-- identical to the originals so that instantiating the axiom at an
+-- `SFunᵉ` is a matter of pointwise bridging lemmas (proved in
+-- `CategoricalCrypto.SFunM.Traced`).
+
+-- Run a stateful step function over a list of inputs, threading the
+-- state and collecting the outputs (the generic monadic list-trace;
+-- `SFunM.trace`, and hence `eval`, has exactly these clauses).
+iter-list-trace : ∀ {M : Type↑} ⦃ _ : Monad M ⦄ {A B S : Type}
+                → (S × A → M (S × B)) → S → List A → M (List B)
+iter-list-trace f s [] = return []
+iter-list-trace f s (a ∷ as) =
+  f (s , a) >>= λ (s' , b) →
+  iter-list-trace f s' as >>= λ bs →
+  return (b ∷ bs)
+
+-- Classify a step output as "loop" (inj₂ x') or "done" (inj₁ b);
+-- replica of `Traced.tr-cont`.
+iter-tr-cont : ∀ {M : Type↑} ⦃ _ : Monad M ⦄ {S B X : Type}
+             → S × (B ⊎ X) → M ((S × X) ⊎ (S × B))
+iter-tr-cont (s' , inj₁ b)  = return (inj₂ (s' , b))
+iter-tr-cont (s' , inj₂ x') = return (inj₁ (s' , x'))
+
+-- The iteration body of the feedback loop; replica of `Traced.tr-step`
+-- phrased on a raw step function.
+iter-tr-step : ∀ {M : Type↑} ⦃ _ : Monad M ⦄ {S A B X : Type}
+             → (S × (A ⊎ X) → M (S × (B ⊎ X)))
+             → S × X → M ((S × X) ⊎ (S × B))
+iter-tr-step f (s , x) = f (s , inj₂ x) >>= iter-tr-cont
+
+-- Emit on the B-side immediately, or enter the iteration loop on the
+-- X-side; replica of `Traced.tr-fun-cont`.
+iter-tr-fun-cont : ∀ {M : Type↑} ⦃ _ : Monad M ⦄ {S B X : Type}
+                 → (S × X → M (S × B)) → S × (B ⊎ X) → M (S × B)
+iter-tr-fun-cont iter-bod (s' , inj₁ b) = return (s' , b)
+iter-tr-fun-cont iter-bod (s' , inj₂ x) = iter-bod (s' , x)
+
+-- The feedback loop on a raw step function: replica of the `fun` field
+-- of `Traced.tr`. Parametric in the `iter` operator so it can be
+-- defined before the IterativeMonad record.
+iter-loop : ∀ {M : Type↑} ⦃ _ : Monad M ⦄ {S A B X : Type}
+            (iter₀ : ∀ {A X : Type} → (X → M (X ⊎ A)) → X → M A)
+          → (S × (A ⊎ X) → M (S × (B ⊎ X)))
+          → S × A → M (S × B)
+iter-loop iter₀ f (s , a) =
+  f (s , inj₁ a) >>= iter-tr-fun-cont (iter₀ (iter-tr-step f))
+
 record IterativeMonad (M : Type↑)
   ⦃ Monad-M : Monad M     ⦄
   ⦃ M-Laws  : MonadLaws M ⦄
@@ -211,5 +263,21 @@ record IterativeMonad (M : Type↑)
       → (∀ s₁ x → g (φ s₁ , x) ≡ (f (s₁ , x) >>= iter-conj-step φ ψ))
       → ∀ s₁ x → iter g (φ s₁ , x)
                ≡ (iter f (s₁ , x) >>= λ (s₁' , a) → return (φ s₁' , ψ a))
+
+    -- Observational congruence of the feedback loop: if two step
+    -- functions are indistinguishable under the generic list-trace
+    -- from their respective start states, then so are their feedback
+    -- loops `iter-loop iter`. This is a genuine semantic assumption
+    -- about M — `iter-cong` only gives congruence for *pointwise*-
+    -- equal loop bodies, which does not entail congruence for merely
+    -- observationally equal ones (it is provable for concrete
+    -- instances, e.g. the relational monad, but not abstractly from
+    -- the iteration axioms above).
+    iter-trace-cong : ∀ {A B X S S' : Type}
+        (f : S × (A ⊎ X) → M (S × (B ⊎ X)))
+        (g : S' × (A ⊎ X) → M (S' × (B ⊎ X)))
+        (s₀ : S) (s₀' : S')
+      → iter-list-trace f s₀ ≗ iter-list-trace g s₀'
+      → iter-list-trace (iter-loop iter f) s₀ ≗ iter-list-trace (iter-loop iter g) s₀'
 
 open IterativeMonad ⦃...⦄ public

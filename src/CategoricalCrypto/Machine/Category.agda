@@ -1,3 +1,4 @@
+{-# OPTIONS --safe #-}
 ------------------------------------------------------------------------
 -- Overview:
 --   Machine ≅ Hom in (G-construction ∘ GradedKleisli ∘ SFunM)-built category
@@ -79,7 +80,10 @@ import Categories.GradedKleisli as GK
 -- level) equality, which does not follow from the iteration axioms —
 -- those only give congruence for pointwise-equal step functions. It is
 -- a genuine semantic assumption about `M` (provable for, e.g., the
--- relational instance, but not abstractly), so it remains postulated.
+-- relational instance, but not abstractly), so it is an axiom of the
+-- `IterativeMonad` class (`iter-trace-cong`), from which
+-- `CategoricalCrypto.SFunM.Traced` derives the `SFunᵉ`-level statement
+-- `trace-resp-≈-ᵉ` used here.
 
 private
   -- β swaps the last two factors: (P ⊎ Q) ⊎ R → (P ⊎ R) ⊎ Q.
@@ -87,9 +91,9 @@ private
   β-fn : ∀ {P Q R} → SFunᵉ ((P ⊎ Q) ⊎ R) ((P ⊎ R) ⊎ Q)
   β-fn = α⇐ᵉ ∘ᵉ ((idᵉ ⊗ᵉ σᵉ) ∘ᵉ α⇒ᵉ)
 
-postulate
-  SFunᵉ-trace-resp-≈ : ∀ {X A B} {f g : SFunᵉ (A ⊎ X) (B ⊎ X)}
-                     → f ≈ᵉ g → tr {X = X} f ≈ᵉ tr {X = X} g
+SFunᵉ-trace-resp-≈ : ∀ {X A B} {f g : SFunᵉ (A ⊎ X) (B ⊎ X)}
+                   → f ≈ᵉ g → tr {X = X} f ≈ᵉ tr {X = X} g
+SFunᵉ-trace-resp-≈ {X} {A} {B} {f} {g} = trace-resp-≈-ᵉ {X} {A} {B} {f} {g}
 
 SFunᵉ-trace-∘ˡ : ∀ {X A B B'} {g : SFunᵉ B B'} {f : SFunᵉ (A ⊎ X) (B ⊎ X)}
                → (g ∘ᵉ tr {X = X} f) ≈ᵉ tr {X = X} ((g ⊗ᵉ idᵉ) ∘ᵉ f)
@@ -1234,12 +1238,11 @@ TotalFunctionMachine'→Hom p q = FunctionMachine→Hom
 -- (`Machine→Hom`/`Hom→Machine` + Machine's `id` and `_∘_`). The
 -- equivalence is induced through the bijection too.
 --
--- The bijection-induced definitions make Machine→Hom a functor *by
--- construction* — `functor-id` and `functor-∘` below hold definitionally
--- once `Hom→Machine ∘ Machine→Hom = id` propositionally on MaybeHoms.
--- That last propositional equality is the one non-trivial ingredient
--- (we have it pointwise via `member-η`, but Agda needs it at the
--- record level).
+-- The bijection-induced definitions make Machine→Hom a functor:
+-- `functor-id` below holds definitionally, and `functor-∘` holds up to
+-- the categorical hom equality `_≈ᴹᴴ_`, because the Machine round-trip
+-- `Hom→Machine ∘ Machine→Hom` is an honest machine isomorphism
+-- (`Hom-Machine-roundtrip-≅ᴹ`), provable from the `MonadOfRel` laws.
 --
 -- The MaybeHomCategory laws are proven below by transporting the
 -- machine-level bisimulations (`∘-identityˡ-≅ᴹ`/`∘-identityʳ-≅ᴹ`/
@@ -1297,33 +1300,22 @@ private
   identityˡ-state-rhs f E = refl
 
 ------------------------------------------------------------------------
--- Functoriality of Machine→Hom and Hom→Machine.
+-- The Machine round-trip, as an honest machine isomorphism.
 --
--- By definition of `idᴹᴴ` and `_∘ᴹᴴ_` via the bijection,
--- functoriality of `Machine→Hom` reduces to the propositional
--- equality `Hom→Machine ∘ Machine→Hom = id` on Machine records. We
--- have this at the *stepRel* level (Machine-roundtrip-sound/complete);
--- the missing step is Machine-extensionality — that two Machines with
--- the same State and pointwise-equivalent stepRels are propositionally
--- equal. We postulate that as `Hom-Machine-roundtrip-≡`.
+-- `Hom→Machine (Machine→Hom Mch)` keeps `Machine.State Mch`
+-- definitionally and only repackages the stepRel through `of-rel`, so
+-- the identity on states is a bisimulation: the step transports are
+-- exactly the `MonadOfRel` laws (`of-rel-sound`/`of-rel-complete`,
+-- packaged above as `Machine-roundtrip-sound`/`-complete`). No
+-- Machine-extensionality (propositional equality of Machine records)
+-- is needed anywhere below: functoriality of `Machine→Hom` and the
+-- MaybeHomCategory laws only use the round-trip up to `_≅ᴹ_`.
 
-postulate
-  -- The "round-trip on the Machine side": composing Hom→Machine with
-  -- Machine→Hom is the identity on Machines (up to propositional
-  -- equality of Machine records). At stepRel level this follows from
-  -- `of-rel-sound`/`of-rel-complete`; lifting to propositional Machine
-  -- equality requires Machine-extensionality, postulated here.
-  Hom-Machine-roundtrip-≡ : ∀ {A B} (Mch : Machine A B)
-                          → Hom→Machine (Machine→Hom Mch) ≡ Mch
-
-functor-id : ∀ {A : Channel} → Machine→Hom (MC.id {A}) ≡ idᴹᴴ
-functor-id = refl
-
-functor-∘ : ∀ {A B C : Channel} (g : Machine B C) (f : Machine A B)
-          → Machine→Hom (g MC.∘ f) ≡ Machine→Hom g ∘ᴹᴴ Machine→Hom f
-functor-∘ g f = cong₂ (λ x y → Machine→Hom (x MC.∘ y))
-                       (sym (Hom-Machine-roundtrip-≡ g))
-                       (sym (Hom-Machine-roundtrip-≡ f))
+Hom-Machine-roundtrip-≅ᴹ : ∀ {A B} (Mch : Machine A B)
+                         → Hom→Machine (Machine→Hom Mch) ≅ᴹ Mch
+Hom-Machine-roundtrip-≅ᴹ Mch = MkIso
+  (λ s → s) (λ s → s) (λ _ → refl) (λ _ → refl)
+  (Machine-roundtrip-complete Mch) (Machine-roundtrip-sound Mch)
 
 ------------------------------------------------------------------------
 -- The structural laws of machine composition, up to `_≅ᴹ_`.
@@ -1347,16 +1339,15 @@ functor-∘ g f = cong₂ (λ x y → Machine→Hom (x MC.∘ y))
       (≅ᴹ-trans (q (E MC.∘ h)) ∘-assoc-≅ᴹ))
 
 private
-  ≡→≅ᴹ : ∀ {A B} {M₁ M₂ : Machine A B} → M₁ ≡ M₂ → M₁ ≅ᴹ M₂
-  ≡→≅ᴹ refl = ≅ᴹ-refl
+  -- Unfold one layer of `∘ᴹᴴ`/`idᴹᴴ`, collapsing the round-trip up to
+  -- machine isomorphism (both are `Machine→Hom` of something, so this
+  -- is `Hom-Machine-roundtrip-≅ᴹ` at the corresponding Machine).
+  unfold-∘ᴹᴴ-≅ᴹ : ∀ {A B C} (g : MaybeHom B C) (f : MaybeHom A B)
+                → Hom→Machine (g ∘ᴹᴴ f) ≅ᴹ (Hom→Machine g MC.∘ Hom→Machine f)
+  unfold-∘ᴹᴴ-≅ᴹ g f = Hom-Machine-roundtrip-≅ᴹ _
 
-  -- Unfold one layer of `∘ᴹᴴ`, collapsing the round-trip.
-  unfold-∘ᴹᴴ : ∀ {A B C} (g : MaybeHom B C) (f : MaybeHom A B)
-             → Hom→Machine (g ∘ᴹᴴ f) ≡ (Hom→Machine g MC.∘ Hom→Machine f)
-  unfold-∘ᴹᴴ g f = Hom-Machine-roundtrip-≡ _
-
-  unfold-idᴹᴴ : ∀ {A} → Hom→Machine (idᴹᴴ {A}) ≡ MC.id
-  unfold-idᴹᴴ = Hom-Machine-roundtrip-≡ MC.id
+  unfold-idᴹᴴ-≅ᴹ : ∀ {A} → Hom→Machine (idᴹᴴ {A}) ≅ᴹ MC.id
+  unfold-idᴹᴴ-≅ᴹ = Hom-Machine-roundtrip-≅ᴹ MC.id
 
 -- The four MaybeHomCategory laws, by transport of the machine-level
 -- laws through the round-trip. ∘-resp-≈ needs no machine-level law
@@ -1366,16 +1357,16 @@ MaybeHomCategory-identityˡ :
   ∀ {A B} {f : MaybeHom A B} → (idᴹᴴ ∘ᴹᴴ f) ≈ᴹᴴ f
 MaybeHomCategory-identityˡ {f = f} =
   ≅ᴹ⇒≅ℰ (≅ᴹ-trans
-    (≡→≅ᴹ (trans (unfold-∘ᴹᴴ idᴹᴴ f)
-                 (cong (λ X → X MC.∘ Hom→Machine f) unfold-idᴹᴴ)))
+    (≅ᴹ-trans (unfold-∘ᴹᴴ-≅ᴹ idᴹᴴ f)
+              (∘-resp-≅ᴹ unfold-idᴹᴴ-≅ᴹ ≅ᴹ-refl))
     ∘-identityˡ-≅ᴹ)
 
 MaybeHomCategory-identityʳ :
   ∀ {A B} {f : MaybeHom A B} → (f ∘ᴹᴴ idᴹᴴ) ≈ᴹᴴ f
 MaybeHomCategory-identityʳ {f = f} =
   ≅ᴹ⇒≅ℰ (≅ᴹ-trans
-    (≡→≅ᴹ (trans (unfold-∘ᴹᴴ f idᴹᴴ)
-                 (cong (λ X → Hom→Machine f MC.∘ X) unfold-idᴹᴴ)))
+    (≅ᴹ-trans (unfold-∘ᴹᴴ-≅ᴹ f idᴹᴴ)
+              (∘-resp-≅ᴹ ≅ᴹ-refl unfold-idᴹᴴ-≅ᴹ))
     ∘-identityʳ-≅ᴹ)
 
 MaybeHomCategory-assoc :
@@ -1383,19 +1374,19 @@ MaybeHomCategory-assoc :
   → ((h ∘ᴹᴴ g) ∘ᴹᴴ f) ≈ᴹᴴ (h ∘ᴹᴴ (g ∘ᴹᴴ f))
 MaybeHomCategory-assoc {f = f} {g = g} {h = h} =
   ≅ᴹ⇒≅ℰ (≅ᴹ-trans
-    (≡→≅ᴹ (trans (unfold-∘ᴹᴴ (h ∘ᴹᴴ g) f)
-                 (cong (λ X → X MC.∘ Hom→Machine f) (unfold-∘ᴹᴴ h g))))
+    (≅ᴹ-trans (unfold-∘ᴹᴴ-≅ᴹ (h ∘ᴹᴴ g) f)
+              (∘-resp-≅ᴹ (unfold-∘ᴹᴴ-≅ᴹ h g) ≅ᴹ-refl))
     (≅ᴹ-trans ∘-assoc-≅ᴹ
-      (≅ᴹ-sym (≡→≅ᴹ (trans (unfold-∘ᴹᴴ h (g ∘ᴹᴴ f))
-                           (cong (λ X → Hom→Machine h MC.∘ X) (unfold-∘ᴹᴴ g f)))))))
+      (≅ᴹ-sym (≅ᴹ-trans (unfold-∘ᴹᴴ-≅ᴹ h (g ∘ᴹᴴ f))
+                        (∘-resp-≅ᴹ ≅ᴹ-refl (unfold-∘ᴹᴴ-≅ᴹ g f))))))
 
 MaybeHomCategory-∘-resp-≈ :
   ∀ {A B C} {f h : MaybeHom B C} {g i : MaybeHom A B}
   → f ≈ᴹᴴ h → g ≈ᴹᴴ i → (f ∘ᴹᴴ g) ≈ᴹᴴ (h ∘ᴹᴴ i)
 MaybeHomCategory-∘-resp-≈ {f = f} {h = h} {g = g} {i = i} p q =
-  ≅ℰ-trans (≅ᴹ⇒≅ℰ (≡→≅ᴹ (unfold-∘ᴹᴴ f g)))
+  ≅ℰ-trans (≅ᴹ⇒≅ℰ (unfold-∘ᴹᴴ-≅ᴹ f g))
     (≅ℰ-trans (∘-resp-≅ℰ p q)
-      (≅ℰ-sym (≅ᴹ⇒≅ℰ (≡→≅ᴹ (unfold-∘ᴹᴴ h i)))))
+      (≅ℰ-sym (≅ᴹ⇒≅ℰ (unfold-∘ᴹᴴ-≅ᴹ h i))))
 
 MaybeHomCategory : Category _ _ _
 MaybeHomCategory = record
@@ -1412,6 +1403,27 @@ MaybeHomCategory = record
   ; equiv     = ≈ᴹᴴ-isEquivalence
   ; ∘-resp-≈  = MaybeHomCategory-∘-resp-≈
   }
+
+------------------------------------------------------------------------
+-- Functoriality of `Machine→Hom`.
+--
+-- `functor-id` is definitional (`idᴹᴴ` *is* `Machine→Hom MC.id`).
+-- `functor-∘` holds up to the categorical hom equality `_≈ᴹᴴ_`: both
+-- sides round-trip through `Hom→Machine`, and each round-trip is the
+-- honest machine isomorphism `Hom-Machine-roundtrip-≅ᴹ`. A
+-- *propositional* version (`Machine→Hom (g ∘ f) ≡ …`) would need
+-- Machine-extensionality, which we neither have nor need.
+
+functor-id : ∀ {A : Channel} → Machine→Hom (MC.id {A}) ≡ idᴹᴴ
+functor-id = refl
+
+functor-∘ : ∀ {A B C : Channel} (g : Machine B C) (f : Machine A B)
+          → Machine→Hom (g MC.∘ f) ≈ᴹᴴ (Machine→Hom g ∘ᴹᴴ Machine→Hom f)
+functor-∘ g f = ≅ᴹ⇒≅ℰ
+  (≅ᴹ-trans (Hom-Machine-roundtrip-≅ᴹ (g MC.∘ f))
+    (≅ᴹ-sym (≅ᴹ-trans (unfold-∘ᴹᴴ-≅ᴹ (Machine→Hom g) (Machine→Hom f))
+              (∘-resp-≅ᴹ (Hom-Machine-roundtrip-≅ᴹ g)
+                         (Hom-Machine-roundtrip-≅ᴹ f)))))
 
 ------------------------------------------------------------------------
 -- The category of Machines, with the same hom equality `_≅ℰ_`. The

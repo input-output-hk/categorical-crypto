@@ -308,6 +308,68 @@ tr {A} {B} {X} f = record
     module f = SFunᵉ f
 
 ------------------------------------------------------------------------
+-- Observational congruence of the trace.
+--
+-- `tr` respects `≈ᵉ` (eval-level equality). This does not follow from
+-- the iteration axioms — `iter-cong` only covers pointwise-equal loop
+-- bodies — so it is the `iter-trace-cong` axiom of `IterativeMonad`,
+-- stated there on the generic replicas `iter-list-trace`/`iter-loop`.
+-- Here we bridge those replicas to `trace`/`tr.fun` pointwise and
+-- derive the `SFunᵉ`-level statement.
+
+-- `trace` (from SFunM) and the generic `iter-list-trace` (from
+-- Class.Monad.Iterative) are clause-for-clause the same definition.
+trace≗iter-list-trace : ∀ {S} (f : SFunType A B S) (s : S)
+  → trace f s ≗ iter-list-trace f s
+trace≗iter-list-trace f s [] = refl
+trace≗iter-list-trace f s (a ∷ as) =
+  refl⟩>>=⟨ (λ (s' , b) → trace≗iter-list-trace f s' as ⟩>>=⟨refl)
+
+-- `iter-list-trace` respects pointwise-equal step functions.
+iter-list-trace-cong-fun : ∀ {S} {f g : SFunType A B S}
+  → (∀ x → f x ≡ g x) → (s : S)
+  → iter-list-trace f s ≗ iter-list-trace g s
+iter-list-trace-cong-fun p s [] = refl
+iter-list-trace-cong-fun p s (a ∷ as) =
+  p (s , a) ⟩>>=⟨ (λ (s' , b) → iter-list-trace-cong-fun p s' as ⟩>>=⟨refl)
+
+-- `tr f`'s step function is pointwise the generic feedback loop on
+-- `f.fun` (the two differ only by the named continuation helpers,
+-- which agree clause by clause).
+tr-fun≗iter-loop : (f : SFunᵉ (A ⊎ X) (B ⊎ X))
+  → ∀ x → SFunᵉ.fun (tr f) x ≡ iter-loop iter (SFunᵉ.fun f) x
+tr-fun≗iter-loop {A} {X} {B} f (s , a) = refl⟩>>=⟨ cont-eq
+  where
+    step-eq : ∀ x → tr-step f x ≡ iter-tr-step (SFunᵉ.fun f) x
+    step-eq (s' , x) = refl⟩>>=⟨ λ where
+      (s'' , inj₁ b)  → refl
+      (s'' , inj₂ x') → refl
+
+    cont-eq : ∀ y → tr-fun-cont (iter (tr-step f)) y
+                  ≡ iter-tr-fun-cont (iter (iter-tr-step (SFunᵉ.fun f))) y
+    cont-eq (s' , inj₁ b) = refl
+    cont-eq (s' , inj₂ x) = iter-cong step-eq (s' , x)
+
+trace-resp-≈-ᵉ : ∀ {X A B} {f g : SFunᵉ (A ⊎ X) (B ⊎ X)}
+              → f ≈ᵉ g → tr {X = X} f ≈ᵉ tr {X = X} g
+trace-resp-≈-ᵉ {X} {A} {B} {f} {g} p as = begin
+  eval (tr f) as
+    ≡⟨ trace≗iter-list-trace (SFunᵉ.fun (tr f)) (SFunᵉ.init f) as ⟩
+  iter-list-trace (SFunᵉ.fun (tr f)) (SFunᵉ.init f) as
+    ≡⟨ iter-list-trace-cong-fun (tr-fun≗iter-loop f) (SFunᵉ.init f) as ⟩
+  iter-list-trace (iter-loop iter (SFunᵉ.fun f)) (SFunᵉ.init f) as
+    ≡⟨ iter-trace-cong (SFunᵉ.fun f) (SFunᵉ.fun g) (SFunᵉ.init f) (SFunᵉ.init g)
+         (λ bs → trans (sym (trace≗iter-list-trace (SFunᵉ.fun f) (SFunᵉ.init f) bs))
+                (trans (p bs)
+                       (trace≗iter-list-trace (SFunᵉ.fun g) (SFunᵉ.init g) bs))) as ⟩
+  iter-list-trace (iter-loop iter (SFunᵉ.fun g)) (SFunᵉ.init g) as
+    ≡⟨ iter-list-trace-cong-fun (tr-fun≗iter-loop g) (SFunᵉ.init g) as ⟨
+  iter-list-trace (SFunᵉ.fun (tr g)) (SFunᵉ.init g) as
+    ≡⟨ trace≗iter-list-trace (SFunᵉ.fun (tr g)) (SFunᵉ.init g) as ⟨
+  eval (tr g) as ∎
+  where open ≡-Reasoning
+
+------------------------------------------------------------------------
 -- yanking.
 --
 -- `tr σ ≈ᵉ id` because feeding inj₁ x through σ produces inj₂ x (one
