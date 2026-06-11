@@ -11,11 +11,13 @@
 --
 -- The deliverable is the clean-DiagU swap engine `SortD` (§12): a decidable
 -- recogniser `leftFit?` for an out-of-order independent head pair, the firing
--- swap `swapHeadD` with its per-swap soundness `diagU-swap-soundD` (proven by
--- conjugating `two-box-swap` with the `castW` object-transport algebra of
--- §11d'), and the one-step driver `normalizeD` — plus the `Normalize` wrapper
--- at the standard interpretation.  Everything is unconditional: no module
--- parameters beyond the box signature, no postulates.
+-- one-step swap `swapHeadD` with its per-swap soundness `diagU-swap-soundD`
+-- (proven by conjugating `two-box-swap` with the `castW` object-transport
+-- algebra of §11d'), and — in §12d — the GENERIC normalizer `Driver`
+-- (`SwapRes`/`fire`/`normFuelWith`) that chains such swaps abstractly under a
+-- caller-supplied one-step oracle; both front-ends instantiate it.  Plus the
+-- `Normalize` wrapper at the standard interpretation.  Everything is
+-- unconditional: no module parameters beyond the box signature, no postulates.
 --
 -- DESIGN.  A verbatim transposition of two layers with absolute offsets is
 -- ill-wired: after a box of a different width fires, the next box's absolute
@@ -71,6 +73,10 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     using (pullˡ; pullʳ; pushˡ; pushʳ; cancelˡ; cancelʳ; insertʳ)
   open MonR Monoidal-FreeMonoidal
     using (refl⟩⊗⟨_)
+
+  -- (Section numbering has gaps: §4-§5, §7, §9-§10 were deleted along with the
+  -- old never-firing `Ordering`-level driver; the surviving cross-references
+  -- §11*/§12* are intact.)
 
   --------------------------------------------------------------------------------
   -- 1. Layers and wired layer-lists.
@@ -458,7 +464,8 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- 11e'. THE BRIDGE, PROVEN.  The clean flat `pad` of the right box `g` (at the
   -- LeftFit offset `pre++(a₁++mid)`, suffix `r`) equals the frame's grouped
   -- `g-in`, conjugated by the `++`-assoc object casts.  This is the abstract
-  -- analogue of `Litmus.cA≈after`/`g-in≈cp`: there the reassociators reduced to
+  -- analogue of `SolverNormalizeTests`'s `cA≈after`/`g-in≈cp`: there the
+  -- reassociators reduced to
   -- `id` and the casts to `refl`; here they reduce to single `castW`s that cancel
   -- via the §11d' algebra.  Stated directly at the frame coordinates (the
   -- LeftFit-phrased corollary follows by the offset rewrites, which are `refl`
@@ -562,7 +569,8 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- transport between fx's clean codomain and fy's clean domain) equals the
   -- frame's `input-O` (= `after-O`, gbox-grouped order) conjugated by the domain
   -- index cast `castW domcast`.  This is the abstract, frame-routed analogue of
-  -- `Litmus.cA≈after`, PROVEN via `fx-clean⇒g-in-core` + the `castW` algebra.
+  -- `SolverNormalizeTests`'s `cA≈after`, PROVEN via `fx-clean⇒g-in-core` + the
+  -- `castW` algebra.
   --
   -- The clean fy-layer `pad py sy ⟦fy⟧` is DEFINITIONALLY `Frame.f-out`, so it
   -- appears as `Frame.f-out P mid s fy fx` here.
@@ -919,8 +927,10 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- Given `DecEq X` we can DECIDE a `LeftFit` by `List`-splitting the offset
   -- lists at the lengths dictated by the box domains, confirming with the derived
   -- `DecEq (List X)`.  `swapHeadD` then fires the genuine clean DiagU swap
-  -- (`dInput`/`dSwapped` + `diagU-swap-soundD`), and `normalizeD` is a fuel-driven
-  -- bubble sort whose soundness chains the per-swap `≈Term` witnesses.
+  -- (`dInput`/`dSwapped` + `diagU-swap-soundD`), and `normalizeD` (§12c) applies
+  -- it as a one-step kernel.  The multi-step fuel-driven loop that chains such
+  -- swaps lives in §12d's generic `Driver` (`normFuelWith`); the front-ends
+  -- drive it with their own per-position oracle.
   --------------------------------------------------------------------------------
   module SortD where
 
@@ -999,16 +1009,18 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     --------------------------------------------------------------------------------
     -- 12c. `normalizeD` — the one-step swap driver on a recognised DiagU head.
     --
-    -- `normalizeD` performs AT MOST ONE swap: on `0` fuel it returns the input
-    -- head order unchanged (trivial witness); on positive fuel it fires the
-    -- single genuine swap of the recognised head pair.  It is NOT a multi-step
-    -- bubble sort: the SWAPPED tail is re-indexed (by `substDiagU` along the
-    -- non-definitional `++`-assoc `domeq`), so a 2-layer head of the *output* of
-    -- an ABSTRACT step cannot be destructured by unification, and abstract
-    -- multi-step recursion is not expressible; chaining of multiple genuine
-    -- steps is exercised CONCRETELY in the litmus.  Soundness is the per-swap
-    -- `≈Term` (up to the stuck-`out` cast `castW oeq`), unconditional whatever
-    -- the fuel.
+    -- `normalizeD` is the ONE-STEP kernel on the explicit `LeftFit` head-pair
+    -- interface: on `0` fuel it returns the input head order unchanged (trivial
+    -- witness); on positive fuel it fires the single genuine swap of the
+    -- recognised head pair.  Multi-step chaining over a whole `DiagU n` is NOT
+    -- done at this typed interface — a 2-layer head of the SWAPPED output is
+    -- re-indexed (by `substDiagU` along the non-definitional `++`-assoc
+    -- `domeq`), so it cannot be destructured by unification here.  Instead §12d's
+    -- generic `Driver` works on the untyped `DiagU n` directly and DOES chain
+    -- abstractly (`normFuelWith` + `swapTrans`); this kernel + the concrete
+    -- litmus (`Categories.SolverNormalizeTests`) document the per-swap content.
+    -- Soundness is the per-swap `≈Term` (up to the stuck-`out` cast
+    -- `castW oeq`), unconditional whatever the fuel.
     --------------------------------------------------------------------------------
 
     normalizeD : ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}

@@ -49,6 +49,19 @@
 --     bridge law (a short braiding-naturality proof in Symm; absurd on the
 --     empty `Symm ≤ Mon` in Mon).
 --
+--   IntoCore v GenF C SymC ⟦⟧₀
+--     The shared free-functor transport plumbing wrapped by both front-ends'
+--     `Into` layers: interpret the wire-level free category into a target
+--     monoidal (Mon) or symmetric-monoidal (Symm, via the instance-gated
+--     `SymC : ⦃ Symm ≤ v ⦄ → Symmetric …`) category along an object
+--     assignment `⟦⟧₀`.
+--
+-- (`inj` is NOT an instance of `FreeMonoidal`'s `FreeFunctor`/`⟦_⟧₁`: that
+-- functor's object action is the recursive `⟦_⟧₀`, never the literal identity
+-- on `ObjTerm`, so the index-preserving `inj` and its on-the-nose
+-- `inj-merge`/`inj-split`/`inj-coeC` `≡`-lemmas would drown in object
+-- coercions.  Hence the dedicated, definitionally transparent `inj`.)
+--
 -- DEFINITIONAL-EQUALITY DISCIPLINE: everything computation-relevant
 -- (`flatten`, `reflectF`, `castʷ`, `IsJust`, the `Decide`-layer equality
 -- helpers) is defined by recursion HERE and parametrized only by neutral

@@ -711,7 +711,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     -- The one-step oracle: σσ-CANCEL first, then naturality slides, then
     -- disjoint interchange.
     -- `SwapRes`, `fire`, `ambiguous?`, `lift∷`, `swapTrans`, `depthD`,
-    -- and `normFuelWith` are shared via NormalizeI.SortD.Driver above.
+    -- and `normFuelWith` come from NormalizeI.SortD (§12d) above.
     ------------------------------------------------------------------------
 
     private

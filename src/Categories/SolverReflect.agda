@@ -390,17 +390,18 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- coherence  merge a {[]} ≈ ρ⇒  (up to a++[]≡a).  We isolate it as the
   -- SINGLE obligation `BoxSound`, discharged below by `boxSound`.
   --------------------------------------------------------------------------------
-  -- Box-leaf soundness obligation, isolated as a hypothesis: it is the pure
+  -- Box-leaf soundness obligation, named as a statement: it is the pure
   -- right-unitor coherence  merge a {[]} ≈ ρ⇒  up to a++[]≡a — box-free
   -- coherence, and so independent of the reflection logic below.  It is
-  -- discharged in-file by `boxSound` via an explicit Kelly derivation.
+  -- discharged in-file by `boxSound` via an explicit Kelly derivation (not a
+  -- hypothesis: nothing downstream takes it as a parameter).
   BoxSound : Set
   BoxSound = ∀ {a b} (g : Mor a b)
            → coeD (++-identityʳ a) (coeC (++-identityʳ b) ⟦ boxD g ⟧)
              ≈Term ⟦box⟧ g
 
   --------------------------------------------------------------------------------
-  -- TASK A: discharge `BoxSound`.
+  -- Discharging `BoxSound`.
   --
   -- The single obligation is the right-unitor coherence  merge a {[]} ≈ ρ⇒
   -- (and its inverse  split a {[]} ≈ ρ⇐), both up to the structural a++[]≡a
@@ -474,7 +475,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       body = merge b {[]} ∘ rest
 
   --------------------------------------------------------------------------------
-  -- TASK 1: soundness of the offset shifts `shiftL` / `shiftR`.
+  -- Soundness of the offset shifts `shiftL` / `shiftR`.
   --
   --   shiftL lt d  is  liftW lt ⟦ d ⟧  up to the +-associativity reindexing
   --   absorbed by the `reidx` wrappers, and analogously for `shiftR`.  We state
@@ -953,9 +954,14 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
           ≈⟨ refl⟩∘⟨ pullˡ (⟺ serialize₂₁) ⟩
         merge (out dl) ∘ (⟦ dl ⟧ ⊗₁ ⟦ dr ⟧) ∘ split nl ∎
 
+  --------------------------------------------------------------------------------
+  -- THE REFLECTION SOUNDNESS THEOREM.
+  --
   --   coeC (out-reflect t) ⟦ reflect t ⟧  ≈Term  embed t
+  --
   -- i.e. the reflected diagram, with its codomain reindexed to match, equals
-  -- the original wire-fragment morphism.
+  -- the original wire-fragment morphism.  (`boxSound` is used directly — it is
+  -- no longer threaded as a hypothesis.)
   --------------------------------------------------------------------------------
   reflect-sound : ∀ {n m} (t : WTerm n m)
                 → coeC (out-reflect t) ⟦ reflect t ⟧ ≈Term embed t

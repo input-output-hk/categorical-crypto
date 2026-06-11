@@ -23,6 +23,9 @@
 --                       pinned by `≡ nothing`; see the catalogue below.
 --   * `Target`        — C-level showcase: `solveMor!` one-liners whose
 --                       statements read in the target's own vocabulary.
+--   * `Rewrite`       — the focusing / rewriting layer (`rewriteMor!`,
+--                       `rewriteMorₙ!`, `rewriteMorAuto!`, `focusAtₙ`): apply
+--                       a solver-decided equation at a chosen subterm.
 --
 -- LIMITATION CATALOGUE (precise statements; L2 machine-checked below):
 --
@@ -51,10 +54,12 @@
 --
 --   L5 (syntactic generators).  Generator equality is the supplied
 --       syntactic `≟G`; no generator-specific equations (naturality of a
---       concrete box, Frobenius laws, …) are known to the solver — see
---       `neg-distinct-endos`/`neg-sequential-order`.  Such equations belong
---       to a rewriting layer on top (cf. `rewriteH!` in the hypergraph
---       solver), not to this coherence+interchange decision procedure.
+--       concrete box, Frobenius laws, …) are DISCOVERED by the decision
+--       procedure — see `neg-distinct-endos`/`neg-sequential-order`.  Such
+--       equations are instead APPLIED by the `rewriteMor!` family (the
+--       `Rewrite` module below), which rewrites at a chosen subterm with a
+--       caller-supplied, solver-discharged equation; the coherence+
+--       interchange decision itself still does not know them.
 --
 --   L6 (no canonicity claim).  `norm ∘ reflect` (a fuel-bounded
 --       first-applicable-swap bubble sort, budget (#layers)²+1) is not
@@ -295,17 +300,15 @@ module Interchange where
     solveTerm! ((s'' ⊗' id') ∘' (s' ⊗' id') ∘' (id' ⊗' t'))
                ((s'' ⊗' id') ∘' (id' ⊗' t') ∘' (s' ⊗' id'))
 
-  -- a NON-HEAD inversion (layers 2-3): the bubble sort walks past the
-  -- in-order head pair and fires deeper.  (A limitation of an earlier
-  -- head-only normalizer; unrelated to the current L2.)
+  -- a NON-HEAD inversion (layers 2-3): the position loop `step?` walks past
+  -- the in-order head pair and fires deeper.
   test-non-head-swap
     : (s'' ∘' s') ⊗' t' ≈' (s'' ⊗' id') ∘' (s' ⊗' t')
   test-non-head-swap =
     solveTerm! ((s'' ∘' s') ⊗' t') ((s'' ⊗' id') ∘' (s' ⊗' t'))
 
   -- three independent boxes fired fully descending vs ascending: the
-  -- sort fires THREE genuine swaps.  (A limitation of an earlier one-swap
-  -- normalizer; unrelated to the current L3.)
+  -- fuel-driven loop (`normFuelWith`) fires THREE genuine swaps.
   private
     W₃' = Var ⋆ ⊗₀ (Var ⋆ ⊗₀ Var ⋆)
     desc₃ : S.HomTerm W₃' W₃'

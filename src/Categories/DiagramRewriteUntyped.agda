@@ -683,9 +683,10 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
 
   --------------------------------------------------------------------------------
   -- castW: the ++‐assoc object transport realised as subst-of-id.
-  -- These lemmas are DecidableEquality-free; the proof-irrelevance variant
-  -- `castW-irr` and the liftW/assocW collapse lemmas (which use it) live in the
-  -- separate `UntypedCoh` parametrised sub-module below.
+  -- These lemmas are DecidableEquality-free.  The proof-irrelevance variant
+  -- `castW-irr` and the liftW/assocW collapse lemmas (which use it) need
+  -- `DecidableEquality X`, so they live in `NormalizeI` (SolverNormalize §11d')
+  -- rather than here.
   --------------------------------------------------------------------------------
 
   -- the object transport: u ≡ v  →  HomTerm (wires u) (wires v).

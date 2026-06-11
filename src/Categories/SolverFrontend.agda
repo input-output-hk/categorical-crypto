@@ -44,8 +44,10 @@
 -- `Categories.SolverFrontendCore` (`FCore`/`FBridge`), instantiated here at
 -- (Mon, MorW, ⟦box⟧); this file supplies the Mon-specific clauses (the
 -- conjugated-box `injBox`, `reflectVar`, and the vacuous σ clauses on the
--- empty `Symm ≤ Mon`), the `Decide` layer (the bubble-sort normalizer
--- driver, term-level focusing, the rewriting layer) and `FinSetup`.
+-- empty `Symm ≤ Mon`), the `Decide` layer (the interchange oracle `go`, the
+-- first-applicable-position loop `step?`, and the fuel budget — the chaining
+-- loop itself is the generic `normFuelWith` from `SolverNormalize.SortD`
+-- §12d), term-level focusing, the rewriting layer, and `FinSetup`.
 --
 -- WHAT DECIDES (verified in `Categories.SolverFrontendTests`):
 --   pure MacLane coherence (unitor/associator iso laws, triangle, pentagon,
@@ -210,8 +212,9 @@ module Frontend
 
     open SC.Decide _≟W_ using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
 
-    -- castW / castW-∘ / castW-sym-r now come from the `open Untyped` above
-    -- (they moved into the engine).
+    -- the castW transport algebra lives in the engine (`open Untyped` above);
+    -- here we take only the DecEq-dependent `castW-irr`, the index transport,
+    -- and the SortD swap engine.
     open Normalize Mon {X} _≟X_ MorW using
       ( castW-irr; substDiagU; LeftFit; module SortD )
     open SortD using (leftFit?; SwapRes; fire; ambiguous?; lift∷; depthD; normFuelWith; unwrapCast)
@@ -226,7 +229,7 @@ module Frontend
       rankW = Core.rankMorW rank
 
       -- destructure the SECOND layer at a generalized (variable) index.
-      -- (The ambiguity? guard and `fire` are shared via SortD.Driver above.)
+      -- (The `ambiguous?` guard and `fire` come from SortD (§12d) above.)
       go : ∀ {ax bx} (px sx : List X) (fx : MorW ax bx)
            {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
          → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
