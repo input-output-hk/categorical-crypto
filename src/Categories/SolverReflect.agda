@@ -236,6 +236,35 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   ⟦reidx⟧ refl d = ≈-Term-refl
 
   --------------------------------------------------------------------------------
+  -- Generic coe-transport folds.  The soundness proofs below repeatedly
+  -- shuffle stacked coeC/coeD coercions around a `reidx` (or an already-
+  -- proven coeC equation); each such shuffle is one of the three shapes
+  -- here, proven once by matching the reidx equality to refl and
+  -- discharging the residual loop equalities by UIP (`≡-irrelevant`).
+  --------------------------------------------------------------------------------
+
+  -- fold shape: the outer coeD undoes the reidx, leaving a single codomain
+  -- retype of the un-reindexed diagram.
+  fold-reidx : ∀ {p q r} (E : p ≡ q) (M : q ≡ p) (d : DiagU p)
+               (B : out (reidx E d) ≡ r) (T : out d ≡ r)
+             → coeD M (coeC B ⟦ reidx E d ⟧) ≈Term coeC T ⟦ d ⟧
+  fold-reidx refl M d B T rewrite ≡-irrelevant M refl | ≡-irrelevant B T = ≈-Term-refl
+
+  -- expand shape: push the codomain retype of a reidx'd diagram inside,
+  -- exposing the reidx equality as a domain coercion.
+  reidx-expand : ∀ {p q r} (E : p ≡ q) (L : DiagU p)
+                 (O : out (reidx E L) ≡ r) (B : out L ≡ r)
+               → coeC O ⟦ reidx E L ⟧ ≈Term coeD E (coeC B ⟦ L ⟧)
+  reidx-expand refl L O B rewrite ≡-irrelevant O B = ≈-Term-refl
+
+  -- re-route a codomain coercion through an already-proven coeC equation
+  -- (the call prefix of the `∘ᵈ-sound` / `tensorD-sound` consumers).
+  coeC-fold : ∀ {A p q r} (E : p ≡ q) (B : q ≡ r) (O : p ≡ r)
+              {h : HomTerm A (wires p)} {k : HomTerm A (wires q)}
+            → coeC E h ≈Term k → coeC O h ≈Term coeC B k
+  coeC-fold refl refl O eq rewrite ≡-irrelevant O refl = eq
+
+  --------------------------------------------------------------------------------
   -- Combinator 2:  horizontal tensor of diagrams.
   --
   -- We build the tensor as  (left factor padded with `l` idle suffix wires)
@@ -501,9 +530,6 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       d' = shiftL lt d
       LAYER : DiagU ((lt ++ pre) ++ (a ++ suf))
       LAYER = (lt ++ pre) ▸ suf ∷ f ⟨ reidx E2 d' ⟩
-      -- out (reidx E2 d') ≡ out d'
-      eR : out (reidx E2 d') ≡ out d'
-      eR = out-reidx E2 d'
       -- the inner shifted layer (before the outer E1 reindex).
       ⟦LAYER⟧ : HomTerm (wires ((lt ++ pre) ++ (a ++ suf))) (wires (out (reidx E2 d')))
       ⟦LAYER⟧ = ⟦ reidx E2 d' ⟧ ∘ pad (lt ++ pre) suf g
@@ -519,13 +545,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
              ≈Term liftW lt (⟦ d ⟧ ∘ pad pre suf g)
       goal = begin
         coeC OUTcons ⟦ reidx E1 LAYER ⟧
-          ≈⟨ coeC-resp OUTcons (⟦reidx⟧ E1 LAYER) ⟩
-        coeC OUTcons (coeD E1 (coeC (sym (out-reidx E1 LAYER)) ⟦LAYER⟧))
-          ≈⟨ coe-comm E1 OUTcons _ ⟩
-        coeD E1 (coeC OUTcons (coeC (sym (out-reidx E1 LAYER)) ⟦LAYER⟧))
-          ≈⟨ coeD-resp E1 (coeC-trans (sym (out-reidx E1 LAYER)) OUTcons ⟦LAYER⟧) ⟩
-        coeD E1 (coeC (trans (sym (out-reidx E1 LAYER)) OUTcons) ⟦LAYER⟧)
-          ≈⟨ coeD-resp E1 (coeC-castU (trans (sym (out-reidx E1 LAYER)) OUTcons) eBridge ⟦LAYER⟧) ⟩
+          ≈⟨ reidx-expand E1 LAYER OUTcons eBridge ⟩
         coeD E1 (coeC eBridge ⟦LAYER⟧)
           ≈⟨ coeD-resp E1 (coeC-∘ˡ eBridge ⟦ reidx E2 d' ⟧ (pad (lt ++ pre) suf g)) ⟩
         coeD E1 (coeC eBridge ⟦ reidx E2 d' ⟧ ∘ pad (lt ++ pre) suf g)
@@ -541,25 +561,9 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
           -- middle-object retype eq:  (lt++pre)++(b++suf) ≡ lt++(pre++(b++suf)).
           eM : (lt ++ pre) ++ (b ++ suf) ≡ lt ++ (pre ++ (b ++ suf))
           eM = ++-assoc lt pre (b ++ suf)
-          -- the tail folds (via reidx-transport + recursion + cancellation of
-          -- the eM/E2 coercions) to liftW lt ⟦d⟧.
+          -- the tail folds (reidx-fold + recursion) to liftW lt ⟦d⟧.
           tailFold : coeD eM (coeC eBridge ⟦ reidx E2 d' ⟧) ≈Term liftW lt ⟦ d ⟧
-          tailFold = begin
-            coeD eM (coeC eBridge ⟦ reidx E2 d' ⟧)
-              ≈⟨ coeD-resp eM (coeC-resp eBridge (⟦reidx⟧ E2 d')) ⟩
-            coeD eM (coeC eBridge (coeD E2 (coeC (sym eR) ⟦ d' ⟧)))
-              ≈⟨ coeD-resp eM (coe-comm E2 eBridge _) ⟩
-            coeD eM (coeD E2 (coeC eBridge (coeC (sym eR) ⟦ d' ⟧)))
-              ≈⟨ coeD-trans E2 eM (coeC eBridge (coeC (sym eR) ⟦ d' ⟧)) ⟩
-            coeD (trans E2 eM) (coeC eBridge (coeC (sym eR) ⟦ d' ⟧))
-              ≈⟨ coeD-castU (trans E2 eM) refl (coeC eBridge (coeC (sym eR) ⟦ d' ⟧)) ⟩
-            coeC eBridge (coeC (sym eR) ⟦ d' ⟧)
-              ≈⟨ coeC-trans (sym eR) eBridge ⟦ d' ⟧ ⟩
-            coeC (trans (sym eR) eBridge) ⟦ d' ⟧
-              ≈⟨ coeC-castU (trans (sym eR) eBridge) (out-shiftL lt d) ⟦ d' ⟧ ⟩
-            coeC (out-shiftL lt d) ⟦ d' ⟧
-              ≈⟨ shiftL-sound lt d ⟩
-            liftW lt ⟦ d ⟧ ∎
+          tailFold = fold-reidx E2 eM d' eBridge (out-shiftL lt d) ○ shiftL-sound lt d
           padFold : coeC eM (coeD E1 (pad (lt ++ pre) suf g)) ≈Term liftW lt (pad pre suf g)
           padFold = begin
             coeC eM (coeD E1 (pad (lt ++ pre) suf g))
@@ -857,8 +861,6 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       d' = shiftR rt d
       LAYER : DiagU (pre ++ (a ++ (suf ++ rt)))
       LAYER = pre ▸ (suf ++ rt) ∷ f ⟨ reidx E2 d' ⟩
-      eR : out (reidx E2 d') ≡ out d'
-      eR = out-reidx E2 d'
       ⟦LAYER⟧ : HomTerm (wires (pre ++ (a ++ (suf ++ rt)))) (wires (out (reidx E2 d')))
       ⟦LAYER⟧ = ⟦ reidx E2 d' ⟧ ∘ pad pre (suf ++ rt) g
       OUTcons : out (shiftR rt (pre ▸ suf ∷ f ⟨ d ⟩)) ≡ out (pre ▸ suf ∷ f ⟨ d ⟩) ++ rt
@@ -872,13 +874,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
              ≈Term rpad rt (⟦ d ⟧ ∘ pad pre suf g)
       goal = begin
         coeC OUTcons ⟦ reidx (sym E1) LAYER ⟧
-          ≈⟨ coeC-resp OUTcons (⟦reidx⟧ (sym E1) LAYER) ⟩
-        coeC OUTcons (coeD (sym E1) (coeC (sym (out-reidx (sym E1) LAYER)) ⟦LAYER⟧))
-          ≈⟨ coe-comm (sym E1) OUTcons _ ⟩
-        coeD (sym E1) (coeC OUTcons (coeC (sym (out-reidx (sym E1) LAYER)) ⟦LAYER⟧))
-          ≈⟨ coeD-resp (sym E1) (coeC-trans (sym (out-reidx (sym E1) LAYER)) OUTcons ⟦LAYER⟧) ⟩
-        coeD (sym E1) (coeC (trans (sym (out-reidx (sym E1) LAYER)) OUTcons) ⟦LAYER⟧)
-          ≈⟨ coeD-resp (sym E1) (coeC-castU (trans (sym (out-reidx (sym E1) LAYER)) OUTcons) eBridge ⟦LAYER⟧) ⟩
+          ≈⟨ reidx-expand (sym E1) LAYER OUTcons eBridge ⟩
         coeD (sym E1) (coeC eBridge ⟦LAYER⟧)
           ≈⟨ coeD-resp (sym E1) (coeC-∘ˡ eBridge ⟦ reidx E2 d' ⟧ (pad pre (suf ++ rt) g)) ⟩
         coeD (sym E1) (coeC eBridge ⟦ reidx E2 d' ⟧ ∘ pad pre (suf ++ rt) g)
@@ -897,22 +893,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
           eMrev : pre ++ (b ++ (suf ++ rt)) ≡ (pre ++ (b ++ suf)) ++ rt
           eMrev = sym eM
           tailFold : coeD eMrev (coeC eBridge ⟦ reidx E2 d' ⟧) ≈Term rpad rt ⟦ d ⟧
-          tailFold = begin
-            coeD eMrev (coeC eBridge ⟦ reidx E2 d' ⟧)
-              ≈⟨ coeD-resp eMrev (coeC-resp eBridge (⟦reidx⟧ E2 d')) ⟩
-            coeD eMrev (coeC eBridge (coeD E2 (coeC (sym eR) ⟦ d' ⟧)))
-              ≈⟨ coeD-resp eMrev (coe-comm E2 eBridge _) ⟩
-            coeD eMrev (coeD E2 (coeC eBridge (coeC (sym eR) ⟦ d' ⟧)))
-              ≈⟨ coeD-trans E2 eMrev (coeC eBridge (coeC (sym eR) ⟦ d' ⟧)) ⟩
-            coeD (trans E2 eMrev) (coeC eBridge (coeC (sym eR) ⟦ d' ⟧))
-              ≈⟨ coeD-castU (trans E2 eMrev) refl (coeC eBridge (coeC (sym eR) ⟦ d' ⟧)) ⟩
-            coeC eBridge (coeC (sym eR) ⟦ d' ⟧)
-              ≈⟨ coeC-trans (sym eR) eBridge ⟦ d' ⟧ ⟩
-            coeC (trans (sym eR) eBridge) ⟦ d' ⟧
-              ≈⟨ coeC-castU (trans (sym eR) eBridge) (out-shiftR rt d) ⟦ d' ⟧ ⟩
-            coeC (out-shiftR rt d) ⟦ d' ⟧
-              ≈⟨ shiftR-sound rt d ⟩
-            rpad rt ⟦ d ⟧ ∎
+          tailFold = fold-reidx E2 eMrev d' eBridge (out-shiftR rt d) ○ shiftR-sound rt d
           padFold : coeC eMrev (coeD (sym E1) (pad pre (suf ++ rt) g)) ≈Term rpad rt (pad pre suf g)
           padFold = begin
             coeC eMrev (coeD (sym E1) (pad pre (suf ++ rt) g))
@@ -932,11 +913,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
                   ≈Term merge (out dl) {out dr} ∘ (⟦ dl ⟧ ⊗₁ ⟦ dr ⟧) ∘ split nl {nr}
   tensorD-sound {nl} {nr} dl dr = begin
     coeC (out-tensorD dl dr) ⟦ shiftR nr dl ∘ᵈ d2 ⟧
-      ≈⟨ coeC-castU (out-tensorD dl dr) (trans (out-∘ᵈ (shiftR nr dl) d2) eBr) ⟦ shiftR nr dl ∘ᵈ d2 ⟧ ⟩
-    coeC (trans (out-∘ᵈ (shiftR nr dl) d2) eBr) ⟦ shiftR nr dl ∘ᵈ d2 ⟧
-      ≈⟨ ⟺ (coeC-trans (out-∘ᵈ (shiftR nr dl) d2) eBr ⟦ shiftR nr dl ∘ᵈ d2 ⟧) ⟩
-    coeC eBr (coeC (out-∘ᵈ (shiftR nr dl) d2) ⟦ shiftR nr dl ∘ᵈ d2 ⟧)
-      ≈⟨ coeC-resp eBr (∘ᵈ-sound (shiftR nr dl) d2) ⟩
+      ≈⟨ coeC-fold (out-∘ᵈ (shiftR nr dl) d2) eBr (out-tensorD dl dr) (∘ᵈ-sound (shiftR nr dl) d2) ⟩
     coeC eBr (⟦ d2 ⟧ ∘ ⟦ shiftR nr dl ⟧)
       ≈⟨ coeC-∘ˡ eBr ⟦ d2 ⟧ ⟦ shiftR nr dl ⟧ ⟩
     coeC eBr ⟦ d2 ⟧ ∘ ⟦ shiftR nr dl ⟧
@@ -963,24 +940,9 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       -- coeD eSR (coeC eBr ⟦ d2 ⟧) folds to liftW (out dl) ⟦dr⟧ = bridge form.
       d2Fold : coeD eSR (coeC eBr ⟦ d2 ⟧)
              ≈Term merge (out dl) {out dr} ∘ (id {wires (out dl)} ⊗₁ ⟦ dr ⟧) ∘ split (out dl) {nr}
-      d2Fold = begin
-        coeD eSR (coeC eBr ⟦ d2 ⟧)
-          ≈⟨ coeD-resp eSR (coeC-resp eBr (⟦reidx⟧ (sym (out-shiftR nr dl)) (shiftL (out dl) dr))) ⟩
-        coeD eSR (coeC eBr (coeD (sym eSR) (coeC (sym eR2) ⟦ shiftL (out dl) dr ⟧)))
-          ≈⟨ coeD-resp eSR (coe-comm (sym eSR) eBr _) ⟩
-        coeD eSR (coeD (sym eSR) (coeC eBr (coeC (sym eR2) ⟦ shiftL (out dl) dr ⟧)))
-          ≈⟨ coeD-trans (sym eSR) eSR (coeC eBr (coeC (sym eR2) ⟦ shiftL (out dl) dr ⟧)) ⟩
-        coeD (trans (sym eSR) eSR) (coeC eBr (coeC (sym eR2) ⟦ shiftL (out dl) dr ⟧))
-          ≈⟨ coeD-castU (trans (sym eSR) eSR) refl (coeC eBr (coeC (sym eR2) ⟦ shiftL (out dl) dr ⟧)) ⟩
-        coeC eBr (coeC (sym eR2) ⟦ shiftL (out dl) dr ⟧)
-          ≈⟨ coeC-trans (sym eR2) eBr ⟦ shiftL (out dl) dr ⟧ ⟩
-        coeC (trans (sym eR2) eBr) ⟦ shiftL (out dl) dr ⟧
-          ≈⟨ coeC-castU (trans (sym eR2) eBr) (out-shiftL (out dl) dr) ⟦ shiftL (out dl) dr ⟧ ⟩
-        coeC (out-shiftL (out dl) dr) ⟦ shiftL (out dl) dr ⟧
-          ≈⟨ shiftL-sound (out dl) dr ⟩
-        liftW (out dl) ⟦ dr ⟧
-          ≈⟨ liftW-merge (out dl) ⟦ dr ⟧ ⟩
-        merge (out dl) {out dr} ∘ (id {wires (out dl)} ⊗₁ ⟦ dr ⟧) ∘ split (out dl) {nr} ∎
+      d2Fold = fold-reidx (sym eSR) eSR (shiftL (out dl) dr) eBr (out-shiftL (out dl) dr)
+               ○ shiftL-sound (out dl) dr
+               ○ liftW-merge (out dl) ⟦ dr ⟧
       -- the central bifunctoriality collapse.
       collapse :
           (merge (out dl) {out dr} ∘ (id {wires (out dl)} ⊗₁ ⟦ dr ⟧) ∘ split (out dl) {nr})
@@ -1007,16 +969,11 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       dg = reflect g
       ef = out-reflect f                -- out df ≡ m
       dg' = reidx (sym ef) dg           -- DiagU (out df)
-      eg' = out-reidx (sym ef) dg       -- out dg' ≡ out dg
       -- step 1: push coeC through ∘ᵈ-sound.
       goal : coeC (out-reflect (g ∘ʷ f)) ⟦ df ∘ᵈ dg' ⟧ ≈Term embed g ∘ embed f
       goal = begin
         coeC (out-reflect (g ∘ʷ f)) ⟦ df ∘ᵈ dg' ⟧
-          ≈⟨ coeC-castU (out-reflect (g ∘ʷ f)) (trans (out-∘ᵈ df dg') eg-bridge) ⟦ df ∘ᵈ dg' ⟧ ⟩
-        coeC (trans (out-∘ᵈ df dg') eg-bridge) ⟦ df ∘ᵈ dg' ⟧
-          ≈⟨ ⟺ (coeC-trans (out-∘ᵈ df dg') eg-bridge ⟦ df ∘ᵈ dg' ⟧) ⟩
-        coeC eg-bridge (coeC (out-∘ᵈ df dg') ⟦ df ∘ᵈ dg' ⟧)
-          ≈⟨ coeC-resp eg-bridge (∘ᵈ-sound df dg') ⟩
+          ≈⟨ coeC-fold (out-∘ᵈ df dg') eg-bridge (out-reflect (g ∘ʷ f)) (∘ᵈ-sound df dg') ⟩
         coeC eg-bridge (⟦ dg' ⟧ ∘ ⟦ df ⟧)
           ≈⟨ coeC-∘ˡ eg-bridge ⟦ dg' ⟧ ⟦ df ⟧ ⟩
         coeC eg-bridge ⟦ dg' ⟧ ∘ ⟦ df ⟧
@@ -1029,41 +986,12 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
           eg-bridge : out dg' ≡ k
           eg-bridge = trans (out-reidx (sym ef) dg) (out-reflect g)
           dg'-sound : coeD ef (coeC eg-bridge ⟦ dg' ⟧) ≈Term embed g
-          dg'-sound = begin
-            coeD ef (coeC eg-bridge ⟦ dg' ⟧)
-              ≈⟨ coeD-resp ef (coeC-resp eg-bridge (⟦reidx⟧ (sym ef) dg)) ⟩
-            coeD ef (coeC eg-bridge (coeD (sym ef) (coeC (sym eg') ⟦ dg ⟧)))
-              ≈⟨ coeD-resp ef (coe-comm (sym ef) eg-bridge (coeC (sym eg') ⟦ dg ⟧)) ⟩
-            coeD ef (coeD (sym ef) (coeC eg-bridge (coeC (sym eg') ⟦ dg ⟧)))
-              ≈⟨ coeD-trans (sym ef) ef (coeC eg-bridge (coeC (sym eg') ⟦ dg ⟧)) ⟩
-            coeD (trans (sym ef) ef) (coeC eg-bridge (coeC (sym eg') ⟦ dg ⟧))
-              ≈⟨ coeD-castU (trans (sym ef) ef) refl (coeC eg-bridge (coeC (sym eg') ⟦ dg ⟧)) ⟩
-            coeC eg-bridge (coeC (sym eg') ⟦ dg ⟧)
-              ≈⟨ coeC-trans (sym eg') eg-bridge ⟦ dg ⟧ ⟩
-            coeC (trans (sym eg') eg-bridge) ⟦ dg ⟧
-              ≈⟨ coeC-castU (trans (sym eg') eg-bridge) (out-reflect g) ⟦ dg ⟧ ⟩
-            coeC (out-reflect g) ⟦ dg ⟧
-              ≈⟨ reflect-sound g ⟩
-            embed g ∎
+          dg'-sound = fold-reidx (sym ef) ef dg eg-bridge (out-reflect g) ○ reflect-sound g
           df-sound : coeC ef ⟦ df ⟧ ≈Term embed f
           df-sound = reflect-sound f
-  reflect-sound (boxʷ {a} {b} g) = goal
-    where
-      goal : coeC (out-reflect (boxʷ g)) ⟦ reflect (boxʷ g) ⟧ ≈Term ⟦box⟧ g
-      goal = begin
-        coeC (out-reflect (boxʷ g)) ⟦ reidx (++-identityʳ a) (boxD g) ⟧
-          ≈⟨ coeC-resp _ (⟦reidx⟧ (++-identityʳ a) (boxD g)) ⟩
-        coeC (out-reflect (boxʷ g))
-          (coeD (++-identityʳ a) (coeC (sym (out-reidx (++-identityʳ a) (boxD g))) ⟦ boxD g ⟧))
-          ≈⟨ coe-comm (++-identityʳ a) (out-reflect (boxʷ g)) _ ⟩
-        coeD (++-identityʳ a)
-          (coeC (out-reflect (boxʷ g)) (coeC (sym (out-reidx (++-identityʳ a) (boxD g))) ⟦ boxD g ⟧))
-          ≈⟨ coeD-resp (++-identityʳ a) (coeC-trans (sym (out-reidx (++-identityʳ a) (boxD g))) (out-reflect (boxʷ g)) ⟦ boxD g ⟧) ⟩
-        coeD (++-identityʳ a) (coeC (trans (sym (out-reidx (++-identityʳ a) (boxD g))) (out-reflect (boxʷ g))) ⟦ boxD g ⟧)
-          ≈⟨ coeD-resp (++-identityʳ a) (coeC-castU (trans (sym (out-reidx (++-identityʳ a) (boxD g))) (out-reflect (boxʷ g))) (++-identityʳ b) ⟦ boxD g ⟧) ⟩
-        coeD (++-identityʳ a) (coeC (++-identityʳ b) ⟦ boxD g ⟧)
-          ≈⟨ boxSound g ⟩
-        ⟦box⟧ g ∎
+  reflect-sound (boxʷ {a} {b} g) =
+    reidx-expand (++-identityʳ a) (boxD g) (out-reflect (boxʷ g)) (++-identityʳ b)
+    ○ boxSound g
   reflect-sound (_⊗ʷ_ {nl} {ml} {nr} {mr} s t) = goal
     where
       ds = reflect s
@@ -1076,11 +1004,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
              ≈Term merge ml {mr} ∘ (embed s ⊗₁ embed t) ∘ split nl {nr}
       goal = begin
         coeC (out-reflect (s ⊗ʷ t)) ⟦ tensorD ds dt ⟧
-          ≈⟨ coeC-castU (out-reflect (s ⊗ʷ t)) (trans (out-tensorD ds dt) (cong₂ _++_ es et)) ⟦ tensorD ds dt ⟧ ⟩
-        coeC (trans (out-tensorD ds dt) (cong₂ _++_ es et)) ⟦ tensorD ds dt ⟧
-          ≈⟨ ⟺ (coeC-trans (out-tensorD ds dt) (cong₂ _++_ es et) ⟦ tensorD ds dt ⟧) ⟩
-        coeC (cong₂ _++_ es et) (coeC (out-tensorD ds dt) ⟦ tensorD ds dt ⟧)
-          ≈⟨ coeC-resp (cong₂ _++_ es et) (tensorD-sound ds dt) ⟩
+          ≈⟨ coeC-fold (out-tensorD ds dt) (cong₂ _++_ es et) (out-reflect (s ⊗ʷ t)) (tensorD-sound ds dt) ⟩
         coeC (cong₂ _++_ es et) (merge (out ds) {out dt} ∘ (⟦ ds ⟧ ⊗₁ ⟦ dt ⟧) ∘ split nl {nr})
           ≈⟨ tensorBridge es et ⟩
         merge ml {mr} ∘ ((coeC es ⟦ ds ⟧ ⊗₁ coeC et ⟦ dt ⟧)) ∘ split nl {nr}
