@@ -212,7 +212,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     ; dInput; dSwapped; dInput-out; dSwapped-out; diagU-swap-soundD; domeq
     ; assocW-castW; assocW⁻-castW; liftW-castW
     ; module SortD )
-  open SortD using (leftFit?; stripPrefix)
+  open SortD using (leftFit?; stripPrefix; SwapRes; fire; ambiguous?; lift∷; swapTrans; depthD; normFuelWith; unwrapCast)
 
   private module SCmp = SolverCompareI Symm {X} _≟X_ MorS ⟦box⟧S
 
@@ -775,29 +775,17 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     rankS (cross _ _)     = zero
 
     ------------------------------------------------------------------------
-    -- The one-step oracle: σσ-CANCEL first, then disjoint interchange.
-    -- (Mirrors the front-end `Decide`'s `SwapRes`/`go`/`fire`/`step?`
-    -- architecture: the inner index is GENERALIZED to a variable `m`
-    -- carried with a propositional wiring equality `meq`, discharged by
-    -- the Hedberg UIP on wire lists — never matched.)
+    -- The one-step oracle: σσ-CANCEL first, then naturality slides, then
+    -- disjoint interchange.
+    -- `SwapRes`, `fire`, `ambiguous?`, `lift∷`, `swapTrans`, `depthD`,
+    -- and `normFuelWith` are shared via NormalizeI.SortD.Driver above.
     ------------------------------------------------------------------------
 
-    SwapRes : ∀ {n} → DiagU n → Set
-    SwapRes {n} d = Σ[ d' ∈ DiagU n ] Σ[ oeq ∈ out d ≡ out d' ]
-                      (castW oeq ∘ ⟦ d ⟧ ≈Term ⟦ d' ⟧)
-
     private
-      unwrapCast : ∀ {u v} {A} (e : u ≡ v)
-                   {x : HomTerm A (wires u)} {y : HomTerm A (wires v)}
-                 → castW e ∘ x ≈Term y → x ≈Term castW (sym e) ∘ y
-      unwrapCast refl eq = ⟺ idˡ ○ eq ○ ⟺ idˡ
-
-      ------------------------------------------------------------------
       -- THE σσ-CANCEL FIRE.  On a recognised adjacent inverse cross-pair
       -- (same pre/suf, blocks reversed) BOTH layers are removed; the tail
       -- lives at the SAME input index, so no diagram transport is needed
       -- and the soundness is `pad-σσ` + assoc/id algebra.
-      ------------------------------------------------------------------
       fireσ : ∀ (px sx a b : List X)
               (rest' : DiagU (px ++ ((a ++ b) ++ sx)))
             → SwapRes (px ▸ sx ∷ cross a b ⟨ px ▸ sx ∷ cross b a ⟨ rest' ⟩ ⟩)
@@ -986,60 +974,6 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
                               (sym (eq₁ px p₁ v s₁ b sx))
                               (eq₁ px p₁ u s₁ b sx)))
 
-      ------------------------------------------------------------------
-      -- The interchange fire (verbatim from the front-end `Decide`, at
-      -- MorS): one genuine swap on a recognised out-of-order head pair.
-      ------------------------------------------------------------------
-      fire : ∀ {ax bx ay by} {px sx py sy : List X}
-             {fx : MorS ax bx} {fy : MorS ay by}
-             (fit : LeftFit px sx py sy fx fy)
-             (rest' : DiagU (py ++ (by ++ sy)))
-             (meq : px ++ (bx ++ sx) ≡ py ++ (ay ++ sy))
-           → SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) (py ▸ sy ∷ fy ⟨ rest' ⟩) ⟩)
-      fire {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
-           (leftFit P mid s refl refl refl refl) rest' meq
-        rewrite ≡-irrelevantL meq (domeq P ay mid bx s)
-        = d' , oeq , snd
-        where
-          fit' : LeftFit (P ++ (ay ++ mid)) s P (mid ++ (bx ++ s)) fx fy
-          fit' = leftFit P mid s refl refl refl refl
-          eᵒ = domeq P ay mid ax s
-          dBody : DiagU ((P ++ (ay ++ mid)) ++ (ax ++ s))
-          dBody = (P ++ (ay ++ mid)) ▸ s ∷ fx
-                    ⟨ substDiagU (sym (domeq P ay mid bx s))
-                        (P ▸ (mid ++ (bx ++ s)) ∷ fy ⟨ rest' ⟩) ⟩
-          dIn = dInput fit' rest'
-          dSw = dSwapped fit' rest'
-          d' : DiagU ((P ++ (ay ++ mid)) ++ (ax ++ s))
-          d' = substDiagU (sym eᵒ) dSw
-          e₁ = sym (substDiagU-out eᵒ dBody)
-          q  = trans (dInput-out fit' rest') (sym (dSwapped-out fit' rest'))
-          e₃ = sym (substDiagU-out (sym eᵒ) dSw)
-          oeq = trans e₁ (trans q e₃)
-          snd : castW oeq ∘ ⟦ dBody ⟧ ≈Term ⟦ d' ⟧
-          snd = begin
-            castW oeq ∘ ⟦ dBody ⟧
-              ≈⟨ castW-irr oeq (trans (trans e₁ q) e₃) ⟩∘⟨refl ⟩
-            castW (trans (trans e₁ q) e₃) ∘ ⟦ dBody ⟧
-              ≈⟨ pushˡ (⟺ (castW-∘ (trans e₁ q) e₃)) ⟩
-            castW e₃ ∘ (castW (trans e₁ q) ∘ ⟦ dBody ⟧)
-              ≈⟨ refl⟩∘⟨ pushˡ (⟺ (castW-∘ e₁ q)) ⟩
-            castW e₃ ∘ (castW q ∘ (castW e₁ ∘ ⟦ dBody ⟧))
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ⟦substDiagU⟧ eᵒ dBody ⟨
-            castW e₃ ∘ (castW q ∘ (⟦ dIn ⟧ ∘ castW eᵒ))
-              ≈⟨ refl⟩∘⟨ pullˡ (diagU-swap-soundD fit' rest') ⟩
-            castW e₃ ∘ (⟦ dSw ⟧ ∘ castW eᵒ)
-              ≈⟨ pullˡ (⟺ (⟦substDiagU⟧ (sym eᵒ) dSw)) ⟩
-            (⟦ d' ⟧ ∘ castW (sym eᵒ)) ∘ castW eᵒ
-              ≈⟨ cancelʳ (castW-sym-r eᵒ) ⟩
-            ⟦ d' ⟧ ∎
-
-      -- a fit is AMBIGUOUS when the reverse pair would also fit; such
-      -- pairs are ordered by `rankS` instead.
-      ambiguous? : List X → List X → List X → Bool
-      ambiguous? [] [] [] = true
-      ambiguous? _  _  _  = false
-
       -- the interchange recogniser at the generalized inner index.
       goSwap : ∀ {ax bx} (px sx : List X) (fx : MorS ax bx)
                {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
@@ -1064,24 +998,6 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
         goSlideA px sx fx rest meq <∣>
         goSwap   px sx fx rest meq
 
-      -- lift a tail swap-result under a layer.
-      lift∷ : ∀ {a b} (px sx : List X) (fx : MorS a b)
-              {rest rest' : DiagU (px ++ (b ++ sx))}
-              (oeq : out rest ≡ out rest')
-            → castW oeq ∘ ⟦ rest ⟧ ≈Term ⟦ rest' ⟧
-            → castW oeq ∘ ⟦ px ▸ sx ∷ fx ⟨ rest ⟩ ⟧
-              ≈Term ⟦ px ▸ sx ∷ fx ⟨ rest' ⟩ ⟧
-      lift∷ px sx fx oeq snd = pullˡ snd
-
-      -- compose two swap-results (cast functoriality).
-      swapTrans : ∀ {n} {d d' d'' : DiagU n}
-                  (oeq : out d ≡ out d') (oeq' : out d' ≡ out d'')
-                → castW oeq  ∘ ⟦ d  ⟧ ≈Term ⟦ d'  ⟧
-                → castW oeq' ∘ ⟦ d' ⟧ ≈Term ⟦ d'' ⟧
-                → castW (trans oeq oeq') ∘ ⟦ d ⟧ ≈Term ⟦ d'' ⟧
-      swapTrans oeq oeq' p q =
-        pushˡ (⟺ (castW-∘ oeq oeq')) ○ (refl⟩∘⟨ p) ○ q
-
     -- one cancel-or-swap at the FIRST applicable position.
     stepσ? : ∀ {n} (d : DiagU n) → Maybe (SwapRes d)
     stepσ? ([]_ n) = nothing
@@ -1091,19 +1007,6 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
         (λ { (rest' , oeq , snd) →
              px ▸ sx ∷ fx ⟨ rest' ⟩ , oeq , lift∷ px sx fx oeq snd })
         (stepσ? rest)
-
-    -- fuel-bounded driver: fire the first applicable move, repeat.
-    normσFuel : ∀ {n} → ℕ → (d : DiagU n) → SwapRes d
-    normσFuel zero    d = d , refl , idˡ
-    normσFuel (suc k) d = case stepσ? d of λ where
-      nothing                 → d , refl , idˡ
-      (just (d' , oeq , snd)) →
-        let (d'' , oeq' , snd') = normσFuel k d'
-        in  d'' , trans oeq oeq' , swapTrans oeq oeq' snd snd'
-
-    depth : ∀ {n} → DiagU n → ℕ
-    depth ([]_ n)            = zero
-    depth (_ ▸ _ ∷ _ ⟨ d ⟩) = suc (depth d)
 
     -- budget: a cancellation shrinks the diagram (so at most depth/2 of
     -- them); within a phase every move is monotone — an interchange swap
@@ -1115,8 +1018,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     -- then runs out and the pair is left undecided — soundness is
     -- unconditional whatever the fuel.)
     normσ : ∀ {n} (d : DiagU n) → SwapRes d
-    normσ d = normσFuel (suc (k * k * k + k * k + k)) d
-      where k = depth d
+    normσ d = normFuelWith stepσ? (suc (k * k * k + k * k + k)) d
+      where k = depthD d
 
     ------------------------------------------------------------------------
     -- The decision entry, mirroring the front-end's `decide?W`:
