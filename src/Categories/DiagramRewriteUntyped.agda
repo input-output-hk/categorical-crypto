@@ -23,6 +23,7 @@ module Categories.DiagramRewriteUntyped where
 --------------------------------------------------------------------------------
 
 open import Data.List using (List; []; _∷_; _++_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
 
 open import Categories.Category using (Category)
 import Categories.Morphism.Reasoning as MR
@@ -679,6 +680,41 @@ module UntypedI (v : Variant) {X : Set} (Mor : List X → List X → Set)
               ∘ ((α⇒ ∘ ((id {Var x} ⊗₁ h) ⊗₁ id {wires rt}) ∘ α⇐)
                  ∘ id {Var x} ⊗₁ split u {rt})
       reB = assoc ○ (refl⟩∘⟨ assoc²εβ)
+
+  --------------------------------------------------------------------------------
+  -- castW: the ++‐assoc object transport realised as subst-of-id.
+  -- These lemmas are DecidableEquality-free; the proof-irrelevance variant
+  -- `castW-irr` and the liftW/assocW collapse lemmas (which use it) live in the
+  -- separate `UntypedCoh` parametrised sub-module below.
+  --------------------------------------------------------------------------------
+
+  -- the object transport: u ≡ v  →  HomTerm (wires u) (wires v).
+  castW : ∀ {u v : List X} → u ≡ v → HomTerm (wires u) (wires v)
+  castW refl = id
+
+  -- functoriality (composition of transports).
+  castW-∘ : ∀ {u v w : List X} (e₁ : u ≡ v) (e₂ : v ≡ w)
+          → castW e₂ ∘ castW e₁ ≈Term castW (trans e₁ e₂)
+  castW-∘ refl refl = idˡ
+
+  -- prepending one wire to a transport.
+  castW-∷ : ∀ {x : X} {u v : List X} (e : u ≡ v)
+          → id {Var x} ⊗₁ castW e ≈Term castW (cong (x ∷_) e)
+  castW-∷ refl = id⊗id≈id
+
+  -- round-trip cancellation: castW (sym e) ∘ castW e ≈ id.
+  castW-sym-r : ∀ {u v : List X} (e : u ≡ v) → castW (sym e) ∘ castW e ≈Term id
+  castW-sym-r refl = idˡ
+
+  -- the other cancellation order: castW e ∘ castW (sym e) ≈ id.
+  castW-sym-r-flip : ∀ {u v : List X} (e : u ≡ v) → castW e ∘ castW (sym e) ≈Term id
+  castW-sym-r-flip refl = idˡ
+
+  -- right-cancel an iso castW e.
+  castW-cancelʳ : ∀ {u v w : List X} (e : u ≡ v)
+                  {A B : HomTerm (wires v) (wires w)}
+                → A ∘ castW e ≈Term B ∘ castW e → A ≈Term B
+  castW-cancelʳ refl {A} {B} h = ⟺ idʳ ○ h ○ idʳ
 
   -- rearranged Lemma B (both directions of conjugation made explicit).
   liftW-assoc' : ∀ (x m : List X) {u v} (W : HomTerm (wires u) (wires v))

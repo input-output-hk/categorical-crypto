@@ -526,8 +526,10 @@ module Frontend
 
     open SC.Decide _≟W_ using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
 
+    -- castW / castW-∘ / castW-sym-r now come from the `open Untyped` above
+    -- (they moved into the engine).
     open Normalize Mon {X} _≟X_ MorW using
-      ( castW; castW-∘; castW-irr; castW-sym-r
+      ( castW-irr
       ; substDiagU; substDiagU-out; ⟦substDiagU⟧
       ; LeftFit; leftFit
       ; dInput; dSwapped; dInput-out; dSwapped-out; diagU-swap-soundD; domeq
