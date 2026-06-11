@@ -94,7 +94,7 @@ open import Categories.DiagramRewriteUntyped using (module WireSig; module Untyp
 open import Categories.FreeMonoidal
 open import Categories.SolverCompare using (module SolverCompareI)
 open import Categories.SolverNormalize using (module NormalizeI)
-open import Categories.SolverReflect using (module ReflectI)
+open import Categories.SolverReflect using (module ReflectI; module DecideCore)
 
 module Sigma {X : Set} (_≟X_ : DecidableEquality X)
              (Mor : List X → List X → Set) where
@@ -211,7 +211,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     ; dInput; dSwapped; dInput-out; dSwapped-out; diagU-swap-soundD; domeq
     ; assocW-castW; assocW⁻-castW; liftW-castW
     ; module SortD )
-  open SortD using (leftFit?; stripPrefix; SwapRes; fire; ambiguous?; lift∷; swapTrans; depthD; normFuelWith; unwrapCast)
+  open SortD using (leftFit?; stripPrefix; SwapRes; fire; ambiguous?; lift∷; swapTrans; depthD; normFuelWith; unwrapCast; interchangeGo; stepWith)
 
   private module SCmp = SolverCompareI Symm {X} _≟X_ MorS ⟦box⟧S
 
@@ -424,11 +424,9 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
         ∘ liftW (x ∷ p) (rpad sq W)
         ∘ castW (++-assoc (x ∷ p) u sq) ∎
 
-    -- coeC / coeD (ReflectI's arbitrary-other-end coercions) are castWs.
-    coeC-as-castW : ∀ {A} {p q : List X} (e : p ≡ q) (h : HomTerm A (wires p))
-                  → coeC e h ≈Term castW e ∘ h
-    coeC-as-castW refl h = ⟺ idˡ
-
+    -- coeC-as-castW (ReflectI's arbitrary-other-end coercion as a castW) is now
+    -- the shared public lemma from ReflectI (opened above); coeD's mirror stays
+    -- local (only `rpad-rpad` uses it).
     coeD-as-castW : ∀ {B} {p q : List X} (e : p ≡ q) (h : HomTerm (wires p) B)
                   → coeD e h ≈Term h ∘ castW (sym e)
     coeD-as-castW refl h = ⟺ idʳ
@@ -906,39 +904,22 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
                               (sym (eq₁ px p₁ v s₁ b sx))
                               (eq₁ px p₁ u s₁ b sx)))
 
-      -- the interchange recogniser at the generalized inner index.
-      goSwap : ∀ {ax bx} (px sx : List X) (fx : MorS ax bx)
-               {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
-             → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
-      goSwap px sx fx ([]_ m) meq = nothing
-      goSwap {ax} {bx} px sx fx (_▸_∷_⟨_⟩ {ay} {by} py sy fy rest') meq =
-        case leftFit? px sx py sy fx fy of λ where
-          nothing    → nothing
-          (just fit) →
-            if not (ambiguous? ax by (LeftFit.mid fit)) ∨ (rankS fy <ᵇ rankS fx)
-              then just (fire fit rest' meq)
-              else nothing
-
       -- the combined per-position oracle: σσ-cancel first, then the two
-      -- naturality slides (b-image, then a-image), then interchange.
+      -- naturality slides (b-image, then a-image), then disjoint interchange
+      -- (the generic `interchangeGo` at the σ-rank, from SortD §12e).
       go : ∀ {ax bx} (px sx : List X) (fx : MorS ax bx)
            {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
          → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
       go px sx fx rest meq =
-        goσ      px sx fx rest meq <∣>
-        goSlideB px sx fx rest meq <∣>
-        goSlideA px sx fx rest meq <∣>
-        goSwap   px sx fx rest meq
+        goσ           px sx fx rest meq <∣>
+        goSlideB      px sx fx rest meq <∣>
+        goSlideA      px sx fx rest meq <∣>
+        interchangeGo rankS px sx fx rest meq
 
-    -- one cancel-or-swap at the FIRST applicable position.
+    -- one cancel-or-swap at the FIRST applicable position (the generic loop
+    -- from SortD §12e at the σ oracle).
     stepσ? : ∀ {n} (d : DiagU n) → Maybe (SwapRes d)
-    stepσ? ([]_ n) = nothing
-    stepσ? (px ▸ sx ∷ fx ⟨ rest ⟩) =
-      go px sx fx rest refl <∣>
-      Data.Maybe.map
-        (λ { (rest' , oeq , snd) →
-             px ▸ sx ∷ fx ⟨ rest' ⟩ , oeq , lift∷ px sx fx oeq snd })
-        (stepσ? rest)
+    stepσ? = stepWith go
 
     -- budget: a cancellation shrinks the diagram (so at most depth/2 of
     -- them); within a phase every move is monotone — an interchange swap
@@ -954,38 +935,11 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       where k = depthD d
 
     ------------------------------------------------------------------------
-    -- The decision entry, mirroring the front-end's `decide?W`:
-    -- reflect → normσ → ≟DiagU → chain the soundness witnesses.
+    -- The decision entry: the shared `DecideCore` assembly at `normσ`
+    -- (reflect → normσ → ≟DiagU → chain the soundness witnesses).
     ------------------------------------------------------------------------
-    decideσ? : ∀ {n m} (f g : WTerm n m) → Maybe (embed f ≈Term embed g)
-    decideσ? {n} {m} f g with normσ (reflect f) | normσ (reflect g)
-    ... | (df' , oeqf , sndf) | (dg' , oeqg , sndg) with df' ≟DiagU dg'
-    ...   | no  _  = nothing
-    ...   | yes eq = just (chain (≈NF⇒≡ eq))
-      where
-        half : ∀ (t : WTerm n m) (d' : DiagU n) (oeq : out (reflect t) ≡ out d')
-             → castW oeq ∘ ⟦ reflect t ⟧ ≈Term ⟦ d' ⟧
-             → embed t ≈Term castW (trans (sym oeq) (out-reflect t)) ∘ ⟦ d' ⟧
-        half t d' oeq snd =
-          ⟺ (reflect-sound t)
-          ○ coeC-as-castW (out-reflect t) ⟦ reflect t ⟧
-          ○ (refl⟩∘⟨ unwrapCast oeq snd)
-          ○ pullˡ (castW-∘ (sym oeq) (out-reflect t))
-
-        chain : df' ≡ dg' → embed f ≈Term embed g
-        chain deq = begin
-          embed f
-            ≈⟨ half f df' oeqf sndf ⟩
-          castW (trans (sym oeqf) (out-reflect f)) ∘ ⟦ df' ⟧
-            ≈⟨ step deq ⟩
-          castW (trans (sym oeqg) (out-reflect g)) ∘ ⟦ dg' ⟧
-            ≈⟨ half g dg' oeqg sndg ⟨
-          embed g ∎
-          where
-            step : df' ≡ dg'
-                 → castW (trans (sym oeqf) (out-reflect f)) ∘ ⟦ df' ⟧
-                   ≈Term castW (trans (sym oeqg) (out-reflect g)) ∘ ⟦ dg' ⟧
-            step refl = castW-irr _ _ ⟩∘⟨refl
+    private module DC = DecideCore Symm {X} _≟X_ MorS ⟦box⟧S
+    open DC.Decide _≟GS_ normσ public using () renaming (decideW to decideσ?)
 
     -- the computing hit-witness (normalizes to ⊤ exactly on a hit).
     IsJust : ∀ {a} {A : Set a} → Maybe A → Set

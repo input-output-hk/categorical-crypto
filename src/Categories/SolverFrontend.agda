@@ -119,7 +119,7 @@ open import Categories.SolverCompare using (module SolverCompare)
 open import Categories.SolverFrontendCore
   using (module MaybeHit; module FCore; module FBridge; module IntoCore)
 open import Categories.SolverNormalize using (module Normalize)
-open import Categories.SolverReflect using (module Reflect)
+open import Categories.SolverReflect using (module Reflect; module DecideCore)
 
 module Frontend
   {X : Set}
@@ -210,87 +210,31 @@ module Frontend
       _≟W_ : DecidableEquality SC.Gen
       _≟W_ = Core.decMorW _≟G_
 
-    open SC.Decide _≟W_ using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
-
-    -- the castW transport algebra lives in the engine (`open Untyped` above);
-    -- here we take only the DecEq-dependent `castW-irr`, the index transport,
-    -- and the SortD swap engine.
-    open Normalize Mon {X} _≟X_ MorW using
-      ( castW-irr; substDiagU; LeftFit; module SortD )
-    open SortD using (leftFit?; SwapRes; fire; ambiguous?; lift∷; depthD; normFuelWith; unwrapCast)
+    -- the SortD swap engine (the generic interchange oracle/loop now live in
+    -- §12d/§12e; only the DecEq-dependent transport stays from Normalize).
+    open Normalize Mon {X} _≟X_ MorW using ( substDiagU; module SortD )
+    open SortD using (SwapRes; interchangeGo; stepWith; depthD; normFuelWith)
 
     private
-      coeC-as-castW : ∀ {n p q} (e : p ≡ q) (h : HomTerm (wires n) (wires p))
-                    → coeC e h ≈Term castW e ∘ h
-      coeC-as-castW refl h = ⟺ idˡ
-
       -- the wire-level generator's tiebreak key.
       rankW : ∀ {a b} → MorW a b → ℕ
       rankW = Core.rankMorW rank
 
-      -- destructure the SECOND layer at a generalized (variable) index.
-      -- (The `ambiguous?` guard and `fire` come from SortD (§12d) above.)
-      go : ∀ {ax bx} (px sx : List X) (fx : MorW ax bx)
-           {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
-         → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
-      go px sx fx ([]_ m) meq = nothing
-      go {ax} {bx} px sx fx (_▸_∷_⟨_⟩ {ay} {by} py sy fy rest') meq =
-        case leftFit? px sx py sy fx fy of λ where
-          nothing    → nothing
-          (just fit) →
-            if not (ambiguous? ax by (LeftFit.mid fit)) ∨ (rankW fy <ᵇ rankW fx)
-              then just (fire fit rest' meq)
-              else nothing
-
-    -- one swap at the FIRST applicable position: try the head pair, else
-    -- recurse into the tail.
+    -- one interchange swap at the FIRST applicable position (the generic
+    -- oracle/loop from SortD, at the Mon rank).
     step? : ∀ {n} (d : DiagU n) → Maybe (SwapRes d)
-    step? ([]_ n) = nothing
-    step? (px ▸ sx ∷ fx ⟨ rest ⟩) =
-      go px sx fx rest refl <∣>
-      Data.Maybe.map
-        (λ { (rest' , oeq , snd) →
-             px ▸ sx ∷ fx ⟨ rest' ⟩ , oeq , lift∷ px sx fx oeq snd })
-        (step? rest)
+    step? = stepWith (interchangeGo rankW)
 
     -- layer count, and the worst-case bubble budget (≥ #inversions).
     norm : ∀ {n} (d : DiagU n) → SwapRes d
     norm d = normFuelWith step? (nsuc (depthD d * depthD d)) d
 
     ------------------------------------------------------------------------
-    -- The wire-level decision: reflect both sides to DiagU, normalize,
-    -- compare, chain the soundness witnesses.
+    -- The wire-level decision: the shared DecideCore assembly at `norm`.
     ------------------------------------------------------------------------
 
-    decide?W : ∀ {n m} (f g : WTerm n m) → Maybe (embed f ≈Term embed g)
-    decide?W {n} {m} f g with norm (reflect f) | norm (reflect g)
-    ... | (df' , oeqf , sndf) | (dg' , oeqg , sndg) with df' ≟DiagU dg'
-    ...   | no  _  = nothing
-    ...   | yes eq = just (chain (≈NF⇒≡ eq))
-      where
-        half : ∀ (t : WTerm n m) (d' : DiagU n) (oeq : out (reflect t) ≡ out d')
-             → castW oeq ∘ ⟦ reflect t ⟧ ≈Term ⟦ d' ⟧
-             → embed t ≈Term castW (trans (sym oeq) (out-reflect t)) ∘ ⟦ d' ⟧
-        half t d' oeq snd =
-          ⟺ (reflect-sound t)
-          ○ coeC-as-castW (out-reflect t) ⟦ reflect t ⟧
-          ○ (refl⟩∘⟨ unwrapCast oeq snd)
-          ○ pullˡ (castW-∘ (sym oeq) (out-reflect t))
-
-        chain : df' ≡ dg' → embed f ≈Term embed g
-        chain deq = begin
-          embed f
-            ≈⟨ half f df' oeqf sndf ⟩
-          castW (trans (sym oeqf) (out-reflect f)) ∘ ⟦ df' ⟧
-            ≈⟨ step deq ⟩
-          castW (trans (sym oeqg) (out-reflect g)) ∘ ⟦ dg' ⟧
-            ≈⟨ half g dg' oeqg sndg ⟨
-          embed g ∎
-          where
-            step : df' ≡ dg'
-                 → castW (trans (sym oeqf) (out-reflect f)) ∘ ⟦ df' ⟧
-                   ≈Term castW (trans (sym oeqg) (out-reflect g)) ∘ ⟦ dg' ⟧
-            step refl = castW-irr _ _ ⟩∘⟨refl
+    private module DC = DecideCore Mon {X} _≟X_ MorW ⟦box⟧
+    open DC.Decide _≟W_ norm public using () renaming (decideW to decide?W)
 
     -- front-end decision: a hit is a genuine `_≈Term_` of the free
     -- monoidal category over the ObjTerm-arity generators.

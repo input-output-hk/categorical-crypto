@@ -35,9 +35,9 @@ module Categories.SolverNormalize where
 open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (≡-dec; ++-assoc)
-open import Data.Bool using (Bool; true; false)
-open import Data.Maybe as Maybe using (Maybe; just; nothing; _>>=_)
-open import Data.Nat using (ℕ; zero; suc)
+open import Data.Bool using (Bool; true; false; not; _∨_; if_then_else_)
+open import Data.Maybe as Maybe using (Maybe; just; nothing; _>>=_; _<∣>_)
+open import Data.Nat using (ℕ; zero; suc; _<ᵇ_)
 open import Data.Product using (_,_; Σ; Σ-syntax)
 open import Function.Base using (case_of_)
 open import Relation.Binary using (DecidableEquality)
@@ -1162,6 +1162,44 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       (just (d' , oeq , snd)) →
         let (d'' , oeq' , snd') = normFuelWith step k d'
         in  d'' , trans oeq oeq' , swapTrans oeq oeq' snd snd'
+
+    --------------------------------------------------------------------------------
+    -- 12e. The GENERIC interchange oracle and the first-applicable-position loop.
+    --
+    -- `interchangeGo` is the per-position interchange recogniser shared verbatim
+    -- by both front-ends (modulo the rank function, passed as an ORDINARY
+    -- argument so it does not block reduction): it destructures the SECOND layer
+    -- at a generalized (variable) index, tries `leftFit?` on the head pair, and
+    -- fires a genuine swap when the pair is unambiguous or the rank tiebreak
+    -- demands it.  `stepWith` is the first-applicable-position loop: it tries the
+    -- supplied one-step oracle at the head, else recurses (via `lift∷`) into the
+    -- tail.
+    --------------------------------------------------------------------------------
+
+    interchangeGo : (rank : ∀ {a b} → Mor a b → ℕ)
+                  → ∀ {ax bx} (px sx : List X) (fx : Mor ax bx)
+                    {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
+                  → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
+    interchangeGo rank px sx fx ([]_ m) meq = nothing
+    interchangeGo rank {ax} {bx} px sx fx (_▸_∷_⟨_⟩ {ay} {by} py sy fy rest') meq =
+      case leftFit? px sx py sy fx fy of λ where
+        nothing    → nothing
+        (just fit) →
+          if not (ambiguous? ax by (LeftFit.mid fit)) ∨ (rank fy <ᵇ rank fx)
+            then just (fire fit rest' meq)
+            else nothing
+
+    stepWith : (oneStep : ∀ {ax bx} (px sx : List X) (fx : Mor ax bx)
+                          {m : List X} (rest : DiagU m) (meq : px ++ (bx ++ sx) ≡ m)
+                        → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩)))
+             → ∀ {n} (d : DiagU n) → Maybe (SwapRes d)
+    stepWith oneStep ([]_ n) = nothing
+    stepWith oneStep (px ▸ sx ∷ fx ⟨ rest ⟩) =
+      oneStep px sx fx rest refl <∣>
+      Maybe.map
+        (λ { (rest' , oeq , snd) →
+             px ▸ sx ∷ fx ⟨ rest' ⟩ , oeq , lift∷ px sx fx oeq snd })
+        (stepWith oneStep rest)
 
 
 --------------------------------------------------------------------------------

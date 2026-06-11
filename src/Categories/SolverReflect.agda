@@ -42,6 +42,13 @@ import Categories.Morphism.Reasoning as MR
 
 open import Categories.DiagramRewriteUntyped
 open import Categories.FreeMonoidal
+open import Categories.SolverCompare using (module SolverCompareI)
+open import Categories.SolverNormalize using (module NormalizeI)
+
+open import Data.Maybe using (Maybe; just; nothing)
+import Data.Maybe as Maybe
+open import Data.Product using (_,_; Σ; Σ-syntax)
+open import Relation.Nullary using (yes; no)
 
 module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
                 (Mor : List X → List X → Set)
@@ -1022,6 +1029,15 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
                          ≈Term merge ml' {mr'} ∘ ((coeC es ⟦ ds ⟧ ⊗₁ coeC et ⟦ dt ⟧)) ∘ split nl {nr}
           tensorBridge refl refl = ≈-Term-refl
 
+  --------------------------------------------------------------------------------
+  -- `coeC` (the arbitrary-other-end coercion) is a `castW` post-composition.
+  -- The single shared lemma behind both front-ends' `decide?W`/`decideσ?`
+  -- assembly (it used to be a private byte-identical copy in each).
+  --------------------------------------------------------------------------------
+  coeC-as-castW : ∀ {A} {p q : List X} (e : p ≡ q) (h : HomTerm A (wires p))
+                → coeC e h ≈Term castW e ∘ h
+  coeC-as-castW refl h = ⟺ idˡ
+
 --------------------------------------------------------------------------------
 -- Compatibility wrapper: `ReflectI` at the standard interpretation
 -- `Untyped.⟦box⟧` (= `var ∘ box`).  Old consumers keep working, gaining
@@ -1032,3 +1048,73 @@ module Reflect (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 
   open Untyped v {X} Mor using (⟦box⟧)
   open ReflectI v {X} _≟X_ Mor ⟦box⟧ public
+
+--------------------------------------------------------------------------------
+-- `DecideCore`: the shared wire-level DECISION ASSEMBLY.
+--
+-- Both front-ends' `decide?W`/`decideσ?` are byte-identical given a normalizer
+-- `norm : ∀ {n} → DiagU n → SwapRes n`: reflect both sides to `DiagU`,
+-- normalize each, decide normal-form equality, and chain the reflect-soundness
+-- witnesses through the bridge.  `norm` is passed as an ordinary FUNCTION
+-- argument so the per-variant oracle (interchange / σσ-cancel / slides) stays in
+-- each front-end's scope while the assembly lives here once.
+--------------------------------------------------------------------------------
+module DecideCore
+  (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
+  (Mor : List X → List X → Set)
+  (let open WireSig v {X} Mor using () renaming (wires to wires↑; mor to mor↑))
+  (let open FreeMonoidalHelper.Mor v X mor↑ using () renaming (HomTerm to HomTerm↑))
+  (⟦box⟧ : ∀ {a b} → Mor a b → HomTerm↑ (wires↑ a) (wires↑ b))
+  where
+
+  open UntypedI v {X} Mor ⟦box⟧
+  open FreeMonoidalHelper.Mor v X mor
+  open ≈R
+  open ReflectI v {X} _≟X_ Mor ⟦box⟧
+    using (WTerm; embed; reflect; out-reflect; reflect-sound; coeC-as-castW)
+  open NormalizeI v {X} _≟X_ Mor ⟦box⟧
+    using (castW-irr; module SortD)
+  open SortD using (SwapRes; unwrapCast)
+
+  private
+    open MR FreeMonoidal using (pullˡ)
+    module SCmp = SolverCompareI v {X} _≟X_ Mor ⟦box⟧
+
+  -- the caller supplies decidable equality on the Σ-packaged generators (used
+  -- only to build `_≟DiagU_`) and a normalizer.
+  module Decide
+    (_≟Mor_ : DecidableEquality SCmp.Gen)
+    (norm : ∀ {n} (d : DiagU n) → SwapRes d)
+    where
+
+    open SCmp.Decide _≟Mor_ using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
+
+    decideW : ∀ {n m} (f g : WTerm n m) → Maybe (embed f ≈Term embed g)
+    decideW {n} {m} f g with norm (reflect f) | norm (reflect g)
+    ... | (df' , oeqf , sndf) | (dg' , oeqg , sndg) with df' ≟DiagU dg'
+    ...   | no  _  = nothing
+    ...   | yes eq = just (chain (≈NF⇒≡ eq))
+      where
+        half : ∀ (t : WTerm n m) (d' : DiagU n) (oeq : out (reflect t) ≡ out d')
+             → castW oeq ∘ ⟦ reflect t ⟧ ≈Term ⟦ d' ⟧
+             → embed t ≈Term castW (trans (sym oeq) (out-reflect t)) ∘ ⟦ d' ⟧
+        half t d' oeq snd =
+          ⟺ (reflect-sound t)
+          ○ coeC-as-castW (out-reflect t) ⟦ reflect t ⟧
+          ○ (refl⟩∘⟨ unwrapCast oeq snd)
+          ○ pullˡ (castW-∘ (sym oeq) (out-reflect t))
+
+        chain : df' ≡ dg' → embed f ≈Term embed g
+        chain deq = begin
+          embed f
+            ≈⟨ half f df' oeqf sndf ⟩
+          castW (trans (sym oeqf) (out-reflect f)) ∘ ⟦ df' ⟧
+            ≈⟨ step deq ⟩
+          castW (trans (sym oeqg) (out-reflect g)) ∘ ⟦ dg' ⟧
+            ≈⟨ half g dg' oeqg sndg ⟨
+          embed g ∎
+          where
+            step : df' ≡ dg'
+                 → castW (trans (sym oeqf) (out-reflect f)) ∘ ⟦ df' ⟧
+                   ≈Term castW (trans (sym oeqg) (out-reflect g)) ∘ ⟦ dg' ⟧
+            step refl = castW-irr _ _ ⟩∘⟨refl
