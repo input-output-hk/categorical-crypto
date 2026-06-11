@@ -90,7 +90,7 @@
 
 module Categories.SolverFrontend where
 
-open import Data.Bool using (Bool; true; false; not; _∨_; if_then_else_)
+open import Data.Bool using (not; _∨_; if_then_else_)
 open import Data.Fin using (Fin; toℕ)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
 open import Data.List using (List; []; _∷_; _++_; map)
@@ -103,8 +103,8 @@ open import Function using (case_of_)
 open import Level using (Level)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂)
-open import Relation.Nullary using (Dec; yes; no)
+  using (_≡_; refl; sym; trans)
+open import Relation.Nullary using (yes; no)
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
@@ -213,12 +213,8 @@ module Frontend
     -- castW / castW-∘ / castW-sym-r now come from the `open Untyped` above
     -- (they moved into the engine).
     open Normalize Mon {X} _≟X_ MorW using
-      ( castW-irr
-      ; substDiagU; substDiagU-out; ⟦substDiagU⟧
-      ; LeftFit; leftFit
-      ; dInput; dSwapped; dInput-out; dSwapped-out; diagU-swap-soundD; domeq
-      ; module SortD )
-    open SortD using (leftFit?; SwapRes; fire; ambiguous?; lift∷; swapTrans; depthD; normFuelWith; unwrapCast)
+      ( castW-irr; substDiagU; LeftFit; module SortD )
+    open SortD using (leftFit?; SwapRes; fire; ambiguous?; lift∷; depthD; normFuelWith; unwrapCast)
 
     private
       coeC-as-castW : ∀ {n p q} (e : p ≡ q) (h : HomTerm (wires n) (wires p))
@@ -242,12 +238,6 @@ module Frontend
             if not (ambiguous? ax by (LeftFit.mid fit)) ∨ (rankW fy <ᵇ rankW fx)
               then just (fire fit rest' meq)
               else nothing
-
-    -- one bubble step on the HEAD pair, or `nothing` when it is not an
-    -- out-of-order independent pair (or fewer than two layers).
-    swap2? : ∀ {n} (d : DiagU n) → Maybe (SwapRes d)
-    swap2? ([]_ n)                = nothing
-    swap2? (px ▸ sx ∷ fx ⟨ rest ⟩) = go px sx fx rest refl
 
     -- one swap at the FIRST applicable position: try the head pair, else
     -- recurse into the tail.

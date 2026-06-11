@@ -73,7 +73,7 @@ open import Level using (Level)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂)
-open import Relation.Nullary using (Dec; yes; no)
+open import Relation.Nullary using (yes; no)
 
 open import Categories.Category using (Category; _[_,_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
@@ -209,18 +209,18 @@ module FBridge
               ⟺ to ⟺F; _○_ to infixr 3 _○F_;
               _⟩⊗⟨_ to infixr 6 _⟩⊗F⟨_; split₁ˡ to split₁ˡF)
 
-  -- readability aliases (function aliases of the F constructors).
-  private
-    infixr 9 _∘F_
-    infixr 10 _⊗F_
-    _∘F_ : ∀ {A B C} → F.HomTerm B C → F.HomTerm A B → F.HomTerm A C
-    _∘F_ = F._∘_
-    _⊗F_ : ∀ {A B C D} → F.HomTerm A B → F.HomTerm C D → F.HomTerm (A ⊗₀ C) (B ⊗₀ D)
-    _⊗F_ = F._⊗₁_
-    idF : ∀ {A} → F.HomTerm A A
-    idF = F.id
-    reflF : ∀ {A B} {f : F.HomTerm A B} → f F.≈Term f
-    reflF = F.≈-Term-refl
+  -- readability aliases (function aliases of the F constructors).  Public:
+  -- the front-ends pick them up from here instead of redefining them.
+  infixr 9 _∘F_
+  infixr 10 _⊗F_
+  _∘F_ : ∀ {A B C} → F.HomTerm B C → F.HomTerm A B → F.HomTerm A C
+  _∘F_ = F._∘_
+  _⊗F_ : ∀ {A B C D} → F.HomTerm A B → F.HomTerm C D → F.HomTerm (A ⊗₀ C) (B ⊗₀ D)
+  _⊗F_ = F._⊗₁_
+  idF : ∀ {A} → F.HomTerm A A
+  idF = F.id
+  reflF : ∀ {A B} {f : F.HomTerm A B} → f F.≈Term f
+  reflF = F.≈-Term-refl
 
   ------------------------------------------------------------------------
   -- F-side structural merge/split (same recursion as the wire-level ones).

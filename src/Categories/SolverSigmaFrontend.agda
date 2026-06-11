@@ -60,8 +60,8 @@ module Categories.SolverSigmaFrontend where
 
 open import Data.Fin using (Fin; toℕ)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
-open import Data.List using (List; []; _∷_; _++_)
-open import Data.Maybe using (Maybe; just; nothing)
+open import Data.List using (List; _++_)
+open import Data.Maybe using (Maybe)
 open import Data.Nat using (ℕ)
 open import Data.Product using (Σ; _,_; _×_; Σ-syntax; proj₁; proj₂)
 open import Data.Vec using (Vec; lookup)
@@ -69,8 +69,8 @@ open import Function using (case_of_)
 open import Level using (Level)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂)
-open import Relation.Nullary using (Dec; yes; no)
+  using (_≡_; refl; cong₂)
+open import Relation.Nullary using (yes; no)
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
@@ -128,16 +128,9 @@ module FrontendS
            coeCF; coeCF-∘ˡ; coeCF-resp; coe-coe;
            castʷ; embed-castʷ; fwd-λ; flipF)
 
-  -- readability aliases (function aliases of the F constructors)
-  private
-    infixr 9 _∘F_
-    infixr 10 _⊗F_
-    _∘F_ : ∀ {A B C} → F.HomTerm B C → F.HomTerm A B → F.HomTerm A C
-    _∘F_ = F._∘_
-    _⊗F_ : ∀ {A B C D} → F.HomTerm A B → F.HomTerm C D → F.HomTerm (A ⊗₀ C) (B ⊗₀ D)
-    _⊗F_ = F._⊗₁_
-    reflF : ∀ {A B} {f : F.HomTerm A B} → f F.≈Term f
-    reflF = F.≈-Term-refl
+  -- readability aliases (function aliases of the F constructors), shared
+  -- from the core (proofs-only, not re-exported).
+  open FB using (_∘F_; _⊗F_)
 
   ------------------------------------------------------------------------
   -- The σ-specific clauses: a box generator is conjugated by the canonical
@@ -231,10 +224,10 @@ module FrontendS
     decide?F : ∀ {Y Z} (l r : F.HomTerm Y Z) → Maybe (l F.≈Term r)
     decide?F l r = Data.Maybe.map solveF (DW.decideσ? (reflectF l) (reflectF r))
 
-    -- the computing hit-witness: normalizes to ⊤ exactly on a solver hit, so
-    -- the implicit is auto-discharged at concrete test sites.
-    open MaybeHit public using (IsJust)
-    open MaybeHit using (fromHit)
+    -- the computing hit-witness (`IsJust` normalizes to ⊤ exactly on a
+    -- solver hit, so the implicit is auto-discharged at concrete test
+    -- sites) and the hit extractor, as in the Mon front-end.
+    open MaybeHit public using (IsJust; fromHit)
 
     -- reference-style entry point at the free level.
     solveTerm! : ∀ {Y Z} (l r : F.HomTerm Y Z)

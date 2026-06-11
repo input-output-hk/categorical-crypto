@@ -62,12 +62,10 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- stock associativity/cancellation combinators (same idiom as
   -- DiagramRewriteUntyped): plain non-public opens, proofs-only.
   open MR FreeMonoidal
-    using (pullˡ; pullʳ; pushˡ; pushʳ; center; center⁻¹;
-           cancelˡ; cancelʳ; cancelInner; insertInner; elimˡ; elimʳ; introˡ; introʳ;
-           assoc²δα; assoc²βε; assoc²εβ)
+    using (pullˡ; pullʳ; center; center⁻¹;
+           cancelˡ; cancelʳ; cancelInner; introʳ)
   open MonR Monoidal-FreeMonoidal
-    using (refl⟩⊗⟨_; _⟩⊗⟨refl; _⟩⊗⟨_; ⊗-distrib-over-∘;
-           serialize₁₂; serialize₂₁; split₁ʳ)
+    using (refl⟩⊗⟨_; _⟩⊗⟨refl; _⟩⊗⟨_; serialize₁₂; serialize₂₁; split₁ʳ)
 
   -- Mac Lane / Kelly unit coherence laws, instantiated at the *free* monoidal
   -- category over `mor`.  Its `_≈_`/`α⇒`/`ρ⇒`/`_⊗₁_` coincide definitionally
