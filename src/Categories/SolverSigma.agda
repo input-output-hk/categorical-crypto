@@ -300,8 +300,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   -- relation `Sand eC eD Y Z` (= Y ≈ castW eC ∘ Z ∘ castW eD), with the
   -- J-style combinators below; the two genuinely new coherence lemmas are
   -- `rpad-liftW` (suffix-pad past a prefix-lift, by induction on the
-  -- prefix + α-naturality) and `rpad-rpad` (suffix-pad fusion, via
-  -- `merge-assoc` and inverse algebra).
+  -- prefix + α-naturality) and `rpad-rpad` (suffix-pad fusion, ReflectI's
+  -- `rpad-fuse` recast from coeC/coeD into the castW sandwich).
   ------------------------------------------------------------------------
 
   -- the conjugation-by-index-casts relation.
@@ -425,97 +425,30 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
         ∘ liftW (x ∷ p) (rpad sq W)
         ∘ castW (++-assoc (x ∷ p) u sq) ∎
 
-    -- coeC (ReflectI's arbitrary-domain codomain coercion) is a castW.
+    -- coeC / coeD (ReflectI's arbitrary-other-end coercions) are castWs.
     coeC-as-castW : ∀ {A} {p q : List X} (e : p ≡ q) (h : HomTerm A (wires p))
                   → coeC e h ≈Term castW e ∘ h
     coeC-as-castW refl h = ⟺ idˡ
 
-    -- merge-assoc, rearranged:  castW e ∘ A ≈ B  (grouped ↦ nested form).
-    mmB : ∀ (w s sq : List X)
-        → castW (++-assoc w s sq) ∘ (merge (w ++ s) {sq} ∘ (merge w {s} ⊗₁ id {wires sq}))
-          ≈Term merge w {s ++ sq} ∘ (id ⊗₁ merge s {sq}) ∘ α⇒
-    mmB w s sq =
-      ⟺ (coeC-as-castW (++-assoc w s sq) _) ○ ⟺ (merge-assoc w s sq)
+    coeD-as-castW : ∀ {B} {p q : List X} (e : p ≡ q) (h : HomTerm (wires p) B)
+                  → coeD e h ≈Term h ∘ castW (sym e)
+    coeD-as-castW refl h = ⟺ idʳ
 
-    -- the merge-merge fusion:  A ≈ castW (sym e) ∘ B.
-    mm : ∀ (w s sq : List X)
-       → merge (w ++ s) {sq} ∘ (merge w {s} ⊗₁ id {wires sq})
-         ≈Term castW (sym (++-assoc w s sq))
-             ∘ (merge w {s ++ sq} ∘ (id ⊗₁ merge s {sq}) ∘ α⇒)
-    mm w s sq = introˡ (castW-sym-r (++-assoc w s sq)) ○ pullʳ (mmB w s sq)
-
-    -- the grouped merge pair is split-inverse...
-    ms-iso : ∀ (w s sq : List X)
-           → (merge (w ++ s) {sq} ∘ (merge w {s} ⊗₁ id {wires sq}))
-             ∘ ((split w {s} ⊗₁ id {wires sq}) ∘ split (w ++ s) {sq}) ≈Term id
-    ms-iso w s sq =
-      cancelInner (⟺ ⊗-∘-dist ○ (merge∘split w ⟩⊗⟨ idˡ) ○ id⊗id≈id)
-      ○ merge∘split (w ++ s)
-
-    -- ...and so is the nested pair (the other inverse order).
-    gb-iso : ∀ (w s sq : List X)
-           → (α⇐ ∘ (id {wires w} ⊗₁ split s {sq}) ∘ split w {s ++ sq})
-             ∘ (merge w {s ++ sq} ∘ (id ⊗₁ merge s {sq}) ∘ α⇒) ≈Term id
-    gb-iso w s sq =
-      pullʳ (cancelInner (split∘merge w))
-      ○ (refl⟩∘⟨ cancelˡ (id⊗-cancel (split∘merge s)))
-      ○ α⇐∘α⇒≈id
-
-    -- the split-split fusion (derived from `mm` by inverse algebra).
-    ss : ∀ (w s sq : List X)
-       → (split w {s} ⊗₁ id {wires sq}) ∘ split (w ++ s) {sq}
-         ≈Term (α⇐ ∘ (id ⊗₁ split s {sq}) ∘ split w {s ++ sq})
-             ∘ castW (++-assoc w s sq)
-    ss w s sq =
-      introˡ (gb-iso w s sq)
-      ○ pullʳ ((⟺ (mmB w s sq) ⟩∘⟨refl) ○ cancelʳ (ms-iso w s sq))
-
-    -- the nested middle collapses to the fused suffix-pad.
-    midColl : ∀ (s sq : List X) {u v} (W : HomTerm (wires u) (wires v))
-            → (merge v {s ++ sq} ∘ (id ⊗₁ merge s {sq}) ∘ α⇒)
-              ∘ (((W ⊗₁ id {wires s}) ⊗₁ id {wires sq})
-                 ∘ (α⇐ ∘ (id ⊗₁ split s {sq}) ∘ split u {s ++ sq}))
-              ≈Term rpad (s ++ sq) W
-    midColl s sq {u} {v} W = begin
-      (merge v ∘ (id ⊗₁ merge s) ∘ α⇒)
-        ∘ (((W ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ (id ⊗₁ split s) ∘ split u))
-        ≈⟨ assoc ○ (refl⟩∘⟨ assoc) ⟩
-      merge v ∘ ((id ⊗₁ merge s)
-        ∘ (α⇒ ∘ (((W ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ (id ⊗₁ split s) ∘ split u))))
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (pullˡ α-comm ○ cancelInner α⇒∘α⇐≈id) ⟩
-      merge v ∘ ((id ⊗₁ merge s) ∘ ((W ⊗₁ id ⊗₁ id) ∘ ((id ⊗₁ split s) ∘ split u)))
-        ≈⟨ refl⟩∘⟨ pullˡ (⟺ ⊗-∘-dist ○ (idˡ ⟩⊗⟨ elimʳ id⊗id≈id)) ⟩
-      merge v ∘ ((W ⊗₁ merge s) ∘ ((id ⊗₁ split s) ∘ split u))
-        ≈⟨ refl⟩∘⟨ pullˡ (⟺ ⊗-∘-dist ○ (idʳ ⟩⊗⟨ merge∘split s)) ⟩
-      merge v ∘ ((W ⊗₁ id) ∘ split u) ∎
-
-    -- NEW COHERENCE 2: suffix-pad fusion.
+    -- NEW COHERENCE 2: suffix-pad fusion — ReflectI's `rpad-fuse`, recast
+    -- from coeC/coeD form into the castW sandwich.
     rpad-rpad : ∀ (s sq : List X) {u v} (W : HomTerm (wires u) (wires v))
               → Sand (sym (++-assoc v s sq)) (++-assoc u s sq)
                      (rpad sq (rpad s W)) (rpad (s ++ sq) W)
     rpad-rpad s sq {u} {v} W = begin
-      merge (v ++ s) ∘ (rpad s W ⊗₁ id) ∘ split (u ++ s)
-        ≈⟨ refl⟩∘⟨ (expand ⟩∘⟨refl) ⟩
-      merge (v ++ s)
-        ∘ (((merge v ⊗₁ id) ∘ ((W ⊗₁ id) ⊗₁ id) ∘ (split u ⊗₁ id)) ∘ split (u ++ s))
-        ≈⟨ (refl⟩∘⟨ assoc) ○ ⟺ assoc ○ (refl⟩∘⟨ assoc) ⟩
-      (merge (v ++ s) ∘ (merge v ⊗₁ id))
-        ∘ (((W ⊗₁ id) ⊗₁ id) ∘ ((split u ⊗₁ id) ∘ split (u ++ s)))
-        ≈⟨ mm v s sq ⟩∘⟨ (refl⟩∘⟨ ss u s sq) ⟩
-      (castW (sym (++-assoc v s sq)) ∘ (merge v ∘ (id ⊗₁ merge s) ∘ α⇒))
-        ∘ (((W ⊗₁ id) ⊗₁ id)
-           ∘ ((α⇐ ∘ (id ⊗₁ split s) ∘ split u) ∘ castW (++-assoc u s sq)))
-        ≈⟨ assoc ○ (refl⟩∘⟨ refl⟩∘⟨ ⟺ assoc) ⟩
-      castW (sym (++-assoc v s sq))
-        ∘ ((merge v ∘ (id ⊗₁ merge s) ∘ α⇒)
-           ∘ ((((W ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ (id ⊗₁ split s) ∘ split u))
-              ∘ castW (++-assoc u s sq)))
-        ≈⟨ refl⟩∘⟨ pullˡ (midColl s sq W) ⟩
-      castW (sym (++-assoc v s sq)) ∘ (rpad (s ++ sq) W ∘ castW (++-assoc u s sq)) ∎
-      where
-        expand : rpad s W ⊗₁ id {wires sq}
-               ≈Term (merge v ⊗₁ id) ∘ ((W ⊗₁ id) ⊗₁ id) ∘ (split u ⊗₁ id)
-        expand = split₁ʳ ○ (refl⟩∘⟨ split₁ʳ)
+      rpad sq (rpad s W)
+        ≈⟨ rpad-fuse s sq W ⟩
+      coeD (sym (++-assoc u s sq)) (coeC (sym (++-assoc v s sq)) (rpad (s ++ sq) W))
+        ≈⟨ coeD-as-castW (sym (++-assoc u s sq)) _ ⟩
+      coeC (sym (++-assoc v s sq)) (rpad (s ++ sq) W) ∘ castW (sym (sym (++-assoc u s sq)))
+        ≈⟨ coeC-as-castW (sym (++-assoc v s sq)) _ ⟩∘⟨ castW-irr _ (++-assoc u s sq) ⟩
+      (castW (sym (++-assoc v s sq)) ∘ rpad (s ++ sq) W) ∘ castW (++-assoc u s sq)
+        ≈⟨ assoc ⟩
+      castW (sym (++-assoc v s sq)) ∘ rpad (s ++ sq) W ∘ castW (++-assoc u s sq) ∎
 
   ------------------------------------------------------------------------
   -- THE TWO RE-CLEANINGS.  With the concrete block update `h = pad p₁ s₁
