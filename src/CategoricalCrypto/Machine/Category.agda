@@ -1333,19 +1333,10 @@ functor-∘ g f = cong₂ (λ x y → Machine→Hom (x MC.∘ y))
 --
 -- These are honest bisimulation statements on the relational trace
 -- semantics (the composite differs from its reassociation only in
--- state representation and deterministic relay hops). The constructive
--- half of `∘-identityˡ-≅ᴹ` — every m-step embeds as a composite trace
--- chain — is proven in `Machine.Iso` (the `idˡ-embed-*` lemmas); the
--- inverse halves and the remaining two laws are future work, blocked
--- only on proof engineering (the case-split unifier does not see
--- through `opaque unfolding`, so the inversions must be done with
--- explicit views), not on any axiom.
-
-postulate
-  ∘-identityˡ-≅ᴹ : ∀ {A B} {f : Machine A B} → (MC.id MC.∘ f) ≅ᴹ f
-  ∘-identityʳ-≅ᴹ : ∀ {A B} {f : Machine A B} → (f MC.∘ MC.id) ≅ᴹ f
-  ∘-assoc-≅ᴹ : ∀ {A B C D} {f : Machine A B} {g : Machine B C} {h : Machine C D}
-             → ((h MC.∘ g) MC.∘ f) ≅ᴹ (h MC.∘ (g MC.∘ f))
+-- state representation and deterministic relay hops). All three —
+-- `∘-identityˡ-≅ᴹ`, `∘-identityʳ-≅ᴹ`, and `∘-assoc-≅ᴹ` — are proven
+-- in `Machine.Iso` (associativity via the flattened three-machine
+-- TriTrace normal form).
 
 -- Composition is a congruence for `_≅ℰ_` as well; unlike the `_≅ᴹ_`
 -- case this genuinely needs associativity, to re-bracket the
