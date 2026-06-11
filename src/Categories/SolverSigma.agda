@@ -85,7 +85,7 @@ open import Function using (case_of_)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong)
-open import Relation.Nullary using (Dec; yes; no; ¬_)
+open import Relation.Nullary using (yes; no)
 
 import Categories.Category.Monoidal.Reasoning as MonR
 import Categories.Morphism.Reasoning as MR
@@ -141,10 +141,9 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   -- DiagramRewriteUntyped/SolverReflect): plain non-public opens,
   -- proofs-only.
   open MR FreeMonoidal
-    using (pullˡ; pullʳ; pushˡ; cancelˡ; cancelʳ; cancelInner; insertInner;
-           elimʳ; introˡ; assoc²βε)
+    using (pullˡ; pullʳ; cancelˡ; cancelInner; insertInner; elimʳ; assoc²βε)
   open MonR Monoidal-FreeMonoidal
-    using (refl⟩⊗⟨_; _⟩⊗⟨refl; _⟩⊗⟨_; split₁ʳ)
+    using (refl⟩⊗⟨_; _⟩⊗⟨_)
 
   -- the reflection stack (and its rpad/coercion lemma families), re-exported.
   open ReflectI Symm {X} _≟X_ MorS ⟦box⟧S public
@@ -1003,10 +1002,11 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     solveσ! f g {hit} = extract (decideσ? f g) hit
 
 --------------------------------------------------------------------------------
--- TESTS: a concrete signature over ℕ-labelled wires.  Five generators:
--- three 1-wire boxes (kbox/k2box on wire colour 0 — distinguishable only by
--- `_≟G2_`/rank — and mbox on colour 2) and two 2-wire boxes (wbox/w2box,
--- for the straddle negative).  Machine-checked:
+-- TESTS: a concrete signature over ℕ-labelled wires, given as a Fin-5 arity
+-- table (so DecEq and rank come from `Fin`).  Five generators: three 1-wire
+-- boxes (kbox/k2box on wire colour 0 — distinguishable only by the rank
+-- tiebreak — and mbox on colour 2) and two 2-wire boxes (wbox/w2box, for the
+-- straddle negative).  Machine-checked:
 --   (i)   a σσ-cancellation hit (adjacent inverse cross-pair deletes), both
 --         at the head and below a box layer;
 --   (ii)  disjoint cross-box interchange (the crossing participates in the
@@ -1021,50 +1021,43 @@ module SigmaTests where
 
   open import Data.Nat using (ℕ)
   open import Data.Nat.Properties using () renaming (_≟_ to _≟ℕ_)
+  open import Data.Fin using (Fin; zero; suc; toℕ)
+  open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
+  open import Data.Product using (_×_; proj₁; proj₂)
+
+  -- Fin-indexed signature (cf. SolverTests): decidable equality and the rank
+  -- tiebreak come for free from `Fin`'s `_≟_`/`toℕ`, instead of a quadratic
+  -- hand-rolled table.  Five 1-/2-wire endo-boxes:
+  --   0 kbox, 1 k2box  — distinct scalars on colour 0 (need the rank tiebreak)
+  --   2 mbox           — endo on colour 2
+  --   3 wbox, 4 w2box  — 2-wire boxes, for the straddle negative
+  arity2 : Fin 5 → List ℕ × List ℕ
+  arity2 zero                         = (0 ∷ []) , (0 ∷ [])
+  arity2 (suc zero)                   = (0 ∷ []) , (0 ∷ [])
+  arity2 (suc (suc zero))             = (2 ∷ []) , (2 ∷ [])
+  arity2 (suc (suc (suc zero)))       = (1 ∷ 0 ∷ []) , (1 ∷ 0 ∷ [])
+  arity2 (suc (suc (suc (suc _))))    = (0 ∷ 1 ∷ []) , (0 ∷ 1 ∷ [])
 
   data Gen2 : List ℕ → List ℕ → Set where
-    kbox  : Gen2 (0 ∷ []) (0 ∷ [])
-    k2box : Gen2 (0 ∷ []) (0 ∷ [])
-    mbox  : Gen2 (2 ∷ []) (2 ∷ [])
-    wbox  : Gen2 (1 ∷ 0 ∷ []) (1 ∷ 0 ∷ [])   -- 2-wire boxes, for the
-    w2box : Gen2 (0 ∷ 1 ∷ []) (0 ∷ 1 ∷ [])   -- straddle negative
+    gen2 : (i : Fin 5) → Gen2 (proj₁ (arity2 i)) (proj₂ (arity2 i))
+
+  -- readable aliases matching the test bodies.
+  kbox  = gen2 zero
+  k2box = gen2 (suc zero)
+  mbox  = gen2 (suc (suc zero))
+  wbox  = gen2 (suc (suc (suc zero)))
+  w2box = gen2 (suc (suc (suc (suc zero))))
 
   open Sigma _≟ℕ_ Gen2
 
   private
     _≟G2_ : DecidableEquality GenM
-    (_ , _ , kbox)  ≟G2 (_ , _ , kbox)  = yes refl
-    (_ , _ , kbox)  ≟G2 (_ , _ , k2box) = no λ ()
-    (_ , _ , kbox)  ≟G2 (_ , _ , mbox)  = no λ ()
-    (_ , _ , kbox)  ≟G2 (_ , _ , wbox)  = no λ ()
-    (_ , _ , kbox)  ≟G2 (_ , _ , w2box) = no λ ()
-    (_ , _ , k2box) ≟G2 (_ , _ , kbox)  = no λ ()
-    (_ , _ , k2box) ≟G2 (_ , _ , k2box) = yes refl
-    (_ , _ , k2box) ≟G2 (_ , _ , mbox)  = no λ ()
-    (_ , _ , k2box) ≟G2 (_ , _ , wbox)  = no λ ()
-    (_ , _ , k2box) ≟G2 (_ , _ , w2box) = no λ ()
-    (_ , _ , mbox)  ≟G2 (_ , _ , kbox)  = no λ ()
-    (_ , _ , mbox)  ≟G2 (_ , _ , k2box) = no λ ()
-    (_ , _ , mbox)  ≟G2 (_ , _ , mbox)  = yes refl
-    (_ , _ , mbox)  ≟G2 (_ , _ , wbox)  = no λ ()
-    (_ , _ , mbox)  ≟G2 (_ , _ , w2box) = no λ ()
-    (_ , _ , wbox)  ≟G2 (_ , _ , kbox)  = no λ ()
-    (_ , _ , wbox)  ≟G2 (_ , _ , k2box) = no λ ()
-    (_ , _ , wbox)  ≟G2 (_ , _ , mbox)  = no λ ()
-    (_ , _ , wbox)  ≟G2 (_ , _ , wbox)  = yes refl
-    (_ , _ , wbox)  ≟G2 (_ , _ , w2box) = no λ ()
-    (_ , _ , w2box) ≟G2 (_ , _ , kbox)  = no λ ()
-    (_ , _ , w2box) ≟G2 (_ , _ , k2box) = no λ ()
-    (_ , _ , w2box) ≟G2 (_ , _ , mbox)  = no λ ()
-    (_ , _ , w2box) ≟G2 (_ , _ , wbox)  = no λ ()
-    (_ , _ , w2box) ≟G2 (_ , _ , w2box) = yes refl
+    (_ , _ , gen2 i) ≟G2 (_ , _ , gen2 j) with i ≟Fin j
+    ... | yes refl = yes refl
+    ... | no ¬p    = no λ where refl → ¬p refl
 
     rank2 : GenM → ℕ
-    rank2 (_ , _ , kbox)  = 0
-    rank2 (_ , _ , k2box) = 1
-    rank2 (_ , _ , mbox)  = 2
-    rank2 (_ , _ , wbox)  = 3
-    rank2 (_ , _ , w2box) = 4
+    rank2 (_ , _ , gen2 i) = toℕ i
 
   open Decide _≟G2_ rank2
 
