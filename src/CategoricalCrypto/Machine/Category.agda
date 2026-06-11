@@ -27,6 +27,7 @@ open import Class.Monad.Iterative
 open import Class.Monad.OfRel
 
 open import Categories.Category using (Category)
+open import Data.List.Properties using (map-cong)
 open import Relation.Binary using (IsEquivalence)
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 open import Categories.Category.Instance.One using (One)
@@ -121,10 +122,10 @@ SFunᵉ-GConstruction =
 -- morphism `A ⇒ T₀ ⋆ B` in G(SFunᵉ) unfolds to
 -- `SFunᵉ(A⁺ ⊎ B⁻, A⁻ ⊎ (B⁺ ⊎ ⊤))`, which under the canonical iso
 -- `Maybe X ≅ X ⊎ ⊤` is the `MaybeHom` hom-set shape. `return` and `ext`
--- are concrete (Tier 1); the five triple laws involving `ext` (and
--- `sub-commute`) are postulated for now — discharging them is
--- substantial setoid-level work (Tier 2/3) — while the three `sub`-only
--- laws are proven directly.
+-- are concrete, and all eight triple laws are proven — the three
+-- `sub`-only ones from `SFunᵉ-GConstruction`'s identity laws, the five
+-- `ext` ones at the trace-evaluation level (see the infrastructure
+-- preceding the triple).
 --
 -- We grade by the terminal monoidal category `One` — i.e. the unit
 -- monoid — so all subsumption maps `sub` are identities.
@@ -174,88 +175,797 @@ MaybeT-ext f = record
       (s , inj₂ b)        → SFunᵉ.fun f (s , inj₂ b)
   }
 
+------------------------------------------------------------------------
+-- Infrastructure for discharging the graded-Kleisli `ext` laws.
+--
+-- All five laws are `≈ᵉ`-equations between trace composites. The key
+-- observations:
+--
+--   • `GC-C.∘ F G` unfolds *definitionally* to
+--     `tr (gc-α ∘ᵉ ((F ⊗ᵉ G) ∘ᵉ gc-γ))` where `gc-α`/`gc-γ` (spelled
+--     out below) are the G-construction's coherence reshapes, and
+--     `GC-C.id` unfolds to `σᵉ`.
+--   • Those reshapes — and `MaybeT-return` — are *pure* (stateless,
+--     effect-free); `IsPure` characterizes such morphisms pointwise,
+--     so a G-composition's trace loop steps through exactly one
+--     effectful call per bounce (`gc-body-fun₁/₂`).
+--   • `trace-cong`/`trace-sim` lift pointwise `fun`-equality (resp. a
+--     state-projection simulation) to `≈ᵉ`.
+--   • `ext-factor` factors `eval (MaybeT-ext f)` through `eval f`,
+--     giving the congruence law from observational equality alone.
+
+private
+  -- The coherence reshapes of `GConstruction`'s composition, spelled
+  -- out as SFunᵉ composites (definitionally equal to the originals).
+  gc-γ : ∀ {A⁺ C⁻ B⁻ B⁺ : Type}
+       → SFunᵉ ((A⁺ ⊎ C⁻) ⊎ (B⁻ ⊎ B⁺)) ((B⁺ ⊎ C⁻) ⊎ (A⁺ ⊎ B⁻))
+  gc-γ = α⇒ᵉ ∘ᵉ ((σᵉ ⊗ᵉ idᵉ) ∘ᵉ (α⇐ᵉ ∘ᵉ ((idᵉ ⊗ᵉ (σᵉ ⊗ᵉ idᵉ)) ∘ᵉ ((idᵉ ⊗ᵉ α⇐ᵉ) ∘ᵉ (α⇒ᵉ ∘ᵉ (idᵉ ⊗ᵉ σᵉ))))))
+
+  gc-α : ∀ {B⁻ C⁺ A⁻ B⁺ : Type}
+       → SFunᵉ ((B⁻ ⊎ C⁺) ⊎ (A⁻ ⊎ B⁺)) ((A⁻ ⊎ C⁺) ⊎ (B⁻ ⊎ B⁺))
+  gc-α = α⇒ᵉ ∘ᵉ ((σᵉ ⊗ᵉ idᵉ) ∘ᵉ (α⇐ᵉ ∘ᵉ ((idᵉ ⊗ᵉ (σᵉ ⊗ᵉ idᵉ)) ∘ᵉ ((idᵉ ⊗ᵉ α⇐ᵉ) ∘ᵉ α⇒ᵉ))))
+
+  gc-∘-≡ : ∀ {A B C : GC-C.Obj} (F : B GC-C.⇒ C) (G : A GC-C.⇒ B)
+         → (F GC-C.∘ G) ≡ tr (gc-α ∘ᵉ ((F ⊗ᵉ G) ∘ᵉ gc-γ))
+  gc-∘-≡ F G = refl
+
+  gc-id-≡ : ∀ {A : GC-C.Obj} → GC-C.id {A} ≡ σᵉ
+  gc-id-≡ = refl
+
+  -- ────────────────────────────────────────────────────────────────
+  -- Pure (stateless, effect-free) morphisms, pointwise.
+  IsPure : {A B : Type} → (A → B) → SFunᵉ A B → Type
+  IsPure g F = ∀ s x → SFunᵉ.fun F (s , x) ≡ return (s , g x)
+
+  ⊎map : {A B C D : Type} → (A → B) → (C → D) → A ⊎ C → B ⊎ D
+  ⊎map p q (inj₁ a) = inj₁ (p a)
+  ⊎map p q (inj₂ c) = inj₂ (q c)
+
+  pure-prsh : {A B : Type} (g : A → B) → IsPure g (pure-reshape g)
+  pure-prsh g s x = refl
+
+  pure-idᵉ : {A : Type} → IsPure {A} id idᵉ
+  pure-idᵉ s x = refl
+
+  pure-∘ᵉ : {A B C : Type} {q : A → B} {p : B → C}
+            {Q : SFunᵉ A B} {P : SFunᵉ B C}
+          → IsPure p P → IsPure q Q → IsPure (p ∘ q) (P ∘ᵉ Q)
+  pure-∘ᵉ {q = q} {p} {Q} {P} pP pQ (sP , sQ) x = begin
+    (SFunᵉ.fun Q (sQ , x) >>= λ (sQ' , b) →
+      SFunᵉ.fun P (sP , b) >>= λ (sP' , c) → return ((sP' , sQ') , c))
+      ≡⟨ pQ sQ x ⟩>>=⟨refl ⟩
+    (return (sQ , q x) >>= λ (sQ' , b) →
+      SFunᵉ.fun P (sP , b) >>= λ (sP' , c) → return ((sP' , sQ') , c))
+      ≡⟨ >>=-identityˡ ⟩
+    (SFunᵉ.fun P (sP , q x) >>= λ (sP' , c) → return ((sP' , sQ) , c))
+      ≡⟨ pP sP (q x) ⟩>>=⟨refl ⟩
+    (return (sP , p (q x)) >>= λ (sP' , c) → return ((sP' , sQ) , c))
+      ≡⟨ >>=-identityˡ ⟩
+    return ((sP , sQ) , p (q x)) ∎
+    where open ≡-Reasoning
+
+  pure-⊗ᵉ : {A B C D : Type} {p : A → B} {q : C → D}
+            {P : SFunᵉ A B} {Q : SFunᵉ C D}
+          → IsPure p P → IsPure q Q → IsPure (⊎map p q) (P ⊗ᵉ Q)
+  pure-⊗ᵉ {p = p} {q} {P} {Q} pP pQ (sP , sQ) (inj₁ a) = begin
+    (SFunᵉ.fun P (sP , a) >>= λ (sP' , b) → return ((sP' , sQ) , inj₁ b))
+      ≡⟨ pP sP a ⟩>>=⟨refl ⟩
+    (return (sP , p a) >>= λ (sP' , b) → return ((sP' , sQ) , inj₁ b))
+      ≡⟨ >>=-identityˡ ⟩
+    return ((sP , sQ) , inj₁ (p a)) ∎
+    where open ≡-Reasoning
+  pure-⊗ᵉ {p = p} {q} {P} {Q} pP pQ (sP , sQ) (inj₂ c) = begin
+    (SFunᵉ.fun Q (sQ , c) >>= λ (sQ' , d) → return ((sP , sQ') , inj₂ d))
+      ≡⟨ pQ sQ c ⟩>>=⟨refl ⟩
+    (return (sQ , q c) >>= λ (sQ' , d) → return ((sP , sQ') , inj₂ d))
+      ≡⟨ >>=-identityˡ ⟩
+    return ((sP , sQ) , inj₂ (q c)) ∎
+    where open ≡-Reasoning
+
+  pure-≗ : {A B : Type} {p q : A → B} {F : SFunᵉ A B}
+         → IsPure p F → p ≗ q → IsPure q F
+  pure-≗ pF eq s x = trans (pF s x) (cong (λ y → return (s , y)) (eq x))
+
+  -- The value-level routing of `gc-α`/`gc-γ`: loop channels (B⁻/B⁺)
+  -- bounce, exit channels (A⁻/C⁺) leave; externals (A⁺/C⁻) dispatch
+  -- to the components.
+  gc-α-fn : {B⁻ C⁺ A⁻ B⁺ : Type}
+          → (B⁻ ⊎ C⁺) ⊎ (A⁻ ⊎ B⁺) → (A⁻ ⊎ C⁺) ⊎ (B⁻ ⊎ B⁺)
+  gc-α-fn (inj₁ (inj₁ b⁻)) = inj₂ (inj₁ b⁻)
+  gc-α-fn (inj₁ (inj₂ c⁺)) = inj₁ (inj₂ c⁺)
+  gc-α-fn (inj₂ (inj₁ a⁻)) = inj₁ (inj₁ a⁻)
+  gc-α-fn (inj₂ (inj₂ b⁺)) = inj₂ (inj₂ b⁺)
+
+  gc-γ-fn : {A⁺ C⁻ B⁻ B⁺ : Type}
+          → (A⁺ ⊎ C⁻) ⊎ (B⁻ ⊎ B⁺) → (B⁺ ⊎ C⁻) ⊎ (A⁺ ⊎ B⁻)
+  gc-γ-fn (inj₁ (inj₁ a⁺)) = inj₂ (inj₁ a⁺)
+  gc-γ-fn (inj₁ (inj₂ c⁻)) = inj₁ (inj₂ c⁻)
+  gc-γ-fn (inj₂ (inj₁ b⁻)) = inj₂ (inj₂ b⁻)
+  gc-γ-fn (inj₂ (inj₂ b⁺)) = inj₁ (inj₁ b⁺)
+
+  gc-α-pure : ∀ {B⁻ C⁺ A⁻ B⁺ : Type} → IsPure (gc-α-fn {B⁻} {C⁺} {A⁻} {B⁺}) gc-α
+  gc-α-pure =
+    pure-≗ (pure-∘ᵉ (pure-prsh α-fn)
+             (pure-∘ᵉ (pure-⊗ᵉ (pure-prsh σ-fn) pure-idᵉ)
+               (pure-∘ᵉ (pure-prsh α-fn-inv)
+                 (pure-∘ᵉ (pure-⊗ᵉ pure-idᵉ (pure-⊗ᵉ (pure-prsh σ-fn) pure-idᵉ))
+                   (pure-∘ᵉ (pure-⊗ᵉ pure-idᵉ (pure-prsh α-fn-inv))
+                     (pure-prsh α-fn))))))
+      λ where
+        (inj₁ (inj₁ b⁻)) → refl
+        (inj₁ (inj₂ c⁺)) → refl
+        (inj₂ (inj₁ a⁻)) → refl
+        (inj₂ (inj₂ b⁺)) → refl
+
+  gc-γ-pure : ∀ {A⁺ C⁻ B⁻ B⁺ : Type} → IsPure (gc-γ-fn {A⁺} {C⁻} {B⁻} {B⁺}) gc-γ
+  gc-γ-pure =
+    pure-≗ (pure-∘ᵉ (pure-prsh α-fn)
+             (pure-∘ᵉ (pure-⊗ᵉ (pure-prsh σ-fn) pure-idᵉ)
+               (pure-∘ᵉ (pure-prsh α-fn-inv)
+                 (pure-∘ᵉ (pure-⊗ᵉ pure-idᵉ (pure-⊗ᵉ (pure-prsh σ-fn) pure-idᵉ))
+                   (pure-∘ᵉ (pure-⊗ᵉ pure-idᵉ (pure-prsh α-fn-inv))
+                     (pure-∘ᵉ (pure-prsh α-fn) (pure-⊗ᵉ pure-idᵉ (pure-prsh σ-fn))))))))
+      λ where
+        (inj₁ (inj₁ a⁺)) → refl
+        (inj₁ (inj₂ c⁻)) → refl
+        (inj₂ (inj₁ b⁻)) → refl
+        (inj₂ (inj₂ b⁺)) → refl
+
+  -- `MaybeT-return`'s value-level routing.
+  ret-fn : {A⁺ A⁻ : Type} → A⁺ ⊎ A⁻ → A⁻ ⊎ (A⁺ ⊎ ⊤)
+  ret-fn (inj₁ a) = inj₂ (inj₁ a)
+  ret-fn (inj₂ a) = inj₁ a
+
+  ret-pure : ∀ {A : GC-C.Obj} → IsPure ret-fn (MaybeT-return {A})
+  ret-pure {A⁺ , A⁻} =
+    pure-≗ (pure-∘ᵉ (pure-⊗ᵉ pure-idᵉ (pure-prsh inj₁)) (pure-prsh σ-fn))
+      λ where
+        (inj₁ a) → refl
+        (inj₂ a) → refl
+
+  -- `MaybeT-ext` preserves pure behaviour, with the ⊤-input shortcut.
+  ext-fn : {A⁺ B⁻ A⁻ B⁺ : Type}
+         → (A⁺ ⊎ B⁻ → A⁻ ⊎ (B⁺ ⊎ ⊤))
+         → (A⁺ ⊎ ⊤) ⊎ B⁻ → A⁻ ⊎ (B⁺ ⊎ ⊤)
+  ext-fn g (inj₁ (inj₁ a)) = g (inj₁ a)
+  ext-fn g (inj₁ (inj₂ _)) = inj₂ (inj₂ tt)
+  ext-fn g (inj₂ b)        = g (inj₂ b)
+
+  ext-pure : ∀ {A B : GC-C.Obj} {g} {F : A GC-C.⇒ MaybeT₀ _ B}
+           → IsPure g F → IsPure (ext-fn g) (MaybeT-ext F)
+  ext-pure p s (inj₁ (inj₁ a)) = p s (inj₁ a)
+  ext-pure p s (inj₁ (inj₂ _)) = refl
+  ext-pure p s (inj₂ b)        = p s (inj₂ b)
+
+  -- Pure morphisms evaluate to `return ∘ map`.
+  pure-trace : {A B : Type} {g : A → B} {F : SFunᵉ A B} → IsPure g F
+             → ∀ s xs → trace (SFunᵉ.fun F) s xs ≡ return (map g xs)
+  pure-trace p s [] = refl
+  pure-trace {g = g} {F} p s (x ∷ xs) = begin
+    (SFunᵉ.fun F (s , x) >>= λ (s' , b) →
+      trace (SFunᵉ.fun F) s' xs >>= λ bs → return (b ∷ bs))
+      ≡⟨ p s x ⟩>>=⟨refl ⟩
+    (return (s , g x) >>= λ (s' , b) →
+      trace (SFunᵉ.fun F) s' xs >>= λ bs → return (b ∷ bs))
+      ≡⟨ >>=-identityˡ ⟩
+    (trace (SFunᵉ.fun F) s xs >>= λ bs → return (g x ∷ bs))
+      ≡⟨ pure-trace {F = F} p s xs ⟩>>=⟨refl ⟩
+    (return (map g xs) >>= λ bs → return (g x ∷ bs))
+      ≡⟨ >>=-identityˡ ⟩
+    return (g x ∷ map g xs) ∎
+    where open ≡-Reasoning
+
+  pure-≈ᵉ : {A B : Type} {p q : A → B} {F G : SFunᵉ A B}
+          → IsPure p F → IsPure q G → p ≗ q → F ≈ᵉ G
+  pure-≈ᵉ {F = F} {G} pF pG eq xs =
+    trans (pure-trace {F = F} pF (SFunᵉ.init F) xs)
+      (trans (cong return (map-cong eq xs))
+             (sym (pure-trace {F = G} pG (SFunᵉ.init G) xs)))
+
+  -- Composing with a pure morphism on either side collapses to a
+  -- single call plus a `return`-rewrap.
+  ∘ᵉ-pureˡ : {A B C : Type} {q : A → B} {Q : SFunᵉ A B} (P : SFunᵉ B C)
+           → IsPure q Q
+           → ∀ sP sQ x
+           → SFunᵉ.fun (P ∘ᵉ Q) ((sP , sQ) , x)
+             ≡ (SFunᵉ.fun P (sP , q x) >>= λ (sP' , c) → return ((sP' , sQ) , c))
+  ∘ᵉ-pureˡ {q = q} {Q} P pQ sP sQ x = begin
+    (SFunᵉ.fun Q (sQ , x) >>= λ (sQ' , b) →
+      SFunᵉ.fun P (sP , b) >>= λ (sP' , c) → return ((sP' , sQ') , c))
+      ≡⟨ pQ sQ x ⟩>>=⟨refl ⟩
+    (return (sQ , q x) >>= λ (sQ' , b) →
+      SFunᵉ.fun P (sP , b) >>= λ (sP' , c) → return ((sP' , sQ') , c))
+      ≡⟨ >>=-identityˡ ⟩
+    (SFunᵉ.fun P (sP , q x) >>= λ (sP' , c) → return ((sP' , sQ) , c)) ∎
+    where open ≡-Reasoning
+
+  ∘ᵉ-pureʳ : {A B C : Type} {p : B → C} {P : SFunᵉ B C} (Q : SFunᵉ A B)
+           → IsPure p P
+           → ∀ sP sQ x
+           → SFunᵉ.fun (P ∘ᵉ Q) ((sP , sQ) , x)
+             ≡ (SFunᵉ.fun Q (sQ , x) >>= λ (sQ' , b) → return ((sP , sQ') , p b))
+  ∘ᵉ-pureʳ {p = p} {P} Q pP sP sQ x = begin
+    (SFunᵉ.fun Q (sQ , x) >>= λ (sQ' , b) →
+      SFunᵉ.fun P (sP , b) >>= λ (sP' , c) → return ((sP' , sQ') , c))
+      ≡⟨ refl⟩>>=⟨ (λ (sQ' , b) → pP sP b ⟩>>=⟨refl) ⟩
+    (SFunᵉ.fun Q (sQ , x) >>= λ (sQ' , b) →
+      return (sP , p b) >>= λ (sP' , c) → return ((sP' , sQ') , c))
+      ≡⟨ refl⟩>>=⟨ (λ (sQ' , b) → >>=-identityˡ) ⟩
+    (SFunᵉ.fun Q (sQ , x) >>= λ (sQ' , b) → return ((sP , sQ') , p b)) ∎
+    where open ≡-Reasoning
+
+  -- One-step characterization of the G-composition body
+  -- `gc-α ∘ᵉ ((F ⊗ᵉ G) ∘ᵉ gc-γ)`: an input that `gc-γ` routes to the
+  -- F-side (resp. G-side) makes exactly one call into F (resp. G),
+  -- rewrapped through `gc-α`.
+  module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Type}
+           (F : SFunᵉ (B⁺ ⊎ C⁻) (B⁻ ⊎ C⁺)) (G : SFunᵉ (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺)) where
+
+    private
+      body : SFunᵉ ((A⁺ ⊎ C⁻) ⊎ (B⁻ ⊎ B⁺)) ((A⁻ ⊎ C⁺) ⊎ (B⁻ ⊎ B⁺))
+      body = gc-α ∘ᵉ ((F ⊗ᵉ G) ∘ᵉ gc-γ)
+
+    gc-body-fun₁ : ∀ sα sF sG sγ {v} {a} → gc-γ-fn v ≡ inj₁ a
+      → SFunᵉ.fun body ((sα , ((sF , sG) , sγ)) , v)
+        ≡ (SFunᵉ.fun F (sF , a) >>= λ (sF' , w) →
+            return ((sα , ((sF' , sG) , sγ)) , gc-α-fn (inj₁ w)))
+    gc-body-fun₁ sα sF sG sγ {v} {a} eq = begin
+      SFunᵉ.fun body ((sα , ((sF , sG) , sγ)) , v)
+        ≡⟨ ∘ᵉ-pureʳ ((F ⊗ᵉ G) ∘ᵉ gc-γ) gc-α-pure sα ((sF , sG) , sγ) v ⟩
+      (SFunᵉ.fun ((F ⊗ᵉ G) ∘ᵉ gc-γ) (((sF , sG) , sγ) , v) >>= λ (sR' , b) →
+        return ((sα , sR') , gc-α-fn b))
+        ≡⟨ ∘ᵉ-pureˡ (F ⊗ᵉ G) gc-γ-pure (sF , sG) sγ v ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun (F ⊗ᵉ G) ((sF , sG) , gc-γ-fn v) >>= λ (sFG' , c) →
+         return ((sFG' , sγ) , c)) >>= λ (sR' , b) → return ((sα , sR') , gc-α-fn b))
+        ≡⟨ cong (λ z → (SFunᵉ.fun (F ⊗ᵉ G) ((sF , sG) , z) >>= λ (sFG' , c) →
+             return ((sFG' , sγ) , c)) >>= λ (sR' , b) → return ((sα , sR') , gc-α-fn b)) eq ⟩
+      ((SFunᵉ.fun (F ⊗ᵉ G) ((sF , sG) , inj₁ a) >>= λ (sFG' , c) →
+         return ((sFG' , sγ) , c)) >>= λ (sR' , b) → return ((sα , sR') , gc-α-fn b))
+        ≡⟨ >>=-assoc _ ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun F (sF , a) >>= λ (sF' , b₀) →
+         return ((sF' , sG) , inj₁ b₀) >>= λ (sFG' , c) → return ((sFG' , sγ) , c))
+        >>= λ (sR' , b) → return ((sα , sR') , gc-α-fn b))
+        ≡⟨ (refl⟩>>=⟨ (λ (sF' , b₀) → >>=-identityˡ)) ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun F (sF , a) >>= λ (sF' , b₀) → return (((sF' , sG) , sγ) , inj₁ b₀))
+        >>= λ (sR' , b) → return ((sα , sR') , gc-α-fn b))
+        ≡⟨ >>=-assoc _ ⟩
+      (SFunᵉ.fun F (sF , a) >>= λ (sF' , b₀) →
+        return (((sF' , sG) , sγ) , inj₁ b₀) >>= λ (sR' , b) →
+          return ((sα , sR') , gc-α-fn b))
+        ≡⟨ refl⟩>>=⟨ (λ (sF' , b₀) → >>=-identityˡ) ⟩
+      (SFunᵉ.fun F (sF , a) >>= λ (sF' , b₀) →
+        return ((sα , ((sF' , sG) , sγ)) , gc-α-fn (inj₁ b₀))) ∎
+      where open ≡-Reasoning
+
+    gc-body-fun₂ : ∀ sα sF sG sγ {v} {c} → gc-γ-fn v ≡ inj₂ c
+      → SFunᵉ.fun body ((sα , ((sF , sG) , sγ)) , v)
+        ≡ (SFunᵉ.fun G (sG , c) >>= λ (sG' , w) →
+            return ((sα , ((sF , sG') , sγ)) , gc-α-fn (inj₂ w)))
+    gc-body-fun₂ sα sF sG sγ {v} {c} eq = begin
+      SFunᵉ.fun body ((sα , ((sF , sG) , sγ)) , v)
+        ≡⟨ ∘ᵉ-pureʳ ((F ⊗ᵉ G) ∘ᵉ gc-γ) gc-α-pure sα ((sF , sG) , sγ) v ⟩
+      (SFunᵉ.fun ((F ⊗ᵉ G) ∘ᵉ gc-γ) (((sF , sG) , sγ) , v) >>= λ (sR' , b) →
+        return ((sα , sR') , gc-α-fn b))
+        ≡⟨ ∘ᵉ-pureˡ (F ⊗ᵉ G) gc-γ-pure (sF , sG) sγ v ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun (F ⊗ᵉ G) ((sF , sG) , gc-γ-fn v) >>= λ (sFG' , c') →
+         return ((sFG' , sγ) , c')) >>= λ (sR' , b) → return ((sα , sR') , gc-α-fn b))
+        ≡⟨ cong (λ z → (SFunᵉ.fun (F ⊗ᵉ G) ((sF , sG) , z) >>= λ (sFG' , c') →
+             return ((sFG' , sγ) , c')) >>= λ (sR' , b) → return ((sα , sR') , gc-α-fn b)) eq ⟩
+      ((SFunᵉ.fun (F ⊗ᵉ G) ((sF , sG) , inj₂ c) >>= λ (sFG' , c') →
+         return ((sFG' , sγ) , c')) >>= λ (sR' , b) → return ((sα , sR') , gc-α-fn b))
+        ≡⟨ >>=-assoc _ ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun G (sG , c) >>= λ (sG' , d) →
+         return ((sF , sG') , inj₂ d) >>= λ (sFG' , c') → return ((sFG' , sγ) , c'))
+        >>= λ (sR' , b) → return ((sα , sR') , gc-α-fn b))
+        ≡⟨ (refl⟩>>=⟨ (λ (sG' , d) → >>=-identityˡ)) ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun G (sG , c) >>= λ (sG' , d) → return (((sF , sG') , sγ) , inj₂ d))
+        >>= λ (sR' , b) → return ((sα , sR') , gc-α-fn b))
+        ≡⟨ >>=-assoc _ ⟩
+      (SFunᵉ.fun G (sG , c) >>= λ (sG' , d) →
+        return (((sF , sG') , sγ) , inj₂ d) >>= λ (sR' , b) →
+          return ((sα , sR') , gc-α-fn b))
+        ≡⟨ refl⟩>>=⟨ (λ (sG' , d) → >>=-identityˡ) ⟩
+      (SFunᵉ.fun G (sG , c) >>= λ (sG' , d) →
+        return ((sα , ((sF , sG') , sγ)) , gc-α-fn (inj₂ d))) ∎
+      where open ≡-Reasoning
+
+  -- ────────────────────────────────────────────────────────────────
+  -- Lifting pointwise `fun` equality (or a state-projection
+  -- simulation) to trace/eval equality.
+  trace-cong : {A B S : Type} {f g : SFunType A B S}
+             → (∀ s x → f (s , x) ≡ g (s , x))
+             → ∀ s xs → trace f s xs ≡ trace g s xs
+  trace-cong h s [] = refl
+  trace-cong {f = f} {g} h s (x ∷ xs) = begin
+    (f (s , x) >>= λ (s' , b) → trace f s' xs >>= λ bs → return (b ∷ bs))
+      ≡⟨ h s x ⟩>>=⟨refl ⟩
+    (g (s , x) >>= λ (s' , b) → trace f s' xs >>= λ bs → return (b ∷ bs))
+      ≡⟨ refl⟩>>=⟨ (λ (s' , b) → trace-cong h s' xs ⟩>>=⟨refl) ⟩
+    (g (s , x) >>= λ (s' , b) → trace g s' xs >>= λ bs → return (b ∷ bs)) ∎
+    where open ≡-Reasoning
+
+  trace-sim : {A B SF SG : Type} (h : SF → SG)
+              {f : SFunType A B SF} {g : SFunType A B SG}
+            → (∀ s x → (f (s , x) >>= λ (s' , b) → return (h s' , b)) ≡ g (h s , x))
+            → ∀ s xs → trace f s xs ≡ trace g (h s) xs
+  trace-sim h hyp s [] = refl
+  trace-sim h {f} {g} hyp s (x ∷ xs) = begin
+    (f (s , x) >>= λ (s' , b) → trace f s' xs >>= λ bs → return (b ∷ bs))
+      ≡⟨ refl⟩>>=⟨ (λ (s' , b) → trace-sim h hyp s' xs ⟩>>=⟨refl) ⟩
+    (f (s , x) >>= λ (s' , b) → trace g (h s') xs >>= λ bs → return (b ∷ bs))
+      ≡⟨ refl⟩>>=⟨ (λ (s' , b) → sym >>=-identityˡ) ⟩
+    (f (s , x) >>= λ (s' , b) → return (h s' , b) >>= λ (s'' , b') →
+      trace g s'' xs >>= λ bs → return (b' ∷ bs))
+      ≡⟨ sym (>>=-assoc (f (s , x))) ⟩
+    ((f (s , x) >>= λ (s' , b) → return (h s' , b)) >>= λ (s'' , b') →
+      trace g s'' xs >>= λ bs → return (b' ∷ bs))
+      ≡⟨ hyp s x ⟩>>=⟨refl ⟩
+    (g (h s , x) >>= λ (s'' , b') → trace g s'' xs >>= λ bs → return (b' ∷ bs)) ∎
+    where open ≡-Reasoning
+
+  -- ────────────────────────────────────────────────────────────────
+  -- Interleaving factorization of `MaybeT-ext`: its evaluation is the
+  -- underlying morphism's evaluation on the non-⊤ inputs, with the
+  -- canned ⊤-emission re-inserted at the ⊤-input positions.
+  ext-proj : {A⁺ B⁻ : Type} → List ((A⁺ ⊎ ⊤) ⊎ B⁻) → List (A⁺ ⊎ B⁻)
+  ext-proj []                   = []
+  ext-proj (inj₁ (inj₁ a) ∷ xs) = inj₁ a ∷ ext-proj xs
+  ext-proj (inj₁ (inj₂ _) ∷ xs) = ext-proj xs
+  ext-proj (inj₂ b ∷ xs)        = inj₂ b ∷ ext-proj xs
+
+  ext-reasm : {A⁺ B⁻ O : Type} → O
+            → List ((A⁺ ⊎ ⊤) ⊎ B⁻) → List O → List O
+  ext-reasm o⊤ []                   _        = []
+  ext-reasm o⊤ (inj₁ (inj₂ _) ∷ xs) ys       = o⊤ ∷ ext-reasm o⊤ xs ys
+  ext-reasm o⊤ (inj₁ (inj₁ _) ∷ xs) []       = []
+  ext-reasm o⊤ (inj₁ (inj₁ _) ∷ xs) (y ∷ ys) = y ∷ ext-reasm o⊤ xs ys
+  ext-reasm o⊤ (inj₂ _ ∷ xs)        []       = []
+  ext-reasm o⊤ (inj₂ _ ∷ xs)        (y ∷ ys) = y ∷ ext-reasm o⊤ xs ys
+
+  ext-factor : ∀ {A B : GC-C.Obj} (F : A GC-C.⇒ MaybeT₀ _ B)
+               (s : SFunᵉ.State F) xs
+             → trace (SFunᵉ.fun (MaybeT-ext F)) s xs
+               ≡ (trace (SFunᵉ.fun F) s (ext-proj xs) >>= λ ys →
+                   return (ext-reasm (inj₂ (inj₂ tt)) xs ys))
+  ext-factor F s [] = sym >>=-identityˡ
+  ext-factor {A} {B} F s (inj₁ (inj₁ a) ∷ xs) = begin
+    (SFunᵉ.fun F (s , inj₁ a) >>= λ (s' , y) →
+      trace (SFunᵉ.fun (MaybeT-ext F)) s' xs >>= λ bs → return (y ∷ bs))
+      ≡⟨ refl⟩>>=⟨ (λ (s' , y) → ext-factor F s' xs ⟩>>=⟨refl) ⟩
+    (SFunᵉ.fun F (s , inj₁ a) >>= λ (s' , y) →
+      (trace (SFunᵉ.fun F) s' (ext-proj xs) >>= λ ys → return (ext-reasm o⊤ xs ys))
+        >>= λ bs → return (y ∷ bs))
+      ≡⟨ refl⟩>>=⟨ (λ (s' , y) → >>=-assoc _) ⟩
+    (SFunᵉ.fun F (s , inj₁ a) >>= λ (s' , y) →
+      trace (SFunᵉ.fun F) s' (ext-proj xs) >>= λ ys →
+        return (ext-reasm o⊤ xs ys) >>= λ bs → return (y ∷ bs))
+      ≡⟨ refl⟩>>=⟨ (λ (s' , y) → refl⟩>>=⟨ λ ys → >>=-identityˡ) ⟩
+    (SFunᵉ.fun F (s , inj₁ a) >>= λ (s' , y) →
+      trace (SFunᵉ.fun F) s' (ext-proj xs) >>= λ ys →
+        return (y ∷ ext-reasm o⊤ xs ys))
+      ≡⟨ refl⟩>>=⟨ (λ (s' , y) → refl⟩>>=⟨ λ ys → sym >>=-identityˡ) ⟩
+    (SFunᵉ.fun F (s , inj₁ a) >>= λ (s' , y) →
+      trace (SFunᵉ.fun F) s' (ext-proj xs) >>= λ ys →
+        return (y ∷ ys) >>= λ ys' → return (ext-reasm o⊤ (inj₁ (inj₁ a) ∷ xs) ys'))
+      ≡⟨ refl⟩>>=⟨ (λ (s' , y) → sym (>>=-assoc _)) ⟩
+    (SFunᵉ.fun F (s , inj₁ a) >>= λ (s' , y) →
+      (trace (SFunᵉ.fun F) s' (ext-proj xs) >>= λ ys → return (y ∷ ys))
+        >>= λ ys' → return (ext-reasm o⊤ (inj₁ (inj₁ a) ∷ xs) ys'))
+      ≡⟨ sym (>>=-assoc _) ⟩
+    ((SFunᵉ.fun F (s , inj₁ a) >>= λ (s' , y) →
+       trace (SFunᵉ.fun F) s' (ext-proj xs) >>= λ ys → return (y ∷ ys))
+      >>= λ ys' → return (ext-reasm o⊤ (inj₁ (inj₁ a) ∷ xs) ys')) ∎
+    where
+      open ≡-Reasoning
+      o⊤ = inj₂ (inj₂ tt)
+  ext-factor F s (inj₁ (inj₂ u) ∷ xs) = begin
+    (return (s , inj₂ (inj₂ tt)) >>= λ (s' , y) →
+      trace (SFunᵉ.fun (MaybeT-ext F)) s' xs >>= λ bs → return (y ∷ bs))
+      ≡⟨ >>=-identityˡ ⟩
+    (trace (SFunᵉ.fun (MaybeT-ext F)) s xs >>= λ bs → return (o⊤ ∷ bs))
+      ≡⟨ ext-factor F s xs ⟩>>=⟨refl ⟩
+    ((trace (SFunᵉ.fun F) s (ext-proj xs) >>= λ ys → return (ext-reasm o⊤ xs ys))
+      >>= λ bs → return (o⊤ ∷ bs))
+      ≡⟨ >>=-assoc _ ⟩
+    (trace (SFunᵉ.fun F) s (ext-proj xs) >>= λ ys →
+      return (ext-reasm o⊤ xs ys) >>= λ bs → return (o⊤ ∷ bs))
+      ≡⟨ refl⟩>>=⟨ (λ ys → >>=-identityˡ) ⟩
+    (trace (SFunᵉ.fun F) s (ext-proj xs) >>= λ ys →
+      return (o⊤ ∷ ext-reasm o⊤ xs ys)) ∎
+    where
+      open ≡-Reasoning
+      o⊤ = inj₂ (inj₂ tt)
+  ext-factor F s (inj₂ b ∷ xs) = begin
+    (SFunᵉ.fun F (s , inj₂ b) >>= λ (s' , y) →
+      trace (SFunᵉ.fun (MaybeT-ext F)) s' xs >>= λ bs → return (y ∷ bs))
+      ≡⟨ refl⟩>>=⟨ (λ (s' , y) → ext-factor F s' xs ⟩>>=⟨refl) ⟩
+    (SFunᵉ.fun F (s , inj₂ b) >>= λ (s' , y) →
+      (trace (SFunᵉ.fun F) s' (ext-proj xs) >>= λ ys → return (ext-reasm o⊤ xs ys))
+        >>= λ bs → return (y ∷ bs))
+      ≡⟨ refl⟩>>=⟨ (λ (s' , y) → >>=-assoc _) ⟩
+    (SFunᵉ.fun F (s , inj₂ b) >>= λ (s' , y) →
+      trace (SFunᵉ.fun F) s' (ext-proj xs) >>= λ ys →
+        return (ext-reasm o⊤ xs ys) >>= λ bs → return (y ∷ bs))
+      ≡⟨ refl⟩>>=⟨ (λ (s' , y) → refl⟩>>=⟨ λ ys → trans >>=-identityˡ (sym >>=-identityˡ)) ⟩
+    (SFunᵉ.fun F (s , inj₂ b) >>= λ (s' , y) →
+      trace (SFunᵉ.fun F) s' (ext-proj xs) >>= λ ys →
+        return (y ∷ ys) >>= λ ys' → return (ext-reasm o⊤ (inj₂ b ∷ xs) ys'))
+      ≡⟨ refl⟩>>=⟨ (λ (s' , y) → sym (>>=-assoc _)) ⟩
+    (SFunᵉ.fun F (s , inj₂ b) >>= λ (s' , y) →
+      (trace (SFunᵉ.fun F) s' (ext-proj xs) >>= λ ys → return (y ∷ ys))
+        >>= λ ys' → return (ext-reasm o⊤ (inj₂ b ∷ xs) ys'))
+      ≡⟨ sym (>>=-assoc _) ⟩
+    ((SFunᵉ.fun F (s , inj₂ b) >>= λ (s' , y) →
+       trace (SFunᵉ.fun F) s' (ext-proj xs) >>= λ ys → return (y ∷ ys))
+      >>= λ ys' → return (ext-reasm o⊤ (inj₂ b ∷ xs) ys')) ∎
+    where
+      open ≡-Reasoning
+      o⊤ = inj₂ (inj₂ tt)
+
 -- The Maybe-graded triple over SFunᵉ-GConstruction. T₀ adds a ⊤
 -- alternative to the "input" component of each G-object (so morphisms
 -- into T₀ B carry an optional "no emission" on their output coproduct);
 -- return and ext are the concrete unit and Kleisli-extension realising
 -- this. sub is identity (the grading category V = One has only one
--- morphism). The five graded-Kleisli laws involving `ext` are
--- substantial (equations in SFunᵉ-GConstruction's hom-equivalence over
--- list-trace evaluation) and are postulated here; the three sub-only
--- laws are proved from `SFunᵉ-GConstruction`'s identity laws directly.
---
--- Proof sketches for each ext-related postulate (Tier 3 roadmap):
---
--- • MaybeT-ext-identityˡ : ext(return) ≈ G-id at T₀ A.
---   After GC-C.identityʳ on the outer ∘, the goal is
---     MaybeT-ext MaybeT-return ≈ GC-C.id {MaybeT₀ u A}.
---   GC-C.id at T₀ A unfolds to σᵉ : SFunᵉ((A⁺⊎⊤)⊎A⁻, A⁻⊎(A⁺⊎⊤)).
---   MaybeT-ext (MaybeT-return) is a pure SFunᵉ — its `fun` is monadic
---   `return ∘ <case-routing>` at every input. The case-routing
---   computes the same σ-fn that σᵉ uses. The proof reduces to:
---     (i)  define `pure-reshape-of-record` lemma — if an SFunᵉ's `fun`
---          is `return ∘ g` pointwise for some `g : A → B`, then the
---          SFunᵉ is ≈ᵉ-equal to `pure-reshape g`;
---     (ii) apply this to both MaybeT-ext(MaybeT-return) (giving a pure
---          reshape with the case-by-case σ function) and GC-C.id;
---     (iii) conclude via `pure-reshape-cong` since both g's agree
---           pointwise.
---   Estimated: 30-50 lines, including (i) which is reusable.
---
--- • MaybeT-ext-identityʳ : ext(f) ∘ᴋ return ≈ f.
---   GC-C.∘ uses trace internally (G-construction composition), so this
---   isn't a direct SFunᵉ ∘ identity. After unfolding GC-C.∘ as
---   `trace (assoc ∘ (return ⊗ ext f) ∘ assoc⁻¹)`, the trace loop
---   degenerates because `return` is pure on the trace variable. The
---   proof uses `SFunᵉ-trace-∘ʳ` (the existing trace naturality
---   postulate) plus careful unfolding of `MaybeT-return`'s structure.
---   Estimated: 80-120 lines.
---
--- • MaybeT-ext-assoc : ext(ext(f) ∘ g) ≈ ext(f) ∘ ext(g).
---   The hardest law. Both sides are SFunᵉ-GConstruction morphisms
---   whose `fun` does case-routing on input. Each case dispatches to
---   either f, g, or both via G-construction composition (trace).
---   The proof requires:
---     (i)   an input-case lemma reducing ext's behavior to f/g calls;
---     (ii)  trace fusion across the nested composition (similar in
---           spirit to vanishing₂ in Traced.agda);
---     (iii) ext-resp-≈ to push GC-C.identityˡ inside ext on the RHS.
---   Estimated: 200-400 lines. Likely needs additional helper lemmas
---   about MaybeT-ext's interaction with G-composition.
---
--- • MaybeT-ext-resp-≈ : f ≈ g → ext(f) ≈ ext(g).
---   Congruence of ext under ≈ᵉ. Inductive on input lists. Key step:
---   a "trace factoring" lemma:
---     eval (MaybeT-ext f) xs ≡ <interleave eval f (filter₁ xs)
---                                  with constant ⊤-emissions on
---                                  filter₂ xs positions>.
---   This factor-lemma is the substantive content; once stated, the
---   conclusion follows by applying f ≈ g to filter₁ xs.
---   Estimated: 60-100 lines (factor-lemma + induction).
---
--- • MaybeT-sub-commute : ext(GC-id ∘ f) ∘ GC-id ≈ GC-id ∘ ext(f).
---   Trivially provable once ext-resp-≈ is in place:
---     LHS = ext(GC-id ∘ f) ∘ GC-id
---         ≈⟨ GC-C.identityʳ ⟩  ext(GC-id ∘ f)
---         ≈⟨ MaybeT-ext-resp-≈ GC-C.identityˡ ⟩  ext(f)
---         ≈˘⟨ GC-C.identityˡ ⟩  GC-id ∘ ext(f) = RHS.
---   Estimated: 5 lines after ext-resp-≈.
+-- morphism). All eight graded-Kleisli laws are proven: the three
+-- sub-only laws from `SFunᵉ-GConstruction`'s identity laws directly,
+-- the five `ext` laws below from the trace-level infrastructure above.
 private
-  postulate
-    MaybeT-ext-identityˡ : ∀ {u A}
-      → GC-C.id GC-C.∘ MaybeT-ext (MaybeT-return {A}) GC-C.≈ GC-C.id {MaybeT₀ u A}
-    MaybeT-ext-identityʳ : ∀ {u A B} {f : A GC-C.⇒ MaybeT₀ u B}
-      → GC-C.id GC-C.∘ MaybeT-ext f GC-C.∘ MaybeT-return GC-C.≈ f
-    MaybeT-ext-assoc : ∀ {u : OneObj} {v w A B C}
-      {f : B GC-C.⇒ MaybeT₀ w C} {g : A GC-C.⇒ MaybeT₀ v B}
-      → MaybeT-ext (MaybeT-ext f GC-C.∘ g)
-        GC-C.≈ GC-C.id GC-C.∘ (MaybeT-ext f GC-C.∘ MaybeT-ext g)
-    MaybeT-ext-resp-≈ : ∀ {u : OneObj} {v A B} {f g : A GC-C.⇒ MaybeT₀ v B}
-      → f GC-C.≈ g → MaybeT-ext {A} {B} f GC-C.≈ MaybeT-ext g
-    MaybeT-sub-commute : ∀ {u₁ u₂ v₁ v₂ : OneObj} {A B}
-      {α : Lift zeroˡ ⊤} {β : Lift zeroˡ ⊤} {f : A GC-C.⇒ MaybeT₀ u₂ B}
-      → MaybeT-ext (GC-C.id GC-C.∘ f) GC-C.∘ GC-C.id
-        GC-C.≈ GC-C.id GC-C.∘ MaybeT-ext {A} {B} f
+  -- Congruence: `MaybeT-ext` respects observational equality, via the
+  -- interleaving factorization `ext-factor`.
+  MaybeT-ext-resp-≈ : ∀ {u : OneObj} {v A B} {f g : A GC-C.⇒ MaybeT₀ v B}
+    → f GC-C.≈ g → MaybeT-ext {A} {B} f GC-C.≈ MaybeT-ext g
+  MaybeT-ext-resp-≈ {f = f} {g} p xs = begin
+    eval (MaybeT-ext f) xs
+      ≡⟨ ext-factor f (SFunᵉ.init f) xs ⟩
+    (eval f (ext-proj xs) >>= λ ys → return (ext-reasm (inj₂ (inj₂ tt)) xs ys))
+      ≡⟨ p (ext-proj xs) ⟩>>=⟨refl ⟩
+    (eval g (ext-proj xs) >>= λ ys → return (ext-reasm (inj₂ (inj₂ tt)) xs ys))
+      ≡⟨ sym (ext-factor g (SFunᵉ.init g) xs) ⟩
+    eval (MaybeT-ext g) xs ∎
+    where open ≡-Reasoning
+
+  -- Subsumption commutes with ext: pure category reasoning, since all
+  -- `sub` maps are `GC-C.id`.
+  MaybeT-sub-commute : ∀ {u₁ u₂ v₁ v₂ : OneObj} {A B}
+    {α : Lift zeroˡ ⊤} {β : Lift zeroˡ ⊤} {f : A GC-C.⇒ MaybeT₀ u₂ B}
+    → MaybeT-ext (GC-C.id GC-C.∘ f) GC-C.∘ GC-C.id
+      GC-C.≈ GC-C.id GC-C.∘ MaybeT-ext {A} {B} f
+  MaybeT-sub-commute {f = f} = begin
+    MaybeT-ext (GC-C.id GC-C.∘ f) GC-C.∘ GC-C.id
+      ≈⟨ GC-C.identityʳ ⟩
+    MaybeT-ext (GC-C.id GC-C.∘ f)
+      ≈⟨ MaybeT-ext-resp-≈ GC-C.identityˡ ⟩
+    MaybeT-ext f
+      ≈⟨ GC-C.identityˡ ⟨
+    GC-C.id GC-C.∘ MaybeT-ext f ∎
+    where open GC-C.HomReasoning
+
+  -- Left identity: `ext return` is pure and computes exactly the
+  -- braiding σ-fn that `GC-C.id` is made of.
+  MaybeT-ext-identityˡ : ∀ {u A}
+    → GC-C.id GC-C.∘ MaybeT-ext (MaybeT-return {A}) GC-C.≈ GC-C.id {MaybeT₀ u A}
+  MaybeT-ext-identityˡ {u} {A⁺ , A⁻} = begin
+    GC-C.id GC-C.∘ MaybeT-ext MaybeT-return
+      ≈⟨ GC-C.identityˡ ⟩
+    MaybeT-ext (MaybeT-return {A⁺ , A⁻})
+      ≈⟨ pure-≈ᵉ (ext-pure {F = MaybeT-return} (ret-pure {A⁺ , A⁻})) (pure-prsh σ-fn)
+           (λ where
+             (inj₁ (inj₁ a)) → refl
+             (inj₁ (inj₂ _)) → refl
+             (inj₂ a)        → refl) ⟩
+    GC-C.id {MaybeT₀ u (A⁺ , A⁻)} ∎
+    where open GC-C.HomReasoning
+
+  -- Right identity: composing with `MaybeT-return` routes every input
+  -- through exactly one call to `f`; the loop administration around it
+  -- is pure and collapses. Proven by a state-projection simulation.
+  MaybeT-ext-identityʳ : ∀ {u A B} {f : A GC-C.⇒ MaybeT₀ u B}
+    → GC-C.id GC-C.∘ MaybeT-ext f GC-C.∘ MaybeT-return GC-C.≈ f
+  MaybeT-ext-identityʳ {u} {A⁺ , A⁻} {B⁺ , B⁻} {f} =
+    GC-C.Equiv.trans GC-C.identityˡ core
+    where
+      body : SFunᵉ ((A⁺ ⊎ B⁻) ⊎ (A⁻ ⊎ (A⁺ ⊎ ⊤)))
+                   ((A⁻ ⊎ (B⁺ ⊎ ⊤)) ⊎ (A⁻ ⊎ (A⁺ ⊎ ⊤)))
+      body = gc-α ∘ᵉ ((MaybeT-ext f ⊗ᵉ MaybeT-return) ∘ᵉ gc-γ)
+
+      h : SFunᵉ.State body → SFunᵉ.State f
+      h (sα , ((sF , sG) , sγ)) = sF
+
+      -- A loop value on the A⁻ side bounces purely off `MaybeT-return`
+      -- and exits.
+      step-val : ∀ sα sF sG sγ (a⁻ : A⁻)
+        → tr-step body ((sα , ((sF , sG) , sγ)) , inj₁ a⁻)
+          ≡ return (inj₂ ((sα , ((sF , sG) , sγ)) , inj₁ a⁻))
+      step-val sα sF sG sγ a⁻ = begin
+        (SFunᵉ.fun body ((sα , ((sF , sG) , sγ)) , inj₂ (inj₁ a⁻)) >>= tr-cont)
+          ≡⟨ gc-body-fun₂ (MaybeT-ext f) MaybeT-return sα sF sG sγ
+               {v = inj₂ (inj₁ a⁻)} {c = inj₂ a⁻} refl ⟩>>=⟨refl ⟩
+        ((SFunᵉ.fun (MaybeT-return {A⁺ , A⁻}) (sG , inj₂ a⁻) >>= λ (sG' , w) →
+           return ((sα , ((sF , sG') , sγ)) , gc-α-fn (inj₂ w))) >>= tr-cont)
+          ≡⟨ (ret-pure {A⁺ , A⁻} sG (inj₂ a⁻) ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+        ((return (sG , inj₁ a⁻) >>= λ (sG' , w) →
+           return ((sα , ((sF , sG') , sγ)) , gc-α-fn (inj₂ w))) >>= tr-cont)
+          ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+        (return ((sα , ((sF , sG) , sγ)) , inj₁ (inj₁ a⁻)) >>= tr-cont)
+          ≡⟨ >>=-identityˡ ⟩
+        return (inj₂ ((sα , ((sF , sG) , sγ)) , inj₁ a⁻)) ∎
+        where open ≡-Reasoning
+
+      loop-finish : ∀ sα sF sG sγ (a⁻ : A⁻)
+        → (iter (tr-step body) ((sα , ((sF , sG) , sγ)) , inj₁ a⁻)
+            >>= λ (s' , b) → return (h s' , b))
+          ≡ return (sF , inj₁ a⁻)
+      loop-finish sα sF sG sγ a⁻ = begin
+        (iter (tr-step body) ((sα , ((sF , sG) , sγ)) , inj₁ a⁻)
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ iter-fix {f = tr-step body} ((sα , ((sF , sG) , sγ)) , inj₁ a⁻) ⟩>>=⟨refl ⟩
+        ((tr-step body ((sα , ((sF , sG) , sγ)) , inj₁ a⁻)
+           >>= iter-cont iter (tr-step body)) >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ (step-val sα sF sG sγ a⁻ ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+        ((return (inj₂ ((sα , ((sF , sG) , sγ)) , inj₁ a⁻))
+           >>= iter-cont iter (tr-step body)) >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+        (return ((sα , ((sF , sG) , sγ)) , inj₁ a⁻) >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ >>=-identityˡ ⟩
+        return (sF , inj₁ a⁻) ∎
+        where open ≡-Reasoning
+
+      -- The continuation after `f`'s only call collapses to `return`,
+      -- whether entered from the top level (via tr-fun-cont) ...
+      post-top : ∀ sα sG sγ sF' (w : A⁻ ⊎ (B⁺ ⊎ ⊤))
+        → ((return ((sα , ((sF' , sG) , sγ)) , gc-α-fn (inj₁ w))
+             >>= tr-fun-cont (iter (tr-step body)))
+            >>= λ (s' , b) → return (h s' , b))
+          ≡ return (sF' , w)
+      post-top sα sG sγ sF' (inj₁ a⁻) = begin
+        ((return ((sα , ((sF' , sG) , sγ)) , inj₂ (inj₁ a⁻))
+           >>= tr-fun-cont (iter (tr-step body)))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+        (iter (tr-step body) ((sα , ((sF' , sG) , sγ)) , inj₁ a⁻)
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ loop-finish sα sF' sG sγ a⁻ ⟩
+        return (sF' , inj₁ a⁻) ∎
+        where open ≡-Reasoning
+      post-top sα sG sγ sF' (inj₂ y) = begin
+        ((return ((sα , ((sF' , sG) , sγ)) , inj₁ (inj₂ y))
+           >>= tr-fun-cont (iter (tr-step body)))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+        (return ((sα , ((sF' , sG) , sγ)) , inj₂ y) >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ >>=-identityˡ ⟩
+        return (sF' , inj₂ y) ∎
+        where open ≡-Reasoning
+
+      -- ... or from inside the loop (via tr-cont / iter-cont).
+      post-loop : ∀ sα sG sγ sF' (w : A⁻ ⊎ (B⁺ ⊎ ⊤))
+        → (((return ((sα , ((sF' , sG) , sγ)) , gc-α-fn (inj₁ w)) >>= tr-cont)
+             >>= iter-cont iter (tr-step body))
+            >>= λ (s' , b) → return (h s' , b))
+          ≡ return (sF' , w)
+      post-loop sα sG sγ sF' (inj₁ a⁻) = begin
+        (((return ((sα , ((sF' , sG) , sγ)) , inj₂ (inj₁ a⁻)) >>= tr-cont)
+           >>= iter-cont iter (tr-step body))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ (>>=-identityˡ ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+        ((return (inj₁ ((sα , ((sF' , sG) , sγ)) , inj₁ a⁻))
+           >>= iter-cont iter (tr-step body))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+        (iter (tr-step body) ((sα , ((sF' , sG) , sγ)) , inj₁ a⁻)
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ loop-finish sα sF' sG sγ a⁻ ⟩
+        return (sF' , inj₁ a⁻) ∎
+        where open ≡-Reasoning
+      post-loop sα sG sγ sF' (inj₂ y) = begin
+        (((return ((sα , ((sF' , sG) , sγ)) , inj₁ (inj₂ y)) >>= tr-cont)
+           >>= iter-cont iter (tr-step body))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ (>>=-identityˡ ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+        ((return (inj₂ ((sα , ((sF' , sG) , sγ)) , inj₂ y))
+           >>= iter-cont iter (tr-step body))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+        (return ((sα , ((sF' , sG) , sγ)) , inj₂ y) >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ >>=-identityˡ ⟩
+        return (sF' , inj₂ y) ∎
+        where open ≡-Reasoning
+
+      hyp : ∀ s x
+        → (SFunᵉ.fun (tr body) (s , x) >>= λ (s' , b) → return (h s' , b))
+          ≡ SFunᵉ.fun f (h s , x)
+      hyp (sα , ((sF , sG) , sγ)) (inj₁ a⁺) = begin
+        ((SFunᵉ.fun body ((sα , ((sF , sG) , sγ)) , inj₁ (inj₁ a⁺))
+           >>= tr-fun-cont (iter (tr-step body)))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ (gc-body-fun₂ (MaybeT-ext f) MaybeT-return sα sF sG sγ
+               {v = inj₁ (inj₁ a⁺)} {c = inj₁ a⁺} refl ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+        (((SFunᵉ.fun (MaybeT-return {A⁺ , A⁻}) (sG , inj₁ a⁺) >>= λ (sG' , w) →
+            return ((sα , ((sF , sG') , sγ)) , gc-α-fn (inj₂ w)))
+           >>= tr-fun-cont (iter (tr-step body)))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ ((ret-pure {A⁺ , A⁻} sG (inj₁ a⁺) ⟩>>=⟨refl) ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+        (((return (sG , inj₂ (inj₁ a⁺)) >>= λ (sG' , w) →
+            return ((sα , ((sF , sG') , sγ)) , gc-α-fn (inj₂ w)))
+           >>= tr-fun-cont (iter (tr-step body)))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ (>>=-identityˡ ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+        ((return ((sα , ((sF , sG) , sγ)) , inj₂ (inj₂ (inj₁ a⁺)))
+           >>= tr-fun-cont (iter (tr-step body)))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+        (iter (tr-step body) ((sα , ((sF , sG) , sγ)) , inj₂ (inj₁ a⁺))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ iter-fix {f = tr-step body} ((sα , ((sF , sG) , sγ)) , inj₂ (inj₁ a⁺)) ⟩>>=⟨refl ⟩
+        ((tr-step body ((sα , ((sF , sG) , sγ)) , inj₂ (inj₁ a⁺))
+           >>= iter-cont iter (tr-step body))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ ((gc-body-fun₁ (MaybeT-ext f) MaybeT-return sα sF sG sγ
+               {v = inj₂ (inj₂ (inj₁ a⁺))} {a = inj₁ (inj₁ a⁺)} refl ⟩>>=⟨refl) ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+        ((((SFunᵉ.fun f (sF , inj₁ a⁺) >>= λ (sF' , w) →
+             return ((sα , ((sF' , sG) , sγ)) , gc-α-fn (inj₁ w))) >>= tr-cont)
+           >>= iter-cont iter (tr-step body))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ ((>>=-assoc _ ⟩>>=⟨refl) ⟩>>=⟨refl) ⟩
+        (((SFunᵉ.fun f (sF , inj₁ a⁺) >>= λ (sF' , w) →
+            return ((sα , ((sF' , sG) , sγ)) , gc-α-fn (inj₁ w)) >>= tr-cont)
+           >>= iter-cont iter (tr-step body))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ (>>=-assoc _ ⟩>>=⟨refl) ⟩
+        ((SFunᵉ.fun f (sF , inj₁ a⁺) >>= λ (sF' , w) →
+           (return ((sα , ((sF' , sG) , sγ)) , gc-α-fn (inj₁ w)) >>= tr-cont)
+             >>= iter-cont iter (tr-step body))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ >>=-assoc _ ⟩
+        (SFunᵉ.fun f (sF , inj₁ a⁺) >>= λ (sF' , w) →
+          (((return ((sα , ((sF' , sG) , sγ)) , gc-α-fn (inj₁ w)) >>= tr-cont)
+             >>= iter-cont iter (tr-step body))
+            >>= λ (s' , b) → return (h s' , b)))
+          ≡⟨ refl⟩>>=⟨ (λ (sF' , w) → post-loop sα sG sγ sF' w) ⟩
+        (SFunᵉ.fun f (sF , inj₁ a⁺) >>= λ (sF' , w) → return (sF' , w))
+          ≡⟨ >>=-identityʳ _ ⟩
+        SFunᵉ.fun f (sF , inj₁ a⁺) ∎
+        where open ≡-Reasoning
+      hyp (sα , ((sF , sG) , sγ)) (inj₂ b⁻) = begin
+        ((SFunᵉ.fun body ((sα , ((sF , sG) , sγ)) , inj₁ (inj₂ b⁻))
+           >>= tr-fun-cont (iter (tr-step body)))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ (gc-body-fun₁ (MaybeT-ext f) MaybeT-return sα sF sG sγ
+               {v = inj₁ (inj₂ b⁻)} {a = inj₂ b⁻} refl ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+        (((SFunᵉ.fun f (sF , inj₂ b⁻) >>= λ (sF' , w) →
+            return ((sα , ((sF' , sG) , sγ)) , gc-α-fn (inj₁ w)))
+           >>= tr-fun-cont (iter (tr-step body)))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ (>>=-assoc _ ⟩>>=⟨refl) ⟩
+        ((SFunᵉ.fun f (sF , inj₂ b⁻) >>= λ (sF' , w) →
+           return ((sα , ((sF' , sG) , sγ)) , gc-α-fn (inj₁ w))
+             >>= tr-fun-cont (iter (tr-step body)))
+          >>= λ (s' , b) → return (h s' , b))
+          ≡⟨ >>=-assoc _ ⟩
+        (SFunᵉ.fun f (sF , inj₂ b⁻) >>= λ (sF' , w) →
+          ((return ((sα , ((sF' , sG) , sγ)) , gc-α-fn (inj₁ w))
+             >>= tr-fun-cont (iter (tr-step body)))
+            >>= λ (s' , b) → return (h s' , b)))
+          ≡⟨ refl⟩>>=⟨ (λ (sF' , w) → post-top sα sG sγ sF' w) ⟩
+        (SFunᵉ.fun f (sF , inj₂ b⁻) >>= λ (sF' , w) → return (sF' , w))
+          ≡⟨ >>=-identityʳ _ ⟩
+        SFunᵉ.fun f (sF , inj₂ b⁻) ∎
+        where open ≡-Reasoning
+
+      core : (MaybeT-ext f GC-C.∘ MaybeT-return) GC-C.≈ f
+      core xs =
+        trace-sim h hyp (SFunᵉ.init (MaybeT-ext f GC-C.∘ MaybeT-return)) xs
+
+  -- Associativity: both sides trace the same loop with the same state;
+  -- the step functions agree pointwise (the inner `g` vs `MaybeT-ext g`
+  -- difference only shows on the external ⊤-shortcut, which unrolls
+  -- purely through the loop). `iter-cong` lifts the pointwise equality
+  -- through the iteration.
+  MaybeT-ext-assoc : ∀ {u : OneObj} {v w A B C}
+    {f : B GC-C.⇒ MaybeT₀ w C} {g : A GC-C.⇒ MaybeT₀ v B}
+    → MaybeT-ext (MaybeT-ext f GC-C.∘ g)
+      GC-C.≈ GC-C.id GC-C.∘ (MaybeT-ext f GC-C.∘ MaybeT-ext g)
+  MaybeT-ext-assoc {u} {v} {w} {A⁺ , A⁻} {B⁺ , B⁻} {C⁺ , C⁻} {f} {g} =
+    GC-C.Equiv.trans core (GC-C.Equiv.sym GC-C.identityˡ)
+    where
+      bodyL : SFunᵉ ((A⁺ ⊎ C⁻) ⊎ (B⁻ ⊎ (B⁺ ⊎ ⊤)))
+                    ((A⁻ ⊎ (C⁺ ⊎ ⊤)) ⊎ (B⁻ ⊎ (B⁺ ⊎ ⊤)))
+      bodyL = gc-α ∘ᵉ ((MaybeT-ext f ⊗ᵉ g) ∘ᵉ gc-γ)
+
+      bodyR : SFunᵉ (((A⁺ ⊎ ⊤) ⊎ C⁻) ⊎ (B⁻ ⊎ (B⁺ ⊎ ⊤)))
+                    ((A⁻ ⊎ (C⁺ ⊎ ⊤)) ⊎ (B⁻ ⊎ (B⁺ ⊎ ⊤)))
+      bodyR = gc-α ∘ᵉ ((MaybeT-ext f ⊗ᵉ MaybeT-ext g) ∘ᵉ gc-γ)
+
+      step-≗ : ∀ p → tr-step bodyL p ≡ tr-step bodyR p
+      step-≗ ((sα , ((sF , sG) , sγ)) , inj₁ b⁻) =
+        trans (gc-body-fun₂ (MaybeT-ext f) g sα sF sG sγ
+                 {v = inj₂ (inj₁ b⁻)} {c = inj₂ b⁻} refl ⟩>>=⟨refl)
+          (sym (gc-body-fun₂ (MaybeT-ext f) (MaybeT-ext g) sα sF sG sγ
+                 {v = inj₂ (inj₁ b⁻)} {c = inj₂ b⁻} refl ⟩>>=⟨refl))
+      step-≗ ((sα , ((sF , sG) , sγ)) , inj₂ y) =
+        trans (gc-body-fun₁ (MaybeT-ext f) g sα sF sG sγ
+                 {v = inj₂ (inj₂ y)} {a = inj₁ y} refl ⟩>>=⟨refl)
+          (sym (gc-body-fun₁ (MaybeT-ext f) (MaybeT-ext g) sα sF sG sγ
+                 {v = inj₂ (inj₂ y)} {a = inj₁ y} refl ⟩>>=⟨refl))
+
+      tfc-eq : ∀ r → tr-fun-cont (iter (tr-step bodyL)) r
+                   ≡ tr-fun-cont (iter (tr-step bodyR)) r
+      tfc-eq (s , inj₁ b)  = refl
+      tfc-eq (s , inj₂ x') = iter-cong step-≗ (s , x')
+
+      funeq : ∀ s x
+        → SFunᵉ.fun (MaybeT-ext (MaybeT-ext f GC-C.∘ g)) (s , x)
+          ≡ SFunᵉ.fun (MaybeT-ext f GC-C.∘ MaybeT-ext g) (s , x)
+      funeq (sα , ((sF , sG) , sγ)) (inj₁ (inj₁ a)) = begin
+        (SFunᵉ.fun bodyL ((sα , ((sF , sG) , sγ)) , inj₁ (inj₁ a))
+          >>= tr-fun-cont (iter (tr-step bodyL)))
+          ≡⟨ gc-body-fun₂ (MaybeT-ext f) g sα sF sG sγ
+               {v = inj₁ (inj₁ a)} {c = inj₁ a} refl ⟩>>=⟨refl ⟩
+        ((SFunᵉ.fun g (sG , inj₁ a) >>= λ (sG' , w) →
+           return ((sα , ((sF , sG') , sγ)) , gc-α-fn (inj₂ w)))
+          >>= tr-fun-cont (iter (tr-step bodyL)))
+          ≡⟨ refl⟩>>=⟨ tfc-eq ⟩
+        ((SFunᵉ.fun g (sG , inj₁ a) >>= λ (sG' , w) →
+           return ((sα , ((sF , sG') , sγ)) , gc-α-fn (inj₂ w)))
+          >>= tr-fun-cont (iter (tr-step bodyR)))
+          ≡⟨ gc-body-fun₂ (MaybeT-ext f) (MaybeT-ext g) sα sF sG sγ
+               {v = inj₁ (inj₁ (inj₁ a))} {c = inj₁ (inj₁ a)} refl ⟩>>=⟨refl ⟨
+        (SFunᵉ.fun bodyR ((sα , ((sF , sG) , sγ)) , inj₁ (inj₁ (inj₁ a)))
+          >>= tr-fun-cont (iter (tr-step bodyR))) ∎
+        where open ≡-Reasoning
+      funeq (sα , ((sF , sG) , sγ)) (inj₁ (inj₂ u′)) = sym (begin
+        (SFunᵉ.fun bodyR ((sα , ((sF , sG) , sγ)) , inj₁ (inj₁ (inj₂ u′)))
+          >>= tr-fun-cont (iter (tr-step bodyR)))
+          ≡⟨ gc-body-fun₂ (MaybeT-ext f) (MaybeT-ext g) sα sF sG sγ
+               {v = inj₁ (inj₁ (inj₂ u′))} {c = inj₁ (inj₂ u′)} refl ⟩>>=⟨refl ⟩
+        ((return (sG , inj₂ (inj₂ tt)) >>= λ (sG' , w) →
+           return ((sα , ((sF , sG') , sγ)) , gc-α-fn (inj₂ w)))
+          >>= tr-fun-cont (iter (tr-step bodyR)))
+          ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+        (return ((sα , ((sF , sG) , sγ)) , inj₂ (inj₂ (inj₂ tt)))
+          >>= tr-fun-cont (iter (tr-step bodyR)))
+          ≡⟨ >>=-identityˡ ⟩
+        iter (tr-step bodyR) ((sα , ((sF , sG) , sγ)) , inj₂ (inj₂ tt))
+          ≡⟨ iter-fix {f = tr-step bodyR} ((sα , ((sF , sG) , sγ)) , inj₂ (inj₂ tt)) ⟩
+        (tr-step bodyR ((sα , ((sF , sG) , sγ)) , inj₂ (inj₂ tt))
+          >>= iter-cont iter (tr-step bodyR))
+          ≡⟨ (gc-body-fun₁ (MaybeT-ext f) (MaybeT-ext g) sα sF sG sγ
+               {v = inj₂ (inj₂ (inj₂ tt))} {a = inj₁ (inj₂ tt)} refl ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+        (((return (sF , inj₂ (inj₂ tt)) >>= λ (sF' , w) →
+            return ((sα , ((sF' , sG) , sγ)) , gc-α-fn (inj₁ w))) >>= tr-cont)
+          >>= iter-cont iter (tr-step bodyR))
+          ≡⟨ (>>=-identityˡ ⟩>>=⟨refl) ⟩>>=⟨refl ⟩
+        ((return ((sα , ((sF , sG) , sγ)) , inj₁ (inj₂ (inj₂ tt))) >>= tr-cont)
+          >>= iter-cont iter (tr-step bodyR))
+          ≡⟨ >>=-identityˡ ⟩>>=⟨refl ⟩
+        (return (inj₂ ((sα , ((sF , sG) , sγ)) , inj₂ (inj₂ tt)))
+          >>= iter-cont iter (tr-step bodyR))
+          ≡⟨ >>=-identityˡ ⟩
+        return ((sα , ((sF , sG) , sγ)) , inj₂ (inj₂ tt)) ∎)
+        where open ≡-Reasoning
+      funeq (sα , ((sF , sG) , sγ)) (inj₂ c⁻) = begin
+        (SFunᵉ.fun bodyL ((sα , ((sF , sG) , sγ)) , inj₁ (inj₂ c⁻))
+          >>= tr-fun-cont (iter (tr-step bodyL)))
+          ≡⟨ gc-body-fun₁ (MaybeT-ext f) g sα sF sG sγ
+               {v = inj₁ (inj₂ c⁻)} {a = inj₂ c⁻} refl ⟩>>=⟨refl ⟩
+        ((SFunᵉ.fun f (sF , inj₂ c⁻) >>= λ (sF' , w) →
+           return ((sα , ((sF' , sG) , sγ)) , gc-α-fn (inj₁ w)))
+          >>= tr-fun-cont (iter (tr-step bodyL)))
+          ≡⟨ refl⟩>>=⟨ tfc-eq ⟩
+        ((SFunᵉ.fun f (sF , inj₂ c⁻) >>= λ (sF' , w) →
+           return ((sα , ((sF' , sG) , sγ)) , gc-α-fn (inj₁ w)))
+          >>= tr-fun-cont (iter (tr-step bodyR)))
+          ≡⟨ gc-body-fun₁ (MaybeT-ext f) (MaybeT-ext g) sα sF sG sγ
+               {v = inj₁ (inj₂ c⁻)} {a = inj₂ c⁻} refl ⟩>>=⟨refl ⟨
+        (SFunᵉ.fun bodyR ((sα , ((sF , sG) , sγ)) , inj₁ (inj₂ c⁻))
+          >>= tr-fun-cont (iter (tr-step bodyR))) ∎
+        where open ≡-Reasoning
+
+      core : MaybeT-ext (MaybeT-ext f GC-C.∘ g)
+             GC-C.≈ (MaybeT-ext f GC-C.∘ MaybeT-ext g)
+      core xs = trace-cong funeq
+        (SFunᵉ.init (MaybeT-ext (MaybeT-ext f GC-C.∘ g))) xs
 
 SFunᵉ-GradedTriple : GradedKleisliTriple One-MonoidalCategory SFunᵉ-GConstruction
 SFunᵉ-GradedTriple = record
@@ -491,9 +1201,9 @@ Kl→Machine Kl = Hom→Machine (Kl→MaybeHom Kl)
 -- `MaybeT-ext` (the Kleisli extension) plus G-construction composition.
 -- These are the canonical category structure on `MaybeHom-Kl` — the
 -- forgetful image of the graded Kleisli category's id and ∘ under the
--- collapse V=One. Modulo the 5 postulated `ext-*` laws on the triple,
--- the four MaybeHomCategory laws (assoc, identityˡ/ʳ, ∘-resp-≈) are
--- derivable from these by transport through `MaybeHom↔Kl`.
+-- collapse V=One. Since the triple's laws are all proven, the four
+-- MaybeHomCategory laws (assoc, identityˡ/ʳ, ∘-resp-≈) are derivable
+-- from these by transport through `MaybeHom↔Kl`.
 idᴹᴴ-Kl : ∀ {A : Channel} → MaybeHom-Kl A A
 idᴹᴴ-Kl {A} = MaybeT-return {Channel→Obj A}
 
@@ -544,9 +1254,9 @@ TotalFunctionMachine'→Hom p q = FunctionMachine→Hom
 -- The MaybeHomCategory laws below are stated, not yet proven. They are
 -- the categorical analogue of MachineCategory's laws and will be
 -- discharged in a future iteration by transporting from
--- SFunᵉ-GradedKleisli (once the five postulated `MaybeT-ext-*` laws of
--- the triple are discharged). The transport from MaybeHomCategory back
--- to MachineCategory is the final piece below.
+-- SFunᵉ-GradedKleisli (whose triple laws are now fully proven). The
+-- transport from MaybeHomCategory back to MachineCategory is the final
+-- piece below.
 
 idᴹᴴ : ∀ {A : Channel} → MaybeHom A A
 idᴹᴴ = Machine→Hom MC.id
@@ -567,9 +1277,8 @@ _≈ᴹᴴ_ MH₁ MH₂ = Hom→Machine MH₁ ≈ℰ Hom→Machine MH₂
 
 -- MaybeHomCategory's category laws. Stated here as the "categorical"
 -- residue of MachineCategory's laws — they will hold by transport from
--- `SFunᵉ-GradedKleisli` once the triple's postulated `ext` laws are
--- discharged (the category laws of `Categories.GradedKleisli` itself
--- are fully proven).
+-- `SFunᵉ-GradedKleisli`, whose triple laws and category laws are now
+-- fully proven.
 --
 -- Two routes to discharge each of these (Tier 3 roadmap):
 --
@@ -587,10 +1296,10 @@ _≈ᴹᴴ_ MH₁ MH₂ = Hom→Machine MH₁ ≈ℰ Hom→Machine MH₂
 -- Route B — via the Maybe-graded triple: each MaybeHomCategory law
 -- is the iso image (MaybeHom↔Kl) of the corresponding MaybeHom-Kl
 -- law. Specifically:
---   MaybeHom-Kl forms a category via the GradedKleisli construction;
---   the iso Kl→MaybeHom takes that category's laws to MaybeHomCategory's
---   laws — modulo (a) the 5 postulated `MaybeT-ext-*` laws above, and
---   (b) showing the iso is functorial (preserves id and ∘ up to ≈ᴹᴴ).
+--   MaybeHom-Kl forms a category via the GradedKleisli construction
+--   (its triple laws are proven above); the iso Kl→MaybeHom takes that
+--   category's laws to MaybeHomCategory's laws — modulo showing the
+--   iso is functorial (preserves id and ∘ up to ≈ᴹᴴ).
 -- Both routes are substantial but the framework is in place for
 -- either to be pursued.
 postulate
