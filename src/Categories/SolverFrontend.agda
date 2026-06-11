@@ -114,7 +114,8 @@ import Categories.Morphism.Reasoning as MR
 open import Categories.DiagramRewriteUntyped using (module Untyped)
 open import Categories.FreeMonoidal
 open import Categories.SolverCompare using (module SolverCompare)
-open import Categories.SolverFrontendCore using (module MaybeHit; module FCore; module FBridge)
+open import Categories.SolverFrontendCore
+  using (module MaybeHit; module FCore; module FBridge; module IntoCore)
 open import Categories.SolverNormalize using (module Normalize)
 open import Categories.SolverReflect using (module Reflect)
 
@@ -423,30 +424,16 @@ module Frontend
       (⟦_⟧ᵖ₀ : X → C .MonoidalCategory.U .Category.Obj)
       where
 
-      private
-        dF : FreeMonoidalData
-        dF = record { v = Mon ; X = X ; mor = GenF }
-
-        ⟦v⟧F : ⟦ Mon ⟧ᵥ {o} {ℓ} {e}
-        ⟦v⟧F = record
-          { C = C .MonoidalCategory.U
-          ; Monoidal-C = C .MonoidalCategory.monoidal
-          ; Symmetric-C = λ where ⦃ () ⦄
-          }
-
-      open FreeFunctorHelper dF ⟦v⟧F using (module Go)
-      open Go ⟦_⟧ᵖ₀ using () renaming (⟦_⟧₀ to ⟦_⟧ₒ) public
+      private module IC = IntoCore Mon GenF C (λ where ⦃ () ⦄) ⟦_⟧ᵖ₀
+      open IC public using (⟦_⟧ₒ)
 
       module WithGen
         (⟦gen⟧ : ∀ {Y Z} → GenF Y Z
                → C .MonoidalCategory.U [ ⟦ Y ⟧ₒ , ⟦ Z ⟧ₒ ])
         where
 
-        private
-          ffdF : FreeFunctorData dF {o} {ℓ} {e}
-          ffdF = record { ⟦v⟧ = ⟦v⟧F ; ⟦_⟧ᵖ₀ = ⟦_⟧ᵖ₀ ; ⟦_⟧ᵖ₁ = ⟦gen⟧ }
-
-        open FreeFunctor {d = dF} ffdF public using (⟦_⟧₁; ⟦⟧-resp-≈)
+        private module ICW = IC.WithGenC ⟦gen⟧
+        open ICW public using (⟦_⟧₁; ⟦⟧-resp-≈)
 
         -- THE entry point: discharge a target-category equation whose two
         -- sides are interpretations of front-end terms.

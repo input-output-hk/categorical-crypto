@@ -69,10 +69,15 @@ open import Data.Nat using (ℕ)
 open import Data.Product using (Σ; _,_; Σ-syntax)
 open import Data.Unit using (⊤)
 open import Function using (case_of_)
+open import Level using (Level)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂)
 open import Relation.Nullary using (Dec; yes; no)
+
+open import Categories.Category using (Category; _[_,_])
+open import Categories.Category.Monoidal using (MonoidalCategory)
+open import Categories.Category.Monoidal.Symmetric using (Symmetric)
 
 import Categories.Category.Monoidal.Reasoning as MonR
 import Categories.Morphism.Reasoning as MR
@@ -570,3 +575,46 @@ module FBridge
         where
           main : flat⇒ Z ∘F l F.≈Term flat⇒ Z ∘F r
           main = ⟺F (bridgeF l) ○F (inj-resp-≈ eq ⟩∘F⟨refl) ○F bridgeF r
+
+------------------------------------------------------------------------
+-- IntoCore: the shared free-functor plumbing of the `Into` transport
+-- layers.  Variant-generic via the instance-gated symmetric structure:
+-- the Mon front-end passes the vacuous `λ ⦃ () ⦄`, the Symm front-end
+-- wraps its caller's `Symmetric` witness.
+------------------------------------------------------------------------
+
+module IntoCore
+  (v : Variant)
+  {X : Set}
+  (let open FreeMonoidalHelper v X using (ObjTerm))
+  (GenF : ObjTerm → ObjTerm → Set)
+  {o ℓ e : Level}
+  (C : MonoidalCategory o ℓ e)
+  (SymC : ⦃ Symm ≤ v ⦄ → Symmetric (C .MonoidalCategory.monoidal))
+  (⟦_⟧ᵖ₀ : X → C .MonoidalCategory.U .Category.Obj)
+  where
+
+  private
+    dF : FreeMonoidalData
+    dF = record { v = v ; X = X ; mor = GenF }
+
+    ⟦v⟧F : ⟦ v ⟧ᵥ {o} {ℓ} {e}
+    ⟦v⟧F = record
+      { C = C .MonoidalCategory.U
+      ; Monoidal-C = C .MonoidalCategory.monoidal
+      ; Symmetric-C = SymC
+      }
+
+  open FreeFunctorHelper dF ⟦v⟧F using (module Go)
+  open Go ⟦_⟧ᵖ₀ using () renaming (⟦_⟧₀ to ⟦_⟧ₒ) public
+
+  module WithGenC
+    (⟦gen⟧ : ∀ {Y Z} → GenF Y Z
+           → C .MonoidalCategory.U [ ⟦ Y ⟧ₒ , ⟦ Z ⟧ₒ ])
+    where
+
+    private
+      ffdF : FreeFunctorData dF {o} {ℓ} {e}
+      ffdF = record { ⟦v⟧ = ⟦v⟧F ; ⟦_⟧ᵖ₀ = ⟦_⟧ᵖ₀ ; ⟦_⟧ᵖ₁ = ⟦gen⟧ }
+
+    open FreeFunctor {d = dF} ffdF public using (⟦_⟧₁; ⟦⟧-resp-≈)

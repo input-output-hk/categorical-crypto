@@ -79,7 +79,8 @@ open import Categories.Category.Monoidal.Symmetric using (Symmetric)
 import Categories.Category.Monoidal.Reasoning as MonR
 
 open import Categories.FreeMonoidal
-open import Categories.SolverFrontendCore using (module MaybeHit; module FCore; module FBridge)
+open import Categories.SolverFrontendCore
+  using (module MaybeHit; module FCore; module FBridge; module IntoCore)
 open import Categories.SolverSigma using (module Sigma)
 
 module FrontendS
@@ -256,30 +257,16 @@ module FrontendS
       (⟦_⟧ᵖ₀ : X → C .MonoidalCategory.U .Category.Obj)
       where
 
-      private
-        dF : FreeMonoidalData
-        dF = record { v = Symm ; X = X ; mor = GenF }
-
-        ⟦v⟧F : ⟦ Symm ⟧ᵥ {o} {ℓ} {e}
-        ⟦v⟧F = record
-          { C = C .MonoidalCategory.U
-          ; Monoidal-C = C .MonoidalCategory.monoidal
-          ; Symmetric-C = λ ⦃ _ ⦄ → Sym
-          }
-
-      open FreeFunctorHelper dF ⟦v⟧F using (module Go)
-      open Go ⟦_⟧ᵖ₀ using () renaming (⟦_⟧₀ to ⟦_⟧ₒ) public
+      private module IC = IntoCore Symm GenF C (λ ⦃ _ ⦄ → Sym) ⟦_⟧ᵖ₀
+      open IC public using (⟦_⟧ₒ)
 
       module WithGen
         (⟦gen⟧ : ∀ {Y Z} → GenF Y Z
                → C .MonoidalCategory.U [ ⟦ Y ⟧ₒ , ⟦ Z ⟧ₒ ])
         where
 
-        private
-          ffdF : FreeFunctorData dF {o} {ℓ} {e}
-          ffdF = record { ⟦v⟧ = ⟦v⟧F ; ⟦_⟧ᵖ₀ = ⟦_⟧ᵖ₀ ; ⟦_⟧ᵖ₁ = ⟦gen⟧ }
-
-        open FreeFunctor {d = dF} ffdF public using (⟦_⟧₁; ⟦⟧-resp-≈)
+        private module ICW = IC.WithGenC ⟦gen⟧
+        open ICW public using (⟦_⟧₁; ⟦⟧-resp-≈)
 
         -- THE entry point: discharge a target-category equation whose two
         -- sides are interpretations of front-end terms (with σ).
