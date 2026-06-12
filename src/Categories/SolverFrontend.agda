@@ -30,7 +30,7 @@
 --         bridgeF : inj (embed (reflectF t)) ∘ flat⇒ ≈ flat⇒ ∘ t
 --
 --     holds by induction, with the structural cases discharged by the
---     wire-level coherence lemmas (`merge-ρ`, `merge-assoc`, `merge∘split`)
+--     wire-level coherence lemmas (`merge-ρ`, `merge-assoc`, `split∘merge`)
 --     transferred along `inj`;
 --
 --   * `Decide.solveTerm!` packages reflect → normalize → compare → bridge →
@@ -44,10 +44,9 @@
 -- `Categories.SolverFrontendCore` (`FCore`/`FBridge`), instantiated here at
 -- (Mon, MorW, ⟦box⟧); this file supplies the Mon-specific clauses (the
 -- conjugated-box `injBox`, `reflectVar`, and the vacuous σ clauses on the
--- empty `Symm ≤ Mon`), the `Decide` layer (the interchange oracle `go`, the
--- first-applicable-position loop `step?`, and the fuel budget — the chaining
--- loop itself is the generic `normFuelWith` from `SolverNormalize.SortD`
--- §12d), term-level focusing, the rewriting layer, and `FinSetup`.
+-- empty `Symm ≤ Mon`), instantiates the generic oracle/loop
+-- (`interchangeGo`/`stepWith`/`normFuelWith`) from `SolverNormalize.SortD`
+-- §12d, the core focusing/rewriting layer, and `FinSetup`.
 --
 -- WHAT DECIDES (verified in `Categories.SolverFrontendTests`):
 --   pure MacLane coherence (unitor/associator iso laws, triangle, pentagon,
@@ -92,32 +91,25 @@
 
 module Categories.SolverFrontend where
 
-open import Data.Bool using (not; _∨_; if_then_else_)
-open import Data.Fin using (Fin; toℕ)
+open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
-open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (++-assoc; ++-identityʳ)
-open import Data.Maybe using (Maybe; just; nothing; _<∣>_)
-open import Data.Nat using (ℕ; _*_; _<ᵇ_) renaming (zero to nzero; suc to nsuc)
-open import Data.Product using (Σ; _,_; _×_; Σ-syntax; proj₁; proj₂)
+open import Data.List using (_++_)
+open import Data.Maybe using (Maybe)
+open import Data.Nat using (ℕ; _*_) renaming (suc to nsuc)
+open import Data.Product using (_,_; _×_)
 open import Data.Vec using (Vec; lookup)
-open import Function using (case_of_)
 open import Level using (Level)
 open import Relation.Binary using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans)
-open import Relation.Nullary using (yes; no)
+open import Relation.Binary.PropositionalEquality using (refl)
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
-
-import Categories.Morphism.Reasoning as MR
 
 open import Categories.DiagramRewriteUntyped using (module Untyped)
 open import Categories.FreeMonoidal
 open import Categories.SolverCompare using (module SolverCompare)
 open import Categories.SolverFrontendCore
-  using (module MaybeHit; module FCore; module FBridge; module IntoCore; module FinSig; module FFocus)
+  using (module FCore; module FBridge; module IntoCore; module FinSig; module FFocus)
 open import Categories.SolverNormalize using (module Normalize)
 open import Categories.SolverReflect using (module Reflect; module DecideCore)
 
@@ -137,16 +129,10 @@ module Frontend
 
   -- Wire-level machinery at MorW.
   open Untyped Mon {X} MorW                -- wires, mor, box, ⟦box⟧, merge, split, …
-  open FreeMonoidalHelper.Mor Mon X mor    -- W-side HomTerm, _≈Term_, …
   open Reflect Mon {X} _≟X_ MorW           -- WTerm, embed, reflect, castW, merge-ρ, …
-  open ≈R
 
   -- Front-end free category: HomTerm over GenF, qualified `F`.
   private module F = FreeMonoidalHelper.Mor Mon X GenF
-
-  -- stock combinators at the wire-level free category (proofs-only, not
-  -- exported; used by the `Decide` layer below).
-  open MR FreeMonoidal using (pullˡ)
 
   ------------------------------------------------------------------------
   -- The engine-generic shared layer, at (Mon, MorW, ⟦box⟧).
@@ -210,9 +196,9 @@ module Frontend
       _≟W_ : DecidableEquality SC.Gen
       _≟W_ = Core.decMorW _≟G_
 
-    -- the SortD swap engine (the generic interchange oracle/loop now live in
-    -- §12d/§12e; only the DecEq-dependent transport stays from Normalize).
-    open Normalize Mon {X} _≟X_ MorW using ( substDiagU; module SortD )
+    -- the SortD swap engine from Normalize (the generic oracle/loop live in
+    -- §12d/§12e; only the DecEq-dependent SortD module is needed here).
+    open Normalize Mon {X} _≟X_ MorW using (module SortD)
     open SortD using (SwapRes; interchangeGo; stepWith; depthD; normFuelWith)
 
     private
@@ -241,30 +227,10 @@ module Frontend
     decide?F : ∀ {Y Z} (l r : F.HomTerm Y Z) → Maybe (l F.≈Term r)
     decide?F l r = Data.Maybe.map solveF (decide?W (reflectF l) (reflectF r))
 
-    -- the computing hit-witness (`IsJust` normalizes to ⊤ exactly on a
-    -- solver hit) and the hit extractor, shared via the core.
-    open MaybeHit public using (IsJust; fromHit)
-
-    -- reference-style entry point at the free level.
-    solveTerm! : ∀ {Y Z} (l r : F.HomTerm Y Z)
-                 {hit : IsJust (decide?F l r)} → l F.≈Term r
-    solveTerm! l r {hit} = fromHit (decide?F l r) hit
-
-    ------------------------------------------------------------------------
-    -- Term-level FOCUSING (the Mon analogue of the SMC solver's `Carve`):
-    -- find a frame  `post ∘ (id {k} ⊗ (– ⊗ id {m})) ∘ pre`  exhibiting an
-    -- occurrence of a redex `lᵗ` inside `s`.  The symmetric version routes
-    -- a left-factor wire past the redex with σ; the Mon fragment has no
-    -- braiding, so the frame is TWO-SIDED (pads on both sides of the hole).
-    -- The search is unverified: a `focusAtₙ` hit is certified downstream by
-    -- `decide?F s (plug foc lᵗ)`, so soundness rests solely on the solver.
-    ------------------------------------------------------------------------
-
-    -- the focusing layer (_≟O_/Foc/plug/focusAll/focusAtₙ) is now the generic
-    -- core layer, instantiated at this front-end's `decide?F`.  A single shared
-    -- application `FF` is reused below (the rewrite layer lives in `FF.Rewrite`).
+    -- the focusing/rewriting layer is the generic core `FFocus`, instantiated at
+    -- this front-end's `decide?F`; `FF.Rewrite` handles the rewrite wrappers.
     module FF = FFocus Mon {X} _≟X_ GenF decide?F
-    open FF public using (_≟O_; Foc; plug; focusAll; focusAtₙ)
+    open FF public using (IsJust; fromHit; solveTerm!; _≟O_; Foc; plug; focusAll; focusAtₙ)
 
     ------------------------------------------------------------------------
     -- Transport into an arbitrary target monoidal category, along the free
@@ -362,7 +328,7 @@ module FinSetup
 
     -- the variant-generic Fin-signature prelude (GenS / S / gen / _≟G_ /
     -- rankS / GenΣ), shared with `FinSetupσ` via the core.
-    open FinSig Mon {nA} arity public using (GenS; genS; module S; gen; GenΣ; _≟G_; rankS)
+    open FinSig Mon {X = Fin nA} arity public using (GenS; genS; module S; gen; GenΣ; _≟G_; rankS)
 
     open Frontend {Fin nA} _≟Fin_ GenS using (module Decide)
 

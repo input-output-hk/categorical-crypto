@@ -37,9 +37,10 @@
 --     the σ clauses of `inj`, `inj-resp-≈` and `reflectF` live HERE,
 --     instance-gated on `⦃ Symm ≤ v ⦄` exactly like `HomTerm`'s σ
 --     constructor (for Mon they are dead code: `Symm ≤ Mon` is empty).
---     Body: `inj`, `inj-resp-≈`, `inj-merge`/`inj-split`/`inj-coeC`,
---     `reflectF`, the transferred lemmas (`splitF∘mergeF`, `mergeF-ρ`,
---     `mergeF-assoc`), `flat⇐∘flat⇒`, `cast-half`, `fwd-ρ`/`fwd-α`.
+--     Body: `inj`, `inj-resp-≈`, `inj-merge`/`inj-split`/`inj-castW0`
+--     (`≡`-lemma)/`inj-castW` (`≈Term`-lemma), `reflectF`, the transferred
+--     lemmas (`splitF∘mergeF`, `mergeF-ρ`, `mergeF-assoc`), `flat⇐∘flat⇒`,
+--     `cast-half`, `fwd-ρ`/`fwd-α`.
 --
 --   FBridge.WithInj.Bridge inj-embed-var bridge-σ
 --     The soundness bridge `bridgeF` and the cancellation `solveF`.  The
@@ -59,7 +60,7 @@
 -- (`inj` is NOT an instance of `FreeMonoidal`'s `FreeFunctor`/`⟦_⟧₁`: that
 -- functor's object action is the recursive `⟦_⟧₀`, never the literal identity
 -- on `ObjTerm`, so the index-preserving `inj` and its on-the-nose
--- `inj-merge`/`inj-split`/`inj-coeC` `≡`-lemmas would drown in object
+-- `inj-merge`/`inj-split`/`inj-castW0` `≡`-lemmas would drown in object
 -- coercions.  Hence the dedicated, definitionally transparent `inj`.)
 --
 -- DEFINITIONAL-EQUALITY DISCIPLINE: everything computation-relevant
@@ -81,13 +82,13 @@ open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Nat using (ℕ; zero; suc)
-open import Data.Product using (Σ; _,_; _×_; Σ-syntax; proj₁; proj₂)
+open import Data.Product using (_,_; _×_; Σ-syntax; proj₁; proj₂)
 open import Data.Unit using (⊤)
 open import Function using (case_of_)
 open import Level using (Level)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂)
+  using (_≡_; refl; sym; cong; cong₂)
 open import Relation.Nullary using (yes; no)
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
@@ -192,8 +193,8 @@ module FCore
 
 module FinSig
   (v : Variant)
-  {nA : ℕ}
-  (let open FreeMonoidalHelper v (Fin nA) using (ObjTerm))
+  {X : Set}
+  (let open FreeMonoidalHelper v X using (ObjTerm))
   {nG : ℕ}
   (arity : Fin nG → ObjTerm × ObjTerm)
   where
@@ -202,13 +203,13 @@ module FinSig
     genS : (i : Fin nG) → GenS (proj₁ (arity i)) (proj₂ (arity i))
 
   -- the front-end term language over the assembled signature.
-  module S = FreeMonoidalHelper.Mor v (Fin nA) GenS
+  module S = FreeMonoidalHelper.Mor v X GenS
 
   gen : (i : Fin nG) → S.HomTerm (proj₁ (arity i)) (proj₂ (arity i))
   gen i = S.var (genS i)
 
   -- the Σ-packaged front-end generators, and the Fin-derived DecEq / rank.
-  open FCore v {Fin nA} GenS public using (GenΣ)
+  open FCore v {X} GenS public using (GenΣ)
 
   _≟G_ : DecidableEquality GenΣ
   (_ , _ , genS i) ≟G (_ , _ , genS j) = case i ≟Fin j of λ where
@@ -518,7 +519,7 @@ module FBridge
 
     cast-half : ∀ {P} {p q : List X} (e : p ≡ q) (h : F.HomTerm P (wires p))
               → inj (embed (castʷ refl e (idʷ {p}))) ∘F h F.≈Term coeCF e h
-    cast-half {P} {p} {q} e h =
+    cast-half e h =
       ((inj-resp-≈ (embed-castʷ refl e idʷ)
          ○F F.idʳ
          ○F inj-castW e id) ⟩∘F⟨refl)
@@ -593,7 +594,7 @@ module FBridge
         (F.≡⇒≈Term (inj-embed-var g) ⟩∘F⟨refl)
         ○F F.assoc ○F (reflF⟩∘⟨ cancelʳF (flat⇐∘flat⇒ Y))
       bridgeF {Y} {.Y} F.id = F.idˡ ○F ⟺F F.idʳ
-      bridgeF {Y} {Z} (F._∘_ {B = M} g f) =
+      bridgeF {Y} {Z} (F._∘_ g f) =
         F.assoc ○F (reflF⟩∘⟨ bridgeF f) ○F pullˡF (bridgeF g) ○F F.assoc
       bridgeF (F._⊗₁_ {A = Y} {B = Z} {C = Y'} {D = Z'} f g) = beginF
         inj (embed (reflectF f ⊗ʷ reflectF g)) ∘F (mergeF fY {fY'} ∘F (f⇒Y ⊗F f⇒Y'))
@@ -713,6 +714,11 @@ module FFocus
 
   open MaybeHit public using (IsJust; fromHit)
 
+  -- reference-style entry point: discharge `l F.≈Term r` by reflection.
+  solveTerm! : ∀ {Y Z} (l r : F.HomTerm Y Z)
+               {hit : IsJust (decide?F l r)} → l F.≈Term r
+  solveTerm! l r {hit} = fromHit (decide?F l r) hit
+
   -- decidable equality on front-end objects (no-K style: the negative
   -- cases go through injectivity lemmas, never a refl-match at a
   -- partially-forced index).
@@ -831,6 +837,18 @@ module FFocus
     private
       module MCc = MonoidalCategory C
 
+      -- shared body: rewrite `s ≈ t` by firing a rule at a known focus.
+      rewriteAt : ∀ {A B P Q}
+                → (s t : F.HomTerm A B) (foc : Foc A B P Q) (lᵗ rᵗ : F.HomTerm P Q)
+                → C .MonoidalCategory.U [ ⟦ lᵗ ⟧₁ ≈ ⟦ rᵗ ⟧₁ ]
+                → {h₁ : IsJust (decide?F s (plug foc lᵗ))}
+                → {h₂ : IsJust (decide?F t (plug foc rᵗ))}
+                → C .MonoidalCategory.U [ ⟦ s ⟧₁ ≈ ⟦ t ⟧₁ ]
+      rewriteAt s t foc lᵗ rᵗ rule {h₁} {h₂} =
+        MCc.Equiv.trans (solveMor! s (plug foc lᵗ) {h₁})
+          (MCc.Equiv.trans (plugCong foc lᵗ rᵗ rule)
+            (MCc.Equiv.sym (solveMor! t (plug foc rᵗ) {h₂})))
+
     -- manual position: the caller supplies the frame (`pre`/`post`).
     rewriteMor!
       : ∀ {A B P Q k m}
@@ -842,10 +860,7 @@ module FFocus
       → {h₂ : IsJust (decide?F t (plug (k , m , pre , post) rᵗ))}
       → C .MonoidalCategory.U [ ⟦ s ⟧₁ ≈ ⟦ t ⟧₁ ]
     rewriteMor! {k = k} {m = m} s t pre post lᵗ rᵗ rule {h₁} {h₂} =
-      MCc.Equiv.trans (solveMor! s (plug foc lᵗ) {h₁})
-        (MCc.Equiv.trans (plugCong foc lᵗ rᵗ rule)
-          (MCc.Equiv.sym (solveMor! t (plug foc rᵗ) {h₂})))
-      where foc = (k , m , pre , post)
+      rewriteAt s t (k , m , pre , post) lᵗ rᵗ rule {h₁} {h₂}
 
     -- automatic position: the n-th occurrence of `lᵗ` in `s` is located by
     -- `focusAtₙ`; both endpoints are stated by the caller.
@@ -858,10 +873,7 @@ module FFocus
       → {h₂ : IsJust (decide?F t (plug (fromHit (focusAtₙ s lᵗ n) found) rᵗ))}
       → C .MonoidalCategory.U [ ⟦ s ⟧₁ ≈ ⟦ t ⟧₁ ]
     rewriteMorₙ! s t lᵗ rᵗ n rule {found} {h₁} {h₂} =
-      MCc.Equiv.trans (solveMor! s (plug foc lᵗ) {h₁})
-        (MCc.Equiv.trans (plugCong foc lᵗ rᵗ rule)
-          (MCc.Equiv.sym (solveMor! t (plug foc rᵗ) {h₂})))
-      where foc = fromHit (focusAtₙ s lᵗ n) found
+      rewriteAt s t (fromHit (focusAtₙ s lᵗ n) found) lᵗ rᵗ rule {h₁} {h₂}
 
     -- the first occurrence.
     rewriteMorAuto!

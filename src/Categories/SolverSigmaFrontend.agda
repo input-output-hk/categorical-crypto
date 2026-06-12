@@ -59,29 +59,27 @@
 
 module Categories.SolverSigmaFrontend where
 
-open import Data.Fin using (Fin; toℕ)
+open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
-open import Data.List using (List; _++_)
+open import Data.List using (_++_)
 open import Data.Maybe using (Maybe)
 open import Data.Nat using (ℕ)
-open import Data.Product using (Σ; _,_; _×_; Σ-syntax; proj₁; proj₂)
+open import Data.Product using (_,_; _×_)
 open import Data.Vec using (Vec; lookup)
-open import Function using (case_of_)
 open import Level using (Level)
 open import Relation.Binary using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong₂)
-open import Relation.Nullary using (yes; no)
+open import Relation.Binary.PropositionalEquality using (refl; cong₂)
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
 open import Categories.Category.Monoidal.Symmetric using (Symmetric)
 
 import Categories.Category.Monoidal.Reasoning as MonR
+import Categories.Morphism.Reasoning as MR
 
 open import Categories.FreeMonoidal
 open import Categories.SolverFrontendCore
-  using (module MaybeHit; module FCore; module FBridge; module IntoCore; module FinSig; module FFocus)
+  using (module FCore; module FBridge; module IntoCore; module FinSig; module FFocus)
 open import Categories.SolverSigma using (module Sigma)
 
 module FrontendS
@@ -108,7 +106,6 @@ module FrontendS
   -- the wire signature, ⟦box⟧S, reflect/embed, and the `Decide` driver
   -- (renamed `DecideW`, the front-end defines its own `Decide` below).
   open Sigma _≟X_ MorW renaming (module Decide to DecideW)
-  open FreeMonoidalHelper.Mor Symm X mor    -- W-side HomTerm, _≈Term_, σ, …
 
   -- Front-end free category: HomTerm over GenF, qualified `F`.
   private module F = FreeMonoidalHelper.Mor Symm X GenF
@@ -118,6 +115,9 @@ module FrontendS
     using ()
     renaming (refl⟩∘⟨_ to infixr 4 reflF⟩∘⟨_; _⟩∘⟨refl to infixl 5 _⟩∘F⟨refl;
               ⟺ to ⟺F; _○_ to infixr 3 _○F_)
+  open MR F.FreeMonoidal
+    using ()
+    renaming (cancelˡ to cancelˡF; assoc²βε to assoc²βεF)
 
   ------------------------------------------------------------------------
   -- The engine-generic shared layer, at (Symm, MorS, ⟦box⟧S).
@@ -172,17 +172,10 @@ module FrontendS
                 F.≈Term flat⇒ (B ⊗₀ A) ∘F F.σ ⦃ s ⦄
     bridge-σS {A} {B} ⦃ v≤v ⦄ = beginF
       inj (embed (reflectσS A B)) ∘F (mergeF fA {fB} ∘F (f⇒A ⊗F f⇒B))
-        ≈F⟨ F.≡⇒≈Term (cong₂ (λ h j → h ∘F (σF ∘F j))
+        ≈F⟨ F.≡⇒≈Term (cong₂ (λ h j → h ∘F (F.σ ∘F j))
                        (inj-merge fB {fA}) (inj-split fA {fB})) ⟩∘F⟨refl ⟩
       (mergeF fB {fA} ∘F (F.σ ∘F splitF fA {fB})) ∘F (mergeF fA {fB} ∘F (f⇒A ⊗F f⇒B))
-        ≈F⟨ F.assoc ⟩
-      mergeF fB {fA} ∘F ((F.σ ∘F splitF fA {fB}) ∘F (mergeF fA {fB} ∘F (f⇒A ⊗F f⇒B)))
-        ≈F⟨ reflF⟩∘⟨ F.assoc ⟩
-      mergeF fB {fA} ∘F (F.σ ∘F (splitF fA {fB} ∘F (mergeF fA {fB} ∘F (f⇒A ⊗F f⇒B))))
-        ≈F⟨ reflF⟩∘⟨ (reflF⟩∘⟨ (⟺F F.assoc)) ⟩
-      mergeF fB {fA} ∘F (F.σ ∘F ((splitF fA {fB} ∘F mergeF fA {fB}) ∘F (f⇒A ⊗F f⇒B)))
-        ≈F⟨ reflF⟩∘⟨ (reflF⟩∘⟨
-              ((((splitF∘mergeF fA {fB}) ⟩∘F⟨refl)) ○F F.idˡ)) ⟩
+        ≈F⟨ assoc²βεF ○F (reflF⟩∘⟨ (reflF⟩∘⟨ cancelˡF (splitF∘mergeF fA {fB}))) ⟩
       mergeF fB {fA} ∘F (F.σ ∘F (f⇒A ⊗F f⇒B))
         ≈F⟨ reflF⟩∘⟨ F.σ∘[f⊗g]≈[g⊗f]∘σ ⟩
       mergeF fB {fA} ∘F ((f⇒B ⊗F f⇒A) ∘F F.σ)
@@ -191,8 +184,6 @@ module FrontendS
       where
         fA = flatten A ; fB = flatten B
         f⇒A = flat⇒ A ; f⇒B = flat⇒ B
-        σF : F.HomTerm (wires fA ⊗₀ wires fB) (wires fB ⊗₀ wires fA)
-        σF = F.σ
 
   private module FBB = FBI.Bridge (λ g → refl) (λ {A} {B} ⦃ s ⦄ → bridge-σS {A} {B} ⦃ s ⦄)
   open FBB public using (bridgeF; solveF)
@@ -225,21 +216,10 @@ module FrontendS
     decide?F : ∀ {Y Z} (l r : F.HomTerm Y Z) → Maybe (l F.≈Term r)
     decide?F l r = Data.Maybe.map solveF (DW.decideσ? (reflectF l) (reflectF r))
 
-    -- the computing hit-witness (`IsJust` normalizes to ⊤ exactly on a
-    -- solver hit, so the implicit is auto-discharged at concrete test
-    -- sites) and the hit extractor, as in the Mon front-end.
-    open MaybeHit public using (IsJust; fromHit)
-
-    -- reference-style entry point at the free level.
-    solveTerm! : ∀ {Y Z} (l r : F.HomTerm Y Z)
-                 {hit : IsJust (decide?F l r)} → l F.≈Term r
-    solveTerm! l r {hit} = fromHit (decide?F l r) hit
-
-    -- the term-level focusing layer (now shared with the Mon front-end via
-    -- the core).  A single shared application `FF`, reused below for the
-    -- rewrite layer (`FF.Rewrite`).
+    -- the focusing/rewriting layer is the generic core `FFocus`, instantiated at
+    -- this front-end's `decide?F`; `FF.Rewrite` handles the rewrite wrappers.
     module FF = FFocus Symm {X} _≟X_ GenF decide?F
-    open FF public using (_≟O_; Foc; plug; focusAll; focusAtₙ)
+    open FF public using (IsJust; fromHit; solveTerm!; _≟O_; Foc; plug; focusAll; focusAtₙ)
 
     ------------------------------------------------------------------------
     -- Transport into an arbitrary target SYMMETRIC monoidal category (a
@@ -329,7 +309,7 @@ module FinSetupσ
 
     -- the variant-generic Fin-signature prelude (GenS / S / gen / _≟G_ /
     -- rankS / GenΣ), shared with the Mon `FinSetup` via the core.
-    open FinSig Symm {nA} arity public using (GenS; genS; module S; gen; GenΣ; _≟G_; rankS)
+    open FinSig Symm {X = Fin nA} arity public using (GenS; genS; module S; gen; GenΣ; _≟G_; rankS)
 
     open FrontendS {Fin nA} _≟Fin_ GenS using (module Decide)
 
