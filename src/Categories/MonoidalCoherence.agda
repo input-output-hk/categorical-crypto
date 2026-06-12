@@ -182,21 +182,37 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
       → iso₁ (B , ⟦ C ⟧ d) ∘ Functor.F₁ F1 (f , refl) FM.≈ Functor.F₁ F2 (f , refl) ∘ iso₁ (A , ⟦ C ⟧ d)
       → iso₁ (D , d) ∘ Functor.F₁ F1 (g , refl) FM.≈ Functor.F₁ F2 (g , refl) ∘ iso₁ (C , d)
       → iso₁ (B ⊗₀ D , d) ∘ Functor.F₁ F1 (f ⊗₁ g , refl) FM.≈ Functor.F₁ F2 (f ⊗₁ g , refl) ∘ iso₁ (A ⊗₀ C , d)
-    -- Combinator form (interface-size: stored intermediates carry three
-    -- iso₁ unfoldings each).  Outline: slide (f ⊗₁ g) ⊗₁ id past α⇒;
-    -- absorb g into iso₁ (D , d) (Hg); regroup; commute ι₁⟦g⟧ past iso₁
-    -- (iso-comm); serialize f ⊗₁ iso₁; absorb f (Hf); regroup; fuse the
-    -- two ι₁ legs (ι-∘).
-    natural-⊗ {A} {B} {C} {D} d f g Hf Hg =
+    -- Like α-conj below, the ⊗ case is an instance of a generic lemma:
+    -- everything iso₁/ι₁-specific enters through the four hypotheses, so
+    -- the chain's stored intermediates are over variables.  Outline:
+    -- slide (f ⊗₁ g) ⊗₁ id past α⇒; absorb g (Hg); regroup; commute u
+    -- past a (Hcomm = iso-comm); serialize f ⊗₁ e'; absorb f (Hf);
+    -- regroup; fuse the two legs (Hfuse = ι-∘).
+    ⊗-conj : ∀ {A B C D N P P' Q Q' Q''}
+             {f : HomTerm A B} {g : HomTerm C D}
+             {e' : HomTerm (C ⊗₀ N) P} {e : HomTerm (D ⊗₀ N) P'}
+             {a : HomTerm (B ⊗₀ P') Q'} {a' : HomTerm (B ⊗₀ P) Q}
+             {iA : HomTerm (A ⊗₀ P) Q''}
+             {u : HomTerm P P'} {v : HomTerm Q Q'} {w : HomTerm Q'' Q}
+             {z : HomTerm Q'' Q'}
+           → a' ∘ f ⊗₁ id FM.≈ w ∘ iA
+           → e ∘ g ⊗₁ id FM.≈ u ∘ e'
+           → a ∘ id ⊗₁ u FM.≈ v ∘ a'
+           → z FM.≈ v ∘ w
+           → (a ∘ id ⊗₁ e ∘ α⇒) ∘ (f ⊗₁ g) ⊗₁ id
+          FM.≈ z ∘ iA ∘ id ⊗₁ e' ∘ α⇒
+    ⊗-conj Hf Hg Hcomm Hfuse =
       (assoc²βε ○ refl⟩∘⟨ refl⟩∘⟨ FM.assoc-commute-from ○ refl⟩∘⟨ ⟺ assoc)
         ○ refl⟩∘⟨ (merge₂ˡ ○ (refl⟩⊗⟨ Hg) ○ split₂ˡ) ⟩∘⟨refl
         ○ assoc²δγ
-        ○ iso-comm ⟩∘⟨refl
+        ○ Hcomm ⟩∘⟨refl
         ○ refl⟩∘⟨ pushˡ serialize₁₂
         ○ (assoc ○ refl⟩∘⟨ ⟺ assoc)
         ○ refl⟩∘⟨ Hf ⟩∘⟨refl
         ○ assoc²δγ
-        ○ ⟺ (ι-∘ d f g) ⟩∘⟨refl
+        ○ ⟺ Hfuse ⟩∘⟨refl
+
+    natural-⊗ {A} {B} {C} {D} d f g Hf Hg = ⊗-conj Hf Hg iso-comm (ι-∘ d f g)
 
     natural-λ⇒ : ∀ {A d}
                → iso₁ (A , d) ∘ Functor.F₁ F1 (λ⇒ , refl)
@@ -234,15 +250,17 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     natural-ρ⇐ {A} {d} =
       ((refl⟩∘⟨ FM.triangle) ⟩∘⟨refl ○ assoc) ○ cancel-⊗ˡ FM.unitorʳ.isoʳ
 
-    -- Combinator form, not a begin-chain: the annotated intermediates of
-    -- this proof (three nested iso₁ unfoldings per displayed term) dominated
-    -- the module's interface-serialization time.  Outline: reassociate;
-    -- push id ⊗₁_ through the composite (twice); regroup; pentagon;
-    -- assoc-commute-from; absorb id ⊗₁ id; final regrouping.
-    natural-α⇒ : ∀ {A B C d}
-               → iso₁ (A ⊗₀ B ⊗₀ C , d) ∘ Functor.F₁ F1 (α⇒ , refl)
-            FM.≈ Functor.F₁ F2 (α⇒ , refl) ∘ iso₁ ((A ⊗₀ B) ⊗₀ C , d)
-    natural-α⇒ {A} {B} {C} {d} =
+    -- The α⇒ case of naturality is an instance of this fully generic
+    -- pentagon conjugation: nothing about iso₁ is used beyond its type.
+    -- Keeping a/b/c as variables keeps the proof's stored intermediates
+    -- small (this is the module's interface-size hotspot).  Outline:
+    -- reassociate; push id ⊗₁_ through the composite (twice); regroup;
+    -- pentagon; assoc-commute-from; absorb id ⊗₁ id; final regrouping.
+    α-conj : ∀ {A B C N P Q R}
+             (a : HomTerm (A ⊗₀ Q) R) (b : HomTerm (B ⊗₀ P) Q) (c : HomTerm (C ⊗₀ N) P)
+           → (a ∘ id ⊗₁ (b ∘ id ⊗₁ c ∘ α⇒) ∘ α⇒) ∘ α⇒ ⊗₁ id
+          FM.≈ id ∘ (a ∘ id ⊗₁ b ∘ α⇒) ∘ id ⊗₁ c ∘ α⇒
+    α-conj {A} a b c =
       assoc²βε
         ○ refl⟩∘⟨ ( Functor.homomorphism (A FM.⊗-) ⟩∘⟨refl
                   ○ (refl⟩∘⟨ Functor.homomorphism (A FM.⊗-)) ⟩∘⟨refl
@@ -254,6 +272,12 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
                   ○ (refl⟩∘⟨ FM.⊗.identity ⟩⊗⟨refl) ⟩∘⟨refl
                   ○ assoc )
         ○ assoc ○ ⟺ assoc²βε ○ ⟺ idˡ
+
+    natural-α⇒ : ∀ {A B C d}
+               → iso₁ (A ⊗₀ B ⊗₀ C , d) ∘ Functor.F₁ F1 (α⇒ , refl)
+            FM.≈ Functor.F₁ F2 (α⇒ , refl) ∘ iso₁ ((A ⊗₀ B) ⊗₀ C , d)
+    natural-α⇒ {A} {B} {C} {d} =
+      α-conj (iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d))) (iso₁ (B , ⟦ C ⟧ d)) (iso₁ (C , d))
 
     natural-α⇐ : ∀ {A B C d}
                → iso₁ ((A ⊗₀ B) ⊗₀ C , d) ∘ Functor.F₁ F1 (α⇐ , refl)
