@@ -49,7 +49,6 @@ module SolverCompareI
   where
 
   open UntypedI v {X} Mor ⟦box⟧ public
-  open FreeMonoidalHelper v X using (ObjTerm)
   -- re-export the term language / equational theory used by the interpretation
   -- (UntypedI opens these internally without `public`).
   open FreeMonoidalHelper.Mor v X mor public
@@ -135,36 +134,12 @@ module SolverCompareI
       ≈NF⇒encode nf[]       = refl
       ≈NF⇒encode (nf∷ f eq) = cong (_ ∷_) (≈NF⇒encode eq)
 
-      -- equal widths + equal encodings rebuild an ≈NF witness.  All
-      -- constructor matches here are at fully-general indices.
-      encode⇒≈NF : ∀ {n n'} (d : DiagU n) (d' : DiagU n')
-                 → n ≡ n' → encode d ≡ encode d' → d ≈NF d'
-      encode⇒≈NF ([]_ n) ([]_ n') refl _ = nf[]
-      encode⇒≈NF ([]_ n) (pre' ▸ suf' ∷ f' ⟨ d' ⟩) _ ()
-      encode⇒≈NF (pre ▸ suf ∷ f ⟨ d ⟩) ([]_ n') _ ()
-      encode⇒≈NF (pre ▸ suf ∷ f ⟨ d ⟩) (pre' ▸ suf' ∷ f' ⟨ d' ⟩) en ee
-        with ∷-injective ee
-      ... | he , te with cong proj₁ he | cong (proj₁ ∙f proj₂) he | cong (proj₂ ∙f proj₂) he
-      ...   | refl | refl | refl = nf∷ f (encode⇒≈NF d d' refl te)
-
-    infix 4 _≟DiagU_
-
-    _≟DiagU_ : ∀ {n n'} (d : DiagU n) (d' : DiagU n') → Dec (d ≈NF d')
-    _≟DiagU_ {n} {n'} d d' = case n ≟L n' of λ where
-      (no  n≢) → no λ eq → n≢ (≈NF⇒width eq)
-      (yes en) → case encode d ≟E encode d' of λ where
-        (yes ee) → yes (encode⇒≈NF d d' en ee)
-        (no  e≢) → no λ eq → e≢ (≈NF⇒encode eq)
-
-    --------------------------------------------------------------------------------
-    -- `_≈NF_` is observationally propositional equality: a witness collapses
-    -- to a real `≡` of equal-width diagrams.  Matching an `_≈NF_` value at a
-    -- HOMOGENEOUS type is `--without-K`-stuck (the duplicated width index),
-    -- so we go through the first-order encoding: `encode` is injective on
-    -- equal-width diagrams, with the residual reflexive width equation
-    -- discharged by the Hedberg UIP on `List X`.
-    --------------------------------------------------------------------------------
-    private
+      -- `_≈NF_` is observationally propositional equality: a witness collapses
+      -- to a real `≡` of equal-width diagrams.  Matching an `_≈NF_` value at a
+      -- HOMOGENEOUS type is `--without-K`-stuck (the duplicated width index),
+      -- so we go through the first-order encoding: `encode` is injective on
+      -- equal-width diagrams, with the residual reflexive width equation
+      -- discharged by the Hedberg UIP on `List X`.
       uipL : ∀ {x y : List X} (e e' : x ≡ y) → e ≡ e'
       uipL = UIPmod.Decidable⇒UIP.≡-irrelevant _≟L_
 
@@ -178,6 +153,26 @@ module SolverCompareI
       ... | he , te with cong proj₁ he | cong (proj₁ ∙f proj₂) he | cong (proj₂ ∙f proj₂) he
       ...   | refl | refl | refl rewrite uipL en refl =
               cong (λ z → pre ▸ suf ∷ f ⟨ z ⟩) (encode-inj d d' refl te)
+
+      -- reflexivity of `_≈NF_` (used to derive encode⇒≈NF).
+      ≈NF-refl : ∀ {n} (d : DiagU n) → d ≈NF d
+      ≈NF-refl ([]_ n)               = nf[]
+      ≈NF-refl (pre ▸ suf ∷ f ⟨ d ⟩) = nf∷ f (≈NF-refl d)
+
+      -- equal widths + equal encodings rebuild an ≈NF witness, derived from
+      -- encode-inj (injectivity) and ≈NF-refl (reflexivity).
+      encode⇒≈NF : ∀ {n n'} (d : DiagU n) (d' : DiagU n')
+                 → n ≡ n' → encode d ≡ encode d' → d ≈NF d'
+      encode⇒≈NF d d' refl ee = subst (d ≈NF_) (encode-inj d d' refl ee) (≈NF-refl d)
+
+    infix 4 _≟DiagU_
+
+    _≟DiagU_ : ∀ {n n'} (d : DiagU n) (d' : DiagU n') → Dec (d ≈NF d')
+    _≟DiagU_ {n} {n'} d d' = case n ≟L n' of λ where
+      (no  n≢) → no λ eq → n≢ (≈NF⇒width eq)
+      (yes en) → case encode d ≟E encode d' of λ where
+        (yes ee) → yes (encode⇒≈NF d d' en ee)
+        (no  e≢) → no λ eq → e≢ (≈NF⇒encode eq)
 
     ≈NF⇒≡ : ∀ {n} {d d' : DiagU n} → d ≈NF d' → d ≡ d'
     ≈NF⇒≡ {d = d} {d' = d'} eq = encode-inj d d' refl (≈NF⇒encode eq)

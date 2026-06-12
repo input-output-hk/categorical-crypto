@@ -33,12 +33,12 @@
 module Categories.SolverNormalize where
 
 open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
+open import Data.Bool using (Bool; true; false; not; _∨_; if_then_else_)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (≡-dec; ++-assoc)
-open import Data.Bool using (Bool; true; false; not; _∨_; if_then_else_)
 open import Data.Maybe as Maybe using (Maybe; just; nothing; _>>=_; _<∣>_)
 open import Data.Nat using (ℕ; zero; suc; _<ᵇ_)
-open import Data.Product using (_,_; Σ; Σ-syntax)
+open import Data.Product using (_,_; Σ-syntax)
 open import Function.Base using (case_of_)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
@@ -63,7 +63,6 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     ≡-irrelevantL = Decidable⇒UIP.≡-irrelevant (≡-dec _≟X_)
 
   open UntypedI v {X} Mor ⟦box⟧
-  open FreeMonoidalHelper v X using (ObjTerm)
   open FreeMonoidalHelper.Mor v X mor
   open ≈R
 
@@ -186,9 +185,6 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 
     N₃ : List X
     N₃ = P ++ (b₁ ++ (mid ++ (b₂ ++ r)))
-
-    L-out-g : List X
-    L-out-g = N₃
 
     -- the four layers (note the shared definitional endpoints):
     --   N₀  common input ;  N₃  common output
@@ -368,7 +364,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 
     -- the frame with fy in the left slot, fx in the right slot.
     open module F = Frame P mid s fy fx public using
-      ( N₀ ; N₃ ; L-out-g
+      ( N₀ ; N₃
       ; f-in-layer ; g-out-layer ; g-in-layer ; f-out-layer
       ; before-O ; after-O ; head-swap-sound )
 
@@ -392,7 +388,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --
   -- castW, castW-∘, castW-∷, castW-sym-r, castW-sym-r-flip, castW-cancelʳ now
   -- live in UntypedI (DiagramRewriteUntyped) and are available via the
-  -- `open UntypedI … public` above.
+  -- `open UntypedI …` above (non-public; names are in scope here).
   --
   -- The remaining DecidableEquality-dependent pieces live here:
   --   castW-irr, liftW-castW, assocW-castW, assocW⁻-castW,
