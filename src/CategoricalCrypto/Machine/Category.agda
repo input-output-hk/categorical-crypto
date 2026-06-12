@@ -1425,9 +1425,9 @@ functor-∘ g f = ≅ᴹ⇒≅ℰ
                          (Hom-Machine-roundtrip-≅ᴹ f)))))
 
 ------------------------------------------------------------------------
--- The category of Machines, with the same hom equality `_≅ℰ_`. The
--- laws are the machine-level bisimulations, lifted pointwise to all
--- environments via `≅ᴹ⇒≅ℰ`.
+-- The category of Machines, with hom equality the machine bisimulation
+-- `_≅ᴹ_`. The laws are the machine-level bisimulations from
+-- `Machine.Iso`, used directly.
 
 ≈ℰ-isEquivalence : ∀ {A B} → IsEquivalence (_≈ℰ_ {A} {B})
 ≈ℰ-isEquivalence = record
@@ -1440,14 +1440,14 @@ MachineCategory : Category _ _ _
 MachineCategory = record
   { Obj       = Channel
   ; _⇒_       = Machine
-  ; _≈_       = _≅ℰ_
+  ; _≈_       = _≅ᴹ_
   ; id        = MC.id
   ; _∘_       = MC._∘_
-  ; assoc     = ≅ᴹ⇒≅ℰ ∘-assoc-≅ᴹ
-  ; sym-assoc = ≅ℰ-sym (≅ᴹ⇒≅ℰ ∘-assoc-≅ᴹ)
-  ; identityˡ = ≅ᴹ⇒≅ℰ ∘-identityˡ-≅ᴹ
-  ; identityʳ = ≅ᴹ⇒≅ℰ ∘-identityʳ-≅ᴹ
-  ; identity² = ≅ᴹ⇒≅ℰ ∘-identityˡ-≅ᴹ
-  ; equiv     = ≅ℰ-isEquivalence
-  ; ∘-resp-≈  = ∘-resp-≅ℰ
+  ; assoc     = ∘-assoc-≅ᴹ
+  ; sym-assoc = ≅ᴹ-sym ∘-assoc-≅ᴹ
+  ; identityˡ = ∘-identityˡ-≅ᴹ
+  ; identityʳ = ∘-identityʳ-≅ᴹ
+  ; identity² = ∘-identityˡ-≅ᴹ
+  ; equiv     = ≅ᴹ-isEquivalence
+  ; ∘-resp-≈  = ∘-resp-≅ᴹ
   }

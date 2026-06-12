@@ -59,9 +59,9 @@ relational process calculus \texttt{Machine.Core}; this explains
 trace out the shared channel).  Second, the category laws themselves
 --- associativity, the two identity laws, congruence of composition
 --- are proven directly as \emph{machine bisimulations}
-(\texttt{Machine.Iso}) with respect to an equality
-$\cong_\mathcal{E}$ coarser than propositional equality: machine
-isomorphism under every environment.  The same bisimulations
+(\texttt{Machine.Iso}) with respect to machine isomorphism
+$\cong^{M}$, an equality coarser than propositional equality, which
+serves as the hom-equality of $\Machine$.  The same bisimulations
 transport along the hom-set bijection to give the categorical laws of
 the graded-Kleisli side.  The Agda artefact is postulate-free.
 \end{abstract}
@@ -523,12 +523,10 @@ over the (outer, inner) chains --- and the two isomorphisms compose.
 \end{proof}
 
 \begin{construction}[The category]
-$\Machine$ carries the hom-equality $\cong_\mathcal{E}$.  Its laws
-are Theorem~\ref{thm:bisim} composed with
-\texttt{≅ᴹ⇒≅ℰ}; congruence of composition
-(\texttt{∘-resp-≅ℰ}) follows from \texttt{∘-resp-≅ᴹ} and
-associativity (to re-bracket the environment onto the composite).
-The Agda instance is \texttt{Machine.Category.MachineCategory}.
+$\Machine$ carries the hom-equality $\cong^{M}$.  Its laws are
+exactly Theorem~\ref{thm:bisim}, and congruence of composition is
+\texttt{∘-resp-≅ᴹ}.  The Agda instance is
+\texttt{Machine.Category.MachineCategory}.
 \end{construction}
 
 \subsubsection{Transport to the graded-Kleisli side}
