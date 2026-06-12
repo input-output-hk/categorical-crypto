@@ -59,7 +59,7 @@
 --   * `Decide.goSlideB`/`Decide.goSlideA` : the slide recognisers — pure
 --     `stripPrefix` list surgery exhibiting the second-layer box inside
 --     the crossing's b-image (resp. a-image) block — instantiating the
---     key with `slide-clean-box` (resp. `slide-clean-box-a`);
+--     key with `slide-clean` (resp. `slide-clean-a`) at `G = ⟦box⟧S (box f)`;
 --   * `Decide.stepσ?` now tries, in order: σσ-cancel, b-image slide,
 --     a-image slide, disjoint interchange.  Each slide strictly decreases
 --     the number of (cross-before-box) inversions, so the existing
@@ -72,13 +72,13 @@
 module Categories.SolverSigma where
 
 open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
-open import Data.Bool using (Bool; true; false; not; _∨_; if_then_else_)
+open import Data.Bool using (Bool; true; false)
 open import Data.Empty using (⊥)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc; ≡-dec)
 open import Data.Maybe using (Maybe; just; nothing; _<∣>_)
 open import Data.Maybe.Properties using (just-injective)
-open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _<ᵇ_)
+open import Data.Nat using (ℕ; zero; suc; _+_; _*_)
 open import Data.Product using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Unit using (⊤; tt)
 open import Function using (case_of_)
@@ -143,7 +143,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   open MR FreeMonoidal
     using (pullˡ; pullʳ; cancelˡ; cancelInner; insertInner; elimʳ; assoc²βε)
   open MonR Monoidal-FreeMonoidal
-    using (refl⟩⊗⟨_; _⟩⊗⟨_)
+    using (refl⟩⊗⟨_)
 
   -- the reflection stack (and its rpad/coercion lemma families), re-exported.
   open ReflectI Symm {X} _≟X_ MorS ⟦box⟧S public
@@ -168,8 +168,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   -- of the involution to padded layers.
   ------------------------------------------------------------------------
 
-  -- (`rpad-resp` / `rpad-id` / `rpad-∘` come from ReflectI above;
-  --  `pad-resp` / `pad-id` / `pad-∘` come from UntypedI in the engine.)
+  -- (`rpad-resp` / `rpad-id` / `rpad-∘` come from UntypedI in the engine;
+  --  `pad-resp` / `pad-id` / `pad-∘` likewise from UntypedI.)
 
   -- the padded involution: an adjacent inverse cross-pair at the SAME
   -- offsets is the identity.
@@ -193,12 +193,10 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   -- the swap machinery still come from NormalizeI.
   open NormalizeI Symm {X} _≟X_ MorS ⟦box⟧S using
     ( castW-irr
-    ; substDiagU; substDiagU-out; ⟦substDiagU⟧
-    ; LeftFit; leftFit
-    ; dInput; dSwapped; dInput-out; dSwapped-out; diagU-swap-soundD; domeq
+    ; substDiagU; substDiagU-out
     ; assocW-castW; assocW⁻-castW; liftW-castW
     ; module SortD )
-  open SortD using (leftFit?; stripPrefix; SwapRes; fire; ambiguous?; lift∷; swapTrans; depthD; normFuelWith; unwrapCast; interchangeGo; stepWith)
+  open SortD using (_≟L_; stripPrefix; SwapRes; depthD; normFuelWith; interchangeGo; stepWith)
 
   private module SCmp = SolverCompareI Symm {X} _≟X_ MorS ⟦box⟧S
 
@@ -375,18 +373,6 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
         ≈⟨ assocW⁻-castW x m v ⟩∘⟨ refl⟩∘⟨ assocW-castW x m u ⟩
       castW (++-assoc x m v) ∘ liftW (x ++ m) W ∘ castW (sym (++-assoc x m u)) ∎
 
-    -- a suffix-pad slides under a single prefix wire (α-naturality).
-    rpad-⊗-peel : ∀ (sq : List X) (x : X) {n n'} (V : HomTerm (wires n) (wires n'))
-                → rpad sq (id {Var x} ⊗₁ V) ≈Term id {Var x} ⊗₁ rpad sq V
-    rpad-⊗-peel sq x {n} {n'} V = begin
-      (id ⊗₁ merge n' ∘ α⇒) ∘ ((id ⊗₁ V) ⊗₁ id) ∘ (α⇐ ∘ id ⊗₁ split n)
-        ≈⟨ pullʳ (pullˡ α-comm) ⟩
-      id ⊗₁ merge n' ∘ ((id ⊗₁ (V ⊗₁ id) ∘ α⇒) ∘ (α⇐ ∘ id ⊗₁ split n))
-        ≈⟨ refl⟩∘⟨ cancelInner α⇒∘α⇐≈id ⟩
-      id ⊗₁ merge n' ∘ (id ⊗₁ (V ⊗₁ id) ∘ id ⊗₁ split n)
-        ≈⟨ id⊗-∘3 (merge n') (V ⊗₁ id) (split n) ⟩
-      id ⊗₁ (merge n' ∘ (V ⊗₁ id) ∘ split n) ∎
-
     -- NEW COHERENCE 1: a suffix-pad past a prefix-lift.
     rpad-liftW : ∀ (sq p : List X) {u v} (W : HomTerm (wires u) (wires v))
                → Sand (sym (++-assoc p v sq)) (++-assoc p u sq)
@@ -394,7 +380,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     rpad-liftW sq [] {u} {v} W = ⟺ (idˡ ○ idʳ)
     rpad-liftW sq (x ∷ p) {u} {v} W = begin
       rpad sq (liftW (x ∷ p) W)
-        ≈⟨ rpad-⊗-peel sq x (liftW p W) ⟩
+        ≈⟨ rpad-id⊗ sq x (liftW p W) ⟩
       id ⊗₁ rpad sq (liftW p W)
         ≈⟨ refl⟩⊗⟨ rpad-liftW sq p W ⟩
       id ⊗₁ (castW (sym (++-assoc p v sq)) ∘ liftW p (rpad sq W) ∘ castW (++-assoc p u sq))
@@ -520,30 +506,6 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       Gβ      = pad pq sq (rpad a hᵇ)
       Gα      = pad pq sq (liftW a hᵇ)
 
-  -- the DiagU instance: the block update is a genuine BOX `f : Mor c d`
-  -- (`G = ⟦box⟧S (box f)`), i.e. the input order `cross a (p₁++(c++s₁))`
-  -- then `box f` at offset pq++p₁ slides to `box f` at offset
-  -- pq++(a++p₁) then `cross a (p₁++(d++s₁))`.
-  slide-clean-box :
-    ∀ (pq sq a p₁ s₁ : List X) {c d} (f : Mor c d)
-      (e₁ : pq ++ (((p₁ ++ (c ++ s₁)) ++ a) ++ sq)
-          ≡ (pq ++ p₁) ++ (c ++ (s₁ ++ (a ++ sq))))
-      (e₂ : pq ++ (((p₁ ++ (d ++ s₁)) ++ a) ++ sq)
-          ≡ (pq ++ p₁) ++ (d ++ (s₁ ++ (a ++ sq))))
-      (e₃ : (pq ++ (a ++ p₁)) ++ (d ++ (s₁ ++ sq))
-          ≡ pq ++ ((a ++ (p₁ ++ (d ++ s₁))) ++ sq))
-      (e₄ : pq ++ ((a ++ (p₁ ++ (c ++ s₁))) ++ sq)
-          ≡ (pq ++ (a ++ p₁)) ++ (c ++ (s₁ ++ sq)))
-    → pad (pq ++ p₁) (s₁ ++ (a ++ sq)) (⟦box⟧S (box f))
-        ∘ castW e₁
-        ∘ pad pq sq (⟦box⟧S (cross a (p₁ ++ (c ++ s₁))))
-      ≈Term castW e₂
-        ∘ pad pq sq (⟦box⟧S (cross a (p₁ ++ (d ++ s₁))))
-        ∘ castW e₃
-        ∘ pad (pq ++ (a ++ p₁)) (s₁ ++ sq) (⟦box⟧S (box f))
-        ∘ castW e₄
-  slide-clean-box pq sq a p₁ s₁ f = slide-clean pq sq a p₁ s₁ (⟦box⟧S (box f))
-
   ------------------------------------------------------------------------
   -- THE a-BLOCK MIRROR.  The same slide for a box living inside the
   -- crossing's a-image block (the SUFFIX of the cross's output; the
@@ -605,27 +567,6 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       Gρ      = pad pq sq (rpad b hₐ)
       Gλ      = pad pq sq (liftW b hₐ)
 
-  -- the DiagU instance of the a-block slide.
-  slide-clean-box-a :
-    ∀ (pq sq b p₁ s₁ : List X) {c d} (f : Mor c d)
-      (e₁ : pq ++ ((b ++ (p₁ ++ (c ++ s₁))) ++ sq)
-          ≡ (pq ++ (b ++ p₁)) ++ (c ++ (s₁ ++ sq)))
-      (e₂ : pq ++ ((b ++ (p₁ ++ (d ++ s₁))) ++ sq)
-          ≡ (pq ++ (b ++ p₁)) ++ (d ++ (s₁ ++ sq)))
-      (e₃ : (pq ++ p₁) ++ (d ++ (s₁ ++ (b ++ sq)))
-          ≡ pq ++ (((p₁ ++ (d ++ s₁)) ++ b) ++ sq))
-      (e₄ : pq ++ (((p₁ ++ (c ++ s₁)) ++ b) ++ sq)
-          ≡ (pq ++ p₁) ++ (c ++ (s₁ ++ (b ++ sq))))
-    → pad (pq ++ (b ++ p₁)) (s₁ ++ sq) (⟦box⟧S (box f))
-        ∘ castW e₁
-        ∘ pad pq sq (⟦box⟧S (cross (p₁ ++ (c ++ s₁)) b))
-      ≈Term castW e₂
-        ∘ pad pq sq (⟦box⟧S (cross (p₁ ++ (d ++ s₁)) b))
-        ∘ castW e₃
-        ∘ pad (pq ++ p₁) (s₁ ++ (b ++ sq)) (⟦box⟧S (box f))
-        ∘ castW e₄
-  slide-clean-box-a pq sq b p₁ s₁ f = slide-clean-a pq sq b p₁ s₁ (⟦box⟧S (box f))
-
   ------------------------------------------------------------------------
   -- The decision module.  Parameters mirror the front-end's `Decide`: a
   -- decidable equality on the underlying generator triples and a rank
@@ -635,10 +576,6 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     (_≟G_ : DecidableEquality GenM)
     (rank : GenM → ℕ)
     where
-
-    private
-      _≟L_ : DecidableEquality (List X)
-      _≟L_ = ≡-dec _≟X_
 
     ------------------------------------------------------------------------
     -- Decidable equality on the EXTENDED generator triples, no-K style:
@@ -675,8 +612,6 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
         (yes refl) → yes refl
         (no ¬q)    → no λ e → ¬q (cong proj₂ (just-injective (cong crossPay e)))
 
-    open SCmp.Decide _≟GS_ using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
-
     -- RANK: crosses sort below all boxes among ambiguous pairs; the
     -- caller's relative order on boxes is preserved.
     rankS : ∀ {a b} → MorS a b → ℕ
@@ -686,8 +621,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     ------------------------------------------------------------------------
     -- The one-step oracle: σσ-CANCEL first, then naturality slides, then
     -- disjoint interchange.
-    -- `SwapRes`, `fire`, `ambiguous?`, `lift∷`, `swapTrans`, `depthD`,
-    -- and `normFuelWith` come from NormalizeI.SortD (§12d) above.
+    -- `SwapRes`, `depthD`, `normFuelWith`, `interchangeGo`, `stepWith`
+    -- come from NormalizeI.SortD (§12d) above.
     ------------------------------------------------------------------------
 
     private
@@ -709,15 +644,12 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
           → Maybe (SwapRes (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩))
       goσ px sx (box f)     rest meq = nothing
       goσ px sx (cross a b) ([]_ m) meq = nothing
-      goσ px sx (cross a b) (_▸_∷_⟨_⟩ {ay} {by} py sy (box f) rest') meq = nothing
+      goσ px sx (cross a b) (_▸_∷_⟨_⟩ py sy (box f) rest') meq = nothing
       goσ px sx (cross a b) (_▸_∷_⟨_⟩ py sy (cross c d) rest') meq
         with px ≟L py | sx ≟L sy | c ≟L b | d ≟L a
       ... | yes refl | yes refl | yes refl | yes refl
             rewrite ≡-irrelevantL meq refl = just (fireσ px sx a b rest')
-      ... | no _  | _     | _     | _     = nothing
-      ... | yes _ | no _  | _     | _     = nothing
-      ... | yes _ | yes _ | no _  | _     = nothing
-      ... | yes _ | yes _ | yes _ | no _  = nothing
+      ... | _ | _ | _ | _ = nothing
 
       ------------------------------------------------------------------
       -- THE NATURALITY-SLIDE FIRE.  `fireRepl` is a generic sound
@@ -727,8 +659,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       -- re-indexings E₄/E₂ and a caller-supplied KEY equation between
       -- the two padded two-layer composites.  Soundness is pure
       -- `substDiagU`/`castW` algebra around the key; the slide
-      -- instantiates the key with `slide-clean-box` (b-image block) or
-      -- `slide-clean-box-a` (a-image block) at the discovered offsets.
+      -- instantiates the key with `slide-clean` (b-image, G = ⟦box⟧S (box f))
+      -- or `slide-clean-a` (a-image) at the discovered offsets.
       ------------------------------------------------------------------
 
       -- `substDiagU (sym e)` expanded to a two-sided cast conjugation.
@@ -844,7 +776,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
                           (eq₁ px p₁ v s₁ a sx)
                           (eq₃ px a p₁ v s₁ sx)
                           (sym (eq₃ px a p₁ u s₁ sx))
-                          (slide-clean-box px sx a p₁ s₁ f meq
+                          -- DiagU instance: G = ⟦box⟧S (box f)
+                          (slide-clean px sx a p₁ s₁ (⟦box⟧S (box f)) meq
                             (eq₁ px p₁ v s₁ a sx)
                             (eq₃ px a p₁ v s₁ sx)
                             (sym (eq₃ px a p₁ u s₁ sx))))
@@ -878,7 +811,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
                             (sym (eq₃ px b p₁ v s₁ sx))
                             (sym (eq₁ px p₁ v s₁ b sx))
                             (eq₁ px p₁ u s₁ b sx)
-                            (slide-clean-box-a px sx b p₁ s₁ f meq
+                            -- DiagU instance: G = ⟦box⟧S (box f)
+                            (slide-clean-a px sx b p₁ s₁ (⟦box⟧S (box f)) meq
                               (sym (eq₃ px b p₁ v s₁ sx))
                               (sym (eq₁ px p₁ v s₁ b sx))
                               (eq₁ px p₁ u s₁ b sx)))
@@ -952,11 +886,9 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
 --------------------------------------------------------------------------------
 module SigmaTests where
 
-  open import Data.Nat using (ℕ)
-  open import Data.Nat.Properties using () renaming (_≟_ to _≟ℕ_)
   open import Data.Fin using (Fin; zero; suc; toℕ)
   open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
-  open import Data.Product using (_×_; proj₁; proj₂)
+  open import Data.Nat.Properties using () renaming (_≟_ to _≟ℕ_)
 
   -- Fin-indexed signature (cf. SolverTests): decidable equality and the rank
   -- tiebreak come for free from `Fin`'s `_≟_`/`toℕ`, instead of a quadratic
@@ -985,9 +917,9 @@ module SigmaTests where
 
   private
     _≟G2_ : DecidableEquality GenM
-    (_ , _ , gen2 i) ≟G2 (_ , _ , gen2 j) with i ≟Fin j
-    ... | yes refl = yes refl
-    ... | no ¬p    = no λ where refl → ¬p refl
+    (_ , _ , gen2 i) ≟G2 (_ , _ , gen2 j) = case i ≟Fin j of λ where
+      (yes refl) → yes refl
+      (no ¬p)    → no λ where refl → ¬p refl
 
     rank2 : GenM → ℕ
     rank2 (_ , _ , gen2 i) = toℕ i
@@ -1057,8 +989,9 @@ module SigmaTests where
   -- offsets (kbox slides past `cross [1] [0]` from its post-cross to its
   -- pre-cross position), with all four `++`-assoc index casts `refl`.
   ------------------------------------------------------------------------
+  -- DiagU instance: G = ⟦box⟧S (box kbox)
   litSlide : _
-  litSlide = slide-clean-box [] [] (1 ∷ []) [] [] kbox refl refl refl refl
+  litSlide = slide-clean [] [] (1 ∷ []) [] [] (⟦box⟧S (box kbox)) refl refl refl refl
 
   ------------------------------------------------------------------------
   -- (iv) the DiagU-level naturality SLIDE, wired into the driver.
