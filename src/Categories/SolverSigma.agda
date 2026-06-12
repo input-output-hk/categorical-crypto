@@ -141,7 +141,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   -- DiagramRewriteUntyped/SolverReflect): plain non-public opens,
   -- proofs-only.
   open MR FreeMonoidal
-    using (pullˡ; pullʳ; cancelˡ; cancelInner; insertInner; elimʳ; assoc²βε)
+    using (pullˡ; pullʳ; cancelˡ; cancelInner; insertInner; elimʳ)
   open MonR Monoidal-FreeMonoidal
     using (refl⟩⊗⟨_)
 
@@ -196,7 +196,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     ; substDiagU; substDiagU-out
     ; assocW-castW; assocW⁻-castW; liftW-castW
     ; module SortD )
-  open SortD using (_≟L_; stripPrefix; SwapRes; depthD; normFuelWith; interchangeGo; stepWith)
+  open SortD using (_≟L_; stripPrefix; SwapRes; depthD; normFuelWith; interchangeGo; stepWith; substExpand; fireRepl)
 
   private module SCmp = SolverCompareI Symm {X} _≟X_ MorS ⟦box⟧S
 
@@ -652,22 +652,14 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
       ... | _ | _ | _ | _ = nothing
 
       ------------------------------------------------------------------
-      -- THE NATURALITY-SLIDE FIRE.  `fireRepl` is a generic sound
-      -- two-layer head REPLACEMENT: the recognised head pair (g₁ fires,
-      -- then g₂, inter-layer index bridged by `meq`) is replaced by the
-      -- pair (g₃ then g₄, bridged by E₃), with the outer/inner
-      -- re-indexings E₄/E₂ and a caller-supplied KEY equation between
-      -- the two padded two-layer composites.  Soundness is pure
-      -- `substDiagU`/`castW` algebra around the key; the slide
+      -- THE NATURALITY-SLIDE FIRE.  `fireRepl` (from SortD §12d) is a
+      -- generic sound two-layer head REPLACEMENT: the recognised head
+      -- pair (g₁ then g₂, bridged by `meq`) is replaced by (g₃ then g₄,
+      -- bridged by E₃), with re-indexings E₄/E₂ and a caller-supplied
+      -- KEY equation; `substExpand` likewise from SortD.  The slide
       -- instantiates the key with `slide-clean` (b-image, G = ⟦box⟧S (box f))
       -- or `slide-clean-a` (a-image) at the discovered offsets.
       ------------------------------------------------------------------
-
-      -- `substDiagU (sym e)` expanded to a two-sided cast conjugation.
-      substExpand : ∀ {m n : List X} (e : m ≡ n) (d : DiagU n)
-                  → ⟦ substDiagU (sym e) d ⟧
-                    ≈Term castW (sym (substDiagU-out (sym e) d)) ∘ (⟦ d ⟧ ∘ castW e)
-      substExpand refl d = ⟺ (idˡ ○ idʳ)
 
       -- `++`-assoc rebracketings for the slide's four index gaps.
       eq₁ : ∀ (pq p₁ x s₁ a sq : List X)
@@ -691,63 +683,6 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
                 (cong (a ++_)
                   (trans (++-assoc p₁ (x ++ s₁) sq)
                     (cong (p₁ ++_) (++-assoc x s₁ sq))))))))
-
-      fireRepl :
-        ∀ {a₁ b₁ a₂ b₂ a₃ b₃ a₄ b₄ : List X}
-          {p₁L s₁L p₂L s₂L : List X} (p₃L s₃L p₄L s₄L : List X)
-          {g₁ : MorS a₁ b₁} {g₂ : MorS a₂ b₂}
-          (g₃ : MorS a₃ b₃) (g₄ : MorS a₄ b₄)
-          (rest' : DiagU (p₂L ++ (b₂ ++ s₂L)))
-          (meq : p₁L ++ (b₁ ++ s₁L) ≡ p₂L ++ (a₂ ++ s₂L))
-          (E₂ : p₄L ++ (b₄ ++ s₄L) ≡ p₂L ++ (b₂ ++ s₂L))
-          (E₃ : p₃L ++ (b₃ ++ s₃L) ≡ p₄L ++ (a₄ ++ s₄L))
-          (E₄ : p₁L ++ (a₁ ++ s₁L) ≡ p₃L ++ (a₃ ++ s₃L))
-          (key : pad p₂L s₂L (⟦box⟧S g₂) ∘ castW meq ∘ pad p₁L s₁L (⟦box⟧S g₁)
-                 ≈Term castW E₂ ∘ pad p₄L s₄L (⟦box⟧S g₄) ∘ castW E₃
-                       ∘ pad p₃L s₃L (⟦box⟧S g₃) ∘ castW E₄)
-        → SwapRes (p₁L ▸ s₁L ∷ g₁ ⟨ substDiagU (sym meq) (p₂L ▸ s₂L ∷ g₂ ⟨ rest' ⟩) ⟩)
-      fireRepl {a₁ = a₁} {p₁L = p₁L} {s₁L} {p₂L} {s₂L} p₃L s₃L p₄L s₄L
-               {g₁} {g₂} g₃ g₄ rest' meq E₂ E₃ E₄ key
-        = d' , oeq , snd
-        where
-          P₁ = pad p₁L s₁L (⟦box⟧S g₁)
-          P₂ = pad p₂L s₂L (⟦box⟧S g₂)
-          P₃ = pad p₃L s₃L (⟦box⟧S g₃)
-          P₄ = pad p₄L s₄L (⟦box⟧S g₄)
-          boxL   = p₂L ▸ s₂L ∷ g₂ ⟨ rest' ⟩
-          dBody  = p₁L ▸ s₁L ∷ g₁ ⟨ substDiagU (sym meq) boxL ⟩
-          inner₂ = substDiagU (sym E₂) rest'
-          crossL = p₄L ▸ s₄L ∷ g₄ ⟨ inner₂ ⟩
-          inner₃ = substDiagU (sym E₃) crossL
-          slidL  = p₃L ▸ s₃L ∷ g₃ ⟨ inner₃ ⟩
-          d' : DiagU (p₁L ++ (a₁ ++ s₁L))
-          d' = substDiagU (sym E₄) slidL
-          o₁ = substDiagU-out (sym meq) boxL
-          o₂ = substDiagU-out (sym E₂) rest'
-          o₃ = substDiagU-out (sym E₃) crossL
-          o₄ = substDiagU-out (sym E₄) slidL
-          cAll = trans (trans (sym o₂) (sym o₃)) (sym o₄)
-          oeq : out dBody ≡ out d'
-          oeq = trans o₁ cAll
-          M = ⟦ rest' ⟧ ∘ (castW E₂ ∘ (P₄ ∘ (castW E₃ ∘ (P₃ ∘ castW E₄))))
-          -- peel the substDiagU casts off ⟦ dBody ⟧, then fire the key.
-          lemA : ⟦ dBody ⟧ ≈Term castW (sym o₁) ∘ M
-          lemA = (substExpand meq boxL ⟩∘⟨refl) ○ assoc²βε
-               ○ (refl⟩∘⟨ (assoc ○ (refl⟩∘⟨ key)))
-          -- peel the three substDiagU casts off ⟦ d' ⟧ and fuse them.
-          lemB : ⟦ d' ⟧ ≈Term castW cAll ∘ M
-          lemB = substExpand E₄ slidL
-               ○ (refl⟩∘⟨ assoc)
-               ○ (refl⟩∘⟨ ((substExpand E₃ crossL ⟩∘⟨refl) ○ assoc²βε))
-               ○ (refl⟩∘⟨ refl⟩∘⟨
-                    (assoc ○ (substExpand E₂ rest' ⟩∘⟨refl) ○ assoc²βε))
-               ○ (refl⟩∘⟨ pullˡ (castW-∘ (sym o₂) (sym o₃)))
-               ○ pullˡ (castW-∘ (trans (sym o₂) (sym o₃)) (sym o₄))
-          snd : castW oeq ∘ ⟦ dBody ⟧ ≈Term ⟦ d' ⟧
-          snd = (refl⟩∘⟨ lemA)
-              ○ pullˡ (castW-∘ (sym o₁) oeq)
-              ○ (castW-irr (trans (sym o₁) oeq) cAll ⟩∘⟨refl)
-              ○ ⟺ lemB
 
       -- the b-IMAGE slide recogniser: head `cross a b` at (px,sx), second
       -- layer a box exhibited inside the crossing's b-image block
