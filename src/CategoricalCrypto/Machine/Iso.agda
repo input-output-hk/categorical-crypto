@@ -2,7 +2,8 @@
 
 -- Machine isomorphism: equality of machines up to a stepRel-preserving
 -- bijection of states. This is the hom equality used by the category
--- of machines (`MaybeHomCategory` in `Machine.Category`): unlike the
+-- of machines (`MachineCategory` below, and `MaybeHomCategory` in
+-- `Machine.Category`): unlike the
 -- propositional equality underlying `_≈ℰ_`, it is invariant under the
 -- state-representation changes that machine composition performs, so
 -- the category laws are provable for it (as explicit bisimulations on
@@ -12,6 +13,7 @@ module CategoricalCrypto.Machine.Iso where
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
 open import Relation.Binary using (IsEquivalence)
+open import Categories.Category using (Category)
 
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
@@ -170,9 +172,10 @@ private
 -- as a trace chain of one m-step plus deterministic id-relays (the six
 -- shapes below, one per external input/output configuration). The
 -- inverse half — every composite chain contains exactly one m-step —
--- and the corresponding statements for `m ∘ id` and associativity are
--- future work; see `Machine.Category`, which takes them as module
--- parameters (`∘-identityˡ-≅ᴹ`/`∘-identityʳ-≅ᴹ`/`∘-assoc-≅ᴹ`).
+-- and the corresponding statements for `m ∘ id` and associativity
+-- (`∘-identityˡ-≅ᴹ`/`∘-identityʳ-≅ᴹ`/`∘-assoc-≅ᴹ`) are proven further
+-- below; together they make `_≅ᴹ_` the hom equality of the
+-- `MachineCategory` at the end of this file.
 
 opaque
   unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-intro ⊗-fusion ⊗-combine
@@ -2218,3 +2221,32 @@ module ∘-assoc-implementation
 ∘-assoc-≅ᴹ : ∀ {A B C D} {f : Machine A B} {g : Machine B C} {h : Machine C D}
            → (_∘_ {B = B} (_∘_ {B = C} h g) f) ≅ᴹ (_∘_ {B = C} h (_∘_ {B = B} g f))
 ∘-assoc-≅ᴹ {f = f} {g = g} {h = h} = ∘-assoc-implementation.∘-assoc f g h
+
+------------------------------------------------------------------------
+-- The category of Machines, with hom equality the machine bisimulation
+-- `_≅ᴹ_`. The laws are the bisimulations above, used directly. Nothing
+-- here depends on the monad parameterising `Machine.Category` (which
+-- re-exports `MachineCategory` for backwards compatibility).
+
+≈ℰ-isEquivalence : IsEquivalence (_≈ℰ_ {A} {B})
+≈ℰ-isEquivalence = record
+  { refl  = λ E       → refl
+  ; sym   = λ p E     → sym (p E)
+  ; trans = λ p q E   → trans (p E) (q E)
+  }
+
+MachineCategory : Category _ _ _
+MachineCategory = record
+  { Obj       = Channel
+  ; _⇒_       = Machine
+  ; _≈_       = _≅ᴹ_
+  ; id        = id
+  ; _∘_       = _∘_
+  ; assoc     = ∘-assoc-≅ᴹ
+  ; sym-assoc = ≅ᴹ-sym ∘-assoc-≅ᴹ
+  ; identityˡ = ∘-identityˡ-≅ᴹ
+  ; identityʳ = ∘-identityʳ-≅ᴹ
+  ; identity² = ∘-identityˡ-≅ᴹ
+  ; equiv     = ≅ᴹ-isEquivalence
+  ; ∘-resp-≈  = ∘-resp-≅ᴹ
+  }

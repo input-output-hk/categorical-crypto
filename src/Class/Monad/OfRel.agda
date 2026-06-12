@@ -44,4 +44,19 @@ record MonadOfRel (M : Type↑) ⦃ Monad-M : Monad M ⦄ : Typeω where
     member-η : ∀ {A : Type} (m : M A)
              → of-rel (λ a → member a m) ≡ m
 
+    -- `member` is a monad morphism into the predicate monad:
+    -- membership of `return` and `_>>=_` computes as expected. For the
+    -- canonical instance (return a = (_≡ a), (m >>= f) b = ∃ a → m a ×
+    -- f a b) all four hold by construction. These laws drive the
+    -- "construction equality implies trace equivalence" bridge in
+    -- `CategoricalCrypto.Machine.Category` (`≈ᴹᴴ-Kl⇒≈ᵗ`), where the
+    -- membership of a monadic list-trace is computed step by step.
+    return-member : ∀ {A : Type} {a : A} → member a (return a)
+    member-return : ∀ {A : Type} {a b : A}
+                  → member a (return b) → a ≡ b
+    >>=-member    : ∀ {A B : Type} {m : M A} {f : A → M B} {a : A} {b : B}
+                  → member a m → member b (f a) → member b (m >>= f)
+    member->>=    : ∀ {A B : Type} {m : M A} {f : A → M B} {b : B}
+                  → member b (m >>= f) → ∃ λ a → member a m × member b (f a)
+
 open MonadOfRel ⦃...⦄ public

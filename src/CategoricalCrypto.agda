@@ -22,6 +22,7 @@ open import CategoricalCrypto.SFunM.Monoidal public
 open import CategoricalCrypto.SFunM.Traced public
 open import CategoricalCrypto.Machine.Constraints public
 open import CategoricalCrypto.Machine.Core hiding (tr) public
+open import CategoricalCrypto.Machine.Trace public
 open import CategoricalCrypto.Machine.Category public
 open import CategoricalCrypto.Examples.Basic
 open import CategoricalCrypto.Examples.Commitment

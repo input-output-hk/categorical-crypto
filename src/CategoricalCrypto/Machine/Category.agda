@@ -19,6 +19,11 @@
 -- Step 3. ✓ `SFunᵉ-GConstruction`   (this file).
 -- Step 4. ✓ `SFunᵉ-GradedKleisli`   (this file).
 -- Step 5. ✓ Channel ↔ Obj, Machine ↔ Hom translations (this file).
+-- Step 6. ✓ `MaybeHomKlCategory` — the category carrying the
+--            construction's own hom equality `_≈ᴹᴴ-Kl_`, with all laws
+--            from the graded triple, and the bridge from that equality
+--            to the M-free trace equivalence `_≈ᵗ_` (this file; the
+--            pointed machines and `_≈ᵗ_` live in `Machine.Trace`).
 
 open import categorical-crypto.Prelude
 
@@ -28,7 +33,7 @@ open import Class.Monad.Iterative
 open import Class.Monad.OfRel
 
 open import Categories.Category using (Category)
-open import Data.List.Properties using (map-cong)
+open import Data.List.Properties using (map-cong; ∷-injective)
 open import Relation.Binary using (IsEquivalence)
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 open import Categories.Category.Instance.One using (One)
@@ -39,6 +44,8 @@ open import CategoricalCrypto.Channel.Core
   using (Channel; _⇿_; _ᵀ; _⊗₀_; destruct-⊗; construct-⊗; In; Out)
 open import CategoricalCrypto.Machine.Core as MC using (Machine; MkMachine; _⊗ᵀ_; machine-type; _≈ℰ_)
 open import CategoricalCrypto.Machine.Iso
+open import CategoricalCrypto.Machine.Trace
+  using (Machineᵖ; MkMachineᵖ; RunRel; _≈ᵗ_; MkTraceEq)
 
 module CategoricalCrypto.Machine.Category {M : Type↑}
   ⦃ Monad-M       : Monad M            ⦄
@@ -1425,29 +1432,416 @@ functor-∘ g f = ≅ᴹ⇒≅ℰ
                          (Hom-Machine-roundtrip-≅ᴹ f)))))
 
 ------------------------------------------------------------------------
--- The category of Machines, with hom equality the machine bisimulation
--- `_≅ᴹ_`. The laws are the machine-level bisimulations from
--- `Machine.Iso`, used directly.
+-- The category of Machines (`MachineCategory`) is independent of the
+-- monad M: its homs are Machines, its hom equality the bisimulation
+-- `_≅ᴹ_`, and its laws the machine-level bisimulations — all from
+-- `Machine.Iso`, where it is now defined. It is re-exported here (free
+-- of this module's parameters) so existing imports keep working.
 
-≈ℰ-isEquivalence : ∀ {A B} → IsEquivalence (_≈ℰ_ {A} {B})
-≈ℰ-isEquivalence = record
-  { refl  = λ E       → refl
-  ; sym   = λ p E     → sym (p E)
-  ; trans = λ p q E   → trans (p E) (q E)
+open import CategoricalCrypto.Machine.Iso public
+  using (MachineCategory; ≈ℰ-isEquivalence)
+
+------------------------------------------------------------------------
+-- Step 6.  The category at the construction's own hom equality.
+--
+-- `MaybeHomCategory` above deliberately routes its hom equality
+-- through machines (`_≅ℰ_`). This section instead takes the
+-- construction at face value: homs are the Maybe-graded Kleisli homs
+-- `MaybeHom-Kl`, composition is the Kleisli composition `_∘ᴹᴴ-Kl_`,
+-- and the hom equality is the construction's native `_≈ᴹᴴ-Kl_` —
+-- trace-observational equality `_≈ᵉ_` of the underlying SFunᵉ
+-- morphisms. Every law is derived from the proven graded-triple laws
+-- (`MaybeT-ext-identityˡ/ʳ/assoc/resp-≈`) plus G-construction
+-- category reasoning; no machine-level bisimulation is involved.
+--
+-- Pointed machines (`Machineᵖ`, see `Machine.Trace`) present these
+-- homs: `Machineᵖ→Kl` is injective up to the machine-side reading and
+-- surjective up to `_≈ᴹᴴ-Kl_` (`Machineᵖ-Kl-roundtrip`). The
+-- headline bridge `≈ᴹᴴ-Kl⇒≈ᵗ` shows that the construction's equality,
+-- pulled back to pointed machines, implies the M-free trace
+-- equivalence `_≈ᵗ_`: machines with `_≈ᴹᴴ-Kl_`-equal Kleisli images
+-- admit exactly the same finite runs. The converse implication is
+-- *not* provable abstractly — turning a pointwise logical equivalence
+-- of step relations into a propositional equality of `of-rel` values
+-- is precisely propositional extensionality for `of-rel`, which the
+-- intensional predicate-monad model refutes. The same wall explains
+-- why machine-level composition `MC._∘_` cannot satisfy the category
+-- laws at `_≈ᴹᴴ-Kl_`: relating `of-rel` of a composite's chain
+-- relation to the Kleisli composite's feedback loop as *M-values* is
+-- exactly such a ⇔-to-≡ step. Hence the homs here are the Kleisli
+-- homs themselves, not machines.
+
+-- ─────────────────────────────────────────────────────────────────────
+-- Pointed-machine presentation of the Kleisli homs.
+-- ─────────────────────────────────────────────────────────────────────
+
+Machineᵖ→Kl : ∀ {A B : Channel} → Machineᵖ A B → MaybeHom-Kl A B
+Machineᵖ→Kl (MkMachineᵖ m s) = Machine→Kl m s
+
+Kl→Machineᵖ : ∀ {A B : Channel} → MaybeHom-Kl A B → Machineᵖ A B
+Kl→Machineᵖ K = MkMachineᵖ (Kl→Machine K) (SFunᵉ.init K)
+
+private
+  -- The `construct-⊗`/`destruct-⊗` and `Maybe`/`⊎⊤` reshapes are
+  -- pointwise inverse. Under the opaque wall both tensor reshapes are
+  -- `id`, so the laws are `refl` once unfolded.
+  opaque
+    unfolding _⊗₀_ destruct-⊗ construct-⊗
+
+    construct∘destruct-In : ∀ {A B : Channel} (i : Channel.inType (A ⊗ᵀ B))
+      → construct-⊗ {A} {B ᵀ} {In} (destruct-⊗ {A} {B ᵀ} {In} i) ≡ i
+    construct∘destruct-In i = refl
+
+    destruct∘construct-In : ∀ {A B : Channel}
+        (i : Channel.inType A ⊎ Channel.outType B)
+      → destruct-⊗ {A} {B ᵀ} {In} (construct-⊗ {A} {B ᵀ} {In} i) ≡ i
+    destruct∘construct-In i = refl
+
+    out-kl-roundtrip : ∀ {A B : Channel}
+        (z : Channel.outType A ⊎ (Channel.inType B ⊎ ⊤))
+      → out-mh→kl {A} {B} (out-kl→mh {A} {B} z) ≡ z
+    out-kl-roundtrip (inj₁ a)        = refl
+    out-kl-roundtrip (inj₂ (inj₁ b)) = refl
+    out-kl-roundtrip (inj₂ (inj₂ _)) = refl
+
+    out-mh-roundtrip : ∀ {A B : Channel}
+        (mo : Maybe (Channel.outType (A ⊗ᵀ B)))
+      → out-kl→mh {A} {B} (out-mh→kl {A} {B} mo) ≡ mo
+    out-mh-roundtrip nothing         = refl
+    out-mh-roundtrip (just (inj₁ a)) = refl
+    out-mh-roundtrip (just (inj₂ b)) = refl
+
+  out-mh→kl-injective : ∀ {A B : Channel}
+      {mo mo' : Maybe (Channel.outType (A ⊗ᵀ B))}
+    → out-mh→kl {A} {B} mo ≡ out-mh→kl {A} {B} mo' → mo ≡ mo'
+  out-mh→kl-injective {A} {B} {mo} {mo'} eq =
+    trans (sym (out-mh-roundtrip {A} {B} mo))
+      (trans (cong (out-kl→mh {A} {B}) eq) (out-mh-roundtrip {A} {B} mo'))
+
+-- Round-trip on the Kleisli side: reading a Kleisli hom as a pointed
+-- machine and back recovers it up to `_≈ᴹᴴ-Kl_`. The M-value of each
+-- step is recovered *propositionally* by `member-η`
+-- (`MaybeHom-roundtrip`); the reshapes cancel pointwise; `trace-cong`
+-- lifts the pointwise equality to the trace semantics.
+Machineᵖ-Kl-roundtrip : ∀ {A B : Channel} (K : MaybeHom-Kl A B)
+                      → Machineᵖ→Kl (Kl→Machineᵖ K) ≈ᴹᴴ-Kl K
+Machineᵖ-Kl-roundtrip {A} {B} K xs =
+  trace-cong fun-eq (SFunᵉ.init K) xs
+  where
+    fun-eq : ∀ s i
+      → SFunᵉ.fun (Machineᵖ→Kl (Kl→Machineᵖ K)) (s , i)
+        ≡ SFunᵉ.fun K (s , i)
+    fun-eq s i = begin
+      (MaybeHom.fun (Machine→Hom (Kl→Machine K)) (s , construct-⊗ {m = In} i)
+        >>= λ (s' , mo) → return (s' , out-mh→kl {A} {B} mo))
+        ≡⟨ MaybeHom-roundtrip (Kl→MaybeHom K) s (construct-⊗ {m = In} i) ⟩>>=⟨refl ⟩
+      ((SFunᵉ.fun K (s , destruct-⊗ {A} {B ᵀ} {In} (construct-⊗ {A} {B ᵀ} {In} i))
+         >>= λ (s' , z) → return (s' , out-kl→mh {A} {B} z))
+        >>= λ (s' , mo) → return (s' , out-mh→kl {A} {B} mo))
+        ≡⟨ cong (λ x → (SFunᵉ.fun K (s , x)
+                          >>= λ (s' , z) → return (s' , out-kl→mh {A} {B} z))
+                       >>= λ (s' , mo) → return (s' , out-mh→kl {A} {B} mo))
+             (destruct∘construct-In {A} {B} i) ⟩
+      ((SFunᵉ.fun K (s , i) >>= λ (s' , z) → return (s' , out-kl→mh {A} {B} z))
+        >>= λ (s' , mo) → return (s' , out-mh→kl {A} {B} mo))
+        ≡⟨ >>=-assoc _ ⟩
+      (SFunᵉ.fun K (s , i) >>= λ (s' , z) →
+        return (s' , out-kl→mh {A} {B} z)
+          >>= λ (s' , mo) → return (s' , out-mh→kl {A} {B} mo))
+        ≡⟨ refl⟩>>=⟨ (λ (s' , z) → >>=-identityˡ) ⟩
+      (SFunᵉ.fun K (s , i) >>= λ (s' , z) →
+        return (s' , out-mh→kl {A} {B} (out-kl→mh {A} {B} z)))
+        ≡⟨ refl⟩>>=⟨ (λ (s' , z) →
+             cong (λ w → return (s' , w)) (out-kl-roundtrip {A} {B} z)) ⟩
+      (SFunᵉ.fun K (s , i) >>= λ (s' , z) → return (s' , z))
+        ≡⟨ >>=-identityʳ _ ⟩
+      SFunᵉ.fun K (s , i) ∎
+      where open ≡-Reasoning
+
+-- ─────────────────────────────────────────────────────────────────────
+-- The bridge: construction equality implies trace equivalence.
+-- ─────────────────────────────────────────────────────────────────────
+-- `member` of a monadic list-trace of `of-rel`-encoded steps computes,
+-- via the `MonadOfRel` monad-morphism laws, to exactly the M-free run
+-- relation `RunRel`. Hence equal eval semantics yield equal run sets.
+
+private
+  -- The step function of `Machine→Kl m _` (independent of the init).
+  klStep : ∀ {A B : Channel} (m : Machine A B)
+         → Machine.State m × (Channel.inType A ⊎ Channel.outType B)
+         → M (Machine.State m × (Channel.outType A ⊎ (Channel.inType B ⊎ ⊤)))
+  klStep {A} {B} m (s , i) =
+    (of-rel {A = Machine.State m × Maybe (Channel.outType (A ⊗ᵀ B))}
+       λ (s' , mo) → Machine.stepRel m s (construct-⊗ {m = In} i) mo s')
+      >>= λ (s' , mo) → return (s' , out-mh→kl {A} {B} mo)
+
+  -- A machine-shaped run, reshaped to the Kleisli hom's input/output
+  -- alphabets.
+  run-ins : ∀ {A B : Channel}
+          → List (Channel.inType (A ⊗ᵀ B) × Maybe (Channel.outType (A ⊗ᵀ B)))
+          → List (Channel.inType A ⊎ Channel.outType B)
+  run-ins = map (λ st → destruct-⊗ {m = In} (proj₁ st))
+
+  run-outs : ∀ {A B : Channel}
+           → List (Channel.inType (A ⊗ᵀ B) × Maybe (Channel.outType (A ⊗ᵀ B)))
+           → List (Channel.outType A ⊎ (Channel.inType B ⊎ ⊤))
+  run-outs {A} {B} = map (λ st → out-mh→kl {A} {B} (proj₂ st))
+
+  -- Soundness: every machine run is a member of the trace semantics.
+  run-member : ∀ {A B : Channel} (m : Machine A B) (s : Machine.State m) tr
+             → RunRel m s tr
+             → member (run-outs {A} {B} tr)
+                      (trace (klStep m) s (run-ins {A} {B} tr))
+  run-member m s [] _ = return-member
+  run-member {A} {B} m s ((i , mo) ∷ tr) (s' , st , r) =
+    >>=-member
+      (>>=-member
+        (of-rel-sound (subst (λ x → Machine.stepRel m s x mo s')
+                        (sym (construct∘destruct-In {A} {B} i)) st))
+        return-member)
+      (>>=-member (run-member {A} {B} m s' tr r) return-member)
+
+  -- Completeness: every member of the trace semantics is a machine
+  -- run. The output list pins down each step's emission via
+  -- injectivity of the output reshape.
+  trace-member : ∀ {A B : Channel} (m : Machine A B) (s : Machine.State m) tr
+               → member (run-outs {A} {B} tr)
+                        (trace (klStep m) s (run-ins {A} {B} tr))
+               → RunRel m s tr
+  trace-member m s [] _ = tt
+  trace-member {A} {B} m s ((i , mo) ∷ tr) h =
+    let ((s₁ , b) , h₁ , h₂)   = member->>= h
+        ((s₂ , mo₂) , h₃ , h₄) = member->>= h₁
+        pair≡  = member-return h₄
+        s₁≡s₂  = cong proj₁ pair≡
+        b≡     = cong proj₂ pair≡
+        (bs , h₅ , h₆) = member->>= h₂
+        cons≡  = member-return h₆
+        mo≡mo₂ = out-mh→kl-injective {A} {B}
+                   (trans (proj₁ (∷-injective cons≡)) b≡)
+        step₁ : Machine.stepRel m s i mo s₂
+        step₁ = subst₂ (λ x y → Machine.stepRel m s x y s₂)
+                  (construct∘destruct-In {A} {B} i) (sym mo≡mo₂)
+                  (of-rel-complete h₃)
+        ih : RunRel m s₁ tr
+        ih = trace-member {A} {B} m s₁ tr
+               (subst (λ ys → member ys (trace (klStep m) s₁ (run-ins {A} {B} tr)))
+                 (sym (proj₂ (∷-injective cons≡))) h₅)
+    in s₂ , step₁ , subst (λ st → RunRel m st tr) s₁≡s₂ ih
+
+-- Machines whose Kleisli images are equal in the construction's hom
+-- equality admit exactly the same finite runs. (The converse is
+-- `of-rel`-extensionality; see the section comment.)
+≈ᴹᴴ-Kl⇒≈ᵗ : ∀ {A B : Channel} {m₁ m₂ : Machineᵖ A B}
+          → Machineᵖ→Kl m₁ ≈ᴹᴴ-Kl Machineᵖ→Kl m₂
+          → m₁ ≈ᵗ m₂
+≈ᴹᴴ-Kl⇒≈ᵗ {A} {B} {MkMachineᵖ m₁ s₁} {MkMachineᵖ m₂ s₂} p = MkTraceEq
+  (λ {tr} r → trace-member {A} {B} m₂ s₂ tr
+      (subst (member (run-outs {A} {B} tr)) (p (run-ins {A} {B} tr))
+        (run-member {A} {B} m₁ s₁ tr r)))
+  (λ {tr} r → trace-member {A} {B} m₁ s₁ tr
+      (subst (member (run-outs {A} {B} tr)) (sym (p (run-ins {A} {B} tr)))
+        (run-member {A} {B} m₂ s₂ tr r)))
+
+-- ─────────────────────────────────────────────────────────────────────
+-- The category itself: laws by Kleisli reasoning over the proven
+-- graded-triple laws.
+-- ─────────────────────────────────────────────────────────────────────
+
+private
+  -- `ext return ≈ id` and `ext (ext h ∘ g) ≈ ext h ∘ ext g`, extracted
+  -- from the triple laws by stripping the `sub = id` prefix.
+  ext-return-≈-id : ∀ {A : GC-C.Obj}
+    → MaybeT-ext (MaybeT-return {A}) GC-C.≈ GC-C.id
+  ext-return-≈-id =
+    GC-C.Equiv.trans (GC-C.Equiv.sym GC-C.identityˡ) MaybeT-ext-identityˡ
+
+  ext-∘-≈ : ∀ {A B C : GC-C.Obj}
+      {h : B GC-C.⇒ MaybeT₀ _ C} {g : A GC-C.⇒ MaybeT₀ _ B}
+    → MaybeT-ext (MaybeT-ext h GC-C.∘ g)
+      GC-C.≈ (MaybeT-ext h GC-C.∘ MaybeT-ext g)
+  ext-∘-≈ = GC-C.Equiv.trans MaybeT-ext-assoc GC-C.identityˡ
+
+MaybeHomKl-identityˡ : ∀ {A B : Channel} {f : MaybeHom-Kl A B}
+                     → (idᴹᴴ-Kl ∘ᴹᴴ-Kl f) ≈ᴹᴴ-Kl f
+MaybeHomKl-identityˡ {f = f} = begin
+  MaybeT-ext MaybeT-return GC-C.∘ f ≈⟨ GC-C.∘-resp-≈ˡ ext-return-≈-id ⟩
+  GC-C.id GC-C.∘ f                  ≈⟨ GC-C.identityˡ ⟩
+  f                                 ∎
+  where open GC-C.HomReasoning
+
+MaybeHomKl-identityʳ : ∀ {A B : Channel} {f : MaybeHom-Kl A B}
+                     → (f ∘ᴹᴴ-Kl idᴹᴴ-Kl) ≈ᴹᴴ-Kl f
+MaybeHomKl-identityʳ =
+  GC-C.Equiv.trans (GC-C.Equiv.sym GC-C.identityˡ) MaybeT-ext-identityʳ
+
+MaybeHomKl-assoc : ∀ {A B C D : Channel} {f : MaybeHom-Kl A B}
+    {g : MaybeHom-Kl B C} {h : MaybeHom-Kl C D}
+  → ((h ∘ᴹᴴ-Kl g) ∘ᴹᴴ-Kl f) ≈ᴹᴴ-Kl (h ∘ᴹᴴ-Kl (g ∘ᴹᴴ-Kl f))
+MaybeHomKl-assoc {f = f} {g} {h} = begin
+  MaybeT-ext (MaybeT-ext h GC-C.∘ g) GC-C.∘ f
+    ≈⟨ GC-C.∘-resp-≈ˡ ext-∘-≈ ⟩
+  (MaybeT-ext h GC-C.∘ MaybeT-ext g) GC-C.∘ f
+    ≈⟨ GC-C.assoc ⟩
+  MaybeT-ext h GC-C.∘ (MaybeT-ext g GC-C.∘ f) ∎
+  where open GC-C.HomReasoning
+
+MaybeHomKl-∘-resp-≈ : ∀ {A B C : Channel}
+    {f h : MaybeHom-Kl B C} {g i : MaybeHom-Kl A B}
+  → f ≈ᴹᴴ-Kl h → g ≈ᴹᴴ-Kl i → (f ∘ᴹᴴ-Kl g) ≈ᴹᴴ-Kl (h ∘ᴹᴴ-Kl i)
+MaybeHomKl-∘-resp-≈ p q = GC-C.∘-resp-≈ (MaybeT-ext-resp-≈ p) q
+
+≈ᴹᴴ-Kl-isEquivalence : ∀ {A B : Channel}
+                     → IsEquivalence (_≈ᴹᴴ-Kl_ {A} {B})
+≈ᴹᴴ-Kl-isEquivalence = record
+  { refl = GC-C.Equiv.refl ; sym = GC-C.Equiv.sym ; trans = GC-C.Equiv.trans }
+
+MaybeHomKlCategory : Category _ _ _
+MaybeHomKlCategory = record
+  { Obj       = Channel
+  ; _⇒_       = MaybeHom-Kl
+  ; _≈_       = _≈ᴹᴴ-Kl_
+  ; id        = idᴹᴴ-Kl
+  ; _∘_       = _∘ᴹᴴ-Kl_
+  ; assoc     = MaybeHomKl-assoc
+  ; sym-assoc = GC-C.Equiv.sym MaybeHomKl-assoc
+  ; identityˡ = MaybeHomKl-identityˡ
+  ; identityʳ = MaybeHomKl-identityʳ
+  ; identity² = MaybeHomKl-identityˡ
+  ; equiv     = ≈ᴹᴴ-Kl-isEquivalence
+  ; ∘-resp-≈  = MaybeHomKl-∘-resp-≈
   }
 
-MachineCategory : Category _ _ _
-MachineCategory = record
+-- ─────────────────────────────────────────────────────────────────────
+-- The same category, with machines as the morphisms.
+-- ─────────────────────────────────────────────────────────────────────
+-- Channels as objects, *pointed machines* as morphisms, and the
+-- construction supplying the entire categorical structure: `idᶜ` and
+-- `_∘ᶜ_` are the Kleisli identity and composition repackaged as
+-- machines through `Kl→Machineᵖ`, and `_≈ᶜ_` is the construction's
+-- hom equality pulled back along `Machineᵖ→Kl`. Every law transports
+-- mechanically along `Machineᵖ-Kl-roundtrip`, so this category needs
+-- no machine-level bisimulation either — it is `MaybeHomKlCategory`
+-- presented on machine carriers (the round-trip makes the hom-setoids
+-- isomorphic).
+--
+-- Two deliberate differences from `MachineCategory`:
+--   • `_∘ᶜ_` is *not* `MC._∘_`: relating the two at `_≈ᶜ_` is the
+--     `of-rel`-extensionality wall (and even at `_≈ᵗ_` it would need
+--     membership laws for `iter`), so the construction's composition
+--     is taken as primitive.
+--   • `_≈ᶜ_` is the coarse, observational equality: by `≈ᴹᴴ-Kl⇒≈ᵗ`,
+--     `_≈ᶜ_`-equal machines are in particular trace equivalent.
+
+infix 4 _≈ᶜ_
+
+_≈ᶜ_ : ∀ {A B : Channel} → Machineᵖ A B → Machineᵖ A B → Type _
+m₁ ≈ᶜ m₂ = Machineᵖ→Kl m₁ ≈ᴹᴴ-Kl Machineᵖ→Kl m₂
+
+≈ᶜ⇒≈ᵗ : ∀ {A B : Channel} {m₁ m₂ : Machineᵖ A B} → m₁ ≈ᶜ m₂ → m₁ ≈ᵗ m₂
+≈ᶜ⇒≈ᵗ = ≈ᴹᴴ-Kl⇒≈ᵗ
+
+idᶜ : ∀ {A : Channel} → Machineᵖ A A
+idᶜ = Kl→Machineᵖ idᴹᴴ-Kl
+
+infixr 9 _∘ᶜ_
+
+_∘ᶜ_ : ∀ {A B C : Channel} → Machineᵖ B C → Machineᵖ A B → Machineᵖ A C
+g ∘ᶜ f = Kl→Machineᵖ (Machineᵖ→Kl g ∘ᴹᴴ-Kl Machineᵖ→Kl f)
+
+private
+  -- Unfold one layer of `_∘ᶜ_`/`idᶜ` back to the Kleisli side; both
+  -- are `Kl→Machineᵖ` of something, so this is the round-trip.
+  unfold-∘ᶜ : ∀ {A B C : Channel} (g : Machineᵖ B C) (f : Machineᵖ A B)
+            → Machineᵖ→Kl (g ∘ᶜ f)
+              ≈ᴹᴴ-Kl (Machineᵖ→Kl g ∘ᴹᴴ-Kl Machineᵖ→Kl f)
+  unfold-∘ᶜ g f = Machineᵖ-Kl-roundtrip (Machineᵖ→Kl g ∘ᴹᴴ-Kl Machineᵖ→Kl f)
+
+  unfold-idᶜ : ∀ {A : Channel} → Machineᵖ→Kl (idᶜ {A}) ≈ᴹᴴ-Kl idᴹᴴ-Kl
+  unfold-idᶜ {A} = Machineᵖ-Kl-roundtrip (idᴹᴴ-Kl {A})
+
+-- The hom implicits below are passed explicitly throughout: leaving
+-- them to unification makes the conversion checker eta-expand metas
+-- against the `eval` normal forms, which gets stuck on higher-order
+-- constraints (same phenomenon as in `SFunᵉ-GConstruction` above).
+
+MachineKl-identityˡ : ∀ {A B : Channel} {f : Machineᵖ A B}
+                    → (idᶜ ∘ᶜ f) ≈ᶜ f
+MachineKl-identityˡ {f = f} =
+  GC-C.Equiv.trans (unfold-∘ᶜ idᶜ f)
+    (GC-C.Equiv.trans
+      (MaybeHomKl-∘-resp-≈
+        {f = Machineᵖ→Kl idᶜ} {h = idᴹᴴ-Kl}
+        {g = Machineᵖ→Kl f} {i = Machineᵖ→Kl f}
+        unfold-idᶜ (GC-C.Equiv.refl {x = Machineᵖ→Kl f}))
+      (MaybeHomKl-identityˡ {f = Machineᵖ→Kl f}))
+
+MachineKl-identityʳ : ∀ {A B : Channel} {f : Machineᵖ A B}
+                    → (f ∘ᶜ idᶜ) ≈ᶜ f
+MachineKl-identityʳ {f = f} =
+  GC-C.Equiv.trans (unfold-∘ᶜ f idᶜ)
+    (GC-C.Equiv.trans
+      (MaybeHomKl-∘-resp-≈
+        {f = Machineᵖ→Kl f} {h = Machineᵖ→Kl f}
+        {g = Machineᵖ→Kl idᶜ} {i = idᴹᴴ-Kl}
+        (GC-C.Equiv.refl {x = Machineᵖ→Kl f}) unfold-idᶜ)
+      (MaybeHomKl-identityʳ {f = Machineᵖ→Kl f}))
+
+MachineKl-assoc : ∀ {A B C D : Channel} {f : Machineᵖ A B}
+    {g : Machineᵖ B C} {h : Machineᵖ C D}
+  → ((h ∘ᶜ g) ∘ᶜ f) ≈ᶜ (h ∘ᶜ (g ∘ᶜ f))
+MachineKl-assoc {f = f} {g} {h} =
+  GC-C.Equiv.trans (unfold-∘ᶜ (h ∘ᶜ g) f)
+    (GC-C.Equiv.trans
+      (MaybeHomKl-∘-resp-≈
+        {f = Machineᵖ→Kl (h ∘ᶜ g)}
+        {h = Machineᵖ→Kl h ∘ᴹᴴ-Kl Machineᵖ→Kl g}
+        {g = Machineᵖ→Kl f} {i = Machineᵖ→Kl f}
+        (unfold-∘ᶜ h g) (GC-C.Equiv.refl {x = Machineᵖ→Kl f}))
+      (GC-C.Equiv.trans
+        (MaybeHomKl-assoc
+          {f = Machineᵖ→Kl f} {g = Machineᵖ→Kl g} {h = Machineᵖ→Kl h})
+        (GC-C.Equiv.trans
+          (MaybeHomKl-∘-resp-≈
+            {f = Machineᵖ→Kl h} {h = Machineᵖ→Kl h}
+            {g = Machineᵖ→Kl g ∘ᴹᴴ-Kl Machineᵖ→Kl f}
+            {i = Machineᵖ→Kl (g ∘ᶜ f)}
+            (GC-C.Equiv.refl {x = Machineᵖ→Kl h})
+            (GC-C.Equiv.sym (unfold-∘ᶜ g f)))
+          (GC-C.Equiv.sym (unfold-∘ᶜ h (g ∘ᶜ f))))))
+
+MachineKl-∘-resp-≈ : ∀ {A B C : Channel}
+    {f h : Machineᵖ B C} {g i : Machineᵖ A B}
+  → f ≈ᶜ h → g ≈ᶜ i → (f ∘ᶜ g) ≈ᶜ (h ∘ᶜ i)
+MachineKl-∘-resp-≈ {f = f} {h} {g} {i} p q =
+  GC-C.Equiv.trans (unfold-∘ᶜ f g)
+    (GC-C.Equiv.trans
+      (MaybeHomKl-∘-resp-≈
+        {f = Machineᵖ→Kl f} {h = Machineᵖ→Kl h}
+        {g = Machineᵖ→Kl g} {i = Machineᵖ→Kl i} p q)
+      (GC-C.Equiv.sym (unfold-∘ᶜ h i)))
+
+≈ᶜ-isEquivalence : ∀ {A B : Channel} → IsEquivalence (_≈ᶜ_ {A} {B})
+≈ᶜ-isEquivalence = record
+  { refl = GC-C.Equiv.refl ; sym = GC-C.Equiv.sym ; trans = GC-C.Equiv.trans }
+
+-- The law fields are eta-expanded with all implicits spelled out, for
+-- the same stuck-meta reason as above.
+MachineKlCategory : Category _ _ _
+MachineKlCategory = record
   { Obj       = Channel
-  ; _⇒_       = Machine
-  ; _≈_       = _≅ᴹ_
-  ; id        = MC.id
-  ; _∘_       = MC._∘_
-  ; assoc     = ∘-assoc-≅ᴹ
-  ; sym-assoc = ≅ᴹ-sym ∘-assoc-≅ᴹ
-  ; identityˡ = ∘-identityˡ-≅ᴹ
-  ; identityʳ = ∘-identityʳ-≅ᴹ
-  ; identity² = ∘-identityˡ-≅ᴹ
-  ; equiv     = ≅ᴹ-isEquivalence
-  ; ∘-resp-≈  = ∘-resp-≅ᴹ
+  ; _⇒_       = Machineᵖ
+  ; _≈_       = _≈ᶜ_
+  ; id        = idᶜ
+  ; _∘_       = _∘ᶜ_
+  ; assoc     = λ {A} {B} {C} {D} {f} {g} {h} →
+                  MachineKl-assoc {A} {B} {C} {D} {f} {g} {h}
+  ; sym-assoc = λ {A} {B} {C} {D} {f} {g} {h} →
+                  GC-C.Equiv.sym (MachineKl-assoc {A} {B} {C} {D} {f} {g} {h})
+  ; identityˡ = λ {A} {B} {f} → MachineKl-identityˡ {A} {B} {f}
+  ; identityʳ = λ {A} {B} {f} → MachineKl-identityʳ {A} {B} {f}
+  ; identity² = λ {A} → MachineKl-identityˡ {A} {A} {idᶜ}
+  ; equiv     = ≈ᶜ-isEquivalence
+  ; ∘-resp-≈  = λ {A} {B} {C} {f} {h} {g} {i} p q →
+                  MachineKl-∘-resp-≈ {A} {B} {C} {f} {h} {g} {i} p q
   }
