@@ -28,22 +28,20 @@ module Categories.SolverSigmaFrontendTests where
 
 open import Level using (Level)
 
-open import Data.Fin using (Fin; zero; suc; toℕ)
-open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; []; _∷_)
-open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Nat using (ℕ)
+open import Data.Fin using (Fin; zero; suc)
+open import Data.Maybe using (nothing)
 open import Data.Product using (_×_; _,_; proj₁; proj₂)
 open import Data.Vec using (_∷_; [])
 open import Function using (case_of_)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open import Relation.Nullary using (Dec; yes; no)
+open import Relation.Nullary using (yes; no)
 
-open import Categories.Category using (Category; _[_,_]; _[_≈_])
+open import Categories.Category using (_[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
 open import Categories.Category.Monoidal.Symmetric using (Symmetric)
 open import Categories.FreeMonoidal
+open import Categories.SolverFrontendCore using (module FinSig)
 open import Categories.SolverSigmaFrontend using (module FrontendS; module FinSetupσ)
 
 -- `Symm ≤ Symm` for σ in the test terms.
@@ -73,25 +71,16 @@ arityT zero             = Var ⋆ ⊗₀ Var ⋆ , Var ⋆
 arityT (suc zero)       = Var ⋆ , Var ⋆
 arityT (suc (suc zero)) = Var • , Var •
 
-data GenT : ObjTerm → ObjTerm → Set where
-  genT : (i : Fin 3) → GenT (proj₁ (arityT i)) (proj₂ (arityT i))
+open FinSig Symm {Ty} arityT using (GenS; genS; _≟G_; rankS)
 
 ------------------------------------------------------------------------
 -- The front-end term language and the solver instance.
 
-private module S = FreeMonoidalHelper.Mor Symm Ty GenT
+private module S = FreeMonoidalHelper.Mor Symm Ty GenS
 
-open FrontendS {Ty} _≟Ty_ GenT
+open FrontendS {Ty} _≟Ty_ GenS
 
-_≟G_ : DecidableEquality GenΣ
-(_ , _ , genT i) ≟G (_ , _ , genT j) = case i ≟F j of λ where
-  (yes refl) → yes refl
-  (no ¬p)    → no λ where refl → ¬p refl
-
-rankT : GenΣ → ℕ
-rankT (_ , _ , genT i) = toℕ i
-
-open Decide _≟G_ rankT
+open Decide _≟G_ rankS
 
 -- readable term-language aliases.
 private
@@ -109,9 +98,9 @@ private
   id' = S.id
   σ' : ∀ {A B} → S.HomTerm (A ⊗₀ B) (B ⊗₀ A)
   σ' = S.σ
-  μ' = S.var (genT zero)
-  s' = S.var (genT (suc zero))
-  t' = S.var (genT (suc (suc zero)))
+  μ' = S.var (genS zero)
+  s' = S.var (genS (suc zero))
+  t' = S.var (genS (suc (suc zero)))
 
 ------------------------------------------------------------------------
 -- Braiding involution: σ∘σ≈id, as a one-liner and deep in context.

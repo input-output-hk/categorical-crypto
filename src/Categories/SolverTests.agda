@@ -20,16 +20,15 @@
 
 module Categories.SolverTests where
 
-open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; []; _∷_; _++_)
-open import Data.List.Properties using (≡-dec)
+open import Data.List using (List; []; _∷_)
 open import Data.Maybe using (Maybe; just; nothing; Is-just)
+open import Function using (case_of_)
 open import Data.Maybe.Relation.Unary.Any using (just)
 open import Data.Product using (_×_; _,_; proj₁; proj₂)
 open import Relation.Binary using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Relation.Nullary using (yes; no)
 
 open import Categories.DiagramRewriteUntyped
@@ -48,11 +47,6 @@ _≟Ty_ : DecidableEquality Ty
 ⋆ ≟Ty • = no λ ()
 • ≟Ty ⋆ = no λ ()
 • ≟Ty • = yes refl
-
--- UIP on wire lists, via Hedberg (decidable equality), --without-K.
-private
-  uipLTy : ∀ {x y : List Ty} (e e' : x ≡ y) → e ≡ e'
-  uipLTy = Decidable⇒UIP.≡-irrelevant (≡-dec _≟Ty_)
 
 ------------------------------------------------------------------------
 -- Generator signature: Frobenius/bialgebra kit on Ty.
@@ -187,33 +181,35 @@ module Decision where
   -- Decidable equality on GenΣ via _≟F_ on the Fin 6 index.
   private
     _≟Gen_ : DecidableEquality GenΣ
-    (_ , _ , gen i) ≟Gen (_ , _ , gen j) with i ≟F j
-    ... | yes refl = yes refl
-    ... | no ¬p    = no λ where refl → ¬p refl
+    (_ , _ , gen i) ≟Gen (_ , _ , gen j) = case i ≟F j of λ where
+      (yes refl) → yes refl
+      (no ¬p)    → no λ where refl → ¬p refl
 
   open SolverCompare.Decide Mon _≟Ty_ Gen _≟Gen_
     using (_≈NF_; _≟DiagU_; ≈NF⇒≡)
 
+  private
+    eq-≈Term : ∀ {n p} {d d' : DiagU n}
+                 (e : d ≡ d') (q₁ : out d ≡ p) (q₂ : out d' ≡ p)
+             → castW q₁ ∘ ⟦ d ⟧ ≈Term castW q₂ ∘ ⟦ d' ⟧
+    eq-≈Term {d = d} refl q₁ q₂ =
+      ∘-resp-≈ (castW-irr q₁ q₂) ≈-Term-refl
+
+    chain : ∀ {n m} (f g : WTerm n m)
+          → reflect f ≈NF reflect g → embed f ≈Term embed g
+    chain f g eq = begin
+      embed f
+        ≈⟨ reflect-sound f ⟨
+      castW (out-reflect f) ∘ ⟦ reflect f ⟧
+        ≈⟨ eq-≈Term (≈NF⇒≡ eq) (out-reflect f) (out-reflect g) ⟩
+      castW (out-reflect g) ∘ ⟦ reflect g ⟧
+        ≈⟨ reflect-sound g ⟩
+      embed g ∎
+
   decide? : ∀ {n m} (f g : WTerm n m) → Maybe (embed f ≈Term embed g)
-  decide? f g with reflect f ≟DiagU reflect g
-  ... | no  _  = nothing
-  ... | yes eq = just (chain eq)
-    where
-      chain : reflect f ≈NF reflect g → embed f ≈Term embed g
-      chain eq = begin
-        embed f
-          ≈⟨ reflect-sound f ⟨
-        castW (out-reflect f) ∘ ⟦ reflect f ⟧
-          ≈⟨ eq-≈Term (≈NF⇒≡ eq) (out-reflect f) (out-reflect g) ⟩
-        castW (out-reflect g) ∘ ⟦ reflect g ⟧
-          ≈⟨ reflect-sound g ⟩
-        embed g ∎
-        where
-          eq-≈Term : ∀ {n p} {d d' : DiagU n}
-                       (e : d ≡ d') (q₁ : out d ≡ p) (q₂ : out d' ≡ p)
-                   → castW q₁ ∘ ⟦ d ⟧ ≈Term castW q₂ ∘ ⟦ d' ⟧
-          eq-≈Term {d = d} refl q₁ q₂ =
-            ≡⇒≈Term (cong (λ q → castW q ∘ ⟦ d ⟧) (uipLTy q₁ q₂))
+  decide? f g = case reflect f ≟DiagU reflect g of λ where
+    (no  _)  → nothing
+    (yes eq) → just (chain f g eq)
 
   -- Positive: `id ∘ μ` and `μ` reflect to the same diagram.
   test-pos₁ : Is-just (decide? (idʷ ∘ʷ boxʷ μ) (boxʷ μ))

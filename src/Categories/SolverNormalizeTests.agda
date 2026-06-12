@@ -19,7 +19,7 @@ open import Data.List using (List; []; _∷_; _++_)
 open import Data.Maybe using (just; nothing)
 open import Data.Nat using (ℕ)
 open import Data.Nat.Properties using () renaming (_≟_ to _≟ℕ_)
-open import Data.Product using (_,_; proj₁; proj₂)
+open import Data.Product using (proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym)
 
 open import Categories.DiagramRewriteUntyped
@@ -96,7 +96,7 @@ litFit : LeftFit (0 ∷ []) [] [] (1 ∷ []) gbox fbox
 litFit = leftFit [] [] [] refl refl refl refl
 
 open LeftFrame litFit
-  using (input-O; sorted-O; input⇒sorted; N₀; N₃; f-out-layer; g-in-layer)
+  using (input-O; sorted-O; input⇒sorted; N₃; f-out-layer; g-in-layer)
 
 -- the empty wired tail from the frame's common output N₃.
 litTail : Wired N₃ [] N₃
@@ -260,33 +260,29 @@ litLeftFit? = refl
 litLeftFit?-no : leftFit? [] [] [] [] fbox gbox ≡ nothing
 litLeftFit?-no = refl
 
--- the recognised fit (= the hand-written `litFit`).
-litFitD : LeftFit (0 ∷ []) [] [] (1 ∷ []) gbox fbox
-litFitD = leftFit [] [] [] refl refl refl refl
-
 -- the firing swap on the recognised fit + empty tail.
-litSwapD : HeadSwapD litFitD litDSorted
-litSwapD = swapHeadD litFitD litDSorted
+litSwapD : HeadSwapD litFit litDSorted
+litSwapD = swapHeadD litFit litDSorted
 
 -- `normalizeD` with positive fuel REORDERS: the result is the swapped clean
 -- DiagU (fbox, the lower-offset box, now fires FIRST) — machine-checked `refl`
 -- on the underlying layer list (fbox-pad first, then gbox-pad).
-litNormReorders : fromDiagU-ls (normalizeD 4 litFitD litDSorted)
+litNormReorders : fromDiagU-ls (normalizeD 4 litFit litDSorted)
                 ≡ mk-pad [] (1 ∷ []) fbox
                 ∷ mk-pad (0 ∷ []) [] gbox ∷ []
 litNormReorders = refl
 
 -- and the INPUT (fuel 0 / pre-sort) is gbox-first — confirming it was out of order.
-litNormInput : fromDiagU-ls (normalizeD 0 litFitD litDSorted)
+litNormInput : fromDiagU-ls (normalizeD 0 litFit litDSorted)
              ≡ mk-pad (0 ∷ []) [] gbox
              ∷ mk-pad [] (1 ∷ []) fbox ∷ []
 litNormInput = refl
 
 -- the casts are the identity here, so the soundness witness is the clean
 -- `≈Term` between the two DiagUs (gbox-first ⇒ fbox-first), machine-checked.
-litNormCastId : proj₁ (normalizeD-sound 4 litFitD litDSorted) ≡ refl
+litNormCastId : proj₁ (normalizeD-sound 4 litFit litDSorted) ≡ refl
 litNormCastId = refl
 
-litNormSound : id ∘ ⟦ dInput litFitD litDSorted ⟧
-             ≈Term ⟦ normalizeD 4 litFitD litDSorted ⟧
-litNormSound = proj₂ (normalizeD-sound 4 litFitD litDSorted)
+litNormSound : id ∘ ⟦ dInput litFit litDSorted ⟧
+             ≈Term ⟦ normalizeD 4 litFit litDSorted ⟧
+litNormSound = proj₂ (normalizeD-sound 4 litFit litDSorted)

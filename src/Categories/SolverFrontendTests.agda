@@ -73,21 +73,19 @@ module Categories.SolverFrontendTests where
 
 open import Level using (Level)
 
-open import Data.Fin using (Fin; zero; suc; toℕ)
-open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; []; _∷_)
-open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Nat using (ℕ)
+open import Data.Fin using (Fin; zero; suc)
+open import Data.Maybe using (nothing)
 open import Data.Product using (_×_; _,_; proj₁; proj₂)
 open import Function using (case_of_)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open import Relation.Nullary using (Dec; yes; no)
+open import Relation.Nullary using (yes; no)
 
-open import Categories.Category using (Category; _[_,_]; _[_≈_])
+open import Categories.Category using (_[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
 open import Categories.FreeMonoidal
 open import Categories.SolverFrontend using (module Frontend)
+open import Categories.SolverFrontendCore using (module FinSig)
 
 ------------------------------------------------------------------------
 -- Wire colours and the generator signature (ObjTerm arities, Fin-indexed).
@@ -118,26 +116,16 @@ arityT (suc (suc (suc zero)))          = Var ⋆ , Var ⋆
 arityT (suc (suc (suc (suc zero))))    = Var • , Var •
 arityT (suc (suc (suc (suc (suc _))))) = unit , unit   -- 5 → u, 6 → v
 
-data GenT : ObjTerm → ObjTerm → Set where
-  genT : (i : Fin 7) → GenT (proj₁ (arityT i)) (proj₂ (arityT i))
+open FinSig Mon {Ty} arityT using (GenS; genS; _≟G_; rankS)
 
 ------------------------------------------------------------------------
 -- The front-end term language and the solver instance.
 
-private module S = FreeMonoidalHelper.Mor Mon Ty GenT
+private module S = FreeMonoidalHelper.Mor Mon Ty GenS
 
-open Frontend {Ty} _≟Ty_ GenT
+open Frontend {Ty} _≟Ty_ GenS
 
-_≟G_ : DecidableEquality GenΣ
-(_ , _ , genT i) ≟G (_ , _ , genT j) = case i ≟F j of λ where
-  (yes refl) → yes refl
-  (no ¬p)    → no λ where refl → ¬p refl
-
--- the tiebreak key: the Fin index (injective, so all ambiguous pairs sort).
-rankT : GenΣ → ℕ
-rankT (_ , _ , genT i) = toℕ i
-
-open Decide _≟G_ rankT
+open Decide _≟G_ rankS
 
 -- readable term-language aliases.
 private
@@ -153,13 +141,13 @@ private
   _⊗'_ = S._⊗₁_
   id' : ∀ {A} → S.HomTerm A A
   id' = S.id
-  μ'  = S.var (genT zero)
-  η'  = S.var (genT (suc zero))
-  s'  = S.var (genT (suc (suc zero)))
-  s'' = S.var (genT (suc (suc (suc zero))))
-  t'  = S.var (genT (suc (suc (suc (suc zero)))))
-  u'  = S.var (genT (suc (suc (suc (suc (suc zero))))))
-  v'  = S.var (genT (suc (suc (suc (suc (suc (suc zero)))))))
+  μ'  = S.var (genS zero)
+  η'  = S.var (genS (suc zero))
+  s'  = S.var (genS (suc (suc zero)))
+  s'' = S.var (genS (suc (suc (suc zero))))
+  t'  = S.var (genS (suc (suc (suc (suc zero)))))
+  u'  = S.var (genS (suc (suc (suc (suc (suc zero))))))
+  v'  = S.var (genS (suc (suc (suc (suc (suc (suc zero)))))))
 
 ------------------------------------------------------------------------
 -- Coherence: pure MacLane equations decide (both sides reflect to the
@@ -377,12 +365,12 @@ module Target {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
       ⟦ • ⟧₀T = B
 
     open Into C ⟦_⟧₀T
-    open WithGen (λ { (genT zero)                            → μᴹ
-                    ; (genT (suc zero))                      → ηᴹ
-                    ; (genT (suc (suc zero)))                → sᴹ
-                    ; (genT (suc (suc (suc zero))))          → s'ᴹ
-                    ; (genT (suc (suc (suc (suc zero)))))    → tᴹ
-                    ; (genT (suc (suc (suc (suc (suc _)))))) → uᴹ })
+    open WithGen (λ { (genS zero)                            → μᴹ
+                    ; (genS (suc zero))                      → ηᴹ
+                    ; (genS (suc (suc zero)))                → sᴹ
+                    ; (genS (suc (suc (suc zero))))          → s'ᴹ
+                    ; (genS (suc (suc (suc (suc zero)))))    → tᴹ
+                    ; (genS (suc (suc (suc (suc (suc _)))))) → uᴹ })
 
     open MC using () renaming (_⊗₁_ to _⊗C_)
 
@@ -404,80 +392,54 @@ module Target {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
           [ MC.unitorʳ.from MC.∘ (sᴹ ⊗C MC.id) ≈ sᴹ MC.∘ MC.unitorʳ.from ]
     test-ρ-nat = solveMor! (S.ρ⇒ ∘' (s' ⊗' id')) (s' ∘' S.ρ⇒)
 
-------------------------------------------------------------------------
--- Rewriting: rule application in context (the Mon analogue of the SMC
--- solver's rewriteH!/rewriteAuto!).  A rule is any C-equation between
--- interpretations of front-end terms — here abstract hypotheses
--- (commuting endos, an inverse law), exactly the shapes the solver
--- alone cannot know (limitation L5): the rewrite layer carries the
--- rule across, the solver absorbs all surrounding structure.
+    ------------------------------------------------------------------------
+    -- Rewriting: rule application in context (the Mon analogue of the SMC
+    -- solver's rewriteH!/rewriteAuto!).  A rule is any C-equation between
+    -- interpretations of front-end terms — here abstract hypotheses
+    -- (commuting endos, an inverse law), exactly the shapes the solver
+    -- alone cannot know (limitation L5): the rewrite layer carries the
+    -- rule across, the solver absorbs all surrounding structure.
 
-module Rewrite {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
+    module Rewrite
+      -- the rules: abstract hypotheses about the generators.
+      (comm : C .MonoidalCategory.U [ s'ᴹ MC.∘ sᴹ ≈ sᴹ MC.∘ s'ᴹ ])
+      (inv  : C .MonoidalCategory.U [ sᴹ MC.∘ s'ᴹ ≈ MC.id ])
+      where
 
-  private module MC = MonoidalCategory C
+      -- the rule fires in the RIGHT factor of a tensor (auto-positioned).
+      test-rw-right
+        : C .MonoidalCategory.U
+            [ tᴹ ⊗C (s'ᴹ MC.∘ sᴹ) ≈ tᴹ ⊗C (sᴹ MC.∘ s'ᴹ) ]
+      test-rw-right =
+        rewriteMorAuto! (t' ⊗' (s'' ∘' s')) (t' ⊗' (s' ∘' s''))
+                        (s'' ∘' s') (s' ∘' s'') comm
 
-  module At
-    (A B : MC.Obj)
-    (μᴹ  : C .MonoidalCategory.U [ MC._⊗₀_ A A , A ])
-    (ηᴹ  : C .MonoidalCategory.U [ MC.unit , A ])
-    (sᴹ  : C .MonoidalCategory.U [ A , A ])
-    (s'ᴹ : C .MonoidalCategory.U [ A , A ])
-    (tᴹ  : C .MonoidalCategory.U [ B , B ])
-    (uᴹ  : C .MonoidalCategory.U [ MC.unit , MC.unit ])
-    -- the rules: abstract hypotheses about the generators.
-    (comm : C .MonoidalCategory.U [ s'ᴹ MC.∘ sᴹ ≈ sᴹ MC.∘ s'ᴹ ])
-    (inv  : C .MonoidalCategory.U [ sᴹ MC.∘ s'ᴹ ≈ MC.id ])
-    where
+      -- the rule fires in the LEFT factor (the two-sided pad replaces the
+      -- σ-routing of the symmetric version).
+      test-rw-left
+        : C .MonoidalCategory.U
+            [ (s'ᴹ MC.∘ sᴹ) ⊗C tᴹ ≈ (sᴹ MC.∘ s'ᴹ) ⊗C tᴹ ]
+      test-rw-left =
+        rewriteMorAuto! ((s'' ∘' s') ⊗' t') ((s' ∘' s'') ⊗' t')
+                        (s'' ∘' s') (s' ∘' s'') comm
 
-    private
-      ⟦_⟧₀T : Ty → MC.Obj
-      ⟦ ⋆ ⟧₀T = A
-      ⟦ • ⟧₀T = B
+      -- the redex is NOT a syntactic subterm (it is split across an
+      -- interchange): the manual frame + the solver's reconciliation
+      -- absorb the reshaping.
+      test-rw-interchange
+        : C .MonoidalCategory.U
+            [ (s'ᴹ ⊗C MC.id) MC.∘ (sᴹ ⊗C tᴹ) ≈ (sᴹ ⊗C MC.id) MC.∘ (s'ᴹ ⊗C tᴹ) ]
+      test-rw-interchange =
+        rewriteMor! ((s'' ⊗' id') ∘' (s' ⊗' t')) ((s' ⊗' id') ∘' (s'' ⊗' t'))
+                    (S.λ⇐ ∘' (id' ⊗' t')) S.λ⇒
+                    (s'' ∘' s') (s' ∘' s'') comm
 
-    open Into C ⟦_⟧₀T
-    open WithGen (λ { (genT zero)                            → μᴹ
-                    ; (genT (suc zero))                      → ηᴹ
-                    ; (genT (suc (suc zero)))                → sᴹ
-                    ; (genT (suc (suc (suc zero))))          → s'ᴹ
-                    ; (genT (suc (suc (suc (suc zero)))))    → tᴹ
-                    ; (genT (suc (suc (suc (suc (suc _)))))) → uᴹ })
-
-    open MC using () renaming (_⊗₁_ to _⊗C_)
-
-    -- the rule fires in the RIGHT factor of a tensor (auto-positioned).
-    test-rw-right
-      : C .MonoidalCategory.U
-          [ tᴹ ⊗C (s'ᴹ MC.∘ sᴹ) ≈ tᴹ ⊗C (sᴹ MC.∘ s'ᴹ) ]
-    test-rw-right =
-      rewriteMorAuto! (t' ⊗' (s'' ∘' s')) (t' ⊗' (s' ∘' s''))
-                      (s'' ∘' s') (s' ∘' s'') comm
-
-    -- the rule fires in the LEFT factor (the two-sided pad replaces the
-    -- σ-routing of the symmetric version).
-    test-rw-left
-      : C .MonoidalCategory.U
-          [ (s'ᴹ MC.∘ sᴹ) ⊗C tᴹ ≈ (sᴹ MC.∘ s'ᴹ) ⊗C tᴹ ]
-    test-rw-left =
-      rewriteMorAuto! ((s'' ∘' s') ⊗' t') ((s' ∘' s'') ⊗' t')
-                      (s'' ∘' s') (s' ∘' s'') comm
-
-    -- the redex is NOT a syntactic subterm (it is split across an
-    -- interchange): the manual frame + the solver's reconciliation
-    -- absorb the reshaping.
-    test-rw-interchange
-      : C .MonoidalCategory.U
-          [ (s'ᴹ ⊗C MC.id) MC.∘ (sᴹ ⊗C tᴹ) ≈ (sᴹ ⊗C MC.id) MC.∘ (s'ᴹ ⊗C tᴹ) ]
-    test-rw-interchange =
-      rewriteMor! ((s'' ⊗' id') ∘' (s' ⊗' t')) ((s' ⊗' id') ∘' (s'' ⊗' t'))
-                  (S.λ⇐ ∘' (id' ⊗' t')) S.λ⇒
-                  (s'' ∘' s') (s' ∘' s'') comm
-
-    -- iso-cancellation as a rewrite: the inverse law collapses the
-    -- composite to id inside a context (the APROP `from ∘ to ≈ id`
-    -- pattern).
-    test-rw-cancel
-      : C .MonoidalCategory.U
-          [ tᴹ ⊗C (sᴹ MC.∘ s'ᴹ) ≈ tᴹ ⊗C MC.id ]
-    test-rw-cancel =
-      rewriteMorAuto! (t' ⊗' (s' ∘' s'')) (t' ⊗' id')
-                      (s' ∘' s'') id' inv
+      -- iso-cancellation as a rewrite: the inverse law collapses the
+      -- composite to id inside a context (the APROP `from ∘ to ≈ id`
+      -- pattern).
+      test-rw-cancel
+        : C .MonoidalCategory.U
+            [ tᴹ ⊗C (sᴹ MC.∘ s'ᴹ) ≈ tᴹ ⊗C MC.id ]
+      test-rw-cancel =
+        rewriteMorAuto! (t' ⊗' (s' ∘' s'')) (t' ⊗' id')
+                        (s' ∘' s'') id' inv
