@@ -182,26 +182,21 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
       → iso₁ (B , ⟦ C ⟧ d) ∘ Functor.F₁ F1 (f , refl) FM.≈ Functor.F₁ F2 (f , refl) ∘ iso₁ (A , ⟦ C ⟧ d)
       → iso₁ (D , d) ∘ Functor.F₁ F1 (g , refl) FM.≈ Functor.F₁ F2 (g , refl) ∘ iso₁ (C , d)
       → iso₁ (B ⊗₀ D , d) ∘ Functor.F₁ F1 (f ⊗₁ g , refl) FM.≈ Functor.F₁ F2 (f ⊗₁ g , refl) ∘ iso₁ (A ⊗₀ C , d)
-    natural-⊗ {A} {B} {C} {D} d f g Hf Hg = begin
-      (iso₁ (B , ⟦ D ⟧ d) ∘ id ⊗₁ iso₁ (D , d) ∘ α⇒) ∘ (f ⊗₁ g) ⊗₁ id
-        ≈⟨ assoc²βε ○ refl⟩∘⟨ refl⟩∘⟨ FM.assoc-commute-from ○ refl⟩∘⟨ ⟺ assoc ⟩
-      iso₁ (B , ⟦ D ⟧ d) ∘ (id ⊗₁ iso₁ (D , d) ∘ f ⊗₁ g ⊗₁ id) ∘ α⇒
-        ≈⟨ refl⟩∘⟨ (merge₂ˡ ○ (refl⟩⊗⟨ Hg) ○ split₂ˡ) ⟩∘⟨refl ⟩
-      iso₁ (B , ⟦ D ⟧ d) ∘ (id ⊗₁ ι₁ ⟦ (g , refl) ⟧₁ ∘ f ⊗₁ iso₁ (C , d)) ∘ α⇒
-        ≈⟨ assoc²δγ ⟩
-      (iso₁ (B , ⟦ D ⟧ d) ∘ id ⊗₁ ι₁ ⟦ (g , refl) ⟧₁) ∘ f ⊗₁ iso₁ (C , d) ∘ α⇒
-        ≈⟨ iso-comm ⟩∘⟨refl ⟩
-      (ι₁ ⟦ (id {B} ⊗₁ g , refl {x = d}) ⟧₁ ∘ iso₁ (B , ⟦ C ⟧ d)) ∘ f ⊗₁ iso₁ (C , d) ∘ α⇒
-        ≈⟨ refl⟩∘⟨ pushˡ serialize₁₂ ⟩
-      (ι₁ ⟦ (id {B} ⊗₁ g , refl {x = d}) ⟧₁ ∘ iso₁ (B , ⟦ C ⟧ d)) ∘ f ⊗₁ id ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒
-        ≈⟨ assoc ○ refl⟩∘⟨ ⟺ assoc ⟩
-      ι₁ ⟦ (id {B} ⊗₁ g , refl {x = d}) ⟧₁ ∘ (iso₁ (B , ⟦ C ⟧ d) ∘ f ⊗₁ id) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒
-        ≈⟨ refl⟩∘⟨ Hf ⟩∘⟨refl ⟩
-      ι₁ ⟦ (id {B} ⊗₁ g , refl {x = d}) ⟧₁ ∘ (ι₁ ⟦ (f , refl) ⟧₁ ∘ iso₁ (A , ⟦ C ⟧ d)) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒
-        ≈⟨ assoc²δγ ⟩
-      (ι₁ ⟦ (id {B} ⊗₁ g , refl {x = d}) ⟧₁ ∘ ι₁ ⟦ (f , refl) ⟧₁) ∘ iso₁ (A , ⟦ C ⟧ d) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒
-        ≈⟨ ⟺ (ι-∘ d f g) ⟩∘⟨refl ⟩
-      ι₁ ⟦ (f ⊗₁ g , refl) ⟧₁ ∘ iso₁ (A , ⟦ C ⟧ d) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒ ∎
+    -- Combinator form (interface-size: stored intermediates carry three
+    -- iso₁ unfoldings each).  Outline: slide (f ⊗₁ g) ⊗₁ id past α⇒;
+    -- absorb g into iso₁ (D , d) (Hg); regroup; commute ι₁⟦g⟧ past iso₁
+    -- (iso-comm); serialize f ⊗₁ iso₁; absorb f (Hf); regroup; fuse the
+    -- two ι₁ legs (ι-∘).
+    natural-⊗ {A} {B} {C} {D} d f g Hf Hg =
+      (assoc²βε ○ refl⟩∘⟨ refl⟩∘⟨ FM.assoc-commute-from ○ refl⟩∘⟨ ⟺ assoc)
+        ○ refl⟩∘⟨ (merge₂ˡ ○ (refl⟩⊗⟨ Hg) ○ split₂ˡ) ⟩∘⟨refl
+        ○ assoc²δγ
+        ○ iso-comm ⟩∘⟨refl
+        ○ refl⟩∘⟨ pushˡ serialize₁₂
+        ○ (assoc ○ refl⟩∘⟨ ⟺ assoc)
+        ○ refl⟩∘⟨ Hf ⟩∘⟨refl
+        ○ assoc²δγ
+        ○ ⟺ (ι-∘ d f g) ⟩∘⟨refl
 
     natural-λ⇒ : ∀ {A d}
                → iso₁ (A , d) ∘ Functor.F₁ F1 (λ⇒ , refl)
@@ -249,14 +244,16 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
             FM.≈ Functor.F₁ F2 (α⇒ , refl) ∘ iso₁ ((A ⊗₀ B) ⊗₀ C , d)
     natural-α⇒ {A} {B} {C} {d} =
       assoc²βε
-        ○ refl⟩∘⟨ Functor.homomorphism (A FM.⊗-) ⟩∘⟨refl
-        ○ (refl⟩∘⟨ (refl⟩∘⟨ Functor.homomorphism (A FM.⊗-)) ⟩∘⟨refl)
-        ○ (refl⟩∘⟨ assoc²βε) ○ ⟺ assoc
-        ○ refl⟩∘⟨ refl⟩∘⟨ FM.pentagon
-        ○ refl⟩∘⟨ ⟺ assoc
-        ○ refl⟩∘⟨ ⟺ FM.assoc-commute-from ⟩∘⟨refl
-        ○ refl⟩∘⟨ (refl⟩∘⟨ FM.⊗.identity ⟩⊗⟨refl) ⟩∘⟨refl
-        ○ refl⟩∘⟨ assoc ○ assoc ○ ⟺ assoc²βε ○ ⟺ idˡ
+        ○ refl⟩∘⟨ ( Functor.homomorphism (A FM.⊗-) ⟩∘⟨refl
+                  ○ (refl⟩∘⟨ Functor.homomorphism (A FM.⊗-)) ⟩∘⟨refl
+                  ○ assoc²βε )
+        ○ ⟺ assoc
+        ○ refl⟩∘⟨ ( refl⟩∘⟨ FM.pentagon
+                  ○ ⟺ assoc
+                  ○ ⟺ FM.assoc-commute-from ⟩∘⟨refl
+                  ○ (refl⟩∘⟨ FM.⊗.identity ⟩⊗⟨refl) ⟩∘⟨refl
+                  ○ assoc )
+        ○ assoc ○ ⟺ assoc²βε ○ ⟺ idˡ
 
     natural-α⇐ : ∀ {A B C d}
                → iso₁ ((A ⊗₀ B) ⊗₀ C , d) ∘ Functor.F₁ F1 (α⇐ , refl)
