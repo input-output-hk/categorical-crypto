@@ -168,21 +168,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   -- of the involution to padded layers.
   ------------------------------------------------------------------------
 
-  -- (`rpad-resp` / `rpad-id` / `rpad-∘` come from ReflectI above.)
-  pad-resp : ∀ {a b} (pre suf : List X) {g g' : HomTerm (wires a) (wires b)}
-           → g ≈Term g' → pad pre suf g ≈Term pad pre suf g'
-  pad-resp []      suf eq = rpad-resp suf eq
-  pad-resp (x ∷ p) suf eq = refl⟩⊗⟨ pad-resp p suf eq
-
-  pad-id : ∀ {a} (pre suf : List X) → pad pre suf (id {wires a}) ≈Term id
-  pad-id []      suf = rpad-id suf
-  pad-id (x ∷ p) suf = (refl⟩⊗⟨ pad-id p suf) ○ id⊗id≈id
-
-  pad-∘ : ∀ {a b c} (pre suf : List X)
-            (g : HomTerm (wires b) (wires c)) (f : HomTerm (wires a) (wires b))
-        → pad pre suf (g ∘ f) ≈Term pad pre suf g ∘ pad pre suf f
-  pad-∘ []      suf g f = rpad-∘ suf g f
-  pad-∘ (x ∷ p) suf g f = (refl⟩⊗⟨ pad-∘ p suf g f) ○ ⟺ (id⊗-∘ _ _)
+  -- (`rpad-resp` / `rpad-id` / `rpad-∘` come from ReflectI above;
+  --  `pad-resp` / `pad-id` / `pad-∘` come from UntypedI in the engine.)
 
   -- the padded involution: an adjacent inverse cross-pair at the SAME
   -- offsets is the identity.
