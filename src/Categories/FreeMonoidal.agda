@@ -8,7 +8,7 @@ module Categories.FreeMonoidal where
 -- `FreeMonoidal` module.
 --------------------------------------------------------------------------------
 
-open import Level renaming (zero to ℓ0)
+open import Level
 
 open import Categories.Category
 open import Categories.Category.Helper
@@ -41,7 +41,7 @@ record ⟦_⟧ᵥ (v : Variant) {o ℓ e : Level} : Set (suc (o ⊔ ℓ ⊔ e)) 
     open Shorthands public
 
     module _ ⦃ _ : Symm ≤ v ⦄ where
-      open Symmetric Symmetric-C using (commutative; hexagon₁; hexagon₂; module braiding) public
+      open Symmetric Symmetric-C using (commutative; hexagon₁; module braiding) public
       σ : ∀ {X Y} → X ⊗₀ Y ⇒ Y ⊗₀ X
       σ {X} {Y} = braiding.⇒.η (X , Y)
 
@@ -58,7 +58,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
     infixr 9 _∘_
     infixr 10 _⊗₁_
 
-    private variable A B C D E F : ObjTerm
+    private variable A B C D : ObjTerm
 
     data HomTerm : ObjTerm → ObjTerm → Set where
       var : mor A B → HomTerm A B
@@ -104,7 +104,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
     ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
     ≡⇒≈Term refl = ≈-Term-refl
 
-    FreeMonoidal : Category ℓ0 ℓ0 ℓ0
+    FreeMonoidal : Category 0ℓ 0ℓ 0ℓ
     FreeMonoidal = categoryHelper record
       { Obj       = ObjTerm
       ; _⇒_       = HomTerm
@@ -199,10 +199,6 @@ module FreeFunctor {d : FreeMonoidalData} {o ℓ e : Level}
                    (ffd : FreeFunctorData d {o} {ℓ} {e}) where
   open FreeFunctorData ffd
 
-  private
-    module ⊗ where
-      open Functor C.⊗ public
-
   open ⟦_⟧ᵥ ⟦v⟧
 
   CM : MonoidalCategory o ℓ e
@@ -231,9 +227,9 @@ module FreeFunctor {d : FreeMonoidalData} {o ℓ e : Level}
   ⟦⟧-resp-≈ ≈-Term-refl         = C.Equiv.refl
   ⟦⟧-resp-≈ (≈-Term-sym h)      = C.Equiv.sym (⟦⟧-resp-≈ h)
   ⟦⟧-resp-≈ (≈-Term-trans h h') = C.Equiv.trans (⟦⟧-resp-≈ h) (⟦⟧-resp-≈ h')
-  ⟦⟧-resp-≈ id⊗id≈id            = ⊗.identity
-  ⟦⟧-resp-≈ (⊗-resp-≈ h h')     = ⊗.F-resp-≈ (⟦⟧-resp-≈ h , ⟦⟧-resp-≈ h')
-  ⟦⟧-resp-≈ ⊗-∘-dist            = ⊗.homomorphism
+  ⟦⟧-resp-≈ id⊗id≈id            = C.⊗.identity
+  ⟦⟧-resp-≈ (⊗-resp-≈ h h')     = C.⊗.F-resp-≈ (⟦⟧-resp-≈ h , ⟦⟧-resp-≈ h')
+  ⟦⟧-resp-≈ ⊗-∘-dist            = C.⊗.homomorphism
   ⟦⟧-resp-≈ λ⇐∘λ⇒≈id            = C.unitorˡ.isoˡ
   ⟦⟧-resp-≈ λ⇒∘λ⇐≈id            = C.unitorˡ.isoʳ
   ⟦⟧-resp-≈ ρ⇐∘ρ⇒≈id            = C.unitorʳ.isoˡ
@@ -253,11 +249,10 @@ module FreeFunctor {d : FreeMonoidalData} {o ℓ e : Level}
   freeFunctor = record
     { F₀ = ⟦_⟧₀
     ; F₁ = ⟦_⟧₁
-    ; identity = begin C.id ∎
-    ; homomorphism = λ {_} {_} {_} {f} {g} → begin ⟦ g FM.∘ f ⟧₁ ∎
+    ; identity = C.Equiv.refl
+    ; homomorphism = C.Equiv.refl
     ; F-resp-≈ = ⟦⟧-resp-≈
     }
-    where open Category.HomReasoning C
 
   isMonoidal-freeFunctor : IsMonoidalFunctor FreeMonoidalM CM freeFunctor
   isMonoidal-freeFunctor = record
@@ -266,24 +261,9 @@ module FreeFunctor {d : FreeMonoidalData} {o ℓ e : Level}
       { η       = λ _ → C.id
       ; commute = λ _ → C.identityˡ ○ ⟺ C.identityʳ
       }
-    ; associativity = begin
-      C.α⇒ C.∘ C.id C.∘ C.id C.⊗₁ C.id ≈⟨ refl⟩∘⟨ (C.identityˡ ○ C.⊗.identity) ⟩
-      C.α⇒ C.∘ C.id ≈⟨ C.identityʳ ⟩
-      C.α⇒ ≈⟨ C.identityˡ ⟨
-      C.id C.∘ C.α⇒ ≈⟨ refl⟩∘⟨ C.identityˡ ⟨
-      C.id C.∘ C.id C.∘ C.α⇒ ≈⟨ refl⟩∘⟨ C.⊗.identity ⟩∘⟨refl ⟨
-      C.id C.∘ C.id C.⊗₁ C.id C.∘ C.α⇒ ∎
-    ; unitaryˡ = begin
-      C.λ⇒ C.∘ C.id C.∘ C.id C.⊗₁ C.id
-        ≈⟨ refl⟩∘⟨ (C.identityˡ ○ C.⊗.identity) ⟩
-      C.λ⇒ C.∘ C.id
-        ≈⟨ C.identityʳ ⟩
-      C.λ⇒ ∎
-    ; unitaryʳ = begin
-      C.ρ⇒ C.∘ C.id C.∘ C.id C.⊗₁ C.id
-        ≈⟨ refl⟩∘⟨ (C.identityˡ ○ C.⊗.identity) ⟩
-      C.ρ⇒ C.∘ C.id
-        ≈⟨ C.identityʳ ⟩
-      C.ρ⇒ ∎
+    ; associativity = elimʳ (C.identityˡ ○ C.⊗.identity) ○ ⟺ (C.identityˡ ○ elimˡ C.⊗.identity)
+    ; unitaryˡ = elimʳ (C.identityˡ ○ C.⊗.identity)
+    ; unitaryʳ = elimʳ (C.identityˡ ○ C.⊗.identity)
     }
     where open Category.HomReasoning C
+          open import Categories.Morphism.Reasoning C using (elimˡ; elimʳ)

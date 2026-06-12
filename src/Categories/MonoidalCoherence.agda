@@ -2,8 +2,6 @@
 
 module Categories.MonoidalCoherence where
 
-open import Level renaming (zero to ℓ0)
-
 open import Categories.Category
 open import Categories.Category.Monoidal
 open import Categories.Category.Monoidal.Properties
@@ -11,6 +9,7 @@ open import Categories.Category.Product
 open import Categories.Functor as F hiding (id)
 open import Categories.Functor.Bifunctor
 open import Categories.Morphism
+open import Categories.NaturalTransformation.NaturalIsomorphism as NI hiding (refl; trans; unitorˡ; unitorʳ; associator)
 open import Categories.NaturalTransformation.NaturalIsomorphism.Properties
 
 open import Categories.Discrete
@@ -28,15 +27,14 @@ open import Data.Product
 open import Data.Vec using (Vec ; lookup)
 
 open import Relation.Binary.Definitions using (DecidableEquality; Irrelevant)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; trans; subst)
+import Relation.Binary.Reasoning.Setoid as SetoidR
 
 module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
   open FreeMonoidal (record { v = Mon ; X = X ; mor = λ _ _ → ⊥ })
 
   open Commutation FreeMonoidal
   open Discrete (List X)
-
-  open import Relation.Binary.PropositionalEquality using (_≡_; refl; trans; cong; subst)
-  open import Categories.NaturalTransformation.NaturalIsomorphism as NI hiding (refl; trans; unitorˡ; unitorʳ; associator)
 
   -- UIP for the discrete-category objects `List X`, derived from decidable
   -- equality of `X` (Hedberg).
@@ -53,8 +51,6 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
   module FMReasoning where
     open import Categories.Category.Monoidal.Reasoning Monoidal-FreeMonoidal public
 
-  import Relation.Binary.Reasoning.Setoid as SetoidR
-
   ⟦_⟧ : ObjTerm → List X → List X
   ⟦ unit ⟧ n = n
   ⟦ t ⊗₀ t₁ ⟧ n = ⟦ t ⟧ (⟦ t₁ ⟧ n)
@@ -62,7 +58,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
 
   hom⇒≡⟦⟧' : ∀ {A B x y} → HomTerm A B → x ≡ y → ⟦ A ⟧ x ≡ ⟦ B ⟧ y
   hom⇒≡⟦⟧' id refl = refl
-  hom⇒≡⟦⟧' {x} {y} (h ∘ h') eq = trans (hom⇒≡⟦⟧' h' eq) (hom⇒≡⟦⟧' h refl)
+  hom⇒≡⟦⟧' (h ∘ h') eq = trans (hom⇒≡⟦⟧' h' eq) (hom⇒≡⟦⟧' h refl)
   hom⇒≡⟦⟧' {A ⊗₀ B} {C ⊗₀ D} {x} {y} (h ⊗₁ h') eq = hom⇒≡⟦⟧' h (hom⇒≡⟦⟧' h' eq)
   hom⇒≡⟦⟧' λ⇒ refl = refl
   hom⇒≡⟦⟧' λ⇐ refl = refl
@@ -129,17 +125,10 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     iso₁ : (X : ObjTerm × List X) → FreeMonoidal [ Functor.₀ F1 X , Functor.₀ F2 X ]
     iso₁ X = _≅_.from (iso X)
 
-    iso₁-assoc-ty : Set
-    iso₁-assoc-ty = ∀ {A B d} → iso₁ (A ⊗₀ B , d) ≈Term iso₁ (A , ⟦ B ⟧ d) ∘ (id ⊗₁ iso₁ (B , d)) ∘ FM.α⇒
-
-    -- It's necessary to hide this type behind a definition, otherwise it won't type check in an opaque block
-    iso₁-assoc : iso₁-assoc-ty
-    iso₁-assoc = ≈-Term-refl
-
   P = Product FreeMonoidal Discrete
 
   module _ where opaque
-    unfolding ⟦_⟧F ι iso iso₁-assoc iso₁-assoc-ty
+    unfolding ⟦_⟧F ι iso
     open FMReasoning
     open import Categories.Morphism.Reasoning FreeMonoidal
 
@@ -149,10 +138,15 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
         FM.≈ ι₁ (hom⇒≡⟦⟧' (id {A}) g) ∘ iso₁ (A , d₁)
 
     iso-comm : iso-comm-ty
-    iso-comm {A} {d} {_} {refl} = begin
-      iso₁ (A , d) ∘ id ⊗₁ id
-        ≈⟨ refl⟩∘⟨ FM.⊗.identity ○ id-comm ⟩
-      id ∘ iso₁ (A , d) ∎
+    iso-comm {g = refl} = elimʳ FM.⊗.identity ○ ⟺ idˡ
+
+    -- Shared tail used by natural-λ⇐ and natural-ρ⇐:
+    -- given f⇒ ∘ f⇐ ≈ id, cancel f⇒⊗id ∘ f⇐⊗id on the right.
+    cancel-⊗ˡ : ∀ {d} {B C : ObjTerm} {f⇒ : HomTerm B C} {f⇐ : HomTerm C B}
+      → f⇒ ∘ f⇐ FM.≈ id
+      → iso₁ (C , d) ∘ f⇒ ⊗₁ id ∘ f⇐ ⊗₁ id FM.≈ id ∘ iso₁ (C , d)
+    cancel-⊗ˡ isoR =
+      refl⟩∘⟨ (⟺ FM.⊗.homomorphism ○ isoR ⟩⊗⟨ idˡ ○ FM.⊗.identity) ○ id-comm
 
     ι-∘ : ∀ {A B C D} d (f : HomTerm A B) (g : HomTerm C D)
         → ι₁ ⟦ f , ⟦ g , refl {x = d} ⟧₁ ⟧₁
@@ -167,10 +161,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
             module D = Category Discrete
 
     natural-id : ∀ {X} → iso₁ X ∘ Functor.F₁ F1 (id , refl) FM.≈ Functor.F₁ F2 (id , refl) ∘ iso₁ X
-    natural-id {X} = begin
-      iso₁ X ∘ id ⊗₁ id
-        ≈⟨ refl⟩∘⟨ FM.⊗.identity ○ ⟺ id-comm-sym ⟩
-      id ∘ iso₁ X ∎
+    natural-id = iso-comm {g = refl}
 
     natural-∘ : ∀ {A B C} d (g : HomTerm B C) (f : HomTerm A B)
       → iso₁ (C , d) ∘ Functor.F₁ F1 (g , refl) FM.≈ Functor.F₁ F2 (g , refl) ∘ iso₁ (B , d)
@@ -180,17 +171,11 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
       iso₁ (C , d) ∘ Functor.F₁ F1 (g ∘ f , refl)
         ≈⟨ refl⟩∘⟨ Functor.homomorphism F1 {f = f , refl} {g , refl} ⟩
       iso₁ (C , d) ∘ Functor.F₁ F1 (g , refl) ∘ Functor.F₁ F1 (f , refl)
-        ≈⟨ FM.assoc ⟨
-      (iso₁ (C , d) ∘ Functor.F₁ F1 (g , refl)) ∘ Functor.F₁ F1 (f , refl)
-        ≈⟨ Hg ⟩∘⟨refl ⟩
-      (Functor.F₁ F2 (g , refl) ∘ iso₁ (B , d)) ∘ Functor.F₁ F1 (f , refl)
-        ≈⟨ FM.assoc ⟩
+        ≈⟨ extendʳ Hg ⟩
       Functor.F₁ F2 (g , refl) ∘ iso₁ (B , d) ∘ Functor.F₁ F1 (f , refl)
         ≈⟨ refl⟩∘⟨ Hf ⟩
       Functor.F₁ F2 (g , refl) ∘ Functor.F₁ F2 (f , refl) ∘ iso₁ (A , d)
-        ≈⟨ FM.assoc ⟨
-      (Functor.F₁ F2 (g , refl) ∘ Functor.F₁ F2 (f , refl)) ∘ iso₁ (A , d)
-        ≈⟨ Functor.homomorphism F2 {f = f , refl} {g = g , refl} ⟩∘⟨refl ⟨
+        ≈⟨ pullˡ (⟺ (Functor.homomorphism F2 {f = f , refl} {g = g , refl})) ⟩
       Functor.F₁ F2 (g ∘ f , refl) ∘ iso₁ (A , d) ∎
 
     natural-⊗ : ∀ {A B C D} d (f : HomTerm A B) (g : HomTerm C D)
@@ -201,21 +186,13 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
       (iso₁ (B , ⟦ D ⟧ d) ∘ id ⊗₁ iso₁ (D , d) ∘ α⇒) ∘ (f ⊗₁ g) ⊗₁ id
         ≈⟨ assoc²βε ○ refl⟩∘⟨ refl⟩∘⟨ FM.assoc-commute-from ○ refl⟩∘⟨ ⟺ assoc ⟩
       iso₁ (B , ⟦ D ⟧ d) ∘ (id ⊗₁ iso₁ (D , d) ∘ f ⊗₁ g ⊗₁ id) ∘ α⇒
-        ≈⟨ refl⟩∘⟨ ⟺ FM.⊗.homomorphism ⟩∘⟨refl ⟩
-      iso₁ (B , ⟦ D ⟧ d) ∘ (id ∘ f) ⊗₁ (iso₁ (D , d) ∘ g ⊗₁ id) ∘ α⇒
-        ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ Hg ⟩∘⟨refl ⟩
-      iso₁ (B , ⟦ D ⟧ d) ∘ (id ∘ f) ⊗₁ (ι₁ ⟦ (g , refl) ⟧₁ ∘ iso₁ (C , d)) ∘ α⇒
-        ≈⟨ refl⟩∘⟨ FM.⊗.homomorphism ⟩∘⟨refl ⟩
+        ≈⟨ refl⟩∘⟨ (merge₂ˡ ○ (refl⟩⊗⟨ Hg) ○ split₂ˡ) ⟩∘⟨refl ⟩
       iso₁ (B , ⟦ D ⟧ d) ∘ (id ⊗₁ ι₁ ⟦ (g , refl) ⟧₁ ∘ f ⊗₁ iso₁ (C , d)) ∘ α⇒
         ≈⟨ assoc²δγ ⟩
       (iso₁ (B , ⟦ D ⟧ d) ∘ id ⊗₁ ι₁ ⟦ (g , refl) ⟧₁) ∘ f ⊗₁ iso₁ (C , d) ∘ α⇒
         ≈⟨ iso-comm ⟩∘⟨refl ⟩
       (ι₁ ⟦ (id {B} ⊗₁ g , refl {x = d}) ⟧₁ ∘ iso₁ (B , ⟦ C ⟧ d)) ∘ f ⊗₁ iso₁ (C , d) ∘ α⇒
-        ≈⟨ refl⟩∘⟨ ⟺ idʳ ⟩⊗⟨ ⟺ idˡ ⟩∘⟨refl ⟩
-      (ι₁ ⟦ (id {B} ⊗₁ g , refl {x = d}) ⟧₁ ∘ iso₁ (B , ⟦ C ⟧ d)) ∘ (f ∘ id) ⊗₁ (id ∘ iso₁ (C , d)) ∘ α⇒
-        ≈⟨ refl⟩∘⟨ FM.⊗.homomorphism ⟩∘⟨refl ⟩
-      (ι₁ ⟦ (id {B} ⊗₁ g , refl {x = d}) ⟧₁ ∘ iso₁ (B , ⟦ C ⟧ d)) ∘ (f ⊗₁ id ∘ id ⊗₁ iso₁ (C , d)) ∘ α⇒
-        ≈⟨ refl⟩∘⟨ assoc ⟩
+        ≈⟨ refl⟩∘⟨ pushˡ serialize₁₂ ⟩
       (ι₁ ⟦ (id {B} ⊗₁ g , refl {x = d}) ⟧₁ ∘ iso₁ (B , ⟦ C ⟧ d)) ∘ f ⊗₁ id ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒
         ≈⟨ assoc ○ refl⟩∘⟨ ⟺ assoc ⟩
       ι₁ ⟦ (id {B} ⊗₁ g , refl {x = d}) ⟧₁ ∘ (iso₁ (B , ⟦ C ⟧ d) ∘ f ⊗₁ id) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒
@@ -243,22 +220,8 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     natural-λ⇐ : ∀ {A d}
                → iso₁ (unit ⊗₀ A , d) ∘ Functor.F₁ F1 (λ⇐ , refl)
             FM.≈ Functor.F₁ F2 (λ⇐ , refl) ∘ iso₁ (A , d)
-    natural-λ⇐ {A} {d} = begin
-      (λ⇒ ∘ id ⊗₁ iso₁ (A , d) ∘ α⇒) ∘ λ⇐ ⊗₁ id
-        ≈⟨ ⟺ idˡ ⟩∘⟨refl ⟩
-      (id ∘ λ⇒ ∘ id ⊗₁ iso₁ (A , d) ∘ α⇒) ∘ λ⇐ ⊗₁ id
-        ≈⟨ ⟺ natural-λ⇒ ⟩∘⟨refl ⟩
-      (iso₁ (A , d) ∘ λ⇒ ⊗₁ id) ∘ λ⇐ ⊗₁ id
-        ≈⟨ assoc ⟩
-      iso₁ (A , d) ∘ λ⇒ ⊗₁ id ∘ λ⇐ ⊗₁ id
-        ≈⟨ refl⟩∘⟨ ⟺ FM.⊗.homomorphism ⟩
-      iso₁ (A , d) ∘ (λ⇒ ∘ λ⇐) ⊗₁ (id ∘ id)
-        ≈⟨ refl⟩∘⟨ λ⇒∘λ⇐≈id ⟩⊗⟨ idˡ ⟩
-      iso₁ (A , d) ∘ id ⊗₁ id
-        ≈⟨ refl⟩∘⟨ FM.⊗.identity ⟩
-      iso₁ (A , d) ∘ id
-        ≈⟨ id-comm ⟩
-      id ∘ iso₁ (A , d) ∎
+    natural-λ⇐ {A} {d} =
+      (⟺ idˡ ⟩∘⟨refl ○ ⟺ natural-λ⇒ ⟩∘⟨refl ○ assoc) ○ cancel-⊗ˡ λ⇒∘λ⇐≈id
 
     natural-ρ⇒ : ∀ {A d}
                → iso₁ (A , d) ∘ Functor.F₁ F1 (ρ⇒ , refl)
@@ -273,20 +236,8 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     natural-ρ⇐ : ∀ {A d}
                → iso₁ (A ⊗₀ unit , d) ∘ Functor.F₁ F1 (ρ⇐ , refl)
             FM.≈ Functor.F₁ F2 (ρ⇐ , refl) ∘ iso₁ (A , d)
-    natural-ρ⇐ {A} {d} = begin
-      (iso₁ (A , d) ∘ id ⊗₁ λ⇒ ∘ α⇒) ∘ ρ⇐ ⊗₁ id
-        ≈⟨ (refl⟩∘⟨ FM.triangle) ⟩∘⟨refl ⟩
-      (iso₁ (A , d) ∘ ρ⇒ ⊗₁ id) ∘ ρ⇐ ⊗₁ id
-        ≈⟨ assoc ⟩
-      iso₁ (A , d) ∘ ρ⇒ ⊗₁ id ∘ ρ⇐ ⊗₁ id
-        ≈⟨ refl⟩∘⟨ ⟺ FM.⊗.homomorphism ⟩
-      iso₁ (A , d) ∘ (ρ⇒ ∘ ρ⇐) ⊗₁ (id ∘ id)
-        ≈⟨ refl⟩∘⟨ FM.unitorʳ.isoʳ ⟩⊗⟨ idˡ ⟩
-      iso₁ (A , d) ∘ id ⊗₁ id
-        ≈⟨ refl⟩∘⟨ FM.⊗.identity ⟩
-      iso₁ (A , d) ∘ id
-        ≈⟨ id-comm ⟩
-      id ∘ iso₁ (A , d) ∎
+    natural-ρ⇐ {A} {d} =
+      ((refl⟩∘⟨ FM.triangle) ⟩∘⟨refl ○ assoc) ○ cancel-⊗ˡ FM.unitorʳ.isoʳ
 
     natural-α⇒ : ∀ {A B C d}
                → iso₁ (A ⊗₀ B ⊗₀ C , d) ∘ Functor.F₁ F1 (α⇒ , refl)
@@ -335,7 +286,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
   natural₁ : ∀ d → Natural (appʳ F1 d) (appʳ F2 d) (λ c → iso₁ (c , d))
   natural₁ d id = natural-id
   natural₁ d (g ∘ f) = natural-∘ _ g f (natural₁ _ g) (natural₁ _ f)
-  natural₁ d (_⊗₁_ {A} {B} {C} {D} f g) = natural-⊗ _ f g (natural₁ _ f) (natural₁ _ g)
+  natural₁ d (f ⊗₁ g) = natural-⊗ _ f g (natural₁ _ f) (natural₁ _ g)
   natural₁ d λ⇒ = natural-λ⇒
   natural₁ d λ⇐ = natural-λ⇐
   natural₁ d ρ⇒ = natural-ρ⇒
@@ -373,8 +324,9 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
 module Solver {o ℓ e} (C : MonoidalCategory o ℓ e)
               {n} (vars : Vec (C .MonoidalCategory.Obj) n) where
   open MonoidalCategory
-  d : FreeMonoidalData
-  d = record { v = Mon ; X = Fin n ; mor = λ _ _ → ⊥ }
+  private
+    d : FreeMonoidalData
+    d = record { v = Mon ; X = Fin n ; mor = λ _ _ → ⊥ }
   open FreeMonoidal d public
   open CoherenceThm (Fin n) FinP._≟_ hiding (⟦_⟧₁)
   open FreeFunctor {d = d} record
