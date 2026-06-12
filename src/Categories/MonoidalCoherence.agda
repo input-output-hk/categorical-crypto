@@ -239,49 +239,30 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     natural-ρ⇐ {A} {d} =
       ((refl⟩∘⟨ FM.triangle) ⟩∘⟨refl ○ assoc) ○ cancel-⊗ˡ FM.unitorʳ.isoʳ
 
+    -- Combinator form, not a begin-chain: the annotated intermediates of
+    -- this proof (three nested iso₁ unfoldings per displayed term) dominated
+    -- the module's interface-serialization time.  Outline: reassociate;
+    -- push id ⊗₁_ through the composite (twice); regroup; pentagon;
+    -- assoc-commute-from; absorb id ⊗₁ id; final regrouping.
     natural-α⇒ : ∀ {A B C d}
                → iso₁ (A ⊗₀ B ⊗₀ C , d) ∘ Functor.F₁ F1 (α⇒ , refl)
             FM.≈ Functor.F₁ F2 (α⇒ , refl) ∘ iso₁ ((A ⊗₀ B) ⊗₀ C , d)
-    natural-α⇒ {A} {B} {C} {d} = begin
-      (iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ (iso₁ (B , ⟦ C ⟧ d) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒) ∘ α⇒) ∘ α⇒ ⊗₁ id
-        ≈⟨ assoc²βε ⟩
-      iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ (iso₁ (B , ⟦ C ⟧ d) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒) ∘ α⇒ ∘ α⇒ ⊗₁ id
-        ≈⟨ refl⟩∘⟨ Functor.homomorphism (A FM.⊗-) ⟩∘⟨refl ⟩
-      iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ (id ⊗₁ iso₁ (B , ⟦ C ⟧ d) ∘ id ⊗₁ (id ⊗₁ iso₁ (C , d) ∘ α⇒)) ∘ α⇒ ∘ α⇒ ⊗₁ id
-        ≈⟨ (refl⟩∘⟨ (refl⟩∘⟨ Functor.homomorphism (A FM.⊗-)) ⟩∘⟨refl) ⟩
-      iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ (id ⊗₁ iso₁ (B , ⟦ C ⟧ d) ∘ (id ⊗₁ id ⊗₁ iso₁ (C , d) ∘ id ⊗₁ α⇒)) ∘ α⇒ ∘ α⇒ ⊗₁ id
-        ≈⟨ refl⟩∘⟨ assoc²βε ○ ⟺ assoc ⟩
-      (iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ iso₁ (B , ⟦ C ⟧ d)) ∘ id ⊗₁ id ⊗₁ iso₁ (C , d) ∘ id ⊗₁ α⇒ ∘ α⇒ ∘ α⇒ ⊗₁ id
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.pentagon ⟩
-      (iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ iso₁ (B , ⟦ C ⟧ d)) ∘ id ⊗₁ id ⊗₁ iso₁ (C , d) ∘ α⇒ ∘ α⇒
-        ≈⟨ refl⟩∘⟨ ⟺ assoc ⟩
-      (iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ iso₁ (B , ⟦ C ⟧ d)) ∘ (id ⊗₁ id ⊗₁ iso₁ (C , d) ∘ α⇒) ∘ α⇒
-        ≈⟨ refl⟩∘⟨ ⟺ FM.assoc-commute-from ⟩∘⟨refl ⟩
-      (iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ iso₁ (B , ⟦ C ⟧ d)) ∘ (α⇒ ∘ (id ⊗₁ id) ⊗₁ iso₁ (C , d)) ∘ α⇒
-        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ FM.⊗.identity ⟩⊗⟨refl) ⟩∘⟨refl ⟩
-      (iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ iso₁ (B , ⟦ C ⟧ d)) ∘ (α⇒ ∘ id ⊗₁ iso₁ (C , d)) ∘ α⇒
-        ≈⟨ refl⟩∘⟨ assoc ○ assoc ○ ⟺ assoc²βε ○ ⟺ idˡ ⟩
-      id ∘ (iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ iso₁ (B , ⟦ C ⟧ d) ∘ α⇒) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒ ∎
+    natural-α⇒ {A} {B} {C} {d} =
+      assoc²βε
+        ○ refl⟩∘⟨ Functor.homomorphism (A FM.⊗-) ⟩∘⟨refl
+        ○ (refl⟩∘⟨ (refl⟩∘⟨ Functor.homomorphism (A FM.⊗-)) ⟩∘⟨refl)
+        ○ (refl⟩∘⟨ assoc²βε) ○ ⟺ assoc
+        ○ refl⟩∘⟨ refl⟩∘⟨ FM.pentagon
+        ○ refl⟩∘⟨ ⟺ assoc
+        ○ refl⟩∘⟨ ⟺ FM.assoc-commute-from ⟩∘⟨refl
+        ○ refl⟩∘⟨ (refl⟩∘⟨ FM.⊗.identity ⟩⊗⟨refl) ⟩∘⟨refl
+        ○ refl⟩∘⟨ assoc ○ assoc ○ ⟺ assoc²βε ○ ⟺ idˡ
 
     natural-α⇐ : ∀ {A B C d}
                → iso₁ ((A ⊗₀ B) ⊗₀ C , d) ∘ Functor.F₁ F1 (α⇐ , refl)
             FM.≈ Functor.F₁ F2 (α⇐ , refl) ∘ iso₁ (A ⊗₀ B ⊗₀ C , d)
-    natural-α⇐ {A} {B} {C} {d} = begin
-      ((iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ iso₁ (B , ⟦ C ⟧ d) ∘ α⇒) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒) ∘ α⇐ ⊗₁ id
-        ≈⟨ ⟺ idˡ ⟩∘⟨refl ⟩
-      (id ∘ ((iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ iso₁ (B , ⟦ C ⟧ d) ∘ α⇒) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒)) ∘ α⇐ ⊗₁ id
-        ≈⟨ ⟺ natural-α⇒ ⟩∘⟨refl ⟩
-      ((iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ (iso₁ (B , ⟦ C ⟧ d) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒) ∘ α⇒) ∘ α⇒ ⊗₁ id) ∘ α⇐ ⊗₁ id
-        ≈⟨ assoc ○ assoc²βε ⟩
-      iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ (iso₁ (B , ⟦ C ⟧ d) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒) ∘ α⇒ ∘ α⇒ ⊗₁ id ∘ α⇐ ⊗₁ id
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ ⟺ (Functor.homomorphism (FM.-⊗ _)) ⟩
-      iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ (iso₁ (B , ⟦ C ⟧ d) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒) ∘ α⇒ ∘ (α⇒ ∘ α⇐) ⊗₁ id
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ (FM.associator.isoʳ ⟩⊗⟨refl ○ FM.⊗.identity) ⟩
-      iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ (iso₁ (B , ⟦ C ⟧ d) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒) ∘ α⇒ ∘ id
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idʳ ⟩
-      iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ (iso₁ (B , ⟦ C ⟧ d) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒) ∘ α⇒
-        ≈⟨ ⟺ idˡ ⟩
-      id ∘ iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d)) ∘ id ⊗₁ (iso₁ (B , ⟦ C ⟧ d) ∘ id ⊗₁ iso₁ (C , d) ∘ α⇒) ∘ α⇒ ∎
+    natural-α⇐ {A} {B} {C} {d} =
+      (⟺ idˡ ⟩∘⟨refl ○ ⟺ natural-α⇒ ⟩∘⟨refl ○ assoc) ○ cancel-⊗ˡ FM.associator.isoʳ
 
   natural₁ : ∀ d → Natural (appʳ F1 d) (appʳ F2 d) (λ c → iso₁ (c , d))
   natural₁ d id = natural-id
