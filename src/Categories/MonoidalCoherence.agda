@@ -140,13 +140,24 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     iso-comm : iso-comm-ty
     iso-comm {g = refl} = elimʳ FM.⊗.identity ○ ⟺ idˡ
 
-    -- Shared tail used by natural-λ⇐ and natural-ρ⇐:
-    -- given f⇒ ∘ f⇐ ≈ id, cancel f⇒⊗id ∘ f⇐⊗id on the right.
-    cancel-⊗ˡ : ∀ {d} {B C : ObjTerm} {f⇒ : HomTerm B C} {f⇐ : HomTerm C B}
+    -- Given f⇒ ∘ f⇐ ≈ id, cancel f⇒⊗id ∘ f⇐⊗id under an arbitrary left
+    -- factor e.  The proof never inspects e, so it need not be an iso₁.
+    cancel-⊗ˡ : ∀ {B C Z W} {e : HomTerm (C ⊗₀ Z) W} {f⇒ : HomTerm B C} {f⇐ : HomTerm C B}
       → f⇒ ∘ f⇐ FM.≈ id
-      → iso₁ (C , d) ∘ f⇒ ⊗₁ id ∘ f⇐ ⊗₁ id FM.≈ id ∘ iso₁ (C , d)
+      → e ∘ f⇒ ⊗₁ id ∘ f⇐ ⊗₁ id FM.≈ id ∘ e
     cancel-⊗ˡ isoR =
       refl⟩∘⟨ (⟺ FM.⊗.homomorphism ○ isoR ⟩⊗⟨ idˡ ○ FM.⊗.identity) ○ id-comm
+
+    -- Naturality of the inverse from naturality of the forward iso: the
+    -- shared skeleton of natural-λ⇐/ρ⇐/α⇐.  Like α-conj/⊗-conj this is
+    -- iso₁-independent, so its stored intermediates stay variable-sized.
+    nat-inv : ∀ {B C Z W} {e₁ : HomTerm (C ⊗₀ Z) W} {e₂ : HomTerm (B ⊗₀ Z) W}
+                {f⇒ : HomTerm B C} {f⇐ : HomTerm C B}
+            → e₁ ∘ f⇒ ⊗₁ id FM.≈ id ∘ e₂
+            → f⇒ ∘ f⇐ FM.≈ id
+            → e₂ ∘ f⇐ ⊗₁ id FM.≈ id ∘ e₁
+    nat-inv fwd isoR =
+      (⟺ idˡ ⟩∘⟨refl ○ ⟺ fwd ⟩∘⟨refl ○ assoc) ○ cancel-⊗ˡ isoR
 
     ι-∘ : ∀ {A B C D} d (f : HomTerm A B) (g : HomTerm C D)
         → ι₁ ⟦ f , ⟦ g , refl {x = d} ⟧₁ ⟧₁
@@ -231,8 +242,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     natural-λ⇐ : ∀ {A d}
                → iso₁ (unit ⊗₀ A , d) ∘ Functor.F₁ F1 (λ⇐ , refl)
             FM.≈ Functor.F₁ F2 (λ⇐ , refl) ∘ iso₁ (A , d)
-    natural-λ⇐ {A} {d} =
-      (⟺ idˡ ⟩∘⟨refl ○ ⟺ natural-λ⇒ ⟩∘⟨refl ○ assoc) ○ cancel-⊗ˡ λ⇒∘λ⇐≈id
+    natural-λ⇐ {A} {d} = nat-inv natural-λ⇒ λ⇒∘λ⇐≈id
 
     natural-ρ⇒ : ∀ {A d}
                → iso₁ (A , d) ∘ Functor.F₁ F1 (ρ⇒ , refl)
@@ -247,8 +257,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     natural-ρ⇐ : ∀ {A d}
                → iso₁ (A ⊗₀ unit , d) ∘ Functor.F₁ F1 (ρ⇐ , refl)
             FM.≈ Functor.F₁ F2 (ρ⇐ , refl) ∘ iso₁ (A , d)
-    natural-ρ⇐ {A} {d} =
-      ((refl⟩∘⟨ FM.triangle) ⟩∘⟨refl ○ assoc) ○ cancel-⊗ˡ FM.unitorʳ.isoʳ
+    natural-ρ⇐ {A} {d} = nat-inv natural-ρ⇒ FM.unitorʳ.isoʳ
 
     -- The α⇒ case of naturality is an instance of this fully generic
     -- pentagon conjugation: nothing about iso₁ is used beyond its type.
@@ -282,8 +291,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     natural-α⇐ : ∀ {A B C d}
                → iso₁ ((A ⊗₀ B) ⊗₀ C , d) ∘ Functor.F₁ F1 (α⇐ , refl)
             FM.≈ Functor.F₁ F2 (α⇐ , refl) ∘ iso₁ (A ⊗₀ B ⊗₀ C , d)
-    natural-α⇐ {A} {B} {C} {d} =
-      (⟺ idˡ ⟩∘⟨refl ○ ⟺ natural-α⇒ ⟩∘⟨refl ○ assoc) ○ cancel-⊗ˡ FM.associator.isoʳ
+    natural-α⇐ {A} {B} {C} {d} = nat-inv natural-α⇒ FM.associator.isoʳ
 
   natural₁ : ∀ d → Natural (appʳ F1 d) (appʳ F2 d) (λ c → iso₁ (c , d))
   natural₁ d id = natural-id

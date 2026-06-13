@@ -524,7 +524,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
           -- middle-object retype eq:  (lt++pre)++(b++suf) ≡ lt++(pre++(b++suf)).
           eM : (lt ++ pre) ++ (b ++ suf) ≡ lt ++ (pre ++ (b ++ suf))
           eM = ++-assoc lt pre (b ++ suf)
-          -- the tail folds (reidx-fold + recursion) to liftW lt ⟦d⟧.
+          -- the tail folds (substDiagU-fold + recursion) to liftW lt ⟦d⟧.
           tailFold : (castW eBridge ∘ ⟦ substDiagU E2 d' ⟧) ∘ castW (sym eM) ≈Term liftW lt ⟦ d ⟧
           tailFold = substDiagU-fold E2 eM d' eBridge (out-shiftL lt d) ○ shiftL-sound lt d
           padFold : castW eM ∘ (pad (lt ++ pre) suf g ∘ castW (sym E1)) ≈Term liftW lt (pad pre suf g)
@@ -542,7 +542,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 
   -- `merge` associativity (built from `coherence₁` and α-naturality):
   --   merge p {q++r} ∘ (id ⊗₁ merge q {r}) ∘ α⇒
-  --     ≈ coeC (++-assoc p q r) (merge (p++q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
+  --     ≈ castW (++-assoc p q r) ∘ (merge (p++q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
   merge-assoc : ∀ (p q r : List X)
               → merge p {q ++ r} ∘ (id {wires p} ⊗₁ merge q {r}) ∘ α⇒
                 ≈Term castW (++-assoc p q r) ∘ (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
@@ -616,7 +616,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 
   -- `split` associativity (dual of `merge-assoc`, via `coherence-inv₁` + α):
   --   α⇐ ∘ (id ⊗₁ split q {r}) ∘ split p {q++r}
-  --     ≈ coeD (++-assoc p q r) ((split p {q} ⊗₁ id) ∘ split (p++q) {r})
+  --     ≈ castW (++-assoc p q r) ∘ ((split p {q} ⊗₁ id) ∘ split (p++q) {r})
   -- proven uniformly (no induction) by inverting `merge-assoc`: both
   -- split-assoc-LHS and merge-assoc-LHS are mutually-inverse isos, as are
   -- the two RHSs, so the equation transports across inversion.
@@ -815,7 +815,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     (castW (sym (reassoc++ (x ∷ p) b suf rt)) ∘ (id {Var x} ⊗₁ pad p (suf ++ rt) g))
       ∘ castW (sym (sym (reassoc++ (x ∷ p) a suf rt))) ∎
 
-  -- shiftR soundness:  coeC (out-shiftR rt d) ⟦ shiftR rt d ⟧ ≈ rpad rt ⟦ d ⟧.
+  -- shiftR soundness:  castW (out-shiftR rt d) ∘ ⟦ shiftR rt d ⟧ ≈ rpad rt ⟦ d ⟧.
   shiftR-sound : ∀ {n} (rt : List X) (d : DiagU n)
                → castW (out-shiftR rt d) ∘ ⟦ shiftR rt d ⟧ ≈Term rpad rt ⟦ d ⟧
   shiftR-sound rt ([]_ n) = idˡ ○ ⟺ (rpad-id rt)
@@ -873,7 +873,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 
   --------------------------------------------------------------------------------
   -- tensorD soundness (pure bifunctoriality, no σ):
-  --   coeC (out-tensorD dl dr) ⟦ tensorD dl dr ⟧
+  --   castW (out-tensorD dl dr) ∘ ⟦ tensorD dl dr ⟧
   --     ≈ merge (out dl) ∘ (⟦ dl ⟧ ⊗₁ ⟦ dr ⟧) ∘ split nl
   -- the wire-grouping bridge between `wires nl ⊗₀ wires nr` and `wires (nl++nr)`.
   --------------------------------------------------------------------------------
@@ -927,7 +927,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --------------------------------------------------------------------------------
   -- THE REFLECTION SOUNDNESS THEOREM.
   --
-  --   coeC (out-reflect t) ⟦ reflect t ⟧  ≈Term  embed t
+  --   castW (out-reflect t) ∘ ⟦ reflect t ⟧  ≈Term  embed t
   --
   -- i.e. the reflected diagram, with its codomain reindexed to match, equals
   -- the original wire-fragment morphism.  (`boxSound` is used directly — it is
