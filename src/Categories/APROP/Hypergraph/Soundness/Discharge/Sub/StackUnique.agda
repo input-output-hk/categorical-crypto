@@ -61,7 +61,6 @@ open import Categories.APROP.Hypergraph.Soundness.DecodeProperties sig
 
 open import Data.Maybe using (Maybe; just; nothing)
 
--- PermuteCoherence machinery.
 open import Categories.PermuteCoherence.Canonical using (_≅↭_)
 open import Categories.PermuteCoherence.Rigid using (eval-rigid)
 
@@ -80,7 +79,6 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatori
 --
 -- `Unique xs` (= `AllPairs _≢_ xs`) iff `∀ v → count v xs ≤ 1`.
 
--- count ≤ 1 abbreviation.
 count≤1 : List (Fin n) → Set
 count≤1 xs = ∀ v → count v xs ≤ⁿ 1
 
@@ -209,7 +207,6 @@ Unique-resp-↭ p uxs =
 module _ (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
 
-  -- NO-FIRE: `extract-prefix (ein e) s ≡ nothing` ⇒ `edge-step` returns `s`.
   edge-step-unique-skip
     : ∀ (s : List (Fin H.nV)) (e : Fin H.nE)
     → extract-prefix (H.ein e) s ≡ nothing
@@ -218,8 +215,8 @@ module _ (H : Hypergraph FlatGen) where
   edge-step-unique-skip s e eq us
     rewrite eq = us
 
-  -- FIRE: post-fire stack is `eout e ++ rest`; stated directly on it,
-  -- carrying the count-disjointness side-condition threaded by the caller.
+  -- FIRE: stated directly on the post-fire stack `eout e ++ rest`, carrying
+  -- the count-disjointness side-condition threaded by the caller.
   edge-step-unique-fire
     : ∀ (e : Fin H.nE) {s rest : List (Fin H.nV)}
         (perm : s Perm.↭ H.ein e ++ rest)

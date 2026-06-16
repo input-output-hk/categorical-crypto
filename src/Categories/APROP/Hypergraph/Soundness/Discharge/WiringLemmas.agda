@@ -1,7 +1,6 @@
 -- Wiring lemmas of the soundness program.  Only LEMMA 4 (`NoInv-τ`)
--- lives here now; the other five are proven in their own `Discharge.*`
--- modules.  `NoInv-τ` takes J's `NoInv` as an explicit hypothesis rather
--- than via the `PerHG J`-internal postulate.
+-- lives here; the others are proven in their own `Discharge.*` modules.
+-- `NoInv-τ` takes J's `NoInv` as an explicit hypothesis.
 {-# OPTIONS --safe --without-K #-}
 
 open import Categories.APROP

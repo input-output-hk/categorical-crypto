@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Deep position search: the `subMatch → decode` bridge (Phases B+C).
+-- Deep position search: the `subMatch → decode` bridge.
 --
 -- `focusAt` only finds redexes that are *subterms* of the written syntax.
 -- `deepFoc` finds a redex that is a connected sub-diagram of the hypergraph
@@ -84,7 +84,7 @@ module At (P Q : ObjTerm) where
     renaming (HomTerm to HomTerm⁺; Agen to Agen⁺)
 
   ------------------------------------------------------------------------------
-  -- Carving (Phase B).  Parameterised by the matched embedding `L ↪ᴴ S`.
+  -- Carving.  Parameterised by the matched embedding `L ↪ᴴ S`.
 
   module Build (L S : Hypergraph FlatGen) (emb : L ↪ᴴ S) where
     private
@@ -177,7 +177,7 @@ module At (P Q : ObjTerm) where
       in Maybe.map assemble (kahn (suc (length pending)) S.dom pending)
 
   ------------------------------------------------------------------------------
-  -- The bridge (Phase C): carve, decode, focus the hole, retract, glue —
+  -- The bridge: carve, decode, focus the hole, retract, glue —
   -- attempted per embedding.  A `nothing` here (non-convex occurrence, or any
   -- glue mismatch) sends the caller on to the NEXT match, so a bad first
   -- match cannot mask a rewritable later one.
@@ -230,7 +230,7 @@ module At (P Q : ObjTerm) where
 -- passes through the rule's vacuous slot); the downstream `findIso`
 -- certificates remain the gate.
 --
--- v1 scope: pad layers of shape `– ⊗ id {Var w}` / `id {Var w} ⊗ –`,
+-- Scope: pad layers of shape `– ⊗ id {Var w}` / `id {Var w} ⊗ –`,
 -- syntactically outermost, recursively (state multi-wire pads as nested
 -- single-atom layers).
 

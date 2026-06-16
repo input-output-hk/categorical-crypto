@@ -1,17 +1,14 @@
 {-# OPTIONS --without-K --safe #-}
 
 --------------------------------------------------------------------------------
--- Totality of the decoder on the PRUNED translation `⟪_⟫ₚ`, whose `∘` case
--- uses `hComposeP`.  Three pieces, mirroring the unpruned `DecodeAttempt` /
--- `Linearity`:
---   (#6) `decode-attempt-hComposeP` — port of `decode-attempt-hCompose`
---        with `remap`→`remapP`, `_↑ˡ K.nV`→`injL = _↑ˡ cn`.
---   (#7) `⟪⟫-LinearP`          — clone of `⟪⟫-Linear`; only `∘` differs.
---   (#8) `decode-attempt-LinearP` — clone of `decode-attempt-Linear`.
+-- Totality of the decoder on the translation `⟪_⟫ₚ`, whose `∘` case uses
+-- `hComposeP`.  Three pieces: `decode-attempt-hComposeP` (the `∘` lift),
+-- `⟪⟫-LinearP` (the invariant), `decode-attempt-LinearP` (totality), plus
+-- the packaged total decoder `decodeP`.
 --
 -- Pruning removes only vertices, never edges (same `nE`, same Fin order),
--- so every atomic lemma is reused verbatim and only the `∘` machinery is
--- re-proven.  No postulates.
+-- so every atomic (non-`∘`) decode lemma from `DecodeAttempt` is reused
+-- verbatim; only the `∘` machinery is proven here.  No postulates.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -65,10 +62,9 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst; subst₂; module ≡-Reasoning)
 
 --------------------------------------------------------------------------------
--- (#6) Per-edge / process-edges liftings for `hComposeP`.  Parallel to
--- `DecodeAttempt`'s hCompose lifts, with the G-side raise `_↑ˡ K.nV`
--- becoming `injL = _↑ˡ cn` and the K-side `remap` becoming `remapP` (whose
--- injectivity needs Linear G + K).
+-- Per-edge / process-edges liftings for `hComposeP`.  The G-side raise is
+-- `injL = _↑ˡ cn`; the K-side remap is `remapP` (whose injectivity needs
+-- Linear G + K).
 
 module _
   (G K : Hypergraph FlatGen)
@@ -311,7 +307,7 @@ module _
       rewrite eq-edge | eq-rec = _ , _ , refl , perm-rec
 
 --------------------------------------------------------------------------------
--- (#6) `decode-attempt-hComposeP`.
+-- `decode-attempt-hComposeP`.
 
 decode-attempt-hComposeP
   : (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
@@ -402,7 +398,7 @@ decode-attempt-hComposeP G K bdy-eq lin-G lin-K ih-G ih-K =
         ∎
 
 --------------------------------------------------------------------------------
--- (#7) `⟪⟫-LinearP`.
+-- `⟪⟫-LinearP`.
 
 ⟪⟫-LinearP : ∀ {A B} (f : HomTerm A B) → Lin.Linear ⟪ f ⟫ₚ
 ⟪⟫-LinearP (Agen g)        = Lin.Linear-hGen g
@@ -422,7 +418,7 @@ decode-attempt-hComposeP G K bdy-eq lin-G lin-K ih-G ih-K =
 ⟪⟫-LinearP (σ {A}{B})      = Lin.Linear-hSwap A B
 
 --------------------------------------------------------------------------------
--- (#8) `decode-attempt-LinearP`.
+-- `decode-attempt-LinearP`.
 
 decode-attempt-LinearP
   : ∀ {A B} (f : HomTerm A B)
@@ -447,9 +443,8 @@ decode-attempt-LinearP (α⇐ {A}{B}{C})  = decode-attempt-hId ((A ⊗₀ B) ⊗
 decode-attempt-LinearP (σ {A}{B})      = decode-attempt-hSwap A B
 
 --------------------------------------------------------------------------------
--- (#8) `decodeP` — the total pruned decoder, the pruned twin of
--- `DecodeAttempt.decode`.  The boundary subst relates the algorithm's
--- natural type to the user-facing
+-- `decodeP` — the total decoder.  The boundary subst relates the
+-- algorithm's natural type to the user-facing
 -- `HomTerm (unflatten (flatten A)) (unflatten (flatten B))`.
 -- Shared by `DecodeTensorPruned`, `DecodeRelDecodeP`,
 -- `DecodeRelRespIsoWired` and the decoder-agreement modules.

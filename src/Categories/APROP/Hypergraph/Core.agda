@@ -6,10 +6,10 @@
 -- lists agree with the vertex labels at its ordered input/output
 -- pointers.
 --
--- The hypergraph is no longer indexed by atom-list boundaries; the
--- boundary atom lists are *computed* by `domL`/`codL` from the
--- underlying Fin-list data.  This avoids the subst₂-on-Hypergraph
--- plumbing that previously arose from index-level boundary equations.
+-- The hypergraph is not indexed by atom-list boundaries; the boundary
+-- atom lists are *computed* by `domL`/`codL` from the underlying
+-- Fin-list data.  This avoids subst₂-on-Hypergraph plumbing from
+-- index-level boundary equations.
 --
 -- For code that wants to fix boundaries in the type, `Hypergraphᵇ Gen As
 -- Bs` packages an unindexed `Hypergraph Gen` with witnesses that its

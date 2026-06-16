@@ -76,8 +76,6 @@
 --       located by `focusAtₙ`), and the solver reconciles the endpoints.
 --   L6  No canonicity/completeness theorem is claimed for `norm ∘ reflect`;
 --       the test suite documents which equation shapes decide.
---
--- Hole-free, postulate-free, --safe.
 --------------------------------------------------------------------------------
 
 module Categories.SolverFrontend where

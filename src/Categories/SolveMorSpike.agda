@@ -22,8 +22,6 @@
 --   3. feed `Untyped.TwoBoxSwap.two-box-swap` (an honest morphism-variable
 --      coherence the structural solver cannot prove) through it, landing a
 --      genuine interchange equation in an ARBITRARY target monoidal category.
---
--- The whole file is hole-free and postulate-free.
 --------------------------------------------------------------------------------
 
 module Categories.SolveMorSpike where
@@ -78,8 +76,7 @@ module SolveMor
 
   -- `FreeMonoidal d` re-exports `HomTerm`/`_≈Term_`/`var`/… publicly, and
   -- because `d.mor = Untyped.mor`, these coincide *definitionally* with the
-  -- ones `Untyped` (hence `two-box-swap`) uses.  This is the key plumbing
-  -- the spike had to nail.
+  -- ones `Untyped` (hence `two-box-swap`) uses.  This is the key plumbing.
   open FreeMonoidal d using (HomTerm; _≈Term_)
 
   -- The target as a `⟦ Mon ⟧ᵥ` value.  We define it ONCE and reuse it both for

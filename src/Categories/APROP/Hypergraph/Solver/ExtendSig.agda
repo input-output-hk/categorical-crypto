@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Signature extension with a single *hole* generator (Phase A of the
+-- Signature extension with a single *hole* generator (first stage of the
 -- `subMatch → decode` rewrite bridge).
 --
 -- To carve a rewrite context out of a hypergraph, we replace the matched

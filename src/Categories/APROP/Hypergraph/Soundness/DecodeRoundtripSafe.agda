@@ -1,13 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The constructive (postulate-free) content of `DecodeRoundtrip.agda`,
--- extracted so `--safe` downstream code can use it without inheriting that
--- file's postulates.  Covers bridge distributivity, the `bridge-X-is-id`
--- lemmas, ρ/α bridge forms and list-coherence, the α-form isos, assorted
--- Mac Lane / solver helpers, and the unit/Var base cases of `bridge-α⇒-form`.
--- The cases depending transitively on postulates (e.g. compound `bridge-α⇒-form`
--- via `bridge-α⇒-form-⊗-⊗`) are NOT extracted.
+-- Bridge-level coherence toolkit: bridge distributivity (`bridge-∘`,
+-- `bridge-⊗`), the `bridge-X-is-id` lemmas, ρ/α bridge forms and
+-- list-coherence, the α-form isos, and assorted Mac Lane / solver helpers.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

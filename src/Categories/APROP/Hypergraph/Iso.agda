@@ -4,8 +4,8 @@
 -- Hypergraph isomorphism (TensorRocq §3.2): two hypergraphs are isomorphic
 -- when there is a bijection of vertices and a bijection of edges that
 -- preserves labels, endpoints, and the ordered boundary.  Defines the
--- relation and proves it is an equivalence; translation completeness lives
--- in `Hypergraph.Completeness`.
+-- relation and proves it is an equivalence; the main theorem
+-- (⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g) lives in `SoundnessFullWired`.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Iso where
@@ -209,12 +209,10 @@ module _ {X : Set} {Gen : List X → List X → Set} where
                        ≡ K.elab e
       elab-sym e =
         let
-          -- original ψ-elab at (ψ⁻¹ e)
           step₁ : subst₂ Gen (atom-ein (ψ⁻¹ e)) (atom-eout (ψ⁻¹ e))
                     (K.elab (ψ (ψ⁻¹ e)))
                   ≡ G.elab (ψ⁻¹ e)
           step₁ = ψ-elab (ψ⁻¹ e)
-          -- invert
           step₂ : K.elab (ψ (ψ⁻¹ e))
                   ≡ subst₂ Gen (sym (atom-ein (ψ⁻¹ e)))
                                (sym (atom-eout (ψ⁻¹ e)))
@@ -224,13 +222,11 @@ module _ {X : Set} {Gen : List X → List X → Set} where
                                                  (K.elab (ψ (ψ⁻¹ e)))))
                         (cong (subst₂ Gen (sym (atom-ein (ψ⁻¹ e)))
                                            (sym (atom-eout (ψ⁻¹ e)))) step₁)
-          -- transport along ψ-rght e to K.elab e
           step₃ : K.elab e
                   ≡ subst₂ Gen (cong (λ z → map K.vlab (K.ein z)) (ψ-rght e))
                                 (cong (λ z → map K.vlab (K.eout z)) (ψ-rght e))
                                 (K.elab (ψ (ψ⁻¹ e)))
           step₃ = K-elab-cong (ψ-rght e)
-          -- combine
           combined : K.elab e
                      ≡ subst₂ Gen (cong (λ z → map K.vlab (K.ein z)) (ψ-rght e))
                                    (cong (λ z → map K.vlab (K.eout z)) (ψ-rght e))
@@ -238,7 +234,6 @@ module _ {X : Set} {Gen : List X → List X → Set} where
                                        (sym (atom-eout (ψ⁻¹ e)))
                                        (G.elab (ψ⁻¹ e)))
           combined = trans step₃ (cong (subst₂ Gen _ _) step₂)
-          -- collapse the nested subst₂
           collapsed : subst₂ Gen
                         (trans (sym (atom-ein (ψ⁻¹ e)))
                                (cong (λ z → map K.vlab (K.ein z)) (ψ-rght e)))
@@ -354,9 +349,3 @@ module _ {X : Set} {Gen : List X → List X → Set} where
             (trans (cong (subst₂ Gen (I₁.atom-ein e) (I₁.atom-eout e)) step₂)
                    step₁)
         in chained
-
-
---------------------------------------------------------------------------------
--- With the de-indexed `Hypergraph Gen`, the `subst₂`-on-boundary
--- compatibility lemmas the indexed version needed are now definitional
--- `refl` and no longer required.

@@ -52,12 +52,10 @@ open import Relation.Nullary using (¬_; yes; no)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst; subst₂)
 
---------------------------------------------------------------------------------
--- Generic `count` / `extract-prefix` combinatorics (H-agnostic).  Core
--- lemmas live in the shared `CountCombinatorics` leaf.
-
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
-  using (↭⇒count; count-pos→∈; count-≤→extract-prefix; ++-cancelˡ)
+  using ( ↭⇒count; count-pos→∈; count-≤→extract-prefix; ++-cancelˡ
+        ; extract-prefix-just→count-≤
+        ; count-concat-tabulate-≤; count-concat-tabulate-pair-≤)
 
 private
   variable
@@ -65,41 +63,6 @@ private
 
   nothing≢just : ∀ {A : Set} {x : A} → nothing ≡ just x → ⊥
   nothing≢just ()
-
-  count-concat-tabulate-≤
-    : ∀ {nE} (f : Fin nE → List (Fin n)) (e : Fin nE) (v : Fin n)
-    → count v (f e) ≤ⁿ count v (concat (tabulate f))
-  count-concat-tabulate-≤ f zero    v =
-    Nat.≤-trans (Nat.m≤m+n _ _)
-                (Nat.≤-reflexive (sym (count-++ v (f zero) _)))
-  count-concat-tabulate-≤ f (suc e) v =
-    Nat.≤-trans (count-concat-tabulate-≤ (λ i → f (suc i)) e v)
-                (Nat.≤-trans (Nat.m≤n+m _ _)
-                             (Nat.≤-reflexive (sym (count-++ v (f zero) _))))
-
-  count-concat-tabulate-pair-≤
-    : ∀ {nE} (f : Fin nE → List (Fin n)) (e e' : Fin nE) → ¬ (e ≡ e')
-    → (v : Fin n)
-    → count v (f e) + count v (f e') ≤ⁿ count v (concat (tabulate f))
-  count-concat-tabulate-pair-≤ f zero    zero     e≢e' v = ⊥-elim (e≢e' refl)
-  count-concat-tabulate-pair-≤ f zero    (suc e') e≢e' v =
-    Nat.≤-trans
-      (Nat.+-monoʳ-≤ (count v (f zero))
-                     (count-concat-tabulate-≤ (λ i → f (suc i)) e' v))
-      (Nat.≤-reflexive (sym (count-++ v (f zero) _)))
-  count-concat-tabulate-pair-≤ f (suc e) zero     e≢e' v =
-    Nat.≤-trans
-      (Nat.≤-reflexive (Nat.+-comm (count v (f (suc e))) (count v (f zero))))
-      (Nat.≤-trans
-        (Nat.+-monoʳ-≤ (count v (f zero))
-                       (count-concat-tabulate-≤ (λ i → f (suc i)) e v))
-        (Nat.≤-reflexive (sym (count-++ v (f zero) _))))
-  count-concat-tabulate-pair-≤ f (suc e) (suc e')  e≢e' v =
-    Nat.≤-trans
-      (count-concat-tabulate-pair-≤ (λ i → f (suc i)) e e'
-        (λ eq → e≢e' (cong suc eq)) v)
-      (Nat.≤-trans (Nat.m≤n+m _ _)
-                   (Nat.≤-reflexive (sym (count-++ v (f zero) _))))
 
 --------------------------------------------------------------------------------
 
@@ -148,6 +111,85 @@ module _ (H : Hypergraph FlatGen)
         ¬dep (v , count-pos→∈ v∈eout-e , count-pos→∈ v∈ein-e'))
 
   ----------------------------------------------------------------------
+  -- FIRING STABILITY (Linear + Incomp): `e'`'s firing decision is the
+  -- same on `s` and on the post-`e` stack `eout e ++ r₁`, since for every
+  -- vertex consumed by `e'` the count is unchanged across the `e`-step
+  -- (`count v (ein e) ≡ 0` by Linearity, `count v (eout e) ≡ 0` by Incomp).
+  ----------------------------------------------------------------------
+
+  private
+    count-ein'-pres
+      : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
+      → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
+      → (v : Fin H.nV) → 0 <ⁿ count v (H.ein e')
+      → count v s ≡ count v (H.eout e ++ r₁)
+    count-ein'-pres {e} {e'} e≢e' ¬dep r₁ s p v v∈ein-e' =
+      trans (↭⇒count p v)
+      (trans (count-++ v (H.ein e) r₁)
+      (trans (cong (_+ count v r₁)
+                   (ein-ein-disjoint (λ eq → e≢e' (sym eq)) v v∈ein-e'))
+      (sym (trans (count-++ v (H.eout e) r₁)
+                  (cong (_+ count v r₁) (eout-ein-disjoint ¬dep v v∈ein-e'))))))
+
+    count-zero-or-pos : (e' : Fin H.nE) (v : Fin H.nV)
+                      → (count v (H.ein e') ≡ 0) ⊎ (0 <ⁿ count v (H.ein e'))
+    count-zero-or-pos e' v with count v (H.ein e')
+    ... | zero  = inj₁ refl
+    ... | suc _ = inj₂ (s≤sⁿ z≤nⁿ)
+
+    ein'-≤-fwd
+      : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
+      → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
+      → (∀ v → count v (H.ein e') ≤ⁿ count v s)
+      → (∀ v → count v (H.ein e') ≤ⁿ count v (H.eout e ++ r₁))
+    ein'-≤-fwd {e} {e'} e≢e' ¬dep r₁ s p h v with count-zero-or-pos e' v
+    ... | inj₁ z   = subst (_≤ⁿ count v (H.eout e ++ r₁)) (sym z) z≤nⁿ
+    ... | inj₂ pos =
+          subst (count v (H.ein e') ≤ⁿ_) (count-ein'-pres e≢e' ¬dep r₁ s p v pos) (h v)
+
+    ein'-≤-bwd
+      : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
+      → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
+      → (∀ v → count v (H.ein e') ≤ⁿ count v (H.eout e ++ r₁))
+      → (∀ v → count v (H.ein e') ≤ⁿ count v s)
+    ein'-≤-bwd {e} {e'} e≢e' ¬dep r₁ s p h v with count-zero-or-pos e' v
+    ... | inj₁ z   = subst (_≤ⁿ count v s) (sym z) z≤nⁿ
+    ... | inj₂ pos =
+          subst (count v (H.ein e') ≤ⁿ_) (sym (count-ein'-pres e≢e' ¬dep r₁ s p v pos)) (h v)
+
+  e'-fires-stable
+    : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
+    → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
+    → ∀ {r₂' p₂'} → extract-prefix (H.ein e') s ≡ just (r₂' , p₂')
+    → Σ[ r ∈ List (Fin H.nV) ] Σ[ q ∈ _ ]
+        extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ just (r , q)
+  e'-fires-stable {e} {e'} e≢e' ¬dep r₁ s p {r₂'} {p₂'} eqe' =
+    count-≤→extract-prefix (H.ein e') (H.eout e ++ r₁)
+      (ein'-≤-fwd e≢e' ¬dep r₁ s p
+        (extract-prefix-just→count-≤ (H.ein e') s r₂' p₂'))
+
+  -- A `just` outcome on `eout e ++ r₁` would (via the backward count
+  -- transport) force success on `s`.
+  e'-skips-stable
+    : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
+    → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
+    → extract-prefix (H.ein e') s ≡ nothing
+    → extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ nothing
+  e'-skips-stable {e} {e'} e≢e' ¬dep r₁ s p eqe' =
+    go (extract-prefix (H.ein e') (H.eout e ++ r₁)) refl
+    where
+      go : (m : Maybe (Σ[ r ∈ List (Fin H.nV) ]
+                         H.eout e ++ r₁ Perm.↭ H.ein e' ++ r))
+         → extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ m
+         → extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ nothing
+      go nothing      eq  = eq
+      go (just (r , q)) eq =
+        ⊥-elim (nothing≢just (trans (sym eqe')
+          (proj₂ (proj₂ (count-≤→extract-prefix (H.ein e') s
+            (ein'-≤-bwd e≢e' ¬dep r₁ s p
+              (extract-prefix-just→count-≤ (H.ein e') (H.eout e ++ r₁) r q)))))))
+
+  ----------------------------------------------------------------------
   -- Extracting `ein e'` from the residual `r₁`.  From `p₂` + `eout e ⊥
   -- ein e'`, every vertex of `ein e'` lives in `r₁`, so `ein e'` is a
   -- count-prefix of `r₁`, giving `r₁ ↭ ein e' ++ Rlist`.
@@ -174,7 +216,6 @@ module _ (H : Hypergraph FlatGen)
                  (trans (cong (_+ count v r₁) (eout-ein-disjoint ¬dep v pos))
                         refl)))))
 
-  -- Extract `ein e'` from `r₁`.
   extract-ein'
     : ∀ {e e' : Fin H.nE} → ¬ (Dep H e e')
     → (r₁ r₂ : List (Fin H.nV)) → H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂
@@ -378,7 +419,6 @@ module _ (H : Hypergraph FlatGen)
   -- reshuffle.
   ----------------------------------------------------------------------
 
-  -- From `p₂` and `q₁`, the e-output residual is `r₂ ↭ eout e ++ Rlist`.
   eout-residual
     : ∀ {e e' : Fin H.nE}
     → (r₁ r₂ Rlist : List (Fin H.nV))
@@ -389,7 +429,6 @@ module _ (H : Hypergraph FlatGen)
     Perm.↭-sym (++-cancelˡ (H.ein e') (Perm.↭-trans shifted p₂))
     where
       open Perm.PermutationReasoning
-      -- ein e' ++ eout e ++ Rlist ↭ eout e ++ ein e' ++ Rlist ↭ eout e ++ r₁
       shifted : H.ein e' ++ H.eout e ++ Rlist Perm.↭ H.eout e ++ r₁
       shifted = begin
         H.ein e' ++ H.eout e ++ Rlist
@@ -398,8 +437,6 @@ module _ (H : Hypergraph FlatGen)
           ↭⟨ PermProp.++⁺ˡ (H.eout e) (Perm.↭-sym q₁) ⟩
         H.eout e ++ r₁ ∎
 
-  -- The output-located permute for the e-first order's final stack:
-  -- `(eout e ++ eout e') ++ Rlist ↭ eout e' ++ r₂`.
   vout-loc-e
     : ∀ {e e' : Fin H.nE}
     → (r₁ r₂ Rlist : List (Fin H.nV))

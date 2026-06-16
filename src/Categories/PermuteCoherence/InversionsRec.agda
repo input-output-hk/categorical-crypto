@@ -18,18 +18,16 @@
 module Categories.PermuteCoherence.InversionsRec where
 
 open import Data.Nat.Base using (ℕ; zero; suc; _+_)
-open import Data.Nat.Properties using (+-assoc; +-comm)
+open import Data.Nat.Properties using (+-comm)
 open import Data.Fin.Base using (Fin; toℕ; punchIn; _<_)
   renaming (suc to fsuc; zero to fz)
 open import Data.Fin.Patterns using (0F)
 open import Data.Fin.Properties
   using (suc-injective; _<?_; punchIn-mono-≤; punchIn-cancel-≤)
-open import Relation.Nullary using (Dec; yes; no)
 open import Relation.Nullary.Decidable using (⌊_⌋)
 open import Data.Bool.Base using (_∧_)
-open import Data.Empty using (⊥-elim)
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl; sym; trans; cong; cong₂; subst₂)
+  using (_≡_; refl; sym; trans; cong; cong₂)
 
 import Data.Fin.Permutation as P
 open P using (remove)
@@ -38,70 +36,28 @@ open import Categories.PermuteCoherence.FinBij
 open import Categories.PermuteCoherence.Word using (rotate-fb)
 open import Categories.PermuteCoherence.Inversions using (inv)
 open import Categories.PermuteCoherence.InversionsSum
-  using (sumF; sumF-cong; sumF-+; 1if; invAt; invS)
+  using (sumF; sumF-cong; sumF-+; sumF-punch; sumF-const0; 1if; invAt; invS)
+open import Categories.PermuteCoherence.InversionsArith
+  using (dec-cong; suc-<-bracket)
 
 private
   variable
     n : ℕ
 
 ------------------------------------------------------------------------
--- 0. Decidable-bracket congruence under logical equivalence.
-
-dec-cong : {A B : Set} (a? : Dec A) (b? : Dec B)
-         → (A → B) → (B → A) → ⌊ a? ⌋ ≡ ⌊ b? ⌋
-dec-cong (yes _) (yes _) _ _ = refl
-dec-cong (no  _) (no  _) _ _ = refl
-dec-cong (yes a) (no ¬b) f _ = ⊥-elim (¬b (f a))
-dec-cong (no ¬a) (yes b) _ g = ⊥-elim (¬a (g b))
-
-------------------------------------------------------------------------
--- 1. Pull one index out of a `Fin (suc N)`-sum:
---   sumF g ≡ g m + sumF (g ∘ punchIn m)  (`punchIn m` enumerates ∖ {m}).
-
-sumF-punch : {N : ℕ} (g : Fin (suc N) → ℕ) (m : Fin (suc N))
-           → sumF g ≡ g m + sumF (λ j → g (punchIn m j))
-sumF-punch {zero}  g 0F = refl
-sumF-punch {suc N} g 0F = refl
-sumF-punch {suc N} g (fsuc m) =
-  trans (cong (g 0F +_) (sumF-punch (λ j → g (fsuc j)) m))
-        (lemma (g 0F) (g (fsuc m)) (sumF (λ j → g (fsuc (punchIn m j)))))
-  where
-  lemma : (a c S : ℕ) → a + (c + S) ≡ c + (a + S)
-  lemma a c S =
-    trans (sym (+-assoc a c S))
-          (trans (cong (_+ S) (+-comm a c)) (+-assoc c a S))
-
-------------------------------------------------------------------------
--- 2. `invS` respects pointwise (`≈-fb`) equality (`invAt` uses `b ⟨$⟩ʳ` only).
+-- 1. `invS` respects pointwise (`≈-fb`) equality (`invAt` uses `b ⟨$⟩ʳ` only).
 
 invAt-resp-≈ : {n : ℕ} {b b′ : FinBij (suc n) (suc n)} → b ≈-fb b′
              → ∀ x y → invAt b x y ≡ invAt b′ x y
 invAt-resp-≈ {b = b} {b′} eq x y =
-  cong (λ z → 1if (⌊ x <? y ⌋ ∧ z)) brkt
-  where
-  brkt : ⌊ (b P.⟨$⟩ʳ y) <? (b P.⟨$⟩ʳ x) ⌋
-       ≡ ⌊ (b′ P.⟨$⟩ʳ y) <? (b′ P.⟨$⟩ʳ x) ⌋
-  brkt = dec-cong ((b P.⟨$⟩ʳ y) <? (b P.⟨$⟩ʳ x))
-                  ((b′ P.⟨$⟩ʳ y) <? (b′ P.⟨$⟩ʳ x))
-                  to from
-    where
-    R : Fin (suc n) → Fin (suc n) → Set
-    R a c = a < c
-    to : R (b P.⟨$⟩ʳ y) (b P.⟨$⟩ʳ x) → R (b′ P.⟨$⟩ʳ y) (b′ P.⟨$⟩ʳ x)
-    to = subst₂ R (eq y) (eq x)
-    from : R (b′ P.⟨$⟩ʳ y) (b′ P.⟨$⟩ʳ x) → R (b P.⟨$⟩ʳ y) (b P.⟨$⟩ʳ x)
-    from = subst₂ R (sym (eq y)) (sym (eq x))
+  cong₂ (λ p q → 1if (⌊ x <? y ⌋ ∧ ⌊ p <? q ⌋)) (eq y) (eq x)
 
 invS-resp-≈ : {n : ℕ} {b b′ : FinBij (suc n) (suc n)} → b ≈-fb b′ → invS b ≡ invS b′
 invS-resp-≈ {b = b} {b′} eq =
   sumF-cong (λ x → sumF-cong (λ y → invAt-resp-≈ {b = b} {b′} eq x y))
 
 ------------------------------------------------------------------------
--- 3. Small arithmetic / order helpers.
-
-sumF-const0 : {N : ℕ} → sumF {N} (λ _ → 0) ≡ 0
-sumF-const0 {zero}  = refl
-sumF-const0 {suc N} = sumF-const0 {N}
+-- 2. Small arithmetic / order helpers.
 
 open import Data.Nat.Properties using (<⇒≱; ≰⇒>)
 open import Data.Fin.Base using (_≤_)
@@ -127,10 +83,6 @@ remove-bridge b m bm≡0 k =
   trans (P.punchIn-permute b m k)
         (cong (λ z → punchIn z (remove m b P.⟨$⟩ʳ k)) bm≡0)
 
-suc-<-bracket : {N : ℕ} (a c : Fin N) → ⌊ fsuc a <? fsuc c ⌋ ≡ ⌊ a <? c ⌋
-suc-<-bracket a c = dec-cong (fsuc a <? fsuc c) (a <? c) s<s⁻¹ s<s
-  where open import Data.Nat.Base using (s<s; s<s⁻¹)
-
 -- values: `b ⟨$⟩ʳ (punchIn m j) <? b ⟨$⟩ʳ (punchIn m i)  ⟺  rmb j <? rmb i`.
 remove-<-bracket : {N : ℕ} (b : FinBij (suc N) (suc N)) (m : Fin (suc N))
                  → b P.⟨$⟩ʳ m ≡ 0F → (i j : Fin N)
@@ -151,7 +103,7 @@ countBelow {suc N} (fsuc m) =
            (countBelow m))
 
 ------------------------------------------------------------------------
--- 4. The value-0 peel of `invS`:
+-- 3. The value-0 peel of `invS`:
 --   b ⟨$⟩ʳ m ≡ 0F  ⟹  invS b ≡ toℕ m + invS (remove m b).
 --
 -- Split every position pair by whether it touches `m` (`sumF-punch` at `m`,
@@ -215,7 +167,7 @@ module _ {N : ℕ} (b : FinBij (suc (suc N)) (suc (suc N))) (m : Fin (suc (suc N
                (sumF-cong (λ i → sumF-cong (λ j → inner-m i j)))))
 
 ------------------------------------------------------------------------
--- 5. The `inv`-residual is `remove m b` (`m = b ⟨$⟩ˡ 0F`): the inverse
+-- 4. The `inv`-residual is `remove m b` (`m = b ⟨$⟩ˡ 0F`): the inverse
 -- rotation sends `suc j` to `punchIn m j`, so `b ∘-fb inv-fb ρ` reads `b`
 -- skipping `m`.
 
@@ -256,7 +208,7 @@ rest≈remove-m {n} b j = suc-injective suc-eq
           (trans c-suc (remove-bridge b m bm≡0 j))
 
 ------------------------------------------------------------------------
--- 6. The Lehmer recursion of `invS`, and the bridge `invS ≡ inv`.
+-- 5. The Lehmer recursion of `invS`, and the bridge `invS ≡ inv`.
 
 invS-rec : {n : ℕ} (b : FinBij (suc (suc n)) (suc (suc n)))
          → invS b

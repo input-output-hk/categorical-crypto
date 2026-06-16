@@ -58,6 +58,10 @@ private
     S≤S : Symm ≤ Symm
     S≤S = v≤v
 
+  -- the shared σ-solver target (all three `solveMorσ!` sites).
+  FMC : MonoidalCategory _ _ _
+  FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
+
 open FM.HomReasoning
 
 -- `↭-sym (shift x ys xs) ≡ rotate x ys xs`.
@@ -125,9 +129,6 @@ peel x xs' ys = begin
 
     -- σ-solver setup: the pure α/assoc `pull` regrouping (both sides carry
     -- the same two crossings Vx/Uys and Uxs'/Uys).
-    FMC : MonoidalCategory _ _ _
-    FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
-
     open FinSetupσ FMC Symmetric-Monoidal
       (Vx Vec.∷ Uxs' Vec.∷ Uys Vec.∷ unflatten (xs' ++ ys) Vec.∷ Vec.[])
 
@@ -207,8 +208,7 @@ peel x xs' ys = begin
 -- B-slot tensor decomposition of `σ-block`: substitute `σ-Bmerge-bare` for
 -- the braid cell (the genuinely hexagon-class step), then ONE σ-solver call
 -- (`solveMorσ!`, zero generators, the free SMC itself as target) discharges
--- the entire α/⊗-coherence reconciliation — the old `nf`/`lhs≈nf`/`rhs≈nf`
--- cascade with its `dist`/`sl₁`/`sl₂` slides and E1-E3 `solveM` framings.
+-- the entire α/⊗-coherence reconciliation.
 -- Decidable because both sides carry the SAME two crossings (A vs B₁ and
 -- A vs B₂); only `σ{A}{B₁⊗B₂}` itself needs the hexagon, once.
 σ-block-Bmerge
@@ -230,9 +230,6 @@ peel x xs' ys = begin
   where
     σ₁ = σ {A = A} {B = B₁}
     σ₂ = σ {A = A} {B = B₂}
-
-    FMC : MonoidalCategory _ _ _
-    FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
 
     open FinSetupσ FMC Symmetric-Monoidal (B₁ Vec.∷ B₂ Vec.∷ A Vec.∷ C Vec.∷ Vec.[])
 
@@ -273,7 +270,7 @@ peel x xs' ys = begin
 -- The `rotate-cap` `ys = b∷ys'` step: iterate the IH past one fixed atom
 -- `Vb`, assembled from `σ-block-Bmerge` (peel `Vb` off the front) and the IH
 -- (under `id{Vb} ⊗ _`); the α-coherence glue and the cap-slide through the
--- residual `σ-block{Vx}{Vb}` (the old `σ-block-natural₃`) are σ-solver steps.
+-- residual `σ-block{Vx}{Vb}` are σ-solver steps.
 rotate-cap-step
   : (x b : X) (ys' ts : List X)
   → _≅_.to (unflatten-++-≅ ys' (x ∷ ts)) ∘ σ-block {Var x} {unflatten ys'} {unflatten ts}
@@ -309,15 +306,11 @@ rotate-cap-step x b ys' ts ih = begin
     to-bys'-ts = _≅_.to (unflatten-++-≅ (b ∷ ys') ts)
 
     ------------------------------------------------------------------
-    -- σ-solver setup: the two solver steps replace the old `pull-cap`/
-    -- `cap-collapse`/`regroup`/`regroup2` α-coherence glue AND the
-    -- `σ-block-natural₃` cap-slide (the `toxs` box through the FIXED
-    -- crossing σ{Vx}{Vb} is inside the decidable fragment).  `to-cons`,
-    -- `to-bys'-ts` and `σ-rotate x (b ∷ ys') ts` unfold definitionally
-    -- into the atoms/generators below.
-    FMC : MonoidalCategory _ _ _
-    FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
-
+    -- σ-solver setup: the two solver steps handle the α-coherence glue AND
+    -- the cap-slide (the `toxs` box through the FIXED crossing σ{Vx}{Vb} is
+    -- inside the decidable fragment).  `to-cons`, `to-bys'-ts` and
+    -- `σ-rotate x (b ∷ ys') ts` unfold definitionally into the
+    -- atoms/generators below.
     open FinSetupσ FMC Symmetric-Monoidal
       (Vx Vec.∷ Vb Vec.∷ Uys' Vec.∷ Uts Vec.∷ U-yt Vec.∷
        unflatten (ys' ++ (x ∷ ts)) Vec.∷ Vec.[])

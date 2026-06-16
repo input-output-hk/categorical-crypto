@@ -2,9 +2,9 @@
 
 --------------------------------------------------------------------------------
 -- Decidable normal-form equality on `DiagU` together with the final solver
--- assembly, *parameterized* over the reflect / normalize milestones (which
--- are built concurrently in sibling modules — hence NOT imported here, only
--- abstracted as interface parameters).
+-- assembly, *parameterized* over the reflect / normalize components
+-- (abstracted as interface parameters rather than imported from the sibling
+-- modules).
 --
 -- Two deliverables:
 --
@@ -20,8 +20,8 @@
 --   (B) `Assembly.solveMor?` : the hole-free gluing
 --           reflect-sound + normalize-sound + NF-equality  ⇒  f ≈Term g.
 --       We work in the *wires-flat* fragment: a term lives between flat wire
---       objects `wires n` / `wires m`, which is exactly the fragment the
---       `reflect` milestone targets, so no `flatten`/`Φ` conjugation is
+--       objects `wires n` / `wires m`, which is exactly the fragment
+--       `reflect` targets, so no `flatten`/`Φ` conjugation is
 --       needed beyond the `out`-equality bookkeeping the interface carries
 --       explicitly.
 --------------------------------------------------------------------------------
@@ -195,11 +195,11 @@ module SolverCompareI
 
     --------------------------------------------------------------------------------
     -- (B) The final assembly, parameterized over the reflect / normalize
-    -- milestones.
+    -- components.
     --
     -- We work in the wires-flat fragment: every term to be solved lives
-    -- between flat wire objects `wires n` / `wires m` (the fragment the
-    -- `reflect` milestone targets).  The only bookkeeping is the output
+    -- between flat wire objects `wires n` / `wires m` (the fragment
+    -- `reflect` targets).  The only bookkeeping is the output
     -- width: a reflected/normalized diagram has some output `out d`, which the
     -- interface witnesses to equal the term's codomain width `m`.  We package
     -- that as a *width coercion* `coeW` of the interpretation onto the common

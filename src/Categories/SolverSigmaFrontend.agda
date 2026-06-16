@@ -50,8 +50,6 @@
 --        exact inverse pairs and box-slides through a crossing fire.
 --   Lσ2  A box STRADDLING the two image blocks of a crossing does not
 --        slide (no sound move exists without splitting the box).
---
--- Hole-free, postulate-free, --safe --without-K.
 --------------------------------------------------------------------------------
 
 module Categories.SolverSigmaFrontend where

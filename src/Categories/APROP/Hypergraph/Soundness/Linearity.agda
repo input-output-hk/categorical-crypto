@@ -11,12 +11,12 @@
 -- This is the side condition under which the cospan-form decoder can
 -- build a `HomTerm`: the free symmetric monoidal category has no
 -- duplication or discarding, so each vertex must be produced and
--- consumed exactly once (or 0 times for *stranded* vertices that the
--- composite `hCompose` introduces — those do not show up in the
--- decoded term).
+-- consumed exactly once (or 0 times for *stranded* vertices, which do
+-- not show up in the decoded term).
 --
--- The translation `⟪ f ⟫` always satisfies linearity (`⟪⟫-Linear`),
--- by structural induction on `f` using `Linear-hTensor` / `Linear-hCompose`.
+-- The pruned translation always satisfies linearity
+-- (`DecodeAttemptLinearP.⟪⟫-LinearP`), by structural induction using
+-- `Linear-hTensor` here and `LinearHComposeP.Linear-hComposeP`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

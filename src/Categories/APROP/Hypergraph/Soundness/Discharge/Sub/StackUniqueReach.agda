@@ -56,7 +56,6 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity sig
 open import Categories.APROP.Hypergraph.Soundness.Decode sig
   using (process-edges; edge-step; extract-prefix)
 
--- The uniqueness ⇔ count-bound bridge from `StackUnique`.
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig
   using (count≤1⇒Unique; Unique-resp-↭)
 
@@ -70,17 +69,12 @@ private
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
   using (count-cons-yes; count-cons-no; ↭⇒count)
 
---------------------------------------------------------------------------------
--- Fix `H` and open it.
-
 module _ (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
 
-  -- The reservoir: outputs of the not-yet-processed edges.
   reservoir : List (Fin H.nE) → List (Fin H.nV)
   reservoir qs = concat (map H.eout qs)
 
-  -- The running invariant: stack + reservoir has every count ≤ 1.
   Reservoir≤1 : List (Fin H.nE) → List (Fin H.nV) → Set
   Reservoir≤1 qs s = ∀ v → count v s + count v (reservoir qs) ≤ⁿ 1
 
@@ -88,7 +82,6 @@ module _ (H : Hypergraph FlatGen) where
   -- 1.  The single inductive lemma: the invariant is preserved by
   --     `process-edges`, and at every stage gives a stack count ≤ 1.
 
-  -- The reservoir of `e ∷ qs` decomposes as `eout e ++ reservoir qs`.
   private
     reservoir-cons-count
       : ∀ (e : Fin H.nE) (qs : List (Fin H.nE)) (v : Fin H.nV)
@@ -98,9 +91,6 @@ module _ (H : Hypergraph FlatGen) where
 
   ------------------------------------------------------------------------
   -- 1b.  The single-edge invariant advance.
-  --   * `Reservoir≤1⇒Unique`   : the invariant bounds the stack count, so
-  --     the stack is `Unique`.
-  --   * `edge-step-Reservoir≤1` : the invariant survives one `edge-step`.
 
   Reservoir≤1⇒Unique
     : ∀ (qs : List (Fin H.nE)) (s : List (Fin H.nV))
@@ -158,10 +148,7 @@ module _ (H : Hypergraph FlatGen) where
               (Nat.≤-trans arith (Nat.≤-reflexive (sym rhs≡)))
 
   ------------------------------------------------------------------------
-  -- 1c.  RESERVOIR-SPLIT.  A `Reservoir≤1 (ps ++ qs) s` invariant for the
-  --      full edge list descends to a `Reservoir≤1 qs` invariant for the
-  --      stack reached after running `ps` from `s` (iterating
-  --      `edge-step-Reservoir≤1` along `ps`).
+  -- 1c.  RESERVOIR-SPLIT: descend the invariant along a processed prefix.
 
   reservoir-split
     : ∀ (ps qs : List (Fin H.nE)) (s : List (Fin H.nV))
@@ -178,14 +165,12 @@ module _ (H : Hypergraph FlatGen) where
   --     `producedList H = H.dom ++ concat (tabulate H.eout)`.
 
   private
-    -- `map f (map suc xs) ≡ map (f ∘ suc) xs`.
     map-map-suc
       : ∀ {A : Set} {m} (f : Fin (suc m) → A) (xs : List (Fin m))
       → map f (map suc xs) ≡ map (λ i → f (suc i)) xs
     map-map-suc f []       = refl
     map-map-suc f (x ∷ xs) = cong (f (suc x) ∷_) (map-map-suc f xs)
 
-    -- generic: `map f (range m) ≡ tabulate f`.
     map-range≡tabulate
       : ∀ {A : Set} {m} (f : Fin m → A)
       → map f (range m) ≡ tabulate f
@@ -219,7 +204,6 @@ module _ (H : Hypergraph FlatGen) where
   --      discharge the reservoir using `↭`-invariance of its per-vertex count.
 
   private
-    -- Per-vertex count of `concat (map H.eout xs)` is `↭`-invariant in `xs`.
     reservoir-↭-count
       : ∀ {xs ys : List (Fin H.nE)} → xs Perm.↭ ys
       → ∀ v → count v (reservoir xs) ≡ count v (reservoir ys)
@@ -246,9 +230,6 @@ module _ (H : Hypergraph FlatGen) where
     reservoir-↭-count (Perm.trans p₁ p₂) v =
       trans (reservoir-↭-count p₁ v) (reservoir-↭-count p₂ v)
 
-  -- For any `o ↭ range H.nE`, the `dom`-reservoir invariant holds: its
-  -- per-vertex count equals that of `range H.nE`, which is the
-  -- `Linear`-backed `producedList` bound.
   dom-reservoir-prov
     : (∀ v → count v (producedList H) ≤ⁿ 1)
     → ∀ (o : List (Fin H.nE)) → o Perm.↭ range H.nE
@@ -260,8 +241,6 @@ module _ (H : Hypergraph FlatGen) where
                (sym (producedList-count v))))
       (prod-bnd v)
 
-  -- Prefix monotonicity: a `Reservoir≤1 (o ++ rest) s` invariant descends
-  -- to its prefix `o` (dropping `rest` only shrinks each per-vertex count).
   private
     reservoir-++-count
       : ∀ (o rest : List (Fin H.nE)) (v : Fin H.nV)
@@ -284,8 +263,6 @@ module _ (H : Hypergraph FlatGen) where
           (Nat.≤-reflexive (sym (reservoir-++-count o rest v)))))
       (inv v)
 
-  -- Order-`↭`-invariance: a `Reservoir≤1 o₁ s` invariant transports along
-  -- any `o₁ ↭ o₂` (the reservoir count depends only on the edge multiset).
   reservoir-resp-↭
     : ∀ {o₁ o₂ : List (Fin H.nE)} (s : List (Fin H.nV))
     → o₁ Perm.↭ o₂ → Reservoir≤1 o₁ s → Reservoir≤1 o₂ s

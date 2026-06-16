@@ -60,8 +60,6 @@
 --       first-applicable-swap bubble sort, budget (#layers)²+1) is not
 --       claimed to be a canonical form; the test suite documents which
 --       equation SHAPES decide, not a completeness theorem for a fragment.
---
--- Hole-free, postulate-free, --safe.
 --------------------------------------------------------------------------------
 
 module Categories.SolverFrontendTests where
@@ -296,14 +294,14 @@ module Interchange where
                ((s'' ⊗' id') ∘' (id' ⊗' t') ∘' (s' ⊗' id'))
 
   -- a NON-HEAD inversion (layers 2-3): the bubble sort walks past the
-  -- in-order head pair and fires deeper.  (Former limitation L2.)
+  -- in-order head pair and fires deeper.
   test-non-head-swap
     : (s'' ∘' s') ⊗' t' ≈' (s'' ⊗' id') ∘' (s' ⊗' t')
   test-non-head-swap =
     solveTerm! ((s'' ∘' s') ⊗' t') ((s'' ⊗' id') ∘' (s' ⊗' t'))
 
   -- three independent boxes fired fully descending vs ascending: the
-  -- sort fires THREE genuine swaps.  (Former limitation L3.)
+  -- sort fires THREE genuine swaps.
   private
     W₃' = Var ⋆ ⊗₀ (Var ⋆ ⊗₀ Var ⋆)
     desc₃ : S.HomTerm W₃' W₃'
@@ -331,7 +329,7 @@ module Negative where
   neg-sequential-order : decide?F (s'' ∘' s') (s' ∘' s'') ≡ nothing
   neg-sequential-order = refl
 
-  -- generator naturality is NOT known to the solver (L6): s' past μ.
+  -- generator naturality is NOT known to the solver (L5): s' past μ.
   neg-generator-naturality
     : decide?F (s' ∘' μ') (μ' ∘' (s' ⊗' id')) ≡ nothing
   neg-generator-naturality = refl

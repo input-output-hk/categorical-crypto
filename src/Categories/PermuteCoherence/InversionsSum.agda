@@ -16,10 +16,10 @@
 module Categories.PermuteCoherence.InversionsSum where
 
 open import Data.Nat.Base using (ℕ; zero; suc; _+_)
-open import Data.Nat.Properties using (+-assoc; +-comm; +-suc)
-open import Data.Fin.Base using (Fin) renaming (suc to fsuc; zero to fz)
+open import Data.Nat.Properties using (+-assoc; +-comm)
+open import Data.Fin.Base using (Fin; punchIn) renaming (suc to fsuc; zero to fz)
 open import Data.Fin.Patterns using (0F)
-open import Data.Fin.Properties using (suc-injective)
+open import Data.Fin.Properties using (punchInᵢ≢i)
 open import Relation.Nullary using (¬_)
 open import Relation.Nullary.Decidable using (⌊_⌋)
 open import Data.Bool.Base using (Bool; true; false; _∧_)
@@ -61,17 +61,48 @@ sumF-+ {suc n} f g =
                         (trans (cong (_+ t) (+-comm b s)) (+-assoc s b t))))
            (sym (+-assoc a s (b + t))))
 
+-- The constantly-zero sum vanishes.
+sumF-const0 : {N : ℕ} → sumF {N} (λ _ → 0) ≡ 0
+sumF-const0 {zero}  = refl
+sumF-const0 {suc N} = sumF-const0 {N}
+
+-- Pull one index out of a `Fin (suc N)`-sum:
+--   sumF g ≡ g m + sumF (g ∘ punchIn m)  (`punchIn m` enumerates ∖ {m}).
+sumF-punch : {N : ℕ} (g : Fin (suc N) → ℕ) (m : Fin (suc N))
+           → sumF g ≡ g m + sumF (λ j → g (punchIn m j))
+sumF-punch {zero}  g 0F = refl
+sumF-punch {suc N} g 0F = refl
+sumF-punch {suc N} g (fsuc m) =
+  trans (cong (g 0F +_) (sumF-punch (λ j → g (fsuc j)) m))
+        (lemma (g 0F) (g (fsuc m)) (sumF (λ j → g (fsuc (punchIn m j)))))
+  where
+  lemma : (a c S : ℕ) → a + (c + S) ≡ c + (a + S)
+  lemma a c S =
+    trans (sym (+-assoc a c S))
+          (trans (cong (_+ S) (+-comm a c)) (+-assoc c a S))
+
 -- If f, g agree off index k and f k = suc (g k), then sumF f = suc (sumF g).
 sumF-step : {n : ℕ} (f g : Fin n → ℕ) (k : Fin n)
           → (∀ j → j ≢ k → f j ≡ g j) → f k ≡ suc (g k)
           → sumF f ≡ suc (sumF g)
-sumF-step {suc n} f g 0F       off at0 =
-  cong₂ _+_ at0 (sumF-cong (λ i → off (fsuc i) (λ ())))
-sumF-step {suc n} f g (fsuc k) off atk =
-  trans (cong₂ _+_ (off 0F (λ ()))
-                   (sumF-step (λ i → f (fsuc i)) (λ i → g (fsuc i)) k
-                              (λ j j≢k → off (fsuc j) (λ e → j≢k (suc-injective e))) atk))
-        (+-suc (g 0F) (sumF (λ i → g (fsuc i))))
+sumF-step {suc n} f g k off atk =
+  trans (sumF-punch f k)
+  (trans (cong₂ _+_ atk (sumF-cong (λ j → off (punchIn k j) (punchInᵢ≢i k j))))
+         (cong suc (sym (sumF-punch g k))))
+
+-- Two nested `sumF-step`s: if the matrices `F`, `G` agree everywhere
+-- except a single cell `(x₀, y₀)` where `F x₀ y₀ = suc (G x₀ y₀)`, then
+-- their double sums differ by one.
+double-step :
+    {N : ℕ} (F G : Fin N → Fin N → ℕ) (x₀ y₀ : Fin N)
+  → (∀ x → x ≢ x₀ → ∀ y → F x y ≡ G x y)
+  → (∀ y → y ≢ y₀ → F x₀ y ≡ G x₀ y)
+  → F x₀ y₀ ≡ suc (G x₀ y₀)
+  → sumF (λ x → sumF (F x)) ≡ suc (sumF (λ x → sumF (G x)))
+double-step F G x₀ y₀ offRow inRow atCell =
+  sumF-step (λ x → sumF (F x)) (λ x → sumF (G x)) x₀
+    (λ x x≢x₀ → sumF-cong (offRow x x≢x₀))
+    (sumF-step (F x₀) (G x₀) y₀ inRow atCell)
 
 ------------------------------------------------------------------------
 -- 2. The inversion count as a double sum over position-pairs.
@@ -80,6 +111,12 @@ sumF-step {suc n} f g (fsuc k) off atk =
 1if : Bool → ℕ
 1if true  = 1
 1if false = 0
+
+-- `1if (p ∧ _)` only depends on the second conjunct when `p ≡ true`.
+1if-∧-cong : (p : Bool) {q₁ q₂ : Bool} → (p ≡ true → q₁ ≡ q₂)
+           → 1if (p ∧ q₁) ≡ 1if (p ∧ q₂)
+1if-∧-cong true  h = cong (λ z → 1if (true ∧ z)) (h refl)
+1if-∧-cong false _ = refl
 
 -- `invAt b x y = 1` iff `(x, y)` is an inversion of `b` (x < y but b x > b y).
 invAt : FinBij (suc n) (suc n) → Fin (suc n) → Fin (suc n) → ℕ

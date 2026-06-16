@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Pruning helpers for a canonical `hCompose`.
+-- Pruning helpers for the pruned cospan composition `hComposeP`.
 --
 -- Given `xs : List (Fin n)` (typically `K.dom` of the right operand of a
 -- cospan composition), identify the Fin values NOT in `xs`.  After
@@ -213,7 +213,7 @@ module _ {n m : ℕ} where
   remap-inj₂ xs f v j refl | inj₂ .j = refl
 
 --------------------------------------------------------------------------------
--- Label preservation — the key lemma that makes the pruned `hCompose` work.
+-- Label preservation — the key lemma that makes `hComposeP` work.
 -- Given source/target labelings `λK`/`λG` with pointwise boundary agreement
 -- `∀ i → λK (xs[i]) ≡ λG (f i)`, the pruned composite labeling `[ λG , λ-non
 -- ]′ ∘ splitAt m` (with `λ-non j = λK (lookup (nonMem xs) j)`) satisfies
@@ -310,7 +310,6 @@ module _ {n m : ℕ} where
     → ∀ {v v' : Fin n} → remap xs f v ≡ remap xs f v' → v ≡ v'
   remap-injective xs f xs-uniq f-inj {v} {v'} eq with v ∈? xs | v' ∈? xs
   ... | yes v∈ | yes v'∈ =
-    -- Both members: `↑ˡ-inj` + `f-inj` + `lookup-index`.
     trans (lookup-index v∈)
       (trans (cong (lookup xs) idx-eq) (sym (lookup-index v'∈)))
     where
@@ -321,7 +320,6 @@ module _ {n m : ℕ} where
   ... | yes v∈ | no v'∉ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ _ eq)
   ... | no v∉  | yes v'∈ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ _ (sym eq))
   ... | no v∉  | no v'∉ =
-    -- Both non-members: `↑ʳ-inj` + `lookup-index` on `nonMem` indices.
     trans (lookup-index v∈nonMem)
       (trans (cong (lookup (nonMem xs)) idx-eq) (sym (lookup-index v'∈nonMem)))
     where

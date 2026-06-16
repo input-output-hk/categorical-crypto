@@ -65,7 +65,7 @@ open import Categories.PermuteCoherence.FaithfulnessK d
   using (σ-block-self-inverse-direct)
 -- The σ-block Yang-Baxter braid, derived from `hexagon`.
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SigmaBlockHexagon d
-  using (σ-block; σ-block-hexagon)
+  using (σ-block; σ-block-hexagon; σ-block-natural₃)
 -- The Word model (position level) and its list-level interpretation.
 open import Categories.PermuteCoherence.Word
   using ( Word; liftW; _~ʷ_; ~refl; ~sym; ~trans; ∷c; c1; c2; c3
@@ -154,42 +154,6 @@ data _≅↭ⁱ_ : {xs ys : List X} → xs ↭ ys → xs ↭ ys → Set where
 --    `swap-invol` is discharged via `σ-block-self-inverse-direct`.
 
 private
-  σ-block-natural₃
-    : ∀ {A B C D : ObjTerm} {f : HomTerm C D}
-    → (α⇒ ∘ (σ {A = A} {B = B} ⊗₁ id) ∘ α⇐) ∘ (id ⊗₁ (id ⊗₁ f))
-      ≈Term (id ⊗₁ (id ⊗₁ f)) ∘ (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐)
-  σ-block-natural₃ {A} {B} {C} {D} {f} =
-    ≈-Term-trans lhs→common (≈-Term-sym rhs→common)
-    where
-    lhs→common
-      : (α⇒ ∘ (σ {A = A} {B = B} ⊗₁ id) ∘ α⇐) ∘ (id ⊗₁ (id ⊗₁ f))
-        ≈Term α⇒ ∘ (σ ⊗₁ f) ∘ α⇐
-    lhs→common =
-      ≈-Term-trans assoc
-      (≈-Term-trans (∘-resp-≈ ≈-Term-refl assoc)
-      (≈-Term-trans (∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl α⇐-comm))
-      (≈-Term-trans (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc))
-                     (∘-resp-≈ ≈-Term-refl
-                       (∘-resp-≈ (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                                   (⊗-resp-≈
-                                     (≈-Term-trans (∘-resp-≈ ≈-Term-refl id⊗id≈id) idʳ)
-                                     idˡ))
-                                 ≈-Term-refl)))))
-    rhs→common
-      : (id ⊗₁ (id ⊗₁ f)) ∘ (α⇒ ∘ (σ {A = A} {B = B} ⊗₁ id) ∘ α⇐)
-        ≈Term α⇒ ∘ (σ ⊗₁ f) ∘ α⇐
-    rhs→common =
-      ≈-Term-trans (≈-Term-sym assoc)
-      (≈-Term-trans (∘-resp-≈ (≈-Term-sym α-comm) ≈-Term-refl)
-      (≈-Term-trans assoc
-      (≈-Term-trans (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc))
-                     (∘-resp-≈ ≈-Term-refl
-                       (∘-resp-≈ (≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                                   (⊗-resp-≈
-                                     (≈-Term-trans (∘-resp-≈ id⊗id≈id ≈-Term-refl) idˡ)
-                                     idʳ))
-                                 ≈-Term-refl)))))
-
   -- Collapse an `id ⊗ (id ⊗ id)` tower on the left of any composite.
   collapse-id3
     : ∀ {U V W P} {g : HomTerm P (U ⊗₀ (V ⊗₀ W))}

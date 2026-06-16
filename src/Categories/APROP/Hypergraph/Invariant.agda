@@ -3,9 +3,9 @@
 --------------------------------------------------------------------------------
 -- Invariants of APROP-translated hypergraphs.
 --
--- The pruned `hCompose` relies on structural properties of the translation
--- that are universal but not captured by the `Hypergraph` record fields
--- alone (covering / uniqueness / dom≡cod of the identity and swap
+-- The pruned cospan composition `hComposeP` relies on structural properties
+-- of the translation that are universal but not captured by the `Hypergraph`
+-- record fields alone (uniqueness / dom≡cod of the identity and swap
 -- hypergraphs, `range`-shape of `hId`'s dom, and Fin/cast bridging lemmas).
 --------------------------------------------------------------------------------
 
@@ -175,8 +175,7 @@ hId-nV≡len-flatten (A ⊗₀ B) =
 
 --------------------------------------------------------------------------------
 -- For an identity, `vlab` agrees with `lookup (flatten A)` pointwise, via a
--- Fin.cast bridging the `(hId A).nV ≡ length (flatten A)` gap.  Needed by
--- `σ∘σ-sound`.
+-- Fin.cast bridging the `(hId A).nV ≡ length (flatten A)` gap.
 
 private
   -- lookup through _++_ via inject+/raise, with a Fin.cast absorbing
@@ -222,7 +221,6 @@ cast-raise-cong₂ refl refl j =
   trans (cast-is-id refl (_ ↑ʳ j))
         (cong (_ ↑ʳ_) (sym (cast-is-id refl j)))
 
--- The main lemma.
 hId-vlab-lookup
   : ∀ A (i : Fin (Hypergraph.nV (hId A)))
   → Hypergraph.vlab (hId A) i
@@ -314,7 +312,7 @@ range-++ (suc n) m = cong (zero ∷_)
     import Data.Fin as Fin
 
 --------------------------------------------------------------------------------
--- `(hId A).dom` is exactly `range (hId A).nV`.  Used by `σ∘σ-sound`.
+-- `(hId A).dom` is exactly `range (hId A).nV`.
 
 hId-dom≡range : ∀ A → Hypergraph.dom (hId A) ≡ range (Hypergraph.nV (hId A))
 hId-dom≡range unit     = refl

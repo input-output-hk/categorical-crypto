@@ -2,12 +2,12 @@
 
 --------------------------------------------------------------------------------
 -- SolverMor: the end-to-end assembly of the untyped free-monoidal diagram
--- solver from its three independently-built milestones:
+-- solver from its components:
 --
 --   * `Categories.SolverReflect`   — `reflect : WTerm n m → DiagU n` with the
---     UNCONDITIONAL soundness `reflect-sound boxSound` (TASK A: the box-leaf
---     right-unitor coherence `BoxSound` is now DISCHARGED here, via the Mac
---     Lane / Kelly unit coherence laws — see `Reflect.boxSound`).
+--     UNCONDITIONAL soundness `reflect-sound boxSound` (the box-leaf
+--     right-unitor coherence `BoxSound` is discharged via the Mac Lane /
+--     Kelly unit coherence laws — see `Reflect.boxSound`).
 --   * `Categories.SolverCompare`   — decidable normal-form equality `_≟DiagU_`
 --     on diagrams and `≈NF⇒≡`.
 --   * `Categories.SolverNormalize` — the σ-free interchange `swap-step-sound`
@@ -23,7 +23,7 @@
 --       It reflects both sides, decides NF-equality, and on success chains
 --       `reflect-sound boxSound` on each end with `≈NF⇒≡` in the middle.  No
 --       hole, no postulate.  (We work on `WTerm` rather than the full `HomTerm`
---       because `reflect` only covers the wire fragment; see the report.)
+--       because `reflect` only covers the wire fragment.)
 --
 --   (2) `solveMorWC? : (s t : WTerm n m)
 --                     → Maybe (C [ ⟦ embed s ⟧₁ ≈ ⟦ embed t ⟧₁ ])`
@@ -82,12 +82,12 @@ module SolverMor
   open FreeMonoidalHelper.Mor Mon X mor
   open ≈R
 
-  -- the reflect milestone (with TASK A's `boxSound` already discharged).
+  -- the reflect component (with `boxSound` discharged).
   open Reflect Mon {X} _≟X_ Mor
     using ( WTerm; boxʷ; idʷ; _∘ʷ_; embed; reflect; out-reflect
           ; reflect-sound; boxSound; BoxSound; coeCod' )
 
-  -- the compare milestone.
+  -- the compare component.
   open SolverCompare Mon {X} _≟X_ Mor
     using (Gen; gen; module Decide)
 

@@ -99,15 +99,9 @@ open import Relation.Binary.PropositionalEquality
 --------------------------------------------------------------------------------
 -- ## Generic count / disjointness helpers (used by the `∘` cross-acyclicity).
 
--- Membership ⇒ positive `count`.  `count` (from `Linearity`) walks the list
--- testing `v ≟ x`; an occurrence of `v` forces at least one `suc`.
-∈→count-pos : ∀ {n} (v : Fin n) (xs : List (Fin n)) → v ∈ xs → 0 ℕ< count v xs
-∈→count-pos v (x ∷ xs) (here  refl) with v ≟ x
-... | yes _ = s≤s z≤n
-... | no  q = ⊥-elim (q refl)
-∈→count-pos v (x ∷ xs) (there p) with v ≟ x
-... | yes _ = s≤s z≤n
-... | no  _ = ∈→count-pos v xs p
+-- Membership ⇒ positive `count`: shared `CountCombinatorics` leaf.
+open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
+  using (∈→count-pos)
 
 -- The `_↑ˡ_` and `_↑ʳ_` images of `Fin (m + k)` are disjoint.
 ↑ˡ-↑ʳ-disjoint : ∀ {m k} (i : Fin m) (j : Fin k) → i ↑ˡ k ≡ m ↑ʳ j → ⊥
@@ -324,8 +318,7 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
         1<prod : 1 ℕ< count k (producedList K)
         1<prod =
           subst (1 ℕ<_) (sym prod-eq)
-            (Nat.+-mono-≤ (∈→count-pos k K.dom k∈dom)
-                          (∈→count-pos k (concat (tabulate K.eout)) k∈eb))
+            (Nat.+-mono-≤ (∈→count-pos k∈dom) (∈→count-pos k∈eb))
 
     -- Only `K.dom` members route to the `_↑ˡ cn` (G-side) slots: if
     -- `remapP k ≡ i ↑ˡ cn` then `k ∈ K.dom`.  Case-split `classify K.dom k`:

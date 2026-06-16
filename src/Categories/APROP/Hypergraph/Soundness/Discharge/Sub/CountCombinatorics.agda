@@ -22,7 +22,8 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity sig
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using (_≟_)
-open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.List using (List; []; _∷_; _++_; map; concat)
+open import Data.List.Base using (tabulate)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Relation.Unary.Any using (here; there)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
@@ -149,6 +150,53 @@ count-≤→extract-prefix (k ∷ ks) xs h
                          (trans (↭⇒count p v) (count-cons-no v k xs' v≢k))))
 ...   | rest , q , eq-rest rewrite eq-elem | eq-rest =
         rest , _ , refl
+
+extract-prefix-just→count-≤
+  : (ks xs rest : List (Fin n)) (p : xs Perm.↭ ks ++ rest)
+  → ∀ v → count v ks ≤ⁿ count v xs
+extract-prefix-just→count-≤ ks xs rest p v =
+  Nat.≤-trans (Nat.m≤m+n (count v ks) (count v rest))
+              (Nat.≤-reflexive (trans (sym (count-++ v ks rest))
+                                      (sym (↭⇒count p v))))
+
+--------------------------------------------------------------------------------
+-- `count` over a `concat (tabulate f)` family: each member's count is ≤ the
+-- total, and two DISTINCT members contribute disjointly.
+
+count-concat-tabulate-≤
+  : ∀ {nE} (f : Fin nE → List (Fin n)) (e : Fin nE) (v : Fin n)
+  → count v (f e) ≤ⁿ count v (concat (tabulate f))
+count-concat-tabulate-≤ f zero    v =
+  Nat.≤-trans (Nat.m≤m+n _ _)
+              (Nat.≤-reflexive (sym (count-++ v (f zero) _)))
+count-concat-tabulate-≤ f (suc e) v =
+  Nat.≤-trans (count-concat-tabulate-≤ (λ i → f (suc i)) e v)
+              (Nat.≤-trans (Nat.m≤n+m _ _)
+                           (Nat.≤-reflexive (sym (count-++ v (f zero) _))))
+
+count-concat-tabulate-pair-≤
+  : ∀ {nE} (f : Fin nE → List (Fin n)) (e e' : Fin nE) → ¬ (e ≡ e')
+  → (v : Fin n)
+  → count v (f e) + count v (f e') ≤ⁿ count v (concat (tabulate f))
+count-concat-tabulate-pair-≤ f zero    zero     e≢e' v = ⊥-elim (e≢e' refl)
+count-concat-tabulate-pair-≤ f zero    (suc e') e≢e' v =
+  Nat.≤-trans
+    (Nat.+-monoʳ-≤ (count v (f zero))
+                   (count-concat-tabulate-≤ (λ i → f (suc i)) e' v))
+    (Nat.≤-reflexive (sym (count-++ v (f zero) _)))
+count-concat-tabulate-pair-≤ f (suc e) zero     e≢e' v =
+  Nat.≤-trans
+    (Nat.≤-reflexive (Nat.+-comm (count v (f (suc e))) (count v (f zero))))
+    (Nat.≤-trans
+      (Nat.+-monoʳ-≤ (count v (f zero))
+                     (count-concat-tabulate-≤ (λ i → f (suc i)) e v))
+      (Nat.≤-reflexive (sym (count-++ v (f zero) _))))
+count-concat-tabulate-pair-≤ f (suc e) (suc e')  e≢e' v =
+  Nat.≤-trans
+    (count-concat-tabulate-pair-≤ (λ i → f (suc i)) e e'
+      (λ eq → e≢e' (cong suc eq)) v)
+    (Nat.≤-trans (Nat.m≤n+m _ _)
+                 (Nat.≤-reflexive (sym (count-++ v (f zero) _))))
 
 --------------------------------------------------------------------------------
 -- Left-cancellation of a common prefix under `_↭_` (generic; count-free).

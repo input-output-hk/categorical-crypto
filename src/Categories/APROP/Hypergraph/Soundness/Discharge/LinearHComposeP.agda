@@ -1,18 +1,12 @@
 {-# OPTIONS --without-K --safe #-}
 
 --------------------------------------------------------------------------------
--- Linearity layer for the PRUNED cospan composition `hComposeP`:
---
---   (#1) `remapP-injective` : injectivity of the pruned K-side vertex remap
---        `remapP = remap K.dom lookup-cod`.
---   (#4) `Linear-hComposeP`  : `hComposeP` preserves the `Linear` invariant.
---
--- Mirrors `Linearity.Linear-hCompose`, replacing the unpruned K-side
--- routing by the pruned routing baked into `remapP`:
+-- Composition-linearity: the cospan composition `hComposeP` preserves the
+-- `Linear` invariant (`Linear-hComposeP`), via injectivity of the K-side
+-- vertex remap `remapP = remap K.dom lookup-cod` (`remapP-injective`).
+-- The routing baked into `remapP`:
 --   * members of K.dom go to `lookup-cod i ↑ˡ count-non K.dom`  (G-side),
 --   * non-members go to `G.nV ↑ʳ j`                            (pruned slot).
--- The only genuinely new lemma is
--- `map-remapP-K-dom : map remapP K.dom ≡ map (_↑ˡ count-non) G.cod`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -65,8 +59,7 @@ open import Relation.Nullary.Negation using (¬_)
 open import Relation.Binary.PropositionalEquality using (_≢_)
 
 --------------------------------------------------------------------------------
--- Re-derived count / permutation helpers (mirror `Linearity`'s unexported
--- `private`-block helpers).
+-- Count / permutation helpers.
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
   using ( count-cons-yes; count-cons-no
@@ -127,8 +120,7 @@ count-bnd→Unique (x ∷ xs) bnd =
     tail-bnd v = Nat.≤-trans (count-mono-cons v x xs) (bnd v)
 
 --------------------------------------------------------------------------------
--- The main construction (mirrors `Linearity.Linear-hCompose`, with `injR`
--- replaced by the pruned routing).
+-- The main construction.
 
 module _
   (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
@@ -188,15 +180,14 @@ module _
       (lookup-injective-unique G-cod-Unique
         (cast dom-cod-len i) (cast dom-cod-len j) eq)
 
-  -- (#1)  Injectivity of the pruned K-side vertex remap.
+  -- Injectivity of the pruned K-side vertex remap.
   remapP-injective
     : ∀ {v v'} → remapP v ≡ remapP v' → v ≡ v'
   remapP-injective =
     remap-injective K.dom lookup-cod K-dom-Unique lookup-cod-injective
 
   ------------------------------------------------------------------------
-  -- `map remapP K.dom ≡ map (_↑ˡ cn) G.cod` (pruned analogue of
-  -- `Linear-hCompose`'s `map-remap-K-dom`).  Each member of K.dom is
+  -- `map remapP K.dom ≡ map (_↑ˡ cn) G.cod`.  Each member of K.dom is
   -- routed to `lookup-cod idx ↑ˡ cn`, and `lookup-cod` walks G.cod in
   -- lockstep with K.dom, so the two mapped lists agree.
 
@@ -617,13 +608,13 @@ module _
   ...                | refl = bound-raise j
 
   ------------------------------------------------------------------------
-  -- (#4)  The pruned composition preserves linearity.
+  -- The pruned composition preserves linearity.
 
   Linear-hComposeP-internal : Linear (hComposeP G K bdy-eq)
   Linear-hComposeP-internal = balance , bound
 
 --------------------------------------------------------------------------------
--- (#4) public face.
+-- Public face.
 
 Linear-hComposeP
   : (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)

@@ -5,7 +5,7 @@
 -- `extract-exact` (defined in `Decode.agda`).  These reduce the per-case
 -- `decode-attempt-h*` obligations to facts about disjoint Fin injections
 -- and `Unique` lists.  Three families: single-list searches, membership /
--- permutation lemmas, and mixed-injection liftings (for hTensor/hCompose).
+-- permutation lemmas, and mixed-injection liftings (for hTensor/hComposeP).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -434,7 +434,7 @@ extract-prefix-↭-nothing ks xs xs' xs↭xs' eq
 --------------------------------------------------------------------------------
 -- `extract-elem`/`extract-prefix` lifting through an injective
 -- `f : Fin n → Fin m`.  The disjoint-injection liftings above are special
--- cases; the K-side `remap` of `hCompose` is another (injective when both
+-- cases; the K-side `remapP` of `hComposeP` is another (injective when both
 -- G and K are `Linear`).
 
 extract-elem-via-injective-nothing

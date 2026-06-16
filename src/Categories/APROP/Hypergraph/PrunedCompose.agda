@@ -1,12 +1,11 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Pruned cospan composition.  Identical to `FromAPROP.hCompose` except the
--- output's vertex count is `G.nV + count-non K.dom` (pruned) rather than
--- `G.nV + K.nV`.  Pruning drops every K-side vertex in `K.dom`, since those
--- positions are glued to the corresponding `G.cod` entry and are
--- unreferenced in the composite.  Relies on `Hypergraph.Prune.remap` and
--- its label-preservation lemmas.
+-- Pruned cospan composition.  The output's vertex count is
+-- `G.nV + count-non K.dom` (pruned) rather than `G.nV + K.nV`: pruning
+-- drops every K-side vertex in `K.dom`, since those positions are glued to
+-- the corresponding `G.cod` entry and are unreferenced in the composite.
+-- Relies on `Hypergraph.Prune.remap` and its label-preservation lemmas.
 --
 -- DESIGN: pruning lets the vertex counts line up so the group-(b)/(c)
 -- ≈Term laws (where the unpruned LHS would have strictly more vertices
@@ -65,8 +64,7 @@ private
     lookup-boundary f g xs ys (∷-tail eq) i
 
 --------------------------------------------------------------------------------
--- Module-parameterised construction (parallel to `FromAPROP.hCompose-impl`
--- but with pruning).
+-- Module-parameterised construction (parallel to `FromAPROP.hTensor-impl`).
 
 module hComposeP-impl
   (G K : Hypergraph FlatGen)

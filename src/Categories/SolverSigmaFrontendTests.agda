@@ -20,8 +20,6 @@
 --   * `Target`     — C-level showcase through `FinSetupσ`: `solveMorσ!`
 --     one-liners whose statements read in an arbitrary symmetric monoidal
 --     target's own vocabulary (σ lands on the target's braiding).
---
--- Hole-free, postulate-free, --safe --without-K.
 --------------------------------------------------------------------------------
 
 module Categories.SolverSigmaFrontendTests where

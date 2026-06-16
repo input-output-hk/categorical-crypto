@@ -6,10 +6,6 @@
 -- lifting machinery, shared by the pruned totality
 -- (`DecodeAttemptLinearP.decode-attempt-LinearP`, which derives the
 -- total pruned decoder `decodeP`).  `bridge` lives here too.
---
--- The unpruned `decode-attempt-hCompose`/`decode-attempt-Linear`/`decode`
--- were retired together with the unpruned `hCompose` (see
--- docs/size-reduction-strategies.md, 2026-06-10 addendum).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

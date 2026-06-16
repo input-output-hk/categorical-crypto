@@ -7,28 +7,18 @@
 --
 -- The object map is `unflatten : List X → ObjTerm` (the right-associated,
 -- `unit`-padded fold from `Soundness/Unflatten.agda`) and the structure iso
--- (laxator) is `unflatten-++-≅`.  This module collects the associativity
--- coherence (both directions) and the transport-absorption algebra that the
--- downstream box-coherence proofs (`Discharge/Sub/DecodeTensorShape.agda`)
--- consume, RELOCATING/generalising them out of those modules into one clean
--- reusable interface.
---
--- Provenance of the proofs:
---   * `c-iso-assoc-from`  — imported and re-exported from
---     `Discharge/CIsoAssocFromCons.agda` (the `from`-side pentagon).
---   * `c-iso-assoc-to`    — the `to`-side dual, reproved here by composite
---     inversion (the technique used inline in `module BoxAssoc` of
---     `Discharge/Sub/DecodeTensorShape.agda`).
+-- (laxator) is `unflatten-++-≅`.  Collects the associativity coherence (both
+-- directions) and the transport-absorption algebra consumed by the
+-- downstream box-coherence proofs (`Discharge/Sub/DecodeTensorShape.agda`):
+--   * `c-iso-assoc-from` — re-exported from `Discharge/CIsoAssocFromCons.agda`
+--     (the `from`-side pentagon);
+--   * `c-iso-assoc-to`   — its `to`-side dual, by composite inversion;
 --   * the transport-absorption lemmas (`cancel-mid-iso`, `conj-lemma`,
 --     `subst-id-{dom,cod}`, `bridge-{dom,cod}`, `to-uf-cong`, `from-uf-cong`,
---     `subst-2`) — reproved standalone here (they were `private` in
---     `DecodeTensorShape.agda`).
+--     `subst-2`);
 --   * laxator naturality under `map φ` — `to-uf-map-++` / `from-uf-map-++`,
---     the `map-++` specialisation of the cong-transport lemmas (this is the
---     form the per-edge `box-of` bridges actually use, cf. `Decode.agda`'s
---     `mid'`).
---
--- Everything is honestly proven; the module is `--safe` and postulate-free.
+--     the `map-++` specialisation the per-edge `box-of` bridges use
+--     (cf. `Decode.agda`'s `mid'`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

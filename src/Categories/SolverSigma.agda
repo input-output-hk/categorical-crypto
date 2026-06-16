@@ -17,7 +17,7 @@
 --
 --     ⟦box⟧S (cross a b) = merge b {a} ∘ σ ∘ split a {b}
 --
--- STAGE A (this module, complete):
+-- STAGE A (involution + driver):
 --   * `σσ-block`  : the block involution  ⟦cross b a⟧ ∘ ⟦cross a b⟧ ≈ id
 --                   (split∘merge cancellation + the σ∘σ≈id axiom — NO
 --                   σ-naturality);
@@ -65,8 +65,6 @@
 --     the number of (cross-before-box) inversions, so the existing
 --     depth³-ish fuel still over-approximates; termination stays trivial
 --     by fuel.
---
--- Hole-free, postulate-free, --safe --without-K.
 --------------------------------------------------------------------------------
 
 module Categories.SolverSigma where

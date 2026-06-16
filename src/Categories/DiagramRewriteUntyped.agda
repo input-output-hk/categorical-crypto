@@ -15,7 +15,7 @@ module Categories.DiagramRewriteUntyped where
 --     non-crossing wire ranges, together with a soundness proof
 --     ⟦ d ⟧ ≈Term ⟦ swap d ⟧.
 --
--- KEY POINT (confirmed below): because the swap only moves a box past a
+-- KEY POINT: because the swap only moves a box past a
 -- non-interacting neighbour, the soundness proof is *pure
 -- bifunctoriality / interchange* — the M-content (⊗-∘-dist, id⊗id≈id)
 -- plus structural reassociation discharged by hand from the merge/split

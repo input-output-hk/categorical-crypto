@@ -18,11 +18,9 @@
 --                                          `codL G ++ codL K`
 --   hSwap A B   braiding
 --
--- Cospan composition lives in `PrunedCompose.hComposeP` (the unpruned
--- `hCompose` was retired together with the unpruned decoder; see
--- docs/size-reduction-strategies.md, 2026-06-10 addendum).
+-- Cospan composition lives in `PrunedCompose.hComposeP`.
 --
--- The benefit of de-indexing: `subst₂ (Hypergraph FlatGen)` no longer shows
+-- The benefit of de-indexing: `subst₂ (Hypergraph FlatGen)` never shows
 -- up; the ρ/α cases of `⟪_⟫` are plain `hId` calls, with the boundary
 -- equations living in the boundary lemmas rather than the type.
 --------------------------------------------------------------------------------
@@ -63,7 +61,6 @@ range : (n : ℕ) → List (Fin n)
 range zero = []
 range (suc n) = zero ∷ map suc (range n)
 
--- `map (lookup xs) (range (length xs)) ≡ xs`.
 map-lookup-range : (xs : List X) → map (lookup xs) (range (length xs)) ≡ xs
 map-lookup-range [] = refl
 map-lookup-range (x ∷ xs) =
@@ -220,8 +217,7 @@ hTensor G K = record
     module K = Hypergraph K
     open hTensor-impl G K
 
--- Boundary lemmas for hTensor (replacing `boundary-eq`'s type-level role
--- in the indexed version).
+-- Boundary lemmas for hTensor.
 
 module _ (G K : Hypergraph FlatGen) where
   private

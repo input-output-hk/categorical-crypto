@@ -1,15 +1,12 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Constructive discharge of `c-iso-assoc-from-cons` from
--- `Soundness/DecodeRoundtrip.agda`.
+-- `c-iso-assoc-from-cons`: the cons case of the c-iso pentagon
+-- (associativity of `unflatten-++-≅` up to `++-assoc`); unblocks the
+-- α⇒/α⇐ cases of `decode-rel-≈-decodeP`.
 --
--- The cons case of the c-iso pentagon (associativity of `unflatten-++-≅`
--- up to `++-assoc`); unblocks the α⇒/α⇐ cases of `decode-rel-≈-decode`.
---
--- `c-iso-assoc-from` is re-defined here constructively (rather than
--- importing the non-`--safe` `DecodeRoundtrip` postulate).  The base case
--- and the two free-monoidal segments of the cons case (everything except
+-- `c-iso-assoc-from` is proven constructively here.  The base case and
+-- the two free-monoidal segments of the cons case (everything except
 -- the IH application and the final subst-folding) are discharged by the
 -- morphism-variable solver `solveMor!` at the free monoidal category.
 --------------------------------------------------------------------------------
@@ -48,9 +45,6 @@ private
 open FM.HomReasoning
 
 --------------------------------------------------------------------------------
--- Local helper (re-proved here to avoid depending on non-`--safe`
--- DecodeRoundtrip.agda).
-
 -- Relates `id ⊗ subst-id-along-e` to the subst-id at the (Var x)-tensored
 -- predicate (by J on `e`).
 id-⊗-subst-bridge
@@ -112,8 +106,8 @@ c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
        ≈Term (id {U₁'} ⊗₁ c-3) ∘ c-4 ∘ subst-id-xs₁'
     ih = c-iso-assoc-from xs₁' xs₂ ys
 
-    -- The free pre-IH shuffle (old steps 1-5: pentagon-rewrite, ⊗-∘-dist,
-    -- α-comm, α-iso cancellations, id-⊗ collection), as one solver call.
+    -- The free pre-IH shuffle (pentagon-rewrite, ⊗-∘-dist, α-comm,
+    -- α-iso cancellations, id-⊗ collection), as one solver call.
     shuffle₁
       : α⇒ {Vx ⊗₀ U₁'} {U₂} {U-ys}
           ∘ ((α⇐ ∘ id ⊗₁ c-1) ⊗₁ id)
@@ -140,8 +134,8 @@ c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
         rhsᵗ = S._∘_ S.α⇐
                  (S._⊗₁_ S.id (S._∘_ S.α⇒ (S._∘_ (S._⊗₁_ g1 S.id) g2)))
 
-    -- The free post-IH shuffle (old steps 7-10: id-⊗ distribution,
-    -- α⇐-comm-top, regrouping), as one solver call.
+    -- The free post-IH shuffle (id-⊗ distribution, α⇐-comm-top,
+    -- regrouping), as one solver call.
     shuffle₂
       : α⇐ ∘ id ⊗₁ ((id {U₁'} ⊗₁ c-3) ∘ c-4 ∘ subst-id-xs₁')
       ≈Term id ⊗₁ c-3
@@ -218,8 +212,7 @@ c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
         ∎
 
 --------------------------------------------------------------------------------
--- The cons case, exposed as a top-level lemma matching the postulated
--- signature in `DecodeRoundtrip.agda`.
+-- The cons case, exposed as a top-level lemma.
 
 c-iso-assoc-from-cons
   : ∀ x xs₁' xs₂ ys

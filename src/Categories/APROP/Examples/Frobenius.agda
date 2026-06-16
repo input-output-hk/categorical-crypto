@@ -2,8 +2,7 @@
 
 --------------------------------------------------------------------------------
 -- Worked example: commutative Frobenius algebra signature (per
--- TensorRocq §5). This file only defines the signature and builds a
--- few sample terms -- equational reasoning is deferred to later phases.
+-- TensorRocq §5). Defines the signature and builds a few sample terms.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Examples.Frobenius where
@@ -38,8 +37,7 @@ FrobSig = record { X = Atom ; mor = Gen }
 -- Agda still flags the overload. Hide them here.
 open APROP FrobSig hiding (ObjTerm; unit; _⊗₀_; Var)
 
--- Sample APROP terms. These just exercise term-building; axioms and
--- normalisation come in later phases.
+-- Sample APROP terms.
 
 -- Left-biased triple multiplication.
 μ³ : HomTerm ((a ⊗₀ a) ⊗₀ a) a

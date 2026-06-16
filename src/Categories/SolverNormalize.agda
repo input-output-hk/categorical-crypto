@@ -327,7 +327,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- swaps produced by `swapAdj` (each carrying a real `two-box-swap` witness).
   --
   -- (A canonical *insertion sort* producing the path automatically — sort key =
-  -- leftmost offset with a tiebreak — is the natural T3 follow-up; the
+  -- leftmost offset with a tiebreak — is a natural follow-up; the
   -- soundness infrastructure here already accepts any such generated path.)
   --------------------------------------------------------------------------------
 
@@ -568,7 +568,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- This is NOT a hole: it is unproven and omitted.  It rests on TWO pieces not
   -- yet in place: (a) the `headSwap?` recogniser must FIRE on every canonical
   -- clean-pad ordering — which needs the frame-form re-cleaning bridge
-  -- (`g-out≈pad` TOGETHER WITH `g-in≈pad` — both now PROVEN in
+  -- (`g-out≈pad` TOGETHER WITH `g-in≈pad` — both proven in
   -- `DiagramRewriteUntyped.TwoBoxSwap` — conjugating `two-box-swap` by the
   -- `assocW`/`assocW⁻` reassociators so a clean-pad pair maps to a clean-pad
   -- pair); and (b) confluence of the resulting bubble sort to a unique
@@ -580,7 +580,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --------------------------------------------------------------------------------
   -- 9. The genuine firing swap, demonstrated.
   --
-  -- `g-in≈pad` (the mirror of `g-out≈pad`, now PROVEN in
+  -- `g-in≈pad` (the mirror of `g-out≈pad`, both proven in
   -- `DiagramRewriteUntyped.TwoBoxSwap`) lets us re-express BOTH of a frame's
   -- reassociator-conjugated g-layers as genuine flat `pad`s.  The frame
   -- `before-O`/`after-O` head-pairs are therefore exactly the clean adjacent-pair
@@ -764,7 +764,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     input⇒sorted wRest = wstep (≈-Term-sym (head-swap-sound wRest))
 
   --------------------------------------------------------------------------------
-  -- 11d. The CLEAN ↔ FRAME bridge for the `fy` (left) layer — PROVEN clean.
+  -- 11d. The CLEAN ↔ FRAME bridge for the `fy` (left) layer.
   --
   -- For a `LeftFit`, the SECOND DiagU layer `pad py sy ⟦fy⟧` (fy fires second)
   -- equals the frame's `f-out` layer DEFINITIONALLY once we rewrite `py≡P` and
@@ -787,7 +787,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- `assocW`/`assocW⁻`/`liftW` (built purely from `id` and `id ⊗₁ -`, α-free)
   -- COLLAPSE to single `castW`s; combined with `castW`-functoriality this lets
   -- the `g-in≈pad` reassociators cancel against the index casts.  All proven by
-  -- `J` (pattern-matching the equality to `refl`); no postulates, no holes.
+  -- `J` (pattern-matching the equality to `refl`).
   --------------------------------------------------------------------------------
 
   open import Data.List.Properties using (++-assoc)
@@ -850,8 +850,8 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
     castW (++-assoc (x ∷ p) q s) ∎
 
   --------------------------------------------------------------------------------
-  -- 11e. (ISOLATED, Tier-3 residual) The CLEAN ↔ FRAME bridge for the `fx`
-  --      (right) layer, and the DiagU index transport.
+  -- 11e. The CLEAN ↔ FRAME bridge for the `fx` (right) layer, and the DiagU
+  --      index transport.
   --
   -- The FIRST DiagU layer `pad px sx ⟦fx⟧` (fx fires first) is, after the
   -- `LeftFit` rewrites `px≡P++(ay++mid)`, `sx≡s`, the genuine clean flat pad
@@ -859,19 +859,10 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- on the object  (P ++ (ay ++ mid)) ++ (ax ++ s).  The frame's `g-in` layer is
   -- the SAME box in grouped form, on the right-nested object
   --   N₀ = P ++ (ay ++ (mid ++ (ax ++ s)))
-  -- and `Frame.g-in≈pad` (PROVEN in DiagramRewriteUntyped) relates them by the
-  -- structural reassociators `reassocF-in`/`reassocB-in`:
+  -- and `Frame.g-in≈pad` relates them by the structural reassociators
+  -- `reassocF-in`/`reassocB-in`:
   --
   --   g-in ≈Term reassocB-in ∘ pad (P++(ay++mid)) s (⟦box⟧ fx) ∘ reassocF-in.
-  --
-  -- The two objects differ by `++`-associativity ONLY; for ABSTRACT `P ay mid
-  -- ax s` they are not definitionally equal, so the clean fx pad and `g-in` do
-  -- not have a common (dom,cod) and `_≈Term_` between them is ILL-TYPED.  The
-  -- bridge therefore requires a propositional index transport along
-  --   ++-assoc : (P++(ay++mid)) ++ (ax++s) ≡ P ++ ((ay++mid) ++ (ax++s))   …etc.
-  -- composed with the structural reassociators `reassocF-in`/`reassocB-in`
-  -- (which the reassociators precisely realise as morphisms).  Collapsing the
-  -- transport+reassociators to the identity is the single remaining surgery.
   --
   -- THE INDEX-CAST OBSTRUCTION (precise).  A DiagU built with the `LeftFit`
   -- offsets has OUTER index `px ++ (ax ++ sx) = (P ++ (ay ++ mid)) ++ (ax ++ s)`
@@ -882,35 +873,12 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- literally ILL-TYPED.  So the bridge needs a propositional object cast
   --   castₒ : (P++(ay++mid))++(ax++s) ≡ N₀                 (from ++-assoc)
   -- on the domain (and a matching one on the codomain), realised as the
-  -- structural reassociators of `g-in≈pad`.
-  --
-  -- The PRECISE residual lemma (exact type), stated but NOT proven here so the
-  -- module stays postulate-free and `--safe`.  Writing `n₀ = px ++ (ax ++ sx)`
-  -- for the DiagU index and `castW : ∀ {u v} → u ≡ v → HomTerm (wires u)
-  -- (wires v)` (= `≡⇒≈Term`-style object reshaper, e.g. `subst` of `id`):
-  --
-  --   fx-clean⇒g-in :
-  --     ∀ {ax bx ay by} {px sx py sy}
-  --       {fx : Mor ax bx} {fy : Mor ay by}
-  --       (fit : LeftFit px sx py sy fx fy)
-  --       {M rest} {d : DiagU (px ++ (bx ++ sx))}
-  --       (wTail : Wired (LeftFrame.N₃ fit) rest M)
-  --       (idx : py ++ (ay ++ sy) ≡ px ++ (bx ++ sx))      -- the DiagU wiring ★
-  --     → castW (codcast …) ∘ ⟦ fromDiagU (px ▸ sx ∷ fx ⟨ py ▸ sy ∷ fy ⟨ d ⟩ ⟩) ⟧O
-  --       ≈Term  ⟦ LeftFrame.input-O fit wTail ⟧O ∘ castW (domcast …)
-  --
-  -- where `domcast : px++(ax++sx) ≡ N₀` and `codcast : out … ≡ M` are the
-  -- `++-assoc` index transports.  It is the EXACT abstract analogue of the
-  -- `Litmus`'s `cA≈after`/`cB≈before` (discharged CONCRETELY below, where the
-  -- reassociators reduce to `id` and the casts are `refl`).  Once it is in hand,
-  -- the autonomous DiagU swap is `≈-Term-trans (fx-clean⇒g-in …) (input⇒sorted
-  -- …)`, and the bubble sort + its soundness follow by chaining exactly as
-  -- `normalizeA`/`normalizeA-sound` already do for the `_⇒W_` driver.  The frame
-  -- side (`LeftFrame.input⇒sorted`) is PROVEN and exercised in the DiagU litmus
-  -- below; only this clean⇄grouped index cast remains.
+  -- structural reassociators of `g-in≈pad`.  §11e'-§11e''' below collapse the
+  -- reassociators to single `castW`s and prove the bridge; the autonomous
+  -- DiagU swap then chains it with the frame's `input⇒sorted` step.
 
   --------------------------------------------------------------------------------
-  -- 11e'. THE BRIDGE, PROVEN.  The clean flat `pad` of the right box `g` (at the
+  -- 11e'. THE BRIDGE.  The clean flat `pad` of the right box `g` (at the
   -- LeftFit offset `pre++(a₁++mid)`, suffix `r`) equals the frame's grouped
   -- `g-in`, conjugated by the `++`-assoc object casts.  This is the abstract
   -- analogue of `Litmus.cA≈after`/`g-in≈cp`: there the reassociators reduced to
@@ -976,7 +944,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   castW-sym-r-flip : ∀ {u v : List X} (e : u ≡ v) → castW e ∘ castW (sym e) ≈Term id
   castW-sym-r-flip refl = idˡ
 
-  -- THE CORE BRIDGE (frame coordinates), PROVEN.  The frame's grouped `g-in`
+  -- THE CORE BRIDGE (frame coordinates).  The frame's grouped `g-in`
   -- equals the clean flat `pad` of the right box `g` (at the LeftFit offset
   -- `pre++(a₁++mid)`), conjugated by the `++`-assoc object casts.  Obtained from
   -- `g-in≈pad` by collapsing its reassociators to single `castW`s (§11d').
@@ -1046,7 +1014,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈⟨ castW-irr _ _ ⟩
     castW (domeq pre b₁ mid b₂ r) ∎
 
-  -- THE CORE g-out BRIDGE, PROVEN (mirror of `fx-clean⇒g-in-core`).  The frame's
+  -- THE CORE g-out BRIDGE (mirror of `fx-clean⇒g-in-core`).  The frame's
   -- grouped `g-out` equals the clean flat `pad` of the right box `g` (at the
   -- SORTED offset `pre++(b₁++mid)`), conjugated by the `++`-assoc object casts.
   fy-sorted⇒g-out-core :
@@ -1069,7 +1037,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ∘ castW (sym (domeq pre b₁ mid a₂ r)) ∎
 
   --------------------------------------------------------------------------------
-  -- 11e''. THE FULL CLEAN ⇒ FRAME BRIDGE, PROVEN.  For a recognised `LeftFit`
+  -- 11e''. THE FULL CLEAN ⇒ FRAME BRIDGE.  For a recognised `LeftFit`
   -- (matched to its `refl` offset witnesses, so `px=P++(ay++mid)`, `sx=s`,
   -- `py=P`, `sy=mid++(bx++s)` definitionally), the CLEAN head pair
   --
@@ -1079,7 +1047,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- transport between fx's clean codomain and fy's clean domain) equals the
   -- frame's `input-O` (= `after-O`, gbox-grouped order) conjugated by the domain
   -- index cast `castW domcast`.  This is the abstract, frame-routed analogue of
-  -- `Litmus.cA≈after`, PROVEN via `fx-clean⇒g-in-core` + the `castW` algebra.
+  -- `Litmus.cA≈after`, via `fx-clean⇒g-in-core` + the `castW` algebra.
   --
   -- The clean fy-layer `pad py sy ⟦fy⟧` is DEFINITIONALLY `Frame.f-out`
   -- (`fy-layer≡f-out`), so it appears as `Frame.f-out P mid s fy fx` here.
@@ -1134,11 +1102,10 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
         F.g-in ∘ castDom ∎
 
   --------------------------------------------------------------------------------
-  -- 11e'''. THE AUTONOMOUS DiagU SWAP SOUNDNESS, PROVEN.  Chaining the clean⇒
-  -- frame bridge with the frame's PROVEN `input⇒sorted` swap step gives: the
+  -- 11e'''. THE AUTONOMOUS DiagU SWAP SOUNDNESS.  Chaining the clean⇒
+  -- frame bridge with the frame's `input⇒sorted` swap step gives: the
   -- CLEAN (fx-then-fy) head order equals — modulo the domain index cast — the
-  -- frame's SORTED (fy-then-fx) order.  This is precisely the §11e note's
-  -- `≈-Term-trans (fx-clean⇒g-in …) (input⇒sorted …-sound)`, now closed.
+  -- frame's SORTED (fy-then-fx) order.
   --------------------------------------------------------------------------------
 
   diagU-swap-sound :
@@ -1156,7 +1123,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       (∘-resp-≈ (sound (LeftFrame.input⇒sorted fit wTail)) ≈-Term-refl)
 
   --------------------------------------------------------------------------------
-  -- 11f. subst-transport of a DiagU index, PROVEN sound.  A swap necessarily
+  -- 11f. subst-transport of a DiagU index.  A swap necessarily
   -- moves a clean DiagU off its left-nested index onto the frame's right-nested
   -- index (they differ by `domeq`, NON-`refl` for abstract offsets), so a real
   -- `DiagU n → DiagU n` transports the swapped sub-diagram along that `≡`.  The
@@ -1309,8 +1276,8 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 
   -- ABSTRACT per-swap soundness: the input (fx-first) and swapped (fy-first)
   -- clean DiagUs share endpoints `wires N₀ → wires (out dRest)` and have equal
-  -- interpretations in the free monoidal category.  Proven by chaining the
-  -- already-PROVEN `swapHeadD-out-sound` (swapped side) and `diagU-swap-sound`
+  -- interpretations in the free monoidal category.  Proven by chaining
+  -- `swapHeadD-out-sound` (swapped side) and `diagU-swap-sound`
   -- (input ⇒ sorted, = `two-box-swap`) with the `castW`/`⟦substDiagU⟧` algebra.
   dSwapped-is-out :
     ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
@@ -1440,7 +1407,7 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 
   --------------------------------------------------------------------------------
   -- 11h'''. Expansion of `⟦ dSwapped ⟧` to the frame SORTED ordering (the
-  -- `before-O`/fy-first composite).  Proven from the PROVEN `swapHeadD-out-sound`
+  -- `before-O`/fy-first composite).  Proven from `swapHeadD-out-sound`
   -- by re-cleaning `g-out` (`fy-sorted⇒g-out-core`), absorbing the inner
   -- `substDiagU` via `⟦substDiagU⟧`, and bridging `⟦dRest⟧ ≈ ⟦fromDiagU-W dRest⟧W`
   -- (`fromDiagU-sound`).  All `castW` algebra; reuses only already-proven lemmas.
@@ -1530,9 +1497,9 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- 11h''''. THE ASSEMBLED ABSTRACT PER-SWAP SOUNDNESS.  `castW out-eq ∘ ⟦ dInput ⟧
   -- ≈Term ⟦ dSwapped ⟧`: the input (fx-first) and swapped (fy-first) clean DiagUs
   -- are equal in the free monoidal category, up to the (stuck-`out`) index cast
-  -- `out-eq : out dInput ≡ out dSwapped`.  Chains `dInput-frame`, the PROVEN
+  -- `out-eq : out dInput ≡ out dSwapped`.  Chains `dInput-frame`,
   -- `diagU-swap-sound` (= `two-box-swap`), and `dSwapped-frame`; cancels the
-  -- shared domain cast and the loop of output casts.  Postulate-free.
+  -- shared domain cast and the loop of output casts.
   --------------------------------------------------------------------------------
   diagU-swap-soundD :
     ∀ {ax bx ay by} {px sx py sy} {fx : Mor ax bx} {fy : Mor ay by}
@@ -1744,8 +1711,8 @@ module NormalizeI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 -- step into canonical (lower-offset-first) order, with a machine-checked
 -- `≈Term` soundness witness.  The swapped layers are again genuine clean
 -- `mk-pad`s (so the sort could fire again), and the reordering is verified by
--- `refl` on the resulting layer list.  This exercises BOTH `g-out≈pad` and the
--- new `g-in≈pad` (collapsed to clean pads via the now-`≈id` reassociators).
+-- `refl` on the resulting layer list.  This exercises BOTH `g-out≈pad` and
+-- `g-in≈pad` (collapsed to clean pads via the here-`≈id` reassociators).
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Compatibility wrapper: `NormalizeI` at the standard interpretation
@@ -1897,7 +1864,7 @@ module Litmus where
   litSound = sound litStep
 
   --------------------------------------------------------------------------------
-  -- LITMUS (DiagU clean-bridge level): exercise the now-PROVEN `fx-clean⇒g-in`
+  -- LITMUS (DiagU clean-bridge level): exercise `fx-clean⇒g-in`
   -- and `diagU-swap-sound` on the concrete `litFit`.  Here P=mid=s=[] so every
   -- `++`-assoc index cast `castW (domeq …)` reduces to `castW refl = id` and the
   -- frame `f-out`/`g-in` are single-wire pads — the abstract bridge specialises

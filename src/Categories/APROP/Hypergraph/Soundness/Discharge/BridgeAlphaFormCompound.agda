@@ -613,7 +613,6 @@ module Worker where
           c-to   = λ as bs → _≅_.to   (unflatten-++-≅ as bs)
           c-from = λ as bs → _≅_.from (unflatten-++-≅ as bs)
 
-          -- bridge (id_P ⊗ α⇒_{A₂,B,C}) via bridge-⊗ + bridge-id + br-A₂.
           bx-mid
             : bridge (id {P} ⊗₁ α⇒ {A₂} {B} {C})
             ≈Term c-to p (flatten A₂ ++ flatten B ++ flatten C)
@@ -630,7 +629,6 @@ module Worker where
               ∘ (id ⊗₁ α⇒-form-list (flatten A₂) (flatten B) (flatten C))
               ∘ c-from p ((flatten A₂ ++ flatten B) ++ flatten C) ∎
 
-          -- bridge (α⇒_{P,A₂,B} ⊗ id_C) via bridge-⊗ + br-low + bridge-id.
           bx-low
             : bridge (α⇒ {P} {A₂} {B} ⊗₁ id {C})
             ≈Term c-to (p ++ flatten A₂ ++ flatten B) (flatten C)
@@ -660,7 +658,6 @@ module Worker where
                                   (flatten B) (flatten C)
           list-collapse = list-collapse-gen p (flatten A₂) (flatten B) (flatten C)
 
-          -- bridge distributes over the 4-fold composite.
           bridge-∘4
             : bridge ( α⇐ {P} {A₂} {B ⊗₀ C}
                      ∘ id {P} ⊗₁ α⇒ {A₂} {B} {C}

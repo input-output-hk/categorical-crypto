@@ -1,12 +1,11 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- `decode-rel` defines `decode` directly by structural recursion on the
--- term (rather than as `proj₁` of the algorithmic `decode-attempt-Linear`).
--- Each case mirrors the `decode-attempt-h*` output, so the `∘`/`⊗` shape
+-- `decode-rel`: the structural decoder, by recursion on the term.  Each
+-- case mirrors the `decode-attempt-h*` output, so the `∘`/`⊗` shape
 -- equalities become DEFINITIONAL and proofs about `decode-rel` are clean
--- inductions on `f`.  `decode-rel f ≡ proj₁ (decode-attempt-Linear f)` is
--- provable case-by-case, transporting properties onto the algorithmic decode.
+-- inductions on `f`.  Agreement with the algorithmic pruned decoder is
+-- `DecodeRelDecodeP.decode-rel-≈-decodeP`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

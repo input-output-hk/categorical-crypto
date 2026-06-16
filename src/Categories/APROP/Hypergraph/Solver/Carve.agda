@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Context carving by term-level *focusing* (spike).
+-- Context carving by term-level *focusing*.
 --
 -- `rewriteH!` rewrites `lᵗ → rᵗ` inside the frame `post ∘ (id {k} ⊗ –) ∘ pre`.
 -- This module *finds* that frame automatically for a single occurrence of the

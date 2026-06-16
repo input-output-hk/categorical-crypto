@@ -69,10 +69,8 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Binary.PropositionalEquality.Properties using (sym-cong)
 
 --------------------------------------------------------------------------------
--- subst₂ plumbing.  `≡⇒≈Term` comes from `Categories.FreeMonoidal` via
--- `open APROP sig`.
+-- subst₂ plumbing.
 
--- `subst₂ HomTerm` pushed through `permute` onto the underlying `↭`.
 permute-subst₂
   : ∀ {xs xs' ys ys' : List X} (p : xs ≡ xs') (q : ys ≡ ys')
       (r : xs Perm.↭ ys)
@@ -80,26 +78,9 @@ permute-subst₂
     ≡ permute (subst₂ Perm._↭_ p q r)
 permute-subst₂ refl refl r = refl
 
--- `map⁺` commutes with `↭-sym`.
-map⁺-↭-sym
-  : ∀ {A B : Set} (f : A → B) {xs ys : List A} (ρ : xs Perm.↭ ys)
-  → PermProp.map⁺ f (Perm.↭-sym ρ) ≡ Perm.↭-sym (PermProp.map⁺ f ρ)
-map⁺-↭-sym f Perm.refl          = refl
-map⁺-↭-sym f (Perm.prep x ρ)    = cong (Perm.prep _) (map⁺-↭-sym f ρ)
-map⁺-↭-sym f (Perm.swap x y ρ)  = cong (Perm.swap _ _) (map⁺-↭-sym f ρ)
-map⁺-↭-sym f (Perm.trans p q)   =
-  cong₂ Perm.trans (map⁺-↭-sym f q) (map⁺-↭-sym f p)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.PermutationTransport
+  using (map⁺-↭-sym; prep-subst₂)
 
--- prep commutes with a subst₂ on a permutation (pushing the cons in).
-prep-subst₂
-  : ∀ {B : Set} (b : B) {us us' vs vs' : List B} (p : us ≡ us') (q : vs ≡ vs')
-      (r : us Perm.↭ vs)
-  → Perm.prep b (subst₂ Perm._↭_ p q r)
-    ≡ subst₂ Perm._↭_ (cong (b ∷_) p) (cong (b ∷_) q) (Perm.prep b r)
-prep-subst₂ b refl refl r = refl
-
--- `map⁺ f (++⁺ˡ xs μ)` equals the `map f`-block-extended permute, modulo the
--- `map-++` substs (the lists `map f (xs ++ _)` vs `map f xs ++ map f _`).
 map⁺-++⁺ˡ
   : ∀ {A B : Set} (f : A → B) (xs : List A) {ys zs : List A}
       (μ : ys Perm.↭ zs)
@@ -133,13 +114,11 @@ import Data.Vec as Vec
 private
   module FM = Category FreeMonoidal
 
-  -- the free monoidal category itself, as the solver's target bundle.
   FMC : MonoidalCategory _ _ _
   FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
 
 open FM.HomReasoning
 
--- permute (++⁺ˡ ws ν) = to(ws,bs) ∘ (id ⊗₁ permute ν) ∘ from(ws,as).
 permute-++⁺ˡ-slide
   : ∀ (ws : List X) {as bs : List X} (ν : as Perm.↭ bs)
   → permute (PermProp.++⁺ˡ ws ν)
@@ -167,8 +146,6 @@ permute-++⁺ˡ-slide (w ∷ ws) {as} {bs} ν = begin
     toW'   = _≅_.to   (unflatten-++-≅ ws bs)
     fromW' = _≅_.from (unflatten-++-≅ ws as)
 
-    -- the free part: associator naturality + interchange around the three
-    -- opaque morphisms `toW'`, `fromW'`, `permute ν`.
     shuffle
       : id ⊗₁ (toW' ∘ (id ⊗₁ permute ν) ∘ fromW')
         ≈Term ((id ⊗₁ toW') ∘ α⇒) ∘ (id ⊗₁ permute ν) ∘ (α⇐ ∘ (id ⊗₁ fromW'))
@@ -200,7 +177,6 @@ permute-++⁺ˡ-slide (w ∷ ws) {as} {bs} ν = begin
 
 module _ (K : FaithfulnessResidual) where
 
-  -- permute ν ∘ permute (↭-sym ν) ≈Term id (a self-loop, eval = id-fb).
   permute-inv-right
     : ∀ {xs ys : List X} (ν : xs Perm.↭ ys)
     → permute ν ∘ permute (Perm.↭-sym ν) ≈Term id
@@ -244,8 +220,6 @@ module _ (K : FaithfulnessResidual) where
       to-ei    = _≅_.to   (unflatten-++-≅ einL restL)
       from-ei  = _≅_.from (unflatten-++-≅ einL restL)
 
-      -- ((id ⊗₁ permute ν) ∘ (G ⊗₁ id)) ∘ (id ⊗₁ permute (↭-sym ν))
-      --   ≈ G ⊗₁ id, via bifunctor + self-loop inverse.
       middle
         : ((id ⊗₁ permute ν) ∘ (G ⊗₁ id)) ∘ (id ⊗₁ permute (Perm.↭-sym ν))
           ≈Term (G ⊗₁ id)
@@ -260,7 +234,6 @@ module _ (K : FaithfulnessResidual) where
           ≈⟨ ⊗-resp-≈ idʳ (permute-inv-right ν) ⟩
         G ⊗₁ id ∎
 
-      -- Expand the three permutes via the slide helper, cancel the iso pairs.
       rhs-collapse
         : permute (PermProp.++⁺ˡ eoutL ν)
             ∘ (box-of einL eoutL restL g
@@ -382,7 +355,6 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
       eout = H.eout e
       f    = H.vlab
 
-      -- boundary `map-++` paths.
       aein'  = sym (map-++ f ein  restH')
       aeout' = sym (map-++ f eout restH')
       aein   = sym (map-++ f ein  restH)
@@ -400,12 +372,10 @@ module _ (H : Hypergraph FlatGen) (K : FaithfulnessResidual) where
       beq : box' ≈Term out-p ∘ (boxr ∘ in-p)
       beq = box-of-equivariant K (map f ein) (map f eout) (H.elab e) νf
 
-      -- fire-mid H e restH' = subst₂ aein' aeout' box'.
       lhs-eq : fire-mid H e restH'
                ≡ subst₂ HomTerm (cong unflatten aein') (cong unflatten aeout') box'
       lhs-eq = refl
 
-      -- Transport `beq` and distribute the subst₂ over the two ∘.
       goal : fire-mid H e restH'
              ≈Term permute-via-vlab H.vlab (PermProp.++⁺ˡ eout μ)
                      ∘ ( fire-mid H e restH

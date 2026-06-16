@@ -11,8 +11,6 @@
 --   * `Interchange` — disjoint-box interchange, via the kernel and normalizeD.
 --   * `Decision`    — the `decide?` procedure (positive and negative).
 --   * `Transport`   — lifting free-category equations into a target MonoidalCategory.
---
--- Hole-free, postulate-free, --safe.
 --------------------------------------------------------------------------------
 
 module Categories.SolverTests where

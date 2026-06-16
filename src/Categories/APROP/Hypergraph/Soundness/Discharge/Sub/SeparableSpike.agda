@@ -64,21 +64,15 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeStepRelation sig
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.BlockNFBraid
   asFreeMonoidalData _≟X_ as BNB
 
--- The machine-checked per-edge box-suffix factorization (`box-suffix-framed`)
--- lives in the lightweight `BoxKernel` leaf module (extracted from
--- DecodeTensorShape), so this validation lemma no longer depends on it.
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.BoxKernel sig _≟X_
   as DTS
 
--- `objUIP` (UIP on `ObjTerm`) from Hedberg over `_≟X_`.
 open import Categories.APROP.Hypergraph.Soundness.Discharge.ObjUIP using (module ObjUIP)
 
--- Transport algebra reused across the box-shape consumers.
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.HomTermTransport sig
   using (subst₂-HomTerm-∘; subst₂-resp-≈Term; subst₂-HomTerm-irrel
         ; subst₂-HomTerm-∘-dist; just≢nothing; ⊗id-∘)
 
--- `cancel-mid-iso` for the cons-merge / SKIP iso-cancellations.
 open import Categories.APROP.Hypergraph.Soundness.UnflattenMonoidal sig
   using (cancel-mid-iso)
 
@@ -125,8 +119,7 @@ objUIP = ObjUIP.objUIP′ {Symm} _≟X_
 -- via the EXACT proof `++⁺ʳ R p` (the genuine `extract-elem` recursion on
 -- `xs ++ R` literally rebuilds `p`'s constructor tree with `R` appended, so the
 -- two proofs are *propositionally* equal — no faithfulness/coherence needed).
--- The cod `(k ∷ rest) ++ R` is definitionally `k ∷ (rest ++ R)`.  Induction on
--- `xs`.
+-- The cod `(k ∷ rest) ++ R` is definitionally `k ∷ (rest ++ R)`.
 extract-elem-++ˡ
   : ∀ {n} (k : Fin n) (xs R : List (Fin n))
       {rest : List (Fin n)} {p : xs Perm.↭ k ∷ rest}
@@ -145,8 +138,7 @@ extract-elem-++ˡ k (x ∷ xs) R eq | no ¬q | just (rest' , q')
 -- via `p`, it is found in `xs ++ R` with residual `rest ++ R` via the EXACT
 -- proof `subst₂ _↭_ refl (assoc-of-cod) (++⁺ʳ R p)` — the genuine recursion
 -- rebuilds `p`'s tree with `R` appended, then the cod rebrackets from
--- `(ks ++ rest) ++ R` to `ks ++ (rest ++ R)` by `++-assoc`.  Induction on `ks`,
--- threading `extract-elem-++ˡ` at each cons.
+-- `(ks ++ rest) ++ R` to `ks ++ (rest ++ R)` by `++-assoc`.
 prefix-++ˡ-perm
   : ∀ {n} (ks : List (Fin n)) {xs R rest : List (Fin n)}
   → (xs ++ R) Perm.↭ (ks ++ rest) ++ R
@@ -233,10 +225,7 @@ extract-prefix-++ˡ-nothing-head k ks xs R eqx eqR
 
 -- FULL `nothing`-transport for `extract-prefix`.  If `ks` fails to extract from
 -- `xs` AND every element of `ks` is absent from `R` (the disjointness side
--- condition), then `ks` fails to extract from `xs ++ R`.  Induction on `ks`,
--- threading the per-step `extract-elem` transport: at each found element the
--- located residual on `xs ++ R` is `(residual on xs) ++ R` (`extract-elem-++ˡ`),
--- so the recursion stays on the `_ ++ R` shape.
+-- condition), then `ks` fails to extract from `xs ++ R`.
 extract-prefix-++ˡ-nothing
   : ∀ {n} (ks xs R : List (Fin n))
   → All (λ j → extract-elem j R ≡ nothing) ks
@@ -266,7 +255,6 @@ module _ (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
   open FM.HomReasoning
 
-  -- `BlockTensor`-style `uf++` framing, instantiated at `H.vlab`.
   uf++ : (As Bs : List (Fin H.nV))
        → unflatten (map H.vlab (As ++ Bs))
          ≅ unflatten (map H.vlab As) ⊗₀ unflatten (map H.vlab Bs)
@@ -279,8 +267,7 @@ module _ (H : Hypergraph FlatGen) where
       → HomTerm (unflatten (map H.vlab xs)) (unflatten (map H.vlab ys))
   pvl = permute-via-vlab H.vlab
 
-  -- `frame-ext` — the reusable `++⁺ʳ` permute-slide (postulate-free kernel):
-  --   to(uf++ fs cs) ∘ (pvl P ⊗₁ id) ∘ from(uf++ es cs) ≈ pvl (++⁺ʳ cs P).
+  -- `frame-ext` — the reusable `++⁺ʳ` permute-slide kernel.
   frame-ext
     : (es fs cs : List (Fin H.nV)) (P : es Perm.↭ fs)
     → _≅_.to (uf++ fs cs) ∘ (pvl P ⊗₁ id {A = R-obj cs}) ∘ _≅_.from (uf++ es cs)
@@ -297,7 +284,7 @@ module _ (H : Hypergraph FlatGen) where
   -- block `R` slides out as `⊗₁ id`.
   --
   -- DISCHARGED via the machine-checked
-  -- `DecodeTensorShape.BlockBoxSuffix.box-suffix-framed H.vlab (ein e)
+  -- `BoxKernel.BlockBoxSuffix.box-suffix-framed H.vlab (ein e)
   -- (eout e) rest R (elab e)`.  Its RHS box is DEFINITIONALLY `fire-mid e rest`
   -- (both are the same `box-of` subst), and its `uf++`/`R-obj` framing IS the
   -- spike's (both are `BNB.uf++ H.vlab`), so `box-suffix-framed`'s RHS is
@@ -336,7 +323,6 @@ module _ (H : Hypergraph FlatGen) where
       M-in  = cong unflatten (sym (map-++ H.vlab (H.ein  e) (rest ++ R)))
       M-out = cong unflatten (sym (map-++ H.vlab (H.eout e) (rest ++ R)))
 
-      -- Reindex a `box-of`'s residual list along an equality `f`.
       box-res : ∀ {a b : List X} (f : a ≡ b)
               → subst₂ HomTerm
                   (cong unflatten (cong (einL ++_) f))
@@ -345,8 +331,6 @@ module _ (H : Hypergraph FlatGen) where
                 ≡ box-of einL eoutL b g
       box-res refl = refl
 
-      -- `box-of … (map vlab (rest ++ R))` re-expressed over the SPLIT residual
-      -- `map vlab rest ++ map vlab R`, via `map-++ vlab rest R`.
       box-rR-≡ :
         box-of einL eoutL (map H.vlab (rest ++ R)) g
         ≡ subst₂ HomTerm
@@ -387,17 +371,12 @@ module _ (H : Hypergraph FlatGen) where
   -- induction.
   ------------------------------------------------------------------------
 
-  -- `ein e` is disjoint from `R`.
   ein-disjoint : (e : Fin H.nE) (R : List (Fin H.nV)) → Set
   ein-disjoint e R = All (λ k → extract-elem k R ≡ nothing) (H.ein e)
 
-  -- The whole block `es` is disjoint from `R`.
   block-disjoint : (es : List (Fin H.nE)) (R : List (Fin H.nV)) → Set
   block-disjoint es R = All (λ e → ein-disjoint e R) es
 
-  -- The SKIP transport, specialised to `ks = H.ein e`: an edge that fails to
-  -- fire on `xs` (and whose inputs are disjoint from `R`) still fails on
-  -- `xs ++ R`.  This is exactly `extract-prefix-++ˡ-nothing` at `H.ein e`.
   skip-transport
     : ∀ (e : Fin H.nE) (xs R : List (Fin H.nV))
     → ein-disjoint e R
@@ -407,14 +386,12 @@ module _ (H : Hypergraph FlatGen) where
     extract-prefix-++ˡ-nothing (H.ein e) xs R dis eqn
 
   ------------------------------------------------------------------------
-  -- ## Stack-level separability (FULLY PROVEN, no postulates).
+  -- ## Stack-level separability.
   --
   -- The output stack of `process-edges es (xs ++ R)` is `(run on xs) ++ R`:
   -- the suffix `R` is untouched.  This is the cheap, structural heart of the
   -- separability claim — it needs ONLY the firing-stays-in-prefix lemmas
   -- (`extract-prefix-++ˡ` for FIRE, `skip-transport` for SKIP) and `++-assoc`.
-  --
-  -- Proven by induction on `es`, threading `block-disjoint`.
   ------------------------------------------------------------------------
 
   edge-step-stack-sep
@@ -443,7 +420,6 @@ module _ (H : Hypergraph FlatGen) where
           with trans (sym eqxsR) (extract-prefix-++ˡ (H.ein e) xs R eqxs)
   ...       | refl = sym (++-assoc (H.eout e) rest R)
 
-  -- Whole-block stack separability.
   process-edges-stack-sep
     : ∀ (es : List (Fin H.nE)) (xs R : List (Fin H.nV))
     → block-disjoint es R
@@ -452,8 +428,6 @@ module _ (H : Hypergraph FlatGen) where
   process-edges-stack-sep (e ∷ es) xs R (de ∷ des) =
     let stepEq : proj₁ (edge-step H (xs ++ R) e) ≡ proj₁ (edge-step H xs e) ++ R
         stepEq = edge-step-stack-sep e xs R de
-        -- recurse on the tail with the updated prefix, using stepEq to rewrite
-        -- the new stack `proj₁ (edge-step (xs++R) e)` to `xs1 ++ R`.
     in trans (cong (λ z → proj₁ (process-edges H es z)) stepEq)
              (process-edges-stack-sep es (proj₁ (edge-step H xs e)) R des)
 
@@ -488,7 +462,6 @@ module _ (H : Hypergraph FlatGen) where
                 → coe-cod p t ≡ coe-cod q t
   coe-cod-irrel p q t = cong (λ z → coe-cod z t) (uipFinList p q)
 
-  -- The factored target term.
   Factored : (es : List (Fin H.nE)) (xs R : List (Fin H.nV))
            → HomTerm (unflatten (map H.vlab (xs ++ R)))
                      (unflatten (map H.vlab (proj₁ (process-edges H es xs) ++ R)))
@@ -661,17 +634,12 @@ module _ (H : Hypergraph FlatGen) where
   -- separability `process-edges-stack-sep`, equals the factored form
   -- `Factored`.  ONE induction on `es`:
   --   * `[]`  : both runs are `id`; `to(uf++ xs R) ∘ (id ⊗ id) ∘ from(uf++ xs R)
-  --             ≈ id`.  (`id-block`, proven below.)
+  --             ≈ id`  (`id-block`).
   --   * `e∷es`: head factored by `edge-step-term-sep`, tail by the IH on the
   --             updated prefix, the two `(· ⊗₁ id)` blocks merging via
   --             middle iso-cancellation + `⊗-∘-dist` (exactly the
   --             `cancel-merge` of `gblock-factor.combine`, but here at
   --             `H.vlab` with no `injL`/`injR`).
-  --
-  -- The merge step is the SAME `cancel-mid-iso`+`⊗-∘-dist` pattern as the
-  -- heavy proof; we POSTULATE the assembled cons-merge (POSTULATE 4) since it
-  -- is pure category algebra identical to `gblock-factor.combine`'s
-  -- `cancel-merge`, just re-stated at this framing.
   ------------------------------------------------------------------------
 
   ------------------------------------------------------------------------
@@ -712,7 +680,6 @@ module _ (H : Hypergraph FlatGen) where
       from1 = _≅_.from (uf++ xs1  R)
       from0 = _≅_.from (uf++ xs   R)
 
-  -- `coe-cod` (codomain transport) distributes over the cod factor of `∘`.
   coe-cod-∘ : ∀ {a m s s'} (eq : s ≡ s')
                 (f : HomTerm (unflatten (map H.vlab m)) (unflatten (map H.vlab s)))
                 (g : HomTerm (unflatten (map H.vlab a)) (unflatten (map H.vlab m)))

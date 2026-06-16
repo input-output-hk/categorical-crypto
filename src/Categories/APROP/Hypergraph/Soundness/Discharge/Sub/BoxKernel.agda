@@ -1,10 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- BOX KERNEL: the self-contained `unflatten-++-≅` box-reassociation cone,
--- extracted verbatim from `Sub/DecodeTensorShape.agda` (it lives here so the
--- standalone validation lemma `Sub/SeparableSpike.agda` can reuse
--- `box-suffix-framed` WITHOUT importing the heavyweight `DecodeTensorShape`).
+-- BOX KERNEL: the self-contained `unflatten-++-≅` box-reassociation cone.
+-- A leaf module so `Sub/SeparableSpike.agda` can reuse `box-suffix-framed`
+-- WITHOUT importing the heavyweight `DecodeTensorShape`.
 --
 -- Three mutually self-contained modules (no `EmbedData`/`FaithfulnessResidual`
 -- dependency):
@@ -321,8 +320,7 @@ module BoxAssoc where
           -- list-level `unflatten`s as atoms, `G`, the framing-iso legs
           -- and the `subst`-id bridges as opaque generators.  The two
           -- solver steps decide the ⊗-functoriality expansion +
-          -- α-naturality + regrouping shells (the old `bx⊗id-expand`/
-          -- `mid-nat`/`regroup-L/mid/R`/`mid-collapse`); the `to ∘ from`
+          -- α-naturality + regrouping shells; the `to ∘ from`
           -- iso cancellation stays by hand.
           FMC : MonoidalCategory _ _ _
           FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
@@ -727,12 +725,10 @@ module BoxAssoc where
       -- and the eight framing-iso legs are opaque generators; σ/α/id/∘/⊗
       -- are structural.  The two solver steps in the master chain decide
       -- (i) the associativity/⊗-functoriality regrouping that isolates
-      -- the framing-iso pairs (the old `regroup-front`/`front-collapse`
-      -- outer shells) and (ii) the σ-naturality slide + σσ-cancellation +
-      -- α-coherence core (the old `central-collapse`/`sigma-slide`/
-      -- `tail-collapse` chain); the framing-iso cancellations themselves
-      -- (generator-specific `from ∘ to ≈ id`) are the two remaining hand
-      -- steps — the established hybrid pattern.
+      -- the framing-iso pairs and (ii) the σ-naturality slide +
+      -- σσ-cancellation + α-coherence core; the framing-iso cancellations
+      -- themselves (generator-specific `from ∘ to ≈ id`) are the two
+      -- remaining hand steps — the established hybrid pattern.
       FMC : MonoidalCategory _ _ _
       FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
 

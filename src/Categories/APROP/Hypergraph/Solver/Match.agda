@@ -1,13 +1,13 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Phase 4a.3: Edge matching + propagation (TensorRocq §4.2).
+-- Edge matching + propagation (TensorRocq §4.2).
 --
 -- Core of the search. Given partial vertex and edge bijections `(φ, ψ)`
 -- and an unmatched H-edge `e`, enumerate the J-edges `e'` whose shape
 -- is compatible with `e` and, for each, return the extended
 -- `(φ', ψ')`. Returns a `List` of successful extensions; the
--- back-tracker (Phase 4a.4) consumes this list.
+-- back-tracker (`Search`) consumes this list.
 --
 -- Propagation is implicit: pairing up `H.ein e [i] ↔ J.ein e' [i]` adds new
 -- vertex constraints to `φ`, pruning future choices via `extend-bij`'s

@@ -1,14 +1,18 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Soundness theorem, wired through `DecodeRelRespIsoWired`.
+-- Soundness theorem, re-pointed at the STRICTIFIED pipeline.
 --
--- `DecodeRelRespIsoWired.decode-rel-resp-iso` proves
---   ⟪f⟫ ≅ᴴ ⟪g⟫  →  decode-rel f ≈Term decode-rel g
--- axiom-free (its Kelly residual is the proven
--- `FaithfulnessInductive.faithfulness`).  Composed with the
--- `decode-roundtrip-rel` round-trip and the `bridge`/`bridge⁻¹`
--- cancellation, it yields `f ≈Term g`.
+-- `soundness-full-wired` now delegates to
+-- `Strict.SoundnessAssembly.soundness-assembled` fed the unconditional
+-- strict ⊗-shape `Strict.TensorKBlockFinal.decodePˢ-⊗-concrete`.  That path
+-- proves `⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g` entirely inside the presented strict SMC
+-- `S` (part (I)ˢ `st ≈ˢ decodePˢ` + part (II)ˢ `decodePˢ`-iso-invariance,
+-- reflected via `embF`/`st-roundtrip` + the `bridge` cancellation), with the
+-- single deep Kelly residual `permˢ-K` discharged axiom-free.  The TYPE is
+-- unchanged, so all downstream consumers are unaffected.
+--
+-- `bridge⁻¹`/`bridge-cancel` are kept (consumed by `Coherence.DecodeSpike`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -26,11 +30,9 @@ open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
   using (unflatten; unflatten-flatten-≈)
 open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig
   using (bridge)
-open import Categories.APROP.Hypergraph.Soundness.DecodeRel sig
-  using (decode-rel; decode-roundtrip-rel)
 
-import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeRelRespIsoWired
-  sig _≟X_ as DRRIW
+import Categories.APROP.Hypergraph.Soundness.Strict.SoundnessAssembly sig _≟X_ as SA
+import Categories.APROP.Hypergraph.Soundness.Strict.TensorKBlockFinal sig _≟X_ as TKF
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
@@ -81,16 +83,4 @@ opaque
     : ∀ {A B} {f g : HomTerm A B}
     → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
     → f ≈Term g
-  soundness-full-wired {f = f} {g = g} iso = begin
-    f
-      ≈⟨ bridge-cancel f ⟨
-    bridge⁻¹ (bridge f)
-      ≈⟨ ∘-resp-≈ FM.Equiv.refl (∘-resp-≈ bf≈bg FM.Equiv.refl) ⟩
-    bridge⁻¹ (bridge g)
-      ≈⟨ bridge-cancel g ⟩
-    g ∎
-    where
-      bf≈bg : bridge f ≈Term bridge g
-      bf≈bg = ≈-Term-trans (≈-Term-sym (decode-roundtrip-rel f))
-                (≈-Term-trans (DRRIW.decode-rel-resp-iso f g iso)
-                              (decode-roundtrip-rel g))
+  soundness-full-wired = SA.soundness-assembled TKF.decodePˢ-⊗-concrete

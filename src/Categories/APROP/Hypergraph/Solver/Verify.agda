@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Phase 4a.5: Record assembly / verification.
+-- Record assembly / verification.
 --
 -- Given `H, J : Hypergraph FlatGen` and a `(φB, ψB) : PBij × PBij`
 -- produced by the search, verify all `_≅ᴴ_` invariants and, if they

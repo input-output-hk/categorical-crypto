@@ -2,8 +2,8 @@
 
 --------------------------------------------------------------------------------
 -- The `bridge-∘` / `bridge-⊗` distributivity lemmas: fully constructive,
--- factored out so downstream modules type-check under `--safe` without the
--- rest of `DecodeRoundtrip`.
+-- factored out as a small leaf so downstream modules can use them without
+-- the rest of the roundtrip machinery.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

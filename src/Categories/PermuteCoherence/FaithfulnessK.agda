@@ -9,7 +9,7 @@
 -- The `swap` case of `permute-inverse-left` is reduced to the purely
 -- algebraic `σ-block-self-inverse` (`SwapBlockInverseResidual` record;
 -- no combinatorial content), which is then discharged constructively in
--- §5' below.  Sections 8-10 derive each direction of the equivalence
+-- §5 below.  Sections 8-10 derive each direction of the equivalence
 -- between `TransSelfLoopResidual` and `PermuteRespSymResidual`.
 ------------------------------------------------------------------------
 

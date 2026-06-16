@@ -25,18 +25,16 @@
 
 module Categories.PermuteCoherence.InversionsDichotomy where
 
-open import Data.Nat.Base using (ℕ; zero; suc; _+_; _≤_; _<_; s≤s; z≤n; s<s; s≤s⁻¹)
-open import Data.Nat.Properties using (1+n≰n; <⇒≤; <-cmp; <-asym)
-  renaming (suc-injective to sucℕ-injective; _≟_ to _≟ℕ_; _<?_ to _<?ℕ_; ≤-refl to ≤ℕ-refl)
-open import Relation.Binary.Definitions using (tri<; tri≈; tri>)
+open import Data.Nat.Base using (ℕ; zero; suc; _≤_; _<_; s≤s; z≤n; s<s)
+open import Data.Nat.Properties using (1+n≰n; <⇒≤; <-asym)
+  renaming (≤-refl to ≤ℕ-refl)
 open import Function.Base using (_∘′_)
 open import Data.Fin.Base using (Fin; toℕ; inject₁) renaming (suc to fsuc; zero to fz)
 open import Data.Fin.Patterns using (0F; 1F)
 open import Data.Fin.Properties using (toℕ-inject₁; toℕ-injective)
-  renaming (suc-injective to fsuc-injective; _<?_ to _<?F_)
-open import Relation.Nullary using (¬_; Dec; yes; no)
-open import Relation.Nullary.Decidable using (⌊_⌋; isYes≗does; dec-true; dec-false)
-open import Relation.Nullary.Negation using (contradiction)
+  renaming (_<?_ to _<?F_)
+open import Relation.Nullary using (¬_)
+open import Relation.Nullary.Decidable using (⌊_⌋)
 open import Data.Bool.Base using (Bool; true; false; not; _∧_)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
@@ -49,7 +47,9 @@ open import Categories.PermuteCoherence.FinBij
   using (FinBij; _∘-fb_; swap-fb; cons-fb)
 open import Categories.PermuteCoherence.Word using (genFB)
 open import Categories.PermuteCoherence.InversionsSum
-  using (sumF; sumF-cong; sumF-+; sumF-step; invAt; invS; 1if)
+  using (invAt; invS; 1if; 1if-∧-cong; double-step)
+open import Categories.PermuteCoherence.InversionsArith
+  using (cmpB; cmpB-true; cmpB-false; cmpB-suc; cmpB-true⁻)
 
 private
   variable
@@ -96,39 +96,7 @@ genFB-toℕ {suc n} (fsuc i) (fsuc z) = cong suc (genFB-toℕ i z)
 --
 -- `swapℕ k` flips the `<?` comparison of `a,b` exactly when
 -- `{a,b} = {k, suc k}`; otherwise the comparison is unchanged.
-
--- The Boolean comparison and its reflection.
-cmpB : ℕ → ℕ → Bool
-cmpB a b = ⌊ a <?ℕ b ⌋
-
-cmpB-true : {a b : ℕ} → a < b → cmpB a b ≡ true
-cmpB-true {a} {b} a<b = trans (isYes≗does (a <?ℕ b)) (dec-true (a <?ℕ b) a<b)
-
-cmpB-false : {a b : ℕ} → ¬ (a < b) → cmpB a b ≡ false
-cmpB-false {a} {b} ¬a<b = trans (isYes≗does (a <?ℕ b)) (dec-false (a <?ℕ b) ¬a<b)
-
--- A decision of `a < b` as plain data, WITHOUT exposing `cmpB`'s internal
--- `<?` term (which would entangle the goal during case analysis).
-data Dec< (a b : ℕ) : Set where
-  is<  : a < b → Dec< a b
-  not< : ¬ (a < b) → Dec< a b
-
-dec< : (a b : ℕ) → Dec< a b
-dec< a b with <-cmp a b
-... | tri< a<b _ _ = is< a<b
-... | tri≈ ¬a<b _ _ = not< ¬a<b
-... | tri> ¬a<b _ _ = not< ¬a<b
-
--- `cmpB` depends only on the underlying `<` proposition.
-cmpB-iff : {a b c d : ℕ} → (a < b → c < d) → (c < d → a < b)
-         → cmpB a b ≡ cmpB c d
-cmpB-iff {a} {b} {c} {d} fwd bwd with dec< a b
-... | is<  a<b = trans (cmpB-true a<b) (sym (cmpB-true (fwd a<b)))
-... | not< ¬a<b = trans (cmpB-false ¬a<b) (sym (cmpB-false (¬a<b ∘′ bwd)))
-
--- Shift both arguments by one.
-cmpB-suc : (a b : ℕ) → cmpB (suc a) (suc b) ≡ cmpB a b
-cmpB-suc a b = cmpB-iff s≤s⁻¹ s<s
+-- (`cmpB` and its reflection lemmas live in `InversionsArith`.)
 
 -- `swapℕ k` swaps the two adjacent values `k` and `suc k`.
 swapℕ-k : (k : ℕ) → swapℕ k k ≡ suc k
@@ -231,21 +199,6 @@ cmpInv-fix i b {x} {y} x≢y ¬sp =
 ------------------------------------------------------------------------
 -- 4.  `invAt`-level agreement off the swapped pair, and the flip on it.
 
--- Reverse bridge: a `true` comparison yields the `<` witness.
-cmpB-true⁻ : {a b : ℕ} → cmpB a b ≡ true → a < b
-cmpB-true⁻ {a} {b} eq with dec< a b
-... | is<  a<b  = a<b
-... | not< ¬a<b = ⊥-elim (true≢false (trans (sym eq) (cmpB-false ¬a<b)))
-  where
-  true≢false : true ≢ false
-  true≢false ()
-
--- `1if (p ∧ _)` only depends on the second conjunct when `p ≡ true`.
-1if-∧-cong : (p : Bool) {q₁ q₂ : Bool} → (p ≡ true → q₁ ≡ q₂)
-           → 1if (p ∧ q₁) ≡ 1if (p ∧ q₂)
-1if-∧-cong true  h = cong (λ z → 1if (true ∧ z)) (h refl)
-1if-∧-cong false _ = refl
-
 -- `invAt` is unchanged whenever the pair, *when it is an ordered pair*
 -- `x < y`, is not the swapped value-pair.  (For `x ≮ y` both counts are
 -- 0, so the `¬ SwapPair` hypothesis is only required under `x < y`.)
@@ -262,24 +215,7 @@ invAt-agree i b x y ¬sp =
   <⇒≢ℕ a<c refl = 1+n≰n a<c
 
 ------------------------------------------------------------------------
--- 5.  The double `sumF-step`.
-
--- Two nested `sumF-step`s: if the matrices `F`, `G` agree everywhere
--- except a single cell `(x₀, y₀)` where `F x₀ y₀ = suc (G x₀ y₀)`, then
--- their double sums differ by one.
-double-step :
-    {N : ℕ} (F G : Fin N → Fin N → ℕ) (x₀ y₀ : Fin N)
-  → (∀ x → x ≢ x₀ → ∀ y → F x y ≡ G x y)
-  → (∀ y → y ≢ y₀ → F x₀ y ≡ G x₀ y)
-  → F x₀ y₀ ≡ suc (G x₀ y₀)
-  → sumF (λ x → sumF (F x)) ≡ suc (sumF (λ x → sumF (G x)))
-double-step F G x₀ y₀ offRow inRow atCell =
-  sumF-step (λ x → sumF (F x)) (λ x → sumF (G x)) x₀
-    (λ x x≢x₀ → sumF-cong (offRow x x≢x₀))
-    (sumF-step (F x₀) (G x₀) y₀ inRow atCell)
-
-------------------------------------------------------------------------
--- 6.  Locating the unique flipped pair, and the assembled dichotomy.
+-- 5.  Locating the unique flipped pair, and the assembled dichotomy.
 
 module _ (i : Fin (suc n′)) (b : FinBij (suc (suc n′)) (suc (suc n′))) where
 
@@ -359,7 +295,7 @@ module _ (i : Fin (suc n′)) (b : FinBij (suc (suc n′)) (suc (suc n′))) whe
   pk≢psk e = k≢sk (trans (sym bpk) (trans (cong (λ z → toℕ (b P.⟨$⟩ʳ z)) e) bpsk))
 
   ----------------------------------------------------------------------
-  -- 7.  The two assembled directions.
+  -- 6.  The two assembled directions.
 
   -- ascent: pk < psk  ⇒  invS c ≡ suc (invS b).
   invS-ascent : toℕ pk < toℕ psk → invS c ≡ suc (invS b)
@@ -408,7 +344,7 @@ module _ (i : Fin (suc n′)) (b : FinBij (suc (suc n′)) (suc (suc n′))) whe
     atCell = trans (invAtb-desc desc) (cong suc (sym (invAtc-desc desc)))
 
 ------------------------------------------------------------------------
--- 8.  The packaged dichotomy.  The sign is stated via `toℕ`-comparison
+-- 7.  The packaged dichotomy.  The sign is stated via `toℕ`-comparison
 -- of the two positions, which is the `Fin` `_<_` by definition.
 
 invS-dichotomy :

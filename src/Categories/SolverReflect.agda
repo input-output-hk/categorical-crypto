@@ -6,23 +6,23 @@
 --
 -- We work in the layered-composite wire fragment (M1): morphisms whose
 -- source and target are already `wires`-shaped flat objects, built from
---   id, _∘_, var (box _),
+--   id, _∘_, _⊗ʷ_, var (box _),
 -- captured by the inductive `WTerm n m` with embedding
 -- `embed : WTerm n m → HomTerm (wires n) (wires m)`.  We define, all under
--- `--safe` and fully postulate-free / hole-free:
+-- `--safe`:
 --   * `_∘ᵈ_`        : sequential composition (append) of diagrams, with
 --                     soundness `∘ᵈ-sound : ⟦ d₁ ∘ᵈ d₂ ⟧ ≈ ⟦ d₂ ⟧ ∘ ⟦ d₁ ⟧`
 --                     (codomain reindexed).  This is the `_∘_` case.
 --   * `shiftL` / `shiftR` : prefix / suffix idle-wire shifts on diagrams
---                     (the offset-bookkeeping building blocks for a `tensorD`),
---                     with their `out` computed; soundness of these shifts and
---                     the full `tensorD`/`_⊗₁_` case are NOT included here.
+--                     (the offset-bookkeeping building blocks for `tensorD`),
+--                     with their `out` computed and their soundness
+--                     (`shiftL-sound` / `shiftR-sound`), feeding `tensorD-sound`.
 --   * `reflect`     : WTerm n m → DiagU n  with `out-reflect : out (reflect t) ≡ m`.
 --   * `reflect-sound`: ⟦ reflect t ⟧ ≈ embed t (codomain reindexed), proven by
 --                     induction.  The single box-leaf right-unitor coherence
 --                     (`merge a {[]} ≈ ρ⇒`, forbidden as a `--safe` postulate)
---                     is taken as the explicit hypothesis `BoxSound`; the id/∘
---                     structural logic is fully discharged.
+--                     is taken as the explicit hypothesis `BoxSound`, and is
+--                     discharged below (`boxSound`) via the Kelly unit laws.
 --------------------------------------------------------------------------------
 
 module Categories.SolverReflect where
@@ -238,8 +238,8 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --
   -- The single box `g : Mor a b` is placed with empty offsets; its layer has
   -- domain index  [] ++ (a ++ [])  =  a ++ []  (note the trailing []), so the
-  -- leaf carries a `++-identityʳ` reindex.  See the report for the remaining
-  -- right-unitor coherence needed to fully discharge `⟦boxD⟧`.
+  -- leaf carries a `++-identityʳ` reindex; the right-unitor coherence that
+  -- discharges `⟦boxD⟧` is `boxSound` below.
   --------------------------------------------------------------------------------
 
   -- single-box diagram, living over  a ++ []  (trailing idle empty suffix).
@@ -305,21 +305,18 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --            = id ∘ (merge b {[]} ∘ (⟦box⟧ g ⊗₁ id{unit}) ∘ split a {[]}).
   -- The empty-suffix merge/split are the (transported) right-unitor iso, so
   -- this collapses to ⟦box⟧ g.  This last collapse is the pure right-unitor
-  -- coherence  merge a {[]} ≈ ρ⇒  (up to a++[]≡a); see report.  We isolate it
-  -- as the SINGLE remaining obligation `boxD-sound`.
+  -- coherence  merge a {[]} ≈ ρ⇒  (up to a++[]≡a), isolated as `BoxSound`.
   --------------------------------------------------------------------------------
-  -- Box-leaf soundness obligation, isolated as a hypothesis (it is the pure
-  -- right-unitor coherence  merge a {[]} ≈ ρ⇒  up to a++[]≡a — discharged
-  -- by `Categories.MonoidalCoherence.Solver.solveM` on the box-free subgoal,
-  -- or by an explicit Kelly derivation; both are box-free coherence and so
-  -- are independent of the reflection logic below).  See report.
+  -- Box-leaf soundness obligation, isolated as a hypothesis: it is box-free
+  -- coherence, independent of the reflection logic below, and is discharged
+  -- by an explicit Kelly derivation (`boxSound`).
   BoxSound : Set
   BoxSound = ∀ {a b} (g : Mor a b)
            → coeDom (++-identityʳ a) (coeCod' (++-identityʳ b) ⟦ boxD g ⟧)
              ≈Term ⟦box⟧ g
 
   --------------------------------------------------------------------------------
-  -- TASK A: discharge `BoxSound`.
+  -- Discharging `BoxSound`.
   --
   -- The single obligation is the right-unitor coherence  merge a {[]} ≈ ρ⇒
   -- (and its inverse  split a {[]} ≈ ρ⇐), both up to the structural a++[]≡a
@@ -327,7 +324,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   -- Mac Lane / Kelly unit coherence laws (`λ⇒≈ρ⇒` = coherence₃ and
   -- `idρ∘α≈ρ` = coherence₂) imported above.  `boxSound` then collapses the
   -- box-leaf conjugation  ρ⇒ ∘ (g ⊗₁ id) ∘ ρ⇐  to  ⟦box⟧ g  by right-unitor
-  -- naturality.  No new postulates / holes.
+  -- naturality.
   --------------------------------------------------------------------------------
 
   -- codomain coercion with ARBITRARY domain object (the merge step's domain
@@ -461,7 +458,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       coeD-resp refl eq = eq
 
   --------------------------------------------------------------------------------
-  -- TASK 1: soundness of the offset shifts `shiftL` / `shiftR`.
+  -- Soundness of the offset shifts `shiftL` / `shiftR`.
   --
   --   shiftL lt d  is  liftW lt ⟦ d ⟧  up to the +-associativity reindexing
   --   absorbed by the `reidx` wrappers, and analogously for `shiftR`.  We state

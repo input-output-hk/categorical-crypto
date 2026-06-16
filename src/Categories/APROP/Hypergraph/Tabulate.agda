@@ -77,8 +77,6 @@ module _ {X : Set} {Gen : List X → List X → Set} where
                         , H.elab e))
       where
 
-      -- `map (lookup vlabV) (lookup einV e) ≡ map H.vlab (H.ein e)`:
-      -- pointwise label agreement, then incidence agreement.
       eq-in : ∀ e → map (λ v → lookup vlabV v) (lookup einV e)
                   ≡ map H.vlab (H.ein e)
       eq-in e = trans (map-cong vlab-ok (lookup einV e))

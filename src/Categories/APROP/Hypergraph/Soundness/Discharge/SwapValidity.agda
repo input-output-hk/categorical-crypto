@@ -43,7 +43,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.DecodeProperties sig
   using (extract-prefix-↭-residual; extract-prefix-↭-nothing)
 open import Categories.APROP.Hypergraph.Soundness.Linearity sig
-  using (Linear; count; count-++; consumedList)
+  using (Linear)
 
 -- Imported read-only: `PH.Valid`, `PH.↝`, `PH.Order`, and the LinExt
 -- instantiation (`Incomp`, `swap-step`).
@@ -51,88 +51,25 @@ import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig a
 open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig
   using (process-edges-++-stack)
 
+-- Shared per-H combinatorics: firing stability + the both-fire multiset
+-- bridge live in the `Sub/FireMidInterchangeComb` leaf (also consumed by
+-- `Sub/RunInterchangeEmptyTail`).
+import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.FireMidInterchangeComb sig as FMIC
+
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
   using (Dep)
 
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Fin using (Fin; zero; suc)
+open import Data.Fin using (Fin)
 open import Data.Fin.Properties using (_≟_)
-open import Data.List using (List; []; _∷_; _++_; map; concat)
-open import Data.List.Base using (tabulate)
-open import Data.List.Properties using (++-assoc)
+open import Data.List using (List; []; _∷_; _++_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Nat using (ℕ; zero; suc; _+_)
-open import Data.Nat using (s≤s⁻¹) renaming (_≤_ to _≤ⁿ_; _<_ to _<ⁿ_; s≤s to s≤sⁿ; z≤n to z≤nⁿ)
-import Data.Nat.Properties as Nat
-open import Data.Product using (Σ; Σ-syntax; ∃-syntax; _×_; _,_; proj₁; proj₂)
-open import Data.Sum using (_⊎_; inj₁; inj₂)
+open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_; yes; no)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst; subst₂)
-
-------------------------------------------------------------------------
--- Generic `count` / `extract-prefix` combinatorics (H-agnostic).
--- These discharge the divergence residual: under `Linear` the `ein`s of
--- distinct edges are count-disjoint, and under `Incomp` `eout e` is
--- count-disjoint from `ein e'`.  Core lemmas live in the shared
--- `CountCombinatorics` leaf; the specialised helpers are kept local.
-------------------------------------------------------------------------
-
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
-  using ( count-cons-yes; count-cons-no; ∈→count-pos; count-pos→∈
-        ; ↭⇒count; count-≤→extract-prefix; ++-cancelˡ)
-
-private
-  variable
-    n : ℕ
-
-  -- A successful `extract-prefix` certifies the sub-multiset bound.
-  extract-prefix-just→count-≤
-    : (ks xs rest : List (Fin n)) (p : xs Perm.↭ ks ++ rest)
-    → ∀ v → count v ks ≤ⁿ count v xs
-  extract-prefix-just→count-≤ ks xs rest p v =
-    Nat.≤-trans (Nat.m≤m+n (count v ks) (count v rest))
-                (Nat.≤-reflexive (trans (sym (count-++ v ks rest))
-                                        (sym (↭⇒count p v))))
-
-  -- Every edge's `ein`-count is ≤ the total concat-count.
-  count-concat-tabulate-≤
-    : ∀ {nE} (f : Fin nE → List (Fin n)) (e : Fin nE) (v : Fin n)
-    → count v (f e) ≤ⁿ count v (concat (tabulate f))
-  count-concat-tabulate-≤ f zero    v =
-    Nat.≤-trans (Nat.m≤m+n _ _)
-                (Nat.≤-reflexive (sym (count-++ v (f zero) _)))
-  count-concat-tabulate-≤ f (suc e) v =
-    Nat.≤-trans (count-concat-tabulate-≤ (λ i → f (suc i)) e v)
-                (Nat.≤-trans (Nat.m≤n+m _ _)
-                             (Nat.≤-reflexive (sym (count-++ v (f zero) _))))
-
-  -- Two distinct edges contribute disjointly to the concat-count.
-  count-concat-tabulate-pair-≤
-    : ∀ {nE} (f : Fin nE → List (Fin n)) (e e' : Fin nE) → ¬ (e ≡ e')
-    → (v : Fin n)
-    → count v (f e) + count v (f e') ≤ⁿ count v (concat (tabulate f))
-  count-concat-tabulate-pair-≤ f zero    zero     e≢e' v = ⊥-elim (e≢e' refl)
-  count-concat-tabulate-pair-≤ f zero    (suc e') e≢e' v =
-    Nat.≤-trans
-      (Nat.+-monoʳ-≤ (count v (f zero))
-                     (count-concat-tabulate-≤ (λ i → f (suc i)) e' v))
-      (Nat.≤-reflexive (sym (count-++ v (f zero) _)))
-  count-concat-tabulate-pair-≤ f (suc e) zero     e≢e' v =
-    Nat.≤-trans
-      (Nat.≤-reflexive (Nat.+-comm (count v (f (suc e))) (count v (f zero))))
-      (Nat.≤-trans
-        (Nat.+-monoʳ-≤ (count v (f zero))
-                       (count-concat-tabulate-≤ (λ i → f (suc i)) e v))
-        (Nat.≤-reflexive (sym (count-++ v (f zero) _))))
-  count-concat-tabulate-pair-≤ f (suc e) (suc e')  e≢e' v =
-    Nat.≤-trans
-      (count-concat-tabulate-pair-≤ (λ i → f (suc i)) e e'
-        (λ eq → e≢e' (cong suc eq)) v)
-      (Nat.≤-trans (Nat.m≤n+m _ _)
-                   (Nat.≤-reflexive (sym (count-++ v (f zero) _))))
 
 ------------------------------------------------------------------------
 -- Per-hypergraph: fix `H`, a `Dep`-irreflexivity witness `dih`, and
@@ -152,50 +89,9 @@ module PerHG (H : Hypergraph FlatGen)
   -- constructor, from the LinExt instantiation `PH.L`.
   open PH.L public using (Incomp; swap-step)
 
-  ------------------------------------------------------------------------
-  -- Linearity + Incomp ⇒ firing-stability: the count-disjointness facts
-  -- that kill the divergence cases.
-  ------------------------------------------------------------------------
-
   private
     nothing≢just : ∀ {A : Set} {x : A} → nothing ≡ just x → ⊥
     nothing≢just ()
-
-    -- From `Linear`, the total consumption count of any vertex is ≤ 1,
-    -- hence so is the count of `v` across all `ein`s.
-    consume-bnd : ∀ (v : Fin H.nV) → count v (consumedList H) ≤ⁿ 1
-    consume-bnd v = subst (_≤ⁿ 1) (proj₁ lin v) (proj₂ lin v)
-
-    ein-concat-bnd : ∀ (v : Fin H.nV)
-                   → count v (concat (tabulate H.ein)) ≤ⁿ 1
-    ein-concat-bnd v =
-      Nat.≤-trans
-        (Nat.≤-trans (Nat.m≤n+m _ (count v H.cod))
-                     (Nat.≤-reflexive (sym (count-++ v H.cod _))))
-        (consume-bnd v)
-
-    -- (Linearity) Two distinct edges' `ein`s are count-disjoint: no
-    -- vertex is consumed by both.
-    ein-ein-disjoint
-      : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → (v : Fin H.nV)
-      → 0 <ⁿ count v (H.ein e) → count v (H.ein e') ≡ 0
-    ein-ein-disjoint {e} {e'} e≢e' v v∈ein-e =
-      Nat.n≤0⇒n≡0
-        (s≤s⁻¹
-          (Nat.≤-trans
-            (Nat.+-monoˡ-≤ (count v (H.ein e')) v∈ein-e)
-            (Nat.≤-trans (count-concat-tabulate-pair-≤ H.ein e e' e≢e' v)
-                         (ein-concat-bnd v))))
-
-    -- (Incomp) `eout e` is count-disjoint from `ein e'`: no vertex
-    -- produced by `e` is consumed by `e'`.
-    eout-ein-disjoint
-      : ∀ {e e' : Fin H.nE} → ¬ (Dep H e e') → (v : Fin H.nV)
-      → 0 <ⁿ count v (H.ein e') → count v (H.eout e) ≡ 0
-    eout-ein-disjoint {e} {e'} ¬dep v v∈ein-e' =
-      Nat.n≤0⇒n≡0
-        (Nat.≮⇒≥ λ v∈eout-e →
-          ¬dep (v , count-pos→∈ v∈eout-e , count-pos→∈ v∈ein-e'))
 
   ------------------------------------------------------------------------
   -- The final stack of running an order from a stack (generalised over
@@ -299,284 +195,19 @@ module PerHG (H : Hypergraph FlatGen)
     pe-stack-resp-↭ qs (edge-step-stack-resp-↭ e a↭b)
 
   ------------------------------------------------------------------------
-  -- BOTH-FIRE multiset bridge (pure `_↭_` reasoning).
+  -- BOTH-FIRE multiset bridge + FIRING STABILITY, shared with
+  -- `Sub/RunInterchangeEmptyTail` via the `Sub/FireMidInterchangeComb`
+  -- leaf: `post-swap-stack-↭` is the pure `_↭_` order-independence of
+  -- the both-fire multiset content; `e'-fires-stable` / `e'-skips-stable`
+  -- say `e'`'s firing decision is the same on `s` and on the post-`e`
+  -- stack (under `Linear` + `Incomp` count-disjointness).
   ------------------------------------------------------------------------
 
-  post-swap-stack-↭
-    : ∀ (e₁ e₂ : Fin H.nE)
-        (s r₁ r₂ r₁' r₂' : List (Fin H.nV))
-        (p₁  : s Perm.↭ H.ein e₁ ++ r₁)
-        (p₂  : H.eout e₁ ++ r₁ Perm.↭ H.ein e₂ ++ r₂)
-        (p₂' : s Perm.↭ H.ein e₂ ++ r₂')
-        (p₁' : H.eout e₂ ++ r₂' Perm.↭ H.ein e₁ ++ r₁')
-    → H.eout e₂ ++ r₂ Perm.↭ H.eout e₁ ++ r₁'
-  post-swap-stack-↭ e₁ e₂ s r₁ r₂ r₁' r₂' p₁ p₂ p₂' p₁' = cancelled
-    where
-      open Perm.PermutationReasoning
-
-      r₁-r₂' : H.ein e₁ ++ r₁ Perm.↭ H.ein e₂ ++ r₂'
-      r₁-r₂' = Perm.↭-trans (Perm.↭-sym p₁) p₂'
-
-      step-A
-        : H.eout e₂ ++ H.eout e₁ ++ r₁
-        Perm.↭ H.eout e₂ ++ H.ein e₂ ++ r₂
-      step-A = PermProp.++⁺ˡ (H.eout e₂) p₂
-
-      step-B
-        : H.eout e₂ ++ H.ein e₂ ++ r₂
-        Perm.↭ H.ein e₂ ++ H.eout e₂ ++ r₂
-      step-B = begin
-        H.eout e₂ ++ H.ein e₂ ++ r₂
-          ≡⟨ sym (++-assoc (H.eout e₂) (H.ein e₂) r₂) ⟩
-        (H.eout e₂ ++ H.ein e₂) ++ r₂
-          ↭⟨ PermProp.++⁺ʳ r₂ (PermProp.++-comm (H.eout e₂) (H.ein e₂)) ⟩
-        (H.ein e₂ ++ H.eout e₂) ++ r₂
-          ≡⟨ ++-assoc (H.ein e₂) (H.eout e₂) r₂ ⟩
-        H.ein e₂ ++ H.eout e₂ ++ r₂
-          ∎
-
-      step-C
-        : H.eout e₂ ++ H.eout e₁ ++ r₁
-        Perm.↭ H.ein e₂ ++ H.eout e₂ ++ r₂
-      step-C = Perm.↭-trans step-A step-B
-
-      step-A'
-        : H.eout e₁ ++ H.eout e₂ ++ r₂'
-        Perm.↭ H.eout e₁ ++ H.ein e₁ ++ r₁'
-      step-A' = PermProp.++⁺ˡ (H.eout e₁) p₁'
-
-      step-B'
-        : H.eout e₁ ++ H.ein e₁ ++ r₁'
-        Perm.↭ H.ein e₁ ++ H.eout e₁ ++ r₁'
-      step-B' = begin
-        H.eout e₁ ++ H.ein e₁ ++ r₁'
-          ≡⟨ sym (++-assoc (H.eout e₁) (H.ein e₁) r₁') ⟩
-        (H.eout e₁ ++ H.ein e₁) ++ r₁'
-          ↭⟨ PermProp.++⁺ʳ r₁' (PermProp.++-comm (H.eout e₁) (H.ein e₁)) ⟩
-        (H.ein e₁ ++ H.eout e₁) ++ r₁'
-          ≡⟨ ++-assoc (H.ein e₁) (H.eout e₁) r₁' ⟩
-        H.ein e₁ ++ H.eout e₁ ++ r₁'
-          ∎
-
-      step-C'
-        : H.eout e₁ ++ H.eout e₂ ++ r₂'
-        Perm.↭ H.ein e₁ ++ H.eout e₁ ++ r₁'
-      step-C' = Perm.↭-trans step-A' step-B'
-
-      mult-r₁-r₂'
-        : H.eout e₁ ++ H.eout e₂ ++ H.ein e₁ ++ r₁
-        Perm.↭ H.eout e₁ ++ H.eout e₂ ++ H.ein e₂ ++ r₂'
-      mult-r₁-r₂' =
-        PermProp.++⁺ˡ (H.eout e₁) (PermProp.++⁺ˡ (H.eout e₂) r₁-r₂')
-
-      inner-lhs
-        : H.eout e₁ ++ H.ein e₁ ++ r₁
-        Perm.↭ H.ein e₁ ++ H.eout e₁ ++ r₁
-      inner-lhs = begin
-        H.eout e₁ ++ H.ein e₁ ++ r₁
-          ≡⟨ sym (++-assoc (H.eout e₁) (H.ein e₁) r₁) ⟩
-        (H.eout e₁ ++ H.ein e₁) ++ r₁
-          ↭⟨ PermProp.++⁺ʳ r₁ (PermProp.++-comm (H.eout e₁) (H.ein e₁)) ⟩
-        (H.ein e₁ ++ H.eout e₁) ++ r₁
-          ≡⟨ ++-assoc (H.ein e₁) (H.eout e₁) r₁ ⟩
-        H.ein e₁ ++ H.eout e₁ ++ r₁
-          ∎
-
-      inner-lhs-2
-        : H.eout e₂ ++ H.ein e₁ ++ H.eout e₁ ++ r₁
-        Perm.↭ H.ein e₁ ++ H.eout e₂ ++ H.eout e₁ ++ r₁
-      inner-lhs-2 = begin
-        H.eout e₂ ++ H.ein e₁ ++ H.eout e₁ ++ r₁
-          ≡⟨ sym (++-assoc (H.eout e₂) (H.ein e₁) (H.eout e₁ ++ r₁)) ⟩
-        (H.eout e₂ ++ H.ein e₁) ++ H.eout e₁ ++ r₁
-          ↭⟨ PermProp.++⁺ʳ (H.eout e₁ ++ r₁)
-                            (PermProp.++-comm (H.eout e₂) (H.ein e₁)) ⟩
-        (H.ein e₁ ++ H.eout e₂) ++ H.eout e₁ ++ r₁
-          ≡⟨ ++-assoc (H.ein e₁) (H.eout e₂) (H.eout e₁ ++ r₁) ⟩
-        H.ein e₁ ++ H.eout e₂ ++ H.eout e₁ ++ r₁
-          ∎
-
-      lhs-rearrange
-        : H.eout e₁ ++ H.eout e₂ ++ H.ein e₁ ++ r₁
-        Perm.↭ H.ein e₁ ++ H.ein e₂ ++ H.eout e₂ ++ r₂
-      lhs-rearrange = begin
-        H.eout e₁ ++ H.eout e₂ ++ H.ein e₁ ++ r₁
-          ≡⟨ sym (++-assoc (H.eout e₁) (H.eout e₂) (H.ein e₁ ++ r₁)) ⟩
-        (H.eout e₁ ++ H.eout e₂) ++ H.ein e₁ ++ r₁
-          ↭⟨ PermProp.++⁺ʳ (H.ein e₁ ++ r₁)
-                            (PermProp.++-comm (H.eout e₁) (H.eout e₂)) ⟩
-        (H.eout e₂ ++ H.eout e₁) ++ H.ein e₁ ++ r₁
-          ≡⟨ ++-assoc (H.eout e₂) (H.eout e₁) (H.ein e₁ ++ r₁) ⟩
-        H.eout e₂ ++ H.eout e₁ ++ H.ein e₁ ++ r₁
-          ↭⟨ PermProp.++⁺ˡ (H.eout e₂) inner-lhs ⟩
-        H.eout e₂ ++ H.ein e₁ ++ H.eout e₁ ++ r₁
-          ↭⟨ inner-lhs-2 ⟩
-        H.ein e₁ ++ H.eout e₂ ++ H.eout e₁ ++ r₁
-          ↭⟨ PermProp.++⁺ˡ (H.ein e₁) step-C ⟩
-        H.ein e₁ ++ H.ein e₂ ++ H.eout e₂ ++ r₂
-          ∎
-
-      inner-rhs-inner
-        : H.eout e₂ ++ H.ein e₂ ++ r₂'
-        Perm.↭ H.ein e₂ ++ H.eout e₂ ++ r₂'
-      inner-rhs-inner = begin
-        H.eout e₂ ++ H.ein e₂ ++ r₂'
-          ≡⟨ sym (++-assoc (H.eout e₂) (H.ein e₂) r₂') ⟩
-        (H.eout e₂ ++ H.ein e₂) ++ r₂'
-          ↭⟨ PermProp.++⁺ʳ r₂' (PermProp.++-comm (H.eout e₂) (H.ein e₂)) ⟩
-        (H.ein e₂ ++ H.eout e₂) ++ r₂'
-          ≡⟨ ++-assoc (H.ein e₂) (H.eout e₂) r₂' ⟩
-        H.ein e₂ ++ H.eout e₂ ++ r₂'
-          ∎
-
-      inner-rhs-1
-        : H.eout e₁ ++ H.eout e₂ ++ H.ein e₂ ++ r₂'
-        Perm.↭ H.ein e₂ ++ H.eout e₁ ++ H.eout e₂ ++ r₂'
-      inner-rhs-1 = begin
-        H.eout e₁ ++ H.eout e₂ ++ H.ein e₂ ++ r₂'
-          ↭⟨ PermProp.++⁺ˡ (H.eout e₁) inner-rhs-inner ⟩
-        H.eout e₁ ++ H.ein e₂ ++ H.eout e₂ ++ r₂'
-          ≡⟨ sym (++-assoc (H.eout e₁) (H.ein e₂) (H.eout e₂ ++ r₂')) ⟩
-        (H.eout e₁ ++ H.ein e₂) ++ H.eout e₂ ++ r₂'
-          ↭⟨ PermProp.++⁺ʳ (H.eout e₂ ++ r₂')
-                            (PermProp.++-comm (H.eout e₁) (H.ein e₂)) ⟩
-        (H.ein e₂ ++ H.eout e₁) ++ H.eout e₂ ++ r₂'
-          ≡⟨ ++-assoc (H.ein e₂) (H.eout e₁) (H.eout e₂ ++ r₂') ⟩
-        H.ein e₂ ++ H.eout e₁ ++ H.eout e₂ ++ r₂'
-          ∎
-
-      rhs-rearrange
-        : H.eout e₁ ++ H.eout e₂ ++ H.ein e₂ ++ r₂'
-        Perm.↭ H.ein e₂ ++ H.ein e₁ ++ H.eout e₁ ++ r₁'
-      rhs-rearrange = begin
-        H.eout e₁ ++ H.eout e₂ ++ H.ein e₂ ++ r₂'
-          ↭⟨ inner-rhs-1 ⟩
-        H.ein e₂ ++ H.eout e₁ ++ H.eout e₂ ++ r₂'
-          ↭⟨ PermProp.++⁺ˡ (H.ein e₂) step-C' ⟩
-        H.ein e₂ ++ H.ein e₁ ++ H.eout e₁ ++ r₁'
-          ∎
-
-      ein-aligned
-        : H.ein e₁ ++ H.ein e₂ ++ H.eout e₂ ++ r₂
-        Perm.↭ H.ein e₂ ++ H.ein e₁ ++ H.eout e₁ ++ r₁'
-      ein-aligned =
-        Perm.↭-trans (Perm.↭-sym lhs-rearrange)
-        (Perm.↭-trans mult-r₁-r₂' rhs-rearrange)
-
-      ein-comm
-        : H.ein e₁ ++ H.ein e₂ ++ H.eout e₂ ++ r₂
-        Perm.↭ H.ein e₂ ++ H.ein e₁ ++ H.eout e₂ ++ r₂
-      ein-comm = begin
-        H.ein e₁ ++ H.ein e₂ ++ H.eout e₂ ++ r₂
-          ≡⟨ sym (++-assoc (H.ein e₁) (H.ein e₂) (H.eout e₂ ++ r₂)) ⟩
-        (H.ein e₁ ++ H.ein e₂) ++ H.eout e₂ ++ r₂
-          ↭⟨ PermProp.++⁺ʳ (H.eout e₂ ++ r₂) (PermProp.++-comm (H.ein e₁) (H.ein e₂)) ⟩
-        (H.ein e₂ ++ H.ein e₁) ++ H.eout e₂ ++ r₂
-          ≡⟨ ++-assoc (H.ein e₂) (H.ein e₁) (H.eout e₂ ++ r₂) ⟩
-        H.ein e₂ ++ H.ein e₁ ++ H.eout e₂ ++ r₂
-          ∎
-
-      common
-        : H.ein e₂ ++ H.ein e₁ ++ H.eout e₂ ++ r₂
-        Perm.↭ H.ein e₂ ++ H.ein e₁ ++ H.eout e₁ ++ r₁'
-      common = Perm.↭-trans (Perm.↭-sym ein-comm) ein-aligned
-
-      cancelled-1
-        : H.ein e₁ ++ H.eout e₂ ++ r₂
-        Perm.↭ H.ein e₁ ++ H.eout e₁ ++ r₁'
-      cancelled-1 = ++-cancelˡ (H.ein e₂) common
-
-      cancelled
-        : H.eout e₂ ++ r₂
-        Perm.↭ H.eout e₁ ++ r₁'
-      cancelled = ++-cancelˡ (H.ein e₁) cancelled-1
-
-  ------------------------------------------------------------------------
-  -- FIRING STABILITY — the Linearity+Incomp content for the divergence cases.
-  --
-  -- If `e` fires from `s` (`s ↭ ein e ++ r₁`), `¬ Dep e e'`, and `e ≢ e'`,
-  -- then for every vertex consumed by `e'` the count is unchanged between
-  -- `s` and the post-`e` stack `eout e ++ r₁`, since `count v (ein e) ≡ 0`
-  -- (Linearity) and `count v (eout e) ≡ 0` (Incomp).
-  ------------------------------------------------------------------------
+  post-swap-stack-↭ = FMIC.post-swap-stack-↭ H dih lin
 
   private
-    count-ein'-pres
-      : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
-      → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
-      → (v : Fin H.nV) → 0 <ⁿ count v (H.ein e')
-      → count v s ≡ count v (H.eout e ++ r₁)
-    count-ein'-pres {e} {e'} e≢e' ¬dep r₁ s p v v∈ein-e' =
-      trans (↭⇒count p v)
-      (trans (count-++ v (H.ein e) r₁)
-      (trans (cong (_+ count v r₁)
-                   (ein-ein-disjoint (λ eq → e≢e' (sym eq)) v v∈ein-e'))
-      (sym (trans (count-++ v (H.eout e) r₁)
-                  (cong (_+ count v r₁) (eout-ein-disjoint ¬dep v v∈ein-e'))))))
-
-    count-zero-or-pos : (e' : Fin H.nE) (v : Fin H.nV)
-                      → (count v (H.ein e') ≡ 0) ⊎ (0 <ⁿ count v (H.ein e'))
-    count-zero-or-pos e' v with count v (H.ein e')
-    ... | zero  = inj₁ refl
-    ... | suc _ = inj₂ (s≤sⁿ z≤nⁿ)
-
-    -- `count-ein'-pres` lifts a sub-multiset bound on `ein e'` from `s`
-    -- to the post-`e` stack and back.
-    ein'-≤-fwd
-      : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
-      → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
-      → (∀ v → count v (H.ein e') ≤ⁿ count v s)
-      → (∀ v → count v (H.ein e') ≤ⁿ count v (H.eout e ++ r₁))
-    ein'-≤-fwd {e} {e'} e≢e' ¬dep r₁ s p h v with count-zero-or-pos e' v
-    ... | inj₁ z   = subst (_≤ⁿ count v (H.eout e ++ r₁)) (sym z) z≤nⁿ
-    ... | inj₂ pos =
-          subst (count v (H.ein e') ≤ⁿ_) (count-ein'-pres e≢e' ¬dep r₁ s p v pos) (h v)
-
-    ein'-≤-bwd
-      : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
-      → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
-      → (∀ v → count v (H.ein e') ≤ⁿ count v (H.eout e ++ r₁))
-      → (∀ v → count v (H.ein e') ≤ⁿ count v s)
-    ein'-≤-bwd {e} {e'} e≢e' ¬dep r₁ s p h v with count-zero-or-pos e' v
-    ... | inj₁ z   = subst (_≤ⁿ count v s) (sym z) z≤nⁿ
-    ... | inj₂ pos =
-          subst (count v (H.ein e') ≤ⁿ_) (sym (count-ein'-pres e≢e' ¬dep r₁ s p v pos)) (h v)
-
-    -- Firing stability: `e'`'s decision is the same on `s` and on the
-    -- post-`e` stack `eout e ++ r₁`.  If `e'` fires from `s`, it fires
-    -- from `eout e ++ r₁` too.
-    e'-fires-stable
-      : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
-      → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
-      → ∀ {r₂' p₂'} → extract-prefix (H.ein e') s ≡ just (r₂' , p₂')
-      → Σ[ r ∈ List (Fin H.nV) ] Σ[ q ∈ _ ]
-          extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ just (r , q)
-    e'-fires-stable {e} {e'} e≢e' ¬dep r₁ s p {r₂'} {p₂'} eqe' =
-      count-≤→extract-prefix (H.ein e') (H.eout e ++ r₁)
-        (ein'-≤-fwd e≢e' ¬dep r₁ s p
-          (extract-prefix-just→count-≤ (H.ein e') s r₂' p₂'))
-
-    -- If `e'` skips from `s`, it skips from `eout e ++ r₁` too: a `just`
-    -- outcome there would (via the backward count transport) force success
-    -- on `s`.
-    e'-skips-stable
-      : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
-      → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
-      → extract-prefix (H.ein e') s ≡ nothing
-      → extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ nothing
-    e'-skips-stable {e} {e'} e≢e' ¬dep r₁ s p eqe' =
-      go (extract-prefix (H.ein e') (H.eout e ++ r₁)) refl
-      where
-        go : (m : Maybe (Σ[ r ∈ List (Fin H.nV) ]
-                           H.eout e ++ r₁ Perm.↭ H.ein e' ++ r))
-           → extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ m
-           → extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ nothing
-        go nothing      eq  = eq
-        go (just (r , q)) eq =
-          ⊥-elim (nothing≢just (trans (sym eqe')
-            (proj₂ (proj₂ (count-≤→extract-prefix (H.ein e') s
-              (ein'-≤-bwd e≢e' ¬dep r₁ s p
-                (extract-prefix-just→count-≤ (H.ein e') (H.eout e ++ r₁) r q)))))))
+    e'-fires-stable = FMIC.e'-fires-stable H dih lin
+    e'-skips-stable = FMIC.e'-skips-stable H dih lin
 
   -- Both edges skip in BOTH orders ⇒ both final stacks are `s`.
   two-edge-swap-both-skip
