@@ -40,13 +40,16 @@
 open import Level using (Level)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
 
-module Categories.Coherence.Symmetric.Test.Frobenius
+module FrobProbe
   {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e) where
 
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.Product using (_×_; _,_)
 
+open import Data.Maybe.Base using (is-just)
+open import Data.Bool.Base using (true)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Categories.Coherence.Symmetric C
 
 module FrobeniusAlgebra (A : C.Obj)
@@ -104,39 +107,28 @@ module FrobeniusAlgebra (A : C.Obj)
            S.∘ S.α⇒ S.∘ (n S.⊗₁ S.id) S.∘ (u S.⊗₁ S.id) S.∘ S.λ⇐
     T₄ = (m S.⊗₁ S.id) S.∘ S.α⇐ S.∘ (u S.⊗₁ n) S.∘ S.λ⇐ S.∘ m
 
-  -- The Frobenius-algebra laws needed for the derivation, as hypotheses in
-  -- `C`'s own vocabulary (`⟦_⟧₁` of the corresponding free terms,
-  -- definitionally).
-  module _
-    (unitL  : mᴹ ∘ (uᴹ ⊗₁ id) ≈ λ⇒)
-    (assocH : mᴹ ∘ (mᴹ ⊗₁ id) ≈ mᴹ ∘ (id ⊗₁ mᴹ) ∘ α⇒)
-    (frobH  : (id ⊗₁ mᴹ) ∘ α⇒ ∘ (nᴹ ⊗₁ id) ≈ (mᴹ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ nᴹ))
-    where
+  -- stage-split of one findIso call (H = ⟪T₂⟫, J = ⟪frame⟫): seed → search → verify
+  open import Categories.APROP.Hypergraph.Core using (Hypergraph)
+  open import Categories.APROP.Hypergraph.Solver.Seed finSigDec using (seedFromInterfaces)
+  open import Categories.APROP.Hypergraph.Solver.Search finSigDec using (searchIso-default)
+  open import Categories.APROP.Hypergraph.Solver.PBij using (emptyBij)
+  open import Data.Maybe.Base using (_>>=_)
 
-    private
-      -- One derivation step: fire a rule somewhere in `Tᵢ` (deep) and land
-      -- directly on the stated clean diagram `Tᵢ₊₁` (`rewriteDeepToA!`).
-      step₁ : ⟦ T₁ ⟧₁ C.≈ ⟦ Xᵗ ⟧₁
-      step₁ = rewriteDeepToA! T₁ Xᵗ unitLᵗ S.λ⇒ 0 unitL
+  -- The graphs must be ARGUMENTS (shared thunks), not top-level names
+  -- (re-unfolded per access) — that asymmetry alone is worth minutes.
+  open import Categories.APROP.Hypergraph.Solver.Match finSigDec using (VertexBij; EdgeBij)
+  open import Categories.APROP.Hypergraph.FromAPROP finSig using (FlatGen)
 
-      step₂ : ⟦ T₁ ⟧₁ C.≈ ⟦ T₂ ⟧₁
-      step₂ = rewriteDeepToA! T₁ T₂ Yᵗ Xᵗ 0 (C.Equiv.sym frobH)
+  private
+    seedOnly : (H J : Hypergraph FlatGen) → Data.Maybe.Base.Maybe (VertexBij H J)
+    seedOnly H J = seedFromInterfaces H J
 
-      step₃ : ⟦ T₂ ⟧₁ C.≈ ⟦ T₃ ⟧₁
-      step₃ = rewriteDeepToA! T₂ T₃ assocLᵗ assocRᵗ 0 assocH
+    searchOnly : (H J : Hypergraph FlatGen)
+               → Data.Maybe.Base.Maybe (VertexBij H J × EdgeBij H J)
+    searchOnly H J = seedFromInterfaces H J >>= λ φ₀ → searchIso-default H J φ₀ emptyBij
 
-      step₄ : ⟦ T₃ ⟧₁ C.≈ ⟦ T₄ ⟧₁
-      step₄ = rewriteDeepToA! T₃ T₄ Xᵗ Yᵗ 0 frobH
+  probe-seed : is-just (seedOnly ⟪ T₂ ⟫ ⟪ deepFrame T₂ assocLᵗ assocLᵗ 0 _ ⟫) ≡ true
+  probe-seed = refl
 
-      step₅ : ⟦ T₄ ⟧₁ C.≈ ⟦ n S.∘ m ⟧₁
-      step₅ = rewriteDeepToA! T₄ (n S.∘ m) unitLᵗ S.λ⇒ 0 unitL
-
-    frobL : (id ⊗₁ mᴹ) ∘ α⇒ ∘ (nᴹ ⊗₁ id) ≈ nᴹ ∘ mᴹ
-    frobL =
-      C.Equiv.trans (C.Equiv.sym step₁)
-        (C.Equiv.trans step₂
-          (C.Equiv.trans step₃
-            (C.Equiv.trans step₄ step₅)))
-
-    frobR : (mᴹ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ nᴹ) ≈ nᴹ ∘ mᴹ
-    frobR = C.Equiv.trans (C.Equiv.sym frobH) frobL
+  probe-search : is-just (searchOnly ⟪ T₂ ⟫ ⟪ deepFrame T₂ assocLᵗ assocLᵗ 0 _ ⟫) ≡ true
+  probe-search = refl

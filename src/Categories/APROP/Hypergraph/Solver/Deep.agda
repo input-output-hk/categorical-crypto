@@ -59,6 +59,7 @@ open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
 import Categories.APROP.Hypergraph.Solver.ExtendSig
 import Categories.APROP.Hypergraph.FromAPROP
 import Categories.APROP.Hypergraph.Soundness.Decode
+import Categories.APROP.Hypergraph.Solver.DecodeLean
 import Categories.APROP.Hypergraph.Soundness.Unflatten
 import Categories.APROP.Hypergraph.Solver.Carve
 
@@ -75,6 +76,7 @@ module At (P Q : ObjTerm) where
 
   module F⁺ = Categories.APROP.Hypergraph.FromAPROP sig⁺
   module D⁺ = Categories.APROP.Hypergraph.Soundness.Decode sig⁺
+  module DL⁺ = Categories.APROP.Hypergraph.Solver.DecodeLean sig⁺
   module U⁺ = Categories.APROP.Hypergraph.Soundness.Unflatten sig⁺
   module C⁺ = Categories.APROP.Hypergraph.Solver.Carve sig⁺-dec
 
@@ -184,7 +186,7 @@ module At (P Q : ObjTerm) where
          → ⟪ lᵗ ⟫ ↪ᴴ ⟪ s ⟫ → Maybe (Foc A B P Q)
   tryEmb {A} {B} s lᵗ emb =
     Build.holeGraph ⟪ lᵗ ⟫ ⟪ s ⟫ emb           >>= λ H' →
-    D⁺.decode-attempt H'                       >>= λ ctx →
+    DL⁺.decode-attempt H'                      >>= λ ctx →
     C⁺.focusAtₙ ctx (Agen⁺ hole!) 0            >>= λ { (k , pre⁺ , post⁺) →
     retract pre⁺                               >>= λ pre₀ →
     retract post⁺                              >>= λ post₀ →

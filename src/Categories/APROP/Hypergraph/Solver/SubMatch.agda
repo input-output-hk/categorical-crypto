@@ -45,7 +45,7 @@ open import Categories.APROP.Hypergraph.Solver.Search sig-dec
   using (searchAll-default)
 open import Categories.APROP.Hypergraph.Solver.Totals using (Total; totalise)
 open import Categories.APROP.Hypergraph.Solver.Verify sig-dec
-  using (flat-match; ∀F?; dec→maybe)
+  using (flat-match-subst; ∀F?; dec→maybe)
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
@@ -158,12 +158,11 @@ module Verify-Sub (L S : Hypergraph FlatGen)
   ...     | _ | _ | _ | nothing | _ = nothing
   ...     | _ | _ | _ | _ | nothing = nothing
   ...     | just φ-inv | just ψ-inv | just φ-lab | just ψ-ein | just ψ-eout
-            with ∀F? (λ e → flat-match
-                   (subst₂ FlatGen
+            with ∀F? (λ e → flat-match-subst
                      (deriveAtomEq φ φ-lab (L.ein  e) (S.ein  (ψ e)) (ψ-ein  e))
                      (deriveAtomEq φ φ-lab (L.eout e) (S.eout (ψ e)) (ψ-eout e))
-                     (S.elab (ψ e)))
-                   (L.elab e))
+                     (S.elab (ψ e))
+                     (L.elab e))
   ...       | nothing      = nothing
   ...       | just ψ-elab  = just record
                 { φ         = φ

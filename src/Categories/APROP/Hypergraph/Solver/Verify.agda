@@ -101,6 +101,62 @@ view (flat {A} {B} f) = flatV A B refl refl f refl
 -- Conservative `flat`-match via the views, deferring to `_≟-ObjTerm_` and
 -- `_≟-mor_`.
 
+-- Two `subst₂` transports with equal endpoints are equal (UIP).
+help-subst-eq
+  : ∀ {A₁ A₂ B₁ B₂ : List X}
+      (p₁ p₂ : A₁ ≡ A₂) (q₁ q₂ : B₁ ≡ B₂)
+      (z : FlatGen A₁ B₁)
+  → subst₂ FlatGen p₁ q₁ z ≡ subst₂ FlatGen p₂ q₂ z
+help-subst-eq p₁ p₂ q₁ q₂ z
+  with UIP-ListX p₁ p₂ | UIP-ListX q₁ q₂
+... | refl | refl = refl
+
+-- `flat-match-subst p q v y`: compare the *transported* J-label
+-- `subst₂ FlatGen p q v` against the H-label `y`, but WITHOUT first building
+-- the transported term and forcing `view` to push through the outer `subst₂`.
+-- We `view` the underlying value `v` (one fewer stacked transport for the
+-- normaliser to collapse) and `view y`, dispatch on the hidden `(A,B,f)`,
+-- and assemble the equality directly.  This is the hot path for `findIso`'s
+-- per-edge label sweep: all call sites pass exactly `subst₂ FlatGen p q (…elab…)`.
+flat-match-subst
+  : ∀ {As Bs As' Bs'} (p : As ≡ As') (q : Bs ≡ Bs')
+      (v : FlatGen As Bs) (y : FlatGen As' Bs')
+  → Maybe (subst₂ FlatGen p q v ≡ y)
+flat-match-subst p q v y = step (view v) (view y)
+  where
+    step : FlatView v → FlatView y → Maybe (subst₂ FlatGen p q v ≡ y)
+    step (flatV A B ok-A ok-B f ok-v) (flatV A' B' ok-A' ok-B' g ok-y) =
+      dispatch (A ≟-ObjTerm A') (B ≟-ObjTerm B')
+      where
+        dispatch : _ → _ → Maybe (subst₂ FlatGen p q v ≡ y)
+        dispatch (yes refl) (yes refl) = compare (f ≟-mor g)
+          where
+            compare : _ → Maybe (subst₂ FlatGen p q v ≡ y)
+            -- v = subst₂ FlatGen ok-A ok-B (flat f)  (from ok-v)
+            -- y = subst₂ FlatGen ok-A' ok-B' (flat g) (from ok-y)
+            -- with f ≡ g and matching endpoints, both `subst₂` stacks
+            -- transport the same `flat g` along propositionally-equal
+            -- list proofs, so UIP collapses them.
+            compare (yes f≡g) =
+              just (trans (cong (subst₂ FlatGen p q) (sym ok-v))
+                   (trans (cong (λ z → subst₂ FlatGen p q (subst₂ FlatGen ok-A ok-B (flat z))) f≡g)
+                   (trans (help-subst-eq2 p ok-A ok-A' q ok-B ok-B' (flat g))
+                          ok-y)))
+              where
+                -- subst₂ p q (subst₂ p' q' z) ≡ subst₂ p'' q'' z  (all via UIP).
+                help-subst-eq2
+                  : ∀ {A₁ A₂ A₃ B₁ B₂ B₃ : List X}
+                      (p₁ : A₂ ≡ A₃) (p₂ : A₁ ≡ A₂) (p₃ : A₁ ≡ A₃)
+                      (q₁ : B₂ ≡ B₃) (q₂ : B₁ ≡ B₂) (q₃ : B₁ ≡ B₃)
+                      (z : FlatGen A₁ B₁)
+                  → subst₂ FlatGen p₁ q₁ (subst₂ FlatGen p₂ q₂ z)
+                  ≡ subst₂ FlatGen p₃ q₃ z
+                help-subst-eq2 refl refl p₃ refl refl q₃ z
+                  with UIP-ListX refl p₃ | UIP-ListX refl q₃
+                ... | refl | refl = refl
+            compare (no _) = nothing
+        dispatch _ _ = nothing
+
 flat-match : ∀ {As Bs} (x y : FlatGen As Bs) → Maybe (x ≡ y)
 flat-match x y = step (view x) (view y)
   where
@@ -117,16 +173,6 @@ flat-match x y = step (view x) (view y)
                    (trans (cong (λ z → subst₂ FlatGen ok-A ok-B (flat z)) p)
                           (trans (help-subst-eq ok-A ok-A' ok-B ok-B' (flat g))
                                  ok-y)))
-              where
-                -- Two `subst₂` transports with equal endpoints are equal (UIP).
-                help-subst-eq
-                  : ∀ {A₁ A₂ B₁ B₂ : List X}
-                      (p₁ p₂ : A₁ ≡ A₂) (q₁ q₂ : B₁ ≡ B₂)
-                      (z : FlatGen A₁ B₁)
-                  → subst₂ FlatGen p₁ q₁ z ≡ subst₂ FlatGen p₂ q₂ z
-                help-subst-eq p₁ p₂ q₁ q₂ z
-                  with UIP-ListX p₁ p₂ | UIP-ListX q₁ q₂
-                ... | refl | refl = refl
             compare (no _) = nothing
         dispatch _ _ = nothing
 
@@ -192,11 +238,10 @@ module Verify (H J : Hypergraph FlatGen)
   ...       | just φ-left | just φ-rght | just ψ-left | just ψ-rght
             | just φ-lab  | just ψ-ein  | just ψ-eout
             | yes φ-dom   | yes φ-cod
-              with ∀F? (λ e → flat-match
-                     (subst₂ FlatGen
-                             (deriveAtomEq φ φ-lab (H.ein  e) (J.ein  (ψ e)) (ψ-ein  e))
-                             (deriveAtomEq φ φ-lab (H.eout e) (J.eout (ψ e)) (ψ-eout e))
-                             (J.elab (ψ e)))
+              with ∀F? (λ e → flat-match-subst
+                     (deriveAtomEq φ φ-lab (H.ein  e) (J.ein  (ψ e)) (ψ-ein  e))
+                     (deriveAtomEq φ φ-lab (H.eout e) (J.eout (ψ e)) (ψ-eout e))
+                     (J.elab (ψ e))
                      (H.elab e))
   ...         | nothing = nothing
   ...         | just ψ-elab = just record

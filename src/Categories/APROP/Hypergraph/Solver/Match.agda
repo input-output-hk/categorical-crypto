@@ -32,7 +32,7 @@ open import Categories.APROP.Hypergraph.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Solver.PBij
   using (PBij; extend-bij; pairUp)
-open import Categories.APROP.Hypergraph.Solver.Verify sig-dec using (flat-match)
+open import Categories.APROP.Hypergraph.Solver.Verify sig-dec using (flat-match-subst)
 
 open import Data.Bool.Base using (Bool; false; true; _∧_)
 open import Data.Fin using (Fin; zero; suc)
@@ -96,8 +96,8 @@ module _
   ... | _     | no _  = nothing
   ... | yes p | yes q
     -- Shape agrees; transport J's label to H's index and compare.
-    with flat-match (subst₂ FlatGen (sym p) (sym q) (Hypergraph.elab J e'))
-                    (Hypergraph.elab H e)
+    with flat-match-subst (sym p) (sym q) (Hypergraph.elab J e')
+                          (Hypergraph.elab H e)
   ... | nothing = nothing
   ... | just _  = viaEin (pairUp φ (Hypergraph.ein H e) (Hypergraph.ein J e'))
     where

@@ -34,9 +34,12 @@ open APROPSignatureDec sig-dec using (sig)
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
+open import Categories.APROP.Hypergraph.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.FindIso sig-dec using (findIso)
 open import Categories.APROP.Hypergraph.Solver.FindIsoTab sig-dec using (findIsoᵀ)
+open import Categories.APROP.Hypergraph.Solver.DeepProv sig-dec using (findIsoFromCarveᵀ)
 open import Categories.APROP.Hypergraph.Solver.Split sig-dec using (solveSplitR?)
 open import Categories.APROP.Hypergraph.Solver.Carve sig-dec using (focusAtₙ; Foc)
 open import Categories.APROP.Hypergraph.Solver.Deep sig-dec using (deepFocₙ)
@@ -303,6 +306,63 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
       (C.Equiv.sym
         (solveH t (deepFrame s lᵗ rᵗ n found)
                 (fromWitness! (findIso ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫) c₂)))
+
+  --------------------------------------------------------------------------------
+  -- Route A variants: gate #1's witness is DERIVED from carve provenance
+  -- (`findIsoFromCarveᵀ`: a guided single pass over the provenance-predicted
+  -- edge pairs, validated by `Verify` — no backtracking search), and the
+  -- remaining searches run tabulated.  Soundness is unchanged (`Verify`
+  -- gates every candidate); where the provenance heuristic does not apply
+  -- (e.g. the `n`-th carvable occurrence is not the first embedding's), the
+  -- gate fails closed — fall back to the search-based variants there.
+  rewriteDeepAₙ!
+    : ∀ {A B P Q}
+    → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
+    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
+    → {found : T (is-just (deepFocₙ s lᵗ n))}
+    → {_     : T (is-just (findIsoFromCarveᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫ ⟪ lᵗ ⟫))}
+    → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ n found ⟧₁
+  rewriteDeepAₙ! s lᵗ rᵗ n rule {found} {cert} =
+    C.Equiv.trans
+      (solveH s (deepFrame s lᵗ lᵗ n found)
+              (fromWitness! (findIsoFromCarveᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫ ⟪ lᵗ ⟫) cert))
+      (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule))))
+
+  rewriteDeepA!
+    : ∀ {A B P Q}
+    → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q)
+    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
+    → {found : T (is-just (deepFocₙ s lᵗ zero))}
+    → {_     : T (is-just (findIsoFromCarveᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ zero found ⟫ ⟪ lᵗ ⟫))}
+    → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ zero found ⟧₁
+  rewriteDeepA! s lᵗ rᵗ rule {found} {cert} =
+    rewriteDeepAₙ! s lᵗ rᵗ zero rule {found} {cert}
+
+  -- Gate #2's witness finder: try the provenance-guided path (carve the rule's
+  -- `rᵗ` out of `t`, exactly as gate #1 carves `lᵗ` out of `s`) and fall back to
+  -- the backtracking search if it does not apply (e.g. `rᵗ` is edge-free like
+  -- `λ⇒`, so there is no redex to carve).  BOTH branches are `Verify`-gated, so
+  -- the result is a genuine iso either way — the choice only affects speed
+  -- (guided ≈ −24% on this gate; measured on the Frobenius showcase).
+  findIsoG2 : (H J L : Hypergraph FlatGen) → Maybe (H ≅ᴴ J)
+  findIsoG2 H J L with findIsoFromCarveᵀ H J L
+  ... | just iso = just iso
+  ... | nothing  = findIsoᵀ H J
+
+  rewriteDeepToA!
+    : ∀ {A B P Q}
+    → (s t : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
+    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
+    → {found : T (is-just (deepFocₙ s lᵗ n))}
+    → {_     : T (is-just (findIsoFromCarveᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫ ⟪ lᵗ ⟫))}
+    → {_     : T (is-just (findIsoG2 ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫ ⟪ rᵗ ⟫))}
+    → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁
+  rewriteDeepToA! s t lᵗ rᵗ n rule {found} {c₁} {c₂} =
+    C.Equiv.trans
+      (rewriteDeepAₙ! s lᵗ rᵗ n rule {found} {c₁})
+      (C.Equiv.sym
+        (solveH t (deepFrame s lᵗ rᵗ n found)
+                (fromWitness! (findIsoG2 ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫ ⟪ rᵗ ⟫) c₂)))
 
   --------------------------------------------------------------------------------
   -- Rewrite DRIVERS: normalisation with respect to a list of rules.
