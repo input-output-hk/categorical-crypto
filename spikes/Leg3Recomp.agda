@@ -44,7 +44,7 @@ open import Categories.APROP.Hypergraph.Iso
 open import Categories.APROP.Hypergraph.Solver.Carve sig-dec
   using (Foc; leaf-try; go-all; focusAll; focusAtₙ; lookupMaybe)
 open import Categories.APROP.Hypergraph.Solver.FindIso sig-dec using (findIso)
-import Categories.APROP.Hypergraph.SoundnessFullWired sig-dec as SFW
+import Categories.APROP.Hypergraph.Soundness sig-dec as SFW
 import Categories.APROP.Hypergraph.Solver.ExtendSig
 
 --------------------------------------------------------------------------------
@@ -85,18 +85,18 @@ frame-expand k pre post mid = refl-≅ᴴ ⟪ frame k pre post mid ⟫
 --==============================================================================
 -- The reverse translation soundness, repackaged.
 --
--- `SFW.soundness-full-wired : ⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g`.  We only ever feed it a
+-- `SFW.soundness : ⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g`.  We only ever feed it a
 -- `findIso` success, so the leaf case of focusing (which is gated on
 -- `findIso ⟪s⟫ ⟪lᵗ⟫`) yields `s ≈Term lᵗ`.
 
 private
   -- When `findIso ⟪s⟫ ⟪lᵗ⟫` succeeds it produces a genuine `≅ᴴ` witness, which
-  -- `soundness-full-wired` turns into `s ≈Term lᵗ`.
+  -- `soundness` turns into `s ≈Term lᵗ`.
   fromFindIso
     : ∀ {A B} (s lᵗ : HomTerm A B)
     → (iso : ⟪ s ⟫ ≅ᴴ ⟪ lᵗ ⟫)
     → s ≈Term lᵗ
-  fromFindIso s lᵗ iso = SFW.soundness-full-wired iso
+  fromFindIso s lᵗ iso = SFW.soundness iso
 
 --==============================================================================
 -- SUB-PROOF (2): focusAtₙ term-soundness.
@@ -178,7 +178,7 @@ private
 private
   -- The leaf result, when it fires, is always `(unit , λ⇐ , λ⇒)`, and the
   -- guard is `is-just (findIso ⟪s⟫ ⟪lᵗ⟫) ≡ true`; re-run findIso to recover
-  -- the iso witness, feed it to `soundness-full-wired`, and chain with the
+  -- the iso witness, feed it to `soundness`, and chain with the
   -- coherence collapse `leaf-frame-id`.
   just-inj : ∀ {a} {A : Set a} {x y : A} → just x ≡ just y → x ≡ y
   just-inj refl = refl
@@ -193,7 +193,7 @@ private
   ... | just iso =
         -- `leaf-try` fired with `r ≡ (unit , λ⇐ , λ⇒)`; recover `s ≈Term lᵗ`.
         subst (Pred s lᵗ) (just-inj eq)
-          (≈-Term-trans (SFW.soundness-full-wired iso)
+          (≈-Term-trans (SFW.soundness iso)
                         (≈-Term-sym (leaf-frame-id lᵗ)))
   ... | nothing  with eq
   ...   | ()
@@ -802,7 +802,7 @@ private
 -- BLOCKER (documented in LEG3-NOTES.md): the last step needs the FORWARD
 -- translation soundness  `f ≈Term g → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫`  (the "Hypergraph
 -- completeness" direction), which does NOT yet exist in the tree (only the
--- reverse `soundness-full-wired` does).  Building it is the per-axiom
+-- reverse `soundness` does).  Building it is the per-axiom
 -- graph-identity induction (every coherence axiom translates to an `hId`/`hSwap`
 -- collapse, plus `hComposeP`/`hTensor` congruences) — a separate, sizeable
 -- effort (~the unwritten `Hypergraph.Completeness` module).
