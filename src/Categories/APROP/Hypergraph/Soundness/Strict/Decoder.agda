@@ -13,9 +13,9 @@
 --     process-edgesˢ es (xs ++ R)  ≈ˢ  process-edgesˢ es xs ⊗ˢ idˢ {R}
 --
 -- (modulo the stack equality), whose non-strict counterpart costs
--- SeparableSpike (752 LOC) + the BoxKernel box-suffix machinery.
+-- SeparableStack (752 LOC) + the BoxKernel box-suffix machinery.
 -- Stack-level lemmas (`extract-prefix-++ˡ` etc.) are term-free and are
--- REUSED from SeparableSpike as-is.
+-- REUSED from SeparableStack as-is.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -32,7 +32,7 @@ open import Categories.APROP.Hypergraph.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Decode sig
   using (extract-prefix; extract-elem)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SeparableSpike sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SeparableStack sig _≟X_
   using (prefix-++ˡ-perm; extract-prefix-++ˡ; extract-prefix-++ˡ-nothing)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_ public

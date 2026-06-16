@@ -41,7 +41,7 @@ open import Categories.APROP
 
 open import Relation.Binary using (DecidableEquality)
 
-module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SeparableSpike
+module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SeparableStack
   (sig : APROPSignature)
   (_≟X_ : DecidableEquality (APROPSignature.X sig)) where
 

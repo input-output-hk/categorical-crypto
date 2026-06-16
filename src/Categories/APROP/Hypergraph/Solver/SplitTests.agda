@@ -31,7 +31,7 @@ open import Data.Product using (_×_; _,_)
 open import Categories.APROP using (module APROP)
 open import Categories.FreeMonoidal using (module FreeMonoidalHelper; Symm)
 import Categories.APROP.Hypergraph.Solver.FinSignature as FinSig
-import Categories.APROP.Hypergraph.Solver.Interpret as Interp
+import Categories.APROP.Hypergraph.Solver.Frontend as Interp
 
 private module C = SymmetricMonoidalCategory C
 

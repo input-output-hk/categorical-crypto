@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Combinatorial scaffolding for `Sub/FireMidInterchange.block-nf`: the
--- simultaneous-location combinatorics of the both-fire two-edge interchange.
+-- The simultaneous-location combinatorics of the both-fire two-edge
+-- interchange, consumed by `Sub/FireMidInterchange.block-nf`.
 -- From the four locating permutes (plus disjointness from `Incomp` + `Linear`)
 -- it locates BOTH input blocks at once, producing a single shared residual
 -- `Rlist` with

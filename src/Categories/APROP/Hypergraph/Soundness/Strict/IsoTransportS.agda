@@ -33,7 +33,7 @@
 --     natural order `range nE_f`.
 --
 -- The order-theory `NoInv`/`NoInv-τ`/`τ`/`τ↭range` are reused verbatim from
--- the term-free non-strict wiring (`IsoInvarianceWiring`, `WiringLemmas`).
+-- the term-free non-strict wiring (`IsoInvarianceWiring`, `NoInvTau`).
 -- The strict run-interchange residual `run-interchange-H` is threaded as a
 -- module parameter (the same residual `DecodePRespIso`'s headline takes).
 --------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl sig
 open import Categories.APROP.Hypergraph.Soundness.Discharge.FinOrderNoInv sig
   using (fin-order-NoInv-⟪⟫)
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
-import Categories.APROP.Hypergraph.Soundness.Discharge.WiringLemmas sig as WL
+import Categories.APROP.Hypergraph.Soundness.Discharge.NoInvTau sig as WL
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
 open import Categories.APROP.Hypergraph.Soundness.Linearity sig using (Linear)
 
@@ -69,7 +69,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.DecodeS sig _≟X_
   using (module Run)
 import Categories.APROP.Hypergraph.Soundness.Strict.SwapStepS sig _≟X_ as SS
 import Categories.APROP.Hypergraph.Soundness.Strict.IsoInvarianceConcreteS sig _≟X_ as IC
-import Categories.APROP.Hypergraph.Soundness.Strict.DecodeComposeS2 sig _≟X_ as DC2
+import Categories.APROP.Hypergraph.Soundness.Strict.DecodeComposeS sig _≟X_ as DC2
 open import Categories.APROP.Hypergraph.Soundness.Strict.RunInterchangeTailS sig _≟X_
   using (RunInterchangeˢ)
 import Categories.APROP.Hypergraph.Soundness.Strict.PermK sig _≟X_ as PK
@@ -93,7 +93,7 @@ open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.Rigid
   using (lookup-injective-unique; lookup-sound)
-open import Categories.PermuteCoherence.Map
+open import Categories.PermuteCoherence.FinBijSubst
   using ( eval-map⁺; lookup-map; subst₂-FinBij-as-subst; cast-irr
         ; subst-Fin-trans; lookup-subst-list; subst-Fin-roundtrip
         ; subst-Fin-roundtrip'; subst-Fin-sym-sym; ≈-fb-of-≡; eval-subst₂-↭ )
@@ -554,7 +554,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
   noInvJ : SG.NoInv (range J.nE)
   noInvJ = fin-order-NoInv-⟪⟫ g
 
-  -- `NoInv-τ` (`WiringLemmas` Lemma 4), fed J's no-inversion.
+  -- `NoInv-τ` (`NoInvTau` Lemma 4), fed J's no-inversion.
   NoInv-τ : SF.NoInv τ
   NoInv-τ = L4.NoInv-τ noInvJ
 

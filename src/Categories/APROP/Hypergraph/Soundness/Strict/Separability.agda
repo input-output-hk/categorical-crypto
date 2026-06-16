@@ -30,7 +30,7 @@
 --     `extract-prefix-++ˡ-left` (+ their `nothing`-mirrors): on `L ++ xs` with
 --     `L` disjoint from the searched keys, the search skips `L` and returns
 --     residual `L ++ rest` with the genuine swap-threaded derivation.  These
---     ARE the left mirrors of `SeparableSpike`'s `extract-*-++ˡ` and remain
+--     ARE the left mirrors of `SeparableStack`'s `extract-*-++ˡ` and remain
 --     sound and reusable.
 --
 -- The `stack-sepˢ-ˡ` / `layer-sepˢ-ˡ` / `term-sepˢ-ˡ` of the original brief are
@@ -173,7 +173,7 @@ module StrictSep (H : Hypergraph FlatGen) where
   -- decision and residual list are `L`-framed).  We pin the FULL `just`-value;
   -- the derivation `D` is built recursively from `elemDerivˡ`/the IH and named
   -- via a `with`-abstraction, so the codomain matches `(k ∷ ks)`'s genuine
-  -- recursion.  This is the LEFT mirror of `SeparableSpike.extract-prefix-++ˡ`
+  -- recursion.  This is the LEFT mirror of `SeparableStack.extract-prefix-++ˡ`
   -- (whose derivation was the clean `prefix-++ˡ-perm ks (++⁺ʳ R p)`; here it is
   -- the swap-threaded form, kept opaque and only consumed via `permuteˢ`).
   extract-prefix-++ˡ-left
@@ -217,7 +217,7 @@ module StrictSep (H : Hypergraph FlatGen) where
 
   -- NOTHING-mirror for `extract-prefix` (LEFT prefix): `ks ∩ L = ∅` and `ks`
   -- not found in `xs` ⇒ not found in `L ++ xs`.  Mirror of
-  -- `SeparableSpike.extract-prefix-++ˡ-nothing`.
+  -- `SeparableStack.extract-prefix-++ˡ-nothing`.
   extract-prefix-++ˡ-left-nothing
     : ∀ (ks L xs : List (Fin H.nV))
     → All (λ j → extract-elem j L ≡ nothing) ks

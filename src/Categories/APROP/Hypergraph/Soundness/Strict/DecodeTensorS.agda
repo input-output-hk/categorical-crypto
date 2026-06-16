@@ -39,8 +39,8 @@
 --     right-frame `term-sepˢ` (the G-side core);
 --   * the ⊗-shape THEOREM `decodePˢ-⊗`, reduced to TWO clearly-typed
 --     residual module parameters — the K-block braid `kblock-braidˢ` and the
---     final-permute reconciliation `finalPerm-⊗ˢ` — both `≈ˢ`/`↭` facts, with
---     a precise obstruction map at the foot.
+--     final-permute reconciliation `finalPerm-⊗ˢ` — both `≈ˢ`/`↭` facts,
+--     mapped out at the foot of the file.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -203,7 +203,7 @@ module _
 --   * `Tensor.decodePˢ-⊗` — the ⊗-shape THEOREM, cast-free, reduced to the
 --     single clearly-typed residual `reconcileˢ`.
 --
--- THE REMAINING RESIDUAL `reconcileˢ` (one clearly-typed `≈ˢ` at the boundary
+-- THE RESIDUAL `reconcileˢ` (one clearly-typed `≈ˢ` at the boundary
 -- objects).  It packages exactly the content the documented finding isolates:
 --
 --   1. K-BLOCK BRAID.  After the G-block fires, the stack is (modulo perm)
@@ -228,7 +228,7 @@ module _
 -- `box-braid` σ-mirror, the reservoir-sourced `Unique` witnesses).  It needs no
 -- further axiom beyond `permˢ-K`; the substrate (`process-edgesˢ-++`,
 -- `G-block-frameˢ`, `strict-braid`, `σ-hexˢʳ`, `box-commute-ˢ`/`box-crossˢ`) is
--- all in place.  The remaining work is the `castˢ`/stack bookkeeping bridging
+-- all in place.  The discharge is the `castˢ`/stack bookkeeping bridging
 -- `mixed-stack-G` (the `injL`/`injR` relabelling) to the `term-sepˢ` frame and
 -- the K-block braid — the same map-distribution `castˢ` algebra that the
 -- σ-shape's `bswap-σ` step needs (see `DecodeSigmaS`).

@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
-module Categories.PermuteCoherence.Map where
+module Categories.PermuteCoherence.FinBijSubst where
 
 open import Data.Nat.Base using (ℕ; zero; suc)
 open import Data.Fin.Base using (Fin) renaming (zero to fzero; suc to fsuc)

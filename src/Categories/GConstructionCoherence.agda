@@ -45,7 +45,7 @@ open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory
 open import Categories.Functor using (Functor)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Patterns
-import Categories.APROP.Hypergraph.Solver.Interpret as Interp
+import Categories.APROP.Hypergraph.Solver.Frontend as Interp
 
 private module IM = Interp gSigDec
 

@@ -6,7 +6,7 @@
 -- A partial map is a pure function `Fin n → Maybe (Fin m)`.  `PBij n m`
 -- carries forward *and* backward partial maps; `extend-bij` updates both
 -- atomically and refuses conflicting extensions.  The bijection laws
--- (`φ-left`, `φ-rght`) are reconstructed at extraction time in `total?`.
+-- (`φ-left`, `φ-rght`) are reconstructed at extraction time by `totalise`.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Solver.PBij where

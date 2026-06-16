@@ -168,7 +168,7 @@ module _
 --     `DecodeTensorS.Tensor` (verified), so feeding `reconcile-from-braid cand
 --     braidˢ` discharges that parameter.
 --
--- REMAINING RESIDUAL — `braidˢ` (the K-block braid), one clearly-typed `≈ˢ`:
+-- THE RESIDUAL `braidˢ` (the K-block braid), one clearly-typed `≈ˢ`:
 --
 --     permuteˢ cand ∘ˢ proj₂ runˢ
 --       ≈ˢ castˢ (sym domL) (sym codL) (decodePˢ f ⊗ˢ decodePˢ g)
@@ -201,11 +201,11 @@ module _
 --      C.cod` whose `permuteˢ` realises the slide of (3); `final-resortˢ`
 --      (proven above) then closes the loop with `finalPermˢ`.
 --
---   The remaining work is the strict `castˢ`/stack bookkeeping bridging the
+--   The discharge is the strict `castˢ`/stack bookkeeping bridging the
 --   `injL`/`injR` relabelling (the `mixed-stack-G` step of the non-strict
 --   proof) to the `term-sepˢ` frame and the K-block braid — the same
 --   map-distribution `castˢ` algebra (`∘-cast-split`/`cast-irrel`/
 --   `cast-⊗-frame`/`cast-fuse`) that `DecodeSigmaS`/`Decoder.layer-sepˢ` use,
---   plus the new K-side relabelling equivariance (the strict twin of
---   `DecodeComposeS`'s obstruction (B)).  No further axiom beyond `permˢ-K`.
+--   plus the K-side relabelling equivariance (the strict twin of
+--   `DecodeComposeS`'s case (B)).  No further axiom beyond `permˢ-K`.
 --------------------------------------------------------------------------------

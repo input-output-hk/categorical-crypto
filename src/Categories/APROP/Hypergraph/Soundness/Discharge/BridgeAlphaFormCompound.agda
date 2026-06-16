@@ -26,7 +26,7 @@ open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
   using (unflatten; unflatten-flatten-≈; unflatten-++-≅)
 open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig
   using (bridge)
-open import Categories.APROP.Hypergraph.Soundness.DecodeRoundtripSafe sig
+open import Categories.APROP.Hypergraph.Soundness.BridgeCoherence sig
   using ( bridge-∘
         ; bridge-⊗
         ; bridge-id-is-id

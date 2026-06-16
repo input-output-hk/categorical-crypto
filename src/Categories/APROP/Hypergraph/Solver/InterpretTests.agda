@@ -47,7 +47,7 @@ open import Categories.APROP using (module APROP)
 open import Categories.FreeMonoidal
 import Categories.Category.Monoidal.Reasoning as MonoidalReasoning
 import Categories.APROP.Hypergraph.Solver.FinSignature as FinSig
-import Categories.APROP.Hypergraph.Solver.Interpret as Interp
+import Categories.APROP.Hypergraph.Solver.Frontend as Interp
 
 private module C = SymmetricMonoidalCategory C
 

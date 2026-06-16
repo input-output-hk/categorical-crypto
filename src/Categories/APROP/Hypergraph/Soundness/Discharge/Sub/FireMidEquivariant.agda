@@ -56,7 +56,7 @@ open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
 open import Categories.PermuteCoherence.FinBij
   using (FinBij; _≈-fb_; id-fb; inv-fb; _∘-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
-open import Categories.PermuteCoherence.Soundness using (eval-↭-sym)
+open import Categories.PermuteCoherence.EvalSoundness using (eval-↭-sym)
 import Data.Fin.Permutation as P
 
 open import Data.Fin using (Fin)

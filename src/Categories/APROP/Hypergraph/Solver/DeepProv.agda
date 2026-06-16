@@ -1,12 +1,15 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Route A spike: derive the deep-rewrite engine's FIRST findIso witness
--- (`findIso ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n _ ⟫`) from carve PROVENANCE instead
--- of re-discovering it by backtracking DFS.
+-- Provenance-guided gate #1 finder for the deep-rewrite engine.  It derives
+-- the `findIso ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n _ ⟫` witness from the carve's
+-- PROVENANCE rather than re-discovering it by backtracking DFS: it tracks
+-- which originating ⟪s⟫-edge each carved frame edge came from, and uses that
+-- to predict the (H-edge , J-edge) pairing directly.  Every candidate is
+-- still gated end-to-end by `Verify.verify`, so the result is sound and
+-- fail-closed: a wrong prediction fails the gate, it never yields a bad iso.
 --
--- Order facts this construction rests on (all verified by code reading,
--- gated end-to-end by Verify.verify so a mistake only fails, never lies):
+-- Edge-ordering facts the prediction relies on:
 --   * `⟪ g ∘ f ⟫ = hComposeP ⟪f⟫ ⟪g⟫` enumerates f's edges then g's
 --     (PrunedCompose.ein-c via `splitAt G.nE`), `hTensor` left then right,
 --     coherence terms are edge-free.
@@ -144,8 +147,10 @@ module BuildO (L S : Hypergraph FlatGen) (emb : L ↪ᴴ S) where
 
 --------------------------------------------------------------------------------
 -- Predicted pairs for the FIRST embedding whose carve succeeds (mirrors
--- deepFocAll's retry; caveat: deepFocAll can also skip an embedding on a
--- later decode/focus/glue failure, which this mirror does not see).
+-- deepFocAll's retry).  deepFocAll may additionally skip an embedding on a
+-- later decode/focus/glue failure that this mirror does not see; in that case
+-- the predicted pairs no longer match and the downstream Verify gate fails
+-- closed.
 
 pairsFor : (L S : Hypergraph FlatGen) → Maybe (List (ℕ × ℕ))
 pairsFor L S = first (subMatchAll L S)

@@ -10,7 +10,7 @@
 -- generator family is arbitrary `HomTerm`s), we re-run the proven inductive
 -- congruence `_≅↭ⁱ_` DIRECTLY at the strict level.
 --
--- The combinatorial core `complete-proven : eval-↭ p ≈-fb eval-↭ q → p ≅↭ⁱ q`
+-- The combinatorial core `complete : eval-↭ p ≈-fb eval-↭ q → p ≅↭ⁱ q`
 -- (the Coxeter / word-problem kernel of `FaithfulnessInductive`) is purely
 -- element-level: it never touches term structure, so it is reusable verbatim
 -- at the vertex set `V` by instantiating its `FreeMonoidalData` parameter with
@@ -24,7 +24,7 @@
 -- the strict `++` makes singleton frames reduce definitionally), the swap
 -- coherence cases are SIMPLER than their non-strict counterparts.
 --
--- Composing `complete-proven` with `permuteˢ-resp-≅↭ⁱ` gives `permˢ-K`.
+-- Composing `complete` with `permuteˢ-resp-≅↭ⁱ` gives `permˢ-K`.
 --------------------------------------------------------------------------------
 
 open import Relation.Binary using (DecidableEquality)
@@ -49,7 +49,7 @@ open import Categories.PermuteCoherence.FinBij using (_≈-fb_)
 --------------------------------------------------------------------------------
 -- A dummy symmetric `FreeMonoidalData` over the vertex set `V`, used ONLY to
 -- instantiate the element-level inductive congruence `_≅↭ⁱ_` and its
--- combinatorial completeness `complete-proven`.  No term-level content of `d`
+-- combinatorial completeness `complete`.  No term-level content of `d`
 -- is ever inspected by those.
 
 module Discharge (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X)
@@ -64,7 +64,7 @@ module Discharge (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X)
       symm≤dV = v≤v
 
   open import Categories.PermuteCoherence.FaithfulnessInductive dV _≟V_
-    using (_≅↭ⁱ_; complete-proven)
+    using (_≅↭ⁱ_; complete)
   open _≅↭ⁱ_
 
   open Build X _≟X_ mor
@@ -187,4 +187,4 @@ module Discharge (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X)
       : ∀ {xs ys : List V} (p q : xs ↭ ys)
       → eval-↭ p ≈-fb eval-↭ q
       → permuteˢ p ≈ˢ permuteˢ q
-    permˢ-K p q eq = permuteˢ-resp-≅↭ⁱ (complete-proven eq)
+    permˢ-K p q eq = permuteˢ-resp-≅↭ⁱ (complete eq)

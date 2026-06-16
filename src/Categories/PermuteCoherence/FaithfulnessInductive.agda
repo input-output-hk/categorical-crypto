@@ -12,11 +12,11 @@
 --
 -- Architecture:
 --
---     permute-resp-≅↭ p q (h : p ≅↭ q) = permute-resp-≅↭ⁱ (complete-proven h)
+--     permute-resp-≅↭ p q (h : p ≅↭ q) = permute-resp-≅↭ⁱ (complete h)
 --
 --   * `permute-resp-≅↭ⁱ : p ≅↭ⁱ q → permute p ≈Term permute q`
 --       by induction -- one SMC axiom per generator (`swap-braid ↦ hexagon`).
---   * `complete-proven : eval-↭ p ≈-fb eval-↭ q → p ≅↭ⁱ q`
+--   * `complete : eval-↭ p ≈-fb eval-↭ q → p ≅↭ⁱ q`
 --       a purely COMBINATORIAL statement about `↭`-derivations (no terms,
 --       no `subst`): the Coxeter / word-problem core.
 --
@@ -56,7 +56,7 @@ open import Data.Product using (Σ; _,_; proj₁; proj₂; Σ-syntax)
 open import Categories.PermuteCoherence.FinBij
   using (_≈-fb_; cons-fb; swap-fb; id-fb; _∘-fb_; ≈-fb-refl)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
-open import Categories.PermuteCoherence.Soundness
+open import Categories.PermuteCoherence.EvalSoundness
   using ( cons-fb-functor-id; cons-fb-functor-comp; swap-fb-involutive
         ; swap-fb-natural; yang-baxter )
 open import Categories.PermuteCoherence.Faithfulness d
@@ -76,7 +76,7 @@ open import Categories.PermuteCoherence.InsertProof using (straightenW)
 open import Categories.PermuteCoherence.WordInterp {X = X}
   using ( swapAt; swapAt-↭; applyW; applyW-length; ⟦_⟧↭
         ; cast-push; eval-respect)
-open import Categories.PermuteCoherence.Map
+open import Categories.PermuteCoherence.FinBijSubst
   using ( eval-subst-cod )
 
 private
@@ -580,7 +580,7 @@ flatten (Perm.swap {xs = []} {ys = ys′} x y p′) with flatten p′
          (htrn (prepᴴ (liftⁱ prep-id)) (liftⁱ prep-id))
 
 ------------------------------------------------------------------------
--- 10. `complete-proven`, the combinatorial core.
+-- 10. `complete`, the combinatorial core.
 --
 -- `flatten` (§9) sends every derivation `p : (z∷zs) ↭ ys` to a `Word`
 -- whose `evalW` agrees with `eval-↭ p` (`flatten-eval`).  So equal
@@ -630,11 +630,11 @@ private
     L : length (applyW w (z ∷ zs)) ≡ suc (length zs)
     L = trans (applyW-length w (z ∷ zs)) refl
 
-complete-proven : {p q : xs ↭ ys} → eval-↭ p ≈-fb eval-↭ q → p ≅↭ⁱ q
-complete-proven {xs = []} {ys = ys} {p = p} {q = q} _
+complete : {p q : xs ↭ ys} → eval-↭ p ≈-fb eval-↭ q → p ≅↭ⁱ q
+complete {xs = []} {ys = ys} {p = p} {q = q} _
   with flatten p | flatten q
 ... | [] , rel_p | [] , rel_q = toⁱ (htrn rel_p (hsym rel_q))
-complete-proven {xs = z ∷ zs} {ys = ys} {p = p} {q = q} h
+complete {xs = z ∷ zs} {ys = ys} {p = p} {q = q} h
   with flatten p | flatten q
 ... | w_p , rel_p | w_q , rel_q = toⁱ (htrn rel_p (htrn bridge (hsym rel_q)))
   where
@@ -653,8 +653,8 @@ complete-proven {xs = z ∷ zs} {ys = ys} {p = p} {q = q} h
   bridge = bridge-sound word~ (z ∷ zs) refl
 
 ------------------------------------------------------------------------
--- 11. `FaithfulnessResidual`, closed via `complete-proven`.  This is
+-- 11. `FaithfulnessResidual`, closed via `complete`.  This is
 -- `K-faithfulness` in DecodeRelRespIsoWired.
 faithfulness : FaithfulnessResidual
 faithfulness = record
-  { permute-resp-≅↭ = λ p q h → permute-resp-≅↭ⁱ (complete-proven h) }
+  { permute-resp-≅↭ = λ p q h → permute-resp-≅↭ⁱ (complete h) }

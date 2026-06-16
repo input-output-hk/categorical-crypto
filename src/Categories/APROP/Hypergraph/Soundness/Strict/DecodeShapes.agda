@@ -270,7 +270,7 @@ module _
               (coe-uip _ (sym (++-assoc (flatten A) (flatten B) (flatten C))))
 
 --------------------------------------------------------------------------------
--- REMAINING SHAPES (downstream phases).
+-- COMPOUND AND σ SHAPES (downstream phases).
 --
 -- The boundary objects align DEFINITIONALLY (flatten distributes over ⊗₀
 -- as `_++_`), so the two compound shapes are cast-FREE statements:
@@ -282,30 +282,27 @@ module _
 --
 --   decodePˢ-σ : decodePˢ (σ {A} {B}) ≈ˢ σˢ (flatten A) (flatten B).
 --
--- They are NOT proven here (no postulates / holes are admitted in this
--- module).  Status / obstruction:
+-- They are discharged in the downstream phase modules:
 --
 --  * ∘-shape: `⟪ g ∘ f ⟫ = hComposeP ⟪ f ⟫ ⟪ g ⟫`.  The strict run over
---    `range (nE f + nE g)` must factor as `gRun ∘ˢ fRun`.  The STACK
---    factoring is already available (`stacks-agree` + the non-strict
---    `process-edges-↑ˡ-pure-L` / `-↑ʳ-via-remapP` from
---    `DecodeAttemptLinearP`), but the TERM-level `≈ˢ` factoring of
---    `process-edgesˢ` across the `injL` / `remapP` relabelling has no
---    strict counterpart yet; this is the strict port of
---    `DecodeComposePruned` (~650 LOC non-strict) and is the largest
---    remaining piece.  `term-sepˢ` (this tree, `Strict.Decoder`) supplies
---    the suffix-frame half; the remap-equivariance half is missing.
+--    `range (nE f + nE g)` factors as `gRun ∘ˢ fRun`: the STACK factoring
+--    comes from `stacks-agree` (+ `process-edges-↑ˡ-pure-L` /
+--    `-↑ʳ-via-remapP` from `DecodeAttemptLinearP`), and the TERM-level `≈ˢ`
+--    factoring of `process-edgesˢ` across the `injL` / `remapP` relabelling
+--    is the strict port of `DecodeComposePruned`.  `term-sepˢ`
+--    (`Strict.Decoder`) supplies the suffix-frame; `Strict.DecodeComposeS`
+--    supplies the remap-equivariance.
 --
---  * ⊗-shape: `⟪ f ⊗₁ g ⟫ = hTensor ⟪ f ⟫ ⟪ g ⟫`.  Needs the interleaved
---    two-block edge decomposition plus `term-sepˢ` on BOTH frames; this is
---    the strict port of `DecodeTensorShape` (~3800 LOC non-strict).
---    `term-sepˢ` is the documented G-side core (already proven); the
---    K-side equivariance + the block-interleave reshuffle remain.
+--  * ⊗-shape: `⟪ f ⊗₁ g ⟫ = hTensor ⟪ f ⟫ ⟪ g ⟫`.  The interleaved
+--    two-block edge decomposition plus `term-sepˢ` on BOTH frames; the
+--    strict port of `DecodeTensorShape`.  `term-sepˢ` is the G-side core;
+--    `Strict.DecodeTensorS`/`TensorBraidS` add the K-side equivariance and
+--    the block-interleave reshuffle.
 --
 --  * σ atomic: `⟪ σ ⟫ = hSwap A B` has `nE ≡ 0`, so (as in `Atom`)
 --    `decodePˢ σ` reduces to `coe (domL/codL casts) ∘ permuteˢ (finalPermˢ σ)`;
---    closing it needs a CANONICAL swap derivation `dom ↭ cod` with
---    `permuteˢ swap ≈ˢ σˢ`-cast, identified with `finalPermˢ σ` via
---    `perm-rigidˢ` — the strict port of `DecodeAgenSigmaShape`'s
---    block-swap evaluation.
+--    `Strict.DecodeSigmaS` supplies the CANONICAL swap derivation `dom ↭ cod`
+--    with `permuteˢ swap ≈ˢ σˢ`-cast, identified with `finalPermˢ σ` via
+--    `perm-rigidˢ` — the strict port of `DecodeAgenSigmaShape`'s block-swap
+--    evaluation.
 --------------------------------------------------------------------------------

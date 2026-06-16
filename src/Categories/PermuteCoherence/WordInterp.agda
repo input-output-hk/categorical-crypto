@@ -41,7 +41,7 @@ open import Categories.PermuteCoherence.FinBij
 
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 
-open import Categories.PermuteCoherence.Soundness
+open import Categories.PermuteCoherence.EvalSoundness
   using ( cons-fb-functor-id )
 
 private

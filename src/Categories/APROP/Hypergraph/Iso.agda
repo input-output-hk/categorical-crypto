@@ -5,7 +5,7 @@
 -- when there is a bijection of vertices and a bijection of edges that
 -- preserves labels, endpoints, and the ordered boundary.  Defines the
 -- relation and proves it is an equivalence; the main theorem
--- (⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g) lives in `SoundnessFullWired`.
+-- (⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g) lives in `Soundness`.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Iso where

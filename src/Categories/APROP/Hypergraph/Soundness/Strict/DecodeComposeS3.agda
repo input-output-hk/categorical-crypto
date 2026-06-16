@@ -64,7 +64,7 @@ open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Properties using (length-map)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_)
-open import Categories.PermuteCoherence.Map using (eval-map⁺)
+open import Categories.PermuteCoherence.FinBijSubst using (eval-map⁺)
 open import Categories.Hypergraph.ExtractPrefixEvalPhi
   using (≈-fb-of-≡; subst₂-FinBij-∘)
   renaming (cast-irrel to cast-irrel-fb)

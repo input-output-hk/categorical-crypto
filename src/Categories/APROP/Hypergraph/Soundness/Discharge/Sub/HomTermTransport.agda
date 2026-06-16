@@ -11,7 +11,7 @@
 --
 -- `subst₂-resp-≈Term` here is the GENERAL (arbitrary-`ObjTerm`-endpoint)
 -- variant, distinct from the `cong unflatten`-specialised one in
--- `DecodeRoundtripSafe`.  `objUIP` and `Kf : FaithfulnessResidual` are
+-- `BridgeCoherence`.  `objUIP` and `Kf : FaithfulnessResidual` are
 -- EXPLICIT per-lemma arguments (not module parameters), matching the
 -- consumers' call sites.
 --------------------------------------------------------------------------------

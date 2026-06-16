@@ -48,7 +48,7 @@ import Categories.APROP.Hypergraph.Soundness.Strict.SwapStepS sig _≟X_ as SS
 import Categories.APROP.Hypergraph.Soundness.Strict.DecodePRespIso sig _≟X_ as DP
 open import Categories.APROP.Hypergraph.Soundness.Strict.RunInterchangeTailS sig _≟X_
   using (RunInterchangeˢ; run-interchange-tailˢ)
-import Categories.APROP.Hypergraph.Soundness.Strict.FireMidDone sig _≟X_ as FMD
+import Categories.APROP.Hypergraph.Soundness.Strict.FireMidS sig _≟X_ as FMD
 import Categories.APROP.Hypergraph.Soundness.Strict.IsoTransportS sig _≟X_ as IT
 
 open import Data.Fin using (Fin)

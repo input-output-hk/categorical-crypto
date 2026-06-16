@@ -135,8 +135,8 @@ C3Rᵗ-rhs = E₂Rᵗ ∘ hRᵗ ⊗₁ id
 open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Translation (APROPSignatureDec.sig iSigDec) using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.FindIso iSigDec using (findIso)
-open import Categories.APROP.Hypergraph.SoundnessFullWired iSigDec
-  using (soundness-full-wired)
+open import Categories.APROP.Hypergraph.Soundness iSigDec
+  using (soundness)
 
 private
   force! : ∀ {a} {A : Set a} (m : Maybe A) → is-just m ≡ true → A
@@ -152,13 +152,13 @@ private
   iso-C3R = force! (findIso ⟪ C3Rᵗ-lhs ⟫ ⟪ C3Rᵗ-rhs ⟫) refl
 
 C1Lᵗ : C1Lᵗ-lhs ≈Term C1Lᵗ-rhs
-C1Lᵗ = soundness-full-wired {f = C1Lᵗ-lhs} {g = C1Lᵗ-rhs} iso-C1L
+C1Lᵗ = soundness {f = C1Lᵗ-lhs} {g = C1Lᵗ-rhs} iso-C1L
 C3Lᵗ : C3Lᵗ-lhs ≈Term C3Lᵗ-rhs
-C3Lᵗ = soundness-full-wired {f = C3Lᵗ-lhs} {g = C3Lᵗ-rhs} iso-C3L
+C3Lᵗ = soundness {f = C3Lᵗ-lhs} {g = C3Lᵗ-rhs} iso-C3L
 C1Rᵗ : C1Rᵗ-lhs ≈Term C1Rᵗ-rhs
-C1Rᵗ = soundness-full-wired {f = C1Rᵗ-lhs} {g = C1Rᵗ-rhs} iso-C1R
+C1Rᵗ = soundness {f = C1Rᵗ-lhs} {g = C1Rᵗ-rhs} iso-C1R
 C3Rᵗ : C3Rᵗ-lhs ≈Term C3Rᵗ-rhs
-C3Rᵗ = soundness-full-wired {f = C3Rᵗ-lhs} {g = C3Rᵗ-rhs} iso-C3R
+C3Rᵗ = soundness {f = C3Rᵗ-lhs} {g = C3Rᵗ-rhs} iso-C3R
 
 --------------------------------------------------------------------------------
 -- Transport into an arbitrary SMC.
@@ -166,7 +166,7 @@ C3Rᵗ = soundness-full-wired {f = C3Rᵗ-lhs} {g = C3Rᵗ-rhs} iso-C3R
 open import Level using (Level)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
 open import Categories.Functor using (Functor)
-import Categories.APROP.Hypergraph.Solver.Interpret as Interp
+import Categories.APROP.Hypergraph.Solver.Frontend as Interp
 
 private module IM = Interp iSigDec
 

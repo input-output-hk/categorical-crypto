@@ -115,21 +115,21 @@ module FrobeniusAlgebra (A : C.Obj)
 
     private
       -- One derivation step: fire a rule somewhere in `Tᵢ` (deep) and land
-      -- directly on the stated clean diagram `Tᵢ₊₁` (`rewriteDeepToA!`).
+      -- directly on the stated clean diagram `Tᵢ₊₁` (`rewriteDeepProvTo!`).
       step₁ : ⟦ T₁ ⟧₁ C.≈ ⟦ Xᵗ ⟧₁
-      step₁ = rewriteDeepToA! T₁ Xᵗ unitLᵗ S.λ⇒ 0 unitL
+      step₁ = rewriteDeepProvTo! T₁ Xᵗ unitLᵗ S.λ⇒ 0 unitL
 
       step₂ : ⟦ T₁ ⟧₁ C.≈ ⟦ T₂ ⟧₁
-      step₂ = rewriteDeepToA! T₁ T₂ Yᵗ Xᵗ 0 (C.Equiv.sym frobH)
+      step₂ = rewriteDeepProvTo! T₁ T₂ Yᵗ Xᵗ 0 (C.Equiv.sym frobH)
 
       step₃ : ⟦ T₂ ⟧₁ C.≈ ⟦ T₃ ⟧₁
-      step₃ = rewriteDeepToA! T₂ T₃ assocLᵗ assocRᵗ 0 assocH
+      step₃ = rewriteDeepProvTo! T₂ T₃ assocLᵗ assocRᵗ 0 assocH
 
       step₄ : ⟦ T₃ ⟧₁ C.≈ ⟦ T₄ ⟧₁
-      step₄ = rewriteDeepToA! T₃ T₄ Xᵗ Yᵗ 0 frobH
+      step₄ = rewriteDeepProvTo! T₃ T₄ Xᵗ Yᵗ 0 frobH
 
       step₅ : ⟦ T₄ ⟧₁ C.≈ ⟦ n S.∘ m ⟧₁
-      step₅ = rewriteDeepToA! T₄ (n S.∘ m) unitLᵗ S.λ⇒ 0 unitL
+      step₅ = rewriteDeepProvTo! T₄ (n S.∘ m) unitLᵗ S.λ⇒ 0 unitL
 
     frobL : (id ⊗₁ mᴹ) ∘ α⇒ ∘ (nᴹ ⊗₁ id) ≈ nᴹ ∘ mᴹ
     frobL =

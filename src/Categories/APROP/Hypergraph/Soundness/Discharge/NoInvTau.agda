@@ -1,11 +1,11 @@
--- Wiring lemmas of the soundness program.  Only LEMMA 4 (`NoInv-τ`)
--- lives here; the others are proven in their own `Discharge.*` modules.
+-- The single wiring lemma LEMMA 4 (`NoInv-τ`) of the soundness program;
+-- the other wiring lemmas are proven in their own `Discharge.*` modules.
 -- `NoInv-τ` takes J's `NoInv` as an explicit hypothesis.
 {-# OPTIONS --safe --without-K #-}
 
 open import Categories.APROP
 
-module Categories.APROP.Hypergraph.Soundness.Discharge.WiringLemmas
+module Categories.APROP.Hypergraph.Soundness.Discharge.NoInvTau
   (sig : APROPSignature) where
 
 open APROP sig

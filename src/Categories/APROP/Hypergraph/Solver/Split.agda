@@ -15,7 +15,7 @@
 --   3. aligned `⊗₁`      — factor objects match by index unification:
 --                          recurse pairwise, compose by `⊗-resp-≈`;
 --   4. fallback          — the whole-term solve `findIsoᵀ` + the opaque
---                          `soundness-full-wired`, so completeness is
+--                          `soundness`, so completeness is
 --                          unchanged (failures only ever fall back, at the
 --                          level where the decomposition got stuck).
 --
@@ -41,8 +41,8 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.FindIsoTab sig-dec using (findIsoᵀ)
-open import Categories.APROP.Hypergraph.SoundnessFullWired sig-dec
-  using (soundness-full-wired)
+open import Categories.APROP.Hypergraph.Soundness sig-dec
+  using (soundness)
 
 open import Data.Maybe.Base using (Maybe; just; nothing)
 import Data.Maybe.Base as Maybe
@@ -118,7 +118,7 @@ eq? f g = eqH? f g refl refl
 
 fallback : ∀ {A B} (f g : HomTerm A B) → Maybe (f ≈Term g)
 fallback f g =
-  Maybe.map (λ iso → soundness-full-wired {f = f} {g = g} iso)
+  Maybe.map (λ iso → soundness {f = f} {g = g} iso)
             (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫)
 
 --------------------------------------------------------------------------------

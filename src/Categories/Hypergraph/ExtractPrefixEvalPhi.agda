@@ -48,10 +48,11 @@ open import Categories.PermuteCoherence.FinBij
 ≈-fb-of-≡ {π = π} refl = ≈-fb-refl {π = π}
 
 --------------------------------------------------------------------------------
--- `eval-map⁺` is imported from the canonical (K-free) `PermuteCoherence.Map`
--- (re-exported `public` for downstream consumers that imported it from here).
+-- `eval-map⁺` is imported from the canonical (K-free)
+-- `PermuteCoherence.FinBijSubst` (re-exported `public` for downstream
+-- consumers that imported it from here).
 
-open import Categories.PermuteCoherence.Map using (eval-map⁺) public
+open import Categories.PermuteCoherence.FinBijSubst using (eval-map⁺) public
 
 -- A `subst₂ FinBij` whose two index-equalities are loops (`n ≡ n`) is the
 -- identity (ℕ-UIP collapses them to `refl`).

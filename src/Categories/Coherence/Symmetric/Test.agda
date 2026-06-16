@@ -8,7 +8,7 @@
 -- ARCHITECTURE.  The engine follows TensorRocq (arXiv:2604.17592): free-SMC
 -- terms over a generator signature are translated to hypergraphs (`⟪_⟫`),
 -- where "only connectivity matters"; a *verified* decision procedure
--- (`findIso`, sound by the postulate-free theorem `soundness-full-wired`)
+-- (`findIso`, sound by the postulate-free theorem `soundness`)
 -- turns a hypergraph isomorphism into an equation in any target SMC `C`.
 -- All *search* (position finding, sub-hypergraph matching, context carving)
 -- is deliberately UNVERIFIED: a wrong search result simply fails the final

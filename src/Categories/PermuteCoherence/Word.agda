@@ -31,7 +31,7 @@ open import Relation.Binary.PropositionalEquality.Core
   using (_≡_; refl; sym; cong; trans; subst)
 
 open import Categories.PermuteCoherence.FinBij
-open import Categories.PermuteCoherence.Soundness as Snd
+open import Categories.PermuteCoherence.EvalSoundness as Snd
 -- `residual-pw-cong`: `remove 0F` respects pointwise (`≈-fb`) equality.
 open import Categories.PermuteCoherence.CanonicalProps using (residual-pw-cong)
 

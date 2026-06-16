@@ -38,7 +38,7 @@ open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig
   using (bridge)
 open import Categories.APROP.Hypergraph.Soundness.BridgeOps sig
   using (bridge-∘; bridge-⊗)
-open import Categories.APROP.Hypergraph.Soundness.DecodeRoundtripSafe sig
+open import Categories.APROP.Hypergraph.Soundness.BridgeCoherence sig
   using ( bridge-id-is-id; bridge-λ⇒-is-id; bridge-λ⇐-is-id
         ; ρ⇒-coherence; ρ⇐-coherence; α⇒-form-list )
 import Categories.APROP.Hypergraph.Soundness.Discharge.BridgeAlphaFormCompound

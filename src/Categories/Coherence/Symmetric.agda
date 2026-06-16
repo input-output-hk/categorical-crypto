@@ -68,7 +68,7 @@ open import Relation.Binary.Definitions using (DecidableEquality)
 open import Categories.APROP using (module APROP)
 open import Categories.FreeMonoidal public
 import Categories.APROP.Hypergraph.Solver.FinSignature as FinSig
-import Categories.APROP.Hypergraph.Solver.Interpret as Interp
+import Categories.APROP.Hypergraph.Solver.Frontend as Interp
 
 module C = SymmetricMonoidalCategory C
 

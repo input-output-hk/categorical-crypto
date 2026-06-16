@@ -1,10 +1,10 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Gate-only LEAN decode (Route-B Lever-1).
+-- Gate-only LEAN decode.
 --
--- A drop-in replacement for `Soundness.Decode.decode-attempt`, used ONLY at
--- the deep-rewrite search call site (`Solver.Deep.At.tryEmb`, run over the
+-- A drop-in replacement for `Soundness.Decode.decode-attempt`, used at the
+-- deep-rewrite search call site (`Solver.Deep.At.tryEmb`, run over the
 -- EXTENDED signature `sig⁺`).  It clones `Decode`'s control flow verbatim —
 -- same `process-edges` over `range H.nE` in kahn order, same `extract-prefix`
 -- branching, same `Agen-edge` emission, same `nothing` cases — so it returns
@@ -22,12 +22,13 @@
 -- `hComposeP` seam, so dropping it leaves `⟪frame⟫` IDENTICAL.  We therefore
 -- emit a single `id` (well-typed by the `refl` from the `≟`), collapsing the
 -- bulk identity padding.  A *non*-identity permutation never passes the `≟`
--- guard, so it is never collapsed — and even if it somehow were, the
--- decidable `findIso`/`Verify` gate would fail closed, never lie.
+-- guard, so it is never collapsed.
 --
--- This is UNVERIFIED search glue (like all of `Solver.Deep`): no new proofs,
--- no claim that `decode-lean ≈Term decode-attempt`; correctness is the
--- caller's `findIso ⟪ s ⟫ ⟪ frame ⟫` certificate.
+-- Because the identity-guard collapse keeps the translated graph identical,
+-- the produced frame is iso-equivalent to the soundness decoder's frame, so
+-- this needs no `decode-lean ≈Term decode-attempt` proof: correctness comes
+-- from the downstream `findIso ⟪ s ⟫ ⟪ frame ⟫` gate, which is decidable and
+-- fails closed if a candidate is ever wrong.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -115,9 +116,10 @@ module _ (H : Hypergraph FlatGen) where
               mid
 
       -- LEAN: collapse the identity permute (s ≡ ein e ++ rest) ⇒ drop it.
-      -- Transport `mid'`'s domain along the decided list equality instead of
-      -- pattern-matching `refl` (which green-slimes the `with`-abstracted
-      -- goal, since `s` occurs in the result type via `map H.vlab s`).
+      -- Transport `mid'`'s domain along the decided list equality with `subst`
+      -- rather than pattern-matching `refl`, since `s` occurs in the result
+      -- type via `map H.vlab s` and so cannot be unified directly under the
+      -- `with`-abstraction.
       bridged : HomTerm (unflatten (map H.vlab s))
                         (unflatten (map H.vlab (H.eout e ++ rest)))
       bridged with s ≟L (H.ein e ++ rest)

@@ -85,6 +85,18 @@
 -- non-strict runs walk the SAME stacks — `Run.stacks-agree`).
 --------------------------------------------------------------------------------
 
+--------------------------------------------------------------------------------
+-- CONSOLIDATED MODULE.  This file merges the former Stage-1 `DecodeComposeS`
+-- (§0 permuteˢ-X / §1 RunBlocks, run-split-atˢ) with Stage-2 `DecodeComposeS2`
+-- (the embedding term-twins `TermEmbedˢ` + the equivariance `Equivariantˢ`),
+-- which `open import`ed DecodeComposeS `public`.  DecodeComposeS3 (the ∘-shape
+-- assembly) is NOT merged: it sits behind the non-chain module `StackEquivS`
+-- (StackEquivS imports DecodeComposeS2; DecodeComposeS3 imports StackEquivS),
+-- so absorbing it would create a StackEquivS -> merged -> StackEquivS cycle.
+-- Content is byte-identical to the split; the two stage bodies are concatenated
+-- under one module with a unified import header.
+--------------------------------------------------------------------------------
+
 open import Categories.APROP
 open import Relation.Binary using (DecidableEquality)
 
@@ -98,19 +110,39 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Soundness.Decode sig
-  using (edge-step; process-edges)
+  using (edge-step; process-edges; extract-prefix)
+open import Categories.APROP.Hypergraph.Soundness.DecodeProperties sig
+  using (extract-prefix-via-injective-just; extract-prefix-via-injective-nothing)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.DecodeS sig _≟X_ public
 
+-- The single deferred Kelly residual, at the X-level (identity labelling).
+import Categories.APROP.Hypergraph.Soundness.Strict.PermK sig _≟X_ as PK
+open import Categories.APROP.Hypergraph.Soundness.Strict.PermSupport sig _≟X_
+  using (module Support)
+
+-- The eval-coincidence keystone (injective relabel ⇒ same evaluated bijection).
+open import Categories.Hypergraph.ExtractPrefixEvalPhi using (eval-coincide)
+open import Categories.PermuteCoherence.Eval using (eval-↭)
+open import Categories.PermuteCoherence.FinBij
+  using (FinBij; _≈-fb_; ≈-fb-refl; ≈-fb-sym; ≈-fb-trans)
+open import Categories.PermuteCoherence.FinBijSubst using (≈-fb-of-≡)
+
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (map-id)
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.List using (List; []; _∷_; _++_; map; length)
+open import Data.List.Properties using (map-∘; map-cong; map-++; map-id; length-map)
+open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
+  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
+
+--------------------------------------------------------------------------------
+-- ===== former Strict.DecodeComposeS (Stage 1) =====
+--------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
 -- ## §0.  The cross-vertex-type permute bridge.
@@ -240,3 +272,549 @@ module RunBlocks (H : Hypergraph FlatGen) where
                  (cong (map vl) (trans (sym (pe-stack-++ˢ gblk kblk s)) refl))
                  (proj₂ (process-edgesˢ kblk (proj₁ (process-edgesˢ gblk s)))
                    ∘ˢ proj₂ (process-edgesˢ gblk s))))
+
+
+--------------------------------------------------------------------------------
+-- ===== former Strict.DecodeComposeS2 (Stage 2; opened DecodeComposeS public) =====
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- ## Local plumbing.
+
+private
+  -- The X-level Kelly residual (vertex type `X`, labelling `id`).
+  permˢ-K-X : Support.PermK X (λ x → x)
+  permˢ-K-X = PK.permˢ-K X _≟X_ (λ x → x)
+
+  -- generator-cast: a `castˢ` of a `genˢ` is the `genˢ` of the `subst₂`-ed
+  -- generator.  (`refl refl` matched.)
+  gen-cast
+    : ∀ {as as' bs bs'} (p : as ≡ as') (q : bs ≡ bs') (g : FlatGen as bs)
+    → castˢ p q (genˢ g) ≡ genˢ (subst₂ FlatGen p q g)
+  gen-cast refl refl g = refl
+
+  -- `eval-↭` of a two-sided `subst₂`-ed derivation is a `subst₂ FinBij`
+  -- (re-proved locally, 1-liner; avoids a heavy `HomTermTransport` import).
+  eval-subst₂-↭
+    : ∀ {a} {A : Set a} {xs xs' ys ys' : List A}
+        (p : xs ≡ xs') (q : ys ≡ ys') (r : xs Perm.↭ ys)
+    → eval-↭ (subst₂ Perm._↭_ p q r)
+      ≡ subst₂ FinBij (cong length p) (cong length q) (eval-↭ r)
+  eval-subst₂-↭ refl refl r = refl
+
+  just-injective-fst
+    : ∀ {a b} {A : Set a} {B : A → Set b} {x y : A} {p : B x} {q : B y}
+    → just (x , p) ≡ just (y , q) → x ≡ y
+  just-injective-fst refl = refl
+
+  -- split a `castˢ` across a `⊗ˢ` (all endpoint proofs given; UIP absorbs
+  -- the supplied product proofs `P`/`Q`).
+  cast-⊗-split
+    : ∀ {xs xs' ys ys' us us' vs vs'}
+        (px : xs ≡ xs') (py : ys ≡ ys') (pu : us ≡ us') (pv : vs ≡ vs')
+        (f : HomS xs ys) (g : HomS us vs)
+        (P : xs ++ us ≡ xs' ++ us') (Q : ys ++ vs ≡ ys' ++ vs')
+    → castˢ P Q (f ⊗ˢ g) ≈ˢ castˢ px py f ⊗ˢ castˢ pu pv g
+  cast-⊗-split refl refl refl refl f g P Q
+    rewrite uipL P refl | uipL Q refl = ≈-refl
+
+  open XPerm using (permuteˣ)
+
+  -- two-sided subst on a derivation = a `castˢ` of the X-level permute.
+  -- (`map id xs ≡ xs` definitionally, so `castˢ` lands on the bare lists.)
+  permuteˣ-subst₂
+    : ∀ {xs xs' ys ys' : List X} (p : xs ≡ xs') (q : ys ≡ ys')
+        (r : xs Perm.↭ ys)
+    → permuteˣ (subst₂ Perm._↭_ p q r)
+      ≡ castˢ (cong (map (λ x → x)) p) (cong (map (λ x → x)) q) (permuteˣ r)
+  permuteˣ-subst₂ refl refl r = refl
+
+--------------------------------------------------------------------------------
+-- ## (A)  The generic embedding-based per-edge + process-edges term-twins,
+-- strict.  Mirrors `ProcessEdgesTermShape.TermEmbed`, parameterised by an
+-- injective, label-preserving vertex embedding `(φ, ψ)`.
+
+module TermEmbedˢ
+  {H J : Hypergraph FlatGen}
+  (let module H = Hypergraph H)
+  (let module J = Hypergraph J)
+  -- Injective, label-preserving vertex embedding.
+  (φ      : Fin H.nV → Fin J.nV)
+  (φ-inj  : ∀ {x y} → φ x ≡ φ y → x ≡ y)
+  (φ-lab  : ∀ i → J.vlab (φ i) ≡ H.vlab i)
+  -- Edge map with endpoints/labels mirroring H's under `map φ`.
+  (ψ      : Fin H.nE → Fin J.nE)
+  (ψ-ein  : ∀ e → J.ein  (ψ e) ≡ map φ (H.ein  e))
+  (ψ-eout : ∀ e → J.eout (ψ e) ≡ map φ (H.eout e))
+  (atom-ein  : ∀ e → map J.vlab (J.ein  (ψ e)) ≡ map H.vlab (H.ein  e))
+  (atom-eout : ∀ e → map J.vlab (J.eout (ψ e)) ≡ map H.vlab (H.eout e))
+  (ψ-elab : ∀ e → subst₂ FlatGen (atom-ein e) (atom-eout e) (J.elab (ψ e))
+                ≡ H.elab e)
+  where
+
+  private
+    module RH = Run H
+    module RJ = Run J
+
+  vlH = H.vlab
+  vlJ = J.vlab
+
+  -- `map vlJ (map φ s) ≡ map vlH s` (the label-pushed cast).
+  vlab-φ : ∀ (s : List (Fin H.nV)) → map vlJ (map φ s) ≡ map vlH s
+  vlab-φ s = trans (sym (map-∘ s)) (map-cong φ-lab s)
+
+  ----------------------------------------------------------------------
+  -- J-side extract-prefix lock-step with the H-side (term-free; copy of
+  -- the non-strict `extract-prefix-J-{nothing,just}`).
+
+  extract-prefix-J-nothing
+    : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
+    → extract-prefix (H.ein e) sH ≡ nothing
+    → extract-prefix (J.ein (ψ e)) (map φ sH) ≡ nothing
+  extract-prefix-J-nothing e sH eqH =
+    subst (λ ks → extract-prefix ks (map φ sH) ≡ nothing) (sym (ψ-ein e))
+          (extract-prefix-via-injective-nothing φ φ-inj (H.ein e) sH eqH)
+
+  extract-prefix-J-just
+    : ∀ (e : Fin H.nE) (sH restH : List (Fin H.nV))
+        (pH : sH Perm.↭ H.ein e ++ restH)
+    → extract-prefix (H.ein e) sH ≡ just (restH , pH)
+    → Σ[ q ∈ map φ sH Perm.↭ J.ein (ψ e) ++ map φ restH ]
+        extract-prefix (J.ein (ψ e)) (map φ sH) ≡ just (map φ restH , q)
+  extract-prefix-J-just e sH restH pH eqH =
+    subst (λ ks → Σ[ q ∈ map φ sH Perm.↭ ks ++ map φ restH ]
+                    extract-prefix ks (map φ sH) ≡ just (map φ restH , q))
+          (sym (ψ-ein e))
+          (extract-prefix-via-injective-just φ φ-inj (H.ein e) sH restH pH eqH)
+
+  ----------------------------------------------------------------------
+  -- FIRE box factor.  `genˢ (J.elab (ψe)) ⊗ˢ idˢ` casts to
+  -- `genˢ (H.elab e) ⊗ˢ idˢ`, via `cast-⊗-split` + `gen-cast` + `ψ-elab`.
+
+  box-emb
+    : ∀ (e : Fin H.nE) (restH : List (Fin H.nV)) (restJ : List (Fin J.nV))
+        (restJ≡ : restJ ≡ map φ restH)
+        (rest-lab : map vlJ restJ ≡ map vlH restH)
+        (P : map vlJ (J.ein  (ψ e)) ++ map vlJ restJ
+             ≡ map vlH (H.ein  e) ++ map vlH restH)
+        (Q : map vlJ (J.eout (ψ e)) ++ map vlJ restJ
+             ≡ map vlH (H.eout e) ++ map vlH restH)
+    → castˢ P Q (genˢ (J.elab (ψ e)) ⊗ˢ idˢ {map vlJ restJ})
+      ≈ˢ genˢ (H.elab e) ⊗ˢ idˢ {map vlH restH}
+  box-emb e restH restJ restJ≡ rest-lab P Q =
+    ≈-trans
+      (cast-⊗-split (atom-ein e) (atom-eout e) rest-lab rest-lab
+        (genˢ (J.elab (ψ e))) (idˢ {map vlJ restJ}) P Q)
+      (⊗-resp gen-side (cast-id rest-lab rest-lab))
+    where
+      gen-side : castˢ (atom-ein e) (atom-eout e) (genˢ (J.elab (ψ e)))
+                 ≈ˢ genˢ (H.elab e)
+      gen-side =
+        ≡⇒≈ˢ (trans (gen-cast (atom-ein e) (atom-eout e) (J.elab (ψ e)))
+                    (cong genˢ (ψ-elab e)))
+
+  ----------------------------------------------------------------------
+  -- FIRE permute factor.  `permuteˢ_J permJ` casts to `permuteˢ_H permH`.
+  -- Route both through the X-LEVEL permute (§0 `permuteˢ-X`); the two
+  -- X-permutes are identified by `permˢ-K-X`, whose evaluated-bijection
+  -- premise is `eval-coincide` (transported by `eval-subst₂-↭`).
+
+  perm-emb
+    : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
+        (restH : List (Fin H.nV)) (permH : sH Perm.↭ H.ein e ++ restH)
+        (eqH : extract-prefix (H.ein e) sH ≡ just (restH , permH))
+        (restJ : List (Fin J.nV)) (permJ : map φ sH Perm.↭ J.ein (ψ e) ++ restJ)
+        (eqJ : extract-prefix (J.ein (ψ e)) (map φ sH) ≡ just (restJ , permJ))
+        (P : map vlJ (map φ sH) ≡ map vlH sH)
+        (Q : map vlJ (J.ein (ψ e) ++ restJ) ≡ map vlH (H.ein e ++ restH))
+    → castˢ P Q (RJ.permuteˢ permJ) ≈ˢ RH.permuteˢ permH
+  perm-emb e sH restH permH eqH restJ permJ eqJ P Q =
+    helper restJ permJ eqJ Q
+      (just-injective-fst
+        (trans (sym eqJ) (proj₂ (extract-prefix-J-just e sH restH permH eqH))))
+    where
+      helper
+        : (rJ : List (Fin J.nV))
+          (pJ : map φ sH Perm.↭ J.ein (ψ e) ++ rJ)
+          (eJ : extract-prefix (J.ein (ψ e)) (map φ sH) ≡ just (rJ , pJ))
+          (qq : map vlJ (J.ein (ψ e) ++ rJ) ≡ map vlH (H.ein e ++ restH))
+        → rJ ≡ map φ restH
+        → castˢ P qq (RJ.permuteˢ pJ) ≈ˢ RH.permuteˢ permH
+      helper .(map φ restH) pJ eJ qq refl rewrite ψ-ein e =
+        ≈-trans
+          (cast-resp P qq (≈-sym (permuteˢ-X (Fin J.nV) vlJ pJ)))
+          (≈-trans middle (permuteˢ-X (Fin H.nV) vlH permH))
+        where
+          mpJd = mp (Fin J.nV) vlJ (map φ sH)
+          mpJc = mp (Fin J.nV) vlJ (map φ (H.ein e) ++ map φ restH)
+          mpHd = mp (Fin H.nV) vlH sH
+          mpHc = mp (Fin H.nV) vlH (H.ein e ++ restH)
+          Xj = permuteˣ (PermProp.map⁺ vlJ pJ)
+          Xh = permuteˣ (PermProp.map⁺ vlH permH)
+
+          -- the evaluated-bijection equality, from `eval-coincide`.
+          ev-mid : eval-↭ (subst₂ Perm._↭_ P qq (PermProp.map⁺ vlJ pJ))
+                   ≈-fb subst₂ FinBij (cong length P) (cong length qq)
+                          (eval-↭ (PermProp.map⁺ vlJ pJ))
+          ev-mid = ≈-fb-of-≡ (eval-subst₂-↭ P qq (PermProp.map⁺ vlJ pJ))
+
+          ev-coin : subst₂ FinBij (cong length P) (cong length qq)
+                          (eval-↭ (PermProp.map⁺ vlJ pJ))
+                    ≈-fb eval-↭ (PermProp.map⁺ vlH permH)
+          ev-coin = eval-coincide {H.nV} {J.nV} {X} φ φ-inj vlJ vlH φ-lab
+                      (H.ein e) sH restH permH pJ P qq eqH eJ
+
+          ev : eval-↭ (subst₂ Perm._↭_ P qq (PermProp.map⁺ vlJ pJ))
+               ≈-fb eval-↭ (PermProp.map⁺ vlH permH)
+          ev i = trans (ev-mid i) (ev-coin i)
+
+          -- the X-level identification: `Xh ≈ castˢ (cong(map id)P)(cong(map id)qq) Xj`.
+          K-step : Xh ≈ˢ castˢ (cong (map (λ x → x)) P) (cong (map (λ x → x)) qq) Xj
+          K-step =
+            ≈-trans
+              (≈-sym (permˢ-K-X (subst₂ Perm._↭_ P qq (PermProp.map⁺ vlJ pJ))
+                                (PermProp.map⁺ vlH permH) ev))
+              (≡⇒≈ˢ (permuteˣ-subst₂ P qq (PermProp.map⁺ vlJ pJ)))
+
+          -- `castˢ P qq (castˢ mpJ Xj) ≈ castˢ mpH Xh`, via cast-fuse on both
+          -- sides + cast-irrel (endpoints coincide after the K-step).
+          middle
+            : castˢ P qq (castˢ mpJd mpJc Xj) ≈ˢ castˢ mpHd mpHc Xh
+          middle =
+            ≈-trans (≡⇒≈ˢ (cast-fuse mpJd P mpJc qq Xj))
+            (≈-trans (≡⇒≈ˢ (cast-irrel (trans mpJd P)
+                              (trans (cong (map (λ x → x)) P) mpHd)
+                              (trans mpJc qq)
+                              (trans (cong (map (λ x → x)) qq) mpHc) Xj))
+            (≈-trans (≡⇒≈ˢ (sym (cast-fuse (cong (map (λ x → x)) P) mpHd
+                                           (cong (map (λ x → x)) qq) mpHc Xj)))
+              (≈-sym (cast-resp mpHd mpHc K-step))))
+
+
+  ----------------------------------------------------------------------
+  -- FIRE/FIRE per-edge term-twin, assembled from box-emb + perm-emb.
+
+  edge-step-fire-embˢ
+    : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
+        (restH : List (Fin H.nV)) (permH : sH Perm.↭ H.ein e ++ restH)
+        (eqH : extract-prefix (H.ein e) sH ≡ just (restH , permH))
+        (restJ : List (Fin J.nV)) (permJ : map φ sH Perm.↭ J.ein (ψ e) ++ restJ)
+        (eqJ : extract-prefix (J.ein (ψ e)) (map φ sH) ≡ just (restJ , permJ))
+        (restJ≡ : restJ ≡ map φ restH)
+        (pDom : map vlJ (map φ sH) ≡ map vlH sH)
+        (pCod : map vlJ (J.eout (ψ e) ++ restJ) ≡ map vlH (H.eout e ++ restH))
+    → castˢ pDom pCod
+        (castˢ refl (sym (map-++ vlJ (J.eout (ψ e)) restJ))
+           ((genˢ (J.elab (ψ e)) ⊗ˢ idˢ {map vlJ restJ})
+             ∘ˢ castˢ refl (map-++ vlJ (J.ein (ψ e)) restJ) (RJ.permuteˢ permJ)))
+      ≈ˢ castˢ refl (sym (map-++ vlH (H.eout e) restH))
+           ((genˢ (H.elab e) ⊗ˢ idˢ {map vlH restH})
+             ∘ˢ castˢ refl (map-++ vlH (H.ein e) restH) (RH.permuteˢ permH))
+  edge-step-fire-embˢ e sH restH permH eqH restJ permJ eqJ restJ≡ pDom pCod =
+    ≈-trans (≡⇒≈ˢ (cast-fuse refl pDom (sym (map-++ vlJ (J.eout (ψ e)) restJ)) pCod
+                     (Jbox ∘ˢ Jperm)))
+    (≈-trans (∘-cast-split pDom Mmid Cod∘ Jbox Jperm)
+    (≈-trans (∘-resp box-side perm-side)
+      (≈-sym (∘-cast-split refl refl (sym (map-++ vlH (H.eout e) restH))
+                (genˢ (H.elab e) ⊗ˢ idˢ {map vlH restH})
+                (castˢ refl (map-++ vlH (H.ein e) restH) (RH.permuteˢ permH))))))
+    where
+      Jperm = castˢ refl (map-++ vlJ (J.ein (ψ e)) restJ) (RJ.permuteˢ permJ)
+      Jbox  = genˢ (J.elab (ψ e)) ⊗ˢ idˢ {map vlJ restJ}
+
+      -- the fused outer cod proof: split-eout-J → concat-H.
+      Cod∘ : map vlJ (J.eout (ψ e)) ++ map vlJ restJ ≡ map vlH (H.eout e ++ restH)
+      Cod∘ = trans (sym (map-++ vlJ (J.eout (ψ e)) restJ)) pCod
+
+      rest-lab : map vlJ restJ ≡ map vlH restH
+      rest-lab = trans (cong (map vlJ) restJ≡) (vlab-φ restH)
+
+      -- the box-input / perm-output interface (split form, both sides).
+      Mmid : map vlJ (J.ein (ψ e)) ++ map vlJ restJ
+             ≡ map vlH (H.ein e) ++ map vlH restH
+      Mmid = trans (sym (map-++ vlJ (J.ein (ψ e)) restJ))
+             (trans (cong (map vlJ) (cong₂ _++_ (ψ-ein e) restJ≡))
+             (trans (cong (map vlJ) (sym (map-++ φ (H.ein e) restH)))
+             (trans (vlab-φ (H.ein e ++ restH))
+                    (map-++ vlH (H.ein e) restH))))
+
+      -- BOX side: `castˢ Mmid Cod∘ Jbox ≈ castˢ refl (sym map-++_eoutH) (genˢ_H ⊗ id)`.
+      box-side
+        : castˢ Mmid Cod∘ Jbox
+          ≈ˢ castˢ refl (sym (map-++ vlH (H.eout e) restH))
+               (genˢ (H.elab e) ⊗ˢ idˢ {map vlH restH})
+      box-side =
+        ≈-trans (≡⇒≈ˢ (cast-irrel Mmid (trans Mmid refl) Cod∘
+                         (trans Qbox (sym (map-++ vlH (H.eout e) restH))) Jbox))
+        (≈-trans (≡⇒≈ˢ (sym (cast-fuse Mmid refl Qbox (sym (map-++ vlH (H.eout e) restH))
+                              Jbox)))
+          (cast-resp refl (sym (map-++ vlH (H.eout e) restH))
+            (box-emb e restH restJ restJ≡ rest-lab Mmid Qbox)))
+        where
+          Qbox : map vlJ (J.eout (ψ e)) ++ map vlJ restJ
+                 ≡ map vlH (H.eout e) ++ map vlH restH
+          Qbox = cong₂ _++_ (atom-eout e) rest-lab
+
+      -- PERM side: `castˢ pDom Mmid Jperm ≈ castˢ refl (map-++_einH) (permuteˢ permH)`.
+      perm-side
+        : castˢ pDom Mmid Jperm
+          ≈ˢ castˢ refl (map-++ vlH (H.ein e) restH) (RH.permuteˢ permH)
+      perm-side =
+        ≈-trans (≡⇒≈ˢ (cast-fuse refl pDom (map-++ vlJ (J.ein (ψ e)) restJ) Mmid
+                         (RJ.permuteˢ permJ)))
+        (≈-trans (≡⇒≈ˢ (cast-irrel pDom (trans pDom refl)
+                          (trans (map-++ vlJ (J.ein (ψ e)) restJ) Mmid)
+                          (trans Qp (map-++ vlH (H.ein e) restH))
+                          (RJ.permuteˢ permJ)))
+        (≈-trans (≡⇒≈ˢ (sym (cast-fuse pDom refl Qp (map-++ vlH (H.ein e) restH)
+                              (RJ.permuteˢ permJ))))
+          (cast-resp refl (map-++ vlH (H.ein e) restH)
+            (perm-emb e sH restH permH eqH restJ permJ eqJ pDom Qp))))
+        where
+          Qp : map vlJ (J.ein (ψ e) ++ restJ) ≡ map vlH (H.ein e ++ restH)
+          Qp = trans (map-++ vlJ (J.ein (ψ e)) restJ)
+               (trans Mmid (sym (map-++ vlH (H.ein e) restH)))
+
+
+  ----------------------------------------------------------------------
+  -- Per-edge STACK agreement (term-free; lock-step on `extract-prefix`).
+
+  edge-step-stack-embˢ
+    : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
+    → proj₁ (RJ.edge-stepˢ (map φ sH) (ψ e))
+      ≡ map φ (proj₁ (RH.edge-stepˢ sH e))
+  edge-step-stack-embˢ e sH with extract-prefix (H.ein e) sH in eqH
+  ... | nothing
+        rewrite extract-prefix-J-nothing e sH eqH = refl
+  ... | just (restH , permH)
+        rewrite proj₂ (extract-prefix-J-just e sH restH permH eqH)
+        = trans (cong (_++ map φ restH) (ψ-eout e))
+                (sym (map-++ φ (H.eout e) restH))
+
+  ----------------------------------------------------------------------
+  -- Per-edge term-twin (dispatch on `extract-prefix`, both sides).
+
+  edge-step-term-embˢ
+    : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
+        (pDom : map vlJ (map φ sH) ≡ map vlH sH)
+        (pCod : map vlJ (proj₁ (RJ.edge-stepˢ (map φ sH) (ψ e)))
+              ≡ map vlH (proj₁ (RH.edge-stepˢ sH e)))
+    → castˢ pDom pCod (proj₂ (RJ.edge-stepˢ (map φ sH) (ψ e)))
+      ≈ˢ proj₂ (RH.edge-stepˢ sH e)
+  edge-step-term-embˢ e sH pDom pCod
+    with extract-prefix (H.ein e) sH in eqH
+       | extract-prefix (J.ein (ψ e)) (map φ sH) in eqJ
+  ... | nothing | nothing = cast-id pDom pCod
+  ... | nothing | just (restJ , permJ) =
+        ⊥-elim (just≢nothing (trans (sym eqJ) (extract-prefix-J-nothing e sH eqH)))
+        where
+          just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
+          just≢nothing ()
+  ... | just (restH , permH) | nothing =
+        ⊥-elim (just≢nothing
+          (trans (sym (proj₂ (extract-prefix-J-just e sH restH permH eqH))) eqJ))
+        where
+          just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
+          just≢nothing ()
+  ... | just (restH , permH) | just (restJ , permJ) =
+        edge-step-fire-embˢ e sH restH permH eqH restJ permJ eqJ restJ≡ pDom pCod
+        where
+          restJ≡ : restJ ≡ map φ restH
+          restJ≡ = just-injective-fst
+                     (trans (sym eqJ)
+                            (proj₂ (extract-prefix-J-just e sH restH permH eqH)))
+
+  ----------------------------------------------------------------------
+  -- Iterated STACK agreement (term-free).
+
+  proc-stack-embˢ
+    : ∀ (es : List (Fin H.nE)) (sH : List (Fin H.nV))
+    → proj₁ (RJ.process-edgesˢ (map ψ es) (map φ sH))
+      ≡ map φ (proj₁ (RH.process-edgesˢ es sH))
+  proc-stack-embˢ []       sH = refl
+  proc-stack-embˢ (e ∷ es) sH
+    rewrite edge-step-stack-embˢ e sH =
+      proc-stack-embˢ es (proj₁ (RH.edge-stepˢ sH e))
+
+  ----------------------------------------------------------------------
+  -- Iterated term-twin, GENERALISED over the J-start stack `sJ`
+  -- (`sJ ≡ map φ sH`), matched at refl.  Mirror of
+  -- `ProcessEdgesTermShape.process-edges-term-emb-gen`.
+
+  process-edges-term-embˢ-gen
+    : ∀ (es : List (Fin H.nE)) (sH : List (Fin H.nV))
+        (sJ : List (Fin J.nV)) (sJ≡ : sJ ≡ map φ sH)
+        (pDom : map vlJ sJ ≡ map vlH sH)
+        (pCod : map vlJ (proj₁ (RJ.process-edgesˢ (map ψ es) sJ))
+              ≡ map vlH (proj₁ (RH.process-edgesˢ es sH)))
+    → castˢ pDom pCod (proj₂ (RJ.process-edgesˢ (map ψ es) sJ))
+      ≈ˢ proj₂ (RH.process-edgesˢ es sH)
+  process-edges-term-embˢ-gen [] sH sJ sJ≡ pDom pCod = cast-id pDom pCod
+  process-edges-term-embˢ-gen (e ∷ es) sH .(map φ sH) refl pDom pCod = goal
+    where
+      s'H  = proj₁ (RH.edge-stepˢ sH e)
+      s'J  = proj₁ (RJ.edge-stepˢ (map φ sH) (ψ e))
+
+      stepStk : s'J ≡ map φ s'H
+      stepStk = edge-step-stack-embˢ e sH
+
+      pMid : map vlJ s'J ≡ map vlH s'H
+      pMid = trans (cong (map vlJ) stepStk) (vlab-φ s'H)
+
+      headTwin
+        : castˢ pDom pMid (proj₂ (RJ.edge-stepˢ (map φ sH) (ψ e)))
+          ≈ˢ proj₂ (RH.edge-stepˢ sH e)
+      headTwin = edge-step-term-embˢ e sH pDom pMid
+
+      recTwin
+        : castˢ pMid pCod (proj₂ (RJ.process-edgesˢ (map ψ es) s'J))
+          ≈ˢ proj₂ (RH.process-edgesˢ es s'H)
+      recTwin = process-edges-term-embˢ-gen es s'H s'J stepStk pMid pCod
+
+      goal
+        : castˢ pDom pCod
+            (proj₂ (RJ.process-edgesˢ (map ψ es) s'J)
+             ∘ˢ proj₂ (RJ.edge-stepˢ (map φ sH) (ψ e)))
+          ≈ˢ proj₂ (RH.process-edgesˢ es s'H)
+             ∘ˢ proj₂ (RH.edge-stepˢ sH e)
+      goal =
+        ≈-trans
+          (∘-cast-split pDom pMid pCod
+            (proj₂ (RJ.process-edgesˢ (map ψ es) s'J))
+            (proj₂ (RJ.edge-stepˢ (map φ sH) (ψ e))))
+          (∘-resp recTwin headTwin)
+
+  ----------------------------------------------------------------------
+  -- The headline iterated term-twin, at the canonical `sJ = map φ sH`.
+
+  process-edges-term-embˢ
+    : ∀ (es : List (Fin H.nE)) (sH : List (Fin H.nV))
+        (pCod : map vlJ (proj₁ (RJ.process-edgesˢ (map ψ es) (map φ sH)))
+              ≡ map vlH (proj₁ (RH.process-edgesˢ es sH)))
+    → castˢ (vlab-φ sH) pCod (proj₂ (RJ.process-edgesˢ (map ψ es) (map φ sH)))
+      ≈ˢ proj₂ (RH.process-edgesˢ es sH)
+  process-edges-term-embˢ es sH pCod =
+    process-edges-term-embˢ-gen es sH (map φ sH) refl (vlab-φ sH) pCod
+
+--------------------------------------------------------------------------------
+-- ## (B)-foundation.  Strict equivariance keystones (the genuinely-new
+-- part).  The per-hypergraph `permuteˢ` is a (weak) functor of `↭`: it
+-- sends `trans` to `∘ˢ` (definitionally) and inverses to `≈ˢ`-inverses.
+-- The inverse law is the strict analogue of `pvv-inverse-{left,right}`;
+-- where the non-strict proof invokes `permute-self-loop-id-wide K`, the
+-- strict one invokes the per-hypergraph `permˢ-K` on the SELF-LOOP whose
+-- evaluated bijection is the identity (`eval-rigid`-free: direct).
+
+open import Categories.PermuteCoherence.EvalSoundness using (eval-↭-sym)
+open import Categories.PermuteCoherence.FinBij using (inv-fb)
+import Data.Fin.Permutation as P
+open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
+open import Data.List.Properties using (≡-dec)
+
+module Equivariantˢ (H : Hypergraph FlatGen) where
+  private module H = Hypergraph H
+  open Run H public
+
+  private
+    _≟V_ : DecidableEquality (Fin H.nV)
+    _≟V_ = _≟F_
+
+    permˢ-K-H : Support.PermK (Fin H.nV) H.vlab
+    permˢ-K-H = PK.permˢ-K (Fin H.nV) _≟V_ H.vlab
+
+  -- `permuteˢ (trans p q) = permuteˢ q ∘ˢ permuteˢ p` (definitional).
+  pvv-transˢ
+    : ∀ {xs ys zs : List (Fin H.nV)} (p : xs Perm.↭ ys) (q : ys Perm.↭ zs)
+    → permuteˢ (Perm.trans p q) ≈ˢ permuteˢ q ∘ˢ permuteˢ p
+  pvv-transˢ p q = ≈-refl
+
+  -- self-loop `trans ρ (↭-sym ρ)` evaluates to the identity bijection.
+  -- (Stated on the BARE `Fin H.nV` derivation, as `Support`'s `PermK`
+  -- evaluates the vertex-level derivation directly.)
+  private
+    self-loop-evˡ
+      : ∀ {xs ys : List (Fin H.nV)} (ρ : xs Perm.↭ ys)
+      → eval-↭ (Perm.trans ρ (Perm.↭-sym ρ)) ≈-fb eval-↭ (Perm.refl {xs = xs})
+    self-loop-evˡ {xs} {ys} ρ i =
+      trans (sym-eval (e P.⟨$⟩ʳ i)) (P.inverseˡ e)
+      where
+        e = eval-↭ ρ
+        sym-eval : eval-↭ (Perm.↭-sym ρ) ≈-fb inv-fb e
+        sym-eval = eval-↭-sym ρ
+
+    self-loop-evʳ
+      : ∀ {xs ys : List (Fin H.nV)} (ρ : xs Perm.↭ ys)
+      → eval-↭ (Perm.trans (Perm.↭-sym ρ) ρ) ≈-fb eval-↭ (Perm.refl {xs = ys})
+    self-loop-evʳ {xs} {ys} ρ i =
+      trans (cong (e P.⟨$⟩ʳ_) (sym-eval i)) (P.inverseʳ e)
+      where
+        e = eval-↭ ρ
+        sym-eval : eval-↭ (Perm.↭-sym ρ) ≈-fb inv-fb e
+        sym-eval = eval-↭-sym ρ
+
+  -- `permuteˢ (↭-sym ρ) ∘ˢ permuteˢ ρ ≈ idˢ`.
+  pvv-inverse-leftˢ
+    : ∀ {xs ys : List (Fin H.nV)} (ρ : xs Perm.↭ ys)
+    → permuteˢ (Perm.↭-sym ρ) ∘ˢ permuteˢ ρ ≈ˢ idˢ
+  pvv-inverse-leftˢ {xs} {ys} ρ =
+    ≈-trans (≈-sym (pvv-transˢ ρ (Perm.↭-sym ρ)))
+            (permˢ-K-H (Perm.trans ρ (Perm.↭-sym ρ)) Perm.refl (self-loop-evˡ ρ))
+
+  -- `permuteˢ ρ ∘ˢ permuteˢ (↭-sym ρ) ≈ idˢ`.
+  pvv-inverse-rightˢ
+    : ∀ {xs ys : List (Fin H.nV)} (ρ : xs Perm.↭ ys)
+    → permuteˢ ρ ∘ˢ permuteˢ (Perm.↭-sym ρ) ≈ˢ idˢ
+  pvv-inverse-rightˢ {xs} {ys} ρ =
+    ≈-trans (≈-sym (pvv-transˢ (Perm.↭-sym ρ) ρ))
+            (permˢ-K-H (Perm.trans (Perm.↭-sym ρ) ρ) Perm.refl (self-loop-evʳ ρ))
+
+--------------------------------------------------------------------------------
+-- OBSTRUCTION MAP for the remaining (B)/(C).  DELIVERED above: (A)
+-- `TermEmbedˢ` in full (`process-edges-term-embˢ`) and the (B)-FOUNDATION
+-- (`pvv-transˢ`, `pvv-inverse-{left,right}ˢ`).  What is left:
+--
+--   (B) `process-edges-equivariantˢ`.  The remaining strict ports, each a
+--       direct mirror of its non-strict `StackEquivariance` twin with
+--       `permute-via-vlab`→`permuteˢ`, `permute-resp-≅↭`→`permˢ-K-H`,
+--       `permute-self-loop-id-wide`→`pvv-inverse-*ˢ` (above), `assoc`→
+--       `assocˢ`, `≈-Term-*`→`≈-*`:
+--         • `fire-mid-equivariantˢ` — the FIRE box (`genˢ ⊗ idˢ {rest}`) is
+--           natural in `rest` under a residual permutation `μ`.  The strict
+--           box exposes the `idˢ {map vl rest}` frame directly, so this is a
+--           `box-commute-ˢ`/`interchangeˢ` computation (no `box-of`/BoxKernel
+--           detour); the residual reshuffle slides via `permuteˢ-frame`-style
+--           `⊗`-naturality.  TERM-FREE inputs reuse `FME` verbatim.
+--         • `fire-μ` / `locate-coherentˢ` — IDENTICAL to non-strict: both are
+--           PERMUTATION-LEVEL (`residual-recon` = `SU.residual-recon`,
+--           `map⁺-lift-≅↭`, determinism transport).  Reused as-is; only the
+--           final `permute-resp-≅↭` consumer becomes `permˢ-K-H` (route the
+--           X-level `≅↭` through §0 `permuteˢ-X` exactly as `perm-emb` does).
+--         • `edge-step-fire-equivariantˢ` + `edge-step-equivariantˢ` +
+--           `process-edges-equivariantˢ` — the assembly (Residuals 1&2 + the
+--           `pvv-inverse-*ˢ` telescoping), structurally a line-for-line port
+--           of the non-strict `≈-Term` chains.  `Reservoir≤1` (SUR) is reused
+--           unchanged (stack-level).
+--
+--   (C) `decodePˢ (g ∘ f) ≈ˢ decodePˢ g ∘ˢ decodePˢ f` (modulo boundary
+--       casts).  Assembly:
+--         1. `⟪ g ∘ f ⟫ = hComposeP ⟪f⟫ ⟪g⟫`; edges factor `gblk ++ kblk`.
+--         2. RUN-SPLIT: §1 `run-split-atˢ` (already green in DecodeComposeS).
+--         3. G-block / K-block TWINS: instantiate `TermEmbedˢ` (above) at
+--            `φ = injL, ψ = _↑ˡ K.nE` (G-side) and `φ = remapP, ψ = G.nE ↑ʳ_`
+--            (K-side).  The injectivity/label/endpoint fields come VERBATIM
+--            from `hTensor-impl`/`PrunedCompose`/`FromAPROP` (`remapP-injective`,
+--            `vlab-injL`, the `ein-c`/`eout-c`/`elab-c` equations) — these are
+--            term-free and transfer through `Run.stacks-agree`.
+--         4. EQUIVARIANCE: (B) `process-edges-equivariantˢ` conjugates the
+--            K-block on the actual `after-G` stack onto the canonical
+--            `map remapP K.dom` stack (the `permuteˢ` conjugation step IS
+--            §0 `permuteˢ-X`).
+--         5. perm-coherence on the final permutes via `perm-rigidˢ`
+--            (`PermSupport`) on the `Unique` cods, and the boundary `castˢ`
+--            (`⟪⟫-domL`/`-codL` for `g ∘ f`) align definitionally as in
+--            `DecodeS.decodePˢ`.
+--
+-- No new Kelly residual or postulate is required for (B)/(C): the single
+-- deferred input is the already-threaded `permˢ-K` (here `permˢ-K-X` /
+-- `permˢ-K-H`), discharged axiom-free at `FlatGen` by `Strict.PermK`.
+--------------------------------------------------------------------------------

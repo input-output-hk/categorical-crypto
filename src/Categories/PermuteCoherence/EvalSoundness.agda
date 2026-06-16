@@ -7,7 +7,7 @@
 -- canonical-form / faithfulness work for list permutations.
 ------------------------------------------------------------------------
 
-module Categories.PermuteCoherence.Soundness where
+module Categories.PermuteCoherence.EvalSoundness where
 
 open import Data.Nat.Base using (ℕ; zero; suc)
 open import Data.Fin.Base using (Fin; zero; suc)

@@ -2,7 +2,7 @@
 
 --------------------------------------------------------------------------------
 -- BOX KERNEL: the self-contained `unflatten-++-≅` box-reassociation cone.
--- A leaf module so `Sub/SeparableSpike.agda` can reuse `box-suffix-framed`
+-- A leaf module so `Sub/SeparableStack.agda` can reuse `box-suffix-framed`
 -- WITHOUT importing the heavyweight `DecodeTensorShape`.
 --
 -- Three mutually self-contained modules (no `EmbedData`/`FaithfulnessResidual`

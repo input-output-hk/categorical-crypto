@@ -14,7 +14,7 @@
 -- "the 8-atom wall" + follow-ups):
 --   * forcing routed through refl-checked equations (`force!`), never
 --     `from-just`/inferred witnesses (slow elaborator path);
---   * ⟪_⟫ spelled EXACTLY as SoundnessFullWired's instantiated signature
+--   * ⟪_⟫ spelled EXACTLY as Soundness's instantiated signature
 --     spells it (syntactic fast path in conversion);
 --   * one module for all three obligations (~15 s import overhead once);
 --   * plain `findIso` (~20% cheaper than `findIsoᵀ` on 1-box cross-pairs);
@@ -36,8 +36,8 @@ open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDe
 open import Categories.APROP.Hypergraph.Translation (APROPSignatureDec.sig gSigDec) using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.FindIso gSigDec using (findIso)
 open import Categories.APROP.Hypergraph.Solver.Split gSigDec using (solveSplitR?)
-open import Categories.APROP.Hypergraph.SoundnessFullWired gSigDec
-  using (soundness-full-wired)
+open import Categories.APROP.Hypergraph.Soundness gSigDec
+  using (soundness)
 
 private instance S≤S : Symm ≤ Symm
                  S≤S = v≤v
@@ -91,13 +91,13 @@ private
   iso₂ = force! (findIso ⟪ R₂ᵇ ⟫ ⟪ L₂ρ₂ᵇ ⟫) refl
 
   ob₀ᵇ : ρ₁R₀ᵇ ≈Term L₀ᵇ
-  ob₀ᵇ = soundness-full-wired {f = ρ₁R₀ᵇ} {g = L₀ᵇ} iso₀
+  ob₀ᵇ = soundness {f = ρ₁R₀ᵇ} {g = L₀ᵇ} iso₀
 
   ob₁ᵇ : ρ₂R₁ᵇ ≈Term L₁ρ₁ᵇ
-  ob₁ᵇ = soundness-full-wired {f = ρ₂R₁ᵇ} {g = L₁ρ₁ᵇ} iso₁
+  ob₁ᵇ = soundness {f = ρ₂R₁ᵇ} {g = L₁ρ₁ᵇ} iso₁
 
   ob₂ᵇ : R₂ᵇ ≈Term L₂ρ₂ᵇ
-  ob₂ᵇ = soundness-full-wired {f = R₂ᵇ} {g = L₂ρ₂ᵇ} iso₂
+  ob₂ᵇ = soundness {f = R₂ᵇ} {g = L₂ρ₂ᵇ} iso₂
 
 -- the obligations at the segment statements (pure-assoc bridges)
 ob₀ : (ρ₁ᵗ ∘ R₀ᵗ) ≈Term L₀ᵗ

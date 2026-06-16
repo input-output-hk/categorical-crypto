@@ -8,10 +8,10 @@
 -- by induction on `f`, combining the per-constructor decoder shape lemmas.
 -- The atomic (id/λ/ρ/α), σ, and ∘ shapes are wired CONCRETELY (their
 -- deferred `permˢ-K`/`bswap-σ` are discharged axiom-free by `Strict.PermK`
--- and `Strict.BlockSwapComm`).  The two shapes whose discharge is still in
--- progress — `Agen` (the single-generator base case) and ⊗ (pending the
--- K-prepend box-braid `KBlockσ`) — are taken as module parameters, so this
--- assembly is unconditional given exactly those two.
+-- and `Strict.BlockSwapComm`).  Two shapes — `Agen` (the single-generator
+-- base case) and ⊗ (via the K-prepend box-braid `KBlockσ`) — are taken as
+-- module parameters, so this assembly is unconditional given exactly those
+-- two.
 --
 -- Composed with `Boundary.st-roundtrip` (embF (st f) ≈Term bridge f) and
 -- part (II)ˢ (`decodePˢ`-iso-invariance), this yields the re-pointed

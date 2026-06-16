@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------
 -- Soundness theorem, re-pointed at the STRICTIFIED pipeline.
 --
--- `soundness-full-wired` now delegates to
+-- `soundness` now delegates to
 -- `Strict.SoundnessAssembly.soundness-assembled` fed the unconditional
 -- strict ⊗-shape `Strict.TensorKBlockFinal.decodePˢ-⊗-concrete`.  That path
 -- proves `⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g` entirely inside the presented strict SMC
@@ -11,14 +11,12 @@
 -- reflected via `embF`/`st-roundtrip` + the `bridge` cancellation), with the
 -- single deep Kelly residual `permˢ-K` discharged axiom-free.  The TYPE is
 -- unchanged, so all downstream consumers are unaffected.
---
--- `bridge⁻¹`/`bridge-cancel` are kept (consumed by `Coherence.DecodeSpike`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
 open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
 
-module Categories.APROP.Hypergraph.SoundnessFullWired
+module Categories.APROP.Hypergraph.Soundness
   (sig-dec : APROPSignatureDec) where
 
 open APROPSignatureDec sig-dec using (sig; _≟X_)
@@ -79,8 +77,8 @@ bridge-cancel {A} {B} f = begin
 -- The soundness theorem.
 
 opaque
-  soundness-full-wired
+  soundness
     : ∀ {A B} {f g : HomTerm A B}
     → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
     → f ≈Term g
-  soundness-full-wired = SA.soundness-assembled TKF.decodePˢ-⊗-concrete
+  soundness = SA.soundness-assembled TKF.decodePˢ-⊗-concrete

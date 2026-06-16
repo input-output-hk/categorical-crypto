@@ -225,7 +225,7 @@ permute-inverse-right! = permute-inverse-right constructive-swap-block-inverse
 
 open import Categories.PermuteCoherence.FinBij
 open import Categories.PermuteCoherence.Eval
-open import Categories.PermuteCoherence.Soundness using (eval-↭-sym)
+open import Categories.PermuteCoherence.EvalSoundness using (eval-↭-sym)
 
 record PermuteRespSymResidual : Set where
   field

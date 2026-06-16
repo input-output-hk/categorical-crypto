@@ -45,7 +45,8 @@ open import Categories.APROP.Hypergraph.Soundness.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Strict.DecodeS sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.PermSupport sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.TensorBraidS sig _≟X_ as TB
-import Categories.APROP.Hypergraph.Soundness.Strict.TensorKBlock6 sig _≟X_ as TKB6
+open import Categories.APROP.Hypergraph.Soundness.Strict.TensorKBlock sig _≟X_
+  using (module TKB6; module KBlockDisjoint)
 import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig as DA
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
@@ -98,7 +99,7 @@ module _
 
       module Brd  = TB.Braid permˢ-K {A} {B} {C} {D} f g
       module Rec  = Brd.Reconcile-e
-      module KBD  = TKB6.KBlockDisjoint G K
+      module KBD  = KBlockDisjoint G K
 
       -- the K-block layout (definitionally Braid's private bindings).
       gblk kblk : List (Fin Hfm.nE)

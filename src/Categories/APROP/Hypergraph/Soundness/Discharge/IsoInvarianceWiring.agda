@@ -8,7 +8,7 @@
 -- Defines `Order`/`Valid`/`decodeOrd` (per-hypergraph) and the cross-iso
 -- boundary identifications + ψ-pullback order `τ`.  The analytic steps
 -- (`swap-≈`, `order-invariant`, `iso-transport`, `NoInv-τ`) live downstream
--- in `IsoInvarianceConcrete` / `SwapStep` / `IsoTransport` / `WiringLemmas`.
+-- in `IsoInvarianceConcrete` / `SwapStep` / `IsoTransport` / `NoInvTau`.
 {-# OPTIONS --safe --without-K #-}
 
 open import Categories.APROP

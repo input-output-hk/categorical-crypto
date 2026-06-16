@@ -12,7 +12,7 @@
 -- monoidal category `FreeMonoidal` is the syntax.  An equation `f ≈ g`
 -- between two such terms is witnessed by a hypergraph isomorphism
 -- `⟪ f ⟫ ≅ᴴ ⟪ g ⟫` (typically produced by `findIso`), which
--- `soundness-full-wired` turns into a genuine `f ≈Term g`.  We then transport
+-- `soundness` turns into a genuine `f ≈Term g`.  We then transport
 -- that equation into the target SMC `C` along the free functor `freeFunctor`
 -- that interprets atoms via `⟦_⟧ᵖ₀` and generators via `⟦_⟧ᵖ₁`.
 --
@@ -23,7 +23,7 @@
 
 open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
 
-module Categories.APROP.Hypergraph.Solver.Interpret (sig-dec : APROPSignatureDec) where
+module Categories.APROP.Hypergraph.Solver.Frontend (sig-dec : APROPSignatureDec) where
 
 open import Categories.APROP using (module APROP)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
@@ -43,8 +43,8 @@ open import Categories.APROP.Hypergraph.Solver.DeepProv sig-dec using (findIsoFr
 open import Categories.APROP.Hypergraph.Solver.Split sig-dec using (solveSplitR?)
 open import Categories.APROP.Hypergraph.Solver.Carve sig-dec using (focusAtₙ; Foc)
 open import Categories.APROP.Hypergraph.Solver.Deep sig-dec using (deepFocₙ)
-open import Categories.APROP.Hypergraph.SoundnessFullWired sig-dec
-  using (soundness-full-wired)
+open import Categories.APROP.Hypergraph.Soundness sig-dec
+  using (soundness)
 
 open import Level using (Level; _⊔_)
 open import Data.List.Base using (List; []; _∷_)
@@ -140,7 +140,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
     → ⟦ f ⟧₁ C.≈ ⟦ g ⟧₁
   solveH f g iso =
-    Functor.F-resp-≈ freeFunctor (soundness-full-wired {f = f} {g = g} iso)
+    Functor.F-resp-≈ freeFunctor (soundness {f = f} {g = g} iso)
 
   -- Same, but the witnessing iso is located internally by `findIso`, so the
   -- two free-SMC terms `f g` need only be written once.  The implicit
@@ -197,7 +197,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   --
   -- The caller writes *both* endpoints `s t : HomTerm A B` in any SMC-equivalent
   -- form they like; the two implicit `findIso` witnesses reconcile each side to
-  -- the corresponding frame.  Soundness (`soundness-full-wired`, via `solveH`)
+  -- the corresponding frame.  Soundness (`soundness`, via `solveH`)
   -- discharges the two coherence reconciliations; the rule is transported across
   -- by `C`'s `∘`/`⊗₁` congruence — no completeness and no hypergraph→term
   -- extraction is needed, so this rests only on the proven, postulate-free half
@@ -308,61 +308,60 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
                 (fromWitness! (findIso ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫) c₂)))
 
   --------------------------------------------------------------------------------
-  -- Route A variants: gate #1's witness is DERIVED from carve provenance
-  -- (`findIsoFromCarveᵀ`: a guided single pass over the provenance-predicted
-  -- edge pairs, validated by `Verify` — no backtracking search), and the
-  -- remaining searches run tabulated.  Soundness is unchanged (`Verify`
-  -- gates every candidate); where the provenance heuristic does not apply
-  -- (e.g. the `n`-th carvable occurrence is not the first embedding's), the
-  -- gate fails closed — fall back to the search-based variants there.
-  rewriteDeepAₙ!
+  -- Provenance-guided deep-rewrite gates: gate #1's witness is DERIVED from
+  -- carve provenance (`findIsoFromCarveᵀ`: a guided single pass over the
+  -- provenance-predicted edge pairs, validated by `Verify` — no backtracking
+  -- search), and the remaining searches run tabulated.  Soundness is unchanged
+  -- (`Verify` gates every candidate); where the provenance heuristic does not
+  -- apply (e.g. the `n`-th carvable occurrence is not the first embedding's),
+  -- the gate fails closed — fall back to the search-based variants there.
+  rewriteDeepProvₙ!
     : ∀ {A B P Q}
     → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
     → {found : T (is-just (deepFocₙ s lᵗ n))}
     → {_     : T (is-just (findIsoFromCarveᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫ ⟪ lᵗ ⟫))}
     → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ n found ⟧₁
-  rewriteDeepAₙ! s lᵗ rᵗ n rule {found} {cert} =
+  rewriteDeepProvₙ! s lᵗ rᵗ n rule {found} {cert} =
     C.Equiv.trans
       (solveH s (deepFrame s lᵗ lᵗ n found)
               (fromWitness! (findIsoFromCarveᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫ ⟪ lᵗ ⟫) cert))
       (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule))))
 
-  rewriteDeepA!
+  rewriteDeepProv!
     : ∀ {A B P Q}
     → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
     → {found : T (is-just (deepFocₙ s lᵗ zero))}
     → {_     : T (is-just (findIsoFromCarveᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ zero found ⟫ ⟪ lᵗ ⟫))}
     → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ zero found ⟧₁
-  rewriteDeepA! s lᵗ rᵗ rule {found} {cert} =
-    rewriteDeepAₙ! s lᵗ rᵗ zero rule {found} {cert}
+  rewriteDeepProv! s lᵗ rᵗ rule {found} {cert} =
+    rewriteDeepProvₙ! s lᵗ rᵗ zero rule {found} {cert}
 
   -- Gate #2's witness finder: try the provenance-guided path (carve the rule's
   -- `rᵗ` out of `t`, exactly as gate #1 carves `lᵗ` out of `s`) and fall back to
   -- the backtracking search if it does not apply (e.g. `rᵗ` is edge-free like
   -- `λ⇒`, so there is no redex to carve).  BOTH branches are `Verify`-gated, so
-  -- the result is a genuine iso either way — the choice only affects speed
-  -- (guided ≈ −24% on this gate; measured on the Frobenius showcase).
-  findIsoG2 : (H J L : Hypergraph FlatGen) → Maybe (H ≅ᴴ J)
-  findIsoG2 H J L with findIsoFromCarveᵀ H J L
+  -- the result is a genuine iso either way — the choice only affects speed.
+  findIsoGate2 : (H J L : Hypergraph FlatGen) → Maybe (H ≅ᴴ J)
+  findIsoGate2 H J L with findIsoFromCarveᵀ H J L
   ... | just iso = just iso
   ... | nothing  = findIsoᵀ H J
 
-  rewriteDeepToA!
+  rewriteDeepProvTo!
     : ∀ {A B P Q}
     → (s t : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
     → {found : T (is-just (deepFocₙ s lᵗ n))}
     → {_     : T (is-just (findIsoFromCarveᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫ ⟪ lᵗ ⟫))}
-    → {_     : T (is-just (findIsoG2 ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫ ⟪ rᵗ ⟫))}
+    → {_     : T (is-just (findIsoGate2 ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫ ⟪ rᵗ ⟫))}
     → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁
-  rewriteDeepToA! s t lᵗ rᵗ n rule {found} {c₁} {c₂} =
+  rewriteDeepProvTo! s t lᵗ rᵗ n rule {found} {c₁} {c₂} =
     C.Equiv.trans
-      (rewriteDeepAₙ! s lᵗ rᵗ n rule {found} {c₁})
+      (rewriteDeepProvₙ! s lᵗ rᵗ n rule {found} {c₁})
       (C.Equiv.sym
         (solveH t (deepFrame s lᵗ rᵗ n found)
-                (fromWitness! (findIsoG2 ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫ ⟪ rᵗ ⟫) c₂)))
+                (fromWitness! (findIsoGate2 ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫ ⟪ rᵗ ⟫) c₂)))
 
   --------------------------------------------------------------------------------
   -- Rewrite DRIVERS: normalisation with respect to a list of rules.

@@ -67,7 +67,8 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.StackEquivS sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.DecodeTensorS sig _≟X_ as DT
 import Categories.APROP.Hypergraph.Soundness.Strict.DecodeComposeS sig _≟X_ as DC
 import Categories.APROP.Hypergraph.Soundness.Strict.TensorReconcile sig _≟X_ as TR
-import Categories.APROP.Hypergraph.Soundness.Strict.TensorKBlock4 sig _≟X_ as TKB4
+open import Categories.APROP.Hypergraph.Soundness.Strict.TensorKBlock sig _≟X_
+  using (module TKB4)
 open import Categories.APROP.Hypergraph.Soundness.Strict.TensorPVVRelabel sig _≟X_
   using (pvv-relabelˢ)
 

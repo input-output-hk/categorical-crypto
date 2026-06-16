@@ -43,7 +43,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.DecodeProperties sig
   using (extract-prefix-↭-residual; extract-prefix-↭-nothing)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.DecodeComposeS2 sig _≟X_ public
+open import Categories.APROP.Hypergraph.Soundness.Strict.DecodeComposeS sig _≟X_ public
 
 import Categories.APROP.Hypergraph.Soundness.Strict.PermK sig _≟X_ as PK
 open import Categories.APROP.Hypergraph.Soundness.Strict.PermSupport sig _≟X_

@@ -164,7 +164,6 @@ module SpanMatrix where
     ]′ (Fin.splitAt m₁ i)
 
 ------------------------------------------------------------------------
--- (Trailing `Biproduct` module removed for this feasibility spike: it
--- depended on `Categories.Object.Biproduct.Indexed`, which is absent on
--- this branch, and is unused by the matrix-level alignment logic.)
+-- The matrix-level alignment logic above is self-contained; it does not
+-- depend on `Categories.Object.Biproduct.Indexed`.
 ------------------------------------------------------------------------

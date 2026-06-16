@@ -13,7 +13,7 @@
 -- The cross-iso `decode-ordˢ-resp-iso` (the boundary with `IsoTransport`)
 -- is provided PARAMETERISED over the strict cross-iso transport residual
 -- (`iso-transportˢ`) and `NoInv-τ`: the strict `IsoTransport`/
--- `EdgeStepNaturality` + `WiringLemmas` ports are a separate, later phase, so
+-- `EdgeStepNaturality` + `NoInvTau` ports are a separate, later phase, so
 -- this module is GREEN independent of them, exposing the exact residual the
 -- headline `decodePˢ-resp-iso` consumes.
 --------------------------------------------------------------------------------

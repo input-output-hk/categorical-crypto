@@ -10,7 +10,7 @@
 --   * the capstone `SoundnessStrict.soundness-strict`.
 --
 -- Discharging `decodePˢ-⊗` makes `soundness-assembled` unconditional, at
--- which point `SoundnessFullWired.soundness-full-wired` is re-pointed at it.
+-- which point `Soundness.soundness` is re-pointed at it.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

@@ -424,7 +424,6 @@ module _
 --      IH.  The remaining work is purely the map-distribution `castˢ` algebra
 --      (∘-cast-split / cast-irrel / cast-⊗-frame) reconciling the two cast
 --      bracketings — no further axiom, no K beyond the final `perm-rigidˢ`.
---      A WIP discharge of this step is staged in `Strict/Scratch.agda`.
 --
 --  * `bswap-σ` is fed to the σ-shape together with `perm-rigidˢ`; `perm-rigidˢ`
 --    collapses the algorithm's `finalPermˢ σ` onto `bswap` (both into the
