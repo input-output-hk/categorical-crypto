@@ -79,9 +79,11 @@ focFrame s lᵗ mid n found =
 -- `Maybe` (NOT the inner Σ, which would η-reduce) in `deepFrameM` keeps
 -- `deepFrame` NEUTRAL on abstract args, so the gate definitions stay cheap.
 -- `deepFrameM` is shared with `frame-rule-step` (the rule-transport peel matches
--- the SAME `Maybe`).  At concrete call sites `deepFocₙ` reduces to `just`
--- (cost ~20ms — the deep-rewrite cost is the `findIsoᵀ` iso search, which
--- tabulation targets, NOT the embedding search).
+-- the SAME `Maybe`).  The context spines are BALANCED via `reassocBal`: the
+-- dominant deep-rewrite cost is `tabH`/`findIsoᵀ` CONSTRUCTING ⟪ deepFrame ⟫
+-- (the `hComposeP` tower over the carve's verbose decoded context — NOT the
+-- ~20ms embedding search, nor the iso search itself); a balanced (log-depth)
+-- ∘-tree makes that construction O(nV·log n) rather than O(nV·n).
 deepFrameM : ∀ {A B P Q} (mid : HomTerm P Q) (m : Maybe (Foc A B P Q))
            → T (is-just m) → HomTerm A B
 deepFrameM mid (just (k , pre , post)) _ = reassocBal post ∘ (id {k} ⊗₁ mid) ∘ reassocBal pre
@@ -91,16 +93,11 @@ deepFrame : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm 
           → (n : ℕ) → T (is-just (deepFocₙ s lᵗ n)) → HomTerm A B
 deepFrame s lᵗ mid n found = deepFrameM mid (deepFocₙ s lᵗ n) found
 
--- As `deepFrame`, but right-nesting the (left-linear, decode-built) context
--- spines `pre`/`post` via the proven assoc-only `reassoc` (shallower ⟪_⟫ towers
--- ⇒ cheaper to normalize), and built by a `Maybe`-matching helper `deepFrameMᴮ`.
--- This form is for the TABULATED `ᵀᴮ` gate, whose finder `findIsoᵀ` would force
--- `tabH ⟪ deepFrameᴮ … ⟫` during the polymorphic gate definition: matching the
--- `Maybe` (NOT the inner Σ, which would η-reduce) keeps `deepFrameᴮ` NEUTRAL on
--- abstract args, so `tabH` never unfolds and the gate definition stays cheap.
--- `deepFrameMᴮ` is shared with `frame-rule-stepᴮ`, whose rule-transport lemma
--- matches the SAME `Maybe` — reducing the frame for the peel without forcing it
--- at the finder.  At concrete call sites `deepFocₙ` reduces to `just` as usual.
+-- The `ᴮ` frame for the `ᵀᴮ` gate.  Now IDENTICAL to `deepFrameM` (both balance
+-- `pre`/`post` via `reassocBal`); the separate name is kept only because the
+-- `ᵀᴮ` gate + `frame-rule-stepᴮ` plumbing reference it.  (Historically `ᴮ`
+-- right-nested via `reassoc`; the balanced tree beat that — and left-nesting —
+-- universally, so both builders converged on it.)
 deepFrameMᴮ : ∀ {A B P Q} (mid : HomTerm P Q) (m : Maybe (Foc A B P Q))
             → T (is-just m) → HomTerm A B
 deepFrameMᴮ mid (just (k , pre , post)) _ = reassocBal post ∘ (id {k} ⊗₁ mid) ∘ reassocBal pre
@@ -437,12 +434,12 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   driveStep (r ∷ rs) s with deepFocₙ s (Rule.lhs r) zero
   ... | nothing = driveStep rs s
   ... | just (k , pre , post)
-        with findIsoᵀ ⟪ s ⟫ ⟪ post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ pre ⟫
+        with findIsoᵀ ⟪ s ⟫ ⟪ reassocBal post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ reassocBal pre ⟫
   ...   | nothing  = driveStep rs s
   ...   | just iso = just
-          ( post ∘ (id {k} ⊗₁ Rule.rhs r) ∘ pre
+          ( reassocBal post ∘ (id {k} ⊗₁ Rule.rhs r) ∘ reassocBal pre
           , C.Equiv.trans
-              (solveH s (post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ pre) iso)
+              (solveH s (reassocBal post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ reassocBal pre) iso)
               (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ
                  (C.⊗.F-resp-≈ (C.Equiv.refl , Rule.sound r)))) )
 
