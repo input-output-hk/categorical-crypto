@@ -39,8 +39,7 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig-dec using (findIso)
 open import Categories.APROP.Hypergraph.Solver.Match.FindIsoTab sig-dec using (findIsoᵀ)
-open import Categories.APROP.Hypergraph.Solver.Rewrite.DeepProv sig-dec using (findIsoFromCarveᵀ)
-open import Categories.APROP.Hypergraph.Solver.Split sig-dec using (solveSplitR?)
+open import Categories.APROP.Hypergraph.Solver.Split sig-dec using (solveSplitR?; reassoc)
 open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig-dec using (focusAtₙ; Foc)
 open import Categories.APROP.Hypergraph.Solver.Rewrite.Deep sig-dec using (deepFocₙ)
 open import Categories.APROP.Hypergraph.Soundness sig-dec
@@ -75,11 +74,34 @@ focFrame s lᵗ mid n found =
   in post ∘ (id {k} ⊗₁ mid) ∘ pre
 
 -- As `focFrame`, but for the hypergraph-level (`deepFocₙ`) position search.
+-- Used by the NON-tabulated deep gates (`rewriteDeep…`), whose finder
+-- (`findIso`) does not force the frame's fields, so this straightforward
+-- `let`-form is already cheap to elaborate and reduces in one pass at call
+-- sites (no `deepFocₙ` recomputation).
 deepFrame : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)
           → (n : ℕ) → T (is-just (deepFocₙ s lᵗ n)) → HomTerm A B
 deepFrame s lᵗ mid n found =
   let (k , pre , post) = fromWitness! (deepFocₙ s lᵗ n) found
   in post ∘ (id {k} ⊗₁ mid) ∘ pre
+
+-- As `deepFrame`, but right-nesting the (left-linear, decode-built) context
+-- spines `pre`/`post` via the proven assoc-only `reassoc` (shallower ⟪_⟫ towers
+-- ⇒ cheaper to normalize), and built by a `Maybe`-matching helper `deepFrameMᴮ`.
+-- This form is for the TABULATED `ᵀᴮ` gate, whose finder `findIsoᵀ` would force
+-- `tabH ⟪ deepFrameᴮ … ⟫` during the polymorphic gate definition: matching the
+-- `Maybe` (NOT the inner Σ, which would η-reduce) keeps `deepFrameᴮ` NEUTRAL on
+-- abstract args, so `tabH` never unfolds and the gate definition stays cheap.
+-- `deepFrameMᴮ` is shared with `frame-rule-stepᴮ`, whose rule-transport lemma
+-- matches the SAME `Maybe` — reducing the frame for the peel without forcing it
+-- at the finder.  At concrete call sites `deepFocₙ` reduces to `just` as usual.
+deepFrameMᴮ : ∀ {A B P Q} (mid : HomTerm P Q) (m : Maybe (Foc A B P Q))
+            → T (is-just m) → HomTerm A B
+deepFrameMᴮ mid (just (k , pre , post)) _ = reassoc post ∘ (id {k} ⊗₁ mid) ∘ reassoc pre
+deepFrameMᴮ mid nothing ()
+
+deepFrameᴮ : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)
+           → (n : ℕ) → T (is-just (deepFocₙ s lᵗ n)) → HomTerm A B
+deepFrameᴮ s lᵗ mid n found = deepFrameMᴮ mid (deepFocₙ s lᵗ n) found
 
 --------------------------------------------------------------------------------
 -- The object interpretation `⟦_⟧₀ : ObjTerm → C.Obj`, which depends only on
@@ -164,6 +186,27 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → {_ : T (is-just (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫))}
     → ⟦ f ⟧₁ C.≈ ⟦ g ⟧₁
   solveH!ᵀ f g {pf} = solveH f g (fromWitness! (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫) pf)
+
+  -- The rule-transport step of the TABULATED `ᵀᴮ` gate, factored out so it
+  -- matches the SAME `Maybe` as `deepFrameMᴮ`.  `deepFrameᴮ` is kept NEUTRAL on
+  -- abstract args (so the finder's `tabH ⟪ deepFrameᴮ … ⟫` does not unfold during
+  -- the polymorphic gate definition); the peel
+  -- `∘-resp-≈ʳ (∘-resp-≈ˡ (⊗.F-resp-≈ (refl , rule)))` needs the frame REDUCED to
+  -- its `_ ∘ (id ⊗₁ mid) ∘ _` skeleton, so the `lemma` matches `deepFocₙ` —
+  -- in the `just` branch the frame reduces and the peel applies; `nothing` is
+  -- absurd (`found : T (is-just nothing)`).  (The non-tabulated gates use the
+  -- inline peel against the cheap `let`-form `deepFrame` directly.)
+  frame-rule-stepᴮ
+    : ∀ {A B P Q} (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
+    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
+    → (found : T (is-just (deepFocₙ s lᵗ n)))
+    → ⟦ deepFrameᴮ s lᵗ lᵗ n found ⟧₁ C.≈ ⟦ deepFrameᴮ s lᵗ rᵗ n found ⟧₁
+  frame-rule-stepᴮ {A} {B} {P} {Q} s lᵗ rᵗ n rule found = lemma (deepFocₙ s lᵗ n) found
+    where
+      lemma : (m : Maybe (Foc A B P Q)) (f : T (is-just m))
+            → ⟦ deepFrameMᴮ lᵗ m f ⟧₁ C.≈ ⟦ deepFrameMᴮ rᵗ m f ⟧₁
+      lemma (just (k , pre , post)) _ = C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule)))
+      lemma nothing ()
 
   -- Same, but the witness is produced by the equation-splitting front-end
   -- `solveSplitR?`: both sides are reassociated to right-nested `∘`-chains,
@@ -308,60 +351,41 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
                 (fromWitness! (findIso ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫) c₂)))
 
   --------------------------------------------------------------------------------
-  -- Provenance-guided deep-rewrite gates: gate #1's witness is DERIVED from
-  -- carve provenance (`findIsoFromCarveᵀ`: a guided single pass over the
-  -- provenance-predicted edge pairs, validated by `Verify` — no backtracking
-  -- search), and the remaining searches run tabulated.  Soundness is unchanged
-  -- (`Verify` gates every candidate); where the provenance heuristic does not
-  -- apply (e.g. the `n`-th carvable occurrence is not the first embedding's),
-  -- the gate fails closed — fall back to the search-based variants there.
-  rewriteDeepProvₙ!
+  -- Tabulated reassociating deep-rewrite gates (`ᵀᴮ`).  The iso is found by the
+  -- TABULATED plain finder `findIsoᵀ` on the reassociated frame `deepFrameᴮ`
+  -- (right-nested context spines ⇒ shallower ⟪_⟫ towers ⇒ cheaper to normalize).
+  -- No provenance: `findIsoFromCarveᵀ` is a measured no-op over `findIsoᵀ` at the
+  -- full-file level, yet ~60s EACH to elaborate in a polymorphic gate definition
+  -- (Agda WHNF-reduces its subMatch/carve on abstract args); `findIsoᵀ` costs
+  -- ~0.4s.  Same exposed types and soundness route (`findIsoᵀ`/`Verify`-gated,
+  -- fail-closed); nothing postulated or removed.
+  rewriteDeepₙ!ᵀᴮ
     : ∀ {A B P Q}
     → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
     → {found : T (is-just (deepFocₙ s lᵗ n))}
-    → {_     : T (is-just (findIsoFromCarveᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫ ⟪ lᵗ ⟫))}
-    → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ n found ⟧₁
-  rewriteDeepProvₙ! s lᵗ rᵗ n rule {found} {cert} =
+    → {_     : T (is-just (findIsoᵀ ⟪ s ⟫ ⟪ deepFrameᴮ s lᵗ lᵗ n found ⟫))}
+    → ⟦ s ⟧₁ C.≈ ⟦ deepFrameᴮ s lᵗ rᵗ n found ⟧₁
+  rewriteDeepₙ!ᵀᴮ s lᵗ rᵗ n rule {found} {cert} =
     C.Equiv.trans
-      (solveH s (deepFrame s lᵗ lᵗ n found)
-              (fromWitness! (findIsoFromCarveᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫ ⟪ lᵗ ⟫) cert))
-      (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule))))
+      (solveH s (deepFrameᴮ s lᵗ lᵗ n found)
+              (fromWitness! (findIsoᵀ ⟪ s ⟫ ⟪ deepFrameᴮ s lᵗ lᵗ n found ⟫) cert))
+      (frame-rule-stepᴮ s lᵗ rᵗ n rule found)
 
-  rewriteDeepProv!
-    : ∀ {A B P Q}
-    → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q)
-    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
-    → {found : T (is-just (deepFocₙ s lᵗ zero))}
-    → {_     : T (is-just (findIsoFromCarveᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ zero found ⟫ ⟪ lᵗ ⟫))}
-    → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ zero found ⟧₁
-  rewriteDeepProv! s lᵗ rᵗ rule {found} {cert} =
-    rewriteDeepProvₙ! s lᵗ rᵗ zero rule {found} {cert}
-
-  -- Gate #2's witness finder: try the provenance-guided path (carve the rule's
-  -- `rᵗ` out of `t`, exactly as gate #1 carves `lᵗ` out of `s`) and fall back to
-  -- the backtracking search if it does not apply (e.g. `rᵗ` is edge-free like
-  -- `λ⇒`, so there is no redex to carve).  BOTH branches are `Verify`-gated, so
-  -- the result is a genuine iso either way — the choice only affects speed.
-  findIsoGate2 : (H J L : Hypergraph FlatGen) → Maybe (H ≅ᴴ J)
-  findIsoGate2 H J L with findIsoFromCarveᵀ H J L
-  ... | just iso = just iso
-  ... | nothing  = findIsoᵀ H J
-
-  rewriteDeepProvTo!
+  rewriteDeepTo!ᵀᴮ
     : ∀ {A B P Q}
     → (s t : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
     → {found : T (is-just (deepFocₙ s lᵗ n))}
-    → {_     : T (is-just (findIsoFromCarveᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫ ⟪ lᵗ ⟫))}
-    → {_     : T (is-just (findIsoGate2 ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫ ⟪ rᵗ ⟫))}
+    → {_     : T (is-just (findIsoᵀ ⟪ s ⟫ ⟪ deepFrameᴮ s lᵗ lᵗ n found ⟫))}
+    → {_     : T (is-just (findIsoᵀ ⟪ t ⟫ ⟪ deepFrameᴮ s lᵗ rᵗ n found ⟫))}
     → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁
-  rewriteDeepProvTo! s t lᵗ rᵗ n rule {found} {c₁} {c₂} =
+  rewriteDeepTo!ᵀᴮ s t lᵗ rᵗ n rule {found} {c₁} {c₂} =
     C.Equiv.trans
-      (rewriteDeepProvₙ! s lᵗ rᵗ n rule {found} {c₁})
+      (rewriteDeepₙ!ᵀᴮ s lᵗ rᵗ n rule {found} {c₁})
       (C.Equiv.sym
-        (solveH t (deepFrame s lᵗ rᵗ n found)
-                (fromWitness! (findIsoGate2 ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫ ⟪ rᵗ ⟫) c₂)))
+        (solveH t (deepFrameᴮ s lᵗ rᵗ n found)
+                (fromWitness! (findIsoᵀ ⟪ t ⟫ ⟪ deepFrameᴮ s lᵗ rᵗ n found ⟫) c₂)))
 
   --------------------------------------------------------------------------------
   -- Rewrite DRIVERS: normalisation with respect to a list of rules.
