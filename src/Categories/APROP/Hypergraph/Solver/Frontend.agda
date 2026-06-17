@@ -39,7 +39,7 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig-dec using (findIso)
 open import Categories.APROP.Hypergraph.Solver.Match.FindIsoTab sig-dec using (findIsoᵀ)
-open import Categories.APROP.Hypergraph.Solver.Split sig-dec using (solveSplitR?; reassoc)
+open import Categories.APROP.Hypergraph.Solver.Split sig-dec using (solveSplitR?; reassoc; reassocBal)
 open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig-dec using (focusAtₙ; Foc)
 open import Categories.APROP.Hypergraph.Solver.Rewrite.Deep sig-dec using (deepFocₙ)
 open import Categories.APROP.Hypergraph.Soundness sig-dec
@@ -84,7 +84,7 @@ focFrame s lᵗ mid n found =
 -- tabulation targets, NOT the embedding search).
 deepFrameM : ∀ {A B P Q} (mid : HomTerm P Q) (m : Maybe (Foc A B P Q))
            → T (is-just m) → HomTerm A B
-deepFrameM mid (just (k , pre , post)) _ = post ∘ (id {k} ⊗₁ mid) ∘ pre
+deepFrameM mid (just (k , pre , post)) _ = reassocBal post ∘ (id {k} ⊗₁ mid) ∘ reassocBal pre
 deepFrameM mid nothing ()
 
 deepFrame : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)
@@ -103,7 +103,7 @@ deepFrame s lᵗ mid n found = deepFrameM mid (deepFocₙ s lᵗ n) found
 -- at the finder.  At concrete call sites `deepFocₙ` reduces to `just` as usual.
 deepFrameMᴮ : ∀ {A B P Q} (mid : HomTerm P Q) (m : Maybe (Foc A B P Q))
             → T (is-just m) → HomTerm A B
-deepFrameMᴮ mid (just (k , pre , post)) _ = reassoc post ∘ (id {k} ⊗₁ mid) ∘ reassoc pre
+deepFrameMᴮ mid (just (k , pre , post)) _ = reassocBal post ∘ (id {k} ⊗₁ mid) ∘ reassocBal pre
 deepFrameMᴮ mid nothing ()
 
 deepFrameᴮ : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)

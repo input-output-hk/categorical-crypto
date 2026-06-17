@@ -46,6 +46,7 @@ open import Categories.APROP.Hypergraph.Soundness sig-dec
 
 open import Data.Maybe.Base using (Maybe; just; nothing)
 import Data.Maybe.Base as Maybe
+open import Data.Nat.Base using (ℕ; zero; suc)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂; subst₂)
 open import Relation.Nullary using (yes; no)
@@ -167,6 +168,53 @@ reassoc : ∀ {A B} → HomTerm A B → HomTerm A B
 reassoc (g ∘ f)  = comp (reassoc g) (reassoc f)
 reassoc (f ⊗₁ g) = reassoc f ⊗₁ reassoc g
 reassoc f        = f
+
+--------------------------------------------------------------------------------
+-- BALANCED reassociation: flatten the ∘-spine into a `Chain`, then rebuild it
+-- as a BALANCED `∘`-tree (depth ~log n instead of n) via adjacent pairing.
+-- A balanced tree makes ⟪_⟫'s `hComposeP` tower shallow, so `tabH`/`findIsoᵀ`
+-- traverse O(log n) per field instead of O(n) — the dominant cost of deep-gate
+-- frame construction on long context spines (e.g. Frobenius).  Assoc-only, used
+-- only INSIDE frames where the gate re-finds the iso (`findIsoᵀ`/`Verify`), so —
+-- like `reassoc` in `deepFrameᴮ` — it needs no soundness proof.
+
+private
+  data Chain : ObjTerm → ObjTerm → Set where
+    [_] : ∀ {A B} → HomTerm A B → Chain A B
+    _◂_ : ∀ {A B C} → HomTerm B C → Chain A B → Chain A C
+
+  appC : ∀ {A B C} → Chain B C → Chain A B → Chain A C
+  appC [ f ]    c = f ◂ c
+  appC (g ◂ gs) c = g ◂ appC gs c
+
+  lenC : ∀ {A B} → Chain A B → ℕ
+  lenC [ _ ]    = 1
+  lenC (_ ◂ gs) = suc (lenC gs)
+
+  -- One pairing pass: combine adjacent factors, halving the chain length.
+  pairC : ∀ {A B} → Chain A B → Chain A B
+  pairC [ f ]          = [ f ]
+  pairC (h ◂ [ g ])    = [ h ∘ g ]
+  pairC (h ◂ (g ◂ gs)) = (h ∘ g) ◂ pairC gs
+
+  -- Right-collapse (only the fuel-exhausted fallback; unreachable with fuel = length).
+  oneC : ∀ {A B} → Chain A B → HomTerm A B
+  oneC [ f ]    = f
+  oneC (g ◂ gs) = g ∘ oneC gs
+
+  balC : ∀ {A B} → ℕ → Chain A B → HomTerm A B
+  balC _       [ f ]     = f
+  balC zero    (g ◂ gs)  = oneC (g ◂ gs)
+  balC (suc n) (g ◂ gs)  = balC n (pairC (g ◂ gs))
+
+mutual
+  flat∘ : ∀ {A B} → HomTerm A B → Chain A B
+  flat∘ (g ∘ f)  = appC (flat∘ g) (flat∘ f)
+  flat∘ (f ⊗₁ g) = [ reassocBal f ⊗₁ reassocBal g ]
+  flat∘ f        = [ f ]
+
+  reassocBal : ∀ {A B} → HomTerm A B → HomTerm A B
+  reassocBal f = balC (lenC (flat∘ f)) (flat∘ f)
 
 reassoc-sound : ∀ {A B} (f : HomTerm A B) → reassoc f ≈Term f
 reassoc-sound (g ∘ f)  = ≈-Term-trans (comp-sound (reassoc g) (reassoc f))
