@@ -74,15 +74,22 @@ focFrame s lᵗ mid n found =
   in post ∘ (id {k} ⊗₁ mid) ∘ pre
 
 -- As `focFrame`, but for the hypergraph-level (`deepFocₙ`) position search.
--- Used by the NON-tabulated deep gates (`rewriteDeep…`), whose finder
--- (`findIso`) does not force the frame's fields, so this straightforward
--- `let`-form is already cheap to elaborate and reduces in one pass at call
--- sites (no `deepFocₙ` recomputation).
+-- The deep gates use the TABULATED finder `findIsoᵀ`, which would force
+-- `tabH ⟪ deepFrame … ⟫` during the polymorphic gate definition; matching the
+-- `Maybe` (NOT the inner Σ, which would η-reduce) in `deepFrameM` keeps
+-- `deepFrame` NEUTRAL on abstract args, so the gate definitions stay cheap.
+-- `deepFrameM` is shared with `frame-rule-step` (the rule-transport peel matches
+-- the SAME `Maybe`).  At concrete call sites `deepFocₙ` reduces to `just`
+-- (cost ~20ms — the deep-rewrite cost is the `findIsoᵀ` iso search, which
+-- tabulation targets, NOT the embedding search).
+deepFrameM : ∀ {A B P Q} (mid : HomTerm P Q) (m : Maybe (Foc A B P Q))
+           → T (is-just m) → HomTerm A B
+deepFrameM mid (just (k , pre , post)) _ = post ∘ (id {k} ⊗₁ mid) ∘ pre
+deepFrameM mid nothing ()
+
 deepFrame : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)
           → (n : ℕ) → T (is-just (deepFocₙ s lᵗ n)) → HomTerm A B
-deepFrame s lᵗ mid n found =
-  let (k , pre , post) = fromWitness! (deepFocₙ s lᵗ n) found
-  in post ∘ (id {k} ⊗₁ mid) ∘ pre
+deepFrame s lᵗ mid n found = deepFrameM mid (deepFocₙ s lᵗ n) found
 
 -- As `deepFrame`, but right-nesting the (left-linear, decode-built) context
 -- spines `pre`/`post` via the proven assoc-only `reassoc` (shallower ⟪_⟫ towers
@@ -196,6 +203,18 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   -- in the `just` branch the frame reduces and the peel applies; `nothing` is
   -- absurd (`found : T (is-just nothing)`).  (The non-tabulated gates use the
   -- inline peel against the cheap `let`-form `deepFrame` directly.)
+  frame-rule-step
+    : ∀ {A B P Q} (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
+    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
+    → (found : T (is-just (deepFocₙ s lᵗ n)))
+    → ⟦ deepFrame s lᵗ lᵗ n found ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ n found ⟧₁
+  frame-rule-step {A} {B} {P} {Q} s lᵗ rᵗ n rule found = lemma (deepFocₙ s lᵗ n) found
+    where
+      lemma : (m : Maybe (Foc A B P Q)) (f : T (is-just m))
+            → ⟦ deepFrameM lᵗ m f ⟧₁ C.≈ ⟦ deepFrameM rᵗ m f ⟧₁
+      lemma (just (k , pre , post)) _ = C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule)))
+      lemma nothing ()
+
   frame-rule-stepᴮ
     : ∀ {A B P Q} (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
@@ -308,13 +327,13 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
     → {found : T (is-just (deepFocₙ s lᵗ n))}
-    → {_     : T (is-just (findIso ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫))}
+    → {_     : T (is-just (findIsoᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫))}
     → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ n found ⟧₁
   rewriteDeepₙ! s lᵗ rᵗ n rule {found} {cert} =
     C.Equiv.trans
       (solveH s (deepFrame s lᵗ lᵗ n found)
-              (fromWitness! (findIso ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫) cert))
-      (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule))))
+              (fromWitness! (findIsoᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫) cert))
+      (frame-rule-step s lᵗ rᵗ n rule found)
 
   -- The first carvable occurrence (`n = 0`).
   rewriteDeep!
@@ -322,7 +341,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
     → {found : T (is-just (deepFocₙ s lᵗ zero))}
-    → {_     : T (is-just (findIso ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ zero found ⟫))}
+    → {_     : T (is-just (findIsoᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ zero found ⟫))}
     → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ zero found ⟧₁
   rewriteDeep! s lᵗ rᵗ rule {found} {cert} =
     rewriteDeepₙ! s lᵗ rᵗ zero rule {found} {cert}
@@ -340,15 +359,15 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → (s t : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
     → {found : T (is-just (deepFocₙ s lᵗ n))}
-    → {_     : T (is-just (findIso ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫))}
-    → {_     : T (is-just (findIso ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫))}
+    → {_     : T (is-just (findIsoᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫))}
+    → {_     : T (is-just (findIsoᵀ ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫))}
     → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁
   rewriteDeepTo! s t lᵗ rᵗ n rule {found} {c₁} {c₂} =
     C.Equiv.trans
       (rewriteDeepₙ! s lᵗ rᵗ n rule {found} {c₁})
       (C.Equiv.sym
         (solveH t (deepFrame s lᵗ rᵗ n found)
-                (fromWitness! (findIso ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫) c₂)))
+                (fromWitness! (findIsoᵀ ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫) c₂)))
 
   --------------------------------------------------------------------------------
   -- Tabulated reassociating deep-rewrite gates (`ᵀᴮ`).  The iso is found by the
@@ -418,7 +437,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   driveStep (r ∷ rs) s with deepFocₙ s (Rule.lhs r) zero
   ... | nothing = driveStep rs s
   ... | just (k , pre , post)
-        with findIso ⟪ s ⟫ ⟪ post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ pre ⟫
+        with findIsoᵀ ⟪ s ⟫ ⟪ post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ pre ⟫
   ...   | nothing  = driveStep rs s
   ...   | just iso = just
           ( post ∘ (id {k} ⊗₁ Rule.rhs r) ∘ pre
@@ -448,9 +467,9 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   -- driver's stopping point by one `findIso`); the chain-safe form.
   normalizeTo!
     : ∀ {A B} (s t : HomTerm A B) (rules : List Rule) (fuel : ℕ)
-    → {_ : T (is-just (findIso ⟪ proj₁ (drive rules fuel s) ⟫ ⟪ t ⟫))}
+    → {_ : T (is-just (findIsoᵀ ⟪ proj₁ (drive rules fuel s) ⟫ ⟪ t ⟫))}
     → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁
   normalizeTo! s t rules fuel {c} =
     C.Equiv.trans (proj₂ D)
-      (solveH (proj₁ D) t (fromWitness! (findIso ⟪ proj₁ D ⟫ ⟪ t ⟫) c))
+      (solveH (proj₁ D) t (fromWitness! (findIsoᵀ ⟪ proj₁ D ⟫ ⟪ t ⟫) c))
     where D = drive rules fuel s
