@@ -263,8 +263,8 @@ module PermIdx {A : Set} where
 
 module PermEdges where
 
-  open import Categories.APROP.Hypergraph.Core using (Hypergraph)
-  open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
+  open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+  open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
   open import Data.Fin using (Fin; zero; suc; cast)
   open import Data.List.Base using (lookup; length; map; allFin; tabulate)
   open import Data.List.Properties

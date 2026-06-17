@@ -11,6 +11,7 @@ module CategoricalCrypto where
 
 -- Improve syntax generally
 
+
 open import CategoricalCrypto.Channel.Category public
 open import CategoricalCrypto.Channel.Core public
 open import CategoricalCrypto.Channel.Selection public

@@ -108,16 +108,16 @@ module FrobeniusAlgebra (A : C.Obj)
     T₄ = (m S.⊗₁ S.id) S.∘ S.α⇐ S.∘ (u S.⊗₁ n) S.∘ S.λ⇐ S.∘ m
 
   -- stage-split of one findIso call (H = ⟪T₂⟫, J = ⟪frame⟫): seed → search → verify
-  open import Categories.APROP.Hypergraph.Core using (Hypergraph)
-  open import Categories.APROP.Hypergraph.Solver.Seed finSigDec using (seedFromInterfaces)
-  open import Categories.APROP.Hypergraph.Solver.Search finSigDec using (searchIso-default)
-  open import Categories.APROP.Hypergraph.Solver.PBij using (emptyBij)
+  open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+  open import Categories.APROP.Hypergraph.Solver.Match.Seed finSigDec using (seedFromInterfaces)
+  open import Categories.APROP.Hypergraph.Solver.Match.Search finSigDec using (searchIso-default)
+  open import Categories.APROP.Hypergraph.Solver.Match.PBij using (emptyBij)
   open import Data.Maybe.Base using (_>>=_)
 
   -- The graphs must be ARGUMENTS (shared thunks), not top-level names
   -- (re-unfolded per access) — that asymmetry alone is worth minutes.
-  open import Categories.APROP.Hypergraph.Solver.Match finSigDec using (VertexBij; EdgeBij)
-  open import Categories.APROP.Hypergraph.FromAPROP finSig using (FlatGen)
+  open import Categories.APROP.Hypergraph.Solver.Match.Match finSigDec using (VertexBij; EdgeBij)
+  open import Categories.APROP.Hypergraph.Model.FromAPROP finSig using (FlatGen)
 
   private
     seedOnly : (H J : Hypergraph FlatGen) → Data.Maybe.Base.Maybe (VertexBij H J)

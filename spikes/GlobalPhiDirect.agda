@@ -22,16 +22,16 @@ module GlobalPhiDirect (sig-dec : APROPSignatureDec) where
 
 open APROPSignatureDec sig-dec using (sig)
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
-open import Categories.APROP.Hypergraph.Solver.PBij
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
+open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
+open import Categories.APROP.Hypergraph.Solver.Match.PBij
   using (PBij; forward; backward; PartialMap)
-open import Categories.APROP.Hypergraph.Solver.Totals using (Total; totalise)
-open import Categories.APROP.Hypergraph.Solver.Seed sig-dec using (seedFromInterfaces)
-open import Categories.APROP.Hypergraph.Solver.Match sig-dec using (tryEdge; VertexBij; EdgeBij)
-open import Categories.APROP.Hypergraph.Solver.Verify sig-dec using (module Verify)
-open import Categories.APROP.Hypergraph.Solver.DeepProv sig-dec
+open import Categories.APROP.Hypergraph.Solver.Match.Totals using (Total; totalise)
+open import Categories.APROP.Hypergraph.Solver.Match.Seed sig-dec using (seedFromInterfaces)
+open import Categories.APROP.Hypergraph.Solver.Match.Match sig-dec using (tryEdge; VertexBij; EdgeBij)
+open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec using (module Verify)
+open import Categories.APROP.Hypergraph.Solver.Rewrite.DeepProv sig-dec
   using (findIsoGuided; findIsoFromCarveᵀ; pairsFor)
 
 open import Data.Fin using (Fin)
