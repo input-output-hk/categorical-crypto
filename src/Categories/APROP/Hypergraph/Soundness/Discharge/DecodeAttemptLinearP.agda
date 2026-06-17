@@ -17,34 +17,34 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
   (sig : APROPSignature) where
 
 open APROP sig
-open import Categories.APROP.Hypergraph.Core
-open import Categories.APROP.Hypergraph.FromAPROP sig
+open import Categories.APROP.Hypergraph.Model.Core
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; range;
          hEmpty; hVar; hId; hGen; hSwap; hTensor)
-open import Categories.APROP.Hypergraph.PrunedCompose sig
+open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl;
          domL-hComposeP; codL-hComposeP)
-open import Categories.APROP.Hypergraph.Prune
+open import Categories.APROP.Hypergraph.Util.Prune
   using (count-non)
-open import Categories.APROP.Hypergraph.Translation sig
+open import Categories.APROP.Hypergraph.Model.Translation sig
   using () renaming (⟪_⟫ to ⟪_⟫ₚ; ⟪⟫-domL to ⟪⟫ₚ-domL; ⟪⟫-codL to ⟪⟫ₚ-codL)
-open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten)
-open import Categories.APROP.Hypergraph.Soundness.Decode sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (decode-attempt; edge-step; extract-prefix; process-edges;
          process-all-edges)
-open import Categories.APROP.Hypergraph.Soundness.DecodeProperties sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual; extract-prefix-↭-nothing;
          extract-prefix-via-injective-just; extract-prefix-via-injective-nothing)
-import Categories.APROP.Hypergraph.Invariant sig as Inv
+import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
 open Inv using (inject+-inj)
-import Categories.APROP.Hypergraph.Soundness.Linearity sig as Lin
+import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
 open import Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP sig
   using (Linear-hComposeP)
 import Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP sig as LP
 
 -- Reused-as-is generic decode lemmas (arbitrary `H`).
-open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
   using (decode-attempt-perm-from-just; decode-attempt-from-perm;
          process-edges-++-stack;
          decode-attempt-hGen; decode-attempt-hId; decode-attempt-hSwap;

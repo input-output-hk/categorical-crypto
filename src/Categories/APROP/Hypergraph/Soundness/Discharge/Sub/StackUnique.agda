@@ -50,13 +50,13 @@ open import Relation.Nullary using (¬_; yes; no)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst)
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Soundness.Linearity sig
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
+open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using (count; count-++)
-open import Categories.APROP.Hypergraph.Soundness.Decode sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (edge-step; extract-prefix)
-open import Categories.APROP.Hypergraph.Soundness.DecodeProperties sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual)
 
 open import Data.Maybe using (Maybe; just; nothing)
@@ -72,7 +72,7 @@ private
 -- 0.  `count` cons reductions and `↭`-invariance (shared leaf).
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
-  using (count-cons-yes; count-cons-no; ↭⇒count; ∈→count-pos)
+  using (count-cons-yes; count-cons-no; ↭⇒count; ∈→count-pos; count-mono-cons)
 
 --------------------------------------------------------------------------------
 -- 1.  `Unique` ⇔ "every element occurs at most once".
@@ -121,12 +121,6 @@ private
       head≢ refl = count-head-not-0 x xs c0
       tail0 : count x xs ≡ 0
       tail0 = trans (sym (count-cons-no x y xs head≢)) c0
-
-  count-mono-cons : (v x : Fin n) (xs : List (Fin n))
-                  → count v xs ≤ⁿ count v (x ∷ xs)
-  count-mono-cons v x xs with v ≟ x
-  ... | yes _ = Nat.n≤1+n (count v xs)
-  ... | no  _ = Nat.≤-refl
 
 count≤1⇒Unique : ∀ {xs : List (Fin n)} → count≤1 xs → Unique xs
 count≤1⇒Unique {xs = []}      _ = []

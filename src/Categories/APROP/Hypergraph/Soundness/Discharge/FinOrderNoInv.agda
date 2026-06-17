@@ -45,27 +45,27 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.FinOrderNoInv
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph; domL; codL)
-open import Categories.APROP.Hypergraph.FromAPROP sig
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; range; hGen; hId; hTensor; hSwap
         ; module hTensor-impl)
-open import Categories.APROP.Hypergraph.PrunedCompose sig
+open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
-open import Categories.APROP.Hypergraph.Translation sig
+open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
   using (Dep)
-import Categories.APROP.Hypergraph.Invariant sig as Inv
+import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
 open Inv using (inject+-inj; raise-inj; disj-L-R; range-++)
 
 -- Linearity layer: the `Linear` invariant, `count`, the pruned-translation
 -- linearity witness, and the pruning machinery for the `∘` case.
-open import Categories.APROP.Hypergraph.Soundness.Linearity sig
+open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using (Linear; count; count-++; producedList)
 import Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP sig as LHC
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
   using (⟪⟫-LinearP)
-open import Categories.APROP.Hypergraph.Prune
+open import Categories.APROP.Hypergraph.Util.Prune
   using (count-non; classify; classify-inj₁-∈)
 open import Data.Fin.Properties using (_≟_; splitAt-↑ˡ; splitAt-↑ʳ)
 open import Data.List.Relation.Unary.Any using (Any; here; there)
@@ -103,14 +103,9 @@ open import Relation.Binary.PropositionalEquality
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
   using (∈→count-pos)
 
--- The `_↑ˡ_` and `_↑ʳ_` images of `Fin (m + k)` are disjoint.
+-- The `_↑ˡ_` and `_↑ʳ_` images of `Fin (m + k)` are disjoint (shared from Invariant).
 ↑ˡ-↑ʳ-disjoint : ∀ {m k} (i : Fin m) (j : Fin k) → i ↑ˡ k ≡ m ↑ʳ j → ⊥
-↑ˡ-↑ʳ-disjoint {m} {k} i j eq
-  with splitAt-↑ˡ m i k | splitAt-↑ʳ m k j | cong (splitAt m) eq
-... | i-red | j-red | split-eq = case-absurd (trans (sym i-red) (trans split-eq j-red))
-  where
-    case-absurd : ∀ {Y : Set} {x : Fin m} {y : Fin k} → inj₁ x ≡ inj₂ y → Y
-    case-absurd ()
+↑ˡ-↑ʳ-disjoint = Inv.↑ˡ≢↑ʳ
 
 --------------------------------------------------------------------------------
 -- ## The `NoInv` predicate as a bare `AllPairs`.

@@ -28,17 +28,17 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Boundary
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.FromAPROP sig
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flat; flatten)
-open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; unflatten-flatten-≈; _≅_)
-open import Categories.APROP.Hypergraph.Soundness.UnflattenMonoidal sig
+open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
   using (subst-id-cod)
-open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
   using (bridge)
-open import Categories.APROP.Hypergraph.Soundness.BridgeOps sig
+open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeOps sig
   using (bridge-∘; bridge-⊗)
-open import Categories.APROP.Hypergraph.Soundness.BridgeCoherence sig
+open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
   using ( bridge-id-is-id; bridge-λ⇒-is-id; bridge-λ⇐-is-id
         ; ρ⇒-coherence; ρ⇐-coherence; α⇒-form-list )
 import Categories.APROP.Hypergraph.Soundness.Discharge.BridgeAlphaFormCompound
@@ -126,7 +126,7 @@ coe-frameʳ ls p =
           (cast-resp refl (cong (ls ++_) p) ⊗-id)
 
 -- f' ∘ (f ∘ h) ≈ h once f' ∘ f ≈ id (right-nested elimination).
--- Public so `DecodeSigmaS` can reuse them.
+-- Public so `DecodeSigma` can reuse them.
 elim²
   : ∀ {as bs cs} {f : HomS as bs} {f' : HomS bs as} {h : HomS cs as}
   → f' ∘ˢ f ≈ˢ idˢ → f' ∘ˢ (f ∘ˢ h) ≈ˢ h

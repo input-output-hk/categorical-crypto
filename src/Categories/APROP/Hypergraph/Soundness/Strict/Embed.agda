@@ -23,9 +23,9 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Embed
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅)
-open import Categories.APROP.Hypergraph.Soundness.UnflattenMonoidal sig
+open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
   using ( cancel-mid-iso; c-iso-assoc-to; c-iso-assoc-from
         ; subst-id-dom; subst-id-cod )
 
@@ -457,7 +457,7 @@ private
 --   N = Sc A₂ ∘ T (zs++xs) ys ∘ ((T zs xs ∘ σ) ⊗ id)
 --         ∘ α⇐ ∘ (id ⊗ (σ ∘ F ys zs)) ∘ F xs (ys++zs) ∘ Sc A₁ .
 
-import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SigmaBlockHexagon
+import Categories.FreeSMC.SigmaBlockHexagon
   asFreeMonoidalData as SBH
 
 private

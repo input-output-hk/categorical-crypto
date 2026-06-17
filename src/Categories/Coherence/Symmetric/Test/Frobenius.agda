@@ -13,7 +13,7 @@
 --
 -- Taking (frob) plus the unit and associativity laws as hypotheses, we DERIVE
 -- frobL and frobR — the paper's worked example, transcribed as a chain of
--- `rewriteDeep!` steps.  Each step rewrites one rule occurrence (located on
+-- `rewriteDeepProvTo!` steps.  Each step rewrites one rule occurrence (located on
 -- the hypergraph, so interchange/associativity placement is irrelevant) and
 -- then re-states the result as a clean intermediate diagram via `solveH!` —
 -- the paper's `srw …; smcat` rhythm.

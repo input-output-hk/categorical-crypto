@@ -18,7 +18,7 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.CIsoAssocFromCons
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅)
 
 open import Categories.Category using (Category)

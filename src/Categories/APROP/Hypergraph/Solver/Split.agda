@@ -39,8 +39,8 @@ open import Categories.FreeMonoidal using (v≤v)
 open APROPSignatureDec sig-dec using (sig; _≟-mor_; _≟-ObjTerm_)
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Solver.FindIsoTab sig-dec using (findIsoᵀ)
+open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
+open import Categories.APROP.Hypergraph.Solver.Match.FindIsoTab sig-dec using (findIsoᵀ)
 open import Categories.APROP.Hypergraph.Soundness sig-dec
   using (soundness)
 
@@ -66,7 +66,7 @@ private
 -- Matching both terms as the same index-constrained constructor (`id`,
 -- unitors, associators, `σ`) at a *shared* endpoint type gets stuck under
 -- `--without-K` (reflexive equations like `A ≟ A` cannot be deleted), so —
--- as in `Verify.flat-match` — the worker `eqH?` compares terms at fully
+-- as in `Verify.flat-match-subst` — the worker `eqH?` compares terms at fully
 -- general endpoints, taking the endpoint equalities as explicit proof
 -- arguments; whatever reflexive proofs remain are collapsed by `uip`.
 -- For `_∘_` the middle object is existential and is compared via

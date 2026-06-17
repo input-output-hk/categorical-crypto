@@ -31,10 +31,10 @@ open import Data.Maybe.Base using (Maybe; just; is-just)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Categories.FreeMonoidal using (Symm; _≤_; v≤v)
 open import Categories.GConstructionCoherence.Terms
-open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
+open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
-open import Categories.APROP.Hypergraph.Translation (APROPSignatureDec.sig gSigDec) using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Solver.FindIso gSigDec using (findIso)
+open import Categories.APROP.Hypergraph.Model.Translation (APROPSignatureDec.sig gSigDec) using (⟪_⟫)
+open import Categories.APROP.Hypergraph.Solver.Match.FindIso gSigDec using (findIso)
 open import Categories.APROP.Hypergraph.Solver.Split gSigDec using (solveSplitR?)
 open import Categories.APROP.Hypergraph.Soundness gSigDec
   using (soundness)

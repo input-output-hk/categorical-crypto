@@ -35,7 +35,7 @@ open import Categories.PermuteCoherence.Faithfulness d
   using (unflatten; unflatten-++-≅; permute)
 open import Categories.FreeSMC.Steps d using (permute-via-vlab)
 open import Categories.FreeSMC.BraidBlock d using (σ-block)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SigmaBlockHexagon d
+open import Categories.FreeSMC.SigmaBlockHexagon d
   using (σ-block-natural₃)
 open import Categories.FreeSMC.BraidPermute d
   using (rotate; σ-rotate; permute-rotate; permute-swap-refl-σ-block)
@@ -47,7 +47,7 @@ open import Categories.Morphism FreeMonoidal using (_≅_; module ≅; Iso)
 
 -- Mac-Lane coherence solver, used to discharge the pure-associator `pentagon⇐`
 -- lemma below in one line.  Mirrors the setup in `Sub/SigmaBlockCommRaw.agda`.
-open import Categories.MonoidalCoherence using (module Solver)
+open import Categories.Coherence.Monoidal using (module Solver)
 import Data.Vec as Vec
 open Vec using (Vec)
 

@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 ------------------------------------------------------------------------
--- An INDUCTIVE variant of `≅↭`, and `K-faithfulness` from it.
+-- An INDUCTIVE variant of `≅↭`, and the combinatorial completeness of it.
 --
 -- `≅↭` (Canonical.agda) is the *semantic* relation "equal evaluated
 -- bijection" (`eval-↭ p ≈-fb eval-↭ q`).  This module introduces an
@@ -12,10 +12,6 @@
 --
 -- Architecture:
 --
---     permute-resp-≅↭ p q (h : p ≅↭ q) = permute-resp-≅↭ⁱ (complete h)
---
---   * `permute-resp-≅↭ⁱ : p ≅↭ⁱ q → permute p ≈Term permute q`
---       by induction -- one SMC axiom per generator (`swap-braid ↦ hexagon`).
 --   * `complete : eval-↭ p ≈-fb eval-↭ q → p ≅↭ⁱ q`
 --       a purely COMBINATORIAL statement about `↭`-derivations (no terms,
 --       no `subst`): the Coxeter / word-problem core.
@@ -64,7 +60,7 @@ open import Categories.PermuteCoherence.Faithfulness d
 open import Categories.PermuteCoherence.FaithfulnessK d
   using (σ-block-self-inverse-direct)
 -- The σ-block Yang-Baxter braid, derived from `hexagon`.
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SigmaBlockHexagon d
+open import Categories.FreeSMC.SigmaBlockHexagon d
   using (σ-block; σ-block-hexagon; σ-block-natural₃)
 -- The Word model (position level) and its list-level interpretation.
 open import Categories.PermuteCoherence.Word
@@ -230,26 +226,6 @@ private
       ∘-resp-≈
         (∘-resp-≈ (⊗-resp-≈ ≈-Term-refl permute-swap≈σ-block) permute-swap≈σ-block)
         (⊗-resp-≈ ≈-Term-refl permute-swap≈σ-block)
-
-------------------------------------------------------------------------
--- 3. `permute` respects every generator.
-
-permute-resp-≅↭ⁱ : {p q : xs ↭ ys} → p ≅↭ⁱ q → permute p ≈Term permute q
-permute-resp-≅↭ⁱ iref          = ≈-Term-refl
-permute-resp-≅↭ⁱ (isym h)      = ≈-Term-sym (permute-resp-≅↭ⁱ h)
-permute-resp-≅↭ⁱ (itrn h₁ h₂)  = ≈-Term-trans (permute-resp-≅↭ⁱ h₁) (permute-resp-≅↭ⁱ h₂)
-permute-resp-≅↭ⁱ (prepc h)     = ⊗-resp-≈ ≈-Term-refl (permute-resp-≅↭ⁱ h)
-permute-resp-≅↭ⁱ (trc h₁ h₂)   = ∘-resp-≈ (permute-resp-≅↭ⁱ h₂) (permute-resp-≅↭ⁱ h₁)
-permute-resp-≅↭ⁱ tr-unitˡ      = idʳ
-permute-resp-≅↭ⁱ tr-unitʳ      = idˡ
-permute-resp-≅↭ⁱ tr-assoc      = ≈-Term-sym assoc
-permute-resp-≅↭ⁱ prep-id       = id⊗id≈id
-permute-resp-≅↭ⁱ prep-tr       =
-  ≈-Term-trans (⊗-resp-≈ (≈-Term-sym idˡ) ≈-Term-refl) ⊗-∘-dist
-permute-resp-≅↭ⁱ swap-invol    = σ-block-self-inverse-direct id id idˡ
-permute-resp-≅↭ⁱ swap-nat      = resp-nat
-permute-resp-≅↭ⁱ swap-nat-left = ∘-resp-≈ ≈-Term-refl (≈-Term-sym collapse-id3)
-permute-resp-≅↭ⁱ swap-braid    = resp-braid
 
 ------------------------------------------------------------------------
 -- 4. `_≅↭ⁱ_` vs the semantic `≅↭` (= equal evaluated bijection).
@@ -651,10 +627,3 @@ complete {xs = z ∷ zs} {ys = ys} {p = p} {q = q} h
                  (~trans (canonW-resp-≈ eval≈) (~sym (straightenW w_q)))
   bridge : ⟦ w_p ⟧↭ (z ∷ zs) ≅↭ᴴ ⟦ w_q ⟧↭ (z ∷ zs)
   bridge = bridge-sound word~ (z ∷ zs) refl
-
-------------------------------------------------------------------------
--- 11. `FaithfulnessResidual`, closed via `complete`.  This is
--- `K-faithfulness` in DecodeRelRespIsoWired.
-faithfulness : FaithfulnessResidual
-faithfulness = record
-  { permute-resp-≅↭ = λ p q h → permute-resp-≅↭ⁱ (complete h) }

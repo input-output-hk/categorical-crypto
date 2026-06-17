@@ -10,28 +10,28 @@ open import Categories.APROP
 module CruxSpike (sig : APROPSignature) where
 
 open APROP sig
-open import Categories.APROP.Hypergraph.Core
-open import Categories.APROP.Hypergraph.FromAPROP sig
+open import Categories.APROP.Hypergraph.Model.Core
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; range; hGen; hId; hTensor; hSwap; module hTensor-impl)
-open import Categories.APROP.Hypergraph.Translation sig
+open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫)
-open import Categories.APROP.Hypergraph.PrunedCompose sig
+open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP sig
   using (map-remapP-K-dom)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
   using (⟪⟫-LinearP)
-open import Categories.APROP.Hypergraph.Translation sig
+open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪⟫-domL; ⟪⟫-codL)
-open import Categories.APROP.Hypergraph.Invariant sig
+open import Categories.APROP.Hypergraph.Model.Invariant sig
   using (range-++)
-open import Categories.APROP.Hypergraph.Soundness.Decode sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (Agen-edge-aux)
-open import Categories.APROP.Hypergraph.Soundness.Permute sig
+open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
   using (permute; permute-via-vlab)
-open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; unflatten-flatten-≈; _≅_)
-open import Categories.APROP.Hypergraph.Soundness.Decode sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (Agen-edge; edge-step; process-edges; process-all-edges; extract-prefix)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp

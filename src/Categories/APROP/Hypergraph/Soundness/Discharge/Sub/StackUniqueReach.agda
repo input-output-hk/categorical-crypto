@@ -49,11 +49,11 @@ open import Relation.Nullary using (¬_; yes; no)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst)
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen; range)
-open import Categories.APROP.Hypergraph.Soundness.Linearity sig
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
+open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using (count; count-++; producedList)
-open import Categories.APROP.Hypergraph.Soundness.Decode sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-edges; edge-step; extract-prefix)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig

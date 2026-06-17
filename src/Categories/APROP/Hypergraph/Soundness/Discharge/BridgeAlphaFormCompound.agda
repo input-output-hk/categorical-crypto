@@ -21,12 +21,12 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.BridgeAlphaFormCompound
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.FromAPROP sig using (flatten)
-open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (flatten)
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-flatten-≈; unflatten-++-≅)
-open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
   using (bridge)
-open import Categories.APROP.Hypergraph.Soundness.BridgeCoherence sig
+open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
   using ( bridge-∘
         ; bridge-⊗
         ; bridge-id-is-id
@@ -680,14 +680,3 @@ module Worker where
               f1 = id {P} ⊗₁ α⇒ {A₂} {B} {C}
               f2 = α⇒ {P} {A₂ ⊗₀ B} {C}
               f3 = α⇒ {P} {A₂} {B} ⊗₁ id {C}
-
---------------------------------------------------------------------------------
--- Public entry point: discharge the original residual via `<-wellFounded`.
-
-bridge-α⇒-form-⊗-⊗
-  : ∀ A₁₁ A₁₂ A₂ B C
-  → bridge (α⇒ {(A₁₁ ⊗₀ A₁₂) ⊗₀ A₂} {B} {C})
-  ≈Term α⇒-form-list ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂)
-                      (flatten B) (flatten C)
-bridge-α⇒-form-⊗-⊗ A₁₁ A₁₂ A₂ B C =
-  Worker.work ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂) B C (<-wellFounded _)

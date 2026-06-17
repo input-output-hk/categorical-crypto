@@ -17,7 +17,7 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Core
 
 open APROP sig using (X)
 
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.FreeStrictSMC using (module Build)
 
 open Build X _≟X_ FlatGen public

@@ -132,9 +132,9 @@ C3Rᵗ-rhs = E₂Rᵗ ∘ hRᵗ ⊗₁ id
 --------------------------------------------------------------------------------
 -- Solver obligations (call-pattern rules per docs/smc-solver-performance.md)
 
-open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
-open import Categories.APROP.Hypergraph.Translation (APROPSignatureDec.sig iSigDec) using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Solver.FindIso iSigDec using (findIso)
+open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
+open import Categories.APROP.Hypergraph.Model.Translation (APROPSignatureDec.sig iSigDec) using (⟪_⟫)
+open import Categories.APROP.Hypergraph.Solver.Match.FindIso iSigDec using (findIso)
 open import Categories.APROP.Hypergraph.Soundness iSigDec
   using (soundness)
 

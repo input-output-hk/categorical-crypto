@@ -38,7 +38,13 @@
 --                            term: the step form for chained derivations (it
 --                            keeps the carved frame out of all exposed types,
 --                            which is essential for type-checking speed).
---                                          → `Test.Deep`, `Test.Frobenius`
+--                                          → `Test.Deep`
+--   * `rewriteDeepProv(ₙ/To)!` — the carve-provenance-guided gate-#1 variants
+--                            of `rewriteDeep(ₙ)!` / `rewriteDeepTo!`: the
+--                            `findIso` witness is reconstructed from the carve's
+--                            own provenance instead of re-searched.  Same
+--                            exposed types as their non-`Prov` counterparts.
+--                                          → `Test.Frobenius`
 --   * `normalize(To)!`     — DRIVERS: fire a `List Rule` (oriented rewrites
 --                            with soundness proofs) at the first applicable
 --                            position, repeatedly, to fuel-bounded
@@ -47,8 +53,8 @@
 --                            search carries its own proof.  → `Test.Drivers`
 --
 -- SHOWCASE: `Test.Frobenius` derives the two alternative formulations of the
--- Frobenius law from the standard one by chains of deep rewrites — the
--- TensorRocq §5 worked example, end-to-end.
+-- Frobenius law from the standard one by chains of `rewriteDeepProvTo!` steps
+-- — the TensorRocq §5 worked example, end-to-end.
 --
 -- KNOWN LIMITATIONS (each demonstrated by a probe in the file cited):
 --

@@ -20,13 +20,13 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.EdgeStepRelation
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; _≅_)
-open import Categories.APROP.Hypergraph.Soundness.Decode sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (edge-step; Agen-edge; Agen-edge-aux; extract-prefix)
-open import Categories.APROP.Hypergraph.Soundness.Permute sig
+open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
   using (permute-via-vlab)
 
 open import Data.Fin using (Fin)
@@ -49,19 +49,6 @@ box-of einL eoutL restL g =
   _≅_.to   (unflatten-++-≅ eoutL restL)
   ∘ (Agen-edge-aux g ⊗₁ id)
   ∘ _≅_.from (unflatten-++-≅ einL restL)
-
--- `box-of` respects equalities of all three lists + a transported generator.
-box-of-cong
-  : ∀ {einL₁ einL₂ eoutL₁ eoutL₂ restL₁ restL₂ : List X}
-      (eq-ein : einL₁ ≡ einL₂) (eq-eout : eoutL₁ ≡ eoutL₂) (eq-rest : restL₁ ≡ restL₂)
-      (g₁ : FlatGen einL₁ eoutL₁) (g₂ : FlatGen einL₂ eoutL₂)
-  → subst₂ FlatGen eq-ein eq-eout g₁ ≡ g₂
-  → subst₂ HomTerm
-      (cong unflatten (cong₂ _++_ eq-ein  eq-rest))
-      (cong unflatten (cong₂ _++_ eq-eout eq-rest))
-      (box-of einL₁ eoutL₁ restL₁ g₁)
-    ≡ box-of einL₂ eoutL₂ restL₂ g₂
-box-of-cong refl refl refl _ _ refl = refl
 
 module _ (G : Hypergraph FlatGen) where
   private module G = Hypergraph G

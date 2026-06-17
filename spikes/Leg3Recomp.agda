@@ -38,14 +38,14 @@ open import Relation.Nullary using (yes; no)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst)
 
-open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Iso
+open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
+open import Categories.APROP.Hypergraph.Model.Iso
   using (_≅ᴴ_; refl-≅ᴴ; sym-≅ᴴ; trans-≅ᴴ)
-open import Categories.APROP.Hypergraph.Solver.Carve sig-dec
+open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig-dec
   using (Foc; leaf-try; go-all; focusAll; focusAtₙ; lookupMaybe)
-open import Categories.APROP.Hypergraph.Solver.FindIso sig-dec using (findIso)
+open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig-dec using (findIso)
 import Categories.APROP.Hypergraph.Soundness sig-dec as SFW
-import Categories.APROP.Hypergraph.Solver.ExtendSig
+import Categories.APROP.Hypergraph.Solver.Rewrite.ExtendSig
 
 --------------------------------------------------------------------------------
 -- The free symmetric monoidal category on the signature; `≈Term` reasoning.
@@ -618,7 +618,7 @@ focusAtₙ-sound s lᵗ n eq =
 
 module RetractSound (P Q : ObjTerm) where
 
-  module Ext = Categories.APROP.Hypergraph.Solver.ExtendSig sig-dec P Q
+  module Ext = Categories.APROP.Hypergraph.Solver.Rewrite.ExtendSig sig-dec P Q
   open Ext using (old; sig⁺; retract)
   open APROP sig⁺ using ()
     renaming ( HomTerm to HomTerm⁺ ; Agen to Agen⁺ ; id to id⁺ ; _∘_ to _∘⁺_

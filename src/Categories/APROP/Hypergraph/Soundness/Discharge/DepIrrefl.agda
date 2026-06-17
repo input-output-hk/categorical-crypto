@@ -25,17 +25,19 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl
   (sig : APROPSignature) where
 
 open APROP sig
-open import Categories.APROP.Hypergraph.Core
-open import Categories.APROP.Hypergraph.FromAPROP sig
+open import Categories.APROP.Hypergraph.Model.Core
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; hGen; hId; hTensor; hSwap; hEmpty; hVar
         ; module hTensor-impl)
-open import Categories.APROP.Hypergraph.PrunedCompose sig
+open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
-open import Categories.APROP.Hypergraph.Translation sig
+open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
-open import Categories.APROP.Hypergraph.HomTermInvariant sig
+open import Categories.APROP.Hypergraph.Model.HomTermInvariant sig
   using (⟪_⟫-dom-unique; ⟪_⟫-cod-unique)
-open import Categories.APROP.Hypergraph.Prune
+open import Categories.APROP.Hypergraph.Model.Invariant sig
+  using (↑ˡ≢↑ʳ)
+open import Categories.APROP.Hypergraph.Util.Prune
   using (remap-injective; lookup-injective-unique; count-non)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
   using (Dep)
@@ -61,18 +63,6 @@ open import Relation.Nullary using (¬_)
 
 NoSelfDep : Hypergraph FlatGen → Set
 NoSelfDep G = ∀ {e} → ¬ Dep {X} {FlatGen} G e e
-
---------------------------------------------------------------------------------
--- Disjointness of the `_↑ˡ k` and `m ↑ʳ_` ranges.  Local copy
--- (`Prune.↑ˡ-↑ʳ-disjoint` is parameterised on an unused `n`).
-
-↑ˡ≢↑ʳ : ∀ {m k} (i : Fin m) (j : Fin k) → i ↑ˡ k ≡ m ↑ʳ j → ⊥
-↑ˡ≢↑ʳ {m} {k} i j eq
-  with splitAt-↑ˡ m i k | splitAt-↑ʳ m k j | cong (splitAt m) eq
-... | i-red | j-red | split-eq = case-absurd (trans (sym i-red) (trans split-eq j-red))
-  where
-    case-absurd : ∀ {S T : Set} {x : S} {y : T} → inj₁ x ≡ inj₂ y → ⊥
-    case-absurd ()
 
 --------------------------------------------------------------------------------
 -- If `h` is injective and `xout`/`xin` share no vertex, then `map h xout`/

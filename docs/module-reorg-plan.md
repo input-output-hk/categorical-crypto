@@ -1,9 +1,10 @@
 # APROP hypergraph-solver module reorganisation plan
 
-Status: **PLAN ONLY — not executed.** Produced after the WIP-name + comment cleanup
-(commits `cf11498`, `f8a8305`). Reviewed by two adversarial passes: the structure is
-validated as genuinely clearer (not change-for-change); the safety pass found two
-execution blockers (below) to fix before running, plus five owner decisions.
+Status: **EXECUTED (2026-06-16).** The agreed "full restructure" scope (Model/Solver/Soundness
+regroup + Strict role sub-dirs + `…S`-suffix drop) is landed and `--safe`-verified; see **Progress**
+at the bottom. The text below is the original plan (produced after the WIP-name + comment cleanup,
+`cf11498`/`f8a8305`; reviewed by two adversarial passes) and is retained as the design record,
+including the two execution blockers and five owner decisions that governed the run.
 
 ## Organising principles
 
@@ -123,6 +124,25 @@ drop the trailing `S` on ~10 Strict files, `SoundnessFullWired→Soundness.agda`
 
 - **Phase 1 (deletions) — DONE** (`4f8a133`): deleted dead `DecodeRel` + orphan `DecodeSpike`, removed the
   stale back-ref comment; soundness cone re-verified `--safe`.
-- Remaining: dedup (folded into the `DecodeRoundtripSafe→BridgeCoherence` rename), the `#3` consolidation
-  experiment, the rename phase, and the directory restructure (with the two blocker-fixes). Spikes→`spikes/`
-  per decision 1.
+- **Dedup / renames / consolidations / facade / spikes — DONE** (`91f9bc7`, `c14da25`, `f8ce65e`, `ef7e8d7`,
+  `7ca10fe`): `bridge-∘/⊗` deduped onto `BridgeOps`; role-honest renames; `TensorKBlock 1..6` + `FireMid*` +
+  `DecodeComposeS{,2}` consolidated; public theorem → `Hypergraph/Soundness.agda`; spikes → `spikes/`.
+- **Directory restructure — DONE** (11 batches, `8b04958`..capstone). Each batch: boundary-safe global
+  rename (`move_modules`) + static consistency check (module-decl↔path + no dangling refs) + `git` commit;
+  `--only-scope-checking` gates after the Solver+Soundness layer, after the Model move, and after the Strict
+  reorg all green; final full `--safe` typecheck of both public roots + the 4 test leaves green.
+  - `Solver/` → `Match/` (matching pipeline), `Rewrite/` (gates), `Test/` (showcases), `Tabulate` pulled in.
+  - `Soundness/` → `Base/`, `Decode/`, `Bridge/`, `Linearity/`; `Strict/` → `Decode/ Tensor/ Interchange/
+    Perm/ Iso/` with the redundant `…S` twin-suffix dropped and the two capstones role-renamed
+    (`SoundnessAssembly→Strict/Soundness`, `SoundnessStrict→Strict/SoundnessParam`, decision 4).
+  - `Model/` (`Core, Iso, FromAPROP, Translation, PrunedCompose, Invariant, HomTermInvariant`) + `Util/Prune`
+    — the highest-fanout move (89 files repointed; `FromAPROP` 82 importers, `Core` 74).
+  - Both file→dir collisions handled atomically (`Match.agda→Match/Match.agda`, `Decode.agda→Decode/Decode.agda`,
+    `Linearity.agda→Linearity/Linearity.agda`); the live non-APROP `Hypergraph/ExtractPrefix*` cluster was
+    left in place (it is not part of the APROP subtree) and its importers repoint cleanly.
+- **Phase 7 `MonoidalCoherence → Coherence/Monoidal` — DONE**: single file (no submodules), grouped
+  beside `Coherence/Symmetric`; 6 importers repointed (`CategoricalCrypto`, `Solver/Frontend`,
+  `Discharge/Sub/{BlockNFBraid,SigmaBlockHexagon}`, `GradedKleisli`, `SolveMorSpike`); full `--safe`
+  typecheck of the moved module + all importers + both roots green.
+- **Deferred (still optional, not executed):** `PermuteCoherence/` role sub-dirs; `Soundness/Discharge/`
+  internal regroup; `Matrix.agda` rehoming.

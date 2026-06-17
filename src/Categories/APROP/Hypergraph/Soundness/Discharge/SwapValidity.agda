@@ -36,19 +36,19 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.SwapValidity
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Soundness.Decode sig
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-edges; edge-step; extract-prefix)
-open import Categories.APROP.Hypergraph.Soundness.DecodeProperties sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual; extract-prefix-↭-nothing)
-open import Categories.APROP.Hypergraph.Soundness.Linearity sig
+open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using (Linear)
 
 -- Imported read-only: `PH.Valid`, `PH.↝`, `PH.Order`, and the LinExt
 -- instantiation (`Incomp`, `swap-step`).
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
-open import Categories.APROP.Hypergraph.Soundness.DecodeAttempt sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
   using (process-edges-++-stack)
 
 -- Shared per-H combinatorics: firing stability + the both-fire multiset

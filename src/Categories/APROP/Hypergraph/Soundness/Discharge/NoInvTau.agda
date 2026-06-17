@@ -10,13 +10,13 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.NoInvTau
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph; domL; codL)
-open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen; range)
-open import Categories.APROP.Hypergraph.Translation sig
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
+open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
+open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
-open import Categories.APROP.Hypergraph.Soundness.Unflatten sig using (unflatten)
-open import Categories.APROP.Hypergraph.Soundness.Decode sig using (process-edges)
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig using (unflatten)
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig using (process-edges)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
   using (Dep; ≺⇒ψ≺; ψ≺⇒≺)
 

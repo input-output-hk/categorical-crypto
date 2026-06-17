@@ -47,13 +47,13 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SeparableStack
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; _≅_)
-open import Categories.APROP.Hypergraph.Soundness.Decode sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-edges; edge-step; extract-prefix; Agen-edge-aux)
-open import Categories.APROP.Hypergraph.Soundness.Permute sig
+open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
   using (permute-via-vlab; permute)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeStepRelation sig
   using (EdgeStepR; skipR; fireR; fire-term; fire-mid; box-of; edge-step-graph
@@ -73,7 +73,7 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.HomTermTransport
   using (subst₂-HomTerm-∘; subst₂-resp-≈Term; subst₂-HomTerm-irrel
         ; subst₂-HomTerm-∘-dist; just≢nothing; ⊗id-∘)
 
-open import Categories.APROP.Hypergraph.Soundness.UnflattenMonoidal sig
+open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
   using (cancel-mid-iso)
 
 open import Categories.Hypergraph.ExtractPrefix using (extract-elem)

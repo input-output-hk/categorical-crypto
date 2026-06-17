@@ -31,25 +31,25 @@ module Categories.APROP.Hypergraph.Soundness.Strict.PartII
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen; range)
-open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
+open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
+open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl sig
   using (dep-irrefl-⟪⟫)
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decoder sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.DecodeS sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
   using (decodePˢ)
-import Categories.APROP.Hypergraph.Soundness.Strict.SwapStepS sig _≟X_ as SS
-import Categories.APROP.Hypergraph.Soundness.Strict.DecodePRespIso sig _≟X_ as DP
-open import Categories.APROP.Hypergraph.Soundness.Strict.RunInterchangeTailS sig _≟X_
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig _≟X_ as SS
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodePRespIso sig _≟X_ as DP
+open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTail sig _≟X_
   using (RunInterchangeˢ; run-interchange-tailˢ)
-import Categories.APROP.Hypergraph.Soundness.Strict.FireMidS sig _≟X_ as FMD
-import Categories.APROP.Hypergraph.Soundness.Strict.IsoTransportS sig _≟X_ as IT
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.FireMid sig _≟X_ as FMD
+import Categories.APROP.Hypergraph.Soundness.Strict.Iso.IsoTransport sig _≟X_ as IT
 
 open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; _++_)
@@ -109,7 +109,7 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
 ------------------------------------------------------------------------
 -- THE UNCONDITIONAL HEADLINE.  Feed both now-discharged inputs into
 -- `DecodePRespIso`'s headline module (the `decode-ordˢ-resp-iso` parameter
--- is `IsoTransportS.decode-ordˢ-resp-iso`, applied to the SAME
+-- is `IsoTransport.decode-ordˢ-resp-iso`, applied to the SAME
 -- `run-interchange-H`).
 ------------------------------------------------------------------------
 

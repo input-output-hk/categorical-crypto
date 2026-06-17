@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------
 -- Solving symmetric-monoidal equations in an *arbitrary* target SMC.
 --
--- `solveM` (Categories.MonoidalCoherence) discharges a *monoidal* coherence
+-- `solveM` (Categories.Coherence.Monoidal) discharges a *monoidal* coherence
 -- equation in any monoidal category by proving it in the free monoidal
 -- category and transporting it along the interpreting functor.  This module
 -- is the symmetric / string-diagram analogue.
@@ -33,16 +33,16 @@ open import Categories.Functor using (Functor)
 open APROPSignatureDec sig-dec using (sig)
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
-open import Categories.APROP.Hypergraph.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Translation sig using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Solver.FindIso sig-dec using (findIso)
-open import Categories.APROP.Hypergraph.Solver.FindIsoTab sig-dec using (findIsoᵀ)
-open import Categories.APROP.Hypergraph.Solver.DeepProv sig-dec using (findIsoFromCarveᵀ)
+open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
+open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
+open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig-dec using (findIso)
+open import Categories.APROP.Hypergraph.Solver.Match.FindIsoTab sig-dec using (findIsoᵀ)
+open import Categories.APROP.Hypergraph.Solver.Rewrite.DeepProv sig-dec using (findIsoFromCarveᵀ)
 open import Categories.APROP.Hypergraph.Solver.Split sig-dec using (solveSplitR?)
-open import Categories.APROP.Hypergraph.Solver.Carve sig-dec using (focusAtₙ; Foc)
-open import Categories.APROP.Hypergraph.Solver.Deep sig-dec using (deepFocₙ)
+open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig-dec using (focusAtₙ; Foc)
+open import Categories.APROP.Hypergraph.Solver.Rewrite.Deep sig-dec using (deepFocₙ)
 open import Categories.APROP.Hypergraph.Soundness sig-dec
   using (soundness)
 

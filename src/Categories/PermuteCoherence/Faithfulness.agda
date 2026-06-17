@@ -15,7 +15,7 @@
 --     (the `Perm.trans` self-loop case, sufficient for XSL; implied by
 --     the wide one via `wide⇒narrow`),
 --   * `permute-self-loop-id` (parameterised by the narrow residual) and
---     `faithfulness` (parameterised by the wide one).
+--     `permute-self-loop-id-wide` (parameterised by the wide one).
 ------------------------------------------------------------------------
 
 open import Categories.FreeMonoidal
@@ -150,12 +150,6 @@ module _ (R : TransSelfLoopResidual) where
 
 module _ (R : FaithfulnessResidual) where
   open FaithfulnessResidual R
-
-  faithfulness
-    : {xs ys : List X} (p q : xs Perm.↭ ys)
-    → p ≅↭ q
-    → permute p ≈Term permute q
-  faithfulness = permute-resp-≅↭
 
   permute-self-loop-id-wide
     : {xs : List X} (r : xs Perm.↭ xs)

@@ -1,0 +1,556 @@
+{-# OPTIONS --safe --without-K #-}
+
+--------------------------------------------------------------------------------
+-- Strict decoder STACK-EQUIVARIANCE (the K-side relabelling keystone).
+--
+-- Running the strict decoder's `process-edgesˢ` on a PERMUTED input stack
+-- equals the run on the original stack conjugated by `permuteˢ`:
+--
+--   pe-termˢ qs s'
+--     ≈ˢ permuteˢ (↭-sym ρf) ∘ˢ ( pe-termˢ qs s ∘ˢ permuteˢ ρ )
+--
+-- This is the strict twin of `Discharge/Sub/StackEquivariance`'s
+-- `process-edges-equivariant`.  The genuinely-new strict content is the
+-- per-edge FIRE-box naturality (`fire-mid-equivariantˢ`), discharged here
+-- by a direct `box-commute-ˢ`/`interchangeˢ` computation in the presented
+-- strict SMC — NO `box-of`/BoxKernel/`unflatten-++-≅` detour.
+--
+-- The term-FREE inputs (`fire-stable-*`, `residual-recon`, `fire-μ`,
+-- the `extract-prefix` determinism) are REUSED verbatim from the
+-- non-strict leaves: the strict and non-strict runs walk the SAME stacks
+-- (`Run.stacks-agree`), so the reservoir / `Unique` plumbing transfers.
+-- The derivation algebra uses `pvv-transˢ` / `pvv-inverse-{left,right}ˢ`
+-- (the `Equivariantˢ` foundation in `DecodeComposeS2`); the locating-permute
+-- coherence is consumed by the vertex-level `permˢ-K-H` directly (the
+-- strict `permuteˢ` is vertex-level, so the non-strict `map⁺-lift-≅↭` step
+-- DISAPPEARS).
+--------------------------------------------------------------------------------
+
+open import Categories.APROP
+open import Relation.Binary using (DecidableEquality)
+
+module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv
+  (sig : APROPSignature)
+  (_≟X_ : DecidableEquality (APROPSignature.X sig))
+  where
+
+open APROP sig
+
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
+  using (extract-prefix; edge-step; process-edges)
+open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
+  using (extract-prefix-↭-residual; extract-prefix-↭-nothing)
+
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ public
+
+import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
+open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
+  using (module Support)
+
+import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig as SU
+import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
+
+open import Categories.PermuteCoherence.Canonical using (_≅↭_)
+open import Categories.PermuteCoherence.Eval using (eval-↭)
+
+open import Data.Fin using (Fin)
+open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
+open import Data.List using (List; []; _∷_; _++_; map; length)
+open import Data.List.Properties using (map-++; ++-assoc)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
+open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Maybe.Properties using (just-injective)
+open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
+open import Relation.Binary.PropositionalEquality
+  using (_≡_; refl; sym; trans; cong; subst)
+import Data.List.Relation.Binary.Permutation.Propositional as Perm
+import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
+
+--------------------------------------------------------------------------------
+-- ## The equivariance module, per hypergraph.
+
+module EquivStep (H : Hypergraph FlatGen) where
+  private module H = Hypergraph H
+  open Run H public
+  open Equivariantˢ H public
+    using (pvv-transˢ; pvv-inverse-leftˢ; pvv-inverse-rightˢ)
+
+  private
+    _≟V_ : DecidableEquality (Fin H.nV)
+    _≟V_ = _≟F_
+
+    permˢ-K-H : Support.PermK (Fin H.nV) H.vlab
+    permˢ-K-H = PK.permˢ-K (Fin H.nV) _≟V_ H.vlab
+
+    just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
+    just≢nothing ()
+
+  ----------------------------------------------------------------------
+  -- The strict fired layer, matching `edge-stepˢ`'s FIRE branch on the
+  -- nose, plus its `EdgeStepRˢ` graph view (so the `fireRˢ` index is
+  -- DEFINITIONALLY `proj₂ (edge-stepˢ s e)`).  Local copy (no dih/lin
+  -- needed), mirroring `Strict.SwapCore`.
+  ----------------------------------------------------------------------
+
+  fire-termˢ
+    : ∀ (e : Fin H.nE) (s rest : List (Fin H.nV))
+    → s Perm.↭ H.ein e ++ rest
+    → HomS (map vl s) (map vl (H.eout e ++ rest))
+  fire-termˢ e s rest perm =
+    castˢ refl (sym (map-++ vl (H.eout e) rest))
+      ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
+        ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ perm))
+
+  data EdgeStepRˢ (s : List (Fin H.nV)) (e : Fin H.nE)
+       : (s' : List (Fin H.nV)) → HomS (map vl s) (map vl s') → Set where
+    skipRˢ : extract-prefix (H.ein e) s ≡ nothing
+           → EdgeStepRˢ s e s idˢ
+    fireRˢ : ∀ (rest : List (Fin H.nV)) (perm : s Perm.↭ H.ein e ++ rest)
+           → extract-prefix (H.ein e) s ≡ just (rest , perm)
+           → EdgeStepRˢ s e (H.eout e ++ rest) (fire-termˢ e s rest perm)
+
+  edge-stepˢ-graph
+    : ∀ (s : List (Fin H.nV)) (e : Fin H.nE)
+    → EdgeStepRˢ s e (proj₁ (edge-stepˢ s e)) (proj₂ (edge-stepˢ s e))
+  edge-stepˢ-graph s e with extract-prefix (H.ein e) s in eq
+  ... | nothing            = skipRˢ eq
+  ... | just (rest , perm) = fireRˢ rest perm eq
+
+  ----------------------------------------------------------------------
+  -- FIRING STABILITY under a stack permutation (term-free; reused
+  -- verbatim from the non-strict `StackEquivariance`).
+  ----------------------------------------------------------------------
+
+  fire-stable-just
+    : ∀ (e : Fin H.nE) {s s' : List (Fin H.nV)} (ρ : s' Perm.↭ s)
+        {restH : List (Fin H.nV)} (permH : s Perm.↭ H.ein e ++ restH)
+    → extract-prefix (H.ein e) s ≡ just (restH , permH)
+    → Σ[ restH' ∈ List (Fin H.nV) ]
+      Σ[ permH' ∈ s' Perm.↭ H.ein e ++ restH' ]
+        extract-prefix (H.ein e) s' ≡ just (restH' , permH')
+        × restH Perm.↭ restH'
+  fire-stable-just e {s} {s'} ρ {restH} permH eqH =
+    let step = extract-prefix-↭-residual (H.ein e) s' restH
+                 (Perm.↭-trans ρ permH)
+    in proj₁ step , proj₁ (proj₂ step)
+       , proj₁ (proj₂ (proj₂ step)) , proj₂ (proj₂ (proj₂ step))
+
+  fire-stable-nothing
+    : ∀ (e : Fin H.nE) {s s' : List (Fin H.nV)} (ρ : s' Perm.↭ s)
+    → extract-prefix (H.ein e) s ≡ nothing
+    → extract-prefix (H.ein e) s' ≡ nothing
+  fire-stable-nothing e {s} {s'} ρ eqH =
+    extract-prefix-↭-nothing (H.ein e) s s' (Perm.↭-sym ρ) eqH
+
+  ----------------------------------------------------------------------
+  -- LEFT-FRAME for `permuteˢ` (the `++⁺ˡ` mirror of `permuteˢ-frame`;
+  -- K-FREE; local copy of `SwapCore.permuteˢ-frameˡ`, no dih/lin).
+  ----------------------------------------------------------------------
+
+  permuteˢ-frameˡ
+    : ∀ (ls : List (Fin H.nV)) {xs ys : List (Fin H.nV)} (p : xs Perm.↭ ys)
+    → castˢ (map-++ vl ls xs) (map-++ vl ls ys)
+        (permuteˢ (PermProp.++⁺ˡ ls p))
+      ≈ˢ idˢ {map vl ls} ⊗ˢ permuteˢ p
+  permuteˢ-frameˡ []       {xs} {ys} p =
+    ≈-trans (≡⇒≈ˢ (cast-irrel (map-++ vl [] xs) refl
+                              (map-++ vl [] ys) refl (permuteˢ p)))
+            (≈-sym (⊗-unitˡˢ (permuteˢ p)))
+  permuteˢ-frameˡ (l ∷ ls) {xs} {ys} p =
+    ≈-trans
+      (cast-⊗-frame (idˢ {vl l ∷ []})
+        (map-++ vl ls xs) (map-++ vl ls ys)
+        (permuteˢ (PermProp.++⁺ˡ ls p))
+        (map-++ vl (l ∷ ls) xs) (map-++ vl (l ∷ ls) ys))
+      (≈-trans (⊗-resp (≈-refl {f = idˢ {vl l ∷ []}}) (permuteˢ-frameˡ ls p))
+        (≈-trans (≈-sym (⊗-assocˢ (idˢ {vl l ∷ []}) (idˢ {map vl ls})
+                                  (permuteˢ p)))
+          (cast-resp (++-assoc (vl l ∷ []) (map vl ls) _)
+                     (++-assoc (vl l ∷ []) (map vl ls) _)
+                     (⊗-resp ⊗-id ≈-refl))))
+
+  ----------------------------------------------------------------------
+  -- BOX-CORE NATURALITY (the genuine strict box-naturality content).
+  -- The box `genˢ (elab e) ⊗ˢ idˢ {rest}` is natural in `rest` under a
+  -- residual permutation `μ`: K-free (`interchangeˢ` + `pvv-inverse-*ˢ`).
+  ----------------------------------------------------------------------
+
+  box-core-nat
+    : ∀ (e : Fin H.nE) {restH restH' : List (Fin H.nV)}
+        (μ : restH Perm.↭ restH')
+    → genˢ (H.elab e) ⊗ˢ idˢ {map vl restH'}
+      ≈ˢ (idˢ {map vl (H.eout e)} ⊗ˢ permuteˢ μ)
+           ∘ˢ ( genˢ (H.elab e) ⊗ˢ idˢ {map vl restH}
+                ∘ˢ (idˢ {map vl (H.ein e)} ⊗ˢ permuteˢ (Perm.↭-sym μ)) )
+  box-core-nat e {restH} {restH'} μ =
+    ≈-sym
+      -- (id{eout}⊗permμ) ∘ ((genˢ⊗id{restH}) ∘ (id{ein}⊗permute(↭μ)))
+      (≈-trans (∘-resp ≈-refl interchangeˢ)
+      -- (id{eout}⊗permμ) ∘ ((genˢ∘id{ein}) ⊗ (id{restH}∘permute(↭μ)))
+      (≈-trans (∘-resp ≈-refl (⊗-resp idʳ idˡ))
+      -- (id{eout}⊗permμ) ∘ (genˢ ⊗ permute(↭μ))
+      (≈-trans interchangeˢ
+      -- (id{eout}∘genˢ) ⊗ (permμ ∘ permute(↭μ))
+      (⊗-resp idˡ (pvv-inverse-rightˢ μ)))))
+
+  ----------------------------------------------------------------------
+  -- The fire layer factors: box-only ∘ˢ locating permute.
+  ----------------------------------------------------------------------
+
+  fire-midˢ
+    : ∀ (e : Fin H.nE) (rest : List (Fin H.nV))
+    → HomS (map vl (H.ein e ++ rest)) (map vl (H.eout e ++ rest))
+  fire-midˢ e rest =
+    castˢ refl (sym (map-++ vl (H.eout e) rest))
+      ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
+        ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) idˢ)
+
+  fire-term-factorˢ
+    : ∀ (e : Fin H.nE) (s rest : List (Fin H.nV))
+        (perm : s Perm.↭ H.ein e ++ rest)
+    → fire-termˢ e s rest perm ≈ˢ fire-midˢ e rest ∘ˢ permuteˢ perm
+  fire-term-factorˢ e s rest perm = ≈-sym
+    (≈-trans
+      -- fire-midˢ ∘ perm = castˢ(box∘castid) ∘ perm: pull the outer cast
+      -- around the whole composite.
+      (≈-sym (∘-cast-split refl refl (sym (map-++ vl (H.eout e) rest))
+        ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
+          ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) idˢ)
+        (permuteˢ perm)))
+    (≈-trans
+      -- reassociate: (box ∘ cast-id) ∘ perm ≈ box ∘ (cast-id ∘ perm)
+      (cast-resp refl (sym (map-++ vl (H.eout e) rest)) assocˢ)
+      -- cast-id ∘ perm ≈ castˢ map-++ein (permuteˢ perm)
+      (cast-resp refl (sym (map-++ vl (H.eout e) rest))
+        (∘-resp ≈-refl (≈-sym inner-id)))))
+    where
+      inner-id
+        : castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ perm)
+          ≈ˢ castˢ refl (map-++ vl (H.ein e) rest) idˢ ∘ˢ permuteˢ perm
+      inner-id =
+        ≈-trans (cast-resp refl (map-++ vl (H.ein e) rest) (≈-sym idˡ))
+        (∘-cast-split refl refl (map-++ vl (H.ein e) rest)
+                   idˢ (permuteˢ perm))
+
+  -- a coercion `idˢ` cast flips to the other side.
+  private
+    castid-flip
+      : ∀ {A A' : List X} (q : A ≡ A')
+      → castˢ refl q (idˢ {A}) ≈ˢ castˢ (sym q) refl (idˢ {A'})
+    castid-flip refl = ≈-refl
+
+  -- `fire-midˢ` collapsed to a single two-sided `map-++` cast of `box-core`.
+  fire-midˢ-cast
+    : ∀ (e : Fin H.nE) (rest : List (Fin H.nV))
+    → fire-midˢ e rest
+      ≈ˢ castˢ (sym (map-++ vl (H.ein e) rest)) (sym (map-++ vl (H.eout e) rest))
+           (genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
+  fire-midˢ-cast e rest =
+    ≈-trans
+      -- box ∘ castˢ map-++ein idˢ ≈ castˢ (sym map-++ein) refl box
+      (cast-resp refl (sym (map-++ vl (H.eout e) rest)) slide)
+      -- fuse the two outer casts
+      (≡⇒≈ˢ (trans
+              (cast-fuse (sym (map-++ vl (H.ein e) rest)) refl
+                         refl (sym (map-++ vl (H.eout e) rest))
+                         (genˢ (H.elab e) ⊗ˢ idˢ {map vl rest}))
+              (cast-irrel (trans (sym (map-++ vl (H.ein e) rest)) refl)
+                          (sym (map-++ vl (H.ein e) rest))
+                          (trans refl (sym (map-++ vl (H.eout e) rest)))
+                          (sym (map-++ vl (H.eout e) rest))
+                          (genˢ (H.elab e) ⊗ˢ idˢ {map vl rest}))))
+    where
+      slide
+        : (genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
+            ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) idˢ
+          ≈ˢ castˢ (sym (map-++ vl (H.ein e) rest)) refl
+               (genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
+      slide =
+        ≈-trans (∘-resp ≈-refl (castid-flip (map-++ vl (H.ein e) rest)))
+        (≈-trans
+          (≈-sym (∘-cast-split (sym (map-++ vl (H.ein e) rest)) refl refl
+                    (genˢ (H.elab e) ⊗ˢ idˢ {map vl rest}) idˢ))
+          (cast-resp (sym (map-++ vl (H.ein e) rest)) refl idʳ))
+
+
+  ----------------------------------------------------------------------
+  -- FIRE-BOX naturality (the strict `fire-mid-equivariant` twin).  The
+  -- residual permutes slide as `idˢ ⊗ permuteˢ` frames (`permuteˢ-frameˡ`)
+  -- and the central box commutes via `box-core-nat`.  K-FREE.
+  ----------------------------------------------------------------------
+
+  fire-mid-equivariantˢ
+    : ∀ (e : Fin H.nE) {restH restH' : List (Fin H.nV)}
+        (μ : restH Perm.↭ restH')
+    → fire-midˢ e restH'
+      ≈ˢ permuteˢ (PermProp.++⁺ˡ (H.eout e) μ)
+           ∘ˢ ( fire-midˢ e restH
+                ∘ˢ permuteˢ (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym μ)) )
+  fire-mid-equivariantˢ e {restH} {restH'} μ =
+    ≈-trans (fire-midˢ-cast e restH')
+    (≈-trans (cast-resp aein' aeout' (box-core-nat e μ))
+      (≈-sym
+        (≈-trans (∘-resp out-eq (∘-resp midmid in-eq))
+          (≈-trans (∘-resp ≈-refl
+                     (≈-sym (∘-cast-split aein' aein aeout box' in-frame)))
+            (≈-sym (∘-cast-split aein' aeout aeout' out-frame
+                      (box' ∘ˢ in-frame)))))))
+    where
+      ein  = H.ein e
+      eout = H.eout e
+      aein'  = sym (map-++ vl ein  restH')
+      aeout' = sym (map-++ vl eout restH')
+      aein   = sym (map-++ vl ein  restH)
+      aeout  = sym (map-++ vl eout restH)
+
+      out-frame = idˢ {map vl eout} ⊗ˢ permuteˢ μ
+      in-frame  = idˢ {map vl ein}  ⊗ˢ permuteˢ (Perm.↭-sym μ)
+      box'      = genˢ (H.elab e) ⊗ˢ idˢ {map vl restH}
+
+      -- `permuteˢ (++⁺ˡ eout μ) ≈ castˢ aeout aeout' out-frame`.
+      out-eq
+        : permuteˢ (PermProp.++⁺ˡ eout μ) ≈ˢ castˢ aeout aeout' out-frame
+      out-eq = cast-flip (map-++ vl eout restH) (map-++ vl eout restH')
+                 (permuteˢ-frameˡ eout μ)
+
+      -- `permuteˢ (++⁺ˡ ein (↭-sym μ)) ≈ castˢ aein' aein in-frame`.
+      in-eq
+        : permuteˢ (PermProp.++⁺ˡ ein (Perm.↭-sym μ))
+          ≈ˢ castˢ aein' aein in-frame
+      in-eq = cast-flip (map-++ vl ein restH') (map-++ vl ein restH)
+                (permuteˢ-frameˡ ein (Perm.↭-sym μ))
+
+      -- `fire-midˢ e restH ≈ castˢ aein aeout box'`.
+      midmid : fire-midˢ e restH ≈ˢ castˢ aein aeout box'
+      midmid = fire-midˢ-cast e restH
+
+  ----------------------------------------------------------------------
+  -- CANONICAL residual reshuffle `fire-μ` + the locating-permute
+  -- coherence `locate-coherentˢ` (VERTEX-level; no `map⁺`-lift, since the
+  -- strict `permuteˢ` is vertex-level and `permˢ-K-H` consumes a bare
+  -- vertex `≅↭`).  Ported from the non-strict `StackEquivariance`.
+  ----------------------------------------------------------------------
+
+  module _ (e : Fin H.nE) {s s' : List (Fin H.nV)} (ρ : s' Perm.↭ s)
+           {restH restH' : List (Fin H.nV)}
+           (permH  : s  Perm.↭ H.ein e ++ restH)
+           (permH' : s' Perm.↭ H.ein e ++ restH')
+           (eqH' : extract-prefix (H.ein e) s' ≡ just (restH' , permH'))
+           (us' : Unique s')
+           where
+    private
+      st = extract-prefix-↭-residual (H.ein e) s' restH (Perm.trans ρ permH)
+      restHc  = proj₁ st
+      permHc  = proj₁ (proj₂ st)
+      eqHc    = proj₁ (proj₂ (proj₂ st))
+      rpc     = proj₂ (proj₂ (proj₂ st))
+
+      pair-eq : (restHc , permHc) ≡ (restH' , permH')
+      pair-eq = just-injective (trans (sym eqHc) eqH')
+
+      restHc≡ : restHc ≡ restH'
+      restHc≡ = cong proj₁ pair-eq
+
+    fire-μ : restH Perm.↭ restH'
+    fire-μ = subst (restH Perm.↭_) restHc≡ rpc
+
+    private
+      recon-collapse
+        : ∀ {rc} (pc : s' Perm.↭ H.ein e ++ rc) (rp : restH Perm.↭ rc)
+            (req : rc ≡ restH')
+            (peq : permH' ≡ subst (λ r → s' Perm.↭ H.ein e ++ r) req pc)
+        → Perm.trans permH'
+            (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym (subst (restH Perm.↭_) req rp)))
+          ≅↭ Perm.trans pc (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym rp))
+      recon-collapse pc rp refl refl i = refl
+
+      permHc≡ : permH' ≡ subst (λ r → s' Perm.↭ H.ein e ++ r) restHc≡ permHc
+      permHc≡ = sym (subst-pair-snd pair-eq)
+        where
+          subst-pair-snd
+            : ∀ {rc : List (Fin H.nV)} {pc : s' Perm.↭ H.ein e ++ rc}
+                (pe : (rc , pc) ≡ (restH' , permH'))
+            → subst (λ r → s' Perm.↭ H.ein e ++ r) (cong proj₁ pe) pc ≡ permH'
+          subst-pair-snd refl = refl
+
+    locate-coherentˢ
+      : Perm.trans permH' (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym fire-μ))
+        ≅↭ Perm.trans ρ permH
+    locate-coherentˢ = chained
+      where
+        mid : s' Perm.↭ H.ein e ++ restH
+        mid = Perm.trans permHc (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym rpc))
+
+        half₁ : Perm.trans permH' (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym fire-μ))
+                ≅↭ mid
+        half₁ = recon-collapse permHc rpc restHc≡ permHc≡
+
+        half₂ : mid ≅↭ Perm.trans ρ permH
+        half₂ = SU.residual-recon (H.ein e) s' restH (Perm.trans ρ permH)
+                  (SU.Unique-resp-↭ (Perm.trans ρ permH) us')
+
+        chained
+          : Perm.trans permH' (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym fire-μ))
+            ≅↭ Perm.trans ρ permH
+        chained i = trans (half₁ i) (half₂ i)
+
+    ------------------------------------------------------------------
+    -- The permute reconciliation consumed by the FIRE/FIRE step.
+    ------------------------------------------------------------------
+    perm-reconcileˢ
+      : permuteˢ (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym fire-μ))
+          ∘ˢ permuteˢ permH'
+        ≈ˢ permuteˢ permH ∘ˢ permuteˢ ρ
+    perm-reconcileˢ =
+      ≈-trans (≈-sym (pvv-transˢ permH'
+                       (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym fire-μ))))
+        (≈-trans
+          (permˢ-K-H
+            (Perm.trans permH' (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym fire-μ)))
+            (Perm.trans ρ permH)
+            locate-coherentˢ)
+          (pvv-transˢ ρ permH))
+
+    ------------------------------------------------------------------
+    -- FIRE/FIRE term equivariance.
+    ------------------------------------------------------------------
+    edge-step-fire-equivariantˢ
+      : fire-termˢ e s' restH' permH'
+        ≈ˢ permuteˢ (PermProp.++⁺ˡ (H.eout e) fire-μ)
+              ∘ˢ ( fire-termˢ e s restH permH ∘ˢ permuteˢ ρ )
+    edge-step-fire-equivariantˢ =
+      ≈-trans (fire-term-factorˢ e s' restH' permH')
+      -- fire-midˢ rest' ∘ permuteˢ perm'
+      (≈-trans (∘-resp (fire-mid-equivariantˢ e fire-μ) ≈-refl)
+      -- (permuteˢ(++eout μ) ∘ (fire-midˢ rest ∘ permuteˢ(++ein(↭μ)))) ∘ permuteˢ perm'
+      (≈-trans assocˢ
+        (∘-resp ≈-refl
+          -- second factor:
+          -- (fire-midˢ rest ∘ permuteˢ(++ein↭μ)) ∘ permuteˢ perm'
+          (≈-trans assocˢ
+          -- fire-midˢ rest ∘ (permuteˢ(++ein↭μ) ∘ permuteˢ perm')
+          (≈-trans (∘-resp ≈-refl perm-reconcileˢ)
+          -- fire-midˢ rest ∘ (permuteˢ permH ∘ permuteˢ ρ)
+          (≈-trans (≈-sym assocˢ)
+          -- (fire-midˢ rest ∘ permuteˢ permH) ∘ permuteˢ ρ
+            (∘-resp (≈-sym (fire-term-factorˢ e s restH permH)) ≈-refl)))))))
+
+  ----------------------------------------------------------------------
+  -- `++⁺ˡ` commutes with `↭-sym` (list-induction; from the non-strict
+  -- `StackEquivariance`).
+  ----------------------------------------------------------------------
+  private
+    ++⁺ˡ-↭-sym
+      : ∀ (xs : List (Fin H.nV)) {ys zs : List (Fin H.nV)} (p : ys Perm.↭ zs)
+      → Perm.↭-sym (PermProp.++⁺ˡ xs p) ≡ PermProp.++⁺ˡ xs (Perm.↭-sym p)
+    ++⁺ˡ-↭-sym []       p = refl
+    ++⁺ˡ-↭-sym (x ∷ xs) p = cong (Perm.prep x) (++⁺ˡ-↭-sym xs p)
+
+  ----------------------------------------------------------------------
+  -- PER-EDGE-STEP equivariance, over the `EdgeStepRˢ` witnesses.
+  ----------------------------------------------------------------------
+  edge-step-equivariantˢ
+    : ∀ (e : Fin H.nE) {s s' : List (Fin H.nV)} (ρ : s' Perm.↭ s)
+        {s'H : List (Fin H.nV)} {tH : HomS (map vl s) (map vl s'H)}
+        {s'H' : List (Fin H.nV)} {tH' : HomS (map vl s') (map vl s'H')}
+        (wH  : EdgeStepRˢ s e s'H tH) (wH' : EdgeStepRˢ s' e s'H' tH')
+        (us' : Unique s')
+    → Σ[ ρf ∈ s'H' Perm.↭ s'H ]
+        tH' ≈ˢ permuteˢ (Perm.↭-sym ρf) ∘ˢ ( tH ∘ˢ permuteˢ ρ )
+  -- SKIP/SKIP.
+  edge-step-equivariantˢ e ρ (skipRˢ eqH) (skipRˢ eqH') us' =
+    ρ , ≈-sym (≈-trans (∘-resp ≈-refl idˡ) (pvv-inverse-leftˢ ρ))
+  -- SKIP/FIRE & FIRE/SKIP: impossible by firing stability.
+  edge-step-equivariantˢ e ρ (skipRˢ eqH) (fireRˢ restH' permH' eqH') us' =
+    ⊥-elim (just≢nothing (trans (sym eqH') (fire-stable-nothing e ρ eqH)))
+  edge-step-equivariantˢ e {s} {s'} ρ (fireRˢ restH permH eqH) (skipRˢ eqH') us' =
+    ⊥-elim (just≢nothing
+      (let st = fire-stable-just e ρ permH eqH
+       in trans (sym (proj₁ (proj₂ (proj₂ st)))) eqH'))
+  -- FIRE/FIRE.
+  edge-step-equivariantˢ e {s} {s'} ρ
+      (fireRˢ restH permH eqH) (fireRˢ restH' permH' eqH') us' =
+        PermProp.++⁺ˡ (H.eout e) (Perm.↭-sym μ)
+      , subst (λ z → fire-termˢ e s' restH' permH'
+                       ≈ˢ permuteˢ z
+                            ∘ˢ ( fire-termˢ e s restH permH ∘ˢ permuteˢ ρ ))
+              (sym (trans (++⁺ˡ-↭-sym (H.eout e) (Perm.↭-sym μ))
+                          (cong (PermProp.++⁺ˡ (H.eout e))
+                                (PermProp.↭-sym-involutive μ))))
+              (edge-step-fire-equivariantˢ e ρ permH permH' eqH' us')
+    where
+      μ : restH Perm.↭ restH'
+      μ = fire-μ e ρ permH permH' eqH' us'
+
+  ----------------------------------------------------------------------
+  -- `process-edgesˢ` projections (abbreviations).
+  ----------------------------------------------------------------------
+  pe-stackˢ : List (Fin H.nE) → List (Fin H.nV) → List (Fin H.nV)
+  pe-stackˢ qs s = proj₁ (process-edgesˢ qs s)
+
+  pe-termˢ : (qs : List (Fin H.nE)) (s : List (Fin H.nV))
+           → HomS (map vl s) (map vl (pe-stackˢ qs s))
+  pe-termˢ qs s = proj₂ (process-edgesˢ qs s)
+
+  ----------------------------------------------------------------------
+  -- MAIN THEOREM — `process-edges-equivariantˢ`.
+  --
+  -- Induction on `qs`.  Empty: ρf = ρ, terms are idˢ, `pvv-inverse-leftˢ`
+  -- closes.  Cons: one `edge-step-equivariantˢ` on the head edge gives the
+  -- per-step ρ1 + term relation; recurse on the tail with ρ1; compose the
+  -- two sandwiches (the middle permutes telescope through ∘ˢ-reassoc,
+  -- leaving the outer `ρ` / `↭-sym ρf` intact).  The `Reservoir≤1`
+  -- freshness on the PERMUTED stack `s'` is sourced by the caller and
+  -- advanced one strict `edge-stepˢ` per recursion (bridged to the
+  -- non-strict `edge-step` via `edge-stack-agree`).
+  ----------------------------------------------------------------------
+  process-edges-equivariantˢ
+    : ∀ (qs : List (Fin H.nE)) {s s' : List (Fin H.nV)} (ρ : s' Perm.↭ s)
+    → SUR.Reservoir≤1 H qs s'
+    → Σ[ ρf ∈ pe-stackˢ qs s' Perm.↭ pe-stackˢ qs s ]
+        pe-termˢ qs s'
+          ≈ˢ permuteˢ (Perm.↭-sym ρf)
+                ∘ˢ ( pe-termˢ qs s ∘ˢ permuteˢ ρ )
+  process-edges-equivariantˢ [] {s} {s'} ρ _ =
+    ρ , ≈-sym (≈-trans (∘-resp ≈-refl idˡ) (pvv-inverse-leftˢ ρ))
+  process-edges-equivariantˢ (e ∷ qs) {s} {s'} ρ inv
+      with edge-step-equivariantˢ e ρ (edge-stepˢ-graph s e) (edge-stepˢ-graph s' e)
+              (SUR.Reservoir≤1⇒Unique H (e ∷ qs) s' inv)
+  ... | ρ1 , step-eq
+      with process-edges-equivariantˢ qs
+             {proj₁ (edge-stepˢ s e)} {proj₁ (edge-stepˢ s' e)} ρ1
+             (subst (SUR.Reservoir≤1 H qs)
+                    (sym (edge-stack-agree s' e))
+                    (SUR.edge-step-Reservoir≤1 H e qs s' inv))
+  ... | ρf , tail-eq =
+        ρf , goal
+    where
+      s1  = proj₁ (edge-stepˢ s  e)
+      s1' = proj₁ (edge-stepˢ s' e)
+      tH  = proj₂ (edge-stepˢ s  e)
+      tH' = proj₂ (edge-stepˢ s' e)
+
+      mid-collapse
+        : permuteˢ ρ1 ∘ˢ tH' ≈ˢ tH ∘ˢ permuteˢ ρ
+      mid-collapse =
+        ≈-trans (∘-resp ≈-refl step-eq)
+          (≈-trans (≈-sym assocˢ)
+            (≈-trans
+              (∘-resp (pvv-inverse-rightˢ ρ1) ≈-refl)
+              idˡ))
+
+      goal
+        : (pe-termˢ qs s1' ∘ˢ tH')
+          ≈ˢ permuteˢ (Perm.↭-sym ρf)
+                ∘ˢ ( (pe-termˢ qs s1 ∘ˢ tH) ∘ˢ permuteˢ ρ )
+      goal =
+        ≈-trans
+          (∘-resp tail-eq (≈-refl {f = tH'}))
+          (≈-trans assocˢ
+            (∘-resp ≈-refl
+              (≈-trans assocˢ
+                (≈-trans (∘-resp ≈-refl mid-collapse)
+                         (≈-sym assocˢ)))))

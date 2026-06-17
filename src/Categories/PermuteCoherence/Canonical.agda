@@ -21,6 +21,7 @@
 module Categories.PermuteCoherence.Canonical where
 
 open import Data.Nat.Base using (ℕ; zero; suc)
+open import Data.Nat.Properties using (suc-injective)
 open import Data.Fin.Base using (Fin; zero; suc)
 open import Data.Fin.Patterns using (0F; 1F)
 import Data.Fin.Permutation as P
@@ -62,15 +63,9 @@ bubble-to-front : ∀ {n} (xs : List A) (xs-len : length xs ≡ suc n)
 bubble-to-front {n = n}     []           ()     k
 bubble-to-front {n = n}     (x ∷ xs)     xs-len zero =
   xs , suc-injective xs-len , Perm.refl
-  where
-  suc-injective : ∀ {a b} → suc a ≡ suc b → a ≡ b
-  suc-injective refl = refl
 bubble-to-front {n = zero}  (x ∷ [])     refl   (suc ())
 bubble-to-front {n = suc n} (x ∷ y ∷ xs) xs-len (suc k)
   with bubble-to-front {n = n} (y ∷ xs) (suc-injective xs-len) k
-  where
-  suc-injective : ∀ {a b} → suc a ≡ suc b → a ≡ b
-  suc-injective refl = refl
 ... | (zs , zs-len , p) =
   x ∷ zs , cong suc zs-len ,
   Perm.trans (Perm.prep x p)

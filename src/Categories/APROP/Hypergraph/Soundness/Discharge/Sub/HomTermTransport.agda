@@ -23,16 +23,16 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.HomTermTransport
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph; domL; codL)
-open import Categories.APROP.Hypergraph.FromAPROP sig
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; range)
-open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten)
-open import Categories.APROP.Hypergraph.Soundness.Decode sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-all-edges; decode-attempt; extract-exact)
-open import Categories.APROP.Hypergraph.Soundness.Permute sig
+open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
   using (permute-via-vlab; permute)
-import Categories.APROP.Hypergraph.Soundness.Linearity sig as Lin
+import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig as SU
 
 open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData
@@ -125,13 +125,6 @@ subst₂-⊗₁-dist refl refl refl refl a b = refl
 ⊗id-∘ h k =
   ≈-Term-trans (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⊗-∘-dist
 
-⊗id-∘∘ : ∀ {A B C D} {Z : ObjTerm}
-           (h : HomTerm C D) (k : HomTerm B C) (l : HomTerm A B)
-       → (h ∘ k ∘ l) ⊗₁ id {Z}
-         ≈Term (h ⊗₁ id {Z}) ∘ (k ⊗₁ id {Z}) ∘ (l ⊗₁ id {Z})
-⊗id-∘∘ h k l =
-  ≈-Term-trans (⊗id-∘ h (k ∘ l)) (∘-resp-≈ ≈-Term-refl (⊗id-∘ k l))
-
 ------------------------------------------------------------------------
 -- ## Box-shape `subst₂`/`pvl` transport algebra (shared across the
 --    box-shape consumers).
@@ -154,29 +147,6 @@ pvl-subst₂
                    (permute-via-vlab vlab r)
     ≡ permute-via-vlab vlab (subst₂ Perm._↭_ a b r)
 pvl-subst₂ vlab refl refl r = refl
-
-pvl-refl
-  : ∀ {n} (vlab : Fin n → X) (xs : List (Fin n))
-  → permute-via-vlab vlab (Perm.↭-refl {x = xs}) ≈Term id
-pvl-refl vlab xs = ≈-Term-refl
-
-subst₂-cod-trans
-  : ∀ {as as' bs bs' bs'' : List X}
-      (p : as ≡ as') (q : bs ≡ bs') (r : bs' ≡ bs'')
-      (x : HomTerm (unflatten as) (unflatten bs))
-  → subst₂ HomTerm (cong unflatten p) (cong unflatten (trans q r)) x
-    ≡ subst₂ HomTerm refl (cong unflatten r)
-             (subst₂ HomTerm (cong unflatten p) (cong unflatten q) x)
-subst₂-cod-trans refl refl refl x = refl
-
-subst₂-dom-trans
-  : ∀ {as as' as'' bs bs' : List X}
-      (q : as ≡ as') (r : as' ≡ as'') (p : bs ≡ bs')
-      (x : HomTerm (unflatten as) (unflatten bs))
-  → subst₂ HomTerm (cong unflatten (trans q r)) (cong unflatten p) x
-    ≡ subst₂ HomTerm (cong unflatten r) refl
-             (subst₂ HomTerm (cong unflatten q) (cong unflatten p) x)
-subst₂-dom-trans refl refl refl x = refl
 
 permute-subst₂
   : ∀ {xs xs' ys ys' : List X} (p : xs ≡ xs') (q : ys ≡ ys')

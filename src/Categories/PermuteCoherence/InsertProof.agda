@@ -2,8 +2,8 @@
 ------------------------------------------------------------------------
 -- The Insertion Lemma, from the exchange condition + Matsumoto:
 --   insert-thm : canonW (genFB i ∘-fb b) ~ʷ i ∷ canonW b
--- Also hosts `straightenW` (it needs `insert-thm`), which is what lets
--- `Word` drop the `insert` postulate.
+-- Also hosts `straightenW`, which depends on `insert-thm` (and is the
+-- reason `Word`'s `straightenW` lives downstream, here).
 ------------------------------------------------------------------------
 module Categories.PermuteCoherence.InsertProof where
 

@@ -383,7 +383,7 @@ genFB-braid (adjS {i = i} {k = k} adj) =
 -- 10. The Insertion Lemma (the Sₙ word problem kernel) is `_~ʷ_`-derived
 -- and proved as `InsertProof.insert-thm` (downstream of `Word`, via the
 -- type-A exchange condition + Matsumoto).  `straightenW` lives there too,
--- as it is the only thing that needed `insert`.
+-- as it is the only thing that depends on `insert-thm`.
 
 ------------------------------------------------------------------------
 -- 11. `canonW` congruence + identity (straightening support).

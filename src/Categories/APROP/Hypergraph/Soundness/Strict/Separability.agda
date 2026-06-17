@@ -47,12 +47,12 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Separability
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Soundness.Decode sig
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-prefix; extract-elem)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decoder sig _≟X_ public
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_ public
 
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
@@ -66,7 +66,6 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong)
 open import Relation.Nullary.Decidable using (yes; no)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
 --------------------------------------------------------------------------------
 -- The decoder fixes `H`; we work `vl`-relatively, re-using the `Perm′`

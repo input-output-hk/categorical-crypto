@@ -14,9 +14,9 @@ open import Categories.APROP
 module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics
   (sig : APROPSignature) where
 
-open import Categories.APROP.Hypergraph.Soundness.Decode sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-prefix; extract-elem)
-open import Categories.APROP.Hypergraph.Soundness.Linearity sig
+open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using (count; count-++)
 
 open import Data.Empty using (⊥; ⊥-elim)

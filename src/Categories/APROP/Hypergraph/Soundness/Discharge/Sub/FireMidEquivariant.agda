@@ -38,13 +38,13 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.FireMidEquivariant
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; _≅_)
-open import Categories.APROP.Hypergraph.Soundness.Permute sig
+open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
   using (permute; permute-via-vlab)
-open import Categories.APROP.Hypergraph.Soundness.Decode sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (Agen-edge-aux)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeStepRelation sig
   using (box-of; fire-mid)

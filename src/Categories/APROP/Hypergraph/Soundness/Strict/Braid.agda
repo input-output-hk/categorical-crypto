@@ -39,8 +39,8 @@ open import Relation.Binary.PropositionalEquality
 open import Categories.FreeMonoidal
   using (FreeMonoidalData; Variant; _≤_; v≤v)
 open Variant
-open import Categories.APROP.Hypergraph.FromAPROP sig using (flatten)
-open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (flatten)
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; flatten-unflatten)
 open import Categories.FreeStrictSMC using (module Build)
 
@@ -67,7 +67,7 @@ open FM.FreeMonoidal d₀ using
   ; σ∘σ≈id; σ∘[f⊗g]≈[g⊗f]∘σ; hexagon )
   renaming (var to Agen)
 
-import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SigmaBlockHexagon
+import Categories.FreeSMC.SigmaBlockHexagon
   d₀ as SBH
 open SBH using (σ-block; σ-block-hexagon)
 

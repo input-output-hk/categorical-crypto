@@ -9,8 +9,8 @@
 
 module Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency where
 
-open import Categories.APROP.Hypergraph.Core
-open import Categories.APROP.Hypergraph.Iso
+open import Categories.APROP.Hypergraph.Model.Core
+open import Categories.APROP.Hypergraph.Model.Iso
 
 open import Data.Fin using (Fin)
 open import Data.List using (List; map)
@@ -82,10 +82,3 @@ module _ {X : Set} {Gen : List X → List X → Set}
         (subst (_∈ map φ (H.ein e'))
                w≡φv
                (subst (w ∈_) (ψ-ein e') w∈in))
-
-  -- Lemma A as an `⇔`.
-  lemmaA : ∀ {e e'} → (e ≺[ H ] e') ⇔ (ψ e ≺[ J ] ψ e')
-  lemmaA = mk⇔ ≺⇒ψ≺ ψ≺⇒≺
-
-  ≺-resp-≅ᴴ : ∀ {e e'} → (e ≺[ H ] e') ⇔ (ψ e ≺[ J ] ψ e')
-  ≺-resp-≅ᴴ = lemmaA

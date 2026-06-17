@@ -18,18 +18,18 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Core
+open import Categories.APROP.Hypergraph.Model.Core
   using (Hypergraph; domL; codL)
-open import Categories.APROP.Hypergraph.Iso using (_≅ᴴ_)
-open import Categories.APROP.Hypergraph.FromAPROP sig using (FlatGen; range)
-open import Categories.APROP.Hypergraph.Soundness.Unflatten sig using (unflatten)
-open import Categories.APROP.Hypergraph.Soundness.Decode sig
+open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig using (unflatten)
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-edges)
-open import Categories.APROP.Hypergraph.Soundness.Permute sig
+open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
   using (permute-via-vlab)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
   using (Dep; ≺⇒ψ≺)
-open import Categories.APROP.Hypergraph.Soundness.LinearityIso sig
+open import Categories.APROP.Hypergraph.Soundness.Linearity.LinearityIso sig
   using (bij-fin-ℕ-≡; tabulate-bij-↭-via-eq)
 
 import Categories.Combinatorics.LinearExtension as LinExt

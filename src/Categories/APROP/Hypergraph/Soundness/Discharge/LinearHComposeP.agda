@@ -15,20 +15,21 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP
   (sig : APROPSignature) where
 
 open APROP sig
-open import Categories.APROP.Hypergraph.Core
-open import Categories.APROP.Hypergraph.FromAPROP sig
+open import Categories.APROP.Hypergraph.Model.Core
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen)
-open import Categories.APROP.Hypergraph.Prune
+open import Categories.APROP.Hypergraph.Util.Prune
   using ( count-non; nonMem; classify; remap
         ; remap-inj₁; remap-inj₂; remap-injective
         ; classify-lookup-Unique; classify-inj₁-lookup
         ; lookup-injective-unique)
-open import Categories.APROP.Hypergraph.PrunedCompose sig
+open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
-open import Categories.APROP.Hypergraph.Soundness.Linearity sig
+open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using ( count; count-++; count-map-↑ˡ
         ; count-map-↑ˡ-mismatch; count-swap
-        ; producedList; consumedList; Linear)
+        ; producedList; consumedList; Linear; tabulate-+)
+open import Categories.APROP.Hypergraph.Model.Invariant sig using (↑ˡ≢↑ʳ)
 
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt; cast; toℕ)
@@ -67,14 +68,6 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatori
         ; count-cancel-cons; count-≡⇒↭; count-map-resp)
 
 private
-  -- `tabulate` over a `Fin (m + n)` index splits as a `++` of the two
-  -- halves.  Used by `eout-comp-eq` / `ein-comp-eq` below.
-  tabulate-+ : ∀ {m n} {A : Set} (f : Fin (m + n) → A)
-             → tabulate f
-             ≡ tabulate (λ i → f (i ↑ˡ n)) ++ tabulate (λ j → f (m ↑ʳ j))
-  tabulate-+ {m = zero}          f = refl
-  tabulate-+ {m = suc m} {n = n} f =
-    cong (f zero ∷_) (tabulate-+ {m = m} {n = n} (f Fun.∘ suc))
 
   -- `cast eq` is injective (preserves `toℕ`).  Stdlib 2.3 lacks
   -- `cast-injective`; derived from `toℕ-cast` + `toℕ-injective`.
@@ -457,17 +450,10 @@ module _
   --     giving count ≥ 2 in `K.dom ++ K-eb`, contradicting K-bound.
 
   private
-    -- Disjointness of `_↑ˡ cn` and `G.nV ↑ʳ_` ranges.
+    -- Disjointness of `_↑ˡ cn` and `G.nV ↑ʳ_` ranges (shared from Invariant).
     ↑ˡ-↑ʳ-disjoint : (i : Fin G.nV) (j : Fin cn)
                    → i ↑ˡ cn ≡ G.nV ↑ʳ j → ⊥
-    ↑ˡ-↑ʳ-disjoint i j eq
-      with splitAt-↑ˡ G.nV i cn | splitAt-↑ʳ G.nV cn j | cong (splitAt G.nV) eq
-    ... | i-red | j-red | split-eq =
-      case-absurd (trans (sym i-red) (trans split-eq j-red))
-      where
-        case-absurd : ∀ {Y : Set} {x : Fin G.nV} {y : Fin cn}
-                    → inj₁ x ≡ inj₂ y → Y
-        case-absurd ()
+    ↑ˡ-↑ʳ-disjoint = ↑ˡ≢↑ʳ {G.nV} {cn}
 
     K-eb-bnd : ∀ k → count k K-eb Nat.≤ 1
     K-eb-bnd k =

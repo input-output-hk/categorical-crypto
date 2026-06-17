@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------
 -- SPIKE: augmenting `solveM` to a solver that handles MORPHISM VARIABLES.
 --
--- `Categories.MonoidalCoherence.Solver.solveM` works in the free monoidal
+-- `Categories.Coherence.Monoidal.Solver.solveM` works in the free monoidal
 -- category over an OBJECT-variable assignment with `mor = ⊥` (no morphism
 -- generators).  Its coherence engine `all-Comm` can only prove equations
 -- between structural morphisms (composites of α/λ/ρ and ⊗/∘), and it

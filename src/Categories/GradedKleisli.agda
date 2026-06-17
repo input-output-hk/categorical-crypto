@@ -18,7 +18,7 @@ open import Data.Fin
 open import Data.Product
 open import Data.Vec using (_∷_; [])
 
-open import Categories.MonoidalCoherence
+open import Categories.Coherence.Monoidal
 
 record UC-model : Set₁ where
   field C : Category ℓ0 ℓ0 ℓ0

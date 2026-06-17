@@ -57,9 +57,8 @@ permute-via-vlab vlab p = permute (PermProp.map⁺ vlab p)
 
 --------------------------------------------------------------------------------
 -- Re-export generic `extract-elem` and `extract-prefix`.  Sharing the
--- definition with APROP's `Decode` lets the
--- `process-steps-maybe ≡ process-edges` correspondence in
--- `Discharge.APROPMacLaneFromSMC` reduce via the `with`-pattern.
+-- definition with APROP's `Decode` keeps this module's `process-steps-maybe`
+-- definitionally aligned with APROP's `process-edges`.
 
 open import Categories.Hypergraph.ExtractPrefix public
   using (extract-elem; extract-prefix)

@@ -40,23 +40,23 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.BoxKernel
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Core using (Hypergraph; domL; codL)
-open import Categories.APROP.Hypergraph.FromAPROP sig
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten)
-import Categories.APROP.Hypergraph.FromAPROP sig as FA
-open import Categories.APROP.Hypergraph.Soundness.Unflatten sig
+import Categories.APROP.Hypergraph.Model.FromAPROP sig as FA
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; _≅_)
-open import Categories.APROP.Hypergraph.Soundness.Permute sig
+open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
   using (permute-via-vlab; permute)
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.FireMidEquivariant sig as FME
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.BlockNFBraid
   asFreeMonoidalData _≟X_ as BNB
 open import Categories.APROP.Hypergraph.Soundness.Discharge.CIsoAssocFromCons sig
   using (c-iso-assoc-from)
-open import Categories.APROP.Hypergraph.Soundness.UnflattenMonoidal sig
+open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
   using (c-iso-assoc-to; cancel-mid-iso; conj-lemma; bridge-dom; bridge-cod
         ; subst-2)
-open import Categories.APROP.Hypergraph.Soundness.Decode sig
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (Agen-edge-aux)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeStepRelation sig
   using (box-of)
