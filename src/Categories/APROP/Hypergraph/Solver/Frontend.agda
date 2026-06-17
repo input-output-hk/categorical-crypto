@@ -428,20 +428,49 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
       sound   : ⟦ lhs ⟧₁ C.≈ ⟦ rhs ⟧₁
 
   -- One firing: the first rule with a carvable, certifiable position.
+  --
+  -- The iso-search result is consumed by MATCHING the `Maybe` as a function
+  -- argument (`fireWith`/`tryFoc`), NOT by a `with`-abstraction.  A bare
+  -- `with findIsoᵀ ⟪ s ⟫ ⟪ frame … ⟫` forces Agda's `with`-machinery to
+  -- generalise the goal over a scrutinee of type `Maybe (⟪ s ⟫ ≅ᴴ ⟪ frame … ⟫)`,
+  -- which NORMALISES `⟪ frame … ⟫` — building the whole `hComposeP` tower of the
+  -- frame at *definition* time, even though `s`/`pre`/`post` are abstract
+  -- (measured: ~21s of `Typing.With` in this one definition).  Feeding the
+  -- `Maybe` to a helper that pattern-matches it keeps the frame a plain term
+  -- argument whose translation is built only at *reduction* time (when `drive`
+  -- actually runs on a concrete term), exactly as `deepFrameM`/`frame-rule-step`
+  -- do for the single-step gates.
+  private
+    -- Consume the `findIsoᵀ` result for a fixed carve frame.  `frameL`/`frameR`
+    -- are the L/R frames; the rule transports across the located occurrence.
+    fireWith
+      : ∀ {A B} (s frameL frameR : HomTerm A B)
+      → ⟦ frameL ⟧₁ C.≈ ⟦ frameR ⟧₁
+      → Maybe (⟪ s ⟫ ≅ᴴ ⟪ frameL ⟫)
+      → Maybe (Σ (HomTerm A B) (λ t → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁))
+    fireWith s frameL frameR rule nothing    = nothing
+    fireWith s frameL frameR rule (just iso) =
+      just (frameR , C.Equiv.trans (solveH s frameL iso) rule)
+
+    -- Consume the carve-position result for one rule.
+    tryFoc : (r : Rule) → ∀ {A B} (s : HomTerm A B)
+           → Maybe (Foc A B (Rule.P r) (Rule.Q r))
+           → Maybe (Σ (HomTerm A B) (λ t → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁))
+    tryFoc r s nothing               = nothing
+    tryFoc r s (just (k , pre , post)) =
+      fireWith s
+        (reassocBal post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ reassocBal pre)
+        (reassocBal post ∘ (id {k} ⊗₁ Rule.rhs r) ∘ reassocBal pre)
+        (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , Rule.sound r))))
+        (findIsoᵀ ⟪ s ⟫
+          ⟪ reassocBal post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ reassocBal pre ⟫)
+
   driveStep : List Rule → ∀ {A B} (s : HomTerm A B)
             → Maybe (Σ (HomTerm A B) (λ t → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁))
   driveStep []       s = nothing
-  driveStep (r ∷ rs) s with deepFocₙ s (Rule.lhs r) zero
-  ... | nothing = driveStep rs s
-  ... | just (k , pre , post)
-        with findIsoᵀ ⟪ s ⟫ ⟪ reassocBal post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ reassocBal pre ⟫
-  ...   | nothing  = driveStep rs s
-  ...   | just iso = just
-          ( reassocBal post ∘ (id {k} ⊗₁ Rule.rhs r) ∘ reassocBal pre
-          , C.Equiv.trans
-              (solveH s (reassocBal post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ reassocBal pre) iso)
-              (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ
-                 (C.⊗.F-resp-≈ (C.Equiv.refl , Rule.sound r)))) )
+  driveStep (r ∷ rs) s with tryFoc r s (deepFocₙ s (Rule.lhs r) zero)
+  ... | nothing       = driveStep rs s
+  ... | just (t , pf) = just (t , pf)
 
   -- Iterate to (fuel-bounded) exhaustion, accumulating the proof.
   drive : List Rule → ℕ → ∀ {A B} (s : HomTerm A B)
