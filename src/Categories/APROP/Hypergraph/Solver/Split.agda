@@ -260,6 +260,14 @@ private
       step ρ⇒ (ρ⇐ ◂ gs) = gs
       step ρ⇐ (ρ⇒ ◂ gs) = gs
       step (σ ⦃ _ ⦄) ((σ ⦃ _ ⦄) ◂ gs) = id ◂ gs
+      -- End-of-chain pairs: the inverse partner is the final factor.
+      step α⇒ [ α⇐ ] = [ id ]
+      step α⇐ [ α⇒ ] = [ id ]
+      step λ⇒ [ λ⇐ ] = [ id ]
+      step λ⇐ [ λ⇒ ] = [ id ]
+      step ρ⇒ [ ρ⇐ ] = [ id ]
+      step ρ⇐ [ ρ⇒ ] = [ id ]
+      step (σ ⦃ _ ⦄) [ σ ⦃ _ ⦄ ] = [ id ]
       step g  gs        = g ◂ gs
 
 mutual
