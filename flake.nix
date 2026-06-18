@@ -1,51 +1,20 @@
 # Warning: only edit this file if you know what you're doing!
-# In this case, consider using `agda.nix` directly.
+# To customize the build, prefer the optional pagda.nix escape hatch.
 {
-  description = "Pagda nix template";
+  description = "Pagda project";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs";
-
-    flake-utils.url = "github:numtide/flake-utils";
 
     agda-nix = {
       url = "github:input-output-hk/agda.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    pagda = {
-      url = "./pagda.nix";
-      flake = false;
-    };
+    pagda.url = "github:WhatisRT/pagda";
   };
 
-  outputs =
-    inputs@{
-      self,
-        nixpkgs,
-        flake-utils,
-        ...
-    }:
-    let
-      inherit (nixpkgs) lib;
-    in
-      flake-utils.lib.eachDefaultSystem (
-        system:
-        let
-          pkgs = import nixpkgs {
-            inherit system;
-            overlays = [
-              inputs.agda-nix.overlays.default
-            ];
-          };
-
-          pagda = import inputs.pagda { agdaPackages = pkgs.agdaPackages; };
-        in
-          {
-            packages = pagda // {
-              agda = pkgs.agdaPackages.agda.withPackages
-                (builtins.filter (p: p ? isAgdaDerivation) pagda.default.buildInputs);
-            };
-          }
-      );
+  # The build logic lives in pagda (lib.mkFlake), so this file stays a thin
+  # caller: bump the pagda input to pick up improvements.
+  outputs = inputs: inputs.pagda.lib.mkFlake { inherit inputs; src = ./.; };
 }
