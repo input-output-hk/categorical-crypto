@@ -23,7 +23,7 @@ module Categories.APROP.Hypergraph.Soundness.Decode.Decode (sig : APROPSignature
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flatten; range)
+  using (FlatGen; flat-rec; flatten; range)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-flatten-≈; unflatten-++-≅; _≅_)
 open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
@@ -72,8 +72,9 @@ extract-exact ks xs with extract-prefix ks xs
 Agen-edge-aux
   : ∀ {ins outs : List X} → FlatGen ins outs
   → HomTerm (unflatten ins) (unflatten outs)
-Agen-edge-aux (FlatGen.flat {A} {B} g) =
-  _≅_.from (unflatten-flatten-≈ B) ∘ Agen g ∘ _≅_.to (unflatten-flatten-≈ A)
+Agen-edge-aux (flat-rec {A} {B} okA okB g) =
+  subst₂ (λ a b → HomTerm (unflatten a) (unflatten b)) okA okB
+    (_≅_.from (unflatten-flatten-≈ B) ∘ Agen g ∘ _≅_.to (unflatten-flatten-≈ A))
 
 --------------------------------------------------------------------------------
 -- The cospan algorithm, with `H` fixed.

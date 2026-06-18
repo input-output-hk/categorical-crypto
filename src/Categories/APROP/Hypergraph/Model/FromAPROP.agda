@@ -40,6 +40,8 @@ open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Sum using (inj₁; inj₂; [_,_]′)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂; trans; sym; subst₂)
+open import Relation.Binary.PropositionalEquality.Properties
+  using (trans-reflʳ)
 
 --------------------------------------------------------------------------------
 -- Flattening an ObjTerm into its list of atoms.
@@ -50,8 +52,59 @@ flatten (A ⊗₀ B) = flatten A ++ flatten B
 flatten (Var x) = x ∷ []
 
 -- Edges carry generators whose boundary is already a flat atom list.
-data FlatGen : List X → List X → Set where
-  flat : ∀ {A B} → mor A B → FlatGen (flatten A) (flatten B)
+--
+-- Represented as a RECORD carrying its original `ObjTerm` boundaries plus
+-- linking proofs `okA`/`okB`.  This is morally the data type
+--
+--   data FlatGen : List X → List X → Set where
+--     flat : ∀ {A B} → mor A B → FlatGen (flatten A) (flatten B)
+--
+-- but the record form lets every `elab` construction site BUILD THE RECORD
+-- DIRECTLY at its target boundaries (via `retype`, which folds the boundary
+-- equality into the `okA`/`okB` field) INSTEAD of wrapping in `subst₂ FlatGen`.
+-- The `view`/matching machinery then reads `f`/`A`/`B` by shallow record
+-- projection, never forcing the (stacked, tower-deep) boundary equalities to
+-- normalise to `refl`.  This kills the quadratic-in-tower-depth
+-- `subst₂`-proof-normalisation blowup that the indexed-data form incurred at
+-- each `hComposeP` level.
+--
+-- The boundary proofs are kept *relevant* so the soundness-side strictification
+-- (`Boundary.J-flat`, `Decode.Agen-edge-aux`) can coerce a generator's
+-- `unflatten`-bridge onto the record's declared boundaries without needing
+-- decidable equality on `X` (which most soundness modules lack).  They are
+-- never *normalised* on the solver hot path (only carried as thunks), so the
+-- perf win is unaffected.
+record FlatGen (As Bs : List X) : Set where
+  constructor flat-rec
+  field
+    {A B} : ObjTerm
+    okA   : flatten A ≡ As
+    okB   : flatten B ≡ Bs
+    f     : mor A B
+
+-- Smart constructor matching the old data-style `flat g : FlatGen (flatten
+-- A) (flatten B)`; existing `flat g` call sites keep working unchanged.
+flat : ∀ {A B} → mor A B → FlatGen (flatten A) (flatten B)
+flat g = flat-rec refl refl g
+
+-- Re-type a `FlatGen` along boundary equalities by REBUILDING the record
+-- (composing the equalities into the `okA`/`okB` fields).  Behaves exactly
+-- like `subst₂ FlatGen p q` (see `retype-≡`) but, crucially, produces a
+-- *direct* `flat-rec` — so projecting `A`/`B`/`f` via the `view` machinery
+-- never forces the boundary proofs to normalise.  Used at every `elab`
+-- construction site (`hTensor`, `hComposeP`, `hGen`) to avoid the quadratic
+-- stacked-`subst₂` proof-normalisation cost.
+retype : ∀ {As Bs As' Bs'} → As ≡ As' → Bs ≡ Bs'
+       → FlatGen As Bs → FlatGen As' Bs'
+retype p q (flat-rec oa ob g) = flat-rec (trans oa p) (trans ob q) g
+
+-- `retype` agrees with `subst₂ FlatGen p q` propositionally; lets the
+-- construction-site change be invisible to the downstream `subst₂ FlatGen`-
+-- shaped reasoning lemmas (`elab-c-inj₁`/`₂`).
+retype-≡ : ∀ {As Bs As' Bs'} (p : As ≡ As') (q : Bs ≡ Bs') (v : FlatGen As Bs)
+         → retype p q v ≡ subst₂ FlatGen p q v
+retype-≡ refl refl (flat-rec oa ob g) =
+  cong₂ (λ a b → flat-rec a b g) (trans-reflʳ oa) (trans-reflʳ ob)
 
 --------------------------------------------------------------------------------
 -- Fin-range helpers.
@@ -140,11 +193,11 @@ module hTensor-impl (G K : Hypergraph FlatGen) where
   elab-c : (e : Fin (G.nE + K.nE))
          → FlatGen (map vlab-c (ein-c e)) (map vlab-c (eout-c e))
   elab-c e with splitAt G.nE e
-  ... | inj₁ eG = subst₂ FlatGen
+  ... | inj₁ eG = retype
                     (map-via-inj vlab-injL (G.ein eG))
                     (map-via-inj vlab-injL (G.eout eG))
                     (G.elab eG)
-  ... | inj₂ eK = subst₂ FlatGen
+  ... | inj₂ eK = retype
                     (map-via-raise vlab-injR (K.ein eK))
                     (map-via-raise vlab-injR (K.eout eK))
                     (K.elab eK)
@@ -185,7 +238,10 @@ module hTensor-impl (G K : Hypergraph FlatGen) where
                   (G.elab eG)
   elab-c-inj₁ eG with splitAt G.nE (eG ↑ˡ K.nE)
                       | splitAt-↑ˡ G.nE eG K.nE
-  ... | .(inj₁ eG)   | refl = refl
+  ... | .(inj₁ eG)   | refl =
+        retype-≡ (map-via-inj vlab-injL (G.ein eG))
+                 (map-via-inj vlab-injL (G.eout eG))
+                 (G.elab eG)
 
   elab-c-inj₂ : ∀ (eK : Fin K.nE)
               → subst₂ FlatGen
@@ -198,7 +254,10 @@ module hTensor-impl (G K : Hypergraph FlatGen) where
                   (K.elab eK)
   elab-c-inj₂ eK with splitAt G.nE (G.nE ↑ʳ eK)
                       | splitAt-↑ʳ G.nE K.nE eK
-  ... | .(inj₂ eK)   | refl = refl
+  ... | .(inj₂ eK)   | refl =
+        retype-≡ (map-via-raise vlab-injR (K.ein eK))
+                 (map-via-raise vlab-injR (K.eout eK))
+                 (K.elab eK)
 
 hTensor : Hypergraph FlatGen → Hypergraph FlatGen → Hypergraph FlatGen
 hTensor G K = record
@@ -304,7 +363,7 @@ hGen {A} {B} f = record
   ; nE = 1
   ; ein = λ _ → map (_↑ˡ nB) (range nA)
   ; eout = λ _ → map (nA ↑ʳ_) (range nB)
-  ; elab = λ _ → subst₂ FlatGen lem-in lem-out (flat f)
+  ; elab = λ _ → retype lem-in lem-out (flat f)
   ; dom = map (_↑ˡ nB) (range nA)
   ; cod = map (nA ↑ʳ_) (range nB)
   }

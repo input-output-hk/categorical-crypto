@@ -19,7 +19,7 @@ module Categories.APROP.Hypergraph.Model.PrunedCompose (sig : APROPSignature) wh
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; map-via-inj)
+  using (FlatGen; map-via-inj; retype; retype-≡)
 open import Categories.APROP.Hypergraph.Util.Prune
   using (count-non; nonMem; classify; remap; remap-vlab; map-via-remap)
 
@@ -139,11 +139,11 @@ module hComposeP-impl
   elab-c : (e : Fin (G.nE + K.nE))
          → FlatGen (map vlab-P (ein-c e)) (map vlab-P (eout-c e))
   elab-c e with splitAt G.nE e
-  ... | inj₁ eG = subst₂ FlatGen
+  ... | inj₁ eG = retype
                     (map-via-inj vlab-injL (G.ein eG))
                     (map-via-inj vlab-injL (G.eout eG))
                     (G.elab eG)
-  ... | inj₂ eK = subst₂ FlatGen
+  ... | inj₂ eK = retype
                     (map-via-remapP (K.ein eK))
                     (map-via-remapP (K.eout eK))
                     (K.elab eK)
@@ -187,7 +187,10 @@ module hComposeP-impl
                   (G.elab eG)
   elab-c-inj₁ eG with splitAt G.nE (eG ↑ˡ K.nE)
                       | splitAt-↑ˡ G.nE eG K.nE
-  ... | .(inj₁ eG)   | refl = refl
+  ... | .(inj₁ eG)   | refl =
+        retype-≡ (map-via-inj vlab-injL (G.ein eG))
+                 (map-via-inj vlab-injL (G.eout eG))
+                 (G.elab eG)
 
   elab-c-inj₂ : ∀ (eK : Fin K.nE)
               → subst₂ FlatGen
@@ -200,7 +203,10 @@ module hComposeP-impl
                   (K.elab eK)
   elab-c-inj₂ eK with splitAt G.nE (G.nE ↑ʳ eK)
                       | splitAt-↑ʳ G.nE K.nE eK
-  ... | .(inj₂ eK)   | refl = refl
+  ... | .(inj₂ eK)   | refl =
+        retype-≡ (map-via-remapP (K.ein eK))
+                 (map-via-remapP (K.eout eK))
+                 (K.elab eK)
 
 --------------------------------------------------------------------------------
 -- The pruned cospan composition.

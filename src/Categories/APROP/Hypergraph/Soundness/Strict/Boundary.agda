@@ -29,7 +29,7 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Boundary
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flat; flatten)
+  using (FlatGen; flat; flat-rec; flatten)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; unflatten-flatten-≈; _≅_)
 open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
@@ -67,8 +67,13 @@ open FM.HomReasoning
 -- the FlatGen-generated strict category into the HomTerm-generated one
 -- that `Strict.Embed` embeds.
 
+-- The record's (relevant) boundary proofs coerce the generator's
+-- `bridge (Agen g)` onto the declared (possibly non-`flatten`-shaped)
+-- boundary indices `as`/`bs`.
 J-flat : ∀ {as bs} → FlatGen as bs → HomTerm (unflatten as) (unflatten bs)
-J-flat (flat g) = bridge (Agen g)
+J-flat (flat-rec {A} {B} oa ob g) =
+  subst₂ (λ a b → HomTerm (unflatten a) (unflatten b))
+    oa ob (bridge (Agen g))
 
 open Map X _≟X_ FlatGen E.morL J-flat using (mapS; mapS-resp)
 

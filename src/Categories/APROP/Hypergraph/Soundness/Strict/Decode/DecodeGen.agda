@@ -38,7 +38,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flat; flatten; hGen; domL-hGen; codL-hGen)
+  using (FlatGen; flat; flatten; hGen; domL-hGen; codL-hGen; retype-≡)
 open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
@@ -308,10 +308,13 @@ module Gen {A B : ObjTerm} (g : mor A B) where
     G0≈ : G0 ≈ˢ castˢ Pin Pout (genˢ (flat g))
     G0≈ = ≡⇒≈ˢ (trans G0-elab (sym (gen-cast Pin Pout (flat g))))
       where
-        -- `elab e₀` and `subst₂ FlatGen Pin Pout (flat g)` agree (UIP on
-        -- the `FlatGen` boundary indices).
+        -- `elab e₀` (built as `retype … (flat g)`) and
+        -- `subst₂ FlatGen Pin Pout (flat g)` agree: `retype-≡` collapses the
+        -- record-rebuild to a `subst₂ FlatGen`, then UIP on the boundary
+        -- indices realigns the proofs to `Pin`/`Pout`.
         G0-elab : G0 ≡ genˢ (subst₂ FlatGen Pin Pout (flat g))
-        G0-elab = cong genˢ (subst₂-irrel _ Pin _ Pout (flat g))
+        G0-elab = cong genˢ
+          (trans (retype-≡ _ _ (flat g)) (subst₂-irrel _ Pin _ Pout (flat g)))
 
   --------------------------------------------------------------------------
   -- Step H: the full Agen shape.

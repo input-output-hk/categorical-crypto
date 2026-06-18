@@ -25,7 +25,7 @@ module Categories.APROP.Hypergraph.Solver.Match.Verify (sig-dec : APROPSignature
 open APROPSignatureDec sig-dec
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flat; flatten)
+  using (FlatGen; flat; flat-rec; flatten)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Solver.Match.PBij
   using (PBij; forward; backward)
@@ -85,65 +85,66 @@ UIP-ListX = UIP-mod.Decidable⇒UIP.≡-irrelevant _≟LX_
 -- `FlatGen As Bs` value. Sidesteps the stuck `flatten A ≟ flatten A'`
 -- unification when comparing two `FlatGen` values.
 
+-- `view` reads `f`/`A`/`B` and the boundary proofs by shallow record-pattern
+-- projection.  Because every `elab` is built as a *direct* `flat-rec` (no
+-- `subst₂` wrapper — see `FromAPROP.retype`), this never forces the
+-- tower-deep boundary equalities to normalise.
 record FlatView {As Bs : List X} (x : FlatGen As Bs) : Set where
   constructor flatV
   field
     A B  : ObjTerm
+    f    : mor A B
     ok-A : flatten A ≡ As
     ok-B : flatten B ≡ Bs
-    f    : mor A B
-    ok   : subst₂ FlatGen ok-A ok-B (flat f) ≡ x
+    ok   : flat-rec ok-A ok-B f ≡ x
 
 view : ∀ {As Bs} (x : FlatGen As Bs) → FlatView x
-view (flat {A} {B} f) = flatV A B refl refl f refl
+view (flat-rec {A} {B} oa ob f) = flatV A B f oa ob refl
 
 --------------------------------------------------------------------------------
 -- Conservative `flat`-match via the views, deferring to `_≟-ObjTerm_` and
 -- `_≟-mor_`.
 
+-- The relevant payload of two `FlatGen` values is `(A, B, f)`; when `v` and
+-- `y` share it, `subst₂ FlatGen p q v ≡ y` holds — both are the *same*
+-- `flat-rec` at the *same* indices, the boundary proofs collapsing under UIP.
+flatgen-irrel
+  : ∀ {As Bs As' Bs'} (p : As ≡ As') (q : Bs ≡ Bs')
+      (v : FlatGen As Bs) (y : FlatGen As' Bs')
+      {A B} (f : mor A B)
+      (oa : flatten A ≡ As)  (ob : flatten B ≡ Bs)
+      (oa' : flatten A ≡ As') (ob' : flatten B ≡ Bs')
+  → flat-rec oa ob f ≡ v → flat-rec oa' ob' f ≡ y
+  → subst₂ FlatGen p q v ≡ y
+flatgen-irrel refl refl _ _ f oa ob oa' ob' refl refl
+  with UIP-ListX oa oa' | UIP-ListX ob ob'
+... | refl | refl = refl
+
 -- `flat-match-subst p q v y`: compare the *transported* J-label
--- `subst₂ FlatGen p q v` against the H-label `y`, but WITHOUT first building
--- the transported term and forcing `view` to push through the outer `subst₂`.
--- We `view` the underlying value `v` (one fewer stacked transport for the
--- normaliser to collapse) and `view y`, dispatch on the hidden `(A,B,f)`,
+-- `subst₂ FlatGen p q v` against the H-label `y`, WITHOUT building the
+-- transported term — we `view` the underlying `v`/`y` (record-pattern
+-- projection only, no proof normalisation), dispatch on the hidden `(A,B,f)`,
 -- and assemble the equality directly.  This is the hot path for `findIso`'s
 -- per-edge label sweep: all call sites pass exactly `subst₂ FlatGen p q (…elab…)`.
 flat-match-subst
   : ∀ {As Bs As' Bs'} (p : As ≡ As') (q : Bs ≡ Bs')
       (v : FlatGen As Bs) (y : FlatGen As' Bs')
   → Maybe (subst₂ FlatGen p q v ≡ y)
-flat-match-subst p q v y = step (view v) (view y)
+flat-match-subst {As} {Bs} {As'} {Bs'} p q v y = step (view v) (view y)
   where
     step : FlatView v → FlatView y → Maybe (subst₂ FlatGen p q v ≡ y)
-    step (flatV A B ok-A ok-B f ok-v) (flatV A' B' ok-A' ok-B' g ok-y) =
+    step (flatV A B f ok-A ok-B ok-v) (flatV A' B' g ok-A' ok-B' ok-y) =
       dispatch (A ≟-ObjTerm A') (B ≟-ObjTerm B')
       where
         dispatch : _ → _ → Maybe (subst₂ FlatGen p q v ≡ y)
         dispatch (yes refl) (yes refl) = compare (f ≟-mor g)
           where
             compare : _ → Maybe (subst₂ FlatGen p q v ≡ y)
-            -- v = subst₂ FlatGen ok-A ok-B (flat f)  (from ok-v)
-            -- y = subst₂ FlatGen ok-A' ok-B' (flat g) (from ok-y)
-            -- with f ≡ g and matching endpoints, both `subst₂` stacks
-            -- transport the same `flat g` along propositionally-equal
-            -- list proofs, so UIP collapses them.
-            compare (yes f≡g) =
-              just (trans (cong (subst₂ FlatGen p q) (sym ok-v))
-                   (trans (cong (λ z → subst₂ FlatGen p q (subst₂ FlatGen ok-A ok-B (flat z))) f≡g)
-                   (trans (help-subst-eq2 p ok-A ok-A' q ok-B ok-B' (flat g))
-                          ok-y)))
-              where
-                -- subst₂ p q (subst₂ p' q' z) ≡ subst₂ p'' q'' z  (all via UIP).
-                help-subst-eq2
-                  : ∀ {A₁ A₂ A₃ B₁ B₂ B₃ : List X}
-                      (p₁ : A₂ ≡ A₃) (p₂ : A₁ ≡ A₂) (p₃ : A₁ ≡ A₃)
-                      (q₁ : B₂ ≡ B₃) (q₂ : B₁ ≡ B₂) (q₃ : B₁ ≡ B₃)
-                      (z : FlatGen A₁ B₁)
-                  → subst₂ FlatGen p₁ q₁ (subst₂ FlatGen p₂ q₂ z)
-                  ≡ subst₂ FlatGen p₃ q₃ z
-                help-subst-eq2 refl refl p₃ refl refl q₃ z
-                  with UIP-ListX refl p₃ | UIP-ListX refl q₃
-                ... | refl | refl = refl
+            -- `v` and `y` reconstruct from the *same* `(A,B)` boundaries; with
+            -- `f ≡ g` their relevant payloads agree, so `flatgen-irrel` settles
+            -- the transported equality (boundary proofs being erased).
+            compare (yes refl) =
+              just (flatgen-irrel p q v y f ok-A ok-B ok-A' ok-B' ok-v ok-y)
             compare (no _) = nothing
         dispatch _ _ = nothing
 

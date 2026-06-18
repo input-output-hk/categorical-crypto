@@ -37,7 +37,7 @@ open import Data.List.Base using (_++_)
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Relation.Binary.Definitions using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; cong₂; subst₂)
+  using (_≡_; refl; cong; cong₂; trans; subst₂)
 open import Relation.Nullary using (yes; no)
 open import Relation.Nullary.Decidable using (map′)
 
@@ -83,7 +83,7 @@ sig⁺-dec = record { sig = sig⁺ ; _≟X_ = _≟X_ ; _≟-mor_ = _≟-Mor⁺_ 
 -- are indexed by the same atom lists and `flat f ↦ flat (old f)` is direct.
 
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flat; flatten)
+  using (FlatGen; flat; flat-rec; flatten)
 import Categories.APROP.Hypergraph.Model.FromAPROP sig⁺ as F⁺
 
 -- `flatten` depends only on `X`, but the two module instantiations are
@@ -93,9 +93,11 @@ flatten-agree unit     = refl
 flatten-agree (A ⊗₀ B) = cong₂ _++_ (flatten-agree A) (flatten-agree B)
 flatten-agree (Var x)  = refl
 
+-- Rebuild the `sig⁺` record directly at the same boundaries, folding the
+-- (erased) original linking proof together with `flatten-agree`.
 relabel : ∀ {As Bs} → FlatGen As Bs → F⁺.FlatGen As Bs
-relabel (flat {A} {B} f) =
-  subst₂ F⁺.FlatGen (flatten-agree A) (flatten-agree B) (F⁺.flat (old f))
+relabel (flat-rec {A} {B} oa ob f) =
+  F⁺.flat-rec (trans (flatten-agree A) oa) (trans (flatten-agree B) ob) (old f)
 
 --------------------------------------------------------------------------------
 -- Term retraction `sig⁺ → sig`: total on hole-free terms, `nothing` on any
