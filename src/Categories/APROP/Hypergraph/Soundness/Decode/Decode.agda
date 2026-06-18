@@ -36,7 +36,7 @@ open import Data.List.Properties using (map-++)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Nat using (ℕ; zero; suc)
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.Product using (Σ; Σ-syntax; ∃-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; cong; subst; subst₂)
 open import Relation.Nullary using (yes; no)
@@ -126,6 +126,23 @@ module _ (H : Hypergraph FlatGen) where
       bridged : HomTerm (unflatten (map H.vlab s))
                         (unflatten (map H.vlab (H.eout e ++ rest)))
       bridged = mid' ∘ permute-via-vlab H.vlab perm
+
+  -- Generic `edge-step` reduction lemmas, proven once over the ABSTRACT `H`.
+  -- Call sites (hTensor/hComposeP liftings) feed the already-transported
+  -- `extract-prefix` equation here instead of forcing `edge-step` of a large
+  -- computed `H` to normalise at the use site.
+  edge-step-just
+    : ∀ (s : List (Fin H.nV)) (e : Fin H.nE)
+        {rest : List (Fin H.nV)} {perm}
+    → extract-prefix (H.ein e) s ≡ just (rest , perm)
+    → ∃[ t ] edge-step s e ≡ (H.eout e ++ rest , t)
+  edge-step-just s e eq rewrite eq = _ , refl
+
+  edge-step-nothing
+    : ∀ (s : List (Fin H.nV)) (e : Fin H.nE)
+    → extract-prefix (H.ein e) s ≡ nothing
+    → ∃[ t ] edge-step s e ≡ (s , t)
+  edge-step-nothing s e eq rewrite eq = _ , refl
 
   --------------------------------------------------------------------
   -- Process all edges in natural Fin order; returns the final stack and

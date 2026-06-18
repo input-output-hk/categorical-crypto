@@ -31,8 +31,8 @@ open import Categories.APROP.Hypergraph.Model.Translation sig
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (decode-attempt; edge-step; extract-prefix; process-edges;
-         process-all-edges)
+  using (decode-attempt; edge-step; edge-step-just; edge-step-nothing;
+         extract-prefix; process-edges; process-all-edges)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual; extract-prefix-↭-nothing;
          extract-prefix-via-injective-just; extract-prefix-via-injective-nothing)
@@ -118,7 +118,9 @@ module _
         : ∃[ t ] edge-step (hComposeP G K bdy-eq) stack (eG ↑ˡ K.nE)
                   ≡ (Hypergraph.eout (hComposeP G K bdy-eq) (eG ↑ˡ K.nE)
                        ++ map injL rest , t)
-      reduce-result rewrite proj₂ eq-on-ein-c = _ , refl
+      reduce-result =
+        edge-step-just (hComposeP G K bdy-eq) stack (eG ↑ˡ K.nE)
+                       (proj₂ eq-on-ein-c)
 
       list-eq : Hypergraph.eout (hComposeP G K bdy-eq) (eG ↑ˡ K.nE)
                   ++ map injL rest
@@ -155,7 +157,7 @@ module _
       aux : extract-prefix (Hypergraph.ein (hComposeP G K bdy-eq) (eG ↑ˡ K.nE)) stack
               ≡ nothing
           → ∃[ t ] edge-step (hComposeP G K bdy-eq) stack (eG ↑ˡ K.nE) ≡ (stack , t)
-      aux p rewrite p = _ , refl
+      aux p = edge-step-nothing (hComposeP G K bdy-eq) stack (eG ↑ˡ K.nE) p
 
   edge-step-↑ˡ-pure-L
     : ∀ (eG : Fin G.nE) (xs : List (Fin G.nV))
@@ -237,7 +239,9 @@ module _
       reduce-result
         : ∃[ t ] edge-step (hComposeP G K bdy-eq) s (G.nE ↑ʳ eK)
                   ≡ (Hypergraph.eout (hComposeP G K bdy-eq) (G.nE ↑ʳ eK) ++ r , t)
-      reduce-result rewrite proj₂ extract-on-ein-c = _ , refl
+      reduce-result =
+        edge-step-just (hComposeP G K bdy-eq) s (G.nE ↑ʳ eK)
+                       (proj₂ extract-on-ein-c)
 
       edge-step-eq
         : ∃[ t ] edge-step (hComposeP G K bdy-eq) s (G.nE ↑ʳ eK) ≡ (R-out ++ r , t)
@@ -281,7 +285,8 @@ module _
 
       reduce-to-id
         : ∃[ t ] edge-step (hComposeP G K bdy-eq) s (G.nE ↑ʳ eK) ≡ (s , t)
-      reduce-to-id rewrite nothing-on-ein-c = _ , refl
+      reduce-to-id =
+        edge-step-nothing (hComposeP G K bdy-eq) s (G.nE ↑ʳ eK) nothing-on-ein-c
 
       nothing-result
         : ∃[ s' ] ∃[ t ]
