@@ -360,70 +360,6 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
             m' = β C.∘ m C.⊗₁ C.id C.∘ β
             q = C.α⇐ C.∘ C.id C.⊗₁ k C.∘ C.α⇒
 
-            -- Naturality of β: β ∘ (p ⊗₁ q) ⊗₁ r ≈ (p ⊗₁ r) ⊗₁ q ∘ β
-            β-natural : ∀ {P P' Q Q' R R'}
-              {p : P C.⇒ P'} {q' : Q C.⇒ Q'} {r : R C.⇒ R'} →
-              β C.∘ (p C.⊗₁ q') C.⊗₁ r C.≈ (p C.⊗₁ r) C.⊗₁ q' C.∘ β
-            β-natural {p = p} {q' = q'} {r = r} = begin
-              (C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒) C.∘ (p C.⊗₁ q') C.⊗₁ r
-                ≈⟨ C.assoc ⟩
-              C.α⇐ C.∘ (C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒) C.∘ (p C.⊗₁ q') C.⊗₁ r
-                ≈⟨ refl⟩∘⟨ C.assoc ⟩
-              C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒ C.∘ (p C.⊗₁ q') C.⊗₁ r
-                ≈⟨ refl⟩∘⟨ refl⟩∘⟨ C.assoc-commute-from ⟩
-              C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ p C.⊗₁ (q' C.⊗₁ r) C.∘ C.α⇒
-                ≈⟨ refl⟩∘⟨ C.sym-assoc ⟩
-              C.α⇐ C.∘ (C.id C.⊗₁ C.σ⇒ C.∘ p C.⊗₁ (q' C.⊗₁ r)) C.∘ C.α⇒
-                ≈⟨ refl⟩∘⟨ (begin
-                    C.id C.⊗₁ C.σ⇒ C.∘ p C.⊗₁ (q' C.⊗₁ r)
-                      ≈˘⟨ Functor.homomorphism C.⊗ ⟩
-                    (C.id C.∘ p) C.⊗₁ (C.σ⇒ C.∘ q' C.⊗₁ r)
-                      ≈⟨ Functor.F-resp-≈ C.⊗ (C.identityˡ , C.braiding.⇒.commute (q' , r)) ⟩
-                    p C.⊗₁ (r C.⊗₁ q' C.∘ C.σ⇒)
-                      ≈⟨ Functor.F-resp-≈ C.⊗ (C.Equiv.sym C.identityʳ , C.Equiv.refl) ⟩
-                    (p C.∘ C.id) C.⊗₁ (r C.⊗₁ q' C.∘ C.σ⇒)
-                      ≈⟨ Functor.homomorphism C.⊗ ⟩
-                    p C.⊗₁ (r C.⊗₁ q') C.∘ C.id C.⊗₁ C.σ⇒
-                    ∎) ⟩∘⟨refl ⟩
-              C.α⇐ C.∘ (p C.⊗₁ (r C.⊗₁ q') C.∘ C.id C.⊗₁ C.σ⇒) C.∘ C.α⇒
-                ≈⟨ refl⟩∘⟨ C.assoc ⟩
-              C.α⇐ C.∘ p C.⊗₁ (r C.⊗₁ q') C.∘ C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒
-                ≈⟨ C.sym-assoc ⟩
-              (C.α⇐ C.∘ p C.⊗₁ (r C.⊗₁ q')) C.∘ C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒
-                ≈⟨ C.assoc-commute-to ⟩∘⟨refl ⟩
-              ((p C.⊗₁ r) C.⊗₁ q' C.∘ C.α⇐) C.∘ C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒
-                ≈⟨ C.assoc ⟩
-              (p C.⊗₁ r) C.⊗₁ q' C.∘ C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒
-              ∎
-
-            -- β is involutive: β ∘ β ≈ id
-            β-involutive : ∀ {P Q R} → β {P} {Q} {R} C.∘ β C.≈ C.id
-            β-involutive = begin
-              β C.∘ β
-                ≈⟨ C.assoc ⟩
-              C.α⇐ C.∘ (C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒) C.∘ β
-                ≈⟨ refl⟩∘⟨ C.assoc ⟩
-              C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒ C.∘ (C.α⇐ C.∘ (C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒))
-                ≈⟨ refl⟩∘⟨ refl⟩∘⟨ C.sym-assoc ⟩
-              C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ (C.α⇒ C.∘ C.α⇐) C.∘ (C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒)
-                ≈⟨ refl⟩∘⟨ refl⟩∘⟨ C.associator.isoʳ ⟩∘⟨refl ⟩
-              C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ C.id C.∘ (C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒)
-                ≈⟨ refl⟩∘⟨ refl⟩∘⟨ C.identityˡ ⟩
-              C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ (C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒)
-                ≈⟨ refl⟩∘⟨ C.sym-assoc ⟩
-              C.α⇐ C.∘ (C.id C.⊗₁ C.σ⇒ C.∘ C.id C.⊗₁ C.σ⇒) C.∘ C.α⇒
-                ≈˘⟨ refl⟩∘⟨ Functor.homomorphism C.⊗ ⟩∘⟨refl ⟩
-              C.α⇐ C.∘ (C.id C.∘ C.id) C.⊗₁ (C.σ⇒ C.∘ C.σ⇒) C.∘ C.α⇒
-                ≈⟨ refl⟩∘⟨ Functor.F-resp-≈ C.⊗ (C.identityˡ , C.commutative) ⟩∘⟨refl ⟩
-              C.α⇐ C.∘ C.id C.⊗₁ C.id C.∘ C.α⇒
-                ≈⟨ refl⟩∘⟨ (Functor.identity C.⊗ ⟩∘⟨refl) ⟩
-              C.α⇐ C.∘ C.id C.∘ C.α⇒
-                ≈⟨ refl⟩∘⟨ C.identityˡ ⟩
-              C.α⇐ C.∘ C.α⇒
-                ≈⟨ C.associator.isoˡ ⟩
-              C.id
-              ∎
-
             -- The main coherence proof
             assoc'-coherence :
               ∀ {A⁺ A⁻' B⁺' B⁻' D⁺' D⁻' E⁺' E⁻'}
@@ -440,17 +376,8 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
             -- The main coherence equation: pure monoidal coherence showing that
             -- the two rearrangements of h ⊗₁ g ⊗₁ f (with trace variables)
             -- are equal. Both sides represent the same string diagram.
-            --
-            -- Proof strategy: expand m₀' and q₀, use naturality of α, γ, β
-            -- to extract the data morphisms (h', g', f'), then show the
-            -- remaining coherence isomorphisms are equal.
-            --
-            -- Key tools needed:
-            --   β-natural:    β ∘ (p ⊗₁ q) ⊗₁ r ≈ (p ⊗₁ r) ⊗₁ q ∘ β
-            --   β-involutive: β ∘ β ≈ id
-            --   assoc-commute-from/to: naturality of associator
-            --   braiding.⇒.commute: naturality of braiding
-            --   Functor.homomorphism C.⊗: (f ∘ g) ⊗₁ (h ∘ k) ≈ (f ⊗₁ h) ∘ (g ⊗₁ k)
+            -- Discharged by the transported free-level solver result
+            -- (GConstructionCoherence.Transport.WithGens.coherence).
             assoc'-coherence {A⁺} {A⁻'} {B⁺'} {B⁻'} {D⁺'} {D⁻'} {E⁺'} {E⁻'} f' g' h' =
               GCoh.Transport.WithGens.coherence
                 (record { U = Cᵤ ; monoidal = Monoidal ; symmetric = C.symmetric })
