@@ -237,6 +237,31 @@ private
   ... | _         | _         = nothing
   isIdᵗ _         = nothing
 
+  -- Adjacent inverse-coherence cancellation on a chain.  The decode/retract
+  -- seams produce runs like `… ◂ α⇐ ◂ α⇒ ◂ …` (the `unflatten-++-≅` bridge of
+  -- one edge's `mid'` meeting the inverse bridge of the next), and `permute`'s
+  -- `α⇒ ∘ … ∘ α⇐` swap brackets meet head-to-tail.  Each such pair composes to
+  -- `id` in the model (`α⇐∘α⇒≈id`, `α⇒∘α⇐≈id`, the λ/ρ analogues, and `σ∘σ≈id`
+  -- at matching types), so the pair translates to a graph identity and can be
+  -- dropped without changing the carve gate's verdict.  When the two
+  -- constructors are matched as a definite inverse pair, the shared boundary
+  -- forces the outer endpoints to coincide, so the remaining tail is already
+  -- at the demanded type.  A single right-to-left pass with look-again after a
+  -- cancellation handles cascading seams; non-cancelling heads are kept.
+  cancelC : ∀ {A B} → Chain A B → Chain A B
+  cancelC [ f ]      = [ f ]
+  cancelC (g ◂ gs)   = step g (cancelC gs)
+    where
+      step : ∀ {A B C} → HomTerm B C → Chain A B → Chain A C
+      step α⇒ (α⇐ ◂ gs) = gs
+      step α⇐ (α⇒ ◂ gs) = gs
+      step λ⇒ (λ⇐ ◂ gs) = gs
+      step λ⇐ (λ⇒ ◂ gs) = gs
+      step ρ⇒ (ρ⇐ ◂ gs) = gs
+      step ρ⇐ (ρ⇒ ◂ gs) = gs
+      step (σ ⦃ _ ⦄) ((σ ⦃ _ ⦄) ◂ gs) = id ◂ gs
+      step g  gs        = g ◂ gs
+
 mutual
   flat∘ : ∀ {A B} → HomTerm A B → Chain A B
   flat∘ (g ∘ f)  = appC (flat∘ g) (flat∘ f)
@@ -253,7 +278,7 @@ mutual
 
   reassocBal : ∀ {A B} → HomTerm A B → HomTerm A B
   reassocBal f =
-    let c = dropIdC (flat∘ f)
+    let c = dropIdC (cancelC (dropIdC (flat∘ f)))
     in balC (lenC c) c
 
 reassoc-sound : ∀ {A B} (f : HomTerm A B) → reassoc f ≈Term f
