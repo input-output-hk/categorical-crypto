@@ -21,7 +21,8 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-flatten-≈)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (decode-attempt; edge-step; extract-prefix; process-edges;
+  using (decode-attempt; edge-step; edge-step-just; edge-step-nothing;
+         extract-prefix; process-edges;
          process-all-edges; extract-exact)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-self; extract-prefix-from-↭;
@@ -35,7 +36,7 @@ import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
 
 open import Categories.Morphism FreeMonoidal using (_≅_)
 
-open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
+open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_)
 open import Data.Nat using (_+_)
 open import Data.List using (List; []; _∷_; _++_; length; map)
 open import Data.List.Properties using (++-identityʳ; ++-assoc; map-++)
@@ -144,13 +145,16 @@ module _ (G K : Hypergraph FlatGen) where
               (extract-prefix-↑ˡ-on-mixed-just K.nV (G.ein eG)
                                                 xs-G ys rest-G p-G eq)
 
+      -- Generic abstract edge-step reduction (avoids normalising the
+      -- concrete `edge-step (hTensor G K) …` at this site).
       reduce-result
         : ∃[ t ]
             edge-step (hTensor G K) stack (eG ↑ˡ K.nE)
             ≡ ( Hypergraph.eout (hTensor G K) (eG ↑ˡ K.nE)
                   ++ (map (_↑ˡ K.nV) rest-G ++ map (G.nV ↑ʳ_) ys)
               , t )
-      reduce-result rewrite proj₂ eq-on-ein-c = _ , refl
+      reduce-result =
+        edge-step-just (hTensor G K) stack (eG ↑ˡ K.nE) (proj₂ eq-on-ein-c)
 
       -- Bridge edge-step's raw output to the lifted form (eout-c-inj₁-red,
       -- ++-assoc, map-++).
@@ -223,7 +227,8 @@ module _ (G K : Hypergraph FlatGen) where
             ≡ ( Hypergraph.eout (hTensor G K) (G.nE ↑ʳ eK)
                   ++ (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) rest-K)
               , t )
-      reduce-result rewrite proj₂ eq-on-ein-c = _ , refl
+      reduce-result =
+        edge-step-just (hTensor G K) stack (G.nE ↑ʳ eK) (proj₂ eq-on-ein-c)
 
       -- One `cong` rewriting `eout-c (G.nE ↑ʳ eK)` to `map injR (K.eout eK)`;
       -- no associator needed since the eouts stay on the left.
@@ -247,7 +252,8 @@ module _ (G K : Hypergraph FlatGen) where
                    (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys)
                    (eG ↑ˡ K.nE)
          ≡ (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys , t)
-  edge-step-↑ˡ-on-mixed-nothing eG xs-G ys eq = aux nothing-lifted
+  edge-step-↑ˡ-on-mixed-nothing eG xs-G ys eq =
+      edge-step-nothing (hTensor G K) stack (eG ↑ˡ K.nE) nothing-lifted
     where
       stack = map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys
 
@@ -258,11 +264,6 @@ module _ (G K : Hypergraph FlatGen) where
         subst (λ ks → extract-prefix ks stack ≡ nothing)
               (sym (hT-impl.ein-c-inj₁-red eG))
               (extract-prefix-↑ˡ-on-mixed-nothing K.nV (G.ein eG) xs-G ys eq)
-
-      aux : extract-prefix (Hypergraph.ein (hTensor G K) (eG ↑ˡ K.nE)) stack
-              ≡ nothing
-          → ∃[ t ] edge-step (hTensor G K) stack (eG ↑ˡ K.nE) ≡ (stack , t)
-      aux p rewrite p = _ , refl
 
   -- K-side failure: same shape as G-side.
   edge-step-↑ʳ-on-mixed-nothing
@@ -275,7 +276,8 @@ module _ (G K : Hypergraph FlatGen) where
                    (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K)
                    (G.nE ↑ʳ eK)
          ≡ (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K , t)
-  edge-step-↑ʳ-on-mixed-nothing eK xs ys-K eq = aux nothing-lifted
+  edge-step-↑ʳ-on-mixed-nothing eK xs ys-K eq =
+      edge-step-nothing (hTensor G K) stack (G.nE ↑ʳ eK) nothing-lifted
     where
       stack = map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K
 
@@ -286,11 +288,6 @@ module _ (G K : Hypergraph FlatGen) where
         subst (λ ks → extract-prefix ks stack ≡ nothing)
               (sym (hT-impl.ein-c-inj₂-red eK))
               (extract-prefix-↑ʳ-on-mixed-nothing G.nV (K.ein eK) xs ys-K eq)
-
-      aux : extract-prefix (Hypergraph.ein (hTensor G K) (G.nE ↑ʳ eK)) stack
-              ≡ nothing
-          → ∃[ t ] edge-step (hTensor G K) stack (G.nE ↑ʳ eK) ≡ (stack , t)
-      aux p rewrite p = _ , refl
 
   -- Unified G-side per-edge lemma (just/nothing).  Since G's edges only
   -- touch the L-side, the output stays in `(map injL _) ++ (map injR ys)`.
@@ -400,7 +397,8 @@ module _ (G K : Hypergraph FlatGen) where
       reduce-result
         : ∃[ t ] edge-step (hTensor G K) s (G.nE ↑ʳ eK)
                    ≡ (Hypergraph.eout (hTensor G K) (G.nE ↑ʳ eK) ++ r , t)
-      reduce-result rewrite proj₂ extract-on-ein-c = _ , refl
+      reduce-result =
+        edge-step-just (hTensor G K) s (G.nE ↑ʳ eK) (proj₂ extract-on-ein-c)
 
       -- `eout-c-inj₂-red` converts eout-c to `R-out`.
       edge-step-eq
@@ -457,7 +455,8 @@ module _ (G K : Hypergraph FlatGen) where
 
       reduce-to-id
         : ∃[ t ] edge-step (hTensor G K) s (G.nE ↑ʳ eK) ≡ (s , t)
-      reduce-to-id rewrite nothing-on-ein-c = _ , refl
+      reduce-to-id =
+        edge-step-nothing (hTensor G K) s (G.nE ↑ʳ eK) nothing-on-ein-c
 
       nothing-result : ∃[ s' ] ∃[ t ]
                          edge-step (hTensor G K) s (G.nE ↑ʳ eK)
@@ -485,46 +484,6 @@ module _ (G K : Hypergraph FlatGen) where
       rewrite eq-edge | eq-rec = _ , _ , refl , perm-rec
 
 --------------------------------------------------------------------------------
--- `hSwap A B`: nE = 0, dom = L ++ R, cod = R ++ L.  `process-all-edges`
--- returns (dom, id); `extract-exact` succeeds via `++-comm` +
--- `extract-prefix-from-↭`.
-
-decode-attempt-hSwap
-  : ∀ (A B : ObjTerm)
-  → Σ[ t ∈ HomTerm (unflatten (domL (hSwap A B))) (unflatten (codL (hSwap A B))) ]
-      decode-attempt (hSwap A B) ≡ just t
-decode-attempt-hSwap A B
-    with extract-prefix-from-↭
-           (map (_↑ˡ length (flatten B)) (range (length (flatten A)))
-            ++ map (length (flatten A) ↑ʳ_) (range (length (flatten B))))
-           (map (length (flatten A) ↑ʳ_) (range (length (flatten B)))
-            ++ map (_↑ˡ length (flatten B)) (range (length (flatten A))))
-           (PermProp.++-comm
-             (map (_↑ˡ length (flatten B)) (range (length (flatten A))))
-             (map (length (flatten A) ↑ʳ_) (range (length (flatten B)))))
-... | p , eq rewrite eq = _ , refl
-
---------------------------------------------------------------------------------
--- `hGen g`: nE = 1, ein 0 = dom = L, eout 0 = cod = R.  The single edge
--- fires via `extract-prefix-self` (stack becomes `R ++ []`); the final
--- `extract-exact` needs `(R ++ []) ↭ R` via `++-identityʳ`.
-
-decode-attempt-hGen
-  : ∀ {A B : ObjTerm} (g : mor A B)
-  → Σ[ t ∈ HomTerm (unflatten (domL (hGen g))) (unflatten (codL (hGen g))) ]
-      decode-attempt (hGen g) ≡ just t
-decode-attempt-hGen {A} {B} g
-    with extract-prefix-self
-           (map (_↑ˡ length (flatten B)) (range (length (flatten A))))
-... | _ , eq1 rewrite eq1
-    with extract-prefix-from-↭
-           (map (length (flatten A) ↑ʳ_) (range (length (flatten B))) ++ [])
-           (map (length (flatten A) ↑ʳ_) (range (length (flatten B))))
-           (PermProp.++-identityʳ
-             (map (length (flatten A) ↑ʳ_) (range (length (flatten B)))))
-... | _ , eq2 rewrite eq2 = _ , refl
-
---------------------------------------------------------------------------------
 -- Inverse of `decode-attempt-perm-from-just`: from a final stack with a
 -- permutation to `H.cod`, derive `decode-attempt H ≡ just _`.
 
@@ -539,6 +498,53 @@ decode-attempt-from-perm H (s_final , t' , eq-proc , perm)
     with extract-prefix-from-↭ s_final (Hypergraph.cod H) perm
 ... | _ , eq-prefix
     rewrite eq-proc | eq-prefix = _ , refl
+
+--------------------------------------------------------------------------------
+-- `hSwap A B`: nE = 0, dom = L ++ R, cod = R ++ L.  `process-all-edges`
+-- returns (dom, id); `extract-exact` succeeds via `++-comm` +
+-- `extract-prefix-from-↭`.
+
+decode-attempt-hSwap
+  : ∀ (A B : ObjTerm)
+  → Σ[ t ∈ HomTerm (unflatten (domL (hSwap A B))) (unflatten (codL (hSwap A B))) ]
+      decode-attempt (hSwap A B) ≡ just t
+decode-attempt-hSwap A B =
+  decode-attempt-from-perm (hSwap A B)
+    -- nE = 0 ⇒ `process-all-edges` is `(dom , id)` by `refl`; the boundary
+    -- permutation `dom ↭ cod` is `++-comm L R`.
+    ( Hypergraph.dom (hSwap A B) , _ , refl
+    , PermProp.++-comm
+        (map (_↑ˡ length (flatten B)) (range (length (flatten A))))
+        (map (length (flatten A) ↑ʳ_) (range (length (flatten B)))) )
+
+--------------------------------------------------------------------------------
+-- `hGen g`: nE = 1, ein 0 = dom = L, eout 0 = cod = R.  The single edge
+-- fires via `extract-prefix-self` (stack becomes `R ++ []`); the final
+-- `extract-exact` needs `(R ++ []) ↭ R` via `++-identityʳ`.
+
+decode-attempt-hGen
+  : ∀ {A B : ObjTerm} (g : mor A B)
+  → Σ[ t ∈ HomTerm (unflatten (domL (hGen g))) (unflatten (codL (hGen g))) ]
+      decode-attempt (hGen g) ≡ just t
+decode-attempt-hGen {A} {B} g =
+  decode-attempt-from-perm (hGen g)
+    (s-final , proc-eq)
+  where
+    H = hGen g
+    module H = Hypergraph H
+    s-final = H.eout zero ++ []
+    -- The single edge fires on the whole `dom = ein 0` with empty residual.
+    self : Σ[ p ∈ (H.dom Perm.↭ H.dom ++ []) ]
+             extract-prefix (H.ein zero) H.dom ≡ just ([] , p)
+    self = extract-prefix-self H.dom
+    edge0 : ∃[ t ] edge-step H H.dom zero ≡ (s-final , t)
+    edge0 = edge-step-just H H.dom zero (proj₂ self)
+    -- process-all-edges (range 1) = process-edges (zero ∷ []) dom, which
+    -- folds the single `edge-step`; rewrite by `edge0` exposes `s-final`.
+    proc-eq : ∃[ t' ]
+                (process-all-edges H H.dom ≡ (s-final , t'))
+              × (s-final Perm.↭ H.cod)
+    proc-eq rewrite proj₂ edge0 = _ , refl , PermProp.++-identityʳ H.cod
 
 --------------------------------------------------------------------------------
 -- `decode-attempt-hTensor`: combines the per-edge / process-edges
