@@ -134,7 +134,7 @@ C3Rᵗ-rhs = E₂Rᵗ ∘ hRᵗ ⊗₁ id
 
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Model.Translation (APROPSignatureDec.sig iSigDec) using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Solver.Match.FindIso iSigDec using (findIso)
+open import Categories.APROP.Hypergraph.Solver.Match.FindIsoTab iSigDec using (findIsoᵀ)
 open import Categories.APROP.Hypergraph.Soundness iSigDec
   using (soundness)
 
@@ -143,13 +143,13 @@ private
   force! (just x) _ = x
 
   iso-C1L : ⟪ C1Lᵗ-lhs ⟫ ≅ᴴ ⟪ C1Lᵗ-rhs ⟫
-  iso-C1L = force! (findIso ⟪ C1Lᵗ-lhs ⟫ ⟪ C1Lᵗ-rhs ⟫) refl
+  iso-C1L = force! (findIsoᵀ ⟪ C1Lᵗ-lhs ⟫ ⟪ C1Lᵗ-rhs ⟫) refl
   iso-C3L : ⟪ C3Lᵗ-lhs ⟫ ≅ᴴ ⟪ C3Lᵗ-rhs ⟫
-  iso-C3L = force! (findIso ⟪ C3Lᵗ-lhs ⟫ ⟪ C3Lᵗ-rhs ⟫) refl
+  iso-C3L = force! (findIsoᵀ ⟪ C3Lᵗ-lhs ⟫ ⟪ C3Lᵗ-rhs ⟫) refl
   iso-C1R : ⟪ C1Rᵗ-lhs ⟫ ≅ᴴ ⟪ C1Rᵗ-rhs ⟫
-  iso-C1R = force! (findIso ⟪ C1Rᵗ-lhs ⟫ ⟪ C1Rᵗ-rhs ⟫) refl
+  iso-C1R = force! (findIsoᵀ ⟪ C1Rᵗ-lhs ⟫ ⟪ C1Rᵗ-rhs ⟫) refl
   iso-C3R : ⟪ C3Rᵗ-lhs ⟫ ≅ᴴ ⟪ C3Rᵗ-rhs ⟫
-  iso-C3R = force! (findIso ⟪ C3Rᵗ-lhs ⟫ ⟪ C3Rᵗ-rhs ⟫) refl
+  iso-C3R = force! (findIsoᵀ ⟪ C3Rᵗ-lhs ⟫ ⟪ C3Rᵗ-rhs ⟫) refl
 
 C1Lᵗ : C1Lᵗ-lhs ≈Term C1Lᵗ-rhs
 C1Lᵗ = soundness {f = C1Lᵗ-lhs} {g = C1Lᵗ-rhs} iso-C1L
