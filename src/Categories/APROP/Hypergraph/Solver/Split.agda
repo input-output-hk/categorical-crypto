@@ -207,6 +207,22 @@ private
   balC zero    (g ◂ gs)  = oneC (g ◂ gs)
   balC (suc n) (g ◂ gs)  = balC n (pairC (g ◂ gs))
 
+  -- Identity elimination on a chain.  Every `id` factor in a `∘`-spine
+  -- translates (`⟪_⟫`) to an `hComposeP` seam against an edge-free `hId`
+  -- subgraph — a full tower node (its `vlab-P`/`ein-c`/`eout-c`/`count-non`/
+  -- `nonMem` all get forced by `tabH`), yet `⟪ id ∘ x ⟫ ≅ᴴ ⟪ x ⟫` and
+  -- `⟪ x ∘ id ⟫ ≅ᴴ ⟪ x ⟫` (the idˡ/idʳ laws hold in the model — the very
+  -- point of pruning).  So dropping `id` factors leaves the carve gate
+  -- (`findIsoᵀ`/`Verify`) success UNCHANGED while shortening the tower the
+  -- finder must force.  A matched `id : HomTerm B C` forces `C ≡ B`, so the
+  -- tail `gs : Chain A B` is already at the demanded type `Chain A C`.
+  -- The last factor is kept verbatim (a sole `id` chain has no spine to
+  -- collapse into, and the frame's endpoint objects must be preserved).
+  dropIdC : ∀ {A B} → Chain A B → Chain A B
+  dropIdC [ f ]        = [ f ]
+  dropIdC (id   ◂ gs)  = dropIdC gs
+  dropIdC (g    ◂ gs)  = g ◂ dropIdC gs
+
 mutual
   flat∘ : ∀ {A B} → HomTerm A B → Chain A B
   flat∘ (g ∘ f)  = appC (flat∘ g) (flat∘ f)
@@ -214,7 +230,9 @@ mutual
   flat∘ f        = [ f ]
 
   reassocBal : ∀ {A B} → HomTerm A B → HomTerm A B
-  reassocBal f = balC (lenC (flat∘ f)) (flat∘ f)
+  reassocBal f =
+    let c = dropIdC (flat∘ f)
+    in balC (lenC c) c
 
 reassoc-sound : ∀ {A B} (f : HomTerm A B) → reassoc f ≈Term f
 reassoc-sound (g ∘ f)  = ≈-Term-trans (comp-sound (reassoc g) (reassoc f))
