@@ -223,11 +223,33 @@ private
   dropIdC (id   ◂ gs)  = dropIdC gs
   dropIdC (g    ◂ gs)  = g ◂ dropIdC gs
 
+  -- Recognise a *fully identity* term: syntactically `id`, or a tensor whose
+  -- both sides are themselves fully identity.  Returns `A ≡ B` (the endpoints
+  -- coincide).  `⟪ id{A} ⊗₁ id{B} ⟫` and `⟪ id{A⊗B} ⟫` both reduce to
+  -- `hTensor (hId A) (hId B)`, so collapsing an all-identity tensor leaf to a
+  -- single `id` leaves the translated graph IDENTICAL — used below to spare
+  -- the gate the per-leaf `hTensor` tower that `permute`'s `id ⊗₁ …` padding
+  -- otherwise emits.
+  isIdᵗ : ∀ {A B} → HomTerm A B → Maybe (A ≡ B)
+  isIdᵗ id        = just refl
+  isIdᵗ (f ⊗₁ g) with isIdᵗ f | isIdᵗ g
+  ... | just refl | just refl = just refl
+  ... | _         | _         = nothing
+  isIdᵗ _         = nothing
+
 mutual
   flat∘ : ∀ {A B} → HomTerm A B → Chain A B
   flat∘ (g ∘ f)  = appC (flat∘ g) (flat∘ f)
-  flat∘ (f ⊗₁ g) = [ reassocBal f ⊗₁ reassocBal g ]
+  flat∘ (f ⊗₁ g) = tensorLeaf (reassocBal f) (reassocBal g)
   flat∘ f        = [ f ]
+
+  -- Build the `⊗₁` leaf, collapsing it to a single `id` when both reassociated
+  -- factors are fully identity (so the downstream `dropIdC` can then erase it
+  -- entirely from any enclosing spine).
+  tensorLeaf : ∀ {A B C D} → HomTerm A C → HomTerm B D → Chain (A ⊗₀ B) (C ⊗₀ D)
+  tensorLeaf f g with isIdᵗ f | isIdᵗ g
+  ... | just refl | just refl = [ id ]
+  ... | _         | _         = [ f ⊗₁ g ]
 
   reassocBal : ∀ {A B} → HomTerm A B → HomTerm A B
   reassocBal f =
