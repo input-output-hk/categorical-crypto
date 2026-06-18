@@ -4,4 +4,10 @@ on: [push, pull_request]
 
 jobs:
   pagda:
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     uses: WhatisRT/pagda/.github/workflows/agda-ci.yml@main
+    with:
+      pages: true
