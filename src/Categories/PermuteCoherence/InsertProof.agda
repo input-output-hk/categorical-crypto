@@ -20,6 +20,7 @@ open import Categories.PermuteCoherence.FinBij
   using (FinBij; _≈-fb_; _∘-fb_; ≈-fb-sym; ≈-fb-trans)
 open import Categories.PermuteCoherence.Word
   using (Word; canonW; evalW; eval-canonW; genFB; genFB∘genFB; _~ʷ_; ~sym; ~trans; ∷c; c1; ~ʷ⇒≈; canonW-id; ∷-cong)
+open import Categories.PermuteCoherence.Inversions using (inv)
 open import Categories.PermuteCoherence.InversionsCong using (inv-resp-≈)
 open import Categories.PermuteCoherence.ExchangeBase
   using (Reduced; descent; descent-resp-≈; inv-di; canonW-reduced)
@@ -30,11 +31,15 @@ private
   variable
     n : ℕ
 
-insert-thm : (i : Fin n) (b : FinBij (suc n) (suc n))
-           → canonW (genFB i ∘-fb b) ~ʷ i ∷ canonW b
-insert-thm {zero} ()
-insert-thm {suc n} i b with inv-di i b
-... | inj₁ asc =
+-- Auxiliary worker that takes the `inv-di` dichotomy as an explicit
+-- argument and matches on it, instead of `with`-generalising the goal over
+-- `inv-di i b`.  Spelling the scrutinee out as a parameter keeps the goal
+-- type (`canonW (genFB i ∘-fb b) ~ʷ i ∷ canonW b`) from being re-derived by
+-- with-abstraction, which was the dominant typecheck cost of this lemma.
+insert-thm-suc : (i : Fin (suc n)) (b : FinBij (suc (suc n)) (suc (suc n)))
+               → (inv (genFB i ∘-fb b) ≡ suc (inv b)) ⊎ descent i b
+               → canonW (genFB i ∘-fb b) ~ʷ i ∷ canonW b
+insert-thm-suc i b (inj₁ asc) =
   matsumoto (canonW (genFB i ∘-fb b)) (i ∷ canonW b)
             (canonW-reduced (genFB i ∘-fb b))
             (trans (cong suc (trans (canonW-reduced b)
@@ -49,7 +54,7 @@ insert-thm {suc n} i b with inv-di i b
                      (eval-canonW (genFB i ∘-fb b))
                      (≈-fb-sym {b = genFB i ∘-fb evalW (canonW b)} {b′ = genFB i ∘-fb b}
                             (λ p → cong (genFB i P.⟨$⟩ʳ_) (eval-canonW b p))))
-... | inj₂ dsc = ~sym
+insert-thm-suc i b (inj₂ dsc) = ~sym
   (~trans (~trans (∷c refl (~sym i∷w′~ʷcb)) (c1 i))
           (matsumoto w′ (canonW (genFB i ∘-fb b)) rw′
                      (canonW-reduced (genFB i ∘-fb b))
@@ -74,6 +79,11 @@ insert-thm {suc n} i b with inv-di i b
                     (λ p → cong (genFB i P.⟨$⟩ʳ_)
                                 (≈-fb-trans {b = evalW (i ∷ w′)} {b′ = evalW (canonW b)} {b″ = b}
                                          (~ʷ⇒≈ i∷w′~ʷcb) (eval-canonW b) p))
+
+insert-thm : (i : Fin n) (b : FinBij (suc n) (suc n))
+           → canonW (genFB i ∘-fb b) ~ʷ i ∷ canonW b
+insert-thm {zero} ()
+insert-thm {suc n} i b = insert-thm-suc i b (inv-di i b)
 
 ------------------------------------------------------------------------
 -- Straightening: every word is `~ʷ` its bubble-sort canonical form, by
