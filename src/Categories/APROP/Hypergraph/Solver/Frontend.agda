@@ -341,41 +341,11 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
                 (fromWitness! (findIsoᵀ ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫) c₂)))
 
   --------------------------------------------------------------------------------
-  -- Tabulated reassociating deep-rewrite gates (`ᵀᴮ`).  The iso is found by the
-  -- TABULATED plain finder `findIsoᵀ` on the reassociated frame `deepFrame`
-  -- (right-nested context spines ⇒ shallower ⟪_⟫ towers ⇒ cheaper to normalize).
-  -- No provenance: `findIsoFromCarveᵀ` is a measured no-op over `findIsoᵀ` at the
-  -- full-file level, yet ~60s EACH to elaborate in a polymorphic gate definition
-  -- (Agda WHNF-reduces its subMatch/carve on abstract args); `findIsoᵀ` costs
-  -- ~0.4s.  Same exposed types and soundness route (`findIsoᵀ`/`Verify`-gated,
-  -- fail-closed); nothing postulated or removed.
-  rewriteDeepₙ!ᵀᴮ
-    : ∀ {A B P Q}
-    → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
-    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
-    → {found : T (is-just (deepFocₙ s lᵗ n))}
-    → {_     : T (is-just (findIsoᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫))}
-    → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ n found ⟧₁
-  rewriteDeepₙ!ᵀᴮ s lᵗ rᵗ n rule {found} {cert} =
-    C.Equiv.trans
-      (solveH s (deepFrame s lᵗ lᵗ n found)
-              (fromWitness! (findIsoᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫) cert))
-      (frame-rule-step s lᵗ rᵗ n rule found)
-
-  rewriteDeepTo!ᵀᴮ
-    : ∀ {A B P Q}
-    → (s t : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
-    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
-    → {found : T (is-just (deepFocₙ s lᵗ n))}
-    → {_     : T (is-just (findIsoᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫))}
-    → {_     : T (is-just (findIsoᵀ ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫))}
-    → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁
-  rewriteDeepTo!ᵀᴮ s t lᵗ rᵗ n rule {found} {c₁} {c₂} =
-    C.Equiv.trans
-      (rewriteDeepₙ!ᵀᴮ s lᵗ rᵗ n rule {found} {c₁})
-      (C.Equiv.sym
-        (solveH t (deepFrame s lᵗ rᵗ n found)
-                (fromWitness! (findIsoᵀ ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫) c₂)))
+  -- `ᵀᴮ` gates: after the `ᴮ`-frame dedup these are identical to the plain
+  -- `rewriteDeepₙ!`/`rewriteDeepTo!`; the distinct names are kept only because
+  -- the `Test.Frobenius` showcase calls them.
+  rewriteDeepₙ!ᵀᴮ  = rewriteDeepₙ!
+  rewriteDeepTo!ᵀᴮ = rewriteDeepTo!
 
   --------------------------------------------------------------------------------
   -- Rewrite DRIVERS: normalisation with respect to a list of rules.
