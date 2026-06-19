@@ -93,20 +93,6 @@ deepFrame : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm 
           → (n : ℕ) → T (is-just (deepFocₙ s lᵗ n)) → HomTerm A B
 deepFrame s lᵗ mid n found = deepFrameM mid (deepFocₙ s lᵗ n) found
 
--- The `ᴮ` frame for the `ᵀᴮ` gate.  Now IDENTICAL to `deepFrameM` (both balance
--- `pre`/`post` via `reassocBal`); the separate name is kept only because the
--- `ᵀᴮ` gate + `frame-rule-stepᴮ` plumbing reference it.  (Historically `ᴮ`
--- right-nested via `reassoc`; the balanced tree beat that — and left-nesting —
--- universally, so both builders converged on it.)
-deepFrameMᴮ : ∀ {A B P Q} (mid : HomTerm P Q) (m : Maybe (Foc A B P Q))
-            → T (is-just m) → HomTerm A B
-deepFrameMᴮ mid (just (k , pre , post)) _ = reassocBal post ∘ (id {k} ⊗₁ mid) ∘ reassocBal pre
-deepFrameMᴮ mid nothing ()
-
-deepFrameᴮ : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)
-           → (n : ℕ) → T (is-just (deepFocₙ s lᵗ n)) → HomTerm A B
-deepFrameᴮ s lᵗ mid n found = deepFrameMᴮ mid (deepFocₙ s lᵗ n) found
-
 --------------------------------------------------------------------------------
 -- The object interpretation `⟦_⟧₀ : ObjTerm → C.Obj`, which depends only on
 -- the atom interpretation `⟦_⟧ᵖ₀`.  Exposed separately from `Solver` so that
@@ -192,8 +178,8 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   solveH!ᵀ f g {pf} = solveH f g (fromWitness! (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫) pf)
 
   -- The rule-transport step of the TABULATED `ᵀᴮ` gate, factored out so it
-  -- matches the SAME `Maybe` as `deepFrameMᴮ`.  `deepFrameᴮ` is kept NEUTRAL on
-  -- abstract args (so the finder's `tabH ⟪ deepFrameᴮ … ⟫` does not unfold during
+  -- matches the SAME `Maybe` as `deepFrameM`.  `deepFrame` is kept NEUTRAL on
+  -- abstract args (so the finder's `tabH ⟪ deepFrame … ⟫` does not unfold during
   -- the polymorphic gate definition); the peel
   -- `∘-resp-≈ʳ (∘-resp-≈ˡ (⊗.F-resp-≈ (refl , rule)))` needs the frame REDUCED to
   -- its `_ ∘ (id ⊗₁ mid) ∘ _` skeleton, so the `lemma` matches `deepFocₙ` —
@@ -209,18 +195,6 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     where
       lemma : (m : Maybe (Foc A B P Q)) (f : T (is-just m))
             → ⟦ deepFrameM lᵗ m f ⟧₁ C.≈ ⟦ deepFrameM rᵗ m f ⟧₁
-      lemma (just (k , pre , post)) _ = C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule)))
-      lemma nothing ()
-
-  frame-rule-stepᴮ
-    : ∀ {A B P Q} (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
-    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
-    → (found : T (is-just (deepFocₙ s lᵗ n)))
-    → ⟦ deepFrameᴮ s lᵗ lᵗ n found ⟧₁ C.≈ ⟦ deepFrameᴮ s lᵗ rᵗ n found ⟧₁
-  frame-rule-stepᴮ {A} {B} {P} {Q} s lᵗ rᵗ n rule found = lemma (deepFocₙ s lᵗ n) found
-    where
-      lemma : (m : Maybe (Foc A B P Q)) (f : T (is-just m))
-            → ⟦ deepFrameMᴮ lᵗ m f ⟧₁ C.≈ ⟦ deepFrameMᴮ rᵗ m f ⟧₁
       lemma (just (k , pre , post)) _ = C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule)))
       lemma nothing ()
 
@@ -368,7 +342,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
 
   --------------------------------------------------------------------------------
   -- Tabulated reassociating deep-rewrite gates (`ᵀᴮ`).  The iso is found by the
-  -- TABULATED plain finder `findIsoᵀ` on the reassociated frame `deepFrameᴮ`
+  -- TABULATED plain finder `findIsoᵀ` on the reassociated frame `deepFrame`
   -- (right-nested context spines ⇒ shallower ⟪_⟫ towers ⇒ cheaper to normalize).
   -- No provenance: `findIsoFromCarveᵀ` is a measured no-op over `findIsoᵀ` at the
   -- full-file level, yet ~60s EACH to elaborate in a polymorphic gate definition
@@ -380,28 +354,28 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
     → {found : T (is-just (deepFocₙ s lᵗ n))}
-    → {_     : T (is-just (findIsoᵀ ⟪ s ⟫ ⟪ deepFrameᴮ s lᵗ lᵗ n found ⟫))}
-    → ⟦ s ⟧₁ C.≈ ⟦ deepFrameᴮ s lᵗ rᵗ n found ⟧₁
+    → {_     : T (is-just (findIsoᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫))}
+    → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ n found ⟧₁
   rewriteDeepₙ!ᵀᴮ s lᵗ rᵗ n rule {found} {cert} =
     C.Equiv.trans
-      (solveH s (deepFrameᴮ s lᵗ lᵗ n found)
-              (fromWitness! (findIsoᵀ ⟪ s ⟫ ⟪ deepFrameᴮ s lᵗ lᵗ n found ⟫) cert))
-      (frame-rule-stepᴮ s lᵗ rᵗ n rule found)
+      (solveH s (deepFrame s lᵗ lᵗ n found)
+              (fromWitness! (findIsoᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫) cert))
+      (frame-rule-step s lᵗ rᵗ n rule found)
 
   rewriteDeepTo!ᵀᴮ
     : ∀ {A B P Q}
     → (s t : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
     → {found : T (is-just (deepFocₙ s lᵗ n))}
-    → {_     : T (is-just (findIsoᵀ ⟪ s ⟫ ⟪ deepFrameᴮ s lᵗ lᵗ n found ⟫))}
-    → {_     : T (is-just (findIsoᵀ ⟪ t ⟫ ⟪ deepFrameᴮ s lᵗ rᵗ n found ⟫))}
+    → {_     : T (is-just (findIsoᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫))}
+    → {_     : T (is-just (findIsoᵀ ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫))}
     → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁
   rewriteDeepTo!ᵀᴮ s t lᵗ rᵗ n rule {found} {c₁} {c₂} =
     C.Equiv.trans
       (rewriteDeepₙ!ᵀᴮ s lᵗ rᵗ n rule {found} {c₁})
       (C.Equiv.sym
-        (solveH t (deepFrameᴮ s lᵗ rᵗ n found)
-                (fromWitness! (findIsoᵀ ⟪ t ⟫ ⟪ deepFrameᴮ s lᵗ rᵗ n found ⟫) c₂)))
+        (solveH t (deepFrame s lᵗ rᵗ n found)
+                (fromWitness! (findIsoᵀ ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫) c₂)))
 
   --------------------------------------------------------------------------------
   -- Rewrite DRIVERS: normalisation with respect to a list of rules.

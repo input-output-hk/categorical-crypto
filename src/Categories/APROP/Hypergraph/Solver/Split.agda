@@ -176,7 +176,7 @@ reassoc f        = f
 -- traverse O(log n) per field instead of O(n) — the dominant cost of deep-gate
 -- frame construction on long context spines (e.g. Frobenius).  Assoc-only, used
 -- only INSIDE frames where the gate re-finds the iso (`findIsoᵀ`/`Verify`), so —
--- like `reassoc` in `deepFrameᴮ` — it needs no soundness proof.
+-- like `reassoc` in `deepFrame` — it needs no soundness proof.
 
 private
   data Chain : ObjTerm → ObjTerm → Set where
