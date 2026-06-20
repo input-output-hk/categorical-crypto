@@ -5,12 +5,10 @@
 -- genuinely reorders, on the smallest signature that exercises it.
 --
 -- Two independent single-wire boxes `fbox` (on wire 0) and `gbox` (on wire 1),
--- presented in NON-canonical order, are reordered by a real `two-box-swap`
--- step into canonical (lower-offset-first) order, with machine-checked `≈Term`
--- soundness witnesses.  The swapped layers are again genuine clean `mk-pad`s
--- (so the sort could fire again).  This exercises BOTH `g-out≈pad` and
--- `g-in≈pad` (collapsed to clean pads via the here-`≈id` reassociators), the
--- `LeftFit` recogniser `leftFit?`, the firing `swapHeadD`, and `normalizeD`.
+-- presented in NON-canonical order, are reordered into canonical
+-- (lower-offset-first) order, with machine-checked `≈Term` soundness.  This
+-- exercises `g-out≈pad`/`g-in≈pad`, the `LeftFit` recogniser `leftFit?`, the
+-- firing `swapHeadD`, and `normalizeD`.
 --------------------------------------------------------------------------------
 
 module Categories.SolverNormalizeTests where
@@ -38,23 +36,23 @@ open ≈R
 -- the concrete frame: P = mid = r = [], boxes fbox (slot 1) and gbox (slot 2).
 -- Its four structural reassociators all reduce to `id` (single-wire blocks).
 rFo : Frame.reassocF-out [] [] [] fbox gbox ≈Term id
-rFo = ≈-Term-trans idˡ id⊗id≈id
+rFo = idˡ ○ id⊗id≈id
 rBo : Frame.reassocB-out [] [] [] fbox gbox ≈Term id
-rBo = ≈-Term-trans (∘-resp-≈ id⊗id≈id ≈-Term-refl) idˡ
+rBo = id⊗id≈id ⟩∘⟨refl ○ idˡ
 rFi : Frame.reassocF-in [] [] [] fbox gbox ≈Term id
-rFi = ≈-Term-trans idˡ id⊗id≈id
+rFi = idˡ ○ id⊗id≈id
 rBi : Frame.reassocB-in [] [] [] fbox gbox ≈Term id
-rBi = ≈-Term-trans (∘-resp-≈ id⊗id≈id ≈-Term-refl) idˡ
+rBi = id⊗id≈id ⟩∘⟨refl ○ idˡ
 
 -- the frame g-layers, re-expressed as genuine clean flat pads (reassocs gone).
 g-out≈cp : Frame.g-out [] [] [] fbox gbox ≈Term pad (0 ∷ []) [] (⟦box⟧ gbox)
-g-out≈cp = ≈-Term-trans (Frame.g-out≈pad [] [] [] fbox gbox)
-  (≈-Term-trans (∘-resp-≈ rBo (∘-resp-≈ ≈-Term-refl rFo)) (≈-Term-trans idˡ idʳ))
+g-out≈cp = Frame.g-out≈pad [] [] [] fbox gbox
+  ○ (rBo ⟩∘⟨ refl⟩∘⟨ rFo) ○ idˡ ○ idʳ
 g-in≈cp : Frame.g-in [] [] [] fbox gbox ≈Term pad (0 ∷ []) [] (⟦box⟧ gbox)
-g-in≈cp = ≈-Term-trans (Frame.g-in≈pad [] [] [] fbox gbox)
-  (≈-Term-trans (∘-resp-≈ rBi (∘-resp-≈ ≈-Term-refl rFi)) (≈-Term-trans idˡ idʳ))
+g-in≈cp = Frame.g-in≈pad [] [] [] fbox gbox
+  ○ (rBi ⟩∘⟨ refl⟩∘⟨ rFi) ○ idˡ ○ idʳ
 
--- the two CLEAN orderings (genuine `mk-pad` layers, definitionally wired).
+-- the two CLEAN orderings:
 --   cleanB :  fbox first (offset 0), then gbox (offset 1)   -- canonical
 --   cleanA :  gbox first (offset 1), then fbox (offset 0)   -- non-canonical
 cleanB : Ordering (0 ∷ 1 ∷ []) (0 ∷ 1 ∷ [])
@@ -67,28 +65,22 @@ after  = Frame.after-O  [] [] [] fbox gbox []
 
 -- the clean orderings equal the frame composites (only the g-layer differs).
 cB≈before : ⟦ cleanB ⟧O ≈Term ⟦ before ⟧O
-cB≈before = ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (≈-Term-sym g-out≈cp)) ≈-Term-refl
+cB≈before = (refl⟩∘⟨ ⟺ g-out≈cp) ⟩∘⟨refl
 cA≈after : ⟦ cleanA ⟧O ≈Term ⟦ after ⟧O
-cA≈after = ∘-resp-≈ ≈-Term-refl (≈-Term-sym g-in≈cp)
+cA≈after = refl⟩∘⟨ ⟺ g-in≈cp
 
--- THE GENUINE CLEAN REORDER: two clean `mk-pad` layers, swapped, equal in the
--- free monoidal category — via g-out≈pad / two-box-swap / g-in≈pad.  No σ.
+-- the clean reorder: the two swapped clean orderings are equal in the free
+-- monoidal category, via g-out≈pad / two-box-swap / g-in≈pad.  No σ.
 clean-reorder : ⟦ cleanB ⟧O ≈Term ⟦ cleanA ⟧O
-clean-reorder = ≈-Term-trans cB≈before
-                  (≈-Term-trans (Frame.head-swap-sound [] [] [] fbox gbox [])
-                    (≈-Term-sym cA≈after))
+clean-reorder = cB≈before
+  ○ Frame.head-swap-sound [] [] [] fbox gbox []
+  ○ ⟺ cA≈after
 
 --------------------------------------------------------------------------------
 -- LITMUS (DiagU level): the `LeftFit`-driven, frame-routed swap fires on a
--- pair recognised by reading the boxes/offsets off two DiagU head layers.
---
--- Out-of-order input: gbox (right box, fires FIRST) then fbox (left box,
--- fires SECOND).  We build the `LeftFit` with P = mid = s = [], left box
--- fy = fbox (dom/cod `0∷[]`), right box fx = gbox (dom/cod `1∷[]`).  The fit's
--- offset equations:  px ≡ ay = 0∷[] , sx ≡ [] , py ≡ [] , sy ≡ bx = 1∷[].
--- The provable `LeftFrame.input⇒sorted` swaps the frame's input order
--- (gbox-first) into the sorted order (fbox-first) with a real `two-box-swap`
--- witness — autonomously, with the fit RECOGNISED from the layer data.
+-- pair recognised from two DiagU head layers.  The fit has P = mid = s = [],
+-- left box fy = fbox, right box fx = gbox; `LeftFrame.input⇒sorted` swaps the
+-- input order (gbox-first) into the sorted order (fbox-first).
 --------------------------------------------------------------------------------
 
 -- the recognised fit (offsets are exactly the LeftFit equations, by `refl`).
@@ -102,34 +94,29 @@ open LeftFrame litFit
 litTail : Wired N₃ [] N₃
 litTail = []
 
--- the autonomous frame-routed swap step: input (gbox first) ⇒ sorted
--- (fbox first).  Its witness is `≈-Term-sym head-swap-sound` = `two-box-swap`.
+-- the frame-routed swap step: input (gbox first) ⇒ sorted (fbox first).
 litStep : input-O litTail ⇒W sorted-O litTail
 litStep = input⇒sorted litTail
 
--- it genuinely REORDERS: the sorted head layer is fbox's clean `f-out`
--- (the lower-offset box now fires first) — machine-checked by `refl`.
+-- the sorted head layer is fbox's clean `f-in` (lower offset fires first).
 litReorders : layers (sorted-O litTail)
             ≡ Frame.f-in-layer [] [] [] fbox gbox
             ∷ Frame.g-out-layer [] [] [] fbox gbox ∷ []
 litReorders = refl
 
--- and the input head was gbox's grouped `g-in` (the higher-offset box was
--- firing first) — confirming the pair was out of order.
+-- and the input head was gbox's grouped `g-in` (higher offset fired first).
 litInputHead : layers (input-O litTail)
              ≡ g-in-layer ∷ f-out-layer ∷ []
 litInputHead = refl
 
--- the genuine `≈Term` soundness of the autonomous frame-routed swap.
 litSound : ⟦ input-O litTail ⟧O ≈Term ⟦ sorted-O litTail ⟧O
 litSound = sound litStep
 
 --------------------------------------------------------------------------------
--- LITMUS (DiagU clean-bridge level): exercise the PROVEN `fx-clean⇒g-in`
--- and `diagU-swap-sound` on the concrete `litFit`.  Here P=mid=s=[] so every
--- `++`-assoc index cast `castW (domeq …)` reduces to `castW refl = id` and the
--- frame `f-out`/`g-in` are single-wire pads — the abstract bridge specialises
--- exactly to the concrete clean reorder.  Both witnesses are machine-checked.
+-- LITMUS (DiagU clean-bridge level): `fx-clean⇒g-in` and `diagU-swap-sound`
+-- on the concrete `litFit`.  Here P=mid=s=[], so every `++`-assoc cast
+-- `castW (domeq …)` reduces to `id` and the abstract bridge specialises to the
+-- concrete clean reorder.
 --------------------------------------------------------------------------------
 
 -- the concrete clean⇒frame bridge (the casts are `id`; fully reduced).
@@ -155,27 +142,21 @@ litCastId : castW (domeq [] (0 ∷ []) [] (1 ∷ []) []) ≡ id
 litCastId = refl
 
 --------------------------------------------------------------------------------
--- LITMUS (swapHeadD): the genuine clean DiagU SWAP OUTPUT.  We build the
--- swapped clean DiagU with `swapHeadD-out` on `litFit` (fx = gbox at offset 0
--- as the right box, fy = fbox the left box).  The swapped diagram fires fbox
--- (lower offset) FIRST then gbox — both genuine clean `_▸_∷_⟨_⟩` `pad`-layers,
--- the inter-layer `domeq` absorbed by `substDiagU` (= `id` here).  We
--- machine-check the reorder by `refl` on its layer list and exhibit the
--- compiled `swapHeadD-out-sound` witness.
+-- LITMUS (swapHeadD): the clean DiagU SWAP OUTPUT built by `swapHeadD-out` on
+-- `litFit`.  The swapped diagram fires fbox (lower offset) FIRST then gbox; the
+-- inter-layer `domeq` is absorbed by `substDiagU` (= `id` here).
 --------------------------------------------------------------------------------
 
 -- the empty sorted tail at the swapped-output index ((0∷[])++(1∷[])) = 0∷1∷[].
 litDSorted : DiagU (0 ∷ 1 ∷ [])
 litDSorted = []_ (0 ∷ 1 ∷ [])
 
--- the SWAPPED clean DiagU: fbox first (offset 0), then gbox.  Built autonomously
--- by `swapHeadD-out`; the `substDiagU` cast reduces to identity here.
+-- the SWAPPED clean DiagU: fbox first (offset 0), then gbox.
 litSwapped : DiagU (0 ∷ 1 ∷ [])
 litSwapped = swapHeadD-out litFit litDSorted
 
--- the swap genuinely REORDERED: the swapped DiagU's head layer is fbox at
--- offset 0 (lower-offset box now fires FIRST), then gbox at offset 0 in the
--- grouped tail — machine-checked by `refl` on the layer list.
+-- the swapped DiagU's head layer is fbox at offset 0 (lower offset fires
+-- first), then gbox in the grouped tail.
 litSwappedLayers : fromDiagU-ls litSwapped
                  ≡ mk-pad [] (1 ∷ []) fbox
                  ∷ mk-pad (0 ∷ []) [] gbox ∷ []
@@ -192,39 +173,35 @@ litSwapOutSound :
 litSwapOutSound = swapHeadD-out-sound [] [] [] gbox fbox litDSorted
 
 --------------------------------------------------------------------------------
--- LITMUS (end-to-end DiagU swap): the INPUT clean DiagU (gbox fires FIRST) and
--- the SWAPPED clean DiagU `litSwapped` (fbox fires first) have EQUAL
--- interpretations in the free monoidal category — a genuine, machine-checked
--- `≈Term` between two clean `DiagU`s, built by chaining `diagU-swap-sound` with
--- `swapHeadD-out-sound` (all `++`-assoc casts reduce to `id` here).  This is the
--- concrete witness that the autonomous DiagU swap engine REORDERS soundly.
+-- LITMUS (end-to-end DiagU swap): the INPUT clean DiagU (gbox first) and the
+-- SWAPPED clean DiagU `litSwapped` (fbox first) have EQUAL interpretations in
+-- the free monoidal category, by chaining `diagU-swap-sound` with
+-- `swapHeadD-out-sound` (all `++`-assoc casts reduce to `id` here).
 --------------------------------------------------------------------------------
 
 -- the INPUT clean DiagU: gbox (offset 0, the right box) fires FIRST, then fbox.
 litInput : DiagU (0 ∷ 1 ∷ [])
 litInput = (0 ∷ []) ▸ [] ∷ gbox ⟨ [] ▸ (1 ∷ []) ∷ fbox ⟨ litDSorted ⟩ ⟩
 
--- both DiagUs reorder genuinely: input is gbox-first, swapped is fbox-first.
 litInputLayers : fromDiagU-ls litInput
                ≡ mk-pad (0 ∷ []) [] gbox
                ∷ mk-pad [] (1 ∷ []) fbox ∷ []
 litInputLayers = refl
 
--- THE END-TO-END SOUNDNESS: ⟦ input (gbox-first) ⟧ ≈ ⟦ swapped (fbox-first) ⟧.
--- All `castW (domeq …)` reduce to `id` (P=mid=s=[]); we feed both compiled
--- halves the SAME empty tail and absorb the residual `∘ id`s by `idʳ`.
+-- ⟦ input (gbox-first) ⟧ ≈ ⟦ swapped (fbox-first) ⟧.  All `castW (domeq …)`
+-- reduce to `id` (P=mid=s=[]); the residual `∘ id`s are absorbed by `idʳ`.
 litDiagUSwap : ⟦ litInput ⟧ ≈Term ⟦ litSwapped ⟧
 litDiagUSwap = begin
   ⟦ litInput ⟧
     ≈⟨ assoc ⟩
   ⟦ litDSorted ⟧ ∘ (Frame.f-out [] [] [] fbox gbox ∘ pad (0 ∷ []) [] (⟦box⟧ gbox))
-    ≈⟨ ∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⟩
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ⟺ idˡ ⟩
   ⟦ litDSorted ⟧ ∘ Frame.f-out [] [] [] fbox gbox ∘ id ∘ pad (0 ∷ []) [] (⟦box⟧ gbox)
     ≈⟨ diagU-swap-sound litFit litTail ⟩
   ⟦ sorted-O litTail ⟧O ∘ id
     ≈⟨ idʳ ⟩
   ⟦ sorted-O litTail ⟧O
-    ≈⟨ ≈-Term-sym swapped-as-sorted ⟩
+    ≈⟨ swapped-as-sorted ⟨
   ⟦ litSwapped ⟧ ∎
   where
     -- ⟦ litSwapped ⟧ ≈ ⟦ sorted-O litTail ⟧O : both are fbox-first-then-gbox;
@@ -232,31 +209,28 @@ litDiagUSwap = begin
     swapped-as-sorted : ⟦ litSwapped ⟧ ≈Term ⟦ sorted-O litTail ⟧O
     swapped-as-sorted = begin
       ⟦ litSwapped ⟧
-        ≈⟨ ≈-Term-sym idˡ ⟩
+        ≈⟨ idˡ ⟨
       id ∘ ⟦ litSwapped ⟧
         ≈⟨ swapHeadD-out-sound [] [] [] gbox fbox litDSorted ⟩
       (⟦ litDSorted ⟧ ∘ pad (0 ∷ []) [] (⟦box⟧ gbox)) ∘ id ∘ Frame.f-in [] [] [] fbox gbox
-        ≈⟨ ∘-resp-≈ ≈-Term-refl idˡ ⟩
+        ≈⟨ refl⟩∘⟨ idˡ ⟩
       (⟦ litDSorted ⟧ ∘ pad (0 ∷ []) [] (⟦box⟧ gbox)) ∘ Frame.f-in [] [] [] fbox gbox
-        ≈⟨ ∘-resp-≈ (∘-resp-≈ ≈-Term-refl (≈-Term-sym g-out≈cp)) ≈-Term-refl ⟩
+        ≈⟨ (refl⟩∘⟨ ⟺ g-out≈cp) ⟩∘⟨refl ⟩
       (⟦ litDSorted ⟧ ∘ Frame.g-out [] [] [] fbox gbox) ∘ Frame.f-in [] [] [] fbox gbox ∎
 
 --------------------------------------------------------------------------------
 -- LITMUS (SortD): the DECIDABLE recogniser `leftFit?` FIRES on the concrete
--- out-of-order head data, and `swapHeadD`/`normalizeD` reorder genuinely.  X = ℕ
--- with `DecidableEquality` `_≟_`.  Out-of-order input: gbox (right box, offset 0
--- domain `1∷[]`) fires FIRST then fbox (left box, offset 0).  `leftFit?` rebuilds
--- the fit by splitting the offset lists; `swapHeadD` returns the swapped clean
--- DiagU (fbox first); all `++`-assoc casts reduce to `id` (P=mid=s=[]).
+-- out-of-order head data, and `swapHeadD`/`normalizeD` reorder.  X = ℕ with
+-- `DecidableEquality` `_≟_`; all `++`-assoc casts reduce to `id` (P=mid=s=[]).
 --------------------------------------------------------------------------------
 open SortD
 
--- the recogniser FIRES on the litmus offsets/boxes — machine-checked `just`.
+-- the recogniser FIRES on the litmus offsets/boxes.
 litLeftFit? : leftFit? (0 ∷ []) [] [] (1 ∷ []) gbox fbox
             ≡ just (leftFit [] [] [] refl refl refl refl)
 litLeftFit? = refl
 
--- it conservatively REJECTS an in-order / non-fitting pair (offsets don't split).
+-- it conservatively REJECTS an in-order / non-fitting pair.
 litLeftFit?-no : leftFit? [] [] [] [] fbox gbox ≡ nothing
 litLeftFit?-no = refl
 
@@ -264,22 +238,19 @@ litLeftFit?-no = refl
 litSwapD : HeadSwapD litFit litDSorted
 litSwapD = swapHeadD litFit litDSorted
 
--- `normalizeD` with positive fuel REORDERS: the result is the swapped clean
--- DiagU (fbox, the lower-offset box, now fires FIRST) — machine-checked `refl`
--- on the underlying layer list (fbox-pad first, then gbox-pad).
+-- `normalizeD` with positive fuel REORDERS to fbox-first.
 litNormReorders : fromDiagU-ls (normalizeD 4 litFit litDSorted)
                 ≡ mk-pad [] (1 ∷ []) fbox
                 ∷ mk-pad (0 ∷ []) [] gbox ∷ []
 litNormReorders = refl
 
--- and the INPUT (fuel 0 / pre-sort) is gbox-first — confirming it was out of order.
+-- and the INPUT (fuel 0 / pre-sort) is gbox-first.
 litNormInput : fromDiagU-ls (normalizeD 0 litFit litDSorted)
              ≡ mk-pad (0 ∷ []) [] gbox
              ∷ mk-pad [] (1 ∷ []) fbox ∷ []
 litNormInput = refl
 
--- the casts are the identity here, so the soundness witness is the clean
--- `≈Term` between the two DiagUs (gbox-first ⇒ fbox-first), machine-checked.
+-- the casts are the identity here, so the soundness witness is `refl`.
 litNormCastId : proj₁ (normalizeD-sound 4 litFit litDSorted) ≡ refl
 litNormCastId = refl
 

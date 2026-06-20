@@ -1,72 +1,53 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Test suite for the solver front-end (`Categories.SolverFrontend.solveMor!`).
---
--- Organised by capability, with the solver's LIMITATIONS exhibited as
+-- Test suite for the solver front-end (`Categories.SolverFrontend.solveMor!`),
+-- organised by capability, with the solver's LIMITATIONS exhibited as
 -- machine-checked `decide?F … ≡ nothing` facts (so the boundary of the
--- decision procedure is itself part of the checked test suite).
+-- decision procedure is itself checked).
 --
 --   * `Coherence`     — pure MacLane coherence (unitors, associator,
---                       triangle, pentagon) decides: both sides reflect to
---                       the same (usually empty) diagram.
+--                       triangle, pentagon).
 --   * `Naturality`    — unitor/associator naturality THROUGH box generators.
 --   * `Functorial`    — id/∘ laws and in-order ⊗-functoriality.
---   * `Interchange`   — disjoint boxes in either firing order, including
---                       multi-wire boxes (μ), empty-domain boxes (η) and
---                       scalars (u : unit → unit); out-of-order variants
---                       exercise machine-fired interchange swaps, including
---                       NON-HEAD inversions and a 3-swap full sort.
---   * `Negative`      — sound rejections (distinct generators, dependent /
---                       overlapping boxes, sequential order on a wire).
---   * `Limitations`   — TRUE equations the solver does NOT decide, each
---                       pinned by `≡ nothing`; see the catalogue below.
---   * `Target`        — C-level showcase: `solveMor!` one-liners whose
---                       statements read in the target's own vocabulary.
+--   * `Interchange`   — disjoint boxes in either firing order: multi-wire
+--                       boxes (μ), empty-domain boxes (η), scalars
+--                       (u : unit → unit); NON-HEAD inversions and a 3-swap
+--                       full sort exercise machine-fired interchange swaps.
+--   * `Negative`      — sound rejections.
+--   * `Limitations`   — TRUE equations the solver does NOT decide, pinned by
+--                       `≡ nothing`.
+--   * `Target`        — C-level showcase: `solveMor!` one-liners reading in
+--                       the target's own vocabulary.
 --   * `Rewrite`       — the focusing / rewriting layer (`rewriteMor!`,
---                       `rewriteMorₙ!`, `rewriteMorAuto!`, `focusAtₙ`): apply
---                       a solver-decided equation at a chosen subterm.
+--                       `rewriteMorₙ!`, `rewriteMorAuto!`, `focusAtₙ`).
 --
--- LIMITATION CATALOGUE (precise statements; L2 machine-checked below):
+-- LIMITATION CATALOGUE (L2 machine-checked below):
 --
---   L1 (soundness only).  `decide?F` is sound but NOT complete: every `just`
---       carries a real `_≈Term_` proof, but `nothing` does not refute the
---       equation.  L2 is a true equation answered `nothing`.
+--   L1 (soundness only).  Every `just` carries a real `_≈Term_` proof, but
+--       `nothing` does not refute the equation.
 --
 --   L2 (ambiguous pairs need an injective rank).  Scalar-like layers at
 --       the same offset (`mid ≡ [] ∧ by ≡ [] ∧ ax ≡ []`) fit the swap
---       recogniser in BOTH orders; they are canonicalized by the
---       user-supplied `rank` tiebreak (`test-scalar-order` decides with
---       the Fin-index rank), but with a NON-INJECTIVE rank the sort
---       cannot separate them — `lim-equal-rank` pins `u ∘ v ≈ v ∘ u`
---       under a constant rank.
+--       recogniser in BOTH orders, so they are canonicalized by the
+--       user-supplied `rank`; under a NON-INJECTIVE rank the sort cannot
+--       separate them (`lim-equal-rank` pins `u ∘ v ≈ v ∘ u` at constant
+--       rank, `test-scalar-order` decides with the Fin-index rank).
 --
---   L3 (monoidal only).  The front-end is at `Variant` `Mon`: no braiding,
---       so symmetric/braided goals (anything mentioning σ) are not even
---       expressible in the term language.
+--   L3 (monoidal only).  At `Variant` `Mon`: no braiding, so symmetric goals
+--       (anything mentioning σ) are not expressible.
 --
---   L4 (concrete signatures only).  The decision computes by evaluation:
---       it requires a concrete atom set with computing `DecidableEquality`
---       and concrete generator arities.  Over ABSTRACT atoms the
---       `++-identityʳ`/`++-assoc` casts inside `reflectF` do not reduce, so
---       `IsJust (decide?F …)` does not normalize and the implicit hit of
---       `solveTerm!`/`solveMor!` cannot be auto-discharged.
+--   L4 (concrete signatures only).  The decision computes by evaluation; over
+--       ABSTRACT atoms the `++`-casts inside `reflectF` do not reduce, so the
+--       implicit hit of `solveTerm!`/`solveMor!` cannot be auto-discharged.
 --
---   L5 (syntactic generators).  Generator equality is the supplied
---       syntactic `≟G`; no generator-specific equations (naturality of a
---       concrete box, Frobenius laws, …) are DISCOVERED by the decision
---       procedure — see `neg-distinct-endos`/`neg-sequential-order`.  Such
---       equations are instead APPLIED by the `rewriteMor!` family (the
---       `Rewrite` module below), which rewrites at a chosen subterm with a
---       caller-supplied, solver-discharged equation; the coherence+
---       interchange decision itself still does not know them.
+--   L5 (syntactic generators).  Generator-specific equations (a box's
+--       naturality, Frobenius laws, …) are not DISCOVERED by the decision
+--       procedure (`neg-generator-naturality`); they are instead APPLIED by
+--       the `rewriteMor!` family (the `Rewrite` module below).
 --
---   L6 (no canonicity claim).  `norm ∘ reflect` (a fuel-bounded
---       first-applicable-swap bubble sort, budget (#layers)²+1) is not
---       claimed to be a canonical form; the test suite documents which
---       equation SHAPES decide, not a completeness theorem for a fragment.
---
--- Hole-free, postulate-free, --safe.
+--   L6 (no canonicity claim).  `norm ∘ reflect` is not claimed to be a
+--       canonical form; the suite documents which equation SHAPES decide.
 --------------------------------------------------------------------------------
 
 module Categories.SolverFrontendTests where
@@ -75,15 +56,14 @@ open import Level using (Level)
 
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Maybe using (nothing)
-open import Data.Product using (_×_; _,_; proj₁; proj₂)
-open import Function using (case_of_)
+open import Data.Product using (_×_; _,_)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Relation.Nullary using (yes; no)
 
 open import Categories.Category using (_[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
-open import Categories.FreeMonoidal
+open import Categories.FreeMonoidal using (Mon; module FreeMonoidalHelper)
 open import Categories.SolverFrontend using (module Frontend)
 open import Categories.SolverFrontendCore using (module FinSig)
 
@@ -116,12 +96,10 @@ arityT (suc (suc (suc zero)))          = Var ⋆ , Var ⋆
 arityT (suc (suc (suc (suc zero))))    = Var • , Var •
 arityT (suc (suc (suc (suc (suc _))))) = unit , unit   -- 5 → u, 6 → v
 
-open FinSig Mon {Ty} arityT using (GenS; genS; _≟G_; rankS)
+open FinSig Mon {Ty} arityT using (GenS; genS; module S; gen; _≟G_; rankS)
 
 ------------------------------------------------------------------------
 -- The front-end term language and the solver instance.
-
-private module S = FreeMonoidalHelper.Mor Mon Ty GenS
 
 open Frontend {Ty} _≟Ty_ GenS
 
@@ -141,18 +119,16 @@ private
   _⊗'_ = S._⊗₁_
   id' : ∀ {A} → S.HomTerm A A
   id' = S.id
-  μ'  = S.var (genS zero)
-  η'  = S.var (genS (suc zero))
-  s'  = S.var (genS (suc (suc zero)))
-  s'' = S.var (genS (suc (suc (suc zero))))
-  t'  = S.var (genS (suc (suc (suc (suc zero)))))
-  u'  = S.var (genS (suc (suc (suc (suc (suc zero))))))
-  v'  = S.var (genS (suc (suc (suc (suc (suc (suc zero)))))))
+  μ'  = gen zero
+  η'  = gen (suc zero)
+  s'  = gen (suc (suc zero))
+  s'' = gen (suc (suc (suc zero)))
+  t'  = gen (suc (suc (suc (suc zero))))
+  u'  = gen (suc (suc (suc (suc (suc zero)))))
+  v'  = gen (suc (suc (suc (suc (suc (suc zero))))))
 
 ------------------------------------------------------------------------
--- Coherence: pure MacLane equations decide (both sides reflect to the
--- same structural-free diagram; all index casts compute to refl on the
--- concrete signature).
+-- Coherence: pure MacLane equations decide.
 
 module Coherence where
 
@@ -267,9 +243,8 @@ module Interchange where
   test-u-swap : (u' ⊗' id') ∘' (id' {unit} ⊗' s') ≈' u' ⊗' s'
   test-u-swap = solveTerm! ((u' ⊗' id') ∘' (id' ⊗' s')) (u' ⊗' s')
 
-  -- Eckmann-Hilton-style scalar reordering: the pair fits the swap
-  -- recogniser in BOTH orders, so it is canonicalized by the `rank`
-  -- tiebreak (u = index 5 fires before v = index 6).
+  -- Eckmann-Hilton-style scalar reordering canonicalized by the `rank`
+  -- tiebreak (L2): u = index 5 fires before v = index 6.
   test-scalar-order : u' ∘' v' ≈' v' ∘' u'
   test-scalar-order = solveTerm! (u' ∘' v') (v' ∘' u')
 
@@ -324,6 +299,12 @@ module Negative where
   neg-sequential-order : decide?F (s'' ∘' s') (s' ∘' s'') ≡ nothing
   neg-sequential-order = refl
 
+  -- diagrams of DIFFERENT length stay apart: one box vs an extra layer.
+  -- (The reflected diagrams have unequal layer counts, so the structural
+  -- compare rejects on the nil-vs-cons branch of the encoding.)
+  neg-extra-layer : decide?F s' (s'' ∘' s') ≡ nothing
+  neg-extra-layer = refl
+
   -- generator naturality is NOT known to the solver (L5): s' past μ.
   neg-generator-naturality
     : decide?F (s' ∘' μ') (μ' ∘' (s' ⊗' id')) ≡ nothing
@@ -334,9 +315,7 @@ module Negative where
 
 module Limitations where
 
-  -- L2: ambiguous (mutually-fitting) pairs are ordered by the supplied
-  -- `rank`; with a NON-INJECTIVE rank (here: constant) the tiebreak never
-  -- fires and scalar reordering stays undecided.
+  -- L2: under a constant (non-injective) rank the tiebreak never fires.
   private module D₀ = Decide _≟G_ (λ _ → 0)
 
   lim-equal-rank : D₀.decide?F (u' ∘' v') (v' ∘' u') ≡ nothing
@@ -393,12 +372,10 @@ module Target {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
     test-ρ-nat = solveMor! (S.ρ⇒ ∘' (s' ⊗' id')) (s' ∘' S.ρ⇒)
 
     ------------------------------------------------------------------------
-    -- Rewriting: rule application in context (the Mon analogue of the SMC
-    -- solver's rewriteH!/rewriteAuto!).  A rule is any C-equation between
-    -- interpretations of front-end terms — here abstract hypotheses
-    -- (commuting endos, an inverse law), exactly the shapes the solver
-    -- alone cannot know (limitation L5): the rewrite layer carries the
-    -- rule across, the solver absorbs all surrounding structure.
+    -- Rewriting: rule application in context (the L5 mitigation).  A rule is
+    -- any C-equation between interpretations of front-end terms — here
+    -- abstract hypotheses (commuting endos, an inverse law); the rewrite
+    -- layer carries it across and the solver absorbs surrounding structure.
 
     module Rewrite
       -- the rules: abstract hypotheses about the generators.
@@ -414,8 +391,7 @@ module Target {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
         rewriteMorAuto! (t' ⊗' (s'' ∘' s')) (t' ⊗' (s' ∘' s''))
                         (s'' ∘' s') (s' ∘' s'') comm
 
-      -- the rule fires in the LEFT factor (the two-sided pad replaces the
-      -- σ-routing of the symmetric version).
+      -- the rule fires in the LEFT factor.
       test-rw-left
         : C .MonoidalCategory.U
             [ (s'ᴹ MC.∘ sᴹ) ⊗C tᴹ ≈ (sᴹ MC.∘ s'ᴹ) ⊗C tᴹ ]
@@ -435,11 +411,20 @@ module Target {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
                     (s'' ∘' s') (s' ∘' s'') comm
 
       -- iso-cancellation as a rewrite: the inverse law collapses the
-      -- composite to id inside a context (the APROP `from ∘ to ≈ id`
-      -- pattern).
+      -- composite to id inside a context.
       test-rw-cancel
         : C .MonoidalCategory.U
             [ tᴹ ⊗C (sᴹ MC.∘ s'ᴹ) ≈ tᴹ ⊗C MC.id ]
       test-rw-cancel =
         rewriteMorAuto! (t' ⊗' (s' ∘' s'')) (t' ⊗' id')
                         (s' ∘' s'') id' inv
+
+      -- explicit occurrence index: the redex appears in BOTH tensor factors;
+      -- `rewriteMorₙ!` at n = 1 selects the second occurrence (right factor),
+      -- leaving the first untouched.
+      test-rw-nth
+        : C .MonoidalCategory.U
+            [ (s'ᴹ MC.∘ sᴹ) ⊗C (s'ᴹ MC.∘ sᴹ) ≈ (s'ᴹ MC.∘ sᴹ) ⊗C (sᴹ MC.∘ s'ᴹ) ]
+      test-rw-nth =
+        rewriteMorₙ! ((s'' ∘' s') ⊗' (s'' ∘' s')) ((s'' ∘' s') ⊗' (s' ∘' s''))
+                     (s'' ∘' s') (s' ∘' s'') 1 comm

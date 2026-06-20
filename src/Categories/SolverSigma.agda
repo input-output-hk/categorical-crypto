@@ -1,86 +1,35 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The σ-EXTENSION of the wire-level solver: block crossings as TRANSPARENT
--- generators.
---
--- The variant-/⟦box⟧-parametric engine (`UntypedI`/`ReflectI`/`NormalizeI`/
--- `SolverCompareI`) is instantiated at `v = Symm` over the extended generator
--- family
---
---     data MorS : List X → List X → Set where
---       box   : Mor a b → MorS a b
---       cross : (a b : List X) → MorS (a ++ b) (b ++ a)
---
--- with the crossing interpreted as the GENUINE block braiding of the free
--- symmetric monoidal category, conjugated to flat wire coordinates:
+-- The σ-extension of the wire-level solver: block crossings as transparent
+-- generators (boxes + `cross a b : MorS (a ++ b) (b ++ a)`), with the crossing
+-- interpreted as the block braiding conjugated to flat wire coordinates:
 --
 --     ⟦box⟧S (cross a b) = merge b {a} ∘ σ ∘ split a {b}
 --
--- STAGE A (this module, complete):
---   * `σσ-block`  : the block involution  ⟦cross b a⟧ ∘ ⟦cross a b⟧ ≈ id
---                   (split∘merge cancellation + the σ∘σ≈id axiom — NO
---                   σ-naturality);
---   * `pad-∘`/`pad-id`/`pad-resp` : pad functoriality, lifting it to padded
---                   layers (`pad-σσ`);
---   * `Decide.normσ` : the fuel-driven normalizer interleaving the existing
---                   disjoint-interchange bubble sort (crosses are ordinary
---                   boxes for interchange) with the NEW σσ-CANCEL move that
---                   deletes an adjacent inverse cross-pair;
---   * `Decide.decideσ?` : the decision entry mirroring the front-end's
---                   `decide?W` (reflect → normσ → ≟DiagU → chain), with
---                   `DecidableEquality` on the extended generators derived
---                   from the caller's `_≟G_` (no-K style, via first-order
---                   projection functions — never a refl-match at a forced
---                   `++`-composite index).
+-- The block involution `⟦cross b a⟧ ∘ ⟦cross a b⟧ ≈ id` needs NO σ-naturality
+-- (only split∘merge cancellation + σ∘σ≈id); the naturality slide uses ONE
+-- σ-naturality instance.  The `++`-assoc castW tax lives entirely in the final
+-- re-cleaning of the two grouped box-layers into clean DiagU pads
+-- (`slide-clean`/`slide-clean-a`).
 --
--- RANK CONVENTION: the interchange tiebreak for ambiguous (scalar-like)
--- pairs needs a rank on the extended generators.  Crosses get rank 0 and
--- boxes get `suc ∘ rank` of the caller's rank — crossings sort below all
--- boxes among mutually-fitting pairs, and the caller's relative order on
--- boxes is preserved.
---
--- STAGE B (the naturality-slide CORE):
---   * `slide-core` : the block-level slide — a box firing inside the
---     b-block AFTER the crossing equals the box firing BEFORE the crossing
---     at its pre-cross position.  ONE σ-naturality axiom instance; stated
---     for an ARBITRARY block update `h : wires b ⇒ wires b'`, fully
---     cast-free.  (`slide-core-a` is the a-block mirror.)
---   * `slide-pad` : the same under an arbitrary `pad pq sq` frame — still
---     cast-free (grouped coordinates).
---   * the re-cleaning of the two grouped box-layers into genuine clean
---     DiagU pads (`slide-clean`/`slide-clean-a`) — this is where the
---     `++`-assoc castW tax lives (`rpad-rpad`, `rpad-liftW`, `liftW-fuse`).
---
--- STAGE C (the DiagU-level slide, WIRED into the driver):
---   * `Decide.fireRepl` : a generic sound two-layer head REPLACEMENT,
---     justified by a caller-supplied key equation between the two padded
---     two-layer composites (pure `substDiagU`/`castW` algebra around it);
---   * `Decide.goSlideB`/`Decide.goSlideA` : the slide recognisers — pure
---     `stripPrefix` list surgery exhibiting the second-layer box inside
---     the crossing's b-image (resp. a-image) block — instantiating the
---     key with `slide-clean` (resp. `slide-clean-a`) at `G = ⟦box⟧S (box f)`;
---   * `Decide.stepσ?` now tries, in order: σσ-cancel, b-image slide,
---     a-image slide, disjoint interchange.  Each slide strictly decreases
---     the number of (cross-before-box) inversions, so the existing
---     depth³-ish fuel still over-approximates; termination stays trivial
---     by fuel.
---
--- Hole-free, postulate-free, --safe --without-K.
+-- RANK CONVENTION: the interchange tiebreak for ambiguous (scalar-like) pairs
+-- ranks crosses at 0 and boxes at `suc ∘ rank` of the caller's rank, so
+-- crossings sort below all boxes and the caller's box order is preserved.
 --------------------------------------------------------------------------------
 
 module Categories.SolverSigma where
 
-open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 open import Data.Bool using (Bool; true; false)
 open import Data.Empty using (⊥)
 open import Data.List using (List; []; _∷_; _++_)
-open import Data.List.Properties using (++-assoc; ≡-dec)
+open import Data.List.Properties using (++-assoc)
+import Data.List.Properties.Ext as ListExt
 open import Data.Maybe using (Maybe; just; nothing; _<∣>_)
 open import Data.Maybe.Properties using (just-injective)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_)
-open import Data.Product using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂)
-open import Data.Unit using (⊤; tt)
+open import Data.Product using (Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Unit using (tt)
 open import Function using (case_of_)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
@@ -93,110 +42,89 @@ import Categories.Morphism.Reasoning as MR
 open import Categories.DiagramRewriteUntyped using (module WireSig; module UntypedI)
 open import Categories.FreeMonoidal
 open import Categories.SolverCompare using (module SolverCompareI)
+open import Categories.SolverFrontendCore using (module MaybeHit)
 open import Categories.SolverNormalize using (module NormalizeI)
 open import Categories.SolverReflect using (module ReflectI; module DecideCore)
 
 module Sigma {X : Set} (_≟X_ : DecidableEquality X)
              (Mor : List X → List X → Set) where
 
-  -- `Symm ≤ Symm` for instance search, so σ needs no explicit ⦃ v≤v ⦄.
-  private instance
-    S≤S : Symm ≤ Symm
-    S≤S = v≤v
-
   -- UIP on the wire lists, via Hedberg (decidable equality), --without-K.
   private
     ≡-irrelevantL : ∀ {x y : List X} (e e' : x ≡ y) → e ≡ e'
-    ≡-irrelevantL = Decidable⇒UIP.≡-irrelevant (≡-dec _≟X_)
+    ≡-irrelevantL = ListExt.≡-irrelevant _≟X_
 
   ------------------------------------------------------------------------
-  -- The extended generator family: boxes + transparent block crossings.
+  -- Extended generator family: boxes + transparent block crossings
   ------------------------------------------------------------------------
   data MorS : List X → List X → Set where
     box   : ∀ {a b} → Mor a b → MorS a b
     cross : (a b : List X) → MorS (a ++ b) (b ++ a)
 
-  -- the wire signature at MorS: `wires`, the wire-level generator datatype
-  -- `mor` (whose `box` wraps a MorS), and the ⟦box⟧-independent merge/split.
-  -- Qualified (`WS.`) here — `open UntypedI` below re-exports the same
-  -- WireSig surface publicly, and a second anonymous open would be
-  -- ambiguous (module application is name-generative).
+  -- Qualified (`WS.`) here — `open UntypedI` below re-exports the same WireSig
+  -- surface publicly, and a second anonymous open would be ambiguous (module
+  -- application is name-generative).
   private module WS = WireSig Symm {X} MorS
-  open FreeMonoidalHelper Symm X using (ObjTerm; unit; _⊗₀_; Var)
-  open FreeMonoidalHelper.Mor Symm X WS.mor
+  open FreeMonoidalHelper Symm X using (ObjTerm)
+  open FreeMonoidalHelper.Mor Symm X WS.mor hiding (merge; split; merge∘split; split∘merge)
 
   ------------------------------------------------------------------------
-  -- The interpretation: boxes stay opaque generators; a crossing is the
-  -- block braiding conjugated to flat wire coordinates.
+  -- Interpretation: boxes opaque; a crossing is the conjugated braiding
   ------------------------------------------------------------------------
   ⟦box⟧S : ∀ {a b} → MorS a b → HomTerm (WS.wires a) (WS.wires b)
   ⟦box⟧S (box f)     = var (WS.box (box f))
   ⟦box⟧S (cross a b) = WS.merge b {a} ∘ σ ∘ WS.split a {b}
 
-  -- the full diagram engine at (Symm, MorS, ⟦box⟧S), re-exported.
   open UntypedI Symm {X} MorS ⟦box⟧S public
   open ≈R
 
-  -- stock associativity/cancellation combinators (same idiom as
-  -- DiagramRewriteUntyped/SolverReflect): plain non-public opens,
-  -- proofs-only.
   open MR FreeMonoidal
     using (pullˡ; pullʳ; cancelˡ; cancelInner; insertInner; elimʳ)
   open MonR Monoidal-FreeMonoidal
     using (refl⟩⊗⟨_)
 
-  -- the reflection stack (and its rpad/coercion lemma families), re-exported.
   open ReflectI Symm {X} _≟X_ MorS ⟦box⟧S public
 
   ------------------------------------------------------------------------
-  -- STAGE A1: the block involution.  σ-naturality is NOT needed — only
-  -- split∘merge cancellation, σ∘σ≈id, and assoc/id algebra.
+  -- Block involution (no σ-naturality: split∘merge + σ∘σ≈id only)
   ------------------------------------------------------------------------
-  σσ-block : ∀ (a b : List X)
-           → ⟦box⟧S (cross b a) ∘ ⟦box⟧S (cross a b) ≈Term id
-  σσ-block a b = begin
-    (merge a ∘ σ ∘ split b) ∘ (merge b ∘ σ ∘ split a)
-      ≈⟨ pullʳ (cancelInner (split∘merge b)) ⟩
-    merge a ∘ (σ ∘ (σ ∘ split a))
-      ≈⟨ refl⟩∘⟨ cancelˡ σ∘σ≈id ⟩
-    merge a ∘ split a
-      ≈⟨ merge∘split a ⟩
-    id ∎
+  private
+    σσ-block : ∀ (a b : List X)
+             → ⟦box⟧S (cross b a) ∘ ⟦box⟧S (cross a b) ≈Term id
+    σσ-block a b = begin
+      (merge a ∘ σ ∘ split b) ∘ (merge b ∘ σ ∘ split a)
+        ≈⟨ pullʳ (cancelInner (split∘merge b)) ⟩
+      merge a ∘ (σ ∘ (σ ∘ split a))
+        ≈⟨ refl⟩∘⟨ cancelˡ σ∘σ≈id ⟩
+      merge a ∘ split a
+        ≈⟨ merge∘split a ⟩
+      id ∎
 
   ------------------------------------------------------------------------
-  -- STAGE A2: pad functoriality (missing from the engine), and the lift
-  -- of the involution to padded layers.
+  -- Padded involution (inverse cross-pair at the same offsets = id)
   ------------------------------------------------------------------------
-
-  -- (`rpad-resp` / `rpad-id` / `rpad-∘` come from UntypedI in the engine;
-  --  `pad-resp` / `pad-id` / `pad-∘` likewise from UntypedI.)
-
-  -- the padded involution: an adjacent inverse cross-pair at the SAME
-  -- offsets is the identity.
-  pad-σσ : ∀ (pre suf a b : List X)
-         → pad pre suf (⟦box⟧S (cross b a)) ∘ pad pre suf (⟦box⟧S (cross a b))
-           ≈Term id
-  pad-σσ pre suf a b = begin
-    pad pre suf (⟦box⟧S (cross b a)) ∘ pad pre suf (⟦box⟧S (cross a b))
-      ≈⟨ pad-∘ pre suf (⟦box⟧S (cross b a)) (⟦box⟧S (cross a b)) ⟨
-    pad pre suf (⟦box⟧S (cross b a) ∘ ⟦box⟧S (cross a b))
-      ≈⟨ pad-resp pre suf (σσ-block a b) ⟩
-    pad pre suf id
-      ≈⟨ pad-id pre suf ⟩
-    id ∎
+  private
+    pad-σσ : ∀ (pre suf a b : List X)
+           → pad pre suf (⟦box⟧S (cross b a)) ∘ pad pre suf (⟦box⟧S (cross a b))
+             ≈Term id
+    pad-σσ pre suf a b = begin
+      pad pre suf (⟦box⟧S (cross b a)) ∘ pad pre suf (⟦box⟧S (cross a b))
+        ≈⟨ pad-∘ pre suf (⟦box⟧S (cross b a)) (⟦box⟧S (cross a b)) ⟨
+      pad pre suf (⟦box⟧S (cross b a) ∘ ⟦box⟧S (cross a b))
+        ≈⟨ pad-resp pre suf (σσ-block a b) ⟩
+      pad pre suf id
+        ≈⟨ pad-id pre suf ⟩
+      id ∎
 
   ------------------------------------------------------------------------
-  -- The normalize / compare stack at (Symm, MorS, ⟦box⟧S).
+  -- Normalize / compare stack
   ------------------------------------------------------------------------
-  -- castW / castW-∘ / castW-∷ / castW-sym-r now come from the UntypedI open
-  -- above (they moved into the engine); only the DecEq-dependent algebra and
-  -- the swap machinery still come from NormalizeI.
   open NormalizeI Symm {X} _≟X_ MorS ⟦box⟧S using
     ( castW-irr
-    ; substDiagU; substDiagU-out
+    ; substDiagU
     ; assocW-castW; assocW⁻-castW; liftW-castW
     ; module SortD )
-  open SortD using (_≟L_; stripPrefix; SwapRes; depthD; normFuelWith; interchangeGo; stepWith; substExpand; fireRepl)
+  open SortD using (_≟L_; stripPrefix; SwapRes; depthD; normFuelWith; interchangeGo; stepWith; fireRepl)
 
   private module SCmp = SolverCompareI Symm {X} _≟X_ MorS ⟦box⟧S
 
@@ -223,10 +151,11 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   -- THE BLOCK SLIDE: the box (update h, inside the b-block) fires after
   -- the crossing  ≈  it fires before the crossing at the pre-cross
   -- position.  ONE σ-naturality instance + split/merge cancellation.
-  slide-core : ∀ (a : List X) {b b' : List X} (h : HomTerm (wires b) (wires b'))
-             → ⟦box⟧S (cross a b') ∘ liftW a h
-               ≈Term rpad a h ∘ ⟦box⟧S (cross a b)
-  slide-core a {b} {b'} h = begin
+  private
+   slide-core : ∀ (a : List X) {b b' : List X} (h : HomTerm (wires b) (wires b'))
+              → ⟦box⟧S (cross a b') ∘ liftW a h
+                ≈Term rpad a h ∘ ⟦box⟧S (cross a b)
+   slide-core a {b} {b'} h = begin
     (merge b' ∘ σ ∘ split a) ∘ liftW a h
       ≈⟨ refl⟩∘⟨ liftW-merge a h ⟩
     (merge b' ∘ σ ∘ split a) ∘ (merge a ∘ (id ⊗₁ h) ∘ split a)
@@ -242,10 +171,11 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     (merge b' ∘ (h ⊗₁ id) ∘ split b) ∘ (merge b ∘ σ ∘ split a) ∎
 
   -- the symmetric a-block case (update g : wires a ⇒ wires a').
-  slide-core-a : ∀ (b : List X) {a a' : List X} (g : HomTerm (wires a) (wires a'))
-               → ⟦box⟧S (cross a' b) ∘ rpad b g
-                 ≈Term liftW b g ∘ ⟦box⟧S (cross a b)
-  slide-core-a b {a} {a'} g = begin
+  private
+   slide-core-a : ∀ (b : List X) {a a' : List X} (g : HomTerm (wires a) (wires a'))
+                → ⟦box⟧S (cross a' b) ∘ rpad b g
+                  ≈Term liftW b g ∘ ⟦box⟧S (cross a b)
+   slide-core-a b {a} {a'} g = begin
     (merge b ∘ σ ∘ split a') ∘ (merge a' ∘ (g ⊗₁ id) ∘ split a)
       ≈⟨ pullʳ (cancelInner (split∘merge a')) ⟩
     merge b ∘ (σ ∘ ((g ⊗₁ id) ∘ split a))
@@ -263,10 +193,11 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   -- THE PADDED SLIDE (grouped coordinates): the same equation under an
   -- arbitrary `pad pq sq` frame — still fully cast-free, via the Stage-A
   -- pad functoriality.
-  slide-pad : ∀ (pq sq a : List X) {b b'} (h : HomTerm (wires b) (wires b'))
-            → pad pq sq (⟦box⟧S (cross a b')) ∘ pad pq sq (liftW a h)
-              ≈Term pad pq sq (rpad a h) ∘ pad pq sq (⟦box⟧S (cross a b))
-  slide-pad pq sq a {b} {b'} h = begin
+  private
+   slide-pad : ∀ (pq sq a : List X) {b b'} (h : HomTerm (wires b) (wires b'))
+             → pad pq sq (⟦box⟧S (cross a b')) ∘ pad pq sq (liftW a h)
+               ≈Term pad pq sq (rpad a h) ∘ pad pq sq (⟦box⟧S (cross a b))
+   slide-pad pq sq a {b} {b'} h = begin
     pad pq sq (⟦box⟧S (cross a b')) ∘ pad pq sq (liftW a h)
       ≈⟨ pad-∘ pq sq (⟦box⟧S (cross a b')) (liftW a h) ⟨
     pad pq sq (⟦box⟧S (cross a b') ∘ liftW a h)
@@ -288,12 +219,12 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   -- `rpad-fuse` recast from coeC/coeD into the castW sandwich).
   ------------------------------------------------------------------------
 
-  -- the conjugation-by-index-casts relation.
-  Sand : ∀ {p q w t : List X} (eC : t ≡ q) (eD : p ≡ w)
-       → HomTerm (wires p) (wires q) → HomTerm (wires w) (wires t) → Set
-  Sand eC eD Y Z = Y ≈Term castW eC ∘ Z ∘ castW eD
-
   private
+    -- the conjugation-by-index-casts relation.
+    Sand : ∀ {p q w t : List X} (eC : t ≡ q) (eD : p ≡ w)
+         → HomTerm (wires p) (wires q) → HomTerm (wires w) (wires t) → Set
+    Sand eC eD Y Z = Y ≈Term castW eC ∘ Z ∘ castW eD
+
     sand-trans : ∀ {p q w t w' t'}
                  {Y : HomTerm (wires p) (wires q)}
                  {Z : HomTerm (wires w) (wires t)}
@@ -421,14 +352,15 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   ------------------------------------------------------------------------
 
   -- the SLID box layer (box before the crossing, at offset pq++(a++p₁)).
-  padBoxSlid : ∀ (pq sq a p₁ s₁ : List X) {u v} (G : HomTerm (wires u) (wires v))
-               (eC : (pq ++ (a ++ p₁)) ++ (v ++ (s₁ ++ sq))
-                   ≡ pq ++ ((a ++ (p₁ ++ (v ++ s₁))) ++ sq))
-               (eD : pq ++ ((a ++ (p₁ ++ (u ++ s₁))) ++ sq)
-                   ≡ (pq ++ (a ++ p₁)) ++ (u ++ (s₁ ++ sq)))
-             → pad pq sq (liftW a (pad p₁ s₁ G))
-               ≈Term castW eC ∘ pad (pq ++ (a ++ p₁)) (s₁ ++ sq) G ∘ castW eD
-  padBoxSlid pq sq a p₁ s₁ {u} {v} G eC eD = sand-irr SF
+  private
+   padBoxSlid : ∀ (pq sq a p₁ s₁ : List X) {u v} (G : HomTerm (wires u) (wires v))
+                (eC : (pq ++ (a ++ p₁)) ++ (v ++ (s₁ ++ sq))
+                    ≡ pq ++ ((a ++ (p₁ ++ (v ++ s₁))) ++ sq))
+                (eD : pq ++ ((a ++ (p₁ ++ (u ++ s₁))) ++ sq)
+                    ≡ (pq ++ (a ++ p₁)) ++ (u ++ (s₁ ++ sq)))
+              → pad pq sq (liftW a (pad p₁ s₁ G))
+                ≈Term castW eC ∘ pad (pq ++ (a ++ p₁)) (s₁ ++ sq) G ∘ castW eD
+   padBoxSlid pq sq a p₁ s₁ {u} {v} G eC eD = sand-irr SF
     where
       R = rpad (s₁ ++ sq) G
       S4 = rpad-rpad s₁ sq G
@@ -443,14 +375,15 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
 
   -- the INPUT-order box layer (box after the crossing, inside the b-image
   -- at offset pq++p₁).
-  padBoxIn : ∀ (pq sq a p₁ s₁ : List X) {u v} (G : HomTerm (wires u) (wires v))
-             (eC : (pq ++ p₁) ++ (v ++ (s₁ ++ (a ++ sq)))
-                 ≡ pq ++ (((p₁ ++ (v ++ s₁)) ++ a) ++ sq))
-             (eD : pq ++ (((p₁ ++ (u ++ s₁)) ++ a) ++ sq)
-                 ≡ (pq ++ p₁) ++ (u ++ (s₁ ++ (a ++ sq))))
-           → pad pq sq (rpad a (pad p₁ s₁ G))
-             ≈Term castW eC ∘ pad (pq ++ p₁) (s₁ ++ (a ++ sq)) G ∘ castW eD
-  padBoxIn pq sq a p₁ s₁ {u} {v} G eC eD = sand-irr TF
+  private
+   padBoxIn : ∀ (pq sq a p₁ s₁ : List X) {u v} (G : HomTerm (wires u) (wires v))
+              (eC : (pq ++ p₁) ++ (v ++ (s₁ ++ (a ++ sq)))
+                  ≡ pq ++ (((p₁ ++ (v ++ s₁)) ++ a) ++ sq))
+              (eD : pq ++ (((p₁ ++ (u ++ s₁)) ++ a) ++ sq)
+                  ≡ (pq ++ p₁) ++ (u ++ (s₁ ++ (a ++ sq))))
+            → pad pq sq (rpad a (pad p₁ s₁ G))
+              ≈Term castW eC ∘ pad (pq ++ p₁) (s₁ ++ (a ++ sq)) G ∘ castW eD
+   padBoxIn pq sq a p₁ s₁ {u} {v} G eC eD = sand-irr TF
     where
       R = rpad (s₁ ++ (a ++ sq)) G
       T4 = rpad-rpad s₁ (a ++ sq) G
@@ -511,15 +444,16 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   -- crossing's a-image block (the SUFFIX of the cross's output; the
   -- PREFIX of its input).  The core is `slide-core-a`; the two grouped
   -- box-layers re-clean through the SAME two lemmas with the roles of
-  -- `padBoxIn`/`padBoxSlid` swapped (the input-order layer is now the
+  -- `padBoxIn`/`padBoxSlid` swapped (the input-order layer is the
   -- prefix-lift `liftW b`, the slid layer the suffix-pad `rpad b`).
   ------------------------------------------------------------------------
 
   -- the padded a-block slide (mirror of `slide-pad`).
-  slide-pad-a : ∀ (pq sq b : List X) {a a'} (g : HomTerm (wires a) (wires a'))
-              → pad pq sq (⟦box⟧S (cross a' b)) ∘ pad pq sq (rpad b g)
-                ≈Term pad pq sq (liftW b g) ∘ pad pq sq (⟦box⟧S (cross a b))
-  slide-pad-a pq sq b {a} {a'} g = begin
+  private
+   slide-pad-a : ∀ (pq sq b : List X) {a a'} (g : HomTerm (wires a) (wires a'))
+               → pad pq sq (⟦box⟧S (cross a' b)) ∘ pad pq sq (rpad b g)
+                 ≈Term pad pq sq (liftW b g) ∘ pad pq sq (⟦box⟧S (cross a b))
+   slide-pad-a pq sq b {a} {a'} g = begin
     pad pq sq (⟦box⟧S (cross a' b)) ∘ pad pq sq (rpad b g)
       ≈⟨ pad-∘ pq sq (⟦box⟧S (cross a' b)) (rpad b g) ⟨
     pad pq sq (⟦box⟧S (cross a' b) ∘ rpad b g)
@@ -532,7 +466,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
   -- then the box inside its a-image) equals the slid order (box first at
   -- its pre-cross position — the a-block is the PREFIX of the cross's
   -- input — then the crossing with the updated a-block u ↦ v).
-  slide-clean-a :
+  private
+   slide-clean-a :
     ∀ (pq sq b p₁ s₁ : List X) {u v} (G : HomTerm (wires u) (wires v))
       (e₁ : pq ++ ((b ++ (p₁ ++ (u ++ s₁))) ++ sq)
           ≡ (pq ++ (b ++ p₁)) ++ (u ++ (s₁ ++ sq)))
@@ -550,7 +485,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
         ∘ castW e₃
         ∘ pad (pq ++ p₁) (s₁ ++ (b ++ sq)) G
         ∘ castW e₄
-  slide-clean-a pq sq b p₁ s₁ {u} {v} G e₁ e₂ e₃ e₄ = begin
+   slide-clean-a pq sq b p₁ s₁ {u} {v} G e₁ e₂ e₃ e₄ = begin
     padIn ∘ (castW e₁ ∘ Cab)
       ≈⟨ sand-cancel e₁ Cab (padBoxSlid pq sq b p₁ s₁ G (sym e₂) e₁) ⟩
     castW (sym (sym e₂)) ∘ (Gλ ∘ Cab)
@@ -789,19 +724,9 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X)
     private module DC = DecideCore Symm {X} _≟X_ MorS ⟦box⟧S
     open DC.Decide _≟GS_ normσ public using () renaming (decideW to decideσ?)
 
-    -- the computing hit-witness (normalizes to ⊤ exactly on a hit).
-    IsJust : ∀ {a} {A : Set a} → Maybe A → Set
-    IsJust (just _) = ⊤
-    IsJust nothing  = ⊥
-
-    private
-      extract : ∀ {a} {A : Set a} (x : Maybe A) → IsJust x → A
-      extract (just a) _ = a
-
-    -- reference-style entry point.
-    solveσ! : ∀ {n m} (f g : WTerm n m)
-              {hit : IsJust (decideσ? f g)} → embed f ≈Term embed g
-    solveσ! f g {hit} = extract (decideσ? f g) hit
+    -- the computing hit-witness (normalizes to ⊤ exactly on a hit; the shared
+    -- definition from `MaybeHit`); relied on by the `SigmaTests` witnesses below.
+    open MaybeHit public using (IsJust)
 
 --------------------------------------------------------------------------------
 -- TESTS: a concrete signature over ℕ-labelled wires, given as a Fin-5 arity
@@ -825,7 +750,7 @@ module SigmaTests where
   open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
   open import Data.Nat.Properties using () renaming (_≟_ to _≟ℕ_)
 
-  -- Fin-indexed signature (cf. SolverTests): decidable equality and the rank
+  -- Fin-indexed signature (cf. SolverFrontendTests): decidable equality and the rank
   -- tiebreak come for free from `Fin`'s `_≟_`/`toℕ`, instead of a quadratic
   -- hand-rolled table.  Five 1-/2-wire endo-boxes:
   --   0 kbox, 1 k2box  — distinct scalars on colour 0 (need the rank tiebreak)

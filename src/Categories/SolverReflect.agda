@@ -8,24 +8,7 @@
 -- source and target are already `wires`-shaped flat objects, built from
 --   id, _∘_, var (box _), _⊗₁_,
 -- captured by the inductive `WTerm n m` with embedding
--- `embed : WTerm n m → HomTerm (wires n) (wires m)`.  We define, all under
--- `--safe` and fully postulate-free / hole-free:
---   * `_∘ᵈ_`        : sequential composition (append) of diagrams, with
---                     soundness `∘ᵈ-sound : ⟦ d₁ ∘ᵈ d₂ ⟧ ≈ ⟦ d₂ ⟧ ∘ ⟦ d₁ ⟧`
---                     (codomain reindexed).  This is the `_∘_` case.
---   * `shiftL` / `shiftR` : prefix / suffix idle-wire shifts on diagrams
---                     (the offset-bookkeeping building blocks for `tensorD`),
---                     with their `out` computed and soundness proven
---                     (`shiftL-sound` / `shiftR-sound`).
---   * `tensorD`     : horizontal tensor of diagrams (the `_⊗₁_` case), with
---                     `out-tensorD` and `tensorD-sound`.
---   * `reflect`     : WTerm n m → DiagU n  with `out-reflect : out (reflect t) ≡ m`.
---   * `reflect-sound`: ⟦ reflect t ⟧ ≈ embed t (codomain reindexed), proven by
---                     induction on all four constructors.  The single box-leaf
---                     right-unitor coherence (`merge a {[]} ≈ ρ⇒`) is isolated
---                     as the statement `BoxSound` and discharged in-file by
---                     `boxSound` (a Kelly unit-coherence derivation), which
---                     `reflect-sound` uses directly.
+-- `embed : WTerm n m → HomTerm (wires n) (wires m)`.
 --------------------------------------------------------------------------------
 
 module Categories.SolverReflect where
@@ -38,7 +21,6 @@ open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; cong₂)
 open import Relation.Nullary using (yes; no)
 
-import Categories.Category.Monoidal.Properties as MonProps
 import Categories.Category.Monoidal.Reasoning as MonR
 import Categories.Morphism.Reasoning as MR
 
@@ -46,7 +28,6 @@ open import Categories.DiagramRewriteUntyped
 open import Categories.FreeMonoidal
 open import Categories.SolverCompare using (module SolverCompareI)
 open import Categories.SolverNormalize using (module NormalizeI)
-
 
 module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
                 (Mor : List X → List X → Set)
@@ -56,51 +37,30 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 
   open UntypedI v {X} Mor ⟦box⟧
   open FreeMonoidalHelper v X using (ObjTerm; unit; _⊗₀_; Var)
-  open FreeMonoidalHelper.Mor v X mor
+  open FreeMonoidalHelper.Mor v X mor hiding (merge; split; merge∘split; split∘merge)
   open ≈R
 
-  -- The DiagU index-transport vocabulary (`substDiagU`, `substDiagU-out`,
-  -- `⟦substDiagU⟧`) lives in `NormalizeI`, which also provides `castW-irr`
-  -- (UIP on wire lists via Hedberg).  We open them here for use in the
-  -- reflection and shift soundness proofs below.
+  -- `castW-irr` is UIP on wire lists via Hedberg.
   open NormalizeI v {X} _≟X_ Mor ⟦box⟧
     using (substDiagU; substDiagU-out; ⟦substDiagU⟧; castW-irr)
 
-  -- stock associativity/cancellation combinators (same idiom as
-  -- DiagramRewriteUntyped): plain non-public opens, proofs-only.
   open MR FreeMonoidal
-    using (pullˡ; pullʳ; center; center⁻¹;
-           cancelˡ; cancelʳ; cancelInner; introʳ)
+    using (pullˡ; pullʳ; center; center⁻¹; cancelʳ)
   open MonR Monoidal-FreeMonoidal
-    using (refl⟩⊗⟨_; _⟩⊗⟨refl; _⟩⊗⟨_; serialize₁₂; serialize₂₁; split₁ʳ)
+    using (refl⟩⊗⟨_; _⟩⊗⟨_; serialize₁₂; serialize₂₁)
 
-  -- Mac Lane / Kelly unit coherence laws, instantiated at the *free* monoidal
-  -- category over `mor`.  Its `_≈_`/`α⇒`/`ρ⇒`/`_⊗₁_` coincide definitionally
-  -- with our `_≈Term_`/α⇒/ρ⇒/_⊗₁_, so these land as `≈Term` equalities.
-  module K = MonProps.Kelly's Monoidal-FreeMonoidal
-
-  -- coherence₃ : λ⇒ ≈Term ρ⇒  at  unit ⊗₀ unit
-  λ⇒≈ρ⇒ : λ⇒ {unit} ≈Term ρ⇒ {unit}
-  λ⇒≈ρ⇒ = K.coherence₃
-
-  -- coherence₂ : id ⊗₁ ρ⇒ ∘ α⇒ ≈Term ρ⇒  at  (X ⊗₀ Y) ⊗₀ unit
-  idρ∘α≈ρ : ∀ {A B} → id {A} ⊗₁ ρ⇒ {B} ∘ α⇒ ≈Term ρ⇒
-  idρ∘α≈ρ = K.coherence₂
-
-  -- coherence-inv₃ : λ⇐ ≈Term ρ⇐  at  unit
-  λ⇐≈ρ⇐ : λ⇐ {unit} ≈Term ρ⇐ {unit}
-  λ⇐≈ρ⇐ = K.coherence-inv₃
-
-  -- coherence-inv₂ : α⇐ ∘ id ⊗₁ ρ⇐ ≈Term ρ⇐  (inverse of coherence₂)
-  α⇐∘idρ⇐≈ρ⇐ : ∀ {A B} → α⇐ ∘ id {A} ⊗₁ ρ⇐ {B} ≈Term ρ⇐
-  α⇐∘idρ⇐≈ρ⇐ = K.coherence-inv₂
-
-  -- coherence₁ : λ⇒ ∘ α⇒ ≈Term λ⇒ ⊗₁ id  at  (unit ⊗₀ A) ⊗₀ B
-  λ⇒∘α⇒≈λ⇒⊗id : ∀ {A B} → λ⇒ {A ⊗₀ B} ∘ α⇒ {unit} {A} {B} ≈Term λ⇒ ⊗₁ id
-  λ⇒∘α⇒≈λ⇒⊗id = K.coherence₁
+  -- The merge/split coherence family (`merge-ρ`/`split-ρ`/`merge-assoc`/
+  -- `split-assoc`, ⟦box⟧-free wire coherence) lives in WireCoh.WireCohDec; the
+  -- soundness proofs below (`boxSound`, `rpad-fuse`, …) reach it from here, and
+  -- `merge-ρ`/`merge-assoc` are re-exported `public` for the F-side transfer in
+  -- SolverFrontendCore.  (`split-ρ`/`split-assoc` are internal here.)  Not the
+  -- full WireCohDec re-exported `public`: NormalizeI already does that, so a
+  -- second public path would name-clash for openers of both Reflect and Normalize.
+  open WireCohDec _≟X_ public using (merge-ρ; merge-assoc)
+  open WireCohDec _≟X_ using (split-ρ; split-assoc)
 
   --------------------------------------------------------------------------------
-  -- M1 fragment: the wire-typed terms.
+  -- M1 fragment: the wire-typed terms
   --------------------------------------------------------------------------------
   infixr 9 _∘ʷ_
   infixr 10 _⊗ʷ_
@@ -136,55 +96,20 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   out-∘ᵈ (pre ▸ suf ∷ f ⟨ d ⟩) d₂ = out-∘ᵈ d d₂
 
   --------------------------------------------------------------------------------
-  -- The castW algebra kit: a HomTerm whose codomain (resp. domain) wire list
-  -- is retyped along a propositional equality is precisely a `castW`
-  -- post-composition `castW e ∘ h` (resp. pre-composition `h ∘ castW (sym e)`).
-  -- The other end is an ARBITRARY object (the merge/split steps below need
-  -- bracketed tensors of wires, not flat ones).  The lemma kit below records
-  -- the algebra of these two `castW` conjugations directly.
+  -- The castW algebra kit (`⟦box⟧`-free wire coherence) lives in
+  -- WireCoh.WireCohDec; brought into scope here for the soundness proofs below.
   --   castWˡ-irr / castWʳ-irr  : irrelevance (UIP) for the two sides
   --   castW-id⊗ˡ / castW-id⊗ʳ  : push castW through `id ⊗₁ _`
   --   castWˡ-invert / castWʳ-invert : cancel a castW against a proven equation
   --   mid-retype                : cancel a castW pair inserted in the middle
-  --   substDiagU-fold / substDiagU-expand / castWˡ-fold : transport folds
+  -- Not re-exported `public`: `NormalizeI` already re-exports `WireCohDec` so
+  -- a public re-export here would name-clash for modules opening both.  The
+  -- engine-specific `substDiagU-fold / substDiagU-expand / castWˡ-fold`
+  -- transport folds stay below (they need `substDiagU`).
   --------------------------------------------------------------------------------
-
-  -- recast along a propositionally-equal index (UIP on the wire lists).
-  castWˡ-irr : ∀ {A p q} (e e' : p ≡ q) (h : HomTerm A (wires p))
-             → castW e ∘ h ≈Term castW e' ∘ h
-  castWˡ-irr e e' h = castW-irr e e' ⟩∘⟨refl
-
-  castWʳ-irr : ∀ {B p q} (e e' : p ≡ q) (h : HomTerm (wires p) B)
-             → h ∘ castW (sym e) ≈Term h ∘ castW (sym e')
-  castWʳ-irr e e' h = refl⟩∘⟨ castW-irr (sym e) (sym e')
-
-  -- retype the middle object of a composite (the two transports cancel).
-  mid-retype : ∀ {A B p q} (e : p ≡ q) (h : HomTerm (wires p) B) (j : HomTerm A (wires p))
-             → h ∘ j ≈Term (h ∘ castW (sym e)) ∘ (castW e ∘ j)
-  mid-retype e h j = ⟺ (cancelInner (castW-sym-r e))
-
-  -- push a coercion along `cong (x ∷_)` under the prefix `id {Var x} ⊗₁ _`.
-  castW-id⊗ˡ : ∀ {R} (x : X) {p q : List X} (e : p ≡ q) (h : HomTerm R (wires p))
-             → castW (cong (x ∷_) e) ∘ (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ (castW e ∘ h)
-  castW-id⊗ˡ x e h =
-    (⟺ (castW-∷ e) ⟩∘⟨refl) ○ id⊗-∘ (castW e) h
-
-  castW-id⊗ʳ : ∀ {R} (x : X) {p q : List X} (e : p ≡ q) (h : HomTerm (wires p) R)
-             → (id {Var x} ⊗₁ h) ∘ castW (sym (cong (x ∷_) e)) ≈Term id {Var x} ⊗₁ (h ∘ castW (sym e))
-  castW-id⊗ʳ x e h =
-    (refl⟩∘⟨ castW-irr (sym (cong (x ∷_) e)) (cong (x ∷_) (sym e)))
-    ○ (refl⟩∘⟨ ⟺ (castW-∷ (sym e))) ○ id⊗-∘ h (castW (sym e))
-
-  -- invert a coercion equation:  h ≈ castW eq ∘ k  ⇒  castW (sym eq) ∘ h ≈ k.
-  castWˡ-invert : ∀ {A p q} (eq : p ≡ q) (h : HomTerm A (wires q)) (k : HomTerm A (wires p))
-               → h ≈Term castW eq ∘ k → castW (sym eq) ∘ h ≈Term k
-  castWˡ-invert eq h k e =
-    (refl⟩∘⟨ e) ○ ⟺ assoc ○ (castW-sym-r eq ⟩∘⟨refl) ○ idˡ
-
-  castWʳ-invert : ∀ {B p q} (eq : p ≡ q) (h : HomTerm (wires q) B) (k : HomTerm (wires p) B)
-               → h ≈Term k ∘ castW (sym eq) → h ∘ castW (sym (sym eq)) ≈Term k
-  castWʳ-invert eq h k e =
-    (e ⟩∘⟨refl) ○ assoc ○ (refl⟩∘⟨ castW-sym-r-flip (sym eq)) ○ idʳ
+  open WireCohDec _≟X_
+    using (castWˡ-irr; castWʳ-irr; mid-retype; castW-id⊗ˡ; castW-id⊗ʳ;
+           castWˡ-invert; castWʳ-invert)
 
   -- Soundness of append:  ⟦ d₁ ∘ᵈ d₂ ⟧ ≈ ⟦ d₂ ⟧ ∘ ⟦ d₁ ⟧ (codomain coerced).
   ∘ᵈ-sound : ∀ {m} (d₁ : DiagU m) (d₂ : DiagU (out d₁))
@@ -311,9 +236,6 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   boxD : ∀ {a b} → Mor a b → DiagU (a ++ [])
   boxD {a} {b} g = [] ▸ [] ∷ g ⟨ []_ (b ++ []) ⟩
 
-  out-boxD : ∀ {a b} (g : Mor a b) → out (boxD g) ≡ b ++ []
-  out-boxD g = refl
-
   --------------------------------------------------------------------------------
   -- reflect on the id / ∘ fragment.  We track `out` definitionally by
   -- recursing so that the composite's output is exactly the source's.  The
@@ -336,7 +258,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
           (trans (substDiagU-out (sym (out-reflect f)) (reflect g)) (out-reflect g))
   out-reflect (boxʷ {a} {b} g) =
     trans (substDiagU-out (++-identityʳ a) (boxD g))
-          (trans (out-boxD g) (++-identityʳ b))
+          (++-identityʳ b)
   out-reflect (_⊗ʷ_ {nl} {ml} {nr} {mr} s t) =
     trans (out-tensorD (reflect s) (reflect t))
           (cong₂ _++_ (out-reflect s) (out-reflect t))
@@ -362,49 +284,6 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
            → (castW (++-identityʳ b) ∘ ⟦ boxD g ⟧) ∘ castW (sym (++-identityʳ a))
              ≈Term ⟦box⟧ g
 
-  --------------------------------------------------------------------------------
-  -- Discharging `BoxSound`.
-  --
-  -- The single obligation is the right-unitor coherence  merge a {[]} ≈ ρ⇒
-  -- (and its inverse  split a {[]} ≈ ρ⇐), both up to the structural a++[]≡a
-  -- reindex.  We prove these by induction on `a`, bottoming out in the two
-  -- Mac Lane / Kelly unit coherence laws (`λ⇒≈ρ⇒` = coherence₃ and
-  -- `idρ∘α≈ρ` = coherence₂) imported above.  `boxSound` then collapses the
-  -- box-leaf conjugation  ρ⇒ ∘ (g ⊗₁ id) ∘ ρ⇐  to  ⟦box⟧ g  by right-unitor
-  -- naturality.  No new postulates / holes.
-  --------------------------------------------------------------------------------
-
-  -- the right-unitor coherence on the flat merge:  merge a {[]} ≈ ρ⇒ (retyped).
-  merge-ρ : (a : List X) → castW (++-identityʳ a) ∘ merge a {[]}
-                          ≈Term ρ⇒ {wires a}
-  merge-ρ []      = idˡ ○ λ⇒≈ρ⇒
-  merge-ρ (x ∷ a) = begin
-    castW (++-identityʳ (x ∷ a)) ∘ (id {Var x} ⊗₁ merge a ∘ α⇒)
-      ≈⟨ ⟺ assoc ⟩
-    (castW (cong (x ∷_) (++-identityʳ a)) ∘ (id {Var x} ⊗₁ merge a)) ∘ α⇒
-      ≈⟨ (castW-id⊗ˡ x (++-identityʳ a) (merge a)) ⟩∘⟨refl ⟩
-    id {Var x} ⊗₁ (castW (++-identityʳ a) ∘ merge a) ∘ α⇒
-      ≈⟨ (refl⟩⊗⟨ (merge-ρ a)) ⟩∘⟨refl ⟩
-    id {Var x} ⊗₁ ρ⇒ {wires a} ∘ α⇒
-      ≈⟨ idρ∘α≈ρ ⟩
-    ρ⇒ ∎
-
-  -- the right-unitor coherence on the flat split:  split a {[]} ≈ ρ⇐ (retyped).
-  split-ρ : (a : List X) → split a {[]} ∘ castW (sym (++-identityʳ a))
-                          ≈Term ρ⇐ {wires a}
-  split-ρ []      = idʳ ○ λ⇐≈ρ⇐
-  split-ρ (x ∷ a) = begin
-    (α⇐ ∘ id {Var x} ⊗₁ split a) ∘ castW (sym (++-identityʳ (x ∷ a)))
-      ≈⟨ refl⟩∘⟨ castW-irr (sym (++-identityʳ (x ∷ a))) (sym (cong (x ∷_) (++-identityʳ a))) ⟩
-    (α⇐ ∘ id {Var x} ⊗₁ split a) ∘ castW (sym (cong (x ∷_) (++-identityʳ a)))
-      ≈⟨ assoc ⟩
-    α⇐ ∘ ((id {Var x} ⊗₁ split a) ∘ castW (sym (cong (x ∷_) (++-identityʳ a))))
-      ≈⟨ refl⟩∘⟨ (castW-id⊗ʳ x (++-identityʳ a) (split a)) ⟩
-    α⇐ ∘ id {Var x} ⊗₁ (split a ∘ castW (sym (++-identityʳ a)))
-      ≈⟨ refl⟩∘⟨ (refl⟩⊗⟨ (split-ρ a)) ⟩
-    α⇐ ∘ id {Var x} ⊗₁ ρ⇐ {wires a}
-      ≈⟨ α⇐∘idρ⇐≈ρ⇐ ⟩
-    ρ⇐ ∎
   --------------------------------------------------------------------------------
   -- `boxSound : BoxSound`.  The box-leaf right-unitor coherence, discharged.
   --
@@ -449,8 +328,6 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --   where `rpad` is the suffix flat-shift (from DiagramRewriteUntyped).
   --------------------------------------------------------------------------------
 
-  -- (`liftW-id` now lives in UntypedI; available via the open above.)
-
   -- `liftW lt (pad pre suf g)` is the wider `pad (lt ++ pre) suf g`, up to the
   -- +-associativity reindex on its endpoints.  This is the layer-level content
   -- of `shiftL`'s `substDiagU` wrappers.  Proven by induction on `lt`, mirroring
@@ -471,10 +348,10 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈⟨ (⟺ (castW-id⊗ˡ x (++-assoc lt pre (b ++ suf)) _)) ⟩∘⟨refl ⟩
     (castW (cong (x ∷_) (++-assoc lt pre (b ++ suf))) ∘ (id {Var x} ⊗₁ pad (lt ++ pre) suf g))
       ∘ castW (sym (cong (x ∷_) (++-assoc lt pre (a ++ suf))))
-      ≈⟨ refl⟩∘⟨ castW-irr (sym (cong (x ∷_) (++-assoc lt pre (a ++ suf)))) (sym (++-assoc (x ∷ lt) pre (a ++ suf))) ⟩
+      ≈⟨ castWʳ-irr (cong (x ∷_) (++-assoc lt pre (a ++ suf))) (++-assoc (x ∷ lt) pre (a ++ suf)) _ ⟩
     (castW (cong (x ∷_) (++-assoc lt pre (b ++ suf))) ∘ (id {Var x} ⊗₁ pad (lt ++ pre) suf g))
       ∘ castW (sym (++-assoc (x ∷ lt) pre (a ++ suf)))
-      ≈⟨ (castW-irr (cong (x ∷_) (++-assoc lt pre (b ++ suf))) (++-assoc (x ∷ lt) pre (b ++ suf)) ⟩∘⟨refl) ⟩∘⟨refl ⟩
+      ≈⟨ (castWˡ-irr (cong (x ∷_) (++-assoc lt pre (b ++ suf))) (++-assoc (x ∷ lt) pre (b ++ suf)) _) ⟩∘⟨refl ⟩
     (castW (++-assoc (x ∷ lt) pre (b ++ suf)) ∘ (id {Var x} ⊗₁ pad (lt ++ pre) suf g))
       ∘ castW (sym (++-assoc (x ∷ lt) pre (a ++ suf))) ∎
 
@@ -537,132 +414,9 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 
   --------------------------------------------------------------------------------
   -- The suffix flat-shift `rpad` lemma family, and its soundness for `shiftR`.
-  -- (`rpad-resp` / `rpad-id` / `rpad-∘` now live in UntypedI.)
+  -- Built on the merge/split `merge-assoc`/`split-assoc` coherence (now in
+  -- WireCoh.WireCohDec, re-exported into scope above).
   --------------------------------------------------------------------------------
-
-  -- `merge` associativity (built from `coherence₁` and α-naturality):
-  --   merge p {q++r} ∘ (id ⊗₁ merge q {r}) ∘ α⇒
-  --     ≈ castW (++-assoc p q r) ∘ (merge (p++q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
-  merge-assoc : ∀ (p q r : List X)
-              → merge p {q ++ r} ∘ (id {wires p} ⊗₁ merge q {r}) ∘ α⇒
-                ≈Term castW (++-assoc p q r) ∘ (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))
-  merge-assoc []      q r = begin
-    λ⇒ ∘ (id {unit} ⊗₁ merge q {r}) ∘ α⇒
-      ≈⟨ pullˡ λ⇒∘id⊗f≈f∘λ⇒ ⟩
-    (merge q {r} ∘ λ⇒) ∘ α⇒
-      ≈⟨ pullʳ λ⇒∘α⇒≈λ⇒⊗id ⟩
-    merge q {r} ∘ (λ⇒ ⊗₁ id)
-      ≈⟨ ⟺ idˡ ⟩
-    castW (++-assoc [] q r) ∘ (merge q {r} ∘ (λ⇒ ⊗₁ id)) ∎
-  merge-assoc (x ∷ p) q r = begin
-    -- LHS = merge(x∷p){q++r} ∘ (id{wires(x∷p)} ⊗ merge q) ∘ α⇒
-    (id {Var x} ⊗₁ merge p {q ++ r} ∘ α⇒ {Var x} {wires p} {wires (q ++ r)})
-      ∘ (id {Var x ⊗₀ wires p} ⊗₁ merge q {r}) ∘ α⇒ {Var x ⊗₀ wires p} {wires q} {wires r}
-      ≈⟨ refl⟩∘⟨ (((⟺ id⊗id≈id) ⟩⊗⟨refl) ⟩∘⟨refl) ⟩
-    (id {Var x} ⊗₁ merge p {q ++ r} ∘ α⇒ {Var x} {wires p} {wires (q ++ r)})
-      ∘ ((id {Var x} ⊗₁ id {wires p}) ⊗₁ merge q {r}) ∘ α⇒ {Var x ⊗₀ wires p} {wires q} {wires r}
-      ≈⟨ center α-comm ⟩
-    id ⊗₁ merge p ∘ ((id ⊗₁ (id ⊗₁ merge q) ∘ α⇒) ∘ α⇒)
-      ≈⟨ ⟺ assoc ⟩
-    (id ⊗₁ merge p ∘ (id ⊗₁ (id ⊗₁ merge q) ∘ α⇒)) ∘ α⇒
-      ≈⟨ (pullˡ (id⊗-∘ (merge p {q ++ r}) (id ⊗₁ merge q {r}))) ⟩∘⟨refl ⟩
-    ((id ⊗₁ (merge p {q ++ r} ∘ (id ⊗₁ merge q {r})) )
-       ∘ α⇒ {Var x} {wires p} {wires q ⊗₀ wires r}) ∘ α⇒ {Var x ⊗₀ wires p} {wires q} {wires r}
-      ≈⟨ pent ⟩
-    (id {Var x} ⊗₁ (merge p {q ++ r} ∘ (id ⊗₁ merge q {r})) ∘ id {Var x} ⊗₁ α⇒ {wires p} {wires q} {wires r}) ∘ (α⇒ ∘ α⇒ ⊗₁ id)
-      ≈⟨ (id⊗-∘ (merge p {q ++ r} ∘ (id ⊗₁ merge q {r})) (α⇒ {wires p} {wires q} {wires r})) ⟩∘⟨refl ⟩
-    (id {Var x} ⊗₁ ((merge p {q ++ r} ∘ (id ⊗₁ merge q {r})) ∘ α⇒ {wires p} {wires q} {wires r})) ∘ (α⇒ ∘ α⇒ ⊗₁ id)
-      ≈⟨ (refl⟩⊗⟨ (assoc ○ (merge-assoc p q r))) ⟩∘⟨refl ⟩
-    (id ⊗₁ (castW (++-assoc p q r) ∘ (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r}))))
-      ∘ (α⇒ ∘ α⇒ ⊗₁ id)
-      ≈⟨ (⟺ (castW-id⊗ˡ x (++-assoc p q r) _)) ⟩∘⟨refl ⟩
-    (castW (cong (x ∷_) (++-assoc p q r)) ∘ (id ⊗₁ (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id))))
-      ∘ (α⇒ ∘ α⇒ ⊗₁ id)
-      ≈⟨ assoc ⟩
-    castW (cong (x ∷_) (++-assoc p q r)) ∘
-      ((id ⊗₁ (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id))) ∘ (α⇒ ∘ α⇒ ⊗₁ id))
-      ≈⟨ refl⟩∘⟨ tailRHS ⟩
-    castW (cong (x ∷_) (++-assoc p q r)) ∘
-      (((id ⊗₁ merge (p ++ q) {r}) ∘ α⇒) ∘ ((id ⊗₁ merge p {q} ∘ α⇒) ⊗₁ id {wires r}))
-      ≈⟨ castWˡ-irr (cong (x ∷_) (++-assoc p q r)) (++-assoc (x ∷ p) q r) _ ⟩
-    castW (++-assoc (x ∷ p) q r) ∘
-      (((id ⊗₁ merge (p ++ q) {r}) ∘ α⇒) ∘ ((id ⊗₁ merge p {q} ∘ α⇒) ⊗₁ id {wires r})) ∎
-    where
-      -- pentagon rebracketing of the two trailing associators:
-      --   (X ∘ α⇒) ∘ α⇒  ≈  (X ∘ id⊗α⇒) ∘ (α⇒ ∘ α⇒⊗id)
-      -- where X = id ⊗ (…).  Uses `pentagon`.
-      pent : ∀ {B} {X : HomTerm (Var x ⊗₀ (wires p ⊗₀ (wires q ⊗₀ wires r))) B}
-           → (X ∘ α⇒ {Var x} {wires p} {wires q ⊗₀ wires r}) ∘ α⇒ {Var x ⊗₀ wires p} {wires q} {wires r}
-             ≈Term (X ∘ id {Var x} ⊗₁ α⇒ {wires p} {wires q} {wires r})
-                   ∘ (α⇒ {Var x} {wires p ⊗₀ wires q} {wires r} ∘ α⇒ {Var x} {wires p} {wires q} ⊗₁ id {wires r})
-      pent {X = X} = pullʳ (⟺ pentagon) ○ ⟺ assoc
-      -- expand the RHS tail (id⊗(merge(p++q) ∘ (merge p ⊗ id))) ∘ (α⇒ ∘ α⇒⊗id)
-      -- into the cons-merge form  (id⊗merge(p++q) ∘ α⇒) ∘ ((id⊗merge p ∘ α⇒)⊗id).
-      tailRHS : (id {Var x} ⊗₁ (merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r})))
-                  ∘ (α⇒ {Var x} {wires p ⊗₀ wires q} {wires r}
-                     ∘ α⇒ {Var x} {wires p} {wires q} ⊗₁ id {wires r})
-              ≈Term ((id {Var x} ⊗₁ merge (p ++ q) {r}) ∘ α⇒)
-                    ∘ ((id {Var x} ⊗₁ merge p {q} ∘ α⇒) ⊗₁ id {wires r})
-      tailRHS = begin
-        (id ⊗₁ (merge (p ++ q) ∘ (merge p ⊗₁ id))) ∘ (α⇒ ∘ α⇒ ⊗₁ id)
-          ≈⟨ (⟺ (id⊗-∘ (merge (p ++ q) {r}) (merge p {q} ⊗₁ id))) ⟩∘⟨refl ⟩
-        (id ⊗₁ merge (p ++ q) ∘ id ⊗₁ (merge p ⊗₁ id)) ∘ (α⇒ ∘ α⇒ ⊗₁ id)
-          ≈⟨ center (⟺ α-comm) ⟩
-        id ⊗₁ merge (p ++ q) ∘ ((α⇒ ∘ (id ⊗₁ merge p) ⊗₁ id) ∘ α⇒ ⊗₁ id)
-          ≈⟨ refl⟩∘⟨ pullʳ (⟺ split₁ʳ) ⟩
-        id ⊗₁ merge (p ++ q) ∘ (α⇒ ∘ ((id ⊗₁ merge p ∘ α⇒) ⊗₁ id))
-          ≈⟨ ⟺ assoc ⟩
-        (id ⊗₁ merge (p ++ q) ∘ α⇒) ∘ ((id ⊗₁ merge p ∘ α⇒) ⊗₁ id) ∎
-
-  -- `split` associativity (dual of `merge-assoc`, via `coherence-inv₁` + α):
-  --   α⇐ ∘ (id ⊗₁ split q {r}) ∘ split p {q++r}
-  --     ≈ castW (++-assoc p q r) ∘ ((split p {q} ⊗₁ id) ∘ split (p++q) {r})
-  -- proven uniformly (no induction) by inverting `merge-assoc`: both
-  -- split-assoc-LHS and merge-assoc-LHS are mutually-inverse isos, as are
-  -- the two RHSs, so the equation transports across inversion.
-  split-assoc : ∀ (p q r : List X)
-              → α⇐ ∘ (id {wires p} ⊗₁ split q {r}) ∘ split p {q ++ r}
-                ≈Term ((split p {q} ⊗₁ id {wires r}) ∘ split (p ++ q) {r}) ∘ castW (sym (++-assoc p q r))
-  split-assoc p q r = inv-resp fi-f g-gi (merge-assoc p q r)
-    where
-      e = ++-assoc p q r
-      mL : HomTerm ((wires p ⊗₀ wires q) ⊗₀ wires r) (wires (p ++ (q ++ r)))
-      mL = merge p {q ++ r} ∘ (id {wires p} ⊗₁ merge q {r}) ∘ α⇒
-      fi : HomTerm (wires (p ++ (q ++ r))) ((wires p ⊗₀ wires q) ⊗₀ wires r)
-      fi = α⇐ ∘ (id {wires p} ⊗₁ split q {r}) ∘ split p {q ++ r}
-      mR : HomTerm ((wires p ⊗₀ wires q) ⊗₀ wires r) (wires ((p ++ q) ++ r))
-      mR = merge (p ++ q) {r} ∘ (merge p {q} ⊗₁ id {wires r})
-      giU : HomTerm (wires ((p ++ q) ++ r)) ((wires p ⊗₀ wires q) ⊗₀ wires r)
-      giU = (split p {q} ⊗₁ id {wires r}) ∘ split (p ++ q) {r}
-      -- generic inverse-respects-≈.
-      inv-resp : ∀ {A B} {f : HomTerm A B} {g : HomTerm A B}
-                   {fi gi : HomTerm B A}
-               → fi ∘ f ≈Term id → g ∘ gi ≈Term id → f ≈Term g → fi ≈Term gi
-      inv-resp {f = f} {g} {fi} {gi} fif ggi f≈g =
-        introʳ ggi ○ (refl⟩∘⟨ ((⟺ f≈g) ⟩∘⟨refl)) ○ cancelˡ fif
-      -- fi ∘ mL ≈ id  (mutual inverses, cancelling split∘merge and α⇐∘α⇒).
-      fi-f : fi ∘ mL ≈Term id
-      fi-f = begin
-        (α⇐ ∘ (id ⊗₁ split q) ∘ split p) ∘ (merge p ∘ (id ⊗₁ merge q) ∘ α⇒)
-          ≈⟨ center (cancelʳ (split∘merge p)) ⟩
-        α⇐ ∘ ((id ⊗₁ split q) ∘ ((id ⊗₁ merge q) ∘ α⇒))
-          ≈⟨ refl⟩∘⟨ cancelˡ (id⊗-cancel (split∘merge q)) ⟩
-        α⇐ ∘ α⇒
-          ≈⟨ α⇐∘α⇒≈id ⟩
-        id ∎
-      -- (castW e ∘ mR) ∘ (giU ∘ castW (sym e)) ≈ id  via mR ∘ giU ≈ id and coercion cancel.
-      g-gi : (castW e ∘ mR) ∘ (giU ∘ castW (sym e)) ≈Term id
-      g-gi = coe-cancel e mR giU mR-giU
-        where
-          coe-cancel : ∀ {p' q'} (eq : p' ≡ q')
-                         (M : HomTerm ((wires p ⊗₀ wires q) ⊗₀ wires r) (wires p'))
-                         (N : HomTerm (wires p') ((wires p ⊗₀ wires q) ⊗₀ wires r))
-                     → M ∘ N ≈Term id → (castW eq ∘ M) ∘ (N ∘ castW (sym eq)) ≈Term id
-          coe-cancel refl M N eq = idˡ ⟩∘⟨ idʳ ○ eq
-          mR-giU : mR ∘ giU ≈Term id
-          mR-giU =
-            cancelInner ((⟺ ⊗-∘-dist) ○ ((merge∘split p) ⟩⊗⟨ idˡ) ○ id⊗id≈id)
-              ○ merge∘split (p ++ q)
 
   -- `rpad` suffix-fusion:  rpad rt (rpad suf g) is the wider rpad (suf++rt) g,
   -- up to +-associativity reindex on its endpoints.  This is the base case of
@@ -765,7 +519,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
           -- α⇒ ∘ ((g⊗id)⊗id) ∘ α⇐ ≈ g⊗(id⊗id)
           midα : α⇒ ∘ ((g ⊗₁ id {wires suf}) ⊗₁ id {wires rt}) ∘ α⇐
                ≈Term g ⊗₁ (id {wires suf} ⊗₁ id {wires rt})
-          midα = pullˡ α-comm ○ cancelʳ α⇒∘α⇐≈id
+          midα = α-conj g (id {wires suf}) (id {wires rt})
           -- (id⊗merge suf) ∘ (g⊗(id⊗id)) ∘ (id⊗split suf) ≈ g ⊗ id{suf++rt}
           midColl : (id {wires b} ⊗₁ merge suf {rt}) ∘ (g ⊗₁ (id {wires suf} ⊗₁ id {wires rt})) ∘ (id {wires a} ⊗₁ split suf {rt})
                   ≈Term g ⊗₁ id {wires (suf ++ rt)}
@@ -779,8 +533,6 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
             (id ∘ g) ⊗₁ (merge suf {rt} ∘ split suf {rt})
               ≈⟨ idˡ ⟩⊗⟨ (merge∘split suf) ⟩
             g ⊗₁ id ∎
-
-  -- (`rpad-id⊗` now lives in UntypedI.)
 
   -- rpad / pad relation (suffix analogue of liftW-pad), by induction on pre.
   rpad-pad : ∀ {a b} (pre suf rt : List X) (g : HomTerm (wires a) (wires b))
@@ -808,10 +560,10 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
       ≈⟨ (⟺ (castW-id⊗ˡ x (sym (reassoc++ p b suf rt)) _)) ⟩∘⟨refl ⟩
     (castW (cong (x ∷_) (sym (reassoc++ p b suf rt))) ∘ (id {Var x} ⊗₁ pad p (suf ++ rt) g))
       ∘ castW (sym (cong (x ∷_) (sym (reassoc++ p a suf rt))))
-      ≈⟨ refl⟩∘⟨ castW-irr (sym (cong (x ∷_) (sym (reassoc++ p a suf rt)))) (sym (sym (reassoc++ (x ∷ p) a suf rt))) ⟩
+      ≈⟨ castWʳ-irr (cong (x ∷_) (sym (reassoc++ p a suf rt))) (sym (reassoc++ (x ∷ p) a suf rt)) _ ⟩
     (castW (cong (x ∷_) (sym (reassoc++ p b suf rt))) ∘ (id {Var x} ⊗₁ pad p (suf ++ rt) g))
       ∘ castW (sym (sym (reassoc++ (x ∷ p) a suf rt)))
-      ≈⟨ (castW-irr (cong (x ∷_) (sym (reassoc++ p b suf rt))) (sym (reassoc++ (x ∷ p) b suf rt)) ⟩∘⟨refl) ⟩∘⟨refl ⟩
+      ≈⟨ (castWˡ-irr (cong (x ∷_) (sym (reassoc++ p b suf rt))) (sym (reassoc++ (x ∷ p) b suf rt)) _) ⟩∘⟨refl ⟩
     (castW (sym (reassoc++ (x ∷ p) b suf rt)) ∘ (id {Var x} ⊗₁ pad p (suf ++ rt) g))
       ∘ castW (sym (sym (reassoc++ (x ∷ p) a suf rt))) ∎
 
@@ -930,8 +682,7 @@ module ReflectI (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
   --   castW (out-reflect t) ∘ ⟦ reflect t ⟧  ≈Term  embed t
   --
   -- i.e. the reflected diagram, with its codomain reindexed to match, equals
-  -- the original wire-fragment morphism.  (`boxSound` is used directly — it is
-  -- no longer threaded as a hypothesis.)
+  -- the original wire-fragment morphism.
   --------------------------------------------------------------------------------
   reflect-sound : ∀ {n m} (t : WTerm n m)
                 → castW (out-reflect t) ∘ ⟦ reflect t ⟧ ≈Term embed t
@@ -1007,7 +758,7 @@ module Reflect (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
 -- `DecideCore`: the shared wire-level DECISION ASSEMBLY.
 --
 -- Both front-ends' `decide?W`/`decideσ?` are byte-identical given a normalizer
--- `norm : ∀ {n} → DiagU n → SwapRes n`: reflect both sides to `DiagU`,
+-- `norm : ∀ {n} (d : DiagU n) → SwapRes d`: reflect both sides to `DiagU`,
 -- normalize each, decide normal-form equality, and chain the reflect-soundness
 -- witnesses through the bridge.  `norm` is passed as an ordinary FUNCTION
 -- argument so the per-variant oracle (interchange / σσ-cancel / slides) stays in
@@ -1022,7 +773,7 @@ module DecideCore
   where
 
   open UntypedI v {X} Mor ⟦box⟧
-  open FreeMonoidalHelper.Mor v X mor
+  open FreeMonoidalHelper.Mor v X mor hiding (merge; split; merge∘split; split∘merge)
   open ≈R
   open ReflectI v {X} _≟X_ Mor ⟦box⟧
     using (WTerm; embed; reflect; out-reflect; reflect-sound)

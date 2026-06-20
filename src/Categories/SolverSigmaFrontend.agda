@@ -3,58 +3,29 @@
 --------------------------------------------------------------------------------
 -- The SYMMETRIC solver front-end: `solveMorσ!`.
 --
--- The Mon front-end (`Categories.SolverFrontend`) decides clean monoidal
--- goals between ObjTerm-arity generators by reflecting through the
--- wire-level engine.  This module is its `Symm` mirror over the σ-EXTENDED
--- wire engine (`Categories.SolverSigma`): the front-end term language is
--- `FreeMonoidalHelper.Mor Symm X GenF`'s `HomTerm` — WITH the braiding σ —
--- and the wire level is `Sigma`'s `MorS` family (opaque boxes + transparent
--- block crossings), whose driver `decideσ?` normalizes by σσ-cancellation,
--- the two naturality SLIDES and disjoint interchange.
+-- The `Symm` mirror of `Categories.SolverFrontend` over the σ-EXTENDED wire
+-- engine (`Categories.SolverSigma`): the front-end term language carries the
+-- braiding σ, and the wire level is `Sigma`'s `MorS` family (opaque boxes +
+-- transparent block crossings), whose driver `decideσ?` normalizes by
+-- σσ-cancellation, the two naturality SLIDES and disjoint interchange.
 --
--- The shared machinery (flatten/MorW, mergeF/splitF, flat⇒/flat⇐, inj,
--- reflectF, the transfer lemmas, bridgeF, solveF) lives in
--- `Categories.SolverFrontendCore` (`FCore`/`FBridge`), instantiated at
--- (Symm, MorS, ⟦box⟧S).  This file supplies ONLY the σ-specific clauses:
+-- The shared machinery lives in `Categories.SolverFrontendCore`
+-- (`FCore`/`FBridge`), instantiated at (Symm, MorS, ⟦box⟧S).  This file
+-- supplies only the σ-specific clauses:
 --
---   * `injBox (cross a b)` — the crossing maps to the σ-composite
---     `mergeF b ∘ σ ∘ splitF a` (the box case is the usual conjugated
---     generator);
---   * `reflectσ A B = boxʷ (cross (flatten A) (flatten B))` — CAST-FREE,
---     since `flatten (A ⊗₀ B) ≡ flatten A ++ flatten B` holds
---     definitionally;
---   * `bridge-σ` — the ONE genuinely new bridge case: for σ the goal
---     reduces — after `splitF ∘ mergeF` cancellation — to braiding
---     naturality at the pair (flat⇒ A , flat⇒ B), i.e. the
---     σ∘[f⊗g]≈[g⊗f]∘σ axiom;
---   * `Decide` wraps the σ-engine's `decideσ?` (the slide-capable driver);
---     `Into` takes a target MONOIDAL category TOGETHER WITH a `Symmetric`
---     structure on it, and `WithGen.solveMorσ!` transports a decided
---     front-end equation along the free functor — definitionally, so the
---     equation's two sides read in the target's own vocabulary;
---   * `FinSetupσ` is the call-site convenience wrapper (the σ-analogue of
---     the Mon `FinSetup`).
+--   * `injBox (cross a b)` maps a crossing to the σ-composite
+--     `mergeF b ∘ σ ∘ splitF a`;
+--   * `reflectσ A B = boxʷ (cross (flatten A) (flatten B))`, cast-free since
+--     `flatten (A ⊗₀ B) ≡ flatten A ++ flatten B` holds definitionally;
+--   * `bridge-σ` — the ONE genuinely new bridge case: after `splitF ∘ mergeF`
+--     cancellation the goal reduces to braiding naturality at
+--     (flat⇒ A , flat⇒ B), i.e. the σ∘[f⊗g]≈[g⊗f]∘σ axiom.
 --
--- WHAT DECIDES (verified in `Categories.SolverSigmaFrontendTests`): all
--- Mon front-end shapes, plus σ∘σ≈id (also deep in context), σ-naturality
--- through box generators (TWO machine-fired slides, one per image block),
--- and mixes of σ-cancellation with coherence/functoriality.
---
--- LIMITATIONS: the Mon front-end's L1/L2/L4/L6 carry over verbatim, and so
--- does L5's negative half (generator-specific equations are unknown to the
--- decision procedure) — but L5's MITIGATION now applies here too: this
--- front-end shares the core's focusing/rewriting layer (`focusAtₙ`,
--- `rewriteMorσ!`/`rewriteMorσₙ!`/`rewriteMorσAuto!`), so generator-specific
--- equations can be carried across as rules exactly as in the Mon front-end.
--- The braiding-specific boundary (machine-checked in the tests):
---   Lσ1  HEXAGON-shaped goals do not decide: the normalizer never splits
---        or merges crossing BLOCKS (`cross a b` vs `cross a (b₁ ++ b₂)`
---        compositions are distinct normal forms).  Only cancellation of
---        exact inverse pairs and box-slides through a crossing fire.
---   Lσ2  A box STRADDLING the two image blocks of a crossing does not
---        slide (no sound move exists without splitting the box).
---
--- Hole-free, postulate-free, --safe --without-K.
+-- `Into` takes a target monoidal category WITH a `Symmetric` structure, so σ
+-- lands on the target's braiding.  What decides, the inherited L1/L2/L4/L6,
+-- the shared L5 mitigation, and the braiding-specific boundaries Lσ1 (hexagon)
+-- / Lσ2 (straddling box) are machine-checked in
+-- `Categories.SolverSigmaFrontendTests`.
 --------------------------------------------------------------------------------
 
 module Categories.SolverSigmaFrontend where
@@ -70,7 +41,7 @@ open import Level using (Level)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (refl; cong₂)
 
-open import Categories.Category using (Category; _[_,_]; _[_≈_])
+open import Categories.Category using (Category; _[_,_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
 open import Categories.Category.Monoidal.Symmetric using (Symmetric)
 
@@ -85,32 +56,25 @@ open import Categories.SolverSigma using (module Sigma)
 module FrontendS
   {X : Set}
   (_≟X_ : DecidableEquality X)
-  (let open FreeMonoidalHelper Symm X using (ObjTerm; unit; _⊗₀_; Var))
+  (let open FreeMonoidalHelper Symm X using (ObjTerm; _⊗₀_))
   (GenF : ObjTerm → ObjTerm → Set)
   where
 
-  -- `Symm ≤ Symm` for instance search, so σ needs no explicit ⦃ v≤v ⦄.
-  private instance
-    S≤S : Symm ≤ Symm
-    S≤S = v≤v
-
   ------------------------------------------------------------------------
-  -- The engine-free shared layer: flatten, MorW, GenΣ, F≈R.
+  -- The engine-free shared layer: flatten, MorW, GenΣ, F≈R
   ------------------------------------------------------------------------
 
   private module Core = FCore Symm {X = X} GenF
   open Core public using (flatten; MorW; mk; GenΣ; module F≈R)
   open F≈R
 
-  -- THE σ-ENGINE at MorW: the extended generators `MorS MorW` (box|cross),
-  -- the wire signature, ⟦box⟧S, reflect/embed, and the `Decide` driver
-  -- (renamed `DecideW`, the front-end defines its own `Decide` below).
+  -- the σ-engine at MorW; its `Decide` driver renamed `DecideW`, the
+  -- front-end defines its own `Decide` below.
   open Sigma _≟X_ MorW renaming (module Decide to DecideW)
 
   -- Front-end free category: HomTerm over GenF, qualified `F`.
   private module F = FreeMonoidalHelper.Mor Symm X GenF
 
-  -- stock combinators at the F-side free category (proofs-only, not exported).
   open MonR F.Monoidal-FreeMonoidal
     using ()
     renaming (refl⟩∘⟨_ to infixr 4 reflF⟩∘⟨_; _⟩∘⟨refl to infixl 5 _⟩∘F⟨refl;
@@ -120,25 +84,20 @@ module FrontendS
     renaming (cancelˡ to cancelˡF; assoc²βε to assoc²βεF)
 
   ------------------------------------------------------------------------
-  -- The engine-generic shared layer, at (Symm, MorS, ⟦box⟧S).
+  -- The engine-generic shared layer, at (Symm, MorS, ⟦box⟧S)
   ------------------------------------------------------------------------
 
   private module FB = FBridge Symm _≟X_ GenF MorS ⟦box⟧S
   open FB public
-    using (mergeF; splitF; flat⇒; flat⇐;
-           coeCF; coeCF-∘ˡ; coeCF-resp; coe-coe;
-           castʷ; embed-castʷ; fwd-λ; flipF)
+    using (mergeF; splitF; flat⇒; flat⇐)
 
-  -- readability aliases (function aliases of the F constructors), shared
-  -- from the core (proofs-only, not re-exported).
   open FB using (_∘F_; _⊗F_)
 
   ------------------------------------------------------------------------
-  -- The σ-specific clauses: a box generator is conjugated by the canonical
-  -- iso; a crossing is the σ-composite in flat coordinates.  (The `cross`
-  -- case of `injBox` is UNREACHABLE from `embed ∘ reflectF` — embed
-  -- unfolds a `boxʷ (cross …)` to ⟦box⟧S's σ-composite, never to a `var` —
-  -- so only its well-typedness matters.)
+  -- The σ-specific clauses: a box is conjugated by the canonical iso, a
+  -- crossing is the σ-composite in flat coordinates.  The `cross` case of
+  -- `injBox` is unreachable from `embed ∘ reflectF`, so only its
+  -- well-typedness matters
   ------------------------------------------------------------------------
 
   private
@@ -155,15 +114,12 @@ module FrontendS
 
   private module FBI = FB.WithInj injBox reflectVarS (λ ⦃ s ⦄ A B → reflectσS ⦃ s ⦄ A B)
   open FBI public
-    using (inj; inj-resp-≈; inj-merge; inj-split; reflectF;
-           splitF∘mergeF; mergeF-ρ; mergeF-assoc; flat⇐∘flat⇒;
-           cast-half; fwd-ρ; fwd-α)
+    using (inj; inj-merge; inj-split; reflectF; splitF∘mergeF)
 
   ------------------------------------------------------------------------
-  -- The σ bridge law — the ONE genuinely new case of bridgeF:
-  -- `embed (boxʷ (cross fA fB))` unfolds to `merge fB ∘ σ ∘ split fA`;
-  -- after `splitF ∘ mergeF` cancellation the goal is braiding naturality
-  -- at the pair (flat⇒ A , flat⇒ B).
+  -- The σ bridge law — the ONE genuinely new case of bridgeF: after
+  -- `splitF ∘ mergeF` cancellation the goal is braiding naturality at
+  -- (flat⇒ A , flat⇒ B)
   ------------------------------------------------------------------------
 
   private
@@ -186,12 +142,11 @@ module FrontendS
         f⇒A = flat⇒ A ; f⇒B = flat⇒ B
 
   private module FBB = FBI.Bridge (λ g → refl) (λ {A} {B} ⦃ s ⦄ → bridge-σS {A} {B} ⦃ s ⦄)
-  open FBB public using (bridgeF; solveF)
+  open FBB using (solveF)
 
   ------------------------------------------------------------------------
-  -- The decision procedure: reflect both sides, hand them to the σ-engine
-  -- driver `decideσ?` (σσ-cancel + slides + interchange), cancel through
-  -- the bridge.
+  -- The decision procedure: reflect both sides, hand them to the
+  -- σ-engine driver `decideσ?`, cancel through the bridge
   ------------------------------------------------------------------------
 
   module Decide
@@ -200,8 +155,6 @@ module FrontendS
                         -- for a Fin-indexed signature, `toℕ` of the index.
     where
 
-    -- decidable equality and rank on the Σ-packaged wire-level generators,
-    -- derived from the front-end ones (via the shared core helpers).
     private
       _≟GM_ : DecidableEquality GenM
       _≟GM_ = Core.decMorW _≟G_
@@ -216,18 +169,13 @@ module FrontendS
     decide?F : ∀ {Y Z} (l r : F.HomTerm Y Z) → Maybe (l F.≈Term r)
     decide?F l r = Data.Maybe.map solveF (DW.decideσ? (reflectF l) (reflectF r))
 
-    -- the focusing/rewriting layer is the generic core `FFocus`, instantiated at
-    -- this front-end's `decide?F`; `FF.Rewrite` handles the rewrite wrappers.
     module FF = FFocus Symm {X} _≟X_ GenF decide?F
     open FF public using (IsJust; fromHit; solveTerm!; _≟O_; Foc; plug; focusAll; focusAtₙ)
 
     ------------------------------------------------------------------------
-    -- Transport into an arbitrary target SYMMETRIC monoidal category (a
-    -- monoidal category bundled with a `Symmetric` structure), along the
-    -- free functor at the ObjTerm-arity generators.  The interpretation is
-    -- definitional on every term constructor — σ lands on the target's
-    -- braiding — so `solveMorσ!`'s equation reads in the target's own
-    -- vocabulary.
+    -- Transport into a target symmetric monoidal category, along the free
+    -- functor.  σ lands on the target's braiding, so `solveMorσ!`'s equation
+    -- reads in the target's own vocabulary
     ------------------------------------------------------------------------
 
     module Into
@@ -237,7 +185,7 @@ module FrontendS
       (⟦_⟧ᵖ₀ : X → C .MonoidalCategory.U .Category.Obj)
       where
 
-      private module IC = IntoCore Symm GenF C (λ ⦃ _ ⦄ → Sym) ⟦_⟧ᵖ₀
+      private module IC = IntoCore Symm _≟X_ GenF decide?F C (λ ⦃ _ ⦄ → Sym) ⟦_⟧ᵖ₀
       open IC public using (⟦_⟧ₒ)
 
       module WithGen
@@ -245,53 +193,17 @@ module FrontendS
                → C .MonoidalCategory.U [ ⟦ Y ⟧ₒ , ⟦ Z ⟧ₒ ])
         where
 
-        private module ICW = IC.WithGenC ⟦gen⟧
-        open ICW public using (⟦_⟧₁; ⟦⟧-resp-≈)
-
-        -- THE entry point: discharge a target-category equation whose two
-        -- sides are interpretations of front-end terms (with σ).
-        solveMorσ! : ∀ {Y Z} (l r : F.HomTerm Y Z)
-                     {hit : IsJust (decide?F l r)}
-                   → C .MonoidalCategory.U [ ⟦ l ⟧₁ ≈ ⟦ r ⟧₁ ]
-        solveMorσ! l r {hit} = ⟦⟧-resp-≈ (solveTerm! l r {hit})
-
-        ------------------------------------------------------------------------
-        -- Diagrammatic REWRITING in C, shared from the core's focusing/rewrite
-        -- layer (the σ-named exports `rewriteMorσ!`/`rewriteMorσₙ!`/
-        -- `rewriteMorσAuto!`).  A *rule* is any C-equation `⟦ lᵗ ⟧₁ ≈ ⟦ rᵗ ⟧₁`
-        -- between interpretations of front-end terms; it fires inside the
-        -- two-sided frame `post ∘ (id {k} ⊗ (– ⊗ id {m})) ∘ pre`.
-        ------------------------------------------------------------------------
-
-        private
-          module MCc = MonoidalCategory C
-
-          -- transport a rule across the frame of a focus, by congruence.
-          -- (Reduction-sensitive: stays here where `⟦_⟧₁` is concrete.)
-          plugCong : ∀ {A B P Q} (foc : Foc A B P Q) (l r : F.HomTerm P Q)
-                   → C .MonoidalCategory.U [ ⟦ l ⟧₁ ≈ ⟦ r ⟧₁ ]
-                   → C .MonoidalCategory.U [ ⟦ plug foc l ⟧₁ ≈ ⟦ plug foc r ⟧₁ ]
-          plugCong (k , m , pre , post) l r rule =
-            MCc.∘-resp-≈ʳ (MCc.∘-resp-≈ˡ
-              (MCc.⊗.F-resp-≈ (MCc.Equiv.refl , MCc.⊗.F-resp-≈ (rule , MCc.Equiv.refl))))
-
-        open FF.Rewrite C ⟦_⟧ₒ ⟦_⟧₁ solveMorσ! plugCong public
-          using ()
-          renaming (rewriteMor! to rewriteMorσ!; rewriteMorₙ! to rewriteMorσₙ!;
+        open IC.WithGenC ⟦gen⟧ public
+          using (⟦_⟧₁; ⟦⟧-resp-≈)
+          renaming (solveMor! to solveMorσ!;
+                    rewriteMor! to rewriteMorσ!; rewriteMorₙ! to rewriteMorσₙ!;
                     rewriteMorAuto! to rewriteMorσAuto!)
 
 --------------------------------------------------------------------------------
 -- `FinSetupσ`: the call-site convenience wrapper (the σ-analogue of the Mon
--- front-end's `FinSetup`).  From
---
---   * a target monoidal category `C` WITH a `Symmetric` structure,
---   * a `Vec` of object atoms, and
---   * a Fin-indexed `arity` table of generator arities,
---
--- it assembles the signature, decidable equalities and the rank tiebreak,
--- exposing the term language `S` (with σ), the generator embedding `gen`,
--- the object interpretation `⟦_⟧ₒ`, and — after `WithGen` supplies the
--- generator interpretations — the `solveMorσ!` entry point.
+-- front-end's `FinSetup`).  Takes a target monoidal category WITH a
+-- `Symmetric` structure; exposes the term language `S` (with σ) and, after
+-- `WithGen`, the `solveMorσ!` entry point.
 --------------------------------------------------------------------------------
 
 module FinSetupσ
@@ -307,8 +219,6 @@ module FinSetupσ
 
   module Sig {nG : ℕ} (arity : Fin nG → ObjTerm × ObjTerm) where
 
-    -- the variant-generic Fin-signature prelude (GenS / S / gen / _≟G_ /
-    -- rankS / GenΣ), shared with the Mon `FinSetup` via the core.
     open FinSig Symm {X = Fin nA} arity public using (GenS; genS; module S; gen; GenΣ; _≟G_; rankS)
 
     open FrontendS {Fin nA} _≟Fin_ GenS using (module Decide)

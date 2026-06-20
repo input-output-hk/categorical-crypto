@@ -8,69 +8,22 @@
 -- to a wire-level family, inject the wire-level free category back into the
 -- front-end one, and cancel through the canonical structural iso
 -- `flat⇒ / flat⇐`.  This module factors that shared material out, generic
--- in the `Variant`:
+-- in the `Variant`.  The σ clauses of `inj` / `reflectF` / the bridge live
+-- here, instance-gated on `⦃ Symm ≤ v ⦄` exactly like `HomTerm`'s σ
+-- constructor (for Mon they are dead code: `Symm ≤ Mon` is empty).
 --
---   MaybeHit
---     `IsJust` / `fromHit` — the computing hit-witness used by both
---     `Decide` layers (must reduce on `just`/`nothing` at test sites).
---
---   FCore v GenF
---     Engine-free layer: `flatten`, the wire-level generator family `MorW`
---     (identical data in both front-ends), `GenΣ`, the F-side reasoning
---     module `F≈R`, and the Σ-packaged decidable-equality / rank helpers
---     consumed by the `Decide` layers.
---
---   FBridge v _≟X_ GenF MorEng ⟦box⟧
---     Engine-generic layer.  `MorEng` is the ENGINE's diagram-level
---     generator family (`MorW` for Mon, `MorS MorW` for Symm) and `⟦box⟧`
---     its interpretation; the module opens `WireSig` / `UntypedI` /
---     `ReflectI` at exactly these arguments, so `wires`, `mor`, `merge`,
---     `split`, `castW`, `WTerm`, `embed`, … are THE SAME symbols as in the
---     front-ends' engine opens — every definitional unfolding available in
---     the front-ends is available here.  Body: `mergeF`/`splitF`,
---     `flat⇒`/`flat⇐`, `coeCF` + lemmas, `coe-coe`, `castʷ`/`embed-castʷ`,
---     `fwd-λ`, `flipF`.
---
---   FBridge.WithInj injBox reflectVar reflectσ
---     The variant-specific clauses of `inj` (the box case) and `reflectF`
---     (the var and σ cases) are parameters; everything else is generic —
---     the σ clauses of `inj`, `inj-resp-≈` and `reflectF` live HERE,
---     instance-gated on `⦃ Symm ≤ v ⦄` exactly like `HomTerm`'s σ
---     constructor (for Mon they are dead code: `Symm ≤ Mon` is empty).
---     Body: `inj`, `inj-resp-≈`, `inj-merge`/`inj-split`/`inj-castW0`
---     (`≡`-lemma)/`inj-castW` (`≈Term`-lemma), `reflectF`, the transferred
---     lemmas (`splitF∘mergeF`, `mergeF-ρ`, `mergeF-assoc`), `flat⇐∘flat⇒`,
---     `cast-half`, `fwd-ρ`/`fwd-α`.
---
---   FBridge.WithInj.Bridge inj-embed-var bridge-σ
---     The soundness bridge `bridgeF` and the cancellation `solveF`.  The
---     two parameters are the only non-generic ingredients: the var case's
---     unfolding equation (`refl` in both front-ends — `inj ∘ embed ∘
---     reflectVar` is definitionally the conjugated generator) and the σ
---     bridge law (a short braiding-naturality proof in Symm; absurd on the
---     empty `Symm ≤ Mon` in Mon).
---
---   IntoCore v GenF C SymC ⟦⟧₀
---     The shared free-functor transport plumbing wrapped by both front-ends'
---     `Into` layers: interpret the wire-level free category into a target
---     monoidal (Mon) or symmetric-monoidal (Symm, via the instance-gated
---     `SymC : ⦃ Symm ≤ v ⦄ → Symmetric …`) category along an object
---     assignment `⟦⟧₀`.
---
--- (`inj` is NOT an instance of `FreeMonoidal`'s `FreeFunctor`/`⟦_⟧₁`: that
--- functor's object action is the recursive `⟦_⟧₀`, never the literal identity
--- on `ObjTerm`, so the index-preserving `inj` and its on-the-nose
--- `inj-merge`/`inj-split`/`inj-castW0` `≡`-lemmas would drown in object
--- coercions.  Hence the dedicated, definitionally transparent `inj`.)
+-- (`inj` is deliberately NOT an instance of `FreeMonoidal`'s
+-- `FreeFunctor`/`⟦_⟧₁`: that functor's object action is the recursive
+-- `⟦_⟧₀`, never the literal identity on `ObjTerm`, so the index-preserving
+-- `inj` and its on-the-nose `≡`-lemmas would drown in object coercions.
+-- Hence the dedicated, definitionally transparent `inj`.)
 --
 -- DEFINITIONAL-EQUALITY DISCIPLINE: everything computation-relevant
 -- (`flatten`, `reflectF`, `castʷ`, `IsJust`, the `Decide`-layer equality
 -- helpers) is defined by recursion HERE and parametrized only by neutral
 -- data, so it reduces on constructors once the front-ends instantiate the
 -- modules with concrete arguments — the test suites' `IsJust (decide? …)`
--- hits compute exactly as before.
---
--- Hole-free, postulate-free, --safe --without-K.
+-- hits auto-discharge at the concrete test sites.
 --------------------------------------------------------------------------------
 
 module Categories.SolverFrontendCore where
@@ -103,7 +56,7 @@ open import Categories.FreeMonoidal
 open import Categories.SolverReflect using (module ReflectI)
 
 ------------------------------------------------------------------------
--- The computing hit-witness (shared by both Decide layers).
+-- MaybeHit: the computing hit-witness (shared by both Decide layers)
 ------------------------------------------------------------------------
 
 module MaybeHit where
@@ -114,7 +67,6 @@ module MaybeHit where
   IsJust (just _) = ⊤
   IsJust nothing  = ⊥
 
-  -- extract the value of a computed hit (a solver witness, a focus, …).
   fromHit : ∀ {a} {A : Set a} (x : Maybe A) → IsJust x → A
   fromHit (just a) _ = a
 
@@ -154,7 +106,7 @@ module FCore
   decMorW _≟G_ (_ , _ , mk {Y} {Z} g) (_ , _ , mk {Y'} {Z'} g') =
     case (Y , Z , g) ≟G (Y' , Z' , g') of λ where
       (yes refl) → yes refl
-      (no ¬p)    → no λ { refl → ¬p refl }
+      (no ¬p)    → no λ where refl → ¬p refl
 
   -- the wire-level generator's tiebreak key, from the front-end one.
   rankMorW : (GenΣ → ℕ) → ∀ {a b} → MorW a b → ℕ
@@ -164,18 +116,20 @@ module FCore
   -- F-side equational reasoning (mirror of the wire-level ≈R).
   ------------------------------------------------------------------------
 
+  -- the begin/step/∎ chain is `FreeMonoidal`'s own `HomReasoning`, re-exported
+  -- under `F`-suffixed names so it does not clash with the wire-level `≈R`
+  -- that callers also have in scope.  `begin_`/`_∎`/the forward+backward steps
+  -- are the library's; only the two display `syntax`es must be re-declared
+  -- (`syntax` cannot be attached to a renamed import), so `stepF-≈`/`stepF-≈˘`
+  -- are thin local aliases for the library steps carrying that syntax.
   module F≈R where
-    infix  3 _∎F
+    open Category.HomReasoning F.FreeMonoidal public
+      using () renaming (begin_ to beginF_; _∎ to _∎F)
+    open Category.HomReasoning F.FreeMonoidal
+      using () renaming (step-≈-⟩ to libStepF-≈; step-≈-⟨ to libStepF-≈˘)
     infixr 2 stepF-≈ stepF-≈˘
-    infix  1 beginF_
-    beginF_ : ∀ {A B} {f g : F.HomTerm A B} → f F.≈Term g → f F.≈Term g
-    beginF_ x = x
-    stepF-≈ : ∀ {A B} (f : F.HomTerm A B) {g h} → g F.≈Term h → f F.≈Term g → f F.≈Term h
-    stepF-≈ _ gh fg = F.≈-Term-trans fg gh
-    stepF-≈˘ : ∀ {A B} (f : F.HomTerm A B) {g h} → g F.≈Term h → g F.≈Term f → f F.≈Term h
-    stepF-≈˘ _ gh gf = F.≈-Term-trans (F.≈-Term-sym gf) gh
-    _∎F : ∀ {A B} (f : F.HomTerm A B) → f F.≈Term f
-    _ ∎F = F.≈-Term-refl
+    stepF-≈  = libStepF-≈
+    stepF-≈˘ = libStepF-≈˘
     syntax stepF-≈  f gh fg = f ≈F⟨ fg ⟩ gh
     syntax stepF-≈˘ f gh gf = f ≈F⟨ gf ⟨ gh
 
@@ -185,10 +139,8 @@ module FCore
 --
 -- The generator family `GenS` is a `Fin nG`-indexed data family at the
 -- ObjTerm arities — crucially NOT parametrized by any target category, so a
--- single signature can be reused across targets (the old per-target `GenS`,
--- declared inside `module FinSetup C …`, lifted `C` into `GenS`'s parameters
--- and made two `FinSetup`s over the same signature at different targets
--- incompatible).  The decidable equality and rank come for free from `Fin`.
+-- single signature can be reused across targets.  The decidable equality and
+-- rank come for free from `Fin`.
 ------------------------------------------------------------------------
 
 module FinSig
@@ -238,12 +190,13 @@ module FBridge
   -- the engine surface, at EXACTLY the front-ends' instantiation — all
   -- names below are the same symbols the front-ends have in scope.
   open WireSig v {X} MorEng using (wires; mor; box; merge; split)
-  open UntypedI v {X} MorEng ⟦box⟧ using (split∘merge; castW)
+  open UntypedI v {X} MorEng ⟦box⟧ using (castW)
   open ReflectI v {X} _≟X_ MorEng ⟦box⟧
-    using (WTerm; boxʷ; idʷ; _∘ʷ_; _⊗ʷ_; embed; merge-ρ; merge-assoc)
+    using (WTerm; idʷ; _∘ʷ_; _⊗ʷ_; embed; merge-ρ; merge-assoc)
 
-  -- the wire-level free category (unqualified, as in the front-ends).
-  open FreeMonoidalHelper.Mor v X mor
+  -- the wire-level free category (unqualified, as in the front-ends).  The
+  -- structural merge/split family comes via `WireSig` above, so hide it here.
+  open FreeMonoidalHelper.Mor v X mor hiding (merge; split; merge∘split; split∘merge)
 
   -- the engine-free layer, at the same (v, GenF).
   open FCore v {X = X} GenF using (flatten; module F≈R)
@@ -265,32 +218,35 @@ module FBridge
               ⟺ to ⟺F; _○_ to infixr 3 _○F_;
               _⟩⊗⟨_ to infixr 6 _⟩⊗F⟨_; split₁ˡ to split₁ˡF)
 
-  -- readability aliases (function aliases of the F constructors).  Public:
-  -- the front-ends pick them up from here instead of redefining them.
+  -- readability aliases of the F constructors.  `_∘F_`/`_⊗F_` are public
+  -- (the front-ends pick them up here instead of redefining them); idF/reflF
+  -- are internal.
   infixr 9 _∘F_
   infixr 10 _⊗F_
   _∘F_ : ∀ {A B C} → F.HomTerm B C → F.HomTerm A B → F.HomTerm A C
   _∘F_ = F._∘_
   _⊗F_ : ∀ {A B C D} → F.HomTerm A B → F.HomTerm C D → F.HomTerm (A ⊗₀ C) (B ⊗₀ D)
   _⊗F_ = F._⊗₁_
-  idF : ∀ {A} → F.HomTerm A A
-  idF = F.id
-  reflF : ∀ {A B} {f : F.HomTerm A B} → f F.≈Term f
-  reflF = F.≈-Term-refl
+  private
+    idF : ∀ {A} → F.HomTerm A A
+    idF = F.id
+    reflF : ∀ {A B} {f : F.HomTerm A B} → f F.≈Term f
+    reflF = F.≈-Term-refl
 
   ------------------------------------------------------------------------
-  -- F-side structural merge/split (same recursion as the wire-level ones).
+  -- F-side structural merge/split: the generic structural isos of
+  -- `FreeMonoidalHelper.Mor` at the front-end generator family `GenF`
+  -- (definitionally the same recursion as the wire-level engine's, which
+  -- instantiates the SAME generic family at `mor`).
   ------------------------------------------------------------------------
 
   mergeF : (a : List X) {suf : List X}
          → F.HomTerm (wires a ⊗₀ wires suf) (wires (a ++ suf))
-  mergeF []      = F.λ⇒
-  mergeF (x ∷ a) = F._∘_ (F._⊗₁_ F.id (mergeF a)) F.α⇒
+  mergeF = F.merge
 
   splitF : (a : List X) {suf : List X}
          → F.HomTerm (wires (a ++ suf)) (wires a ⊗₀ wires suf)
-  splitF []      = F.λ⇐
-  splitF (x ∷ a) = F._∘_ F.α⇐ (F._⊗₁_ F.id (splitF a))
+  splitF = F.split
 
   ------------------------------------------------------------------------
   -- The canonical structural iso  Y ≅ wires (flatten Y), in F.
@@ -429,21 +385,23 @@ module FBridge
     inj-split []      = refl
     inj-split (x ∷ a) = cong (λ h → F._∘_ F.α⇐ (F._⊗₁_ F.id h)) (inj-split a)
 
-    -- inj of a bare wire-level `castW` is the F-side coercion of the identity.
-    inj-castW0 : ∀ {p q} (e : p ≡ q) → inj (castW e) ≡ coeCF e (idF {wires p})
-    inj-castW0 refl = refl
+    -- internal helpers (not re-exported): inj-of-castW plumbing.
+    private
+      -- inj of a bare wire-level `castW` is the F-side coercion of the identity.
+      inj-castW0 : ∀ {p q} (e : p ≡ q) → inj (castW e) ≡ coeCF e (idF {wires p})
+      inj-castW0 refl = refl
 
-    -- helper: coeCF e idF can be cancelled on the left.
-    coeCF-idˡ : ∀ {A p q} (e : p ≡ q) (j : F.HomTerm A (wires p))
-              → F._∘_ (coeCF e (idF {wires p})) j F.≈Term coeCF e j
-    coeCF-idˡ refl j = F.idˡ
+      -- coeCF e idF can be cancelled on the left.
+      coeCF-idˡ : ∀ {A p q} (e : p ≡ q) (j : F.HomTerm A (wires p))
+                → F._∘_ (coeCF e (idF {wires p})) j F.≈Term coeCF e j
+      coeCF-idˡ refl j = F.idˡ
 
-    -- inj commutes with the wire-level coercion `castW e ∘ -` (up to idˡ).
-    inj-castW : ∀ {A p q} (e : p ≡ q) (h : HomTerm A (wires p))
-              → inj (castW e ∘ h) F.≈Term coeCF e (inj h)
-    inj-castW e h =
-      F.≡⇒≈Term (cong (λ z → F._∘_ z (inj h)) (inj-castW0 e))
-      ○F coeCF-idˡ e (inj h)
+      -- inj commutes with the wire-level coercion `castW e ∘ -` (up to idˡ).
+      inj-castW : ∀ {A p q} (e : p ≡ q) (h : HomTerm A (wires p))
+                → inj (castW e ∘ h) F.≈Term coeCF e (inj h)
+      inj-castW e h =
+        F.≡⇒≈Term (cong (λ z → F._∘_ z (inj h)) (inj-castW0 e))
+        ○F coeCF-idˡ e (inj h)
 
     ----------------------------------------------------------------------
     -- Front-end reflection: structural constructors die into (casted)
@@ -467,10 +425,10 @@ module FBridge
     -- Structural lemmas transferred from the wire level along inj.
     ----------------------------------------------------------------------
 
+    -- the generic F-side retraction, proven directly in `FreeMonoidalHelper`
+    -- (not transferred along `inj`).
     splitF∘mergeF : ∀ (a : List X) {suf} → F._∘_ (splitF a {suf}) (mergeF a) F.≈Term F.id
-    splitF∘mergeF a {suf} =
-      F.≡⇒≈Term (cong₂ F._∘_ (sym (inj-split a {suf})) (sym (inj-merge a {suf})))
-      ○F inj-resp-≈ (split∘merge a)
+    splitF∘mergeF = F.split∘merge
 
     -- right-unitor coherence on the F-side merge (transfer of merge-ρ).
     mergeF-ρ : ∀ (a : List X)
@@ -650,43 +608,11 @@ module FBridge
 -- layers.  Variant-generic via the instance-gated symmetric structure:
 -- the Mon front-end passes the vacuous `λ ⦃ () ⦄`, the Symm front-end
 -- wraps its caller's `Symmetric` witness.
+--
+-- (`IntoCore` is defined AFTER `FFocus` below — `WithGenC` hosts the
+-- focusing/rewriting epilogue, which needs `FFocus`'s `Foc`/`plug`/
+-- `solveTerm!`/`Rewrite` at the CONCRETE `FreeFunctor` interpretation.)
 ------------------------------------------------------------------------
-
-module IntoCore
-  (v : Variant)
-  {X : Set}
-  (let open FreeMonoidalHelper v X using (ObjTerm))
-  (GenF : ObjTerm → ObjTerm → Set)
-  {o ℓ e : Level}
-  (C : MonoidalCategory o ℓ e)
-  (SymC : ⦃ Symm ≤ v ⦄ → Symmetric (C .MonoidalCategory.monoidal))
-  (⟦_⟧ᵖ₀ : X → C .MonoidalCategory.U .Category.Obj)
-  where
-
-  private
-    dF : FreeMonoidalData
-    dF = record { v = v ; X = X ; mor = GenF }
-
-    ⟦v⟧F : ⟦ v ⟧ᵥ {o} {ℓ} {e}
-    ⟦v⟧F = record
-      { C = C .MonoidalCategory.U
-      ; Monoidal-C = C .MonoidalCategory.monoidal
-      ; Symmetric-C = SymC
-      }
-
-  open FreeFunctorHelper dF ⟦v⟧F using (module Go)
-  open Go ⟦_⟧ᵖ₀ using () renaming (⟦_⟧₀ to ⟦_⟧ₒ) public
-
-  module WithGenC
-    (⟦gen⟧ : ∀ {Y Z} → GenF Y Z
-           → C .MonoidalCategory.U [ ⟦ Y ⟧ₒ , ⟦ Z ⟧ₒ ])
-    where
-
-    private
-      ffdF : FreeFunctorData dF {o} {ℓ} {e}
-      ffdF = record { ⟦v⟧ = ⟦v⟧F ; ⟦_⟧ᵖ₀ = ⟦_⟧ᵖ₀ ; ⟦_⟧ᵖ₁ = ⟦gen⟧ }
-
-    open FreeFunctor {d = dF} ffdF public using (⟦_⟧₁; ⟦⟧-resp-≈)
 
 ------------------------------------------------------------------------
 -- FFocus: the variant-generic term-level FOCUSING and diagrammatic
@@ -694,12 +620,12 @@ module IntoCore
 -- `rewriteH!`).  Both are generic in the front-end free category and the
 -- decision procedure — the only genuinely front-end-specific ingredient is
 -- `decide?F`, which is passed as a parameter.  (`_≟O_` depends only on
--- `_≟X_`; it lived in the Mon `Decide` purely by historical accident.)
+-- `_≟X_`, so it belongs in this variant-generic layer.)
 --
 -- The focusing search is unverified: a `focusAtₙ` hit is certified
 -- downstream by `decide?F`, so soundness rests solely on the solver.  Every
 -- definition reduces on constructors, so the test sites' `IsJust` hits
--- compute exactly as before.
+-- auto-discharge at the concrete test sites.
 ------------------------------------------------------------------------
 
 module FFocus
@@ -886,3 +812,77 @@ module FFocus
       → C .MonoidalCategory.U [ ⟦ s ⟧₁ ≈ ⟦ t ⟧₁ ]
     rewriteMorAuto! s t lᵗ rᵗ rule {found} {h₁} {h₂} =
       rewriteMorₙ! s t lᵗ rᵗ 0 rule {found} {h₁} {h₂}
+
+------------------------------------------------------------------------
+-- IntoCore: transport into a target monoidal category along the free
+-- functor.  `WithGenC` hosts the whole focusing/rewriting epilogue
+-- (`solveMor!`/`plugCong`/`Rewrite`) at the CONCRETE `FreeFunctor`
+-- interpretation, so the reduction-sensitive `plugCong` (`⟦ plug foc l ⟧₁`
+-- only unfolds through the concrete functor) lives in ONE place instead of
+-- being copied into each front-end.  `_≟X_`/`decide?F` are threaded so the
+-- core can build its own `FFocus` (the front-ends never re-export `IntoCore`
+-- publicly, so these added parameters are internal).
+------------------------------------------------------------------------
+
+module IntoCore
+  (v : Variant)
+  {X : Set}
+  (_≟X_ : DecidableEquality X)
+  (let open FreeMonoidalHelper v X using (ObjTerm))
+  (GenF : ObjTerm → ObjTerm → Set)
+  (let module F = FreeMonoidalHelper.Mor v X GenF)
+  (decide?F : ∀ {Y Z} (l r : F.HomTerm Y Z) → Maybe (l F.≈Term r))
+  {o ℓ e : Level}
+  (C : MonoidalCategory o ℓ e)
+  (SymC : ⦃ Symm ≤ v ⦄ → Symmetric (C .MonoidalCategory.monoidal))
+  (⟦_⟧ᵖ₀ : X → C .MonoidalCategory.U .Category.Obj)
+  where
+
+  private
+    module FF = FFocus v {X} _≟X_ GenF decide?F
+    module MCc = MonoidalCategory C
+
+    dF : FreeMonoidalData
+    dF = record { v = v ; X = X ; mor = GenF }
+
+    ⟦v⟧F : ⟦ v ⟧ᵥ {o} {ℓ} {e}
+    ⟦v⟧F = record
+      { C = C .MonoidalCategory.U
+      ; Monoidal-C = C .MonoidalCategory.monoidal
+      ; Symmetric-C = SymC
+      }
+
+  open FreeFunctorHelper dF ⟦v⟧F using (module Go)
+  open Go ⟦_⟧ᵖ₀ using () renaming (⟦_⟧₀ to ⟦_⟧ₒ) public
+
+  module WithGenC
+    (⟦gen⟧ : ∀ {Y Z} → GenF Y Z
+           → C .MonoidalCategory.U [ ⟦ Y ⟧ₒ , ⟦ Z ⟧ₒ ])
+    where
+
+    private
+      ffdF : FreeFunctorData dF {o} {ℓ} {e}
+      ffdF = record { ⟦v⟧ = ⟦v⟧F ; ⟦_⟧ᵖ₀ = ⟦_⟧ᵖ₀ ; ⟦_⟧ᵖ₁ = ⟦gen⟧ }
+
+    open FreeFunctor {d = dF} ffdF public using (⟦_⟧₁; ⟦⟧-resp-≈)
+
+    -- THE entry point: discharge a target-category equation whose two
+    -- sides are interpretations of front-end terms.
+    solveMor! : ∀ {Y Z} (l r : F.HomTerm Y Z)
+                {hit : FF.IsJust (decide?F l r)}
+              → C .MonoidalCategory.U [ ⟦ l ⟧₁ ≈ ⟦ r ⟧₁ ]
+    solveMor! l r {hit} = ⟦⟧-resp-≈ (FF.solveTerm! l r {hit})
+
+    private
+      -- transport a rule across the frame of a focus, by congruence.
+      -- Reduction-SENSITIVE: hosted here where `⟦_⟧₁` is the concrete
+      -- `FreeFunctor` interpretation so `⟦ plug foc l ⟧₁` unfolds.
+      plugCong : ∀ {A B P Q} (foc : FF.Foc A B P Q) (l r : F.HomTerm P Q)
+               → C .MonoidalCategory.U [ ⟦ l ⟧₁ ≈ ⟦ r ⟧₁ ]
+               → C .MonoidalCategory.U [ ⟦ FF.plug foc l ⟧₁ ≈ ⟦ FF.plug foc r ⟧₁ ]
+      plugCong (k , m , pre , post) l r rule =
+        MCc.∘-resp-≈ʳ (MCc.∘-resp-≈ˡ
+          (MCc.⊗.F-resp-≈ (MCc.Equiv.refl , MCc.⊗.F-resp-≈ (rule , MCc.Equiv.refl))))
+
+    open FF.Rewrite C ⟦_⟧ₒ ⟦_⟧₁ solveMor! plugCong public
+      using (rewriteMor!; rewriteMorₙ!; rewriteMorAuto!)
