@@ -96,7 +96,7 @@ private bs : BoxSound
 ------------------------------------------------------------------------
 -- Module Sound: reflect soundness.
 --
--- For each WTerm `t`, `reflect-sound bs t` is a machine-checked witness
+-- For each WTerm `t`, `reflect-sound-coeCod' t` is a machine-checked witness
 -- that `coeCod' (out-reflect t) ⟦ reflect t ⟧ ≈Term embed t`.
 -- The ⊗ʷ cases exercise boxes at non-trivial wire offsets.
 
@@ -109,16 +109,16 @@ module Sound where
     ts⊗id = boxʷ s ⊗ʷ idʷ {⋆ ∷ []}
 
   test-μ     : coeCod' (out-reflect tμ)    ⟦ reflect tμ    ⟧ ≈Term embed tμ
-  test-μ     = reflect-sound bs tμ
+  test-μ     = reflect-sound-coeCod' tμ
 
   test-δ∘μ   : coeCod' (out-reflect tδμ)   ⟦ reflect tδμ   ⟧ ≈Term embed tδμ
-  test-δ∘μ   = reflect-sound bs tδμ
+  test-δ∘μ   = reflect-sound-coeCod' tδμ
 
   test-μ⊗η   : coeCod' (out-reflect tμ⊗η)  ⟦ reflect tμ⊗η  ⟧ ≈Term embed tμ⊗η
-  test-μ⊗η   = reflect-sound bs tμ⊗η
+  test-μ⊗η   = reflect-sound-coeCod' tμ⊗η
 
   test-s⊗id  : coeCod' (out-reflect ts⊗id) ⟦ reflect ts⊗id ⟧ ≈Term embed ts⊗id
-  test-s⊗id  = reflect-sound bs ts⊗id
+  test-s⊗id  = reflect-sound-coeCod' ts⊗id
 
 ------------------------------------------------------------------------
 -- Module Interchange: disjoint-box interchange, two ways.
@@ -198,11 +198,11 @@ module Decision where
       chain : reflect f ≈NF reflect g → embed f ≈Term embed g
       chain eq = begin
         embed f
-          ≈⟨ reflect-sound bs f ⟨
+          ≈⟨ reflect-sound-coeCod' f ⟨
         coeCod' (out-reflect f) ⟦ reflect f ⟧
           ≈⟨ eq-≈Term (≈NF⇒≡ eq) (out-reflect f) (out-reflect g) ⟩
         coeCod' (out-reflect g) ⟦ reflect g ⟧
-          ≈⟨ reflect-sound bs g ⟩
+          ≈⟨ reflect-sound-coeCod' g ⟩
         embed g ∎
         where
           eq-≈Term : ∀ {n p} {d d' : DiagU n}

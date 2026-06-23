@@ -187,11 +187,11 @@ private
   cast-cancel refl = idˡ
 
   -- α-conjugation of a ⊗-pair (the Mac-Lane move, once)
-  α-conj
+  α-conjE
     : ∀ {A B C A' B' C'} (m : HomTerm A A') (n : HomTerm B B') (k : HomTerm C C')
     → (m ⊗₁ n) ⊗₁ k
       ≈Term α⇐ ∘ (m ⊗₁ (n ⊗₁ k)) ∘ α⇒
-  α-conj m n k = begin
+  α-conjE m n k = begin
     (m ⊗₁ n) ⊗₁ k                       ≈⟨ ≈-Term-sym idˡ ⟩
     id ∘ ((m ⊗₁ n) ⊗₁ k)                ≈⟨ ≈-Term-sym α⇐∘α⇒≈id ⟩∘⟨refl ⟩
     (α⇐ ∘ α⇒) ∘ ((m ⊗₁ n) ⊗₁ k)        ≈⟨ FM.assoc ⟩
@@ -229,7 +229,7 @@ private
       T (ys ++ vs) qs ∘ ((T ys vs ⊗₁ id) ∘ (((ef ⊗₁ eg) ∘ F xs us) ⊗₁ (eh ∘ id))) ∘ F (xs ++ us) ps
         ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ ⊗-∘-dist) ⟩∘⟨refl) ⟩
       T (ys ++ vs) qs ∘ ((T ys vs ⊗₁ id) ∘ ((ef ⊗₁ eg) ⊗₁ eh) ∘ (F xs us ⊗₁ id)) ∘ F (xs ++ us) ps
-        ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ (α-conj ef eg eh ⟩∘⟨refl)) ⟩∘⟨refl) ⟩
+        ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ (α-conjE ef eg eh ⟩∘⟨refl)) ⟩∘⟨refl) ⟩
       T (ys ++ vs) qs ∘ ((T ys vs ⊗₁ id) ∘ (α⇐ ∘ N ∘ α⇒) ∘ (F xs us ⊗₁ id)) ∘ F (xs ++ us) ps
         ≈⟨ refl⟩∘⟨ FM.assoc ⟩
       T (ys ++ vs) qs ∘ (T ys vs ⊗₁ id) ∘ ((α⇐ ∘ N ∘ α⇒) ∘ (F xs us ⊗₁ id)) ∘ F (xs ++ us) ps
@@ -400,8 +400,8 @@ private
     Sc = subst-id-cod (++-identityʳ ys)
 
     -- ef ⊗ id_unit ≈ ρ⇐ ∘ ef ∘ ρ⇒
-    pad : ef ⊗₁ id {unit} ≈Term ρ⇐ ∘ ef ∘ ρ⇒
-    pad = begin
+    padE : ef ⊗₁ id {unit} ≈Term ρ⇐ ∘ ef ∘ ρ⇒
+    padE = begin
       ef ⊗₁ id
         ≈⟨ ≈-Term-sym idˡ ⟩
       id ∘ (ef ⊗₁ id)
@@ -416,7 +416,7 @@ private
     main : Sc ∘ emb (f ⊗ˢ idˢ {[]}) ∘ Sd ≈Term ef
     main = begin
       Sc ∘ (T ys [] ∘ (ef ⊗₁ id) ∘ F xs []) ∘ Sd
-        ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ (pad ⟩∘⟨refl)) ⟩∘⟨refl) ⟩
+        ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ (padE ⟩∘⟨refl)) ⟩∘⟨refl) ⟩
       Sc ∘ (T ys [] ∘ (ρ⇐ ∘ ef ∘ ρ⇒) ∘ F xs []) ∘ Sd
         ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ FM.assoc) ⟩∘⟨refl) ⟩
       Sc ∘ (T ys [] ∘ ρ⇐ ∘ (ef ∘ ρ⇒) ∘ F xs []) ∘ Sd

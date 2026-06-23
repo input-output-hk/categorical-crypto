@@ -85,7 +85,7 @@ module SolverMor
   -- the reflect component (with `boxSound` discharged).
   open Reflect Mon {X} _≟X_ Mor
     using ( WTerm; boxʷ; idʷ; _∘ʷ_; embed; reflect; out-reflect
-          ; reflect-sound; boxSound; BoxSound; coeCod' )
+          ; reflect-sound; boxSound; BoxSound; coeCod'; reflect-sound-coeCod' )
 
   -- the compare component.
   open SolverCompare Mon {X} _≟X_ Mor
@@ -114,7 +114,7 @@ module SolverMor
                    → coeW (out-reflect t) ⟦ reflect t ⟧ ≈Term embed t
     reflectW-sound t = ≈-Term-trans
       (≈-Term-sym (coeCod'≈coeW (out-reflect t) ⟦ reflect t ⟧))
-      (reflect-sound boxSound t)
+      (reflect-sound-coeCod' t)
 
     --------------------------------------------------------------------------------
     -- Transport an `≈NF` of the two reflected diagrams into a `≈Term` of their

@@ -6,48 +6,36 @@
 -- A two-colour atom alphabet (⋆, •) and a three-generator signature
 -- (μ : ⋆⊗⋆→⋆, s : ⋆→⋆, t : •→•).  Machine-checked:
 --
---   * `Braiding`   — σ∘σ≈id as a one-liner, also DEEP inside a ⊗/α context;
---   * `Naturality` — σ-naturality through box generators: the headline
+--   * `Braiding`   — σ∘σ≈id, as a one-liner and DEEP inside a ⊗/α context.
+--   * `Naturality` — σ-naturality through box generators; the headline
 --     `σ ∘ (s ⊗ t) ≈ (t ⊗ s) ∘ σ` needs TWO machine-fired slides (one per
---     image block); the single-sided variants isolate each slide; the
---     conjugation `σ ∘ (s ⊗ t) ∘ σ ≈ t ⊗ s` combines slides with
---     σσ-cancellation;
---   * `Mixed`      — σ moves interleaved with coherence/functoriality
---     (the Mon front-end's repertoire is preserved);
---   * `Negative`   — `≡ nothing`-pinned boundaries: the HEXAGON shape does
---     not decide (Lσ1: crossing blocks are never split/merged), and
---     distinct generators stay apart;
+--     image block), the single-sided variants isolate each slide.
+--   * `Mixed`      — σ moves interleaved with coherence/functoriality.
+--   * `Negative`   — `≡ nothing`-pinned boundaries: the HEXAGON (Lσ1) and a
+--     straddling box (Lσ2) do not decide; distinct generators stay apart.
 --   * `Target`     — C-level showcase through `FinSetupσ`: `solveMorσ!`
---     one-liners whose statements read in an arbitrary symmetric monoidal
---     target's own vocabulary (σ lands on the target's braiding).
+--     one-liners reading in a symmetric monoidal target's own vocabulary,
+--     plus a `rewriteMorσAuto!` rewrite (`test-rwσ-cancel`).
 --------------------------------------------------------------------------------
 
 module Categories.SolverSigmaFrontendTests where
 
 open import Level using (Level)
 
-import Data.Fin
-import Data.Nat
 open import Data.Fin using (Fin; zero; suc)
-open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; []; _∷_)
-open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Product using (_×_; _,_; proj₁; proj₂)
+open import Data.Maybe using (nothing)
+open import Data.Product using (_×_; _,_)
 open import Data.Vec using (_∷_; [])
-open import Relation.Nullary using (Dec; yes; no)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Nullary using (yes; no)
 
-open import Categories.Category using (Category; _[_,_]; _[_≈_])
+open import Categories.Category using (_[_,_]; _[_≈_])
 open import Categories.Category.Monoidal using (MonoidalCategory)
 open import Categories.Category.Monoidal.Symmetric using (Symmetric)
 open import Categories.FreeMonoidal
+open import Categories.SolverFrontendCore using (module FinSig)
 open import Categories.SolverSigmaFrontend using (module FrontendS; module FinSetupσ)
-
--- `Symm ≤ Symm` for σ in the test terms.
-private instance
-  S≤S : Symm ≤ Symm
-  S≤S = v≤v
 
 ------------------------------------------------------------------------
 -- Wire colours and the generator signature (ObjTerm arities, Fin-indexed).
@@ -71,25 +59,23 @@ arityT zero             = Var ⋆ ⊗₀ Var ⋆ , Var ⋆
 arityT (suc zero)       = Var ⋆ , Var ⋆
 arityT (suc (suc zero)) = Var • , Var •
 
-data GenT : ObjTerm → ObjTerm → Set where
-  genT : (i : Fin 3) → GenT (proj₁ (arityT i)) (proj₂ (arityT i))
+open FinSig Symm {Ty} arityT using (GenS; genS; _≟G_; rankS)
+
+-- `v≤v`/`M≤S` are not global instances (see `Categories.FreeMonoidal`); the
+-- σ-frontend at the concrete `Symm` here needs a local `Symm ≤ Symm` witness.
+private
+  instance
+    Symm≤Symm : Symm ≤ Symm
+    Symm≤Symm = v≤v
 
 ------------------------------------------------------------------------
 -- The front-end term language and the solver instance.
 
-private module S = FreeMonoidalHelper.Mor Symm Ty GenT
+private module S = FreeMonoidalHelper.Mor Symm Ty GenS
 
-open FrontendS {Ty} _≟Ty_ GenT
+open FrontendS {Ty} _≟Ty_ GenS
 
-_≟G_ : DecidableEquality GenΣ
-(_ , _ , genT i) ≟G (_ , _ , genT j) with i ≟F j
-... | yes refl = yes refl
-... | no ¬p    = no λ where refl → ¬p refl
-
-rankT : GenΣ → Data.Nat.ℕ
-rankT (_ , _ , genT i) = Data.Fin.toℕ i
-
-open Decide _≟G_ rankT
+open Decide _≟G_ rankS
 
 -- readable term-language aliases.
 private
@@ -107,9 +93,9 @@ private
   id' = S.id
   σ' : ∀ {A B} → S.HomTerm (A ⊗₀ B) (B ⊗₀ A)
   σ' = S.σ
-  μ' = S.var (genT zero)
-  s' = S.var (genT (suc zero))
-  t' = S.var (genT (suc (suc zero)))
+  μ' = S.var (genS zero)
+  s' = S.var (genS (suc zero))
+  t' = S.var (genS (suc (suc zero)))
 
 ------------------------------------------------------------------------
 -- Braiding involution: σ∘σ≈id, as a one-liner and deep in context.
@@ -175,10 +161,9 @@ module Mixed where
 
 module Negative where
 
-  -- Lσ1: the HEXAGON does not decide — the normalizer never splits or
-  -- merges crossing BLOCKS (`cross fA (fB ++ fC)` vs the two-step
-  -- crossings are distinct normal forms).  The equation is TRUE in the
-  -- theory (it is an axiom); this pins the solver's boundary.
+  -- Lσ1: the HEXAGON (a TRUE axiom) does not decide — the normalizer never
+  -- splits or merges crossing BLOCKS, so the two routings are distinct normal
+  -- forms.
   neg-hexagon
     : decide?F ((id' {Var •} ⊗' σ') ∘' S.α⇒ ∘' (σ' {Var ⋆} {Var •} ⊗' id' {Var ⋆}))
                (S.α⇒ ∘' σ' ∘' S.α⇒)
@@ -188,6 +173,21 @@ module Negative where
   -- distinct generators stay apart (sanity: every just is a real proof).
   neg-distinct : decide?F (s' ∘' s') s' ≡ nothing
   neg-distinct = refl
+
+  -- Lσ2: a box STRADDLING the two image blocks of a crossing does not slide.
+  -- Over `σ' {⋆⊗⋆}{⋆}`, mapping wires [a₁,a₂,b]↦[b,a₁,a₂], the multi-input box
+  -- `μ` (after `α⇐`) consumes [b,a₁] — one wire from each image block — so it
+  -- straddles the crossing.  Both sides denote the SAME free-symmetric morphism
+  -- (the equation is TRUE), but the solver returns `nothing`: sliding μ would
+  -- split it across the two image blocks.  (This pin also exercises the Lσ1
+  -- crossing-routing boundary; a straddle-only pin is not constructible here.)
+  neg-straddle
+    : decide?F ((μ' ⊗' id' {Var ⋆}) ∘' S.α⇐ ∘' σ' {Var ⋆ ⊗₀ Var ⋆} {Var ⋆})
+               ((μ' ⊗' id' {Var ⋆}) ∘'
+                  (σ' {Var ⋆} {Var ⋆} ⊗' id' {Var ⋆}) ∘' S.α⇐ ∘'
+                  (id' {Var ⋆} ⊗' σ' {Var ⋆} {Var ⋆}) ∘' S.α⇒)
+      ≡ nothing
+  neg-straddle = refl
 
 ------------------------------------------------------------------------
 -- C-level showcase through `FinSetupσ`: statements read in the target's
@@ -205,6 +205,9 @@ module Target {o ℓ e : Level}
     (A B : MC.Obj)
     (sᴹ : C .MonoidalCategory.U [ A , A ])
     (tᴹ : C .MonoidalCategory.U [ B , B ])
+    -- a rule hypothesis for the shared rewriting layer
+    -- (`rewriteMorσ!` / `rewriteMorσAuto!`).
+    (invσ : C .MonoidalCategory.U [ sᴹ MC.∘ sᴹ ≈ MC.id ])
     where
 
     open FinSetupσ C Sym (A ∷ B ∷ [])
@@ -242,3 +245,13 @@ module Target {o ℓ e : Level}
           [ σC MC.∘ (sᴹ ⊗C tᴹ) ≈ (tᴹ ⊗C sᴹ) MC.∘ σC ]
     test-σ-nat-C =
       solveMorσ! (Sσ._∘_ σᵗ (Sσ._⊗₁_ sᵗ tᵗ)) (Sσ._∘_ (Sσ._⊗₁_ tᵗ sᵗ) σᵗ)
+
+    -- the shared rewriting layer in the σ front-end: the rule `sᴹ ∘ sᴹ ≈ id`
+    -- fires (auto-positioned) in the right factor of a tensor, collapsing the
+    -- composite to `id` in context.
+    test-rwσ-cancel
+      : C .MonoidalCategory.U
+          [ tᴹ ⊗C (sᴹ MC.∘ sᴹ) ≈ tᴹ ⊗C MC.id ]
+    test-rwσ-cancel =
+      rewriteMorσAuto! (Sσ._⊗₁_ tᵗ (Sσ._∘_ sᵗ sᵗ)) (Sσ._⊗₁_ tᵗ Sσ.id)
+                       (Sσ._∘_ sᵗ sᵗ) Sσ.id invσ
