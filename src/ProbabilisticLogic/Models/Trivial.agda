@@ -94,8 +94,8 @@ Triv-AbstractProbability = record
       }
   }
 
-Triv : Abstract 0ℓ 0ℓ
-Triv = record
+Triv-Core : AbstractCore 0ℓ 0ℓ
+Triv-Core = record
   { abstractProbability = Triv-AbstractProbability
   ; ProbDistr           = λ _ → ⊤
   ; _∙_                 = λ _ _ → tt
@@ -112,6 +112,12 @@ Triv = record
   ; _⊗_                 = λ _ _ → tt
   ; ⊗-rect              = refl
   ; _>>=_               = λ _ _ → tt
-  ; >>=-empirical       = refl
   ; >>=-cong-l          = λ _ → refl
+  }
+
+Triv : Abstract 0ℓ 0ℓ
+Triv = record
+  { core          = Triv-Core
+  ; empirical-mix = refl
+  ; >>=-mix       = λ _ → refl
   }

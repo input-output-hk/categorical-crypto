@@ -9,6 +9,7 @@ open import Relation.Binary using (Setoid; IsPreorder)
 import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 open import Relation.Unary hiding (⌊_⌋)
 
+import Data.List as L
 import Data.List.NonEmpty as NE
 
 open import Data.Rational as ℚ using (ℚ; _/_; 1ℚ)
@@ -67,7 +68,7 @@ record AbstractProbability c ℓ : Type (sucˡ (c ⊔ˡ ℓ)) where
   fromℚ-1 : fromℚ (+ 1 / 1) ≈ 1#
   fromℚ-1 = 1#-homo
 
-record Abstract c ℓ : Type (sucˡ (c ⊔ˡ ℓ)) where
+record AbstractCore c ℓ : Type (sucˡ (c ⊔ˡ ℓ)) where
   field abstractProbability : AbstractProbability c ℓ
 
   open AbstractProbability abstractProbability public
@@ -93,15 +94,18 @@ record Abstract c ℓ : Type (sucˡ (c ⊔ˡ ℓ)) where
         ⊗-rect : ∀ {P : ProbDistr Ω₁} {Q : ProbDistr Ω₂} {X : Ω₁ → Type} {Y : Ω₂ → Type}
                → (P ⊗ Q) ∙ (X ⊠ Y) ≈ P ∙ X * Q ∙ Y
         _>>=_ : ProbDistr Ω₁ → (Ω₁ → ProbDistr Ω₂) → ProbDistr Ω₂
-        >>=-empirical : ∀ {l : NE.List⁺ Ω₁} {f : Ω₁ → NE.List⁺ Ω₂} {Y : Ω₂ → Type}
-                      → (empirical l >>= (empirical P.∘ f)) ∙ Y
-                      ≈ empirical (NE.concatMap f l) ∙ Y
         >>=-cong-l : ∀ {P Q : ProbDistr Ω₁} {f : Ω₁ → ProbDistr Ω₂} {Y : Ω₂ → Type}
                    → (∀ {X : Ω₁ → Type} → P ∙ X ≈ Q ∙ X)
                    → (P >>= f) ∙ Y ≈ (Q >>= f) ∙ Y
 
   pure : Ω → ProbDistr Ω
   pure ω = empirical (ω NE.∷ [])
+
+  -- Evaluation of a finite `Probability`-weighted mixture of the
+  -- kernel `k`'s outputs on an event: `Σᵢ wᵢ · (k ωᵢ) ∙ X`.
+  kmix : (Ω₁ → ProbDistr Ω₂) → List (Probability × Ω₁) → (Ω₂ → Type) → Probability
+  kmix k []             _ = 0#
+  kmix k ((w , ω) ∷ ls) X = w * k ω ∙ X + kmix k ls X
 
   weighted : (l : NE.List⁺ (ℕ × Ω)) ⦃ _ : NonZero (proj₁ (NE.head l)) ⦄ → ProbDistr Ω
   weighted l = empirical (weighted-K l)
@@ -286,3 +290,44 @@ record Abstract c ℓ : Type (sucˡ (c ⊔ˡ ℓ)) where
 
     pure-full : ∀ (ω : Ω) → pure ω ∙ (_∈ˡ (ω ∷ [])) ≈ 1#
     pure-full ω = empirical-full (ω NE.∷ [])
+
+------------------------------------------------------------------------
+-- The full abstract theory: the core operations plus the finite-mixture
+-- axioms for `empirical` and `_>>=_`.
+--
+-- These replace the former `>>=-empirical` axiom, which wrongly
+-- identified `empirical l >>= empirical ∘ f` with
+-- `empirical (concatMap f l)` — false for varying-width kernels, where
+-- concatenation re-normalises uniformly instead of mixing (it forces
+-- e.g. 1/2 ≈ 1/3 in the rational model).
+
+record Abstract c ℓ : Type (sucˡ (c ⊔ˡ ℓ)) where
+  field core : AbstractCore c ℓ
+
+  open AbstractCore core public
+
+  field
+        -- `empirical l` is observationally the uniform mixture of the
+        -- Dirac distributions at the points of `l` — on ALL events,
+        -- not just decidable ones.
+        empirical-mix : ∀ {l : NE.List⁺ Ω} {X : Ω → Type}
+          → empirical l ∙ X
+          ≈ kmix pure (L.map (λ ω → (fromℚ (+ 1 / NE.length l) , ω)) (NE.toList l)) X
+
+        -- Marginalisation: binding a distribution that is
+        -- observationally a finite Dirac mixture against a kernel
+        -- yields the same-weighted mixture of the kernel's outputs.
+        -- This is the defining property of `_>>=_` on finite
+        -- distributions.
+        >>=-mix : ∀ {ls : List (Probability × Ω₁)} {P : ProbDistr Ω₁}
+                    {k : Ω₁ → ProbDistr Ω₂} {Y : Ω₂ → Type}
+          → (∀ {X : Ω₁ → Type} → P ∙ X ≈ kmix pure ls X)
+          → (P >>= k) ∙ Y ≈ kmix k ls Y
+
+  -- The corrected form of the former `>>=-empirical` axiom: binding an
+  -- empirical distribution mixes the kernel outputs uniformly.
+  >>=-empirical-mix : ∀ {l : NE.List⁺ Ω₁} {k : Ω₁ → ProbDistr Ω₂} {Y : Ω₂ → Type}
+    → (empirical l >>= k) ∙ Y
+    ≈ kmix k (L.map (λ ω → (fromℚ (+ 1 / NE.length l) , ω)) (NE.toList l)) Y
+  >>=-empirical-mix {l = l} =
+    >>=-mix {ls = L.map (λ ω → (fromℚ (+ 1 / NE.length l) , ω)) (NE.toList l)} empirical-mix
