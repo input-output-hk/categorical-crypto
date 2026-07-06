@@ -4,26 +4,15 @@
 -- FINAL ASSEMBLY of part (II)ˢ — the UNCONDITIONAL `fire-mid-interchangeˢ` and
 -- `run-interchange₀ˢ`.
 --
--- This assembles the pieces of `Strict.FireMidS{,2,3}`/`Strict.FireMidFinish`:
+-- This assembles the located normal-form pieces:
 -- the per-order located normal forms `nf-genˢ` (a single, block-symmetric
 -- single-order chase, the strict twin of `BlockNFNf2.block-bracket-pf`),
 -- instantiated for the two firing orders, then threaded through `cross-NFˢ`
 -- with the proven `vin-cohˢ`/`vout-cohˢ` (FireMidS2) to give the both-fire
 -- core `fire-mid-interchangeˢ`.  Instantiating `SwapCoreRun.RunInterchange`
--- with it yields the UNCONDITIONAL `run-interchange₀ˢ`.
---
--- {-# OPTIONS --safe --without-K #-}, zero postulates, zero holes.
---------------------------------------------------------------------------------
-
--- CONSOLIDATED MODULE.  This file merges the former three-file FireMid
--- staging chain into one module `Strict.FireMidS`:
---   * submodule `FMS`  — the former `Strict.FireMidS`  (cross-NFˢ, box-resid3ˢ)
---   * submodule `FMS2` — the former `Strict.FireMidS2` (Located: vin/vout-cohˢ)
---   * top-level `module _ (H dih lin)` — the former `Strict.FireMidDone`
---     capstone (fire-mid-interchangeˢ, run-interchange₀ˢ).
--- The chain is acyclic (FireMid/S2 used only by FireMidDone, FireMidDone only
--- by PartII), so all three merge.  Content is byte-identical to the split modulo
--- the submodule wrapping + three internalised cross-references.
+-- with it yields the UNCONDITIONAL `run-interchange₀ˢ`.  The located normal
+-- forms live in submodule `FMS`, the coherences in `FMS2`, and the capstone
+-- `fire-mid-interchangeˢ` in the final `module _ (H dih lin)`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -75,7 +64,7 @@ open import Relation.Binary.PropositionalEquality
 
 
 --------------------------------------------------------------------------------
--- ===== former Strict.FireMidS  ->  submodule FMS =====
+-- ===== submodule FMS =====
 --------------------------------------------------------------------------------
 
 module FMS (H : Hypergraph FlatGen)
@@ -169,7 +158,7 @@ module FMS (H : Hypergraph FlatGen)
 
 
 --------------------------------------------------------------------------------
--- ===== former Strict.FireMidS2  ->  submodule FMS2 =====
+-- ===== submodule FMS2 =====
 --------------------------------------------------------------------------------
 
 module FMS2 (H : Hypergraph FlatGen)
@@ -381,7 +370,7 @@ module FMS2 (H : Hypergraph FlatGen)
 
 
 --------------------------------------------------------------------------------
--- ===== former Strict.FireMidDone  ->  top-level capstone =====
+-- ===== top-level capstone =====
 --------------------------------------------------------------------------------
 
 module _ (H : Hypergraph FlatGen)
@@ -433,7 +422,7 @@ module _ (H : Hypergraph FlatGen)
     cast-idʳ-∘ refl f = idʳ
 
     -- The `++⁺ʳ Rl`-framed block-swap derivation is the strict block braiding
-    -- `σˢ (m L) (m R) ⊗ˢ idˢ{m Rl}` (re-derivation of F2's private swap-block).
+    -- `σˢ (m L) (m R) ⊗ˢ idˢ{m Rl}`.
     swap-block
       : ∀ (L R Rl : List (Fin H.nV))
       → permuteˢ (PermProp.++⁺ʳ Rl (bswap L R))
@@ -456,7 +445,7 @@ module _ (H : Hypergraph FlatGen)
                            (sym (map-++ vl (R ++ L) Rl))
                            (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl}))))
 
-    -- swap-block flipped (re-derivation of F2's private swap-block-sym).
+    -- swap-block flipped.
     swap-block-sym
       : ∀ (L R Rl : List (Fin H.nV))
       → σˢ (m L) (m R) ⊗ˢ idˢ {m Rl}
@@ -499,8 +488,7 @@ module _ (H : Hypergraph FlatGen)
         (∘-resp ≈-refl
           (≈-trans interchangeˢ (⊗-resp idˡ idʳ)))))
 
-    -- A single located fire box (re-derivation of FireMidS3's private
-    -- fire-locatedˢ).
+    -- A single located fire box.
     fire-locatedˢ
       : ∀ (e : Fin H.nE) (s rest C Rl : List (Fin H.nV))
           (perm : s Perm.↭ H.ein e ++ rest) (q : rest Perm.↭ C ++ Rl)
@@ -698,8 +686,7 @@ module _ (H : Hypergraph FlatGen)
       mid-rigid : permuteˢ mid-comp ≈ˢ permuteˢ midD
       mid-rigid = perm-rigidˢ′ us-mid-img mid-comp midD
 
-      -- midD as the strict block braid (re-derivation of FireMidFinish's
-      -- private `midD-σ`).
+      -- midD as the strict block braid.
       bridgeD : H.eout a ++ (H.ein b ++ R) Perm.↭ H.ein b ++ (H.eout a ++ R)
       bridgeD =
         Perm.trans (Perm.↭-reflexive (sym (++-assoc (H.eout a) (H.ein b) R)))

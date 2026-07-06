@@ -1,11 +1,10 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- CONSOLIDATION EXPERIMENT (variant C, faithful): TensorKBlock chain 1..6 merged.
--- Each former file -> named submodule TKB/TKB2/.../TKB6 carrying its OWN multi-line
--- opens (with their original 'using'/'renaming' restrictions intact), so the
--- split's clash-free per-file scoping is preserved verbatim.  KBlockDisjoint kept
--- as a top-level submodule.  TensorKBlockFinal stays separate (TensorBraid cycle).
+-- The K-block braid residual `KBlockσ` and its supporting lemmas, organised as
+-- submodules TKB/TKB2/.../TKB6 (each carrying its own clash-free imports) plus
+-- the top-level `KBlockDisjoint`.  `TensorKBlockFinal` stays separate to avoid
+-- the `TensorBraid` import cycle.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -25,7 +24,7 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_ as Dec
 
 ------------------------------------------------------------------------
--- ===== TensorKBlock -> submodule TKB =====
+-- ===== submodule TKB =====
 ------------------------------------------------------------------------
 module TKB (H : Hypergraph FlatGen) where
   open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
@@ -232,7 +231,7 @@ module TKB (H : Hypergraph FlatGen) where
 --------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
--- ===== TensorKBlock2 -> submodule TKB2 =====
+-- ===== submodule TKB2 =====
 ------------------------------------------------------------------------
 module TKB2 (H : Hypergraph FlatGen) where
   open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
@@ -584,7 +583,7 @@ module TKB2 (H : Hypergraph FlatGen) where
 
 
 ------------------------------------------------------------------------
--- ===== TensorKBlock4 -> submodule TKB4 =====
+-- ===== submodule TKB4 =====
 ------------------------------------------------------------------------
 module TKB4 (H : Hypergraph FlatGen) where
   open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
@@ -999,7 +998,7 @@ module TKB4 (H : Hypergraph FlatGen) where
 --------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
--- ===== TensorKBlock3 -> submodule TKB3 =====
+-- ===== submodule TKB3 =====
 ------------------------------------------------------------------------
 module TKB3 (H : Hypergraph FlatGen) where
   open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
@@ -1576,7 +1575,7 @@ module TKB3 (H : Hypergraph FlatGen) where
 --------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
--- ===== TensorKBlock5 -> submodule TKB5 =====
+-- ===== submodule TKB5 =====
 ------------------------------------------------------------------------
 module TKB5 (H : Hypergraph FlatGen) where
   open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
@@ -1749,7 +1748,7 @@ module TKB5 (H : Hypergraph FlatGen) where
 --------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
--- ===== TensorKBlock6 -> submodule TKB6 =====
+-- ===== submodule TKB6 =====
 ------------------------------------------------------------------------
 module TKB6 (H : Hypergraph FlatGen) where
   open import Categories.APROP.Hypergraph.Model.FromAPROP sig
@@ -2145,7 +2144,7 @@ module TKB6 (H : Hypergraph FlatGen) where
 
 
 ------------------------------------------------------------------------
--- ===== TensorKBlock6.KBlockDisjoint -> top-level submodule =====
+-- ===== submodule KBlockDisjoint =====
 ------------------------------------------------------------------------
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig hiding (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig using (extract-elem)
