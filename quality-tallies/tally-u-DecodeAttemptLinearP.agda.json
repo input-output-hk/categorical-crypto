@@ -1,0 +1,95 @@
+{
+ "sweep": "using-drop",
+ "root": ".claude/worktrees/quality-leaner-frame-decode-lever1",
+ "files": {
+  "src/Categories/APROP/Hypergraph/Soundness/Discharge/DecodeAttemptLinearP.agda": {
+   "candidates": 18,
+   "kept": [
+    {
+     "line": 22,
+     "edit": "drop `using (FlatGen; flatten; range;\n         hEmpty; hVar; hId; `"
+    },
+    {
+     "line": 25,
+     "edit": "drop `using (hComposeP; module hComposeP-impl;\n         domL-hComp`"
+    },
+    {
+     "line": 28,
+     "edit": "drop `using (count-non)`"
+    },
+    {
+     "line": 32,
+     "edit": "drop `using (unflatten)`"
+    },
+    {
+     "line": 34,
+     "edit": "drop `using (decode-attempt; edge-step; edge-step-just; edge-step-`"
+    },
+    {
+     "line": 37,
+     "edit": "drop `using (extract-prefix-↭-residual; extract-prefix-↭-nothing;\n`"
+    },
+    {
+     "line": 40,
+     "edit": "drop `using (inject+-inj)`"
+    },
+    {
+     "line": 48,
+     "edit": "drop `using (decode-attempt-perm-from-just; decode-attempt-from-pe`"
+    },
+    {
+     "line": 54,
+     "edit": "drop `using (ℕ; _+_)`"
+    },
+    {
+     "line": 55,
+     "edit": "drop `using (List; []; _∷_; _++_; length; map)`"
+    },
+    {
+     "line": 56,
+     "edit": "drop `using (++-identityʳ; ++-assoc; map-++)`"
+    },
+    {
+     "line": 62,
+     "edit": "drop `using (_≡_; refl; sym; trans; cong; subst; subst₂; module ≡-`"
+    },
+    {
+     "line": 79,
+     "edit": "drop `using (remapP; injL; ein-c-inj₁-red; eout-c-inj₁-red;\n      `"
+    },
+    {
+     "line": 331,
+     "edit": "drop `using (remapP; injL)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 43,
+     "edit": "drop `using (Linear-hComposeP)`"
+    },
+    {
+     "line": 53,
+     "edit": "drop `using (Fin; _↑ˡ_; _↑ʳ_)`"
+    },
+    {
+     "line": 59,
+     "edit": "drop `using (Maybe; just; nothing)`"
+    },
+    {
+     "line": 60,
+     "edit": "drop `using (Σ-syntax; ∃-syntax; _,_; _×_; proj₁; proj₂)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 30,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Categories.APROP.Hypergraph.Model.Translation sig\n  using () renaming (⟪_⟫ to "
+    }
+   ],
+   "checks": 23,
+   "seconds": 121.6
+  }
+ },
+ "totalChecks": 23
+}
