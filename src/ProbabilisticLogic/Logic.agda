@@ -67,9 +67,10 @@ X ⇒[ P ][ p ] Y = Σ[ P ∣ X ][ p ] Y
 ⇒-resp-≐-Y Y≐Y' = Σ-resp-≐ Y≐Y'
 
 app : {P : ProbDistr Ω} {p q : Probability} {X Y : Ω → Type}
+    → 0# ≤ p → 0# ≤ q
     → X ⇒[ P ][ q ] Y → Σ[ P ][ p ] X → Σ[ P ][ p * q ] Y
-app {P = P} {p} {q} {X} {Y} record { p≤PX = p₁ } record { p≤PX = p₂ } .p≤PX = begin
-  p * q                ≤⟨ ≤-cong p₂ p₁ ⟩
+app {P = P} {p} {q} {X} {Y} 0≤p 0≤q record { p≤PX = p₁ } record { p≤PX = p₂ } .p≤PX = begin
+  p * q                ≤⟨ *-mono-≤ 0≤p 0≤q p₂ p₁ ⟩
   P ∙ X * (P ∣ X) ∙ Y  ≈⟨ cond-probability ⟩
   P ∙ (X ∩ Y)          ≤⟨ prob-monotonous proj₂ ⟩
   P ∙ Y ∎

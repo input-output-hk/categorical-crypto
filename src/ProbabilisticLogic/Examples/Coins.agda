@@ -9,6 +9,7 @@ open import Algebra
 import Data.List.NonEmpty as NE
 
 open import Data.Rational as ℚ using (ℚ; _/_)
+import Data.Rational.Properties as ℚP
 open import Data.Integer using (+_)
 
 open import ProbabilisticLogic.Abstract
@@ -55,4 +56,7 @@ X⇒1/2Y .p≤PX = begin
 
 -- This implies Y has probability at least 1/4
 PY≥1/4 : Σ[ P ][ fromℚ (+ 1 / 4) ] Y
-PY≥1/4 = Σ-resp-≈ fromℚ-homomorphism (app X⇒1/2Y PX≥1/2)
+PY≥1/4 = Σ-resp-≈ fromℚ-homomorphism
+  (app (fromℚ-nonneg (ℚP.nonNegative⁻¹ (+ 1 / 2)))
+       (fromℚ-nonneg (ℚP.nonNegative⁻¹ (+ 1 / 2)))
+       X⇒1/2Y PX≥1/2)

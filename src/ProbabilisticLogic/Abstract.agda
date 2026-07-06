@@ -49,12 +49,20 @@ record AbstractProbability c ℓ : Type (sucˡ (c ⊔ˡ ℓ)) where
         d : Probability → Probability → Probability
         ⦃ HasPartialOrder-Probability ⦄
           : HasPartialOrder {A = Probability} {_≈_ = _≈_} {ℓ″ = ℓ} {ℓ‴ = ℓ}
-        ≤-cong : ∀ {p p' q q' : Probability} → p ≤ p' → q ≤ q' → p * q ≤ p' * q'
+        -- Multiplication is monotone on nonnegative elements.  The
+        -- nonnegativity guards are essential: the unguarded version
+        -- applied at `fromℚ (- 1ℚ)` (which every carrier contains,
+        -- since `fromℚ` is a semiring homomorphism from the ring ℚ)
+        -- yields `0# ≤ fromℚ (- 1ℚ)` and hence `1# ≤ 0#`, collapsing
+        -- every model to the trivial one.
+        *-mono-≤ : ∀ {p p' q q' : Probability}
+                 → 0# ≤ p → 0# ≤ q → p ≤ p' → q ≤ q' → p * q ≤ p' * q'
         +-mono-≤ : ∀ {p p' q q' : Probability} → p ≤ p' → q ≤ q' → p + q ≤ p' + q'
         +-cancelʳ-≤ : ∀ {p q r : Probability} → p + r ≤ q + r → p ≤ q
         fromℚ : ℚ → Probability
         fromℚ-isSemiringHomomorphism
           : SemiringMorphisms.IsSemiringHomomorphism ℚP.+-*-rawSemiring rawSemiring fromℚ
+        fromℚ-mono-≤ : ∀ {p q : ℚ} → p ℚ.≤ q → fromℚ p ≤ fromℚ q
 
   open SemiringMorphisms ℚP.+-*-rawSemiring rawSemiring
   open IsSemiringHomomorphism fromℚ-isSemiringHomomorphism public
@@ -67,6 +75,15 @@ record AbstractProbability c ℓ : Type (sucˡ (c ⊔ˡ ℓ)) where
 
   fromℚ-1 : fromℚ (+ 1 / 1) ≈ 1#
   fromℚ-1 = 1#-homo
+
+  -- Nonnegative rationals map to nonnegative probabilities — the
+  -- discharge lemma for `*-mono-≤`'s guards at `fromℚ`-bounds.
+  fromℚ-nonneg : ∀ {q : ℚ} → ℚ.0ℚ ℚ.≤ q → 0# ≤ fromℚ q
+  fromℚ-nonneg {q} 0≤q = begin
+    0#           ≈⟨ fromℚ-0 ⟨
+    fromℚ ℚ.0ℚ  ≤⟨ fromℚ-mono-≤ 0≤q ⟩
+    fromℚ q      ∎
+    where open ≤-Reasoning Probability
 
 record AbstractCore c ℓ : Type (sucˡ (c ⊔ˡ ℓ)) where
   field abstractProbability : AbstractProbability c ℓ

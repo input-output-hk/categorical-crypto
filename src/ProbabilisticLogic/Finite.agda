@@ -17,7 +17,13 @@ open import Relation.Binary.PropositionalEquality using (module ≡-Reasoning; c
 import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 
 open import Data.Bool using (if_then_else_)
+import Data.List as L
+open import Data.List.Membership.Propositional using (_∈_)
+open import Data.List.Membership.Propositional.Properties
+  using (∈-map⁺; ∈-deduplicate⁺; ∈-++⁺ˡ; ∈-++⁺ʳ)
 import Data.List.NonEmpty as NE
+import Data.List.Relation.Unary.Unique.DecPropositional.Properties as UniqueDP
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.Nat as ℕ
 import Data.Nat.Properties as ℕP
 import Data.Integer as ℤ
@@ -205,6 +211,71 @@ expectation-1[X] : ∀ {P : ProbDistr Ω} (fin : Finite P)
                  → (X : Ω → Type) ⦃ _ : X ⁇¹ ⦄
                  → expectation fin 1[ X ] ≈ P ∙ X
 expectation-1[X] fin X = Eq.sym (represents-dec fin X)
+
+------------------------------------------------------------------------
+-- The expectation does not depend on the choice of `Finite` witness.
+--
+-- With decidable equality on `Ω`, any two witnesses of the same `P`
+-- give the same expectation of any `f`: regroup both entry lists over a
+-- common duplicate-free support and observe that the total weight at
+-- each point is the P-mass of that singleton — a property of `P`, not
+-- of the presentation.
+
+module _ {Ω : Type} ⦃ deceq : DecEq Ω ⦄ where
+
+  private
+    -- Singleton indicator built from the decidable equality.
+    inst-≡ : (a : Ω) → (_≡ a) ⁇¹
+    inst-≡ a = ⁇¹ (λ b → b ≟ a)
+
+    δ : Ω → Ω → Probability
+    δ b a = 1[ (_≡ a) ] ⦃ inst-≡ a ⦄ b
+
+    δ-self : ∀ b → δ b b ≈ 1#
+    δ-self b with b ≟ b
+    ... | yes _   = Eq.refl
+    ... | no  b≢b = ⊥-elim (b≢b P.refl)
+
+    δ-other : ∀ {b a} → b ≢ a → δ b a ≈ 0#
+    δ-other {b} {a} b≢a with b ≟ a
+    ... | yes b≡a = ⊥-elim (b≢a b≡a)
+    ... | no  _   = Eq.refl
+
+    module RG = Lin.Regroup δ δ-self δ-other
+
+    -- The δ-weight of a witness at a point is the P-mass of that
+    -- singleton — witness-independent.
+    wt-mass : ∀ {P : ProbDistr Ω} (fin : Finite P) (a : Ω)
+            → RG.wt (NE.toList (entries fin)) a ≈ P ∙ (_≡ a)
+    wt-mass fin a = Eq.sym (represents-dec fin (_≡ a) ⦃ inst-≡ a ⦄)
+
+  expectation-unique : ∀ {P : ProbDistr Ω} (fin₁ fin₂ : Finite P) (f : Ω → Probability)
+                     → expectation fin₁ f ≈ expectation fin₂ f
+  expectation-unique {P} fin₁ fin₂ f = begin
+    Lin.lookup-L e₁ f
+      ≈⟨ RG.lookup-L-regroup e₁ u-sup cov₁ f ⟩
+    Lin.lookup-L (L.map (λ a → (RG.wt e₁ a , a)) sup) f
+      ≈⟨ RG.lookup-L-map-cong (RG.wt e₁) (RG.wt e₂)
+           (λ a → Eq.trans (wt-mass fin₁ a) (Eq.sym (wt-mass fin₂ a))) sup f ⟩
+    Lin.lookup-L (L.map (λ a → (RG.wt e₂ a , a)) sup) f
+      ≈⟨ Eq.sym (RG.lookup-L-regroup e₂ u-sup cov₂ f) ⟩
+    Lin.lookup-L e₂ f ∎
+    where
+      open ≈-Reasoning setoid
+      open module UDP = UniqueDP _≟_ using (deduplicate-!)
+
+      e₁ = NE.toList (entries fin₁)
+      e₂ = NE.toList (entries fin₂)
+      sup = L.deduplicate _≟_ (L.map proj₂ e₁ L.++ L.map proj₂ e₂)
+
+      u-sup : Unique sup
+      u-sup = deduplicate-! (L.map proj₂ e₁ L.++ L.map proj₂ e₂)
+
+      cov₁ : ∀ {w b} → (w , b) ∈ e₁ → b ∈ sup
+      cov₁ wb∈ = ∈-deduplicate⁺ _≟_ (∈-++⁺ˡ (∈-map⁺ proj₂ wb∈))
+
+      cov₂ : ∀ {w b} → (w , b) ∈ e₂ → b ∈ sup
+      cov₂ wb∈ = ∈-deduplicate⁺ _≟_ (∈-++⁺ʳ (L.map proj₂ e₁) (∈-map⁺ proj₂ wb∈))
 
 ------------------------------------------------------------------------
 -- `empirical-Finite`: the uniform distribution over a non-empty list.
@@ -466,3 +537,60 @@ expectation-map : {μ : ProbDistr Ω₁} (f : Ω₁ → Ω₂) (fin : Finite μ)
 expectation-map f fin g = Eq.trans
   (expectation->>= fin (λ ω → pure-Finite (f ω)) g)
   (expectation-cong-fn fin (λ ω → expectation-pure (f ω) g))
+
+------------------------------------------------------------------------
+-- The bundle: a distribution together with its finiteness witness.
+--
+-- This is the ergonomic type for clients that compute expectations —
+-- it carries the witness so it need not be threaded separately, and it
+-- is closed under the monad operations.  `Abstract` users who only need
+-- events stay on `ProbDistr`.
+
+record FinDistr (Ω : Type) : Type (sucˡ lzero ⊔ˡ c ⊔ˡ ℓ) where
+  constructor mkFinDistr
+  field
+    distr  : ProbDistr Ω
+    fin    : Finite distr
+
+open FinDistr public
+
+-- Expectation and event-probability read off the bundle.
+𝔼[_]_ : FinDistr Ω → (Ω → Probability) → Probability
+𝔼[ μ ] f = expectation (fin μ) f
+
+infix 4 _∙ᶠ_
+_∙ᶠ_ : FinDistr Ω → (Ω → Type) → Probability
+μ ∙ᶠ X = distr μ ∙ X
+
+-- The monad operations on the bundle.
+pureᶠ : Ω → FinDistr Ω
+pureᶠ ω = mkFinDistr (pure ω) (pure-Finite ω)
+
+empiricalᶠ : NE.List⁺ Ω → FinDistr Ω
+empiricalᶠ l = mkFinDistr (empirical l) (empirical-Finite l)
+
+infixl 1 _>>=ᶠ_
+_>>=ᶠ_ : FinDistr Ω₁ → (Ω₁ → FinDistr Ω₂) → FinDistr Ω₂
+μ >>=ᶠ k = mkFinDistr (distr μ >>= (λ ω → distr (k ω)))
+                      (>>=-Finite (fin μ) (λ ω → fin (k ω)))
+
+mapᶠ : (Ω₁ → Ω₂) → FinDistr Ω₁ → FinDistr Ω₂
+mapᶠ f μ = mkFinDistr (Dmap f (distr μ)) (Dmap-Finite f (fin μ))
+
+-- The bundle's expectation rules, restated point-free on `FinDistr`.
+𝔼-pure : (ω : Ω) (f : Ω → Probability) → 𝔼[ pureᶠ ω ] f ≈ f ω
+𝔼-pure = expectation-pure
+
+𝔼->>= : (μ : FinDistr Ω₁) (k : Ω₁ → FinDistr Ω₂) (f : Ω₂ → Probability)
+      → 𝔼[ μ >>=ᶠ k ] f ≈ 𝔼[ μ ] (λ ω → 𝔼[ k ω ] f)
+𝔼->>= μ k = expectation->>= (fin μ) (λ ω → fin (k ω))
+
+𝔼-map : (f : Ω₁ → Ω₂) (μ : FinDistr Ω₁) (g : Ω₂ → Probability)
+      → 𝔼[ mapᶠ f μ ] g ≈ 𝔼[ μ ] (λ ω → g (f ω))
+𝔼-map f μ = expectation-map f (fin μ)
+
+-- On `FinDistr`, the expectation is fully determined by the underlying
+-- distribution (independent of the packaged witness), given `DecEq`.
+𝔼-unique : ⦃ _ : DecEq Ω ⦄ (μ ν : FinDistr Ω) → distr μ ≡ distr ν
+         → (f : Ω → Probability) → 𝔼[ μ ] f ≈ 𝔼[ ν ] f
+𝔼-unique μ ν refl f = expectation-unique (fin μ) (fin ν) f
