@@ -286,23 +286,3 @@ module _ (H : Hypergraph FlatGen)
           (≈-trans (∘-resp ≈-refl (∘-resp (permuteˢ-inv-right p) ≈-refl))
             (≈-trans (∘-resp ≈-refl idˡ) (permuteˢ-inv-right q))))
 
-    ----------------------------------------------------------------
-    -- Residual decomposition of a fire box: the identity on the
-    -- residual `rest` is split through a relocating permute `q :
-    -- rest ↭ B ++ R`, exposing the box as a relocate-output followed
-    -- by the box with a relocated residual input.  K-FREE (uses only
-    -- permuteˢ-inv-left + interchange).
-    --
-    --   genˢ e ⊗ˢ idˢ{map vl rest}
-    --     ≈ˢ (idˢ{map vl (eout e)} ⊗ˢ permuteˢ (↭-sym q))
-    --          ∘ˢ (genˢ e ⊗ˢ permuteˢ q)
-    ----------------------------------------------------------------
-    box-residual-split
-      : ∀ (e : Fin H.nE) {rest : List (Fin H.nV)} {BR : List (Fin H.nV)}
-          (q : rest Perm.↭ BR)
-      → genˢ (H.elab e) ⊗ˢ idˢ {map vl rest}
-        ≈ˢ (idˢ {map vl (H.eout e)} ⊗ˢ permuteˢ (Perm.↭-sym q))
-             ∘ˢ (genˢ (H.elab e) ⊗ˢ permuteˢ q)
-    box-residual-split e {rest} q =
-      ≈-trans (⊗-resp (≈-sym idˡ) (≈-sym (permuteˢ-inv-left q)))
-        (≈-sym interchangeˢ)

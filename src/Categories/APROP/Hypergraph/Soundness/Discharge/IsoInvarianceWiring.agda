@@ -115,11 +115,6 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J) where
     using (φ; φ⁻¹; ψ; ψ⁻¹; φ-left; φ-rght; ψ-left; ψ-rght
           ; φ-lab; φ-dom; φ-cod)
 
-  -- Lemma A: ψ preserves the dependency relation (justifies `NoInv-τ`: a
-  -- linear extension pulls back across the dependency-order iso).
-  ψ-pres-dep : ∀ {e e'} → Dep H e e' → Dep J (ψ e) (ψ e')
-  ψ-pres-dep = ≺⇒ψ≺ Φ
-
   -- The iso identifies the boundaries (φ preserves vertex labels and the
   -- boundary lists).
   domL-iso : domL J ≡ domL H
@@ -134,8 +129,8 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J) where
           (trans (sym (map-∘ H.cod))
                  (map-cong φ-lab H.cod))
 
-  -- The ψ-pullback of J's natural order onto H's edges.  `ψ-pres-dep`
-  -- (Lemma A) makes it a linear extension of `Dep H`.
+  -- The ψ-pullback of J's natural order onto H's edges.  `≺⇒ψ≺ Φ`
+  -- makes it a linear extension of `Dep H`.
   τ : List (Fin H.nE)
   τ = map ψ⁻¹ (range J.nE)
 

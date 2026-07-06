@@ -42,9 +42,6 @@ extend {n} {m} p i j with p i
 ...   | yes _ = just p
 ...   | no _  = nothing
 
-lookup? : ∀ {n m} → PartialMap n m → Fin n → Maybe (Fin m)
-lookup? p i = p i
-
 --------------------------------------------------------------------------------
 -- Symmetric partial bijection (forward/backward kept in sync by `extend-bij`).
 

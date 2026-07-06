@@ -551,15 +551,6 @@ module _ (H : Hypergraph FlatGen)
       → (Xt ∘ˢ Yt) ⊗ˢ idˢ {ls} ≈ˢ (Xt ⊗ˢ idˢ {ls}) ∘ˢ (Yt ⊗ˢ idˢ {ls})
     ⊗id-distˢ Xt Yt = ≈-trans (⊗-resp ≈-refl (≈-sym idˡ)) (≈-sym interchangeˢ)
 
-    -- `box-suffix-ˢ` flipped: `b ⊗ id{rest ++ R}` is the assoc-cast of
-    -- `(b ⊗ id{rest}) ⊗ id{R}`.
-    box-unsuffixˢ
-      : ∀ {as bs : List X} (b : HomS as bs) (rest R : List X)
-      → b ⊗ˢ idˢ {rest ++ R}
-        ≈ˢ castˢ (++-assoc as rest R) (++-assoc bs rest R)
-            ((b ⊗ˢ idˢ {rest}) ⊗ˢ idˢ {R})
-    box-unsuffixˢ b rest R = ≈-sym (box-suffix-ˢ b rest R)
-
     -- The residual-framed box merge: the back box `g'` brought to front by
     -- `σ B A'` (framed by `Rl`) after the front box `g` (framed by `Rl`)
     -- equals `(g ⊗ g') ⊗ id{Rl}` with the OUTPUT braid `σ B B' ⊗ id{Rl}`.
