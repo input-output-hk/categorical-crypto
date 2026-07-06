@@ -140,9 +140,6 @@ module _ {X : Set} {Gen : List X → List X → Set} where
       map-φ⁻¹φ : (xs : List (Fin G.nV)) → map φ⁻¹ (map φ xs) ≡ xs
       map-φ⁻¹φ xs = trans (sym (map-∘ xs)) (trans (map-cong φ-left xs) (map-id xs))
 
-      map-φφ⁻¹ : (ys : List (Fin K.nV)) → map φ (map φ⁻¹ ys) ≡ ys
-      map-φφ⁻¹ ys = trans (sym (map-∘ ys)) (trans (map-cong φ-rght ys) (map-id ys))
-
       -- ein equation in the flipped direction (via map-φ⁻¹φ + ψ-rght).
       ein-sym : ∀ e → G.ein (ψ⁻¹ e) ≡ map φ⁻¹ (K.ein e)
       ein-sym e =
