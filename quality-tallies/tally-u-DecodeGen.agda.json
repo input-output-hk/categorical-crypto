@@ -1,0 +1,15 @@
+{
+ "sweep": "using-drop",
+ "root": ".claude/worktrees/quality-leaner-frame-decode-lever1",
+ "files": {
+  "src/Categories/APROP/Hypergraph/Soundness/Strict/Decode/DecodeGen.agda": {
+   "candidates": 19,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  }
+ },
+ "totalChecks": 1
+}
