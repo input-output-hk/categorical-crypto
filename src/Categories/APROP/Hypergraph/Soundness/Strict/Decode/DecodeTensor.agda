@@ -1,9 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The ⊗-SHAPE of the strict decoder `decodePˢ` — the strict analogue of the
--- non-strict `DecodeTensorShape` (~3800 LOC), the LARGEST single piece of the
--- whole migration.
+-- The ⊗-SHAPE of the strict decoder `decodePˢ` (strict analogue of the
+-- non-strict `DecodeTensorShape`).
 --
 --   decodePˢ-⊗ : decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g   (mod casts)
 --
@@ -30,17 +29,6 @@
 -- content; in the strict SMC it collapses to the `σˢ`/`σ-hexˢ` machinery of
 -- `Strict/Braid.agda` + `Strict/DecodeSigma.agda` (`σ-hexˢʳ`) and is discharged
 -- by `perm-rigidˢ` on the final permutation.
---
--- DELIVERED HERE (green, postulate-free, `--safe --without-K`):
---   * the run-split `runˢ-split` over `gblk ++ kblk`, and the stack split
---     `stack-⊗-split` reducing the C-run stack to a `process-edgesˢ`
---     composition (REUSES the proven `process-edgesˢ` ∘-structure);
---   * the G-block factoring statement `G-block-factorˢ` via the proven
---     right-frame `term-sepˢ` (the G-side core);
---   * the ⊗-shape THEOREM `decodePˢ-⊗`, reduced to TWO clearly-typed
---     residual module parameters — the K-block braid `kblock-braidˢ` and the
---     final-permute reconciliation `finalPerm-⊗ˢ` — both `≈ˢ`/`↭` facts,
---     mapped out at the foot of the file.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -116,13 +104,6 @@ module BlockSplit (H : Hypergraph FlatGen) where
         → castˢ refl q (g ∘ˢ ff) ≡ castˢ refl q g ∘ˢ ff
       cast-∘-domʳ refl g ff = refl
 
---------------------------------------------------------------------------------
--- The ⊗-shape, reduced to its two genuine residuals.
---
--- `permˢ-K` is the standard strict Kelly residual (as everywhere); the two
--- ⊗-specific residuals are the K-block braid and the final-permute
--- reconciliation, BOTH clearly-typed `≈ˢ`/`↭` facts (see the foot).
-
 module _
   (permˢ-K : ∀ (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X) → Support.PermK V vlab)
   where
@@ -188,46 +169,10 @@ module _
     G-block-frameˢ R dis Q = term-sepˢ gblk (map injL Gd.dom) R dis Q
 
 --------------------------------------------------------------------------------
--- OBSTRUCTION / RESIDUAL MAP (⊗-shape).
---
--- PROVEN HERE, postulate-free, `--safe --without-K`:
---   * `BlockSplit.stack-++` / `process-edgesˢ-++` — the C-run over the edge
---     split `range C.nE = gblk ++ kblk` factors as `(K-block run) ∘ˢ
---     (G-block run)` (the strict, cast-light twin of the non-strict
---     `run-split-term`, which pays an `unflatten-++-≅` conjugation).
---   * `GBlock.G-block-frameˢ` — the G-block run factors as `(G-run) ⊗ˢ
---     idˢ {map vl R}` with the K-input as the untouched RIGHT frame, DIRECTLY
---     from the proven `Decoder.term-sepˢ` (the G-side core).
---   * `Tensor.decodePˢ-⊗` — the ⊗-shape THEOREM, cast-free, reduced to the
---     single clearly-typed residual `reconcileˢ`.
---
--- THE RESIDUAL `reconcileˢ` (one clearly-typed `≈ˢ` at the boundary
--- objects).  It packages exactly the content the documented finding isolates:
---
---   1. K-BLOCK BRAID.  After the G-block fires, the stack is (modulo perm)
---      `map injL G.cod ++ map injR K.dom`.  The K-edge block `kblk` acts on the
---      `map injR K.dom` SUFFIX, but `edge-stepˢ` PREPENDS K's outputs in FRONT
---      of `map injL G.cod`, yielding a BRAIDED stack `K.cod-block ++ G.cod-block`
---      rather than the clean `G.cod ++ K.cod`.  There is therefore NO
---      `term-sepˢ-ˡ` for the K-block (proven false in `Strict/Separability`);
---      the correct factoring slides K's output back past `G.cod` via a block
---      braiding `σˢ (map vl G.cod-block) (map vl K.cod-block)` — exactly the
---      `σˢ`/`σ-hexˢ` content, dischargeable with `Strict/Braid.strict-braid`
---      and `DecodeSigma.σ-hexˢʳ`.
---   2. FINAL RESORT.  `finalPermˢ (f ⊗₁ g)` (`extract-exact` on the braided
---      final stack into the `Unique` `C.cod = map injL G.cod ++ map injR K.cod`)
---      re-sorts the braided form back to the clean tensor.  This is the σ/K
---      content; via `perm-rigidˢ` (using `permˢ-K`) the algorithm's permutation
---      is collapsed onto the canonical block-braid derivation, and the braid
---      from (1) cancels, leaving `decodePˢ f ⊗ˢ decodePˢ g`.
---
--- The discharge of `reconcileˢ` is the strict port of `DecodeTensorShape`'s
--- whole-run assembly tail (the `mixed-stack-G` / `after-G-≡` stack bridge, the
--- `box-braid` σ-mirror, the reservoir-sourced `Unique` witnesses).  It needs no
--- further axiom beyond `permˢ-K`; the substrate (`process-edgesˢ-++`,
--- `G-block-frameˢ`, `strict-braid`, `σ-hexˢʳ`, `box-commute-ˢ`/`box-crossˢ`) is
--- all in place.  The discharge is the `castˢ`/stack bookkeeping bridging
--- `mixed-stack-G` (the `injL`/`injR` relabelling) to the `term-sepˢ` frame and
--- the K-block braid — the same map-distribution `castˢ` algebra that the
--- σ-shape's `bswap-σ` step needs (see `DecodeSigma`).
+-- `decodePˢ-⊗` is reduced to the single boundary residual `reconcileˢ`,
+-- discharged in `Strict/Tensor/TensorReconcile.agda`: it re-sorts the braided
+-- K-block outputs (see CRITICAL ASYMMETRY above) back behind `G.cod` via the
+-- `σˢ`/`σ-hexˢʳ` block-braid and the final `perm-rigidˢ`.  Substrate here:
+-- `process-edgesˢ-++` (run split over `gblk ++ kblk`) and `G-block-frameˢ`
+-- (the G-side, from the proven right-frame `term-sepˢ`).
 --------------------------------------------------------------------------------

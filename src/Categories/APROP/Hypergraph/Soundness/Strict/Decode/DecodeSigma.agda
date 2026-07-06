@@ -13,22 +13,11 @@
 -- it is identified with the CANONICAL block-swap derivation `bswap Lblk Rblk`,
 -- whose `permuteˢ` is the strict block braiding `σˢ` (`bswap-σ` below).
 --
--- PROVEN HERE, postulate-free, `--safe --without-K`:
---
---   * `σ-hexˢʳ` — the RIGHT hexagon `σˢ a (b ++ c)` decomposition, derived
---     from the `σ-hexˢ` axiom by the same `inv-uniqueˢ` argument Braid's
---     `hexagon` case uses (a GENERIC, reusable strict-SMC lemma).
---   * `bswap` — the canonical block-swap permutation derivation.
---   * `refl-trivial`, and the `bswap-σ []` / `permuteˢ-shift-sym v []` base
---     cases, fully discharged via `σ-unitˢ`/`σ-unitʳˢ` + the cast kit.
---
--- The TWO inductive steps `bswap-σ (v ∷ L)` and `permuteˢ-shift-sym v (x∷R)`
--- (the genuine hexagon-reconciliation content) are stated and reduced to the
--- single clearly-typed `≈ˢ` fact `bswap-σ` (a `permuteˢ ≈ σˢ`-block equality),
--- threaded as a module parameter `BSwapσ`.  This is the strict, vertex-level
--- analogue of the non-strict keystone `BNV.σ-block-comm`
--- (`pvl (++-comm L R) ≈ σ`) used by `DecodeAgenSigmaShape`.  See the
--- OBSTRUCTION note at the foot of the file.
+-- The two inductive steps `bswap-σ (v ∷ L)` / `permuteˢ-shift-sym v (x∷R)`
+-- (the hexagon-reconciliation content) are reduced to the single clearly-typed
+-- `≈ˢ` fact `bswap-σ` (`Scr.BswapSig`), threaded as the module parameter
+-- `BSwapσ` and discharged in `Strict/Interchange/BlockSwapComm.agda`.  Strict
+-- vertex-level analogue of the non-strict keystone `BNV.σ-block-comm`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -166,7 +155,7 @@ module Scr (V : Set) (vlab : V → X) where
 
   -- `permuteˢ (↭-sym (shift v R L))` is the braiding of `[vlab v]` past
   -- `map R`, framed by `idˢ {map L}` (modulo the map-distribution casts).
-  -- BASE proven; the (x∷R) step is the σ-hexˢʳ reconciliation (see foot).
+  -- BASE proven; the (x∷R) step is the σ-hexˢʳ reconciliation.
   permuteˢ-shift-sym-base
     : (v : V) (L : List V)
     → permuteˢ (Perm.↭-sym (PermProp.shift v [] L))
@@ -182,7 +171,7 @@ module Scr (V : Set) (vlab : V → X) where
               (cast-id _ _)))))
 
   -- `permuteˢ (bswap L R) ≈ σˢ (map L) (map R)` (modulo map-distribution).
-  -- BASE proven; the (v∷L) step is the σ-hexˢ reconciliation (see foot).
+  -- BASE proven; the (v∷L) step is the σ-hexˢ reconciliation.
   bswap-σ-base
     : (R : List V)
     → permuteˢ (bswap [] R)
@@ -393,30 +382,9 @@ module _
                    (σˢ (flatten A) (flatten B))))))
 
 --------------------------------------------------------------------------------
--- OBSTRUCTION / RESIDUAL MAP.
---
---  * `σ-hexˢʳ`, `bswap`, `refl-trivial`, `bswap-σ-base`,
---    `permuteˢ-shift-sym-base` : PROVEN, postulate-free, `--safe --without-K`.
---
---  * The σ-shape is reduced to the SINGLE clearly-typed residual `bswap-σ`
---    (`Scr.BswapSig`): the strict vertex-level twin of the non-strict
---    keystone `BNV.σ-block-comm` (`pvl (++-comm L R) ≈ σ`).  Its `[]` case is
---    proven (`bswap-σ-base`).  The `(v ∷ L)` inductive step is the
---    σ-hexˢ reconciliation:
---
---      permuteˢ (bswap (v∷L) R)
---        = permuteˢ (↭-sym (shift v R L)) ∘ (idˢ{[vᴸ]} ⊗ permuteˢ (bswap L R))
---      RHS via σ-hexˢ [vᴸ] (map L) (map R) decomposes σˢ (vᴸ ∷ map L) (map R)
---      into exactly (σ [vᴸ] (map R) ⊗ id{map L}) ∘ cast(id{[vᴸ]} ⊗ σ map L map R);
---      the first factor is `permuteˢ-shift-sym` (proven base; step uses σ-hexˢʳ
---      to grow the right block of `σ [vᴸ] (map R)`), the second is the framed
---      IH.  The remaining work is purely the map-distribution `castˢ` algebra
---      (∘-cast-split / cast-irrel / cast-⊗-frame) reconciling the two cast
---      bracketings — no further axiom, no K beyond the final `perm-rigidˢ`.
---
---  * `bswap-σ` is fed to the σ-shape together with `perm-rigidˢ`; `perm-rigidˢ`
---    collapses the algorithm's `finalPermˢ σ` onto `bswap` (both into the
---    `Unique` cod), and `mLblk≡`/`mRblk≡` rewrite `map vlab Lblk = flatten A`,
---    `map vlab Rblk = flatten B`, giving the final
---    `decodePˢ (σ {A}{B}) ≈ σˢ (flatten A) (flatten B)`.
+-- The σ-shape is reduced to the single residual `bswap-σ` (`Scr.BswapSig`),
+-- discharged in `Strict/Interchange/BlockSwapComm.agda` (the `[]` base is
+-- `bswap-σ-base` here; the `(v ∷ L)` step is the σ-hexˢ reconciliation).  Fed
+-- with `perm-rigidˢ` it collapses `finalPermˢ σ` onto `bswap`, giving
+-- `decodePˢ (σ {A}{B}) ≈ σˢ (flatten A) (flatten B)`.
 --------------------------------------------------------------------------------

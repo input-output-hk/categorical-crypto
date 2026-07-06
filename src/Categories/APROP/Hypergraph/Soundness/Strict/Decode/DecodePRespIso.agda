@@ -16,14 +16,13 @@
 --   * the (K₁) final-permute reconciliation `perm-rigidˢ` (both `finalPermˢ`
 --     witnesses derive into the `Unique` codomain `cod ⟪f⟫`);
 --   * the cross-iso decoder agreement `decode-ordˢ-resp-iso`, which assembles
---     `order-invariantˢ` (`IsoInvarianceConcrete`, BUILT) with the strict
---     cross-iso transport residual (`IsoTransport`ˢ, a LATER phase).
+--     `order-invariantˢ` (`IsoInvarianceConcrete`) with the strict cross-iso
+--     transport residual (`IsoTransport`).
 --
 -- `decode-ordˢ-resp-iso` and the (N) `run-interchange` witness are exposed as
--- CLEARLY-TYPED module parameters, so this file is GREEN independent of the
--- still-unported strict `IsoTransport`/`FireMidInterchangeˢ` discharge.  The
--- order-theory core (`order-invariantˢ`) and the boundary are wired here in
--- full.
+-- CLEARLY-TYPED module parameters (discharged in `Strict/Iso/IsoTransport` and
+-- the `RunInterchange` machinery); the order-theory core `order-invariantˢ`
+-- and the boundary are wired here in full.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -162,8 +161,7 @@ module Boundary {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ 
 -- The HEADLINE.  Wires the order-theory core (`order-invariantˢ`, BUILT)
 -- and the boundary, parameterised over the strict cross-iso decoder
 -- agreement `decode-ordˢ-resp-iso` and the (N) `run-interchange-H` witness
--- (the residuals of the still-unported strict `IsoTransport` /
--- `FireMidInterchangeˢ` discharge).
+-- (discharged in `Strict/Iso/IsoTransport` and the `RunInterchange` machinery).
 ------------------------------------------------------------------------
 
 module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)

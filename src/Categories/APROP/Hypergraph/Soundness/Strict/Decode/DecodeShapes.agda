@@ -261,39 +261,14 @@ module _
               (coe-uip _ (sym (++-assoc (flatten A) (flatten B) (flatten C))))
 
 --------------------------------------------------------------------------------
--- COMPOUND AND σ SHAPES (downstream phases).
---
--- The boundary objects align DEFINITIONALLY (flatten distributes over ⊗₀
--- as `_++_`), so the two compound shapes are cast-FREE statements:
+-- COMPOUND AND σ SHAPES.  The boundary objects align DEFINITIONALLY (flatten
+-- distributes over ⊗₀ as `_++_`), so these are cast-free statements:
 --
 --   decodePˢ-⊗-shape : decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
 --   decodePˢ-∘-shape : decodePˢ (g ∘ f) ≈ˢ decodePˢ g ∘ˢ decodePˢ f
+--   decodePˢ-σ       : decodePˢ (σ {A} {B}) ≈ˢ σˢ (flatten A) (flatten B)
 --
--- and likewise the σ atomic
---
---   decodePˢ-σ : decodePˢ (σ {A} {B}) ≈ˢ σˢ (flatten A) (flatten B).
---
--- They are discharged in the downstream phase modules:
---
---  * ∘-shape: `⟪ g ∘ f ⟫ = hComposeP ⟪ f ⟫ ⟪ g ⟫`.  The strict run over
---    `range (nE f + nE g)` factors as `gRun ∘ˢ fRun`: the STACK factoring
---    comes from `stacks-agree` (+ `process-edges-↑ˡ-pure-L` /
---    `-↑ʳ-via-remapP` from `DecodeAttemptLinearP`), and the TERM-level `≈ˢ`
---    factoring of `process-edgesˢ` across the `injL` / `remapP` relabelling
---    is the strict port of `DecodeComposePruned`.  `term-sepˢ`
---    (`Strict.Decoder`) supplies the suffix-frame; `Strict.DecodeComposeS`
---    supplies the remap-equivariance.
---
---  * ⊗-shape: `⟪ f ⊗₁ g ⟫ = hTensor ⟪ f ⟫ ⟪ g ⟫`.  The interleaved
---    two-block edge decomposition plus `term-sepˢ` on BOTH frames; the
---    strict port of `DecodeTensorShape`.  `term-sepˢ` is the G-side core;
---    `Strict.DecodeTensorS`/`TensorBraid` add the K-side equivariance and
---    the block-interleave reshuffle.
---
---  * σ atomic: `⟪ σ ⟫ = hSwap A B` has `nE ≡ 0`, so (as in `Atom`)
---    `decodePˢ σ` reduces to `coe (domL/codL casts) ∘ permuteˢ (finalPermˢ σ)`;
---    `Strict.DecodeSigmaS` supplies the CANONICAL swap derivation `dom ↭ cod`
---    with `permuteˢ swap ≈ˢ σˢ`-cast, identified with `finalPermˢ σ` via
---    `perm-rigidˢ` — the strict port of `DecodeAgenSigmaShape`'s block-swap
---    evaluation.
+-- discharged in `Strict/Decode/DecodeCompose`(+`DecodeComposeAssembly`),
+-- `DecodeTensor`(+`Tensor/TensorReconcile`,`TensorBraid`), and
+-- `DecodeSigma`(+`Interchange/BlockSwapComm`) respectively.
 --------------------------------------------------------------------------------

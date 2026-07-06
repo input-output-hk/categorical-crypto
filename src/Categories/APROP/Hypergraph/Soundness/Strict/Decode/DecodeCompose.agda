@@ -1,100 +1,21 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The strict decoder `∘`-SHAPE (part (I)ˢ), Stage 1: the block-level
--- factoring of the strict run.
+-- Strict decoder `∘`-SHAPE, Stage 1: block-level factoring of the strict run.
 --
--- GOAL (full):
---     decodePˢ (g ∘ f) ≈ˢ decodePˢ g ∘ˢ decodePˢ f
+--   §0  permuteˢ-X   — cross-vertex-type permute bridge (a V-level strict
+--                      permute equals, modulo a map-id boundary cast, the
+--                      X-level permuteˣ of the label-pushed derivation).  The
+--                      keystone letting the single-vertex-type residual
+--                      discharge cross-hypergraph permute equalities.
+--   §1  pe-*-++ˢ / run-split-atˢ — strict stack/term factoring of the run at
+--                      `es ≡ gblk ++ kblk`.
+--   TermEmbedˢ / Equivariantˢ — the per-edge relabelling twin
+--                      (`process-edges-term-embˢ`) + the FIRE-box equivariance
+--                      foundation (`pvv-transˢ`, `pvv-inverse-*ˢ`).
 --
--- The non-strict original is `Discharge.Sub.DecodeComposePruned.decodeP-∘-shape`
--- (~650 LOC over `hComposeP`).  Its skeleton:
---   1. `⟪ g ∘ f ⟫ = hComposeP ⟪f⟫ ⟪g⟫`, edges factor as `gblk ++ kblk`;
---   2. RUN-SPLIT: the composite run factors `kblk-run ∘ gblk-run` (`pe-term-++`);
---   3. G-block / K-block TWINS: each block-run relabels onto the sub-decoder
---      run via `TermEmbed.process-edges-term-emb` (φ = injL / remapP);
---   4. EQUIVARIANCE (`StackEquivariance`): the K-block on the actual post-G
---      stack ≈ the K-block on the canonical stack, conjugated by a permute,
---      via the Kelly residual `Kf`;
---   5. perm-coherence via `Kf` / `permˢ-K`.
---
--- DELIVERED so far (green, committed):
---
---   §0  permuteˢ-X      — the CROSS-VERTEX-TYPE permute bridge: a V-level
---                         strict permute equals (modulo a `map-id` boundary
---                         cast) the X-LEVEL permute (`permuteˣ`) of the
---                         label-pushed derivation `map⁺ vlab p`.  This is the
---                         keystone that makes the single-vertex-type residual
---                         `permˢ-K X id` able to discharge CROSS-hypergraph
---                         permute equalities (composite `Fin C.nV` vs
---                         sub-decoder `Fin G.nV`/`Fin K.nV`).  The strict
---                         analogue of routing through `PermProp.map⁺ vlab`
---                         into the non-strict X-level FaithfulnessResidual.
---
---   §1  pe-stack-++ˢ    — strict stack factoring (refl-pure, inherited shape);
---       pe-term-++ˢ     — strict TERM factoring of `process-edgesˢ (ps ++ rest)`
---                         into `rest`-run ∘ˢ `ps`-run, modulo a stack cast;
---       run-split-atˢ   — the composite run at any `es ≡ gblk ++ kblk` factors.
---                         (The strict `castˢ` kit collapses the non-strict
---                         `coe-cod`/`subst`/`assoc` plumbing.)
---
--- ────────────────────────────────────────────────────────────────────────
--- OBSTRUCTION MAP for the remaining `decodePˢ (g ∘ f) ≈ˢ …` assembly.
---
--- What is left is the strict port of two non-strict modules and the final
--- assembly (~650 LOC non-strict total):
---
---   (A) `ProcessEdgesTermShape.TermEmbed.process-edges-term-emb` — the
---       per-edge + iterated RELABELLING-EQUIVARIANCE twin, parameterised by an
---       injective, label-preserving vertex embedding (φ, ψ).  Its FIRE case
---       splits into:
---         • BOX factor (`fire-mid-emb`): in the strict world this is a
---           `genˢ`-relabelling cast.  REQUIRES a new strict lemma
---               gen-cast : castˢ p q (genˢ g) ≡ genˢ (subst₂ FlatGen p q g)
---           (provable `gen-cast refl refl g = refl`), composed with the
---           edge-endpoint label equalities `atom-ein/atom-eout` and `ψ-elab`
---           (these transport unchanged from `hComposeP-impl`).
---         • PERMUTE factor (`fire-perm-emb`): REDUCES to §0 `permuteˢ-X` (both
---           sides) + `permˢ-K X id` driven by `eval-coincide`.  `eval-coincide`
---           delivers a `subst₂ FinBij`-cast of the J-side `eval-↭`; aligning it
---           with the bare `permˢ-K` premise is the main residual cast algebra.
---       The SKIP/FIRE lock-step uses `extract-prefix-via-injective-{just,nothing}`
---       (already in `DecodeProperties`), exactly as the non-strict
---       `extract-prefix-J-{just,nothing}`.
---
---   (B) `StackEquivariance.process-edges-equivariant` — the K-block on the
---       ACTUAL post-G stack `after-G` ≈ the K-block on the CANONICAL stack
---       `map remapP K.dom`, conjugated by a `permuteˢ`.  Strict version needs
---       the run on a permuted start stack to be the conjugate of the run on
---       the canonical stack: `runˢ (perm·s) ≈ permuteˢ⁻¹ ∘ runˢ s ∘ permuteˢ`.
---       This is the genuinely-new equivariance (no strict counterpart yet);
---       the non-strict proof threads `Kf` and a reservoir argument
---       (`StackUniqueReach`).  §0 again supplies the cross-V permute identity
---       its conjugation step needs.
---
---   (C) Final assembly (`decodeP-∘-shape`): RUN-SPLIT (§1 `run-split-atˢ`) →
---       block twins (A, φ = injL / remapP) → equivariance (B) → reassoc →
---       `permˢ-K`-coherence on the final permutes (the strict analogues of
---       `permC-coh`/`permRemap-coh`, both via `perm-rigidˢ` on `Unique`
---       codomains, available from `PermSupport`).  The boundary `castˢ`
---       (`⟪⟫-domL`/`-codL` for `g ∘ f`) align definitionally as in `Decode`.
---
--- The pruned ingredients `process-edges-↑ˡ-pure-L` / `remapP-injective` /
--- `map-remapP-K-dom` are STACK-level (term-free) and transfer verbatim from
--- the non-strict `DecodeAttemptLinearP` / `LinearHComposeP` (the strict and
--- non-strict runs walk the SAME stacks — `Run.stacks-agree`).
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
--- CONSOLIDATED MODULE.  This file merges the former Stage-1 `DecodeCompose`
--- (§0 permuteˢ-X / §1 RunBlocks, run-split-atˢ) with Stage-2 `DecodeComposeS2`
--- (the embedding term-twins `TermEmbedˢ` + the equivariance `Equivariantˢ`),
--- which `open import`ed DecodeCompose `public`.  DecodeComposeAssembly (the ∘-shape
--- assembly) is NOT merged: it sits behind the non-chain module `StackEquiv`
--- (StackEquiv imports DecodeComposeS2; DecodeComposeAssembly imports StackEquiv),
--- so absorbing it would create a StackEquiv -> merged -> StackEquiv cycle.
--- Content is byte-identical to the split; the two stage bodies are concatenated
--- under one module with a unified import header.
+-- The ∘-shape assembly proper is `DecodeComposeAssembly.decodePˢ-∘-shape`,
+-- kept a separate module to avoid a `StackEquiv` import cycle.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -139,10 +60,6 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-
---------------------------------------------------------------------------------
--- ===== former Strict.DecodeComposeS (Stage 1) =====
---------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
 -- ## §0.  The cross-vertex-type permute bridge.
@@ -272,10 +189,6 @@ module RunBlocks (H : Hypergraph FlatGen) where
                  (proj₂ (process-edgesˢ kblk (proj₁ (process-edgesˢ gblk s)))
                    ∘ˢ proj₂ (process-edgesˢ gblk s))))
 
-
---------------------------------------------------------------------------------
--- ===== former Strict.DecodeComposeS2 (Stage 2; opened DecodeCompose public) =====
---------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
 -- ## Local plumbing.
@@ -762,54 +675,3 @@ module Equivariantˢ (H : Hypergraph FlatGen) where
   pvv-inverse-rightˢ {xs} {ys} ρ =
     ≈-trans (≈-sym (pvv-transˢ (Perm.↭-sym ρ) ρ))
             (permˢ-K-H (Perm.trans (Perm.↭-sym ρ) ρ) Perm.refl (self-loop-evʳ ρ))
-
---------------------------------------------------------------------------------
--- OBSTRUCTION MAP for the remaining (B)/(C).  DELIVERED above: (A)
--- `TermEmbedˢ` in full (`process-edges-term-embˢ`) and the (B)-FOUNDATION
--- (`pvv-transˢ`, `pvv-inverse-{left,right}ˢ`).  What is left:
---
---   (B) `process-edges-equivariantˢ`.  The remaining strict ports, each a
---       direct mirror of its non-strict `StackEquivariance` twin with
---       `permute-via-vlab`→`permuteˢ`, `permute-resp-≅↭`→`permˢ-K-H`,
---       `permute-self-loop-id-wide`→`pvv-inverse-*ˢ` (above), `assoc`→
---       `assocˢ`, `≈-Term-*`→`≈-*`:
---         • `fire-mid-equivariantˢ` — the FIRE box (`genˢ ⊗ idˢ {rest}`) is
---           natural in `rest` under a residual permutation `μ`.  The strict
---           box exposes the `idˢ {map vl rest}` frame directly, so this is a
---           `box-commute-ˢ`/`interchangeˢ` computation (no `box-of`/BoxKernel
---           detour); the residual reshuffle slides via `permuteˢ-frame`-style
---           `⊗`-naturality.  TERM-FREE inputs reuse `FME` verbatim.
---         • `fire-μ` / `locate-coherentˢ` — IDENTICAL to non-strict: both are
---           PERMUTATION-LEVEL (`residual-recon` = `SU.residual-recon`,
---           `map⁺-lift-≅↭`, determinism transport).  Reused as-is; only the
---           final `permute-resp-≅↭` consumer becomes `permˢ-K-H` (route the
---           X-level `≅↭` through §0 `permuteˢ-X` exactly as `perm-emb` does).
---         • `edge-step-fire-equivariantˢ` + `edge-step-equivariantˢ` +
---           `process-edges-equivariantˢ` — the assembly (Residuals 1&2 + the
---           `pvv-inverse-*ˢ` telescoping), structurally a line-for-line port
---           of the non-strict `≈-Term` chains.  `Reservoir≤1` (SUR) is reused
---           unchanged (stack-level).
---
---   (C) `decodePˢ (g ∘ f) ≈ˢ decodePˢ g ∘ˢ decodePˢ f` (modulo boundary
---       casts).  Assembly:
---         1. `⟪ g ∘ f ⟫ = hComposeP ⟪f⟫ ⟪g⟫`; edges factor `gblk ++ kblk`.
---         2. RUN-SPLIT: §1 `run-split-atˢ` (already green in DecodeCompose).
---         3. G-block / K-block TWINS: instantiate `TermEmbedˢ` (above) at
---            `φ = injL, ψ = _↑ˡ K.nE` (G-side) and `φ = remapP, ψ = G.nE ↑ʳ_`
---            (K-side).  The injectivity/label/endpoint fields come VERBATIM
---            from `hTensor-impl`/`PrunedCompose`/`FromAPROP` (`remapP-injective`,
---            `vlab-injL`, the `ein-c`/`eout-c`/`elab-c` equations) — these are
---            term-free and transfer through `Run.stacks-agree`.
---         4. EQUIVARIANCE: (B) `process-edges-equivariantˢ` conjugates the
---            K-block on the actual `after-G` stack onto the canonical
---            `map remapP K.dom` stack (the `permuteˢ` conjugation step IS
---            §0 `permuteˢ-X`).
---         5. perm-coherence on the final permutes via `perm-rigidˢ`
---            (`PermSupport`) on the `Unique` cods, and the boundary `castˢ`
---            (`⟪⟫-domL`/`-codL` for `g ∘ f`) align definitionally as in
---            `Decode.decodePˢ`.
---
--- No new Kelly residual or postulate is required for (B)/(C): the single
--- deferred input is the already-threaded `permˢ-K` (here `permˢ-K-X` /
--- `permˢ-K-H`), discharged axiom-free at `FlatGen` by `Strict.PermK`.
---------------------------------------------------------------------------------
