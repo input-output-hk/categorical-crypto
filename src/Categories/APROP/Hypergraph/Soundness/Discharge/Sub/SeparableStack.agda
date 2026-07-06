@@ -13,10 +13,7 @@
 --     stack:  proj₁ (process-edges H es xs) ++ R           -- R untouched
 --     term :  to(uf++ xs' R) ∘ ( proj₂ (process-edges H es xs) ⊗₁ id ) ∘ from(uf++ xs R)
 --
--- proven by ONE induction on `es` (cf. the ~4300-line `BlockFactor` of
--- `DecodeTensorShape.agda`, which does an analogous factorization but per-edge
--- across `gblock-factor`/`Sin`/`Sout`/`kfac-*`, going through the `hTensor`
--- `injL`/`injR` embeddings).
+-- proven by ONE induction on `es`.
 --
 -- This file PROVES (postulate-free, `--safe`):
 --   * the structural invariant that firing stays inside the prefix

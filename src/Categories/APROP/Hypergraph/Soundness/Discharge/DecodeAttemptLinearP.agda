@@ -443,8 +443,6 @@ decode-attempt-LinearP (σ {A}{B})      = decode-attempt-hSwap A B
 -- `decodeP` — the total decoder.  The boundary subst relates the
 -- algorithm's natural type to the user-facing
 -- `HomTerm (unflatten (flatten A)) (unflatten (flatten B))`.
--- Shared by `DecodeTensorPruned`, `DecodeRelDecodeP`,
--- `DecodeRelRespIsoWired` and the decoder-agreement modules.
 
 decodeP : ∀ {A B} (f : HomTerm A B)
         → HomTerm (unflatten (flatten A)) (unflatten (flatten B))

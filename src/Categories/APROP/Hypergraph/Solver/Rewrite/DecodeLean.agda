@@ -9,8 +9,7 @@
 -- same `process-edges` over `range H.nE` in kahn order, same `extract-prefix`
 -- branching, same `Agen-edge` emission, same `nothing` cases — so it returns
 -- `just` on EXACTLY the same graphs, with EXACTLY the same `Agen` edges in the
--- same order.  Hence the downstream gate (`findIso`/`Verify` and DeepProv's
--- `pairsO` predictions) is unchanged.
+-- same order.  Hence the downstream gate (`findIso`/`Verify`) is unchanged.
 --
 -- The ONE difference: at each `permute-via-vlab` slot it adds a *decidable*
 -- identity pre-check.  When the running stack already coincides (as a LIST,

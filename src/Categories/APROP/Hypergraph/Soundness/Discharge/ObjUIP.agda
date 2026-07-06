@@ -48,6 +48,6 @@ module ObjUIP {v : Variant} {X : Set} where
   objUIP : DecidableEquality X → Irrelevant (_≡_ {A = ObjTerm})
   objUIP _≟X_ = UIPmod.Decidable⇒UIP.≡-irrelevant (ObjTerm-≟ _≟X_)
 
-  -- The shape consumed in `DecodeRelRespIsoWired`.
+  -- Explicit-`_≟X_`-argument shape consumed in `Sub/SeparableStack`.
   objUIP′ : DecidableEquality X → ∀ {a b : ObjTerm} (p q : a ≡ b) → p ≡ q
   objUIP′ _≟X_ {a} {b} p q = objUIP _≟X_ p q

@@ -9,11 +9,8 @@
 -- (a path leaves and re-enters the redex through the hole) and we fail.
 --
 -- Parameterised by the edge type `E` and its endpoint accessors `ins`/`outs`;
--- `kahn` only ever inspects edge endpoints, never labels.  Both the labelled
--- carve (`Deep.Build`, `E = Edge`) and the label-free provenance mirror
--- (`DeepProv.BuildO`, `E = EdgeO`) instantiate this, which structurally
--- guarantees they emit edges in the SAME order — a fact the provenance gate
--- relies on.
+-- `kahn` only ever inspects edge endpoints, never labels.  The labelled carve
+-- (`Deep.Build`, `E = Edge`) instantiates it.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Solver.Rewrite.Kahn where
