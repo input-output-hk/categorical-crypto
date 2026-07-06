@@ -23,23 +23,23 @@ module Categories.APROP.Hypergraph.Soundness.Decode.Decode (sig : APROPSignature
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flat-rec; flatten; range)
-open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-  using (unflatten; unflatten-flatten-≈; unflatten-++-≅; _≅_)
-open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
-  using (permute; permute-via-vlab)
 
-open import Data.Fin using (Fin; zero; suc)
-open import Data.Fin.Properties using (_≟_)
-open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (map-++)
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
+
+open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
+
+
+open import Data.Fin
+open import Data.Fin.Properties
+open import Data.List
+open import Data.List.Properties
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Nat using (ℕ; zero; suc)
+open import Data.Nat
 open import Data.Product using (Σ; Σ-syntax; ∃-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; cong; subst; subst₂)
-open import Relation.Nullary using (yes; no)
+
+open import Relation.Nullary
 
 --------------------------------------------------------------------------------
 -- Multiset search (hypergraph-independent).  `extract-elem`/`extract-prefix`

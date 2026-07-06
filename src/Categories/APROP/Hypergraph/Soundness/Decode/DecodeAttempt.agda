@@ -15,37 +15,29 @@ module Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt (sig : APROPSi
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flatten; range;
-         hEmpty; hVar; hId; hGen; hSwap; hTensor;
-         module hTensor-impl)
+
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-  using (unflatten; unflatten-flatten-≈)
+
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (decode-attempt; edge-step; edge-step-just; edge-step-nothing;
-         extract-prefix; process-edges;
-         process-all-edges; extract-exact)
+
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
-  using (extract-prefix-self; extract-prefix-from-↭;
-         extract-prefix-↑ˡ-on-mixed-just; extract-prefix-↑ʳ-on-mixed-just;
-         extract-prefix-↑ˡ-on-mixed-nothing; extract-prefix-↑ʳ-on-mixed-nothing;
-         extract-prefix-↭-residual; extract-prefix-↭-nothing;
-         extract-prefix-via-injective-just; extract-prefix-via-injective-nothing)
+
 import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
-open Inv using (inject+-inj)
+open Inv
 import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
 
-open import Categories.Morphism FreeMonoidal using (_≅_)
+open import Categories.Morphism FreeMonoidal
 
 open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_)
-open import Data.Nat using (_+_)
-open import Data.List using (List; []; _∷_; _++_; length; map)
-open import Data.List.Properties using (++-identityʳ; ++-assoc; map-++)
+open import Data.Nat
+open import Data.List
+open import Data.List.Properties
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ-syntax; ∃-syntax; _,_; _×_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst; subst₂; module ≡-Reasoning)
+
 
 --------------------------------------------------------------------------------
 -- Per-case lemmas, one per smart constructor of `FromAPROP`.  The

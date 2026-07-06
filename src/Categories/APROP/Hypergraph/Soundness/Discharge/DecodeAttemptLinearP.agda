@@ -19,25 +19,21 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flatten; range;
-         hEmpty; hVar; hId; hGen; hSwap; hTensor)
+
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
-  using (hComposeP; module hComposeP-impl;
-         domL-hComposeP; codL-hComposeP)
+
 open import Categories.APROP.Hypergraph.Util.Prune
-  using (count-non)
+
 open import Categories.APROP.Hypergraph.Model.Translation sig
   using () renaming (⟪_⟫ to ⟪_⟫ₚ; ⟪⟫-domL to ⟪⟫ₚ-domL; ⟪⟫-codL to ⟪⟫ₚ-codL)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-  using (unflatten)
+
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (decode-attempt; edge-step; edge-step-just; edge-step-nothing;
-         extract-prefix; process-edges; process-all-edges)
+
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
-  using (extract-prefix-↭-residual; extract-prefix-↭-nothing;
-         extract-prefix-via-injective-just; extract-prefix-via-injective-nothing)
+
 import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
-open Inv using (inject+-inj)
+open Inv
 import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
 open import Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP sig
   using (Linear-hComposeP)
@@ -45,21 +41,18 @@ import Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP sig as LP
 
 -- Reused-as-is generic decode lemmas (arbitrary `H`).
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
-  using (decode-attempt-perm-from-just; decode-attempt-from-perm;
-         process-edges-++-stack;
-         decode-attempt-hGen; decode-attempt-hId; decode-attempt-hSwap;
-         decode-attempt-hTensor)
+
 
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
-open import Data.Nat using (ℕ; _+_)
-open import Data.List using (List; []; _∷_; _++_; length; map)
-open import Data.List.Properties using (++-identityʳ; ++-assoc; map-++)
+open import Data.Nat
+open import Data.List
+open import Data.List.Properties
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ-syntax; ∃-syntax; _,_; _×_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst; subst₂; module ≡-Reasoning)
+
 
 --------------------------------------------------------------------------------
 -- Per-edge / process-edges liftings for `hComposeP`.  The G-side raise is
@@ -76,8 +69,7 @@ module _
     module K = Hypergraph K
 
   open hComposeP-impl G K bdy-eq
-    using (remapP; injL; ein-c-inj₁-red; eout-c-inj₁-red;
-           ein-c-inj₂-red; eout-c-inj₂-red)
+
 
   remapP-injective : ∀ {v v'} → remapP v ≡ remapP v' → v ≡ v'
   remapP-injective = LP.remapP-injective G K bdy-eq lin-G lin-K
@@ -328,7 +320,7 @@ decode-attempt-hComposeP G K bdy-eq lin-G lin-K ih-G ih-K =
   where
     module G = Hypergraph G
     module K = Hypergraph K
-    open hComposeP-impl G K bdy-eq using (remapP; injL)
+    open hComposeP-impl G K bdy-eq
     map-remapP-K-dom = LP.map-remapP-K-dom G K bdy-eq lin-G lin-K
     open Perm.PermutationReasoning
 

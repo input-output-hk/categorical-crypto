@@ -18,32 +18,32 @@
 -- `hGen`-generated edges with preserved hidden indices.
 --------------------------------------------------------------------------------
 
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
+open import Categories.APROP.Hypergraph.Solver.Signature
 
 module Categories.APROP.Hypergraph.Solver.Match.Verify (sig-dec : APROPSignatureDec) where
 
 open APROPSignatureDec sig-dec
-open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flat; flat-rec; flatten)
-open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
+
+open import Categories.APROP.Hypergraph.Model.Iso
 open import Categories.APROP.Hypergraph.Solver.Match.PBij
-  using (PBij; forward; backward)
+
 open import Categories.APROP.Hypergraph.Solver.Match.Totals
-  using (Total; totalise; deriveAtomEq)
+
 
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List.Base using (List; []; _∷_; map)
-open import Data.List.Properties using (≡-dec)
+open import Data.List.Base
+open import Data.List.Properties
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Nat using (ℕ)
 open import Data.Product using (Σ; _,_; proj₁; proj₂)
-open import Function using (_∘_)
-open import Relation.Binary.Definitions using (DecidableEquality)
+open import Function
+open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality as Eq
-  using (_≡_; refl; cong; cong₂; trans; sym; subst; subst₂)
-open import Relation.Nullary using (yes; no; Dec)
+
+open import Relation.Nullary
 import Relation.Nullary
 open import Data.Product using (_×_)
 
@@ -74,7 +74,7 @@ dec→maybe (no  _) = nothing
 _≟LX_ : DecidableEquality (List X)
 _≟LX_ = ≡-dec _≟X_
 
-open import Axiom.UniquenessOfIdentityProofs using (UIP)
+open import Axiom.UniquenessOfIdentityProofs
 import Axiom.UniquenessOfIdentityProofs as UIP-mod
 
 UIP-ListX : UIP (List X)

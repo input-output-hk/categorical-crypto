@@ -22,24 +22,24 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP.Hypergraph.Solver.Signature
-  using (APROPSignatureDec)
-open import Categories.APROP using (APROPSignature; module APROP)
+
+open import Categories.APROP
 
 module Categories.APROP.Hypergraph.Solver.Rewrite.ExtendSig
   (sig-dec : APROPSignatureDec)
   (let open APROPSignatureDec sig-dec
          using (sig; _≟X_; _≟-mor_; _≟-ObjTerm_; ObjTerm; unit; _⊗₀_; Var))
-  (let open APROPSignature sig using (X; mor))
+  (let open APROPSignature sig)
   (P Q : ObjTerm)
   where
 
-open import Data.List.Base using (_++_)
-open import Data.Maybe.Base using (Maybe; just; nothing)
-open import Relation.Binary.Definitions using (DecidableEquality)
+open import Data.List.Base
+open import Data.Maybe.Base
+open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; cong₂; trans; subst₂)
-open import Relation.Nullary using (yes; no)
-open import Relation.Nullary.Decidable using (map′)
+
+open import Relation.Nullary
+open import Relation.Nullary.Decidable
 
 --------------------------------------------------------------------------------
 -- The extended generator type: every base generator, plus one hole `P → Q`.
@@ -63,7 +63,7 @@ private
   old-inj : ∀ {A B} {f g : mor A B} → old f ≡ old g → f ≡ g
   old-inj refl = refl
 
-  open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
+  open import Axiom.UniquenessOfIdentityProofs
 
   uipObj : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q
   uipObj = Decidable⇒UIP.≡-irrelevant _≟-ObjTerm_
@@ -83,7 +83,7 @@ sig⁺-dec = record { sig = sig⁺ ; _≟X_ = _≟X_ ; _≟-mor_ = _≟-Mor⁺_ 
 -- are indexed by the same atom lists and `flat f ↦ flat (old f)` is direct.
 
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flat; flat-rec; flatten)
+
 import Categories.APROP.Hypergraph.Model.FromAPROP sig⁺ as F⁺
 
 -- `flatten` depends only on `X`, but the two module instantiations are
