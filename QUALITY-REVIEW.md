@@ -8,6 +8,14 @@ four finder passes (Interchange+Tensor, Discharge/Sub, Decode+Base, Solver+Model
 were run read-only; the parent applied, verified, and committed serially.
 
 Verification: `pagda` check run yes — every commit re-verified green (rc=0 AND the
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing` warning-grep empty).
+The three maintainer-approved follow-ups (cfee194 essays / d1266d9 dead alias /
+5ec2350 Perm.refl no-op) landed and were re-verified: TensorKBlock+TensorBraid green,
+Frontend + its Frobenius importer green, LinearityIso green; closure re-run green
+(the four `Solver/Test/*Tests` suites + `src/CategoricalCrypto.agda`, all rc=0
+warn=0); APROP soundness escape-hatch grep only SHRANK (deleted comment prose
+mentioning "postulate"), no category grew, `--safe --without-K` intact.
+(Original run:)
 `ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing` warning-grep empty)
 under each file's own OPTIONS, importers included. Closure check green: the four
 `Solver/Test/*Tests` suites (`FindIsoTests` transitively pulls the whole soundness
@@ -30,20 +38,19 @@ transiently red under concurrent edits — later verified green, not re-swept). 
 - 0aa4ef0 cleanup(APROP): fix stale comment references to deleted code — Kahn/DecodeLean (DeepProv/BuildO/EdgeO/pairsO gone), ObjUIP + DecodeAttemptLinearP (DecodeRelRespIsoWired gone), SeparableStack (DecodeTensorShape gone).
 - 9d2bf99 cleanup(APROP): trim development-history narration — "now/re-pointed/no longer/kept-stable/TYPE-unchanged" across Soundness.agda, FromAPROP, Invariant, Tabulate, PartI, PartII, DecodeProperties.
 - f035365 cleanup(APROP): drop refactor-history from consolidated modules — FireMid + TensorKBlock "CONSOLIDATED/CONSOLIDATION EXPERIMENT / former X → submodule Y / re-derivation of F2's private" history.
+- cfee194 cleanup(APROP): drop stale ⊗-shape obstruction-map essays — TensorKBlock's six "THE CHAIN / OBSTRUCTION / RESIDUAL MAP / STATUS — NOT YET unconditional / BLOCKED by module privacy" submodule trailers + TensorBraid's matching "ONE REMAINING WIRING GAP" footer, all false now that TensorKBlockFinal.decodePˢ-⊗-concrete discharges KBlockσ unconditionally into Soundness.soundness. Comment-only (−349 / −56); submodule banners, citations, and TensorBraid's non-false STRATEGY header kept; both modules re-verified green.
+- d1266d9 cleanup(APROP): remove dead public alias Frontend.rewriteDeepₙ!ᵀᴮ (0 callers; sibling rewriteDeepTo!ᵀᴮ kept — Frobenius uses it) + fixed the wrong header comment; Frontend + Frobenius importer re-verified green.
+- 5ec2350 cleanup(APROP): inline vacuous Perm.refl no-op in LinearityIso.tabulate-bij-↭ (a reflexive endpoint prepended to the trans chain; same statement, verified green).
 
 ## Suggestions (need your call)
 
 ### Public API / module layout
-- `src/Categories/APROP/Hypergraph/Solver/Frontend.agda :: rewriteDeepₙ!ᵀᴮ` — a dead public alias (`= rewriteDeepₙ!`, grep: 0 callers). Its `ᵀᴮ` sibling `rewriteDeepTo!ᵀᴮ` IS used by `Coherence/Symmetric/Test/Frobenius`; the `ₙ` variant is not, and the header comment claiming both are "kept only because Test.Frobenius calls them" is wrong for it. Public-interface removal → your call. (If removed, retrim the alias-block comment.)
 - `src/Categories/APROP/Hypergraph/Solver/Frontend.agda :: (import of Split)` — `using (solveSplitR?; reassoc; reassocBal)` imports `reassoc`, which Frontend never uses (only `reassocBal`/`solveSplitR?`). Narrowing the `using` here is mechanical, but Frontend is a heavy downstream module I did not re-verify; drop `reassoc` from the list on the next pass.
 - `src/Categories/APROP/Hypergraph/Soundness/Discharge/Sub/CountCombinatorics.agda :: count-pos→extract-elem` — not dead (internal user `count-≤→extract-prefix`) but 0 external consumers; `private` candidate to shrink the export surface (rule 29 — keep-public unless you agree).
 - `src/Categories/APROP/Hypergraph/Soundness/Discharge/CIsoAssocFromCons.agda :: c-iso-assoc-from-cons` — the `-cons` alias has 0 external users (consumers call `c-iso-assoc-from` directly). Removable if nothing downstream imports the alias.
 
 ### Test-suite targeting (rule 30)
 - `src/Categories/APROP/Hypergraph/Solver/Test/FrontendTests.agda :: Crossings.byHand` — a 10-step manual `HomReasoning` proof of the same equation `Crossings.auto` proves via `solveH!`, with no external reference. Reads as a deliberate "manual vs one-line solver" showcase; if that contrast is not wanted as documentation it is a droppable ~22-line redundancy. (All four suites otherwise correctly pin public entry points — `soundness`/`findIso`, `solveH!`, `solveH!ˢ`, `subMatch`.)
-
-### Statement audit
-- `src/Categories/APROP/Hypergraph/Soundness/Linearity/LinearityIso.agda :: tabulate-bij-↭` (local `lhs-rewrite`) — `lhs-rewrite : tabulate (f ∘ π) ↭ tabulate (f ∘ π) = Perm.refl`, then consumed as `Perm.trans lhs-rewrite (…)`: a vacuous reflexive endpoint prepended to a `trans` chain (a no-op). Inlining `Perm.refl` / dropping the `Perm.trans lhs-rewrite` and deleting the binding is a proof-of-the-same-statement simplification. (Not committed — a proof rewrite near a statement; your call.)
 
 ### Simplifications / dedup not committed (judgment needed)
 - `Strict/Interchange/SwapCore.agda`, `Strict/Interchange/StackEquiv.agda`, `Strict/Tensor/TensorKBlock.agda` (TKB/TKB2/TKB3) :: `fire-termˢ` — an identical "local copy" re-defined in ~5 modules (the comments themselves flag "identical to TensorKBlock.fire-termˢ"). A shared home (a small `Strict/…` helper module) would dedup it, but the copies each sit under different module parameters; needs a spike to confirm the shared version threads the parameters cleanly. Not attempted.
@@ -53,17 +60,13 @@ These are rule-20/21/23 comment-hygiene commits the contract assigns to me; I ra
 out of budget after the accuracy-critical work above. All are located by the four
 finder passes; none needs a decision.
 
-- **Stale/misleading obstruction-map essays (highest value — some are factually WRONG).**
-  `Strict/Tensor/TensorKBlock.agda` carries SIX multi-dozen-line "THE CHAIN TO … /
-  OBSTRUCTION / RESIDUAL MAP / STATUS" development-plan essays (after each submodule,
-  ~lines 164-231, 538-583, 936-999, 1534-1576, 1683-1749, 2205-2254) claiming the
-  ⊗-shape is "REMAINING / BLOCKED only by module privacy / NOT yet unconditional".
-  This is stale: `TensorKBlockFinal.decodePˢ-⊗-concrete` discharges `KBlockσ`
-  unconditionally and feeds `Soundness.soundness`. `Strict/Tensor/TensorBraid.agda`
-  has the same stale "OBSTRUCTION / RESIDUAL MAP … NOW CLOSED" footer (~980-1035) and
-  a ~40-line STRATEGY/"WHAT IS GREEN HERE" header. Cut the essays (they are
-  interleaved with code + submodule banners, so cut each block precisely, then
-  re-verify — I did not, to avoid a blind bulk delete).
+- **Stale obstruction-map essays — DONE (cfee194).** TensorKBlock's six submodule
+  trailers + TensorBraid's footer cut. TensorBraid's STRATEGY/"WHAT IS GREEN HERE"
+  header was reviewed and KEPT: it states no stale "still blocked" claim — it is
+  genuine (true) architecture orientation for a hard proof — so it falls outside the
+  "remove the false narrative" mandate. It remains a rule-21 (>25-line) trim
+  *candidate* if you want the header shortened, but that is a judgment call, not a
+  correctness fix.
 - **Design-essay headers/trailers (rule 21, >25 lines).** `Strict/Decode/DecodeCompose`
   (84-line header + 50-line trailer "OBSTRUCTION MAP"), `Strict/Decode/DecodeTensor`
   (42 + 44), `Strict/Separability` (36 + 42; keep the genuine "why no term-sepˢ-ˡ"
