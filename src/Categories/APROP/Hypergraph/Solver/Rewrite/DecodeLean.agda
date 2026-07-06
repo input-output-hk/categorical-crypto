@@ -36,8 +36,7 @@ module Categories.APROP.Hypergraph.Solver.Rewrite.DecodeLean (sig : APROPSignatu
 
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; range)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; _≅_)
 open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
@@ -57,8 +56,7 @@ open import Data.List.Properties using (map-++; ≡-dec)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ-syntax; _,_)
 open import Relation.Binary using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; sym; cong; subst; subst₂)
+open import Relation.Binary.PropositionalEquality using (_≡_; sym; cong; subst; subst₂)
 open import Relation.Nullary using (yes; no)
 
 --------------------------------------------------------------------------------
@@ -100,8 +98,7 @@ module _ (H : Hypergraph FlatGen) where
       rest-l = map H.vlab rest
 
       -- Apply the edge generator at the front, identity on the rest.
-      mid : HomTerm (unflatten (ein-l  ++ rest-l))
-                    (unflatten (eout-l ++ rest-l))
+      mid : HomTerm (unflatten (ein-l  ++ rest-l)) (unflatten (eout-l ++ rest-l))
       mid = _≅_.to   (unflatten-++-≅ eout-l rest-l)
             ∘ (Agen-edge e ⊗₁ id)
             ∘ _≅_.from (unflatten-++-≅ ein-l  rest-l)
@@ -153,8 +150,7 @@ module _ (H : Hypergraph FlatGen) where
   -- Run from `H.dom`, then bridge the final stack to `H.cod`.  LEAN: collapse
   -- the final permute when `s_final ≡ H.cod` as a list.
 
-  decode-attempt
-    : Maybe (HomTerm (unflatten (domL H)) (unflatten (codL H)))
+  decode-attempt : Maybe (HomTerm (unflatten (domL H)) (unflatten (codL H)))
   decode-attempt with process-all-edges H.dom
   ... | (s_final , process-term) with extract-exact H.cod s_final
   ...    | nothing   = nothing

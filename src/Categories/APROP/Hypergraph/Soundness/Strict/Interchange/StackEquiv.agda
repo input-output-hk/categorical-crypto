@@ -64,8 +64,7 @@ open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Maybe.Properties using (just-injective)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
@@ -75,8 +74,7 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
 module EquivStep (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
   open Run H public
-  open Equivariantˢ H public
-    using (pvv-transˢ; pvv-inverse-leftˢ; pvv-inverse-rightˢ)
+  open Equivariantˢ H public using (pvv-transˢ; pvv-inverse-leftˢ; pvv-inverse-rightˢ)
 
   private
     _≟V_ : DecidableEquality (Fin H.nV)
@@ -106,8 +104,7 @@ module EquivStep (H : Hypergraph FlatGen) where
 
   data EdgeStepRˢ (s : List (Fin H.nV)) (e : Fin H.nE)
        : (s' : List (Fin H.nV)) → HomS (map vl s) (map vl s') → Set where
-    skipRˢ : extract-prefix (H.ein e) s ≡ nothing
-           → EdgeStepRˢ s e s idˢ
+    skipRˢ : extract-prefix (H.ein e) s ≡ nothing → EdgeStepRˢ s e s idˢ
     fireRˢ : ∀ (rest : List (Fin H.nV)) (perm : s Perm.↭ H.ein e ++ rest)
            → extract-prefix (H.ein e) s ≡ just (rest , perm)
            → EdgeStepRˢ s e (H.eout e ++ rest) (fire-termˢ e s rest perm)
@@ -133,8 +130,7 @@ module EquivStep (H : Hypergraph FlatGen) where
         extract-prefix (H.ein e) s' ≡ just (restH' , permH')
         × restH Perm.↭ restH'
   fire-stable-just e {s} {s'} ρ {restH} permH eqH =
-    let step = extract-prefix-↭-residual (H.ein e) s' restH
-                 (Perm.↭-trans ρ permH)
+    let step = extract-prefix-↭-residual (H.ein e) s' restH (Perm.↭-trans ρ permH)
     in proj₁ step , proj₁ (proj₂ step)
        , proj₁ (proj₂ (proj₂ step)) , proj₂ (proj₂ (proj₂ step))
 
@@ -311,15 +307,12 @@ module EquivStep (H : Hypergraph FlatGen) where
       box'      = genˢ (H.elab e) ⊗ˢ idˢ {map vl restH}
 
       -- `permuteˢ (++⁺ˡ eout μ) ≈ castˢ aeout aeout' out-frame`.
-      out-eq
-        : permuteˢ (PermProp.++⁺ˡ eout μ) ≈ˢ castˢ aeout aeout' out-frame
+      out-eq : permuteˢ (PermProp.++⁺ˡ eout μ) ≈ˢ castˢ aeout aeout' out-frame
       out-eq = cast-flip (map-++ vl eout restH) (map-++ vl eout restH')
                  (permuteˢ-frameˡ eout μ)
 
       -- `permuteˢ (++⁺ˡ ein (↭-sym μ)) ≈ castˢ aein' aein in-frame`.
-      in-eq
-        : permuteˢ (PermProp.++⁺ˡ ein (Perm.↭-sym μ))
-          ≈ˢ castˢ aein' aein in-frame
+      in-eq : permuteˢ (PermProp.++⁺ˡ ein (Perm.↭-sym μ)) ≈ˢ castˢ aein' aein in-frame
       in-eq = cast-flip (map-++ vl ein restH') (map-++ vl ein restH)
                 (permuteˢ-frameˡ ein (Perm.↭-sym μ))
 
@@ -384,8 +377,7 @@ module EquivStep (H : Hypergraph FlatGen) where
         mid : s' Perm.↭ H.ein e ++ restH
         mid = Perm.trans permHc (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym rpc))
 
-        half₁ : Perm.trans permH' (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym fire-μ))
-                ≅↭ mid
+        half₁ : Perm.trans permH' (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym fire-μ)) ≅↭ mid
         half₁ = recon-collapse permHc rpc restHc≡ permHc≡
 
         half₂ : mid ≅↭ Perm.trans ρ permH
@@ -533,8 +525,7 @@ module EquivStep (H : Hypergraph FlatGen) where
       tH  = proj₂ (edge-stepˢ s  e)
       tH' = proj₂ (edge-stepˢ s' e)
 
-      mid-collapse
-        : permuteˢ ρ1 ∘ˢ tH' ≈ˢ tH ∘ˢ permuteˢ ρ
+      mid-collapse : permuteˢ ρ1 ∘ˢ tH' ≈ˢ tH ∘ˢ permuteˢ ρ
       mid-collapse =
         ≈-trans (∘-resp ≈-refl step-eq)
           (≈-trans (≈-sym assocˢ)

@@ -72,8 +72,7 @@ _≟-Mor⁺_ : ∀ {A B} → DecidableEquality (Mor⁺ A B)
 old f    ≟-Mor⁺ old g     = map′ (cong old) old-inj (f ≟-mor g)
 old f    ≟-Mor⁺ hole _ _  = no λ ()
 hole _ _ ≟-Mor⁺ old g     = no λ ()
-hole p q ≟-Mor⁺ hole p' q' =
-  yes (cong₂ hole (uipObj p p') (uipObj q q'))
+hole p q ≟-Mor⁺ hole p' q' = yes (cong₂ hole (uipObj p p') (uipObj q q'))
 
 sig⁺-dec : APROPSignatureDec
 sig⁺-dec = record { sig = sig⁺ ; _≟X_ = _≟X_ ; _≟-mor_ = _≟-Mor⁺_ }

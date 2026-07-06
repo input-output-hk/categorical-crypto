@@ -17,14 +17,11 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (flatten)
 
 open import Data.List using (List; []; _∷_; _++_)
 
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 
 open import Categories.Category.Monoidal using (Monoidal)
-open import Categories.Category.Monoidal.Utilities Monoidal-FreeMonoidal
-  using (_⊗ᵢ_)
-open import Categories.Morphism FreeMonoidal public
-  using (_≅_; module ≅)
+open import Categories.Category.Monoidal.Utilities Monoidal-FreeMonoidal using (_⊗ᵢ_)
+open import Categories.Morphism FreeMonoidal public using (_≅_; module ≅)
 
 open Monoidal Monoidal-FreeMonoidal using (unitorʳ)
 

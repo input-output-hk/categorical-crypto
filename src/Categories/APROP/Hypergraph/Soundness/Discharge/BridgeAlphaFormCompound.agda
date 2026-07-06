@@ -24,8 +24,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (flatten)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-flatten-≈; unflatten-++-≅)
-open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
-  using (bridge)
+open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig using (bridge)
 open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
   using ( bridge-∘
         ; bridge-⊗
@@ -53,8 +52,7 @@ open Vec using (Vec)
 import Data.Fin as Fin
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.Nat using (ℕ; zero; suc; _+_; _<_; _≤_; s≤s; z≤n)
-open import Data.Nat.Properties
-  using (m≤m+n; m≤n+m; n<1+n; +-identityʳ; n≤1+n)
+open import Data.Nat.Properties using (m≤m+n; m≤n+m; n<1+n; +-identityʳ; n≤1+n)
 open import Data.Nat.Induction using (<-wellFounded)
 open import Induction.WellFounded using (Acc; acc)
 
@@ -86,9 +84,7 @@ private
             Vec.∷ unflatten (flatten A ++ (flatten B ++ flatten C)) Vec.∷ Vec.[] )
       v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
       -- generators: F-A, F-BC, c-A,BC-to
-      open Sig {3} (λ { 0F →  v0 , v1
-                      ; 1F →  v2 , v3
-                      ; 2F →  v1 ⊗ᵒ v3 , v4 })
+      open Sig {3} (λ { 0F →  v0 , v1 ; 1F →  v2 , v3 ; 2F →  v1 ⊗ᵒ v3 , v4 })
       open WithGen (λ { (genS 0F) → _≅_.from (unflatten-flatten-≈ A)
                       ; (genS 1F) → _≅_.from (unflatten-flatten-≈ (B ⊗₀ C))
                       ; (genS 2F) →
@@ -154,9 +150,7 @@ private
       v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
       v5 = V 5F
       -- generators: F-A, F-BC, c-A,BC-to
-      open Sig {3} (λ { 0F →  v1 , v3
-                      ; 1F →  v2 , v4
-                      ; 2F →  v3 ⊗ᵒ v4 , v5 })
+      open Sig {3} (λ { 0F →  v1 , v3 ; 1F →  v2 , v4 ; 2F →  v3 ⊗ᵒ v4 , v5 })
       open WithGen (λ { (genS 0F) → _≅_.from (unflatten-flatten-≈ A)
                       ; (genS 1F) → _≅_.from (unflatten-flatten-≈ (B ⊗₀ C))
                       ; (genS 2F) →
@@ -229,15 +223,11 @@ sz (A ⊗₀ B)   = suc (sz A + sz B)
 
 -- The two `sz`-decrease facts needed in the compound case.
 private
-  sz-left< : ∀ A₁₁ A₁₂ A₂
-           → sz (A₁₁ ⊗₀ A₁₂) < sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
-  sz-left< A₁₁ A₁₂ A₂ =
-    s≤s (m≤m+n (sz (A₁₁ ⊗₀ A₁₂)) (sz A₂))
+  sz-left< : ∀ A₁₁ A₁₂ A₂ → sz (A₁₁ ⊗₀ A₁₂) < sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
+  sz-left< A₁₁ A₁₂ A₂ = s≤s (m≤m+n (sz (A₁₁ ⊗₀ A₁₂)) (sz A₂))
 
-  sz-right< : ∀ A₁₁ A₁₂ A₂
-            → sz A₂ < sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
-  sz-right< A₁₁ A₁₂ A₂ =
-    s≤s (m≤n+m (sz A₂) (sz (A₁₁ ⊗₀ A₁₂)))
+  sz-right< : ∀ A₁₁ A₁₂ A₂ → sz A₂ < sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
+  sz-right< A₁₁ A₁₂ A₂ = s≤s (m≤n+m (sz A₂) (sz (A₁₁ ⊗₀ A₁₂)))
 
 --------------------------------------------------------------------------------
 -- `derive-⇐`: the α⇐-form derived from the α⇒-form result at the SAME
@@ -245,8 +235,7 @@ private
 -- explicit argument), so it stays outside the well-founded recursion.
 
 private
-  bridge-resp-≈Term
-    : ∀ {A B} {f g : HomTerm A B} → f ≈Term g → bridge f ≈Term bridge g
+  bridge-resp-≈Term : ∀ {A B} {f g : HomTerm A B} → f ≈Term g → bridge f ≈Term bridge g
   bridge-resp-≈Term f≈g = refl⟩∘⟨ f≈g ⟩∘⟨refl
 
   derive-⇐
@@ -340,9 +329,7 @@ private
                 Vec.∷ unflatten (a ++ b ++ c) Vec.∷ Vec.[] )
           v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F
           -- generators: α⇒-form-list a b c, cto (a++b) c, cfrom (a++b) c
-          open Sig {3} (λ { 0F → v2 , v3
-                          ; 1F → v0 ⊗ᵒ v1 , v2
-                          ; 2F → v2 , v0 ⊗ᵒ v1 })
+          open Sig {3} (λ { 0F → v2 , v3 ; 1F → v0 ⊗ᵒ v1 , v2 ; 2F → v2 , v0 ⊗ᵒ v1 })
           open WithGen (λ { (genS 0F) → α⇒-form-list a b c
                           ; (genS 1F) → cto (a ++ b) c
                           ; (genS 2F) → cfrom (a ++ b) c })
@@ -498,8 +485,7 @@ module Worker where
                 Vec.∷ unflatten (flatten ((A₂ ⊗₀ B) ⊗₀ C)) Vec.∷ Vec.[] )
           v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
           -- generators: F-A₂BC, T-A₂BC
-          open Sig {2} (λ { 0F → v0 ⊗ᵒ (v1 ⊗ᵒ v2) , v3
-                          ; 1F → v4 , (v0 ⊗ᵒ v1) ⊗ᵒ v2 })
+          open Sig {2} (λ { 0F → v0 ⊗ᵒ (v1 ⊗ᵒ v2) , v3 ; 1F → v4 , (v0 ⊗ᵒ v1) ⊗ᵒ v2 })
           open WithGen (λ { (genS 0F) → F-A₂BC ; (genS 1F) → T-A₂BC })
           gF = gen 0F ; gT = gen 1F
           lhsᵗ rhsᵗ : S.HomTerm v4 v3
@@ -542,8 +528,7 @@ module Worker where
           v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
           v5 = V 5F
           -- generators: F-ABC, T-AB⊗C
-          open Sig {2} (λ { 0F → v1 ⊗ᵒ (v2 ⊗ᵒ v3) , v4
-                          ; 1F → v5 , (v1 ⊗ᵒ v2) ⊗ᵒ v3 })
+          open Sig {2} (λ { 0F → v1 ⊗ᵒ (v2 ⊗ᵒ v3) , v4 ; 1F → v5 , (v1 ⊗ᵒ v2) ⊗ᵒ v3 })
           open WithGen (λ { (genS 0F) → F-ABC ; (genS 1F) → T-AB⊗C })
           gF = gen 0F ; gT = gen 1F
           lhsᵗ rhsᵗ : S.HomTerm (v0 ⊗ᵒ v5) (v0 ⊗ᵒ v4)
@@ -566,19 +551,16 @@ module Worker where
       -- input `acc rs`.
       br-⇐ : bridge (α⇐ {P} {A₂} {B ⊗₀ C})
            ≈Term α⇐-form-list p (flatten A₂) (flatten B ++ flatten C)
-      br-⇐ = derive-⇐ P A₂ (B ⊗₀ C)
-               (work P A₂ (B ⊗₀ C) (rs (sz-left< A₁₁ A₁₂ A₂)))
+      br-⇐ = derive-⇐ P A₂ (B ⊗₀ C) (work P A₂ (B ⊗₀ C) (rs (sz-left< A₁₁ A₁₂ A₂)))
 
       br-mid : bridge (α⇒ {P} {A₂ ⊗₀ B} {C})
              ≈Term α⇒-form-list p (flatten A₂ ++ flatten B) (flatten C)
       br-mid = work P (A₂ ⊗₀ B) C (rs (sz-left< A₁₁ A₁₂ A₂))
 
-      br-low : bridge (α⇒ {P} {A₂} {B})
-             ≈Term α⇒-form-list p (flatten A₂) (flatten B)
+      br-low : bridge (α⇒ {P} {A₂} {B}) ≈Term α⇒-form-list p (flatten A₂) (flatten B)
       br-low = work P A₂ B (rs (sz-left< A₁₁ A₁₂ A₂))
 
-      br-A₂ : bridge (α⇒ {A₂} {B} {C})
-            ≈Term α⇒-form-list (flatten A₂) (flatten B) (flatten C)
+      br-A₂ : bridge (α⇒ {A₂} {B} {C}) ≈Term α⇒-form-list (flatten A₂) (flatten B) (flatten C)
       br-A₂ = work A₂ B C (rs (sz-right< A₁₁ A₁₂ A₂))
 
       compound-body

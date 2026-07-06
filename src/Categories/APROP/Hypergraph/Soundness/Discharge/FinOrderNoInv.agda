@@ -53,8 +53,7 @@ open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
-  using (Dep)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
 open Inv using (inject+-inj; raise-inj; disj-L-R; range-++)
 
@@ -146,14 +145,11 @@ module _ (G K : Hypergraph FlatGen) where
   -- A dependency between two G-block edges reflects to a dependency in G.
   -- Uses `eout/ein` reduction (`T.eout-c-inj₁-red`, `T.ein-c-inj₁-red`) and
   -- injectivity of the vertex injection `injL = _↑ˡ_`.
-  tensor-GG-reflect : ∀ {ea eb : Fin G.nE}
-                    → Dep H (injLE eb) (injLE ea)
-                    → Dep G eb ea
+  tensor-GG-reflect : ∀ {ea eb : Fin G.nE} → Dep H (injLE eb) (injLE ea) → Dep G eb ea
   tensor-GG-reflect {ea} {eb} (v , v∈out , v∈in)
     with subst (v ∈_) (T.eout-c-inj₁-red eb) v∈out
        | subst (v ∈_) (T.ein-c-inj₁-red ea) v∈in
-  ... | v∈out' | v∈in'
-    with ∈-map⁻ T.injL v∈out' | ∈-map⁻ T.injL v∈in'
+  ... | v∈out' | v∈in' with ∈-map⁻ T.injL v∈out' | ∈-map⁻ T.injL v∈in'
   ... | wb , wb∈ , v≡wb | wa , wa∈ , v≡wa =
         wb
       , wb∈
@@ -162,14 +158,11 @@ module _ (G K : Hypergraph FlatGen) where
               wa∈
 
   -- Symmetric: a dependency between two K-block edges reflects to K.
-  tensor-KK-reflect : ∀ {ea eb : Fin K.nE}
-                    → Dep H (injRE eb) (injRE ea)
-                    → Dep K eb ea
+  tensor-KK-reflect : ∀ {ea eb : Fin K.nE} → Dep H (injRE eb) (injRE ea) → Dep K eb ea
   tensor-KK-reflect {ea} {eb} (v , v∈out , v∈in)
     with subst (v ∈_) (T.eout-c-inj₂-red eb) v∈out
        | subst (v ∈_) (T.ein-c-inj₂-red ea) v∈in
-  ... | v∈out' | v∈in'
-    with ∈-map⁻ T.injR v∈out' | ∈-map⁻ T.injR v∈in'
+  ... | v∈out' | v∈in' with ∈-map⁻ T.injR v∈out' | ∈-map⁻ T.injR v∈in'
   ... | wb , wb∈ , v≡wb | wa , wa∈ , v≡wa =
         wb
       , wb∈
@@ -257,8 +250,7 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
   compose-GG-reflect {ea} {eb} (v , v∈out , v∈in)
     with subst (v ∈_) (C.eout-c-inj₁-red eb) v∈out
        | subst (v ∈_) (C.ein-c-inj₁-red ea) v∈in
-  ... | v∈out' | v∈in'
-    with ∈-map⁻ C.injL v∈out' | ∈-map⁻ C.injL v∈in'
+  ... | v∈out' | v∈in' with ∈-map⁻ C.injL v∈out' | ∈-map⁻ C.injL v∈in'
   ... | wb , wb∈ , v≡wb | wa , wa∈ , v≡wa =
         wb
       , wb∈
@@ -277,8 +269,7 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
   compose-KK-reflect {ea} {eb} (v , v∈out , v∈in)
     with subst (v ∈_) (C.eout-c-inj₂-red eb) v∈out
        | subst (v ∈_) (C.ein-c-inj₂-red ea) v∈in
-  ... | v∈out' | v∈in'
-    with ∈-map⁻ C.remapP v∈out' | ∈-map⁻ C.remapP v∈in'
+  ... | v∈out' | v∈in' with ∈-map⁻ C.remapP v∈out' | ∈-map⁻ C.remapP v∈in'
   ... | wb , wb∈ , v≡wb | wa , wa∈ , v≡wa =
         wb
       , wb∈
@@ -330,8 +321,7 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
   compose-cross-acyclic {ea} {eb} (v , v∈out , v∈in)
     with subst (v ∈_) (C.eout-c-inj₂-red eb) v∈out
        | subst (v ∈_) (C.ein-c-inj₁-red ea) v∈in
-  ... | v∈out' | v∈in'
-    with ∈-map⁻ C.remapP v∈out' | ∈-map⁻ C.injL v∈in'
+  ... | v∈out' | v∈in' with ∈-map⁻ C.remapP v∈out' | ∈-map⁻ C.injL v∈in'
   ... | k₀ , k₀∈out , v≡rk | i₀ , i₀∈in , v≡injL =
         dom-and-out→absurd k₀ eb
           (remapP-injL→dom k₀ i₀ (trans (sym v≡rk) v≡injL))

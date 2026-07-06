@@ -34,8 +34,7 @@ open import Data.Nat using (s≤s⁻¹) renaming (_≤_ to _≤ⁿ_; _<_ to _<�
 import Data.Nat.Properties as Nat
 open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
 open import Relation.Nullary using (¬_; yes; no)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
 
 private
   variable
@@ -44,14 +43,12 @@ private
 --------------------------------------------------------------------------------
 -- `count` cons reductions.
 
-count-cons-yes : (v : Fin n) (xs : List (Fin n))
-               → count v (v ∷ xs) ≡ suc (count v xs)
+count-cons-yes : (v : Fin n) (xs : List (Fin n)) → count v (v ∷ xs) ≡ suc (count v xs)
 count-cons-yes v xs with v ≟ v
 ... | yes _ = refl
 ... | no  q = ⊥-elim (q refl)
 
-count-cons-no : (v x : Fin n) (xs : List (Fin n)) → ¬ (v ≡ x)
-              → count v (x ∷ xs) ≡ count v xs
+count-cons-no : (v x : Fin n) (xs : List (Fin n)) → ¬ (v ≡ x) → count v (x ∷ xs) ≡ count v xs
 count-cons-no v x xs v≢x with v ≟ x
 ... | yes p = ⊥-elim (v≢x p)
 ... | no  _ = refl
@@ -148,8 +145,7 @@ count-≤→extract-prefix (k ∷ ks) xs h
           (Nat.≤-trans (h v)
                        (Nat.≤-reflexive
                          (trans (↭⇒count p v) (count-cons-no v k xs' v≢k))))
-...   | rest , q , eq-rest rewrite eq-elem | eq-rest =
-        rest , _ , refl
+...   | rest , q , eq-rest rewrite eq-elem | eq-rest = rest , _ , refl
 
 extract-prefix-just→count-≤
   : (ks xs rest : List (Fin n)) (p : xs Perm.↭ ks ++ rest)
@@ -211,18 +207,14 @@ count-concat-tabulate-pair-≤ f (suc e) (suc e')  e≢e' v =
 --------------------------------------------------------------------------------
 -- count monotonicity / split / cancellation, and the count ⇒ ↭ bridge.
 
-count-mono-cons : ∀ {n} (v x : Fin n) (xs : List (Fin n))
-                → count v xs ≤ⁿ count v (x ∷ xs)
+count-mono-cons : ∀ {n} (v x : Fin n) (xs : List (Fin n)) → count v xs ≤ⁿ count v (x ∷ xs)
 count-mono-cons v x xs with v ≟ x
 ... | yes _ = Nat.n≤1+n (count v xs)
 ... | no  _ = Nat.≤-refl
 
-count-zero-empty : ∀ {n} (xs : List (Fin n))
-                 → (∀ v → count v xs ≡ 0)
-                 → xs ≡ []
+count-zero-empty : ∀ {n} (xs : List (Fin n)) → (∀ v → count v xs ≡ 0) → xs ≡ []
 count-zero-empty []       _   = refl
-count-zero-empty (x ∷ xs) hyp
-  with trans (sym (count-cons-yes x xs)) (hyp x)
+count-zero-empty (x ∷ xs) hyp with trans (sym (count-cons-yes x xs)) (hyp x)
 ... | ()
 
 count-pos→split
@@ -243,12 +235,8 @@ count-cancel-cons v x xs ys h with v ≟ x
 ... | yes _ = Nat.suc-injective h
 ... | no  _ = h
 
-count-≡⇒↭
-  : ∀ {n} (xs ys : List (Fin n))
-  → (∀ v → count v xs ≡ count v ys)
-  → xs Perm.↭ ys
-count-≡⇒↭ []       ys hyp
-  rewrite count-zero-empty ys (λ k → sym (hyp k)) = Perm.refl
+count-≡⇒↭ : ∀ {n} (xs ys : List (Fin n)) → (∀ v → count v xs ≡ count v ys) → xs Perm.↭ ys
+count-≡⇒↭ []       ys hyp rewrite count-zero-empty ys (λ k → sym (hyp k)) = Perm.refl
 count-≡⇒↭ (x ∷ xs) ys hyp
   with count-pos→split x ys
          (subst (0 <ⁿ_) (trans (sym (count-cons-yes x xs)) (hyp x))
@@ -266,5 +254,4 @@ count-map-resp
   : ∀ {n m} (f : Fin n → Fin m) (xs ys : List (Fin n))
   → (∀ k → count k xs ≡ count k ys)
   → ∀ v → count v (map f xs) ≡ count v (map f ys)
-count-map-resp f xs ys hyp v =
-  ↭⇒count (PermProp.map⁺ f (count-≡⇒↭ xs ys hyp)) v
+count-map-resp f xs ys hyp v = ↭⇒count (PermProp.map⁺ f (count-≡⇒↭ xs ys hyp)) v

@@ -19,10 +19,8 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SigmaBlockCommRaw
 open FreeMonoidalData d using (X)
 open FreeMonoidal d
 
-open import Categories.PermuteCoherence.Faithfulness d
-  using (unflatten; unflatten-++-≅; permute)
-open import Categories.FreeSMC.BraidBlock d
-  using (σ-block)
+open import Categories.PermuteCoherence.Faithfulness d using (unflatten; unflatten-++-≅; permute)
+open import Categories.FreeSMC.BraidBlock d using (σ-block)
 open import Categories.FreeSMC.BraidPermute d
   using (rotate; σ-rotate; permute-rotate; permute-swap-refl-σ-block)
 open import Categories.FreeSMC.SigmaBlockTensor d using (σ⊗-from-hexagon₂)
@@ -46,8 +44,7 @@ open import Data.List using (List; []; _∷_; _++_; map)
 import Data.List.Properties as LP
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst; subst₂)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst; subst₂)
 
 private
   module FM = Category FreeMonoidal
@@ -65,9 +62,7 @@ private
 open FM.HomReasoning
 
 -- `↭-sym (shift x ys xs) ≡ rotate x ys xs`.
-shift-sym-rotate
-  : ∀ (x : X) (ys xs : List X)
-  → Perm.↭-sym (PermProp.shift x ys xs) ≡ rotate x ys xs
+shift-sym-rotate : ∀ (x : X) (ys xs : List X) → Perm.↭-sym (PermProp.shift x ys xs) ≡ rotate x ys xs
 shift-sym-rotate x []        xs = refl
 shift-sym-rotate x (b ∷ ys') xs =
   cong (λ r → Perm.trans (Perm.swap x b Perm.refl) (Perm.prep b r))
@@ -141,8 +136,7 @@ peel x xs' ys = begin
       renaming (module S to Sσ)
     open WithGen (λ { (genS 0F) → fromxs })
 
-    open Sσ using ()
-      renaming (_∘_ to infixr 9 _∘ᵗ_; _⊗₁_ to infixr 10 _⊗ᵗ_)
+    open Sσ using () renaming (_∘_ to infixr 9 _∘ᵗ_; _⊗₁_ to infixr 10 _⊗ᵗ_)
 
     fromxsᵗ = gen 0F
 
@@ -154,8 +148,7 @@ peel x xs' ys = begin
     lhsᵗ rhsᵗ : Sσ.HomTerm (aX ⊗ᵒ aXY) (aYs ⊗ᵒ (aX ⊗ᵒ aXs))
     lhsᵗ = (Sσ.α⇒ ∘ᵗ ((σXᵗ ⊗ᵗ Sσ.id) ∘ᵗ Sσ.α⇐ ∘ᵗ (Sσ.id ⊗ᵗ σXsᵗ)) ∘ᵗ Sσ.α⇒)
              ∘ᵗ (Sσ.α⇐ ∘ᵗ (Sσ.id ⊗ᵗ fromxsᵗ))
-    rhsᵗ = (Sσ.α⇒ ∘ᵗ (σXᵗ ⊗ᵗ Sσ.id) ∘ᵗ Sσ.α⇐)
-             ∘ᵗ (Sσ.id ⊗ᵗ (σXsᵗ ∘ᵗ fromxsᵗ))
+    rhsᵗ = (Sσ.α⇒ ∘ᵗ (σXᵗ ⊗ᵗ Sσ.id) ∘ᵗ Sσ.α⇐) ∘ᵗ (Sσ.id ⊗ᵗ (σXsᵗ ∘ᵗ fromxsᵗ))
 
 --------------------------------------------------------------------------------
 -- ## `rotate-cap` — the single-atom braid / cap coherence:
@@ -241,8 +234,7 @@ peel x xs' ys = begin
     open Sig {0} (λ ()) renaming (module S to Sσ)
     open WithGen (λ { (genS ()) })
 
-    open Sσ using ()
-      renaming (_∘_ to infixr 9 _∘ᵗ_; _⊗₁_ to infixr 10 _⊗ᵗ_)
+    open Sσ using () renaming (_∘_ to infixr 9 _∘ᵗ_; _⊗₁_ to infixr 10 _⊗ᵗ_)
 
     -- `σ-block` at the term level, objects pinned through the signature.
     sbᵗ : ∀ P Q R → Sσ.HomTerm (P ⊗ᵒ (Q ⊗ᵒ R)) (Q ⊗ᵒ (P ⊗ᵒ R))
@@ -259,8 +251,7 @@ peel x xs' ys = begin
     bareᵗ : Sσ.HomTerm (aᵃ ⊗ᵒ (b₁ᵃ ⊗ᵒ b₂ᵃ)) ((b₁ᵃ ⊗ᵒ b₂ᵃ) ⊗ᵒ aᵃ)
     bareᵗ = Sσ.α⇐ ∘ᵗ (Sσ.id ⊗ᵗ σ₂ᵗ) ∘ᵗ Sσ.α⇒ ∘ᵗ (σ₁ᵗ ⊗ᵗ Sσ.id) ∘ᵗ Sσ.α⇐
 
-    lhsᵗ rhsᵗ : Sσ.HomTerm (aᵃ ⊗ᵒ ((b₁ᵃ ⊗ᵒ b₂ᵃ) ⊗ᵒ cᵃ))
-                           ((b₁ᵃ ⊗ᵒ b₂ᵃ) ⊗ᵒ (aᵃ ⊗ᵒ cᵃ))
+    lhsᵗ rhsᵗ : Sσ.HomTerm (aᵃ ⊗ᵒ ((b₁ᵃ ⊗ᵒ b₂ᵃ) ⊗ᵒ cᵃ)) ((b₁ᵃ ⊗ᵒ b₂ᵃ) ⊗ᵒ (aᵃ ⊗ᵒ cᵃ))
     lhsᵗ = Sσ.α⇒ ∘ᵗ (bareᵗ ⊗ᵗ idᶜᵗ) ∘ᵗ Sσ.α⇐
     rhsᵗ = Sσ.α⇐
              ∘ᵗ (Sσ.id ⊗ᵗ sbᵗ aᵃ b₂ᵃ cᵃ)
@@ -327,12 +318,9 @@ rotate-cap-step x b ys' ts ih = begin
                     ; 2F → (aX ⊗ᵒ aYT) , aYXT })         -- σ-rotate x ys' ts
       renaming (module S to Sσ)
 
-    open WithGen (λ { (genS 0F) → to'
-                    ; (genS 1F) → toxs
-                    ; (genS 2F) → σ-rotate x ys' ts })
+    open WithGen (λ { (genS 0F) → to' ; (genS 1F) → toxs ; (genS 2F) → σ-rotate x ys' ts })
 
-    open Sσ using ()
-      renaming (_∘_ to infixr 9 _∘ᵗ_; _⊗₁_ to infixr 10 _⊗ᵗ_)
+    open Sσ using () renaming (_∘_ to infixr 9 _∘ᵗ_; _⊗₁_ to infixr 10 _⊗ᵗ_)
 
     to'ᵗ  = gen 0F
     toxsᵗ = gen 1F
@@ -350,21 +338,15 @@ rotate-cap-step x b ys' ts ih = begin
     to-consᵗ : Sσ.HomTerm ((aB ⊗ᵒ aYs) ⊗ᵒ (aX ⊗ᵒ aTs)) (aB ⊗ᵒ aYXT)
     to-consᵗ = (idBᵗ ⊗ᵗ to'ᵗ) ∘ᵗ Sσ.α⇒
 
-    pullᵗ groupᵗ slideᵗ capᵗ
-      : Sσ.HomTerm (aX ⊗ᵒ ((aB ⊗ᵒ aYs) ⊗ᵒ aTs)) (aB ⊗ᵒ aYXT)
+    pullᵗ groupᵗ slideᵗ capᵗ : Sσ.HomTerm (aX ⊗ᵒ ((aB ⊗ᵒ aYs) ⊗ᵒ aTs)) (aB ⊗ᵒ aYXT)
     pullᵗ = to-consᵗ
               ∘ᵗ (Sσ.α⇐
                   ∘ᵗ (idBᵗ ⊗ᵗ sbᵗ aX aYs aTs)
                   ∘ᵗ sbᵗ aX aB (aYs ⊗ᵒ aTs)
                   ∘ᵗ (idXᵗ ⊗ᵗ α⇒'ᵗ))
-    groupᵗ = (idBᵗ ⊗ᵗ (to'ᵗ ∘ᵗ sbᵗ aX aYs aTs))
-               ∘ᵗ sbᵗ aX aB (aYs ⊗ᵒ aTs)
-               ∘ᵗ (idXᵗ ⊗ᵗ α⇒'ᵗ)
-    slideᵗ = (idBᵗ ⊗ᵗ (σrᵗ ∘ᵗ (idXᵗ ⊗ᵗ toxsᵗ)))
-               ∘ᵗ sbᵗ aX aB (aYs ⊗ᵒ aTs)
-               ∘ᵗ (idXᵗ ⊗ᵗ α⇒'ᵗ)
-    capᵗ = ((idBᵗ ⊗ᵗ σrᵗ) ∘ᵗ sbᵗ aX aB aYT)
-             ∘ᵗ (idXᵗ ⊗ᵗ ((idBᵗ ⊗ᵗ toxsᵗ) ∘ᵗ α⇒'ᵗ))
+    groupᵗ = (idBᵗ ⊗ᵗ (to'ᵗ ∘ᵗ sbᵗ aX aYs aTs)) ∘ᵗ sbᵗ aX aB (aYs ⊗ᵒ aTs) ∘ᵗ (idXᵗ ⊗ᵗ α⇒'ᵗ)
+    slideᵗ = (idBᵗ ⊗ᵗ (σrᵗ ∘ᵗ (idXᵗ ⊗ᵗ toxsᵗ))) ∘ᵗ sbᵗ aX aB (aYs ⊗ᵒ aTs) ∘ᵗ (idXᵗ ⊗ᵗ α⇒'ᵗ)
+    capᵗ = ((idBᵗ ⊗ᵗ σrᵗ) ∘ᵗ sbᵗ aX aB aYT) ∘ᵗ (idXᵗ ⊗ᵗ ((idBᵗ ⊗ᵗ toxsᵗ) ∘ᵗ α⇒'ᵗ))
 
 rotate-cap
   : (x : X) (ys ts : List X)

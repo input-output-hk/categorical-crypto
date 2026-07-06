@@ -29,8 +29,5 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorKBlockFinal sig
 -- The soundness theorem.
 
 opaque
-  soundness
-    : ∀ {A B} {f g : HomTerm A B}
-    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-    → f ≈Term g
+  soundness : ∀ {A B} {f g : HomTerm A B} → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g
   soundness = SA.soundness-assembled TKF.decodePˢ-⊗-concrete

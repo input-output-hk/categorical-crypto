@@ -57,9 +57,7 @@ dec→maybe (no  _) = nothing
 --------------------------------------------------------------------------------
 -- ∀F? : universal-quantification decider over `Fin n`.
 
-∀F? : ∀ {ℓ} {n : ℕ} {P : Fin n → Set ℓ}
-    → (∀ i → Maybe (P i))
-    → Maybe (∀ i → P i)
+∀F? : ∀ {ℓ} {n : ℕ} {P : Fin n → Set ℓ} → (∀ i → Maybe (P i)) → Maybe (∀ i → P i)
 ∀F? {n = ℕ.zero}  d = just λ ()
 ∀F? {n = ℕ.suc n} d with d zero
 ... | nothing = nothing
@@ -116,8 +114,7 @@ flatgen-irrel
       (oa' : flatten A ≡ As') (ob' : flatten B ≡ Bs')
   → flat-rec oa ob f ≡ v → flat-rec oa' ob' f ≡ y
   → subst₂ FlatGen p q v ≡ y
-flatgen-irrel refl refl _ _ f oa ob oa' ob' refl refl
-  with UIP-ListX oa oa' | UIP-ListX ob ob'
+flatgen-irrel refl refl _ _ f oa ob oa' ob' refl refl with UIP-ListX oa oa' | UIP-ListX ob ob'
 ... | refl | refl = refl
 
 -- `flat-match-subst p q v y`: compare the *transported* J-label
@@ -143,8 +140,7 @@ flat-match-subst {As} {Bs} {As'} {Bs'} p q v y = step (view v) (view y)
             -- `v` and `y` reconstruct from the *same* `(A,B)` boundaries; with
             -- `f ≡ g` their relevant payloads agree, so `flatgen-irrel` settles
             -- the transported equality (boundary proofs being erased).
-            compare (yes refl) =
-              just (flatgen-irrel p q v y f ok-A ok-B ok-A' ok-B' ok-v ok-y)
+            compare (yes refl) = just (flatgen-irrel p q v y f ok-A ok-B ok-A' ok-B' ok-v ok-y)
             compare (no _) = nothing
         dispatch _ _ = nothing
 

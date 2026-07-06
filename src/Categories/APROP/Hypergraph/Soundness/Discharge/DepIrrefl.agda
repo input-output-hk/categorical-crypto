@@ -35,8 +35,7 @@ open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Model.HomTermInvariant sig
   using (⟪_⟫-dom-unique; ⟪_⟫-cod-unique)
-open import Categories.APROP.Hypergraph.Model.Invariant sig
-  using (↑ˡ≢↑ʳ)
+open import Categories.APROP.Hypergraph.Model.Invariant sig using (↑ˡ≢↑ʳ)
 open import Categories.APROP.Hypergraph.Util.Prune
   using (remap-injective; lookup-injective-unique; count-non)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
@@ -110,8 +109,7 @@ NoSelfDep-hGen {A} {B} f {zero} (v , v∈out , v∈in)
 -- Tensor: a composite edge is a G-edge (via injective `injL`) or a K-edge
 -- (via injective `injR`); `map-inj-disjoint` + sub-graph IH closes it.
 
-NoSelfDep-hTensor
-  : ∀ G K → NoSelfDep G → NoSelfDep K → NoSelfDep (hTensor G K)
+NoSelfDep-hTensor : ∀ G K → NoSelfDep G → NoSelfDep K → NoSelfDep (hTensor G K)
 NoSelfDep-hTensor G K G-nd K-nd {e} (v , v∈out , v∈in) =
   dispatch (splitAt G.nE e)
            (subst (λ x → v ∈ eout-c x) (sym peq) v∈out)
@@ -216,8 +214,7 @@ module _ {A B C} (g : HomTerm B C) (h : HomTerm A B) where
       cast-inj (lookup-injective-unique (⟪_⟫-cod-unique h) _ _ eq)
 
   ∘-remapP-inj : ∀ {i j} → hCP.remapP i ≡ hCP.remapP j → i ≡ j
-  ∘-remapP-inj eq =
-    remap-injective _ _ (⟪_⟫-dom-unique g) lookup-cod-inj eq
+  ∘-remapP-inj eq = remap-injective _ _ (⟪_⟫-dom-unique g) lookup-cod-inj eq
 
 --------------------------------------------------------------------------------
 -- The invariant holds for every translated hypergraph, by induction on `f`.

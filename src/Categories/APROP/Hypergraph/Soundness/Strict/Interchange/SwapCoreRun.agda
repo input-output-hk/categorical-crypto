@@ -37,8 +37,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X
   using (module Run)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
-  using (Dep)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_
@@ -59,8 +58,7 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
 open import Data.Maybe using (just; nothing)
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_; yes; no)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
 
 private
   nothing≢just : ∀ {A : Set} {x : A} → nothing ≡ just x → ⊥
@@ -123,8 +121,7 @@ module _ (H : Hypergraph FlatGen)
 
   private module RH = Run H
 
-  pe-stack-agree
-    : ∀ o s → pe-stackˢ′ o s ≡ proj₁ (process-edges H o s)
+  pe-stack-agree : ∀ o s → pe-stackˢ′ o s ≡ proj₁ (process-edges H o s)
   pe-stack-agree o s = RH.stacks-agree o s
 
   reached-Uniqueˢ-from

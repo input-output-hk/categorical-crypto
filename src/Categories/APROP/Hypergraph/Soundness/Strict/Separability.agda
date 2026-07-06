@@ -62,8 +62,7 @@ open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
 open import Relation.Nullary.Decidable using (yes; no)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 
@@ -162,10 +161,8 @@ module StrictSep (H : Hypergraph FlatGen) where
   extract-elem-++ˡ-left k (x ∷ L) xs eqL eqxs with x ≟F k
   ... | yes refl with eqL
   ...   | ()
-  extract-elem-++ˡ-left k (x ∷ L) xs eqL eqxs | no ¬q
-    with extract-elem k L in eqL'
-  ... | nothing
-        rewrite extract-elem-++ˡ-left k L xs eqL' eqxs = refl
+  extract-elem-++ˡ-left k (x ∷ L) xs eqL eqxs | no ¬q with extract-elem k L in eqL'
+  ... | nothing rewrite extract-elem-++ˡ-left k L xs eqL' eqxs = refl
 
   -- `extract-prefix ks (L ++ xs)`, when `ks ∩ L = ∅` and `ks` is found in `xs`
   -- with residual `rest`, finds it with residual `L ++ rest` (the firing
@@ -184,14 +181,12 @@ module StrictSep (H : Hypergraph FlatGen) where
         extract-prefix ks (L ++ xs) ≡ just (L ++ rest , D)
   extract-prefix-++ˡ-left []       L xs {rest} {p} dis eq with eq
   ... | refl = Perm.refl , refl
-  extract-prefix-++ˡ-left (k ∷ ks) L xs (dk ∷ dks) eq
-    with extract-elem k xs in eqe
+  extract-prefix-++ˡ-left (k ∷ ks) L xs (dk ∷ dks) eq with extract-elem k xs in eqe
   extract-prefix-++ˡ-left (k ∷ ks) L xs (dk ∷ dks) eq | just (xs' , pe)
     with extract-prefix ks xs' in eqp
   extract-prefix-++ˡ-left (k ∷ ks) L xs {rest} {p} (dk ∷ dks) eq
     | just (xs' , pe) | just (rest' , pp) with eq
-  ... | refl
-        with extract-prefix-++ˡ-left ks L xs' dks eqp
+  ... | refl with extract-prefix-++ˡ-left ks L xs' dks eqp
   ...     | (D' , eqD')
             rewrite extract-elem-++ˡ-left k L xs dk eqe
                   | eqD' =
@@ -211,8 +206,7 @@ module StrictSep (H : Hypergraph FlatGen) where
   ...   | ()
   extract-elem-++ˡ-left-nothing k (x ∷ L) xs eqL eqxs | no ¬q
     with extract-elem k L in eqL'
-  ... | nothing
-        rewrite extract-elem-++ˡ-left-nothing k L xs eqL' eqxs = refl
+  ... | nothing rewrite extract-elem-++ˡ-left-nothing k L xs eqL' eqxs = refl
 
   -- NOTHING-mirror for `extract-prefix` (LEFT prefix): `ks ∩ L = ∅` and `ks`
   -- not found in `xs` ⇒ not found in `L ++ xs`.  Mirror of
@@ -226,12 +220,10 @@ module StrictSep (H : Hypergraph FlatGen) where
   extract-prefix-++ˡ-left-nothing (k ∷ ks) L xs (dk ∷ dks) eqn
     with extract-elem k xs in eqe
   -- head not found in `xs`: by disjointness not in `L`, so not in `L ++ xs`.
-  ... | nothing
-        rewrite extract-elem-++ˡ-left-nothing k L xs dk eqe = refl
+  ... | nothing rewrite extract-elem-++ˡ-left-nothing k L xs dk eqe = refl
   -- head found in `xs` with residual `xs'`: tail must fail; recurse on `ks`
   -- over `xs'`, re-locating `k` in `L ++ xs` (`extract-elem-++ˡ-left`).
-  ... | just (xs' , pe)
-        with extract-prefix ks xs' in eqp
+  ... | just (xs' , pe) with extract-prefix ks xs' in eqp
   ...     | nothing
             rewrite extract-elem-++ˡ-left k L xs dk eqe
                   | extract-prefix-++ˡ-left-nothing ks L xs' dks eqp = refl

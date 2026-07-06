@@ -53,16 +53,11 @@ module Lemma4 {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
   open _≅ᴴ_ Φ using (ψ; ψ⁻¹; ψ-rght)
 
   -- Dependency reflection along ψ⁻¹: `ψ⁻¹ b ≺ ψ⁻¹ a` in H ⇒ `b ≺ a` in J.
-  dep-reflect : ∀ {a b}
-              → Dep H (ψ⁻¹ b) (ψ⁻¹ a)
-              → Dep J b a
-  dep-reflect {a} {b} d =
-    subst₂ (Dep J) (ψ-rght b) (ψ-rght a) (≺⇒ψ≺ Φ d)
+  dep-reflect : ∀ {a b} → Dep H (ψ⁻¹ b) (ψ⁻¹ a) → Dep J b a
+  dep-reflect {a} {b} d = subst₂ (Dep J) (ψ-rght b) (ψ-rght a) (≺⇒ψ≺ Φ d)
 
   -- Pointwise: J's `Below` implies H's `Below` pulled back along ψ⁻¹.
-  below-pull : ∀ {a b}
-             → (¬ Dep J b a)
-             → ¬ Dep H (ψ⁻¹ b) (ψ⁻¹ a)
+  below-pull : ∀ {a b} → (¬ Dep J b a) → ¬ Dep H (ψ⁻¹ b) (ψ⁻¹ a)
   below-pull ndJ dH = ndJ (dep-reflect dH)
 
   -- The `map`-of-relation step (over the FIXED list `range J.nE`).

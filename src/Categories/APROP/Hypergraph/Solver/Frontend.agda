@@ -42,8 +42,7 @@ open import Categories.APROP.Hypergraph.Solver.Match.FindIsoTab sig-dec using (f
 open import Categories.APROP.Hypergraph.Solver.Split sig-dec using (solveSplitR?; reassoc; reassocBal)
 open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig-dec using (focusAtₙ; Foc)
 open import Categories.APROP.Hypergraph.Solver.Rewrite.Deep sig-dec using (deepFocₙ)
-open import Categories.APROP.Hypergraph.Soundness sig-dec
-  using (soundness)
+open import Categories.APROP.Hypergraph.Soundness sig-dec using (soundness)
 
 open import Level using (Level; _⊔_)
 open import Data.List.Base using (List; []; _∷_)
@@ -84,8 +83,7 @@ focFrame s lᵗ mid n found =
 -- (the `hComposeP` tower over the carve's verbose decoded context — NOT the
 -- ~20ms embedding search, nor the iso search itself); a balanced (log-depth)
 -- ∘-tree makes that construction O(nV·log n) rather than O(nV·n).
-deepFrameM : ∀ {A B P Q} (mid : HomTerm P Q) (m : Maybe (Foc A B P Q))
-           → T (is-just m) → HomTerm A B
+deepFrameM : ∀ {A B P Q} (mid : HomTerm P Q) (m : Maybe (Foc A B P Q)) → T (is-just m) → HomTerm A B
 deepFrameM mid (just (k , pre , post)) _ = reassocBal post ∘ (id {k} ⊗₁ mid) ∘ reassocBal pre
 deepFrameM mid nothing ()
 
@@ -147,22 +145,15 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
 
   -- Discharge a free-SMC equation `f ≈ g` — given as a hypergraph iso
   -- `⟪ f ⟫ ≅ᴴ ⟪ g ⟫` between the translations — into the target category `C`.
-  solveH
-    : ∀ {A B} (f g : HomTerm A B)
-    → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫
-    → ⟦ f ⟧₁ C.≈ ⟦ g ⟧₁
-  solveH f g iso =
-    Functor.F-resp-≈ freeFunctor (soundness {f = f} {g = g} iso)
+  solveH : ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → ⟦ f ⟧₁ C.≈ ⟦ g ⟧₁
+  solveH f g iso = Functor.F-resp-≈ freeFunctor (soundness {f = f} {g = g} iso)
 
   -- Same, but the witnessing iso is located internally by `findIso`, so the
   -- two free-SMC terms `f g` need only be written once.  The implicit
   -- `T (is-just …)` argument is discharged automatically (it reduces to the
   -- unit type `⊤`) exactly when `findIso ⟪ f ⟫ ⟪ g ⟫` succeeds at type-check
   -- time; if the search fails it reduces to `⊥` and the call is rejected.
-  solveH!
-    : ∀ {A B} (f g : HomTerm A B)
-    → {_ : T (is-just (findIso ⟪ f ⟫ ⟪ g ⟫))}
-    → ⟦ f ⟧₁ C.≈ ⟦ g ⟧₁
+  solveH! : ∀ {A B} (f g : HomTerm A B) → {_ : T (is-just (findIso ⟪ f ⟫ ⟪ g ⟫))} → ⟦ f ⟧₁ C.≈ ⟦ g ⟧₁
   solveH! f g {pf} = solveH f g (fromWitness! (findIso ⟪ f ⟫ ⟪ g ⟫) pf)
 
   -- Same, but the iso search runs on the TABULATED translations
@@ -205,12 +196,8 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   -- whole-term solve as fallback — so anything `solveH!ᵀ` solves, this
   -- solves too.  `solveSplitR?` already yields a `f ≈Term g`, so it is
   -- transported by `F-resp-≈` directly (no `solveH`).
-  solveH!ˢ
-    : ∀ {A B} (f g : HomTerm A B)
-    → {_ : T (is-just (solveSplitR? f g))}
-    → ⟦ f ⟧₁ C.≈ ⟦ g ⟧₁
-  solveH!ˢ f g {pf} =
-    Functor.F-resp-≈ freeFunctor (fromWitness! (solveSplitR? f g) pf)
+  solveH!ˢ : ∀ {A B} (f g : HomTerm A B) → {_ : T (is-just (solveSplitR? f g))} → ⟦ f ⟧₁ C.≈ ⟦ g ⟧₁
+  solveH!ˢ f g {pf} = Functor.F-resp-≈ freeFunctor (fromWitness! (solveSplitR? f g) pf)
 
   --------------------------------------------------------------------------------
   -- Diagrammatic *rewriting* in `C`, in the style of `solveH!` but with a
@@ -283,8 +270,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → {found : T (is-just (focusAtₙ s lᵗ zero))}
     → {_     : T (is-just (findIso ⟪ s ⟫ ⟪ focFrame s lᵗ lᵗ zero found ⟫))}
     → ⟦ s ⟧₁ C.≈ ⟦ focFrame s lᵗ rᵗ zero found ⟧₁
-  rewriteAuto! s lᵗ rᵗ rule {found} {cert} =
-    rewriteAutoₙ! s lᵗ rᵗ zero rule {found} {cert}
+  rewriteAuto! s lᵗ rᵗ rule {found} {cert} = rewriteAutoₙ! s lᵗ rᵗ zero rule {found} {cert}
 
   --------------------------------------------------------------------------------
   -- As `rewriteAutoₙ!`, but the position is found on the *hypergraph* (via
@@ -314,8 +300,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → {found : T (is-just (deepFocₙ s lᵗ zero))}
     → {_     : T (is-just (findIsoᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ zero found ⟫))}
     → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ zero found ⟧₁
-  rewriteDeep! s lᵗ rᵗ rule {found} {cert} =
-    rewriteDeepₙ! s lᵗ rᵗ zero rule {found} {cert}
+  rewriteDeep! s lᵗ rᵗ rule {found} {cert} = rewriteDeepₙ! s lᵗ rᵗ zero rule {found} {cert}
 
   --------------------------------------------------------------------------------
   -- As `rewriteDeepₙ!`, but landing on a caller-stated CLEAN term `t` (the
@@ -416,8 +401,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   ... | just (t , pf) = just (t , pf)
 
   -- Iterate to (fuel-bounded) exhaustion, accumulating the proof.
-  drive : List Rule → ℕ → ∀ {A B} (s : HomTerm A B)
-        → Σ (HomTerm A B) (λ t → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁)
+  drive : List Rule → ℕ → ∀ {A B} (s : HomTerm A B) → Σ (HomTerm A B) (λ t → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁)
   drive rs zero       s = s , C.Equiv.refl
   drive rs (suc fuel) s with driveStep rs s
   ... | nothing       = s , C.Equiv.refl

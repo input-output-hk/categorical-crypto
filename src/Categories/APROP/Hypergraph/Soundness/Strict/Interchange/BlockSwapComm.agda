@@ -100,8 +100,7 @@ module _ (V : Set) (vlab : V → X) where
 
       -- all three associators are `++-assoc (singleton) _ _` ≡ refl, so the
       -- `coe`s collapse to `idˢ` and `hex` simplifies to a 2-block composite.
-      hex' : σˢ a (vlab x ∷ m R)
-             ≈ˢ (idˢ {b} ⊗ˢ σˢ a c) ∘ˢ (σˢ a b ⊗ˢ idˢ {c})
+      hex' : σˢ a (vlab x ∷ m R) ≈ˢ (idˢ {b} ⊗ˢ σˢ a c) ∘ˢ (σˢ a b ⊗ˢ idˢ {c})
       hex' =
         ≈-trans hex
         (≈-trans (∘-resp (coe-id≈ (sym (++-assoc b c a))) ≈-refl)
@@ -129,8 +128,7 @@ module _ (V : Set) (vlab : V → X) where
       Blk2 = (σˢ a b ⊗ˢ idˢ {c}) ⊗ˢ idˢ {m L}
 
       -- (i) RHS → the framed-hexagon composite Blk1 ∘ˢ Blk2 (no cast inside).
-      hexframe
-        : σˢ a (vlab x ∷ m R) ⊗ˢ idˢ {m L} ≈ˢ Blk1 ∘ˢ Blk2
+      hexframe : σˢ a (vlab x ∷ m R) ⊗ˢ idˢ {m L} ≈ˢ Blk1 ∘ˢ Blk2
       hexframe =
         ≈-trans (⊗-resp hex' ≈-refl)
         (≈-trans (⊗-resp ≈-refl (≈-sym idˡ))
@@ -241,8 +239,7 @@ module _ (V : Set) (vlab : V → X) where
 
       -- LEFT hexagon at the singleton frame `a = [vlab v]`: the two `++-assoc a …`
       -- associators collapse to refl, leaving only the genuine cod-cast.
-      hexL : σˢ (vlab v ∷ m L) (m R)
-             ≈ˢ castˢ refl (++-assoc (m R) a (m L)) CORE
+      hexL : σˢ (vlab v ∷ m L) (m R) ≈ˢ castˢ refl (++-assoc (m R) a (m L)) CORE
       hexL = σ-hexˢ a (m L) (m R)
 
       -- the IH on the inner block.
@@ -269,9 +266,7 @@ module _ (V : Set) (vlab : V → X) where
 
       -- LHS → a single cast of CORE (the dom is factor 2's dom F2d, the cod is
       -- factor 1's cod F1c; the middle is factor 1's dom F1d).
-      lhs-nf
-        : permuteˢ (bswap (v ∷ L) R)
-          ≈ˢ castˢ F2d F1c CORE
+      lhs-nf : permuteˢ (bswap (v ∷ L) R) ≈ˢ castˢ F2d F1c CORE
       lhs-nf =
         ≈-trans lhs-reduce
         (≈-trans (∘-resp (shift-sym v R L) f2)

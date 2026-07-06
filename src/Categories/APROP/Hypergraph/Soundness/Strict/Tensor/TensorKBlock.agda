@@ -35,8 +35,7 @@ module TKB (H : Hypergraph FlatGen) where
   open import Data.List.Properties using (map-++; ++-assoc)
   open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
   open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
-  open import Relation.Binary.PropositionalEquality
-    using (_≡_; refl; sym; trans; cong; subst)
+  open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
   import Data.List.Relation.Binary.Permutation.Propositional as Perm
   open Perm using (_↭_)
   import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
@@ -93,8 +92,7 @@ module TKB (H : Hypergraph FlatGen) where
       ⊗id-dist
         : ∀ {as bs cs} {R : List X} (Xt : HomS bs cs) (Yt : HomS as bs)
         → (Xt ∘ˢ Yt) ⊗ˢ idˢ {R} ≈ˢ (Xt ⊗ˢ idˢ {R}) ∘ˢ (Yt ⊗ˢ idˢ {R})
-      ⊗id-dist Xt Yt =
-        ≈-trans (⊗-resp ≈-refl (≈-sym idˡ)) (≈-sym interchangeˢ)
+      ⊗id-dist Xt Yt = ≈-trans (⊗-resp ≈-refl (≈-sym idˡ)) (≈-sym interchangeˢ)
 
       -- the σ-conjugation `g ⊗ idˢ{c} ≈ σ c b ∘ (idˢ{c} ⊗ g) ∘ σ a c`.
       box-conjˡ
@@ -178,8 +176,7 @@ module TKB2 (H : Hypergraph FlatGen) where
   open import Data.List.Properties using (map-++; ++-assoc)
   open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
   open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
-  open import Relation.Binary.PropositionalEquality
-    using (_≡_; refl; sym; trans; cong; subst)
+  open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
   import Data.List.Relation.Binary.Permutation.Propositional as Perm
   open Perm using (_↭_)
   import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
@@ -326,8 +323,7 @@ module TKB2 (H : Hypergraph FlatGen) where
                  (sym (trans (cong (_++ m rest) (sym (map-++ vl L (H.ein e))))
                              (sym (map-++ vl (L ++ H.ein e) rest))))
             (permuteˢ (ibraid e L rest))
-    in-σ-perm e L rest =
-      cast-flip _ _ (≈-sym (blockσ-perm (H.ein e) L rest))
+    in-σ-perm e L rest = cast-flip _ _ (≈-sym (blockσ-perm (H.ein e) L rest))
 
     ----------------------------------------------------------------------
     -- ## The INPUT permute reconciliation (the single `perm-rigidˢ` use).
@@ -400,8 +396,7 @@ module TKB2 (H : Hypergraph FlatGen) where
       id⊗-dist
         : ∀ {as bs cs} (L : List X) (g : HomS bs cs) (f : HomS as bs)
         → idˢ {L} ⊗ˢ (g ∘ˢ f) ≈ˢ (idˢ {L} ⊗ˢ g) ∘ˢ (idˢ {L} ⊗ˢ f)
-      id⊗-dist L g f =
-        ≈-trans (⊗-resp (≈-sym idˡ) ≈-refl) (≈-sym interchangeˢ)
+      id⊗-dist L g f = ≈-trans (⊗-resp (≈-sym idˡ) ≈-refl) (≈-sym interchangeˢ)
 
     ----------------------------------------------------------------------
     -- ## The framed inner fire layer `FF = idˢ{m L} ⊗ˢ fire-termˢ e xs rest p`
@@ -469,8 +464,7 @@ module TKB2 (H : Hypergraph FlatGen) where
 -- ===== submodule TKB4 =====
 ------------------------------------------------------------------------
 module TKB4 (H : Hypergraph FlatGen) where
-  open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-    using (edge-step; process-edges)
+  open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig using (edge-step; process-edges)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
   open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
   open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
@@ -483,8 +477,7 @@ module TKB4 (H : Hypergraph FlatGen) where
   open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
   open import Data.List.Relation.Unary.All using (All; []; _∷_)
   open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
-  open import Relation.Binary.PropositionalEquality
-    using (_≡_; refl; sym; trans; cong; subst)
+  open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
   import Data.List.Relation.Binary.Permutation.Propositional as Perm
   open Perm using (_↭_)
   import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
@@ -552,8 +545,7 @@ module TKB4 (H : Hypergraph FlatGen) where
                            (m (L ++ proj₁ (edge-stepˢ s_R e))))
           (tH : HomS (m s) (m s1))
       → Set
-    HeadReconcileˢ e L s_R s s1 pf pf1 KCleanHd tH =
-      permuteˢ pf1 ∘ˢ tH ≈ˢ KCleanHd ∘ˢ permuteˢ pf
+    HeadReconcileˢ e L s_R s s1 pf pf1 KCleanHd tH = permuteˢ pf1 ∘ˢ tH ≈ˢ KCleanHd ∘ˢ permuteˢ pf
 
     ----------------------------------------------------------------------
     -- ## `KCleanˢ` empty + cons telescoping.
@@ -561,9 +553,7 @@ module TKB4 (H : Hypergraph FlatGen) where
 
     -- `[]`: the clean block on `[]` edges collapses to a `map-++` round-trip
     -- cast of `idˢ {m L} ⊗ˢ idˢ` = `idˢ`.
-    KCleanˢ-nil
-      : ∀ (L s_R : List (Fin H.nV))
-      → KCleanˢ [] L s_R ≈ˢ idˢ {m (L ++ s_R)}
+    KCleanˢ-nil : ∀ (L s_R : List (Fin H.nV)) → KCleanˢ [] L s_R ≈ˢ idˢ {m (L ++ s_R)}
     KCleanˢ-nil L s_R =
       -- KCleanˢ [] L s_R = castˢ (sym map++)(sym map++) (idˢ{L} ⊗ˢ idˢ)
       ≈-trans (cast-resp (sym (map-++ vl L s_R)) (sym (map-++ vl L s_R)) ⊗-id)
@@ -600,8 +590,7 @@ module TKB4 (H : Hypergraph FlatGen) where
       s_R1 e s_R = proj₁ (edge-stepˢ s_R e)
 
       -- the cons-stack of the clean run.
-      s_Rfin : (e : Fin H.nE) (es : List (Fin H.nE)) (s_R : List (Fin H.nV))
-             → List (Fin H.nV)
+      s_Rfin : (e : Fin H.nE) (es : List (Fin H.nE)) (s_R : List (Fin H.nV)) → List (Fin H.nV)
       s_Rfin e es s_R = proj₁ (process-edgesˢ es (s_R1 e s_R))
 
     KCleanˢ-cons
@@ -617,19 +606,14 @@ module TKB4 (H : Hypergraph FlatGen) where
 
         -- the clean K-run on (e ∷ es) is `et ∘ˢ eh`.
         -- step 1: id{L} ⊗ (et ∘ eh) ≈ (id{L} ⊗ et) ∘ (id{L} ⊗ eh)  [interchange]
-        ⊗-split
-          : idˢ {m L} ⊗ˢ (et ∘ˢ eh)
-            ≈ˢ (idˢ {m L} ⊗ˢ et) ∘ˢ (idˢ {m L} ⊗ˢ eh)
-        ⊗-split =
-          ≈-trans (⊗-resp (≈-sym idˡ) ≈-refl) (≈-sym interchangeˢ)
+        ⊗-split : idˢ {m L} ⊗ˢ (et ∘ˢ eh) ≈ˢ (idˢ {m L} ⊗ˢ et) ∘ˢ (idˢ {m L} ⊗ˢ eh)
+        ⊗-split = ≈-trans (⊗-resp (≈-sym idˡ) ≈-refl) (≈-sym interchangeˢ)
 
         Pi  = sym (map-++ vl L s_R)
         Po  = sym (map-++ vl L sRf)
         Pm  = sym (map-++ vl L sR1)
 
-        goal
-          : KCleanˢ (e ∷ es) L s_R
-            ≈ˢ KCleanˢ es L sR1 ∘ˢ KCleanHeadˢ e L s_R
+        goal : KCleanˢ (e ∷ es) L s_R ≈ˢ KCleanˢ es L sR1 ∘ˢ KCleanHeadˢ e L s_R
         goal =
           -- LHS = castˢ Pi Po (id{L} ⊗ (et ∘ eh))
           ≈-trans (cast-resp Pi Po ⊗-split)
@@ -730,8 +714,7 @@ module TKB4 (H : Hypergraph FlatGen) where
         (≈-trans (∘-resp ≈-refl (∘-resp (KCleanˢ-nil L s_R) ≈-refl))
         (≈-trans (∘-resp ≈-refl idˡ)
           (pvv-cancelˢ uniq pf Br)))
-    kfac-genˢ L hp (e ∷ es) s_R s pf Br uniq
-      with hp e s_R s pf uniq
+    kfac-genˢ L hp (e ∷ es) s_R s pf Br uniq with hp e s_R s pf uniq
     ... | pf1 , uniq1 , head =
       -- proj₂ (process (e∷es) s) = proj₂ (process es s1) ∘ˢ tH.
       ≈-trans (∘-resp IH ≈-refl)
@@ -750,9 +733,7 @@ module TKB4 (H : Hypergraph FlatGen) where
         s1  = proj₁ (edge-stepˢ s e)
         sR1 = proj₁ (edge-stepˢ s_R e)
 
-        IH
-          : proj₂ (process-edgesˢ es s1)
-            ≈ˢ permuteˢ Br ∘ˢ (KCleanˢ es L sR1 ∘ˢ permuteˢ pf1)
+        IH : proj₂ (process-edgesˢ es s1) ≈ˢ permuteˢ Br ∘ˢ (KCleanˢ es L sR1 ∘ˢ permuteˢ pf1)
         IH = kfac-genˢ L hp es sR1 s1 pf1 Br uniq1
 
     ----------------------------------------------------------------------
@@ -809,9 +790,7 @@ module TKB4 (H : Hypergraph FlatGen) where
                      (sym (edge-stack-agree s e))
                      (SUR.edge-step-Reservoir≤1 H e es s res)
 
-        IH
-          : proj₂ (process-edgesˢ es s1)
-            ≈ˢ permuteˢ Br ∘ˢ (KCleanˢ es L sR1 ∘ˢ permuteˢ pf1)
+        IH : proj₂ (process-edgesˢ es s1) ≈ˢ permuteˢ Br ∘ˢ (KCleanˢ es L sR1 ∘ˢ permuteˢ pf1)
         IH = kfac-gen-resˢ L hp es des sR1 s1 pf1 Br res1
 
 ------------------------------------------------------------------------
@@ -829,8 +808,7 @@ module TKB3 (H : Hypergraph FlatGen) where
   open import Data.List.Properties using (map-++; ++-assoc)
   open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
   open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
-  open import Relation.Binary.PropositionalEquality
-    using (_≡_; refl; sym; trans; cong; subst)
+  open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
   import Data.List.Relation.Binary.Permutation.Propositional as Perm
   open Perm using (_↭_)
   import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
@@ -909,8 +887,7 @@ module TKB3 (H : Hypergraph FlatGen) where
       INPb : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
              (p : xs Perm.↭ H.ein e ++ rest)
            → HomS (m L ++ m xs) (m L ++ m (H.ein e) ++ m rest)
-      INPb e L xs rest p =
-        idˢ {m L} ⊗ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ p)
+      INPb e L xs rest p = idˢ {m L} ⊗ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ p)
 
     ------------------------------------------------------------------
     -- ## RHS reduction.
@@ -1207,14 +1184,12 @@ module TKB3 (H : Hypergraph FlatGen) where
                   ∘ˢ castˢ refl (ASout e L rest)
                        (MIDib e L rest ∘ˢ INPb e L xs rest p)))))))
       where
-        SLID : HomS ((m (H.ein e) ++ m L) ++ m rest)
-                    ((m (H.eout e) ++ m L) ++ m rest)
+        SLID : HomS ((m (H.ein e) ++ m L) ++ m rest) ((m (H.eout e) ++ m L) ++ m rest)
         SLID = (OUTb e L rest ∘ˢ MIDb e L rest) ∘ˢ INσb e L rest
 
         -- the input permute, fed to INσb (≡ INin by cast-irrel).
         INp : HomS (m (L ++ xs)) ((m (H.ein e) ++ m L) ++ m rest)
-        INp = castˢ refl (trans (map-++ vl (H.ein e) (L ++ rest)) (sym (Bd e L rest)))
-                (permuteˢ perm')
+        INp = castˢ refl (trans (map-++ vl (H.ein e) (L ++ rest)) (sym (Bd e L rest))) (permuteˢ perm')
 
         castP : HomS (m (L ++ xs)) (m (H.ein e) ++ m (L ++ rest))
         castP = castˢ refl (map-++ vl (H.ein e) (L ++ rest)) (permuteˢ perm')
@@ -1243,9 +1218,7 @@ module TKB3 (H : Hypergraph FlatGen) where
                      (Pi e L rest) (permuteˢ perm'))))
 
         -- BOX ∘ castP reduced to castˢ refl Bc (SLID ∘ INp).
-        box∘castP
-          : BOX e L rest ∘ˢ castP
-            ≈ˢ castˢ refl (Bc e L rest) (SLID ∘ˢ INp)
+        box∘castP : BOX e L rest ∘ˢ castP ≈ˢ castˢ refl (Bc e L rest) (SLID ∘ˢ INp)
         box∘castP =
           ≈-trans (∘-resp (box-flip e L rest) castP-recast)
           -- castˢ (sym CFin)(sym CFout)(castˢ AFin AFout SLID) ∘ castˢ refl Bd INp
@@ -1261,10 +1234,7 @@ module TKB3 (H : Hypergraph FlatGen) where
             (≈-sym (∘-cast-split refl (Bd e L rest) (Bc e L rest) SLID INp)))
 
         CANON : HomS (m L ++ m xs) ((m (H.eout e) ++ m L) ++ m rest)
-        CANON =
-          OUTb e L rest
-            ∘ˢ castˢ refl (ASout e L rest)
-                 (MIDib e L rest ∘ˢ INPb e L xs rest p)
+        CANON = OUTb e L rest ∘ˢ castˢ refl (ASout e L rest) (MIDib e L rest ∘ˢ INPb e L xs rest p)
 
         lhs-to-canon
           : fire-termˢ e (L ++ xs) (L ++ rest) perm'
@@ -1294,8 +1264,7 @@ module TKB3 (H : Hypergraph FlatGen) where
                          CANON)))))
           where
             -- SLID ∘ INp ≈ castˢ (sym map-++Lxs) refl CANON
-            slid-canon
-              : SLID ∘ˢ INp ≈ˢ castˢ (sym (map-++ vl L xs)) refl CANON
+            slid-canon : SLID ∘ˢ INp ≈ˢ castˢ (sym (map-++ vl L xs)) refl CANON
             slid-canon =
               -- ((OUT∘MIDb)∘INσb) ∘ INp → OUT∘(MIDb∘(INσb∘INp))
               ≈-trans assocˢ
@@ -1359,8 +1328,7 @@ module TKB5 (H : Hypergraph FlatGen) where
   open import Data.List.Properties using (map-++; ++-assoc)
   open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
   open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
-  open import Relation.Binary.PropositionalEquality
-    using (_≡_; refl; sym; trans; cong; subst)
+  open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
   import Data.List.Relation.Binary.Permutation.Propositional as Perm
   open Perm using (_↭_)
   import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
@@ -1429,9 +1397,7 @@ module TKB5 (H : Hypergraph FlatGen) where
 
         -- eq : tH ≈ permuteˢ (↭-sym ρf) ∘ (tHclean ∘ permuteˢ pf)
         -- goal : permuteˢ (trans ρf β) ∘ tH ≈ KCleanHeadˢ ∘ permuteˢ pf
-        goal
-          : permuteˢ (Perm.trans ρf β) ∘ˢ tH
-            ≈ˢ KCleanHeadˢ e L s_R ∘ˢ permuteˢ pf
+        goal : permuteˢ (Perm.trans ρf β) ∘ˢ tH ≈ˢ KCleanHeadˢ e L s_R ∘ˢ permuteˢ pf
         goal =
           -- permuteˢ (trans ρf β) = permuteˢ β ∘ permuteˢ ρf  (definitional)
           ≈-trans (∘-resp (pvv-transˢ ρf β) ≈-refl)
@@ -1479,8 +1445,7 @@ module TKB6 (H : Hypergraph FlatGen) where
   open import Data.List.Relation.Unary.All using (All; []; _∷_)
   open import Data.Maybe using (Maybe; just; nothing)
   open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
-  open import Relation.Binary.PropositionalEquality
-    using (_≡_; refl; sym; trans; cong; subst)
+  open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
   import Data.List.Relation.Binary.Permutation.Propositional as Perm
   open Perm using (_↭_)
   import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
@@ -1500,9 +1465,7 @@ module TKB6 (H : Hypergraph FlatGen) where
     module ScrH = Scr (Fin H.nV) H.vlab
 
   -- an `idˢ` cast can move its single non-trivial endpoint to the other side.
-  idcast-flip
-    : ∀ {a b : List X} (q : a ≡ b)
-    → castˢ refl q (idˢ {a}) ≈ˢ castˢ (sym q) refl (idˢ {b})
+  idcast-flip : ∀ {a b : List X} (q : a ≡ b) → castˢ refl q (idˢ {a}) ≈ˢ castˢ (sym q) refl (idˢ {b})
   idcast-flip refl = ≈-refl
 
   module _ (permˢ-K : Kmod.PermK) where
@@ -1722,8 +1685,7 @@ module TKB6 (H : Hypergraph FlatGen) where
       → extract-prefix (H.ein e) s_R ≡ just (rest_R , p)
       → Unique ((L ++ H.ein e) ++ rest_R)
       → HeadSlideˢ e L s_R
-    head-slide-fire e L s_R rest_R p disj eqR uIn
-      with extract-prefix-++ˡ-left (H.ein e) L s_R disj eqR
+    head-slide-fire e L s_R rest_R p disj eqR uIn with extract-prefix-++ˡ-left (H.ein e) L s_R disj eqR
     ... | D , eqLR
       rewrite eqR | eqLR = slideβ e L rest_R , slide-eq
       where
@@ -1732,8 +1694,7 @@ module TKB6 (H : Hypergraph FlatGen) where
         mLo  = map-++ vl L (EO ++ rest_R)
         Xf   = idˢ {m L} ⊗ˢ fire-termˢ e s_R rest_R p
         castₒ : HomS (m L ++ m (EO ++ rest_R)) (m (EO ++ (L ++ rest_R)))
-        castₒ = castˢ (odom e L rest_R) (ocod e L rest_R)
-                      (permuteˢ (obraid e L rest_R))
+        castₒ = castˢ (odom e L rest_R) (ocod e L rest_R) (permuteˢ (obraid e L rest_R))
 
         slide-eq
           : permuteˢ (slideβ e L rest_R)
@@ -1776,8 +1737,7 @@ module TKB6 (H : Hypergraph FlatGen) where
         aux : (w : Maybe (Σ[ rest ∈ List (Fin H.nV) ] s_R Perm.↭ H.ein e ++ rest))
             → extract-prefix (H.ein e) s_R ≡ w
             → HeadSlideˢ e L s_R
-        aux (just (rest_R , p)) eqR =
-          head-slide-fire e L s_R rest_R p disj eqR (fuq rest_R p eqR)
+        aux (just (rest_R , p)) eqR = head-slide-fire e L s_R rest_R p disj eqR (fuq rest_R p eqR)
         aux nothing eqn = head-slide-skip e L s_R disj eqn
 
     private
@@ -1800,9 +1760,7 @@ module TKB6 (H : Hypergraph FlatGen) where
     -- `Unique s` along `fire-stack-perm`.
     ----------------------------------------------------------------------
 
-    head-provider-res
-      : ∀ (L : List (Fin H.nV))
-      → HeadProviderRˢ (λ e → ein-disjⁱ e L) L
+    head-provider-res : ∀ (L : List (Fin H.nV)) → HeadProviderRˢ (λ e → ein-disjⁱ e L) L
     head-provider-res L e disj s_R s pf us =
       let slide = head-slide L e s_R disj fuq
           pf1 , hr = head-reconcile-from-slide e L s_R s pf us slide
@@ -1811,8 +1769,7 @@ module TKB6 (H : Hypergraph FlatGen) where
         fuq : ∀ (rest_R : List (Fin H.nV)) (p : s_R Perm.↭ H.ein e ++ rest_R)
               → extract-prefix (H.ein e) s_R ≡ just (rest_R , p)
               → Unique ((L ++ H.ein e) ++ rest_R)
-        fuq rest_R p _ =
-          SU.Unique-resp-↭ (fire-stack-perm e L s_R s rest_R pf p) us
+        fuq rest_R p _ = SU.Unique-resp-↭ (fire-stack-perm e L s_R s rest_R pf p) us
 
     ----------------------------------------------------------------------
     -- ## `kblock-factorize-res` — the WHOLE K-block run factorization,
@@ -1880,8 +1837,7 @@ module KBlockDisjoint (G K : Hypergraph FlatGen) where
   ... | ()
 
   -- `injR j` is absent from any `injL`-block.
-  injR∉injLs : ∀ (j : Fin K.nV) (P : List (Fin G.nV))
-             → extract-elem (injR j) (map injL P) ≡ nothing
+  injR∉injLs : ∀ (j : Fin K.nV) (P : List (Fin G.nV)) → extract-elem (injR j) (map injL P) ≡ nothing
   injR∉injLs j []       = refl
   injR∉injLs j (k ∷ ks) with injL k FinP.≟ injR j
   ... | yes p  = ⊥-elim (injR≢injL (sym p))

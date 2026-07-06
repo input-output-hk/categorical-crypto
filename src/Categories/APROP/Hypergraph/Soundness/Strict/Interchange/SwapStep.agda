@@ -42,8 +42,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
   using (process-edges-++-stack)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
-  using (Dep)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
 import Categories.APROP.Hypergraph.Soundness.Discharge.SwapValidity sig as SV
 
@@ -65,8 +64,7 @@ import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
 
 ------------------------------------------------------------------------
 -- Per-hypergraph: fix `H`, `dih`, `lin`.
@@ -82,8 +80,7 @@ module PerHG (H : Hypergraph FlatGen)
   -- Perm′`) everything we need: `vl`, `edge-stepˢ`, `permuteˢ`, `pe-stackˢ`,
   -- `pe-termˢ`, `stacks-agree` — no separate `open StrictDecoder` (which
   -- would duplicate `permuteˢ`).
-  open EquivStep H
-    using (vl; edge-stepˢ; stacks-agree; permuteˢ; pe-stackˢ; pe-termˢ)
+  open EquivStep H using (vl; edge-stepˢ; stacks-agree; permuteˢ; pe-stackˢ; pe-termˢ)
 
   -- The order-theory spine, reused verbatim from the non-strict wiring.
   module PH = IW.PerHG H dih
@@ -286,8 +283,7 @@ module FrontSwap (H : Hypergraph FlatGen)
       coe-vanish refl pv run = ≈-refl
 
       -- The core assembly at the `fs` level, via (K), `assocˢ`, and (N).
-      assembled
-        : permuteˢ p₁' ∘ˢ run₁ ≈ˢ permuteˢ p₂' ∘ˢ run₂
+      assembled : permuteˢ p₁' ∘ˢ run₁ ≈ˢ permuteˢ p₂' ∘ˢ run₂
       assembled =
         ≈-trans
           (∘-resp (final-permute-cohˢ reshuffle p₁' p₂') ≈-refl)
@@ -327,7 +323,4 @@ module _ (H : Hypergraph FlatGen)
           (≈-sym (decodeOrdˢ-factor ps (e' ∷ e ∷ qs) p₂)))
       where
         o₂↭range : (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE H)
-        o₂↭range =
-          Perm.↭-trans
-            (PermProp.++⁺ˡ ps (Perm.swap e' e Perm.refl))
-            o₁↭range
+        o₂↭range = Perm.↭-trans (PermProp.++⁺ˡ ps (Perm.swap e' e Perm.refl)) o₁↭range

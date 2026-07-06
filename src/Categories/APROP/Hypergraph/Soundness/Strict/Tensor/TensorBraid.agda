@@ -55,8 +55,7 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using ( FlatGen; flatten; range; hTensor; module hTensor-impl
         ; map-via-inj; map-via-raise )
-open import Categories.APROP.Hypergraph.Model.Translation sig
-  using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
+open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.HomTermTransport
   sig using (subst₂-FlatGen-cancel; subst₂-FlatGen-cancel′)
 
@@ -118,8 +117,7 @@ module Embeds (G K : Hypergraph FlatGen) where
   atom-eoutG eG = trans (cong (map vlab-c) (eout-c-inj₁-red eG))
                         (sym (map-via-inj vlab-injL (G.eout eG)))
 
-  ψ-elabG : ∀ eG → subst₂ FlatGen (atom-einG eG) (atom-eoutG eG) (C.elab (ψG eG))
-                 ≡ G.elab eG
+  ψ-elabG : ∀ eG → subst₂ FlatGen (atom-einG eG) (atom-eoutG eG) (C.elab (ψG eG)) ≡ G.elab eG
   ψ-elabG eG =
     trans (subst₂-FlatGen-cancel
              (cong (map vlab-c) (ein-c-inj₁-red eG))
@@ -156,8 +154,7 @@ module Embeds (G K : Hypergraph FlatGen) where
   atom-eoutK eK = trans (cong (map vlab-c) (eout-c-inj₂-red eK))
                         (sym (map-via-raise vlab-injR (K.eout eK)))
 
-  ψ-elabK : ∀ eK → subst₂ FlatGen (atom-einK eK) (atom-eoutK eK) (C.elab (ψK eK))
-                 ≡ K.elab eK
+  ψ-elabK : ∀ eK → subst₂ FlatGen (atom-einK eK) (atom-eoutK eK) (C.elab (ψK eK)) ≡ K.elab eK
   ψ-elabK eK =
     trans (subst₂-FlatGen-cancel
              (cong (map vlab-c) (ein-c-inj₂-red eK))
@@ -224,8 +221,7 @@ module _
       open import Data.Fin using (splitAt)
       open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
       import Data.Fin.Properties as FinP
-      open import Data.List.Relation.Unary.All using (All)
-        renaming ([] to []ᴬ; _∷_ to _∷ᴬ_)
+      open import Data.List.Relation.Unary.All using (All) renaming ([] to []ᴬ; _∷_ to _∷ᴬ_)
       open import Data.Empty using (⊥; ⊥-elim)
       open import Relation.Nullary using (yes; no)
       open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig using (extract-elem)
@@ -256,8 +252,7 @@ module _
           all-injL []       = []ᴬ
           all-injL (k ∷ ks) = injL∉injRs k Kd.dom ∷ᴬ all-injL ks
 
-          ein-disjointG : ∀ (eG : Fin Gd.nE)
-                        → ein-disjoint (eG ↑ˡ Kd.nE) (map injR Kd.dom)
+          ein-disjointG : ∀ (eG : Fin Gd.nE) → ein-disjoint (eG ↑ˡ Kd.nE) (map injR Kd.dom)
           ein-disjointG eG =
             subst (λ ks → All (λ k → extract-elem k (map injR Kd.dom) ≡ nothing) ks)
                   (sym (ein-c-inj₁-red eG))
@@ -553,8 +548,7 @@ module _
       decf-inner = Gd'.permuteˢ (finalPermˢ f) ∘ˢ Grun
 
       -- G-part permute relabel: `castˢ φGsf φGcod (permuteˢ pL) ≈ permuteˢ_G fpf`.
-      Gperm-relabel
-        : castˢ φGsf φGcod (RF.permuteˢ pL) ≈ˢ Gd'.permuteˢ (finalPermˢ f)
+      Gperm-relabel : castˢ φGsf φGcod (RF.permuteˢ pL) ≈ˢ Gd'.permuteˢ (finalPermˢ f)
       Gperm-relabel =
         ≈-trans (≡⇒≈ˢ (cast-irrel φGsf PGd φGcod PGc (RF.permuteˢ pL)))
                 (pvv-relabelˢ injL vl Gd.vlab (Embeds.vlab-injL G K)
@@ -589,8 +583,7 @@ module _
       decg-inner : HomS (map Kd.vlab Kd.dom) (map Kd.vlab Kd.cod)
       decg-inner = Kd'.permuteˢ (finalPermˢ g) ∘ˢ Krun-K
 
-      Kperm-relabel
-        : castˢ φKsf φKcod (RF.permuteˢ pR) ≈ˢ Kd'.permuteˢ (finalPermˢ g)
+      Kperm-relabel : castˢ φKsf φKcod (RF.permuteˢ pR) ≈ˢ Kd'.permuteˢ (finalPermˢ g)
       Kperm-relabel =
         ≈-trans (≡⇒≈ˢ (cast-irrel φKsf PKd φKcod PKc (RF.permuteˢ pR)))
                 (pvv-relabelˢ injR vl Kd.vlab (Embeds.vlab-injR G K)
@@ -647,17 +640,13 @@ module _
             : RF.permuteˢ (PermProp.++⁺ʳ (map injR s_K_final) pL)
               ≈ˢ castˢ (sym mLsf) (sym mLcod)
                   (RF.permuteˢ pL ⊗ˢ idˢ {map vl (map injR s_K_final)})
-          rframe =
-            cast-flip mLsf mLcod
-              (RF.permuteˢ-frame (map injR s_K_final) pL)
+          rframe = cast-flip mLsf mLcod (RF.permuteˢ-frame (map injR s_K_final) pL)
           -- left frame: `permuteˢ (++⁺ˡ L pR) ≈ castᵦ (id ⊗ permuteˢ pR)`.
           lframe
             : RF.permuteˢ (PermProp.++⁺ˡ (map injL Gd.cod) pR)
               ≈ˢ castˢ (sym mLcod) (sym mLcc)
                   (idˢ {map vl (map injL Gd.cod)} ⊗ˢ RF.permuteˢ pR)
-          lframe =
-            cast-flip mLcod mLcc
-              (permuteˢ-frameˡ (map injL Gd.cod) pR)
+          lframe = cast-flip mLcod mLcc (permuteˢ-frameˡ (map injL Gd.cod) pR)
 
       -- two-sided cast pull-out across `⊗`.
       private
@@ -686,9 +675,7 @@ module _
       ------------------------------------------------------------------
       -- ### `Gc ⊗ Kc` decomposition 2: to `permuteˢ comb ∘ (Gon ⊗ Kclean)`.
 
-      GcKc→comb
-        : Gc ⊗ˢ Kc
-          ≈ˢ (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR) ∘ˢ (Gon' ⊗ˢ Kclean')
+      GcKc→comb : Gc ⊗ˢ Kc ≈ˢ (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR) ∘ˢ (Gon' ⊗ˢ Kclean')
       GcKc→comb = ≈-sym interchangeˢ
 
       ------------------------------------------------------------------
@@ -739,8 +726,7 @@ module _
       -- interchange `KCln ∘ (permuteˢ pf₀ ∘ G-framed) ≈ castₓ (Gon' ⊗ Kclean')`.
 
       G-framed : HomS (map vl Hf.dom) (map vl aG)
-      G-framed = castˢ (sym (map-++ vl Lpre Rsuf)) (sym stkQ)
-                       (Gon ⊗ˢ idˢ {map vl Rsuf})
+      G-framed = castˢ (sym (map-++ vl Lpre Rsuf)) (sym stkQ) (Gon ⊗ˢ idˢ {map vl Rsuf})
 
       pf₀ : aG Perm.↭ sG ++ Rsuf
       pf₀ = Perm.↭-reflexive sep
@@ -870,13 +856,11 @@ module _
           open EquivStep ⟪ fg ⟫ using (pvv-transˢ; pvv-inverse-leftˢ)
 
           cand : RF.s-finˢ Perm.↭ Hf.cod
-          cand = subst (Perm._↭ Hf.cod) stkSplit₀
-                   (Perm.trans (Perm.↭-sym Br) comb)
+          cand = subst (Perm._↭ Hf.cod) stkSplit₀ (Perm.trans (Perm.↭-sym Br) comb)
 
           -- the inner W = castˢ … (Gon ⊗ Kclean) (from `inner-frame`).
           W : HomS (map vl Hf.dom) (map vl (sG ++ Kfin))
-          W = castˢ (sym (map-++ vl Lpre Rsuf)) (sym (map-++ vl sG Kfin))
-                    (Gon ⊗ˢ Kclean)
+          W = castˢ (sym (map-++ vl Lpre Rsuf)) (sym (map-++ vl sG Kfin)) (Gon ⊗ˢ Kclean)
 
           -- Step A: `Krun ∘ G-framed ≈ permuteˢ Br ∘ W`.
           stepA : Krun ∘ˢ G-framed ≈ˢ RF.permuteˢ Br ∘ˢ W
@@ -912,8 +896,7 @@ module _
           WQ = trans (sym (cong₂ _++_ (cong (map vl) sG≡) (cong (map vl) Kfin≡)))
                      (sym (map-++ vl sG Kfin))
 
-          W-primed
-            : W ≈ˢ castˢ (sym (map-++ vl Lpre Rsuf)) WQ (Gon' ⊗ˢ Kclean')
+          W-primed : W ≈ˢ castˢ (sym (map-++ vl Lpre Rsuf)) WQ (Gon' ⊗ˢ Kclean')
           W-primed =
             ≈-trans (cast-resp (sym (map-++ vl Lpre Rsuf)) (sym (map-++ vl sG Kfin))
                        GK→primed)

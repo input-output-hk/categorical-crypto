@@ -44,8 +44,7 @@ open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; _≅_)
 open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
   using (permute; permute-via-vlab)
-open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (Agen-edge-aux)
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig using (Agen-edge-aux)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeStepRelation sig
   using (box-of; fire-mid)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.HomTermTransport sig
@@ -160,12 +159,8 @@ permute-++⁺ˡ-slide (w ∷ ws) {as} {bs} ν = begin
         v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
         v5 = V 5F
         -- generators: permute ν, toW', fromW'
-        open Sig {3} (λ { 0F → v2 , v3
-                        ; 1F → v1 ⊗ᵒ v3 , v5
-                        ; 2F → v4 , v1 ⊗ᵒ v2 })
-        open WithGen (λ { (genS 0F) → permute ν
-                        ; (genS 1F) → toW'
-                        ; (genS 2F) → fromW' })
+        open Sig {3} (λ { 0F → v2 , v3 ; 1F → v1 ⊗ᵒ v3 , v5 ; 2F → v4 , v1 ⊗ᵒ v2 })
+        open WithGen (λ { (genS 0F) → permute ν ; (genS 1F) → toW' ; (genS 2F) → fromW' })
         gν = gen 0F ; gto = gen 1F ; gfrom = gen 2F
         lhsᵗ rhsᵗ : S.HomTerm (v0 ⊗ᵒ v4) (v0 ⊗ᵒ v5)
         lhsᵗ = S._⊗₁_ S.id (S._∘_ gto (S._∘_ (S._⊗₁_ S.id gν) gfrom))
@@ -190,8 +185,7 @@ module _ (K : FaithfulnessResidual) where
       sym-ev = eval-↭-sym ν
 
       self-loop-id : eval-↭ (Perm.trans (Perm.↭-sym ν) ν) ≈-fb id-fb
-      self-loop-id i =
-        trans (cong (ev P.⟨$⟩ʳ_) (sym-ev i)) (P.inverseʳ ev)
+      self-loop-id i = trans (cong (ev P.⟨$⟩ʳ_) (sym-ev i)) (P.inverseʳ ev)
 
   --------------------------------------------------------------------
   -- Generic box-of equivariance under a residual permutation.

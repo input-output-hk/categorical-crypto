@@ -16,8 +16,7 @@ module Categories.APROP.Hypergraph.Solver.Match.Search (sig-dec : APROPSignature
 open APROPSignatureDec sig-dec
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Solver.Match.PBij
-  using (PBij; forward)
+open import Categories.APROP.Hypergraph.Solver.Match.PBij using (PBij; forward)
 open import Categories.APROP.Hypergraph.Solver.Match.Match sig-dec
   using (matchEdge; VertexBij; EdgeBij)
 
@@ -31,10 +30,7 @@ open import Data.Product using (_×_; _,_)
 -- The first unmatched H-edge (`forward ψ e ≡ nothing`), or `nothing` when
 -- all edges are matched (the search exit condition).
 
-firstUnmatched
-  : ∀ {nEH nEJ}
-  → PBij nEH nEJ
-  → Maybe (Fin nEH)
+firstUnmatched : ∀ {nEH nEJ} → PBij nEH nEJ → Maybe (Fin nEH)
 firstUnmatched {nEH} ψ = go nEH (λ i → i)
   where
     go : (count : ℕ) → (Fin count → Fin nEH) → Maybe (Fin nEH)
@@ -64,16 +60,14 @@ module _
   ... | nothing = just (φ , ψ)
   ... | just e  = tryAll (matchEdge H J φ ψ e)
     where
-      tryAll : List (VertexBij H J × EdgeBij H J)
-             → Maybe (VertexBij H J × EdgeBij H J)
+      tryAll : List (VertexBij H J × EdgeBij H J) → Maybe (VertexBij H J × EdgeBij H J)
       tryAll []              = nothing
       tryAll ((φ' , ψ') ∷ xs) with searchIso k φ' ψ'
       ... | just res = just res
       ... | nothing  = tryAll xs
 
   -- Fuel bounded by the search-tree upper bound.
-  searchIso-default : VertexBij H J → EdgeBij H J
-                    → Maybe (VertexBij H J × EdgeBij H J)
+  searchIso-default : VertexBij H J → EdgeBij H J → Maybe (VertexBij H J × EdgeBij H J)
   searchIso-default = searchIso (nEH * nEJ)
 
   -- Enumerate ALL complete matches (in DFS order), not just the first.
@@ -91,11 +85,9 @@ module _
   ... | nothing = (φ , ψ) ∷ []
   ... | just e  = tryAll (matchEdge H J φ ψ e)
     where
-      tryAll : List (VertexBij H J × EdgeBij H J)
-             → List (VertexBij H J × EdgeBij H J)
+      tryAll : List (VertexBij H J × EdgeBij H J) → List (VertexBij H J × EdgeBij H J)
       tryAll []               = []
       tryAll ((φ' , ψ') ∷ xs) = searchAll k φ' ψ' ++ tryAll xs
 
-  searchAll-default : VertexBij H J → EdgeBij H J
-                    → List (VertexBij H J × EdgeBij H J)
+  searchAll-default : VertexBij H J → EdgeBij H J → List (VertexBij H J × EdgeBij H J)
   searchAll-default = searchAll (nEH * nEJ)

@@ -79,8 +79,7 @@ module _ (G : Hypergraph FlatGen) where
        : (s' : List (Fin G.nV))
        → HomTerm (unflatten (map G.vlab s)) (unflatten (map G.vlab s'))
        → Set where
-    skipR : extract-prefix (G.ein e) s ≡ nothing
-          → EdgeStepR s e s id
+    skipR : extract-prefix (G.ein e) s ≡ nothing → EdgeStepR s e s id
     fireR : ∀ (rest : List (Fin G.nV)) (perm : s Perm.↭ G.ein e ++ rest)
           → extract-prefix (G.ein e) s ≡ just (rest , perm)
           → EdgeStepR s e (G.eout e ++ rest) (fire-term e s rest perm)

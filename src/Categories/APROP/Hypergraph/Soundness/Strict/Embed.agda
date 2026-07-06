@@ -23,8 +23,7 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Embed
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-  using (unflatten; unflatten-++-≅)
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig using (unflatten; unflatten-++-≅)
 open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
   using ( cancel-mid-iso; c-iso-assoc-to; c-iso-assoc-from
         ; subst-id-dom; subst-id-cod )
@@ -34,8 +33,7 @@ open import Categories.FreeStrictSMC using (module Build)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
 open import Data.Product using (_,_)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
@@ -118,8 +116,7 @@ module EmbResp
   emb-resp-≈ˢ (≈-sym e)        = ≈-Term-sym (emb-resp-≈ˢ e)
   emb-resp-≈ˢ (≈-trans e e')   = ≈-Term-trans (emb-resp-≈ˢ e) (emb-resp-≈ˢ e')
   emb-resp-≈ˢ (∘-resp e e')    = ∘-resp-≈ (emb-resp-≈ˢ e) (emb-resp-≈ˢ e')
-  emb-resp-≈ˢ (⊗-resp e e')    =
-    refl⟩∘⟨ (⊗-resp-≈ (emb-resp-≈ˢ e) (emb-resp-≈ˢ e') ⟩∘⟨refl)
+  emb-resp-≈ˢ (⊗-resp e e')    = refl⟩∘⟨ (⊗-resp-≈ (emb-resp-≈ˢ e) (emb-resp-≈ˢ e') ⟩∘⟨refl)
   emb-resp-≈ˢ idˡ              = idˡ
   emb-resp-≈ˢ idʳ              = idʳ
   emb-resp-≈ˢ assocˢ           = FM.assoc
@@ -218,9 +215,7 @@ private
     N   = ef ⊗₁ (eg ⊗₁ eh)
 
     -- E ≈ Sd₂ ∘ emb (f ⊗ (g ⊗ h)) ∘ Sc₁
-    core
-      : emb ((f ⊗ˢ g) ⊗ˢ h)
-        ≈Term Sd₂ ∘ emb (f ⊗ˢ (g ⊗ˢ h)) ∘ Sc₁
+    core : emb ((f ⊗ˢ g) ⊗ˢ h) ≈Term Sd₂ ∘ emb (f ⊗ˢ (g ⊗ˢ h)) ∘ Sc₁
     core = begin
       T (ys ++ vs) qs ∘ ((T ys vs ∘ (ef ⊗₁ eg) ∘ F xs us) ⊗₁ eh) ∘ F (xs ++ us) ps
         ≈⟨ refl⟩∘⟨ (⊗-resp-≈ ≈-Term-refl (≈-Term-sym (≈-Term-trans idˡ idʳ)) ⟩∘⟨refl) ⟩
@@ -268,9 +263,7 @@ private
         ≈⟨ refl⟩∘⟨ ≈-Term-sym FM.assoc ⟩
       Sd₂ ∘ (T ys (vs ++ qs) ∘ (ef ⊗₁ (T vs qs ∘ (eg ⊗₁ eh) ∘ F us ps)) ∘ F xs (us ++ ps)) ∘ Sc₁ ∎
 
-    main
-      : Sc₂ ∘ emb ((f ⊗ˢ g) ⊗ˢ h) ∘ Sd₁
-        ≈Term emb (f ⊗ˢ (g ⊗ˢ h))
+    main : Sc₂ ∘ emb ((f ⊗ˢ g) ⊗ˢ h) ∘ Sd₁ ≈Term emb (f ⊗ˢ (g ⊗ˢ h))
     main = begin
       Sc₂ ∘ emb ((f ⊗ˢ g) ⊗ˢ h) ∘ Sd₁
         ≈⟨ refl⟩∘⟨ (core ⟩∘⟨refl) ⟩
@@ -294,8 +287,7 @@ private
 -- The `⊗-unitʳˢ` case — the right-unit payment (a small induction on the
 -- left block, closed by Kelly's coherence₂/₃).
 
-open import Categories.Category.Monoidal.Properties Monoidal-FreeMonoidal
-  using (module Kelly's)
+open import Categories.Category.Monoidal.Properties Monoidal-FreeMonoidal using (module Kelly's)
 open Kelly's using (coherence₂; coherence₃)
 
 private
@@ -322,8 +314,7 @@ private
     id ⊗₁ ρ⇐ ∎
     where
       lem : (id ⊗₁ ρ⇐) ∘ (id ⊗₁ ρ⇒) ≈Term id {A ⊗₀ (B ⊗₀ unit)}
-      lem = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-              (≈-Term-trans (⊗-resp-≈ idˡ ρ⇐∘ρ⇒≈id) id⊗id≈id)
+      lem = ≈-Term-trans (≈-Term-sym ⊗-∘-dist) (≈-Term-trans (⊗-resp-≈ idˡ ρ⇐∘ρ⇒≈id) id⊗id≈id)
 
   subst-cod-cons
     : ∀ {x : X} {a b} (e : a ≡ b)
@@ -332,10 +323,7 @@ private
 
   -- T a [] ∘ ρ⇐  collapses to a pure cast
   TR : ∀ a → T a [] ∘ ρ⇐ ≈Term subst-id-cod (sym (++-identityʳ a))
-  TR [] = begin
-    λ⇒ ∘ ρ⇐    ≈⟨ coherence₃ ⟩∘⟨refl ⟩
-    ρ⇒ ∘ ρ⇐    ≈⟨ ρ⇒∘ρ⇐≈id ⟩
-    id ∎
+  TR [] = begin λ⇒ ∘ ρ⇐    ≈⟨ coherence₃ ⟩∘⟨refl ⟩ ρ⇒ ∘ ρ⇐    ≈⟨ ρ⇒∘ρ⇐≈id ⟩ id ∎
   TR (x ∷ a) = begin
     ((id ⊗₁ T a []) ∘ α⇒) ∘ ρ⇐
       ≈⟨ FM.assoc ⟩
@@ -444,11 +432,9 @@ private
         ≈⟨ idʳ ⟩
       ef ∎
       where
-        cast-fold : ∀ {a b} (p : a ≡ b)
-                  → subst-id-cod p ∘ subst-id-cod (sym p) ≈Term id
+        cast-fold : ∀ {a b} (p : a ≡ b) → subst-id-cod p ∘ subst-id-cod (sym p) ≈Term id
         cast-fold refl = idˡ
-        cast-fold′ : ∀ {a b} (p : a ≡ b)
-                   → subst-id-dom (sym p) ∘ subst-id-dom p ≈Term id
+        cast-fold′ : ∀ {a b} (p : a ≡ b) → subst-id-dom (sym p) ∘ subst-id-dom p ≈Term id
         cast-fold′ refl = idˡ
 
 --------------------------------------------------------------------------------
@@ -588,10 +574,8 @@ private
 
 private
   -- α⇒ ∘ (α⇐ ∘ W) ≈ W
-  junction : ∀ {A B C D} {W : HomTerm A (B ⊗₀ (C ⊗₀ D))}
-           → α⇒ ∘ (α⇐ ∘ W) ≈Term W
-  junction = ≈-Term-trans (≈-Term-sym FM.assoc)
-               (≈-Term-trans (α⇒∘α⇐≈id ⟩∘⟨refl) idˡ)
+  junction : ∀ {A B C D} {W : HomTerm A (B ⊗₀ (C ⊗₀ D))} → α⇒ ∘ (α⇐ ∘ W) ≈Term W
+  junction = ≈-Term-trans (≈-Term-sym FM.assoc) (≈-Term-trans (α⇒∘α⇐≈id ⟩∘⟨refl) idˡ)
 
   tidyL : ∀ xs zs → (T zs xs ∘ σ ∘ F xs zs) ∘ T xs zs ≈Term T zs xs ∘ σ
   tidyL xs zs = begin
@@ -910,8 +894,7 @@ private
                  ((σˢ xs zs ⊗ˢ idˢ {ys})
                    ∘ˢ castˢ refl (sym (++-assoc xs zs ys))
                         (idˢ {xs} ⊗ˢ σˢ ys zs)))
-σ-hex-case xs ys zs =
-  ≈-Term-trans (lhs→N xs ys zs) (≈-Term-sym (rhs→N xs ys zs))
+σ-hex-case xs ys zs = ≈-Term-trans (lhs→N xs ys zs) (≈-Term-sym (rhs→N xs ys zs))
 
 --------------------------------------------------------------------------------
 -- The `σ-unitˢ` case — unit braiding collapses to the right-unit cast.
@@ -919,16 +902,12 @@ private
 -- (`unflatten-++-≅ [] = ≅.sym unitorˡ`), so the case is
 -- `braiding-coherence-inv` + the `TR` induction from the `⊗-unitʳˢ` case.
 
-open import Categories.Category.Monoidal.Symmetric Monoidal-FreeMonoidal
-  using (Symmetric)
+open import Categories.Category.Monoidal.Symmetric Monoidal-FreeMonoidal using (Symmetric)
 open import Categories.Category.Monoidal.Braided.Properties
   (Symmetric.braided Symmetric-Monoidal)
   using (braiding-coherence-inv)
 
-σ-unit-case
-  : ∀ xs
-  → emb (σˢ [] xs)
-    ≈Term emb (castˢ refl (sym (++-identityʳ xs)) (idˢ {xs}))
+σ-unit-case : ∀ xs → emb (σˢ [] xs) ≈Term emb (castˢ refl (sym (++-identityʳ xs)) (idˢ {xs}))
 σ-unit-case xs = begin
   T xs [] ∘ σ ∘ λ⇐
     ≈⟨ refl⟩∘⟨ braiding-coherence-inv ⟩
@@ -938,8 +917,7 @@ open import Categories.Category.Monoidal.Braided.Properties
     ≈⟨ rhs ⟨
   emb (castˢ refl (sym (++-identityʳ xs)) (idˢ {xs})) ∎
   where
-    rhs : emb (castˢ refl (sym (++-identityʳ xs)) (idˢ {xs}))
-          ≈Term subst-id-cod (sym (++-identityʳ xs))
+    rhs : emb (castˢ refl (sym (++-identityʳ xs)) (idˢ {xs})) ≈Term subst-id-cod (sym (++-identityʳ xs))
     rhs =
       ≈-Term-trans
         (≡⇒≈Term (emb-cast refl (sym (++-identityʳ xs)) idˢ))

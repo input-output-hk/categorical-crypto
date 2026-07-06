@@ -88,8 +88,7 @@ eqH? (_∘_ {B = M} f₂ f₁) (_∘_ {B = N} g₂ g₁) refl refl with M ≟-Ob
 ... | yes refl with eqH? f₂ g₂ refl refl | eqH? f₁ g₁ refl refl
 ...   | just e₂ | just e₁ = just (cong₂ _∘_ e₂ e₁)
 ...   | _       | _       = nothing
-eqH? (f₁ ⊗₁ f₂) (g₁ ⊗₁ g₂) refl refl
-  with eqH? f₁ g₁ refl refl | eqH? f₂ g₂ refl refl
+eqH? (f₁ ⊗₁ f₂) (g₁ ⊗₁ g₂) refl refl with eqH? f₁ g₁ refl refl | eqH? f₂ g₂ refl refl
 ... | just e₁ | just e₂ = just (cong₂ _⊗₁_ e₁ e₂)
 ... | _       | _       = nothing
 eqH? λ⇒ λ⇒ p refl with uip p refl
@@ -118,9 +117,7 @@ eq? f g = eqH? f g refl refl
 -- that only inspect `is-just`.
 
 fallback : ∀ {A B} (f g : HomTerm A B) → Maybe (f ≈Term g)
-fallback f g =
-  Maybe.map (λ iso → soundness {f = f} {g = g} iso)
-            (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫)
+fallback f g = Maybe.map (λ iso → soundness {f = f} {g = g} iso) (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫)
 
 --------------------------------------------------------------------------------
 -- The splitting solver.  Structural recursion (only on subterms); failure
@@ -285,9 +282,7 @@ mutual
   ... | _         | _         = [ f ⊗₁ g ]
 
   reassocBal : ∀ {A B} → HomTerm A B → HomTerm A B
-  reassocBal f =
-    let c = dropIdC (cancelC (dropIdC (flat∘ f)))
-    in balC (lenC c) c
+  reassocBal f = let c = dropIdC (cancelC (dropIdC (flat∘ f))) in balC (lenC c) c
 
 reassoc-sound : ∀ {A B} (f : HomTerm A B) → reassoc f ≈Term f
 reassoc-sound (g ∘ f)  = ≈-Term-trans (comp-sound (reassoc g) (reassoc f))

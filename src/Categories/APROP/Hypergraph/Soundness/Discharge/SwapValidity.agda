@@ -42,8 +42,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-edges; edge-step; extract-prefix)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual; extract-prefix-↭-nothing)
-open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
-  using (Linear)
+open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
 -- Imported read-only: `PH.Valid`, `PH.↝`, `PH.Order`, and the LinExt
 -- instantiation (`Incomp`, `swap-step`).
@@ -56,8 +55,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
 -- `Sub/RunInterchangeEmptyTail`).
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.FireMidInterchangeComb sig as FMIC
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
-  using (Dep)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin)
@@ -191,8 +189,7 @@ module PerHG (H : Hypergraph FlatGen)
     → a Perm.↭ b
     → pe-stack qs a Perm.↭ pe-stack qs b
   pe-stack-resp-↭ []       a↭b = a↭b
-  pe-stack-resp-↭ (e ∷ qs) {a} {b} a↭b =
-    pe-stack-resp-↭ qs (edge-step-stack-resp-↭ e a↭b)
+  pe-stack-resp-↭ (e ∷ qs) {a} {b} a↭b = pe-stack-resp-↭ qs (edge-step-stack-resp-↭ e a↭b)
 
   ------------------------------------------------------------------------
   -- BOTH-FIRE multiset bridge + FIRING STABILITY, shared with
@@ -227,11 +224,9 @@ module PerHG (H : Hypergraph FlatGen)
       s-e'≡s : proj₁ (edge-step H s e') ≡ s
       s-e'≡s = step-stack-skip e' s eqe'
       lhs≡s : proj₁ (edge-step H (proj₁ (edge-step H s e )) e') ≡ s
-      lhs≡s = trans (cong (λ x → proj₁ (edge-step H x e')) s-e≡s)
-                    (step-stack-skip e' s eqe')
+      lhs≡s = trans (cong (λ x → proj₁ (edge-step H x e')) s-e≡s) (step-stack-skip e' s eqe')
       rhs≡s : proj₁ (edge-step H (proj₁ (edge-step H s e')) e ) ≡ s
-      rhs≡s = trans (cong (λ x → proj₁ (edge-step H x e )) s-e'≡s)
-                    (step-stack-skip e s eqe)
+      rhs≡s = trans (cong (λ x → proj₁ (edge-step H x e )) s-e'≡s) (step-stack-skip e s eqe)
 
   -- Both edges fire in BOTH orders ⇒ `post-swap-stack-↭` closes it.
   two-edge-swap-both-fire
@@ -252,13 +247,11 @@ module PerHG (H : Hypergraph FlatGen)
     subst₂ Perm._↭_ (sym lhs≡) (sym rhs≡)
       (post-swap-stack-↭ e e' s r₁ r₂ r₁' r₂' p₁ p₂ p₂' p₁')
     where
-      lhs≡ : proj₁ (edge-step H (proj₁ (edge-step H s e )) e')
-           ≡ H.eout e' ++ r₂
+      lhs≡ : proj₁ (edge-step H (proj₁ (edge-step H s e )) e') ≡ H.eout e' ++ r₂
       lhs≡ = trans (cong (λ x → proj₁ (edge-step H x e'))
                          (step-stack-fire e s r₁ p₁ eqe))
                    (step-stack-fire e' (H.eout e ++ r₁) r₂ p₂ eqe2)
-      rhs≡ : proj₁ (edge-step H (proj₁ (edge-step H s e')) e )
-           ≡ H.eout e ++ r₁'
+      rhs≡ : proj₁ (edge-step H (proj₁ (edge-step H s e')) e ) ≡ H.eout e ++ r₁'
       rhs≡ = trans (cong (λ x → proj₁ (edge-step H x e ))
                          (step-stack-fire e' s r₂' p₂' eqe'))
                    (step-stack-fire e (H.eout e' ++ r₂') r₁' p₁' eqe1)
@@ -295,22 +288,18 @@ module PerHG (H : Hypergraph FlatGen)
             → proj₁ (edge-step H (proj₁ (edge-step H s e )) e')
               Perm.↭
               proj₁ (edge-step H (proj₁ (edge-step H s e')) e )
-          decide-e'-after-eskip nothing eqe' =
-            two-edge-swap-both-skip s eqe eqe'         -- both skip
+          decide-e'-after-eskip nothing eqe' = two-edge-swap-both-skip s eqe eqe'         -- both skip
           decide-e'-after-eskip (just (r₂' , p₂')) eqe' =
             -- e skips, e' fires: both orders end at `eout e' ++ r₂'`.
             subst₂ Perm._↭_ (sym lhs≡) (sym rhs≡) Perm.refl
             where
               e-skips-post : extract-prefix (H.ein e) (H.eout e' ++ r₂') ≡ nothing
-              e-skips-post =
-                e'-skips-stable (λ eq → e≢e' (sym eq)) ¬dep-e'e r₂' s p₂' eqe
-              lhs≡ : proj₁ (edge-step H (proj₁ (edge-step H s e )) e')
-                   ≡ H.eout e' ++ r₂'
+              e-skips-post = e'-skips-stable (λ eq → e≢e' (sym eq)) ¬dep-e'e r₂' s p₂' eqe
+              lhs≡ : proj₁ (edge-step H (proj₁ (edge-step H s e )) e') ≡ H.eout e' ++ r₂'
               lhs≡ = trans (cong (λ x → proj₁ (edge-step H x e'))
                                  (step-stack-skip e s eqe))
                            (step-stack-fire e' s r₂' p₂' eqe')
-              rhs≡ : proj₁ (edge-step H (proj₁ (edge-step H s e')) e )
-                   ≡ H.eout e' ++ r₂'
+              rhs≡ : proj₁ (edge-step H (proj₁ (edge-step H s e')) e ) ≡ H.eout e' ++ r₂'
               rhs≡ = trans (cong (λ x → proj₁ (edge-step H x e ))
                                  (step-stack-fire e' s r₂' p₂' eqe'))
                            (step-stack-skip e (H.eout e' ++ r₂') e-skips-post)
@@ -338,13 +327,11 @@ module PerHG (H : Hypergraph FlatGen)
               decide-e'-from-s-skip nothing eqe'n =
                 subst₂ Perm._↭_ (sym lhs≡) (sym rhs≡) Perm.refl
                 where
-                  lhs≡ : proj₁ (edge-step H (proj₁ (edge-step H s e )) e')
-                       ≡ H.eout e ++ r₁
+                  lhs≡ : proj₁ (edge-step H (proj₁ (edge-step H s e )) e') ≡ H.eout e ++ r₁
                   lhs≡ = trans (cong (λ x → proj₁ (edge-step H x e'))
                                      (step-stack-fire e s r₁ p₁ eqe))
                                (step-stack-skip e' (H.eout e ++ r₁) eqe2)
-                  rhs≡ : proj₁ (edge-step H (proj₁ (edge-step H s e')) e )
-                       ≡ H.eout e ++ r₁
+                  rhs≡ : proj₁ (edge-step H (proj₁ (edge-step H s e')) e ) ≡ H.eout e ++ r₁
                   rhs≡ = trans (cong (λ x → proj₁ (edge-step H x e ))
                                      (step-stack-skip e' s eqe'n))
                                (step-stack-fire e s r₁ p₁ eqe)
@@ -396,8 +383,7 @@ module PerHG (H : Hypergraph FlatGen)
     : ∀ (qs : PH.Order) {e e' : Fin H.nE}
         (inc : Incomp e e') (s : List (Fin H.nV))
     → pe-stack (e ∷ e' ∷ qs) s  Perm.↭  pe-stack (e' ∷ e ∷ qs) s
-  front-swap-stack-↭ qs {e} {e'} inc s =
-    pe-stack-resp-↭ qs (two-edge-swap-stack-↭ inc s)
+  front-swap-stack-↭ qs {e} {e'} inc s = pe-stack-resp-↭ qs (two-edge-swap-stack-↭ inc s)
 
   ------------------------------------------------------------------------
   -- (general swap) reduce to the front swap via `++-stack`, then apply

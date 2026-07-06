@@ -56,9 +56,7 @@ open import Categories.Hypergraph.ExtractPrefix public
 
 -- Specialised search for an exact multiset match: look for `ks`
 -- with empty residual.  Used at the final step to bridge to `H.cod`.
-extract-exact
-  : ∀ {n} (ks xs : List (Fin n))
-  → Maybe (xs Perm.↭ ks)
+extract-exact : ∀ {n} (ks xs : List (Fin n)) → Maybe (xs Perm.↭ ks)
 extract-exact ks xs with extract-prefix ks xs
 ... | nothing       = nothing
 ... | just ([]    , p) = just (Perm.trans p (++-[]-↭ ks))
@@ -109,8 +107,7 @@ module _ (H : Hypergraph FlatGen) where
       rest-l = map H.vlab rest
 
       -- Apply the edge generator at the front, identity on the rest.
-      mid : HomTerm (unflatten (ein-l  ++ rest-l))
-                    (unflatten (eout-l ++ rest-l))
+      mid : HomTerm (unflatten (ein-l  ++ rest-l)) (unflatten (eout-l ++ rest-l))
       mid = _≅_.to   (unflatten-++-≅ eout-l rest-l)
             ∘ (Agen-edge e ⊗₁ id)
             ∘ _≅_.from (unflatten-++-≅ ein-l  rest-l)
@@ -170,8 +167,7 @@ module _ (H : Hypergraph FlatGen) where
   -- Run the algorithm from `H.dom`, then bridge the final stack to
   -- `H.cod` via a final permute.
 
-  decode-attempt
-    : Maybe (HomTerm (unflatten (domL H)) (unflatten (codL H)))
+  decode-attempt : Maybe (HomTerm (unflatten (domL H)) (unflatten (codL H)))
   decode-attempt with process-all-edges H.dom
   ... | (s_final , process-term) with extract-exact H.cod s_final
   ...    | nothing   = nothing

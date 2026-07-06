@@ -35,8 +35,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; hId; range)
-open import Categories.APROP.Hypergraph.Model.Translation sig
-  using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
+open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.HomTermTransport
   sig using (Linear⇒cod-Unique)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
@@ -164,8 +163,7 @@ module _
       sc : RF.s-finˢ ≡ Hf.cod
       sc = trans s≡ dc
 
-      perm≡ : RF.permuteˢ (finalPermˢ f)
-              ≈ˢ coe (cong (map Hf.vlab) sc)
+      perm≡ : RF.permuteˢ (finalPermˢ f) ≈ˢ coe (cong (map Hf.vlab) sc)
       perm≡ = T.perm-trivial sc uniqCod (finalPermˢ f)
 
       run≈ : proj₂ RF.runˢ ≈ˢ coe (cong (map Hf.vlab) (sym s≡))
@@ -182,9 +180,7 @@ module _
                    bcast))
 
     -- the structural-atom shape
-    shape
-      : decodePˢ f
-        ≈ˢ castˢ (⟪⟫-domL f) (trans bcast (⟪⟫-codL f)) (idˢ {domL ⟪ f ⟫})
+    shape : decodePˢ f ≈ˢ castˢ (⟪⟫-domL f) (trans bcast (⟪⟫-codL f)) (idˢ {domL ⟪ f ⟫})
     shape =
       ≈-trans (cast-resp (⟪⟫-domL f) (⟪⟫-codL f) inner≈)
         (≡⇒≈ˢ (cast-fuse refl (⟪⟫-domL f) bcast (⟪⟫-codL f) idˢ))
@@ -226,23 +222,18 @@ module _
       ≈ˢ coe (trans (sym (⟪⟫-domL f))
                     (trans (cong (map (Hypergraph.vlab ⟪ f ⟫)) dc)
                            (⟪⟫-codL f)))
-  shape-coe f nE≡0 dc =
-    ≈-trans (Atom.shape f nE≡0 dc)
-            (cast-id-coe (⟪⟫-domL f) _)
+  shape-coe f nE≡0 dc = ≈-trans (Atom.shape f nE≡0 dc) (cast-id-coe (⟪⟫-domL f) _)
 
   module _ {A : ObjTerm} where
     -- id, λ⇒, λ⇐  →  idˢ
     decodePˢ-id : decodePˢ (id {A}) ≈ˢ st (id {A})
-    decodePˢ-id =
-      ≈-trans (shape-coe (id {A}) (hId-nE A) (hId-dc A)) (coe-id≈ _)
+    decodePˢ-id = ≈-trans (shape-coe (id {A}) (hId-nE A) (hId-dc A)) (coe-id≈ _)
 
     decodePˢ-λ⇒ : decodePˢ (λ⇒ {A}) ≈ˢ st (λ⇒ {A})
-    decodePˢ-λ⇒ =
-      ≈-trans (shape-coe (λ⇒ {A}) (hId-nE A) (hId-dc A)) (coe-id≈ _)
+    decodePˢ-λ⇒ = ≈-trans (shape-coe (λ⇒ {A}) (hId-nE A) (hId-dc A)) (coe-id≈ _)
 
     decodePˢ-λ⇐ : decodePˢ (λ⇐ {A}) ≈ˢ st (λ⇐ {A})
-    decodePˢ-λ⇐ =
-      ≈-trans (shape-coe (λ⇐ {A}) (hId-nE A) (hId-dc A)) (coe-id≈ _)
+    decodePˢ-λ⇐ = ≈-trans (shape-coe (λ⇐ {A}) (hId-nE A) (hId-dc A)) (coe-id≈ _)
 
     -- ρ⇒, ρ⇐  →  coe (±++-identityʳ)
     decodePˢ-ρ⇒ : decodePˢ (ρ⇒ {A}) ≈ˢ st (ρ⇒ {A})

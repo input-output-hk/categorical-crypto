@@ -42,10 +42,8 @@ open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; �
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Model.HomTermInvariant sig using (⟪_⟫-cod-unique)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
-  using (Dep)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl sig
-  using (dep-irrefl-⟪⟫)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl sig using (dep-irrefl-⟪⟫)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.FinOrderNoInv sig
   using (fin-order-NoInv-⟪⟫)
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
@@ -86,8 +84,7 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
     lin : Linear F
     lin = DAL.⟪⟫-LinearP f
 
-  open SS.PerHG F dih lin
-    using (Order; Validˢ; decodeOrdˢ) public
+  open SS.PerHG F dih lin using (Order; Validˢ; decodeOrdˢ) public
 
   -- `decodePˢ f` exposed as a boundary cast of `decodeOrdˢ` at `range nE`.
   -- This is the strict twin of `decodeP-≡-decodeOrd-range`, holding `≡ refl`:
@@ -141,8 +138,7 @@ module Boundary {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ 
   decodeOrdˢ-witness-coh
     : ∀ (v w : SF.Validˢ rng-F)
     → SF.decodeOrdˢ rng-F v ≈ˢ SF.decodeOrdˢ rng-F w
-  decodeOrdˢ-witness-coh v w =
-    ∘-resp (perm-rigidˢ-F (⟪ f ⟫-cod-unique) v w) ≈-refl
+  decodeOrdˢ-witness-coh v w = ∘-resp (perm-rigidˢ-F (⟪ f ⟫-cod-unique) v w) ≈-refl
 
   -- The headline boundary lemma.  `wiring≈ : castˢ di ci (decodeOrdˢ-G vg)
   -- ≈ˢ decodeOrdˢ-F vH` is the cross-iso decoder agreement.

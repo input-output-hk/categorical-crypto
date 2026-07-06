@@ -39,8 +39,7 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
-  using (Dep)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
@@ -166,8 +165,7 @@ module _ (H : Hypergraph FlatGen)
       r₀ : A Perm.↭ B
       r₀ = RunInterchangeˢ.reshuffle RI₀
 
-      run-eq₀
-        : pe-termˢ (e' ∷ e ∷ []) sp ≈ˢ permuteˢ r₀ ∘ˢ pe-termˢ (e ∷ e' ∷ []) sp
+      run-eq₀ : pe-termˢ (e' ∷ e ∷ []) sp ≈ˢ permuteˢ r₀ ∘ˢ pe-termˢ (e ∷ e' ∷ []) sp
       run-eq₀ = RunInterchangeˢ.run-eq RI₀
 
       equivar
@@ -195,16 +193,11 @@ module _ (H : Hypergraph FlatGen)
       -- bookkeeping.
       ----------------------------------------------------------------
 
-      split₂
-        : pe-termˢ (e' ∷ e ∷ qs) sp ≈ˢ pe-termˢ qs B ∘ˢ pe-termˢ (e' ∷ e ∷ []) sp
-      split₂ =
-        ≈-trans assocˢ
-          (∘-resp ≈-refl (∘-resp (≈-sym idˡ) ≈-refl))
+      split₂ : pe-termˢ (e' ∷ e ∷ qs) sp ≈ˢ pe-termˢ qs B ∘ˢ pe-termˢ (e' ∷ e ∷ []) sp
+      split₂ = ≈-trans assocˢ (∘-resp ≈-refl (∘-resp (≈-sym idˡ) ≈-refl))
 
-      split₁
-        : pe-termˢ qs A ∘ˢ pe-termˢ (e ∷ e' ∷ []) sp ≈ˢ pe-termˢ (e ∷ e' ∷ qs) sp
-      split₁ =
-        ≈-trans (∘-resp ≈-refl (∘-resp idˡ ≈-refl)) (≈-sym assocˢ)
+      split₁ : pe-termˢ qs A ∘ˢ pe-termˢ (e ∷ e' ∷ []) sp ≈ˢ pe-termˢ (e ∷ e' ∷ qs) sp
+      split₁ = ≈-trans (∘-resp ≈-refl (∘-resp idˡ ≈-refl)) (≈-sym assocˢ)
 
       run-eq
         : pe-termˢ (e' ∷ e ∷ qs) sp

@@ -19,8 +19,7 @@ open APROP sig
 -- resolving `bridge-∘` / `bridge-⊗` through `BridgeCoherence`.
 open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeOps sig
   using (bridge-∘; bridge-⊗) public
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (flatten)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (flatten)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-flatten-≈; unflatten-++-≅)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
@@ -193,9 +192,7 @@ bridge-ρ⇒-form A = begin
 --------------------------------------------------------------------------------
 -- ρ⇐-naturality, derived from ρ⇒-naturality + iso laws.
 
-ρ⇐-naturality
-  : ∀ {A B} (f : HomTerm A B)
-  → ρ⇐ {B} ∘ f ≈Term f ⊗₁ id ∘ ρ⇐ {A}
+ρ⇐-naturality : ∀ {A B} (f : HomTerm A B) → ρ⇐ {B} ∘ f ≈Term f ⊗₁ id ∘ ρ⇐ {A}
 ρ⇐-naturality {A} {B} f = solveMor! lhsᵗ rhsᵗ
   where
     open FinSetup FMC ( A Vec.∷ B Vec.∷ Vec.[] )
@@ -265,8 +262,7 @@ bridge-ρ⇐-form A = begin
   where
     inner-from = _≅_.from (unflatten-++-≅ ys [])
 
-    ρ-slide : id {Var y} ⊗₁ (ρ⇒ ∘ inner-from)
-              ≈Term ρ⇒ ∘ α⇐ ∘ id ⊗₁ inner-from
+    ρ-slide : id {Var y} ⊗₁ (ρ⇒ ∘ inner-from) ≈Term ρ⇒ ∘ α⇐ ∘ id ⊗₁ inner-from
     ρ-slide = solveMor! lhsᵗ rhsᵗ
       where
         -- atoms: 0 ↦ Var y, 1 ↦ unflatten ys, 2 ↦ unflatten (ys ++ [])
@@ -310,8 +306,7 @@ bridge-ρ⇐-form A = begin
   where
     inner-to = _≅_.to (unflatten-++-≅ ys [])
 
-    ρ-slide : id {Var y} ⊗₁ (inner-to ∘ ρ⇐)
-              ≈Term (id ⊗₁ inner-to ∘ α⇒) ∘ ρ⇐
+    ρ-slide : id {Var y} ⊗₁ (inner-to ∘ ρ⇐) ≈Term (id ⊗₁ inner-to ∘ α⇒) ∘ ρ⇐
     ρ-slide = solveMor! lhsᵗ rhsᵗ
       where
         -- atoms: 0 ↦ Var y, 1 ↦ unflatten ys, 2 ↦ unflatten (ys ++ [])
@@ -585,5 +580,4 @@ bridge-α⇒-form-unit B C = begin
                    (S._∘_
                      (S._⊗₁_ (S._∘_ (S._⊗₁_ S.id gTB) S.λ⇐) gTC)
                      gcfrom))
-        rhsᵗ = S._∘_ gcto
-                 (S._∘_ (S._⊗₁_ (S._∘_ gFB gTB) (S._∘_ gFC gTC)) gcfrom)
+        rhsᵗ = S._∘_ gcto (S._∘_ (S._⊗₁_ (S._∘_ gFB gTB) (S._∘_ gFC gTC)) gcfrom)

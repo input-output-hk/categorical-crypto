@@ -38,8 +38,7 @@ open Perm using (_↭_)
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
 open import Relation.Nullary using (¬_; yes; no)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
@@ -119,8 +118,7 @@ count≤1⇒Unique {xs = x ∷ xs}  h =
   count0⇒All≢ x∉xs ∷ count≤1⇒Unique tail-h
   where
     x∉xs : count x xs ≡ 0
-    x∉xs = Nat.n≤0⇒n≡0
-             (s≤s⁻¹ (Nat.≤-trans (Nat.≤-reflexive (sym (count-cons-yes x xs))) (h x)))
+    x∉xs = Nat.n≤0⇒n≡0 (s≤s⁻¹ (Nat.≤-trans (Nat.≤-reflexive (sym (count-cons-yes x xs))) (h x)))
     tail-h : count≤1 xs
     tail-h v = Nat.≤-trans (count-mono-cons v x xs) (h v)
 
@@ -129,9 +127,7 @@ count≤1⇒Unique {xs = x ∷ xs}  h =
 --     hence preserves the `count≤1` characterisation, hence preserves `Unique`.
 
 Unique-resp-↭ : {xs ys : List (Fin n)} → xs Perm.↭ ys → Unique xs → Unique ys
-Unique-resp-↭ p uxs =
-  count≤1⇒Unique
-    (λ v → subst (_≤ⁿ 1) (↭⇒count p v) (Unique⇒count≤1 uxs v))
+Unique-resp-↭ p uxs = count≤1⇒Unique (λ v → subst (_≤ⁿ 1) (↭⇒count p v) (Unique⇒count≤1 uxs v))
 
 --------------------------------------------------------------------------------
 -- 4.  The Fin-index `≅↭` family, closed by `eval-rigid`.

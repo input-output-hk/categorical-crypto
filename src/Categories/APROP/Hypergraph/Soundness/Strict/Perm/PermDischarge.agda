@@ -41,8 +41,7 @@ open import Relation.Binary.PropositionalEquality using (refl; sym)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 
-open import Categories.FreeMonoidal
-  using (FreeMonoidalData; Variant; _≤_; v≤v)
+open import Categories.FreeMonoidal using (FreeMonoidalData; Variant; _≤_; v≤v)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.FinBij using (_≈-fb_)
 
@@ -171,10 +170,8 @@ module Discharge (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X)
     permuteˢ-resp-≅↭ⁱ tr-unitʳ      = idˡ
     permuteˢ-resp-≅↭ⁱ tr-assoc      = ≈-sym assocˢ
     permuteˢ-resp-≅↭ⁱ prep-id       = ⊗-id
-    permuteˢ-resp-≅↭ⁱ prep-tr       =
-      ≈-sym (≈-trans interchangeˢ (⊗-resp idˡ ≈-refl))
-    permuteˢ-resp-≅↭ⁱ swap-invol    =
-      ≈-trans interchangeˢ (≈-trans (⊗-resp σ-σˢ idˡ) ⊗-id)
+    permuteˢ-resp-≅↭ⁱ prep-tr       = ≈-sym (≈-trans interchangeˢ (⊗-resp idˡ ≈-refl))
+    permuteˢ-resp-≅↭ⁱ swap-invol    = ≈-trans interchangeˢ (≈-trans (⊗-resp σ-σˢ idˡ) ⊗-id)
     permuteˢ-resp-≅↭ⁱ (swap-nat {p = p})      = swap-nat-case p
     permuteˢ-resp-≅↭ⁱ (swap-nat-left {p = p}) = swap-nat-left-case p
     permuteˢ-resp-≅↭ⁱ swap-braid              = swap-braid-case

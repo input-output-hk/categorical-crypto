@@ -199,12 +199,10 @@ conj-lemma
 conj-lemma refl refl t = ≈-Term-trans (≈-Term-sym idˡ) (refl⟩∘⟨ ≈-Term-sym idʳ)
 
 -- `subst`-identity morphisms on the domain / codomain, over `unflatten`.
-subst-id-dom : ∀ {a b : List X} → a ≡ b
-             → HomTerm (unflatten b) (unflatten a)
+subst-id-dom : ∀ {a b : List X} → a ≡ b → HomTerm (unflatten b) (unflatten a)
 subst-id-dom {a} p = subst (λ z → HomTerm (unflatten z) (unflatten a)) p id
 
-subst-id-cod : ∀ {c d : List X} → c ≡ d
-             → HomTerm (unflatten c) (unflatten d)
+subst-id-cod : ∀ {c d : List X} → c ≡ d → HomTerm (unflatten c) (unflatten d)
 subst-id-cod {c} q = subst (λ z → HomTerm (unflatten c) (unflatten z)) q id
 
 -- `subst`-on-left/right re-expressed across `cong unflatten (sym e)` / `e`.

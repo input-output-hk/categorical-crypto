@@ -102,8 +102,7 @@ module _ (H : Hypergraph FlatGen) where
     : ∀ (e : Fin H.nE) (qs : List (Fin H.nE)) (s : List (Fin H.nV))
     → Reservoir≤1 (e ∷ qs) s
     → Reservoir≤1 qs (proj₁ (edge-step H s e))
-  edge-step-Reservoir≤1 e qs s inv
-      with extract-prefix (H.ein e) s in eq
+  edge-step-Reservoir≤1 e qs s inv with extract-prefix (H.ein e) s in eq
   ... | nothing = inv-skip
     where
       inv-skip : Reservoir≤1 qs s
@@ -119,8 +118,7 @@ module _ (H : Hypergraph FlatGen) where
       inv-fire w =
         Nat.≤-trans new≤old (inv w)
         where
-          post-stack : count w (H.eout e ++ rest)
-                     ≡ count w (H.eout e) + count w rest
+          post-stack : count w (H.eout e ++ rest) ≡ count w (H.eout e) + count w rest
           post-stack = count-++ w (H.eout e) rest
           pre-stack : count w s ≡ count w (H.ein e) + count w rest
           pre-stack = trans (↭⇒count perm w) (count-++ w (H.ein e) rest)
@@ -181,8 +179,7 @@ module _ (H : Hypergraph FlatGen) where
 
     reservoir-range≡concat-tabulate
       : reservoir (range H.nE) ≡ concat (tabulate H.eout)
-    reservoir-range≡concat-tabulate =
-      cong concat (map-range≡tabulate H.eout)
+    reservoir-range≡concat-tabulate = cong concat (map-range≡tabulate H.eout)
 
   ------------------------------------------------------------------------
   -- 3.  Initial reservoir condition from the `producedList` bound.

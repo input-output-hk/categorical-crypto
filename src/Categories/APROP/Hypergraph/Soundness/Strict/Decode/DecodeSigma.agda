@@ -44,8 +44,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; range; map-lookup-range; hSwap)
-open import Categories.APROP.Hypergraph.Model.Translation sig
-  using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
+open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.HomTermTransport
   sig using (Linear⇒cod-Unique)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
@@ -61,8 +60,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_; _++_; map; [_]; length; lookup)
-open import Data.List.Properties
-  using (++-identityʳ; ++-assoc; map-++; map-∘; map-cong)
+open import Data.List.Properties using (++-identityʳ; ++-assoc; map-++; map-∘; map-cong)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Nat using (ℕ; zero; suc) renaming (_+_ to _+ⁿ_)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
@@ -104,9 +102,7 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
     step-σˡ : W₁ ∘ˢ X₁ ≈ˢ idˢ
     step-σˡ = ≈-trans interchangeˢ (≈-trans (⊗-resp σ-σˢ idˡ) ⊗-id)
 
-    u-form
-      : σˢ (b ++ c) a
-        ≈ˢ coe P ∘ˢ (W₁ ∘ˢ ((coe (sym R) ∘ˢ W₂) ∘ˢ coe Q))
+    u-form : σˢ (b ++ c) a ≈ˢ coe P ∘ˢ (W₁ ∘ˢ ((coe (sym R) ∘ˢ W₂) ∘ˢ coe Q))
     u-form =
       ≈-trans (σ-hexˢ b c a)
       (≈-trans (coe-conj (sym Q) P (W₁ ∘ˢ castˢ refl (sym R) W₂))
@@ -119,8 +115,7 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
     M-nest : L ∘ˢ coe (sym P) ≈ˢ X₂ ∘ˢ (coe R ∘ˢ (X₁ ∘ˢ coe (sym P)))
     M-nest = ≈-trans assocˢ (∘-resp ≈-refl assocˢ)
 
-    cancel
-      : σˢ (b ++ c) a ∘ˢ (coe (sym Q) ∘ˢ (L ∘ˢ coe (sym P))) ≈ˢ idˢ
+    cancel : σˢ (b ++ c) a ∘ˢ (coe (sym Q) ∘ˢ (L ∘ˢ coe (sym P))) ≈ˢ idˢ
     cancel =
       ≈-trans (∘-resp u-form ≈-refl)
       (≈-trans assocˢ
@@ -149,8 +144,7 @@ module Scr (V : Set) (vlab : V → X) where
 
   bswap : (L R : List V) → (L ++ R) ↭ (R ++ L)
   bswap []      R = Perm.↭-reflexive (sym (++-identityʳ R))
-  bswap (v ∷ L) R = Perm.trans (Perm.prep v (bswap L R))
-                               (Perm.↭-sym (PermProp.shift v R L))
+  bswap (v ∷ L) R = Perm.trans (Perm.prep v (bswap L R)) (Perm.↭-sym (PermProp.shift v R L))
 
   refl-trivial
     : ∀ {xs ys : List V} (e : xs ≡ ys)
@@ -283,11 +277,9 @@ module _
       nB = length (flatten B)
 
       vlab-inL : ∀ (i : Fin nA) → Hf.vlab (i ↑ˡ nB) ≡ lookup (flatten A) i
-      vlab-inL i = cong [ lookup (flatten A) , lookup (flatten B) ]′
-                        (splitAt-↑ˡ nA i nB)
+      vlab-inL i = cong [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt-↑ˡ nA i nB)
       vlab-inR : ∀ (i : Fin nB) → Hf.vlab (nA ↑ʳ i) ≡ lookup (flatten B) i
-      vlab-inR i = cong [ lookup (flatten A) , lookup (flatten B) ]′
-                        (splitAt-↑ʳ nA nB i)
+      vlab-inR i = cong [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt-↑ʳ nA nB i)
 
       mLblk≡ : map Hf.vlab Lblk ≡ flatten A
       mLblk≡ = trans (sym (map-∘ (range nA)))
@@ -307,8 +299,7 @@ module _
       -- non-strict proof invokes K-faithfulness).
       perm≈ : RF.permuteˢ (finalPermˢ f)
               ≈ˢ RF.permuteˢ (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
-      perm≈ = perm-rigidˢ K uniqCod (finalPermˢ f)
-                          (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
+      perm≈ = perm-rigidˢ K uniqCod (finalPermˢ f) (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
 
     -- the block-swap identity at the hSwap blocks (the residual `bswap-σ`).
     σ-block-≈
@@ -355,8 +346,7 @@ module _
     -- block braiding (in vertex labels), modulo the run-collapse cast.
     private
       D0 : map Hf.vlab Lblk ++ map Hf.vlab Rblk ≡ map Hf.vlab RF.s-finˢ
-      D0 = trans (sym (map-++ Hf.vlab Lblk Rblk))
-                 (cong (map Hf.vlab) (sym s≡))
+      D0 = trans (sym (map-++ Hf.vlab Lblk Rblk)) (cong (map Hf.vlab) (sym s≡))
 
     inner≈
       : RF.permuteˢ (finalPermˢ f) ∘ˢ proj₂ RF.runˢ
@@ -390,8 +380,7 @@ module _
                  (P : ml ++ mr ≡ flatten A ++ flatten B)
                  (Q : mr ++ ml ≡ flatten B ++ flatten A)
              → castˢ P Q (σˢ ml mr) ≈ˢ σˢ (flatten A) (flatten B)
-          go refl refl P Q =
-            ≡⇒≈ˢ (cast-irrel P refl Q refl (σˢ (flatten A) (flatten B)))
+          go refl refl P Q = ≡⇒≈ˢ (cast-irrel P refl Q refl (σˢ (flatten A) (flatten B)))
 
     -- the full σ-shape.
     decodePˢ-σ : decodePˢ f ≈ˢ σˢ (flatten A) (flatten B)

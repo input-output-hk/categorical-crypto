@@ -29,8 +29,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using (Linear; count; count-++; consumedList)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
-  using (Dep)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc)
@@ -80,8 +79,7 @@ module _ (H : Hypergraph FlatGen)
     consume-bnd : ∀ (v : Fin H.nV) → count v (consumedList H) ≤ⁿ 1
     consume-bnd v = subst (_≤ⁿ 1) (proj₁ lin v) (proj₂ lin v)
 
-    ein-concat-bnd : ∀ (v : Fin H.nV)
-                   → count v (concat (tabulate H.ein)) ≤ⁿ 1
+    ein-concat-bnd : ∀ (v : Fin H.nV) → count v (concat (tabulate H.ein)) ≤ⁿ 1
     ein-concat-bnd v =
       Nat.≤-trans
         (Nat.≤-trans (Nat.m≤n+m _ (count v H.cod))
@@ -201,8 +199,7 @@ module _ (H : Hypergraph FlatGen)
     → ∀ v → count v (H.ein e') ≤ⁿ count v r₁
   ein'-≤-r₁ {e} {e'} ¬dep r₁ r₂ p₂ v with count-pos-or-zero v
     where
-      count-pos-or-zero : (v : Fin H.nV)
-                        → (0 <ⁿ count v (H.ein e')) ⊎ (count v (H.ein e') ≡ 0)
+      count-pos-or-zero : (v : Fin H.nV) → (0 <ⁿ count v (H.ein e')) ⊎ (count v (H.ein e') ≡ 0)
       count-pos-or-zero v with count v (H.ein e')
       ... | zero  = inj₂ refl
       ... | suc _ = inj₁ (s≤sⁿ z≤nⁿ)
@@ -302,8 +299,7 @@ module _ (H : Hypergraph FlatGen)
       mult-r₁-r₂'
         : H.eout e₁ ++ H.eout e₂ ++ H.ein e₁ ++ r₁
         Perm.↭ H.eout e₁ ++ H.eout e₂ ++ H.ein e₂ ++ r₂'
-      mult-r₁-r₂' =
-        PermProp.++⁺ˡ (H.eout e₁) (PermProp.++⁺ˡ (H.eout e₂) r₁-r₂')
+      mult-r₁-r₂' = PermProp.++⁺ˡ (H.eout e₁) (PermProp.++⁺ˡ (H.eout e₂) r₁-r₂')
 
       inner-lhs : H.eout e₁ ++ H.ein e₁ ++ r₁ Perm.↭ H.ein e₁ ++ H.eout e₁ ++ r₁
       inner-lhs = begin
@@ -406,8 +402,7 @@ module _ (H : Hypergraph FlatGen)
         Perm.↭ H.ein e₂ ++ H.ein e₁ ++ H.eout e₁ ++ r₁'
       common = Perm.↭-trans (Perm.↭-sym ein-comm) ein-aligned
 
-      cancelled-1
-        : H.ein e₁ ++ H.eout e₂ ++ r₂ Perm.↭ H.ein e₁ ++ H.eout e₁ ++ r₁'
+      cancelled-1 : H.ein e₁ ++ H.eout e₂ ++ r₂ Perm.↭ H.ein e₁ ++ H.eout e₁ ++ r₁'
       cancelled-1 = ++-cancelˡ (H.ein e₂) common
 
       cancelled : H.eout e₂ ++ r₂ Perm.↭ H.eout e₁ ++ r₁'
@@ -516,8 +511,7 @@ module _ (H : Hypergraph FlatGen)
 
       -- The two residuals are perm-equal: align the `ein` prefixes via
       -- `++-comm`, then cancel.
-      prefix-comm
-        : (H.ein e' ++ H.ein e) ++ Rlist' Perm.↭ (H.ein e ++ H.ein e') ++ Rlist'
+      prefix-comm : (H.ein e' ++ H.ein e) ++ Rlist' Perm.↭ (H.ein e ++ H.ein e') ++ Rlist'
       prefix-comm = PermProp.++⁺ʳ Rlist' (PermProp.++-comm (H.ein e') (H.ein e))
 
       Rlist'-Rlist : Rlist' Perm.↭ Rlist
@@ -527,8 +521,7 @@ module _ (H : Hypergraph FlatGen)
             (Perm.↭-trans (Perm.↭-sym loc₂') loc₁))
 
       loc₂'-bridged : sp Perm.↭ (H.ein e' ++ H.ein e) ++ Rlist
-      loc₂'-bridged =
-        Perm.↭-trans loc₂' (PermProp.++⁺ˡ (H.ein e' ++ H.ein e) Rlist'-Rlist)
+      loc₂'-bridged = Perm.↭-trans loc₂' (PermProp.++⁺ˡ (H.ein e' ++ H.ein e) Rlist'-Rlist)
 
       vout-loc₂-bridged : (H.eout e' ++ H.eout e) ++ Rlist Perm.↭ H.eout e ++ r₁'
       vout-loc₂-bridged =

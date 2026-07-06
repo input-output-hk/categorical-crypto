@@ -41,8 +41,7 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.BoxKernel
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flatten)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; flatten)
 import Categories.APROP.Hypergraph.Model.FromAPROP sig as FA
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; _≅_)
@@ -56,10 +55,8 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.CIsoAssocFromCons si
 open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
   using (c-iso-assoc-to; cancel-mid-iso; conj-lemma; bridge-dom; bridge-cod
         ; subst-2)
-open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (Agen-edge-aux)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeStepRelation sig
-  using (box-of)
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig using (Agen-edge-aux)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeStepRelation sig using (box-of)
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal using (MonoidalCategory)
@@ -357,8 +354,7 @@ module BoxAssoc where
                           ; (genS 9F) → s-ei
                           ; (genS (Fin.suc 9F)) → s-eo⁻ })
 
-          open Sσ using ()
-            renaming (_∘_ to infixr 9 _∘ᵗ_; _⊗₁_ to infixr 10 _⊗ᵗ_)
+          open Sσ using () renaming (_∘_ to infixr 9 _∘ᵗ_; _⊗₁_ to infixr 10 _⊗ᵗ_)
 
           gᵗ      = gen 0F
           tBigᵗ   = gen 1F
@@ -402,9 +398,7 @@ module BoxAssoc where
                     ∘ᵗ ((idEiᵗ ⊗ᵗ fRgRᵗ) ∘ᵗ fEiRgRᵗ ∘ᵗ sEiᵗ)
           rhs2ᵗ = sEoᵗ ∘ᵗ (tEoRgRᵗ ∘ᵗ (gᵗ ⊗ᵗ (tRgRᵗ ∘ᵗ fRgRᵗ)) ∘ᵗ fEiRgRᵗ) ∘ᵗ sEiᵗ
 
-          rhs-chase
-            : to-eorg-R ∘ (bx ⊗₁ id {UR}) ∘ from-eirg-R
-              ≈Term s-eo⁻ ∘ bxRaw ∘ s-ei
+          rhs-chase : to-eorg-R ∘ (bx ⊗₁ id {UR}) ∘ from-eirg-R ≈Term s-eo⁻ ∘ bxRaw ∘ s-ei
           rhs-chase = begin
             to-eorg-R ∘ (bx ⊗₁ id {UR}) ∘ from-eirg-R
               ≈⟨ solveMorσ! lhs1ᵗ rhs1ᵗ ⟩
@@ -571,8 +565,7 @@ module BoxAssoc where
                           ; (genS 9F) → s-ei
                           ; (genS (Fin.suc 9F)) → s-eo⁻ })
 
-          open Sσ using ()
-            renaming (_∘_ to infixr 9 _∘ᵗ_; _⊗₁_ to infixr 10 _⊗ᵗ_)
+          open Sσ using () renaming (_∘_ to infixr 9 _∘ᵗ_; _⊗₁_ to infixr 10 _⊗ᵗ_)
 
           gᵗ      = gen 0F
           tBigᵗ   = gen 1F
@@ -612,9 +605,7 @@ module BoxAssoc where
                     ∘ᵗ ((idPᵗ ⊗ᵗ fEiRkᵗ) ∘ᵗ fPeirkᵗ ∘ᵗ sEiᵗ)
           rhs2ᵗ = sEoᵗ ∘ᵗ (tPeorkᵗ ∘ᵗ (idPᵗ ⊗ᵗ bxᵗ) ∘ᵗ fPeirkᵗ) ∘ᵗ sEiᵗ
 
-          rhs-chase
-            : to-Peo-rk ∘ (bx' ⊗₁ id {Urk}) ∘ from-Pei-rk
-              ≈Term s-eo⁻ ∘ bxRaw ∘ s-ei
+          rhs-chase : to-Peo-rk ∘ (bx' ⊗₁ id {Urk}) ∘ from-Pei-rk ≈Term s-eo⁻ ∘ bxRaw ∘ s-ei
           rhs-chase = begin
             to-Peo-rk ∘ (bx' ⊗₁ id {Urk}) ∘ from-Pei-rk
               ≈⟨ solveMorσ! lhs1ᵗ rhs1ᵗ ⟩
@@ -755,8 +746,7 @@ module BoxAssoc where
                       ; (genS 7F) → to-eo-rest
                       ; (genS 8F) → from-ei-rest })
 
-      open Sσ using ()
-        renaming (_∘_ to infixr 9 _∘ᵗ_; _⊗₁_ to infixr 10 _⊗ᵗ_)
+      open Sσ using () renaming (_∘_ to infixr 9 _∘ᵗ_; _⊗₁_ to infixr 10 _⊗ᵗ_)
 
       gᵗ    = gen 0F
       tEoPᵗ = gen 1F
@@ -800,11 +790,9 @@ module BoxAssoc where
       boxᵗ : Sσ.HomTerm aEir aEor
       boxᵗ   = tEoᵗ ∘ᵗ ((gᵗ ⊗ᵗ idRᵗ) ∘ᵗ fEiᵗ)
       σ-inᵗ : Sσ.HomTerm aEiPr (aP ⊗ᵒ aEir)
-      σ-inᵗ  = (idPᵗ ⊗ᵗ tEiᵗ) ∘ᵗ α⇒PEiRᵗ ∘ᵗ (σEiPᵗ ⊗ᵗ idRᵗ)
-                 ∘ᵗ α⇐EiPRᵗ ∘ᵗ (idEiᵗ ⊗ᵗ fPᵗ) ∘ᵗ fEiPᵗ
+      σ-inᵗ  = (idPᵗ ⊗ᵗ tEiᵗ) ∘ᵗ α⇒PEiRᵗ ∘ᵗ (σEiPᵗ ⊗ᵗ idRᵗ) ∘ᵗ α⇐EiPRᵗ ∘ᵗ (idEiᵗ ⊗ᵗ fPᵗ) ∘ᵗ fEiPᵗ
       σ-outᵗ : Sσ.HomTerm (aP ⊗ᵒ aEor) aEoPr
-      σ-outᵗ = tEoPᵗ ∘ᵗ (idEoᵗ ⊗ᵗ tPᵗ) ∘ᵗ α⇒EoPRᵗ ∘ᵗ (σPEoᵗ ⊗ᵗ idRᵗ)
-                 ∘ᵗ α⇐PEoRᵗ ∘ᵗ (idPᵗ ⊗ᵗ fEoᵗ)
+      σ-outᵗ = tEoPᵗ ∘ᵗ (idEoᵗ ⊗ᵗ tPᵗ) ∘ᵗ α⇒EoPRᵗ ∘ᵗ (σPEoᵗ ⊗ᵗ idRᵗ) ∘ᵗ α⇐PEoRᵗ ∘ᵗ (idPᵗ ⊗ᵗ fEoᵗ)
 
       lhs1ᵗ rhs1ᵗ mid3ᵗ rhs3ᵗ : Sσ.HomTerm aEiPr aEoPr
       lhs1ᵗ = σ-outᵗ ∘ᵗ (idPᵗ ⊗ᵗ boxᵗ) ∘ᵗ σ-inᵗ
@@ -818,8 +806,7 @@ module BoxAssoc where
       rhs3ᵗ = tEoPᵗ ∘ᵗ (gᵗ ⊗ᵗ (tPᵗ ∘ᵗ fPᵗ)) ∘ᵗ fEiPᵗ
 
       -- the master chain: σ-out ∘ (id{UP} ⊗ box) ∘ σ-in ≈ boxR.
-      rhs-chase
-        : σ-out ∘ (id {UP} ⊗₁ box) ∘ σ-in ≈Term boxR
+      rhs-chase : σ-out ∘ (id {UP} ⊗₁ box) ∘ σ-in ≈Term boxR
       rhs-chase = begin
         σ-out ∘ (id {UP} ⊗₁ box) ∘ σ-in
           ≈⟨ solveMorσ! lhs1ᵗ rhs1ᵗ ⟩

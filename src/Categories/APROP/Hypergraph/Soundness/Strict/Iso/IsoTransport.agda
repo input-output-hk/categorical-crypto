@@ -55,8 +55,7 @@ open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Model.HomTermInvariant sig using (⟪_⟫-cod-unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl sig
-  using (dep-irrefl-⟪⟫)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl sig using (dep-irrefl-⟪⟫)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.FinOrderNoInv sig
   using (fin-order-NoInv-⟪⟫)
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
@@ -65,8 +64,7 @@ import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig 
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-  using (module Run)
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_ using (module Run)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig _≟X_ as SS
 import Categories.APROP.Hypergraph.Soundness.Strict.Iso.IsoInvarianceConcrete sig _≟X_ as IC
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ as DC2
@@ -91,8 +89,7 @@ open import Relation.Binary.PropositionalEquality
 
 open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
-open import Categories.PermuteCoherence.Rigid
-  using (lookup-injective-unique; lookup-sound)
+open import Categories.PermuteCoherence.Rigid using (lookup-injective-unique; lookup-sound)
 open import Categories.PermuteCoherence.FinBijSubst
   using ( eval-map⁺; lookup-map; subst₂-FinBij-as-subst; cast-irr
         ; subst-Fin-trans; lookup-subst-list; subst-Fin-roundtrip
@@ -208,10 +205,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
   iso-validˢ vJ = map-φ-↭⁻ step
     where
       step : map φ sH-final Perm.↭ map φ H.cod
-      step =
-        subst (λ z → z Perm.↭ map φ H.cod)
-              fin-eq
-              (subst (λ z → sJ-final Perm.↭ z) φ-cod vJ)
+      step = subst (λ z → z Perm.↭ map φ H.cod) fin-eq (subst (λ z → sJ-final Perm.↭ z) φ-cod vJ)
 
   ------------------------------------------------------------------------
   -- §4.  The X-level permute kit + the FINAL-permute relabel-freeness.
@@ -233,20 +227,17 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
 
     -- The two final-permute derivations, lifted to the common X-level pair
     -- of `map _.vlab _` lists.
-    permJ-↭ : (vJ : SG.Validˢ (range J.nE))
-            → map J.vlab sJ-final Perm.↭ map J.vlab J.cod
+    permJ-↭ : (vJ : SG.Validˢ (range J.nE)) → map J.vlab sJ-final Perm.↭ map J.vlab J.cod
     permJ-↭ vJ = PermProp.map⁺ J.vlab vJ
 
     -- the mid (final-stack) object-equality.
     mid-iso : map J.vlab sJ-final ≡ map H.vlab sH-final
     mid-iso = trans (cong (map J.vlab) fin-eq) (vlab-φ sH-final)
 
-    permJ-↭' : (vJ : SG.Validˢ (range J.nE))
-             → map H.vlab sH-final Perm.↭ map H.vlab H.cod
+    permJ-↭' : (vJ : SG.Validˢ (range J.nE)) → map H.vlab sH-final Perm.↭ map H.vlab H.cod
     permJ-↭' vJ = subst₂ Perm._↭_ mid-iso ci (permJ-↭ vJ)
 
-    permH-↭ : (vJ : SG.Validˢ (range J.nE))
-            → map H.vlab sH-final Perm.↭ map H.vlab H.cod
+    permH-↭ : (vJ : SG.Validˢ (range J.nE)) → map H.vlab sH-final Perm.↭ map H.vlab H.cod
     permH-↭ vJ = PermProp.map⁺ H.vlab (iso-validˢ vJ)
 
     -- The length casts.
@@ -259,9 +250,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
     cJH = trans (cong length φ-cod) (length-map φ H.cod)
 
     -- `lookup J.cod` factors as `φ ∘ lookup H.cod` after the `cJH` cast.
-    lookup-Jcod-φ
-      : (k : Fin (length J.cod))
-      → φ (lookup H.cod (subst Fin cJH k)) ≡ lookup J.cod k
+    lookup-Jcod-φ : (k : Fin (length J.cod)) → φ (lookup H.cod (subst Fin cJH k)) ≡ lookup J.cod k
     lookup-Jcod-φ k =
       trans (sym (lookup-map φ H.cod (subst Fin cJH k)))
         (trans (cong (lookup (map φ H.cod)) reduce-idx)
@@ -323,9 +312,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
                      (subst-Fin-sym-sym cH-dom i))))
 
       H-step : lookup H.cod (subst Fin cH-cod kH) ≡ lookup sH-final iH
-      H-step =
-        trans (cong (lookup H.cod) kH≡)
-              (lookup-sound (iso-validˢ vJ) iH)
+      H-step = trans (cong (lookup H.cod) kH≡) (lookup-sound (iso-validˢ vJ) iH)
 
       iJ : Fin (length sJ-final)
       iJ = subst Fin (sym cSJH) iH
@@ -354,8 +341,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
           (cod-collapse)))
         where
           DOM₀ : Fin (length sJ-final)
-          DOM₀ = subst Fin (sym (sym private-lmJd))
-                   (subst Fin (sym (cong length mid-iso)) i)
+          DOM₀ = subst Fin (sym (sym private-lmJd)) (subst Fin (sym (cong length mid-iso)) i)
 
           IMG : Fin (length J.cod)
           IMG = eval-↭ vJ P.⟨$⟩ʳ DOM₀
@@ -471,8 +457,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
 
       -- `castˢ mid-iso ci (castˢ mpJ Xj) ≈ castˢ mpH Xh`, via cast-fuse on
       -- both sides + cast-irrel (endpoints coincide after K-step).
-      middle
-        : castˢ mid-iso ci (castˢ mpJd mpJc Xj) ≈ˢ castˢ mpHd mpHc Xh
+      middle : castˢ mid-iso ci (castˢ mpJd mpJc Xj) ≈ˢ castˢ mpHd mpHc Xh
       middle =
         ≈-trans (≡⇒≈ˢ (cast-fuse mpJd mid-iso mpJc ci Xj))
         (≈-trans (≡⇒≈ˢ (cast-irrel (trans mpJd mid-iso)
@@ -494,8 +479,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
     -- canonical pCod for `process-edges-term-embˢ τ H.dom`.
     pCod-can : map J.vlab (proj₁ (RJ.process-edgesˢ (map ψ τ) (map φ H.dom)))
              ≡ map H.vlab (proj₁ (RH.process-edgesˢ τ H.dom))
-    pCod-can =
-      trans (cong (map J.vlab) (TE.proc-stack-embˢ τ H.dom)) (vlab-φ sH-final)
+    pCod-can = trans (cong (map J.vlab) (TE.proc-stack-embˢ τ H.dom)) (vlab-φ sH-final)
 
   -- The process-edges term twin at the canonical shape.
   proc-twin-can

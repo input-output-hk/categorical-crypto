@@ -127,8 +127,7 @@ map⁺-↭-sym
 map⁺-↭-sym f Perm.refl          = refl
 map⁺-↭-sym f (Perm.prep x ρ)    = cong (Perm.prep _) (map⁺-↭-sym f ρ)
 map⁺-↭-sym f (Perm.swap x y ρ)  = cong (Perm.swap _ _) (map⁺-↭-sym f ρ)
-map⁺-↭-sym f (Perm.trans p q)   =
-  cong₂ Perm.trans (map⁺-↭-sym f q) (map⁺-↭-sym f p)
+map⁺-↭-sym f (Perm.trans p q)   = cong₂ Perm.trans (map⁺-↭-sym f q) (map⁺-↭-sym f p)
 
 map⁺-↭-reflexive
   : ∀ {A B : Set} (f : A → B) {xs ys : List A} (eq : xs ≡ ys)
@@ -188,8 +187,7 @@ module _ {S T : Set} (f : S → T) where
     → PermProp.map⁺ f (PermProp.++⁺ʳ cs P)
       ≡ subst₂ Perm._↭_ (sym (map-++ f es cs)) (sym (map-++ f fs cs))
           (PermProp.++⁺ʳ (map f cs) (PermProp.map⁺ f P))
-  map⁺-++⁺ʳ cs {es} Perm.refl =
-    sym (subst₂-↭-refl (sym (map-++ f es cs)))
+  map⁺-++⁺ʳ cs {es} Perm.refl = sym (subst₂-↭-refl (sym (map-++ f es cs)))
   map⁺-++⁺ʳ cs {x ∷ es} {x ∷ fs} (Perm.prep .x P) =
     trans (cong (Perm.prep _) (map⁺-++⁺ʳ cs P))
     (trans (prep-subst₂ (f x) (sym (map-++ f es cs)) (sym (map-++ f fs cs))

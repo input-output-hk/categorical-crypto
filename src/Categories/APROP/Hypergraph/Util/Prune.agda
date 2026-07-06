@@ -65,8 +65,7 @@ module _ {ℓ} {A : Set ℓ} where
 module _ {n : ℕ} where
   open import Data.List.Membership.DecPropositional (_≟_ {n = n}) using (_∈?_)
   open import Data.List.Membership.Propositional using (_∈_; _∉_)
-  open import Data.List.Membership.Propositional.Properties
-    using (∈-filter⁺; ∈-allFin)
+  open import Data.List.Membership.Propositional.Properties using (∈-filter⁺; ∈-allFin)
   open import Relation.Nullary.Decidable using (Dec)
 
   -- The predicate "v is not in xs", as a decidable.
@@ -86,8 +85,7 @@ module _ {n : ℕ} where
   classify : (xs : List (Fin n)) (v : Fin n) → Fin (length xs) ⊎ Fin (count-non xs)
   classify xs v with v ∈? xs
   ... | yes v∈xs = inj₁ (index v∈xs)
-  ... | no  v∉xs =
-    inj₂ (index (∈-filter⁺ (nonMem? xs) (∈-allFin v) v∉xs))
+  ... | no  v∉xs = inj₂ (index (∈-filter⁺ (nonMem? xs) (∈-allFin v) v∉xs))
 
   -- Inversion: when classify returns `inj₁ i`, the member slot `i` in
   -- `xs` looks back to `v`.
@@ -95,8 +93,7 @@ module _ {n : ℕ} where
                        → classify xs v ≡ inj₁ i
                        → lookup xs i ≡ v
   classify-inj₁-lookup xs v i eq with v ∈? xs
-  classify-inj₁-lookup xs v .(index v∈xs) refl
-    | yes v∈xs = sym (lookup-index v∈xs)
+  classify-inj₁-lookup xs v .(index v∈xs) refl | yes v∈xs = sym (lookup-index v∈xs)
   nonMem-Unique : (xs : List (Fin n)) → Unique (nonMem xs)
   nonMem-Unique xs =
     Uniq-Prop.filter⁺ (nonMem? xs) (Uniq-Prop.allFin⁺ n)
@@ -104,8 +101,7 @@ module _ {n : ℕ} where
                   as Uniq-Prop
 
   -- When classify returns inj₁, the scrutinee is in xs.
-  classify-inj₁-∈ : ∀ {xs v i}
-                  → classify xs v ≡ inj₁ i → v ∈ xs
+  classify-inj₁-∈ : ∀ {xs v i} → classify xs v ≡ inj₁ i → v ∈ xs
   classify-inj₁-∈ {xs} {v} eq with v ∈? xs
   classify-inj₁-∈ _ | yes v∈ = v∈
   classify-inj₁-∈ () | no _
@@ -115,8 +111,7 @@ module _ {n : ℕ} where
     : (xs : List (Fin n)) → Unique xs
     → (j : Fin (length xs))
     → classify xs (lookup xs j) ≡ inj₁ j
-  classify-lookup-Unique xs unique j
-    with lookup xs j ∈? xs
+  classify-lookup-Unique xs unique j with lookup xs j ∈? xs
   ... | yes v∈ = cong inj₁
     (lookup-injective-unique unique (index v∈) j (sym (lookup-index v∈)))
   ... | no  v∉ = ⊥-elim (v∉ ∈-lookup-helper)
@@ -132,11 +127,8 @@ module _ {n : ℕ} where
 -- `f i ↑ˡ count-non xs` and non-members to `m ↑ʳ j`.
 
 module _ {n m : ℕ} where
-  remap : (xs : List (Fin n)) → (Fin (length xs) → Fin m)
-        → Fin n → Fin (m + count-non xs)
-  remap xs f v = [ (λ i → f i ↑ˡ count-non xs)
-                 , (λ j → m ↑ʳ j)
-                 ]′ (classify xs v)
+  remap : (xs : List (Fin n)) → (Fin (length xs) → Fin m) → Fin n → Fin (m + count-non xs)
+  remap xs f v = [ (λ i → f i ↑ˡ count-non xs) , (λ j → m ↑ʳ j) ]′ (classify xs v)
 
   -- Reduction of `remap` in the `inj₁` (member) case.
   remap-inj₁ : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
@@ -163,8 +155,7 @@ module _ {n m : ℕ} where
 
 module _ {a} {X : Set a} {n m : ℕ} where
   open import Data.List.Membership.DecPropositional (_≟_ {n = n}) using (_∈?_)
-  open import Data.List.Membership.Propositional.Properties
-    using (∈-filter⁺; ∈-allFin)
+  open import Data.List.Membership.Propositional.Properties using (∈-filter⁺; ∈-allFin)
 
   remap-vlab : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
                (λK : Fin n → X) (λG : Fin m → X)
@@ -215,19 +206,15 @@ module _ {n m : ℕ} where
 
   -- `_↑ˡ k` / `k ↑ʳ_` injectivity — thin wrappers over the stdlib lemmas
   -- (`k` explicit, `i j` implicit, matching the call sites below).
-  ↑ˡ-inj : ∀ {n} (k : ℕ) {i j : Fin n}
-         → i ↑ˡ k ≡ j ↑ˡ k → i ≡ j
+  ↑ˡ-inj : ∀ {n} (k : ℕ) {i j : Fin n} → i ↑ˡ k ≡ j ↑ˡ k → i ≡ j
   ↑ˡ-inj k {i} {j} eq = ↑ˡ-injective k i j eq
 
-  ↑ʳ-inj : ∀ (k : ℕ) {n} {i j : Fin n}
-         → k ↑ʳ i ≡ k ↑ʳ j → i ≡ j
+  ↑ʳ-inj : ∀ (k : ℕ) {n} {i j : Fin n} → k ↑ʳ i ≡ k ↑ʳ j → i ≡ j
   ↑ʳ-inj k {n} {i} {j} eq = ↑ʳ-injective k i j eq
 
   -- Disjointness of `_↑ˡ k` and `m ↑ʳ_` ranges.
-  ↑ˡ-↑ʳ-disjoint : (k : ℕ) (i : Fin m) (j : Fin k)
-                 → i ↑ˡ k ≡ m ↑ʳ j → ⊥
-  ↑ˡ-↑ʳ-disjoint k i j eq
-    with splitAt-↑ˡ m i k | splitAt-↑ʳ m k j | cong (splitAt m) eq
+  ↑ˡ-↑ʳ-disjoint : (k : ℕ) (i : Fin m) (j : Fin k) → i ↑ˡ k ≡ m ↑ʳ j → ⊥
+  ↑ˡ-↑ʳ-disjoint k i j eq with splitAt-↑ˡ m i k | splitAt-↑ʳ m k j | cong (splitAt m) eq
   ... | i-red | j-red | split-eq =
     case-absurd (trans (sym i-red) (trans split-eq j-red))
     where

@@ -58,8 +58,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; range; hTensor; module hTensor-impl)
-open import Categories.APROP.Hypergraph.Model.Translation sig
-  using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
+open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.HomTermTransport
   sig using (Linear⇒cod-Unique)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
@@ -139,8 +138,7 @@ module _
       → RF.permuteˢ (finalPermˢ fg) ∘ˢ proj₂ (Run.runˢ ⟪ fg ⟫)
         ≈ˢ castˢ (sym (⟪⟫-domL fg)) (sym (⟪⟫-codL fg))
             (decodePˢ f ⊗ˢ decodePˢ g)
-    reconcile-from-braid cand braidˢ =
-      ≈-trans (∘-resp (final-resortˢ cand) ≈-refl) braidˢ
+    reconcile-from-braid cand braidˢ = ≈-trans (∘-resp (final-resortˢ cand) ≈-refl) braidˢ
 
     ----------------------------------------------------------------------
     -- VERIFICATION that `reconcile-from-braid` produces EXACTLY the

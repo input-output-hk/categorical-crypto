@@ -29,8 +29,7 @@ empty _ = nothing
 
 -- Update a binding at `i` to `j` if consistent; `nothing` when `i` is
 -- already bound to a different value.
-extend : ∀ {n m} → PartialMap n m → Fin n → Fin m
-       → Maybe (PartialMap n m)
+extend : ∀ {n m} → PartialMap n m → Fin n → Fin m → Maybe (PartialMap n m)
 extend {n} {m} p i j with p i
 ... | nothing = just (λ k → case-≟ k i j (p k))
   where

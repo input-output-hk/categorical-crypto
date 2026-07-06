@@ -123,8 +123,7 @@ module Gen {A B : ObjTerm} (g : mor A B) where
                      (RF.permuteˢ selfP))
 
     -- `edge-stepˢ dom e₀` computes to (`eout e₀ ++ []`, `layer`).
-    edge-form
-      : RF.edge-stepˢ Hf.dom e₀ ≡ (Hf.eout e₀ ++ [] , layer)
+    edge-form : RF.edge-stepˢ Hf.dom e₀ ≡ (Hf.eout e₀ ++ [] , layer)
     edge-form rewrite self-eq = refl
 
     -- the whole run (one edge): stack and term.
@@ -165,8 +164,7 @@ module Gen {A B : ObjTerm} (g : mor A B) where
   -- Step A: `proj₂ runˢ ≈ castˢ refl (cong (map vlab) (sym s≡)) layer`.
 
   private
-    run≈ : proj₂ RF.runˢ
-           ≈ˢ castˢ refl (cong (map Hf.vlab) (sym s≡)) layer
+    run≈ : proj₂ RF.runˢ ≈ˢ castˢ refl (cong (map Hf.vlab) (sym s≡)) layer
     run≈ =
       ≈-trans (≡⇒≈ˢ (trans run-form
                        (trans (subst-cod-cong (sym s≡) (idˢ ∘ˢ layer))
@@ -235,8 +233,7 @@ module Gen {A B : ObjTerm} (g : mor A B) where
 
   private
     Qℓ : mc ≡ map Hf.vlab (Hf.eout e₀ ++ [])
-    Qℓ = trans (sym (++-identityʳ mc))
-               (sym (map-++ Hf.vlab (Hf.eout e₀) []))
+    Qℓ = trans (sym (++-identityʳ mc)) (sym (map-++ Hf.vlab (Hf.eout e₀) []))
 
     layer≈ : layer ≈ˢ castˢ refl Qℓ G0
     layer≈ =
@@ -337,6 +334,5 @@ module Gen {A B : ObjTerm} (g : mor A B) where
 --------------------------------------------------------------------------------
 -- The exported Agen shape (the part-(I)ˢ base case).
 
-decodePˢ-Agen
-  : ∀ {A B} (g : mor A B) → decodePˢ (Agen g) ≈ˢ st (Agen g)
+decodePˢ-Agen : ∀ {A B} (g : mor A B) → decodePˢ (Agen g) ≈ˢ st (Agen g)
 decodePˢ-Agen g = Gen.decodePˢ-Agen g

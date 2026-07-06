@@ -34,8 +34,7 @@ open import Data.List using (List; _++_; map)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; subst; subst₂)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst; subst₂)
 
 --------------------------------------------------------------------------------
 -- `⟪ f ⟫.dom` is Unique for every APROP term.
@@ -47,8 +46,7 @@ open import Relation.Binary.PropositionalEquality
 ⟪ id {A} ⟫-dom-unique = hId-dom-Unique A
 
 -- Composition: dom = map injL ⟪h⟫.dom, `injL` injective.
-⟪ g ∘ h ⟫-dom-unique =
-  Uniq-Prop.map⁺ (inject+-inj _) (⟪_⟫-dom-unique h)
+⟪ g ∘ h ⟫-dom-unique = Uniq-Prop.map⁺ (inject+-inj _) (⟪_⟫-dom-unique h)
 
 -- Tensor: dom = map injL ⟪f⟫.dom ++ map injR ⟪g⟫.dom (disjoint).
 ⟪ f ⊗₁ g ⟫-dom-unique =
@@ -103,8 +101,7 @@ open import Relation.Binary.PropositionalEquality
       cast-inj (lookup-injective-unique (⟪_⟫-cod-unique h) _ _ eq)
 
     remapP-inj : ∀ {i j} → hCP.remapP i ≡ hCP.remapP j → i ≡ j
-    remapP-inj eq =
-      remap-injective _ _ (⟪_⟫-dom-unique g) lookup-cod-inj eq
+    remapP-inj eq = remap-injective _ _ (⟪_⟫-dom-unique g) lookup-cod-inj eq
 
 -- Tensor: cod = map injL ⟪f⟫.cod ++ map injR ⟪g⟫.cod (disjoint).
 ⟪ f ⊗₁ g ⟫-cod-unique =

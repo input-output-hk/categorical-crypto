@@ -127,8 +127,7 @@ extract-elem-++ˡ k (x ∷ xs) R eq with x ≟ k
 extract-elem-++ˡ k (x ∷ xs) R {rest} {p} eq | yes refl with eq
 ... | refl = refl
 extract-elem-++ˡ k (x ∷ xs) R eq | no ¬q with extract-elem k xs in eqxs
-extract-elem-++ˡ k (x ∷ xs) R eq | no ¬q | just (rest' , q')
-  with eq
+extract-elem-++ˡ k (x ∷ xs) R eq | no ¬q | just (rest' , q') with eq
 ... | refl rewrite extract-elem-++ˡ k xs R eqxs = refl
 
 -- `extract-prefix` on `xs ++ R`: if `ks` is found in `xs` with residual `rest`
@@ -152,8 +151,7 @@ extract-prefix-++ˡ
 extract-prefix-++ˡ []       xs R {rest} {p} eq with eq
 ... | refl = refl
 extract-prefix-++ˡ (k ∷ ks) xs R eq with extract-elem k xs in eqe
-extract-prefix-++ˡ (k ∷ ks) xs R eq | just (xs' , pe)
-  with extract-prefix ks xs' in eqp
+extract-prefix-++ˡ (k ∷ ks) xs R eq | just (xs' , pe) with extract-prefix ks xs' in eqp
 extract-prefix-++ˡ (k ∷ ks) xs R {rest} {p} eq | just (xs' , pe)
   | just (rest' , pp) with eq
 ... | refl
@@ -201,8 +199,7 @@ extract-elem-++ˡ-nothing k []       R eqx eqR = eqR
 extract-elem-++ˡ-nothing k (x ∷ xs) R eqx eqR with x ≟ k
 ... | yes refl with eqx
 ...   | ()
-extract-elem-++ˡ-nothing k (x ∷ xs) R eqx eqR | no ¬q
-  with extract-elem k xs in eqxs
+extract-elem-++ˡ-nothing k (x ∷ xs) R eqx eqR | no ¬q with extract-elem k xs in eqxs
 ... | nothing rewrite extract-elem-++ˡ-nothing k xs R eqxs eqR = refl
 
 -- NOTHING-direction of `extract-prefix-++ˡ`.  Same disjointness side
@@ -230,15 +227,13 @@ extract-prefix-++ˡ-nothing
   → extract-prefix ks (xs ++ R) ≡ nothing
 -- `extract-prefix [] xs ≡ just _`, so the `nothing` hypothesis is absurd.
 extract-prefix-++ˡ-nothing []       xs R _          ()
-extract-prefix-++ˡ-nothing (k ∷ ks) xs R (dk ∷ dks) eqn
-  with extract-elem k xs in eqe
+extract-prefix-++ˡ-nothing (k ∷ ks) xs R (dk ∷ dks) eqn with extract-elem k xs in eqe
 -- head not found in `xs`: by disjointness not in `R`, so not in `xs ++ R`.
 ... | nothing       = extract-prefix-++ˡ-nothing-head k ks xs R eqe dk
 -- head found in `xs` with residual `xs'`: split on the tail.  `eqn` (whose type
 -- reduces along the located head) forces the tail to fail; recurse on `ks` over
 -- `xs'`, re-locating `k` in `xs ++ R` (`extract-elem-++ˡ`).
-... | just (xs' , pe)
-      with extract-prefix ks xs' in eqp
+... | just (xs' , pe) with extract-prefix ks xs' in eqp
 ...     | nothing
           rewrite extract-elem-++ˡ k xs R eqe
                 | extract-prefix-++ˡ-nothing ks xs' R dks eqp = refl
@@ -379,8 +374,7 @@ module _ (H : Hypergraph FlatGen) where
     → ein-disjoint e R
     → extract-prefix (H.ein e) xs ≡ nothing
     → extract-prefix (H.ein e) (xs ++ R) ≡ nothing
-  skip-transport e xs R dis eqn =
-    extract-prefix-++ˡ-nothing (H.ein e) xs R dis eqn
+  skip-transport e xs R dis eqn = extract-prefix-++ˡ-nothing (H.ein e) xs R dis eqn
 
   ------------------------------------------------------------------------
   -- ## Stack-level separability.
@@ -395,12 +389,10 @@ module _ (H : Hypergraph FlatGen) where
     : ∀ (e : Fin H.nE) (xs R : List (Fin H.nV))
     → ein-disjoint e R
     → proj₁ (edge-step H (xs ++ R) e) ≡ proj₁ (edge-step H xs e) ++ R
-  edge-step-stack-sep e xs R dis
-      with extract-prefix (H.ein e) xs in eqxs
+  edge-step-stack-sep e xs R dis with extract-prefix (H.ein e) xs in eqxs
   -- SKIP on `xs`: stack on `xs` is `xs`; on `xs ++ R`, also a SKIP (by
   -- `skip-transport`), stack `xs ++ R`.
-  ... | nothing
-      with extract-prefix (H.ein e) (xs ++ R) in eqxsR
+  ... | nothing with extract-prefix (H.ein e) (xs ++ R) in eqxsR
   ...   | nothing = refl
   ...   | just (r , _) =
           ⊥-elim (just≢nothing
@@ -413,8 +405,7 @@ module _ (H : Hypergraph FlatGen) where
   ...   | nothing =
           ⊥-elim (just≢nothing
             (trans (sym (extract-prefix-++ˡ (H.ein e) xs R eqxs)) eqxsR))
-  ...   | just (rR , _)
-          with trans (sym eqxsR) (extract-prefix-++ˡ (H.ein e) xs R eqxs)
+  ...   | just (rR , _) with trans (sym eqxsR) (extract-prefix-++ˡ (H.ein e) xs R eqxs)
   ...       | refl = sym (++-assoc (H.eout e) rest R)
 
   process-edges-stack-sep

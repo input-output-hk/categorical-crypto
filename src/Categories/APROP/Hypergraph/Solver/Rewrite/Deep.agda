@@ -40,8 +40,7 @@ open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
 import Data.Maybe.Base as Maybe
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Product using (Σ; _×_; _,_)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; subst; subst₂)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst; subst₂)
 open import Relation.Nullary using (yes; no)
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
@@ -78,8 +77,7 @@ module At (P Q : ObjTerm) where
   module U⁺ = Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig⁺
   module C⁺ = Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig⁺-dec
 
-  open APROP sig⁺ using ()
-    renaming (HomTerm to HomTerm⁺; Agen to Agen⁺)
+  open APROP sig⁺ using () renaming (HomTerm to HomTerm⁺; Agen to Agen⁺)
 
   ------------------------------------------------------------------------------
   -- Carving.  Parameterised by the matched embedding `L ↪ᴴ S`.
@@ -176,8 +174,7 @@ module At (P Q : ObjTerm) where
       ... | no  _ = nothing
 
   -- All carvable positions, one per successful embedding, in match order.
-  deepFocAllAt : ∀ {A B} (s : HomTerm A B) (lᵗ : HomTerm P Q)
-               → List (Foc A B P Q)
+  deepFocAllAt : ∀ {A B} (s : HomTerm A B) (lᵗ : HomTerm P Q) → List (Foc A B P Q)
   deepFocAllAt s lᵗ = collect (subMatchAll ⟪ lᵗ ⟫ ⟪ s ⟫)
     where
       collect : List (⟪ lᵗ ⟫ ↪ᴴ ⟪ s ⟫) → List (Foc _ _ P Q)
@@ -253,15 +250,13 @@ private
         , (λ Xo → α⇐ ∘ (id ⊗₁ u Xo) ∘ α⇒)
 
   -- Repad one frame for each peel candidate.
-  repadR : ∀ {A B P Q} (w : X)
-         → Foc A B P Q → List (Foc A B (P ⊗₀ Var w) (Q ⊗₀ Var w))
+  repadR : ∀ {A B P Q} (w : X) → Foc A B P Q → List (Foc A B (P ⊗₀ Var w) (Q ⊗₀ Var w))
   repadR {P = P} {Q = Q} w (k , pre , post) = map step (peelR k w)
     where
       step : Peel k w _ → Foc _ _ _ _
       step (k₁ , r , u) = k₁ , r P ∘ pre , post ∘ u Q
 
-  repadL : ∀ {A B P Q} (w : X)
-         → Foc A B P Q → List (Foc A B (Var w ⊗₀ P) (Var w ⊗₀ Q))
+  repadL : ∀ {A B P Q} (w : X) → Foc A B P Q → List (Foc A B (Var w ⊗₀ P) (Var w ⊗₀ Q))
   repadL {P = P} {Q = Q} w (k , pre , post) = map step (peelL k w)
     where
       step : Peel k w _ → Foc _ _ _ _
@@ -270,16 +265,13 @@ private
 --------------------------------------------------------------------------------
 -- Top-level entry points (pad-aware).
 
-deepFocAll : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q)
-           → List (Foc A B P Q)
+deepFocAll : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) → List (Foc A B P Q)
 deepFocAll s (x ⊗₁ id {Var w}) = concatMap (repadR w) (deepFocAll s x)
 deepFocAll s (id {Var w} ⊗₁ x) = concatMap (repadL w) (deepFocAll s x)
 deepFocAll {P = P} {Q = Q} s lᵗ = At.deepFocAllAt P Q s lᵗ
 
-deepFocₙ : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) → ℕ
-         → Maybe (Foc A B P Q)
+deepFocₙ : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) → ℕ → Maybe (Foc A B P Q)
 deepFocₙ s lᵗ n = lookupMaybe (deepFocAll s lᵗ) n
 
-deepFoc : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q)
-        → Maybe (Foc A B P Q)
+deepFoc : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) → Maybe (Foc A B P Q)
 deepFoc s lᵗ = deepFocₙ s lᵗ 0

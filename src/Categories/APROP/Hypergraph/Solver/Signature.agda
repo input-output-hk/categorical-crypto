@@ -19,8 +19,7 @@ open import Categories.APROP using (APROPSignature)
 module Categories.APROP.Hypergraph.Solver.Signature where
 
 open import Relation.Binary.Definitions using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; cong₂)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂)
 open import Relation.Nullary using (yes; no)
 open import Relation.Nullary.Decidable using (map′)
 open import Categories.FreeMonoidal

@@ -94,8 +94,7 @@ module _
   where
 
   -- the strict core: `st f ≈ˢ st g` from the hypergraph iso
-  st-resp-iso
-    : ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → st f ≈ˢ st g
+  st-resp-iso : ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → st f ≈ˢ st g
   st-resp-iso f g iso =
     ≈-trans (part-Iˢ f) (≈-trans (part-IIˢ f g iso) (≈-sym (part-Iˢ g)))
 
@@ -109,8 +108,7 @@ module _
     bridge g          ∎
 
   -- the headline theorem
-  soundness-strict
-    : ∀ {A B} {f g : HomTerm A B} → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g
+  soundness-strict : ∀ {A B} {f g : HomTerm A B} → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g
   soundness-strict {f = f} {g = g} iso = begin
     f                       ≈⟨ bridge-cancel f ⟨
     bridge⁻¹ (bridge f)     ≈⟨ ∘-resp-≈ FM.Equiv.refl

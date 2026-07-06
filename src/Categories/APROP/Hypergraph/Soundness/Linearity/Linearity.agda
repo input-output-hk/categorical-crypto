@@ -63,8 +63,7 @@ count v (x ∷ xs) with v ≟ x
 
 -- count distributes over `_++_`.
 
-count-++ : ∀ {n} (v : Fin n) (xs ys : List (Fin n))
-         → count v (xs ++ ys) ≡ count v xs + count v ys
+count-++ : ∀ {n} (v : Fin n) (xs ys : List (Fin n)) → count v (xs ++ ys) ≡ count v xs + count v ys
 count-++ v []       ys = refl
 count-++ v (x ∷ xs) ys with v ≟ x
 ... | yes _ = cong suc (count-++ v xs ys)
@@ -73,14 +72,12 @@ count-++ v (x ∷ xs) ys with v ≟ x
 -- count of `v` in `range n`: every Fin appears exactly once.
 
 private
-  count-zero-map-suc : ∀ {n} (xs : List (Fin n))
-                     → count (zero {n = n}) (map suc xs) ≡ 0
+  count-zero-map-suc : ∀ {n} (xs : List (Fin n)) → count (zero {n = n}) (map suc xs) ≡ 0
   count-zero-map-suc []       = refl
   count-zero-map-suc (x ∷ xs) with zero {n = _} ≟ suc x
   ... | no  _ = count-zero-map-suc xs
 
-  count-suc-map-suc : ∀ {n} (i : Fin n) (xs : List (Fin n))
-                    → count (suc i) (map suc xs) ≡ count i xs
+  count-suc-map-suc : ∀ {n} (i : Fin n) (xs : List (Fin n)) → count (suc i) (map suc xs) ≡ count i xs
   count-suc-map-suc i []       = refl
   count-suc-map-suc i (x ∷ xs) with suc i ≟ suc x | i ≟ x
   ... | yes _ | yes _ = cong suc (count-suc-map-suc i xs)
@@ -136,8 +133,7 @@ count-map-↑ʳ-mismatch {nA} nB i (x ∷ xs) with (i ↑ˡ nB) ≟ (nA ↑ʳ x)
 
 -- count is invariant under swapping the two sides of a `_++_`.
 
-count-swap : ∀ {n} (v : Fin n) (xs ys : List (Fin n))
-           → count v (xs ++ ys) ≡ count v (ys ++ xs)
+count-swap : ∀ {n} (v : Fin n) (xs ys : List (Fin n)) → count v (xs ++ ys) ≡ count v (ys ++ xs)
 count-swap v xs ys =
   trans (count-++ v xs ys)
         (trans (Nat.+-comm (count v xs) (count v ys))
@@ -179,12 +175,10 @@ private
 -- Production / consumption lists of a hypergraph.
 
 producedList : (H : Hypergraph FlatGen) → List (Fin (Hypergraph.nV H))
-producedList H =
-  Hypergraph.dom H ++ concat (tabulate (Hypergraph.eout H))
+producedList H = Hypergraph.dom H ++ concat (tabulate (Hypergraph.eout H))
 
 consumedList : (H : Hypergraph FlatGen) → List (Fin (Hypergraph.nV H))
-consumedList H =
-  Hypergraph.cod H ++ concat (tabulate (Hypergraph.ein H))
+consumedList H = Hypergraph.cod H ++ concat (tabulate (Hypergraph.ein H))
 
 -- Linearity: matching production / consumption counts, each ≤ 1.
 
@@ -199,10 +193,7 @@ Linear H = (∀ v → count v (producedList H) ≡ count v (consumedList H))
 -- `count v ≡ count j` on K's lists.  Both sides match by `Linear G`/
 -- `Linear K`, and the bound transfers.
 
-Linear-hTensor
-  : (G K : Hypergraph FlatGen)
-  → Linear G → Linear K
-  → Linear (hTensor G K)
+Linear-hTensor : (G K : Hypergraph FlatGen) → Linear G → Linear K → Linear (hTensor G K)
 Linear-hTensor G K (G-bal , G-bnd) (K-bal , K-bnd) = balance , bound
   where
     module G = Hypergraph G
@@ -323,17 +314,12 @@ Linear-hTensor G K (G-bal , G-bnd) (K-bal , K-bnd) = balance , bound
                                             (concat (tabulate K.ein)))))
              (sym (count-++ j K.cod (concat (tabulate K.ein)))))
 
-    balance : ∀ v → count v (producedList (hTensor G K))
-                  ≡ count v (consumedList (hTensor G K))
+    balance : ∀ v → count v (producedList (hTensor G K)) ≡ count v (consumedList (hTensor G K))
     balance v with splitAt G.nV v in eq
     ... | inj₁ i with splitAt⁻¹-↑ˡ {n = K.nV} eq
-    ...           | refl =
-                    trans (count-injL-prod i)
-                          (trans (G-bal i) (sym (count-injL-cons i)))
+    ...           | refl = trans (count-injL-prod i) (trans (G-bal i) (sym (count-injL-cons i)))
     balance v | inj₂ j with splitAt⁻¹-↑ʳ {m = G.nV} eq
-    ...                  | refl =
-                           trans (count-injR-prod j)
-                                 (trans (K-bal j) (sym (count-injR-cons j)))
+    ...                  | refl = trans (count-injR-prod j) (trans (K-bal j) (sym (count-injR-cons j)))
 
     bound : ∀ v → count v (producedList (hTensor G K)) Nat.≤ 1
     bound v with splitAt G.nV v in eq
@@ -349,9 +335,7 @@ Linear-hEmpty : Linear hEmpty
 Linear-hEmpty = (λ ()) , (λ ())
 
 Linear-hVar : ∀ x → Linear (hVar x)
-Linear-hVar x =
-    (λ { zero → refl })
-  , (λ { zero → s≤s z≤n })
+Linear-hVar x = (λ { zero → refl }) , (λ { zero → s≤s z≤n })
 
 -- Symmetry: `dom = LL ++ RR`, `cod = RR ++ LL`, no edges.  Both sides
 -- count `LL`/`RR` once each, just permuted; bound by `count-LL-RR-eq-1`.
@@ -368,12 +352,10 @@ Linear-hSwap A B = balance , bound
     RR = map (nA ↑ʳ_) (range nB)
 
     balance : ∀ v → count v ((LL ++ RR) ++ []) ≡ count v ((RR ++ LL) ++ [])
-    balance v rewrite ++-identityʳ (LL ++ RR) | ++-identityʳ (RR ++ LL) =
-      count-swap v LL RR
+    balance v rewrite ++-identityʳ (LL ++ RR) | ++-identityʳ (RR ++ LL) = count-swap v LL RR
 
     bound : ∀ v → count v ((LL ++ RR) ++ []) Nat.≤ 1
-    bound v rewrite ++-identityʳ (LL ++ RR) | count-LL-RR-eq-1 nA nB v =
-      s≤s z≤n
+    bound v rewrite ++-identityʳ (LL ++ RR) | count-LL-RR-eq-1 nA nB v = s≤s z≤n
 
 -- Generator edge: `dom = LL`, `cod = RR`; the single edge has
 -- `ein _ = LL`, `eout _ = RR`.  Reduces to the same `LL ⊕ RR` story as hSwap.
@@ -390,16 +372,13 @@ Linear-hGen {A} {B} _ = balance , bound
     RR = map (nA ↑ʳ_) (range nB)
 
     balance : ∀ v → count v (LL ++ (RR ++ [])) ≡ count v (RR ++ (LL ++ []))
-    balance v rewrite ++-identityʳ RR | ++-identityʳ LL =
-      count-swap v LL RR
+    balance v rewrite ++-identityʳ RR | ++-identityʳ LL = count-swap v LL RR
 
     bound : ∀ v → count v (LL ++ (RR ++ [])) Nat.≤ 1
-    bound v rewrite ++-identityʳ RR | count-LL-RR-eq-1 nA nB v =
-      s≤s z≤n
+    bound v rewrite ++-identityʳ RR | count-LL-RR-eq-1 nA nB v = s≤s z≤n
 
 Linear-hId : ∀ A → Linear (hId A)
 Linear-hId unit       = Linear-hEmpty
 Linear-hId (Var x)    = Linear-hVar x
-Linear-hId (A ⊗₀ B)   = Linear-hTensor (hId A) (hId B)
-                          (Linear-hId A) (Linear-hId B)
+Linear-hId (A ⊗₀ B)   = Linear-hTensor (hId A) (hId B) (Linear-hId A) (Linear-hId B)
 

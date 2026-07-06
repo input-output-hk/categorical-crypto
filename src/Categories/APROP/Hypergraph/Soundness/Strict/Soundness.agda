@@ -43,7 +43,6 @@ module _
     → decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g)
   where
 
-  soundness-assembled
-    : ∀ {A B} {f g : HomTerm A B} → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g
+  soundness-assembled : ∀ {A B} {f g : HomTerm A B} → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g
   soundness-assembled =
     SST.soundness-strict (PI.st-≈-decodePˢ decodePˢ-⊗) PII.decodePˢ-resp-iso

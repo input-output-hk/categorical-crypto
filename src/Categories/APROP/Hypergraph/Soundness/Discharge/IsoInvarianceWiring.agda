@@ -18,8 +18,7 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Model.Core
-  using (Hypergraph; domL; codL)
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig using (unflatten)
@@ -45,8 +44,7 @@ open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; sym; trans; subst; subst₂)
-open import Relation.Binary.Construct.Closure.ReflexiveTransitive
-  using (Star; ε; _◅_)
+open import Relation.Binary.Construct.Closure.ReflexiveTransitive using (Star; ε; _◅_)
 
 ------------------------------------------------------------------------
 -- Small range/tabulate bridge lemmas (local copies; `range` is defined
@@ -60,9 +58,7 @@ range≡tabulate-id (Nat.suc n) =
     (trans (cong (map Fin.suc) (range≡tabulate-id n))
            (map-tabulate (λ i → i) Fin.suc))
 
-tabulate-as-map-range
-  : ∀ {n} {A : Set} (f : Fin n → A)
-  → tabulate f ≡ map f (range n)
+tabulate-as-map-range : ∀ {n} {A : Set} (f : Fin n → A) → tabulate f ≡ map f (range n)
 tabulate-as-map-range {n = n} f =
   trans (sym (map-tabulate (λ i → i) f))
         (cong (map f) (sym (range≡tabulate-id n)))
@@ -100,8 +96,7 @@ module PerHG (H : Hypergraph FlatGen)
   -- `codL H = map vlab cod` definitionally, so the boundary type lines up.)
   decodeOrd : (o : Order) → Valid o
             → HomTerm (unflatten (domL H)) (unflatten (codL H))
-  decodeOrd o p =
-    permute-via-vlab H.vlab p ∘ proj₂ (process-edges H o H.dom)
+  decodeOrd o p = permute-via-vlab H.vlab p ∘ proj₂ (process-edges H o H.dom)
 
 ------------------------------------------------------------------------
 -- Across an isomorphism: iso-invariance of the decoder.
@@ -142,8 +137,7 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J) where
       nE-eq : H.nE ≡ J.nE
       nE-eq = bij-fin-ℕ-≡ ψ ψ⁻¹ ψ-left ψ-rght
 
-      base : tabulate {n = J.nE} (λ i → ψ⁻¹ i)
-               Perm.↭ tabulate {n = H.nE} (λ i → i)
+      base : tabulate {n = J.nE} (λ i → ψ⁻¹ i) Perm.↭ tabulate {n = H.nE} (λ i → i)
       base = tabulate-bij-↭-via-eq (sym nE-eq) (λ i → i) ψ⁻¹ ψ ψ-rght ψ-left
 
       base-range : tabulate {n = J.nE} (λ i → ψ⁻¹ i) Perm.↭ range H.nE

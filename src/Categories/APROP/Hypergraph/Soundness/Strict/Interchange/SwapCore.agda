@@ -59,8 +59,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-prefix; process-edges; edge-step)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
-  using (Dep)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
@@ -125,8 +124,7 @@ module _ (H : Hypergraph FlatGen)
 
   data EdgeStepRˢ (s : List (Fin H.nV)) (e : Fin H.nE)
        : (s' : List (Fin H.nV)) → HomS (map vl s) (map vl s') → Set where
-    skipRˢ : extract-prefix (H.ein e) s ≡ nothing
-           → EdgeStepRˢ s e s idˢ
+    skipRˢ : extract-prefix (H.ein e) s ≡ nothing → EdgeStepRˢ s e s idˢ
     fireRˢ : ∀ (rest : List (Fin H.nV)) (perm : s Perm.↭ H.ein e ++ rest)
            → extract-prefix (H.ein e) s ≡ just (rest , perm)
            → EdgeStepRˢ s e (H.eout e ++ rest) (fire-termˢ e s rest perm)
@@ -238,8 +236,7 @@ module _ (H : Hypergraph FlatGen)
         ⊗id-dist
           : ∀ {as bs cs} (Xt : HomS bs cs) (Yt : HomS as bs)
           → (Xt ∘ˢ Yt) ⊗ˢ idˢ {R} ≈ˢ (Xt ⊗ˢ idˢ {R}) ∘ˢ (Yt ⊗ˢ idˢ {R})
-        ⊗id-dist Xt Yt =
-          ≈-trans (⊗-resp ≈-refl (≈-sym idˡ)) (≈-sym interchangeˢ)
+        ⊗id-dist Xt Yt = ≈-trans (⊗-resp ≈-refl (≈-sym idˡ)) (≈-sym interchangeˢ)
         -- σ-conjugation form: `g' ⊗ˢ g ≈ σ ∘ (g ⊗ˢ g') ∘ σ`.
         conj : g' ⊗ˢ g ≈ˢ σˢ B B' ∘ˢ ((g ⊗ˢ g') ∘ˢ σˢ A' A)
         conj =

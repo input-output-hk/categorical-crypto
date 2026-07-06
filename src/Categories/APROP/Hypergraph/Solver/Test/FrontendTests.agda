@@ -173,13 +173,11 @@ module Braiding (A₀ A₁ A₂ : C.Obj)
   test-σ-conj : σ ∘ (pᴹ ⊗₁ qᴹ) ∘ σ ≈ qᴹ ⊗₁ pᴹ
   test-σ-conj = solveH! (S.σ S.∘ (p S.⊗₁ q) S.∘ S.σ) (q S.⊗₁ p)
 
-  test-hexagon
-    : id ⊗₁ σ ∘ α⇒ ∘ σ ⊗₁ id ≈ α⇒ ∘ σ ∘ α⇒ {A₀} {A₁} {A₂}
+  test-hexagon : id ⊗₁ σ ∘ α⇒ ∘ σ ⊗₁ id ≈ α⇒ ∘ σ ∘ α⇒ {A₀} {A₁} {A₂}
   test-hexagon = solveH! (S.id S.⊗₁ S.σ S.∘ S.α⇒ S.∘ S.σ S.⊗₁ S.id)
                          (S.α⇒ S.∘ S.σ S.∘ S.α⇒ {a₀} {a₁} {a₂})
 
-  test-σ-slide
-    : σ ∘ ((sᴹ ∘ pᴹ) ⊗₁ id {A₂}) ≈ (id {A₂} ⊗₁ (sᴹ ∘ pᴹ)) ∘ σ
+  test-σ-slide : σ ∘ ((sᴹ ∘ pᴹ) ⊗₁ id {A₂}) ≈ (id {A₂} ⊗₁ (sᴹ ∘ pᴹ)) ∘ σ
   test-σ-slide = solveH! (S.σ S.∘ ((s S.∘ p) S.⊗₁ S.id {a₂}))
                          ((S.id {a₂} S.⊗₁ (s S.∘ p)) S.∘ S.σ)
 

@@ -15,8 +15,7 @@ module Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties (sig : APRO
 open APROP sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-elem; extract-prefix; extract-exact)
-open import Categories.APROP.Hypergraph.Model.Invariant sig
-  using (inject+-inj; raise-inj; ↑ˡ≢↑ʳ)
+open import Categories.APROP.Hypergraph.Model.Invariant sig using (inject+-inj; raise-inj; ↑ˡ≢↑ʳ)
 
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_; splitAt)
@@ -28,8 +27,7 @@ import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ-syntax; ∃-syntax; _,_; _×_)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
 open import Relation.Nullary using (yes; no)
 open import Relation.Nullary.Negation using (¬_)
 
@@ -99,8 +97,7 @@ extract-prefix-self
 extract-prefix-self []       = Perm.refl , refl
 extract-prefix-self (x ∷ xs) with extract-elem-self x xs
 ... | p1 , eq1 with extract-prefix-self xs
-...               | p2 , eq2
-                  rewrite eq1 | eq2 = _ , refl
+...               | p2 , eq2 rewrite eq1 | eq2 = _ , refl
 
 --------------------------------------------------------------------------------
 -- Lifting `extract-elem` / `extract-prefix` through disjoint injections
@@ -115,8 +112,7 @@ extract-elem-↑ˡ-on-mixed-nothing
   : ∀ {nA} nB (k : Fin nA) (xs : List (Fin nA)) (ys : List (Fin nB))
   → extract-elem k xs ≡ nothing
   → extract-elem (k ↑ˡ nB) (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys) ≡ nothing
-extract-elem-↑ˡ-on-mixed-nothing {nA} nB k []       ys _  =
-  extract-elem-↑ˡ-on-↑ʳ-list k ys
+extract-elem-↑ˡ-on-mixed-nothing {nA} nB k []       ys _  = extract-elem-↑ˡ-on-↑ʳ-list k ys
 extract-elem-↑ˡ-on-mixed-nothing {nA} nB k (x ∷ xs) ys eq with x ≟ k
 extract-elem-↑ˡ-on-mixed-nothing {nA} nB k (x ∷ xs) ys eq | yes p with eq
 ... | ()
@@ -141,8 +137,7 @@ extract-elem-↑ʳ-on-↑ʳ-list-nothing nA j []       _ = refl
 extract-elem-↑ʳ-on-↑ʳ-list-nothing nA j (x ∷ ys) eq with x ≟ j
 extract-elem-↑ʳ-on-↑ʳ-list-nothing nA j (x ∷ ys) eq | yes p with eq
 ... | ()
-extract-elem-↑ʳ-on-↑ʳ-list-nothing nA j (x ∷ ys) eq | no  q
-    with extract-elem j ys in eq-inner
+extract-elem-↑ʳ-on-↑ʳ-list-nothing nA j (x ∷ ys) eq | no  q with extract-elem j ys in eq-inner
 ... | nothing =
       extract-elem-skip-nothing
         (nA ↑ʳ j) (nA ↑ʳ x) (map (nA ↑ʳ_) ys)
@@ -177,10 +172,8 @@ extract-elem-↑ˡ-on-mixed-just
   → ∃[ q ] extract-elem (k ↑ˡ nB) (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys)
               ≡ just (map (_↑ˡ nB) rest ++ map (nA ↑ʳ_) ys , q)
 extract-elem-↑ˡ-on-mixed-just nB k []       ys rest p ()
-extract-elem-↑ˡ-on-mixed-just {nA} nB k (x ∷ xs) ys rest p eq
-    with x ≟ k
-extract-elem-↑ˡ-on-mixed-just {nA} nB k (x ∷ xs) ys rest p eq | yes p₁
-    with (x ↑ˡ nB) ≟ (k ↑ˡ nB)
+extract-elem-↑ˡ-on-mixed-just {nA} nB k (x ∷ xs) ys rest p eq with x ≟ k
+extract-elem-↑ˡ-on-mixed-just {nA} nB k (x ∷ xs) ys rest p eq | yes p₁ with (x ↑ˡ nB) ≟ (k ↑ˡ nB)
 ... | yes p₂ with eq
 ...             | refl = _ , refl
 extract-elem-↑ˡ-on-mixed-just {nA} nB k (x ∷ xs) ys rest p eq | yes p₁ | no  q₂ =
@@ -193,10 +186,8 @@ extract-elem-↑ˡ-on-mixed-just {nA} nB k (x ∷ xs) ys rest p eq | no q₁ | j
     with (x ↑ˡ nB) ≟ (k ↑ˡ nB)
 ... | yes p₂ = ⊥-elim (q₁ (inject+-inj nB p₂))
 ... | no  q₂ with eq
-...             | refl
-                with extract-elem-↑ˡ-on-mixed-just nB k xs ys rest₁ p₁ eq-inner
-...               | _ , eq-↑ˡ
-                  rewrite eq-↑ˡ = _ , refl
+...             | refl with extract-elem-↑ˡ-on-mixed-just nB k xs ys rest₁ p₁ eq-inner
+...               | _ , eq-↑ˡ rewrite eq-↑ˡ = _ , refl
 
 --------------------------------------------------------------------------------
 -- `just` direction (R-side).
@@ -208,8 +199,7 @@ extract-elem-↑ʳ-on-mixed-just
   → ∃[ q ] extract-elem (nA ↑ʳ j) (map (_↑ˡ _) xs ++ map (nA ↑ʳ_) ys)
               ≡ just (map (_↑ˡ _) xs ++ map (nA ↑ʳ_) rest , q)
 extract-elem-↑ʳ-on-mixed-just nA j xs []       rest p ()
-extract-elem-↑ʳ-on-mixed-just nA j []       (y ∷ ys) rest p eq
-    with y ≟ j
+extract-elem-↑ʳ-on-mixed-just nA j []       (y ∷ ys) rest p eq with y ≟ j
 extract-elem-↑ʳ-on-mixed-just nA j []       (y ∷ ys) rest p eq | yes p₁
     with (nA ↑ʳ y) ≟ (nA ↑ʳ j)
 ... | yes p₂ with eq
@@ -224,10 +214,8 @@ extract-elem-↑ʳ-on-mixed-just nA j []       (y ∷ ys) rest p eq | no q₁ | 
     with (nA ↑ʳ y) ≟ (nA ↑ʳ j)
 ... | yes p₂ = ⊥-elim (q₁ (raise-inj nA p₂))
 ... | no  q₂ with eq
-...             | refl
-                with extract-elem-↑ʳ-on-mixed-just nA j [] ys rest₁ p₁ eq-inner
-...               | _ , eq-↑ʳ
-                  rewrite eq-↑ʳ = _ , refl
+...             | refl with extract-elem-↑ʳ-on-mixed-just nA j [] ys rest₁ p₁ eq-inner
+...               | _ , eq-↑ʳ rewrite eq-↑ʳ = _ , refl
 extract-elem-↑ʳ-on-mixed-just nA j (x ∷ xs) (y ∷ ys) rest p eq
     with extract-elem-↑ʳ-on-mixed-just nA j xs (y ∷ ys) rest p eq
 ... | q' , eq-rec =
@@ -263,8 +251,7 @@ extract-prefix-↑ˡ-on-mixed-just {nA} nB (k ∷ ks) xs ys rest p eq
 ... | refl
     with extract-elem-↑ˡ-on-mixed-just nB k xs ys xs' p-elem eq-elem
        | extract-prefix-↑ˡ-on-mixed-just nB ks xs' ys rest' p-prefix eq-prefix
-... | _ , eq-elem-↑ˡ | _ , eq-prefix-↑ˡ
-    rewrite eq-elem-↑ˡ | eq-prefix-↑ˡ = _ , refl
+... | _ , eq-elem-↑ˡ | _ , eq-prefix-↑ˡ rewrite eq-elem-↑ˡ | eq-prefix-↑ˡ = _ , refl
 
 extract-prefix-↑ʳ-on-mixed-just
   : ∀ nA {nB} (ks : List (Fin nB)) (xs : List (Fin nA)) (ys : List (Fin nB))
@@ -275,8 +262,7 @@ extract-prefix-↑ʳ-on-mixed-just
               ≡ just (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) rest , q)
 extract-prefix-↑ʳ-on-mixed-just nA []       xs ys rest p eq with eq
 ... | refl = _ , refl
-extract-prefix-↑ʳ-on-mixed-just nA (k ∷ ks) xs ys rest p eq
-    with extract-elem k ys in eq-elem
+extract-prefix-↑ʳ-on-mixed-just nA (k ∷ ks) xs ys rest p eq with extract-elem k ys in eq-elem
 ... | nothing with eq
 ...              | ()
 extract-prefix-↑ʳ-on-mixed-just nA (k ∷ ks) xs ys rest p eq
@@ -289,8 +275,7 @@ extract-prefix-↑ʳ-on-mixed-just nA (k ∷ ks) xs ys rest p eq
 ... | refl
     with extract-elem-↑ʳ-on-mixed-just nA k xs ys ys' p-elem eq-elem
        | extract-prefix-↑ʳ-on-mixed-just nA ks xs ys' rest' p-prefix eq-prefix
-... | _ , eq-elem-↑ʳ | _ , eq-prefix-↑ʳ
-    rewrite eq-elem-↑ʳ | eq-prefix-↑ʳ = _ , refl
+... | _ , eq-elem-↑ʳ | _ , eq-prefix-↑ʳ rewrite eq-elem-↑ʳ | eq-prefix-↑ʳ = _ , refl
 
 --------------------------------------------------------------------------------
 -- `extract-prefix` lifting: failure direction (per-edge "edge cannot
@@ -303,16 +288,12 @@ extract-prefix-↑ˡ-on-mixed-nothing
                    (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys)
        ≡ nothing
 extract-prefix-↑ˡ-on-mixed-nothing nB []       xs ys ()
-extract-prefix-↑ˡ-on-mixed-nothing {nA} nB (k ∷ ks) xs ys eq
-    with extract-elem k xs in eq-elem
-... | nothing
-    rewrite extract-elem-↑ˡ-on-mixed-nothing nB k xs ys eq-elem
-    = refl
+extract-prefix-↑ˡ-on-mixed-nothing {nA} nB (k ∷ ks) xs ys eq with extract-elem k xs in eq-elem
+... | nothing rewrite extract-elem-↑ˡ-on-mixed-nothing nB k xs ys eq-elem = refl
 extract-prefix-↑ˡ-on-mixed-nothing {nA} nB (k ∷ ks) xs ys eq
     | just (xs' , p-elem)
     with extract-prefix ks xs' in eq-prefix
-... | nothing
-    with extract-elem-↑ˡ-on-mixed-just nB k xs ys xs' p-elem eq-elem
+... | nothing with extract-elem-↑ˡ-on-mixed-just nB k xs ys xs' p-elem eq-elem
 ... | _ , eq-elem-↑ˡ
     rewrite eq-elem-↑ˡ
           | extract-prefix-↑ˡ-on-mixed-nothing nB ks xs' ys eq-prefix
@@ -329,16 +310,12 @@ extract-prefix-↑ʳ-on-mixed-nothing
                    (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys)
        ≡ nothing
 extract-prefix-↑ʳ-on-mixed-nothing nA []       xs ys ()
-extract-prefix-↑ʳ-on-mixed-nothing nA (k ∷ ks) xs ys eq
-    with extract-elem k ys in eq-elem
-... | nothing
-    rewrite extract-elem-↑ʳ-on-mixed-nothing nA k xs ys eq-elem
-    = refl
+extract-prefix-↑ʳ-on-mixed-nothing nA (k ∷ ks) xs ys eq with extract-elem k ys in eq-elem
+... | nothing rewrite extract-elem-↑ʳ-on-mixed-nothing nA k xs ys eq-elem = refl
 extract-prefix-↑ʳ-on-mixed-nothing nA (k ∷ ks) xs ys eq
     | just (ys' , p-elem)
     with extract-prefix ks ys' in eq-prefix
-... | nothing
-    with extract-elem-↑ʳ-on-mixed-just nA k xs ys ys' p-elem eq-elem
+... | nothing with extract-elem-↑ʳ-on-mixed-just nA k xs ys ys' p-elem eq-elem
 ... | _ , eq-elem-↑ʳ
     rewrite eq-elem-↑ʳ
           | extract-prefix-↑ʳ-on-mixed-nothing nA ks xs ys' eq-prefix
@@ -373,16 +350,14 @@ extract-prefix-from-↭
   : ∀ {n} (xs ys : List (Fin n))
   → xs Perm.↭ ys
   → ∃[ p ] extract-prefix ys xs ≡ just ([] , p)
-extract-prefix-from-↭ xs []       p
-    with PermProp.↭-empty-inv p
+extract-prefix-from-↭ xs []       p with PermProp.↭-empty-inv p
 ... | refl = Perm.refl , refl
 extract-prefix-from-↭ xs (y ∷ ys') p
     with extract-elem-found y xs (PermProp.∈-resp-↭ (Perm.↭-sym p) (here refl))
 ... | rest , q , eq-extract
     with extract-prefix-from-↭ rest ys'
            (PermProp.drop-∷ (Perm.↭-trans (Perm.↭-sym q) p))
-... | r , eq-prefix
-    rewrite eq-extract | eq-prefix = _ , refl
+... | r , eq-prefix rewrite eq-extract | eq-prefix = _ , refl
 
 --------------------------------------------------------------------------------
 -- `extract-prefix-↭-residual`: partial form of `extract-prefix-from-↭`.
@@ -394,8 +369,7 @@ extract-prefix-↭-residual
   → xs Perm.↭ ks ++ rest
   → ∃[ rest' ] ∃[ p ] extract-prefix ks xs ≡ just (rest' , p)
                      × rest Perm.↭ rest'
-extract-prefix-↭-residual []       xs rest perm-in =
-  xs , Perm.refl , refl , Perm.↭-sym perm-in
+extract-prefix-↭-residual []       xs rest perm-in = xs , Perm.refl , refl , Perm.↭-sym perm-in
 extract-prefix-↭-residual (k ∷ ks) xs rest perm-in
     with extract-elem-found k xs
            (PermProp.∈-resp-↭ (Perm.↭-sym perm-in) (here refl))
@@ -415,14 +389,10 @@ extract-prefix-↭-nothing
   → xs Perm.↭ xs'
   → extract-prefix ks xs ≡ nothing
   → extract-prefix ks xs' ≡ nothing
-extract-prefix-↭-nothing ks xs xs' xs↭xs' eq
-    with extract-prefix ks xs' in eq-xs'
+extract-prefix-↭-nothing ks xs xs' xs↭xs' eq with extract-prefix ks xs' in eq-xs'
 ... | nothing             = refl
-... | just (rest' , p-xs')
-    with extract-prefix-↭-residual ks xs rest'
-           (Perm.↭-trans xs↭xs' p-xs')
-... | _ , _ , eq-xs , _
-    rewrite eq-xs with eq
+... | just (rest' , p-xs') with extract-prefix-↭-residual ks xs rest' (Perm.↭-trans xs↭xs' p-xs')
+... | _ , _ , eq-xs , _ rewrite eq-xs with eq
 ... | ()
 
 --------------------------------------------------------------------------------
@@ -458,8 +428,7 @@ extract-elem-via-injective-just
   → extract-elem k xs ≡ just (rest , p)
   → ∃[ q ] extract-elem (f k) (map f xs) ≡ just (map f rest , q)
 extract-elem-via-injective-just f f-inj k (x ∷ xs) rest p eq with x ≟ k
-extract-elem-via-injective-just f f-inj k (x ∷ xs) rest p eq | yes refl
-    with eq
+extract-elem-via-injective-just f f-inj k (x ∷ xs) rest p eq | yes refl with eq
 ... | refl with f x ≟ f x
 ... | yes _    = _ , refl
 ... | no  q    = ⊥-elim (q refl)
@@ -467,11 +436,8 @@ extract-elem-via-injective-just f f-inj k (x ∷ xs) rest p eq | no q
     with extract-elem k xs in eq-inner
 ... | nothing with eq
 ... | ()
-extract-elem-via-injective-just f f-inj k (x ∷ xs) rest p eq | no q
-    | just (rest' , p')
-    with eq
-... | refl
-    with extract-elem-via-injective-just f f-inj k xs rest' p' eq-inner
+extract-elem-via-injective-just f f-inj k (x ∷ xs) rest p eq | no q | just (rest' , p') with eq
+... | refl with extract-elem-via-injective-just f f-inj k xs rest' p' eq-inner
 ... | _ , eq-rec =
       _ , extract-elem-skip-just (f k) (f x) (map f xs)
             (map f rest') _ (λ p₁ → q (f-inj p₁)) eq-rec
@@ -483,16 +449,12 @@ extract-prefix-via-injective-nothing
   → extract-prefix ks xs ≡ nothing
   → extract-prefix (map f ks) (map f xs) ≡ nothing
 extract-prefix-via-injective-nothing f f-inj []       xs ()
-extract-prefix-via-injective-nothing f f-inj (k ∷ ks) xs eq
-    with extract-elem k xs in eq-elem
-... | nothing
-    rewrite extract-elem-via-injective-nothing f f-inj k xs eq-elem
-    = refl
+extract-prefix-via-injective-nothing f f-inj (k ∷ ks) xs eq with extract-elem k xs in eq-elem
+... | nothing rewrite extract-elem-via-injective-nothing f f-inj k xs eq-elem = refl
 extract-prefix-via-injective-nothing f f-inj (k ∷ ks) xs eq
     | just (xs' , p-elem)
     with extract-prefix ks xs' in eq-prefix
-... | nothing
-    with extract-elem-via-injective-just f f-inj k xs xs' p-elem eq-elem
+... | nothing with extract-elem-via-injective-just f f-inj k xs xs' p-elem eq-elem
 ... | _ , eq-elem-f
     rewrite eq-elem-f
           | extract-prefix-via-injective-nothing f f-inj ks xs' eq-prefix
@@ -510,8 +472,7 @@ extract-prefix-via-injective-just
   → ∃[ q ] extract-prefix (map f ks) (map f xs) ≡ just (map f rest , q)
 extract-prefix-via-injective-just f f-inj []       xs rest p eq with eq
 ... | refl = _ , refl
-extract-prefix-via-injective-just f f-inj (k ∷ ks) xs rest p eq
-    with extract-elem k xs in eq-elem
+extract-prefix-via-injective-just f f-inj (k ∷ ks) xs rest p eq with extract-elem k xs in eq-elem
 ... | nothing with eq
 ...              | ()
 extract-prefix-via-injective-just f f-inj (k ∷ ks) xs rest p eq
@@ -524,5 +485,4 @@ extract-prefix-via-injective-just f f-inj (k ∷ ks) xs rest p eq
 ... | refl
     with extract-elem-via-injective-just f f-inj k xs xs' p-elem eq-elem
        | extract-prefix-via-injective-just f f-inj ks xs' rest' p-prefix eq-prefix
-... | _ , eq-elem-f | _ , eq-prefix-f
-    rewrite eq-elem-f | eq-prefix-f = _ , refl
+... | _ , eq-elem-f | _ , eq-prefix-f rewrite eq-elem-f | eq-prefix-f = _ , refl

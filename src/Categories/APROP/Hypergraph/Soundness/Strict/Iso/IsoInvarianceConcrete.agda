@@ -32,8 +32,7 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
-  using (Dep)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig _≟X_ as SS
@@ -47,8 +46,7 @@ open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Relation.Nullary using (¬_)
-open import Relation.Binary.Construct.Closure.ReflexiveTransitive
-  using (Star; ε; _◅_)
+open import Relation.Binary.Construct.Closure.ReflexiveTransitive using (Star; ε; _◅_)
 
 ------------------------------------------------------------------------
 -- Per-hypergraph: the closure-lift and order-invariance.  Threads the (N)
@@ -79,8 +77,7 @@ module PerHG (H : Hypergraph FlatGen)
   -- An adjacent-independent swap IS a permutation (a transposition under
   -- the prefix `ps`), so it preserves the `↭ range nE` provenance.
   ↝⇒↭ : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂ → o₁ Perm.↭ o₂
-  ↝⇒↭ (swap-step ps {x} {y} qs _) =
-    PermProp.++⁺ˡ ps (Perm.swap x y Perm.refl)
+  ↝⇒↭ (swap-step ps {x} {y} qs _) = PermProp.++⁺ˡ ps (Perm.swap x y Perm.refl)
 
   -- Lift the per-swap step to the reflexive-transitive closure, threading
   -- both the validity witness and the `↭ range nE` provenance.
@@ -101,5 +98,4 @@ module PerHG (H : Hypergraph FlatGen)
     o₁ Perm.↭ range (Hypergraph.nE H) →
     (p₁ : Validˢ o₁) →
     Σ[ p₂ ∈ Validˢ o₂ ] decodeOrdˢ o₁ p₁ ≈ˢ decodeOrdˢ o₂ p₂
-  order-invariantˢ o₁ o₂ p n₁ n₂ o₁↭range p₁ =
-    ↝*⇒≈ˢ (connectivity p n₁ n₂) o₁↭range p₁
+  order-invariantˢ o₁ o₂ p n₁ n₂ o₁↭range p₁ = ↝*⇒≈ˢ (connectivity p n₁ n₂) o₁↭range p₁

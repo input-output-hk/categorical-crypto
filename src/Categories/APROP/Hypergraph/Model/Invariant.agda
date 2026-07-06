@@ -55,12 +55,10 @@ hId-cod≡dom (A ⊗₀ B)  =
 
 -- injectivity of `_↑ˡ_` and `_↑ʳ_` (thin wrappers over the stdlib lemmas).
 -- Public: used by `HomTermInvariant`.
-inject+-inj : ∀ {m} (n : ℕ) {i j : Fin m}
-            → i ↑ˡ n ≡ j ↑ˡ n → i ≡ j
+inject+-inj : ∀ {m} (n : ℕ) {i j : Fin m} → i ↑ˡ n ≡ j ↑ˡ n → i ≡ j
 inject+-inj n {i} {j} eq = ↑ˡ-injective n i j eq
 
-raise-inj : ∀ (m : ℕ) {n} {i j : Fin n}
-          → m ↑ʳ i ≡ m ↑ʳ j → i ≡ j
+raise-inj : ∀ (m : ℕ) {n} {i j : Fin n} → m ↑ʳ i ≡ m ↑ʳ j → i ≡ j
 raise-inj m {n} {i} {j} eq = ↑ʳ-injective m i j eq
 
 -- `_↑ˡ_` and `_↑ʳ_` images are disjoint at the element level (the primitive
@@ -74,8 +72,7 @@ raise-inj m {n} {i} {j} eq = ↑ʳ-injective m i j eq
 -- force `splitAt m v` to be both `inj₁` and `inj₂`.
 disj-L-R : ∀ {m n} (xs : List (Fin m)) (ys : List (Fin n))
          → Disjoint (map (_↑ˡ n) xs) (map (m ↑ʳ_) ys)
-disj-L-R {m} {n} xs ys {v} (v∈L , v∈R)
-  with ∈-map⁻ (_↑ˡ n) v∈L | ∈-map⁻ (m ↑ʳ_) v∈R
+disj-L-R {m} {n} xs ys {v} (v∈L , v∈R) with ∈-map⁻ (_↑ˡ n) v∈L | ∈-map⁻ (m ↑ʳ_) v∈R
 ... | vL , _ , v≡L | vR , _ , v≡R
   = case-absurd (trans (sym sp-L) sp-R)
   where

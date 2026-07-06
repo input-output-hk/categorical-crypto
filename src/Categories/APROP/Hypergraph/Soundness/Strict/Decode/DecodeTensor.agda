@@ -56,8 +56,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; range; hTensor; module hTensor-impl)
-open import Categories.APROP.Hypergraph.Model.Translation sig
-  using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
+open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
@@ -102,8 +101,7 @@ module BlockSplit (H : Hypergraph FlatGen) where
           (proj₂ (process-edgesˢ es₂ (proj₁ (process-edgesˢ es₁ s)))
             ∘ˢ proj₂ (process-edgesˢ es₁ s))
   process-edgesˢ-++ []        es₂ s = ≈-sym idʳ
-  process-edgesˢ-++ (e ∷ es₁) es₂ s
-    with edge-stepˢ s e
+  process-edgesˢ-++ (e ∷ es₁) es₂ s with edge-stepˢ s e
   ... | (s' , t) =
     ≈-trans (∘-resp (process-edgesˢ-++ es₁ es₂ s') ≈-refl)
     (≈-trans (≡⇒≈ˢ (sym (cast-∘-domʳ

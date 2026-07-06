@@ -35,8 +35,7 @@ open import Categories.PermuteCoherence.Faithfulness d
   using (unflatten; unflatten-++-≅; permute)
 open import Categories.FreeSMC.Steps d using (permute-via-vlab)
 open import Categories.FreeSMC.BraidBlock d using (σ-block)
-open import Categories.FreeSMC.SigmaBlockHexagon d
-  using (σ-block-natural₃)
+open import Categories.FreeSMC.SigmaBlockHexagon d using (σ-block-natural₃)
 open import Categories.FreeSMC.BraidPermute d
   using (rotate; σ-rotate; permute-rotate; permute-swap-refl-σ-block)
 open import Categories.FreeSMC.SigmaBlockTensor d using (σ⊗-from-hexagon₂)
@@ -166,9 +165,7 @@ private
     where
       σb₁ = σ-block {A} {B} {C₁}
 
-      dist-σb
-        : (σb₁ ⊗₁ id {A = C₂})
-          ≈Term (α⇒ ⊗₁ id) ∘ ((σ ⊗₁ id) ⊗₁ id) ∘ (α⇐ ⊗₁ id)
+      dist-σb : (σb₁ ⊗₁ id {A = C₂}) ≈Term (α⇒ ⊗₁ id) ∘ ((σ ⊗₁ id) ⊗₁ id) ∘ (α⇐ ⊗₁ id)
       dist-σb = begin
         (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐) ⊗₁ id
           ≈⟨ ⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ) ⟩
@@ -297,8 +294,7 @@ private
               ∘ σ-block {Var x} {Var y} {E ⊗₀ Cc}
               ∘ (id ⊗₁ (id ⊗₁ fromE)) ∎
             where
-              idid
-                : (id ⊗₁ (id ⊗₁ toE)) ∘ (id ⊗₁ (id ⊗₁ fromE)) ≈Term id
+              idid : (id ⊗₁ (id ⊗₁ toE)) ∘ (id ⊗₁ (id ⊗₁ fromE)) ≈Term id
               idid = begin
                 (id ⊗₁ (id ⊗₁ toE)) ∘ (id ⊗₁ (id ⊗₁ fromE))
                   ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
@@ -329,8 +325,7 @@ private
                           (refl⟩∘⟨ (≈-Term-sym fromXY-unfold)) ⟩
             toYX ∘ ((σbE ⊗₁ id) ∘ fromXY) ∎
             where
-              toYX-unfold
-                : toYX ≈Term (id ⊗₁ (id ⊗₁ toE)) ∘ (id ⊗₁ α⇒) ∘ α⇒
+              toYX-unfold : toYX ≈Term (id ⊗₁ (id ⊗₁ toE)) ∘ (id ⊗₁ α⇒) ∘ α⇒
               toYX-unfold = begin
                 toYX
                   ≡⟨⟩
@@ -342,8 +337,7 @@ private
                   ≈⟨ FM.assoc ⟩
                 (id ⊗₁ (id ⊗₁ toE)) ∘ (id ⊗₁ α⇒) ∘ α⇒ ∎
 
-              fromXY-unfold
-                : fromXY ≈Term α⇐ ∘ (id ⊗₁ α⇐) ∘ (id ⊗₁ (id ⊗₁ fromE))
+              fromXY-unfold : fromXY ≈Term α⇐ ∘ (id ⊗₁ α⇐) ∘ (id ⊗₁ (id ⊗₁ fromE))
               fromXY-unfold = begin
                 fromXY
                   ≡⟨⟩
@@ -423,8 +417,7 @@ private
       fromE = _≅_.from (unflatten-++-≅ es cs)
       bb    = block ⊗₁ id {A = unflatten cs}
 
-      mid-assoc
-        : id ⊗₁ bb ≈Term α⇒ ∘ ((id ⊗₁ block) ⊗₁ id) ∘ α⇐
+      mid-assoc : id ⊗₁ bb ≈Term α⇒ ∘ ((id ⊗₁ block) ⊗₁ id) ∘ α⇐
       mid-assoc = begin
         id ⊗₁ bb
           ≈⟨ ≈-Term-sym idʳ ⟩
@@ -489,10 +482,8 @@ private
       ppB   = id {A = Var y} ⊗₁ (id {A = Var x} ⊗₁ permute (PermProp.++⁺ʳ cs P))
       ppP   = id {A = Var y} ⊗₁ (id {A = Var x} ⊗₁ permute P)
 
-      ppB-slide
-        : ppB ≈Term toF2 ∘ (ppP ⊗₁ id) ∘ fromYX
-      ppB-slide =
-        prep-step cs y (prep-step cs x (permute-++⁺ʳ-slide cs P))
+      ppB-slide : ppB ≈Term toF2 ∘ (ppP ⊗₁ id) ∘ fromYX
+      ppB-slide = prep-step cs y (prep-step cs x (permute-++⁺ʳ-slide cs P))
 
       collapse
         : (toF2 ∘ (ppP ⊗₁ id) ∘ fromYX) ∘ (toYX ∘ (sw-es ⊗₁ id) ∘ fromE2)
@@ -515,8 +506,7 @@ private
           ≈⟨ refl⟩∘⟨ fuse ⟩∘⟨refl ⟩
         toF2 ∘ (permute (Perm.swap x y P) ⊗₁ id) ∘ fromE2 ∎
         where
-          fuse : (ppP ⊗₁ id) ∘ (sw-es ⊗₁ id)
-                 ≈Term permute (Perm.swap x y P) ⊗₁ id
+          fuse : (ppP ⊗₁ id) ∘ (sw-es ⊗₁ id) ≈Term permute (Perm.swap x y P) ⊗₁ id
           fuse = begin
             (ppP ⊗₁ id) ∘ (sw-es ⊗₁ id)
               ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
@@ -560,8 +550,7 @@ private
         toF ∘ ((permute Q ∘ permute P) ⊗₁ id) ∘ fromE ∎
         where
           fuse : QQ ∘ PP ≈Term (permute Q ∘ permute P) ⊗₁ id
-          fuse = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                              (⊗-resp-≈ ≈-Term-refl idˡ)
+          fuse = ≈-Term-trans (≈-Term-sym ⊗-∘-dist) (⊗-resp-≈ ≈-Term-refl idˡ)
 
   --------------------------------------------------------------------------
   -- (A2)  RAW two-block braiding = `permute (++-comm)`:

@@ -37,8 +37,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; range; map-via-inj)
-open import Categories.APROP.Hypergraph.Model.Translation sig
-  using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
+open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
 open import Categories.APROP.Hypergraph.Util.Prune using (count-non)
@@ -372,8 +371,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   Ycˢ = permAG ∘ˢ gterm
 
   Xcˢ : HomS (map vlC (map remapP K.dom)) (map vlC C.cod)
-  Xcˢ = RC.permuteˢ perm-C2ˢ
-          ∘ˢ (RC.permuteˢ (Perm.↭-sym ρf-K) ∘ˢ kterm-canon)
+  Xcˢ = RC.permuteˢ perm-C2ˢ ∘ˢ (RC.permuteˢ (Perm.↭-sym ρf-K) ∘ˢ kterm-canon)
 
   private
     -- reassoc: A ∘ ((B ∘ (Kt ∘ Ct)) ∘ Gt) ≈ (A ∘ (B ∘ Kt)) ∘ (Ct ∘ Gt).
@@ -443,15 +441,13 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
 
   -- the injL-lifted canonical perm for the G-block (strict `injf-↭`).
   injf-↭ : after-G Perm.↭ map remapP K.dom
-  injf-↭ = subst₂ Perm._↭_ (sym after-G-≡) (sym map-rKd)
-             (PermProp.map⁺ injL perm-f)
+  injf-↭ = subst₂ Perm._↭_ (sym after-G-≡) (sym map-rKd) (PermProp.map⁺ injL perm-f)
 
   ----------------------------------------------------------------------
   -- G-block permute: `castˢ M1G midG-cod permAG ≈ˢ PFˢ`.
 
   private
-    gperm'
-      : castˢ M1G midG-cod permAG ≈ˢ PFˢ
+    gperm' : castˢ M1G midG-cod permAG ≈ˢ PFˢ
     gperm' =
       ≈-trans (cast-resp M1G midG-cod (permRemap-coh uRemapKdom after-G-↭ injf-↭))
       (≈-trans (≡⇒≈ˢ (cong (castˢ M1G midG-cod)
@@ -477,13 +473,11 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   -- G-block twin: `castˢ (vlab-φ G.dom) M1G gterm ≈ˢ pterm-f`.
 
   private
-    gtwin'
-      : castˢ (TG.vlab-φ G.dom) M1G gterm ≈ˢ pterm-f
+    gtwin' : castˢ (TG.vlab-φ G.dom) M1G gterm ≈ˢ pterm-f
     gtwin' = TG.process-edges-term-embˢ (range G.nE) G.dom M1G
 
   -- Y-twin: `castˢ (vlab-φ G.dom) midG-cod Ycˢ ≈ˢ PFˢ ∘ˢ pterm-f`.
-  Yc-twinˢ
-    : castˢ (TG.vlab-φ G.dom) midG-cod Ycˢ ≈ˢ PFˢ ∘ˢ pterm-f
+  Yc-twinˢ : castˢ (TG.vlab-φ G.dom) midG-cod Ycˢ ≈ˢ PFˢ ∘ˢ pterm-f
   Yc-twinˢ =
     ≈-trans (∘-cast-split (TG.vlab-φ G.dom) M1G midG-cod permAG gterm)
             (∘-resp gperm' gtwin')
@@ -496,28 +490,23 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
 
   -- `Xcˢ ≈ˢ permuteˢ combPˢ ∘ˢ kterm-canon`  (permuteˢ trans = ∘ˢ, reassoc).
   private
-    Xc-assocˢ
-      : Xcˢ ≈ˢ RC.permuteˢ combPˢ ∘ˢ kterm-canon
+    Xc-assocˢ : Xcˢ ≈ˢ RC.permuteˢ combPˢ ∘ˢ kterm-canon
     Xc-assocˢ = ≈-sym assocˢ
 
-  proc-stack-emb-K : proj₁ (RC.process-edgesˢ kblk (map remapP K.dom))
-                     ≡ map remapP s_K_final
+  proc-stack-emb-K : proj₁ (RC.process-edgesˢ kblk (map remapP K.dom)) ≡ map remapP s_K_final
   proc-stack-emb-K = TK.proc-stack-embˢ (range K.nE) K.dom
 
-  MK1 : map vlC (proj₁ (RC.process-edgesˢ kblk (map remapP K.dom)))
-        ≡ map K.vlab s_K_final
+  MK1 : map vlC (proj₁ (RC.process-edgesˢ kblk (map remapP K.dom))) ≡ map K.vlab s_K_final
   MK1 = trans (cong (map vlC) proc-stack-emb-K) (TK.vlab-φ s_K_final)
 
   remapg-↭ : proj₁ (RC.process-edgesˢ kblk (map remapP K.dom)) Perm.↭ C.cod
-  remapg-↭ = subst₂ Perm._↭_ (sym proc-stack-emb-K) refl
-               (PermProp.map⁺ remapP perm-g)
+  remapg-↭ = subst₂ Perm._↭_ (sym proc-stack-emb-K) refl (PermProp.map⁺ remapP perm-g)
 
   ----------------------------------------------------------------------
   -- K-block permute: `castˢ MK1 (vlab-φ K.cod) (permuteˢ combPˢ) ≈ˢ PGˢ`.
 
   private
-    kperm'
-      : castˢ MK1 (TK.vlab-φ K.cod) (RC.permuteˢ combPˢ) ≈ˢ PGˢ
+    kperm' : castˢ MK1 (TK.vlab-φ K.cod) (RC.permuteˢ combPˢ) ≈ˢ PGˢ
     kperm' =
       ≈-trans (cast-resp MK1 (TK.vlab-φ K.cod) (permC-coh uCcod combPˢ remapg-↭))
       (≈-trans (≡⇒≈ˢ (cong (castˢ MK1 (TK.vlab-φ K.cod))
@@ -543,13 +532,11 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   -- K-block twin: `castˢ (vlab-φ K.dom) MK1 kterm-canon ≈ˢ pterm-g`.
 
   private
-    ktwin'
-      : castˢ (TK.vlab-φ K.dom) MK1 kterm-canon ≈ˢ pterm-g
+    ktwin' : castˢ (TK.vlab-φ K.dom) MK1 kterm-canon ≈ˢ pterm-g
     ktwin' = TK.process-edges-term-embˢ (range K.nE) K.dom MK1
 
   -- X-twin: `castˢ (vlab-φ K.dom)(vlab-φ K.cod) Xcˢ ≈ˢ PGˢ ∘ˢ pterm-g`.
-  Xc-twinˢ
-    : castˢ (TK.vlab-φ K.dom) (TK.vlab-φ K.cod) Xcˢ ≈ˢ PGˢ ∘ˢ pterm-g
+  Xc-twinˢ : castˢ (TK.vlab-φ K.dom) (TK.vlab-φ K.cod) Xcˢ ≈ˢ PGˢ ∘ˢ pterm-g
   Xc-twinˢ =
     ≈-trans (cast-resp (TK.vlab-φ K.dom) (TK.vlab-φ K.cod) Xc-assocˢ)
     (≈-trans (∘-cast-split (TK.vlab-φ K.dom) MK1 (TK.vlab-φ K.cod)
@@ -571,8 +558,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
 
   -- the middle boundary (flatten B), routed through `G.cod`/`map-rKd`.
   midGFᵉ : map vlC (map remapP K.dom) ≡ flatten B
-  midGFᵉ = trans (cong (map vlC) map-rKd)
-                 (trans (TG.vlab-φ G.cod) (⟪⟫-codL f))
+  midGFᵉ = trans (cong (map vlC) map-rKd) (trans (TG.vlab-φ G.cod) (⟪⟫-codL f))
 
   -- `decodePˢ` cores.
   private

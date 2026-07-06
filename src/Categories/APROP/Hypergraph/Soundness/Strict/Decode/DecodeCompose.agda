@@ -173,8 +173,7 @@ module _ (V : Set) (vlab : V → X) where
   permuteˢ-X
     : ∀ {xs ys : List V} (p : xs Perm.↭ ys)
     → castˢ (mp xs) (mp ys) (permuteˣ (PermProp.map⁺ vlab p)) ≈ˢ permuteˢ p
-  permuteˢ-X {xs} Perm.refl =
-    cast-id (mp xs) (mp xs)
+  permuteˢ-X {xs} Perm.refl = cast-id (mp xs) (mp xs)
   permuteˢ-X (Perm.prep x p) =
     ≈-trans
       (cast-⊗-frame (idˢ {vlab x ∷ []}) (mp _) (mp _)
@@ -315,8 +314,7 @@ private
         (f : HomS xs ys) (g : HomS us vs)
         (P : xs ++ us ≡ xs' ++ us') (Q : ys ++ vs ≡ ys' ++ vs')
     → castˢ P Q (f ⊗ˢ g) ≈ˢ castˢ px py f ⊗ˢ castˢ pu pv g
-  cast-⊗-split refl refl refl refl f g P Q
-    rewrite uipL P refl | uipL Q refl = ≈-refl
+  cast-⊗-split refl refl refl refl f g P Q rewrite uipL P refl | uipL Q refl = ≈-refl
 
   open XPerm using (permuteˣ)
 
@@ -478,8 +476,7 @@ module TermEmbedˢ
 
           -- `castˢ P qq (castˢ mpJ Xj) ≈ castˢ mpH Xh`, via cast-fuse on both
           -- sides + cast-irrel (endpoints coincide after the K-step).
-          middle
-            : castˢ P qq (castˢ mpJd mpJc Xj) ≈ˢ castˢ mpHd mpHc Xh
+          middle : castˢ P qq (castˢ mpJd mpJc Xj) ≈ˢ castˢ mpHd mpHc Xh
           middle =
             ≈-trans (≡⇒≈ˢ (cast-fuse mpJd P mpJc qq Xj))
             (≈-trans (≡⇒≈ˢ (cast-irrel (trans mpJd P)
@@ -530,8 +527,7 @@ module TermEmbedˢ
       rest-lab = trans (cong (map vlJ) restJ≡) (vlab-φ restH)
 
       -- the box-input / perm-output interface (split form, both sides).
-      Mmid : map vlJ (J.ein (ψ e)) ++ map vlJ restJ
-             ≡ map vlH (H.ein e) ++ map vlH restH
+      Mmid : map vlJ (J.ein (ψ e)) ++ map vlJ restJ ≡ map vlH (H.ein e) ++ map vlH restH
       Mmid = trans (sym (map-++ vlJ (J.ein (ψ e)) restJ))
              (trans (cong (map vlJ) (cong₂ _++_ (ψ-ein e) restJ≡))
              (trans (cong (map vlJ) (sym (map-++ φ (H.ein e) restH)))
@@ -584,8 +580,7 @@ module TermEmbedˢ
     → proj₁ (RJ.edge-stepˢ (map φ sH) (ψ e))
       ≡ map φ (proj₁ (RH.edge-stepˢ sH e))
   edge-step-stack-embˢ e sH with extract-prefix (H.ein e) sH in eqH
-  ... | nothing
-        rewrite extract-prefix-J-nothing e sH eqH = refl
+  ... | nothing rewrite extract-prefix-J-nothing e sH eqH = refl
   ... | just (restH , permH)
         rewrite proj₂ (extract-prefix-J-just e sH restH permH eqH)
         = trans (cong (_++ map φ restH) (ψ-eout e))

@@ -64,11 +64,7 @@ mySig : APROPSignature
 mySig = record { X = X ; mor = MyMor }
 
 mySigDec : APROPSignatureDec
-mySigDec = record
-  { sig     = mySig
-  ; _≟X_    = _≟F_
-  ; _≟-mor_ = _≟-MyMor_
-  }
+mySigDec = record { sig     = mySig ; _≟X_    = _≟F_ ; _≟-mor_ = _≟-MyMor_ }
 
 --------------------------------------------------------------------------------
 -- Bring in the term language, the solver, and the soundness theorem.
@@ -81,8 +77,7 @@ open APROP mySig
 --------------------------------------------------------------------------------
 -- The soundness theorem (axiom-free), giving closed `--safe` test theorems.
 
-open import Categories.APROP.Hypergraph.Soundness mySigDec
-  using (soundness)
+open import Categories.APROP.Hypergraph.Soundness mySigDec using (soundness)
 
 --------------------------------------------------------------------------------
 -- Tests for each equation-shaped `_≈Term_` constructor.
@@ -102,8 +97,7 @@ test-≈-refl : Agen f ≈Term Agen f
 test-≈-refl = soundness (from-just (findIso ⟪ Agen f ⟫ ⟪ Agen f ⟫))
 
 test-id⊗id : id {a₀} ⊗₁ id {a₁} ≈Term id {a₀ ⊗₀ a₁}
-test-id⊗id = soundness
-  (from-just (findIso ⟪ id {a₀} ⊗₁ id {a₁} ⟫ ⟪ id {a₀ ⊗₀ a₁} ⟫))
+test-id⊗id = soundness (from-just (findIso ⟪ id {a₀} ⊗₁ id {a₁} ⟫ ⟪ id {a₀ ⊗₀ a₁} ⟫))
 
 test-⊗-∘-dist
   : (Agen g ∘ Agen f) ⊗₁ (Agen f ∘ Agen h)
@@ -113,20 +107,16 @@ test-⊗-∘-dist = soundness (from-just (findIso
   ⟪ Agen g ⊗₁ Agen f ∘ Agen f ⊗₁ Agen h ⟫))
 
 test-λ⇐∘λ⇒ : λ⇐ ∘ λ⇒ {a₀} ≈Term id {unit ⊗₀ a₀}
-test-λ⇐∘λ⇒ = soundness
-  (from-just (findIso ⟪ λ⇐ ∘ λ⇒ {a₀} ⟫ ⟪ id {unit ⊗₀ a₀} ⟫))
+test-λ⇐∘λ⇒ = soundness (from-just (findIso ⟪ λ⇐ ∘ λ⇒ {a₀} ⟫ ⟪ id {unit ⊗₀ a₀} ⟫))
 
 test-λ⇒∘λ⇐ : λ⇒ ∘ λ⇐ {a₀} ≈Term id {a₀}
-test-λ⇒∘λ⇐ = soundness
-  (from-just (findIso ⟪ λ⇒ ∘ λ⇐ {a₀} ⟫ ⟪ id {a₀} ⟫))
+test-λ⇒∘λ⇐ = soundness (from-just (findIso ⟪ λ⇒ ∘ λ⇐ {a₀} ⟫ ⟪ id {a₀} ⟫))
 
 test-ρ⇐∘ρ⇒ : ρ⇐ ∘ ρ⇒ {a₀} ≈Term id {a₀ ⊗₀ unit}
-test-ρ⇐∘ρ⇒ = soundness
-  (from-just (findIso ⟪ ρ⇐ ∘ ρ⇒ {a₀} ⟫ ⟪ id {a₀ ⊗₀ unit} ⟫))
+test-ρ⇐∘ρ⇒ = soundness (from-just (findIso ⟪ ρ⇐ ∘ ρ⇒ {a₀} ⟫ ⟪ id {a₀ ⊗₀ unit} ⟫))
 
 test-ρ⇒∘ρ⇐ : ρ⇒ ∘ ρ⇐ {a₀} ≈Term id {a₀}
-test-ρ⇒∘ρ⇐ = soundness
-  (from-just (findIso ⟪ ρ⇒ ∘ ρ⇐ {a₀} ⟫ ⟪ id {a₀} ⟫))
+test-ρ⇒∘ρ⇐ = soundness (from-just (findIso ⟪ ρ⇒ ∘ ρ⇐ {a₀} ⟫ ⟪ id {a₀} ⟫))
 
 test-α⇐∘α⇒ : α⇐ ∘ α⇒ {a₀} {a₁} {a₂} ≈Term id {(a₀ ⊗₀ a₁) ⊗₀ a₂}
 test-α⇐∘α⇒ = soundness (from-just (findIso
@@ -151,9 +141,7 @@ test-α-comm = soundness (from-just (findIso
   ⟪ α⇒ ∘ ((Agen f ⊗₁ Agen g) ⊗₁ Agen h) ⟫
   ⟪ (Agen f ⊗₁ (Agen g ⊗₁ Agen h)) ∘ α⇒ ⟫))
 
-test-triangle
-  : id {a₀} ⊗₁ λ⇒ {a₁} ∘ α⇒ {a₀} {unit} {a₁}
-  ≈Term ρ⇒ {a₀} ⊗₁ id {a₁}
+test-triangle : id {a₀} ⊗₁ λ⇒ {a₁} ∘ α⇒ {a₀} {unit} {a₁} ≈Term ρ⇒ {a₀} ⊗₁ id {a₁}
 test-triangle = soundness (from-just (findIso
   ⟪ id {a₀} ⊗₁ λ⇒ {a₁} ∘ α⇒ {a₀} {unit} {a₁} ⟫
   ⟪ ρ⇒ {a₀} ⊗₁ id {a₁} ⟫))
@@ -172,8 +160,7 @@ test-pentagon = soundness (from-just (findIso
        ∘ α⇒ {a₀ ⊗₀ a₁} {a₂} {a₀} ⟫))
 
 test-σ∘σ : σ ∘ σ {a₀} {a₁} ≈Term id {a₀ ⊗₀ a₁}
-test-σ∘σ = soundness
-  (from-just (findIso ⟪ σ ∘ σ {a₀} {a₁} ⟫ ⟪ id {a₀ ⊗₀ a₁} ⟫))
+test-σ∘σ = soundness (from-just (findIso ⟪ σ ∘ σ {a₀} {a₁} ⟫ ⟪ id {a₀ ⊗₀ a₁} ⟫))
 
 test-σ∘[f⊗g] : σ ∘ (Agen f ⊗₁ Agen g) ≈Term (Agen g ⊗₁ Agen f) ∘ σ
 test-σ∘[f⊗g] = soundness (from-just (findIso

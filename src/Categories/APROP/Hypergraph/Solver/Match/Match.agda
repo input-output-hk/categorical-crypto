@@ -30,8 +30,7 @@ module Categories.APROP.Hypergraph.Solver.Match.Match (sig-dec : APROPSignatureD
 open APROPSignatureDec sig-dec
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Solver.Match.PBij
-  using (PBij; extend-bij; pairUp)
+open import Categories.APROP.Hypergraph.Solver.Match.PBij using (PBij; extend-bij; pairUp)
 open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec using (flat-match-subst)
 
 open import Data.Fin using (Fin; zero; suc)
@@ -71,10 +70,7 @@ module _
   EdgeBij : Set
   EdgeBij = PBij nEH nEJ
 
-  tryEdge
-    : VertexBij → EdgeBij
-    → Fin nEH → Fin nEJ
-    → Maybe (VertexBij × EdgeBij)
+  tryEdge : VertexBij → EdgeBij → Fin nEH → Fin nEJ → Maybe (VertexBij × EdgeBij)
   tryEdge φ ψ e e'
     with map (Hypergraph.vlab H) (Hypergraph.ein  H e)
            ≟L map (Hypergraph.vlab J) (Hypergraph.ein  J e')

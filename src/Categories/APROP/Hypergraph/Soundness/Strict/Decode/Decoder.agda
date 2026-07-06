@@ -46,8 +46,7 @@ open import Axiom.UniquenessOfIdentityProofs using (UIP; module Decidable⇒UIP)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 
 module StrictDecoder (H : Hypergraph FlatGen) where
@@ -119,8 +118,7 @@ module StrictDecoder (H : Hypergraph FlatGen) where
     ⊗id-dist
       : ∀ {as bs cs ls} (X : HomS bs cs) (Y : HomS as bs)
       → (X ∘ˢ Y) ⊗ˢ idˢ {ls} ≈ˢ (X ⊗ˢ idˢ {ls}) ∘ˢ (Y ⊗ˢ idˢ {ls})
-    ⊗id-dist X Y =
-      ≈-trans (⊗-resp ≈-refl (≈-sym idˡ)) (≈-sym interchangeˢ)
+    ⊗id-dist X Y = ≈-trans (⊗-resp ≈-refl (≈-sym idˡ)) (≈-sym interchangeˢ)
 
   -- `process-edgesˢ` respects propositional stack equality (UIP-trivially)
   pe-resp
@@ -188,8 +186,7 @@ module StrictDecoder (H : Hypergraph FlatGen) where
                    (trans (sym (map-++ vl B (rest ++ R))) W) _ _)
           (∘-resp G-side P-side))
         where
-          M : map vl A ++ map vl (rest ++ R)
-              ≡ (map vl A ++ map vl rest) ++ mR
+          M : map vl A ++ map vl (rest ++ R) ≡ (map vl A ++ map vl rest) ++ mR
           M = trans (cong (map vl A ++_) (map-++ vl rest R))
                     (sym (++-assoc (map vl A) (map vl rest) mR))
 
@@ -255,8 +252,7 @@ module StrictDecoder (H : Hypergraph FlatGen) where
       ≈ˢ proj₂ (process-edgesˢ es xs) ⊗ˢ idˢ {map vl R}
   term-sepˢ []       xs R _          Q =
     ≈-trans (cast-id (map-++ vl xs R) Q) (≈-sym ⊗-id)
-  term-sepˢ (e ∷ es) xs R (de ∷ des) Q
-    with extract-prefix (H.ein e) xs in eq
+  term-sepˢ (e ∷ es) xs R (de ∷ des) Q with extract-prefix (H.ein e) xs in eq
   ... | nothing
         rewrite extract-prefix-++ˡ-nothing (H.ein e) xs R de eq
         = ≈-trans (∘-cast-split (map-++ vl xs R) (map-++ vl xs R) Q _ idˢ)

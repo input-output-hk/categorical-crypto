@@ -167,8 +167,7 @@ module _
       sG≡ : sG ≡ map injL Rec.s_G_final
       sG≡ = Rec.sG≡
 
-      disj-kblk : All (λ e → All (λ k → extract-elem k sG ≡ nothing)
-                                 (Hfm.ein e)) kblk
+      disj-kblk : All (λ e → All (λ k → extract-elem k sG ≡ nothing) (Hfm.ein e)) kblk
       disj-kblk = aux (range Kd.nE)
         where
           aux : ∀ (es : List (Fin Kd.nE))
@@ -213,8 +212,7 @@ module _
 
       -- input perm: `aG ↭ map injL s_G_final ++ map injR Kd.dom`
       aG↭std : aG Perm.↭ map (_↑ˡ Kd.nV) Rec.s_G_final ++ map (Gd.nV ↑ʳ_) Kd.dom
-      aG↭std = Perm.↭-reflexive
-                 (trans sep (cong (_++ Rsuf) sG≡))
+      aG↭std = Perm.↭-reflexive (trans sep (cong (_++ Rsuf) sG≡))
 
       Br↭-data = DA.process-edges-↑ʳ-on-perm G K (range Kd.nE) aG
                    Rec.s_G_final Kd.dom aG↭std
@@ -250,8 +248,7 @@ module _
           rhs≡ : map (_↑ˡ Kd.nV) Rec.s_G_final
                    ++ map (Gd.nV ↑ʳ_) (proj₁ (process-edges K (range Kd.nE) Kd.dom))
                  ≡ sG ++ Rec.Kfinᴾ
-          rhs≡ = cong₂ _++_ (sym sG≡)
-                            (trans (cong (map injR) nsKfin≡) (sym Kfin≡))
+          rhs≡ = cong₂ _++_ (sym sG≡) (trans (cong (map injR) nsKfin≡) (sym Kfin≡))
 
     ------------------------------------------------------------------
     -- ### The K-block factorization (the `KFacHyp` discharge), and the

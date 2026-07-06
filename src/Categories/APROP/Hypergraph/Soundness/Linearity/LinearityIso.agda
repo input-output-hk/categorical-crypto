@@ -38,16 +38,13 @@ open import Relation.Nullary.Decidable using (Dec; yes; no)
 -- count is permutation-invariant.
 
 private
-  count-swap-2 : ∀ {n} (v x y : Fin n)
-               → count v (x ∷ y ∷ []) ≡ count v (y ∷ x ∷ [])
+  count-swap-2 : ∀ {n} (v x y : Fin n) → count v (x ∷ y ∷ []) ≡ count v (y ∷ x ∷ [])
   count-swap-2 v x y =
     trans (count-++ v (x ∷ []) (y ∷ []))
       (trans (Nat.+-comm (count v (x ∷ [])) (count v (y ∷ [])))
              (sym (count-++ v (y ∷ []) (x ∷ []))))
 
-count-↭ : ∀ {n} (v : Fin n) {xs ys : List (Fin n)}
-        → xs Perm.↭ ys
-        → count v xs ≡ count v ys
+count-↭ : ∀ {n} (v : Fin n) {xs ys : List (Fin n)} → xs Perm.↭ ys → count v xs ≡ count v ys
 count-↭ v Perm.refl       = refl
 count-↭ v (Perm.prep x p) with v ≟ x
 ... | yes _ = cong suc (count-↭ v p)
@@ -68,8 +65,7 @@ count-map-via-bij
   → ∀ (v : Fin m) (xs : List (Fin n))
   → count v (map φ xs) ≡ count (φ⁻¹ v) xs
 count-map-via-bij φ φ⁻¹ φ⁻¹φ φφ⁻¹ v []       = refl
-count-map-via-bij φ φ⁻¹ φ⁻¹φ φφ⁻¹ v (x ∷ xs)
-    with v ≟ φ x | φ⁻¹ v ≟ x
+count-map-via-bij φ φ⁻¹ φ⁻¹φ φφ⁻¹ v (x ∷ xs) with v ≟ φ x | φ⁻¹ v ≟ x
 ... | yes _ | yes _ = cong suc (count-map-via-bij φ φ⁻¹ φ⁻¹φ φφ⁻¹ v xs)
 ... | yes p | no  q = ⊥-elim (q (trans (cong φ⁻¹ p) (φ⁻¹φ x)))
 ... | no  q | yes p = ⊥-elim (q (trans (sym (φφ⁻¹ v)) (cong φ p)))
@@ -82,8 +78,7 @@ count-map-via-bij φ φ⁻¹ φ⁻¹φ φφ⁻¹ v (x ∷ xs)
 open import Data.Fin using (punchIn; punchOut)
 open import Data.Fin.Properties
   using (punchInᵢ≢i; punchOut-punchIn; punchIn-punchOut; punchOut-cong)
-open import Relation.Binary.PropositionalEquality
-  using () renaming (subst to ≡-subst)
+open import Relation.Binary.PropositionalEquality using () renaming (subst to ≡-subst)
 
 private
   -- `tabulate f` can be reordered to bring `f k` to the head, with
@@ -114,8 +109,7 @@ tabulate-bij-↭ {n = suc n'}  f π π⁻¹ leftInv rightInv =
     k = π zero
 
     π-inj : ∀ {i j} → π i ≡ π j → i ≡ j
-    π-inj {i} {j} eq =
-      trans (sym (leftInv i)) (trans (cong π⁻¹ eq) (leftInv j))
+    π-inj {i} {j} eq = trans (sym (leftInv i)) (trans (cong π⁻¹ eq) (leftInv j))
 
     π-suc-≢-k : ∀ (i : Fin n') → k ≢ π (suc i)
     π-suc-≢-k i eq with π-inj (sym eq)
@@ -137,8 +131,7 @@ tabulate-bij-↭ {n = suc n'}  f π π⁻¹ leftInv rightInv =
     punchIn-π' : ∀ (i : Fin n') → punchIn k (π' i) ≡ π (suc i)
     punchIn-π' i = punchIn-punchOut (π-suc-≢-k i)
 
-    punchIn-π'⁻¹ : ∀ (j : Fin n')
-                 → punchIn zero (π'⁻¹ j) ≡ π⁻¹ (punchIn k j)
+    punchIn-π'⁻¹ : ∀ (j : Fin n') → punchIn zero (π'⁻¹ j) ≡ π⁻¹ (punchIn k j)
     punchIn-π'⁻¹ j = punchIn-punchOut (zero-≢-π⁻¹-pIn j)
 
     π'-left : ∀ i → π'⁻¹ (π' i) ≡ i
@@ -153,8 +146,7 @@ tabulate-bij-↭ {n = suc n'}  f π π⁻¹ leftInv rightInv =
                      (rightInv (punchIn k j))))
             (punchOut-punchIn k)
 
-    pointwise-eq : ∀ (i : Fin n')
-                 → f (π (suc i)) ≡ f (punchIn k (π' i))
+    pointwise-eq : ∀ (i : Fin n') → f (π (suc i)) ≡ f (punchIn k (π' i))
     pointwise-eq i = cong f (sym (punchIn-π' i))
 
     -- The IH applied at (f ∘ punchIn k, π', π'⁻¹), rewritten via
@@ -183,12 +175,10 @@ bij-fin-ℕ-≡ π π⁻¹ leftInv rightInv =
   NatProp.≤-antisym (injective⇒≤ π-inj) (injective⇒≤ π⁻¹-inj)
   where
     π-inj : Injective _≡_ _≡_ π
-    π-inj {i} {j} eq =
-      trans (sym (leftInv i)) (trans (cong π⁻¹ eq) (leftInv j))
+    π-inj {i} {j} eq = trans (sym (leftInv i)) (trans (cong π⁻¹ eq) (leftInv j))
 
     π⁻¹-inj : Injective _≡_ _≡_ π⁻¹
-    π⁻¹-inj {i} {j} eq =
-      trans (sym (rightInv i)) (trans (cong π eq) (rightInv j))
+    π⁻¹-inj {i} {j} eq = trans (sym (rightInv i)) (trans (cong π eq) (rightInv j))
 
 -- tabulate-bij-↭ generalized to bijections between different Fin types.
 
@@ -198,15 +188,11 @@ tabulate-bij-↭-via-eq
       (π : Fin m → Fin n) (π⁻¹ : Fin n → Fin m)
   → (∀ i → π⁻¹ (π i) ≡ i) → (∀ i → π (π⁻¹ i) ≡ i)
   → tabulate (f Fun.∘ π) Perm.↭ tabulate f
-tabulate-bij-↭-via-eq refl f π π⁻¹ leftInv rightInv =
-  tabulate-bij-↭ f π π⁻¹ leftInv rightInv
+tabulate-bij-↭-via-eq refl f π π⁻¹ leftInv rightInv = tabulate-bij-↭ f π π⁻¹ leftInv rightInv
 
 -- concat preserves `↭` (not in stdlib).
 
-concat-↭
-  : ∀ {A : Set} {L₁ L₂ : List (List A)}
-  → L₁ Perm.↭ L₂
-  → concat L₁ Perm.↭ concat L₂
+concat-↭ : ∀ {A : Set} {L₁ L₂ : List (List A)} → L₁ Perm.↭ L₂ → concat L₁ Perm.↭ concat L₂
 concat-↭ Perm.refl       = Perm.refl
 concat-↭ (Perm.prep x p) = PermProp.++⁺ˡ x (concat-↭ p)
 concat-↭ (Perm.swap {xs} {ys} x y p) =
@@ -225,9 +211,7 @@ concat-↭ (Perm.trans p q) = Perm.trans (concat-↭ p) (concat-↭ q)
 
 open import Data.List.Properties using (map-tabulate; concat-map; tabulate-cong)
 
-Linear-resp-iso
-  : ∀ {H K : Hypergraph FlatGen}
-  → H ≅ᴴ K → Linear H → Linear K
+Linear-resp-iso : ∀ {H K : Hypergraph FlatGen} → H ≅ᴴ K → Linear H → Linear K
 Linear-resp-iso {H} {K} iso linH = K-bal , K-bnd
   where
     module H = Hypergraph H
@@ -254,9 +238,7 @@ Linear-resp-iso {H} {K} iso linH = K-bal , K-bnd
         (trans (cong concat (sym (map-tabulate (H.eout Fun.∘ ψ⁻¹) (map φ))))
                (concat-map (tabulate (H.eout Fun.∘ ψ⁻¹))))
 
-    concat-tab-K-ein-eq
-      : concat (tabulate K.ein)
-      ≡ map φ (concat (tabulate (H.ein Fun.∘ ψ⁻¹)))
+    concat-tab-K-ein-eq : concat (tabulate K.ein) ≡ map φ (concat (tabulate (H.ein Fun.∘ ψ⁻¹)))
     concat-tab-K-ein-eq =
       trans (cong concat (tabulate-cong K-ein-via-H))
         (trans (cong concat (sym (map-tabulate (H.ein Fun.∘ ψ⁻¹) (map φ))))
@@ -290,26 +272,18 @@ Linear-resp-iso {H} {K} iso linH = K-bal , K-bnd
 
     -- K.dom ≡ map φ H.dom directly from the iso, plus count-map-via-bij.
     count-K-dom : ∀ (v : Fin K.nV) → count v K.dom ≡ count (φ⁻¹ v) H.dom
-    count-K-dom v =
-      trans (cong (count v) φ-dom)
-            (count-map-via-bij φ φ⁻¹ φ-left φ-rght v H.dom)
+    count-K-dom v = trans (cong (count v) φ-dom) (count-map-via-bij φ φ⁻¹ φ-left φ-rght v H.dom)
 
     count-K-cod : ∀ (v : Fin K.nV) → count v K.cod ≡ count (φ⁻¹ v) H.cod
-    count-K-cod v =
-      trans (cong (count v) φ-cod)
-            (count-map-via-bij φ φ⁻¹ φ-left φ-rght v H.cod)
+    count-K-cod v = trans (cong (count v) φ-cod) (count-map-via-bij φ φ⁻¹ φ-left φ-rght v H.cod)
 
-    count-prod-K
-      : ∀ (v : Fin K.nV)
-      → count v (producedList K) ≡ count (φ⁻¹ v) (producedList H)
+    count-prod-K : ∀ (v : Fin K.nV) → count v (producedList K) ≡ count (φ⁻¹ v) (producedList H)
     count-prod-K v =
       trans (count-++ v K.dom (concat (tabulate K.eout)))
         (trans (cong₂ _+_ (count-K-dom v) (count-prod-K-eout v))
                (sym (count-++ (φ⁻¹ v) H.dom (concat (tabulate H.eout)))))
 
-    count-cons-K
-      : ∀ (v : Fin K.nV)
-      → count v (consumedList K) ≡ count (φ⁻¹ v) (consumedList H)
+    count-cons-K : ∀ (v : Fin K.nV) → count v (consumedList K) ≡ count (φ⁻¹ v) (consumedList H)
     count-cons-K v =
       trans (count-++ v K.cod (concat (tabulate K.ein)))
         (trans (cong₂ _+_ (count-K-cod v) (count-cons-K-ein v))
@@ -317,9 +291,7 @@ Linear-resp-iso {H} {K} iso linH = K-bal , K-bnd
 
     -- Linear K follows by applying Linear H at the image φ⁻¹ v.
     K-bal : ∀ (v : Fin K.nV) → count v (producedList K) ≡ count v (consumedList K)
-    K-bal v = trans (count-prod-K v)
-                (trans (H-bal (φ⁻¹ v))
-                       (sym (count-cons-K v)))
+    K-bal v = trans (count-prod-K v) (trans (H-bal (φ⁻¹ v)) (sym (count-cons-K v)))
 
     K-bnd : ∀ (v : Fin K.nV) → count v (producedList K) Nat.≤ 1
     K-bnd v = subst (Nat._≤ 1) (sym (count-prod-K v)) (H-bnd (φ⁻¹ v))

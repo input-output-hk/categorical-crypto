@@ -48,11 +48,7 @@ mySig : APROPSignature
 mySig = record { X = X ; mor = MyMor }
 
 mySigDec : APROPSignatureDec
-mySigDec = record
-  { sig     = mySig
-  ; _≟X_    = _≟F_
-  ; _≟-mor_ = _≟-MyMor_
-  }
+mySigDec = record { sig     = mySig ; _≟X_    = _≟F_ ; _≟-mor_ = _≟-MyMor_ }
 
 open import Categories.APROP.Hypergraph.Model.Translation mySig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch mySigDec using (subMatch)
@@ -69,8 +65,7 @@ found-pair : is-just (subMatch ⟪ Agen g ∘ Agen f ⟫ ⟪ Agen h ∘ (Agen g 
 found-pair = refl
 
 -- Positive: a redex sitting inside a tensor context, `f ⊗ id`.
-found-in-tensor
-  : is-just (subMatch ⟪ Agen f ⟫ ⟪ Agen f ⊗₁ id {a₁} ⟫) ≡ true
+found-in-tensor : is-just (subMatch ⟪ Agen f ⟫ ⟪ Agen f ⊗₁ id {a₁} ⟫) ≡ true
 found-in-tensor = refl
 
 --------------------------------------------------------------------------------

@@ -42,8 +42,7 @@ module _ {n : ℕ} where
 
     -- First pending edge whose inputs are all available; returns the new
     -- availability and the remaining pending list (order preserved).
-    findReady : List (Fin n) → List E
-              → Maybe (E × List (Fin n) × List E)
+    findReady : List (Fin n) → List E → Maybe (E × List (Fin n) × List E)
     findReady avail []       = nothing
     findReady avail (e ∷ es) with consume (ins e) avail
     ... | just avail' = just (e , avail' , es)

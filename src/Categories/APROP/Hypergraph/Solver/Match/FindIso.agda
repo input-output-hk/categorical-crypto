@@ -26,8 +26,7 @@ open import Categories.APROP.Hypergraph.Solver.Match.Seed sig-dec
   using (seedFromInterfaces)
 open import Categories.APROP.Hypergraph.Solver.Match.Search sig-dec
   using (searchIso-default)
-open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec
-  using (module Verify)
+open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec using (module Verify)
 
 open import Data.List using (List)
 open import Data.Maybe.Base using (Maybe; just; nothing)
@@ -40,10 +39,7 @@ open import Data.Product using (_,_)
 --   3. Verify every `_≅ᴴ_` invariant.
 -- Each stage returns `nothing` on failure.
 
-findIso
-  : ∀
-    (H J : Hypergraph FlatGen)
-  → Maybe (H ≅ᴴ J)
+findIso : ∀ (H J : Hypergraph FlatGen) → Maybe (H ≅ᴴ J)
 findIso H J = stage-seed (seedFromInterfaces H J)
   where
     stage-verify
@@ -52,15 +48,11 @@ findIso H J = stage-seed (seedFromInterfaces H J)
       → Maybe (H ≅ᴴ J)
     stage-verify φ ψ = Verify.verify H J φ ψ
 
-    stage-search
-      : PBij (Hypergraph.nV H) (Hypergraph.nV J)
-      → Maybe (H ≅ᴴ J)
+    stage-search : PBij (Hypergraph.nV H) (Hypergraph.nV J) → Maybe (H ≅ᴴ J)
     stage-search φ₀ with searchIso-default H J φ₀ emptyBij
     ... | nothing        = nothing
     ... | just (φ , ψ)  = stage-verify φ ψ
 
-    stage-seed
-      : Maybe (PBij (Hypergraph.nV H) (Hypergraph.nV J))
-      → Maybe (H ≅ᴴ J)
+    stage-seed : Maybe (PBij (Hypergraph.nV H) (Hypergraph.nV J)) → Maybe (H ≅ᴴ J)
     stage-seed nothing  = nothing
     stage-seed (just φ₀) = stage-search φ₀

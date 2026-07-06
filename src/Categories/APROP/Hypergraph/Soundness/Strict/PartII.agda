@@ -34,14 +34,12 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; rang
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl sig
-  using (dep-irrefl-⟪⟫)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl sig using (dep-irrefl-⟪⟫)
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-  using (decodePˢ)
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_ using (decodePˢ)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig _≟X_ as SS
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodePRespIso sig _≟X_ as DP
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTail sig _≟X_
@@ -54,8 +52,7 @@ open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst)
 
 ------------------------------------------------------------------------
 -- The (N) strict per-swap `RunInterchangeˢ` witness for `⟪f⟫`.
@@ -87,15 +84,13 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
     where
       -- the full swap-order reservoir, from the swap-site provenance.
       res-full : SUR.Reservoir≤1 F (ps ++ e' ∷ e ∷ qs) (Hypergraph.dom F)
-      res-full =
-        SUR.dom-reservoir-prov F (proj₂ lin) (ps ++ e' ∷ e ∷ qs) prov
+      res-full = SUR.dom-reservoir-prov F (proj₂ lin) (ps ++ e' ∷ e ∷ qs) prov
 
       assoc-eq : ps ++ e' ∷ e ∷ qs ≡ (ps ++ e' ∷ e ∷ []) ++ qs
       assoc-eq = sym (++-assoc ps (e' ∷ e ∷ []) qs)
 
       -- prefix drop of `qs`, after re-bracketing.
-      res-empty-tail
-        : SUR.Reservoir≤1 F (ps ++ e' ∷ e ∷ []) (Hypergraph.dom F)
+      res-empty-tail : SUR.Reservoir≤1 F (ps ++ e' ∷ e ∷ []) (Hypergraph.dom F)
       res-empty-tail =
         SUR.reservoir-prefix F (ps ++ e' ∷ e ∷ []) qs (Hypergraph.dom F)
           (subst (λ z → SUR.Reservoir≤1 F z (Hypergraph.dom F))
@@ -111,8 +106,7 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
 -- `run-interchange-H`).
 ------------------------------------------------------------------------
 
-decodePˢ-resp-iso
-  : ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → decodePˢ f ≈ˢ decodePˢ g
+decodePˢ-resp-iso : ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → decodePˢ f ≈ˢ decodePˢ g
 decodePˢ-resp-iso f g iso =
   DP.decodePˢ-resp-iso f g iso
     (run-interchange-H f)

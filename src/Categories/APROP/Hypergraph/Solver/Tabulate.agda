@@ -77,10 +77,8 @@ module _ {X : Set} {Gen : List X → List X → Set} where
                         , H.elab e))
       where
 
-      eq-in : ∀ e → map (λ v → lookup vlabV v) (lookup einV e)
-                  ≡ map H.vlab (H.ein e)
-      eq-in e = trans (map-cong vlab-ok (lookup einV e))
-                      (cong (map H.vlab) (ein-ok e))
+      eq-in : ∀ e → map (λ v → lookup vlabV v) (lookup einV e) ≡ map H.vlab (H.ein e)
+      eq-in e = trans (map-cong vlab-ok (lookup einV e)) (cong (map H.vlab) (ein-ok e))
 
       eq-out : ∀ e → map (λ v → lookup vlabV v) (lookup eoutV e)
                    ≡ map H.vlab (H.eout e)

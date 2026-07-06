@@ -96,8 +96,7 @@ module SplitConfig (A₀ A₁ A₂ : C.Obj)
   -- (b) The benchmark shape: σ-naturality core under two equal `w`
   -- wrappers.  The wrappers are peeled by refl + `∘`-congruence; only the
   -- small core window reaches the hypergraph solver.
-  test-wrapped
-    : wᴹ ∘ (wᴹ ∘ (σ ∘ (pᴹ ⊗₁ sᴹ))) ≈ wᴹ ∘ (wᴹ ∘ ((sᴹ ⊗₁ pᴹ) ∘ σ))
+  test-wrapped : wᴹ ∘ (wᴹ ∘ (σ ∘ (pᴹ ⊗₁ sᴹ))) ≈ wᴹ ∘ (wᴹ ∘ ((sᴹ ⊗₁ pᴹ) ∘ σ))
   test-wrapped = solveH!ˢ (w S.∘ (w S.∘ lhs-core)) (w S.∘ (w S.∘ rhs-core))
 
   -- (c) Fallback-only: bare σ-naturality.  The two sides are `∘` with

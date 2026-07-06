@@ -136,8 +136,7 @@ pvv-relabelˢ {nH} {nJ} φ vJ vH veq {xs} {ys} p P Q =
                           (PermProp.map⁺ vH p) coincide))
         (≡⇒≈ˢ (permuteˣ-subst₂ P Q (PermProp.map⁺ vJ (PermProp.map⁺ φ p))))
 
-    middle
-      : castˢ P Q (castˢ mpJd mpJc Xj) ≈ˢ castˢ mpHd mpHc Xh
+    middle : castˢ P Q (castˢ mpJd mpJc Xj) ≈ˢ castˢ mpHd mpHc Xh
     middle =
       ≈-trans (≡⇒≈ˢ (cast-fuse mpJd P mpJc Q Xj))
       (≈-trans (≡⇒≈ˢ (cast-irrel (trans mpJd P)

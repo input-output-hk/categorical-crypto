@@ -26,8 +26,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; range)
-open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-  using (unflatten)
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig using (unflatten)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-all-edges; decode-attempt; extract-exact)
 open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
@@ -104,8 +103,7 @@ subst₂-HomTerm-∘-dist refl refl refl f h = refl
 
 ⊗id-∘ : ∀ {A B D} {Z : ObjTerm} (h : HomTerm B D) (k : HomTerm A B)
       → (h ∘ k) ⊗₁ id {Z} ≈Term (h ⊗₁ id {Z}) ∘ (k ⊗₁ id {Z})
-⊗id-∘ h k =
-  ≈-Term-trans (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⊗-∘-dist
+⊗id-∘ h k = ≈-Term-trans (⊗-resp-≈ ≈-Term-refl (≈-Term-sym idˡ)) ⊗-∘-dist
 
 ------------------------------------------------------------------------
 -- ## Box-shape `subst₂`/`pvl` transport algebra (shared across the
@@ -239,12 +237,9 @@ decode-attempt-extract
   → Σ[ perm ∈ proj₁ (process-all-edges H (Hypergraph.dom H)) Perm.↭ Hypergraph.cod H ]
       t ≡ permute-via-vlab (Hypergraph.vlab H) perm
             ∘ proj₂ (process-all-edges H (Hypergraph.dom H))
-decode-attempt-extract H t eq
-    with process-all-edges H (Hypergraph.dom H)
-... | s_final , process-term
-    with extract-exact (Hypergraph.cod H) s_final
+decode-attempt-extract H t eq with process-all-edges H (Hypergraph.dom H)
+... | s_final , process-term with extract-exact (Hypergraph.cod H) s_final
 ...    | just perm with eq
 ...       | refl = perm , refl
-decode-attempt-extract H t eq
-    | s_final , process-term | nothing with eq
+decode-attempt-extract H t eq | s_final , process-term | nothing with eq
 ... | ()

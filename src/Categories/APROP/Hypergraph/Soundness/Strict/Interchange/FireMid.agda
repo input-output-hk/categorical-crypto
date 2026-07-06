@@ -29,8 +29,7 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
-  using (Dep)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
@@ -231,10 +230,8 @@ module FMS2 (H : Hypergraph FlatGen)
           (≡⇒≈ˢ (cast-irrel (trans dom-i dom') refl (trans cod-i cod') refl
                             (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl})))))
       where
-        dom-i = trans (cong (_++ m Rl) (sym (map-++ vl L R)))
-                      (sym (map-++ vl (L ++ R) Rl))
-        cod-i = trans (cong (_++ m Rl) (sym (map-++ vl R L)))
-                      (sym (map-++ vl (R ++ L) Rl))
+        dom-i = trans (cong (_++ m Rl) (sym (map-++ vl L R))) (sym (map-++ vl (L ++ R) Rl))
+        cod-i = trans (cong (_++ m Rl) (sym (map-++ vl R L))) (sym (map-++ vl (R ++ L) Rl))
         dom' = trans (map-++ vl (L ++ R) Rl) (cong (_++ m Rl) (map-++ vl L R))
         cod' = trans (map-++ vl (R ++ L) Rl) (cong (_++ m Rl) (map-++ vl R L))
 
@@ -257,10 +254,8 @@ module FMS2 (H : Hypergraph FlatGen)
     (us-cod : Unique (H.eout e ++ r₁'))
     where
 
-    SL : FMIC.SimLoc H dih lin (proj₁ inc) (proj₂ inc)
-                     sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
-    SL = FMIC.sim-loc H dih lin (proj₁ inc) (proj₂ inc)
-                      sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+    SL : FMIC.SimLoc H dih lin (proj₁ inc) (proj₂ inc) sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+    SL = FMIC.sim-loc H dih lin (proj₁ inc) (proj₂ inc) sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
     open FMIC.SimLoc SL
 
     -- Block-shape abbreviations (object level).
@@ -306,10 +301,8 @@ module FMS2 (H : Hypergraph FlatGen)
 
       -- `loc₁` and `trans loc₂ swp-in` are two derivations into the SAME
       -- `Unique` codomain (`Unique-resp-↭ loc₁ us-sp`); identified by K.
-      rigid-in : permuteˢ loc₁
-                 ≈ˢ permuteˢ (Perm.trans loc₂ swp-in)
-      rigid-in = perm-rigidˢ′ (SU.Unique-resp-↭ loc₁ us-sp)
-                   loc₁ (Perm.trans loc₂ swp-in)
+      rigid-in : permuteˢ loc₁ ≈ˢ permuteˢ (Perm.trans loc₂ swp-in)
+      rigid-in = perm-rigidˢ′ (SU.Unique-resp-↭ loc₁ us-sp) loc₁ (Perm.trans loc₂ swp-in)
 
     private
       -- σˢ A' A ⊗ id ≈ castˢ Din Cin (permuteˢ swp-in), the flipped block-swap.
@@ -462,10 +455,8 @@ module _ (H : Hypergraph FlatGen)
           (≡⇒≈ˢ (cast-irrel (trans dom-i dom') refl (trans cod-i cod') refl
                             (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl})))))
       where
-        dom-i = trans (cong (_++ m Rl) (sym (map-++ vl L R)))
-                      (sym (map-++ vl (L ++ R) Rl))
-        cod-i = trans (cong (_++ m Rl) (sym (map-++ vl R L)))
-                      (sym (map-++ vl (R ++ L) Rl))
+        dom-i = trans (cong (_++ m Rl) (sym (map-++ vl L R))) (sym (map-++ vl (L ++ R) Rl))
+        cod-i = trans (cong (_++ m Rl) (sym (map-++ vl R L))) (sym (map-++ vl (R ++ L) Rl))
         dom' = trans (map-++ vl (L ++ R) Rl) (cong (_++ m Rl) (map-++ vl L R))
         cod' = trans (map-++ vl (R ++ L) Rl) (cong (_++ m Rl) (map-++ vl R L))
 
@@ -680,8 +671,7 @@ module _ (H : Hypergraph FlatGen)
       -- `Unique (ein b ++ (eout a ++ R))` — the common mid codomain — from
       -- `us-mid : Unique (ein b ++ s₂)` through the residual relocate `ρ₂`.
       us-mid-img : Unique (H.ein b ++ (H.eout a ++ R))
-      us-mid-img =
-        SU.Unique-resp-↭ (PermProp.++⁺ˡ (H.ein b) ρ₂) us-mid
+      us-mid-img = SU.Unique-resp-↭ (PermProp.++⁺ˡ (H.ein b) ρ₂) us-mid
 
       mid-rigid : permuteˢ mid-comp ≈ˢ permuteˢ midD
       mid-rigid = perm-rigidˢ′ us-mid-img mid-comp midD
@@ -743,8 +733,7 @@ module _ (H : Hypergraph FlatGen)
     private
       -- T1's output relocate, wrapped by T1's outer cast proof.
       OUT1c : HomS (B ++ m (H.ein b ++ R)) (m (H.eout a ++ s₁))
-      OUT1c = castˢ refl (sym (map-++ vl (H.eout a) s₁))
-                (idˢ {B} ⊗ˢ permuteˢ (Perm.↭-sym ρ₁))
+      OUT1c = castˢ refl (sym (map-++ vl (H.eout a) s₁)) (idˢ {B} ⊗ˢ permuteˢ (Perm.↭-sym ρ₁))
 
       IN2 : HomS (m (H.eout a ++ s₁)) (A' ++ m (H.eout a ++ R))
       IN2 = castˢ refl (map-++ vl (H.ein b) (H.eout a ++ R)) (permuteˢ loc2')
@@ -835,8 +824,7 @@ module _ (H : Hypergraph FlatGen)
       -- `box-merge-Rˢ` consumes (domain `B ++ (A'++Rl)`, codomain
       -- `A' ++ (B++Rl)`), via `mid-eq` + `mid-rigid` + `midD-σ` and the two
       -- `map-++` boundary bridges.
-      midσ-tgt
-        : HomS (B ++ (A' ++ Rl)) (A' ++ (B ++ Rl))
+      midσ-tgt : HomS (B ++ (A' ++ Rl)) (A' ++ (B ++ Rl))
       midσ-tgt = castˢ (++-assoc B A' Rl) (++-assoc A' B Rl) (σˢ B A' ⊗ˢ idˢ {Rl})
 
       MID-eq
@@ -948,8 +936,7 @@ module _ (H : Hypergraph FlatGen)
     private
       -- `loc` carried DOWN to the `ein a ++ (ein b ++ R)` codomain (assoc).
       loc-down : sp Perm.↭ H.ein a ++ (H.ein b ++ R)
-      loc-down = Perm.trans loc
-                   (Perm.↭-reflexive (++-assoc (H.ein a) (H.ein b) R))
+      loc-down = Perm.trans loc (Perm.↭-reflexive (++-assoc (H.ein a) (H.ein b) R))
 
       us-down : Unique (H.ein a ++ (H.ein b ++ R))
       us-down = SU.Unique-resp-↭ (PermProp.++⁺ˡ (H.ein a) ρ₁) us-in-a
@@ -993,9 +980,7 @@ module _ (H : Hypergraph FlatGen)
 
       -- `IN1` codomain carried to `(A++A')++Rl` (the box-block domain), so it
       -- is `Lin` up to `loc-rigid`.
-      in-eq
-        : castˢ PD refl box-block ∘ˢ IN1
-          ≈ˢ box-block ∘ˢ Lin
+      in-eq : castˢ PD refl box-block ∘ˢ IN1 ≈ˢ box-block ∘ˢ Lin
       in-eq =
         ≈-trans (∘-resp ≈-refl IN1-eq)
           (≈-sym (∘-cast-split refl PD refl box-block Lin))
@@ -1035,17 +1020,13 @@ module _ (H : Hypergraph FlatGen)
 
       Cob = map-++ vl (H.eout b) (H.eout a ++ R)
       Qob = map-++ vl (H.eout b) s₂
-      out2-perm
-        : castˢ Cob Qob (permuteˢ out-reloc)
-          ≈ˢ idˢ {B'} ⊗ˢ permuteˢ (Perm.↭-sym ρ₂)
+      out2-perm : castˢ Cob Qob (permuteˢ out-reloc) ≈ˢ idˢ {B'} ⊗ˢ permuteˢ (Perm.↭-sym ρ₂)
       out2-perm = perm-frameˡ′ (H.eout b) (Perm.↭-sym ρ₂)
 
       AssocO = ++-assoc (H.eout b) (H.eout a) R
       CasO   = cong m AssocO
 
-      out-eq
-        : castˢ refl (sym Qob) (OUT2 ∘ˢ out-part)
-          ≈ˢ Lout
+      out-eq : castˢ refl (sym Qob) (OUT2 ∘ˢ out-part) ≈ˢ Lout
       out-eq =
         -- (1) OUT2 ← out2-perm,  σ-out → σ-out-perm.
         ≈-trans (cast-resp refl (sym Qob)
@@ -1187,8 +1168,7 @@ module _ (H : Hypergraph FlatGen)
                  (Perm.trans (Perm.↭-sym p₂)
                    (Perm.trans (PermProp.++⁺ˡ (H.eout e) ρ₁-nf₁) eo-shift₁))
         where
-          eo-shift₁ : H.eout e ++ (H.ein e' ++ Rlist)
-                      Perm.↭ H.ein e' ++ (H.eout e ++ Rlist)
+          eo-shift₁ : H.eout e ++ (H.ein e' ++ Rlist) Perm.↭ H.ein e' ++ (H.eout e ++ Rlist)
           eo-shift₁ = PermProp.shifts (H.eout e) (H.ein e')
 
       ρ₁-nf₂ : r₂' Perm.↭ H.ein e ++ Rlist
@@ -1201,8 +1181,7 @@ module _ (H : Hypergraph FlatGen)
                  (Perm.trans (Perm.↭-sym p₁')
                    (Perm.trans (PermProp.++⁺ˡ (H.eout e') ρ₁-nf₂) eo-shift₂))
         where
-          eo-shift₂ : H.eout e' ++ (H.ein e ++ Rlist)
-                      Perm.↭ H.ein e ++ (H.eout e' ++ Rlist)
+          eo-shift₂ : H.eout e' ++ (H.ein e ++ Rlist) Perm.↭ H.ein e ++ (H.eout e' ++ Rlist)
           eo-shift₂ = PermProp.shifts (H.eout e') (H.ein e)
 
       -- The `Unique` witnesses for the two orders, bridged from the caller's.
@@ -1253,10 +1232,7 @@ module _ (H : Hypergraph FlatGen)
           ≈ˢ permuteˢ r-stk
                 ∘ˢ ( fire-termˢ′ e' (H.eout e ++ r₁) r₂ p₂
                        ∘ˢ fire-termˢ′ e sp r₁ p₁ )
-      goal =
-        ≈-trans nf₂-eqˢ
-        (≈-trans cross
-          (∘-resp ≈-refl (≈-sym nf₁-eqˢ)))
+      goal = ≈-trans nf₂-eqˢ (≈-trans cross (∘-resp ≈-refl (≈-sym nf₁-eqˢ)))
 
   ----------------------------------------------------------------------
   -- THE UNCONDITIONAL EMPTY-TAIL TWO-EDGE INTERCHANGE `run-interchange₀ˢ`,

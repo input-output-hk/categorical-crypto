@@ -138,12 +138,10 @@ module _ {X : Set} {Gen : List X → List X → Set} where
 
       -- `map (φ⁻¹ ∘ φ) ≗ id`, so `map φ⁻¹ (map φ xs) ≡ xs`.
       map-φ⁻¹φ : (xs : List (Fin G.nV)) → map φ⁻¹ (map φ xs) ≡ xs
-      map-φ⁻¹φ xs = trans (sym (map-∘ xs))
-                   (trans (map-cong φ-left xs) (map-id xs))
+      map-φ⁻¹φ xs = trans (sym (map-∘ xs)) (trans (map-cong φ-left xs) (map-id xs))
 
       map-φφ⁻¹ : (ys : List (Fin K.nV)) → map φ (map φ⁻¹ ys) ≡ ys
-      map-φφ⁻¹ ys = trans (sym (map-∘ ys))
-                   (trans (map-cong φ-rght ys) (map-id ys))
+      map-φφ⁻¹ ys = trans (sym (map-∘ ys)) (trans (map-cong φ-rght ys) (map-id ys))
 
       -- ein equation in the flipped direction (via map-φ⁻¹φ + ψ-rght).
       ein-sym : ∀ e → G.ein (ψ⁻¹ e) ≡ map φ⁻¹ (K.ein e)
@@ -161,12 +159,10 @@ module _ {X : Set} {Gen : List X → List X → Set} where
                        (cong K.eout (ψ-rght e))))
 
       dom-sym : G.dom ≡ map φ⁻¹ K.dom
-      dom-sym = trans (sym (map-φ⁻¹φ G.dom))
-                      (sym (cong (map φ⁻¹) φ-dom))
+      dom-sym = trans (sym (map-φ⁻¹φ G.dom)) (sym (cong (map φ⁻¹) φ-dom))
 
       cod-sym : G.cod ≡ map φ⁻¹ K.cod
-      cod-sym = trans (sym (map-φ⁻¹φ G.cod))
-                      (sym (cong (map φ⁻¹) φ-cod))
+      cod-sym = trans (sym (map-φ⁻¹φ G.cod)) (sym (cong (map φ⁻¹) φ-cod))
 
       atom-ein-sym : ∀ e → map G.vlab (G.ein (ψ⁻¹ e)) ≡ map K.vlab (K.ein e)
       atom-ein-sym e =
@@ -236,8 +232,7 @@ module _ {X : Set} {Gen : List X → List X → Set} where
 
 module _ {X : Set} {Gen : List X → List X → Set} where
 
-  trans-≅ᴴ : {G H K : Hypergraph Gen}
-           → G ≅ᴴ H → H ≅ᴴ K → G ≅ᴴ K
+  trans-≅ᴴ : {G H K : Hypergraph Gen} → G ≅ᴴ H → H ≅ᴴ K → G ≅ᴴ K
   trans-≅ᴴ {G} {H} {K} iso₁ iso₂ = record
     { φ         = λ i → φ₂ (φ₁ i)
     ; φ⁻¹       = λ k → φ⁻¹₁ (φ⁻¹₂ k)
@@ -295,8 +290,7 @@ module _ {X : Set} {Gen : List X → List X → Set} where
                   (trans (cong (map φ₂) I₁.φ-cod)
                          (sym (map-∘ G.cod)))
 
-      atom-ein-trans : ∀ e →
-        map K.vlab (K.ein (ψ₂ (ψ₁ e))) ≡ map G.vlab (G.ein e)
+      atom-ein-trans : ∀ e → map K.vlab (K.ein (ψ₂ (ψ₁ e))) ≡ map G.vlab (G.ein e)
       atom-ein-trans e = trans (I₂.atom-ein (ψ₁ e)) (I₁.atom-ein e)
 
       atom-eout-trans : ∀ e →

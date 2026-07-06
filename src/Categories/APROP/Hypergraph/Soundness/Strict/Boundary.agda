@@ -243,9 +243,7 @@ st-resp-≈ (hexagon {A} {B} {C})    = ≈-sym reduce
     step-σˡ = ≈-trans interchangeˢ (≈-trans (⊗-resp σ-σˢ idˡ) ⊗-id)
 
     -- the strict hexagon, unpacked into `coe` conjugation
-    u-form
-      : σˢ (b ++ c) a
-        ≈ˢ coe P ∘ˢ (W₁ ∘ˢ ((coe (sym R) ∘ˢ W₂) ∘ˢ coe Q))
+    u-form : σˢ (b ++ c) a ≈ˢ coe P ∘ˢ (W₁ ∘ˢ ((coe (sym R) ∘ˢ W₂) ∘ˢ coe Q))
     u-form =
       ≈-trans (σ-hexˢ b c a)
       (≈-trans (coe-conj (sym Q) P (W₁ ∘ˢ castˢ refl (sym R) W₂))
@@ -258,8 +256,7 @@ st-resp-≈ (hexagon {A} {B} {C})    = ≈-sym reduce
     M-nest : L ∘ˢ coe (sym P) ≈ˢ X₂ ∘ˢ (coe R ∘ˢ (X₁ ∘ˢ coe (sym P)))
     M-nest = ≈-trans assocˢ (∘-resp ≈-refl assocˢ)
 
-    cancel
-      : σˢ (b ++ c) a ∘ˢ (coe (sym Q) ∘ˢ (L ∘ˢ coe (sym P))) ≈ˢ idˢ
+    cancel : σˢ (b ++ c) a ∘ˢ (coe (sym Q) ∘ˢ (L ∘ˢ coe (sym P))) ≈ˢ idˢ
     cancel =
       ≈-trans (∘-resp u-form ≈-refl)
       (≈-trans assocˢ

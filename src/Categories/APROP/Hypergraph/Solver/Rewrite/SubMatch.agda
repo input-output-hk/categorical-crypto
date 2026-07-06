@@ -39,10 +39,8 @@ module Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch (sig-dec : APROPSigna
 open APROPSignatureDec sig-dec
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; flat; flatten)
-open import Categories.APROP.Hypergraph.Solver.Match.PBij
-  using (PBij; forward; backward; emptyBij)
-open import Categories.APROP.Hypergraph.Solver.Match.Search sig-dec
-  using (searchAll-default)
+open import Categories.APROP.Hypergraph.Solver.Match.PBij using (PBij; forward; backward; emptyBij)
+open import Categories.APROP.Hypergraph.Solver.Match.Search sig-dec using (searchAll-default)
 open import Categories.APROP.Hypergraph.Solver.Match.Totals using (Total; totalise; deriveAtomEq)
 open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec
   using (flat-match-subst; ∀F?; dec→maybe)
@@ -55,8 +53,7 @@ open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Maybe.Properties using () renaming (≡-dec to ≡-decM)
 open import Data.Product using (_,_)
 open import Relation.Binary.Definitions using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; subst₂)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst₂)
 
 --------------------------------------------------------------------------------
 -- The embedding relation `L ↪ᴴ S`.  Its label/endpoint fields mirror those of

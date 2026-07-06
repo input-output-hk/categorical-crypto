@@ -16,15 +16,13 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP
 
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Util.Prune
   using ( count-non; nonMem; classify; remap
         ; remap-inj₁; remap-inj₂; remap-injective
         ; classify-lookup-Unique; classify-inj₁-lookup
         ; lookup-injective-unique)
-open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
-  using (hComposeP; module hComposeP-impl)
+open import Categories.APROP.Hypergraph.Model.PrunedCompose sig using (hComposeP; module hComposeP-impl)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using ( count; count-++; count-map-↑ˡ
         ; count-map-↑ˡ-mismatch; count-swap
@@ -37,8 +35,7 @@ open import Data.Fin.Properties using
   ( _≟_
   ; splitAt-↑ˡ; splitAt-↑ʳ; splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ
   ; toℕ-cast; toℕ-injective)
-open import Data.List as List using
-  (List; []; _∷_; _++_; length; map; tabulate; concat; lookup)
+open import Data.List as List using (List; []; _∷_; _++_; length; map; tabulate; concat; lookup)
 open import Data.List.Properties using
   ( ++-identityʳ; ++-assoc; map-++
   ; tabulate-cong; map-tabulate; concat-map; concat-++)
@@ -53,8 +50,7 @@ open import Data.Nat as Nat using ()
 import Data.Nat.Properties as Nat
 open import Data.Product using (Σ-syntax; ∃-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; cong₂; sym; trans; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂; sym; trans; subst)
 open import Relation.Nullary.Decidable using (yes; no)
 open import Relation.Nullary.Negation using (¬_)
 open import Relation.Binary.PropositionalEquality using (_≢_)
@@ -71,8 +67,7 @@ private
 
   -- `cast eq` is injective (preserves `toℕ`).  Stdlib 2.3 lacks
   -- `cast-injective`; derived from `toℕ-cast` + `toℕ-injective`.
-  cast-injective : ∀ {m n} (eq : m ≡ n) {i j : Fin m}
-                 → cast eq i ≡ cast eq j → i ≡ j
+  cast-injective : ∀ {m n} (eq : m ≡ n) {i j : Fin m} → cast eq i ≡ cast eq j → i ≡ j
   cast-injective eq {i} {j} ci≡cj =
     toℕ-injective
       (trans (sym (toℕ-cast eq i))
@@ -87,18 +82,14 @@ private
 
 private
   -- `count x xs ≡ 0` ⇒ `x ≢` every element of `xs`.
-  count-zero→All-≢ : ∀ {n} (x : Fin n) (xs : List (Fin n))
-                   → count x xs ≡ 0
-                   → All.All (x ≢_) xs
+  count-zero→All-≢ : ∀ {n} (x : Fin n) (xs : List (Fin n)) → count x xs ≡ 0 → All.All (x ≢_) xs
   count-zero→All-≢ x []       _ = All.[]
   count-zero→All-≢ x (y ∷ xs) c with x ≟ y
   ... | yes refl = ⊥-elim (case c) where case : suc _ ≡ 0 → ⊥
                                          case ()
   ... | no  x≢y  = x≢y All.∷ count-zero→All-≢ x xs c
 
-count-bnd→Unique : ∀ {n} (xs : List (Fin n))
-                 → (∀ v → count v xs Nat.≤ 1)
-                 → Unique xs
+count-bnd→Unique : ∀ {n} (xs : List (Fin n)) → (∀ v → count v xs Nat.≤ 1) → Unique xs
 count-bnd→Unique []       _   = AllPairs.[]
 count-bnd→Unique (x ∷ xs) bnd =
   count-zero→All-≢ x xs head-zero AllPairs.∷ count-bnd→Unique xs tail-bnd
@@ -123,8 +114,7 @@ module _
   private
     module G = Hypergraph G
     module K = Hypergraph K
-    open hComposeP-impl G K bdy-eq
-      using ( remapP; lookup-cod; dom-cod-len; nV-P; injL )
+    open hComposeP-impl G K bdy-eq using ( remapP; lookup-cod; dom-cod-len; nV-P; injL )
 
     G-bal = proj₁ lin-G
     G-bnd = proj₂ lin-G
@@ -166,18 +156,15 @@ module _
 
   -- `lookup-cod` is injective: `lookup G.cod` (injective on a Unique
   -- list) precomposed with the injective `cast`.
-  lookup-cod-injective
-    : ∀ {i j : Fin (length K.dom)} → lookup-cod i ≡ lookup-cod j → i ≡ j
+  lookup-cod-injective : ∀ {i j : Fin (length K.dom)} → lookup-cod i ≡ lookup-cod j → i ≡ j
   lookup-cod-injective {i} {j} eq =
     cast-injective dom-cod-len
       (lookup-injective-unique G-cod-Unique
         (cast dom-cod-len i) (cast dom-cod-len j) eq)
 
   -- Injectivity of the pruned K-side vertex remap.
-  remapP-injective
-    : ∀ {v v'} → remapP v ≡ remapP v' → v ≡ v'
-  remapP-injective =
-    remap-injective K.dom lookup-cod K-dom-Unique lookup-cod-injective
+  remapP-injective : ∀ {v v'} → remapP v ≡ remapP v' → v ≡ v'
+  remapP-injective = remap-injective K.dom lookup-cod K-dom-Unique lookup-cod-injective
 
   ------------------------------------------------------------------------
   -- `map remapP K.dom ≡ map (_↑ˡ cn) G.cod`.  Each member of K.dom is
@@ -189,9 +176,7 @@ module _
     length-K-dom = dom-cod-len
 
     -- Pointwise: `remapP (lookup K.dom idx) ≡ lookup-cod idx ↑ˡ cn`.
-    remapP-on-dom
-      : ∀ (idx : Fin (length K.dom))
-      → remapP (lookup K.dom idx) ≡ lookup-cod idx ↑ˡ cn
+    remapP-on-dom : ∀ (idx : Fin (length K.dom)) → remapP (lookup K.dom idx) ≡ lookup-cod idx ↑ˡ cn
     remapP-on-dom idx =
       remap-inj₁ K.dom lookup-cod (lookup K.dom idx) idx
         (classify-lookup-Unique K.dom K-dom-Unique idx)
@@ -212,18 +197,13 @@ module _
         (map-ext-cast f g xs ys (Nat.suc-injective len) (λ i → pt (suc i)))
 
   map-remapP-K-dom : map remapP K.dom ≡ map (_↑ˡ cn) G.cod
-  map-remapP-K-dom =
-    map-ext-cast remapP (_↑ˡ cn) K.dom G.cod length-K-dom remapP-on-dom
+  map-remapP-K-dom = map-ext-cast remapP (_↑ˡ cn) K.dom G.cod length-K-dom remapP-on-dom
 
   -- count facts about `map remapP K.dom` consumed by the balance proof.
-  count-map-remapP-K-dom-injL
-    : ∀ (i : Fin G.nV) → count (i ↑ˡ cn) (map remapP K.dom) ≡ count i G.cod
-  count-map-remapP-K-dom-injL i =
-    trans (cong (count (i ↑ˡ cn)) map-remapP-K-dom)
-          (count-map-↑ˡ cn i G.cod)
+  count-map-remapP-K-dom-injL : ∀ (i : Fin G.nV) → count (i ↑ˡ cn) (map remapP K.dom) ≡ count i G.cod
+  count-map-remapP-K-dom-injL i = trans (cong (count (i ↑ˡ cn)) map-remapP-K-dom) (count-map-↑ˡ cn i G.cod)
 
-  count-map-remapP-K-dom-raise
-    : ∀ (j : Fin cn) → count (G.nV ↑ʳ j) (map remapP K.dom) ≡ 0
+  count-map-remapP-K-dom-raise : ∀ (j : Fin cn) → count (G.nV ↑ʳ j) (map remapP K.dom) ≡ 0
   count-map-remapP-K-dom-raise j =
     trans (cong (count (G.nV ↑ʳ j)) map-remapP-K-dom)
           (count-map-↑ˡ-mismatch G.nV j G.cod)
@@ -296,9 +276,7 @@ module _
                     (λ y fy≡v → tail-zero y (zeros y fy≡v))
       where
         tail-zero : ∀ y → count y (x ∷ xs) ≡ 0 → count y xs ≡ 0
-        tail-zero y c0 =
-          Nat.≤-antisym
-            (Nat.≤-trans (count-mono-cons y x xs) (Nat.≤-reflexive c0)) z≤n
+        tail-zero y c0 = Nat.≤-antisym (Nat.≤-trans (count-mono-cons y x xs) (Nat.≤-reflexive c0)) z≤n
 
   ------------------------------------------------------------------------
   -- Structural decompositions of `concat (tabulate eout-c / ein-c)`.
@@ -308,9 +286,7 @@ module _
           ; eout-c-inj₁-red; eout-c-inj₂-red
           ; ein-c-inj₁-red; ein-c-inj₂-red )
 
-  eout-comp-eq
-    : concat (tabulate eout-c)
-    ≡ map injL G-eb ++ map remapP K-eb
+  eout-comp-eq : concat (tabulate eout-c) ≡ map injL G-eb ++ map remapP K-eb
   eout-comp-eq =
     trans (cong concat (tabulate-+ {m = G.nE} {n = K.nE} eout-c))
     (trans (cong concat
@@ -324,9 +300,7 @@ module _
            (cong₂ _++_ (concat-map (tabulate G.eout))
                        (concat-map (tabulate K.eout)))))
 
-  ein-comp-eq
-    : concat (tabulate ein-c)
-    ≡ map injL G-ein-b ++ map remapP K-ein-b
+  ein-comp-eq : concat (tabulate ein-c) ≡ map injL G-ein-b ++ map remapP K-ein-b
   ein-comp-eq =
     trans (cong concat (tabulate-+ {m = G.nE} {n = K.nE} ein-c))
     (trans (cong concat
@@ -373,12 +347,8 @@ module _
   ------------------------------------------------------------------------
   -- K-balance pushed through `remapP` (treating remapP opaquely).
 
-  K-bal-via-remapP
-    : ∀ v
-    → count v (map remapP (K.dom ++ K-eb))
-    ≡ count v (map remapP (K.cod ++ K-ein-b))
-  K-bal-via-remapP v =
-    count-map-resp remapP (K.dom ++ K-eb) (K.cod ++ K-ein-b) K-bal v
+  K-bal-via-remapP : ∀ v → count v (map remapP (K.dom ++ K-eb)) ≡ count v (map remapP (K.cod ++ K-ein-b))
+  K-bal-via-remapP v = count-map-resp remapP (K.dom ++ K-eb) (K.cod ++ K-ein-b) K-bal v
 
   ------------------------------------------------------------------------
   -- The "L-side balance" identity.  For v = injL i it combines G-bal with
@@ -413,8 +383,7 @@ module _
   ------------------------------------------------------------------------
   -- Balance: combining all the pieces.
 
-  balance : ∀ v → count v (producedList (hComposeP G K bdy-eq))
-                ≡ count v (consumedList (hComposeP G K bdy-eq))
+  balance : ∀ v → count v (producedList (hComposeP G K bdy-eq)) ≡ count v (consumedList (hComposeP G K bdy-eq))
   balance v =
     trans (count-prod v)
     (trans (cong (Nat._+ γ) (αβ≡εη v))
@@ -451,8 +420,7 @@ module _
 
   private
     -- Disjointness of `_↑ˡ cn` and `G.nV ↑ʳ_` ranges (shared from Invariant).
-    ↑ˡ-↑ʳ-disjoint : (i : Fin G.nV) (j : Fin cn)
-                   → i ↑ˡ cn ≡ G.nV ↑ʳ j → ⊥
+    ↑ˡ-↑ʳ-disjoint : (i : Fin G.nV) (j : Fin cn) → i ↑ˡ cn ≡ G.nV ↑ʳ j → ⊥
     ↑ˡ-↑ʳ-disjoint = ↑ˡ≢↑ʳ {G.nV} {cn}
 
     K-eb-bnd : ∀ k → count k K-eb Nat.≤ 1
@@ -489,15 +457,10 @@ module _
           Nat.≤-trans
             (Nat.≤-reflexive (count-map-fiber remapP remapP-injective k rpk K-eb))
             (K-eb-bnd k)
-    ... | inj₂ none =
-          Nat.≤-trans
-            (Nat.≤-reflexive (count-map-no-list-preimage remapP K-eb none))
-            z≤n
+    ... | inj₂ none = Nat.≤-trans (Nat.≤-reflexive (count-map-no-list-preimage remapP K-eb none)) z≤n
 
     -- If `count k K.dom ≡ 0` then `classify K.dom k` lands in `inj₂`.
-    classify-from-count-zero
-      : ∀ (k : Fin K.nV) → count k K.dom ≡ 0
-      → Σ[ j ∈ Fin cn ] classify K.dom k ≡ inj₂ j
+    classify-from-count-zero : ∀ (k : Fin K.nV) → count k K.dom ≡ 0 → Σ[ j ∈ Fin cn ] classify K.dom k ≡ inj₂ j
     classify-from-count-zero k c0 with classify K.dom k in cls
     ... | inj₂ j = j , refl
     ... | inj₁ i = ⊥-elim (Nat.<-irrefl refl
@@ -515,9 +478,7 @@ module _
           Nat.<-≤-trans (lookup-count-pos xs i eq) (count-mono-cons k x xs)
 
     -- Only K.dom members route to `↑ˡ`-slots (injL).
-    remapP-injL→inDom
-      : ∀ (k : Fin K.nV) (i : Fin G.nV)
-      → remapP k ≡ injL i → 0 Nat.< count k K.dom
+    remapP-injL→inDom : ∀ (k : Fin K.nV) (i : Fin G.nV) → remapP k ≡ injL i → 0 Nat.< count k K.dom
     remapP-injL→inDom k i rpk with count k K.dom in cd
     ... | suc _ = s≤s z≤n
     ... | zero  = ⊥-elim (↑ˡ-↑ʳ-disjoint i j₀ (trans (sym rpk) k-raise))
@@ -528,8 +489,7 @@ module _
         k-raise = remap-inj₂ K.dom lookup-cod k j₀ (proj₂ cls)
 
     -- The K-eb contribution at an injL-slot vanishes.
-    count-injL-remapP-K-eb-zero
-      : ∀ (i : Fin G.nV) → count (injL i) (map remapP K-eb) ≡ 0
+    count-injL-remapP-K-eb-zero : ∀ (i : Fin G.nV) → count (injL i) (map remapP K-eb) ≡ 0
     count-injL-remapP-K-eb-zero i = go K-eb (λ _ p → p)
       where
         K-eb→noDom : ∀ k → 0 Nat.< count k K-eb → count k K.dom ≡ 0
@@ -556,11 +516,9 @@ module _
             x-dom-zero : count x K.dom ≡ 0
             x-dom-zero = K-eb→noDom x (sub x x∈)
             x-in-dom→absurd : ⊥
-            x-in-dom→absurd =
-              Nat.<-irrefl refl (subst (0 Nat.<_) x-dom-zero x-in-dom)
+            x-in-dom→absurd = Nat.<-irrefl refl (subst (0 Nat.<_) x-dom-zero x-in-dom)
 
-    bound-injL : ∀ (i : Fin G.nV)
-               → count (injL i) (producedList (hComposeP G K bdy-eq)) Nat.≤ 1
+    bound-injL : ∀ (i : Fin G.nV) → count (injL i) (producedList (hComposeP G K bdy-eq)) Nat.≤ 1
     bound-injL i =
       subst (Nat._≤ 1)
         (sym (trans (count-prod (i ↑ˡ cn))
@@ -574,8 +532,7 @@ module _
                                    (sym (count-++ i G.dom G-eb)))))))
         (G-bnd i)
 
-    bound-raise : ∀ (j : Fin cn)
-                → count (G.nV ↑ʳ j) (producedList (hComposeP G K bdy-eq)) Nat.≤ 1
+    bound-raise : ∀ (j : Fin cn) → count (G.nV ↑ʳ j) (producedList (hComposeP G K bdy-eq)) Nat.≤ 1
     bound-raise j =
       subst (Nat._≤ 1)
         (sym (trans (count-prod (G.nV ↑ʳ j))
@@ -606,5 +563,4 @@ Linear-hComposeP
   : (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
   → Linear G → Linear K
   → Linear (hComposeP G K bdy-eq)
-Linear-hComposeP G K bdy-eq lin-G lin-K =
-  Linear-hComposeP-internal G K bdy-eq lin-G lin-K
+Linear-hComposeP G K bdy-eq lin-G lin-K = Linear-hComposeP-internal G K bdy-eq lin-G lin-K
