@@ -434,15 +434,7 @@ module _ (H : Hypergraph FlatGen) where
   ------------------------------------------------------------------------
   -- ## Term-level separability (induction structure + glue; rests on
   -- `fire-mid-suffix`, `frame-ext`, and pure `subst₂` transport).
-  --
-  -- `coe` re-indexes the codomain of a step/run term along a stack equation,
-  -- so the factored RHS and LHS share the same `HomTerm` boundary.
   ------------------------------------------------------------------------
-
-  coe : ∀ {s s'} → s ≡ s'
-      → HomTerm (unflatten (map H.vlab s)) (unflatten (map H.vlab s'))
-      → HomTerm (unflatten (map H.vlab s)) (unflatten (map H.vlab s'))
-  coe refl t = t
 
   -- Re-index the codomain only (the use site: the run-term's codomain stack
   -- changes by `stepEq`/`++-assoc`, dom stays the input).

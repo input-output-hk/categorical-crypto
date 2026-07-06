@@ -1,26 +1,17 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Stack-Uniqueness, and the close of the eval-coincidence residual family
--- (`residual-recon`, `coh-in`/`coh-out`) via `Rigid.eval-rigid`.
+-- Stack-Uniqueness and the close of the eval-coincidence residual family
+-- (`residual-recon`) via `Rigid.eval-rigid`.
 --
 -- `eval-rigid` says: two `↭`-derivations `p, q : xs ↭ ys` with a `Unique`
--- codomain `ys` evaluate to the SAME finite bijection, hence `p ≅↭ q`.  Every
--- member of the eval-coincidence family compares two `↭`s with a COMMON
--- Fin-index codomain; once that codomain is known `Unique`, `eval-rigid`
--- closes the comparison in one line.  (The uniqueness-FREE generic forms are
--- actually FALSE: a duplicated vertex breaks them.)
+-- codomain `ys` evaluate to the SAME finite bijection, hence `p ≅↭ q`.  Once
+-- the common Fin-index codomain is known `Unique`, `eval-rigid` closes the
+-- comparison in one line.  (The uniqueness-FREE generic form is actually
+-- FALSE: a duplicated vertex breaks it.)
 --
--- Exports (postulate-free): `Unique-resp-↭` (`↭` preserves `Unique`, the
--- enabler, via a `count≤1` bridge); `residual-recon-unique` /
--- `residual-recon`; `coh-fin-rigid`; and the FIRE-step uniqueness facts.
---
--- The FIRE-step verdict: the local claim `Unique s → Linear H → Unique (proj₁
--- (edge-step H s e))` is FALSE for an arbitrary `Unique s` (counterexample at
--- the bottom): `Unique (eout e ++ rest)` needs `eout e` count-disjoint from
--- `rest`, a reachability invariant of `process-edges`, NOT a consequence of
--- `Unique s` alone.  So we prove the SOUND `++-Unique-from-counts` whose
--- disjointness side-condition is supplied at the call site.
+-- Exports (postulate-free): `Unique-resp-↭` (`↭` preserves `Unique`, via a
+-- `count≤1` bridge) and `residual-recon`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -143,127 +134,10 @@ Unique-resp-↭ p uxs =
     (λ v → subst (_≤ⁿ 1) (↭⇒count p v) (Unique⇒count≤1 uxs v))
 
 --------------------------------------------------------------------------------
--- 3.  Sub-list uniqueness facts used to supply `Unique` codomain witnesses.
-
-++-Unique-left : (xs ys : List (Fin n)) → Unique (xs ++ ys) → Unique xs
-++-Unique-left xs ys u =
-  count≤1⇒Unique
-    (λ v → Nat.≤-trans (Nat.≤-trans (Nat.m≤m+n (count v xs) (count v ys))
-                                    (Nat.≤-reflexive (sym (count-++ v xs ys))))
-                       (Unique⇒count≤1 u v))
-
-++-Unique-right : (xs ys : List (Fin n)) → Unique (xs ++ ys) → Unique ys
-++-Unique-right xs ys u =
-  count≤1⇒Unique
-    (λ v → Nat.≤-trans (Nat.≤-trans (Nat.m≤n+m (count v ys) (count v xs))
-                                    (Nat.≤-reflexive (sym (count-++ v xs ys))))
-                       (Unique⇒count≤1 u v))
-
--- The append of two `Unique` lists is `Unique` provided the per-vertex counts
--- never both exceed zero: i.e. the two are count-disjoint.  This is the SOUND
--- form of the FIRE-step `eout e ++ rest` uniqueness (the disjointness
--- side-condition is supplied at the call site from firing stability).
-++-Unique-from-counts
-  : (xs ys : List (Fin n))
-  → count≤1 xs → count≤1 ys
-  → (∀ v → 0 <ⁿ count v xs → count v ys ≡ 0)
-  → Unique (xs ++ ys)
-++-Unique-from-counts xs ys cx cy disj =
-  count≤1⇒Unique sum≤1
-  where
-    sum≤1 : ∀ v → count v (xs ++ ys) ≤ⁿ 1
-    sum≤1 v with count v xs Nat.<? 1
-    ... | yes <1 =
-          Nat.≤-trans
-            (Nat.≤-reflexive
-              (trans (count-++ v xs ys)
-                     (cong (_+ count v ys) (Nat.n<1⇒n≡0 <1))))
-            (cy v)
-    ... | no  ≮1 =
-          Nat.≤-trans
-            (Nat.≤-reflexive
-              (trans (count-++ v xs ys)
-                     (trans (cong (count v xs +_) (disj v 0<cx))
-                            (Nat.+-identityʳ (count v xs)))))
-            (cx v)
-      where
-        0<cx : 0 <ⁿ count v xs
-        0<cx = Nat.≮⇒≥ ≮1
-
---------------------------------------------------------------------------------
--- 3.5  `edge-step` uniqueness, split as `EdgeStepRelation`'s `skipR`/`fireR`.
---   * NO-FIRE: the stack is unchanged, `Unique` preserved unconditionally.
---   * FIRE: the stack becomes `eout e ++ rest`; `Unique (eout e ++ rest)` is
---     the SOUND `++-Unique-from-counts`, its disjointness side-condition
---     supplied at the `process-edges` level (NOT derivable from `Unique s`
---     alone — see the counterexample at the bottom of the file).
-
-module _ (H : Hypergraph FlatGen) where
-  private module H = Hypergraph H
-
-  edge-step-unique-skip
-    : ∀ (s : List (Fin H.nV)) (e : Fin H.nE)
-    → extract-prefix (H.ein e) s ≡ nothing
-    → Unique s
-    → Unique (proj₁ (edge-step H s e))
-  edge-step-unique-skip s e eq us
-    rewrite eq = us
-
-  -- FIRE: stated directly on the post-fire stack `eout e ++ rest`, carrying
-  -- the count-disjointness side-condition threaded by the caller.
-  edge-step-unique-fire
-    : ∀ (e : Fin H.nE) {s rest : List (Fin H.nV)}
-        (perm : s Perm.↭ H.ein e ++ rest)
-    → Unique s
-    → Unique (H.eout e)
-    → (∀ v → 0 <ⁿ count v (H.eout e) → count v rest ≡ 0)
-    → Unique (H.eout e ++ rest)
-  edge-step-unique-fire e {s} {rest} perm us ueo disj =
-    ++-Unique-from-counts (H.eout e) rest
-      (Unique⇒count≤1 ueo)
-      (Unique⇒count≤1 u-rest)
-      disj
-    where
-      u-ein-rest : Unique (H.ein e ++ rest)
-      u-ein-rest = Unique-resp-↭ perm us
-      u-rest : Unique rest
-      u-rest = ++-Unique-right (H.ein e) rest u-ein-rest
-
---------------------------------------------------------------------------------
 -- 4.  The Fin-index `≅↭` family, closed by `eval-rigid`.
 
--- 4a.  `coh-fin-rigid` — any two `↭`s with a common `Unique` codomain are
---      `≅↭` (= `eval-rigid`).
-coh-fin-rigid
-  : ∀ {m} {xs ys : List (Fin m)} (p q : xs Perm.↭ ys)
-  → Unique ys
-  → p ≅↭ q
-coh-fin-rigid p q uniq = eval-rigid uniq p q
-
--- 4b.  `residual-recon-unique` — `residual-recon`'s conclusion (both sides
---      `xs ↭ ks ++ rest`), carrying a `Unique (ks ++ rest)` hypothesis,
---      closed in ONE line by `eval-rigid`.  At the `StackEquivariance` call
---      site the codomain `ein e ++ restH` is the `↭`-image of the decoder
---      stack `s'`, so the witness is `Unique-resp-↭ perm-in (Unique s')`.
-residual-recon-unique
-  : ∀ {m} (ks xs rest : List (Fin m)) (perm-in : xs Perm.↭ ks ++ rest)
-      (st-located : xs Perm.↭ ks ++ rest)
-  → Unique (ks ++ rest)
-  → st-located ≅↭ perm-in
-residual-recon-unique ks xs rest perm-in st-located uniq =
-  eval-rigid uniq st-located perm-in
-
--- Packaged abstractly over an assembled `lhs : xs ↭ ks ++ rest`, so it
--- matches whatever the `extract-prefix-↭-residual` re-assembly evaluates to.
-residual-recon-via-rigid
-  : ∀ {m} {xs ks-rest : List (Fin m)}
-      (lhs perm-in : xs Perm.↭ ks-rest)
-  → Unique ks-rest
-  → lhs ≅↭ perm-in
-residual-recon-via-rigid lhs perm-in uniq = eval-rigid uniq lhs perm-in
-
--- 4c.  The drop-in for `StackEquivariance.residual-recon`, modulo a `Unique
---      (ks ++ rest)` hypothesis, using the REAL `extract-prefix-↭-residual`.
+-- The drop-in for `StackEquivariance.residual-recon`, modulo a `Unique
+-- (ks ++ rest)` hypothesis, using the REAL `extract-prefix-↭-residual`.
 residual-recon
   : ∀ {m} (ks xs rest : List (Fin m)) (perm-in : xs Perm.↭ ks ++ rest)
   → Unique (ks ++ rest)
@@ -277,18 +151,3 @@ residual-recon ks xs rest perm-in uniq =
                 (PermProp.++⁺ˡ ks (Perm.↭-sym (proj₂ (proj₂ (proj₂ st))))))
     perm-in
   where st = extract-prefix-↭-residual ks xs rest perm-in
-
---------------------------------------------------------------------------------
--- ## COUNTEREXAMPLE to the local FIRE-step claim.
---
--- `Unique s → Linear H → Unique (proj₁ (edge-step H s e))` is FALSE for an
--- arbitrary `Unique s`.  Over `Fin 1` (vertex `v = 0F`): take `H` with
--- nV=1, nE=1, dom=[], cod=[v], ein 0=[], eout 0=[v] (so `Linear H` holds),
--- and `s = [v]` (`Unique`).  Then `edge-step H [v] 0` fires with `rest = [v]`,
--- giving the new stack `eout 0 ++ rest = [v , v]` — NOT `Unique`.
---
--- The flaw: `Unique (eout e ++ rest)` needs `eout e` count-disjoint from
--- `rest`, a reachability invariant of `process-edges`, not a property of
--- `Unique s` alone.  `++-Unique-from-counts` takes that disjointness as an
--- explicit hypothesis.
---------------------------------------------------------------------------------

@@ -62,16 +62,6 @@ private
 just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
 just≢nothing ()
 
-subst₂-HomTerm-id : ∀ {A B} (p : A ≡ B) → subst₂ HomTerm p p id ≡ id
-subst₂-HomTerm-id refl = refl
-
-subst₂-id-≈
-  : (objUIP : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q)
-    {A B : ObjTerm} (p q : A ≡ B) → subst₂ HomTerm p q id ≈Term id
-subst₂-id-≈ objUIP p q =
-  ≡⇒≈Term (trans (cong (λ z → subst₂ HomTerm z q id) (objUIP p q))
-                 (subst₂-HomTerm-id q))
-
 subst₂-FlatGen-cancel
   : ∀ {is is' os os' : List X} (p : is ≡ is') (q : os ≡ os')
       {is'' os'' : List X} (p' : is'' ≡ is') (q' : os'' ≡ os')
@@ -112,14 +102,6 @@ subst₂-HomTerm-∘-dist
     ≡ subst₂ HomTerm q r f ∘ subst₂ HomTerm p q h
 subst₂-HomTerm-∘-dist refl refl refl f h = refl
 
-subst₂-⊗₁-dist
-  : ∀ {A A' B B' C C' D D' : ObjTerm}
-      (p₁ : A ≡ A') (q₁ : B ≡ B') (p₂ : C ≡ C') (q₂ : D ≡ D')
-      (a : HomTerm A B) (b : HomTerm C D)
-  → subst₂ HomTerm (cong₂ _⊗₀_ p₁ p₂) (cong₂ _⊗₀_ q₁ q₂) (a ⊗₁ b)
-    ≡ subst₂ HomTerm p₁ q₁ a ⊗₁ subst₂ HomTerm p₂ q₂ b
-subst₂-⊗₁-dist refl refl refl refl a b = refl
-
 ⊗id-∘ : ∀ {A B D} {Z : ObjTerm} (h : HomTerm B D) (k : HomTerm A B)
       → (h ∘ k) ⊗₁ id {Z} ≈Term (h ⊗₁ id {Z}) ∘ (k ⊗₁ id {Z})
 ⊗id-∘ h k =
@@ -139,28 +121,12 @@ subst₂-∘-distrib
       ∘ subst₂ HomTerm (cong unflatten p) (cong unflatten q) h
 subst₂-∘-distrib refl refl refl _ _ = refl
 
-pvl-subst₂
-  : ∀ {n} (vlab : Fin n → X) {xs xs' ys ys' : List (Fin n)}
-      (a : xs ≡ xs') (b : ys ≡ ys') (r : xs Perm.↭ ys)
-  → subst₂ HomTerm (cong unflatten (cong (map vlab) a))
-                   (cong unflatten (cong (map vlab) b))
-                   (permute-via-vlab vlab r)
-    ≡ permute-via-vlab vlab (subst₂ Perm._↭_ a b r)
-pvl-subst₂ vlab refl refl r = refl
-
 permute-subst₂
   : ∀ {xs xs' ys ys' : List X} (p : xs ≡ xs') (q : ys ≡ ys')
       (r : xs Perm.↭ ys)
   → subst₂ HomTerm (cong unflatten p) (cong unflatten q) (permute r)
     ≡ permute (subst₂ Perm._↭_ p q r)
 permute-subst₂ refl refl r = refl
-
-map⁺-subst₂
-  : ∀ {a b} {A : Set a} {B : Set b} (h : A → B)
-      {xs xs' ys ys' : List A} (p : xs ≡ xs') (q : ys ≡ ys') (r : xs Perm.↭ ys)
-  → PermProp.map⁺ h (subst₂ Perm._↭_ p q r)
-    ≡ subst₂ Perm._↭_ (cong (map h) p) (cong (map h) q) (PermProp.map⁺ h r)
-map⁺-subst₂ h refl refl r = refl
 
 eval-subst₂-↭
   : ∀ {a} {A : Set a} {xs xs' ys ys' : List A}

@@ -214,21 +214,6 @@ module BlockTensor
 module BoxAssoc where
   open FM.HomReasoning
 
-  -- `from`-side associativity kernel.
-  assoc-from = c-iso-assoc-from
-
-  ------------------------------------------------------------------------
-  -- `subst₂ HomTerm (cong unflatten p) (cong unflatten q) t` as a
-  -- conjugation by `subst`-identity morphisms.
-  subst-id-dom : ∀ {a b : List X} → a ≡ b
-               → HomTerm (unflatten b) (unflatten a)
-  subst-id-dom {a} p = subst (λ z → HomTerm (unflatten z) (unflatten a)) p id
-
-  subst-id-cod : ∀ {c d : List X} → c ≡ d
-               → HomTerm (unflatten c) (unflatten d)
-  subst-id-cod {c} q = subst (λ z → HomTerm (unflatten c) (unflatten z)) q id
-
-
   ------------------------------------------------------------------------
   -- BOX-SUFFIX: a box on residual `restG ++ R` factors (modulo the
   -- `++-assoc` boundary transport) as `(box on restG) ⊗₁ id` framed by
