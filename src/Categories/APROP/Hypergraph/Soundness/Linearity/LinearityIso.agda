@@ -109,8 +109,7 @@ tabulate-bij-↭
   → tabulate (f Fun.∘ π) Perm.↭ tabulate f
 tabulate-bij-↭ {n = zero}    f π π⁻¹ _      _       = Perm.refl
 tabulate-bij-↭ {n = suc n'}  f π π⁻¹ leftInv rightInv =
-  Perm.trans lhs-rewrite
-    (Perm.trans (Perm.prep (f (π zero)) ih) (Perm.↭-sym shift))
+  Perm.trans (Perm.prep (f (π zero)) ih) (Perm.↭-sym shift)
   where
     k = π zero
 
@@ -168,9 +167,6 @@ tabulate-bij-↭ {n = suc n'}  f π π⁻¹ leftInv rightInv =
 
     shift : tabulate f Perm.↭ f k ∷ tabulate (f Fun.∘ punchIn k)
     shift = tabulate-shift-↭ f k
-
-    lhs-rewrite : tabulate (f Fun.∘ π) Perm.↭ tabulate (f Fun.∘ π)
-    lhs-rewrite = Perm.refl
 
 --------------------------------------------------------------------------------
 -- Cardinality equality m ≡ n from a Fin-bijection.
