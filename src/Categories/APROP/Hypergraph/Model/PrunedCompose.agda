@@ -19,19 +19,19 @@ module Categories.APROP.Hypergraph.Model.PrunedCompose (sig : APROPSignature) wh
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; map-via-inj; retype; retype-≡)
+
 open import Categories.APROP.Hypergraph.Util.Prune
-  using (count-non; nonMem; classify; remap; remap-vlab; map-via-remap)
+
 
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt; cast)
-open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
+open import Data.Fin.Properties
 open import Data.List using (List; []; _∷_; length; map; lookup)
-open import Data.List.Properties using (length-map; map-∘)
-open import Data.Nat using (ℕ; _+_)
+open import Data.List.Properties
+open import Data.Nat
 open import Data.Sum using (inj₁; inj₂; [_,_]′)
-open import Function using (_∘_)
+open import Function
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; sym; trans; subst₂)
+
 
 --------------------------------------------------------------------------------
 -- "Boundary lookup" lemma: two lists with matching mapped images have

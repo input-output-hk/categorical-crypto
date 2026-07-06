@@ -29,28 +29,28 @@
 -- fast path, never soundness.
 --------------------------------------------------------------------------------
 
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
+open import Categories.APROP.Hypergraph.Solver.Signature
 
 module Categories.APROP.Hypergraph.Solver.Split (sig-dec : APROPSignatureDec) where
 
-open import Categories.APROP using (module APROP)
-open import Categories.FreeMonoidal using (v≤v)
+open import Categories.APROP
+open import Categories.FreeMonoidal
 
 open APROPSignatureDec sig-dec using (sig; _≟-mor_; _≟-ObjTerm_)
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Solver.Match.FindIsoTab sig-dec using (findIsoᵀ)
+open import Categories.APROP.Hypergraph.Model.Translation sig
+open import Categories.APROP.Hypergraph.Solver.Match.FindIsoTab sig-dec
 open import Categories.APROP.Hypergraph.Soundness sig-dec
-  using (soundness)
 
-open import Data.Maybe.Base using (Maybe; just; nothing)
+
+open import Data.Maybe.Base
 import Data.Maybe.Base as Maybe
-open import Data.Nat.Base using (ℕ; zero; suc)
+open import Data.Nat.Base
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; cong₂; subst₂)
-open import Relation.Nullary using (yes; no)
-open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
+
+open import Relation.Nullary
+open import Axiom.UniquenessOfIdentityProofs
 
 private
   -- UIP on `ObjTerm` (decidable equality ⇒ UIP, no `K`): collapses the

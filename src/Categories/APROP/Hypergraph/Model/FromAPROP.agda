@@ -33,15 +33,15 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
-open import Data.Fin.Properties as Fin using (splitAt-↑ˡ; splitAt-↑ʳ)
+open import Data.Fin.Properties as Fin
 open import Data.List using (List; []; _∷_; _++_; length; map; lookup)
-open import Data.List.Properties using (map-∘; map-++; map-cong)
-open import Data.Nat using (ℕ; zero; suc; _+_)
+open import Data.List.Properties
+open import Data.Nat
 open import Data.Sum using (inj₁; inj₂; [_,_]′)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; cong₂; trans; sym; subst₂)
+
 open import Relation.Binary.PropositionalEquality.Properties
-  using (trans-reflʳ)
+
 
 --------------------------------------------------------------------------------
 -- Flattening an ObjTerm into its list of atoms.
