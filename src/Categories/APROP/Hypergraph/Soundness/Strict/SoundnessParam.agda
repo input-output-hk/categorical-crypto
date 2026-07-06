@@ -11,13 +11,6 @@
 --   * `embF-resp-≈ˢ` + `st-roundtrip` (Strict.Boundary)
 --   * `bridge-cancel` (the `unflatten-flatten-≈` iso cancellation).
 --
--- This is the END of the migration: it replaces the non-strict
--- `Soundness.soundness` with a path whose only non-
--- trivial obligations live entirely in the strict SMC `S`.  It is stated
--- here PARAMETERISED over the two halves (and, transitively, the two
--- in-progress shape residuals of part (I)ˢ + the part-(II)ˢ chain), so the
--- final theorem provably assembles; discharging those parameters makes it
--- unconditional and lets `Soundness` be re-pointed at it.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

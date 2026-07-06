@@ -25,10 +25,9 @@
 --     bookkeeping.
 --
 --   * `block-swap-comm L R` — induction on `L`.  `[]` is `Scr.bswap-σ-base`;
---     the `(v ∷ L)` step composes `shift-sym v R L` with the framed IH and
---     reassembles via the same `σ-hexˢʳ` collapse at `a = map L`,
---     `b = [vlab v]`, `c = map R` — wait, no: it uses `shift-sym` directly,
---     so no further hexagon, only the cast algebra.
+--     the `(v ∷ L)` step composes `shift-sym v R L` with the framed IH, then
+--     reconciles the two `castˢ` bracketings (via `shift-sym` directly — no
+--     further hexagon).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

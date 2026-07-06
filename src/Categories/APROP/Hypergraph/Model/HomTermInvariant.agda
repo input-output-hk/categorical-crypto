@@ -4,8 +4,9 @@
 -- Translation-level invariant: for every APROP term `f : HomTerm A B`,
 -- `⟪ f ⟫` has a `Unique` domain (and codomain) interface.
 --
--- Used by the composition congruence `hComposeP-resp-≅ᴴ` (the `Unique
--- K₁.dom` side condition is met when K₁ is a translated term).
+-- Used by the strict decoder's iso-invariance (`decodePˢ-resp-iso`) and the
+-- ordering machinery (`DepIrrefl`, `IsoTransport`): the `Unique` interface
+-- discharges the translated-term side conditions.
 --
 -- Structural induction on `f`: `hId`/`hSwap`/`hGen` cases from the matching
 -- `Invariant` lemma; `_∘_`/`_⊗₁_` from `map⁺` + `++⁺`.

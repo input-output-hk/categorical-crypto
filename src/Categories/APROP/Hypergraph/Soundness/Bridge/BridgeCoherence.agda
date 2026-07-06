@@ -465,8 +465,7 @@ private
       cBC-from = _≅_.from (unflatten-++-≅ (flatten B) (flatten C))
 
 --------------------------------------------------------------------------------
--- Var-base case of bridge-α⇒-form (constructive: does not depend on
--- bridge-α⇒-form-⊗-⊗ postulate).
+-- Var-base case of bridge-α⇒-form.
 
 bridge-α⇒-form-Var
   : ∀ x B C → bridge (α⇒ {Var x} {B} {C})
@@ -527,8 +526,7 @@ bridge-α⇒-form-Var x B C = begin
                    (S._∘_ (S._⊗₁_ (S._∘_ gFB gTB) (S._∘_ gFC gTC)) gcfrom))
 
 --------------------------------------------------------------------------------
--- Unit-base case of bridge-α⇒-form (constructive: does not depend on
--- bridge-α⇒-form-⊗-⊗ postulate).
+-- Unit-base case of bridge-α⇒-form.
 
 bridge-α⇒-form-unit
   : ∀ B C → bridge (α⇒ {unit} {B} {C})

@@ -3,44 +3,21 @@
 --------------------------------------------------------------------------------
 -- The STRICT `EdgeStepRˢ` algebra bricks for the two-edge interchange.
 --
--- This module supplies the strict fired-layer + the `EdgeStepRˢ` view + the
--- both-fire commutation core; the empty-tail `run-interchange₀ˢ` and its
--- `build` split that consume them now live in `SwapCoreRun` (re-exported by
--- `FireMid`).  For two adjacent INCOMPARABLE edges `e , e'` fired from the
--- same stack, processing `[e , e']` versus `[e' , e]` yields `≈ˢ`-equal
--- strict terms (modulo the stack-permutation reshuffle) — the strict twin of
--- `Discharge/Sub/RunInterchangeEmptyTail.run-interchange₀`.
+-- Supplies the strict fired layer, the `EdgeStepRˢ` view, and the both-fire
+-- commutation core.  For two adjacent INCOMPARABLE edges `e , e'` fired from
+-- the same stack, processing `[e , e']` versus `[e' , e]` yields `≈ˢ`-equal
+-- strict terms (modulo the stack-permutation reshuffle).
 --
--- The non-strict proof pays ~5000 LOC of Mac-Lane mass (the `BlockNF`
--- view frames `view-in≅`/`view-out≅`, the σ-block-comm/Yang–Baxter
--- algebra, the `unflatten-++-≅` conjugations).  In the strict SMC `S`
--- (`FreeStrictSMC.Build` at `FlatGen`), `⊗ˢ = ++` on the nose, so the
--- two-box commutation is the 4-line `box-commute-ˢ`, and all bracketing
--- becomes the UIP-trivial `castˢ` kit.
---
--- ARCHITECTURE (per §4 of `docs/strictification-part2-map.md`):
---   * `fire-midˢ`/`fire-termˢ` — the strict fired layer, matching the
---     strict decoder's `edge-stepˢ` fire branch on the nose, so that the
---     `EdgeStepRˢ` view's `fireRˢ` index is DEFINITIONALLY
---     `proj₂ (edge-stepˢ s e)`.
+--   * `fire-midˢ`/`fire-termˢ` — the strict fired layer, matching the strict
+--     decoder's `edge-stepˢ` fire branch on the nose (so `EdgeStepRˢ`'s
+--     `fireRˢ` index is DEFINITIONALLY `proj₂ (edge-stepˢ s e)`).
 --   * `EdgeStepRˢ` — the inductive graph of `edge-stepˢ`; matching its
---     `skipRˢ`/`fireRˢ` constructors refines the otherwise-stuck
---     `edge-stepˢ` redex (dodges green-slime).
---   * `fire-mid-interchangeˢ` — the both-fire core: the two framed boxes
---     on disjoint blocks commute, via `box-commute-ˢ`, transported through
---     the `SimLoc`-located permutes (the deferred K residual `permˢ-K`
---     enters exactly here, via `perm-rigidˢ`).
---
--- The downstream `build` + `run-interchange₀ˢ` four-way firing split —
--- mirroring the non-strict skeleton with `Reservoir≤1`-sourced `Unique`
--- witnesses (bridged from the non-strict reservoir via `stacks-agree`) — now
--- lives in `SwapCoreRun`/`FireMid`, not here.
---
--- The TERM-FREE combinatorics (`SimLoc`, `extract-ein'`, the stability
--- lemmas, the reservoir machinery) are REUSED AS-IS from the non-strict
--- leaves — they live at the `_↭_`/`count`/`process-edges` level and the
--- strict stacks are DEFINITIONALLY equal to the non-strict ones
--- (`stacks-agree`).
+--     `skipRˢ`/`fireRˢ` constructors refines the otherwise-stuck `edge-stepˢ`
+--     redex (dodges green-slime).
+--   * `fire-mid-interchangeˢ` — the both-fire core: two framed boxes on
+--     disjoint blocks commute via `box-commute-ˢ`, transported through the
+--     `SimLoc`-located permutes (the deferred K residual `permˢ-K` enters here
+--     via `perm-rigidˢ`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -193,21 +170,6 @@ module _ (H : Hypergraph FlatGen)
         → (p q : xs Perm.↭ ys) → permuteˢ p ≈ˢ permuteˢ q
     perm-rigidˢ = Kmod.perm-rigidˢ permˢ-K
 
-    ----------------------------------------------------------------
-    -- Located single fire box.  Given a derivation `loc : s ↭
-    -- (ein e ++ B) ++ R` that factors the fire input `perm : s ↭
-    -- ein e ++ rest` through `rest ↭ B ++ R` (`q : rest ↭ B ++ R`),
-    -- the fire box locates its residual into the two blocks `B`, `R`:
-    --
-    --   fire-termˢ e s rest perm
-    --     ≈ˢ castˢ (out-cast) ((genˢ e ⊗ˢ idˢ{B}) ⊗ˢ idˢ{R})
-    --          ∘ˢ castˢ (in-cast) (permuteˢ loc)
-    --
-    -- where `loc = trans perm (++⁺ˡ (ein e) q)` re-bracketed.  All the
-    -- bracketing is the `castˢ` kit; `perm-rigidˢ` is NOT needed for a
-    -- single box (the derivation is CHOSEN to factor), only the
-    -- equality `permuteˢ perm ≈ˢ permuteˢ (trans ...)` which is
-    -- definitional when `loc` is built from `perm`.
     ----------------------------------------------------------------
     -- The LOCATED two-box interchange kernel (the strict heart, the
     -- analogue §4 calls `box-crossˢ`).  Two boxes `g : A → B`,

@@ -10,12 +10,9 @@
 -- `↭ range nE` provenance — a 1:1 rename of the non-strict argument, with
 -- `≈Term` → `≈ˢ` and `decodeOrd` → `decodeOrdˢ`.  No Mac-Lane content.
 --
--- The cross-iso `decode-ordˢ-resp-iso` (the boundary with `IsoTransport`)
--- is provided PARAMETERISED over the strict cross-iso transport residual
--- (`iso-transportˢ`) and `NoInv-τ`: the strict `IsoTransport`/
--- `EdgeStepNaturality` + `NoInvTau` ports are a separate, later phase, so
--- this module is GREEN independent of them, exposing the exact residual the
--- headline `decodePˢ-resp-iso` consumes.
+-- The cross-iso `decode-ordˢ-resp-iso` (the boundary with `IsoTransport`) is
+-- provided PARAMETERISED over the strict transport residual (`iso-transportˢ`)
+-- and `NoInv-τ`, discharged in `Strict/Iso/IsoTransport` and `NoInvTau`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

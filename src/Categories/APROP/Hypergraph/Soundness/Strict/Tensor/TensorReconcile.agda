@@ -4,7 +4,7 @@
 -- DISCHARGE WORK for the `reconcileˢ` residual of `Strict.DecodeTensorS` — the
 -- K-block prepend-asymmetry braid + final-permute resort completing the
 -- ⊗-shape.  This is the strict port of the whole-run assembly TAIL of the
--- non-strict `Discharge.Sub.DecodeTensorShape` (~3800 LOC).
+-- non-strict `Discharge.Sub.DecodeTensorShape`.
 --
 -- The TARGET (verified verbatim against `DecodeTensor.Tensor`'s `reconcileˢ`
 -- parameter) is, for `f : HomTerm A B`, `g : HomTerm C D`:
@@ -157,57 +157,9 @@ module _
       DT.Tensor.decodePˢ-⊗ permˢ-K f g (reconcile-from-braid cand braidˢ)
 
 --------------------------------------------------------------------------------
--- OBSTRUCTION / RESIDUAL MAP.
---
--- PROVEN HERE, postulate-free, `--safe --without-K`:
---   * `Reconcile.final-resortˢ` — the final-permute resort: the algorithm's
---     `finalPermˢ (f ⊗₁ g)` collapses (via `perm-rigidˢ`, `Unique` cod) onto
---     ANY canonical derivation `cand : s-finˢ ↭ C.cod`.  This is the full
---     right half of `reconcileˢ` (the σ/K content of the documented finding).
---   * `Reconcile.reconcile-from-braid` — the reduction: `reconcileˢ` follows
---     from `final-resortˢ` + the single K-block braid fact `braidˢ`.  Its
---     conclusion is DEFINITIONALLY the `reconcileˢ` parameter type of
---     `DecodeTensor.Tensor` (verified), so feeding `reconcile-from-braid cand
---     braidˢ` discharges that parameter.
---
--- THE RESIDUAL `braidˢ` (the K-block braid), one clearly-typed `≈ˢ`:
---
---     permuteˢ cand ∘ˢ proj₂ runˢ
---       ≈ˢ castˢ (sym domL) (sym codL) (decodePˢ f ⊗ˢ decodePˢ g)
---
---   with `cand : s-finˢ ↭ C.cod` the CANONICAL block-braid derivation.  The
---   discharge is the strict port of `DecodeTensorShape`'s assembly tail:
---
---   1. RUN-SPLIT.  `proj₂ runˢ = proj₂ (process-edgesˢ (range C.nE) C.dom)`
---      factors over `range C.nE = gblk ++ kblk` as
---          (K-block run on the post-G stack) ∘ˢ (G-block run on C.dom)
---      — already PROVEN: `DecodeTensor.BlockSplit.process-edgesˢ-++` (and the
---      cast-light `DecodeCompose.run-split-atˢ`).
---
---   2. G-BLOCK FRAME.  The G-block run factors as `(G-run) ⊗ˢ idˢ {map injR
---      K.dom}` with the K-input as the untouched RIGHT frame — already PROVEN:
---      `DecodeTensor.GBlock.G-block-frameˢ` (from `term-sepˢ`).  The G-run on
---      `map injL G.dom` is bridged to `decodePˢ f` through the cross-vertex
---      permute `DecodeCompose.permuteˢ-X` (`Fin (G.nV+K.nV)` ↦ `Fin G.nV`).
---
---   3. K-BLOCK BRAID.  After G fires, the K-edge block acts on the `map injR
---      K.dom` SUFFIX but PREPENDS K's outputs in FRONT of `map injL G.cod`,
---      giving a BRAIDED stack `K.cod-block ++ G.cod-block` (NO `term-sepˢ-ˡ`,
---      proven false in `Strict/Separability`).  The K-run is bridged to
---      `decodePˢ g` (again via `permuteˢ-X`) and slid back past `map injL
---      G.cod` by the block braiding `σˢ (map G.cod) (map K.cod)`, discharged
---      with `Strict/Braid.strict-braid` + `DecodeSigma.σ-hexˢʳ`, exactly as
---      `DecodeSigma`'s `inner≈` uses `σ-block-≈`.
---
---   4. CANONICAL `cand`.  `cand` is the block-braid derivation `s-finˢ ↭
---      C.cod` whose `permuteˢ` realises the slide of (3); `final-resortˢ`
---      (proven above) then closes the loop with `finalPermˢ`.
---
---   The discharge is the strict `castˢ`/stack bookkeeping bridging the
---   `injL`/`injR` relabelling (the `mixed-stack-G` step of the non-strict
---   proof) to the `term-sepˢ` frame and the K-block braid — the same
---   map-distribution `castˢ` algebra (`∘-cast-split`/`cast-irrel`/
---   `cast-⊗-frame`/`cast-fuse`) that `DecodeSigma`/`Decoder.layer-sepˢ` use,
---   plus the K-side relabelling equivariance (the strict twin of
---   `DecodeCompose`'s case (B)).  No further axiom beyond `permˢ-K`.
+-- `reconcileˢ` = `final-resortˢ` (proven here, via `perm-rigidˢ` on the
+-- `Unique` cod) + the single K-block braid residual `braidˢ`, discharged
+-- downstream in `Strict/Tensor/TensorBraid` (concrete witness
+-- `TensorKBlockFinal.decodePˢ-⊗-concrete`, zero postulates).  See the header
+-- for `braidˢ`'s statement and the CRITICAL-ASYMMETRY content it packages.
 --------------------------------------------------------------------------------

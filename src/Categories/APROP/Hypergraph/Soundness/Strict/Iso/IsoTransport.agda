@@ -2,9 +2,8 @@
 
 --------------------------------------------------------------------------------
 -- STRICT Lemma 0: the cross-iso decoder agreement `decode-ordˢ-resp-iso`
--- (the last unported part-(II)ˢ piece — strict twin of
--- `Discharge.IsoInvarianceConcrete.decode-ord-resp-iso`, assembling the
--- strict `Discharge.IsoTransport.iso-transport`).
+-- (strict twin of `Discharge.IsoInvarianceConcrete.decode-ord-resp-iso`,
+-- assembling the strict `Discharge.IsoTransport.iso-transport`).
 --
 -- For a cross-iso `iso : ⟪f⟫ ≅ᴴ ⟪g⟫` we produce
 --
@@ -15,8 +14,7 @@
 --               (SG.decodeOrdˢ (range nE_g) vJ)
 --         ≈ˢ SF.decodeOrdˢ (range nE_f) vH
 --
--- — EXACTLY the parameter `Strict.DecodePRespIso`'s headline `module _`
--- consumes (lines 174-191).
+-- — exactly the parameter `Strict.DecodePRespIso`'s headline consumes.
 --
 -- Structure (strict twin of `IsoTransport` §1-§5 + the `order-invariant`
 -- bridge):
