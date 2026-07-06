@@ -1,16 +1,14 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Soundness theorem, re-pointed at the STRICTIFIED pipeline.
+-- Soundness theorem for the strictified pipeline.
 --
--- `soundness` now delegates to
--- `Strict.Soundness.soundness-assembled` fed the unconditional
--- strict ⊗-shape `Strict.TensorKBlockFinal.decodePˢ-⊗-concrete`.  That path
--- proves `⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g` entirely inside the presented strict SMC
--- `S` (part (I)ˢ `st ≈ˢ decodePˢ` + part (II)ˢ `decodePˢ`-iso-invariance,
--- reflected via `embF`/`st-roundtrip` + the `bridge` cancellation), with the
--- single deep Kelly residual `permˢ-K` discharged axiom-free.  The TYPE is
--- unchanged, so all downstream consumers are unaffected.
+-- `soundness` delegates to `Strict.Soundness.soundness-assembled` fed the
+-- unconditional strict ⊗-shape `Strict.TensorKBlockFinal.decodePˢ-⊗-concrete`.
+-- That path proves `⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g` entirely inside the presented
+-- strict SMC `S` (part (I)ˢ `st ≈ˢ decodePˢ` + part (II)ˢ `decodePˢ`-iso-
+-- invariance, reflected via `embF`/`st-roundtrip` + the `bridge` cancellation),
+-- with the single deep Kelly residual `permˢ-K` discharged axiom-free.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

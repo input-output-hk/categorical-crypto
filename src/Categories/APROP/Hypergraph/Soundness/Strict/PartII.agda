@@ -5,7 +5,7 @@
 --
 --   decodePˢ-resp-iso : ⟪f⟫ ≅ᴴ ⟪g⟫ → decodePˢ f ≈ˢ decodePˢ g
 --
--- This file is pure INTEGRATION PLUMBING.  It wires three now-complete pieces:
+-- This file is pure INTEGRATION PLUMBING.  It wires three pieces:
 --
 --   * the headline `DecodePRespIso.decodePˢ-resp-iso`, which factors the result
 --     through TWO clearly-typed module parameters (the (N) `run-interchange-H`
@@ -17,8 +17,6 @@
 --     `Discharge.DecodeRelRespIsoWired.run-interchange-⟪⟫` does;
 --   * the FULLY DISCHARGED `Strict.IsoTransportS.decode-ordˢ-resp-iso`, fed the
 --     SAME `run-interchange-H` we build.
---
--- {-# OPTIONS --safe --without-K #-}, zero postulates, zero holes.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

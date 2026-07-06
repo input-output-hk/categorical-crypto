@@ -76,7 +76,6 @@ extract-elem-skip-just k x xs rest p x≢k eq with x ≟ k
 -- any list whose elements are all on the wrong side.
 
 private
-  -- `↑ˡ≢↑ʳ` is now shared from `Model.Invariant` (opened above).
   ↑ʳ≢↑ˡ : ∀ {nA nB} (i : Fin nA) (j : Fin nB) → ¬ (nA ↑ʳ j ≡ i ↑ˡ nB)
   ↑ʳ≢↑ˡ i j p = ↑ˡ≢↑ʳ i j (sym p)
 

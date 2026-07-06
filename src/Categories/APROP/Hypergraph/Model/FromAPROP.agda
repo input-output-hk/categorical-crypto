@@ -82,8 +82,7 @@ record FlatGen (As Bs : List X) : Set where
     okB   : flatten B ≡ Bs
     f     : mor A B
 
--- Smart constructor matching the old data-style `flat g : FlatGen (flatten
--- A) (flatten B)`; existing `flat g` call sites keep working unchanged.
+-- Smart constructor `flat g : FlatGen (flatten A) (flatten B)`.
 flat : ∀ {A B} → mor A B → FlatGen (flatten A) (flatten B)
 flat g = flat-rec refl refl g
 
@@ -98,9 +97,8 @@ retype : ∀ {As Bs As' Bs'} → As ≡ As' → Bs ≡ Bs'
        → FlatGen As Bs → FlatGen As' Bs'
 retype p q (flat-rec oa ob g) = flat-rec (trans oa p) (trans ob q) g
 
--- `retype` agrees with `subst₂ FlatGen p q` propositionally; lets the
--- construction-site change be invisible to the downstream `subst₂ FlatGen`-
--- shaped reasoning lemmas (`elab-c-inj₁`/`₂`).
+-- `retype` agrees with `subst₂ FlatGen p q` propositionally, so the downstream
+-- `subst₂ FlatGen`-shaped reasoning lemmas (`elab-c-inj₁`/`₂`) still apply.
 retype-≡ : ∀ {As Bs As' Bs'} (p : As ≡ As') (q : Bs ≡ Bs') (v : FlatGen As Bs)
          → retype p q v ≡ subst₂ FlatGen p q v
 retype-≡ refl refl (flat-rec oa ob g) =

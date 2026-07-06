@@ -60,7 +60,7 @@ private
 
 --------------------------------------------------------------------------------
 -- The induction, parameterised over the single remaining shape (decodePˢ-⊗);
--- `Agen` is now concrete via DecodeGen.
+-- `Agen` is concrete via DecodeGen.
 
 module _
   (decodePˢ-⊗
@@ -68,7 +68,7 @@ module _
     → decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g)
   where
 
-  -- the Agen base case is now CONCRETE (DecodeGen, fully proven)
+  -- the Agen base case, via DecodeGen
   decodePˢ-Agen : ∀ {A B} (g : mor A B) → decodePˢ (Agen g) ≈ˢ st (Agen g)
   decodePˢ-Agen = DGen.decodePˢ-Agen
 

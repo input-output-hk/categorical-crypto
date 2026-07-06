@@ -53,9 +53,8 @@ hId-cod≡dom (A ⊗₀ B)  =
 -- `Unique` for identity's dom.  The tensor case needs `map⁺` with `_↑ˡ_` /
 -- `_↑ʳ_` injectivity on each side + `++⁺` with disjointness of their images.
 
--- injectivity of `_↑ˡ_` and `_↑ʳ_`.  Public: used by `HomTermInvariant`.
--- (thin wrappers over the stdlib lemmas; the signatures are kept stable so the
--- existing call sites are unaffected.)
+-- injectivity of `_↑ˡ_` and `_↑ʳ_` (thin wrappers over the stdlib lemmas).
+-- Public: used by `HomTermInvariant`.
 inject+-inj : ∀ {m} (n : ℕ) {i j : Fin m}
             → i ↑ˡ n ≡ j ↑ˡ n → i ≡ j
 inject+-inj n {i} {j} eq = ↑ˡ-injective n i j eq
