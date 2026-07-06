@@ -341,10 +341,9 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
                 (fromWitness! (findIsoᵀ ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫) c₂)))
 
   --------------------------------------------------------------------------------
-  -- `ᵀᴮ` gates: after the `ᴮ`-frame dedup these are identical to the plain
-  -- `rewriteDeepₙ!`/`rewriteDeepTo!`; the distinct names are kept only because
-  -- the `Test.Frobenius` showcase calls them.
-  rewriteDeepₙ!ᵀᴮ  = rewriteDeepₙ!
+  -- `ᵀᴮ` gate: after the `ᴮ`-frame dedup this is identical to the plain
+  -- `rewriteDeepTo!`; the distinct name is kept only because the
+  -- `Test.Frobenius` showcase calls it.
   rewriteDeepTo!ᵀᴮ = rewriteDeepTo!
 
   --------------------------------------------------------------------------------
