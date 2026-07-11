@@ -7,15 +7,9 @@
 --
 -- Parameterised over `FreeMonoidalData`, so the generic `permute` is
 -- reusable in any free (symmetric) monoidal category.  This module
--- exposes:
---
---   * the generic `permute` definition,
---   * the wide `FaithfulnessResidual` (the remaining categorical
---     obligation) and the strictly narrower `TransSelfLoopResidual`
---     (the `Perm.trans` self-loop case, sufficient for XSL; implied by
---     the wide one via `wide⇒narrow`),
---   * `permute-self-loop-id` (parameterised by the narrow residual) and
---     `permute-self-loop-id-wide` (parameterised by the wide one).
+-- exposes the generic `unflatten`/`permute` definitions plus the
+-- `α⇐-comm`/`unflatten-++-≅` coherence helpers; the faithfulness proof
+-- itself lives in `FaithfulnessInductive`.
 ------------------------------------------------------------------------
 
 open import Categories.FreeMonoidal
@@ -30,23 +24,11 @@ open import Data.List.Base using (List; []; _∷_; _++_; length)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 
-open import Data.Nat.Base using (ℕ; zero; suc)
-open import Data.Fin.Base using (Fin; zero; suc)
-open import Data.Fin.Patterns using (0F; 1F)
-import Data.Fin.Permutation as P
-open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl; sym; trans; cong)
-open import Data.Empty using (⊥; ⊥-elim)
-
 open import Categories.Category.Monoidal using (Monoidal)
 open import Categories.Category.Monoidal.Utilities Monoidal-FreeMonoidal
   using (_⊗ᵢ_)
 open import Categories.Morphism FreeMonoidal using (_≅_; module ≅)
 open Monoidal Monoidal-FreeMonoidal using (unitorˡ; associator)
-
-open import Categories.PermuteCoherence.FinBij
-open import Categories.PermuteCoherence.Eval
-open import Categories.PermuteCoherence.Canonical
 
 ------------------------------------------------------------------------
 -- 0. Dual associator commutativity, derived from `α-comm`:
@@ -93,67 +75,3 @@ permute (Perm.prep x p)   = id ⊗₁ permute p
 permute (Perm.swap x y p) =
   (id ⊗₁ (id ⊗₁ permute p)) ∘ α⇒ ∘ (σ ⊗₁ id) ∘ α⇐
 permute (Perm.trans p q)  = permute q ∘ permute p
-
-------------------------------------------------------------------------
--- 3. The (wide) residual: any two derivations whose evaluated bijections
--- coincide produce ≈Term-equal terms under `permute`.
-
-record FaithfulnessResidual : Set where
-  field
-    permute-resp-≅↭
-      : {xs ys : List X} (p q : xs Perm.↭ ys)
-      → p ≅↭ q
-      → permute p ≈Term permute q
-
-------------------------------------------------------------------------
--- 4. The NARROW residual (trans self-loop only): a self-loop built as
--- `Perm.trans p q` with identity evaluated bijection produces an identity
--- term under `permute`.  Sufficient for the XSL chain.
-
-record TransSelfLoopResidual : Set where
-  field
-    permute-trans-self-loop-id
-      : ∀ {xs ys : List X} (p : xs Perm.↭ ys) (q : ys Perm.↭ xs)
-      → eval-↭ q ∘-fb eval-↭ p ≈-fb id-fb
-      → permute q ∘ permute p ≈Term id
-
-------------------------------------------------------------------------
--- 5. The narrow residual is implied by the wide one.
-
-wide⇒narrow : FaithfulnessResidual → TransSelfLoopResidual
-wide⇒narrow R = record
-  { permute-trans-self-loop-id = λ p q eq →
-      FaithfulnessResidual.permute-resp-≅↭ R
-        (Perm.trans p q) Perm.refl eq
-  }
-
-------------------------------------------------------------------------
--- 6. Headline corollary `permute-self-loop-id`, via the NARROW residual.
---
--- The narrow residual captures the trans self-loop case, which subsumes
--- refl/prep/swap via `Perm.trans Perm.refl r` (matching `Perm.refl`
--- directly is K-blocked under `--safe --without-K`).
-
-module _ (R : TransSelfLoopResidual) where
-  open TransSelfLoopResidual R
-
-  permute-self-loop-id
-    : {xs : List X} (r : xs Perm.↭ xs)
-    → eval-↭ r ≈-fb id-fb
-    → permute r ≈Term id
-  permute-self-loop-id r eq =
-    ≈-Term-trans (≈-Term-sym idˡ)
-                 (permute-trans-self-loop-id r Perm.refl eq)
-
-------------------------------------------------------------------------
--- 7. Headline corollary parameterised by the WIDE residual.
-
-module _ (R : FaithfulnessResidual) where
-  open FaithfulnessResidual R
-
-  permute-self-loop-id-wide
-    : {xs : List X} (r : xs Perm.↭ xs)
-    → eval-↭ r ≈-fb id-fb
-    → permute r ≈Term id
-  permute-self-loop-id-wide =
-    permute-self-loop-id (wide⇒narrow R)

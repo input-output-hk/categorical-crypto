@@ -56,7 +56,7 @@ open import Categories.PermuteCoherence.EvalSoundness
   using ( cons-fb-functor-id; cons-fb-functor-comp; swap-fb-involutive
         ; swap-fb-natural; yang-baxter )
 open import Categories.PermuteCoherence.Faithfulness d
-  using (permute; unflatten; FaithfulnessResidual; α⇐-comm)
+  using (permute; unflatten; α⇐-comm)
 open import Categories.PermuteCoherence.FaithfulnessK d
   using (σ-block-self-inverse-direct)
 -- The σ-block Yang-Baxter braid, derived from `hexagon`.
