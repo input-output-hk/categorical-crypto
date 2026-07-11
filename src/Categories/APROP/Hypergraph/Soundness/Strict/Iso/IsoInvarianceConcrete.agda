@@ -12,7 +12,8 @@
 --
 -- The cross-iso `decode-ordˢ-resp-iso` (the boundary with `IsoTransport`) is
 -- provided PARAMETERISED over the strict transport residual (`iso-transportˢ`)
--- and `NoInv-τ`, discharged in `Strict/Iso/IsoTransport` and `NoInvTau`.
+-- and `NoInv-τ`, discharged in `Strict/Iso/IsoTransport` and
+-- `IsoInvarianceWiring` (Lemma 4).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

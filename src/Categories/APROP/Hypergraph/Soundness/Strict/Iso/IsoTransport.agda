@@ -31,7 +31,7 @@
 --     natural order `range nE_f`.
 --
 -- The order-theory `NoInv`/`NoInv-τ`/`τ`/`τ↭range` are reused verbatim from
--- the term-free non-strict wiring (`IsoInvarianceWiring`, `NoInvTau`).
+-- the term-free non-strict wiring (`IsoInvarianceWiring`).
 -- The strict run-interchange residual `run-interchange-H` is threaded as a
 -- module parameter (the same residual `DecodePRespIso`'s headline takes).
 --------------------------------------------------------------------------------
