@@ -40,6 +40,8 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
   sig using (⟪⟫-LinearP)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟X_
+  as DShapes
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_
   using ( st; coe; coe-uip; coe-conj
@@ -207,18 +209,9 @@ module _
   where
 
   ------------------------------------------------------------------------
-  -- `nE = 0` collapse (same as `DecodeShapes.nE0-run`).
+  -- `nE = 0` collapse (shared with `DecodeShapes`).
 
-  nE0-run
-    : (H : Hypergraph FlatGen) → Hypergraph.nE H ≡ 0
-    → Σ[ s≡ ∈ Run.s-finˢ H ≡ Hypergraph.dom H ]
-        (proj₂ (Run.runˢ H)
-         ≡ subst (λ z → HomS (map (Hypergraph.vlab H) (Hypergraph.dom H))
-                              (map (Hypergraph.vlab H) z))
-                 (sym s≡) idˢ)
-  nE0-run
-    record { nV = nV ; vlab = vlab ; nE = .0 ; ein = ein ; eout = eout
-           ; elab = elab ; dom = dom ; cod = cod } refl = refl , refl
+  nE0-run = DShapes.nE0-run permˢ-K
 
   ------------------------------------------------------------------------
   -- The σ-shape.
