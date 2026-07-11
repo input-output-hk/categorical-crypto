@@ -82,10 +82,14 @@ module PerHG (H : Hypergraph FlatGen)
   -- would duplicate `permuteˢ`).
   open EquivStep H using (vl; edge-stepˢ; stacks-agree; permuteˢ; pe-stackˢ; pe-termˢ)
 
-  -- The order-theory spine, reused verbatim from the non-strict wiring.
-  module PH = IW.PerHG H dih
-  open PH public using (Order; _↝_; _↝*_; NoInv; connectivity)
-  open IW.PerHG.L H dih public using (swap-step)
+  -- The order-theory spine, reused verbatim from the non-strict wiring
+  -- (`connectivity` pre-applied to this hypergraph's acyclicity `dih`).
+  module PH = IW.PerHG H
+  open PH public using (Order; _↝_; _↝*_; NoInv)
+  open IW.PerHG.L H public using (swap-step)
+
+  connectivity : ∀ {L M : Order} → L Perm.↭ M → NoInv L → NoInv M → L ↝* M
+  connectivity = PH.connectivity dih
 
   Incompˢ : Fin H.nE → Fin H.nE → Set
   Incompˢ = SC.Incomp H dih lin

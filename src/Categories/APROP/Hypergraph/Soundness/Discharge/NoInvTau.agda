@@ -21,7 +21,6 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
   using (Dep; ≺⇒ψ≺; ψ≺⇒≺)
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
-import Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl sig as DI
 
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
@@ -44,12 +43,10 @@ open import Relation.Binary.PropositionalEquality
 --   * `AllPairs.Properties.map⁺` — push `on ψ⁻¹` through `map ψ⁻¹`.
 ------------------------------------------------------------------------
 
-module Lemma4 {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J)
-              (dihH : ∀ {e} → ¬ (Dep H e e))
-              (dihJ : ∀ {e} → ¬ (Dep J e e)) where
+module Lemma4 {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J) where
   private
-    module PH = IW.PerHG H dihH
-    module PJ = IW.PerHG J dihJ
+    module PH = IW.PerHG H
+    module PJ = IW.PerHG J
   open _≅ᴴ_ Φ using (ψ; ψ⁻¹; ψ-rght)
 
   -- Dependency reflection along ψ⁻¹: `ψ⁻¹ b ≺ ψ⁻¹ a` in H ⇒ `b ≺ a` in J.

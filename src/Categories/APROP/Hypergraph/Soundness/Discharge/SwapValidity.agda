@@ -81,7 +81,7 @@ module PerHG (H : Hypergraph FlatGen)
 
   -- The per-hypergraph module from the chain (read-only); we match its
   -- `Order`, `Valid`, `_↝_` definitionally.
-  module PH = IW.PerHG H dih
+  module PH = IW.PerHG H
 
   -- `Incomp e e' = (¬ Dep H e e') × (¬ Dep H e' e)` and the swap-step
   -- constructor, from the LinExt instantiation `PH.L`.

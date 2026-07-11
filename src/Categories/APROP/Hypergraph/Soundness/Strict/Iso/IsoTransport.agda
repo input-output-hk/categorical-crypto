@@ -528,7 +528,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
 
   private
     module CPH = IC.PerHG H dihH linH (⟪ f ⟫-cod-unique) run-interchange-H
-    module L4  = WL.Lemma4 iso dihH dihJ
+    module L4  = WL.Lemma4 iso
 
   -- the natural-order no-inversion witnesses (`FinOrderNoInv`, BUILT).
   noInvH : SF.NoInv (range H.nE)

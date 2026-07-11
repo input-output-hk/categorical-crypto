@@ -60,13 +60,15 @@ open import Relation.Binary.Construct.Closure.ReflexiveTransitive
   using (Star; ε; _◅_; _◅◅_; gmap)
 
 -- NOTE: the connectivity theorem needs only *irreflexivity* of `R`
--- (used in `before-incomparable`); transitivity is never required, so it
--- is not a parameter.  This lets the result be instantiated at the
--- *immediate* dependency relation of a hypergraph (which is not
--- transitive) without forming its transitive closure.
+-- (used in `before-incomparable`); transitivity is never required.
+-- Irreflexivity is an explicit argument of `before-incomparable` /
+-- `connectivity` alone — the predicates (`Incomp`/`Below`/`NoInv`/`_↝_`)
+-- are irreflexivity-free, so instantiating THEM requires no proof about
+-- `R` at all.  This lets the result be instantiated at the *immediate*
+-- dependency relation of a hypergraph (which is neither transitive nor
+-- provably irreflexive in general) without extra hypotheses.
 module Categories.Combinatorics.LinearExtension
   {a r} (A : Set a) (R : A → A → Set r)
-  (R-irrefl : ∀ {x} → ¬ R x x)
   where
 
 private
@@ -248,13 +250,13 @@ head-minimal (h ∷ _) z∈xs = lookup h z∈xs
 ------------------------------------------------------------------------
 
 before-incomparable :
-  ∀ (x : A) (L′ : List A) (M : List A) →
+  ∀ (R-irrefl : ∀ {x} → ¬ R x x) (x : A) (L′ : List A) (M : List A) →
   (x ∷ L′) ↭ M →
   NoInv (x ∷ L′) →
   NoInv M →
   (i : x ∈ M) →
   AllBefore x M i
-before-incomparable x L′ M perm noL noM i = go M i noM x-min
+before-incomparable R-irrefl x L′ M perm noL noM i = go M i noM x-min
   where
   -- `x` is strictly below nothing in `M`.
   x-min : ∀ {z} → z ∈ M → ¬ R z x
@@ -308,13 +310,13 @@ x∈-self x L′ M perm = ∈-resp-↭ perm (here refl)
 
 -- Worker: connectivity given an accessibility certificate on the length.
 connectivity-acc :
-  ∀ (L M : List A) →
+  ∀ (R-irrefl : ∀ {x} → ¬ R x x) (L M : List A) →
   Acc _<_ (length L) →
   L ↭ M → NoInv L → NoInv M → L ↝* M
-connectivity-acc [] M _ perm _ noM =
+connectivity-acc R-irrefl [] M _ perm _ noM =
   -- A permutation of [] is []; so M = [] and L = M reflexively.
   subst (Star _↝_ []) (↭[]⇒≡[] perm) ε
-connectivity-acc (x ∷ L′) M (acc rec) perm noL noM =
+connectivity-acc R-irrefl (x ∷ L′) M (acc rec) perm noL noM =
   -- (1) locate x in M, (2) bubble it to the front, (3) recurse on tails.
   bubbled-then-tail
   where
@@ -325,7 +327,7 @@ connectivity-acc (x ∷ L′) M (acc rec) perm noL noM =
   M′ = remove M i
 
   before : AllBefore x M i
-  before = before-incomparable x L′ M perm noL noM i
+  before = before-incomparable R-irrefl x L′ M perm noL noM i
 
   -- M ↝* x ∷ M′
   M↝*xM′ : M ↝* (x ∷ M′)
@@ -351,7 +353,7 @@ connectivity-acc (x ∷ L′) M (acc rec) perm noL noM =
 
   -- IH on the strictly shorter tail L′ (length L′ < length (x ∷ L′)).
   tails : L′ ↝* M′
-  tails = connectivity-acc L′ M′ (rec ≤-refl) L′↭M′ noL′ noM′
+  tails = connectivity-acc R-irrefl L′ M′ (rec ≤-refl) L′↭M′ noL′ noM′
 
   -- x ∷ L′ ↝* x ∷ M′, then ←↝* M  (reverse of bubbling).
   bubbled-then-tail : (x ∷ L′) ↝* M
@@ -361,6 +363,6 @@ connectivity-acc (x ∷ L′) M (acc rec) perm noL noM =
 -- The theorem, with finiteness/induction wiring discharged.
 ------------------------------------------------------------------------
 
-connectivity : L ↭ M → NoInv L → NoInv M → L ↝* M
-connectivity {L = L} {M = M} perm noL noM =
-  connectivity-acc L M (<-wellFounded (length L)) perm noL noM
+connectivity : (∀ {x} → ¬ R x x) → L ↭ M → NoInv L → NoInv M → L ↝* M
+connectivity {L = L} {M = M} R-irrefl perm noL noM =
+  connectivity-acc R-irrefl L M (<-wellFounded (length L)) perm noL noM

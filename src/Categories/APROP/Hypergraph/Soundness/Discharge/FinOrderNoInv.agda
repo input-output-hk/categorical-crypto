@@ -77,8 +77,6 @@ import Data.Nat.Properties as Nat
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig
   as IW
-open import Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl sig
-  using (dep-irrefl-⟪⟫)
 
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.List using (List; []; _∷_; _++_; map; concat; tabulate)
@@ -109,9 +107,8 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatori
 --------------------------------------------------------------------------------
 -- ## The `NoInv` predicate as a bare `AllPairs`.
 --
--- We work with the bare `AllPairs` form rather than `IW.PerHG.NoInv` so the
--- proof is independent of the `Dep-irrefl` field inside `PerHG` (NoInv never
--- uses irreflexivity).  They coincide definitionally.
+-- Convenient per-`H` abbreviations; `NoInvH H` coincides definitionally
+-- with `IW.PerHG.NoInv H` (the predicates are irreflexivity-free).
 
 -- `BelowH H a b := ¬ Dep H b a`: `b` (later) does not produce a wire that
 -- `a` (earlier) consumes.
@@ -439,5 +436,5 @@ NoInvH-range-⟪⟫ (g ∘ f) =
 
 fin-order-NoInv-⟪⟫
   : ∀ {A B} (f : HomTerm A B)
-  → IW.PerHG.NoInv ⟪ f ⟫ (dep-irrefl-⟪⟫ f) (range (Hypergraph.nE ⟪ f ⟫))
+  → IW.PerHG.NoInv ⟪ f ⟫ (range (Hypergraph.nE ⟪ f ⟫))
 fin-order-NoInv-⟪⟫ f = NoInvH-range-⟪⟫ f

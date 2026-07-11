@@ -67,17 +67,15 @@ tabulate-as-map-range {n = n} f =
 -- Per-hypergraph: order-indexed decoder and order-invariance.
 ------------------------------------------------------------------------
 
-module PerHG (H : Hypergraph FlatGen)
-             (Dep-irrefl : ∀ {e} → ¬ (Dep H e e)) where
+module PerHG (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
 
-  -- `Dep-irrefl` (acyclicity) is FALSE for an arbitrary `H`, so it is a
-  -- MODULE PARAMETER, supplied at `H = ⟪f⟫`/`⟪g⟫` via the proven
-  -- `DepIrrefl.dep-irrefl-⟪⟫`.
-
-  -- The connectivity theorem at the *immediate* dependency relation (needs
-  -- only irreflexivity).
-  module L = LinExt (Fin H.nE) (Dep H) Dep-irrefl
+  -- The order theory at the *immediate* dependency relation.  The
+  -- predicates (`NoInv`/`_↝_`/`_↝*_`) need no hypotheses on `Dep H`;
+  -- `connectivity` takes its irreflexivity witness (acyclicity, FALSE
+  -- for an arbitrary `H`) as an explicit argument, supplied at
+  -- `H = ⟪f⟫`/`⟪g⟫` via the proven `DepIrrefl.dep-irrefl-⟪⟫`.
+  module L = LinExt (Fin H.nE) (Dep H)
   open L public using (NoInv; _↝_; _↝*_; connectivity)
 
   Order : Set
