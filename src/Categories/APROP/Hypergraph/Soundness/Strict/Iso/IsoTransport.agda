@@ -57,7 +57,6 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl sig using 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.FinOrderNoInv sig
   using (fin-order-NoInv-⟪⟫)
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
-import Categories.APROP.Hypergraph.Soundness.Discharge.NoInvTau sig as WL
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
@@ -528,7 +527,6 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
 
   private
     module CPH = IC.PerHG H dihH linH (⟪ f ⟫-cod-unique) run-interchange-H
-    module L4  = WL.Lemma4 iso
 
   -- the natural-order no-inversion witnesses (`FinOrderNoInv`, BUILT).
   noInvH : SF.NoInv (range H.nE)
@@ -536,9 +534,9 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
   noInvJ : SG.NoInv (range J.nE)
   noInvJ = fin-order-NoInv-⟪⟫ g
 
-  -- `NoInv-τ` (`NoInvTau` Lemma 4), fed J's no-inversion.
+  -- `NoInv-τ` (`IsoInvarianceWiring` Lemma 4), fed J's no-inversion.
   NoInv-τ : SF.NoInv τ
-  NoInv-τ = L4.NoInv-τ noInvJ
+  NoInv-τ = IW.NoInv-τ iso noInvJ
 
   decode-ordˢ-resp-iso
     : (vJ : SG.Validˢ (range J.nE))
