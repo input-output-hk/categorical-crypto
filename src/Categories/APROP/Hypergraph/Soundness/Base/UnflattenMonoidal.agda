@@ -8,13 +8,12 @@
 -- The object map is `unflatten : List X → ObjTerm` (the right-associated,
 -- `unit`-padded fold from `Soundness/Unflatten.agda`) and the structure iso
 -- (laxator) is `unflatten-++-≅`.  Collects the associativity coherence (both
--- directions) and the transport-absorption algebra consumed by the
--- downstream box-coherence proofs (`Discharge/Sub/DecodeTensorShape.agda`):
+-- directions) and the transport lemmas consumed by `Strict/{Boundary,Embed}`:
 --   * `c-iso-assoc-from` — re-exported from `Discharge/CIsoAssocFromCons.agda`
 --     (the `from`-side pentagon);
 --   * `c-iso-assoc-to`   — its `to`-side dual, by composite inversion;
---   * the transport-absorption lemmas (`cancel-mid-iso`, `conj-lemma`,
---     `subst-id-{dom,cod}`, `bridge-{dom,cod}`, `subst-2`).
+--   * `cancel-mid-iso` and the `subst`-identity morphisms
+--     `subst-id-{dom,cod}`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -35,11 +34,10 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.CIsoAssocFromCons si
 
 open import Categories.Category using (Category)
 
-open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (++-assoc; map-++)
+open import Data.List using (List; _++_)
+open import Data.List.Properties using (++-assoc)
 
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; cong; cong₂; subst; subst₂)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst)
 
 private
   module FM = Category FreeMonoidal
@@ -180,46 +178,11 @@ c-iso-assoc-to xs₁ xs₂ ys = begin
                           id⊗id≈id)
 
 --------------------------------------------------------------------------------
--- ## 2.  Transport-absorption algebra.
---
--- These are the `subst`/`subst₂`-shuffling lemmas the block ladders use to
--- move list-equality transports across composition, tensor, and the laxator.
+-- ## 2.  `subst`-identity morphisms on the domain / codomain, over
+-- `unflatten` (the surviving slice of the transport-absorption algebra).
 
--- (`cancel-mid-iso`, the generic middle-iso cancellation, lives in §0 above.)
-
--- `subst₂ HomTerm p q t` re-expressed as the conjugation
--- `(subst on cod) ∘ t ∘ (subst on dom)` by `subst`-identity morphisms.
--- General over arbitrary `ObjTerm` boundaries.
-conj-lemma
-  : ∀ {A B A' B' : ObjTerm} (p : A ≡ A') (q : B ≡ B') (t : HomTerm A B)
-  → subst₂ HomTerm p q t
-    ≈Term subst (λ z → HomTerm B z) q id
-          ∘ t
-          ∘ subst (λ z → HomTerm z A) p id
-conj-lemma refl refl t = ≈-Term-trans (≈-Term-sym idˡ) (refl⟩∘⟨ ≈-Term-sym idʳ)
-
--- `subst`-identity morphisms on the domain / codomain, over `unflatten`.
 subst-id-dom : ∀ {a b : List X} → a ≡ b → HomTerm (unflatten b) (unflatten a)
 subst-id-dom {a} p = subst (λ z → HomTerm (unflatten z) (unflatten a)) p id
 
 subst-id-cod : ∀ {c d : List X} → c ≡ d → HomTerm (unflatten c) (unflatten d)
 subst-id-cod {c} q = subst (λ z → HomTerm (unflatten c) (unflatten z)) q id
-
--- `subst`-on-left/right re-expressed across `cong unflatten (sym e)` / `e`.
-bridge-dom : ∀ {a b : List X} (e : a ≡ b)
-           → subst (λ z → HomTerm z (unflatten b)) (cong unflatten (sym e)) id
-             ≡ subst (λ z → HomTerm (unflatten a) (unflatten z)) e id
-bridge-dom refl = refl
-
-bridge-cod : ∀ {a b : List X} (e : a ≡ b)
-           → subst (λ z → HomTerm (unflatten b) z) (cong unflatten (sym e)) id
-             ≡ subst (λ z → HomTerm (unflatten z) (unflatten a)) e id
-bridge-cod refl = refl
-
--- A single-index `subst` over `HomTerm (f z) (h z)` re-expressed as the
--- two-index `subst₂` over `cong f` / `cong h`.
-subst-2 : ∀ {a b : List X} (f h : List X → ObjTerm) (r : a ≡ b)
-            (t : HomTerm (f a) (h a))
-        → subst (λ z → HomTerm (f z) (h z)) r t
-          ≡ subst₂ HomTerm (cong f r) (cong h r) t
-subst-2 f h refl t = refl
