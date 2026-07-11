@@ -33,7 +33,7 @@ open Kelly's using (coherence₃)
 -- Morphism-variable monoidal solver: discharges the structural-coherence /
 -- naturality / interchange chases as single `solveMor!` calls at the free
 -- monoidal category itself (cf. `Discharge/BridgeAlphaFormCompound.agda`).
-open import Categories.SolverFrontend using (module FinSetup)
+open import Categories.Coherence.Monoidal.Frontend using (module FinSetup)
 open import Data.Product using (_,_)
 open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F; 7F; 8F; 9F)
 import Data.Vec as Vec

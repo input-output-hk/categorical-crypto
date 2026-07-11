@@ -44,7 +44,7 @@ open import Categories.Category.Monoidal using (Monoidal; MonoidalCategory)
 -- Morphism-variable monoidal solver: discharges the F-/T-decomp chases
 -- (coherence + naturality + interchange around the opaque unflatten isos)
 -- as single `solveMor!` calls at the free monoidal category itself.
-open import Categories.SolverFrontend using (module FinSetup)
+open import Categories.Coherence.Monoidal.Frontend using (module FinSetup)
 open import Data.Product using (_,_)
 open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F; 7F; 8F; 9F)
 import Data.Vec as Vec

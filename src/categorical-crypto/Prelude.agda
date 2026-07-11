@@ -57,6 +57,6 @@ open import Class.Monoid public
 open import Class.CommutativeMonoid public
 open import Class.Applicative public
 open import Class.Monad public
-open import Class.DecEq public; instance DecEq-×′ = DecEq-×
+open import Class.DecEq public
 open import Class.Decidable public
 open import Class.Show public
