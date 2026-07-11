@@ -35,7 +35,7 @@ open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-prefix; extract-exact; edge-step; process-edges;
-         decode-attempt; ++-[]-↭)
+         decode-attempt)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
   using (decode-attempt-perm-from-just)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
@@ -66,7 +66,7 @@ extract-exact-total {n} ks xs perm =
   finish (proj₁ w) (proj₁ (proj₂ w)) (proj₁ (proj₂ (proj₂ w))) (sym r≡[])
   where
     w = extract-prefix-↭-residual ks xs []
-          (Perm.↭-trans perm (Perm.↭-sym (++-[]-↭ ks)))
+          (Perm.↭-trans perm (Perm.↭-sym (PermProp.++-identityʳ ks)))
 
     r≡[] : proj₁ w ≡ []
     r≡[] = PermProp.↭-empty-inv (Perm.↭-sym (proj₂ (proj₂ (proj₂ w))))
@@ -74,7 +74,7 @@ extract-exact-total {n} ks xs perm =
     finish : ∀ r' (p : xs Perm.↭ ks ++ r')
            → extract-prefix ks xs ≡ just (r' , p) → [] ≡ r'
            → Σ[ q ∈ xs Perm.↭ ks ] extract-exact ks xs ≡ just q
-    finish .[] p eq refl rewrite eq = Perm.trans p (++-[]-↭ ks) , refl
+    finish .[] p eq refl rewrite eq = Perm.trans p (PermProp.++-identityʳ ks) , refl
 
 --------------------------------------------------------------------------------
 -- Per-hypergraph strict run.

@@ -34,6 +34,7 @@ open import Data.Fin.Properties
 open import Data.List
 open import Data.List.Properties
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
+import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Nat
 open import Data.Product using (Σ; Σ-syntax; ∃-syntax; _,_; proj₁; proj₂)
@@ -49,17 +50,12 @@ open import Relation.Nullary
 open import Categories.Hypergraph.ExtractPrefix public
   using (extract-elem; extract-prefix)
 
--- `xs ++ [] ↭ xs`, at module scope for downstream `extract-exact` reasoning.
-++-[]-↭ : ∀ {n} (l : List (Fin n)) → l ++ [] Perm.↭ l
-++-[]-↭ []       = Perm.refl
-++-[]-↭ (x ∷ xs) = Perm.prep x (++-[]-↭ xs)
-
 -- Specialised search for an exact multiset match: look for `ks`
 -- with empty residual.  Used at the final step to bridge to `H.cod`.
 extract-exact : ∀ {n} (ks xs : List (Fin n)) → Maybe (xs Perm.↭ ks)
 extract-exact ks xs with extract-prefix ks xs
 ... | nothing       = nothing
-... | just ([]    , p) = just (Perm.trans p (++-[]-↭ ks))
+... | just ([]    , p) = just (Perm.trans p (PermProp.++-identityʳ ks))
 ... | just (_ ∷ _ , _) = nothing
 
 --------------------------------------------------------------------------------
