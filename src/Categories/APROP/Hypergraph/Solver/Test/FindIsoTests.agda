@@ -8,8 +8,8 @@
 --   test = soundness (from-just (findIso ⟪ f ⟫ ⟪ g ⟫))
 --
 -- which compels `findIso` to reduce to `just _` at type-check time and
--- routes the resulting hypergraph iso through `DecodeRelRespIsoWired` to a
--- syntactic `≈Term` equation.  `⟪_⟫` is the *pruned* translation, under
+-- routes the resulting hypergraph iso through the strict `soundness`
+-- pipeline to a syntactic `≈Term` equation.  `⟪_⟫` is the *pruned* translation, under
 -- which the equation-shaped sides have matching vertex counts so `findIso`
 -- succeeds.
 --------------------------------------------------------------------------------
