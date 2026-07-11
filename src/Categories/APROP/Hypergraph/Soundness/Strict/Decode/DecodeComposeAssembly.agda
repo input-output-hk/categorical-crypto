@@ -54,7 +54,7 @@ import Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP sig as LP
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_ public
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.HomTermTransport sig
+open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig
   using (Linear⇒cod-Unique)
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_

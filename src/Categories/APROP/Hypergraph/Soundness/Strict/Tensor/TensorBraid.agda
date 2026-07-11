@@ -54,10 +54,9 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using ( FlatGen; flatten; range; hTensor; module hTensor-impl
-        ; map-via-inj; map-via-raise )
+        ; map-via-inj; map-via-raise
+        ; subst₂-FlatGen-cancel; subst₂-FlatGen-cancel′ )
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.HomTermTransport
-  sig using (subst₂-FlatGen-cancel; subst₂-FlatGen-cancel′)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_

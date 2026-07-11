@@ -25,7 +25,7 @@ open import Data.Fin.Properties using (_≟_)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Nat using (s≤s⁻¹) renaming (_≤_ to _≤ⁿ_; _<_ to _<ⁿ_; s≤s to s≤sⁿ; z≤n to z≤nⁿ)
 import Data.Nat.Properties as Nat
-open import Data.List using (List; []; _∷_; _++_; length; lookup)
+open import Data.List using (List; []; _∷_; _++_; length; lookup; concat; tabulate)
 open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Relation.Unary.Any using (Any; here; there)
@@ -43,7 +43,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
-  using (count; count-++)
+  using (count; count-++; Linear)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (edge-step; extract-prefix)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
@@ -147,3 +147,19 @@ residual-recon ks xs rest perm-in uniq =
                 (PermProp.++⁺ˡ ks (Perm.↭-sym (proj₂ (proj₂ (proj₂ st))))))
     perm-in
   where st = extract-prefix-↭-residual ks xs rest perm-in
+
+--------------------------------------------------------------------------------
+-- 5.  `Linear H ⇒ Unique (cod H)` (sig-level).  A linear hypergraph has a
+--     `count`-balanced, `count ≤ 1`-bounded codomain, hence a `Unique` one.
+
+Linear⇒cod-Unique : (H : Hypergraph FlatGen) → Linear H → Unique (Hypergraph.cod H)
+Linear⇒cod-Unique H (bal , bnd) = count≤1⇒Unique cod-bnd
+  where
+    module H = Hypergraph H
+    cod-bnd : ∀ v → count v H.cod ≤ⁿ 1
+    cod-bnd v =
+      Nat.≤-trans
+        (Nat.≤-trans
+          (Nat.m≤m+n (count v H.cod) (count v (concat (tabulate H.ein))))
+          (Nat.≤-reflexive (sym (count-++ v H.cod (concat (tabulate H.ein))))))
+        (Nat.≤-trans (Nat.≤-reflexive (sym (bal v))) (bnd v))

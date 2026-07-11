@@ -59,7 +59,7 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; range; hTensor; module hTensor-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.HomTermTransport
+open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique
   sig using (Linear⇒cod-Unique)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
   sig using (⟪⟫-LinearP)
