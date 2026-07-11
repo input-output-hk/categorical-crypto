@@ -44,6 +44,8 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual; extract-prefix-↭-nothing)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ public
+open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.EdgeStepRel sig _≟X_
+  using (module EdgeStepView)
 
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
@@ -87,34 +89,11 @@ module EquivStep (H : Hypergraph FlatGen) where
     just≢nothing ()
 
   ----------------------------------------------------------------------
-  -- The strict fired layer, matching `edge-stepˢ`'s FIRE branch on the
-  -- nose, plus its `EdgeStepRˢ` graph view (so the `fireRˢ` index is
-  -- DEFINITIONALLY `proj₂ (edge-stepˢ s e)`).  Local copy (no dih/lin
-  -- needed), mirroring `Strict.SwapCore`.
+  -- The strict fired layer + `EdgeStepRˢ` graph view, shared with
+  -- `Strict.SwapCore` via the `EdgeStepRel` leaf.
   ----------------------------------------------------------------------
 
-  fire-termˢ
-    : ∀ (e : Fin H.nE) (s rest : List (Fin H.nV))
-    → s Perm.↭ H.ein e ++ rest
-    → HomS (map vl s) (map vl (H.eout e ++ rest))
-  fire-termˢ e s rest perm =
-    castˢ refl (sym (map-++ vl (H.eout e) rest))
-      ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
-        ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ perm))
-
-  data EdgeStepRˢ (s : List (Fin H.nV)) (e : Fin H.nE)
-       : (s' : List (Fin H.nV)) → HomS (map vl s) (map vl s') → Set where
-    skipRˢ : extract-prefix (H.ein e) s ≡ nothing → EdgeStepRˢ s e s idˢ
-    fireRˢ : ∀ (rest : List (Fin H.nV)) (perm : s Perm.↭ H.ein e ++ rest)
-           → extract-prefix (H.ein e) s ≡ just (rest , perm)
-           → EdgeStepRˢ s e (H.eout e ++ rest) (fire-termˢ e s rest perm)
-
-  edge-stepˢ-graph
-    : ∀ (s : List (Fin H.nV)) (e : Fin H.nE)
-    → EdgeStepRˢ s e (proj₁ (edge-stepˢ s e)) (proj₂ (edge-stepˢ s e))
-  edge-stepˢ-graph s e with extract-prefix (H.ein e) s in eq
-  ... | nothing            = skipRˢ eq
-  ... | just (rest , perm) = fireRˢ rest perm eq
+  open EdgeStepView H public
 
   ----------------------------------------------------------------------
   -- FIRING STABILITY under a stack permutation (term-free; reused

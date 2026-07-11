@@ -3,21 +3,14 @@
 --------------------------------------------------------------------------------
 -- The STRICT `EdgeStepRˢ` algebra bricks for the two-edge interchange.
 --
--- Supplies the strict fired layer, the `EdgeStepRˢ` view, and the both-fire
--- commutation core.  For two adjacent INCOMPARABLE edges `e , e'` fired from
--- the same stack, processing `[e , e']` versus `[e' , e]` yields `≈ˢ`-equal
--- strict terms (modulo the stack-permutation reshuffle).
---
---   * `fire-midˢ`/`fire-termˢ` — the strict fired layer, matching the strict
---     decoder's `edge-stepˢ` fire branch on the nose (so `EdgeStepRˢ`'s
---     `fireRˢ` index is DEFINITIONALLY `proj₂ (edge-stepˢ s e)`).
---   * `EdgeStepRˢ` — the inductive graph of `edge-stepˢ`; matching its
---     `skipRˢ`/`fireRˢ` constructors refines the otherwise-stuck `edge-stepˢ`
---     redex (dodges green-slime).
---   * `fire-mid-interchangeˢ` — the both-fire core: two framed boxes on
---     disjoint blocks commute via `box-commute-ˢ`, transported through the
---     `SimLoc`-located permutes (the deferred K residual `permˢ-K` enters here
---     via `perm-rigidˢ`).
+--   * `fire-termˢ`/`EdgeStepRˢ`/`edge-stepˢ-graph` — the strict fired layer
+--     and the inductive graph of `edge-stepˢ`, re-exported from the shared
+--     `EdgeStepRel` leaf under this module's `(H)(dih)(lin)` telescope.
+--   * `Incomp`, `pe-stackˢ`/`pe-termˢ` — incomparability + `process-edgesˢ`
+--     projection abbreviations.
+--   * `permuteˢ-frameˡ`, `box-crossˢ`, `permuteˢ-inv-left/right` — the
+--     located two-box interchange kernel and its permute algebra (the
+--     deferred K residual `permˢ-K` enters via `perm-rigidˢ`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -32,37 +25,24 @@ open APROP sig using (X)
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (extract-prefix; process-edges; edge-step)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.EdgeStepRel sig _≟X_
+  using (module EdgeStepView)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 
-import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.FireMidInterchangeComb sig
-  as FMIC
-import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig
-  as SUR
-
-open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin)
-open import Data.Fin.Properties using (_≟_)
 open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (map-++; ++-assoc; ++-identityʳ)
+open import Data.List.Properties using (map-++; ++-assoc)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
-open import Relation.Nullary using (¬_; yes; no)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
-
-private
-  nothing≢just : ∀ {A : Set} {x : A} → nothing ≡ just x → ⊥
-  nothing≢just ()
+open import Data.Product using (_×_; proj₁; proj₂)
+open import Relation.Nullary using (¬_)
+open import Relation.Binary.PropositionalEquality using (refl)
 
 --------------------------------------------------------------------------------
 
@@ -80,39 +60,11 @@ module _ (H : Hypergraph FlatGen)
   open Kmod using (PermK)
 
   --------------------------------------------------------------------
-  -- The strict fired layer, matching `edge-stepˢ`'s fire branch.
+  -- The strict fired layer (`fire-termˢ`) + the `EdgeStepRˢ` graph of
+  -- `edge-stepˢ`, re-exported from the shared `EdgeStepRel` leaf.
   --------------------------------------------------------------------
 
-  -- The framed box of an edge `e` on the residual `rest`, with the input
-  -- locating permute `perm`.  This is EXACTLY `proj₂ (edge-stepˢ s e)` on
-  -- the FIRE branch (`extract-prefix (H.ein e) s ≡ just (rest , perm)`).
-  fire-termˢ
-    : ∀ (e : Fin H.nE) (s rest : List (Fin H.nV))
-    → s Perm.↭ H.ein e ++ rest
-    → HomS (map vl s) (map vl (H.eout e ++ rest))
-  fire-termˢ e s rest perm =
-    castˢ refl (sym (map-++ vl (H.eout e) rest))
-      ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
-        ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ perm))
-
-  --------------------------------------------------------------------
-  -- The graph of `edge-stepˢ` as an inductive relation.
-  --------------------------------------------------------------------
-
-  data EdgeStepRˢ (s : List (Fin H.nV)) (e : Fin H.nE)
-       : (s' : List (Fin H.nV)) → HomS (map vl s) (map vl s') → Set where
-    skipRˢ : extract-prefix (H.ein e) s ≡ nothing → EdgeStepRˢ s e s idˢ
-    fireRˢ : ∀ (rest : List (Fin H.nV)) (perm : s Perm.↭ H.ein e ++ rest)
-           → extract-prefix (H.ein e) s ≡ just (rest , perm)
-           → EdgeStepRˢ s e (H.eout e ++ rest) (fire-termˢ e s rest perm)
-
-  -- The function realises the relation.
-  edge-stepˢ-graph
-    : ∀ (s : List (Fin H.nV)) (e : Fin H.nE)
-    → EdgeStepRˢ s e (proj₁ (edge-stepˢ s e)) (proj₂ (edge-stepˢ s e))
-  edge-stepˢ-graph s e with extract-prefix (H.ein e) s in eq
-  ... | nothing            = skipRˢ eq
-  ... | just (rest , perm) = fireRˢ rest perm eq
+  open EdgeStepView H public
 
   --------------------------------------------------------------------
   -- Abbreviations for the two `process-edgesˢ` projections + `Incomp`.
