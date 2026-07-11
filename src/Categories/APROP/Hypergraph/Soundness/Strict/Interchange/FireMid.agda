@@ -524,11 +524,6 @@ module _ (H : Hypergraph FlatGen)
                             (permuteˢ perm))
                   (∘-resp framed ≈-refl))
 
-    -- `(X ∘ Y) ⊗ id{R} ≈ (X ⊗ id{R}) ∘ (Y ⊗ id{R})`.
-    ⊗id-distˢ
-      : ∀ {as bs cs : List X} {ls} (Xt : HomS bs cs) (Yt : HomS as bs)
-      → (Xt ∘ˢ Yt) ⊗ˢ idˢ {ls} ≈ˢ (Xt ⊗ˢ idˢ {ls}) ∘ˢ (Yt ⊗ˢ idˢ {ls})
-    ⊗id-distˢ Xt Yt = ≈-trans (⊗-resp ≈-refl (≈-sym idˡ)) (≈-sym interchangeˢ)
 
     -- The residual-framed box merge: the back box `g'` brought to front by
     -- `σ B A'` (framed by `Rl`) after the front box `g` (framed by `Rl`)

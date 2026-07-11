@@ -22,6 +22,9 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 -- Canonical Decoder alias for disambiguating 'open StrictDecoder':
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_ as Dec
+-- The shared strict fired layer (`fire-termˢ`):
+open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.EdgeStepRel sig _≟X_
+  using (module EdgeStepView)
 
 ------------------------------------------------------------------------
 -- ===== submodule TKB =====
@@ -52,17 +55,10 @@ module TKB (H : Hypergraph FlatGen) where
 
   ------------------------------------------------------------------------
   -- The strict fired layer (matching `edge-stepˢ`'s FIRE branch on the
-  -- nose; local copy, mirroring `SwapCore`/`StackEquiv`).
+  -- nose; shared via the `EdgeStepRel` leaf).
   ------------------------------------------------------------------------
 
-  fire-termˢ
-    : ∀ (e : Fin H.nE) (s rest : List (Fin H.nV))
-    → s Perm.↭ H.ein e ++ rest
-    → HomS (m s) (m (H.eout e ++ rest))
-  fire-termˢ e s rest perm =
-    castˢ refl (sym (map-++ vl (H.eout e) rest))
-      ((genˢ (H.elab e) ⊗ˢ idˢ {m rest})
-        ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ perm))
+  open EdgeStepView H public using (fire-termˢ)
 
   ------------------------------------------------------------------------
   -- ## The box-output left-slide (pure SMC, K-FREE).
@@ -87,13 +83,7 @@ module TKB (H : Hypergraph FlatGen) where
     -- `map L`.  Pure `σ-natˢ`/`interchangeˢ`; the maps are `m`-distributed.
     ----------------------------------------------------------------------
 
-    -- `(X ∘ˢ Y) ⊗ˢ idˢ{R}  ≈  (X ⊗ˢ idˢ{R}) ∘ˢ (Y ⊗ˢ idˢ{R})`
     private
-      ⊗id-dist
-        : ∀ {as bs cs} {R : List X} (Xt : HomS bs cs) (Yt : HomS as bs)
-        → (Xt ∘ˢ Yt) ⊗ˢ idˢ {R} ≈ˢ (Xt ⊗ˢ idˢ {R}) ∘ˢ (Yt ⊗ˢ idˢ {R})
-      ⊗id-dist Xt Yt = ≈-trans (⊗-resp ≈-refl (≈-sym idˡ)) (≈-sym interchangeˢ)
-
       -- the σ-conjugation `g ⊗ idˢ{c} ≈ σ c b ∘ (idˢ{c} ⊗ g) ∘ σ a c`.
       box-conjˡ
         : ∀ {a b : List X} (g : HomS a b) (c : List X)
@@ -111,7 +101,7 @@ module TKB (H : Hypergraph FlatGen) where
     -- equals the box moved to AFTER the carried `map L`, conjugated by the
     -- output braid `σ (map L) B ⊗ idˢ{R}` and the input braid `σ A (map L) ⊗
     -- idˢ{R}` (`A = map ein e`, `B = map eout e`).  This is the genuine
-    -- box-slide content.  K-FREE (`box-conjˡ` + `⊗id-dist`).
+    -- box-slide content.  K-FREE (`box-conjˡ` + `⊗id-distˢ`).
     ----------------------------------------------------------------------
     box-block-slideˢ
       : ∀ (e : Fin H.nE) (L : List (Fin H.nV)) (R : List X)
@@ -121,10 +111,10 @@ module TKB (H : Hypergraph FlatGen) where
              ∘ˢ (σˢ (m (H.ein e)) (m L) ⊗ˢ idˢ {R})
     box-block-slideˢ e L R =
       ≈-trans (⊗-resp (box-conjˡ (genˢ (H.elab e)) (m L)) ≈-refl)
-        (≈-trans (⊗id-dist (σˢ (m L) (m (H.eout e)))
+        (≈-trans (⊗id-distˢ (σˢ (m L) (m (H.eout e)))
                    ((idˢ {m L} ⊗ˢ genˢ (H.elab e)) ∘ˢ σˢ (m (H.ein e)) (m L)))
           (≈-trans (∘-resp ≈-refl
-                     (⊗id-dist (idˢ {m L} ⊗ˢ genˢ (H.elab e))
+                     (⊗id-distˢ (idˢ {m L} ⊗ˢ genˢ (H.elab e))
                                (σˢ (m (H.ein e)) (m L))))
             (≈-sym assocˢ)))
 
@@ -194,17 +184,10 @@ module TKB2 (H : Hypergraph FlatGen) where
 
   ------------------------------------------------------------------------
   -- The strict fired layer (matching `edge-stepˢ`'s FIRE branch on the
-  -- nose; local copy, identical to `TensorKBlock.fire-termˢ`).
+  -- nose; shared via the `EdgeStepRel` leaf).
   ------------------------------------------------------------------------
 
-  fire-termˢ
-    : ∀ (e : Fin H.nE) (s rest : List (Fin H.nV))
-    → s Perm.↭ H.ein e ++ rest
-    → HomS (m s) (m (H.eout e ++ rest))
-  fire-termˢ e s rest perm =
-    castˢ refl (sym (map-++ vl (H.eout e) rest))
-      ((genˢ (H.elab e) ⊗ˢ idˢ {m rest})
-        ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ perm))
+  open EdgeStepView H public using (fire-termˢ)
 
   module _ (permˢ-K : Kmod.PermK) where
     open Kmod using (perm-rigidˢ)
@@ -824,14 +807,7 @@ module TKB3 (H : Hypergraph FlatGen) where
     m : List (Fin H.nV) → List X
     m = map vl
 
-  fire-termˢ
-    : ∀ (e : Fin H.nE) (s rest : List (Fin H.nV))
-    → s Perm.↭ H.ein e ++ rest
-    → HomS (m s) (m (H.eout e ++ rest))
-  fire-termˢ e s rest perm =
-    castˢ refl (sym (map-++ vl (H.eout e) rest))
-      ((genˢ (H.elab e) ⊗ˢ idˢ {m rest})
-        ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ perm))
+  open EdgeStepView H public using (fire-termˢ)
 
   module _ (permˢ-K : Kmod.PermK) where
     open Kmod using (perm-rigidˢ)

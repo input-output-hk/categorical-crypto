@@ -142,15 +142,10 @@ module _ (H : Hypergraph FlatGen)
              ∘ˢ (σˢ A' A ⊗ˢ idˢ {R})
     box-crossˢ {A} {B} {A'} {B'} g g' R =
       ≈-trans (⊗-resp conj ≈-refl)
-        (≈-trans (⊗id-dist (σˢ B B') ((g ⊗ˢ g') ∘ˢ σˢ A' A))
-          (≈-trans (∘-resp ≈-refl (⊗id-dist (g ⊗ˢ g') (σˢ A' A)))
+        (≈-trans (⊗id-distˢ (σˢ B B') ((g ⊗ˢ g') ∘ˢ σˢ A' A))
+          (≈-trans (∘-resp ≈-refl (⊗id-distˢ (g ⊗ˢ g') (σˢ A' A)))
             (≈-sym assocˢ)))
       where
-        -- `(X ∘ˢ Y) ⊗ˢ id  ≈  (X ⊗ˢ id) ∘ˢ (Y ⊗ˢ id)`
-        ⊗id-dist
-          : ∀ {as bs cs} (Xt : HomS bs cs) (Yt : HomS as bs)
-          → (Xt ∘ˢ Yt) ⊗ˢ idˢ {R} ≈ˢ (Xt ⊗ˢ idˢ {R}) ∘ˢ (Yt ⊗ˢ idˢ {R})
-        ⊗id-dist Xt Yt = ≈-trans (⊗-resp ≈-refl (≈-sym idˡ)) (≈-sym interchangeˢ)
         -- σ-conjugation form: `g' ⊗ˢ g ≈ σ ∘ (g ⊗ˢ g') ∘ σ`.
         conj : g' ⊗ˢ g ≈ˢ σˢ B B' ∘ˢ ((g ⊗ˢ g') ∘ˢ σˢ A' A)
         conj =

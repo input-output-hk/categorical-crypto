@@ -225,6 +225,15 @@ module Build
       (≈-trans (⊗-resp idʳ idˡ)
         (≈-sym (≈-trans interchangeˢ (⊗-resp idˡ idʳ))))
 
+  -- `(f ∘ g) ⊗ id{R} ≈ (f ⊗ id{R}) ∘ (g ⊗ id{R})` — composition
+  -- distributes over an identity frame on the right (interchange with
+  -- `id ∘ id` collapsed).  Shared by the strict decoder/interchange/
+  -- tensor modules.
+  ⊗id-distˢ
+    : ∀ {as bs cs R : List X} (f : HomS bs cs) (g : HomS as bs)
+    → (f ∘ˢ g) ⊗ˢ idˢ {R} ≈ˢ (f ⊗ˢ idˢ {R}) ∘ˢ (g ⊗ˢ idˢ {R})
+  ⊗id-distˢ f g = ≈-trans (⊗-resp ≈-refl (≈-sym idˡ)) (≈-sym interchangeˢ)
+
   ------------------------------------------------------------------------
   -- MEASUREMENT 3: `permuteˢ` and the residual-frame lemmas
   -- (the `frame-ext` analogue).  Note prep/swap need NO cast in the

@@ -110,15 +110,8 @@ module StrictDecoder (H : Hypergraph FlatGen) where
   ------------------------------------------------------------------------
   -- Separability, term level.
 
-  private
-    import Data.List.Relation.Binary.Permutation.Propositional.Properties
-      as PermProp
-
-    -- (X ∘ˢ Y) ⊗ˢ id  ≈  (X ⊗ˢ id) ∘ˢ (Y ⊗ˢ id)
-    ⊗id-dist
-      : ∀ {as bs cs ls} (X : HomS bs cs) (Y : HomS as bs)
-      → (X ∘ˢ Y) ⊗ˢ idˢ {ls} ≈ˢ (X ⊗ˢ idˢ {ls}) ∘ˢ (Y ⊗ˢ idˢ {ls})
-    ⊗id-dist X Y = ≈-trans (⊗-resp ≈-refl (≈-sym idˡ)) (≈-sym interchangeˢ)
+  import Data.List.Relation.Binary.Permutation.Propositional.Properties
+    as PermProp
 
   -- `process-edgesˢ` respects propositional stack equality (UIP-trivially)
   pe-resp
@@ -166,7 +159,7 @@ module StrictDecoder (H : Hypergraph FlatGen) where
       rhs→nf =
         ≈-trans (≡⇒≈ˢ (cast-⊗ˡ refl (sym (map-++ vl B rest)) _))
         (≈-trans (cast-resp refl C₂
-          (≈-trans (⊗id-dist (G₀ ⊗ˢ idˢ {map vl rest})
+          (≈-trans (⊗id-distˢ (G₀ ⊗ˢ idˢ {map vl rest})
                              (castˢ refl (map-++ vl A rest) (permuteˢ p)))
                    (∘-resp ≈-refl
                      (≡⇒≈ˢ (cast-⊗ˡ refl (map-++ vl A rest) (permuteˢ p))))))
