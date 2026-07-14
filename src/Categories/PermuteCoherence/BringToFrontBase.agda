@@ -8,7 +8,7 @@ module Categories.PermuteCoherence.BringToFrontBase where
 
 open import Data.Nat.Base using (ℕ; zero; suc; _<_; _≤_; s≤s; z≤n; s<s)
 open import Data.Nat.Properties
-  using (<-cmp; <-trans; <-irrefl; 1+n≢n; suc-injective; ≤-trans; n≤1+n; 1+n≰n)
+  using (<-cmp; <-trans; 1+n≢n; suc-injective; ≤-trans; n≤1+n; 1+n≰n; <⇒≢; >⇒≢; n<1+n)
 open import Relation.Binary.Definitions using (tri<; tri≈; tri>)
 open import Data.Fin.Base using (Fin; toℕ) renaming (suc to fsuc; zero to fz)
 open import Data.Fin.Patterns using (0F; 1F)
@@ -193,42 +193,28 @@ Far→gap (farS f) with Far→gap f
 ... | inj₁ lt = inj₁ (s<s lt)
 ... | inj₂ gt = inj₂ (s<s gt)
 
-private
-  <⇒≢ : {a b : ℕ} → a < b → a ≢ b
-  <⇒≢ a<b refl = <-irrefl refl a<b
-
-  >⇒≢ : {a b : ℕ} → a < b → b ≢ a
-  >⇒≢ a<b e = <⇒≢ a<b (sym e)
-
-  a<sa : (a : ℕ) → a < suc a
-  a<sa a = s≤s (≤-of a)
-    where
-    ≤-of : (a : ℕ) → a ≤ a
-    ≤-of zero    = z≤n
-    ≤-of (suc a) = s≤s (≤-of a)
-
 Gap : (i j : Fin (suc n)) → Set
 Gap i j = (suc (toℕ i) < toℕ j) ⊎ (suc (toℕ j) < toℕ i)
 
 -- The four disequalities the fixing lemma needs, derived from a gap.
 private
   gap-a≢b : {i j : Fin (suc n)} → Gap i j → toℕ i ≢ toℕ j
-  gap-a≢b {i = i} {j} (inj₁ lt) = <⇒≢ (<-trans (a<sa (toℕ i)) lt)
-  gap-a≢b {i = i} {j} (inj₂ gt) = >⇒≢ (<-trans (a<sa (toℕ j)) gt)
+  gap-a≢b {i = i} {j} (inj₁ lt) = <⇒≢ (<-trans (n<1+n (toℕ i)) lt)
+  gap-a≢b {i = i} {j} (inj₂ gt) = >⇒≢ (<-trans (n<1+n (toℕ j)) gt)
 
   gap-a≢sb : {i j : Fin (suc n)} → Gap i j → toℕ i ≢ suc (toℕ j)
   gap-a≢sb {i = i} {j} (inj₁ lt) =
-    <⇒≢ (<-trans (a<sa (toℕ i)) (<-trans lt (a<sa (toℕ j))))
+    <⇒≢ (<-trans (n<1+n (toℕ i)) (<-trans lt (n<1+n (toℕ j))))
   gap-a≢sb {i = i} {j} (inj₂ gt) = >⇒≢ gt
 
   gap-sa≢b : {i j : Fin (suc n)} → Gap i j → suc (toℕ i) ≢ toℕ j
   gap-sa≢b {i = i} {j} (inj₁ lt) = <⇒≢ lt
   gap-sa≢b {i = i} {j} (inj₂ gt) =
-    >⇒≢ (<-trans (a<sa (toℕ j)) (<-trans gt (a<sa (toℕ i))))
+    >⇒≢ (<-trans (n<1+n (toℕ j)) (<-trans gt (n<1+n (toℕ i))))
 
   gap-sa≢sb : {i j : Fin (suc n)} → Gap i j → suc (toℕ i) ≢ suc (toℕ j)
-  gap-sa≢sb {i = i} {j} (inj₁ lt) = <⇒≢ (<-trans lt (a<sa (toℕ j)))
-  gap-sa≢sb {i = i} {j} (inj₂ gt) = >⇒≢ (<-trans gt (a<sa (toℕ i)))
+  gap-sa≢sb {i = i} {j} (inj₁ lt) = <⇒≢ (<-trans lt (n<1+n (toℕ j)))
+  gap-sa≢sb {i = i} {j} (inj₂ gt) = >⇒≢ (<-trans gt (n<1+n (toℕ i)))
 
 -- `genFB j` fixes the value `inj i` (`toℕ ≡ toℕ i`).
 genFB-fixes-inj : {i j : Fin (suc n)} → Gap i j
