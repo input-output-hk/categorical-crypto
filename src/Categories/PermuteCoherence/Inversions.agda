@@ -5,8 +5,9 @@
 -- that the bubble-sort word `canonW` is REDUCED (its length is `inv`).
 --
 -- `inv` is defined by the Lehmer-code recursion mirroring `canonW`, so
--- `length (canonW b) ≡ inv b` is a clean induction (L2 below).  The descent
--- dichotomy `inv (genFB i ∘-fb b) = inv b ± 1` (L1) is proved separately.
+-- `length (canonW b) ≡ inv b` (`canonW-length`) is a clean induction.  The
+-- descent dichotomy on the inversion count is proved separately, in
+-- `InversionsDichotomy`.
 ------------------------------------------------------------------------
 
 module Categories.PermuteCoherence.Inversions where
