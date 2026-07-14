@@ -16,7 +16,7 @@ import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl; cong; sym)
+  using (_≡_; refl)
 
 open import Categories.PermuteCoherence.FinBij
 
@@ -26,19 +26,6 @@ private
   variable
     a : Level
     A : Set a
-
-------------------------------------------------------------------------
--- Length preservation (re-exporting the stdlib lemma inline; kept local
--- to avoid importing the whole `Properties` file).
-
-↭-length : {xs ys : List A} → xs ↭ ys → length xs ≡ length ys
-↭-length Perm.refl            = refl
-↭-length (Perm.prep _ p)      = cong suc (↭-length p)
-↭-length (Perm.swap _ _ p)    = cong (λ n → suc (suc n)) (↭-length p)
-↭-length (Perm.trans p q)     = trans-≡ (↭-length p) (↭-length q)
-  where
-  trans-≡ : ∀ {n m k : ℕ} → n ≡ m → m ≡ k → n ≡ k
-  trans-≡ refl q = q
 
 ------------------------------------------------------------------------
 -- The main evaluation function.
