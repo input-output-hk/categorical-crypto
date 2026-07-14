@@ -1,14 +1,12 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- STRICT swap-dependent assembly of the decoder's order-invariance (strict
--- twin of `Discharge.IsoInvarianceConcrete`'s `PerHG` part).
+-- STRICT swap-dependent assembly of the decoder's order-invariance.
 --
 -- `↝*⇒≈ˢ` (Star-induction over adjacent-incomparable swaps) and
 -- `order-invariantˢ` (driven by `connectivity`) are PURE `≈ˢ`-transitivity
 -- plumbing, threading the strict validity witness `Validˢ` and the swap-site
--- `↭ range nE` provenance — a 1:1 rename of the non-strict argument, with
--- `≈Term` → `≈ˢ` and `decodeOrd` → `decodeOrdˢ`.  No Mac-Lane content.
+-- `↭ range nE` provenance.  No Mac-Lane content.
 --
 -- The cross-iso `decode-ordˢ-resp-iso` (the boundary with `IsoTransport`) is
 -- provided PARAMETERISED over the strict transport residual (`iso-transportˢ`)

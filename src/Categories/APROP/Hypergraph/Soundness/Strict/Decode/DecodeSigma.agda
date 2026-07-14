@@ -1,8 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The σ-SHAPE of the strict decoder `decodePˢ` — the strict analogue of the
--- non-strict `DecodeAgenSigmaShape` (~1086 LOC).
+-- The σ-SHAPE of the strict decoder `decodePˢ`.
 --
 --   decodePˢ-σ : decodePˢ (σ {A}{B}) ≈ˢ σˢ (flatten A) (flatten B)
 --
@@ -16,8 +15,8 @@
 -- The two inductive steps `bswap-σ (v ∷ L)` / `permuteˢ-shift-sym v (x∷R)`
 -- (the hexagon-reconciliation content) are reduced to the single clearly-typed
 -- `≈ˢ` fact `bswap-σ` (`Scr.BswapSig`), threaded as the module parameter
--- `BSwapσ` and discharged in `Strict/Interchange/BlockSwapComm.agda`.  Strict
--- vertex-level analogue of the non-strict keystone `BNV.σ-block-comm`.
+-- `BSwapσ` and discharged in `Strict/Interchange/BlockSwapComm.agda`.  The
+-- strict vertex-level block-swap-commutes keystone.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -189,8 +188,8 @@ module Scr (V : Set) (vlab : V → X) where
           (≡⇒≈ˢ (cast-irrel _ refl _ (cong (map vlab) (sym (++-identityʳ R)))
                    idˢ)))))
 
-  -- The full block-swap identity (statement) — the strict vertex-level twin
-  -- of `BNV.σ-block-comm`.  `bswap-σ-base` is the [] case.
+  -- The full block-swap identity (statement) — the strict vertex-level
+  -- block-swap-commutes keystone.  `bswap-σ-base` is the [] case.
   BswapSig : Set
   BswapSig =
     ∀ (L R : List V)

@@ -2,8 +2,8 @@
 
 --------------------------------------------------------------------------------
 -- STRICT Lemma 0: the cross-iso decoder agreement `decode-ordˢ-resp-iso`
--- (strict twin of `Discharge.IsoInvarianceConcrete.decode-ord-resp-iso`,
--- assembling the strict `Discharge.IsoTransport.iso-transport`).
+-- (assembling the strict order-invariance core with the cross-iso
+-- transport residual `iso-transportˢ`).
 --
 -- For a cross-iso `iso : ⟪f⟫ ≅ᴴ ⟪g⟫` we produce
 --
@@ -16,8 +16,7 @@
 --
 -- — exactly the parameter `Strict.DecodePRespIso`'s headline consumes.
 --
--- Structure (strict twin of `IsoTransport` §1-§5 + the `order-invariant`
--- bridge):
+-- Structure (§1-§5 + the order-invariant bridge):
 --
 --   * `iso-transportˢ`   transports the J=⟪g⟫-side natural-order decoding to
 --     the H=⟪f⟫-side ψ-pullback order `τ = map ψ⁻¹ (range J.nE)`.  Its term
@@ -282,7 +281,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
                    (subst Fin (cong length fin-eq) k))
 
   -- §5b.  φ-equivariant rigidity of the two final permutes, at the
-  -- FinBij level (ported verbatim from the non-strict `IsoTransport`).
+  -- FinBij level.
   permute-relabel-free-≅↭
     : (vJ : SG.Validˢ (range J.nE))
     → eval-↭ (permJ-↭' vJ) ≈-fb eval-↭ (permH-↭ vJ)

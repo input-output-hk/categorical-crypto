@@ -5,9 +5,8 @@
 --
 --   decodePˢ (g ∘ f) ≈ˢ decodePˢ g ∘ˢ decodePˢ f      (modulo boundary casts)
 --
--- This is the strict twin of `Discharge.Sub.DecodeComposePruned.decodeP-∘-shape`
--- (~650 LOC non-strict).  All foundations now exist:
---   * `TermEmbedˢ` (DecodeComposeS2): the block twins, at φ = injL / remapP;
+-- All foundations now exist:
+--   * `TermEmbedˢ` (DecodeCompose): the block twins, at φ = injL / remapP;
 --   * `process-edges-equivariantˢ` (StackEquiv): the K-side equivariance
 --     keystone;
 --   * `run-split-atˢ` (DecodeCompose §1): the run-split;

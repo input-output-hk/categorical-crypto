@@ -241,8 +241,8 @@ private
 
 --------------------------------------------------------------------------------
 -- ## (A)  The generic embedding-based per-edge + process-edges term-twins,
--- strict.  Mirrors `ProcessEdgesTermShape.TermEmbed`, parameterised by an
--- injective, label-preserving vertex embedding `(φ, ψ)`.
+-- strict.  Parameterised by an injective, label-preserving vertex
+-- embedding `(φ, ψ)`.
 
 module TermEmbedˢ
   {H J : Hypergraph FlatGen}
@@ -545,8 +545,7 @@ module TermEmbedˢ
 
   ----------------------------------------------------------------------
   -- Iterated term-twin, GENERALISED over the J-start stack `sJ`
-  -- (`sJ ≡ map φ sH`), matched at refl.  Mirror of
-  -- `ProcessEdgesTermShape.process-edges-term-emb-gen`.
+  -- (`sJ ≡ map φ sH`), matched at refl.
 
   process-edges-term-embˢ-gen
     : ∀ (es : List (Fin H.nE)) (sH : List (Fin H.nV))
