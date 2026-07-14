@@ -33,30 +33,19 @@ private
     n m k : ℕ
 
 ------------------------------------------------------------------------
--- 4.  cons-fb-functor-id
+-- Structural coherence of `cons-fb` and `swap-fb` at the FinBij level.
 
 cons-fb-functor-id : cons-fb (id-fb {n = n}) ≈-fb id-fb {n = suc n}
 cons-fb-functor-id = P.lift₀-id
-
-------------------------------------------------------------------------
--- 5.  cons-fb-functor-comp
 
 cons-fb-functor-comp : ∀ {n m k} (g : FinBij m k) (f : FinBij n m) →
                        cons-fb (g ∘-fb f) ≈-fb cons-fb g ∘-fb cons-fb f
 cons-fb-functor-comp g f i = sym (P.lift₀-comp f g i)
 
-------------------------------------------------------------------------
--- 3.  swap-fb-involutive
-
 swap-fb-involutive : swap-fb n ∘-fb swap-fb n ≈-fb id-fb
 swap-fb-involutive 0F            = refl
 swap-fb-involutive (suc 0F)      = refl
 swap-fb-involutive (suc (suc i)) = refl
-
-------------------------------------------------------------------------
--- 6.  swap-fb-natural
---
--- swap-fb m ∘-fb cons-fb (cons-fb f) ≈ cons-fb (cons-fb f) ∘-fb swap-fb n
 
 swap-fb-natural : ∀ {n m} (f : FinBij n m) →
                   swap-fb m ∘-fb cons-fb (cons-fb f)
@@ -66,12 +55,7 @@ swap-fb-natural f 0F             = refl
 swap-fb-natural f (suc 0F)       = refl
 swap-fb-natural f (suc (suc i))  = refl
 
-------------------------------------------------------------------------
--- 7.  Yang-Baxter (braid) identity at the bijection level
---
---   swap-fb (1+n) ∘-fb cons-fb (swap-fb n) ∘-fb swap-fb (1+n)
--- ≈ cons-fb (swap-fb n) ∘-fb swap-fb (1+n) ∘-fb cons-fb (swap-fb n)
-
+-- Yang-Baxter (braid) relation.
 yang-baxter : ∀ {n} →
   swap-fb (suc n) ∘-fb cons-fb (swap-fb n) ∘-fb swap-fb (suc n)
   ≈-fb
@@ -82,7 +66,7 @@ yang-baxter (suc (suc 0F))       = refl
 yang-baxter (suc (suc (suc i)))  = refl
 
 ------------------------------------------------------------------------
--- 1, 2.  eval-↭ on trans / sym (mostly definitional, stated for reuse).
+-- Soundness of `eval-↭` on the `_↭_` constructors.
 
 eval-↭-comp : ∀ {xs ys zs : List A} (p : xs ↭ ys) (q : ys ↭ zs) →
               eval-↭ (Perm.trans p q) ≈-fb eval-↭ q ∘-fb eval-↭ p
@@ -107,10 +91,8 @@ eval-↭-sym (Perm.trans p q) i =
     (cong (eval-↭ (Perm.↭-sym p) P.⟨$⟩ʳ_) (eval-↭-sym q i))
     (eval-↭-sym p (inv-fb (eval-↭ q) P.⟨$⟩ʳ i))
 
-------------------------------------------------------------------------
--- 8.  trans-refl normalisations (phrased on `Perm.trans` directly, since
--- the `trans` constructor does NOT identify `trans refl p` with `p`).
-
+-- `Perm.trans` does not identify `trans refl p` with `p`, so these
+-- normalisations are stated explicitly.
 eval-↭-trans-refl-l : ∀ {xs ys : List A} (p : xs ↭ ys) →
                       eval-↭ (Perm.trans Perm.refl p) ≈-fb eval-↭ p
 eval-↭-trans-refl-l _ _ = refl
