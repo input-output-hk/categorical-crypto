@@ -49,15 +49,15 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatori
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (map-++; ++-assoc; ++-identityʳ)
+open import Data.List using (List; _++_; map)
+open import Data.List.Properties using (map-++; ++-assoc)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
+open import Data.Product using (_,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst)
+  using (_≡_; refl; sym; trans; cong)
 
 --------------------------------------------------------------------------------
 
@@ -556,7 +556,6 @@ module _ (H : Hypergraph FlatGen)
       where
         -- The boxes are now (cast-of) `(·)⊗id{Rl}` blocks; the merge happens
         -- at the bare level via `box-merge-σˢ` distributed by `⊗id-distˢ`.
-        cBg' = box-suffix-ˢ g' B Rl
         lemma
           : castˢ (++-assoc A' B Rl) (++-assoc B' B Rl)
               ((g' ⊗ˢ idˢ {B}) ⊗ˢ idˢ {Rl})
@@ -770,8 +769,6 @@ module _ (H : Hypergraph FlatGen)
       IN1  = castˢ refl (map-++ vl (H.ein a) (H.ein b ++ R)) (permuteˢ loc1')
       OUT2 = idˢ {B'} ⊗ˢ permuteˢ (Perm.↭-sym ρ₂)
       Boxb = g' ⊗ˢ idˢ {m (H.eout a ++ R)}
-      castₒ₁ : HomS (B ++ m s₁) (m (H.eout a ++ s₁))
-      castₒ₁ = castˢ refl (sym (map-++ vl (H.eout a) s₁)) idˢ
       castₒ₂out = sym (map-++ vl (H.eout b) s₂)
 
       -- (Step A) push the two outer casts together, exposing the mid

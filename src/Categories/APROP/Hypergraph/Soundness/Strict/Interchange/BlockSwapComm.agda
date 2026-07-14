@@ -47,12 +47,11 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_
   using (σ-hexˢʳ; module Scr)
 
-open import Data.List using (List; []; _∷_; _++_; map; [_])
-open import Data.List.Properties using (++-identityʳ; ++-assoc; map-++)
+open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.List.Properties using (++-assoc; map-++)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst)
+  using (_≡_; refl; sym; trans; cong)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open Perm using (_↭_)
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
 --------------------------------------------------------------------------------

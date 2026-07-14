@@ -30,7 +30,7 @@ open APROP sig using (X)
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (extract-prefix; process-edges; edge-step)
+  using (process-edges)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
   using (process-edges-++-stack)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_

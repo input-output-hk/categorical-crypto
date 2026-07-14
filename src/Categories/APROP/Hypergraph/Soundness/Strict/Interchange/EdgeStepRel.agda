@@ -37,7 +37,7 @@ open import Data.Fin using (Fin)
 open import Data.List using (List; _++_; map)
 open import Data.List.Properties using (map-++)
 open import Data.Maybe using (just; nothing)
-open import Data.Product using (Σ; _,_; proj₁; proj₂)
+open import Data.Product using (_,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 

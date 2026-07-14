@@ -34,12 +34,8 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep
 
 open APROP sig using (X)
 
-open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
-open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (process-edges; edge-step)
-open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
-  using (process-edges-++-stack)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
@@ -62,7 +58,7 @@ open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.Product using (proj₁; proj₂)
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
 

@@ -39,7 +39,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (extract-prefix; edge-step; process-edges)
+  using (extract-prefix)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual; extract-prefix-↭-nothing)
 
@@ -55,17 +55,16 @@ import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig as SU
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
 
 open import Categories.PermuteCoherence.Canonical using (_≅↭_)
-open import Categories.PermuteCoherence.Eval using (eval-↭)
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; []; _∷_; _++_; map; length)
+open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-++; ++-assoc)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Maybe.Properties using (just-injective)
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
+open import Data.Product using (Σ-syntax; _,_; _×_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
