@@ -26,7 +26,7 @@
 module Categories.PermuteCoherence.InversionsDichotomy where
 
 open import Data.Nat.Base using (ℕ; zero; suc; _≤_; _<_; s≤s; z≤n; s<s)
-open import Data.Nat.Properties using (1+n≰n; <⇒≤; <-asym)
+open import Data.Nat.Properties using (1+n≰n; <⇒≤; <-asym; <⇒≢)
   renaming (≤-refl to ≤ℕ-refl)
 open import Function.Base using (_∘′_)
 open import Data.Fin.Base using (Fin; toℕ; inject₁) renaming (suc to fsuc; zero to fz)
@@ -209,10 +209,7 @@ invAt-agree : (i : Fin (suc n′)) (b : FinBij (suc (suc n′)) (suc (suc n′))
             → invAt (genFB i ∘-fb b) x y ≡ invAt b x y
 invAt-agree i b x y ¬sp =
   1if-∧-cong ⌊ x <?F y ⌋
-    (λ x<y → cmpInv-fix i b (λ e → <⇒≢ℕ (cmpB-true⁻ x<y) (cong toℕ e)) (¬sp x<y))
-  where
-  <⇒≢ℕ : {a c : ℕ} → a < c → a ≢ c
-  <⇒≢ℕ a<c refl = 1+n≰n a<c
+    (λ x<y → cmpInv-fix i b (λ e → <⇒≢ (cmpB-true⁻ x<y) (cong toℕ e)) (¬sp x<y))
 
 ------------------------------------------------------------------------
 -- 5.  Locating the unique flipped pair, and the assembled dichotomy.
