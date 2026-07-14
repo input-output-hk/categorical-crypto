@@ -1,13 +1,12 @@
 {-# OPTIONS --safe --without-K #-}
 
 ------------------------------------------------------------------------
--- Propositional invariants of the canonical decoder
--- (`Canonical.canonical-go`) specialised at `id-fb`.
+-- Pointwise congruence of `Canonical.residual`.
 --
--- `canonical-target xs id-fb` is NOT *definitionally* `xs` (stdlib's
--- `P.id` is opaque enough that `residual id-fb` is only *pointwise*
--- `id-fb`), so we prove the propositional `canonical-target xs id-fb ≡ xs`
--- using `canonical-go-suc-unfold` to expose the with-block structure.
+-- Under `_≡_`, stdlib's `remove`/`punchOut` are opaque, so `residual b`
+-- is only *pointwise* equal to `residual b'` when `b`, `b'` agree
+-- pointwise.  `residual-pw-cong` supplies that pointwise equation; it is
+-- consumed by `Word.canonW-resp-≈` and `InversionsCong`.
 ------------------------------------------------------------------------
 
 module Categories.PermuteCoherence.CanonicalProps where
@@ -34,11 +33,6 @@ private
   variable
     a : Level
     A : Set a
-
-------------------------------------------------------------------------
--- Pointwise-congruence of `canonical-go .proj₁`, needed for the prep case
--- of the canonical bridge (where `residual (cons-fb (eval-↭ p))` is only
--- *pointwise* equal to `eval-↭ p`).
 
 open import Data.Fin.Properties using (punchOut-cong)
 open import Data.Fin.Base using (punchOut)
