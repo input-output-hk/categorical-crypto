@@ -452,7 +452,6 @@ module TKB4 (H : Hypergraph FlatGen) where
   open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
   open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
     using (module EquivStep)
-  import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ as DC
   import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
   open import Data.Fin using (Fin)
   open import Data.List using (List; []; _∷_; _++_; map)
@@ -470,7 +469,6 @@ module TKB4 (H : Hypergraph FlatGen) where
   open Dec.StrictDecoder H
   open Run H using (edge-stack-agree)
   open EquivStep H using (pvv-transˢ; pvv-inverse-leftˢ)
-  open DC.RunBlocks H using (coeCod)
 
   module Kmod = Support (Fin H.nV) H.vlab
 
