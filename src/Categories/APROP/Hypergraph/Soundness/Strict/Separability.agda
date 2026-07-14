@@ -54,7 +54,6 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_ public
 
-open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (++-assoc; map-++)
@@ -62,7 +61,7 @@ open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans)
 open import Relation.Nullary.Decidable using (yes; no)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 

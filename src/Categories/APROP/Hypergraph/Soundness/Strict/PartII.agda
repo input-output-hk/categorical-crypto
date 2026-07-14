@@ -30,7 +30,7 @@ module Categories.APROP.Hypergraph.Soundness.Strict.PartII
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (range)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 
@@ -50,7 +50,7 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Iso.IsoTransport sig _≟X_ 
 open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc)
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.Product using (proj₁; proj₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst)
 
