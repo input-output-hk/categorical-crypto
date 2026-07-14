@@ -35,16 +35,13 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodePRespIso
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; flatten; range)
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (range)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Model.HomTermInvariant sig using (⟪_⟫-cod-unique)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl sig using (dep-irrefl-⟪⟫)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.FinOrderNoInv sig
-  using (fin-order-NoInv-⟪⟫)
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
@@ -52,7 +49,7 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-  using (decodePˢ; finalPermˢ; module Run)
+  using (decodePˢ; finalPermˢ)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig _≟X_ as SS
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTail sig _≟X_
   using (RunInterchangeˢ)
@@ -61,13 +58,12 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; _∷_; _++_; map)
+open import Data.List using (_∷_; _++_)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.Product using (Σ-syntax; proj₁; proj₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst; subst₂)
+  using (_≡_; refl; sym; trans; subst₂)
 
 ------------------------------------------------------------------------
 -- Convenience: the strict per-HG decoder at the translation `⟪f⟫`.

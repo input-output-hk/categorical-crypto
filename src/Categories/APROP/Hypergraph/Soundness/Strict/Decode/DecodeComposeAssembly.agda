@@ -41,8 +41,6 @@ open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; �
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
 open import Categories.APROP.Hypergraph.Util.Prune using (count-non)
-open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (extract-prefix; edge-step; process-edges)
 import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
 open Inv using (inject+-inj)
 import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
@@ -61,23 +59,15 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _�
   using (module Support)
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig _≟X_ as PVV
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List.Properties using (length-map)
-open import Categories.PermuteCoherence.Eval using (eval-↭)
-open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_)
-open import Categories.PermuteCoherence.FinBijSubst using (eval-map⁺)
-open import Categories.Hypergraph.ExtractPrefixEvalPhi
-  using (≈-fb-of-≡; subst₂-FinBij-∘)
-  renaming (cast-irrel to cast-irrel-fb)
 
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
-open import Data.List using (List; []; _∷_; _++_; map; length)
-open import Data.List.Properties using (map-++; map-∘; map-cong)
+open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as UniqueProp
-open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
+open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
+  using (_≡_; refl; sym; trans; cong; subst; subst₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 

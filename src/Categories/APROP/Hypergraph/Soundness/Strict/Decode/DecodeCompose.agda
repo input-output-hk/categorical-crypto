@@ -29,7 +29,7 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (edge-step; process-edges; extract-prefix)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
@@ -46,16 +46,15 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _�
 open import Categories.Hypergraph.ExtractPrefixEvalPhi using (eval-coincide)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _≈-fb_; ≈-fb-refl; ≈-fb-sym; ≈-fb-trans)
+  using (FinBij; _≈-fb_)
 open import Categories.PermuteCoherence.FinBijSubst using (≈-fb-of-≡)
 
-open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; _++_; map; length)
-open import Data.List.Properties using (map-∘; map-cong; map-++; map-id; length-map)
-open import Data.Maybe using (Maybe; just; nothing)
+open import Data.List.Properties using (map-∘; map-cong; map-++; map-id)
+open import Data.Maybe using (just; nothing)
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
+open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
@@ -617,7 +616,6 @@ open import Categories.PermuteCoherence.EvalSoundness using (eval-↭-sym)
 open import Categories.PermuteCoherence.FinBij using (inv-fb)
 import Data.Fin.Permutation as P
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List.Properties using (≡-dec)
 
 module Equivariantˢ (H : Hypergraph FlatGen) where
   private module H = Hypergraph H

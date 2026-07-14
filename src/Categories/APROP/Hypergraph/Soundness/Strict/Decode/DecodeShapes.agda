@@ -34,7 +34,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flatten; hId; range)
+  using (FlatGen; flatten; hId)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique
   sig using (Linear⇒cod-Unique)
@@ -48,11 +48,11 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_
 
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.List using (List; _++_; map)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-open import Data.Nat using (ℕ; zero; suc) renaming (_+_ to _+ⁿ_)
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.Nat using () renaming (_+_ to _+ⁿ_)
+open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm

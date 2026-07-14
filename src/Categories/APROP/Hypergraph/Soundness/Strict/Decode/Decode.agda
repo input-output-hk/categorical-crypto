@@ -28,14 +28,13 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; range)
 open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (extract-prefix; extract-exact; edge-step; process-edges;
-         decode-attempt)
+  using (extract-prefix; extract-exact; edge-step; process-edges)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
   using (decode-attempt-perm-from-just)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
@@ -47,7 +46,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟
 
 open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Maybe using (just; nothing)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst)

@@ -30,9 +30,9 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flatten; range; map-lookup-range; hSwap)
+  using (flatten; range; map-lookup-range)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique
   sig using (Linear⇒cod-Unique)
@@ -44,19 +44,18 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟
   as DShapes
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_
-  using ( st; coe; coe-uip; coe-conj
+  using ( coe; coe-uip; coe-conj
         ; coe-cancel; coe-cancelʳ
         ; elim²; inv-uniqueˢ )
 
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; []; _∷_; _++_; map; [_]; length; lookup)
+open import Data.List using (List; []; _∷_; _++_; map; length; lookup)
 open import Data.List.Properties using (++-identityʳ; ++-assoc; map-++; map-∘; map-cong)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-open import Data.Nat using (ℕ; zero; suc) renaming (_+_ to _+ⁿ_)
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.Product using (proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst)
+  using (_≡_; refl; sym; trans; cong; subst)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp

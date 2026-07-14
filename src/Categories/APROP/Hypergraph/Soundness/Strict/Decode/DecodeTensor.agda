@@ -41,24 +41,20 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeTensor
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flatten; range; hTensor; module hTensor-impl)
+  using (FlatGen; range; hTensor; module hTensor-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 
-open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
+open import Data.Fin using (Fin; _↑ˡ_)
 open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (map-++; ++-assoc)
-open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-open import Data.Nat using (ℕ; zero; suc) renaming (_+_ to _+ⁿ_)
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.List.Properties using (map-++)
+open import Data.Product using (_,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open Perm using (_↭_)
+  using (_≡_; refl; sym; cong)
 
 --------------------------------------------------------------------------------
 -- The strict edge-block split: `process-edgesˢ` over a `++` of edge-lists is

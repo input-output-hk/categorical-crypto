@@ -36,7 +36,7 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeGen
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flat; flatten; hGen; domL-hGen; codL-hGen; retype-≡)
 open import Categories.APROP.Hypergraph.Model.Translation sig
@@ -54,20 +54,19 @@ open import Categories.APROP.Hypergraph.Model.Invariant sig using (hGen-dom-Uniq
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_
-  using (st; coe)
+  using (st)
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
-open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_) renaming (_≟_ to _≟F_)
+open import Data.Fin using (Fin) renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (++-identityʳ; map-++; ≡-dec)
+open import Data.List.Properties using (++-identityʳ; map-++)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just)
-open import Data.Nat using (ℕ; zero; suc) renaming (_+_ to _+ⁿ_)
+open import Data.Nat using (ℕ)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
+  using (_≡_; refl; sym; trans; cong; subst; subst₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open Perm using (_↭_)
 
 --------------------------------------------------------------------------------
 -- The concrete strict residual at the (Fin nV)-vertex sets, threaded
@@ -121,10 +120,6 @@ module Gen {A B : ObjTerm} (g : mor A B) where
               ((genˢ (Hf.elab e₀) ⊗ˢ idˢ {map Hf.vlab []})
                 ∘ˢ castˢ refl (map-++ Hf.vlab (Hf.ein e₀) [])
                      (RF.permuteˢ selfP))
-
-    -- `edge-stepˢ dom e₀` computes to (`eout e₀ ++ []`, `layer`).
-    edge-form : RF.edge-stepˢ Hf.dom e₀ ≡ (Hf.eout e₀ ++ [] , layer)
-    edge-form rewrite self-eq = refl
 
     -- the whole run (one edge): stack and term.
     s≡ : RF.s-finˢ ≡ Hf.eout e₀ ++ []
