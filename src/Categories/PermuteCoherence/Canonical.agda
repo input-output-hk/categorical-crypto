@@ -1,39 +1,27 @@
 {-# OPTIONS --safe --without-K #-}
 
 ------------------------------------------------------------------------
--- A canonical-form analysis for `_↭_` derivations.
+-- Canonical equivalence of `_↭_` derivations.
 --
--- This module derives a *canonical decomposition* of any
--- `Data.Fin.Permutation`-style finite bijection as a sequence of
--- "adjacent transposition" generators, and reifies that decomposition
--- back into a `_↭_` derivation. Two `_↭_` derivations agreeing on their
--- underlying bijection are then declared *canonically equivalent* via
--- the `_≅↭_` relation, which the downstream `Faithfulness` module is
--- expected to refine into an equality in a quotient setoid.
---
--- The construction proceeds by structural recursion on the length of
--- the list: a bijection of `Fin (suc n)` is decomposed into the choice
--- of where `0F` maps to, then a residual bijection of `Fin n`. The
--- "head choice" is realised by a sequence of adjacent swaps that
--- bubble the chosen element to position 0.
+-- `residual b` is the tail bijection obtained by removing the head of a
+-- self-bijection.  `_≅↭_` relates two `_↭_` derivations that agree on
+-- their evaluated finite bijection (via `eval-↭`), together with its
+-- congruence laws under the four `_↭_` constructors.
 ------------------------------------------------------------------------
 
 module Categories.PermuteCoherence.Canonical where
 
-open import Data.Nat.Base using (ℕ; zero; suc)
-open import Data.Nat.Properties using (suc-injective)
-open import Data.Fin.Base using (Fin; zero; suc)
-open import Data.Fin.Patterns using (0F; 1F)
+open import Data.Nat.Base
+open import Data.Fin.Base
+open import Data.Fin.Patterns
 import Data.Fin.Permutation as P
-open P using (Permutation; _∘ₚ_; transpose; lift₀; remove)
+open P
 open import Data.List.Base using (List; []; _∷_; length)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 
-open import Data.Product.Base using (Σ; _×_; _,_; ∃; ∃-syntax; proj₁; proj₂)
-
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl; cong; sym; trans)
+
 
 open import Level using (Level)
 
@@ -46,111 +34,14 @@ private
     A : Set a
 
 ------------------------------------------------------------------------
--- "Bubble-the-head" canonical motion: given a list of length (suc n) and
--- a target `k : Fin (suc n)`, swap the element at position k to the head
--- via k adjacent transpositions.
-
-lookup : (xs : List A) → Fin (length xs) → A
-lookup (x ∷ _)  zero    = x
-lookup (_ ∷ xs) (suc i) = lookup xs i
-
--- `bubble-to-front xs k = (ys , p)` with `p : xs ↭ (lookup xs k ∷ ys)`,
--- the predecessor length `n` made explicit as a parameter.
-
-bubble-to-front : ∀ {n} (xs : List A) (xs-len : length xs ≡ suc n)
-                  (k : Fin (length xs)) →
-                  Σ (List A) λ ys → length ys ≡ n × xs ↭ (lookup xs k ∷ ys)
-bubble-to-front {n = n}     []           ()     k
-bubble-to-front {n = n}     (x ∷ xs)     xs-len zero =
-  xs , suc-injective xs-len , Perm.refl
-bubble-to-front {n = zero}  (x ∷ [])     refl   (suc ())
-bubble-to-front {n = suc n} (x ∷ y ∷ xs) xs-len (suc k)
-  with bubble-to-front {n = n} (y ∷ xs) (suc-injective xs-len) k
-... | (zs , zs-len , p) =
-  x ∷ zs , cong suc zs-len ,
-  Perm.trans (Perm.prep x p)
-             (Perm.swap x (lookup (y ∷ xs) k) Perm.refl)
-
-------------------------------------------------------------------------
--- Removing the head bijectively: `head-target` is where the head goes in
--- the target, `residual` the bijection on the tail.
-
-head-target : ∀ {n} → FinBij (suc n) (suc n) → Fin (suc n)
-head-target b = b P.⟨$⟩ʳ 0F
+-- Removing the head bijectively: `residual` is the bijection on the tail.
 
 residual : ∀ {n} → (b : FinBij (suc n) (suc n)) → FinBij n n
 residual b = remove 0F b
 
 ------------------------------------------------------------------------
--- The canonical decoder.  Given `xs` and a self-bijection `b`, produce a
--- target list `ys` and a derivation `xs ↭ ys`.  At length (suc n): bubble
--- position `head-target b` to the front, recurse on the tail with the
--- residual bijection.
-
-private
-  cast-fin-back : ∀ {p q} → p ≡ q → Fin q → Fin p
-  cast-fin-back refl i = i
-
--- Recurses on a nat bound on the list length.
-canonical-go : ∀ (n : ℕ) (xs : List A) → length xs ≡ n →
-               (b : FinBij n n) →
-               ∃[ ys ] (xs Perm.↭ ys)
-canonical-go zero    []       _      b = [] , Perm.refl
-canonical-go zero    (_ ∷ _)  ()     b
-canonical-go (suc n) []       ()     b
-canonical-go (suc n) (x ∷ xs) xs-len b
-  with cast-fin-back xs-len (head-target b)
-... | k with bubble-to-front {n = n} (x ∷ xs) xs-len k
-... | (ws , ws-len , bubble) with canonical-go n ws ws-len (residual b)
-... | (ys , rec) =
-  lookup (x ∷ xs) k ∷ ys ,
-  Perm.trans bubble (Perm.prep _ rec)
-
-canonical : (xs : List A) (b : FinBij (length xs) (length xs)) →
-            ∃[ ys ] (xs Perm.↭ ys)
-canonical xs b = canonical-go (length xs) xs refl b
-
-------------------------------------------------------------------------
--- Propositional unfolding equations for `canonical-go`, exposing its
--- `with`-blocks so downstream consumers can reason on abstract bijections.
-
-canonical-go-zero
-  : proj₁ (canonical-go zero ([] {A = A}) refl id-fb) ≡ []
-canonical-go-zero = refl
-
-canonical-go-suc-unfold
-  : ∀ (x : A) (xs : List A) (b : FinBij (suc (length xs)) (suc (length xs)))
-  → proj₁ (canonical-go (suc (length xs)) (x ∷ xs) refl b)
-    ≡ lookup (x ∷ xs) (head-target b)
-      ∷ proj₁ (canonical-go (length xs)
-                            (proj₁ (bubble-to-front (x ∷ xs) refl (head-target b)))
-                            (proj₁ (proj₂ (bubble-to-front (x ∷ xs) refl (head-target b))))
-                            (residual b))
-canonical-go-suc-unfold x xs b = refl
-
--- The derivation-projection unfolding.
-canonical-go-suc-unfold-↭
-  : ∀ (x : A) (xs : List A) (b : FinBij (suc (length xs)) (suc (length xs)))
-  → proj₂ (canonical-go (suc (length xs)) (x ∷ xs) refl b)
-    ≡ Perm.trans
-        (proj₂ (proj₂ (bubble-to-front (x ∷ xs) refl (head-target b))))
-        (Perm.prep _ (proj₂ (canonical-go (length xs)
-                              (proj₁ (bubble-to-front (x ∷ xs) refl (head-target b)))
-                              (proj₁ (proj₂ (bubble-to-front (x ∷ xs) refl (head-target b))))
-                              (residual b))))
-canonical-go-suc-unfold-↭ x xs b = refl
-
-canonical-target : (xs : List A) → FinBij (length xs) (length xs) → List A
-canonical-target xs b = proj₁ (canonical xs b)
-
-canonical-↭ : (xs : List A) (b : FinBij (length xs) (length xs)) →
-              xs Perm.↭ canonical-target xs b
-canonical-↭ xs b = proj₂ (canonical xs b)
-
-------------------------------------------------------------------------
 -- Canonical equivalence: two derivations are canonically equivalent when
--- they agree on the underlying finite bijection.  This is what coherence
--- consumers (e.g. `Faithfulness`) use to quotient `_↭_` by `eval-↭`.
+-- they agree on the underlying finite bijection.
 
 infix 4 _≅↭_
 _≅↭_ : {xs ys : List A} → xs ↭ ys → xs ↭ ys → Set
@@ -167,8 +58,7 @@ p ≅↭ q = eval-↭ p ≈-fb eval-↭ q
 
 ------------------------------------------------------------------------
 -- A self-loop `r : xs ↭ xs` evaluating to the identity bijection is
--- `≅↭`-equivalent to `refl`.  (The constructive upgrade to ↭-equivalence
--- is `Faithfulness`'s job.)
+-- `≅↭`-equivalent to `refl`.
 
 self-loop-canonical
   : {xs : List A} (r : xs Perm.↭ xs)
