@@ -56,6 +56,7 @@ open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (just; nothing)
+open import Data.Maybe.Properties using (just-injective)
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_; yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
@@ -136,9 +137,6 @@ module _ (H : Hypergraph FlatGen)
     e'-fires-stable = FMIC.e'-fires-stable H dih lin
     e'-skips-stable = FMIC.e'-skips-stable H dih lin
 
-    just-injˢ : ∀ {A : Set} {x y : A} → just x ≡ just y → x ≡ y
-    just-injˢ refl = refl
-
   ------------------------------------------------------------------------
   -- The four-way firing split + empty-tail interchange, parameterised by
   -- the both-fire core `FMI : FireMidInterchangeˢ`.
@@ -179,7 +177,7 @@ module _ (H : Hypergraph FlatGen)
                        ur₂' sp up₂' eqe)) eqe1))
     build e≢e' inc sp (skipRˢ eqe) (fireRˢ r₂' p₂' eqe') (fireRˢ ur₂' up₂' ueqe')
           (skipRˢ eqe1) _ _ _ _ =
-      pin (just-injˢ (trans (sym ueqe') eqe'))
+      pin (just-injective (trans (sym ueqe') eqe'))
       where
         pin : (ur₂' , up₂') ≡ (r₂' , p₂') → _
         pin refl =
@@ -197,7 +195,7 @@ module _ (H : Hypergraph FlatGen)
       ⊥-elim (nothing≢just (trans (sym eqe-bad) eqe))
     build e≢e' inc sp (fireRˢ r₁ p₁ eqe) (skipRˢ eqe2) (skipRˢ eqe'n)
           (fireRˢ ur₁ up₁ ueqe) _ _ _ _ =
-      pin (just-injˢ (trans (sym ueqe) eqe))
+      pin (just-injective (trans (sym ueqe) eqe))
       where
         pin : (ur₁ , up₁) ≡ (r₁ , p₁) → _
         pin refl =
