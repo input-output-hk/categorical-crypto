@@ -19,7 +19,7 @@ open Perm using (_↭_)
 import Data.Fin.Permutation as P
 
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl; sym; cong)
+  using (_≡_; refl; sym; trans; cong)
 
 open import Categories.PermuteCoherence.FinBij
 open import Categories.PermuteCoherence.Eval
@@ -103,12 +103,9 @@ eval-↭-sym (Perm.swap x y p) (suc 0F)      = refl
 eval-↭-sym (Perm.swap x y p) (suc (suc i)) =
   cong (λ z → suc (suc z)) (eval-↭-sym p i)
 eval-↭-sym (Perm.trans p q) i =
-  step-trans
+  trans
     (cong (eval-↭ (Perm.↭-sym p) P.⟨$⟩ʳ_) (eval-↭-sym q i))
     (eval-↭-sym p (inv-fb (eval-↭ q) P.⟨$⟩ʳ i))
-  where
-  step-trans : ∀ {a b c : Fin _} → a ≡ b → b ≡ c → a ≡ c
-  step-trans refl q = q
 
 ------------------------------------------------------------------------
 -- 8.  trans-refl normalisations (phrased on `Perm.trans` directly, since
