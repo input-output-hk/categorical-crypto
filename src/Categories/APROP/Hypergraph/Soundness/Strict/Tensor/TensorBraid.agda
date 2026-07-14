@@ -33,8 +33,8 @@
 --      the loop with `finalPermˢ`.
 --
 -- WHAT IS GREEN HERE (postulate-free, `--safe --without-K`):
---   * `TG` / `TK` — the G-/K-side `TermEmbedˢ` instances (verbatim ports of
---     `EmbedData.{TG,TK}`), giving the two block term-twins.
+--   * `TG` / `TK` — the G-/K-side `TermEmbedˢ` instances, giving the two
+--     block term-twins.
 --   * `runˢ-factor` — the run-split + G-frame, as a single `≈ˢ`.
 --   * the assembly `braidˢ-from-kblock` reducing `braidˢ` (hence the whole
 --     ⊗-shape) to the single clearly-typed K-block residual `KBlockσ`.
@@ -51,9 +51,9 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorBraid
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using ( FlatGen; flatten; range; hTensor; module hTensor-impl
+  using ( FlatGen; range; hTensor; module hTensor-impl
         ; map-via-inj; map-via-raise
         ; subst₂-FlatGen-cancel; subst₂-FlatGen-cancel′ )
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
@@ -73,10 +73,9 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using (↑ˡ-injective; ↑ʳ-injective)
 open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (map-++; ++-assoc; map-∘; map-cong)
+open import Data.List.Properties using (map-++)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Nat using (ℕ; zero; suc) renaming (_+_ to _+ⁿ_)
+open import Data.Maybe using (nothing)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
@@ -85,7 +84,7 @@ open Perm using (_↭_)
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
 --------------------------------------------------------------------------------
--- ## The two block embeddings (verbatim ports of `EmbedData.{TG,TK}`).
+-- ## The two block embeddings.
 --
 -- These instantiate the proven strict `TermEmbedˢ` (the relabelling-
 -- equivariance gate), giving each block run as a relabel of the matching
@@ -274,10 +273,6 @@ module _
       Lpre : List (Fin Hf.nV)
       Lpre = map injL Gd.dom
 
-      -- `Hf.dom ≡ Lpre ++ Rsuf` (definitional from `hTensor`).
-      dom≡ : Hf.dom ≡ Lpre ++ Rsuf
-      dom≡ = refl
-
       -- the G-block run on the pure-`injL` prefix.
       Gon : HomS (map vl Lpre) (map vl (proj₁ (process-edgesˢ gblk Lpre)))
       Gon = proj₂ (process-edgesˢ gblk Lpre)
@@ -402,7 +397,7 @@ module _
     ----------------------------------------------------------------------
     -- ## (e)-RECONCILE: `KBlockσ` from the K-block run factorization.
     --
-    -- This is the LAST step.  `TensorKBlock6.kblock-factorize`, instantiated
+    -- This is the LAST step.  `TKB6.kblock-factorize-res`, instantiated
     -- at the concrete K-block (`L = sG`, the G-output block; `s = aG`, the
     -- post-G stack; `s_R = Rsuf`, the canonical pure-`injR` K-stack), supplies
     -- the K-prepend braid + clean factorization
@@ -417,7 +412,7 @@ module _
     module Reconcile-e where
       private
         -- the `Fin Hf.nV` Kelly instance (the same one `TensorReconcile` /
-        -- `kblock-factorize` thread).
+        -- `kblock-factorize-res` thread).
         open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
         permˢ-K-fg : Support.PermK (Fin Hf.nV) Hf.vlab
         permˢ-K-fg = permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
