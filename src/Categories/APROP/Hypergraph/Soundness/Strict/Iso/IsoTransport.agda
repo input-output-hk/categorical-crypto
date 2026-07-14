@@ -52,7 +52,6 @@ open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Model.HomTermInvariant sig using (⟪_⟫-cod-unique)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl sig using (dep-irrefl-⟪⟫)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.FinOrderNoInv sig
   using (fin-order-NoInv-⟪⟫)
@@ -72,12 +71,12 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _�
   using (module Support)
 
 open import Data.Fin.Base using (Fin)
-open import Data.List using (List; []; _∷_; _++_; map; length; lookup)
-open import Data.List.Properties using (map-∘; map-cong; map-id; map-++; map-injective; length-map)
+open import Data.List using (List; _∷_; _++_; map; length; lookup)
+open import Data.List.Properties using (map-∘; map-cong; map-id; map-injective; length-map)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Function using (Injective)
 import Data.Fin.Permutation as P
 open import Relation.Nullary using (¬_)
@@ -90,7 +89,7 @@ open import Categories.PermuteCoherence.Rigid using (lookup-injective-unique; lo
 open import Categories.PermuteCoherence.FinBijSubst
   using ( eval-map⁺; lookup-map; subst₂-FinBij-as-subst; cast-irr
         ; subst-Fin-trans; lookup-subst-list; subst-Fin-roundtrip
-        ; subst-Fin-roundtrip'; subst-Fin-sym-sym; ≈-fb-of-≡; eval-subst₂-↭ )
+        ; subst-Fin-roundtrip'; subst-Fin-sym-sym; eval-subst₂-↭ )
 
 ------------------------------------------------------------------------
 -- The cross-iso module.  `H = ⟪f⟫`, `J = ⟪g⟫`.
@@ -120,7 +119,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
     module RJ = Run J
 
   open _≅ᴴ_ iso
-    using (φ; φ⁻¹; ψ; ψ⁻¹; φ-left; φ-rght; ψ-left; ψ-rght
+    using (φ; φ⁻¹; ψ; ψ⁻¹; φ-left; ψ-rght
           ; φ-lab; φ-dom; φ-cod; ψ-ein; ψ-eout; atom-ein; atom-eout; ψ-elab)
 
   -- φ injectivity (from the left inverse).
@@ -390,15 +389,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
   -- routed through `permuteˢ-X`.
   ------------------------------------------------------------------------
 
-  -- `permuteˢ` commutes with `subst₂` along list equalities (vertex level).
   private
-    permuteˢ-subst₂H
-      : ∀ {xs xs' ys ys' : List (Fin H.nV)} (p : xs ≡ xs') (q : ys ≡ ys')
-          (r : xs Perm.↭ ys)
-      → RH.permuteˢ (subst₂ Perm._↭_ p q r)
-        ≡ castˢ (cong (map H.vlab) p) (cong (map H.vlab) q) (RH.permuteˢ r)
-    permuteˢ-subst₂H refl refl r = refl
-
     -- `permuteˢ` commutes with `map⁺ vlab` routed through the X-level permute.
     -- (the §0 `permuteˢ-X` instance at the relevant vertex set.)
     pXJ : ∀ {xs ys : List (Fin J.nV)} (p : xs Perm.↭ ys)

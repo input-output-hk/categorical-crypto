@@ -38,9 +38,9 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunIntercha
   using (RunInterchangeˢ)
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; _∷_; _++_)
+open import Data.List using (_∷_; _++_)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.Product using (Σ-syntax; _,_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Relation.Nullary using (¬_)
