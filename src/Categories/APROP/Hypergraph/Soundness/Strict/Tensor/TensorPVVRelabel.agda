@@ -32,7 +32,7 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ as DC
 
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List.Properties using (length-map; map-∘; map-cong)
+open import Data.List.Properties using (length-map)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_)
 open import Categories.PermuteCoherence.FinBijSubst using (eval-map⁺)
@@ -42,7 +42,7 @@ open import Categories.Hypergraph.ExtractPrefixEvalPhi
 
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; _++_; map; length)
+open import Data.List using (List; map; length)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
