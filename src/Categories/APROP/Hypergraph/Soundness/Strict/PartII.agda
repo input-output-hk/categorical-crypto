@@ -52,7 +52,7 @@ open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc)
 open import Data.Product using (proj₁; proj₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; sym; subst)
 
 ------------------------------------------------------------------------
 -- The (N) strict per-swap `RunInterchangeˢ` witness for `⟪f⟫`.

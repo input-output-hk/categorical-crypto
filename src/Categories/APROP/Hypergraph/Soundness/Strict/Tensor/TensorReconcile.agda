@@ -71,7 +71,7 @@ open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Product using (_,_; proj₂)
-open import Relation.Binary.PropositionalEquality using (refl; sym; trans)
+open import Relation.Binary.PropositionalEquality using (sym)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 
