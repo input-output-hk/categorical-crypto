@@ -48,8 +48,8 @@ import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig
   as SUR
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
+open import Data.List using (List; []; _∷_; _++_)
+open import Data.Product using (Σ-syntax; proj₁; proj₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
