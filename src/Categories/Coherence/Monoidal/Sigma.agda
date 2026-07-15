@@ -80,9 +80,7 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
         ≈⟨ merge∘split a ⟩
       id ∎
 
-  ------------------------------------------------------------------------
   -- Normalize / compare stack
-  ------------------------------------------------------------------------
   open NormalizeI ES
   open SortD
 
@@ -142,14 +140,15 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
   ------------------------------------------------------------------------
   open FreeStrictMonoidalHelper MorS
     using ( padʷ; castʷᵈ; module Theory
-          ; ∘ʷ-castʷ-l; ∘ʷ-castʷᵈ-l; castʷ-castʷᵈ; castʷ-symʳ
-          ; castʷ-irr; castʷᵈ-irr )
+          ; ∘ʷ-castʷ-l; ∘ʷ-castʷᵈ-l′; castʷ-castʷᵈ; castʷ-symʳ; castʷᵈ-irr )
 
   data R_σ : ∀ {n m} → WTerm n m → WTerm n m → Set where
     σσ     : ∀ (a b : List X) → R_σ (boxʷ (cross b a) ∘ʷ boxʷ (cross a b)) idʷ
     slideB : ∀ (a : List X) {b b' : List X} (h : WTerm b b')
            → R_σ (boxʷ (cross a b') ∘ʷ (idʷ {n = a} ⊗ʷ h))
                  ((h ⊗ʷ idʷ {n = a}) ∘ʷ boxʷ (cross a b))
+    -- derivable from `slideB` + `σσ` (insert σσ, slide, cancel); kept as an
+    -- axiom for the direct one-instance proof.
     slideA : ∀ (b : List X) {a a' : List X} (g : WTerm a a')
            → R_σ (boxʷ (cross a' b) ∘ʷ (g ⊗ʷ idʷ {n = b}))
                  ((idʷ {n = b} ⊗ʷ g) ∘ʷ boxʷ (cross a b))
@@ -170,8 +169,7 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
   -- `++`-assoc casts reconciled to `replD`'s offsets by Hedberg irrelevance.
   ------------------------------------------------------------------------
   private module T = Theory R_σ
-  open T using ( _≈ʷ_; axiom; reflʷ; symʷ; transʷ; castʷ-resp; castʷᵈ-resp
-               ; ≡→≈ʷ; pad-respˢ; pad-∘ˢ; pad-idˢ; pad-absorbLˢ; pad-absorbRˢ )
+  open T
   private module Rˢ = Category.HomReasoning T.StrictR
   open Rˢ using () renaming (begin_ to beginˢ_; _∎ to _∎ˢ)
   open Rˢ using () renaming (step-≈-⟩ to libˢ-≈; step-≈-⟨ to libˢ-≈˘)
@@ -193,9 +191,7 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
            ∘ʷ castʷ E₃ (castʷᵈ (sym E₄) (padʷ (px ++ (a ++ p₁)) (s₁ ++ sx) G)))
   slide-cleanˢ px sx a p₁ s₁ {u} {v} G {meq} {E₂} {E₃} {E₄} = beginˢ
     padIn ∘ʷ castʷ meq Cu
-      ≈ˢ⟨ T.∘-resp-≈ reflʷ (≡→≈ʷ (castʷ-irr meq (sym (sym meq)) Cu)) ⟩
-    padIn ∘ʷ castʷ (sym (sym meq)) Cu
-      ≈ˢ⟨ ≡→≈ʷ (sym (∘ʷ-castʷᵈ-l (sym meq) padIn Cu)) ⟩
+      ≈ˢ⟨ ≡→≈ʷ (sym (∘ʷ-castʷᵈ-l′ meq padIn Cu)) ⟩
     castʷᵈ (sym meq) padIn ∘ʷ Cu
       ≈ˢ⟨ T.∘-resp-≈ (symʷ absorbR) reflʷ ⟩
     castʷ E₂ Gβ ∘ʷ Cu
@@ -236,9 +232,7 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
            ∘ʷ castʷ E₃ (castʷᵈ (sym E₄) (padʷ (px ++ p₁) (s₁ ++ (b ++ sx)) G)))
   slide-cleanˢ-a px sx b p₁ s₁ {u} {v} G {meq} {E₂} {E₃} {E₄} = beginˢ
     padIn ∘ʷ castʷ meq Cu
-      ≈ˢ⟨ T.∘-resp-≈ reflʷ (≡→≈ʷ (castʷ-irr meq (sym (sym meq)) Cu)) ⟩
-    padIn ∘ʷ castʷ (sym (sym meq)) Cu
-      ≈ˢ⟨ ≡→≈ʷ (sym (∘ʷ-castʷᵈ-l (sym meq) padIn Cu)) ⟩
+      ≈ˢ⟨ ≡→≈ʷ (sym (∘ʷ-castʷᵈ-l′ meq padIn Cu)) ⟩
     castʷᵈ (sym meq) padIn ∘ʷ Cu
       ≈ˢ⟨ T.∘-resp-≈ (symʷ absorbR) reflʷ ⟩
     castʷ E₂ Gβ ∘ʷ Cu
@@ -432,10 +426,8 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
       goσ px sx (box f)     rest meq = nothing
       goσ px sx (cross a b) ([]_ m) meq = nothing
       goσ px sx (cross a b) (_▸_∷_⟨_⟩ py sy (box f) rest') meq = nothing
-      goσ px sx (cross a b) (_▸_∷_⟨_⟩ py sy (cross c d) rest') meq
-        with px ≟ py | sx ≟ sy | c ≟ b | d ≟ a
-      ... | yes refl | yes refl | yes refl | yes refl =
-              just (rest' , σσ-step px sx a b rest' meq)
+      goσ px sx (cross a b) (_▸_∷_⟨_⟩ py sy (cross c d) rest') meq with px ≟ py | sx ≟ sy | c ≟ b | d ≟ a
+      ... | yes refl | yes refl | yes refl | yes refl = just (rest' , σσ-step px sx a b rest' meq)
       ... | _ | _ | _ | _ = nothing
 
       -- the b-IMAGE slide recogniser: head `cross a b` at (px,sx), second
@@ -450,16 +442,16 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
       goSlideB px sx (box f)     rest meq = nothing
       goSlideB px sx (cross a b) ([]_ m) meq = nothing
       goSlideB px sx (cross a b) (_▸_∷_⟨_⟩ py sy (cross c d) rest') meq = nothing
-      goSlideB px sx (cross a b) (_▸_∷_⟨_⟩ {u} {v} py sy (box f) rest') meq
-        with ListExt.stripPrefix _≟_ px py
-      ... | nothing = nothing
-      ... | just (p₁ , refl) with ListExt.stripPrefix _≟_ p₁ b
-      ...   | nothing = nothing
-      ...   | just (r₁ , refl) with ListExt.stripPrefix _≟_ u r₁
-      ...     | nothing = nothing
-      ...     | just (s₁ , refl) with sy ≟ (s₁ ++ (a ++ sx))
-      ...       | no _ = nothing
-      ...       | yes refl = just (_ , slideB-step px sx a p₁ s₁ f rest' meq)
+      goSlideB px sx (cross a b) (_▸_∷_⟨_⟩ {u} {v} py sy (box f) rest') meq =
+        case ListExt.stripPrefix _≟_ px py of λ where
+          nothing → nothing
+          (just (p₁ , refl)) → case ListExt.stripPrefix _≟_ p₁ b of λ where
+            nothing → nothing
+            (just (r₁ , refl)) → case ListExt.stripPrefix _≟_ u r₁ of λ where
+              nothing → nothing
+              (just (s₁ , refl)) → case sy ≟ (s₁ ++ (a ++ sx)) of λ where
+                (no _)     → nothing
+                (yes refl) → just (_ , slideB-step px sx a p₁ s₁ f rest' meq)
 
       -- the a-IMAGE slide recogniser: head `cross a b` at (px,sx), second
       -- layer a box exhibited inside the crossing's a-image block
@@ -473,18 +465,18 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
       goSlideA px sx (box f)     rest meq = nothing
       goSlideA px sx (cross a b) ([]_ m) meq = nothing
       goSlideA px sx (cross a b) (_▸_∷_⟨_⟩ py sy (cross c d) rest') meq = nothing
-      goSlideA px sx (cross a b) (_▸_∷_⟨_⟩ {u} {v} py sy (box f) rest') meq
-        with ListExt.stripPrefix _≟_ px py
-      ... | nothing = nothing
-      ... | just (r₀ , refl) with ListExt.stripPrefix _≟_ b r₀
-      ...   | nothing = nothing
-      ...   | just (p₁ , refl) with ListExt.stripPrefix _≟_ p₁ a
-      ...     | nothing = nothing
-      ...     | just (r₂ , refl) with ListExt.stripPrefix _≟_ u r₂
-      ...       | nothing = nothing
-      ...       | just (s₁ , refl) with sy ≟ (s₁ ++ sx)
-      ...         | no _ = nothing
-      ...         | yes refl = just (_ , slideA-step px sx b p₁ s₁ f rest' meq)
+      goSlideA px sx (cross a b) (_▸_∷_⟨_⟩ {u} {v} py sy (box f) rest') meq =
+        case ListExt.stripPrefix _≟_ px py of λ where
+          nothing → nothing
+          (just (r₀ , refl)) → case ListExt.stripPrefix _≟_ b r₀ of λ where
+            nothing → nothing
+            (just (p₁ , refl)) → case ListExt.stripPrefix _≟_ p₁ a of λ where
+              nothing → nothing
+              (just (r₂ , refl)) → case ListExt.stripPrefix _≟_ u r₂ of λ where
+                nothing → nothing
+                (just (s₁ , refl)) → case sy ≟ (s₁ ++ sx) of λ where
+                  (no _)     → nothing
+                  (yes refl) → just (_ , slideA-step px sx b p₁ s₁ f rest' meq)
 
       -- the combined per-position oracle: σσ-cancel first, then the two
       -- naturality slides (b-image, then a-image), then disjoint interchange
