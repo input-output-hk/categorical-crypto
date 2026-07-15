@@ -296,3 +296,17 @@ Adj→suc (adjS a) = cong suc (Adj→suc a)
 genFB-ˡ-toℕ : (k : Fin (suc n)) (v : Fin (suc (suc n)))
             → toℕ (genFB k P.⟨$⟩ˡ v) ≡ swapℕ (toℕ k) (toℕ v)
 genFB-ˡ-toℕ k v = trans (cong toℕ (genFB-ˡ≡ʳ k v)) (genFB-toℕ k v)
+
+-- `genFB j` swaps its own `inj j` / `suc-pos j` values (K-free; the
+-- shared descent-transfer step of both the `AdjL` and `AdjR` cases).
+j-on-inj-j : (j : Fin (suc n)) → genFB j P.⟨$⟩ˡ inj j ≡ suc-pos j
+j-on-inj-j j = toℕ-injective
+  (trans (genFB-ˡ-toℕ j (inj j))
+         (trans (cong (swapℕ (toℕ j)) (toℕ-inj j))
+                (trans (swapℕ-k (toℕ j)) (sym (toℕ-suc-pos j)))))
+
+j-on-suc-j : (j : Fin (suc n)) → genFB j P.⟨$⟩ˡ suc-pos j ≡ inj j
+j-on-suc-j j = toℕ-injective
+  (trans (genFB-ˡ-toℕ j (suc-pos j))
+         (trans (cong (swapℕ (toℕ j)) (toℕ-suc-pos j))
+                (trans (swapℕ-sk (toℕ j)) (sym (toℕ-inj j)))))

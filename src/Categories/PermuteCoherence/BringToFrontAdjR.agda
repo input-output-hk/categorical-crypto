@@ -41,20 +41,6 @@ module AdjR {n : ℕ} {j i : Fin (suc n)}
     toℕi≡ : toℕ i ≡ suc (toℕ j)
     toℕi≡ = Adj→suc adj
 
-    -- `genFB j` swaps the values `j (=inj j)` and `j+1 (=suc-pos j=inj i)`,
-    -- and fixes `j+2 (=suc-pos i)`.
-    j-on-inj-j : genFB j P.⟨$⟩ˡ inj j ≡ suc-pos j
-    j-on-inj-j = toℕ-injective
-      (trans (genFB-ˡ-toℕ j (inj j))
-             (trans (cong (swapℕ (toℕ j)) (toℕ-inj j))
-                    (trans (swapℕ-k (toℕ j)) (sym (toℕ-suc-pos j)))))
-
-    j-on-suc-j : genFB j P.⟨$⟩ˡ suc-pos j ≡ inj j
-    j-on-suc-j = toℕ-injective
-      (trans (genFB-ˡ-toℕ j (suc-pos j))
-             (trans (cong (swapℕ (toℕ j)) (toℕ-suc-pos j))
-                    (trans (swapℕ-sk (toℕ j)) (sym (toℕ-inj j)))))
-
     -- `inj i` has `toℕ ≡ suc (toℕ j)`, so `genFB j` sends it to `inj j`.
     j-on-inj-i : genFB j P.⟨$⟩ˡ inj i ≡ inj j
     j-on-inj-i = toℕ-injective
@@ -109,8 +95,8 @@ module AdjR {n : ℕ} {j i : Fin (suc n)}
   head→pos : descent j (genFB j ∘-fb b) → pj < pj1
   head→pos hd =
     subst₂ _<_
-      (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) j-on-suc-j)   -- posⱼ₊₁ j (gjb) = pj
-      (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) j-on-inj-j)   -- posⱼ   j (gjb) = pj1
+      (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) (j-on-suc-j j))   -- posⱼ₊₁ j (gjb) = pj
+      (cong (λ z → toℕ (b P.⟨$⟩ˡ z)) (j-on-inj-j j))   -- posⱼ   j (gjb) = pj1
       (descent→pos j (genFB j ∘-fb b) hd)
 
   -- `pj2 < pj`  (the assumed descent of `i`, read through the head `j`).
