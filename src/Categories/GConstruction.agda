@@ -19,7 +19,6 @@ open import Categories.Category.Monoidal.Symmetric
 
 open import Categories.Category.Instance.Sets
 open import categorical-crypto.Prelude hiding (id; _∘_; _⊗_; lookup; Dec; [_]; ⊤; ⊥; Functor)
-import categorical-crypto.Prelude as P
 import Categories.Category.Monoidal.Braided.Properties
 
 import Categories.Category.Monoidal.Utilities as U
