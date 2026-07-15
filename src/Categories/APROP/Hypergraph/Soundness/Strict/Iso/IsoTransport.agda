@@ -46,7 +46,7 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Iso.IsoTransport
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (range)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Model.HomTermInvariant sig using (⟪_⟫-cod-unique)
@@ -72,13 +72,11 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _�
 open import Data.Fin.Base using (Fin)
 open import Data.List using (List; _∷_; _++_; map; length; lookup)
 open import Data.List.Properties using (map-∘; map-cong; map-id; map-injective; length-map)
-open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Function using (Injective)
 import Data.Fin.Permutation as P
-open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 

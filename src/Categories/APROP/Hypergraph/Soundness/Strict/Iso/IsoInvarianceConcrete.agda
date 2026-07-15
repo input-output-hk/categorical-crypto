@@ -42,7 +42,7 @@ open import Data.Product using (Σ-syntax; _,_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Relation.Nullary using (¬_)
-open import Relation.Binary.Construct.Closure.ReflexiveTransitive using (Star; ε; _◅_)
+open import Relation.Binary.Construct.Closure.ReflexiveTransitive using (ε; _◅_)
 
 ------------------------------------------------------------------------
 -- Per-hypergraph: the closure-lift and order-invariance.  Threads the (N)
