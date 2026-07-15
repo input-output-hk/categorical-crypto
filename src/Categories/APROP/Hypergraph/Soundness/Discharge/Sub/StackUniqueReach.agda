@@ -32,7 +32,7 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Nat using ()
-  renaming (_≤_ to _≤ⁿ_; _<_ to _<ⁿ_; s≤s to s≤sⁿ; z≤n to z≤nⁿ)
+  renaming (_≤_ to _≤ⁿ_)
 import Data.Nat.Properties as Nat
 open import Data.List using (List; []; _∷_; _++_; map; concat; tabulate)
 open import Data.List.Properties using (map-++; concat-++)
@@ -54,7 +54,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-edges; edge-step; extract-prefix)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig
-  using (count≤1⇒Unique; Unique-resp-↭)
+  using (count≤1⇒Unique)
 
 private
   variable

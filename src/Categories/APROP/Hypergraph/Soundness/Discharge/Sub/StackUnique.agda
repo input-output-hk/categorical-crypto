@@ -23,7 +23,7 @@ open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using (_≟_)
 open import Data.Nat using (ℕ; suc; _+_)
-open import Data.Nat using (s≤s⁻¹) renaming (_≤_ to _≤ⁿ_; _<_ to _<ⁿ_; s≤s to s≤sⁿ; z≤n to z≤nⁿ)
+open import Data.Nat using (s≤s⁻¹) renaming (_≤_ to _≤ⁿ_; z≤n to z≤nⁿ)
 import Data.Nat.Properties as Nat
 open import Data.List using (List; []; _∷_; _++_; concat; tabulate)
 open import Data.Product using (_,_; proj₁; proj₂)
@@ -42,8 +42,6 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using (count; count-++; Linear)
-open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (extract-prefix)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual)
 

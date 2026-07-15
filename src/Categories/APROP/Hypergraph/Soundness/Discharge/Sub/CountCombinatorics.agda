@@ -18,7 +18,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using (count; count-++)
 
-open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using (_≟_)
 open import Data.List using (List; []; _∷_; _++_; map; concat)
@@ -31,7 +31,7 @@ open import Data.Maybe using (just)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Nat using (s≤s⁻¹) renaming (_≤_ to _≤ⁿ_; _<_ to _<ⁿ_; s≤s to s≤sⁿ; z≤n to z≤nⁿ)
 import Data.Nat.Properties as Nat
-open import Data.Product using (Σ; Σ-syntax; _,_)
+open import Data.Product using (Σ-syntax; _,_)
 open import Relation.Nullary using (¬_; yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
 

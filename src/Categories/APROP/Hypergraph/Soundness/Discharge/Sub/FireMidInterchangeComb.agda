@@ -33,7 +33,7 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using
 
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc)
-open import Data.List using (List; _∷_; _++_; concat)
+open import Data.List using (List; _++_; concat)
 open import Data.List.Base using (tabulate)
 open import Data.List.Properties using (++-assoc)
 open import Data.List.Membership.Propositional using (_∈_)
@@ -43,9 +43,9 @@ open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Nat using (s≤s⁻¹) renaming (_≤_ to _≤ⁿ_; _<_ to _<ⁿ_; s≤s to s≤sⁿ; z≤n to z≤nⁿ)
 import Data.Nat.Properties as Nat
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
-open import Relation.Nullary using (¬_; no)
+open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst)
 
