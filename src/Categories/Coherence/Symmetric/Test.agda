@@ -39,11 +39,10 @@
 --                            keeps the carved frame out of all exposed types,
 --                            which is essential for type-checking speed).
 --                                          → `Test.Deep`
---   * `rewriteDeepProv(ₙ/To)!` — the carve-provenance-guided gate-#1 variants
---                            of `rewriteDeep(ₙ)!` / `rewriteDeepTo!`: the
---                            `findIso` witness is reconstructed from the carve's
---                            own provenance instead of re-searched.  Same
---                            exposed types as their non-`Prov` counterparts.
+--   * `rewriteDeepTo!ᵀᴮ`     — the tabulated-gate alias of `rewriteDeepTo!`:
+--                            after the frame dedup the `ᵀᴮ` gate coincides with
+--                            the plain one, so this is definitionally the same
+--                            tool, kept under a distinct name for the showcase.
 --                                          → `Test.Frobenius`
 --   * `normalize(To)!`     — DRIVERS: fire a `List Rule` (oriented rewrites
 --                            with soundness proofs) at the first applicable
@@ -53,7 +52,7 @@
 --                            search carries its own proof.  → `Test.Drivers`
 --
 -- SHOWCASE: `Test.Frobenius` derives the two alternative formulations of the
--- Frobenius law from the standard one by chains of `rewriteDeepProvTo!` steps
+-- Frobenius law from the standard one by chains of `rewriteDeepTo!ᵀᴮ` steps
 -- — the TensorRocq §5 worked example, end-to-end.
 --
 -- KNOWN LIMITATIONS (each demonstrated by a probe in the file cited):
