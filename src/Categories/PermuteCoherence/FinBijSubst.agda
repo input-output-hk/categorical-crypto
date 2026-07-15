@@ -116,11 +116,6 @@ eval-subst-cod refl p = refl
 ≈-fb-of-≡ : ∀ {n m} {π ρ : FinBij n m} → π ≡ ρ → π ≈-fb ρ
 ≈-fb-of-≡ refl _ = refl
 
--- Pointwise congruence for `_∘-fb_`.
-∘-fb-cong : ∀ {n m k} {g g′ : FinBij m k} {f f′ : FinBij n m}
-  → g ≈-fb g′ → f ≈-fb f′ → (g ∘-fb f) ≈-fb (g′ ∘-fb f′)
-∘-fb-cong {g = g} {g′} {f} {f′} g≈ f≈ i rewrite f≈ i = g≈ (f′ P.⟨$⟩ʳ i)
-
 ------------------------------------------------------------------------
 -- `subst Fin` cast algebra for the cross-iso (φ-equivariance) rigidity.
 ------------------------------------------------------------------------
