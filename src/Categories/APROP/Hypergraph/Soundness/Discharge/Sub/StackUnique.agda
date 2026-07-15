@@ -22,13 +22,11 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using (_≟_)
-open import Data.Nat using (ℕ; zero; suc; _+_)
+open import Data.Nat using (ℕ; suc; _+_)
 open import Data.Nat using (s≤s⁻¹) renaming (_≤_ to _≤ⁿ_; _<_ to _<ⁿ_; s≤s to s≤sⁿ; z≤n to z≤nⁿ)
 import Data.Nat.Properties as Nat
-open import Data.List using (List; []; _∷_; _++_; length; lookup; concat; tabulate)
-open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
-open import Data.List.Membership.Propositional using (_∈_)
-open import Data.List.Relation.Unary.Any using (Any; here; there)
+open import Data.List using (List; []; _∷_; _++_; concat; tabulate)
+open import Data.Product using (_,_; proj₁; proj₂)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.List.Relation.Unary.AllPairs using ([]; _∷_)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
@@ -45,11 +43,9 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using (count; count-++; Linear)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (edge-step; extract-prefix)
+  using (extract-prefix)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual)
-
-open import Data.Maybe using (Maybe; just; nothing)
 
 open import Categories.PermuteCoherence.Canonical using (_≅↭_)
 open import Categories.PermuteCoherence.Rigid using (eval-rigid)
@@ -62,7 +58,7 @@ private
 -- 0.  `count` cons reductions and `↭`-invariance (shared leaf).
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
-  using (count-cons-yes; count-cons-no; ↭⇒count; ∈→count-pos; count-mono-cons)
+  using (count-cons-yes; count-cons-no; ↭⇒count; count-mono-cons)
 
 --------------------------------------------------------------------------------
 -- 1.  `Unique` ⇔ "every element occurs at most once".

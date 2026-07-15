@@ -29,25 +29,22 @@ open import Categories.APROP
 module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach
   (sig : APROPSignature) where
 
-open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc)
-open import Data.Fin.Properties using (_≟_)
 open import Data.Nat using (ℕ; zero; suc; _+_)
-open import Data.Nat using (s≤s⁻¹)
+open import Data.Nat using ()
   renaming (_≤_ to _≤ⁿ_; _<_ to _<ⁿ_; s≤s to s≤sⁿ; z≤n to z≤nⁿ)
 import Data.Nat.Properties as Nat
 open import Data.List using (List; []; _∷_; _++_; map; concat; tabulate)
-open import Data.List.Properties using (++-identityʳ; map-++; concat-++)
-open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
+open import Data.List.Properties using (map-++; concat-++)
+open import Data.Product using (_,_; proj₁)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Maybe using (just; nothing)
 
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 
-open import Relation.Nullary using (¬_; yes; no)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst)
+  using (_≡_; refl; sym; trans; cong; cong₂)
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
@@ -67,7 +64,7 @@ private
 -- 0.  `count`-cons reductions + `↭`-invariance (shared leaf).
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
-  using (count-cons-yes; count-cons-no; ↭⇒count)
+  using (↭⇒count)
 
 module _ (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
