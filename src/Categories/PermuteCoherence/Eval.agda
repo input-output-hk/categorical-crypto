@@ -10,8 +10,7 @@
 
 module Categories.PermuteCoherence.Eval where
 
-open import Data.Nat.Base using (ℕ; zero; suc)
-open import Data.List.Base using (List; []; _∷_; length)
+open import Data.List.Base using (List; length)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 
