@@ -15,7 +15,7 @@
 
 open import Categories.APROP
 
-module Categories.APROP.Hypergraph.Soundness.Discharge.EdgeStepRelation
+module Categories.Examples.EdgeStepRelation
   (sig : APROPSignature) where
 
 open APROP sig
