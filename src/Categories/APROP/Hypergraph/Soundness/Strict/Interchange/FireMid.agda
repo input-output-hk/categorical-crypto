@@ -78,8 +78,8 @@ module FMS (H : Hypergraph FlatGen)
   permˢ-K = PK.permˢ-K (Fin H.nV) _≟F_ vl
 
   -- SwapCore brick aliases.
-  box-crossˢ′  = box-crossˢ H dih lin permˢ-K
-  perm-invˡ′   = permuteˢ-inv-left H dih lin permˢ-K
+  box-crossˢ′  = box-crossˢ H permˢ-K
+  perm-invˡ′   = permuteˢ-inv-left H permˢ-K
 
   ------------------------------------------------------------------------
   -- THE ABSTRACT LOCATED-INTERCHANGE CORE (the genuine N-content).
@@ -172,8 +172,8 @@ module FMS2 (H : Hypergraph FlatGen)
   permˢ-K = PK.permˢ-K (Fin H.nV) _≟F_ vl
 
   -- SwapCore brick aliases.
-  Incompˢ      = Incomp H dih lin
-  perm-rigidˢ′ = perm-rigidˢ H dih lin permˢ-K
+  Incompˢ      = Incomp H
+  perm-rigidˢ′ = perm-rigidˢ H permˢ-K
 
   -- block-swap-comm at this hypergraph's vertex set.
   block-swap-comm = BSC.block-swap-comm (Fin H.nV) H.vlab
@@ -378,9 +378,9 @@ module _ (H : Hypergraph FlatGen)
   permˢ-K = PK.permˢ-K (Fin H.nV) _≟F_ vl
 
   -- SwapCore brick aliases.
-  fire-termˢ′  = fire-termˢ H dih lin
-  perm-rigidˢ′ = perm-rigidˢ H dih lin permˢ-K
-  perm-frameˡ′ = permuteˢ-frameˡ H dih lin
+  fire-termˢ′  = fire-termˢ H
+  perm-rigidˢ′ = perm-rigidˢ H permˢ-K
+  perm-frameˡ′ = permuteˢ-frameˡ H
 
   cross-NFˢ′   = FMS.cross-NFˢ H dih lin
   box-resid3ˢ′ = FMS.box-resid3ˢ H dih lin

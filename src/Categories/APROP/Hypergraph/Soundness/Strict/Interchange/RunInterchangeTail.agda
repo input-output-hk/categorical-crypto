@@ -72,7 +72,7 @@ module _ (H : Hypergraph FlatGen)
   -- `Incomp` from `SwapCore` (so the record matches the `run-interchange₀ˢ`
   -- consumer).
   Incompˢ : Fin H.nE → Fin H.nE → Set
-  Incompˢ = SC.Incomp H dih lin
+  Incompˢ = SC.Incomp H
 
   ----------------------------------------------------------------------
   -- The strict (N) residual record — twin of `FrontSwap.RunInterchange`.

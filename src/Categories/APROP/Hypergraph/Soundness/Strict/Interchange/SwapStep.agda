@@ -88,7 +88,7 @@ module PerHG (H : Hypergraph FlatGen)
   connectivity = PH.connectivity dih
 
   Incompˢ : Fin H.nE → Fin H.nE → Set
-  Incompˢ = SC.Incomp H dih lin
+  Incompˢ = SC.Incomp H
 
   -- The concrete strict Kelly residual at this vertex set.
   private

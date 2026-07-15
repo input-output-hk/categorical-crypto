@@ -76,18 +76,18 @@ module _ (H : Hypergraph FlatGen)
   open StrictDecoder H
 
   ------------------------------------------------------------------------
-  -- Local aliases for the SwapCore bricks (whose anonymous modules expose
-  -- them as functions of `H`/`dih`/`lin`).
+  -- Local aliases for the SwapCore bricks (whose anonymous module exposes
+  -- them as functions of `H`).
   ------------------------------------------------------------------------
 
-  fire-termˢ′ = fire-termˢ H dih lin
-  Incompˢ     = Incomp H dih lin
-  pe-stackˢ′  = pe-stackˢ H dih lin
-  pe-termˢ′   = pe-termˢ H dih lin
+  fire-termˢ′ = fire-termˢ H
+  Incompˢ     = Incomp H
+  pe-stackˢ′  = pe-stackˢ H
+  pe-termˢ′   = pe-termˢ H
 
   -- EdgeStepRˢ view aliases.
-  EdgeStepRˢ′      = EdgeStepRˢ H dih lin
-  edge-stepˢ-graph′ = edge-stepˢ-graph H dih lin
+  EdgeStepRˢ′      = EdgeStepRˢ H
+  edge-stepˢ-graph′ = edge-stepˢ-graph H
 
   ------------------------------------------------------------------------
   -- The both-fire interchange core, AS A STATEMENT (the strict twin of

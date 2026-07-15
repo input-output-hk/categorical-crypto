@@ -5,7 +5,7 @@
 --
 --   * `fire-termˢ`/`EdgeStepRˢ`/`edge-stepˢ-graph` — the strict fired layer
 --     and the inductive graph of `edge-stepˢ`, re-exported from the shared
---     `EdgeStepRel` leaf under this module's `(H)(dih)(lin)` telescope.
+--     `EdgeStepRel` leaf under this module's `(H)` telescope.
 --   * `Incomp`, `pe-stackˢ`/`pe-termˢ` — incomparability + `process-edgesˢ`
 --     projection abbreviations.
 --   * `permuteˢ-frameˡ`, `box-crossˢ`, `permuteˢ-inv-left/right` — the
@@ -25,7 +25,6 @@ open APROP sig using (X)
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 
@@ -46,10 +45,7 @@ open import Relation.Binary.PropositionalEquality using (refl)
 
 --------------------------------------------------------------------------------
 
-module _ (H : Hypergraph FlatGen)
-         (dih : ∀ {e} → ¬ (Dep H e e))
-         (lin : Linear H)
-         where
+module _ (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
 
   open StrictDecoder H
