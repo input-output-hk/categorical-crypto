@@ -13,7 +13,7 @@
 --
 --   1. RUN-SPLIT.  `proj₂ runˢ` factors over `gblk ++ kblk` as
 --      `(K-block run on after-G) ∘ˢ (G-block run on C.dom)` — PROVEN
---      `DecodeTensor.BlockSplit.process-edgesˢ-++`.
+--      `DecodeCompose.RunBlocks.pe-term-++ˢ`.
 --   2. G-BLOCK FRAME.  The G-block run factors `(G-run on injL G.dom) ⊗ˢ
 --      idˢ {map injR K.dom}` via the proven right-frame `term-sepˢ`
 --      (`DecodeTensor.GBlock.G-block-frameˢ`); the G-run is bridged to

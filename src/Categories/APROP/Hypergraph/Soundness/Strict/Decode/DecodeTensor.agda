@@ -50,55 +50,11 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 
 open import Data.Fin using (Fin; _↑ˡ_)
-open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.List using (List; _++_; map)
 open import Data.List.Properties using (map-++)
 open import Data.Product using (_,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; cong)
-
---------------------------------------------------------------------------------
--- The strict edge-block split: `process-edgesˢ` over a `++` of edge-lists is
--- the composition of the two block runs (DEFINITIONAL on the list structure of
--- `process-edgesˢ`).  This is the strict, cast-free twin of the non-strict
--- `run-split-term` (which pays an `unflatten-++-≅` conjugation).
-
-module BlockSplit (H : Hypergraph FlatGen) where
-  private module H = Hypergraph H
-  open StrictDecoder H public
-
-  -- The block-split stack equality (DEFINITIONAL: `process-edgesˢ` recurses
-  -- through the `++` on the left edge-list).
-  stack-++
-    : ∀ (es₁ es₂ : List (Fin H.nE)) (s : List (Fin H.nV))
-    → proj₁ (process-edgesˢ (es₁ ++ es₂) s)
-      ≡ proj₁ (process-edgesˢ es₂ (proj₁ (process-edgesˢ es₁ s)))
-  stack-++ []        es₂ s = refl
-  stack-++ (e ∷ es₁) es₂ s = stack-++ es₁ es₂ (proj₁ (edge-stepˢ s e))
-
-  -- `process-edgesˢ (es₁ ++ es₂) s` = (run es₂ from the es₁-final stack) ∘ˢ
-  -- (run es₁ from s), up to `≈ˢ` (the `∘ˢ`-tree re-associates).  Structural
-  -- induction on `es₁`; `assocˢ` per cons.
-  process-edgesˢ-++
-    : ∀ (es₁ es₂ : List (Fin H.nE)) (s : List (Fin H.nV))
-    → proj₂ (process-edgesˢ (es₁ ++ es₂) s)
-      ≈ˢ castˢ refl (cong (map vl) (sym (stack-++ es₁ es₂ s)))
-          (proj₂ (process-edgesˢ es₂ (proj₁ (process-edgesˢ es₁ s)))
-            ∘ˢ proj₂ (process-edgesˢ es₁ s))
-  process-edgesˢ-++ []        es₂ s = ≈-sym idʳ
-  process-edgesˢ-++ (e ∷ es₁) es₂ s with edge-stepˢ s e
-  ... | (s' , t) =
-    ≈-trans (∘-resp (process-edgesˢ-++ es₁ es₂ s') ≈-refl)
-    (≈-trans (≡⇒≈ˢ (sym (cast-∘-domʳ
-                           (cong (map vl) (sym (stack-++ es₁ es₂ s'))) _ t)))
-      (cast-resp refl _ assocˢ))
-    where
-      -- a cast that only moves the LEFT factor's codomain commutes out of
-      -- `_∘ˢ t` (the `∘ˢ` re-brackets under the cast).
-      cast-∘-domʳ
-        : ∀ {as bs bs'} (q : bs ≡ bs') (g : HomS as bs)
-            {cs} (ff : HomS cs as)
-        → castˢ refl q (g ∘ˢ ff) ≡ castˢ refl q g ∘ˢ ff
-      cast-∘-domʳ refl g ff = refl
+  using (_≡_; refl; sym)
 
 module _
   (permˢ-K : ∀ (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X) → Support.PermK V vlab)
