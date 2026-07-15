@@ -621,33 +621,19 @@ module TKB4 (H : Hypergraph FlatGen) where
     ----------------------------------------------------------------------
     -- ## The per-edge head PROVIDER.
     --
-    -- A `HeadProviderˢ L` is a uniform family supplying, for ANY running
-    -- configuration `(e, s_R, s, pf)`, the advanced clean perm `pf1`, the
-    -- post-edge `Unique`, and the head reconciliation `HeadReconcileˢ`.  Being
-    -- closed over all configurations, it re-invokes on the advanced stacks
-    -- inside the recursion with NO re-indexing.  This is the honest interface
-    -- the per-edge slide (`fire-slideˢ` + equivariance) instantiates; the fold
-    -- below is proven UNCONDITIONALLY against it.
-    ----------------------------------------------------------------------
-
-    HeadProviderˢ : (L : List (Fin H.nV)) → Set
-    HeadProviderˢ L =
-      ∀ (e : Fin H.nE) (s_R s : List (Fin H.nV))
-        (pf : s Perm.↭ L ++ s_R)
-      → Unique s
-      → Σ[ pf1 ∈ (proj₁ (edge-stepˢ s e))
-                   Perm.↭ (L ++ proj₁ (edge-stepˢ s_R e)) ]
-          ( Unique (proj₁ (edge-stepˢ s e))
-          × HeadReconcileˢ e L s_R s (proj₁ (edge-stepˢ s e))
-              pf pf1 (KCleanHeadˢ e L s_R) (proj₂ (edge-stepˢ s e)) )
-
-    -- The SLIM provider: as `HeadProviderˢ` but (a) WITHOUT the post-edge
-    -- `Unique` component (which the reservoir-threaded fold derives for
-    -- itself), and (b) GUARDED by a per-edge predicate `D e` (the
+    -- A `HeadProviderRˢ D L` is a uniform family supplying, for ANY running
+    -- configuration `(e, s_R, s, pf)` with `D e`, the advanced clean perm
+    -- `pf1` and the head reconciliation `HeadReconcileˢ`.  It carries NO
+    -- post-edge `Unique` component (the reservoir-threaded fold derives that
+    -- for itself) and is GUARDED by a per-edge predicate `D e` (the
     -- disjointness `ein-disjⁱ e L`, supplied only for the edges actually
     -- fired — gblk-edge inputs are NOT disjoint from an `injL`-block, so the
-    -- guard must NOT be universal).  Crucially, a `HeadProviderRˢ` can be
-    -- supplied WITHOUT the FALSE per-edge `Unique`-preservation family `puq`.
+    -- guard must NOT be universal), which lets it be supplied WITHOUT the
+    -- FALSE per-edge `Unique`-preservation family `puq`.  Being closed over
+    -- all configurations, it re-invokes on the advanced stacks inside the
+    -- recursion with NO re-indexing.
+    ----------------------------------------------------------------------
+
     HeadProviderRˢ : (D : Fin H.nE → Set) (L : List (Fin H.nV)) → Set
     HeadProviderRˢ D L =
       ∀ (e : Fin H.nE) → D e → (s_R s : List (Fin H.nV))
@@ -659,81 +645,29 @@ module TKB4 (H : Hypergraph FlatGen) where
             pf pf1 (KCleanHeadˢ e L s_R) (proj₂ (edge-stepˢ s e))
 
     ----------------------------------------------------------------------
-    -- ## `kfac-genˢ` — the generalised K-side perm-tracking fold.
+    -- ## `kfac-gen-resˢ` — the RESERVOIR-THREADED K-side perm-tracking fold.
     --
     --   proj₂ (process-edgesˢ es s)
     --     ≈ˢ permuteˢ Br ∘ˢ (KCleanˢ es L s_R ∘ˢ permuteˢ pf)
     --
     -- with the actual stack `s` only `↭`-ing the clean form (`pf`) and the
-    -- codomain `↭`-ing the clean target (`Br`).  Induction on `es`, mirroring
-    -- `process-edgesˢ`:
+    -- codomain `↭`-ing the clean target (`Br`).  Induction on `es` mirroring
+    -- `process-edgesˢ`: the head is rewritten by the `HeadProviderRˢ`, the tail
+    -- by the IH, the clean blocks telescoped by `KCleanˢ-cons` (`Br` threads
+    -- through the cons telescoping unchanged); the `[]` case collapses
+    -- `permuteˢ Br ∘ permuteˢ pf` by `pvv-cancelˢ` and `KCleanˢ [] L s_R` by
+    -- `KCleanˢ-nil`.
     --
-    --   * `[]`   — `idˢ`; collapse `permuteˢ Br ∘ permuteˢ pf` by `pvv-cancelˢ`
-    --              and `KCleanˢ [] L s_R` by `KCleanˢ-nil`.
-    --   * `e∷es` — `proj₂ (process es s1) ∘ tH`: rewrite the head by the
-    --              `HeadProviderˢ`, the tail by the IH, telescope the clean
-    --              blocks by `KCleanˢ-cons`.  `Br` is shared with the IH (the
-    --              prepend braid threads through the cons telescoping
-    --              unchanged).
-    --
-    -- The threaded `Unique` (the round-trip side-condition) is advanced one
-    -- edge per recursion via the provider.
-    ----------------------------------------------------------------------
-
-    kfac-genˢ
-      : ∀ (L : List (Fin H.nV)) (hp : HeadProviderˢ L)
-          (es : List (Fin H.nE)) (s_R s : List (Fin H.nV))
-          (pf : s Perm.↭ L ++ s_R)
-          (Br : (L ++ proj₁ (process-edgesˢ es s_R))
-                Perm.↭ proj₁ (process-edgesˢ es s))
-      → Unique s
-      → proj₂ (process-edgesˢ es s)
-        ≈ˢ permuteˢ Br ∘ˢ (KCleanˢ es L s_R ∘ˢ permuteˢ pf)
-    kfac-genˢ L hp [] s_R s pf Br uniq =
-      -- proj₂ (process [] s) = idˢ.
-      ≈-sym
-        (≈-trans (∘-resp ≈-refl (∘-resp (KCleanˢ-nil L s_R) ≈-refl))
-        (≈-trans (∘-resp ≈-refl idˡ)
-          (pvv-cancelˢ uniq pf Br)))
-    kfac-genˢ L hp (e ∷ es) s_R s pf Br uniq with hp e s_R s pf uniq
-    ... | pf1 , uniq1 , head =
-      -- proj₂ (process (e∷es) s) = proj₂ (process es s1) ∘ˢ tH.
-      ≈-trans (∘-resp IH ≈-refl)
-      -- (permuteˢ Br ∘ (KCleanˢ es L sR1 ∘ permuteˢ pf1)) ∘ tH
-      (≈-trans assocˢ
-        (∘-resp ≈-refl
-          -- (KCleanˢ es L sR1 ∘ permuteˢ pf1) ∘ tH
-          (≈-trans assocˢ
-            -- KCleanˢ es L sR1 ∘ (permuteˢ pf1 ∘ tH)
-            (≈-trans (∘-resp ≈-refl head)
-              -- KCleanˢ es L sR1 ∘ (KCleanHeadˢ e L s_R ∘ permuteˢ pf)
-              (≈-trans (≈-sym assocˢ)
-                -- (KCleanˢ es L sR1 ∘ KCleanHeadˢ e L s_R) ∘ permuteˢ pf
-                (∘-resp (≈-sym (KCleanˢ-cons e es L s_R)) ≈-refl))))))
-      where
-        s1  = proj₁ (edge-stepˢ s e)
-        sR1 = proj₁ (edge-stepˢ s_R e)
-
-        IH : proj₂ (process-edgesˢ es s1) ≈ˢ permuteˢ Br ∘ˢ (KCleanˢ es L sR1 ∘ˢ permuteˢ pf1)
-        IH = kfac-genˢ L hp es sR1 s1 pf1 Br uniq1
-
-    ----------------------------------------------------------------------
-    -- ## `kfac-gen-resˢ` — the RESERVOIR-THREADED K-side perm-tracking fold.
-    --
-    -- Identical to `kfac-genˢ`, but the threaded per-step `Unique` is DERIVED
-    -- (not assumed): instead of carrying a `Unique s` advanced by the
-    -- provider's (FALSE-in-general) post-edge `Unique`, we carry the
-    -- `StackUniqueReach.Reservoir≤1 H es s` freshness invariant along the
-    -- run-order `es` at the running stack `s`.  Each step:
+    -- The threaded per-step `Unique` is DERIVED, not assumed: rather than
+    -- carrying a `Unique s` advanced by a (FALSE-in-general) post-edge
+    -- `Unique`, we carry the `StackUniqueReach.Reservoir≤1 H es s` freshness
+    -- invariant along the run-order `es` at the running stack `s`.  Each step:
     --   * `Reservoir≤1⇒Unique` derives the round-trip `Unique s`;
-    --   * the `HeadProviderˢ` is invoked with that derived `Unique s` (it still
-    --     supplies `pf1` + the head reconciliation; its OWN post-edge `Unique`
-    --     is discarded — the recursion does NOT consume it);
+    --   * the `HeadProviderRˢ` is invoked with that derived `Unique s` (it
+    --     supplies `pf1` + the head reconciliation);
     --   * `edge-step-Reservoir≤1` advances the invariant one edge, bridged to
     --     the strict stack `proj₁ (edge-stepˢ s e)` by `edge-stack-agree`.
-    -- This is the EXACT threading `process-edges-equivariantˢ` (StackEquiv)
-    -- uses; the only constructive content beyond `kfac-genˢ` is the `Unique`
-    -- SOURCE swap (no new braid/cast algebra).
+    -- This is the EXACT threading `process-edges-equivariantˢ` (StackEquiv) uses.
     ----------------------------------------------------------------------
 
     kfac-gen-resˢ
@@ -1322,7 +1256,6 @@ module TKB5 (H : Hypergraph FlatGen) where
   module _ (permˢ-K : Kmod.PermK) where
     KCleanHeadˢ = TKB4.KCleanHeadˢ H permˢ-K
     HeadReconcileˢ = TKB4.HeadReconcileˢ H permˢ-K
-    HeadProviderˢ = TKB4.HeadProviderˢ H permˢ-K
 
     ----------------------------------------------------------------------
     -- ## The clean per-edge SLIDE interface.
