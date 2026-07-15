@@ -21,11 +21,11 @@ module Categories.PermuteCoherence.Word where
 
 open import Data.Nat.Base using (ℕ; zero; suc)
 open import Data.Fin.Base using (Fin; zero) renaming (suc to fsuc)
-open import Data.Fin.Patterns using (0F; 1F)
-open import Data.List.Base using (List; []; _∷_; _++_; length)
+open import Data.Fin.Patterns using (0F)
+open import Data.List.Base using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-identityʳ)
 import Data.Fin.Permutation as P
-open P using (Permutation; _∘ₚ_; transpose; lift₀; remove)
+open P using (remove)
 
 open import Relation.Binary.PropositionalEquality.Core
   using (_≡_; refl; sym; cong; trans; subst)

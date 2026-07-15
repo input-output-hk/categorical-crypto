@@ -21,7 +21,6 @@ module Categories.PermuteCoherence.FaithfulnessK
   (d : FreeMonoidalData) ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
 
 open FreeMonoidal d
-open FreeMonoidalData d using (X)
 
 open import Categories.PermuteCoherence.Faithfulness d
   using (α⇐-comm)

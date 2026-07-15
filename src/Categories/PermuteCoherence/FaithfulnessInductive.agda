@@ -47,18 +47,16 @@ open import Relation.Binary.PropositionalEquality.Properties using (subst-subst)
 open import Data.List.Properties using () renaming (≡-dec to List-≡-dec)
 import Axiom.UniquenessOfIdentityProofs as UIPmod
 open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (↭-length)
-open import Data.Product using (Σ; _,_; proj₁; proj₂; Σ-syntax)
+open import Data.Product using (_,_; proj₁; proj₂; Σ-syntax)
 
 open import Categories.PermuteCoherence.FinBij
-  using (_≈-fb_; cons-fb; swap-fb; id-fb; _∘-fb_; ≈-fb-refl)
+  using (_≈-fb_; cons-fb; swap-fb; id-fb; _∘-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.EvalSoundness
   using ( cons-fb-functor-id; cons-fb-functor-comp; swap-fb-involutive
         ; swap-fb-natural; yang-baxter )
 open import Categories.PermuteCoherence.Faithfulness d
-  using (permute; unflatten; α⇐-comm)
-open import Categories.PermuteCoherence.FaithfulnessK d
-  using (σ-block-self-inverse-direct)
+  using (permute; unflatten)
 -- The σ-block Yang-Baxter braid, derived from `hexagon`.
 open import Categories.FreeSMC.SigmaBlockHexagon d
   using (σ-block; σ-block-hexagon; σ-block-natural₃)
@@ -66,7 +64,7 @@ open import Categories.FreeSMC.SigmaBlockHexagon d
 open import Categories.PermuteCoherence.Word
   using ( Word; liftW; _~ʷ_; ~refl; ~sym; ~trans; ∷c; c1; c2; c3
         ; Far; far0ˡ; far0ʳ; farS; Adj; adj0; adjS
-        ; evalW; canonW; canonW-resp-≈
+        ; evalW; canonW-resp-≈
         ; cons-fb-cong )
 open import Categories.PermuteCoherence.InsertProof using (straightenW)
 open import Categories.PermuteCoherence.WordInterp {X = X}

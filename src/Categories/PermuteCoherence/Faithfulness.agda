@@ -20,9 +20,8 @@ module Categories.PermuteCoherence.Faithfulness
 open FreeMonoidal d
 open FreeMonoidalData d using (X)
 
-open import Data.List.Base using (List; []; _∷_; _++_; length)
+open import Data.List.Base using (List; []; _∷_; _++_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open Perm using (_↭_)
 
 open import Categories.Category.Monoidal using (Monoidal)
 open import Categories.Category.Monoidal.Utilities Monoidal-FreeMonoidal

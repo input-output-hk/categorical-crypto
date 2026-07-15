@@ -17,7 +17,7 @@
 
 module Categories.PermuteCoherence.WordInterp {a} {X : Set a} where
 
-open import Data.Nat.Base using (ℕ; zero; suc)
+open import Data.Nat.Base using (ℕ; suc)
 open import Data.Nat.Properties using (suc-injective)
 open import Data.Fin.Base using (Fin) renaming (suc to fsuc)
 open import Data.Fin.Patterns using (0F)

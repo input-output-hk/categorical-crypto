@@ -18,21 +18,21 @@
 module Categories.PermuteCoherence.Rigid where
 
 open import Data.Empty using (⊥-elim)
-open import Data.Nat.Base using (ℕ; zero; suc)
+open import Data.Nat.Base using (zero; suc)
 open import Data.Fin.Base using (Fin; zero; suc)
-open import Data.Fin.Patterns using (0F; 1F)
-open import Data.List.Base using (List; []; _∷_; length; lookup)
+open import Data.Fin.Patterns using (0F)
+open import Data.List.Base using (List; _∷_; length; lookup)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
-open import Data.List.Relation.Unary.All using (All; []; _∷_)
-open import Data.List.Relation.Unary.AllPairs using ([]; _∷_)
+open import Data.List.Relation.Unary.All using (All; _∷_)
+open import Data.List.Relation.Unary.AllPairs using (_∷_)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.Fin.Permutation as P
 
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong)
 
-open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_)
+open import Categories.PermuteCoherence.FinBij using (_≈-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 
 open import Level using (Level)
