@@ -21,7 +21,10 @@ open import Categories.NaturalTransformation.NaturalIsomorphism.Properties using
 
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.Product using (uncurry; _,_)
+open import Function.Base using (case_of_)
+open import Relation.Binary.Definitions using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Nullary using (yes; no)
 
 import Categories.Category.Monoidal.Reasoning as MonR
 import Categories.Morphism.Reasoning as MR
@@ -86,6 +89,38 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
   wires : List X → ObjTerm
   wires []       = unit
   wires (x ∷ xs) = Var x ⊗₀ wires xs
+
+  -- decidable equality on `ObjTerm`, from one on the atoms.  No-K style:
+  -- the negative cases go through injectivity lemmas, never a refl-match at
+  -- a partially-forced index.  Depends only on `unit`/`_⊗₀_`/`Var`, so it
+  -- lives here rather than in any generator-specific layer.
+  private
+    ⊗₀-inj₁ : ∀ {a b a' b'} → (a ⊗₀ b) ≡ (a' ⊗₀ b') → a ≡ a'
+    ⊗₀-inj₁ refl = refl
+    ⊗₀-inj₂ : ∀ {a b a' b'} → (a ⊗₀ b) ≡ (a' ⊗₀ b') → b ≡ b'
+    ⊗₀-inj₂ refl = refl
+    Var-inj : ∀ {x y} → Var x ≡ Var y → x ≡ y
+    Var-inj refl = refl
+
+  ≟ObjTerm : DecidableEquality X → DecidableEquality ObjTerm
+  ≟ObjTerm _≟X_ = go
+    where
+      go : DecidableEquality ObjTerm
+      go unit      unit       = yes refl
+      go unit      (_ ⊗₀ _)   = no λ ()
+      go unit      (Var _)    = no λ ()
+      go (_ ⊗₀ _)  unit       = no λ ()
+      go (a ⊗₀ b)  (a' ⊗₀ b') = case go a a' of λ where
+        (no ¬p)    → no λ eq → ¬p (⊗₀-inj₁ eq)
+        (yes refl) → case go b b' of λ where
+          (yes refl) → yes refl
+          (no ¬q)    → no λ eq → ¬q (⊗₀-inj₂ eq)
+      go (_ ⊗₀ _)  (Var _)    = no λ ()
+      go (Var _)   unit       = no λ ()
+      go (Var _)   (_ ⊗₀ _)   = no λ ()
+      go (Var x)   (Var y)    = case _≟X_ x y of λ where
+        (yes refl) → yes refl
+        (no ¬p)    → no λ eq → ¬p (Var-inj eq)
 
   module Mor (mor : ObjTerm → ObjTerm → Set) where
     infix  4 _≈Term_
@@ -186,27 +221,22 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
     split []      = λ⇐
     split (x ∷ a) = α⇐ ∘ id ⊗₁ split a
 
-    open MR FreeMonoidal using (center⁻¹; cancelInner; insertInner; pullˡ; cancelʳ)
+    open MR FreeMonoidal
     open MonR Monoidal-FreeMonoidal using (refl⟩⊗⟨_; _⟩⊗⟨refl; split₁ʳ; merge₂ʳ)
-    open Category.HomReasoning FreeMonoidal using (_○_; ⟺; refl⟩∘⟨_; _⟩∘⟨refl)
+    open Category.HomReasoning FreeMonoidal
 
-    -- fuse two id-tensored factors:  id⊗₁P ∘ id⊗₁Q ≈ id⊗₁(P∘Q)
     id⊗-∘ : ∀ {Z} {A B C} (P : HomTerm B C) (Q : HomTerm A B)
           → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ≈Term id {Z} ⊗₁ (P ∘ Q)
     id⊗-∘ P Q = merge₂ʳ
 
-    -- collapse three id-tensored factors:  id⊗₁P ∘ id⊗₁Q ∘ id⊗₁R ≈ id⊗₁(P∘Q∘R)
     id⊗-∘3 : ∀ {Z} {A B C D} (P : HomTerm C D) (Q : HomTerm B C) (R : HomTerm A B)
            → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ∘ id {Z} ⊗₁ R ≈Term id {Z} ⊗₁ (P ∘ Q ∘ R)
     id⊗-∘3 {Z} P Q R = (refl⟩∘⟨ id⊗-∘ Q R) ○ id⊗-∘ P (Q ∘ R)
 
-    -- cancel two id-tensored mutually-inverse factors outright.
     id⊗-cancel : ∀ {Z} {A B} {P : HomTerm B A} {Q : HomTerm A B}
                → P ∘ Q ≈Term id → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ≈Term id
     id⊗-cancel {P = P} {Q} PQ = id⊗-∘ P Q ○ (refl⟩⊗⟨ PQ) ○ id⊗id≈id
 
-    -- conjugate a triple tensor by the associator:
-    --   α⇒ ∘ (f ⊗₁ g) ⊗₁ h ∘ α⇐ ≈ f ⊗₁ (g ⊗₁ h).
     α-conj : ∀ {A B C D E G} (f : HomTerm A B) (g : HomTerm C D) (h : HomTerm E G)
            → α⇒ ∘ (f ⊗₁ g) ⊗₁ h ∘ α⇐ ≈Term f ⊗₁ (g ⊗₁ h)
     α-conj f g h = pullˡ α-comm ○ cancelʳ α⇒∘α⇐≈id
@@ -280,6 +310,15 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
       ○ refl⟩∘⟨ (insertInner (split∘merge v) ⟩∘⟨refl)
       ○ center⁻¹ ≈-Term-refl assoc
 
+    -- rpad commutes with the prefix id⊗₁: rpad rt (id⊗₁ h) ≈ id⊗₁ (rpad rt h).
+    rpad-id⊗ : ∀ (rt : List X) (x : X) {u v} (h : HomTerm (wires u) (wires v))
+             → rpad rt (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ rpad rt h
+    rpad-id⊗ rt x {u} {v} h =
+      (assoc ○ (refl⟩∘⟨ assoc²εβ))
+      ○ refl⟩∘⟨ (α-conj (id {Var x}) h id ⟩∘⟨refl)
+      ○ refl⟩∘⟨ (id⊗-∘ (h ⊗₁ id) (split u))
+      ○ id⊗-∘ (merge v) ((h ⊗₁ id) ∘ split u)
+
     -- pad respects ≈.  `pad pre suf = liftW pre ∘ rpad suf` definitionally, so
     -- the pad functoriality lemmas factor through the liftW-*/rpad-* ones.
     pad-resp : ∀ {a b} (pre suf : List X) {g g' : HomTerm (wires a) (wires b)}
@@ -308,6 +347,62 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
         ; commutative = σ∘σ≈id
         ; hexagon     = hexagon
         }
+
+  --------------------------------------------------------------------------
+  -- Generator bind: the free monoidal category construction is functorial in
+  -- its generator family.  A map `h` from one generator family into the free
+  -- category over another (both over the SAME atoms) extends homomorphically,
+  -- identity on objects.  This is the case `FreeFunctor` cannot express — its
+  -- object map is a recursion, not the identity — so it is the library-level
+  -- functoriality fact any such injection is an instance of, rather than a
+  -- clone of the equational-respect table.
+  --------------------------------------------------------------------------
+  module Bind {mor₁ mor₂ : ObjTerm → ObjTerm → Set}
+              (h : ∀ {A B} → mor₁ A B → Mor.HomTerm mor₂ A B)
+    where
+    private
+      module M₁ = Mor mor₁
+      module M₂ = Mor mor₂
+
+    bind : ∀ {A B} → M₁.HomTerm A B → M₂.HomTerm A B
+    bind (M₁.var g)   = h g
+    bind M₁.id        = M₂.id
+    bind (g M₁.∘ f)   = bind g M₂.∘ bind f
+    bind (f M₁.⊗₁ g)  = bind f M₂.⊗₁ bind g
+    bind M₁.λ⇒        = M₂.λ⇒
+    bind M₁.λ⇐        = M₂.λ⇐
+    bind M₁.ρ⇒        = M₂.ρ⇒
+    bind M₁.ρ⇐        = M₂.ρ⇐
+    bind M₁.α⇒        = M₂.α⇒
+    bind M₁.α⇐        = M₂.α⇐
+    bind (M₁.σ ⦃ s ⦄) = M₂.σ ⦃ s ⦄
+
+    -- bind preserves the equational theory (each axiom maps to the same axiom).
+    bind-resp-≈ : ∀ {A B} {f g : M₁.HomTerm A B} → f M₁.≈Term g → bind f M₂.≈Term bind g
+    bind-resp-≈ M₁.idˡ                     = M₂.idˡ
+    bind-resp-≈ M₁.idʳ                     = M₂.idʳ
+    bind-resp-≈ M₁.assoc                   = M₂.assoc
+    bind-resp-≈ (M₁.∘-resp-≈ p q)          = M₂.∘-resp-≈ (bind-resp-≈ p) (bind-resp-≈ q)
+    bind-resp-≈ M₁.≈-Term-refl             = M₂.≈-Term-refl
+    bind-resp-≈ (M₁.≈-Term-sym p)          = M₂.≈-Term-sym (bind-resp-≈ p)
+    bind-resp-≈ (M₁.≈-Term-trans p q)      = M₂.≈-Term-trans (bind-resp-≈ p) (bind-resp-≈ q)
+    bind-resp-≈ M₁.id⊗id≈id                = M₂.id⊗id≈id
+    bind-resp-≈ (M₁.⊗-resp-≈ p q)          = M₂.⊗-resp-≈ (bind-resp-≈ p) (bind-resp-≈ q)
+    bind-resp-≈ M₁.⊗-∘-dist                = M₂.⊗-∘-dist
+    bind-resp-≈ M₁.λ⇐∘λ⇒≈id                = M₂.λ⇐∘λ⇒≈id
+    bind-resp-≈ M₁.λ⇒∘λ⇐≈id                = M₂.λ⇒∘λ⇐≈id
+    bind-resp-≈ M₁.ρ⇐∘ρ⇒≈id                = M₂.ρ⇐∘ρ⇒≈id
+    bind-resp-≈ M₁.ρ⇒∘ρ⇐≈id                = M₂.ρ⇒∘ρ⇐≈id
+    bind-resp-≈ M₁.α⇐∘α⇒≈id                = M₂.α⇐∘α⇒≈id
+    bind-resp-≈ M₁.α⇒∘α⇐≈id                = M₂.α⇒∘α⇐≈id
+    bind-resp-≈ M₁.λ⇒∘id⊗f≈f∘λ⇒            = M₂.λ⇒∘id⊗f≈f∘λ⇒
+    bind-resp-≈ M₁.ρ⇒∘f⊗id≈f∘ρ⇒            = M₂.ρ⇒∘f⊗id≈f∘ρ⇒
+    bind-resp-≈ M₁.α-comm                  = M₂.α-comm
+    bind-resp-≈ M₁.triangle                = M₂.triangle
+    bind-resp-≈ M₁.pentagon                = M₂.pentagon
+    bind-resp-≈ (M₁.σ∘σ≈id ⦃ s ⦄)          = M₂.σ∘σ≈id ⦃ s ⦄
+    bind-resp-≈ (M₁.σ∘[f⊗g]≈[g⊗f]∘σ ⦃ s ⦄) = M₂.σ∘[f⊗g]≈[g⊗f]∘σ ⦃ s ⦄
+    bind-resp-≈ (M₁.hexagon ⦃ s ⦄)         = M₂.hexagon ⦃ s ⦄
 
 record FreeMonoidalData : Set₁ where
   field v : Variant
@@ -339,9 +434,9 @@ module FreeObjInterp (v : Variant) (X : Set) {o ℓ e : Level}
   ⟦ A ⊗₀ B ⟧₀ = ⟦ A ⟧₀ C.⊗₀ ⟦ B ⟧₀
   ⟦ Var x ⟧₀ = ⟦ x ⟧ᵖ₀
 
--- `Go` (used to 'define' `⟦_⟧₀` in the middle of `FreeFunctorData`, where a
--- bare definition is not allowed) is now just the generator-independent
--- `FreeObjInterp` re-exported at this `d`.
+-- `Go` wraps the generator-independent object interpretation `FreeObjInterp`
+-- in a module so it can be opened mid-record in `FreeFunctorData`, where a
+-- bare `⟦_⟧₀ = …` definition between `field` blocks is not allowed.
 module FreeFunctorHelper (d : FreeMonoidalData) (let open FreeMonoidalData d)
                          {o ℓ e : Level} (⟦v⟧ : ⟦ v ⟧ᵥ {o} {ℓ} {e}) where
   open FreeMonoidal d public

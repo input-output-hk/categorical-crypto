@@ -13,19 +13,20 @@
 -- (`FCore`/`FBridge`), instantiated at (Symm, MorS, ⟦box⟧S).  This file
 -- supplies only the σ-specific clauses:
 --
---   * `injBox (cross a b)` maps a crossing to the σ-composite
---     `F.merge b ∘ σ ∘ F.split a`;
 --   * `reflectσ A B = boxʷ (cross (flatten A) (flatten B))`, cast-free since
 --     `flatten (A ⊗₀ B) ≡ flatten A ++ flatten B` holds definitionally;
---   * `bridge-σ` — the ONE genuinely new bridge case: after `F.split ∘ F.merge`
+--   * `bridge-σ` — the only σ-specific bridge case (beyond Core's bridgeF): after `F.split ∘ F.merge`
 --     cancellation the goal reduces to braiding naturality at
 --     (flat⇒ A , flat⇒ B), i.e. the σ∘[f⊗g]≈[g⊗f]∘σ axiom.
 --
 -- `Into` takes a target monoidal category WITH a `Symmetric` structure, so σ
--- lands on the target's braiding.  What decides, the inherited L1/L2/L4/L6,
--- the shared L5 mitigation, and the braiding-specific boundaries Lσ1 (hexagon)
--- / Lσ2 (straddling box) are machine-checked in
--- `Categories.Coherence.Monoidal.Test.SigmaFrontend`.
+-- lands on the target's braiding.  The positive σ cases and the
+-- braiding-specific boundaries Lσ1 (hexagon) / Lσ2 (straddling box) are
+-- machine-checked in `Categories.Coherence.Monoidal.Test.SigmaFrontend`; the
+-- limitations inherited from the shared `Frontend.Core` pipeline are
+-- catalogued in the Mon `Categories.Coherence.Monoidal.Test.Frontend`
+-- (which pins the non-injective-rank L2 and syntactic-generator L5 as
+-- `≡ nothing`, the others being meta-properties).
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.Frontend.Sigma where
@@ -36,19 +37,15 @@ open import categorical-crypto.Prelude
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
-open import Data.Vec using (Vec; lookup)
+open import Data.Vec using (Vec)
 
-open import Categories.Category using (Category; _[_,_])
-open import Categories.Category.Monoidal using (MonoidalCategory)
-open import Categories.Category.Monoidal.Symmetric using (Symmetric)
-
-import Categories.Category.Monoidal.Reasoning as MonR
-import Categories.Morphism.Reasoning as MR
+open import Categories.Category
+open import Categories.Category.Monoidal
+open import Categories.Category.Monoidal.Symmetric
 
 open import Categories.FreeMonoidal
 open import Categories.Coherence.Monoidal.Frontend.Core
-  using (FreeSig; module FCore; module FBridge; module IntoCore; module FinSig; module FFocus)
-open import Categories.Coherence.Monoidal.Sigma using (module Sigma)
+open import Categories.Coherence.Monoidal.Sigma
 
 module FrontendS
   {X : Set}
@@ -61,15 +58,15 @@ module FrontendS
   -- The engine-free shared layer: flatten, MorW, GenΣ, F≈R
   ------------------------------------------------------------------------
 
-  private module Core = FCore Symm {X = X} GenF
-  open Core public using (flatten; MorW; mk; GenΣ; module F≈R)
-  open F≈R
+  private module Core = FCore Symm GenF
+  open Core
+  open Core.F≈R
 
   -- the σ-engine at MorW; its `Decide` driver renamed `DecideW`, the
   -- front-end defines its own `Decide` below.
-  open Sigma _≟X_ MorW renaming (module Decide to DecideW)
+  open Sigma _≟X_ MorW
+    renaming (module Decide to DecideW)
 
-  -- Front-end free category: HomTerm over GenF, qualified `F`.
   -- the generator signature, shared by the engine modules below; `F` is its
   -- free category (HomTerm over GenF).
   private
@@ -82,7 +79,7 @@ module FrontendS
   ------------------------------------------------------------------------
 
   private module FB = FBridge Symm _≟X_ GenF ES
-  open FB public using (flat⇒; flat⇐)
+  open FB
 
   ------------------------------------------------------------------------
   -- The σ-specific clauses: a box is conjugated by the canonical iso, a
@@ -103,12 +100,11 @@ module FrontendS
               → WTerm (flatten A ++ flatten B) (flatten B ++ flatten A)
     reflectσS A B = boxʷ (cross (flatten A) (flatten B))
 
-  private module FBI = FB.WithInj injBox reflectVarS (λ ⦃ s ⦄ A B → reflectσS ⦃ s ⦄ A B)
-  open FBI public
-    using (inj; inj-merge; inj-split; reflectF)
+  private module FBI = FB.WithInj injBox reflectVarS (λ ⦃ s ⦄ → reflectσS ⦃ s ⦄)
+  open FBI
 
   ------------------------------------------------------------------------
-  -- The σ bridge law — the ONE genuinely new case of bridgeF: after
+  -- The σ bridge law — the only σ-specific case of bridgeF: after
   -- `F.split ∘ F.merge` cancellation the goal is braiding naturality at
   -- (flat⇒ A , flat⇒ B)
   ------------------------------------------------------------------------
@@ -122,7 +118,7 @@ module FrontendS
         ≈F⟨ F.≡⇒≈Term (cong₂ (λ h j → h F.∘ (F.σ F.∘ j))
                        (inj-merge fB {fA}) (inj-split fA {fB})) F.⟩∘⟨refl ⟩
       (F.merge fB {fA} F.∘ (F.σ F.∘ F.split fA {fB})) F.∘ (F.merge fA {fB} F.∘ (f⇒A F.⊗₁ f⇒B))
-        ≈F⟨ F.assoc²βε F.○ (F.refl⟩∘⟨ (F.refl⟩∘⟨ F.cancelˡ (F.split∘merge fA {fB}))) ⟩
+        ≈F⟨ merge-split-mid fA (F.merge fB {fA}) F.σ (f⇒A F.⊗₁ f⇒B) ⟩
       F.merge fB {fA} F.∘ (F.σ F.∘ (f⇒A F.⊗₁ f⇒B))
         ≈F⟨ F.refl⟩∘⟨ F.σ∘[f⊗g]≈[g⊗f]∘σ ⟩
       F.merge fB {fA} F.∘ ((f⇒B F.⊗₁ f⇒A) F.∘ F.σ)
@@ -133,7 +129,7 @@ module FrontendS
         f⇒A = flat⇒ A ; f⇒B = flat⇒ B
 
   private module FBB = FBI.Bridge (λ g → refl) (λ {A} {B} ⦃ s ⦄ → bridge-σS {A} {B} ⦃ s ⦄)
-  open FBB using (solveF)
+  open FBB
 
   ------------------------------------------------------------------------
   -- The decision procedure: reflect both sides, hand them to the
@@ -142,8 +138,7 @@ module FrontendS
 
   module Decide
     (_≟G_ : DecidableEquality GenΣ)
-    (rank : GenΣ → ℕ)   -- tiebreak key for ambiguous (mutually-fitting) pairs;
-                        -- for a Fin-indexed signature, `toℕ` of the index.
+    (rank : GenΣ → ℕ)   -- tiebreak key for ambiguous pairs
     where
 
     private
@@ -160,35 +155,7 @@ module FrontendS
     decide?F : ∀ {Y Z} (l r : F.HomTerm Y Z) → Maybe (l F.≈Term r)
     decide?F l r = Data.Maybe.map solveF (DW.decideσ? (reflectF l) (reflectF r))
 
-    module FF = FFocus sig decide?F
-    open FF public using (IsJust; solveTerm!; _≟O_; Foc; plug; focusAll; focusAtₙ)
-
-    ------------------------------------------------------------------------
-    -- Transport into a target symmetric monoidal category, along the free
-    -- functor.  σ lands on the target's braiding, so `solveMorσ!`'s equation
-    -- reads in the target's own vocabulary
-    ------------------------------------------------------------------------
-
-    module Into
-      {o ℓ e : Level}
-      (C : MonoidalCategory o ℓ e)
-      (Sym : Symmetric (C .MonoidalCategory.monoidal))
-      (⟦_⟧ᵖ₀ : X → C .MonoidalCategory.U .Category.Obj)
-      where
-
-      private module IC = IntoCore sig decide?F (fromMC C (λ ⦃ _ ⦄ → Sym)) ⟦_⟧ᵖ₀
-      open IC public using (⟦_⟧ₒ)
-
-      module WithGen
-        (⟦gen⟧ : ∀ {Y Z} → GenF Y Z
-               → C .MonoidalCategory.U [ ⟦ Y ⟧ₒ , ⟦ Z ⟧ₒ ])
-        where
-
-        open IC.WithGenC ⟦gen⟧ public
-          using (⟦_⟧₁; ⟦⟧-resp-≈)
-          renaming (solveMor! to solveMorσ!;
-                    rewriteMor! to rewriteMorσ!; rewriteMorₙ! to rewriteMorσₙ!;
-                    rewriteMorAuto! to rewriteMorσAuto!)
+    open FSolve sig decide?F public using (module Into)
 
 --------------------------------------------------------------------------------
 -- `FinSetupσ`: the call-site convenience wrapper (the σ-analogue of the Mon
@@ -203,23 +170,16 @@ module FinSetupσ
   {nA : ℕ} (vars : Vec (C .MonoidalCategory.U .Category.Obj) nA)
   where
 
-  -- the object language over the atom indices, with constructors renamed so
-  -- they coexist with a caller's own free-category vocabulary.
-  open FreeMonoidalHelper Symm (Fin nA) public
-    using (ObjTerm) renaming (Var to V; unit to unitᵒ; _⊗₀_ to _⊗ᵒ_)
-
-  -- the object interpretation `ObjTerm → C.Obj`, independent of any generator
-  -- signature — definitionally the `⟦_⟧ₒ` each `Sig` exposes (see `Morσ`).
-  open FreeObjInterp Symm (Fin nA) (fromMC C (λ ⦃ _ ⦄ → Sym)) (lookup vars)
-    public using () renaming (⟦_⟧₀ to ⟦_⟧ₒ)
+  private module Core = FinSetupCore {v = Symm} C (λ ⦃ _ ⦄ → Sym) vars
+  open Core public using (ObjTerm; V; unitᵒ; _⊗ᵒ_; ⟦_⟧ₒ)
 
   module Sig {nG : ℕ} (arity : Fin nG → ObjTerm × ObjTerm) where
 
-    open FinSig Symm {X = Fin nA} arity public using (GenS; genS; module S; gen; GenΣ; _≟G_; rankS)
+    -- build the Symm front-end's decision procedure at this signature, then
+    -- hand it to the variant-generic `FinSetupCore.Sig` (the `FinSig Symm arity`
+    -- here and inside `Core.Sig` are the SAME `GenS`/`S`, so the types match).
+    open FinSig Symm arity
+    open FrontendS _≟Fin_ GenS
+    open Decide _≟G_ rankS
 
-    open FrontendS {Fin nA} _≟Fin_ GenS using (module Decide)
-
-    open Decide _≟G_ rankS public
-      using (decide?F; IsJust; solveTerm!; module Into
-            ; Foc; plug; focusAll; focusAtₙ; _≟O_)
-    open Into C Sym (lookup vars) public
+    open Core.Sig arity decide?F public

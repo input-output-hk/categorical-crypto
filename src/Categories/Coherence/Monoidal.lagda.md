@@ -25,18 +25,18 @@ lands on this documentation. The test suites in
 module Categories.Coherence.Monoidal where
 
 open import Level using (Level)
-open import Data.Nat using (ℕ)
-open import Data.Fin using (Fin; zero; suc)
-open import Data.Product using (_×_; _,_; proj₁; proj₂; Σ-syntax)
+open import Data.Nat
+open import Data.Fin
+open import Data.Product
 open import Data.Vec using (Vec; _∷_; []; lookup)
-open import Categories.Category using (Category; _[_,_]; _[_≈_])
-open import Categories.Category.Monoidal using (MonoidalCategory)
+open import Categories.Category
+open import Categories.Category.Monoidal
 open import Categories.Category.Monoidal.Symmetric using () renaming (Symmetric to SymmetricStructure)
 
-open import Categories.FreeMonoidal using (Mon; module FreeMonoidalHelper)
-open import Categories.Coherence.Monoidal.MacLane        using (module Solver)
-open import Categories.Coherence.Monoidal.Frontend       using (module FinSetup)
-open import Categories.Coherence.Monoidal.Frontend.Sigma using (module FinSetupσ)
+open import Categories.FreeMonoidal
+open import Categories.Coherence.Monoidal.MacLane
+open import Categories.Coherence.Monoidal.Frontend
+open import Categories.Coherence.Monoidal.Frontend.Sigma
 ```
 
 ## `Structural`: coherence of structural isomorphisms
@@ -144,8 +144,7 @@ module Morphism-example {o ℓ e} (C : MonoidalCategory o ℓ e) where
     interchange = solveMor! ((s' S.⊗₁ S.id) S.∘ (S.id S.⊗₁ t')) (s' S.⊗₁ t')
 
     -- right-unitor naturality at the generator `s`.
-    ρ-naturality
-      : C .MonoidalCategory.U [ unitorʳ.from ∘ (s ⊗₁ id) ≈ s ∘ unitorʳ.from ]
+    ρ-naturality : C .MonoidalCategory.U [ unitorʳ.from ∘ (s ⊗₁ id) ≈ s ∘ unitorʳ.from ]
     ρ-naturality = solveMor! (S.ρ⇒ S.∘ (s' S.⊗₁ S.id)) (s' S.∘ S.ρ⇒)
 
     -- a rule applied in context: `rewriteMorAuto!` locates the `s ∘ s` redex,
@@ -180,12 +179,12 @@ module Symmetric
   open ImplW public using (⟦_⟧₁; ⟦⟧-resp-≈)
 
   -- | Discharge a goal in a symmetric monoidal category (σ allowed).
-  solveMorσ!       = ImplW.solveMorσ!
+  solveMorσ!       = ImplW.solveMor!
   -- | Fire a rule (a `C`-equation between term interpretations) in context.
-  rewriteMorσ!     = ImplW.rewriteMorσ!
-  rewriteMorσₙ!    = ImplW.rewriteMorσₙ!
+  rewriteMorσ!     = ImplW.rewriteMor!
+  rewriteMorσₙ!    = ImplW.rewriteMorₙ!
   -- | …with the rule's context located automatically.
-  rewriteMorσAuto! = ImplW.rewriteMorσAuto!
+  rewriteMorσAuto! = ImplW.rewriteMorAuto!
 ```
 
 ## Scope and limitations

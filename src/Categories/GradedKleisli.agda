@@ -4,23 +4,22 @@ module Categories.GradedKleisli where
 
 open import Level using (Level; _⊔_) renaming (suc to lsuc)
 
-open import Categories.Category
+open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Categories.Category.EquivClosureHelper using (categoryHelperᵉ)
-open import Categories.Category.Instance.Sets
-open import Categories.Category.Monoidal
-open import Categories.Functor hiding (id)
-open import Categories.Functor.Presheaf
-open import Categories.Monad.Graded
-open import Categories.Tactic.Category
-
-open import Data.Fin
-open import Data.Product
-open import Data.Vec using (_∷_; [])
-
-open import Categories.FreeMonoidal using (Mon; module FreeMonoidalHelper)
-open import Categories.Coherence.Monoidal
-import Categories.Morphism.Reasoning
+open import Categories.Category.Instance.Sets using (Sets)
+open import Categories.Category.Monoidal using (MonoidalCategory)
 import Categories.Category.Monoidal.Reasoning as MonR
+open import Categories.Coherence.Monoidal using (module Mor)
+open import Categories.FreeMonoidal using (Mon; module FreeMonoidalHelper)
+open import Categories.Functor using (Functor)
+open import Categories.Functor.Presheaf using (Presheaf)
+open import Categories.Monad.Graded using (GradedMonad; GradedKleisliTriple)
+import Categories.Morphism.Reasoning as MR
+open import Categories.Tactic.Category using (solve)
+
+open import Data.Fin using (Fin; #_)
+open import Data.Product using (_×_; Σ-syntax; ∃-syntax; _,_)
+open import Data.Vec using (_∷_; [])
 
 record UC-model {o ℓ e o′ ℓ′ e′ ℓs : Level}
               : Set (lsuc (o ⊔ ℓ ⊔ e ⊔ o′ ⊔ ℓ′ ⊔ e′ ⊔ ℓs)) where
@@ -35,18 +34,19 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
   module C where
     open Category C public
     open HomReasoning public
-    open Categories.Morphism.Reasoning C public
+    open MR C public
 
-  module I = MonoidalCategory I; open I using (_⊗₀_; _⊗₁_; -⊗_; _⊗-; associator)
+  module I = MonoidalCategory I
+  open I using (_⊗₀_; _⊗₁_; -⊗_; _⊗-; associator)
   open MonR (I.monoidal) using (_⟩⊗⟨refl)
-  open Functor
+  open Functor using (₁)
   open GradedKleisliTriple M
   open import Categories.Category.Monoidal.Utilities (I.monoidal)
   open Shorthands
 
   private
     μT : ∀ {u v X Y} (k : C [ X , T₀ v Y ]) → C [ μ u v C.∘ T₁ u k ≈ ext u k ]
-    μT k = let open Category.HomReasoning C in ext-T-fusion ○ ext-resp-≈ (Category.identityˡ C)
+    μT k = let open C in ext-T-fusion ○ ext-resp-≈ C.identityˡ
 
   GradedKleisli : Category (o ⊔ o′) (o ⊔ ℓ ⊔ ℓ′) (o ⊔ ℓ ⊔ ℓ′ ⊔ e ⊔ e′)
   GradedKleisli = categoryHelperᵉ record
@@ -87,28 +87,28 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
                    S.∘ S.id S.⊗₁ S.α⇐)
                 ((gen (# 2) S.∘ gen (# 1) S.⊗₁ S.id S.∘ S.α⇐) S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐))
     ; identityˡ = λ where
-      {ai , _} {B , _} {i , f , α} →
+      {ai , _} {B , _} {i , _ , α} →
           ρ⇒
         , (let open C in assoc²εβ ○ elimˡ μ-identityʳ)
         , (let open FreeMonoidalHelper Mon (Fin 3) renaming (Var to V; _⊗₀_ to _⊗ᵒ_) using ()
                open Mor I (ai ∷ i ∷ B ∷ []) (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , α) ∷ [])
            in solveMor! (gen (# 0) S.∘ S.id S.⊗₁ S.ρ⇒) (S.ρ⇒ S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐))
     ; identityʳ = λ where
-      {ai , _} {B , _} {i , f , α} →
+      {ai , _} {B , _} {i , _ , α} →
           λ⇒
         , (let open C in (refl⟩∘⟨ refl⟩∘⟨ ⟺ return-commute) ○ assoc²εβ ○ elimˡ μ-identityˡ)
         , (let open FreeMonoidalHelper Mon (Fin 3) renaming (Var to V; _⊗₀_ to _⊗ᵒ_) using ()
                open Mor I (ai ∷ i ∷ B ∷ []) (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , α) ∷ [])
            in solveMor! (gen (# 0) S.∘ S.id S.⊗₁ S.λ⇒) (gen (# 0) S.∘ S.ρ⇒ S.⊗₁ S.id S.∘ S.α⇐))
     ; ∘-resp-≈ = λ where
-      {Ai , Ac} {Bi , Bc} {Ci , Cc}
+      {Ai , _} {Bi , _} {Ci , _}
         {fk , ff , fα} {hk , hf , hα} {gk , gf , gα} {ik , if′ , iα}
         (φ , cf , ifh) (ψ , cg , igi) →
           ψ ⊗₁ φ
         , (let open C in begin
              sub (ψ ⊗₁ φ) C.∘ (μ gk fk C.∘ T₁ gk ff C.∘ gf)  ≈⟨ refl⟩∘⟨ pullˡ (μT ff) ⟩
              sub (ψ ⊗₁ φ) C.∘ (ext gk ff C.∘ gf)             ≈⟨ pullˡ (⟺ sub-commute) ⟩
-             (ext ik (sub φ C.∘ ff) C.∘ sub ψ) C.∘ gf        ≈⟨ Category.assoc C ⟩
+             (ext ik (sub φ C.∘ ff) C.∘ sub ψ) C.∘ gf        ≈⟨ C.assoc ⟩
              ext ik (sub φ C.∘ ff) C.∘ (sub ψ C.∘ gf)        ≈⟨ ext-resp-≈ cf ⟩∘⟨ cg ⟩
              ext ik hf C.∘ if′                               ≈⟨ ⟺ (pullˡ (μT hf)) ⟩
              μ ik hk C.∘ T₁ ik hf C.∘ if′ ∎)

@@ -10,7 +10,8 @@ module Categories.Coherence.Monoidal.MacLane where
 -- natural iso `Nf≅id`.  `Solver.solveM` is the downstream-facing wrapper:
 -- it discharges `⟦ f ⟧₁ ≈ ⟦ g ⟧₁` in any target MonoidalCategory for
 -- parallel free morphisms `f g`.  It handles monoidal coherence only
--- (no braiding/symmetry — `Symmetric-C = λ where ⦃ () ⦄`).
+-- (no braiding/symmetry — supplied via `noSymmetric`, the shared absurd
+-- `⦃ () ⦄` instance from `Categories.FreeMonoidal`).
 --------------------------------------------------------------------------------
 
 open import Categories.Category
@@ -27,15 +28,15 @@ open import Categories.FreeMonoidal
 open import Categories.NaturalTransformationHelper
 open import Categories.Properties
 
-open import Data.Empty using (⊥)
+open import Data.Empty
 open import Data.Fin using (Fin)
 import Data.Fin.Properties as FinP
-open import Data.List hiding ([_] ; lookup)
+open import Data.List using (List; []; _∷_)
 import Data.List.Properties.Ext as ListExt
 open import Data.Product
-open import Data.Vec using (Vec ; lookup)
+open import Data.Vec using (Vec; lookup)
 
-open import Relation.Binary.Definitions using (DecidableEquality; Irrelevant)
+open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; trans; subst)
 import Relation.Binary.Reasoning.Setoid as SetoidR
 
@@ -51,14 +52,14 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     uipL : Irrelevant {A = List X} _≡_
     uipL = ListExt.≡-irrelevant _≟X_
 
-  module FM where
+  private module FM where
     open Category FreeMonoidal public
     open Monoidal Monoidal-FreeMonoidal public
     open import Categories.Category.Monoidal.Utilities Monoidal-FreeMonoidal public
     open Shorthands public
     open import Categories.Category.Monoidal.Properties Monoidal-FreeMonoidal public
 
-  module FMReasoning where
+  private module FMReasoning where
     open import Categories.Category.Monoidal.Reasoning Monoidal-FreeMonoidal public
 
   ⟦_⟧ : ObjTerm → List X → List X
@@ -77,10 +78,9 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
   hom⇒≡⟦⟧' α⇒ refl = refl
   hom⇒≡⟦⟧' α⇐ refl = refl
 
-  -- `⟦_⟧₀`/`⟦_⟧₁` are the action of the normalization bifunctor `⟦_⟧F` on
-  -- objects/morphisms; internal scaffolding (the Solver consumes only
-  -- `all-Comm`).  `⟦_⟧₁` clashes with the FreeFunctor `⟦_⟧₁` Solver re-exports,
-  -- so it is private rather than `hiding`-suppressed at the open site.
+  -- the normalization bifunctor's action on objects/morphisms; `private`
+  -- (rather than `hiding`-suppressed) since `⟦_⟧₁` clashes with the
+  -- FreeFunctor `⟦_⟧₁` the Solver re-exports.
   private
     ⟦_⟧₀ : ObjTerm × List X → List X
     ⟦_⟧₀ = uncurry ⟦_⟧
@@ -120,7 +120,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     Nf : Functor FreeMonoidal Discrete
     Nf = appʳ ⟦_⟧F []
 
-  module C where
+  private module C where
     open import Categories.Category.Construction.Core FreeMonoidal public
     open Category Core public
 
@@ -160,8 +160,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     iso-comm : iso-comm-ty
     iso-comm {g = refl} = elimʳ FM.⊗.identity ○ ⟺ idˡ
 
-    -- Given f⇒ ∘ f⇐ ≈ id, cancel f⇒⊗id ∘ f⇐⊗id under an arbitrary left
-    -- factor e.  The proof never inspects e, so it need not be an iso₁.
+    -- the proof never inspects the left factor `e`, so it need not be an iso₁.
     cancel-⊗ˡ : ∀ {B C Z W} {e : HomTerm (C ⊗₀ Z) W} {f⇒ : HomTerm B C} {f⇐ : HomTerm C B}
       → f⇒ ∘ f⇐ FM.≈ id
       → e ∘ f⇒ ⊗₁ id ∘ f⇐ ⊗₁ id FM.≈ id ∘ e
@@ -240,7 +239,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
         ○ assoc²δγ
         ○ ⟺ Hfuse ⟩∘⟨refl
 
-    natural-⊗ {A} {B} {C} {D} d f g Hf Hg = ⊗-conj Hf Hg iso-comm (ι-∘ d f g)
+    natural-⊗ d f g Hf Hg = ⊗-conj Hf Hg iso-comm (ι-∘ d f g)
 
     natural-λ⇒ : ∀ {A d}
                → iso₁ (A , d) ∘ Functor.F₁ F1 (λ⇒ , refl)
@@ -259,7 +258,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     natural-λ⇐ : ∀ {A d}
                → iso₁ (unit ⊗₀ A , d) ∘ Functor.F₁ F1 (λ⇐ , refl)
             FM.≈ Functor.F₁ F2 (λ⇐ , refl) ∘ iso₁ (A , d)
-    natural-λ⇐ {A} {d} = nat-inv natural-λ⇒ FM.unitorˡ.isoʳ
+    natural-λ⇐ = nat-inv natural-λ⇒ FM.unitorˡ.isoʳ
 
     natural-ρ⇒ : ∀ {A d}
                → iso₁ (A , d) ∘ Functor.F₁ F1 (ρ⇒ , refl)
@@ -274,7 +273,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     natural-ρ⇐ : ∀ {A d}
                → iso₁ (A ⊗₀ unit , d) ∘ Functor.F₁ F1 (ρ⇐ , refl)
             FM.≈ Functor.F₁ F2 (ρ⇐ , refl) ∘ iso₁ (A , d)
-    natural-ρ⇐ {A} {d} = nat-inv natural-ρ⇒ FM.unitorʳ.isoʳ
+    natural-ρ⇐ = nat-inv natural-ρ⇒ FM.unitorʳ.isoʳ
 
     -- The α⇒ case of naturality is an instance of this fully generic pentagon
     -- conjugation: nothing about iso₁ is used beyond its type.  Keeping a/b/c
@@ -306,10 +305,12 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     natural-α⇐ : ∀ {A B C d}
                → iso₁ ((A ⊗₀ B) ⊗₀ C , d) ∘ Functor.F₁ F1 (α⇐ , refl)
             FM.≈ Functor.F₁ F2 (α⇐ , refl) ∘ iso₁ (A ⊗₀ B ⊗₀ C , d)
-    natural-α⇐ {A} {B} {C} {d} = nat-inv natural-α⇒ FM.associator.isoʳ
+    natural-α⇐ = nat-inv natural-α⇒ FM.associator.isoʳ
 
   private
-    natural₁ : ∀ d → Natural (appʳ F1 d) (appʳ F2 d) (λ c → iso₁ (c , d))
+    natural₁ : ∀ d {X Y} (f : FreeMonoidal [ X , Y ])
+             → FreeMonoidal [ FreeMonoidal [ iso₁ (Y , d) ∘ Functor.F₁ F1 (f , refl) ]
+                            ≈ FreeMonoidal [ Functor.F₁ F2 (f , refl) ∘ iso₁ (X , d) ] ]
     natural₁ d id = natural-id
     natural₁ d (g ∘ f) = natural-∘ _ g f (natural₁ _ g) (natural₁ _ f)
     natural₁ d (f ⊗₁ g) = natural-⊗ _ f g (natural₁ _ f) (natural₁ _ g)
@@ -338,7 +339,6 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
       (ι ∘F ⟦_⟧F) ∘F -× [] ≈⟨ ⟦⟧≅⊗ ⓘʳ (-× []) ⟩
       (FM.⊗ ∘F (F.id ⁂ ι)) ∘F -× [] ≈⟨ NI.associator (-× []) (F.id ⁂ ι) FM.⊗ ⟩
       FM.⊗ ∘F (F.id ⁂ ι) ∘F (-× []) ≈⟨ FM.⊗ ⓘˡ (⁂-× {C = FreeMonoidal} ι []) ⟩
-      FM.⊗ ∘F (-× unit) ≈⟨ NI.refl ⟩
       appʳ FM.⊗ unit ≈⟨ FM.unitorʳ-naturalIsomorphism ⟩
       F.id ∎
       where open SetoidR (Functor-NI-setoid FreeMonoidal FreeMonoidal)
