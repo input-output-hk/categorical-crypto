@@ -18,7 +18,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Util.Prune
-  using ( count-non; classify; remap
+  using ( count-non; classify
         ; remap-inj₁; remap-inj₂; remap-injective
         ; classify-lookup-Unique; classify-inj₁-lookup
         ; lookup-injective-unique)
@@ -45,7 +45,7 @@ import Data.List.Relation.Unary.All as All
 import Data.List.Relation.Unary.AllPairs as AllPairs
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Function as Fun
-open import Data.Nat using (ℕ; zero; suc; s≤s; z≤n; _+_)
+open import Data.Nat using (zero; suc; s≤s; z≤n; _+_)
 open import Data.Nat as Nat using ()
 import Data.Nat.Properties as Nat
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)

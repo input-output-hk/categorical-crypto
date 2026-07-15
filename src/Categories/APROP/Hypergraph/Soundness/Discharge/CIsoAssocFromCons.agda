@@ -32,7 +32,7 @@ import Data.Vec as Vec
 open import Data.List using ([]; _∷_; _++_)
 open import Data.List.Properties using (++-assoc)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; subst)
+  using (_≡_; refl; subst)
 open import Relation.Binary.PropositionalEquality.Properties using (subst-∘)
 
 private

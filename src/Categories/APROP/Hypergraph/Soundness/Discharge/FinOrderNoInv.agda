@@ -47,7 +47,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; range; hId; hTensor; hSwap
+  using (FlatGen; range; hId; hTensor
         ; module hTensor-impl)
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
@@ -76,7 +76,7 @@ import Data.Nat.Properties as Nat
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig
   as IW
 
-open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_)
+open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.List using (List; []; _∷_; _++_; map; concat; tabulate)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties using (∈-map⁻)
@@ -84,10 +84,9 @@ open import Data.List.Relation.Unary.All using (All; []; _∷_)
   renaming (map to All-map)
 open import Data.List.Relation.Unary.AllPairs using (AllPairs; []; _∷_)
 import Data.List.Relation.Unary.AllPairs.Properties as AllPairsProp
-open import Data.Nat using (ℕ; zero; _+_; _≤_)
+open import Data.Nat using (_+_; _≤_)
 open import Data.Product using (_,_; proj₂)
 open import Relation.Nullary using (¬_)
-open import Relation.Nullary.Decidable using (no)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; subst)
 

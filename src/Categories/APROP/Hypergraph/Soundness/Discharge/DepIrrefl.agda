@@ -49,7 +49,6 @@ open import Data.Fin.Properties
 open import Data.List using (List; map; length)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties using (∈-map⁻)
-open import Data.Nat using (ℕ; _+_)
 open import Data.Product using (_,_)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality

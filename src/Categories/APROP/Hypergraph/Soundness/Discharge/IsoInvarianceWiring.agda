@@ -44,7 +44,7 @@ import Data.Nat as Nat
 open import Data.List using (List; _∷_; map; tabulate)
 open import Data.List.Properties using (map-∘; map-cong; map-tabulate)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open import Data.Product using (_,_; proj₁; proj₂)
+open import Data.Product using (proj₁; proj₂)
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; sym; trans; subst; subst₂)
@@ -108,7 +108,7 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J) where
     module H  = Hypergraph H
     module J  = Hypergraph J
   open _≅ᴴ_ Φ
-    using (φ; φ⁻¹; ψ; ψ⁻¹; φ-left; φ-rght; ψ-left; ψ-rght
+    using (ψ; ψ⁻¹; ψ-left; ψ-rght
           ; φ-lab; φ-dom; φ-cod)
 
   -- The iso identifies the boundaries (φ preserves vertex labels and the

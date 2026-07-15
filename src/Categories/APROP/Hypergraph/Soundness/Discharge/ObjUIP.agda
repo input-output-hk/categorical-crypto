@@ -11,7 +11,6 @@ open import Relation.Nullary using (yes; no)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.Definitions using (Irrelevant)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open import Axiom.UniquenessOfIdentityProofs using (UIP)
 import Axiom.UniquenessOfIdentityProofs as UIPmod
 
 open import Categories.FreeMonoidal using (Variant)
