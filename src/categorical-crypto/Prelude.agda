@@ -20,10 +20,6 @@ open import Data.Maybe public
   hiding (_>>=_; align; alignWith; ap; fromMaybe; map; zip; zipWith)
 open import Data.Unit public
   using (⊤; tt)
-open import Data.Unit.Polymorphic public
-  using ()
-  renaming (⊤ to ⊤↑; tt to tt↑)
-instance Poly-tt = tt↑
 open import Data.Sum public
   hiding (assocʳ; assocˡ; map; map₁; map₂; reduce; swap)
 open import Data.Product public
@@ -57,6 +53,6 @@ open import Class.Monoid public
 open import Class.CommutativeMonoid public
 open import Class.Applicative public
 open import Class.Monad public
-open import Class.DecEq public; instance DecEq-×′ = DecEq-×
+open import Class.DecEq public
 open import Class.Decidable public
 open import Class.Show public
