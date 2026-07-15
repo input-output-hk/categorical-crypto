@@ -36,7 +36,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; range; hTensor; module hTensor-impl)
+  using (FlatGen; range; module hTensor-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (range-++)
 
@@ -59,7 +59,7 @@ open import Relation.Nullary using (yes; no)
 open import Data.Maybe using (nothing)
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
-open import Data.Product using (_,_; proj₁; proj₂)
+open import Data.Product using (proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
@@ -89,7 +89,7 @@ module _
 
       open hTensor-impl G K using (injL; injR)
       open StrictDecoder Hf
-        using (process-edgesˢ; vl; stack-sepˢ; permuteˢ)
+        using (process-edgesˢ; stack-sepˢ; permuteˢ)
       open Run Hf using (stacks-agree)
 
       open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)

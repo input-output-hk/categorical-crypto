@@ -55,7 +55,7 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorReconcile
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique
   sig using (Linear⇒cod-Unique)
@@ -70,7 +70,7 @@ open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-open import Data.Product using (_,_; proj₂)
+open import Data.Product using (proj₂)
 open import Relation.Binary.PropositionalEquality using (sym)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)

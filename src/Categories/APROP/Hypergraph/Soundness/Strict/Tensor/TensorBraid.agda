@@ -76,7 +76,7 @@ open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-++)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (nothing)
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm

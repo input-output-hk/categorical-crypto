@@ -33,11 +33,10 @@ module TKB (H : Hypergraph FlatGen) where
   open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
   open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
   open import Data.Fin using (Fin)
-  open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
   open import Data.List using (List; []; _∷_; _++_; map)
   open import Data.List.Properties using (map-++; ++-assoc)
   open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-  open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+  open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
   open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
   import Data.List.Relation.Binary.Permutation.Propositional as Perm
   open Perm using (_↭_)
@@ -165,7 +164,7 @@ module TKB2 (H : Hypergraph FlatGen) where
   open import Data.List using (List; []; _∷_; _++_; map)
   open import Data.List.Properties using (map-++; ++-assoc)
   open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-  open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+  open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
   open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
   import Data.List.Relation.Binary.Permutation.Propositional as Perm
   open Perm using (_↭_)
@@ -447,7 +446,6 @@ module TKB2 (H : Hypergraph FlatGen) where
 -- ===== submodule TKB4 =====
 ------------------------------------------------------------------------
 module TKB4 (H : Hypergraph FlatGen) where
-  open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig using (edge-step; process-edges)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
   open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
   open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
@@ -458,7 +456,7 @@ module TKB4 (H : Hypergraph FlatGen) where
   open import Data.List.Properties using (map-++; ++-assoc)
   open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
   open import Data.List.Relation.Unary.All using (All; []; _∷_)
-  open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
+  open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
   open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
   import Data.List.Relation.Binary.Permutation.Propositional as Perm
   open Perm using (_↭_)
@@ -722,7 +720,7 @@ module TKB3 (H : Hypergraph FlatGen) where
   open import Data.List using (List; []; _∷_; _++_; map)
   open import Data.List.Properties using (map-++; ++-assoc)
   open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-  open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+  open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
   open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
   import Data.List.Relation.Binary.Permutation.Propositional as Perm
   open Perm using (_↭_)
@@ -1235,7 +1233,7 @@ module TKB5 (H : Hypergraph FlatGen) where
   open import Data.List using (List; []; _∷_; _++_; map)
   open import Data.List.Properties using (map-++; ++-assoc)
   open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-  open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
+  open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
   open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
   import Data.List.Relation.Binary.Permutation.Propositional as Perm
   open Perm using (_↭_)
@@ -1351,7 +1349,7 @@ module TKB6 (H : Hypergraph FlatGen) where
   open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
   open import Data.List.Relation.Unary.All using (All; []; _∷_)
   open import Data.Maybe using (Maybe; just; nothing)
-  open import Data.Product using (Σ; Σ-syntax; _,_; _×_; proj₁; proj₂)
+  open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
   open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
   import Data.List.Relation.Binary.Permutation.Propositional as Perm
   open Perm using (_↭_)
