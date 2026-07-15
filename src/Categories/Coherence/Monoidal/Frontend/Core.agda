@@ -179,16 +179,6 @@ module FBridge
     coe-coe refl h = refl
 
     ------------------------------------------------------------------------
-    -- WTerm casts (the structural constructors of `reflectF` die into these).
-    ------------------------------------------------------------------------
-
-    castʷ : ∀ {n m m'} → m ≡ m' → WTerm n m → WTerm n m'
-    castʷ refl t = t
-
-    embed-castʷ : ∀ {n m m'} (q : m ≡ m') (t : WTerm n m) → embed (castʷ q t) ≈Term castW q ∘ embed t
-    embed-castʷ refl t = ≈-Term-sym idˡ
-
-    ------------------------------------------------------------------------
     -- Forward structural λ-law and the law flipper (engine-independent).
     ------------------------------------------------------------------------
 
