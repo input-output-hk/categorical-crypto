@@ -179,6 +179,37 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
   syntax stepˢ-≈  f gh fg = f ≈ˢ⟨ fg ⟩ gh
   syntax stepˢ-≈˘ f gh gf = f ≈ˢ⟨ gf ⟨ gh
 
+  ------------------------------------------------------------------------
+  -- Shared re-cleaning assembly: the `pad-∘ˢ`/`pad-respˢ`/`pad-absorb*ˢ`
+  -- calc chain is identical for both slide KEYs (it never inspects the
+  -- `cross`); only the three padded-box regroupings (`absorbR`/`raw`/
+  -- `absorbL`) differ.  Abstracting over those endpoints factors the chain.
+  ------------------------------------------------------------------------
+  private
+    slide-assembleˢ :
+      ∀ {cun cum cvn cvm pin pim psn psm : List X}
+        {padIn : WTerm pin pim} {Cu : WTerm cun cum} {Cv : WTerm cvn cvm}
+        {Gα : WTerm cun cvn} {Gβ : WTerm cum cvm} {padSlid : WTerm psn psm}
+        (meq : cum ≡ pin) (E₂ : cvm ≡ pim) (E₃ : psm ≡ cvn) (E₄ : cun ≡ psn)
+      → castʷ E₂ Gβ ≈ʷ castʷᵈ (sym meq) padIn
+      → Cv ∘ʷ Gα ≈ʷ Gβ ∘ʷ Cu
+      → Gα ≈ʷ castʷ E₃ (castʷᵈ (sym E₄) padSlid)
+      → padIn ∘ʷ castʷ meq Cu
+        ≈ʷ castʷ E₂ (Cv ∘ʷ castʷ E₃ (castʷᵈ (sym E₄) padSlid))
+    slide-assembleˢ {padIn = padIn} {Cu} {Cv} {Gα} {Gβ} {padSlid}
+                    meq E₂ E₃ E₄ absorbR raw absorbL = beginˢ
+      padIn ∘ʷ castʷ meq Cu
+        ≈ˢ⟨ ≡→≈ʷ (sym (∘ʷ-castʷᵈ-l′ meq padIn Cu)) ⟩
+      castʷᵈ (sym meq) padIn ∘ʷ Cu
+        ≈ˢ⟨ T.∘-resp-≈ (symʷ absorbR) reflʷ ⟩
+      castʷ E₂ Gβ ∘ʷ Cu
+        ≈ˢ⟨ ≡→≈ʷ (∘ʷ-castʷ-l E₂ Gβ Cu) ⟩
+      castʷ E₂ (Gβ ∘ʷ Cu)
+        ≈ˢ⟨ castʷ-resp E₂ (symʷ raw) ⟩
+      castʷ E₂ (Cv ∘ʷ Gα)
+        ≈ˢ⟨ castʷ-resp E₂ (T.∘-resp-≈ reflʷ absorbL) ⟩
+      castʷ E₂ (Cv ∘ʷ castʷ E₃ (castʷᵈ (sym E₄) padSlid)) ∎ˢ
+
   slide-cleanˢ :
     ∀ (px sx a p₁ s₁ : List X) {u v} (G : WTerm u v)
       {meq : px ++ (((p₁ ++ (u ++ s₁)) ++ a) ++ sx) ≡ (px ++ p₁) ++ (u ++ (s₁ ++ (a ++ sx)))}
@@ -189,18 +220,8 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
         ∘ʷ castʷ meq (padʷ px sx (boxʷ (cross a (p₁ ++ (u ++ s₁)))))
       ≈ʷ castʷ E₂ (padʷ px sx (boxʷ (cross a (p₁ ++ (v ++ s₁))))
            ∘ʷ castʷ E₃ (castʷᵈ (sym E₄) (padʷ (px ++ (a ++ p₁)) (s₁ ++ sx) G)))
-  slide-cleanˢ px sx a p₁ s₁ {u} {v} G {meq} {E₂} {E₃} {E₄} = beginˢ
-    padIn ∘ʷ castʷ meq Cu
-      ≈ˢ⟨ ≡→≈ʷ (sym (∘ʷ-castʷᵈ-l′ meq padIn Cu)) ⟩
-    castʷᵈ (sym meq) padIn ∘ʷ Cu
-      ≈ˢ⟨ T.∘-resp-≈ (symʷ absorbR) reflʷ ⟩
-    castʷ E₂ Gβ ∘ʷ Cu
-      ≈ˢ⟨ ≡→≈ʷ (∘ʷ-castʷ-l E₂ Gβ Cu) ⟩
-    castʷ E₂ (Gβ ∘ʷ Cu)
-      ≈ˢ⟨ castʷ-resp E₂ (symʷ raw) ⟩
-    castʷ E₂ (Cv ∘ʷ Gα)
-      ≈ˢ⟨ castʷ-resp E₂ (T.∘-resp-≈ reflʷ absorbL) ⟩
-    castʷ E₂ (Cv ∘ʷ castʷ E₃ (castʷᵈ (sym E₄) padSlid)) ∎ˢ
+  slide-cleanˢ px sx a p₁ s₁ {u} {v} G {meq} {E₂} {E₃} {E₄} =
+    slide-assembleˢ meq E₂ E₃ E₄ absorbR raw absorbL
     where
       Cu = padʷ px sx (boxʷ (cross a (p₁ ++ (u ++ s₁))))
       Cv = padʷ px sx (boxʷ (cross a (p₁ ++ (v ++ s₁))))
@@ -230,18 +251,8 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
         ∘ʷ castʷ meq (padʷ px sx (boxʷ (cross (p₁ ++ (u ++ s₁)) b)))
       ≈ʷ castʷ E₂ (padʷ px sx (boxʷ (cross (p₁ ++ (v ++ s₁)) b))
            ∘ʷ castʷ E₃ (castʷᵈ (sym E₄) (padʷ (px ++ p₁) (s₁ ++ (b ++ sx)) G)))
-  slide-cleanˢ-a px sx b p₁ s₁ {u} {v} G {meq} {E₂} {E₃} {E₄} = beginˢ
-    padIn ∘ʷ castʷ meq Cu
-      ≈ˢ⟨ ≡→≈ʷ (sym (∘ʷ-castʷᵈ-l′ meq padIn Cu)) ⟩
-    castʷᵈ (sym meq) padIn ∘ʷ Cu
-      ≈ˢ⟨ T.∘-resp-≈ (symʷ absorbR) reflʷ ⟩
-    castʷ E₂ Gβ ∘ʷ Cu
-      ≈ˢ⟨ ≡→≈ʷ (∘ʷ-castʷ-l E₂ Gβ Cu) ⟩
-    castʷ E₂ (Gβ ∘ʷ Cu)
-      ≈ˢ⟨ castʷ-resp E₂ (symʷ raw) ⟩
-    castʷ E₂ (Cv ∘ʷ Gα)
-      ≈ˢ⟨ castʷ-resp E₂ (T.∘-resp-≈ reflʷ absorbL) ⟩
-    castʷ E₂ (Cv ∘ʷ castʷ E₃ (castʷᵈ (sym E₄) padSlid)) ∎ˢ
+  slide-cleanˢ-a px sx b p₁ s₁ {u} {v} G {meq} {E₂} {E₃} {E₄} =
+    slide-assembleˢ meq E₂ E₃ E₄ absorbR raw absorbL
     where
       Cu = padʷ px sx (boxʷ (cross (p₁ ++ (u ++ s₁)) b))
       Cv = padʷ px sx (boxʷ (cross (p₁ ++ (v ++ s₁)) b))
