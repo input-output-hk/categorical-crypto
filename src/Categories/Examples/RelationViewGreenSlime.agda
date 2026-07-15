@@ -4,10 +4,10 @@
 -- WORKED EXAMPLE: defeating "green slime" by modelling a `with`-defined
 -- function as an inductive relation (its graph).
 --
--- This is the technique used to discharge `edge-step-term-φ` (Lemma 0b of the
--- APROP soundness proof): see `Categories.APROP.Hypergraph.Soundness.
--- Discharge.EdgeStepRelation` / `EdgeStepNaturality`.  Here it is distilled to
--- toy types (ℕ and `List ℕ`) so the pattern is visible in isolation.
+-- This is the technique used to discharge `edge-step` (Lemma 0b of the APROP
+-- soundness proof): see `Categories.APROP.Hypergraph.Soundness.Discharge.
+-- EdgeStepRelation`.  Here it is distilled to toy types (ℕ and `List ℕ`) so the
+-- pattern is visible in isolation.
 --
 -- "Green slime" (Conor McBride's term) = a *defined function* appearing in a
 -- goal type in a position where Agda's unifier / `with`-abstraction can't make
