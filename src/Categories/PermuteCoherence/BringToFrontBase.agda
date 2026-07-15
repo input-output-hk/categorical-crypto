@@ -10,22 +10,22 @@ open import Data.Nat.Base using (ℕ; zero; suc; _<_; _≤_; s≤s; z≤n; s<s)
 open import Data.Nat.Properties
   using (<-cmp; <-trans; 1+n≢n; suc-injective; ≤-trans; n≤1+n; 1+n≰n; <⇒≢; >⇒≢; n<1+n)
 open import Relation.Binary.Definitions using (tri<; tri≈; tri>)
-open import Data.Fin.Base using (Fin; toℕ) renaming (suc to fsuc; zero to fz)
-open import Data.Fin.Patterns using (0F; 1F)
+open import Data.Fin.Base using (Fin; toℕ) renaming (suc to fsuc)
+open import Data.Fin.Patterns using (0F)
 open import Data.Fin.Properties using (toℕ-injective)
-open import Data.List.Base using ([]; _∷_; length)
-open import Data.Product using (_×_; _,_; proj₁; proj₂)
+open import Data.List.Base using (_∷_; length)
+open import Data.Product using (proj₁; proj₂)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Empty using (⊥-elim)
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; _≢_; refl; sym; trans; cong; cong₂; subst; subst₂)
+  using (_≡_; _≢_; refl; sym; trans; cong; subst; subst₂)
 import Data.Fin.Permutation as P
 
 open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _≈-fb_; _∘-fb_; id-fb; inv-fb)
+  using (FinBij; _≈-fb_; _∘-fb_)
 open import Categories.PermuteCoherence.Word
-  using (Word; evalW; genFB; _~ʷ_; ~refl; ~sym; ~trans; ∷c; c1; c2; c3; Far; far0ˡ; far0ʳ; farS; Adj; adj0; adjS; ∷-cong; genFB-involutive; ~ʷ⇒≈)
+  using (Word; evalW; genFB; _~ʷ_; Far; far0ˡ; far0ʳ; farS; Adj; adj0; adjS; genFB-involutive; ~ʷ⇒≈)
 open import Categories.PermuteCoherence.Inversions using (inv)
 open import Categories.PermuteCoherence.InversionsCong using (inv-resp-≈)
 open import Categories.PermuteCoherence.ExchangeBase

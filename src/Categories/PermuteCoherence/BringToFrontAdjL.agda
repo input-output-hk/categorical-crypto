@@ -5,28 +5,23 @@
 ------------------------------------------------------------------------
 module Categories.PermuteCoherence.BringToFrontAdjL where
 
-open import Data.Nat.Base using (ℕ; suc; _<_; _≤_)
+open import Data.Nat.Base using (ℕ; suc; _<_)
 open import Data.Nat.Properties
   using (<-trans; 1+n≢n)
-open import Data.Fin.Base using (Fin; toℕ) renaming (suc to fsuc; zero to fz)
+open import Data.Fin.Base using (Fin; toℕ)
 open import Data.Fin.Properties using (toℕ-injective)
-open import Data.List.Base using (_∷_)
-open import Data.Product using (_×_; _,_)
-open import Data.Sum.Base using (_⊎_)
-open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; _≢_; refl; sym; trans; cong; cong₂; subst; subst₂)
+  using (_≡_; _≢_; sym; trans; cong; subst₂)
 import Data.Fin.Permutation as P
 
 open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _≈-fb_; _∘-fb_; id-fb; inv-fb)
+  using (FinBij; _∘-fb_)
 open import Categories.PermuteCoherence.Word
-  using (Word; evalW; genFB; _~ʷ_; ~refl; ~sym; ~trans; ∷c; c1; c2; c3; Far; far0ˡ; far0ʳ; farS; Adj; adj0; adjS; ∷-cong; genFB-involutive; ~ʷ⇒≈)
-open import Categories.PermuteCoherence.Inversions using (inv)
+  using (genFB; Adj)
 open import Categories.PermuteCoherence.ExchangeBase
-  using (Reduced; descent; inv-di)
+  using (descent)
 open import Categories.PermuteCoherence.InversionsDichotomy
-  using (inj; suc-pos; toℕ-inj; toℕ-suc-pos; swapℕ; swapℕ-k; swapℕ-sk; genFB-toℕ; invS-dichotomy)
+  using (inj; suc-pos; toℕ-inj; toℕ-suc-pos; swapℕ; swapℕ-k; swapℕ-sk)
 open import Categories.PermuteCoherence.BringToFrontBase
 
 private
