@@ -42,6 +42,7 @@ open import Data.Nat using (ℕ; suc)
 open import Data.Product using (Σ; _×_; _,_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst; subst₂)
 open import Relation.Nullary using (yes; no)
+open import Relation.Nullary.Decidable using (dec⇒maybe)
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
@@ -169,9 +170,7 @@ module At (P Q : ObjTerm) where
              ∘ post₀ ) }
     where
       decide-≡ : (Z W : ObjTerm) → Maybe (Z ≡ W)
-      decide-≡ Z W with Z ≟-ObjTerm W
-      ... | yes p = just p
-      ... | no  _ = nothing
+      decide-≡ Z W = dec⇒maybe (Z ≟-ObjTerm W)
 
   -- All carvable positions, one per successful embedding, in match order.
   deepFocAllAt : ∀ {A B} (s : HomTerm A B) (lᵗ : HomTerm P Q) → List (Foc A B P Q)
