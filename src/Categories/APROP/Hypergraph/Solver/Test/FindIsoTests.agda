@@ -20,8 +20,8 @@ open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.Maybe.Base using (from-just)
 open import Relation.Binary.Definitions using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open import Relation.Nullary using (yes; no)
+open import Relation.Binary.PropositionalEquality using (refl)
+open import Relation.Nullary using (yes)
 
 open import Categories.APROP using (APROPSignature; module APROP)
 open import Categories.FreeMonoidal
@@ -69,7 +69,6 @@ mySigDec = record { sig     = mySig ; _≟X_    = _≟F_ ; _≟-mor_ = _≟-MyMo
 --------------------------------------------------------------------------------
 -- Bring in the term language, the solver, and the soundness theorem.
 
-open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Model.Translation mySig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.Match.FindIso mySigDec using (findIso)
 open APROP mySig

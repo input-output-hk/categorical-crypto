@@ -17,7 +17,7 @@ open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.Maybe.Base using (is-just)
 open import Relation.Binary.Definitions using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open import Relation.Nullary using (yes; no)
+open import Relation.Nullary using (yes)
 
 open import Categories.APROP using (APROPSignature; module APROP)
 open import Categories.FreeMonoidal
