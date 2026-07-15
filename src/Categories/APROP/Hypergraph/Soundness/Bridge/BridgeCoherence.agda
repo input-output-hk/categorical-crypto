@@ -35,10 +35,10 @@ open Kelly's using (coherence₃)
 -- monoidal category itself (cf. `Discharge/BridgeAlphaFormCompound.agda`).
 open import Categories.Coherence.Monoidal.Frontend using (module FinSetup)
 open import Data.Product using (_,_)
-open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F; 7F; 8F; 9F)
+open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F)
 import Data.Vec as Vec
 open import Data.List using (List; []; _∷_; _++_)
-open import Data.List.Properties using (++-identityʳ; ++-assoc)
+open import Data.List.Properties using (++-identityʳ)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; sym; subst; subst₂)
 open import Relation.Binary.PropositionalEquality.Properties using (subst-∘)
