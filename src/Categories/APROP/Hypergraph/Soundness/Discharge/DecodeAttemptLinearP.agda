@@ -132,7 +132,8 @@ module _
     → ∃[ t ]
          edge-step (hComposeP G K bdy-eq) (map injL xs) (eG ↑ˡ K.nE)
          ≡ (map injL xs , t)
-  edge-step-↑ˡ-pure-L-nothing eG xs eq = aux nothing-lifted
+  edge-step-↑ˡ-pure-L-nothing eG xs eq =
+    edge-step-nothing (hComposeP G K bdy-eq) stack (eG ↑ˡ K.nE) nothing-lifted
     where
       stack = map injL xs
 
@@ -145,11 +146,6 @@ module _
               (extract-prefix-via-injective-nothing injL
                                                      (inject+-inj cn)
                                                      (G.ein eG) xs eq)
-
-      aux : extract-prefix (Hypergraph.ein (hComposeP G K bdy-eq) (eG ↑ˡ K.nE)) stack
-              ≡ nothing
-          → ∃[ t ] edge-step (hComposeP G K bdy-eq) stack (eG ↑ˡ K.nE) ≡ (stack , t)
-      aux p = edge-step-nothing (hComposeP G K bdy-eq) stack (eG ↑ˡ K.nE) p
 
   edge-step-↑ˡ-pure-L
     : ∀ (eG : Fin G.nE) (xs : List (Fin G.nV))

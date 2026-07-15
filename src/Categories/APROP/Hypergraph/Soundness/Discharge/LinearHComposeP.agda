@@ -171,9 +171,6 @@ module _
   -- lockstep with K.dom, so the two mapped lists agree.
 
   private
-    length-K-dom : length K.dom ≡ length G.cod
-    length-K-dom = dom-cod-len
-
     -- Pointwise: `remapP (lookup K.dom idx) ≡ lookup-cod idx ↑ˡ cn`.
     remapP-on-dom : ∀ (idx : Fin (length K.dom)) → remapP (lookup K.dom idx) ≡ lookup-cod idx ↑ˡ cn
     remapP-on-dom idx =
@@ -196,7 +193,7 @@ module _
         (map-ext-cast f g xs ys (Nat.suc-injective len) (λ i → pt (suc i)))
 
   map-remapP-K-dom : map remapP K.dom ≡ map (_↑ˡ cn) G.cod
-  map-remapP-K-dom = map-ext-cast remapP (_↑ˡ cn) K.dom G.cod length-K-dom remapP-on-dom
+  map-remapP-K-dom = map-ext-cast remapP (_↑ˡ cn) K.dom G.cod dom-cod-len remapP-on-dom
 
   -- count facts about `map remapP K.dom` consumed by the balance proof.
   count-map-remapP-K-dom-injL : ∀ (i : Fin G.nV) → count (i ↑ˡ cn) (map remapP K.dom) ≡ count i G.cod
