@@ -11,7 +11,7 @@ module CategoricalCrypto where
 
 -- Improve syntax generally
 
-open import Categories.MonoidalCoherence
+open import Categories.Coherence.Monoidal
 
 open import CategoricalCrypto.Channel.Category public
 open import CategoricalCrypto.Channel.Core public
