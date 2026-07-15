@@ -25,7 +25,7 @@ open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory
 module Categories.Coherence.Symmetric.Test.Deep
   {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e) where
 
-open import Data.Bool.Base using (true; false)
+open import Data.Bool.Base using (false)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.Maybe.Base using (is-just)
