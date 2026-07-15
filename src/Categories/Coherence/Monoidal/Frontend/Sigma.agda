@@ -60,7 +60,7 @@ module FrontendS
   -- the generator signature, shared by the engine modules below; `F` is its
   -- free category (HomTerm over GenF).
   private
-    sig : FreeSig Symm {X}
+    sig : FreeSig Symm
     sig = record { GenF = GenF }
   open FreeSig sig using (module F)
 
@@ -118,7 +118,7 @@ module FrontendS
         fA = flatten A ; fB = flatten B
         f⇒A = flat⇒ A ; f⇒B = flat⇒ B
 
-  private module FBB = FBI.Bridge (λ g → refl) (λ {A} {B} ⦃ s ⦄ → bridge-σS {A} ⦃ s ⦄)
+  private module FBB = FBI.Bridge (λ g → refl) (λ {A} {B} ⦃ s ⦄ → bridge-σS ⦃ s ⦄)
   open FBB
 
   ------------------------------------------------------------------------

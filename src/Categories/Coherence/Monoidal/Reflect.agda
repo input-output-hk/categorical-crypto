@@ -14,7 +14,7 @@
 module Categories.Coherence.Monoidal.Reflect where
 
 open import categorical-crypto.Prelude hiding (_∘_; id; map; merge)
-open import Data.List.Properties using (++-assoc; ++-identityʳ)
+open import Data.List.Properties
 
 import Categories.Category.Monoidal.Reasoning as MonR
 import Categories.Morphism.Reasoning as MR
@@ -35,9 +35,7 @@ module ReflectI {v : Variant} {X : Set} (E : WireEngine v) ⦃ _ : DecEq X ⦄ w
 
   open MonR Monoidal-FreeMonoidal using (_⟩⊗⟨_)
 
-  --------------------------------------------------------------------------------
   -- M1 fragment: the wire-typed strict terms.
-  --------------------------------------------------------------------------------
   -- `WTerm`/`boxʷ`/`idʷ`/`_∘ʷ_`/`_⊗ʷ_` are the free strict monoidal category on
   -- the wire generators `Mor`.
   open FreeStrictMonoidalHelper Mor public using (WTerm; boxʷ; idʷ; _∘ʷ_; _⊗ʷ_)
@@ -48,13 +46,11 @@ module ReflectI {v : Variant} {X : Set} (E : WireEngine v) ⦃ _ : DecEq X ⦄ w
   embed (g ∘ʷ f)  = embed g ∘ embed f
   embed (_⊗ʷ_ {nl} {ml} s t) = merge ml ∘ (embed s ⊗₁ embed t) ∘ split nl
 
-  --------------------------------------------------------------------------------
   -- Reflection of the wire fragment into Diag (M1).
   --
   --   id     →  empty diagram
   --   g ∘ f  →  reflect f ∘ᵈ reflect g
   --   box g  →  single-box layer
-  --------------------------------------------------------------------------------
 
   reflect : ∀ {n m} → WTerm n m → Diag n m
   reflect idʷ      = []_ _
@@ -72,25 +68,21 @@ module ReflectI {v : Variant} {X : Set} (E : WireEngine v) ⦃ _ : DecEq X ⦄ w
   open WireCohDec
   open MonR Monoidal-FreeMonoidal using (_⟩⊗⟨refl; refl⟩⊗⟨_; split₁ˡ)
   open FreeStrictMonoidalHelper Mor public using (castʷ)
-  open FreeStrictMonoidalHelper Mor
-    using (castʷᵈ; padʷ; module Theory)
+  open FreeStrictMonoidalHelper Mor using (castʷᵈ; padʷ; module Theory)
 
   -- `embed` intertwines the strict term transports with the wire cast `castW`
   -- (refl-matched).  Public so `Frontend/Core`'s `reflectF`/`cast-half` reuse
   -- them (through its `open ReflectI E`) instead of a private duplicate.
-  embed-castʷ : ∀ {n m m'} (e : m ≡ m') (t : WTerm n m)
-              → embed (castʷ e t) ≈Term castW e ∘ embed t
+  embed-castʷ : ∀ {n m m'} (e : m ≡ m') (t : WTerm n m) → embed (castʷ e t) ≈Term castW e ∘ embed t
   embed-castʷ refl t = ⟺ idˡ
 
   embed-castʷᵈ : ∀ {n n' m} (e : n ≡ n') (t : WTerm n m)
                → embed (castʷᵈ e t) ≈Term embed t ∘ castW (sym e)
   embed-castʷᵈ refl t = ⟺ idʳ
 
-  --------------------------------------------------------------------------------
   -- The STRICT reflection soundness `⟦ reflect t ⟧ˢ ≈ʷ t` (any engine relation
   -- `R`), via the CAST-FREE `DiagSoundˢ` builders.  The decision core consumes
   -- this, applying `embed-resp-≈` once.
-  --------------------------------------------------------------------------------
   module _ (R : ∀ {n m} → WTerm n m → WTerm n m → Set) where
     open Theory R
     open DiagSoundˢ R
@@ -124,15 +116,13 @@ module ReflectI {v : Variant} {X : Set} (E : WireEngine v) ⦃ _ : DecEq X ⦄ w
     embed-resp-≈ reflʷ          = ≈-Term-refl
     embed-resp-≈ (symʷ p)       = ⟺ (embed-resp-≈ p)
     embed-resp-≈ (transʷ p q)   = embed-resp-≈ p ○ embed-resp-≈ q
-    embed-resp-≈ (⊗-resp-≈ʷ p q) =
-      refl⟩∘⟨ ((embed-resp-≈ p ⟩⊗⟨ embed-resp-≈ q) ⟩∘⟨refl)
+    embed-resp-≈ (⊗-resp-≈ʷ p q) = refl⟩∘⟨ ((embed-resp-≈ p ⟩⊗⟨ embed-resp-≈ q) ⟩∘⟨refl)
     embed-resp-≈ (axiom r)      = R-sound r
     -- id⊗id : the flat merge/split of identities collapses.
-    embed-resp-≈ id⊗id =
-      (refl⟩∘⟨ ((id⊗id≈id ⟩∘⟨refl) ○ idˡ)) ○ merge∘split _
+    embed-resp-≈ id⊗id = (refl⟩∘⟨ ((id⊗id≈id ⟩∘⟨refl) ○ idˡ)) ○ merge∘split _
     -- unitˡ : merge [] = λ⇒, split [] = λ⇐; λ-naturality + cancellation.
     embed-resp-≈ (unitˡ f) = pullˡ λ⇒∘id⊗f≈f∘λ⇒ ○ cancelʳ λ⇒∘λ⇐≈id
-    -- inter : the bifunctoriality collapse (mirror of `DiagSound.⊗ᵈ-sound`).
+    -- inter : the bifunctoriality collapse.
     embed-resp-≈ (inter {ml = ml} {nr = nr} {g = g} {f = f} {g' = g'} {f' = f'}) = ⟺ (begin
       (merge _ ∘ (embed g ⊗₁ embed g') ∘ split ml)
         ∘ (merge ml ∘ (embed f ⊗₁ embed f') ∘ split _)
@@ -140,12 +130,12 @@ module ReflectI {v : Variant} {X : Set} (E : WireEngine v) ⦃ _ : DecEq X ⦄ w
       merge _ ∘ ((embed g ⊗₁ embed g') ∘ ((embed f ⊗₁ embed f') ∘ split _))
         ≈⟨ refl⟩∘⟨ pullˡ (⟺ ⊗-∘-dist) ⟩
       merge _ ∘ ((embed g ∘ embed f) ⊗₁ (embed g' ∘ embed f')) ∘ split _ ∎)
-    -- unitʳ : merge/split right-unitor coherence (mirror of `boxSound`).
+    -- unitʳ : merge/split right-unitor coherence.
     embed-resp-≈ (unitʳ {n} {m} f) = begin
-      embed (castʷᵈ eN (castʷ eM (f ⊗ʷ idʷ {n = []})))
-        ≈⟨ embed-castʷᵈ eN (castʷ eM (f ⊗ʷ idʷ {n = []})) ⟩
-      embed (castʷ eM (f ⊗ʷ idʷ {n = []})) ∘ castW (sym eN)
-        ≈⟨ embed-castʷ eM (f ⊗ʷ idʷ {n = []}) ⟩∘⟨refl ⟩
+      embed (castʷᵈ eN (castʷ eM (f ⊗ʷ idʷ)))
+        ≈⟨ embed-castʷᵈ eN (castʷ eM (f ⊗ʷ idʷ)) ⟩
+      embed (castʷ eM (f ⊗ʷ idʷ)) ∘ castW (sym eN)
+        ≈⟨ embed-castʷ eM (f ⊗ʷ idʷ) ⟩∘⟨refl ⟩
       (castW eM ∘ (merge m ∘ (embed f ⊗₁ id) ∘ split n)) ∘ castW (sym eN)
         ≈⟨ (⟺ assoc) ⟩∘⟨refl ⟩
       ((castW eM ∘ merge m) ∘ ((embed f ⊗₁ id) ∘ split n)) ∘ castW (sym eN)
@@ -215,8 +205,7 @@ module ReflectI {v : Variant} {X : Set} (E : WireEngine v) ⦃ _ : DecEq X ⦄ w
         Hmove : ((F ⊗₁ G) ⊗₁ id) ∘ (split n₁ ⊗₁ H) ≈Term ((F ⊗₁ G) ⊗₁ H) ∘ (split n₁ ⊗₁ id)
         Hmove = (⟺ ⊗-∘-dist) ○ (refl⟩⊗⟨ (idˡ ○ ⟺ idʳ)) ○ ⊗-∘-dist
         -- codomain half (merge-assoc) and domain half (split-assoc).
-        cod : castW eM ∘ (merge (m₁ ++ m₂) ∘ (merge m₁ ⊗₁ id))
-            ≈Term merge m₁ ∘ ((id ⊗₁ merge m₂) ∘ α⇒)
+        cod : castW eM ∘ (merge (m₁ ++ m₂) ∘ (merge m₁ ⊗₁ id)) ≈Term merge m₁ ∘ ((id ⊗₁ merge m₂) ∘ α⇒)
         cod = ⟺ (merge-assoc m₁ m₂ m₃)
         dom : ((split n₁ ⊗₁ id) ∘ split (n₁ ++ n₂)) ∘ castW (sym eN)
             ≈Term α⇐ ∘ ((id ⊗₁ split n₂) ∘ split n₁)
@@ -282,11 +271,9 @@ module DecideCore
     open Theory R
 
     decideW : ∀ {n m} (f g : WTerm n m) → Maybe (embed f ≈Term embed g)
-    decideW {n} {m} f g with norm (reflect f) | norm (reflect g)
-    ... | (df' , sndf) | (dg' , sndg) = case df' ≟Diag dg' of λ where
+    decideW f g = case norm (reflect f) , norm (reflect g) of λ where
+      ((df' , sndf) , (dg' , sndg)) → case df' ≟Diag dg' of λ where
         (no  _)  → nothing
-        (yes eq) → just (embed-resp-≈ R R-sound (chain (≈NF⇒≡ eq)))
-      where
-        chain : df' ≡ dg' → f ≈ʷ g
-        chain refl = transʷ (symʷ (reflect-soundˢ R f))
-                       (transʷ sndf (transʷ (symʷ sndg) (reflect-soundˢ R g)))
+        (yes eq) → just (embed-resp-≈ R R-sound (case ≈NF⇒≡ eq of λ where
+          refl → transʷ (symʷ (reflect-soundˢ R f))
+                   (transʷ sndf (transʷ (symʷ sndg) (reflect-soundˢ R g)))))

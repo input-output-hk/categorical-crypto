@@ -138,7 +138,7 @@ module FinSig
 
 module FBridge
   {v : Variant} {X : Set} ⦃ _ : DecEq X ⦄
-  (sig : FreeSig v {X})
+  (sig : FreeSig v)
   (let open FreeSig sig)
   (let open FreeMonoidalHelper v X using (unit; _⊗₀_; Var; flatten))
   (E : WireEngine v)
@@ -439,7 +439,7 @@ module FBridge
 
 module FFocus
   {v : Variant} {X : Set} ⦃ _ : DecEq X ⦄
-  (sig : FreeSig v {X})
+  (sig : FreeSig v)
   (let open FreeSig sig)
   (decide?F : ∀ {Y Z} (l r : F.HomTerm Y Z) → Maybe (l F.≈Term r))
   where
@@ -618,7 +618,7 @@ module FSolve
 
       -- the target repackaged as the variant-indexed interpretation the
       -- generator-independent object map and the free functor read in.
-      ⟦v⟧ : ⟦ v ⟧ᵥ {o} {ℓ}
+      ⟦v⟧ : ⟦ v ⟧ᵥ {o}
       ⟦v⟧ = fromMC C sym
 
       dF : FreeMonoidalData
@@ -634,7 +634,7 @@ module FSolve
       where
 
       private
-        ffdF : FreeFunctorData dF {o} {ℓ}
+        ffdF : FreeFunctorData dF {o}
         ffdF = record { ⟦v⟧ = ⟦v⟧ ; ⟦_⟧ᵖ₀ = ⟦_⟧ᵖ₀ ; ⟦_⟧ᵖ₁ = ⟦gen⟧ }
 
       open FreeFunctor {d = dF} ffdF public using (⟦_⟧₁; ⟦⟧-resp-≈)
@@ -696,7 +696,7 @@ module FinSetupCore
     open FinSig v arity public using (GenS; genS; module S; gen; GenΣ; DecEq-Gen; rankS)
 
     private
-      sig : FreeSig v {Fin nA}
+      sig : FreeSig v
       sig = record { GenF = GenS }
 
     open FFocus sig decide?F public using (solveTerm!)
