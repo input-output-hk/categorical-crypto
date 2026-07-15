@@ -2,9 +2,9 @@
 
 module Categories.PermuteCoherence.FinBijSubst where
 
-open import Data.Nat.Base using (ℕ; zero; suc)
+open import Data.Nat.Base using (ℕ; suc)
 open import Data.Fin.Base using (Fin) renaming (zero to fzero; suc to fsuc)
-open import Data.List.Base using (List; []; _∷_; length; lookup; map)
+open import Data.List.Base using (List; _∷_; length; lookup; map)
 open import Data.List.Properties using (length-map)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)

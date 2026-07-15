@@ -8,10 +8,10 @@
 
 module Categories.PermuteCoherence.ExchangeBase where
 
-open import Data.Nat.Base using (ℕ; suc; _<_; _≤_; s≤s)
+open import Data.Nat.Base using (ℕ; suc; _≤_; s≤s)
 open import Data.Nat.Properties using (<-cmp; 1+n≢n; ≤-reflexive; ≤-trans; n≤1+n)
 open import Relation.Binary using (tri<; tri≈; tri>)
-open import Data.Fin.Base using (Fin; toℕ) renaming (suc to fsuc)
+open import Data.Fin.Base using (Fin; toℕ)
 open import Data.Fin.Properties using (toℕ-injective)
 open import Data.List.Base using ([]; _∷_; length)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
@@ -19,7 +19,7 @@ open import Data.Product using (proj₁; proj₂)
 open import Data.Empty using (⊥-elim)
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl; sym; trans; cong)
+  using (_≡_; sym; trans; cong)
 import Data.Fin.Permutation as P
 
 open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_; _∘-fb_; ∘-fb-congˡ)

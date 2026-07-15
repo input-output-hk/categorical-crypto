@@ -11,17 +11,12 @@
 
 module Categories.PermuteCoherence.CanonicalProps where
 
-open import Data.Nat.Base using (ℕ; zero; suc)
-open import Data.Fin.Base using (Fin; zero; suc)
-open import Data.Fin.Patterns using (0F; 1F)
+open import Data.Nat.Base using (suc)
+open import Data.Fin.Base using (Fin; suc)
+open import Data.Fin.Patterns using (0F)
 import Data.Fin.Permutation as P
-open P using (Permutation; _∘ₚ_; transpose; lift₀; remove)
-open import Data.List.Base using (List; []; _∷_; length)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open Perm using (_↭_)
-open import Data.Product.Base using (Σ; _×_; _,_; ∃; ∃-syntax; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; _≢_; refl; cong; sym; trans)
+  using (_≡_; _≢_; refl)
 
 open import Level using (Level)
 

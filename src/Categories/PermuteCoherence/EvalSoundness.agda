@@ -9,10 +9,10 @@
 
 module Categories.PermuteCoherence.EvalSoundness where
 
-open import Data.Nat.Base using (ℕ; zero; suc)
-open import Data.Fin.Base using (Fin; zero; suc)
-open import Data.Fin.Patterns using (0F; 1F)
-open import Data.List.Base using (List; []; _∷_; length)
+open import Data.Nat.Base using (ℕ; suc)
+open import Data.Fin.Base using (suc)
+open import Data.Fin.Patterns using (0F)
+open import Data.List.Base using (List)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 

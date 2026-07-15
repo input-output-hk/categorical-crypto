@@ -12,13 +12,13 @@
 
 module Categories.PermuteCoherence.FinBij where
 
-open import Data.Nat.Base using (ℕ; zero; suc; _+_)
-open import Data.Fin.Base using (Fin; zero; suc)
+open import Data.Nat.Base using (ℕ; suc)
+open import Data.Fin.Base using (suc)
 open import Data.Fin.Patterns using (0F; 1F)
 import Data.Fin.Permutation as P
 open P using (Permutation; _∘ₚ_; transpose; lift₀)
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl; sym; trans; cong)
+  using (refl; sym; trans; cong)
 
 private
   variable
