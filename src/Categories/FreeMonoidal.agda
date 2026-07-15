@@ -64,7 +64,7 @@ record ⟦_⟧ᵥ (v : Variant) {o ℓ e : Level} : Set (suc (o ⊔ ℓ ⊔ e)) 
 
 -- A `⟦ v ⟧ᵥ` from a bundled `MonoidalCategory` plus its `v`-gated symmetry.
 -- One shared builder so the variant interpretation reads the same wherever a
--- target category is reflected into (the free functor, the object map, IntoCore).
+-- target category is reflected into (the free functor, the object map, FSolve.Into).
 fromMC : ∀ {o ℓ e} {v} (C : MonoidalCategory o ℓ e)
        → (⦃ Symm ≤ v ⦄ → Symmetric (C .MonoidalCategory.monoidal))
        → ⟦ v ⟧ᵥ {o} {ℓ} {e}
