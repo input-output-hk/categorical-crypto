@@ -8,7 +8,7 @@
 module Categories.Category.EquivClosureHelper where
 
 open import Level using (Level; suc; _⊔_)
-open import Relation.Binary using (Rel)
+open import Relation.Binary using (Rel; IsEquivalence)
 import Relation.Binary.Construct.Closure.Equivalence as EqC
 open EqC using (EqClosure)
 
@@ -19,23 +19,24 @@ private
   variable
     o ℓ e : Level
 
-record CategoryHelperᵉ (o ℓ e : Level) : Set (suc (o ⊔ ℓ ⊔ e)) where
-  infix  4 _≈_ _⇒_
-  infixr 9 _∘_
+private
+  record CategoryHelperᵉ (o ℓ e : Level) : Set (suc (o ⊔ ℓ ⊔ e)) where
+    infix  4 _≈_ _⇒_
+    infixr 9 _∘_
 
-  field
-    Obj : Set o
-    _⇒_ : Rel Obj ℓ
-    _≈_ : ∀ {A B} → Rel (A ⇒ B) e
+    field
+      Obj : Set o
+      _⇒_ : Rel Obj ℓ
+      _≈_ : ∀ {A B} → Rel (A ⇒ B) e
 
-    id  : ∀ {A} → (A ⇒ A)
-    _∘_ : ∀ {A B C} → (B ⇒ C) → (A ⇒ B) → (A ⇒ C)
+      id  : ∀ {A} → (A ⇒ A)
+      _∘_ : ∀ {A B C} → (B ⇒ C) → (A ⇒ B) → (A ⇒ C)
 
-  field
-    assoc     : ∀ {A B C D} {f : A ⇒ B} {g : B ⇒ C} {h : C ⇒ D} → (h ∘ g) ∘ f ≈ h ∘ (g ∘ f)
-    identityˡ : ∀ {A B} {f : A ⇒ B} → id ∘ f ≈ f
-    identityʳ : ∀ {A B} {f : A ⇒ B} → f ∘ id ≈ f
-    ∘-resp-≈  : ∀ {A B C} {f h : B ⇒ C} {g i : A ⇒ B} → f ≈ h → g ≈ i → f ∘ g ≈ h ∘ i
+    field
+      assoc     : ∀ {A B C D} {f : A ⇒ B} {g : B ⇒ C} {h : C ⇒ D} → (h ∘ g) ∘ f ≈ h ∘ (g ∘ f)
+      identityˡ : ∀ {A B} {f : A ⇒ B} → id ∘ f ≈ f
+      identityʳ : ∀ {A B} {f : A ⇒ B} → f ∘ id ≈ f
+      ∘-resp-≈  : ∀ {A B C} {f h : B ⇒ C} {g i : A ⇒ B} → f ≈ h → g ≈ i → f ∘ g ≈ h ∘ i
 
 -- The built category's equality is `EqClosure _≈_`, raising the equality
 -- level from `e` to `ℓ ⊔ e` (the closure is a `Star` indexed over the homs).
@@ -49,13 +50,16 @@ categoryHelperᵉ CH = categoryHelper record
   ; assoc     = fwd assoc
   ; identityˡ = fwd identityˡ
   ; identityʳ = fwd identityʳ
-  ; equiv     = EqC.isEquivalence _≈_
-  ; ∘-resp-≈  = λ {_} {_} {_} {_} {h} {g} {_} p q →
-                  EqC.gfold (EqC.isEquivalence _≈_) (_∘ g) whiskerˡ p
-                ⟫ EqC.gfold (EqC.isEquivalence _≈_) (h ∘_) whiskerʳ q
+  ; equiv     = ≈-equiv
+  ; ∘-resp-≈  = λ {h = h} {g = g} p q →
+                  EqC.gfold ≈-equiv (_∘ g) whiskerˡ p
+                ⟫ EqC.gfold ≈-equiv (h ∘_) whiskerʳ q
   }
   where
     open CategoryHelperᵉ CH
+
+    ≈-equiv : ∀ {A B} → IsEquivalence (EqClosure (_≈_ {A} {B}))
+    ≈-equiv = EqC.isEquivalence _≈_
 
     infixr 5 _⟫_
     _⟫_ : ∀ {A B} {x y z : A ⇒ B} → EqClosure _≈_ x y → EqClosure _≈_ y z → EqClosure _≈_ x z

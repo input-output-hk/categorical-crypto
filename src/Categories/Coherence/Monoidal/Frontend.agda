@@ -8,7 +8,7 @@
 -- terms needs a merge/split conjugation that leaks into every statement.  This
 -- module lifts that to ARBITRARY-object-term generators `GenF`, so a clean
 -- target-category goal like `(id ⊗₁ tᴹ) ∘ (sᴹ ⊗₁ id) ≈ sᴹ ⊗₁ tᴹ` reads
--- directly, mirroring the hypergraph solver's `Coherence.Symmetric.Setup`.
+-- directly, mirroring the hypergraph (SMC) solver's setup layer.
 --
 -- `flatten : ObjTerm → List X` (with `flatten (Y ⊗₀ Z) ≡ flatten Y ++
 -- flatten Z` definitionally) re-indexes the generators to the wire level, and
@@ -17,18 +17,24 @@
 --     bridgeF : inj (embed (reflectF t)) ∘ flat⇒ ≈ flat⇒ ∘ t
 --
 -- `Decide.solveTerm!` packages reflect → normalize → compare → bridge into a
--- decision procedure for the front-end `_≈Term_`; `Decide.Into.solveMor!`
+-- decision procedure for the front-end `_≈Term_`; `Decide.Into.WithGen.solveMor!`
 -- transports a hit into an arbitrary target monoidal category along the free
 -- functor — definitionally, so the equation reads in the target's vocabulary.
 --
--- The shared machinery (flatten/MorW, mergeF/splitF, flat⇒/flat⇐, inj,
+-- The shared machinery (flatten/MorW, flat⇒/flat⇐, inj,
 -- reflectF, bridgeF, solveF) lives in `Categories.Coherence.Monoidal.Frontend.Core`
 -- (`FCore`/`FBridge`), instantiated here at (Mon, MorW, ⟦box⟧).  This file
 -- supplies the Mon-specific clauses (`injBox`, `reflectVarM`, vacuous σ on the
 -- empty `Symm ≤ Mon`).
 --
--- What decides and the precise limitation catalogue (L1–L6) are
--- machine-checked in `Categories.Coherence.Monoidal.Test.Frontend`.
+-- What decides is machine-checked in
+-- `Categories.Coherence.Monoidal.Test.Frontend`, whose `Negative`/`Limitations`
+-- suites pin the two boundaries expressible as `decide?F … ≡ nothing`: the
+-- syntactic-generator limitation (L5, `neg-generator-naturality`) and the
+-- non-injective-rank limitation (L2, `lim-equal-rank`).  The remaining
+-- limitations are meta-properties, not single equations: soundness-without-
+-- completeness (L1), monoidal-only / no braiding (L3), concrete-signatures-only
+-- (L4), and no canonicity claim for `norm ∘ reflect` (L6).
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.Frontend where
@@ -37,25 +43,25 @@ import Data.Maybe
 open import categorical-crypto.Prelude
   hiding (_∘_; id; map; merge; zero; suc; lookup; [_]; [_,_])
 
-open import Data.Fin using (Fin)
+open import Data.Fin
 open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
 open import Data.Nat using () renaming (suc to nsuc)
-open import Data.Vec using (Vec; lookup)
+open import Data.Vec
 
-open import Categories.Category using (Category; _[_,_])
-open import Categories.Category.Monoidal using (MonoidalCategory)
+open import Categories.Category
+open import Categories.Category.Monoidal
 
-open import Categories.Coherence.Monoidal.Diagram using (WireEngine; module Untyped)
-open import Categories.FreeMonoidal
+open import Categories.Coherence.Monoidal.Diagram
+open import Categories.FreeMonoidal using (Mon; module FreeMonoidalHelper; noSymmetric)
 open import Categories.Coherence.Monoidal.Frontend.Core
-  using (FreeSig; module FCore; module FBridge; module IntoCore; module FinSig; module FFocus)
-open import Categories.Coherence.Monoidal.Normalize using (module Normalize)
-open import Categories.Coherence.Monoidal.Reflect using (module Reflect; module DecideCore)
+  using (FreeSig; module FCore; module FBridge; module FSolve; module FinSig; module FinSetupCore)
+open import Categories.Coherence.Monoidal.Normalize
+open import Categories.Coherence.Monoidal.Reflect
 
 module Frontend
   {X : Set}
   (_≟X_ : DecidableEquality X)
-  (let open FreeMonoidalHelper Mon X using (ObjTerm; unit; _⊗₀_; Var))
+  (let open FreeMonoidalHelper Mon X using (ObjTerm))
   (GenF : ObjTerm → ObjTerm → Set)
   where
 
@@ -64,19 +70,18 @@ module Frontend
   ------------------------------------------------------------------------
 
   private module Core = FCore Mon {X = X} GenF
-  open Core public using (flatten; MorW; mk; GenΣ)
+  open Core
 
-  open Untyped Mon {X} MorW                -- wires, mor, box, ⟦box⟧, merge, split, …
-  open Reflect Mon {X} _≟X_ MorW           -- WTerm, embed, reflect, castW, merge-ρ, …
+  open Untyped Mon {X} MorW
+  open Reflect Mon {X} _≟X_ MorW
 
   -- the wire-level engine instance (MorW + ⟦box⟧), shared by FBridge/DecideCore.
   private
     EW : WireEngine Mon {X}
     EW = record { Mor = MorW ; ⟦box⟧ = ⟦box⟧ }
 
-  -- the generator signature, shared by the engine modules below; `F` is its
-  -- free category (HomTerm over GenF).
-  private
+    -- the generator signature, shared by the engine modules below; `F` is its
+    -- free category (HomTerm over GenF).
     sig : FreeSig Mon {X}
     sig = record { _≟X_ = _≟X_ ; GenF = GenF }
   open FreeSig sig using (module F)
@@ -86,7 +91,7 @@ module Frontend
   ------------------------------------------------------------------------
 
   private module FB = FBridge Mon _≟X_ GenF EW
-  open FB using (flat⇒; flat⇐)
+  open FB
 
   ------------------------------------------------------------------------
   -- The Mon-specific clauses: a box is conjugated by the canonical iso;
@@ -101,10 +106,10 @@ module Frontend
     reflectVarM g = boxʷ (mk g)
 
   private module FBI = FB.WithInj injBox reflectVarM (λ where ⦃ () ⦄)
-  open FBI using (reflectF)
+  open FBI
 
-  private module FBB = FBI.Bridge (λ g → refl) (λ where ⦃ () ⦄)
-  open FBB using (solveF)
+  private module FBB = FBI.Bridge (λ _ → refl) (λ where ⦃ () ⦄)
+  open FBB
 
   ------------------------------------------------------------------------
   -- The decision procedure
@@ -112,29 +117,32 @@ module Frontend
 
   module Decide
     (_≟G_ : DecidableEquality GenΣ)
-    (rank : GenΣ → ℕ)   -- tiebreak key for ambiguous (mutually-fitting) pairs;
-                        -- for a Fin-indexed signature, `toℕ` of the index.
+    (rank : GenΣ → ℕ)   -- tiebreak key for ambiguous pairs
     where
 
     private
       _≟W_ = Core.decMorW _≟G_
 
-    open Normalize Mon {X} _≟X_ MorW using (module SortD)
-    open SortD using (SwapRes; interchangeGo; stepWith; depthD; normFuelWith)
+      open Normalize Mon {X} _≟X_ MorW
+      open SortD
+      open Steps PrimSwap
+      open FreeMonoidalHelper.Mor Mon X mor using (_≈Term_)
+      module DC = DecideCore EW _≟X_
 
-    private
       rankW : ∀ {a b} → MorW a b → ℕ
       rankW = Core.rankMorW rank
 
-      -- one interchange swap at the FIRST applicable position.
-      step? : ∀ {n} (d : DiagU n) → Maybe (SwapRes d)
+      -- one interchange swap at the FIRST applicable position, as an `_≈D_`
+      -- rewrite witness.
+      step? : ∀ {n m} (d : DiagU n m) → Maybe (Σ[ d' ∈ DiagU n m ] (d ≈D d'))
       step? = stepWith (interchangeGo rankW)
 
-      -- a fuel-bounded bubble sort; the worst-case budget is ≥ #inversions.
-      norm : ∀ {n} (d : DiagU n) → SwapRes d
-      norm d = normFuelWith step? (nsuc (depthD d * depthD d)) d
+      -- a fuel-bounded bubble sort emitting an `_≈D_` trace, discharged to a
+      -- semantic witness by the shared `normSound` (the worst-case budget is
+      -- ≥ #inversions).
+      norm : ∀ {n m} (d : DiagU n m) → Σ[ d' ∈ DiagU n m ] (⟦ d ⟧ ≈Term ⟦ d' ⟧)
+      norm = normSound prim-swap-sound step? (λ k → nsuc (k * k))
 
-    private module DC = DecideCore EW _≟X_
     open DC.Decide _≟W_ norm using () renaming (decideW to decide?W)
 
     -- front-end decision: a hit is a genuine `_≈Term_` of the free
@@ -142,32 +150,7 @@ module Frontend
     decide?F : ∀ {Y Z} (l r : F.HomTerm Y Z) → Maybe (l F.≈Term r)
     decide?F l r = Data.Maybe.map solveF (decide?W (reflectF l) (reflectF r))
 
-    module FF = FFocus sig decide?F
-    open FF public using (IsJust; solveTerm!; _≟O_; Foc; plug; focusAll; focusAtₙ)
-
-    ------------------------------------------------------------------------
-    -- Transport into an arbitrary target monoidal category, along the
-    -- free functor.  Definitional on every constructor, so `solveMor!`'s
-    -- equation reads in the target's own vocabulary
-    ------------------------------------------------------------------------
-
-    module Into
-      {o ℓ e : Level}
-      (C : MonoidalCategory o ℓ e)
-      (⟦_⟧ᵖ₀ : X → C .MonoidalCategory.U .Category.Obj)
-      where
-
-      private module IC = IntoCore sig decide?F (fromMC C noSymmetric) ⟦_⟧ᵖ₀
-      open IC public using (⟦_⟧ₒ)
-
-      module WithGen
-        (⟦gen⟧ : ∀ {Y Z} → GenF Y Z
-               → C .MonoidalCategory.U [ ⟦ Y ⟧ₒ , ⟦ Z ⟧ₒ ])
-        where
-
-        open IC.WithGenC ⟦gen⟧ public
-          using (⟦_⟧₁; ⟦⟧-resp-≈; solveMor!;
-                 rewriteMor!; rewriteMorₙ!; rewriteMorAuto!)
+    open FSolve sig decide?F public using (module Into)
 
 --------------------------------------------------------------------------------
 -- `FinSetup`: the call-site convenience wrapper.  From a target monoidal
@@ -175,7 +158,10 @@ module Frontend
 -- assembles the signature, decidable equalities and rank, exposing the term
 -- language `S`, the embedding `gen`, the object interpretation `⟦_⟧ₒ` and —
 -- after `WithGen` supplies the generator interpretations — `solveMor!`.
--- Usage in `Test.Frontend.Target`.
+-- (Mirror of `Frontend.Sigma`'s `FinSetupσ`.  Both Fin wrappers are
+-- call-site conveniences; the test suites — `Test.Frontend.Target` and
+-- `Test.SigmaFrontend.Target` — instead wire the pieces (`FinSig` +
+-- `module Frontend`/`FrontendS` + `Into`/`WithGen`) by hand.)
 --------------------------------------------------------------------------------
 
 module FinSetup
@@ -183,24 +169,16 @@ module FinSetup
   {nA : ℕ} (vars : Vec (C .MonoidalCategory.U .Category.Obj) nA)
   where
 
-  -- the object language over the atom indices, with constructors renamed so
-  -- they coexist with a caller's own free-category vocabulary.
-  open FreeMonoidalHelper Mon (Fin nA) public
-    using (ObjTerm) renaming (Var to V; unit to unitᵒ; _⊗₀_ to _⊗ᵒ_)
-
-  -- the object interpretation `ObjTerm → C.Obj`.  Independent of any generator
-  -- signature — definitionally the `⟦_⟧ₒ` each `Sig` exposes — so it can type a
-  -- generator's interpretation BEFORE the signature is fixed (see `Mor`).
-  open FreeObjInterp Mon (Fin nA) (fromMC C noSymmetric) (lookup vars)
-    public using () renaming (⟦_⟧₀ to ⟦_⟧ₒ)
+  private module Core = FinSetupCore {v = Mon} C noSymmetric vars
+  open Core public using (ObjTerm; V; unitᵒ; _⊗ᵒ_; ⟦_⟧ₒ)
 
   module Sig {nG : ℕ} (arity : Fin nG → ObjTerm × ObjTerm) where
 
-    open FinSig Mon {X = Fin nA} arity public using (GenS; genS; module S; gen; GenΣ; _≟G_; rankS)
+    -- build the Mon front-end's decision procedure at this signature, then
+    -- hand it to the variant-generic `FinSetupCore.Sig` (the `FinSig Mon arity`
+    -- here and inside `Core.Sig` are the SAME `GenS`/`S`, so the types match).
+    open FinSig Mon {X = Fin nA} arity
+    open Frontend {Fin nA} _≟Fin_ GenS
+    open Decide _≟G_ rankS
 
-    open Frontend {Fin nA} _≟Fin_ GenS using (module Decide)
-
-    open Decide _≟G_ rankS public
-      using (decide?F; IsJust; solveTerm!; module Into
-            ; Foc; plug; focusAll; focusAtₙ; _≟O_)
-    open Into C (lookup vars) public
+    open Core.Sig arity decide?F public
