@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------
 -- Translation ⟪_⟫ : HomTerm → Hypergraph.  Built from the `FromAPROP`
 -- smart constructors; `∘` uses the pruned `hComposeP`, which makes the
--- group-(b)/(c) ≈Term laws (idˡ, idʳ, …) provable by lining up the vertex
+-- ≈Term laws (idˡ, idʳ, …) provable by lining up the vertex
 -- counts.  Separate file because `FromAPROP` cannot import `PrunedCompose`
 -- (the latter imports `FromAPROP` for `FlatGen`).
 --------------------------------------------------------------------------------

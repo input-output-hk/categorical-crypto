@@ -7,9 +7,9 @@
 -- the corresponding `G.cod` entry and are unreferenced in the composite.
 -- Relies on `Hypergraph.Prune.remap` and its label-preservation lemmas.
 --
--- DESIGN: pruning lets the vertex counts line up so the group-(b)/(c)
--- ≈Term laws (where the unpruned LHS would have strictly more vertices
--- than the RHS) become provable.
+-- DESIGN: pruning lets the vertex counts line up so the ≈Term laws
+-- (where the unpruned LHS would have strictly more vertices than the
+-- RHS) become provable.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
