@@ -31,27 +31,24 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
         ; module hTensor-impl)
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (↑ˡ≢↑ʳ)
 
-open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.Fin.Properties using
-  ( _≟_; suc-injective; ↑ˡ-injective; ↑ʳ-injective
-  ; splitAt-↑ˡ; splitAt-↑ʳ; splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ)
+  (_≟_; suc-injective; ↑ˡ-injective; ↑ʳ-injective; splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ)
 open import Data.List as List using (List; []; _∷_; _++_; length; map; tabulate; concat)
 open import Data.List.Properties using
-  ( ++-identityʳ; ++-assoc; map-++; length-map
-  ; tabulate-cong; map-tabulate; concat-map; concat-++)
+  (++-identityʳ; tabulate-cong; map-tabulate; concat-map; concat-++)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 import Function as Fun
 open import Data.Nat using (ℕ; zero; suc; s≤s; z≤n; _+_)
 open import Data.Nat as Nat using ()
 import Data.Nat.Properties as Nat
-open import Data.Product using (Σ-syntax; ∃-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Product using (_×_; _,_)
 open import Data.Sum using (inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; cong₂; sym; trans; subst; subst₂)
-open import Relation.Nullary.Decidable using (Dec; yes; no)
-open import Relation.Nullary.Negation using (¬_)
+  using (_≡_; refl; cong; cong₂; sym; trans)
+open import Relation.Nullary.Decidable using (yes; no)
 
 -- count v xs : number of occurrences of `v` in `xs`.
 

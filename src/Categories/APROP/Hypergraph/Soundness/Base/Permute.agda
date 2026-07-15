@@ -14,10 +14,9 @@ open import Categories.APROP
 module Categories.APROP.Hypergraph.Soundness.Base.Permute (sig : APROPSignature) where
 
 open APROP sig
-open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig using (unflatten)
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; map)
+open import Data.List using (List)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 

@@ -14,12 +14,12 @@ module Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties (sig : APRO
 
 open APROP sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (extract-elem; extract-prefix; extract-exact)
+  using (extract-elem; extract-prefix)
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (inject+-inj; raise-inj; ↑ˡ≢↑ʳ)
 
 open import Data.Empty using (⊥-elim)
-open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_; splitAt)
-open import Data.Fin.Properties using (_≟_; splitAt-↑ˡ; splitAt-↑ʳ)
+open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
+open import Data.Fin.Properties using (_≟_)
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Relation.Unary.Any using (here; there)

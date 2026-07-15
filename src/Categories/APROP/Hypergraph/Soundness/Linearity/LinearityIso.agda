@@ -18,21 +18,21 @@ open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using (Linear; count; count-++; producedList; consumedList)
 
-open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using (_≟_)
 open import Data.List as List using (List; []; _∷_; _++_; map; tabulate; concat)
 open import Data.List.Properties using (++-assoc)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-open import Data.Nat using (ℕ; zero; suc; _+_)
+open import Data.Nat using (zero; suc; _+_)
 open import Data.Nat as Nat using ()
 import Data.Nat.Properties as Nat
-open import Data.Product using (_×_; _,_; proj₁; proj₂)
+open import Data.Product using (_,_; proj₁; proj₂)
 import Function as Fun
 open import Relation.Binary.PropositionalEquality
   using (_≡_; _≢_; refl; cong; cong₂; sym; trans; subst)
-open import Relation.Nullary.Decidable using (Dec; yes; no)
+open import Relation.Nullary.Decidable using (yes; no)
 
 --------------------------------------------------------------------------------
 -- count is permutation-invariant.
@@ -78,7 +78,6 @@ count-map-via-bij φ φ⁻¹ φ⁻¹φ φφ⁻¹ v (x ∷ xs) with v ≟ φ x | 
 open import Data.Fin using (punchIn; punchOut)
 open import Data.Fin.Properties
   using (punchInᵢ≢i; punchOut-punchIn; punchIn-punchOut; punchOut-cong)
-open import Relation.Binary.PropositionalEquality using () renaming (subst to ≡-subst)
 
 private
   -- `tabulate f` can be reordered to bring `f k` to the head, with
