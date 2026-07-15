@@ -83,7 +83,7 @@ module Morphism {o ℓ e : Level}
     module Braiding where
 
       test-σσ : MC.U [ Sy.braiding.⇒.η (B , A) ∘ Sy.braiding.⇒.η (A , B) ≈ id ]
-      test-σσ = solveMorσ! (S.σ S.∘ S.σ {a}) (S.id {a O.⊗₀ b})
+      test-σσ = solveMorσ! (S.σ S.∘ S.σ) (S.id {a O.⊗₀ b})
 
       -- the inverse pair fires DEEP: inside a ⊗-context, with α-recasts around.
       test-σσ-deep
@@ -100,18 +100,18 @@ module Morphism {o ℓ e : Level}
       -- the headline: TWO machine-fired slides (s through the a-image block,
       -- t through the b-image block).
       test-σ-nat : MC.U [ Sy.braiding.⇒.η (A , B) ∘ (sᴹ ⊗₁ tᴹ) ≈ (tᴹ ⊗₁ sᴹ) ∘ Sy.braiding.⇒.η (A , B) ]
-      test-σ-nat = solveMorσ! (S.σ {a} S.∘ (s' S.⊗₁ t')) ((t' S.⊗₁ s') S.∘ S.σ {a})
+      test-σ-nat = solveMorσ! (S.σ S.∘ (s' S.⊗₁ t')) ((t' S.⊗₁ s') S.∘ S.σ)
 
       -- the single-sided variants (one slide each).
       test-σ-nat-left : MC.U [ Sy.braiding.⇒.η (A , B) ∘ (sᴹ ⊗₁ id) ≈ (id ⊗₁ sᴹ) ∘ Sy.braiding.⇒.η (A , B) ]
-      test-σ-nat-left = solveMorσ! (S.σ {a} S.∘ (s' S.⊗₁ S.id)) ((S.id S.⊗₁ s') S.∘ S.σ {a} {b})
+      test-σ-nat-left = solveMorσ! (S.σ S.∘ (s' S.⊗₁ S.id)) ((S.id S.⊗₁ s') S.∘ S.σ {a} {b})
 
       test-σ-nat-right : MC.U [ Sy.braiding.⇒.η (A , B) ∘ (id ⊗₁ tᴹ) ≈ (tᴹ ⊗₁ id) ∘ Sy.braiding.⇒.η (A , B) ]
       test-σ-nat-right = solveMorσ! (S.σ S.∘ (S.id S.⊗₁ t')) ((t' S.⊗₁ S.id) S.∘ S.σ {a})
 
       -- σ-conjugation: slides + σσ-cancellation combined.
       test-σ-conj : MC.U [ Sy.braiding.⇒.η (A , B) ∘ (sᴹ ⊗₁ tᴹ) ∘ Sy.braiding.⇒.η (B , A) ≈ tᴹ ⊗₁ sᴹ ]
-      test-σ-conj = solveMorσ! (S.σ {a} S.∘ (s' S.⊗₁ t') S.∘ S.σ {b}) (t' S.⊗₁ s')
+      test-σ-conj = solveMorσ! (S.σ S.∘ (s' S.⊗₁ t') S.∘ S.σ) (t' S.⊗₁ s')
 
       -- a MULTI-WIRE box slides as one block: μ : A⊗A → A through σ.
       test-σ-nat-μ : MC.U [ Sy.braiding.⇒.η (A , B) ∘ (μᴹ ⊗₁ id) ≈ (id ⊗₁ μᴹ) ∘ Sy.braiding.⇒.η (A ⊗₀ A , B) ]
@@ -127,7 +127,7 @@ module Morphism {o ℓ e : Level}
         : MC.U
             [ (Sy.braiding.⇒.η (B , A) ∘ Sy.braiding.⇒.η (A , B)) ∘ ((sᴹ ∘ sᴹ) ⊗₁ tᴹ)
             ≈ (sᴹ ⊗₁ tᴹ) ∘ (sᴹ ⊗₁ id) ]
-      test-mix-∘ = solveMorσ! ((S.σ {b} S.∘ S.σ {a}) S.∘ ((s' S.∘ s') S.⊗₁ t')) ((s' S.⊗₁ t') S.∘ (s' S.⊗₁ S.id))
+      test-mix-∘ = solveMorσ! ((S.σ S.∘ S.σ) S.∘ ((s' S.∘ s') S.⊗₁ t')) ((s' S.⊗₁ t') S.∘ (s' S.⊗₁ S.id))
 
       -- σ against the unitors: the inverse σ-pair at (unit, A) cancels under
       -- a right unitor.
@@ -135,7 +135,7 @@ module Morphism {o ℓ e : Level}
         : MC.U
             [ unitorʳ.from ∘ Sy.braiding.⇒.η (unit , A) ∘ Sy.braiding.⇒.η (A , unit)
             ≈ unitorʳ.from ]
-      test-mix-unit = solveMorσ! (S.ρ⇒ S.∘ S.σ {O.unit} S.∘ S.σ {a}) (S.ρ⇒)
+      test-mix-unit = solveMorσ! (S.ρ⇒ S.∘ S.σ S.∘ S.σ {a}) (S.ρ⇒)
 
     ----------------------------------------------------------------------
     -- The shared rewriting layer in the σ front-end: the rule `sᴹ ∘ sᴹ ≈ id`
@@ -226,7 +226,7 @@ module SigmaTests where
   wbox  = gen2 (suc (suc (suc zero)))
   w2box = gen2 (suc (suc (suc (suc zero))))
 
-  open import Categories.FreeStrictMonoidal using (module FreeStrictMonoidalHelper)
+  open import Categories.FreeStrictMonoidal
 
   private module SG = Sigma Gen2
   open SG
@@ -236,7 +236,7 @@ module SigmaTests where
   open FreeMonoidalHelper.Mor Symm ℕ mor
   -- the strict pad / cast operators + `_≈ʷ_` for the strict slide litmus below.
   open FreeStrictMonoidalHelper MorS using (padʷ; castʷᵈ; module Theory)
-  open Theory R_σ using (_≈ʷ_)
+  open Theory R_σ
 
   private
     instance
@@ -317,7 +317,7 @@ module SigmaTests where
         ∘ʷ castʷ refl (padʷ ∅ ∅ (boxʷ (cross (1 ∷ ∅) (0 ∷ ∅))))
       ≈ʷ castʷ refl (padʷ ∅ ∅ (boxʷ (cross (1 ∷ ∅) (0 ∷ ∅)))
            ∘ʷ castʷ refl (castʷᵈ (sym refl) (padʷ (1 ∷ ∅) ∅ (boxʷ (box kbox)))))
-  litSlide = slide-cleanˢ [] [] (1 ∷ []) [] [] (boxʷ (box kbox)) {refl} {refl} {refl} {refl}
+  litSlide = slide-cleanˢ [] [] (1 ∷ []) [] [] (boxʷ (box kbox)) {refl} {refl} {refl}
 
   -- a-block mirror: kbox slides through the crossing's a-image (the SUFFIX
   -- of the cross's output) instead of the b-image; same concrete offsets,
@@ -327,7 +327,7 @@ module SigmaTests where
         ∘ʷ castʷ refl (padʷ ∅ ∅ (boxʷ (cross (0 ∷ ∅) (1 ∷ ∅))))
       ≈ʷ castʷ refl (padʷ ∅ ∅ (boxʷ (cross (0 ∷ ∅) (1 ∷ ∅)))
            ∘ʷ castʷ refl (castʷᵈ (sym refl) (padʷ ∅ (1 ∷ ∅) (boxʷ (box kbox)))))
-  litSlide-a = slide-cleanˢ-a [] [] (1 ∷ []) [] [] (boxʷ (box kbox)) {refl} {refl} {refl} {refl}
+  litSlide-a = slide-cleanˢ-a [] [] (1 ∷ []) [] [] (boxʷ (box kbox)) {refl} {refl} {refl}
 
   ------------------------------------------------------------------------
   -- (iv) the Diag-level naturality SLIDE, wired into the driver.

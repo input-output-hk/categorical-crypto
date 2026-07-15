@@ -58,12 +58,10 @@ module WireCoh (v : Variant) (X : Set)
   -- `assocW`/`assocW⁻` are mutually inverse (they are `castW` of `sym`-related indices).
   assocW⁻∘assocW : ∀ (p q s : List X) → assocW⁻ p q s ∘ assocW p q s ≈Term id
   assocW⁻∘assocW p q s = castW-isoʳ (++-assoc p q s)
-  --------------------------------------------------------------------------------
   -- Flat-shift of a wire morphism as a merge/split conjugation.  `liftW p W`
   -- (the prefix-idle lift, `id {wires p} ⊗₁ W` reflattened) equals the box `W`
   -- conjugated by the flat `merge p`/`split p`; and the flat `pad` is literally
   -- the wire-shift of the right-pad `rpad`.  Both are ⟦_⟧ᵇ-free wire coherence.
-  --------------------------------------------------------------------------------
 
   -- the flat shift equals the merge/split conjugation.
   liftW-merge : ∀ (p : List X) {u v} (W : HomTerm (wires u) (wires v))

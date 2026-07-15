@@ -28,6 +28,7 @@ module Categories.Coherence.Monoidal.Diagram where
 
 open import categorical-crypto.Prelude hiding (_∘_; id; map; merge)
 open import Data.List.Properties
+import Data.List.Properties.Ext as ListExt
 
 open import Categories.Category
 import Categories.Category.Monoidal.Reasoning as MonR
@@ -107,12 +108,10 @@ module DiagramI {v : Variant} {X : Set} (E : WireEngine v) where
   -- `⟦_⟧` it is CAST-FREE: each layer is the flat strict pad `padʷ pre suf`, at
   -- exactly the diagram's own index, with NO merge/split conjugation.  The
   -- factorisation `⟦ d ⟧ ≈Term embed ⟦ d ⟧ˢ` (in `Reflect`) recovers the weak
-  -- reading; the strict `DiagSound` analogues below pay the tensor bookkeeping
+  -- reading; the `DiagSoundˢ` builders below pay the tensor bookkeeping
   -- on `_≈ʷ_` (transports fuse on `refl`) instead of on `_≈Term_`.
   --------------------------------------------------------------------------------
   open FreeStrictMonoidalHelper Mor
-    using ( WTerm; boxʷ; idʷ; _∘ʷ_; _⊗ʷ_; padʷ; castʷ; castʷᵈ; module Theory
-          ; castʷ-symˡ; castʷᵈ-symˡ; castʷᵈ-symʳ; ∘ʷ-castʷᵈ-r; ∘ʷ-castʷᵈ-l )
 
   ⟦_⟧ˢ : ∀ {n m} (d : Diag n m) → WTerm n m
   ⟦ []_ n ⟧ˢ              = idʷ
@@ -182,15 +181,12 @@ module DiagramI {v : Variant} {X : Set} (E : WireEngine v) where
     substDiag (++-assoc lt pre (a ++ suf))
       ((lt ++ pre) ▸ suf ∷ f ⟨ substDiag (sym (++-assoc lt pre (b ++ suf))) (shiftL lt d) ⟩)
 
-  reassoc++ : ∀ (p a s r : List X) → (p ++ (a ++ s)) ++ r ≡ p ++ (a ++ (s ++ r))
-  reassoc++ p a s r = trans (++-assoc p (a ++ s) r) (cong (p ++_) (++-assoc a s r))
-
   -- Suffix-shift: append `rt` idle wires (suffix suf ↦ suf++rt).
   shiftR : ∀ {n m} (rt : List X) → Diag n m → Diag (n ++ rt) (m ++ rt)
   shiftR rt ([]_ n) = []_ (n ++ rt)
   shiftR rt (_▸_∷_⟨_⟩ {a} {b} pre suf f d) =
-    substDiag (sym (reassoc++ pre a suf rt))
-      (pre ▸ (suf ++ rt) ∷ f ⟨ substDiag (reassoc++ pre b suf rt) (shiftR rt d) ⟩)
+    substDiag (sym (ListExt.++-assoc-mid pre a suf rt))
+      (pre ▸ (suf ++ rt) ∷ f ⟨ substDiag (ListExt.++-assoc-mid pre b suf rt) (shiftR rt d) ⟩)
 
   infixr 10 _⊗ᵈ_
   _⊗ᵈ_ : ∀ {nl ml nr mr} → Diag nl ml → Diag nr mr → Diag (nl ++ nr) (ml ++ mr)
@@ -224,16 +220,14 @@ module DiagramI {v : Variant} {X : Set} (E : WireEngine v) where
     syntax stepˢ-≈  f gh fg = f ≈ˢ⟨ fg ⟩ gh
     syntax stepˢ-≈˘ f gh gf = f ≈ˢ⟨ gf ⟨ gh
 
-    ∘ᵈ-soundˢ : ∀ {n m k} (d₁ : Diag n m) (d₂ : Diag m k)
-              → ⟦ d₁ ∘ᵈ d₂ ⟧ˢ ≈ʷ ⟦ d₂ ⟧ˢ ∘ʷ ⟦ d₁ ⟧ˢ
+    ∘ᵈ-soundˢ : ∀ {n m k} (d₁ : Diag n m) (d₂ : Diag m k) → ⟦ d₁ ∘ᵈ d₂ ⟧ˢ ≈ʷ ⟦ d₂ ⟧ˢ ∘ʷ ⟦ d₁ ⟧ˢ
     ∘ᵈ-soundˢ ([]_ _)              d₂ = symʷ idʳ
     ∘ᵈ-soundˢ (pre ▸ suf ∷ f ⟨ d ⟩) d₂ = transʷ (∘-resp-≈ (∘ᵈ-soundˢ d d₂) reflʷ) assoc
 
     -- Prefix-shift: cast-free target `idʷ lt ⊗ʷ ⟦ d ⟧ˢ`; the two `substDiag`
     -- transports and `pad-nest` reconcile the `++`-associativity, then
     -- `id⊗-∘ˢ` distributes the idle prefix over the layer composite.
-    shiftL-soundˢ : ∀ {n m} (lt : List X) (d : Diag n m)
-                  → ⟦ shiftL lt d ⟧ˢ ≈ʷ idʷ {n = lt} ⊗ʷ ⟦ d ⟧ˢ
+    shiftL-soundˢ : ∀ {n m} (lt : List X) (d : Diag n m) → ⟦ shiftL lt d ⟧ˢ ≈ʷ idʷ ⊗ʷ ⟦ d ⟧ˢ
     shiftL-soundˢ lt ([]_ _) = symʷ id⊗id
     shiftL-soundˢ lt (_▸_∷_⟨_⟩ {a} {b} pre suf f d) = beginˢ
       ⟦ substDiag E1 LAYER ⟧ˢ
@@ -241,21 +235,15 @@ module DiagramI {v : Variant} {X : Set} (E : WireEngine v) where
       castʷᵈ E1 (⟦ substDiag E2 (shiftL lt d) ⟧ˢ ∘ʷ PL)
         ≈ˢ⟨ castʷᵈ-resp E1 (∘-resp-≈ leftEq (pad-nest lt pre suf g)) ⟩
       castʷᵈ E1 (castʷᵈ E2 (Id ⊗ʷ D) ∘ʷ castʷᵈ (sym E1) (castʷ E2 (Id ⊗ʷ PP)))
-        ≈ˢ⟨ ≡→≈ʷ (cong (castʷᵈ E1) (∘ʷ-castʷᵈ-r (sym E1) (castʷᵈ E2 (Id ⊗ʷ D)) (castʷ E2 (Id ⊗ʷ PP)))) ⟩
-      castʷᵈ E1 (castʷᵈ (sym E1) (castʷᵈ E2 (Id ⊗ʷ D) ∘ʷ castʷ E2 (Id ⊗ʷ PP)))
-        ≈ˢ⟨ ≡→≈ʷ (castʷᵈ-symʳ E1 (castʷᵈ E2 (Id ⊗ʷ D) ∘ʷ castʷ E2 (Id ⊗ʷ PP))) ⟩
-      castʷᵈ E2 (Id ⊗ʷ D) ∘ʷ castʷ E2 (Id ⊗ʷ PP)
-        ≈ˢ⟨ ≡→≈ʷ (∘ʷ-castʷᵈ-l E2 (Id ⊗ʷ D) (castʷ E2 (Id ⊗ʷ PP))) ⟩
-      (Id ⊗ʷ D) ∘ʷ castʷ (sym E2) (castʷ E2 (Id ⊗ʷ PP))
-        ≈ˢ⟨ ≡→≈ʷ (cong ((Id ⊗ʷ D) ∘ʷ_) (castʷ-symˡ E2 (Id ⊗ʷ PP))) ⟩
+        ≈ˢ⟨ ≡→≈ʷ (∘ʷ-cast-cancelˡ E1 E2 (Id ⊗ʷ D) (Id ⊗ʷ PP)) ⟩
       (Id ⊗ʷ D) ∘ʷ (Id ⊗ʷ PP)
         ≈ˢ⟨ id⊗-∘ˢ lt D PP ⟨
-      idʷ {n = lt} ⊗ʷ (D ∘ʷ PP) ∎ˢ
+      idʷ ⊗ʷ (D ∘ʷ PP) ∎ˢ
       where
         g  = boxʷ f
         E1 = ++-assoc lt pre (a ++ suf)
         E2 = sym (++-assoc lt pre (b ++ suf))
-        Id = idʷ {n = lt}
+        Id = idʷ
         D  = ⟦ d ⟧ˢ
         PP = padʷ pre suf g
         PL = padʷ (lt ++ pre) suf g
@@ -266,8 +254,7 @@ module DiagramI {v : Variant} {X : Set} (E : WireEngine v) where
                         (castʷᵈ-resp E2 (shiftL-soundˢ lt d))
 
     -- Suffix-shift: dual of the above, using `pad-nestR` and `⊗id-∘ˢ`.
-    shiftR-soundˢ : ∀ {n m} (rt : List X) (d : Diag n m)
-                  → ⟦ shiftR rt d ⟧ˢ ≈ʷ ⟦ d ⟧ˢ ⊗ʷ idʷ {n = rt}
+    shiftR-soundˢ : ∀ {n m} (rt : List X) (d : Diag n m) → ⟦ shiftR rt d ⟧ˢ ≈ʷ ⟦ d ⟧ˢ ⊗ʷ idʷ
     shiftR-soundˢ rt ([]_ _) = symʷ id⊗id
     shiftR-soundˢ rt (_▸_∷_⟨_⟩ {a} {b} pre suf f d) = beginˢ
       ⟦ substDiag (sym E1) LAYER ⟧ˢ
@@ -275,24 +262,18 @@ module DiagramI {v : Variant} {X : Set} (E : WireEngine v) where
       castʷᵈ (sym E1) (⟦ substDiag E2 (shiftR rt d) ⟧ˢ ∘ʷ padʷ pre (suf ++ rt) g)
         ≈ˢ⟨ castʷᵈ-resp (sym E1) (∘-resp-≈ leftEq (pad-nestR pre suf rt g E1 E2)) ⟩
       castʷᵈ (sym E1) (castʷᵈ E2 A ∘ʷ castʷᵈ E1 (castʷ E2 B))
-        ≈ˢ⟨ ≡→≈ʷ (cong (castʷᵈ (sym E1)) (∘ʷ-castʷᵈ-r E1 (castʷᵈ E2 A) (castʷ E2 B))) ⟩
-      castʷᵈ (sym E1) (castʷᵈ E1 (castʷᵈ E2 A ∘ʷ castʷ E2 B))
-        ≈ˢ⟨ ≡→≈ʷ (castʷᵈ-symˡ E1 (castʷᵈ E2 A ∘ʷ castʷ E2 B)) ⟩
-      castʷᵈ E2 A ∘ʷ castʷ E2 B
-        ≈ˢ⟨ ≡→≈ʷ (∘ʷ-castʷᵈ-l E2 A (castʷ E2 B)) ⟩
-      A ∘ʷ castʷ (sym E2) (castʷ E2 B)
-        ≈ˢ⟨ ≡→≈ʷ (cong (A ∘ʷ_) (castʷ-symˡ E2 B)) ⟩
+        ≈ˢ⟨ ≡→≈ʷ (∘ʷ-cast-cancelʳ E1 E2 A B) ⟩
       A ∘ʷ B
         ≈ˢ⟨ ⊗id-∘ˢ rt D PP ⟨
-      (D ∘ʷ PP) ⊗ʷ idʷ {n = rt} ∎ˢ
+      (D ∘ʷ PP) ⊗ʷ idʷ ∎ˢ
       where
         g  = boxʷ f
-        E1 = reassoc++ pre a suf rt
-        E2 = reassoc++ pre b suf rt
+        E1 = ListExt.++-assoc-mid pre a suf rt
+        E2 = ListExt.++-assoc-mid pre b suf rt
         D  = ⟦ d ⟧ˢ
         PP = padʷ pre suf g
-        A  = D ⊗ʷ idʷ {n = rt}
-        B  = PP ⊗ʷ idʷ {n = rt}
+        A  = D ⊗ʷ idʷ
+        B  = PP ⊗ʷ idʷ
         LAYER = pre ▸ (suf ++ rt) ∷ f ⟨ substDiag E2 (shiftR rt d) ⟩
         leftEq : ⟦ substDiag E2 (shiftR rt d) ⟧ˢ ≈ʷ castʷᵈ E2 A
         leftEq = transʷ (≡→≈ʷ (⟦substDiag⟧ˢ E2 (shiftR rt d)))
@@ -317,8 +298,8 @@ module DiagramI {v : Variant} {X : Set} (E : WireEngine v) where
         ≈ˢ⟨ castʷᵈ-resp (++-identityʳ a) (≡→≈ʷ (⟦substDiagᵒ⟧ˢ (++-identityʳ b) (boxLayer g))) ⟩
       castʷᵈ (++-identityʳ a) (castʷ (++-identityʳ b) ⟦ boxLayer g ⟧ˢ)
         ≈ˢ⟨ castʷᵈ-resp (++-identityʳ a)
-             (castʷ-resp (++-identityʳ b) (transʷ idˡ (unitˡ (boxʷ g ⊗ʷ idʷ {n = []})))) ⟩
-      castʷᵈ (++-identityʳ a) (castʷ (++-identityʳ b) (boxʷ g ⊗ʷ idʷ {n = []}))
+             (castʷ-resp (++-identityʳ b) (transʷ idˡ (unitˡ (boxʷ g ⊗ʷ idʷ)))) ⟩
+      castʷᵈ (++-identityʳ a) (castʷ (++-identityʳ b) (boxʷ g ⊗ʷ idʷ))
         ≈ˢ⟨ unitʳ (boxʷ g) ⟩
       boxʷ g ∎ˢ
 

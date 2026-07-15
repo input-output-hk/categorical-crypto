@@ -5,7 +5,7 @@
 --
 -- The reflect/normalize/compare pipeline (Reflect / Normalize /
 -- Compare) lives in the *wire-list* world, where the tensor of flat
--- terms needs a merge/split conjugation that leaks into every statement.  This
+-- terms is a merge/split conjugation (paid once, in `embed-resp-≈`).  This
 -- module lifts that to ARBITRARY-object-term generators `GenF`, so a clean
 -- target-category goal like `(id ⊗₁ tᴹ) ∘ (sᴹ ⊗₁ id) ≈ sᴹ ⊗₁ tᴹ` reads
 -- directly, mirroring the hypergraph (SMC) solver's setup layer.
@@ -70,7 +70,7 @@ module Frontend
 
     -- the generator signature, shared by the engine modules below; `F` is its
     -- free category (HomTerm over GenF).
-    sig : FreeSig Mon {X}
+    sig : FreeSig Mon
     sig = record { GenF = GenF }
   open FreeSig sig using (module F)
 

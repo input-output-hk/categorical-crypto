@@ -19,14 +19,6 @@
 -- purely syntactic statement: CONFLUENCE of `_⤳D_` (the bubble sort's rewrite
 -- reachability towards a footprint-ordered form; key = the leftmost offset,
 -- tiebreak on input width).
---
--- The module's primary PRODUCT is §3's oracle kit: `interchangeGo` — the
--- one-step disjoint-interchange oracle both front-ends build their normalizers.
--- It pairs with the generic `Steps`
--- module: `stepWith` wraps a per-position PRIMITIVE-step oracle into one `_⤳D_`
--- rewrite (`prim` at the hit, `consᴰ` down the spine) and `normFuelWith` chains
--- a bounded run with `transᴰ`, so a whole normalization is a syntactic rewrite
--- trace.
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.Normalize where
@@ -60,11 +52,9 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v)
   -- (`replD-soundˢ`) chains; opened NON-publicly so it does not re-export
   -- `castʷ` (which `DecideCore` already gets from `ReflectI`).
   open FreeStrictMonoidalHelper Mor
-    using ( WTerm; boxʷ; idʷ; _∘ʷ_; _⊗ʷ_; padʷ; castʷ; castʷᵈ; module Theory
-          ; ∘ʷ-castʷᵈ-l; ∘ʷ-castʷᵈ-r; castʷ-castʷᵈ; castʷ-irr )
 
   --------------------------------------------------------------------------------
-  -- 2. The adjacent-disjoint-pair FIT and its index equality
+  -- The adjacent-disjoint-pair FIT and its index equality
   --------------------------------------------------------------------------------
   --
   -- A `Diag` layer carries `fx`, `px`, `sx` explicitly, so a recogniser can
@@ -79,7 +69,7 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v)
   -- fit records three idle blocks `P mid s` with witnesses that the offsets
   -- factor through  P ++ (ay ++ (mid ++ (ax ++ s)))  (fy slot 1, fx slot 2).
   -- The interchange KEY itself is the STRICT `swap-cleanˢ` (in
-  -- `FreeStrictMonoidal`), consumed by `prim-swap-soundˢ` in §3; `domeq` (below)
+  -- `FreeStrictMonoidal`), consumed by `prim-swap-soundˢ`; `domeq` (below)
   -- supplies the `++`-assoc offsets it and the `replD` re-indexing carry.
   record LeftFit {ax bx ay by : List X}
                  (px sx py sy : List X) (fx : Mor ax bx) (fy : Mor ay by) : Set where
@@ -97,12 +87,10 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v)
   -- the two index equalities (pure `++`-assoc), named.
   domeq : (pre a₁ mid a₂ r : List X)
         → (pre ++ (a₁ ++ mid)) ++ (a₂ ++ r) ≡ pre ++ (a₁ ++ (mid ++ (a₂ ++ r)))
-  domeq pre a₁ mid a₂ r =
-    trans (++-assoc pre (a₁ ++ mid) (a₂ ++ r))
-          (cong (pre ++_) (++-assoc a₁ mid (a₂ ++ r)))
+  domeq pre a₁ mid a₂ r = ListExt.++-assoc-mid pre a₁ mid (a₂ ++ r)
 
   --------------------------------------------------------------------------------
-  -- 3. The autonomous firing Diag sort (needs `DecEq X`)
+  -- The autonomous firing Diag sort (needs `DecEq X`)
   --------------------------------------------------------------------------------
   -- With `DecEq X` we DECIDE a `LeftFit` by `List`-splitting the offset lists at
   -- the box-domain lengths.  `fire` (below) fires the clean swap; the multi-step
@@ -175,8 +163,8 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v)
 
     --------------------------------------------------------------------------------
     -- The STRICT primitive-step soundness, in `Theory R`'s `_≈ʷ_` on the
-    -- cast-free strict semantics `⟦_⟧ˢ`.  `replD-soundˢ` is the strict analogue
-    -- of `replD-sound`: the `substDiag` peels are propositional (`⟦substDiag⟧ˢ`),
+    -- cast-free strict semantics `⟦_⟧ˢ`.  In `replD-soundˢ` the `substDiag`
+    -- peels are propositional (`⟦substDiag⟧ˢ`),
     -- so only the `castʷ`/`castʷᵈ` algebra remains; `prim-swap-soundˢ` feeds it
     -- the strict interchange KEY `swap-cleanˢ` (from `FreeStrictMonoidal`).
     --------------------------------------------------------------------------------
@@ -214,16 +202,12 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v)
           Mid  = castʷ E₂ (P₄ ∘ʷ castʷ E₃ (castʷᵈ (sym E₄) P₃))
 
           -- LHS: peel the `substDiag (sym meq)`, reconcile `sym (sym meq)`, regroup.
-          lemA : ⟦ p₁L ▸ s₁L ∷ g₁ ⟨ substDiag (sym meq) boxL ⟩ ⟧ˢ
-               ≈ʷ Rest ∘ʷ (P₂ ∘ʷ castʷ meq P₁)
+          lemA : ⟦ p₁L ▸ s₁L ∷ g₁ ⟨ substDiag (sym meq) boxL ⟩ ⟧ˢ ≈ʷ Rest ∘ʷ (P₂ ∘ʷ castʷ meq P₁)
           lemA = transʷ (≡→≈ʷ (cong (_∘ʷ P₁) (⟦substDiag⟧ˢ (sym meq) boxL)))
-                   (transʷ (≡→≈ʷ (∘ʷ-castʷᵈ-l (sym meq) (Rest ∘ʷ P₂) P₁))
-                     (transʷ (∘-resp-≈ reflʷ (≡→≈ʷ (castʷ-irr (sym (sym meq)) meq P₁)))
-                       assoc))
+                   (transʷ (≡→≈ʷ (∘ʷ-castʷᵈ-l′ meq (Rest ∘ʷ P₂) P₁)) assoc)
 
           -- RHS: peel the three `substDiag`s to the nested-cast form.
-          d'≡ : ⟦ substDiag (sym E₄) D₃ ⟧ˢ
-              ≡ castʷᵈ (sym E₄) (castʷᵈ (sym E₃) (A ∘ʷ P₄) ∘ʷ P₃)
+          d'≡ : ⟦ substDiag (sym E₄) D₃ ⟧ˢ ≡ castʷᵈ (sym E₄) (castʷᵈ (sym E₃) (A ∘ʷ P₄) ∘ʷ P₃)
           d'≡ = trans (⟦substDiag⟧ˢ (sym E₄) D₃)
                   (cong (castʷᵈ (sym E₄))
                     (cong (_∘ʷ P₃)
@@ -231,13 +215,11 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v)
                         (cong (castʷᵈ (sym E₃))
                           (cong (_∘ʷ P₄) (⟦substDiag⟧ˢ (sym E₂) rest'))))))
 
-          reconInner : castʷᵈ (sym E₄) (castʷ (sym (sym E₃)) P₃)
-                     ≈ʷ castʷ E₃ (castʷᵈ (sym E₄) P₃)
+          reconInner : castʷᵈ (sym E₄) (castʷ (sym (sym E₃)) P₃) ≈ʷ castʷ E₃ (castʷᵈ (sym E₄) P₃)
           reconInner = transʷ (castʷᵈ-resp (sym E₄) (≡→≈ʷ (castʷ-irr (sym (sym E₃)) E₃ P₃)))
                               (symʷ (≡→≈ʷ (castʷ-castʷᵈ (sym E₄) E₃ P₃)))
 
-          recon : castʷ (sym (sym E₂)) (P₄ ∘ʷ castʷᵈ (sym E₄) (castʷ (sym (sym E₃)) P₃))
-                ≈ʷ Mid
+          recon : castʷ (sym (sym E₂)) (P₄ ∘ʷ castʷᵈ (sym E₄) (castʷ (sym (sym E₃)) P₃)) ≈ʷ Mid
           recon = transʷ (≡→≈ʷ (castʷ-irr (sym (sym E₂)) E₂ _))
                     (castʷ-resp E₂ (∘-resp-≈ reflʷ reconInner))
 
@@ -253,7 +235,7 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v)
       prim-swap-soundˢ : ∀ {n k} {d d' : Diag n k} → PrimSwap d d' → ⟦ d ⟧ˢ ≈ʷ ⟦ d' ⟧ˢ
       prim-swap-soundˢ (prim-swap {ax} {bx} {ay} {by} {fx = fx} {fy = fy} P mid s rest' meq) =
         replD-soundˢ (swap-cleanˢ P mid s fx fy
-          {meq} {domeq P by mid bx s} {sym (domeq P by mid ax s)} {domeq P ay mid ax s})
+          {meq} {domeq P by mid bx s} {sym (domeq P by mid ax s)})
 
     -- Fire one genuine swap on a recognised out-of-order head pair: a SINGLE
     -- constructor application (`meq` abstract, no rewrite, no proof on the
