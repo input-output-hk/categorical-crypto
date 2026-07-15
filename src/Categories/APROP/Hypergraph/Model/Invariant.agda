@@ -34,8 +34,7 @@ import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
 open import Data.Product using (_,_; _×_)
 open import Data.Sum using (inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; subst)
-open import Relation.Binary.PropositionalEquality as PE using (cong; cong₂)
+  using (_≡_; refl; sym; trans; subst; cong; cong₂)
 
 --------------------------------------------------------------------------------
 -- For identity hypergraphs, `dom ≡ cod` as lists (every `hId` branch uses
