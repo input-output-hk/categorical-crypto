@@ -13,7 +13,7 @@
 --
 -- Taking (frob) plus the unit and associativity laws as hypotheses, we DERIVE
 -- frobL and frobR — the paper's worked example, transcribed as a chain of
--- `rewriteDeepTo!ᵀᴮ` steps.  Each step rewrites one rule occurrence (located on
+-- `rewriteDeepTo!` steps.  Each step rewrites one rule occurrence (located on
 -- the hypergraph, so interchange/associativity placement is irrelevant) and
 -- then re-states the result as a clean intermediate diagram via `solveH!` —
 -- the paper's `srw …; smcat` rhythm.
@@ -115,21 +115,21 @@ module FrobeniusAlgebra (A : C.Obj)
 
     private
       -- One derivation step: fire a rule somewhere in `Tᵢ` (deep) and land
-      -- directly on the stated clean diagram `Tᵢ₊₁` (`rewriteDeepTo!ᵀᴮ`).
+      -- directly on the stated clean diagram `Tᵢ₊₁` (`rewriteDeepTo!`).
       step₁ : ⟦ T₁ ⟧₁ C.≈ ⟦ Xᵗ ⟧₁
-      step₁ = rewriteDeepTo!ᵀᴮ T₁ Xᵗ unitLᵗ S.λ⇒ 0 unitL
+      step₁ = rewriteDeepTo! T₁ Xᵗ unitLᵗ S.λ⇒ 0 unitL
 
       step₂ : ⟦ T₁ ⟧₁ C.≈ ⟦ T₂ ⟧₁
-      step₂ = rewriteDeepTo!ᵀᴮ T₁ T₂ Yᵗ Xᵗ 0 (C.Equiv.sym frobH)
+      step₂ = rewriteDeepTo! T₁ T₂ Yᵗ Xᵗ 0 (C.Equiv.sym frobH)
 
       step₃ : ⟦ T₂ ⟧₁ C.≈ ⟦ T₃ ⟧₁
-      step₃ = rewriteDeepTo!ᵀᴮ T₂ T₃ assocLᵗ assocRᵗ 0 assocH
+      step₃ = rewriteDeepTo! T₂ T₃ assocLᵗ assocRᵗ 0 assocH
 
       step₄ : ⟦ T₃ ⟧₁ C.≈ ⟦ T₄ ⟧₁
-      step₄ = rewriteDeepTo!ᵀᴮ T₃ T₄ Xᵗ Yᵗ 0 frobH
+      step₄ = rewriteDeepTo! T₃ T₄ Xᵗ Yᵗ 0 frobH
 
       step₅ : ⟦ T₄ ⟧₁ C.≈ ⟦ n S.∘ m ⟧₁
-      step₅ = rewriteDeepTo!ᵀᴮ T₄ (n S.∘ m) unitLᵗ S.λ⇒ 0 unitL
+      step₅ = rewriteDeepTo! T₄ (n S.∘ m) unitLᵗ S.λ⇒ 0 unitL
 
     frobL : (id ⊗₁ mᴹ) ∘ α⇒ ∘ (nᴹ ⊗₁ id) ≈ nᴹ ∘ mᴹ
     frobL =

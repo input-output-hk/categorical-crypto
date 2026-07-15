@@ -38,12 +38,7 @@
 --                            term: the step form for chained derivations (it
 --                            keeps the carved frame out of all exposed types,
 --                            which is essential for type-checking speed).
---                                          → `Test.Deep`
---   * `rewriteDeepTo!ᵀᴮ`     — the tabulated-gate alias of `rewriteDeepTo!`:
---                            after the frame dedup the `ᵀᴮ` gate coincides with
---                            the plain one, so this is definitionally the same
---                            tool, kept under a distinct name for the showcase.
---                                          → `Test.Frobenius`
+--                                          → `Test.Deep`, `Test.Frobenius`
 --   * `normalize(To)!`     — DRIVERS: fire a `List Rule` (oriented rewrites
 --                            with soundness proofs) at the first applicable
 --                            position, repeatedly, to fuel-bounded
@@ -52,7 +47,7 @@
 --                            search carries its own proof.  → `Test.Drivers`
 --
 -- SHOWCASE: `Test.Frobenius` derives the two alternative formulations of the
--- Frobenius law from the standard one by chains of `rewriteDeepTo!ᵀᴮ` steps
+-- Frobenius law from the standard one by chains of `rewriteDeepTo!` steps
 -- — the TensorRocq §5 worked example, end-to-end.
 --
 -- KNOWN LIMITATIONS (each demonstrated by a probe in the file cited):
