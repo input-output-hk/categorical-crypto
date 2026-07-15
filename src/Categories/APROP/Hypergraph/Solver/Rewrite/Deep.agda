@@ -78,7 +78,7 @@ module At (P Q : ObjTerm) where
   module U⁺ = Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig⁺
   module C⁺ = Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig⁺-dec
 
-  open APROP sig⁺ using () renaming (HomTerm to HomTerm⁺; Agen to Agen⁺)
+  open APROP sig⁺ using () renaming (Agen to Agen⁺)
 
   ------------------------------------------------------------------------------
   -- Carving.  Parameterised by the matched embedding `L ↪ᴴ S`.
