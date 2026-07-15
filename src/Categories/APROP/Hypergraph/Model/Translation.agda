@@ -21,7 +21,7 @@ open import Categories.APROP.Hypergraph.Model.PrunedCompose sig using (hComposeP
 open import Data.List using (List; _++_)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; trans; sym; cong; cong₂)
+  using (_≡_; trans; sym; cong₂)
 
 --------------------------------------------------------------------------------
 -- Mutual definition: `⟪_⟫` produces the hypergraph; the boundary lemmas

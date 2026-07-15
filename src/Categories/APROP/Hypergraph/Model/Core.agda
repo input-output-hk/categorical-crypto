@@ -17,7 +17,6 @@ module Categories.APROP.Hypergraph.Model.Core where
 open import Data.Fin using (Fin)
 open import Data.List using (List; map)
 open import Data.Nat using (ℕ)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 record Hypergraph {X : Set} (Gen : List X → List X → Set) : Set where
   field

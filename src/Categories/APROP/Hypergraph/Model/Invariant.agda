@@ -16,22 +16,19 @@ module Categories.APROP.Hypergraph.Model.Invariant (sig : APROPSignature) where
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Empty using (⊥)
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.Fin.Properties using
-  ( splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ; splitAt-↑ˡ; splitAt-↑ʳ
-  ; ↑ˡ-injective; ↑ʳ-injective
-  ; cast-is-id; toℕ-cast; toℕ-injective; toℕ-↑ˡ; toℕ-↑ʳ)
+  (splitAt-↑ˡ; splitAt-↑ʳ; ↑ˡ-injective; ↑ʳ-injective)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.List using (List; []; _∷_; _++_; map; length)
-open import Data.List.Membership.Propositional using (_∈_; _∉_)
+open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties
-  using (∈-++⁺ˡ; ∈-++⁺ʳ; ∈-map⁺; ∈-map⁻)
+  using (∈-map⁻)
 open import Data.List.Relation.Binary.Disjoint.Propositional using (Disjoint)
-open import Data.List.Relation.Unary.Any using (here; there)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
-open import Data.Product using (_,_; _×_)
+open import Data.Product using (_,_)
 open import Data.Sum using (inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; subst; cong; cong₂)

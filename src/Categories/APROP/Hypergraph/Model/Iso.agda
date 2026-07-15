@@ -13,7 +13,7 @@ module Categories.APROP.Hypergraph.Model.Iso where
 open import Categories.APROP.Hypergraph.Model.Core
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; map)
+open import Data.List using (List; map)
 open import Data.List.Properties using (map-∘; map-cong; map-id)
 open import Function using (id; _∘_)
 open import Relation.Binary.PropositionalEquality

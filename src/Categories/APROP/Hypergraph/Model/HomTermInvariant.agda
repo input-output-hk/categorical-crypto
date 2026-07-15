@@ -18,24 +18,21 @@ module Categories.APROP.Hypergraph.Model.HomTermInvariant (sig : APROPSignature)
 
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flatten; hId; hTensor; hGen; hSwap)
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
-  using (hComposeP; module hComposeP-impl)
+  using (module hComposeP-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Model.Invariant sig
   using ( hId-dom-Unique; hSwap-dom-Unique; hGen-dom-Unique
         ; hId-cod-Unique; hSwap-cod-Unique; hGen-cod-Unique
         ; inject+-inj; raise-inj; disj-L-R)
 open import Categories.APROP.Hypergraph.Util.Prune
-  using (remap-injective; lookup-injective-unique; nonMem-Unique)
+  using (remap-injective; lookup-injective-unique)
 
-open import Data.Fin using (Fin; inject+; raise)
-open import Data.List using (List; _++_; map)
-open import Data.List.Properties using (++-identityʳ; ++-assoc)
+open import Data.Fin using (Fin)
+open import Data.List using (List; _++_)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst; subst₂)
+open import Relation.Binary.PropositionalEquality using (_≡_; sym)
 
 --------------------------------------------------------------------------------
 -- `⟪ f ⟫.dom` is Unique for every APROP term.
@@ -90,7 +87,6 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst
     bdy = trans (⟪⟫-codL h) (sym (⟪⟫-domL g))
     module hCP = hComposeP-impl ⟪ h ⟫ ⟪ g ⟫ bdy
 
-    open import Data.Nat using (ℕ)
     cast-inj : ∀ {i j} → cast hCP.dom-cod-len i ≡ cast hCP.dom-cod-len j → i ≡ j
     cast-inj {i} {j} eq = toℕ-injective
       (trans (sym (toℕ-cast hCP.dom-cod-len i))

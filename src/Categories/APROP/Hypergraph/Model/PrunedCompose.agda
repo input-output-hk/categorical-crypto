@@ -25,7 +25,7 @@ open import Categories.APROP.Hypergraph.Util.Prune
 
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt; cast)
 open import Data.Fin.Properties
-open import Data.List using (List; []; _∷_; length; map; lookup)
+open import Data.List using (List; _∷_; length; map; lookup)
 open import Data.List.Properties
 open import Data.Nat
 open import Data.Sum using (inj₁; inj₂; [_,_]′)
