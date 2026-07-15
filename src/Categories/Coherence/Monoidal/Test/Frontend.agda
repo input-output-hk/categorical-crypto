@@ -35,8 +35,7 @@
 
 module Categories.Coherence.Monoidal.Test.Frontend where
 
-open import categorical-crypto.Prelude
-  hiding (_∘_; id; map; merge; zero; suc; [_]; [_,_]; _∷_; [])
+open import categorical-crypto.Prelude hiding (_∘_; id; map; merge; zero; suc; [_]; [_,_]; _∷_; [])
 
 open import Data.Fin
 open import Data.Vec using (_∷_; [])
@@ -66,30 +65,26 @@ module Coherence {o ℓ e : Level} (C : MonoidalCategory o ℓ e) (A B : C .Mono
     b = Var (suc zero)
 
   test-λ-iso : C .MonoidalCategory.U [ ⟦ λ⇒ ∘ λ⇐ {a} ⟧₁ ≈ ⟦ id {a} ⟧₁ ]
-  test-λ-iso = solveM (λ⇒ ∘ λ⇐ {a}) (id {a})
+  test-λ-iso = solveM (λ⇒ ∘ λ⇐) (id {a})
 
   test-ρ-iso : C .MonoidalCategory.U [ ⟦ ρ⇒ ∘ ρ⇐ {a} ⟧₁ ≈ ⟦ id {a} ⟧₁ ]
-  test-ρ-iso = solveM (ρ⇒ ∘ ρ⇐ {a}) (id {a})
+  test-ρ-iso = solveM (ρ⇒ ∘ ρ⇐) (id {a})
 
-  test-α-iso
-    : C .MonoidalCategory.U [ ⟦ α⇐ ∘ α⇒ {a} {b} {a} ⟧₁ ≈ ⟦ id {(a ⊗₀ b) ⊗₀ a} ⟧₁ ]
-  test-α-iso = solveM (α⇐ ∘ α⇒ {a} {b} {a}) (id {(a ⊗₀ b) ⊗₀ a})
+  test-α-iso : C .MonoidalCategory.U [ ⟦ α⇐ ∘ α⇒ {a} {b} {a} ⟧₁ ≈ ⟦ id {(a ⊗₀ b) ⊗₀ a} ⟧₁ ]
+  test-α-iso = solveM (α⇐ ∘ α⇒) (id {(a ⊗₀ b) ⊗₀ a})
 
   -- Kelly: the two unitors agree on the unit object.
   test-λ≈ρ-unit : C .MonoidalCategory.U [ ⟦ λ⇒ {unit} ⟧₁ ≈ ⟦ ρ⇒ {unit} ⟧₁ ]
-  test-λ≈ρ-unit = solveM (λ⇒ {unit}) (ρ⇒ {unit})
+  test-λ≈ρ-unit = solveM (λ⇒) (ρ⇒)
 
-  test-triangle
-    : C .MonoidalCategory.U
-        [ ⟦ (id {a} ⊗₁ λ⇒) ∘ α⇒ {a} {unit} {b} ⟧₁ ≈ ⟦ ρ⇒ {a} ⊗₁ id {b} ⟧₁ ]
-  test-triangle = solveM ((id {a} ⊗₁ λ⇒) ∘ α⇒ {a} {unit} {b}) (ρ⇒ {a} ⊗₁ id {b})
+  test-triangle : C .MonoidalCategory.U [ ⟦ (id ⊗₁ λ⇒) ∘ α⇒ {a} {unit} {b} ⟧₁ ≈ ⟦ ρ⇒ {a} ⊗₁ id {b} ⟧₁ ]
+  test-triangle = solveM ((id ⊗₁ λ⇒) ∘ α⇒ {a} {unit}) (ρ⇒ ⊗₁ id {b})
 
   test-pentagon
     : C .MonoidalCategory.U
         [ ⟦ (id ⊗₁ α⇒) ∘ α⇒ ∘ (α⇒ {a} {b} {a} ⊗₁ id {b}) ⟧₁
         ≈ ⟦ α⇒ ∘ α⇒ {a ⊗₀ b} {a} {b} ⟧₁ ]
-  test-pentagon =
-    solveM ((id ⊗₁ α⇒) ∘ α⇒ ∘ (α⇒ {a} {b} {a} ⊗₁ id {b})) (α⇒ ∘ α⇒ {a ⊗₀ b} {a} {b})
+  test-pentagon = solveM ((id ⊗₁ α⇒) ∘ α⇒ ∘ (α⇒ {a} ⊗₁ id)) (α⇒ ∘ α⇒ {a ⊗₀ b} {a} {b})
 
 ------------------------------------------------------------------------
 -- The morphism-solver tests: over an arbitrary monoidal category `C` with
@@ -147,22 +142,12 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
       test-ρ-nat : MC.U [ unitorʳ.from ∘ (sᴹ ⊗₁ id) ≈ sᴹ ∘ unitorʳ.from ]
       test-ρ-nat = solveMor! (S.ρ⇒ S.∘ (s' S.⊗₁ S.id)) (s' S.∘ S.ρ⇒)
 
-      test-α-nat
-        : MC.U
-            [ associator.from ∘ ((sᴹ ⊗₁ tᴹ) ⊗₁ s'ᴹ)
-            ≈ (sᴹ ⊗₁ (tᴹ ⊗₁ s'ᴹ)) ∘ associator.from ]
-      test-α-nat =
-        solveMor! (S.α⇒ S.∘ ((s' S.⊗₁ t') S.⊗₁ s''))
-                  ((s' S.⊗₁ (t' S.⊗₁ s'')) S.∘ S.α⇒)
+      test-α-nat : MC.U [ associator.from ∘ ((sᴹ ⊗₁ tᴹ) ⊗₁ s'ᴹ) ≈ (sᴹ ⊗₁ (tᴹ ⊗₁ s'ᴹ)) ∘ associator.from ]
+      test-α-nat = solveMor! (S.α⇒ S.∘ ((s' S.⊗₁ t') S.⊗₁ s'')) ((s' S.⊗₁ (t' S.⊗₁ s'')) S.∘ S.α⇒)
 
       -- a box with non-trivial arity through the associator.
-      test-α-nat-μ
-        : MC.U
-            [ associator.from ∘ ((μᴹ ⊗₁ tᴹ) ⊗₁ sᴹ)
-            ≈ (μᴹ ⊗₁ (tᴹ ⊗₁ sᴹ)) ∘ associator.from ]
-      test-α-nat-μ =
-        solveMor! (S.α⇒ S.∘ ((μ' S.⊗₁ t') S.⊗₁ s'))
-                  ((μ' S.⊗₁ (t' S.⊗₁ s')) S.∘ S.α⇒)
+      test-α-nat-μ : MC.U [ associator.from ∘ ((μᴹ ⊗₁ tᴹ) ⊗₁ sᴹ) ≈ (μᴹ ⊗₁ (tᴹ ⊗₁ sᴹ)) ∘ associator.from ]
+      test-α-nat-μ = solveMor! (S.α⇒ S.∘ ((μ' S.⊗₁ t') S.⊗₁ s')) ((μ' S.⊗₁ (t' S.⊗₁ s')) S.∘ S.α⇒)
 
     ------------------------------------------------------------------------
     -- Functoriality: id/∘ laws and IN-ORDER ⊗-functoriality.
@@ -178,17 +163,13 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
       test-assoc : MC.U [ (s'ᴹ ∘ sᴹ) ∘ sᴹ ≈ s'ᴹ ∘ (sᴹ ∘ sᴹ) ]
       test-assoc = solveMor! ((s'' S.∘ s') S.∘ s') (s'' S.∘ (s' S.∘ s'))
 
-      test-id⊗id : MC.U [ id {A} ⊗₁ id {B} ≈ id {A ⊗₀ B} ]
-      test-id⊗id =
-        solveMor! (S.id {O.Var zero} S.⊗₁ S.id {O.Var (suc zero)})
-                  (S.id {O.Var zero O.⊗₀ O.Var (suc zero)})
+      test-id⊗id : MC.U [ id ⊗₁ id ≈ id ]
+      test-id⊗id = solveMor! (S.id S.⊗₁ S.id) (S.id {O.Var zero O.⊗₀ O.Var (suc zero)})
 
       -- ⊗-functoriality with firing orders agreeing after reflect:
       -- left factor's layers all before the right factor's.
-      test-⊗-∘-in-order
-        : MC.U [ (s'ᴹ ∘ sᴹ) ⊗₁ tᴹ ≈ (s'ᴹ ⊗₁ tᴹ) ∘ (sᴹ ⊗₁ id) ]
-      test-⊗-∘-in-order =
-        solveMor! ((s'' S.∘ s') S.⊗₁ t') ((s'' S.⊗₁ t') S.∘ (s' S.⊗₁ S.id))
+      test-⊗-∘-in-order : MC.U [ (s'ᴹ ∘ sᴹ) ⊗₁ tᴹ ≈ (s'ᴹ ⊗₁ tᴹ) ∘ (sᴹ ⊗₁ id) ]
+      test-⊗-∘-in-order = solveMor! ((s'' S.∘ s') S.⊗₁ t') ((s'' S.⊗₁ t') S.∘ (s' S.⊗₁ S.id))
 
     ------------------------------------------------------------------------
     -- Interchange: disjoint boxes in either firing order.  The out-of-order
@@ -197,11 +178,8 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
     module Interchange where
 
       -- the pure interchange equation, both composites.
-      test-swap
-        : MC.U [ (id ⊗₁ tᴹ) ∘ (sᴹ ⊗₁ id) ≈ (sᴹ ⊗₁ id) ∘ (id ⊗₁ tᴹ) ]
-      test-swap =
-        solveMor! ((S.id S.⊗₁ t') S.∘ (s' S.⊗₁ S.id))
-                  ((s' S.⊗₁ S.id) S.∘ (S.id S.⊗₁ t'))
+      test-swap : MC.U [ (id ⊗₁ tᴹ) ∘ (sᴹ ⊗₁ id) ≈ (sᴹ ⊗₁ id) ∘ (id ⊗₁ tᴹ) ]
+      test-swap = solveMor! ((S.id S.⊗₁ t') S.∘ (s' S.⊗₁ S.id)) ((s' S.⊗₁ S.id) S.∘ (S.id S.⊗₁ t'))
 
       -- collapse to the tensor, s-first (in order) and t-first (one swap).
       test-s-first : MC.U [ (id ⊗₁ tᴹ) ∘ (sᴹ ⊗₁ id) ≈ sᴹ ⊗₁ tᴹ ]
@@ -215,13 +193,10 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
       test-rhs-swap = solveMor! (s' S.⊗₁ t') ((s' S.⊗₁ S.id) S.∘ (S.id S.⊗₁ t'))
 
       -- a deeper wire context: t on the LAST of three wires.
-      test-deep
-        : MC.U
-            [ (sᴹ ⊗₁ (id {B} ⊗₁ id {B})) ∘ (id {A} ⊗₁ (id {B} ⊗₁ tᴹ))
-            ≈ sᴹ ⊗₁ (id {B} ⊗₁ tᴹ) ]
+      test-deep : MC.U [ (sᴹ ⊗₁ (id ⊗₁ id)) ∘ (id ⊗₁ (id ⊗₁ tᴹ)) ≈ sᴹ ⊗₁ (id ⊗₁ tᴹ) ]
       test-deep =
-        solveMor! ((s' S.⊗₁ (S.id {O.Var (suc zero)} S.⊗₁ S.id {O.Var (suc zero)}))
-                     S.∘ (S.id {O.Var zero} S.⊗₁ (S.id {O.Var (suc zero)} S.⊗₁ t')))
+        solveMor! ((s' S.⊗₁ (S.id S.⊗₁ S.id))
+                     S.∘ (S.id S.⊗₁ (S.id S.⊗₁ t')))
                   (s' S.⊗₁ (S.id {O.Var (suc zero)} S.⊗₁ t'))
 
       -- a multi-wire box (μ : A⊗A → A) interchanging with t.
@@ -229,27 +204,24 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
       test-μ-swap = solveMor! ((μ' S.⊗₁ S.id) S.∘ (S.id S.⊗₁ t')) (μ' S.⊗₁ t')
 
       -- an empty-domain box (η : unit → A) interchanging with t.
-      test-η-swap : MC.U [ (ηᴹ ⊗₁ id) ∘ (id {unit} ⊗₁ tᴹ) ≈ ηᴹ ⊗₁ tᴹ ]
+      test-η-swap : MC.U [ (ηᴹ ⊗₁ id) ∘ (id ⊗₁ tᴹ) ≈ ηᴹ ⊗₁ tᴹ ]
       test-η-swap = solveMor! ((η' S.⊗₁ S.id) S.∘ (S.id S.⊗₁ t')) (η' S.⊗₁ t')
 
       -- a scalar (u : unit → unit) interchanging with s.
-      test-u-swap : MC.U [ (uᴹ ⊗₁ id) ∘ (id {unit} ⊗₁ sᴹ) ≈ uᴹ ⊗₁ sᴹ ]
+      test-u-swap : MC.U [ (uᴹ ⊗₁ id) ∘ (id ⊗₁ sᴹ) ≈ uᴹ ⊗₁ sᴹ ]
       test-u-swap = solveMor! ((u' S.⊗₁ S.id) S.∘ (S.id S.⊗₁ s')) (u' S.⊗₁ s')
 
       -- interchange is transparent to reassociation: the same two-box diagram
       -- stated across an associator conjugation.
-      test-α-transparent
-        : MC.U
-            [ associator.from ∘ ((sᴹ ⊗₁ id) ⊗₁ tᴹ) ∘ associator.to
-            ≈ sᴹ ⊗₁ (id {A} ⊗₁ tᴹ) ]
+      test-α-transparent : MC.U [ associator.from ∘ ((sᴹ ⊗₁ id) ⊗₁ tᴹ) ∘ associator.to ≈ sᴹ ⊗₁ (id ⊗₁ tᴹ) ]
       test-α-transparent =
-        solveMor! (S.α⇒ S.∘ ((s' S.⊗₁ S.id {O.Var zero}) S.⊗₁ t') S.∘ S.α⇐)
+        solveMor! (S.α⇒ S.∘ ((s' S.⊗₁ S.id) S.⊗₁ t') S.∘ S.α⇐)
                   (s' S.⊗₁ (S.id {O.Var zero} S.⊗₁ t'))
 
       -- the head swap fires with a non-trivial third layer in the tail.
       test-swap-with-tail
         : MC.U
-            [ (s'ᴹ ⊗₁ id) ∘ (sᴹ ⊗₁ id) ∘ (id {A} ⊗₁ tᴹ)
+            [ (s'ᴹ ⊗₁ id) ∘ (sᴹ ⊗₁ id) ∘ (id ⊗₁ tᴹ)
             ≈ (s'ᴹ ⊗₁ id) ∘ (id ⊗₁ tᴹ) ∘ (sᴹ ⊗₁ id) ]
       test-swap-with-tail =
         solveMor! ((s'' S.⊗₁ S.id) S.∘ (s' S.⊗₁ S.id) S.∘ (S.id S.⊗₁ t'))
@@ -257,10 +229,8 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
 
       -- a NON-HEAD inversion (layers 2-3): the position loop `step?` walks past
       -- the in-order head pair and fires deeper.
-      test-non-head-swap
-        : MC.U [ (s'ᴹ ∘ sᴹ) ⊗₁ tᴹ ≈ (s'ᴹ ⊗₁ id) ∘ (sᴹ ⊗₁ tᴹ) ]
-      test-non-head-swap =
-        solveMor! ((s'' S.∘ s') S.⊗₁ t') ((s'' S.⊗₁ S.id) S.∘ (s' S.⊗₁ t'))
+      test-non-head-swap : MC.U [ (s'ᴹ ∘ sᴹ) ⊗₁ tᴹ ≈ (s'ᴹ ⊗₁ id) ∘ (sᴹ ⊗₁ tᴹ) ]
+      test-non-head-swap = solveMor! ((s'' S.∘ s') S.⊗₁ t') ((s'' S.⊗₁ S.id) S.∘ (s' S.⊗₁ t'))
 
       -- three independent boxes fired fully descending vs ascending: the
       -- fuel-driven loop (`normFuelWith`) fires THREE genuine swaps.
@@ -268,13 +238,9 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
         W₃ : O.ObjTerm
         W₃ = O.Var zero O.⊗₀ (O.Var zero O.⊗₀ O.Var zero)
         desc₃ : S.HomTerm W₃ W₃
-        desc₃ = (s' S.⊗₁ (S.id S.⊗₁ S.id))
-           S.∘ (S.id S.⊗₁ (s' S.⊗₁ S.id))
-           S.∘ (S.id S.⊗₁ (S.id S.⊗₁ s'))
+        desc₃ = (s' S.⊗₁ (S.id S.⊗₁ S.id)) S.∘ (S.id S.⊗₁ (s' S.⊗₁ S.id)) S.∘ (S.id S.⊗₁ (S.id S.⊗₁ s'))
         asc₃ : S.HomTerm W₃ W₃
-        asc₃ = (S.id S.⊗₁ (S.id S.⊗₁ s'))
-          S.∘ (S.id S.⊗₁ (s' S.⊗₁ S.id))
-          S.∘ (s' S.⊗₁ (S.id S.⊗₁ S.id))
+        asc₃ = (S.id S.⊗₁ (S.id S.⊗₁ s')) S.∘ (S.id S.⊗₁ (s' S.⊗₁ S.id)) S.∘ (s' S.⊗₁ (S.id S.⊗₁ S.id))
 
       test-three-desc
         : MC.U
@@ -302,15 +268,12 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
 
       -- the rule fires in the LEFT factor.
       test-rw-left : MC.U [ (s'ᴹ ∘ sᴹ) ⊗₁ tᴹ ≈ (sᴹ ∘ s'ᴹ) ⊗₁ tᴹ ]
-      test-rw-left =
-        rewriteMorAuto! ((s'' S.∘ s') S.⊗₁ t') ((s' S.∘ s'') S.⊗₁ t')
-                        (s'' S.∘ s') (s' S.∘ s'') comm
+      test-rw-left = rewriteMorAuto! ((s'' S.∘ s') S.⊗₁ t') ((s' S.∘ s'') S.⊗₁ t') (s'' S.∘ s') (s' S.∘ s'') comm
 
       -- the redex is NOT a syntactic subterm (it is split across an
       -- interchange): the manual frame + the solver's reconciliation
       -- absorb the reshaping.
-      test-rw-interchange
-        : MC.U [ (s'ᴹ ⊗₁ id) ∘ (sᴹ ⊗₁ tᴹ) ≈ (sᴹ ⊗₁ id) ∘ (s'ᴹ ⊗₁ tᴹ) ]
+      test-rw-interchange : MC.U [ (s'ᴹ ⊗₁ id) ∘ (sᴹ ⊗₁ tᴹ) ≈ (sᴹ ⊗₁ id) ∘ (s'ᴹ ⊗₁ tᴹ) ]
       test-rw-interchange =
         rewriteMor! ((s'' S.⊗₁ S.id) S.∘ (s' S.⊗₁ t')) ((s' S.⊗₁ S.id) S.∘ (s'' S.⊗₁ t'))
                     (S.λ⇐ S.∘ (S.id S.⊗₁ t')) S.λ⇒
@@ -319,15 +282,12 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
       -- iso-cancellation as a rewrite: the inverse law collapses the
       -- composite to id inside a context.
       test-rw-cancel : MC.U [ tᴹ ⊗₁ (sᴹ ∘ s'ᴹ) ≈ tᴹ ⊗₁ id ]
-      test-rw-cancel =
-        rewriteMorAuto! (t' S.⊗₁ (s' S.∘ s'')) (t' S.⊗₁ S.id)
-                        (s' S.∘ s'') S.id inv
+      test-rw-cancel = rewriteMorAuto! (t' S.⊗₁ (s' S.∘ s'')) (t' S.⊗₁ S.id) (s' S.∘ s'') S.id inv
 
       -- explicit occurrence index: the redex appears in BOTH tensor factors;
       -- `rewriteMorₙ!` at n = 1 selects the second occurrence (right factor),
       -- leaving the first untouched.
-      test-rw-nth
-        : MC.U [ (s'ᴹ ∘ sᴹ) ⊗₁ (s'ᴹ ∘ sᴹ) ≈ (s'ᴹ ∘ sᴹ) ⊗₁ (sᴹ ∘ s'ᴹ) ]
+      test-rw-nth : MC.U [ (s'ᴹ ∘ sᴹ) ⊗₁ (s'ᴹ ∘ sᴹ) ≈ (s'ᴹ ∘ sᴹ) ⊗₁ (sᴹ ∘ s'ᴹ) ]
       test-rw-nth =
         rewriteMorₙ! ((s'' S.∘ s') S.⊗₁ (s'' S.∘ s')) ((s'' S.∘ s') S.⊗₁ (s' S.∘ s''))
                      (s'' S.∘ s') (s' S.∘ s'') 1 comm
@@ -352,11 +312,13 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
 
 data Ty : Set where ⋆ • : Ty
 
-_≟Ty_ : DecidableEquality Ty
-⋆ ≟Ty ⋆ = yes refl
-⋆ ≟Ty • = no λ ()
-• ≟Ty ⋆ = no λ ()
-• ≟Ty • = yes refl
+instance
+  DecEq-Ty : DecEq Ty
+  DecEq-Ty .DecEq._≟_ = λ where
+    ⋆ ⋆ → yes refl
+    ⋆ • → no λ ()
+    • ⋆ → no λ ()
+    • • → yes refl
 
 open FreeMonoidalHelper Mon Ty using () renaming (ObjTerm to ObjTermᴵ; unit to unitᴵ; _⊗₀_ to _⊗₀ᴵ_; Var to Varᴵ)
 
@@ -371,16 +333,15 @@ arityT (suc (suc (suc (suc (suc _))))) = unitᴵ , unitᴵ   -- 5 → u, 6 → v
 private module FS = FinSig Mon {Ty} arityT
 open FS
 
-open Frontend {Ty} _≟Ty_ GenS
-open Decide _≟G_ rankS
+open Frontend {Ty} GenS
+open Decide rankS
 
 private
   infixr 9 _∘ᴵ_
   infixr 10 _⊗ᴵ_
   _∘ᴵ_ : ∀ {A B C} → S.HomTerm B C → S.HomTerm A B → S.HomTerm A C
   _∘ᴵ_ = S._∘_
-  _⊗ᴵ_ : ∀ {A B C D} → S.HomTerm A B → S.HomTerm C D
-       → S.HomTerm (A ⊗₀ᴵ C) (B ⊗₀ᴵ D)
+  _⊗ᴵ_ : ∀ {A B C D} → S.HomTerm A B → S.HomTerm C D → S.HomTerm (A ⊗₀ᴵ C) (B ⊗₀ᴵ D)
   _⊗ᴵ_ = S._⊗₁_
   idᴵ : ∀ {A} → S.HomTerm A A
   idᴵ = S.id
@@ -420,7 +381,7 @@ module Limitations where
 
   -- L2: under a constant (non-injective) rank the tiebreak never fires, so the
   -- two scalar orderings `u ∘ v` and `v ∘ u` cannot be separated.
-  private module D₀ = Decide _≟G_ (λ _ → 0)
+  private module D₀ = Decide (λ _ → 0)
 
   lim-equal-rank : D₀.decide?F (u' ∘ᴵ v') (v' ∘ᴵ u') ≡ nothing
   lim-equal-rank = refl

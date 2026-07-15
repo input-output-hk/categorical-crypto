@@ -27,8 +27,7 @@
 
 module Categories.Coherence.Monoidal.Test.SigmaFrontend where
 
-open import categorical-crypto.Prelude
-  hiding (_∘_; id; map; merge; zero; suc; [_]; [_,_]; _∷_; [])
+open import categorical-crypto.Prelude hiding (_∘_; id; map; merge; zero; suc; [_]; [_,_]; _∷_; [])
 
 open import Data.Fin
 open import Data.Vec using (_∷_; [])
@@ -39,7 +38,7 @@ open import Categories.Category.Monoidal.Symmetric
 open import Categories.FreeMonoidal
 open import Categories.Coherence.Monoidal.Frontend.Core
 open import Categories.Coherence.Monoidal.Frontend.Sigma
-open import Categories.Coherence.Monoidal.Sigma using (module Sigma)
+open import Categories.Coherence.Monoidal.Sigma
 import Categories.Coherence.Monoidal as Coh
 
 ------------------------------------------------------------------------
@@ -93,16 +92,14 @@ module Morphism {o ℓ e : Level}
     module Braiding where
 
       test-σσ : MC.U [ Sy.braiding.⇒.η (B , A) ∘ Sy.braiding.⇒.η (A , B) ≈ id ]
-      test-σσ = solveMorσ! (S.σ {b} {a} S.∘ S.σ {a} {b}) (S.id {a O.⊗₀ b})
+      test-σσ = solveMorσ! (S.σ S.∘ S.σ {a}) (S.id {a O.⊗₀ b})
 
       -- the inverse pair fires DEEP: inside a ⊗-context, with α-recasts around.
       test-σσ-deep
         : MC.U
-            [ associator.from ∘ ((Sy.braiding.⇒.η (B , A) ∘ Sy.braiding.⇒.η (A , B)) ⊗₁ id {A})
+            [ associator.from ∘ ((Sy.braiding.⇒.η (B , A) ∘ Sy.braiding.⇒.η (A , B)) ⊗₁ id)
             ≈ associator.from ]
-      test-σσ-deep =
-        solveMorσ! (S.α⇒ S.∘ ((S.σ {b} {a} S.∘ S.σ {a} {b}) S.⊗₁ S.id {a}))
-                   (S.α⇒ {a} {b} {a})
+      test-σσ-deep = solveMorσ! (S.α⇒ S.∘ ((S.σ S.∘ S.σ) S.⊗₁ S.id)) (S.α⇒ {a} {b} {a})
 
     ----------------------------------------------------------------------
     -- σ-naturality through box generators: the SLIDES fire.
@@ -111,36 +108,23 @@ module Morphism {o ℓ e : Level}
 
       -- the headline: TWO machine-fired slides (s through the a-image block,
       -- t through the b-image block).
-      test-σ-nat
-        : MC.U [ Sy.braiding.⇒.η (A , B) ∘ (sᴹ ⊗₁ tᴹ) ≈ (tᴹ ⊗₁ sᴹ) ∘ Sy.braiding.⇒.η (A , B) ]
-      test-σ-nat = solveMorσ! (S.σ {a} {b} S.∘ (s' S.⊗₁ t')) ((t' S.⊗₁ s') S.∘ S.σ {a} {b})
+      test-σ-nat : MC.U [ Sy.braiding.⇒.η (A , B) ∘ (sᴹ ⊗₁ tᴹ) ≈ (tᴹ ⊗₁ sᴹ) ∘ Sy.braiding.⇒.η (A , B) ]
+      test-σ-nat = solveMorσ! (S.σ {a} S.∘ (s' S.⊗₁ t')) ((t' S.⊗₁ s') S.∘ S.σ {a})
 
       -- the single-sided variants (one slide each).
-      test-σ-nat-left
-        : MC.U [ Sy.braiding.⇒.η (A , B) ∘ (sᴹ ⊗₁ id {B}) ≈ (id ⊗₁ sᴹ) ∘ Sy.braiding.⇒.η (A , B) ]
-      test-σ-nat-left =
-        solveMorσ! (S.σ {a} {b} S.∘ (s' S.⊗₁ S.id {b})) ((S.id {b} S.⊗₁ s') S.∘ S.σ {a} {b})
+      test-σ-nat-left : MC.U [ Sy.braiding.⇒.η (A , B) ∘ (sᴹ ⊗₁ id) ≈ (id ⊗₁ sᴹ) ∘ Sy.braiding.⇒.η (A , B) ]
+      test-σ-nat-left = solveMorσ! (S.σ {a} S.∘ (s' S.⊗₁ S.id)) ((S.id S.⊗₁ s') S.∘ S.σ {a} {b})
 
-      test-σ-nat-right
-        : MC.U [ Sy.braiding.⇒.η (A , B) ∘ (id {A} ⊗₁ tᴹ) ≈ (tᴹ ⊗₁ id) ∘ Sy.braiding.⇒.η (A , B) ]
-      test-σ-nat-right =
-        solveMorσ! (S.σ {a} {b} S.∘ (S.id {a} S.⊗₁ t')) ((t' S.⊗₁ S.id {a}) S.∘ S.σ {a} {b})
+      test-σ-nat-right : MC.U [ Sy.braiding.⇒.η (A , B) ∘ (id ⊗₁ tᴹ) ≈ (tᴹ ⊗₁ id) ∘ Sy.braiding.⇒.η (A , B) ]
+      test-σ-nat-right = solveMorσ! (S.σ S.∘ (S.id S.⊗₁ t')) ((t' S.⊗₁ S.id) S.∘ S.σ {a})
 
       -- σ-conjugation: slides + σσ-cancellation combined.
-      test-σ-conj
-        : MC.U
-            [ Sy.braiding.⇒.η (A , B) ∘ (sᴹ ⊗₁ tᴹ) ∘ Sy.braiding.⇒.η (B , A) ≈ tᴹ ⊗₁ sᴹ ]
-      test-σ-conj =
-        solveMorσ! (S.σ {a} {b} S.∘ (s' S.⊗₁ t') S.∘ S.σ {b} {a}) (t' S.⊗₁ s')
+      test-σ-conj : MC.U [ Sy.braiding.⇒.η (A , B) ∘ (sᴹ ⊗₁ tᴹ) ∘ Sy.braiding.⇒.η (B , A) ≈ tᴹ ⊗₁ sᴹ ]
+      test-σ-conj = solveMorσ! (S.σ {a} S.∘ (s' S.⊗₁ t') S.∘ S.σ {b}) (t' S.⊗₁ s')
 
       -- a MULTI-WIRE box slides as one block: μ : A⊗A → A through σ.
-      test-σ-nat-μ
-        : MC.U
-            [ Sy.braiding.⇒.η (A , B) ∘ (μᴹ ⊗₁ id {B})
-            ≈ (id {B} ⊗₁ μᴹ) ∘ Sy.braiding.⇒.η (A ⊗₀ A , B) ]
-      test-σ-nat-μ =
-        solveMorσ! (S.σ {a} {b} S.∘ (μ' S.⊗₁ S.id {b}))
-                   ((S.id {b} S.⊗₁ μ') S.∘ S.σ {a O.⊗₀ a} {b})
+      test-σ-nat-μ : MC.U [ Sy.braiding.⇒.η (A , B) ∘ (μᴹ ⊗₁ id) ≈ (id ⊗₁ μᴹ) ∘ Sy.braiding.⇒.η (A ⊗₀ A , B) ]
+      test-σ-nat-μ = solveMorσ! (S.σ S.∘ (μ' S.⊗₁ S.id)) ((S.id S.⊗₁ μ') S.∘ S.σ {a O.⊗₀ a} {b})
 
     ----------------------------------------------------------------------
     -- Mixed goals: σ interleaved with the Mon repertoire.
@@ -151,10 +135,8 @@ module Morphism {o ℓ e : Level}
       test-mix-∘
         : MC.U
             [ (Sy.braiding.⇒.η (B , A) ∘ Sy.braiding.⇒.η (A , B)) ∘ ((sᴹ ∘ sᴹ) ⊗₁ tᴹ)
-            ≈ (sᴹ ⊗₁ tᴹ) ∘ (sᴹ ⊗₁ id {B}) ]
-      test-mix-∘ =
-        solveMorσ! ((S.σ {b} {a} S.∘ S.σ {a} {b}) S.∘ ((s' S.∘ s') S.⊗₁ t'))
-                   ((s' S.⊗₁ t') S.∘ (s' S.⊗₁ S.id {b}))
+            ≈ (sᴹ ⊗₁ tᴹ) ∘ (sᴹ ⊗₁ id) ]
+      test-mix-∘ = solveMorσ! ((S.σ {b} S.∘ S.σ {a}) S.∘ ((s' S.∘ s') S.⊗₁ t')) ((s' S.⊗₁ t') S.∘ (s' S.⊗₁ S.id))
 
       -- σ against the unitors: the inverse σ-pair at (unit, A) cancels under
       -- a right unitor.
@@ -162,8 +144,7 @@ module Morphism {o ℓ e : Level}
         : MC.U
             [ unitorʳ.from ∘ Sy.braiding.⇒.η (unit , A) ∘ Sy.braiding.⇒.η (A , unit)
             ≈ unitorʳ.from ]
-      test-mix-unit =
-        solveMorσ! (S.ρ⇒ S.∘ S.σ {O.unit} {a} S.∘ S.σ {a} {O.unit}) (S.ρ⇒ {a})
+      test-mix-unit = solveMorσ! (S.ρ⇒ S.∘ S.σ {O.unit} S.∘ S.σ {a}) (S.ρ⇒)
 
     ----------------------------------------------------------------------
     -- The shared rewriting layer in the σ front-end: the rule `sᴹ ∘ sᴹ ≈ id`
@@ -173,9 +154,7 @@ module Morphism {o ℓ e : Level}
     module Rewrite where
 
       test-rwσ-cancel : MC.U [ tᴹ ⊗₁ (sᴹ ∘ sᴹ) ≈ tᴹ ⊗₁ id ]
-      test-rwσ-cancel =
-        rewriteMorσAuto! (t' S.⊗₁ (s' S.∘ s')) (t' S.⊗₁ S.id {a})
-                         (s' S.∘ s') (S.id {a}) invσ
+      test-rwσ-cancel = rewriteMorσAuto! (t' S.⊗₁ (s' S.∘ s')) (t' S.⊗₁ S.id) (s' S.∘ s') (S.id) invσ
 
 ------------------------------------------------------------------------
 -- LIMITATIONS CATALOGUE (internal-API boundary tests).
@@ -192,11 +171,13 @@ module Morphism {o ℓ e : Level}
 
 data Ty : Set where ⋆ • : Ty
 
-_≟Ty_ : DecidableEquality Ty
-⋆ ≟Ty ⋆ = yes refl
-⋆ ≟Ty • = no λ ()
-• ≟Ty ⋆ = no λ ()
-• ≟Ty • = yes refl
+instance
+  DecEq-Ty : DecEq Ty
+  DecEq-Ty .DecEq._≟_ = λ where
+    ⋆ ⋆ → yes refl
+    ⋆ • → no λ ()
+    • ⋆ → no λ ()
+    • • → yes refl
 
 open FreeMonoidalHelper Symm Ty using () renaming (ObjTerm to ObjTermᴵ; unit to unitᴵ; _⊗₀_ to _⊗₀ᴵ_; Var to Varᴵ)
 
@@ -208,8 +189,8 @@ arityT (suc (suc zero)) = Varᴵ • , Varᴵ •
 private module FS = FinSig Symm {Ty} arityT
 open FS renaming (gen to genᵗ)
 
-open FrontendS {Ty} _≟Ty_ GenS
-open Decide _≟G_ rankS
+open FrontendS {Ty} GenS
+open Decide rankS
 
 private
   infixr 9 _∘ᴵ_
@@ -235,7 +216,7 @@ module Negative where
   -- splits or merges crossing BLOCKS, so the two routings are distinct normal
   -- forms.
   neg-hexagon
-    : decide?F ((idᴵ {Varᴵ •} ⊗ᴵ σᴵ) ∘ᴵ S.α⇒ ∘ᴵ (σᴵ {Varᴵ ⋆} {Varᴵ •} ⊗ᴵ idᴵ {Varᴵ ⋆}))
+    : decide?F ((idᴵ ⊗ᴵ σᴵ) ∘ᴵ S.α⇒ ∘ᴵ (σᴵ {Varᴵ ⋆} {Varᴵ •} ⊗ᴵ idᴵ {Varᴵ ⋆}))
                (S.α⇒ ∘ᴵ σᴵ ∘ᴵ S.α⇒)
       ≡ nothing
   neg-hexagon = refl
@@ -252,10 +233,10 @@ module Negative where
   -- split it across the two image blocks.  (This pin also exercises the Lσ1
   -- crossing-routing boundary; a straddle-only pin is not constructible here.)
   neg-straddle
-    : decide?F ((μ' ⊗ᴵ idᴵ {Varᴵ ⋆}) ∘ᴵ S.α⇐ ∘ᴵ σᴵ {Varᴵ ⋆ ⊗₀ᴵ Varᴵ ⋆} {Varᴵ ⋆})
-               ((μ' ⊗ᴵ idᴵ {Varᴵ ⋆}) ∘ᴵ
-                  (σᴵ {Varᴵ ⋆} {Varᴵ ⋆} ⊗ᴵ idᴵ {Varᴵ ⋆}) ∘ᴵ S.α⇐ ∘ᴵ
-                  (idᴵ {Varᴵ ⋆} ⊗ᴵ σᴵ {Varᴵ ⋆} {Varᴵ ⋆}) ∘ᴵ S.α⇒)
+    : decide?F ((μ' ⊗ᴵ idᴵ) ∘ᴵ S.α⇐ ∘ᴵ σᴵ)
+               ((μ' ⊗ᴵ idᴵ) ∘ᴵ
+                  (σᴵ ⊗ᴵ idᴵ) ∘ᴵ S.α⇐ ∘ᴵ
+                  (idᴵ ⊗ᴵ σᴵ {Varᴵ ⋆}) ∘ᴵ S.α⇒)
       ≡ nothing
   neg-straddle = refl
 
@@ -280,11 +261,10 @@ module SigmaTests where
 
   open import Data.Fin
   open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
-  open import Data.Nat.Properties using () renaming (_≟_ to _≟ℕ_)
-  open import Data.List using (List; _∷_; [])
+  open import Data.List
 
   -- `∅` for the empty wire-list: `pad ∅ …` in the litmus types below would
-  -- otherwise clash with DiagU's `[]_` prefix constructor at parse time.
+  -- otherwise clash with Diag's `[]_` prefix constructor at parse time.
   ∅ : List ℕ
   ∅ = []
 
@@ -307,23 +287,24 @@ module SigmaTests where
   wbox  = gen2 (suc (suc (suc zero)))
   w2box = gen2 (suc (suc (suc (suc zero))))
 
-  private module SG = Sigma _≟ℕ_ Gen2
+  private module SG = Sigma Gen2
   open SG
   -- HomTerm composition / `≈Term` / `pad` for the litmus types (not
   -- re-exported through `open SG`, which only publicises the wire-coherence
   -- kit; `castW` is available from `SG`, `pad` and the HomTerm ops are not).
-  open FreeMonoidalHelper.Mor Symm ℕ mor using (_∘_; _≈Term_; pad)
+  open FreeMonoidalHelper.Mor Symm ℕ mor
 
   private
-    _≟G2_ : DecidableEquality GenM
-    (_ , _ , gen2 i) ≟G2 (_ , _ , gen2 j) = case i ≟Fin j of λ where
-      (yes refl) → yes refl
-      (no ¬p)    → no λ where refl → ¬p refl
+    instance
+      DecEq-Gen2 : DecEq GenM
+      DecEq-Gen2 .DecEq._≟_ (_ , _ , gen2 i) (_ , _ , gen2 j) = case i ≟Fin j of λ where
+        (yes refl) → yes refl
+        (no ¬p)    → no λ where refl → ¬p refl
 
     rank2 : GenM → ℕ
     rank2 (_ , _ , gen2 i) = toℕ i
 
-  open SG.Decide _≟G2_ rank2
+  open SG.Decideσ rank2
 
   ------------------------------------------------------------------------
   -- (i) σσ-cancellation.
@@ -341,10 +322,8 @@ module SigmaTests where
 
   -- the same pair fires below a leading box layer.
   tCancelDeepL tCancelDeepR : WTerm w01 w01
-  tCancelDeepL = boxʷ (cross (1 ∷ []) (0 ∷ []))
-              ∘ʷ boxʷ (cross (0 ∷ []) (1 ∷ []))
-              ∘ʷ (boxʷ (box kbox) ⊗ʷ idʷ {1 ∷ []})
-  tCancelDeepR = boxʷ (box kbox) ⊗ʷ idʷ {1 ∷ []}
+  tCancelDeepL = boxʷ (cross (1 ∷ []) (0 ∷ [])) ∘ʷ boxʷ (cross (0 ∷ []) (1 ∷ [])) ∘ʷ (boxʷ (box kbox) ⊗ʷ idʷ)
+  tCancelDeepR = boxʷ (box kbox) ⊗ʷ idʷ
 
   testCancelDeep : IsJust (decideσ? tCancelDeepL tCancelDeepR)
   testCancelDeep = tt
@@ -358,7 +337,7 @@ module SigmaTests where
   w012 = 0 ∷ 1 ∷ 2 ∷ []
 
   layerCross : WTerm w012 (1 ∷ 0 ∷ 2 ∷ [])
-  layerCross = boxʷ (cross (0 ∷ []) (1 ∷ [])) ⊗ʷ idʷ {2 ∷ []}
+  layerCross = boxʷ (cross (0 ∷ []) (1 ∷ [])) ⊗ʷ idʷ
 
   layerBoxPre : WTerm w012 w012
   layerBoxPre = idʷ {0 ∷ 1 ∷ []} ⊗ʷ boxʷ (box mbox)
@@ -389,24 +368,24 @@ module SigmaTests where
   -- pre-cross position), with all four `++`-assoc index casts `refl`.
   ------------------------------------------------------------------------
   litSlide
-    : pad ∅ (1 ∷ ∅) (⟦box⟧S (box kbox))
-        ∘ castW refl ∘ pad ∅ ∅ (⟦box⟧S (cross (1 ∷ ∅) (0 ∷ ∅)))
-      ≈Term castW refl ∘ pad ∅ ∅ (⟦box⟧S (cross (1 ∷ ∅) (0 ∷ ∅)))
-        ∘ castW refl ∘ pad (1 ∷ ∅) ∅ (⟦box⟧S (box kbox)) ∘ castW refl
-  litSlide = slide-clean [] [] (1 ∷ []) [] [] (⟦box⟧S (box kbox))
+    : pad ∅ (1 ∷ ∅) (⟦ box kbox ⟧ᵇˢ)
+        ∘ castW refl ∘ pad ∅ ∅ (⟦ cross (1 ∷ ∅) (0 ∷ ∅) ⟧ᵇˢ)
+      ≈Term castW refl ∘ pad ∅ ∅ (⟦ cross (1 ∷ ∅) (0 ∷ ∅) ⟧ᵇˢ)
+        ∘ castW refl ∘ pad (1 ∷ ∅) ∅ (⟦ box kbox ⟧ᵇˢ) ∘ castW refl
+  litSlide = slide-clean [] [] (1 ∷ []) [] [] (⟦ box kbox ⟧ᵇˢ)
 
   -- a-block mirror: kbox slides through the crossing's a-image (the SUFFIX
   -- of the cross's output) instead of the b-image; same concrete offsets,
   -- all four casts `refl`.
   litSlide-a
-    : pad (1 ∷ ∅) ∅ (⟦box⟧S (box kbox))
-        ∘ castW refl ∘ pad ∅ ∅ (⟦box⟧S (cross (0 ∷ ∅) (1 ∷ ∅)))
-      ≈Term castW refl ∘ pad ∅ ∅ (⟦box⟧S (cross (0 ∷ ∅) (1 ∷ ∅)))
-        ∘ castW refl ∘ pad ∅ (1 ∷ ∅) (⟦box⟧S (box kbox)) ∘ castW refl
-  litSlide-a = slide-clean-a [] [] (1 ∷ []) [] [] (⟦box⟧S (box kbox))
+    : pad (1 ∷ ∅) ∅ (⟦ box kbox ⟧ᵇˢ)
+        ∘ castW refl ∘ pad ∅ ∅ (⟦ cross (0 ∷ ∅) (1 ∷ ∅) ⟧ᵇˢ)
+      ≈Term castW refl ∘ pad ∅ ∅ (⟦ cross (0 ∷ ∅) (1 ∷ ∅) ⟧ᵇˢ)
+        ∘ castW refl ∘ pad ∅ (1 ∷ ∅) (⟦ box kbox ⟧ᵇˢ) ∘ castW refl
+  litSlide-a = slide-clean-a [] [] (1 ∷ []) [] [] (⟦ box kbox ⟧ᵇˢ)
 
   ------------------------------------------------------------------------
-  -- (iv) the DiagU-level naturality SLIDE, wired into the driver.
+  -- (iv) the Diag-level naturality SLIDE, wired into the driver.
   ------------------------------------------------------------------------
   w10 : List ℕ
   w10 = 1 ∷ 0 ∷ []
@@ -414,7 +393,7 @@ module SigmaTests where
   -- b-image slide: kbox after the crossing (in the b-image prefix) is the
   -- same as kbox before the crossing (in the b suffix).
   tSlideL tSlideR : WTerm w10 w01
-  tSlideL = (boxʷ (box kbox) ⊗ʷ idʷ {1 ∷ []}) ∘ʷ boxʷ (cross (1 ∷ []) (0 ∷ []))
+  tSlideL = (boxʷ (box kbox) ⊗ʷ idʷ) ∘ʷ boxʷ (cross (1 ∷ []) (0 ∷ []))
   tSlideR = boxʷ (cross (1 ∷ []) (0 ∷ [])) ∘ʷ (idʷ {1 ∷ []} ⊗ʷ boxʷ (box kbox))
 
   testSlide : IsJust (decideσ? tSlideL tSlideR)
@@ -434,7 +413,7 @@ module SigmaTests where
   tSlideCancelL = boxʷ (cross (1 ∷ []) (0 ∷ []))
                ∘ʷ (idʷ {1 ∷ []} ⊗ʷ boxʷ (box kbox))
                ∘ʷ boxʷ (cross (0 ∷ []) (1 ∷ []))
-  tSlideCancelR = boxʷ (box kbox) ⊗ʷ idʷ {1 ∷ []}
+  tSlideCancelR = boxʷ (box kbox) ⊗ʷ idʷ
 
   testSlideCancel : IsJust (decideσ? tSlideCancelL tSlideCancelR)
   testSlideCancel = tt

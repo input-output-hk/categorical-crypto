@@ -47,8 +47,9 @@ monoidal category over those atoms with *no* generating morphisms
 (`mor = λ _ _ → ⊥`), so every morphism is a structural iso. `solveM f g`
 then discharges `⟦ f ⟧₁ ≈ ⟦ g ⟧₁` for any parallel pair `f g`, the content
 of Mac Lane's coherence theorem (`MacLane.CoherenceThm.all-Comm`, via the
-normal-form functor). This is the variant used to rewrite associator/unitor
-bookkeeping in a proof; see `Categories.GradedKleisli` for a call site.
+normal-form functor). Use it for associator/unitor bookkeeping in a
+goal with no generators; the `Test.Frontend` suite's `Coherence` module
+exercises it.
 
 ```agda
 module Structural
@@ -75,7 +76,7 @@ interpretations of front-end terms whose normal forms agree — handling
 monoidal coherence together with naturality and the interchange law for
 `_⊗₁_`/`_∘_`. `rewriteMor!` and friends additionally fire a user-supplied
 equational rule in a context (`rewriteMorAuto!` locates it automatically —
-the `L5` mitigation).
+the `L5` mitigation). See `Categories.GradedKleisli` for a call site.
 
 ```agda
 module Mor

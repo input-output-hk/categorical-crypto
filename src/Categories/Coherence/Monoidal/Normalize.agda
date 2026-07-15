@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Normalising untyped monoidal diagrams by reordering independent boxes.
+-- Normalising monoidal diagrams (`Diag`) by reordering independent boxes.
 --
 -- Two boxes on disjoint, non-crossing wire ranges are independent: swapping
 -- their firing order preserves `⟦_⟧` (`TwoBoxSwap.two-box-swap` — σ-free
@@ -10,38 +10,34 @@
 -- After a box of different width fires, the next box's absolute offset shifts,
 -- so the swap equality holds only up to `++`-associativity.  The swap therefore
 -- rebuilds its output with recomputed offsets, absorbing the re-indexing with
--- `substDiagU`; soundness reuses `two-box-swap` + the offset-reframing bridge
+-- `substDiag`; soundness reuses `two-box-swap` + the offset-reframing bridge
 -- `TwoBoxSwap.gLayer≈pad` (`assocW`/`assocW⁻` reassociators collapsed to `castW`).
 --
 -- Soundness (every fired swap preserves `⟦_⟧`) is unconditional.  OPEN:
 -- canonicity — that interchange-equal diagrams reach the SAME normal form.
--- With the syntactic step relation `_≈D_` (Diagram.`DClosure`) this is now a
--- purely syntactic statement: CONFLUENCE of `_≈D_` (the bubble sort's rewrite
+-- With the syntactic step relation `_⤳D_` (Diagram.`DClosure`) this is now a
+-- purely syntactic statement: CONFLUENCE of `_⤳D_` (the bubble sort's rewrite
 -- reachability towards a footprint-ordered form; key = the leftmost offset,
 -- tiebreak on input width).
 --
 -- The module's primary PRODUCT is §3's oracle kit: `interchangeGo` — the
--- one-step disjoint-interchange oracle both front-ends build their normalizers
--- from — now EMITTING `_≈D_` witnesses.  It pairs with the generic `Steps`
--- module: `stepWith` wraps a per-position PRIMITIVE-step oracle into one `_≈D_`
+-- one-step disjoint-interchange oracle both front-ends build their normalizers.
+-- It pairs with the generic `Steps`
+-- module: `stepWith` wraps a per-position PRIMITIVE-step oracle into one `_⤳D_`
 -- rewrite (`prim` at the hit, `consᴰ` down the spine) and `normFuelWith` chains
 -- a bounded run with `transᴰ`, so a whole normalization is a syntactic rewrite
--- trace.  The semantics enters exactly once, at the front-end, via
--- `≈D-sound prim-swap-sound` (the σ engine, `Sigma.Decide`, chains its
--- σσ-cancel and slide oracles in front of the same `interchangeGo` and applies
--- `≈D-sound` at its own `PrimSigma`).  Everything before §3 exists to prove the
--- primitive steps sound.
+-- trace.
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.Normalize where
 
 open import categorical-crypto.Prelude hiding (_∘_; id; map; merge; _>>=_)
 
-open import Data.Bool
+open import Data.Bool hiding (_≟_)
 open import Data.List.Properties
 import Data.List.Properties.Ext as ListExt
 open import Data.Maybe as Maybe
-open import Data.Nat using (_<ᵇ_)
+open import Data.Nat hiding (_≟_)
 
 import Categories.Morphism.Reasoning as MR
 
@@ -49,26 +45,22 @@ open import Categories.Coherence.Monoidal.Diagram
 open import Categories.Coherence.Monoidal.Interchange
 open import Categories.FreeMonoidal
 
-module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
-                  (_≟X_ : DecidableEquality X) where
+module NormalizeI {v : Variant} {X : Set} (E : WireEngine v)
+                  ⦃ _ : DecEq X ⦄ where
 
   open WireEngine E
-  open UntypedI E
-  open Interchange v X mor using (module TwoBoxSwap)
-  open FreeMonoidalHelper.Mor v X mor hiding (merge; split; merge∘split; split∘merge)
+  open DiagramI E
+  open Interchange v X mor
+  open FreeMonoidalHelper.Mor v X mor
   open ≈R
-  open WireCohDec _≟X_ public
+  open WireCohDec public
 
   open MR FreeMonoidal
 
-  -- transporting a diagram along two propositional proofs of the SAME
-  -- reindexing yields `≈Term`-equal interpretations (proof-level UIP through
-  -- `castW-irr`; nothing reduces to `refl`).  This is the lazy home of the
-  -- meq/domeq reconciliation the relational firing constructors leave abstract.
-  substDiagU-irr : ∀ {m n k} (e e' : m ≡ n) (d : DiagU m k)
-                 → ⟦ substDiagU e d ⟧ ≈Term ⟦ substDiagU e' d ⟧
-  substDiagU-irr e e' d =
-    castW-cancelʳ e (⟦substDiagU⟧ e d ○ ⟺ (⟦substDiagU⟧ e' d) ○ (refl⟩∘⟨ castW-irr e' e))
+  substDiag-irr : ∀ {m n k} (e e' : m ≡ n) (d : Diag m k)
+                 → ⟦ substDiag e d ⟧ ≈Term ⟦ substDiag e' d ⟧
+  substDiag-irr e e' d =
+    ⟦substDiag⟧ e d ○ (refl⟩∘⟨ castW-irr (sym e) (sym e')) ○ ⟺ (⟦substDiag⟧ e' d)
 
   --------------------------------------------------------------------------------
   -- 1. Frame of an adjacent disjoint pair: shared endpoints + the swap
@@ -83,17 +75,17 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
   module Frame (P mid r : List X) {a₁ b₁ a₂ b₂ : List X}
                (f : Mor a₁ b₁) (g : Mor a₂ b₂) where
 
-    open TwoBoxSwap P mid r (⟦box⟧ f) (⟦box⟧ g) public
+    open TwoBoxSwap P mid r (⟦ f ⟧ᵇ) (⟦ g ⟧ᵇ) public
 
   --------------------------------------------------------------------------------
   -- 2. The interchange KEY equation, in clean-`pad` coordinates
   --------------------------------------------------------------------------------
   --
-  -- A `DiagU` layer carries `fx`, `px`, `sx` explicitly, so a recogniser can
+  -- A `Diag` layer carries `fx`, `px`, `sx` explicitly, so a recogniser can
   -- read off the offsets and decide orientation.
   --
   -- On a head pair  px ▸ sx ∷ fx ⟨ py ▸ sy ∷ fy ⟨ rest ⟩ ⟩  (`fx` fires FIRST,
-  -- `fy` SECOND) the `DiagU` typing forces the inter-layer wiring definitionally:
+  -- `fy` SECOND) the `Diag` typing forces the inter-layer wiring definitionally:
   --   py ++ (ay ++ sy)  ≡  px ++ (bx ++ sx)            -- (★) inner-diagram index
 
   -- The head pair is out of canonical order exactly when `fy` (fired second)
@@ -102,7 +94,7 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
   -- factor through  P ++ (ay ++ (mid ++ (ax ++ s)))  (fy slot 1, fx slot 2).
   -- This section's product is the HomTerm-level KEY `swap-clean` — the
   -- interchange in clean-`pad` coordinates, the Mon sibling of σ's
-  -- `slide-clean` — consumed by `replD-sound` in §3.  The DiagU-level
+  -- `slide-clean` — consumed by `replD-sound` in §3.  The Diag-level
   -- re-indexing plumbing is the generic `replD`/`replD-sound` there; §2
   -- supplies only the KEY.
   record LeftFit {ax bx ay by : List X}
@@ -154,7 +146,7 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
       (f : Mor a₁ b₁) (g : Mor a₂ b₂) (x : List X)
     → Frame.gLayer pre mid r f g x
       ≈Term castW (domeq pre x mid b₂ r)
-          ∘ pad (pre ++ (x ++ mid)) r (⟦box⟧ g)
+          ∘ pad (pre ++ (x ++ mid)) r (⟦ g ⟧ᵇ)
           ∘ castW (sym (domeq pre x mid a₂ r))
   gLayer-clean-core pre mid r f g x =
     Frame.gLayer≈pad pre mid r f g x
@@ -165,7 +157,7 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
       (f : Mor a₁ b₁) (g : Mor a₂ b₂)
     → Frame.g-in pre mid r f g
       ≈Term castW (domeq pre a₁ mid b₂ r)
-          ∘ pad (pre ++ (a₁ ++ mid)) r (⟦box⟧ g)
+          ∘ pad (pre ++ (a₁ ++ mid)) r (⟦ g ⟧ᵇ)
           ∘ castW (sym (domeq pre a₁ mid a₂ r))
   fx-clean⇒g-in-core pre mid r {a₁} f g = gLayer-clean-core pre mid r f g a₁
 
@@ -175,7 +167,7 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
       (f : Mor a₁ b₁) (g : Mor a₂ b₂)
     → Frame.g-out pre mid r f g
       ≈Term castW (domeq pre b₁ mid b₂ r)
-          ∘ pad (pre ++ (b₁ ++ mid)) r (⟦box⟧ g)
+          ∘ pad (pre ++ (b₁ ++ mid)) r (⟦ g ⟧ᵇ)
           ∘ castW (sym (domeq pre b₁ mid a₂ r))
   fy-sorted⇒g-out-core pre mid r {_} {b₁} f g = gLayer-clean-core pre mid r f g b₁
 
@@ -193,10 +185,10 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
                {E₂ : (P ++ (by ++ mid)) ++ (bx ++ s) ≡ P ++ (by ++ (mid ++ (bx ++ s)))}
                {E₃ : P ++ (by ++ (mid ++ (ax ++ s))) ≡ (P ++ (by ++ mid)) ++ (ax ++ s)}
                {E₄ : (P ++ (ay ++ mid)) ++ (ax ++ s) ≡ P ++ (ay ++ (mid ++ (ax ++ s)))}
-             → pad P (mid ++ (bx ++ s)) (⟦box⟧ fy)
-                 ∘ castW meq ∘ pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
-               ≈Term castW E₂ ∘ pad (P ++ (by ++ mid)) s (⟦box⟧ fx) ∘ castW E₃
-                     ∘ pad P (mid ++ (ax ++ s)) (⟦box⟧ fy) ∘ castW E₄
+             → pad P (mid ++ (bx ++ s)) (⟦ fy ⟧ᵇ)
+                 ∘ castW meq ∘ pad (P ++ (ay ++ mid)) s (⟦ fx ⟧ᵇ)
+               ≈Term castW E₂ ∘ pad (P ++ (by ++ mid)) s (⟦ fx ⟧ᵇ) ∘ castW E₃
+                     ∘ pad P (mid ++ (ax ++ s)) (⟦ fy ⟧ᵇ) ∘ castW E₄
   swap-clean P mid s {ax} {bx} {ay} {by} fx fy {meq} {E₂} {E₃} {E₄} =
       (refl⟩∘⟨ bridge)
         ○ ⟺ assoc
@@ -205,8 +197,8 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
         ○ assoc ○ assoc ○ (refl⟩∘⟨ assoc)
     where
       module F = Frame P mid s fy fx
-      padfx  = pad (P ++ (ay ++ mid)) s (⟦box⟧ fx)
-      padfx' = pad (P ++ (by ++ mid)) s (⟦box⟧ fx)
+      padfx  = pad (P ++ (ay ++ mid)) s (⟦ fx ⟧ᵇ)
+      padfx' = pad (P ++ (by ++ mid)) s (⟦ fx ⟧ᵇ)
       -- (i) the input `fx`-pad, pre-cast by `meq`, is `g-in` pre-cast by `E₄`.
       bridge : castW meq ∘ padfx ≈Term F.g-in ∘ castW E₄
       bridge = (castW-irr meq (domeq P ay mid bx s) ⟩∘⟨refl)
@@ -220,7 +212,7 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
                 ⟩∘⟨ (refl⟩∘⟨ castW-irr (sym (domeq P by mid ax s)) E₃))
 
   --------------------------------------------------------------------------------
-  -- 3. The autonomous firing DiagU sort (needs `DecidableEquality X`)
+  -- 3. The autonomous firing Diag sort (needs `DecEq X`)
   --------------------------------------------------------------------------------
   -- With `DecEq X` we DECIDE a `LeftFit` by `List`-splitting the offset lists at
   -- the box-domain lengths.  `fire` (below) fires the clean swap; the multi-step
@@ -228,26 +220,20 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
   -- per-position oracle.
   module SortD where
 
-    -- derived decidable equality on offsets.  (The generic decidable
-    -- prefix-strip `ListExt.stripPrefix` lives in `Data.List.Properties.Ext`.)
-    _≟L_ : DecidableEquality (List X)
-    _≟L_ = ≡-dec _≟X_
-
     -- Set `P := py`, `s := sx`, recover `mid` by stripping `py ++ ay` off `px`,
-    -- and confirm `sy ≡ mid ++ (bx ++ sx)` by `_≟L_`.  `nothing` when the splits
-    -- don't fit (overlap / dependent / wrong orientation).
+    -- and confirm `sy ≡ mid ++ (bx ++ sx)`. `nothing` when the splits don't fit.
     leftFit? : ∀ {ax bx ay by} (px sx py sy : List X)
                (fx : Mor ax bx) (fy : Mor ay by)
              → Maybe (LeftFit px sx py sy fx fy)
     leftFit? {ax} {bx} {ay} {by} px sx py sy fx fy =
-      ListExt.stripPrefix _≟X_ py px >>= λ (r1 , px≡) →
-      ListExt.stripPrefix _≟X_ ay r1 >>= λ (mid , r1≡) →
-      case sy ≟L (mid ++ (bx ++ sx)) of λ where
+      ListExt.stripPrefix _≟_ py px >>= λ (r1 , px≡) →
+      ListExt.stripPrefix _≟_ ay r1 >>= λ (mid , r1≡) →
+      case sy ≟ (mid ++ (bx ++ sx)) of λ where
         (no  _)   → nothing
         (yes sy≡) →
           just (leftFit py mid sx (trans px≡ (cong (py ++_) r1≡)) refl refl sy≡)
 
-    -- Both `Frontend.Decide` and `Sigma.Decide` run the same
+    -- Both `Frontend.Decide` and `Sigma.Decideσ` run the same
     -- fuel-driven bubble-sort loop around a per-position oracle; this factors
     -- out everything INDEPENDENT of that oracle, each `Decide` passing its own
     -- `step?` to `normFuelWith`.
@@ -258,12 +244,12 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
     ambiguous? [] [] [] = true
     ambiguous? _  _  _  = false
 
-    -- `substDiagU (sym e)` expanded to a one-cast conjugation.
-    substExpand : ∀ {m n k : List X} (e : m ≡ n) (d : DiagU n k)
-                → ⟦ substDiagU (sym e) d ⟧ ≈Term ⟦ d ⟧ ∘ castW e
+    -- `substDiag (sym e)` expanded to a one-cast conjugation.
+    substExpand : ∀ {m n k : List X} (e : m ≡ n) (d : Diag n k)
+                → ⟦ substDiag (sym e) d ⟧ ≈Term ⟦ d ⟧ ∘ castW e
     substExpand refl d = ⟺ idʳ
 
-    -- The PURE two-layer head REPLACEMENT (§D6a): the diagram the recognised
+    -- The PURE two-layer head REPLACEMENT: the diagram the recognised
     -- head pair rewrites to — (g₃,g₄ bridged by E₃), re-indexed by E₂/E₄.  No
     -- proof, no KEY; its endpoints are single indices `N₁`/`N₂` (E₄/E₂ carry
     -- the offset factorization), so the construction is oblivious to the input
@@ -272,18 +258,18 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
       ∀ {a₃ b₃ a₄ b₄ : List X} {k N₁ N₂ : List X}
         (p₃L s₃L p₄L s₄L : List X)
         (g₃ : Mor a₃ b₃) (g₄ : Mor a₄ b₄)
-        (rest' : DiagU N₂ k)
+        (rest' : Diag N₂ k)
         (E₂ : p₄L ++ (b₄ ++ s₄L) ≡ N₂)
         (E₃ : p₃L ++ (b₃ ++ s₃L) ≡ p₄L ++ (a₄ ++ s₄L))
         (E₄ : N₁ ≡ p₃L ++ (a₃ ++ s₃L))
-      → DiagU N₁ k
+      → Diag N₁ k
     replD p₃L s₃L p₄L s₄L g₃ g₄ rest' E₂ E₃ E₄ =
-      substDiagU (sym E₄)
+      substDiag (sym E₄)
         (p₃L ▸ s₃L ∷ g₃
-          ⟨ substDiagU (sym E₃)
-              (p₄L ▸ s₄L ∷ g₄ ⟨ substDiagU (sym E₂) rest' ⟩) ⟩)
+          ⟨ substDiag (sym E₃)
+              (p₄L ▸ s₄L ∷ g₄ ⟨ substDiag (sym E₂) rest' ⟩) ⟩)
 
-    -- Soundness of the replacement (§D6b): the recognised head pair (g₁,g₂
+    -- Soundness of the replacement: the recognised head pair (g₁,g₂
     -- bridged by `meq`) equals `replD …` given the caller's KEY equation between
     -- the two padded composites.
     replD-sound :
@@ -291,29 +277,29 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
         {p₁L s₁L p₂L s₂L : List X} {p₃L s₃L p₄L s₄L : List X}
         {g₁ : Mor a₁ b₁} {g₂ : Mor a₂ b₂}
         {g₃ : Mor a₃ b₃} {g₄ : Mor a₄ b₄}
-        {rest' : DiagU (p₂L ++ (b₂ ++ s₂L)) k}
+        {rest' : Diag (p₂L ++ (b₂ ++ s₂L)) k}
         {meq : p₁L ++ (b₁ ++ s₁L) ≡ p₂L ++ (a₂ ++ s₂L)}
         {E₂ : p₄L ++ (b₄ ++ s₄L) ≡ p₂L ++ (b₂ ++ s₂L)}
         {E₃ : p₃L ++ (b₃ ++ s₃L) ≡ p₄L ++ (a₄ ++ s₄L)}
         {E₄ : p₁L ++ (a₁ ++ s₁L) ≡ p₃L ++ (a₃ ++ s₃L)}
-        (key : pad p₂L s₂L (⟦box⟧ g₂) ∘ castW meq ∘ pad p₁L s₁L (⟦box⟧ g₁)
-               ≈Term castW E₂ ∘ pad p₄L s₄L (⟦box⟧ g₄) ∘ castW E₃
-                     ∘ pad p₃L s₃L (⟦box⟧ g₃) ∘ castW E₄)
-      → ⟦ p₁L ▸ s₁L ∷ g₁ ⟨ substDiagU (sym meq) (p₂L ▸ s₂L ∷ g₂ ⟨ rest' ⟩) ⟩ ⟧
+        (key : pad p₂L s₂L (⟦ g₂ ⟧ᵇ) ∘ castW meq ∘ pad p₁L s₁L (⟦ g₁ ⟧ᵇ)
+               ≈Term castW E₂ ∘ pad p₄L s₄L (⟦ g₄ ⟧ᵇ) ∘ castW E₃
+                     ∘ pad p₃L s₃L (⟦ g₃ ⟧ᵇ) ∘ castW E₄)
+      → ⟦ p₁L ▸ s₁L ∷ g₁ ⟨ substDiag (sym meq) (p₂L ▸ s₂L ∷ g₂ ⟨ rest' ⟩) ⟩ ⟧
         ≈Term ⟦ replD p₃L s₃L p₄L s₄L g₃ g₄ rest' E₂ E₃ E₄ ⟧
     replD-sound {a₁ = a₁} {p₁L = p₁L} {s₁L} {p₂L} {s₂L} {p₃L} {s₃L} {p₄L} {s₄L}
                 {g₁} {g₂} {g₃} {g₄} {rest'} {meq} {E₂} {E₃} {E₄} key
       = lemA ○ ⟺ lemB
       where
-        P₃ = pad p₃L s₃L (⟦box⟧ g₃)
-        P₄ = pad p₄L s₄L (⟦box⟧ g₄)
+        P₃ = pad p₃L s₃L (⟦ g₃ ⟧ᵇ)
+        P₄ = pad p₄L s₄L (⟦ g₄ ⟧ᵇ)
         boxL   = p₂L ▸ s₂L ∷ g₂ ⟨ rest' ⟩
-        dBody  = p₁L ▸ s₁L ∷ g₁ ⟨ substDiagU (sym meq) boxL ⟩
-        inner₂ = substDiagU (sym E₂) rest'
+        dBody  = p₁L ▸ s₁L ∷ g₁ ⟨ substDiag (sym meq) boxL ⟩
+        inner₂ = substDiag (sym E₂) rest'
         crossL = p₄L ▸ s₄L ∷ g₄ ⟨ inner₂ ⟩
-        inner₃ = substDiagU (sym E₃) crossL
+        inner₃ = substDiag (sym E₃) crossL
         slidL  = p₃L ▸ s₃L ∷ g₃ ⟨ inner₃ ⟩
-        d' = substDiagU (sym E₄) slidL
+        d' = substDiag (sym E₄) slidL
         -- the common right-nested composite the two orders re-clean to.
         M = ⟦ rest' ⟧ ∘ (castW E₂ ∘ (P₄ ∘ (castW E₃ ∘ (P₃ ∘ castW E₄))))
         lemA : ⟦ dBody ⟧ ≈Term M
@@ -331,22 +317,22 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
     -- the firing path; the meq/domeq reconciliation is folded into the KEY
     -- `swap-clean` by `prim-swap-sound`.  The output is a generic `replD`
     -- two-layer replacement (`fy` at `P`, then `fx` re-cleaned to `P++(by++mid)`).
-    data PrimSwap : ∀ {n k} → DiagU n k → DiagU n k → Set where
+    data PrimSwap : ∀ {n k} → Diag n k → Diag n k → Set where
       prim-swap :
         ∀ {ax bx ay by k} {fx : Mor ax bx} {fy : Mor ay by}
           (P mid s : List X)
-          (rest' : DiagU (P ++ (by ++ (mid ++ (bx ++ s)))) k)
+          (rest' : Diag (P ++ (by ++ (mid ++ (bx ++ s)))) k)
           (meq : (P ++ (ay ++ mid)) ++ (bx ++ s) ≡ P ++ (ay ++ (mid ++ (bx ++ s))))
         → PrimSwap
             ((P ++ (ay ++ mid)) ▸ s ∷ fx
-               ⟨ substDiagU (sym meq) (P ▸ (mid ++ (bx ++ s)) ∷ fy ⟨ rest' ⟩) ⟩)
+               ⟨ substDiag (sym meq) (P ▸ (mid ++ (bx ++ s)) ∷ fy ⟨ rest' ⟩) ⟩)
             (replD P (mid ++ (ax ++ s)) (P ++ (by ++ mid)) s fy fx rest'
                    (domeq P by mid bx s) (sym (domeq P by mid ax s)) (domeq P ay mid ax s))
 
     -- soundness of the primitive step: `replD-sound` at the interchange KEY
     -- `swap-clean` (which takes the recogniser's abstract `meq` directly, so the
     -- meq/domeq reconciliation folds into it — no separate Hedberg bridge here).
-    prim-swap-sound : ∀ {n k} {d d' : DiagU n k} → PrimSwap d d' → ⟦ d ⟧ ≈Term ⟦ d' ⟧
+    prim-swap-sound : ∀ {n k} {d d' : Diag n k} → PrimSwap d d' → ⟦ d ⟧ ≈Term ⟦ d' ⟧
     prim-swap-sound (prim-swap {ax} {bx} {ay} {by} {fx = fx} {fy = fy} P mid s rest' meq) =
       replD-sound (swap-clean P mid s fx fy)
 
@@ -356,17 +342,17 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
     fire : ∀ {ax bx ay by k} {px sx py sy : List X}
            {fx : Mor ax bx} {fy : Mor ay by}
            (fit : LeftFit px sx py sy fx fy)
-           (rest' : DiagU (py ++ (by ++ sy)) k)
+           (rest' : Diag (py ++ (by ++ sy)) k)
            (meq : px ++ (bx ++ sx) ≡ py ++ (ay ++ sy))
-         → Σ[ d' ∈ DiagU (px ++ (ax ++ sx)) k ]
-             PrimSwap (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) (py ▸ sy ∷ fy ⟨ rest' ⟩) ⟩) d'
+         → Σ[ d' ∈ Diag (px ++ (ax ++ sx)) k ]
+             PrimSwap (px ▸ sx ∷ fx ⟨ substDiag (sym meq) (py ▸ sy ∷ fy ⟨ rest' ⟩) ⟩) d'
     fire {ax} {bx} {ay} {by} {fx = fx} {fy = fy}
          (leftFit P mid s refl refl refl refl) rest' meq =
       replD P (mid ++ (ax ++ s)) (P ++ (by ++ mid)) s fy fx rest'
             (domeq P by mid bx s) (sym (domeq P by mid ax s)) (domeq P ay mid ax s)
-      , prim-swap {fx = fx} {fy = fy} P mid s rest' meq
+      , prim-swap P mid s rest' meq
 
-    depthD : ∀ {n m} → DiagU n m → ℕ
+    depthD : ∀ {n m} → Diag n m → ℕ
     depthD ([]_ n)            = zero
     depthD (_ ▸ _ ∷ _ ⟨ d ⟩) = suc (depthD d)
 
@@ -374,13 +360,13 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
     -- recogniser both front-ends build their normalizers from (`rank` passed
     -- as an ORDINARY argument so it does not block reduction): it tries
     -- `leftFit?` and emits a `PrimSwap` step when the pair is unambiguous or the
-    -- rank tiebreak demands it.  It is PRIM-LEVEL (no `_≈D_`), so the σ engine
+    -- rank tiebreak demands it.  It is PRIM-LEVEL (no `_⤳D_`), so the σ engine
     -- can embed its result into `PrimSigma` via `swap-step`.
     interchangeGo : (rank : ∀ {a b} → Mor a b → ℕ)
                   → ∀ {ax bx k} (px sx : List X) (fx : Mor ax bx)
-                    {m : List X} (rest : DiagU m k) (meq : px ++ (bx ++ sx) ≡ m)
-                  → Maybe (Σ[ d' ∈ DiagU (px ++ (ax ++ sx)) k ]
-                            PrimSwap (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩) d')
+                    {m : List X} (rest : Diag m k) (meq : px ++ (bx ++ sx) ≡ m)
+                  → Maybe (Σ[ d' ∈ Diag (px ++ (ax ++ sx)) k ]
+                            PrimSwap (px ▸ sx ∷ fx ⟨ substDiag (sym meq) rest ⟩) d')
     interchangeGo rank px sx fx ([]_ m) meq = nothing
     interchangeGo rank {ax} {bx} px sx fx (_▸_∷_⟨_⟩ {ay} {by} py sy fy rest') meq =
       case leftFit? px sx py sy fx fy of λ where
@@ -392,19 +378,19 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
 
     -- The generic traversal + fuel loop, parametrized by the primitive-step
     -- family `Prim`: `stepWith` turns a prim-level per-position oracle into a
-    -- single `_≈D_` rewrite (wrapping `prim` at the hit, `consᴰ` down the
+    -- single `_⤳D_` rewrite (wrapping `prim` at the hit, `consᴰ` down the
     -- spine); `normFuelWith` chains a bounded run of them with `transᴰ`.  Each
     -- front-end instantiates `Prim` (Mon: `PrimSwap`; σ: `Sigma.PrimSigma`) and
-    -- turns the resulting `_≈D_` trace into a semantic witness with the single
-    -- soundness induction `≈D-sound`.
-    module Steps (Prim : ∀ {n k} → DiagU n k → DiagU n k → Set) where
+    -- turns the resulting `_⤳D_` trace into a semantic witness with the single
+    -- soundness induction `⤳D-sound`.
+    module Steps (Prim : ∀ {n k} → Diag n k → Diag n k → Set) where
       open DClosure Prim public
 
       stepWith : (oneStep : ∀ {ax bx k} (px sx : List X) (fx : Mor ax bx)
-                            {m : List X} (rest : DiagU m k) (meq : px ++ (bx ++ sx) ≡ m)
-                          → Maybe (Σ[ d' ∈ DiagU (px ++ (ax ++ sx)) k ]
-                                    Prim (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩) d'))
-               → ∀ {n m} (d : DiagU n m) → Maybe (Σ[ d' ∈ DiagU n m ] (d ≈D d'))
+                            {m : List X} (rest : Diag m k) (meq : px ++ (bx ++ sx) ≡ m)
+                          → Maybe (Σ[ d' ∈ Diag (px ++ (ax ++ sx)) k ]
+                                    Prim (px ▸ sx ∷ fx ⟨ substDiag (sym meq) rest ⟩) d'))
+               → ∀ {n m} (d : Diag n m) → Maybe (Σ[ d' ∈ Diag n m ] (d ⤳D d'))
       stepWith oneStep ([]_ n) = nothing
       stepWith oneStep (px ▸ sx ∷ fx ⟨ rest ⟩) =
         Maybe.map (λ where (d' , p) → d' , prim p) (oneStep px sx fx rest refl) <∣>
@@ -413,8 +399,8 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
 
       -- `nothing` from `step` (or fuel-out) ⟹ the input with the reflexive
       -- witness; each fired step is chained by `transᴰ`.
-      normFuelWith : (∀ {n' m'} (d : DiagU n' m') → Maybe (Σ[ d' ∈ DiagU n' m' ] (d ≈D d')))
-                   → ℕ → ∀ {n m} (d : DiagU n m) → Σ[ d' ∈ DiagU n m ] (d ≈D d')
+      normFuelWith : (∀ {n' m'} (d : Diag n' m') → Maybe (Σ[ d' ∈ Diag n' m' ] (d ⤳D d')))
+                   → ℕ → ∀ {n m} (d : Diag n m) → Σ[ d' ∈ Diag n m ] (d ⤳D d')
       normFuelWith _    zero    d = d , reflᴰ
       normFuelWith step (suc c) d = case step d of λ where
         nothing         → d , reflᴰ
@@ -425,19 +411,11 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v {X})
       -- The whole normalization as a SEMANTIC witness, shared by both
       -- front-ends: run the `fuel`-bounded loop (budget a polynomial in
       -- `depthD d`) on the per-position `step` oracle, then discharge the
-      -- `_≈D_` trace with `≈D-sound prim-sound`.
-      normSound : (∀ {n k} {d d' : DiagU n k} → Prim d d' → ⟦ d ⟧ ≈Term ⟦ d' ⟧)
-                → (∀ {n' m'} (d : DiagU n' m') → Maybe (Σ[ d' ∈ DiagU n' m' ] (d ≈D d')))
+      -- `_⤳D_` trace with `⤳D-sound prim-sound`.
+      normSound : (∀ {n k} {d d' : Diag n k} → Prim d d' → ⟦ d ⟧ ≈Term ⟦ d' ⟧)
+                → (∀ {n' m'} (d : Diag n' m') → Maybe (Σ[ d' ∈ Diag n' m' ] (d ⤳D d')))
                 → (ℕ → ℕ)
-                → ∀ {n m} (d : DiagU n m) → Σ[ d' ∈ DiagU n m ] (⟦ d ⟧ ≈Term ⟦ d' ⟧)
+                → ∀ {n m} (d : Diag n m) → Σ[ d' ∈ Diag n m ] (⟦ d ⟧ ≈Term ⟦ d' ⟧)
       normSound prim-sound step fuel d =
         let (d' , w) = normFuelWith step (fuel (depthD d)) d
-        in  d' , ≈D-sound prim-sound w
-
--- Compatibility wrapper: `NormalizeI` at the standard interpretation
--- `Untyped.⟦box⟧` (= `var ∘ box`).
-module Normalize (v : Variant) {X : Set} (_≟X_ : DecidableEquality X)
-                 (Mor : List X → List X → Set) where
-
-  open Untyped v {X} Mor
-  open NormalizeI (record { Mor = Mor ; ⟦box⟧ = ⟦box⟧ }) _≟X_ public
+        in  d' , ⤳D-sound prim-sound w

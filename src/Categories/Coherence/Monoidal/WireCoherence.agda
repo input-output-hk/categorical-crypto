@@ -1,12 +1,12 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Wire-coherence theory: ALL ⟦box⟧-free coherence of the structural
+-- Wire-coherence theory: ALL ⟦_⟧ᵇ-free coherence of the structural
 -- `wires`/`HomTerm` layer — the `castW` object-transport algebra, the
 -- +-associators, and the flat-shift / merge-split conjugation lemmas
 -- `liftW-merge`/`pad≡liftW` (`WireCoh`), plus the DecEq-dependent UIP/castW-collapse layer,
 -- the castW helper kit, and the merge/split right-unitor & pentagon coherence
--- family (`WireCohDec`).  Speaks only of `wires`/`HomTerm`; no reflection engine.
+-- family (`WireCohDec`).
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.WireCoherence where
@@ -37,12 +37,10 @@ module WireCoh (v : Variant) (X : Set)
   castW : ∀ {u v : List X} → u ≡ v → HomTerm (wires u) (wires v)
   castW refl = id
 
-  castW-∘ : ∀ {u v w : List X} (e₁ : u ≡ v) (e₂ : v ≡ w)
-          → castW e₂ ∘ castW e₁ ≈Term castW (trans e₁ e₂)
+  castW-∘ : ∀ {u v w : List X} (e₁ : u ≡ v) (e₂ : v ≡ w) → castW e₂ ∘ castW e₁ ≈Term castW (trans e₁ e₂)
   castW-∘ refl refl = idˡ
 
-  castW-∷ : ∀ {x : X} {u v : List X} (e : u ≡ v)
-          → id {Var x} ⊗₁ castW e ≈Term castW (cong (x ∷_) e)
+  castW-∷ : ∀ {x : X} {u v : List X} (e : u ≡ v) → id ⊗₁ castW e ≈Term castW (cong (x ∷_) e)
   castW-∷ refl = id⊗id≈id
 
   castW-isoˡ : ∀ {u v : List X} (e : u ≡ v) → castW (sym e) ∘ castW e ≈Term id
@@ -80,9 +78,8 @@ module WireCoh (v : Variant) (X : Set)
               → liftW x (liftW m W) ≈Term assocW⁻ x m v ∘ liftW (x ++ m) W ∘ assocW x m u
   liftW-assoc x m {u} {v} W = introˡ (assocW⁻∘assocW x m v) ○ pullʳ (⟺ (liftW-assoc' x m W))
     where
-    assocW-∷ : ∀ (y : X) (x q s : List X) → assocW (y ∷ x) q s ≈Term id {Var y} ⊗₁ assocW x q s
-    assocW-∷ y x q s =
-      ≡⇒≈Term (cong castW (sym-cong (++-assoc x q s))) ○ ⟺ (castW-∷ (sym (++-assoc x q s)))
+    assocW-∷ : ∀ (y : X) (x q s : List X) → assocW (y ∷ x) q s ≈Term id ⊗₁ assocW x q s
+    assocW-∷ y x q s = ≡⇒≈Term (cong castW (sym-cong (++-assoc x q s))) ○ ⟺ (castW-∷ (sym (++-assoc x q s)))
 
     liftW-assoc' : ∀ (x m : List X) {u v} (W : HomTerm (wires u) (wires v))
                 → liftW (x ++ m) W ∘ assocW x m u ≈Term assocW x m v ∘ liftW x (liftW m W)
@@ -95,14 +92,13 @@ module WireCoh (v : Variant) (X : Set)
   -- Flat-shift of a wire morphism as a merge/split conjugation.  `liftW p W`
   -- (the prefix-idle lift, `id {wires p} ⊗₁ W` reflattened) equals the box `W`
   -- conjugated by the flat `merge p`/`split p`; and the flat `pad` is literally
-  -- the wire-shift of the right-pad `rpad`.  Both are ⟦box⟧-free wire coherence.
+  -- the wire-shift of the right-pad `rpad`.  Both are ⟦_⟧ᵇ-free wire coherence.
   --------------------------------------------------------------------------------
 
   -- the flat shift equals the merge/split conjugation.
   liftW-merge : ∀ (p : List X) {u v} (W : HomTerm (wires u) (wires v))
-              → liftW p W ≈Term merge p {v} ∘ (id {wires p} ⊗₁ W) ∘ split p {u}
-  liftW-merge []      W =
-    introʳ λ⇒∘λ⇐≈id ○ pullˡ (⟺ λ⇒∘id⊗f≈f∘λ⇒) ○ assoc
+              → liftW p W ≈Term merge p ∘ (id ⊗₁ W) ∘ split p
+  liftW-merge []      W = introʳ λ⇒∘λ⇐≈id ○ pullˡ (⟺ λ⇒∘id⊗f≈f∘λ⇒) ○ assoc
   liftW-merge (x ∷ p) {u} {v} W =
     (refl⟩⊗⟨ liftW-merge p W)
       ○ (⟺ (id⊗-∘3 (merge p) (id ⊗₁ W) (split p)))
@@ -133,52 +129,24 @@ module WireCoh (v : Variant) (X : Set)
   -- kit, the merge/split right-unitor & pentagon coherence family,
   -- and the structural reassociators' collapse to `castW`.
   --------------------------------------------------------------------------------
-  module WireCohDec (_≟X_ : DecidableEquality X) where
+  module WireCohDec ⦃ _ : DecEq X ⦄ where
     ≡-irrelevantL : ∀ {x y : List X} (e e' : x ≡ y) → e ≡ e'
-    ≡-irrelevantL = ListExt.≡-irrelevant _≟X_
+    ≡-irrelevantL = ListExt.≡-irrelevant _≟_
 
     castW-irr : ∀ {u v : List X} (e e' : u ≡ v) → castW e ≈Term castW e'
     castW-irr e e' = ≡⇒≈Term (cong castW (≡-irrelevantL e e'))
 
-    --------------------------------------------------------------------------------
-    -- The castW algebra kit: a HomTerm whose codomain (resp. domain) wire list
-    -- is retyped along a propositional equality is precisely a `castW`
-    -- post-composition `castW e ∘ h` (resp. pre-composition `h ∘ castW (sym e)`).
-    -- The other end is an ARBITRARY object (the merge/split steps below need
-    -- bracketed tensors of wires, not flat ones).  The lemma kit below records
-    -- the algebra of these two `castW` conjugations directly.
-    --------------------------------------------------------------------------------
-
-    -- recast along a propositionally-equal index (UIP on the wire lists).
-    castWˡ-irr : ∀ {A p q} (e e' : p ≡ q) (h : HomTerm A (wires p))
-               → castW e ∘ h ≈Term castW e' ∘ h
-    castWˡ-irr e e' h = castW-irr e e' ⟩∘⟨refl
-
-    castWʳ-irr : ∀ {B p q} (e e' : p ≡ q) (h : HomTerm (wires p) B)
-               → h ∘ castW (sym e) ≈Term h ∘ castW (sym e')
-    castWʳ-irr e e' h = refl⟩∘⟨ castW-irr (sym e) (sym e')
-
-    -- push a coercion along `cong (x ∷_)` under the prefix `id {Var x} ⊗₁ _`.
+    -- push a coercion along `cong (x ∷_)` under the prefix `id {Var x} ⊗₁ _`;
+    -- the other end is an ARBITRARY object, since the merge/split steps below
+    -- need bracketed tensors of wires, not flat ones.
     castW-id⊗ˡ : ∀ {R} (x : X) {p q : List X} (e : p ≡ q) (h : HomTerm R (wires p))
-               → castW (cong (x ∷_) e) ∘ (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ (castW e ∘ h)
+               → castW (cong (x ∷_) e) ∘ (id ⊗₁ h) ≈Term id ⊗₁ (castW e ∘ h)
     castW-id⊗ˡ x e h = (⟺ (castW-∷ e) ⟩∘⟨refl) ○ id⊗-∘ (castW e) h
-
-    -- positive-direction `castW-id⊗ʳ` (no `sym` on the index).
-    castW-id⊗ʳ' : ∀ {R} (x : X) {q p : List X} (e : q ≡ p) (h : HomTerm (wires p) R)
-                → (id {Var x} ⊗₁ h) ∘ castW (cong (x ∷_) e) ≈Term id {Var x} ⊗₁ (h ∘ castW e)
-    castW-id⊗ʳ' x e h = (refl⟩∘⟨ ⟺ (castW-∷ e)) ○ id⊗-∘ h (castW e)
-
-    -- the negative case is the `sym e` instance of `castW-id⊗ʳ'`, bridged by
-    -- `castW-irr` from `sym (cong (x ∷_) e)` to `cong (x ∷_) (sym e)`.
-    castW-id⊗ʳ : ∀ {R} (x : X) {p q : List X} (e : p ≡ q) (h : HomTerm (wires p) R)
-               → (id {Var x} ⊗₁ h) ∘ castW (sym (cong (x ∷_) e)) ≈Term id {Var x} ⊗₁ (h ∘ castW (sym e))
-    castW-id⊗ʳ x e h =
-      (refl⟩∘⟨ castW-irr (sym (cong (x ∷_) e)) (cong (x ∷_) (sym e))) ○ castW-id⊗ʳ' x (sym e) h
 
     --------------------------------------------------------------------------------
     -- The merge/split coherence family: the right-unitor coherence on the flat
     -- merge/split (`merge-ρ`/`split-ρ`, ≈ ρ⇒/ρ⇐) and the pentagon associativity
-    -- of merge/split (`merge-assoc`/`split-assoc`).  Pure ⟦box⟧-free wire
+    -- of merge/split (`merge-assoc`/`split-assoc`).  Pure ⟦_⟧ᵇ-free wire
     -- coherence — the merge/split analogue of the assocW/castW theory above.
     -- They bottom out in the Mac Lane / Kelly unit coherence laws at the *free*
     -- monoidal category over `mor`, whose _≈_/α⇒/ρ⇒/λ⇒/_⊗₁_ coincide
@@ -189,13 +157,13 @@ module WireCoh (v : Variant) (X : Set)
     merge-ρ : (a : List X) → castW (++-identityʳ a) ∘ merge a ≈Term ρ⇒
     merge-ρ []      = idˡ ○ K.coherence₃
     merge-ρ (x ∷ a) = begin
-      castW (++-identityʳ (x ∷ a)) ∘ (id {Var x} ⊗₁ merge a ∘ α⇒)
+      castW (++-identityʳ (x ∷ a)) ∘ (id ⊗₁ merge a ∘ α⇒)
         ≈⟨ ⟺ assoc ⟩
-      (castW (cong (x ∷_) (++-identityʳ a)) ∘ (id {Var x} ⊗₁ merge a)) ∘ α⇒
+      (castW (cong (x ∷_) (++-identityʳ a)) ∘ (id ⊗₁ merge a)) ∘ α⇒
         ≈⟨ (castW-id⊗ˡ x (++-identityʳ a) (merge a)) ⟩∘⟨refl ⟩
-      id {Var x} ⊗₁ (castW (++-identityʳ a) ∘ merge a) ∘ α⇒
+      id ⊗₁ (castW (++-identityʳ a) ∘ merge a) ∘ α⇒
         ≈⟨ (refl⟩⊗⟨ (merge-ρ a)) ⟩∘⟨refl ⟩
-      id {Var x} ⊗₁ ρ⇒ {wires a} ∘ α⇒
+      id ⊗₁ ρ⇒ ∘ α⇒
         ≈⟨ K.coherence₂ ⟩
       ρ⇒ ∎
 
@@ -283,12 +251,9 @@ module WireCoh (v : Variant) (X : Set)
         g-gi = cancelInner mR-giU ○ assocW⁻∘assocW p q r
           where
             mR-giU : mR ∘ giU ≈Term id
-            mR-giU =
-              cancelInner ((⟺ ⊗-∘-dist) ○ ((merge∘split p) ⟩⊗⟨ idˡ) ○ id⊗id≈id)
-                ○ merge∘split (p ++ q)
+            mR-giU = cancelInner ((⟺ ⊗-∘-dist) ○ ((merge∘split p) ⟩⊗⟨ idˡ) ○ id⊗id≈id) ○ merge∘split (p ++ q)
 
-    liftW-castW : ∀ (p : List X) {u v : List X} (e : u ≡ v)
-                → liftW p (castW e) ≈Term castW (cong (p ++_) e)
+    liftW-castW : ∀ (p : List X) {u v : List X} (e : u ≡ v) → liftW p (castW e) ≈Term castW (cong (p ++_) e)
     liftW-castW []      e = castW-irr e (cong ([] ++_) e)
     liftW-castW (x ∷ p) e = (refl⟩⊗⟨ liftW-castW p e) ○ castW-∷ (cong (p ++_) e) ○ castW-irr _ _
 
@@ -300,7 +265,7 @@ module WireCoh (v : Variant) (X : Set)
     -- the `++`-assoc castW tax that arises when re-cleaning a grouped box-layer
     -- into a flat `pad`.
     --------------------------------------------------------------------------------
-    open Definitions FreeMonoidal using (CommutativeSquare)
+    open Definitions FreeMonoidal
 
     isConjugate : ∀ {p q w t : List X} (eC : t ≡ q) (eD : p ≡ w)
          → HomTerm (wires p) (wires q) → HomTerm (wires w) (wires t) → Set
@@ -410,7 +375,7 @@ module WireCoh (v : Variant) (X : Set)
                 ≈Term (castW (sym (++-assoc b suf rt)) ∘ rpad (suf ++ rt) g)
                         ∘ castW (++-assoc a suf rt)
     rpad-fuse {a} {b} suf rt g = begin
-      merge (b ++ suf) {rt} ∘ ((merge b {suf} ∘ (g ⊗₁ id {wires suf}) ∘ split a {suf}) ⊗₁ id {wires rt}) ∘ split (a ++ suf) {rt}
+      merge (b ++ suf) ∘ ((merge b ∘ (g ⊗₁ id) ∘ split a) ⊗₁ id) ∘ split (a ++ suf)
         ≈⟨ refl⟩∘⟨ ((refl⟩⊗⟨ (⟺ idˡ)) ⟩∘⟨refl) ⟩
       merge (b ++ suf) ∘ ((merge b ∘ ((g ⊗₁ id) ∘ split a)) ⊗₁ (id ∘ id)) ∘ split (a ++ suf)
         ≈⟨ refl⟩∘⟨ (⊗-∘-dist ⟩∘⟨refl) ⟩
@@ -420,42 +385,42 @@ module WireCoh (v : Variant) (X : Set)
         ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ ⊗-∘-dist) ⟩∘⟨refl) ⟩
       merge (b ++ suf) ∘ (merge b ⊗₁ id ∘ ((g ⊗₁ id) ⊗₁ id ∘ split a ⊗₁ id)) ∘ split (a ++ suf)
         ≈⟨ regroup5 ⟩
-      (merge (b ++ suf) ∘ merge b ⊗₁ id) ∘ ((g ⊗₁ id {wires suf}) ⊗₁ id {wires rt}) ∘ (split a ⊗₁ id ∘ split (a ++ suf))
+      (merge (b ++ suf) ∘ merge b ⊗₁ id) ∘ ((g ⊗₁ id) ⊗₁ id) ∘ (split a ⊗₁ id ∘ split (a ++ suf))
         ≈⟨ mergeStep ⟩∘⟨ (refl⟩∘⟨ splitStep) ⟩
-      (castW (sym (++-assoc b suf rt)) ∘ (merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒))
+      (castW (sym (++-assoc b suf rt)) ∘ (merge b ∘ (id ⊗₁ merge suf) ∘ α⇒))
         ∘ ((g ⊗₁ id) ⊗₁ id)
-        ∘ ((α⇐ ∘ (id {wires a} ⊗₁ split suf {rt}) ∘ split a {suf ++ rt}) ∘ castW (++-assoc a suf rt))
+        ∘ ((α⇐ ∘ (id ⊗₁ split suf) ∘ split a) ∘ castW (++-assoc a suf rt))
         ≈⟨ pull-coe ⟩
       (castW (sym (++-assoc b suf rt)) ∘
-          ((merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒)
-            ∘ ((g ⊗₁ id {wires suf}) ⊗₁ id {wires rt})
-            ∘ (α⇐ ∘ (id {wires a} ⊗₁ split suf {rt}) ∘ split a {suf ++ rt})))
+          ((merge b ∘ (id ⊗₁ merge suf) ∘ α⇒)
+            ∘ ((g ⊗₁ id) ⊗₁ id)
+            ∘ (α⇐ ∘ (id ⊗₁ split suf) ∘ split a)))
         ∘ castW (++-assoc a suf rt)
         ≈⟨ (refl⟩∘⟨ core) ⟩∘⟨refl ⟩
       (castW (sym (++-assoc b suf rt)) ∘ rpad (suf ++ rt) g)
         ∘ castW (++-assoc a suf rt) ∎
       where
         -- mergeStep:  merge(b++suf)∘(merge b⊗id) ≈ castW(sym e_b) ∘ (merge b{suf++rt}∘(id⊗merge suf)∘α⇒)
-        mergeStep : merge (b ++ suf) {rt} ∘ (merge b {suf} ⊗₁ id {wires rt})
-                  ≈Term castW (sym (++-assoc b suf rt)) ∘ (merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒)
+        mergeStep : merge (b ++ suf) ∘ (merge b ⊗₁ id)
+                  ≈Term castW (sym (++-assoc b suf rt)) ∘ (merge b ∘ (id ⊗₁ merge suf) ∘ α⇒)
         mergeStep = ⟺ (castWˡ-invert (++-assoc b suf rt) _ _ (merge-assoc b suf rt))
         -- splitStep:  (split a⊗id)∘split(a++suf) ≈ (α⇐∘(id⊗split suf)∘split a{suf++rt}) ∘ castW(sym(sym e_a))
-        splitStep : (split a {suf} ⊗₁ id {wires rt}) ∘ split (a ++ suf) {rt}
-                  ≈Term (α⇐ ∘ (id {wires a} ⊗₁ split suf {rt}) ∘ split a {suf ++ rt}) ∘ castW (++-assoc a suf rt)
+        splitStep : (split a ⊗₁ id) ∘ split (a ++ suf)
+                  ≈Term (α⇐ ∘ (id ⊗₁ split suf) ∘ split a) ∘ castW (++-assoc a suf rt)
         splitStep = ⟺ (castWʳ-invert (++-assoc a suf rt) _ _ (split-assoc a suf rt))
         -- bookkeeping regroup of the 5-fold composite.
         regroup5 : merge (b ++ suf) ∘ (merge b ⊗₁ id ∘ ((g ⊗₁ id) ⊗₁ id ∘ split a ⊗₁ id)) ∘ split (a ++ suf)
-                 ≈Term (merge (b ++ suf) ∘ merge b ⊗₁ id) ∘ ((g ⊗₁ id {wires suf}) ⊗₁ id {wires rt}) ∘ (split a ⊗₁ id ∘ split (a ++ suf))
+                 ≈Term (merge (b ++ suf) ∘ merge b ⊗₁ id) ∘ ((g ⊗₁ id) ⊗₁ id) ∘ (split a ⊗₁ id ∘ split (a ++ suf))
         regroup5 = center⁻¹ ≈-Term-refl assoc
         -- pull the castW coercions out of the composite to the ends.
         pull-coe :
-            (castW (sym (++-assoc b suf rt)) ∘ (merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒))
-              ∘ ((g ⊗₁ id {wires suf}) ⊗₁ id {wires rt})
-              ∘ ((α⇐ ∘ (id {wires a} ⊗₁ split suf {rt}) ∘ split a {suf ++ rt}) ∘ castW (++-assoc a suf rt))
+            (castW (sym (++-assoc b suf rt)) ∘ (merge b ∘ (id ⊗₁ merge suf) ∘ α⇒))
+              ∘ ((g ⊗₁ id) ⊗₁ id)
+              ∘ ((α⇐ ∘ (id ⊗₁ split suf) ∘ split a) ∘ castW (++-assoc a suf rt))
           ≈Term (castW (sym (++-assoc b suf rt)) ∘
-                    ((merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒)
-                      ∘ ((g ⊗₁ id {wires suf}) ⊗₁ id {wires rt})
-                      ∘ (α⇐ ∘ (id {wires a} ⊗₁ split suf {rt}) ∘ split a {suf ++ rt})))
+                    ((merge b ∘ (id ⊗₁ merge suf) ∘ α⇒)
+                      ∘ ((g ⊗₁ id) ⊗₁ id)
+                      ∘ (α⇐ ∘ (id ⊗₁ split suf) ∘ split a)))
                 ∘ castW (++-assoc a suf rt)
         pull-coe = pull (sym (++-assoc b suf rt)) (++-assoc a suf rt) _ _ _
           where
@@ -466,30 +431,29 @@ module WireCoh (v : Variant) (X : Set)
                      (Rt : HomTerm (wires qa) D)
                  → (castW eb ∘ L) ∘ Mid ∘ (Rt ∘ castW ea)
                    ≈Term (castW eb ∘ (L ∘ Mid ∘ Rt)) ∘ castW ea
-            pull refl refl L Mid Rt =
-              (idˡ ⟩∘⟨ (refl⟩∘⟨ idʳ)) ○ ⟺ (idʳ ○ idˡ)
+            pull refl refl L Mid Rt = (idˡ ⟩∘⟨ (refl⟩∘⟨ idʳ)) ○ ⟺ (idʳ ○ idˡ)
         -- the core box-conjugation collapse (pure bifunctoriality + α + iso).
-        core : (merge b {suf ++ rt} ∘ (id {wires b} ⊗₁ merge suf {rt}) ∘ α⇒)
-                 ∘ ((g ⊗₁ id {wires suf}) ⊗₁ id {wires rt})
-                 ∘ (α⇐ ∘ (id {wires a} ⊗₁ split suf {rt}) ∘ split a {suf ++ rt})
+        core : (merge b ∘ (id ⊗₁ merge suf) ∘ α⇒)
+                 ∘ ((g ⊗₁ id) ⊗₁ id)
+                 ∘ (α⇐ ∘ (id ⊗₁ split suf) ∘ split a)
                ≈Term rpad (suf ++ rt) g
         core = begin
           (merge b ∘ (id ⊗₁ merge suf) ∘ α⇒) ∘ ((g ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ (id ⊗₁ split suf) ∘ split a)
             ≈⟨ coreRegroup ⟩
           merge b ∘ ((id ⊗₁ merge suf) ∘ (α⇒ ∘ ((g ⊗₁ id) ⊗₁ id) ∘ α⇐) ∘ (id ⊗₁ split suf)) ∘ split a
             ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ (midα ⟩∘⟨refl)) ⟩∘⟨refl) ⟩
-          merge b ∘ ((id ⊗₁ merge suf) ∘ (g ⊗₁ (id {wires suf} ⊗₁ id {wires rt})) ∘ (id ⊗₁ split suf)) ∘ split a
+          merge b ∘ ((id ⊗₁ merge suf) ∘ (g ⊗₁ (id ⊗₁ id)) ∘ (id ⊗₁ split suf)) ∘ split a
             ≈⟨ refl⟩∘⟨ (midColl ⟩∘⟨refl) ⟩
-          merge b ∘ (g ⊗₁ id {wires (suf ++ rt)}) ∘ split a ∎
+          merge b ∘ (g ⊗₁ id) ∘ split a ∎
           where
             -- both sides equal the fully right-associated 7-fold composite.
-            m1 = merge b {suf ++ rt}
-            m2 = id {wires b} ⊗₁ merge suf {rt}
-            m3 = α⇒ {wires b} {wires suf} {wires rt}
-            m4 = (g ⊗₁ id {wires suf}) ⊗₁ id {wires rt}
-            m5 = α⇐ {wires a} {wires suf} {wires rt}
-            m6 = id {wires a} ⊗₁ split suf {rt}
-            m7 = split a {suf ++ rt}
+            m1 = merge b
+            m2 = id ⊗₁ merge suf
+            m3 = α⇒
+            m4 = (g ⊗₁ id) ⊗₁ id
+            m5 = α⇐
+            m6 = id ⊗₁ split suf
+            m7 = split a
             rNF = m1 ∘ (m2 ∘ (m3 ∘ (m4 ∘ (m5 ∘ (m6 ∘ m7)))))
             coreRegroup :
                 (merge b ∘ (id ⊗₁ merge suf) ∘ α⇒) ∘ ((g ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ (id ⊗₁ split suf) ∘ split a)
@@ -501,12 +465,10 @@ module WireCoh (v : Variant) (X : Set)
                 rhsNF : m1 ∘ ((m2 ∘ (m3 ∘ (m4 ∘ m5)) ∘ m6) ∘ m7) ≈Term rNF
                 rhsNF = refl⟩∘⟨ pullʳ (assoc ○ pullʳ assoc)
             -- α⇒ ∘ ((g⊗id)⊗id) ∘ α⇐ ≈ g⊗(id⊗id)
-            midα : α⇒ ∘ ((g ⊗₁ id {wires suf}) ⊗₁ id {wires rt}) ∘ α⇐
-                 ≈Term g ⊗₁ (id {wires suf} ⊗₁ id {wires rt})
-            midα = α-conj g (id {wires suf}) (id {wires rt})
+            midα : α⇒ ∘ ((g ⊗₁ id) ⊗₁ id) ∘ α⇐ ≈Term g ⊗₁ (id ⊗₁ id)
+            midα = α-conj g (id) (id)
             -- (id⊗merge suf) ∘ (g⊗(id⊗id)) ∘ (id⊗split suf) ≈ g ⊗ id{suf++rt}
-            midColl : (id {wires b} ⊗₁ merge suf {rt}) ∘ (g ⊗₁ (id {wires suf} ⊗₁ id {wires rt})) ∘ (id {wires a} ⊗₁ split suf {rt})
-                    ≈Term g ⊗₁ id {wires (suf ++ rt)}
+            midColl : (id ⊗₁ merge suf) ∘ (g ⊗₁ (id ⊗₁ id)) ∘ (id ⊗₁ split suf) ≈Term g ⊗₁ id
             midColl = begin
               (id ⊗₁ merge suf) ∘ (g ⊗₁ (id ⊗₁ id)) ∘ (id ⊗₁ split suf)
                 ≈⟨ refl⟩∘⟨ ((refl⟩⊗⟨ id⊗id≈id) ⟩∘⟨refl) ⟩
@@ -514,7 +476,7 @@ module WireCoh (v : Variant) (X : Set)
                 ≈⟨ refl⟩∘⟨ (⟺ serialize₁₂) ⟩
               (id ⊗₁ merge suf) ∘ (g ⊗₁ split suf)
                 ≈⟨ ⟺ ⊗-∘-dist ⟩
-              (id ∘ g) ⊗₁ (merge suf {rt} ∘ split suf {rt})
+              (id ∘ g) ⊗₁ (merge suf ∘ split suf)
                 ≈⟨ idˡ ⟩⊗⟨ (merge∘split suf) ⟩
               g ⊗₁ id ∎
 

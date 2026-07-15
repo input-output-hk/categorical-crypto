@@ -29,18 +29,18 @@ open import Categories.NaturalTransformationHelper
 open import Categories.Properties
 
 open import Data.Empty
-open import Data.Fin using (Fin)
-import Data.Fin.Properties as FinP
+open import Data.Fin hiding (_≟_)
 open import Data.List using (List; []; _∷_)
 import Data.List.Properties.Ext as ListExt
 open import Data.Product
 open import Data.Vec using (Vec; lookup)
 
 open import Relation.Binary.Definitions
+open import Class.DecEq
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; trans; subst)
 import Relation.Binary.Reasoning.Setoid as SetoidR
 
-module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
+module CoherenceThm (X : Set) ⦃ _ : DecEq X ⦄ where
   open FreeMonoidal (record { v = Mon ; X = X ; mor = λ _ _ → ⊥ })
 
   open Commutation FreeMonoidal
@@ -50,7 +50,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
   -- equality of `X` (Hedberg).
   private
     uipL : Irrelevant {A = List X} _≡_
-    uipL = ListExt.≡-irrelevant _≟X_
+    uipL = ListExt.≡-irrelevant _≟_
 
   private module FM where
     open Category FreeMonoidal public
@@ -98,13 +98,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
 
   opaque
     ⟦_⟧F : Bifunctor FreeMonoidal Discrete Discrete
-    ⟦_⟧F = record
-      { F₀ = ⟦_⟧₀
-      ; F₁ = ⟦_⟧₁
-      ; identity = _
-      ; homomorphism = _
-      ; F-resp-≈ = λ _ → _
-      }
+    ⟦_⟧F = record { F₀ = ⟦_⟧₀ ; F₁ = ⟦_⟧₁ ; identity = _ ; homomorphism = _ ; F-resp-≈ = λ _ → _ }
 
     ι : Functor Discrete FreeMonoidal
     ι = record
@@ -164,8 +158,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     cancel-⊗ˡ : ∀ {B C Z W} {e : HomTerm (C ⊗₀ Z) W} {f⇒ : HomTerm B C} {f⇐ : HomTerm C B}
       → f⇒ ∘ f⇐ FM.≈ id
       → e ∘ f⇒ ⊗₁ id ∘ f⇐ ⊗₁ id FM.≈ id ∘ e
-    cancel-⊗ˡ isoR =
-      refl⟩∘⟨ (merge₁ˡ ○ isoR ⟩⊗⟨refl ○ FM.⊗.identity) ○ id-comm
+    cancel-⊗ˡ isoR = refl⟩∘⟨ (merge₁ˡ ○ isoR ⟩⊗⟨refl ○ FM.⊗.identity) ○ id-comm
 
     -- Naturality of the inverse from naturality of the forward iso: the
     -- shared skeleton of natural-λ⇐/ρ⇐/α⇐.  Like pentagon-conj/⊗-conj this is
@@ -175,12 +168,11 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
             → e₁ ∘ f⇒ ⊗₁ id FM.≈ id ∘ e₂
             → f⇒ ∘ f⇐ FM.≈ id
             → e₂ ∘ f⇐ ⊗₁ id FM.≈ id ∘ e₁
-    nat-inv fwd isoR =
-      (⟺ idˡ ⟩∘⟨refl ○ ⟺ fwd ⟩∘⟨refl ○ assoc) ○ cancel-⊗ˡ isoR
+    nat-inv fwd isoR = (⟺ idˡ ⟩∘⟨refl ○ ⟺ fwd ⟩∘⟨refl ○ assoc) ○ cancel-⊗ˡ isoR
 
     ι-∘ : ∀ {A B C D} d (f : HomTerm A B) (g : HomTerm C D)
-        → ι₁ ⟦ f , ⟦ g , refl {x = d} ⟧₁ ⟧₁
-          FM.≈ ι₁ ⟦ id {A = B} , ⟦ g , refl {x = d} ⟧₁ ⟧₁ ∘ ι₁ ⟦ f , refl {x = ⟦ C ⟧ d} ⟧₁
+        → ι₁ ⟦ f , ⟦ g , refl ⟧₁ ⟧₁
+          FM.≈ ι₁ ⟦ id {A = B} , ⟦ g , refl ⟧₁ ⟧₁ ∘ ι₁ ⟦ f , refl {x = ⟦ C ⟧ d} ⟧₁
     ι-∘ d f g = begin
       ι₁ ⟦ f , ⟦ g , refl ⟧₁ ⟧₁
         ≈⟨ ι.F-resp-≈ _ ⟩
@@ -191,7 +183,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
             module D = Category Discrete
 
     natural-id : ∀ {X} → iso₁ X ∘ Functor.F₁ F1 (id , refl) FM.≈ Functor.F₁ F2 (id , refl) ∘ iso₁ X
-    natural-id = iso-comm {g = refl}
+    natural-id = iso-comm
 
     natural-∘ : ∀ {A B C} d (g : HomTerm B C) (f : HomTerm A B)
       → iso₁ (C , d) ∘ Functor.F₁ F1 (g , refl) FM.≈ Functor.F₁ F2 (g , refl) ∘ iso₁ (B , d)
@@ -199,7 +191,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
       → iso₁ (C , d) ∘ Functor.F₁ F1 (g ∘ f , refl) FM.≈ Functor.F₁ F2 (g ∘ f , refl) ∘ iso₁ (A , d)
     natural-∘ {A} {B} {C} d g f Hg Hf = begin
       iso₁ (C , d) ∘ Functor.F₁ F1 (g ∘ f , refl)
-        ≈⟨ refl⟩∘⟨ Functor.homomorphism F1 {f = f , refl} {g , refl} ⟩
+        ≈⟨ refl⟩∘⟨ Functor.homomorphism F1 {f = f , refl} ⟩
       iso₁ (C , d) ∘ Functor.F₁ F1 (g , refl) ∘ Functor.F₁ F1 (f , refl)
         ≈⟨ extendʳ Hg ⟩
       Functor.F₁ F2 (g , refl) ∘ iso₁ (B , d) ∘ Functor.F₁ F1 (f , refl)
@@ -299,8 +291,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     natural-α⇒ : ∀ {A B C d}
                → iso₁ (A ⊗₀ B ⊗₀ C , d) ∘ Functor.F₁ F1 (α⇒ , refl)
             FM.≈ Functor.F₁ F2 (α⇒ , refl) ∘ iso₁ ((A ⊗₀ B) ⊗₀ C , d)
-    natural-α⇒ {A} {B} {C} {d} =
-      pentagon-conj (iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d))) (iso₁ (B , ⟦ C ⟧ d)) (iso₁ (C , d))
+    natural-α⇒ {A} {B} {C} {d} = pentagon-conj (iso₁ (A , ⟦ B ⟧ (⟦ C ⟧ d))) (iso₁ (B , ⟦ C ⟧ d)) (iso₁ (C , d))
 
     natural-α⇐ : ∀ {A B C d}
                → iso₁ ((A ⊗₀ B) ⊗₀ C , d) ∘ Functor.F₁ F1 (α⇐ , refl)
@@ -326,8 +317,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
     ⟦⟧≅⊗ : NaturalIsomorphism F2 F1
     ⟦⟧≅⊗ = NI.sym (pointwise-iso iso natural)
       where
-        natural : ∀ {X Y} → (f : P [ X , Y ])
-                → FreeMonoidal [ iso₁ Y ∘ Functor.₁ F1 f ≈ Functor.₁ F2 f ∘ iso₁ X ]
+        natural : ∀ {X Y} → (f : P [ X , Y ]) → FreeMonoidal [ iso₁ Y ∘ Functor.₁ F1 f ≈ Functor.₁ F2 f ∘ iso₁ X ]
         natural = natural-components F1 F2 iso₁ natural₁
           (λ c → Discrete-NaturalD {F = appˡ F1 c} {appˡ F2 c} (λ d → iso₁ (c , d)))
 
@@ -338,7 +328,7 @@ module CoherenceThm (X : Set) (_≟X_ : DecidableEquality X) where
       ι ∘F Nf ≈⟨ NI.associator (-× []) ⟦_⟧F ι ⟨
       (ι ∘F ⟦_⟧F) ∘F -× [] ≈⟨ ⟦⟧≅⊗ ⓘʳ (-× []) ⟩
       (FM.⊗ ∘F (F.id ⁂ ι)) ∘F -× [] ≈⟨ NI.associator (-× []) (F.id ⁂ ι) FM.⊗ ⟩
-      FM.⊗ ∘F (F.id ⁂ ι) ∘F (-× []) ≈⟨ FM.⊗ ⓘˡ (⁂-× {C = FreeMonoidal} ι []) ⟩
+      FM.⊗ ∘F (F.id ⁂ ι) ∘F (-× []) ≈⟨ FM.⊗ ⓘˡ (⁂-× ι []) ⟩
       appʳ FM.⊗ unit ≈⟨ FM.unitorʳ-naturalIsomorphism ⟩
       F.id ∎
       where open SetoidR (Functor-NI-setoid FreeMonoidal FreeMonoidal)
@@ -354,12 +344,8 @@ module Solver {o ℓ e} (C : MonoidalCategory o ℓ e)
     d : FreeMonoidalData
     d = record { v = Mon ; X = Fin n ; mor = λ _ _ → ⊥ }
   open FreeMonoidal d public
-  open CoherenceThm (Fin n) FinP._≟_
-  open FreeFunctor {d = d} record
-    { ⟦v⟧ = fromMC C noSymmetric
-    ; ⟦_⟧ᵖ₀ = lookup vars
-    ; ⟦_⟧ᵖ₁ = λ ()
-    } public
+  open CoherenceThm (Fin n)
+  open FreeFunctor {d = d} record { ⟦v⟧ = fromMC C noSymmetric ; ⟦_⟧ᵖ₀ = lookup vars ; ⟦_⟧ᵖ₁ = λ () } public
 
   opaque
     solveM : ∀ {X Y} → (f g : FreeMonoidal [ X , Y ]) → (C .U) [ ⟦ f ⟧₁ ≈ ⟦ g ⟧₁ ]

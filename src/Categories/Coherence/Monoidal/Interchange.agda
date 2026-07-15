@@ -6,10 +6,10 @@
 --
 -- Two wire-typed morphisms living in disjoint, non-crossing wire ranges commute
 -- past each other under the flat `pad` interpretation.  This is a theorem of the
--- ⟦box⟧-free structural wire theory alone: it is engine-independent, mentioning
--- neither the diagram type `DiagU` nor the box signature — the "boxes" are just
+-- ⟦_⟧ᵇ-free structural wire theory alone: it is engine-independent, mentioning
+-- neither the diagram type `Diag` nor the box signature — the "boxes" are just
 -- arbitrary wire-typed HomTerms `F`/`G`.  The proof is pure bifunctoriality /
--- interchange (⊗-∘-dist, id⊗id≈id) plus the ⟦box⟧-free wire coherence of
+-- interchange (⊗-∘-dist, id⊗id≈id) plus the ⟦_⟧ᵇ-free wire coherence of
 -- `WireCoh` — NO braiding σ.  It depends only on `WireCoherence`.
 --
 -- Structure:
@@ -19,7 +19,7 @@
 --   * `TwoBoxSwap`         `two-box-swap`: the two flat firing orders are equal.
 --
 -- Consumed by `Normalize` (via `Frame`), instantiated at the box interpretation
--- `⟦box⟧`, to justify reordering independent boxes; the diagram type `DiagU`
+-- `⟦_⟧ᵇ`, to justify reordering independent boxes; the diagram type `Diag`
 -- and the engine live in `Diagram`.
 
 module Categories.Coherence.Monoidal.Interchange where
@@ -37,7 +37,7 @@ module Interchange (v : Variant) (X : Set)
                    (mor : FreeMonoidalHelper.ObjTerm v X → FreeMonoidalHelper.ObjTerm v X → Set)
                    where
 
-  open FreeMonoidalHelper v X using (ObjTerm; _⊗₀_; Var; wires)
+  open FreeMonoidalHelper v X
   open FreeMonoidalHelper.Mor v X mor
   open WireCoh v X mor
 
@@ -54,8 +54,7 @@ module Interchange (v : Variant) (X : Set)
   private module _ {M R : ObjTerm} where
     -- a box `x : A ⇒ A'` in block 1 and a box `y : C ⇒ C'` in block 3,
     -- everything else idle.  (4-block layout A ⊗ M ⊗ C ⊗ R.)
-    blk : HomTerm A A' → HomTerm C C'
-        → HomTerm (A ⊗₀ M ⊗₀ C ⊗₀ R) (A' ⊗₀ M ⊗₀ C' ⊗₀ R)
+    blk : HomTerm A A' → HomTerm C C' → HomTerm (A ⊗₀ M ⊗₀ C ⊗₀ R) (A' ⊗₀ M ⊗₀ C' ⊗₀ R)
     blk x y = x ⊗₁ id ⊗₁ y ⊗₁ id
 
     -- the interchange itself: blk f id ∘ blk id g ≈ blk id g ∘ blk f id
@@ -63,8 +62,7 @@ module Interchange (v : Variant) (X : Set)
     -- (`id⊗id≈id`), `blk f id = f ⊗₁ id` and `blk id g = id ⊗₁ Gᵣ` (`Gᵣ` the
     -- right-block box in blocks 2-4), so both orders are `f ⊗₁ Gᵣ` by binary
     -- interchange (`serialize₁₂` / `serialize₂₁`) — no `blk-∘` needed.
-    blk-swap : (f : HomTerm A A') (g : HomTerm C C')
-             → blk f id ∘ blk id g ≈Term blk id g ∘ blk f id
+    blk-swap : (f : HomTerm A A') (g : HomTerm C C') → blk f id ∘ blk id g ≈Term blk id g ∘ blk f id
     blk-swap f g = begin
       blk f id ∘ blk id g
         ≈⟨ (refl⟩⊗⟨ ((refl⟩⊗⟨ id⊗id≈id) ○ id⊗id≈id)) ⟩∘⟨refl ⟩
@@ -76,7 +74,7 @@ module Interchange (v : Variant) (X : Set)
         ≈⟨ refl⟩∘⟨ (refl⟩⊗⟨ (⟺ ((refl⟩⊗⟨ id⊗id≈id) ○ id⊗id≈id))) ⟩
       blk id g ∘ blk f id ∎
       where
-        Gᵣ = id {M} ⊗₁ (g ⊗₁ id {R})
+        Gᵣ = id ⊗₁ (g ⊗₁ id)
 
   --------------------------------------------------------------------------------
   -- Bridging the flat `pad` to the grouped `blk` form.
@@ -142,12 +140,12 @@ module Interchange (v : Variant) (X : Set)
       layer-f : (c : List X)
               → HomTerm (pfx pre (wires a₁ ⊗₀ wires mid ⊗₀ wires c ⊗₀ wires r))
                         (pfx pre (wires b₁ ⊗₀ wires mid ⊗₀ wires c ⊗₀ wires r))
-      layer-f c = underP pre (blk {M = wires mid} {R = wires r} F (id {wires c}))
+      layer-f c = underP pre (blk F (id))
 
       layer-g : (x : List X)
               → HomTerm (pfx pre (wires x ⊗₀ wires mid ⊗₀ wires a₂ ⊗₀ wires r))
                         (pfx pre (wires x ⊗₀ wires mid ⊗₀ wires b₂ ⊗₀ wires r))
-      layer-g x = underP pre (blk {M = wires mid} {R = wires r} (id {wires x}) G)
+      layer-g x = underP pre (blk (id) G)
 
       layer-f-in  = layer-f a₂
       layer-f-out = layer-f b₂
@@ -166,13 +164,13 @@ module Interchange (v : Variant) (X : Set)
     -- monoidal category.  Pure bifunctoriality — NO braiding σ.
     swap-sound : f-then-g ≈Term g-then-f
     swap-sound = begin
-      underP pre (blk (id {wires b₁}) G) ∘ underP pre (blk F (id {wires a₂}))
+      underP pre (blk (id) G) ∘ underP pre (blk F (id))
         ≈⟨ underP-∘ pre _ _ ⟨
-      underP pre (blk (id {wires b₁}) G ∘ blk F (id {wires a₂}))
+      underP pre (blk (id) G ∘ blk F (id))
         ≈⟨ underP-resp pre (⟺ (blk-swap F G)) ⟩
-      underP pre (blk F (id {wires b₂}) ∘ blk (id {wires a₁}) G)
+      underP pre (blk F (id) ∘ blk (id) G)
         ≈⟨ underP-∘ pre _ _ ⟩
-      underP pre (blk F (id {wires b₂})) ∘ underP pre (blk (id {wires a₁}) G) ∎
+      underP pre (blk F (id)) ∘ underP pre (blk (id) G) ∎
 
   --------------------------------------------------------------------------------
   -- The bridge: from the grouped `HeadSwap.swap-sound` to the FLAT `pad`
@@ -194,11 +192,11 @@ module Interchange (v : Variant) (X : Set)
    --   → wires (m ++ (c ++ d)).
    sflat : (m c : List X) {d : List X}
          → HomTerm (wires m ⊗₀ wires c ⊗₀ wires d) (wires (m ++ (c ++ d)))
-   sflat m c {d} = merge m ∘ (id ⊗₁ merge c {d})
+   sflat m c {d} = merge m ∘ (id ⊗₁ merge c)
 
    sunflat : (m c : List X) {d : List X}
            → HomTerm (wires (m ++ (c ++ d))) (wires m ⊗₀ wires c ⊗₀ wires d)
-   sunflat m c {d} = (id ⊗₁ split c {d}) ∘ split m
+   sunflat m c {d} = (id ⊗₁ split c) ∘ split m
 
    sflat∘sunflat : ∀ (m c : List X) {d} → sflat m c {d} ∘ sunflat m c ≈Term id
    sflat∘sunflat m c {d} = cancelInner (id⊗-cancel (merge∘split c)) ○ merge∘split m
@@ -210,12 +208,12 @@ module Interchange (v : Variant) (X : Set)
    iflat : (x m c : List X) {d : List X}
          → HomTerm (wires x ⊗₀ wires m ⊗₀ wires c ⊗₀ wires d)
                    (wires (x ++ (m ++ (c ++ d))))
-   iflat x m c {d} = merge x ∘ (id ⊗₁ sflat m c {d})
+   iflat x m c {d} = merge x ∘ (id ⊗₁ sflat m c)
 
    iunflat : (x m c : List X) {d : List X}
            → HomTerm (wires (x ++ (m ++ (c ++ d))))
                      (wires x ⊗₀ wires m ⊗₀ wires c ⊗₀ wires d)
-   iunflat x m c {d} = (id ⊗₁ sunflat m c {d}) ∘ split x
+   iunflat x m c {d} = (id ⊗₁ sunflat m c) ∘ split x
 
    -- prefix flattener: reshape a right-nested prefix of `pre` wires sitting
    -- on top of an already-flat tail `wires n` into the flat `wires (pre ++ n)`.
@@ -240,15 +238,14 @@ module Interchange (v : Variant) (X : Set)
    gflat : (pre x m c : List X) {d : List X}
          → HomTerm (pfx pre (wires x ⊗₀ wires m ⊗₀ wires c ⊗₀ wires d))
                    (wires (pre ++ (x ++ (m ++ (c ++ d)))))
-   gflat pre x m c {d} = pflat pre ∘ underP pre (iflat x m c {d})
+   gflat pre x m c {d} = pflat pre ∘ underP pre (iflat x m c)
 
    gunflat : (pre x m c : List X) {d : List X}
            → HomTerm (wires (pre ++ (x ++ (m ++ (c ++ d)))))
                      (pfx pre (wires x ⊗₀ wires m ⊗₀ wires c ⊗₀ wires d))
-   gunflat pre x m c {d} = underP pre (iunflat x m c {d}) ∘ punflat pre
+   gunflat pre x m c {d} = underP pre (iunflat x m c) ∘ punflat pre
 
-   gunflat∘gflat : ∀ (pre x m c : List X) {d}
-                 → gunflat pre x m c {d} ∘ gflat pre x m c ≈Term id
+   gunflat∘gflat : ∀ (pre x m c : List X) {d} → gunflat pre x m c {d} ∘ gflat pre x m c ≈Term id
    gunflat∘gflat pre x m c {d} =
      cancelInner (punflat∘pflat pre)
        ○ (⟺ (underP-∘ pre _ _))
@@ -265,17 +262,17 @@ module Interchange (v : Variant) (X : Set)
 
    -- a block-1 box (everything else idle), flattened, is its suffix flat-shift.
    rpad-iconj : ∀ {a b} (m c : List X) {d : List X} (h : HomTerm (wires a) (wires b))
-              → iflat b m c {d} ∘ (h ⊗₁ id {wires m ⊗₀ wires c ⊗₀ wires d}) ∘ iunflat a m c
+              → iflat b m c ∘ (h ⊗₁ id) ∘ iunflat a m c
                 ≈Term rpad (m ++ (c ++ d)) h
    rpad-iconj {a} {b} m c {d} h = pullʳ ((refl⟩∘⟨ pullˡ step₁) ○ pullˡ step₂)
      where
-       step₁ : (h ⊗₁ id) ∘ (id ⊗₁ sunflat m c {d}) ≈Term h ⊗₁ sunflat m c {d}
+       step₁ : (h ⊗₁ id) ∘ (id ⊗₁ sunflat m c) ≈Term h ⊗₁ sunflat m c
        step₁ = ⟺ serialize₁₂
-       step₂ : (id ⊗₁ sflat m c {d}) ∘ (h ⊗₁ sunflat m c {d}) ≈Term h ⊗₁ id
+       step₂ : (id ⊗₁ sflat m c) ∘ (h ⊗₁ sunflat m c) ≈Term h ⊗₁ id
        step₂ = merge₂ˡ ○ (refl⟩⊗⟨ sflat∘sunflat m c)
 
    blk-left-id : ∀ {m c d : List X} {a b} (h : HomTerm (wires a) (wires b))
-               → blk {M = wires m} {R = wires d} h (id {wires c})
+               → blk h (id)
                  ≈Term h ⊗₁ id {wires m ⊗₀ wires c ⊗₀ wires d}
    blk-left-id {m} {c} {d} h = refl⟩⊗⟨ ((refl⟩⊗⟨ id⊗id≈id) ○ id⊗id≈id)
 
@@ -283,8 +280,7 @@ module Interchange (v : Variant) (X : Set)
    pflatconj : ∀ (pre : List X) {u v} (Y : HomTerm (wires u) (wires v))
              → pflat pre ∘ underP pre Y ∘ punflat pre ≈Term liftW pre Y
    pflatconj []      Y = idˡ ○ idʳ
-   pflatconj (x ∷ p) {u} {v} Y =
-    id⊗-∘3 (pflat p) (underP p Y) (punflat p) ○ (refl⟩⊗⟨ pflatconj p Y)
+   pflatconj (x ∷ p) {u} {v} Y = id⊗-∘3 (pflat p) (underP p Y) (punflat p) ○ (refl⟩⊗⟨ pflatconj p Y)
 
    -- pad as a conjugation by the prefix-flattener of a prefix-lifted rpad.
    padP-bridge : ∀ {a b} (pre suf : List X) (h : HomTerm (wires a) (wires b))
@@ -300,9 +296,9 @@ module Interchange (v : Variant) (X : Set)
    gconj : ∀ (pre x m c x' c' : List X) {d}
              (X : HomTerm (wires x' ⊗₀ wires m ⊗₀ wires c' ⊗₀ wires d)
                           (wires x  ⊗₀ wires m ⊗₀ wires c  ⊗₀ wires d))
-         → gflat pre x m c {d} ∘ underP pre X ∘ gunflat pre x' m c' {d}
+         → gflat pre x m c ∘ underP pre X ∘ gunflat pre x' m c'
            ≈Term pflat pre
-               ∘ underP pre (iflat x m c {d} ∘ X ∘ iunflat x' m c' {d})
+               ∘ underP pre (iflat x m c ∘ X ∘ iunflat x' m c')
                ∘ punflat pre
    gconj pre x m c x' c' {d} X = begin
      (pflat pre ∘ underP pre (iflat x m c))
@@ -319,23 +315,22 @@ module Interchange (v : Variant) (X : Set)
    -- Bridge-f: the flat pad of f equals the grouped f-block conjugated by gflat.
    bridge-f : ∀ (pre m c r : List X) {a b : List X} (h : HomTerm (wires a) (wires b))
             → pad pre (m ++ (c ++ r)) h
-              ≈Term gflat pre b m c {r}
-                  ∘ underP pre (blk {M = wires m} {R = wires r} h (id {wires c}))
-                  ∘ gunflat pre a m c {r}
+              ≈Term gflat pre b m c
+                  ∘ underP pre (blk h (id))
+                  ∘ gunflat pre a m c
    bridge-f pre m c r {a} {b} h = begin
      pad pre (m ++ (c ++ r)) h
        ≈⟨ padP-bridge pre (m ++ (c ++ r)) h ⟩
      pflat pre ∘ underP pre (rpad (m ++ (c ++ r)) h) ∘ punflat pre
        ≈⟨ refl⟩∘⟨ underP-resp pre (⟺ core) ⟩∘⟨refl ⟩
-     pflat pre ∘ underP pre (iflat b m c ∘ (blk h (id {wires c})) ∘ iunflat a m c) ∘ punflat pre
+     pflat pre ∘ underP pre (iflat b m c ∘ (blk h (id)) ∘ iunflat a m c) ∘ punflat pre
        ≈⟨ gconj pre b m c a c h-block ⟨
-     gflat pre b m c ∘ underP pre (blk h (id {wires c})) ∘ gunflat pre a m c ∎
+     gflat pre b m c ∘ underP pre (blk h (id)) ∘ gunflat pre a m c ∎
      where
        h-block : HomTerm (wires a ⊗₀ wires m ⊗₀ wires c ⊗₀ wires r)
                          (wires b ⊗₀ wires m ⊗₀ wires c ⊗₀ wires r)
-       h-block = blk {M = wires m} {R = wires r} h (id {wires c})
-       core : iflat b m c {r} ∘ (blk h (id {wires c})) ∘ iunflat a m c
-              ≈Term rpad (m ++ (c ++ r)) h
+       h-block = blk h (id)
+       core : iflat b m c ∘ (blk h (id)) ∘ iunflat a m c ≈Term rpad (m ++ (c ++ r)) h
        core = (refl⟩∘⟨ blk-left-id h ⟩∘⟨refl) ○ rpad-iconj m c h
 
    -- Generic conjugation-by-flatteners = liftW: a box `M` flanked by the
@@ -347,7 +342,7 @@ module Interchange (v : Variant) (X : Set)
        (A : HomTerm V (wires v)) (M : HomTerm W V) (B : HomTerm (wires u) W)
        (W' : HomTerm (wires u) (wires v))
      → A ∘ M ∘ B ≈Term W'
-     → (merge p {v} ∘ (id {wires p} ⊗₁ A)) ∘ (id ⊗₁ M) ∘ ((id ⊗₁ B) ∘ split p {u})
+     → (merge p ∘ (id ⊗₁ A)) ∘ (id ⊗₁ M) ∘ ((id ⊗₁ B) ∘ split p)
        ≈Term liftW p W'
    liftW-merge-conj p A M B W' hyp = begin
      (merge p ∘ (id ⊗₁ A)) ∘ (id ⊗₁ M) ∘ ((id ⊗₁ B) ∘ split p)
@@ -363,8 +358,7 @@ module Interchange (v : Variant) (X : Set)
    -- The g-core: the right-block box, conjugated by the inner flatteners,
    -- is the double flat-shift of g's right-pad.  (g in block 3 / slot c.)
    gcore : ∀ (x m : List X) {a b d : List X} (g : HomTerm (wires a) (wires b))
-         → iflat x m b {d} ∘ (blk {M = wires m} {R = wires d} (id {wires x}) g) ∘ iunflat x m a {d}
-           ≈Term liftW x (liftW m (rpad d g))
+         → iflat x m b ∘ (blk id g) ∘ iunflat x m a ≈Term liftW x (liftW m (rpad d g))
    gcore x m {a} {b} {d} g =
      -- blk id g = id ⊗₁ (id ⊗₁ (g ⊗₁ id)) = id ⊗₁ Bg, definitionally; the
      -- inner collapse `innerY : sflat m b ∘ Bg ∘ sunflat m a ≈ liftW m (rpad d g)`
@@ -372,21 +366,19 @@ module Interchange (v : Variant) (X : Set)
      liftW-merge-conj x (sflat m b) Bg (sunflat m a) (liftW m (rpad d g)) innerY
      where
        Bg : HomTerm (wires m ⊗₀ wires a ⊗₀ wires d) (wires m ⊗₀ wires b ⊗₀ wires d)
-       Bg = id {wires m} ⊗₁ (g ⊗₁ id {wires d})
+       Bg = id ⊗₁ (g ⊗₁ id)
        innerY : sflat m b ∘ Bg ∘ sunflat m a ≈Term liftW m (rpad d g)
        innerY = liftW-merge-conj m (merge b) (g ⊗₁ id) (split a) (rpad d g) ≈-Term-refl
 
    -- Bridge-g (to the liftW form): the grouped right-block g-layer, conjugated
    -- by gflat, equals the double flat-shift of g's right-pad.
    bridge-g : ∀ (pre x m r : List X) {a b : List X} (g : HomTerm (wires a) (wires b))
-            → gflat pre x m b {r}
-                ∘ underP pre (blk {M = wires m} {R = wires r} (id {wires x}) g)
-                ∘ gunflat pre x m a {r}
+            → gflat pre x m b ∘ underP pre (blk id g) ∘ gunflat pre x m a
               ≈Term liftW pre (liftW x (liftW m (rpad r g)))
    bridge-g pre x m r {a} {b} g = begin
-     gflat pre x m b ∘ underP pre (blk (id {wires x}) g) ∘ gunflat pre x m a
-       ≈⟨ gconj pre x m b x a (blk (id {wires x}) g) ⟩
-     pflat pre ∘ underP pre (iflat x m b ∘ (blk (id {wires x}) g) ∘ iunflat x m a) ∘ punflat pre
+     gflat pre x m b ∘ underP pre (blk (id) g) ∘ gunflat pre x m a
+       ≈⟨ gconj pre x m b x a (blk (id) g) ⟩
+     pflat pre ∘ underP pre (iflat x m b ∘ (blk (id) g) ∘ iunflat x m a) ∘ punflat pre
        ≈⟨ refl⟩∘⟨ underP-resp pre (gcore x m g) ⟩∘⟨refl ⟩
      pflat pre ∘ underP pre (liftW x (liftW m (rpad r g))) ∘ punflat pre
        ≈⟨ pflatconj pre (liftW x (liftW m (rpad r g))) ⟩
@@ -467,13 +459,9 @@ module Interchange (v : Variant) (X : Set)
     gLayer : (x : List X)
            → HomTerm (wires (pre ++ (x ++ (mid ++ (a₂ ++ r)))))
                      (wires (pre ++ (x ++ (mid ++ (b₂ ++ r)))))
-    gLayer x = gflat pre x mid b₂ {r}
-                 ∘ underP pre (blk {M = wires mid} {R = wires r} (id {wires x}) G)
-                 ∘ gunflat pre x mid a₂ {r}
+    gLayer x = gflat pre x mid b₂ ∘ underP pre (blk id G) ∘ gunflat pre x mid a₂
 
-    gLayer≈pad : (x : List X)
-               → gLayer x
-                 ≈Term reassocB x ∘ pad (pre ++ (x ++ mid)) r G ∘ reassocF x
+    gLayer≈pad : (x : List X) → gLayer x ≈Term reassocB x ∘ pad (pre ++ (x ++ mid)) r G ∘ reassocF x
     gLayer≈pad x = begin
         gLayer x
           ≈⟨ bridge-g pre x mid r G ⟩
@@ -508,15 +496,11 @@ module Interchange (v : Variant) (X : Set)
 
       -- Each flat composite equals the grouped composite conjugated by ONE pair
       -- of global flatteners (the inner pair cancels).
-      f-first≈ : f-first ≈Term gflat pre b₁ mid b₂ {r} ∘ f-then-g ∘ gunflat pre a₁ mid a₂ {r}
-      f-first≈ =
-        (refl⟩∘⟨ bridge-f pre mid a₂ r F)
-          ○ layers-cancel (gunflat∘gflat pre b₁ mid a₂)
+      f-first≈ : f-first ≈Term gflat pre b₁ mid b₂ ∘ f-then-g ∘ gunflat pre a₁ mid a₂
+      f-first≈ = (refl⟩∘⟨ bridge-f pre mid a₂ r F) ○ layers-cancel (gunflat∘gflat pre b₁ mid a₂)
 
-      g-first≈ : g-first ≈Term gflat pre b₁ mid b₂ {r} ∘ g-then-f ∘ gunflat pre a₁ mid a₂ {r}
-      g-first≈ =
-        (bridge-f pre mid b₂ r F ⟩∘⟨refl)
-          ○ layers-cancel (gunflat∘gflat pre a₁ mid b₂)
+      g-first≈ : g-first ≈Term gflat pre b₁ mid b₂ ∘ g-then-f ∘ gunflat pre a₁ mid a₂
+      g-first≈ = (bridge-f pre mid b₂ r F ⟩∘⟨refl) ○ layers-cancel (gunflat∘gflat pre a₁ mid b₂)
 
     -- THE THEOREM: the two flat orders are equal.  Reuses HeadSwap.swap-sound,
     -- conjugated by gflat/gunflat.  No braiding σ anywhere.

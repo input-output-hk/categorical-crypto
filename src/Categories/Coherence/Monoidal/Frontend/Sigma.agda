@@ -10,7 +10,7 @@
 -- σσ-cancellation, the two naturality SLIDES and disjoint interchange.
 --
 -- The shared machinery lives in `Categories.Coherence.Monoidal.Frontend.Core`
--- (`FCore`/`FBridge`), instantiated at (Symm, MorS, ⟦box⟧S).  This file
+-- (`FCore`/`FBridge`), instantiated at (Symm, MorS, ⟦_⟧ᵇˢ).  This file
 -- supplies only the σ-specific clauses:
 --
 --   * `reflectσ A B = boxʷ (cross (flatten A) (flatten B))`, cast-free since
@@ -19,8 +19,8 @@
 --     cancellation the goal reduces to braiding naturality at
 --     (flat⇒ A , flat⇒ B), i.e. the σ∘[f⊗g]≈[g⊗f]∘σ axiom.
 --
--- `Into` takes a target monoidal category WITH a `Symmetric` structure, so σ
--- lands on the target's braiding.  The positive σ cases and the
+-- The target (via `FinSetupσ`) is a monoidal category WITH a `Symmetric`
+-- structure, so σ lands on the target's braiding.  The positive σ cases and the
 -- braiding-specific boundaries Lσ1 (hexagon) / Lσ2 (straddling box) are
 -- machine-checked in `Categories.Coherence.Monoidal.Test.SigmaFrontend`; the
 -- limitations inherited from the shared `Frontend.Core` pipeline are
@@ -32,11 +32,9 @@
 module Categories.Coherence.Monoidal.Frontend.Sigma where
 
 import Data.Maybe
-open import categorical-crypto.Prelude
-  hiding (_∘_; id; map; merge; zero; suc; lookup; [_]; [_,_])
+open import categorical-crypto.Prelude hiding (_∘_; id; map; merge; zero; suc; lookup; [_]; [_,_])
 
 open import Data.Fin using (Fin)
-open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
 open import Data.Vec using (Vec)
 
 open import Categories.Category
@@ -48,8 +46,7 @@ open import Categories.Coherence.Monoidal.Frontend.Core
 open import Categories.Coherence.Monoidal.Sigma
 
 module FrontendS
-  {X : Set}
-  (_≟X_ : DecidableEquality X)
+  {X : Set} ⦃ _ : DecEq X ⦄
   (let open FreeMonoidalHelper Symm X using (ObjTerm; _⊗₀_))
   (GenF : ObjTerm → ObjTerm → Set)
   where
@@ -62,23 +59,22 @@ module FrontendS
   open Core
   open Core.F≈R
 
-  -- the σ-engine at MorW; its `Decide` driver renamed `DecideW`, the
+  -- the σ-engine at MorW; its wire-level driver is `Decideσ`, the
   -- front-end defines its own `Decide` below.
-  open Sigma _≟X_ MorW
-    renaming (module Decide to DecideW)
+  open Sigma MorW
 
   -- the generator signature, shared by the engine modules below; `F` is its
   -- free category (HomTerm over GenF).
   private
     sig : FreeSig Symm {X}
-    sig = record { _≟X_ = _≟X_ ; GenF = GenF }
+    sig = record { GenF = GenF }
   open FreeSig sig using (module F)
 
   ------------------------------------------------------------------------
-  -- The engine-generic shared layer, at (Symm, MorS, ⟦box⟧S)
+  -- The engine-generic shared layer, at (Symm, MorS, ⟦_⟧ᵇˢ)
   ------------------------------------------------------------------------
 
-  private module FB = FBridge Symm _≟X_ GenF ES
+  private module FB = FBridge sig ES
   open FB
 
   ------------------------------------------------------------------------
@@ -91,7 +87,7 @@ module FrontendS
   private
     injBox : ∀ {a b} → MorS a b → F.HomTerm (wires a) (wires b)
     injBox (box (mk {Y} {Z} g)) = flat⇒ Z F.∘ (F.var g F.∘ flat⇐ Y)
-    injBox (cross a b)          = F.merge b {a} F.∘ (F.σ F.∘ F.split a {b})
+    injBox (cross a b)          = F.merge b F.∘ (F.σ F.∘ F.split a)
 
     reflectVarS : ∀ {Y Z} → GenF Y Z → WTerm (flatten Y) (flatten Z)
     reflectVarS g = boxʷ (box (mk g))
@@ -114,21 +110,21 @@ module FrontendS
               → inj (embed (reflectσS ⦃ s ⦄ A B)) F.∘ flat⇒ (A ⊗₀ B)
                 F.≈Term flat⇒ (B ⊗₀ A) F.∘ F.σ ⦃ s ⦄
     bridge-σS {A} {B} ⦃ v≤v ⦄ = beginF
-      inj (embed (reflectσS A B)) F.∘ (F.merge fA {fB} F.∘ (f⇒A F.⊗₁ f⇒B))
+      inj (embed (reflectσS A B)) F.∘ (F.merge fA F.∘ (f⇒A F.⊗₁ f⇒B))
         ≈F⟨ F.≡⇒≈Term (cong₂ (λ h j → h F.∘ (F.σ F.∘ j))
-                       (inj-merge fB {fA}) (inj-split fA {fB})) F.⟩∘⟨refl ⟩
-      (F.merge fB {fA} F.∘ (F.σ F.∘ F.split fA {fB})) F.∘ (F.merge fA {fB} F.∘ (f⇒A F.⊗₁ f⇒B))
-        ≈F⟨ merge-split-mid fA (F.merge fB {fA}) F.σ (f⇒A F.⊗₁ f⇒B) ⟩
-      F.merge fB {fA} F.∘ (F.σ F.∘ (f⇒A F.⊗₁ f⇒B))
+                       (inj-merge fB) (inj-split fA)) F.⟩∘⟨refl ⟩
+      (F.merge fB F.∘ (F.σ F.∘ F.split fA)) F.∘ (F.merge fA F.∘ (f⇒A F.⊗₁ f⇒B))
+        ≈F⟨ merge-split-mid fA (F.merge fB) F.σ (f⇒A F.⊗₁ f⇒B) ⟩
+      F.merge fB F.∘ (F.σ F.∘ (f⇒A F.⊗₁ f⇒B))
         ≈F⟨ F.refl⟩∘⟨ F.σ∘[f⊗g]≈[g⊗f]∘σ ⟩
-      F.merge fB {fA} F.∘ ((f⇒B F.⊗₁ f⇒A) F.∘ F.σ)
+      F.merge fB F.∘ ((f⇒B F.⊗₁ f⇒A) F.∘ F.σ)
         ≈F⟨ F.⟺ F.assoc ⟩
-      (F.merge fB {fA} F.∘ (f⇒B F.⊗₁ f⇒A)) F.∘ F.σ ∎F
+      (F.merge fB F.∘ (f⇒B F.⊗₁ f⇒A)) F.∘ F.σ ∎F
       where
         fA = flatten A ; fB = flatten B
         f⇒A = flat⇒ A ; f⇒B = flat⇒ B
 
-  private module FBB = FBI.Bridge (λ g → refl) (λ {A} {B} ⦃ s ⦄ → bridge-σS {A} {B} ⦃ s ⦄)
+  private module FBB = FBI.Bridge (λ g → refl) (λ {A} {B} ⦃ s ⦄ → bridge-σS {A} ⦃ s ⦄)
   open FBB
 
   ------------------------------------------------------------------------
@@ -137,25 +133,20 @@ module FrontendS
   ------------------------------------------------------------------------
 
   module Decide
-    (_≟G_ : DecidableEquality GenΣ)
+    ⦃ _ : DecEq GenΣ ⦄
     (rank : GenΣ → ℕ)   -- tiebreak key for ambiguous pairs
     where
 
     private
-      _≟GM_ : DecidableEquality GenM
-      _≟GM_ = Core.decMorW _≟G_
-
       rankM : GenM → ℕ
       rankM (_ , _ , w) = Core.rankMorW rank w
 
-      module DW = DecideW _≟GM_ rankM
+      module DW = Decideσ rankM
 
     -- front-end decision: a hit is a genuine `_≈Term_` of the free
     -- SYMMETRIC monoidal category over the ObjTerm-arity generators.
     decide?F : ∀ {Y Z} (l r : F.HomTerm Y Z) → Maybe (l F.≈Term r)
     decide?F l r = Data.Maybe.map solveF (DW.decideσ? (reflectF l) (reflectF r))
-
-    open FSolve sig decide?F public using (module Into)
 
 --------------------------------------------------------------------------------
 -- `FinSetupσ`: the call-site convenience wrapper (the σ-analogue of the Mon
@@ -179,7 +170,7 @@ module FinSetupσ
     -- hand it to the variant-generic `FinSetupCore.Sig` (the `FinSig Symm arity`
     -- here and inside `Core.Sig` are the SAME `GenS`/`S`, so the types match).
     open FinSig Symm arity
-    open FrontendS _≟Fin_ GenS
-    open Decide _≟G_ rankS
+    open FrontendS GenS
+    open Decide rankS
 
     open Core.Sig arity decide?F public
