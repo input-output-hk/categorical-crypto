@@ -17,13 +17,14 @@ module Categories.Coherence.Monoidal.Diagram where
 -- index (input = output) makes this discipline mandatory.
 --
 -- The ⟦_⟧ᵇ-free wire coherence (`castW`/`assocW`/`liftW-merge`/…) lives in
--- `WireCoherence` (re-exported here through `DiagramI`); the sound disjoint
--- head-swap of two adjacent boxes lives in `Interchange`
--- (`TwoBoxSwap.two-box-swap`), instantiated at ⟦_⟧ᵇ by `Normalize`.
+-- `WireCoherence` (re-exported here through `DiagramI`); the CAST-FREE strict
+-- reading `⟦_⟧ˢ : Diag → WTerm` and its builder soundness `DiagSoundˢ` land in
+-- the free strict monoidal category (`FreeStrictMonoidal`), where the sound
+-- disjoint head-swap of two adjacent boxes is `swap-cleanˢ`.
 --
 -- The native syntactic step relation `_⤳D_` (`DClosure`) is the rewrite closure
 -- of an engine-supplied primitive-step family; a normalizer emits its witnesses
--- and the semantics enters only through `⤳D-sound`.
+-- and the semantics enters only through the strict `⤳D-soundˢ`.
 
 open import categorical-crypto.Prelude hiding (_∘_; id; map; merge)
 open import Data.List.Properties
@@ -33,6 +34,7 @@ import Categories.Category.Monoidal.Reasoning as MonR
 import Categories.Morphism.Reasoning as MR
 open import Categories.Coherence.Monoidal.WireCoherence
 open import Categories.FreeMonoidal
+open import Categories.FreeStrictMonoidal
 
 --------------------------------------------------------------------------------
 -- WireSig: the wire-level signature
@@ -99,16 +101,33 @@ module DiagramI {v : Variant} {X : Set} (E : WireEngine v) where
   substDiagᵒ : ∀ {n k k' : List X} → k ≡ k' → Diag n k → Diag n k'
   substDiagᵒ refl d = d
 
-  -- Both soundness lemmas read the transported diagram off as the original,
-  -- conjugated by a single `castW` on the transported side: input transports
-  -- pre-compose the inverse cast, codomain transports post-compose the cast.
-  ⟦substDiag⟧ : ∀ {m n k : List X} (e : m ≡ n) (d : Diag m k)
-    → ⟦ substDiag e d ⟧ ≈Term ⟦ d ⟧ ∘ castW (sym e)
-  ⟦substDiag⟧ refl d = ⟺ idʳ
+  --------------------------------------------------------------------------------
+  -- The STRICT diagram semantics `⟦_⟧ˢ : Diag n m → WTerm n m`, into the free
+  -- strict monoidal category over the wire generators `Mor`.  Unlike the weak
+  -- `⟦_⟧` it is CAST-FREE: each layer is the flat strict pad `padʷ pre suf`, at
+  -- exactly the diagram's own index, with NO merge/split conjugation.  The
+  -- factorisation `⟦ d ⟧ ≈Term embed ⟦ d ⟧ˢ` (in `Reflect`) recovers the weak
+  -- reading; the strict `DiagSound` analogues below pay the tensor bookkeeping
+  -- on `_≈ʷ_` (transports fuse on `refl`) instead of on `_≈Term_`.
+  --------------------------------------------------------------------------------
+  open FreeStrictMonoidalHelper Mor
+    using ( WTerm; boxʷ; idʷ; _∘ʷ_; _⊗ʷ_; padʷ; castʷ; castʷᵈ; module Theory
+          ; castʷ-symˡ; castʷᵈ-symˡ; castʷᵈ-symʳ; ∘ʷ-castʷᵈ-r; ∘ʷ-castʷᵈ-l )
 
-  ⟦substDiagᵒ⟧ : ∀ {n k k' : List X} (e : k ≡ k') (d : Diag n k)
-    → ⟦ substDiagᵒ e d ⟧ ≈Term castW e ∘ ⟦ d ⟧
-  ⟦substDiagᵒ⟧ refl d = ⟺ idˡ
+  ⟦_⟧ˢ : ∀ {n m} (d : Diag n m) → WTerm n m
+  ⟦ []_ n ⟧ˢ              = idʷ
+  ⟦ pre ▸ suf ∷ f ⟨ d ⟩ ⟧ˢ = ⟦ d ⟧ˢ ∘ʷ padʷ pre suf (boxʷ f)
+
+  -- At the strict level the endpoint transports are propositional: `substDiag`
+  -- reads off as a domain transport `castʷᵈ`, `substDiagᵒ` as a codomain
+  -- transport `castʷ`, both fusing definitionally on `refl`.
+  ⟦substDiag⟧ˢ : ∀ {m n k : List X} (e : m ≡ n) (d : Diag m k)
+    → ⟦ substDiag e d ⟧ˢ ≡ castʷᵈ e ⟦ d ⟧ˢ
+  ⟦substDiag⟧ˢ refl d = refl
+
+  ⟦substDiagᵒ⟧ˢ : ∀ {n k k' : List X} (e : k ≡ k') (d : Diag n k)
+    → ⟦ substDiagᵒ e d ⟧ˢ ≡ castʷ e ⟦ d ⟧ˢ
+  ⟦substDiagᵒ⟧ˢ refl d = refl
 
   --------------------------------------------------------------------------------
   -- The native syntactic step relation `_⤳D_`: the rewrite-reachability
@@ -131,13 +150,19 @@ module DiagramI {v : Variant} {X : Set} (E : WireEngine v) where
              → rest ⤳D rest'
              → (pre ▸ suf ∷ f ⟨ rest ⟩) ⤳D (pre ▸ suf ∷ f ⟨ rest' ⟩)
 
-    ⤳D-sound : (prim-sound : ∀ {n k} {d d' : Diag n k}
-                           → Prim d d' → ⟦ d ⟧ ≈Term ⟦ d' ⟧)
-             → ∀ {n k} {d d' : Diag n k} → d ⤳D d' → ⟦ d ⟧ ≈Term ⟦ d' ⟧
-    ⤳D-sound ps (prim p)     = ps p
-    ⤳D-sound ps reflᴰ        = ≈-Term-refl
-    ⤳D-sound ps (transᴰ p q) = ⤳D-sound ps p ○ ⤳D-sound ps q
-    ⤳D-sound ps (consᴰ p)    = ⤳D-sound ps p ⟩∘⟨refl
+    -- The STRICT discharge: induction on `⟦_⟧ˢ` in `Theory R`'s `_≈ʷ_` (the
+    -- `consᴰ` case is `∘ʷ`-congruence on the shared pad).  This is what the
+    -- retargeted `normSoundˢ` emits; `DecideCore` transports it to `_≈Term_`.
+    module _ (R : ∀ {n m} → WTerm n m → WTerm n m → Set) where
+      open Theory R
+
+      ⤳D-soundˢ : (prim-sound : ∀ {n k} {d d' : Diag n k}
+                              → Prim d d' → ⟦ d ⟧ˢ ≈ʷ ⟦ d' ⟧ˢ)
+                → ∀ {n k} {d d' : Diag n k} → d ⤳D d' → ⟦ d ⟧ˢ ≈ʷ ⟦ d' ⟧ˢ
+      ⤳D-soundˢ ps (prim p)     = ps p
+      ⤳D-soundˢ ps reflᴰ        = reflʷ
+      ⤳D-soundˢ ps (transᴰ p q) = transʷ (⤳D-soundˢ ps p) (⤳D-soundˢ ps q)
+      ⤳D-soundˢ ps (consᴰ p)    = ∘-resp-≈ (⤳D-soundˢ ps p) reflʷ
 
   --------------------------------------------------------------------------------
   -- `Diag` combinators
@@ -180,149 +205,122 @@ module DiagramI {v : Variant} {X : Set} (E : WireEngine v) where
   boxD {a} {b} g = substDiag (++-identityʳ a) (substDiagᵒ (++-identityʳ b) (boxLayer g))
 
   --------------------------------------------------------------------------------
-  -- Soundness of the pure builders: each `⟦ builder … ⟧` equals the
-  -- corresponding structural composite.
+  -- Soundness of the pure builders on the CAST-FREE strict semantics `⟦_⟧ˢ`,
+  -- stated on `_≈ʷ_` of any engine relation `R` (using only the category +
+  -- bifunctor axioms — NO merge/split conjugation).  The `⊗ᵈ` case is CAST-FREE
+  -- (the `⊗ʷ` index is `++`); the shifts carry only cheap `castʷ`/`castʷᵈ` term
+  -- transports, and `boxSoundˢ` is a plain right-unit.
   --------------------------------------------------------------------------------
-  module DiagSound ⦃ _ : DecEq X ⦄ where
-    open FreeMonoidalHelper v X using (_⊗₀_)
-    open MR FreeMonoidal
-    open MonR Monoidal-FreeMonoidal using (_⟩⊗⟨_; serialize₂₁)
-    open WireCohDec
+  module DiagSoundˢ (R : ∀ {n m} → WTerm n m → WTerm n m → Set) ⦃ _ : DecEq X ⦄ where
+    open Theory R
+    -- the strict `_≈ʷ_` reasoning, under `ˢ`-decorated names so it coexists
+    -- with the ambient weak `≈R` (which reasons in `FreeMonoidal`).
+    private module Rˢ = Category.HomReasoning StrictR
+    open Rˢ using () renaming (begin_ to beginˢ_; _∎ to _∎ˢ)
+    open Rˢ using () renaming (step-≈-⟩ to libˢ-≈; step-≈-⟨ to libˢ-≈˘)
+    infixr 2 stepˢ-≈ stepˢ-≈˘
+    stepˢ-≈  = libˢ-≈
+    stepˢ-≈˘ = libˢ-≈˘
+    syntax stepˢ-≈  f gh fg = f ≈ˢ⟨ fg ⟩ gh
+    syntax stepˢ-≈˘ f gh gf = f ≈ˢ⟨ gf ⟨ gh
 
-    ∘ᵈ-sound : ∀ {n m k} (d₁ : Diag n m) (d₂ : Diag m k) → ⟦ d₁ ∘ᵈ d₂ ⟧ ≈Term ⟦ d₂ ⟧ ∘ ⟦ d₁ ⟧
-    ∘ᵈ-sound ([]_ _) d₂ = ⟺ idʳ
-    ∘ᵈ-sound (pre ▸ suf ∷ f ⟨ d ⟩) d₂ = (∘ᵈ-sound d d₂ ⟩∘⟨refl) ○ assoc
+    ∘ᵈ-soundˢ : ∀ {n m k} (d₁ : Diag n m) (d₂ : Diag m k)
+              → ⟦ d₁ ∘ᵈ d₂ ⟧ˢ ≈ʷ ⟦ d₂ ⟧ˢ ∘ʷ ⟦ d₁ ⟧ˢ
+    ∘ᵈ-soundˢ ([]_ _)              d₂ = symʷ idʳ
+    ∘ᵈ-soundˢ (pre ▸ suf ∷ f ⟨ d ⟩) d₂ = transʷ (∘-resp-≈ (∘ᵈ-soundˢ d d₂) reflʷ) assoc
 
-    boxSound : ∀ {a b} (g : Mor a b) → ⟦ boxD g ⟧ ≈Term ⟦ g ⟧ᵇ
-    boxSound {a} {b} g = begin
-      ⟦ boxD g ⟧
-        ≈⟨ ⟦substDiag⟧ (++-identityʳ a) (substDiagᵒ (++-identityʳ b) (boxLayer g)) ⟩
-      ⟦ substDiagᵒ (++-identityʳ b) (boxLayer g) ⟧ ∘ castW (sym (++-identityʳ a))
-        ≈⟨ ⟦substDiagᵒ⟧ (++-identityʳ b) (boxLayer g) ⟩∘⟨refl ⟩
-      (castW (++-identityʳ b) ∘ ⟦ boxLayer g ⟧) ∘ castW (sym (++-identityʳ a))
-        ≈⟨ (refl⟩∘⟨ idˡ) ⟩∘⟨refl ⟩
-      (castW (++-identityʳ b) ∘ merge b ∘ rest) ∘ castW (sym (++-identityʳ a))
-        ≈⟨ (⟺ assoc) ⟩∘⟨refl ⟩
-      ((castW (++-identityʳ b) ∘ merge b) ∘ rest) ∘ castW (sym (++-identityʳ a))
-        ≈⟨ assoc ⟩
-      (castW (++-identityʳ b) ∘ merge b) ∘ (rest ∘ castW (sym (++-identityʳ a)))
-        ≈⟨ (merge-ρ b) ⟩∘⟨ assoc ⟩
-      ρ⇒ ∘ ((⟦ g ⟧ᵇ ⊗₁ id) ∘ (split a ∘ castW (sym (++-identityʳ a))))
-        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (split-ρ a)) ⟩
-      ρ⇒ ∘ ((⟦ g ⟧ᵇ ⊗₁ id) ∘ ρ⇐)
-        ≈⟨ pullˡ ρ⇒∘f⊗id≈f∘ρ⇒ ⟩
-      (⟦ g ⟧ᵇ ∘ ρ⇒) ∘ ρ⇐
-        ≈⟨ cancelʳ ρ⇒∘ρ⇐≈id ⟩
-      ⟦ g ⟧ᵇ ∎
+    -- Prefix-shift: cast-free target `idʷ lt ⊗ʷ ⟦ d ⟧ˢ`; the two `substDiag`
+    -- transports and `pad-nest` reconcile the `++`-associativity, then
+    -- `id⊗-∘ˢ` distributes the idle prefix over the layer composite.
+    shiftL-soundˢ : ∀ {n m} (lt : List X) (d : Diag n m)
+                  → ⟦ shiftL lt d ⟧ˢ ≈ʷ idʷ {n = lt} ⊗ʷ ⟦ d ⟧ˢ
+    shiftL-soundˢ lt ([]_ _) = symʷ id⊗id
+    shiftL-soundˢ lt (_▸_∷_⟨_⟩ {a} {b} pre suf f d) = beginˢ
+      ⟦ substDiag E1 LAYER ⟧ˢ
+        ≈ˢ⟨ ≡→≈ʷ (⟦substDiag⟧ˢ E1 LAYER) ⟩
+      castʷᵈ E1 (⟦ substDiag E2 (shiftL lt d) ⟧ˢ ∘ʷ PL)
+        ≈ˢ⟨ castʷᵈ-resp E1 (∘-resp-≈ leftEq (pad-nest lt pre suf g)) ⟩
+      castʷᵈ E1 (castʷᵈ E2 (Id ⊗ʷ D) ∘ʷ castʷᵈ (sym E1) (castʷ E2 (Id ⊗ʷ PP)))
+        ≈ˢ⟨ ≡→≈ʷ (cong (castʷᵈ E1) (∘ʷ-castʷᵈ-r (sym E1) (castʷᵈ E2 (Id ⊗ʷ D)) (castʷ E2 (Id ⊗ʷ PP)))) ⟩
+      castʷᵈ E1 (castʷᵈ (sym E1) (castʷᵈ E2 (Id ⊗ʷ D) ∘ʷ castʷ E2 (Id ⊗ʷ PP)))
+        ≈ˢ⟨ ≡→≈ʷ (castʷᵈ-symʳ E1 (castʷᵈ E2 (Id ⊗ʷ D) ∘ʷ castʷ E2 (Id ⊗ʷ PP))) ⟩
+      castʷᵈ E2 (Id ⊗ʷ D) ∘ʷ castʷ E2 (Id ⊗ʷ PP)
+        ≈ˢ⟨ ≡→≈ʷ (∘ʷ-castʷᵈ-l E2 (Id ⊗ʷ D) (castʷ E2 (Id ⊗ʷ PP))) ⟩
+      (Id ⊗ʷ D) ∘ʷ castʷ (sym E2) (castʷ E2 (Id ⊗ʷ PP))
+        ≈ˢ⟨ ≡→≈ʷ (cong ((Id ⊗ʷ D) ∘ʷ_) (castʷ-symˡ E2 (Id ⊗ʷ PP))) ⟩
+      (Id ⊗ʷ D) ∘ʷ (Id ⊗ʷ PP)
+        ≈ˢ⟨ id⊗-∘ˢ lt D PP ⟨
+      idʷ {n = lt} ⊗ʷ (D ∘ʷ PP) ∎ˢ
       where
-        rest : HomTerm (wires (a ++ [])) (wires b ⊗₀ wires [])
-        rest = (⟦ g ⟧ᵇ ⊗₁ id) ∘ split a
-
-    --------------------------------------------------------------------------------
-    -- Soundness of the offset shifts `shiftL` / `shiftR`.
-    --------------------------------------------------------------------------------
-
-    liftW-pad : ∀ {a b} (lt pre suf : List X) (g : HomTerm (wires a) (wires b))
-              → liftW lt (pad pre suf g)
-                ≈Term (castW (++-assoc lt pre (b ++ suf)) ∘ pad (lt ++ pre) suf g)
-                        ∘ castW (sym (++-assoc lt pre (a ++ suf)))
-    liftW-pad lt pre suf g = conj-toSandwich (liftW-fuse lt pre (rpad suf g)) ○ ⟺ assoc
-
-    -- The output index is now `lt ++ m` structurally, so the statement is
-    -- cast-free; the two `substDiag` wrappers are peeled by `⟦substDiag⟧`.
-    shiftL-sound : ∀ {n m} (lt : List X) (d : Diag n m) → ⟦ shiftL lt d ⟧ ≈Term liftW lt ⟦ d ⟧
-    shiftL-sound lt ([]_ _) = ⟺ (liftW-id lt)
-    shiftL-sound lt (_▸_∷_⟨_⟩ {a} {b} pre suf f d) = begin
-      ⟦ substDiag E1 LAYER ⟧
-        ≈⟨ ⟦substDiag⟧ E1 LAYER ⟩
-      (⟦ subst2 ⟧ ∘ pf) ∘ castW (sym E1)
-        ≈⟨ (subst2≈ ⟩∘⟨refl) ⟩∘⟨refl ⟩
-      ((liftW lt ⟦ d ⟧ ∘ castW Eb) ∘ pf) ∘ castW (sym E1)
-        ≈⟨ (assoc ⟩∘⟨refl) ○ assoc ⟩
-      liftW lt ⟦ d ⟧ ∘ ((castW Eb ∘ pf) ∘ castW (sym E1))
-        ≈⟨ refl⟩∘⟨ ⟺ (liftW-pad lt pre suf g) ⟩
-      liftW lt ⟦ d ⟧ ∘ liftW lt (pad pre suf g)
-        ≈⟨ ⟺ (liftW-∘ lt ⟦ d ⟧ (pad pre suf g)) ⟩
-      liftW lt (⟦ d ⟧ ∘ pad pre suf g) ∎
-      where
-        g  = ⟦ f ⟧ᵇ
-        Eb = ++-assoc lt pre (b ++ suf)
+        g  = boxʷ f
         E1 = ++-assoc lt pre (a ++ suf)
-        E2 = sym Eb
-        d' = shiftL lt d
-        subst2 = substDiag E2 d'
-        pf = pad (lt ++ pre) suf g
-        LAYER = (lt ++ pre) ▸ suf ∷ f ⟨ subst2 ⟩
-        -- the inner shift folds through its `substDiag` to `liftW lt ⟦d⟧`.
-        subst2≈ : ⟦ subst2 ⟧ ≈Term liftW lt ⟦ d ⟧ ∘ castW Eb
-        subst2≈ = ⟦substDiag⟧ E2 d' ○ (shiftL-sound lt d ⟩∘⟨ castW-irr (sym E2) Eb)
+        E2 = sym (++-assoc lt pre (b ++ suf))
+        Id = idʷ {n = lt}
+        D  = ⟦ d ⟧ˢ
+        PP = padʷ pre suf g
+        PL = padʷ (lt ++ pre) suf g
+        LAYER = (lt ++ pre) ▸ suf ∷ f ⟨ substDiag E2 (shiftL lt d) ⟩
+        -- the inner shift folds through its `substDiag` to `castʷᵈ E2 (Id ⊗ʷ D)`.
+        leftEq : ⟦ substDiag E2 (shiftL lt d) ⟧ˢ ≈ʷ castʷᵈ E2 (Id ⊗ʷ D)
+        leftEq = transʷ (≡→≈ʷ (⟦substDiag⟧ˢ E2 (shiftL lt d)))
+                        (castʷᵈ-resp E2 (shiftL-soundˢ lt d))
 
-    -- rpad / pad relation (suffix analogue of `liftW-pad`): a conjugation chain
-    -- over the bi-action laws, all at `R = rpad suf g`.  `rpad-liftW rt pre R`
-    -- slides the outer `rpad rt` past the `pad pre suf g = liftW pre R` prefix;
-    -- `liftW-conj pre (rpad-rpad suf rt g)` fuses the two suffix pads underneath;
-    -- `conj-irr` bridges the composite cast indices to the `reassoc++` forms.
-    rpad-pad : ∀ {a b} (pre suf rt : List X) (g : HomTerm (wires a) (wires b))
-               → rpad rt (pad pre suf g)
-                 ≈Term (castW (sym (reassoc++ pre b suf rt)) ∘ pad pre (suf ++ rt) g)
-                         ∘ castW (reassoc++ pre a suf rt)
-    rpad-pad pre suf rt g =
-      conj-toSandwich
-        (conj-irr (conj-trans (rpad-liftW rt pre R) (liftW-conj pre (rpad-rpad suf rt g))))
-        ○ ⟺ assoc
-      where R = rpad suf g
-
-    shiftR-sound : ∀ {n m} (rt : List X) (d : Diag n m) → ⟦ shiftR rt d ⟧ ≈Term rpad rt ⟦ d ⟧
-    shiftR-sound rt ([]_ _) = ⟺ (rpad-id rt)
-    shiftR-sound rt (_▸_∷_⟨_⟩ {a} {b} pre suf f d) = begin
-      ⟦ substDiag (sym E1) LAYER ⟧
-        ≈⟨ ⟦substDiag⟧ (sym E1) LAYER ⟩
-      (⟦ subst2 ⟧ ∘ padR) ∘ castW (sym (sym E1))
-        ≈⟨ refl⟩∘⟨ castW-irr (sym (sym E1)) E1 ⟩
-      (⟦ subst2 ⟧ ∘ padR) ∘ castW E1
-        ≈⟨ (subst2≈ ⟩∘⟨refl) ⟩∘⟨refl ⟩
-      ((rpad rt ⟦ d ⟧ ∘ castW (sym E2)) ∘ padR) ∘ castW E1
-        ≈⟨ (assoc ⟩∘⟨refl) ○ assoc ⟩
-      rpad rt ⟦ d ⟧ ∘ ((castW (sym E2) ∘ padR) ∘ castW E1)
-        ≈⟨ refl⟩∘⟨ ⟺ (rpad-pad pre suf rt g) ⟩
-      rpad rt ⟦ d ⟧ ∘ rpad rt (pad pre suf g)
-        ≈⟨ ⟺ (rpad-∘ rt ⟦ d ⟧ (pad pre suf g)) ⟩
-      rpad rt (⟦ d ⟧ ∘ pad pre suf g) ∎
+    -- Suffix-shift: dual of the above, using `pad-nestR` and `⊗id-∘ˢ`.
+    shiftR-soundˢ : ∀ {n m} (rt : List X) (d : Diag n m)
+                  → ⟦ shiftR rt d ⟧ˢ ≈ʷ ⟦ d ⟧ˢ ⊗ʷ idʷ {n = rt}
+    shiftR-soundˢ rt ([]_ _) = symʷ id⊗id
+    shiftR-soundˢ rt (_▸_∷_⟨_⟩ {a} {b} pre suf f d) = beginˢ
+      ⟦ substDiag (sym E1) LAYER ⟧ˢ
+        ≈ˢ⟨ ≡→≈ʷ (⟦substDiag⟧ˢ (sym E1) LAYER) ⟩
+      castʷᵈ (sym E1) (⟦ substDiag E2 (shiftR rt d) ⟧ˢ ∘ʷ padʷ pre (suf ++ rt) g)
+        ≈ˢ⟨ castʷᵈ-resp (sym E1) (∘-resp-≈ leftEq (pad-nestR pre suf rt g E1 E2)) ⟩
+      castʷᵈ (sym E1) (castʷᵈ E2 A ∘ʷ castʷᵈ E1 (castʷ E2 B))
+        ≈ˢ⟨ ≡→≈ʷ (cong (castʷᵈ (sym E1)) (∘ʷ-castʷᵈ-r E1 (castʷᵈ E2 A) (castʷ E2 B))) ⟩
+      castʷᵈ (sym E1) (castʷᵈ E1 (castʷᵈ E2 A ∘ʷ castʷ E2 B))
+        ≈ˢ⟨ ≡→≈ʷ (castʷᵈ-symˡ E1 (castʷᵈ E2 A ∘ʷ castʷ E2 B)) ⟩
+      castʷᵈ E2 A ∘ʷ castʷ E2 B
+        ≈ˢ⟨ ≡→≈ʷ (∘ʷ-castʷᵈ-l E2 A (castʷ E2 B)) ⟩
+      A ∘ʷ castʷ (sym E2) (castʷ E2 B)
+        ≈ˢ⟨ ≡→≈ʷ (cong (A ∘ʷ_) (castʷ-symˡ E2 B)) ⟩
+      A ∘ʷ B
+        ≈ˢ⟨ ⊗id-∘ˢ rt D PP ⟨
+      (D ∘ʷ PP) ⊗ʷ idʷ {n = rt} ∎ˢ
       where
-        g  = ⟦ f ⟧ᵇ
+        g  = boxʷ f
         E1 = reassoc++ pre a suf rt
         E2 = reassoc++ pre b suf rt
-        d' = shiftR rt d
-        subst2 = substDiag E2 d'
-        padR = pad pre (suf ++ rt) g
-        LAYER = pre ▸ (suf ++ rt) ∷ f ⟨ subst2 ⟩
-        -- the inner shift folds through its `substDiag` to `rpad rt ⟦d⟧`.
-        subst2≈ : ⟦ subst2 ⟧ ≈Term rpad rt ⟦ d ⟧ ∘ castW (sym E2)
-        subst2≈ = ⟦substDiag⟧ E2 d' ○ (shiftR-sound rt d ⟩∘⟨refl)
+        D  = ⟦ d ⟧ˢ
+        PP = padʷ pre suf g
+        A  = D ⊗ʷ idʷ {n = rt}
+        B  = PP ⊗ʷ idʷ {n = rt}
+        LAYER = pre ▸ (suf ++ rt) ∷ f ⟨ substDiag E2 (shiftR rt d) ⟩
+        leftEq : ⟦ substDiag E2 (shiftR rt d) ⟧ˢ ≈ʷ castʷᵈ E2 A
+        leftEq = transʷ (≡→≈ʷ (⟦substDiag⟧ˢ E2 (shiftR rt d)))
+                        (castʷᵈ-resp E2 (shiftR-soundˢ rt d))
 
-    ⊗ᵈ-sound : ∀ {nl ml nr mr} (dl : Diag nl ml) (dr : Diag nr mr)
-             → ⟦ dl ⊗ᵈ dr ⟧ ≈Term merge ml ∘ (⟦ dl ⟧ ⊗₁ ⟦ dr ⟧) ∘ split nl
-    ⊗ᵈ-sound {nl} {ml} {nr} {mr} dl dr = begin
-      ⟦ shiftR nr dl ∘ᵈ shiftL ml dr ⟧
-        ≈⟨ ∘ᵈ-sound (shiftR nr dl) (shiftL ml dr) ⟩
-      ⟦ shiftL ml dr ⟧ ∘ ⟦ shiftR nr dl ⟧
-        ≈⟨ shiftL-sound ml dr ⟩∘⟨ shiftR-sound nr dl ⟩
-      liftW ml ⟦ dr ⟧ ∘ rpad nr ⟦ dl ⟧
-        ≈⟨ liftW-merge ml ⟦ dr ⟧ ⟩∘⟨refl ⟩
-      (merge ml ∘ (id ⊗₁ ⟦ dr ⟧) ∘ split ml)
-        ∘ (merge ml ∘ (⟦ dl ⟧ ⊗₁ id) ∘ split nl)
-        ≈⟨ collapse ⟩
-      merge ml ∘ (⟦ dl ⟧ ⊗₁ ⟦ dr ⟧) ∘ split nl ∎
-      where
-        -- the central bifunctoriality collapse.
-        collapse : (merge ml ∘ (id ⊗₁ ⟦ dr ⟧) ∘ split ml) ∘ (merge ml ∘ (⟦ dl ⟧ ⊗₁ id) ∘ split nl)
-                   ≈Term merge ml ∘ (⟦ dl ⟧ ⊗₁ ⟦ dr ⟧) ∘ split nl
-        collapse = begin
-          (merge ml ∘ (id ⊗₁ ⟦ dr ⟧) ∘ split ml) ∘ (merge ml ∘ (⟦ dl ⟧ ⊗₁ id) ∘ split nl)
-            ≈⟨ center (cancelʳ (split∘merge ml)) ⟩
-          merge ml ∘ ((id ⊗₁ ⟦ dr ⟧) ∘ ((⟦ dl ⟧ ⊗₁ id) ∘ split nl))
-            ≈⟨ refl⟩∘⟨ pullˡ (⟺ serialize₂₁) ⟩
-          merge ml ∘ (⟦ dl ⟧ ⊗₁ ⟦ dr ⟧) ∘ split nl ∎
+    -- Cast-free binary tensor soundness: `⊗ᵈ` fires the shifts and slides the
+    -- two disjoint blocks together (`slide-past'`).
+    ⊗ᵈ-soundˢ : ∀ {nl ml nr mr} (dl : Diag nl ml) (dr : Diag nr mr)
+              → ⟦ dl ⊗ᵈ dr ⟧ˢ ≈ʷ ⟦ dl ⟧ˢ ⊗ʷ ⟦ dr ⟧ˢ
+    ⊗ᵈ-soundˢ {nl} {ml} {nr} {mr} dl dr =
+      transʷ (∘ᵈ-soundˢ (shiftR nr dl) (shiftL ml dr))
+        (transʷ (∘-resp-≈ (shiftL-soundˢ ml dr) (shiftR-soundˢ nr dl))
+          (slide-past' ⟦ dl ⟧ˢ ⟦ dr ⟧ˢ))
+
+    -- The single box: the `boxD` unit transports cancel against the right-unit
+    -- axiom, so the strict statement is cast-free.
+    boxSoundˢ : ∀ {a b} (g : Mor a b) → ⟦ boxD g ⟧ˢ ≈ʷ boxʷ g
+    boxSoundˢ {a} {b} g = beginˢ
+      ⟦ boxD g ⟧ˢ
+        ≈ˢ⟨ ≡→≈ʷ (⟦substDiag⟧ˢ (++-identityʳ a) (substDiagᵒ (++-identityʳ b) (boxLayer g))) ⟩
+      castʷᵈ (++-identityʳ a) ⟦ substDiagᵒ (++-identityʳ b) (boxLayer g) ⟧ˢ
+        ≈ˢ⟨ castʷᵈ-resp (++-identityʳ a) (≡→≈ʷ (⟦substDiagᵒ⟧ˢ (++-identityʳ b) (boxLayer g))) ⟩
+      castʷᵈ (++-identityʳ a) (castʷ (++-identityʳ b) ⟦ boxLayer g ⟧ˢ)
+        ≈ˢ⟨ castʷᵈ-resp (++-identityʳ a)
+             (castʷ-resp (++-identityʳ b) (transʷ idˡ (unitˡ (boxʷ g ⊗ʷ idʷ {n = []})))) ⟩
+      castʷᵈ (++-identityʳ a) (castʷ (++-identityʳ b) (boxʷ g ⊗ʷ idʷ {n = []}))
+        ≈ˢ⟨ unitʳ (boxʷ g) ⟩
+      boxʷ g ∎ˢ
 
 stdEngine : (v : Variant) {X : Set} (Mor : List X → List X → Set) → WireEngine v
 stdEngine v {X} Mor = record { Mor = Mor ; ⟦_⟧ᵇ = var ∘′ box }
