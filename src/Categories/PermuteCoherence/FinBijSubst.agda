@@ -112,35 +112,14 @@ eval-subst-cod : {xs : List A} {C D : List A} (eq : C ≡ D) (p : xs ↭ C)
     ≡ subst (λ n → FinBij (length xs) n) (cong length eq) (eval-↭ p)
 eval-subst-cod refl p = refl
 
--- ≈-fb is preserved by subst₂ on FinBij along the SAME length equalities.
-subst₂-FinBij-≈ : ∀ {n m n' m'} (a : n ≡ n') (b : m ≡ m') {π ρ : FinBij n m}
-  → π ≈-fb ρ → subst₂ FinBij a b π ≈-fb subst₂ FinBij a b ρ
-subst₂-FinBij-≈ refl refl eq = eq
-
--- `map⁺` of a reflexive permutation is the reflexive permutation of the
--- mapped equality.
-map⁺-↭-reflexive : (h : A → C) {xs ys : List A} (eq : xs ≡ ys)
-  → PermProp.map⁺ h (Perm.↭-reflexive eq) ≡ Perm.↭-reflexive (cong (map h) eq)
-map⁺-↭-reflexive h refl = refl
-
 -- `≈-fb` from propositional equality of bijections.
 ≈-fb-of-≡ : ∀ {n m} {π ρ : FinBij n m} → π ≡ ρ → π ≈-fb ρ
 ≈-fb-of-≡ refl _ = refl
 
--- Pointwise congruence and associativity for `_∘-fb_`.
+-- Pointwise congruence for `_∘-fb_`.
 ∘-fb-cong : ∀ {n m k} {g g′ : FinBij m k} {f f′ : FinBij n m}
   → g ≈-fb g′ → f ≈-fb f′ → (g ∘-fb f) ≈-fb (g′ ∘-fb f′)
 ∘-fb-cong {g = g} {g′} {f} {f′} g≈ f≈ i rewrite f≈ i = g≈ (f′ P.⟨$⟩ʳ i)
-
-∘-fb-assoc : ∀ {n m k l} (h : FinBij k l) (g : FinBij m k) (f : FinBij n m)
-  → (h ∘-fb g) ∘-fb f ≈-fb h ∘-fb (g ∘-fb f)
-∘-fb-assoc h g f i = refl
-
-------------------------------------------------------------------------
--- Transport `≈-fb` along propositional equalities of both arguments.
-≈-fb-resp-≡ : ∀ {n m} {π π' ρ ρ' : FinBij n m}
-  → π ≡ π' → ρ ≡ ρ' → π ≈-fb ρ → π' ≈-fb ρ'
-≈-fb-resp-≡ refl refl eq = eq
 
 ------------------------------------------------------------------------
 -- `subst Fin` cast algebra for the cross-iso (φ-equivariance) rigidity.

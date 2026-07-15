@@ -66,13 +66,8 @@ yang-baxter (suc (suc 0F))       = refl
 yang-baxter (suc (suc (suc i)))  = refl
 
 ------------------------------------------------------------------------
--- Soundness of `eval-↭` on the `_↭_` constructors.
-
-eval-↭-comp : ∀ {xs ys zs : List A} (p : xs ↭ ys) (q : ys ↭ zs) →
-              eval-↭ (Perm.trans p q) ≈-fb eval-↭ q ∘-fb eval-↭ p
-eval-↭-comp _ _ _ = refl
-
 -- Soundness of `eval-↭` with respect to `↭-sym`.
+
 eval-↭-sym : ∀ {xs ys : List A} (p : xs ↭ ys) →
              eval-↭ (Perm.↭-sym p) ≈-fb inv-fb (eval-↭ p)
 eval-↭-sym Perm.refl _       = refl
@@ -90,13 +85,3 @@ eval-↭-sym (Perm.trans p q) i =
   trans
     (cong (eval-↭ (Perm.↭-sym p) P.⟨$⟩ʳ_) (eval-↭-sym q i))
     (eval-↭-sym p (inv-fb (eval-↭ q) P.⟨$⟩ʳ i))
-
--- `Perm.trans` does not identify `trans refl p` with `p`, so these
--- normalisations are stated explicitly.
-eval-↭-trans-refl-l : ∀ {xs ys : List A} (p : xs ↭ ys) →
-                      eval-↭ (Perm.trans Perm.refl p) ≈-fb eval-↭ p
-eval-↭-trans-refl-l _ _ = refl
-
-eval-↭-trans-refl-r : ∀ {xs ys : List A} (p : xs ↭ ys) →
-                      eval-↭ (Perm.trans p Perm.refl) ≈-fb eval-↭ p
-eval-↭-trans-refl-r _ _ = refl

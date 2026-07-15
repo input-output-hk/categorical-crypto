@@ -15,9 +15,6 @@ open import Data.List.Base using (List; []; _∷_; length)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 
-open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl)
-
 open import Categories.PermuteCoherence.FinBij
 
 open import Level using (Level)
@@ -35,17 +32,3 @@ eval-↭ Perm.refl         = id-fb
 eval-↭ (Perm.prep _ p)   = cons-fb (eval-↭ p)
 eval-↭ (Perm.swap _ _ p) = swap-fb _ ∘-fb cons-fb (cons-fb (eval-↭ p))
 eval-↭ (Perm.trans p q)  = eval-↭ q ∘-fb eval-↭ p
-
-------------------------------------------------------------------------
--- Utility lemmas
-
-eval-↭-refl : {xs : List A} → eval-↭ (Perm.refl {xs = xs}) ≡ id-fb {n = length xs}
-eval-↭-refl = refl
-
-eval-↭-prep : ∀ {xs ys : List A} (x : A) (p : xs ↭ ys) →
-              eval-↭ (Perm.prep x p) ≡ cons-fb (eval-↭ p)
-eval-↭-prep _ _ = refl
-
-eval-↭-trans : ∀ {xs ys zs : List A} (p : xs ↭ ys) (q : ys ↭ zs) →
-               eval-↭ (Perm.trans p q) ≡ eval-↭ q ∘-fb eval-↭ p
-eval-↭-trans _ _ = refl

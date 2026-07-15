@@ -72,18 +72,6 @@ cons-fb-cong : {f f′ : FinBij n m} →
 cons-fb-cong eq 0F       = refl
 cons-fb-cong eq (fsuc i) = cong fsuc (eq i)
 
--- Associativity of `_∘-fb_` (definitional).
-∘-fb-assoc : ∀ {p} (h : FinBij m k) (g : FinBij n m) (f : FinBij p n) →
-             ((h ∘-fb g) ∘-fb f) ≈-fb (h ∘-fb (g ∘-fb f))
-∘-fb-assoc h g f _ = refl
-
--- Left/right unit.
-∘-fb-idˡ : (f : FinBij n m) → (id-fb ∘-fb f) ≈-fb f
-∘-fb-idˡ f _ = refl
-
-∘-fb-idʳ : (f : FinBij n m) → (f ∘-fb id-fb) ≈-fb f
-∘-fb-idʳ f _ = refl
-
 genFB-cong : {n : ℕ} {i j : Fin n} → i ≡ j → genFB i ≈-fb genFB j
 genFB-cong refl _ = refl
 
