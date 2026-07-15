@@ -34,7 +34,6 @@ module Categories.APROP.Hypergraph.Solver.FinSignature
   (arity : Fin n → ObjTerm × ObjTerm)
   where
 
-open import Level using (Level)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)

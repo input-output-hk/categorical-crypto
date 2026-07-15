@@ -35,11 +35,10 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig-dec using (findIso)
 open import Categories.APROP.Hypergraph.Solver.Match.FindIsoTab sig-dec using (findIsoᵀ)
-open import Categories.APROP.Hypergraph.Solver.Split sig-dec using (solveSplitR?; reassoc; reassocBal)
+open import Categories.APROP.Hypergraph.Solver.Split sig-dec using (solveSplitR?; reassocBal)
 open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig-dec using (focusAtₙ; Foc)
 open import Categories.APROP.Hypergraph.Solver.Rewrite.Deep sig-dec using (deepFocₙ)
 open import Categories.APROP.Hypergraph.Soundness sig-dec using (soundness)

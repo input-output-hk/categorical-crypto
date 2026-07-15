@@ -34,12 +34,12 @@ open import Categories.APROP.Hypergraph.Solver.Match.PBij using (PBij; extend-bi
 open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec using (flat-match-subst)
 
 open import Data.Fin using (Fin; zero; suc)
-open import Data.List.Base using (List; []; _∷_; map; length)
+open import Data.List.Base using (List; []; _∷_; map)
 open import Data.List.Properties using (≡-dec)
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Nat using (ℕ)
 open import Data.Product using (_×_; _,_)
-open import Relation.Binary.PropositionalEquality using (sym; subst₂)
+open import Relation.Binary.PropositionalEquality using (sym)
 open import Relation.Nullary using (yes; no)
 
 --------------------------------------------------------------------------------

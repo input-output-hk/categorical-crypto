@@ -37,7 +37,7 @@ open import Data.Bool.Base using (Bool; true; false)
 open import Data.List.Base using (List; []; _∷_; _++_; map)
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Product using (Σ; _×_; _,_)
-open import Relation.Nullary using (yes; no)
+open import Relation.Nullary using (yes)
 open import Relation.Binary.PropositionalEquality using (refl)
 
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)

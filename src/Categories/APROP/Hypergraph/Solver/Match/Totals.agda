@@ -14,7 +14,7 @@ open import Data.List.Properties using (map-∘; map-cong)
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Nat using (ℕ)
 open import Data.Product using (Σ; _,_; _×_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; trans; sym)
+open import Relation.Binary.PropositionalEquality using (_≡_; cong; trans; sym)
 
 -- Σ-packaged total function with pointwise evidence.
 Total : ∀ {n m} → (Fin n → Maybe (Fin m)) → Set

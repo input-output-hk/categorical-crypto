@@ -38,14 +38,12 @@ open import Data.List.Base
 open import Data.List.Properties
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Nat using (ℕ)
-open import Data.Product using (Σ; _,_; proj₁; proj₂)
+open import Data.Product using (_,_)
 open import Function
 open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality as Eq
 
 open import Relation.Nullary
-import Relation.Nullary
-open import Data.Product using (_×_)
 
 --------------------------------------------------------------------------------
 -- Convert a `Dec` to `Maybe`, discarding the negative evidence.

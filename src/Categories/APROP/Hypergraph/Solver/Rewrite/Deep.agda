@@ -38,7 +38,7 @@ open import Data.List.Base using (List; []; _∷_; _++_; map; concatMap; length;
 open import Data.List.Properties using (≡-dec)
 open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
 import Data.Maybe.Base as Maybe
-open import Data.Nat using (ℕ; zero; suc)
+open import Data.Nat using (ℕ; suc)
 open import Data.Product using (Σ; _×_; _,_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst; subst₂)
 open import Relation.Nullary using (yes; no)
@@ -70,7 +70,7 @@ private
 module At (P Q : ObjTerm) where
 
   module Ext = Categories.APROP.Hypergraph.Solver.Rewrite.ExtendSig sig-dec P Q
-  open Ext using (old; hole!; sig⁺; sig⁺-dec; relabel; retract)
+  open Ext using (hole!; sig⁺; sig⁺-dec; relabel; retract)
 
   module F⁺ = Categories.APROP.Hypergraph.Model.FromAPROP sig⁺
   module DL⁺ = Categories.APROP.Hypergraph.Solver.Rewrite.DecodeLean sig⁺

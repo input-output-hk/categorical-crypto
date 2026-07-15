@@ -15,7 +15,6 @@ open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Nat using (ℕ)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Relation.Nullary using (yes; no)
 
 --------------------------------------------------------------------------------
