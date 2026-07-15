@@ -6,8 +6,8 @@
 -- `o₁ ↝ o₂` is `swap-step ps qs (inc : Incomp (Dep H) e e')` swapping an
 -- adjacent `Dep`-incomparable pair after a prefix `ps`.
 --
--- The final live-wire multiset is order-independent for such a swap;
--- `Valid` then transports by `↭-trans (↭-sym finalStack-↭) (Valid o₁)`.
+-- The final live-wire multiset is order-independent for such a swap, so
+-- `Valid o₁` transports to `Valid o₂` by `Perm.↭`-transitivity.
 --
 -- Decomposition:
 --
@@ -98,9 +98,6 @@ module PerHG (H : Hypergraph FlatGen)
 
   pe-stack : PH.Order → List (Fin H.nV) → List (Fin H.nV)
   pe-stack o s = proj₁ (process-edges H o s)
-
-  finalStack : PH.Order → List (Fin H.nV)
-  finalStack o = pe-stack o H.dom
 
   -- The final stack of `ps ++ rest` from `s` is that of `rest` from the
   -- post-`ps` stack.

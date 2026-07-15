@@ -397,8 +397,6 @@ module _
     (trans (cong (Nat._+ ζ) (Nat.+-comm ε δ))
            (sym (count-cons v)))))))
     where
-      α = count v (map injL G.dom)
-      β = count v (map injL G-eb)
       γ = count v (map remapP K-eb)
       δ = count v (map remapP K.cod)
       ε = count v (map injL G-ein-b)
