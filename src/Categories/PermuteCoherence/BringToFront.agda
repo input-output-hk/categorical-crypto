@@ -12,9 +12,8 @@
 ------------------------------------------------------------------------
 module Categories.PermuteCoherence.BringToFront where
 
-open import Data.Nat.Base using (ℕ; zero; suc; _<_; _≤_; s≤s)
-open import Data.Nat.Properties
-  using (1+n≢n; ≤-refl)
+open import Data.Nat.Base using (ℕ; zero; suc; _≤_; s≤s)
+open import Data.Nat.Properties using (≤-refl)
 open import Data.Fin.Base using (Fin)
 open import Data.Fin.Properties using (_≟_)
 open import Data.List.Base using ([]; _∷_; length)
@@ -23,18 +22,12 @@ open import Data.Empty using (⊥-elim)
 open import Relation.Nullary using (yes; no)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; _≢_; refl; trans)
-import Data.Fin.Permutation as P
 
-open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _≈-fb_; _∘-fb_; id-fb; inv-fb)
 open import Categories.PermuteCoherence.Word
-  using (Word; evalW; genFB; _~ʷ_; ~refl; ~sym; ~trans; ∷c; c1; c2; c3; Far; far0ˡ; far0ʳ; farS; Adj; adj0; adjS; ∷-cong; genFB-involutive; ~ʷ⇒≈)
-open import Categories.PermuteCoherence.Inversions using (inv)
+  using (Word; evalW; _~ʷ_; ~refl; ∷c)
 open import Categories.PermuteCoherence.InversionsCong using (inv-id)
 open import Categories.PermuteCoherence.ExchangeBase
-  using (Reduced; descent; inv-di)
-open import Categories.PermuteCoherence.InversionsDichotomy
-  using (inj; suc-pos; toℕ-inj; toℕ-suc-pos; swapℕ; swapℕ-k; swapℕ-sk; genFB-toℕ; invS-dichotomy)
+  using (Reduced; descent)
 open import Categories.PermuteCoherence.BringToFrontBase
 open import Categories.PermuteCoherence.BringToFrontCases
 
