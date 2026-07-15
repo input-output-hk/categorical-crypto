@@ -34,14 +34,14 @@
 ------------------------------------------------------------------------
 
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; cong; cong₂; subst; subst₂)
+  using (_≡_; refl; sym; subst; subst₂)
 open import Relation.Nullary using (¬_)
-open import Data.Product using (_×_; _,_; proj₁; proj₂)
+open import Data.Product using (_×_; _,_; proj₁)
 open import Data.List.Properties using (++-assoc)
 open import Data.Nat.Properties using (≤-refl)
 open import Data.List.Relation.Binary.Permutation.Propositional.Properties
   using (∈-resp-↭)
-open import Data.Nat using (ℕ; zero; suc; _<_; s≤s; z≤n)
+open import Data.Nat using (_<_)
 open import Data.Nat.Induction using (<-wellFounded)
 open import Induction.WellFounded using (Acc; acc)
 open import Level using (Level; _⊔_)

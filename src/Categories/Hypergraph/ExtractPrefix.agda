@@ -18,10 +18,10 @@ module Categories.Hypergraph.ExtractPrefix where
 open import Data.Fin using (Fin; _≟_)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Product using (Σ; Σ-syntax; _,_)
+open import Data.Product using (Σ-syntax; _,_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; subst)
+  using (refl; subst)
 open import Relation.Nullary.Decidable using (yes; no)
 
 extract-elem

@@ -21,14 +21,14 @@
 
 module Categories.Hypergraph.ExtractPrefixEvalPhi where
 
-open import Data.Nat using (ℕ; suc)
+open import Data.Nat using (ℕ)
 open import Data.Nat.Properties using () renaming (_≟_ to _≟ℕ_)
 open import Data.Fin using (Fin; _≟_)
 open import Data.List using (List; []; _∷_; _++_; map; length)
 open import Data.List.Properties using (map-++; length-map; ≡-dec)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Maybe.Properties using (just-injective)
-open import Data.Product using (Σ; _,_; proj₁; proj₂)
+open import Data.Product using (_,_)
 open import Data.Product.Properties using (,-injectiveʳ-UIP)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
@@ -36,13 +36,13 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
 open import Data.Empty using (⊥-elim)
 open import Relation.Nullary using (yes; no)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
+  using (_≡_; refl; sym; trans; cong; subst; subst₂)
 open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 
 open import Categories.Hypergraph.ExtractPrefix using (extract-elem; extract-prefix)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _≈-fb_; id-fb; cons-fb; swap-fb; _∘-fb_; ≈-fb-refl)
+  using (FinBij; _≈-fb_; ≈-fb-refl)
 
 -- UIP on ℕ (Hedberg).
 ℕ-uip : ∀ {a b : ℕ} (p q : a ≡ b) → p ≡ q
