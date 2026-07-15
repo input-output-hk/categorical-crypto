@@ -61,10 +61,10 @@ open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
-open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.List using (List; _++_; map)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as UniqueProp
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.Product using (proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst; subst₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm

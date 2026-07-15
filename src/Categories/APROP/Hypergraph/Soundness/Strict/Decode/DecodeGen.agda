@@ -58,12 +58,12 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
 open import Data.Fin using (Fin) renaming (_≟_ to _≟F_)
-open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.List using (List; []; _++_; map)
 open import Data.List.Properties using (++-identityʳ; map-++)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just)
 open import Data.Nat using (ℕ)
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.Product using (_,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst; subst₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm

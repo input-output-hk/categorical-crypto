@@ -32,7 +32,7 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; hId)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)

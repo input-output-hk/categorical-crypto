@@ -52,7 +52,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _�
 open import Data.Fin using (Fin; _↑ˡ_)
 open import Data.List using (List; _++_; map)
 open import Data.List.Properties using (map-++)
-open import Data.Product using (_,_; proj₁; proj₂)
+open import Data.Product using (proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym)
 
@@ -99,7 +99,7 @@ module _
       K = ⟪ g ⟫
       module Gd = Hypergraph G
       module Kd = Hypergraph K
-      open hTensor-impl G K using (injL; injR)
+      open hTensor-impl G K using (injL)
       open StrictDecoder (hTensor G K)
 
       gblk = map (_↑ˡ Kd.nE) (range Gd.nE)

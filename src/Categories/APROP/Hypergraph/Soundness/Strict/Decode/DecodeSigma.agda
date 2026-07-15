@@ -249,7 +249,6 @@ module _
       cod≡ = refl
 
       -- per-block vertex-label evaluations (re-derived as in FromAPROP).
-      open import Data.Fin using (splitAt)
       open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
       open import Data.Sum using ([_,_]′)
 
