@@ -28,7 +28,7 @@ open import Data.Fin using (Fin)
 open import Data.Fin.Patterns
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Relation.Binary.Definitions using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality using (refl)
 open import Relation.Nullary using (yes)
 
 open import Categories.APROP using (APROPSignature; module APROP)

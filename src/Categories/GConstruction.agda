@@ -1,8 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 module Categories.GConstruction where
 
-open import Level renaming (zero to ℓ0)
-
 open import Categories.Category
 open import Categories.Category.Helper
 open import Categories.Category.Monoidal
