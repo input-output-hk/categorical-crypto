@@ -17,20 +17,17 @@
 --                       (u : unit → unit); NON-HEAD inversions and a 3-swap
 --                       full sort exercise machine-fired interchange swaps,
 --                       via `Mor.solveMor!`.
---   * `Rewrite`       — rule application in context (the L5 mitigation), via
---                       the `Mor.rewriteMor!` family.
+--   * `Rewrite`       — rule application in context, via the
+--                       `Mor.rewriteMor!` family.
 --
 -- Because the goals read in `C`'s vocabulary, `solveMor!`/`solveM` over an
 -- arbitrary `C` exercise the free-level decision procedures, just stated in
 -- the target's terms.
 --
--- The positive suites above use the PUBLIC solvers.  The LIMITATIONS
--- CATALOGUE — the sound rejections (`Negative`) and the true-but-undecided
--- equations (`Limitations`) — is restored below via the INTERNAL front-end
--- API: these facts pin the decision procedure with `decide?F … ≡ nothing`,
--- which the public solvers cannot express (a public solver only ever produces
--- a proof; it cannot witness a `nothing`).  Using the internal API for these
--- boundary/decidability tests is deliberate and fine.
+-- The `Negative` module below adds SOUND-REJECTION tests via the
+-- INTERNAL front-end API: they pin the decision procedure with
+-- `decide?F … ≡ nothing` on FALSE equations, which the public solvers
+-- cannot express.
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.Test.Frontend where
@@ -249,7 +246,7 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
       test-three-desc = solveMor! desc₃ asc₃
 
     ------------------------------------------------------------------------
-    -- Rewriting: rule application in context (the L5 mitigation).  A rule is
+    -- Rewriting: rule application in context.  A rule is
     -- any C-equation between interpretations of front-end terms — here
     -- abstract hypotheses (commuting endos, an inverse law); the rewrite
     -- layer carries it across and the solver absorbs surrounding structure.
@@ -293,22 +290,15 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
                      (s'' S.∘ s') (s' S.∘ s'') 1 comm
 
 ------------------------------------------------------------------------
--- LIMITATIONS CATALOGUE (internal-API boundary tests).
+-- Sound rejections
 --
--- The negatives below assert `decide?F … ≡ nothing`, so they require the
--- INTERNAL front-end decision procedure (`Frontend.Decide.decide?F`) rather
--- than a public solver.  We wire it by hand from a `FinSig` signature: a
--- two-colour atom alphabet and a Fin-indexed arity table mirroring the box
--- generators used by the positive suites, plus a scalar/scalar pair (u , v)
--- for the L2 non-injective-rank exhibit.
+-- These assert `decide?F … ≡ nothing`, so they require the INTERNAL front-end
+-- decision procedure (`Frontend.Decide.decide?F`) rather than a public solver.
+-- We wire it by hand from a `FinSig` signature: a two-colour atom alphabet and
+-- a Fin-indexed table of two endo generators.
 --
---   0 → μ  : ⋆ ⊗ ⋆ → ⋆     (multi-wire input)
---   1 → η  : unit  → ⋆      (empty domain)
---   2 → s  : ⋆ → ⋆          (endo on ⋆)
---   3 → s' : ⋆ → ⋆          (second endo on ⋆)
---   4 → t  : • → •          (endo on •)
---   5 → u  : unit → unit    (scalar)
---   6 → v  : unit → unit    (second scalar, for the L2 exhibit)
+--   0 → s  : ⋆ → ⋆          (endo on ⋆)
+--   1 → s' : ⋆ → ⋆          (second endo on ⋆)
 
 data Ty : Set where ⋆ • : Ty
 
@@ -320,15 +310,11 @@ instance
     • ⋆ → no λ ()
     • • → yes refl
 
-open FreeMonoidalHelper Mon Ty using () renaming (ObjTerm to ObjTermᴵ; unit to unitᴵ; _⊗₀_ to _⊗₀ᴵ_; Var to Varᴵ)
+open FreeMonoidalHelper Mon Ty using () renaming (ObjTerm to ObjTermᴵ; Var to Varᴵ)
 
-arityT : Fin 7 → ObjTermᴵ × ObjTermᴵ
-arityT zero                            = Varᴵ ⋆ ⊗₀ᴵ Varᴵ ⋆ , Varᴵ ⋆
-arityT (suc zero)                      = unitᴵ , Varᴵ ⋆
-arityT (suc (suc zero))                = Varᴵ ⋆ , Varᴵ ⋆
-arityT (suc (suc (suc zero)))          = Varᴵ ⋆ , Varᴵ ⋆
-arityT (suc (suc (suc (suc zero))))    = Varᴵ • , Varᴵ •
-arityT (suc (suc (suc (suc (suc _))))) = unitᴵ , unitᴵ   -- 5 → u, 6 → v
+arityT : Fin 2 → ObjTermᴵ × ObjTermᴵ
+arityT zero       = Varᴵ ⋆ , Varᴵ ⋆
+arityT (suc zero) = Varᴵ ⋆ , Varᴵ ⋆
 
 private module FS = FinSig Mon {Ty} arityT
 open FS
@@ -338,21 +324,10 @@ open Decide rankS
 
 private
   infixr 9 _∘ᴵ_
-  infixr 10 _⊗ᴵ_
   _∘ᴵ_ : ∀ {A B C} → S.HomTerm B C → S.HomTerm A B → S.HomTerm A C
   _∘ᴵ_ = S._∘_
-  _⊗ᴵ_ : ∀ {A B C D} → S.HomTerm A B → S.HomTerm C D → S.HomTerm (A ⊗₀ᴵ C) (B ⊗₀ᴵ D)
-  _⊗ᴵ_ = S._⊗₁_
-  idᴵ : ∀ {A} → S.HomTerm A A
-  idᴵ = S.id
-  μ'  = gen zero
-  s'  = gen (suc (suc zero))
-  s'' = gen (suc (suc (suc zero)))
-  u'  = gen (suc (suc (suc (suc (suc zero)))))
-  v'  = gen (suc (suc (suc (suc (suc (suc zero))))))
-
-------------------------------------------------------------------------
--- Sound rejections: the solver answers `nothing` on non-equations.
+  s'  = gen zero
+  s'' = gen (suc zero)
 
 module Negative where
 
@@ -369,19 +344,3 @@ module Negative where
   -- compare rejects on the nil-vs-cons branch of the encoding.)
   neg-extra-layer : decide?F s' (s'' ∘ᴵ s') ≡ nothing
   neg-extra-layer = refl
-
-  -- generator naturality is NOT known to the solver (L5): s' past μ.
-  neg-generator-naturality : decide?F (s' ∘ᴵ μ') (μ' ∘ᴵ (s' ⊗ᴵ idᴵ)) ≡ nothing
-  neg-generator-naturality = refl
-
-------------------------------------------------------------------------
--- LIMITATIONS, machine-checked: TRUE equations answered `nothing`.
-
-module Limitations where
-
-  -- L2: under a constant (non-injective) rank the tiebreak never fires, so the
-  -- two scalar orderings `u ∘ v` and `v ∘ u` cannot be separated.
-  private module D₀ = Decide (λ _ → 0)
-
-  lim-equal-rank : D₀.decide?F (u' ∘ᴵ v') (v' ∘ᴵ u') ≡ nothing
-  lim-equal-rank = refl

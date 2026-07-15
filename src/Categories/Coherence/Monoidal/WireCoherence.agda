@@ -49,10 +49,6 @@ module WireCoh (v : Variant) (X : Set)
   castW-isoʳ : ∀ {u v : List X} (e : u ≡ v) → castW e ∘ castW (sym e) ≈Term id
   castW-isoʳ refl = idˡ
 
-  castW-cancelʳ : ∀ {u v w : List X} (e : u ≡ v) {f g : HomTerm (wires v) (wires w)}
-                → f ∘ castW e ≈Term g ∘ castW e → f ≈Term g
-  castW-cancelʳ refl {f} {g} eq = ⟺ idʳ ○ eq ○ idʳ
-
   castWˡ-invert : ∀ {A p q} (eq : p ≡ q) (h : HomTerm A (wires q)) (k : HomTerm A (wires p))
                → h ≈Term castW eq ∘ k → castW (sym eq) ∘ h ≈Term k
   castWˡ-invert eq h k e = (refl⟩∘⟨ e) ○ cancelˡ (castW-isoˡ eq)
