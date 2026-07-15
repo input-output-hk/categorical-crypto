@@ -47,7 +47,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flatten; range; hGen; hId; hTensor; hSwap
+  using (FlatGen; range; hId; hTensor; hSwap
         ; module hTensor-impl)
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
@@ -66,8 +66,6 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
   using (⟪⟫-LinearP)
 open import Categories.APROP.Hypergraph.Util.Prune
   using (count-non; classify; classify-inj₁-∈)
-open import Data.Fin.Properties using (_≟_; splitAt-↑ˡ; splitAt-↑ʳ)
-open import Data.List.Relation.Unary.Any using (Any; here; there)
 open import Data.List.Membership.Propositional.Properties
   using (∈-concat⁺′; ∈-tabulate⁺)
 open import Data.Empty using (⊥; ⊥-elim)
@@ -78,7 +76,7 @@ import Data.Nat.Properties as Nat
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig
   as IW
 
-open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
+open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_)
 open import Data.List using (List; []; _∷_; _++_; map; concat; tabulate)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties using (∈-map⁻)
@@ -86,12 +84,12 @@ open import Data.List.Relation.Unary.All using (All; []; _∷_)
   renaming (map to All-map)
 open import Data.List.Relation.Unary.AllPairs using (AllPairs; []; _∷_)
 import Data.List.Relation.Unary.AllPairs.Properties as AllPairsProp
-open import Data.Nat using (ℕ; zero; suc; _+_; s≤s; z≤n; _≤_)
-open import Data.Product using (∃-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Nat using (ℕ; zero; _+_; _≤_)
+open import Data.Product using (_,_; proj₂)
 open import Relation.Nullary using (¬_)
-open import Relation.Nullary.Decidable using (yes; no)
+open import Relation.Nullary.Decidable using (no)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
+  using (_≡_; refl; sym; trans; subst)
 
 --------------------------------------------------------------------------------
 -- ## Generic count / disjointness helpers (used by the `∘` cross-acyclicity).

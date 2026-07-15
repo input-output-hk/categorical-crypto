@@ -44,11 +44,10 @@ import Data.Nat as Nat
 open import Data.List using (List; _∷_; map; tabulate)
 open import Data.List.Properties using (map-∘; map-cong; map-tabulate)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.Product using (_,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; sym; trans; subst; subst₂)
-open import Relation.Binary.Construct.Closure.ReflexiveTransitive using (Star; ε; _◅_)
 
 ------------------------------------------------------------------------
 -- Small range/tabulate bridge lemmas (local copies; `range` is defined

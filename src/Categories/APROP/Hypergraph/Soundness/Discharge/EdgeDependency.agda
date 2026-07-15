@@ -16,9 +16,8 @@ open import Data.Fin using (Fin)
 open import Data.List using (List; map)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties using (∈-map⁺; ∈-map⁻)
-open import Data.Product using (Σ-syntax; ∃-syntax; _×_; _,_; proj₁; proj₂)
-open import Function using (_⇔_; mk⇔)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
+open import Data.Product using (∃-syntax; _×_; _,_)
+open import Relation.Binary.PropositionalEquality using (_≡_; sym; trans; cong; subst)
 
 --------------------------------------------------------------------------------
 -- The immediate dependency relation.

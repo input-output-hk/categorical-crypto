@@ -41,19 +41,19 @@ open import Categories.APROP.Hypergraph.Util.Prune
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
   using (Dep)
 
-open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt; join; cast; toℕ)
+open import Data.Empty using (⊥)
+open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_; splitAt; join; cast; toℕ)
 open import Data.Fin.Properties
   using (join-splitAt; toℕ-cast; toℕ-injective
-        ; ↑ˡ-injective; ↑ʳ-injective; splitAt-↑ˡ; splitAt-↑ʳ)
-open import Data.List using (List; []; _∷_; map; length)
+        ; ↑ˡ-injective; ↑ʳ-injective)
+open import Data.List using (List; map; length)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties using (∈-map⁻)
 open import Data.Nat using (ℕ; _+_)
-open import Data.Product using (∃-syntax; _×_; _,_; proj₁; proj₂)
-open import Data.Sum using (_⊎_; inj₁; inj₂; [_,_]′)
+open import Data.Product using (_,_)
+open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
+  using (_≡_; sym; trans; cong; subst)
 open import Relation.Nullary using (¬_)
 
 --------------------------------------------------------------------------------

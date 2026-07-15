@@ -25,7 +25,7 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; _≅_)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (edge-step; Agen-edge; Agen-edge-aux; extract-prefix)
+  using (edge-step; Agen-edge-aux; extract-prefix)
 open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
   using (permute-via-vlab)
 
@@ -33,10 +33,10 @@ open import Data.Fin using (Fin)
 open import Data.List using (List; _++_; map)
 open import Data.List.Properties using (map-++)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Product using (Σ; _,_; proj₁; proj₂)
+open import Data.Maybe using (just; nothing)
+open import Data.Product using (_,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; cong; cong₂; subst₂)
+  using (_≡_; refl; sym; cong; subst₂)
 
 --------------------------------------------------------------------------------
 -- The FIRE "box" as a standalone (hypergraph-agnostic) function of its
