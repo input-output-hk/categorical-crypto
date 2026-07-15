@@ -43,7 +43,7 @@ open import Categories.APROP.Hypergraph.Solver.Match.PBij using (PBij; forward; 
 open import Categories.APROP.Hypergraph.Solver.Match.Search sig-dec using (searchAll-default)
 open import Categories.APROP.Hypergraph.Solver.Match.Totals using (totalise; deriveAtomEq)
 open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec
-  using (flat-match-subst; ∀F?; dec→maybe)
+  using (flat-match-subst; ∀F?)
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
@@ -54,6 +54,7 @@ open import Data.Maybe.Properties using () renaming (≡-dec to ≡-decM)
 open import Data.Product using (_,_)
 open import Relation.Binary.Definitions using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; subst₂)
+open import Relation.Nullary.Decidable using (dec⇒maybe)
 
 --------------------------------------------------------------------------------
 -- The embedding relation `L ↪ᴴ S`.  Its label/endpoint fields mirror those of
@@ -132,11 +133,11 @@ module Verify-Sub (L S : Hypergraph FlatGen)
   ... | nothing       | _            = nothing
   ... | _             | nothing      = nothing
   ... | just (φ , _)  | just (ψ , _)
-        with ∀F? (λ i → dec→maybe (backward φB (φ i) ≟MV just i))
-           | ∀F? (λ e → dec→maybe (backward ψB (ψ e) ≟ME just e))
-           | ∀F? (λ i → dec→maybe (S.vlab (φ i) ≟X L.vlab i))
-           | ∀F? (λ e → dec→maybe (S.ein  (ψ e) ≟LF-S map φ (L.ein  e)))
-           | ∀F? (λ e → dec→maybe (S.eout (ψ e) ≟LF-S map φ (L.eout e)))
+        with ∀F? (λ i → dec⇒maybe (backward φB (φ i) ≟MV just i))
+           | ∀F? (λ e → dec⇒maybe (backward ψB (ψ e) ≟ME just e))
+           | ∀F? (λ i → dec⇒maybe (S.vlab (φ i) ≟X L.vlab i))
+           | ∀F? (λ e → dec⇒maybe (S.ein  (ψ e) ≟LF-S map φ (L.ein  e)))
+           | ∀F? (λ e → dec⇒maybe (S.eout (ψ e) ≟LF-S map φ (L.eout e)))
   ...     | nothing | _ | _ | _ | _ = nothing
   ...     | _ | nothing | _ | _ | _ = nothing
   ...     | _ | _ | nothing | _ | _ = nothing

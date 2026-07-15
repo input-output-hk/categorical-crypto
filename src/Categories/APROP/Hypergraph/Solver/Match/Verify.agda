@@ -44,13 +44,7 @@ open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality as Eq
 
 open import Relation.Nullary
-
---------------------------------------------------------------------------------
--- Convert a `Dec` to `Maybe`, discarding the negative evidence.
-
-dec→maybe : ∀ {ℓ} {A : Set ℓ} → Dec A → Maybe A
-dec→maybe (yes p) = just p
-dec→maybe (no  _) = nothing
+open import Relation.Nullary.Decidable using (dec⇒maybe)
 
 --------------------------------------------------------------------------------
 -- ∀F? : universal-quantification decider over `Fin n`.
@@ -170,13 +164,13 @@ module Verify (H J : Hypergraph FlatGen)
   ... | _       | _       | _       | nothing = nothing
   ... | just (φ , _) | just (φ⁻¹ , _)
       | just (ψ , _) | just (ψ⁻¹ , _)
-        with ∀F? (λ i → dec→maybe (φ⁻¹ (φ i) ≟F i))
-           | ∀F? (λ j → dec→maybe (φ (φ⁻¹ j) ≟F j))
-           | ∀F? (λ e → dec→maybe (ψ⁻¹ (ψ e) ≟F e))
-           | ∀F? (λ k → dec→maybe (ψ (ψ⁻¹ k) ≟F k))
-           | ∀F? (λ i → dec→maybe (J.vlab (φ i) ≟X H.vlab i))
-           | ∀F? (λ e → dec→maybe (J.ein  (ψ e) ≟LF-J map φ (H.ein  e)))
-           | ∀F? (λ e → dec→maybe (J.eout (ψ e) ≟LF-J map φ (H.eout e)))
+        with ∀F? (λ i → dec⇒maybe (φ⁻¹ (φ i) ≟F i))
+           | ∀F? (λ j → dec⇒maybe (φ (φ⁻¹ j) ≟F j))
+           | ∀F? (λ e → dec⇒maybe (ψ⁻¹ (ψ e) ≟F e))
+           | ∀F? (λ k → dec⇒maybe (ψ (ψ⁻¹ k) ≟F k))
+           | ∀F? (λ i → dec⇒maybe (J.vlab (φ i) ≟X H.vlab i))
+           | ∀F? (λ e → dec⇒maybe (J.ein  (ψ e) ≟LF-J map φ (H.ein  e)))
+           | ∀F? (λ e → dec⇒maybe (J.eout (ψ e) ≟LF-J map φ (H.eout e)))
            | J.dom ≟LF-J map φ H.dom
            | J.cod ≟LF-J map φ H.cod
   ...       | nothing | _ | _ | _ | _ | _ | _ | _     | _     = nothing
