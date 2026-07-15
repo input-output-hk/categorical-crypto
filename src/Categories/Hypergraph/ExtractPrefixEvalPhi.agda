@@ -16,7 +16,7 @@
 --
 -- §1 first proves that search naturality (`extract-prefix-map⁺`): the
 -- `extract-elem`/`extract-prefix` search commutes with an injective
--- relabel `map f` at the DERIVATION level (formerly `ExtractPrefixMapPhi`).
+-- relabel `map f` at the DERIVATION level.
 --------------------------------------------------------------------------------
 
 module Categories.Hypergraph.ExtractPrefixEvalPhi where

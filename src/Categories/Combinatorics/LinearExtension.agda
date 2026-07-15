@@ -240,7 +240,7 @@ head-minimal (h ∷ _) z∈xs = lookup h z∈xs
 ------------------------------------------------------------------------
 -- Sub-lemma (b): every element before `x` in `M` is incomparable to `x`.
 --
--- Now a real proof.  We first establish, once, that `x` is R-minimal
+-- We first establish, once, that `x` is R-minimal
 -- across the whole carrier (`x-min`): nothing in `M` is strictly below
 -- `x`.  This uses `↭-sym perm` to move into `x ∷ L′`, where the head
 -- field of `NoInv (x ∷ L′)` gives `¬ R z x` for every `z ∈ L′` and
