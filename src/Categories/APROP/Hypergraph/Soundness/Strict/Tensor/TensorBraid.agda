@@ -8,7 +8,7 @@
 -- (`gblk = map (_↑ˡ K.nE)(range G.nE)`, `kblk = map (G.nE ↑ʳ_)(range K.nE)`),
 -- boundary `map injL G.dom ++ map injR K.dom` / `… cod …`.
 --
--- STRATEGY (mirror of the non-strict `DecodeTensorShape` assembly tail, ~3800
+-- STRATEGY (mirror of the former non-strict `DecodeTensorShape` assembly tail, ~3800
 -- LOC, but riding the proven strict substrate):
 --
 --   1. RUN-SPLIT.  `proj₂ runˢ` factors over `gblk ++ kblk` as

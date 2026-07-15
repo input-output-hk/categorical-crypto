@@ -2,7 +2,7 @@
 
 --------------------------------------------------------------------------------
 -- Structural SHAPE LEMMAS of the strict decoder `decodePˢ` — the strict
--- analogue of `decode-rel`'s shape lemmas.  These feed the eventual
+-- analogue of the former non-strict `decode-rel`'s shape lemmas.  These feed the eventual
 -- part-(I)ˢ roundtrip `st f ≈ˢ decodePˢ f`.
 --
 -- Threaded through the SAME deferred residual `permˢ-K` (a `Support.PermK`,

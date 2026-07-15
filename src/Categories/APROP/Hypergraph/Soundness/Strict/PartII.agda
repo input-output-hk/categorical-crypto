@@ -13,8 +13,8 @@
 --   * the UNCONDITIONAL `run-interchange₀ˢ` (the empty-tail two-edge
 --     interchange, from `Strict.Interchange.FireMid`) lifted to an arbitrary
 --     suffix `qs` by `Interchange.RunInterchangeTail.run-interchange-tailˢ` — assembled
---     here into `run-interchange-H` exactly as the NON-STRICT blueprint
---     `Discharge.DecodeRelRespIsoWired.run-interchange-⟪⟫` does;
+--     here into `run-interchange-H` exactly as the former NON-STRICT blueprint
+--     `DecodeRelRespIsoWired.run-interchange-⟪⟫` did;
 --   * the FULLY DISCHARGED `Strict.IsoTransportS.decode-ordˢ-resp-iso`, fed the
 --     SAME `run-interchange-H` we build.
 --------------------------------------------------------------------------------
@@ -57,7 +57,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_; sym; subst)
 ------------------------------------------------------------------------
 -- The (N) strict per-swap `RunInterchangeˢ` witness for `⟪f⟫`.
 --
--- 1:1 port of the non-strict `DecodeRelRespIsoWired.run-interchange-⟪⟫`:
+-- 1:1 port of the former non-strict `DecodeRelRespIsoWired.run-interchange-⟪⟫`:
 --   * the EMPTY-TAIL core `ri₀` is the UNCONDITIONAL `FireMid.run-interchange₀ˢ`
 --     (packed into the empty-tail `RunInterchangeˢ` record);
 --   * the tail extension to a suffix `qs` is `run-interchange-tailˢ`;

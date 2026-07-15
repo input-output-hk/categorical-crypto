@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- STRICT per-swap analytic step `swap-≈ˢ` (strict twin of
--- `Discharge.SwapStep`).
+-- STRICT per-swap analytic step `swap-≈ˢ` (strict twin of the former
+-- non-strict `Discharge.SwapStep`).
 --
 -- Two strict order-indexed decodings whose orders differ by ONE adjacent
 -- incomparable swap are `≈ˢ`-equal.  The chain mirrors the non-strict one,

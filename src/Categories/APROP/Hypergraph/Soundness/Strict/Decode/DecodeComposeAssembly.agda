@@ -126,7 +126,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
 
   ----------------------------------------------------------------------
   -- Local `subst₂ FlatGen` cancellation (refl-matched; avoids the heavy
-  -- non-strict `HomTermTransport` import).
+  -- former non-strict `HomTermTransport` import).
 
   private
     s2-cancel
@@ -290,7 +290,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
 
   ----------------------------------------------------------------------
   -- ## The strict cross-vertex-type relabel `pvv-relabelˢ` (strict twin of
-  -- the non-strict `HomTermTransport.pvv-relabel`).  Routes a `Fin nJ`-level
+  -- the former non-strict `HomTermTransport.pvv-relabel`).  Routes a `Fin nJ`-level
   -- permute of `map⁺ φ p` onto the `Fin nH`-level permute of `p` via §0
   -- `permuteˢ-X` (both sides) + `permˢ-K-X`, whose evaluated-bijection
   -- premise is the `eval-map⁺`/`subst₂-FinBij-∘` chain.

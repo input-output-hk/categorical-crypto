@@ -6,7 +6,8 @@
 --
 -- This assembles the located normal-form pieces:
 -- the per-order located normal forms `nf-genˢ` (a single, block-symmetric
--- single-order chase, the strict twin of `BlockNFNf2.block-bracket-pf`),
+-- single-order chase, the strict twin of the former non-strict
+-- `BlockNFNf2.block-bracket-pf`),
 -- instantiated for the two firing orders, then threaded through `cross-NFˢ`
 -- with the proven `vin-cohˢ`/`vout-cohˢ` (FireMidS2) to give the both-fire
 -- core `fire-mid-interchangeˢ`.  Instantiating `SwapCoreRun.RunInterchange`
@@ -594,7 +595,8 @@ module _ (H : Hypergraph FlatGen)
 
   ----------------------------------------------------------------------
   -- The generic, block-symmetric single-order located normal form
-  -- `nf-genˢ` — the strict twin of `BlockNFNf2.block-bracket-pf`.
+  -- `nf-genˢ` — the strict twin of the former non-strict
+  -- `BlockNFNf2.block-bracket-pf`.
   --
   -- For two edges `a` (fired first) then `b`, located simultaneously by a
   -- shared residual `R` (the residual permutes `ρ₁ : s₁ ↭ ein b ++ R`,

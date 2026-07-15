@@ -4,7 +4,7 @@
 -- DISCHARGE WORK for the `reconcileˢ` residual of `Strict.DecodeTensorS` — the
 -- K-block prepend-asymmetry braid + final-permute resort completing the
 -- ⊗-shape.  This is the strict port of the whole-run assembly TAIL of the
--- non-strict `Discharge.Sub.DecodeTensorShape`.
+-- former non-strict `DecodeTensorShape`.
 --
 -- The TARGET (verified verbatim against `DecodeTensor.Tensor`'s `reconcileˢ`
 -- parameter) is, for `f : HomTerm A B`, `g : HomTerm C D`:

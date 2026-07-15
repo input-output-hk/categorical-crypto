@@ -47,7 +47,7 @@ module Support (V : Set) (vlab : V → X) where
 
   -- The strict Kelly residual: `permuteˢ` respects evaluated-bijection
   -- equality.  (`p ≅↭ q  :=  eval-↭ p ≈-fb eval-↭ q`, the same relation the
-  -- non-strict `FaithfulnessResidual` uses, taken here at `V`.)
+  -- former non-strict `FaithfulnessResidual` uses, taken here at `V`.)
   PermK : Set
   PermK = ∀ {xs ys : List V} (p q : xs ↭ ys)
         → eval-↭ p ≈-fb eval-↭ q

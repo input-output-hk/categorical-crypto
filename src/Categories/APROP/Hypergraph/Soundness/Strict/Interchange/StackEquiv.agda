@@ -9,18 +9,18 @@
 --   pe-termˢ qs s'
 --     ≈ˢ permuteˢ (↭-sym ρf) ∘ˢ ( pe-termˢ qs s ∘ˢ permuteˢ ρ )
 --
--- This is the strict twin of `Discharge/Sub/StackEquivariance`'s
+-- This is the strict twin of the former non-strict `StackEquivariance`'s
 -- `process-edges-equivariant`.  The genuinely-new strict content is the
 -- per-edge FIRE-box naturality (`fire-mid-equivariantˢ`), discharged here
 -- by a direct `box-commute-ˢ`/`interchangeˢ` computation in the presented
--- strict SMC — NO `box-of`/BoxKernel/`unflatten-++-≅` detour.
+-- strict SMC — NO `box-of`/`unflatten-++-≅` detour.
 --
 -- The term-FREE inputs (`fire-stable-*`, `residual-recon`, `fire-μ`,
 -- the `extract-prefix` determinism) are REUSED verbatim from the
 -- non-strict leaves: the strict and non-strict runs walk the SAME stacks
 -- (`Run.stacks-agree`), so the reservoir / `Unique` plumbing transfers.
 -- The derivation algebra uses `pvv-transˢ` / `pvv-inverse-{left,right}ˢ`
--- (the `Equivariantˢ` foundation in `DecodeComposeS2`); the locating-permute
+-- (the `Equivariantˢ` foundation in the strict `DecodeCompose`); the locating-permute
 -- coherence is consumed by the vertex-level `permˢ-K-H` directly (the
 -- strict `permuteˢ` is vertex-level, so the non-strict `map⁺-lift-≅↭` step
 -- DISAPPEARS).
@@ -96,7 +96,7 @@ module EquivStep (H : Hypergraph FlatGen) where
 
   ----------------------------------------------------------------------
   -- FIRING STABILITY under a stack permutation (term-free; reused
-  -- verbatim from the non-strict `StackEquivariance`).
+  -- verbatim from the former non-strict `StackEquivariance`).
   ----------------------------------------------------------------------
 
   fire-stable-just
@@ -302,7 +302,7 @@ module EquivStep (H : Hypergraph FlatGen) where
   -- CANONICAL residual reshuffle `fire-μ` + the locating-permute
   -- coherence `locate-coherentˢ` (VERTEX-level; no `map⁺`-lift, since the
   -- strict `permuteˢ` is vertex-level and `permˢ-K-H` consumes a bare
-  -- vertex `≅↭`).  Ported from the non-strict `StackEquivariance`.
+  -- vertex `≅↭`).  Ported from the former non-strict `StackEquivariance`.
   ----------------------------------------------------------------------
 
   module _ (e : Fin H.nE) {s s' : List (Fin H.nV)} (ρ : s' Perm.↭ s)
@@ -409,8 +409,8 @@ module EquivStep (H : Hypergraph FlatGen) where
             (∘-resp (≈-sym (fire-term-factorˢ e s restH permH)) ≈-refl)))))))
 
   ----------------------------------------------------------------------
-  -- `++⁺ˡ` commutes with `↭-sym` (list-induction; from the non-strict
-  -- `StackEquivariance`).
+  -- `++⁺ˡ` commutes with `↭-sym` (list-induction; from the former
+  -- non-strict `StackEquivariance`).
   ----------------------------------------------------------------------
   private
     ++⁺ˡ-↭-sym

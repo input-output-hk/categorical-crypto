@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The HEADLINE of part (II)ˢ: `decodePˢ-resp-iso` (strict twin of
--- `Discharge.DecodeRelRespIsoWired.decodeP-resp-iso`).
+-- The HEADLINE of part (II)ˢ: `decodePˢ-resp-iso` (strict twin of the
+-- former non-strict `DecodeRelRespIsoWired.decodeP-resp-iso`).
 --
 --   decodePˢ-resp-iso : ⟪f⟫ ≅ᴴ ⟪g⟫ → decodePˢ f ≈ˢ decodePˢ g
 --
@@ -75,7 +75,7 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
     dih = dep-irrefl-⟪⟫ f
     -- the pruned-translation Linearity witness; the pruned and main
     -- translations coincide where the decoder runs (as in Decode /
-    -- DecodeRelRespIsoWired).
+    -- the former `DecodeRelRespIsoWired`).
     lin : Linear F
     lin = DAL.⟪⟫-LinearP f
 

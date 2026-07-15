@@ -2,7 +2,7 @@
 
 --------------------------------------------------------------------------------
 -- The ⊗-SHAPE of the strict decoder `decodePˢ` (strict analogue of the
--- non-strict `DecodeTensorShape`).
+-- former non-strict `DecodeTensorShape`).
 --
 --   decodePˢ-⊗ : decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g   (mod casts)
 --
