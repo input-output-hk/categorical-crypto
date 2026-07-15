@@ -32,7 +32,7 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-prefix; extract-elem)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SeparableStack sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SeparableStack sig
   using (prefix-++ˡ-perm; extract-prefix-++ˡ; extract-prefix-++ˡ-nothing)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_ public
