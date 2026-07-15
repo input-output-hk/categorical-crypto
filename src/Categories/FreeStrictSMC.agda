@@ -29,7 +29,7 @@ open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (++-assoc; ++-identityʳ; ≡-dec; map-++)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
+  using (_≡_; refl; sym; trans; cong; subst; subst₂)
 open import Axiom.UniquenessOfIdentityProofs using (UIP; module Decidable⇒UIP)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
