@@ -60,9 +60,9 @@ open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory
 module Categories.Coherence.Symmetric
   {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e) where
 
-open import Data.Fin using (Fin; zero; suc)
+open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
-open import Data.Product using (_×_; _,_)
+open import Data.Product using (_×_)
 open import Relation.Binary.Definitions using (DecidableEquality)
 
 open import Categories.APROP using (module APROP)
