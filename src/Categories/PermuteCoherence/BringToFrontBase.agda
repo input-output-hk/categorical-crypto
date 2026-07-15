@@ -117,6 +117,15 @@ descent→pos i b dsc with <-cmp (posᵢ i b) (posᵢ₊₁ i b)
     1+n≢n (sym (trans (sym (toℕ-inj i)) (trans (cong toℕ e) (toℕ-suc-pos i))))
 ... | tri> _ _ gt = gt
 
+-- From `(i ∷ u) ~ʷ rest` we get `evalW u ≈-fb genFB i ∘-fb evalW rest`
+-- (apply `genFB i` to both sides of `genFB i ∘-fb evalW u ≈ evalW rest`).
+evalW-tail≈ : {i : Fin (suc n)} {u rest : Word (suc n)}
+            → (i ∷ u) ~ʷ rest
+            → evalW u ≈-fb (genFB i ∘-fb evalW rest)
+evalW-tail≈ {i = i} {u} {rest} rel p =
+  trans (sym (genFB-involutive i (evalW u P.⟨$⟩ʳ p)))
+        (cong (genFB i P.⟨$⟩ʳ_) (~ʷ⇒≈ rel p))
+
 ------------------------------------------------------------------------
 -- `Reduced` of a one-letter-shorter `~ʷ`-witness: if `w` is reduced and
 -- `i` is a left descent, any `w′` with `(i ∷ w′) ~ʷ w` and
@@ -132,23 +141,8 @@ reduced-of-witness {w = w} {w′} {i} red dsc lenEq rel =
         (trans (cong suc invw′≡invigb)
                (trans dsc (trans (sym red) (sym lenEq)))))
   where
-  evalw≈ : evalW (i ∷ w′) ≈-fb evalW w
-  evalw≈ = ~ʷ⇒≈ rel
-  evalw′≈ : evalW w′ ≈-fb (genFB i ∘-fb evalW w)
-  evalw′≈ p =
-    trans (sym (genFB-involutive i (evalW w′ P.⟨$⟩ʳ p)))
-          (cong (genFB i P.⟨$⟩ʳ_) (evalw≈ p))
   invw′≡invigb : inv (evalW w′) ≡ inv (genFB i ∘-fb evalW w)
-  invw′≡invigb = inv-resp-≈ {b = evalW w′} {b′ = genFB i ∘-fb evalW w} evalw′≈
-
--- From `(i ∷ u) ~ʷ rest` we get `evalW u ≈-fb genFB i ∘-fb evalW rest`
--- (apply `genFB i` to both sides of `genFB i ∘-fb evalW u ≈ evalW rest`).
-evalW-tail≈ : {i : Fin (suc n)} {u rest : Word (suc n)}
-            → (i ∷ u) ~ʷ rest
-            → evalW u ≈-fb (genFB i ∘-fb evalW rest)
-evalW-tail≈ {i = i} {u} {rest} rel p =
-  trans (sym (genFB-involutive i (evalW u P.⟨$⟩ʳ p)))
-        (cong (genFB i P.⟨$⟩ʳ_) (~ʷ⇒≈ rel p))
+  invw′≡invigb = inv-resp-≈ {b = evalW w′} {b′ = genFB i ∘-fb evalW w} (evalW-tail≈ rel)
 
 ------------------------------------------------------------------------
 -- Every pair of distinct generators is `Far` or `Adj`, decided
