@@ -45,7 +45,7 @@ open import Relation.Nullary.Decidable public
 open import Relation.Unary public
   using (Pred) renaming (Decidable to Decidable¹)
 open import Relation.Binary public
-  using () renaming (Decidable to Decidable²)
+  using (DecidableEquality) renaming (Decidable to Decidable²)
 open import Relation.Binary.PropositionalEquality public
   hiding (preorder; isPreorder; setoid; [_])
 
