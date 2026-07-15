@@ -70,7 +70,7 @@ module _ (H : Hypergraph FlatGen) where
     module H = Hypergraph H
 
     _≟L_ : DecidableEquality (List (Fin H.nV))
-    _≟L_ = ≡-dec _≟F_   -- decidable equality on `List (Fin H.nV)`
+    _≟L_ = ≡-dec _≟F_
 
   Agen-edge
     : (e : Fin H.nE)
