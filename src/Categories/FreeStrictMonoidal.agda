@@ -23,25 +23,30 @@ module Categories.FreeStrictMonoidal where
 -- proofs only; cast-irrelevance for arbitrary proofs is Hedberg-derived under
 -- `DecEq X`, so the freeness reading is exact for decidable `X`.
 --
--- NOTE on strictness / no `Monoidal` instance: `++` is only a monoid UP TO
--- propositional equality (`++-assoc` / `++-identityʳ` are not definitional), so
--- a full strict `Monoidal` instance would still need the associator/unitors to
--- be `castʷ`-transported identities with the attendant coherence bookkeeping.
--- That is deliberately out of scope here; we expose the `Category` `Strict`
--- (the theory instantiated at the empty engine `R = λ _ _ → ⊥`) and the tensor
--- as the morphism-former `_⊗ʷ_` with its bifunctor axioms in `Theory`.
+-- `Monoidal` instance: `++` is only a monoid UP TO propositional equality
+-- (`++-assoc` / `++-identityʳ` are not definitional), so the associator and
+-- right unitor of `MonoidalStrictR` are the transport isos `coeʷ` along those
+-- proofs (the left unitor is the definitional identity).  The coherence squares
+-- and the triangle/pentagon collapse to `coeʷ` transports of `≡`-proofs closed
+-- by Hedberg irrelevance, hence the instance is gated on `⦃ DecEq X ⦄`.  We also
+-- expose the plain `Category` `Strict` (the theory at the empty engine
+-- `R = λ _ _ → ⊥`).  Opening `Categories.Category.Monoidal.Reasoning` on the
+-- instance supplies the generic tensor vocabulary (`serialize`/`split`).
 --------------------------------------------------------------------------------
 
 open import Level
 open import Data.List
 open import Data.List.Properties
 open import Data.Empty
+open import Data.Product using (uncurry)
 open import Relation.Binary.PropositionalEquality
 import Data.List.Properties.Ext as ListExt
 open import Class.DecEq
 
 open import Categories.Category
 open import Categories.Category.Helper
+open import Categories.Category.Monoidal
+import Categories.Category.Monoidal.Reasoning as MonR
 
 module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) where
   infixr 9 _∘ʷ_
@@ -231,233 +236,304 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
 
     open Category.HomReasoning StrictR
 
-    -- Regrouping a pad at a split prefix.  `padʷ (p ++ q) suf g`, whose idle
-    -- prefix is bracketed as one block, equals the twice-nested pad `idʷ p ⊗ʷ
-    -- padʷ q suf g` transported across the two `++`-associativity gaps.  Pure
-    -- `⊗-assoc` + `id⊗id` + transport algebra.
-    pad-nest : (p q suf : List X) {a b : List X} (g : WTerm a b)
-             → padʷ (p ++ q) suf g
-               ≈ʷ castʷᵈ (sym (++-assoc p q (a ++ suf)))
-                    (castʷ (sym (++-assoc p q (b ++ suf))) (idʷ {n = p} ⊗ʷ padʷ q suf g))
-    pad-nest p q suf {a} {b} g = begin
-      padʷ (p ++ q) suf g
-        ≈⟨ ⊗-resp-≈ʷ id⊗id reflʷ ⟨
-      (idʷ {n = p} ⊗ʷ idʷ {n = q}) ⊗ʷ (g ⊗ʷ idʷ {n = suf})
-        ≈⟨ ≡→≈ʷ (sym (uncast (++-assoc p q (a ++ suf)) (++-assoc p q (b ++ suf)) _)) ⟩
-      castʷᵈ (sym eD) (castʷ (sym eC)
-        (castʷᵈ eD (castʷ eC ((idʷ {n = p} ⊗ʷ idʷ {n = q}) ⊗ʷ (g ⊗ʷ idʷ {n = suf})))))
-        ≈⟨ castʷᵈ-resp (sym eD) (castʷ-resp (sym eC) (⊗-assoc _ _ _)) ⟩
-      castʷᵈ (sym eD) (castʷ (sym eC) (idʷ {n = p} ⊗ʷ padʷ q suf g)) ∎
-      where
-        eD = ++-assoc p q (a ++ suf)
-        eC = ++-assoc p q (b ++ suf)
-        -- undo a domain/codomain transport pair (fully generic on `refl`)
-        uncast : ∀ {n n' m m'} (d : n ≡ n') (c : m ≡ m') (t : WTerm n m) → castʷᵈ (sym d) (castʷ (sym c) (castʷᵈ d (castʷ c t))) ≡ t
-        uncast refl refl t = refl
+    --------------------------------------------------------------------------------
+    -- The transport-identity morphism `coeʷ e = castʷ e idʷ`: an iso `m ⇒ m'`
+    -- for every `m ≡ m'`.  Each law matches its endpoint equality as `refl` and
+    -- collapses to a unit/identity law, so every proof is a one-liner.
+    --------------------------------------------------------------------------------
+    coeʷ : {m m' : List X} → m ≡ m' → WTerm m m'
+    coeʷ e = castʷ e idʷ
 
-    -- Threefold nesting `padʷ (p ++ (q ++ r)) suf g ≈ idʷ p ⊗ʷ (idʷ q ⊗ʷ padʷ r
-    -- suf g)`, up to transports supplied by the caller (reconciled by Hedberg
-    -- irrelevance).  This is the "5-block re-association".
-    nest3 : ⦃ _ : DecEq X ⦄
-          → (p q r suf : List X) {a b : List X} (g : WTerm a b)
-            (dd : p ++ (q ++ (r ++ (a ++ suf))) ≡ (p ++ (q ++ r)) ++ (a ++ suf))
-            (dc : p ++ (q ++ (r ++ (b ++ suf))) ≡ (p ++ (q ++ r)) ++ (b ++ suf))
-          → padʷ (p ++ (q ++ r)) suf g
-            ≈ʷ castʷᵈ dd (castʷ dc (idʷ {n = p} ⊗ʷ (idʷ {n = q} ⊗ʷ padʷ r suf g)))
-    nest3 p q r suf {a} {b} g dd dc = begin
-      padʷ (p ++ (q ++ r)) suf g
-        ≈⟨ pad-nest p (q ++ r) suf g ⟩
-      castʷᵈ eD₁ (castʷ eC₁ (idʷ {n = p} ⊗ʷ padʷ (q ++ r) suf g))
-        ≈⟨ castʷᵈ-resp eD₁ (castʷ-resp eC₁ (⊗-resp-≈ʷ reflʷ (pad-nest q r suf g))) ⟩
-      castʷᵈ eD₁ (castʷ eC₁ (idʷ {n = p} ⊗ʷ
-        castʷᵈ eD₂ (castʷ eC₂ (idʷ {n = q} ⊗ʷ padʷ r suf g))))
-        ≈⟨ ≡→≈ʷ (cong (λ z → castʷᵈ eD₁ (castʷ eC₁ z))
-                   (⊗ʷ-cast-pair-r eD₂ eC₂ (idʷ {n = p}) _)) ⟩
-      castʷᵈ eD₁ (castʷ eC₁ (castʷᵈ (cong (p ++_) eD₂)
-        (castʷ (cong (p ++_) eC₂) core)))
-        ≈⟨ ≡→≈ʷ (recastʷ eD₁ (cong (p ++_) eD₂) eC₁ (cong (p ++_) eC₂) dd dc core) ⟩
-      castʷᵈ dd (castʷ dc core) ∎
-      where
-        eD₁ = sym (++-assoc p (q ++ r) (a ++ suf))
-        eC₁ = sym (++-assoc p (q ++ r) (b ++ suf))
-        eD₂ = sym (++-assoc q r (a ++ suf))
-        eC₂ = sym (++-assoc q r (b ++ suf))
-        core = idʷ {n = p} ⊗ʷ (idʷ {n = q} ⊗ʷ padʷ r suf g)
+    -- the two bridges: pre-/post-composing a `coeʷ` is a term transport
+    coeʷ-∘ : (e : m ≡ m') (t : WTerm n m) → coeʷ e ∘ʷ t ≈ʷ castʷ e t
+    coeʷ-∘ refl t = idˡ
 
-    -- The suffix analogue of `pad-nest`: widening a pad's idle SUFFIX by `rt`
-    -- equals the pad tensored on the right with `idʷ rt`, up to the two
-    -- `++`-associativity transports the caller supplies (reconciled by Hedberg
-    -- irrelevance).  Two `⊗-assoc` re-brackets (one for the box block `g ⊗ʷ
-    -- idʷ suf`, one for the whole pad) plus `id⊗id` to fuse `idʷ suf ⊗ʷ idʷ rt`.
-    pad-nestR : ⦃ _ : DecEq X ⦄
-              → (pre suf rt : List X) {a b : List X} (g : WTerm a b)
-                (dd : (pre ++ (a ++ suf)) ++ rt ≡ pre ++ (a ++ (suf ++ rt)))
-                (dc : (pre ++ (b ++ suf)) ++ rt ≡ pre ++ (b ++ (suf ++ rt)))
-              → padʷ pre (suf ++ rt) g
-                ≈ʷ castʷᵈ dd (castʷ dc (padʷ pre suf g ⊗ʷ idʷ {n = rt}))
-    pad-nestR pre suf rt {a} {b} g dd dc = begin
-      padʷ pre (suf ++ rt) g
-        ≈⟨ ⊗-resp-≈ʷ reflʷ (⊗-resp-≈ʷ reflʷ (symʷ id⊗id)) ⟩
-      idʷ {n = pre} ⊗ʷ (g ⊗ʷ (idʷ {n = suf} ⊗ʷ idʷ {n = rt}))
-        ≈⟨ ⊗-resp-≈ʷ reflʷ (⊗-assoc g (idʷ {n = suf}) (idʷ {n = rt})) ⟨
-      idʷ {n = pre} ⊗ʷ castʷᵈ eDr (castʷ eCr Z)
-        ≈⟨ ≡→≈ʷ (⊗ʷ-cast-pair-r eDr eCr (idʷ {n = pre}) Z) ⟩
-      castʷᵈ (cong (pre ++_) eDr) (castʷ (cong (pre ++_) eCr) (idʷ {n = pre} ⊗ʷ Z))
-        ≈⟨ castʷᵈ-resp (cong (pre ++_) eDr)
-             (castʷ-resp (cong (pre ++_) eCr) (⊗-assoc (idʷ {n = pre}) (g ⊗ʷ idʷ {n = suf}) (idʷ {n = rt}))) ⟨
-      castʷᵈ (cong (pre ++_) eDr) (castʷ (cong (pre ++_) eCr) (castʷᵈ eDr2 (castʷ eCr2 T)))
-        ≈⟨ ≡→≈ʷ (recastʷ (cong (pre ++_) eDr) eDr2 (cong (pre ++_) eCr) eCr2 dd dc T) ⟩
-      castʷᵈ dd (castʷ dc T) ∎
-      where
-        eDr = ++-assoc a suf rt
-        eCr = ++-assoc b suf rt
-        eDr2 = ++-assoc pre (a ++ suf) rt
-        eCr2 = ++-assoc pre (b ++ suf) rt
-        Z = (g ⊗ʷ idʷ {n = suf}) ⊗ʷ idʷ {n = rt}
-        T = padʷ pre suf g ⊗ʷ idʷ {n = rt}
+    coeʷ-∘ʳ : (e : m ≡ m') (t : WTerm m' k) → t ∘ʷ coeʷ e ≈ʷ castʷᵈ (sym e) t
+    coeʷ-∘ʳ refl t = idʳ
+
+    -- iso laws (both orders) and fusion
+    coeʷ-isoˡ : (e : m ≡ m') → coeʷ (sym e) ∘ʷ coeʷ e ≈ʷ idʷ
+    coeʷ-isoˡ refl = idˡ
+
+    coeʷ-isoʳ : (e : m ≡ m') → coeʷ e ∘ʷ coeʷ (sym e) ≈ʷ idʷ
+    coeʷ-isoʳ refl = idˡ
+
+    coeʷ-fuse : (e : m ≡ m') (e' : m' ≡ m'') → coeʷ e' ∘ʷ coeʷ e ≈ʷ coeʷ (trans e e')
+    coeʷ-fuse refl refl = idˡ
+
+    -- whiskering a `coeʷ` by an idle block on either side lifts to a `coeʷ`
+    coeʷ-⊗ˡ : (e : m ≡ m') (r : List X) → coeʷ e ⊗ʷ idʷ {n = r} ≈ʷ coeʷ (cong (_++ r) e)
+    coeʷ-⊗ˡ refl r = id⊗id
+
+    coeʷ-⊗ʳ : (l : List X) (e : m ≡ m') → idʷ {n = l} ⊗ʷ coeʷ e ≈ʷ coeʷ (cong (l ++_) e)
+    coeʷ-⊗ʳ l refl = id⊗id
 
     --------------------------------------------------------------------------------
-    -- Two disjoint boxes on adjacent blocks commute (binary interchange +
-    -- units).  `slide-past` fires the right box first, `slide-past'` the left.
+    -- The `Monoidal StrictR` instance
     --------------------------------------------------------------------------------
-    slide-past : ∀ {ay by : List X} (u : WTerm ay by) {c d : List X} (w : WTerm c d) → (u ⊗ʷ idʷ {n = d}) ∘ʷ (idʷ {n = ay} ⊗ʷ w) ≈ʷ u ⊗ʷ w
-    slide-past u w = begin (u ⊗ʷ idʷ) ∘ʷ (idʷ ⊗ʷ w) ≈⟨ inter ⟨ (u ∘ʷ idʷ) ⊗ʷ (idʷ ∘ʷ w) ≈⟨ ⊗-resp-≈ʷ idʳ idˡ ⟩ u ⊗ʷ w ∎
+    module _ ⦃ _ : DecEq X ⦄ where
+      -- two `coeʷ`s of the same List-equality agree (Hedberg irrelevance)
+      coeʷ-irr : (e e' : m ≡ m') → coeʷ e ≈ʷ coeʷ e'
+      coeʷ-irr e e' = ≡→≈ʷ (castʷ-irr e e' idʷ)
 
-    slide-past' : ∀ {ay by : List X} (u : WTerm ay by) {c d : List X} (w : WTerm c d) → (idʷ {n = by} ⊗ʷ w) ∘ʷ (u ⊗ʷ idʷ {n = c}) ≈ʷ u ⊗ʷ w
-    slide-past' u w = begin (idʷ ⊗ʷ w) ∘ʷ (u ⊗ʷ idʷ) ≈⟨ inter ⟨ (idʷ ∘ʷ u) ⊗ʷ (w ∘ʷ idʷ) ≈⟨ ⊗-resp-≈ʷ idˡ idʳ ⟩ u ⊗ʷ w ∎
+      -- right-unitor / associator naturality: the `unitʳ` / `⊗-assoc` axiom
+      -- moved to the caller's `castʷ`-form through the two `coeʷ` bridges.
+      unitorʳ-commuteˢ : {f : WTerm n m}
+                       → coeʷ (++-identityʳ m) ∘ʷ (f ⊗ʷ idʷ {n = []}) ≈ʷ f ∘ʷ coeʷ (++-identityʳ n)
+      unitorʳ-commuteˢ {n} {m} {f} = begin
+        coeʷ (++-identityʳ m) ∘ʷ (f ⊗ʷ idʷ)
+          ≈⟨ coeʷ-∘ (++-identityʳ m) (f ⊗ʷ idʷ) ⟩
+        castʷ (++-identityʳ m) (f ⊗ʷ idʷ)
+          ≈⟨ transʷ (≡→≈ʷ (sym (castʷᵈ-symˡ (++-identityʳ n) _)))
+                    (castʷᵈ-resp (sym (++-identityʳ n)) (unitʳ f)) ⟩
+        castʷᵈ (sym (++-identityʳ n)) f
+          ≈⟨ coeʷ-∘ʳ (++-identityʳ n) f ⟨
+        f ∘ʷ coeʷ (++-identityʳ n) ∎
 
-    -- the idle prefix / suffix distributes over composition: `idʷ p ⊗ʷ_` (and
-    -- `_⊗ʷ idʷ r`) is a functor, by interchange against a split identity.  Both
-    -- are cast-free.
-    id⊗-∘ˢ : (p : List X) (g : WTerm m k) (f : WTerm n m) → idʷ {n = p} ⊗ʷ (g ∘ʷ f) ≈ʷ (idʷ {n = p} ⊗ʷ g) ∘ʷ (idʷ {n = p} ⊗ʷ f)
-    id⊗-∘ˢ p g f = transʷ (⊗-resp-≈ʷ (symʷ idˡ) reflʷ) inter
+      assoc-commuteˢ : ∀ {n₁ m₁ n₂ m₂ n₃ m₃}
+                         {f : WTerm n₁ m₁} {g : WTerm n₂ m₂} {h : WTerm n₃ m₃}
+                     → coeʷ (++-assoc m₁ m₂ m₃) ∘ʷ ((f ⊗ʷ g) ⊗ʷ h)
+                       ≈ʷ (f ⊗ʷ (g ⊗ʷ h)) ∘ʷ coeʷ (++-assoc n₁ n₂ n₃)
+      assoc-commuteˢ {n₁} {m₁} {n₂} {m₂} {n₃} {m₃} {f} {g} {h} = begin
+        coeʷ (++-assoc m₁ m₂ m₃) ∘ʷ ((f ⊗ʷ g) ⊗ʷ h)
+          ≈⟨ coeʷ-∘ (++-assoc m₁ m₂ m₃) ((f ⊗ʷ g) ⊗ʷ h) ⟩
+        castʷ (++-assoc m₁ m₂ m₃) ((f ⊗ʷ g) ⊗ʷ h)
+          ≈⟨ transʷ (≡→≈ʷ (sym (castʷᵈ-symˡ (++-assoc n₁ n₂ n₃) _)))
+                    (castʷᵈ-resp (sym (++-assoc n₁ n₂ n₃)) (⊗-assoc f g h)) ⟩
+        castʷᵈ (sym (++-assoc n₁ n₂ n₃)) (f ⊗ʷ (g ⊗ʷ h))
+          ≈⟨ coeʷ-∘ʳ (++-assoc n₁ n₂ n₃) (f ⊗ʷ (g ⊗ʷ h)) ⟨
+        (f ⊗ʷ (g ⊗ʷ h)) ∘ʷ coeʷ (++-assoc n₁ n₂ n₃) ∎
 
-    ⊗id-∘ˢ : (r : List X) (g : WTerm m k) (f : WTerm n m) → (g ∘ʷ f) ⊗ʷ idʷ {n = r} ≈ʷ (g ⊗ʷ idʷ {n = r}) ∘ʷ (f ⊗ʷ idʷ {n = r})
-    ⊗id-∘ˢ r g f = transʷ (⊗-resp-≈ʷ reflʷ (symʷ idˡ)) inter
+      -- triangle / pentagon: each structural morphism is a `coeʷ` (or a
+      -- whiskered one, lifted by `coeʷ-⊗ˡ`/`coeʷ-⊗ʳ` + `id⊗id`), so each side
+      -- is a single `coeʷ` and the two sides agree by `coeʷ-irr`.
+      triangleˢ : {x y : List X}
+                → (idʷ {n = x} ⊗ʷ idʷ) ∘ʷ coeʷ (++-assoc x [] y)
+                  ≈ʷ coeʷ (++-identityʳ x) ⊗ʷ idʷ {n = y}
+      triangleˢ {x} {y} = begin
+        (idʷ {n = x} ⊗ʷ idʷ) ∘ʷ coeʷ (++-assoc x [] y)
+          ≈⟨ ∘-resp-≈ id⊗id reflʷ ⟩
+        idʷ ∘ʷ coeʷ (++-assoc x [] y)
+          ≈⟨ idˡ ⟩
+        coeʷ (++-assoc x [] y)
+          ≈⟨ coeʷ-irr (++-assoc x [] y) (cong (_++ y) (++-identityʳ x)) ⟩
+        coeʷ (cong (_++ y) (++-identityʳ x))
+          ≈⟨ coeʷ-⊗ˡ (++-identityʳ x) y ⟨
+        coeʷ (++-identityʳ x) ⊗ʷ idʷ {n = y} ∎
+
+      pentagonˢ : {x y z w : List X}
+                → (idʷ {n = x} ⊗ʷ coeʷ (++-assoc y z w))
+                    ∘ʷ (coeʷ (++-assoc x (y ++ z) w) ∘ʷ (coeʷ (++-assoc x y z) ⊗ʷ idʷ {n = w}))
+                  ≈ʷ coeʷ (++-assoc x y (z ++ w)) ∘ʷ coeʷ (++-assoc (x ++ y) z w)
+      pentagonˢ {x} {y} {z} {w} = begin
+        (idʷ ⊗ʷ coeʷ aYZW) ∘ʷ (coeʷ aXYZ,W ∘ʷ (coeʷ aXYZ ⊗ʷ idʷ))
+          ≈⟨ ∘-resp-≈ (coeʷ-⊗ʳ x aYZW) (∘-resp-≈ reflʷ (coeʷ-⊗ˡ aXYZ w)) ⟩
+        coeʷ (cong (x ++_) aYZW) ∘ʷ (coeʷ aXYZ,W ∘ʷ coeʷ (cong (_++ w) aXYZ))
+          ≈⟨ ∘-resp-≈ reflʷ (coeʷ-fuse (cong (_++ w) aXYZ) aXYZ,W) ⟩
+        coeʷ (cong (x ++_) aYZW) ∘ʷ coeʷ (trans (cong (_++ w) aXYZ) aXYZ,W)
+          ≈⟨ coeʷ-fuse (trans (cong (_++ w) aXYZ) aXYZ,W) (cong (x ++_) aYZW) ⟩
+        coeʷ (trans (trans (cong (_++ w) aXYZ) aXYZ,W) (cong (x ++_) aYZW))
+          ≈⟨ coeʷ-irr _ _ ⟩
+        coeʷ (trans aXY,Z,W aXY,ZW)
+          ≈⟨ coeʷ-fuse aXY,Z,W aXY,ZW ⟨
+        coeʷ aXY,ZW ∘ʷ coeʷ aXY,Z,W ∎
+        where
+          aYZW    = ++-assoc y z w
+          aXYZ,W  = ++-assoc x (y ++ z) w
+          aXYZ    = ++-assoc x y z
+          aXY,ZW  = ++-assoc x y (z ++ w)
+          aXY,Z,W = ++-assoc (x ++ y) z w
+
+      MonoidalStrictR : Monoidal StrictR
+      MonoidalStrictR = monoidalHelper StrictR record
+        { ⊗ = record
+            { F₀           = uncurry _++_
+            ; F₁           = uncurry _⊗ʷ_
+            ; identity     = id⊗id
+            ; homomorphism = inter
+            ; F-resp-≈     = uncurry ⊗-resp-≈ʷ
+            }
+        ; unit            = []
+        ; unitorˡ         = record { from = idʷ ; to = idʷ ; iso = record { isoˡ = idˡ ; isoʳ = idˡ } }
+        ; unitorʳ         = λ {x} → record
+            { from = coeʷ (++-identityʳ x) ; to = coeʷ (sym (++-identityʳ x))
+            ; iso  = record { isoˡ = coeʷ-isoˡ (++-identityʳ x) ; isoʳ = coeʷ-isoʳ (++-identityʳ x) } }
+        ; associator      = λ {x} {y} {z} → record
+            { from = coeʷ (++-assoc x y z) ; to = coeʷ (sym (++-assoc x y z))
+            ; iso  = record { isoˡ = coeʷ-isoˡ (++-assoc x y z) ; isoʳ = coeʷ-isoʳ (++-assoc x y z) } }
+        ; unitorˡ-commute = λ {_ _ f} → transʷ idˡ (transʷ (unitˡ f) (symʷ idʳ))
+        ; unitorʳ-commute = unitorʳ-commuteˢ
+        ; assoc-commute   = assoc-commuteˢ
+        ; triangle        = triangleˢ
+        ; pentagon        = pentagonˢ
+        }
+
+      -- generic tensor vocabulary over the instance, re-exported so the pad
+      -- functoriality proofs and the disjoint-block slides read in library terms.
+      open MonR MonoidalStrictR public using (serialize₁₂; serialize₂₁; split₁ʳ; split₂ʳ)
 
     --------------------------------------------------------------------------------
     -- `padʷ pre suf` as a functor: congruence (`pad-respˢ`), preservation of
-    -- composition (`pad-∘ˢ`) and identity (`pad-idˢ`), all cast-free; plus the
-    -- pad-fusion `pad-fuseˢ` (a wider pad regrouped into a pad-of-pad, up to the
-    -- two `++`-assoc transports the caller supplies, reconciled by Hedberg).
+    -- composition (`pad-∘ˢ`, distributing each idle block via the library
+    -- `split₁ʳ`/`split₂ʳ`, hence `⦃ DecEq X ⦄`) and identity (`pad-idˢ`).
     --------------------------------------------------------------------------------
     pad-respˢ : (p s : List X) {a b : List X} {g g' : WTerm a b} → g ≈ʷ g' → padʷ p s g ≈ʷ padʷ p s g'
     pad-respˢ p s e = ⊗-resp-≈ʷ reflʷ (⊗-resp-≈ʷ e reflʷ)
 
-    pad-∘ˢ : (p s : List X) (g : WTerm m k) (f : WTerm n m) → padʷ p s (g ∘ʷ f) ≈ʷ padʷ p s g ∘ʷ padʷ p s f
-    pad-∘ˢ p s g f = transʷ (⊗-resp-≈ʷ reflʷ (⊗id-∘ˢ s g f)) (id⊗-∘ˢ p (g ⊗ʷ idʷ {n = s}) (f ⊗ʷ idʷ {n = s}))
+    pad-∘ˢ : ⦃ _ : DecEq X ⦄ → (p s : List X) (g : WTerm m k) (f : WTerm n m) → padʷ p s (g ∘ʷ f) ≈ʷ padʷ p s g ∘ʷ padʷ p s f
+    pad-∘ˢ p s g f = transʷ (⊗-resp-≈ʷ reflʷ split₁ʳ) split₂ʳ
 
     pad-idˢ : (p s : List X) → padʷ p s (idʷ {n = n}) ≈ʷ idʷ
     pad-idˢ p s = transʷ (⊗-resp-≈ʷ reflʷ id⊗id) id⊗id
 
-    pad-fuseˢ : ⦃ _ : DecEq X ⦄
-              → (px sx P s : List X) {a b : List X} (g : WTerm a b)
-                (dd : px ++ ((P ++ (a ++ s)) ++ sx) ≡ (px ++ P) ++ (a ++ (s ++ sx)))
-                (dc : px ++ ((P ++ (b ++ s)) ++ sx) ≡ (px ++ P) ++ (b ++ (s ++ sx)))
-              → padʷ (px ++ P) (s ++ sx) g
-                ≈ʷ castʷᵈ dd (castʷ dc (padʷ px sx (padʷ P s g)))
-    pad-fuseˢ px sx P s {a} {b} g dd dc = begin
-      padʷ (px ++ P) (s ++ sx) g
-        ≈⟨ pad-nest px P (s ++ sx) g ⟩
-      castʷᵈ eD₁ (castʷ eC₁ (idʷ {n = px} ⊗ʷ padʷ P (s ++ sx) g))
-        ≈⟨ castʷᵈ-resp eD₁ (castʷ-resp eC₁ (⊗-resp-≈ʷ reflʷ (pad-nestR P s sx g fD fC))) ⟩
-      castʷᵈ eD₁ (castʷ eC₁ (idʷ {n = px} ⊗ʷ castʷᵈ fD (castʷ fC (padʷ P s g ⊗ʷ idʷ {n = sx}))))
-        ≈⟨ ≡→≈ʷ (cong (λ z → castʷᵈ eD₁ (castʷ eC₁ z)) (⊗ʷ-cast-pair-r fD fC (idʷ {n = px}) Z)) ⟩
-      castʷᵈ eD₁ (castʷ eC₁ (castʷᵈ (cong (px ++_) fD) (castʷ (cong (px ++_) fC) core)))
-        ≈⟨ ≡→≈ʷ (recastʷ eD₁ (cong (px ++_) fD) eC₁ (cong (px ++_) fC) dd dc core) ⟩
-      castʷᵈ dd (castʷ dc core) ∎
-      where
-        eD₁ = sym (++-assoc px P (a ++ (s ++ sx)))
-        eC₁ = sym (++-assoc px P (b ++ (s ++ sx)))
-        fD  = trans (++-assoc P (a ++ s) sx) (cong (P ++_) (++-assoc a s sx))
-        fC  = trans (++-assoc P (b ++ s) sx) (cong (P ++_) (++-assoc b s sx))
-        Z   = padʷ P s g ⊗ʷ idʷ {n = sx}
-        -- `idʷ px ⊗ʷ Z` is `padʷ px sx (padʷ P s g)` = `core` DEFINITIONALLY.
-        core = padʷ px sx (padʷ P s g)
+    --------------------------------------------------------------------------------
+    -- The pad-conjugation relation `≋`: `t ≋ t'` when `t` is `t'` up to a
+    -- domain/codomain `++`-associativity transport pair.  The regather / push /
+    -- endo-cast-irr glue of the pad regroupings is factored ONCE into the `≋` kit
+    -- (`≋-trans`, `≋-cong-pad`, `≋-cong-⊗ʳ`, `≋→cast-formˢ`); the regroupings are
+    -- then cast-free compositional `≋` statements, and the callers' explicit-cast
+    -- lemmas are thin wrappers over them.
+    --------------------------------------------------------------------------------
+    record _≋_ {n₀ m₀ n₂ m₂ : List X} (t : WTerm n₀ m₀) (t' : WTerm n₂ m₂) : Set where
+      constructor mk≋
+      field
+        dEq : n₀ ≡ n₂
+        cEq : m₀ ≡ m₂
+        eqʷ : castʷᵈ dEq (castʷ cEq t) ≈ʷ t'
+    open _≋_
+
+    private
+      uncastᴶ : ∀ {p p' q q'} (d : p ≡ p') (c : q ≡ q') (t : WTerm p q)
+              → castʷᵈ (sym d) (castʷ (sym c) (castʷᵈ d (castʷ c t))) ≡ t
+      uncastᴶ refl refl t = refl
+
+    ≈ʷ→≋ : {t t' : WTerm n m} → t ≈ʷ t' → t ≋ t'
+    ≈ʷ→≋ p = mk≋ refl refl p
+
+    ≋-sym : {t : WTerm n m} {t' : WTerm n' m'} → t ≋ t' → t' ≋ t
+    ≋-sym {t = t} (mk≋ d c eq) = mk≋ (sym d) (sym c)
+      (transʷ (castʷᵈ-resp (sym d) (castʷ-resp (sym c) (symʷ eq))) (≡→≈ʷ (uncastᴶ d c t)))
+
+    ≋-trans : {t : WTerm n m} {t' : WTerm n' m'} {t'' : WTerm k' m''}
+            → t ≋ t' → t' ≋ t'' → t ≋ t''
+    ≋-trans {t = t} (mk≋ d₁ c₁ eq₁) (mk≋ d₂ c₂ eq₂) = mk≋ (trans d₁ d₂) (trans c₁ c₂)
+      (transʷ (≡→≈ʷ (sym (regather d₂ d₁ c₂ c₁ t)))
+              (transʷ (castʷᵈ-resp d₂ (castʷ-resp c₂ eq₁)) eq₂))
+
+    ⊗-assocᴶ : ∀ {n₁ m₁ n₂ m₂ n₃ m₃} (f : WTerm n₁ m₁) (g : WTerm n₂ m₂) (h : WTerm n₃ m₃)
+             → ((f ⊗ʷ g) ⊗ʷ h) ≋ (f ⊗ʷ (g ⊗ʷ h))
+    ⊗-assocᴶ {n₁} {m₁} {n₂} {m₂} {n₃} {m₃} f g h =
+      mk≋ (++-assoc n₁ n₂ n₃) (++-assoc m₁ m₂ m₃) (⊗-assoc f g h)
+
+    ≋-cong-⊗ʳ : (s : WTerm nl ml) {t : WTerm n m} {t' : WTerm n' m'}
+              → t ≋ t' → (s ⊗ʷ t) ≋ (s ⊗ʷ t')
+    ≋-cong-⊗ʳ s {t = t} (mk≋ d c eq) = mk≋ (cong (_ ++_) d) (cong (_ ++_) c)
+      (transʷ (≡→≈ʷ (sym (⊗ʷ-cast-pair-r d c s t))) (⊗-resp-≈ʷ reflʷ eq))
+
+    ≋-cong-pad : (p s : List X) {t : WTerm n m} {t' : WTerm n' m'}
+               → t ≋ t' → padʷ p s t ≋ padʷ p s t'
+    ≋-cong-pad p s {t = t} (mk≋ d c eq) =
+      mk≋ (cong (λ z → p ++ (z ++ s)) d) (cong (λ z → p ++ (z ++ s)) c)
+        (transʷ (≡→≈ʷ (sym (pad-castˢ p s d c t))) (pad-respˢ p s eq))
+
+    -- reindex a pad's idle suffix along `suf ≡ suf'`
+    padʷ-sufᴶ : (pre : List X) {suf suf' a b : List X} (e : suf ≡ suf') (g : WTerm a b)
+              → padʷ pre suf g ≋ padʷ pre suf' g
+    padʷ-sufᴶ pre {a = a} {b} e g =
+      mk≋ (cong (λ z → pre ++ (a ++ z)) e) (cong (λ z → pre ++ (b ++ z)) e)
+        (≡→≈ʷ (sym (padʷ-suf pre e g)))
 
     --------------------------------------------------------------------------------
-    -- The two padded-box regroupings the σ naturality-slide re-cleanings consume.
-    -- A box padded on the LEFT by an idle `a`-block (`idʷ a ⊗ʷ padʷ p₁ s₁ g`)
-    -- and then by `px/sx`, is the single clean pad at the fused prefix
-    -- `px ++ (a ++ p₁)` / suffix `s₁ ++ sx` (`pad-absorbLˢ`); dually a box padded
-    -- on the RIGHT by `idʷ a` collapses to the pad at prefix `px ++ p₁` / suffix
-    -- `s₁ ++ (a ++ sx)` (`pad-absorbRˢ`).  Both up to the two caller-supplied
-    -- `++`-assoc transports (reconciled by Hedberg), pure `pad-fuseˢ` +
-    -- `pad-nest`/`pad-nestR` + `pad-castˢ` regrouping.
-    private
-      fuseEqˢ : ∀ (px P x s sx : List X) → px ++ ((P ++ (x ++ s)) ++ sx) ≡ (px ++ P) ++ (x ++ (s ++ sx))
-      fuseEqˢ px P x s sx = trans (cong (px ++_) (++-assoc P (x ++ s) sx)) (trans (sym (++-assoc px P ((x ++ s) ++ sx))) (cong ((px ++ P) ++_) (++-assoc x s sx)))
+    -- The pad regroupings as cast-free `≋` statements: `pad-nestᴶ` at a split
+    -- prefix, `pad-nestRᴶ` at a split suffix, `pad-fuseᴶ` fusing a wide pad into a
+    -- pad-of-pad, `nest3ᴶ` the threefold nesting, and the two `pad-absorb_ᴶ`
+    -- collapsing a box padded on one side then re-padded.  Each is `⊗-assocᴶ` +
+    -- `id⊗id` composed through the `≋` kit.
+    --------------------------------------------------------------------------------
+    pad-nestᴶ : (p q suf : List X) {a b : List X} (g : WTerm a b)
+              → padʷ (p ++ q) suf g ≋ (idʷ {n = p} ⊗ʷ padʷ q suf g)
+    pad-nestᴶ p q suf g =
+      ≋-trans (≈ʷ→≋ (⊗-resp-≈ʷ (symʷ id⊗id) reflʷ))
+              (⊗-assocᴶ (idʷ {n = p}) (idʷ {n = q}) (g ⊗ʷ idʷ {n = suf}))
 
-    pad-absorbLˢ : ⦃ _ : DecEq X ⦄
-                 → (px sx a p₁ s₁ : List X) {u v : List X} (g : WTerm u v)
-                   (eD : (px ++ (a ++ p₁)) ++ (u ++ (s₁ ++ sx))
-                       ≡ px ++ ((a ++ (p₁ ++ (u ++ s₁))) ++ sx))
-                   (eC : (px ++ (a ++ p₁)) ++ (v ++ (s₁ ++ sx))
-                       ≡ px ++ ((a ++ (p₁ ++ (v ++ s₁))) ++ sx))
-                 → padʷ px sx (idʷ {n = a} ⊗ʷ padʷ p₁ s₁ g)
-                   ≈ʷ castʷᵈ eD (castʷ eC (padʷ (px ++ (a ++ p₁)) (s₁ ++ sx) g))
-    pad-absorbLˢ px sx a p₁ s₁ {u} {v} g eD eC = symʷ (begin
-      castʷᵈ eD (castʷ eC wide)
-        ≈⟨ castʷᵈ-resp eD (castʷ-resp eC (pad-fuseˢ px sx (a ++ p₁) s₁ g (fuseEqˢ px (a ++ p₁) u s₁ sx) (fuseEqˢ px (a ++ p₁) v s₁ sx))) ⟩
-      castʷᵈ eD (castʷ eC (castʷᵈ fD (castʷ fC pop)))
-        ≈⟨ ≡→≈ʷ (regather eD fD eC fC pop) ⟩
-      castʷᵈ (trans fD eD) (castʷ (trans fC eC) pop)
-        ≈⟨ castʷᵈ-resp (trans fD eD) (castʷ-resp (trans fC eC) (pad-respˢ px sx (pad-nest a p₁ s₁ g))) ⟩
-      castʷᵈ (trans fD eD) (castʷ (trans fC eC) (padʷ px sx (castʷᵈ D0 (castʷ C0 gα))))
-        ≈⟨ castʷᵈ-resp (trans fD eD) (castʷ-resp (trans fC eC) (≡→≈ʷ (pad-castˢ px sx D0 C0 gα))) ⟩
-      castʷᵈ (trans fD eD) (castʷ (trans fC eC) (castʷᵈ D1 (castʷ C1 (padʷ px sx gα))))
-        ≈⟨ ≡→≈ʷ (recastʷ (trans fD eD) D1 (trans fC eC) C1 refl refl (padʷ px sx gα)) ⟩
-      padʷ px sx gα ∎)
-      where
-        wide = padʷ (px ++ (a ++ p₁)) (s₁ ++ sx) g
-        gα   = idʷ {n = a} ⊗ʷ padʷ p₁ s₁ g
-        pop  = padʷ px sx (padʷ (a ++ p₁) s₁ g)
-        fD = fuseEqˢ px (a ++ p₁) u s₁ sx
-        fC = fuseEqˢ px (a ++ p₁) v s₁ sx
-        D0 = sym (++-assoc a p₁ (u ++ s₁))
-        C0 = sym (++-assoc a p₁ (v ++ s₁))
-        D1 = cong (λ z → px ++ (z ++ sx)) D0
-        C1 = cong (λ z → px ++ (z ++ sx)) C0
+    pad-nestRᴶ : (pre suf rt : List X) {a b : List X} (g : WTerm a b)
+               → padʷ pre (suf ++ rt) g ≋ (padʷ pre suf g ⊗ʷ idʷ {n = rt})
+    pad-nestRᴶ pre suf rt g =
+      ≋-trans (≈ʷ→≋ (⊗-resp-≈ʷ reflʷ (⊗-resp-≈ʷ reflʷ (symʷ id⊗id))))
+        (≋-trans (≋-cong-⊗ʳ (idʷ {n = pre}) (≋-sym (⊗-assocᴶ g (idʷ {n = suf}) (idʷ {n = rt}))))
+                 (≋-sym (⊗-assocᴶ (idʷ {n = pre}) (g ⊗ʷ idʷ {n = suf}) (idʷ {n = rt}))))
 
-    pad-absorbRˢ : ⦃ _ : DecEq X ⦄
-                 → (px sx a p₁ s₁ : List X) {u v : List X} (g : WTerm u v)
-                   (eD : (px ++ p₁) ++ (u ++ (s₁ ++ (a ++ sx)))
-                       ≡ px ++ (((p₁ ++ (u ++ s₁)) ++ a) ++ sx))
-                   (eC : (px ++ p₁) ++ (v ++ (s₁ ++ (a ++ sx)))
-                       ≡ px ++ (((p₁ ++ (v ++ s₁)) ++ a) ++ sx))
-                 → padʷ px sx (padʷ p₁ s₁ g ⊗ʷ idʷ {n = a})
-                   ≈ʷ castʷᵈ eD (castʷ eC (padʷ (px ++ p₁) (s₁ ++ (a ++ sx)) g))
-    pad-absorbRˢ px sx a p₁ s₁ {u} {v} g eD eC = symʷ (begin
-      castʷᵈ eD (castʷ eC widR)
-        ≈⟨ castʷᵈ-resp eD (castʷ-resp eC (≡→≈ʷ (padʷ-suf (px ++ p₁) esuf g))) ⟩
-      castʷᵈ eD (castʷ eC (castʷᵈ SD (castʷ SC widR')))
-        ≈⟨ ≡→≈ʷ (regather eD SD eC SC widR') ⟩
-      castʷᵈ (trans SD eD) (castʷ (trans SC eC) widR')
-        ≈⟨ castʷᵈ-resp (trans SD eD) (castʷ-resp (trans SC eC) (pad-fuseˢ px sx p₁ (s₁ ++ a) g (fuseEqˢ px p₁ u (s₁ ++ a) sx) (fuseEqˢ px p₁ v (s₁ ++ a) sx))) ⟩
-      castʷᵈ (trans SD eD) (castʷ (trans SC eC) (castʷᵈ fD (castʷ fC pop')))
-        ≈⟨ ≡→≈ʷ (regather (trans SD eD) fD (trans SC eC) fC pop') ⟩
-      castʷᵈ (trans fD (trans SD eD)) (castʷ (trans fC (trans SC eC)) pop')
-        ≈⟨ castʷᵈ-resp (trans fD (trans SD eD)) (castʷ-resp (trans fC (trans SC eC)) (pad-respˢ px sx (pad-nestR p₁ s₁ a g (ListExt.++-assoc-mid p₁ u s₁ a) (ListExt.++-assoc-mid p₁ v s₁ a)))) ⟩
-      castʷᵈ (trans fD (trans SD eD)) (castʷ (trans fC (trans SC eC)) (padʷ px sx (castʷᵈ RD (castʷ RC gβ))))
-        ≈⟨ castʷᵈ-resp (trans fD (trans SD eD)) (castʷ-resp (trans fC (trans SC eC)) (≡→≈ʷ (pad-castˢ px sx RD RC gβ))) ⟩
-      castʷᵈ (trans fD (trans SD eD)) (castʷ (trans fC (trans SC eC)) (castʷᵈ RD1 (castʷ RC1 (padʷ px sx gβ))))
-        ≈⟨ ≡→≈ʷ (recastʷ (trans fD (trans SD eD)) RD1 (trans fC (trans SC eC)) RC1 refl refl (padʷ px sx gβ)) ⟩
-      padʷ px sx gβ ∎)
-      where
-        widR  = padʷ (px ++ p₁) (s₁ ++ (a ++ sx)) g
-        widR' = padʷ (px ++ p₁) ((s₁ ++ a) ++ sx) g
-        pop'  = padʷ px sx (padʷ p₁ (s₁ ++ a) g)
-        gβ    = padʷ p₁ s₁ g ⊗ʷ idʷ {n = a}
-        esuf  = ++-assoc s₁ a sx
-        SD = cong (λ z → (px ++ p₁) ++ (u ++ z)) esuf
-        SC = cong (λ z → (px ++ p₁) ++ (v ++ z)) esuf
-        fD = fuseEqˢ px p₁ u (s₁ ++ a) sx
-        fC = fuseEqˢ px p₁ v (s₁ ++ a) sx
-        RD = ListExt.++-assoc-mid p₁ u s₁ a
-        RC = ListExt.++-assoc-mid p₁ v s₁ a
-        RD1 = cong (λ z → px ++ (z ++ sx)) RD
-        RC1 = cong (λ z → px ++ (z ++ sx)) RC
+    pad-fuseᴶ : (px sx P s : List X) {a b : List X} (g : WTerm a b)
+              → padʷ (px ++ P) (s ++ sx) g ≋ padʷ px sx (padʷ P s g)
+    pad-fuseᴶ px sx P s g =
+      ≋-trans (pad-nestᴶ px P (s ++ sx) g) (≋-cong-⊗ʳ (idʷ {n = px}) (pad-nestRᴶ P s sx g))
 
+    nest3ᴶ : (p q r suf : List X) {a b : List X} (g : WTerm a b)
+           → padʷ (p ++ (q ++ r)) suf g ≋ (idʷ {n = p} ⊗ʷ (idʷ {n = q} ⊗ʷ padʷ r suf g))
+    nest3ᴶ p q r suf g =
+      ≋-trans (pad-nestᴶ p (q ++ r) suf g) (≋-cong-⊗ʳ (idʷ {n = p}) (pad-nestᴶ q r suf g))
+
+    pad-absorbLᴶ : (px sx a p₁ s₁ : List X) {u v : List X} (g : WTerm u v)
+                 → padʷ px sx (idʷ {n = a} ⊗ʷ padʷ p₁ s₁ g) ≋ padʷ (px ++ (a ++ p₁)) (s₁ ++ sx) g
+    pad-absorbLᴶ px sx a p₁ s₁ g =
+      ≋-trans (≋-cong-pad px sx (≋-sym (pad-nestᴶ a p₁ s₁ g)))
+              (≋-sym (pad-fuseᴶ px sx (a ++ p₁) s₁ g))
+
+    pad-absorbRᴶ : (px sx a p₁ s₁ : List X) {u v : List X} (g : WTerm u v)
+                 → padʷ px sx (padʷ p₁ s₁ g ⊗ʷ idʷ {n = a}) ≋ padʷ (px ++ p₁) (s₁ ++ (a ++ sx)) g
+    pad-absorbRᴶ px sx a p₁ s₁ g =
+      ≋-trans (≋-cong-pad px sx (≋-sym (pad-nestRᴶ p₁ s₁ a g)))
+        (≋-trans (≋-sym (pad-fuseᴶ px sx p₁ (s₁ ++ a) g))
+                 (padʷ-sufᴶ (px ++ p₁) (++-assoc s₁ a sx) g))
+
+    -- the explicit-cast wrapper Diagram.shiftL-soundˢ consumes: canonical
+    -- `++-assoc` endpoints, so no Hedberg reconciliation (instance-free).
+    pad-nest : (p q suf : List X) {a b : List X} (g : WTerm a b)
+             → padʷ (p ++ q) suf g
+               ≈ʷ castʷᵈ (sym (++-assoc p q (a ++ suf)))
+                    (castʷ (sym (++-assoc p q (b ++ suf))) (idʷ {n = p} ⊗ʷ padʷ q suf g))
+    pad-nest p q suf g = symʷ (eqʷ (≋-sym (pad-nestᴶ p q suf g)))
+
+    --------------------------------------------------------------------------------
+    -- The explicit-cast wrappers whose caller supplies the transports; the caller
+    -- pair is reconciled to the `≋`-record's canonical pair by Hedberg
+    -- irrelevance (`≋→cast-formˢ`), so these carry the `⦃ DecEq X ⦄`.  `pad-nestR`
+    -- feeds Diagram.shiftR-soundˢ, `nest3` feeds `swap-cleanˢ`, and the two
+    -- `pad-absorb_ˢ` feed Sigma.slide-cleanˢ/-a.
+    --------------------------------------------------------------------------------
+    module _ ⦃ _ : DecEq X ⦄ where
+      ≋→cast-formˢ : {t : WTerm n m} {t' : WTerm n' m'} → t ≋ t'
+                   → (eD : n ≡ n') (eC : m ≡ m') → t' ≈ʷ castʷᵈ eD (castʷ eC t)
+      ≋→cast-formˢ {t = t} (mk≋ d c eq) eD eC =
+        transʷ (symʷ eq) (≡→≈ʷ (trans (cong (λ z → castʷᵈ z (castʷ c t)) (≡-irrL d eD))
+                                      (cong (λ z → castʷᵈ eD (castʷ z t)) (≡-irrL c eC))))
+
+      pad-nestR : (pre suf rt : List X) {a b : List X} (g : WTerm a b)
+                  (dd : (pre ++ (a ++ suf)) ++ rt ≡ pre ++ (a ++ (suf ++ rt)))
+                  (dc : (pre ++ (b ++ suf)) ++ rt ≡ pre ++ (b ++ (suf ++ rt)))
+                → padʷ pre (suf ++ rt) g ≈ʷ castʷᵈ dd (castʷ dc (padʷ pre suf g ⊗ʷ idʷ {n = rt}))
+      pad-nestR pre suf rt g dd dc = ≋→cast-formˢ (≋-sym (pad-nestRᴶ pre suf rt g)) dd dc
+
+      nest3 : (p q r suf : List X) {a b : List X} (g : WTerm a b)
+              (dd : p ++ (q ++ (r ++ (a ++ suf))) ≡ (p ++ (q ++ r)) ++ (a ++ suf))
+              (dc : p ++ (q ++ (r ++ (b ++ suf))) ≡ (p ++ (q ++ r)) ++ (b ++ suf))
+            → padʷ (p ++ (q ++ r)) suf g
+              ≈ʷ castʷᵈ dd (castʷ dc (idʷ {n = p} ⊗ʷ (idʷ {n = q} ⊗ʷ padʷ r suf g)))
+      nest3 p q r suf g dd dc = ≋→cast-formˢ (≋-sym (nest3ᴶ p q r suf g)) dd dc
+
+      pad-absorbLˢ : (px sx a p₁ s₁ : List X) {u v : List X} (g : WTerm u v)
+                     (eD : (px ++ (a ++ p₁)) ++ (u ++ (s₁ ++ sx)) ≡ px ++ ((a ++ (p₁ ++ (u ++ s₁))) ++ sx))
+                     (eC : (px ++ (a ++ p₁)) ++ (v ++ (s₁ ++ sx)) ≡ px ++ ((a ++ (p₁ ++ (v ++ s₁))) ++ sx))
+                   → padʷ px sx (idʷ {n = a} ⊗ʷ padʷ p₁ s₁ g)
+                     ≈ʷ castʷᵈ eD (castʷ eC (padʷ (px ++ (a ++ p₁)) (s₁ ++ sx) g))
+      pad-absorbLˢ px sx a p₁ s₁ g eD eC = ≋→cast-formˢ (≋-sym (pad-absorbLᴶ px sx a p₁ s₁ g)) eD eC
+
+      pad-absorbRˢ : (px sx a p₁ s₁ : List X) {u v : List X} (g : WTerm u v)
+                     (eD : (px ++ p₁) ++ (u ++ (s₁ ++ (a ++ sx))) ≡ px ++ (((p₁ ++ (u ++ s₁)) ++ a) ++ sx))
+                     (eC : (px ++ p₁) ++ (v ++ (s₁ ++ (a ++ sx))) ≡ px ++ (((p₁ ++ (v ++ s₁)) ++ a) ++ sx))
+                   → padʷ px sx (padʷ p₁ s₁ g ⊗ʷ idʷ {n = a})
+                     ≈ʷ castʷᵈ eD (castʷ eC (padʷ (px ++ p₁) (s₁ ++ (a ++ sx)) g))
+      pad-absorbRˢ px sx a p₁ s₁ g eD eC = ≋→cast-formˢ (≋-sym (pad-absorbRᴶ px sx a p₁ s₁ g)) eD eC
     -- The disjoint two-box interchange.  Two boxes `fy` (block `ay/by`, offset `P`) and `fx`
     -- (block `ax/bx`, offset `P ++ (·  ++ mid)`) sit in disjoint, non-crossing
     -- ranges of the flat wire word  P | y | mid | x | s , so the two firing
@@ -503,7 +579,7 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
             ≈⟨ inter ⟨
           (idʷ {n = P} ∘ʷ idʷ {n = P})
             ⊗ʷ ((boxʷ fy ⊗ʷ idʷ {n = mid ++ (bx ++ s)}) ∘ʷ (idʷ {n = ay} ⊗ʷ Fx))
-            ≈⟨ ⊗-resp-≈ʷ idˡ (slide-past (boxʷ fy) Fx) ⟩
+            ≈⟨ ⊗-resp-≈ʷ idˡ (symʷ serialize₁₂) ⟩
           idʷ {n = P} ⊗ʷ (boxʷ fy ⊗ʷ Fx) ∎
 
         fy-core' : (idʷ {n = P} ⊗ʷ (idʷ {n = by} ⊗ʷ Fx)) ∘ʷ FYi ≈ʷ CANON
@@ -513,7 +589,7 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
             ≈⟨ inter ⟨
           (idʷ {n = P} ∘ʷ idʷ {n = P})
             ⊗ʷ ((idʷ {n = by} ⊗ʷ Fx) ∘ʷ (boxʷ fy ⊗ʷ idʷ {n = mid ++ (ax ++ s)}))
-            ≈⟨ ⊗-resp-≈ʷ idˡ (slide-past' (boxʷ fy) Fx) ⟩
+            ≈⟨ ⊗-resp-≈ʷ idˡ (symʷ serialize₂₁) ⟩
           idʷ {n = P} ⊗ʷ (boxʷ fy ⊗ʷ Fx) ∎
 
         -- LHS: reduce the (cast-mediated) fx-layer to the nested core, then fire.

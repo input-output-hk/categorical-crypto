@@ -225,8 +225,8 @@ module DiagramI {v : Variant} {X : Set} (E : WireEngine v) where
     ∘ᵈ-soundˢ (pre ▸ suf ∷ f ⟨ d ⟩) d₂ = transʷ (∘-resp-≈ (∘ᵈ-soundˢ d d₂) reflʷ) assoc
 
     -- Prefix-shift: cast-free target `idʷ lt ⊗ʷ ⟦ d ⟧ˢ`; the two `substDiag`
-    -- transports and `pad-nest` reconcile the `++`-associativity, then
-    -- `id⊗-∘ˢ` distributes the idle prefix over the layer composite.
+    -- transports and `pad-nest` reconcile the `++`-associativity, then the
+    -- library `split₂ʳ` distributes the idle prefix over the layer composite.
     shiftL-soundˢ : ∀ {n m} (lt : List X) (d : Diag n m) → ⟦ shiftL lt d ⟧ˢ ≈ʷ idʷ ⊗ʷ ⟦ d ⟧ˢ
     shiftL-soundˢ lt ([]_ _) = symʷ id⊗id
     shiftL-soundˢ lt (_▸_∷_⟨_⟩ {a} {b} pre suf f d) = beginˢ
@@ -237,7 +237,7 @@ module DiagramI {v : Variant} {X : Set} (E : WireEngine v) where
       castʷᵈ E1 (castʷᵈ E2 (Id ⊗ʷ D) ∘ʷ castʷᵈ (sym E1) (castʷ E2 (Id ⊗ʷ PP)))
         ≈ˢ⟨ ≡→≈ʷ (∘ʷ-cast-cancelˡ E1 E2 (Id ⊗ʷ D) (Id ⊗ʷ PP)) ⟩
       (Id ⊗ʷ D) ∘ʷ (Id ⊗ʷ PP)
-        ≈ˢ⟨ id⊗-∘ˢ lt D PP ⟨
+        ≈ˢ⟨ split₂ʳ ⟨
       idʷ ⊗ʷ (D ∘ʷ PP) ∎ˢ
       where
         g  = boxʷ f
@@ -253,7 +253,7 @@ module DiagramI {v : Variant} {X : Set} (E : WireEngine v) where
         leftEq = transʷ (≡→≈ʷ (⟦substDiag⟧ˢ E2 (shiftL lt d)))
                         (castʷᵈ-resp E2 (shiftL-soundˢ lt d))
 
-    -- Suffix-shift: dual of the above, using `pad-nestR` and `⊗id-∘ˢ`.
+    -- Suffix-shift: dual of the above, using `pad-nestR` and the library `split₁ʳ`.
     shiftR-soundˢ : ∀ {n m} (rt : List X) (d : Diag n m) → ⟦ shiftR rt d ⟧ˢ ≈ʷ ⟦ d ⟧ˢ ⊗ʷ idʷ
     shiftR-soundˢ rt ([]_ _) = symʷ id⊗id
     shiftR-soundˢ rt (_▸_∷_⟨_⟩ {a} {b} pre suf f d) = beginˢ
@@ -264,7 +264,7 @@ module DiagramI {v : Variant} {X : Set} (E : WireEngine v) where
       castʷᵈ (sym E1) (castʷᵈ E2 A ∘ʷ castʷᵈ E1 (castʷ E2 B))
         ≈ˢ⟨ ≡→≈ʷ (∘ʷ-cast-cancelʳ E1 E2 A B) ⟩
       A ∘ʷ B
-        ≈ˢ⟨ ⊗id-∘ˢ rt D PP ⟨
+        ≈ˢ⟨ split₁ʳ ⟨
       (D ∘ʷ PP) ⊗ʷ idʷ ∎ˢ
       where
         g  = boxʷ f
@@ -280,13 +280,13 @@ module DiagramI {v : Variant} {X : Set} (E : WireEngine v) where
                         (castʷᵈ-resp E2 (shiftR-soundˢ rt d))
 
     -- Cast-free binary tensor soundness: `⊗ᵈ` fires the shifts and slides the
-    -- two disjoint blocks together (`slide-past'`).
+    -- two disjoint blocks together (the library `serialize₂₁`).
     ⊗ᵈ-soundˢ : ∀ {nl ml nr mr} (dl : Diag nl ml) (dr : Diag nr mr)
               → ⟦ dl ⊗ᵈ dr ⟧ˢ ≈ʷ ⟦ dl ⟧ˢ ⊗ʷ ⟦ dr ⟧ˢ
     ⊗ᵈ-soundˢ {nl} {ml} {nr} {mr} dl dr =
       transʷ (∘ᵈ-soundˢ (shiftR nr dl) (shiftL ml dr))
         (transʷ (∘-resp-≈ (shiftL-soundˢ ml dr) (shiftR-soundˢ nr dl))
-          (slide-past' ⟦ dl ⟧ˢ ⟦ dr ⟧ˢ))
+          (symʷ serialize₂₁))
 
     -- The single box: the `boxD` unit transports cancel against the right-unit
     -- axiom, so the strict statement is cast-free.

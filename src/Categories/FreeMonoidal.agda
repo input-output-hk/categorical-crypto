@@ -331,15 +331,6 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
       ○ refl⟩∘⟨ (insertInner (split∘merge v) ⟩∘⟨refl)
       ○ center⁻¹ ≈-Term-refl assoc
 
-    -- rpad commutes with the prefix
-    rpad-id⊗ : ∀ (rt : List X) (x : X) {u v} (h : HomTerm (wires u) (wires v))
-             → rpad rt (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ rpad rt h
-    rpad-id⊗ rt x {u} {v} h =
-      (assoc ○ (refl⟩∘⟨ assoc²εβ))
-      ○ refl⟩∘⟨ (α-conj (id {Var x}) h id ⟩∘⟨refl)
-      ○ refl⟩∘⟨ (id⊗-∘ (h ⊗₁ id) (split u))
-      ○ id⊗-∘ (merge v) ((h ⊗₁ id) ∘ split u)
-
     -- pad respects ≈.  `pad pre suf = liftW pre ∘ rpad suf` definitionally, so
     -- the pad functoriality lemmas factor through the liftW-*/rpad-* ones.
     pad-resp : ∀ {a b} (pre suf : List X) {g g' : HomTerm (wires a) (wires b)}
