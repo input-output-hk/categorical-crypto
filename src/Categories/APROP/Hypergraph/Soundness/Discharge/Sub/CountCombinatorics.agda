@@ -3,8 +3,7 @@
 --------------------------------------------------------------------------------
 -- Shared `count` / `extract-prefix` combinatorics leaf (H-agnostic).
 --
--- Generic lemmas over `List (Fin n)`, collected in one `--without-K` leaf so
--- both `--with-K` and `--without-K` consumers can import them.  `count` is
+-- Generic lemmas over `List (Fin n)`, collected in one leaf.  `count` is
 -- from `Soundness.Linearity`; `extract-elem`/`extract-prefix` from
 -- `Soundness.Decode`.
 --------------------------------------------------------------------------------

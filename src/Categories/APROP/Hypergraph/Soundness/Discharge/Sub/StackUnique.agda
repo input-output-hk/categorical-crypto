@@ -10,8 +10,8 @@
 -- comparison in one line.  (The uniqueness-FREE generic form is actually
 -- FALSE: a duplicated vertex breaks it.)
 --
--- Exports (postulate-free): `Unique-resp-↭` (`↭` preserves `Unique`, via a
--- `count≤1` bridge) and `residual-recon`.
+-- Exports (postulate-free): `count≤1⇒Unique`, `Unique-resp-↭` (`↭` preserves
+-- `Unique`, via a `count≤1` bridge), `Linear⇒cod-Unique`, and `residual-recon`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -126,10 +126,11 @@ Unique-resp-↭ : {xs ys : List (Fin n)} → xs Perm.↭ ys → Unique xs → Un
 Unique-resp-↭ p uxs = count≤1⇒Unique (λ v → subst (_≤ⁿ 1) (↭⇒count p v) (Unique⇒count≤1 uxs v))
 
 --------------------------------------------------------------------------------
--- 4.  The Fin-index `≅↭` family, closed by `eval-rigid`.
+-- 3.  The Fin-index `≅↭` family, closed by `eval-rigid`.
 
--- The drop-in for `StackEquivariance.residual-recon`, modulo a `Unique
--- (ks ++ rest)` hypothesis, using the REAL `extract-prefix-↭-residual`.
+-- Closes the eval-coincidence residual (consumed by `Strict/Interchange/
+-- StackEquiv`), modulo a `Unique (ks ++ rest)` hypothesis, via the real
+-- `extract-prefix-↭-residual`.
 residual-recon
   : ∀ {m} (ks xs rest : List (Fin m)) (perm-in : xs Perm.↭ ks ++ rest)
   → Unique (ks ++ rest)
@@ -145,7 +146,7 @@ residual-recon ks xs rest perm-in uniq =
   where st = extract-prefix-↭-residual ks xs rest perm-in
 
 --------------------------------------------------------------------------------
--- 5.  `Linear H ⇒ Unique (cod H)` (sig-level).  A linear hypergraph has a
+-- 4.  `Linear H ⇒ Unique (cod H)` (sig-level).  A linear hypergraph has a
 --     `count`-balanced, `count ≤ 1`-bounded codomain, hence a `Unique` one.
 
 Linear⇒cod-Unique : (H : Hypergraph FlatGen) → Linear H → Unique (Hypergraph.cod H)

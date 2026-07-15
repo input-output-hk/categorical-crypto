@@ -19,7 +19,7 @@
 -- The sole hypothesis `∀ v → count v (producedList H) ≤ 1` is the bound
 -- half of `Linear H`, so `Linear H` alone suffices.
 --
--- Downstream (`StackEquivariance`/`ResidualRecon`), the `Unique` codomain
+-- Downstream (`Strict/Interchange/StackEquiv`), the `Unique` codomain
 -- `eval-rigid` requires is a `↭`-image of the decoder stack, supplied by
 -- `Unique-resp-↭` once this lemma gives `Unique s`.
 --------------------------------------------------------------------------------

@@ -1,18 +1,12 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Term-free structural invariants for the decoder's `process-edges`.
---
--- SPIKE-TRUNCATED VERSION.  The heavyweight non-strict term-level separability
--- block (the old `module _ (H : Hypergraph FlatGen)`) has been removed: the
--- strict decoder re-proves separability natively, so the only consumers of this
--- module are the three term-free `Fin n`-list/permutation lemmas retained below
--- (`prefix-++ˡ-perm`, `extract-prefix-++ˡ`, `extract-prefix-++ˡ-nothing`),
--- imported by `Strict/Decode/Decoder.agda`.
---
--- This file PROVES (postulate-free, `--safe`) the structural invariant that
--- firing stays inside the prefix (`extract-elem-++ˡ`, `extract-prefix-++ˡ`,
--- and their `nothing`-mirrors).
+-- Term-free structural invariants for the decoder's `process-edges`
+-- (postulate-free, `--safe`): firing stays inside the prefix
+-- (`extract-elem-++ˡ`, `extract-prefix-++ˡ`, and their `nothing`-mirrors).
+-- The three `Fin n`-list/permutation lemmas `prefix-++ˡ-perm`,
+-- `extract-prefix-++ˡ`, `extract-prefix-++ˡ-nothing` are consumed by
+-- `Strict/Decode/Decoder.agda`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
