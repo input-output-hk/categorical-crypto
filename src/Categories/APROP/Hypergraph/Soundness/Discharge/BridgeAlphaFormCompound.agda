@@ -32,7 +32,6 @@ open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
         ; α⇒-form-list
         ; α⇐-form-list
         ; α⇒-α⇐-iso
-        ; α⇐-α⇒-iso
         ; pentagon-rewrite
         ; bridge-α⇒-form-Var
         ; bridge-α⇒-form-unit
@@ -51,9 +50,8 @@ import Data.Vec as Vec
 open Vec using (Vec)
 import Data.Fin as Fin
 open import Data.List using (List; []; _∷_; _++_)
-open import Data.Nat using (ℕ; zero; suc; _+_; _<_; _≤_; s≤s; z≤n)
-open import Data.Nat.Properties using (m≤m+n; m≤n+m; n<1+n; +-identityʳ; n≤1+n)
-open import Data.Nat.Induction using (<-wellFounded)
+open import Data.Nat using (ℕ; suc; _+_; _<_; _≤_; s≤s)
+open import Data.Nat.Properties using (m≤m+n; m≤n+m; n<1+n)
 open import Induction.WellFounded using (Acc; acc)
 
 private

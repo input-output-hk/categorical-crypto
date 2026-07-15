@@ -29,10 +29,10 @@ open import Categories.Coherence.Monoidal.Frontend using (module FinSetup)
 open import Data.Product using (_,_)
 open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F)
 import Data.Vec as Vec
-open import Data.List using (List; []; _∷_; _++_)
+open import Data.List using ([]; _∷_; _++_)
 open import Data.List.Properties using (++-assoc)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; sym; subst)
+  using (_≡_; refl; cong; subst)
 open import Relation.Binary.PropositionalEquality.Properties using (subst-∘)
 
 private

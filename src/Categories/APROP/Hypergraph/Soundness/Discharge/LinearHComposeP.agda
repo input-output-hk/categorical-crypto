@@ -18,7 +18,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Util.Prune
-  using ( count-non; nonMem; classify; remap
+  using ( count-non; classify; remap
         ; remap-inj₁; remap-inj₂; remap-injective
         ; classify-lookup-Unique; classify-inj₁-lookup
         ; lookup-injective-unique)
@@ -33,11 +33,11 @@ open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt; cast; toℕ)
 open import Data.Fin.Properties using
   ( _≟_
-  ; splitAt-↑ˡ; splitAt-↑ʳ; splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ
+  ; splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ
   ; toℕ-cast; toℕ-injective)
 open import Data.List as List using (List; []; _∷_; _++_; length; map; tabulate; concat; lookup)
 open import Data.List.Properties using
-  ( ++-identityʳ; ++-assoc; map-++
+  ( map-++
   ; tabulate-cong; map-tabulate; concat-map; concat-++)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
@@ -48,7 +48,7 @@ import Function as Fun
 open import Data.Nat using (ℕ; zero; suc; s≤s; z≤n; _+_)
 open import Data.Nat as Nat using ()
 import Data.Nat.Properties as Nat
-open import Data.Product using (Σ-syntax; ∃-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂; sym; trans; subst)
 open import Relation.Nullary.Decidable using (yes; no)
@@ -60,8 +60,7 @@ open import Relation.Binary.PropositionalEquality using (_≢_)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
   using ( count-cons-yes; count-cons-no
-        ; count-mono-cons; count-zero-empty; count-pos→split
-        ; count-cancel-cons; count-≡⇒↭; count-map-resp)
+        ; count-mono-cons; count-map-resp)
 
 private
 
@@ -114,7 +113,7 @@ module _
   private
     module G = Hypergraph G
     module K = Hypergraph K
-    open hComposeP-impl G K bdy-eq using ( remapP; lookup-cod; dom-cod-len; nV-P; injL )
+    open hComposeP-impl G K bdy-eq using ( remapP; lookup-cod; dom-cod-len; injL )
 
     G-bal = proj₁ lin-G
     G-bnd = proj₂ lin-G
