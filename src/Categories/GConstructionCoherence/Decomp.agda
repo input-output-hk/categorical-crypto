@@ -15,9 +15,8 @@
 --     only on the small (D , D') pair (1–3 boxes, ≤ ~19 morphisms).
 --------------------------------------------------------------------------------
 
--- STATUS (2026-06-10): COMPLETE.  The whole chain typechecks in ~2.5 min
--- (obligations ~30 s each) after fixing two call-pattern performance bugs —
--- see docs/smc-solver-performance.md ("the 8-atom wall: RESOLVED"):
+-- Two call-pattern performance rules (docs/smc-solver-performance.md,
+-- "the 8-atom wall"):
 --   * forcing must be routed through refl-checked equations (`force!`),
 --     never `from-just`/inferred witnesses (slow elaborator path);
 --   * instantiated types must be SPELLED as the consuming signature spells

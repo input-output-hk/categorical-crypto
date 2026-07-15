@@ -18,13 +18,6 @@
 -- `assoc'-coherence` goal.
 --------------------------------------------------------------------------------
 
--- STATUS (2026-06-10): COMPLETE.  The whole chain typechecks in ~2.5 min
--- (obligations ~30 s each) after fixing two call-pattern performance bugs —
--- see docs/smc-solver-performance.md ("the 8-atom wall: RESOLVED"):
---   * forcing must be routed through refl-checked equations (`force!`),
---     never `from-just`/inferred witnesses (slow elaborator path);
---   * instantiated types must be SPELLED as the consuming signature spells
---     them (Translation (APROPSignatureDec.sig gSigDec), not Translation gSig).
 module Categories.GConstructionCoherence where
 
 open import Level using (Level)
