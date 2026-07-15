@@ -35,7 +35,7 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermDischarge
 
 open import Categories.FreeStrictSMC using (module Build)
 
-open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.List using (List; []; _∷_; map)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 

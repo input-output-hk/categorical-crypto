@@ -30,7 +30,7 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Braid
 
 open APROP sig using (X)
 
-open import Data.List using (List; []; _∷_; _++_)
+open import Data.List using (List; []; _∷_)
 open import Categories.FreeStrictSMC using (module Build)
 
 --------------------------------------------------------------------------------
