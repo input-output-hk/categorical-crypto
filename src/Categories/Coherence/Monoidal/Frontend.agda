@@ -27,15 +27,6 @@
 -- (`FCore`/`FBridge`), instantiated here at (Mon, MorW, ⟦_⟧ᵇ).  This file
 -- supplies the Mon-specific clauses (`injBox`, `reflectVarM`, vacuous σ on the
 -- empty `Symm ≤ Mon`).
---
--- What decides is machine-checked in
--- `Categories.Coherence.Monoidal.Test.Frontend`, whose `Negative`/`Limitations`
--- suites pin the two boundaries expressible as `decide?F … ≡ nothing`: the
--- syntactic-generator limitation (L5, `neg-generator-naturality`) and the
--- non-injective-rank limitation (L2, `lim-equal-rank`).  The remaining
--- limitations are meta-properties, not single equations: soundness-without-
--- completeness (L1), monoidal-only / no braiding (L3), concrete-signatures-only
--- (L4), and no canonicity claim for `norm ∘ reflect` (L6).
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.Frontend where
@@ -60,7 +51,7 @@ open import Categories.Coherence.Monoidal.Reflect
 
 module Frontend
   {X : Set} ⦃ _ : DecEq X ⦄
-  (let open FreeMonoidalHelper Mon X using (ObjTerm))
+  (let open FreeMonoidalHelper Mon X using (ObjTerm; flatten))
   (GenF : ObjTerm → ObjTerm → Set)
   where
 

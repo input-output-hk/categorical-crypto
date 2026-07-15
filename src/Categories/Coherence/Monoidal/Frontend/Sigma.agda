@@ -20,13 +20,7 @@
 --     (flat⇒ A , flat⇒ B), i.e. the σ∘[f⊗g]≈[g⊗f]∘σ axiom.
 --
 -- The target (via `FinSetupσ`) is a monoidal category WITH a `Symmetric`
--- structure, so σ lands on the target's braiding.  The positive σ cases and the
--- braiding-specific boundaries Lσ1 (hexagon) / Lσ2 (straddling box) are
--- machine-checked in `Categories.Coherence.Monoidal.Test.SigmaFrontend`; the
--- limitations inherited from the shared `Frontend.Core` pipeline are
--- catalogued in the Mon `Categories.Coherence.Monoidal.Test.Frontend`
--- (which pins the non-injective-rank L2 and syntactic-generator L5 as
--- `≡ nothing`, the others being meta-properties).
+-- structure, so σ lands on the target's braiding.
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.Frontend.Sigma where
@@ -47,7 +41,7 @@ open import Categories.Coherence.Monoidal.Sigma
 
 module FrontendS
   {X : Set} ⦃ _ : DecEq X ⦄
-  (let open FreeMonoidalHelper Symm X using (ObjTerm; _⊗₀_))
+  (let open FreeMonoidalHelper Symm X using (ObjTerm; _⊗₀_; flatten))
   (GenF : ObjTerm → ObjTerm → Set)
   where
 

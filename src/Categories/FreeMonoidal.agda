@@ -10,21 +10,21 @@ module Categories.FreeMonoidal where
 
 open import Level
 
-open import Categories.Category using (Category)
-open import Categories.Category.Helper using (categoryHelper)
-open import Categories.Category.Monoidal using (Monoidal; MonoidalCategory; monoidalHelper)
-open import Categories.Category.Monoidal.Symmetric using (Symmetric; symmetricHelper)
+open import Categories.Category
+open import Categories.Category.Helper
+open import Categories.Category.Monoidal
+open import Categories.Category.Monoidal.Symmetric
 open import Categories.Functor using (Functor)
-open import Categories.Functor.Monoidal using (IsMonoidalFunctor)
+open import Categories.Functor.Monoidal
 open import Categories.NaturalTransformation using (ntHelper)
-open import Categories.NaturalTransformation.NaturalIsomorphism.Properties using (pointwise-iso)
+open import Categories.NaturalTransformation.NaturalIsomorphism.Properties
 
 open import Data.List using (List; []; _∷_; _++_)
-open import Data.Product using (uncurry; _,_)
+open import Data.Product
 open import Function.Base using (case_of_)
 open import Relation.Binary.Definitions using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open import Relation.Nullary using (yes; no)
+open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary
 
 import Categories.Category.Monoidal.Reasoning as MonR
 import Categories.Morphism.Reasoning as MR
@@ -82,18 +82,17 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
     _⊗₀_ : ObjTerm → ObjTerm → ObjTerm
     Var : X → ObjTerm
 
-  -- the parallel wires named by a list of labels, right-nested.  Object-level
-  -- (generator-independent), so it lives here; the structural merge/split isos
-  -- between `wires a ⊗₀ wires suf` and `wires (a ++ suf)` are generic in the
-  -- generator family and live in `Mor` below.
+  -- the parallel wires named by a list of labels, right-nested
   wires : List X → ObjTerm
   wires []       = unit
   wires (x ∷ xs) = Var x ⊗₀ wires xs
 
-  -- decidable equality on `ObjTerm`, from one on the atoms.  No-K style:
-  -- the negative cases go through injectivity lemmas, never a refl-match at
-  -- a partially-forced index.  Depends only on `unit`/`_⊗₀_`/`Var`, so it
-  -- lives here rather than in any generator-specific layer.
+  -- the flat wire-list of an object term
+  flatten : ObjTerm → List X
+  flatten unit      = []
+  flatten (Y ⊗₀ Z) = flatten Y ++ flatten Z
+  flatten (Var x)   = x ∷ []
+
   private
     ⊗₀-inj₁ : ∀ {a b a' b'} → (a ⊗₀ b) ≡ (a' ⊗₀ b') → a ≡ a'
     ⊗₀-inj₁ refl = refl
@@ -222,7 +221,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
     split (x ∷ a) = α⇐ ∘ id ⊗₁ split a
 
     open MR FreeMonoidal
-    open MonR Monoidal-FreeMonoidal using (refl⟩⊗⟨_; _⟩⊗⟨refl; split₁ʳ; merge₂ʳ)
+    open MonR Monoidal-FreeMonoidal using (refl⟩⊗⟨_; _⟩⊗⟨refl; _⟩⊗⟨_; split₁ʳ; merge₂ʳ)
     open Category.HomReasoning FreeMonoidal
 
     id⊗-∘ : ∀ {Z} {A B C} (P : HomTerm B C) (Q : HomTerm A B)
@@ -248,6 +247,28 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
     split∘merge : ∀ (a : List X) {suf} → split a {suf} ∘ merge a ≈Term id
     split∘merge []      = λ⇐∘λ⇒≈id
     split∘merge (x ∷ a) = cancelInner (id⊗-cancel (split∘merge a)) ○ α⇐∘α⇒≈id
+
+    --------------------------------------------------------------------------
+    -- The canonical structural iso `Y ≅ wires (flatten Y)`
+    --------------------------------------------------------------------------
+    flat⇒ : (Y : ObjTerm) → HomTerm Y (wires (flatten Y))
+    flat⇒ unit      = id
+    flat⇒ (Y ⊗₀ Z) = merge (flatten Y) ∘ (flat⇒ Y ⊗₁ flat⇒ Z)
+    flat⇒ (Var x)   = ρ⇐
+
+    flat⇐ : (Y : ObjTerm) → HomTerm (wires (flatten Y)) Y
+    flat⇐ unit      = id
+    flat⇐ (Y ⊗₀ Z) = (flat⇐ Y ⊗₁ flat⇐ Z) ∘ split (flatten Y)
+    flat⇐ (Var x)   = ρ⇒
+
+    flat⇐∘flat⇒ : ∀ (Y : ObjTerm) → flat⇐ Y ∘ flat⇒ Y ≈Term id
+    flat⇐∘flat⇒ unit = idˡ
+    flat⇐∘flat⇒ (Y ⊗₀ Z) =
+      cancelInner (split∘merge (flatten Y))
+      ○ ⟺ ⊗-∘-dist
+      ○ (flat⇐∘flat⇒ Y ⟩⊗⟨ flat⇐∘flat⇒ Z)
+      ○ id⊗id≈id
+    flat⇐∘flat⇒ (Var x) = ρ⇒∘ρ⇐≈id
 
     --------------------------------------------------------------------------
     -- The flat-shift wire-frame algebra: `rpad` (suffix idle wires), `liftW`
@@ -310,7 +331,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
       ○ refl⟩∘⟨ (insertInner (split∘merge v) ⟩∘⟨refl)
       ○ center⁻¹ ≈-Term-refl assoc
 
-    -- rpad commutes with the prefix id⊗₁: rpad rt (id⊗₁ h) ≈ id⊗₁ (rpad rt h).
+    -- rpad commutes with the prefix
     rpad-id⊗ : ∀ (rt : List X) (x : X) {u v} (h : HomTerm (wires u) (wires v))
              → rpad rt (id {Var x} ⊗₁ h) ≈Term id {Var x} ⊗₁ rpad rt h
     rpad-id⊗ rt x {u} {v} h =
@@ -428,15 +449,12 @@ module FreeObjInterp (v : Variant) (X : Set) {o ℓ e : Level}
                      (⟦v⟧ : ⟦ v ⟧ᵥ {o} {ℓ} {e})
                      (let module C = ⟦_⟧ᵥ.Cat ⟦v⟧)
                      (⟦_⟧ᵖ₀ : X → C.Obj) where
-  open FreeMonoidalHelper v X using (ObjTerm; unit; _⊗₀_; Var)
+  open FreeMonoidalHelper v X
   ⟦_⟧₀ : ObjTerm → C.Obj
   ⟦ unit ⟧₀ = C.unit
   ⟦ A ⊗₀ B ⟧₀ = ⟦ A ⟧₀ C.⊗₀ ⟦ B ⟧₀
   ⟦ Var x ⟧₀ = ⟦ x ⟧ᵖ₀
 
--- `Go` wraps the generator-independent object interpretation `FreeObjInterp`
--- in a module so it can be opened mid-record in `FreeFunctorData`, where a
--- bare `⟦_⟧₀ = …` definition between `field` blocks is not allowed.
 module FreeFunctorHelper (d : FreeMonoidalData) (let open FreeMonoidalData d)
                          {o ℓ e : Level} (⟦v⟧ : ⟦ v ⟧ᵥ {o} {ℓ} {e}) where
   open FreeMonoidal d public
@@ -532,4 +550,4 @@ module FreeFunctor {d : FreeMonoidalData} {o ℓ e : Level}
     ; unitaryʳ = elimʳ (C.identityˡ ○ C.⊗.identity)
     }
     where open Category.HomReasoning C
-          open import Categories.Morphism.Reasoning C using (elimˡ; elimʳ)
+          open import Categories.Morphism.Reasoning C
