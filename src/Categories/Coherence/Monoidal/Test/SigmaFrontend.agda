@@ -226,12 +226,17 @@ module SigmaTests where
   wbox  = gen2 (suc (suc (suc zero)))
   w2box = gen2 (suc (suc (suc (suc zero))))
 
+  open import Categories.FreeStrictMonoidal using (module FreeStrictMonoidalHelper)
+
   private module SG = Sigma Gen2
   open SG
   -- HomTerm composition / `≈Term` / `pad` for the litmus types (not
   -- re-exported through `open SG`, which only publicises the wire-coherence
   -- kit; `castW` is available from `SG`, `pad` and the HomTerm ops are not).
   open FreeMonoidalHelper.Mor Symm ℕ mor
+  -- the strict pad / cast operators + `_≈ʷ_` for the strict slide litmus below.
+  open FreeStrictMonoidalHelper MorS using (padʷ; castʷᵈ; module Theory)
+  open Theory R_σ using (_≈ʷ_)
 
   private
     instance
@@ -302,26 +307,27 @@ module SigmaTests where
   testNegCancel = refl
 
   ------------------------------------------------------------------------
-  -- slide litmus: the clean naturality slide instantiates at concrete
-  -- offsets (kbox slides past `cross [1] [0]` from its post-cross to its
-  -- pre-cross position), with all four `++`-assoc index casts `refl`.
+  -- slide litmus: the STRICT clean naturality slide KEY (`slide-cleanˢ`)
+  -- instantiates at concrete offsets (kbox slides past `cross [1] [0]` from
+  -- its post-cross to its pre-cross position), with all four `++`-assoc index
+  -- casts `refl`.
   ------------------------------------------------------------------------
   litSlide
-    : pad ∅ (1 ∷ ∅) (⟦ box kbox ⟧ᵇˢ)
-        ∘ castW refl ∘ pad ∅ ∅ (⟦ cross (1 ∷ ∅) (0 ∷ ∅) ⟧ᵇˢ)
-      ≈Term castW refl ∘ pad ∅ ∅ (⟦ cross (1 ∷ ∅) (0 ∷ ∅) ⟧ᵇˢ)
-        ∘ castW refl ∘ pad (1 ∷ ∅) ∅ (⟦ box kbox ⟧ᵇˢ) ∘ castW refl
-  litSlide = slide-clean [] [] (1 ∷ []) [] [] (⟦ box kbox ⟧ᵇˢ)
+    : padʷ ∅ (1 ∷ ∅) (boxʷ (box kbox))
+        ∘ʷ castʷ refl (padʷ ∅ ∅ (boxʷ (cross (1 ∷ ∅) (0 ∷ ∅))))
+      ≈ʷ castʷ refl (padʷ ∅ ∅ (boxʷ (cross (1 ∷ ∅) (0 ∷ ∅)))
+           ∘ʷ castʷ refl (castʷᵈ (sym refl) (padʷ (1 ∷ ∅) ∅ (boxʷ (box kbox)))))
+  litSlide = slide-cleanˢ [] [] (1 ∷ []) [] [] (boxʷ (box kbox)) {refl} {refl} {refl} {refl}
 
   -- a-block mirror: kbox slides through the crossing's a-image (the SUFFIX
   -- of the cross's output) instead of the b-image; same concrete offsets,
   -- all four casts `refl`.
   litSlide-a
-    : pad (1 ∷ ∅) ∅ (⟦ box kbox ⟧ᵇˢ)
-        ∘ castW refl ∘ pad ∅ ∅ (⟦ cross (0 ∷ ∅) (1 ∷ ∅) ⟧ᵇˢ)
-      ≈Term castW refl ∘ pad ∅ ∅ (⟦ cross (0 ∷ ∅) (1 ∷ ∅) ⟧ᵇˢ)
-        ∘ castW refl ∘ pad ∅ (1 ∷ ∅) (⟦ box kbox ⟧ᵇˢ) ∘ castW refl
-  litSlide-a = slide-clean-a [] [] (1 ∷ []) [] [] (⟦ box kbox ⟧ᵇˢ)
+    : padʷ (1 ∷ ∅) ∅ (boxʷ (box kbox))
+        ∘ʷ castʷ refl (padʷ ∅ ∅ (boxʷ (cross (0 ∷ ∅) (1 ∷ ∅))))
+      ≈ʷ castʷ refl (padʷ ∅ ∅ (boxʷ (cross (0 ∷ ∅) (1 ∷ ∅)))
+           ∘ʷ castʷ refl (castʷᵈ (sym refl) (padʷ ∅ (1 ∷ ∅) (boxʷ (box kbox)))))
+  litSlide-a = slide-cleanˢ-a [] [] (1 ∷ []) [] [] (boxʷ (box kbox)) {refl} {refl} {refl} {refl}
 
   ------------------------------------------------------------------------
   -- (iv) the Diag-level naturality SLIDE, wired into the driver.

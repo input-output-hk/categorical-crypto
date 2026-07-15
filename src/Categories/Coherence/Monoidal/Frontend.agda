@@ -127,12 +127,12 @@ module Frontend
       step? = stepWith (interchangeGo rankW)
 
       -- a fuel-bounded bubble sort emitting an `_⤳D_` trace, discharged to a
-      -- semantic witness by the shared `normSound` (the worst-case budget is
-      -- ≥ #inversions).
-      norm : ∀ {n m} (d : Diag n m) → Σ[ d' ∈ Diag n m ] (⟦ d ⟧ ≈Term ⟦ d' ⟧)
-      norm = normSound prim-swap-sound step? (λ k → nsuc (k * k))
+      -- STRICT semantic witness by `normSoundˢ` at the EMPTY engine `R = ⊥`
+      -- (the Mon path has no engine axioms).  The worst-case budget is
+      -- ≥ #inversions.
+      norm = normSoundˢ (λ _ _ → ⊥) (prim-swap-soundˢ (λ _ _ → ⊥)) step? (λ k → nsuc (k * k))
 
-    open DC.Decide norm using () renaming (decideW to decide?W)
+    open DC.Decide (λ _ _ → ⊥) (λ ()) norm using () renaming (decideW to decide?W)
 
     -- front-end decision: a hit is a genuine `_≈Term_` of the free
     -- monoidal category over the ObjTerm-arity generators.

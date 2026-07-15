@@ -26,11 +26,13 @@ open import Data.List.Properties
 import Data.List.Properties.Ext as ListExt
 open import Data.Maybe.Properties
 
+open import Categories.Category
 import Categories.Category.Monoidal.Reasoning as MonR
 import Categories.Morphism.Reasoning as MR
 
 open import Categories.Coherence.Monoidal.Diagram
 open import Categories.FreeMonoidal
+open import Categories.FreeStrictMonoidal
 open import Categories.Coherence.Monoidal.Compare
 open import Categories.Coherence.Monoidal.Normalize
 open import Categories.Coherence.Monoidal.Reflect
@@ -76,20 +78,6 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
         ≈⟨ refl⟩∘⟨ cancelˡ σ∘σ≈id ⟩
       merge a ∘ split a
         ≈⟨ merge∘split a ⟩
-      id ∎
-
-  -- padded involution (inverse cross-pair at the same offsets = id).
-  private
-    pad-σσ : ∀ (pre suf a b : List X)
-           → pad pre suf (⟦ cross b a ⟧ᵇˢ) ∘ pad pre suf (⟦ cross a b ⟧ᵇˢ)
-             ≈Term id
-    pad-σσ pre suf a b = begin
-      pad pre suf (⟦ cross b a ⟧ᵇˢ) ∘ pad pre suf (⟦ cross a b ⟧ᵇˢ)
-        ≈⟨ pad-∘ pre suf (⟦ cross b a ⟧ᵇˢ) (⟦ cross a b ⟧ᵇˢ) ⟨
-      pad pre suf (⟦ cross b a ⟧ᵇˢ ∘ ⟦ cross a b ⟧ᵇˢ)
-        ≈⟨ pad-resp pre suf (σσ-block a b) ⟩
-      pad pre suf id
-        ≈⟨ pad-id pre suf ⟩
       id ∎
 
   ------------------------------------------------------------------------
@@ -148,175 +136,137 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
        ≈⟨ liftW-merge b g ⟩∘⟨refl ⟨
      liftW b g ∘ (merge b ∘ σ ∘ split a) ∎
 
-  -- pad transport of a composite equation: a `slide-core`-shaped equality of
-  -- composites lifts through a common `pad pq sq` frame (the b/a-block slides
-  -- below are its two instances).
-  private
-    pad-∘-resp : ∀ (pq sq : List X) {a b b' c}
-      {P  : HomTerm (wires b) (wires c)} {Q : HomTerm (wires a) (wires b)}
-      {P' : HomTerm (wires b') (wires c)} {Q' : HomTerm (wires a) (wires b')}
-      → P ∘ Q ≈Term P' ∘ Q'
-      → pad pq sq P ∘ pad pq sq Q ≈Term pad pq sq P' ∘ pad pq sq Q'
-    pad-∘-resp pq sq {P = P} {Q} {P'} {Q'} eq =
-      ⟺ (pad-∘ pq sq P Q) ○ pad-resp pq sq eq ○ pad-∘ pq sq P' Q'
+  ------------------------------------------------------------------------
+  -- The strict engine relation R_σ (block-level, un-padded) and its ONE-TIME
+  -- embed-soundness (reusing the surviving σσ-block / slide-core kernel).
+  ------------------------------------------------------------------------
+  open FreeStrictMonoidalHelper MorS
+    using ( padʷ; castʷᵈ; module Theory
+          ; ∘ʷ-castʷ-l; ∘ʷ-castʷᵈ-l; castʷ-castʷᵈ; castʷ-symʳ
+          ; castʷ-irr; castʷᵈ-irr )
 
-  -- THE PADDED SLIDE (grouped coordinates): the same equation under an
-  -- arbitrary `pad pq sq` frame — still fully cast-free, via the `pad-∘` /
-  -- `pad-resp` functoriality.
-  private
-    slide-pad : ∀ (pq sq a : List X) {b b'} (h : HomTerm (wires b) (wires b'))
-      → pad pq sq (⟦ cross a b' ⟧ᵇˢ) ∘ pad pq sq (liftW a h)
-        ≈Term pad pq sq (rpad a h) ∘ pad pq sq (⟦ cross a b ⟧ᵇˢ)
-    slide-pad pq sq a h = pad-∘-resp pq sq (slide-core a h)
+  data R_σ : ∀ {n m} → WTerm n m → WTerm n m → Set where
+    σσ     : ∀ (a b : List X) → R_σ (boxʷ (cross b a) ∘ʷ boxʷ (cross a b)) idʷ
+    slideB : ∀ (a : List X) {b b' : List X} (h : WTerm b b')
+           → R_σ (boxʷ (cross a b') ∘ʷ (idʷ {n = a} ⊗ʷ h))
+                 ((h ⊗ʷ idʷ {n = a}) ∘ʷ boxʷ (cross a b))
+    slideA : ∀ (b : List X) {a a' : List X} (g : WTerm a a')
+           → R_σ (boxʷ (cross a' b) ∘ʷ (g ⊗ʷ idʷ {n = b}))
+                 ((idʷ {n = b} ⊗ʷ g) ∘ʷ boxʷ (cross a b))
+
+  -- embed-soundness: `σσ` is `σσ-block`; the slides are `slide-core`/`slide-core-a`
+  -- with `embed (idʷ a ⊗ʷ h) ≈ liftW a (embed h)` (via `liftW-merge`) and
+  -- `embed (h ⊗ʷ idʷ a) ≡ rpad a (embed h)` (definitional).
+  R_σ-sound : ∀ {n m} {f g : WTerm n m} → R_σ f g → embed f ≈Term embed g
+  R_σ-sound (σσ a b)     = σσ-block a b
+  R_σ-sound (slideB a h) = (refl⟩∘⟨ ⟺ (liftW-merge a (embed h))) ○ slide-core a (embed h)
+  R_σ-sound (slideA b g) = slide-core-a b (embed g) ○ (liftW-merge b (embed g) ⟩∘⟨refl)
 
   ------------------------------------------------------------------------
-  -- Re-cleaning: the two grouped box-layers as clean Diag pads.
+  -- The strict slide KEYs consumed by `replD-soundˢ`.  In `Theory R_σ`'s
+  -- `_≈ʷ_`: the axiom-derived slide (`pad-∘ˢ`/`pad-respˢ`/`axiom`), re-cleaned
+  -- into clean strict `padʷ`s by the two padded-box regroupings `pad-absorbLˢ`
+  -- (prefix) / `pad-absorbRˢ` (suffix) from `FreeStrictMonoidal`, with the four
+  -- `++`-assoc casts reconciled to `replD`'s offsets by Hedberg irrelevance.
   ------------------------------------------------------------------------
-  -- Re-expressing the slide's grouped layers as genuine clean Diag pads
-  -- at the composite offsets is where the castW tax lives. The interface
-  -- is the `isConjugate eC eD Y Z` relation (Y is Z retyped on both ends by
-  -- the casts `castW eC`/`castW eD`).  The relation, its engine-generic
-  -- combinators, and the three pad-fusion laws the re-cleanings chain below
-  -- (`rpad-liftW`/`rpad-rpad`/`liftW-fuse`) all live in `WireCoh.WireCohDec`
-  -- (re-exported through `NormalizeI`'s `public` open); nothing σ-specific is
-  -- needed here.
+  private module T = Theory R_σ
+  open T using ( _≈ʷ_; axiom; reflʷ; symʷ; transʷ; castʷ-resp; castʷᵈ-resp
+               ; ≡→≈ʷ; pad-respˢ; pad-∘ˢ; pad-idˢ; pad-absorbLˢ; pad-absorbRˢ )
+  private module Rˢ = Category.HomReasoning T.StrictR
+  open Rˢ using () renaming (begin_ to beginˢ_; _∎ to _∎ˢ)
+  open Rˢ using () renaming (step-≈-⟩ to libˢ-≈; step-≈-⟨ to libˢ-≈˘)
+  infixr 2 stepˢ-≈ stepˢ-≈˘
+  stepˢ-≈  = libˢ-≈
+  stepˢ-≈˘ = libˢ-≈˘
+  syntax stepˢ-≈  f gh fg = f ≈ˢ⟨ fg ⟩ gh
+  syntax stepˢ-≈˘ f gh gf = f ≈ˢ⟨ gf ⟨ gh
 
-  ------------------------------------------------------------------------
-  -- THE TWO RE-CLEANINGS (concrete block update `h = pad p₁ s₁ G`).
-  ------------------------------------------------------------------------
-  -- The index equalities are ∀-quantified — any proofs work, by Hedberg UIP.
-
-  -- the SLID box layer (box before the crossing, at offset pq++(a++p₁)).
-  private
-    padBoxSlid : ∀ (pq sq a p₁ s₁ : List X) {u v} (G : HomTerm (wires u) (wires v))
-                 (eC : (pq ++ (a ++ p₁)) ++ (v ++ (s₁ ++ sq))
-                     ≡ pq ++ ((a ++ (p₁ ++ (v ++ s₁))) ++ sq))
-                 (eD : pq ++ ((a ++ (p₁ ++ (u ++ s₁))) ++ sq)
-                     ≡ (pq ++ (a ++ p₁)) ++ (u ++ (s₁ ++ sq)))
-               → pad pq sq (liftW a (pad p₁ s₁ G))
-                 ≈Term castW eC ∘ pad (pq ++ (a ++ p₁)) (s₁ ++ sq) G ∘ castW eD
-    padBoxSlid pq sq a p₁ s₁ {u} {v} G eC eD = conj-toSandwich (conj-irr SF)
-     where
-       R = rpad (s₁ ++ sq) G
-       S4 = rpad-rpad s₁ sq G
-       S3 = conj-≈ˡ (rpad-resp sq (pad≡liftW p₁ s₁ G)) (rpad-liftW sq p₁ (rpad s₁ G))
-       S3' = conj-trans S3 (liftW-conj p₁ S4)
-       S2 = rpad-liftW sq a (pad p₁ s₁ G)
-       S2' = conj-trans S2 (liftW-conj a S3')
-       S2'' = conj-trans S2' (liftW-fuse a p₁ R)
-       S1 = conj-≈ˡ (pad≡liftW pq sq (liftW a (pad p₁ s₁ G))) (liftW-conj pq S2'')
-       S0 = conj-trans S1 (liftW-fuse pq (a ++ p₁) R)
-       SF = conj-mid S0 (⟺ (pad≡liftW (pq ++ (a ++ p₁)) (s₁ ++ sq) G))
-
-  -- the INPUT-order box layer (box after the crossing, inside the b-image
-  -- at offset pq++p₁).
-  private
-    padBoxIn : ∀ (pq sq a p₁ s₁ : List X) {u v} (G : HomTerm (wires u) (wires v))
-               (eC : (pq ++ p₁) ++ (v ++ (s₁ ++ (a ++ sq)))
-                   ≡ pq ++ (((p₁ ++ (v ++ s₁)) ++ a) ++ sq))
-               (eD : pq ++ (((p₁ ++ (u ++ s₁)) ++ a) ++ sq)
-                   ≡ (pq ++ p₁) ++ (u ++ (s₁ ++ (a ++ sq))))
-             → pad pq sq (rpad a (pad p₁ s₁ G))
-               ≈Term castW eC ∘ pad (pq ++ p₁) (s₁ ++ (a ++ sq)) G ∘ castW eD
-    padBoxIn pq sq a p₁ s₁ {u} {v} G eC eD = conj-toSandwich (conj-irr TF)
-     where
-       R = rpad (s₁ ++ (a ++ sq)) G
-       T4 = rpad-rpad s₁ (a ++ sq) G
-       T3 = conj-≈ˡ (rpad-resp (a ++ sq) (pad≡liftW p₁ s₁ G))
-                    (rpad-liftW (a ++ sq) p₁ (rpad s₁ G))
-       T3' = conj-trans T3 (liftW-conj p₁ T4)
-       T2 = rpad-rpad a sq (pad p₁ s₁ G)
-       T2' = conj-trans T2 T3'
-       T1 = conj-≈ˡ (pad≡liftW pq sq (rpad a (pad p₁ s₁ G))) (liftW-conj pq T2')
-       T0 = conj-trans T1 (liftW-fuse pq p₁ R)
-       TF = conj-mid T0 (⟺ (pad≡liftW (pq ++ p₁) (s₁ ++ (a ++ sq)) G))
-
-  -- The assembled clean slide (input order ≈ slid order, both clean pads).
-  -- The four index casts are exactly those forced by the `++`-assoc gaps.
-  slide-clean :
-    ∀ (pq sq a p₁ s₁ : List X) {u v} (G : HomTerm (wires u) (wires v))
-      {e₁ : pq ++ (((p₁ ++ (u ++ s₁)) ++ a) ++ sq)
-          ≡ (pq ++ p₁) ++ (u ++ (s₁ ++ (a ++ sq)))}
-      {e₂ : pq ++ (((p₁ ++ (v ++ s₁)) ++ a) ++ sq)
-          ≡ (pq ++ p₁) ++ (v ++ (s₁ ++ (a ++ sq)))}
-      {e₃ : (pq ++ (a ++ p₁)) ++ (v ++ (s₁ ++ sq))
-          ≡ pq ++ ((a ++ (p₁ ++ (v ++ s₁))) ++ sq)}
-      {e₄ : pq ++ ((a ++ (p₁ ++ (u ++ s₁))) ++ sq)
-          ≡ (pq ++ (a ++ p₁)) ++ (u ++ (s₁ ++ sq))}
-    → pad (pq ++ p₁) (s₁ ++ (a ++ sq)) G
-        ∘ castW e₁
-        ∘ pad pq sq (⟦ cross a (p₁ ++ (u ++ s₁)) ⟧ᵇˢ)
-      ≈Term castW e₂
-        ∘ pad pq sq (⟦ cross a (p₁ ++ (v ++ s₁)) ⟧ᵇˢ)
-        ∘ castW e₃
-        ∘ pad (pq ++ (a ++ p₁)) (s₁ ++ sq) G
-        ∘ castW e₄
-  slide-clean pq sq a p₁ s₁ {u} {v} G {e₁} {e₂} {e₃} {e₄} = begin
-    padIn ∘ (castW e₁ ∘ Cab)
-      ≈⟨ conj-cancel e₁ Cab (conj-fromSandwich (padBoxIn pq sq a p₁ s₁ G (sym e₂) e₁)) ⟩
-    castW (sym (sym e₂)) ∘ (Gβ ∘ Cab)
-      ≈⟨ castW-irr _ e₂ ⟩∘⟨ ⟺ (slide-pad pq sq a hᵇ) ⟩
-    castW e₂ ∘ (Cab' ∘ Gα)
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ padBoxSlid pq sq a p₁ s₁ G e₃ e₄ ⟩
-    castW e₂ ∘ (Cab' ∘ (castW e₃ ∘ padSlid ∘ castW e₄)) ∎
+  slide-cleanˢ :
+    ∀ (px sx a p₁ s₁ : List X) {u v} (G : WTerm u v)
+      {meq : px ++ (((p₁ ++ (u ++ s₁)) ++ a) ++ sx) ≡ (px ++ p₁) ++ (u ++ (s₁ ++ (a ++ sx)))}
+      {E₂ : px ++ (((p₁ ++ (v ++ s₁)) ++ a) ++ sx) ≡ (px ++ p₁) ++ (v ++ (s₁ ++ (a ++ sx)))}
+      {E₃ : (px ++ (a ++ p₁)) ++ (v ++ (s₁ ++ sx)) ≡ px ++ ((a ++ (p₁ ++ (v ++ s₁))) ++ sx)}
+      {E₄ : px ++ ((a ++ (p₁ ++ (u ++ s₁))) ++ sx) ≡ (px ++ (a ++ p₁)) ++ (u ++ (s₁ ++ sx))}
+    → padʷ (px ++ p₁) (s₁ ++ (a ++ sx)) G
+        ∘ʷ castʷ meq (padʷ px sx (boxʷ (cross a (p₁ ++ (u ++ s₁)))))
+      ≈ʷ castʷ E₂ (padʷ px sx (boxʷ (cross a (p₁ ++ (v ++ s₁))))
+           ∘ʷ castʷ E₃ (castʷᵈ (sym E₄) (padʷ (px ++ (a ++ p₁)) (s₁ ++ sx) G)))
+  slide-cleanˢ px sx a p₁ s₁ {u} {v} G {meq} {E₂} {E₃} {E₄} = beginˢ
+    padIn ∘ʷ castʷ meq Cu
+      ≈ˢ⟨ T.∘-resp-≈ reflʷ (≡→≈ʷ (castʷ-irr meq (sym (sym meq)) Cu)) ⟩
+    padIn ∘ʷ castʷ (sym (sym meq)) Cu
+      ≈ˢ⟨ ≡→≈ʷ (sym (∘ʷ-castʷᵈ-l (sym meq) padIn Cu)) ⟩
+    castʷᵈ (sym meq) padIn ∘ʷ Cu
+      ≈ˢ⟨ T.∘-resp-≈ (symʷ absorbR) reflʷ ⟩
+    castʷ E₂ Gβ ∘ʷ Cu
+      ≈ˢ⟨ ≡→≈ʷ (∘ʷ-castʷ-l E₂ Gβ Cu) ⟩
+    castʷ E₂ (Gβ ∘ʷ Cu)
+      ≈ˢ⟨ castʷ-resp E₂ (symʷ raw) ⟩
+    castʷ E₂ (Cv ∘ʷ Gα)
+      ≈ˢ⟨ castʷ-resp E₂ (T.∘-resp-≈ reflʷ absorbL) ⟩
+    castʷ E₂ (Cv ∘ʷ castʷ E₃ (castʷᵈ (sym E₄) padSlid)) ∎ˢ
     where
-      hᵇ      = pad p₁ s₁ G
-      Cab     = pad pq sq (⟦ cross a (p₁ ++ (u ++ s₁)) ⟧ᵇˢ)
-      Cab'    = pad pq sq (⟦ cross a (p₁ ++ (v ++ s₁)) ⟧ᵇˢ)
-      padIn   = pad (pq ++ p₁) (s₁ ++ (a ++ sq)) G
-      padSlid = pad (pq ++ (a ++ p₁)) (s₁ ++ sq) G
-      Gβ      = pad pq sq (rpad a hᵇ)
-      Gα      = pad pq sq (liftW a hᵇ)
+      Cu = padʷ px sx (boxʷ (cross a (p₁ ++ (u ++ s₁))))
+      Cv = padʷ px sx (boxʷ (cross a (p₁ ++ (v ++ s₁))))
+      padIn = padʷ (px ++ p₁) (s₁ ++ (a ++ sx)) G
+      padSlid = padʷ (px ++ (a ++ p₁)) (s₁ ++ sx) G
+      Gα = padʷ px sx (idʷ {n = a} ⊗ʷ padʷ p₁ s₁ G)
+      Gβ = padʷ px sx (padʷ p₁ s₁ G ⊗ʷ idʷ {n = a})
+      raw : Cv ∘ʷ Gα ≈ʷ Gβ ∘ʷ Cu
+      raw = transʷ (symʷ (pad-∘ˢ px sx (boxʷ (cross a (p₁ ++ (v ++ s₁)))) (idʷ {n = a} ⊗ʷ padʷ p₁ s₁ G)))
+              (transʷ (pad-respˢ px sx (axiom (slideB a (padʷ p₁ s₁ G))))
+                (pad-∘ˢ px sx (padʷ p₁ s₁ G ⊗ʷ idʷ {n = a}) (boxʷ (cross a (p₁ ++ (u ++ s₁))))))
+      absorbL : Gα ≈ʷ castʷ E₃ (castʷᵈ (sym E₄) padSlid)
+      absorbL = transʷ (pad-absorbLˢ px sx a p₁ s₁ G (sym E₄) E₃)
+                       (≡→≈ʷ (sym (castʷ-castʷᵈ (sym E₄) E₃ padSlid)))
+      absorbR : castʷ E₂ Gβ ≈ʷ castʷᵈ (sym meq) padIn
+      absorbR = transʷ (castʷ-resp E₂ (pad-absorbRˢ px sx a p₁ s₁ G (sym meq) (sym E₂)))
+                  (transʷ (≡→≈ʷ (castʷ-castʷᵈ (sym meq) E₂ (castʷ (sym E₂) padIn)))
+                    (castʷᵈ-resp (sym meq) (≡→≈ʷ (castʷ-symʳ E₂ padIn))))
 
-  -- The a-block mirror (box inside the crossing's a-image block): same slide
-  -- via `slide-core-a`; the two layers re-clean through the SAME lemmas with
-  -- the input-order/slid roles swapped (prefix-lift `liftW b` vs suffix-pad `rpad b`).
+  slide-cleanˢ-a :
+    ∀ (px sx b p₁ s₁ : List X) {u v} (G : WTerm u v)
+      {meq : px ++ ((b ++ (p₁ ++ (u ++ s₁))) ++ sx) ≡ (px ++ (b ++ p₁)) ++ (u ++ (s₁ ++ sx))}
+      {E₂ : px ++ ((b ++ (p₁ ++ (v ++ s₁))) ++ sx) ≡ (px ++ (b ++ p₁)) ++ (v ++ (s₁ ++ sx))}
+      {E₃ : (px ++ p₁) ++ (v ++ (s₁ ++ (b ++ sx))) ≡ px ++ (((p₁ ++ (v ++ s₁)) ++ b) ++ sx)}
+      {E₄ : px ++ (((p₁ ++ (u ++ s₁)) ++ b) ++ sx) ≡ (px ++ p₁) ++ (u ++ (s₁ ++ (b ++ sx)))}
+    → padʷ (px ++ (b ++ p₁)) (s₁ ++ sx) G
+        ∘ʷ castʷ meq (padʷ px sx (boxʷ (cross (p₁ ++ (u ++ s₁)) b)))
+      ≈ʷ castʷ E₂ (padʷ px sx (boxʷ (cross (p₁ ++ (v ++ s₁)) b))
+           ∘ʷ castʷ E₃ (castʷᵈ (sym E₄) (padʷ (px ++ p₁) (s₁ ++ (b ++ sx)) G)))
+  slide-cleanˢ-a px sx b p₁ s₁ {u} {v} G {meq} {E₂} {E₃} {E₄} = beginˢ
+    padIn ∘ʷ castʷ meq Cu
+      ≈ˢ⟨ T.∘-resp-≈ reflʷ (≡→≈ʷ (castʷ-irr meq (sym (sym meq)) Cu)) ⟩
+    padIn ∘ʷ castʷ (sym (sym meq)) Cu
+      ≈ˢ⟨ ≡→≈ʷ (sym (∘ʷ-castʷᵈ-l (sym meq) padIn Cu)) ⟩
+    castʷᵈ (sym meq) padIn ∘ʷ Cu
+      ≈ˢ⟨ T.∘-resp-≈ (symʷ absorbR) reflʷ ⟩
+    castʷ E₂ Gβ ∘ʷ Cu
+      ≈ˢ⟨ ≡→≈ʷ (∘ʷ-castʷ-l E₂ Gβ Cu) ⟩
+    castʷ E₂ (Gβ ∘ʷ Cu)
+      ≈ˢ⟨ castʷ-resp E₂ (symʷ raw) ⟩
+    castʷ E₂ (Cv ∘ʷ Gα)
+      ≈ˢ⟨ castʷ-resp E₂ (T.∘-resp-≈ reflʷ absorbL) ⟩
+    castʷ E₂ (Cv ∘ʷ castʷ E₃ (castʷᵈ (sym E₄) padSlid)) ∎ˢ
+    where
+      Cu = padʷ px sx (boxʷ (cross (p₁ ++ (u ++ s₁)) b))
+      Cv = padʷ px sx (boxʷ (cross (p₁ ++ (v ++ s₁)) b))
+      padIn = padʷ (px ++ (b ++ p₁)) (s₁ ++ sx) G
+      padSlid = padʷ (px ++ p₁) (s₁ ++ (b ++ sx)) G
+      Gα = padʷ px sx (padʷ p₁ s₁ G ⊗ʷ idʷ {n = b})
+      Gβ = padʷ px sx (idʷ {n = b} ⊗ʷ padʷ p₁ s₁ G)
+      raw : Cv ∘ʷ Gα ≈ʷ Gβ ∘ʷ Cu
+      raw = transʷ (symʷ (pad-∘ˢ px sx (boxʷ (cross (p₁ ++ (v ++ s₁)) b)) (padʷ p₁ s₁ G ⊗ʷ idʷ {n = b})))
+              (transʷ (pad-respˢ px sx (axiom (slideA b (padʷ p₁ s₁ G))))
+                (pad-∘ˢ px sx (idʷ {n = b} ⊗ʷ padʷ p₁ s₁ G) (boxʷ (cross (p₁ ++ (u ++ s₁)) b))))
+      absorbL : Gα ≈ʷ castʷ E₃ (castʷᵈ (sym E₄) padSlid)
+      absorbL = transʷ (pad-absorbRˢ px sx b p₁ s₁ G (sym E₄) E₃)
+                       (≡→≈ʷ (sym (castʷ-castʷᵈ (sym E₄) E₃ padSlid)))
+      absorbR : castʷ E₂ Gβ ≈ʷ castʷᵈ (sym meq) padIn
+      absorbR = transʷ (castʷ-resp E₂ (pad-absorbLˢ px sx b p₁ s₁ G (sym meq) (sym E₂)))
+                  (transʷ (≡→≈ʷ (castʷ-castʷᵈ (sym meq) E₂ (castʷ (sym E₂) padIn)))
+                    (castʷᵈ-resp (sym meq) (≡→≈ʷ (castʷ-symʳ E₂ padIn))))
 
-  -- the padded a-block slide (mirror of `slide-pad`).
-  private
-    slide-pad-a : ∀ (pq sq b : List X) {a a'} (g : HomTerm (wires a) (wires a'))
-                → pad pq sq (⟦ cross a' b ⟧ᵇˢ) ∘ pad pq sq (rpad b g)
-                  ≈Term pad pq sq (liftW b g) ∘ pad pq sq (⟦ cross a b ⟧ᵇˢ)
-    slide-pad-a pq sq b g = pad-∘-resp pq sq (slide-core-a b g)
-
-  -- the assembled clean a-block slide.  The input order (crossing first,
-  -- then the box inside its a-image) equals the slid order (box first at
-  -- its pre-cross position — the a-block is the PREFIX of the cross's
-  -- input — then the crossing with the updated a-block u ↦ v).
-  slide-clean-a :
-   ∀ (pq sq b p₁ s₁ : List X) {u v} (G : HomTerm (wires u) (wires v))
-     {e₁ : pq ++ ((b ++ (p₁ ++ (u ++ s₁))) ++ sq)
-         ≡ (pq ++ (b ++ p₁)) ++ (u ++ (s₁ ++ sq))}
-     {e₂ : pq ++ ((b ++ (p₁ ++ (v ++ s₁))) ++ sq)
-         ≡ (pq ++ (b ++ p₁)) ++ (v ++ (s₁ ++ sq))}
-     {e₃ : (pq ++ p₁) ++ (v ++ (s₁ ++ (b ++ sq)))
-         ≡ pq ++ (((p₁ ++ (v ++ s₁)) ++ b) ++ sq)}
-     {e₄ : pq ++ (((p₁ ++ (u ++ s₁)) ++ b) ++ sq)
-         ≡ (pq ++ p₁) ++ (u ++ (s₁ ++ (b ++ sq)))}
-   → pad (pq ++ (b ++ p₁)) (s₁ ++ sq) G
-       ∘ castW e₁
-       ∘ pad pq sq (⟦ cross (p₁ ++ (u ++ s₁)) b ⟧ᵇˢ)
-     ≈Term castW e₂
-       ∘ pad pq sq (⟦ cross (p₁ ++ (v ++ s₁)) b ⟧ᵇˢ)
-       ∘ castW e₃
-       ∘ pad (pq ++ p₁) (s₁ ++ (b ++ sq)) G
-       ∘ castW e₄
-  slide-clean-a pq sq b p₁ s₁ {u} {v} G {e₁} {e₂} {e₃} {e₄} = begin
-   padIn ∘ (castW e₁ ∘ Cab)
-     ≈⟨ conj-cancel e₁ Cab (conj-fromSandwich (padBoxSlid pq sq b p₁ s₁ G (sym e₂) e₁)) ⟩
-   castW (sym (sym e₂)) ∘ (Gλ ∘ Cab)
-     ≈⟨ castW-irr _ e₂ ⟩∘⟨ ⟺ (slide-pad-a pq sq b hₐ) ⟩
-   castW e₂ ∘ (Cab' ∘ Gρ)
-     ≈⟨ refl⟩∘⟨ refl⟩∘⟨ padBoxIn pq sq b p₁ s₁ G e₃ e₄ ⟩
-   castW e₂ ∘ (Cab' ∘ (castW e₃ ∘ padSlid ∘ castW e₄)) ∎
-   where
-     hₐ      = pad p₁ s₁ G
-     Cab     = pad pq sq (⟦ cross (p₁ ++ (u ++ s₁)) b ⟧ᵇˢ)
-     Cab'    = pad pq sq (⟦ cross (p₁ ++ (v ++ s₁)) b ⟧ᵇˢ)
-     padIn   = pad (pq ++ (b ++ p₁)) (s₁ ++ sq) G
-     padSlid = pad (pq ++ p₁) (s₁ ++ (b ++ sq)) G
-     Gρ      = pad pq sq (rpad b hₐ)
-     Gλ      = pad pq sq (liftW b hₐ)
 
   ------------------------------------------------------------------------
   -- The decision module.  Parameters mirror the front-end's `Decide`: a
@@ -441,21 +391,36 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
 
       open Steps PrimSigma
 
-      -- soundness of each primitive step.  σσ: the abstract-`meq` bridge is
-      -- `substDiag-irr` (`substDiag refl` reduces), then
-      -- `assoc ○ elimʳ (pad-σσ …)`.  Slides: `replD-sound` at the KEY
-      -- `slide-clean`/`slide-clean-a` (which carry the meq/domeq reconciliation).
-      prim-sound : ∀ {n k} {d d' : Diag n k} → PrimSigma d d' → ⟦ d ⟧ ≈Term ⟦ d' ⟧
-      prim-sound (σσ-step px sx a b rest' meq) =
-        (substDiag-irr (sym meq) refl (px ▸ sx ∷ cross b a ⟨ rest' ⟩) ⟩∘⟨refl)
-          ○ (assoc ○ elimʳ (pad-σσ px sx a b))
-      prim-sound (slideB-step px sx a p₁ s₁ f _ _) =
-        replD-sound
-          (slide-clean px sx a p₁ s₁ (⟦ box f ⟧ᵇˢ))
-      prim-sound (slideA-step px sx b p₁ s₁ f _ _) =
-        replD-sound
-          (slide-clean-a px sx b p₁ s₁ (⟦ box f ⟧ᵇˢ))
-      prim-sound (swap-step p) = prim-swap-sound p
+      -- STRICT soundness of each primitive step, in `Theory R_σ`'s `_≈ʷ_` on the
+      -- cast-free `⟦_⟧ˢ`.  σσ: the endo-`meq` collapses propositionally
+      -- (`⟦substDiag⟧ˢ` + `castʷᵈ-irr` at `refl`), then `pad-∘ˢ`/`pad-respˢ (axiom
+      -- (σσ …))`/`pad-idˢ` + `idʳ`.  Slides: `replD-soundˢ` at the strict KEY
+      -- `slide-cleanˢ`/`slide-cleanˢ-a`.  `swap-step`: the `R`-generic
+      -- `prim-swap-soundˢ`.
+      prim-soundˢ : ∀ {n k} {d d' : Diag n k} → PrimSigma d d' → ⟦ d ⟧ˢ ≈ʷ ⟦ d' ⟧ˢ
+      prim-soundˢ (σσ-step px sx a b rest' meq) = beginˢ
+        ⟦ px ▸ sx ∷ cross a b ⟨ substDiag (sym meq) SL ⟩ ⟧ˢ
+          ≈ˢ⟨ T.∘-resp-≈ (transʷ (≡→≈ʷ (⟦substDiag⟧ˢ (sym meq) SL))
+                            (≡→≈ʷ (castʷᵈ-irr (sym meq) refl ⟦ SL ⟧ˢ))) reflʷ ⟩
+        (⟦ rest' ⟧ˢ ∘ʷ padʷ px sx (boxʷ (cross b a))) ∘ʷ padʷ px sx (boxʷ (cross a b))
+          ≈ˢ⟨ T.assoc ⟩
+        ⟦ rest' ⟧ˢ ∘ʷ (padʷ px sx (boxʷ (cross b a)) ∘ʷ padʷ px sx (boxʷ (cross a b)))
+          ≈ˢ⟨ T.∘-resp-≈ reflʷ (symʷ (pad-∘ˢ px sx (boxʷ (cross b a)) (boxʷ (cross a b)))) ⟩
+        ⟦ rest' ⟧ˢ ∘ʷ padʷ px sx (boxʷ (cross b a) ∘ʷ boxʷ (cross a b))
+          ≈ˢ⟨ T.∘-resp-≈ reflʷ (pad-respˢ px sx (axiom (σσ a b))) ⟩
+        ⟦ rest' ⟧ˢ ∘ʷ padʷ px sx idʷ
+          ≈ˢ⟨ T.∘-resp-≈ reflʷ (pad-idˢ px sx) ⟩
+        ⟦ rest' ⟧ˢ ∘ʷ idʷ
+          ≈ˢ⟨ T.idʳ ⟩
+        ⟦ rest' ⟧ˢ ∎ˢ
+        where SL = px ▸ sx ∷ cross b a ⟨ rest' ⟩
+      prim-soundˢ (slideB-step px sx a p₁ s₁ {u} {v} f _ meq) =
+        replD-soundˢ R_σ (slide-cleanˢ px sx a p₁ s₁ (boxʷ (box f))
+          {meq} {eq₁ px p₁ v s₁ a sx} {eq₃ px a p₁ v s₁ sx} {sym (eq₃ px a p₁ u s₁ sx)})
+      prim-soundˢ (slideA-step px sx b p₁ s₁ {u} {v} f _ meq) =
+        replD-soundˢ R_σ (slide-cleanˢ-a px sx b p₁ s₁ (boxʷ (box f))
+          {meq} {sym (eq₃ px b p₁ v s₁ sx)} {sym (eq₁ px p₁ v s₁ b sx)} {eq₁ px p₁ u s₁ b sx})
+      prim-soundˢ (swap-step p) = prim-swap-soundˢ R_σ p
 
       -- the σσ recogniser at the generalized inner index: fires exactly
       -- when the head layer is `cross a b` at (px,sx) and the next layer
@@ -542,14 +507,15 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
       stepσ? : ∀ {n m} (d : Diag n m) → Maybe (Σ[ d' ∈ Diag n m ] (d ⤳D d'))
       stepσ? = stepWith go
 
-    normσ : ∀ {n m} (d : Diag n m) → Σ[ d' ∈ Diag n m ] (⟦ d ⟧ ≈Term ⟦ d' ⟧)
-    normσ = normSound prim-sound stepσ? (λ k → suc (k * k * k +ℕ k * k +ℕ k))
+    normσ : ∀ {n m} (d : Diag n m) → Σ[ d' ∈ Diag n m ] (⟦ d ⟧ˢ ≈ʷ ⟦ d' ⟧ˢ)
+    normσ = normSoundˢ R_σ prim-soundˢ stepσ? (λ k → suc (k * k * k +ℕ k * k +ℕ k))
 
     ------------------------------------------------------------------------
-    -- The decision entry: the shared `DecideCore` assembly at `normσ`
-    -- (reflect → normσ → ≟Diag → chain the soundness witnesses).
+    -- The decision entry: the shared STRICT `DecideCore` assembly at `normσ`
+    -- (reflect → normσ → ≟Diag → chain the `⟦_⟧ˢ`-level witnesses through
+    -- `embed-resp-≈ R_σ R_σ-sound` once).
     ------------------------------------------------------------------------
     private module DC = DecideCore ES
-    open DC.Decide normσ public using () renaming (decideW to decideσ?)
+    open DC.Decide R_σ R_σ-sound normσ public using () renaming (decideW to decideσ?)
 
     open import Data.Maybe.Ext public using (IsJust)
