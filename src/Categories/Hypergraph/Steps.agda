@@ -14,7 +14,7 @@
 
 open import Categories.FreeMonoidal
 
-module Categories.FreeSMC.Steps
+module Categories.Hypergraph.Steps
   (d : FreeMonoidalData) ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
 
 open FreeMonoidalData d using (X)

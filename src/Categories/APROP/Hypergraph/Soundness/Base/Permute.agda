@@ -22,8 +22,8 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
 
 --------------------------------------------------------------------------------
 -- `permute` / `permute-via-vlab` are re-exported from
--- `Categories.FreeSMC.Steps` so APROP and generic SMC code observe
+-- `Categories.Hypergraph.Steps` so APROP and generic SMC code observe
 -- definitional equality on both.
 
-open import Categories.FreeSMC.Steps asFreeMonoidalData public
+open import Categories.Hypergraph.Steps asFreeMonoidalData public
   using (permute; permute-via-vlab)
