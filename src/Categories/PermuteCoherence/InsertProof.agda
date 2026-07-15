@@ -7,13 +7,13 @@
 ------------------------------------------------------------------------
 module Categories.PermuteCoherence.InsertProof where
 
-open import Data.Nat.Base using (ℕ; zero; suc; _≤_; _<_)
+open import Data.Nat.Base using (ℕ; zero; suc)
 open import Data.Fin.Base using (Fin)
 open import Data.List.Base using ([]; _∷_)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Data.Product using (Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Product using (Σ-syntax; _×_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl; sym; trans; cong; subst)
+  using (_≡_; refl; sym; trans; cong)
 import Data.Fin.Permutation as P
 
 open import Categories.PermuteCoherence.FinBij

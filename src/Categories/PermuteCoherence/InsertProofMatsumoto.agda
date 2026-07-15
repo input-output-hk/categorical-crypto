@@ -5,23 +5,19 @@
 ------------------------------------------------------------------------
 module Categories.PermuteCoherence.InsertProofMatsumoto where
 
-open import Data.Nat.Base using (ℕ; suc; _≤_; _<_)
-open import Data.Fin.Base using (Fin)
+open import Data.Nat.Base using (ℕ; suc)
 open import Data.List.Base using ([]; _∷_)
-open import Data.Sum.Base using (_⊎_)
-open import Data.Product using (Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Product using (Σ-syntax; _×_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl; sym; trans; cong; subst)
-import Data.Fin.Permutation as P
+  using (refl; sym; trans; subst)
 
 open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _≈-fb_; ≈-fb-sym; ≈-fb-trans)
+  using (_≈-fb_; ≈-fb-sym; ≈-fb-trans)
 open import Categories.PermuteCoherence.Word
   using (Word; evalW; _~ʷ_; ~refl; ~trans; ∷c; ~ʷ⇒≈; genFB-cancelˡ)
-open import Categories.PermuteCoherence.Inversions using (inv)
 open import Categories.PermuteCoherence.InversionsCong using (inv-resp-≈; inv-id)
 open import Categories.PermuteCoherence.ExchangeBase
-  using (Reduced; descent; descent-resp-≈; inv-di)
+  using (Reduced; descent; descent-resp-≈)
 open import Categories.PermuteCoherence.BringToFront using (bring-to-front)
 open import Categories.PermuteCoherence.InsertProofBase
 

@@ -29,22 +29,22 @@ open import Data.Nat.Base using (ℕ; zero; suc; _≤_; _<_; s≤s; z≤n; s<s)
 open import Data.Nat.Properties using (1+n≰n; <⇒≤; <-asym; <⇒≢)
   renaming (≤-refl to ≤ℕ-refl)
 open import Function.Base using (_∘′_)
-open import Data.Fin.Base using (Fin; toℕ; inject₁) renaming (suc to fsuc; zero to fz)
-open import Data.Fin.Patterns using (0F; 1F)
+open import Data.Fin.Base using (Fin; toℕ; inject₁) renaming (suc to fsuc)
+open import Data.Fin.Patterns using (0F)
 open import Data.Fin.Properties using (toℕ-inject₁; toℕ-injective)
   renaming (_<?_ to _<?F_)
 open import Relation.Nullary using (¬_)
 open import Relation.Nullary.Decidable using (⌊_⌋)
-open import Data.Bool.Base using (Bool; true; false; not; _∧_)
-open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Bool.Base using (Bool; true; not; _∧_)
+open import Data.Empty using (⊥-elim)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
+open import Data.Product.Base using (_×_; _,_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; _≢_; refl; sym; trans; cong; cong₂; subst)
 
 import Data.Fin.Permutation as P
 open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _∘-fb_; swap-fb; cons-fb)
+  using (FinBij; _∘-fb_)
 open import Categories.PermuteCoherence.Word using (genFB)
 open import Categories.PermuteCoherence.InversionsSum
   using (invAt; invS; 1if; 1if-∧-cong; double-step)

@@ -5,20 +5,18 @@
 ------------------------------------------------------------------------
 module Categories.PermuteCoherence.InsertProofBase where
 
-open import Data.Nat.Base using (ℕ; zero; suc; _≤_; _<_; s≤s)
+open import Data.Nat.Base using (ℕ; suc; s≤s)
 open import Data.Nat.Properties using (≤-reflexive; ≤-trans; n≤1+n; 1+n≰n; suc-injective)
 open import Data.Fin.Base using (Fin)
 open import Data.List.Base using ([]; _∷_; length)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
+open import Data.Sum.Base using (inj₁; inj₂)
 open import Data.Product using (_×_; _,_)
 open import Data.Empty using (⊥-elim)
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl; sym; trans; cong; subst)
-import Data.Fin.Permutation as P
+  using (_≡_; refl; sym; trans; cong)
 
 open import Categories.PermuteCoherence.FinBij using (_∘-fb_)
 open import Categories.PermuteCoherence.Word using (Word; evalW; genFB; genFB∘genFB)
-open import Categories.PermuteCoherence.Inversions using (inv)
 open import Categories.PermuteCoherence.InversionsCong using (inv-resp-≈)
 open import Categories.PermuteCoherence.ExchangeBase using (Reduced; descent; inv-di; inv≤length)
 

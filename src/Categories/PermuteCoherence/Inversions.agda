@@ -15,12 +15,12 @@ module Categories.PermuteCoherence.Inversions where
 open import Data.Nat.Base using (ℕ; zero; suc; _+_)
 open import Data.Fin.Base using (Fin; toℕ) renaming (suc to fsuc)
 open import Data.Fin.Patterns using (0F)
-open import Data.List.Base using ([]; _∷_; _++_; length)
+open import Data.List.Base using ([]; _∷_; length)
 open import Data.List.Properties using (length-++)
 import Data.Fin.Permutation as P
 open P using (remove)
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl; trans; sym; cong; cong₂)
+  using (_≡_; refl; trans; cong; cong₂)
 
 open import Categories.PermuteCoherence.FinBij using (FinBij; _∘-fb_; inv-fb)
 open import Categories.PermuteCoherence.Word
