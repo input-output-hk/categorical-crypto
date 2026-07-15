@@ -58,13 +58,8 @@ module FCore (v : Variant) {X : Set}
   private module F = FreeMonoidalHelper.Mor v X GenF
 
   ------------------------------------------------------------------------
-  -- Object flattening and the wire-level generator family.
+  -- The wire-level generator family
   ------------------------------------------------------------------------
-
-  flatten : ObjTerm → List X
-  flatten unit      = []
-  flatten (Y ⊗₀ Z) = flatten Y ++ flatten Z
-  flatten (Var x)   = x ∷ []
 
   data MorW : List X → List X → Set where
     mk : ∀ {Y Z} → GenF Y Z → MorW (flatten Y) (flatten Z)
@@ -145,41 +140,23 @@ module FBridge
   {v : Variant} {X : Set} ⦃ _ : DecEq X ⦄
   (sig : FreeSig v {X})
   (let open FreeSig sig)
-  (let open FreeMonoidalHelper v X using (unit; _⊗₀_; Var))
+  (let open FreeMonoidalHelper v X using (unit; _⊗₀_; Var; flatten))
   (E : WireEngine v)
   where
 
   open WireEngine E renaming (Mor to MorEng)
   open WireSig v {X} MorEng
-  open DiagramI E using (castW)
+  open DiagramI E using (castW; module WireCohDec)
+  open WireCohDec
   open ReflectI E
 
-  -- the wire-level free category (unqualified, as in the front-ends).
-  open FreeMonoidalHelper.Mor v X mor
+  open FreeMonoidalHelper.Mor v X mor hiding (flat⇒; flat⇐; flat⇐∘flat⇒)
 
   open FCore v {X = X} GenF
   open F≈R
 
-  ------------------------------------------------------------------------
-  -- The canonical structural iso Y ≅ wires (flatten Y)
-  ------------------------------------------------------------------------
-
-  -- These are generator-independent structural isos (`Y ≅ wires (flatten Y)`),
-  -- so mathematically they could sit beside `wires` in `FreeMonoidal`.  They
-  -- stay here because they are stated over `flatten : ObjTerm → List X`, a
-  -- solver-side notion defined in `FCore` and used only by the front-ends;
-  -- `FreeMonoidal` provides just the reverse `wires`.  Relocating them would
-  -- drag `flatten` into the widely-imported `FreeMonoidal` for no benefit to
-  -- any consumer outside the solver.
-  flat⇒ : (Y : ObjTerm) → F.HomTerm Y (wires (flatten Y))
-  flat⇒ unit      = F.id
-  flat⇒ (Y ⊗₀ Z) = F.merge (flatten Y) F.∘ (flat⇒ Y F.⊗₁ flat⇒ Z)
-  flat⇒ (Var x)   = F.ρ⇐
-
-  flat⇐ : (Y : ObjTerm) → F.HomTerm (wires (flatten Y)) Y
-  flat⇐ unit      = F.id
-  flat⇐ (Y ⊗₀ Z) = (flat⇐ Y F.⊗₁ flat⇐ Z) F.∘ F.split (flatten Y)
-  flat⇐ (Var x)   = F.ρ⇒
+  open F public using (flat⇒; flat⇐)
+  open F        using (flat⇐∘flat⇒)
 
   ------------------------------------------------------------------------
   -- F-side coercion along a wire-list equality.
@@ -342,22 +319,6 @@ module FBridge
           rhs-eq : inj (merge (p ++ q) ∘ (merge p ⊗₁ id))
                  ≡ F.merge (p ++ q) F.∘ (F.merge p F.⊗₁ F.id {wires r})
           rhs-eq rewrite inj-merge (p ++ q) {r} | inj-merge p {q} = refl
-
-      ----------------------------------------------------------------------
-      -- The canonical iso laws (only the retraction is needed downstream).
-      ----------------------------------------------------------------------
-
-      -- Like `flat⇒`/`flat⇐` above, a generic structural fact that stays here
-      -- rather than in `FreeMonoidal` because it is phrased over the solver-side
-      -- `flatten`.
-      flat⇐∘flat⇒ : ∀ (Y : ObjTerm) → flat⇐ Y F.∘ flat⇒ Y F.≈Term F.id
-      flat⇐∘flat⇒ unit = F.idˡ
-      flat⇐∘flat⇒ (Y ⊗₀ Z) =
-        F.cancelInner (F.split∘merge (flatten Y))
-        F.○ F.⟺ F.⊗-∘-dist
-        F.○ (flat⇐∘flat⇒ Y F.⟩⊗⟨ flat⇐∘flat⇒ Z)
-        F.○ F.id⊗id≈id
-      flat⇐∘flat⇒ (Var x) = F.ρ⇒∘ρ⇐≈id
 
       ----------------------------------------------------------------------
       -- cast-half: a casted idʷ, embedded and injected, is the F-side
@@ -530,10 +491,8 @@ module FFocus
 
     go-all : ∀ {A B P Q} → F.HomTerm A B → F.HomTerm P Q → List (Foc A B P Q)
     go-all (g F.∘ f) lᵗ =
-         map (λ { (k , m , pre , post) → (k , m , pre , g F.∘ post) })
-             (focusAll f lᵗ)
-      ++ map (λ { (k , m , pre , post) → (k , m , pre F.∘ f , post) })
-             (focusAll g lᵗ)
+         map (λ { (k , m , pre , post) → (k , m , pre , g F.∘ post) }) (focusAll f lᵗ)
+      ++ map (λ { (k , m , pre , post) → (k , m , pre F.∘ f , post) }) (focusAll g lᵗ)
     go-all (F._⊗₁_ {A = A₁} {C = A₂} a b) lᵗ =
          map (λ { (k , m , pre , post) →                       -- redex in a
                 ( k , m ⊗₀ A₂

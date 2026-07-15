@@ -75,8 +75,8 @@ generators and the solver `solveMor!`, which discharges a goal between
 interpretations of front-end terms whose normal forms agree — handling
 monoidal coherence together with naturality and the interchange law for
 `_⊗₁_`/`_∘_`. `rewriteMor!` and friends additionally fire a user-supplied
-equational rule in a context (`rewriteMorAuto!` locates it automatically —
-the `L5` mitigation). See `Categories.GradedKleisli` for a call site.
+equational rule in a context (`rewriteMorAuto!` locates it automatically).
+See `Categories.GradedKleisli` for a call site.
 
 ```agda
 module Mor
@@ -190,13 +190,10 @@ module Symmetric
 
 ## Scope and limitations
 
-  * Subterms the solver does not recognise become opaque generators: an
-    identity depending on a generator's internal structure is not found
-    unless supplied as a rewrite rule.
-  * `Structural` is monoidal only — it has no braiding; use `Symmetric` for
-    goals involving `σ`.
-  * The decision procedures normalise by reordering independent boxes and
-    comparing normal forms; ambiguous (scalar-like) reorderings are broken by
-    a fixed rank convention. See `Categories.Coherence.Monoidal.Test.*` for
-    the machine-checked catalogue of what does and does not decide.
+The solver family is sound but not complete: it may return `nothing` on a
+true equation. The full list of what it does *not* decide — the ambiguous
+rank convention, opaque generators, the braided hexagon and straddling
+boxes, and the meta-properties (incompleteness, no confluence claim) — is
+catalogued, with machine-checked witnesses, in
+`Categories.Coherence.Monoidal.Test.Limitations`.
 ```

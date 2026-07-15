@@ -356,12 +356,7 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v)
     depthD ([]_ n)            = zero
     depthD (_ ▸ _ ∷ _ ⟨ d ⟩) = suc (depthD d)
 
-    -- THE interchange oracle — the module's main product, the per-position
-    -- recogniser both front-ends build their normalizers from (`rank` passed
-    -- as an ORDINARY argument so it does not block reduction): it tries
-    -- `leftFit?` and emits a `PrimSwap` step when the pair is unambiguous or the
-    -- rank tiebreak demands it.  It is PRIM-LEVEL (no `_⤳D_`), so the σ engine
-    -- can embed its result into `PrimSigma` via `swap-step`.
+    -- swap an adjacent parallel pair
     interchangeGo : (rank : ∀ {a b} → Mor a b → ℕ)
                   → ∀ {ax bx k} (px sx : List X) (fx : Mor ax bx)
                     {m : List X} (rest : Diag m k) (meq : px ++ (bx ++ sx) ≡ m)

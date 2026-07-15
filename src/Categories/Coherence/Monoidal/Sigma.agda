@@ -449,10 +449,10 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
       prim-sound (σσ-step px sx a b rest' meq) =
         (substDiag-irr (sym meq) refl (px ▸ sx ∷ cross b a ⟨ rest' ⟩) ⟩∘⟨refl)
           ○ (assoc ○ elimʳ (pad-σσ px sx a b))
-      prim-sound (slideB-step px sx a p₁ s₁ {u = u} {v = v} f rest' meq) =
+      prim-sound (slideB-step px sx a p₁ s₁ f _ _) =
         replD-sound
           (slide-clean px sx a p₁ s₁ (⟦ box f ⟧ᵇˢ))
-      prim-sound (slideA-step px sx b p₁ s₁ {u = u} {v = v} f rest' meq) =
+      prim-sound (slideA-step px sx b p₁ s₁ f _ _) =
         replD-sound
           (slide-clean-a px sx b p₁ s₁ (⟦ box f ⟧ᵇˢ))
       prim-sound (swap-step p) = prim-swap-sound p
@@ -542,16 +542,6 @@ module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) whe
       stepσ? : ∀ {n m} (d : Diag n m) → Maybe (Σ[ d' ∈ Diag n m ] (d ⤳D d'))
       stepσ? = stepWith go
 
-    -- budget: a cancellation shrinks the diagram (so at most depth/2 of
-    -- them); within a phase every move is monotone — an interchange swap
-    -- removes one layer inversion and a slide removes one
-    -- (cross-before-box) inversion while updating the cross's block — so
-    -- each phase needs at most depth² moves.  depth³ + depth² + depth + 1
-    -- over-approximates the total.  (Degenerate scalar-arity boxes at a
-    -- block edge can make a slide and an interchange oscillate; the fuel
-    -- then runs out and the pair is left undecided — soundness is
-    -- unconditional whatever the fuel.)  The syntactic `_⤳D_` trace is turned
-    -- into the semantic witness by `⤳D-sound prim-sound`, applied once here.
     normσ : ∀ {n m} (d : Diag n m) → Σ[ d' ∈ Diag n m ] (⟦ d ⟧ ≈Term ⟦ d' ⟧)
     normσ = normSound prim-sound stepσ? (λ k → suc (k * k * k +ℕ k * k +ℕ k))
 

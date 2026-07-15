@@ -17,8 +17,9 @@
 -- The pin is `IsJust (decide?F revStack fwdStack)`, `_ = _`; the `IsJust`
 -- forces the whole decision procedure to run at typecheck time.  THAT is the
 -- benchmark.  Drives the internal decision kernel (`FinSig` / `Frontend` /
--- `Decide`) directly, wired exactly as `Test/Frontend.agda`'s limitations
--- catalogue does it — the kernel's typecheck cost is the thing under test.
+-- `Decide`) directly, wired from a `FinSig` signature exactly as
+-- `Test/Limitations.agda` does it — the kernel's typecheck cost is the thing
+-- under test.
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.Test.InterchangeStress where

@@ -14,15 +14,6 @@
 --     image block), the single-sided variants isolate each slide.
 --   * `Mixed`      — σ moves interleaved with coherence/functoriality.
 --   * `Rewrite`    — the shared rewriting layer (`rewriteMorσAuto!`).
---
--- The positive suites above use the PUBLIC solver.  The LIMITATIONS CATALOGUE
--- — the `Negative` boundaries (the HEXAGON Lσ1, the straddling-box Lσ2, and a
--- distinct-generator sanity check) — is restored below via the INTERNAL
--- front-end API: these facts pin the decision procedure with
--- `decide?F … ≡ nothing`, which the public solvers cannot express (a public
--- solver only ever produces a proof; it cannot witness a `nothing`).  Using
--- the internal API for these boundary/decidability tests is deliberate and
--- fine.
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.Test.SigmaFrontend where
@@ -157,34 +148,18 @@ module Morphism {o ℓ e : Level}
       test-rwσ-cancel = rewriteMorσAuto! (t' S.⊗₁ (s' S.∘ s')) (t' S.⊗₁ S.id) (s' S.∘ s') (S.id) invσ
 
 ------------------------------------------------------------------------
--- LIMITATIONS CATALOGUE (internal-API boundary tests).
---
--- The negatives below assert `decide?F … ≡ nothing`, so they require the
--- INTERNAL symmetric front-end decision procedure
--- (`FrontendS.Decide.decide?F`) rather than the public solver.  We wire it by
--- hand from a `FinSig` signature: a two-colour atom alphabet and a Fin-indexed
--- arity table mirroring the box generators used by the positive suite.
---
---   0 → μ : ⋆ ⊗ ⋆ → ⋆     (multi-wire input)
---   1 → s : ⋆ → ⋆          (endo on ⋆)
---   2 → t : • → •          (endo on •)
+-- Sound rejection
 
-data Ty : Set where ⋆ • : Ty
+data Ty : Set where ⋆ : Ty
 
 instance
   DecEq-Ty : DecEq Ty
-  DecEq-Ty .DecEq._≟_ = λ where
-    ⋆ ⋆ → yes refl
-    ⋆ • → no λ ()
-    • ⋆ → no λ ()
-    • • → yes refl
+  DecEq-Ty .DecEq._≟_ ⋆ ⋆ = yes refl
 
-open FreeMonoidalHelper Symm Ty using () renaming (ObjTerm to ObjTermᴵ; unit to unitᴵ; _⊗₀_ to _⊗₀ᴵ_; Var to Varᴵ)
+open FreeMonoidalHelper Symm Ty using () renaming (ObjTerm to ObjTermᴵ; Var to Varᴵ)
 
-arityT : Fin 3 → ObjTermᴵ × ObjTermᴵ
-arityT zero             = Varᴵ ⋆ ⊗₀ᴵ Varᴵ ⋆ , Varᴵ ⋆
-arityT (suc zero)       = Varᴵ ⋆ , Varᴵ ⋆
-arityT (suc (suc zero)) = Varᴵ • , Varᴵ •
+arityT : Fin 1 → ObjTermᴵ × ObjTermᴵ
+arityT zero = Varᴵ ⋆ , Varᴵ ⋆
 
 private module FS = FinSig Symm {Ty} arityT
 open FS renaming (gen to genᵗ)
@@ -194,51 +169,15 @@ open Decide rankS
 
 private
   infixr 9 _∘ᴵ_
-  infixr 10 _⊗ᴵ_
   _∘ᴵ_ : ∀ {A B C} → S.HomTerm B C → S.HomTerm A B → S.HomTerm A C
   _∘ᴵ_ = S._∘_
-  _⊗ᴵ_ : ∀ {A B C D} → S.HomTerm A B → S.HomTerm C D → S.HomTerm (A ⊗₀ᴵ C) (B ⊗₀ᴵ D)
-  _⊗ᴵ_ = S._⊗₁_
-  idᴵ : ∀ {A} → S.HomTerm A A
-  idᴵ = S.id
-  σᴵ : ∀ {A B} → S.HomTerm (A ⊗₀ᴵ B) (B ⊗₀ᴵ A)
-  σᴵ = S.σ
-  μ' = genᵗ zero
-  s' = genᵗ (suc zero)
-  t' = genᵗ (suc (suc zero))
-
-------------------------------------------------------------------------
--- NEGATIVE boundaries, pinned with ≡ nothing.
+  s' = genᵗ zero
 
 module Negative where
 
-  -- Lσ1: the HEXAGON (a TRUE axiom) does not decide — the normalizer never
-  -- splits or merges crossing BLOCKS, so the two routings are distinct normal
-  -- forms.
-  neg-hexagon
-    : decide?F ((idᴵ ⊗ᴵ σᴵ) ∘ᴵ S.α⇒ ∘ᴵ (σᴵ {Varᴵ ⋆} {Varᴵ •} ⊗ᴵ idᴵ {Varᴵ ⋆}))
-               (S.α⇒ ∘ᴵ σᴵ ∘ᴵ S.α⇒)
-      ≡ nothing
-  neg-hexagon = refl
-
-  -- distinct generators stay apart (sanity: every just is a real proof).
+  -- distinct diagrams stay apart (sanity: every just is a real proof).
   neg-distinct : decide?F (s' ∘ᴵ s') s' ≡ nothing
   neg-distinct = refl
-
-  -- Lσ2: a box STRADDLING the two image blocks of a crossing does not slide.
-  -- Over `σ {⋆⊗⋆}{⋆}`, mapping wires [a₁,a₂,b]↦[b,a₁,a₂], the multi-input box
-  -- `μ` (after `α⇐`) consumes [b,a₁] — one wire from each image block — so it
-  -- straddles the crossing.  Both sides denote the SAME free-symmetric morphism
-  -- (the equation is TRUE), but the solver returns `nothing`: sliding μ would
-  -- split it across the two image blocks.  (This pin also exercises the Lσ1
-  -- crossing-routing boundary; a straddle-only pin is not constructible here.)
-  neg-straddle
-    : decide?F ((μ' ⊗ᴵ idᴵ) ∘ᴵ S.α⇐ ∘ᴵ σᴵ)
-               ((μ' ⊗ᴵ idᴵ) ∘ᴵ
-                  (σᴵ ⊗ᴵ idᴵ) ∘ᴵ S.α⇐ ∘ᴵ
-                  (idᴵ ⊗ᴵ σᴵ {Varᴵ ⋆}) ∘ᴵ S.α⇒)
-      ≡ nothing
-  neg-straddle = refl
 
 --------------------------------------------------------------------------------
 -- WIRE-LEVEL σ-engine tests (driving `Sigma.decideσ?` directly, below the
