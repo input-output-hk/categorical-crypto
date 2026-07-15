@@ -5,12 +5,12 @@
 -- generators (boxes + `cross a b : MorS (a ++ b) (b ++ a)`), with the crossing
 -- interpreted as the block braiding conjugated to flat wire coordinates:
 --
---     ⟦box⟧S (cross a b) = merge b {a} ∘ σ ∘ split a {b}
+--     ⟦ cross a b ⟧ᵇˢ = merge b {a} ∘ σ ∘ split a {b}
 --
 -- The block involution `⟦cross b a⟧ ∘ ⟦cross a b⟧ ≈ id` needs NO σ-naturality
 -- (only split∘merge cancellation + σ∘σ≈id); the naturality slide uses ONE
 -- σ-naturality instance.  The `++`-assoc castW tax lives entirely in the final
--- re-cleaning of the two grouped box-layers into clean DiagU pads
+-- re-cleaning of the two grouped box-layers into clean Diag pads
 -- (`slide-clean`/`slide-clean-a`).
 --
 -- RANK CONVENTION: the interchange tiebreak for ambiguous (scalar-like) pairs
@@ -35,7 +35,7 @@ open import Categories.Coherence.Monoidal.Compare
 open import Categories.Coherence.Monoidal.Normalize
 open import Categories.Coherence.Monoidal.Reflect
 
-module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X → Set) where
+module Sigma {X : Set} ⦃ _ : DecEq X ⦄ (Mor : List X → List X → Set) where
 
   ------------------------------------------------------------------------
   -- Extended generator family: boxes + transparent block crossings
@@ -45,31 +45,30 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
     cross : (a b : List X) → MorS (a ++ b) (b ++ a)
 
   private module WS = WireSig Symm MorS
-  open FreeMonoidalHelper.Mor Symm X WS.mor hiding (merge; split; merge∘split; split∘merge)
+  open FreeMonoidalHelper.Mor Symm X WS.mor
 
   ------------------------------------------------------------------------
   -- Interpretation: boxes opaque; a crossing is the conjugated braiding
   ------------------------------------------------------------------------
-  ⟦box⟧S : ∀ {a b} → MorS a b → HomTerm (WS.wires a) (WS.wires b)
-  ⟦box⟧S (box f)     = var (WS.box (box f))
-  ⟦box⟧S (cross a b) = WS.merge b ∘ σ ∘ WS.split a
+  ⟦_⟧ᵇˢ : ∀ {a b} → MorS a b → HomTerm (WS.wires a) (WS.wires b)
+  ⟦ box f ⟧ᵇˢ     = var (WS.box (box f))
+  ⟦ cross a b ⟧ᵇˢ = merge b ∘ σ ∘ split a
 
   -- the σ-engine instance, shared by the wire-level modules below.
-  ES : WireEngine Symm {X}
-  ES = record { Mor = MorS ; ⟦box⟧ = ⟦box⟧S }
+  ES : WireEngine Symm
+  ES = record { Mor = MorS ; ⟦_⟧ᵇ = ⟦_⟧ᵇˢ }
 
-  open UntypedI ES public
+  open DiagramI ES public
   open ≈R
 
   open MR FreeMonoidal
   open MonR Monoidal-FreeMonoidal using (refl⟩⊗⟨_)
 
-  open ReflectI ES _≟X_ public
+  open ReflectI ES public
 
   -- block involution (no σ-naturality: split∘merge + σ∘σ≈id only).
   private
-    σσ-block : ∀ (a b : List X)
-             → ⟦box⟧S (cross b a) ∘ ⟦box⟧S (cross a b) ≈Term id
+    σσ-block : ∀ (a b : List X) → ⟦ cross b a ⟧ᵇˢ ∘ ⟦ cross a b ⟧ᵇˢ ≈Term id
     σσ-block a b = begin
       (merge a ∘ σ ∘ split b) ∘ (merge b ∘ σ ∘ split a)
         ≈⟨ pullʳ (cancelInner (split∘merge b)) ⟩
@@ -82,12 +81,12 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
   -- padded involution (inverse cross-pair at the same offsets = id).
   private
     pad-σσ : ∀ (pre suf a b : List X)
-           → pad pre suf (⟦box⟧S (cross b a)) ∘ pad pre suf (⟦box⟧S (cross a b))
+           → pad pre suf (⟦ cross b a ⟧ᵇˢ) ∘ pad pre suf (⟦ cross a b ⟧ᵇˢ)
              ≈Term id
     pad-σσ pre suf a b = begin
-      pad pre suf (⟦box⟧S (cross b a)) ∘ pad pre suf (⟦box⟧S (cross a b))
-        ≈⟨ pad-∘ pre suf (⟦box⟧S (cross b a)) (⟦box⟧S (cross a b)) ⟨
-      pad pre suf (⟦box⟧S (cross b a) ∘ ⟦box⟧S (cross a b))
+      pad pre suf (⟦ cross b a ⟧ᵇˢ) ∘ pad pre suf (⟦ cross a b ⟧ᵇˢ)
+        ≈⟨ pad-∘ pre suf (⟦ cross b a ⟧ᵇˢ) (⟦ cross a b ⟧ᵇˢ) ⟨
+      pad pre suf (⟦ cross b a ⟧ᵇˢ ∘ ⟦ cross a b ⟧ᵇˢ)
         ≈⟨ pad-resp pre suf (σσ-block a b) ⟩
       pad pre suf id
         ≈⟨ pad-id pre suf ⟩
@@ -96,10 +95,10 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
   ------------------------------------------------------------------------
   -- Normalize / compare stack
   ------------------------------------------------------------------------
-  open NormalizeI ES _≟X_
+  open NormalizeI ES
   open SortD
 
-  private module SCmp = SolverCompareI ES _≟X_
+  private module SCmp = CompareI ES
 
   GenM : Set
   GenM = Σ[ a ∈ List X ] Σ[ b ∈ List X ] Mor a b
@@ -112,8 +111,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
   ------------------------------------------------------------------------
   private
     slide-core : ∀ (a : List X) {b b' : List X} (h : HomTerm (wires b) (wires b'))
-               → ⟦box⟧S (cross a b') ∘ liftW a h
-                 ≈Term rpad a h ∘ ⟦box⟧S (cross a b)
+               → ⟦ cross a b' ⟧ᵇˢ ∘ liftW a h
+                 ≈Term rpad a h ∘ ⟦ cross a b ⟧ᵇˢ
     slide-core a {b} {b'} h = begin
      (merge b' ∘ σ ∘ split a) ∘ liftW a h
        ≈⟨ refl⟩∘⟨ liftW-merge a h ⟩
@@ -132,8 +131,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
   -- the symmetric a-block case (update g : wires a ⇒ wires a').
   private
     slide-core-a : ∀ (b : List X) {a a' : List X} (g : HomTerm (wires a) (wires a'))
-                 → ⟦box⟧S (cross a' b) ∘ rpad b g
-                   ≈Term liftW b g ∘ ⟦box⟧S (cross a b)
+                 → ⟦ cross a' b ⟧ᵇˢ ∘ rpad b g
+                   ≈Term liftW b g ∘ ⟦ cross a b ⟧ᵇˢ
     slide-core-a b {a} {a'} g = begin
      (merge b ∘ σ ∘ split a') ∘ (merge a' ∘ (g ⊗₁ id) ∘ split a)
        ≈⟨ pullʳ (cancelInner (split∘merge a')) ⟩
@@ -166,14 +165,14 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
   -- `pad-resp` functoriality.
   private
     slide-pad : ∀ (pq sq a : List X) {b b'} (h : HomTerm (wires b) (wires b'))
-      → pad pq sq (⟦box⟧S (cross a b')) ∘ pad pq sq (liftW a h)
-        ≈Term pad pq sq (rpad a h) ∘ pad pq sq (⟦box⟧S (cross a b))
+      → pad pq sq (⟦ cross a b' ⟧ᵇˢ) ∘ pad pq sq (liftW a h)
+        ≈Term pad pq sq (rpad a h) ∘ pad pq sq (⟦ cross a b ⟧ᵇˢ)
     slide-pad pq sq a h = pad-∘-resp pq sq (slide-core a h)
 
   ------------------------------------------------------------------------
-  -- Re-cleaning: the two grouped box-layers as clean DiagU pads.
+  -- Re-cleaning: the two grouped box-layers as clean Diag pads.
   ------------------------------------------------------------------------
-  -- Re-expressing the slide's grouped layers as genuine clean DiagU pads
+  -- Re-expressing the slide's grouped layers as genuine clean Diag pads
   -- at the composite offsets is where the castW tax lives. The interface
   -- is the `isConjugate eC eD Y Z` relation (Y is Z retyped on both ends by
   -- the casts `castW eC`/`castW eD`).  The relation, its engine-generic
@@ -246,9 +245,9 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
           ≡ (pq ++ (a ++ p₁)) ++ (u ++ (s₁ ++ sq))}
     → pad (pq ++ p₁) (s₁ ++ (a ++ sq)) G
         ∘ castW e₁
-        ∘ pad pq sq (⟦box⟧S (cross a (p₁ ++ (u ++ s₁))))
+        ∘ pad pq sq (⟦ cross a (p₁ ++ (u ++ s₁)) ⟧ᵇˢ)
       ≈Term castW e₂
-        ∘ pad pq sq (⟦box⟧S (cross a (p₁ ++ (v ++ s₁))))
+        ∘ pad pq sq (⟦ cross a (p₁ ++ (v ++ s₁)) ⟧ᵇˢ)
         ∘ castW e₃
         ∘ pad (pq ++ (a ++ p₁)) (s₁ ++ sq) G
         ∘ castW e₄
@@ -262,8 +261,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
     castW e₂ ∘ (Cab' ∘ (castW e₃ ∘ padSlid ∘ castW e₄)) ∎
     where
       hᵇ      = pad p₁ s₁ G
-      Cab     = pad pq sq (⟦box⟧S (cross a (p₁ ++ (u ++ s₁))))
-      Cab'    = pad pq sq (⟦box⟧S (cross a (p₁ ++ (v ++ s₁))))
+      Cab     = pad pq sq (⟦ cross a (p₁ ++ (u ++ s₁)) ⟧ᵇˢ)
+      Cab'    = pad pq sq (⟦ cross a (p₁ ++ (v ++ s₁)) ⟧ᵇˢ)
       padIn   = pad (pq ++ p₁) (s₁ ++ (a ++ sq)) G
       padSlid = pad (pq ++ (a ++ p₁)) (s₁ ++ sq) G
       Gβ      = pad pq sq (rpad a hᵇ)
@@ -276,8 +275,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
   -- the padded a-block slide (mirror of `slide-pad`).
   private
     slide-pad-a : ∀ (pq sq b : List X) {a a'} (g : HomTerm (wires a) (wires a'))
-                → pad pq sq (⟦box⟧S (cross a' b)) ∘ pad pq sq (rpad b g)
-                  ≈Term pad pq sq (liftW b g) ∘ pad pq sq (⟦box⟧S (cross a b))
+                → pad pq sq (⟦ cross a' b ⟧ᵇˢ) ∘ pad pq sq (rpad b g)
+                  ≈Term pad pq sq (liftW b g) ∘ pad pq sq (⟦ cross a b ⟧ᵇˢ)
     slide-pad-a pq sq b g = pad-∘-resp pq sq (slide-core-a b g)
 
   -- the assembled clean a-block slide.  The input order (crossing first,
@@ -296,9 +295,9 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
          ≡ (pq ++ p₁) ++ (u ++ (s₁ ++ (b ++ sq)))}
    → pad (pq ++ (b ++ p₁)) (s₁ ++ sq) G
        ∘ castW e₁
-       ∘ pad pq sq (⟦box⟧S (cross (p₁ ++ (u ++ s₁)) b))
+       ∘ pad pq sq (⟦ cross (p₁ ++ (u ++ s₁)) b ⟧ᵇˢ)
      ≈Term castW e₂
-       ∘ pad pq sq (⟦box⟧S (cross (p₁ ++ (v ++ s₁)) b))
+       ∘ pad pq sq (⟦ cross (p₁ ++ (v ++ s₁)) b ⟧ᵇˢ)
        ∘ castW e₃
        ∘ pad (pq ++ p₁) (s₁ ++ (b ++ sq)) G
        ∘ castW e₄
@@ -312,8 +311,8 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
    castW e₂ ∘ (Cab' ∘ (castW e₃ ∘ padSlid ∘ castW e₄)) ∎
    where
      hₐ      = pad p₁ s₁ G
-     Cab     = pad pq sq (⟦box⟧S (cross (p₁ ++ (u ++ s₁)) b))
-     Cab'    = pad pq sq (⟦box⟧S (cross (p₁ ++ (v ++ s₁)) b))
+     Cab     = pad pq sq (⟦ cross (p₁ ++ (u ++ s₁)) b ⟧ᵇˢ)
+     Cab'    = pad pq sq (⟦ cross (p₁ ++ (v ++ s₁)) b ⟧ᵇˢ)
      padIn   = pad (pq ++ (b ++ p₁)) (s₁ ++ sq) G
      padSlid = pad (pq ++ p₁) (s₁ ++ (b ++ sq)) G
      Gρ      = pad pq sq (rpad b hₐ)
@@ -321,10 +320,10 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
 
   ------------------------------------------------------------------------
   -- The decision module.  Parameters mirror the front-end's `Decide`: a
-  -- decidable equality on the underlying generator triples and a rank
-  -- tiebreak for ambiguous (mutually-fitting, scalar-like) pairs.
+  -- decidable equality on the underlying generator triples and
+  -- a rank tiebreak for ambiguous (mutually-fitting, scalar-like) pairs.
   ------------------------------------------------------------------------
-  module Decide (_≟G_ : DecidableEquality GenM) (rank : GenM → ℕ) where
+  module Decideσ ⦃ _ : DecEq GenM ⦄ (rank : GenM → ℕ) where
 
     ------------------------------------------------------------------------
     -- Decidable equality on the EXTENDED generator triples, no-K style:
@@ -349,17 +348,18 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
       true≢false : true ≡ false → ⊥
       true≢false ()
 
-    _≟GS_ : DecidableEquality SCmp.Gen
-    (a , b , box f) ≟GS (a' , b' , box g) = case (a , b , f) ≟G (a' , b' , g) of λ where
-      (yes refl) → yes refl
-      (no ¬p)    → no λ e → ¬p (just-injective (cong boxPay e))
-    (_ , _ , box _)     ≟GS (_ , _ , cross _ _) = no λ e → true≢false (cong tagS e)
-    (_ , _ , cross _ _) ≟GS (_ , _ , box _)     = no λ e → true≢false (sym (cong tagS e))
-    (_ , _ , cross a b) ≟GS (_ , _ , cross c d) = case a ≟L c of λ where
-      (no ¬p)    → no λ e → ¬p (cong proj₁ (just-injective (cong crossPay e)))
-      (yes refl) → case b ≟L d of λ where
+    instance
+      DecEq-GenS : DecEq SCmp.Gen
+      DecEq-GenS ._≟_ (a , b , box f) (a' , b' , box g) = case (a , b , f) ≟ (a' , b' , g) of λ where
         (yes refl) → yes refl
-        (no ¬q)    → no λ e → ¬q (cong proj₂ (just-injective (cong crossPay e)))
+        (no ¬p)    → no λ e → ¬p (just-injective (cong boxPay e))
+      DecEq-GenS ._≟_ (_ , _ , box _)     (_ , _ , cross _ _) = no λ e → true≢false (cong tagS e)
+      DecEq-GenS ._≟_ (_ , _ , cross _ _) (_ , _ , box _)     = no λ e → true≢false (sym (cong tagS e))
+      DecEq-GenS ._≟_ (_ , _ , cross a b) (_ , _ , cross c d) = case a ≟ c of λ where
+        (no ¬p)    → no λ e → ¬p (cong proj₁ (just-injective (cong crossPay e)))
+        (yes refl) → case b ≟ d of λ where
+          (yes refl) → yes refl
+          (no ¬q)    → no λ e → ¬q (cong proj₂ (just-injective (cong crossPay e)))
 
     -- RANK: crosses sort below all boxes among ambiguous pairs; the
     -- caller's relative order on boxes is preserved.
@@ -370,7 +370,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
     ------------------------------------------------------------------------
     -- The one-step oracle: σσ-CANCEL first, then naturality slides, then
     -- disjoint interchange, emitting `PrimSigma` steps.  The generic traversal
-    -- `stepWith`, the fuel loop `normFuelWith` and the closure `_≈D_` come from
+    -- `stepWith`, the fuel loop `normFuelWith` and the closure `_⤳D_` come from
     -- `SortD.Steps PrimSigma`; `depthD` and `interchangeGo` from `SortD`.
     ------------------------------------------------------------------------
 
@@ -405,70 +405,70 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
       -- recogniser `meq` is kept ABSTRACT (so no per-fire UIP rewrite runs on
       -- the firing path); the reconciliation lands in
       -- `prim-sound`.  `{u}`/`{v}` on the slides are inferred from the box `f`.
-      data PrimSigma : ∀ {n k} → DiagU n k → DiagU n k → Set where
+      data PrimSigma : ∀ {n k} → Diag n k → Diag n k → Set where
         σσ-step : ∀ {k} (px sx a b : List X)
-                  (rest' : DiagU (px ++ ((a ++ b) ++ sx)) k)
+                  (rest' : Diag (px ++ ((a ++ b) ++ sx)) k)
                   (meq : px ++ ((b ++ a) ++ sx) ≡ px ++ ((b ++ a) ++ sx))
                 → PrimSigma
                     (px ▸ sx ∷ cross a b
-                       ⟨ substDiagU (sym meq) (px ▸ sx ∷ cross b a ⟨ rest' ⟩) ⟩)
+                       ⟨ substDiag (sym meq) (px ▸ sx ∷ cross b a ⟨ rest' ⟩) ⟩)
                     rest'
         slideB-step : ∀ {k} (px sx a p₁ s₁ : List X) {u v} (f : Mor u v)
-                      (rest' : DiagU ((px ++ p₁) ++ (v ++ (s₁ ++ (a ++ sx)))) k)
+                      (rest' : Diag ((px ++ p₁) ++ (v ++ (s₁ ++ (a ++ sx)))) k)
                       (meq : px ++ (((p₁ ++ (u ++ s₁)) ++ a) ++ sx)
                            ≡ (px ++ p₁) ++ (u ++ (s₁ ++ (a ++ sx))))
                     → PrimSigma
                         (px ▸ sx ∷ cross a (p₁ ++ (u ++ s₁))
-                           ⟨ substDiagU (sym meq)
+                           ⟨ substDiag (sym meq)
                                ((px ++ p₁) ▸ (s₁ ++ (a ++ sx)) ∷ box f ⟨ rest' ⟩) ⟩)
                         (replD (px ++ (a ++ p₁)) (s₁ ++ sx) px sx
                                (box f) (cross a (p₁ ++ (v ++ s₁))) rest'
                                (eq₁ px p₁ v s₁ a sx) (eq₃ px a p₁ v s₁ sx)
                                (sym (eq₃ px a p₁ u s₁ sx)))
         slideA-step : ∀ {k} (px sx b p₁ s₁ : List X) {u v} (f : Mor u v)
-                      (rest' : DiagU ((px ++ (b ++ p₁)) ++ (v ++ (s₁ ++ sx))) k)
+                      (rest' : Diag ((px ++ (b ++ p₁)) ++ (v ++ (s₁ ++ sx))) k)
                       (meq : px ++ ((b ++ (p₁ ++ (u ++ s₁))) ++ sx)
                            ≡ (px ++ (b ++ p₁)) ++ (u ++ (s₁ ++ sx)))
                     → PrimSigma
                         (px ▸ sx ∷ cross (p₁ ++ (u ++ s₁)) b
-                           ⟨ substDiagU (sym meq)
+                           ⟨ substDiag (sym meq)
                                ((px ++ (b ++ p₁)) ▸ (s₁ ++ sx) ∷ box f ⟨ rest' ⟩) ⟩)
                         (replD (px ++ p₁) (s₁ ++ (b ++ sx)) px sx
                                (box f) (cross (p₁ ++ (v ++ s₁)) b) rest'
                                (sym (eq₃ px b p₁ v s₁ sx)) (sym (eq₁ px p₁ v s₁ b sx))
                                (eq₁ px p₁ u s₁ b sx))
-        swap-step : ∀ {n k} {d d' : DiagU n k} → PrimSwap d d' → PrimSigma d d'
+        swap-step : ∀ {n k} {d d' : Diag n k} → PrimSwap d d' → PrimSigma d d'
 
       open Steps PrimSigma
 
       -- soundness of each primitive step.  σσ: the abstract-`meq` bridge is
-      -- `substDiagU-irr` (`substDiagU refl` reduces), then the old
+      -- `substDiag-irr` (`substDiag refl` reduces), then
       -- `assoc ○ elimʳ (pad-σσ …)`.  Slides: `replD-sound` at the KEY
       -- `slide-clean`/`slide-clean-a` (which carry the meq/domeq reconciliation).
-      prim-sound : ∀ {n k} {d d' : DiagU n k} → PrimSigma d d' → ⟦ d ⟧ ≈Term ⟦ d' ⟧
+      prim-sound : ∀ {n k} {d d' : Diag n k} → PrimSigma d d' → ⟦ d ⟧ ≈Term ⟦ d' ⟧
       prim-sound (σσ-step px sx a b rest' meq) =
-        (substDiagU-irr (sym meq) refl (px ▸ sx ∷ cross b a ⟨ rest' ⟩) ⟩∘⟨refl)
+        (substDiag-irr (sym meq) refl (px ▸ sx ∷ cross b a ⟨ rest' ⟩) ⟩∘⟨refl)
           ○ (assoc ○ elimʳ (pad-σσ px sx a b))
       prim-sound (slideB-step px sx a p₁ s₁ {u = u} {v = v} f rest' meq) =
         replD-sound
-          (slide-clean px sx a p₁ s₁ (⟦box⟧S (box f)))
+          (slide-clean px sx a p₁ s₁ (⟦ box f ⟧ᵇˢ))
       prim-sound (slideA-step px sx b p₁ s₁ {u = u} {v = v} f rest' meq) =
         replD-sound
-          (slide-clean-a px sx b p₁ s₁ (⟦box⟧S (box f)))
+          (slide-clean-a px sx b p₁ s₁ (⟦ box f ⟧ᵇˢ))
       prim-sound (swap-step p) = prim-swap-sound p
 
       -- the σσ recogniser at the generalized inner index: fires exactly
       -- when the head layer is `cross a b` at (px,sx) and the next layer
       -- is `cross b a` at the SAME (px,sx).
       goσ : ∀ {ax bx k} (px sx : List X) (fx : MorS ax bx)
-            {m : List X} (rest : DiagU m k) (meq : px ++ (bx ++ sx) ≡ m)
-          → Maybe (Σ[ d' ∈ DiagU (px ++ (ax ++ sx)) k ]
-                    PrimSigma (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩) d')
+            {m : List X} (rest : Diag m k) (meq : px ++ (bx ++ sx) ≡ m)
+          → Maybe (Σ[ d' ∈ Diag (px ++ (ax ++ sx)) k ]
+                    PrimSigma (px ▸ sx ∷ fx ⟨ substDiag (sym meq) rest ⟩) d')
       goσ px sx (box f)     rest meq = nothing
       goσ px sx (cross a b) ([]_ m) meq = nothing
       goσ px sx (cross a b) (_▸_∷_⟨_⟩ py sy (box f) rest') meq = nothing
       goσ px sx (cross a b) (_▸_∷_⟨_⟩ py sy (cross c d) rest') meq
-        with px ≟L py | sx ≟L sy | c ≟L b | d ≟L a
+        with px ≟ py | sx ≟ sy | c ≟ b | d ≟ a
       ... | yes refl | yes refl | yes refl | yes refl =
               just (rest' , σσ-step px sx a b rest' meq)
       ... | _ | _ | _ | _ = nothing
@@ -479,20 +479,20 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
       -- On a hit the box slides BEFORE the crossing, to its pre-cross
       -- offset px ++ (a ++ p₁); the crossing's b-block updates u ↦ v.
       goSlideB : ∀ {ax bx k} (px sx : List X) (fx : MorS ax bx)
-                 {m : List X} (rest : DiagU m k) (meq : px ++ (bx ++ sx) ≡ m)
-               → Maybe (Σ[ d' ∈ DiagU (px ++ (ax ++ sx)) k ]
-                         PrimSigma (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩) d')
+                 {m : List X} (rest : Diag m k) (meq : px ++ (bx ++ sx) ≡ m)
+               → Maybe (Σ[ d' ∈ Diag (px ++ (ax ++ sx)) k ]
+                         PrimSigma (px ▸ sx ∷ fx ⟨ substDiag (sym meq) rest ⟩) d')
       goSlideB px sx (box f)     rest meq = nothing
       goSlideB px sx (cross a b) ([]_ m) meq = nothing
       goSlideB px sx (cross a b) (_▸_∷_⟨_⟩ py sy (cross c d) rest') meq = nothing
       goSlideB px sx (cross a b) (_▸_∷_⟨_⟩ {u} {v} py sy (box f) rest') meq
-        with ListExt.stripPrefix _≟X_ px py
+        with ListExt.stripPrefix _≟_ px py
       ... | nothing = nothing
-      ... | just (p₁ , refl) with ListExt.stripPrefix _≟X_ p₁ b
+      ... | just (p₁ , refl) with ListExt.stripPrefix _≟_ p₁ b
       ...   | nothing = nothing
-      ...   | just (r₁ , refl) with ListExt.stripPrefix _≟X_ u r₁
+      ...   | just (r₁ , refl) with ListExt.stripPrefix _≟_ u r₁
       ...     | nothing = nothing
-      ...     | just (s₁ , refl) with sy ≟L (s₁ ++ (a ++ sx))
+      ...     | just (s₁ , refl) with sy ≟ (s₁ ++ (a ++ sx))
       ...       | no _ = nothing
       ...       | yes refl = just (_ , slideB-step px sx a p₁ s₁ f rest' meq)
 
@@ -502,22 +502,22 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
       -- On a hit the box slides BEFORE the crossing, to its pre-cross
       -- offset px ++ p₁; the crossing's a-block updates u ↦ v.
       goSlideA : ∀ {ax bx k} (px sx : List X) (fx : MorS ax bx)
-                 {m : List X} (rest : DiagU m k) (meq : px ++ (bx ++ sx) ≡ m)
-               → Maybe (Σ[ d' ∈ DiagU (px ++ (ax ++ sx)) k ]
-                         PrimSigma (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩) d')
+                 {m : List X} (rest : Diag m k) (meq : px ++ (bx ++ sx) ≡ m)
+               → Maybe (Σ[ d' ∈ Diag (px ++ (ax ++ sx)) k ]
+                         PrimSigma (px ▸ sx ∷ fx ⟨ substDiag (sym meq) rest ⟩) d')
       goSlideA px sx (box f)     rest meq = nothing
       goSlideA px sx (cross a b) ([]_ m) meq = nothing
       goSlideA px sx (cross a b) (_▸_∷_⟨_⟩ py sy (cross c d) rest') meq = nothing
       goSlideA px sx (cross a b) (_▸_∷_⟨_⟩ {u} {v} py sy (box f) rest') meq
-        with ListExt.stripPrefix _≟X_ px py
+        with ListExt.stripPrefix _≟_ px py
       ... | nothing = nothing
-      ... | just (r₀ , refl) with ListExt.stripPrefix _≟X_ b r₀
+      ... | just (r₀ , refl) with ListExt.stripPrefix _≟_ b r₀
       ...   | nothing = nothing
-      ...   | just (p₁ , refl) with ListExt.stripPrefix _≟X_ p₁ a
+      ...   | just (p₁ , refl) with ListExt.stripPrefix _≟_ p₁ a
       ...     | nothing = nothing
-      ...     | just (r₂ , refl) with ListExt.stripPrefix _≟X_ u r₂
+      ...     | just (r₂ , refl) with ListExt.stripPrefix _≟_ u r₂
       ...       | nothing = nothing
-      ...       | just (s₁ , refl) with sy ≟L (s₁ ++ sx)
+      ...       | just (s₁ , refl) with sy ≟ (s₁ ++ sx)
       ...         | no _ = nothing
       ...         | yes refl = just (_ , slideA-step px sx b p₁ s₁ f rest' meq)
 
@@ -526,9 +526,9 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
       -- (the generic `interchangeGo` at the σ-rank, its `PrimSwap` step
       -- embedded into `PrimSigma` via `swap-step`).
       go : ∀ {ax bx k} (px sx : List X) (fx : MorS ax bx)
-           {m : List X} (rest : DiagU m k) (meq : px ++ (bx ++ sx) ≡ m)
-         → Maybe (Σ[ d' ∈ DiagU (px ++ (ax ++ sx)) k ]
-                   PrimSigma (px ▸ sx ∷ fx ⟨ substDiagU (sym meq) rest ⟩) d')
+           {m : List X} (rest : Diag m k) (meq : px ++ (bx ++ sx) ≡ m)
+         → Maybe (Σ[ d' ∈ Diag (px ++ (ax ++ sx)) k ]
+                   PrimSigma (px ▸ sx ∷ fx ⟨ substDiag (sym meq) rest ⟩) d')
       go px sx fx rest meq =
         goσ      px sx fx rest meq <∣>
         goSlideB px sx fx rest meq <∣>
@@ -539,7 +539,7 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
 
       -- one cancel-or-swap at the FIRST applicable position (the generic loop
       -- from SortD.Steps at the σ oracle).
-      stepσ? : ∀ {n m} (d : DiagU n m) → Maybe (Σ[ d' ∈ DiagU n m ] (d ≈D d'))
+      stepσ? : ∀ {n m} (d : Diag n m) → Maybe (Σ[ d' ∈ Diag n m ] (d ⤳D d'))
       stepσ? = stepWith go
 
     -- budget: a cancellation shrinks the diagram (so at most depth/2 of
@@ -550,16 +550,16 @@ module Sigma {X : Set} (_≟X_ : DecidableEquality X) (Mor : List X → List X �
     -- over-approximates the total.  (Degenerate scalar-arity boxes at a
     -- block edge can make a slide and an interchange oscillate; the fuel
     -- then runs out and the pair is left undecided — soundness is
-    -- unconditional whatever the fuel.)  The syntactic `_≈D_` trace is turned
-    -- into the semantic witness by `≈D-sound prim-sound`, applied once here.
-    normσ : ∀ {n m} (d : DiagU n m) → Σ[ d' ∈ DiagU n m ] (⟦ d ⟧ ≈Term ⟦ d' ⟧)
+    -- unconditional whatever the fuel.)  The syntactic `_⤳D_` trace is turned
+    -- into the semantic witness by `⤳D-sound prim-sound`, applied once here.
+    normσ : ∀ {n m} (d : Diag n m) → Σ[ d' ∈ Diag n m ] (⟦ d ⟧ ≈Term ⟦ d' ⟧)
     normσ = normSound prim-sound stepσ? (λ k → suc (k * k * k +ℕ k * k +ℕ k))
 
     ------------------------------------------------------------------------
     -- The decision entry: the shared `DecideCore` assembly at `normσ`
-    -- (reflect → normσ → ≟DiagU → chain the soundness witnesses).
+    -- (reflect → normσ → ≟Diag → chain the soundness witnesses).
     ------------------------------------------------------------------------
-    private module DC = DecideCore ES _≟X_
-    open DC.Decide _≟GS_ normσ public using () renaming (decideW to decideσ?)
+    private module DC = DecideCore ES
+    open DC.Decide normσ public using () renaming (decideW to decideσ?)
 
     open import Data.Maybe.Ext public using (IsJust)
