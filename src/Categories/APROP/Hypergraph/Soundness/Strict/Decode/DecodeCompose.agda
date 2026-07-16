@@ -386,18 +386,18 @@ module TermEmbedˢ
                                 (PermProp.map⁺ vlH permH) ev))
               (≡⇒≈ˢ (permuteˣ-subst₂ P qq (PermProp.map⁺ vlJ pJ)))
 
-          -- `castˢ P qq (castˢ mpJ Xj) ≈ castˢ mpH Xh`, via cast-fuse on both
-          -- sides + cast-irrel (endpoints coincide after the K-step).
+          -- `castˢ P qq (castˢ mpJ Xj) ≈ castˢ mpH Xh`: both sides drop to the
+          -- bare X-permute (`cast-≈̂`) and are identified by the `K-step`; the
+          -- `_≈̂_` combinators absorb the former `cast-fuse`/`cast-irrel` nest.
           middle : castˢ P qq (castˢ mpJd mpJc Xj) ≈ˢ castˢ mpHd mpHc Xh
           middle =
-            ≈-trans (≡⇒≈ˢ (cast-fuse mpJd P mpJc qq Xj))
-            (≈-trans (≡⇒≈ˢ (cast-irrel (trans mpJd P)
-                              (trans (cong (map (λ x → x)) P) mpHd)
-                              (trans mpJc qq)
-                              (trans (cong (map (λ x → x)) qq) mpHc) Xj))
-            (≈-trans (≡⇒≈ˢ (sym (cast-fuse (cong (map (λ x → x)) P) mpHd
-                                           (cong (map (λ x → x)) qq) mpHc Xj)))
-              (≈-sym (cast-resp mpHd mpHc K-step))))
+            ≈̂⇒≈ˢ
+              (≈̂-trans (≈̂-trans (cast-≈̂ {p = P} {q = qq})
+                                (cast-≈̂ {p = mpJd} {q = mpJc}))
+              (≈̂-trans (≈̂-sym (≈̂-trans (≈ˢ⇒≈̂ K-step)
+                                        (cast-≈̂ {p = cong (map (λ x → x)) P}
+                                                {q = cong (map (λ x → x)) qq})))
+                       (≈̂-sym (cast-≈̂ {p = mpHd} {q = mpHc}))))
 
 
   ----------------------------------------------------------------------
@@ -420,20 +420,22 @@ module TermEmbedˢ
            ((genˢ (H.elab e) ⊗ˢ idˢ {map vlH restH})
              ∘ˢ castˢ refl (map-++ vlH (H.ein e) restH) (RH.permuteˢ permH))
   edge-step-fire-embˢ e sH restH permH eqH restJ permJ eqJ restJ≡ pDom pCod =
-    ≈-trans (≡⇒≈ˢ (cast-fuse refl pDom (sym (map-++ vlJ (J.eout (ψ e)) restJ)) pCod
-                     (Jbox ∘ˢ Jperm)))
-    (≈-trans (∘-cast-split pDom Mmid Cod∘ Jbox Jperm)
-    (≈-trans (∘-resp box-side perm-side)
-      (≈-sym (∘-cast-split refl refl (sym (map-++ vlH (H.eout e) restH))
-                (genˢ (H.elab e) ⊗ˢ idˢ {map vlH restH})
-                (castˢ refl (map-++ vlH (H.ein e) restH) (RH.permuteˢ permH))))))
+    -- Peel the outer/inner boundary casts off both sides (`cast-≈̂`), congruence
+    -- the `∘ˢ` with the box- and perm-twins (`∘-resp-≈̂` threads the middle
+    -- endpoint), and re-cast the H-side.  The former `cast-fuse`/`cast-irrel`/
+    -- `∘-cast-split` reconciliation nest is absorbed by the `_≈̂_` combinators;
+    -- the genuine `⊗`-frame content stays inside `box-emb`/`perm-emb`.
+    ≈̂⇒≈ˢ
+      (≈̂-trans (≈̂-trans (≈̂-trans (cast-≈̂ {p = pDom} {q = pCod})
+                                  (cast-≈̂ {p = refl}
+                                          {q = sym (map-++ vlJ (J.eout (ψ e)) restJ)}))
+                         (∘-resp-≈̂ box-part jperm-part))
+               (≈̂-sym (cast-≈̂ {p = refl} {q = sym (map-++ vlH (H.eout e) restH)})))
     where
       Jperm = castˢ refl (map-++ vlJ (J.ein (ψ e)) restJ) (RJ.permuteˢ permJ)
       Jbox  = genˢ (J.elab (ψ e)) ⊗ˢ idˢ {map vlJ restJ}
-
-      -- the fused outer cod proof: split-eout-J → concat-H.
-      Cod∘ : map vlJ (J.eout (ψ e)) ++ map vlJ restJ ≡ map vlH (H.eout e ++ restH)
-      Cod∘ = trans (sym (map-++ vlJ (J.eout (ψ e)) restJ)) pCod
+      Hbox  = genˢ (H.elab e) ⊗ˢ idˢ {map vlH restH}
+      Hperm = castˢ refl (map-++ vlH (H.ein e) restH) (RH.permuteˢ permH)
 
       rest-lab : map vlJ restJ ≡ map vlH restH
       rest-lab = trans (cong (map vlJ) restJ≡) (vlab-φ restH)
@@ -446,42 +448,26 @@ module TermEmbedˢ
              (trans (vlab-φ (H.ein e ++ restH))
                     (map-++ vlH (H.ein e) restH))))
 
-      -- BOX side: `castˢ Mmid Cod∘ Jbox ≈ castˢ refl (sym map-++_eoutH) (genˢ_H ⊗ id)`.
-      box-side
-        : castˢ Mmid Cod∘ Jbox
-          ≈ˢ castˢ refl (sym (map-++ vlH (H.eout e) restH))
-               (genˢ (H.elab e) ⊗ˢ idˢ {map vlH restH})
-      box-side =
-        ≈-trans (≡⇒≈ˢ (cast-irrel Mmid (trans Mmid refl) Cod∘
-                         (trans Qbox (sym (map-++ vlH (H.eout e) restH))) Jbox))
-        (≈-trans (≡⇒≈ˢ (sym (cast-fuse Mmid refl Qbox (sym (map-++ vlH (H.eout e) restH))
-                              Jbox)))
-          (cast-resp refl (sym (map-++ vlH (H.eout e) restH))
-            (box-emb e restH restJ restJ≡ rest-lab Mmid Qbox)))
-        where
-          Qbox : map vlJ (J.eout (ψ e)) ++ map vlJ restJ
-                 ≡ map vlH (H.eout e) ++ map vlH restH
-          Qbox = cong₂ _++_ (atom-eout e) rest-lab
+      Qbox : map vlJ (J.eout (ψ e)) ++ map vlJ restJ
+             ≡ map vlH (H.eout e) ++ map vlH restH
+      Qbox = cong₂ _++_ (atom-eout e) rest-lab
 
-      -- PERM side: `castˢ pDom Mmid Jperm ≈ castˢ refl (map-++_einH) (permuteˢ permH)`.
-      perm-side
-        : castˢ pDom Mmid Jperm
-          ≈ˢ castˢ refl (map-++ vlH (H.ein e) restH) (RH.permuteˢ permH)
-      perm-side =
-        ≈-trans (≡⇒≈ˢ (cast-fuse refl pDom (map-++ vlJ (J.ein (ψ e)) restJ) Mmid
-                         (RJ.permuteˢ permJ)))
-        (≈-trans (≡⇒≈ˢ (cast-irrel pDom (trans pDom refl)
-                          (trans (map-++ vlJ (J.ein (ψ e)) restJ) Mmid)
-                          (trans Qp (map-++ vlH (H.ein e) restH))
-                          (RJ.permuteˢ permJ)))
-        (≈-trans (≡⇒≈ˢ (sym (cast-fuse pDom refl Qp (map-++ vlH (H.ein e) restH)
-                              (RJ.permuteˢ permJ))))
-          (cast-resp refl (map-++ vlH (H.ein e) restH)
-            (perm-emb e sH restH permH eqH restJ permJ eqJ pDom Qp))))
-        where
-          Qp : map vlJ (J.ein (ψ e) ++ restJ) ≡ map vlH (H.ein e ++ restH)
-          Qp = trans (map-++ vlJ (J.ein (ψ e)) restJ)
-               (trans Mmid (sym (map-++ vlH (H.ein e) restH)))
+      Qp : map vlJ (J.ein (ψ e) ++ restJ) ≡ map vlH (H.ein e ++ restH)
+      Qp = trans (map-++ vlJ (J.ein (ψ e)) restJ)
+           (trans Mmid (sym (map-++ vlH (H.ein e) restH)))
+
+      -- BOX twin: `Jbox ≈̂ Hbox` (the `⊗`-frame content is `box-emb`).
+      box-part : Jbox ≈̂ Hbox
+      box-part = ≈̂-trans (≈̂-sym (cast-≈̂ {p = Mmid} {q = Qbox}))
+                         (≈ˢ⇒≈̂ (box-emb e restH restJ restJ≡ rest-lab Mmid Qbox))
+
+      -- PERM twin: `Jperm ≈̂ Hperm` (the K-step content is `perm-emb`).
+      jperm-part : Jperm ≈̂ Hperm
+      jperm-part =
+        ≈̂-trans (cast-≈̂ {p = refl} {q = map-++ vlJ (J.ein (ψ e)) restJ})
+        (≈̂-trans (≈̂-trans (≈̂-sym (cast-≈̂ {p = pDom} {q = Qp}))
+                           (≈ˢ⇒≈̂ (perm-emb e sH restH permH eqH restJ permJ eqJ pDom Qp)))
+                 (≈̂-sym (cast-≈̂ {p = refl} {q = map-++ vlH (H.ein e) restH})))
 
 
   ----------------------------------------------------------------------
