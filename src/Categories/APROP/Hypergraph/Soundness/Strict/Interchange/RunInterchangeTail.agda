@@ -101,12 +101,12 @@ module _ (H : Hypergraph FlatGen)
   -- order — the *bound* half of `Linear H` specialised to that order
   -- (`dom-reservoir-prov`), TRUE because the order is a PERMUTATION of
   -- `range nE`.  `reservoir-split` is term-free; its codomain is the
-  -- NON-strict stack `proj₁ (process-edges …)`, which is propositionally
+  -- NON-strict stack `(process-edges …)`, which is propositionally
   -- equal to the strict `pe-stackˢ` (`pe-stackˢ ≡ proj₁ process-edges` by
   -- definition of the strict run — both branch on the same `extract-prefix`).
   ----------------------------------------------------------------------
 
-  -- `pe-stackˢ` IS `proj₁ (process-edges …)` definitionally?  No — they walk
+  -- `pe-stackˢ` IS `(process-edges …)` definitionally?  No — they walk
   -- the same `extract-prefix` calls but the strict `pe-stackˢ` is from
   -- `process-edgesˢ`.  Bridge propositionally via `stacks-agree`.
   open EquivStep H using (stacks-agree)
@@ -125,19 +125,19 @@ module _ (H : Hypergraph FlatGen)
       -- the non-strict split-reservoir at the non-strict 2-prefix stack
       res-ns
         : SUR.Reservoir≤1 H qs
-            (proj₁ (process-edges H (e' ∷ e ∷ []) (proj₁ (process-edges H ps H.dom))))
+            ((process-edges H (e' ∷ e ∷ []) ((process-edges H ps H.dom))))
       res-ns =
-        SUR.reservoir-split H (e' ∷ e ∷ []) qs (proj₁ (process-edges H ps H.dom))
+        SUR.reservoir-split H (e' ∷ e ∷ []) qs ((process-edges H ps H.dom))
           (SUR.reservoir-split H ps (e' ∷ e ∷ qs) H.dom
             (SUR.dom-reservoir-prov H (proj₂ lin) (ps ++ e' ∷ e ∷ qs) prov))
 
-      -- `pe-stackˢ (e'∷e∷[]) sp ≡ proj₁ (process-edges H (e'∷e∷[]) (proj₁ …))`
+      -- `pe-stackˢ (e'∷e∷[]) sp ≡ (process-edges H (e'∷e∷[]) (proj₁ …))`
       bridge
         : pe-stackˢ (e' ∷ e ∷ []) sp
-          ≡ proj₁ (process-edges H (e' ∷ e ∷ []) (proj₁ (process-edges H ps H.dom)))
+          ≡ (process-edges H (e' ∷ e ∷ []) ((process-edges H ps H.dom)))
       bridge =
         trans (stacks-agree (e' ∷ e ∷ []) sp)
-              (cong (λ z → proj₁ (process-edges H (e' ∷ e ∷ []) z))
+              (cong (λ z → (process-edges H (e' ∷ e ∷ []) z))
                     (stacks-agree ps H.dom))
 
   ----------------------------------------------------------------------

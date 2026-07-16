@@ -122,7 +122,7 @@ module _ (H : Hypergraph FlatGen)
 
   private module RH = Run H
 
-  pe-stack-agree : ∀ o s → pe-stackˢ′ o s ≡ proj₁ (process-edges H o s)
+  pe-stack-agree : ∀ o s → pe-stackˢ′ o s ≡ (process-edges H o s)
   pe-stack-agree o s = RH.stacks-agree o s
 
   reached-Uniqueˢ-from
@@ -130,7 +130,7 @@ module _ (H : Hypergraph FlatGen)
     → Unique (pe-stackˢ′ o H.dom)
   reached-Uniqueˢ-from o inv =
     subst Unique (sym (pe-stack-agree o H.dom))
-      (SUR.Reservoir≤1⇒Unique H [] (proj₁ (process-edges H o H.dom))
+      (SUR.Reservoir≤1⇒Unique H [] ((process-edges H o H.dom))
         (SUR.reservoir-split H o [] H.dom inv))
 
   private
@@ -239,7 +239,7 @@ module _ (H : Hypergraph FlatGen)
     ++-stackˢ ps rest s =
       trans (RH.stacks-agree (ps ++ rest) s)
       (trans (process-edges-++-stack H ps rest s)
-      (trans (cong (λ z → proj₁ (process-edges H rest z))
+      (trans (cong (λ z → (process-edges H rest z))
                    (sym (RH.stacks-agree ps s)))
              (sym (RH.stacks-agree rest (pe-stackˢ′ ps s)))))
 

@@ -193,7 +193,7 @@ module _
       res-full = SUR.dom-reservoir-prov Hf (proj₂ (DAL.⟪⟫-LinearP (f ⊗₁ g)))
                    (range Hfm.nE) Perm.↭-refl
 
-      res-split : SUR.Reservoir≤1 Hf kblk (proj₁ (process-edges Hf gblk Hfm.dom))
+      res-split : SUR.Reservoir≤1 Hf kblk ((process-edges Hf gblk Hfm.dom))
       res-split =
         SUR.reservoir-split Hf gblk kblk Hfm.dom
           (subst (λ z → SUR.Reservoir≤1 Hf z Hfm.dom) range≡ res-full)
@@ -216,36 +216,29 @@ module _
       Br↭-data = DA.process-edges-↑ʳ-on-perm G K (range Kd.nE) aG
                    Rec.s_G_final Kd.dom aG↭std
 
-      -- `proj₁ (process-edges Hf kblk aG) ↭ sG ++ Kfin`
+      -- `(process-edges Hf kblk aG) ↭ sG ++ Kfin`
       Kfin≡ : Rec.Kfinᴾ ≡ map injR Rec.s_K_final
       Kfin≡ = Rec.Kfin≡
 
       -- the C-level non-strict K-run final stack ≡ map injR (K-subrun stack).
-      nsKfin≡ : proj₁ (process-edges K (range Kd.nE) Kd.dom) ≡ Rec.s_K_final
+      nsKfin≡ : (process-edges K (range Kd.nE) Kd.dom) ≡ Rec.s_K_final
       nsKfin≡ = sym (Run.stacks-agree K (range Kd.nE) Kd.dom)
 
       -- assemble Br : (sG ++ Kfin) ↭ proj₁ (process-edgesˢ kblk aG)
       Br : (sG ++ Rec.Kfinᴾ) Perm.↭ proj₁ (process-edgesˢ kblk aG)
       Br =
-        -- bridge the strict run stack to the non-strict via `stacks-agree`,
-        -- and the non-strict stack `proj₁(process-edges Hf kblk aG)` to the
-        -- braid's witness `s'` via its `≡`-field.
+        -- bridge the strict run stack to the non-strict via `stacks-agree`;
+        -- `Br↭-data` is now directly the term-free stack permutation.
         subst (sG ++ Rec.Kfinᴾ Perm.↭_)
-              (trans pe≡' (sym (stacks-agree kblk aG)))
-              (Perm.↭-sym
-                (subst (s' Perm.↭_) rhs≡
-                       (proj₂ (proj₂ (proj₂ Br↭-data)))))
+              (sym (stacks-agree kblk aG))
+              (Perm.↭-sym (subst (s' Perm.↭_) rhs≡ Br↭-data))
         where
-          s' = proj₁ Br↭-data
-
-          -- `proj₁ (process-edges Hf kblk aG) ≡ s'` (from the `≡`-field).
-          pe≡' : s' ≡ proj₁ (process-edges Hf kblk aG)
-          pe≡' = cong proj₁ (sym (proj₁ (proj₂ (proj₂ Br↭-data))))
+          s' = process-edges Hf kblk aG
 
           -- the perm target `map injL s_G_final ++ map injR (K-subrun)` rewrites
           -- to `sG ++ Kfin` via `sG≡` (reversed) and `Kfin≡`/`nsKfin≡` (reversed).
           rhs≡ : map (_↑ˡ Kd.nV) Rec.s_G_final
-                   ++ map (Gd.nV ↑ʳ_) (proj₁ (process-edges K (range Kd.nE) Kd.dom))
+                   ++ map (Gd.nV ↑ʳ_) ((process-edges K (range Kd.nE) Kd.dom))
                  ≡ sG ++ Rec.Kfinᴾ
           rhs≡ = cong₂ _++_ (sym sG≡) (trans (cong (map injR) nsKfin≡) (sym Kfin≡))
 
