@@ -125,93 +125,36 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   range-eq = Inv.range-++ G.nE K.nE
 
   ----------------------------------------------------------------------
-  -- Local `subst₂ FlatGen` cancellation (refl-matched; avoids the heavy
-  -- former non-strict `HomTermTransport` import).
-
-  private
-    s2-cancel
-      : ∀ {is is' os os' : List X} (p : is ≡ is') (q : os ≡ os')
-          {is'' os'' : List X} (p' : is'' ≡ is') (q' : os'' ≡ os')
-          (z : FlatGen is os)
-      → subst₂ FlatGen (trans p (sym p')) (trans q (sym q')) z
-        ≡ subst₂ FlatGen (sym p') (sym q') (subst₂ FlatGen p q z)
-    s2-cancel refl refl refl refl z = refl
-
-    s2-cancel′
-      : ∀ {is is' os os' : List X} (p : is ≡ is') (q : os ≡ os') (z : FlatGen is os)
-      → subst₂ FlatGen (sym p) (sym q) (subst₂ FlatGen p q z) ≡ z
-    s2-cancel′ refl refl z = refl
-
-  ----------------------------------------------------------------------
   -- ## Block-twin embedding data.
+  --
+  -- The `atom-ein`/`atom-eout`/`ψ-elab` glue of each block twin is DERIVED
+  -- from the raw endpoint reductions + edge-label reduction by `EmbedGlue`
+  -- (DecodeCompose), whose `ψ-elab` cancellation reuses the exported
+  -- `subst₂-FlatGen-cancel`.
 
   -- ### G-side: φ = injL, ψ = _↑ˡ K.nE, H = G, J = C.
 
-  atom-einG : ∀ eG → map C.vlab (C.ein (eG ↑ˡ K.nE)) ≡ map G.vlab (G.ein eG)
-  atom-einG eG = trans (cong (map vlab-P) (ein-c-inj₁-red eG))
-                       (sym (map-via-inj vlab-injL (G.ein eG)))
-
-  atom-eoutG : ∀ eG → map C.vlab (C.eout (eG ↑ˡ K.nE)) ≡ map G.vlab (G.eout eG)
-  atom-eoutG eG = trans (cong (map vlab-P) (eout-c-inj₁-red eG))
-                        (sym (map-via-inj vlab-injL (G.eout eG)))
-
-  ψ-elabG : ∀ eG → subst₂ FlatGen (atom-einG eG) (atom-eoutG eG) (C.elab (eG ↑ˡ K.nE))
-                 ≡ G.elab eG
-  ψ-elabG eG =
-    trans (s2-cancel
-             (cong (map vlab-P) (ein-c-inj₁-red eG))
-             (cong (map vlab-P) (eout-c-inj₁-red eG))
-             (map-via-inj vlab-injL (G.ein eG))
-             (map-via-inj vlab-injL (G.eout eG))
-             (C.elab (eG ↑ˡ K.nE)))
-          (trans (cong (subst₂ FlatGen
-                          (sym (map-via-inj vlab-injL (G.ein eG)))
-                          (sym (map-via-inj vlab-injL (G.eout eG))))
-                       (elab-c-inj₁ eG))
-                 (s2-cancel′
-                    (map-via-inj vlab-injL (G.ein eG))
-                    (map-via-inj vlab-injL (G.eout eG))
-                    (G.elab eG)))
+  module GG = EmbedGlue {H = G} {J = Chg}
+                injL (_↑ˡ K.nE) ein-c-inj₁-red eout-c-inj₁-red
+                (λ xs → map-via-inj vlab-injL xs) elab-c-inj₁
 
   module TG = TermEmbedˢ {H = G} {J = Chg}
                 injL (inject+-inj cn)
                 vlab-injL
                 (_↑ˡ K.nE) ein-c-inj₁-red eout-c-inj₁-red
-                atom-einG atom-eoutG ψ-elabG
+                GG.atom-ein GG.atom-eout GG.ψ-elab
 
   -- ### K-side: φ = remapP, ψ = G.nE ↑ʳ_, H = K, J = C.
 
-  atom-einK : ∀ eK → map C.vlab (C.ein (G.nE ↑ʳ eK)) ≡ map K.vlab (K.ein eK)
-  atom-einK eK = trans (cong (map vlab-P) (ein-c-inj₂-red eK))
-                       (sym (map-via-remapP (K.ein eK)))
-
-  atom-eoutK : ∀ eK → map C.vlab (C.eout (G.nE ↑ʳ eK)) ≡ map K.vlab (K.eout eK)
-  atom-eoutK eK = trans (cong (map vlab-P) (eout-c-inj₂-red eK))
-                        (sym (map-via-remapP (K.eout eK)))
-
-  ψ-elabK : ∀ eK → subst₂ FlatGen (atom-einK eK) (atom-eoutK eK) (C.elab (G.nE ↑ʳ eK))
-                 ≡ K.elab eK
-  ψ-elabK eK =
-    trans (s2-cancel
-             (cong (map vlab-P) (ein-c-inj₂-red eK))
-             (cong (map vlab-P) (eout-c-inj₂-red eK))
-             (map-via-remapP (K.ein eK))
-             (map-via-remapP (K.eout eK))
-             (C.elab (G.nE ↑ʳ eK)))
-          (trans (cong (subst₂ FlatGen
-                          (sym (map-via-remapP (K.ein eK)))
-                          (sym (map-via-remapP (K.eout eK))))
-                       (elab-c-inj₂ eK))
-                 (s2-cancel′
-                    (map-via-remapP (K.ein eK))
-                    (map-via-remapP (K.eout eK))
-                    (K.elab eK)))
+  module KG = EmbedGlue {H = K} {J = Chg}
+                remapP (G.nE ↑ʳ_) ein-c-inj₂-red eout-c-inj₂-red
+                map-via-remapP elab-c-inj₂
 
   module TK = TermEmbedˢ {H = K} {J = Chg}
                 remapP remapP-injective
                 remapP-vlab
                 (G.nE ↑ʳ_) ein-c-inj₂-red eout-c-inj₂-red
-                atom-einK atom-eoutK ψ-elabK
+                KG.atom-ein KG.atom-eout KG.ψ-elab
 
   ----------------------------------------------------------------------
   -- ## Run-split + equivariance ingredients.

@@ -29,7 +29,8 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig
+  using (FlatGen; subst₂-FlatGen-cancel; subst₂-FlatGen-cancel′)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (edge-step; process-edges; extract-prefix)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
@@ -238,6 +239,42 @@ private
     → permuteˣ (subst₂ Perm._↭_ p q r)
       ≡ castˢ (cong (map (λ x → x)) p) (cong (map (λ x → x)) q) (permuteˣ r)
   permuteˣ-subst₂ refl refl r = refl
+
+--------------------------------------------------------------------------------
+-- ## Smart builder for the `atom-ein`/`atom-eout`/`ψ-elab` glue of `TermEmbedˢ`.
+--
+-- These three inputs are NOT independent data: given the raw endpoint
+-- reductions (`ein-red`/`eout-red`), the label-pushed `map-via` cast (`mv`),
+-- and the edge-label reduction (`elab-c`), all three are DERIVED uniformly.
+-- The `ψ-elab` derivation is the two-cast cancellation `subst₂-FlatGen-cancel`
+-- (+ `′`); previously each block-twin (G-side / K-side / braid) hand-rolled the
+-- same construction with a locally-duplicated cancellation lemma.
+module EmbedGlue
+  {H J : Hypergraph FlatGen}
+  (let module H = Hypergraph H)
+  (let module J = Hypergraph J)
+  (φ        : Fin H.nV → Fin J.nV)
+  (ψ        : Fin H.nE → Fin J.nE)
+  (ein-red  : ∀ e → J.ein  (ψ e) ≡ map φ (H.ein  e))
+  (eout-red : ∀ e → J.eout (ψ e) ≡ map φ (H.eout e))
+  (mv       : ∀ (xs : List (Fin H.nV)) → map H.vlab xs ≡ map J.vlab (map φ xs))
+  (elab-c   : ∀ e → subst₂ FlatGen (cong (map J.vlab) (ein-red e))
+                                   (cong (map J.vlab) (eout-red e)) (J.elab (ψ e))
+                  ≡ subst₂ FlatGen (mv (H.ein e)) (mv (H.eout e)) (H.elab e))
+  where
+  atom-ein : ∀ e → map J.vlab (J.ein (ψ e)) ≡ map H.vlab (H.ein e)
+  atom-ein e = trans (cong (map J.vlab) (ein-red e)) (sym (mv (H.ein e)))
+
+  atom-eout : ∀ e → map J.vlab (J.eout (ψ e)) ≡ map H.vlab (H.eout e)
+  atom-eout e = trans (cong (map J.vlab) (eout-red e)) (sym (mv (H.eout e)))
+
+  ψ-elab : ∀ e → subst₂ FlatGen (atom-ein e) (atom-eout e) (J.elab (ψ e)) ≡ H.elab e
+  ψ-elab e =
+    trans (subst₂-FlatGen-cancel
+             (cong (map J.vlab) (ein-red e)) (cong (map J.vlab) (eout-red e))
+             (mv (H.ein e)) (mv (H.eout e)) (J.elab (ψ e)))
+      (trans (cong (subst₂ FlatGen (sym (mv (H.ein e))) (sym (mv (H.eout e)))) (elab-c e))
+             (subst₂-FlatGen-cancel′ (mv (H.ein e)) (mv (H.eout e)) (H.elab e)))
 
 --------------------------------------------------------------------------------
 -- ## (A)  The generic embedding-based per-edge + process-edges term-twins,
