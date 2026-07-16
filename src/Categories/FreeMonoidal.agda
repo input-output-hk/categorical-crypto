@@ -452,6 +452,11 @@ module FreeFunctor {d : FreeMonoidalData {ℓ′}} (ffd : FreeFunctorData d {o} 
 
   open ⟦_⟧ᵥ ⟦v⟧
 
+  CM : MonoidalCategory o ℓ e
+  CM = record { U = C ; monoidal = Monoidal-C }
+  FreeMonoidalM : MonoidalCategory ℓ′ ℓ′ ℓ′
+  FreeMonoidalM = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
+
   ⟦_⟧₁ : ∀ {A B} → A FM.⇒ B → ⟦ A ⟧₀ C.⇒ ⟦ B ⟧₀
   ⟦ var x ⟧₁ = ⟦ x ⟧ᵖ₁
   ⟦ id ⟧₁ = C.id
