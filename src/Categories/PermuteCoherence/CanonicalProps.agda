@@ -6,7 +6,7 @@
 -- Under `_≡_`, stdlib's `remove`/`punchOut` are opaque, so `residual b`
 -- is only *pointwise* equal to `residual b'` when `b`, `b'` agree
 -- pointwise.  `residual-pw-cong` supplies that pointwise equation; it is
--- consumed by `Word.canonW-resp-≈` and `InversionsCong`.
+-- consumed by `Word.canonW-resp-≈` and `LehmerRotate.canonW-cons-rotate`.
 ------------------------------------------------------------------------
 
 module Categories.PermuteCoherence.CanonicalProps where

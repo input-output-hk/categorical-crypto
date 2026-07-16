@@ -104,7 +104,7 @@ crux {N} b =
 -- The Insertion Lemma.
 
 insert-thm : (i : Fin n) (b : FinBij (suc n) (suc n))
-           → canonW (genFB i ∘-fb b) ~ʷ (i ∷ canonW b)
+           → canonW (genFB i ∘-fb b) ~ʷ i ∷ canonW b
 insert-thm {suc n} 0F        b = crux b
 insert-thm {suc n} (fsuc i′) b =
   ~trans (canonW-resp-≈
