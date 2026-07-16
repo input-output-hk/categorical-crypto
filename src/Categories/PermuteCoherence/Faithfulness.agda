@@ -9,8 +9,7 @@
 --     interpretation of a `List X` as an `ObjTerm`, and its distribution
 --     over `_++_` up to a coherence iso;
 --   * `permute` : a list-permutation derivation `xs ↭ ys` realised as a
---     `HomTerm (unflatten xs) (unflatten ys)`;
---   * `α⇐-comm` : dual-associator commutativity.
+--     `HomTerm (unflatten xs) (unflatten ys)`.
 --
 -- The combinatorial faithfulness core (`_≅↭ⁱ_`, `complete`) lives in
 -- `FaithfulnessInductive`.
@@ -32,25 +31,6 @@ open import Categories.Category.Monoidal.Utilities Monoidal-FreeMonoidal
   using (_⊗ᵢ_)
 open import Categories.Morphism FreeMonoidal using (_≅_; module ≅)
 open Monoidal Monoidal-FreeMonoidal using (unitorˡ; associator)
-
-------------------------------------------------------------------------
--- 0. Dual associator commutativity, derived from `α-comm`:
---    α⇐ ∘ (h ⊗₁ (i ⊗₁ j)) ≈Term ((h ⊗₁ i) ⊗₁ j) ∘ α⇐.
-
-α⇐-comm
-  : ∀ {a b c a′ b′ c′ : ObjTerm}
-      {h : HomTerm a a′} {i : HomTerm b b′} {j : HomTerm c c′}
-  → α⇐ ∘ (h ⊗₁ (i ⊗₁ j)) ≈Term ((h ⊗₁ i) ⊗₁ j) ∘ α⇐
-α⇐-comm {h = h} {i} {j} =
-  ≈-Term-trans (≈-Term-sym idʳ)
-  (≈-Term-trans (∘-resp-≈ ≈-Term-refl (≈-Term-sym α⇒∘α⇐≈id))
-  (≈-Term-trans assoc
-  (≈-Term-trans (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc))
-  (≈-Term-trans (∘-resp-≈ ≈-Term-refl (∘-resp-≈ (≈-Term-sym α-comm) ≈-Term-refl))
-  (≈-Term-trans (∘-resp-≈ ≈-Term-refl assoc)
-  (≈-Term-trans (≈-Term-sym assoc)
-  (≈-Term-trans (∘-resp-≈ α⇐∘α⇒≈id ≈-Term-refl)
-                 idˡ)))))))
 
 ------------------------------------------------------------------------
 -- 1. Generic `unflatten` -- the right-associated, unit-padded decoder.
