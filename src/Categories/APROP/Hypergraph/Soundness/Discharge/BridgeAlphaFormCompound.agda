@@ -5,10 +5,10 @@
 --
 --   bridge (α⇒ {A}{B}{C}) ≈Term α⇒-form-list (flatten A)(flatten B)(flatten C)
 --
--- via a single well-founded recursion (`Worker.work`) on the number of `⊗₀`
--- nodes (`sz`) of the first object index.  The compound case
--- `((A₁₁⊗A₁₂)⊗A₂)` applies `pentagon-rewrite`, distributes via
--- `bridge-∘`/`bridge-⊗`, and recurses on the strictly-smaller-`sz` objects;
+-- via a single structural recursion (`Worker.work`) on the first object
+-- index.  The compound case `((A₁₁⊗A₁₂)⊗A₂)` applies `pentagon-rewrite`,
+-- distributes via `bridge-∘`/`bridge-⊗`, and recurses on the structural
+-- subterms `A₁₁⊗A₁₂` and `A₂`;
 -- the α⇐ factor is derived non-recursively (`derive-⇐`).  The residual
 -- bottoms out in a pure list-level Mac-Lane coherence (`list-collapse-gen`,
 -- induction on the prefix list).
@@ -49,9 +49,6 @@ import Data.Vec as Vec
 open Vec using (Vec)
 import Data.Fin as Fin
 open import Data.List using (List; []; _∷_; _++_)
-open import Data.Nat using (ℕ; suc; _+_; _<_; _≤_; s≤s)
-open import Data.Nat.Properties using (m≤m+n; m≤n+m; n<1+n)
-open import Induction.WellFounded using (Acc; acc)
 
 private
   module FM = Category FreeMonoidal
@@ -207,24 +204,6 @@ private
                    (S._∘_ S.α⇐
                      (S._⊗₁_ S.id
                        (S._∘_ (S._⊗₁_ (S._∘_ (S._⊗₁_ gTA gTB) gcAB) gTC) gcABC)))
-
---------------------------------------------------------------------------------
--- Well-founded recursion measure: the number of `⊗₀` nodes in an object.
--- Every recursive call (including the compound case via `pentagon-rewrite`
--- and the α⇐ factor) targets an object with strictly smaller `sz`.
-
-sz : ObjTerm → ℕ
-sz unit       = 0
-sz (Var _)    = 0
-sz (A ⊗₀ B)   = suc (sz A + sz B)
-
--- The two `sz`-decrease facts needed in the compound case.
-private
-  sz-left< : ∀ A₁₁ A₁₂ A₂ → sz (A₁₁ ⊗₀ A₁₂) < sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
-  sz-left< A₁₁ A₁₂ A₂ = s≤s (m≤m+n (sz (A₁₁ ⊗₀ A₁₂)) (sz A₂))
-
-  sz-right< : ∀ A₁₁ A₁₂ A₂ → sz A₂ < sz ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂)
-  sz-right< A₁₁ A₁₂ A₂ = s≤s (m≤n+m (sz A₂) (sz (A₁₁ ⊗₀ A₁₂)))
 
 --------------------------------------------------------------------------------
 -- `derive-⇐`: the α⇐-form derived from the α⇒-form result at the SAME
@@ -439,29 +418,29 @@ private
                                      (S._∘_ (S._⊗₁_ g⇒₃ S.id) gcfrom₂)))))
 
 --------------------------------------------------------------------------------
--- The well-founded worker.  `work A B C ac` proves the α⇒-form for `A` given
--- `ac : Acc _<_ (sz A)`.  Pattern-matches `A` to a depth exposing the prefix
--- shape, so every recursive call supplies a structurally-smaller `Acc`.
+-- The worker.  `work A B C` proves the α⇒-form for `A` by structural
+-- recursion on `A`, pattern-matched to a depth exposing the prefix shape;
+-- every recursive call is on a structural subterm of the first argument.
 
 module Worker where
 
   work
-    : ∀ A B C → Acc _<_ (sz A)
+    : ∀ A B C
     → bridge (α⇒ {A} {B} {C})
     ≈Term α⇒-form-list (flatten A) (flatten B) (flatten C)
 
-  work unit    B C ac = bridge-α⇒-form-unit B C
-  work (Var x) B C ac = bridge-α⇒-form-Var x B C
+  work unit    B C = bridge-α⇒-form-unit B C
+  work (Var x) B C = bridge-α⇒-form-Var x B C
 
   -- A₁ = unit: F/T-decomp expose the λ-frames; the entire λ-machinery
   -- collapse is one free shuffle around the opaque F/T legs; then recurse.
-  work (unit ⊗₀ A₂) B C (acc rs) = begin
+  work (unit ⊗₀ A₂) B C = begin
     bridge (α⇒ {unit ⊗₀ A₂} {B} {C})
       ≈⟨ F-decomp-unit A₂ B C ⟩∘⟨ refl⟩∘⟨ T-decomp-unit A₂ B C ⟩
     (F-A₂BC ∘ (λ⇒ ⊗₁ id)) ∘ α⇒-uA₂ ∘ (((λ⇐ ⊗₁ id) ⊗₁ id) ∘ T-A₂BC)
       ≈⟨ shuffle ⟩
     F-A₂BC ∘ α⇒-A₂ ∘ T-A₂BC
-      ≈⟨ work A₂ B C (rs (n<1+n (sz A₂))) ⟩
+      ≈⟨ work A₂ B C ⟩
     α⇒-form-list (flatten A₂) (flatten B) (flatten C) ∎
     where
       F-A₂BC  = _≅_.from (unflatten-flatten-≈ (A₂ ⊗₀ (B ⊗₀ C)))
@@ -493,13 +472,13 @@ module Worker where
 
   -- A₁ = Var x: similar, with a `Var x` prefix.  The pentagon + α-collapse
   -- machinery is one free shuffle around the opaque F/T legs; then recurse.
-  work (Var x ⊗₀ A) B C (acc rs) = begin
+  work (Var x ⊗₀ A) B C = begin
     bridge (α⇒ {Var x ⊗₀ A} {B} {C})
       ≈⟨ F-decomp-Var x A B C ⟩∘⟨ refl⟩∘⟨ T-decomp-Var x A B C ⟩
     ((id ⊗₁ F-ABC) ∘ α⇒-V,A,BC) ∘ α⇒-V⊗A ∘ ((α⇐-A,B ⊗₁ id) ∘ α⇐-AB,C ∘ (id ⊗₁ T-AB⊗C))
       ≈⟨ shuffle ⟩
     id ⊗₁ (F-ABC ∘ α⇒-A,B,C ∘ T-AB⊗C)
-      ≈⟨ ⊗-resp-≈ ≈-Term-refl (work A B C (rs (n<1+n (sz A)))) ⟩
+      ≈⟨ ⊗-resp-≈ ≈-Term-refl (work A B C) ⟩
     id ⊗₁ α⇒-form-list (flatten A) (flatten B) (flatten C) ∎
     where
       F-ABC      = _≅_.from (unflatten-flatten-≈ (A ⊗₀ (B ⊗₀ C)))
@@ -537,34 +516,33 @@ module Worker where
 
   -- A₁ = A₁₁ ⊗ A₁₂: the genuinely compound case, by `pentagon-rewrite` +
   -- `bridge-∘` + recursion on strictly-smaller-`sz` objects.
-  work ((A₁₁ ⊗₀ A₁₂) ⊗₀ A₂) B C (acc rs) = compound-body
+  -- The four recursive calls are hoisted here into the clause right-hand
+  -- side, where the match on `(A₁₁ ⊗₀ A₁₂) ⊗₀ A₂` is visible, so each is on a
+  -- structural subterm of the first argument — the left child `P = A₁₁ ⊗₀ A₁₂`
+  -- or the right child `A₂`.  They feed the non-recursive `compound-body`,
+  -- which assembles the `pentagon-rewrite` decomposition.  (Placing them in
+  -- `compound-body`'s own `where` block would hide the descent from the
+  -- termination checker, which is why the earlier version threaded an
+  -- accessibility certificate.)
+  work (P@(A₁₁ ⊗₀ A₁₂) ⊗₀ A₂) B C =
+    compound-body (work P A₂ (B ⊗₀ C)) (work P (A₂ ⊗₀ B) C)
+                  (work P A₂ B) (work A₂ B C)
     where
-      P  = A₁₁ ⊗₀ A₁₂
       p  = flatten A₁₁ ++ flatten A₁₂   -- = flatten P
 
-      -- The four bridges produced by `pentagon-rewrite`.  Recursive calls
-      -- pass the sub-accessibility evidence `rs (…)` INLINE so the
-      -- termination checker sees them as structural sub-components of the
-      -- input `acc rs`.
-      br-⇐ : bridge (α⇐ {P} {A₂} {B ⊗₀ C})
-           ≈Term α⇐-form-list p (flatten A₂) (flatten B ++ flatten C)
-      br-⇐ = derive-⇐ P A₂ (B ⊗₀ C) (work P A₂ (B ⊗₀ C) (rs (sz-left< A₁₁ A₁₂ A₂)))
-
-      br-mid : bridge (α⇒ {P} {A₂ ⊗₀ B} {C})
-             ≈Term α⇒-form-list p (flatten A₂ ++ flatten B) (flatten C)
-      br-mid = work P (A₂ ⊗₀ B) C (rs (sz-left< A₁₁ A₁₂ A₂))
-
-      br-low : bridge (α⇒ {P} {A₂} {B}) ≈Term α⇒-form-list p (flatten A₂) (flatten B)
-      br-low = work P A₂ B (rs (sz-left< A₁₁ A₁₂ A₂))
-
-      br-A₂ : bridge (α⇒ {A₂} {B} {C}) ≈Term α⇒-form-list (flatten A₂) (flatten B) (flatten C)
-      br-A₂ = work A₂ B C (rs (sz-right< A₁₁ A₁₂ A₂))
-
       compound-body
-          : bridge (α⇒ {(A₁₁ ⊗₀ A₁₂) ⊗₀ A₂} {B} {C})
+          : bridge (α⇒ {P} {A₂} {B ⊗₀ C})
+              ≈Term α⇒-form-list p (flatten A₂) (flatten B ++ flatten C)
+          → bridge (α⇒ {P} {A₂ ⊗₀ B} {C})
+              ≈Term α⇒-form-list p (flatten A₂ ++ flatten B) (flatten C)
+          → bridge (α⇒ {P} {A₂} {B})
+              ≈Term α⇒-form-list p (flatten A₂) (flatten B)
+          → bridge (α⇒ {A₂} {B} {C})
+              ≈Term α⇒-form-list (flatten A₂) (flatten B) (flatten C)
+          → bridge (α⇒ {(A₁₁ ⊗₀ A₁₂) ⊗₀ A₂} {B} {C})
           ≈Term α⇒-form-list ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂)
                               (flatten B) (flatten C)
-      compound-body = begin
+      compound-body br⇒-P br-mid br-low br-A₂ = begin
         bridge (α⇒ {(A₁₁ ⊗₀ A₁₂) ⊗₀ A₂} {B} {C})
           ≈⟨ bridge-resp-≈Term pentagon-rewrite ⟩
         bridge ( α⇐ {P} {A₂} {B ⊗₀ C}
@@ -589,6 +567,12 @@ module Worker where
         α⇒-form-list ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂)
                      (flatten B) (flatten C) ∎
         where
+          -- the α⇐-form at `P`, derived non-recursively from the α⇒-form
+          -- result `br⇒-P` at the SAME object.
+          br-⇐ : bridge (α⇐ {P} {A₂} {B ⊗₀ C})
+               ≈Term α⇐-form-list p (flatten A₂) (flatten B ++ flatten C)
+          br-⇐ = derive-⇐ P A₂ (B ⊗₀ C) br⇒-P
+
           c-to   = λ as bs → _≅_.to   (unflatten-++-≅ as bs)
           c-from = λ as bs → _≅_.from (unflatten-++-≅ as bs)
 

@@ -49,7 +49,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Embed sig _≟X_ as E
 
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
-open import Data.Nat.Induction using (<-wellFounded)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst₂)
 
@@ -325,7 +324,7 @@ private
     → bridge (α⇒ {A} {B} {C})
       ≈Term subst-id-cod (++-assoc (flatten A) (flatten B) (flatten C))
   bridge-α⇒-cast A B C =
-    ≈-Term-trans (BAFC.Worker.work A B C (<-wellFounded _))
+    ≈-Term-trans (BAFC.Worker.work A B C)
                  (α-form-cast (flatten A) (flatten B) (flatten C))
 
   elim²ᵀ
