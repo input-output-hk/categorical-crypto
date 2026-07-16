@@ -27,8 +27,7 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (flatten)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-  using (unflatten; unflatten-flatten-≈)
-open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig using (bridge)
+  using (unflatten; unflatten-flatten-≈; bridge)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_

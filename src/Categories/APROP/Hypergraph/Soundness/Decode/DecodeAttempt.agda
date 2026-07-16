@@ -5,7 +5,7 @@
 -- hId/hGen/hSwap/hTensor) plus the generic edge-step/process-edges
 -- lifting machinery, shared by the pruned totality
 -- (`DecodeAttemptLinearP.decode-attempt-LinearP`, which derives the
--- total pruned decoder `decodeP`).  `bridge` lives here too.
+-- total pruned decoder `decodeP`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -25,8 +25,6 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
 import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
 open Inv
 import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
-
-open import Categories.Morphism FreeMonoidal
 
 open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_)
 open import Data.Nat
@@ -611,8 +609,3 @@ decode-attempt-hId (Var x)    = decode-attempt-hVar x
 decode-attempt-hId (A ⊗₀ B)   =
   decode-attempt-hTensor (hId A) (hId B)
     (decode-attempt-hId A) (decode-attempt-hId B)
-
--- `bridge`: `f` composed with the unflatten-flatten coherence isos on
--- each side (needed because `flatten`/`unflatten` are inverse only up to iso).
-bridge : ∀ {A B} → HomTerm A B → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
-bridge {A} {B} f = _≅_.from (unflatten-flatten-≈ B) ∘ f ∘ _≅_.to (unflatten-flatten-≈ A)

@@ -49,3 +49,12 @@ unflatten-flatten-≈ (Var x)  = ≅.sym unitorʳ
 unflatten-flatten-≈ (A ⊗₀ B) =
   ≅.trans (unflatten-flatten-≈ A ⊗ᵢ unflatten-flatten-≈ B)
           (≅.sym (unflatten-++-≅ (flatten A) (flatten B)))
+
+--------------------------------------------------------------------------------
+-- `bridge`: `f` composed with the unflatten-flatten coherence isos on each
+-- side (needed because `flatten`/`unflatten` are inverse only up to iso).
+-- Lives next to `unflatten-flatten-≈` — the only thing it depends on — so the
+-- bridge/boundary layer need not import the heavy decoder.
+
+bridge : ∀ {A B} → HomTerm A B → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
+bridge {A} {B} f = _≅_.from (unflatten-flatten-≈ B) ∘ f ∘ _≅_.to (unflatten-flatten-≈ A)

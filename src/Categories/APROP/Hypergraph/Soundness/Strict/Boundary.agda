@@ -31,11 +31,9 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flat; flat-rec; flatten)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-  using (unflatten; unflatten-++-≅; unflatten-flatten-≈; _≅_)
+  using (unflatten; unflatten-++-≅; unflatten-flatten-≈; _≅_; bridge)
 open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
   using (subst-id-cod)
-open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
-  using (bridge)
 open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeOps sig
   using (bridge-∘; bridge-⊗)
 open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig

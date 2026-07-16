@@ -13,8 +13,7 @@ module Categories.APROP.Hypergraph.Soundness.Bridge.BridgeOps (sig : APROPSignat
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (flatten)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-  using (unflatten; unflatten-flatten-≈; unflatten-++-≅)
-open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig using (bridge)
+  using (unflatten; unflatten-flatten-≈; unflatten-++-≅; bridge)
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal using (MonoidalCategory)
