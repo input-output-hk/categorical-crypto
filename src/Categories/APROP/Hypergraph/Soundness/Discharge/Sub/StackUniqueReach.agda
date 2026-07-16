@@ -7,21 +7,18 @@
 -- Per-edge-step `Unique`-preservation is FALSE for an arbitrary `Unique s`
 -- (firing an edge whose `eout e` is already live duplicates a wire); it
 -- holds ALONG `process-edges` because the running stack stays "fresh".
--- We capture that with a count invariant on the not-yet-processed edges `qs`:
+-- We capture that with a 1-safety invariant on the stack together with the
+-- not-yet-processed edges `qs`:
 --
---   Reservoir qs s  :=  ∀ v → count v s + count v (reservoir qs) ≤ 1
+--   Reservoir≤1 qs s  :=  Unique (s ++ reservoir qs)
 --      where reservoir qs = concat (map H.eout qs)
 --
+-- (equivalently `∀ v → count v s + count v (reservoir qs) ≤ 1`).  It is
 -- preserved by every step (SKIP shrinks the reservoir; FIRE moves `eout e`
--- from reservoir to stack).  It gives `count v s ≤ 1`, i.e. `Unique s`, at
--- every stage.  The bound flows entirely from the reservoir count, so the
--- lemma holds for an ARBITRARY edge list (instantiated at `range H.nE`).
--- The sole hypothesis `∀ v → count v (producedList H) ≤ 1` is the bound
--- half of `Linear H`, so `Linear H` alone suffices.
---
--- Downstream (`Strict/Interchange/StackEquiv`), the `Unique` codomain
--- `eval-rigid` requires is a `↭`-image of the decoder stack, supplied by
--- `Unique-resp-↭` once this lemma gives `Unique s`.
+-- from reservoir to stack, discarding the consumed `ein e`).  It gives
+-- `Unique s` at every stage.  The invariant holds for an ARBITRARY edge list
+-- (instantiated at `range H.nE`); the sole hypothesis
+-- `∀ v → count v (producedList H) ≤ 1` is the bound half of `Linear H`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -30,21 +27,19 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach
   (sig : APROPSignature) where
 
 open import Data.Fin using (Fin; zero; suc)
-open import Data.Nat using (ℕ; zero; suc; _+_)
-open import Data.Nat using ()
-  renaming (_≤_ to _≤ⁿ_)
-import Data.Nat.Properties as Nat
+open import Data.Nat using (ℕ; zero; suc)
 open import Data.List using (List; []; _∷_; _++_; map; concat; tabulate)
-open import Data.List.Properties using (map-++; concat-++)
-open import Data.Product using (_,_; proj₁)
+open import Data.List.Properties using (map-++; concat-++; ++-assoc)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just; nothing)
+open import Data.Product using (_,_)
 
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
+import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂)
+  using (_≡_; refl; sym; trans; cong; subst)
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
@@ -53,18 +48,15 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-edges; edge-step; extract-prefix)
 
+open import Data.Nat using (_+_) renaming (_≤_ to _≤ⁿ_)
+import Data.Nat.Properties as Nat
+
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig
-  using (count≤1⇒Unique)
+  using (count≤1⇒Unique; Unique⇒count≤1; Unique-resp-↭)
 
 private
   variable
     n : ℕ
-
---------------------------------------------------------------------------------
--- 0.  `count`-cons reductions + `↭`-invariance (shared leaf).
-
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
-  using (↭⇒count)
 
 module _ (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
@@ -73,77 +65,85 @@ module _ (H : Hypergraph FlatGen) where
   reservoir qs = concat (map H.eout qs)
 
   Reservoir≤1 : List (Fin H.nE) → List (Fin H.nV) → Set
-  Reservoir≤1 qs s = ∀ v → count v s + count v (reservoir qs) ≤ⁿ 1
+  Reservoir≤1 qs s = Unique (s ++ reservoir qs)
 
   ------------------------------------------------------------------------
-  -- 1.  The single inductive lemma: the invariant is preserved by
-  --     `process-edges`, and at every stage gives a stack count ≤ 1.
+  -- 0.  Shared list/permutation algebra of `reservoir` and `Unique`-of-`++`.
 
   private
-    reservoir-cons-count
-      : ∀ (e : Fin H.nE) (qs : List (Fin H.nE)) (v : Fin H.nV)
-      → count v (reservoir (e ∷ qs))
-      ≡ count v (H.eout e) + count v (reservoir qs)
-    reservoir-cons-count e qs v = count-++ v (H.eout e) (reservoir qs)
+    -- `concat` respects `↭` (not in stdlib).
+    concat-↭ : {L₁ L₂ : List (List (Fin H.nV))} → L₁ ↭ L₂ → concat L₁ ↭ concat L₂
+    concat-↭ Perm.refl       = Perm.refl
+    concat-↭ (Perm.prep x p) = PermProp.++⁺ˡ x (concat-↭ p)
+    concat-↭ (Perm.swap {xs} {ys} x y p) =
+      Perm.trans (Perm.↭-reflexive (sym (++-assoc x y (concat xs))))
+        (Perm.trans (PermProp.++⁺ʳ (concat xs) (PermProp.++-comm x y))
+          (Perm.trans (Perm.↭-reflexive (++-assoc y x (concat xs)))
+            (PermProp.++⁺ˡ y (PermProp.++⁺ˡ x (concat-↭ p)))))
+    concat-↭ (Perm.trans p q) = Perm.trans (concat-↭ p) (concat-↭ q)
+
+    reservoir-↭ : {xs ys : List (Fin H.nE)} → xs ↭ ys → reservoir xs ↭ reservoir ys
+    reservoir-↭ p = concat-↭ (PermProp.map⁺ H.eout p)
+
+    reservoir-++ : ∀ (o rest : List (Fin H.nE))
+                 → reservoir (o ++ rest) ≡ reservoir o ++ reservoir rest
+    reservoir-++ o rest =
+      trans (cong concat (map-++ H.eout o rest)) (sym (concat-++ (map H.eout o) (map H.eout rest)))
+
+    -- `Unique`-of-`++` splitting (stdlib lacks `++⁻`; via the count bridge).
+    Unique-++ˡ : ∀ {xs ys : List (Fin H.nV)} → Unique (xs ++ ys) → Unique xs
+    Unique-++ˡ {xs} {ys} u = count≤1⇒Unique λ v →
+      Nat.≤-trans (Nat.m≤m+n (count v xs) (count v ys))
+        (Nat.≤-trans (Nat.≤-reflexive (sym (count-++ v xs ys))) (Unique⇒count≤1 u v))
+
+    Unique-++ʳ : ∀ {xs ys : List (Fin H.nV)} → Unique (xs ++ ys) → Unique ys
+    Unique-++ʳ {xs} {ys} u = count≤1⇒Unique λ v →
+      Nat.≤-trans (Nat.m≤n+m (count v ys) (count v xs))
+        (Nat.≤-trans (Nat.≤-reflexive (sym (count-++ v xs ys))) (Unique⇒count≤1 u v))
 
   ------------------------------------------------------------------------
-  -- 1b.  The single-edge invariant advance.
+  -- 1.  The invariant gives a `Unique` stack, and is preserved by a step.
 
   Reservoir≤1⇒Unique
     : ∀ (qs : List (Fin H.nE)) (s : List (Fin H.nV))
     → Reservoir≤1 qs s → Unique s
-  Reservoir≤1⇒Unique qs s inv =
-    count≤1⇒Unique (λ v → Nat.≤-trans (Nat.m≤m+n (count v s) _) (inv v))
+  Reservoir≤1⇒Unique qs s inv = Unique-++ˡ inv
 
   edge-step-Reservoir≤1
     : ∀ (e : Fin H.nE) (qs : List (Fin H.nE)) (s : List (Fin H.nV))
     → Reservoir≤1 (e ∷ qs) s
     → Reservoir≤1 qs ((edge-step H s e))
   edge-step-Reservoir≤1 e qs s inv with extract-prefix (H.ein e) s in eq
-  ... | nothing = inv-skip
+  -- SKIP: the stack is unchanged; drop the unfired `eout e` from the middle.
+  ... | nothing =
+        Unique-++ʳ {xs = H.eout e}
+          (Unique-resp-↭ (skip-↭ s) inv)
     where
-      inv-skip : Reservoir≤1 qs s
-      inv-skip w =
-        Nat.≤-trans
-          (Nat.+-monoʳ-≤ (count w s)
-            (Nat.≤-trans (Nat.m≤n+m _ (count w (H.eout e)))
-                         (Nat.≤-reflexive (sym (reservoir-cons-count e qs w)))))
-          (inv w)
-  ... | just (rest , perm) = inv-fire
+      -- s ++ (eout e ++ reservoir qs)  ↭  eout e ++ (s ++ reservoir qs)
+      skip-↭ : ∀ (s : List (Fin H.nV))
+             → s ++ (H.eout e ++ reservoir qs) ↭ H.eout e ++ (s ++ reservoir qs)
+      skip-↭ s =
+        Perm.trans (Perm.↭-reflexive (sym (++-assoc s (H.eout e) (reservoir qs))))
+          (Perm.trans (PermProp.++⁺ʳ (reservoir qs) (PermProp.++-comm s (H.eout e)))
+                      (Perm.↭-reflexive (++-assoc (H.eout e) s (reservoir qs))))
+  -- FIRE: `s ↭ ein e ++ rest`; the fired stack is `eout e ++ rest`, and the
+  -- consumed `ein e` is dropped.
+  ... | just (rest , perm) =
+        Unique-++ʳ {xs = H.ein e}
+          (Unique-resp-↭ fire-↭ inv)
     where
-      inv-fire : Reservoir≤1 qs (H.eout e ++ rest)
-      inv-fire w =
-        Nat.≤-trans new≤old (inv w)
-        where
-          post-stack : count w (H.eout e ++ rest) ≡ count w (H.eout e) + count w rest
-          post-stack = count-++ w (H.eout e) rest
-          pre-stack : count w s ≡ count w (H.ein e) + count w rest
-          pre-stack = trans (↭⇒count perm w) (count-++ w (H.ein e) rest)
-          lhs≡ : count w (H.eout e ++ rest) + count w (reservoir qs)
-               ≡ (count w (H.eout e) + count w rest) + count w (reservoir qs)
-          lhs≡ = cong (_+ count w (reservoir qs)) post-stack
-          rhs≡ : count w s + count w (reservoir (e ∷ qs))
-               ≡ (count w (H.ein e) + count w rest)
-                 + (count w (H.eout e) + count w (reservoir qs))
-          rhs≡ = cong₂ _+_ pre-stack (reservoir-cons-count e qs w)
-          a = count w (H.eout e)
-          b = count w rest
-          c = count w (reservoir qs)
-          d = count w (H.ein e)
-          eq1 : (a + b) + c ≡ b + (a + c)
-          eq1 = trans (cong (_+ c) (Nat.+-comm a b)) (Nat.+-assoc b a c)
-          step2 : b + (a + c) ≤ⁿ (d + b) + (a + c)
-          step2 = Nat.+-monoˡ-≤ (a + c) (Nat.m≤n+m b d)
-          arith : (a + b) + c ≤ⁿ (d + b) + (a + c)
-          arith = Nat.≤-trans (Nat.≤-reflexive eq1) step2
-          new≤old : count w (H.eout e ++ rest) + count w (reservoir qs)
-                  ≤ⁿ count w s + count w (reservoir (e ∷ qs))
-          new≤old =
-            Nat.≤-trans (Nat.≤-reflexive lhs≡)
-              (Nat.≤-trans arith (Nat.≤-reflexive (sym rhs≡)))
+      -- s ++ (eout e ++ res)  ↭  ein e ++ ((eout e ++ rest) ++ res)
+      fire-↭ : s ++ (H.eout e ++ reservoir qs)
+             ↭ H.ein e ++ ((H.eout e ++ rest) ++ reservoir qs)
+      fire-↭ =
+        Perm.trans (PermProp.++⁺ʳ (H.eout e ++ reservoir qs) perm)
+          (Perm.trans (Perm.↭-reflexive (++-assoc (H.ein e) rest (H.eout e ++ reservoir qs)))
+            (PermProp.++⁺ˡ (H.ein e)
+              (Perm.trans (Perm.↭-reflexive (sym (++-assoc rest (H.eout e) (reservoir qs))))
+                          (PermProp.++⁺ʳ (reservoir qs) (PermProp.++-comm rest (H.eout e))))))
 
   ------------------------------------------------------------------------
-  -- 1c.  RESERVOIR-SPLIT: descend the invariant along a processed prefix.
+  -- 2.  Descend the invariant along a processed prefix.
 
   reservoir-split
     : ∀ (ps qs : List (Fin H.nE)) (s : List (Fin H.nV))
@@ -155,9 +155,9 @@ module _ (H : Hypergraph FlatGen) where
       (edge-step-Reservoir≤1 e (ps' ++ qs) s inv)
 
   ------------------------------------------------------------------------
-  -- 2.  Bridge: `map H.eout (range nE) ≡ tabulate H.eout`, so the initial
-  --     reservoir `reservoir (range nE)` is `concat (tabulate H.eout)`, and
-  --     `producedList H = H.dom ++ concat (tabulate H.eout)`.
+  -- 3.  Bridge: the initial reservoir `reservoir (range nE)` is
+  --     `concat (tabulate H.eout)`, so `producedList H = H.dom ++ reservoir
+  --     (range nE)`.
 
   private
     map-map-suc
@@ -174,94 +174,40 @@ module _ (H : Hypergraph FlatGen) where
       cong (f zero ∷_)
         (trans (map-map-suc f (range m)) (map-range≡tabulate (λ i → f (suc i))))
 
-    reservoir-range≡concat-tabulate
-      : reservoir (range H.nE) ≡ concat (tabulate H.eout)
-    reservoir-range≡concat-tabulate = cong concat (map-range≡tabulate H.eout)
+    reservoir-range≡producedList
+      : H.dom ++ reservoir (range H.nE) ≡ producedList H
+    reservoir-range≡producedList =
+      cong (H.dom ++_) (cong concat (map-range≡tabulate H.eout))
 
   ------------------------------------------------------------------------
-  -- 3.  Initial reservoir condition from the `producedList` bound.
-
-  private
-    producedList-count
-      : ∀ v → count v (producedList H)
-            ≡ count v H.dom + count v (reservoir (range H.nE))
-    producedList-count v =
-      trans (count-++ v H.dom (concat (tabulate H.eout)))
-            (cong (count v H.dom +_)
-                  (cong (count v) (sym reservoir-range≡concat-tabulate)))
-
-  ------------------------------------------------------------------------
-  -- 3b.  PROVENANCE-SOURCED reservoir.  `Reservoir≤1 H o H.dom` is NOT
-  --      true for an arbitrary order `o` (a repeated edge over-counts its
-  --      `eout`), but IS true for `o ↭ range H.nE` — the orders the
-  --      connectivity chase visits.  We thread that provenance and
-  --      discharge the reservoir using `↭`-invariance of its per-vertex count.
-
-  private
-    reservoir-↭-count
-      : ∀ {xs ys : List (Fin H.nE)} → xs Perm.↭ ys
-      → ∀ v → count v (reservoir xs) ≡ count v (reservoir ys)
-    reservoir-↭-count Perm.refl v = refl
-    reservoir-↭-count (Perm.prep {xs = xs} {ys = ys} e p) v =
-      trans (count-++ v (H.eout e) (reservoir xs))
-      (trans (cong (count v (H.eout e) +_) (reservoir-↭-count p v))
-             (sym (count-++ v (H.eout e) (reservoir ys))))
-    reservoir-↭-count (Perm.swap {xs = xs} {ys = ys} e e' p) v =
-      trans (count-++ v (H.eout e) (H.eout e' ++ reservoir xs))
-      (trans (cong (count v (H.eout e) +_)
-                   (count-++ v (H.eout e') (reservoir xs)))
-      (trans (sym (Nat.+-assoc (count v (H.eout e)) (count v (H.eout e'))
-                               (count v (reservoir xs))))
-      (trans (cong (_+ count v (reservoir xs))
-                   (Nat.+-comm (count v (H.eout e)) (count v (H.eout e'))))
-      (trans (Nat.+-assoc (count v (H.eout e')) (count v (H.eout e))
-                          (count v (reservoir xs)))
-      (trans (cong (λ z → count v (H.eout e') + (count v (H.eout e) + z))
-                   (reservoir-↭-count p v))
-      (trans (cong (count v (H.eout e') +_)
-                   (sym (count-++ v (H.eout e) (reservoir ys))))
-             (sym (count-++ v (H.eout e') (H.eout e ++ reservoir ys)))))))))
-    reservoir-↭-count (Perm.trans p₁ p₂) v =
-      trans (reservoir-↭-count p₁ v) (reservoir-↭-count p₂ v)
+  -- 4.  PROVENANCE-SOURCED reservoir.  `Reservoir≤1 o H.dom` is NOT true for
+  --     an arbitrary order `o` (a repeated edge duplicates its `eout`), but
+  --     IS true for `o ↭ range H.nE`.
 
   dom-reservoir-prov
     : (∀ v → count v (producedList H) ≤ⁿ 1)
     → ∀ (o : List (Fin H.nE)) → o Perm.↭ range H.nE
     → Reservoir≤1 o H.dom
-  dom-reservoir-prov prod-bnd o o↭range v =
-    Nat.≤-trans
-      (Nat.≤-reflexive
-        (trans (cong (count v H.dom +_) (reservoir-↭-count o↭range v))
-               (sym (producedList-count v))))
-      (prod-bnd v)
-
-  private
-    reservoir-++-count
-      : ∀ (o rest : List (Fin H.nE)) (v : Fin H.nV)
-      → count v (reservoir (o ++ rest))
-      ≡ count v (reservoir o) + count v (reservoir rest)
-    reservoir-++-count o rest v =
-      trans (cong (count v)
-                  (trans (cong concat (map-++ H.eout o rest))
-                         (sym (concat-++ (map H.eout o) (map H.eout rest)))))
-            (count-++ v (reservoir o) (reservoir rest))
+  dom-reservoir-prov prod-bnd o o↭range =
+    Unique-resp-↭
+      (PermProp.++⁺ˡ H.dom (reservoir-↭ (Perm.↭-sym o↭range)))
+      (subst Unique (sym reservoir-range≡producedList) (count≤1⇒Unique prod-bnd))
 
   reservoir-prefix
     : ∀ (o rest : List (Fin H.nE)) (s : List (Fin H.nV))
     → Reservoir≤1 (o ++ rest) s → Reservoir≤1 o s
-  reservoir-prefix o rest s inv v =
-    Nat.≤-trans
-      (Nat.+-monoʳ-≤ (count v s)
-        (Nat.≤-trans
-          (Nat.m≤m+n (count v (reservoir o)) (count v (reservoir rest)))
-          (Nat.≤-reflexive (sym (reservoir-++-count o rest v)))))
-      (inv v)
+  reservoir-prefix o rest s inv =
+    Unique-++ˡ {xs = s ++ reservoir o}
+      (Unique-resp-↭ split-↭ inv)
+    where
+      -- s ++ reservoir (o ++ rest)  ↭  (s ++ reservoir o) ++ reservoir rest
+      split-↭ : s ++ reservoir (o ++ rest) ↭ (s ++ reservoir o) ++ reservoir rest
+      split-↭ =
+        Perm.trans (Perm.↭-reflexive (cong (s ++_) (reservoir-++ o rest)))
+                   (Perm.↭-reflexive (sym (++-assoc s (reservoir o) (reservoir rest))))
 
   reservoir-resp-↭
     : ∀ {o₁ o₂ : List (Fin H.nE)} (s : List (Fin H.nV))
     → o₁ Perm.↭ o₂ → Reservoir≤1 o₁ s → Reservoir≤1 o₂ s
-  reservoir-resp-↭ s o₁↭o₂ inv v =
-    Nat.≤-trans
-      (Nat.+-monoʳ-≤ (count v s)
-        (Nat.≤-reflexive (sym (reservoir-↭-count o₁↭o₂ v))))
-      (inv v)
+  reservoir-resp-↭ s o₁↭o₂ inv =
+    Unique-resp-↭ (PermProp.++⁺ˡ s (reservoir-↭ o₁↭o₂)) inv
