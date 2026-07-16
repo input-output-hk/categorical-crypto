@@ -21,16 +21,11 @@
 -- taken as a generator.
 ------------------------------------------------------------------------
 
-open import Categories.FreeMonoidal
 open import Relation.Binary using (DecidableEquality)
 
 module Categories.PermuteCoherence.FaithfulnessInductive
-  (d : FreeMonoidalData)
-  (_≟X_ : DecidableEquality (FreeMonoidalData.X d))
-  ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
-
-open FreeMonoidal d
-open FreeMonoidalData d using (X)
+  (X : Set)
+  (_≟X_ : DecidableEquality X) where
 
 open import Data.List.Base using (List; []; _∷_; _++_; length)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
@@ -55,11 +50,6 @@ open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.EvalSoundness
   using ( cons-fb-functor-id; cons-fb-functor-comp; swap-fb-involutive
         ; swap-fb-natural; yang-baxter )
-open import Categories.PermuteCoherence.Faithfulness d
-  using (permute; unflatten)
--- The σ-block Yang-Baxter braid, derived from `hexagon`.
-open import Categories.FreeSMC.SigmaBlockHexagon d
-  using (σ-block; σ-block-hexagon; σ-block-natural₃)
 -- The Word model (position level) and its list-level interpretation.
 open import Categories.PermuteCoherence.Word
   using ( Word; liftW; _~ʷ_; ~refl; ~sym; ~trans; ∷c; c1; c2; c3
@@ -119,9 +109,8 @@ data _≅↭ⁱ_ : {xs ys : List X} → xs ↭ ys → xs ↭ ys → Set where
              ≅↭ⁱ
              Perm.trans (Perm.prep x (Perm.prep y p)) (Perm.swap x y (Perm.refl {xs = ys}))
 
-  -- σ-naturality, LEFT form: the OTHER naturality square of σ.  Matches
-  -- `permute (swap x y p)` on the nose, so its term-coherence is a pure
-  -- `id`-tower collapse.  Needed to derive far-commutativity (`far-nat`).
+  -- σ-naturality, LEFT form: the OTHER naturality square of σ.  Needed to
+  -- derive far-commutativity (`far-nat`).
   swap-nat-left : {p : xs ↭ ys}
                 → Perm.swap x y p
                   ≅↭ⁱ
@@ -140,90 +129,6 @@ data _≅↭ⁱ_ : {xs ys : List X} → xs ↭ ys → xs ↭ ys → Set where
                Perm.trans (Perm.prep x (Perm.swap y z (Perm.refl {xs = xs})))
                           (Perm.trans (Perm.swap x z (Perm.refl {xs = y ∷ xs}))
                                       (Perm.prep z (Perm.swap x y (Perm.refl {xs = xs}))))
-
-------------------------------------------------------------------------
--- 2. The term-level coherence lemmas (each one SMC axiom):
---      * resp-nat   : σ-naturality (σ-block-natural₃)
---      * resp-braid : the braid (hexagon)  ← the meaty one
---    `swap-invol` is discharged via `σ-block-self-inverse-direct`.
-
-private
-  -- Collapse an `id ⊗ (id ⊗ id)` tower on the left of any composite.
-  collapse-id3
-    : ∀ {U V W P} {g : HomTerm P (U ⊗₀ (V ⊗₀ W))}
-    → (id {A = U} ⊗₁ (id {A = V} ⊗₁ id {A = W})) ∘ g ≈Term g
-  collapse-id3 {g = g} =
-    ≈-Term-trans
-      (∘-resp-≈ (≈-Term-trans (⊗-resp-≈ ≈-Term-refl id⊗id≈id) id⊗id≈id) ≈-Term-refl)
-      idˡ
-
-  -- σ-naturality: `permute` respects `swap-nat`.
-  resp-nat
-    : {p : xs ↭ ys}
-    → permute (Perm.swap x y p)
-      ≈Term
-      permute (Perm.trans (Perm.prep x (Perm.prep y p))
-                          (Perm.swap x y (Perm.refl {xs = ys})))
-  resp-nat {p = p} =
-    ≈-Term-sym
-      (≈-Term-trans assoc
-      (≈-Term-trans (∘-resp-≈ ≈-Term-refl σ-block-natural₃)
-      (≈-Term-trans (≈-Term-sym assoc)
-                    (∘-resp-≈ collapse-id3 ≈-Term-refl))))
-
-  -- `permute` of one front swap is exactly `σ-block` (the `id`-tower
-  -- collapses, via `collapse-id3`).
-  permute-swap≈σ-block
-    : ∀ {x′ y′ : X} {xs′ : List X}
-    → permute (Perm.swap x′ y′ (Perm.refl {xs = xs′}))
-      ≈Term σ-block {A = Var x′} {B = Var y′} {C = unflatten xs′}
-  permute-swap≈σ-block = collapse-id3
-
-  -- the braid (Yang-Baxter), via `σ-block-hexagon`.  Both sides convert
-  -- (front swaps ↦ σ-block, prep ↦ id⊗) to the two sides of the hexagon
-  -- at A,B,C,D = Var x, Var y, Var z, unflatten xs, modulo re-association.
-  resp-braid
-    : permute (Perm.trans (Perm.swap x y (Perm.refl {xs = z ∷ xs}))
-                          (Perm.trans (Perm.prep y (Perm.swap x z (Perm.refl {xs = xs})))
-                                      (Perm.swap y z (Perm.refl {xs = x ∷ xs}))))
-      ≈Term
-      permute (Perm.trans (Perm.prep x (Perm.swap y z (Perm.refl {xs = xs})))
-                          (Perm.trans (Perm.swap x z (Perm.refl {xs = y ∷ xs}))
-                                      (Perm.prep z (Perm.swap x y (Perm.refl {xs = xs})))))
-  resp-braid {x = x} {y = y} {z = z} {xs = xs} =
-    ≈-Term-trans lhs≈blk
-    (≈-Term-trans
-      (≈-Term-trans assoc
-      (≈-Term-trans
-        (≈-Term-sym (σ-block-hexagon {A = Var x} {B = Var y} {C = Var z} {D = unflatten xs}))
-        (≈-Term-sym assoc)))
-      (≈-Term-sym rhs≈blk))
-    where
-    lhs≈blk
-      : permute (Perm.trans (Perm.swap x y (Perm.refl {xs = z ∷ xs}))
-                            (Perm.trans (Perm.prep y (Perm.swap x z (Perm.refl {xs = xs})))
-                                        (Perm.swap y z (Perm.refl {xs = x ∷ xs}))))
-        ≈Term
-        (σ-block {A = Var y} {B = Var z} {C = Var x ⊗₀ unflatten xs}
-           ∘ (id {A = Var y} ⊗₁ σ-block {A = Var x} {B = Var z} {C = unflatten xs}))
-          ∘ σ-block {A = Var x} {B = Var y} {C = Var z ⊗₀ unflatten xs}
-    lhs≈blk =
-      ∘-resp-≈
-        (∘-resp-≈ permute-swap≈σ-block (⊗-resp-≈ ≈-Term-refl permute-swap≈σ-block))
-        permute-swap≈σ-block
-
-    rhs≈blk
-      : permute (Perm.trans (Perm.prep x (Perm.swap y z (Perm.refl {xs = xs})))
-                            (Perm.trans (Perm.swap x z (Perm.refl {xs = y ∷ xs}))
-                                        (Perm.prep z (Perm.swap x y (Perm.refl {xs = xs})))))
-        ≈Term
-        ((id {A = Var z} ⊗₁ σ-block {A = Var x} {B = Var y} {C = unflatten xs})
-           ∘ σ-block {A = Var x} {B = Var z} {C = Var y ⊗₀ unflatten xs})
-          ∘ (id {A = Var x} ⊗₁ σ-block {A = Var y} {B = Var z} {C = unflatten xs})
-    rhs≈blk =
-      ∘-resp-≈
-        (∘-resp-≈ (⊗-resp-≈ ≈-Term-refl permute-swap≈σ-block) permute-swap≈σ-block)
-        (⊗-resp-≈ ≈-Term-refl permute-swap≈σ-block)
 
 ------------------------------------------------------------------------
 -- 4. `_≅↭ⁱ_` vs the semantic `≅↭` (= equal evaluated bijection).

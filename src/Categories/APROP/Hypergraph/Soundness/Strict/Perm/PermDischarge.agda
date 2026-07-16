@@ -13,9 +13,8 @@
 -- The combinatorial core `complete : eval-↭ p ≈-fb eval-↭ q → p ≅↭ⁱ q`
 -- (the Coxeter / word-problem kernel of `FaithfulnessInductive`) is purely
 -- element-level: it never touches term structure, so it is reusable verbatim
--- at the vertex set `V` by instantiating its `FreeMonoidalData` parameter with
--- a dummy symmetric data over `X = V`.  We then prove the STRICT mirror of
--- `permute-resp-≅↭ⁱ`:
+-- at the vertex set `V` by instantiating it there directly.  We then prove
+-- the STRICT mirror of `permute-resp-≅↭ⁱ`:
 --
 --     permuteˢ-resp-≅↭ⁱ : p ≅↭ⁱ q → permuteˢ p ≈ˢ permuteˢ q
 --
@@ -39,28 +38,17 @@ open import Data.List using (List; []; _∷_; map)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 
-open import Categories.FreeMonoidal using (FreeMonoidalData; Variant; _≤_; v≤v)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.FinBij using (_≈-fb_)
 
 --------------------------------------------------------------------------------
--- A dummy symmetric `FreeMonoidalData` over the vertex set `V`, used ONLY to
--- instantiate the element-level inductive congruence `_≅↭ⁱ_` and its
--- combinatorial completeness `complete`.  No term-level content of `d`
--- is ever inspected by those.
+-- The element-level inductive congruence `_≅↭ⁱ_` and its combinatorial
+-- completeness `complete`, instantiated directly at the vertex set `V`.
 
 module Discharge (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X)
   (mor : List X → List X → Set) where
 
-  private
-    dV : FreeMonoidalData
-    dV = record { v = Variant.Symm ; X = V ; mor = λ _ _ → V }
-
-    instance
-      symm≤dV : Variant.Symm ≤ FreeMonoidalData.v dV
-      symm≤dV = v≤v
-
-  open import Categories.PermuteCoherence.FaithfulnessInductive dV _≟V_
+  open import Categories.PermuteCoherence.FaithfulnessInductive V _≟V_
     using (_≅↭ⁱ_; complete)
   open _≅↭ⁱ_
 
