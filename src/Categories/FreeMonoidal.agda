@@ -29,6 +29,8 @@ open import Relation.Nullary
 import Categories.Category.Monoidal.Reasoning as MonR
 import Categories.Morphism.Reasoning as MR
 
+private variable o ℓ ℓ′ e : Level
+
 data Variant : Set where
   Mon Symm : Variant
 
@@ -42,11 +44,10 @@ data _≤_ : Variant → Variant → Set where
 -- `λ where ⦃ () ⦄` at each use site) keeps the `Symmetric-C` field of a Mon
 -- `⟦_⟧ᵥ` definitionally equal across constructions — distinct extended lambdas
 -- are not, even when both are absurd.
-noSymmetric : ∀ {o ℓ e} {C : Category o ℓ e} {M : Monoidal C}
-            → ⦃ Symm ≤ Mon ⦄ → Symmetric M
+noSymmetric : {C : Category o ℓ e} {M : Monoidal C} → ⦃ Symm ≤ Mon ⦄ → Symmetric M
 noSymmetric ⦃ () ⦄
 
-record ⟦_⟧ᵥ (v : Variant) {o ℓ e : Level} : Set (suc (o ⊔ ℓ ⊔ e)) where
+record ⟦_⟧ᵥ (v : Variant) {o ℓ e} : Set (suc (o ⊔ ℓ ⊔ e)) where
   field C : Category o ℓ e
         Monoidal-C : Monoidal C
         Symmetric-C : ⦃ Symm ≤ v ⦄ → Symmetric Monoidal-C
@@ -65,7 +66,7 @@ record ⟦_⟧ᵥ (v : Variant) {o ℓ e : Level} : Set (suc (o ⊔ ℓ ⊔ e)) 
 -- A `⟦ v ⟧ᵥ` from a bundled `MonoidalCategory` plus its `v`-gated symmetry.
 -- One shared builder so the variant interpretation reads the same wherever a
 -- target category is reflected into (the free functor, the object map, FSolve.Into).
-fromMC : ∀ {o ℓ e} {v} (C : MonoidalCategory o ℓ e)
+fromMC : ∀ {v} (C : MonoidalCategory o ℓ e)
        → (⦃ Symm ≤ v ⦄ → Symmetric (C .MonoidalCategory.monoidal))
        → ⟦ v ⟧ᵥ {o} {ℓ} {e}
 fromMC C sym = record
@@ -74,10 +75,10 @@ fromMC C sym = record
   ; Symmetric-C = sym
   }
 
-module FreeMonoidalHelper (v : Variant) (X : Set) where
+module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
   infixr 10 _⊗₀_
 
-  data ObjTerm : Set where
+  data ObjTerm : Set ℓ′ where
     unit : ObjTerm
     _⊗₀_ : ObjTerm → ObjTerm → ObjTerm
     Var : X → ObjTerm
@@ -128,7 +129,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
 
     private variable A B C D : ObjTerm
 
-    data HomTerm : ObjTerm → ObjTerm → Set where
+    data HomTerm : ObjTerm → ObjTerm → Set ℓ′ where
       var : mor A B → HomTerm A B
       id : HomTerm A A
       _∘_ : HomTerm B C → HomTerm A B → HomTerm A C
@@ -143,7 +144,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
 
     private variable f f' g g' h i : HomTerm A B
 
-    data _≈Term_ : HomTerm A B → HomTerm A B → Set where
+    data _≈Term_ : HomTerm A B → HomTerm A B → Set ℓ′ where
       idˡ : id ∘ f ≈Term f
       idʳ : f ∘ id ≈Term f
       assoc : (h ∘ g) ∘ f ≈Term h ∘ (g ∘ f)
@@ -172,7 +173,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
     ≡⇒≈Term : ∀ {A B} {f g : HomTerm A B} → f ≡ g → f ≈Term g
     ≡⇒≈Term refl = ≈-Term-refl
 
-    FreeMonoidal : Category 0ℓ 0ℓ 0ℓ
+    FreeMonoidal : Category ℓ′ ℓ′ ℓ′
     FreeMonoidal = categoryHelper record
       { Obj       = ObjTerm
       ; _⇒_       = HomTerm
@@ -416,15 +417,15 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
     bind-resp-≈ (M₁.σ∘[f⊗g]≈[g⊗f]∘σ ⦃ s ⦄) = M₂.σ∘[f⊗g]≈[g⊗f]∘σ ⦃ s ⦄
     bind-resp-≈ (M₁.hexagon ⦃ s ⦄)         = M₂.hexagon ⦃ s ⦄
 
-record FreeMonoidalData : Set₁ where
+record FreeMonoidalData {ℓ′ : Level} : Set (suc ℓ′) where
   field v : Variant
-        X : Set
+        X : Set ℓ′
 
   open FreeMonoidalHelper v X
 
   field mor : ObjTerm → ObjTerm → Set
 
-module FreeMonoidal (d : FreeMonoidalData) where
+module FreeMonoidal {ℓ} (d : FreeMonoidalData {ℓ}) where
   open FreeMonoidalData d
   open FreeMonoidalHelper v X hiding (module Mor) public
   open FreeMonoidalHelper.Mor v X mor public
@@ -436,18 +437,18 @@ module FreeMonoidal (d : FreeMonoidalData) where
 -- map, *definitionally* — which is what lets a caller state a generator's
 -- interpretation type (`⟦ Y ⟧₀ ⇒ ⟦ Z ⟧₀`) before fixing the generator
 -- signature.
-module FreeObjInterp (v : Variant) (X : Set) {o ℓ e : Level}
-                     (⟦v⟧ : ⟦ v ⟧ᵥ {o} {ℓ} {e})
-                     (let module C = ⟦_⟧ᵥ.Cat ⟦v⟧)
-                     (⟦_⟧ᵖ₀ : X → C.Obj) where
+module FreeObjInterp
+  (v : Variant) (X : Set ℓ′) (⟦v⟧ : ⟦ v ⟧ᵥ {o} {ℓ} {e})
+  (let module C = ⟦_⟧ᵥ.Cat ⟦v⟧) (⟦_⟧ᵖ₀ : X → C.Obj) where
+
   open FreeMonoidalHelper v X
   ⟦_⟧₀ : ObjTerm → C.Obj
   ⟦ unit ⟧₀ = C.unit
   ⟦ A ⊗₀ B ⟧₀ = ⟦ A ⟧₀ C.⊗₀ ⟦ B ⟧₀
   ⟦ Var x ⟧₀ = ⟦ x ⟧ᵖ₀
 
-module FreeFunctorHelper (d : FreeMonoidalData) (let open FreeMonoidalData d)
-                         {o ℓ e : Level} (⟦v⟧ : ⟦ v ⟧ᵥ {o} {ℓ} {e}) where
+module FreeFunctorHelper
+  (d : FreeMonoidalData {ℓ′}) (let open FreeMonoidalData d) {o ℓ e} (⟦v⟧ : ⟦ v ⟧ᵥ {o} {ℓ} {e}) where
   open FreeMonoidal d public
 
   module C = ⟦_⟧ᵥ.Cat ⟦v⟧
@@ -456,8 +457,7 @@ module FreeFunctorHelper (d : FreeMonoidalData) (let open FreeMonoidalData d)
   module Go (⟦_⟧ᵖ₀ : X → C.Obj) where
     open FreeObjInterp v X ⟦v⟧ ⟦_⟧ᵖ₀ public
 
-record FreeFunctorData (d : FreeMonoidalData) {o ℓ e : Level}
-                       : Set (suc (o ⊔ ℓ ⊔ e)) where
+record FreeFunctorData (d : FreeMonoidalData {ℓ′}) {o ℓ e : Level} : Set (suc (ℓ′ ⊔ o ⊔ ℓ ⊔ e)) where
   open FreeMonoidalData d
 
   field ⟦v⟧ : ⟦ v ⟧ᵥ {o} {ℓ} {e}
@@ -470,15 +470,14 @@ record FreeFunctorData (d : FreeMonoidalData) {o ℓ e : Level}
 
   field ⟦_⟧ᵖ₁ : ∀ {x y} → mor x y → ⟦ x ⟧₀ C.⇒ ⟦ y ⟧₀
 
-module FreeFunctor {d : FreeMonoidalData} {o ℓ e : Level}
-                   (ffd : FreeFunctorData d {o} {ℓ} {e}) where
+module FreeFunctor {d : FreeMonoidalData {ℓ′}} (ffd : FreeFunctorData d {o} {ℓ} {e}) where
   open FreeFunctorData ffd
 
   open ⟦_⟧ᵥ ⟦v⟧
 
   CM : MonoidalCategory o ℓ e
   CM = record { U = C ; monoidal = Monoidal-C }
-  FreeMonoidalM : MonoidalCategory 0ℓ 0ℓ 0ℓ
+  FreeMonoidalM : MonoidalCategory ℓ′ ℓ′ ℓ′
   FreeMonoidalM = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
 
   ⟦_⟧₁ : ∀ {A B} → A FM.⇒ B → ⟦ A ⟧₀ C.⇒ ⟦ B ⟧₀
