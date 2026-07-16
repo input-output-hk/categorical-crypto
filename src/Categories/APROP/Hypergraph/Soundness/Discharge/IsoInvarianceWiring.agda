@@ -41,7 +41,6 @@ import Data.Nat as Nat
 open import Data.List using (List; _∷_; map; tabulate)
 open import Data.List.Properties using (map-∘; map-cong; map-tabulate)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open import Data.Product using (proj₁; proj₂)
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; sym; trans; subst; subst₂)
@@ -81,12 +80,18 @@ module PerHG (H : Hypergraph FlatGen) where
   Order : Set
   Order = List (Fin H.nE)
 
-  -- Validity of an order: running the cospan algorithm in this order from
-  -- `H.dom` leaves a final stack that is a permutation of `H.cod` (so the
-  -- final permute to `cod` exists).  This is the witness that makes the
-  -- decoder TOTAL at the fixed codomain `unflatten (codL H)`.
+  -- Validity of an order: running the cospan stack fold in this order from
+  -- `H.dom` leaves a final stack that is a permutation of `H.cod`.  This is
+  -- the totality witness at the fixed codomain.
+  --
+  -- NOTE (weak-decoder demotion, Review-2 F2): the CONCRETE order-indexed
+  -- decoder `decodeOrd` (`permute-via-vlab H.vlab p ∘ proj₂ (process-edges …)`)
+  -- had zero live consumers — downstream (`IsoInvarianceConcrete`,
+  -- `IsoTransport`, `SwapStep`, `DecodePRespIso`) uses only `Order`/`Valid`
+  -- and the strict twin `decodeOrdˢ`.  It has been deleted with the weak
+  -- morphism apparatus; only this stack-level `Valid` witness survives.
   Valid : Order → Set
-  Valid o = proj₁ (process-edges H o H.dom) Perm.↭ H.cod
+  Valid o = process-edges H o H.dom Perm.↭ H.cod
 
 ------------------------------------------------------------------------
 -- Across an isomorphism: iso-invariance of the decoder.

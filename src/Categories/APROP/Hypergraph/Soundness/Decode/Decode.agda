@@ -1,19 +1,27 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The cospan-form decode algorithm.  For a hypergraph `H`, attempt to
--- build a `HomTerm (unflatten As) (unflatten Bs)`:
+-- The cospan-form decode algorithm (STACK/TOTALITY SKELETON).  For a
+-- hypergraph `H`, run a stack fold and decide whether it lands on `H.cod`:
 --
 --   1. Start with stack `s = H.dom`.
 --   2. For each edge `e` (in natural Fin order): if `H.ein e` is a
---      sub-multiset prefix of the stack, permute + apply the edge
---      generator + prepend `H.eout e`; otherwise skip (identity).
---   3. Finally extract `H.cod` as a full sub-multiset of the final stack
---      (empty residual ⇒ apply the permutation; else `nothing`).
+--      sub-multiset prefix of the stack, drop it and prepend `H.eout e`;
+--      otherwise skip (stack unchanged).
+--   3. Finally extract `H.cod` as a full sub-multiset of the final stack;
+--      `decode-attempt` is the TOTALITY WITNESS `Maybe (s_final ↭ H.cod)`.
 --
 -- The `nothing` case captures non-linear inputs and non-topologically-
 -- sound edge orders.  For `⟪ f ⟫` the natural Fin order is sound, so
 -- `decode-attempt ⟪ f ⟫` always returns `just _`.
+--
+-- NOTE (weak-decoder demotion, Review-2 F2): this decoder used to also
+-- build a `HomTerm` alongside the stack, but the live (strict) pipeline
+-- reads only the stack trajectory + this totality witness — the morphism
+-- value was never observed.  The `HomTerm` apparatus (`Agen-edge`, the
+-- `unflatten-++-≅`/`permute-via-vlab` per-edge wrapping, `final-permute`)
+-- has therefore been deleted; the generic per-edge generator survives as
+-- the top-level `Agen-edge-aux`, still used by the rewrite-engine decoder.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -25,8 +33,6 @@ open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-
-open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
 
 
 open import Data.Fin
@@ -78,47 +84,16 @@ module _ (H : Hypergraph FlatGen) where
   private
     module H = Hypergraph H
 
-  Agen-edge
-    : (e : Fin H.nE)
-    → HomTerm (unflatten (map H.vlab (H.ein e)))
-              (unflatten (map H.vlab (H.eout e)))
-  Agen-edge e = Agen-edge-aux (H.elab e)
-
   --------------------------------------------------------------------
-  -- Per-edge step.  On finding `H.ein e` in the stack: permute it to the
-  -- front, apply the edge generator (identity on the residual), update the
-  -- stack to `H.eout e ++ rest`.  On failure: identity.
+  -- Per-edge step (stack fold).  On finding `H.ein e` in the stack: drop
+  -- it and prepend `H.eout e`.  On failure: identity on the stack.
 
   edge-step
     : (s : List (Fin H.nV)) (e : Fin H.nE)
-    → Σ[ s' ∈ List (Fin H.nV) ]
-        HomTerm (unflatten (map H.vlab s))
-                (unflatten (map H.vlab s'))
+    → List (Fin H.nV)
   edge-step s e with extract-prefix (H.ein e) s
-  ... | nothing             = (s , id)
-  ... | just (rest , perm)  = (H.eout e ++ rest , bridged)
-    where
-      ein-l  = map H.vlab (H.ein e)
-      eout-l = map H.vlab (H.eout e)
-      rest-l = map H.vlab rest
-
-      -- Apply the edge generator at the front, identity on the rest.
-      mid : HomTerm (unflatten (ein-l  ++ rest-l)) (unflatten (eout-l ++ rest-l))
-      mid = _≅_.to   (unflatten-++-≅ eout-l rest-l)
-            ∘ (Agen-edge e ⊗₁ id)
-            ∘ _≅_.from (unflatten-++-≅ ein-l  rest-l)
-
-      -- Bridge `map vlab (xs ++ ys) ≡ map vlab xs ++ map vlab ys` (`map-++`).
-      mid' : HomTerm (unflatten (map H.vlab (H.ein e  ++ rest)))
-                     (unflatten (map H.vlab (H.eout e ++ rest)))
-      mid' = subst₂ HomTerm
-              (cong unflatten (sym (map-++ H.vlab (H.ein  e) rest)))
-              (cong unflatten (sym (map-++ H.vlab (H.eout e) rest)))
-              mid
-
-      bridged : HomTerm (unflatten (map H.vlab s))
-                        (unflatten (map H.vlab (H.eout e ++ rest)))
-      bridged = mid' ∘ permute-via-vlab H.vlab perm
+  ... | nothing            = s
+  ... | just (rest , perm) = H.eout e ++ rest
 
   -- Generic `edge-step` reduction lemmas, proven once over the ABSTRACT `H`.
   -- Call sites (hTensor/hComposeP liftings) feed the already-transported
@@ -128,47 +103,33 @@ module _ (H : Hypergraph FlatGen) where
     : ∀ (s : List (Fin H.nV)) (e : Fin H.nE)
         {rest : List (Fin H.nV)} {perm}
     → extract-prefix (H.ein e) s ≡ just (rest , perm)
-    → ∃[ t ] edge-step s e ≡ (H.eout e ++ rest , t)
-  edge-step-just s e eq rewrite eq = _ , refl
+    → edge-step s e ≡ H.eout e ++ rest
+  edge-step-just s e eq rewrite eq = refl
 
   edge-step-nothing
     : ∀ (s : List (Fin H.nV)) (e : Fin H.nE)
     → extract-prefix (H.ein e) s ≡ nothing
-    → ∃[ t ] edge-step s e ≡ (s , t)
-  edge-step-nothing s e eq rewrite eq = _ , refl
+    → edge-step s e ≡ s
+  edge-step-nothing s e eq rewrite eq = refl
 
   --------------------------------------------------------------------
-  -- Process all edges in natural Fin order; returns the final stack and
-  -- a HomTerm from the original stack.
+  -- Process all edges in natural Fin order; returns the final stack.
 
   process-edges
     : List (Fin H.nE) → ∀ (s : List (Fin H.nV))
-    → Σ[ s' ∈ List (Fin H.nV) ]
-        HomTerm (unflatten (map H.vlab s))
-                (unflatten (map H.vlab s'))
-  process-edges []       s = (s , id)
-  process-edges (e ∷ es) s =
-    let (s'  , t)  = edge-step    s  e
-        (s'' , t') = process-edges es s'
-    in  (s'' , t' ∘ t)
+    → List (Fin H.nV)
+  process-edges []       s = s
+  process-edges (e ∷ es) s = process-edges es (edge-step s e)
 
   process-all-edges
     : ∀ (s : List (Fin H.nV))
-    → Σ[ s' ∈ List (Fin H.nV) ]
-        HomTerm (unflatten (map H.vlab s))
-                (unflatten (map H.vlab s'))
+    → List (Fin H.nV)
   process-all-edges = process-edges (range H.nE)
 
   --------------------------------------------------------------------
-  -- Run the algorithm from `H.dom`, then bridge the final stack to
-  -- `H.cod` via a final permute.
+  -- Run the algorithm from `H.dom`; the TOTALITY WITNESS is the
+  -- permutation of the final stack onto `H.cod` (`nothing` when the run
+  -- does not land on the codomain multiset).
 
-  decode-attempt : Maybe (HomTerm (unflatten (domL H)) (unflatten (codL H)))
-  decode-attempt with process-all-edges H.dom
-  ... | (s_final , process-term) with extract-exact H.cod s_final
-  ...    | nothing   = nothing
-  ...    | just perm = just (final-permute ∘ process-term)
-    where
-      final-permute : HomTerm (unflatten (map H.vlab s_final))
-                              (unflatten (map H.vlab H.cod))
-      final-permute = permute-via-vlab H.vlab perm
+  decode-attempt : Maybe (process-all-edges H.dom Perm.↭ H.cod)
+  decode-attempt = extract-exact H.cod (process-all-edges H.dom)

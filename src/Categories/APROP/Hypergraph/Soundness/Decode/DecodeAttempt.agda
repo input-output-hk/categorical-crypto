@@ -42,46 +42,38 @@ open import Relation.Binary.PropositionalEquality
 -- `hEmpty`/`hVar` base cases reduce by `refl`.
 
 decode-attempt-hEmpty
-  : Σ[ t ∈ HomTerm (unflatten []) (unflatten []) ]
-      decode-attempt hEmpty ≡ just t
+  : ∃[ t ] decode-attempt hEmpty ≡ just t
 decode-attempt-hEmpty = _ , refl
 
 decode-attempt-hVar
   : ∀ (x : X)
-  → Σ[ t ∈ HomTerm (unflatten (x ∷ [])) (unflatten (x ∷ [])) ]
-      decode-attempt (hVar x) ≡ just t
+  → ∃[ t ] decode-attempt (hVar x) ≡ just t
 decode-attempt-hVar x = _ , refl
 
 --------------------------------------------------------------------------------
--- Extraction: from `decode-attempt H ≡ just _` recover the final stack of
--- `process-all-edges` together with a permutation to `H.cod`.
+-- Extraction: from `decode-attempt H ≡ just _` recover the permutation of
+-- the final stack of `process-all-edges` to `H.cod`.  Since `decode-attempt`
+-- IS that totality witness (`extract-exact H.cod (process-all-edges H.dom)`),
+-- the payload of the `just` is exactly the permutation.
 
 decode-attempt-perm-from-just
   : (H : Hypergraph FlatGen)
   → ∃[ tH ] decode-attempt H ≡ just tH
-  → ∃[ s_final ] ∃[ t' ]
-       (process-all-edges H (Hypergraph.dom H) ≡ (s_final , t'))
-     × (s_final Perm.↭ Hypergraph.cod H)
-decode-attempt-perm-from-just H (tH , eq)
-    with process-all-edges H (Hypergraph.dom H) in eq-proc
-... | s_final , t' with extract-exact (Hypergraph.cod H) s_final in eq-ext
-... | just perm = s_final , t' , refl , perm
-... | nothing with eq
-... | ()
+  → process-all-edges H (Hypergraph.dom H) Perm.↭ Hypergraph.cod H
+decode-attempt-perm-from-just H (tH , _) = tH
 
 --------------------------------------------------------------------------------
--- `process-edges (xs ++ ys) s` factors at the stack level as
--- `process-edges ys` applied to the result of `process-edges xs`.
+-- `process-edges (xs ++ ys) s` factors as `process-edges ys` applied to the
+-- result of `process-edges xs`.
 
 process-edges-++-stack
   : (H : Hypergraph FlatGen)
       (xs ys : List (Fin (Hypergraph.nE H)))
       (s : List (Fin (Hypergraph.nV H)))
-  → proj₁ (process-edges H (xs ++ ys) s)
-    ≡ proj₁ (process-edges H ys (proj₁ (process-edges H xs s)))
+  → process-edges H (xs ++ ys) s
+    ≡ process-edges H ys (process-edges H xs s)
 process-edges-++-stack H []       ys s = refl
-process-edges-++-stack H (e ∷ xs) ys s with edge-step H s e
-... | s' , _ = process-edges-++-stack H xs ys s'
+process-edges-++-stack H (e ∷ xs) ys s = process-edges-++-stack H xs ys (edge-step H s e)
 
 --------------------------------------------------------------------------------
 -- Edge-step lifting for `hTensor`: a G-side (resp. K-side) edge's result
@@ -100,25 +92,18 @@ module _ (G K : Hypergraph FlatGen) where
         (rest-G : List (Fin G.nV))
         (p-G : xs-G Perm.↭ G.ein eG ++ rest-G)
     → extract-prefix (G.ein eG) xs-G ≡ just (rest-G , p-G)
-    → ∃[ t ]
-         edge-step (hTensor G K)
-                   (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys)
-                   (eG ↑ˡ K.nE)
-         ≡ (map (_↑ˡ K.nV) (G.eout eG ++ rest-G) ++ map (G.nV ↑ʳ_) ys , t)
+    → edge-step (hTensor G K)
+                (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys)
+                (eG ↑ˡ K.nE)
+      ≡ map (_↑ˡ K.nV) (G.eout eG ++ rest-G) ++ map (G.nV ↑ʳ_) ys
   edge-step-↑ˡ-on-mixed-just eG xs-G ys rest-G p-G eq =
-      subst (λ s → ∃[ t ]
-                     edge-step (hTensor G K) stack (eG ↑ˡ K.nE)
-                     ≡ (s , t))
-            list-eq
-            reduce-result
+      trans reduce-result list-eq
     where
       open ≡-Reasoning
 
       stack = map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys
 
-      -- Transport the mixed-just output to the ein-c form `edge-step` sees;
-      -- wrapping the existential in the `subst` predicate carries both the
-      -- residual permutation and the equation at once.
+      -- Transport the mixed-just output to the ein-c form `edge-step` sees.
       eq-on-ein-c
         : ∃[ q ] extract-prefix
                    (Hypergraph.ein (hTensor G K) (eG ↑ˡ K.nE)) stack
@@ -135,11 +120,9 @@ module _ (G K : Hypergraph FlatGen) where
       -- Generic abstract edge-step reduction (avoids normalising the
       -- concrete `edge-step (hTensor G K) …` at this site).
       reduce-result
-        : ∃[ t ]
-            edge-step (hTensor G K) stack (eG ↑ˡ K.nE)
-            ≡ ( Hypergraph.eout (hTensor G K) (eG ↑ˡ K.nE)
-                  ++ (map (_↑ˡ K.nV) rest-G ++ map (G.nV ↑ʳ_) ys)
-              , t )
+        : edge-step (hTensor G K) stack (eG ↑ˡ K.nE)
+          ≡ Hypergraph.eout (hTensor G K) (eG ↑ˡ K.nE)
+              ++ (map (_↑ˡ K.nV) rest-G ++ map (G.nV ↑ʳ_) ys)
       reduce-result = edge-step-just (hTensor G K) stack (eG ↑ˡ K.nE) (proj₂ eq-on-ein-c)
 
       -- Bridge edge-step's raw output to the lifted form (eout-c-inj₁-red,
@@ -177,20 +160,14 @@ module _ (G K : Hypergraph FlatGen) where
         (rest-K : List (Fin K.nV))
         (p-K : ys-K Perm.↭ K.ein eK ++ rest-K)
     → extract-prefix (K.ein eK) ys-K ≡ just (rest-K , p-K)
-    → ∃[ t ]
-         edge-step (hTensor G K)
-                   (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K)
-                   (G.nE ↑ʳ eK)
-         ≡ ( map (G.nV ↑ʳ_) (K.eout eK)
-               ++ map (_↑ˡ K.nV) xs
-               ++ map (G.nV ↑ʳ_) rest-K
-           , t )
+    → edge-step (hTensor G K)
+                (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K)
+                (G.nE ↑ʳ eK)
+      ≡ map (G.nV ↑ʳ_) (K.eout eK)
+          ++ map (_↑ˡ K.nV) xs
+          ++ map (G.nV ↑ʳ_) rest-K
   edge-step-↑ʳ-on-mixed-just eK xs ys-K rest-K p-K eq =
-      subst (λ s → ∃[ t ]
-                     edge-step (hTensor G K) stack (G.nE ↑ʳ eK)
-                     ≡ (s , t))
-            list-eq
-            reduce-result
+      trans reduce-result list-eq
     where
       stack = map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K
 
@@ -208,11 +185,9 @@ module _ (G K : Hypergraph FlatGen) where
                                                 xs ys-K rest-K p-K eq)
 
       reduce-result
-        : ∃[ t ]
-            edge-step (hTensor G K) stack (G.nE ↑ʳ eK)
-            ≡ ( Hypergraph.eout (hTensor G K) (G.nE ↑ʳ eK)
-                  ++ (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) rest-K)
-              , t )
+        : edge-step (hTensor G K) stack (G.nE ↑ʳ eK)
+          ≡ Hypergraph.eout (hTensor G K) (G.nE ↑ʳ eK)
+              ++ (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) rest-K)
       reduce-result = edge-step-just (hTensor G K) stack (G.nE ↑ʳ eK) (proj₂ eq-on-ein-c)
 
       -- One `cong` rewriting `eout-c (G.nE ↑ʳ eK)` to `map injR (K.eout eK)`;
@@ -232,11 +207,10 @@ module _ (G K : Hypergraph FlatGen) where
         (xs-G : List (Fin G.nV))
         (ys : List (Fin K.nV))
     → extract-prefix (G.ein eG) xs-G ≡ nothing
-    → ∃[ t ]
-         edge-step (hTensor G K)
-                   (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys)
-                   (eG ↑ˡ K.nE)
-         ≡ (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys , t)
+    → edge-step (hTensor G K)
+                (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys)
+                (eG ↑ˡ K.nE)
+      ≡ map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys
   edge-step-↑ˡ-on-mixed-nothing eG xs-G ys eq =
       edge-step-nothing (hTensor G K) stack (eG ↑ˡ K.nE) nothing-lifted
     where
@@ -256,11 +230,10 @@ module _ (G K : Hypergraph FlatGen) where
         (xs : List (Fin G.nV))
         (ys-K : List (Fin K.nV))
     → extract-prefix (K.ein eK) ys-K ≡ nothing
-    → ∃[ t ]
-         edge-step (hTensor G K)
-                   (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K)
-                   (G.nE ↑ʳ eK)
-         ≡ (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K , t)
+    → edge-step (hTensor G K)
+                (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K)
+                (G.nE ↑ʳ eK)
+      ≡ map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K
   edge-step-↑ʳ-on-mixed-nothing eK xs ys-K eq =
       edge-step-nothing (hTensor G K) stack (G.nE ↑ʳ eK) nothing-lifted
     where
@@ -280,13 +253,10 @@ module _ (G K : Hypergraph FlatGen) where
     : ∀ (eG : Fin G.nE)
         (xs-G : List (Fin G.nV))
         (ys : List (Fin K.nV))
-    → ∃[ t ]
-         edge-step (hTensor G K)
-                   (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys)
-                   (eG ↑ˡ K.nE)
-         ≡ ( map (_↑ˡ K.nV) (proj₁ (edge-step G xs-G eG))
-               ++ map (G.nV ↑ʳ_) ys
-           , t )
+    → edge-step (hTensor G K)
+                (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys)
+                (eG ↑ˡ K.nE)
+      ≡ map (_↑ˡ K.nV) (edge-step G xs-G eG) ++ map (G.nV ↑ʳ_) ys
   edge-step-↑ˡ-on-mixed eG xs-G ys with extract-prefix (G.ein eG) xs-G in eq
   ... | just (rest , p) = edge-step-↑ˡ-on-mixed-just eG xs-G ys rest p eq
   ... | nothing         = edge-step-↑ˡ-on-mixed-nothing eG xs-G ys eq
@@ -296,17 +266,14 @@ module _ (G K : Hypergraph FlatGen) where
     : ∀ (es : List (Fin G.nE))
         (xs-G : List (Fin G.nV))
         (ys : List (Fin K.nV))
-    → ∃[ t ]
-         process-edges (hTensor G K)
-                       (map (_↑ˡ K.nE) es)
-                       (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys)
-         ≡ ( map (_↑ˡ K.nV) (proj₁ (process-edges G es xs-G))
-               ++ map (G.nV ↑ʳ_) ys
-           , t )
-  process-edges-↑ˡ-on-mixed []       xs-G ys = _ , refl
-  process-edges-↑ˡ-on-mixed (e ∷ es) xs-G ys with edge-step-↑ˡ-on-mixed e xs-G ys
-  ... | _ , eq-edge with process-edges-↑ˡ-on-mixed es (proj₁ (edge-step G xs-G e)) ys
-  ... | _ , eq-prefix rewrite eq-edge | eq-prefix = _ , refl
+    → process-edges (hTensor G K)
+                    (map (_↑ˡ K.nE) es)
+                    (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys)
+      ≡ map (_↑ˡ K.nV) (process-edges G es xs-G) ++ map (G.nV ↑ʳ_) ys
+  process-edges-↑ˡ-on-mixed []       xs-G ys = refl
+  process-edges-↑ˡ-on-mixed (e ∷ es) xs-G ys
+    rewrite edge-step-↑ˡ-on-mixed e xs-G ys =
+      process-edges-↑ˡ-on-mixed es (edge-step G xs-G e) ys
 
   --------------------------------------------------------------------
   -- K-side per-edge lifting on a permutation-equivalent input.  K-edges'
@@ -318,15 +285,12 @@ module _ (G K : Hypergraph FlatGen) where
         (s : List (Fin (G.nV + K.nV)))
         (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
     → s Perm.↭ map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys
-    → ∃[ s' ] ∃[ t ]
-         edge-step (hTensor G K) s (G.nE ↑ʳ eK) ≡ (s' , t)
-       × s' Perm.↭ map (_↑ˡ K.nV) xs
-                     ++ map (G.nV ↑ʳ_) (proj₁ (edge-step K ys eK))
+    → edge-step (hTensor G K) s (G.nE ↑ʳ eK)
+        Perm.↭ map (_↑ˡ K.nV) xs
+                 ++ map (G.nV ↑ʳ_) (edge-step K ys eK)
   edge-step-↑ʳ-on-perm eK s xs ys s↭std with extract-prefix (K.ein eK) ys in eq-K
-  ... | just (rest , p-K) = R-out ++ r
-                          , proj₁ edge-step-eq
-                          , proj₂ edge-step-eq
-                          , final-perm
+  ... | just (rest , p-K) =
+        Perm.↭-trans (Perm.↭-reflexive edge-step-eq) final-perm
     where
       open Perm.PermutationReasoning
       L     = map (_↑ˡ K.nV)  xs
@@ -374,18 +338,18 @@ module _ (G K : Hypergraph FlatGen) where
                proj₁ (proj₂ (proj₂ extract-step)))
 
       reduce-result
-        : ∃[ t ] edge-step (hTensor G K) s (G.nE ↑ʳ eK)
-                   ≡ (Hypergraph.eout (hTensor G K) (G.nE ↑ʳ eK) ++ r , t)
+        : edge-step (hTensor G K) s (G.nE ↑ʳ eK)
+          ≡ Hypergraph.eout (hTensor G K) (G.nE ↑ʳ eK) ++ r
       reduce-result = edge-step-just (hTensor G K) s (G.nE ↑ʳ eK) (proj₂ extract-on-ein-c)
 
       -- `eout-c-inj₂-red` converts eout-c to `R-out`.
-      edge-step-eq : ∃[ t ] edge-step (hTensor G K) s (G.nE ↑ʳ eK) ≡ (R-out ++ r , t)
+      edge-step-eq : edge-step (hTensor G K) s (G.nE ↑ʳ eK) ≡ R-out ++ r
       edge-step-eq =
-        subst (λ ks → ∃[ t ] edge-step (hTensor G K) s (G.nE ↑ʳ eK)
-                              ≡ (ks ++ r , t))
+        subst (λ ks → edge-step (hTensor G K) s (G.nE ↑ʳ eK) ≡ ks ++ r)
               (hT-impl.eout-c-inj₂-red eK)
               reduce-result
 
+      -- `edge-step K ys eK` reduces (via `eq-K`) to `K.eout eK ++ rest`.
       final-perm : R-out ++ r Perm.↭ L ++ map (G.nV ↑ʳ_) (K.eout eK ++ rest)
       final-perm = begin
         R-out ++ r
@@ -401,9 +365,9 @@ module _ (G K : Hypergraph FlatGen) where
         L ++ map (G.nV ↑ʳ_) (K.eout eK ++ rest)
           ∎
 
-  ... | nothing = nothing-result
+  ... | nothing =
+        Perm.↭-trans (Perm.↭-reflexive reduce-to-id) s↭std
     where
-      open Perm.PermutationReasoning
       L = map (_↑ˡ K.nV) xs
       R = map (G.nV ↑ʳ_) ys
 
@@ -427,14 +391,9 @@ module _ (G K : Hypergraph FlatGen) where
               (sym (hT-impl.ein-c-inj₂-red eK))
               nothing-on-s
 
-      reduce-to-id : ∃[ t ] edge-step (hTensor G K) s (G.nE ↑ʳ eK) ≡ (s , t)
+      -- `edge-step K ys eK` reduces (via `eq-K`) to `ys`.
+      reduce-to-id : edge-step (hTensor G K) s (G.nE ↑ʳ eK) ≡ s
       reduce-to-id = edge-step-nothing (hTensor G K) s (G.nE ↑ʳ eK) nothing-on-ein-c
-
-      nothing-result : ∃[ s' ] ∃[ t ]
-                         edge-step (hTensor G K) s (G.nE ↑ʳ eK)
-                           ≡ (s' , t)
-                       × s' Perm.↭ L ++ R
-      nothing-result = s , proj₁ reduce-to-id , proj₂ reduce-to-id , s↭std
 
   -- Iterate `edge-step-↑ʳ-on-perm` over a list of K-edges.
   process-edges-↑ʳ-on-perm
@@ -442,15 +401,14 @@ module _ (G K : Hypergraph FlatGen) where
         (s : List (Fin (G.nV + K.nV)))
         (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
     → s Perm.↭ map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys
-    → ∃[ s' ] ∃[ t ]
-         process-edges (hTensor G K) (map (G.nE ↑ʳ_) es) s ≡ (s' , t)
-       × s' Perm.↭ map (_↑ˡ K.nV) xs
-                     ++ map (G.nV ↑ʳ_) (proj₁ (process-edges K es ys))
-  process-edges-↑ʳ-on-perm []       s xs ys s↭std = s , _ , refl , s↭std
-  process-edges-↑ʳ-on-perm (e ∷ es) s xs ys s↭std with edge-step-↑ʳ-on-perm e s xs ys s↭std
-  ... | _ , _ , eq-edge , perm-edge
-      with process-edges-↑ʳ-on-perm es _ xs (proj₁ (edge-step K ys e)) perm-edge
-  ... | _ , _ , eq-rec , perm-rec rewrite eq-edge | eq-rec = _ , _ , refl , perm-rec
+    → process-edges (hTensor G K) (map (G.nE ↑ʳ_) es) s
+        Perm.↭ map (_↑ˡ K.nV) xs
+                 ++ map (G.nV ↑ʳ_) (process-edges K es ys)
+  process-edges-↑ʳ-on-perm []       s xs ys s↭std = s↭std
+  process-edges-↑ʳ-on-perm (e ∷ es) s xs ys s↭std =
+    process-edges-↑ʳ-on-perm es (edge-step (hTensor G K) s (G.nE ↑ʳ e))
+      xs (edge-step K ys e)
+      (edge-step-↑ʳ-on-perm e s xs ys s↭std)
 
 --------------------------------------------------------------------------------
 -- Inverse of `decode-attempt-perm-from-just`: from a final stack with a
@@ -458,14 +416,12 @@ module _ (G K : Hypergraph FlatGen) where
 
 decode-attempt-from-perm
   : (H : Hypergraph FlatGen)
-  → ∃[ s_final ] ∃[ t' ]
-       (process-all-edges H (Hypergraph.dom H) ≡ (s_final , t'))
-     × (s_final Perm.↭ Hypergraph.cod H)
-  → Σ[ t ∈ HomTerm (unflatten (domL H)) (unflatten (codL H)) ]
-      decode-attempt H ≡ just t
-decode-attempt-from-perm H (s_final , t' , eq-proc , perm)
-    with extract-prefix-from-↭ s_final (Hypergraph.cod H) perm
-... | _ , eq-prefix rewrite eq-proc | eq-prefix = _ , refl
+  → process-all-edges H (Hypergraph.dom H) Perm.↭ Hypergraph.cod H
+  → ∃[ t ] decode-attempt H ≡ just t
+decode-attempt-from-perm H perm
+    with extract-prefix-from-↭ (process-all-edges H (Hypergraph.dom H))
+                               (Hypergraph.cod H) perm
+... | _ , eq-prefix rewrite eq-prefix = _ , refl
 
 --------------------------------------------------------------------------------
 -- `hSwap A B`: nE = 0, dom = L ++ R, cod = R ++ L.  `process-all-edges`
@@ -474,14 +430,12 @@ decode-attempt-from-perm H (s_final , t' , eq-proc , perm)
 
 decode-attempt-hSwap
   : ∀ (A B : ObjTerm)
-  → Σ[ t ∈ HomTerm (unflatten (domL (hSwap A B))) (unflatten (codL (hSwap A B))) ]
-      decode-attempt (hSwap A B) ≡ just t
+  → ∃[ t ] decode-attempt (hSwap A B) ≡ just t
 decode-attempt-hSwap A B =
   decode-attempt-from-perm (hSwap A B)
-    -- nE = 0 ⇒ `process-all-edges` is `(dom , id)` by `refl`; the boundary
+    -- nE = 0 ⇒ `process-all-edges` is `dom` by `refl`; the boundary
     -- permutation `dom ↭ cod` is `++-comm L R`.
-    ( Hypergraph.dom (hSwap A B) , _ , refl
-    , PermProp.++-comm
+    ( PermProp.++-comm
         (map (_↑ˡ length (flatten B)) (range (length (flatten A))))
         (map (length (flatten A) ↑ʳ_) (range (length (flatten B)))) )
 
@@ -492,25 +446,22 @@ decode-attempt-hSwap A B =
 
 decode-attempt-hGen
   : ∀ {A B : ObjTerm} (g : mor A B)
-  → Σ[ t ∈ HomTerm (unflatten (domL (hGen g))) (unflatten (codL (hGen g))) ]
-      decode-attempt (hGen g) ≡ just t
+  → ∃[ t ] decode-attempt (hGen g) ≡ just t
 decode-attempt-hGen {A} {B} g =
-  decode-attempt-from-perm (hGen g)
-    (s-final , proc-eq)
+  decode-attempt-from-perm (hGen g) perm
   where
     H = hGen g
     module H = Hypergraph H
-    s-final = H.eout zero ++ []
     -- The single edge fires on the whole `dom = ein 0` with empty residual.
     self : Σ[ p ∈ (H.dom Perm.↭ H.dom ++ []) ]
              extract-prefix (H.ein zero) H.dom ≡ just ([] , p)
     self = extract-prefix-self H.dom
-    edge0 : ∃[ t ] edge-step H H.dom zero ≡ (s-final , t)
-    edge0 = edge-step-just H H.dom zero (proj₂ self)
-    -- process-all-edges (range 1) = process-edges (zero ∷ []) dom, which
-    -- folds the single `edge-step`; rewrite by `edge0` exposes `s-final`.
-    proc-eq : ∃[ t' ] (process-all-edges H H.dom ≡ (s-final , t')) × (s-final Perm.↭ H.cod)
-    proc-eq rewrite proj₂ edge0 = _ , refl , PermProp.++-identityʳ H.cod
+    -- process-all-edges (range 1) = process-edges (zero ∷ []) dom folds the
+    -- single `edge-step`, which fires to `H.eout zero ++ [] = H.cod ++ []`.
+    proc-≡ : process-all-edges H H.dom ≡ H.eout zero ++ []
+    proc-≡ = edge-step-just H H.dom zero (proj₂ self)
+    perm : process-all-edges H H.dom Perm.↭ H.cod
+    perm = subst (Perm._↭ H.cod) (sym proc-≡) (PermProp.++-identityʳ H.cod)
 
 --------------------------------------------------------------------------------
 -- `decode-attempt-hTensor`: combines the per-edge / process-edges
@@ -522,75 +473,55 @@ decode-attempt-hTensor
   : (G K : Hypergraph FlatGen)
   → (∃[ tG ] decode-attempt G ≡ just tG)
   → (∃[ tK ] decode-attempt K ≡ just tK)
-  → Σ[ t ∈ HomTerm (unflatten (domL (hTensor G K))) (unflatten (codL (hTensor G K))) ]
-      decode-attempt (hTensor G K) ≡ just t
+  → ∃[ t ] decode-attempt (hTensor G K) ≡ just t
 decode-attempt-hTensor G K ih-G ih-K =
-    decode-attempt-from-perm (hTensor G K)
-      (proj₁ proc , proj₂ proc , refl , perm-final)
+    decode-attempt-from-perm (hTensor G K) perm-final
   where
     module G = Hypergraph G
     module K = Hypergraph K
     open Perm.PermutationReasoning
 
-    ih-G' = decode-attempt-perm-from-just G ih-G
-    s_G_final = proj₁ ih-G'
-    eq-G = proj₁ (proj₂ (proj₂ ih-G'))
-    perm-G = proj₂ (proj₂ (proj₂ ih-G'))
+    -- The per-side totality witnesses (stacks after each side's run).
+    perm-G = decode-attempt-perm-from-just G ih-G
+    perm-K = decode-attempt-perm-from-just K ih-K
 
-    ih-K' = decode-attempt-perm-from-just K ih-K
-    s_K_final = proj₁ ih-K'
-    eq-K = proj₁ (proj₂ (proj₂ ih-K'))
-    perm-K = proj₂ (proj₂ (proj₂ ih-K'))
+    s_G_final = process-all-edges G G.dom
+    s_K_final = process-all-edges K K.dom
 
     proc = process-all-edges (hTensor G K) (Hypergraph.dom (hTensor G K))
 
-    -- After the G-edges block.
-    after-G-stack = proj₁ (process-edges (hTensor G K)
-                            (map (_↑ˡ K.nE) (range G.nE))
-                            (Hypergraph.dom (hTensor G K)))
-
-    G-lift = process-edges-↑ˡ-on-mixed G K (range G.nE) G.dom K.dom
+    -- After the G-edges block (still on the natural mixed stack).
+    after-G-stack = process-edges (hTensor G K)
+                      (map (_↑ˡ K.nE) (range G.nE))
+                      (Hypergraph.dom (hTensor G K))
 
     after-G-≡ : after-G-stack ≡ map (_↑ˡ K.nV) s_G_final ++ map (G.nV ↑ʳ_) K.dom
-    after-G-≡ = trans (cong proj₁ (proj₂ G-lift))
-                       (cong (λ x → map (_↑ˡ K.nV) x ++ map (G.nV ↑ʳ_) K.dom)
-                             (cong proj₁ eq-G))
+    after-G-≡ = process-edges-↑ˡ-on-mixed G K (range G.nE) G.dom K.dom
 
-    after-G-↭-std : after-G-stack Perm.↭ map (_↑ˡ K.nV) s_G_final ++ map (G.nV ↑ʳ_) K.dom
-    after-G-↭-std = Perm.↭-reflexive after-G-≡
-
+    K-lift : process-edges (hTensor G K) (map (G.nE ↑ʳ_) (range K.nE)) after-G-stack
+               Perm.↭ map (_↑ˡ K.nV) s_G_final ++ map (G.nV ↑ʳ_) s_K_final
     K-lift = process-edges-↑ʳ-on-perm G K (range K.nE) after-G-stack
-              s_G_final K.dom after-G-↭-std
+              s_G_final K.dom (Perm.↭-reflexive after-G-≡)
 
-    s_K' = proj₁ K-lift
-    K-lift-eq   = proj₁ (proj₂ (proj₂ K-lift))
-    K-lift-perm = proj₂ (proj₂ (proj₂ K-lift))
-
-    -- `proj₁ proc ≡ s_K'` via `range-++` + `process-edges-++-stack` +
-    -- the K-lift's equation.
-    proc-≡-s_K' : proj₁ proc ≡ s_K'
-    proc-≡-s_K' =
-      trans (cong (λ es → proj₁ (process-edges (hTensor G K) es
-                                  (Hypergraph.dom (hTensor G K))))
+    -- `proc ≡ process-edges (K-block) after-G-stack` via `range-++` +
+    -- `process-edges-++-stack`.
+    proc-≡ : proc
+             ≡ process-edges (hTensor G K) (map (G.nE ↑ʳ_) (range K.nE)) after-G-stack
+    proc-≡ =
+      trans (cong (λ es → process-edges (hTensor G K) es
+                            (Hypergraph.dom (hTensor G K)))
                   (Inv.range-++ G.nE K.nE))
-            (trans (process-edges-++-stack (hTensor G K)
-                     (map (_↑ˡ K.nE) (range G.nE))
-                     (map (G.nE ↑ʳ_) (range K.nE))
-                     (Hypergraph.dom (hTensor G K)))
-                   (cong proj₁ K-lift-eq))
+            (process-edges-++-stack (hTensor G K)
+              (map (_↑ˡ K.nE) (range G.nE))
+              (map (G.nE ↑ʳ_) (range K.nE))
+              (Hypergraph.dom (hTensor G K)))
 
-    K-final-perm : s_K' Perm.↭ map (_↑ˡ K.nV) s_G_final ++ map (G.nV ↑ʳ_) s_K_final
-    K-final-perm =
-      subst (λ x → s_K' Perm.↭ map (_↑ˡ K.nV) s_G_final ++ map (G.nV ↑ʳ_) x)
-            (cong proj₁ eq-K)
-            K-lift-perm
-
-    perm-final : proj₁ proc Perm.↭ Hypergraph.cod (hTensor G K)
+    perm-final : proc Perm.↭ Hypergraph.cod (hTensor G K)
     perm-final = begin
-      proj₁ proc
-        ≡⟨ proc-≡-s_K' ⟩
-      s_K'
-        ↭⟨ K-final-perm ⟩
+      proc
+        ≡⟨ proc-≡ ⟩
+      process-edges (hTensor G K) (map (G.nE ↑ʳ_) (range K.nE)) after-G-stack
+        ↭⟨ K-lift ⟩
       map (_↑ˡ K.nV) s_G_final ++ map (G.nV ↑ʳ_) s_K_final
         ↭⟨ PermProp.++⁺ (PermProp.map⁺ (_↑ˡ K.nV) perm-G)
                          (PermProp.map⁺ (G.nV ↑ʳ_) perm-K) ⟩
@@ -602,8 +533,7 @@ decode-attempt-hTensor G K ih-G ih-K =
 
 decode-attempt-hId
   : ∀ (A : ObjTerm)
-  → Σ[ t ∈ HomTerm (unflatten (domL (hId A))) (unflatten (codL (hId A))) ]
-      decode-attempt (hId A) ≡ just t
+  → ∃[ t ] decode-attempt (hId A) ≡ just t
 decode-attempt-hId unit       = decode-attempt-hEmpty
 decode-attempt-hId (Var x)    = decode-attempt-hVar x
 decode-attempt-hId (A ⊗₀ B)   =

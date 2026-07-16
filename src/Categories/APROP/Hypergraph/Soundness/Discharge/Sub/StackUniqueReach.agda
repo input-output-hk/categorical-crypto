@@ -98,7 +98,7 @@ module _ (H : Hypergraph FlatGen) where
   edge-step-Reservoir≤1
     : ∀ (e : Fin H.nE) (qs : List (Fin H.nE)) (s : List (Fin H.nV))
     → Reservoir≤1 (e ∷ qs) s
-    → Reservoir≤1 qs (proj₁ (edge-step H s e))
+    → Reservoir≤1 qs ((edge-step H s e))
   edge-step-Reservoir≤1 e qs s inv with extract-prefix (H.ein e) s in eq
   ... | nothing = inv-skip
     where
@@ -148,10 +148,10 @@ module _ (H : Hypergraph FlatGen) where
   reservoir-split
     : ∀ (ps qs : List (Fin H.nE)) (s : List (Fin H.nV))
     → Reservoir≤1 (ps ++ qs) s
-    → Reservoir≤1 qs (proj₁ (process-edges H ps s))
+    → Reservoir≤1 qs ((process-edges H ps s))
   reservoir-split []        qs s inv = inv
   reservoir-split (e ∷ ps') qs s inv =
-    reservoir-split ps' qs (proj₁ (edge-step H s e))
+    reservoir-split ps' qs ((edge-step H s e))
       (edge-step-Reservoir≤1 e (ps' ++ qs) s inv)
 
   ------------------------------------------------------------------------
