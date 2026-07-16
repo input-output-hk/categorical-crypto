@@ -10,7 +10,8 @@
 -- ROUTE: structural induction on `f`.  Zero-edge cases are vacuous; `hGen`
 -- has `ein`/`eout` of disjoint `_↑ˡ_`/`_↑ʳ_` form; `hTensor`/`hComposeP`
 -- route each composite edge through an injective `h` (`injL`/`injR`/the
--- pruned `remapP`), so `map-inj-disjoint` carries the sub-graph IH up.  For
+-- pruned `remapP`), so `EdgeDependency.Dep-reflect` reflects a composite
+-- self-dependency down to the sub-graph, where the IH refutes it.  For
 -- `hComposeP`, `remapP` is injective on a *translated* `K = ⟪g⟫` because
 -- `⟪g⟫.dom`/`⟪h⟫.cod` are `Unique` (`HomTermInvariant`).
 --
@@ -39,7 +40,7 @@ open import Categories.APROP.Hypergraph.Model.Invariant sig using (↑ˡ≢↑ʳ
 open import Categories.APROP.Hypergraph.Util.Prune
   using (remap-injective; lookup-injective-unique; count-non)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
-  using (Dep)
+  using (Dep; Dep-reflect)
 
 open import Data.Empty using (⊥)
 open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_; splitAt; join; cast; toℕ)
@@ -61,25 +62,6 @@ open import Relation.Nullary using (¬_)
 
 NoSelfDep : Hypergraph FlatGen → Set
 NoSelfDep G = ∀ {e} → ¬ Dep {X} {FlatGen} G e e
-
---------------------------------------------------------------------------------
--- If `h` is injective and `xout`/`xin` share no vertex, then `map h xout`/
--- `map h xin` share no vertex.  The engine carrying edge-disjointness from a
--- sub-graph to a composite.
-
-map-inj-disjoint
-  : ∀ {p q} (h : Fin p → Fin q)
-  → (∀ {x y} → h x ≡ h y → x ≡ y)
-  → {xout xin : List (Fin p)}
-  → (∀ {u} → u ∈ xout → u ∈ xin → ⊥)
-  → ∀ {w} → w ∈ map h xout → w ∈ map h xin → ⊥
-map-inj-disjoint h h-inj {xout} {xin} disj {w} w∈out w∈in
-  with ∈-map⁻ h w∈out | ∈-map⁻ h w∈in
-... | u₁ , u₁∈out , w≡hu₁ | u₂ , u₂∈in , w≡hu₂ =
-  disj u₁∈out (subst (_∈ xin) (sym u₁≡u₂) u₂∈in)
-  where
-    u₁≡u₂ : u₁ ≡ u₂
-    u₁≡u₂ = h-inj (trans (sym w≡hu₁) w≡hu₂)
 
 --------------------------------------------------------------------------------
 -- Base cases with `nE = 0`: no edge exists, so `Dep` is vacuous.
@@ -106,7 +88,8 @@ NoSelfDep-hGen {A} {B} f {zero} (v , v∈out , v∈in)
 
 --------------------------------------------------------------------------------
 -- Tensor: a composite edge is a G-edge (via injective `injL`) or a K-edge
--- (via injective `injR`); `map-inj-disjoint` + sub-graph IH closes it.
+-- (via injective `injR`); `Dep-reflect` down to the sub-graph + sub-graph IH
+-- closes it.
 
 NoSelfDep-hTensor : ∀ G K → NoSelfDep G → NoSelfDep K → NoSelfDep (hTensor G K)
 NoSelfDep-hTensor G K G-nd K-nd {e} (v , v∈out , v∈in) =
@@ -132,17 +115,11 @@ NoSelfDep-hTensor G K G-nd K-nd {e} (v , v∈out , v∈in) =
              → v ∈ ein-c  (join G.nE K.nE s)
              → ⊥
     dispatch (inj₁ eG) vo vi =
-      map-inj-disjoint injL injL-inj
-        {G.eout eG} {G.ein eG}
-        (λ uo ui → G-nd (_ , uo , ui))
-        (subst (v ∈_) (eout-c-inj₁-red eG) vo)
-        (subst (v ∈_) (ein-c-inj₁-red  eG) vi)
+      G-nd (Dep-reflect {sub = G} {H = hTensor G K} injL injL-inj (_↑ˡ K.nE)
+              eout-c-inj₁-red ein-c-inj₁-red (v , vo , vi))
     dispatch (inj₂ eK) vo vi =
-      map-inj-disjoint injR injR-inj
-        {K.eout eK} {K.ein eK}
-        (λ uo ui → K-nd (_ , uo , ui))
-        (subst (v ∈_) (eout-c-inj₂-red eK) vo)
-        (subst (v ∈_) (ein-c-inj₂-red  eK) vi)
+      K-nd (Dep-reflect {sub = K} {H = hTensor G K} injR injR-inj (G.nE ↑ʳ_)
+              eout-c-inj₂-red ein-c-inj₂-red (v , vo , vi))
 
 --------------------------------------------------------------------------------
 -- `hId A`: structural on `A`.
@@ -180,17 +157,12 @@ NoSelfDep-hComposeP G K bdy remapP-inj G-nd K-nd {e} (v , v∈out , v∈in) =
              → v ∈ ein-c  (join G.nE K.nE s)
              → ⊥
     dispatch (inj₁ eG) vo vi =
-      map-inj-disjoint injL (λ {x} {y} eq → ↑ˡ-injective (count-non K.dom) x y eq)
-        {G.eout eG} {G.ein eG}
-        (λ uo ui → G-nd (_ , uo , ui))
-        (subst (v ∈_) (eout-c-inj₁-red eG) vo)
-        (subst (v ∈_) (ein-c-inj₁-red  eG) vi)
+      G-nd (Dep-reflect {sub = G} {H = hComposeP G K bdy}
+              injL (λ {x} {y} eq → ↑ˡ-injective (count-non K.dom) x y eq) (_↑ˡ K.nE)
+              eout-c-inj₁-red ein-c-inj₁-red (v , vo , vi))
     dispatch (inj₂ eK) vo vi =
-      map-inj-disjoint remapP remapP-inj
-        {K.eout eK} {K.ein eK}
-        (λ uo ui → K-nd (_ , uo , ui))
-        (subst (v ∈_) (eout-c-inj₂-red eK) vo)
-        (subst (v ∈_) (ein-c-inj₂-red  eK) vi)
+      K-nd (Dep-reflect {sub = K} {H = hComposeP G K bdy} remapP remapP-inj (G.nE ↑ʳ_)
+              eout-c-inj₂-red ein-c-inj₂-red (v , vo , vi))
 
 --------------------------------------------------------------------------------
 -- The `remapP`-injectivity instance for a pruned composition of two

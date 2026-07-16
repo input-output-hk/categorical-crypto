@@ -53,7 +53,7 @@ open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep; Dep-reflect)
 import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
 open Inv using (inject+-inj; raise-inj; disj-L-R; range-++)
 
@@ -136,33 +136,19 @@ module _ (G K : Hypergraph FlatGen) where
   injRE eK = G.nE ↑ʳ eK
 
   ------------------------------------------------------------------------------
-  -- A dependency between two G-block edges reflects to a dependency in G.
-  -- Uses `eout/ein` reduction (`T.eout-c-inj₁-red`, `T.ein-c-inj₁-red`) and
-  -- injectivity of the vertex injection `injL = _↑ˡ_`.
+  -- A dependency between two G-block edges reflects to a dependency in G, and
+  -- symmetrically for K — both are instances of the generic `Dep-reflect`
+  -- block-reflection engine along the injective vertex injections
+  -- `injL = _↑ˡ_` / `injR = _↑ʳ_` with the `eout/ein` block reductions.
   tensor-GG-reflect : ∀ {ea eb : Fin G.nE} → Dep H (injLE eb) (injLE ea) → Dep G eb ea
-  tensor-GG-reflect {ea} {eb} (v , v∈out , v∈in)
-    with subst (v ∈_) (T.eout-c-inj₁-red eb) v∈out
-       | subst (v ∈_) (T.ein-c-inj₁-red ea) v∈in
-  ... | v∈out' | v∈in' with ∈-map⁻ T.injL v∈out' | ∈-map⁻ T.injL v∈in'
-  ... | wb , wb∈ , v≡wb | wa , wa∈ , v≡wa =
-        wb
-      , wb∈
-      , subst (_∈ G.ein ea)
-              (inject+-inj K.nV (trans (sym v≡wa) v≡wb))
-              wa∈
+  tensor-GG-reflect =
+    Dep-reflect {sub = G} {H = H} T.injL (inject+-inj K.nV) injLE
+      T.eout-c-inj₁-red T.ein-c-inj₁-red
 
-  -- Symmetric: a dependency between two K-block edges reflects to K.
   tensor-KK-reflect : ∀ {ea eb : Fin K.nE} → Dep H (injRE eb) (injRE ea) → Dep K eb ea
-  tensor-KK-reflect {ea} {eb} (v , v∈out , v∈in)
-    with subst (v ∈_) (T.eout-c-inj₂-red eb) v∈out
-       | subst (v ∈_) (T.ein-c-inj₂-red ea) v∈in
-  ... | v∈out' | v∈in' with ∈-map⁻ T.injR v∈out' | ∈-map⁻ T.injR v∈in'
-  ... | wb , wb∈ , v≡wb | wa , wa∈ , v≡wa =
-        wb
-      , wb∈
-      , subst (_∈ K.ein ea)
-              (raise-inj G.nV (trans (sym v≡wa) v≡wb))
-              wa∈
+  tensor-KK-reflect =
+    Dep-reflect {sub = K} {H = H} T.injR (raise-inj G.nV) injRE
+      T.eout-c-inj₂-red T.ein-c-inj₂-red
 
   -- No K-block edge produces a wire consumed by a G-block edge: the K-output
   -- vertices live in `map injR …` and the G-input vertices in `map injL …`,
@@ -241,16 +227,9 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
   -- G-block dependency reflects to G (like `tensor-GG-reflect`; no Linearity).
   compose-GG-reflect : ∀ {ea eb : Fin G.nE}
                      → Dep Hc (injLEc eb) (injLEc ea) → Dep G eb ea
-  compose-GG-reflect {ea} {eb} (v , v∈out , v∈in)
-    with subst (v ∈_) (C.eout-c-inj₁-red eb) v∈out
-       | subst (v ∈_) (C.ein-c-inj₁-red ea) v∈in
-  ... | v∈out' | v∈in' with ∈-map⁻ C.injL v∈out' | ∈-map⁻ C.injL v∈in'
-  ... | wb , wb∈ , v≡wb | wa , wa∈ , v≡wa =
-        wb
-      , wb∈
-      , subst (_∈ G.ein ea)
-              (inject+-inj _ (trans (sym v≡wa) v≡wb))
-              wa∈
+  compose-GG-reflect =
+    Dep-reflect {sub = G} {H = Hc} C.injL (inject+-inj _) injLEc
+      C.eout-c-inj₁-red C.ein-c-inj₁-red
 
   -- K-block dependency reflects to K (like `tensor-KK-reflect`, with `injR`
   -- replaced by `remapP` and `raise-inj` by `remapP`'s injectivity on
@@ -260,16 +239,9 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
 
   compose-KK-reflect : ∀ {ea eb : Fin K.nE}
                      → Dep Hc (injREc eb) (injREc ea) → Dep K eb ea
-  compose-KK-reflect {ea} {eb} (v , v∈out , v∈in)
-    with subst (v ∈_) (C.eout-c-inj₂-red eb) v∈out
-       | subst (v ∈_) (C.ein-c-inj₂-red ea) v∈in
-  ... | v∈out' | v∈in' with ∈-map⁻ C.remapP v∈out' | ∈-map⁻ C.remapP v∈in'
-  ... | wb , wb∈ , v≡wb | wa , wa∈ , v≡wa =
-        wb
-      , wb∈
-      , subst (_∈ K.ein ea)
-              (remapP-inj (trans (sym v≡wa) v≡wb))
-              wa∈
+  compose-KK-reflect =
+    Dep-reflect {sub = K} {H = Hc} C.remapP remapP-inj injREc
+      C.eout-c-inj₂-red C.ein-c-inj₂-red
 
   -- The cross-block acyclicity — no K-block edge produces a wire an earlier
   -- G-block edge consumes.  A shared vertex `v` would be both a `remapP`-image

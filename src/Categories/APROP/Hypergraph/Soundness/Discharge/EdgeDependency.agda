@@ -32,6 +32,26 @@ module _ {X : Set} {Gen : List X → List X → Set} where
 
   syntax Dep G e e' = e ≺[ G ] e'
 
+  -- Reflect a dependency in a composite `H` back to a sub-hypergraph `sub`
+  -- along an edge embedding `embE` and an injective vertex embedding `embV`,
+  -- given that `sub`'s in/out ports transport to `H`'s along `embV`.  This is
+  -- the mechanical engine shared by the tensor/compose block-reflection lemmas
+  -- (`FinOrderNoInv.*-reflect`) and the self-dependency diagonal
+  -- (`DepIrrefl`, at `ea ≡ eb`).
+  Dep-reflect
+    : {sub H : Hypergraph Gen}
+    → (embV : Fin (nV sub) → Fin (nV H))
+    → (∀ {x y} → embV x ≡ embV y → x ≡ y)
+    → (embE : Fin (nE sub) → Fin (nE H))
+    → (∀ e → eout H (embE e) ≡ map embV (eout sub e))
+    → (∀ e → ein  H (embE e) ≡ map embV (ein  sub e))
+    → ∀ {ea eb} → Dep H (embE eb) (embE ea) → Dep sub eb ea
+  Dep-reflect {sub} embV embV-inj embE eout-red ein-red {ea} {eb} (v , v∈out , v∈in)
+    with ∈-map⁻ embV (subst (v ∈_) (eout-red eb) v∈out)
+       | ∈-map⁻ embV (subst (v ∈_) (ein-red ea) v∈in)
+  ... | wb , wb∈ , v≡wb | wa , wa∈ , v≡wa =
+    wb , wb∈ , subst (_∈ ein sub ea) (embV-inj (trans (sym v≡wa) v≡wb)) wa∈
+
 --------------------------------------------------------------------------------
 -- Membership transport along an injective `map φ`.
 
