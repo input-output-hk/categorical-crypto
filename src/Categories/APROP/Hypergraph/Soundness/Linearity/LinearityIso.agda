@@ -16,11 +16,11 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
-  using (Linear; count; count-++; producedList; consumedList)
+  using (Linear; count; count-++; count-map-inj; producedList; consumedList)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
+  using (↭⇒count)
 
-open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc)
-open import Data.Fin.Properties using (_≟_)
 open import Data.List as List using (List; []; _∷_; _++_; map; tabulate; concat)
 open import Data.List.Properties using (++-assoc)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
@@ -32,31 +32,11 @@ open import Data.Product using (_,_; proj₁; proj₂)
 import Function as Fun
 open import Relation.Binary.PropositionalEquality
   using (_≡_; _≢_; refl; cong; cong₂; sym; trans; subst)
-open import Relation.Nullary.Decidable using (yes; no)
 
 --------------------------------------------------------------------------------
--- count is permutation-invariant.
-
-private
-  count-swap-2 : ∀ {n} (v x y : Fin n) → count v (x ∷ y ∷ []) ≡ count v (y ∷ x ∷ [])
-  count-swap-2 v x y =
-    trans (count-++ v (x ∷ []) (y ∷ []))
-      (trans (Nat.+-comm (count v (x ∷ [])) (count v (y ∷ [])))
-             (sym (count-++ v (y ∷ []) (x ∷ []))))
-
-count-↭ : ∀ {n} (v : Fin n) {xs ys : List (Fin n)} → xs Perm.↭ ys → count v xs ≡ count v ys
-count-↭ v Perm.refl       = refl
-count-↭ v (Perm.prep x p) with v ≟ x
-... | yes _ = cong suc (count-↭ v p)
-... | no  _ = count-↭ v p
-count-↭ v (Perm.swap {xs} {ys} x y p) =
-  trans (count-++ v (x ∷ y ∷ []) xs)
-    (trans (cong₂ _+_ (count-swap-2 v x y) (count-↭ v p))
-           (sym (count-++ v (y ∷ x ∷ []) ys)))
-count-↭ v (Perm.trans p q) = trans (count-↭ v p) (count-↭ v q)
-
---------------------------------------------------------------------------------
--- count under bijection-map.
+-- count under bijection-map: a special case of `count-map-inj` (φ is injective
+-- because it has a two-sided inverse), with the counted value routed through
+-- `φ (φ⁻¹ v) ≡ v`.
 
 count-map-via-bij
   : ∀ {n m} (φ : Fin n → Fin m) (φ⁻¹ : Fin m → Fin n)
@@ -64,12 +44,12 @@ count-map-via-bij
   → (φφ⁻¹ : ∀ j → φ (φ⁻¹ j) ≡ j)
   → ∀ (v : Fin m) (xs : List (Fin n))
   → count v (map φ xs) ≡ count (φ⁻¹ v) xs
-count-map-via-bij φ φ⁻¹ φ⁻¹φ φφ⁻¹ v []       = refl
-count-map-via-bij φ φ⁻¹ φ⁻¹φ φφ⁻¹ v (x ∷ xs) with v ≟ φ x | φ⁻¹ v ≟ x
-... | yes _ | yes _ = cong suc (count-map-via-bij φ φ⁻¹ φ⁻¹φ φφ⁻¹ v xs)
-... | yes p | no  q = ⊥-elim (q (trans (cong φ⁻¹ p) (φ⁻¹φ x)))
-... | no  q | yes p = ⊥-elim (q (trans (sym (φφ⁻¹ v)) (cong φ p)))
-... | no  _ | no  _ = count-map-via-bij φ φ⁻¹ φ⁻¹φ φφ⁻¹ v xs
+count-map-via-bij φ φ⁻¹ φ⁻¹φ φφ⁻¹ v xs =
+  trans (cong (λ w → count w (map φ xs)) (sym (φφ⁻¹ v)))
+        (count-map-inj φ φ-inj (φ⁻¹ v) xs)
+  where
+    φ-inj : ∀ {a b} → φ a ≡ φ b → a ≡ b
+    φ-inj {a} {b} eq = trans (sym (φ⁻¹φ a)) (trans (cong φ⁻¹ eq) (φ⁻¹φ b))
 
 --------------------------------------------------------------------------------
 -- `tabulate (f ∘ π)` is a permutation of `tabulate f` when π is a
@@ -257,7 +237,7 @@ Linear-resp-iso {H} {K} iso linH = K-bal , K-bnd
       trans (cong (count v) concat-tab-K-eout-eq)
         (trans (count-map-via-bij φ φ⁻¹ φ-left φ-rght v
                   (concat (tabulate (H.eout Fun.∘ ψ⁻¹))))
-               (count-↭ (φ⁻¹ v) (concat-↭ tab-H-eout-↭)))
+               (↭⇒count (concat-↭ tab-H-eout-↭) (φ⁻¹ v)))
 
     count-cons-K-ein
       : ∀ (v : Fin K.nV)
@@ -267,7 +247,7 @@ Linear-resp-iso {H} {K} iso linH = K-bal , K-bnd
       trans (cong (count v) concat-tab-K-ein-eq)
         (trans (count-map-via-bij φ φ⁻¹ φ-left φ-rght v
                   (concat (tabulate (H.ein Fun.∘ ψ⁻¹))))
-               (count-↭ (φ⁻¹ v) (concat-↭ tab-H-ein-↭)))
+               (↭⇒count (concat-↭ tab-H-ein-↭) (φ⁻¹ v)))
 
     -- K.dom ≡ map φ H.dom directly from the iso, plus count-map-via-bij.
     count-K-dom : ∀ (v : Fin K.nV) → count v K.dom ≡ count (φ⁻¹ v) H.dom
