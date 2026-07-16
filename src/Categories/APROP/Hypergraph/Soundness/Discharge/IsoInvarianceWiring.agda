@@ -4,8 +4,8 @@
 --   * `Discharge.EdgeDependency`   (Lemma A: iso ⇒ dependency-order iso),
 --   * `Combinatorics.LinearExtension` (connectivity of linear extensions),
 --
--- into iso-invariance of the CONCRETE order-indexed decoder `decodeOrd`.
--- Defines `Order`/`Valid`/`decodeOrd` (per-hypergraph) and the cross-iso
+-- into iso-invariance of the order-indexed decoder.
+-- Defines `Order`/`Valid` (per-hypergraph) and the cross-iso
 -- boundary identifications + ψ-pullback order `τ` and its no-inversion
 -- transport `NoInv-τ` (Lemma 4).  The analytic steps (`swap-≈`,
 -- `order-invariant`, `iso-transport`) live downstream in
@@ -22,11 +22,8 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
-open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig using (unflatten)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-edges)
-open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
-  using (permute-via-vlab)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
   using (Dep; ≺⇒ψ≺)
 import Data.List.Relation.Unary.AllPairs as AP
@@ -90,14 +87,6 @@ module PerHG (H : Hypergraph FlatGen) where
   -- decoder TOTAL at the fixed codomain `unflatten (codL H)`.
   Valid : Order → Set
   Valid o = proj₁ (process-edges H o H.dom) Perm.↭ H.cod
-
-  -- The CONCRETE order-indexed decoder: the body of `decode-attempt` run
-  -- with `process-edges o` in place of `process-all-edges`, followed by the
-  -- final `permute-via-vlab` justified by `p`.  (`domL H = map vlab dom`,
-  -- `codL H = map vlab cod` definitionally, so the boundary type lines up.)
-  decodeOrd : (o : Order) → Valid o
-            → HomTerm (unflatten (domL H)) (unflatten (codL H))
-  decodeOrd o p = permute-via-vlab H.vlab p ∘ proj₂ (process-edges H o H.dom)
 
 ------------------------------------------------------------------------
 -- Across an isomorphism: iso-invariance of the decoder.
