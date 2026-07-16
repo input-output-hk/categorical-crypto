@@ -92,15 +92,15 @@ module Run (H : Hypergraph FlatGen) where
   -- The strict and non-strict decoders branch on the same
   -- `extract-prefix` calls, hence walk the SAME stacks.
 
-  edge-stack-agree : ∀ s e → proj₁ (edge-stepˢ s e) ≡ proj₁ (edge-step H s e)
+  edge-stack-agree : ∀ s e → proj₁ (edge-stepˢ s e) ≡ (edge-step H s e)
   edge-stack-agree s e with extract-prefix (H.ein e) s
   ... | nothing = refl
   ... | just _  = refl
 
-  stacks-agree : ∀ es s → proj₁ (process-edgesˢ es s) ≡ proj₁ (process-edges H es s)
+  stacks-agree : ∀ es s → proj₁ (process-edgesˢ es s) ≡ (process-edges H es s)
   stacks-agree []       s = refl
   stacks-agree (e ∷ es) s
-    rewrite edge-stack-agree s e = stacks-agree es (proj₁ (edge-step H s e))
+    rewrite edge-stack-agree s e = stacks-agree es ((edge-step H s e))
 
 --------------------------------------------------------------------------------
 -- Transfer of the live decoder's success witness: the strict final stack
@@ -114,10 +114,12 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
   s-fin-cod-↭ : RF.s-finˢ Perm.↭ Hf.cod
   s-fin-cod-↭ =
     subst (Perm._↭ Hf.cod)
-      (sym (trans (RF.stacks-agree (range Hf.nE) Hf.dom)
-                  (cong proj₁ (proj₁ (proj₂ (proj₂ w))))))
-      (proj₂ (proj₂ (proj₂ w)))
+      (sym (RF.stacks-agree (range Hf.nE) Hf.dom))
+      w
     where
+      -- The non-strict totality witness is now exactly the permutation
+      -- `process-all-edges ⟪f⟫ dom ↭ cod`; the strict/non-strict `stacks-agree`
+      -- transports it onto the strict final stack `RF.s-finˢ`.
       w = decode-attempt-perm-from-just ⟪ f ⟫ (decode-attempt-LinearP f)
 
   decode-pkgˢ : Σ[ p ∈ RF.s-finˢ Perm.↭ Hf.cod ]

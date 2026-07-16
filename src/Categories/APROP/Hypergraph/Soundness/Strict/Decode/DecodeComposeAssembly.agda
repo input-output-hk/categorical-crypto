@@ -229,8 +229,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   after-G-≡ : after-G ≡ map injL s_G_final
   after-G-≡ =
     trans (RC.stacks-agree gblk C.dom)
-    (trans (cong proj₁ (proj₂ (process-edges-↑ˡ-pure-L G K bdy lin-G lin-K
-                                 (range G.nE) G.dom)))
+    (trans (process-edges-↑ˡ-pure-L G K bdy lin-G lin-K (range G.nE) G.dom)
            (cong (map injL) (sym (RG.stacks-agree (range G.nE) G.dom))))
 
   -- The boundary permutation `after-G ↭ map remapP K.dom`.  Needs the
