@@ -118,6 +118,59 @@ NoInvH : (H : Hypergraph FlatGen) → List (Fin (Hypergraph.nE H)) → Set
 NoInvH H = AllPairs (BelowH H)
 
 --------------------------------------------------------------------------------
+-- ## Generic two-block assembly (shared by the tensor and `∘` cases).
+--
+-- Both cases lay a G-block of edges (embedded by `iL`) before a K-block
+-- (embedded by `iR`) and assemble `NoInvH H` of the concatenation from
+-- `NoInvH G`/`NoInvH K`.  Given the two per-block `BelowH` transports and the
+-- cross-block acyclicity, the assembly is pure stdlib
+-- `AllPairs.Properties.++⁺`/`map⁺` plumbing — proved once here and instantiated
+-- by each case with its own transports.
+
+module Assemble
+  (G K H : Hypergraph FlatGen)
+  (iL : Fin (Hypergraph.nE G) → Fin (Hypergraph.nE H))
+  (iR : Fin (Hypergraph.nE K) → Fin (Hypergraph.nE H))
+  (bLE   : ∀ {a b} → BelowH G a b → BelowH H (iL a) (iL b))
+  (bRE   : ∀ {a b} → BelowH K a b → BelowH H (iR a) (iR b))
+  (cross : ∀ {ea eb} → BelowH H (iL ea) (iR eb))
+  where
+  private
+    module G = Hypergraph G
+    module K = Hypergraph K
+
+  -- Every G-block edge is `BelowH H` every K-block edge (the cross `All`).
+  cross-all-row : ∀ (ea : Fin G.nE) (ks : List (Fin K.nE))
+                → All (BelowH H (iL ea)) (map iR ks)
+  cross-all-row ea []        = []
+  cross-all-row ea (eb ∷ ks) = cross ∷ cross-all-row ea ks
+
+  cross-all : ∀ (gs : List (Fin G.nE)) (ks : List (Fin K.nE))
+            → All (λ a → All (BelowH H a) (map iR ks)) (map iL gs)
+  cross-all []        ks = []
+  cross-all (ea ∷ gs) ks = cross-all-row ea ks ∷ cross-all gs ks
+
+  -- Relabel a sub-`AllPairs` through `iL`/`iR` using the `Below` transports.
+  mapAP-G : ∀ {gs} → AllPairs (BelowH G) gs
+          → AllPairs (λ a b → BelowH H (iL a) (iL b)) gs
+  mapAP-G []          = []
+  mapAP-G (px ∷ rest) = All-map bLE px ∷ mapAP-G rest
+
+  mapAP-K : ∀ {ks} → AllPairs (BelowH K) ks
+          → AllPairs (λ a b → BelowH H (iR a) (iR b)) ks
+  mapAP-K []          = []
+  mapAP-K (px ∷ rest) = All-map bRE px ∷ mapAP-K rest
+
+  NoInvH-assemble : ∀ (gs : List (Fin G.nE)) (ks : List (Fin K.nE))
+                  → NoInvH G gs → NoInvH K ks
+                  → NoInvH H (map iL gs ++ map iR ks)
+  NoInvH-assemble gs ks noG noK =
+    AllPairsProp.++⁺
+      (AllPairsProp.map⁺ (mapAP-G noG))
+      (AllPairsProp.map⁺ (mapAP-K noK))
+      (cross-all gs ks)
+
+--------------------------------------------------------------------------------
 -- ## Tensor case.
 
 module _ (G K : Hypergraph FlatGen) where
@@ -171,37 +224,13 @@ module _ (G K : Hypergraph FlatGen) where
   Below-injRE : ∀ {a b : Fin K.nE} → BelowH K a b → BelowH H (injRE a) (injRE b)
   Below-injRE noK dep = noK (tensor-KK-reflect dep)
 
-  -- Every G-block edge is `BelowH H` every K-block edge (the cross `All`).
-  cross-all-row : ∀ (ea : Fin G.nE) (ks : List (Fin K.nE))
-                → All (BelowH H (injLE ea)) (map injRE ks)
-  cross-all-row ea []        = []
-  cross-all-row ea (eb ∷ ks) = tensor-cross-acyclic ∷ cross-all-row ea ks
-
-  cross-all : ∀ (gs : List (Fin G.nE)) (ks : List (Fin K.nE))
-            → All (λ a → All (BelowH H a) (map injRE ks)) (map injLE gs)
-  cross-all []        ks = []
-  cross-all (ea ∷ gs) ks = cross-all-row ea ks ∷ cross-all gs ks
-
-  -- The two `AllPairs.Properties.map⁺` inputs: relabel a sub-`AllPairs`
-  -- through `injLE`/`injRE` using the `Below-inj*` transports.
-  mapAP-G : ∀ {gs} → AllPairs (BelowH G) gs
-          → AllPairs (λ a b → BelowH H (injLE a) (injLE b)) gs
-  mapAP-G []          = []
-  mapAP-G (px ∷ rest) = All-map Below-injLE px ∷ mapAP-G rest
-
-  mapAP-K : ∀ {ks} → AllPairs (BelowH K) ks
-          → AllPairs (λ a b → BelowH H (injRE a) (injRE b)) ks
-  mapAP-K []          = []
-  mapAP-K (px ∷ rest) = All-map Below-injRE px ∷ mapAP-K rest
-
+  -- Assemble via the shared `Assemble` skeleton with the tensor transports.
   NoInvH-tensor : ∀ (gs : List (Fin G.nE)) (ks : List (Fin K.nE))
                 → NoInvH G gs → NoInvH K ks
                 → NoInvH H (map injLE gs ++ map injRE ks)
-  NoInvH-tensor gs ks noG noK =
-    AllPairsProp.++⁺
-      (AllPairsProp.map⁺ (mapAP-G noG))
-      (AllPairsProp.map⁺ (mapAP-K noK))
-      (cross-all gs ks)
+  NoInvH-tensor =
+    Assemble.NoInvH-assemble G K H injLE injRE
+      Below-injLE Below-injRE tensor-cross-acyclic
 
 --------------------------------------------------------------------------------
 -- ## Composition case.  `hComposeP G K bdy` lays G-edges (`injL = _↑ˡ_`)
@@ -302,34 +331,13 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
   Below-injREc : ∀ {a b : Fin K.nE} → BelowH K a b → BelowH Hc (injREc a) (injREc b)
   Below-injREc noK dep = noK (compose-KK-reflect dep)
 
-  cross-all-row-c : ∀ (ea : Fin G.nE) (ks : List (Fin K.nE))
-                  → All (BelowH Hc (injLEc ea)) (map injREc ks)
-  cross-all-row-c ea []        = []
-  cross-all-row-c ea (eb ∷ ks) = compose-cross-acyclic ∷ cross-all-row-c ea ks
-
-  cross-all-c : ∀ (gs : List (Fin G.nE)) (ks : List (Fin K.nE))
-              → All (λ a → All (BelowH Hc a) (map injREc ks)) (map injLEc gs)
-  cross-all-c []        ks = []
-  cross-all-c (ea ∷ gs) ks = cross-all-row-c ea ks ∷ cross-all-c gs ks
-
-  mapAP-G-c : ∀ {gs} → AllPairs (BelowH G) gs
-            → AllPairs (λ a b → BelowH Hc (injLEc a) (injLEc b)) gs
-  mapAP-G-c []          = []
-  mapAP-G-c (px ∷ rest) = All-map Below-injLEc px ∷ mapAP-G-c rest
-
-  mapAP-K-c : ∀ {ks} → AllPairs (BelowH K) ks
-            → AllPairs (λ a b → BelowH Hc (injREc a) (injREc b)) ks
-  mapAP-K-c []          = []
-  mapAP-K-c (px ∷ rest) = All-map Below-injREc px ∷ mapAP-K-c rest
-
+  -- Assemble via the shared `Assemble` skeleton with the composition transports.
   NoInvH-compose : ∀ (gs : List (Fin G.nE)) (ks : List (Fin K.nE))
                  → NoInvH G gs → NoInvH K ks
                  → NoInvH Hc (map injLEc gs ++ map injREc ks)
-  NoInvH-compose gs ks noG noK =
-    AllPairsProp.++⁺
-      (AllPairsProp.map⁺ (mapAP-G-c noG))
-      (AllPairsProp.map⁺ (mapAP-K-c noK))
-      (cross-all-c gs ks)
+  NoInvH-compose =
+    Assemble.NoInvH-assemble G K Hc injLEc injREc
+      Below-injLEc Below-injREc compose-cross-acyclic
 
 --------------------------------------------------------------------------------
 -- ## `hId A` has no inversions.
