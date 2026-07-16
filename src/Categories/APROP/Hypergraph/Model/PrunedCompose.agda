@@ -23,10 +23,11 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 open import Categories.APROP.Hypergraph.Util.Prune
 
 
-open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt; cast)
+open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt; cast; toℕ)
 open import Data.Fin.Properties
 open import Data.List using (List; _∷_; length; map; lookup)
 open import Data.List.Properties
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Nat
 open import Data.Sum using (inj₁; inj₂; [_,_]′)
 open import Function
@@ -122,6 +123,30 @@ module hComposeP-impl
   map-via-remapP : (xs : List (Fin K.nV))
                  → map K.vlab xs ≡ map vlab-P (map remapP xs)
   map-via-remapP = map-via-remap K.dom lookup-cod K.vlab G.vlab bdy-pt
+
+  --------------------------------------------------------------------------------
+  -- Injectivity of `remapP` from `Unique` boundaries.  `lookup-cod` is
+  -- injective when `G.cod` is `Unique` (through `Fin.cast`
+  -- proof-irrelevance), and `remapP = remap K.dom lookup-cod` is then
+  -- injective when `K.dom` is also `Unique`.  Shared by `HomTermInvariant`
+  -- and `DepIrrefl` (the from-`Unique` family; `LinearHComposeP` derives the
+  -- from-`Linear` twin).
+
+  private
+    cast-inj : ∀ {i j} → cast dom-cod-len i ≡ cast dom-cod-len j → i ≡ j
+    cast-inj {i} {j} eq = toℕ-injective
+      (trans (sym (toℕ-cast dom-cod-len i))
+             (trans (cong toℕ eq) (toℕ-cast dom-cod-len j)))
+
+  lookup-cod-injective-from-unique
+    : Unique G.cod → ∀ {i j} → lookup-cod i ≡ lookup-cod j → i ≡ j
+  lookup-cod-injective-from-unique uG eq =
+    cast-inj (lookup-injective-unique uG _ _ eq)
+
+  remapP-injective-from-unique
+    : Unique G.cod → Unique K.dom → ∀ {i j} → remapP i ≡ remapP j → i ≡ j
+  remapP-injective-from-unique uG uK =
+    remap-injective K.dom lookup-cod uK (lookup-cod-injective-from-unique uG)
 
   --------------------------------------------------------------------------------
   -- Edge structure: G-edges routed through injL, K-edges through remapP.

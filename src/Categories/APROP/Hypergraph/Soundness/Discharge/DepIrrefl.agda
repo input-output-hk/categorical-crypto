@@ -38,22 +38,21 @@ open import Categories.APROP.Hypergraph.Model.HomTermInvariant sig
   using (⟪_⟫-dom-unique; ⟪_⟫-cod-unique)
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (↑ˡ≢↑ʳ)
 open import Categories.APROP.Hypergraph.Util.Prune
-  using (remap-injective; lookup-injective-unique; count-non)
+  using (count-non)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
   using (Dep; Dep-reflect)
 
 open import Data.Empty using (⊥)
-open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_; splitAt; join; cast; toℕ)
+open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_; splitAt; join)
 open import Data.Fin.Properties
-  using (join-splitAt; toℕ-cast; toℕ-injective
-        ; ↑ˡ-injective; ↑ʳ-injective)
+  using (join-splitAt; ↑ˡ-injective; ↑ʳ-injective)
 open import Data.List using (List; map; length)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties using (∈-map⁻)
 open import Data.Product using (_,_)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; sym; trans; cong; subst)
+  using (_≡_; sym; trans; subst)
 open import Relation.Nullary using (¬_)
 
 --------------------------------------------------------------------------------
@@ -175,17 +174,10 @@ module _ {A B C} (g : HomTerm B C) (h : HomTerm A B) where
 
     module hCP = hComposeP-impl ⟪ h ⟫ ⟪ g ⟫ bdy
 
-    cast-inj : ∀ {i j} → cast hCP.dom-cod-len i ≡ cast hCP.dom-cod-len j → i ≡ j
-    cast-inj {i} {j} eq = toℕ-injective
-      (trans (sym (toℕ-cast hCP.dom-cod-len i))
-             (trans (cong toℕ eq) (toℕ-cast hCP.dom-cod-len j)))
-
-    lookup-cod-inj : ∀ {i j} → hCP.lookup-cod i ≡ hCP.lookup-cod j → i ≡ j
-    lookup-cod-inj {i} {j} eq =
-      cast-inj (lookup-injective-unique (⟪_⟫-cod-unique h) _ _ eq)
-
+  -- `remapP` is injective from the `Unique` boundaries of the two translated
+  -- hypergraphs (shared `PrunedCompose.remapP-injective-from-unique`).
   ∘-remapP-inj : ∀ {i j} → hCP.remapP i ≡ hCP.remapP j → i ≡ j
-  ∘-remapP-inj eq = remap-injective _ _ (⟪_⟫-dom-unique g) lookup-cod-inj eq
+  ∘-remapP-inj = hCP.remapP-injective-from-unique (⟪_⟫-cod-unique h) (⟪_⟫-dom-unique g)
 
 --------------------------------------------------------------------------------
 -- The invariant holds for every translated hypergraph, by induction on `f`.

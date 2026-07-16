@@ -25,14 +25,11 @@ open import Categories.APROP.Hypergraph.Model.Invariant sig
   using ( hId-dom-Unique; hSwap-dom-Unique; hGen-dom-Unique
         ; hId-cod-Unique; hSwap-cod-Unique; hGen-cod-Unique
         ; inject+-inj; raise-inj; disj-L-R)
-open import Categories.APROP.Hypergraph.Util.Prune
-  using (remap-injective; lookup-injective-unique)
 
-open import Data.Fin using (Fin)
 open import Data.List using (List; _++_)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
-open import Relation.Binary.PropositionalEquality using (_≡_; sym)
+open import Relation.Binary.PropositionalEquality using (sym)
 
 --------------------------------------------------------------------------------
 -- `⟪ f ⟫.dom` is Unique for every APROP term.
@@ -75,30 +72,18 @@ open import Relation.Binary.PropositionalEquality using (_≡_; sym)
 
 ⟪ id {A} ⟫-cod-unique = hId-cod-Unique A
 
--- Composition: cod = map remapP ⟪g⟫.cod, `remapP` globally injective.
+-- Composition: cod = map remapP ⟪g⟫.cod, `remapP` globally injective from the
+-- `Unique` boundaries (shared `PrunedCompose.remapP-injective-from-unique`).
 ⟪ g ∘ h ⟫-cod-unique =
-  Uniq-Prop.map⁺ remapP-inj (⟪_⟫-cod-unique g)
+  Uniq-Prop.map⁺
+    (hCP.remapP-injective-from-unique (⟪_⟫-cod-unique h) (⟪_⟫-dom-unique g))
+    (⟪_⟫-cod-unique g)
   where
-    open import Data.Fin using (cast)
-    open import Data.Fin.Properties using (toℕ-cast; toℕ-injective)
-    open import Relation.Binary.PropositionalEquality using (trans; cong)
+    open import Relation.Binary.PropositionalEquality using (trans)
     open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪⟫-codL; ⟪⟫-domL)
 
     bdy = trans (⟪⟫-codL h) (sym (⟪⟫-domL g))
     module hCP = hComposeP-impl ⟪ h ⟫ ⟪ g ⟫ bdy
-
-    cast-inj : ∀ {i j} → cast hCP.dom-cod-len i ≡ cast hCP.dom-cod-len j → i ≡ j
-    cast-inj {i} {j} eq = toℕ-injective
-      (trans (sym (toℕ-cast hCP.dom-cod-len i))
-             (trans (cong (Data.Fin.toℕ) eq) (toℕ-cast hCP.dom-cod-len j)))
-      where open import Data.Fin
-
-    lookup-cod-inj : ∀ {i j} → hCP.lookup-cod i ≡ hCP.lookup-cod j → i ≡ j
-    lookup-cod-inj {i} {j} eq =
-      cast-inj (lookup-injective-unique (⟪_⟫-cod-unique h) _ _ eq)
-
-    remapP-inj : ∀ {i j} → hCP.remapP i ≡ hCP.remapP j → i ≡ j
-    remapP-inj eq = remap-injective _ _ (⟪_⟫-dom-unique g) lookup-cod-inj eq
 
 -- Tensor: cod = map injL ⟪f⟫.cod ++ map injR ⟪g⟫.cod (disjoint).
 ⟪ f ⊗₁ g ⟫-cod-unique =
