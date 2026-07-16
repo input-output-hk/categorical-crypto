@@ -1,14 +1,18 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- `unflatten` packaged as a STRONG MONOIDAL FUNCTOR
+-- Monoidal-coherence data for `unflatten`, viewed as the strong monoidal
+-- functor
 --
 --   (List X, _++_, [])  ⟶  (ObjTerm, _⊗₀_, unit)     over `FreeMonoidal`.
 --
--- The object map is `unflatten : List X → ObjTerm` (the right-associated,
--- `unit`-padded fold from `Soundness/Unflatten.agda`) and the structure iso
--- (laxator) is `unflatten-++-≅`.  Collects the associativity coherence (both
--- directions) and the transport lemmas consumed by `Strict/{Boundary,Embed}`:
+-- NOTE: no `Functor` / `MonoidalFunctor` record is actually built here — this
+-- module only collects the coherence isos and transport lemmas that such a
+-- functor would carry, as consumed by `Strict/{Boundary,Embed}`.  The object
+-- map is `unflatten : List X → ObjTerm` (the right-associated, `unit`-padded
+-- fold from `Soundness/Base/Unflatten.agda`) and the structure iso (laxator)
+-- is `unflatten-++-≅`.  It gathers the associativity coherence (both
+-- directions):
 --   * `c-iso-assoc-from` — re-exported from `Discharge/CIsoAssocFromCons.agda`
 --     (the `from`-side pentagon);
 --   * `c-iso-assoc-to`   — its `to`-side dual, by composite inversion;
@@ -24,7 +28,7 @@ module Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal
 open APROP sig
 
 -- Re-export `unflatten` / `unflatten-++-≅` so consumers can open this module
--- alone for the full strong-monoidal interface.
+-- alone for the full boundary-coherence interface.
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig public
   using (unflatten; unflatten-++-≅; _≅_; flatten-unflatten; unflatten-flatten-≈)
 
