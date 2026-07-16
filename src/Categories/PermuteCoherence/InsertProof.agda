@@ -1,89 +1,128 @@
 {-# OPTIONS --safe --without-K #-}
 ------------------------------------------------------------------------
--- The Insertion Lemma, from the exchange condition + Matsumoto:
+-- The Insertion Lemma, by a direct Lehmer peel:
 --   insert-thm : canonW (genFB i ∘-fb b) ~ʷ i ∷ canonW b
--- Also hosts `straightenW`, which depends on `insert-thm` (and is the
--- reason `Word`'s `straightenW` lives downstream, here).
+--
+-- This replaces the exchange-condition / Matsumoto tower (`Inversions*`,
+-- `ExchangeBase`, `BringToFront*`, the old `InsertProof{Base,Matsumoto}`)
+-- with the peel machinery of `LehmerStaircase` + `LehmerRotate`.  The
+-- proof recurses on the ambient size and cases the generator index `i`:
+--
+--   * `i = fsuc i′`: structural, uses the induction hypothesis.
+--   * `i = 0F`:      IH-free, closed by `crux-core` (whose combinatorial
+--                    core are the staircase identities).
+--
+-- Also hosts `straightenW` (its sole consumer is `FaithfulnessInductive`);
+-- its public interface is unchanged.
 ------------------------------------------------------------------------
 module Categories.PermuteCoherence.InsertProof where
 
 open import Data.Nat.Base using (ℕ; zero; suc)
-open import Data.Fin.Base using (Fin)
-open import Data.List.Base using ([]; _∷_)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Data.Product using (Σ-syntax; _×_; proj₁; proj₂)
+open import Data.Fin.Base using (Fin) renaming (suc to fsuc)
+open import Data.Fin.Patterns using (0F)
+open import Data.List.Base using ([]; _∷_; _++_)
+import Data.Fin.Permutation as P
+open P using (remove)
 open import Relation.Binary.PropositionalEquality.Core
   using (_≡_; refl; sym; trans; cong)
-import Data.Fin.Permutation as P
 
 open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _≈-fb_; _∘-fb_; ≈-fb-sym; ≈-fb-trans)
+open import Categories.PermuteCoherence.EvalSoundness
+  using (cons-fb-functor-comp; cons-fb-functor-id)
 open import Categories.PermuteCoherence.Word
-  using (Word; canonW; evalW; eval-canonW; genFB; genFB∘genFB; _~ʷ_; ~sym; ~trans; ∷c; c1; ~ʷ⇒≈; canonW-id; ∷-cong)
-open import Categories.PermuteCoherence.Inversions using (inv)
-open import Categories.PermuteCoherence.InversionsCong using (inv-resp-≈)
-open import Categories.PermuteCoherence.ExchangeBase
-  using (Reduced; descent; descent-resp-≈; inv-di; canonW-reduced)
-open import Categories.PermuteCoherence.BringToFront using (bring-to-front)
-open import Categories.PermuteCoherence.InsertProofMatsumoto using (matsumoto)
+open import Categories.PermuteCoherence.LehmerRotate
 
 private
   variable
-    n : ℕ
+    n N : ℕ
 
--- Auxiliary worker that takes the `inv-di` dichotomy as an explicit
--- argument and matches on it, instead of `with`-generalising the goal over
--- `inv-di i b`.  Spelling the scrutinee out as a parameter keeps the goal
--- type (`canonW (genFB i ∘-fb b) ~ʷ i ∷ canonW b`) from being re-derived by
--- with-abstraction, which was the dominant typecheck cost of this lemma.
-insert-thm-suc : (i : Fin (suc n)) (b : FinBij (suc (suc n)) (suc (suc n)))
-               → (inv (genFB i ∘-fb b) ≡ suc (inv b)) ⊎ descent i b
-               → canonW (genFB i ∘-fb b) ~ʷ i ∷ canonW b
-insert-thm-suc i b (inj₁ asc) =
-  matsumoto (canonW (genFB i ∘-fb b)) (i ∷ canonW b)
-            (canonW-reduced (genFB i ∘-fb b))
-            (trans (cong suc (trans (canonW-reduced b)
-                                    (inv-resp-≈ {b = evalW (canonW b)} {b′ = b}
-                                                (eval-canonW b))))
-                   (sym (trans (inv-resp-≈ {b = genFB i ∘-fb evalW (canonW b)}
-                                           {b′ = genFB i ∘-fb b}
-                                           (λ p → cong (genFB i P.⟨$⟩ʳ_) (eval-canonW b p)))
-                               asc)))
-            (≈-fb-trans {b = evalW (canonW (genFB i ∘-fb b))} {b′ = genFB i ∘-fb b}
-                     {b″ = genFB i ∘-fb evalW (canonW b)}
-                     (eval-canonW (genFB i ∘-fb b))
-                     (≈-fb-sym {b = genFB i ∘-fb evalW (canonW b)} {b′ = genFB i ∘-fb b}
-                            (λ p → cong (genFB i P.⟨$⟩ʳ_) (eval-canonW b p))))
-insert-thm-suc i b (inj₂ dsc) = ~sym
-  (~trans (~trans (∷c refl (~sym i∷w′~ʷcb)) (c1 i))
-          (matsumoto w′ (canonW (genFB i ∘-fb b)) rw′
-                     (canonW-reduced (genFB i ∘-fb b))
-                     (≈-fb-trans {b = evalW w′} {b′ = genFB i ∘-fb b}
-                              {b″ = evalW (canonW (genFB i ∘-fb b))}
-                              evalw′≈
-                              (≈-fb-sym {b = evalW (canonW (genFB i ∘-fb b))} {b′ = genFB i ∘-fb b}
-                                     (eval-canonW (genFB i ∘-fb b))))))
+------------------------------------------------------------------------
+-- Base building blocks.
+
+-- Every self-bijection of `Fin 1` is the identity.
+fin1-id : (X : FinBij 1 1) → X ≈-fb id-fb
+fin1-id X j = trans (fin1-unique (X P.⟨$⟩ʳ j)) (sym (fin1-unique j))
+
+-- `cons-fb X ≈ id` for `X : FinBij 1 1`.
+cons-fin1-id : (X : FinBij 1 1) → cons-fb X ≈-fb id-fb
+cons-fin1-id X = ≈-fb-trans {b = cons-fb X} {b′ = cons-fb id-fb} {b″ = id-fb}
+                   (cons-fb-cong (fin1-id X)) cons-fb-functor-id
+
+------------------------------------------------------------------------
+-- The `i = 0F` crux.
+--
+-- `crux1 X m` peels `X` (via `LehmerRotate.peel`) and dispatches to
+-- `crux-core`; the size-0 base is a direct computation.
+
+crux1 : (X : FinBij (suc N) (suc N)) (m : Fin (suc (suc N)))
+      → canonW (swap-fb N ∘-fb (cons-fb X ∘-fb rotate-fb m))
+        ~ʷ (0F ∷ (liftW (canonW X) ++ rotateW m))
+crux1 {zero} X m =
+  ~trans (canonW-resp-≈
+            {b = swap-fb 0 ∘-fb (cons-fb X ∘-fb rotate-fb m)}
+            {b′ = swap-fb 0 ∘-fb rotate-fb m}
+            (λ j → cong (swap-fb 0 P.⟨$⟩ʳ_) (cons-fin1-id X (rotate-fb m P.⟨$⟩ʳ j))))
+         (base m)
   where
-  bf : Σ[ w′ ∈ Word _ ] ((i ∷ w′) ~ʷ canonW b) × Reduced w′
-  bf = bring-to-front (canonW b) i (canonW-reduced b)
-                      (descent-resp-≈ {j = i} {x = b} {y = evalW (canonW b)}
-                                    (≈-fb-sym {b = evalW (canonW b)} {b′ = b} (eval-canonW b)) dsc)
-  w′        = proj₁ bf
-  i∷w′~ʷcb  = proj₁ (proj₂ bf)
-  rw′       = proj₂ (proj₂ bf)
-  evalw′≈ : evalW w′ ≈-fb (genFB i ∘-fb b)
-  evalw′≈ = ≈-fb-trans {b = evalW w′} {b′ = genFB i ∘-fb (genFB i ∘-fb evalW w′)}
-                    {b″ = genFB i ∘-fb b}
-                    (≈-fb-sym {b = genFB i ∘-fb (genFB i ∘-fb evalW w′)} {b′ = evalW w′}
-                           (genFB∘genFB i (evalW w′)))
-                    (λ p → cong (genFB i P.⟨$⟩ʳ_)
-                                (≈-fb-trans {b = evalW (i ∷ w′)} {b′ = evalW (canonW b)} {b″ = b}
-                                         (~ʷ⇒≈ i∷w′~ʷcb) (eval-canonW b) p))
+  base : (k : Fin 2) → canonW (swap-fb 0 ∘-fb rotate-fb k) ~ʷ (0F ∷ rotateW k)
+  base 0F = ~refl
+  base (fsuc 0F) =
+    ~trans (canonW-resp-≈
+              {b = swap-fb 0 ∘-fb rotate-fb (fsuc 0F)} {b′ = id-fb {n = 2}}
+              eq-id)
+           (~trans canonW-id (~sym (c1 0F)))
+    where
+    -- swap ∘ rotate-fb 1 ≈ id (concrete `Fin 2` computation).
+    eq-id : (swap-fb 0 ∘-fb rotate-fb (fsuc 0F)) ≈-fb id-fb {n = 2}
+    eq-id 0F       = refl
+    eq-id (fsuc 0F) = refl
+crux1 {suc n} X m =
+  ~trans (canonW-resp-≈
+            {b = swap-fb (suc n) ∘-fb (cons-fb X ∘-fb rotate-fb m)}
+            {b′ = swap-fb (suc n) ∘-fb (cons-fb (cons-fb Z ∘-fb rotate-fb r)
+                                        ∘-fb rotate-fb m)}
+            (λ j → cong (swap-fb (suc n) P.⟨$⟩ʳ_)
+                        (cons-fb-cong (peel X) (rotate-fb m P.⟨$⟩ʳ j))))
+         (crux-core Z r m (mkGlue r m))
+  where
+  r = X P.⟨$⟩ˡ 0F
+  Z = remove 0F (X ∘-fb inv-fb (rotate-fb r))
+
+crux : (b : FinBij (suc (suc N)) (suc (suc N)))
+     → canonW (swap-fb N ∘-fb b) ~ʷ (0F ∷ canonW b)
+crux {N} b =
+  ~trans (canonW-resp-≈
+            {b = swap-fb N ∘-fb b}
+            {b′ = swap-fb N ∘-fb (cons-fb rest-b ∘-fb rotate-fb m)}
+            (λ j → cong (swap-fb N P.⟨$⟩ʳ_) (peel b j)))
+         (crux1 rest-b m)
+  where
+  m      = b P.⟨$⟩ˡ 0F
+  rest-b = remove 0F (b ∘-fb inv-fb (rotate-fb m))
+
+------------------------------------------------------------------------
+-- The Insertion Lemma.
 
 insert-thm : (i : Fin n) (b : FinBij (suc n) (suc n))
-           → canonW (genFB i ∘-fb b) ~ʷ i ∷ canonW b
-insert-thm {zero} ()
-insert-thm {suc n} i b = insert-thm-suc i b (inv-di i b)
+           → canonW (genFB i ∘-fb b) ~ʷ (i ∷ canonW b)
+insert-thm {suc n} 0F        b = crux b
+insert-thm {suc n} (fsuc i′) b =
+  ~trans (canonW-resp-≈
+            {b = cons-fb (genFB i′) ∘-fb b}
+            {b′ = cons-fb (genFB i′ ∘-fb rest-b) ∘-fb rotate-fb m}
+            fac)
+    (~trans (canonW-cons-rotate (genFB i′ ∘-fb rest-b) m)
+            (++c-r (rotateW m) (lift~ (insert-thm i′ rest-b))))
+  where
+  m      = b P.⟨$⟩ˡ 0F
+  rest-b = remove 0F (b ∘-fb inv-fb (rotate-fb m))
+  -- genFB (fsuc i′) ∘ b ≈ cons-fb (genFB i′ ∘ rest-b) ∘ rotate-fb m.
+  fac : (cons-fb (genFB i′) ∘-fb b)
+        ≈-fb (cons-fb (genFB i′ ∘-fb rest-b) ∘-fb rotate-fb m)
+  fac j =
+    trans (cong (cons-fb (genFB i′) P.⟨$⟩ʳ_) (peel b j))
+          (sym (cons-fb-functor-comp (genFB i′) rest-b
+                  (rotate-fb m P.⟨$⟩ʳ j)))
 
 ------------------------------------------------------------------------
 -- Straightening: every word is `~ʷ` its bubble-sort canonical form, by
