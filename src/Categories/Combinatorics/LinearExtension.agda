@@ -21,7 +21,7 @@
 -- Two lists are extensions of "the same poset" when they are
 -- permutations of each other (`_↭_`); finiteness of the carrier is
 -- captured by working with the concrete finite list and inducting on
--- its length.
+-- it structurally.
 --
 -- An "adjacent-incomparable swap" `_↝_` rewrites
 --     ps ++ x ∷ y ∷ qs   to   ps ++ y ∷ x ∷ qs
@@ -38,15 +38,11 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary using (¬_)
 open import Data.Product using (_×_; _,_; proj₁)
 open import Data.List.Properties using (++-assoc)
-open import Data.Nat.Properties using (≤-refl)
 open import Data.List.Relation.Binary.Permutation.Propositional.Properties
   using (∈-resp-↭)
-open import Data.Nat using (_<_)
-open import Data.Nat.Induction using (<-wellFounded)
-open import Induction.WellFounded using (Acc; acc)
 open import Level using (Level; _⊔_)
 
-open import Data.List.Base using (List; []; _∷_; _++_; length; [_])
+open import Data.List.Base using (List; []; _∷_; _++_)
 open import Data.List.Relation.Unary.All using (All; []; _∷_; lookup)
 open import Data.List.Relation.Unary.AllPairs using (AllPairs; []; _∷_)
 open import Data.List.Relation.Unary.Any using (Any; here; there)
@@ -305,18 +301,20 @@ x∈-self x L′ M perm = ∈-resp-↭ perm (here refl)
 ------------------------------------------------------------------------
 -- Main theorem.
 --
--- We use well-founded recursion on `length L`.
+-- Direct structural recursion on the list `L`: the only recursive call is
+-- on the tail of a cons, so the termination checker accepts it without any
+-- well-founded/`Acc` machinery.
 ------------------------------------------------------------------------
 
--- Worker: connectivity given an accessibility certificate on the length.
-connectivity-acc :
+-- Worker with explicit list arguments, so the structural recursion on `L`
+-- is visible to the termination checker.
+connectivity-go :
   ∀ (R-irrefl : ∀ {x} → ¬ R x x) (L M : List A) →
-  Acc _<_ (length L) →
   L ↭ M → NoInv L → NoInv M → L ↝* M
-connectivity-acc R-irrefl [] M _ perm _ noM =
+connectivity-go R-irrefl [] M perm _ noM =
   -- A permutation of [] is []; so M = [] and L = M reflexively.
   subst (Star _↝_ []) (↭[]⇒≡[] perm) ε
-connectivity-acc R-irrefl (x ∷ L′) M (acc rec) perm noL noM =
+connectivity-go R-irrefl (x ∷ L′) M perm noL noM =
   -- (1) locate x in M, (2) bubble it to the front, (3) recurse on tails.
   bubbled-then-tail
   where
@@ -351,9 +349,9 @@ connectivity-acc R-irrefl (x ∷ L′) M (acc rec) perm noL noM =
   noL′ : NoInv L′
   noL′ = NoInv-tail noL
 
-  -- IH on the strictly shorter tail L′ (length L′ < length (x ∷ L′)).
+  -- IH on the structural subterm `L′` (the tail of `x ∷ L′`).
   tails : L′ ↝* M′
-  tails = connectivity-acc R-irrefl L′ M′ (rec ≤-refl) L′↭M′ noL′ noM′
+  tails = connectivity-go R-irrefl L′ M′ L′↭M′ noL′ noM′
 
   -- x ∷ L′ ↝* x ∷ M′, then ←↝* M  (reverse of bubbling).
   bubbled-then-tail : (x ∷ L′) ↝* M
@@ -365,4 +363,4 @@ connectivity-acc R-irrefl (x ∷ L′) M (acc rec) perm noL noM =
 
 connectivity : (∀ {x} → ¬ R x x) → L ↭ M → NoInv L → NoInv M → L ↝* M
 connectivity {L = L} {M = M} R-irrefl perm noL noM =
-  connectivity-acc R-irrefl L M (<-wellFounded (length L)) perm noL noM
+  connectivity-go R-irrefl L M perm noL noM
