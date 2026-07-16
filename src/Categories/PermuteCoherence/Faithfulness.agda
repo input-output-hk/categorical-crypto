@@ -1,15 +1,19 @@
 {-# OPTIONS --safe --without-K #-}
 
 ------------------------------------------------------------------------
--- Faithfulness of `eval-↭`: list-permutation derivations agreeing on
--- their evaluated finite bijection produce ≈Term-equal `permute` terms
--- in the free symmetric monoidal category.
+-- Generic term-level building blocks for the free (symmetric) monoidal
+-- decoder, parameterised over `FreeMonoidalData` so they are reusable in
+-- any free (symmetric) monoidal category:
 --
--- Parameterised over `FreeMonoidalData`, so the generic `permute` is
--- reusable in any free (symmetric) monoidal category.  This module
--- exposes the generic `unflatten`/`permute` definitions plus the
--- `α⇐-comm`/`unflatten-++-≅` coherence helpers; the faithfulness proof
--- itself lives in `FaithfulnessInductive`.
+--   * `unflatten` / `unflatten-++-≅` : the right-associated, unit-padded
+--     interpretation of a `List X` as an `ObjTerm`, and its distribution
+--     over `_++_` up to a coherence iso;
+--   * `permute` : a list-permutation derivation `xs ↭ ys` realised as a
+--     `HomTerm (unflatten xs) (unflatten ys)`;
+--   * `α⇐-comm` : dual-associator commutativity.
+--
+-- The combinatorial faithfulness core (`_≅↭ⁱ_`, `complete`) lives in
+-- `FaithfulnessInductive`.
 ------------------------------------------------------------------------
 
 open import Categories.FreeMonoidal
