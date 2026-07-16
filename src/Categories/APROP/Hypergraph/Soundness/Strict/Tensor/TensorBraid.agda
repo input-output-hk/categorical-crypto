@@ -642,18 +642,12 @@ module _
                   (idˢ {map vl (map injL Gd.cod)} ⊗ˢ RF.permuteˢ pR)
           lframe = cast-flip mLcod mLcc (permuteˢ-frameˡ (map injL Gd.cod) pR)
 
-      -- two-sided cast pull-out across `⊗`.
-      private
-        cast-⊗-both
-          : ∀ {a a' b b' c c' d d'}
-              (p : a ≡ a') (q : b ≡ b') (p' : c ≡ c') (q' : d ≡ d')
-              (h : HomS a b) (k : HomS c d)
-          → castˢ p q h ⊗ˢ castˢ p' q' k
-            ≡ castˢ (cong₂ _++_ p p') (cong₂ _++_ q q') (h ⊗ˢ k)
-        cast-⊗-both refl refl refl refl h k = refl
-
       ------------------------------------------------------------------
       -- ### `Gc ⊗ Kc` decomposition 1: to the sub-decoder cores.
+      --
+      -- `cast-⊗-both` (the two-sided cast pull-out across `⊗`) is now the kit
+      -- combinator from `FreeStrictSMC`; it splits `cast (h ⊗ k)`, so the
+      -- fuse direction used here is its `sym`.
 
       GcKc→dec
         : Gc ⊗ˢ Kc
@@ -663,8 +657,8 @@ module _
       GcKc→dec =
         ≈-trans (⊗-resp (cast-flip φGdom φGcod Gc-twin)
                         (cast-flip φKdom φKcod Kc-twin))
-                (≡⇒≈ˢ (cast-⊗-both (sym φGdom) (sym φGcod) (sym φKdom) (sym φKcod)
-                         decf-inner decg-inner))
+                (≡⇒≈ˢ (sym (cast-⊗-both (sym φGdom) (sym φGcod) (sym φKdom) (sym φKcod)
+                             decf-inner decg-inner)))
 
       ------------------------------------------------------------------
       -- ### `Gc ⊗ Kc` decomposition 2: to `permuteˢ comb ∘ (Gon ⊗ Kclean)`.
@@ -687,7 +681,7 @@ module _
         : decodePˢ f ⊗ˢ decodePˢ g
           ≡ castˢ (cong₂ _++_ Df Dg) (cong₂ _++_ Cf Cg)
               (decf-inner ⊗ˢ decg-inner)
-      decT-cast = cast-⊗-both Df Cf Dg Cg decf-inner decg-inner
+      decT-cast = sym (cast-⊗-both Df Cf Dg Cg decf-inner decg-inner)
 
       ------------------------------------------------------------------
       -- ### TARGET equation: the C-level `(pL⊗pR) ∘ (Gon'⊗Kclean')` equals the
