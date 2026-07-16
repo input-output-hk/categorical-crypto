@@ -143,15 +143,15 @@ module Boundary {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ 
     → castˢ df cf (SF.decodeOrdˢ rng-F vf)
       ≈ˢ castˢ dg cg (SG.decodeOrdˢ rng-G vg)
   decodeOrdˢ-boundary-resp-≈ vf vg vH wiring≈ =
-    -- step1 (K₁): swap `vf` for `vH`.
-    ≈-trans (cast-resp df cf (decodeOrdˢ-witness-coh vf vH))
-    -- step2 (wiring, reversed): `decodeOrdˢ-F vH ≈ castˢ di ci (decodeOrdˢ-G vg)`.
-    (≈-trans (cast-resp df cf (≈-sym wiring≈))
-    -- step3 (cast algebra): fuse the two casts; `trans di df ≡ dg`,
-    -- `trans ci cf ≡ cg` by `uipL` (`List X` UIP), via `cast-fuse`+`cast-irrel`.
-      (≡⇒≈ˢ (trans (cast-fuse di df ci cf (SG.decodeOrdˢ rng-G vg))
-                   (cast-irrel (trans di df) dg (trans ci cf) cg
-                               (SG.decodeOrdˢ rng-G vg)))))
+    -- The whole chain is endpoint bookkeeping: drop the two boundary casts,
+    -- swap `vf` for `vH` (K₁), reverse the wiring, and re-cast — the `_≈̂_`
+    -- combinators absorb the `cast-fuse`/`cast-irrel` `List X`-UIP algebra.
+    ≈̂⇒≈ˢ
+      (≈̂-trans cast-≈̂                                -- drop `df`/`cf`
+      (≈̂-trans (≈ˢ⇒≈̂ (decodeOrdˢ-witness-coh vf vH))  -- (K₁) `vf` → `vH`
+      (≈̂-trans (≈̂-sym (≈ˢ⇒≈̂ wiring≈))                 -- reversed wiring
+      (≈̂-trans (cast-≈̂ {p = di} {q = ci})            -- drop `di`/`ci` (pinned)
+               (≈̂-sym cast-≈̂)))))                    -- re-cast `dg`/`cg`
 
 ------------------------------------------------------------------------
 -- The HEADLINE.  Wires the order-theory core (`order-invariantˢ`, BUILT)
