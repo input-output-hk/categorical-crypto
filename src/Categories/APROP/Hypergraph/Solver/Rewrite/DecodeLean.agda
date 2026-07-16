@@ -3,29 +3,38 @@
 --------------------------------------------------------------------------------
 -- Gate-only LEAN decode.
 --
--- A drop-in replacement for `Soundness.Decode.decode-attempt`, used at the
--- deep-rewrite search call site (`Solver.Deep.At.tryEmb`, run over the
--- EXTENDED signature `sig⁺`).  It clones `Decode`'s control flow verbatim —
--- same `process-edges` over `range H.nE` in kahn order, same `extract-prefix`
--- branching, same `Agen-edge` emission, same `nothing` cases — so it returns
--- `just` on EXACTLY the same graphs, with EXACTLY the same `Agen` edges in the
--- same order.  Hence the downstream gate (`findIso`/`Verify`) is unchanged.
+-- The term-building decoder used at the deep-rewrite search call site
+-- (`Solver.Deep.At.tryEmb`, run over the EXTENDED signature `sig⁺`): from a
+-- hypergraph it produces the `HomTerm` frame whose translation is handed to
+-- the downstream `findIso`/`Verify` gate.
 --
--- The ONE difference: at each `permute-via-vlab` slot it adds a *decidable*
--- identity pre-check.  When the running stack already coincides (as a LIST,
--- not merely as a multiset) with the target list — `s ≟ ein e ++ rest` for an
--- edge step, `s_final ≟ H.cod` for the final permute — the locating
--- permutation is the identity, and the soundness decode emits a full
--- `permute Perm.refl`-flavoured `id ⊗₁ (id ⊗₁ …)` tower of `O(nV)` `id`s.
--- That tower translates (`⟪_⟫`) to edge-free `hId`s that are *pruned* at the
--- `hComposeP` seam, so dropping it leaves `⟪frame⟫` IDENTICAL.  We therefore
--- emit a single `id` (well-typed by the `refl` from the `≟`), collapsing the
--- bulk identity padding.  A *non*-identity permutation never passes the `≟`
--- guard, so it is never collapsed.
+-- Relationship to `Soundness.Decode`.  `Decode` used to build this very
+-- `HomTerm` alongside its stack, but Review-2 F2 (commit `d82a7be`) demoted it
+-- to a bare-stack TOTALITY skeleton: its `edge-step`/`process-edges` now return
+-- plain `List (Fin H.nV)` stacks and `decode-attempt` returns only a
+-- `Maybe (↭)` totality witness.  `DecodeLean` is therefore the ONLY decoder
+-- that still emits a term.  It reuses `Decode`'s shared search primitives
+-- (`extract-prefix`, `extract-exact`) and its generic per-edge generator
+-- (`Agen-edge-aux`), so its stack trajectory over `range H.nE` (in kahn order)
+-- coincides definitionally with `Decode`'s bare-stack fold — that stack
+-- agreement is exactly what makes the `bridged`/`final-permute` list-equality
+-- guards below (`s ≟ ein e ++ rest`, `s_final ≟ H.cod`) meaningful.
+--
+-- The identity-guard collapse: at each `permute-via-vlab` slot `DecodeLean`
+-- adds a *decidable* identity pre-check.  When the running stack already
+-- coincides (as a LIST, not merely as a multiset) with the target list —
+-- `s ≟ ein e ++ rest` for an edge step, `s_final ≟ H.cod` for the final
+-- permute — the locating permutation is the identity, so a naive full-permute
+-- decoder would emit a `permute Perm.refl`-flavoured `id ⊗₁ (id ⊗₁ …)` tower
+-- of `O(nV)` `id`s.  That tower translates (`⟪_⟫`) to edge-free `hId`s that are
+-- *pruned* at the `hComposeP` seam, so dropping it leaves `⟪frame⟫` IDENTICAL.
+-- We therefore emit a single `id` (well-typed by the `refl` from the `≟`),
+-- collapsing the bulk identity padding.  A *non*-identity permutation never
+-- passes the `≟` guard, so it is never collapsed.
 --
 -- Because the identity-guard collapse keeps the translated graph identical,
--- the produced frame is iso-equivalent to the soundness decoder's frame, so
--- this needs no `decode-lean ≈Term decode-attempt` proof: correctness comes
+-- the produced frame is iso-equivalent to the full-permute reference frame, so
+-- this needs no `decode-lean ≈Term …` correctness proof: correctness comes
 -- from the downstream `findIso ⟪ s ⟫ ⟪ frame ⟫` gate, which is decidable and
 -- fails closed if a candidate is ever wrong.
 --------------------------------------------------------------------------------
@@ -42,10 +51,11 @@ open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
 open import Categories.APROP.Hypergraph.Soundness.Base.Permute sig
   using (permute-via-vlab)
 
--- Shared (unchanged) helpers from the soundness decoder: `Agen-edge-aux`
--- (so the emitted generator wrapping is byte-identical) and `extract-exact`
--- (the final exact-match search).  Reusing them keeps the `Agen` edges and
--- the `nothing` discipline definitionally aligned with `Decode`.
+-- Shared helpers from the soundness decoder: `Agen-edge-aux` (the canonical
+-- generator wrapping, now defined only there) and `extract-exact` (the final
+-- exact-match search).  Reusing them, together with `extract-prefix`, keeps
+-- the edge branching and the `nothing` discipline definitionally aligned with
+-- `Decode`'s bare-stack fold.
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (Agen-edge-aux; extract-exact; extract-prefix)
 
@@ -60,8 +70,9 @@ open import Relation.Binary.PropositionalEquality using (_≡_; sym; cong; subst
 open import Relation.Nullary using (yes; no)
 
 --------------------------------------------------------------------------------
--- The cospan algorithm, with `H` fixed.  Structure verbatim from
--- `Soundness.Decode`; only the two `permute-via-vlab` slots gain an identity
+-- The cospan algorithm, with `H` fixed.  Same stack control flow as
+-- `Decode`'s bare-stack fold, but building a `HomTerm` frame alongside the
+-- stack; the two `permute-via-vlab` slots additionally carry an identity
 -- guard.
 
 module _ (H : Hypergraph FlatGen) where
@@ -79,10 +90,11 @@ module _ (H : Hypergraph FlatGen) where
   Agen-edge e = Agen-edge-aux (H.elab e)
 
   --------------------------------------------------------------------
-  -- Per-edge step.  IDENTICAL to `Decode.edge-step` except: when the located
-  -- stack `s` already equals `ein e ++ rest` as a list, the permute is the
-  -- identity, so we drop the `∘ permute-via-vlab …` factor (emit `mid'`
-  -- alone) instead of the full id-tower.
+  -- Per-edge step.  Follows the same stack recurrence as `Decode.edge-step`
+  -- (shared `extract-prefix` branching), but returns a `HomTerm` alongside the
+  -- new stack.  When the located stack `s` already equals `ein e ++ rest` as a
+  -- list, the permute is the identity, so we drop the `∘ permute-via-vlab …`
+  -- factor (emit `mid'` alone) instead of the full id-tower.
 
   edge-step
     : (s : List (Fin H.nV)) (e : Fin H.nE)
@@ -126,7 +138,8 @@ module _ (H : Hypergraph FlatGen) where
 
   --------------------------------------------------------------------
   -- Process all edges in natural Fin order; returns the final stack and a
-  -- HomTerm from the original stack.  Verbatim from `Decode.process-edges`.
+  -- HomTerm from the original stack.  Same fold as `Decode.process-edges`,
+  -- carrying the `HomTerm` that `Decode`'s bare-stack version drops.
 
   process-edges
     : List (Fin H.nE) → ∀ (s : List (Fin H.nV))
