@@ -176,8 +176,6 @@ module FMS2 (H : Hypergraph FlatGen)
   Incompˢ      = Incomp H
   perm-rigidˢ′ = perm-rigidˢ H permˢ-K
 
-  -- block-swap-comm at this hypergraph's vertex set.
-  block-swap-comm = BSC.block-swap-comm (Fin H.nV) H.vlab
   open DSS.Scr (Fin H.nV) H.vlab using (bswap)
 
   private
@@ -185,56 +183,12 @@ module FMS2 (H : Hypergraph FlatGen)
     m = map vl
 
   ------------------------------------------------------------------------
-  -- A block-swap-comm corollary: the `++⁺ʳ Rl`-framed canonical block-swap
-  -- derivation `bswap L R` is, under `permuteˢ`, the strict block braiding
-  -- `σˢ (m L) (m R) ⊗ˢ idˢ{m Rl}` up to a `castˢ`.
+  -- The `++⁺ʳ Rl`-framed block-swap derivations at this hypergraph's vertex
+  -- set (`BlockSwapComm.swap-block`/`swap-block-sym`).
   ------------------------------------------------------------------------
 
-  private
-    swap-block
-      : ∀ (L R Rl : List (Fin H.nV))
-      → permuteˢ (PermProp.++⁺ʳ Rl (bswap L R))
-        ≈ˢ castˢ (trans (cong (_++ m Rl) (sym (map-++ vl L R)))
-                        (sym (map-++ vl (L ++ R) Rl)))
-                 (trans (cong (_++ m Rl) (sym (map-++ vl R L)))
-                        (sym (map-++ vl (R ++ L) Rl)))
-            (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl})
-    swap-block L R Rl =
-      ≈-trans (cast-flip (map-++ vl (L ++ R) Rl) (map-++ vl (R ++ L) Rl)
-                 (permuteˢ-frame Rl (bswap L R)))
-        (≈-trans (cast-resp (sym (map-++ vl (L ++ R) Rl))
-                            (sym (map-++ vl (R ++ L) Rl))
-                   (≈-trans (⊗-resp (block-swap-comm L R) ≈-refl)
-                     (≡⇒≈ˢ (cast-⊗ˡ (sym (map-++ vl L R)) (sym (map-++ vl R L))
-                              (σˢ (m L) (m R))))))
-          (≡⇒≈ˢ (cast-fuse (cong (_++ m Rl) (sym (map-++ vl L R)))
-                           (sym (map-++ vl (L ++ R) Rl))
-                           (cong (_++ m Rl) (sym (map-++ vl R L)))
-                           (sym (map-++ vl (R ++ L) Rl))
-                           (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl}))))
-
-    -- The flipped orientation (σˢ ≈ castˢ(...)(permuteˢ swp)), built from
-    -- `swap-block` by re-casting and cancelling.
-    swap-block-sym
-      : ∀ (L R Rl : List (Fin H.nV))
-      → σˢ (m L) (m R) ⊗ˢ idˢ {m Rl}
-        ≈ˢ castˢ (trans (map-++ vl (L ++ R) Rl)
-                        (cong (_++ m Rl) (map-++ vl L R)))
-                 (trans (map-++ vl (R ++ L) Rl)
-                        (cong (_++ m Rl) (map-++ vl R L)))
-            (permuteˢ (PermProp.++⁺ʳ Rl (bswap L R)))
-    swap-block-sym L R Rl =
-      ≈-sym
-        (≈-trans (cast-resp dom' cod' (swap-block L R Rl))
-        (≈-trans (≡⇒≈ˢ (cast-fuse dom-i dom' cod-i cod'
-                          (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl})))
-          (≡⇒≈ˢ (cast-irrel (trans dom-i dom') refl (trans cod-i cod') refl
-                            (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl})))))
-      where
-        dom-i = trans (cong (_++ m Rl) (sym (map-++ vl L R))) (sym (map-++ vl (L ++ R) Rl))
-        cod-i = trans (cong (_++ m Rl) (sym (map-++ vl R L))) (sym (map-++ vl (R ++ L) Rl))
-        dom' = trans (map-++ vl (L ++ R) Rl) (cong (_++ m Rl) (map-++ vl L R))
-        cod' = trans (map-++ vl (R ++ L) Rl) (cong (_++ m Rl) (map-++ vl R L))
+  swap-block     = BSC.swap-block (Fin H.nV) H.vlab
+  swap-block-sym = BSC.swap-block-sym (Fin H.nV) H.vlab
 
   ------------------------------------------------------------------------
   -- The per-pair located frames + coherences.  `SimLoc` (from FMIC) is
@@ -386,8 +340,10 @@ module _ (H : Hypergraph FlatGen)
   cross-NFˢ′   = FMS.cross-NFˢ H dih lin
   box-resid3ˢ′ = FMS.box-resid3ˢ H dih lin
 
-  block-swap-comm = BSC.block-swap-comm (Fin H.nV) H.vlab
   open DSS.Scr (Fin H.nV) H.vlab using (bswap)
+
+  swap-block     = BSC.swap-block (Fin H.nV) H.vlab
+  swap-block-sym = BSC.swap-block-sym (Fin H.nV) H.vlab
 
   private
     m : List (Fin H.nV) → List X
@@ -414,52 +370,6 @@ module _ (H : Hypergraph FlatGen)
       : ∀ {as cs ds : List X} (Q : as ≡ cs) (f : HomS cs ds)
       → f ∘ˢ castˢ refl Q (idˢ {as}) ≈ˢ castˢ (sym Q) refl f
     cast-idʳ-∘ refl f = idʳ
-
-    -- The `++⁺ʳ Rl`-framed block-swap derivation is the strict block braiding
-    -- `σˢ (m L) (m R) ⊗ˢ idˢ{m Rl}`.
-    swap-block
-      : ∀ (L R Rl : List (Fin H.nV))
-      → permuteˢ (PermProp.++⁺ʳ Rl (bswap L R))
-        ≈ˢ castˢ (trans (cong (_++ m Rl) (sym (map-++ vl L R)))
-                        (sym (map-++ vl (L ++ R) Rl)))
-                 (trans (cong (_++ m Rl) (sym (map-++ vl R L)))
-                        (sym (map-++ vl (R ++ L) Rl)))
-            (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl})
-    swap-block L R Rl =
-      ≈-trans (cast-flip (map-++ vl (L ++ R) Rl) (map-++ vl (R ++ L) Rl)
-                 (permuteˢ-frame Rl (bswap L R)))
-        (≈-trans (cast-resp (sym (map-++ vl (L ++ R) Rl))
-                            (sym (map-++ vl (R ++ L) Rl))
-                   (≈-trans (⊗-resp (block-swap-comm L R) ≈-refl)
-                     (≡⇒≈ˢ (cast-⊗ˡ (sym (map-++ vl L R)) (sym (map-++ vl R L))
-                              (σˢ (m L) (m R))))))
-          (≡⇒≈ˢ (cast-fuse (cong (_++ m Rl) (sym (map-++ vl L R)))
-                           (sym (map-++ vl (L ++ R) Rl))
-                           (cong (_++ m Rl) (sym (map-++ vl R L)))
-                           (sym (map-++ vl (R ++ L) Rl))
-                           (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl}))))
-
-    -- swap-block flipped.
-    swap-block-sym
-      : ∀ (L R Rl : List (Fin H.nV))
-      → σˢ (m L) (m R) ⊗ˢ idˢ {m Rl}
-        ≈ˢ castˢ (trans (map-++ vl (L ++ R) Rl)
-                        (cong (_++ m Rl) (map-++ vl L R)))
-                 (trans (map-++ vl (R ++ L) Rl)
-                        (cong (_++ m Rl) (map-++ vl R L)))
-            (permuteˢ (PermProp.++⁺ʳ Rl (bswap L R)))
-    swap-block-sym L R Rl =
-      ≈-sym
-        (≈-trans (cast-resp dom' cod' (swap-block L R Rl))
-        (≈-trans (≡⇒≈ˢ (cast-fuse dom-i dom' cod-i cod'
-                          (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl})))
-          (≡⇒≈ˢ (cast-irrel (trans dom-i dom') refl (trans cod-i cod') refl
-                            (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl})))))
-      where
-        dom-i = trans (cong (_++ m Rl) (sym (map-++ vl L R))) (sym (map-++ vl (L ++ R) Rl))
-        cod-i = trans (cong (_++ m Rl) (sym (map-++ vl R L))) (sym (map-++ vl (R ++ L) Rl))
-        dom' = trans (map-++ vl (L ++ R) Rl) (cong (_++ m Rl) (map-++ vl L R))
-        cod' = trans (map-++ vl (R ++ L) Rl) (cong (_++ m Rl) (map-++ vl R L))
 
     -- Pure-SMC box merge: the back box `g'` brought to front by the block
     -- braid `σ B A'`, applied after the front box `g`, equals the both-boxes

@@ -61,7 +61,7 @@ module _ (V : Set) (vlab : V → X) where
   open Scr V vlab
     using (bswap; mdom; mcod
           ; permuteˢ-shift-sym-base; bswap-σ-base; BswapSig)
-  open Support V vlab using (permuteˢ)
+  open Support V vlab using (permuteˢ; permuteˢ-frame)
 
   private
     m : List V → List X
@@ -287,3 +287,54 @@ module _ (V : Set) (vlab : V → X) where
             (≡⇒≈ˢ (cast-fuse refl (sym (map-++ vlab (v ∷ L) R))
                      (++-assoc (m R) a (m L)) (sym (map-++ vlab R (v ∷ L)))
                      CORE)))))
+
+  --------------------------------------------------------------------------
+  -- (C)  The `++⁺ʳ Rl`-framed block-swap derivation `bswap L R` is, under
+  -- `permuteˢ`, the strict block braiding `σˢ (m L) (m R) ⊗ˢ idˢ{m Rl}` up to
+  -- a `castˢ` (frame `block-swap-comm` by `Rl` via `permuteˢ-frame`).  The
+  -- public face of `block-swap-comm` consumed by the interchange/tensor cone.
+
+  swap-block
+    : ∀ (L R Rl : List V)
+    → permuteˢ (PermProp.++⁺ʳ Rl (bswap L R))
+      ≈ˢ castˢ (trans (cong (_++ m Rl) (sym (map-++ vlab L R)))
+                      (sym (map-++ vlab (L ++ R) Rl)))
+               (trans (cong (_++ m Rl) (sym (map-++ vlab R L)))
+                      (sym (map-++ vlab (R ++ L) Rl)))
+          (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl})
+  swap-block L R Rl =
+    ≈-trans (cast-flip (map-++ vlab (L ++ R) Rl) (map-++ vlab (R ++ L) Rl)
+               (permuteˢ-frame Rl (bswap L R)))
+      (≈-trans (cast-resp (sym (map-++ vlab (L ++ R) Rl))
+                          (sym (map-++ vlab (R ++ L) Rl))
+                 (≈-trans (⊗-resp (block-swap-comm L R) ≈-refl)
+                   (≡⇒≈ˢ (cast-⊗ˡ (sym (map-++ vlab L R)) (sym (map-++ vlab R L))
+                            (σˢ (m L) (m R))))))
+        (≡⇒≈ˢ (cast-fuse (cong (_++ m Rl) (sym (map-++ vlab L R)))
+                         (sym (map-++ vlab (L ++ R) Rl))
+                         (cong (_++ m Rl) (sym (map-++ vlab R L)))
+                         (sym (map-++ vlab (R ++ L) Rl))
+                         (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl}))))
+
+  -- The flipped orientation (σˢ ≈ castˢ(...)(permuteˢ swp)), built from
+  -- `swap-block` by re-casting and cancelling.
+  swap-block-sym
+    : ∀ (L R Rl : List V)
+    → σˢ (m L) (m R) ⊗ˢ idˢ {m Rl}
+      ≈ˢ castˢ (trans (map-++ vlab (L ++ R) Rl)
+                      (cong (_++ m Rl) (map-++ vlab L R)))
+               (trans (map-++ vlab (R ++ L) Rl)
+                      (cong (_++ m Rl) (map-++ vlab R L)))
+          (permuteˢ (PermProp.++⁺ʳ Rl (bswap L R)))
+  swap-block-sym L R Rl =
+    ≈-sym
+      (≈-trans (cast-resp dom' cod' (swap-block L R Rl))
+      (≈-trans (≡⇒≈ˢ (cast-fuse dom-i dom' cod-i cod'
+                        (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl})))
+        (≡⇒≈ˢ (cast-irrel (trans dom-i dom') refl (trans cod-i cod') refl
+                          (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl})))))
+    where
+      dom-i = trans (cong (_++ m Rl) (sym (map-++ vlab L R))) (sym (map-++ vlab (L ++ R) Rl))
+      cod-i = trans (cong (_++ m Rl) (sym (map-++ vlab R L))) (sym (map-++ vlab (R ++ L) Rl))
+      dom' = trans (map-++ vlab (L ++ R) Rl) (cong (_++ m Rl) (map-++ vlab L R))
+      cod' = trans (map-++ vlab (R ++ L) Rl) (cong (_++ m Rl) (map-++ vlab R L))

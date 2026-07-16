@@ -159,7 +159,7 @@ module TKB2 (H : Hypergraph FlatGen) where
   open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_
     using (module Scr)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig _≟X_
-    using (block-swap-comm)
+    using (swap-block)
   open import Data.Fin using (Fin)
   open import Data.List using (List; []; _∷_; _++_; map)
   open import Data.List.Properties using (map-++; ++-assoc)
@@ -219,37 +219,9 @@ module TKB2 (H : Hypergraph FlatGen) where
     -- final permute reconciliation uses `perm-rigidˢ`.)
     ----------------------------------------------------------------------
 
-    -- ### A generic "block-σ ⊗ idˢ{rest} = permuteˢ braid" bridge.
-    --   `σˢ (m P)(m Q) ⊗ˢ idˢ{m rest}`
-    --     ≈ castˢ … permuteˢ (++⁺ʳ rest (bswap P Q))`,
-    -- the two casts being the map-distribution of the framed endpoints.
-    blockσ-perm
-      : ∀ (P Q rest : List (Fin H.nV))
-      → permuteˢ (PermProp.++⁺ʳ rest (ScrH.bswap P Q))
-        ≈ˢ castˢ (trans (cong (_++ m rest) (sym (map-++ vl P Q)))
-                        (sym (map-++ vl (P ++ Q) rest)))
-                 (trans (cong (_++ m rest) (sym (map-++ vl Q P)))
-                        (sym (map-++ vl (Q ++ P) rest)))
-            (σˢ (m P) (m Q) ⊗ˢ idˢ {m rest})
-    blockσ-perm P Q rest =
-      ≈-trans
-        (cast-flip (map-++ vl (P ++ Q) rest) (map-++ vl (Q ++ P) rest)
-          (permuteˢ-frame rest (ScrH.bswap P Q)))
-      (≈-trans
-        (cast-resp (sym (map-++ vl (P ++ Q) rest)) (sym (map-++ vl (Q ++ P) rest))
-          (⊗-resp (block-swap-comm (Fin H.nV) H.vlab P Q) ≈-refl))
-      (≈-trans
-        (cast-resp (sym (map-++ vl (P ++ Q) rest)) (sym (map-++ vl (Q ++ P) rest))
-          (≡⇒≈ˢ (cast-⊗ˡ (sym (map-++ vl P Q)) (sym (map-++ vl Q P))
-                   (σˢ (m P) (m Q)))))
-        (≈-trans
-          (≡⇒≈ˢ (cast-fuse
-                  (cong (_++ m rest) (sym (map-++ vl P Q)))
-                  (sym (map-++ vl (P ++ Q) rest))
-                  (cong (_++ m rest) (sym (map-++ vl Q P)))
-                  (sym (map-++ vl (Q ++ P) rest))
-                  (σˢ (m P) (m Q) ⊗ˢ idˢ {m rest})))
-          (≡⇒≈ˢ (cast-irrel _ _ _ _ (σˢ (m P) (m Q) ⊗ˢ idˢ {m rest}))))))
+    -- ### A generic "block-σ ⊗ idˢ{rest} = permuteˢ braid" bridge
+    -- (`BlockSwapComm.swap-block` at this hypergraph's vertex set).
+    blockσ-perm = swap-block (Fin H.nV) H.vlab
 
     ----------------------------------------------------------------------
     -- ## (b) `fire-slideˢ`.
