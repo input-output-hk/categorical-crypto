@@ -437,20 +437,19 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   private
     gperm' : castˢ M1G midG-cod permAG ≈ˢ PFˢ
     gperm' =
-      ≈-trans (cast-resp M1G midG-cod (permRemap-coh uRemapKdom after-G-↭ injf-↭))
-      (≈-trans (≡⇒≈ˢ (cong (castˢ M1G midG-cod)
-                        (permuteˢ-subst₂-C (sym after-G-≡) (sym map-rKd)
-                           (PermProp.map⁺ injL perm-f))))
-      (≈-trans (≡⇒≈ˢ (cast-fuse (cong (map vlC) (sym after-G-≡)) M1G
-                                (cong (map vlC) (sym map-rKd)) midG-cod
-                                (RC.permuteˢ (PermProp.map⁺ injL perm-f))))
-      (≈-trans (≡⇒≈ˢ (cast-irrel
-                        (trans (cong (map vlC) (sym after-G-≡)) M1G)
-                        Pdom
-                        (trans (cong (map vlC) (sym map-rKd)) midG-cod)
-                        Pcod
-                        (RC.permuteˢ (PermProp.map⁺ injL perm-f))))
-        (PVV.pvv-relabelˢ injL vlC G.vlab vlab-injL perm-f Pdom Pcod))))
+      -- `permAG` coheres to the injL-lifted `perm-f` (`permRemap-coh`), which is
+      -- a two-sided cast of the X-level relabel; the `_≈̂_` kit peels the
+      -- boundary casts (former `cast-fuse`/`cast-irrel`) and hands the residual
+      -- to `pvv-relabelˢ`.
+      ≈̂⇒≈ˢ
+        (≈̂-trans (cast-≈̂ {p = M1G} {q = midG-cod})
+        (≈̂-trans (≈ˢ⇒≈̂ (permRemap-coh uRemapKdom after-G-↭ injf-↭))
+        (≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (permuteˢ-subst₂-C (sym after-G-≡) (sym map-rKd)
+                                 (PermProp.map⁺ injL perm-f))))
+        (≈̂-trans (cast-≈̂ {p = cong (map vlC) (sym after-G-≡)}
+                         {q = cong (map vlC) (sym map-rKd)})
+        (≈̂-trans (≈̂-sym (cast-≈̂ {p = Pdom} {q = Pcod}))
+                 (≈ˢ⇒≈̂ (PVV.pvv-relabelˢ injL vlC G.vlab vlab-injL perm-f Pdom Pcod)))))))
       where
         Pdom : map vlC (map injL s_G_final) ≡ map G.vlab s_G_final
         Pdom = TG.vlab-φ s_G_final
@@ -496,20 +495,17 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   private
     kperm' : castˢ MK1 (TK.vlab-φ K.cod) (RC.permuteˢ combPˢ) ≈ˢ PGˢ
     kperm' =
-      ≈-trans (cast-resp MK1 (TK.vlab-φ K.cod) (permC-coh uCcod combPˢ remapg-↭))
-      (≈-trans (≡⇒≈ˢ (cong (castˢ MK1 (TK.vlab-φ K.cod))
-                        (permuteˢ-subst₂-C (sym proc-stack-emb-K) refl
-                           (PermProp.map⁺ remapP perm-g))))
-      (≈-trans (≡⇒≈ˢ (cast-fuse (cong (map vlC) (sym proc-stack-emb-K)) MK1
-                                (cong (map vlC) refl) (TK.vlab-φ K.cod)
-                                (RC.permuteˢ (PermProp.map⁺ remapP perm-g))))
-      (≈-trans (≡⇒≈ˢ (cast-irrel
-                        (trans (cong (map vlC) (sym proc-stack-emb-K)) MK1)
-                        Pdom
-                        (trans (cong (map vlC) refl) (TK.vlab-φ K.cod))
-                        Pcod
-                        (RC.permuteˢ (PermProp.map⁺ remapP perm-g))))
-        (PVV.pvv-relabelˢ remapP vlC K.vlab remapP-vlab perm-g Pdom Pcod))))
+      -- Mirror of `gperm'` on the K-block: `combPˢ` coheres to the remapP-lifted
+      -- `perm-g` (`permC-coh`), and the `_≈̂_` kit peels the boundary casts
+      -- before `pvv-relabelˢ`.
+      ≈̂⇒≈ˢ
+        (≈̂-trans (cast-≈̂ {p = MK1} {q = TK.vlab-φ K.cod})
+        (≈̂-trans (≈ˢ⇒≈̂ (permC-coh uCcod combPˢ remapg-↭))
+        (≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (permuteˢ-subst₂-C (sym proc-stack-emb-K) refl
+                                 (PermProp.map⁺ remapP perm-g))))
+        (≈̂-trans (cast-≈̂ {p = cong (map vlC) (sym proc-stack-emb-K)} {q = refl})
+        (≈̂-trans (≈̂-sym (cast-≈̂ {p = Pdom} {q = Pcod}))
+                 (≈ˢ⇒≈̂ (PVV.pvv-relabelˢ remapP vlC K.vlab remapP-vlab perm-g Pdom Pcod)))))))
       where
         Pdom : map vlC (map remapP s_K_final) ≡ map K.vlab s_K_final
         Pdom = TK.vlab-φ s_K_final
@@ -550,25 +546,25 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
 
   -- `decodePˢ` cores.
   private
-    -- G-part: `castˢ domGF midGFᵉ Ycˢ ≈ˢ decodePˢ f`.
+    -- G-part: `castˢ domGF midGFᵉ Ycˢ ≈ˢ decodePˢ f`.  Peel the boundary cast,
+    -- apply the Y-twin, and re-cast onto `decodePˢ f` (definitionally the boundary
+    -- cast of `PFˢ ∘ˢ pterm-f`); the `_≈̂_` kit absorbs the `cast-irrel`/`cast-fuse`.
     Gpartˢ : castˢ domGF midGFᵉ Ycˢ ≈ˢ decodePˢ f
     Gpartˢ =
-      ≈-trans (≡⇒≈ˢ (cast-irrel
-                       domGF (trans (TG.vlab-φ G.dom) (⟪⟫-domL f))
-                       midGFᵉ (trans midG-cod (⟪⟫-codL f)) Ycˢ))
-      (≈-trans (≡⇒≈ˢ (sym (cast-fuse (TG.vlab-φ G.dom) (⟪⟫-domL f)
-                                     midG-cod (⟪⟫-codL f) Ycˢ)))
-      (≈-sym (cast-resp (⟪⟫-domL f) (⟪⟫-codL f) (≈-sym Yc-twinˢ))))
+      ≈̂⇒≈ˢ
+        (≈̂-trans (cast-≈̂ {p = domGF} {q = midGFᵉ})
+        (≈̂-trans (≈̂-trans (≈̂-sym (cast-≈̂ {p = TG.vlab-φ G.dom} {q = midG-cod}))
+                           (≈ˢ⇒≈̂ Yc-twinˢ))
+                 (≈̂-sym (cast-≈̂ {p = ⟪⟫-domL f} {q = ⟪⟫-codL f}))))
 
-    -- K-part: `castˢ midGFᵉ codGF Xcˢ ≈ˢ decodePˢ g`.
+    -- K-part: `castˢ midGFᵉ codGF Xcˢ ≈ˢ decodePˢ g`.  Mirror of `Gpartˢ`.
     Kpartˢ : castˢ midGFᵉ codGF Xcˢ ≈ˢ decodePˢ g
     Kpartˢ =
-      ≈-trans (≡⇒≈ˢ (cast-irrel
-                       midGFᵉ (trans (TK.vlab-φ K.dom) (⟪⟫-domL g))
-                       codGF (trans (TK.vlab-φ K.cod) (⟪⟫-codL g)) Xcˢ))
-      (≈-trans (≡⇒≈ˢ (sym (cast-fuse (TK.vlab-φ K.dom) (⟪⟫-domL g)
-                                     (TK.vlab-φ K.cod) (⟪⟫-codL g) Xcˢ)))
-      (≈-sym (cast-resp (⟪⟫-domL g) (⟪⟫-codL g) (≈-sym Xc-twinˢ))))
+      ≈̂⇒≈ˢ
+        (≈̂-trans (cast-≈̂ {p = midGFᵉ} {q = codGF})
+        (≈̂-trans (≈̂-trans (≈̂-sym (cast-≈̂ {p = TK.vlab-φ K.dom} {q = TK.vlab-φ K.cod}))
+                           (≈ˢ⇒≈̂ Xc-twinˢ))
+                 (≈̂-sym (cast-≈̂ {p = ⟪⟫-domL g} {q = ⟪⟫-codL g}))))
 
   -- The full strict `∘`-shape.
   decodePˢ-∘-shape : decodePˢ (g ∘ f) ≈ˢ decodePˢ g ∘ˢ decodePˢ f
