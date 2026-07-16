@@ -30,7 +30,7 @@ open import Data.Product using (Σ-syntax; _,_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ; ≡-dec; map-++)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst; subst₂)
+  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 open import Axiom.UniquenessOfIdentityProofs using (UIP; module Decidable⇒UIP)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
@@ -221,13 +221,32 @@ module Build
     ≈-trans (∘-cast-split fd gd gc g f)
             (∘-resp eg (≈-trans (≡⇒≈ˢ (cast-irrel fd fd gd fc f)) ef))
 
-  -- tensor congruence: the factors share no endpoint, so all four proofs
-  -- refl-match cleanly.
+  -- a cast over a ⊗ splits into a cast on each factor, through the two
+  -- `cong₂ _++_` endpoint proofs (all four component proofs refl-match: then
+  -- both `cong₂` reduce to refl and every `castˢ … refl refl` vanishes).
+  -- This is the ⊗-analogue of `∘-cast-split`; it dissolves the ⊗-frame
+  -- entanglement that blocked TensorBraid / Decoder / DecodeSigma.
+  cast-⊗-both
+    : ∀ {as as' bs bs' us us' vs vs'}
+        (p : as ≡ as') (q : bs ≡ bs') (r : us ≡ us') (s : vs ≡ vs')
+        (f : HomS as bs) (g : HomS us vs)
+    → castˢ (cong₂ _++_ p r) (cong₂ _++_ q s) (f ⊗ˢ g)
+      ≡ castˢ p q f ⊗ˢ castˢ r s g
+  cast-⊗-both refl refl refl refl f g = refl
+
+  -- tensor congruence at GENERAL endpoints: the tensor's own endpoint proofs
+  -- are the `cong₂ _++_` of the two factors' proofs; `cast-⊗-both` splits the
+  -- combined cast into the two factor casts, which `⊗-resp` then relates.
+  -- (Endpoint proofs are NOT refl here, so pin `cast-⊗-both`'s arguments when a
+  -- projected `≈̂⇒≈ˢ` chain leaves the factor metas free — same discipline as
+  -- `cast-≈̂` in a homogeneous-projected chain.)
   ⊗-resp-≈̂ : ∀ {as bs us vs as' bs' us' vs'}
                {f : HomS as bs} {f' : HomS as' bs'}
                {g : HomS us vs} {g' : HomS us' vs'}
            → f ≈̂ f' → g ≈̂ g' → (f ⊗ˢ g) ≈̂ (f' ⊗ˢ g')
-  ⊗-resp-≈̂ (refl , refl , ef) (refl , refl , eg) = refl , refl , ⊗-resp ef eg
+  ⊗-resp-≈̂ {f = f} {g = g} (fp , fq , ef) (gp , gq , eg) =
+    cong₂ _++_ fp gp , cong₂ _++_ fq gq ,
+    ≈-trans (≡⇒≈ˢ (cast-⊗-both fp fq gp gq f g)) (⊗-resp ef eg)
 
   -- project back to `≈ˢ` once the endpoints coincide (UIP collapses the proofs)
   ≈̂⇒≈ˢ : ∀ {as bs} {f g : HomS as bs} → f ≈̂ g → f ≈ˢ g
