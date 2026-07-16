@@ -758,23 +758,21 @@ module _ (H : Hypergraph FlatGen)
     -- `g' ⊗ id{m(eout a ++ R)}` rewritten to the `_++Rl` block forms.
     ------------------------------------------------------------------
     private
-      Boxa-br : Boxa ≈ˢ castˢ (sym (cong (A ++_) mb-in)) (sym (cong (B ++_) mb-in))
-                          (g ⊗ˢ idˢ {A' ++ Rl})
+      Boxa-br : Boxa ≈̂ (g ⊗ˢ idˢ {A' ++ Rl})
       Boxa-br =
-        cast-flip (cong (A ++_) mb-in) (cong (B ++_) mb-in)
-          (≈-trans
+          cong (A ++_) mb-in , cong (B ++_) mb-in
+        , ≈-trans
             (cast-⊗-frame g mb-in mb-in (idˢ {m (H.ein b ++ R)})
               (cong (A ++_) mb-in) (cong (B ++_) mb-in))
-            (⊗-resp ≈-refl (cast-id mb-in mb-in)))
+            (⊗-resp ≈-refl (cast-id mb-in mb-in))
 
-      Boxb-br : Boxb ≈ˢ castˢ (sym (cong (A' ++_) mb-out)) (sym (cong (B' ++_) mb-out))
-                          (g' ⊗ˢ idˢ {B ++ Rl})
+      Boxb-br : Boxb ≈̂ (g' ⊗ˢ idˢ {B ++ Rl})
       Boxb-br =
-        cast-flip (cong (A' ++_) mb-out) (cong (B' ++_) mb-out)
-          (≈-trans
+          cong (A' ++_) mb-out , cong (B' ++_) mb-out
+        , ≈-trans
             (cast-⊗-frame g' mb-out mb-out (idˢ {m (H.eout a ++ R)})
               (cong (A' ++_) mb-out) (cong (B' ++_) mb-out))
-            (⊗-resp ≈-refl (cast-id mb-out mb-out)))
+            (⊗-resp ≈-refl (cast-id mb-out mb-out))
 
     ------------------------------------------------------------------
     -- The central merge: the two located boxes around the mid block-swap
@@ -791,31 +789,18 @@ module _ (H : Hypergraph FlatGen)
           ≈ˢ castˢ Dc Cc
               ( castˢ (++-assoc A A' Rl) (++-assoc B' B Rl)
                   ( (σˢ B B' ⊗ˢ idˢ {Rl}) ∘ˢ ((g ⊗ˢ g') ⊗ˢ idˢ {Rl}) ) )
+      -- Heterogeneous rewrite (F1): substitute the box bridges + `MID-eq`
+      -- under `∘-resp-≈̂`, chain into `box-merge-Rˢ`, and re-absorb the outer
+      -- `Dc/Cc` cast — the former cast-irrel/∘-cast-split collapse of the two
+      -- located-box endpoints disappears into the congruence bookkeeping.
       central-eq =
-        -- (1) substitute the box bridges + MID-eq.
-        ≈-trans (∘-resp Boxb-br (∘-resp MID-eq Boxa-br))
-        -- (2) collapse the inner two casts (midσ ∘ castₐ box-a) to a single
-        --     cast over `midσ-tgt ∘ (g⊗id{A'++Rl})`.
-        (≈-trans (∘-resp ≈-refl
-          (≈-trans (∘-resp ≈-refl
-            (≡⇒≈ˢ (cast-irrel (sym (cong (A ++_) mb-in)) (sym (cong (A ++_) mb-in))
-                     (sym (cong (B ++_) mb-in)) (cong (B ++_) (sym mb-in))
-                     (g ⊗ˢ idˢ {A' ++ Rl}))))
-            (≈-sym (∘-cast-split (sym (cong (A ++_) mb-in))
-                      (cong (B ++_) (sym mb-in)) (cong (A' ++_) (sym mb-out))
-                      midσ-tgt (g ⊗ˢ idˢ {A' ++ Rl})))))
-        -- (3) collapse the outer two casts (box-b ∘ castₘ …) → single cast.
-        (≈-trans
-          (≈-trans (∘-resp ≈-refl
-            (≡⇒≈ˢ (cast-irrel (sym (cong (A ++_) mb-in)) (sym (cong (A ++_) mb-in))
-                     (cong (A' ++_) (sym mb-out)) (sym (cong (A' ++_) mb-out))
-                     (midσ-tgt ∘ˢ (g ⊗ˢ idˢ {A' ++ Rl})))))
-            (≈-sym (∘-cast-split (sym (cong (A ++_) mb-in))
-                      (sym (cong (A' ++_) mb-out)) (sym (cong (B' ++_) mb-out))
-                      (g' ⊗ˢ idˢ {B ++ Rl})
-                      (midσ-tgt ∘ˢ (g ⊗ˢ idˢ {A' ++ Rl})))))
-        -- (4) the body is now `box-merge-Rˢ`'s LHS; merge.
-        (cast-resp Dc Cc (box-merge-Rˢ g g' Rl))))
+        ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ Boxb-br
+                                (∘-resp-≈̂ (≈̂-trans (≈ˢ⇒≈̂ MID-eq)
+                                                   (cast-≈̂ {p = cong (B ++_) (sym mb-in)}
+                                                           {q = cong (A' ++_) (sym mb-out)}))
+                                          Boxa-br))
+                      (≈̂-trans (≈ˢ⇒≈̂ (box-merge-Rˢ g g' Rl))
+                               (≈̂-sym (cast-≈̂ {p = Dc} {q = Cc}))))
 
     ------------------------------------------------------------------
     -- The block frames `Lin`/`Lout` the `cross-NFˢ` consumer expects.
