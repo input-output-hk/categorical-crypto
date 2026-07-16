@@ -135,105 +135,70 @@ module StrictDecoder (H : Hypergraph FlatGen) where
            ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
              ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ p)))
          ⊗ˢ idˢ {map vl R}
-  layer-sepˢ e xs R rest p W = ≈-trans lhs→nf (≈-sym rhs→nf)
+  -- `_≈̂_` version: both sides reduce (heterogeneously) to a CAST-FREE middle
+  -- `mid = (box_rest ⊗ id{R}) ∘ (permuteˢ p ⊗ id{R})`.  `cast-≈̂` peels every
+  -- boundary/wiring cast, `∘-resp-≈̂` threads the composite endpoint, and the
+  -- residual content is exactly the two ⊗-frame lemmas the kit does not
+  -- subsume — `box-suffix-ˢ` (⊗-assoc) on the box and `permuteˢ-frame` on the
+  -- wiring.  The kit's general `⊗-resp-≈̂` pushes `id{R}` through the RHS
+  -- composite-vs-tensor split.  Sub-lemmas carry full type signatures, which
+  -- pin every `cast-≈̂`'s endpoints (the homogeneous-projection discipline).
+  layer-sepˢ e xs R rest p W = ≈̂⇒≈ˢ (≈̂-trans lhs (≈̂-sym rhs))
     where
       A = H.ein e ; B = H.eout e
       G₀ = genˢ (H.elab e)
       mR = map vl R
-      C₂ = cong (_++ mR) (sym (map-++ vl B rest))
-      M′ = cong (_++ mR) (map-++ vl A rest)
-      Q₁ = map-++ vl (A ++ rest) R
-      Xn = (G₀ ⊗ˢ idˢ {map vl rest}) ⊗ˢ idˢ {mR}
-      Yn = castˢ refl M′ ((permuteˢ p) ⊗ˢ idˢ {mR})
+      mAr  = map-++ vl A rest
+      mArr = map-++ vl A (rest ++ R)
+      mBr  = map-++ vl B rest
+      mBrr = map-++ vl B (rest ++ R)
+      Box_r = G₀ ⊗ˢ idˢ {map vl rest}
+      permp = permuteˢ p
+      -- `map-++`-recast of `permp` so it composes with `Box_r` (its raw codomain
+      -- `map vl (A ++ rest)` is not definitionally `map vl A ++ map vl rest`)
+      Pfac  = castˢ refl mAr permp
+      pbig  = permuteˢ (prefix-++ˡ-perm A (PermProp.++⁺ʳ R p))
+      mid   = (Box_r ⊗ˢ idˢ {mR}) ∘ˢ (Pfac ⊗ˢ idˢ {mR})
 
-      NF : HomS (map vl xs ++ mR) (map vl (B ++ rest) ++ mR)
-      NF = castˢ refl C₂ Xn ∘ˢ Yn
+      -- `id{map vl rest ++ mR} ≈̂ id{map vl (rest ++ R)}` (a cast of identities)
+      id-bridge : idˢ {map vl rest ++ mR} ≈̂ idˢ {map vl (rest ++ R)}
+      id-bridge =
+        ≈̂-trans (≈̂-sym (≈ˢ⇒≈̂ (cast-id (map-++ vl rest R)
+                                        (map-++ vl rest R))))
+                cast-≈̂
 
-      rhs→nf
-        : (castˢ refl (sym (map-++ vl B rest))
-            ((G₀ ⊗ˢ idˢ {map vl rest})
-              ∘ˢ castˢ refl (map-++ vl A rest) (permuteˢ p)))
-          ⊗ˢ idˢ {mR}
-          ≈ˢ NF
-      rhs→nf =
-        ≈-trans (≡⇒≈ˢ (cast-⊗ˡ refl (sym (map-++ vl B rest)) _))
-        (≈-trans (cast-resp refl C₂
-          (≈-trans (⊗id-distˢ (G₀ ⊗ˢ idˢ {map vl rest})
-                             (castˢ refl (map-++ vl A rest) (permuteˢ p)))
-                   (∘-resp ≈-refl
-                     (≡⇒≈ˢ (cast-⊗ˡ refl (map-++ vl A rest) (permuteˢ p))))))
-          (∘-cast-split refl refl C₂ Xn Yn))
+      -- the fired box over `rest ++ R` = the `rest`-box framed by id{R}
+      G-side : (G₀ ⊗ˢ idˢ {map vl (rest ++ R)}) ≈̂ (Box_r ⊗ˢ idˢ {mR})
+      G-side =
+        ≈̂-sym (≈̂-trans (≈̂-trans (≈̂-sym cast-≈̂)
+                                 (≈ˢ⇒≈̂ (box-suffix-ˢ G₀ (map vl rest) mR)))
+                        (⊗-resp-≈̂ ≈̂-refl id-bridge))
 
-      lhs→nf
-        : castˢ (map-++ vl xs R) W
-            (castˢ refl (sym (map-++ vl B (rest ++ R)))
-              ((G₀ ⊗ˢ idˢ {map vl (rest ++ R)})
-                ∘ˢ castˢ refl (map-++ vl A (rest ++ R))
-                     (permuteˢ (prefix-++ˡ-perm A (PermProp.++⁺ʳ R p)))))
-          ≈ˢ NF
-      lhs→nf =
-        ≈-trans (≡⇒≈ˢ (cast-fuse refl (map-++ vl xs R)
-                        (sym (map-++ vl B (rest ++ R))) W _))
-        (≈-trans (∘-cast-split (map-++ vl xs R) M
-                   (trans (sym (map-++ vl B (rest ++ R))) W) _ _)
-          (∘-resp G-side P-side))
-        where
-          M : map vl A ++ map vl (rest ++ R) ≡ (map vl A ++ map vl rest) ++ mR
-          M = trans (cong (map vl A ++_) (map-++ vl rest R))
-                    (sym (++-assoc (map vl A) (map vl rest) mR))
+      -- the framed wiring = `permuteˢ p` framed by id{R}
+      P-side : castˢ refl mArr pbig ≈̂ (Pfac ⊗ˢ idˢ {mR})
+      P-side =
+        ≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (cong (castˢ refl mArr)
+                          (permuteˢ-subst (++-assoc A rest R)
+                                          (PermProp.++⁺ʳ R p)))))
+        (≈̂-trans (cast-≈̂ {p = refl} {q = mArr})
+        (≈̂-trans (cast-≈̂ {p = refl} {q = cong (map vl) (++-assoc A rest R)})
+        (≈̂-trans (≈̂-sym (cast-≈̂ {p = map-++ vl xs R} {q = map-++ vl (A ++ rest) R}))
+        (≈̂-trans (≈ˢ⇒≈̂ (permuteˢ-frame R p))
+                 (⊗-resp-≈̂ (≈̂-sym (cast-≈̂ {p = refl} {q = mAr})) ≈̂-refl)))))
 
-          G-side
-            : castˢ M (trans (sym (map-++ vl B (rest ++ R))) W)
-                (G₀ ⊗ˢ idˢ {map vl (rest ++ R)})
-              ≈ˢ castˢ refl C₂ Xn
-          G-side =
-            ≈-trans (cast-resp M (trans (sym (map-++ vl B (rest ++ R))) W)
-              (≈-trans
-                (⊗-resp ≈-refl
-                  (≈-sym (cast-id (sym (map-++ vl rest R))
-                                  (sym (map-++ vl rest R)))))
-                (≈-sym (cast-⊗-frame G₀
-                  (sym (map-++ vl rest R)) (sym (map-++ vl rest R))
-                  (idˢ {map vl rest ++ mR})
-                  (cong (map vl A ++_) (sym (map-++ vl rest R)))
-                  (cong (map vl B ++_) (sym (map-++ vl rest R)))))))
-            (≈-trans (≡⇒≈ˢ (cast-fuse
-                (cong (map vl A ++_) (sym (map-++ vl rest R)))
-                M
-                (cong (map vl B ++_) (sym (map-++ vl rest R)))
-                (trans (sym (map-++ vl B (rest ++ R))) W) _))
-            (≈-trans (cast-resp _ _
-                (≈-sym (box-suffix-ˢ G₀ (map vl rest) mR)))
-            (≈-trans (≡⇒≈ˢ (cast-fuse
-                (++-assoc (map vl A) (map vl rest) mR)
-                (trans (cong (map vl A ++_) (sym (map-++ vl rest R))) M)
-                (++-assoc (map vl B) (map vl rest) mR)
-                (trans (cong (map vl B ++_) (sym (map-++ vl rest R)))
-                       (trans (sym (map-++ vl B (rest ++ R))) W)) Xn))
-              (≡⇒≈ˢ (cast-irrel _ refl _ C₂ Xn)))))
+      lhs : castˢ (map-++ vl xs R) W
+              (castˢ refl (sym mBrr)
+                ((G₀ ⊗ˢ idˢ {map vl (rest ++ R)}) ∘ˢ castˢ refl mArr pbig))
+            ≈̂ mid
+      lhs = ≈̂-trans (cast-≈̂ {p = map-++ vl xs R} {q = W})
+                    (≈̂-trans (cast-≈̂ {p = refl} {q = sym mBrr})
+                             (∘-resp-≈̂ G-side P-side))
 
-          P-side
-            : castˢ (map-++ vl xs R) M
-                (castˢ refl (map-++ vl A (rest ++ R))
-                  (permuteˢ (prefix-++ˡ-perm A (PermProp.++⁺ʳ R p))))
-              ≈ˢ Yn
-          P-side =
-            ≈-trans (≡⇒≈ˢ (cast-fuse refl (map-++ vl xs R)
-                            (map-++ vl A (rest ++ R)) M _))
-            (≈-trans (≡⇒≈ˢ (cong (castˢ (map-++ vl xs R)
-                                        (trans (map-++ vl A (rest ++ R)) M))
-                             (permuteˢ-subst (++-assoc A rest R)
-                                             (PermProp.++⁺ʳ R p))))
-            (≈-trans (≡⇒≈ˢ (cast-fuse refl (map-++ vl xs R)
-                             (cong (map vl) (++-assoc A rest R))
-                             (trans (map-++ vl A (rest ++ R)) M)
-                             (permuteˢ (PermProp.++⁺ʳ R p))))
-            (≈-trans (≡⇒≈ˢ (cast-irrel _ (trans (map-++ vl xs R) refl) _
-                             (trans Q₁ M′)
-                             (permuteˢ (PermProp.++⁺ʳ R p))))
-            (≈-trans (≈-sym (≡⇒≈ˢ (cast-fuse (map-++ vl xs R) refl Q₁ M′
-                             (permuteˢ (PermProp.++⁺ʳ R p)))))
-              (cast-resp refl M′ (permuteˢ-frame R p))))))
+      rhs : (castˢ refl (sym mBr) (Box_r ∘ˢ castˢ refl mAr permp)) ⊗ˢ idˢ {mR}
+            ≈̂ mid
+      rhs =
+        ≈̂-trans (⊗-resp-≈̂ cast-≈̂ ≈̂-refl)
+                (≈ˢ⇒≈̂ (⊗id-distˢ Box_r Pfac))
 
   -- the SEPARABILITY THEOREM, term level
   term-sepˢ
