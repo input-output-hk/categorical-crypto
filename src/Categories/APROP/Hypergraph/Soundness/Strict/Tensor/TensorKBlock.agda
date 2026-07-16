@@ -887,30 +887,25 @@ module TKB3 (H : Hypergraph FlatGen) where
     -- ## MIDb → MIDib and INPb-core → INPb conversions.
     ------------------------------------------------------------------
 
-    -- `idˢ{mL} ⊗ permuteˢ p` re-cast into `INPb` (the inner `castˢ` moved out
-    -- of the ⊗ by `cast-⊗-frame`).
+    -- `idˢ{mL} ⊗ permuteˢ p` heterogeneously equal to `INPb` (the inner `castˢ`
+    -- moved out of the ⊗ by `cast-⊗-frame`).
     inp-core→INPb
       : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
           (p : xs Perm.↭ H.ein e ++ rest)
-      → idˢ {m L} ⊗ˢ permuteˢ p
-        ≈ˢ castˢ refl (sym (cong (m L ++_) (map-++ vl (H.ein e) rest)))
-            (INPb e L xs rest p)
+      → (idˢ {m L} ⊗ˢ permuteˢ p) ≈̂ INPb e L xs rest p
     inp-core→INPb e L xs rest p =
-      cast-flip refl (cong (m L ++_) (map-++ vl (H.ein e) rest))
-        (cast-⊗-frame (idˢ {m L}) refl (map-++ vl (H.ein e) rest) (permuteˢ p)
-          refl (cong (m L ++_) (map-++ vl (H.ein e) rest)))
+        refl , cong (m L ++_) (map-++ vl (H.ein e) rest)
+      , cast-⊗-frame (idˢ {m L}) refl (map-++ vl (H.ein e) rest) (permuteˢ p)
+          refl (cong (m L ++_) (map-++ vl (H.ein e) rest))
 
-    -- `MIDb` re-cast into `MIDib` (the `⊗-assocˢ` of `mid-assoc`, flipped).
+    -- `MIDb` heterogeneously equal to `MIDib` (the `⊗-assocˢ` of `mid-assoc`).
     midb→midib
       : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-      → MIDb e L rest
-        ≈ˢ castˢ (sym (++-assoc (m L) (m (H.ein e)) (m rest)))
-                 (sym (++-assoc (m L) (m (H.eout e)) (m rest)))
-            (MIDib e L rest)
+      → MIDb e L rest ≈̂ MIDib e L rest
     midb→midib e L rest =
-      cast-flip (++-assoc (m L) (m (H.ein e)) (m rest))
-                (++-assoc (m L) (m (H.eout e)) (m rest))
-        (TKB2.mid-assoc H permˢ-K e L rest)
+        ++-assoc (m L) (m (H.ein e)) (m rest)
+      , ++-assoc (m L) (m (H.eout e)) (m rest)
+      , TKB2.mid-assoc H permˢ-K e L rest
 
     ------------------------------------------------------------------
     -- ## MID + IN reconciliation: the carried-block box composed with the
@@ -933,37 +928,18 @@ module TKB3 (H : Hypergraph FlatGen) where
       → MIDb e L rest ∘ˢ (INσb e L rest ∘ˢ INin e L xs rest perm')
         ≈ˢ castˢ (sym (map-++ vl L xs)) (ASout e L rest)
             (MIDib e L rest ∘ˢ INPb e L xs rest p)
+    -- Heterogeneous rewrite (F1): the three sub-results are chained in `≈̂`,
+    -- where transitivity/congruence absorb the endpoint bookkeeping, so the
+    -- former `cast-fuse`/`cast-irrel`/`∘-cast-split`/`cast-irrel` reconciliation
+    -- (the AFin'/AFout'/CFI endpoint plumbing) disappears; the final `≈̂⇒≈ˢ`
+    -- projects back to the (byte-identical) `castˢ`-shaped statement.
     mid-in-canon e L xs rest perm' p uIn =
-      ≈-trans (∘-resp (midb→midib e L rest)
-                      (≈-trans (in-combined e L xs rest perm' p uIn)
-                               (cast-resp (sym (map-++ vl L xs))
-                                          (trans (Rcod e L rest) (Qi e L rest))
-                                          (inp-core→INPb e L xs rest p))))
-      -- castˢ (sym AFin')(sym AFout') MIDib ∘ castˢ (sym map-++Lxs)(trans Rcod Qi)(castˢ refl CC INPb)
-      (≈-trans
-        (∘-resp ≈-refl
-          (≡⇒≈ˢ (cast-fuse refl (sym (map-++ vl L xs))
-                   (sym (cong (m L ++_) (map-++ vl (H.ein e) rest)))
-                   (trans (Rcod e L rest) (Qi e L rest))
-                   (INPb e L xs rest p))))
-        -- castˢ (sym AFin')(sym AFout') MIDib ∘ castˢ (trans refl (sym map-++Lxs)) CFI INPb
-        (≈-trans
-          -- normalise the right factor to (sym map-++Lxs) / (sym AFin')
-          (∘-resp ≈-refl
-            (≡⇒≈ˢ (cast-irrel (trans refl (sym (map-++ vl L xs))) (sym (map-++ vl L xs))
-                     (trans (sym (cong (m L ++_) (map-++ vl (H.ein e) rest)))
-                            (trans (Rcod e L rest) (Qi e L rest)))
-                     (sym (++-assoc (m L) (m (H.ein e)) (m rest)))
-                     (INPb e L xs rest p))))
-          (≈-trans
-            (≈-sym (∘-cast-split (sym (map-++ vl L xs))
-                      (sym (++-assoc (m L) (m (H.ein e)) (m rest)))
-                      (sym (++-assoc (m L) (m (H.eout e)) (m rest)))
-                      (MIDib e L rest) (INPb e L xs rest p)))
-            -- castˢ (sym map-++Lxs)(sym AFout') (MIDib ∘ INPb)
-            (≡⇒≈ˢ (cast-irrel (sym (map-++ vl L xs)) (sym (map-++ vl L xs))
-                     (sym (++-assoc (m L) (m (H.eout e)) (m rest))) (ASout e L rest)
-                     (MIDib e L rest ∘ˢ INPb e L xs rest p))))))
+      ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ (midb→midib e L rest)
+                               (≈̂-trans in≈̂ (inp-core→INPb e L xs rest p)))
+                    (≈̂-sym cast-≈̂))
+      where
+        in≈̂ : (INσb e L rest ∘ˢ INin e L xs rest perm') ≈̂ (idˢ {m L} ⊗ˢ permuteˢ p)
+        in≈̂ = ≈̂-trans (≈ˢ⇒≈̂ (in-combined e L xs rest perm' p uIn)) cast-≈̂
 
     ------------------------------------------------------------------
     -- ## (b) `fire-slideˢ` — the gating brick.
