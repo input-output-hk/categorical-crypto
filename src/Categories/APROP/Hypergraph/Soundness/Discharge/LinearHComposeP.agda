@@ -24,7 +24,7 @@ open import Categories.APROP.Hypergraph.Util.Prune
         ; lookup-injective-unique)
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig using (hComposeP; module hComposeP-impl)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
-  using ( count; count-++; count-map-↑ˡ
+  using ( count; count-++; count-map-↑ˡ; count-map-inj
         ; count-map-↑ˡ-mismatch; count-swap
         ; producedList; consumedList; Linear; tabulate-+)
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (↑ˡ≢↑ʳ)
@@ -211,47 +211,15 @@ module _
   -- fiber lemmas below.
 
   private
-    -- count v (map f xs) ≥ count k xs whenever f k = v.
-    count-map-≥-fiber
-      : ∀ {n m} (f : Fin n → Fin m) (k : Fin n) {v : Fin m}
-      → f k ≡ v
-      → ∀ (xs : List (Fin n)) → count k xs Nat.≤ count v (map f xs)
-    count-map-≥-fiber f k {v} eq []       = z≤n
-    count-map-≥-fiber f k {v} eq (x ∷ xs) with k ≟ x
-    count-map-≥-fiber f k {v} eq (x ∷ xs) | yes refl with v ≟ f x
-    ...                                                  | yes _ = s≤s (count-map-≥-fiber f k eq xs)
-    ...                                                  | no  q = ⊥-elim (q (sym eq))
-    count-map-≥-fiber f k {v} eq (x ∷ xs) | no  _    with v ≟ f x
-    ...                                                  | yes _ = Nat.≤-trans
-                                                                    (count-map-≥-fiber f k eq xs)
-                                                                    (Nat.n≤1+n _)
-    ...                                                  | no  _ = count-map-≥-fiber f k eq xs
-
-    -- count v (map f xs) ≤ count k xs when f is injective and f k = v
-    -- (each occurrence of v in `map f xs` has a unique k-preimage).
-    count-map-≤-fiber
-      : ∀ {n m} (f : Fin n → Fin m)
-      → (∀ {a b} → f a ≡ f b → a ≡ b)
-      → (k : Fin n) {v : Fin m} → f k ≡ v
-      → ∀ (xs : List (Fin n)) → count v (map f xs) Nat.≤ count k xs
-    count-map-≤-fiber f f-inj k {v} eq []       = z≤n
-    count-map-≤-fiber f f-inj k {v} eq (x ∷ xs) with k ≟ x
-    count-map-≤-fiber f f-inj k {v} eq (x ∷ xs) | yes refl with v ≟ f x
-    ...                                                        | yes _ = s≤s (count-map-≤-fiber f f-inj k eq xs)
-    ...                                                        | no  q = ⊥-elim (q (sym eq))
-    count-map-≤-fiber f f-inj k {v} eq (x ∷ xs) | no  k≢x with v ≟ f x
-    ...                                                        | yes p = ⊥-elim (k≢x (f-inj (trans eq p)))
-    ...                                                        | no  _ = count-map-≤-fiber f f-inj k eq xs
-
-    -- count v (map f xs) ≡ count k xs when f injective and f k = v.
+    -- count v (map f xs) ≡ count k xs when f injective and f k = v.  This is
+    -- `count-map-inj` with the counted value rewritten along `f k ≡ v`.
     count-map-fiber
       : ∀ {n m} (f : Fin n → Fin m)
       → (∀ {a b} → f a ≡ f b → a ≡ b)
       → (k : Fin n) {v : Fin m} → f k ≡ v
       → ∀ (xs : List (Fin n)) → count v (map f xs) ≡ count k xs
-    count-map-fiber f f-inj k eq xs =
-      Nat.≤-antisym (count-map-≤-fiber f f-inj k eq xs)
-                    (count-map-≥-fiber f k eq xs)
+    count-map-fiber f f-inj k {v} eq xs =
+      subst (λ w → count w (map f xs) ≡ count k xs) eq (count-map-inj f f-inj k xs)
 
     -- count v (map f xs) ≡ 0 when no element of `xs` maps to v.  The
     -- count-zero hypothesis is keyed on preimages so it threads through

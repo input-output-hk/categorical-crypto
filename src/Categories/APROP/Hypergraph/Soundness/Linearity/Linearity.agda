@@ -47,7 +47,7 @@ import Data.Nat.Properties as Nat
 open import Data.Product using (_×_; _,_)
 open import Data.Sum using (inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; cong₂; sym; trans)
+  using (_≡_; _≢_; refl; cong; cong₂; sym; trans)
 open import Relation.Nullary.Decidable using (yes; no)
 
 -- count v xs : number of occurrences of `v` in `xs`.
@@ -66,21 +66,36 @@ count-++ v (x ∷ xs) ys with v ≟ x
 ... | yes _ = cong suc (count-++ v xs ys)
 ... | no  _ = count-++ v xs ys
 
+-- Generic `count` behaviour under `map f`: an injective `f` preserves the
+-- count of any preimage, and a value with no `f`-preimage has count 0.  All
+-- the per-injection lemmas below are instances (see also the fiber form in
+-- `Discharge.LinearHComposeP`, which is likewise `count-map-inj` up to a
+-- rewrite of the counted value).
+
+count-map-inj : ∀ {n m} (f : Fin n → Fin m) → (∀ {a b} → f a ≡ f b → a ≡ b)
+              → (v : Fin n) (xs : List (Fin n)) → count (f v) (map f xs) ≡ count v xs
+count-map-inj f f-inj v []       = refl
+count-map-inj f f-inj v (x ∷ xs) with f v ≟ f x | v ≟ x
+... | yes _ | yes _ = cong suc (count-map-inj f f-inj v xs)
+... | yes p | no  q = ⊥-elim (q (f-inj p))
+... | no  q | yes p = ⊥-elim (q (cong f p))
+... | no  _ | no  _ = count-map-inj f f-inj v xs
+
+count-map-miss : ∀ {n m} (f : Fin n → Fin m) {w : Fin m} → (∀ x → f x ≢ w)
+               → (xs : List (Fin n)) → count w (map f xs) ≡ 0
+count-map-miss f miss []       = refl
+count-map-miss f {w} miss (x ∷ xs) with w ≟ f x
+... | yes p = ⊥-elim (miss x (sym p))
+... | no  _ = count-map-miss f miss xs
+
 -- count of `v` in `range n`: every Fin appears exactly once.
 
 private
   count-zero-map-suc : ∀ {n} (xs : List (Fin n)) → count (zero {n = n}) (map suc xs) ≡ 0
-  count-zero-map-suc []       = refl
-  count-zero-map-suc (x ∷ xs) with zero {n = _} ≟ suc x
-  ... | no  _ = count-zero-map-suc xs
+  count-zero-map-suc = count-map-miss suc (λ _ ())
 
   count-suc-map-suc : ∀ {n} (i : Fin n) (xs : List (Fin n)) → count (suc i) (map suc xs) ≡ count i xs
-  count-suc-map-suc i []       = refl
-  count-suc-map-suc i (x ∷ xs) with suc i ≟ suc x | i ≟ x
-  ... | yes _ | yes _ = cong suc (count-suc-map-suc i xs)
-  ... | yes p | no  q = ⊥-elim (q (suc-injective p))
-  ... | no  q | yes p = ⊥-elim (q (cong suc p))
-  ... | no  _ | no  _ = count-suc-map-suc i xs
+  count-suc-map-suc = count-map-inj suc suc-injective
 
 count-range : ∀ {n} (v : Fin n) → count v (range n) ≡ 1
 count-range {n = suc n} zero    with zero {n = n} ≟ zero
@@ -92,41 +107,26 @@ count-range {n = suc n} (suc i) with suc i ≟ zero
 --------------------------------------------------------------------------------
 -- Counting along the disjoint injections `_↑ˡ_` and `_↑ʳ_`.
 
--- The "matching" cases.
+-- The "matching" cases: `count`-preservation along the injections
+-- `_↑ˡ nB` / `nA ↑ʳ_` (instances of `count-map-inj`).
 count-map-↑ˡ : ∀ {nA} nB (i : Fin nA) (xs : List (Fin nA))
              → count (i ↑ˡ nB) (map (_↑ˡ nB) xs) ≡ count i xs
-count-map-↑ˡ nB i []       = refl
-count-map-↑ˡ nB i (x ∷ xs) with (i ↑ˡ nB) ≟ (x ↑ˡ nB) | i ≟ x
-... | yes _ | yes _ = cong suc (count-map-↑ˡ nB i xs)
-... | yes p | no  q = ⊥-elim (q (↑ˡ-injective nB i x p))
-... | no  q | yes p = ⊥-elim (q (cong (_↑ˡ nB) p))
-... | no  _ | no  _ = count-map-↑ˡ nB i xs
+count-map-↑ˡ nB = count-map-inj (_↑ˡ nB) (λ {a} {b} → ↑ˡ-injective nB a b)
 
 count-map-↑ʳ : ∀ nA {nB} (j : Fin nB) (xs : List (Fin nB))
              → count (nA ↑ʳ j) (map (nA ↑ʳ_) xs) ≡ count j xs
-count-map-↑ʳ nA j []       = refl
-count-map-↑ʳ nA j (x ∷ xs) with (nA ↑ʳ j) ≟ (nA ↑ʳ x) | j ≟ x
-... | yes _ | yes _ = cong suc (count-map-↑ʳ nA j xs)
-... | yes p | no  q = ⊥-elim (q (↑ʳ-injective nA j x p))
-... | no  q | yes p = ⊥-elim (q (cong (nA ↑ʳ_) p))
-... | no  _ | no  _ = count-map-↑ʳ nA j xs
+count-map-↑ʳ nA = count-map-inj (nA ↑ʳ_) (λ {a} {b} → ↑ʳ-injective nA a b)
 
 -- The "mismatch" cases: a `nA ↑ʳ j` never appears in an `_↑ˡ_` image,
--- and vice versa.
+-- and vice versa (instances of `count-map-miss`).
 
 count-map-↑ˡ-mismatch : ∀ nA {nB} (j : Fin nB) (xs : List (Fin nA))
                       → count (nA ↑ʳ j) (map (_↑ˡ nB) xs) ≡ 0
-count-map-↑ˡ-mismatch nA j []       = refl
-count-map-↑ˡ-mismatch nA {nB} j (x ∷ xs) with (nA ↑ʳ j) ≟ (x ↑ˡ nB)
-... | yes p = ⊥-elim (↑ˡ≢↑ʳ x j (sym p))
-... | no  _ = count-map-↑ˡ-mismatch nA j xs
+count-map-↑ˡ-mismatch nA {nB} j = count-map-miss (_↑ˡ nB) (λ x → ↑ˡ≢↑ʳ x j)
 
 count-map-↑ʳ-mismatch : ∀ {nA} nB (i : Fin nA) (xs : List (Fin nB))
                       → count (i ↑ˡ nB) (map (nA ↑ʳ_) xs) ≡ 0
-count-map-↑ʳ-mismatch nB i []       = refl
-count-map-↑ʳ-mismatch {nA} nB i (x ∷ xs) with (i ↑ˡ nB) ≟ (nA ↑ʳ x)
-... | yes p = ⊥-elim (↑ˡ≢↑ʳ i x p)
-... | no  _ = count-map-↑ʳ-mismatch nB i xs
+count-map-↑ʳ-mismatch {nA} nB i = count-map-miss (nA ↑ʳ_) (λ x q → ↑ˡ≢↑ʳ i x (sym q))
 
 -- count is invariant under swapping the two sides of a `_++_`.
 
