@@ -27,30 +27,42 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.EdgeStepRel
   using (module EdgeStepView)
 
 ------------------------------------------------------------------------
--- ===== submodule TKB =====
+-- The header shared verbatim by every `module TKBn (H : Hypergraph FlatGen)`:
+-- the strict decoder + permute-support opens, the common stdlib vocabulary,
+-- and the `H`/`Kmod`/`m` abbreviations.  Re-exported (`public`) so each
+-- submodule replaces ~13 lines with `open TKBBase H` plus its own
+-- specialised opens.  (The `Perm`/`PermProp` module aliases are re-exported
+-- via `module _ = _`, since `import _ as _` aliases do not survive `open`.)
 ------------------------------------------------------------------------
-module TKB (H : Hypergraph FlatGen) where
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
-  open import Data.Fin using (Fin)
-  open import Data.List using (List; []; _∷_; _++_; map)
-  open import Data.List.Properties using (map-++; ++-assoc)
-  open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-  open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
-  open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
-  import Data.List.Relation.Binary.Permutation.Propositional as Perm
-  open Perm using (_↭_)
-  import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
+module TKBBase (H : Hypergraph FlatGen) where
+  open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_ public
+  open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_ public
+  open import Data.Fin using (Fin) public
+  open import Data.List using (List; []; _∷_; _++_; map) public
+  open import Data.List.Properties using (map-++; ++-assoc) public
+  open import Data.List.Relation.Unary.Unique.Propositional using (Unique) public
+  open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂) public
+  open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst) public
+  import Data.List.Relation.Binary.Permutation.Propositional as PermI
+  import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPropI
+  module Perm = PermI
+  module PermProp = PermPropI
+  open Perm using (_↭_) public
 
-  private module H = Hypergraph H
+  module H = Hypergraph H
 
-  open Dec.StrictDecoder H
+  open Dec.StrictDecoder H public
 
   module Kmod = Support (Fin H.nV) H.vlab
 
-  private
-    m : List (Fin H.nV) → List X
-    m = map vl
+  m : List (Fin H.nV) → List X
+  m = map vl
+
+------------------------------------------------------------------------
+-- ===== submodule TKB =====
+------------------------------------------------------------------------
+module TKB (H : Hypergraph FlatGen) where
+  open TKBBase H
 
   ------------------------------------------------------------------------
   -- The strict fired layer (matching `edge-stepˢ`'s FIRE branch on the
@@ -152,34 +164,14 @@ module TKB (H : Hypergraph FlatGen) where
 -- ===== submodule TKB2 =====
 ------------------------------------------------------------------------
 module TKB2 (H : Hypergraph FlatGen) where
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
+  open TKBBase H
   open import Categories.APROP.Hypergraph.Soundness.Strict.Separability sig _≟X_
     using (module StrictSep)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_
     using (module Scr)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig _≟X_
     using (swap-block)
-  open import Data.Fin using (Fin)
-  open import Data.List using (List; []; _∷_; _++_; map)
-  open import Data.List.Properties using (map-++; ++-assoc)
-  open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-  open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
-  open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
-  import Data.List.Relation.Binary.Permutation.Propositional as Perm
-  open Perm using (_↭_)
-  import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-
-  private module H = Hypergraph H
-
-  open Dec.StrictDecoder H
   open StrictSep H using (permuteˢ-frameˡ)
-
-  module Kmod = Support (Fin H.nV) H.vlab
-
-  private
-    m : List (Fin H.nV) → List X
-    m = map vl
 
   ------------------------------------------------------------------------
   -- The strict fired layer (matching `edge-stepˢ`'s FIRE branch on the
@@ -418,33 +410,14 @@ module TKB2 (H : Hypergraph FlatGen) where
 -- ===== submodule TKB4 =====
 ------------------------------------------------------------------------
 module TKB4 (H : Hypergraph FlatGen) where
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
+  open TKBBase H
   open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
     using (module EquivStep)
   import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
-  open import Data.Fin using (Fin)
-  open import Data.List using (List; []; _∷_; _++_; map)
-  open import Data.List.Properties using (map-++; ++-assoc)
-  open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
   open import Data.List.Relation.Unary.All using (All; []; _∷_)
-  open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
-  open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
-  import Data.List.Relation.Binary.Permutation.Propositional as Perm
-  open Perm using (_↭_)
-  import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
-  private module H = Hypergraph H
-
-  open Dec.StrictDecoder H
   open Run H using (edge-stack-agree)
   open EquivStep H using (pvv-transˢ; pvv-inverse-leftˢ)
-
-  module Kmod = Support (Fin H.nV) H.vlab
-
-  private
-    m : List (Fin H.nV) → List X
-    m = map vl
 
   module _ (permˢ-K : Kmod.PermK) where
     perm-rigidˢ = Kmod.perm-rigidˢ permˢ-K
@@ -682,32 +655,12 @@ module TKB4 (H : Hypergraph FlatGen) where
 -- ===== submodule TKB3 =====
 ------------------------------------------------------------------------
 module TKB3 (H : Hypergraph FlatGen) where
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
+  open TKBBase H
   open import Categories.APROP.Hypergraph.Soundness.Strict.Separability sig _≟X_
     using (module StrictSep)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_
     using (module Scr)
-  open import Data.Fin using (Fin)
-  open import Data.List using (List; []; _∷_; _++_; map)
-  open import Data.List.Properties using (map-++; ++-assoc)
-  open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-  open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
-  open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
-  import Data.List.Relation.Binary.Permutation.Propositional as Perm
-  open Perm using (_↭_)
-  import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-
-  private module H = Hypergraph H
-
-  open Dec.StrictDecoder H
   open StrictSep H using (permuteˢ-frameˡ)
-
-  module Kmod = Support (Fin H.nV) H.vlab
-
-  private
-    m : List (Fin H.nV) → List X
-    m = map vl
 
   open EdgeStepView H public using (fire-termˢ)
 
@@ -1197,31 +1150,12 @@ module TKB3 (H : Hypergraph FlatGen) where
 -- ===== submodule TKB5 =====
 ------------------------------------------------------------------------
 module TKB5 (H : Hypergraph FlatGen) where
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
+  open TKBBase H
   open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
     using (module EquivStep)
-  open import Data.Fin using (Fin)
-  open import Data.List using (List; []; _∷_; _++_; map)
-  open import Data.List.Properties using (map-++; ++-assoc)
-  open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-  open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
-  open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
-  import Data.List.Relation.Binary.Permutation.Propositional as Perm
-  open Perm using (_↭_)
-  import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
-  private module H = Hypergraph H
-
-  open Dec.StrictDecoder H
   open EquivStep H using ( pvv-transˢ; pvv-inverse-leftˢ; pvv-inverse-rightˢ
                          ; edge-stepˢ-graph; edge-step-equivariantˢ )
-
-  module Kmod = Support (Fin H.nV) H.vlab
-
-  private
-    m : List (Fin H.nV) → List X
-    m = map vl
 
   module _ (permˢ-K : Kmod.PermK) where
     KCleanHeadˢ = TKB4.KCleanHeadˢ H permˢ-K
@@ -1297,12 +1231,11 @@ module TKB5 (H : Hypergraph FlatGen) where
 -- ===== submodule TKB6 =====
 ------------------------------------------------------------------------
 module TKB6 (H : Hypergraph FlatGen) where
+  open TKBBase H
   open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-    using (FlatGen; hTensor; module hTensor-impl)
+    using (hTensor; module hTensor-impl)
   open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
     using (extract-elem; extract-prefix)
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
   open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
     using (module EquivStep)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Separability sig _≟X_
@@ -1311,34 +1244,18 @@ module TKB6 (H : Hypergraph FlatGen) where
     using (module Scr)
   import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig as SU
   import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
-  open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_; splitAt)
+  open import Data.Fin using (_↑ˡ_; _↑ʳ_; splitAt)
   open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
   import Data.Fin.Properties as FinP
   open import Data.Empty using (⊥; ⊥-elim)
   open import Relation.Nullary using (yes; no)
-  open import Data.List using (List; []; _∷_; _++_; map)
-  open import Data.List.Properties using (map-++; ++-assoc)
-  open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
   open import Data.List.Relation.Unary.All using (All; []; _∷_)
   open import Data.Maybe using (Maybe; just; nothing)
-  open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
-  open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
-  import Data.List.Relation.Binary.Permutation.Propositional as Perm
-  open Perm using (_↭_)
-  import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
-  private module H = Hypergraph H
-
-  open Dec.StrictDecoder H
   open StrictSep H using (extract-prefix-++ˡ-left; extract-prefix-++ˡ-left-nothing)
   open EquivStep H using (pvv-transˢ; pvv-inverse-leftˢ; pvv-inverse-rightˢ)
 
-  module Kmod = Support (Fin H.nV) H.vlab
-
   private
-    m : List (Fin H.nV) → List X
-    m = map vl
-
     module ScrH = Scr (Fin H.nV) H.vlab
 
   -- an `idˢ` cast can move its single non-trivial endpoint to the other side.
