@@ -26,6 +26,7 @@
 module Categories.FreeStrictSMC where
 
 open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.Product using (Σ-syntax; _,_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ; ≡-dec; map-++)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality
@@ -163,6 +164,75 @@ module Build
         {f : HomS xs ys} {g : HomS xs' ys'}
     → castˢ p q f ≈ˢ g → f ≈ˢ castˢ (sym p) (sym q) g
   cast-flip refl refl e = e
+
+  ------------------------------------------------------------------------
+  -- Heterogeneous strict equality `_≈̂_` (F1).
+  --
+  -- `_≈ˢ_` only relates morphisms at IDENTICAL endpoints, so every step of a
+  -- decoder proof that moves a morphism across a `++`/`map` boundary must
+  -- name the endpoint mismatch and glue it with `cast-fuse`/`cast-irrel`/
+  -- `∘-cast-split`.  `_≈̂_` packages the two endpoint equalities into the
+  -- relation (the SAME device as `_≅↭ᴴ_` in `FaithfulnessInductive`), so a
+  -- chain of `≈̂`-steps pays the endpoint bookkeeping ONCE, inside the
+  -- congruence/transitivity combinators, instead of at every step.  The
+  -- endpoints are `List X`, a set (UIP via `uipL`), so no coherence leaks.
+
+  infix 4 _≈̂_
+  _≈̂_ : ∀ {as bs as' bs'} → HomS as bs → HomS as' bs' → Set
+  _≈̂_ {as} {bs} {as'} {bs'} f g =
+    Σ[ p ∈ as ≡ as' ] Σ[ q ∈ bs ≡ bs' ] (castˢ p q f ≈ˢ g)
+
+  -- embed the homogeneous equivalence (`castˢ refl refl` reduces)
+  ≈ˢ⇒≈̂ : ∀ {as bs} {f g : HomS as bs} → f ≈ˢ g → f ≈̂ g
+  ≈ˢ⇒≈̂ e = refl , refl , e
+
+  ≈̂-refl : ∀ {as bs} {f : HomS as bs} → f ≈̂ f
+  ≈̂-refl = refl , refl , ≈-refl
+
+  -- the ONE lemma that retires `cast-fuse`/`cast-irrel`/`cast-flip`: a cast is
+  -- heterogeneously equal to its content.
+  cast-≈̂ : ∀ {as bs as' bs'} {p : as ≡ as'} {q : bs ≡ bs'} {f : HomS as bs}
+         → castˢ p q f ≈̂ f
+  cast-≈̂ {p = p} {q} {f} =
+    sym p , sym q ,
+    ≈-trans (≡⇒≈ˢ (cast-fuse p (sym p) q (sym q) f))
+            (≡⇒≈ˢ (cast-irrel (trans p (sym p)) refl (trans q (sym q)) refl f))
+
+  ≈̂-sym : ∀ {as bs as' bs'} {f : HomS as bs} {g : HomS as' bs'}
+        → f ≈̂ g → g ≈̂ f
+  ≈̂-sym (p , q , e) = sym p , sym q , ≈-sym (cast-flip p q e)
+
+  ≈̂-trans : ∀ {as bs as' bs' as'' bs''}
+              {f : HomS as bs} {g : HomS as' bs'} {h : HomS as'' bs''}
+          → f ≈̂ g → g ≈̂ h → f ≈̂ h
+  ≈̂-trans {f = f} (p₁ , q₁ , e₁) (p₂ , q₂ , e₂) =
+    trans p₁ p₂ , trans q₁ q₂ ,
+    ≈-trans (≡⇒≈ˢ (sym (cast-fuse p₁ p₂ q₁ q₂ f)))
+            (≈-trans (cast-resp p₂ q₂ e₁) e₂)
+
+  -- composition congruence: threads the middle endpoint through `∘-cast-split`
+  -- (choosing `g`'s domain proof as the middle) — no refl-matching needed.
+  ∘-resp-≈̂ : ∀ {as bs cs as' bs' cs'}
+               {g : HomS bs cs} {g' : HomS bs' cs'}
+               {f : HomS as bs} {f' : HomS as' bs'}
+           → g ≈̂ g' → f ≈̂ f' → (g ∘ˢ f) ≈̂ (g' ∘ˢ f')
+  ∘-resp-≈̂ {g = g} {f = f} (gd , gc , eg) (fd , fc , ef) =
+    fd , gc ,
+    ≈-trans (∘-cast-split fd gd gc g f)
+            (∘-resp eg (≈-trans (≡⇒≈ˢ (cast-irrel fd fd gd fc f)) ef))
+
+  -- tensor congruence: the factors share no endpoint, so all four proofs
+  -- refl-match cleanly.
+  ⊗-resp-≈̂ : ∀ {as bs us vs as' bs' us' vs'}
+               {f : HomS as bs} {f' : HomS as' bs'}
+               {g : HomS us vs} {g' : HomS us' vs'}
+           → f ≈̂ f' → g ≈̂ g' → (f ⊗ˢ g) ≈̂ (f' ⊗ˢ g')
+  ⊗-resp-≈̂ (refl , refl , ef) (refl , refl , eg) = refl , refl , ⊗-resp ef eg
+
+  -- project back to `≈ˢ` once the endpoints coincide (UIP collapses the proofs)
+  ≈̂⇒≈ˢ : ∀ {as bs} {f g : HomS as bs} → f ≈̂ g → f ≈ˢ g
+  ≈̂⇒≈ˢ {f = f} (p , q , e) =
+    ≈-trans (≈-sym (≡⇒≈ˢ (cast-irrel p refl q refl f))) e
 
   ------------------------------------------------------------------------
   -- Unit-side laws, DERIVED from `σ-unitˢ` (the left forms are cast-free
