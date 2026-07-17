@@ -56,29 +56,11 @@ remove-cons : (X : FinBij n N) → remove 0F (cons-fb X) ≈-fb X
 remove-cons X = cons-fb-injective (P.lift₀-remove (cons-fb X) refl)
 
 ------------------------------------------------------------------------
--- 2. The peel lemma:  every `b` factors as `cons-fb (residual) ∘ ρ_m`,
---    with `m = b ⟨$⟩ˡ 0F` and `residual = remove 0F (b ∘ ρ_m⁻¹)` — exactly
---    the data `canonW` recurses on.  (This is `eval-canonW`'s inner chain.)
-
-peel : (b : FinBij (suc n) (suc n))
-     → b ≈-fb (cons-fb (remove 0F (b ∘-fb inv-fb (rotate-fb (b P.⟨$⟩ˡ 0F))))
-               ∘-fb rotate-fb (b P.⟨$⟩ˡ 0F))
-peel {n} b i = sym (trans stepC stepD)
-  where
-  m    = b P.⟨$⟩ˡ 0F
-  ρ    = rotate-fb m
-  bρ⁻¹ = b ∘-fb inv-fb ρ
-  rest = remove 0F bρ⁻¹
-
-  fix0 : bρ⁻¹ P.⟨$⟩ʳ 0F ≡ 0F
-  fix0 = trans (cong (b P.⟨$⟩ʳ_) (inv-rotate-fb-0 m)) (P.inverseʳ b)
-
-  stepC : (cons-fb rest ∘-fb ρ) P.⟨$⟩ʳ i ≡ (bρ⁻¹ ∘-fb ρ) P.⟨$⟩ʳ i
-  stepC = ∘-fb-cong {g = cons-fb rest} {g′ = bρ⁻¹} {f = ρ} {f′ = ρ}
-                    (P.lift₀-remove bρ⁻¹ fix0) (λ _ → refl) i
-
-  stepD : (bρ⁻¹ ∘-fb ρ) P.⟨$⟩ʳ i ≡ b P.⟨$⟩ʳ i
-  stepD = cong (b P.⟨$⟩ʳ_) (P.inverseˡ ρ)
+-- 2. The peel lemma (every `b` factors as `cons-fb (residual) ∘ ρ_m`) now
+--    lives upstream in `Word`, next to `canonW`/`eval-canonW` whose inner
+--    chain it IS [REVIEW3/00-conceptual-unbiased.md F3]; `peel` is visible
+--    here via the unrestricted `open import Categories.PermuteCoherence.Word`
+--    above.
 
 ------------------------------------------------------------------------
 -- 3. `canonW` of a `cons-fb X ∘ rotate-fb k`:  the peel is realised at

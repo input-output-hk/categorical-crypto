@@ -158,18 +158,48 @@ canonW {suc n} b =
 fin1-unique : (j : Fin 1) → j ≡ 0F
 fin1-unique 0F = refl
 
+-- The Lehmer factorization: every `b` factors as `cons-fb rest ∘ ρ_m`, with
+-- `m = b ⟨$⟩ˡ 0F` and `rest = remove 0F (b ∘ ρ_m⁻¹)` — exactly the data
+-- `canonW` recurses on.  This IS `eval-canonW`'s inner chain (its last two
+-- steps below), pulled out as a standalone fact so consumers that only need
+-- the factorization (e.g. `LehmerRotate.canonW-cons-rotate`, `InsertProof`)
+-- don't have to re-derive it inside a bigger `evalW-++` chase.
+peel : {n : ℕ} (b : FinBij (suc n) (suc n))
+     → b ≈-fb (cons-fb (remove 0F (b ∘-fb inv-fb (rotate-fb (b P.⟨$⟩ˡ 0F))))
+               ∘-fb rotate-fb (b P.⟨$⟩ˡ 0F))
+peel {n} b i = sym (trans stepC stepD)
+  where
+  -- named `m₀`, not `m`: this module's `private variable m : ℕ` (used for
+  -- automatic implicit generalization) clashes with an untyped `where`
+  -- binding of the same name.
+  m₀   = b P.⟨$⟩ˡ 0F
+  ρ    = rotate-fb m₀
+  bρ⁻¹ = b ∘-fb inv-fb ρ
+  rest = remove 0F bρ⁻¹
+
+  -- The fixing condition for `lift₀-remove`: `bρ⁻¹ ⟨$⟩ʳ 0F ≡ 0F`.
+  fix0 : bρ⁻¹ P.⟨$⟩ʳ 0F ≡ 0F
+  fix0 = trans (cong (b P.⟨$⟩ʳ_) (inv-rotate-fb-0 m₀)) (P.inverseʳ b)
+
+  -- Collapse `cons-fb rest ≈ bρ⁻¹` via `lift₀-remove fix0`.
+  stepC : (cons-fb rest ∘-fb ρ) P.⟨$⟩ʳ i ≡ (bρ⁻¹ ∘-fb ρ) P.⟨$⟩ʳ i
+  stepC = ∘-fb-cong
+            {g = cons-fb rest} {g′ = bρ⁻¹}
+            {f = ρ} {f′ = ρ}
+            (P.lift₀-remove bρ⁻¹ fix0)
+            (λ _ → refl)
+            i
+
+  -- Cancel `inv-fb ρ ∘ ρ = id`.
+  stepD : (bρ⁻¹ ∘-fb ρ) P.⟨$⟩ʳ i ≡ b P.⟨$⟩ʳ i
+  stepD = cong (b P.⟨$⟩ʳ_) (P.inverseˡ ρ)
+
 -- Roundtrip soundness:  `evalW (canonW b) ≈-fb b`.
 eval-canonW : {n : ℕ} (b : FinBij (suc n) (suc n)) → evalW (canonW b) ≈-fb b
 eval-canonW {zero}  b 0F = sym (fin1-unique (b P.⟨$⟩ʳ 0F))
 eval-canonW {suc n} b i =
   let m    = b P.⟨$⟩ˡ 0F
-      ρ    = rotate-fb m
-      bρ⁻¹ = b ∘-fb inv-fb ρ
-      rest = remove 0F bρ⁻¹
-
-      -- The fixing condition for `lift₀-remove`: `bρ⁻¹ ⟨$⟩ʳ 0F ≡ 0F`.
-      fix0 : bρ⁻¹ P.⟨$⟩ʳ 0F ≡ 0F
-      fix0 = trans (cong (b P.⟨$⟩ʳ_) (inv-rotate-fb-0 m)) (P.inverseʳ b)
+      rest = remove 0F (b ∘-fb inv-fb (rotate-fb m))
 
       -- A: factor `evalW (canonW b)` over `_++_` (`evalW-++`).
       stepA : evalW (canonW b) P.⟨$⟩ʳ i
@@ -179,29 +209,17 @@ eval-canonW {suc n} b i =
       -- B: rewrite both inner factors by their soundness lemmas
       -- (`rotateW-sound`, `eval-liftW` + IH).
       stepB : (evalW (liftW (canonW rest)) ∘-fb evalW (rotateW m)) P.⟨$⟩ʳ i
-            ≡ (cons-fb rest ∘-fb ρ) P.⟨$⟩ʳ i
+            ≡ (cons-fb rest ∘-fb rotate-fb m) P.⟨$⟩ʳ i
       stepB =
         ∘-fb-cong
           {g = evalW (liftW (canonW rest))} {g′ = cons-fb rest}
-          {f = evalW (rotateW m)}           {f′ = ρ}
+          {f = evalW (rotateW m)}           {f′ = rotate-fb m}
           (λ j → trans (eval-liftW (canonW rest) j)
                        (cons-fb-cong (eval-canonW rest) j))
           (rotateW-sound m)
           i
 
-      -- C: collapse `cons-fb rest ≈ bρ⁻¹` via `lift₀-remove fix0`.
-      stepC : (cons-fb rest ∘-fb ρ) P.⟨$⟩ʳ i ≡ (bρ⁻¹ ∘-fb ρ) P.⟨$⟩ʳ i
-      stepC = ∘-fb-cong
-                {g = cons-fb rest} {g′ = bρ⁻¹}
-                {f = ρ} {f′ = ρ}
-                (P.lift₀-remove bρ⁻¹ fix0)
-                (λ _ → refl)
-                i
-
-      -- D: cancel `inv-fb ρ ∘ ρ = id`.
-      stepD : (bρ⁻¹ ∘-fb ρ) P.⟨$⟩ʳ i ≡ b P.⟨$⟩ʳ i
-      stepD = cong (b P.⟨$⟩ʳ_) (P.inverseˡ ρ)
-  in trans stepA (trans stepB (trans stepC stepD))
+  in trans stepA (trans stepB (sym (peel b i)))
 
 ------------------------------------------------------------------------
 -- 7. The word equivalence `_~ʷ_` (the Coxeter relations on words).
