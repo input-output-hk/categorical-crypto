@@ -54,8 +54,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using ( FlatGen; range; hTensor; module hTensor-impl
-        ; map-via-inj; map-via-raise
-        ; subst₂-FlatGen-cancel; subst₂-FlatGen-cancel′ )
+        ; map-via-inj; map-via-raise )
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
@@ -97,46 +96,29 @@ module Embeds (G K : Hypergraph FlatGen) where
     module K = Hypergraph K
     module C = Hypergraph (hTensor G K)
   open hTensor-impl G K public
-    using ( injL; injR; vlab-c; vlab-injL; vlab-injR
+    using ( injL; injR; vlab-injL; vlab-injR
           ; ein-c-inj₁-red; eout-c-inj₁-red; ein-c-inj₂-red; eout-c-inj₂-red
-          ; elab-c; elab-c-inj₁; elab-c-inj₂ )
+          ; elab-c-inj₁; elab-c-inj₂ )
 
   ------------------------------------------------------------------------
   -- G-side embedding: φ = injL, ψ = _↑ˡ K.nE, H = G, J = hTensor G K.
+  --
+  -- `atom-ein`/`atom-eout`/`ψ-elab` are DERIVED from the raw endpoint
+  -- reductions + edge-label reduction by `DC.EmbedGlue` (same builder
+  -- `DecodeComposeAssembly` uses for the `hComposeP` twin).
 
   ψG : Fin G.nE → Fin C.nE
   ψG eG = eG ↑ˡ K.nE
 
-  atom-einG : ∀ eG → map C.vlab (C.ein (ψG eG)) ≡ map G.vlab (G.ein eG)
-  atom-einG eG = trans (cong (map vlab-c) (ein-c-inj₁-red eG))
-                       (sym (map-via-inj vlab-injL (G.ein eG)))
-
-  atom-eoutG : ∀ eG → map C.vlab (C.eout (ψG eG)) ≡ map G.vlab (G.eout eG)
-  atom-eoutG eG = trans (cong (map vlab-c) (eout-c-inj₁-red eG))
-                        (sym (map-via-inj vlab-injL (G.eout eG)))
-
-  ψ-elabG : ∀ eG → subst₂ FlatGen (atom-einG eG) (atom-eoutG eG) (C.elab (ψG eG)) ≡ G.elab eG
-  ψ-elabG eG =
-    trans (subst₂-FlatGen-cancel
-             (cong (map vlab-c) (ein-c-inj₁-red eG))
-             (cong (map vlab-c) (eout-c-inj₁-red eG))
-             (map-via-inj vlab-injL (G.ein eG))
-             (map-via-inj vlab-injL (G.eout eG))
-             (elab-c (eG ↑ˡ K.nE)))
-          (trans (cong (subst₂ FlatGen
-                          (sym (map-via-inj vlab-injL (G.ein eG)))
-                          (sym (map-via-inj vlab-injL (G.eout eG))))
-                       (elab-c-inj₁ eG))
-                 (subst₂-FlatGen-cancel′
-                    (map-via-inj vlab-injL (G.ein eG))
-                    (map-via-inj vlab-injL (G.eout eG))
-                    (G.elab eG)))
+  module GG = DC.EmbedGlue {H = G} {J = hTensor G K}
+                injL ψG ein-c-inj₁-red eout-c-inj₁-red
+                (map-via-inj vlab-injL) elab-c-inj₁
 
   module TG = TermEmbedˢ {H = G} {J = hTensor G K}
                 injL (λ {x} {y} → ↑ˡ-injective K.nV x y)
                 vlab-injL
                 ψG ein-c-inj₁-red eout-c-inj₁-red
-                atom-einG atom-eoutG ψ-elabG
+                GG.atom-ein GG.atom-eout GG.ψ-elab
 
   ------------------------------------------------------------------------
   -- K-side embedding: φ = injR, ψ = G.nE ↑ʳ_, H = K, J = hTensor G K.
@@ -144,36 +126,15 @@ module Embeds (G K : Hypergraph FlatGen) where
   ψK : Fin K.nE → Fin C.nE
   ψK eK = G.nE ↑ʳ eK
 
-  atom-einK : ∀ eK → map C.vlab (C.ein (ψK eK)) ≡ map K.vlab (K.ein eK)
-  atom-einK eK = trans (cong (map vlab-c) (ein-c-inj₂-red eK))
-                       (sym (map-via-raise vlab-injR (K.ein eK)))
-
-  atom-eoutK : ∀ eK → map C.vlab (C.eout (ψK eK)) ≡ map K.vlab (K.eout eK)
-  atom-eoutK eK = trans (cong (map vlab-c) (eout-c-inj₂-red eK))
-                        (sym (map-via-raise vlab-injR (K.eout eK)))
-
-  ψ-elabK : ∀ eK → subst₂ FlatGen (atom-einK eK) (atom-eoutK eK) (C.elab (ψK eK)) ≡ K.elab eK
-  ψ-elabK eK =
-    trans (subst₂-FlatGen-cancel
-             (cong (map vlab-c) (ein-c-inj₂-red eK))
-             (cong (map vlab-c) (eout-c-inj₂-red eK))
-             (map-via-raise vlab-injR (K.ein eK))
-             (map-via-raise vlab-injR (K.eout eK))
-             (elab-c (G.nE ↑ʳ eK)))
-          (trans (cong (subst₂ FlatGen
-                          (sym (map-via-raise vlab-injR (K.ein eK)))
-                          (sym (map-via-raise vlab-injR (K.eout eK))))
-                       (elab-c-inj₂ eK))
-                 (subst₂-FlatGen-cancel′
-                    (map-via-raise vlab-injR (K.ein eK))
-                    (map-via-raise vlab-injR (K.eout eK))
-                    (K.elab eK)))
+  module KG = DC.EmbedGlue {H = K} {J = hTensor G K}
+                injR ψK ein-c-inj₂-red eout-c-inj₂-red
+                (map-via-raise vlab-injR) elab-c-inj₂
 
   module TK = TermEmbedˢ {H = K} {J = hTensor G K}
                 injR (λ {x} {y} → ↑ʳ-injective G.nV x y)
                 vlab-injR
                 ψK ein-c-inj₂-red eout-c-inj₂-red
-                atom-einK atom-eoutK ψ-elabK
+                KG.atom-ein KG.atom-eout KG.ψ-elab
 
 --------------------------------------------------------------------------------
 -- ## The ⊗-shape, assembled from the K-block braid residual.
