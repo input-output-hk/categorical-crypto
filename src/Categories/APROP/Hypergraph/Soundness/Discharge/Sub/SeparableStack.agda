@@ -28,7 +28,7 @@ open import Data.List.Relation.Unary.All using (All; []; _∷_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (just; nothing)
-open import Data.Product using (_,_)
+open import Data.Product using (_,_; ∃-syntax)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; trans; cong; subst)
 open import Relation.Nullary.Decidable using (yes; no)
@@ -171,3 +171,84 @@ extract-prefix-++ˡ-nothing (k ∷ ks) xs R (dk ∷ dks) eqn with extract-elem k
                 | extract-prefix-++ˡ-nothing ks xs' R dks eqp = refl
 ...     | just (_ , _) with eqn
 ...       | ()
+
+--------------------------------------------------------------------------------
+-- ## LEFT-frame separability (frame block on the LEFT of the searched list).
+--
+-- Mirror of the `++ˡ` family above.  `extract-elem`/`extract-prefix` walk
+-- left-to-right, so a LEFT frame `F` is only transparent when the searched
+-- keys are absent from it (`extract-elem k F ≡ nothing`); otherwise the key
+-- would fire inside `F` and the residual shape would break.  That
+-- disjointness side condition is exactly what the term-level strict decoder
+-- lacks (making left-frame separability false there) but which holds at this
+-- stack level for the disjoint `↑ˡ`/`↑ʳ` injections.  With it, `F` passes
+-- through whole onto the residual: the residual on `F ++ xs` is
+-- `F ++ (residual on xs)`.  Only the `just`/prefix directions are new; the
+-- `nothing`-direction reuses `extract-elem-++ˡ-nothing` (which is symmetric).
+--------------------------------------------------------------------------------
+
+-- `extract-elem` on `F ++ xs` with `k` absent from `F`: `k` is located in `xs`
+-- with residual `rest`, hence in `F ++ xs` with residual `F ++ rest`.  The
+-- payload is existential — the mixed liftings only need `∃`.  Induction on `F`:
+-- the head `f` cannot equal `k` (else the `F`-lookup would be `just`), so it is
+-- skipped onto the residual.
+extract-elem-++ʳ
+  : ∀ {n} (k : Fin n) (F xs : List (Fin n))
+      {rest : List (Fin n)} {p : xs Perm.↭ k ∷ rest}
+  → extract-elem k F ≡ nothing
+  → extract-elem k xs ≡ just (rest , p)
+  → ∃[ q ] extract-elem k (F ++ xs) ≡ just (F ++ rest , q)
+extract-elem-++ʳ k []      xs {rest} {p} eqF eqx = p , eqx
+extract-elem-++ʳ k (f ∷ F) xs eqF eqx with f ≟ k
+extract-elem-++ʳ k (f ∷ F) xs eqF eqx | yes refl with eqF
+... | ()
+extract-elem-++ʳ k (f ∷ F) xs eqF eqx | no ¬q with extract-elem k F in eqFi
+... | nothing with extract-elem-++ʳ k F xs eqFi eqx
+...              | _ , e rewrite e = _ , refl
+extract-elem-++ʳ k (f ∷ F) xs eqF eqx | no ¬q | just _ with eqF
+... | ()
+
+-- `extract-prefix` on `F ++ ys` with every key absent from `F`: located in `ys`
+-- with residual `rest`, hence in `F ++ ys` with residual `F ++ rest`.  The
+-- located head keeps `F` in front (residual `F ++ ys'`), so the same `F` and
+-- the tail of the `All` witness carry the recursion.
+extract-prefix-++ʳ
+  : ∀ {n} (ks F ys : List (Fin n))
+      {rest : List (Fin n)} {p : ys Perm.↭ ks ++ rest}
+  → All (λ k → extract-elem k F ≡ nothing) ks
+  → extract-prefix ks ys ≡ just (rest , p)
+  → ∃[ q ] extract-prefix ks (F ++ ys) ≡ just (F ++ rest , q)
+extract-prefix-++ʳ []       F ys {rest} {p} _ eq with eq
+... | refl = _ , refl
+extract-prefix-++ʳ (k ∷ ks) F ys (ak ∷ aks) eq with extract-elem k ys in eqe
+... | nothing with eq
+...              | ()
+extract-prefix-++ʳ (k ∷ ks) F ys (ak ∷ aks) eq | just (ys' , pe)
+    with extract-prefix ks ys' in eqp
+... | nothing with eq
+...              | ()
+extract-prefix-++ʳ (k ∷ ks) F ys (ak ∷ aks) eq | just (ys' , pe)
+    | just (rest' , pp) with eq
+... | refl with extract-elem-++ʳ k F ys ak eqe
+...           | _ , e-elem with extract-prefix-++ʳ ks F ys' aks eqp
+...              | _ , e-prefix rewrite e-elem | e-prefix = _ , refl
+
+-- NOTHING-direction of the left frame.  Same disjointness side condition;
+-- structure mirrors `extract-prefix-via-injective-nothing`.
+extract-prefix-++ʳ-nothing
+  : ∀ {n} (ks F ys : List (Fin n))
+  → All (λ k → extract-elem k F ≡ nothing) ks
+  → extract-prefix ks ys ≡ nothing
+  → extract-prefix ks (F ++ ys) ≡ nothing
+extract-prefix-++ʳ-nothing []       F ys _          ()
+extract-prefix-++ʳ-nothing (k ∷ ks) F ys (ak ∷ aks) eq with extract-elem k ys in eqe
+-- head absent from `ys` (hyp) and from `F` (side cond) ⇒ absent from `F ++ ys`.
+... | nothing rewrite extract-elem-++ˡ-nothing k F ys ak eqe = refl
+... | just (ys' , pe) with extract-prefix ks ys' in eqp
+...     | nothing with extract-elem-++ʳ k F ys ak eqe
+...        | _ , e-elem
+             rewrite e-elem
+                   | extract-prefix-++ʳ-nothing ks F ys' aks eqp = refl
+extract-prefix-++ʳ-nothing (k ∷ ks) F ys (ak ∷ aks) eq | just (ys' , pe)
+    | just (_ , _) with eq
+...    | ()
