@@ -1,11 +1,10 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Per-smart-constructor `decode-attempt` success lemmas (hEmpty/hVar/
--- hId/hGen/hSwap/hTensor) plus the generic edge-step/process-edges
--- lifting machinery, shared by the pruned totality
--- (`DecodeAttemptLinearP.decode-attempt-LinearP`, which derives the
--- total pruned decoder `decodeP`).
+-- Per-smart-constructor decode totality witnesses (hEmpty/hVar/hId/hGen/
+-- hSwap/hTensor), each the bare permutation `process-all-edges H dom ↭ cod`,
+-- plus the generic edge-step/process-edges lifting machinery, shared by the
+-- pruned totality (`DecodeAttemptLinearP.decode-attempt-LinearP`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -32,35 +31,27 @@ open import Data.List
 open import Data.List.Properties
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Maybe using (just; nothing)
 open import Data.Product using (Σ-syntax; ∃-syntax; _,_; _×_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
 
 
 --------------------------------------------------------------------------------
--- Per-case lemmas, one per smart constructor of `FromAPROP`.  The
--- `hEmpty`/`hVar` base cases reduce by `refl`.
+-- Per-case lemmas, one per smart constructor of `FromAPROP`.  Each produces
+-- the *bare* totality witness — the permutation of `process-all-edges`'s
+-- final stack onto `H.cod` (what `decode-attempt`'s `just` payload always
+-- was; the `Maybe`/`≡ just` wrapping was pre-demotion residue).  The
+-- `hEmpty`/`hVar` base cases have `nE = 0` and `dom = cod`, so
+-- `process-all-edges` reduces to `dom` and the witness is reflexivity.
 
 decode-attempt-hEmpty
-  : ∃[ t ] decode-attempt hEmpty ≡ just t
-decode-attempt-hEmpty = _ , refl
+  : process-all-edges hEmpty (Hypergraph.dom hEmpty) Perm.↭ Hypergraph.cod hEmpty
+decode-attempt-hEmpty = Perm.↭-refl
 
 decode-attempt-hVar
   : ∀ (x : X)
-  → ∃[ t ] decode-attempt (hVar x) ≡ just t
-decode-attempt-hVar x = _ , refl
-
---------------------------------------------------------------------------------
--- Extraction: from `decode-attempt H ≡ just _` recover the permutation of
--- the final stack of `process-all-edges` to `H.cod`.  Since `decode-attempt`
--- IS that totality witness (`extract-exact H.cod (process-all-edges H.dom)`),
--- the payload of the `just` is exactly the permutation.
-
-decode-attempt-perm-from-just
-  : (H : Hypergraph FlatGen)
-  → ∃[ tH ] decode-attempt H ≡ just tH
-  → process-all-edges H (Hypergraph.dom H) Perm.↭ Hypergraph.cod H
-decode-attempt-perm-from-just H (tH , _) = tH
+  → process-all-edges (hVar x) (Hypergraph.dom (hVar x)) Perm.↭ Hypergraph.cod (hVar x)
+decode-attempt-hVar x = Perm.↭-refl
 
 --------------------------------------------------------------------------------
 -- `process-edges (xs ++ ys) s` factors as `process-edges ys` applied to the
@@ -411,33 +402,18 @@ module _ (G K : Hypergraph FlatGen) where
       (edge-step-↑ʳ-on-perm e s xs ys s↭std)
 
 --------------------------------------------------------------------------------
--- Inverse of `decode-attempt-perm-from-just`: from a final stack with a
--- permutation to `H.cod`, derive `decode-attempt H ≡ just _`.
-
-decode-attempt-from-perm
-  : (H : Hypergraph FlatGen)
-  → process-all-edges H (Hypergraph.dom H) Perm.↭ Hypergraph.cod H
-  → ∃[ t ] decode-attempt H ≡ just t
-decode-attempt-from-perm H perm
-    with extract-prefix-from-↭ (process-all-edges H (Hypergraph.dom H))
-                               (Hypergraph.cod H) perm
-... | _ , eq-prefix rewrite eq-prefix = _ , refl
-
---------------------------------------------------------------------------------
 -- `hSwap A B`: nE = 0, dom = L ++ R, cod = R ++ L.  `process-all-edges`
--- returns (dom, id); `extract-exact` succeeds via `++-comm` +
--- `extract-prefix-from-↭`.
+-- returns `dom` (by `refl`); the boundary permutation `dom ↭ cod` is
+-- `++-comm L R`.
 
 decode-attempt-hSwap
   : ∀ (A B : ObjTerm)
-  → ∃[ t ] decode-attempt (hSwap A B) ≡ just t
+  → process-all-edges (hSwap A B) (Hypergraph.dom (hSwap A B))
+      Perm.↭ Hypergraph.cod (hSwap A B)
 decode-attempt-hSwap A B =
-  decode-attempt-from-perm (hSwap A B)
-    -- nE = 0 ⇒ `process-all-edges` is `dom` by `refl`; the boundary
-    -- permutation `dom ↭ cod` is `++-comm L R`.
-    ( PermProp.++-comm
-        (map (_↑ˡ length (flatten B)) (range (length (flatten A))))
-        (map (length (flatten A) ↑ʳ_) (range (length (flatten B)))) )
+    PermProp.++-comm
+      (map (_↑ˡ length (flatten B)) (range (length (flatten A))))
+      (map (length (flatten A) ↑ʳ_) (range (length (flatten B))))
 
 --------------------------------------------------------------------------------
 -- `hGen g`: nE = 1, ein 0 = dom = L, eout 0 = cod = R.  The single edge
@@ -446,9 +422,8 @@ decode-attempt-hSwap A B =
 
 decode-attempt-hGen
   : ∀ {A B : ObjTerm} (g : mor A B)
-  → ∃[ t ] decode-attempt (hGen g) ≡ just t
-decode-attempt-hGen {A} {B} g =
-  decode-attempt-from-perm (hGen g) perm
+  → process-all-edges (hGen g) (Hypergraph.dom (hGen g)) Perm.↭ Hypergraph.cod (hGen g)
+decode-attempt-hGen {A} {B} g = perm
   where
     H = hGen g
     module H = Hypergraph H
@@ -471,19 +446,16 @@ decode-attempt-hGen {A} {B} g =
 
 decode-attempt-hTensor
   : (G K : Hypergraph FlatGen)
-  → (∃[ tG ] decode-attempt G ≡ just tG)
-  → (∃[ tK ] decode-attempt K ≡ just tK)
-  → ∃[ t ] decode-attempt (hTensor G K) ≡ just t
-decode-attempt-hTensor G K ih-G ih-K =
-    decode-attempt-from-perm (hTensor G K) perm-final
+  → process-all-edges G (Hypergraph.dom G) Perm.↭ Hypergraph.cod G
+  → process-all-edges K (Hypergraph.dom K) Perm.↭ Hypergraph.cod K
+  → process-all-edges (hTensor G K) (Hypergraph.dom (hTensor G K))
+      Perm.↭ Hypergraph.cod (hTensor G K)
+decode-attempt-hTensor G K perm-G perm-K =
+    perm-final
   where
     module G = Hypergraph G
     module K = Hypergraph K
     open Perm.PermutationReasoning
-
-    -- The per-side totality witnesses (stacks after each side's run).
-    perm-G = decode-attempt-perm-from-just G ih-G
-    perm-K = decode-attempt-perm-from-just K ih-K
 
     s_G_final = process-all-edges G G.dom
     s_K_final = process-all-edges K K.dom
@@ -533,7 +505,7 @@ decode-attempt-hTensor G K ih-G ih-K =
 
 decode-attempt-hId
   : ∀ (A : ObjTerm)
-  → ∃[ t ] decode-attempt (hId A) ≡ just t
+  → process-all-edges (hId A) (Hypergraph.dom (hId A)) Perm.↭ Hypergraph.cod (hId A)
 decode-attempt-hId unit       = decode-attempt-hEmpty
 decode-attempt-hId (Var x)    = decode-attempt-hVar x
 decode-attempt-hId (A ⊗₀ B)   =

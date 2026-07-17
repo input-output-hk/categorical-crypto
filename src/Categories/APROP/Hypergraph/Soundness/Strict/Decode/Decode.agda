@@ -35,8 +35,6 @@ open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-prefix; extract-exact; edge-step; process-edges)
-open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
-  using (decode-attempt-perm-from-just)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
@@ -117,10 +115,10 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
       (sym (RF.stacks-agree (range Hf.nE) Hf.dom))
       w
     where
-      -- The non-strict totality witness is now exactly the permutation
+      -- The non-strict totality witness is exactly the permutation
       -- `process-all-edges ⟪f⟫ dom ↭ cod`; the strict/non-strict `stacks-agree`
       -- transports it onto the strict final stack `RF.s-finˢ`.
-      w = decode-attempt-perm-from-just ⟪ f ⟫ (decode-attempt-LinearP f)
+      w = decode-attempt-LinearP f
 
   decode-pkgˢ : Σ[ p ∈ RF.s-finˢ Perm.↭ Hf.cod ]
                   extract-exact Hf.cod RF.s-finˢ ≡ just p

@@ -278,20 +278,18 @@ module _
 decode-attempt-hComposeP
   : (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
   → Lin.Linear G → Lin.Linear K
-  → (∃[ tG ] decode-attempt G ≡ just tG)
-  → (∃[ tK ] decode-attempt K ≡ just tK)
-  → ∃[ t ] decode-attempt (hComposeP G K bdy-eq) ≡ just t
-decode-attempt-hComposeP G K bdy-eq lin-G lin-K ih-G ih-K =
-    decode-attempt-from-perm (hComposeP G K bdy-eq) perm-final
+  → process-all-edges G (Hypergraph.dom G) Perm.↭ Hypergraph.cod G
+  → process-all-edges K (Hypergraph.dom K) Perm.↭ Hypergraph.cod K
+  → process-all-edges (hComposeP G K bdy-eq) (Hypergraph.dom (hComposeP G K bdy-eq))
+      Perm.↭ Hypergraph.cod (hComposeP G K bdy-eq)
+decode-attempt-hComposeP G K bdy-eq lin-G lin-K perm-G perm-K =
+    perm-final
   where
     module G = Hypergraph G
     module K = Hypergraph K
     open hComposeP-impl G K bdy-eq
     map-remapP-K-dom = LP.map-remapP-K-dom G K bdy-eq lin-G lin-K
     open Perm.PermutationReasoning
-
-    perm-G = decode-attempt-perm-from-just G ih-G
-    perm-K = decode-attempt-perm-from-just K ih-K
 
     s_G_final = process-all-edges G G.dom
     s_K_final = process-all-edges K K.dom
@@ -367,7 +365,7 @@ decode-attempt-hComposeP G K bdy-eq lin-G lin-K ih-G ih-K =
 
 decode-attempt-LinearP
   : ∀ {A B} (f : HomTerm A B)
-  → ∃[ t ] decode-attempt ⟪ f ⟫ₚ ≡ just t
+  → process-all-edges ⟪ f ⟫ₚ (Hypergraph.dom ⟪ f ⟫ₚ) Perm.↭ Hypergraph.cod ⟪ f ⟫ₚ
 decode-attempt-LinearP (Agen g)        = decode-attempt-hGen g
 decode-attempt-LinearP (id {A})        = decode-attempt-hId A
 decode-attempt-LinearP (g ∘ f)         =
@@ -391,4 +389,6 @@ decode-attempt-LinearP (σ {A}{B})      = decode-attempt-hSwap A B
 -- `subst₂ HomTerm`) had zero live consumers — the live pipeline runs entirely
 -- through the strict `decodePˢ`.  It has been deleted along with the weak
 -- morphism apparatus; only the totality witness `decode-attempt-LinearP`
--- survives (consumed by `Strict/Decode/Decode` via `decode-attempt-perm-from-just`).
+-- survives (consumed by `Strict/Decode/Decode` — the witness IS the bare
+-- permutation `process-all-edges ⟪f⟫ dom ↭ cod`, so no `Maybe`/`≡ just`
+-- unwrapping is needed).

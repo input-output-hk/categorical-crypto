@@ -8,12 +8,13 @@
 --   2. For each edge `e` (in natural Fin order): if `H.ein e` is a
 --      sub-multiset prefix of the stack, drop it and prepend `H.eout e`;
 --      otherwise skip (stack unchanged).
---   3. Finally extract `H.cod` as a full sub-multiset of the final stack;
---      `decode-attempt` is the TOTALITY WITNESS `Maybe (s_final ↭ H.cod)`.
+--   3. Finally extract `H.cod` as a full sub-multiset of the final stack
+--      (`extract-exact`), yielding the TOTALITY WITNESS `s_final ↭ H.cod`.
 --
--- The `nothing` case captures non-linear inputs and non-topologically-
--- sound edge orders.  For `⟪ f ⟫` the natural Fin order is sound, so
--- `decode-attempt ⟪ f ⟫` always returns `just _`.
+-- The `nothing` case of `extract-exact` captures non-linear inputs and
+-- non-topologically-sound edge orders.  For `⟪ f ⟫` the natural Fin order is
+-- sound, so the witness always exists — `DecodeAttempt.decode-attempt-LinearP`
+-- constructs the bare permutation `process-all-edges ⟪f⟫ dom ↭ cod` directly.
 --
 -- NOTE (weak-decoder demotion, Review-2 F2): this decoder used to also
 -- build a `HomTerm` alongside the stack, but the live (strict) pipeline
@@ -126,10 +127,3 @@ module _ (H : Hypergraph FlatGen) where
     → List (Fin H.nV)
   process-all-edges = process-edges (range H.nE)
 
-  --------------------------------------------------------------------
-  -- Run the algorithm from `H.dom`; the TOTALITY WITNESS is the
-  -- permutation of the final stack onto `H.cod` (`nothing` when the run
-  -- does not land on the codomain multiset).
-
-  decode-attempt : Maybe (process-all-edges H.dom Perm.↭ H.cod)
-  decode-attempt = extract-exact H.cod (process-all-edges H.dom)
