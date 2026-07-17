@@ -122,10 +122,7 @@ module _ (H : Hypergraph FlatGen) where
       -- s ++ (eout e ++ reservoir qs)  ↭  eout e ++ (s ++ reservoir qs)
       skip-↭ : ∀ (s : List (Fin H.nV))
              → s ++ (H.eout e ++ reservoir qs) ↭ H.eout e ++ (s ++ reservoir qs)
-      skip-↭ s =
-        Perm.trans (Perm.↭-reflexive (sym (++-assoc s (H.eout e) (reservoir qs))))
-          (Perm.trans (PermProp.++⁺ʳ (reservoir qs) (PermProp.++-comm s (H.eout e)))
-                      (Perm.↭-reflexive (++-assoc (H.eout e) s (reservoir qs))))
+      skip-↭ s = PermProp.shifts s (H.eout e)
   -- FIRE: `s ↭ ein e ++ rest`; the fired stack is `eout e ++ rest`, and the
   -- consumed `ein e` is dropped.
   ... | just (rest , perm) =

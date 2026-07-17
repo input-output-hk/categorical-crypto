@@ -47,10 +47,10 @@ open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
+  using (_≡_; refl; sym; trans; cong; cong₂; subst)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
-  using ( ↭⇒count; count-pos→∈; count-≤→extract-prefix; ++-cancelˡ
+  using ( ↭⇒count; count-≡⇒↭; count-pos→∈; count-≤→extract-prefix; ++-cancelˡ
         ; extract-prefix-just→count-≤
         ; count-concat-tabulate-pair-≤)
 
@@ -60,6 +60,33 @@ private
 
   nothing≢just : ∀ {A : Set} {x : A} → nothing ≡ just x → ⊥
   nothing≢just ()
+
+  -- A four-summand ℕ rearrangement (used to reshuffle the count identity
+  -- below): `(a + b) + (c + d) ≡ (a + d) + (c + b)`.
+  mid4 : ∀ (a b c d : ℕ) → (a + b) + (c + d) ≡ (a + d) + (c + b)
+  mid4 a b c d =
+    trans (Nat.+-assoc a b (c + d))
+    (trans (cong (a +_) (Nat.+-comm b (c + d)))
+    (trans (cong (λ z → a + (z + b)) (Nat.+-comm c d))
+    (trans (cong (a +_) (Nat.+-assoc d c b))
+           (sym (Nat.+-assoc a d (c + b))))))
+
+  -- The scalar (per-vertex) core of `post-swap-stack-↭`: the three count
+  -- identities coming from the four locating permutes force `q + y ≡ p + y'`
+  -- by right-cancelling the common `b + x'`.
+  scalar
+    : ∀ (a b p q x y x' y' : ℕ)
+    → a + x ≡ b + x'          -- from p₁ , p₂'
+    → p + x ≡ b + y           -- from p₂
+    → q + x' ≡ a + y'         -- from p₁'
+    → q + y ≡ p + y'
+  scalar a b p q x y x' y' I II III =
+    Nat.+-cancelʳ-≡ (b + x') (q + y) (p + y')
+      (trans (mid4 q y b x')
+      (trans (cong₂ _+_ III (sym II))
+      (trans (mid4 a y' p x)
+      (trans (Nat.+-comm (a + x) (p + y'))
+             (cong (p + y' +_) I)))))
 
 --------------------------------------------------------------------------------
 
@@ -255,156 +282,38 @@ module _ (H : Hypergraph FlatGen)
         (p₂' : sp Perm.↭ H.ein e₂ ++ r₂')
         (p₁' : H.eout e₂ ++ r₂' Perm.↭ H.ein e₁ ++ r₁')
     → H.eout e₂ ++ r₂ Perm.↭ H.eout e₁ ++ r₁'
-  post-swap-stack-↭ e₁ e₂ sp r₁ r₂ r₁' r₂' p₁ p₂ p₂' p₁' = cancelled
+  --
+  -- This is an equation in the free commutative monoid on `Fin H.nV`, so it
+  -- is decided by vertex counts (`count-≡⇒↭`).  For a fixed vertex `v` the
+  -- four locating permutes give three `count` identities (via `↭⇒count` +
+  -- `count-++`), from which the goal's count identity is pure ℕ arithmetic
+  -- (`scalar`).
+  post-swap-stack-↭ e₁ e₂ sp r₁ r₂ r₁' r₂' p₁ p₂ p₂' p₁' =
+    count-≡⇒↭ (H.eout e₂ ++ r₂) (H.eout e₁ ++ r₁') per-v
     where
-      open Perm.PermutationReasoning
+      -- a + x ≡ b + x'   (`p₁` , `p₂'` share the domain `sp`)
+      eqI : ∀ v → count v (H.ein e₁) + count v r₁ ≡ count v (H.ein e₂) + count v r₂'
+      eqI v = trans (sym (trans (↭⇒count p₁ v) (count-++ v (H.ein e₁) r₁)))
+                    (trans (↭⇒count p₂' v) (count-++ v (H.ein e₂) r₂'))
 
-      r₁-r₂' : H.ein e₁ ++ r₁ Perm.↭ H.ein e₂ ++ r₂'
-      r₁-r₂' = Perm.↭-trans (Perm.↭-sym p₁) p₂'
+      -- p + x ≡ b + y    (`p₂`)
+      eqII : ∀ v → count v (H.eout e₁) + count v r₁ ≡ count v (H.ein e₂) + count v r₂
+      eqII v = trans (sym (count-++ v (H.eout e₁) r₁))
+                     (trans (↭⇒count p₂ v) (count-++ v (H.ein e₂) r₂))
 
-      step-A : H.eout e₂ ++ H.eout e₁ ++ r₁ Perm.↭ H.eout e₂ ++ H.ein e₂ ++ r₂
-      step-A = PermProp.++⁺ˡ (H.eout e₂) p₂
+      -- q + x' ≡ a + y'  (`p₁'`)
+      eqIII : ∀ v → count v (H.eout e₂) + count v r₂' ≡ count v (H.ein e₁) + count v r₁'
+      eqIII v = trans (sym (count-++ v (H.eout e₂) r₂'))
+                      (trans (↭⇒count p₁' v) (count-++ v (H.ein e₁) r₁'))
 
-      step-B : H.eout e₂ ++ H.ein e₂ ++ r₂ Perm.↭ H.ein e₂ ++ H.eout e₂ ++ r₂
-      step-B = begin
-        H.eout e₂ ++ H.ein e₂ ++ r₂
-          ≡⟨ sym (++-assoc (H.eout e₂) (H.ein e₂) r₂) ⟩
-        (H.eout e₂ ++ H.ein e₂) ++ r₂
-          ↭⟨ PermProp.++⁺ʳ r₂ (PermProp.++-comm (H.eout e₂) (H.ein e₂)) ⟩
-        (H.ein e₂ ++ H.eout e₂) ++ r₂
-          ≡⟨ ++-assoc (H.ein e₂) (H.eout e₂) r₂ ⟩
-        H.ein e₂ ++ H.eout e₂ ++ r₂ ∎
-
-      step-C : H.eout e₂ ++ H.eout e₁ ++ r₁ Perm.↭ H.ein e₂ ++ H.eout e₂ ++ r₂
-      step-C = Perm.↭-trans step-A step-B
-
-      step-A' : H.eout e₁ ++ H.eout e₂ ++ r₂' Perm.↭ H.eout e₁ ++ H.ein e₁ ++ r₁'
-      step-A' = PermProp.++⁺ˡ (H.eout e₁) p₁'
-
-      step-B' : H.eout e₁ ++ H.ein e₁ ++ r₁' Perm.↭ H.ein e₁ ++ H.eout e₁ ++ r₁'
-      step-B' = begin
-        H.eout e₁ ++ H.ein e₁ ++ r₁'
-          ≡⟨ sym (++-assoc (H.eout e₁) (H.ein e₁) r₁') ⟩
-        (H.eout e₁ ++ H.ein e₁) ++ r₁'
-          ↭⟨ PermProp.++⁺ʳ r₁' (PermProp.++-comm (H.eout e₁) (H.ein e₁)) ⟩
-        (H.ein e₁ ++ H.eout e₁) ++ r₁'
-          ≡⟨ ++-assoc (H.ein e₁) (H.eout e₁) r₁' ⟩
-        H.ein e₁ ++ H.eout e₁ ++ r₁' ∎
-
-      step-C' : H.eout e₁ ++ H.eout e₂ ++ r₂' Perm.↭ H.ein e₁ ++ H.eout e₁ ++ r₁'
-      step-C' = Perm.↭-trans step-A' step-B'
-
-      mult-r₁-r₂'
-        : H.eout e₁ ++ H.eout e₂ ++ H.ein e₁ ++ r₁
-        Perm.↭ H.eout e₁ ++ H.eout e₂ ++ H.ein e₂ ++ r₂'
-      mult-r₁-r₂' = PermProp.++⁺ˡ (H.eout e₁) (PermProp.++⁺ˡ (H.eout e₂) r₁-r₂')
-
-      inner-lhs : H.eout e₁ ++ H.ein e₁ ++ r₁ Perm.↭ H.ein e₁ ++ H.eout e₁ ++ r₁
-      inner-lhs = begin
-        H.eout e₁ ++ H.ein e₁ ++ r₁
-          ≡⟨ sym (++-assoc (H.eout e₁) (H.ein e₁) r₁) ⟩
-        (H.eout e₁ ++ H.ein e₁) ++ r₁
-          ↭⟨ PermProp.++⁺ʳ r₁ (PermProp.++-comm (H.eout e₁) (H.ein e₁)) ⟩
-        (H.ein e₁ ++ H.eout e₁) ++ r₁
-          ≡⟨ ++-assoc (H.ein e₁) (H.eout e₁) r₁ ⟩
-        H.ein e₁ ++ H.eout e₁ ++ r₁ ∎
-
-      inner-lhs-2
-        : H.eout e₂ ++ H.ein e₁ ++ H.eout e₁ ++ r₁
-        Perm.↭ H.ein e₁ ++ H.eout e₂ ++ H.eout e₁ ++ r₁
-      inner-lhs-2 = begin
-        H.eout e₂ ++ H.ein e₁ ++ H.eout e₁ ++ r₁
-          ≡⟨ sym (++-assoc (H.eout e₂) (H.ein e₁) (H.eout e₁ ++ r₁)) ⟩
-        (H.eout e₂ ++ H.ein e₁) ++ H.eout e₁ ++ r₁
-          ↭⟨ PermProp.++⁺ʳ (H.eout e₁ ++ r₁)
-                            (PermProp.++-comm (H.eout e₂) (H.ein e₁)) ⟩
-        (H.ein e₁ ++ H.eout e₂) ++ H.eout e₁ ++ r₁
-          ≡⟨ ++-assoc (H.ein e₁) (H.eout e₂) (H.eout e₁ ++ r₁) ⟩
-        H.ein e₁ ++ H.eout e₂ ++ H.eout e₁ ++ r₁ ∎
-
-      lhs-rearrange
-        : H.eout e₁ ++ H.eout e₂ ++ H.ein e₁ ++ r₁
-        Perm.↭ H.ein e₁ ++ H.ein e₂ ++ H.eout e₂ ++ r₂
-      lhs-rearrange = begin
-        H.eout e₁ ++ H.eout e₂ ++ H.ein e₁ ++ r₁
-          ≡⟨ sym (++-assoc (H.eout e₁) (H.eout e₂) (H.ein e₁ ++ r₁)) ⟩
-        (H.eout e₁ ++ H.eout e₂) ++ H.ein e₁ ++ r₁
-          ↭⟨ PermProp.++⁺ʳ (H.ein e₁ ++ r₁)
-                            (PermProp.++-comm (H.eout e₁) (H.eout e₂)) ⟩
-        (H.eout e₂ ++ H.eout e₁) ++ H.ein e₁ ++ r₁
-          ≡⟨ ++-assoc (H.eout e₂) (H.eout e₁) (H.ein e₁ ++ r₁) ⟩
-        H.eout e₂ ++ H.eout e₁ ++ H.ein e₁ ++ r₁
-          ↭⟨ PermProp.++⁺ˡ (H.eout e₂) inner-lhs ⟩
-        H.eout e₂ ++ H.ein e₁ ++ H.eout e₁ ++ r₁
-          ↭⟨ inner-lhs-2 ⟩
-        H.ein e₁ ++ H.eout e₂ ++ H.eout e₁ ++ r₁
-          ↭⟨ PermProp.++⁺ˡ (H.ein e₁) step-C ⟩
-        H.ein e₁ ++ H.ein e₂ ++ H.eout e₂ ++ r₂ ∎
-
-      inner-rhs-inner : H.eout e₂ ++ H.ein e₂ ++ r₂' Perm.↭ H.ein e₂ ++ H.eout e₂ ++ r₂'
-      inner-rhs-inner = begin
-        H.eout e₂ ++ H.ein e₂ ++ r₂'
-          ≡⟨ sym (++-assoc (H.eout e₂) (H.ein e₂) r₂') ⟩
-        (H.eout e₂ ++ H.ein e₂) ++ r₂'
-          ↭⟨ PermProp.++⁺ʳ r₂' (PermProp.++-comm (H.eout e₂) (H.ein e₂)) ⟩
-        (H.ein e₂ ++ H.eout e₂) ++ r₂'
-          ≡⟨ ++-assoc (H.ein e₂) (H.eout e₂) r₂' ⟩
-        H.ein e₂ ++ H.eout e₂ ++ r₂' ∎
-
-      inner-rhs-1
-        : H.eout e₁ ++ H.eout e₂ ++ H.ein e₂ ++ r₂'
-        Perm.↭ H.ein e₂ ++ H.eout e₁ ++ H.eout e₂ ++ r₂'
-      inner-rhs-1 = begin
-        H.eout e₁ ++ H.eout e₂ ++ H.ein e₂ ++ r₂'
-          ↭⟨ PermProp.++⁺ˡ (H.eout e₁) inner-rhs-inner ⟩
-        H.eout e₁ ++ H.ein e₂ ++ H.eout e₂ ++ r₂'
-          ≡⟨ sym (++-assoc (H.eout e₁) (H.ein e₂) (H.eout e₂ ++ r₂')) ⟩
-        (H.eout e₁ ++ H.ein e₂) ++ H.eout e₂ ++ r₂'
-          ↭⟨ PermProp.++⁺ʳ (H.eout e₂ ++ r₂')
-                            (PermProp.++-comm (H.eout e₁) (H.ein e₂)) ⟩
-        (H.ein e₂ ++ H.eout e₁) ++ H.eout e₂ ++ r₂'
-          ≡⟨ ++-assoc (H.ein e₂) (H.eout e₁) (H.eout e₂ ++ r₂') ⟩
-        H.ein e₂ ++ H.eout e₁ ++ H.eout e₂ ++ r₂' ∎
-
-      rhs-rearrange
-        : H.eout e₁ ++ H.eout e₂ ++ H.ein e₂ ++ r₂'
-        Perm.↭ H.ein e₂ ++ H.ein e₁ ++ H.eout e₁ ++ r₁'
-      rhs-rearrange = begin
-        H.eout e₁ ++ H.eout e₂ ++ H.ein e₂ ++ r₂'
-          ↭⟨ inner-rhs-1 ⟩
-        H.ein e₂ ++ H.eout e₁ ++ H.eout e₂ ++ r₂'
-          ↭⟨ PermProp.++⁺ˡ (H.ein e₂) step-C' ⟩
-        H.ein e₂ ++ H.ein e₁ ++ H.eout e₁ ++ r₁' ∎
-
-      ein-aligned
-        : H.ein e₁ ++ H.ein e₂ ++ H.eout e₂ ++ r₂
-        Perm.↭ H.ein e₂ ++ H.ein e₁ ++ H.eout e₁ ++ r₁'
-      ein-aligned =
-        Perm.↭-trans (Perm.↭-sym lhs-rearrange)
-        (Perm.↭-trans mult-r₁-r₂' rhs-rearrange)
-
-      ein-comm
-        : H.ein e₁ ++ H.ein e₂ ++ H.eout e₂ ++ r₂
-        Perm.↭ H.ein e₂ ++ H.ein e₁ ++ H.eout e₂ ++ r₂
-      ein-comm = begin
-        H.ein e₁ ++ H.ein e₂ ++ H.eout e₂ ++ r₂
-          ≡⟨ sym (++-assoc (H.ein e₁) (H.ein e₂) (H.eout e₂ ++ r₂)) ⟩
-        (H.ein e₁ ++ H.ein e₂) ++ H.eout e₂ ++ r₂
-          ↭⟨ PermProp.++⁺ʳ (H.eout e₂ ++ r₂) (PermProp.++-comm (H.ein e₁) (H.ein e₂)) ⟩
-        (H.ein e₂ ++ H.ein e₁) ++ H.eout e₂ ++ r₂
-          ≡⟨ ++-assoc (H.ein e₂) (H.ein e₁) (H.eout e₂ ++ r₂) ⟩
-        H.ein e₂ ++ H.ein e₁ ++ H.eout e₂ ++ r₂ ∎
-
-      common
-        : H.ein e₂ ++ H.ein e₁ ++ H.eout e₂ ++ r₂
-        Perm.↭ H.ein e₂ ++ H.ein e₁ ++ H.eout e₁ ++ r₁'
-      common = Perm.↭-trans (Perm.↭-sym ein-comm) ein-aligned
-
-      cancelled-1 : H.ein e₁ ++ H.eout e₂ ++ r₂ Perm.↭ H.ein e₁ ++ H.eout e₁ ++ r₁'
-      cancelled-1 = ++-cancelˡ (H.ein e₂) common
-
-      cancelled : H.eout e₂ ++ r₂ Perm.↭ H.eout e₁ ++ r₁'
-      cancelled = ++-cancelˡ (H.ein e₁) cancelled-1
+      per-v : ∀ v → count v (H.eout e₂ ++ r₂) ≡ count v (H.eout e₁ ++ r₁')
+      per-v v =
+        trans (count-++ v (H.eout e₂) r₂)
+        (trans (scalar (count v (H.ein e₁)) (count v (H.ein e₂))
+                       (count v (H.eout e₁)) (count v (H.eout e₂))
+                       (count v r₁) (count v r₂) (count v r₂') (count v r₁')
+                       (eqI v) (eqII v) (eqIII v))
+               (sym (count-++ v (H.eout e₁) r₁')))
 
   ----------------------------------------------------------------------
   -- The packaged simultaneous-location data for the both-fire pair: a
