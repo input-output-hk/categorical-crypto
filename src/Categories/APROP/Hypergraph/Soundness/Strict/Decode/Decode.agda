@@ -49,7 +49,7 @@ open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.Maybe using (just; nothing)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
+  using (_≡_; refl; sym; subst)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
