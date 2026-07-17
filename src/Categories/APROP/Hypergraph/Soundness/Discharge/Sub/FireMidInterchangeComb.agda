@@ -160,25 +160,35 @@ module _ (H : Hypergraph FlatGen)
     ... | zero  = inj₁ refl
     ... | suc _ = inj₂ (s≤sⁿ z≤nⁿ)
 
+    -- Transport an `ein e'`-count bound between two stacks whose `ein e'`
+    -- counts agree on every vertex `e'` actually consumes.  Both firing-
+    -- stability directions (`s` ⇆ `eout e ++ r₁`) are this one lemma; the
+    -- zero-count vertices are bounded by `z≤n` on either side.
+    ein'-≤-transport
+      : ∀ {e' : Fin H.nE} (v : Fin H.nV) (T U : List (Fin H.nV))
+      → (0 <ⁿ count v (H.ein e') → count v T ≡ count v U)
+      → count v (H.ein e') ≤ⁿ count v T → count v (H.ein e') ≤ⁿ count v U
+    ein'-≤-transport {e'} v T U eq h with count-zero-or-pos e' v
+    ... | inj₁ z   = subst (_≤ⁿ count v U) (sym z) z≤nⁿ
+    ... | inj₂ pos = subst (count v (H.ein e') ≤ⁿ_) (eq pos) h
+
     ein'-≤-fwd
       : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
       → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
       → (∀ v → count v (H.ein e') ≤ⁿ count v s)
       → (∀ v → count v (H.ein e') ≤ⁿ count v (H.eout e ++ r₁))
-    ein'-≤-fwd {e} {e'} e≢e' ¬dep r₁ s p h v with count-zero-or-pos e' v
-    ... | inj₁ z   = subst (_≤ⁿ count v (H.eout e ++ r₁)) (sym z) z≤nⁿ
-    ... | inj₂ pos =
-          subst (count v (H.ein e') ≤ⁿ_) (count-ein'-pres e≢e' ¬dep r₁ s p v pos) (h v)
+    ein'-≤-fwd {e} {e'} e≢e' ¬dep r₁ s p h v =
+      ein'-≤-transport v s (H.eout e ++ r₁)
+        (count-ein'-pres e≢e' ¬dep r₁ s p v) (h v)
 
     ein'-≤-bwd
       : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
       → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
       → (∀ v → count v (H.ein e') ≤ⁿ count v (H.eout e ++ r₁))
       → (∀ v → count v (H.ein e') ≤ⁿ count v s)
-    ein'-≤-bwd {e} {e'} e≢e' ¬dep r₁ s p h v with count-zero-or-pos e' v
-    ... | inj₁ z   = subst (_≤ⁿ count v s) (sym z) z≤nⁿ
-    ... | inj₂ pos =
-          subst (count v (H.ein e') ≤ⁿ_) (sym (count-ein'-pres e≢e' ¬dep r₁ s p v pos)) (h v)
+    ein'-≤-bwd {e} {e'} e≢e' ¬dep r₁ s p h v =
+      ein'-≤-transport v (H.eout e ++ r₁) s
+        (λ pos → sym (count-ein'-pres e≢e' ¬dep r₁ s p v pos)) (h v)
 
   e'-fires-stable
     : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
