@@ -397,10 +397,11 @@ module Map
   mapS (S₁.genˢ t)     = S₂.genˢ (J t)
   mapS (S₁.σˢ xs ys)   = S₂.σˢ xs ys
 
-  mapS-cast
-    : ∀ {xs xs' ys ys'} (p : xs ≡ xs') (q : ys ≡ ys') (t : S₁.HomS xs ys)
-    → mapS (S₁.castˢ p q t) ≡ S₂.castˢ p q (mapS t)
-  mapS-cast refl refl t = refl
+  private
+    mapS-cast
+      : ∀ {xs xs' ys ys'} (p : xs ≡ xs') (q : ys ≡ ys') (t : S₁.HomS xs ys)
+      → mapS (S₁.castˢ p q t) ≡ S₂.castˢ p q (mapS t)
+    mapS-cast refl refl t = refl
 
   mapS-resp
     : ∀ {xs ys} {f g : S₁.HomS xs ys} → f S₁.≈ˢ g → mapS f S₂.≈ˢ mapS g
