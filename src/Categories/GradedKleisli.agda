@@ -18,7 +18,7 @@ open import Data.Fin
 open import Data.Product
 open import Data.Vec using (_∷_; [])
 
-open import Categories.Coherence.Monoidal
+import Categories.Coherence.Monoidal.Api as Coh
 
 record UC-model : Set₁ where
   field C : Category ℓ0 ℓ0 ℓ0
@@ -61,7 +61,7 @@ module _ (C : Category ℓ0 ℓ0 ℓ0) (I : MonoidalCategory ℓ0 ℓ0 ℓ0) (M 
             f ∎))
         , (let open MonoidalCategory.HomReasoning I in begin
             α ∘I (₁ (ai ⊗-) ρ⇒)
-              ≈⟨ refl⟩∘⟨ (let module S = Solver I (ai ∷ i ∷ []) in
+              ≈⟨ refl⟩∘⟨ (let module S = Coh.Structural I (ai ∷ i ∷ []) in
                  S.solveM {Y = S.Var (# 0) S.⊗₀ S.Var (# 1)} (S.id S.⊗₁ S.ρ⇒) (S.ρ⇒ S.∘ S.α⇐)) ⟩
             α ∘I (ρ⇒ ∘I α⇐)
               ≈⟨ solve (I .U) ⟩
@@ -70,7 +70,7 @@ module _ (C : Category ℓ0 ℓ0 ℓ0) (I : MonoidalCategory ℓ0 ℓ0 ℓ0) (M 
             (ρ⇒ ∘I (₁ (-⊗ I .unit) α)) ∘I α⇐
               ≈⟨ solve (I .U) ⟩
             ρ⇒ ∘I (₁ (-⊗ I .unit) α) ∘I α⇐ ∎)
-    ; identityʳ = {!Solver.solveM!}
+    ; identityʳ = {!Coh.Structural.solveM!}
     ; equiv     = {!!}
     ; ∘-resp-≈  = {!!}
     }
