@@ -131,7 +131,7 @@ data _≅↭ⁱ_ : {xs ys : List X} → xs ↭ ys → xs ↭ ys → Set where
                                       (Perm.prep z (Perm.swap x y (Perm.refl {xs = xs}))))
 
 ------------------------------------------------------------------------
--- 4. `_≅↭ⁱ_` vs the semantic `≅↭` (= equal evaluated bijection).
+-- 2. `_≅↭ⁱ_` vs the semantic `≅↭` (= equal evaluated bijection).
 --
 -- `sound` is the EASY direction (each generator preserves `eval-↭`), by
 -- induction with one `FinBij`-level coherence per generator.  `complete`
@@ -208,7 +208,7 @@ sound (swap-braid {xs = xs}) i =
                (cong (Sx P.⟨$⟩ʳ_) (collM i))))
 
 ------------------------------------------------------------------------
--- 7. The heterogeneous wrapper `_≅↭ᴴ_`.
+-- 3. The heterogeneous wrapper `_≅↭ᴴ_`.
 --
 -- `_≅↭ⁱ_` is endpoint-homogeneous, but a `~ʷ`-move rewrites the
 -- intermediate list, so relating `⟦w⟧↭ xs` and `⟦w′⟧↭ xs` needs a `subst`.
@@ -349,7 +349,7 @@ bridge-sound (c3 {i = i} {k = k} {w = w} adj) xs len =
              (liftⁱ (isym (itrn tr-assoc tr-assoc))))
 
 ------------------------------------------------------------------------
--- 8. Structure of the interpretation `⟦_⟧↭`, for the straightening.
+-- 4. Structure of the interpretation `⟦_⟧↭`, for the straightening.
 --
 -- These relate `⟦_⟧↭` to the word operations `liftW`/`_++_`.  They are
 -- `≅↭ᴴ` (not `≅↭ⁱ`): the endpoint only reduces for a *concrete* word, so
@@ -378,10 +378,10 @@ interp-++ (i ∷ v′) w =
        (liftⁱ tr-assoc)
 
 ------------------------------------------------------------------------
--- 9. `flatten`: every `↭`-derivation `p` is `≅↭ᴴ`-equal to the
+-- 5. `flatten`: every `↭`-derivation `p` is `≅↭ᴴ`-equal to the
 --    interpretation `⟦ w ⟧↭ xs` of some `Word (length xs)`.
 --
--- By induction on `p`, using the `⟦_⟧↭` structure lemmas of §8:
+-- By induction on `p`, using the `⟦_⟧↭` structure lemmas of §4:
 --   * `refl`  ↦ `[]`.
 --   * `prep x p′` ↦ `liftW w′`, glued by `interp-liftW`.
 --   * `trans p′ q′` ↦ `w_q′ ++ w_p`, glued by `interp-++` (`w_q`
@@ -459,9 +459,9 @@ flatten (Perm.swap {xs = []} {ys = ys′} x y p′) with flatten p′
          (htrn (prepᴴ (liftⁱ prep-id)) (liftⁱ prep-id))
 
 ------------------------------------------------------------------------
--- 10. `complete`, the combinatorial core.
+-- 6. `complete`, the combinatorial core.
 --
--- `flatten` (§9) sends every derivation `p : (z∷zs) ↭ ys` to a `Word`
+-- `flatten` (§5) sends every derivation `p : (z∷zs) ↭ ys` to a `Word`
 -- whose `evalW` agrees with `eval-↭ p` (`flatten-eval`).  So equal
 -- `eval-↭`s give equal `evalW`s, hence (`canonW-resp-≈`, `straightenW`)
 -- `~ʷ`-equal flattened words, which `bridge-sound` turns into a `≅↭ᴴ`;

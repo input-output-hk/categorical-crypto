@@ -146,6 +146,9 @@ inv-rotate-fb-0 m =
 -- `Data.Fin.Permutation.Transposition.List.decompose`, but with the
 -- single head transposition replaced by an adjacent-swap rotation, so
 -- the result is a genuine Coxeter word.
+--
+-- Same bubble-to-front recursion as `Combinatorics.LinearExtension.connectivity`;
+-- unification examined and declined — see REVIEW3/00-conceptual-unbiased.md F19.
 
 canonW : {n : ℕ} → FinBij (suc n) (suc n) → Word n
 canonW {zero}  b = []
