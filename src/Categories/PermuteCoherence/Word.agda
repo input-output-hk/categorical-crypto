@@ -297,18 +297,6 @@ genFB-involutive {suc n} (fsuc j) =
         (trans (cons-fb-cong (genFB-involutive j) p)
                (Snd.cons-fb-functor-id p))
 
-genFB∘genFB : {n : ℕ} (i : Fin n) (x : FinBij (suc n) (suc n))
-            → (genFB i ∘-fb (genFB i ∘-fb x)) ≈-fb x
-genFB∘genFB i x j = genFB-involutive i (x P.⟨$⟩ʳ j)
-
--- `genFB i` is left-cancellable.
-genFB-cancelˡ : {n : ℕ} (i : Fin n) {b b′ : FinBij (suc n) (suc n)}
-              → (genFB i ∘-fb b) ≈-fb (genFB i ∘-fb b′) → b ≈-fb b′
-genFB-cancelˡ i {b} {b′} h j =
-  trans (sym (genFB-involutive i (b P.⟨$⟩ʳ j)))
-        (trans (cong (genFB i P.⟨$⟩ʳ_) (h j))
-               (genFB-involutive i (b′ P.⟨$⟩ʳ j)))
-
 -- (C2) far generators commute.
 genFB-far : {n : ℕ} {i j : Fin n} → Far i j
           → (genFB i ∘-fb genFB j) ≈-fb (genFB j ∘-fb genFB i)

@@ -49,17 +49,6 @@ private
 -- 1. Small FinBij algebra used pointwise (everything as `≈-fb`, i.e.
 --    refl-per-point where composition is definitionally associative).
 
--- Identity and associativity laws (all pointwise-refl).
-∘-idˡ : {f : FinBij n N} → (id-fb ∘-fb f) ≈-fb f
-∘-idˡ _ = refl
-
-∘-idʳ : {f : FinBij n N} → (f ∘-fb id-fb) ≈-fb f
-∘-idʳ _ = refl
-
-∘-assoc : {a b c d : ℕ} (h : FinBij c d) (g : FinBij b c) (f : FinBij a b)
-        → ((h ∘-fb g) ∘-fb f) ≈-fb (h ∘-fb (g ∘-fb f))
-∘-assoc h g f _ = refl
-
 -- `cons-fb` is injective on `≈-fb`.
 cons-fb-injective : {f g : FinBij n N}
                   → cons-fb f ≈-fb cons-fb g → f ≈-fb g

@@ -10,9 +10,9 @@
 --     right-to-left convention;
 --   * `⟦ w ⟧↭ xs : xs ↭ applyW w xs`  is the derivation.
 --
--- Generic in the carrier `X`.  Establishes the list-level facts: length
--- preservation and the Coxeter relations C1/C2 (unconditional) and C3
--- (only for lists of matching length, hence a length hypothesis).
+-- Generic in the carrier `X`.  Establishes length preservation and
+-- `eval-respect`, the keystone connecting the list-level derivation to the
+-- position-level `FinBij` evaluation.
 ------------------------------------------------------------------------
 
 module Categories.PermuteCoherence.WordInterp {a} {X : Set a} where
@@ -25,16 +25,14 @@ open import Data.List.Base using (List; []; _∷_; length)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl; sym; cong; cong₂; trans)
+  using (_≡_; refl; sym; cong; trans)
 open import Relation.Binary.PropositionalEquality using (subst; subst₂)
 open import Relation.Binary.PropositionalEquality.Properties using (trans-assoc)
 
 import Data.Fin.Permutation as P
 
 open import Categories.PermuteCoherence.Word
-  using ( Word; Far; far0ˡ; far0ʳ; farS; Adj; adj0; adjS
-        ; _~ʷ_; ~refl; ~sym; ~trans; ∷c; c1; c2; c3
-        ; genFB; evalW; ∘-fb-cong; cons-fb-cong )
+  using ( Word; genFB; evalW; ∘-fb-cong; cons-fb-cong )
 
 open import Categories.PermuteCoherence.FinBij
   using ( FinBij; _≈-fb_; _∘-fb_; id-fb; cons-fb; swap-fb )
@@ -85,57 +83,7 @@ applyW-length (i ∷ w) xs = trans (swapAt-length i (applyW w xs)) (applyW-lengt
 ⟦ i ∷ w ⟧↭ xs = Perm.trans (⟦ w ⟧↭ xs) (swapAt-↭ i (applyW w xs))
 
 ------------------------------------------------------------------------
--- 2. List-level Coxeter relations (propositional, on the acted list).
-
--- (C1) Involution — unconditional (junk cases are honestly identities).
-swapAt-invol : (i : Fin n) (xs : List X) → swapAt i (swapAt i xs) ≡ xs
-swapAt-invol _        []              = refl
-swapAt-invol 0F       (a ∷ [])        = refl
-swapAt-invol 0F       (a ∷ b ∷ rest)  = refl
-swapAt-invol (fsuc i) (a ∷ xs)        = cong (a ∷_) (swapAt-invol i xs)
-
--- (C2) Far-commutativity — unconditional (the two swaps touch disjoint
--- positions, and short lists make both into the same junk identity).
-swapAt-far : {i j : Fin n} → Far i j → (xs : List X)
-           → swapAt i (swapAt j xs) ≡ swapAt j (swapAt i xs)
-swapAt-far far0ˡ    []              = refl
-swapAt-far far0ˡ    (a ∷ [])        = refl
-swapAt-far far0ˡ    (a ∷ b ∷ rest)  = refl
-swapAt-far far0ʳ    []              = refl
-swapAt-far far0ʳ    (a ∷ [])        = refl
-swapAt-far far0ʳ    (a ∷ b ∷ rest)  = refl
-swapAt-far (farS f) []              = refl
-swapAt-far (farS f) (a ∷ xs)        = cong (a ∷_) (swapAt-far f xs)
-
--- (C3) Braid (Yang–Baxter) — needs the matching-length hypothesis
--- `length xs ≡ suc n`, which rules out the short junk lists on which the
--- braid would fail.
-swapAt-braid : {i k : Fin n} → Adj i k → (xs : List X) → length xs ≡ suc n
-             → swapAt i (swapAt k (swapAt i xs)) ≡ swapAt k (swapAt i (swapAt k xs))
-swapAt-braid adj0       (a ∷ b ∷ c ∷ rest) _   = refl
-swapAt-braid adj0       []                 ()
-swapAt-braid adj0       (a ∷ [])           ()
-swapAt-braid adj0       (a ∷ b ∷ [])       ()
-swapAt-braid (adjS adj) []                 ()
-swapAt-braid (adjS adj) (a ∷ xs)           len =
-  cong (a ∷_) (swapAt-braid adj xs (suc-injective len))
-
-------------------------------------------------------------------------
--- 3. Endpoint lemma: `~ʷ`-equal words act the same on a matching-length
--- list, so `⟦ w ⟧↭ xs` and `⟦ w′ ⟧↭ xs` share a target.
-applyW-~ : {w w′ : Word n} → w ~ʷ w′ → (xs : List X) → length xs ≡ suc n
-         → applyW w xs ≡ applyW w′ xs
-applyW-~ ~refl          xs len = refl
-applyW-~ (~sym r)       xs len = sym (applyW-~ r xs len)
-applyW-~ (~trans r₁ r₂) xs len = trans (applyW-~ r₁ xs len) (applyW-~ r₂ xs len)
-applyW-~ (∷c eq r)      xs len = cong₂ swapAt eq (applyW-~ r xs len)
-applyW-~ (c1 i {w})     xs len = swapAt-invol i (applyW w xs)
-applyW-~ (c2 {w = w} f) xs len = swapAt-far f (applyW w xs)
-applyW-~ (c3 {w = w} adj) xs len =
-  swapAt-braid adj (applyW w xs) (trans (applyW-length w xs) len)
-
-------------------------------------------------------------------------
--- 4. `eval-respect` (keystone): the list-level derivation `⟦ w ⟧↭ xs`
+-- 2. `eval-respect` (keystone): the list-level derivation `⟦ w ⟧↭ xs`
 -- evaluates (`eval-↭`) to the SAME finite bijection as the position-level
 -- word `w` (`evalW`), once both are cast to `FinBij (suc n) (suc n)`.
 
