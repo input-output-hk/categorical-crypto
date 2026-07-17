@@ -1042,53 +1042,46 @@ module _ (H : Hypergraph FlatGen)
            sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
         using (Rlist; loc₁; loc₂; vout-loc₁; vout-loc₂; r-stk)
 
-      -- The residual relocates, derived from the located permutes
-      -- (block-prefix cancellation), at the shared `Rlist`.
-      ρ₁-nf₁ : r₁ Perm.↭ H.ein e' ++ Rlist
-      ρ₁-nf₁ = ++-cancelˡ (H.ein e)
-                 (Perm.trans (Perm.↭-sym p₁)
-                   (Perm.trans loc₁
-                     (Perm.↭-reflexive (++-assoc (H.ein e) (H.ein e') Rlist))))
-      ρ₂-nf₁ : r₂ Perm.↭ H.eout e ++ Rlist
-      ρ₂-nf₁ = ++-cancelˡ (H.ein e')
-                 (Perm.trans (Perm.↭-sym p₂)
-                   (Perm.trans (PermProp.++⁺ˡ (H.eout e) ρ₁-nf₁) eo-shift₁))
+      -- The per-order residual relocates + `Unique` witnesses + `Gen`
+      -- instantiation, factored once and instantiated for both orders below
+      -- (only `us-cod-final` is asymmetric across orders — `Ord`'s CALLERS
+      -- resolve that by pre-bridging it through `r-stk` where needed).
+      module Ord
+        (x y : Fin H.nE)
+        (rx : List (Fin H.nV)) (px : sp Perm.↭ H.ein x ++ rx)
+        (ry : List (Fin H.nV)) (py : H.eout x ++ rx Perm.↭ H.ein y ++ ry)
+        (loc      : sp Perm.↭ (H.ein x ++ H.ein y) ++ Rlist)
+        (vout-loc : (H.eout x ++ H.eout y) ++ Rlist Perm.↭ H.eout y ++ ry)
+        (us-mid-src   : Unique (H.eout x ++ rx))
+        (us-cod-final : Unique (H.eout y ++ ry))
         where
-          eo-shift₁ : H.eout e ++ (H.ein e' ++ Rlist) Perm.↭ H.ein e' ++ (H.eout e ++ Rlist)
-          eo-shift₁ = PermProp.shifts (H.eout e) (H.ein e')
+        ρ₁ : rx Perm.↭ H.ein y ++ Rlist
+        ρ₁ = ++-cancelˡ (H.ein x)
+               (Perm.trans (Perm.↭-sym px)
+                 (Perm.trans loc
+                   (Perm.↭-reflexive (++-assoc (H.ein x) (H.ein y) Rlist))))
+        ρ₂ : ry Perm.↭ H.eout x ++ Rlist
+        ρ₂ = ++-cancelˡ (H.ein y)
+               (Perm.trans (Perm.↭-sym py)
+                 (Perm.trans (PermProp.++⁺ˡ (H.eout x) ρ₁) eo-shift))
+          where
+            eo-shift : H.eout x ++ (H.ein y ++ Rlist) Perm.↭ H.ein y ++ (H.eout x ++ Rlist)
+            eo-shift = PermProp.shifts (H.eout x) (H.ein y)
 
-      ρ₁-nf₂ : r₂' Perm.↭ H.ein e ++ Rlist
-      ρ₁-nf₂ = ++-cancelˡ (H.ein e')
-                 (Perm.trans (Perm.↭-sym p₂')
-                   (Perm.trans loc₂
-                     (Perm.↭-reflexive (++-assoc (H.ein e') (H.ein e) Rlist))))
-      ρ₂-nf₂ : r₁' Perm.↭ H.eout e' ++ Rlist
-      ρ₂-nf₂ = ++-cancelˡ (H.ein e)
-                 (Perm.trans (Perm.↭-sym p₁')
-                   (Perm.trans (PermProp.++⁺ˡ (H.eout e') ρ₁-nf₂) eo-shift₂))
-        where
-          eo-shift₂ : H.eout e' ++ (H.ein e ++ Rlist) Perm.↭ H.ein e ++ (H.eout e' ++ Rlist)
-          eo-shift₂ = PermProp.shifts (H.eout e') (H.ein e)
+        us-in-a : Unique (H.ein x ++ rx)
+        us-in-a = SU.Unique-resp-↭ px us-sp
+        us-mid : Unique (H.ein y ++ ry)
+        us-mid = SU.Unique-resp-↭ py us-mid-src
 
-      -- The `Unique` witnesses for the two orders, bridged from the caller's.
-      us-in-a-nf₁ : Unique (H.ein e ++ r₁)
-      us-in-a-nf₁ = SU.Unique-resp-↭ p₁ us-sp
-      us-mid-nf₁ : Unique (H.ein e' ++ r₂)
-      us-mid-nf₁ = SU.Unique-resp-↭ p₂ us-mid₁
-      us-cod-nf₁ : Unique (H.eout e' ++ r₂)
-      us-cod-nf₁ = SU.Unique-resp-↭ (Perm.↭-sym r-stk) us-cod
+        module GG = Gen x y sp rx px ry py Rlist ρ₁ ρ₂ loc vout-loc us-in-a us-mid us-cod-final
 
-      us-in-a-nf₂ : Unique (H.ein e' ++ r₂')
-      us-in-a-nf₂ = SU.Unique-resp-↭ p₂' us-sp
-      us-mid-nf₂ : Unique (H.ein e ++ r₁')
-      us-mid-nf₂ = SU.Unique-resp-↭ p₁' us-mid₂
-      us-cod-nf₂ : Unique (H.eout e ++ r₁')
-      us-cod-nf₂ = us-cod
+      module O1 = Ord e  e' r₁  p₁  r₂  p₂  loc₁ vout-loc₁
+                    us-mid₁ (SU.Unique-resp-↭ (Perm.↭-sym r-stk) us-cod)
+      module O2 = Ord e' e  r₂' p₂' r₁' p₁' loc₂ vout-loc₂
+                    us-mid₂ us-cod
 
-      module G1 = Gen e e' sp r₁ p₁ r₂ p₂ Rlist ρ₁-nf₁ ρ₂-nf₁
-                    loc₁ vout-loc₁ us-in-a-nf₁ us-mid-nf₁ us-cod-nf₁
-      module G2 = Gen e' e sp r₂' p₂' r₁' p₁' Rlist ρ₁-nf₂ ρ₂-nf₂
-                    loc₂ vout-loc₂ us-in-a-nf₂ us-mid-nf₂ us-cod-nf₂
+      module G1 = O1.GG
+      module G2 = O2.GG
 
       -- the two located normal forms (frames match `F2`'s Lin/Lout).
       nf₁-eqˢ
