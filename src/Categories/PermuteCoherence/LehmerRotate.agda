@@ -48,14 +48,8 @@ private
 ------------------------------------------------------------------------
 -- 1. Small FinBij algebra used pointwise (everything as `≈-fb`, i.e.
 --    refl-per-point where composition is definitionally associative).
-
--- `cons-fb` is injective on `≈-fb`.
-cons-fb-injective : {f g : FinBij n N}
-                  → cons-fb f ≈-fb cons-fb g → f ≈-fb g
-cons-fb-injective h j = suc-inj (h (fsuc j))
-  where
-  suc-inj : {a b : Fin _} → fsuc a ≡ fsuc b → a ≡ b
-  suc-inj refl = refl
+--    `cons-fb-injective` itself lives upstream in `Word` (shared with
+--    `cons-fb-reflects-id`, its `g = id-fb` instance).
 
 -- `remove 0F (cons-fb X) ≈ X`: removing the head of a lift is the identity.
 remove-cons : (X : FinBij n N) → remove 0F (cons-fb X) ≈-fb X

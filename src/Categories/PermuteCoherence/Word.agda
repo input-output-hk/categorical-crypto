@@ -405,13 +405,19 @@ canonW-resp-≈ {suc n} {b} {b′} eq =
   rec : canonW restb ~ʷ canonW rest′
   rec = canonW-resp-≈ {b = restb} {b′ = rest′} rest≈
 
--- `cons-fb` reflects the identity:  if `cons-fb f ≈ id-fb` then `f ≈ id-fb`.
-cons-fb-reflects-id : {n : ℕ} {f : FinBij n n}
-                    → cons-fb f ≈-fb id-fb → f ≈-fb id-fb
-cons-fb-reflects-id {f = f} h j = suc-injective (h (fsuc j))
+-- `cons-fb` is injective on `≈-fb`.
+cons-fb-injective : {f g : FinBij n m}
+                  → cons-fb f ≈-fb cons-fb g → f ≈-fb g
+cons-fb-injective h j = suc-injective (h (fsuc j))
   where
   suc-injective : {a b : Fin _} → fsuc a ≡ fsuc b → a ≡ b
   suc-injective refl = refl
+
+-- `cons-fb` reflects the identity:  if `cons-fb f ≈ id-fb` then `f ≈ id-fb`.
+-- The `g = id-fb` instance of `cons-fb-injective`.
+cons-fb-reflects-id : {n : ℕ} {f : FinBij n n}
+                    → cons-fb f ≈-fb id-fb → f ≈-fb id-fb
+cons-fb-reflects-id h = cons-fb-injective (λ j → trans (h j) (sym (Snd.cons-fb-functor-id j)))
 
 -- `remove 0F X ≈ id-fb` whenever `X ≈ id-fb`, via `lift₀-remove`.
 remove-0-of-≈id : {n : ℕ} (X : FinBij (suc n) (suc n))
