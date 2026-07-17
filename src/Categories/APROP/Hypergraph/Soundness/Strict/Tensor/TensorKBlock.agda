@@ -58,6 +58,17 @@ module TKBBase (H : Hypergraph FlatGen) where
   m : List (Fin H.nV) → List X
   m = map vl
 
+  --------------------------------------------------------------------
+  -- The `idˢ{L}`-framed composite split (left-frame mirror of
+  -- `FreeStrictSMC.⊗id-distˢ`; H-independent, so hoisted once here instead
+  -- of being re-derived locally in both TKB2 and TKB4).
+  --   idˢ{L} ⊗ˢ (g ∘ˢ f) ≈ (idˢ{L} ⊗ˢ g) ∘ˢ (idˢ{L} ⊗ˢ f)
+  --------------------------------------------------------------------
+  id⊗-distˢ
+    : ∀ {as bs cs} (L : List X) (g : HomS bs cs) (f : HomS as bs)
+    → idˢ {L} ⊗ˢ (g ∘ˢ f) ≈ˢ (idˢ {L} ⊗ˢ g) ∘ˢ (idˢ {L} ⊗ˢ f)
+  id⊗-distˢ L g f = ≈-trans (⊗-resp (≈-sym idˡ) ≈-refl) (≈-sym interchangeˢ)
+
 ------------------------------------------------------------------------
 -- ===== submodule TKB =====
 ------------------------------------------------------------------------
@@ -335,16 +346,6 @@ module TKB2 (H : Hypergraph FlatGen) where
                        (idˢ {m L} ⊗ˢ permuteˢ p)))))
 
     ----------------------------------------------------------------------
-    -- ## The `idˢ{L}`-framed composite split.
-    --   idˢ{m L} ⊗ˢ (g ∘ˢ f) ≈ (idˢ{m L} ⊗ˢ g) ∘ˢ (idˢ{m L} ⊗ˢ f)
-    ----------------------------------------------------------------------
-    private
-      id⊗-dist
-        : ∀ {as bs cs} (L : List X) (g : HomS bs cs) (f : HomS as bs)
-        → idˢ {L} ⊗ˢ (g ∘ˢ f) ≈ˢ (idˢ {L} ⊗ˢ g) ∘ˢ (idˢ {L} ⊗ˢ f)
-      id⊗-dist L g f = ≈-trans (⊗-resp (≈-sym idˡ) ≈-refl) (≈-sym interchangeˢ)
-
-    ----------------------------------------------------------------------
     -- ## The framed inner fire layer `FF = idˢ{m L} ⊗ˢ fire-termˢ e xs rest p`
     -- reduced to NF `castˢ (MID-frame ∘ (idˢ{L}⊗permuteˢ p))`.
     ----------------------------------------------------------------------
@@ -371,7 +372,7 @@ module TKB2 (H : Hypergraph FlatGen) where
                  (idˢ {m L} ⊗ˢ ((gen' e ⊗ˢ idˢ {m rest})
                    ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ p)))))
         (cast-resp refl (cong (m L ++_) (sym (map-++ vl (H.eout e) rest)))
-          (id⊗-dist (m L) (gen' e ⊗ˢ idˢ {m rest})
+          (id⊗-distˢ (m L) (gen' e ⊗ˢ idˢ {m rest})
             (castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ p)))))
 
     ----------------------------------------------------------------------
@@ -529,9 +530,7 @@ module TKB4 (H : Hypergraph FlatGen) where
         sRf = s_Rfin e es s_R
 
         -- the clean K-run on (e ∷ es) is `et ∘ˢ eh`.
-        -- step 1: id{L} ⊗ (et ∘ eh) ≈ (id{L} ⊗ et) ∘ (id{L} ⊗ eh)  [interchange]
-        ⊗-split : idˢ {m L} ⊗ˢ (et ∘ˢ eh) ≈ˢ (idˢ {m L} ⊗ˢ et) ∘ˢ (idˢ {m L} ⊗ˢ eh)
-        ⊗-split = ≈-trans (⊗-resp (≈-sym idˡ) ≈-refl) (≈-sym interchangeˢ)
+        -- step 1: id{L} ⊗ (et ∘ eh) ≈ (id{L} ⊗ et) ∘ (id{L} ⊗ eh)  [id⊗-distˢ]
 
         Pi  = sym (map-++ vl L s_R)
         Po  = sym (map-++ vl L sRf)
@@ -540,7 +539,7 @@ module TKB4 (H : Hypergraph FlatGen) where
         goal : KCleanˢ (e ∷ es) L s_R ≈ˢ KCleanˢ es L sR1 ∘ˢ KCleanHeadˢ e L s_R
         goal =
           -- LHS = castˢ Pi Po (id{L} ⊗ (et ∘ eh))
-          ≈-trans (cast-resp Pi Po ⊗-split)
+          ≈-trans (cast-resp Pi Po (id⊗-distˢ (m L) et eh))
           -- castˢ Pi Po ((id{L}⊗et) ∘ (id{L}⊗eh))
           (∘-cast-split Pi Pm Po (idˢ {m L} ⊗ˢ et) (idˢ {m L} ⊗ˢ eh))
 
