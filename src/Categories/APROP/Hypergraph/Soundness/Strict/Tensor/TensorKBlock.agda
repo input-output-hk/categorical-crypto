@@ -417,7 +417,7 @@ module TKB4 (H : Hypergraph FlatGen) where
   open import Data.List.Relation.Unary.All using (All; []; _∷_)
 
   open Run H using (edge-stack-agree)
-  open EquivStep H using (pvv-transˢ; pvv-inverse-leftˢ)
+  open EquivStep H using (pvv-transˢ)
 
   module _ (permˢ-K : Kmod.PermK) where
     perm-rigidˢ = Kmod.perm-rigidˢ permˢ-K
@@ -656,11 +656,8 @@ module TKB4 (H : Hypergraph FlatGen) where
 ------------------------------------------------------------------------
 module TKB3 (H : Hypergraph FlatGen) where
   open TKBBase H
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Separability sig _≟X_
-    using (module StrictSep)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_
     using (module Scr)
-  open StrictSep H using (permuteˢ-frameˡ)
 
   open EdgeStepView H public using (fire-termˢ)
 
@@ -1130,7 +1127,7 @@ module TKB5 (H : Hypergraph FlatGen) where
   open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
     using (module EquivStep)
 
-  open EquivStep H using ( pvv-transˢ; pvv-inverse-leftˢ; pvv-inverse-rightˢ
+  open EquivStep H using ( pvv-transˢ; pvv-inverse-rightˢ
                          ; edge-stepˢ-graph; edge-step-equivariantˢ )
 
   module _ (permˢ-K : Kmod.PermK) where
@@ -1229,7 +1226,7 @@ module TKB6 (H : Hypergraph FlatGen) where
   open import Data.Maybe using (Maybe; just; nothing)
 
   open StrictSep H using (extract-prefix-++ˡ-left; extract-prefix-++ˡ-left-nothing)
-  open EquivStep H using (pvv-transˢ; pvv-inverse-leftˢ; pvv-inverse-rightˢ)
+  open EquivStep H using (pvv-transˢ; pvv-inverse-leftˢ)
 
   private
     module ScrH = Scr (Fin H.nV) H.vlab
