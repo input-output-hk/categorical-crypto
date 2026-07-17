@@ -1,10 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Linear preservation under hypergraph isomorphism.
---
--- Theorem: `Linear-resp-iso : H ≅ᴴ K → Linear H → Linear K`, via count
--- invariance under permutation/bijection-map and `tabulate`-reindexing.
+-- Fin-bijection / `tabulate`-reindexing leaf, used by `IsoInvarianceWiring` to
+-- transport cardinalities and `tabulate`-built lists across a Fin-bijection
+-- (`bij-fin-ℕ-≡`, `tabulate-bij-↭-via-eq`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -12,44 +11,14 @@ open import Categories.APROP
 module Categories.APROP.Hypergraph.Soundness.Linearity.LinearityIso (sig : APROPSignature) where
 
 open APROP sig
-open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
-open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
-  using (Linear; count; count-++; count-map-inj; producedList; consumedList)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
-  using (↭⇒count)
 
 open import Data.Fin using (Fin; zero; suc)
-open import Data.List as List using (List; []; _∷_; _++_; map; tabulate; concat)
-open import Data.List.Properties using (++-assoc)
+open import Data.List using (_∷_; tabulate)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-open import Data.Nat using (zero; suc; _+_)
-open import Data.Nat as Nat using ()
-import Data.Nat.Properties as Nat
-open import Data.Product using (_,_; proj₁; proj₂)
+open import Data.Nat using (zero; suc)
 import Function as Fun
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; _≢_; refl; cong; cong₂; sym; trans; subst)
-
---------------------------------------------------------------------------------
--- count under bijection-map: a special case of `count-map-inj` (φ is injective
--- because it has a two-sided inverse), with the counted value routed through
--- `φ (φ⁻¹ v) ≡ v`.
-
-count-map-via-bij
-  : ∀ {n m} (φ : Fin n → Fin m) (φ⁻¹ : Fin m → Fin n)
-  → (φ⁻¹φ : ∀ i → φ⁻¹ (φ i) ≡ i)
-  → (φφ⁻¹ : ∀ j → φ (φ⁻¹ j) ≡ j)
-  → ∀ (v : Fin m) (xs : List (Fin n))
-  → count v (map φ xs) ≡ count (φ⁻¹ v) xs
-count-map-via-bij φ φ⁻¹ φ⁻¹φ φφ⁻¹ v xs =
-  trans (cong (λ w → count w (map φ xs)) (sym (φφ⁻¹ v)))
-        (count-map-inj φ φ-inj (φ⁻¹ v) xs)
-  where
-    φ-inj : ∀ {a b} → φ a ≡ φ b → a ≡ b
-    φ-inj {a} {b} eq = trans (sym (φ⁻¹φ a)) (trans (cong φ⁻¹ eq) (φ⁻¹φ b))
+  using (_≡_; _≢_; refl; cong; sym; trans; subst)
 
 --------------------------------------------------------------------------------
 -- `tabulate (f ∘ π)` is a permutation of `tabulate f` when π is a
@@ -168,109 +137,3 @@ tabulate-bij-↭-via-eq
   → (∀ i → π⁻¹ (π i) ≡ i) → (∀ i → π (π⁻¹ i) ≡ i)
   → tabulate (f Fun.∘ π) Perm.↭ tabulate f
 tabulate-bij-↭-via-eq refl f π π⁻¹ leftInv rightInv = tabulate-bij-↭ f π π⁻¹ leftInv rightInv
-
--- concat preserves `↭` (not in stdlib).
-
-concat-↭ : ∀ {A : Set} {L₁ L₂ : List (List A)} → L₁ Perm.↭ L₂ → concat L₁ Perm.↭ concat L₂
-concat-↭ Perm.refl       = Perm.refl
-concat-↭ (Perm.prep x p) = PermProp.++⁺ˡ x (concat-↭ p)
-concat-↭ (Perm.swap {xs} {ys} x y p) =
-  Perm.trans
-    (Perm.↭-reflexive (sym (++-assoc x y (concat xs))))
-    (Perm.trans
-      (PermProp.++⁺ʳ (concat xs) (PermProp.++-comm x y))
-      (Perm.trans
-        (Perm.↭-reflexive (++-assoc y x (concat xs)))
-        (PermProp.++⁺ˡ y (PermProp.++⁺ˡ x (concat-↭ p)))))
-concat-↭ (Perm.trans p q) = Perm.trans (concat-↭ p) (concat-↭ q)
-
---------------------------------------------------------------------------------
--- The main `Linear-resp-iso` theorem: given `iso : H ≅ᴴ K` and
--- `Linear H`, derive `Linear K`.
-
-open import Data.List.Properties using (map-tabulate; concat-map; tabulate-cong)
-
-Linear-resp-iso : ∀ {H K : Hypergraph FlatGen} → H ≅ᴴ K → Linear H → Linear K
-Linear-resp-iso {H} {K} iso linH = K-bal , K-bnd
-  where
-    module H = Hypergraph H
-    module K = Hypergraph K
-    open _≅ᴴ_ iso
-
-    H-bal = proj₁ linH
-    H-bnd = proj₂ linH
-
-    nE-eq : H.nE ≡ K.nE
-    nE-eq = bij-fin-ℕ-≡ ψ ψ⁻¹ ψ-left ψ-rght
-
-    K-eout-via-H : ∀ (i : Fin K.nE) → K.eout i ≡ map φ (H.eout (ψ⁻¹ i))
-    K-eout-via-H i = trans (cong K.eout (sym (ψ-rght i))) (ψ-eout (ψ⁻¹ i))
-
-    K-ein-via-H : ∀ (i : Fin K.nE) → K.ein i ≡ map φ (H.ein (ψ⁻¹ i))
-    K-ein-via-H i = trans (cong K.ein (sym (ψ-rght i))) (ψ-ein (ψ⁻¹ i))
-
-    concat-tab-K-eout-eq
-      : concat (tabulate K.eout)
-      ≡ map φ (concat (tabulate (H.eout Fun.∘ ψ⁻¹)))
-    concat-tab-K-eout-eq =
-      trans (cong concat (tabulate-cong K-eout-via-H))
-        (trans (cong concat (sym (map-tabulate (H.eout Fun.∘ ψ⁻¹) (map φ))))
-               (concat-map (tabulate (H.eout Fun.∘ ψ⁻¹))))
-
-    concat-tab-K-ein-eq : concat (tabulate K.ein) ≡ map φ (concat (tabulate (H.ein Fun.∘ ψ⁻¹)))
-    concat-tab-K-ein-eq =
-      trans (cong concat (tabulate-cong K-ein-via-H))
-        (trans (cong concat (sym (map-tabulate (H.ein Fun.∘ ψ⁻¹) (map φ))))
-               (concat-map (tabulate (H.ein Fun.∘ ψ⁻¹))))
-
-    tab-H-eout-↭ : tabulate (H.eout Fun.∘ ψ⁻¹) Perm.↭ tabulate H.eout
-    tab-H-eout-↭ = tabulate-bij-↭-via-eq (sym nE-eq) H.eout ψ⁻¹ ψ ψ-rght ψ-left
-
-    tab-H-ein-↭ : tabulate (H.ein Fun.∘ ψ⁻¹) Perm.↭ tabulate H.ein
-    tab-H-ein-↭ = tabulate-bij-↭-via-eq (sym nE-eq) H.ein ψ⁻¹ ψ ψ-rght ψ-left
-
-    count-prod-K-eout
-      : ∀ (v : Fin K.nV)
-      → count v (concat (tabulate K.eout))
-      ≡ count (φ⁻¹ v) (concat (tabulate H.eout))
-    count-prod-K-eout v =
-      trans (cong (count v) concat-tab-K-eout-eq)
-        (trans (count-map-via-bij φ φ⁻¹ φ-left φ-rght v
-                  (concat (tabulate (H.eout Fun.∘ ψ⁻¹))))
-               (↭⇒count (concat-↭ tab-H-eout-↭) (φ⁻¹ v)))
-
-    count-cons-K-ein
-      : ∀ (v : Fin K.nV)
-      → count v (concat (tabulate K.ein))
-      ≡ count (φ⁻¹ v) (concat (tabulate H.ein))
-    count-cons-K-ein v =
-      trans (cong (count v) concat-tab-K-ein-eq)
-        (trans (count-map-via-bij φ φ⁻¹ φ-left φ-rght v
-                  (concat (tabulate (H.ein Fun.∘ ψ⁻¹))))
-               (↭⇒count (concat-↭ tab-H-ein-↭) (φ⁻¹ v)))
-
-    -- K.dom ≡ map φ H.dom directly from the iso, plus count-map-via-bij.
-    count-K-dom : ∀ (v : Fin K.nV) → count v K.dom ≡ count (φ⁻¹ v) H.dom
-    count-K-dom v = trans (cong (count v) φ-dom) (count-map-via-bij φ φ⁻¹ φ-left φ-rght v H.dom)
-
-    count-K-cod : ∀ (v : Fin K.nV) → count v K.cod ≡ count (φ⁻¹ v) H.cod
-    count-K-cod v = trans (cong (count v) φ-cod) (count-map-via-bij φ φ⁻¹ φ-left φ-rght v H.cod)
-
-    count-prod-K : ∀ (v : Fin K.nV) → count v (producedList K) ≡ count (φ⁻¹ v) (producedList H)
-    count-prod-K v =
-      trans (count-++ v K.dom (concat (tabulate K.eout)))
-        (trans (cong₂ _+_ (count-K-dom v) (count-prod-K-eout v))
-               (sym (count-++ (φ⁻¹ v) H.dom (concat (tabulate H.eout)))))
-
-    count-cons-K : ∀ (v : Fin K.nV) → count v (consumedList K) ≡ count (φ⁻¹ v) (consumedList H)
-    count-cons-K v =
-      trans (count-++ v K.cod (concat (tabulate K.ein)))
-        (trans (cong₂ _+_ (count-K-cod v) (count-cons-K-ein v))
-               (sym (count-++ (φ⁻¹ v) H.cod (concat (tabulate H.ein)))))
-
-    -- Linear K follows by applying Linear H at the image φ⁻¹ v.
-    K-bal : ∀ (v : Fin K.nV) → count v (producedList K) ≡ count v (consumedList K)
-    K-bal v = trans (count-prod-K v) (trans (H-bal (φ⁻¹ v)) (sym (count-cons-K v)))
-
-    K-bnd : ∀ (v : Fin K.nV) → count v (producedList K) Nat.≤ 1
-    K-bnd v = subst (Nat._≤ 1) (sym (count-prod-K v)) (H-bnd (φ⁻¹ v))
