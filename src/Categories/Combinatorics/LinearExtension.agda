@@ -361,6 +361,15 @@ connectivity-go R-irrefl (x ∷ L′) M perm noL noM =
 -- The theorem, with finiteness/induction wiring discharged.
 ------------------------------------------------------------------------
 
+-- Cross-reference: `connectivity`/`connectivity-go` bubble `x` to the
+-- front by adjacent swaps and recurse on the tail — the same
+-- bubble-to-front recursion shape as `PermuteCoherence.Word.canonW`
+-- (`canonW` rotates the destined-front element via a rotation word and
+-- recurses on the residual). The carriers (linear extensions of a poset
+-- here vs. `FinBij`/words there) and side-conditions (`NoInv`-guarded
+-- swaps vs. unconditional rotation) differ enough that a shared
+-- formalization was examined and declined as not worth the cost (see
+-- REVIEW3/00-conceptual-unbiased.md F19).
 connectivity : (∀ {x} → ¬ R x x) → L ↭ M → NoInv L → NoInv M → L ↝* M
 connectivity {L = L} {M = M} R-irrefl perm noL noM =
   connectivity-go R-irrefl L M perm noL noM
