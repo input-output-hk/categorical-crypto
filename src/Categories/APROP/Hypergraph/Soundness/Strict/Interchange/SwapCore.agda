@@ -41,7 +41,7 @@ import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Product using (_×_; proj₁; proj₂)
 open import Relation.Nullary using (¬_)
-open import Relation.Binary.PropositionalEquality using (refl)
+open import Relation.Binary.PropositionalEquality using (refl; cong)
 
 --------------------------------------------------------------------------------
 
@@ -172,19 +172,14 @@ module _ (H : Hypergraph FlatGen) where
           (≈-trans (∘-resp ≈-refl (∘-resp (permuteˢ-inv-left q) ≈-refl))
             (≈-trans (∘-resp ≈-refl idˡ) (permuteˢ-inv-left p))))
 
+    -- the mirror of `permuteˢ-inv-left`, derived from it (rather than
+    -- re-derived by structural induction on `p`) via stdlib's
+    -- `↭-sym-involutive : ↭-sym (↭-sym p) ≡ p`.
     permuteˢ-inv-right
       : ∀ {xs ys : List (Fin H.nV)} (p : xs Perm.↭ ys)
       → permuteˢ p ∘ˢ permuteˢ (Perm.↭-sym p) ≈ˢ idˢ {map vl ys}
-    permuteˢ-inv-right Perm.refl         = idˡ
-    permuteˢ-inv-right (Perm.prep x p)   =
-      ≈-trans interchangeˢ
-        (≈-trans (⊗-resp idˡ (permuteˢ-inv-right p)) ⊗-id)
-    permuteˢ-inv-right (Perm.swap x y p) =
-      ≈-trans interchangeˢ
-        (≈-trans (⊗-resp σ-σˢ (permuteˢ-inv-right p)) ⊗-id)
-    permuteˢ-inv-right (Perm.trans p q)  =
-      ≈-trans assocˢ
-        (≈-trans (∘-resp ≈-refl (≈-sym assocˢ))
-          (≈-trans (∘-resp ≈-refl (∘-resp (permuteˢ-inv-right p) ≈-refl))
-            (≈-trans (∘-resp ≈-refl idˡ) (permuteˢ-inv-right q))))
+    permuteˢ-inv-right p =
+      ≈-trans
+        (∘-resp (≈-sym (≡⇒≈ˢ (cong permuteˢ (PermProp.↭-sym-involutive p)))) ≈-refl)
+        (permuteˢ-inv-left (Perm.↭-sym p))
 

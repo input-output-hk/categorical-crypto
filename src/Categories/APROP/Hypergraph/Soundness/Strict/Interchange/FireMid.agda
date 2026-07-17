@@ -67,10 +67,7 @@ open import Relation.Binary.PropositionalEquality
 -- ===== submodule FMS =====
 --------------------------------------------------------------------------------
 
-module FMS (H : Hypergraph FlatGen)
-         (dih : ∀ {e} → ¬ (Dep H e e))
-         (lin : Linear H)
-         where
+module FMS (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
 
   open StrictDecoder H
@@ -337,8 +334,8 @@ module _ (H : Hypergraph FlatGen)
   perm-rigidˢ′ = perm-rigidˢ H permˢ-K
   perm-frameˡ′ = permuteˢ-frameˡ H
 
-  cross-NFˢ′   = FMS.cross-NFˢ H dih lin
-  box-resid3ˢ′ = FMS.box-resid3ˢ H dih lin
+  cross-NFˢ′   = FMS.cross-NFˢ H
+  box-resid3ˢ′ = FMS.box-resid3ˢ H
 
   open DSS.Scr (Fin H.nV) H.vlab using (bswap)
 
