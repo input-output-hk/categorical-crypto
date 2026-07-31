@@ -176,13 +176,9 @@ module TKB (H : Hypergraph FlatGen) where
 ------------------------------------------------------------------------
 module TKB2 (H : Hypergraph FlatGen) where
   open TKBBase H
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Separability sig _≟X_
-    using (module StrictSep)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_
     using (module Scr)
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig _≟X_
-    using (swap-block)
-  open StrictSep H using (permuteˢ-frameˡ)
+  import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
 
   ------------------------------------------------------------------------
   -- The strict fired layer (matching `edge-stepˢ`'s FIRE branch on the
@@ -192,7 +188,9 @@ module TKB2 (H : Hypergraph FlatGen) where
   open EdgeStepView H public using (fire-termˢ)
 
   module _ (permˢ-K : Kmod.PermK) where
-    open Kmod using (perm-rigidˢ)
+    -- The thin wiring-groupoid calculus (F11): ⟦bswap⟧/⟦frameˡ⟧/⟦absorbˡ⟧ +
+    -- rigid-≈̂.
+    open PC.Kit H permˢ-K
 
     private
       module ScrH = Scr (Fin H.nV) H.vlab
@@ -215,16 +213,12 @@ module TKB2 (H : Hypergraph FlatGen) where
     -- A single fired box on `L ++ xs` slides past the carried block `L`.
     -- The output block-braid is the canonical `permuteˢ (obraid e L rest)`;
     -- the input side reconciles `obraid`'s mate against the layer permute by
-    -- `perm-rigidˢ` on the `Unique` input stack `ein e ++ (L ++ rest)`.
+    -- `rigid-≈̂` on the `Unique` input stack `ein e ++ (L ++ rest)`.
     --
     -- (Decomposed: the box itself is `box-slide-restˢ′`; the two σ-blocks are
-    -- bridged to `permuteˢ`s via `block-swap-comm` + `permuteˢ-frame`; the
-    -- final permute reconciliation uses `perm-rigidˢ`.)
+    -- bridged to `permuteˢ`s via `⟦bswap⟧` + `⟦frameˡ⟧`; the final permute
+    -- reconciliation uses `rigid-≈̂`.)
     ----------------------------------------------------------------------
-
-    -- ### A generic "block-σ ⊗ idˢ{rest} = permuteˢ braid" bridge
-    -- (`BlockSwapComm.swap-block` at this hypergraph's vertex set).
-    blockσ-perm = swap-block (Fin H.nV) H.vlab
 
     ----------------------------------------------------------------------
     -- ## (b) `fire-slideˢ`.
@@ -270,28 +264,6 @@ module TKB2 (H : Hypergraph FlatGen) where
         ≈ˢ idˢ {m L} ⊗ˢ (gen' e ⊗ˢ idˢ {m rest})
     mid-assoc e L rest = ⊗-assocˢ (idˢ {m L}) (gen' e) (idˢ {m rest})
 
-    -- The INPUT σ-block bridged to the canonical braid `ibraid`.
-    --   σˢ (m ein)(m L) ⊗ˢ idˢ{m rest} ≈ castˢ … permuteˢ (ibraid e L rest)
-    in-σ-perm
-      : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-      → (σˢ (m (H.ein e)) (m L) ⊗ˢ idˢ {m rest})
-        ≈ˢ castˢ (sym (trans (cong (_++ m rest) (sym (map-++ vl (H.ein e) L)))
-                             (sym (map-++ vl (H.ein e ++ L) rest))))
-                 (sym (trans (cong (_++ m rest) (sym (map-++ vl L (H.ein e))))
-                             (sym (map-++ vl (L ++ H.ein e) rest))))
-            (permuteˢ (ibraid e L rest))
-    in-σ-perm e L rest = cast-flip _ _ (≈-sym (blockσ-perm (H.ein e) L rest))
-
-    ----------------------------------------------------------------------
-    -- ## The INPUT permute reconciliation (the single `perm-rigidˢ` use).
-    --
-    -- The input braid `permuteˢ (ibraid e L rest)` composed with the layer
-    -- permute `permuteˢ perm'` (re-bracketed onto the braid's domain) equals
-    -- the `idˢ{m L}`-framed inner permute `idˢ{m L} ⊗ˢ permuteˢ p`, modulo a
-    -- single re-bracketing cast.  Closed by `perm-rigidˢ` on the `Unique`
-    -- multiset `(L ++ ein e) ++ rest`.
-    ----------------------------------------------------------------------
-
     -- re-bracket `ein ++ (L ++ rest)` ⇝ `(ein ++ L) ++ rest`.
     brkIn : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
           → H.ein e ++ (L ++ rest) ≡ (H.ein e ++ L) ++ rest
@@ -301,49 +273,6 @@ module TKB2 (H : Hypergraph FlatGen) where
     brkL : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
          → L ++ (H.ein e ++ rest) ≡ (L ++ H.ein e) ++ rest
     brkL e L rest = sym (++-assoc L (H.ein e) rest)
-
-    in-reconcile
-      : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
-          (perm' : (L ++ xs) Perm.↭ H.ein e ++ (L ++ rest))
-          (p : xs Perm.↭ H.ein e ++ rest)
-      → Unique ((L ++ H.ein e) ++ rest)
-      → permuteˢ (ibraid e L rest)
-          ∘ˢ castˢ refl (cong m (brkIn e L rest)) (permuteˢ perm')
-        ≈ˢ castˢ (sym (map-++ vl L xs))
-                 (trans (sym (map-++ vl L (H.ein e ++ rest))) (cong m (brkL e L rest)))
-            (idˢ {m L} ⊗ˢ permuteˢ p)
-    in-reconcile e L xs rest perm' p uIn =
-      ≈-trans (∘-resp ≈-refl lhs-perm)
-      (≈-trans (≈-refl
-                  {f = permuteˢ (Perm.trans
-                         (subst (λ z → (L ++ xs) Perm.↭ z) (brkIn e L rest) perm')
-                         (ibraid e L rest))})
-      (≈-trans (perm-rigidˢ permˢ-K uIn
-                  (Perm.trans (subst (λ z → (L ++ xs) Perm.↭ z) (brkIn e L rest) perm')
-                              (ibraid e L rest))
-                  (subst (λ z → (L ++ xs) Perm.↭ z) (brkL e L rest) (PermProp.++⁺ˡ L p)))
-        rhs-perm))
-      where
-        lhs-perm
-          : castˢ refl (cong m (brkIn e L rest)) (permuteˢ perm')
-            ≈ˢ permuteˢ (subst (λ z → (L ++ xs) Perm.↭ z) (brkIn e L rest) perm')
-        lhs-perm = ≡⇒≈ˢ (sym (permuteˢ-subst (brkIn e L rest) perm'))
-
-        rhs-perm
-          : permuteˢ (subst (λ z → (L ++ xs) Perm.↭ z) (brkL e L rest) (PermProp.++⁺ˡ L p))
-            ≈ˢ castˢ (sym (map-++ vl L xs))
-                     (trans (sym (map-++ vl L (H.ein e ++ rest))) (cong m (brkL e L rest)))
-                (idˢ {m L} ⊗ˢ permuteˢ p)
-        rhs-perm =
-          ≈-trans (≡⇒≈ˢ (permuteˢ-subst (brkL e L rest) (PermProp.++⁺ˡ L p)))
-          (≈-trans (cast-resp refl (cong m (brkL e L rest))
-                      (cast-flip (map-++ vl L xs) (map-++ vl L (H.ein e ++ rest))
-                         (permuteˢ-frameˡ L p)))
-            (≈-trans (≡⇒≈ˢ (cast-fuse (sym (map-++ vl L xs)) refl
-                     (sym (map-++ vl L (H.ein e ++ rest))) (cong m (brkL e L rest))
-                     (idˢ {m L} ⊗ˢ permuteˢ p)))
-              (≡⇒≈ˢ (cast-irrel _ (sym (map-++ vl L xs)) _ _
-                       (idˢ {m L} ⊗ˢ permuteˢ p)))))
 
     ----------------------------------------------------------------------
     -- ## The framed inner fire layer `FF = idˢ{m L} ⊗ˢ fire-termˢ e xs rest p`
@@ -384,7 +313,7 @@ module TKB2 (H : Hypergraph FlatGen) where
     --
     -- Requires `Unique ((L ++ ein e) ++ rest)`.  The OUTPUT braid is the
     -- canonical block braid `obraid`; the input σ + layer permute collapse
-    -- into the framed inner permute by `in-reconcile`.
+    -- into the framed inner permute by `mid-in-canon`'s `in≈̂`.
     ----------------------------------------------------------------------
 
     -- The OUTPUT braid `castₒ (permuteˢ obraid)` reduced to the σ-block `OUT`.
@@ -401,10 +330,8 @@ module TKB2 (H : Hypergraph FlatGen) where
                         (ocod e L rest))
             (σˢ (m L) (m (H.eout e)) ⊗ˢ idˢ {m rest})
     out-braid-σ e L rest =
-      ≈-trans (cast-resp (odom e L rest) (ocod e L rest)
-                 (blockσ-perm L (H.eout e) rest))
-        (≡⇒≈ˢ (cast-fuse _ (odom e L rest) _ (ocod e L rest)
-                 (σˢ (m L) (m (H.eout e)) ⊗ˢ idˢ {m rest})))
+      ≈̂⇒≈ˢ (≈̂-trans cast-≈̂
+              (≈̂-trans (⟦bswap⟧ L (H.eout e) rest) (≈̂-sym cast-≈̂)))
 
 
     ------------------------------------------------------------------
@@ -517,53 +444,6 @@ module TKB2 (H : Hypergraph FlatGen) where
         sym (trans (cong (_++ m rest) (sym (map-++ vl (H.ein e) L)))
                    (sym (map-++ vl (H.ein e ++ L) rest)))
 
-      Qi : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-         → m ((L ++ H.ein e) ++ rest) ≡ (m L ++ m (H.ein e)) ++ m rest
-      Qi e L rest =
-        sym (trans (cong (_++ m rest) (sym (map-++ vl L (H.ein e))))
-                   (sym (map-++ vl (L ++ H.ein e) rest)))
-
-      -- the codomain cast `in-reconcile` produces on `idˢ{mL} ⊗ permuteˢ p`.
-      Rcod : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-           → m L ++ m (H.ein e ++ rest) ≡ m ((L ++ H.ein e) ++ rest)
-      Rcod e L rest =
-        trans (sym (map-++ vl L (H.ein e ++ rest)))
-              (cong m (brkL e L rest))
-
-    -- INPUT reconciliation: the σ-block braid composed with the (re-bracketed)
-    -- layer permute collapses to the `idˢ{mL}`-framed inner permute.
-    in-combined
-      : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
-          (perm' : (L ++ xs) Perm.↭ H.ein e ++ (L ++ rest))
-          (p : xs Perm.↭ H.ein e ++ rest)
-      → Unique ((L ++ H.ein e) ++ rest)
-      → INσb e L rest
-          ∘ˢ castˢ refl (Pi e L rest)
-                   (castˢ refl (cong m (brkIn e L rest)) (permuteˢ perm'))
-        ≈ˢ castˢ (sym (map-++ vl L xs))
-                 (trans (Rcod e L rest) (Qi e L rest))
-            (idˢ {m L} ⊗ˢ permuteˢ p)
-    in-combined e L xs rest perm' p uIn =
-      ≈-trans (∘-resp (in-σ-perm e L rest) ≈-refl)
-        -- castˢ Pi Qi (permuteˢ ibraid) ∘ castˢ refl Pi castP_brk
-        (≈-trans
-          (≈-sym (∘-cast-split refl (Pi e L rest) (Qi e L rest)
-                    (permuteˢ (ibraid e L rest))
-                    (castˢ refl (cong m (brkIn e L rest)) (permuteˢ perm'))))
-          -- castˢ refl Qi (permuteˢ ibraid ∘ castP_brk)
-          (≈-trans
-            (cast-resp refl (Qi e L rest)
-              (in-reconcile e L xs rest perm' p uIn))
-            -- castˢ refl Qi (castˢ (sym map-++Lxs) Rcod (idˢ⊗permuteˢ p))
-            (≡⇒≈ˢ
-              (trans
-                (cast-fuse (sym (map-++ vl L xs)) refl (Rcod e L rest) (Qi e L rest)
-                   (idˢ {m L} ⊗ˢ permuteˢ p))
-                (cast-irrel (trans (sym (map-++ vl L xs)) refl) (sym (map-++ vl L xs))
-                   (trans (Rcod e L rest) (Qi e L rest))
-                   (trans (Rcod e L rest) (Qi e L rest))
-                   (idˢ {m L} ⊗ˢ permuteˢ p))))))
-
     ------------------------------------------------------------------
     -- ## MIDb → MIDib and INPb-core → INPb conversions.
     ------------------------------------------------------------------
@@ -619,8 +499,23 @@ module TKB2 (H : Hypergraph FlatGen) where
                                (≈̂-trans in≈̂ (inp-core→INPb e L xs rest p)))
                     (≈̂-sym cast-≈̂))
       where
+        -- The input σ-block after the (twice re-bracketed) layer permute, and
+        -- the `L`-framed inner permute, are `permuteˢ` of two derivations into
+        -- the SAME `Unique` stack (`uIn`): the wiring is rigid.  `cast-≈̂`
+        -- strips both re-bracketing frames, `⟦absorbˡ⟧` absorbs the reindexing
+        -- tails, `⟦bswap⟧` presents the σ-block and `⟦frameˡ⟧` the frame.
         in≈̂ : (INσb e L rest ∘ˢ INin e L xs rest perm') ≈̂ (idˢ {m L} ⊗ˢ permuteˢ p)
-        in≈̂ = ≈̂-trans (≈ˢ⇒≈̂ (in-combined e L xs rest perm' p uIn)) cast-≈̂
+        in≈̂ =
+          ≈̂-trans (∘-resp-≈̂ (≈̂-sym (⟦bswap⟧ (H.ein e) L rest))
+                     (≈̂-trans (cast-≈̂ {p = refl} {q = Pi e L rest})
+                       (≈̂-trans (cast-≈̂ {p = refl} {q = cong m (brkIn e L rest)})
+                                (≈̂-sym (⟦absorbˡ⟧ (brkIn e L rest))))))
+          (≈̂-trans
+            (rigid-≈̂ uIn
+              (Perm.trans (Perm.trans perm' (Perm.↭-reflexive (brkIn e L rest)))
+                          (ibraid e L rest))
+              (Perm.trans (PermProp.++⁺ˡ L p) (Perm.↭-reflexive (brkL e L rest))))
+            (≈̂-trans (⟦absorbˡ⟧ (brkL e L rest)) (⟦frameˡ⟧ L p)))
 
     ------------------------------------------------------------------
     -- ## (b) `fire-slideˢ` — the gating brick.
