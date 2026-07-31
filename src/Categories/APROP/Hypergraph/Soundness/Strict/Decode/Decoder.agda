@@ -107,117 +107,104 @@ module StrictDecoder (H : Hypergraph FlatGen) where
 
 
   ------------------------------------------------------------------------
-  -- Separability, term level.
+  -- Separability, term level — in the `Restrict` layer (F7).
+  --
+  -- Both statements are about VERTEX stacks, so the only transports are
+  -- `castᵛ` (a `List (Fin nV)` equality) and the endpoint bookkeeping the
+  -- label-level spelling needed (`map-++ vl xs R`, the `W`/`QIH`
+  -- map-distribution proofs, `cast-⊗-frame`, `∘-cast-split`) is gone.  The
+  -- EXPORTED `term-sepˢ` keeps its label-level statement, projected once at
+  -- the bottom.
 
   import Data.List.Relation.Binary.Permutation.Propositional.Properties
     as PermProp
 
+  open Restrict (Fin H.nV) vl
+    using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ; permuteᵛ-frame
+          ; castᵛ-≈̂; ⊗-respᵛ; ⊗-resp-≈̂ᵛ; ⊗-idᵛ; interchangeᵛ; ⊗id-distᵛ
+          ; box-suffix-≈̂ᵛ; cast-idᵛ )
+
+  -- the fired layer, at V level: a box on `ein e` framed by the residual,
+  -- after the wiring that exposes `ein e` as a prefix
+  firedᵛ
+    : (e : Fin H.nE) (rest : List (Fin H.nV)) {xs : List (Fin H.nV)}
+    → xs Perm.↭ H.ein e ++ rest → HomV xs (H.eout e ++ rest)
+  firedᵛ e rest p = (genˢ (H.elab e) ⊗ᵛ idᵛ {rest}) ∘ᵛ permuteᵛ p
+
+  -- `edge-stepˢ`'s FIRE branch IS `firedᵛ`: its two `map-++` casts are
+  -- exactly the ones `_⊗ᵛ_` carries.
+  edge-step-firedᵛ
+    : ∀ (e : Fin H.nE) (rest : List (Fin H.nV)) {xs : List (Fin H.nV)}
+        (p : xs Perm.↭ H.ein e ++ rest)
+    → castˢ refl (sym (map-++ vl (H.eout e) rest))
+        ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
+          ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ p))
+      ≈ᵛ firedᵛ e rest p
+  edge-step-firedᵛ e rest p =
+    ≈̂⇒≈ˢ
+      (≈̂-trans (cast-≈̂ {p = refl} {q = sym (map-++ vl (H.eout e) rest)})
+               (∘-resp-≈̂
+                 (≈̂-sym (cast-≈̂ {p = sym (map-++ vl (H.ein e) rest)}
+                                {q = sym (map-++ vl (H.eout e) rest)}))
+                 (cast-≈̂ {p = refl} {q = map-++ vl (H.ein e) rest})))
+
   -- `process-edgesˢ` respects propositional stack equality (UIP-trivially)
-  pe-resp
+  pe-respᵛ
     : ∀ es {s s'} (E : s ≡ s')
       (E₁ : proj₁ (process-edgesˢ es s) ≡ proj₁ (process-edgesˢ es s'))
-    → proj₂ (process-edgesˢ es s')
-      ≡ castˢ (cong (map vl) E) (cong (map vl) E₁) (proj₂ (process-edgesˢ es s))
-  pe-resp es refl E₁ rewrite uipV E₁ refl = refl
+    → proj₂ (process-edgesˢ es s') ≡ castᵛ E E₁ (proj₂ (process-edgesˢ es s))
+  pe-respᵛ es refl E₁ rewrite uipV E₁ refl = refl
 
-  -- the fired-layer factorization: the (xs ++ R)-side layer is the
-  -- xs-side layer framed by idˢ {map vl R}
-  layer-sepˢ
-    : ∀ (e : Fin H.nE) xs R rest (p : xs Perm.↭ H.ein e ++ rest)
-      (W : map vl (H.eout e ++ (rest ++ R))
-           ≡ map vl (H.eout e ++ rest) ++ map vl R)
-    → castˢ (map-++ vl xs R) W
-        (castˢ refl (sym (map-++ vl (H.eout e) (rest ++ R)))
-          ((genˢ (H.elab e) ⊗ˢ idˢ {map vl (rest ++ R)})
-            ∘ˢ castˢ refl (map-++ vl (H.ein e) (rest ++ R))
-                 (permuteˢ (prefix-++ˡ-perm (H.ein e) (PermProp.++⁺ʳ R p)))))
-      ≈ˢ (castˢ refl (sym (map-++ vl (H.eout e) rest))
-           ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
-             ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ p)))
-         ⊗ˢ idˢ {map vl R}
-  -- `_≈̂_` version: both sides reduce (heterogeneously) to a CAST-FREE middle
-  -- `mid = (box_rest ⊗ id{R}) ∘ (permuteˢ p ⊗ id{R})`.  `cast-≈̂` peels every
-  -- boundary/wiring cast, `∘-resp-≈̂` threads the composite endpoint, and the
-  -- residual content is exactly the two ⊗-frame lemmas the kit does not
-  -- subsume — `box-suffix-ˢ` (⊗-assoc) on the box and `permuteˢ-frame` on the
-  -- wiring.  The kit's general `⊗-resp-≈̂` pushes `id{R}` through the RHS
-  -- composite-vs-tensor split.  Sub-lemmas carry full type signatures, which
-  -- pin every `cast-≈̂`'s endpoints (the homogeneous-projection discipline).
-  layer-sepˢ e xs R rest p W = ≈̂⇒≈ˢ (≈̂-trans lhs (≈̂-sym rhs))
+  -- the fired-layer factorization: the `(rest ++ R)`-side layer is the
+  -- `rest`-side layer framed by `idᵛ {R}`
+  layer-sepᵛ
+    : ∀ (e : Fin H.nE) (R rest : List (Fin H.nV)) {xs : List (Fin H.nV)}
+        (p : xs Perm.↭ H.ein e ++ rest)
+    → castᵛ refl (sym (++-assoc (H.eout e) rest R))
+        (firedᵛ e (rest ++ R)
+          (prefix-++ˡ-perm (H.ein e) (PermProp.++⁺ʳ R p)))
+      ≈ᵛ firedᵛ e rest p ⊗ᵛ idᵛ {R}
+  layer-sepᵛ e R rest {xs} p =
+    ≈̂⇒≈ˢ
+      (≈̂-trans (castᵛ-≈̂ refl (sym (++-assoc B rest R))
+                  (firedᵛ e (rest ++ R) pbig))
+      (≈̂-trans (∘-resp-≈̂ G-side P-side)
+               (≈̂-sym (≈ˢ⇒≈̂ (⊗id-distᵛ Box_r (permuteᵛ p))))))
     where
       A = H.ein e ; B = H.eout e
       G₀ = genˢ (H.elab e)
-      mR = map vl R
-      mAr  = map-++ vl A rest
-      mArr = map-++ vl A (rest ++ R)
-      mBr  = map-++ vl B rest
-      mBrr = map-++ vl B (rest ++ R)
-      Box_r = G₀ ⊗ˢ idˢ {map vl rest}
-      permp = permuteˢ p
-      -- `map-++`-recast of `permp` so it composes with `Box_r` (its raw codomain
-      -- `map vl (A ++ rest)` is not definitionally `map vl A ++ map vl rest`)
-      Pfac  = castˢ refl mAr permp
-      pbig  = permuteˢ (prefix-++ˡ-perm A (PermProp.++⁺ʳ R p))
-      mid   = (Box_r ⊗ˢ idˢ {mR}) ∘ˢ (Pfac ⊗ˢ idˢ {mR})
+      Box_r = G₀ ⊗ᵛ idᵛ {rest}
+      pbig = prefix-++ˡ-perm A (PermProp.++⁺ʳ R p)
 
-      -- `id{map vl rest ++ mR} ≈̂ id{map vl (rest ++ R)}` (a cast of identities)
-      id-bridge : idˢ {map vl rest ++ mR} ≈̂ idˢ {map vl (rest ++ R)}
-      id-bridge =
-        ≈̂-trans (≈̂-sym (≈ˢ⇒≈̂ (cast-id (map-++ vl rest R)
-                                        (map-++ vl rest R))))
-                cast-≈̂
+      G-side : (G₀ ⊗ᵛ idᵛ {rest ++ R}) ≈̂ (Box_r ⊗ᵛ idᵛ {R})
+      G-side = ≈̂-sym (box-suffix-≈̂ᵛ G₀ rest R)
 
-      -- the fired box over `rest ++ R` = the `rest`-box framed by id{R}
-      G-side : (G₀ ⊗ˢ idˢ {map vl (rest ++ R)}) ≈̂ (Box_r ⊗ˢ idˢ {mR})
-      G-side =
-        ≈̂-sym (≈̂-trans (≈̂-trans (≈̂-sym cast-≈̂)
-                                 (≈ˢ⇒≈̂ (box-suffix-ˢ G₀ (map vl rest) mR)))
-                        (⊗-resp-≈̂ ≈̂-refl id-bridge))
-
-      -- the framed wiring = `permuteˢ p` framed by id{R}
-      P-side : castˢ refl mArr pbig ≈̂ (Pfac ⊗ˢ idˢ {mR})
+      P-side : permuteᵛ pbig ≈̂ (permuteᵛ p ⊗ᵛ idᵛ {R})
       P-side =
-        ≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (cong (castˢ refl mArr)
-                          (permuteˢ-subst (++-assoc A rest R)
-                                          (PermProp.++⁺ʳ R p)))))
-        (≈̂-trans (cast-≈̂ {p = refl} {q = mArr})
+        ≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (permuteˢ-subst (++-assoc A rest R)
+                               (PermProp.++⁺ʳ R p))))
         (≈̂-trans (cast-≈̂ {p = refl} {q = cong (map vl) (++-assoc A rest R)})
-        (≈̂-trans (≈̂-sym (cast-≈̂ {p = map-++ vl xs R} {q = map-++ vl (A ++ rest) R}))
-        (≈̂-trans (≈ˢ⇒≈̂ (permuteˢ-frame R p))
-                 (⊗-resp-≈̂ (≈̂-sym (cast-≈̂ {p = refl} {q = mAr})) ≈̂-refl)))))
+                 (≈ˢ⇒≈̂ (permuteᵛ-frame R p)))
 
-      lhs : castˢ (map-++ vl xs R) W
-              (castˢ refl (sym mBrr)
-                ((G₀ ⊗ˢ idˢ {map vl (rest ++ R)}) ∘ˢ castˢ refl mArr pbig))
-            ≈̂ mid
-      lhs = ≈̂-trans (cast-≈̂ {p = map-++ vl xs R} {q = W})
-                    (≈̂-trans (cast-≈̂ {p = refl} {q = sym mBrr})
-                             (∘-resp-≈̂ G-side P-side))
-
-      rhs : (castˢ refl (sym mBr) (Box_r ∘ˢ castˢ refl mAr permp)) ⊗ˢ idˢ {mR}
-            ≈̂ mid
-      rhs =
-        ≈̂-trans (⊗-resp-≈̂ cast-≈̂ ≈̂-refl)
-                (≈ˢ⇒≈̂ (⊗id-distˢ Box_r Pfac))
-
-  -- the SEPARABILITY THEOREM, term level
-  term-sepˢ
+  -- the SEPARABILITY THEOREM at V level: the stack coherence is a
+  -- `List (Fin nV)` equality (`stack-sepˢ` supplies it at the projection)
+  term-sepᵛ
     : ∀ es xs R (dis : block-disjoint es R)
-      (Q : map vl (proj₁ (process-edgesˢ es (xs ++ R)))
-           ≡ map vl (proj₁ (process-edgesˢ es xs)) ++ map vl R)
-    → castˢ (map-++ vl xs R) Q (proj₂ (process-edgesˢ es (xs ++ R)))
-      ≈ˢ proj₂ (process-edgesˢ es xs) ⊗ˢ idˢ {map vl R}
-  term-sepˢ []       xs R _          Q =
-    ≈-trans (cast-id (map-++ vl xs R) Q) (≈-sym ⊗-id)
-  term-sepˢ (e ∷ es) xs R (de ∷ des) Q with extract-prefix (H.ein e) xs in eq
+      (Q : proj₁ (process-edgesˢ es (xs ++ R))
+           ≡ proj₁ (process-edgesˢ es xs) ++ R)
+    → castᵛ refl Q (proj₂ (process-edgesˢ es (xs ++ R)))
+      ≈ᵛ proj₂ (process-edgesˢ es xs) ⊗ᵛ idᵛ {R}
+  term-sepᵛ []       xs R _          Q =
+    ≈-trans (cast-idᵛ refl Q) (≈-sym ⊗-idᵛ)
+  term-sepᵛ (e ∷ es) xs R (de ∷ des) Q with extract-prefix (H.ein e) xs in eq
   ... | nothing
         rewrite extract-prefix-++ˡ-nothing (H.ein e) xs R de eq
-        = ≈-trans (∘-cast-split (map-++ vl xs R) (map-++ vl xs R) Q _ idˢ)
-            (≈-trans (∘-resp (term-sepˢ es xs R des Q)
-                             (cast-id (map-++ vl xs R) (map-++ vl xs R)))
-              (≈-trans (∘-resp ≈-refl (≈-sym ⊗-id))
-                (≈-trans interchangeˢ
-                  (⊗-resp ≈-refl idˡ))))
+        = ≈̂⇒≈ˢ
+            (≈̂-trans (castᵛ-≈̂ refl Q _)
+            (≈̂-trans (∘-resp-≈̂ (≈̂-trans (≈̂-sym (castᵛ-≈̂ refl Q _))
+                                        (≈ˢ⇒≈̂ (term-sepᵛ es xs R des Q)))
+                               ≈̂-refl)
+                     (≈ˢ⇒≈̂ (≈-trans idʳ (⊗-respᵛ (≈-sym idʳ) ≈-refl)))))
   ... | just (rest , p)
         rewrite extract-prefix-++ˡ (H.ein e) xs R eq
         = main
@@ -232,40 +219,67 @@ module StrictDecoder (H : Hypergraph FlatGen) where
                ≡ proj₁ (process-edgesˢ es (xs₁ ++ R))
           E₁ = cong (λ z → proj₁ (process-edgesˢ es z)) E∘
 
-          W : map vl (B ++ (rest ++ R)) ≡ map vl xs₁ ++ map vl R
-          W = trans (cong (map vl) E∘) (map-++ vl xs₁ R)
+          QIH : proj₁ (process-edgesˢ es (xs₁ ++ R))
+                ≡ proj₁ (process-edgesˢ es xs₁) ++ R
+          QIH = trans (sym E₁) Q
 
-          QIH : map vl (proj₁ (process-edgesˢ es (xs₁ ++ R)))
-                ≡ map vl (proj₁ (process-edgesˢ es xs₁)) ++ map vl R
-          QIH = trans (sym (cong (map vl) E₁)) Q
+          Aside : proj₂ (process-edgesˢ es (B ++ (rest ++ R)))
+                  ≈̂ (proj₂ (process-edgesˢ es xs₁) ⊗ᵛ idᵛ {R})
+          Aside =
+            ≈̂-trans
+              (≈̂-sym (≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (pe-respᵛ es E∘ E₁)))
+                              (castᵛ-≈̂ E∘ E₁ _)))
+              (≈̂-trans (≈̂-sym (castᵛ-≈̂ refl QIH _))
+                       (≈ˢ⇒≈̂ (term-sepᵛ es xs₁ R des QIH)))
+
+          Bside : castˢ refl (sym (map-++ vl B (rest ++ R)))
+                    ((genˢ (H.elab e) ⊗ˢ idˢ {map vl (rest ++ R)})
+                      ∘ˢ castˢ refl (map-++ vl (H.ein e) (rest ++ R))
+                           (permuteˢ (prefix-++ˡ-perm (H.ein e)
+                                        (PermProp.++⁺ʳ R p))))
+                  ≈̂ (firedᵛ e rest p ⊗ᵛ idᵛ {R})
+          Bside =
+            ≈̂-trans (≈ˢ⇒≈̂ (edge-step-firedᵛ e (rest ++ R) _))
+            (≈̂-trans (≈̂-sym (castᵛ-≈̂ refl (sym (++-assoc B rest R)) _))
+                     (≈ˢ⇒≈̂ (layer-sepᵛ e R rest p)))
 
           main
-            : castˢ (map-++ vl xs R) Q
+            : castᵛ refl Q
                 (proj₂ (process-edgesˢ es (B ++ (rest ++ R)))
-                  ∘ˢ castˢ refl (sym (map-++ vl B (rest ++ R)))
+                  ∘ᵛ castˢ refl (sym (map-++ vl B (rest ++ R)))
                       ((genˢ (H.elab e) ⊗ˢ idˢ {map vl (rest ++ R)})
                         ∘ˢ castˢ refl (map-++ vl (H.ein e) (rest ++ R))
                              (permuteˢ (prefix-++ˡ-perm (H.ein e)
                                           (PermProp.++⁺ʳ R p)))))
-              ≈ˢ (proj₂ (process-edgesˢ es xs₁)
-                   ∘ˢ castˢ refl (sym (map-++ vl B rest))
+              ≈ᵛ (proj₂ (process-edgesˢ es xs₁)
+                   ∘ᵛ castˢ refl (sym (map-++ vl B rest))
                        ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
                          ∘ˢ castˢ refl (map-++ vl (H.ein e) rest)
                               (permuteˢ p)))
-                 ⊗ˢ idˢ {map vl R}
+                 ⊗ᵛ idᵛ {R}
           main =
-            ≈-trans (∘-cast-split (map-++ vl xs R) W Q _ _)
-            (≈-trans
-              (∘-resp
-                (≈-trans
-                  (≡⇒≈ˢ (cong (castˢ W Q)
-                          (pe-resp es (sym E∘) (sym E₁))))
-                (≈-trans
-                  (≡⇒≈ˢ (cast-fuse (cong (map vl) (sym E∘)) W
-                                   (cong (map vl) (sym E₁)) Q _))
-                (≈-trans
-                  (≡⇒≈ˢ (cast-irrel _ (map-++ vl xs₁ R) _ QIH _))
-                  (term-sepˢ es xs₁ R des QIH))))
-                (layer-sepˢ e xs R rest p W))
-              (≈-trans interchangeˢ
-                (⊗-resp ≈-refl idˡ)))
+            ≈̂⇒≈ˢ
+              (≈̂-trans (castᵛ-≈̂ refl Q _)
+              (≈̂-trans (∘-resp-≈̂ Aside Bside)
+              (≈̂-trans (≈ˢ⇒≈̂ interchangeᵛ)
+                       (⊗-resp-≈̂ᵛ
+                         (∘-resp-≈̂ ≈̂-refl
+                           (≈̂-sym (≈ˢ⇒≈̂ (edge-step-firedᵛ e rest p))))
+                         (≈ˢ⇒≈̂ idˡ)))))
+
+  -- the SEPARABILITY THEOREM, label level (the exported statement)
+  term-sepˢ
+    : ∀ es xs R (dis : block-disjoint es R)
+      (Q : map vl (proj₁ (process-edgesˢ es (xs ++ R)))
+           ≡ map vl (proj₁ (process-edgesˢ es xs)) ++ map vl R)
+    → castˢ (map-++ vl xs R) Q (proj₂ (process-edgesˢ es (xs ++ R)))
+      ≈ˢ proj₂ (process-edgesˢ es xs) ⊗ˢ idˢ {map vl R}
+  term-sepˢ es xs R dis Q =
+    ≈̂⇒castˢ
+      (≈̂-trans (≈̂-sym (castᵛ-≈̂ refl Qv (proj₂ (process-edgesˢ es (xs ++ R)))))
+      (≈̂-trans (≈ˢ⇒≈̂ (term-sepᵛ es xs R dis Qv))
+               (cast-≈̂ {p = sym (map-++ vl xs R)}
+                       {q = sym (map-++ vl (proj₁ (process-edgesˢ es xs)) R)})))
+      (map-++ vl xs R) Q
+    where
+      Qv = stack-sepˢ es xs R dis
