@@ -10,8 +10,7 @@ open import Categories.Category.EquivClosureHelper using (categoryHelperᵉ)
 open import Categories.Category.Instance.Sets using (Sets)
 open import Categories.Category.Monoidal using (MonoidalCategory)
 import Categories.Category.Monoidal.Reasoning as MonR
-open import Categories.Coherence.Monoidal using (module Mor)
-open import Categories.FreeMonoidal using (Mon; module FreeMonoidalHelper)
+open import Categories.Coherence.Monoidal using (module MorAtoms; module MorSolve)
 open import Categories.Functor using (Functor)
 open import Categories.Functor.Presheaf using (Presheaf)
 open import Categories.Monad.Graded using (GradedMonad; GradedKleisliTriple)
@@ -70,8 +69,9 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
           α⇐
         , (let open C in (refl⟩∘⟨ ⊙-assoc)
              ○ cancelˡ (⟺ sub-homomorphism ○ sub-resp-≈ associator.isoˡ ○ sub-identity))
-        , (let open FreeMonoidalHelper Mon (Fin 7) renaming (Var to V; _⊗₀_ to _⊗ᵒ_) using ()
-               open Mor I (Xi ∷ a ∷ b ∷ c ∷ Yi ∷ Zi ∷ Wi ∷ [])
+        , (let vs = Xi ∷ a ∷ b ∷ c ∷ Yi ∷ Zi ∷ Wi ∷ []
+               open MorAtoms I vs
+               open MorSolve I vs
                     ( ((V (# 0) ⊗ᵒ V (# 1) , V (# 4)) , φf)
                     ∷ ((V (# 4) ⊗ᵒ V (# 2) , V (# 5)) , φg)
                     ∷ ((V (# 5) ⊗ᵒ V (# 3) , V (# 6)) , φh) ∷ [] )
@@ -83,15 +83,17 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
       {ai , _} {B , _} {i , _ , α} →
           ρ⇒
         , ⊙-identityˡ
-        , (let open FreeMonoidalHelper Mon (Fin 3) renaming (Var to V; _⊗₀_ to _⊗ᵒ_) using ()
-               open Mor I (ai ∷ i ∷ B ∷ []) (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , α) ∷ [])
+        , (let vs = ai ∷ i ∷ B ∷ []
+               open MorAtoms I vs
+               open MorSolve I vs (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , α) ∷ [])
            in solveMor! (gen (# 0) S.∘ S.id S.⊗₁ S.ρ⇒) (S.ρ⇒ S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐))
     ; identityʳ = λ where
       {ai , _} {B , _} {i , _ , α} →
           λ⇒
         , ⊙-identityʳ
-        , (let open FreeMonoidalHelper Mon (Fin 3) renaming (Var to V; _⊗₀_ to _⊗ᵒ_) using ()
-               open Mor I (ai ∷ i ∷ B ∷ []) (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , α) ∷ [])
+        , (let vs = ai ∷ i ∷ B ∷ []
+               open MorAtoms I vs
+               open MorSolve I vs (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , α) ∷ [])
            in solveMor! (gen (# 0) S.∘ S.id S.⊗₁ S.λ⇒) (gen (# 0) S.∘ S.ρ⇒ S.⊗₁ S.id S.∘ S.α⇐))
     ; ∘-resp-≈ = λ where
       {Ai , _} {Bi , _} {Ci , _}
@@ -104,8 +106,9 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
              ext ik (sub φ C.∘ ff) C.∘ (sub ψ C.∘ gf)  ≈⟨ ext-resp-≈ cf ⟩∘⟨ cg ⟩
              ext ik hf C.∘ if′ ∎)
         , (let open Category.HomReasoning (I.U)
-               open FreeMonoidalHelper Mon (Fin 7) renaming (Var to V; _⊗₀_ to _⊗ᵒ_) using ()
-               open Mor I (Ai ∷ Bi ∷ Ci ∷ fk ∷ gk ∷ hk ∷ ik ∷ [])
+               vs = Ai ∷ Bi ∷ Ci ∷ fk ∷ gk ∷ hk ∷ ik ∷ []
+               open MorAtoms I vs
+               open MorSolve I vs
                     ( ((V (# 1) ⊗ᵒ V (# 5) , V (# 2)) , hα)
                     ∷ ((V (# 0) ⊗ᵒ V (# 6) , V (# 1)) , iα)
                     ∷ ((V (# 3)             , V (# 5)) , φ)
@@ -182,8 +185,9 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
       (sub β ∘ μ Q j ∘ T₁ Q g) ∘ (sub α ∘ μ P i ∘ T₁ P f) ∎
     where
       I-eq : I.U [ (β I.∘ ₁ (-⊗ j) α I.∘ α⇐) I.∘ α⇒ ≈ β I.∘ ₁ (-⊗ j) α ]
-      I-eq = let open FreeMonoidalHelper Mon (Fin 5) renaming (Var to V; _⊗₀_ to _⊗ᵒ_) using ()
-                 open Mor I (P ∷ i ∷ j ∷ Q ∷ R ∷ [])
+      I-eq = let vs = P ∷ i ∷ j ∷ Q ∷ R ∷ []
+                 open MorAtoms I vs
+                 open MorSolve I vs
                       ( ((V (# 0) ⊗ᵒ V (# 1) , V (# 3)) , α)
                       ∷ ((V (# 3) ⊗ᵒ V (# 2) , V (# 4)) , β) ∷ [] )
              in solveMor! ((gen (# 1) S.∘ (gen (# 0) S.⊗₁ S.id) S.∘ S.α⇐) S.∘ S.α⇒)
@@ -283,8 +287,9 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
                    (sub λ⇐ ∘ sub φx) ∘ (μ j kx ∘ T₁ j fx)
                      ≈⟨ assoc ○ (refl⟩∘⟨ refl⟩∘⟨ μT fx) ⟩
                    sub λ⇐ ∘ (sub φx ∘ ext j fx) ∎))
-            , (let open FreeMonoidalHelper Mon (Fin 3) renaming (Var to V; _⊗₀_ to _⊗ᵒ_) using ()
-                   open Mor I (j ∷ kx ∷ j′ ∷ []) (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , φx) ∷ [])
+            , (let vs = j ∷ kx ∷ j′ ∷ []
+                   open MorAtoms I vs
+                   open MorSolve I vs (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , φx) ∷ [])
                in solveMor! ((S.λ⇒ S.∘ (S.ρ⇒ S.⊗₁ S.id) S.∘ S.α⇐) S.∘ S.id S.⊗₁ (S.λ⇐ S.∘ gen (# 0)))
                             (gen (# 0) S.∘ (S.λ⇒ S.⊗₁ S.id) S.∘ S.α⇐)))) }
       }
