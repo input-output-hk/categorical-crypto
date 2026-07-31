@@ -85,12 +85,12 @@ module RO
     -- Domains are at equal (trivial) grade with mediator pid — the concrete MD
     -- statement is closed on the resource side.
     md-emulate : ι mdProtocol ≈ℰ' (pureAtk roSimulator ∘ᴼ ι roIdeal ∘ᴼ pureAtk ℐ.id)
-    md-emulate = begin
+    md-emulate = U-≈ℰ⇒≈ℰ' (begin
         U (ι mdProtocol)                                     ≈⟨ U-real ⟩
         MD⊚Comp                                              ≈⟨ absorb MD-secure van ⟨
         General-M                                            ≈⟨ U-ideal ⟨
-        U (pureAtk roSimulator ∘ᴼ ι roIdeal)                 ≈⟨ ≈'-congˡ (pureAtk roSimulator) (≈'-sym (atk-idʳ (ι roIdeal))) ⟩
-        U (pureAtk roSimulator ∘ᴼ ι roIdeal ∘ᴼ pureAtk ℐ.id)  ∎
+        U (pureAtk roSimulator ∘ᴼ ι roIdeal)                 ≈⟨ ≈ℰ'⇒U-≈ℰ (≈'-congˡ (pureAtk roSimulator) (≈'-sym (atk-idʳ (ι roIdeal)))) ⟩
+        U (pureAtk roSimulator ∘ᴼ ι roIdeal ∘ᴼ pureAtk ℐ.id)  ∎)
       where open SetoidR (≈ℰ-setoid Ao Bo)
 
     MD≤UC-RO : mdProtocol ≤UC roIdeal
