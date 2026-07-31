@@ -93,8 +93,6 @@ module TKB (H : Hypergraph FlatGen) where
   ------------------------------------------------------------------------
 
   module _ (permˢ-K : Kmod.PermK) where
-    open Kmod using (perm-rigidˢ)
-
     ----------------------------------------------------------------------
     -- ## The pure box left-slide (K-FREE).
     --
