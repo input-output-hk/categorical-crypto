@@ -2,18 +2,12 @@
 
 module CategoricalCrypto.UCSetup where
 
-open import Data.Product
 open import Level
-open import Relation.Binary.Bundles
-import Relation.Binary.Reasoning.Setoid as SetoidR
 
 open import Categories.Category
 open import Categories.Category.Instance.Setoids
 open import Categories.Category.Monoidal
 open import Categories.Functor.Presheaf
-import Categories.KernelCongruence as KernelCong
-open import Categories.LocallyGraded
-import Categories.LocallyGraded.Kleisli as LGKleisli
 open import Categories.Monad.Graded
 import Categories.Morphism.Reasoning as MR
 
