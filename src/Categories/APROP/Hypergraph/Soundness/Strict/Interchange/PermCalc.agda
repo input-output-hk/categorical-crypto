@@ -20,6 +20,7 @@
 -- The six bridges are `≈̂`-restatements of EXISTING lemmas:
 --   ⟦trans⟧     — DEFINITIONAL (`permuteˢ (trans p q) = permuteˢ q ∘ˢ permuteˢ p`)
 --   ⟦reflexive⟧ — `permuteˢ (↭-reflexive eq) ≈̂ idˢ`
+--   ⟦absorbˡ⟧/⟦absorbʳ⟧ — a reindexing factor is absorbed (`idˡ`/`idʳ`)
 --   ⟦frameˡ⟧    — `SwapCore.permuteˢ-frameˡ`
 --   ⟦frameʳ⟧    — `FreeStrictSMC.Perm′.permuteˢ-frame`
 --   ⟦bswap⟧     — `BlockSwapComm.swap-block`
@@ -88,6 +89,20 @@ module Kit (H : Hypergraph FlatGen)
     : ∀ {xs ys : List (Fin H.nV)} (eq : xs ≡ ys)
     → permuteˢ (Perm.↭-reflexive eq) ≈̂ idˢ {m xs}
   ⟦reflexive⟧ refl = ≈̂-refl
+
+  ------------------------------------------------------------------------
+  -- ⟦absorbˡ⟧/⟦absorbʳ⟧ : a reindexing FACTOR of a sequential derivation is
+  -- absorbed by the identity laws (the reindex is an `idˢ` on that side).
+  ------------------------------------------------------------------------
+  ⟦absorbˡ⟧
+    : ∀ {xs ys zs : List (Fin H.nV)} {p : xs Perm.↭ ys} (eq : ys ≡ zs)
+    → permuteˢ (Perm.trans p (Perm.↭-reflexive eq)) ≈̂ permuteˢ p
+  ⟦absorbˡ⟧ refl = ≈ˢ⇒≈̂ idˡ
+
+  ⟦absorbʳ⟧
+    : ∀ {xs ys zs : List (Fin H.nV)} (eq : xs ≡ ys) {p : ys Perm.↭ zs}
+    → permuteˢ (Perm.trans (Perm.↭-reflexive eq) p) ≈̂ permuteˢ p
+  ⟦absorbʳ⟧ refl = ≈ˢ⇒≈̂ idʳ
 
   ------------------------------------------------------------------------
   -- ⟦frameˡ⟧ : a `++⁺ˡ ls` frame becomes a `idˢ ⊗ˢ_` frame.

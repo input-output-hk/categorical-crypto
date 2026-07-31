@@ -171,8 +171,7 @@ module FMS2 (H : Hypergraph FlatGen)
   permˢ-K = PK.permˢ-K (Fin H.nV) _≟F_ vl
 
   -- SwapCore brick aliases.
-  Incompˢ      = Incomp H
-  perm-rigidˢ′ = perm-rigidˢ H permˢ-K
+  Incompˢ = Incomp H
 
   -- The thin wiring-groupoid calculus (F11): ⟦bswap⟧ + rigid-≈̂.
   open PC.Kit H permˢ-K
@@ -184,19 +183,11 @@ module FMS2 (H : Hypergraph FlatGen)
     m = map vl
 
   ------------------------------------------------------------------------
-  -- The `++⁺ʳ Rl`-framed block-swap derivations at this hypergraph's vertex
-  -- set (`BlockSwapComm.swap-block`/`swap-block-sym`).
-  ------------------------------------------------------------------------
-
-  swap-block     = BSC.swap-block (Fin H.nV) H.vlab
-  swap-block-sym = BSC.swap-block-sym (Fin H.nV) H.vlab
-
-  ------------------------------------------------------------------------
   -- The per-pair located frames + coherences.  `SimLoc` (from FMIC) is
   -- opened, and `Lin₁/Lin₂/Lout₁/Lout₂/Pr` are the `permuteˢ`-of-located-
   -- derivation frames (cast to the `(A++A')++Rl` block shape `cross-NFˢ`
   -- expects).  `vin-cohˢ`/`vout-cohˢ` discharge the two `cross-NFˢ`
-  -- hypotheses via `perm-rigidˢ′` + `swap-block`.
+  -- hypotheses via `rigid-≈̂` + `⟦bswap⟧`.
   ------------------------------------------------------------------------
 
   module Located
@@ -272,34 +263,15 @@ module FMS2 (H : Hypergraph FlatGen)
       swp-out : (H.eout e ++ H.eout e') ++ Rlist Perm.↭ (H.eout e' ++ H.eout e) ++ Rlist
       swp-out = PermProp.++⁺ʳ Rlist (bswap (H.eout e) (H.eout e'))
 
-      -- `trans vout-loc₁ r-stk` and `trans swp-out vout-loc₂` are two
-      -- derivations into `Unique (eout e ++ r₁')` (`us-cod`).
-      rigid-out : permuteˢ (Perm.trans vout-loc₁ r-stk)
-                  ≈ˢ permuteˢ (Perm.trans swp-out vout-loc₂)
-      rigid-out = perm-rigidˢ′ us-cod
-                    (Perm.trans vout-loc₁ r-stk) (Perm.trans swp-out vout-loc₂)
-
-      -- σˢ B B' ⊗ id ≈ castˢ Dout Cout (permuteˢ swp-out).
-      Dout = trans (map-++ vl (H.eout e ++ H.eout e') Rlist)
-                   (cong (_++ Rl) (map-++ vl (H.eout e) (H.eout e')))
-      Cout = trans (map-++ vl (H.eout e' ++ H.eout e) Rlist)
-                   (cong (_++ Rl) (map-++ vl (H.eout e') (H.eout e)))
-
-      σ-as-swp-out : σˢ B B' ⊗ˢ idˢ {Rl} ≈ˢ castˢ Dout Cout (permuteˢ swp-out)
-      σ-as-swp-out = swap-block-sym (H.eout e) (H.eout e') Rlist
-
+    -- The mirror of `vin-cohˢ`: `trans vout-loc₁ r-stk` and
+    -- `trans swp-out vout-loc₂` are two derivations into `Unique (eout e ++ r₁')`
+    -- (`us-cod`), and `⟦bswap⟧` turns `swp-out` into `σ B B' ⊗ id`.
     vout-cohˢ : Pr ∘ˢ Lout₁ ≈ˢ Lout₂ ∘ˢ (σˢ B B' ⊗ˢ idˢ {Rl})
-    vout-cohˢ = ≈-sym
-      (≈-trans (∘-resp ≈-refl σ-as-swp-out)
-      (≈-trans (∘-resp ≈-refl (≡⇒≈ˢ (cast-irrel Dout Dout Cout out-mc'
-                                       (permuteˢ swp-out))))
-      (≈-trans (≈-sym (∘-cast-split Dout out-mc' refl
-                         (permuteˢ vout-loc₂) (permuteˢ swp-out)))
-      (≈-trans (cast-resp Dout refl (≈-sym rigid-out))
-      (≈-trans (∘-cast-split Dout refl refl
-                  (permuteˢ r-stk) (permuteˢ vout-loc₁))
-        (∘-resp ≈-refl
-          (≡⇒≈ˢ (cast-irrel Dout out-mc refl refl (permuteˢ vout-loc₁)))))))))
+    vout-cohˢ = ≈̂⇒≈ˢ
+      (≈̂-trans (∘-resp-≈̂ ≈̂-refl cast-≈̂)
+      (≈̂-trans (rigid-≈̂ us-cod (Perm.trans vout-loc₁ r-stk)
+                              (Perm.trans swp-out vout-loc₂))
+        (∘-resp-≈̂ (≈̂-sym cast-≈̂) (⟦bswap⟧ (H.eout e) (H.eout e') Rlist))))
 
 
 --------------------------------------------------------------------------------
@@ -319,19 +291,16 @@ module _ (H : Hypergraph FlatGen)
 
   -- SwapCore brick aliases.
   fire-termˢ′  = fire-termˢ H
-  perm-rigidˢ′ = perm-rigidˢ H permˢ-K
   perm-frameˡ′ = permuteˢ-frameˡ H
 
-  -- The thin wiring-groupoid calculus (F11): ⟦reflexive⟧ + rigid-≈̂.
+  -- The thin wiring-groupoid calculus (F11): ⟦absorbˡ⟧/⟦absorbʳ⟧/⟦frameˡ⟧/
+  -- ⟦bswap⟧ + rigid-≈̂.
   open PC.Kit H permˢ-K
 
   cross-NFˢ′   = FMS.cross-NFˢ H
   box-resid3ˢ′ = FMS.box-resid3ˢ H
 
   open DSS.Scr (Fin H.nV) H.vlab using (bswap)
-
-  swap-block     = BSC.swap-block (Fin H.nV) H.vlab
-  swap-block-sym = BSC.swap-block-sym (Fin H.nV) H.vlab
 
   private
     m : List (Fin H.nV) → List X
@@ -340,25 +309,7 @@ module _ (H : Hypergraph FlatGen)
   FireMidInterchangeˢ : Set
   FireMidInterchangeˢ = SCR.FireMidInterchangeˢ H dih lin
 
-  ----------------------------------------------------------------------
-  -- Generic cast helpers (mirroring FireMidFinish).
-  ----------------------------------------------------------------------
   private
-    permuteˢ-reflexive
-      : ∀ {xs ys : List (Fin H.nV)} (eq : xs ≡ ys)
-      → permuteˢ (Perm.↭-reflexive eq) ≈ˢ castˢ refl (cong m eq) (idˢ {m xs})
-    permuteˢ-reflexive refl = ≈-refl
-
-    cast-idˡ-∘
-      : ∀ {as bs cs : List X} (Q : bs ≡ cs) (f : HomS as bs)
-      → castˢ refl Q (idˢ {bs}) ∘ˢ f ≈ˢ castˢ refl Q f
-    cast-idˡ-∘ refl f = idˡ
-
-    cast-idʳ-∘
-      : ∀ {as cs ds : List X} (Q : as ≡ cs) (f : HomS cs ds)
-      → f ∘ˢ castˢ refl Q (idˢ {as}) ≈ˢ castˢ (sym Q) refl f
-    cast-idʳ-∘ refl f = idʳ
-
     -- Pure-SMC box merge: the back box `g'` brought to front by the block
     -- braid `σ B A'`, applied after the front box `g`, equals the both-boxes
     -- morphism `g ⊗ g'` (front box on the LEFT) precomposed with the OUTPUT
@@ -556,9 +507,6 @@ module _ (H : Hypergraph FlatGen)
     -- strict block braiding `σ B A' ⊗ id{Rl}`.
     ------------------------------------------------------------------
     private
-      midD : H.eout a ++ (H.ein b ++ R) Perm.↭ H.ein b ++ (H.eout a ++ R)
-      midD = PermProp.shifts (H.eout a) (H.ein b)
-
       mid-comp : H.eout a ++ (H.ein b ++ R) Perm.↭ H.ein b ++ (H.eout a ++ R)
       mid-comp = Perm.trans (PermProp.++⁺ˡ (H.eout a) (Perm.↭-sym ρ₁)) loc2'
 
@@ -567,57 +515,19 @@ module _ (H : Hypergraph FlatGen)
       us-mid-img : Unique (H.ein b ++ (H.eout a ++ R))
       us-mid-img = SU.Unique-resp-↭ (PermProp.++⁺ˡ (H.ein b) ρ₂) us-mid
 
-      mid-rigid : permuteˢ mid-comp ≈ˢ permuteˢ midD
-      mid-rigid = perm-rigidˢ′ us-mid-img mid-comp midD
-
-      -- midD as the strict block braid.
+      -- the mid block-swap, bracketed by the two reindexing derivations.
       bridgeD : H.eout a ++ (H.ein b ++ R) Perm.↭ H.ein b ++ (H.eout a ++ R)
       bridgeD =
         Perm.trans (Perm.↭-reflexive (sym (++-assoc (H.eout a) (H.ein b) R)))
         (Perm.trans (PermProp.++⁺ʳ R (bswap (H.eout a) (H.ein b)))
                     (Perm.↭-reflexive (++-assoc (H.ein b) (H.eout a) R)))
 
-      midD-bridge : permuteˢ midD ≈ˢ permuteˢ bridgeD
-      midD-bridge = perm-rigidˢ′ us-mid-img midD bridgeD
-
-      Dsb = trans (cong (_++ Rl) (sym (map-++ vl (H.eout a) (H.ein b))))
-                  (sym (map-++ vl (H.eout a ++ H.ein b) R))
-      Csb = trans (cong (_++ Rl) (sym (map-++ vl (H.ein b) (H.eout a))))
-                  (sym (map-++ vl (H.ein b ++ H.eout a) R))
-      Casl = cong m (sym (++-assoc (H.eout a) (H.ein b) R))
-      Casr = cong m (++-assoc (H.ein b) (H.eout a) R)
-
-      sb : permuteˢ (PermProp.++⁺ʳ R (bswap (H.eout a) (H.ein b)))
-           ≈ˢ castˢ Dsb Csb (σˢ B A' ⊗ˢ idˢ {Rl})
-      sb = swap-block (H.eout a) (H.ein b) R
-
-      asl : permuteˢ (Perm.↭-reflexive (sym (++-assoc (H.eout a) (H.ein b) R)))
-            ≈ˢ castˢ refl Casl (idˢ {m (H.eout a ++ (H.ein b ++ R))})
-      asl = permuteˢ-reflexive (sym (++-assoc (H.eout a) (H.ein b) R))
-
-      asr : permuteˢ (Perm.↭-reflexive (++-assoc (H.ein b) (H.eout a) R))
-            ≈ˢ castˢ refl Casr (idˢ {m ((H.ein b ++ H.eout a) ++ R)})
-      asr = permuteˢ-reflexive (++-assoc (H.ein b) (H.eout a) R)
-
-      midD-σ
-        : permuteˢ midD
-          ≈ˢ castˢ (trans Dsb (sym Casl)) (trans Csb Casr)
-              (σˢ B A' ⊗ˢ idˢ {Rl})
+      midD-σ : permuteˢ mid-comp ≈̂ (σˢ B A' ⊗ˢ idˢ {Rl})
       midD-σ =
-        ≈-trans midD-bridge
-        (≈-trans (∘-resp (∘-resp asr sb) asl)
-        (≈-trans assocˢ
-        (≈-trans (∘-resp ≈-refl
-                    (≈-trans (cast-idʳ-∘ Casl (castˢ Dsb Csb (σˢ B A' ⊗ˢ idˢ {Rl})))
-                      (≡⇒≈ˢ (cast-fuse Dsb (sym Casl) Csb refl
-                               (σˢ B A' ⊗ˢ idˢ {Rl})))))
-        (≈-trans (cast-idˡ-∘ Casr
-                    (castˢ (trans Dsb (sym Casl)) (trans Csb refl) (σˢ B A' ⊗ˢ idˢ {Rl})))
-        (≈-trans (≡⇒≈ˢ (cast-fuse (trans Dsb (sym Casl)) refl (trans Csb refl) Casr
-                          (σˢ B A' ⊗ˢ idˢ {Rl})))
-          (≡⇒≈ˢ (cast-irrel (trans (trans Dsb (sym Casl)) refl) (trans Dsb (sym Casl))
-                            (trans (trans Csb refl) Casr) (trans Csb Casr)
-                            (σˢ B A' ⊗ˢ idˢ {Rl}))))))))
+        ≈̂-trans (rigid-≈̂ us-mid-img mid-comp bridgeD)
+        (≈̂-trans (⟦absorbʳ⟧ (sym (++-assoc (H.eout a) (H.ein b) R)))
+        (≈̂-trans (⟦absorbˡ⟧ (++-assoc (H.ein b) (H.eout a) R))
+                 (⟦bswap⟧ (H.eout a) (H.ein b) R)))
 
     ------------------------------------------------------------------
     -- The mid composite: T2's input permute `IN2` after T1's output
@@ -631,34 +541,6 @@ module _ (H : Hypergraph FlatGen)
 
       IN2 : HomS (m (H.eout a ++ s₁)) (A' ++ m (H.eout a ++ R))
       IN2 = castˢ refl (map-++ vl (H.ein b) (H.eout a ++ R)) (permuteˢ loc2')
-
-      Pmid = map-++ vl (H.eout a) (H.ein b ++ R)
-      Cmid = map-++ vl (H.ein b) (H.eout a ++ R)
-
-      -- `OUT1` as a cast of `permuteˢ (++⁺ˡ (eout a)(↭-sym ρ₁))`.
-      out1-perm
-        : castˢ (map-++ vl (H.eout a) (H.ein b ++ R)) (map-++ vl (H.eout a) s₁)
-            (permuteˢ (PermProp.++⁺ˡ (H.eout a) (Perm.↭-sym ρ₁)))
-          ≈ˢ idˢ {B} ⊗ˢ permuteˢ (Perm.↭-sym ρ₁)
-      out1-perm = perm-frameˡ′ (H.eout a) (Perm.↭-sym ρ₁)
-
-      mid-eq : IN2 ∘ˢ OUT1c ≈ˢ castˢ Pmid Cmid (permuteˢ mid-comp)
-      mid-eq =
-        -- OUT1c = castˢ refl (sym map++ eout a s₁) OUT1, OUT1 ≈ cast(out1-perm)
-        ≈-trans (∘-resp ≈-refl
-          (cast-resp refl (sym (map-++ vl (H.eout a) s₁)) (≈-sym out1-perm)))
-        -- OUT1c ≈ castˢ Pmid refl (permuteˢ (++⁺ˡ (eout a)(↭-sym ρ₁)))
-        (≈-trans (∘-resp ≈-refl
-          (≈-trans (≡⇒≈ˢ (cast-fuse Pmid refl (map-++ vl (H.eout a) s₁)
-                            (sym (map-++ vl (H.eout a) s₁))
-                            (permuteˢ (PermProp.++⁺ˡ (H.eout a) (Perm.↭-sym ρ₁)))))
-            (≡⇒≈ˢ (cast-irrel (trans Pmid refl) Pmid
-                     (trans (map-++ vl (H.eout a) s₁) (sym (map-++ vl (H.eout a) s₁))) refl
-                     (permuteˢ (PermProp.++⁺ˡ (H.eout a) (Perm.↭-sym ρ₁)))))))
-        -- IN2 ∘ castˢ Pmid refl (permuteˢ U) = castˢ Pmid Cmid (permuteˢ loc2' ∘ permuteˢ U)
-        (≈-trans (≈-sym (∘-cast-split Pmid refl Cmid (permuteˢ loc2')
-                           (permuteˢ (PermProp.++⁺ˡ (H.eout a) (Perm.↭-sym ρ₁)))))
-          ≈-refl))
 
     ------------------------------------------------------------------
     -- Named pieces of the two located firings.
@@ -714,32 +596,17 @@ module _ (H : Hypergraph FlatGen)
 
       -- `IN2 ∘ OUT1c` rewritten to the bracketed σ-block frame that
       -- `box-merge-Rˢ` consumes (domain `B ++ (A'++Rl)`, codomain
-      -- `A' ++ (B++Rl)`), via `mid-eq` + `mid-rigid` + `midD-σ` and the two
-      -- `map-++` boundary bridges.
+      -- `A' ++ (B++Rl)`): both boundary casts strip under `cast-≈̂`, `⟦frameˡ⟧`
+      -- turns `OUT1c` into the framed relocate, and `midD-σ` is the block swap.
       midσ-tgt : HomS (B ++ (A' ++ Rl)) (A' ++ (B ++ Rl))
       midσ-tgt = castˢ (++-assoc B A' Rl) (++-assoc A' B Rl) (σˢ B A' ⊗ˢ idˢ {Rl})
 
-      MID-eq
-        : IN2 ∘ˢ OUT1c
-          ≈ˢ castˢ (cong (B ++_) (sym mb-in)) (cong (A' ++_) (sym mb-out))
-              midσ-tgt
+      MID-eq : IN2 ∘ˢ OUT1c ≈̂ midσ-tgt
       MID-eq =
-        ≈-trans mid-eq
-        (≈-trans (cast-resp Pmid Cmid (≈-trans mid-rigid midD-σ))
-        -- fuse the `midD-σ` cast with `Pmid/Cmid`, then `cast-irrel` to the
-        -- bracketed (map-++)-bridged frame `castˢ … midσ-tgt`.
-        (≈-trans (≡⇒≈ˢ (cast-fuse (trans Dsb (sym Casl)) Pmid (trans Csb Casr) Cmid
-                          (σˢ B A' ⊗ˢ idˢ {Rl})))
-          (≈-trans
-            (≡⇒≈ˢ (cast-irrel
-                     (trans (trans Dsb (sym Casl)) Pmid)
-                     (trans (++-assoc B A' Rl) (cong (B ++_) (sym mb-in)))
-                     (trans (trans Csb Casr) Cmid)
-                     (trans (++-assoc A' B Rl) (cong (A' ++_) (sym mb-out)))
-                     (σˢ B A' ⊗ˢ idˢ {Rl})))
-            (≈-sym (≡⇒≈ˢ (cast-fuse (++-assoc B A' Rl) (cong (B ++_) (sym mb-in))
-                            (++-assoc A' B Rl) (cong (A' ++_) (sym mb-out))
-                            (σˢ B A' ⊗ˢ idˢ {Rl})))))))
+        ≈̂-trans (∘-resp-≈̂ cast-≈̂
+                   (≈̂-trans cast-≈̂ (≈̂-sym (⟦frameˡ⟧ (H.eout a) (Perm.↭-sym ρ₁)))))
+        (≈̂-trans midD-σ
+                 (≈̂-sym (cast-≈̂ {p = ++-assoc B A' Rl} {q = ++-assoc A' B Rl})))
 
     ------------------------------------------------------------------
     -- The box bridges: the located boxes `g ⊗ id{m(ein b ++ R)}` /
@@ -782,11 +649,7 @@ module _ (H : Hypergraph FlatGen)
       -- `Dc/Cc` cast — the former cast-irrel/∘-cast-split collapse of the two
       -- located-box endpoints disappears into the congruence bookkeeping.
       central-eq =
-        ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ Boxb-br
-                                (∘-resp-≈̂ (≈̂-trans (≈ˢ⇒≈̂ MID-eq)
-                                                   (cast-≈̂ {p = cong (B ++_) (sym mb-in)}
-                                                           {q = cong (A' ++_) (sym mb-out)}))
-                                          Boxa-br))
+        ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ Boxb-br (∘-resp-≈̂ MID-eq Boxa-br))
                       (≈̂-trans (≈ˢ⇒≈̂ (box-merge-Rˢ g g' Rl))
                                (≈̂-sym (cast-≈̂ {p = Dc} {q = Cc}))))
 
@@ -820,8 +683,8 @@ module _ (H : Hypergraph FlatGen)
 
     ------------------------------------------------------------------
     -- OUTPUT reconciliation: the located output `OUT2` together with the
-    -- merge's output braid `σ B B' ⊗ id{Rl}` equals `Lout`.  (swap-block +
-    -- perm-rigidˢ at `us-cod`, mirroring `F2.vout-cohˢ`.)
+    -- merge's output braid `σ B B' ⊗ id{Rl}` equals `Lout`.  (`⟦bswap⟧` +
+    -- `rigid-≈̂` at `us-cod`, mirroring `F2.vout-cohˢ`.)
     ------------------------------------------------------------------
     private
       swp-out : (H.eout a ++ H.eout b) ++ R Perm.↭ (H.eout b ++ H.eout a) ++ R
@@ -838,9 +701,6 @@ module _ (H : Hypergraph FlatGen)
                       (Perm.↭-reflexive (++-assoc (H.eout b) (H.eout a) R)))
                    out-reloc
 
-      vout-rigid : permuteˢ vout-comp ≈ˢ permuteˢ vout-loc
-      vout-rigid = perm-rigidˢ′ us-cod vout-comp vout-loc
-
     ------------------------------------------------------------------
     -- box-block + the fused central input cast, reconciled to `box-block ∘ Lin`.
     ------------------------------------------------------------------
@@ -855,7 +715,7 @@ module _ (H : Hypergraph FlatGen)
       -- `IN1` and `Lin` are `permuteˢ` of two derivations `sp ↭ ein a++(ein b++R)`
       -- (`loc1'`, `loc-down`) into the SAME `Unique` codomain (`us-down`): the
       -- wiring is rigid.  `cast-≈̂` strips the box-block frame + both `map-++`
-      -- frames; `⟦reflexive⟧` cancels `loc-down`'s reindexing tail.
+      -- frames; `⟦absorbˡ⟧` cancels `loc-down`'s reindexing tail.
       in-eq : castˢ PD refl box-block ∘ˢ IN1 ≈ˢ box-block ∘ˢ Lin
       in-eq = ≈̂⇒≈ˢ (∘-resp-≈̂ cast-≈̂ IN1≈̂Lin)
         where
@@ -863,8 +723,7 @@ module _ (H : Hypergraph FlatGen)
           IN1≈̂Lin =
             ≈̂-trans cast-≈̂
             (≈̂-trans (rigid-≈̂ us-down loc1' loc-down)
-            (≈̂-trans (∘-resp-≈̂ (⟦reflexive⟧ (++-assoc (H.ein a) (H.ein b) R)) ≈̂-refl)
-            (≈̂-trans (≈ˢ⇒≈̂ idˡ) (≈̂-sym cast-≈̂))))
+            (≈̂-trans (⟦absorbˡ⟧ (++-assoc (H.ein a) (H.ein b) R)) (≈̂-sym cast-≈̂)))
 
       ------------------------------------------------------------------
       -- OUTPUT reconciliation: T2's output relocate `OUT2` + the merge's
@@ -872,81 +731,21 @@ module _ (H : Hypergraph FlatGen)
       ------------------------------------------------------------------
       out-part = castˢ refl CD σ-out
 
-      Dso = trans (map-++ vl (H.eout a ++ H.eout b) R)
-                  (cong (_++ Rl) (map-++ vl (H.eout a) (H.eout b)))
-      Cso = trans (map-++ vl (H.eout b ++ H.eout a) R)
-                  (cong (_++ Rl) (map-++ vl (H.eout b) (H.eout a)))
-
-      σ-out-perm : σ-out ≈ˢ castˢ Dso Cso (permuteˢ swp-out)
-      σ-out-perm = swap-block-sym (H.eout a) (H.eout b) R
-
-      Cob = map-++ vl (H.eout b) (H.eout a ++ R)
       Qob = map-++ vl (H.eout b) s₂
-      out2-perm : castˢ Cob Qob (permuteˢ out-reloc) ≈ˢ idˢ {B'} ⊗ˢ permuteˢ (Perm.↭-sym ρ₂)
-      out2-perm = perm-frameˡ′ (H.eout b) (Perm.↭-sym ρ₂)
 
       AssocO = ++-assoc (H.eout b) (H.eout a) R
-      CasO   = cong m AssocO
 
+      -- `OUT2` is the `⟦frameˡ⟧`-framed residual relocate and `σ-out` the
+      -- `⟦bswap⟧` block swap (with its reindexing tail absorbed), so the LHS is
+      -- `permuteˢ vout-comp`, which `us-cod`-rigidity identifies with `Lout`.
       out-eq : castˢ refl (sym Qob) (OUT2 ∘ˢ out-part) ≈ˢ Lout
-      out-eq =
-        -- (1) OUT2 ← out2-perm,  σ-out → σ-out-perm.
-        ≈-trans (cast-resp refl (sym Qob)
-          (∘-resp (≈-sym out2-perm)
-            (cast-resp refl CD σ-out-perm)))
-        -- (2) fuse the σ-block's two inner casts; reconcile its cod proof to
-        --     `trans CasO Cob` (cast-irrel) — i.e. route through the assoc;
-        --     then UNfuse so the assoc cast `CasO` becomes a separate factor
-        --     `permuteˢ (↭-refl AssocO)` (cast-of-id), and `Cob` is the σ-out
-        --     side's boundary — matching `OUT2`'s domain boundary `Cob`.
-        (≈-trans (cast-resp refl (sym Qob)
-          (∘-resp ≈-refl σ-side))
-        -- (3) glue the two `permuteˢ` factors (shared boundary `Cob`) into
-        --     `permuteˢ vout-comp`, then absorb the outer cast, reconcile by
-        --     `vout-rigid`, and recast to `Lout`.
-        (≈-trans (cast-resp refl (sym Qob) glue)
-        (≈-trans (≡⇒≈ˢ (cast-fuse Dso refl Qob (sym Qob) (permuteˢ vout-comp)))
-        (≈-trans (≡⇒≈ˢ (cast-irrel (trans Dso refl) out-mc
-                          (trans Qob (sym Qob)) refl (permuteˢ vout-comp)))
-          (cast-resp out-mc refl vout-rigid)))))
-        where
-          -- the σ-out side, with the assoc bridge exposed.
-          σ-side
-            : castˢ refl CD (castˢ Dso Cso (permuteˢ swp-out))
-              ≈ˢ castˢ Dso Cob
-                  (permuteˢ (Perm.trans swp-out (Perm.↭-reflexive AssocO)))
-          -- `castˢ refl CasO (permuteˢ swp-out)` ≈ `permuteˢ (trans swp-out
-          -- (↭-refl AssocO))` (the assoc-appended permute, cast-of-id).
-          assoc-append
-            : castˢ refl CasO (permuteˢ swp-out)
-              ≈ˢ permuteˢ (Perm.trans swp-out (Perm.↭-reflexive AssocO))
-          assoc-append =
-            ≈-sym
-              (≈-trans (∘-resp (permuteˢ-reflexive AssocO) ≈-refl)
-                (cast-idˡ-∘ CasO (permuteˢ swp-out)))
-
-          σ-side =
-            ≈-trans
-              (≡⇒≈ˢ (cast-fuse Dso refl Cso CD (permuteˢ swp-out)))
-            (≈-trans
-              (≡⇒≈ˢ (cast-irrel (trans Dso refl) Dso (trans Cso CD)
-                       (trans CasO Cob) (permuteˢ swp-out)))
-            (≈-trans
-              (≡⇒≈ˢ (cast-irrel Dso (trans refl Dso) (trans CasO Cob) (trans CasO Cob)
-                       (permuteˢ swp-out)))
-            (≈-trans
-              (≈-sym (≡⇒≈ˢ (cast-fuse refl Dso CasO Cob (permuteˢ swp-out))))
-              (cast-resp Dso Cob assoc-append))))
-
-          -- glue: out-reloc-cast ∘ σ-side ≈ castˢ Dso Qob (permuteˢ vout-comp)
-          glue
-            : castˢ Cob Qob (permuteˢ out-reloc)
-                ∘ˢ castˢ Dso Cob
-                     (permuteˢ (Perm.trans swp-out (Perm.↭-reflexive AssocO)))
-              ≈ˢ castˢ Dso Qob (permuteˢ vout-comp)
-          glue =
-            ≈-sym (∘-cast-split Dso Cob Qob (permuteˢ out-reloc)
-                     (permuteˢ (Perm.trans swp-out (Perm.↭-reflexive AssocO))))
+      out-eq = ≈̂⇒≈ˢ
+        (≈̂-trans cast-≈̂
+        (≈̂-trans (∘-resp-≈̂ (≈̂-sym (⟦frameˡ⟧ (H.eout b) (Perm.↭-sym ρ₂)))
+                    (≈̂-trans cast-≈̂
+                      (≈̂-sym (≈̂-trans (⟦absorbˡ⟧ AssocO)
+                                      (⟦bswap⟧ (H.eout a) (H.eout b) R)))))
+        (≈̂-trans (rigid-≈̂ us-cod vout-comp vout-loc) (≈̂-sym cast-≈̂))))
 
     ------------------------------------------------------------------
     -- THE SINGLE-ORDER LOCATED NORMAL FORM.
