@@ -253,6 +253,22 @@ module Build
   ≈̂⇒≈ˢ {f = f} (p , q , e) =
     ≈-trans (≈-sym (≡⇒≈ˢ (cast-irrel p refl q refl f))) e
 
+  -- the two object-level bridges: an identity and a braiding transported
+  -- across propositional endpoint equalities
+  idˢ-≈̂ : ∀ {as bs : List X} (p : as ≡ bs) → idˢ {as} ≈̂ idˢ {bs}
+  idˢ-≈̂ p = p , p , cast-id p p
+
+  σ-≈̂ : ∀ {as as' bs bs' : List X} (p : as ≡ as') (q : bs ≡ bs')
+      → σˢ as bs ≈̂ σˢ as' bs'
+  σ-≈̂ refl refl = ≈̂-refl
+
+  -- …or discharge the cast form at ANY externally pinned pair of endpoint
+  -- proofs (UIP again): the projection consumers with a fixed signature need
+  ≈̂⇒castˢ
+    : ∀ {as bs as' bs'} {f : HomS as bs} {g : HomS as' bs'}
+    → f ≈̂ g → (P : as ≡ as') (Q : bs ≡ bs') → castˢ P Q f ≈ˢ g
+  ≈̂⇒castˢ {f = f} (p , q , e) P Q = ≈-trans (≡⇒≈ˢ (cast-irrel P p Q q f)) e
+
   ------------------------------------------------------------------------
   -- Unit-side laws, DERIVED from `σ-unitˢ` (the left forms are cast-free
   -- because `[] ++ xs` reduces).
@@ -460,11 +476,6 @@ module Build
         (trans (cast-irrel (cong m p) (cong m p') (cong m q) (cong m q') t)
                (sym (castᵛ-cast p' q' t)))
 
-    -- the two object-level bridges the axiom proofs need
-    private
-      idˢ-≈̂ : ∀ {d e : List X} (p : d ≡ e) → idˢ {d} ≈̂ idˢ {e}
-      idˢ-≈̂ p = p , p , cast-id p p
-
     idᵛ-≈̂ : ∀ {as bs : List V} (p : as ≡ bs) → idᵛ {as} ≈̂ idᵛ {bs}
     idᵛ-≈̂ p = idˢ-≈̂ (cong m p)
 
@@ -591,16 +602,13 @@ module Build
              ((σᵛ as cs ⊗ᵛ idᵛ {bs})
                ∘ᵛ castᵛ refl (sym (++-assoc as cs bs)) (idᵛ {as} ⊗ᵛ σᵛ bs cs))
     σ-hexᵛ as bs cs =
-      ≈̂⇒≈ˢ (≈̂-trans lhs≈ (≈̂-trans (σ-arg-≈̂ (map-++ vlab as bs))
+      ≈̂⇒≈ˢ (≈̂-trans lhs≈ (≈̂-trans (σ-≈̂ (map-++ vlab as bs) refl)
                           (≈̂-trans hexC (≈̂-sym rhs≈))))
       where
         a = m as ; b = m bs ; c = m cs
 
         Cinner = castˢ refl (sym (++-assoc a c b)) (idˢ {a} ⊗ˢ σˢ b c)
         C = (σˢ a c ⊗ˢ idˢ {b}) ∘ˢ Cinner
-
-        σ-arg-≈̂ : ∀ {d d' e : List X} (p : d ≡ d') → σˢ d e ≈̂ σˢ d' e
-        σ-arg-≈̂ refl = ≈̂-refl
 
         lhs≈ : σᵛ (as ++ bs) cs ≈̂ σˢ (m (as ++ bs)) c
         lhs≈ = cast-≈̂ {p = sym (map-++ vlab (as ++ bs) cs)}

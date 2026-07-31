@@ -34,27 +34,11 @@ open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; map)
 open import Data.List.Properties using (map-∘; map-cong)
-open import Data.Product using (_,_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
 --------------------------------------------------------------------------------
-
-private
-  -- `idˢ`/`σˢ` bridged across propositional object equalities
-  idˢ-≈̂ : ∀ {a b : List X} (e : a ≡ b) → idˢ {a} ≈̂ idˢ {b}
-  idˢ-≈̂ e = e , e , cast-id e e
-
-  σ-≈̂ : ∀ {a a' c c' : List X} (e : a ≡ a') (e' : c ≡ c')
-      → σˢ a c ≈̂ σˢ a' c'
-  σ-≈̂ refl refl = ≈̂-refl
-
-  -- a `≈̂` fact discharges its cast form at ANY pair of endpoint proofs (UIP)
-  ≈̂⇒castˢ
-    : ∀ {as bs as' bs'} {f : HomS as bs} {g : HomS as' bs'}
-    → f ≈̂ g → (P : as ≡ as') (Q : bs ≡ bs') → castˢ P Q f ≈ˢ g
-  ≈̂⇒castˢ {f = f} (p , q , e) P Q = ≈-trans (≡⇒≈ˢ (cast-irrel P p Q q f)) e
 
 module _ {nH nJ : ℕ} (φ : Fin nH → Fin nJ)
          (vJ : Fin nJ → X) (vH : Fin nH → X) (veq : ∀ i → vJ (φ i) ≡ vH i)
