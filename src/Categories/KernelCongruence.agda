@@ -10,10 +10,8 @@ open import Categories.Functor.Properties
 module Categories.KernelCongruence
   {oc ℓc ec od ℓd ed} (C : Category oc ℓc ec) (D : Category od ℓd ed) (F : Functor C D) where
 
-open import Function
 open import Relation.Binary.Bundles
 open import Relation.Binary.Structures
-import Relation.Binary.Construct.On as On
 
 private
   module C = Category C
@@ -23,44 +21,49 @@ open Functor F
 
 infix 4 _∼_
 
-_∼_ : C [ X , Y ] → C [ X , Y ] → Set ed
-_∼_ = D._≈_ on F₁
+record _∼_ {X Y : C.Obj} (f g : C [ X , Y ]) : Set ed where
+  constructor mk∼
+  no-eta-equality
+  field run∼ : D [ F₁ f ≈ F₁ g ]
+
+open _∼_ public
+
+∼-refl : {f : C [ X , Y ]} → f ∼ f
+∼-refl = mk∼ D.Equiv.refl
+
+∼-sym : {f g : C [ X , Y ]} → f ∼ g → g ∼ f
+∼-sym p = mk∼ (D.Equiv.sym (run∼ p))
+
+∼-trans : {f g h : C [ X , Y ]} → f ∼ g → g ∼ h → f ∼ h
+∼-trans p q = mk∼ (D.Equiv.trans (run∼ p) (run∼ q))
 
 ∼-isEquivalence : IsEquivalence (_∼_ {X} {Y})
-∼-isEquivalence = On.isEquivalence F₁ D.equiv
+∼-isEquivalence = record { refl = ∼-refl ; sym = ∼-sym ; trans = ∼-trans }
 
 module ∼ {X Y} = IsEquivalence (∼-isEquivalence {X} {Y})
 
-∼-refl : {f : C [ X , Y ]} → f ∼ f
-∼-refl = ∼.refl
-
-∼-sym : {f g : C [ X , Y ]} → f ∼ g → g ∼ f
-∼-sym = ∼.sym
-
-∼-trans : {f g h : C [ X , Y ]} → f ∼ g → g ∼ h → f ∼ h
-∼-trans = ∼.trans
-
 ∼-setoid : ∀ X Y → Setoid ℓc ed
-∼-setoid X Y = On.setoid (D.hom-setoid) (F₁ {X} {Y})
+∼-setoid X Y = record
+  { Carrier = C [ X , Y ] ; _≈_ = _∼_ ; isEquivalence = ∼-isEquivalence }
 
 ≈⇒∼ : {f g : C [ X , Y ]} → C [ f ≈ g ] → f ∼ g
-≈⇒∼ = F-resp-≈
+≈⇒∼ e = mk∼ (F-resp-≈ e)
 
 ∼⇒≈ : Faithful F → {f g : C [ X , Y ]} → f ∼ g → C [ f ≈ g ]
-∼⇒≈ faithful = faithful
+∼⇒≈ faithful p = faithful (run∼ p)
 
 ∼-congˡ : (h : C [ Y , Z ]) {f g : C [ X , Y ]} → f ∼ g → (h C.∘ f) ∼ (h C.∘ g)
-∼-congˡ h {f} {g} p = begin
+∼-congˡ h {f} {g} p = mk∼ (begin
   F₁ (h C.∘ f)     ≈⟨ homomorphism ⟩
-  F₁ h D.∘ F₁ f    ≈⟨ D.∘-resp-≈ʳ p ⟩
+  F₁ h D.∘ F₁ f    ≈⟨ D.∘-resp-≈ʳ (run∼ p) ⟩
   F₁ h D.∘ F₁ g    ≈⟨ homomorphism ⟨
-  F₁ (h C.∘ g)     ∎
+  F₁ (h C.∘ g)     ∎)
   where open D.HomReasoning
 
 ∼-congʳ : (h : C [ X , Y ]) {f g : C [ Y , Z ]} → f ∼ g → (f C.∘ h) ∼ (g C.∘ h)
-∼-congʳ h {f} {g} p = begin
+∼-congʳ h {f} {g} p = mk∼ (begin
   F₁ (f C.∘ h)     ≈⟨ homomorphism ⟩
-  F₁ f D.∘ F₁ h    ≈⟨ D.∘-resp-≈ˡ p ⟩
+  F₁ f D.∘ F₁ h    ≈⟨ D.∘-resp-≈ˡ (run∼ p) ⟩
   F₁ g D.∘ F₁ h    ≈⟨ homomorphism ⟨
-  F₁ (g C.∘ h)     ∎
+  F₁ (g C.∘ h)     ∎)
   where open D.HomReasoning

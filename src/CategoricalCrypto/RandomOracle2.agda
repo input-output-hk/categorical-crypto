@@ -1,0 +1,94 @@
+{-# OPTIONS --safe --without-K #-}
+
+-- §3 of the plan (M5/M6) over the naive locally graded layer: the random
+-- oracle, end to end, derived from the Abstract2 §1 metatheory.  Protocols are
+-- bare machine morphisms, so the old OP bridges vanish: the real protocol IS
+-- the composite MD-mach ∘ Comp-M (T₀ Jre GenIf reduces to Jre ⊗ GenIf under
+-- the curriedTensor triple), U-real is gone, and U-ideal shrinks to
+-- `ideal-bridge` — no U, ι, or pureAtk plumbing.  The one honest new
+-- hypothesis of the ≈ᵁ formulation is `stable` : GradeStable, the ℳ-module
+-- property of the concrete ℰ — the conservation-law payment made once here at
+-- artifact ingestion, turning the bare ≈ℰ equality `md-emulate` into the
+-- U-kernel ≈ᵁ that `_≤UC_` consumes (via `bridge`).  The MD artifacts stay at
+-- their exact MerkleDamgard.agda types, and `MD ≤UC RO` is DERIVED from the
+-- §1 dummy-adversary theorem.  Everything still open is bundled in `ROData`.
+
+module CategoricalCrypto.RandomOracle2 where
+
+open import Data.Nat.Base using (ℕ)
+open import Data.Product using (_,_)
+open import Level using (Level; _⊔_; suc)
+import Relation.Binary.Reasoning.Setoid as SetoidR
+
+open import Categories.Category using (_[_,_])
+open import Categories.Category.Instance.Setoids using (Setoids)
+open import Categories.Category.Monoidal using (MonoidalCategory)
+open import Categories.Functor.Presheaf using (Presheaf)
+
+open import CategoricalCrypto.Standard2 using (module StdUC)
+
+module RO
+  {o ℓ e cs ℓs ℓq ℓr : Level}
+  (ℐ-machines : MonoidalCategory o ℓ e)
+  (ℰ-standard : Presheaf (MonoidalCategory.U ℐ-machines) (Setoids cs ℓs))
+  (ℚ          : Set ℓq)
+  -- The RO interface has DISTINCT adversary interfaces for real (Jre) and ideal
+  -- (Kid) — Machine.Core's E vs E''.  GenIf is the generator/RO output channel.
+  (GenIf Mid Jre Kid : MonoidalCategory.Obj ℐ-machines)
+  where
+
+  open StdUC ℐ-machines ℰ-standard
+
+  -- The protocol domain is closed on the input side; Bo = T₀ Jre GenIf.
+  Ao Bo : Channel
+  Ao = unit ⊗₀ unit
+  Bo = Jre ⊗₀ GenIf
+
+  -- ── The RO/MD interface, hypothesised at its MerkleDamgard.agda types ───────
+  --   E Dgr asks≤ runWith badProb Pr₁ adv
+  --   Preserved badProb-super SuperCert badProb-bounded
+  --   Coupling{fR,fI,realK,idealK,FLGP}  _≈ℰ[_]_  bound
+  record ROData : Set (suc ℓr ⊔ ℓq ⊔ o ⊔ ℓ ⊔ cs ⊔ ℓs) where
+    infix 4 _≈ℰ[_]_
+    field
+      -- `_≈ℰ[ ε ]_`: any distinguisher of ≤ n queries has advantage ≤ ε n
+      -- (MD `_≈ℰ[_]_`, generalised from the closed domain to the graded codomain).
+      _≈ℰ[_]_ : ∀ {A B} → ∣machines∣ [ A , B ] → (ℕ → ℚ) → ∣machines∣ [ A , B ] → Set ℓr
+      bound   : ℕ → ℚ                              -- MerkleDamgard.agda bound
+      Comp-M    : ∣machines∣ [ Ao , Mid ]          -- MerkleDamgard.agda Comp.M
+      MD-mach   : ∣machines∣ [ Mid , Bo ]          -- MerkleDamgard.agda MD
+      General-M : ∣machines∣ [ Ao , Bo ]           -- MerkleDamgard.agda General.M (the ideal RO)
+      MD-secure : General-M ≈ℰ[ bound ] MD-mach ∘ Comp-M  -- MerkleDamgard.agda MD-secure
+      -- BRIDGE (M5): a concrete per-budget bound with a vanishing profile
+      -- establishes the ε-absorption setoid equality (the kernel of ℰ-standard).
+      VanishingBound : (ℕ → ℚ) → Set ℓr
+      van            : VanishingBound bound
+      absorb : ∀ {A B} {f g : ∣machines∣ [ A , B ]} {ε : ℕ → ℚ} → f ≈ℰ[ ε ] g → VanishingBound ε → f ≈ℰ g
+      -- BRIDGE (M6): the ideal protocol and its simulator.
+      roIdeal     : ∣machines∣ [ Ao , T₀ Kid GenIf ]
+      roSimulator : ∣machines∣ [ Kid , Jre ]
+      ideal-bridge : sub roSimulator ∘ roIdeal ≈ℰ General-M
+      -- The ℳ-module property of ℰ-standard: bare kernel = U-kernel (see the
+      -- Abstract2 header).  The only hypothesis the ≈ᵁ formulation adds.
+      stable : GradeStable
+
+  -- ── THE PAYOFF, DERIVED ─────────────────────────────────────────────────────
+  module Payoff (ro : ROData) where
+    open ROData ro
+
+    -- The real protocol is the MD composite itself — a bare machine morphism at
+    -- grade Jre; no bridging field.
+    mdProtocol : ∣machines∣ [ Ao , T₀ Jre GenIf ]
+    mdProtocol = MD-mach ∘ Comp-M
+
+    -- Consumes only the ε-absorption of the existing MD artifact (MD-secure +
+    -- van) and `ideal-bridge`.
+    md-emulate : mdProtocol ≈ℰ sub roSimulator ∘ roIdeal
+    md-emulate = begin
+        mdProtocol                 ≈⟨ absorb MD-secure van ⟨
+        General-M                  ≈⟨ ideal-bridge ⟨
+        sub roSimulator ∘ roIdeal  ∎
+      where open SetoidR (≈ℰ-setoid Ao Bo)
+
+    MD≤UC-RO : mdProtocol ≤UC roIdeal
+    MD≤UC-RO = dummy-complete (roSimulator , bridge stable md-emulate)
