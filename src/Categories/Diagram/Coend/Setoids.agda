@@ -8,8 +8,8 @@
 -- dinaturality relation — the Set-valued coend formula of Mac Lane, CWM IX.6,
 -- as a quotient rather than a coequalizer.  The carrier computes transparently
 -- (unlike the coend recovered from Setoids-Cocomplete via
--- Categories.Diagram.Coend.Colimit), which is what downstream collage / Day
--- constructions need.
+-- Categories.Diagram.Coend.Colimit), which is what downstream free-actegory /
+-- Day constructions need.
 --------------------------------------------------------------------------------
 
 module Categories.Diagram.Coend.Setoids where
@@ -22,18 +22,36 @@ open import Categories.Diagram.Coend
 open import Categories.Diagram.Cowedge
 open import Categories.Functor
 open import Categories.Functor.Bifunctor
+open import Categories.Functor.Presheaf
 open import Categories.NaturalTransformation using (NaturalTransformation; _∘ᵥ_) renaming (id to idN)
 open import Categories.NaturalTransformation.Dinatural
   using (DinaturalTransformation; extranaturalˡ; extranatural-commˡ)
 open import Categories.NaturalTransformation.Equivalence
 
 open import Data.Product
+open import Data.Product.Function.NonDependent.Setoid
+open import Data.Product.Relation.Binary.Pointwise.NonDependent
 open import Function.Bundles
 open import Function.Construct.Composition
 open import Relation.Binary
 open import Relation.Binary.Construct.Closure.Equivalence
 
 open Func
+
+-- Constructing a profunctor from one covariant and one contravariant functor
+module _ {o ℓ e c ℓs c′ ℓs′} {C : Category o ℓ e} where
+  infix 4 _×ᵈ_
+  _×ᵈ_ : Functor C (Setoids c ℓs) → Presheaf C (Setoids c′ ℓs′)
+       → Bifunctor (Category.op C) C (Setoids (c ⊔ c′) (ℓs ⊔ ℓs′))
+  F ×ᵈ P = record
+    { F₀           = λ (u , v) → F.F₀ v ×ₛ P.F₀ u
+    ; F₁           = λ (φ , ψ) → F.F₁ ψ ×-function P.F₁ φ
+    ; identity     = F.identity , P.identity
+    ; homomorphism = F.homomorphism , P.homomorphism
+    ; F-resp-≈     = λ (φ≈ , ψ≈) → F.F-resp-≈ ψ≈ , P.F-resp-≈ φ≈
+    }
+    where module F = Functor F
+          module P = Functor P
 
 module SetoidCoend {o ℓ e c ℓs} {C : Category o ℓ e}
   (F : Bifunctor (Category.op C) C (Setoids c ℓs)) where
@@ -115,6 +133,59 @@ module SetoidCoend {o ℓ e c ℓs} {C : Category o ℓ e}
                   (∀ X {x} → Setoid._≈_ S (g ⟨$⟩ (ι X ⟨$⟩ x)) (Copairing.at κ X ⟨$⟩ x)) →
                   ∀ {p} → Setoid._≈_ S (g ⟨$⟩ p) (copair κ ⟨$⟩ p)
   copair-unique κ g hyp {X , x} = hyp X
+
+-- Two-variable mapping-out principle
+module _ {o ℓ e c ℓs c′ ℓs′} {C : Category o ℓ e}
+  (F : Bifunctor (Category.op C) C (Setoids c ℓs))
+  (G : Bifunctor (Category.op C) C (Setoids c′ ℓs′)) where
+
+  private
+    module C = Category C
+    module F = Functor F
+    module G = Functor G
+    module ∫F = SetoidCoend F
+    module ∫G = SetoidCoend G
+
+  record Copairing₂ {c″ ℓs″} (S : Setoid c″ ℓs″)
+      : Set (o ⊔ ℓ ⊔ c ⊔ ℓs ⊔ c′ ⊔ ℓs′ ⊔ c″ ⊔ ℓs″) where
+    private module S = Setoid S
+    field
+      at : ∀ X Y → Func (F.F₀ (X , X) ×ₛ G.F₀ (Y , Y)) S
+      dinaturalˡ : ∀ {X Y} (f : X C.⇒ Y) (w : Setoid.Carrier (F.F₀ (Y , X)))
+                   {Z} (z : Setoid.Carrier (G.F₀ (Z , Z))) →
+                   at X Z ⟨$⟩ (F.F₁ (f , C.id) ⟨$⟩ w , z)
+                     S.≈ at Y Z ⟨$⟩ (F.F₁ (C.id , f) ⟨$⟩ w , z)
+      dinaturalʳ : ∀ {X Y} (f : X C.⇒ Y) (w : Setoid.Carrier (G.F₀ (Y , X)))
+                   {Z} (z : Setoid.Carrier (F.F₀ (Z , Z))) →
+                   at Z X ⟨$⟩ (z , G.F₁ (f , C.id) ⟨$⟩ w)
+                     S.≈ at Z Y ⟨$⟩ (z , G.F₁ (C.id , f) ⟨$⟩ w)
+
+  copair₂ : ∀ {c″ ℓs″} {S : Setoid c″ ℓs″} → Copairing₂ S → Func (∫F.∫ ×ₛ ∫G.∫) S
+  copair₂ {S = S} κ = record
+    { to   = λ ((X , x) , (Y , y)) → at X Y ⟨$⟩ (x , y)
+    ; cong = λ {(_ , q)} {(p′ , _)} (p≈ , q≈) →
+        S.trans (cong (∫F.copair (fixʳ q)) p≈) (cong (∫G.copair (fixˡ p′)) q≈)
+    }
+    where
+    open Copairing₂ κ
+    module S = Setoid S
+
+    -- copairing in one variable with a representative of the other one fixed
+    fixʳ : ∫G.Elt → ∫F.Copairing S
+    fixʳ (Y , y) = record
+      { at        = λ X → record
+        { to   = λ x → at X Y ⟨$⟩ (x , y)
+        ; cong = λ x≈ → cong (at X Y) (x≈ , Setoid.refl (G.F₀ (Y , Y))) }
+      ; dinatural = λ f w → dinaturalˡ f w y
+      }
+
+    fixˡ : ∫F.Elt → ∫G.Copairing S
+    fixˡ (X , x) = record
+      { at        = λ Y → record
+        { to   = λ y → at X Y ⟨$⟩ (x , y)
+        ; cong = λ y≈ → cong (at X Y) (Setoid.refl (F.F₀ (X , X)) , y≈) }
+      ; dinatural = λ f w → dinaturalʳ f w x
+      }
 
 -- Functoriality: a natural transformation of bifunctors induces a map of
 -- coends, functorially up to ≈.

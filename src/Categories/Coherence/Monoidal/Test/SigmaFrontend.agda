@@ -58,10 +58,11 @@ module Morphism {o ℓ e : Level}
     (invσ : MC.U [ sᴹ ∘ sᴹ ≈ id ])
     where
 
-    module O = FreeMonoidalHelper Symm (Fin 2)
-    open O renaming (Var to V) using ()
-    open Coh.Symmetric C Sym (A ∷ B ∷ [])
-         ( ((V zero O.⊗₀ V zero , V zero) , μᴹ)   -- gen 0 : A⊗A → A ↦ μ
+    vars = A ∷ B ∷ []
+    open Coh.SymAtoms C Sym vars
+    -- this suite fires rewrite rules, so it opens the rewriting façade
+    open Coh.SymRewrite C Sym vars
+         ( ((V zero ⊗ᵒ V zero , V zero) , μᴹ)   -- gen 0 : A⊗A → A ↦ μ
          ∷ ((V zero , V zero)             , sᴹ)   -- gen 1 : A → A ↦ s
          ∷ ((V (suc zero) , V (suc zero)) , tᴹ)   -- gen 2 : B → B ↦ t
          ∷ [] )
@@ -72,10 +73,10 @@ module Morphism {o ℓ e : Level}
       t' = gen (suc (suc zero))
       -- σ pinned at atom pairs (the object interpretation is not injective,
       -- so the implicits must be supplied term-side).
-      a : O.ObjTerm
-      a = O.Var zero
-      b : O.ObjTerm
-      b = O.Var (suc zero)
+      a : ObjTerm
+      a = V zero
+      b : ObjTerm
+      b = V (suc zero)
 
     ----------------------------------------------------------------------
     -- Braiding involution: σ∘σ≈id, as a one-liner and deep in context.
@@ -83,7 +84,7 @@ module Morphism {o ℓ e : Level}
     module Braiding where
 
       test-σσ : MC.U [ Sy.braiding.⇒.η (B , A) ∘ Sy.braiding.⇒.η (A , B) ≈ id ]
-      test-σσ = solveMorσ! (S.σ S.∘ S.σ) (S.id {a O.⊗₀ b})
+      test-σσ = solveMorσ! (S.σ S.∘ S.σ) (S.id {a ⊗ᵒ b})
 
       -- the inverse pair fires DEEP: inside a ⊗-context, with α-recasts around.
       test-σσ-deep
@@ -115,7 +116,7 @@ module Morphism {o ℓ e : Level}
 
       -- a MULTI-WIRE box slides as one block: μ : A⊗A → A through σ.
       test-σ-nat-μ : MC.U [ Sy.braiding.⇒.η (A , B) ∘ (μᴹ ⊗₁ id) ≈ (id ⊗₁ μᴹ) ∘ Sy.braiding.⇒.η (A ⊗₀ A , B) ]
-      test-σ-nat-μ = solveMorσ! (S.σ S.∘ (μ' S.⊗₁ S.id)) ((S.id S.⊗₁ μ') S.∘ S.σ {a O.⊗₀ a} {b})
+      test-σ-nat-μ = solveMorσ! (S.σ S.∘ (μ' S.⊗₁ S.id)) ((S.id S.⊗₁ μ') S.∘ S.σ {a ⊗ᵒ a} {b})
 
     ----------------------------------------------------------------------
     -- Mixed goals: σ interleaved with the Mon repertoire.
