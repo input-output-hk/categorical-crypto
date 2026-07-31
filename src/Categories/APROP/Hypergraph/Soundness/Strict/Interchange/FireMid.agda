@@ -39,6 +39,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore si
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCoreRun sig _≟X_ as SCR
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig _≟X_ as BSC
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_ as DSS
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.FireMidInterchangeComb sig
@@ -173,6 +174,9 @@ module FMS2 (H : Hypergraph FlatGen)
   Incompˢ      = Incomp H
   perm-rigidˢ′ = perm-rigidˢ H permˢ-K
 
+  -- The thin wiring-groupoid calculus (F11): ⟦bswap⟧ + rigid-≈̂.
+  open PC.Kit H permˢ-K
+
   open DSS.Scr (Fin H.nV) H.vlab using (bswap)
 
   private
@@ -251,30 +255,14 @@ module FMS2 (H : Hypergraph FlatGen)
       swp-in : (H.ein e' ++ H.ein e) ++ Rlist Perm.↭ (H.ein e ++ H.ein e') ++ Rlist
       swp-in = PermProp.++⁺ʳ Rlist (bswap (H.ein e') (H.ein e))
 
-      -- `loc₁` and `trans loc₂ swp-in` are two derivations into the SAME
-      -- `Unique` codomain (`Unique-resp-↭ loc₁ us-sp`); identified by K.
-      rigid-in : permuteˢ loc₁ ≈ˢ permuteˢ (Perm.trans loc₂ swp-in)
-      rigid-in = perm-rigidˢ′ (SU.Unique-resp-↭ loc₁ us-sp) loc₁ (Perm.trans loc₂ swp-in)
-
-    private
-      -- σˢ A' A ⊗ id ≈ castˢ Din Cin (permuteˢ swp-in), the flipped block-swap.
-      Din = trans (map-++ vl (H.ein e' ++ H.ein e) Rlist)
-                  (cong (_++ Rl) (map-++ vl (H.ein e') (H.ein e)))
-      Cin = trans (map-++ vl (H.ein e ++ H.ein e') Rlist)
-                  (cong (_++ Rl) (map-++ vl (H.ein e) (H.ein e')))
-
-      σ-as-swp : σˢ A' A ⊗ˢ idˢ {Rl} ≈ˢ castˢ Din Cin (permuteˢ swp-in)
-      σ-as-swp = swap-block-sym (H.ein e') (H.ein e) Rlist
-
+    -- `Lin₁` and the RHS are two `permuteˢ` derivations into the SAME `Unique`
+    -- codomain (`Unique-resp-↭ loc₁ us-sp`): the wiring is rigid.  `cast-≈̂`
+    -- strips both `map-++` frames, `⟦bswap⟧` turns `swp-in` into `σ A' A ⊗ id`.
     vin-cohˢ : Lin₁ ≈ˢ (σˢ A' A ⊗ˢ idˢ {Rl}) ∘ˢ Lin₂
-    vin-cohˢ = ≈-sym
-      (≈-trans (∘-resp σ-as-swp ≈-refl)
-      (≈-trans (∘-resp ≈-refl (≡⇒≈ˢ (cast-irrel refl refl in-mc' Din
-                                       (permuteˢ loc₂))))
-      (≈-trans (≈-sym (∘-cast-split refl Din Cin
-                         (permuteˢ swp-in) (permuteˢ loc₂)))
-      (≈-trans (cast-resp refl Cin (≈-sym rigid-in))
-        (≡⇒≈ˢ (cast-irrel refl refl Cin in-mc (permuteˢ loc₁)))))))
+    vin-cohˢ = ≈̂⇒≈ˢ
+      (≈̂-trans cast-≈̂
+      (≈̂-trans (rigid-≈̂ (SU.Unique-resp-↭ loc₁ us-sp) loc₁ (Perm.trans loc₂ swp-in))
+        (∘-resp-≈̂ (⟦bswap⟧ (H.ein e') (H.ein e) Rlist) (≈̂-sym cast-≈̂))))
 
     --------------------------------------------------------------------
     -- vout-cohˢ : Pr ∘ˢ Lout₁ ≈ Lout₂ ∘ˢ (σˢ B B' ⊗ˢ idˢ{Rl}).
@@ -333,6 +321,9 @@ module _ (H : Hypergraph FlatGen)
   fire-termˢ′  = fire-termˢ H
   perm-rigidˢ′ = perm-rigidˢ H permˢ-K
   perm-frameˡ′ = permuteˢ-frameˡ H
+
+  -- The thin wiring-groupoid calculus (F11): ⟦reflexive⟧ + rigid-≈̂.
+  open PC.Kit H permˢ-K
 
   cross-NFˢ′   = FMS.cross-NFˢ H
   box-resid3ˢ′ = FMS.box-resid3ˢ H
@@ -827,9 +818,6 @@ module _ (H : Hypergraph FlatGen)
       us-down : Unique (H.ein a ++ (H.ein b ++ R))
       us-down = SU.Unique-resp-↭ (PermProp.++⁺ˡ (H.ein a) ρ₁) us-in-a
 
-      loc-rigid : permuteˢ loc1' ≈ˢ permuteˢ loc-down
-      loc-rigid = perm-rigidˢ′ us-down loc1' loc-down
-
     ------------------------------------------------------------------
     -- OUTPUT reconciliation: the located output `OUT2` together with the
     -- merge's output braid `σ B B' ⊗ id{Rl}` equals `Lout`.  (swap-block +
@@ -864,31 +852,19 @@ module _ (H : Hypergraph FlatGen)
 
       C1 = map-++ vl (H.ein a) (H.ein b ++ R)
 
-      -- `IN1` codomain carried to `(A++A')++Rl` (the box-block domain), so it
-      -- is `Lin` up to `loc-rigid`.
+      -- `IN1` and `Lin` are `permuteˢ` of two derivations `sp ↭ ein a++(ein b++R)`
+      -- (`loc1'`, `loc-down`) into the SAME `Unique` codomain (`us-down`): the
+      -- wiring is rigid.  `cast-≈̂` strips the box-block frame + both `map-++`
+      -- frames; `⟦reflexive⟧` cancels `loc-down`'s reindexing tail.
       in-eq : castˢ PD refl box-block ∘ˢ IN1 ≈ˢ box-block ∘ˢ Lin
-      in-eq =
-        ≈-trans (∘-resp ≈-refl IN1-eq)
-          (≈-sym (∘-cast-split refl PD refl box-block Lin))
+      in-eq = ≈̂⇒≈ˢ (∘-resp-≈̂ cast-≈̂ IN1≈̂Lin)
         where
-          Casr-in = cong m (++-assoc (H.ein a) (H.ein b) R)
-          -- `IN1 ≈ castˢ refl PD Lin`  (reconcile loc1' → loc).
-          IN1-eq : IN1 ≈ˢ castˢ refl PD Lin
-          IN1-eq =
-            -- LHS: castˢ refl C1 (permuteˢ loc1')  →  loc-down (loc-rigid)
-            ≈-trans (cast-resp refl C1 loc-rigid)
-            -- castˢ refl C1 (permuteˢ loc-down),  permuteˢ loc-down ≈
-            --   castˢ refl Casr-in id ∘ permuteˢ loc ≈ castˢ refl Casr-in (permuteˢ loc)
-            (≈-trans (cast-resp refl C1
-                        (≈-trans (∘-resp (permuteˢ-reflexive
-                                            (++-assoc (H.ein a) (H.ein b) R)) ≈-refl)
-                          (cast-idˡ-∘ Casr-in (permuteˢ loc))))
-            -- fuse C1 with Casr-in, then cast-irrel to (trans in-mc PD).
-            (≈-trans (≡⇒≈ˢ (cast-fuse refl refl Casr-in C1 (permuteˢ loc)))
-              (≈-trans
-                (≡⇒≈ˢ (cast-irrel refl refl (trans Casr-in C1) (trans in-mc PD)
-                         (permuteˢ loc)))
-                (≈-sym (≡⇒≈ˢ (cast-fuse refl refl in-mc PD (permuteˢ loc)))))))
+          IN1≈̂Lin : IN1 ≈̂ Lin
+          IN1≈̂Lin =
+            ≈̂-trans cast-≈̂
+            (≈̂-trans (rigid-≈̂ us-down loc1' loc-down)
+            (≈̂-trans (∘-resp-≈̂ (⟦reflexive⟧ (++-assoc (H.ein a) (H.ein b) R)) ≈̂-refl)
+            (≈̂-trans (≈ˢ⇒≈̂ idˡ) (≈̂-sym cast-≈̂))))
 
       ------------------------------------------------------------------
       -- OUTPUT reconciliation: T2's output relocate `OUT2` + the merge's
