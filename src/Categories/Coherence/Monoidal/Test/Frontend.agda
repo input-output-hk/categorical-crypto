@@ -109,15 +109,16 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
     (uᴹ  : MC.U [ unit , unit ])
     where
 
-    module O = FreeMonoidalHelper Mon (Fin 2)
-    open O renaming (Var to V) using ()
-    open Coh.Mor C (A ∷ B ∷ [])
-         ( ((V zero O.⊗₀ V zero , V zero)         , μᴹ)   -- gen 0 : A⊗A → A ↦ μ
-         ∷ ((O.unit , V zero)                     , ηᴹ)   -- gen 1 : unit → A ↦ η
+    vars = A ∷ B ∷ []
+    open Coh.MorAtoms C vars
+    -- this suite fires rewrite rules, so it opens the rewriting façade
+    open Coh.MorRewrite C vars
+         ( ((V zero ⊗ᵒ V zero , V zero)         , μᴹ)   -- gen 0 : A⊗A → A ↦ μ
+         ∷ ((unitᵒ , V zero)                     , ηᴹ)   -- gen 1 : unit → A ↦ η
          ∷ ((V zero , V zero)                     , sᴹ)   -- gen 2 : A → A ↦ s
          ∷ ((V zero , V zero)                     , s'ᴹ)  -- gen 3 : A → A ↦ s'
          ∷ ((V (suc zero) , V (suc zero))         , tᴹ)   -- gen 4 : B → B ↦ t
-         ∷ ((O.unit , O.unit)                     , uᴹ)   -- gen 5 : unit → unit ↦ u
+         ∷ ((unitᵒ , unitᵒ)                     , uᴹ)   -- gen 5 : unit → unit ↦ u
          ∷ [] )
 
     private
@@ -161,7 +162,7 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
       test-assoc = solveMor! ((s'' S.∘ s') S.∘ s') (s'' S.∘ (s' S.∘ s'))
 
       test-id⊗id : MC.U [ id ⊗₁ id ≈ id ]
-      test-id⊗id = solveMor! (S.id S.⊗₁ S.id) (S.id {O.Var zero O.⊗₀ O.Var (suc zero)})
+      test-id⊗id = solveMor! (S.id S.⊗₁ S.id) (S.id {V zero ⊗ᵒ V (suc zero)})
 
       -- ⊗-functoriality with firing orders agreeing after reflect:
       -- left factor's layers all before the right factor's.
@@ -194,7 +195,7 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
       test-deep =
         solveMor! ((s' S.⊗₁ (S.id S.⊗₁ S.id))
                      S.∘ (S.id S.⊗₁ (S.id S.⊗₁ t')))
-                  (s' S.⊗₁ (S.id {O.Var (suc zero)} S.⊗₁ t'))
+                  (s' S.⊗₁ (S.id {V (suc zero)} S.⊗₁ t'))
 
       -- a multi-wire box (μ : A⊗A → A) interchanging with t.
       test-μ-swap : MC.U [ (μᴹ ⊗₁ id) ∘ (id ⊗₁ tᴹ) ≈ μᴹ ⊗₁ tᴹ ]
@@ -213,7 +214,7 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
       test-α-transparent : MC.U [ associator.from ∘ ((sᴹ ⊗₁ id) ⊗₁ tᴹ) ∘ associator.to ≈ sᴹ ⊗₁ (id ⊗₁ tᴹ) ]
       test-α-transparent =
         solveMor! (S.α⇒ S.∘ ((s' S.⊗₁ S.id) S.⊗₁ t') S.∘ S.α⇐)
-                  (s' S.⊗₁ (S.id {O.Var zero} S.⊗₁ t'))
+                  (s' S.⊗₁ (S.id {V zero} S.⊗₁ t'))
 
       -- the head swap fires with a non-trivial third layer in the tail.
       test-swap-with-tail
@@ -232,8 +233,8 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
       -- three independent boxes fired fully descending vs ascending: the
       -- fuel-driven loop (`normFuelWith`) fires THREE genuine swaps.
       private
-        W₃ : O.ObjTerm
-        W₃ = O.Var zero O.⊗₀ (O.Var zero O.⊗₀ O.Var zero)
+        W₃ : ObjTerm
+        W₃ = V zero ⊗ᵒ (V zero ⊗ᵒ V zero)
         desc₃ : S.HomTerm W₃ W₃
         desc₃ = (s' S.⊗₁ (S.id S.⊗₁ S.id)) S.∘ (S.id S.⊗₁ (s' S.⊗₁ S.id)) S.∘ (S.id S.⊗₁ (S.id S.⊗₁ s'))
         asc₃ : S.HomTerm W₃ W₃
