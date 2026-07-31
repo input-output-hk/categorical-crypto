@@ -4,30 +4,30 @@
 -- The strict block-swap-commutation residual `bswap-σ` of
 -- `Strict/DecodeSigma.agda` (the parameter `BSwapσ : Scr.BswapSig`).
 --
---   block-swap-comm
---     : ∀ (L R : List V)
---     → permuteˢ (bswap L R)
---       ≈ˢ castˢ (sym (map-++ vlab L R)) (sym (map-++ vlab R L))
---           (σˢ (map vlab L) (map vlab R))
+--   block-swap-comm : ∀ (L R : List V) → permuteᵛ (bswap L R) ≈ᵛ σᵛ L R
 --
 -- This is the strict, VERTEX-LEVEL twin of the non-strict keystone
 -- `BNV.σ-block-comm` (`pvl (++-comm L R) ≈ σ-block`), proven entirely from the
 -- `FreeStrictSMC.Build` axioms + the reusable `σ-hexˢʳ` (RIGHT-hexagon)
 -- companion lemma and the `[]` base cases proven in `DecodeSigma`.
 --
+-- The whole module runs in the `Restrict` layer (F7): `HomV as bs = HomS
+-- (map vlab as) (map vlab bs)`, whose `_⊗ᵛ_`/`σᵛ` absorb the `map-++`
+-- transports.  `Scr.BswapSig` unfolds to `permuteᵛ (bswap L R) ≈ᵛ σᵛ L R` on
+-- the nose, so the exported statement is unchanged; what disappears is the
+-- endpoint bookkeeping (`Scr.mdom`/`Scr.mcod`, `cast-⊗-frame`, `cast-fuse`,
+-- `cast-irrel`, `∘-cast-split`), because at the SINGLETON left frames this
+-- induction produces every `List V` associator and every `map-++` reduces.
+--
 -- Proof structure (mirrors `BlockNFBraid.σ-block-comm` / `prep-step`):
 --
---   * `shift-sym v R L` — the FULL `permuteˢ (↭-sym (shift v R L))` slide
---     (induction on `R`).  Its `[]` case is `Scr.permuteˢ-shift-sym-base`; the
---     `(x ∷ R)` step is a `σ-hexˢʳ` application at the SINGLETON frames
---     `a = [vlab v]`, `b = [vlab x]`, `c = map R` (all three associators
---     collapse to `coe refl`), reconciled with the `castˢ` map-distribution
---     bookkeeping.
---
---   * `block-swap-comm L R` — induction on `L`.  `[]` is `Scr.bswap-σ-base`;
---     the `(v ∷ L)` step composes `shift-sym v R L` with the framed IH, then
---     reconciles the two `castˢ` bracketings (via `shift-sym` directly — no
---     further hexagon).
+--   * `hexᵛ v x R` — the RIGHT hexagon at the singleton frames `v ∷ []`,
+--     `x ∷ []`, `R`, where all three associators collapse to `coe refl`;
+--   * `shift-symᵛ v R L` — the FULL `permuteᵛ (↭-sym (shift v R L))` slide
+--     (induction on `R`), base `Scr.permuteˢ-shift-sym-base`;
+--   * `block-swap-comm L R` — induction on `L`, base `Scr.bswap-σ-base`,
+--     step = `shift-symᵛ` composed with the framed IH against `σ-hexᵛ`;
+--   * `swap-block` — the `++⁺ʳ Rl`-framed public face consumed by `PermCalc`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -49,8 +49,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig 
 
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (++-assoc; map-++)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong)
+open import Relation.Binary.PropositionalEquality using (refl; sym)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
@@ -59,48 +58,35 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
 module _ (V : Set) (vlab : V → X) where
 
   open Scr V vlab
-    using (bswap; mdom; mcod
-          ; permuteˢ-shift-sym-base; bswap-σ-base; BswapSig)
-  open Support V vlab using (permuteˢ; permuteˢ-frame)
+    using (bswap; permuteˢ-shift-sym-base; bswap-σ-base; BswapSig)
+  open Restrict V vlab
+    using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; permuteᵛ-frame
+          ; ⊗-respᵛ; interchangeᵛ; σ-hexᵛ; castᵛ-≈̂; ⊗-resp-≈̂ᵛ
+          ; ⊗-assoc-≈̂ᵛ; box-suffix-≈̂ᵛ )
 
   private
     m : List V → List X
     m = map vlab
 
   --------------------------------------------------------------------------
-  -- (A)  The full shift-sym slide, by induction on R.
-  --
-  --   permuteˢ (↭-sym (shift v R L))
-  --     ≈ˢ castˢ (mdom v R L) (mcod v R L)
-  --         (σˢ [vlab v] (map R) ⊗ˢ idˢ {map L})
+  -- (A)  The RIGHT hexagon at singleton frames.  `++-assoc (_ ∷ [])` is
+  -- `refl` three times over, so `σ-hexˢʳ`'s three `coe`s collapse and the
+  -- V-level statement is a bare two-block composite.
 
-  shift-sym
-    : (v : V) (R L : List V)
-    → permuteˢ (Perm.↭-sym (PermProp.shift v R L))
-      ≈ˢ castˢ (mdom v R L) (mcod v R L)
-          (σˢ (vlab v ∷ []) (m R) ⊗ˢ idˢ {m L})
-  shift-sym v []      L = permuteˢ-shift-sym-base v L
-  shift-sym v (x ∷ R) L = goal
+  hexᵛ
+    : (v x : V) (R : List V)
+    → σᵛ (v ∷ []) (x ∷ R)
+      ≈ᵛ (idᵛ {x ∷ []} ⊗ᵛ σᵛ (v ∷ []) R) ∘ᵛ (σᵛ (v ∷ []) (x ∷ []) ⊗ᵛ idᵛ {R})
+  hexᵛ v x R = ≈̂⇒≈ˢ (≈̂-trans lhs (≈̂-sym rhs))
     where
-      -- the hexagon at singleton frames a=[vlab v], b=[vlab x], c=map R
       a b c : List X
       a = vlab v ∷ []
       b = vlab x ∷ []
       c = m R
 
-      -- σ-hexˢʳ a b c, with all three associators = refl (singleton b/a).
-      hex : σˢ a (b ++ c)
-            ≈ˢ coe (sym (++-assoc b c a))
-                ∘ˢ (((idˢ {b} ⊗ˢ σˢ a c)
-                      ∘ˢ coe (++-assoc b a c) ∘ˢ (σˢ a b ⊗ˢ idˢ {c}))
-                    ∘ˢ coe (sym (++-assoc a b c)))
-      hex = σ-hexˢʳ a b c
-
-      -- all three associators are `++-assoc (singleton) _ _` ≡ refl, so the
-      -- `coe`s collapse to `idˢ` and `hex` simplifies to a 2-block composite.
-      hex' : σˢ a (vlab x ∷ m R) ≈ˢ (idˢ {b} ⊗ˢ σˢ a c) ∘ˢ (σˢ a b ⊗ˢ idˢ {c})
+      hex' : σˢ a (b ++ c) ≈ˢ (idˢ {b} ⊗ˢ σˢ a c) ∘ˢ (σˢ a b ⊗ˢ idˢ {c})
       hex' =
-        ≈-trans hex
+        ≈-trans (σ-hexˢʳ a b c)
         (≈-trans (∘-resp (coe-id≈ (sym (++-assoc b c a))) ≈-refl)
         (≈-trans idˡ
         (≈-trans (∘-resp ≈-refl (coe-id≈ (sym (++-assoc a b c))))
@@ -108,233 +94,83 @@ module _ (V : Set) (vlab : V → X) where
           (∘-resp ≈-refl
             (≈-trans (∘-resp (coe-id≈ (++-assoc b a c)) ≈-refl) idˡ))))))
 
-      -- LHS reduces definitionally to this composite.
-      lhs-reduce
-        : permuteˢ (Perm.↭-sym (PermProp.shift v (x ∷ R) L))
-          ≈ˢ (idˢ {b} ⊗ˢ permuteˢ (Perm.↭-sym (PermProp.shift v R L)))
-              ∘ˢ (σˢ a b ⊗ˢ idˢ {m (R ++ L)})
-      lhs-reduce = ≈-refl
+      lhs : σᵛ (v ∷ []) (x ∷ R) ≈̂ (idˢ {b} ⊗ˢ σˢ a c) ∘ˢ (σˢ a b ⊗ˢ idˢ {c})
+      lhs = ≈̂-trans (cast-≈̂ {p = refl} {q = sym (map-++ vlab (x ∷ R) (v ∷ []))})
+                    (≈ˢ⇒≈̂ hex')
 
-      -- the IH on the inner shift-sym, at R.
-      ih : permuteˢ (Perm.↭-sym (PermProp.shift v R L))
-           ≈ˢ castˢ (mdom v R L) (mcod v R L) (σˢ a c ⊗ˢ idˢ {m L})
-      ih = shift-sym v R L
-
-      -- the two ⊗-blocks of the common composite NF.
-      Blk1 Blk2 : _
-      Blk1 = (idˢ {b} ⊗ˢ σˢ a c) ⊗ˢ idˢ {m L}
-      Blk2 = (σˢ a b ⊗ˢ idˢ {c}) ⊗ˢ idˢ {m L}
-
-      -- (i) RHS → the framed-hexagon composite Blk1 ∘ˢ Blk2 (no cast inside).
-      hexframe : σˢ a (vlab x ∷ m R) ⊗ˢ idˢ {m L} ≈ˢ Blk1 ∘ˢ Blk2
-      hexframe =
-        ≈-trans (⊗-resp hex' ≈-refl)
-        (≈-trans (⊗-resp ≈-refl (≈-sym idˡ))
-          (≈-sym interchangeˢ))
-
-      -- (ii) LHS factor 1: framed IH.  `idˢ{b} ⊗ˢ castₘ(σˢ a c ⊗ˢ idˢ{mL})`
-      -- equals `Blk1` up to a cast (pull cast out of the ⊗, then ⊗-assocˢ).
-      F1 : idˢ {b} ⊗ˢ permuteˢ (Perm.↭-sym (PermProp.shift v R L))
-           ≈ˢ castˢ (cong (b ++_) (mdom v R L))
-                    (cong (b ++_) (mcod v R L))
-                    (idˢ {b} ⊗ˢ (σˢ a c ⊗ˢ idˢ {m L}))
-      F1 =
-        ≈-trans (⊗-resp ≈-refl ih)
-          (≈-sym (cast-⊗-frame (idˢ {b}) (mdom v R L) (mcod v R L)
-                    (σˢ a c ⊗ˢ idˢ {m L})
-                    (cong (b ++_) (mdom v R L)) (cong (b ++_) (mcod v R L))))
-
-      -- ⊗-assocˢ relates `idˢ{b} ⊗ˢ (σˢ a c ⊗ˢ idˢ{mL})` to `Blk1`.
-      assoc1
-        : castˢ (++-assoc b (a ++ c) (m L)) (++-assoc b (c ++ a) (m L)) Blk1
-          ≈ˢ idˢ {b} ⊗ˢ (σˢ a c ⊗ˢ idˢ {m L})
-      assoc1 = ⊗-assocˢ (idˢ {b}) (σˢ a c) (idˢ {m L})
-
-      -- box-suffix relates Blk2 to LHS factor 2 (`σˢ a b ⊗ˢ idˢ{c ++ mL}`).
-      box2
-        : castˢ (++-assoc (a ++ b) c (m L)) (++-assoc (b ++ a) c (m L)) Blk2
-          ≈ˢ σˢ a b ⊗ˢ idˢ {c ++ m L}
-      box2 = box-suffix-ˢ (σˢ a b) c (m L)
-
-      -- factor 1 reduced to a single cast of Blk1.
-      f1nf : idˢ {b} ⊗ˢ permuteˢ (Perm.↭-sym (PermProp.shift v R L))
-             ≈ˢ castˢ (trans (++-assoc b (a ++ c) (m L))
-                             (cong (b ++_) (mdom v R L)))
-                      (trans (++-assoc b (c ++ a) (m L))
-                             (cong (b ++_) (mcod v R L)))
-                 Blk1
-      f1nf =
-        ≈-trans F1
-        (≈-trans (cast-resp (cong (b ++_) (mdom v R L))
-                            (cong (b ++_) (mcod v R L)) (≈-sym assoc1))
-          (≡⇒≈ˢ (cast-fuse (++-assoc b (a ++ c) (m L))
-                           (cong (b ++_) (mdom v R L))
-                           (++-assoc b (c ++ a) (m L))
-                           (cong (b ++_) (mcod v R L)) Blk1)))
-
-      -- factor 2 reduced to a single cast of Blk2.
-      MP : m (R ++ L) ≡ c ++ m L
-      MP = map-++ vlab R L
-
-      f2nf : σˢ a b ⊗ˢ idˢ {m (R ++ L)}
-             ≈ˢ castˢ (trans (++-assoc (a ++ b) c (m L))
-                             (cong ((a ++ b) ++_) (sym MP)))
-                      (trans (++-assoc (b ++ a) c (m L))
-                             (cong ((b ++ a) ++_) (sym MP)))
-                 Blk2
-      f2nf =
-        ≈-trans (⊗-resp ≈-refl (≈-sym (cast-id (sym MP) (sym MP))))
-        (≈-trans (≈-sym (cast-⊗-frame (σˢ a b) (sym MP) (sym MP) (idˢ {c ++ m L})
-                   (cong ((a ++ b) ++_) (sym MP)) (cong ((b ++ a) ++_) (sym MP))))
-        (≈-trans (cast-resp (cong ((a ++ b) ++_) (sym MP))
-                            (cong ((b ++ a) ++_) (sym MP)) (≈-sym box2))
-          (≡⇒≈ˢ (cast-fuse (++-assoc (a ++ b) c (m L)) (cong ((a ++ b) ++_) (sym MP))
-                           (++-assoc (b ++ a) c (m L)) (cong ((b ++ a) ++_) (sym MP))
-                           Blk2))))
-
-      M1d = trans (++-assoc b (a ++ c) (m L)) (cong (b ++_) (mdom v R L))
-      M1c = trans (++-assoc b (c ++ a) (m L)) (cong (b ++_) (mcod v R L))
-      M2d = trans (++-assoc (a ++ b) c (m L)) (cong ((a ++ b) ++_) (sym MP))
-
-      lhs-nf
-        : permuteˢ (Perm.↭-sym (PermProp.shift v (x ∷ R) L))
-          ≈ˢ castˢ (mdom v (x ∷ R) L) (mcod v (x ∷ R) L) (Blk1 ∘ˢ Blk2)
-      lhs-nf =
-        ≈-trans lhs-reduce
-        (≈-trans (∘-resp f1nf f2nf)
-        (≈-trans (∘-resp ≈-refl
-                   (≡⇒≈ˢ (cast-irrel M2d M2d _ M1d Blk2)))
-        (≈-trans (≈-sym (∘-cast-split M2d M1d M1c Blk1 Blk2))
-          (≡⇒≈ˢ (cast-irrel M2d (mdom v (x ∷ R) L) M1c (mcod v (x ∷ R) L)
-                   (Blk1 ∘ˢ Blk2))))))
-
-      goal : permuteˢ (Perm.↭-sym (PermProp.shift v (x ∷ R) L))
-             ≈ˢ castˢ (mdom v (x ∷ R) L) (mcod v (x ∷ R) L)
-                 (σˢ a (vlab x ∷ m R) ⊗ˢ idˢ {m L})
-      goal = ≈-trans lhs-nf (≈-sym (cast-resp _ _ hexframe))
+      rhs : (idᵛ {x ∷ []} ⊗ᵛ σᵛ (v ∷ []) R) ∘ᵛ (σᵛ (v ∷ []) (x ∷ []) ⊗ᵛ idᵛ {R})
+            ≈̂ (idˢ {b} ⊗ˢ σˢ a c) ∘ˢ (σˢ a b ⊗ˢ idˢ {c})
+      rhs =
+        ∘-resp-≈̂
+          (⊗-resp-≈̂ ≈̂-refl
+            (cast-≈̂ {p = refl} {q = sym (map-++ vlab R (v ∷ []))}))
+          ≈̂-refl
 
   --------------------------------------------------------------------------
-  -- (B)  The block-swap commutation, by induction on L.
+  -- (B)  The full shift-sym slide, by induction on R.  The only surviving
+  -- cast is the genuine `++-assoc R (v ∷ []) L` (the `map-++` layer is gone).
+
+  shift-symᵛ
+    : (v : V) (R L : List V)
+    → permuteᵛ (Perm.↭-sym (PermProp.shift v R L))
+      ≈ᵛ castᵛ refl (++-assoc R (v ∷ []) L) (σᵛ (v ∷ []) R ⊗ᵛ idᵛ {L})
+  shift-symᵛ v []      L = permuteˢ-shift-sym-base v L
+  shift-symᵛ v (x ∷ R) L =
+    ≈̂⇒≈ˢ
+      (≈̂-trans (∘-resp-≈̂ F1 F2)
+      (≈̂-trans (≈ˢ⇒≈̂ interchangeᵛ)
+      (≈̂-trans (⊗-resp-≈̂ᵛ (≈ˢ⇒≈̂ (≈-sym (hexᵛ v x R))) (≈ˢ⇒≈̂ idˡ))
+               (≈̂-sym (castᵛ-≈̂ refl (++-assoc (x ∷ R) (v ∷ []) L)
+                         (σᵛ (v ∷ []) (x ∷ R) ⊗ᵛ idᵛ {L}))))))
+    where
+      F1 : idᵛ {x ∷ []} ⊗ᵛ permuteᵛ (Perm.↭-sym (PermProp.shift v R L))
+           ≈̂ (idᵛ {x ∷ []} ⊗ᵛ σᵛ (v ∷ []) R) ⊗ᵛ idᵛ {L}
+      F1 =
+        ≈̂-trans
+          (⊗-resp-≈̂ ≈̂-refl
+            (≈̂-trans (≈ˢ⇒≈̂ (shift-symᵛ v R L))
+                     (castᵛ-≈̂ refl (++-assoc R (v ∷ []) L)
+                        (σᵛ (v ∷ []) R ⊗ᵛ idᵛ {L}))))
+          (≈̂-sym (⊗-assoc-≈̂ᵛ (idᵛ {x ∷ []}) (σᵛ (v ∷ []) R) (idᵛ {L})))
+
+      F2 : σᵛ (v ∷ []) (x ∷ []) ⊗ᵛ idᵛ {R ++ L}
+           ≈̂ (σᵛ (v ∷ []) (x ∷ []) ⊗ᵛ idᵛ {R}) ⊗ᵛ idᵛ {L}
+      F2 = ≈̂-sym (box-suffix-≈̂ᵛ (σᵛ (v ∷ []) (x ∷ [])) R L)
+
+  --------------------------------------------------------------------------
+  -- (C)  The block-swap commutation, by induction on L.  `σ-hexᵛ` at the
+  -- singleton left frame `v ∷ []` has BOTH its `++-assoc (v ∷ []) _ _`
+  -- associators reduce, so it is a bare composite of the two factors
+  -- `shift-symᵛ` and the framed IH produce.
 
   block-swap-comm : BswapSig
   block-swap-comm []      R = bswap-σ-base R
-  block-swap-comm (v ∷ L) R = step
+  block-swap-comm (v ∷ L) R = ≈̂⇒≈ˢ (≈̂-trans lhs (≈̂-sym rhs))
     where
-      a c : List X
-      a = vlab v ∷ []
-      c = m R
+      CORE : HomV (v ∷ L ++ R) ((R ++ (v ∷ [])) ++ L)
+      CORE = (σᵛ (v ∷ []) R ⊗ᵛ idᵛ {L}) ∘ᵛ (idᵛ {v ∷ []} ⊗ᵛ σᵛ L R)
 
-      -- LHS reduces definitionally to this composite.
-      lhs-reduce
-        : permuteˢ (bswap (v ∷ L) R)
-          ≈ˢ permuteˢ (Perm.↭-sym (PermProp.shift v R L))
-              ∘ˢ (idˢ {a} ⊗ˢ permuteˢ (bswap L R))
-      lhs-reduce = ≈-refl
+      lhs : permuteᵛ (bswap (v ∷ L) R) ≈̂ CORE
+      lhs =
+        ∘-resp-≈̂
+          (≈̂-trans (≈ˢ⇒≈̂ (shift-symᵛ v R L))
+                   (castᵛ-≈̂ refl (++-assoc R (v ∷ []) L)
+                      (σᵛ (v ∷ []) R ⊗ᵛ idᵛ {L})))
+          (⊗-resp-≈̂ ≈̂-refl (≈ˢ⇒≈̂ (block-swap-comm L R)))
 
-      -- the cast-free core of both sides.
-      CORE : _
-      CORE = (σˢ a (m R) ⊗ˢ idˢ {m L}) ∘ˢ (idˢ {a} ⊗ˢ σˢ (m L) (m R))
-
-      -- LEFT hexagon at the singleton frame `a = [vlab v]`: the two `++-assoc a …`
-      -- associators collapse to refl, leaving only the genuine cod-cast.
-      hexL : σˢ (vlab v ∷ m L) (m R) ≈ˢ castˢ refl (++-assoc (m R) a (m L)) CORE
-      hexL = σ-hexˢ a (m L) (m R)
-
-      -- the IH on the inner block.
-      ih : permuteˢ (bswap L R)
-           ≈ˢ castˢ (sym (map-++ vlab L R)) (sym (map-++ vlab R L)) (σˢ (m L) (m R))
-      ih = block-swap-comm L R
-
-      -- factor 2: pull the IH cast out of the right ⊗-factor.
-      f2 : idˢ {a} ⊗ˢ permuteˢ (bswap L R)
-           ≈ˢ castˢ (cong (a ++_) (sym (map-++ vlab L R)))
-                    (cong (a ++_) (sym (map-++ vlab R L)))
-               (idˢ {a} ⊗ˢ σˢ (m L) (m R))
-      f2 =
-        ≈-trans (⊗-resp ≈-refl ih)
-          (≈-sym (cast-⊗-frame (idˢ {a}) (sym (map-++ vlab L R))
-                    (sym (map-++ vlab R L)) (σˢ (m L) (m R))
-                    (cong (a ++_) (sym (map-++ vlab L R)))
-                    (cong (a ++_) (sym (map-++ vlab R L)))))
-
-      F1d = mdom v R L
-      F1c = mcod v R L
-      F2d = cong (a ++_) (sym (map-++ vlab L R))
-      F2c = cong (a ++_) (sym (map-++ vlab R L))
-
-      -- LHS → a single cast of CORE (the dom is factor 2's dom F2d, the cod is
-      -- factor 1's cod F1c; the middle is factor 1's dom F1d).
-      lhs-nf : permuteˢ (bswap (v ∷ L) R) ≈ˢ castˢ F2d F1c CORE
-      lhs-nf =
-        ≈-trans lhs-reduce
-        (≈-trans (∘-resp (shift-sym v R L) f2)
-        (≈-trans (∘-resp ≈-refl (≡⇒≈ˢ (cast-irrel F2d F2d F2c F1d
-                                         (idˢ {a} ⊗ˢ σˢ (m L) (m R)))))
-          (≈-sym (∘-cast-split F2d F1d F1c
-                    (σˢ a (m R) ⊗ˢ idˢ {m L}) (idˢ {a} ⊗ˢ σˢ (m L) (m R))))))
-
-      step : permuteˢ (bswap (v ∷ L) R)
-             ≈ˢ castˢ (sym (map-++ vlab (v ∷ L) R)) (sym (map-++ vlab R (v ∷ L)))
-                 (σˢ (vlab v ∷ m L) (m R))
-      step =
-        ≈-trans lhs-nf
-        (≈-trans (≡⇒≈ˢ (cast-irrel F2d (sym (map-++ vlab (v ∷ L) R))
-                          F1c (trans (++-assoc (m R) a (m L))
-                                     (sym (map-++ vlab R (v ∷ L)))) CORE))
-        (≈-sym
-          (≈-trans (cast-resp (sym (map-++ vlab (v ∷ L) R))
-                              (sym (map-++ vlab R (v ∷ L))) hexL)
-            (≡⇒≈ˢ (cast-fuse refl (sym (map-++ vlab (v ∷ L) R))
-                     (++-assoc (m R) a (m L)) (sym (map-++ vlab R (v ∷ L)))
-                     CORE)))))
+      rhs : σᵛ (v ∷ L) R ≈̂ CORE
+      rhs =
+        ≈̂-trans (≈ˢ⇒≈̂ (σ-hexᵛ (v ∷ []) L R))
+                (castᵛ-≈̂ refl (++-assoc R (v ∷ []) L) CORE)
 
   --------------------------------------------------------------------------
-  -- (C)  The `++⁺ʳ Rl`-framed block-swap derivation `bswap L R` is, under
-  -- `permuteˢ`, the strict block braiding `σˢ (m L) (m R) ⊗ˢ idˢ{m Rl}` up to
-  -- a `castˢ` (frame `block-swap-comm` by `Rl` via `permuteˢ-frame`).  The
-  -- public face of `block-swap-comm` consumed by the interchange/tensor cone.
+  -- (D)  The `++⁺ʳ Rl`-framed block-swap derivation is, under `permuteᵛ`, the
+  -- strict block braiding framed by `idᵛ {Rl}` — the public face consumed by
+  -- `PermCalc.⟦bswap⟧`.  At V level this is `permuteᵛ-frame` + the keystone.
 
   swap-block
     : ∀ (L R Rl : List V)
-    → permuteˢ (PermProp.++⁺ʳ Rl (bswap L R))
-      ≈ˢ castˢ (trans (cong (_++ m Rl) (sym (map-++ vlab L R)))
-                      (sym (map-++ vlab (L ++ R) Rl)))
-               (trans (cong (_++ m Rl) (sym (map-++ vlab R L)))
-                      (sym (map-++ vlab (R ++ L) Rl)))
-          (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl})
+    → permuteᵛ (PermProp.++⁺ʳ Rl (bswap L R)) ≈ᵛ σᵛ L R ⊗ᵛ idᵛ {Rl}
   swap-block L R Rl =
-    ≈-trans (cast-flip (map-++ vlab (L ++ R) Rl) (map-++ vlab (R ++ L) Rl)
-               (permuteˢ-frame Rl (bswap L R)))
-      (≈-trans (cast-resp (sym (map-++ vlab (L ++ R) Rl))
-                          (sym (map-++ vlab (R ++ L) Rl))
-                 (≈-trans (⊗-resp (block-swap-comm L R) ≈-refl)
-                   (≡⇒≈ˢ (cast-⊗ˡ (sym (map-++ vlab L R)) (sym (map-++ vlab R L))
-                            (σˢ (m L) (m R))))))
-        (≡⇒≈ˢ (cast-fuse (cong (_++ m Rl) (sym (map-++ vlab L R)))
-                         (sym (map-++ vlab (L ++ R) Rl))
-                         (cong (_++ m Rl) (sym (map-++ vlab R L)))
-                         (sym (map-++ vlab (R ++ L) Rl))
-                         (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl}))))
-
-  -- The flipped orientation (σˢ ≈ castˢ(...)(permuteˢ swp)), built from
-  -- `swap-block` by re-casting and cancelling.
-  swap-block-sym
-    : ∀ (L R Rl : List V)
-    → σˢ (m L) (m R) ⊗ˢ idˢ {m Rl}
-      ≈ˢ castˢ (trans (map-++ vlab (L ++ R) Rl)
-                      (cong (_++ m Rl) (map-++ vlab L R)))
-               (trans (map-++ vlab (R ++ L) Rl)
-                      (cong (_++ m Rl) (map-++ vlab R L)))
-          (permuteˢ (PermProp.++⁺ʳ Rl (bswap L R)))
-  swap-block-sym L R Rl =
-    ≈-sym
-      (≈-trans (cast-resp dom' cod' (swap-block L R Rl))
-      (≈-trans (≡⇒≈ˢ (cast-fuse dom-i dom' cod-i cod'
-                        (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl})))
-        (≡⇒≈ˢ (cast-irrel (trans dom-i dom') refl (trans cod-i cod') refl
-                          (σˢ (m L) (m R) ⊗ˢ idˢ {m Rl})))))
-    where
-      dom-i = trans (cong (_++ m Rl) (sym (map-++ vlab L R))) (sym (map-++ vlab (L ++ R) Rl))
-      cod-i = trans (cong (_++ m Rl) (sym (map-++ vlab R L))) (sym (map-++ vlab (R ++ L) Rl))
-      dom' = trans (map-++ vlab (L ++ R) Rl) (cong (_++ m Rl) (map-++ vlab L R))
-      cod' = trans (map-++ vlab (R ++ L) Rl) (cong (_++ m Rl) (map-++ vlab R L))
+    ≈-trans (permuteᵛ-frame Rl (bswap L R))
+            (⊗-respᵛ (block-swap-comm L R) ≈-refl)

@@ -130,6 +130,8 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
 
 module Scr (V : Set) (vlab : V → X) where
   open Support V vlab public
+  open Restrict V vlab
+    using (idᵛ; _⊗ᵛ_; σᵛ; _≈ᵛ_; permuteᵛ; castᵛ-cast; σ-unitᵛ)
 
   bswap : (L R : List V) → (L ++ R) ↭ (R ++ L)
   bswap []      R = Perm.↭-reflexive (sym (++-identityʳ R))
@@ -141,61 +143,30 @@ module Scr (V : Set) (vlab : V → X) where
       ≈ˢ castˢ refl (cong (map vlab) e) (idˢ {map vlab xs})
   refl-trivial refl = ≈-refl
 
-  -- map-distribution endpoints of the shift braiding.
-  mdom : (v : V) (R L : List V)
-       → ((vlab v ∷ []) ++ map vlab R) ++ map vlab L
-         ≡ vlab v ∷ map vlab (R ++ L)
-  mdom v R L = sym (cong (vlab v ∷_) (map-++ vlab R L))
-
-  mcod : (v : V) (R L : List V)
-       → (map vlab R ++ (vlab v ∷ [])) ++ map vlab L
-         ≡ map vlab (R ++ v ∷ L)
-  mcod v R L = sym (trans (map-++ vlab R (v ∷ L))
-                          (sym (++-assoc (map vlab R) (vlab v ∷ []) (map vlab L))))
-
-  -- `permuteˢ (↭-sym (shift v R L))` is the braiding of `[vlab v]` past
-  -- `map R`, framed by `idˢ {map L}` (modulo the map-distribution casts).
-  -- BASE proven; the (x∷R) step is the σ-hexˢʳ reconciliation.
+  -- `permuteᵛ (↭-sym (shift v R L))` is the braiding of `v ∷ []` past the
+  -- block `R`, framed by `idᵛ {L}` — stated in the `Restrict` layer, so the
+  -- former `mdom`/`mcod` map-distribution endpoints are gone.  BASE proven
+  -- here (both sides reduce to `idˢ`); the `(x ∷ R)` step is the `σ-hexˢʳ`
+  -- reconciliation `Interchange.BlockSwapComm.shift-symᵛ`.
   permuteˢ-shift-sym-base
     : (v : V) (L : List V)
-    → permuteˢ (Perm.↭-sym (PermProp.shift v [] L))
-      ≈ˢ castˢ (mdom v [] L) (mcod v [] L)
-          (σˢ (vlab v ∷ []) (map vlab []) ⊗ˢ idˢ {map vlab L})
+    → permuteᵛ (Perm.↭-sym (PermProp.shift v [] L))
+      ≈ᵛ σᵛ (v ∷ []) [] ⊗ᵛ idᵛ {L}
   permuteˢ-shift-sym-base v L =
-    ≈-sym
-      (≈-trans (cast-resp (mdom v [] L) (mcod v [] L)
-                  (⊗-resp (σ-unitʳˢ (vlab v ∷ [])) ≈-refl))
-        (≈-trans (≡⇒≈ˢ (cast-⊗ˡ (sym (++-identityʳ (vlab v ∷ []))) refl idˢ))
-          (≈-trans (≡⇒≈ˢ (cast-fuse _ (mdom v [] L) _ (mcod v [] L) (idˢ ⊗ˢ idˢ)))
-            (≈-trans (cast-resp _ _ ⊗-id)
-              (cast-id _ _)))))
+    ≈-sym (≈-trans (⊗-resp (σ-unitʳˢ (vlab v ∷ [])) ≈-refl) ⊗-id)
 
-  -- `permuteˢ (bswap L R) ≈ σˢ (map L) (map R)` (modulo map-distribution).
-  -- BASE proven; the (v∷L) step is the σ-hexˢ reconciliation.
-  bswap-σ-base
-    : (R : List V)
-    → permuteˢ (bswap [] R)
-      ≈ˢ castˢ (sym (map-++ vlab [] R)) (sym (map-++ vlab R []))
-          (σˢ (map vlab []) (map vlab R))
+  -- `permuteᵛ (bswap L R) ≈ᵛ σᵛ L R`.  BASE proven; the `(v ∷ L)` step is the
+  -- `σ-hexᵛ` reconciliation `Interchange.BlockSwapComm.block-swap-comm`.
+  bswap-σ-base : (R : List V) → permuteᵛ (bswap [] R) ≈ᵛ σᵛ [] R
   bswap-σ-base R =
     ≈-trans (refl-trivial (sym (++-identityʳ R)))
-    (≈-sym
-      (≈-trans (cast-resp (sym (map-++ vlab [] R)) (sym (map-++ vlab R []))
-                  (σ-unitˢ (map vlab R)))
-        (≈-trans (≡⇒≈ˢ (cast-fuse refl (sym (map-++ vlab [] R))
-                          (sym (++-identityʳ (map vlab R)))
-                          (sym (map-++ vlab R [])) idˢ))
-          (≡⇒≈ˢ (cast-irrel _ refl _ (cong (map vlab) (sym (++-identityʳ R)))
-                   idˢ)))))
+      (≈-sym (≈-trans (σ-unitᵛ R)
+                      (≡⇒≈ˢ (castᵛ-cast refl (sym (++-identityʳ R)) idᵛ))))
 
   -- The full block-swap identity (statement) — the strict vertex-level
   -- block-swap-commutes keystone.  `bswap-σ-base` is the [] case.
   BswapSig : Set
-  BswapSig =
-    ∀ (L R : List V)
-    → permuteˢ (bswap L R)
-      ≈ˢ castˢ (sym (map-++ vlab L R)) (sym (map-++ vlab R L))
-          (σˢ (map vlab L) (map vlab R))
+  BswapSig = ∀ (L R : List V) → permuteᵛ (bswap L R) ≈ᵛ σᵛ L R
 
 --------------------------------------------------------------------------------
 -- The σ-shape, assembled from `bswap-σ` (the single residual) via the

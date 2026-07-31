@@ -375,6 +375,336 @@ module Build
         (≈-trans (∘-resp (permuteˢ-frame R q) (permuteˢ-frame R p))
                  (≈-trans interchangeˢ (⊗-resp ≈-refl idˡ)))
 
+  ------------------------------------------------------------------------
+  -- RESTRICTION along `map vlab` (F7).
+  --
+  -- Every decoder endpoint is `map vlab s` for a VERTEX stack `s : List V`,
+  -- and `map` does not commute with `++` definitionally, so each `++` in a
+  -- statement forces a `map-++` transport.  `HomV as bs = HomS (map vlab as)
+  -- (map vlab bs)` is the SAME morphism type re-indexed by vertex stacks; its
+  -- `_⊗ᵛ_`/`σᵛ` absorb that transport once, and then the whole presentation
+  -- holds again with `List V` associators — whose singleton/cons instances
+  -- REDUCE, so the decoder's own shapes become cast-free.
+  --
+  -- `HomV` is literally `HomS` precomposed with `map vlab`, and `_≈ᵛ_` IS
+  -- `_≈ˢ_`, so the boundary back to the label level is the IDENTITY: no
+  -- functor and no coherence lemmas are needed, and V-level and label-level
+  -- statements interoperate definitionally.
+
+  module Restrict (V : Set) (vlab : V → X) where
+
+    open Perm′ V vlab using (permuteˢ; permuteˢ-frame)
+
+    open import Data.List.Relation.Binary.Permutation.Propositional.Properties
+      using (++⁺ʳ)
+
+    private
+      m : List V → List X
+      m = map vlab
+
+    HomV : List V → List V → Set
+    HomV as bs = HomS (m as) (m bs)
+
+    infixr 9 _∘ᵛ_
+    infixr 10 _⊗ᵛ_
+    infix 4 _≈ᵛ_
+
+    idᵛ : ∀ {as} → HomV as as
+    idᵛ = idˢ
+
+    _∘ᵛ_ : ∀ {as bs cs} → HomV bs cs → HomV as bs → HomV as cs
+    g ∘ᵛ f = g ∘ˢ f
+
+    _⊗ᵛ_ : ∀ {as bs us vs} → HomV as bs → HomV us vs → HomV (as ++ us) (bs ++ vs)
+    _⊗ᵛ_ {as} {bs} {us} {vs} f g =
+      castˢ (sym (map-++ vlab as us)) (sym (map-++ vlab bs vs)) (f ⊗ˢ g)
+
+    σᵛ : ∀ as bs → HomV (as ++ bs) (bs ++ as)
+    σᵛ as bs =
+      castˢ (sym (map-++ vlab as bs)) (sym (map-++ vlab bs as))
+        (σˢ (m as) (m bs))
+
+    castᵛ : ∀ {as as' bs bs'} → as ≡ as' → bs ≡ bs' → HomV as bs → HomV as' bs'
+    castᵛ = subst₂ HomV
+
+    _≈ᵛ_ : ∀ {as bs} → HomV as bs → HomV as bs → Set
+    f ≈ᵛ g = f ≈ˢ g
+
+    -- the V-level permute already lands in `HomV` on the nose
+    permuteᵛ : ∀ {as bs : List V} → as ↭ bs → HomV as bs
+    permuteᵛ = permuteˢ
+
+    ------------------------------------------------------------------------
+    -- The cast/heterogeneous kit at V level.  `castᵛ` is the `List V`-indexed
+    -- transport; it is a `castˢ` along `cong m`.
+
+    castᵛ-cast
+      : ∀ {as as' bs bs'} (p : as ≡ as') (q : bs ≡ bs') (t : HomV as bs)
+      → castᵛ p q t ≡ castˢ (cong m p) (cong m q) t
+    castᵛ-cast refl refl t = refl
+
+    cast-respᵛ
+      : ∀ {as as' bs bs'} (p : as ≡ as') (q : bs ≡ bs') {f g : HomV as bs}
+      → f ≈ᵛ g → castᵛ p q f ≈ᵛ castᵛ p q g
+    cast-respᵛ refl refl e = e
+
+    cast-idᵛ : ∀ {as as'} (p q : as ≡ as') → castᵛ p q (idᵛ {as}) ≈ᵛ idᵛ {as'}
+    cast-idᵛ p q =
+      ≈-trans (≡⇒≈ˢ (castᵛ-cast p q idᵛ)) (cast-id (cong m p) (cong m q))
+
+    cast-irrelᵛ
+      : ∀ {as as' bs bs'} (p p' : as ≡ as') (q q' : bs ≡ bs') (t : HomV as bs)
+      → castᵛ p q t ≡ castᵛ p' q' t
+    cast-irrelᵛ p p' q q' t =
+      trans (castᵛ-cast p q t)
+        (trans (cast-irrel (cong m p) (cong m p') (cong m q) (cong m q') t)
+               (sym (castᵛ-cast p' q' t)))
+
+    -- the two object-level bridges the axiom proofs need
+    private
+      idˢ-≈̂ : ∀ {d e : List X} (p : d ≡ e) → idˢ {d} ≈̂ idˢ {e}
+      idˢ-≈̂ p = p , p , cast-id p p
+
+    idᵛ-≈̂ : ∀ {as bs : List V} (p : as ≡ bs) → idᵛ {as} ≈̂ idᵛ {bs}
+    idᵛ-≈̂ p = idˢ-≈̂ (cong m p)
+
+    σᵛ-≈̂ : ∀ {as as' bs bs' : List V} (p : as ≡ as') (q : bs ≡ bs')
+         → σᵛ as bs ≈̂ σᵛ as' bs'
+    σᵛ-≈̂ refl refl = ≈̂-refl
+
+    -- `_⊗ᵛ_`/`castᵛ` congruences for `≈̂` chains (the `⊗ᵛ`/`castᵛ` casts peel)
+    ⊗-resp-≈̂ᵛ
+      : ∀ {as bs us vs as' bs' us' vs'}
+          {f : HomV as bs} {f' : HomV as' bs'}
+          {g : HomV us vs} {g' : HomV us' vs'}
+      → f ≈̂ f' → g ≈̂ g' → (f ⊗ᵛ g) ≈̂ (f' ⊗ᵛ g')
+    ⊗-resp-≈̂ᵛ {as} {bs} {us} {vs} {as'} {bs'} {us'} {vs'} ef eg =
+      ≈̂-trans (cast-≈̂ {p = sym (map-++ vlab as us)} {q = sym (map-++ vlab bs vs)})
+      (≈̂-trans (⊗-resp-≈̂ ef eg)
+               (≈̂-sym (cast-≈̂ {p = sym (map-++ vlab as' us')}
+                              {q = sym (map-++ vlab bs' vs')})))
+
+    castᵛ-≈̂
+      : ∀ {as as' bs bs'} (p : as ≡ as') (q : bs ≡ bs') (t : HomV as bs)
+      → castᵛ p q t ≈̂ t
+    castᵛ-≈̂ p q t =
+      ≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (castᵛ-cast p q t)))
+              (cast-≈̂ {p = cong m p} {q = cong m q})
+
+    ------------------------------------------------------------------------
+    -- The presentation, re-proved at V level.  Category and `_≈ᵛ_` structure
+    -- are INHERITED (`idᵛ`/`_∘ᵛ_`/`_≈ᵛ_` are the strict ones); only the
+    -- monoidal/symmetry axioms pay the `map-++` bookkeeping, and they pay it
+    -- here ONCE for the whole decoder cone.
+
+    ⊗-respᵛ
+      : ∀ {as bs us vs} {f f' : HomV as bs} {g g' : HomV us vs}
+      → f ≈ᵛ f' → g ≈ᵛ g' → f ⊗ᵛ g ≈ᵛ f' ⊗ᵛ g'
+    ⊗-respᵛ e e' = cast-resp _ _ (⊗-resp e e')
+
+    ⊗-idᵛ : ∀ {as us} → idᵛ {as} ⊗ᵛ idᵛ {us} ≈ᵛ idᵛ {as ++ us}
+    ⊗-idᵛ = ≈-trans (cast-resp _ _ ⊗-id) (cast-id _ _)
+
+    interchangeᵛ
+      : ∀ {as bs cs us vs ws}
+          {f : HomV bs cs} {g : HomV vs ws} {f' : HomV as bs} {g' : HomV us vs}
+      → (f ⊗ᵛ g) ∘ᵛ (f' ⊗ᵛ g') ≈ᵛ (f ∘ᵛ f') ⊗ᵛ (g ∘ᵛ g')
+    interchangeᵛ {as} {bs} {cs} {us} {vs} {ws} =
+      ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ (cast-≈̂ {p = sym (map-++ vlab bs vs)}
+                                       {q = sym (map-++ vlab cs ws)})
+                               (cast-≈̂ {p = sym (map-++ vlab as us)}
+                                       {q = sym (map-++ vlab bs vs)}))
+            (≈̂-trans (≈ˢ⇒≈̂ interchangeˢ)
+                     (≈̂-sym (cast-≈̂ {p = sym (map-++ vlab as us)}
+                                    {q = sym (map-++ vlab cs ws)}))))
+
+    ⊗-assocᵛ
+      : ∀ {as bs us vs ps qs}
+          (f : HomV as bs) (g : HomV us vs) (h : HomV ps qs)
+      → castᵛ (++-assoc as us ps) (++-assoc bs vs qs) ((f ⊗ᵛ g) ⊗ᵛ h)
+        ≈ᵛ f ⊗ᵛ (g ⊗ᵛ h)
+    ⊗-assocᵛ {as} {bs} {us} {vs} {ps} {qs} f g h =
+      ≈̂⇒≈ˢ
+        (≈̂-trans lhs≈
+        (≈̂-trans (≈̂-trans (≈̂-sym (cast-≈̂ {p = ++-assoc (m as) (m us) (m ps)}
+                                          {q = ++-assoc (m bs) (m vs) (m qs)}))
+                          (≈ˢ⇒≈̂ (⊗-assocˢ f g h)))
+                 (≈̂-sym rhs≈)))
+      where
+        lhs≈ : castᵛ (++-assoc as us ps) (++-assoc bs vs qs) ((f ⊗ᵛ g) ⊗ᵛ h)
+               ≈̂ ((f ⊗ˢ g) ⊗ˢ h)
+        lhs≈ =
+          ≈̂-trans (castᵛ-≈̂ (++-assoc as us ps) (++-assoc bs vs qs)
+                    ((f ⊗ᵛ g) ⊗ᵛ h))
+          (≈̂-trans (cast-≈̂ {p = sym (map-++ vlab (as ++ us) ps)}
+                           {q = sym (map-++ vlab (bs ++ vs) qs)})
+                   (⊗-resp-≈̂ (cast-≈̂ {p = sym (map-++ vlab as us)}
+                                     {q = sym (map-++ vlab bs vs)}) ≈̂-refl))
+
+        rhs≈ : f ⊗ᵛ (g ⊗ᵛ h) ≈̂ (f ⊗ˢ (g ⊗ˢ h))
+        rhs≈ =
+          ≈̂-trans (cast-≈̂ {p = sym (map-++ vlab as (us ++ ps))}
+                          {q = sym (map-++ vlab bs (vs ++ qs))})
+                  (⊗-resp-≈̂ ≈̂-refl
+                     (cast-≈̂ {p = sym (map-++ vlab us ps)}
+                             {q = sym (map-++ vlab vs qs)}))
+
+    ⊗-unitʳᵛ
+      : ∀ {as bs} (f : HomV as bs)
+      → castᵛ (++-identityʳ as) (++-identityʳ bs) (f ⊗ᵛ idᵛ {[]}) ≈ᵛ f
+    ⊗-unitʳᵛ {as} {bs} f =
+      ≈̂⇒≈ˢ
+        (≈̂-trans (castᵛ-≈̂ (++-identityʳ as) (++-identityʳ bs) (f ⊗ᵛ idᵛ {[]}))
+        (≈̂-trans (cast-≈̂ {p = sym (map-++ vlab as [])}
+                         {q = sym (map-++ vlab bs [])})
+                 (≈̂-trans (≈̂-sym (cast-≈̂ {p = ++-identityʳ (m as)}
+                                          {q = ++-identityʳ (m bs)}))
+                          (≈ˢ⇒≈̂ (⊗-unitʳˢ f)))))
+
+    σ-natᵛ
+      : ∀ {as bs us vs} {f : HomV as bs} {g : HomV us vs}
+      → σᵛ bs vs ∘ᵛ (f ⊗ᵛ g) ≈ᵛ (g ⊗ᵛ f) ∘ᵛ σᵛ as us
+    σ-natᵛ {as} {bs} {us} {vs} =
+      ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ (cast-≈̂ {p = sym (map-++ vlab bs vs)}
+                                       {q = sym (map-++ vlab vs bs)})
+                               (cast-≈̂ {p = sym (map-++ vlab as us)}
+                                       {q = sym (map-++ vlab bs vs)}))
+            (≈̂-trans (≈ˢ⇒≈̂ σ-natˢ)
+                     (≈̂-sym (∘-resp-≈̂ (cast-≈̂ {p = sym (map-++ vlab us as)}
+                                              {q = sym (map-++ vlab vs bs)})
+                                      (cast-≈̂ {p = sym (map-++ vlab as us)}
+                                              {q = sym (map-++ vlab us as)})))))
+
+    σ-σᵛ : ∀ {as bs} → σᵛ bs as ∘ᵛ σᵛ as bs ≈ᵛ idᵛ {as ++ bs}
+    σ-σᵛ {as} {bs} =
+      ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ (cast-≈̂ {p = sym (map-++ vlab bs as)}
+                                       {q = sym (map-++ vlab as bs)})
+                               (cast-≈̂ {p = sym (map-++ vlab as bs)}
+                                       {q = sym (map-++ vlab bs as)}))
+            (≈̂-trans (≈ˢ⇒≈̂ σ-σˢ)
+                     (≈̂-sym (idˢ-≈̂ (map-++ vlab as bs)))))
+
+    σ-hexᵛ
+      : ∀ as bs cs
+      → σᵛ (as ++ bs) cs
+        ≈ᵛ castᵛ (sym (++-assoc as bs cs)) (++-assoc cs as bs)
+             ((σᵛ as cs ⊗ᵛ idᵛ {bs})
+               ∘ᵛ castᵛ refl (sym (++-assoc as cs bs)) (idᵛ {as} ⊗ᵛ σᵛ bs cs))
+    σ-hexᵛ as bs cs =
+      ≈̂⇒≈ˢ (≈̂-trans lhs≈ (≈̂-trans (σ-arg-≈̂ (map-++ vlab as bs))
+                          (≈̂-trans hexC (≈̂-sym rhs≈))))
+      where
+        a = m as ; b = m bs ; c = m cs
+
+        Cinner = castˢ refl (sym (++-assoc a c b)) (idˢ {a} ⊗ˢ σˢ b c)
+        C = (σˢ a c ⊗ˢ idˢ {b}) ∘ˢ Cinner
+
+        σ-arg-≈̂ : ∀ {d d' e : List X} (p : d ≡ d') → σˢ d e ≈̂ σˢ d' e
+        σ-arg-≈̂ refl = ≈̂-refl
+
+        lhs≈ : σᵛ (as ++ bs) cs ≈̂ σˢ (m (as ++ bs)) c
+        lhs≈ = cast-≈̂ {p = sym (map-++ vlab (as ++ bs) cs)}
+                      {q = sym (map-++ vlab cs (as ++ bs))}
+
+        hexC : σˢ (a ++ b) c ≈̂ C
+        hexC = ≈̂-trans (≈ˢ⇒≈̂ (σ-hexˢ a b c))
+                       (cast-≈̂ {p = sym (++-assoc a b c)} {q = ++-assoc c a b})
+
+        leftC : (σᵛ as cs ⊗ᵛ idᵛ {bs}) ≈̂ (σˢ a c ⊗ˢ idˢ {b})
+        leftC =
+          ≈̂-trans (cast-≈̂ {p = sym (map-++ vlab (as ++ cs) bs)}
+                          {q = sym (map-++ vlab (cs ++ as) bs)})
+                  (⊗-resp-≈̂ (cast-≈̂ {p = sym (map-++ vlab as cs)}
+                                    {q = sym (map-++ vlab cs as)}) ≈̂-refl)
+
+        rightC : castᵛ refl (sym (++-assoc as cs bs)) (idᵛ {as} ⊗ᵛ σᵛ bs cs)
+                 ≈̂ Cinner
+        rightC =
+          ≈̂-trans
+            (≈̂-trans (castᵛ-≈̂ refl (sym (++-assoc as cs bs)) (idᵛ {as} ⊗ᵛ σᵛ bs cs))
+            (≈̂-trans (cast-≈̂ {p = sym (map-++ vlab as (bs ++ cs))}
+                             {q = sym (map-++ vlab as (cs ++ bs))})
+                     (⊗-resp-≈̂ ≈̂-refl
+                        (cast-≈̂ {p = sym (map-++ vlab bs cs)}
+                                {q = sym (map-++ vlab cs bs)}))))
+            (≈̂-sym (cast-≈̂ {p = refl} {q = sym (++-assoc a c b)}))
+
+        rhs≈ : castᵛ (sym (++-assoc as bs cs)) (++-assoc cs as bs)
+                 ((σᵛ as cs ⊗ᵛ idᵛ {bs})
+                   ∘ᵛ castᵛ refl (sym (++-assoc as cs bs)) (idᵛ {as} ⊗ᵛ σᵛ bs cs))
+               ≈̂ C
+        rhs≈ =
+          ≈̂-trans (castᵛ-≈̂ (sym (++-assoc as bs cs)) (++-assoc cs as bs) _)
+                  (∘-resp-≈̂ leftC rightC)
+
+    σ-unitᵛ
+      : ∀ as → σᵛ [] as ≈ᵛ castᵛ refl (sym (++-identityʳ as)) (idᵛ {as})
+    σ-unitᵛ as =
+      ≈-trans stepA (≡⇒≈ˢ (sym (castᵛ-cast refl (sym (++-identityʳ as)) idᵛ)))
+      where
+        stepA : σᵛ [] as
+                ≈ᵛ castˢ refl (cong m (sym (++-identityʳ as))) (idˢ {m as})
+        stepA =
+          ≈-trans (cast-resp refl (sym (map-++ vlab as [])) (σ-unitˢ (m as)))
+            (≡⇒≈ˢ
+              (trans (cast-fuse refl refl (sym (++-identityʳ (m as)))
+                        (sym (map-++ vlab as [])) (idˢ {m as}))
+                     (cast-irrel refl refl _
+                        (cong m (sym (++-identityʳ as))) (idˢ {m as}))))
+
+    ------------------------------------------------------------------------
+    -- The derived V-level kit the decoder cone actually consumes.  Note that
+    -- `++-assoc (a ∷ []) us vs` and `map-++ vlab (a ∷ as) R` REDUCE, so at the
+    -- singleton/cons frames the decoder produces these are cast-FREE.
+
+    ⊗id-distᵛ
+      : ∀ {as bs cs R : List V} (f : HomV bs cs) (g : HomV as bs)
+      → (f ∘ᵛ g) ⊗ᵛ idᵛ {R} ≈ᵛ (f ⊗ᵛ idᵛ {R}) ∘ᵛ (g ⊗ᵛ idᵛ {R})
+    ⊗id-distᵛ f g = ≈-trans (⊗-respᵛ ≈-refl (≈-sym idˡ)) (≈-sym interchangeᵛ)
+
+    box-suffix-ᵛ
+      : ∀ {as bs} (b : HomV as bs) (rest R : List V)
+      → castᵛ (++-assoc as rest R) (++-assoc bs rest R)
+          ((b ⊗ᵛ idᵛ {rest}) ⊗ᵛ idᵛ {R})
+        ≈ᵛ b ⊗ᵛ idᵛ {rest ++ R}
+    box-suffix-ᵛ b rest R =
+      ≈-trans (⊗-assocᵛ b idᵛ idᵛ) (⊗-respᵛ ≈-refl ⊗-idᵛ)
+
+    -- heterogeneous forms of the two re-bracketings every consumer needs
+    -- (the `castᵛ` is peeled, so no endpoint path is ever named)
+    ⊗-assoc-≈̂ᵛ
+      : ∀ {as bs us vs ps qs}
+          (f : HomV as bs) (g : HomV us vs) (h : HomV ps qs)
+      → ((f ⊗ᵛ g) ⊗ᵛ h) ≈̂ (f ⊗ᵛ (g ⊗ᵛ h))
+    ⊗-assoc-≈̂ᵛ {as} {bs} {us} {vs} {ps} {qs} f g h =
+      ≈̂-trans (≈̂-sym (castᵛ-≈̂ (++-assoc as us ps) (++-assoc bs vs qs)
+                        ((f ⊗ᵛ g) ⊗ᵛ h)))
+              (≈ˢ⇒≈̂ (⊗-assocᵛ f g h))
+
+    box-suffix-≈̂ᵛ
+      : ∀ {as bs} (b : HomV as bs) (rest R : List V)
+      → ((b ⊗ᵛ idᵛ {rest}) ⊗ᵛ idᵛ {R}) ≈̂ (b ⊗ᵛ idᵛ {rest ++ R})
+    box-suffix-≈̂ᵛ {as} {bs} b rest R =
+      ≈̂-trans (≈̂-sym (castᵛ-≈̂ (++-assoc as rest R) (++-assoc bs rest R)
+                        ((b ⊗ᵛ idᵛ {rest}) ⊗ᵛ idᵛ {R})))
+              (≈ˢ⇒≈̂ (box-suffix-ᵛ b rest R))
+
+    box-commute-ᵛ
+      : ∀ {as bs cs ds} (b : HomV as bs) (b' : HomV cs ds)
+      → (b ⊗ᵛ idᵛ {ds}) ∘ᵛ (idᵛ {as} ⊗ᵛ b')
+        ≈ᵛ (idᵛ {bs} ⊗ᵛ b') ∘ᵛ (b ⊗ᵛ idᵛ {cs})
+    box-commute-ᵛ b b' =
+      ≈-trans interchangeᵛ
+        (≈-trans (⊗-respᵛ idʳ idˡ)
+          (≈-sym (≈-trans interchangeᵛ (⊗-respᵛ idˡ idʳ))))
+
+    -- the residual frame, CAST-FREE at V level (contrast `permuteˢ-frame`)
+    permuteᵛ-frame
+      : ∀ {as bs : List V} (R : List V) (p : as ↭ bs)
+      → permuteᵛ (++⁺ʳ R p) ≈ᵛ permuteᵛ p ⊗ᵛ idᵛ {R}
+    permuteᵛ-frame {as} {bs} R p =
+      cast-flip (map-++ vlab as R) (map-++ vlab bs R) (permuteˢ-frame R p)
+
 --------------------------------------------------------------------------------
 -- The homomorphism along a generator translation `J : mor₁ ⇒ mor₂`
 -- (identity on objects).  `castˢ` commutes with it on the nose, so every

@@ -52,7 +52,8 @@ open import Data.List using (List; _++_; map)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Data.List.Properties using (map-++)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym)
 
 --------------------------------------------------------------------------------
 
@@ -127,7 +128,12 @@ module Kit (H : Hypergraph FlatGen)
   ⟦bswap⟧
     : ∀ (L R Rl : List (Fin H.nV))
     → permuteˢ (PermProp.++⁺ʳ Rl (bswap L R)) ≈̂ σˢ (m L) (m R) ⊗ˢ idˢ {m Rl}
-  ⟦bswap⟧ L R Rl = ≈̂-trans (≈ˢ⇒≈̂ (swap-block′ L R Rl)) cast-≈̂
+  ⟦bswap⟧ L R Rl =
+    ≈̂-trans (≈ˢ⇒≈̂ (swap-block′ L R Rl))
+            (≈̂-trans (cast-≈̂ {p = sym (map-++ vl (L ++ R) Rl)}
+                             {q = sym (map-++ vl (R ++ L) Rl)})
+                     (⊗-resp-≈̂ (cast-≈̂ {p = sym (map-++ vl L R)}
+                                       {q = sym (map-++ vl R L)}) ≈̂-refl))
 
   ------------------------------------------------------------------------
   -- rigid-≈̂ : the RIGIDITY discharge — any two derivations into a `Unique`
