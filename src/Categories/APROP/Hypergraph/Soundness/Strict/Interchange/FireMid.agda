@@ -291,7 +291,7 @@ module _ (H : Hypergraph FlatGen)
 
   -- SwapCore brick aliases.
   fire-termˢ′  = fire-termˢ H
-  perm-frameˡ′ = permuteˢ-frameˡ H
+  perm-frameˡ′ = permuteˢ-frameˡ
 
   -- The thin wiring-groupoid calculus (F11): ⟦absorbˡ⟧/⟦absorbʳ⟧/⟦frameˡ⟧/
   -- ⟦bswap⟧ + rigid-≈̂.

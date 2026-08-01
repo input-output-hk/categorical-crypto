@@ -349,7 +349,7 @@ module Build
   module Perm′ (V : Set) (vlab : V → X) where
 
     open import Data.List.Relation.Binary.Permutation.Propositional.Properties
-      using (++⁺ʳ)
+      using (++⁺ʳ; ++⁺ˡ)
 
     permuteˢ : ∀ {xs ys : List V} → xs ↭ ys → HomS (map vlab xs) (map vlab ys)
     permuteˢ Perm.refl         = idˢ
@@ -391,6 +391,29 @@ module Build
         (≈-trans (∘-resp (permuteˢ-frame R q) (permuteˢ-frame R p))
                  (≈-trans interchangeˢ (⊗-resp ≈-refl idˡ)))
 
+    -- the stdlib LEFT residual frame `++⁺ˡ L` factors through `idˢ ⊗ˢ_`
+    -- (`permuteˢ-frame`'s mirror; cons clauses of `map-++`/`++-assoc` reduce,
+    -- so only the `map-++ vlab L _` boundary cast is paid)
+    permuteˢ-frameˡ
+      : ∀ (L : List V) {xs ys : List V} (p : xs ↭ ys)
+      → castˢ (map-++ vlab L xs) (map-++ vlab L ys) (permuteˢ (++⁺ˡ L p))
+        ≈ˢ idˢ {map vlab L} ⊗ˢ permuteˢ p
+    permuteˢ-frameˡ []       {xs} {ys} p =
+      ≈-trans (≡⇒≈ˢ (cast-irrel (map-++ vlab [] xs) refl
+                                (map-++ vlab [] ys) refl (permuteˢ p)))
+              (≈-sym (⊗-unitˡˢ (permuteˢ p)))
+    permuteˢ-frameˡ (l ∷ L) {xs} {ys} p =
+      ≈-trans
+        (cast-⊗-frame (idˢ {vlab l ∷ []})
+          (map-++ vlab L xs) (map-++ vlab L ys) (permuteˢ (++⁺ˡ L p))
+          (map-++ vlab (l ∷ L) xs) (map-++ vlab (l ∷ L) ys))
+        (≈-trans (⊗-resp (≈-refl {f = idˢ {vlab l ∷ []}}) (permuteˢ-frameˡ L p))
+          (≈-trans (≈-sym (⊗-assocˢ (idˢ {vlab l ∷ []}) (idˢ {map vlab L})
+                                    (permuteˢ p)))
+            (cast-resp (++-assoc (vlab l ∷ []) (map vlab L) _)
+                       (++-assoc (vlab l ∷ []) (map vlab L) _)
+                       (⊗-resp ⊗-id ≈-refl))))
+
   ------------------------------------------------------------------------
   -- RESTRICTION along `map vlab` (F7).
   --
@@ -409,10 +432,10 @@ module Build
 
   module Restrict (V : Set) (vlab : V → X) where
 
-    open Perm′ V vlab using (permuteˢ; permuteˢ-frame)
+    open Perm′ V vlab using (permuteˢ; permuteˢ-frame; permuteˢ-frameˡ)
 
     open import Data.List.Relation.Binary.Permutation.Propositional.Properties
-      using (++⁺ʳ)
+      using (++⁺ʳ; ++⁺ˡ)
 
     private
       m : List V → List X
@@ -712,6 +735,13 @@ module Build
       → permuteᵛ (++⁺ʳ R p) ≈ᵛ permuteᵛ p ⊗ᵛ idᵛ {R}
     permuteᵛ-frame {as} {bs} R p =
       cast-flip (map-++ vlab as R) (map-++ vlab bs R) (permuteˢ-frame R p)
+
+    -- its LEFT mirror
+    permuteᵛ-frameˡ
+      : ∀ (L : List V) {as bs : List V} (p : as ↭ bs)
+      → permuteᵛ (++⁺ˡ L p) ≈ᵛ idᵛ {L} ⊗ᵛ permuteᵛ p
+    permuteᵛ-frameˡ L {as} {bs} p =
+      cast-flip (map-++ vlab L as) (map-++ vlab L bs) (permuteˢ-frameˡ L p)
 
 --------------------------------------------------------------------------------
 -- The homomorphism along a generator translation `J : mor₁ ⇒ mor₂`

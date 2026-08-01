@@ -462,7 +462,6 @@ module _
       ------------------------------------------------------------------
       -- ### The two sub-final-permutes, relabelled to the C-level.
 
-      open EquivStep ⟪ fg ⟫ using (permuteˢ-frameˡ)
 
       -- the injL-/injR-lifted sub-final permutes, on `Fin Hf.nV`.
       pL : (map injL s_G_final) Perm.↭ (map injL Gd.cod)
@@ -601,7 +600,7 @@ module _
             : RF.permuteˢ (PermProp.++⁺ˡ (map injL Gd.cod) pR)
               ≈ˢ castˢ (sym mLcod) (sym mLcc)
                   (idˢ {map vl (map injL Gd.cod)} ⊗ˢ RF.permuteˢ pR)
-          lframe = cast-flip mLcod mLcc (permuteˢ-frameˡ (map injL Gd.cod) pR)
+          lframe = cast-flip mLcod mLcc (RF.permuteˢ-frameˡ (map injL Gd.cod) pR)
 
       ------------------------------------------------------------------
       -- ### `Gc ⊗ Kc` decomposition 1: to the sub-decoder cores.
