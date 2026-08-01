@@ -349,7 +349,7 @@ module Build
   module Perm′ (V : Set) (vlab : V → X) where
 
     open import Data.List.Relation.Binary.Permutation.Propositional.Properties
-      using (++⁺ʳ; ++⁺ˡ)
+      using (++⁺ʳ; ++⁺ˡ; ↭-sym-involutive)
 
     permuteˢ : ∀ {xs ys : List V} → xs ↭ ys → HomS (map vlab xs) (map vlab ys)
     permuteˢ Perm.refl         = idˢ
@@ -413,6 +413,34 @@ module Build
             (cast-resp (++-assoc (vlab l ∷ []) (map vlab L) _)
                        (++-assoc (vlab l ∷ []) (map vlab L) _)
                        (⊗-resp ⊗-id ≈-refl))))
+
+    -- `permuteˢ` of an inverse derivation is the categorical inverse.
+    -- K-FREE: structural on the derivation, so the `Support.PermK` residual is
+    -- NOT involved (contrast the `eval-↭`/`FinBij` self-loop route).
+    permuteˢ-inv-left
+      : ∀ {xs ys : List V} (p : xs ↭ ys)
+      → permuteˢ (Perm.↭-sym p) ∘ˢ permuteˢ p ≈ˢ idˢ {map vlab xs}
+    permuteˢ-inv-left Perm.refl         = idˡ
+    permuteˢ-inv-left (Perm.prep x p)   =
+      ≈-trans interchangeˢ
+        (≈-trans (⊗-resp idˡ (permuteˢ-inv-left p)) ⊗-id)
+    permuteˢ-inv-left (Perm.swap x y p) =
+      ≈-trans interchangeˢ
+        (≈-trans (⊗-resp σ-σˢ (permuteˢ-inv-left p)) ⊗-id)
+    permuteˢ-inv-left (Perm.trans p q)  =
+      ≈-trans assocˢ
+        (≈-trans (∘-resp ≈-refl (≈-sym assocˢ))
+          (≈-trans (∘-resp ≈-refl (∘-resp (permuteˢ-inv-left q) ≈-refl))
+            (≈-trans (∘-resp ≈-refl idˡ) (permuteˢ-inv-left p))))
+
+    -- the mirror, via stdlib `↭-sym-involutive` rather than a second induction
+    permuteˢ-inv-right
+      : ∀ {xs ys : List V} (p : xs ↭ ys)
+      → permuteˢ p ∘ˢ permuteˢ (Perm.↭-sym p) ≈ˢ idˢ {map vlab ys}
+    permuteˢ-inv-right p =
+      ≈-trans
+        (∘-resp (≈-sym (≡⇒≈ˢ (cong permuteˢ (↭-sym-involutive p)))) ≈-refl)
+        (permuteˢ-inv-left (Perm.↭-sym p))
 
   ------------------------------------------------------------------------
   -- RESTRICTION along `map vlab` (F7).

@@ -129,35 +129,3 @@ module _ (H : Hypergraph FlatGen) where
                 (≈-trans assocˢ
                   (≈-trans (∘-resp ≈-refl σ-σˢ) idʳ))))
 
-    ----------------------------------------------------------------
-    -- `permuteˢ` of an inverse derivation is the categorical inverse
-    -- (K-FREE, structural on the derivation).  §4's `permuteˢ-inv`.
-    ----------------------------------------------------------------
-
-    permuteˢ-inv-left
-      : ∀ {xs ys : List (Fin H.nV)} (p : xs Perm.↭ ys)
-      → permuteˢ (Perm.↭-sym p) ∘ˢ permuteˢ p ≈ˢ idˢ {map vl xs}
-    permuteˢ-inv-left Perm.refl         = idˡ
-    permuteˢ-inv-left (Perm.prep x p)   =
-      ≈-trans interchangeˢ
-        (≈-trans (⊗-resp idˡ (permuteˢ-inv-left p)) ⊗-id)
-    permuteˢ-inv-left (Perm.swap x y p) =
-      ≈-trans interchangeˢ
-        (≈-trans (⊗-resp σ-σˢ (permuteˢ-inv-left p)) ⊗-id)
-    permuteˢ-inv-left (Perm.trans p q)  =
-      ≈-trans assocˢ
-        (≈-trans (∘-resp ≈-refl (≈-sym assocˢ))
-          (≈-trans (∘-resp ≈-refl (∘-resp (permuteˢ-inv-left q) ≈-refl))
-            (≈-trans (∘-resp ≈-refl idˡ) (permuteˢ-inv-left p))))
-
-    -- the mirror of `permuteˢ-inv-left`, derived from it (rather than
-    -- re-derived by structural induction on `p`) via stdlib's
-    -- `↭-sym-involutive : ↭-sym (↭-sym p) ≡ p`.
-    permuteˢ-inv-right
-      : ∀ {xs ys : List (Fin H.nV)} (p : xs Perm.↭ ys)
-      → permuteˢ p ∘ˢ permuteˢ (Perm.↭-sym p) ≈ˢ idˢ {map vl ys}
-    permuteˢ-inv-right p =
-      ≈-trans
-        (∘-resp (≈-sym (≡⇒≈ˢ (cong permuteˢ (PermProp.↭-sym-involutive p)))) ≈-refl)
-        (permuteˢ-inv-left (Perm.↭-sym p))
-

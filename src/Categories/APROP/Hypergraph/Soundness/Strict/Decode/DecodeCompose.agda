@@ -643,55 +643,21 @@ module Equivariantˢ (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
   open Run H public
 
-  private
-    _≟V_ : DecidableEquality (Fin H.nV)
-    _≟V_ = _≟F_
-
-    permˢ-K-H : Support.PermK (Fin H.nV) H.vlab
-    permˢ-K-H = PK.permˢ-K (Fin H.nV) _≟V_ H.vlab
-
   -- `permuteˢ (trans p q) = permuteˢ q ∘ˢ permuteˢ p` (definitional).
   pvv-transˢ
     : ∀ {xs ys zs : List (Fin H.nV)} (p : xs Perm.↭ ys) (q : ys Perm.↭ zs)
     → permuteˢ (Perm.trans p q) ≈ˢ permuteˢ q ∘ˢ permuteˢ p
   pvv-transˢ p q = ≈-refl
 
-  -- self-loop `trans ρ (↭-sym ρ)` evaluates to the identity bijection.
-  -- (Stated on the BARE `Fin H.nV` derivation, as `Support`'s `PermK`
-  -- evaluates the vertex-level derivation directly.)
-  private
-    self-loop-evˡ
-      : ∀ {xs ys : List (Fin H.nV)} (ρ : xs Perm.↭ ys)
-      → eval-↭ (Perm.trans ρ (Perm.↭-sym ρ)) ≈-fb eval-↭ (Perm.refl {xs = xs})
-    self-loop-evˡ {xs} {ys} ρ i =
-      trans (sym-eval (e P.⟨$⟩ʳ i)) (P.inverseˡ e)
-      where
-        e = eval-↭ ρ
-        sym-eval : eval-↭ (Perm.↭-sym ρ) ≈-fb inv-fb e
-        sym-eval = eval-↭-sym ρ
-
-    self-loop-evʳ
-      : ∀ {xs ys : List (Fin H.nV)} (ρ : xs Perm.↭ ys)
-      → eval-↭ (Perm.trans (Perm.↭-sym ρ) ρ) ≈-fb eval-↭ (Perm.refl {xs = ys})
-    self-loop-evʳ {xs} {ys} ρ i =
-      trans (cong (e P.⟨$⟩ʳ_) (sym-eval i)) (P.inverseʳ e)
-      where
-        e = eval-↭ ρ
-        sym-eval : eval-↭ (Perm.↭-sym ρ) ≈-fb inv-fb e
-        sym-eval = eval-↭-sym ρ
-
-  -- `permuteˢ (↭-sym ρ) ∘ˢ permuteˢ ρ ≈ idˢ`.
+  -- The two inverse laws are K-FREE (`Perm′.permuteˢ-inv-left/right`,
+  -- structural on the derivation); re-exported here under the names the
+  -- interchange/tensor cone consumes.
   pvv-inverse-leftˢ
     : ∀ {xs ys : List (Fin H.nV)} (ρ : xs Perm.↭ ys)
     → permuteˢ (Perm.↭-sym ρ) ∘ˢ permuteˢ ρ ≈ˢ idˢ
-  pvv-inverse-leftˢ {xs} {ys} ρ =
-    ≈-trans (≈-sym (pvv-transˢ ρ (Perm.↭-sym ρ)))
-            (permˢ-K-H (Perm.trans ρ (Perm.↭-sym ρ)) Perm.refl (self-loop-evˡ ρ))
+  pvv-inverse-leftˢ = permuteˢ-inv-left
 
-  -- `permuteˢ ρ ∘ˢ permuteˢ (↭-sym ρ) ≈ idˢ`.
   pvv-inverse-rightˢ
     : ∀ {xs ys : List (Fin H.nV)} (ρ : xs Perm.↭ ys)
     → permuteˢ ρ ∘ˢ permuteˢ (Perm.↭-sym ρ) ≈ˢ idˢ
-  pvv-inverse-rightˢ {xs} {ys} ρ =
-    ≈-trans (≈-sym (pvv-transˢ (Perm.↭-sym ρ) ρ))
-            (permˢ-K-H (Perm.trans (Perm.↭-sym ρ) ρ) Perm.refl (self-loop-evʳ ρ))
+  pvv-inverse-rightˢ = permuteˢ-inv-right

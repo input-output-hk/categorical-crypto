@@ -78,7 +78,7 @@ module FMS (H : Hypergraph FlatGen) where
 
   -- SwapCore brick aliases.
   box-crossˢ′  = box-crossˢ H permˢ-K
-  perm-invˡ′   = permuteˢ-inv-left H permˢ-K
+  perm-invˡ′   = permuteˢ-inv-left
 
   ------------------------------------------------------------------------
   -- THE ABSTRACT LOCATED-INTERCHANGE CORE (the genuine N-content).
