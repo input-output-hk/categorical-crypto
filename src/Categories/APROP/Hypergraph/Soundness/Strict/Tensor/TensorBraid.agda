@@ -175,7 +175,11 @@ module _
       range≡ = range-++ Gd.nE Kd.nE
 
       open DC.RunBlocks ⟪ fg ⟫ using (coeCod; run-split-atˢ; pe-stack-++ˢ)
-      open StrictDecoder ⟪ fg ⟫ using (block-disjoint; ein-disjoint; stack-sepˢ)
+      open StrictDecoder ⟪ fg ⟫
+        using (block-disjoint; ein-disjoint; stack-sepˢ; term-sepᵛ)
+      open Restrict (Fin Hf.nV) vl
+        using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ; cast-flipᵛ
+              ; ⊗-respᵛ; interchangeᵛ )
 
       open import Data.Fin using (splitAt)
       open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
@@ -224,9 +228,9 @@ module _
 
       ------------------------------------------------------------------
       -- ## The G-block FRAME (the G-side core, via the proven RIGHT-frame
-      -- `term-sepˢ`).  `Hf.dom = map injL Gd.dom ++ map injR Kd.dom`
-      -- definitionally, so the G-block run factors as `(G-run on injL
-      -- Gd.dom) ⊗ˢ idˢ {map vl (map injR Kd.dom)}`.
+      -- `term-sepᵛ`).  `Hf.dom = Lpre ++ Rsuf` definitionally, so the G-block
+      -- run factors as `Gon ⊗ᵛ idᵛ {Rsuf}` over the `List (Fin Hf.nV)` stack
+      -- equality `sep`; no `map-++` endpoint is ever named.
 
       Rsuf : List (Fin Hf.nV)
       Rsuf = map injR Kd.dom
@@ -235,28 +239,19 @@ module _
       Lpre = map injL Gd.dom
 
       -- the G-block run on the pure-`injL` prefix.
-      Gon : HomS (map vl Lpre) (map vl (proj₁ (process-edgesˢ gblk Lpre)))
+      Gon : HomV Lpre (proj₁ (process-edgesˢ gblk Lpre))
       Gon = proj₂ (process-edgesˢ gblk Lpre)
 
-      -- stack equality for the frame (`stack-sepˢ` + `map-++`).
-      stkQ : map vl (proj₁ (process-edgesˢ gblk (Lpre ++ Rsuf)))
-             ≡ map vl (proj₁ (process-edgesˢ gblk Lpre)) ++ map vl Rsuf
-      stkQ = trans (cong (map vl) (stack-sepˢ gblk Lpre Rsuf g-disjoint))
-                   (map-++ vl (proj₁ (process-edgesˢ gblk Lpre)) Rsuf)
-
-      -- the framed factoring (PROVEN via `G-block-frameˢ` ⇐ `term-sepˢ`).
-      gframe-cast
-        : castˢ (map-++ vl Lpre Rsuf) stkQ
-            (proj₂ (process-edgesˢ gblk (Lpre ++ Rsuf)))
-          ≈ˢ Gon ⊗ˢ idˢ {map vl Rsuf}
-      gframe-cast = DT.GBlock.G-block-frameˢ permˢ-K f g Rsuf g-disjoint stkQ
+      -- `aG ≡ sG ++ Rsuf` (definitional `Hf.dom = Lpre ++ Rsuf` + `stack-sepˢ`).
+      sep : proj₁ (process-edgesˢ gblk Hf.dom)
+            ≡ proj₁ (process-edgesˢ gblk Lpre) ++ Rsuf
+      sep = stack-sepˢ gblk Lpre Rsuf g-disjoint
 
       -- the G-block run as a (back-)cast of the framed form.
       gframe
         : proj₂ (process-edgesˢ gblk Hf.dom)
-          ≈ˢ castˢ (sym (map-++ vl Lpre Rsuf)) (sym stkQ)
-              (Gon ⊗ˢ idˢ {map vl Rsuf})
-      gframe = cast-flip (map-++ vl Lpre Rsuf) stkQ gframe-cast
+          ≈ᵛ castᵛ refl (sym sep) (Gon ⊗ᵛ idᵛ {Rsuf})
+      gframe = cast-flipᵛ refl sep (term-sepᵛ gblk Lpre Rsuf g-disjoint sep)
 
       ------------------------------------------------------------------
       -- ## The G-block relabel bridge (via the proven `TG` embedding).
@@ -298,8 +293,8 @@ module _
     -- the final collapse.  Cast-FREE at the boundary objects.
     -- the K-block run on the post-G stack.
     private
-      Krun : HomS (map vl (proj₁ (process-edgesˢ gblk Hf.dom)))
-                  (map vl (proj₁ (process-edgesˢ kblk (proj₁ (process-edgesˢ gblk Hf.dom)))))
+      Krun : HomV (proj₁ (process-edgesˢ gblk Hf.dom))
+                  (proj₁ (process-edgesˢ kblk (proj₁ (process-edgesˢ gblk Hf.dom))))
       Krun = proj₂ (process-edgesˢ kblk (proj₁ (process-edgesˢ gblk Hf.dom)))
 
       stkSplit₀ : proj₁ (process-edgesˢ kblk (proj₁ (process-edgesˢ gblk Hf.dom)))
@@ -313,8 +308,7 @@ module _
       Σ[ cand ∈ RF.s-finˢ ↭ Hf.cod ]
         ( RF.permuteˢ cand
             ∘ˢ coeCod stkSplit₀
-                 (Krun ∘ˢ castˢ (sym (map-++ vl Lpre Rsuf)) (sym stkQ)
-                                (Gon ⊗ˢ idˢ {map vl Rsuf}))
+                 (Krun ∘ᵛ castᵛ refl (sym sep) (Gon ⊗ᵛ idᵛ {Rsuf}))
           ≈ˢ castˢ (sym (⟪⟫-domL fg)) (sym (⟪⟫-codL fg))
               (decodePˢ f ⊗ˢ decodePˢ g) )
 
@@ -340,8 +334,7 @@ module _
         split-eq
           : proj₂ (Run.runˢ ⟪ fg ⟫)
             ≈ˢ coeCod stkSplit₀
-                 (Krun ∘ˢ castˢ (sym (map-++ vl Lpre Rsuf)) (sym stkQ)
-                                (Gon ⊗ˢ idˢ {map vl Rsuf}))
+                 (Krun ∘ᵛ castᵛ refl (sym sep) (Gon ⊗ᵛ idᵛ {Rsuf}))
         split-eq =
           ≈-trans (run-split-atˢ gblk kblk range≡ Hf.dom)
                   (cast-resp refl (cong (map vl) stkSplit₀)
@@ -387,20 +380,16 @@ module _
         aG : List (Fin Hf.nV)
         aG = proj₁ (process-edgesˢ gblk Hf.dom)
 
-        -- `aG ≡ sG ++ Rsuf` (definitional `Hf.dom = Lpre ++ Rsuf` + `stack-sepˢ`).
-        sep : aG ≡ sG ++ Rsuf
-        sep = stack-sepˢ gblk Lpre Rsuf g-disjoint
-
         -- the canonical clean K-run on `Rsuf`.
         Kfin : List (Fin Hf.nV)
         Kfin = proj₁ (process-edgesˢ kblk Rsuf)
 
-        Kclean : HomS (map vl Rsuf) (map vl Kfin)
+        Kclean : HomV Rsuf Kfin
         Kclean = proj₂ (process-edgesˢ kblk Rsuf)
 
         -- the clean K-block frame `idˢ {m sG} ⊗ Kclean`, `map-++`-cast-framed
         -- (DEFINITIONALLY `TKB4.KCleanˢ ⟪fg⟫ permˢ-K-fg kblk sG Rsuf`).
-        KCln : HomS (map vl (sG ++ Rsuf)) (map vl (sG ++ Kfin))
+        KCln : HomV (sG ++ Rsuf) (sG ++ Kfin)
         KCln = TKB4.KCleanˢ ⟪ fg ⟫ permˢ-K-fg kblk sG Rsuf
 
       -- PUBLIC re-exports (so the new file `TensorKBlockFinal` can state the
@@ -491,7 +480,7 @@ module _
       φKsf  = Embeds.TK.vlab-φ G K s_K_final
 
       -- G-side `sG≡`-corrected G-run, and the C-level G-part `permuteˢ pL ∘ Gon'`.
-      Gon' : HomS (map vl (map injL Gd.dom)) (map vl (map injL s_G_final))
+      Gon' : HomV (map injL Gd.dom) (map injL s_G_final)
       Gon' = castˢ refl (cong (map vl) sG≡) Gon
 
       Gc : HomS (map vl (map injL Gd.dom)) (map vl (map injL Gd.cod))
@@ -528,7 +517,7 @@ module _
                      Gbridge)
 
       -- K-side `Kfin≡`-corrected clean K-run, and the C-level K-part.
-      Kclean' : HomS (map vl (map injR Kd.dom)) (map vl (map injR s_K_final))
+      Kclean' : HomV (map injR Kd.dom) (map injR s_K_final)
       Kclean' = castˢ refl (cong (map vl) Kfin≡) Kclean
 
       Kc : HomS (map vl (map injR Kd.dom)) (map vl (map injR Kd.cod))
@@ -673,53 +662,31 @@ module _
       -- ### The G-framed factor (matching `KBlockσ`'s body), and the inner
       -- interchange `KCln ∘ (permuteˢ pf₀ ∘ G-framed) ≈ castₓ (Gon' ⊗ Kclean')`.
 
-      G-framed : HomS (map vl Hf.dom) (map vl aG)
-      G-framed = castˢ (sym (map-++ vl Lpre Rsuf)) (sym stkQ) (Gon ⊗ˢ idˢ {map vl Rsuf})
+      G-framed : HomV Hf.dom aG
+      G-framed = castᵛ refl (sym sep) (Gon ⊗ᵛ idᵛ {Rsuf})
 
       pf₀ : aG Perm.↭ sG ++ Rsuf
       pf₀ = Perm.↭-reflexive sep
 
       private
         -- A clean generic interchange, matched on the `sep` stack equality so
-        -- the `permuteˢ pf₀` collapses to `idˢ`; leaves the bare interchange
-        -- `(idˢ ⊗ Kclean) ∘ (Gon ⊗ idˢ) ≈ Gon ⊗ Kclean`.
+        -- the `permuteᵛ pf₀` collapses to `idᵛ` and the `castᵛ` vanishes;
+        -- leaves the bare `interchangeᵛ`.
         inner-gen
           : ∀ {sGx Kfinx aGx : List (Fin Hf.nV)}
-              (Gonx : HomS (map vl Lpre) (map vl sGx))
-              (Kcleanx : HomS (map vl Rsuf) (map vl Kfinx))
+              (Gonx : HomV Lpre sGx) (Kcleanx : HomV Rsuf Kfinx)
               (sepe : aGx ≡ sGx ++ Rsuf)
-              (stkQe : map vl aGx ≡ map vl sGx ++ map vl Rsuf)
-          → castˢ (sym (map-++ vl sGx Rsuf)) (sym (map-++ vl sGx Kfinx))
-                  (idˢ {map vl sGx} ⊗ˢ Kcleanx)
-              ∘ˢ (RF.permuteˢ (Perm.↭-reflexive sepe)
-                    ∘ˢ castˢ (sym (map-++ vl Lpre Rsuf)) (sym stkQe)
-                             (Gonx ⊗ˢ idˢ {map vl Rsuf}))
-            ≈ˢ castˢ (sym (map-++ vl Lpre Rsuf))
-                     (sym (map-++ vl sGx Kfinx))
-                (Gonx ⊗ˢ Kcleanx)
-        inner-gen {sGx} {Kfinx} Gonx Kcleanx refl stkQe =
-          -- aGx = sGx ++ Rsuf; permuteˢ (↭-reflexive refl) = idˢ (definitional).
-          ≈-trans (∘-resp ≈-refl
-                    (≈-trans (idˡ {f = castˢ (sym (map-++ vl Lpre Rsuf)) (sym stkQe)
-                                           (Gonx ⊗ˢ idˢ {map vl Rsuf})})
-                      (≡⇒≈ˢ (cast-irrel (sym (map-++ vl Lpre Rsuf))
-                               (sym (map-++ vl Lpre Rsuf))
-                               (sym stkQe) (sym (map-++ vl sGx Rsuf))
-                               (Gonx ⊗ˢ idˢ {map vl Rsuf})))))
-          (≈-trans (≈-sym (∘-cast-split (sym (map-++ vl Lpre Rsuf))
-                            (sym (map-++ vl sGx Rsuf)) (sym (map-++ vl sGx Kfinx))
-                            (idˢ {map vl sGx} ⊗ˢ Kcleanx)
-                            (Gonx ⊗ˢ idˢ {map vl Rsuf})))
-            (cast-resp (sym (map-++ vl Lpre Rsuf)) (sym (map-++ vl sGx Kfinx))
-              (≈-trans interchangeˢ (⊗-resp idˡ idʳ))))
+          → (idᵛ {sGx} ⊗ᵛ Kcleanx)
+              ∘ᵛ (permuteᵛ (Perm.↭-reflexive sepe)
+                    ∘ᵛ castᵛ refl (sym sepe) (Gonx ⊗ᵛ idᵛ {Rsuf}))
+            ≈ᵛ Gonx ⊗ᵛ Kcleanx
+        inner-gen Gonx Kcleanx refl =
+          ≈-trans (∘-resp ≈-refl idˡ)
+                  (≈-trans interchangeᵛ (⊗-respᵛ idˡ idʳ))
 
-      -- the inner interchange, producing the C-level `Gon ⊗ Kclean`.
-      inner-frame
-        : KCln ∘ˢ (RF.permuteˢ pf₀ ∘ˢ G-framed)
-          ≈ˢ castˢ (sym (map-++ vl Lpre Rsuf))
-                   (sym (map-++ vl sG Kfin))
-              (Gon ⊗ˢ Kclean)
-      inner-frame = inner-gen Gon Kclean sep stkQ
+      -- the inner interchange, producing the C-level `Gon ⊗ᵛ Kclean`.
+      inner-frame : KCln ∘ᵛ (permuteᵛ pf₀ ∘ᵛ G-framed) ≈ᵛ Gon ⊗ᵛ Kclean
+      inner-frame = inner-gen Gon Kclean sep
 
       ------------------------------------------------------------------
       -- ### `permuteˢ comb` frame: to `castˢ … (permuteˢ pL ⊗ permuteˢ pR)`.
@@ -764,27 +731,22 @@ module _
             ≈ˢ RF.permuteˢ (subst (Perm._↭ ys) (sym eq) perm) ∘ˢ T
         absorbˢ refl perm T = ≈-refl
 
-        -- `Gon ⊗ Kclean ≈ castₚ (Gon' ⊗ Kclean')` (push sG≡/Kfin≡ casts in).
-        -- Proved by a clean helper matched on `sG≡`/`Kfin≡` (so `Gon'`/`Kclean'`
-        -- collapse to `Gon`/`Kclean`, and the codomain cast becomes refl).
-        private
-          GK-gen
-            : ∀ {sGx Kfinx : List (Fin Hf.nV)}
-                (Gonx : HomS (map vl Lpre) (map vl sGx))
-                (Kcleanx : HomS (map vl Rsuf) (map vl Kfinx))
-                (sGe : sGx ≡ map injL s_G_final)
-                (Kfe : Kfinx ≡ map injR s_K_final)
-            → Gonx ⊗ˢ Kcleanx
-              ≈ˢ castˢ refl (sym (cong₂ _++_ (cong (map vl) sGe) (cong (map vl) Kfe)))
-                  (castˢ refl (cong (map vl) sGe) Gonx
-                    ⊗ˢ castˢ refl (cong (map vl) Kfe) Kcleanx)
-          GK-gen Gonx Kcleanx refl refl = ≈-refl
-
-        GK→primed
-          : Gon ⊗ˢ Kclean
-            ≈ˢ castˢ refl (sym (cong₂ _++_ (cong (map vl) sG≡) (cong (map vl) Kfin≡)))
-                (Gon' ⊗ˢ Kclean')
-        GK→primed = GK-gen Gon Kclean sG≡ Kfin≡
+        -- `Gon ⊗ᵛ Kclean ≈ castₚ (Gon' ⊗ˢ Kclean')` (push the `sG≡`/`Kfin≡`
+        -- casts in), matched on `sG≡`/`Kfin≡` so `Gon'`/`Kclean'` collapse to
+        -- `Gon`/`Kclean` and the two `⊗ᵛ` casts differ only by UIP.
+        GK-gen
+          : ∀ {sGx Kfinx : List (Fin Hf.nV)}
+              (Gonx : HomV Lpre sGx) (Kcleanx : HomV Rsuf Kfinx)
+              (sGe : sGx ≡ map injL s_G_final) (Kfe : Kfinx ≡ map injR s_K_final)
+              (Q : map vl (map injL s_G_final) ++ map vl (map injR s_K_final)
+                   ≡ map vl (sGx ++ Kfinx))
+          → Gonx ⊗ᵛ Kcleanx
+            ≈ᵛ castˢ (sym (map-++ vl Lpre Rsuf)) Q
+                (castˢ refl (cong (map vl) sGe) Gonx
+                  ⊗ˢ castˢ refl (cong (map vl) Kfe) Kcleanx)
+        GK-gen {sGx} {Kfinx} Gonx Kcleanx refl refl Q =
+          ≡⇒≈ˢ (cast-irrel (sym (map-++ vl Lpre Rsuf)) (sym (map-++ vl Lpre Rsuf))
+                  (sym (map-++ vl sGx Kfinx)) Q (Gonx ⊗ˢ Kcleanx))
 
       ----------------------------------------------------------------
       -- ## THE (e)-RECONCILE: `KBlockσ` from the K-block factorization.
@@ -806,12 +768,12 @@ module _
           cand : RF.s-finˢ Perm.↭ Hf.cod
           cand = subst (Perm._↭ Hf.cod) stkSplit₀ (Perm.trans (Perm.↭-sym Br) comb)
 
-          -- the inner W = castˢ … (Gon ⊗ Kclean) (from `inner-frame`).
-          W : HomS (map vl Hf.dom) (map vl (sG ++ Kfin))
-          W = castˢ (sym (map-++ vl Lpre Rsuf)) (sym (map-++ vl sG Kfin)) (Gon ⊗ˢ Kclean)
+          -- the inner W = `Gon ⊗ᵛ Kclean` (from `inner-frame`).
+          W : HomV Hf.dom (sG ++ Kfin)
+          W = Gon ⊗ᵛ Kclean
 
           -- Step A: `Krun ∘ G-framed ≈ permuteˢ Br ∘ W`.
-          stepA : Krun ∘ˢ G-framed ≈ˢ RF.permuteˢ Br ∘ˢ W
+          stepA : Krun ∘ᵛ G-framed ≈ᵛ RF.permuteˢ Br ∘ᵛ W
           stepA =
             ≈-trans (∘-resp kfac ≈-refl)
             (≈-trans assocˢ
@@ -837,26 +799,13 @@ module _
                 (≈-trans (≈-sym assocˢ)
                 (≈-trans (∘-resp (pvv-inverse-leftˢ Br) ≈-refl) idˡ))))))
 
-          -- `W ≈ castˢ (sym mLR) WQ (Gon' ⊗ Kclean')` (push the `sG≡`/`Kfin≡`
-          -- casts into the codomain via `GK→primed` + fuse).
           WQ : map vl (map injL s_G_final) ++ map vl (map injR s_K_final)
                ≡ map vl (sG ++ Kfin)
           WQ = trans (sym (cong₂ _++_ (cong (map vl) sG≡) (cong (map vl) Kfin≡)))
                      (sym (map-++ vl sG Kfin))
 
           W-primed : W ≈ˢ castˢ (sym (map-++ vl Lpre Rsuf)) WQ (Gon' ⊗ˢ Kclean')
-          W-primed =
-            ≈-trans (cast-resp (sym (map-++ vl Lpre Rsuf)) (sym (map-++ vl sG Kfin))
-                       GK→primed)
-            (≈-trans
-              (≡⇒≈ˢ (cast-fuse refl (sym (map-++ vl Lpre Rsuf))
-                       (sym (cong₂ _++_ (cong (map vl) sG≡) (cong (map vl) Kfin≡)))
-                       (sym (map-++ vl sG Kfin)) (Gon' ⊗ˢ Kclean')))
-              (≡⇒≈ˢ (cast-irrel (trans refl (sym (map-++ vl Lpre Rsuf)))
-                       (sym (map-++ vl Lpre Rsuf))
-                       (trans (sym (cong₂ _++_ (cong (map vl) sG≡) (cong (map vl) Kfin≡)))
-                              (sym (map-++ vl sG Kfin)))
-                       WQ (Gon' ⊗ˢ Kclean'))))
+          W-primed = GK-gen Gon Kclean sG≡ Kfin≡ WQ
 
           -- Step D: `permuteˢ comb ∘ W ≈ castˢ (sym mLR)(sym mLcc)
           --            ((pL⊗pR) ∘ (Gon'⊗Kclean'))`.
@@ -897,7 +846,7 @@ module _
 
           goal
             : RF.permuteˢ cand
-                ∘ˢ coeCod stkSplit₀ (Krun ∘ˢ G-framed)
+                ∘ˢ coeCod stkSplit₀ (Krun ∘ᵛ G-framed)
               ≈ˢ castˢ (sym (⟪⟫-domL fg)) (sym (⟪⟫-codL fg))
                   (decodePˢ f ⊗ˢ decodePˢ g)
           goal =

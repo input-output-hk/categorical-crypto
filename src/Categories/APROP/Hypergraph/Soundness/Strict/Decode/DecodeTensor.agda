@@ -15,13 +15,13 @@
 -- ⊗-shape is NOT two separability frames.  `edge-stepˢ` PREPENDS fired outputs:
 --
 --   * the RIGHT frame (untouched region = SUFFIX) works — this is the PROVEN
---     `Decoder.term-sepˢ`.  It factors the G-block run over `C.dom =
---     map injL G.dom ++ map injR K.dom` as `(G-run on map injL G.dom) ⊗ˢ
---     idˢ {map injR K.dom}` (the untouched K-input is a suffix).
+--     `Decoder.term-sepᵛ`.  It factors the G-block run over `C.dom =
+--     map injL G.dom ++ map injR K.dom` as `(G-run on map injL G.dom) ⊗ᵛ
+--     idᵛ {map injR K.dom}` (the untouched K-input is a suffix).
 --   * the LEFT frame is FALSE for any firing block: in `hTensor G K`, after
 --     G's block fires (leaving `G.cod ++ K.dom`-shaped stack), K's edges act on
 --     the K-input suffix and PREPEND K's outputs in FRONT of `G.cod`, producing
---     a BRAIDED form (`Separability`'s obstruction note proves no `term-sepˢ-ˡ`).
+--     a BRAIDED form (`Separability`'s obstruction note proves no left frame).
 --
 -- So the clean `decodePˢ f ⊗ˢ decodePˢ g` is recovered ONLY at the whole-decode
 -- level, where the final extract-exact permutation `finalPermˢ (f ⊗₁ g)`
@@ -41,20 +41,13 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeTensor
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; range; hTensor; module hTensor-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 
-open import Data.Fin using (Fin; _↑ˡ_)
-open import Data.List using (List; _++_; map)
-open import Data.List.Properties using (map-++)
-open import Data.Product using (proj₁; proj₂)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym)
+open import Data.Product using (proj₂)
+open import Relation.Binary.PropositionalEquality using (refl; sym)
 
 module _
   (permˢ-K : ∀ (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X) → Support.PermK V vlab)
@@ -83,48 +76,11 @@ module _
                                 (decodePˢ f ⊗ˢ decodePˢ g)))
         (≡⇒≈ˢ (cast-irrel _ refl _ refl (decodePˢ f ⊗ˢ decodePˢ g))))
 
-  ------------------------------------------------------------------------
-  -- The G-block factoring, the genuinely-strict provable piece (the G-side
-  -- core).  Over the C-run on `C.dom = map injL G.dom ++ map injR K.dom`, the
-  -- G-edge block `gblk` touches only the `injL` prefix; the untouched
-  -- `map injR K.dom` is a SUFFIX, so the proven RIGHT-frame `term-sepˢ`
-  -- factors the G-block run as `(G-run) ⊗ˢ idˢ {map injR K.dom}`.  This is
-  -- exactly the G-side of the reconciliation `reconcileˢ` consumes.
-
-  module GBlock {A B C D : ObjTerm}
-    (f : HomTerm A B) (g : HomTerm C D)
-    where
-    private
-      G = ⟪ f ⟫
-      K = ⟪ g ⟫
-      module Gd = Hypergraph G
-      module Kd = Hypergraph K
-      open hTensor-impl G K using (injL)
-      open StrictDecoder (hTensor G K)
-
-      gblk = map (_↑ˡ Kd.nE) (range Gd.nE)
-
-    -- the G-block run over the tensor stack, with the K-input as the
-    -- untouched right frame `R = map injR K.dom` — `term-sepˢ` applies
-    -- whenever the gblk inputs are disjoint from `R` (`block-disjoint`),
-    -- which holds because gblk inputs are `injL`-vertices and `R` is all
-    -- `injR`-vertices.  The disjointness witness is the strict mirror of the
-    -- non-strict `gblock-disjoint`.
-    G-block-frameˢ
-      : ∀ (R : List (Fin (Hypergraph.nV (hTensor G K))))
-        → block-disjoint gblk R
-        → (Q : map vl (proj₁ (process-edgesˢ gblk (map injL Gd.dom ++ R)))
-               ≡ map vl (proj₁ (process-edgesˢ gblk (map injL Gd.dom))) ++ map vl R)
-        → castˢ (map-++ vl (map injL Gd.dom) R) Q
-            (proj₂ (process-edgesˢ gblk (map injL Gd.dom ++ R)))
-          ≈ˢ proj₂ (process-edgesˢ gblk (map injL Gd.dom)) ⊗ˢ idˢ {map vl R}
-    G-block-frameˢ R dis Q = term-sepˢ gblk (map injL Gd.dom) R dis Q
-
 --------------------------------------------------------------------------------
 -- `decodePˢ-⊗` is reduced to the single boundary residual `reconcileˢ`,
 -- discharged in `Strict/Tensor/TensorReconcile.agda`: it re-sorts the braided
 -- K-block outputs (see CRITICAL ASYMMETRY above) back behind `G.cod` via the
--- `σˢ`/`σ-hexˢʳ` block-braid and the final `perm-rigidˢ`.  Substrate here:
--- `process-edgesˢ-++` (run split over `gblk ++ kblk`) and `G-block-frameˢ`
--- (the G-side, from the proven right-frame `term-sepˢ`).
+-- `σˢ`/`σ-hexˢʳ` block-braid and the final `perm-rigidˢ`.  Substrate there:
+-- `process-edgesˢ-++` (run split over `gblk ++ kblk`) and, for the G-side, the
+-- proven right-frame `Decoder.term-sepᵛ` applied at `R = map injR K.dom`.
 --------------------------------------------------------------------------------

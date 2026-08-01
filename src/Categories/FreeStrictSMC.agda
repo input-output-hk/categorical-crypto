@@ -527,6 +527,12 @@ module Build
         (trans (cast-irrel (cong m p) (cong m p') (cong m q) (cong m q') t)
                (sym (castᵛ-cast p' q' t)))
 
+    cast-flipᵛ
+      : ∀ {as as' bs bs'} (p : as ≡ as') (q : bs ≡ bs')
+          {f : HomV as bs} {g : HomV as' bs'}
+      → castᵛ p q f ≈ᵛ g → f ≈ᵛ castᵛ (sym p) (sym q) g
+    cast-flipᵛ refl refl e = e
+
     idᵛ-≈̂ : ∀ {as bs : List V} (p : as ≡ bs) → idᵛ {as} ≈̂ idᵛ {bs}
     idᵛ-≈̂ p = idˢ-≈̂ (cong m p)
 

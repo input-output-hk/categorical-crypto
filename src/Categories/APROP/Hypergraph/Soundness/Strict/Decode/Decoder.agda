@@ -112,9 +112,7 @@ module StrictDecoder (H : Hypergraph FlatGen) where
   -- Both statements are about VERTEX stacks, so the only transports are
   -- `castᵛ` (a `List (Fin nV)` equality) and the endpoint bookkeeping the
   -- label-level spelling needed (`map-++ vl xs R`, the `W`/`QIH`
-  -- map-distribution proofs, `cast-⊗-frame`, `∘-cast-split`) is gone.  The
-  -- EXPORTED `term-sepˢ` keeps its label-level statement, projected once at
-  -- the bottom.
+  -- map-distribution proofs, `cast-⊗-frame`, `∘-cast-split`) is gone.
 
   import Data.List.Relation.Binary.Permutation.Propositional.Properties
     as PermProp
@@ -266,20 +264,3 @@ module StrictDecoder (H : Hypergraph FlatGen) where
                          (∘-resp-≈̂ ≈̂-refl
                            (≈̂-sym (≈ˢ⇒≈̂ (edge-step-firedᵛ e rest p))))
                          (≈ˢ⇒≈̂ idˡ)))))
-
-  -- the SEPARABILITY THEOREM, label level (the exported statement)
-  term-sepˢ
-    : ∀ es xs R (dis : block-disjoint es R)
-      (Q : map vl (proj₁ (process-edgesˢ es (xs ++ R)))
-           ≡ map vl (proj₁ (process-edgesˢ es xs)) ++ map vl R)
-    → castˢ (map-++ vl xs R) Q (proj₂ (process-edgesˢ es (xs ++ R)))
-      ≈ˢ proj₂ (process-edgesˢ es xs) ⊗ˢ idˢ {map vl R}
-  term-sepˢ es xs R dis Q =
-    ≈̂⇒castˢ
-      (≈̂-trans (≈̂-sym (castᵛ-≈̂ refl Qv (proj₂ (process-edgesˢ es (xs ++ R)))))
-      (≈̂-trans (≈ˢ⇒≈̂ (term-sepᵛ es xs R dis Qv))
-               (cast-≈̂ {p = sym (map-++ vl xs R)}
-                       {q = sym (map-++ vl (proj₁ (process-edgesˢ es xs)) R)})))
-      (map-++ vl xs R) Q
-    where
-      Qv = stack-sepˢ es xs R dis
