@@ -54,23 +54,14 @@ module TKBBase (H : Hypergraph FlatGen) where
   open Dec.StrictDecoder H public
 
   open Restrict (Fin H.nV) vl public
-    using (HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ; ⊗-idᵛ; id⊗-distᵛ)
+    using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; castᵛ-≈̂; castᵛ-perm
+          ; ⊗-respᵛ; ⊗-idᵛ; id⊗-distᵛ; ⊗id-distᵛ; box-conjᵛ; ⊗-assoc-≈̂ᵛ
+          ; box-suffix-≈̂ᵛ )
 
   module Kmod = Support (Fin H.nV) H.vlab
 
   m : List (Fin H.nV) → List X
   m = map vl
-
-  --------------------------------------------------------------------
-  -- The `idˢ{L}`-framed composite split (left-frame mirror of
-  -- `FreeStrictSMC.⊗id-distˢ`; H-independent, so hoisted once here instead
-  -- of being re-derived locally in both TKB2 and TKB4).
-  --   idˢ{L} ⊗ˢ (g ∘ˢ f) ≈ (idˢ{L} ⊗ˢ g) ∘ˢ (idˢ{L} ⊗ˢ f)
-  --------------------------------------------------------------------
-  id⊗-distˢ
-    : ∀ {as bs cs} (L : List X) (g : HomS bs cs) (f : HomS as bs)
-    → idˢ {L} ⊗ˢ (g ∘ˢ f) ≈ˢ (idˢ {L} ⊗ˢ g) ∘ˢ (idˢ {L} ⊗ˢ f)
-  id⊗-distˢ L g f = ≈-trans (⊗-resp (≈-sym idˡ) ≈-refl) (≈-sym interchangeˢ)
 
 ------------------------------------------------------------------------
 -- ===== submodule TKB =====
@@ -88,89 +79,43 @@ module TKB (H : Hypergraph FlatGen) where
   ------------------------------------------------------------------------
   -- ## The box-output left-slide (pure SMC, K-FREE).
   --
-  -- The fired box's output block `genˢ ⊗ idˢ {L ++ rest}` (the box at the
+  -- The fired box's output block `gen' e ⊗ᵛ idᵛ {L ++ rest}` (the box at the
   -- front, then the carried `L` and residual `rest`) equals the same box
-  -- moved to AFTER `L` (`idˢ {L} ⊗ (genˢ ⊗ idˢ {rest})`) precomposed with
-  -- the block braid `σˢ (map L) (map (eout e))` that swaps the box's output
-  -- block past `L`.  Slide via `σ-natˢ`/`interchangeˢ`.
+  -- moved to AFTER `L`, conjugated by the two one-sided block braids that
+  -- swap the box's input / output block past `L`.  Pure `σ-natᵛ`/`σ-σᵛ`
+  -- (`box-conjᵛ`) + `⊗id-distᵛ`; no endpoint is ever named.
   ------------------------------------------------------------------------
 
   module _ (permˢ-K : Kmod.PermK) where
-    ----------------------------------------------------------------------
-    -- ## The pure box left-slide (K-FREE).
-    --
-    -- The box `genˢ` with its residual `idˢ {map L ++ map rest}` to the
-    -- right equals the box pushed to AFTER the carried block `map L`
-    -- (`idˢ {map L} ⊗ˢ (genˢ ⊗ˢ idˢ {map rest})`), conjugated by the two
-    -- one-sided block braids that swap the box's input / output block past
-    -- `map L`.  Pure `σ-natˢ`/`interchangeˢ`; the maps are `m`-distributed.
-    ----------------------------------------------------------------------
-
     private
-      -- the σ-conjugation `g ⊗ idˢ{c} ≈ σ c b ∘ (idˢ{c} ⊗ g) ∘ σ a c`.
-      box-conjˡ
-        : ∀ {a b : List X} (g : HomS a b) (c : List X)
-        → g ⊗ˢ idˢ {c} ≈ˢ σˢ c b ∘ˢ ((idˢ {c} ⊗ˢ g) ∘ˢ σˢ a c)
-      box-conjˡ {a} {b} g c =
-        ≈-sym
-          (≈-trans (≈-sym assocˢ)
-            (≈-trans (∘-resp σ-natˢ ≈-refl)
-              (≈-trans assocˢ
-                (≈-trans (∘-resp ≈-refl σ-σˢ) idʳ))))
+      gen' : ∀ (e : Fin H.nE) → HomV (H.ein e) (H.eout e)
+      gen' e = genˢ (H.elab e)
 
-    ----------------------------------------------------------------------
-    -- ## `box-block-slideˢ` — the box residual-block slide with a right
-    -- frame `R`.  The box `genˢ` carrying its full residual `(map L ++ R)`
-    -- equals the box moved to AFTER the carried `map L`, conjugated by the
-    -- output braid `σ (map L) B ⊗ idˢ{R}` and the input braid `σ A (map L) ⊗
-    -- idˢ{R}` (`A = map ein e`, `B = map eout e`).  This is the genuine
-    -- box-slide content.  K-FREE (`box-conjˡ` + `⊗id-distˢ`).
-    ----------------------------------------------------------------------
-    box-block-slideˢ
-      : ∀ (e : Fin H.nE) (L : List (Fin H.nV)) (R : List X)
-      → (genˢ (H.elab e) ⊗ˢ idˢ {m L}) ⊗ˢ idˢ {R}
-        ≈ˢ ( (σˢ (m L) (m (H.eout e)) ⊗ˢ idˢ {R})
-               ∘ˢ ((idˢ {m L} ⊗ˢ genˢ (H.elab e)) ⊗ˢ idˢ {R}) )
-             ∘ˢ (σˢ (m (H.ein e)) (m L) ⊗ˢ idˢ {R})
-    box-block-slideˢ e L R =
-      ≈-trans (⊗-resp (box-conjˡ (genˢ (H.elab e)) (m L)) ≈-refl)
-        (≈-trans (⊗id-distˢ (σˢ (m L) (m (H.eout e)))
-                   ((idˢ {m L} ⊗ˢ genˢ (H.elab e)) ∘ˢ σˢ (m (H.ein e)) (m L)))
+    box-block-slideᵛ
+      : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
+      → (gen' e ⊗ᵛ idᵛ {L}) ⊗ᵛ idᵛ {rest}
+        ≈ᵛ ( (σᵛ L (H.eout e) ⊗ᵛ idᵛ {rest})
+               ∘ᵛ ((idᵛ {L} ⊗ᵛ gen' e) ⊗ᵛ idᵛ {rest}) )
+             ∘ᵛ (σᵛ (H.ein e) L ⊗ᵛ idᵛ {rest})
+    box-block-slideᵛ e L rest =
+      ≈-trans (⊗-respᵛ (box-conjᵛ (gen' e) L) ≈-refl)
+        (≈-trans (⊗id-distᵛ (σᵛ L (H.eout e))
+                   ((idᵛ {L} ⊗ᵛ gen' e) ∘ᵛ σᵛ (H.ein e) L))
           (≈-trans (∘-resp ≈-refl
-                     (⊗id-distˢ (idˢ {m L} ⊗ˢ genˢ (H.elab e))
-                               (σˢ (m (H.ein e)) (m L))))
+                     (⊗id-distᵛ (idᵛ {L} ⊗ᵛ gen' e) (σᵛ (H.ein e) L)))
             (≈-sym assocˢ)))
 
-    ----------------------------------------------------------------------
-    -- ## `box-slide-restˢ` — `box-block-slideˢ` lifted to the fired-layer
-    -- residual `m (L ++ rest)`.  `box-suffix-ˢ` reframes `genˢ ⊗ idˢ {m L ++
-    -- m rest}` into `(genˢ ⊗ idˢ {m L}) ⊗ idˢ {m rest}`; then
-    -- `box-block-slideˢ e L (m rest)` slides the box past `m L`.  Pure cast
-    -- kit + `box-block-slideˢ`.  K-FREE.
-    ----------------------------------------------------------------------
+    -- the same slide on the fired layer's residual `L ++ rest`, re-bracketed
+    -- by `box-suffix-≈̂ᵛ` (heterogeneous, so the re-bracketing is not named).
     box-slide-restˢ
       : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-      → castˢ (cong (m (H.ein e) ++_) (map-++ vl L rest))
-              (cong (m (H.eout e) ++_) (map-++ vl L rest))
-          (genˢ (H.elab e) ⊗ˢ idˢ {m (L ++ rest)})
-        ≈ˢ castˢ (++-assoc (m (H.ein e)) (m L) (m rest))
-                 (++-assoc (m (H.eout e)) (m L) (m rest))
-            ( ( (σˢ (m L) (m (H.eout e)) ⊗ˢ idˢ {m rest})
-                  ∘ˢ ((idˢ {m L} ⊗ˢ genˢ (H.elab e)) ⊗ˢ idˢ {m rest}) )
-                ∘ˢ (σˢ (m (H.ein e)) (m L) ⊗ˢ idˢ {m rest}) )
+      → gen' e ⊗ᵛ idᵛ {L ++ rest}
+        ≈̂ ( (σᵛ L (H.eout e) ⊗ᵛ idᵛ {rest})
+              ∘ᵛ ((idᵛ {L} ⊗ᵛ gen' e) ⊗ᵛ idᵛ {rest}) )
+            ∘ᵛ (σᵛ (H.ein e) L ⊗ᵛ idᵛ {rest})
     box-slide-restˢ e L rest =
-      ≈-trans
-        (cast-⊗-frame (genˢ (H.elab e))
-          (map-++ vl L rest) (map-++ vl L rest) (idˢ {m (L ++ rest)})
-          (cong (m (H.ein e) ++_) (map-++ vl L rest))
-          (cong (m (H.eout e) ++_) (map-++ vl L rest)))
-      (≈-trans
-        (⊗-resp ≈-refl (cast-id (map-++ vl L rest) (map-++ vl L rest)))
-      (≈-trans
-        (≈-sym (box-suffix-ˢ (genˢ (H.elab e)) (m L) (m rest)))
-        (cast-resp (++-assoc (m (H.ein e)) (m L) (m rest))
-                   (++-assoc (m (H.eout e)) (m L) (m rest))
-                   (box-block-slideˢ e L (m rest)))))
+      ≈̂-trans (≈̂-sym (box-suffix-≈̂ᵛ (gen' e) L rest))
+              (≈ˢ⇒≈̂ (box-block-slideᵛ e L rest))
 
 ------------------------------------------------------------------------
 -- ===== submodule TKB2 =====
@@ -189,7 +134,7 @@ module TKB2 (H : Hypergraph FlatGen) where
   open EdgeStepView H public using (fire-termˢ)
 
   module _ (permˢ-K : Kmod.PermK) where
-    -- The thin wiring-groupoid calculus (F11): ⟦bswap⟧/⟦frameˡ⟧/⟦absorbˡ⟧ +
+    -- The thin wiring-groupoid calculus (F11): ⟦bswap⟧ᵛ/⟦frameˡ⟧ᵛ/⟦absorbˡ⟧ +
     -- rigid-≈̂.
     open PC.Kit H permˢ-K
 
@@ -208,62 +153,16 @@ module TKB2 (H : Hypergraph FlatGen) where
            → ((H.ein e ++ L) ++ rest) Perm.↭ ((L ++ H.ein e) ++ rest)
     ibraid e L rest = PermProp.++⁺ʳ rest (ScrH.bswap (H.ein e) L)
 
-    ----------------------------------------------------------------------
-    -- ## (b) `fire-slideˢ`.
-    --
-    -- A single fired box on `L ++ xs` slides past the carried block `L`.
-    -- The output block-braid is the canonical `permuteˢ (obraid e L rest)`;
-    -- the input side reconciles `obraid`'s mate against the layer permute by
-    -- `rigid-≈̂` on the `Unique` input stack `ein e ++ (L ++ rest)`.
-    --
-    -- (Decomposed: the box itself is `box-slide-restˢ′`; the two σ-blocks are
-    -- bridged to `permuteˢ`s via `⟦bswap⟧` + `⟦frameˡ⟧`; the final permute
-    -- reconciliation uses `rigid-≈̂`.)
-    ----------------------------------------------------------------------
-
-    ----------------------------------------------------------------------
-    -- ## (b) `fire-slideˢ`.
-    --
-    --   fire-termˢ e (L ++ xs) (L ++ rest) perm'
-    --     ≈ˢ castₒ (permuteˢ (obraid e L rest))
-    --         ∘ˢ (idˢ {m L} ⊗ˢ fire-termˢ e xs rest p)
-    --
-    -- where `castₒ` reframes the canonical output braid's endpoints onto the
-    -- composite's.  Requires `Unique (ein e ++ L ++ rest)` (the layer's input
-    -- multiset), supplied by linearity at the use site.
-    ----------------------------------------------------------------------
-
-    private
-      gen' : ∀ (e : Fin H.nE) → HomS (m (H.ein e)) (m (H.eout e))
-      gen' e = genˢ (H.elab e)
-
-    -- The OUTPUT-braid reframing cast (assoc + map-distribution).
+    -- The OUTPUT-braid reframings.  At V level they are plain `++`
+    -- associativity: the `map`-distribution the label-level spelling needed
+    -- is carried by `_⊗ᵛ_`/`σᵛ` themselves.
     odom : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-         → m ((L ++ H.eout e) ++ rest) ≡ m L ++ m (H.eout e ++ rest)
-    odom e L rest =
-      trans (map-++ vl (L ++ H.eout e) rest)
-        (trans (cong (_++ m rest) (map-++ vl L (H.eout e)))
-          (trans (++-assoc (m L) (m (H.eout e)) (m rest))
-            (cong (m L ++_) (sym (map-++ vl (H.eout e) rest)))))
+         → (L ++ H.eout e) ++ rest ≡ L ++ (H.eout e ++ rest)
+    odom e L rest = ++-assoc L (H.eout e) rest
 
     ocod : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-         → m ((H.eout e ++ L) ++ rest) ≡ m (H.eout e ++ (L ++ rest))
-    ocod e L rest =
-      trans (map-++ vl (H.eout e ++ L) rest)
-        (trans (cong (_++ m rest) (map-++ vl (H.eout e) L))
-          (trans (++-assoc (m (H.eout e)) (m L) (m rest))
-            (trans (cong (m (H.eout e) ++_) (sym (map-++ vl L rest)))
-              (sym (map-++ vl (H.eout e) (L ++ rest))))))
-
-    -- The MID box block `(idˢ{m L} ⊗ˢ genˢ) ⊗ˢ idˢ{m rest}` reassociates to
-    -- `idˢ{m L} ⊗ˢ (genˢ ⊗ˢ idˢ{m rest})` (the box inside `idˢ{L} ⊗ fire`).
-    mid-assoc
-      : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-      → castˢ (++-assoc (m L) (m (H.ein e)) (m rest))
-              (++-assoc (m L) (m (H.eout e)) (m rest))
-          ((idˢ {m L} ⊗ˢ gen' e) ⊗ˢ idˢ {m rest})
-        ≈ˢ idˢ {m L} ⊗ˢ (gen' e ⊗ˢ idˢ {m rest})
-    mid-assoc e L rest = ⊗-assocˢ (idˢ {m L}) (gen' e) (idˢ {m rest})
+         → (H.eout e ++ L) ++ rest ≡ H.eout e ++ (L ++ rest)
+    ocod e L rest = ++-assoc (H.eout e) L rest
 
     -- re-bracket `ein ++ (L ++ rest)` ⇝ `(ein ++ L) ++ rest`.
     brkIn : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
@@ -276,334 +175,151 @@ module TKB2 (H : Hypergraph FlatGen) where
     brkL e L rest = sym (++-assoc L (H.ein e) rest)
 
     ----------------------------------------------------------------------
-    -- ## The framed inner fire layer `FF = idˢ{m L} ⊗ˢ fire-termˢ e xs rest p`
-    -- reduced to NF `castˢ (MID-frame ∘ (idˢ{L}⊗permuteˢ p))`.
+    -- ## The block algebra `fire-slideˢ` runs in, all at V level.
+    --   OUT  = the output block braid            MID  = the box in `((-))`
+    --   MIDi = the box in `(-(-))`               INP  = the framed layer perm
+    --   INσ  = the input block braid            IN   = the located layer perm
     ----------------------------------------------------------------------
 
-    -- FF reduced to `castˢ Pf Qf ((idˢ{L}⊗BOXx) ∘ (idˢ{L}⊗PERMx))`.
-    framed-fire-split
-      : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
-          (p : xs Perm.↭ H.ein e ++ rest)
-      → idˢ {m L} ⊗ˢ fire-termˢ e xs rest p
-        ≈ˢ castˢ refl (cong (m L ++_) (sym (map-++ vl (H.eout e) rest)))
-            ( (idˢ {m L} ⊗ˢ (gen' e ⊗ˢ idˢ {m rest}))
-              ∘ˢ (idˢ {m L} ⊗ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ p)) )
-    framed-fire-split e L xs rest p =
-      ≈-trans
-        (≈-sym
-          (cast-⊗-frame (idˢ {m L}) refl (sym (map-++ vl (H.eout e) rest))
-            ((gen' e ⊗ˢ idˢ {m rest})
-              ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ p))
-            (cong (m L ++_) refl) (cong (m L ++_) (sym (map-++ vl (H.eout e) rest)))))
-      (≈-trans
-        (≡⇒≈ˢ (cast-irrel (cong (m L ++_) refl) refl
-                 (cong (m L ++_) (sym (map-++ vl (H.eout e) rest)))
-                 (cong (m L ++_) (sym (map-++ vl (H.eout e) rest)))
-                 (idˢ {m L} ⊗ˢ ((gen' e ⊗ˢ idˢ {m rest})
-                   ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ p)))))
-        (cast-resp refl (cong (m L ++_) (sym (map-++ vl (H.eout e) rest)))
-          (id⊗-distˢ (m L) (gen' e ⊗ˢ idˢ {m rest})
-            (castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ p)))))
+    private
+      gen' : ∀ (e : Fin H.nE) → HomV (H.ein e) (H.eout e)
+      gen' e = genˢ (H.elab e)
+
+      box-slide-restᵛ = TKB.box-slide-restˢ H permˢ-K
+
+      OUT : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
+          → HomV ((L ++ H.eout e) ++ rest) ((H.eout e ++ L) ++ rest)
+      OUT e L rest = σᵛ L (H.eout e) ⊗ᵛ idᵛ {rest}
+
+      MID : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
+          → HomV ((L ++ H.ein e) ++ rest) ((L ++ H.eout e) ++ rest)
+      MID e L rest = (idᵛ {L} ⊗ᵛ gen' e) ⊗ᵛ idᵛ {rest}
+
+      MIDi : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
+           → HomV (L ++ (H.ein e ++ rest)) (L ++ (H.eout e ++ rest))
+      MIDi e L rest = idᵛ {L} ⊗ᵛ (gen' e ⊗ᵛ idᵛ {rest})
+
+      INP : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
+              (p : xs Perm.↭ H.ein e ++ rest)
+          → HomV (L ++ xs) (L ++ (H.ein e ++ rest))
+      INP e L xs rest p = idᵛ {L} ⊗ᵛ permuteᵛ p
+
+      INσ : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
+          → HomV ((H.ein e ++ L) ++ rest) ((L ++ H.ein e) ++ rest)
+      INσ e L rest = σᵛ (H.ein e) L ⊗ᵛ idᵛ {rest}
+
+      IN : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
+             (perm' : (L ++ xs) Perm.↭ H.ein e ++ (L ++ rest))
+         → HomV (L ++ xs) ((H.ein e ++ L) ++ rest)
+      IN e L xs rest perm' = castᵛ refl (brkIn e L rest) (permuteᵛ perm')
+
+      -- the canonical composite both sides of `fire-slideˢ` reduce to.
+      CANON : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
+                (p : xs Perm.↭ H.ein e ++ rest)
+            → HomV (L ++ xs) ((H.eout e ++ L) ++ rest)
+      CANON e L xs rest p =
+        OUT e L rest
+          ∘ᵛ castᵛ refl (sym (odom e L rest))
+               (MIDi e L rest ∘ᵛ INP e L xs rest p)
+
+      -- The framed inner fire layer splits into the framed box and the framed
+      -- layer permute: `edge-step-firedᵛ` presents the fired layer, then
+      -- `id⊗-distᵛ` distributes the `idᵛ {L}` frame.
+      framed-fire-split
+        : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
+            (p : xs Perm.↭ H.ein e ++ rest)
+        → idᵛ {L} ⊗ᵛ fire-termˢ e xs rest p
+          ≈ᵛ MIDi e L rest ∘ᵛ INP e L xs rest p
+      framed-fire-split e L xs rest p =
+        ≈-trans (⊗-respᵛ ≈-refl (edge-step-firedᵛ e rest p))
+                (id⊗-distᵛ (gen' e ⊗ᵛ idᵛ {rest}) (permuteᵛ p))
+
+      -- The OUTPUT braid IS the σ-block `OUT` (`⟦bswap⟧ᵛ`, cast peeled).
+      out-braid-σ
+        : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
+        → castᵛ (odom e L rest) (ocod e L rest) (permuteᵛ (obraid e L rest))
+          ≈̂ OUT e L rest
+      out-braid-σ e L rest =
+        ≈̂-trans (castᵛ-≈̂ (odom e L rest) (ocod e L rest)
+                   (permuteᵛ (obraid e L rest)))
+                (≈ˢ⇒≈̂ (⟦bswap⟧ᵛ L (H.eout e) rest))
+
+      -- RHS reduction: the output braid plus the framed inner fire layer is
+      -- the canonical composite.
+      rhs-canon
+        : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
+            (p : xs Perm.↭ H.ein e ++ rest)
+        → castᵛ (odom e L rest) (ocod e L rest) (permuteᵛ (obraid e L rest))
+            ∘ᵛ (idᵛ {L} ⊗ᵛ fire-termˢ e xs rest p)
+          ≈̂ CANON e L xs rest p
+      rhs-canon e L xs rest p =
+        ∘-resp-≈̂ (out-braid-σ e L rest)
+          (≈̂-trans (≈ˢ⇒≈̂ (framed-fire-split e L xs rest p))
+                   (≈̂-sym (castᵛ-≈̂ refl (sym (odom e L rest))
+                             (MIDi e L rest ∘ᵛ INP e L xs rest p))))
+
+      -- MID + IN reconciliation: the carried-block box after the input σ-block
+      -- and the located layer permute is the canonical inner box.  The box
+      -- re-bracketing is `⊗-assoc-≈̂ᵛ`; the wiring is rigid (`rigid-≈̂` on the
+      -- `Unique` input stack), with `⟦bswap⟧ᵛ` presenting the σ-block and
+      -- `⟦frameˡ⟧ᵛ` the frame.
+      mid-in-canon
+        : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
+            (perm' : (L ++ xs) Perm.↭ H.ein e ++ (L ++ rest))
+            (p : xs Perm.↭ H.ein e ++ rest)
+        → Unique ((L ++ H.ein e) ++ rest)
+        → MID e L rest ∘ᵛ (INσ e L rest ∘ᵛ IN e L xs rest perm')
+          ≈̂ castᵛ refl (sym (odom e L rest))
+              (MIDi e L rest ∘ᵛ INP e L xs rest p)
+      mid-in-canon e L xs rest perm' p uIn =
+        ≈̂-trans (∘-resp-≈̂ (⊗-assoc-≈̂ᵛ (idᵛ {L}) (gen' e) (idᵛ {rest})) in≈̂)
+                (≈̂-sym (castᵛ-≈̂ refl (sym (odom e L rest))
+                          (MIDi e L rest ∘ᵛ INP e L xs rest p)))
+        where
+          in≈̂ : (INσ e L rest ∘ᵛ IN e L xs rest perm') ≈̂ INP e L xs rest p
+          in≈̂ =
+            ≈̂-trans (∘-resp-≈̂ (≈̂-sym (≈ˢ⇒≈̂ (⟦bswap⟧ᵛ (H.ein e) L rest)))
+                       (≈̂-trans (castᵛ-≈̂ refl (brkIn e L rest) (permuteᵛ perm'))
+                                (≈̂-sym (⟦absorbˡ⟧ (brkIn e L rest)))))
+            (≈̂-trans
+              (rigid-≈̂ uIn
+                (Perm.trans (Perm.trans perm' (Perm.↭-reflexive (brkIn e L rest)))
+                            (ibraid e L rest))
+                (Perm.trans (PermProp.++⁺ˡ L p) (Perm.↭-reflexive (brkL e L rest))))
+              (≈̂-trans (⟦absorbˡ⟧ (brkL e L rest))
+                       (≈ˢ⇒≈̂ (⟦frameˡ⟧ᵛ L p))))
 
     ----------------------------------------------------------------------
     -- ## (b) `fire-slideˢ` — the single fired box slides past `L`.
     --
     --   fire-termˢ e (L ++ xs) (L ++ rest) perm'
-    --     ≈ˢ castˢ (odom e L rest) (ocod e L rest) (permuteˢ (obraid e L rest))
-    --         ∘ˢ (idˢ {m L} ⊗ˢ fire-termˢ e xs rest p)
+    --     ≈ᵛ castᵛ (odom)(ocod) (permuteᵛ (obraid e L rest))
+    --         ∘ᵛ (idᵛ {L} ⊗ᵛ fire-termˢ e xs rest p)
     --
-    -- Requires `Unique ((L ++ ein e) ++ rest)`.  The OUTPUT braid is the
-    -- canonical block braid `obraid`; the input σ + layer permute collapse
-    -- into the framed inner permute by `mid-in-canon`'s `in≈̂`.
+    -- Requires `Unique ((L ++ ein e) ++ rest)`.  Both sides reduce to `CANON`:
+    -- the LHS via `edge-step-firedᵛ` + `box-slide-restᵛ` + `mid-in-canon`, the
+    -- RHS via `rhs-canon`.  The statement is cast-free apart from the two
+    -- `++`-associativity transports of the output braid.
     ----------------------------------------------------------------------
-
-    -- The OUTPUT braid `castₒ (permuteˢ obraid)` reduced to the σ-block `OUT`.
-    --   castˢ (odom)(ocod)(permuteˢ (obraid e L rest))
-    --     ≈ castˢ ?? (σˢ (m L)(m eout) ⊗ˢ idˢ{m rest})
-    out-braid-σ
-      : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-      → castˢ (odom e L rest) (ocod e L rest) (permuteˢ (obraid e L rest))
-        ≈ˢ castˢ (trans (trans (cong (_++ m rest) (sym (map-++ vl L (H.eout e))))
-                               (sym (map-++ vl (L ++ H.eout e) rest)))
-                        (odom e L rest))
-                 (trans (trans (cong (_++ m rest) (sym (map-++ vl (H.eout e) L)))
-                               (sym (map-++ vl (H.eout e ++ L) rest)))
-                        (ocod e L rest))
-            (σˢ (m L) (m (H.eout e)) ⊗ˢ idˢ {m rest})
-    out-braid-σ e L rest =
-      ≈̂⇒≈ˢ (≈̂-trans cast-≈̂
-              (≈̂-trans (⟦bswap⟧ L (H.eout e) rest) (≈̂-sym cast-≈̂)))
-
-
-    ------------------------------------------------------------------
-    -- The canonical composite both sides reduce to.
-    --   OUT  = σˢ (m L)(m eout) ⊗ˢ idˢ{m rest}
-    --   MIDᵢ = idˢ{m L} ⊗ˢ (gen' ⊗ˢ idˢ{m rest})
-    --   INP  = idˢ{m L} ⊗ˢ castˢ refl (map-++ vl ein rest)(permuteˢ p)
-    ------------------------------------------------------------------
-    private
-      OUTb : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-           → HomS ((m L ++ m (H.eout e)) ++ m rest) ((m (H.eout e) ++ m L) ++ m rest)
-      OUTb e L rest = σˢ (m L) (m (H.eout e)) ⊗ˢ idˢ {m rest}
-
-      -- the MID box in box-slide's native LEFT-assoc bracketing.
-      MIDb : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-           → HomS ((m L ++ m (H.ein e)) ++ m rest) ((m L ++ m (H.eout e)) ++ m rest)
-      MIDb e L rest = (idˢ {m L} ⊗ˢ gen' e) ⊗ˢ idˢ {m rest}
-
-      MIDib : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-            → HomS (m L ++ m (H.ein e) ++ m rest) (m L ++ m (H.eout e) ++ m rest)
-      MIDib e L rest = idˢ {m L} ⊗ˢ (gen' e ⊗ˢ idˢ {m rest})
-
-      INPb : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
-             (p : xs Perm.↭ H.ein e ++ rest)
-           → HomS (m L ++ m xs) (m L ++ m (H.ein e) ++ m rest)
-      INPb e L xs rest p = idˢ {m L} ⊗ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ p)
-
-    ------------------------------------------------------------------
-    -- ## RHS reduction.
-    --
-    -- The RHS `castˢ (odom)(ocod)(permuteˢ obraid) ∘ˢ (idˢ{m L} ⊗ fire-termˢ)`
-    -- reduces — via `out-braid-σ` (first factor → cast of OUT) and
-    -- `framed-fire-split` (second factor → cast of MIDᵢ ∘ INP), then a single
-    -- cast-fusion through the shared middle `m L ++ m(eout++rest)` — to
-    -- `castˢ refl OC (OUT ∘ˢ (MIDᵢ ∘ˢ INP))`.
-    ------------------------------------------------------------------
-
-    private
-      -- the OUTPUT codomain cast endpoint, as in `out-braid-σ`.
-      OC : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-         → (m (H.eout e) ++ m L) ++ m rest ≡ m (H.eout e ++ (L ++ rest))
-      OC e L rest =
-        trans (trans (cong (_++ m rest) (sym (map-++ vl (H.eout e) L)))
-                     (sym (map-++ vl (H.eout e ++ L) rest)))
-              (ocod e L rest)
-
-      -- the codomain-cast `framed-fire-split` puts on its inner composite.
-      QF : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-         → m L ++ m (H.eout e) ++ m rest ≡ m L ++ m (H.eout e ++ rest)
-      QF e L rest = cong (m L ++_) (sym (map-++ vl (H.eout e) rest))
-
-    -- the assoc cast inserted between OUT and the right-assoc MIDᵢ∘INP.
-    private
-      ASout : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-            → m L ++ m (H.eout e) ++ m rest ≡ (m L ++ m (H.eout e)) ++ m rest
-      ASout e L rest = sym (++-assoc (m L) (m (H.eout e)) (m rest))
-
-    rhs-canon
-      : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
-          (p : xs Perm.↭ H.ein e ++ rest)
-      → castˢ (odom e L rest) (ocod e L rest) (permuteˢ (obraid e L rest))
-          ∘ˢ (idˢ {m L} ⊗ˢ fire-termˢ e xs rest p)
-        ≈ˢ castˢ refl (OC e L rest)
-            (OUTb e L rest
-              ∘ˢ castˢ refl (ASout e L rest)
-                   (MIDib e L rest ∘ˢ INPb e L xs rest p))
-    -- Heterogeneous rewrite (F8): `out-braid-σ`/`framed-fire-split` are chained
-    -- in `≈̂`; `cast-≈̂` strips the OUT/QF casts and the QF↔ASout reassociation
-    -- is a two-step `cast-≈̂`, so the former `∘-cast-split`/`cast-fuse`/`cast-irrel`
-    -- endpoint plumbing (`OD`/`fuse`/`right-recast`) disappears.  Projected back
-    -- to the byte-identical `castˢ`-shaped statement via `≈̂⇒≈ˢ`.
-    rhs-canon e L xs rest p =
-      ≈̂⇒≈ˢ (≈̂-trans
-              (∘-resp-≈̂ (≈̂-trans (≈ˢ⇒≈̂ (out-braid-σ e L rest)) cast-≈̂)
-                        (≈̂-trans (≈ˢ⇒≈̂ (framed-fire-split e L xs rest p)) qf→asout))
-              (≈̂-sym cast-≈̂))
-      where
-        FF : HomS (m L ++ m xs) (m L ++ m (H.eout e) ++ m rest)
-        FF = MIDib e L rest ∘ˢ INPb e L xs rest p
-
-        -- the QF-reassociated inner composite equals the ASout-reassociated one
-        -- (both strip to `FF` under `cast-≈̂`).
-        qf→asout
-          : castˢ refl (QF e L rest) FF ≈̂ castˢ refl (ASout e L rest) FF
-        qf→asout = ≈̂-trans (cast-≈̂ {p = refl} {q = QF e L rest})
-                           (≈̂-sym (cast-≈̂ {p = refl} {q = ASout e L rest}))
-
-    ------------------------------------------------------------------
-    -- ## LHS reduction.
-    ------------------------------------------------------------------
-
-    -- the box block-slide brick, inherited from TensorKBlock.
-    box-slide-restˢ′ = TKB.box-slide-restˢ H permˢ-K
-
-    private
-      INσb : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-           → HomS ((m (H.ein e) ++ m L) ++ m rest) ((m L ++ m (H.ein e)) ++ m rest)
-      INσb e L rest = σˢ (m (H.ein e)) (m L) ⊗ˢ idˢ {m rest}
-
-      -- BOX as a back-cast of `(OUT ∘ MIDb) ∘ INσ` (box-slide-restˢ flipped,
-      -- composed with the `cong (_ ++_)(map-++ L rest)` reframing flip).
-      BOX : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-          → HomS (m (H.ein e) ++ m (L ++ rest)) (m (H.eout e) ++ m (L ++ rest))
-      BOX e L rest = genˢ (H.elab e) ⊗ˢ idˢ {m (L ++ rest)}
-
-    private
-      Pi : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-         → m ((H.ein e ++ L) ++ rest) ≡ (m (H.ein e) ++ m L) ++ m rest
-      Pi e L rest =
-        sym (trans (cong (_++ m rest) (sym (map-++ vl (H.ein e) L)))
-                   (sym (map-++ vl (H.ein e ++ L) rest)))
-
-    ------------------------------------------------------------------
-    -- ## MIDb → MIDib and INPb-core → INPb conversions.
-    ------------------------------------------------------------------
-
-    -- `idˢ{mL} ⊗ permuteˢ p` heterogeneously equal to `INPb` (the inner `castˢ`
-    -- moved out of the ⊗ by `cast-⊗-frame`).
-    inp-core→INPb
-      : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
-          (p : xs Perm.↭ H.ein e ++ rest)
-      → (idˢ {m L} ⊗ˢ permuteˢ p) ≈̂ INPb e L xs rest p
-    inp-core→INPb e L xs rest p =
-        refl , cong (m L ++_) (map-++ vl (H.ein e) rest)
-      , cast-⊗-frame (idˢ {m L}) refl (map-++ vl (H.ein e) rest) (permuteˢ p)
-          refl (cong (m L ++_) (map-++ vl (H.ein e) rest))
-
-    -- `MIDb` heterogeneously equal to `MIDib` (the `⊗-assocˢ` of `mid-assoc`).
-    midb→midib
-      : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-      → MIDb e L rest ≈̂ MIDib e L rest
-    midb→midib e L rest =
-        ++-assoc (m L) (m (H.ein e)) (m rest)
-      , ++-assoc (m L) (m (H.eout e)) (m rest)
-      , mid-assoc e L rest
-
-    ------------------------------------------------------------------
-    -- ## MID + IN reconciliation: the carried-block box composed with the
-    -- input σ-block and layer permute collapses to the canonical
-    -- `castˢ refl ASout (MIDib ∘ INPb)` (the RHS-canon inner-inner term).
-    ------------------------------------------------------------------
-    private
-      INin : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
-               (perm' : (L ++ xs) Perm.↭ H.ein e ++ (L ++ rest))
-           → HomS (m (L ++ xs)) ((m (H.ein e) ++ m L) ++ m rest)
-      INin e L xs rest perm' =
-        castˢ refl (Pi e L rest)
-          (castˢ refl (cong m (brkIn e L rest)) (permuteˢ perm'))
-
-    mid-in-canon
-      : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
-          (perm' : (L ++ xs) Perm.↭ H.ein e ++ (L ++ rest))
-          (p : xs Perm.↭ H.ein e ++ rest)
-      → Unique ((L ++ H.ein e) ++ rest)
-      → MIDb e L rest ∘ˢ (INσb e L rest ∘ˢ INin e L xs rest perm')
-        ≈ˢ castˢ (sym (map-++ vl L xs)) (ASout e L rest)
-            (MIDib e L rest ∘ˢ INPb e L xs rest p)
-    -- Heterogeneous rewrite (F1): the three sub-results are chained in `≈̂`,
-    -- where transitivity/congruence absorb the endpoint bookkeeping, so the
-    -- former `cast-fuse`/`cast-irrel`/`∘-cast-split`/`cast-irrel` reconciliation
-    -- (the AFin'/AFout'/CFI endpoint plumbing) disappears; the final `≈̂⇒≈ˢ`
-    -- projects back to the (byte-identical) `castˢ`-shaped statement.
-    mid-in-canon e L xs rest perm' p uIn =
-      ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ (midb→midib e L rest)
-                               (≈̂-trans in≈̂ (inp-core→INPb e L xs rest p)))
-                    (≈̂-sym cast-≈̂))
-      where
-        -- The input σ-block after the (twice re-bracketed) layer permute, and
-        -- the `L`-framed inner permute, are `permuteˢ` of two derivations into
-        -- the SAME `Unique` stack (`uIn`): the wiring is rigid.  `cast-≈̂`
-        -- strips both re-bracketing frames, `⟦absorbˡ⟧` absorbs the reindexing
-        -- tails, `⟦bswap⟧` presents the σ-block and `⟦frameˡ⟧` the frame.
-        in≈̂ : (INσb e L rest ∘ˢ INin e L xs rest perm') ≈̂ (idˢ {m L} ⊗ˢ permuteˢ p)
-        in≈̂ =
-          ≈̂-trans (∘-resp-≈̂ (≈̂-sym (⟦bswap⟧ (H.ein e) L rest))
-                     (≈̂-trans (cast-≈̂ {p = refl} {q = Pi e L rest})
-                       (≈̂-trans (cast-≈̂ {p = refl} {q = cong m (brkIn e L rest)})
-                                (≈̂-sym (⟦absorbˡ⟧ (brkIn e L rest))))))
-          (≈̂-trans
-            (rigid-≈̂ uIn
-              (Perm.trans (Perm.trans perm' (Perm.↭-reflexive (brkIn e L rest)))
-                          (ibraid e L rest))
-              (Perm.trans (PermProp.++⁺ˡ L p) (Perm.↭-reflexive (brkL e L rest))))
-            (≈̂-trans (⟦absorbˡ⟧ (brkL e L rest)) (⟦frameˡ⟧ L p)))
-
-    ------------------------------------------------------------------
-    -- ## (b) `fire-slideˢ` — the gating brick.
-    --
-    --   fire-termˢ e (L ++ xs) (L ++ rest) perm'
-    --     ≈ˢ castˢ (odom e L rest) (ocod e L rest) (permuteˢ (obraid e L rest))
-    --         ∘ˢ (idˢ {m L} ⊗ˢ fire-termˢ e xs rest p)
-    --
-    -- Requires `Unique ((L ++ ein e) ++ rest)`.  Both sides reduce to the
-    -- canonical `castˢ refl OC (OUT ∘ˢ castˢ refl ASout (MIDib ∘ INPb))`:
-    -- the LHS via `box-slide-restˢ′` + `mid-in-canon`, the RHS via
-    -- `rhs-canon`.
-    ------------------------------------------------------------------
     fire-slideˢ
       : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
           (perm' : (L ++ xs) Perm.↭ H.ein e ++ (L ++ rest))
           (p : xs Perm.↭ H.ein e ++ rest)
       → Unique ((L ++ H.ein e) ++ rest)
       → fire-termˢ e (L ++ xs) (L ++ rest) perm'
-        ≈ˢ castˢ (sym (map-++ vl L xs)) refl
-            ( castˢ (odom e L rest) (ocod e L rest) (permuteˢ (obraid e L rest))
-                ∘ˢ (idˢ {m L} ⊗ˢ fire-termˢ e xs rest p) )
-    -- Heterogeneous rewrite (F8): both the LHS (`fire-termˢ`, definitionally a
-    -- `castˢ` of `BOX ∘ castP`) and the RHS reduce to the shared canonical
-    -- `CANON`.  `cast-≈̂` strips every boundary cast content-first, so the LHS
-    -- collapses via `box-slide-restˢ′` + two `assocˢ` + `mid-in-canon`, and the former
-    -- `castP`/`INp`/`castP-recast`/`INp≡INin`/`Bd`/`Bc`/`SLID∘INp`-`slid-canon`/
-    -- `reassoc-cast` cast-shuffle scaffold (the EXEC-5-skipped cast-first block)
-    -- disappears: the domain `map-++` cast is never introduced, it is stripped.
+        ≈ᵛ castᵛ (odom e L rest) (ocod e L rest) (permuteᵛ (obraid e L rest))
+             ∘ᵛ (idᵛ {L} ⊗ᵛ fire-termˢ e xs rest p)
     fire-slideˢ e L xs rest perm' p uIn =
-      ≈̂⇒≈ˢ (≈̂-trans lhs≈̂canon (≈̂-sym rhs≈̂canon))
+      ≈̂⇒≈ˢ (≈̂-trans lhs≈̂canon (≈̂-sym (rhs-canon e L xs rest p)))
       where
-        SLID : HomS ((m (H.ein e) ++ m L) ++ m rest) ((m (H.eout e) ++ m L) ++ m rest)
-        SLID = (OUTb e L rest ∘ˢ MIDb e L rest) ∘ˢ INσb e L rest
-
-        CANON : HomS (m L ++ m xs) ((m (H.eout e) ++ m L) ++ m rest)
-        CANON = OUTb e L rest ∘ˢ castˢ refl (ASout e L rest) (MIDib e L rest ∘ˢ INPb e L xs rest p)
-
-        -- BOX (heterogeneously) equals its slid composite SLID: `box-slide-restˢ′`
-        -- with both its cast frames stripped by `cast-≈̂`.
-        box≈̂SLID : BOX e L rest ≈̂ SLID
-        box≈̂SLID =
-          ≈̂-trans (≈̂-sym (cast-≈̂ {p = cong (m (H.ein e) ++_) (map-++ vl L rest)}
-                                  {q = cong (m (H.eout e) ++_) (map-++ vl L rest)}))
-                  (≈̂-trans (≈ˢ⇒≈̂ (box-slide-restˢ′ e L rest))
-                           (cast-≈̂ {p = ++-assoc (m (H.ein e)) (m L) (m rest)}
-                                   {q = ++-assoc (m (H.eout e)) (m L) (m rest)}))
-
-        -- the raw input permute (= `fire-termˢ`'s FIRE-branch input) equals `INin`.
-        castP≈̂INin
-          : castˢ refl (map-++ vl (H.ein e) (L ++ rest)) (permuteˢ perm')
-            ≈̂ INin e L xs rest perm'
-        castP≈̂INin =
-          ≈̂-trans (cast-≈̂ {p = refl} {q = map-++ vl (H.ein e) (L ++ rest)})
-                  (≈̂-sym (≈̂-trans (cast-≈̂ {p = refl} {q = Pi e L rest})
-                                  (cast-≈̂ {p = refl} {q = cong m (brkIn e L rest)})))
-
-        -- MIDb ∘ (INσb ∘ INin) collapses to the canonical inner box, keeping only
-        -- the ASout re-association cast (the domain `map-++` cast is stripped).
-        mid-in-≈̂
-          : (MIDb e L rest ∘ˢ (INσb e L rest ∘ˢ INin e L xs rest perm'))
-            ≈̂ castˢ refl (ASout e L rest) (MIDib e L rest ∘ˢ INPb e L xs rest p)
-        mid-in-≈̂ =
-          ≈̂-trans (≈ˢ⇒≈̂ (mid-in-canon e L xs rest perm' p uIn))
-                  (≈̂-trans (cast-≈̂ {p = sym (map-++ vl L xs)} {q = ASout e L rest})
-                           (≈̂-sym (cast-≈̂ {p = refl} {q = ASout e L rest})))
-
-        -- LHS: fire-termˢ ≈̂ BOX ∘ castP ≈̂ SLID ∘ INin ≈̂ CANON.
-        lhs≈̂canon : fire-termˢ e (L ++ xs) (L ++ rest) perm' ≈̂ CANON
+        lhs≈̂canon : fire-termˢ e (L ++ xs) (L ++ rest) perm' ≈̂ CANON e L xs rest p
         lhs≈̂canon =
-          ≈̂-trans (cast-≈̂ {p = refl} {q = sym (map-++ vl (H.eout e) (L ++ rest))})
-          (≈̂-trans (∘-resp-≈̂ box≈̂SLID castP≈̂INin)
+          ≈̂-trans (≈ˢ⇒≈̂ (edge-step-firedᵛ e (L ++ rest) perm'))
+          (≈̂-trans (∘-resp-≈̂ (box-slide-restᵛ e L rest)
+                     (≈̂-sym (castᵛ-≈̂ refl (brkIn e L rest) (permuteᵛ perm'))))
           (≈̂-trans (≈ˢ⇒≈̂ assocˢ)
           (≈̂-trans (≈ˢ⇒≈̂ assocˢ)
-                   (∘-resp-≈̂ ≈̂-refl mid-in-≈̂))))
-
-        -- RHS: strip the outer `map-++` cast, apply `rhs-canon`, strip its cast.
-        rhs≈̂canon
-          : castˢ (sym (map-++ vl L xs)) refl
-              ( castˢ (odom e L rest) (ocod e L rest) (permuteˢ (obraid e L rest))
-                  ∘ˢ (idˢ {m L} ⊗ˢ fire-termˢ e xs rest p) )
-            ≈̂ CANON
-        rhs≈̂canon =
-          ≈̂-trans (cast-≈̂ {p = sym (map-++ vl L xs)} {q = refl})
-                  (≈̂-trans (≈ˢ⇒≈̂ (rhs-canon e L xs rest p))
-                           (cast-≈̂ {p = refl} {q = OC e L rest}))
-
+                   (∘-resp-≈̂ ≈̂-refl (mid-in-canon e L xs rest perm' p uIn)))))
 ------------------------------------------------------------------------
 -- ===== submodule TKB4 =====
 ------------------------------------------------------------------------
@@ -905,8 +621,6 @@ module TKB6 (H : Hypergraph FlatGen) where
     using (module EquivStep)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Separability sig _≟X_
     using (module StrictSep)
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_
-    using (module Scr)
   import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig as SU
   import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
   open import Data.Fin using (_↑ˡ_; _↑ʳ_; splitAt)
@@ -918,14 +632,7 @@ module TKB6 (H : Hypergraph FlatGen) where
   open import Data.Maybe using (Maybe; just; nothing)
 
   open StrictSep H using (extract-prefix-++ˡ-left; extract-prefix-++ˡ-left-nothing)
-  open EquivStep H using (pvv-transˢ; pvv-inverse-leftˢ)
-
-  private
-    module ScrH = Scr (Fin H.nV) H.vlab
-
-  -- an `idˢ` cast can move its single non-trivial endpoint to the other side.
-  idcast-flip : ∀ {a b : List X} (q : a ≡ b) → castˢ refl q (idˢ {a}) ≈ˢ castˢ (sym q) refl (idˢ {b})
-  idcast-flip refl = ≈-refl
+  open EquivStep H using (pvv-inverse-leftˢ)
 
   module _ (permˢ-K : Kmod.PermK) where
     KCleanHeadˢ = TKB5.KCleanHeadˢ H permˢ-K
@@ -1005,131 +712,35 @@ module TKB6 (H : Hypergraph FlatGen) where
     ----------------------------------------------------------------------
 
     private
-      -- the slide braid: move the fired output block `H.eout e` past `L`,
-      -- framed by `rest_R` (assoc-glued `↭-sym (obraid e L rest_R)`).
+      -- The output braid, presented on the box's own bracketing: the two
+      -- `++`-associativity transports of `castₒ` are absorbed as reindexing
+      -- factors of the derivation itself (`castᵛ-perm`).
+      obraidᴬ
+        : (e : Fin H.nE) (L rest_R : List (Fin H.nV))
+        → (L ++ (H.eout e ++ rest_R)) Perm.↭ (H.eout e ++ (L ++ rest_R))
+      obraidᴬ e L rest_R =
+        Perm.trans (Perm.↭-reflexive (sym (odom e L rest_R)))
+          (Perm.trans (obraid e L rest_R)
+                      (Perm.↭-reflexive (ocod e L rest_R)))
+
+      -- the slide braid: move the fired output block `H.eout e` back past `L`.
       slideβ
         : (e : Fin H.nE) (L rest_R : List (Fin H.nV))
         → (H.eout e ++ (L ++ rest_R)) Perm.↭ (L ++ (H.eout e ++ rest_R))
-      slideβ e L rest_R =
-        Perm.trans (Perm.↭-reflexive (sym (++-assoc (H.eout e) L rest_R)))
-          (Perm.trans (Perm.↭-sym (obraid e L rest_R))
-                      (Perm.↭-reflexive (++-assoc L (H.eout e) rest_R)))
+      slideβ e L rest_R = Perm.↭-sym (obraidᴬ e L rest_R)
 
-      ----------------------------------------------------------------------
-      -- ## `slide-braid-cancel` — the slide braid absorbs `castₒ`.
-      --
-      -- `permuteˢ β ∘ˢ castˢ (odom)(ocod)(permuteˢ obraid)` collapses to a pure
-      -- identity-cast, because `β`'s middle factor is `↭-sym obraid`, cancelled
-      -- against `castₒ`'s `permuteˢ obraid` by `pvv-inverse-leftˢ`.  The
-      -- surrounding `↭-reflexive` braids + `odom`/`ocod` casts combine (UIP) into
-      -- the single endpoint cast `castˢ refl (sym (map-++ vl L (eout++rest))) idˢ`.
-      ----------------------------------------------------------------------
-
+      -- `slide-braid-cancel`: the slide braid IS the inverse of the (reindexed)
+      -- output braid, so the round trip is `pvv-inverse-leftˢ`.
       slide-braid-cancel
         : ∀ (e : Fin H.nE) (L rest_R : List (Fin H.nV))
-        → permuteˢ (slideβ e L rest_R)
-            ∘ˢ castˢ (odom e L rest_R) (ocod e L rest_R)
-                     (permuteˢ (obraid e L rest_R))
-          ≈ˢ castˢ refl (sym (map-++ vl L (H.eout e ++ rest_R)))
-                   (idˢ {m L ++ m (H.eout e ++ rest_R)})
+        → permuteᵛ (slideβ e L rest_R)
+            ∘ᵛ castᵛ (odom e L rest_R) (ocod e L rest_R)
+                     (permuteᵛ (obraid e L rest_R))
+          ≈ᵛ idᵛ {L ++ (H.eout e ++ rest_R)}
       slide-braid-cancel e L rest_R =
-        -- permuteˢ β = permuteˢ C ∘ˢ (permuteˢ B ∘ˢ permuteˢ A)
-        ≈-trans (∘-resp (pvv-transˢ (Perm.↭-reflexive (sym aEO))
-                                    (Perm.trans B C)) ≈-refl)
-        (≈-trans (∘-resp (∘-resp (pvv-transˢ B C) ≈-refl) ≈-refl)
-        -- ((permuteˢ C ∘ permuteˢ B) ∘ permuteˢ A) ∘ castₒ : reassociate fully
-        (≈-trans assocˢ
-        (≈-trans assocˢ
-          -- permuteˢ C ∘ (permuteˢ B ∘ (permuteˢ A ∘ castₒ))
-          (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl A∘castₒ))
-          (≈-trans (∘-resp ≈-refl B∘rest)
-            C∘rest)))))
-        where
-          EO  = H.eout e
-          aEO = ++-assoc EO L rest_R
-          aL  = ++-assoc L EO rest_R
-          obr = obraid e L rest_R
-          B   = Perm.↭-sym obr
-          C   = Perm.↭-reflexive aL
-
-          castₒ : HomS (m L ++ m (EO ++ rest_R)) (m (EO ++ (L ++ rest_R)))
-          castₒ = castˢ (odom e L rest_R) (ocod e L rest_R) (permuteˢ obr)
-
-          -- permuteˢ A ≈ castˢ (ocod) refl idˢ  (refl-trivial + idcast-flip + UIP).
-          permA-cast
-            : permuteˢ (Perm.↭-reflexive (sym aEO))
-              ≈ˢ castˢ (ocod e L rest_R) refl (idˢ {m ((EO ++ L) ++ rest_R)})
-          permA-cast =
-            ≈-trans (ScrH.refl-trivial (sym aEO))
-            (≈-trans (idcast-flip (cong m (sym aEO)))
-              (≡⇒≈ˢ (cast-irrel (sym (cong m (sym aEO))) (ocod e L rest_R)
-                       refl refl (idˢ {m ((EO ++ L) ++ rest_R)}))))
-
-          -- permuteˢ A ∘ castₒ ≈ castˢ (odom) refl (permuteˢ obr)
-          A∘castₒ
-            : permuteˢ (Perm.↭-reflexive (sym aEO)) ∘ˢ castₒ
-              ≈ˢ castˢ (odom e L rest_R) refl (permuteˢ obr)
-          A∘castₒ =
-            ≈-trans (∘-resp permA-cast ≈-refl)
-            -- castˢ (ocod) refl idˢ ∘ castˢ (odom)(ocod)(permuteˢ obr)
-            (≈-trans
-              (≈-sym (∘-cast-split (odom e L rest_R) (ocod e L rest_R) refl
-                        (idˢ {m ((EO ++ L) ++ rest_R)}) (permuteˢ obr)))
-              (cast-resp (odom e L rest_R) refl idˡ))
-
-          -- permuteˢ B ∘ castˢ (odom) refl (permuteˢ obr)
-          --   ≈ castˢ (odom) refl idˢ   (pvv-inverse-leftˢ obr)
-          B∘rest
-            : permuteˢ B ∘ˢ castˢ (odom e L rest_R) refl (permuteˢ obr)
-              ≈ˢ castˢ (odom e L rest_R) refl (idˢ {m ((L ++ EO) ++ rest_R)})
-          B∘rest =
-            ≈-trans
-              (≈-sym (∘-cast-split (odom e L rest_R) refl refl
-                        (permuteˢ B) (permuteˢ obr)))
-              (cast-resp (odom e L rest_R) refl
-                (≈-trans (∘-resp (≡⇒≈ˢ refl) ≈-refl)
-                         (pvv-inverse-leftˢ obr)))
-
-          -- permuteˢ C ∘ castˢ (odom) refl idˢ ≈ castˢ (odom)(cong m aL) idˢ.
-          C∘rest
-            : permuteˢ C ∘ˢ castˢ (odom e L rest_R) refl (idˢ {m ((L ++ EO) ++ rest_R)})
-              ≈ˢ castˢ refl (sym (map-++ vl L (EO ++ rest_R)))
-                       (idˢ {m L ++ m (EO ++ rest_R)})
-          C∘rest =
-            ≈-trans (∘-resp (ScrH.refl-trivial aL) ≈-refl)
-            -- castˢ refl (cong m aL) idˢ ∘ castˢ (odom) refl idˢ  (merge, idˡ)
-            (≈-trans
-              (≈-sym (∘-cast-split (odom e L rest_R) refl (cong m aL)
-                        (idˢ {m ((L ++ EO) ++ rest_R)})
-                        (idˢ {m ((L ++ EO) ++ rest_R)})))
-            (≈-trans
-              (cast-resp (odom e L rest_R) (cong m aL) idˡ)
-              -- castˢ (odom)(cong m aL) idˢ{X₀} → bridge to castᴵ via idˢ{Y₀}.
-              end-bridge))
-            where
-              X₀ = m ((L ++ EO) ++ rest_R)
-              Y₀ = m L ++ m (EO ++ rest_R)
-              od = odom e L rest_R   -- od : X ≡ Y
-
-              -- castˢ od (cong m aL) idˢ{X}
-              --   ≈ castˢ refl (trans (sym od)(cong m aL)) (castˢ od od idˢ{X})
-              --   ≈ castˢ refl (trans (sym od)(cong m aL)) idˢ{Y}
-              --   ≈ castᴵ
-              end-bridge
-                : castˢ od (cong m aL) (idˢ {X₀})
-                  ≈ˢ castˢ refl (sym (map-++ vl L (EO ++ rest_R))) (idˢ {Y₀})
-              end-bridge =
-                ≈-trans
-                  (≡⇒≈ˢ (sym
-                    (trans (cast-fuse od refl od (trans (sym od) (cong m aL))
-                              (idˢ {X₀}))
-                           (cast-irrel (trans od refl) od
-                              (trans od (trans (sym od) (cong m aL))) (cong m aL)
-                              (idˢ {X₀})))))
-                (≈-trans
-                  (cast-resp refl (trans (sym od) (cong m aL)) (cast-id od od))
-                  (≡⇒≈ˢ (cast-irrel refl refl (trans (sym od) (cong m aL))
-                           (sym (map-++ vl L (EO ++ rest_R))) (idˢ {Y₀}))))
+        ≈-trans (∘-resp ≈-refl (castᵛ-perm (odom e L rest_R) (ocod e L rest_R)
+                                  (obraid e L rest_R)))
+                (pvv-inverse-leftˢ (obraidᴬ e L rest_R))
 
     head-slide-fire
       : ∀ (e : Fin H.nE) (L s_R rest_R : List (Fin H.nV))
@@ -1142,33 +753,14 @@ module TKB6 (H : Hypergraph FlatGen) where
     ... | D , eqLR
       rewrite eqR | eqLR = slideβ e L rest_R , slide-eq
       where
-        EO   = H.eout e
-        mLs  = map-++ vl L s_R
-        mLo  = map-++ vl L (EO ++ rest_R)
-        Xf   = idˢ {m L} ⊗ˢ fire-termˢ e s_R rest_R p
-        castₒ : HomS (m L ++ m (EO ++ rest_R)) (m (EO ++ (L ++ rest_R)))
-        castₒ = castˢ (odom e L rest_R) (ocod e L rest_R) (permuteˢ (obraid e L rest_R))
-
         slide-eq
-          : permuteˢ (slideβ e L rest_R)
-              ∘ˢ fire-termˢ e (L ++ s_R) (L ++ rest_R) D
-            ≈ˢ castˢ (sym mLs) (sym mLo) Xf
+          : permuteᵛ (slideβ e L rest_R)
+              ∘ᵛ fire-termˢ e (L ++ s_R) (L ++ rest_R) D
+            ≈ᵛ idᵛ {L} ⊗ᵛ fire-termˢ e s_R rest_R p
         slide-eq =
-          -- rewrite the fired layer by `fire-slideˢ`.
           ≈-trans (∘-resp ≈-refl (fire-slideˢ e L s_R rest_R D p uIn))
-          -- permuteˢ β ∘ castˢ (sym mLs) refl (castₒ ∘ Xf)
-          (≈-trans (∘-resp ≈-refl
-                     (≈-trans (∘-cast-split (sym mLs) refl refl castₒ Xf)
-                              (∘-resp (≡⇒≈ˢ refl) ≈-refl)))
-          -- permuteˢ β ∘ (castₒ ∘ castˢ (sym mLs) refl X)
           (≈-trans (≈-sym assocˢ)
-          -- (permuteˢ β ∘ castₒ) ∘ castˢ (sym mLs) refl X
-          (≈-trans (∘-resp (slide-braid-cancel e L rest_R) ≈-refl)
-          -- castᴵ ∘ castˢ (sym mLs) refl X  →  merge to castˢ (sym mLs)(sym mLo)(idˢ ∘ Xf)
-          (≈-trans
-            (≈-sym (∘-cast-split (sym mLs) refl (sym mLo)
-                      (idˢ {m L ++ m (EO ++ rest_R)}) Xf))
-            (cast-resp (sym mLs) (sym mLo) idˡ)))))
+                   (≈-trans (∘-resp (slide-braid-cancel e L rest_R) ≈-refl) idˡ))
 
     ----------------------------------------------------------------------
     -- ## The FIRE/SKIP dispatcher → a uniform `HeadSlideˢ` family.

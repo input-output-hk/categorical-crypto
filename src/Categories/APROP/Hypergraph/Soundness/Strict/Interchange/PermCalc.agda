@@ -64,6 +64,9 @@ module Kit (H : Hypergraph FlatGen)
 
   open StrictDecoder H
 
+  open Restrict (Fin H.nV) vl
+    using (HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ)
+
   private
     m : List (Fin H.nV) → List X
     m = map vl
@@ -113,6 +116,13 @@ module Kit (H : Hypergraph FlatGen)
     → permuteˢ (PermProp.++⁺ˡ ls p) ≈̂ idˢ {m ls} ⊗ˢ permuteˢ p
   ⟦frameˡ⟧ ls p = ≈̂-trans (≈̂-sym cast-≈̂) (≈ˢ⇒≈̂ (perm-frameˡ′ ls p))
 
+  -- …and its V-level face, where the frame IS `idᵛ ⊗ᵛ_` (no cast to peel).
+  ⟦frameˡ⟧ᵛ
+    : ∀ (ls : List (Fin H.nV)) {xs ys : List (Fin H.nV)} (p : xs Perm.↭ ys)
+    → permuteᵛ (PermProp.++⁺ˡ ls p) ≈ᵛ idᵛ {ls} ⊗ᵛ permuteᵛ p
+  ⟦frameˡ⟧ᵛ ls {xs} {ys} p =
+    cast-flip (map-++ vl ls xs) (map-++ vl ls ys) (perm-frameˡ′ ls p)
+
   ------------------------------------------------------------------------
   -- ⟦frameʳ⟧ : a `++⁺ʳ R` frame becomes a `_⊗ˢ idˢ` frame.
   ------------------------------------------------------------------------
@@ -134,6 +144,12 @@ module Kit (H : Hypergraph FlatGen)
                              {q = sym (map-++ vl (R ++ L) Rl)})
                      (⊗-resp-≈̂ (cast-≈̂ {p = sym (map-++ vl L R)}
                                        {q = sym (map-++ vl R L)}) ≈̂-refl))
+
+  -- …and its V-level face: `BlockSwapComm.swap-block` verbatim.
+  ⟦bswap⟧ᵛ
+    : ∀ (L R Rl : List (Fin H.nV))
+    → permuteᵛ (PermProp.++⁺ʳ Rl (bswap L R)) ≈ᵛ σᵛ L R ⊗ᵛ idᵛ {Rl}
+  ⟦bswap⟧ᵛ = swap-block′
 
   ------------------------------------------------------------------------
   -- rigid-≈̂ : the RIGIDITY discharge — any two derivations into a `Unique`

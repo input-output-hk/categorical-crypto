@@ -727,6 +727,25 @@ module Build
       → (f ∘ᵛ g) ⊗ᵛ idᵛ {R} ≈ᵛ (f ⊗ᵛ idᵛ {R}) ∘ᵛ (g ⊗ᵛ idᵛ {R})
     ⊗id-distᵛ f g = ≈-trans (⊗-respᵛ ≈-refl (≈-sym idˡ)) (≈-sym interchangeᵛ)
 
+    -- a `castᵛ` of a wiring term is again a wiring term: the endpoint
+    -- transports are absorbed as reindexing factors of the derivation
+    castᵛ-perm
+      : ∀ {as as' bs bs'} (p : as ≡ as') (q : bs ≡ bs') (r : as ↭ bs)
+      → castᵛ p q (permuteᵛ r)
+        ≈ᵛ permuteᵛ (Perm.trans (Perm.↭-reflexive (sym p))
+                      (Perm.trans r (Perm.↭-reflexive q)))
+    castᵛ-perm refl refl r = ≈-sym (≈-trans idʳ idˡ)
+
+    -- σ-conjugation: a right identity frame crosses the braiding to the left
+    box-conjᵛ
+      : ∀ {as bs} (g : HomV as bs) (cs : List V)
+      → g ⊗ᵛ idᵛ {cs} ≈ᵛ σᵛ cs bs ∘ᵛ ((idᵛ {cs} ⊗ᵛ g) ∘ᵛ σᵛ as cs)
+    box-conjᵛ g cs =
+      ≈-sym
+        (≈-trans (≈-sym assocˢ)
+          (≈-trans (∘-resp σ-natᵛ ≈-refl)
+            (≈-trans assocˢ (≈-trans (∘-resp ≈-refl σ-σᵛ) idʳ))))
+
     -- left-frame mirror of `⊗id-distᵛ`
     id⊗-distᵛ
       : ∀ {as bs cs L : List V} (g : HomV bs cs) (f : HomV as bs)
