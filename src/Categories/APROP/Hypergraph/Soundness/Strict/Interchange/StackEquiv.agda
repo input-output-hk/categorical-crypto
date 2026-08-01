@@ -160,73 +160,27 @@ module EquivStep (H : Hypergraph FlatGen) where
       ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
         ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) idˢ)
 
-  fire-term-factorˢ
-    : ∀ (e : Fin H.nE) (s rest : List (Fin H.nV))
-        (perm : s Perm.↭ H.ein e ++ rest)
-    → fire-termˢ e s rest perm ≈ˢ fire-midˢ e rest ∘ˢ permuteˢ perm
-  fire-term-factorˢ e s rest perm = ≈-sym
-    (≈-trans
-      -- fire-midˢ ∘ perm = castˢ(box∘castid) ∘ perm: pull the outer cast
-      -- around the whole composite.
-      (≈-sym (∘-cast-split refl refl (sym (map-++ vl (H.eout e) rest))
-        ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
-          ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) idˢ)
-        (permuteˢ perm)))
-    (≈-trans
-      -- reassociate: (box ∘ cast-id) ∘ perm ≈ box ∘ (cast-id ∘ perm)
-      (cast-resp refl (sym (map-++ vl (H.eout e) rest)) assocˢ)
-      -- cast-id ∘ perm ≈ castˢ map-++ein (permuteˢ perm)
-      (cast-resp refl (sym (map-++ vl (H.eout e) rest))
-        (∘-resp ≈-refl (≈-sym inner-id)))))
-    where
-      inner-id
-        : castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ perm)
-          ≈ˢ castˢ refl (map-++ vl (H.ein e) rest) idˢ ∘ˢ permuteˢ perm
-      inner-id =
-        ≈-trans (cast-resp refl (map-++ vl (H.ein e) rest) (≈-sym idˡ))
-        (∘-cast-split refl refl (map-++ vl (H.ein e) rest)
-                   idˢ (permuteˢ perm))
-
-  -- a coercion `idˢ` cast flips to the other side.
-  private
-    castid-flip
-      : ∀ {A A' : List X} (q : A ≡ A')
-      → castˢ refl q (idˢ {A}) ≈ˢ castˢ (sym q) refl (idˢ {A'})
-    castid-flip refl = ≈-refl
-
-  -- `fire-midˢ` collapsed to a single two-sided `map-++` cast of `box-core`.
+  -- `fire-midˢ` collapsed to a single two-sided `map-++` cast of `box-core` —
+  -- i.e. to `genˢ (elab e) ⊗ᵛ idᵛ {rest}`.  `fire-midˢ e rest` IS
+  -- `fire-termˢ e _ rest Perm.refl`, so this is `edge-step-firedᵛ` at the
+  -- identity wiring.
   fire-midˢ-cast
     : ∀ (e : Fin H.nE) (rest : List (Fin H.nV))
     → fire-midˢ e rest
       ≈ˢ castˢ (sym (map-++ vl (H.ein e) rest)) (sym (map-++ vl (H.eout e) rest))
            (genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
   fire-midˢ-cast e rest =
-    ≈-trans
-      -- box ∘ castˢ map-++ein idˢ ≈ castˢ (sym map-++ein) refl box
-      (cast-resp refl (sym (map-++ vl (H.eout e) rest)) slide)
-      -- fuse the two outer casts
-      (≡⇒≈ˢ (trans
-              (cast-fuse (sym (map-++ vl (H.ein e) rest)) refl
-                         refl (sym (map-++ vl (H.eout e) rest))
-                         (genˢ (H.elab e) ⊗ˢ idˢ {map vl rest}))
-              (cast-irrel (trans (sym (map-++ vl (H.ein e) rest)) refl)
-                          (sym (map-++ vl (H.ein e) rest))
-                          (trans refl (sym (map-++ vl (H.eout e) rest)))
-                          (sym (map-++ vl (H.eout e) rest))
-                          (genˢ (H.elab e) ⊗ˢ idˢ {map vl rest}))))
-    where
-      slide
-        : (genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
-            ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) idˢ
-          ≈ˢ castˢ (sym (map-++ vl (H.ein e) rest)) refl
-               (genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
-      slide =
-        ≈-trans (∘-resp ≈-refl (castid-flip (map-++ vl (H.ein e) rest)))
-        (≈-trans
-          (≈-sym (∘-cast-split (sym (map-++ vl (H.ein e) rest)) refl refl
-                    (genˢ (H.elab e) ⊗ˢ idˢ {map vl rest}) idˢ))
-          (cast-resp (sym (map-++ vl (H.ein e) rest)) refl idʳ))
+    ≈-trans (edge-step-firedᵛ e rest Perm.refl) idʳ
 
+  -- `fire-termˢ` factors as the `rest`-box after the wiring.  Both sides are
+  -- the `Restrict`-layer `firedᵛ e rest perm` (`Decoder.edge-step-firedᵛ`).
+  fire-term-factorˢ
+    : ∀ (e : Fin H.nE) (s rest : List (Fin H.nV))
+        (perm : s Perm.↭ H.ein e ++ rest)
+    → fire-termˢ e s rest perm ≈ˢ fire-midˢ e rest ∘ˢ permuteˢ perm
+  fire-term-factorˢ e s rest perm =
+    ≈-trans (edge-step-firedᵛ e rest perm)
+            (≈-sym (∘-resp (fire-midˢ-cast e rest) ≈-refl))
 
   ----------------------------------------------------------------------
   -- FIRE-BOX naturality (the strict `fire-mid-equivariant` twin).  The
