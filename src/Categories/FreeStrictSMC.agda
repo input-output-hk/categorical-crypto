@@ -727,6 +727,12 @@ module Build
       → (f ∘ᵛ g) ⊗ᵛ idᵛ {R} ≈ᵛ (f ⊗ᵛ idᵛ {R}) ∘ᵛ (g ⊗ᵛ idᵛ {R})
     ⊗id-distᵛ f g = ≈-trans (⊗-respᵛ ≈-refl (≈-sym idˡ)) (≈-sym interchangeᵛ)
 
+    -- left-frame mirror of `⊗id-distᵛ`
+    id⊗-distᵛ
+      : ∀ {as bs cs L : List V} (g : HomV bs cs) (f : HomV as bs)
+      → idᵛ {L} ⊗ᵛ (g ∘ᵛ f) ≈ᵛ (idᵛ {L} ⊗ᵛ g) ∘ᵛ (idᵛ {L} ⊗ᵛ f)
+    id⊗-distᵛ g f = ≈-trans (⊗-respᵛ (≈-sym idˡ) ≈-refl) (≈-sym interchangeᵛ)
+
     box-suffix-ᵛ
       : ∀ {as bs} (b : HomV as bs) (rest R : List V)
       → castᵛ (++-assoc as rest R) (++-assoc bs rest R)

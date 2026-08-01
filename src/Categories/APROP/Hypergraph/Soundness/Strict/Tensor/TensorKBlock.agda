@@ -53,6 +53,9 @@ module TKBBase (H : Hypergraph FlatGen) where
 
   open Dec.StrictDecoder H public
 
+  open Restrict (Fin H.nV) vl public
+    using (HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ; ⊗-idᵛ; id⊗-distᵛ)
+
   module Kmod = Support (Fin H.nV) H.vlab
 
   m : List (Fin H.nV) → List X
@@ -620,10 +623,9 @@ module TKB4 (H : Hypergraph FlatGen) where
     ----------------------------------------------------------------------
     -- ## The clean K-block frame.
     --
-    -- `KCleanˢ es L s_R` is the clean target `idˢ {m L} ⊗ˢ <clean K-run on
-    -- s_R>`, framed by the `map-++` casts (the strict twin of the non-strict
-    -- `KClean`, where `BTC.uf++` is replaced by the trivial `map-++` cast — no
-    -- `unflatten-++-≅` cone is needed in the strict world).
+    -- `KCleanˢ es L s_R` is the clean target `idᵛ {L} ⊗ᵛ <clean K-run on s_R>`
+    -- (the strict twin of the non-strict `KClean`, where `BTC.uf++` becomes the
+    -- `⊗ᵛ` frame — no `unflatten-++-≅` cone is needed in the strict world).
     --
     -- The clean K-run is `proj₂ (process-edgesˢ es s_R)` — the SAME `kblk`-run
     -- restricted to the pure-`s_R` stack.  Here `L` is the carried prefix and
@@ -631,12 +633,8 @@ module TKB4 (H : Hypergraph FlatGen) where
 
     KCleanˢ
       : ∀ (es : List (Fin H.nE)) (L s_R : List (Fin H.nV))
-      → HomS (m (L ++ s_R))
-             (m (L ++ proj₁ (process-edgesˢ es s_R)))
-    KCleanˢ es L s_R =
-      castˢ (sym (map-++ vl L s_R))
-            (sym (map-++ vl L (proj₁ (process-edgesˢ es s_R))))
-        (idˢ {m L} ⊗ˢ proj₂ (process-edgesˢ es s_R))
+      → HomV (L ++ s_R) (L ++ proj₁ (process-edgesˢ es s_R))
+    KCleanˢ es L s_R = idᵛ {L} ⊗ᵛ proj₂ (process-edgesˢ es s_R)
 
     ----------------------------------------------------------------------
     -- ## The per-edge HEAD reconciliation interface.
@@ -660,82 +658,51 @@ module TKB4 (H : Hypergraph FlatGen) where
       : ∀ (e : Fin H.nE) (L s_R s s1 : List (Fin H.nV))
           (pf  : s  Perm.↭ L ++ s_R)
           (pf1 : s1 Perm.↭ L ++ proj₁ (edge-stepˢ s_R e))
-          (KCleanHd : HomS (m (L ++ s_R))
-                           (m (L ++ proj₁ (edge-stepˢ s_R e))))
-          (tH : HomS (m s) (m s1))
+          (KCleanHd : HomV (L ++ s_R) (L ++ proj₁ (edge-stepˢ s_R e)))
+          (tH : HomV s s1)
       → Set
-    HeadReconcileˢ e L s_R s s1 pf pf1 KCleanHd tH = permuteˢ pf1 ∘ˢ tH ≈ˢ KCleanHd ∘ˢ permuteˢ pf
+    HeadReconcileˢ e L s_R s s1 pf pf1 KCleanHd tH =
+      permuteᵛ pf1 ∘ᵛ tH ≈ᵛ KCleanHd ∘ᵛ permuteᵛ pf
 
     ----------------------------------------------------------------------
     -- ## `KCleanˢ` empty + cons telescoping.
     ----------------------------------------------------------------------
 
-    -- `[]`: the clean block on `[]` edges collapses to a `map-++` round-trip
-    -- cast of `idˢ {m L} ⊗ˢ idˢ` = `idˢ`.
-    KCleanˢ-nil : ∀ (L s_R : List (Fin H.nV)) → KCleanˢ [] L s_R ≈ˢ idˢ {m (L ++ s_R)}
-    KCleanˢ-nil L s_R =
-      -- KCleanˢ [] L s_R = castˢ (sym map++)(sym map++) (idˢ{L} ⊗ˢ idˢ)
-      ≈-trans (cast-resp (sym (map-++ vl L s_R)) (sym (map-++ vl L s_R)) ⊗-id)
-        (cast-id (sym (map-++ vl L s_R)) (sym (map-++ vl L s_R)))
+    -- `[]`: the clean block on `[]` edges is `idᵛ {L} ⊗ᵛ idᵛ {s_R}`.
+    KCleanˢ-nil : ∀ (L s_R : List (Fin H.nV)) → KCleanˢ [] L s_R ≈ᵛ idᵛ {L ++ s_R}
+    KCleanˢ-nil L s_R = ⊗-idᵛ
 
     ----------------------------------------------------------------------
     -- ## The clean single-edge head block.
     --
-    -- `KCleanHeadˢ e L s_R` is the clean head: `idˢ {m L} ⊗ˢ <clean head term
-    -- on s_R>`, framed by `map-++` casts.  The clean head term is
-    -- `proj₂ (edge-stepˢ s_R e)`.
+    -- `KCleanHeadˢ e L s_R` is the clean head `idᵛ {L} ⊗ᵛ <clean head term on
+    -- s_R>`; the clean head term is `proj₂ (edge-stepˢ s_R e)`.
     ----------------------------------------------------------------------
 
     KCleanHeadˢ
       : ∀ (e : Fin H.nE) (L s_R : List (Fin H.nV))
-      → HomS (m (L ++ s_R)) (m (L ++ proj₁ (edge-stepˢ s_R e)))
-    KCleanHeadˢ e L s_R =
-      castˢ (sym (map-++ vl L s_R))
-            (sym (map-++ vl L (proj₁ (edge-stepˢ s_R e))))
-        (idˢ {m L} ⊗ˢ proj₂ (edge-stepˢ s_R e))
+      → HomV (L ++ s_R) (L ++ proj₁ (edge-stepˢ s_R e))
+    KCleanHeadˢ e L s_R = idᵛ {L} ⊗ᵛ proj₂ (edge-stepˢ s_R e)
 
     ----------------------------------------------------------------------
     -- ## `KCleanˢ` cons telescoping.
     --
     -- The clean run `KCleanˢ (e ∷ es) L s_R` factors as the clean tail
     -- `KCleanˢ es L (edge-stepˢ s_R e).₁` post-composed with the clean head
-    -- `KCleanHeadˢ e L s_R`.  Both reduce to the SAME `idˢ{L} ⊗ˢ (-)` framed
-    -- form; the strict twin of `KClean-cons`, via `interchangeˢ` (the
-    -- `idˢ{L} ∘ˢ idˢ{L} = idˢ{L}` middle insertion) + cast fusion.
+    -- `KCleanHeadˢ e L s_R`.  Both are `idᵛ {L} ⊗ᵛ (-)`, so this is exactly
+    -- `id⊗-distᵛ` (the strict twin of `KClean-cons`).
     ----------------------------------------------------------------------
 
     private
       s_R1 : (e : Fin H.nE) (s_R : List (Fin H.nV)) → List (Fin H.nV)
       s_R1 e s_R = proj₁ (edge-stepˢ s_R e)
 
-      -- the cons-stack of the clean run.
-      s_Rfin : (e : Fin H.nE) (es : List (Fin H.nE)) (s_R : List (Fin H.nV)) → List (Fin H.nV)
-      s_Rfin e es s_R = proj₁ (process-edgesˢ es (s_R1 e s_R))
-
     KCleanˢ-cons
       : ∀ (e : Fin H.nE) (es : List (Fin H.nE)) (L s_R : List (Fin H.nV))
       → KCleanˢ (e ∷ es) L s_R
-        ≈ˢ KCleanˢ es L (s_R1 e s_R) ∘ˢ KCleanHeadˢ e L s_R
-    KCleanˢ-cons e es L s_R = goal
-      where
-        eh = proj₂ (edge-stepˢ s_R e)
-        et = proj₂ (process-edgesˢ es (s_R1 e s_R))
-        sR1 = s_R1 e s_R
-        sRf = s_Rfin e es s_R
-
-        -- the clean K-run on (e ∷ es) is `et ∘ˢ eh`.
-        -- step 1: id{L} ⊗ (et ∘ eh) ≈ (id{L} ⊗ et) ∘ (id{L} ⊗ eh)  [id⊗-distˢ]
-
-        Pi  = sym (map-++ vl L s_R)
-        Po  = sym (map-++ vl L sRf)
-        Pm  = sym (map-++ vl L sR1)
-
-        goal : KCleanˢ (e ∷ es) L s_R ≈ˢ KCleanˢ es L sR1 ∘ˢ KCleanHeadˢ e L s_R
-        goal =
-          -- LHS = castˢ Pi Po (id{L} ⊗ (et ∘ eh))
-          ≈-trans (cast-resp Pi Po (id⊗-distˢ (m L) et eh))
-          -- castˢ Pi Po ((id{L}⊗et) ∘ (id{L}⊗eh))
-          (∘-cast-split Pi Pm Po (idˢ {m L} ⊗ˢ et) (idˢ {m L} ⊗ˢ eh))
+        ≈ᵛ KCleanˢ es L (s_R1 e s_R) ∘ᵛ KCleanHeadˢ e L s_R
+    KCleanˢ-cons e es L s_R =
+      id⊗-distᵛ (proj₂ (process-edgesˢ es (s_R1 e s_R))) (proj₂ (edge-stepˢ s_R e))
 
     ----------------------------------------------------------------------
     -- ## The K-prepend braid round-trip cancellation.
@@ -749,7 +716,7 @@ module TKB4 (H : Hypergraph FlatGen) where
     pvv-cancelˢ
       : ∀ {s c : List (Fin H.nV)} → Unique s
       → (pf : s Perm.↭ c) (Br : c Perm.↭ s)
-      → permuteˢ Br ∘ˢ permuteˢ pf ≈ˢ idˢ {m s}
+      → permuteᵛ Br ∘ᵛ permuteᵛ pf ≈ᵛ idᵛ {s}
     pvv-cancelˢ uniq pf Br =
       ≈-trans (≈-sym (pvv-transˢ pf Br))
         (perm-rigidˢ uniq (Perm.trans pf Br) Perm.↭-refl)
@@ -816,7 +783,7 @@ module TKB4 (H : Hypergraph FlatGen) where
                 Perm.↭ proj₁ (process-edgesˢ es s))
       → SUR.Reservoir≤1 H es s
       → proj₂ (process-edgesˢ es s)
-        ≈ˢ permuteˢ Br ∘ˢ (KCleanˢ es L s_R ∘ˢ permuteˢ pf)
+        ≈ᵛ permuteᵛ Br ∘ᵛ (KCleanˢ es L s_R ∘ᵛ permuteᵛ pf)
     kfac-gen-resˢ L hp [] [] s_R s pf Br res =
       ≈-sym
         (≈-trans (∘-resp ≈-refl (∘-resp (KCleanˢ-nil L s_R) ≈-refl))
@@ -841,7 +808,7 @@ module TKB4 (H : Hypergraph FlatGen) where
                      (sym (edge-stack-agree s e))
                      (SUR.edge-step-Reservoir≤1 H e es s res)
 
-        IH : proj₂ (process-edgesˢ es s1) ≈ˢ permuteˢ Br ∘ˢ (KCleanˢ es L sR1 ∘ˢ permuteˢ pf1)
+        IH : proj₂ (process-edgesˢ es s1) ≈ᵛ permuteᵛ Br ∘ᵛ (KCleanˢ es L sR1 ∘ᵛ permuteᵛ pf1)
         IH = kfac-gen-resˢ L hp es des sR1 s1 pf1 Br res1
 
 ------------------------------------------------------------------------
@@ -875,8 +842,8 @@ module TKB5 (H : Hypergraph FlatGen) where
     HeadSlideˢ e L s_R =
       Σ[ β ∈ (proj₁ (edge-stepˢ (L ++ s_R) e))
                Perm.↭ (L ++ proj₁ (edge-stepˢ s_R e)) ]
-        ( permuteˢ β ∘ˢ proj₂ (edge-stepˢ (L ++ s_R) e)
-          ≈ˢ KCleanHeadˢ e L s_R )
+        ( permuteᵛ β ∘ᵛ proj₂ (edge-stepˢ (L ++ s_R) e)
+          ≈ᵛ KCleanHeadˢ e L s_R )
 
     ----------------------------------------------------------------------
     -- ## The equivariance conjugation glue.
@@ -906,7 +873,7 @@ module TKB5 (H : Hypergraph FlatGen) where
 
         -- eq : tH ≈ permuteˢ (↭-sym ρf) ∘ (tHclean ∘ permuteˢ pf)
         -- goal : permuteˢ (trans ρf β) ∘ tH ≈ KCleanHeadˢ ∘ permuteˢ pf
-        goal : permuteˢ (Perm.trans ρf β) ∘ˢ tH ≈ˢ KCleanHeadˢ e L s_R ∘ˢ permuteˢ pf
+        goal : permuteᵛ (Perm.trans ρf β) ∘ᵛ tH ≈ᵛ KCleanHeadˢ e L s_R ∘ᵛ permuteᵛ pf
         goal =
           -- permuteˢ (trans ρf β) = permuteˢ β ∘ permuteˢ ρf  (definitional)
           ≈-trans (∘-resp (pvv-transˢ ρf β) ≈-refl)
@@ -1005,16 +972,10 @@ module TKB6 (H : Hypergraph FlatGen) where
       head-slide-skip-core e L s_R eqn eqn-LR
         rewrite eqn | eqn-LR = Perm.↭-refl , slide
         where
-          q : m (L ++ s_R) ≡ m L ++ m s_R
-          q = map-++ vl L s_R
-
           slide
-            : permuteˢ {xs = L ++ s_R} Perm.↭-refl ∘ˢ idˢ {m (L ++ s_R)}
-              ≈ˢ castˢ (sym q) (sym q) (idˢ {m L} ⊗ˢ idˢ {m s_R})
-          slide =
-            ≈-trans idˡ
-              (≈-sym (≈-trans (cast-resp (sym q) (sym q) ⊗-id)
-                              (cast-id (sym q) (sym q))))
+            : permuteᵛ {as = L ++ s_R} Perm.↭-refl ∘ᵛ idᵛ {L ++ s_R}
+              ≈ᵛ idᵛ {L} ⊗ᵛ idᵛ {s_R}
+          slide = ≈-trans idˡ (≈-sym ⊗-idᵛ)
 
     head-slide-skip
       : ∀ (e : Fin H.nE) (L s_R : List (Fin H.nV))
