@@ -56,6 +56,7 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
   using (module Support)
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig _≟X_ as PVV
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 
@@ -66,7 +67,7 @@ open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as UniqueProp
 open import Data.Product using (proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst; subst₂)
+  using (_≡_; refl; sym; trans; cong; subst)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
@@ -211,24 +212,14 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
                        (Linear⇒cod-Unique G lin-G))
 
   ----------------------------------------------------------------------
-  -- ## Perm-coherence on `Fin C.nV` (the strict `permC-coh`/`permRemap-coh`).
+  -- ## The wiring-groupoid calculus on `Fin C.nV`: rigidity (`rigid-≈̂`) and
+  -- the reindexing absorptions (`⟦absorbˡ⟧`/`⟦absorbʳ⟧`).
 
   private
     permˢ-K-C : Support.PermK (Fin C.nV) C.vlab
     permˢ-K-C = PK.permˢ-K (Fin C.nV) _≟F_ C.vlab
 
-    -- two derivations into the SAME `Unique` stack give `permuteˢ`-equal terms.
-    permC-coh
-      : ∀ {s : List (Fin C.nV)} → Unique C.cod
-      → (p q : s Perm.↭ C.cod)
-      → RC.permuteˢ p ≈ˢ RC.permuteˢ q
-    permC-coh u p q = Support.perm-rigidˢ (Fin C.nV) C.vlab permˢ-K-C u p q
-
-    permRemap-coh
-      : ∀ {s : List (Fin C.nV)} → Unique (map remapP K.dom)
-      → (p q : s Perm.↭ map remapP K.dom)
-      → RC.permuteˢ p ≈ˢ RC.permuteˢ q
-    permRemap-coh u p q = Support.perm-rigidˢ (Fin C.nV) C.vlab permˢ-K-C u p q
+    open PC.Kit Chg permˢ-K-C using (⟦absorbˡ⟧; ⟦absorbʳ⟧; rigid-≈̂)
 
   ----------------------------------------------------------------------
   -- ## The strict cross-vertex-type relabel `pvv-relabelˢ` (strict twin of
@@ -351,15 +342,6 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   PGˢ : HomS (map K.vlab s_K_final) (map K.vlab K.cod)
   PGˢ = RK.permuteˢ perm-g
 
-  private
-    -- 2-sided `permuteˢ`-of-subst₂ (C-level); refl-matched.
-    permuteˢ-subst₂-C
-      : ∀ {xs xs' ys ys' : List (Fin C.nV)} (a : xs ≡ xs') (b : ys ≡ ys')
-          (r : xs Perm.↭ ys)
-      → RC.permuteˢ (subst₂ Perm._↭_ a b r)
-        ≡ castˢ (cong (map vlC) a) (cong (map vlC) b) (RC.permuteˢ r)
-    permuteˢ-subst₂-C refl refl r = refl
-
   -- Boundary equalities for the G-block.
   map-rKd : map remapP K.dom ≡ map injL G.cod
   map-rKd = LP.map-remapP-K-dom G K bdy lin-G lin-K
@@ -370,9 +352,12 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   midG-cod : map vlC (map remapP K.dom) ≡ map G.vlab G.cod
   midG-cod = trans (cong (map vlC) map-rKd) (TG.vlab-φ G.cod)
 
-  -- the injL-lifted canonical perm for the G-block (strict `injf-↭`).
+  -- the injL-lifted canonical perm for the G-block (strict `injf-↭`), with both
+  -- reindexings INSIDE the derivation so `⟦absorbˡ⟧`/`⟦absorbʳ⟧` absorb them.
   injf-↭ : after-G Perm.↭ map remapP K.dom
-  injf-↭ = subst₂ Perm._↭_ (sym after-G-≡) (sym map-rKd) (PermProp.map⁺ injL perm-f)
+  injf-↭ = Perm.trans (Perm.↭-reflexive after-G-≡)
+             (Perm.trans (PermProp.map⁺ injL perm-f)
+                         (Perm.↭-reflexive (sym map-rKd)))
 
   ----------------------------------------------------------------------
   -- G-block permute: `castˢ M1G midG-cod permAG ≈ˢ PFˢ`.
@@ -380,17 +365,15 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   private
     gperm' : castˢ M1G midG-cod permAG ≈ˢ PFˢ
     gperm' =
-      -- `permAG` coheres to the injL-lifted `perm-f` (`permRemap-coh`), which is
-      -- a two-sided cast of the X-level relabel; the `_≈̂_` kit peels the
-      -- boundary casts (former `cast-fuse`/`cast-irrel`) and hands the residual
-      -- to `pvv-relabelˢ`.
+      -- `permAG` coheres to the injL-lifted `perm-f` (rigidity on the `Unique`
+      -- cod), whose two reindexing factors are absorbed inside `permuteˢ`; the
+      -- `_≈̂_` kit peels the boundary casts and hands the residual to
+      -- `pvv-relabelˢ`.
       ≈̂⇒≈ˢ
         (≈̂-trans (cast-≈̂ {p = M1G} {q = midG-cod})
-        (≈̂-trans (≈ˢ⇒≈̂ (permRemap-coh uRemapKdom after-G-↭ injf-↭))
-        (≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (permuteˢ-subst₂-C (sym after-G-≡) (sym map-rKd)
-                                 (PermProp.map⁺ injL perm-f))))
-        (≈̂-trans (cast-≈̂ {p = cong (map vlC) (sym after-G-≡)}
-                         {q = cong (map vlC) (sym map-rKd)})
+        (≈̂-trans (rigid-≈̂ uRemapKdom after-G-↭ injf-↭)
+        (≈̂-trans (⟦absorbʳ⟧ after-G-≡)
+        (≈̂-trans (⟦absorbˡ⟧ (sym map-rKd))
         (≈̂-trans (≈̂-sym (cast-≈̂ {p = Pdom} {q = Pcod}))
                  (≈ˢ⇒≈̂ (PVV.pvv-relabelˢ injL vlC G.vlab vlab-injL perm-f Pdom Pcod)))))))
       where
@@ -430,7 +413,8 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   MK1 = trans (cong (map vlC) proc-stack-emb-K) (TK.vlab-φ s_K_final)
 
   remapg-↭ : proj₁ (RC.process-edgesˢ kblk (map remapP K.dom)) Perm.↭ C.cod
-  remapg-↭ = subst₂ Perm._↭_ (sym proc-stack-emb-K) refl (PermProp.map⁺ remapP perm-g)
+  remapg-↭ = Perm.trans (Perm.↭-reflexive proc-stack-emb-K)
+                        (PermProp.map⁺ remapP perm-g)
 
   ----------------------------------------------------------------------
   -- K-block permute: `castˢ MK1 (vlab-φ K.cod) (permuteˢ combPˢ) ≈ˢ PGˢ`.
@@ -439,16 +423,14 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
     kperm' : castˢ MK1 (TK.vlab-φ K.cod) (RC.permuteˢ combPˢ) ≈ˢ PGˢ
     kperm' =
       -- Mirror of `gperm'` on the K-block: `combPˢ` coheres to the remapP-lifted
-      -- `perm-g` (`permC-coh`), and the `_≈̂_` kit peels the boundary casts
-      -- before `pvv-relabelˢ`.
+      -- `perm-g` (rigidity), whose single reindexing factor is absorbed, and the
+      -- `_≈̂_` kit peels the boundary casts before `pvv-relabelˢ`.
       ≈̂⇒≈ˢ
         (≈̂-trans (cast-≈̂ {p = MK1} {q = TK.vlab-φ K.cod})
-        (≈̂-trans (≈ˢ⇒≈̂ (permC-coh uCcod combPˢ remapg-↭))
-        (≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (permuteˢ-subst₂-C (sym proc-stack-emb-K) refl
-                                 (PermProp.map⁺ remapP perm-g))))
-        (≈̂-trans (cast-≈̂ {p = cong (map vlC) (sym proc-stack-emb-K)} {q = refl})
+        (≈̂-trans (rigid-≈̂ uCcod combPˢ remapg-↭)
+        (≈̂-trans (⟦absorbʳ⟧ proc-stack-emb-K)
         (≈̂-trans (≈̂-sym (cast-≈̂ {p = Pdom} {q = Pcod}))
-                 (≈ˢ⇒≈̂ (PVV.pvv-relabelˢ remapP vlC K.vlab remapP-vlab perm-g Pdom Pcod)))))))
+                 (≈ˢ⇒≈̂ (PVV.pvv-relabelˢ remapP vlC K.vlab remapP-vlab perm-g Pdom Pcod))))))
       where
         Pdom : map vlC (map remapP s_K_final) ≡ map K.vlab s_K_final
         Pdom = TK.vlab-φ s_K_final
