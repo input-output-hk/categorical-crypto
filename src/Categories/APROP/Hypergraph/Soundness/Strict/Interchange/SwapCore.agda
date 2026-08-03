@@ -8,9 +8,8 @@
 --     `EdgeStepRel` leaf under this module's `(H)` telescope.
 --   * `Incomp`, `pe-stackˢ`/`pe-termˢ` — incomparability + `process-edgesˢ`
 --     projection abbreviations.
---   * `permuteˢ-frameˡ`, `box-crossˢ`, `permuteˢ-inv-left/right` — the
---     located two-box interchange kernel and its permute algebra (the
---     deferred K residual `permˢ-K` enters via `perm-rigidˢ`).
+--   * `perm-rigidˢ` — the rigidity discharge for the located two-box
+--     interchange kernel (the deferred K residual `permˢ-K` enters here).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -20,8 +19,6 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore
   (sig : APROPSignature)
   (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
-
-open APROP sig using (X)
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
@@ -34,14 +31,11 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.EdgeStepRel
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (map-++; ++-assoc)
+open import Data.List using (List; map)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Product using (_×_; proj₁; proj₂)
 open import Relation.Nullary using (¬_)
-open import Relation.Binary.PropositionalEquality using (refl; cong)
 
 --------------------------------------------------------------------------------
 
@@ -77,17 +71,8 @@ module _ (H : Hypergraph FlatGen) where
   pe-termˢ o s = proj₂ (process-edgesˢ o s)
 
   --------------------------------------------------------------------
-  -- LEFT-FRAME for `permuteˢ` (the `++⁺ˡ` mirror of `permuteˢ-frame`;
-  -- §4's `permuteˢ-frameˡ`).  A `++⁺ˡ ls` framing of a permute factors
-  -- through `idˢ {map vl ls} ⊗ˢ_`.  K-FREE; cons clauses reduce.
-  --------------------------------------------------------------------
-
-  --------------------------------------------------------------------
-  -- THE BOTH-FIRE CORE (M) — `fire-mid-interchangeˢ`.
-  --
-  -- The two framed boxes on DISJOINT wire blocks commute via
-  -- `box-commute-ˢ`, transported through the `SimLoc`-located permutes.
-  -- The deferred K residual `permˢ-K` enters via `perm-rigidˢ`.
+  -- RIGIDITY: any two derivations into a `Unique` stack are `permuteˢ`-equal.
+  -- The deferred K residual `permˢ-K` enters here, and only here.
   --------------------------------------------------------------------
 
   module _ (permˢ-K : PermK) where
@@ -95,37 +80,4 @@ module _ (H : Hypergraph FlatGen) where
       : ∀ {xs ys : List (Fin H.nV)} → Unique ys
         → (p q : xs Perm.↭ ys) → permuteˢ p ≈ˢ permuteˢ q
     perm-rigidˢ = Kmod.perm-rigidˢ permˢ-K
-
-    ----------------------------------------------------------------
-    -- The LOCATED two-box interchange kernel (the strict heart, the
-    -- analogue §4 calls `box-crossˢ`).  Two boxes `g : A → B`,
-    -- `g' : A' → B'` sitting side by side, framed by a residual `R`,
-    -- commute through the block braidings on their (co)domains:
-    --
-    --   ((g' ⊗ˢ g) ⊗ˢ idˢ{R})
-    --     ≈ˢ ((σ B B' ⊗ˢ idˢ{R}) ∘ˢ ((g ⊗ˢ g') ⊗ˢ idˢ{R})) ∘ˢ (σ A' A ⊗ˢ idˢ{R})
-    --
-    -- This is the genuine N-content of the both-fire interchange,
-    -- already located at the 3-block level; it is `box-commute-ˢ`-style
-    -- σ-conjugation lifted by `_⊗ˢ idˢ{R}` and is K-free.
-    box-crossˢ
-      : ∀ {A B A' B' : List X} (g : HomS A B) (g' : HomS A' B')
-          (R : List X)
-      → (g' ⊗ˢ g) ⊗ˢ idˢ {R}
-        ≈ˢ ((σˢ B B' ⊗ˢ idˢ {R}) ∘ˢ ((g ⊗ˢ g') ⊗ˢ idˢ {R}))
-             ∘ˢ (σˢ A' A ⊗ˢ idˢ {R})
-    box-crossˢ {A} {B} {A'} {B'} g g' R =
-      ≈-trans (⊗-resp conj ≈-refl)
-        (≈-trans (⊗id-distˢ (σˢ B B') ((g ⊗ˢ g') ∘ˢ σˢ A' A))
-          (≈-trans (∘-resp ≈-refl (⊗id-distˢ (g ⊗ˢ g') (σˢ A' A)))
-            (≈-sym assocˢ)))
-      where
-        -- σ-conjugation form: `g' ⊗ˢ g ≈ σ ∘ (g ⊗ˢ g') ∘ σ`.
-        conj : g' ⊗ˢ g ≈ˢ σˢ B B' ∘ˢ ((g ⊗ˢ g') ∘ˢ σˢ A' A)
-        conj =
-          ≈-sym
-            (≈-trans (≈-sym assocˢ)
-              (≈-trans (∘-resp σ-natˢ ≈-refl)
-                (≈-trans assocˢ
-                  (≈-trans (∘-resp ≈-refl σ-σˢ) idʳ))))
 

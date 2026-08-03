@@ -533,6 +533,13 @@ module Build
       → castᵛ p q f ≈ᵛ g → f ≈ᵛ castᵛ (sym p) (sym q) g
     cast-flipᵛ refl refl e = e
 
+    -- two composable `castᵛ`s meeting at `q` fuse into the endpoint cast
+    ∘-castᵛ
+      : ∀ {as as' bs bs' cs cs'} (p : as ≡ as') (q : bs ≡ bs') (r : cs ≡ cs')
+          (g : HomV bs cs) (f : HomV as bs)
+      → castᵛ q r g ∘ᵛ castᵛ p q f ≈ᵛ castᵛ p r (g ∘ᵛ f)
+    ∘-castᵛ refl refl refl g f = ≈-refl
+
     idᵛ-≈̂ : ∀ {as bs : List V} (p : as ≡ bs) → idᵛ {as} ≈̂ idᵛ {bs}
     idᵛ-≈̂ p = idˢ-≈̂ (cong m p)
 
