@@ -148,10 +148,12 @@ module Gen {A B : ObjTerm} (g : mor A B) where
       → subst (λ z → HomS (map Hf.vlab u) (map Hf.vlab z)) e t ≡ castᵛ refl e t
     subst-cod≡castᵛ refl t = refl
 
-    refl-trivialᵛ
-      : ∀ {xs ys : List (Fin Hf.nV)} (e : xs ≡ ys)
-      → RF.permuteˢ (Perm.↭-reflexive e) ≈ᵛ castᵛ refl e (idᵛ {xs})
-    refl-trivialᵛ refl = ≈-refl
+    -- rigidity AT a reindexing (the V-level face of `rigid-≈̂ ⨾ ⟦reflexive⟧`).
+    rigid-reflexiveᵛ
+      : ∀ {xs ys : List (Fin Hf.nV)} → Unique ys
+      → (p : xs Perm.↭ ys) (e : xs ≡ ys)
+      → permuteᵛ p ≈ᵛ castᵛ refl e (idᵛ {xs})
+    rigid-reflexiveᵛ u p refl = perm-rigidˢ K u p Perm.refl
 
   --------------------------------------------------------------------------
   -- Step A: `proj₂ runˢ ≈ᵛ castᵛ refl (sym s≡) layer`.
@@ -190,10 +192,7 @@ module Gen {A B : ObjTerm} (g : mor A B) where
 
         perm≈ : permuteᵛ selfP
                 ≈ᵛ castᵛ refl (sym (++-identityʳ (Hf.ein e₀))) (idᵛ {Hf.ein e₀})
-        perm≈ =
-          ≈-trans (perm-rigidˢ K uniqDom++ selfP
-                     (Perm.↭-reflexive (sym (++-identityʳ Hf.dom))))
-                  (refl-trivialᵛ (sym (++-identityʳ Hf.dom)))
+        perm≈ = rigid-reflexiveᵛ uniqDom++ selfP (sym (++-identityʳ Hf.dom))
 
   --------------------------------------------------------------------------
   -- Step C: the run term, then `permuteˢ (finalPermˢ f)` killed by
@@ -227,9 +226,7 @@ module Gen {A B : ObjTerm} (g : mor A B) where
       where
         finalP≈ : RF.permuteˢ (finalPermˢ f)
                   ≈ᵛ castᵛ refl sc (idᵛ {RF.s-finˢ})
-        finalP≈ =
-          ≈-trans (perm-rigidˢ K uniqCod (finalPermˢ f) (Perm.↭-reflexive sc))
-                  (refl-trivialᵛ sc)
+        finalP≈ = rigid-reflexiveᵛ uniqCod (finalPermˢ f) sc
 
   --------------------------------------------------------------------------
   -- Step D: `genˢ (elab e₀) = genˢ (subst₂ FlatGen lem-in lem-out (flat g))`
