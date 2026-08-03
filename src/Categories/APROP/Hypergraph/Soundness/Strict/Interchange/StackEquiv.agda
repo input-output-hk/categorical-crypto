@@ -59,7 +59,7 @@ open import Categories.PermuteCoherence.Canonical using (_≅↭_)
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (map-++; ++-assoc)
+open import Data.List.Properties using (map-++)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just; nothing)
 open import Data.Maybe.Properties using (just-injective)
@@ -76,6 +76,10 @@ module EquivStep (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
   open Run H public
   open Equivariantˢ H public using (pvv-transˢ; pvv-inverse-leftˢ; pvv-inverse-rightˢ)
+
+  open Restrict (Fin H.nV) vl
+    using ( idᵛ; _∘ᵛ_; _⊗ᵛ_; _≈ᵛ_; permuteᵛ; permuteᵛ-frameˡ
+          ; ⊗-respᵛ; interchangeᵛ )
 
   private
     _≟V_ : DecidableEquality (Fin H.nV)
@@ -120,33 +124,28 @@ module EquivStep (H : Hypergraph FlatGen) where
     extract-prefix-↭-nothing (H.ein e) s s' (Perm.↭-sym ρ) eqH
 
   ----------------------------------------------------------------------
-  -- LEFT-FRAME for `permuteˢ` (the `++⁺ˡ` mirror of `permuteˢ-frame`;
-  -- K-FREE; local copy of `SwapCore.permuteˢ-frameˡ`, no dih/lin).
-  ----------------------------------------------------------------------
-
-  ----------------------------------------------------------------------
   -- BOX-CORE NATURALITY (the genuine strict box-naturality content).
-  -- The box `genˢ (elab e) ⊗ˢ idˢ {rest}` is natural in `rest` under a
-  -- residual permutation `μ`: K-free (`interchangeˢ` + `pvv-inverse-*ˢ`).
+  -- The box `genˢ (elab e) ⊗ᵛ idᵛ {rest}` is natural in `rest` under a
+  -- residual permutation `μ`: K-free (`interchangeᵛ` + `pvv-inverse-*ˢ`).
   ----------------------------------------------------------------------
 
-  box-core-nat
+  box-core-natᵛ
     : ∀ (e : Fin H.nE) {restH restH' : List (Fin H.nV)}
         (μ : restH Perm.↭ restH')
-    → genˢ (H.elab e) ⊗ˢ idˢ {map vl restH'}
-      ≈ˢ (idˢ {map vl (H.eout e)} ⊗ˢ permuteˢ μ)
-           ∘ˢ ( genˢ (H.elab e) ⊗ˢ idˢ {map vl restH}
-                ∘ˢ (idˢ {map vl (H.ein e)} ⊗ˢ permuteˢ (Perm.↭-sym μ)) )
-  box-core-nat e {restH} {restH'} μ =
+    → genˢ (H.elab e) ⊗ᵛ idᵛ {restH'}
+      ≈ᵛ (idᵛ {H.eout e} ⊗ᵛ permuteᵛ μ)
+           ∘ᵛ ( (genˢ (H.elab e) ⊗ᵛ idᵛ {restH})
+                ∘ᵛ (idᵛ {H.ein e} ⊗ᵛ permuteᵛ (Perm.↭-sym μ)) )
+  box-core-natᵛ e μ =
     ≈-sym
-      -- (id{eout}⊗permμ) ∘ ((genˢ⊗id{restH}) ∘ (id{ein}⊗permute(↭μ)))
-      (≈-trans (∘-resp ≈-refl interchangeˢ)
-      -- (id{eout}⊗permμ) ∘ ((genˢ∘id{ein}) ⊗ (id{restH}∘permute(↭μ)))
-      (≈-trans (∘-resp ≈-refl (⊗-resp idʳ idˡ))
-      -- (id{eout}⊗permμ) ∘ (genˢ ⊗ permute(↭μ))
-      (≈-trans interchangeˢ
-      -- (id{eout}∘genˢ) ⊗ (permμ ∘ permute(↭μ))
-      (⊗-resp idˡ (pvv-inverse-rightˢ μ)))))
+      -- (id{eout}⊗ᵛpermμ) ∘ᵛ ((genˢ⊗ᵛid{restH}) ∘ᵛ (id{ein}⊗ᵛpermute(↭μ)))
+      (≈-trans (∘-resp ≈-refl interchangeᵛ)
+      -- (id{eout}⊗ᵛpermμ) ∘ᵛ ((genˢ∘ᵛid{ein}) ⊗ᵛ (id{restH}∘ᵛpermute(↭μ)))
+      (≈-trans (∘-resp ≈-refl (⊗-respᵛ idʳ idˡ))
+      -- (id{eout}⊗ᵛpermμ) ∘ᵛ (genˢ ⊗ᵛ permute(↭μ))
+      (≈-trans interchangeᵛ
+      -- (id{eout}∘ᵛgenˢ) ⊗ᵛ (permμ ∘ᵛ permute(↭μ))
+      (⊗-respᵛ idˡ (pvv-inverse-rightˢ μ)))))
 
   ----------------------------------------------------------------------
   -- The fire layer factors: box-only ∘ˢ locating permute.
@@ -160,15 +159,12 @@ module EquivStep (H : Hypergraph FlatGen) where
       ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
         ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) idˢ)
 
-  -- `fire-midˢ` collapsed to a single two-sided `map-++` cast of `box-core` —
-  -- i.e. to `genˢ (elab e) ⊗ᵛ idᵛ {rest}`.  `fire-midˢ e rest` IS
-  -- `fire-termˢ e _ rest Perm.refl`, so this is `edge-step-firedᵛ` at the
-  -- identity wiring.
+  -- `fire-midˢ` collapsed to the `Restrict`-layer box `genˢ (elab e) ⊗ᵛ
+  -- idᵛ {rest}`.  `fire-midˢ e rest` IS `fire-termˢ e _ rest Perm.refl`, so
+  -- this is `edge-step-firedᵛ` at the identity wiring.
   fire-midˢ-cast
     : ∀ (e : Fin H.nE) (rest : List (Fin H.nV))
-    → fire-midˢ e rest
-      ≈ˢ castˢ (sym (map-++ vl (H.ein e) rest)) (sym (map-++ vl (H.eout e) rest))
-           (genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
+    → fire-midˢ e rest ≈ᵛ genˢ (H.elab e) ⊗ᵛ idᵛ {rest}
   fire-midˢ-cast e rest =
     ≈-trans (edge-step-firedᵛ e rest Perm.refl) idʳ
 
@@ -184,51 +180,24 @@ module EquivStep (H : Hypergraph FlatGen) where
 
   ----------------------------------------------------------------------
   -- FIRE-BOX naturality (the strict `fire-mid-equivariant` twin).  The
-  -- residual permutes slide as `idˢ ⊗ permuteˢ` frames (`permuteˢ-frameˡ`)
-  -- and the central box commutes via `box-core-nat`.  K-FREE.
+  -- residual permutes slide as `idᵛ ⊗ᵛ permuteᵛ` frames (`permuteᵛ-frameˡ`,
+  -- cast-free at V level) and the central box commutes via `box-core-natᵛ`.
+  -- K-FREE.
   ----------------------------------------------------------------------
 
   fire-mid-equivariantˢ
     : ∀ (e : Fin H.nE) {restH restH' : List (Fin H.nV)}
         (μ : restH Perm.↭ restH')
     → fire-midˢ e restH'
-      ≈ˢ permuteˢ (PermProp.++⁺ˡ (H.eout e) μ)
-           ∘ˢ ( fire-midˢ e restH
-                ∘ˢ permuteˢ (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym μ)) )
-  fire-mid-equivariantˢ e {restH} {restH'} μ =
-    ≈-trans (fire-midˢ-cast e restH')
-    (≈-trans (cast-resp aein' aeout' (box-core-nat e μ))
-      (≈-sym
-        (≈-trans (∘-resp out-eq (∘-resp midmid in-eq))
-          (≈-trans (∘-resp ≈-refl
-                     (≈-sym (∘-cast-split aein' aein aeout box' in-frame)))
-            (≈-sym (∘-cast-split aein' aeout aeout' out-frame
-                      (box' ∘ˢ in-frame)))))))
-    where
-      ein  = H.ein e
-      eout = H.eout e
-      aein'  = sym (map-++ vl ein  restH')
-      aeout' = sym (map-++ vl eout restH')
-      aein   = sym (map-++ vl ein  restH)
-      aeout  = sym (map-++ vl eout restH)
-
-      out-frame = idˢ {map vl eout} ⊗ˢ permuteˢ μ
-      in-frame  = idˢ {map vl ein}  ⊗ˢ permuteˢ (Perm.↭-sym μ)
-      box'      = genˢ (H.elab e) ⊗ˢ idˢ {map vl restH}
-
-      -- `permuteˢ (++⁺ˡ eout μ) ≈ castˢ aeout aeout' out-frame`.
-      out-eq : permuteˢ (PermProp.++⁺ˡ eout μ) ≈ˢ castˢ aeout aeout' out-frame
-      out-eq = cast-flip (map-++ vl eout restH) (map-++ vl eout restH')
-                 (permuteˢ-frameˡ eout μ)
-
-      -- `permuteˢ (++⁺ˡ ein (↭-sym μ)) ≈ castˢ aein' aein in-frame`.
-      in-eq : permuteˢ (PermProp.++⁺ˡ ein (Perm.↭-sym μ)) ≈ˢ castˢ aein' aein in-frame
-      in-eq = cast-flip (map-++ vl ein restH') (map-++ vl ein restH)
-                (permuteˢ-frameˡ ein (Perm.↭-sym μ))
-
-      -- `fire-midˢ e restH ≈ castˢ aein aeout box'`.
-      midmid : fire-midˢ e restH ≈ˢ castˢ aein aeout box'
-      midmid = fire-midˢ-cast e restH
+      ≈ᵛ permuteᵛ (PermProp.++⁺ˡ (H.eout e) μ)
+           ∘ᵛ ( fire-midˢ e restH
+                ∘ᵛ permuteᵛ (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym μ)) )
+  fire-mid-equivariantˢ e μ =
+    ≈-trans (fire-midˢ-cast e _)
+    (≈-trans (box-core-natᵛ e μ)
+      (∘-resp (≈-sym (permuteᵛ-frameˡ (H.eout e) μ))
+        (∘-resp (≈-sym (fire-midˢ-cast e _))
+                (≈-sym (permuteᵛ-frameˡ (H.ein e) (Perm.↭-sym μ))))))
 
   ----------------------------------------------------------------------
   -- CANONICAL residual reshuffle `fire-μ` + the locating-permute
