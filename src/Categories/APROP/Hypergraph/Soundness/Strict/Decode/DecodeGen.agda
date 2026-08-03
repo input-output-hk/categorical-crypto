@@ -13,13 +13,14 @@
 --
 --     (genˢ (elab e₀) ⊗ˢ idˢ {[]}) ∘ˢ permuteˢ perm
 --
--- (modulo the trivial `map-++ … []` casts), the final stack `s-finˢ ≡ cod`,
--- and `finalPermˢ : cod ↭ cod`.  Both locating permutations (`perm` and
--- `finalPermˢ`) collapse to identity via `perm-rigidˢ` on the `Unique`
--- codomain (the strict K-faithfulness consumption point), `idˢ {[]}` is
--- absorbed by `⊗-unitʳˢ`, and `genˢ (elab e₀)` is reconciled with
--- `genˢ (flat g)` by the `gen-cast` lemma plus the boundary `castˢ`s
--- `⟪⟫-domL`/`-codL`.
+-- the final stack `s-finˢ ≡ cod`, and `finalPermˢ : cod ↭ cod`.  The run is
+-- assembled in the `Restrict` layer (F7): the fired layer is `firedᵛ e₀ []
+-- selfP` (`edge-step-firedᵛ` strips its two `map-++ … []` casts), both
+-- locating permutations (`selfP` and `finalPermˢ`) collapse to identity via
+-- `perm-rigidˢ` on the `Unique` codomain (the strict K-faithfulness
+-- consumption point), `idᵛ {[]}` is absorbed by `⊗-unitʳᵛ`, and
+-- `genˢ (elab e₀)` is reconciled with `genˢ (flat g)` by the `gen-cast` lemma
+-- plus the boundary `castˢ`s `⟪⟫-domL`/`-codL`.
 --
 -- PROVEN HERE, postulate-free, holes-free, `--safe --without-K`; the concrete
 -- `permˢ-K` (from `Strict.PermK`) is threaded directly (not as a parameter),
@@ -95,6 +96,9 @@ module Gen {A B : ObjTerm} (g : mor A B) where
     module RF = Run ⟪ f ⟫
     module Hf = Hypergraph ⟪ f ⟫
     open Support (Fin Hf.nV) Hf.vlab
+    open Restrict (Fin Hf.nV) Hf.vlab
+      using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ
+            ; castᵛ-cast; cast-flipᵛ; cast-respᵛ; cast-fuseᵛ; ∘-castᵛ; ⊗-unitʳᵛ )
 
     K : PermK
     K = permˢ-K Hf.nV Hf.vlab
@@ -115,7 +119,7 @@ module Gen {A B : ObjTerm} (g : mor A B) where
 
   private
     -- the fired single-edge layer, with the residual forced to `[]`.
-    layer : HomS (map Hf.vlab Hf.dom) (map Hf.vlab (Hf.eout e₀ ++ []))
+    layer : HomV Hf.dom (Hf.eout e₀ ++ [])
     layer = castˢ refl (sym (map-++ Hf.vlab (Hf.eout e₀) []))
               ((genˢ (Hf.elab e₀) ⊗ˢ idˢ {map Hf.vlab []})
                 ∘ˢ castˢ refl (map-++ Hf.vlab (Hf.ein e₀) [])
@@ -135,150 +139,100 @@ module Gen {A B : ObjTerm} (g : mor A B) where
   -- Abbreviations.  `e₀`-indexed boundaries are definitional for `hGen`.
 
   private
-    md mc : List X
-    md = map Hf.vlab Hf.dom          -- = map vlab (ein e₀)
-    mc = map Hf.vlab Hf.cod          -- = map vlab (eout e₀)
-
-    G0 : HomS md mc
+    G0 : HomV (Hf.ein e₀) (Hf.eout e₀)
     G0 = genˢ (Hf.elab e₀)
 
-    -- `subst` over the codomain stack is a `castˢ refl …` (UIP-trivial).
-    subst-cod≡cast
-      : ∀ {a b b' : List X} (e : b ≡ b') (t : HomS a b)
-      → subst (λ z → HomS a z) e t ≡ castˢ refl e t
-    subst-cod≡cast refl t = refl
+    -- `subst` over the codomain stack is a `castᵛ refl …` (UIP-trivial).
+    subst-cod≡castᵛ
+      : ∀ {u v v' : List (Fin Hf.nV)} (e : v ≡ v') (t : HomV u v)
+      → subst (λ z → HomS (map Hf.vlab u) (map Hf.vlab z)) e t ≡ castᵛ refl e t
+    subst-cod≡castᵛ refl t = refl
 
-    subst-cod-cong
-      : ∀ {u v v' : List (Fin Hf.nV)} (e : v ≡ v')
-          (t : HomS (map Hf.vlab u) (map Hf.vlab v))
-      → subst (λ z → HomS (map Hf.vlab u) (map Hf.vlab z)) e t
-        ≡ subst (λ z → HomS (map Hf.vlab u) z) (cong (map Hf.vlab) e) t
-    subst-cod-cong refl t = refl
+    refl-trivialᵛ
+      : ∀ {xs ys : List (Fin Hf.nV)} (e : xs ≡ ys)
+      → RF.permuteˢ (Perm.↭-reflexive e) ≈ᵛ castᵛ refl e (idᵛ {xs})
+    refl-trivialᵛ refl = ≈-refl
 
   --------------------------------------------------------------------------
-  -- Step A: `proj₂ runˢ ≈ castˢ refl (cong (map vlab) (sym s≡)) layer`.
+  -- Step A: `proj₂ runˢ ≈ᵛ castᵛ refl (sym s≡) layer`.
 
   private
-    run≈ : proj₂ RF.runˢ ≈ˢ castˢ refl (cong (map Hf.vlab) (sym s≡)) layer
+    run≈ : proj₂ RF.runˢ ≈ᵛ castᵛ refl (sym s≡) layer
     run≈ =
-      ≈-trans (≡⇒≈ˢ (trans run-form
-                       (trans (subst-cod-cong (sym s≡) (idˢ ∘ˢ layer))
-                              (subst-cod≡cast
-                                 (cong (map Hf.vlab) (sym s≡)) (idˢ ∘ˢ layer)))))
-              (cast-resp refl (cong (map Hf.vlab) (sym s≡)) idˡ)
+      ≈-trans (≡⇒≈ˢ (trans run-form (subst-cod≡castᵛ (sym s≡) (idˢ ∘ˢ layer))))
+              (cast-respᵛ refl (sym s≡) idˡ)
 
   --------------------------------------------------------------------------
-  -- Step B: `layer ≈ castˢ … (G0 ∘ˢ permuteˢ selfP)` with `idˢ {[]}` killed.
-  -- `map vlab [] = []`, so the framed `idˢ` is `idˢ {[]}` and `⊗-unitʳˢ`
-  -- collapses `G0 ⊗ˢ idˢ {[]}` to `G0`.
+  -- Step B: the layer collapses to a single cast of `G0`.  It is the fired
+  -- layer `firedᵛ e₀ [] selfP` (`edge-step-firedᵛ`), whose box factor loses
+  -- its empty frame by `⊗-unitʳᵛ` and whose permute is the reflexive
+  -- derivation `dom ↭ dom ++ []` (rigidity at `Unique (dom ++ [])`).
 
   private
-    -- `G0 ⊗ˢ idˢ {[]} ≈ castˢ (sym (++-identityʳ md)) (sym (++-identityʳ mc)) G0`
-    g⊗id≈ : (G0 ⊗ˢ idˢ {[]})
-            ≈ˢ castˢ (sym (++-identityʳ md)) (sym (++-identityʳ mc)) G0
-    g⊗id≈ = cast-flip (++-identityʳ md) (++-identityʳ mc) (⊗-unitʳˢ G0)
+    Qℓ : Hf.eout e₀ ≡ Hf.eout e₀ ++ []
+    Qℓ = sym (++-identityʳ (Hf.eout e₀))
 
-    -- `permuteˢ selfP ≈ castˢ refl (cong (map vlab) (sym (++-identityʳ dom))) idˢ`
-    -- (selfP : dom ↭ dom ++ [] killed against the reflexive derivation).
     uniqDom++ : Unique (Hf.dom ++ [])
     uniqDom++ = subst Unique (sym (++-identityʳ Hf.dom)) (hGen-dom-Unique g)
 
-    refl-trivial
-      : ∀ {xs ys : List (Fin Hf.nV)} (e : xs ≡ ys)
-      → RF.permuteˢ (Perm.↭-reflexive e)
-        ≈ˢ castˢ refl (cong (map Hf.vlab) e) (idˢ {map Hf.vlab xs})
-    refl-trivial refl = ≈-refl
-
-    selfP≈ : RF.permuteˢ selfP
-             ≈ˢ castˢ refl (cong (map Hf.vlab) (sym (++-identityʳ Hf.dom)))
-                  (idˢ {md})
-    selfP≈ =
-      ≈-trans (perm-rigidˢ K uniqDom++ selfP
-                 (Perm.↭-reflexive (sym (++-identityʳ Hf.dom))))
-              (refl-trivial (sym (++-identityʳ Hf.dom)))
-
-  --------------------------------------------------------------------------
-  -- Step C: collapse the layer to a single cast of `G0`.
-
-  private
-    -- the inner composite, with both factors replaced by casts of `G0`/`idˢ`.
-    inner-layer≈
-      : ((G0 ⊗ˢ idˢ {[]})
-          ∘ˢ castˢ refl (map-++ Hf.vlab Hf.dom []) (RF.permuteˢ selfP))
-        ≈ˢ castˢ refl (sym (++-identityʳ mc)) G0
-    inner-layer≈ =
-      ≈-trans
-        (∘-resp g⊗id≈
-          (≈-trans (cast-resp refl (map-++ Hf.vlab Hf.dom []) selfP≈)
-          (≈-trans
-            (≡⇒≈ˢ (cast-fuse refl refl
-                     (cong (map Hf.vlab) (sym (++-identityʳ Hf.dom)))
-                     (map-++ Hf.vlab Hf.dom []) (idˢ {md})))
-            (≡⇒≈ˢ (cast-irrel refl refl
-                     (trans (cong (map Hf.vlab) (sym (++-identityʳ Hf.dom)))
-                            (map-++ Hf.vlab Hf.dom []))
-                     (sym (++-identityʳ md)) (idˢ {md}))))))
-      (≈-trans
-        (≈-sym (∘-cast-split refl (sym (++-identityʳ md)) (sym (++-identityʳ mc))
-                  G0 (idˢ {md})))
-        (cast-resp refl (sym (++-identityʳ mc)) idʳ))
-
-  --------------------------------------------------------------------------
-  -- Step D: assemble `layer`, then the run term `proj₂ runˢ`.
-
-  private
-    Qℓ : mc ≡ map Hf.vlab (Hf.eout e₀ ++ [])
-    Qℓ = trans (sym (++-identityʳ mc)) (sym (map-++ Hf.vlab (Hf.eout e₀) []))
-
-    layer≈ : layer ≈ˢ castˢ refl Qℓ G0
+    layer≈ : layer ≈ᵛ castᵛ refl Qℓ G0
     layer≈ =
-      ≈-trans (cast-resp refl (sym (map-++ Hf.vlab (Hf.eout e₀) [])) inner-layer≈)
-              (≡⇒≈ˢ (cast-fuse refl refl (sym (++-identityʳ mc))
-                       (sym (map-++ Hf.vlab (Hf.eout e₀) [])) G0))
+      ≈-trans (RF.edge-step-firedᵛ e₀ [] selfP)
+      (≈-trans (∘-resp box≈ perm≈)
+      (≈-trans (∘-castᵛ refl (sym (++-identityʳ (Hf.ein e₀))) Qℓ G0 idᵛ)
+        (cast-respᵛ refl Qℓ idʳ)))
+      where
+        box≈ : (G0 ⊗ᵛ idᵛ {[]})
+               ≈ᵛ castᵛ (sym (++-identityʳ (Hf.ein e₀))) Qℓ G0
+        box≈ =
+          cast-flipᵛ (++-identityʳ (Hf.ein e₀)) (++-identityʳ (Hf.eout e₀))
+            (⊗-unitʳᵛ G0)
 
-    Qrun : mc ≡ map Hf.vlab RF.s-finˢ
-    Qrun = trans Qℓ (cong (map Hf.vlab) (sym s≡))
+        perm≈ : permuteᵛ selfP
+                ≈ᵛ castᵛ refl (sym (++-identityʳ (Hf.ein e₀))) (idᵛ {Hf.ein e₀})
+        perm≈ =
+          ≈-trans (perm-rigidˢ K uniqDom++ selfP
+                     (Perm.↭-reflexive (sym (++-identityʳ Hf.dom))))
+                  (refl-trivialᵛ (sym (++-identityʳ Hf.dom)))
 
-    run-term≈ : proj₂ RF.runˢ ≈ˢ castˢ refl Qrun G0
+  --------------------------------------------------------------------------
+  -- Step C: the run term, then `permuteˢ (finalPermˢ f)` killed by
+  -- `perm-rigidˢ` into `Unique cod`.
+
+  private
+    Qrun : Hf.eout e₀ ≡ RF.s-finˢ
+    Qrun = trans Qℓ (sym s≡)
+
+    run-term≈ : proj₂ RF.runˢ ≈ᵛ castᵛ refl Qrun G0
     run-term≈ =
       ≈-trans run≈
-      (≈-trans (cast-resp refl (cong (map Hf.vlab) (sym s≡)) layer≈)
-        (≡⇒≈ˢ (cast-fuse refl refl Qℓ (cong (map Hf.vlab) (sym s≡)) G0)))
+      (≈-trans (cast-respᵛ refl (sym s≡) layer≈)
+        (≡⇒≈ˢ (cast-fuseᵛ refl refl Qℓ (sym s≡) G0)))
 
-  --------------------------------------------------------------------------
-  -- Step E: kill `permuteˢ (finalPermˢ f)` via `perm-rigidˢ` into `Unique cod`.
-
-  private
     sc : RF.s-finˢ ≡ Hf.cod
     sc = trans s≡ (++-identityʳ Hf.cod)
 
-    finalP≈ : RF.permuteˢ (finalPermˢ f)
-              ≈ˢ castˢ refl (cong (map Hf.vlab) sc) (idˢ {map Hf.vlab RF.s-finˢ})
-    finalP≈ =
-      ≈-trans (perm-rigidˢ K uniqCod (finalPermˢ f) (Perm.↭-reflexive sc))
-              (refl-trivial sc)
+    -- `coe q ∘ᵛ T ≈ᵛ castᵛ refl q T` for a codomain coercion.
+    coe-absorbᵛ
+      : ∀ {u v w : List (Fin Hf.nV)} (q : v ≡ w) (T : HomV u v)
+      → castᵛ refl q (idᵛ {v}) ∘ᵛ T ≈ᵛ castᵛ refl q T
+    coe-absorbᵛ refl T = idˡ
 
-  --------------------------------------------------------------------------
-  -- Step F: the inner term `permuteˢ (finalPermˢ f) ∘ˢ proj₂ runˢ`.
-
-  private
-    -- `coe q ∘ˢ T ≈ castˢ refl q T` for a codomain coercion.
-    coe-absorb
-      : ∀ {a b c : List X} (q : b ≡ c) (T : HomS a b)
-      → castˢ refl q (idˢ {b}) ∘ˢ T ≈ˢ castˢ refl q T
-    coe-absorb q T =
-      ≈-trans (≈-sym (∘-cast-split refl refl q (idˢ {_}) T))
-              (cast-resp refl q idˡ)
-
-    inner≈ : RF.permuteˢ (finalPermˢ f) ∘ˢ proj₂ RF.runˢ
-             ≈ˢ castˢ refl (trans Qrun (cong (map Hf.vlab) sc)) G0
+    inner≈ : RF.permuteˢ (finalPermˢ f) ∘ᵛ proj₂ RF.runˢ
+             ≈ᵛ castᵛ refl (trans Qrun sc) G0
     inner≈ =
       ≈-trans (∘-resp finalP≈ run-term≈)
-      (≈-trans (coe-absorb (cong (map Hf.vlab) sc) (castˢ refl Qrun G0))
-        (≡⇒≈ˢ (cast-fuse refl refl Qrun (cong (map Hf.vlab) sc) G0)))
+      (≈-trans (coe-absorbᵛ sc (castᵛ refl Qrun G0))
+        (≡⇒≈ˢ (cast-fuseᵛ refl refl Qrun sc G0)))
+      where
+        finalP≈ : RF.permuteˢ (finalPermˢ f)
+                  ≈ᵛ castᵛ refl sc (idᵛ {RF.s-finˢ})
+        finalP≈ =
+          ≈-trans (perm-rigidˢ K uniqCod (finalPermˢ f) (Perm.↭-reflexive sc))
+                  (refl-trivialᵛ sc)
 
   --------------------------------------------------------------------------
-  -- Step G: `genˢ (elab e₀) = genˢ (subst₂ FlatGen lem-in lem-out (flat g))`
+  -- Step D: `genˢ (elab e₀) = genˢ (subst₂ FlatGen lem-in lem-out (flat g))`
   -- and the boundary cast collapse to `genˢ (flat g) = st (Agen g)`.
 
   private
@@ -309,21 +263,27 @@ module Gen {A B : ObjTerm} (g : mor A B) where
           (trans (retype-≡ _ _ (flat g)) (subst₂-irrel _ Pin _ Pout (flat g)))
 
   --------------------------------------------------------------------------
-  -- Step H: the full Agen shape.
+  -- Step E: the full Agen shape.
 
-  Qf : mc ≡ mc
-  Qf = trans Qrun (cong (map Hf.vlab) sc)
+  private
+    Qf : List X
+    Qf = map Hf.vlab Hf.cod
+
+    Qfˢ : map Hf.vlab (Hf.eout e₀) ≡ Qf
+    Qfˢ = cong (map Hf.vlab) (trans Qrun sc)
 
   decodePˢ-Agen : decodePˢ f ≈ˢ st (Agen g)
   decodePˢ-Agen =
     ≈-trans (cast-resp (⟪⟫-domL f) (⟪⟫-codL f)
-               (≈-trans inner≈ (cast-resp refl Qf G0≈)))
+               (≈-trans inner≈
+                 (≈-trans (≡⇒≈ˢ (castᵛ-cast refl (trans Qrun sc) G0))
+                          (cast-resp refl Qfˢ G0≈))))
     (≈-trans (cast-resp (⟪⟫-domL f) (⟪⟫-codL f)
-               (≡⇒≈ˢ (cast-fuse Pin refl Pout Qf (genˢ (flat g)))))
+               (≡⇒≈ˢ (cast-fuse Pin refl Pout Qfˢ (genˢ (flat g)))))
       (≈-trans (≡⇒≈ˢ (cast-fuse (trans Pin refl) (⟪⟫-domL f)
-                        (trans Pout Qf) (⟪⟫-codL f) (genˢ (flat g))))
+                        (trans Pout Qfˢ) (⟪⟫-codL f) (genˢ (flat g))))
         (≡⇒≈ˢ (cast-irrel (trans (trans Pin refl) (⟪⟫-domL f)) refl
-                          (trans (trans Pout Qf) (⟪⟫-codL f)) refl
+                          (trans (trans Pout Qfˢ) (⟪⟫-codL f)) refl
                           (genˢ (flat g))))))
 
 --------------------------------------------------------------------------------

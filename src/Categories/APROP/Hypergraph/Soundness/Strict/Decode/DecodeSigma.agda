@@ -193,6 +193,8 @@ module _
       module RF = Run ⟪ f ⟫
       module Hf = Hypergraph ⟪ f ⟫
       open Support (Fin Hf.nV) Hf.vlab
+      open Restrict (Fin Hf.nV) Hf.vlab
+        using (HomV; idᵛ; _∘ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; ∘-castᵛ)
 
       K : PermK
       K = permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
@@ -251,76 +253,46 @@ module _
               ≈ˢ RF.permuteˢ (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
       perm≈ = perm-rigidˢ K uniqCod (finalPermˢ f) (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
 
-    -- the block-swap identity at the hSwap blocks (the residual `bswap-σ`).
-    σ-block-≈
-      : RF.permuteˢ bsw
-        ≈ˢ castˢ (sym (map-++ Hf.vlab Lblk Rblk))
-                 (sym (map-++ Hf.vlab Rblk Lblk))
-            (σˢ (map Hf.vlab Lblk) (map Hf.vlab Rblk))
+    -- the block-swap identity at the hSwap blocks (the residual `bswap-σ`),
+    -- V-level: `Hf.dom = Lblk ++ Rblk` and `Hf.cod = Rblk ++ Lblk` hold
+    -- definitionally, so the braiding needs no frame cast.
+    σ-block-≈ : RF.permuteˢ bsw ≈ᵛ σᵛ Lblk Rblk
     σ-block-≈ = bswap-σ (Fin Hf.nV) Hf.vlab Lblk Rblk
 
     private
       -- the run collapses to `coe` of the stack-equality (nE ≡ 0).
-      subst-cod≡cast
-        : ∀ {a b b' : List X} (e : b ≡ b') (t : HomS a b)
-        → subst (λ z → HomS a z) e t ≡ castˢ refl e t
-      subst-cod≡cast refl t = refl
+      subst-cod≡castᵛ
+        : ∀ {u v v' : List (Fin Hf.nV)} (e : v ≡ v') (t : HomV u v)
+        → subst (λ z → HomS (map Hf.vlab u) (map Hf.vlab z)) e t ≡ castᵛ refl e t
+      subst-cod≡castᵛ refl t = refl
 
-      subst-cod-cong
-        : ∀ {u v v' : List (Fin Hf.nV)} (e : v ≡ v')
-            (t : HomS (map Hf.vlab u) (map Hf.vlab v))
-        → subst (λ z → HomS (map Hf.vlab u) (map Hf.vlab z)) e t
-          ≡ subst (λ z → HomS (map Hf.vlab u) z) (cong (map Hf.vlab) e) t
-      subst-cod-cong refl t = refl
+      run≡ : proj₂ RF.runˢ ≡ castᵛ refl (sym s≡) (idᵛ {Hf.dom})
+      run≡ = trans (proj₂ collapse) (subst-cod≡castᵛ (sym s≡) idᵛ)
 
-      run≡ : proj₂ RF.runˢ
-             ≡ castˢ refl (cong (map Hf.vlab) (sym s≡)) (idˢ {map Hf.vlab Hf.dom})
-      run≡ = trans (proj₂ collapse)
-             (trans (subst-cod-cong (sym s≡) idˢ)
-                    (subst-cod≡cast (cong (map Hf.vlab) (sym s≡)) idˢ))
-
-      -- `permuteˢ` of the `s≡`-substituted canonical derivation is a cast of
-      -- `permuteˢ bsw`.
+      -- `permuteᵛ` of the `s≡`-substituted canonical derivation is a `castᵛ`
+      -- of `permuteᵛ bsw`.
       permsub≡ : RF.permuteˢ (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
-                 ≡ castˢ (cong (map Hf.vlab) (sym s≡)) refl (RF.permuteˢ bsw)
+                 ≡ castᵛ (sym s≡) refl (permuteᵛ bsw)
       permsub≡ = permuteˢ-subst-dom (sym s≡) bsw
         where
-          -- permuteˢ of a domain-subst derivation (dom side) is a cast.
           permuteˢ-subst-dom
             : ∀ {xs xs' ys : List (Fin Hf.nV)} (e : xs ≡ xs') (p : xs ↭ ys)
             → RF.permuteˢ (subst (Perm._↭ ys) e p)
-              ≡ castˢ (cong (map Hf.vlab) e) refl (RF.permuteˢ p)
+              ≡ castᵛ e refl (permuteᵛ p)
           permuteˢ-subst-dom refl p = refl
 
-    -- the inner term `permuteˢ (finalPermˢ σ) ∘ proj₂ runˢ` equals the
-    -- block braiding (in vertex labels), modulo the run-collapse cast.
-    private
-      D0 : map Hf.vlab Lblk ++ map Hf.vlab Rblk ≡ map Hf.vlab RF.s-finˢ
-      D0 = trans (sym (map-++ Hf.vlab Lblk Rblk)) (cong (map Hf.vlab) (sym s≡))
-
-    inner≈
-      : RF.permuteˢ (finalPermˢ f) ∘ˢ proj₂ RF.runˢ
-        ≈ˢ castˢ D0 (sym (map-++ Hf.vlab Rblk Lblk))
-            (σˢ (map Hf.vlab Lblk) (map Hf.vlab Rblk))
+    -- the inner term `permuteˢ (finalPermˢ σ) ∘ᵛ proj₂ runˢ` IS the block
+    -- braiding: the two `s≡` transports meet at the collapsed run and cancel.
+    inner≈ : RF.permuteˢ (finalPermˢ f) ∘ᵛ proj₂ RF.runˢ ≈ᵛ σᵛ Lblk Rblk
     inner≈ =
-      ≈-trans (∘-resp perm≈ (≡⇒≈ˢ run≡))
-      (≈-trans (∘-resp (≡⇒≈ˢ permsub≡) ≈-refl)
-      (≈-trans (≈-sym (∘-cast-split (cong (map Hf.vlab) (sym s≡)) refl refl
-                         (RF.permuteˢ bsw) idˢ))
-        (≈-trans (cast-resp (cong (map Hf.vlab) (sym s≡)) refl idʳ)
-          (≈-trans (cast-resp (cong (map Hf.vlab) (sym s≡)) refl σ-block-≈)
-            (≈-trans
-              (≡⇒≈ˢ (cast-fuse (sym (map-++ Hf.vlab Lblk Rblk))
-                               (cong (map Hf.vlab) (sym s≡))
-                               (sym (map-++ Hf.vlab Rblk Lblk)) refl
-                               (σˢ (map Hf.vlab Lblk) (map Hf.vlab Rblk))))
-              (≡⇒≈ˢ (cast-irrel _ D0 _ (sym (map-++ Hf.vlab Rblk Lblk))
-                       (σˢ (map Hf.vlab Lblk) (map Hf.vlab Rblk)))))))))
+      ≈-trans (∘-resp (≈-trans perm≈ (≡⇒≈ˢ permsub≡)) (≡⇒≈ˢ run≡))
+      (≈-trans (∘-castᵛ refl (sym s≡) refl (permuteᵛ bsw) idᵛ)
+        (≈-trans idʳ σ-block-≈))
 
     private
       -- rewrite the block-label braiding to the `flatten` braiding; the cast
       -- endpoints fold to refl once the args are `flatten A`/`flatten B`.
-      σblk≈ : castˢ (trans D0 (⟪⟫-domL f))
+      σblk≈ : castˢ (trans (sym (map-++ Hf.vlab Lblk Rblk)) (⟪⟫-domL f))
                     (trans (sym (map-++ Hf.vlab Rblk Lblk)) (⟪⟫-codL f))
                 (σˢ (map Hf.vlab Lblk) (map Hf.vlab Rblk))
               ≈ˢ σˢ (flatten A) (flatten B)
@@ -336,11 +308,10 @@ module _
     decodePˢ-σ : decodePˢ f ≈ˢ σˢ (flatten A) (flatten B)
     decodePˢ-σ =
       ≈-trans (cast-resp (⟪⟫-domL f) (⟪⟫-codL f) inner≈)
-      (≈-trans (≡⇒≈ˢ (cast-fuse _ (⟪⟫-domL f) _ (⟪⟫-codL f)
-                       (σˢ (map Hf.vlab Lblk) (map Hf.vlab Rblk))))
-        (≈-trans (σblk≈)
-          (≡⇒≈ˢ (cast-irrel _ refl _ refl
-                   (σˢ (flatten A) (flatten B))))))
+      (≈-trans (≡⇒≈ˢ (cast-fuse (sym (map-++ Hf.vlab Lblk Rblk)) (⟪⟫-domL f)
+                        (sym (map-++ Hf.vlab Rblk Lblk)) (⟪⟫-codL f)
+                        (σˢ (map Hf.vlab Lblk) (map Hf.vlab Rblk))))
+        σblk≈)
 
 --------------------------------------------------------------------------------
 -- The σ-shape is reduced to the single residual `bswap-σ` (`Scr.BswapSig`),
