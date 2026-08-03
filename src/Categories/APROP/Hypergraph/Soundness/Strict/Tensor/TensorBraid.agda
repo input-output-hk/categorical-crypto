@@ -64,6 +64,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv 
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeTensor sig _≟X_ as DT
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ as DC
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorReconcile sig _≟X_ as TR
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
 open import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorKBlock sig _≟X_
   using (module TKB4)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig _≟X_
@@ -77,7 +78,7 @@ open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (nothing)
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
+  using (_≡_; refl; sym; trans; cong; cong₂; subst)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
@@ -371,6 +372,9 @@ module _
         permˢ-K-fg : Support.PermK (Fin Hf.nV) Hf.vlab
         permˢ-K-fg = permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
 
+        -- the wiring-groupoid calculus at `⟪ fg ⟫` (the `≈̂`-level frames).
+        open PC.Kit ⟪ fg ⟫ permˢ-K-fg using (⟦absorbʳ⟧; ⟦frameˡ⟧; ⟦frameʳ⟧)
+
         module SuppFg = Support (Fin Hf.nV) Hf.vlab
 
         -- the G-output block (all `injL`), and the post-G stack `aG`.
@@ -467,7 +471,7 @@ module _
                            (PermProp.++⁺ˡ (map injL Gd.cod) pR)
 
       comb : (sG ++ Kfin) Perm.↭ Hf.cod
-      comb = subst₂ Perm._↭_ (sym (cong₂ _++_ sG≡ Kfin≡)) refl combRaw
+      comb = Perm.trans (Perm.↭-reflexive (cong₂ _++_ sG≡ Kfin≡)) combRaw
 
       ------------------------------------------------------------------
       -- ### G-/K-part C-level twins (`decodePˢ f`/`g`-cores under relabel).
@@ -552,44 +556,17 @@ module _
       ------------------------------------------------------------------
       -- ### `permuteˢ combRaw` frame-decomposition.
       --
-      -- `permuteˢ combRaw ≈ castˢ … (RF.permuteˢ pL ⊗ RF.permuteˢ pR)` (frame
-      -- left/right + interchange).
-
-      private
-        mLsf  = map-++ vl (map injL s_G_final) (map injR s_K_final)
-        mLcod = map-++ vl (map injL Gd.cod) (map injR s_K_final)
-        mLcc  = map-++ vl (map injL Gd.cod) (map injR Kd.cod)
+      -- `permuteˢ combRaw ≈̂ RF.permuteˢ pL ⊗ RF.permuteˢ pR`, read off the
+      -- `PermCalc` frames: `⟦trans⟧` is definitional, `⟦frameʳ⟧`/`⟦frameˡ⟧`
+      -- present the two framed factors heterogeneously (so no intermediate
+      -- `map-++` endpoint is ever named) and `interchangeˢ` merges them.
 
       combRaw-frame
-        : RF.permuteˢ combRaw
-          ≈ˢ castˢ (sym mLsf) (sym mLcc)
-              (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR)
+        : RF.permuteˢ combRaw ≈̂ RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR
       combRaw-frame =
-        -- permuteˢ (trans A B) = permuteˢ B ∘ˢ permuteˢ A
-        ≈-trans (EquivStep.pvv-transˢ ⟪ fg ⟫
-                   (PermProp.++⁺ʳ (map injR s_K_final) pL)
-                   (PermProp.++⁺ˡ (map injL Gd.cod) pR))
-        -- (id{injL cod} ⊗ permuteˢ pR)' ∘ (permuteˢ pL ⊗ id{injR s_K_final})'
-        (≈-trans (∘-resp lframe rframe)
-        -- castₗ (id ⊗ permuteˢ pR) ∘ castᵣ (permuteˢ pL ⊗ id)  → merge + interchange
-        (≈-trans (≈-sym (∘-cast-split (sym mLsf) (sym mLcod) (sym mLcc)
-                          (idˢ {map vl (map injL Gd.cod)} ⊗ˢ RF.permuteˢ pR)
-                          (RF.permuteˢ pL ⊗ˢ idˢ {map vl (map injR s_K_final)})))
-          (cast-resp (sym mLsf) (sym mLcc)
-            (≈-trans interchangeˢ (⊗-resp idˡ idʳ)))))
-        where
-          -- right frame: `permuteˢ (++⁺ʳ R pL) ≈ castₐ (permuteˢ pL ⊗ id)`.
-          rframe
-            : RF.permuteˢ (PermProp.++⁺ʳ (map injR s_K_final) pL)
-              ≈ˢ castˢ (sym mLsf) (sym mLcod)
-                  (RF.permuteˢ pL ⊗ˢ idˢ {map vl (map injR s_K_final)})
-          rframe = cast-flip mLsf mLcod (RF.permuteˢ-frame (map injR s_K_final) pL)
-          -- left frame: `permuteˢ (++⁺ˡ L pR) ≈ castᵦ (id ⊗ permuteˢ pR)`.
-          lframe
-            : RF.permuteˢ (PermProp.++⁺ˡ (map injL Gd.cod) pR)
-              ≈ˢ castˢ (sym mLcod) (sym mLcc)
-                  (idˢ {map vl (map injL Gd.cod)} ⊗ˢ RF.permuteˢ pR)
-          lframe = cast-flip mLcod mLcc (RF.permuteˢ-frameˡ (map injL Gd.cod) pR)
+        ≈̂-trans (∘-resp-≈̂ (⟦frameˡ⟧ (map injL Gd.cod) pR)
+                          (⟦frameʳ⟧ (map injR s_K_final) pL))
+                (≈ˢ⇒≈̂ (≈-trans interchangeˢ (⊗-resp idˡ idʳ)))
 
       ------------------------------------------------------------------
       -- ### `Gc ⊗ Kc` decomposition 1: to the sub-decoder cores.
@@ -690,34 +667,25 @@ module _
 
       ------------------------------------------------------------------
       -- ### `permuteˢ comb` frame: to `castˢ … (permuteˢ pL ⊗ permuteˢ pR)`.
+      --
+      -- `comb`'s reindexing factor is absorbed inside `permuteˢ` (`⟦absorbʳ⟧`),
+      -- so no `subst₂`-of-derivation bridge is needed.
 
       private
-        -- 2-sided `permuteˢ`-of-subst₂ (`Fin Hf.nV`-level), refl-matched.
-        permuteˢ-subst₂
-          : ∀ {xs xs' ys ys' : List (Fin Hf.nV)} (a : xs ≡ xs') (b : ys ≡ ys')
-              (r : xs Perm.↭ ys)
-          → RF.permuteˢ (subst₂ Perm._↭_ a b r)
-            ≡ castˢ (cong (map vl) a) (cong (map vl) b) (RF.permuteˢ r)
-        permuteˢ-subst₂ refl refl r = refl
+        mLsf = map-++ vl (map injL s_G_final) (map injR s_K_final)
+        mLcc = map-++ vl (map injL Gd.cod) (map injR Kd.cod)
+
+        combDom : map vl (map injL s_G_final) ++ map vl (map injR s_K_final)
+                  ≡ map vl (sG ++ Kfin)
+        combDom = trans (sym mLsf) (cong (map vl) (sym (cong₂ _++_ sG≡ Kfin≡)))
 
       comb-frame
         : RF.permuteˢ comb
-          ≈ˢ castˢ (trans (sym mLsf) (cong (map vl) (sym (cong₂ _++_ sG≡ Kfin≡))))
-                   (sym mLcc)
-              (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR)
+          ≈ˢ castˢ combDom (sym mLcc) (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR)
       comb-frame =
-        ≈-trans (≡⇒≈ˢ (permuteˢ-subst₂ (sym (cong₂ _++_ sG≡ Kfin≡)) refl combRaw))
-        (≈-trans (cast-resp (cong (map vl) (sym (cong₂ _++_ sG≡ Kfin≡))) refl
-                    combRaw-frame)
-          -- castₐ (castᵦ (pL⊗pR))  →  fuse + irrel
-          (≡⇒≈ˢ
-            (trans (cast-fuse (sym mLsf) (cong (map vl) (sym (cong₂ _++_ sG≡ Kfin≡)))
-                      (sym mLcc) refl (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR))
-                   (cast-irrel
-                     (trans (sym mLsf) (cong (map vl) (sym (cong₂ _++_ sG≡ Kfin≡))))
-                     (trans (sym mLsf) (cong (map vl) (sym (cong₂ _++_ sG≡ Kfin≡))))
-                     (trans (sym mLcc) refl) (sym mLcc)
-                     (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR)))))
+        ≈̂⇒≈ˢ (≈̂-trans (⟦absorbʳ⟧ (cong₂ _++_ sG≡ Kfin≡))
+              (≈̂-trans combRaw-frame
+                       (≈̂-sym (cast-≈̂ {p = combDom} {q = sym mLcc}))))
 
       ------------------------------------------------------------------
       -- ### `absorbˢ` (the `coeCod`-cast/`subst`-perm cancellation).
@@ -818,9 +786,7 @@ module _
             -- castₐ(pL⊗pR) ∘ castᵦ(Gon'⊗Kclean')  →  align mid (cast-irrel) + split
             (≈-trans
               (∘-resp
-                (≡⇒≈ˢ (cast-irrel
-                         (trans (sym mLsf) (cong (map vl) (sym (cong₂ _++_ sG≡ Kfin≡))))
-                         WQ (sym mLcc) (sym mLcc)
+                (≡⇒≈ˢ (cast-irrel combDom WQ (sym mLcc) (sym mLcc)
                          (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR)))
                 ≈-refl)
               (≈-sym (∘-cast-split (sym (map-++ vl Lpre Rsuf)) WQ
