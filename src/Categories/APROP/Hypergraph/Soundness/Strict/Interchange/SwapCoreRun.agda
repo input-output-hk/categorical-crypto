@@ -5,9 +5,9 @@
 -- both-fire core `fire-mid-interchangeˢ`.
 --
 -- This is the assembly file for part (II)ˢ's per-swap lemma: it consumes the
--- algebra bricks of `Strict.SwapCore` (`EdgeStepRˢ`,
--- `box-crossˢ`, `permuteˢ-frameˡ`, `permuteˢ-inv-{left,right}`,
--- `perm-rigidˢ`) and the TERM-FREE combinatorics of
+-- algebra bricks of `Strict.SwapCore` (`EdgeStepRˢ`, `perm-rigidˢ`) and the
+-- V-level interchange kernel of `Interchange.FireMid` (`box-crossᵛ`,
+-- `cross-NFᵛ`), plus the TERM-FREE combinatorics of
 -- `Discharge.Sub.FireMidInterchangeComb` (`SimLoc`, `sim-loc`, the stability
 -- lemmas) and `Discharge.Sub.StackUniqueReach` (`Reservoir≤1`) to build:
 --

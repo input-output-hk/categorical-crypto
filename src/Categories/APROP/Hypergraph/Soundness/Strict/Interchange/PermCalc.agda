@@ -4,7 +4,7 @@
 -- The THIN WIRING-GROUPOID calculus (`≈̂`-level `PermCalc`, F11).
 --
 -- Every "located coherence" proof in the strict interchange/tensor cone
--- (`vin-cohˢ`/`vout-cohˢ`, `in-eq`/`out-eq`/`σ-side`/`glue`, `in-reconcile`,
+-- (`vin-cohᵛ`/`vout-cohᵛ`, `in-eq`/`out-eq`/`σ-side`/`glue`, `in-reconcile`,
 -- `in-combined`, …) has the SAME skeleton: present each side as `permuteˢ` of a
 -- `_↭_`-derivation, identify the two derivations by rigidity on their `Unique`
 -- codomain, and reconcile the `castˢ` paths by `cast-fuse`/`cast-irrel`/
