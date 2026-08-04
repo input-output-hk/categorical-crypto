@@ -14,16 +14,14 @@
 -- Mathematically: permutation morphisms between `Unique` stacks form a THIN
 -- groupoid (rigidity), presented by `_↭_`-derivations under `permuteˢ`.  This
 -- module gives `permuteˢ` the structure of an `_≈̂_`-homomorphism, so every
--- located proof reduces to congruence bookkeeping over the six bridges below —
+-- located proof reduces to congruence bookkeeping over the bridges below —
 -- all statements HETEROGENEOUS, so no cast path is ever named.
 --
--- The six bridges are `≈̂`-restatements of EXISTING lemmas:
---   ⟦trans⟧     — DEFINITIONAL (`permuteˢ (trans p q) = permuteˢ q ∘ˢ permuteˢ p`)
---   ⟦reflexive⟧ — `permuteˢ (↭-reflexive eq) ≈̂ idˢ`
+-- The bridges are `≈̂`-restatements of EXISTING lemmas:
 --   ⟦absorbˡ⟧/⟦absorbʳ⟧ — a reindexing factor is absorbed (`idˡ`/`idʳ`)
---   ⟦frameˡ⟧    — `SwapCore.permuteˢ-frameˡ`
+--   ⟦frameˡ⟧    — `SwapCore.permuteˢ-frameˡ`  (+ its V face ⟦frameˡ⟧ᵛ)
 --   ⟦frameʳ⟧    — `FreeStrictSMC.Perm′.permuteˢ-frame`
---   ⟦bswap⟧     — `BlockSwapComm.swap-block`
+--   ⟦bswap⟧ᵛ    — `BlockSwapComm.swap-block`
 --   rigid-≈̂     — `SwapCore.perm-rigidˢ`   (the rigidity discharge)
 --------------------------------------------------------------------------------
 
@@ -48,12 +46,12 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm si
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_ as DSS
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; _++_; map)
+open import Data.List using (List; map)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.List.Properties using (map-++)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 --------------------------------------------------------------------------------
 
@@ -65,7 +63,7 @@ module Kit (H : Hypergraph FlatGen)
   open StrictDecoder H
 
   open Restrict (Fin H.nV) vl
-    using (HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ)
+    using (idᵛ; _⊗ᵛ_; σᵛ; _≈ᵛ_; permuteᵛ)
 
   private
     m : List (Fin H.nV) → List X
@@ -77,22 +75,6 @@ module Kit (H : Hypergraph FlatGen)
     perm-frameˡ′ = permuteˢ-frameˡ
     swap-block′  = BSC.swap-block (Fin H.nV) H.vlab
   open DSS.Scr (Fin H.nV) H.vlab using (bswap)
-
-  ------------------------------------------------------------------------
-  -- ⟦trans⟧ : sequential derivations compose (DEFINITIONALLY).
-  ------------------------------------------------------------------------
-  ⟦trans⟧
-    : ∀ {xs ys zs : List (Fin H.nV)} (p : xs Perm.↭ ys) (q : ys Perm.↭ zs)
-    → permuteˢ (Perm.trans p q) ≈̂ permuteˢ q ∘ˢ permuteˢ p
-  ⟦trans⟧ p q = ≈̂-refl
-
-  ------------------------------------------------------------------------
-  -- ⟦reflexive⟧ : a reindexing derivation is the identity.
-  ------------------------------------------------------------------------
-  ⟦reflexive⟧
-    : ∀ {xs ys : List (Fin H.nV)} (eq : xs ≡ ys)
-    → permuteˢ (Perm.↭-reflexive eq) ≈̂ idˢ {m xs}
-  ⟦reflexive⟧ refl = ≈̂-refl
 
   ------------------------------------------------------------------------
   -- ⟦absorbˡ⟧/⟦absorbʳ⟧ : a reindexing FACTOR of a sequential derivation is
@@ -132,20 +114,9 @@ module Kit (H : Hypergraph FlatGen)
   ⟦frameʳ⟧ R p = ≈̂-trans (≈̂-sym cast-≈̂) (≈ˢ⇒≈̂ (permuteˢ-frame R p))
 
   ------------------------------------------------------------------------
-  -- ⟦bswap⟧ : a `++⁺ʳ Rl`-framed canonical block swap is the strict block
-  -- braiding.
+  -- ⟦bswap⟧ᵛ : a `++⁺ʳ Rl`-framed canonical block swap is the strict block
+  -- braiding — `BlockSwapComm.swap-block` verbatim at V level.
   ------------------------------------------------------------------------
-  ⟦bswap⟧
-    : ∀ (L R Rl : List (Fin H.nV))
-    → permuteˢ (PermProp.++⁺ʳ Rl (bswap L R)) ≈̂ σˢ (m L) (m R) ⊗ˢ idˢ {m Rl}
-  ⟦bswap⟧ L R Rl =
-    ≈̂-trans (≈ˢ⇒≈̂ (swap-block′ L R Rl))
-            (≈̂-trans (cast-≈̂ {p = sym (map-++ vl (L ++ R) Rl)}
-                             {q = sym (map-++ vl (R ++ L) Rl)})
-                     (⊗-resp-≈̂ (cast-≈̂ {p = sym (map-++ vl L R)}
-                                       {q = sym (map-++ vl R L)}) ≈̂-refl))
-
-  -- …and its V-level face: `BlockSwapComm.swap-block` verbatim.
   ⟦bswap⟧ᵛ
     : ∀ (L R Rl : List (Fin H.nV))
     → permuteᵛ (PermProp.++⁺ʳ Rl (bswap L R)) ≈ᵛ σᵛ L R ⊗ᵛ idᵛ {Rl}

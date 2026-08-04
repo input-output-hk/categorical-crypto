@@ -166,7 +166,7 @@ module _ (V : Set) (vlab : V → X) where
   --------------------------------------------------------------------------
   -- (D)  The `++⁺ʳ Rl`-framed block-swap derivation is, under `permuteᵛ`, the
   -- strict block braiding framed by `idᵛ {Rl}` — the public face consumed by
-  -- `PermCalc.⟦bswap⟧`.  At V level this is `permuteᵛ-frame` + the keystone.
+  -- `PermCalc.⟦bswap⟧ᵛ`.  At V level this is `permuteᵛ-frame` + the keystone.
 
   swap-block
     : ∀ (L R Rl : List V)

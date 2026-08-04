@@ -74,7 +74,6 @@ open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using (↑ˡ-injective; ↑ʳ-injective)
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-++)
-open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (nothing)
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
@@ -374,8 +373,6 @@ module _
 
         -- the wiring-groupoid calculus at `⟪ fg ⟫` (the `≈̂`-level frames).
         open PC.Kit ⟪ fg ⟫ permˢ-K-fg using (⟦absorbʳ⟧; ⟦frameˡ⟧; ⟦frameʳ⟧)
-
-        module SuppFg = Support (Fin Hf.nV) Hf.vlab
 
         -- the G-output block (all `injL`), and the post-G stack `aG`.
         sG : List (Fin Hf.nV)

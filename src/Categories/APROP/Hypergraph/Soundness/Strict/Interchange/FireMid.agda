@@ -665,5 +665,5 @@ module _ (H : Hypergraph FlatGen)
     SCR.RunInterchange H dih lin fire-mid-interchangeˢ
 
   -- Re-export the headline result.
-  open RunInterchangeˢ using (run-interchange₀ˢ; build) public
+  open RunInterchangeˢ using (run-interchange₀ˢ) public
 

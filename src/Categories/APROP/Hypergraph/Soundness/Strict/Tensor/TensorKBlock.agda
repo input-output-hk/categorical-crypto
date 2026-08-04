@@ -39,7 +39,7 @@ module TKBBase (H : Hypergraph FlatGen) where
   open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_ public
   open import Data.Fin using (Fin) public
   open import Data.List using (List; []; _∷_; _++_; map) public
-  open import Data.List.Properties using (map-++; ++-assoc) public
+  open import Data.List.Properties using (++-assoc) public
   open import Data.List.Relation.Unary.Unique.Propositional using (Unique) public
   open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂) public
   open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst) public

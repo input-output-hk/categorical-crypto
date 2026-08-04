@@ -47,24 +47,22 @@ module _ {nH nJ : ℕ} (φ : Fin nH → Fin nJ)
     vmap : (as : List (Fin nH)) → map vJ (map φ as) ≡ map vH as
     vmap as = trans (sym (map-∘ as)) (map-cong veq as)
 
-  pvv-≈̂
-    : ∀ {xs ys : List (Fin nH)} (p : xs Perm.↭ ys)
-    → Perm′.permuteˢ (Fin nJ) vJ (PermProp.map⁺ φ p)
-      ≈̂ Perm′.permuteˢ (Fin nH) vH p
-  pvv-≈̂ {xs} Perm.refl      = idˢ-≈̂ (vmap xs)
-  pvv-≈̂ (Perm.prep x p)     =
-    ⊗-resp-≈̂ (idˢ-≈̂ (cong (_∷ []) (veq x))) (pvv-≈̂ p)
-  pvv-≈̂ (Perm.swap x y p)   =
-    ⊗-resp-≈̂ (σ-≈̂ (cong (_∷ []) (veq x)) (cong (_∷ []) (veq y))) (pvv-≈̂ p)
-  pvv-≈̂ (Perm.trans p q)    = ∘-resp-≈̂ (pvv-≈̂ q) (pvv-≈̂ p)
+    pvv-≈̂
+      : ∀ {xs ys : List (Fin nH)} (p : xs Perm.↭ ys)
+      → Perm′.permuteˢ (Fin nJ) vJ (PermProp.map⁺ φ p)
+        ≈̂ Perm′.permuteˢ (Fin nH) vH p
+    pvv-≈̂ {xs} Perm.refl      = idˢ-≈̂ (vmap xs)
+    pvv-≈̂ (Perm.prep x p)     =
+      ⊗-resp-≈̂ (idˢ-≈̂ (cong (_∷ []) (veq x))) (pvv-≈̂ p)
+    pvv-≈̂ (Perm.swap x y p)   =
+      ⊗-resp-≈̂ (σ-≈̂ (cong (_∷ []) (veq x)) (cong (_∷ []) (veq y))) (pvv-≈̂ p)
+    pvv-≈̂ (Perm.trans p q)    = ∘-resp-≈̂ (pvv-≈̂ q) (pvv-≈̂ p)
 
-pvv-relabelˢ
-  : ∀ {nH nJ : ℕ} (φ : Fin nH → Fin nJ)
-      (vJ : Fin nJ → X) (vH : Fin nH → X) (veq : ∀ i → vJ (φ i) ≡ vH i)
-      {xs ys : List (Fin nH)} (p : xs Perm.↭ ys)
-      (P : map vJ (map φ xs) ≡ map vH xs)
-      (Q : map vJ (map φ ys) ≡ map vH ys)
-  → castˢ P Q
-      (Perm′.permuteˢ (Fin nJ) vJ (PermProp.map⁺ φ p))
-    ≈ˢ Perm′.permuteˢ (Fin nH) vH p
-pvv-relabelˢ φ vJ vH veq p P Q = ≈̂⇒castˢ (pvv-≈̂ φ vJ vH veq p) P Q
+  pvv-relabelˢ
+    : ∀ {xs ys : List (Fin nH)} (p : xs Perm.↭ ys)
+        (P : map vJ (map φ xs) ≡ map vH xs)
+        (Q : map vJ (map φ ys) ≡ map vH ys)
+    → castˢ P Q
+        (Perm′.permuteˢ (Fin nJ) vJ (PermProp.map⁺ φ p))
+      ≈ˢ Perm′.permuteˢ (Fin nH) vH p
+  pvv-relabelˢ p P Q = ≈̂⇒castˢ (pvv-≈̂ p) P Q
