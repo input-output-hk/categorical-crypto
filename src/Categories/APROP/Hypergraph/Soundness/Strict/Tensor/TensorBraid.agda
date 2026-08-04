@@ -61,7 +61,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
   using (module EquivStep; module TermEmbedˢ)
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeTensor sig _≟X_ as DT
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ as DC
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorReconcile sig _≟X_ as TR
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC

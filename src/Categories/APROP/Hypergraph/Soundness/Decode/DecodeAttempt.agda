@@ -23,7 +23,6 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
 
 import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
 open Inv
-import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
 
 open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_)
 open import Data.Nat

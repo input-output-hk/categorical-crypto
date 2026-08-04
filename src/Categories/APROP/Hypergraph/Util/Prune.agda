@@ -94,12 +94,6 @@ module _ {n : ℕ} where
                        → lookup xs i ≡ v
   classify-inj₁-lookup xs v i eq with v ∈? xs
   classify-inj₁-lookup xs v .(index v∈xs) refl | yes v∈xs = sym (lookup-index v∈xs)
-  nonMem-Unique : (xs : List (Fin n)) → Unique (nonMem xs)
-  nonMem-Unique xs =
-    Uniq-Prop.filter⁺ (nonMem? xs) (Uniq-Prop.allFin⁺ n)
-    where import Data.List.Relation.Unary.Unique.Propositional.Properties
-                  as Uniq-Prop
-
   -- When classify returns inj₁, the scrutinee is in xs.
   classify-inj₁-∈ : ∀ {xs v i} → classify xs v ≡ inj₁ i → v ∈ xs
   classify-inj₁-∈ {xs} {v} eq with v ∈? xs

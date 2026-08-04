@@ -1,9 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- `c-iso-assoc-from-cons`: the cons case of the c-iso pentagon
--- (associativity of `unflatten-++-≅` up to `++-assoc`); unblocks the
--- α⇒/α⇐ cases of `decode-rel-≈-decodeP`.
+-- `c-iso-assoc-from`: the c-iso pentagon (associativity of
+-- `unflatten-++-≅` up to `++-assoc`); unblocks the α⇒/α⇐ cases of
+-- `decode-rel-≈-decodeP`.
 --
 -- `c-iso-assoc-from` is proven constructively here.  The base case and
 -- the two free-monoidal segments of the cons case (everything except
@@ -206,17 +206,3 @@ c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
                                 (unflatten z)) e' id
         ∎
 
---------------------------------------------------------------------------------
--- The cons case, exposed as a top-level lemma.
-
-c-iso-assoc-from-cons
-  : ∀ x xs₁' xs₂ ys
-  → α⇒ {unflatten (x ∷ xs₁')} {unflatten xs₂} {unflatten ys}
-    ∘ (_≅_.from (unflatten-++-≅ (x ∷ xs₁') xs₂) ⊗₁ id)
-    ∘ _≅_.from (unflatten-++-≅ ((x ∷ xs₁') ++ xs₂) ys)
-  ≈Term (id {unflatten (x ∷ xs₁')} ⊗₁ _≅_.from (unflatten-++-≅ xs₂ ys))
-        ∘ _≅_.from (unflatten-++-≅ (x ∷ xs₁') (xs₂ ++ ys))
-        ∘ subst (λ z → HomTerm (unflatten (((x ∷ xs₁') ++ xs₂) ++ ys))
-                                (unflatten z))
-                (++-assoc (x ∷ xs₁') xs₂ ys) id
-c-iso-assoc-from-cons x xs₁' xs₂ ys = c-iso-assoc-from (x ∷ xs₁') xs₂ ys

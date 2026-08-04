@@ -636,7 +636,6 @@ module TermEmbedˢ
 
 open import Categories.PermuteCoherence.EvalSoundness using (eval-↭-sym)
 open import Categories.PermuteCoherence.FinBij using (inv-fb)
-import Data.Fin.Permutation as P
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 
 module Equivariantˢ (H : Hypergraph FlatGen) where

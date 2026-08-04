@@ -215,11 +215,6 @@ module _
       Rblk = map (length (flatten A) ↑ʳ_) (range (length (flatten B)))
 
       -- `Hf.dom = Lblk ++ Rblk`, `Hf.cod = Rblk ++ Lblk` (definitional).
-      dom≡ : Hf.dom ≡ Lblk ++ Rblk
-      dom≡ = refl
-
-      cod≡ : Hf.cod ≡ Rblk ++ Lblk
-      cod≡ = refl
 
       -- per-block vertex-label evaluations (re-derived as in FromAPROP).
       open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
