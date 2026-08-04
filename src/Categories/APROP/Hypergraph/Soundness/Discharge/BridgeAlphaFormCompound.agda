@@ -28,6 +28,8 @@ open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
   using ( bridge-∘
         ; bridge-⊗
         ; bridge-id-is-id
+        ; bridge-inv-id
+        ; bridge-resp-≈Term
         ; α⇒-form-list
         ; α⇐-form-list
         ; α⇒-α⇐-iso
@@ -38,6 +40,7 @@ open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
+open import Categories.Morphism.Reasoning.Ext FreeMonoidal using (inv-resp)
 open import Categories.Category.Monoidal using (Monoidal; MonoidalCategory)
 -- Morphism-variable monoidal solver: discharges the F-/T-decomp chases
 -- (coherence + naturality + interchange around the opaque unflatten isos)
@@ -211,37 +214,15 @@ private
 -- explicit argument), so it stays outside the well-founded recursion.
 
 private
-  bridge-resp-≈Term : ∀ {A B} {f g : HomTerm A B} → f ≈Term g → bridge f ≈Term bridge g
-  bridge-resp-≈Term f≈g = refl⟩∘⟨ f≈g ⟩∘⟨refl
-
   derive-⇐
     : ∀ A B C
     → bridge (α⇒ {A} {B} {C})
       ≈Term α⇒-form-list (flatten A) (flatten B) (flatten C)
     → bridge (α⇐ {A} {B} {C})
       ≈Term α⇐-form-list (flatten A) (flatten B) (flatten C)
-  derive-⇐ A B C br-α⇒ = begin
-    bridge (α⇐ {A} {B} {C})
-      ≈⟨ ≈-Term-sym idʳ ⟩
-    bridge (α⇐ {A} {B} {C}) ∘ id
-      ≈⟨ refl⟩∘⟨ ≈-Term-sym (α⇒-α⇐-iso (flatten A) (flatten B) (flatten C)) ⟩
-    bridge (α⇐ {A} {B} {C}) ∘ (α⇒-form-list (flatten A) (flatten B) (flatten C)
-                                ∘ α⇐-form-list (flatten A) (flatten B) (flatten C))
-      ≈⟨ FM.sym-assoc ⟩
-    (bridge (α⇐ {A} {B} {C}) ∘ α⇒-form-list (flatten A) (flatten B) (flatten C))
-     ∘ α⇐-form-list (flatten A) (flatten B) (flatten C)
-      ≈⟨ (refl⟩∘⟨ ≈-Term-sym br-α⇒) ⟩∘⟨refl ⟩
-    (bridge (α⇐ {A} {B} {C}) ∘ bridge (α⇒ {A} {B} {C}))
-     ∘ α⇐-form-list (flatten A) (flatten B) (flatten C)
-      ≈⟨ ≈-Term-sym (bridge-∘ α⇐ α⇒) ⟩∘⟨refl ⟩
-    bridge (α⇐ {A} {B} {C} ∘ α⇒ {A} {B} {C})
-     ∘ α⇐-form-list (flatten A) (flatten B) (flatten C)
-      ≈⟨ bridge-resp-≈Term α⇐∘α⇒≈id ⟩∘⟨refl ⟩
-    bridge (id {(A ⊗₀ B) ⊗₀ C}) ∘ α⇐-form-list (flatten A) (flatten B) (flatten C)
-      ≈⟨ bridge-id-is-id ((A ⊗₀ B) ⊗₀ C) ⟩∘⟨refl ⟩
-    id ∘ α⇐-form-list (flatten A) (flatten B) (flatten C)
-      ≈⟨ idˡ ⟩
-    α⇐-form-list (flatten A) (flatten B) (flatten C) ∎
+  derive-⇐ A B C =
+    inv-resp (bridge-inv-id α⇐ α⇒ α⇐∘α⇒≈id)
+             (α⇒-α⇐-iso (flatten A) (flatten B) (flatten C))
 
 --------------------------------------------------------------------------------
 -- `list-collapse-gen`: the pure list-level Mac-Lane coherence the compound

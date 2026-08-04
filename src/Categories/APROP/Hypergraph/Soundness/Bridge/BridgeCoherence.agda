@@ -25,6 +25,7 @@ open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
+open import Categories.Morphism.Reasoning.Ext FreeMonoidal using (inv-resp)
 open import Categories.Category.Monoidal.Properties Monoidal-FreeMonoidal
   using (module Kelly's)
 open Kelly's using (coherence₃)
@@ -65,6 +66,19 @@ bridge-id-is-id A = begin
     ≈⟨ _≅_.isoʳ (unflatten-flatten-≈ A) ⟩
   id ∎
 
+-- `bridge` is a whiskering by the two `unflatten` legs, so it respects `≈Term`
+-- and carries a one-sided inverse pair to a one-sided inverse pair.  With
+-- `inv-resp` this is what derives every ⇐-direction lemma below from its ⇒ twin.
+bridge-resp-≈Term : ∀ {A B} {f g : HomTerm A B} → f ≈Term g → bridge f ≈Term bridge g
+bridge-resp-≈Term f≈g = refl⟩∘⟨ f≈g ⟩∘⟨refl
+
+bridge-inv-id
+  : ∀ {A B} (g : HomTerm B A) (f : HomTerm A B)
+  → g ∘ f ≈Term id → bridge g ∘ bridge f ≈Term id
+bridge-inv-id {A} g f e =
+  ≈-Term-trans (≈-Term-sym (bridge-∘ g f))
+    (≈-Term-trans (bridge-resp-≈Term e) (bridge-id-is-id A))
+
 --------------------------------------------------------------------------------
 -- bridge (λ⇒) and bridge (λ⇐) reduce to `id`.
 
@@ -89,42 +103,15 @@ bridge-λ⇒-is-id A = begin
     F-A = _≅_.from (unflatten-flatten-≈ A)
     T-A = _≅_.to   (unflatten-flatten-≈ A)
 
+-- `flatten (unit ⊗₀ A)` reduces to `flatten A`, so both bridges are endo at
+-- `unflatten (flatten A)` and `λ⇐` is `λ⇒`'s inverse there.
 bridge-λ⇐-is-id : ∀ A → bridge (λ⇐ {A}) ≈Term id
-bridge-λ⇐-is-id A = begin
-  (λ⇒ ∘ id ⊗₁ F-A) ∘ (λ⇐ ∘ T-A)
-    ≈⟨ λ⇒∘id⊗f≈f∘λ⇒ ⟩∘⟨refl ⟩
-  (F-A ∘ λ⇒) ∘ (λ⇐ ∘ T-A)
-    ≈⟨ FM.assoc ⟩
-  F-A ∘ (λ⇒ ∘ (λ⇐ ∘ T-A))
-    ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-  F-A ∘ ((λ⇒ ∘ λ⇐) ∘ T-A)
-    ≈⟨ refl⟩∘⟨ (λ⇒∘λ⇐≈id ⟩∘⟨refl) ⟩
-  F-A ∘ (id ∘ T-A)
-    ≈⟨ refl⟩∘⟨ idˡ ⟩
-  F-A ∘ T-A
-    ≈⟨ _≅_.isoʳ (unflatten-flatten-≈ A) ⟩
-  id ∎
-  where
-    F-A = _≅_.from (unflatten-flatten-≈ A)
-    T-A = _≅_.to   (unflatten-flatten-≈ A)
+bridge-λ⇐-is-id A =
+  inv-resp (bridge-inv-id λ⇐ λ⇒ λ⇐∘λ⇒≈id) idˡ (bridge-λ⇒-is-id A)
 
 --------------------------------------------------------------------------------
--- Helpers for chaining `_≡_` and `≈Term`, and for transporting `≈Term`
--- across `subst₂`.
-
--- `≡⇒≈Term` lives in `Categories.FreeMonoidal`, reachable everywhere via
--- `open APROP sig`.
-
-subst₂-resp-≈Term
-  : ∀ {As Bs As' Bs' : List X} (eq-As : As ≡ As') (eq-Bs : Bs ≡ Bs')
-      {f g : HomTerm (unflatten As) (unflatten Bs)}
-  → f ≈Term g
-  → subst₂ HomTerm (cong unflatten eq-As) (cong unflatten eq-Bs) f
-    ≈Term subst₂ HomTerm (cong unflatten eq-As) (cong unflatten eq-Bs) g
-subst₂-resp-≈Term refl refl f≈g = f≈g
-
---------------------------------------------------------------------------------
--- `subst (cong unflatten _)`-of-`id` workhorses.
+-- `subst (cong unflatten _)`-of-`id` workhorses.  (`≡⇒≈Term` itself lives in
+-- `Categories.FreeMonoidal`, reachable everywhere via `open APROP sig`.)
 
 subst₂-refl-cod
   : ∀ {As As' : List X} (eq : As ≡ As')
@@ -132,23 +119,19 @@ subst₂-refl-cod
   ≡ subst (λ z → HomTerm (unflatten As) (unflatten z)) eq id
 subst₂-refl-cod refl = refl
 
-subst₂-refl-dom
-  : ∀ {As As' : List X} (eq : As ≡ As')
-  → subst₂ HomTerm (cong unflatten eq) refl (id {unflatten As})
-  ≡ subst (λ z → HomTerm (unflatten z) (unflatten As)) eq id
-subst₂-refl-dom refl = refl
+-- the dom- and cod-transported identities are mutually inverse
+cast₂-inv
+  : ∀ {as as' : List X} (eq : as ≡ as')
+  → subst₂ HomTerm (cong unflatten eq) refl (id {unflatten as})
+      ∘ subst₂ HomTerm refl (cong unflatten eq) (id {unflatten as})
+    ≈Term id
+cast₂-inv refl = idˡ
 
 subst-cod-cons
   : ∀ (y : X) {as as' : List X} (eq : as ≡ as')
   → subst (λ z → HomTerm (Var y ⊗₀ unflatten as) (Var y ⊗₀ unflatten z)) eq id
   ≈Term id {Var y} ⊗₁ subst (λ z → HomTerm (unflatten as) (unflatten z)) eq id
 subst-cod-cons y refl = ≈-Term-sym id⊗id≈id
-
-subst-dom-cons
-  : ∀ (y : X) {as as' : List X} (eq : as ≡ as')
-  → subst (λ z → HomTerm (Var y ⊗₀ unflatten z) (Var y ⊗₀ unflatten as)) eq id
-  ≈Term id {Var y} ⊗₁ subst (λ z → HomTerm (unflatten z) (unflatten as)) eq id
-subst-dom-cons y refl = ≈-Term-sym id⊗id≈id
 
 -- The shared first step of all four `*-coh-list` cons cases: push the
 -- `cong (y ∷_)` of a `subst` through `unflatten` via `subst-∘`, re-binding
@@ -186,49 +169,6 @@ bridge-ρ⇒-form A = begin
     F-A = _≅_.from (unflatten-flatten-≈ A)
     T-A = _≅_.to   (unflatten-flatten-≈ A)
     cAA-from = _≅_.from (unflatten-++-≅ (flatten A) [])
-
---------------------------------------------------------------------------------
--- ρ⇐-naturality, derived from ρ⇒-naturality + iso laws.
-
-ρ⇐-naturality : ∀ {A B} (f : HomTerm A B) → ρ⇐ {B} ∘ f ≈Term f ⊗₁ id ∘ ρ⇐ {A}
-ρ⇐-naturality {A} {B} f = solveMor! lhsᵗ rhsᵗ
-  where
-    open FinSetup FMC ( A Vec.∷ B Vec.∷ Vec.[] )
-    v0 = V 0F ; v1 = V 1F
-    open Sig {1} (λ { 0F → v0 , v1 })
-    open WithGen (λ { (genS 0F) → f })
-    g0 = gen 0F
-    lhsᵗ rhsᵗ : S.HomTerm v0 (v1 ⊗ᵒ unitᵒ)
-    lhsᵗ = S._∘_ S.ρ⇐ g0
-    rhsᵗ = S._∘_ (S._⊗₁_ g0 S.id) S.ρ⇐
-
---------------------------------------------------------------------------------
--- Bridge form for ρ⇐.
-
-bridge-ρ⇐-form
-  : ∀ A → bridge (ρ⇐ {A})
-       ≈Term _≅_.to (unflatten-++-≅ (flatten A) [])
-              ∘ ρ⇐ {unflatten (flatten A)}
-bridge-ρ⇐-form A = begin
-  (cAA-to ∘ F-A ⊗₁ id) ∘ ρ⇐ ∘ T-A
-    ≈⟨ FM.assoc ⟩
-  cAA-to ∘ (F-A ⊗₁ id) ∘ (ρ⇐ ∘ T-A)
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ρ⇐-naturality T-A ⟩
-  cAA-to ∘ (F-A ⊗₁ id) ∘ (T-A ⊗₁ id ∘ ρ⇐)
-    ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-  cAA-to ∘ ((F-A ⊗₁ id) ∘ T-A ⊗₁ id) ∘ ρ⇐
-    ≈⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩∘⟨refl ⟩
-  cAA-to ∘ (F-A ∘ T-A) ⊗₁ (id ∘ id) ∘ ρ⇐
-    ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (_≅_.isoʳ (unflatten-flatten-≈ A)) idˡ ⟩∘⟨refl ⟩
-  cAA-to ∘ id ⊗₁ id ∘ ρ⇐
-    ≈⟨ refl⟩∘⟨ id⊗id≈id ⟩∘⟨refl ⟩
-  cAA-to ∘ id ∘ ρ⇐
-    ≈⟨ refl⟩∘⟨ idˡ ⟩
-  cAA-to ∘ ρ⇐ ∎
-  where
-    F-A    = _≅_.from (unflatten-flatten-≈ A)
-    T-A    = _≅_.to   (unflatten-flatten-≈ A)
-    cAA-to = _≅_.to   (unflatten-++-≅ (flatten A) [])
 
 --------------------------------------------------------------------------------
 -- List-coherence for ρ⇒.
@@ -275,50 +215,6 @@ bridge-ρ⇐-form A = begin
         rhsᵗ = S._∘_ S.ρ⇒ (S._∘_ S.α⇐ (S._⊗₁_ S.id g0))
 
 --------------------------------------------------------------------------------
--- List-coherence for ρ⇐.
-
-ρ⇐-coh-list
-  : ∀ (xs : List X)
-  → subst (λ z → HomTerm (unflatten z) (unflatten (xs ++ [])))
-          (++-identityʳ xs) id
-    ≈Term _≅_.to (unflatten-++-≅ xs []) ∘ ρ⇐ {unflatten xs}
-ρ⇐-coh-list []       = begin
-  id           ≈⟨ ≈-Term-sym ρ⇒∘ρ⇐≈id ⟩
-  ρ⇒ ∘ ρ⇐      ≈⟨ ≈-Term-sym coherence₃ ⟩∘⟨refl ⟩
-  λ⇒ ∘ ρ⇐      ∎
-ρ⇐-coh-list (y ∷ ys) = begin
-  subst (λ z → HomTerm (unflatten z) (Var y ⊗₀ unflatten (ys ++ [])))
-        (cong (y ∷_) (++-identityʳ ys)) id
-    ≈⟨ cons-coh-step y (++-identityʳ ys)
-         (λ z → unflatten z) (λ _ → Var y ⊗₀ unflatten (ys ++ [])) id ⟩
-  subst (λ z → HomTerm (Var y ⊗₀ unflatten z)
-                        (Var y ⊗₀ unflatten (ys ++ [])))
-        (++-identityʳ ys) id
-    ≈⟨ subst-dom-cons y (++-identityʳ ys) ⟩
-  id ⊗₁ subst (λ z → HomTerm (unflatten z) (unflatten (ys ++ [])))
-              (++-identityʳ ys) id
-    ≈⟨ ⊗-resp-≈ ≈-Term-refl (ρ⇐-coh-list ys) ⟩
-  id ⊗₁ (inner-to ∘ ρ⇐)
-    ≈⟨ ρ-slide ⟩
-  (id ⊗₁ inner-to ∘ α⇒) ∘ ρ⇐ ∎
-  where
-    inner-to = _≅_.to (unflatten-++-≅ ys [])
-
-    ρ-slide : id {Var y} ⊗₁ (inner-to ∘ ρ⇐) ≈Term (id ⊗₁ inner-to ∘ α⇒) ∘ ρ⇐
-    ρ-slide = solveMor! lhsᵗ rhsᵗ
-      where
-        -- atoms: 0 ↦ Var y, 1 ↦ unflatten ys, 2 ↦ unflatten (ys ++ [])
-        open FinSetup FMC
-          ( Var y Vec.∷ unflatten ys Vec.∷ unflatten (ys ++ []) Vec.∷ Vec.[] )
-        v0 = V 0F ; v1 = V 1F ; v2 = V 2F
-        open Sig {1} (λ { 0F → v1 ⊗ᵒ unitᵒ , v2 })
-        open WithGen (λ { (genS 0F) → inner-to })
-        g0 = gen 0F
-        lhsᵗ rhsᵗ : S.HomTerm (v0 ⊗ᵒ v1) (v0 ⊗ᵒ v2)
-        lhsᵗ = S._⊗₁_ S.id (S._∘_ g0 S.ρ⇐)
-        rhsᵗ = S._∘_ (S._∘_ (S._⊗₁_ S.id g0) S.α⇒) S.ρ⇐
-
---------------------------------------------------------------------------------
 -- ρ⇒-coherence / ρ⇐-coherence: combine list-coherence with bridge-form.
 
 ρ⇒-coherence
@@ -334,18 +230,15 @@ bridge-ρ⇐-form A = begin
     ≈⟨ ≈-Term-sym (bridge-ρ⇒-form A) ⟩
   bridge (ρ⇒ {A}) ∎
 
+-- the ⇐ direction is the ⇒ one transposed: both sides are inverse pairs at
+-- `unflatten (flatten A ++ [])`, so `inv-resp` transports the equation.
 ρ⇐-coherence
   : ∀ A → subst₂ HomTerm (cong unflatten (++-identityʳ (flatten A))) refl id
        ≈Term bridge (ρ⇐ {A})
-ρ⇐-coherence A = begin
-  subst₂ HomTerm (cong unflatten (++-identityʳ (flatten A))) refl id
-    ≈⟨ ≡⇒≈Term (subst₂-refl-dom (++-identityʳ (flatten A))) ⟩
-  subst (λ z → HomTerm (unflatten z) (unflatten (flatten A ++ [])))
-        (++-identityʳ (flatten A)) id
-    ≈⟨ ρ⇐-coh-list (flatten A) ⟩
-  _≅_.to (unflatten-++-≅ (flatten A) []) ∘ ρ⇐
-    ≈⟨ ≈-Term-sym (bridge-ρ⇐-form A) ⟩
-  bridge (ρ⇐ {A}) ∎
+ρ⇐-coherence A =
+  inv-resp (cast₂-inv (++-identityʳ (flatten A)))
+           (bridge-inv-id ρ⇒ ρ⇐ ρ⇒∘ρ⇐≈id)
+           (ρ⇒-coherence A)
 
 --------------------------------------------------------------------------------
 -- α-form lists and their list-induction lemmas.
@@ -363,48 +256,18 @@ bridge-ρ⇐-form A = begin
 α⇐-form-list (x ∷ xs) ys zs = id {Var x} ⊗₁ α⇐-form-list xs ys zs
 
 --------------------------------------------------------------------------------
--- α⇒-form / α⇐-form mutual inverses.
+-- α⇒-form / α⇐-form are mutually inverse; only the ⇒∘⇐ direction is consumed
+-- (`BridgeAlphaFormCompound.derive-⇐` feeds it to `inv-resp`).
 
--- The composite of `id {Var w} ⊗₁ F` with `id {Var w} ⊗₁ G` collapses to
--- `id {Var w} ⊗₁ (F ∘ G)` — the cons summand shared by both α-form isos.
-⊗-cons-step
-  : ∀ {w} {A B : ObjTerm} (F : HomTerm A B) (G : HomTerm B A)
-  → (id {Var w} ⊗₁ F) ∘ (id {Var w} ⊗₁ G) ≈Term id {Var w} ⊗₁ (F ∘ G)
-⊗-cons-step F G = begin
-  (id ⊗₁ F) ∘ (id ⊗₁ G)
-    ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-  (id ∘ id) ⊗₁ (F ∘ G)
-    ≈⟨ ⊗-resp-≈ idˡ ≈-Term-refl ⟩
-  id ⊗₁ (F ∘ G) ∎
-
--- Both α-form isos are the same `id {Var x} ⊗₁`-distributing induction with the
--- two `*-form-list`s composed in opposite order; their cons cases share exactly
--- the `⊗-cons-step` collapse above.  (The composites are endo at different
--- objects — `unflatten ((xs ++ ys) ++ zs)` vs `unflatten (xs ++ ys ++ zs)` — so
--- a single dependently-typed helper would have to transport across that; we
--- instead keep the two short inductions and share their one nontrivial step.)
 α⇒-α⇐-iso
   : ∀ (xs ys zs : List X)
   → α⇒-form-list xs ys zs ∘ α⇐-form-list xs ys zs ≈Term id
 α⇒-α⇐-iso []       ys zs = idˡ
 α⇒-α⇐-iso (x ∷ xs) ys zs = begin
   (id {Var x} ⊗₁ α⇒-form-list xs ys zs) ∘ (id {Var x} ⊗₁ α⇐-form-list xs ys zs)
-    ≈⟨ ⊗-cons-step (α⇒-form-list xs ys zs) (α⇐-form-list xs ys zs) ⟩
-  id ⊗₁ (α⇒-form-list xs ys zs ∘ α⇐-form-list xs ys zs)
-    ≈⟨ ⊗-resp-≈ ≈-Term-refl (α⇒-α⇐-iso xs ys zs) ⟩
-  id ⊗₁ id
-    ≈⟨ id⊗id≈id ⟩
-  id ∎
-
-α⇐-α⇒-iso
-  : ∀ (xs ys zs : List X)
-  → α⇐-form-list xs ys zs ∘ α⇒-form-list xs ys zs ≈Term id
-α⇐-α⇒-iso []       ys zs = idˡ
-α⇐-α⇒-iso (x ∷ xs) ys zs = begin
-  (id {Var x} ⊗₁ α⇐-form-list xs ys zs) ∘ (id {Var x} ⊗₁ α⇒-form-list xs ys zs)
-    ≈⟨ ⊗-cons-step (α⇐-form-list xs ys zs) (α⇒-form-list xs ys zs) ⟩
-  id ⊗₁ (α⇐-form-list xs ys zs ∘ α⇒-form-list xs ys zs)
-    ≈⟨ ⊗-resp-≈ ≈-Term-refl (α⇐-α⇒-iso xs ys zs) ⟩
+    ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
+  (id ∘ id) ⊗₁ (α⇒-form-list xs ys zs ∘ α⇐-form-list xs ys zs)
+    ≈⟨ ⊗-resp-≈ idˡ (α⇒-α⇐-iso xs ys zs) ⟩
   id ⊗₁ id
     ≈⟨ id⊗id≈id ⟩
   id ∎
