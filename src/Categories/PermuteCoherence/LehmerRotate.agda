@@ -37,7 +37,7 @@ open import Relation.Binary.PropositionalEquality.Core
 open import Categories.PermuteCoherence.FinBij
 open import Categories.PermuteCoherence.EvalSoundness as Snd
   using (cons-fb-functor-comp; cons-fb-functor-id; swap-fb-natural)
-open import Categories.PermuteCoherence.CanonicalProps using (residual-pw-cong)
+open import Categories.PermuteCoherence.Canonical using (residual-pw-cong)
 open import Categories.PermuteCoherence.Word
 open import Categories.PermuteCoherence.LehmerStaircase
 
@@ -57,10 +57,9 @@ remove-cons X = cons-fb-injective (P.lift₀-remove (cons-fb X) refl)
 
 ------------------------------------------------------------------------
 -- 2. The peel lemma (every `b` factors as `cons-fb (residual) ∘ ρ_m`) now
---    lives upstream in `Word`, next to `canonW`/`eval-canonW` whose inner
---    chain it IS [REVIEW3/00-conceptual-unbiased.md F3]; `peel` is visible
---    here via the unrestricted `open import Categories.PermuteCoherence.Word`
---    above.
+--    lives upstream in `Word`, next to `canonW`
+--    [REVIEW3/00-conceptual-unbiased.md F3]; `peel` is visible here via the
+--    unrestricted `open import Categories.PermuteCoherence.Word` above.
 
 ------------------------------------------------------------------------
 -- 3. `canonW` of a `cons-fb X ∘ rotate-fb k`:  the peel is realised at

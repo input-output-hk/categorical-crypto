@@ -83,9 +83,6 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
   castʷᵈ-symˡ : (e : n ≡ n') (t : WTerm n m) → castʷᵈ (sym e) (castʷᵈ e t) ≡ t
   castʷᵈ-symˡ refl t = refl
 
-  castʷᵈ-symʳ : (e : n ≡ n') (t : WTerm n' m) → castʷᵈ e (castʷᵈ (sym e) t) ≡ t
-  castʷᵈ-symʳ refl t = refl
-
   -- the two transports act on independent indices, hence commute
   castʷ-castʷᵈ : (e : n ≡ n') (e' : m ≡ m') (t : WTerm n m) → castʷ e' (castʷᵈ e t) ≡ castʷᵈ e (castʷ e' t)
   castʷ-castʷᵈ refl refl t = refl
@@ -140,17 +137,6 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
 
     castʷᵈ-irr : (e e' : n ≡ n') (t : WTerm n m) → castʷᵈ e t ≡ castʷᵈ e' t
     castʷᵈ-irr e e' t = cong (λ z → castʷᵈ z t) (≡-irrL e e')
-
-    -- reconcile a transport pair with ANY caller-supplied pair of the same shape
-    retargetʷ : (d₁ d₂ : n ≡ n') (c₁ c₂ : m ≡ m') (t : WTerm n m) → castʷᵈ d₁ (castʷ c₁ t) ≡ castʷᵈ d₂ (castʷ c₂ t)
-    retargetʷ d₁ d₂ c₁ c₂ t = cong₂ (λ z w → castʷᵈ z (castʷ w t)) (≡-irrL d₁ d₂) (≡-irrL c₁ c₂)
-
-    -- collapse an alternating transport tower onto ANY equal-endpoint pair
-    recastʷ : ∀ {n₀ n₁ n₂ m₀ m₁ m₂}
-                (d₁ : n₁ ≡ n₂) (d₂ : n₀ ≡ n₁) (c₁ : m₁ ≡ m₂) (c₂ : m₀ ≡ m₁)
-                (dd : n₀ ≡ n₂) (cc : m₀ ≡ m₂) (t : WTerm n₀ m₀)
-            → castʷᵈ d₁ (castʷ c₁ (castʷᵈ d₂ (castʷ c₂ t))) ≡ castʷᵈ dd (castʷ cc t)
-    recastʷ d₁ d₂ c₁ c₂ dd cc t = trans (regather d₁ d₂ c₁ c₂ t) (retargetʷ (trans d₂ d₁) dd (trans c₂ c₁) cc t)
 
   --------------------------------------------------------------------------------
   -- The flat pad: a box `g` idling behind `pre` wires and in front of `suf`

@@ -15,8 +15,6 @@ open import Categories.Category.Helper
 open import Categories.Category.Monoidal
 open import Categories.Category.Monoidal.Symmetric
 open import Categories.Functor using (Functor)
-open import Categories.Functor.Monoidal
-open import Categories.NaturalTransformation using (ntHelper)
 open import Categories.NaturalTransformation.NaturalIsomorphism.Properties
 
 open import Data.List using (List; []; _∷_; _++_)
@@ -39,7 +37,6 @@ data Variant : Set where
 -- explicitly where needed.
 data _≤_ : Variant → Variant → Set where
   v≤v : ∀ {v} → v ≤ v
-  M≤S : Mon ≤ Symm
 
 -- The `Mon`-variant "symmetry": `Symm ≤ Mon` is uninhabited, so this is the
 -- canonical absurd witness.  Sharing ONE definition (rather than an inline
@@ -491,11 +488,6 @@ module FreeFunctor {d : FreeMonoidalData} {o ℓ e : Level}
 
   open ⟦_⟧ᵥ ⟦v⟧
 
-  CM : MonoidalCategory o ℓ e
-  CM = record { U = C ; monoidal = Monoidal-C }
-  FreeMonoidalM : MonoidalCategory 0ℓ 0ℓ 0ℓ
-  FreeMonoidalM = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
-
   ⟦_⟧₁ : ∀ {A B} → A FM.⇒ B → ⟦ A ⟧₀ C.⇒ ⟦ B ⟧₀
   ⟦ var x ⟧₁ = ⟦ x ⟧ᵖ₁
   ⟦ id ⟧₁ = C.id
@@ -543,17 +535,3 @@ module FreeFunctor {d : FreeMonoidalData} {o ℓ e : Level}
     ; homomorphism = C.Equiv.refl
     ; F-resp-≈ = ⟦⟧-resp-≈
     }
-
-  isMonoidal-freeFunctor : IsMonoidalFunctor FreeMonoidalM CM freeFunctor
-  isMonoidal-freeFunctor = record
-    { ε = C.id
-    ; ⊗-homo = ntHelper record
-      { η       = λ _ → C.id
-      ; commute = λ _ → C.identityˡ ○ ⟺ C.identityʳ
-      }
-    ; associativity = elimʳ (C.identityˡ ○ C.⊗.identity) ○ ⟺ (C.identityˡ ○ elimˡ C.⊗.identity)
-    ; unitaryˡ = elimʳ (C.identityˡ ○ C.⊗.identity)
-    ; unitaryʳ = elimʳ (C.identityˡ ○ C.⊗.identity)
-    }
-    where open Category.HomReasoning C
-          open import Categories.Morphism.Reasoning C

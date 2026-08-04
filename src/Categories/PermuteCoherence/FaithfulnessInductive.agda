@@ -394,11 +394,6 @@ interp-++ (i ∷ v′) w =
           → ⟦ subst Word eq w ⟧↭ as ≅↭ᴴ ⟦ w ⟧↭ as
 ⟦⟧↭-subst refl w = hrefl
 
-↭-[]→[] : {ys : List X} → [] ↭ ys → ys ≡ []
-↭-[]→[] {ys = []}     _ = refl
-↭-[]→[] {ys = _ ∷ _}  p with ↭-length p
-... | ()
-
 swap-refl-cong : {ys ys′ : List X}
                → ys′ ≡ ys
                → Perm.swap x y (Perm.refl {xs = ys′}) ≅↭ᴴ Perm.swap x y (Perm.refl {xs = ys})

@@ -33,7 +33,7 @@ open import Relation.Binary.PropositionalEquality.Core
 open import Categories.PermuteCoherence.FinBij
 open import Categories.PermuteCoherence.EvalSoundness as Snd
 -- `residual-pw-cong`: `remove 0F` respects pointwise (`≈-fb`) equality.
-open import Categories.PermuteCoherence.CanonicalProps using (residual-pw-cong)
+open import Categories.PermuteCoherence.Canonical using (residual-pw-cong)
 
 private
   variable
@@ -163,10 +163,8 @@ fin1-unique 0F = refl
 
 -- The Lehmer factorization: every `b` factors as `cons-fb rest ∘ ρ_m`, with
 -- `m = b ⟨$⟩ˡ 0F` and `rest = remove 0F (b ∘ ρ_m⁻¹)` — exactly the data
--- `canonW` recurses on.  This IS `eval-canonW`'s inner chain (its last two
--- steps below), pulled out as a standalone fact so consumers that only need
--- the factorization (e.g. `LehmerRotate.canonW-cons-rotate`, `InsertProof`)
--- don't have to re-derive it inside a bigger `evalW-++` chase.
+-- `canonW` recurses on.  Consumers that need the factorization
+-- (`LehmerRotate.canonW-cons-rotate`, `InsertProof`) take it from here.
 peel : {n : ℕ} (b : FinBij (suc n) (suc n))
      → b ≈-fb (cons-fb (remove 0F (b ∘-fb inv-fb (rotate-fb (b P.⟨$⟩ˡ 0F))))
                ∘-fb rotate-fb (b P.⟨$⟩ˡ 0F))
@@ -196,33 +194,6 @@ peel {n} b i = sym (trans stepC stepD)
   -- Cancel `inv-fb ρ ∘ ρ = id`.
   stepD : (bρ⁻¹ ∘-fb ρ) P.⟨$⟩ʳ i ≡ b P.⟨$⟩ʳ i
   stepD = cong (b P.⟨$⟩ʳ_) (P.inverseˡ ρ)
-
--- Roundtrip soundness:  `evalW (canonW b) ≈-fb b`.
-eval-canonW : {n : ℕ} (b : FinBij (suc n) (suc n)) → evalW (canonW b) ≈-fb b
-eval-canonW {zero}  b 0F = sym (fin1-unique (b P.⟨$⟩ʳ 0F))
-eval-canonW {suc n} b i =
-  let m    = b P.⟨$⟩ˡ 0F
-      rest = remove 0F (b ∘-fb inv-fb (rotate-fb m))
-
-      -- A: factor `evalW (canonW b)` over `_++_` (`evalW-++`).
-      stepA : evalW (canonW b) P.⟨$⟩ʳ i
-            ≡ (evalW (liftW (canonW rest)) ∘-fb evalW (rotateW m)) P.⟨$⟩ʳ i
-      stepA = evalW-++ (liftW (canonW rest)) (rotateW m) i
-
-      -- B: rewrite both inner factors by their soundness lemmas
-      -- (`rotateW-sound`, `eval-liftW` + IH).
-      stepB : (evalW (liftW (canonW rest)) ∘-fb evalW (rotateW m)) P.⟨$⟩ʳ i
-            ≡ (cons-fb rest ∘-fb rotate-fb m) P.⟨$⟩ʳ i
-      stepB =
-        ∘-fb-cong
-          {g = evalW (liftW (canonW rest))} {g′ = cons-fb rest}
-          {f = evalW (rotateW m)}           {f′ = rotate-fb m}
-          (λ j → trans (eval-liftW (canonW rest) j)
-                       (cons-fb-cong (eval-canonW rest) j))
-          (rotateW-sound m)
-          i
-
-  in trans stepA (trans stepB (sym (peel b i)))
 
 ------------------------------------------------------------------------
 -- 7. The word equivalence `_~ʷ_` (the Coxeter relations on words).
