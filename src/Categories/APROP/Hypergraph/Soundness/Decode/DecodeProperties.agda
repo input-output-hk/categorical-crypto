@@ -19,6 +19,12 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SeparableStack s
   using ( extract-prefix-++ˡ; extract-prefix-++ˡ-nothing
         ; extract-prefix-++ʳ-nothing )
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (inject+-inj; raise-inj; ↑ˡ≢↑ʳ)
+-- The derivation-level `map⁺`-naturality of the same `extract-elem`/
+-- `extract-prefix` (`Decode` re-exports them from `Hypergraph.ExtractPrefix`,
+-- so the statements coincide definitionally); the ∃-forms below just forget
+-- which derivation is produced.
+open import Categories.Hypergraph.ExtractPrefixEvalPhi
+  using (extract-elem-map⁺; extract-prefix-map⁺)
 
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
@@ -60,18 +66,6 @@ extract-elem-skip-nothing
   → extract-elem k (x ∷ xs) ≡ nothing
 extract-elem-skip-nothing k x xs x≢k eq with x ≟ k
 ... | yes p = ⊥-elim (x≢k p)
-... | no  _ rewrite eq = refl
-
-extract-elem-skip-just
-  : ∀ {n} (k x : Fin n) (xs : List (Fin n))
-      (rest : List (Fin n)) (p : xs Perm.↭ k ∷ rest)
-  → ¬ (x ≡ k)
-  → extract-elem k xs ≡ just (rest , p)
-  → extract-elem k (x ∷ xs)
-    ≡ just ( x ∷ rest
-           , Perm.trans (Perm.prep x p) (Perm.swap x k Perm.refl) )
-extract-elem-skip-just k x xs rest p x≢k eq with x ≟ k
-... | yes q = ⊥-elim (x≢k q)
 ... | no  _ rewrite eq = refl
 
 --------------------------------------------------------------------------------
@@ -147,20 +141,8 @@ extract-elem-via-injective-just
   → ∀ (k : Fin n) (xs rest : List (Fin n)) (p : xs Perm.↭ k ∷ rest)
   → extract-elem k xs ≡ just (rest , p)
   → ∃[ q ] extract-elem (f k) (map f xs) ≡ just (map f rest , q)
-extract-elem-via-injective-just f f-inj k (x ∷ xs) rest p eq with x ≟ k
-extract-elem-via-injective-just f f-inj k (x ∷ xs) rest p eq | yes refl with eq
-... | refl with f x ≟ f x
-... | yes _    = _ , refl
-... | no  q    = ⊥-elim (q refl)
-extract-elem-via-injective-just f f-inj k (x ∷ xs) rest p eq | no q
-    with extract-elem k xs in eq-inner
-... | nothing with eq
-... | ()
-extract-elem-via-injective-just f f-inj k (x ∷ xs) rest p eq | no q | just (rest' , p') with eq
-... | refl with extract-elem-via-injective-just f f-inj k xs rest' p' eq-inner
-... | _ , eq-rec =
-      _ , extract-elem-skip-just (f k) (f x) (map f xs)
-            (map f rest') _ (λ p₁ → q (f-inj p₁)) eq-rec
+extract-elem-via-injective-just f f-inj k xs rest p eq =
+  _ , extract-elem-map⁺ f f-inj k xs rest p eq
 
 extract-prefix-via-injective-nothing
   : ∀ {n m} (f : Fin n → Fin m)
@@ -190,22 +172,8 @@ extract-prefix-via-injective-just
   → ∀ (ks xs rest : List (Fin n)) (p : xs Perm.↭ ks ++ rest)
   → extract-prefix ks xs ≡ just (rest , p)
   → ∃[ q ] extract-prefix (map f ks) (map f xs) ≡ just (map f rest , q)
-extract-prefix-via-injective-just f f-inj []       xs rest p eq with eq
-... | refl = _ , refl
-extract-prefix-via-injective-just f f-inj (k ∷ ks) xs rest p eq with extract-elem k xs in eq-elem
-... | nothing with eq
-...              | ()
-extract-prefix-via-injective-just f f-inj (k ∷ ks) xs rest p eq
-    | just (xs' , p-elem)
-    with extract-prefix ks xs' in eq-prefix
-... | nothing with eq
-...              | ()
-extract-prefix-via-injective-just f f-inj (k ∷ ks) xs rest p eq
-    | just (xs' , p-elem) | just (rest' , p-prefix) with eq
-... | refl
-    with extract-elem-via-injective-just f f-inj k xs xs' p-elem eq-elem
-       | extract-prefix-via-injective-just f f-inj ks xs' rest' p-prefix eq-prefix
-... | _ , eq-elem-f | _ , eq-prefix-f rewrite eq-elem-f | eq-prefix-f = _ , refl
+extract-prefix-via-injective-just f f-inj ks xs rest p eq =
+  _ , extract-prefix-map⁺ f f-inj ks xs rest p eq
 
 --------------------------------------------------------------------------------
 -- Lifting `extract-elem` / `extract-prefix` through disjoint injections
