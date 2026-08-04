@@ -34,7 +34,7 @@ open APROP sig
 
 open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
 open import Data.Bool.Base using (Bool; true; false)
-open import Data.List.Base using (List; []; _∷_; _++_; map)
+open import Data.List.Base using (List; []; _∷_; _++_; map; head; drop)
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Product using (Σ; _×_; _,_)
 open import Relation.Nullary using (yes)
@@ -94,9 +94,7 @@ focusAll s lᵗ with leaf-try s lᵗ
 -- and `focusAt` as the first one.
 
 lookupMaybe : ∀ {a} {A : Set a} → List A → ℕ → Maybe A
-lookupMaybe []       _       = nothing
-lookupMaybe (x ∷ _)  zero    = just x
-lookupMaybe (_ ∷ xs) (suc n) = lookupMaybe xs n
+lookupMaybe xs n = head (drop n xs)
 
 focusAtₙ : ∀ {A B P Q} → HomTerm A B → HomTerm P Q → ℕ → Maybe (Foc A B P Q)
 focusAtₙ s lᵗ n = lookupMaybe (focusAll s lᵗ) n

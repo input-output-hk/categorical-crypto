@@ -29,6 +29,7 @@ open import Data.List using (List; _∷_; length; map; lookup)
 open import Data.List.Properties
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Nat
+open import Data.Product using (proj₁; proj₂)
 open import Data.Sum using (inj₁; inj₂; [_,_]′)
 open import Function
 open import Relation.Binary.PropositionalEquality
@@ -40,12 +41,6 @@ open import Relation.Binary.PropositionalEquality
 -- `bdy-pt`.
 
 private
-  ∷-head : ∀ {A : Set} {x y : A} {xs ys} → x ∷ xs ≡ y ∷ ys → x ≡ y
-  ∷-head refl = refl
-
-  ∷-tail : ∀ {A : Set} {x y : A} {xs ys} → x ∷ xs ≡ y ∷ ys → xs ≡ ys
-  ∷-tail refl = refl
-
   -- Length equality derived from an equality of mapped lists.
   len-match : ∀ {A B Y : Set} (f : A → Y) (g : B → Y)
               (xs : List A) (ys : List B) → map f xs ≡ map g ys
@@ -60,9 +55,9 @@ private
                       (i : Fin (length xs))
                     → f (lookup xs i)
                     ≡ g (lookup ys (cast (len-match f g xs ys eq) i))
-  lookup-boundary f g (x ∷ xs) (y ∷ ys) eq zero    = ∷-head eq
+  lookup-boundary f g (x ∷ xs) (y ∷ ys) eq zero    = proj₁ (∷-injective eq)
   lookup-boundary f g (x ∷ xs) (y ∷ ys) eq (suc i) =
-    lookup-boundary f g xs ys (∷-tail eq) i
+    lookup-boundary f g xs ys (proj₂ (∷-injective eq)) i
 
 --------------------------------------------------------------------------------
 -- Module-parameterised construction (parallel to `FromAPROP.hTensor-impl`).

@@ -43,8 +43,6 @@ module _
          (H J : Hypergraph FlatGen) where
 
   private
-    nVH = Hypergraph.nV H
-    nVJ = Hypergraph.nV J
     nEH = Hypergraph.nE H
     nEJ = Hypergraph.nE J
 

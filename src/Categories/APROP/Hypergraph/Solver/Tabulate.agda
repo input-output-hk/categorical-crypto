@@ -173,20 +173,21 @@ module _ {X : Set} {Gen : List X → List X → Set} where
         ; ψ-elab    = ψ-elab-tab
         }
 
-  tabH : Hypergraph Gen → Hypergraph Gen
-  tabH H = Impl.tabbed H
-    (tabulate H.vlab) (tabulate H.ein) (tabulate H.eout)
-    (tabulate (λ e → (map H.vlab (H.ein e) , map H.vlab (H.eout e)) , H.elab e))
-    (lookup∘tabulate H.vlab) (lookup∘tabulate H.ein) (lookup∘tabulate H.eout)
-    (lookup∘tabulate (λ e → (map H.vlab (H.ein e) , map H.vlab (H.eout e)) , H.elab e))
-    where module H = Hypergraph H
+  -- One application of `Impl` per hypergraph: both entry points below read
+  -- their field off THIS instance, so "`tabH H` is the `Impl.tabbed` of the
+  -- tabulation whose iso `tab-≅ᴴ H` is" is a syntactic fact, not a comment.
+  private
+    module Tab (H : Hypergraph Gen) (let module H = Hypergraph H) =
+      Impl H
+        (tabulate H.vlab) (tabulate H.ein) (tabulate H.eout)
+        (tabulate (λ e → (map H.vlab (H.ein e) , map H.vlab (H.eout e)) , H.elab e))
+        (lookup∘tabulate H.vlab) (lookup∘tabulate H.ein) (lookup∘tabulate H.eout)
+        (lookup∘tabulate
+          (λ e → (map H.vlab (H.ein e) , map H.vlab (H.eout e)) , H.elab e))
 
-  -- `tabH H ≅ᴴ H`, postulate-free.  Definitionally `tabH H` is the
-  -- `Impl.tabbed` instance below, so `Impl.tab-iso` applies.
+  tabH : Hypergraph Gen → Hypergraph Gen
+  tabH H = Tab.tabbed H
+
+  -- `tabH H ≅ᴴ H`, postulate-free.
   tab-≅ᴴ : (H : Hypergraph Gen) → tabH H ≅ᴴ H
-  tab-≅ᴴ H = Impl.tab-iso H
-    (tabulate H.vlab) (tabulate H.ein) (tabulate H.eout)
-    (tabulate (λ e → (map H.vlab (H.ein e) , map H.vlab (H.eout e)) , H.elab e))
-    (lookup∘tabulate H.vlab) (lookup∘tabulate H.ein) (lookup∘tabulate H.eout)
-    (lookup∘tabulate (λ e → (map H.vlab (H.ein e) , map H.vlab (H.eout e)) , H.elab e))
-    where module H = Hypergraph H
+  tab-≅ᴴ H = Tab.tab-iso H
