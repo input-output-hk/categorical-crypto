@@ -139,58 +139,6 @@ module _ (G K : Hypergraph FlatGen) where
         map (_↑ˡ K.nV) (G.eout eG ++ rest-G) ++ map (G.nV ↑ʳ_) ys
         ∎
 
-  -- K-side: edge-step prepends `map injR (K.eout eK)` to the L-side and
-  -- the K-residual.  This output is NOT of the form `(map injL ?) ++
-  -- (map injR ?)` (the K-eouts sit left of the L-block), so we expose the
-  -- literal stack shape and defer permutation reasoning to the
-  -- `process-edges`-level lemmas.
-  edge-step-↑ʳ-on-mixed-just
-    : ∀ (eK : Fin K.nE)
-        (xs : List (Fin G.nV))
-        (ys-K : List (Fin K.nV))
-        (rest-K : List (Fin K.nV))
-        (p-K : ys-K Perm.↭ K.ein eK ++ rest-K)
-    → extract-prefix (K.ein eK) ys-K ≡ just (rest-K , p-K)
-    → edge-step (hTensor G K)
-                (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K)
-                (G.nE ↑ʳ eK)
-      ≡ map (G.nV ↑ʳ_) (K.eout eK)
-          ++ map (_↑ˡ K.nV) xs
-          ++ map (G.nV ↑ʳ_) rest-K
-  edge-step-↑ʳ-on-mixed-just eK xs ys-K rest-K p-K eq =
-      trans reduce-result list-eq
-    where
-      stack = map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K
-
-      eq-on-ein-c
-        : ∃[ q ] extract-prefix
-                   (Hypergraph.ein (hTensor G K) (G.nE ↑ʳ eK)) stack
-                 ≡ just (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) rest-K , q)
-      eq-on-ein-c =
-        subst (λ ks → ∃[ q ] extract-prefix ks stack
-                              ≡ just ( map (_↑ˡ K.nV) xs
-                                         ++ map (G.nV ↑ʳ_) rest-K
-                                     , q ))
-              (sym (hT-impl.ein-c-inj₂-red eK))
-              (extract-prefix-↑ʳ-on-mixed-just G.nV (K.ein eK)
-                                                xs ys-K rest-K p-K eq)
-
-      reduce-result
-        : edge-step (hTensor G K) stack (G.nE ↑ʳ eK)
-          ≡ Hypergraph.eout (hTensor G K) (G.nE ↑ʳ eK)
-              ++ (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) rest-K)
-      reduce-result = edge-step-just (hTensor G K) stack (G.nE ↑ʳ eK) (proj₂ eq-on-ein-c)
-
-      -- One `cong` rewriting `eout-c (G.nE ↑ʳ eK)` to `map injR (K.eout eK)`;
-      -- no associator needed since the eouts stay on the left.
-      list-eq : Hypergraph.eout (hTensor G K) (G.nE ↑ʳ eK)
-                  ++ (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) rest-K)
-              ≡ map (G.nV ↑ʳ_) (K.eout eK)
-                  ++ map (_↑ˡ K.nV) xs
-                  ++ map (G.nV ↑ʳ_) rest-K
-      list-eq = cong (_++ (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) rest-K))
-                     (hT-impl.eout-c-inj₂-red eK)
-
   -- Failure-direction G-side lifting: if G's edge cannot fire, neither
   -- can the lifted edge-step (stack unchanged, term is identity).
   edge-step-↑ˡ-on-mixed-nothing
@@ -214,29 +162,6 @@ module _ (G K : Hypergraph FlatGen) where
         subst (λ ks → extract-prefix ks stack ≡ nothing)
               (sym (hT-impl.ein-c-inj₁-red eG))
               (extract-prefix-↑ˡ-on-mixed-nothing K.nV (G.ein eG) xs-G ys eq)
-
-  -- K-side failure: same shape as G-side.
-  edge-step-↑ʳ-on-mixed-nothing
-    : ∀ (eK : Fin K.nE)
-        (xs : List (Fin G.nV))
-        (ys-K : List (Fin K.nV))
-    → extract-prefix (K.ein eK) ys-K ≡ nothing
-    → edge-step (hTensor G K)
-                (map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K)
-                (G.nE ↑ʳ eK)
-      ≡ map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K
-  edge-step-↑ʳ-on-mixed-nothing eK xs ys-K eq =
-      edge-step-nothing (hTensor G K) stack (G.nE ↑ʳ eK) nothing-lifted
-    where
-      stack = map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys-K
-
-      nothing-lifted : extract-prefix
-                         (Hypergraph.ein (hTensor G K) (G.nE ↑ʳ eK))
-                         stack ≡ nothing
-      nothing-lifted =
-        subst (λ ks → extract-prefix ks stack ≡ nothing)
-              (sym (hT-impl.ein-c-inj₂-red eK))
-              (extract-prefix-↑ʳ-on-mixed-nothing G.nV (K.ein eK) xs ys-K eq)
 
   -- Unified G-side per-edge lemma (just/nothing).  Since G's edges only
   -- touch the L-side, the output stays in `(map injL _) ++ (map injR ys)`.

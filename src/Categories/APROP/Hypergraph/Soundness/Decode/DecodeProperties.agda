@@ -16,9 +16,8 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-elem; extract-prefix)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SeparableStack sig
-  using ( extract-elem-++ˡ; extract-elem-++ˡ-nothing
-        ; extract-prefix-++ˡ; extract-prefix-++ˡ-nothing
-        ; extract-elem-++ʳ; extract-prefix-++ʳ; extract-prefix-++ʳ-nothing )
+  using ( extract-prefix-++ˡ; extract-prefix-++ˡ-nothing
+        ; extract-prefix-++ʳ-nothing )
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (inject+-inj; raise-inj; ↑ˡ≢↑ʳ)
 
 open import Data.Empty using (⊥-elim)
@@ -223,59 +222,6 @@ extract-prefix-via-injective-just f f-inj (k ∷ ks) xs rest p eq
 -- keys (`↑ʳ`) put the `↑ˡ`-block on the LEFT ⇒ left frame (whose disjointness
 -- side condition is discharged by `extract-elem-↑ʳ-on-↑ˡ-list`).
 
--- `nothing` direction.  L-side: absent on L (equivariance) and mismatches on R.
-extract-elem-↑ˡ-on-mixed-nothing
-  : ∀ {nA} nB (k : Fin nA) (xs : List (Fin nA)) (ys : List (Fin nB))
-  → extract-elem k xs ≡ nothing
-  → extract-elem (k ↑ˡ nB) (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys) ≡ nothing
-extract-elem-↑ˡ-on-mixed-nothing {nA} nB k xs ys eq =
-  extract-elem-++ˡ-nothing (k ↑ˡ nB) (map (_↑ˡ nB) xs) (map (nA ↑ʳ_) ys)
-    (extract-elem-via-injective-nothing (_↑ˡ nB) (inject+-inj nB) k xs eq)
-    (extract-elem-↑ˡ-on-↑ʳ-list k ys)
-
--- Pure R-side list, lookup on the same side: exactly equivariance under `↑ʳ`.
-extract-elem-↑ʳ-on-↑ʳ-list-nothing
-  : ∀ nA {nB} (j : Fin nB) (ys : List (Fin nB))
-  → extract-elem j ys ≡ nothing
-  → extract-elem (nA ↑ʳ j) (map (nA ↑ʳ_) ys) ≡ nothing
-extract-elem-↑ʳ-on-↑ʳ-list-nothing nA j ys eq =
-  extract-elem-via-injective-nothing (nA ↑ʳ_) (raise-inj nA) j ys eq
-
--- R-side: mismatches on the L block (left of the search), absent on R.
-extract-elem-↑ʳ-on-mixed-nothing
-  : ∀ nA {nB} (j : Fin nB) (xs : List (Fin nA)) (ys : List (Fin nB))
-  → extract-elem j ys ≡ nothing
-  → extract-elem (nA ↑ʳ j) (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys) ≡ nothing
-extract-elem-↑ʳ-on-mixed-nothing nA {nB} j xs ys eq =
-  extract-elem-++ˡ-nothing (nA ↑ʳ j) (map (_↑ˡ nB) xs) (map (nA ↑ʳ_) ys)
-    (extract-elem-↑ʳ-on-↑ˡ-list nA j xs)
-    (extract-elem-↑ʳ-on-↑ʳ-list-nothing nA j ys eq)
-
--- `just` direction.  L-side: equivariance then RIGHT frame (`map ↑ʳ ys`).
-extract-elem-↑ˡ-on-mixed-just
-  : ∀ {nA} nB (k : Fin nA) (xs : List (Fin nA)) (ys : List (Fin nB))
-      (rest : List (Fin nA)) (p : xs Perm.↭ k ∷ rest)
-  → extract-elem k xs ≡ just (rest , p)
-  → ∃[ q ] extract-elem (k ↑ˡ nB) (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys)
-              ≡ just (map (_↑ˡ nB) rest ++ map (nA ↑ʳ_) ys , q)
-extract-elem-↑ˡ-on-mixed-just {nA} nB k xs ys rest p eq
-    with extract-elem-via-injective-just (_↑ˡ nB) (inject+-inj nB) k xs rest p eq
-... | _ , e =
-      _ , extract-elem-++ˡ (k ↑ˡ nB) (map (_↑ˡ nB) xs) (map (nA ↑ʳ_) ys) e
-
--- R-side: equivariance then LEFT frame (`map ↑ˡ xs`, disjoint side condition).
-extract-elem-↑ʳ-on-mixed-just
-  : ∀ nA {nB} (j : Fin nB) (xs : List (Fin nA)) (ys : List (Fin nB))
-      (rest : List (Fin nB)) (p : ys Perm.↭ j ∷ rest)
-  → extract-elem j ys ≡ just (rest , p)
-  → ∃[ q ] extract-elem (nA ↑ʳ j) (map (_↑ˡ _) xs ++ map (nA ↑ʳ_) ys)
-              ≡ just (map (_↑ˡ _) xs ++ map (nA ↑ʳ_) rest , q)
-extract-elem-↑ʳ-on-mixed-just nA {nB} j xs ys rest p eq
-    with extract-elem-via-injective-just (nA ↑ʳ_) (raise-inj nA) j ys rest p eq
-... | _ , e =
-      extract-elem-++ʳ (nA ↑ʳ j) (map (_↑ˡ nB) xs) (map (nA ↑ʳ_) ys)
-        (extract-elem-↑ʳ-on-↑ˡ-list nA j xs) e
-
 --------------------------------------------------------------------------------
 -- `extract-prefix` lifting: success direction (same two-principle composition).
 
@@ -291,21 +237,6 @@ extract-prefix-↑ˡ-on-mixed-just {nA} nB ks xs ys rest p eq
 ... | _ , e =
       _ , extract-prefix-++ˡ (map (_↑ˡ nB) ks) (map (_↑ˡ nB) xs)
             (map (nA ↑ʳ_) ys) e
-
-extract-prefix-↑ʳ-on-mixed-just
-  : ∀ nA {nB} (ks : List (Fin nB)) (xs : List (Fin nA)) (ys : List (Fin nB))
-      (rest : List (Fin nB)) (p : ys Perm.↭ ks ++ rest)
-  → extract-prefix ks ys ≡ just (rest , p)
-  → ∃[ q ] extract-prefix (map (nA ↑ʳ_) ks)
-                          (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) ys)
-              ≡ just (map (_↑ˡ nB) xs ++ map (nA ↑ʳ_) rest , q)
-extract-prefix-↑ʳ-on-mixed-just nA {nB} ks xs ys rest p eq
-    with extract-prefix-via-injective-just (nA ↑ʳ_) (raise-inj nA) ks ys rest p eq
-... | _ , e =
-      extract-prefix-++ʳ (map (nA ↑ʳ_) ks) (map (_↑ˡ nB) xs)
-        (map (nA ↑ʳ_) ys)
-        (map⁺ (universal (λ k → extract-elem-↑ʳ-on-↑ˡ-list nA k xs) ks))
-        e
 
 --------------------------------------------------------------------------------
 -- `extract-prefix` lifting: failure direction (per-edge "edge cannot
@@ -350,27 +281,8 @@ extract-elem-found y (x ∷ xs) (there mem) with x ≟ y
 ...              | _ , _ , eq rewrite eq = _ , _ , refl
 
 --------------------------------------------------------------------------------
--- `extract-prefix-from-↭`: `xs ↭ ys` ⇒ `extract-prefix ys xs ≡ just ([], p)`.
--- THE key lemma for `decode-attempt-hSwap` (with `Perm.++-comm` it
--- discharges `extract-exact (R ++ L) (L ++ R)`).
-
-extract-prefix-from-↭
-  : ∀ {n} (xs ys : List (Fin n))
-  → xs Perm.↭ ys
-  → ∃[ p ] extract-prefix ys xs ≡ just ([] , p)
-extract-prefix-from-↭ xs []       p with PermProp.↭-empty-inv p
-... | refl = Perm.refl , refl
-extract-prefix-from-↭ xs (y ∷ ys') p
-    with extract-elem-found y xs (PermProp.∈-resp-↭ (Perm.↭-sym p) (here refl))
-... | rest , q , eq-extract
-    with extract-prefix-from-↭ rest ys'
-           (PermProp.drop-∷ (Perm.↭-trans (Perm.↭-sym q) p))
-... | r , eq-prefix rewrite eq-extract | eq-prefix = _ , refl
-
---------------------------------------------------------------------------------
--- `extract-prefix-↭-residual`: partial form of `extract-prefix-from-↭`.
--- When `xs ↭ ks ++ rest`, `extract-prefix ks xs` succeeds with a residual
--- `rest'` permuting to `rest`.
+-- `extract-prefix-↭-residual`: when `xs ↭ ks ++ rest`, `extract-prefix ks xs`
+-- succeeds with a residual `rest'` permuting to `rest`.
 
 extract-prefix-↭-residual
   : ∀ {n} (ks xs rest : List (Fin n))
