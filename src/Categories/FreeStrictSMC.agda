@@ -143,13 +143,6 @@ module Build
   cast-⊗-frame h refl refl f P Q
     rewrite uipL P refl | uipL Q refl = ≈-refl
 
-  -- a cast pulled out of the left factor of a ⊗ with a fixed right id-frame
-  cast-⊗ˡ
-    : ∀ {us us' vs vs' ls} (p' : us ≡ us') (q' : vs ≡ vs') (f : HomS us vs)
-    → castˢ p' q' f ⊗ˢ idˢ {ls}
-      ≡ castˢ (cong (_++ ls) p') (cong (_++ ls) q') (f ⊗ˢ idˢ {ls})
-  cast-⊗ˡ refl refl f = refl
-
   -- split a cast over a composition through a chosen middle proof
   ∘-cast-split
     : ∀ {as as' bs bs' cs cs'}

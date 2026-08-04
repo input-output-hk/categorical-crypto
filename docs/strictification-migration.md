@@ -39,12 +39,11 @@ soundness: iso : ⟪f⟫ ≅ᴴ ⟪g⟫
   bridge-cancel (existing, SoundnessFullWired) ⇒ f ≈Term g
 ```
 
-K-faithfulness stays the single deep input: the proven non-strict kernel
-(`FaithfulnessInductive.faithfulness`) is transported FORWARD through `st`
-(st-resp-≈ on `permute-via-vlab p ≈Term permute-via-vlab q`, plus the glue
-`st (permute-via-vlab p) ≈ˢ castˢ … (permuteˢ p)`) to discharge the strict
-residual `permˢ-K : p ≅↭ q → permuteˢ p ≈ˢ permuteˢ q`, which phase-1
-modules take as a module parameter.
+K-faithfulness stays the single deep input, but the FORWARD transport
+through `st` this section originally planned was never needed: the strict
+residual `permˢ-K : p ≅↭ q → permuteˢ p ≈ˢ permuteˢ q` is discharged
+directly and axiom-free in `Strict/Perm/PermDischarge.agda`, and phase-1
+modules take it as a module parameter.
 
 ## Phases
 
@@ -53,10 +52,12 @@ modules take as a module parameter.
   `Soundness/Strict/{Core,Embed,Decoder}.agda`.
 * **Phase 1 — term/boundary side DONE; decoder side partial.**
   1. `Strict/Boundary.agda` (DONE, `1527f34`): `J-flat`, `embF`/
-     `embF-resp-≈ˢ`, `st`, `st-resp-≈` (all 24 `≈Term` axioms; hexagon
-     derived in S from `σ-hexˢ` by inverse-uniqueness), `st-roundtrip :
-     embF (st f) ≈Term bridge f` (reuses the existing atomic bridge
-     lemmas).  This is the entire term-side of the strictification.
+     `embF-resp-≈ˢ`, `st`, `st-roundtrip : embF (st f) ≈Term bridge f`
+     (reuses the existing atomic bridge lemmas).  This is the entire
+     term-side of the strictification.  (`st-resp-≈`, the completeness-side
+     "`st` respects all 24 `≈Term` axioms", was also proved here and later
+     deleted unused — `SoundnessParam.st-resp-iso` is what the soundness
+     direction actually needs.)
      Supporting: `σ-unitˢ` axiom + derived `σ-unitʳˢ`/`⊗-unitˡˢ` in
      `FreeStrictSMC` (`b16f058`); `Embed.σ-unit-case` boundary payment.
   2. `Strict/DecodeS.agda` (PARTIAL, `cbe8a8d`): the full strict decoder
