@@ -619,8 +619,8 @@ module TKB6 (H : Hypergraph FlatGen) where
     using (extract-elem; extract-prefix)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
     using (module EquivStep)
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Separability sig _≟X_
-    using (module StrictSep)
+  open import Categories.APROP.Hypergraph.Soundness.Strict.Separability sig
+    using (extract-prefix-++ʳ; extract-prefix-++ʳ-nothing)
   import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig as SU
   import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
   open import Data.Fin using (_↑ˡ_; _↑ʳ_; splitAt)
@@ -631,7 +631,6 @@ module TKB6 (H : Hypergraph FlatGen) where
   open import Data.List.Relation.Unary.All using (All; []; _∷_)
   open import Data.Maybe using (Maybe; just; nothing)
 
-  open StrictSep H using (extract-prefix-++ˡ-left; extract-prefix-++ˡ-left-nothing)
   open EquivStep H using (pvv-inverse-leftˢ)
 
   module _ (permˢ-K : Kmod.PermK) where
@@ -656,7 +655,7 @@ module TKB6 (H : Hypergraph FlatGen) where
     --
     -- When `e` does NOT fire on the clean K-side `s_R` (and `H.ein e`
     -- disjoint from `L`), it does not fire on `L ++ s_R` either
-    -- (`extract-prefix-++ˡ-left-nothing`); both `edge-stepˢ` are `idˢ`,
+    -- (`extract-prefix-++ʳ-nothing`); both `edge-stepˢ` are `idˢ`,
     -- `β = ↭-refl`, and `KCleanHeadˢ` collapses to `idˢ` by `⊗-id`/`cast-id`.
     ----------------------------------------------------------------------
 
@@ -691,13 +690,13 @@ module TKB6 (H : Hypergraph FlatGen) where
       → HeadSlideˢ e L s_R
     head-slide-skip e L s_R disj eqn =
       head-slide-skip-core e L s_R eqn
-        (extract-prefix-++ˡ-left-nothing (H.ein e) L s_R disj eqn)
+        (extract-prefix-++ʳ-nothing (H.ein e) L s_R disj eqn)
 
     ----------------------------------------------------------------------
     -- ## FIRE case of `HeadSlideˢ`.
     --
     -- When `e` fires on the clean K-side `s_R` (residual `rest_R`, perm `p`)
-    -- and `H.ein e` is disjoint from `L`, `extract-prefix-++ˡ-left` pins the
+    -- and `H.ein e` is disjoint from `L`, `extract-prefix-++ʳ` pins the
     -- `(L ++ s_R)`-fire to residual `L ++ rest_R` with derivation `D`, so
     -- `proj₂ (edge-stepˢ (L ++ s_R) e) = fire-termˢ e (L ++ s_R) (L ++ rest_R) D`
     -- DEFINITIONALLY.  `fire-slideˢ` factors this into the output block-braid
@@ -749,7 +748,7 @@ module TKB6 (H : Hypergraph FlatGen) where
       → extract-prefix (H.ein e) s_R ≡ just (rest_R , p)
       → Unique ((L ++ H.ein e) ++ rest_R)
       → HeadSlideˢ e L s_R
-    head-slide-fire e L s_R rest_R p disj eqR uIn with extract-prefix-++ˡ-left (H.ein e) L s_R disj eqR
+    head-slide-fire e L s_R rest_R p disj eqR uIn with extract-prefix-++ʳ (H.ein e) L s_R disj eqR
     ... | D , eqLR
       rewrite eqR | eqLR = slideβ e L rest_R , slide-eq
       where
