@@ -19,8 +19,8 @@
 -- from the `FlatGen`-generated instance into the `HomTerm`-generated one
 -- that `Strict.Embed` embeds back into the free SMC).
 --
--- `box-suffix-ˢ`/`box-commute-ˢ`/`permuteˢ-frame` at the bottom are the
--- strict forms of the decoder's separability/commutation/frame lemmas.
+-- `box-suffix-ˢ`/`permuteˢ-frame` at the bottom are the strict forms of the
+-- decoder's separability/frame lemmas.
 --------------------------------------------------------------------------------
 
 module Categories.FreeStrictSMC where
@@ -311,29 +311,7 @@ module Build
     ≈-trans (⊗-assocˢ b idˢ idˢ) (⊗-resp ≈-refl ⊗-id)
 
   ------------------------------------------------------------------------
-  -- MEASUREMENT 2: the per-swap disjoint-block box commutation
-  -- (the "independent firings commute" core of part (II)).
-
-  box-commute-ˢ
-    : ∀ {as bs cs ds} (b : HomS as bs) (b' : HomS cs ds)
-    → (b ⊗ˢ idˢ {ds}) ∘ˢ (idˢ {as} ⊗ˢ b')
-      ≈ˢ (idˢ {bs} ⊗ˢ b') ∘ˢ (b ⊗ˢ idˢ {cs})
-  box-commute-ˢ b b' =
-    ≈-trans interchangeˢ
-      (≈-trans (⊗-resp idʳ idˡ)
-        (≈-sym (≈-trans interchangeˢ (⊗-resp idˡ idʳ))))
-
-  -- `(f ∘ g) ⊗ id{R} ≈ (f ⊗ id{R}) ∘ (g ⊗ id{R})` — composition
-  -- distributes over an identity frame on the right (interchange with
-  -- `id ∘ id` collapsed).  Shared by the strict decoder/interchange/
-  -- tensor modules.
-  ⊗id-distˢ
-    : ∀ {as bs cs R : List X} (f : HomS bs cs) (g : HomS as bs)
-    → (f ∘ˢ g) ⊗ˢ idˢ {R} ≈ˢ (f ⊗ˢ idˢ {R}) ∘ˢ (g ⊗ˢ idˢ {R})
-  ⊗id-distˢ f g = ≈-trans (⊗-resp ≈-refl (≈-sym idˡ)) (≈-sym interchangeˢ)
-
-  ------------------------------------------------------------------------
-  -- MEASUREMENT 3: `permuteˢ` and the residual-frame lemmas
+  -- MEASUREMENT 2: `permuteˢ` and the residual-frame lemmas
   -- (the `frame-ext` analogue).  Note prep/swap need NO cast in the
   -- DEFINITION: singleton/cons left frames make `++` reduce.
   -- Parameterised by the vertex set, so `HomS` itself stays independent
@@ -512,14 +490,6 @@ module Build
     cast-idᵛ p q =
       ≈-trans (≡⇒≈ˢ (castᵛ-cast p q idᵛ)) (cast-id (cong m p) (cong m q))
 
-    cast-irrelᵛ
-      : ∀ {as as' bs bs'} (p p' : as ≡ as') (q q' : bs ≡ bs') (t : HomV as bs)
-      → castᵛ p q t ≡ castᵛ p' q' t
-    cast-irrelᵛ p p' q q' t =
-      trans (castᵛ-cast p q t)
-        (trans (cast-irrel (cong m p) (cong m p') (cong m q) (cong m q') t)
-               (sym (castᵛ-cast p' q' t)))
-
     cast-flipᵛ
       : ∀ {as as' bs bs'} (p : as ≡ as') (q : bs ≡ bs')
           {f : HomV as bs} {g : HomV as' bs'}
@@ -539,13 +509,6 @@ module Build
           (g : HomV bs cs) (f : HomV as bs)
       → castᵛ q r g ∘ᵛ castᵛ p q f ≈ᵛ castᵛ p r (g ∘ᵛ f)
     ∘-castᵛ refl refl refl g f = ≈-refl
-
-    idᵛ-≈̂ : ∀ {as bs : List V} (p : as ≡ bs) → idᵛ {as} ≈̂ idᵛ {bs}
-    idᵛ-≈̂ p = idˢ-≈̂ (cong m p)
-
-    σᵛ-≈̂ : ∀ {as as' bs bs' : List V} (p : as ≡ as') (q : bs ≡ bs')
-         → σᵛ as bs ≈̂ σᵛ as' bs'
-    σᵛ-≈̂ refl refl = ≈̂-refl
 
     -- `_⊗ᵛ_`/`castᵛ` congruences for `≈̂` chains (the `⊗ᵛ`/`castᵛ` casts peel)
     ⊗-resp-≈̂ᵛ
@@ -785,15 +748,6 @@ module Build
       ≈̂-trans (≈̂-sym (castᵛ-≈̂ (++-assoc as rest R) (++-assoc bs rest R)
                         ((b ⊗ᵛ idᵛ {rest}) ⊗ᵛ idᵛ {R})))
               (≈ˢ⇒≈̂ (box-suffix-ᵛ b rest R))
-
-    box-commute-ᵛ
-      : ∀ {as bs cs ds} (b : HomV as bs) (b' : HomV cs ds)
-      → (b ⊗ᵛ idᵛ {ds}) ∘ᵛ (idᵛ {as} ⊗ᵛ b')
-        ≈ᵛ (idᵛ {bs} ⊗ᵛ b') ∘ᵛ (b ⊗ᵛ idᵛ {cs})
-    box-commute-ᵛ b b' =
-      ≈-trans interchangeᵛ
-        (≈-trans (⊗-respᵛ idʳ idˡ)
-          (≈-sym (≈-trans interchangeᵛ (⊗-respᵛ idˡ idʳ))))
 
     -- the residual frame, CAST-FREE at V level (contrast `permuteˢ-frame`)
     permuteᵛ-frame

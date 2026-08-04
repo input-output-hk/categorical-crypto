@@ -12,7 +12,7 @@
 -- This is the strict twin of the former non-strict `StackEquivariance`'s
 -- `process-edges-equivariant`.  The genuinely-new strict content is the
 -- per-edge FIRE-box naturality (`fire-mid-equivariantˢ`), discharged here
--- by a direct `box-commute-ˢ`/`interchangeˢ` computation in the presented
+-- by a direct `interchangeᵛ` computation in the presented
 -- strict SMC — NO `box-of`/`unflatten-++-≅` detour.
 --
 -- The term-FREE inputs (`fire-stable-*`, `residual-recon`, `fire-μ`,
