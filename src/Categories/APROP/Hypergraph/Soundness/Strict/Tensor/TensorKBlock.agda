@@ -64,60 +64,6 @@ module TKBBase (H : Hypergraph FlatGen) where
   m = map vl
 
 ------------------------------------------------------------------------
--- ===== submodule TKB =====
-------------------------------------------------------------------------
-module TKB (H : Hypergraph FlatGen) where
-  open TKBBase H
-
-  ------------------------------------------------------------------------
-  -- The strict fired layer (matching `edge-stepˢ`'s FIRE branch on the
-  -- nose; shared via the `EdgeStepRel` leaf).
-  ------------------------------------------------------------------------
-
-  open EdgeStepView H public using (fire-termˢ)
-
-  ------------------------------------------------------------------------
-  -- ## The box-output left-slide (pure SMC, K-FREE).
-  --
-  -- The fired box's output block `gen' e ⊗ᵛ idᵛ {L ++ rest}` (the box at the
-  -- front, then the carried `L` and residual `rest`) equals the same box
-  -- moved to AFTER `L`, conjugated by the two one-sided block braids that
-  -- swap the box's input / output block past `L`.  Pure `σ-natᵛ`/`σ-σᵛ`
-  -- (`box-conjᵛ`) + `⊗id-distᵛ`; no endpoint is ever named.
-  ------------------------------------------------------------------------
-
-  module _ (permˢ-K : Kmod.PermK) where
-    private
-      gen' : ∀ (e : Fin H.nE) → HomV (H.ein e) (H.eout e)
-      gen' e = genˢ (H.elab e)
-
-    box-block-slideᵛ
-      : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-      → (gen' e ⊗ᵛ idᵛ {L}) ⊗ᵛ idᵛ {rest}
-        ≈ᵛ ( (σᵛ L (H.eout e) ⊗ᵛ idᵛ {rest})
-               ∘ᵛ ((idᵛ {L} ⊗ᵛ gen' e) ⊗ᵛ idᵛ {rest}) )
-             ∘ᵛ (σᵛ (H.ein e) L ⊗ᵛ idᵛ {rest})
-    box-block-slideᵛ e L rest =
-      ≈-trans (⊗-respᵛ (box-conjᵛ (gen' e) L) ≈-refl)
-        (≈-trans (⊗id-distᵛ (σᵛ L (H.eout e))
-                   ((idᵛ {L} ⊗ᵛ gen' e) ∘ᵛ σᵛ (H.ein e) L))
-          (≈-trans (∘-resp ≈-refl
-                     (⊗id-distᵛ (idᵛ {L} ⊗ᵛ gen' e) (σᵛ (H.ein e) L)))
-            (≈-sym assocˢ)))
-
-    -- the same slide on the fired layer's residual `L ++ rest`, re-bracketed
-    -- by `box-suffix-≈̂ᵛ` (heterogeneous, so the re-bracketing is not named).
-    box-slide-restˢ
-      : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
-      → gen' e ⊗ᵛ idᵛ {L ++ rest}
-        ≈̂ ( (σᵛ L (H.eout e) ⊗ᵛ idᵛ {rest})
-              ∘ᵛ ((idᵛ {L} ⊗ᵛ gen' e) ⊗ᵛ idᵛ {rest}) )
-            ∘ᵛ (σᵛ (H.ein e) L ⊗ᵛ idᵛ {rest})
-    box-slide-restˢ e L rest =
-      ≈̂-trans (≈̂-sym (box-suffix-≈̂ᵛ (gen' e) L rest))
-              (≈ˢ⇒≈̂ (box-block-slideᵛ e L rest))
-
-------------------------------------------------------------------------
 -- ===== submodule TKB2 =====
 ------------------------------------------------------------------------
 module TKB2 (H : Hypergraph FlatGen) where
@@ -185,7 +131,38 @@ module TKB2 (H : Hypergraph FlatGen) where
       gen' : ∀ (e : Fin H.nE) → HomV (H.ein e) (H.eout e)
       gen' e = genˢ (H.elab e)
 
-      box-slide-restᵛ = TKB.box-slide-restˢ H permˢ-K
+      -- ## The box-output left-slide (pure SMC, K-FREE).
+      --
+      -- The fired box's output block `gen' e ⊗ᵛ idᵛ {L ++ rest}` (the box at
+      -- the front, then the carried `L` and residual `rest`) equals the same
+      -- box moved to AFTER `L`, conjugated by the two one-sided block braids
+      -- that swap the box's input / output block past `L`.  Pure
+      -- `σ-natᵛ`/`σ-σᵛ` (`box-conjᵛ`) + `⊗id-distᵛ`; no endpoint is named.
+      box-block-slideᵛ
+        : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
+        → (gen' e ⊗ᵛ idᵛ {L}) ⊗ᵛ idᵛ {rest}
+          ≈ᵛ ( (σᵛ L (H.eout e) ⊗ᵛ idᵛ {rest})
+                 ∘ᵛ ((idᵛ {L} ⊗ᵛ gen' e) ⊗ᵛ idᵛ {rest}) )
+               ∘ᵛ (σᵛ (H.ein e) L ⊗ᵛ idᵛ {rest})
+      box-block-slideᵛ e L rest =
+        ≈-trans (⊗-respᵛ (box-conjᵛ (gen' e) L) ≈-refl)
+          (≈-trans (⊗id-distᵛ (σᵛ L (H.eout e))
+                     ((idᵛ {L} ⊗ᵛ gen' e) ∘ᵛ σᵛ (H.ein e) L))
+            (≈-trans (∘-resp ≈-refl
+                       (⊗id-distᵛ (idᵛ {L} ⊗ᵛ gen' e) (σᵛ (H.ein e) L)))
+              (≈-sym assocˢ)))
+
+      -- the same slide on the fired layer's residual `L ++ rest`, re-bracketed
+      -- by `box-suffix-≈̂ᵛ` (heterogeneous, so the re-bracketing is not named).
+      box-slide-restᵛ
+        : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
+        → gen' e ⊗ᵛ idᵛ {L ++ rest}
+          ≈̂ ( (σᵛ L (H.eout e) ⊗ᵛ idᵛ {rest})
+                ∘ᵛ ((idᵛ {L} ⊗ᵛ gen' e) ⊗ᵛ idᵛ {rest}) )
+              ∘ᵛ (σᵛ (H.ein e) L ⊗ᵛ idᵛ {rest})
+      box-slide-restᵛ e L rest =
+        ≈̂-trans (≈̂-sym (box-suffix-≈̂ᵛ (gen' e) L rest))
+                (≈ˢ⇒≈̂ (box-block-slideᵛ e L rest))
 
       OUT : ∀ (e : Fin H.nE) (L rest : List (Fin H.nV))
           → HomV ((L ++ H.eout e) ++ rest) ((H.eout e ++ L) ++ rest)
@@ -528,19 +505,42 @@ module TKB4 (H : Hypergraph FlatGen) where
         IH = kfac-gen-resˢ L hp es des sR1 s1 pf1 Br res1
 
 ------------------------------------------------------------------------
--- ===== submodule TKB5 =====
+-- ===== submodule TKB6 =====
 ------------------------------------------------------------------------
-module TKB5 (H : Hypergraph FlatGen) where
+module TKB6 (H : Hypergraph FlatGen) where
   open TKBBase H
+  open import Categories.APROP.Hypergraph.Model.FromAPROP sig
+    using (hTensor; module hTensor-impl)
+  open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
+    using (extract-elem; extract-prefix)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
     using (module EquivStep)
+  open import Categories.APROP.Hypergraph.Soundness.Strict.Separability sig
+    using (extract-prefix-++ʳ; extract-prefix-++ʳ-nothing)
+  import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig as SU
+  import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
+  open import Data.Fin using (_↑ˡ_; _↑ʳ_; splitAt)
+  open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
+  import Data.Fin.Properties as FinP
+  open import Data.Empty using (⊥; ⊥-elim)
+  open import Relation.Nullary using (yes; no)
+  open import Data.List.Relation.Unary.All using (All; []; _∷_)
+  open import Data.Maybe using (Maybe; just; nothing)
 
-  open EquivStep H using ( pvv-transˢ; pvv-inverse-rightˢ
+  open EquivStep H using ( pvv-inverse-leftˢ; pvv-transˢ; pvv-inverse-rightˢ
                          ; edge-stepˢ-graph; edge-step-equivariantˢ )
 
   module _ (permˢ-K : Kmod.PermK) where
     KCleanHeadˢ = TKB4.KCleanHeadˢ H permˢ-K
     HeadReconcileˢ = TKB4.HeadReconcileˢ H permˢ-K
+    fire-slideˢ = TKB2.fire-slideˢ H permˢ-K
+    obraid      = TKB2.obraid      H permˢ-K
+    odom        = TKB2.odom        H permˢ-K
+    ocod        = TKB2.ocod        H permˢ-K
+    fire-termˢ  = TKB2.fire-termˢ  H
+    HeadProviderRˢ = TKB4.HeadProviderRˢ H permˢ-K
+    KCleanˢ   = TKB4.KCleanˢ   H permˢ-K
+    kfac-gen-resˢ = TKB4.kfac-gen-resˢ H permˢ-K
 
     ----------------------------------------------------------------------
     -- ## The clean per-edge SLIDE interface.
@@ -607,44 +607,6 @@ module TKB5 (H : Hypergraph FlatGen) where
           (≈-trans (≈-sym assocˢ)
           -- (permuteˢ β ∘ tHclean) ∘ permuteˢ pf
           (∘-resp slide ≈-refl)))))))
-
-------------------------------------------------------------------------
--- ===== submodule TKB6 =====
-------------------------------------------------------------------------
-module TKB6 (H : Hypergraph FlatGen) where
-  open TKBBase H
-  open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-    using (hTensor; module hTensor-impl)
-  open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-    using (extract-elem; extract-prefix)
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
-    using (module EquivStep)
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Separability sig
-    using (extract-prefix-++ʳ; extract-prefix-++ʳ-nothing)
-  import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig as SU
-  import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
-  open import Data.Fin using (_↑ˡ_; _↑ʳ_; splitAt)
-  open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
-  import Data.Fin.Properties as FinP
-  open import Data.Empty using (⊥; ⊥-elim)
-  open import Relation.Nullary using (yes; no)
-  open import Data.List.Relation.Unary.All using (All; []; _∷_)
-  open import Data.Maybe using (Maybe; just; nothing)
-
-  open EquivStep H using (pvv-inverse-leftˢ)
-
-  module _ (permˢ-K : Kmod.PermK) where
-    KCleanHeadˢ = TKB5.KCleanHeadˢ H permˢ-K
-    HeadSlideˢ  = TKB5.HeadSlideˢ  H permˢ-K
-    fire-slideˢ = TKB2.fire-slideˢ H permˢ-K
-    obraid      = TKB2.obraid      H permˢ-K
-    odom        = TKB2.odom        H permˢ-K
-    ocod        = TKB2.ocod        H permˢ-K
-    fire-termˢ  = TKB2.fire-termˢ  H
-    HeadProviderRˢ = TKB4.HeadProviderRˢ H permˢ-K
-    head-reconcile-from-slide = TKB5.head-reconcile-from-slide H permˢ-K
-    KCleanˢ   = TKB4.KCleanˢ   H permˢ-K
-    kfac-gen-resˢ = TKB4.kfac-gen-resˢ H permˢ-K
 
     private
       ein-disjⁱ : Fin H.nE → List (Fin H.nV) → Set
