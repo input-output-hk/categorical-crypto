@@ -101,9 +101,6 @@ Below x y = ¬ R y x
 NoInv : List A → Set (a ⊔ r)
 NoInv = AllPairs Below
 
-NoInv-[] : NoInv []
-NoInv-[] = []
-
 -- Destructors for the cons case (the two `AllPairs._∷_` fields).
 NoInv-head : NoInv (x ∷ xs) → All (Below x) xs
 NoInv-head (h ∷ _) = h
@@ -126,9 +123,6 @@ _↝*_ : List A → List A → Set (a ⊔ r)
 _↝*_ = Star _↝_
 
 infix 4 _↝_ _↝*_
-
-↝*-refl : L ↝* L
-↝*-refl = ε
 
 ↝*-trans : L ↝* M → M ↝* L′ → L ↝* L′
 ↝*-trans = _◅◅_
@@ -227,14 +221,7 @@ data AllBefore (x : A) : (M : List A) → x ∈ M → Set (a ⊔ r) where
              AllBefore x (w ∷ rest) (there i)
 
 ------------------------------------------------------------------------
--- Sub-lemma (a): the head of an inversion-free list is R-minimal.
-------------------------------------------------------------------------
-
-head-minimal : NoInv (x ∷ xs) → ∀ {z} → z ∈ xs → ¬ R z x
-head-minimal (h ∷ _) z∈xs = lookup h z∈xs
-
-------------------------------------------------------------------------
--- Sub-lemma (b): every element before `x` in `M` is incomparable to `x`.
+-- Sub-lemma (a): every element before `x` in `M` is incomparable to `x`.
 --
 -- We first establish, once, that `x` is R-minimal
 -- across the whole carrier (`x-min`): nothing in `M` is strictly below
@@ -268,7 +255,7 @@ before-incomparable R-irrefl x L′ M perm noL noM i = go M i noM x-min
              (go rest j (NoInv-tail noM′) (λ z∈rest → xmin′ (there z∈rest)))
 
 ------------------------------------------------------------------------
--- Sub-lemma (c): the bubble lemma.
+-- Sub-lemma (b): the bubble lemma.
 --   If every element before `x` in `M` is incomparable to `x`, then we
 --   can bubble `x` to the front: M ↝* x ∷ remove M i.
 ------------------------------------------------------------------------

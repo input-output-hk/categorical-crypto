@@ -81,32 +81,6 @@ module _ {X : Set} {Gen : List X → List X → Set} where
                    ≡ G.elab e
 
 --------------------------------------------------------------------------------
--- Reflexivity.
-
-module _ {X : Set} {Gen : List X → List X → Set} where
-
-  refl-≅ᴴ : (G : Hypergraph Gen) → G ≅ᴴ G
-  refl-≅ᴴ G = record
-    { φ         = id
-    ; φ⁻¹       = id
-    ; φ-left    = λ _ → refl
-    ; φ-rght    = λ _ → refl
-    ; ψ         = id
-    ; ψ⁻¹       = id
-    ; ψ-left    = λ _ → refl
-    ; ψ-rght    = λ _ → refl
-    ; φ-lab     = λ _ → refl
-    ; ψ-ein     = λ e → sym (map-id (G.ein e))
-    ; ψ-eout    = λ e → sym (map-id (G.eout e))
-    ; φ-dom     = sym (map-id G.dom)
-    ; φ-cod     = sym (map-id G.cod)
-    ; atom-ein  = λ _ → refl
-    ; atom-eout = λ _ → refl
-    ; ψ-elab    = λ _ → refl
-    }
-    where module G = Hypergraph G
-
---------------------------------------------------------------------------------
 -- Symmetry. Invert the two bijections and flip the transports.
 
 module _ {X : Set} {Gen : List X → List X → Set} where

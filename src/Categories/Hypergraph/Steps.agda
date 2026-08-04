@@ -5,11 +5,9 @@
 --
 -- Provides `permute-via-vlab` (a vertex-list permutation realised as a
 -- HomTerm on the unflattened tensor products, parameterised only over a
--- labelling function `vlab : Fin n → X`, no APROP signature), and re-exports
--- the generic `unflatten` / `unflatten-++-≅` / `permute` (from
--- PermuteCoherence) and the list-locating `extract-elem` / `extract-prefix`
--- (from Hypergraph.ExtractPrefix).  Sharing these definitions with APROP's
--- `Decode`/`Permute` keeps generic SMC code definitionally aligned with APROP.
+-- labelling function `vlab : Fin n → X`, no APROP signature).  It is built
+-- from the same `permute`/`unflatten` as `PermuteCoherence.Faithfulness`, so
+-- generic SMC code stays definitionally aligned with APROP's `Decode`.
 --------------------------------------------------------------------------------
 
 open import Categories.FreeMonoidal
@@ -20,10 +18,8 @@ module Categories.Hypergraph.Steps
 open FreeMonoidalData d using (X)
 open FreeMonoidal d
 
--- Generic `unflatten`, `unflatten-++-≅`, and `permute` (already defined
--- parametrically there).
 open import Categories.PermuteCoherence.Faithfulness d
-  using (unflatten; unflatten-++-≅; permute) public
+  using (unflatten; permute)
 
 open import Data.Fin using (Fin)
 open import Data.List using (List; map)
@@ -39,10 +35,3 @@ permute-via-vlab
   → xs Perm.↭ ys
   → HomTerm (unflatten (map vlab xs)) (unflatten (map vlab ys))
 permute-via-vlab vlab p = permute (PermProp.map⁺ vlab p)
-
---------------------------------------------------------------------------------
--- Re-export the generic `extract-elem` / `extract-prefix` list-locating
--- primitives, shared with APROP's `Decode`.
-
-open import Categories.Hypergraph.ExtractPrefix public
-  using (extract-elem; extract-prefix)

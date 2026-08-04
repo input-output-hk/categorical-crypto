@@ -3,10 +3,9 @@
 --------------------------------------------------------------------------------
 -- Generic `extract-elem` / `extract-prefix` over `List (Fin n)`.
 --
--- Both `Categories.APROP.Hypergraph.Soundness.Decode.Decode` and
--- `Categories.Hypergraph.Steps` re-export from here so they observe the
--- SAME definition (definitional equality) of the prefix-extraction used
--- by their respective edge/step processors.
+-- `Categories.APROP.Hypergraph.Soundness.Decode.Decode` re-exports from
+-- here so it observes the SAME definition (definitional equality) of the
+-- prefix-extraction used by its edge/step processor.
 --
 -- Bodies are verbatim copies of the original `Decode.extract-elem` /
 -- `Decode.extract-prefix` (which are generic in `Fin n` already; only

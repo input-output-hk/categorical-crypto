@@ -134,11 +134,6 @@ module _ {n m : ℕ} (f : Fin n → Fin m)
 
 open import Categories.PermuteCoherence.FinBijSubst using (eval-map⁺) public
 
--- A `subst₂ FinBij` whose two index-equalities are loops (`n ≡ n`) is the
--- identity (ℕ-UIP collapses them to `refl`).
-cast-loop : ∀ {n m} (e : n ≡ n) (e' : m ≡ m) (π : FinBij n m) → subst₂ FinBij e e' π ≡ π
-cast-loop e e' π rewrite ℕ-uip e refl | ℕ-uip e' refl = refl
-
 -- Composition of two `subst₂ FinBij` casts.
 subst₂-FinBij-∘
   : ∀ {n n' n'' m m' m''}

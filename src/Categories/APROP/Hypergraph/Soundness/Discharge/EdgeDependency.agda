@@ -17,7 +17,7 @@ open import Data.List using (List; map)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties using (∈-map⁺; ∈-map⁻)
 open import Data.Product using (∃-syntax; _×_; _,_)
-open import Relation.Binary.PropositionalEquality using (_≡_; sym; trans; cong; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; sym; trans; subst)
 
 --------------------------------------------------------------------------------
 -- The immediate dependency relation.
@@ -53,22 +53,7 @@ module _ {X : Set} {Gen : List X → List X → Set} where
     wb , wb∈ , subst (_∈ ein sub ea) (embV-inj (trans (sym v≡wa) v≡wb)) wa∈
 
 --------------------------------------------------------------------------------
--- Membership transport along an injective `map φ`.
-
-module _ {A B : Set} (φ : A → B)
-         (φ-inj : ∀ {x y} → φ x ≡ φ y → x ≡ y) where
-
-  ∈-mapφ⁺ : ∀ {v} {l : List A} → v ∈ l → φ v ∈ map φ l
-  ∈-mapφ⁺ = ∈-map⁺ φ
-
-  -- From `φ v ∈ map φ l` recover `v ∈ l`, using injectivity of φ.
-  ∈-mapφ⁻ : ∀ {v} {l : List A} → φ v ∈ map φ l → v ∈ l
-  ∈-mapφ⁻ {v} {l} φv∈ with ∈-map⁻ φ φv∈
-  ... | w , w∈l , φv≡φw = subst (_∈ l) (sym (φ-inj φv≡φw)) w∈l
-
---------------------------------------------------------------------------------
--- Lemma A: a hypergraph isomorphism is an isomorphism of the dependency
--- relation.
+-- Lemma A: a hypergraph isomorphism carries the dependency relation forward.
 
 module _ {X : Set} {Gen : List X → List X → Set}
          {H J : Hypergraph Gen} (Φ : H ≅ᴴ J) where
@@ -78,26 +63,8 @@ module _ {X : Set} {Gen : List X → List X → Set}
     module H = Hypergraph H
     module J = Hypergraph J
 
-  φ-inj : ∀ {x y} → φ x ≡ φ y → x ≡ y
-  φ-inj {x} {y} eq = trans (sym (φ-left x)) (trans (cong φ⁻¹ eq) (φ-left y))
-
-  -- Forward direction of Lemma A.
   ≺⇒ψ≺ : ∀ {e e'} → e ≺[ H ] e' → ψ e ≺[ J ] ψ e'
   ≺⇒ψ≺ {e} {e'} (v , v∈out , v∈in) =
     φ v
-    , subst (φ v ∈_) (sym (ψ-eout e )) (∈-mapφ⁺ φ φ-inj v∈out)
-    , subst (φ v ∈_) (sym (ψ-ein  e')) (∈-mapφ⁺ φ φ-inj v∈in)
-
-  -- Backward direction of Lemma A.
-  ψ≺⇒≺ : ∀ {e e'} → ψ e ≺[ J ] ψ e' → e ≺[ H ] e'
-  ψ≺⇒≺ {e} {e'} (w , w∈out , w∈in)
-    -- `w ∈ J.eout (ψ e) = map φ (H.eout e)`, so `w ≡ φ v` for some
-    -- `v ∈ H.eout e`.
-    with ∈-map⁻ φ (subst (w ∈_) (ψ-eout e) w∈out)
-  ... | v , v∈out , w≡φv =
-    v
-    , v∈out
-    , ∈-mapφ⁻ φ φ-inj
-        (subst (_∈ map φ (H.ein e'))
-               w≡φv
-               (subst (w ∈_) (ψ-ein e') w∈in))
+    , subst (φ v ∈_) (sym (ψ-eout e )) (∈-map⁺ φ v∈out)
+    , subst (φ v ∈_) (sym (ψ-ein  e')) (∈-map⁺ φ v∈in)
