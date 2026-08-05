@@ -168,6 +168,86 @@ hVar x = record
   }
 
 --------------------------------------------------------------------------------
+-- The coproduct edge structure, shared by the two binary composites: the
+-- edge index is dispatched by `splitAt G.nE`, G-edges are routed through a
+-- left vertex embedding and K-edges through a right one.  `hTensor-impl`
+-- instantiates it at `(injL , injR)`, `PrunedCompose.hComposeP-impl` at
+-- `(injL , remapP)` — the two differ ONLY in the right vertex map and its
+-- label bridge, which are the parameters here.  Both instantiate with
+-- `open … public`, so every downstream qualified name
+-- (`hTensor-impl.ein-c-inj₁-red`, `hComposeP-impl.elab-c-inj₂`, …) keeps its
+-- spelling and, since the label bridges are passed partially applied, its
+-- statement.
+
+module CoproductEdges
+  (G K : Hypergraph FlatGen)
+  (nVc : ℕ) (vlab-c : Fin nVc → X)
+  (ιL : Fin (Hypergraph.nV G) → Fin nVc)
+  (ιR : Fin (Hypergraph.nV K) → Fin nVc)
+  (labL : ∀ (xs : List (Fin (Hypergraph.nV G)))
+        → map (Hypergraph.vlab G) xs ≡ map vlab-c (map ιL xs))
+  (labR : ∀ (xs : List (Fin (Hypergraph.nV K)))
+        → map (Hypergraph.vlab K) xs ≡ map vlab-c (map ιR xs))
+  where
+
+  private
+    module G = Hypergraph G
+    module K = Hypergraph K
+
+  ein-c : Fin (G.nE + K.nE) → List (Fin nVc)
+  ein-c e = [ (λ eG → map ιL (G.ein eG))
+            , (λ eK → map ιR (K.ein eK))
+            ]′ (splitAt G.nE e)
+
+  eout-c : Fin (G.nE + K.nE) → List (Fin nVc)
+  eout-c e = [ (λ eG → map ιL (G.eout eG))
+             , (λ eK → map ιR (K.eout eK))
+             ]′ (splitAt G.nE e)
+
+  elab-c : (e : Fin (G.nE + K.nE))
+         → FlatGen (map vlab-c (ein-c e)) (map vlab-c (eout-c e))
+  elab-c e with splitAt G.nE e
+  ... | inj₁ eG = retype (labL (G.ein eG)) (labL (G.eout eG)) (G.elab eG)
+  ... | inj₂ eK = retype (labR (K.ein eK)) (labR (K.eout eK)) (K.elab eK)
+
+  -- `ein-c` / `eout-c` reduce in each branch of the internal `with`.
+  ein-c-inj₁-red : ∀ (eG : Fin G.nE) → ein-c (eG ↑ˡ K.nE) ≡ map ιL (G.ein eG)
+  ein-c-inj₁-red eG with splitAt G.nE (eG ↑ˡ K.nE) | splitAt-↑ˡ G.nE eG K.nE
+  ... | .(inj₁ eG)      | refl = refl
+
+  eout-c-inj₁-red : ∀ (eG : Fin G.nE) → eout-c (eG ↑ˡ K.nE) ≡ map ιL (G.eout eG)
+  eout-c-inj₁-red eG with splitAt G.nE (eG ↑ˡ K.nE) | splitAt-↑ˡ G.nE eG K.nE
+  ... | .(inj₁ eG)       | refl = refl
+
+  ein-c-inj₂-red : ∀ (eK : Fin K.nE) → ein-c (G.nE ↑ʳ eK) ≡ map ιR (K.ein eK)
+  ein-c-inj₂-red eK with splitAt G.nE (G.nE ↑ʳ eK) | splitAt-↑ʳ G.nE K.nE eK
+  ... | .(inj₂ eK)      | refl = refl
+
+  eout-c-inj₂-red : ∀ (eK : Fin K.nE) → eout-c (G.nE ↑ʳ eK) ≡ map ιR (K.eout eK)
+  eout-c-inj₂-red eK with splitAt G.nE (G.nE ↑ʳ eK) | splitAt-↑ʳ G.nE K.nE eK
+  ... | .(inj₂ eK)       | refl = refl
+
+  elab-c-inj₁ : ∀ (eG : Fin G.nE)
+              → subst₂ FlatGen
+                  (cong (map vlab-c) (ein-c-inj₁-red eG))
+                  (cong (map vlab-c) (eout-c-inj₁-red eG))
+                  (elab-c (eG ↑ˡ K.nE))
+              ≡ subst₂ FlatGen (labL (G.ein eG)) (labL (G.eout eG)) (G.elab eG)
+  elab-c-inj₁ eG with splitAt G.nE (eG ↑ˡ K.nE) | splitAt-↑ˡ G.nE eG K.nE
+  ... | .(inj₁ eG)   | refl =
+        retype-≡ (labL (G.ein eG)) (labL (G.eout eG)) (G.elab eG)
+
+  elab-c-inj₂ : ∀ (eK : Fin K.nE)
+              → subst₂ FlatGen
+                  (cong (map vlab-c) (ein-c-inj₂-red eK))
+                  (cong (map vlab-c) (eout-c-inj₂-red eK))
+                  (elab-c (G.nE ↑ʳ eK))
+              ≡ subst₂ FlatGen (labR (K.ein eK)) (labR (K.eout eK)) (K.elab eK)
+  elab-c-inj₂ eK with splitAt G.nE (G.nE ↑ʳ eK) | splitAt-↑ʳ G.nE K.nE eK
+  ... | .(inj₂ eK)   | refl =
+        retype-≡ (labR (K.ein eK)) (labR (K.eout eK)) (K.elab eK)
+
+--------------------------------------------------------------------------------
 -- Tensor: disjoint union with concatenated boundaries.
 
 module hTensor-impl (G K : Hypergraph FlatGen) where
@@ -191,76 +271,8 @@ module hTensor-impl (G K : Hypergraph FlatGen) where
   vlab-injR : ∀ j → vlab-c (injR j) ≡ K.vlab j
   vlab-injR j = cong [ G.vlab , K.vlab ]′ (splitAt-↑ʳ G.nV K.nV j)
 
-  ein-c : Fin (G.nE + K.nE) → List (Fin (G.nV + K.nV))
-  ein-c e = [ (λ eG → map injL (G.ein eG))
-            , (λ eK → map injR (K.ein eK))
-            ]′ (splitAt G.nE e)
-
-  eout-c : Fin (G.nE + K.nE) → List (Fin (G.nV + K.nV))
-  eout-c e = [ (λ eG → map injL (G.eout eG))
-             , (λ eK → map injR (K.eout eK))
-             ]′ (splitAt G.nE e)
-
-  elab-c : (e : Fin (G.nE + K.nE))
-         → FlatGen (map vlab-c (ein-c e)) (map vlab-c (eout-c e))
-  elab-c e with splitAt G.nE e
-  ... | inj₁ eG = retype
-                    (map-via-inj vlab-injL (G.ein eG))
-                    (map-via-inj vlab-injL (G.eout eG))
-                    (G.elab eG)
-  ... | inj₂ eK = retype
-                    (map-via-raise vlab-injR (K.ein eK))
-                    (map-via-raise vlab-injR (K.eout eK))
-                    (K.elab eK)
-
-  -- ein-c / eout-c reduce in each branch of the internal `with`.
-  ein-c-inj₁-red : ∀ (eG : Fin G.nE) → ein-c (eG ↑ˡ K.nE) ≡ map injL (G.ein eG)
-  ein-c-inj₁-red eG with splitAt G.nE (eG ↑ˡ K.nE) | splitAt-↑ˡ G.nE eG K.nE
-  ... | .(inj₁ eG)      | refl = refl
-
-  eout-c-inj₁-red : ∀ (eG : Fin G.nE)
-                  → eout-c (eG ↑ˡ K.nE) ≡ map injL (G.eout eG)
-  eout-c-inj₁-red eG with splitAt G.nE (eG ↑ˡ K.nE) | splitAt-↑ˡ G.nE eG K.nE
-  ... | .(inj₁ eG)       | refl = refl
-
-  ein-c-inj₂-red : ∀ (eK : Fin K.nE) → ein-c (G.nE ↑ʳ eK) ≡ map injR (K.ein eK)
-  ein-c-inj₂-red eK with splitAt G.nE (G.nE ↑ʳ eK) | splitAt-↑ʳ G.nE K.nE eK
-  ... | .(inj₂ eK)      | refl = refl
-
-  eout-c-inj₂-red : ∀ (eK : Fin K.nE)
-                  → eout-c (G.nE ↑ʳ eK) ≡ map injR (K.eout eK)
-  eout-c-inj₂-red eK with splitAt G.nE (G.nE ↑ʳ eK) | splitAt-↑ʳ G.nE K.nE eK
-  ... | .(inj₂ eK)       | refl = refl
-
-  elab-c-inj₁ : ∀ (eG : Fin G.nE)
-              → subst₂ FlatGen
-                  (cong (map vlab-c) (ein-c-inj₁-red eG))
-                  (cong (map vlab-c) (eout-c-inj₁-red eG))
-                  (elab-c (eG ↑ˡ K.nE))
-              ≡ subst₂ FlatGen
-                  (map-via-inj vlab-injL (G.ein eG))
-                  (map-via-inj vlab-injL (G.eout eG))
-                  (G.elab eG)
-  elab-c-inj₁ eG with splitAt G.nE (eG ↑ˡ K.nE) | splitAt-↑ˡ G.nE eG K.nE
-  ... | .(inj₁ eG)   | refl =
-        retype-≡ (map-via-inj vlab-injL (G.ein eG))
-                 (map-via-inj vlab-injL (G.eout eG))
-                 (G.elab eG)
-
-  elab-c-inj₂ : ∀ (eK : Fin K.nE)
-              → subst₂ FlatGen
-                  (cong (map vlab-c) (ein-c-inj₂-red eK))
-                  (cong (map vlab-c) (eout-c-inj₂-red eK))
-                  (elab-c (G.nE ↑ʳ eK))
-              ≡ subst₂ FlatGen
-                  (map-via-raise vlab-injR (K.ein eK))
-                  (map-via-raise vlab-injR (K.eout eK))
-                  (K.elab eK)
-  elab-c-inj₂ eK with splitAt G.nE (G.nE ↑ʳ eK) | splitAt-↑ʳ G.nE K.nE eK
-  ... | .(inj₂ eK)   | refl =
-        retype-≡ (map-via-raise vlab-injR (K.ein eK))
-                 (map-via-raise vlab-injR (K.eout eK))
-                 (K.elab eK)
+  open CoproductEdges G K (G.nV + K.nV) vlab-c injL injR
+         (map-via-inj vlab-injL) (map-via-raise vlab-injR) public
 
 hTensor : Hypergraph FlatGen → Hypergraph FlatGen → Hypergraph FlatGen
 hTensor G K = record

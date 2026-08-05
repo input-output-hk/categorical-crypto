@@ -144,80 +144,11 @@ module hComposeP-impl
     remap-injective K.dom lookup-cod uK (lookup-cod-injective-from-unique uG)
 
   --------------------------------------------------------------------------------
-  -- Edge structure: G-edges routed through injL, K-edges through remapP.
+  -- Edge structure: G-edges routed through `injL`, K-edges through `remapP` —
+  -- `FromAPROP.CoproductEdges` at those two maps.
 
-  ein-c : Fin (G.nE + K.nE) → List (Fin nV-P)
-  ein-c e = [ (λ eG → map injL (G.ein eG))
-            , (λ eK → map remapP (K.ein eK))
-            ]′ (splitAt G.nE e)
-
-  eout-c : Fin (G.nE + K.nE) → List (Fin nV-P)
-  eout-c e = [ (λ eG → map injL (G.eout eG))
-             , (λ eK → map remapP (K.eout eK))
-             ]′ (splitAt G.nE e)
-
-  elab-c : (e : Fin (G.nE + K.nE))
-         → FlatGen (map vlab-P (ein-c e)) (map vlab-P (eout-c e))
-  elab-c e with splitAt G.nE e
-  ... | inj₁ eG = retype
-                    (map-via-inj vlab-injL (G.ein eG))
-                    (map-via-inj vlab-injL (G.eout eG))
-                    (G.elab eG)
-  ... | inj₂ eK = retype
-                    (map-via-remapP (K.ein eK))
-                    (map-via-remapP (K.eout eK))
-                    (K.elab eK)
-
-  --------------------------------------------------------------------------------
-  -- Reduction lemmas: peel the internal `splitAt` in `ein-c`/`eout-c`/
-  -- `elab-c` at `_↑ˡ_` / `_↑ʳ_` inputs.
-
-  ein-c-inj₁-red : ∀ (eG : Fin G.nE) → ein-c (eG ↑ˡ K.nE) ≡ map injL (G.ein eG)
-  ein-c-inj₁-red eG with splitAt G.nE (eG ↑ˡ K.nE) | splitAt-↑ˡ G.nE eG K.nE
-  ... | .(inj₁ eG)      | refl = refl
-
-  eout-c-inj₁-red : ∀ (eG : Fin G.nE) → eout-c (eG ↑ˡ K.nE) ≡ map injL (G.eout eG)
-  eout-c-inj₁-red eG with splitAt G.nE (eG ↑ˡ K.nE) | splitAt-↑ˡ G.nE eG K.nE
-  ... | .(inj₁ eG)       | refl = refl
-
-  ein-c-inj₂-red : ∀ (eK : Fin K.nE) → ein-c (G.nE ↑ʳ eK) ≡ map remapP (K.ein eK)
-  ein-c-inj₂-red eK with splitAt G.nE (G.nE ↑ʳ eK) | splitAt-↑ʳ G.nE K.nE eK
-  ... | .(inj₂ eK)      | refl = refl
-
-  eout-c-inj₂-red : ∀ (eK : Fin K.nE)
-                  → eout-c (G.nE ↑ʳ eK) ≡ map remapP (K.eout eK)
-  eout-c-inj₂-red eK with splitAt G.nE (G.nE ↑ʳ eK) | splitAt-↑ʳ G.nE K.nE eK
-  ... | .(inj₂ eK)       | refl = refl
-
-  elab-c-inj₁ : ∀ (eG : Fin G.nE)
-              → subst₂ FlatGen
-                  (cong (map vlab-P) (ein-c-inj₁-red eG))
-                  (cong (map vlab-P) (eout-c-inj₁-red eG))
-                  (elab-c (eG ↑ˡ K.nE))
-              ≡ subst₂ FlatGen
-                  (map-via-inj vlab-injL (G.ein eG))
-                  (map-via-inj vlab-injL (G.eout eG))
-                  (G.elab eG)
-  elab-c-inj₁ eG with splitAt G.nE (eG ↑ˡ K.nE) | splitAt-↑ˡ G.nE eG K.nE
-  ... | .(inj₁ eG)   | refl =
-        retype-≡ (map-via-inj vlab-injL (G.ein eG))
-                 (map-via-inj vlab-injL (G.eout eG))
-                 (G.elab eG)
-
-  elab-c-inj₂ : ∀ (eK : Fin K.nE)
-              → subst₂ FlatGen
-                  (cong (map vlab-P) (ein-c-inj₂-red eK))
-                  (cong (map vlab-P) (eout-c-inj₂-red eK))
-                  (elab-c (G.nE ↑ʳ eK))
-              ≡ subst₂ FlatGen
-                  (map-via-remapP (K.ein eK))
-                  (map-via-remapP (K.eout eK))
-                  (K.elab eK)
-  elab-c-inj₂ eK with splitAt G.nE (G.nE ↑ʳ eK) | splitAt-↑ʳ G.nE K.nE eK
-  ... | .(inj₂ eK)   | refl =
-        retype-≡ (map-via-remapP (K.ein eK))
-                 (map-via-remapP (K.eout eK))
-                 (K.elab eK)
+  open CoproductEdges G K nV-P vlab-P injL remapP
+         (map-via-inj vlab-injL) map-via-remapP public
 
 --------------------------------------------------------------------------------
 -- The pruned cospan composition.
