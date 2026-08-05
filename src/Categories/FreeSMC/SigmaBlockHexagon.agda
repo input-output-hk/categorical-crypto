@@ -27,110 +27,23 @@ private
 open FM.HomReasoning
 
 --------------------------------------------------------------------------------
--- hexagon₂: the dual hexagon at the α⇐ level (derived from the standard
--- hexagon):
---   σ ⊗ id ∘ α⇐ ∘ id ⊗ σ ≈ α⇐ ∘ σ ∘ α⇐
--- at type X⊗(Y⊗Z) → (Z⊗X)⊗Y.
+-- hexagon₂: the dual hexagon at the α⇐ level.  `Symmetric` already carries it
+-- (derived from `hexagon` + `commutative` by the library's `symmetricHelper`);
+-- the two statements differ only by `Commutation`'s bracketing.
+
+open import Categories.Category.Monoidal.Symmetric Monoidal-FreeMonoidal
+  using (Symmetric)
 
 private
-  h₁R∘h₂R≈id
-    : ∀ {X Y Z : ObjTerm}
-    → (α⇒ {A = X} {B = Y} {C = Z} ∘ σ {A = Z} {B = X ⊗₀ Y}
-        ∘ α⇒ {A = Z} {B = X} {C = Y})
-      ∘ (α⇐ {A = Z} {B = X} {C = Y} ∘ σ {A = X ⊗₀ Y} {B = Z}
-          ∘ α⇐ {A = X} {B = Y} {C = Z})
-      ≈Term id
-  h₁R∘h₂R≈id {X} {Y} {Z} =
-    begin
-      (α⇒ ∘ σ ∘ α⇒)
-        ∘ (α⇐ ∘ σ ∘ α⇐)
-        ≈⟨ assoc ⟩
-      α⇒ ∘ ((σ ∘ α⇒) ∘ (α⇐ ∘ σ ∘ α⇐))
-        ≈⟨ refl⟩∘⟨ assoc ⟩
-      α⇒ ∘ σ ∘ (α⇒ ∘ (α⇐ ∘ σ ∘ α⇐))
-        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (≈-Term-sym assoc)) ⟩
-      α⇒ ∘ σ ∘ ((α⇒ ∘ α⇐) ∘ σ ∘ α⇐)
-        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (α⇒∘α⇐≈id ⟩∘⟨refl)) ⟩
-      α⇒ ∘ σ ∘ (id ∘ σ ∘ α⇐)
-        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ idˡ) ⟩
-      α⇒ ∘ σ ∘ (σ ∘ α⇐)
-        ≈⟨ refl⟩∘⟨ (≈-Term-sym assoc) ⟩
-      α⇒ ∘ (σ ∘ σ) ∘ α⇐
-        ≈⟨ refl⟩∘⟨ (σ∘σ≈id ⟩∘⟨refl) ⟩
-      α⇒ ∘ id ∘ α⇐
-        ≈⟨ refl⟩∘⟨ idˡ ⟩
-      α⇒ ∘ α⇐
-        ≈⟨ α⇒∘α⇐≈id ⟩
-      id
-    ∎
+  module S = Symmetric Symmetric-Monoidal
 
-  h₂L∘h₁L≈id
-    : ∀ {X Y Z : ObjTerm}
-    → ((σ {A = X} {B = Z} ⊗₁ id {A = Y}) ∘ α⇐ {A = X} {B = Z} {C = Y}
-        ∘ (id {A = X} ⊗₁ σ {A = Y} {B = Z}))
-      ∘ ((id {A = X} ⊗₁ σ {A = Z} {B = Y}) ∘ α⇒ {A = X} {B = Z} {C = Y}
-          ∘ (σ {A = Z} {B = X} ⊗₁ id {A = Y}))
-      ≈Term id
-  h₂L∘h₁L≈id {X} {Y} {Z} =
-    begin
-      ((σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ))
-        ∘ ((id ⊗₁ σ) ∘ α⇒ ∘ (σ ⊗₁ id))
-        ≈⟨ assoc ⟩
-      (σ ⊗₁ id) ∘ ((α⇐ ∘ (id ⊗₁ σ))
-        ∘ ((id ⊗₁ σ) ∘ α⇒ ∘ (σ ⊗₁ id)))
-        ≈⟨ refl⟩∘⟨ assoc ⟩
-      (σ ⊗₁ id) ∘ α⇐ ∘ ((id ⊗₁ σ)
-        ∘ ((id ⊗₁ σ) ∘ α⇒ ∘ (σ ⊗₁ id)))
-        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (≈-Term-sym assoc)) ⟩
-      (σ ⊗₁ id) ∘ α⇐ ∘ ((id ⊗₁ σ) ∘ (id ⊗₁ σ))
-        ∘ α⇒ ∘ (σ ⊗₁ id)
-        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ ((≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                            (≈-Term-trans (⊗-resp-≈ idˡ σ∘σ≈id) id⊗id≈id)) ⟩∘⟨refl)) ⟩
-      (σ ⊗₁ id) ∘ α⇐ ∘ id ∘ α⇒ ∘ (σ ⊗₁ id)
-        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ idˡ) ⟩
-      (σ ⊗₁ id) ∘ α⇐ ∘ (α⇒ ∘ (σ ⊗₁ id))
-        ≈⟨ refl⟩∘⟨ (≈-Term-sym assoc) ⟩
-      (σ ⊗₁ id) ∘ (α⇐ ∘ α⇒) ∘ (σ ⊗₁ id)
-        ≈⟨ refl⟩∘⟨ (α⇐∘α⇒≈id ⟩∘⟨refl) ⟩
-      (σ ⊗₁ id) ∘ id ∘ (σ ⊗₁ id)
-        ≈⟨ refl⟩∘⟨ idˡ ⟩
-      (σ ⊗₁ id) ∘ (σ ⊗₁ id)
-        ≈⟨ ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-             (≈-Term-trans (⊗-resp-≈ σ∘σ≈id idˡ) id⊗id≈id) ⟩
-      id
-    ∎
-
-private
   hexagon₂
     : ∀ {X Y Z : ObjTerm}
     → (σ {A = X} {B = Z} ⊗₁ id {A = Y}) ∘ α⇐ {A = X} {B = Z} {C = Y}
         ∘ (id {A = X} ⊗₁ σ {A = Y} {B = Z})
       ≈Term α⇐ {A = Z} {B = X} {C = Y} ∘ σ {A = X ⊗₀ Y} {B = Z}
         ∘ α⇐ {A = X} {B = Y} {C = Z}
-  hexagon₂ {X} {Y} {Z} =
-    let h₂L = (σ {A = X} {B = Z} ⊗₁ id {A = Y}) ∘ α⇐ {A = X} {B = Z} {C = Y}
-                ∘ (id {A = X} ⊗₁ σ {A = Y} {B = Z})
-        h₁L = (id {A = X} ⊗₁ σ {A = Z} {B = Y}) ∘ α⇒ {A = X} {B = Z} {C = Y}
-                ∘ (σ {A = Z} {B = X} ⊗₁ id {A = Y})
-        h₁R = α⇒ {A = X} {B = Y} {C = Z} ∘ σ {A = Z} {B = X ⊗₀ Y}
-                ∘ α⇒ {A = Z} {B = X} {C = Y}
-        h₂R = α⇐ {A = Z} {B = X} {C = Y} ∘ σ {A = X ⊗₀ Y} {B = Z}
-                ∘ α⇐ {A = X} {B = Y} {C = Z}
-    in begin
-      h₂L
-        ≈⟨ ≈-Term-sym idʳ ⟩
-      h₂L ∘ id
-        ≈⟨ refl⟩∘⟨ (≈-Term-sym h₁R∘h₂R≈id) ⟩
-      h₂L ∘ (h₁R ∘ h₂R)
-        ≈⟨ refl⟩∘⟨ ((≈-Term-sym hexagon) ⟩∘⟨refl) ⟩
-      h₂L ∘ (h₁L ∘ h₂R)
-        ≈⟨ ≈-Term-sym assoc ⟩
-      (h₂L ∘ h₁L) ∘ h₂R
-        ≈⟨ h₂L∘h₁L≈id ⟩∘⟨refl ⟩
-      id ∘ h₂R
-        ≈⟨ idˡ ⟩
-      h₂R
-      ∎
+  hexagon₂ = ≈-Term-sym assoc ○ S.hexagon₂ ○ assoc
 
 --------------------------------------------------------------------------------
 -- σ_{A⊗B,C} expansion via hexagon₂ (rearranged):
