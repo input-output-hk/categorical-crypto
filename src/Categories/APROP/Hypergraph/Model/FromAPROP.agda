@@ -36,6 +36,7 @@ open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.Fin.Properties as Fin
 open import Data.List using (List; []; _∷_; _++_; length; map; lookup)
 open import Data.List.Properties
+open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.Nat
 open import Data.Sum using (inj₁; inj₂; [_,_]′)
 open import Relation.Binary.PropositionalEquality
@@ -134,20 +135,14 @@ map-lookup-range (x ∷ xs) =
            (map-lookup-range xs))
 
 --------------------------------------------------------------------------------
--- Generic helpers: map through `_↑ˡ_`/`_↑ʳ_` preserves a pointwise-stated
--- vertex labeling.
+-- Generic helper: mapping through a relabelling `f` preserves a
+-- pointwise-stated vertex labeling (instantiated at `_↑ˡ_`, `_↑ʳ_`, `remapP`).
 
-map-via-inj : ∀ {m n : ℕ} {v : Fin m → X} {w : Fin (m + n) → X}
-            → (∀ i → w (i ↑ˡ n) ≡ v i)
-            → (xs : List (Fin m))
-            → map v xs ≡ map w (map (_↑ˡ n) xs)
-map-via-inj p xs = trans (sym (map-cong p xs)) (map-∘ xs)
-
-map-via-raise : ∀ {m n : ℕ} {v : Fin n → X} {w : Fin (m + n) → X}
-              → (∀ i → w (m ↑ʳ i) ≡ v i)
-              → (xs : List (Fin n))
-              → map v xs ≡ map w (map (m ↑ʳ_) xs)
-map-via-raise p xs = trans (sym (map-cong p xs)) (map-∘ xs)
+map-via : ∀ {m n : ℕ} {v : Fin m → X} {w : Fin n → X} {f : Fin m → Fin n}
+        → (∀ i → w (f i) ≡ v i)
+        → (xs : List (Fin m))
+        → map v xs ≡ map w (map f xs)
+map-via p xs = sym (map-∘-cong p xs)
 
 --------------------------------------------------------------------------------
 -- Empty hypergraph: no vertices, no edges, empty boundary.
@@ -272,7 +267,7 @@ module hTensor-impl (G K : Hypergraph FlatGen) where
   vlab-injR j = cong [ G.vlab , K.vlab ]′ (splitAt-↑ʳ G.nV K.nV j)
 
   open CoproductEdges G K (G.nV + K.nV) vlab-c injL injR
-         (map-via-inj vlab-injL) (map-via-raise vlab-injR) public
+         (map-via vlab-injL) (map-via vlab-injR) public
 
 hTensor : Hypergraph FlatGen → Hypergraph FlatGen → Hypergraph FlatGen
 hTensor G K = record
@@ -306,8 +301,8 @@ module _ (G K : Hypergraph FlatGen) where
     hTensor-boundary xs ys = trans
       (map-++ vlab-c (map injL xs) (map injR ys))
       (cong₂ _++_
-        (sym (map-via-inj   vlab-injL xs))
-        (sym (map-via-raise vlab-injR ys)))
+        (sym (map-via vlab-injL xs))
+        (sym (map-via vlab-injR ys)))
 
   domL-hTensor : domL (hTensor G K) ≡ domL G ++ domL K
   domL-hTensor = hTensor-boundary G.dom K.dom
@@ -359,14 +354,10 @@ module hGenSwap-impl (A B : ObjTerm) where
                     (splitAt-↑ʳ nA nB i)
 
   lem-L : map vlab-c (map (_↑ˡ nB) (range nA)) ≡ flatten A
-  lem-L = trans (sym (map-∘ (range nA)))
-                (trans (map-cong vlab-inL (range nA))
-                       (map-lookup-range (flatten A)))
+  lem-L = trans (map-∘-cong vlab-inL (range nA)) (map-lookup-range (flatten A))
 
   lem-R : map vlab-c (map (nA ↑ʳ_) (range nB)) ≡ flatten B
-  lem-R = trans (sym (map-∘ (range nB)))
-                (trans (map-cong vlab-inR (range nB))
-                       (map-lookup-range (flatten B)))
+  lem-R = trans (map-∘-cong vlab-inR (range nB)) (map-lookup-range (flatten B))
 
 --------------------------------------------------------------------------------
 -- Single edge hypergraph for a user generator `mor A B`.

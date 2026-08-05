@@ -148,7 +148,7 @@ module hComposeP-impl
   -- `FromAPROP.CoproductEdges` at those two maps.
 
   open CoproductEdges G K nV-P vlab-P injL remapP
-         (map-via-inj vlab-injL) map-via-remapP public
+         (map-via vlab-injL) map-via-remapP public
 
 --------------------------------------------------------------------------------
 -- The pruned cospan composition.
@@ -175,7 +175,7 @@ hComposeP G K bdy-eq = record
 
 domL-hComposeP : ∀ G K bdy-eq → domL (hComposeP G K bdy-eq) ≡ domL G
 domL-hComposeP G K bdy-eq =
-  sym (map-via-inj (hComposeP-impl.vlab-injL G K bdy-eq) _)
+  sym (map-via (hComposeP-impl.vlab-injL G K bdy-eq) _)
 
 codL-hComposeP : ∀ G K bdy-eq → codL (hComposeP G K bdy-eq) ≡ codL K
 codL-hComposeP G K bdy-eq = sym (hComposeP-impl.map-via-remapP G K bdy-eq _)

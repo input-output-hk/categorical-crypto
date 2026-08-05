@@ -53,8 +53,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using ( FlatGen; range; hTensor; module hTensor-impl
-        ; map-via-inj; map-via-raise )
+  using (FlatGen; range; hTensor; module hTensor-impl; map-via)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
@@ -112,7 +111,7 @@ module Embeds (G K : Hypergraph FlatGen) where
 
   module GG = DC.EmbedGlue {H = G} {J = hTensor G K}
                 injL ψG ein-c-inj₁-red eout-c-inj₁-red
-                (map-via-inj vlab-injL) elab-c-inj₁
+                (map-via vlab-injL) elab-c-inj₁
 
   module TG = TermEmbedˢ {H = G} {J = hTensor G K}
                 injL (λ {x} {y} → ↑ˡ-injective K.nV x y)
@@ -128,7 +127,7 @@ module Embeds (G K : Hypergraph FlatGen) where
 
   module KG = DC.EmbedGlue {H = K} {J = hTensor G K}
                 injR ψK ein-c-inj₂-red eout-c-inj₂-red
-                (map-via-raise vlab-injR) elab-c-inj₂
+                (map-via vlab-injR) elab-c-inj₂
 
   module TK = TermEmbedˢ {H = K} {J = hTensor G K}
                 injR (λ {x} {y} → ↑ʳ-injective G.nV x y)

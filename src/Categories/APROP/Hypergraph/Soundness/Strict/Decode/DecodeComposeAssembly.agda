@@ -35,7 +35,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flatten; range; map-via-inj)
+  using (FlatGen; flatten; range; map-via)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
@@ -137,7 +137,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
 
   module GG = EmbedGlue {H = G} {J = Chg}
                 injL (_↑ˡ K.nE) ein-c-inj₁-red eout-c-inj₁-red
-                (λ xs → map-via-inj vlab-injL xs) elab-c-inj₁
+                (λ xs → map-via vlab-injL xs) elab-c-inj₁
 
   module TG = TermEmbedˢ {H = G} {J = Chg}
                 injL (inject+-inj cn)
