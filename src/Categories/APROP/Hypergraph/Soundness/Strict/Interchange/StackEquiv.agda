@@ -44,6 +44,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual; extract-prefix-↭-nothing)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ public
+open import Categories.Morphism.Reasoning SCat using (pullˡ; pullʳ)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.EdgeStepRel sig _≟X_
   using (module EdgeStepView)
 
@@ -295,19 +296,12 @@ module EquivStep (H : Hypergraph FlatGen) where
     edge-step-fire-equivariantˢ =
       ≈-trans (fire-term-factorˢ e s' restH' permH')
       -- fire-midˢ rest' ∘ permuteˢ perm'
+      -- (permuteˢ(++eout μ) ∘ (fire-midˢ rest ∘ permuteˢ(++ein(↭μ)))) ∘ permuteˢ perm';
+      -- `perm-reconcileˢ` is pulled into the second factor and the mid/perm
+      -- pair back into `fire-termˢ`.
       (≈-trans (∘-resp (fire-mid-equivariantˢ e fire-μ) ≈-refl)
-      -- (permuteˢ(++eout μ) ∘ (fire-midˢ rest ∘ permuteˢ(++ein(↭μ)))) ∘ permuteˢ perm'
-      (≈-trans assocˢ
-        (∘-resp ≈-refl
-          -- second factor:
-          -- (fire-midˢ rest ∘ permuteˢ(++ein↭μ)) ∘ permuteˢ perm'
-          (≈-trans assocˢ
-          -- fire-midˢ rest ∘ (permuteˢ(++ein↭μ) ∘ permuteˢ perm')
-          (≈-trans (∘-resp ≈-refl perm-reconcileˢ)
-          -- fire-midˢ rest ∘ (permuteˢ permH ∘ permuteˢ ρ)
-          (≈-trans (≈-sym assocˢ)
-          -- (fire-midˢ rest ∘ permuteˢ permH) ∘ permuteˢ ρ
-            (∘-resp (≈-sym (fire-term-factorˢ e s restH permH)) ≈-refl)))))))
+        (pullʳ (≈-trans (pullʳ perm-reconcileˢ)
+                        (pullˡ (≈-sym (fire-term-factorˢ e s restH permH))))))
 
   ----------------------------------------------------------------------
   -- `++⁺ˡ` commutes with `↭-sym` (list-induction; from the former
@@ -417,10 +411,5 @@ module EquivStep (H : Hypergraph FlatGen) where
           ≈ˢ permuteˢ (Perm.↭-sym ρf)
                 ∘ˢ ( (pe-termˢ qs s1 ∘ˢ tH) ∘ˢ permuteˢ ρ )
       goal =
-        ≈-trans
-          (∘-resp tail-eq (≈-refl {f = tH'}))
-          (≈-trans assocˢ
-            (∘-resp ≈-refl
-              (≈-trans assocˢ
-                (≈-trans (∘-resp ≈-refl mid-collapse)
-                         (≈-sym assocˢ)))))
+        ≈-trans (∘-resp tail-eq (≈-refl {f = tH'}))
+                (pullʳ (≈-trans (pullʳ mid-collapse) (≈-sym assocˢ)))

@@ -52,6 +52,7 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst₂)
 
 open import Categories.Category using (Category)
+open import Categories.Morphism.Reasoning SCat using (cancelˡ; elimʳ)
 
 private
   module FM = Category FreeMonoidal
@@ -107,21 +108,18 @@ coe-conj
   → castˢ p q t ≈ˢ coe q ∘ˢ t ∘ˢ coe (sym p)
 coe-conj refl refl t = ≈-sym (≈-trans idˡ idʳ)
 
--- f' ∘ (f ∘ h) ≈ h once f' ∘ f ≈ id (right-nested elimination).
--- Public so `DecodeSigma` can reuse them.
+-- `(HomS , _≈ˢ_)`'s `Morphism.Reasoning` combinators.  `elim²` IS `cancelˡ`
+-- and inverse-uniqueness is `elimʳ` + `cancelˡ`; both stay named here (and
+-- `public`) because `DecodeSigma` consumes them under these names.
 elim²
   : ∀ {as bs cs} {f : HomS as bs} {f' : HomS bs as} {h : HomS cs as}
   → f' ∘ˢ f ≈ˢ idˢ → f' ∘ˢ (f ∘ˢ h) ≈ˢ h
-elim² e = ≈-trans (≈-sym assocˢ) (≈-trans (∘-resp e ≈-refl) idˡ)
+elim² e = cancelˡ e
 
 inv-uniqueˢ
   : ∀ {as bs} {u : HomS as bs} {v w : HomS bs as}
   → v ∘ˢ u ≈ˢ idˢ → u ∘ˢ w ≈ˢ idˢ → v ≈ˢ w
-inv-uniqueˢ e₁ e₂ =
-  ≈-trans (≈-sym idʳ)
-  (≈-trans (∘-resp ≈-refl (≈-sym e₂))
-  (≈-trans (≈-sym assocˢ)
-  (≈-trans (∘-resp e₁ ≈-refl) idˡ)))
+inv-uniqueˢ e₁ e₂ = ≈-trans (≈-sym (elimʳ e₂)) (cancelˡ e₁)
 
 --------------------------------------------------------------------------------
 -- The strictification functor.

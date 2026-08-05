@@ -25,7 +25,10 @@
 
 module Categories.FreeStrictSMC where
 
+open import Categories.Category using (Category)
+open import Categories.Category.Helper using (categoryHelper)
 open import Data.List using (List; []; _∷_; _++_; map)
+open import Level using (0ℓ)
 open import Data.Product using (Σ-syntax; _,_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ; ≡-dec; map-++)
 open import Relation.Binary using (DecidableEquality)
@@ -104,6 +107,30 @@ module Build
     -- which have no cast: `[] ++ xs` reduces)
     σ-unitˢ : ∀ xs
             → σˢ [] xs ≈ˢ castˢ refl (sym (++-identityʳ xs)) (idˢ {xs})
+
+  ------------------------------------------------------------------------
+  -- `(HomS , _≈ˢ_)` as a `Category`.  Its four axioms are `_≈ˢ_`
+  -- constructors on the nose, so the bundle is free — and it is what lets the
+  -- strict cone open `HomReasoning` and `Categories.Morphism.Reasoning`
+  -- (`pullˡ`/`pushʳ`/`cancelˡ`/`center`/…) instead of re-deriving those
+  -- combinators locally.  Not the monoidal structure: `_⊗ˢ_`'s associativity
+  -- and unit laws are `castˢ`-mediated, so `⊗` is not a `Bifunctor` over
+  -- `List X` without the strictification, which is what `FreeStrictMonoidal`
+  -- is for.
+
+  SCat : Category 0ℓ 0ℓ 0ℓ
+  SCat = categoryHelper record
+    { Obj       = List X
+    ; _⇒_       = HomS
+    ; _≈_       = _≈ˢ_
+    ; id        = idˢ
+    ; _∘_       = _∘ˢ_
+    ; assoc     = assocˢ
+    ; identityˡ = idˡ
+    ; identityʳ = idʳ
+    ; equiv     = record { refl = ≈-refl ; sym = ≈-sym ; trans = ≈-trans }
+    ; ∘-resp-≈  = ∘-resp
+    }
 
   ------------------------------------------------------------------------
   -- The cast kit.  Everything DERIVED (refl-matching + UIP); `_≈ˢ_` has

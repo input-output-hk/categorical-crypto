@@ -34,6 +34,7 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
+open import Categories.Morphism.Reasoning SCat using (pullʳ)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_
 
@@ -106,8 +107,7 @@ module FMS (H : Hypergraph FlatGen) where
         ≈-sym
           (≈-trans (≈-sym assocˢ)
             (≈-trans (∘-resp σ-natᵛ ≈-refl)
-              (≈-trans assocˢ
-                (≈-trans (∘-resp ≈-refl σ-σᵛ) idʳ))))
+              (≈-trans (pullʳ σ-σᵛ) idʳ)))
 
   ------------------------------------------------------------------------
   -- THE ABSTRACT LOCATED-INTERCHANGE CORE (the genuine N-content).
@@ -310,9 +310,7 @@ module _ (H : Hypergraph FlatGen)
       -- σ-nat (flipped): (g'⊗ᵛid{B}) ∘ᵛ σᵛ B A' ≈ᵛ σᵛ B B' ∘ᵛ (id{B}⊗ᵛg')
       (≈-trans (∘-resp (≈-sym σ-natᵛ) ≈-refl)
       -- reassoc to σᵛ B B' ∘ᵛ ((id{B}⊗ᵛg') ∘ᵛ (g⊗ᵛid{A'}))
-      (≈-trans assocˢ
-        (∘-resp ≈-refl
-          (≈-trans interchangeᵛ (⊗-respᵛ idˡ idʳ)))))
+      (pullʳ (≈-trans interchangeᵛ (⊗-respᵛ idˡ idʳ))))
 
     -- A single located fire box: the fired layer of `e` on the residual
     -- `rest`, with `rest` relocated to `C ++ Rl` by `q`.
@@ -326,11 +324,7 @@ module _ (H : Hypergraph FlatGen)
     fire-locatedᵛ e s rest C Rl perm q =
       ≈-trans (edge-step-firedᵛ e rest perm)
       (≈-trans (∘-resp (box-resid3ᵛ′ e {rest} {C} {Rl} q) ≈-refl)
-      (≈-trans assocˢ
-        (∘-resp ≈-refl
-          (≈-trans assocˢ
-            (∘-resp ≈-refl
-              (∘-resp (≈-sym (⟦frameˡ⟧ᵛ (H.ein e) q)) ≈-refl))))))
+      (pullʳ (pullʳ (∘-resp (≈-sym (⟦frameˡ⟧ᵛ (H.ein e) q)) ≈-refl))))
 
     -- The block-bracketed box merge.  The two located boxes (front box `g`
     -- on residual `A' ++ Rl`, back box `g'` on residual `B ++ Rl`) with the
@@ -439,9 +433,7 @@ module _ (H : Hypergraph FlatGen)
       phase =
         ≈-trans (∘-resp (fire-locatedᵛ b (B ++ s₁) s₂ B R q-second ρ₂)
                         (fire-locatedᵛ a sp s₁ A' R q-first ρ₁))
-        (≈-trans assocˢ
-          (∘-resp ≈-refl
-            (≈-trans assocˢ (∘-resp ≈-refl (≈-sym assocˢ)))))
+        (pullʳ (pullʳ (≈-sym assocˢ)))
 
     ------------------------------------------------------------------
     -- The MID reconciliation: T2's input after T1's output relocate is the

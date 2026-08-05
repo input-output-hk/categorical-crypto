@@ -36,6 +36,10 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.EdgeStepRel
 ------------------------------------------------------------------------
 module TKBBase (H : Hypergraph FlatGen) where
   open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_ public
+  -- `(HomS , _≈ˢ_)`'s reasoning combinators (`_∘ᵛ_`/`_≈ᵛ_` ARE `_∘ˢ_`/`_≈ˢ_`,
+  -- so they apply at V level unchanged).
+  open import Categories.Morphism.Reasoning SCat public
+    using (cancelInner; pullˡ)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_ public
   open import Data.Fin using (Fin) public
   open import Data.List using (List; []; _∷_; _++_; map) public
@@ -591,22 +595,13 @@ module TKB6 (H : Hypergraph FlatGen) where
         -- goal : permuteˢ (trans ρf β) ∘ tH ≈ KCleanHeadˢ ∘ permuteˢ pf
         goal : permuteᵛ (Perm.trans ρf β) ∘ᵛ tH ≈ᵛ KCleanHeadˢ e L s_R ∘ᵛ permuteᵛ pf
         goal =
-          -- permuteˢ (trans ρf β) = permuteˢ β ∘ permuteˢ ρf  (definitional)
+          -- `permuteˢ (trans ρf β)` IS `permuteˢ β ∘ permuteˢ ρf`; then the
+          -- `ρf`/`↭-sym ρf` pair cancels in the middle and `slide` is pulled
+          -- into the head.
           ≈-trans (∘-resp (pvv-transˢ ρf β) ≈-refl)
-          -- (permuteˢ β ∘ permuteˢ ρf) ∘ tH
           (≈-trans (∘-resp ≈-refl eq)
-          -- (permuteˢ β ∘ permuteˢ ρf) ∘ (permuteˢ(↭-sym ρf) ∘ (tHclean ∘ permuteˢ pf))
-          (≈-trans assocˢ
-          -- permuteˢ β ∘ (permuteˢ ρf ∘ (permuteˢ(↭-sym ρf) ∘ (tHclean ∘ permuteˢ pf)))
-          (≈-trans (∘-resp ≈-refl (≈-sym assocˢ))
-          -- permuteˢ β ∘ ((permuteˢ ρf ∘ permuteˢ(↭-sym ρf)) ∘ (tHclean ∘ permuteˢ pf))
-          (≈-trans (∘-resp ≈-refl (∘-resp (pvv-inverse-rightˢ ρf) ≈-refl))
-          -- permuteˢ β ∘ (idˢ ∘ (tHclean ∘ permuteˢ pf))
-          (≈-trans (∘-resp ≈-refl idˡ)
-          -- permuteˢ β ∘ (tHclean ∘ permuteˢ pf)
-          (≈-trans (≈-sym assocˢ)
-          -- (permuteˢ β ∘ tHclean) ∘ permuteˢ pf
-          (∘-resp slide ≈-refl)))))))
+          (≈-trans (cancelInner (pvv-inverse-rightˢ ρf))
+                   (pullˡ slide)))
 
     private
       ein-disjⁱ : Fin H.nE → List (Fin H.nV) → Set

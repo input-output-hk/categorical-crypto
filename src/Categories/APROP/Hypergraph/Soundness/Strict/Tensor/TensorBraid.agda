@@ -58,6 +58,7 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
+open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelInner)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
   using (module EquivStep; module TermEmbedˢ)
@@ -740,9 +741,7 @@ module _
           stepA : Krun ∘ᵛ G-framed ≈ᵛ RF.permuteˢ Br ∘ᵛ W
           stepA =
             ≈-trans (∘-resp kfac ≈-refl)
-            (≈-trans assocˢ
-              (∘-resp ≈-refl
-                (≈-trans assocˢ inner-frame)))
+                    (pullʳ (≈-trans assocˢ inner-frame))
 
           candP≡ : subst (Perm._↭ Hf.cod) (sym stkSplit₀) cand
                    ≡ Perm.trans (Perm.↭-sym Br) comb
@@ -758,10 +757,7 @@ module _
             ≈-trans (absorbˢ stkSplit₀ cand (RF.permuteˢ Br ∘ˢ W))
             (≈-trans (∘-resp (≡⇒≈ˢ (cong RF.permuteˢ candP≡)) ≈-refl)
             (≈-trans (∘-resp (pvv-transˢ (Perm.↭-sym Br) comb) ≈-refl)
-            (≈-trans assocˢ
-              (∘-resp ≈-refl
-                (≈-trans (≈-sym assocˢ)
-                (≈-trans (∘-resp (pvv-inverse-leftˢ Br) ≈-refl) idˡ))))))
+                     (cancelInner (pvv-inverse-leftˢ Br))))
 
           WQ : map vl (map injL s_G_final) ++ map vl (map injR s_K_final)
                ≡ map vl (sG ++ Kfin)
