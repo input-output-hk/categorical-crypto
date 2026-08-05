@@ -165,142 +165,41 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
         -- Right superposing: trace(f) ⊗₁ id ≈ trace(β ∘ f ⊗₁ id ∘ β)
         right-superposing : ∀ {X Y A' B'} {f' : A' C.⊗₀ X C.⇒ B' C.⊗₀ X} →
           C.trace f' C.⊗₁ C.id {Y} C.≈ C.trace (β C.∘ f' C.⊗₁ C.id C.∘ β)
-        right-superposing {f' = f'} = begin
+        right-superposing {X} {Y} {A'} {B'} {f'} = begin
           C.trace f' C.⊗₁ C.id
-            -- braiding: a ⊗₁ b ≈ σ⇐ ∘ (b ⊗₁ a) ∘ σ⇒ (from braiding naturality)
+            -- braiding: a ⊗₁ b ≈ σ⇒ ∘ (b ⊗₁ a) ∘ σ⇒ (from braiding naturality)
             ≈⟨ braiding-swap ⟩
-          C.σ⇐ C.∘ C.id C.⊗₁ C.trace f' C.∘ C.σ⇒
+          C.σ⇒ C.∘ C.id C.⊗₁ C.trace f' C.∘ C.σ⇒
             -- superposing⁻¹: id ⊗₁ trace(f') → trace(α⇐ ∘ id ⊗₁ f' ∘ α⇒)
             ≈⟨ refl⟩∘⟨ C.Equiv.sym C.superposing ⟩∘⟨refl ⟩
-          C.σ⇐ C.∘ C.trace (C.α⇐ C.∘ C.id C.⊗₁ f' C.∘ C.α⇒) C.∘ C.σ⇒
+          C.σ⇒ C.∘ C.trace (C.α⇐ C.∘ C.id C.⊗₁ f' C.∘ C.α⇒) C.∘ C.σ⇒
             -- right naturality: trace(X) ∘ σ⇒ → trace(X ∘ (σ⇒ ⊗₁ id))
             ≈⟨ refl⟩∘⟨ trace-∘ʳ ⟩
-          C.σ⇐ C.∘ C.trace ((C.α⇐ C.∘ C.id C.⊗₁ f' C.∘ C.α⇒) C.∘ C.σ⇒ C.⊗₁ C.id)
-            -- left naturality: σ⇐ ∘ trace(X) → trace((σ⇐ ⊗₁ id) ∘ X)
+          C.σ⇒ C.∘ C.trace ((C.α⇐ C.∘ C.id C.⊗₁ f' C.∘ C.α⇒) C.∘ C.σ⇒ C.⊗₁ C.id)
+            -- left naturality: σ⇒ ∘ trace(X) → trace((σ⇒ ⊗₁ id) ∘ X)
             ≈⟨ trace-∘ˡ ⟩
-          C.trace (C.σ⇐ C.⊗₁ C.id C.∘ (C.α⇐ C.∘ C.id C.⊗₁ f' C.∘ C.α⇒) C.∘ C.σ⇒ C.⊗₁ C.id)
-            -- coherence: rewrite using assoc-commute, hexagon, braiding
-            ≈⟨ trace-resp-≈ (coherence f') ⟩
+          C.trace (C.σ⇒ C.⊗₁ C.id C.∘ (C.α⇐ C.∘ C.id C.⊗₁ f' C.∘ C.α⇒) C.∘ C.σ⇒ C.⊗₁ C.id)
+            -- coherence: the transported free-level solver result
+            ≈⟨ trace-resp-≈ coherence ⟩
           C.trace (β C.∘ f' C.⊗₁ C.id C.∘ β)
           ∎
           where braiding-swap : C.trace f' C.⊗₁ C.id C.≈
-                  C.σ⇐ C.∘ C.id C.⊗₁ C.trace f' C.∘ C.σ⇒
+                  C.σ⇒ {Y} {B'} C.∘ C.id C.⊗₁ C.trace f' C.∘ C.σ⇒
                 braiding-swap = begin
                   C.trace f' C.⊗₁ C.id
                     ≈˘⟨ C.identityˡ ⟩
                   C.id C.∘ C.trace f' C.⊗₁ C.id
-                    ≈˘⟨ C.braiding.iso.isoˡ _ ⟩∘⟨refl ⟩
-                  (C.σ⇐ C.∘ C.σ⇒) C.∘ C.trace f' C.⊗₁ C.id
+                    ≈˘⟨ C.commutative ⟩∘⟨refl ⟩
+                  (C.σ⇒ {Y} {B'} C.∘ C.σ⇒) C.∘ C.trace f' C.⊗₁ C.id
                     ≈⟨ C.assoc ⟩
-                  C.σ⇐ C.∘ C.σ⇒ C.∘ C.trace f' C.⊗₁ C.id
+                  C.σ⇒ C.∘ C.σ⇒ C.∘ C.trace f' C.⊗₁ C.id
                     ≈⟨ refl⟩∘⟨ C.braiding.⇒.commute _ ⟩
-                  C.σ⇐ C.∘ C.id C.⊗₁ C.trace f' C.∘ C.σ⇒
+                  C.σ⇒ C.∘ C.id C.⊗₁ C.trace f' C.∘ C.σ⇒
                   ∎
 
-                σ-pair-cancel : ∀ {A' Y Z} →
-                  C.σ⇒ {Y} {A'} C.⊗₁ C.id {Z} C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id C.≈ C.id
-                σ-pair-cancel {A'} {Y} {Z} = begin
-                  C.σ⇒ {Y} {A'} C.⊗₁ C.id {Z} C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id
-                    ≈˘⟨ Functor.homomorphism C.⊗ ⟩
-                  (C.σ⇒ {Y} {A'} C.∘ C.σ⇒ {A'} {Y}) C.⊗₁ (C.id {Z} C.∘ C.id)
-                    ≈⟨ Functor.F-resp-≈ C.⊗ (C.commutative , C.identityˡ) ⟩
-                  C.id C.⊗₁ C.id
-                    ≈⟨ Functor.identity C.⊗ ⟩
-                  C.id
-                  ∎
-
-                -- α⇐{A',X,Y} ∘ id⊗σ{Y,X} ∘ α⇒{A',Y,X} ≈ σ⇒{Y,A'⊗X} ∘ α⇒{Y,A',X} ∘ (σ{A',Y}⊗id)
-                claim-A' : ∀ {X Y A'} →
-                  C.α⇐ {A'} {X} {Y} C.∘ C.id C.⊗₁ C.σ⇒ {Y} {X} C.∘ C.α⇒ {A'} {Y} {X}
-                  C.≈ C.σ⇒ {Y} {A' C.⊗₀ X} C.∘ C.α⇒ {Y} {A'} {X} C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id
-                claim-A' {X} {Y} {A'} = begin
-                  C.α⇐ {A'} {X} {Y} C.∘ C.id C.⊗₁ C.σ⇒ {Y} {X} C.∘ C.α⇒ {A'} {Y} {X}
-                    ≈˘⟨ C.∘-resp-≈ʳ (C.∘-resp-≈ʳ C.identityʳ) ⟩
-                  C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ (C.α⇒ C.∘ C.id)
-                    ≈˘⟨ C.∘-resp-≈ʳ (C.∘-resp-≈ʳ (C.∘-resp-≈ʳ σ-pair-cancel)) ⟩
-                  C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ (C.α⇒ C.∘ (C.σ⇒ {Y} {A'} C.⊗₁ C.id C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id))
-                    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ C.sym-assoc ⟩
-                  C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ (C.α⇒ C.∘ C.σ⇒ {Y} {A'} C.⊗₁ C.id) C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id
-                    ≈⟨ refl⟩∘⟨ C.sym-assoc ⟩
-                  C.α⇐ C.∘ (C.id C.⊗₁ C.σ⇒ C.∘ (C.α⇒ C.∘ C.σ⇒ {Y} {A'} C.⊗₁ C.id)) C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id
-                    ≈⟨ C.sym-assoc ⟩
-                  (C.α⇐ C.∘ (C.id C.⊗₁ C.σ⇒ C.∘ (C.α⇒ C.∘ C.σ⇒ {Y} {A'} C.⊗₁ C.id))) C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id
-                    ≈⟨ C.∘-resp-≈ˡ (refl⟩∘⟨ C.hexagon₁ {X = Y} {Y = A'} {Z = X}) ⟩
-                  (C.α⇐ C.∘ (C.α⇒ {A'} {X} {Y} C.∘ (C.σ⇒ {Y} {A' C.⊗₀ X} C.∘ C.α⇒ {Y} {A'} {X}))) C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id
-                    ≈⟨ C.∘-resp-≈ˡ C.sym-assoc ⟩
-                  ((C.α⇐ C.∘ C.α⇒ {A'} {X} {Y}) C.∘ (C.σ⇒ {Y} {A' C.⊗₀ X} C.∘ C.α⇒ {Y} {A'} {X})) C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id
-                    ≈⟨ C.∘-resp-≈ˡ (C.∘-resp-≈ˡ (C.associator.isoˡ {X = A'} {Y = X} {Z = Y})) ⟩
-                  (C.id C.∘ (C.σ⇒ {Y} {A' C.⊗₀ X} C.∘ C.α⇒ {Y} {A'} {X})) C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id
-                    ≈⟨ C.∘-resp-≈ˡ C.identityˡ ⟩
-                  (C.σ⇒ {Y} {A' C.⊗₀ X} C.∘ C.α⇒ {Y} {A'} {X}) C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id
-                    ≈⟨ C.assoc ⟩
-                  C.σ⇒ {Y} {A' C.⊗₀ X} C.∘ C.α⇒ {Y} {A'} {X} C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id
-                  ∎
-
-                -- α⇐{B',Y,X} ∘ id⊗σ{X,Y} ∘ α⇒{B',X,Y} ≈ (σ⇐{B',Y}⊗id) ∘ α⇐{Y,B',X} ∘ σ⇒{B'⊗X,Y}
-                claim-B : ∀ {X Y B'} →
-                  C.α⇐ {B'} {Y} {X} C.∘ C.id C.⊗₁ C.σ⇒ {X} {Y} C.∘ C.α⇒ {B'} {X} {Y}
-                  C.≈ C.σ⇐ {B'} {Y} C.⊗₁ C.id C.∘ C.α⇐ {Y} {B'} {X} C.∘ C.σ⇒ {B' C.⊗₀ X} {Y}
-                claim-B {X} {Y} {B'} = begin
-                  C.α⇐ {B'} {Y} {X} C.∘ C.id C.⊗₁ C.σ⇒ {X} {Y} C.∘ C.α⇒ {B'} {X} {Y}
-                    ≈˘⟨ C.identityˡ ⟩
-                  C.id C.∘ C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒
-                    ≈˘⟨ C.∘-resp-≈ˡ (C.Equiv.trans (C.Equiv.sym (Functor.homomorphism C.⊗))
-                           (C.Equiv.trans (Functor.F-resp-≈ C.⊗ (C.braiding.iso.isoˡ _ , C.identityˡ)) (Functor.identity C.⊗))) ⟩
-                  (C.σ⇐ {B'} {Y} C.⊗₁ C.id C.∘ C.σ⇒ {B'} {Y} C.⊗₁ C.id) C.∘ C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒
-                    ≈⟨ C.assoc ⟩
-                  C.σ⇐ {B'} {Y} C.⊗₁ C.id C.∘ (C.σ⇒ {B'} {Y} C.⊗₁ C.id C.∘ C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒)
-                    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ C.sym-assoc ⟩
-                  C.σ⇐ {B'} {Y} C.⊗₁ C.id C.∘ (C.σ⇒ {B'} {Y} C.⊗₁ C.id C.∘ ((C.α⇐ {B'} {Y} {X} C.∘ C.id C.⊗₁ C.σ⇒ {X} {Y}) C.∘ C.α⇒ {B'} {X} {Y}))
-                    ≈⟨ refl⟩∘⟨ C.sym-assoc ⟩
-                  C.σ⇐ {B'} {Y} C.⊗₁ C.id C.∘ ((C.σ⇒ {B'} {Y} C.⊗₁ C.id C.∘ (C.α⇐ {B'} {Y} {X} C.∘ C.id C.⊗₁ C.σ⇒ {X} {Y})) C.∘ C.α⇒ {B'} {X} {Y})
-                    ≈⟨ refl⟩∘⟨ C.∘-resp-≈ˡ C.sym-assoc ⟩
-                  C.σ⇐ {B'} {Y} C.⊗₁ C.id C.∘ (((C.σ⇒ {B'} {Y} C.⊗₁ C.id C.∘ C.α⇐ {B'} {Y} {X}) C.∘ C.id C.⊗₁ C.σ⇒ {X} {Y}) C.∘ C.α⇒ {B'} {X} {Y})
-                    ≈⟨ refl⟩∘⟨ C.∘-resp-≈ˡ (C.hexagon₂ {X = B'} {Y = X} {Z = Y}) ⟩
-                  C.σ⇐ {B'} {Y} C.⊗₁ C.id C.∘ (((C.α⇐ {Y} {B'} {X} C.∘ C.σ⇒ {B' C.⊗₀ X} {Y}) C.∘ C.α⇐ {B'} {X} {Y}) C.∘ C.α⇒ {B'} {X} {Y})
-                    ≈⟨ refl⟩∘⟨ C.assoc ⟩
-                  C.σ⇐ {B'} {Y} C.⊗₁ C.id C.∘ ((C.α⇐ {Y} {B'} {X} C.∘ C.σ⇒ {B' C.⊗₀ X} {Y}) C.∘ (C.α⇐ {B'} {X} {Y} C.∘ C.α⇒ {B'} {X} {Y}))
-                    ≈⟨ refl⟩∘⟨ C.∘-resp-≈ʳ (C.associator.isoˡ {X = B'} {Y = X} {Z = Y}) ⟩
-                  C.σ⇐ {B'} {Y} C.⊗₁ C.id C.∘ ((C.α⇐ {Y} {B'} {X} C.∘ C.σ⇒ {B' C.⊗₀ X} {Y}) C.∘ C.id)
-                    ≈⟨ refl⟩∘⟨ C.identityʳ ⟩
-                  C.σ⇐ {B'} {Y} C.⊗₁ C.id C.∘ (C.α⇐ {Y} {B'} {X} C.∘ C.σ⇒ {B' C.⊗₀ X} {Y})
-                  ∎
-
-                -- Main coherence:
-                -- σ⇐{B',Y}⊗id ∘ (α⇐{Y,B',X} ∘ id⊗f' ∘ α⇒{Y,A',X}) ∘ σ⇒{A',Y}⊗id ≈ β ∘ f'⊗id ∘ β
-                coherence : ∀ {X Y A' B'} (f' : A' C.⊗₀ X C.⇒ B' C.⊗₀ X) →
-                  C.σ⇐ {B'} {Y} C.⊗₁ C.id {X} C.∘ (C.α⇐ {Y} {B'} {X} C.∘ C.id C.⊗₁ f' C.∘ C.α⇒ {Y} {A'} {X}) C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id {X}
-                  C.≈
-                  (C.α⇐ {B'} {Y} {X} C.∘ C.id C.⊗₁ C.σ⇒ {X} {Y} C.∘ C.α⇒ {B'} {X} {Y}) C.∘ f' C.⊗₁ C.id {Y} C.∘ (C.α⇐ {A'} {X} {Y} C.∘ C.id C.⊗₁ C.σ⇒ {Y} {X} C.∘ C.α⇒ {A'} {Y} {X})
-                coherence {X} {Y} {A'} {B'} f' = begin
-                  C.σ⇐ {B'} {Y} C.⊗₁ C.id {X} C.∘ (C.α⇐ {Y} {B'} {X} C.∘ C.id C.⊗₁ f' C.∘ C.α⇒ {Y} {A'} {X}) C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id {X}
-                    ≈⟨ refl⟩∘⟨ C.assoc ⟩
-                  C.σ⇐ {B'} {Y} C.⊗₁ C.id {X} C.∘ (C.α⇐ {Y} {B'} {X} C.∘ ((C.id C.⊗₁ f' C.∘ C.α⇒ {Y} {A'} {X}) C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id {X}))
-                    ≈⟨ refl⟩∘⟨ C.∘-resp-≈ʳ C.assoc ⟩
-                  C.σ⇐ {B'} {Y} C.⊗₁ C.id {X} C.∘ (C.α⇐ {Y} {B'} {X} C.∘ (C.id C.⊗₁ f' C.∘ (C.α⇒ {Y} {A'} {X} C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id {X})))
-                    ≈⟨ refl⟩∘⟨ C.∘-resp-≈ʳ (C.∘-resp-≈ˡ
-                         (C.Equiv.trans (C.Equiv.sym C.identityˡ)
-                           (C.Equiv.trans (C.∘-resp-≈ˡ (C.Equiv.sym (C.commutative {B' C.⊗₀ X} {Y})))
-                             (C.Equiv.trans C.assoc
-                               (C.∘-resp-≈ʳ (C.braiding.⇒.commute (C.id , f'))))))) ⟩
-                  C.σ⇐ {B'} {Y} C.⊗₁ C.id {X} C.∘ (C.α⇐ {Y} {B'} {X} C.∘ ((C.σ⇒ {B' C.⊗₀ X} {Y} C.∘ (f' C.⊗₁ C.id {Y} C.∘ C.σ⇒ {Y} {A' C.⊗₀ X})) C.∘ (C.α⇒ {Y} {A'} {X} C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id {X})))
-                    ≈⟨ refl⟩∘⟨ C.∘-resp-≈ʳ C.assoc ⟩
-                  C.σ⇐ {B'} {Y} C.⊗₁ C.id {X} C.∘ (C.α⇐ {Y} {B'} {X} C.∘ (C.σ⇒ {B' C.⊗₀ X} {Y} C.∘ ((f' C.⊗₁ C.id {Y} C.∘ C.σ⇒ {Y} {A' C.⊗₀ X}) C.∘ (C.α⇒ {Y} {A'} {X} C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id {X}))))
-                    ≈⟨ refl⟩∘⟨ C.sym-assoc ⟩
-                  C.σ⇐ {B'} {Y} C.⊗₁ C.id {X} C.∘ ((C.α⇐ {Y} {B'} {X} C.∘ C.σ⇒ {B' C.⊗₀ X} {Y}) C.∘ ((f' C.⊗₁ C.id {Y} C.∘ C.σ⇒ {Y} {A' C.⊗₀ X}) C.∘ (C.α⇒ {Y} {A'} {X} C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id {X})))
-                    ≈⟨ C.sym-assoc ⟩
-                  (C.σ⇐ {B'} {Y} C.⊗₁ C.id {X} C.∘ (C.α⇐ {Y} {B'} {X} C.∘ C.σ⇒ {B' C.⊗₀ X} {Y})) C.∘
-                    ((f' C.⊗₁ C.id {Y} C.∘ C.σ⇒ {Y} {A' C.⊗₀ X}) C.∘ (C.α⇒ {Y} {A'} {X} C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id {X}))
-                    ≈⟨ C.∘-resp-≈ˡ (C.Equiv.sym (claim-B {X} {Y} {B'})) ⟩
-                  (C.α⇐ {B'} {Y} {X} C.∘ C.id C.⊗₁ C.σ⇒ {X} {Y} C.∘ C.α⇒ {B'} {X} {Y}) C.∘
-                    ((f' C.⊗₁ C.id {Y} C.∘ C.σ⇒ {Y} {A' C.⊗₀ X}) C.∘ (C.α⇒ {Y} {A'} {X} C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id {X}))
-                    ≈⟨ C.∘-resp-≈ʳ C.assoc ⟩
-                  (C.α⇐ {B'} {Y} {X} C.∘ C.id C.⊗₁ C.σ⇒ {X} {Y} C.∘ C.α⇒ {B'} {X} {Y}) C.∘
-                    (f' C.⊗₁ C.id {Y} C.∘ (C.σ⇒ {Y} {A' C.⊗₀ X} C.∘ (C.α⇒ {Y} {A'} {X} C.∘ C.σ⇒ {A'} {Y} C.⊗₁ C.id {X})))
-                    ≈⟨ C.∘-resp-≈ʳ (refl⟩∘⟨ C.Equiv.sym (claim-A' {X} {Y} {A'})) ⟩
-                  (C.α⇐ {B'} {Y} {X} C.∘ C.id C.⊗₁ C.σ⇒ {X} {Y} C.∘ C.α⇒ {B'} {X} {Y}) C.∘
-                    f' C.⊗₁ C.id {Y} C.∘ (C.α⇐ {A'} {X} {Y} C.∘ C.id C.⊗₁ C.σ⇒ {Y} {X} C.∘ C.α⇒ {A'} {Y} {X})
-                  ∎
+                coherence = GCohId.TransportRS.WithGen.RS
+                  (record { U = Cᵤ ; monoidal = Monoidal ; symmetric = C.symmetric })
+                  A' B' X Y f'
 
         -- Associativity
         assoc' : ∀ {A B D E : C.Obj × C.Obj}
