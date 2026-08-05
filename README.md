@@ -8,6 +8,8 @@ Instead of ad-hoc specifications, cryptographic protocols are modeled via:
 - **Machines**: Stateful computations that communicate via channels
 - **Composition operations**: Protocols can be composed using sequential and parallel composition
 
+Documentation can be found [here](https://input-output-hk.github.io/categorical-crypto/).
+
 ## Project Structure
 
 ```

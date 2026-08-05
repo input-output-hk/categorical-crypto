@@ -11,3 +11,4 @@ jobs:
     uses: WhatisRT/pagda/.github/workflows/agda-ci.yml@main
     with:
       pages: true
+      cache: true

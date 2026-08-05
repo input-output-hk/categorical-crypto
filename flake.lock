@@ -109,16 +109,16 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1767313136,
-        "narHash": "sha256-16KkgfdYqjaeRGBaYsNrhPRRENs0qzkQVUooNHtoy2w=",
+        "lastModified": 1782691344,
+        "narHash": "sha256-i5nw9BYYsMDAaOC4J+JmTof6b2GhlyH076awYRNrTV8=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "ac62194c3917d5f474c1a844b6fd6da2db95077d",
+        "rev": "1f01958ffb5b3545c96d9ef2f4e24c5e5e1eb846",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-25.05",
+        "ref": "nixos-26.05",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -128,11 +128,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1781792743,
-        "narHash": "sha256-CTGToNiq8bfCvBFiCe2jXhfQNyFyuh4Iuf8IpKlKMH8=",
+        "lastModified": 1785939805,
+        "narHash": "sha256-KTqWHEJbV4SwcxZj8wtYTC1lkm/2EtL2+Ja2ZA/MPxc=",
         "owner": "WhatisRT",
         "repo": "pagda",
-        "rev": "37cdf0ee5f78323f5ef4cb77ad1bf92866ed46e5",
+        "rev": "0f63597a86ea682460d479c7942a6e533c7cd988",
         "type": "github"
       },
       "original": {
