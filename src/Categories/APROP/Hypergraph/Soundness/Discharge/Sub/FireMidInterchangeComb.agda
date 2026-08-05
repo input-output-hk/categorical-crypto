@@ -208,15 +208,10 @@ module _ (H : Hypergraph FlatGen)
     → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
     → extract-prefix (H.ein e') s ≡ nothing
     → extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ nothing
-  e'-skips-stable {e} {e'} e≢e' ¬dep r₁ s p eqe' =
-    go (extract-prefix (H.ein e') (H.eout e ++ r₁)) refl
-    where
-      go : (m : Maybe (Σ[ r ∈ List (Fin H.nV) ]
-                         H.eout e ++ r₁ Perm.↭ H.ein e' ++ r))
-         → extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ m
-         → extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ nothing
-      go nothing      eq  = eq
-      go (just (r , q)) eq =
+  e'-skips-stable {e} {e'} e≢e' ¬dep r₁ s p eqe'
+    with extract-prefix (H.ein e') (H.eout e ++ r₁)
+  ... | nothing      = refl
+  ... | just (r , q) =
         ⊥-elim (nothing≢just (trans (sym eqe')
           (proj₂ (proj₂ (count-≤→extract-prefix (H.ein e') s
             (ein'-≤-bwd e≢e' ¬dep r₁ s p
