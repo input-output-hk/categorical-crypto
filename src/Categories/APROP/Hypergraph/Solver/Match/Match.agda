@@ -29,15 +29,14 @@ module Categories.APROP.Hypergraph.Solver.Match.Match (sig-dec : APROPSignatureD
 
 open APROPSignatureDec sig-dec
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Solver.Match.PBij using (PBij; extend-bij; pairUp)
 open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec using (flat-match-subst)
 
-open import Data.Fin using (Fin; zero; suc)
-open import Data.List.Base using (List; []; _∷_; map)
+open import Data.Fin using (Fin)
+open import Data.List.Base using (List; map; mapMaybe)
 open import Data.List.Properties using (≡-dec)
 open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
-open import Data.Nat using (ℕ)
 open import Data.Product using (_×_; _,_)
 open import Relation.Binary.PropositionalEquality using (sym)
 open import Relation.Nullary using (yes; no)
@@ -93,12 +92,4 @@ module _
   -- Enumerate all matches of `e` against J-edges.
 
   matchEdge : VertexBij → EdgeBij → Fin nEH → List (VertexBij × EdgeBij)
-  matchEdge φ ψ e = go nEJ (λ i → i)
-    where
-      go : (count : ℕ) → (Fin count → Fin nEJ) → List (VertexBij × EdgeBij)
-      go ℕ.zero    _   = []
-      go (ℕ.suc n) inj = cons (tryEdge φ ψ e (inj zero))
-        where
-          cons : Maybe (VertexBij × EdgeBij) → List (VertexBij × EdgeBij)
-          cons nothing  = go n (λ i → inj (suc i))
-          cons (just x) = x ∷ go n (λ i → inj (suc i))
+  matchEdge φ ψ e = mapMaybe (tryEdge φ ψ e) (range nEJ)
