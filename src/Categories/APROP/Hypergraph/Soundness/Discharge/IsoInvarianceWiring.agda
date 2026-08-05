@@ -109,12 +109,10 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J) where
   -- The iso identifies the boundaries (φ preserves vertex labels and the
   -- boundary lists).
   domL-iso : domL J ≡ domL H
-  domL-iso =
-    trans (cong (map J.vlab) φ-dom) (map-∘-cong φ-lab H.dom)
+  domL-iso = trans (cong (map J.vlab) φ-dom) (map-∘-cong φ-lab H.dom)
 
   codL-iso : codL J ≡ codL H
-  codL-iso =
-    trans (cong (map J.vlab) φ-cod) (map-∘-cong φ-lab H.cod)
+  codL-iso = trans (cong (map J.vlab) φ-cod) (map-∘-cong φ-lab H.cod)
 
   -- The ψ-pullback of J's natural order onto H's edges.  `≺⇒ψ≺ Φ`
   -- makes it a linear extension of `Dep H`.

@@ -228,11 +228,9 @@ module _
       vlab-inR i = cong [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt-↑ʳ nA nB i)
 
       mLblk≡ : map Hf.vlab Lblk ≡ flatten A
-      mLblk≡ = trans (map-∘-cong vlab-inL (range nA))
-                     (map-lookup-range (flatten A))
+      mLblk≡ = trans (map-∘-cong vlab-inL (range nA)) (map-lookup-range (flatten A))
       mRblk≡ : map Hf.vlab Rblk ≡ flatten B
-      mRblk≡ = trans (map-∘-cong vlab-inR (range nB))
-                     (map-lookup-range (flatten B))
+      mRblk≡ = trans (map-∘-cong vlab-inR (range nB)) (map-lookup-range (flatten B))
 
       -- the canonical derivation `dom ↭ cod`.
       bsw : Hf.dom ↭ Hf.cod
