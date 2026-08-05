@@ -26,7 +26,9 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig using (unflatten; unflatten-++-≅)
 open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
   using ( cancel-mid-iso; c-iso-assoc-to; c-iso-assoc-from
-        ; subst-id-dom; subst-id-cod )
+        ; subst-id-dom; subst-id-cod
+        ; cast-dc; cast-cd; cast-cancel; cast-cancel′; cod-cancel; dom-cancel
+        ; subst-cod-cons )
 
 open import Categories.FreeStrictSMC using (module Build)
 
@@ -179,9 +181,6 @@ module EmbResp
 -- made ONCE here instead of per positional site.
 
 private
-  cast-cancel : ∀ {a b} (p : a ≡ b) → subst-id-cod p ∘ subst-id-dom p ≈Term id
-  cast-cancel refl = idˡ
-
   -- α-conjugation of a ⊗-pair (the Mac-Lane move, once)
   α-conjE
     : ∀ {A B C A' B' C'} (m : HomTerm A A') (n : HomTerm B B') (k : HomTerm C C')
@@ -290,9 +289,6 @@ open import Categories.Category.Monoidal.Properties Monoidal-FreeMonoidal using 
 open Kelly's using (coherence₂; coherence₃)
 
 private
-  cast-cancel′ : ∀ {a b} (p : a ≡ b) → subst-id-dom p ∘ subst-id-cod p ≈Term id
-  cast-cancel′ refl = idˡ
-
   -- the ρ-flavoured triangle: α⇒ ∘ ρ⇐ ≈ id ⊗ ρ⇐
   ρ⇐-tri : ∀ {A B} → α⇒ {A} {B} {unit} ∘ ρ⇐ {A ⊗₀ B} ≈Term id ⊗₁ ρ⇐
   ρ⇐-tri {A} {B} = begin
@@ -314,11 +310,6 @@ private
     where
       lem : (id ⊗₁ ρ⇐) ∘ (id ⊗₁ ρ⇒) ≈Term id {A ⊗₀ (B ⊗₀ unit)}
       lem = ≈-Term-trans (≈-Term-sym ⊗-∘-dist) (≈-Term-trans (⊗-resp-≈ idˡ ρ⇐∘ρ⇒≈id) id⊗id≈id)
-
-  subst-cod-cons
-    : ∀ {x : X} {a b} (e : a ≡ b)
-    → id {Var x} ⊗₁ subst-id-cod e ≈Term subst-id-cod (cong (x ∷_) e)
-  subst-cod-cons refl = id⊗id≈id
 
   -- T a [] ∘ ρ⇐  collapses to a pure cast
   TR : ∀ a → T a [] ∘ ρ⇐ ≈Term subst-id-cod (sym (++-identityʳ a))
@@ -420,21 +411,16 @@ private
         ≈⟨ (≈-Term-sym FM.assoc) ⟩∘⟨refl ⟩
       ((Sc ∘ subst-id-cod (sym (++-identityʳ ys)))
              ∘ ef ∘ subst-id-dom (sym (++-identityʳ xs))) ∘ Sd
-        ≈⟨ (cast-fold (++-identityʳ ys) ⟩∘⟨refl) ⟩∘⟨refl ⟩
+        ≈⟨ (cod-cancel (++-identityʳ ys) ⟩∘⟨refl) ⟩∘⟨refl ⟩
       (id ∘ ef ∘ subst-id-dom (sym (++-identityʳ xs))) ∘ Sd
         ≈⟨ idˡ ⟩∘⟨refl ⟩
       (ef ∘ subst-id-dom (sym (++-identityʳ xs))) ∘ Sd
         ≈⟨ FM.assoc ⟩
       ef ∘ (subst-id-dom (sym (++-identityʳ xs)) ∘ Sd)
-        ≈⟨ refl⟩∘⟨ cast-fold′ (++-identityʳ xs) ⟩
+        ≈⟨ refl⟩∘⟨ dom-cancel (++-identityʳ xs) ⟩
       ef ∘ id
         ≈⟨ idʳ ⟩
       ef ∎
-      where
-        cast-fold : ∀ {a b} (p : a ≡ b) → subst-id-cod p ∘ subst-id-cod (sym p) ≈Term id
-        cast-fold refl = idˡ
-        cast-fold′ : ∀ {a b} (p : a ≡ b) → subst-id-dom (sym p) ∘ subst-id-dom p ≈Term id
-        cast-fold′ refl = idˡ
 
 --------------------------------------------------------------------------------
 -- The `σ-hexˢ` case — the block-braiding payment.  Strategy: reduce BOTH
@@ -446,12 +432,6 @@ import Categories.FreeSMC.SigmaBlockHexagon
   asFreeMonoidalData as SBH
 
 private
-  cast-dc : ∀ {a b} (p : a ≡ b) → subst-id-dom (sym p) ≈Term subst-id-cod p
-  cast-dc refl = ≈-Term-refl
-
-  cast-cd : ∀ {a b} (p : a ≡ b) → subst-id-dom p ≈Term subst-id-cod (sym p)
-  cast-cd refl = ≈-Term-refl
-
   -- fold two right-framed / left-framed tensor factors under a tail W
   fold⊗ʳ
     : ∀ {A B C D E} {p : HomTerm B C} {q : HomTerm A B} {W : HomTerm E (D ⊗₀ A)}

@@ -38,10 +38,11 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.CIsoAssocFromCons si
 
 open import Categories.Category using (Category)
 
-open import Data.List using (List; _++_)
+open import Data.List using (List; _∷_; _++_)
 open import Data.List.Properties using (++-assoc)
 
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst)
+open import Relation.Binary.PropositionalEquality
+  using (_≡_; refl; sym; cong; subst; subst₂)
 
 private
   module FM = Category FreeMonoidal
@@ -190,3 +191,36 @@ subst-id-dom {a} p = subst (λ z → HomTerm (unflatten z) (unflatten a)) p id
 
 subst-id-cod : ∀ {c d : List X} → c ≡ d → HomTerm (unflatten c) (unflatten d)
 subst-id-cod {c} q = subst (λ z → HomTerm (unflatten c) (unflatten z)) q id
+
+-- Their groupoid laws: `sym`-exchange between the two sides, the four
+-- cancellations, the cons-frame law, and the `subst₂` presentation.
+cast-dc : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom (sym p) ≈Term subst-id-cod p
+cast-dc refl = ≈-Term-refl
+
+cast-cd : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom p ≈Term subst-id-cod (sym p)
+cast-cd refl = ≈-Term-refl
+
+cast-cancel : ∀ {a b : List X} (p : a ≡ b) → subst-id-cod p ∘ subst-id-dom p ≈Term id
+cast-cancel refl = idˡ
+
+cast-cancel′ : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom p ∘ subst-id-cod p ≈Term id
+cast-cancel′ refl = idˡ
+
+cod-cancel : ∀ {a b : List X} (p : a ≡ b) → subst-id-cod p ∘ subst-id-cod (sym p) ≈Term id
+cod-cancel refl = idˡ
+
+dom-cancel : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom (sym p) ∘ subst-id-dom p ≈Term id
+dom-cancel refl = idˡ
+
+subst-cod-cons
+  : ∀ {x : X} {a b : List X} (e : a ≡ b)
+  → id {Var x} ⊗₁ subst-id-cod e ≈Term subst-id-cod (cong (x ∷_) e)
+subst-cod-cons refl = id⊗id≈id
+
+cod-as-subst₂ : ∀ {a b : List X} (e : a ≡ b)
+              → subst-id-cod e ≡ subst₂ HomTerm refl (cong unflatten e) (id {unflatten a})
+cod-as-subst₂ refl = refl
+
+dom-as-subst₂ : ∀ {a b : List X} (e : a ≡ b)
+              → subst-id-cod (sym e) ≡ subst₂ HomTerm (cong unflatten e) refl (id {unflatten a})
+dom-as-subst₂ refl = refl

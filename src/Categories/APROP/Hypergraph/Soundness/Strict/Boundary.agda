@@ -31,7 +31,8 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; unflatten-flatten-≈; _≅_; bridge)
 open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
-  using (subst-id-cod)
+  using ( subst-id-cod; cod-as-subst₂; dom-as-subst₂; cod-cancel
+        ; subst-cod-cons )
 open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeOps sig
   using (bridge-∘; bridge-⊗)
 open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
@@ -145,26 +146,6 @@ private
   -- embF of a `coe` is the cod-side transport of `id`
   embF-coe : ∀ {a b : List X} (e : a ≡ b) → embF (coe e) ≡ subst-id-cod e
   embF-coe refl = refl
-
-  -- the two spellings of the transported identity
-  cod-as-subst₂ : ∀ {a b : List X} (e : a ≡ b)
-                → subst-id-cod e
-                  ≡ subst₂ HomTerm refl (cong unflatten e) (id {unflatten a})
-  cod-as-subst₂ refl = refl
-
-  dom-as-subst₂ : ∀ {a b : List X} (e : a ≡ b)
-                → subst-id-cod (sym e)
-                  ≡ subst₂ HomTerm (cong unflatten e) refl (id {unflatten a})
-  dom-as-subst₂ refl = refl
-
-  cod-cancel : ∀ {a b : List X} (e : a ≡ b)
-             → subst-id-cod e ∘ subst-id-cod (sym e) ≈Term id
-  cod-cancel refl = idˡ
-
-  subst-cod-cons
-    : ∀ {x : X} {a b : List X} (e : a ≡ b)
-    → id {Var x} ⊗₁ subst-id-cod e ≈Term subst-id-cod (cong (x ∷_) e)
-  subst-cod-cons refl = id⊗id≈id
 
   -- the α-form tower is the transported identity
   α-form-cast
