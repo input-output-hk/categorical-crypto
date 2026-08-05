@@ -39,7 +39,7 @@ module TKBBase (H : Hypergraph FlatGen) where
   -- `(HomS , _≈ˢ_)`'s reasoning combinators (`_∘ᵛ_`/`_≈ᵛ_` ARE `_∘ˢ_`/`_≈ˢ_`,
   -- so they apply at V level unchanged).
   open import Categories.Morphism.Reasoning SCat public
-    using (cancelInner; pullˡ)
+    using (cancelInner; pullˡ; pullʳ)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_ public
   open import Data.Fin using (Fin) public
   open import Data.List using (List; []; _∷_; _++_; map) public
@@ -490,12 +490,10 @@ module TKB4 (H : Hypergraph FlatGen) where
       with hp e de s_R s pf (SUR.Reservoir≤1⇒Unique H (e ∷ es) s res)
     ... | pf1 , head =
       ≈-trans (∘-resp IH ≈-refl)
-      (≈-trans assocˢ
-        (∘-resp ≈-refl
-          (≈-trans assocˢ
-            (≈-trans (∘-resp ≈-refl head)
-              (≈-trans (≈-sym assocˢ)
-                (∘-resp (≈-sym (KCleanˢ-cons e es L s_R)) ≈-refl))))))
+      (pullʳ
+        (≈-trans (pullʳ head)
+          (≈-trans (≈-sym assocˢ)
+            (∘-resp (≈-sym (KCleanˢ-cons e es L s_R)) ≈-refl))))
       where
         s1  = proj₁ (edge-stepˢ s e)
         sR1 = proj₁ (edge-stepˢ s_R e)

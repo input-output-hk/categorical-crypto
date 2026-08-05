@@ -40,6 +40,7 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
+open import Categories.Morphism.Reasoning SCat using (pullʳ)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
   using (module EquivStep)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_ as SC
@@ -192,7 +193,7 @@ module _ (H : Hypergraph FlatGen)
       ----------------------------------------------------------------
 
       split₂ : pe-termˢ (e' ∷ e ∷ qs) sp ≈ˢ pe-termˢ qs B ∘ˢ pe-termˢ (e' ∷ e ∷ []) sp
-      split₂ = ≈-trans assocˢ (∘-resp ≈-refl (∘-resp (≈-sym idˡ) ≈-refl))
+      split₂ = pullʳ (∘-resp (≈-sym idˡ) ≈-refl)
 
       split₁ : pe-termˢ qs A ∘ˢ pe-termˢ (e ∷ e' ∷ []) sp ≈ˢ pe-termˢ (e ∷ e' ∷ qs) sp
       split₁ = ≈-trans (∘-resp ≈-refl (∘-resp idˡ ≈-refl)) (≈-sym assocˢ)
@@ -223,8 +224,4 @@ module _ (H : Hypergraph FlatGen)
                   ∘ˢ ( pe-termˢ qs A
                       ∘ˢ ( ( permuteˢ (Perm.↭-sym r₀) ∘ˢ permuteˢ r₀ )
                           ∘ˢ pe-termˢ (e ∷ e' ∷ []) sp ) ) )
-          reassoc =
-            ≈-trans assocˢ
-              (∘-resp ≈-refl
-                (≈-trans assocˢ
-                  (∘-resp ≈-refl (≈-sym assocˢ))))
+          reassoc = pullʳ (pullʳ (≈-sym assocˢ))

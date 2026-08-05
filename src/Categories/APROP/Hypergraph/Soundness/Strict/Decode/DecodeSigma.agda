@@ -46,6 +46,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_
   using ( coe; coe-uip; coe-conj
         ; coe-cancel; coe-cancelʳ
         ; elim²; inv-uniqueˢ )
+open import Categories.Morphism.Reasoning SCat using (pullʳ)
 
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
@@ -96,19 +97,16 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
       ≈-trans (σ-hexˢ b c a)
       (≈-trans (coe-conj (sym Q) P (W₁ ∘ˢ castˢ refl (sym R) W₂))
       (∘-resp ≈-refl
-        (≈-trans assocˢ
-          (∘-resp ≈-refl
-            (∘-resp (≈-trans (coe-conj refl (sym R) W₂) (∘-resp ≈-refl idʳ))
-                    (coe-uip (sym (sym Q)) Q))))))
+        (pullʳ (∘-resp (≈-trans (coe-conj refl (sym R) W₂) (∘-resp ≈-refl idʳ))
+                       (coe-uip (sym (sym Q)) Q)))))
 
     M-nest : L ∘ˢ coe (sym P) ≈ˢ X₂ ∘ˢ (coe R ∘ˢ (X₁ ∘ˢ coe (sym P)))
-    M-nest = ≈-trans assocˢ (∘-resp ≈-refl assocˢ)
+    M-nest = pullʳ assocˢ
 
     cancel : σˢ (b ++ c) a ∘ˢ (coe (sym Q) ∘ˢ (L ∘ˢ coe (sym P))) ≈ˢ idˢ
     cancel =
       ≈-trans (∘-resp u-form ≈-refl)
-      (≈-trans assocˢ
-      (≈-trans (∘-resp ≈-refl assocˢ)
+      (≈-trans (pullʳ assocˢ)
       (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl assocˢ))
       (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl
                  (∘-resp ≈-refl (elim² (coe-cancelʳ Q)))))
@@ -119,7 +117,7 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
                  (∘-resp ≈-refl (elim² step-σʳ))))
       (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl (elim² (coe-cancel R))))
       (≈-trans (∘-resp ≈-refl (elim² step-σˡ))
-        (coe-cancelʳ P))))))))))
+        (coe-cancelʳ P)))))))))
 
     H : σˢ a (b ++ c) ≈ˢ coe (sym Q) ∘ˢ (L ∘ˢ coe (sym P))
     H = inv-uniqueˢ σ-σˢ cancel
