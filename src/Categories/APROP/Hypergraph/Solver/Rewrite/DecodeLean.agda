@@ -71,6 +71,7 @@ open import Data.Product using (Σ-syntax; _,_)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; sym; cong; subst; subst₂)
 open import Relation.Nullary using (yes; no)
+import Data.List.Relation.Binary.Permutation.Propositional as Perm
 
 --------------------------------------------------------------------------------
 -- The cospan algorithm, with `H` fixed.  Same stack control flow as
@@ -86,6 +87,19 @@ module _ (H : Hypergraph FlatGen) where
     _≟L_ : DecidableEquality (List (Fin H.nV))
     _≟L_ = ≡-dec _≟F_
 
+  -- LEAN: the identity-guarded locating permutation, shared by the per-edge step
+  -- and the final bridge.  Transporting with `subst` rather than matching `refl`
+  -- is forced: `s` occurs in the result type via `map H.vlab s`, so it cannot be
+  -- unified under the `with`-abstraction.
+  permOrId
+    : {s t : List (Fin H.nV)} → s Perm.↭ t
+    → HomTerm (unflatten (map H.vlab s)) (unflatten (map H.vlab t))
+  permOrId {s} {t} perm with s ≟L t
+  ... | yes eq = subst (λ z → HomTerm (unflatten (map H.vlab s))
+                                      (unflatten (map H.vlab z)))
+                       eq id
+  ... | no  _  = permute-via-vlab H.vlab perm
+
   Agen-edge
     : (e : Fin H.nE)
     → HomTerm (unflatten (map H.vlab (H.ein e)))
@@ -95,9 +109,7 @@ module _ (H : Hypergraph FlatGen) where
   --------------------------------------------------------------------
   -- Per-edge step.  Follows the same stack recurrence as `Decode.edge-step`
   -- (shared `extract-prefix` branching), but returns a `HomTerm` alongside the
-  -- new stack.  When the located stack `s` already equals `ein e ++ rest` as a
-  -- list, the permute is the identity, so we drop the `∘ permute-via-vlab …`
-  -- factor (emit `mid'` alone) instead of the full id-tower.
+  -- new stack; the locating permutation goes through `permOrId`.
 
   edge-step
     : (s : List (Fin H.nV)) (e : Fin H.nE)
@@ -106,7 +118,7 @@ module _ (H : Hypergraph FlatGen) where
                 (unflatten (map H.vlab s'))
   edge-step s e with extract-prefix (H.ein e) s
   ... | nothing             = (s , id)
-  ... | just (rest , perm)  = (H.eout e ++ rest , bridged)
+  ... | just (rest , perm)  = (H.eout e ++ rest , mid' ∘ permOrId perm)
     where
       ein-l  = map H.vlab (H.ein e)
       eout-l = map H.vlab (H.eout e)
@@ -125,19 +137,6 @@ module _ (H : Hypergraph FlatGen) where
               (cong unflatten (sym (map-++ H.vlab (H.ein  e) rest)))
               (cong unflatten (sym (map-++ H.vlab (H.eout e) rest)))
               mid
-
-      -- LEAN: collapse the identity permute (s ≡ ein e ++ rest) ⇒ drop it.
-      -- Transport `mid'`'s domain along the decided list equality with `subst`
-      -- rather than pattern-matching `refl`, since `s` occurs in the result
-      -- type via `map H.vlab s` and so cannot be unified directly under the
-      -- `with`-abstraction.
-      bridged : HomTerm (unflatten (map H.vlab s))
-                        (unflatten (map H.vlab (H.eout e ++ rest)))
-      bridged with s ≟L (H.ein e ++ rest)
-      ... | yes eq = subst (λ z → HomTerm (unflatten (map H.vlab z))
-                                          (unflatten (map H.vlab (H.eout e ++ rest))))
-                           (sym eq) mid'
-      ... | no  _  = mid' ∘ permute-via-vlab H.vlab perm
 
   --------------------------------------------------------------------
   -- Process all edges in natural Fin order; returns the final stack and a
@@ -170,12 +169,4 @@ module _ (H : Hypergraph FlatGen) where
   decode-attempt with process-all-edges H.dom
   ... | (s_final , process-term) with extract-exact H.cod s_final
   ...    | nothing   = nothing
-  ...    | just perm = just (final-permute ∘ process-term)
-    where
-      final-permute : HomTerm (unflatten (map H.vlab s_final))
-                              (unflatten (map H.vlab H.cod))
-      final-permute with s_final ≟L H.cod
-      ... | yes eq = subst (λ z → HomTerm (unflatten (map H.vlab s_final))
-                                          (unflatten (map H.vlab z)))
-                           eq id
-      ... | no  _  = permute-via-vlab H.vlab perm
+  ...    | just perm = just (permOrId perm ∘ process-term)
