@@ -13,7 +13,7 @@ module Categories.APROP.Hypergraph.Solver.Match.PBij where
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.Maybe.Base using (Maybe; just; nothing)
+open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
 open import Data.Nat using (ℕ)
 open import Relation.Nullary using (yes; no)
 
@@ -55,11 +55,10 @@ emptyBij = record { forward = empty ; backward = empty }
 
 -- Extend with `i ↔ j`, updating both directions atomically; fails on conflict.
 extend-bij : ∀ {n m} → PBij n m → Fin n → Fin m → Maybe (PBij n m)
-extend-bij b i j with extend (forward b) i j
-... | nothing = nothing
-... | just f' with extend (backward b) j i
-...   | nothing = nothing
-...   | just g' = just (record { forward = f' ; backward = g' })
+extend-bij b i j =
+  extend (forward  b) i j >>= λ f' →
+  extend (backward b) j i >>= λ g' →
+  just (record { forward = f' ; backward = g' })
 
 --------------------------------------------------------------------------------
 -- Pairing two lists into a partial bijection (used at interface-seeding
@@ -71,6 +70,4 @@ pairUp : ∀ {n m} → PBij n m → List (Fin n) → List (Fin m) → Maybe (PBi
 pairUp b [] []             = just b
 pairUp b (_ ∷ _) []        = nothing   -- length mismatch
 pairUp b [] (_ ∷ _)        = nothing   -- length mismatch
-pairUp b (i ∷ is) (j ∷ js) with extend-bij b i j
-... | nothing = nothing
-... | just b' = pairUp b' is js
+pairUp b (i ∷ is) (j ∷ js) = extend-bij b i j >>= λ b' → pairUp b' is js

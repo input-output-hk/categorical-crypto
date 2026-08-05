@@ -21,15 +21,14 @@ open APROPSignatureDec sig-dec
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
-open import Categories.APROP.Hypergraph.Solver.Match.PBij using (PBij; emptyBij)
+open import Categories.APROP.Hypergraph.Solver.Match.PBij using (emptyBij)
 open import Categories.APROP.Hypergraph.Solver.Match.Seed sig-dec
   using (seedFromInterfaces)
 open import Categories.APROP.Hypergraph.Solver.Match.Search sig-dec
   using (searchIso-default)
 open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec using (module Verify)
 
-open import Data.List using (List)
-open import Data.Maybe.Base using (Maybe; just; nothing)
+open import Data.Maybe.Base using (Maybe; just; _>>=_)
 open import Data.Product using (_,_)
 
 --------------------------------------------------------------------------------
@@ -40,19 +39,7 @@ open import Data.Product using (_,_)
 -- Each stage returns `nothing` on failure.
 
 findIso : ∀ (H J : Hypergraph FlatGen) → Maybe (H ≅ᴴ J)
-findIso H J = stage-seed (seedFromInterfaces H J)
-  where
-    stage-verify
-      : PBij (Hypergraph.nV H) (Hypergraph.nV J)
-      → PBij (Hypergraph.nE H) (Hypergraph.nE J)
-      → Maybe (H ≅ᴴ J)
-    stage-verify φ ψ = Verify.verify H J φ ψ
-
-    stage-search : PBij (Hypergraph.nV H) (Hypergraph.nV J) → Maybe (H ≅ᴴ J)
-    stage-search φ₀ with searchIso-default H J φ₀ emptyBij
-    ... | nothing        = nothing
-    ... | just (φ , ψ)  = stage-verify φ ψ
-
-    stage-seed : Maybe (PBij (Hypergraph.nV H) (Hypergraph.nV J)) → Maybe (H ≅ᴴ J)
-    stage-seed nothing  = nothing
-    stage-seed (just φ₀) = stage-search φ₀
+findIso H J =
+  seedFromInterfaces H J             >>= λ φ₀ →
+  searchIso-default H J φ₀ emptyBij  >>= λ { (φ , ψ) →
+  Verify.verify H J φ ψ }

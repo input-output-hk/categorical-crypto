@@ -34,7 +34,8 @@ open import Categories.APROP using (module APROP)
 open APROP sig
 
 open import Data.Fin using (Fin)
-open import Data.List.Base using (List; []; _∷_; _++_; map; concatMap; length; lookup)
+open import Data.List.Base
+  using (List; []; _∷_; _++_; map; mapMaybe; concatMap; length; lookup)
 open import Data.List.Properties using (≡-dec)
 open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
 import Data.Maybe.Base as Maybe
@@ -174,13 +175,7 @@ module At (P Q : ObjTerm) where
 
   -- All carvable positions, one per successful embedding, in match order.
   deepFocAllAt : ∀ {A B} (s : HomTerm A B) (lᵗ : HomTerm P Q) → List (Foc A B P Q)
-  deepFocAllAt s lᵗ = collect (subMatchAll ⟪ lᵗ ⟫ ⟪ s ⟫)
-    where
-      collect : List (⟪ lᵗ ⟫ ↪ᴴ ⟪ s ⟫) → List (Foc _ _ P Q)
-      collect []         = []
-      collect (emb ∷ es) with tryEmb s lᵗ emb
-      ... | just foc = foc ∷ collect es
-      ... | nothing  = collect es
+  deepFocAllAt s lᵗ = mapMaybe (tryEmb s lᵗ) (subMatchAll ⟪ lᵗ ⟫ ⟪ s ⟫)
 
 --------------------------------------------------------------------------------
 -- Pad handling.  A rule LHS with a bare identity wire (`x ⊗ id {Var w}` or

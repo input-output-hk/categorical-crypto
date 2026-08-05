@@ -26,7 +26,7 @@ open import Categories.APROP.Hypergraph.Solver.Match.PBij
 
 open import Data.Fin using (Fin; zero; suc)
 open import Data.List using (List)
-open import Data.Maybe.Base using (Maybe; just; nothing)
+open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Unit.Base using (⊤; tt)
 open import Relation.Nullary using (yes; no)
@@ -63,20 +63,7 @@ seedFromInterfaces
     (H J : Hypergraph FlatGen)
   → Maybe (PBij (Hypergraph.nV H) (Hypergraph.nV J))
 seedFromInterfaces H J =
-  step₁ (pairUp emptyBij (Hypergraph.dom H) (Hypergraph.dom J))
-  where
-    step₃ : Maybe (PBij (Hypergraph.nV H) (Hypergraph.nV J))
-          → Maybe (PBij (Hypergraph.nV H) (Hypergraph.nV J))
-    step₃ nothing = nothing
-    step₃ (just b) with check-vlab H J (forward b)
-    ... | nothing = nothing
-    ... | just _  = just b
-
-    step₂ : PBij (Hypergraph.nV H) (Hypergraph.nV J)
-          → Maybe (PBij (Hypergraph.nV H) (Hypergraph.nV J))
-    step₂ b = step₃ (pairUp b (Hypergraph.cod H) (Hypergraph.cod J))
-
-    step₁ : Maybe (PBij (Hypergraph.nV H) (Hypergraph.nV J))
-          → Maybe (PBij (Hypergraph.nV H) (Hypergraph.nV J))
-    step₁ nothing  = nothing
-    step₁ (just b) = step₂ b
+  pairUp emptyBij (Hypergraph.dom H) (Hypergraph.dom J) >>= λ b →
+  pairUp b        (Hypergraph.cod H) (Hypergraph.cod J) >>= λ b' →
+  check-vlab H J (forward b')                          >>= λ _ →
+  just b'

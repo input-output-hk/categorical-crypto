@@ -36,7 +36,7 @@ open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec using (flat-
 open import Data.Fin using (Fin; zero; suc)
 open import Data.List.Base using (List; []; _∷_; map)
 open import Data.List.Properties using (≡-dec)
-open import Data.Maybe.Base using (Maybe; just; nothing)
+open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
 open import Data.Nat using (ℕ)
 open import Data.Product using (_×_; _,_)
 open import Relation.Binary.PropositionalEquality using (sym)
@@ -83,18 +83,11 @@ module _
     with flat-match-subst (sym p) (sym q) (Hypergraph.elab J e')
                           (Hypergraph.elab H e)
   ... | nothing = nothing
-  ... | just _  = viaEin (pairUp φ (Hypergraph.ein H e) (Hypergraph.ein J e'))
-    where
-      viaEout : VertexBij → Maybe (VertexBij × EdgeBij)
-      viaEout φ' with pairUp φ' (Hypergraph.eout H e) (Hypergraph.eout J e')
-      ... | nothing   = nothing
-      ... | just φ'' with extend-bij ψ e e'
-      ...              | nothing   = nothing
-      ...              | just ψ'   = just (φ'' , ψ')
-
-      viaEin : Maybe VertexBij → Maybe (VertexBij × EdgeBij)
-      viaEin nothing    = nothing
-      viaEin (just φ')  = viaEout φ'
+  ... | just _  =
+        pairUp φ  (Hypergraph.ein  H e) (Hypergraph.ein  J e') >>= λ φ'  →
+        pairUp φ' (Hypergraph.eout H e) (Hypergraph.eout J e') >>= λ φ'' →
+        extend-bij ψ e e'                                      >>= λ ψ'  →
+        just (φ'' , ψ')
 
   --------------------------------------------------------------------------
   -- Enumerate all matches of `e` against J-edges.

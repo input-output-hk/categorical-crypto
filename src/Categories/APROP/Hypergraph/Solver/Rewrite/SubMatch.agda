@@ -47,7 +47,7 @@ open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List.Base using (List; []; _∷_; map)
+open import Data.List.Base using (List; head; map; mapMaybe)
 open import Data.List.Properties using () renaming (≡-dec to ≡-decL)
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Maybe.Properties using () renaming (≡-dec to ≡-decM)
@@ -174,15 +174,9 @@ module Verify-Sub (L S : Hypergraph FlatGen)
 -- retry down this list rather than committing to the first match.
 
 subMatchAll : (L S : Hypergraph FlatGen) → List (L ↪ᴴ S)
-subMatchAll L S = collect (searchAll-default L S emptyBij emptyBij)
-  where
-    collect : List _ → List (L ↪ᴴ S)
-    collect []               = []
-    collect ((φB , ψB) ∷ xs) with Verify-Sub.verifySub L S φB ψB
-    ... | just emb = emb ∷ collect xs
-    ... | nothing  = collect xs
+subMatchAll L S =
+  mapMaybe (λ { (φB , ψB) → Verify-Sub.verifySub L S φB ψB })
+           (searchAll-default L S emptyBij emptyBij)
 
 subMatch : (L S : Hypergraph FlatGen) → Maybe (L ↪ᴴ S)
-subMatch L S with subMatchAll L S
-... | []      = nothing
-... | emb ∷ _ = just emb
+subMatch L S = head (subMatchAll L S)
