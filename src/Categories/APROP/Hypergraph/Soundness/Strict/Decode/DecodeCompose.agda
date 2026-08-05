@@ -141,6 +141,15 @@ module RunBlocks (H : Hypergraph FlatGen) where
     → HomS (map vl d) (map vl s')
   coeCod e = castˢ refl (cong (map vl) e)
 
+  -- Absorb a `coeCod` cast on the right factor's cod into the permutation.
+  absorbˢ
+    : ∀ {ys : List (Fin H.nV)} {s s' : List (Fin H.nV)} (eq : s ≡ s')
+        (perm : s' Perm.↭ ys)
+        (T : HomS (map vl H.dom) (map vl s))
+    → permuteˢ perm ∘ˢ coeCod eq T
+      ≈ˢ permuteˢ (subst (Perm._↭ ys) (sym eq) perm) ∘ˢ T
+  absorbˢ refl perm T = ≈-refl
+
   pe-term-++ˢ
     : ∀ (ps rest : List (Fin H.nE)) (s : List (Fin H.nV))
     → proj₂ (process-edgesˢ (ps ++ rest) s)

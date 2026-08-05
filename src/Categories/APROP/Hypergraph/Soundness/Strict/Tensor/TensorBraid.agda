@@ -174,7 +174,8 @@ module _
       range≡ : range Hf.nE ≡ gblk ++ kblk
       range≡ = range-++ Gd.nE Kd.nE
 
-      open DC.RunBlocks ⟪ fg ⟫ using (coeCod; run-split-atˢ; pe-stack-++ˢ)
+      open DC.RunBlocks ⟪ fg ⟫
+        using (absorbˢ; coeCod; run-split-atˢ; pe-stack-++ˢ)
       open StrictDecoder ⟪ fg ⟫
         using (block-disjoint; ein-disjoint; stack-sepˢ; term-sepᵛ)
       open Restrict (Fin Hf.nV) vl
@@ -684,18 +685,7 @@ module _
               (≈̂-trans combRaw-frame
                        (≈̂-sym (cast-≈̂ {p = combDom} {q = sym mLcc}))))
 
-      ------------------------------------------------------------------
-      -- ### `absorbˢ` (the `coeCod`-cast/`subst`-perm cancellation).
-
       private
-        absorbˢ
-          : ∀ {ys : List (Fin Hf.nV)} {s s' : List (Fin Hf.nV)} (eq : s ≡ s')
-              (perm : s' Perm.↭ ys)
-              (T : HomS (map vl Hf.dom) (map vl s))
-          → RF.permuteˢ perm ∘ˢ coeCod eq T
-            ≈ˢ RF.permuteˢ (subst (Perm._↭ ys) (sym eq) perm) ∘ˢ T
-        absorbˢ refl perm T = ≈-refl
-
         -- `Gon ⊗ᵛ Kclean ≈ castₚ (Gon' ⊗ˢ Kclean')` (push the `sG≡`/`Kfin≡`
         -- casts in), matched on `sG≡`/`Kfin≡` so `Gon'`/`Kclean'` collapse to
         -- `Gon`/`Kclean` and the two `⊗ᵛ` casts differ only by UIP.

@@ -267,16 +267,6 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   run-split : Pcomposite ≈ˢ RB.coeCod E₀ (kterm-aG ∘ˢ gterm)
   run-split = RB.run-split-atˢ gblk kblk range-eq C.dom
 
-  -- absorb a `coeCod` cast on the right factor's cod into the permutation.
-  private
-    absorbˢ
-      : ∀ {ys : List (Fin C.nV)} {s s' : List (Fin C.nV)} (eq : s ≡ s')
-          (perm : s' Perm.↭ ys)
-          (T : HomS (map vlC C.dom) (map vlC s))
-      → RC.permuteˢ perm ∘ˢ RB.coeCod eq T
-        ≈ˢ RC.permuteˢ (subst (Perm._↭ ys) (sym eq) perm) ∘ˢ T
-    absorbˢ refl perm T = ≈-refl
-
   ----------------------------------------------------------------------
   -- ## The core composite equation (strict mirror of `Pcomp-eq`).
 
@@ -313,7 +303,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   Pcomp-eqˢ =
     ≈-trans (∘-resp ≈-refl run-split)
     -- PCˢ ∘ coeCod E₀ (kterm-aG ∘ gterm)
-    (≈-trans (absorbˢ E₀ (finalPermˢ (g ∘ f)) (kterm-aG ∘ˢ gterm))
+    (≈-trans (RB.absorbˢ E₀ (finalPermˢ (g ∘ f)) (kterm-aG ∘ˢ gterm))
     -- permuteˢ perm-C2ˢ ∘ (kterm-aG ∘ gterm)
     (≈-trans (∘-resp ≈-refl (∘-resp equiv-K-eq ≈-refl))
     -- permuteˢ perm-C2ˢ ∘ ((permuteˢ(↭-sym ρf-K) ∘ (kterm-canon ∘ permAG)) ∘ gterm)
