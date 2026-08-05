@@ -196,65 +196,55 @@ module At (P Q : ObjTerm) where
 -- single-atom layers).
 
 private
-  -- Ways to extract one `w`-atom wire from `k`, routing it to the RIGHT of
-  -- a parametric block `Xo` (and back: the contexts need both directions).
-  Peel : (k : ObjTerm) (w : X) (place : ObjTerm → ObjTerm) → Set
-  Peel k w place =
+  -- Ways to extract one `w`-atom wire from `k`, routing it to the `place` slot
+  -- of a parametric block `Xo` (and back: the contexts need both directions).
+  Peel : (k : ObjTerm) (place : ObjTerm → ObjTerm) → Set
+  Peel k place =
     Σ ObjTerm λ k₁ →
       (∀ Xo → HomTerm (k ⊗₀ Xo) (k₁ ⊗₀ place Xo))
       × (∀ Xo → HomTerm (k₁ ⊗₀ place Xo) (k ⊗₀ Xo))
 
-  peelR : (k : ObjTerm) (w : X) → List (Peel k w (λ Xo → Xo ⊗₀ Var w))
-  peelR unit       w = []
-  peelR (Var w')   w with w' ≟X w
-  ... | yes refl = (unit , (λ Xo → λ⇐ ∘ σ) , (λ Xo → σ ∘ λ⇒)) ∷ []
-  ... | no  _    = []
-  peelR (kl ⊗₀ kr) w =
-       map liftL (peelR kl w) ++ map liftR (peelR kr w)
-    where
-      liftL : Peel kl w _ → Peel (kl ⊗₀ kr) w _
-      liftL (k₁ , r , u) = k₁ ⊗₀ kr
-        , (λ Xo → α⇐ ∘ (id ⊗₁ α⇒) ∘ r (kr ⊗₀ Xo) ∘ α⇒)
-        , (λ Xo → α⇐ ∘ u (kr ⊗₀ Xo) ∘ (id ⊗₁ α⇐) ∘ α⇒)
-      liftR : Peel kr w _ → Peel (kl ⊗₀ kr) w _
-      liftR (k₁ , r , u) = kl ⊗₀ k₁
-        , (λ Xo → α⇐ ∘ (id ⊗₁ r Xo) ∘ α⇒)
-        , (λ Xo → α⇐ ∘ (id ⊗₁ u Xo) ∘ α⇒)
-
-  -- … and to the LEFT of the block (for `id {Var w} ⊗ –` pads).
-  peelL : (k : ObjTerm) (w : X) → List (Peel k w (λ Xo → Var w ⊗₀ Xo))
-  peelL unit       w = []
-  peelL (Var w')   w with w' ≟X w
-  ... | yes refl = (unit , (λ Xo → λ⇐) , (λ Xo → λ⇒)) ∷ []
-  ... | no  _    = []
-  peelL (kl ⊗₀ kr) w =
-       map liftL (peelL kl w) ++ map liftR (peelL kr w)
-    where
-      swapIn : ∀ {Y Z} → HomTerm (Var w ⊗₀ (Y ⊗₀ Z)) (Y ⊗₀ (Var w ⊗₀ Z))
-      swapIn = α⇒ ∘ (σ ⊗₁ id) ∘ α⇐
-      swapOut : ∀ {Y Z} → HomTerm (Y ⊗₀ (Var w ⊗₀ Z)) (Var w ⊗₀ (Y ⊗₀ Z))
-      swapOut = α⇒ ∘ (σ ⊗₁ id) ∘ α⇐
-      liftL : Peel kl w _ → Peel (kl ⊗₀ kr) w _
-      liftL (k₁ , r , u) = k₁ ⊗₀ kr
-        , (λ Xo → α⇐ ∘ (id ⊗₁ swapIn) ∘ r (kr ⊗₀ Xo) ∘ α⇒)
-        , (λ Xo → α⇐ ∘ u (kr ⊗₀ Xo) ∘ (id ⊗₁ swapOut) ∘ α⇒)
-      liftR : Peel kr w _ → Peel (kl ⊗₀ kr) w _
-      liftR (k₁ , r , u) = kl ⊗₀ k₁
-        , (λ Xo → α⇐ ∘ (id ⊗₁ r Xo) ∘ α⇒)
-        , (λ Xo → α⇐ ∘ (id ⊗₁ u Xo) ∘ α⇒)
+  -- One recursion for both pad directions: it needs only the `Var`-leaf routing
+  -- pair and the pair that moves `place` across a `⊗₀` (α on the right, σ left).
+  module Peeler (w : X) (place : ObjTerm → ObjTerm)
+                (leafD : ∀ Xo → HomTerm (Var w ⊗₀ Xo) (unit ⊗₀ place Xo))
+                (leafU : ∀ Xo → HomTerm (unit ⊗₀ place Xo) (Var w ⊗₀ Xo))
+                (bracD : ∀ {Y Z} → HomTerm (place (Y ⊗₀ Z)) (Y ⊗₀ place Z))
+                (bracU : ∀ {Y Z} → HomTerm (Y ⊗₀ place Z) (place (Y ⊗₀ Z)))
+                where
+    peel : (k : ObjTerm) → List (Peel k place)
+    peel unit       = []
+    peel (Var w')   with w' ≟X w
+    ... | yes refl = (unit , leafD , leafU) ∷ []
+    ... | no  _    = []
+    peel (kl ⊗₀ kr) = map liftL (peel kl) ++ map liftR (peel kr)
+      where
+        liftL : Peel kl place → Peel (kl ⊗₀ kr) place
+        liftL (k₁ , r , u) = k₁ ⊗₀ kr
+          , (λ Xo → α⇐ ∘ (id ⊗₁ bracD) ∘ r (kr ⊗₀ Xo) ∘ α⇒)
+          , (λ Xo → α⇐ ∘ u (kr ⊗₀ Xo) ∘ (id ⊗₁ bracU) ∘ α⇒)
+        liftR : Peel kr place → Peel (kl ⊗₀ kr) place
+        liftR (k₁ , r , u) = kl ⊗₀ k₁
+          , (λ Xo → α⇐ ∘ (id ⊗₁ r Xo) ∘ α⇒)
+          , (λ Xo → α⇐ ∘ (id ⊗₁ u Xo) ∘ α⇒)
 
   -- Repad one frame for each peel candidate.
-  repadR : ∀ {A B P Q} (w : X) → Foc A B P Q → List (Foc A B (P ⊗₀ Var w) (Q ⊗₀ Var w))
-  repadR {P = P} {Q = Q} w (k , pre , post) = map step (peelR k w)
+  repad : ∀ {A B P Q} (place : ObjTerm → ObjTerm)
+        → (∀ k → List (Peel k place)) → Foc A B P Q
+        → List (Foc A B (place P) (place Q))
+  repad {P = P} {Q = Q} place peels (k , pre , post) = map step (peels k)
     where
-      step : Peel k w _ → Foc _ _ _ _
+      step : Peel k place → Foc _ _ _ _
       step (k₁ , r , u) = k₁ , r P ∘ pre , post ∘ u Q
 
+  repadR : ∀ {A B P Q} (w : X) → Foc A B P Q → List (Foc A B (P ⊗₀ Var w) (Q ⊗₀ Var w))
+  repadR w = repad (λ Xo → Xo ⊗₀ Var w)
+                   (Peeler.peel w _ (λ _ → λ⇐ ∘ σ) (λ _ → σ ∘ λ⇒) α⇒ α⇐)
+
   repadL : ∀ {A B P Q} (w : X) → Foc A B P Q → List (Foc A B (Var w ⊗₀ P) (Var w ⊗₀ Q))
-  repadL {P = P} {Q = Q} w (k , pre , post) = map step (peelL k w)
-    where
-      step : Peel k w _ → Foc _ _ _ _
-      step (k₁ , r , u) = k₁ , r P ∘ pre , post ∘ u Q
+  repadL w = repad (λ Xo → Var w ⊗₀ Xo)
+                   (Peeler.peel w _ (λ _ → λ⇐) (λ _ → λ⇒)
+                                (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐) (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐))
 
 --------------------------------------------------------------------------------
 -- Top-level entry points (pad-aware).
