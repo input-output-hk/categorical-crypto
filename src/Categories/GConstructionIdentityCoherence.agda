@@ -1,8 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The four coherence lemmas of GConstruction's identity laws, proven by the
--- APROP solver over a 4-atom signature and transported into an arbitrary SMC.
+-- The coherence lemmas of GConstruction's identity laws and of its
+-- `right-superposing`, proven by the APROP solver over a 5-atom signature
+-- with one generator and transported into an arbitrary SMC.
 --
 -- identityˡ:  trace (α ∘ σ⇒ ⊗ f ∘ γ) ≈ f,  loop B⁻⊗B⁺.  Reduction plan:
 --   vanishing₂ splits the loop; then with
@@ -19,6 +20,12 @@
 --   C1R :  α⇐ ∘ body ∘ α⇒  ≈  (mR ⊗ id) ∘ β ∘ (PR ⊗ id)
 --   C3R :  mR ∘ PR         ≈  E₂R ∘ (hR ⊗ id)
 --   closing with σ∘σ ≈ id in C.
+--
+-- right-superposing:  trace f ⊗ id ≈ trace (β ∘ (f ⊗ id) ∘ β).  The braiding
+-- swap and the trace naturalities leave the two loop bodies differing by
+--   RS :  (σ ⊗ id) ∘ (α⇐ ∘ id ⊗ f ∘ α⇒) ∘ (σ ⊗ id)  ≈  β ∘ (f ⊗ id) ∘ β
+--   over the same generator, read with its two b-atoms as the loop wire's
+--   ends (aliases A'/B'/X⁻/X⁺) and the fifth atom y as the superposed wire.
 --------------------------------------------------------------------------------
 
 module Categories.GConstructionIdentityCoherence where
@@ -39,13 +46,18 @@ open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDe
 private instance S≤S : Symm ≤ Symm
                  S≤S = v≤v
 
-X4 : Set
-X4 = Fin 4
+X5 : Set
+X5 = Fin 5
 
-open FreeMonoidalHelper Symm X4 public using (ObjTerm; Var; _⊗₀_)
+open FreeMonoidalHelper Symm X5 public using (ObjTerm; Var; _⊗₀_)
 
-a⁺ a⁻ b⁺ b⁻ : ObjTerm
-a⁺ = Var 0F ; a⁻ = Var 1F ; b⁺ = Var 2F ; b⁻ = Var 3F
+a⁺ a⁻ b⁺ b⁻ y : ObjTerm
+a⁺ = Var 0F ; a⁻ = Var 1F ; b⁺ = Var 2F ; b⁻ = Var 3F ; y = Var 4F
+
+-- the same atoms, named for right-superposing's reading of the generator
+-- (f : A' ⊗ X⁻ → B' ⊗ X⁺, with X⁻/X⁺ the loop wire and y superposed)
+A' B' X⁻ X⁺ Y : ObjTerm
+A' = a⁺ ; B' = a⁻ ; X⁻ = b⁻ ; X⁺ = b⁺ ; Y = y
 
 data IMor : ObjTerm → ObjTerm → Set where
   gf : IMor (a⁺ ⊗₀ b⁻) (a⁻ ⊗₀ b⁺)
@@ -54,7 +66,7 @@ _≟-IMor_ : ∀ {A B} → DecidableEquality (IMor A B)
 gf ≟-IMor gf = yes refl
 
 iSig : APROPSignature
-iSig = record { X = X4 ; mor = IMor }
+iSig = record { X = X5 ; mor = IMor }
 
 iSigDec : APROPSignatureDec
 iSigDec = record { sig = iSig ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-IMor_ }
@@ -130,6 +142,13 @@ C3Rᵗ-lhs = mRᵗ ∘ PRᵗ
 C3Rᵗ-rhs = E₂Rᵗ ∘ hRᵗ ⊗₁ id
 
 --------------------------------------------------------------------------------
+-- right-superposing piece (loop wire X⁻/X⁺, superposed wire Y)
+
+RSᵗ-lhs RSᵗ-rhs : HomTerm ((A' ⊗₀ Y) ⊗₀ X⁻) ((B' ⊗₀ Y) ⊗₀ X⁺)
+RSᵗ-lhs = σ ⊗₁ id ∘ (α⇐ ∘ id ⊗₁ f' ∘ α⇒) ∘ σ ⊗₁ id
+RSᵗ-rhs = βᵗ ∘ f' ⊗₁ id ∘ βᵗ
+
+--------------------------------------------------------------------------------
 -- Solver obligations (call-pattern rules per docs/smc-solver-performance.md)
 
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
@@ -150,6 +169,8 @@ private
   iso-C1R = force! (findIsoᵀ ⟪ C1Rᵗ-lhs ⟫ ⟪ C1Rᵗ-rhs ⟫) refl
   iso-C3R : ⟪ C3Rᵗ-lhs ⟫ ≅ᴴ ⟪ C3Rᵗ-rhs ⟫
   iso-C3R = force! (findIsoᵀ ⟪ C3Rᵗ-lhs ⟫ ⟪ C3Rᵗ-rhs ⟫) refl
+  iso-RS : ⟪ RSᵗ-lhs ⟫ ≅ᴴ ⟪ RSᵗ-rhs ⟫
+  iso-RS = force! (findIsoᵀ ⟪ RSᵗ-lhs ⟫ ⟪ RSᵗ-rhs ⟫) refl
 
 C1Lᵗ : C1Lᵗ-lhs ≈Term C1Lᵗ-rhs
 C1Lᵗ = soundness {f = C1Lᵗ-lhs} {g = C1Lᵗ-rhs} iso-C1L
@@ -159,6 +180,8 @@ C1Rᵗ : C1Rᵗ-lhs ≈Term C1Rᵗ-rhs
 C1Rᵗ = soundness {f = C1Rᵗ-lhs} {g = C1Rᵗ-rhs} iso-C1R
 C3Rᵗ : C3Rᵗ-lhs ≈Term C3Rᵗ-rhs
 C3Rᵗ = soundness {f = C3Rᵗ-lhs} {g = C3Rᵗ-rhs} iso-C3R
+RSᵗ : RSᵗ-lhs ≈Term RSᵗ-rhs
+RSᵗ = soundness {f = RSᵗ-lhs} {g = RSᵗ-rhs} iso-RS
 
 --------------------------------------------------------------------------------
 -- Transport into an arbitrary SMC.
@@ -175,8 +198,9 @@ module Transport {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e)
   (x⁺ x⁻ y⁺ y⁻ : C.Obj)
   where
 
-  ⟦_⟧ᵖ₀ : Fin 4 → C.Obj
-  ⟦ 0F ⟧ᵖ₀ = x⁺ ; ⟦ 1F ⟧ᵖ₀ = x⁻ ; ⟦ 2F ⟧ᵖ₀ = y⁺ ; ⟦ 3F ⟧ᵖ₀ = y⁻
+  -- the atom y does not occur in the identity-law statements
+  ⟦_⟧ᵖ₀ : Fin 5 → C.Obj
+  ⟦ 0F ⟧ᵖ₀ = x⁺ ; ⟦ 1F ⟧ᵖ₀ = x⁻ ; ⟦ 2F ⟧ᵖ₀ = y⁺ ; ⟦ 3F ⟧ᵖ₀ = y⁻ ; ⟦ 4F ⟧ᵖ₀ = x⁺
 
   module OI = IM.ObjInterp C ⟦_⟧ᵖ₀
 
@@ -195,3 +219,24 @@ module Transport {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e)
     C1R = Functor.F-resp-≈ freeFunctor C1Rᵗ
     C3R : ⟦ C3Rᵗ-lhs ⟧₁ C.≈ ⟦ C3Rᵗ-rhs ⟧₁
     C3R = Functor.F-resp-≈ freeFunctor C3Rᵗ
+
+-- right-superposing's reading: the loop wire's two ends are one object.
+module TransportRS {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e)
+  (let module C = SymmetricMonoidalCategory C)
+  (a b x u : C.Obj)
+  where
+
+  ⟦_⟧ᵖ₀ : Fin 5 → C.Obj
+  ⟦ 0F ⟧ᵖ₀ = a ; ⟦ 1F ⟧ᵖ₀ = b ; ⟦ 2F ⟧ᵖ₀ = x ; ⟦ 3F ⟧ᵖ₀ = x ; ⟦ 4F ⟧ᵖ₀ = u
+
+  module OI = IM.ObjInterp C ⟦_⟧ᵖ₀
+
+  module WithGen (f₀ : OI.⟦ A' ⊗₀ X⁻ ⟧₀ C.⇒ OI.⟦ B' ⊗₀ X⁺ ⟧₀) where
+
+    ⟦_⟧ᵖ₁ : ∀ {p q} → IMor p q → OI.⟦ p ⟧₀ C.⇒ OI.⟦ q ⟧₀
+    ⟦ gf ⟧ᵖ₁ = f₀
+
+    open IM.Solver C ⟦_⟧ᵖ₀ ⟦_⟧ᵖ₁
+
+    RS : ⟦ RSᵗ-lhs ⟧₁ C.≈ ⟦ RSᵗ-rhs ⟧₁
+    RS = Functor.F-resp-≈ freeFunctor RSᵗ
