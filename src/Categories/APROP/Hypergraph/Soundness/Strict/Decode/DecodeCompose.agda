@@ -48,7 +48,8 @@ open import Categories.Hypergraph.ExtractPrefixEvalPhi using (eval-coincide)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.FinBij
   using (FinBij; _≈-fb_)
-open import Categories.PermuteCoherence.FinBijSubst using (≈-fb-of-≡)
+open import Categories.PermuteCoherence.FinBijSubst
+  using (≈-fb-of-≡; eval-subst₂-↭)
 
 open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; _++_; map; length)
@@ -205,15 +206,6 @@ private
     → castˢ p q (genˢ g) ≡ genˢ (subst₂ FlatGen p q g)
   gen-cast refl refl g = refl
 
-  -- `eval-↭` of a two-sided `subst₂`-ed derivation is a `subst₂ FinBij`
-  -- (re-proved locally, 1-liner; avoids a heavy `HomTermTransport` import).
-  eval-subst₂-↭
-    : ∀ {a} {A : Set a} {xs xs' ys ys' : List A}
-        (p : xs ≡ xs') (q : ys ≡ ys') (r : xs Perm.↭ ys)
-    → eval-↭ (subst₂ Perm._↭_ p q r)
-      ≡ subst₂ FinBij (cong length p) (cong length q) (eval-↭ r)
-  eval-subst₂-↭ refl refl r = refl
-
   just-injective-fst
     : ∀ {a b} {A : Set a} {B : A → Set b} {x y : A} {p : B x} {q : B y}
     → just (x , p) ≡ just (y , q) → x ≡ y
@@ -239,6 +231,45 @@ private
     → permuteˣ (subst₂ Perm._↭_ p q r)
       ≡ castˢ (cong (map (λ x → x)) p) (cong (map (λ x → x)) q) (permuteˣ r)
   permuteˣ-subst₂ refl refl r = refl
+
+-- The cross-vertex-type closing argument: two `permuteˢ`s over DIFFERENT
+-- vertex types whose boundaries agree after `map vlab` are `castˢ`-equal as
+-- soon as their evaluated bijections do.  Both sides drop to the bare X-level
+-- permute (`permuteˢ-X`), where the single Kelly residual `permˢ-K-X` applies.
+-- Shared by the ∘-shape's per-edge perm twin (`perm-emb`, below) and by
+-- `Iso/IsoTransport.permute-relabel-freeˢ`.
+perm-cross-K
+  : ∀ {V W : Set} (vlV : V → X) (vlW : W → X)
+      {xs ys : List V} {xs' ys' : List W}
+      (p : xs Perm.↭ ys) (q : xs' Perm.↭ ys')
+      (P : map vlV xs ≡ map vlW xs') (Q : map vlV ys ≡ map vlW ys')
+  → eval-↭ (subst₂ Perm._↭_ P Q (PermProp.map⁺ vlV p))
+    ≈-fb eval-↭ (PermProp.map⁺ vlW q)
+  → castˢ P Q (Perm′.permuteˢ V vlV p) ≈ˢ Perm′.permuteˢ W vlW q
+perm-cross-K {V} {W} vlV vlW {xs} {ys} {xs'} {ys'} p q P Q ev =
+  ≈-trans (cast-resp P Q (≈-sym (permuteˢ-X V vlV p)))
+  (≈-trans middle (permuteˢ-X W vlW q))
+  where
+    Xj = permuteˣ (PermProp.map⁺ vlV p)
+    Xh = permuteˣ (PermProp.map⁺ vlW q)
+
+    K-step : Xh ≈ˢ castˢ (cong (map (λ x → x)) P) (cong (map (λ x → x)) Q) Xj
+    K-step =
+      ≈-trans
+        (≈-sym (permˢ-K-X (subst₂ Perm._↭_ P Q (PermProp.map⁺ vlV p))
+                          (PermProp.map⁺ vlW q) ev))
+        (≡⇒≈ˢ (permuteˣ-subst₂ P Q (PermProp.map⁺ vlV p)))
+
+    middle : castˢ P Q (castˢ (mp V vlV xs) (mp V vlV ys) Xj)
+             ≈ˢ castˢ (mp W vlW xs') (mp W vlW ys') Xh
+    middle =
+      ≈̂⇒≈ˢ
+        (≈̂-trans (≈̂-trans (cast-≈̂ {p = P} {q = Q})
+                          (cast-≈̂ {p = mp V vlV xs} {q = mp V vlV ys}))
+        (≈̂-trans (≈̂-sym (≈̂-trans (≈ˢ⇒≈̂ K-step)
+                                  (cast-≈̂ {p = cong (map (λ x → x)) P}
+                                          {q = cong (map (λ x → x)) Q})))
+                 (≈̂-sym (cast-≈̂ {p = mp W vlW xs'} {q = mp W vlW ys'}))))
 
 --------------------------------------------------------------------------------
 -- ## Smart builder for the `atom-ein`/`atom-eout`/`ψ-elab` glue of `TermEmbedˢ`.
@@ -388,53 +419,10 @@ module TermEmbedˢ
         → rJ ≡ map φ restH
         → castˢ P qq (RJ.permuteˢ pJ) ≈ˢ RH.permuteˢ permH
       helper .(map φ restH) pJ eJ qq refl rewrite ψ-ein e =
-        ≈-trans
-          (cast-resp P qq (≈-sym (permuteˢ-X (Fin J.nV) vlJ pJ)))
-          (≈-trans middle (permuteˢ-X (Fin H.nV) vlH permH))
-        where
-          mpJd = mp (Fin J.nV) vlJ (map φ sH)
-          mpJc = mp (Fin J.nV) vlJ (map φ (H.ein e) ++ map φ restH)
-          mpHd = mp (Fin H.nV) vlH sH
-          mpHc = mp (Fin H.nV) vlH (H.ein e ++ restH)
-          Xj = permuteˣ (PermProp.map⁺ vlJ pJ)
-          Xh = permuteˣ (PermProp.map⁺ vlH permH)
-
-          -- the evaluated-bijection equality, from `eval-coincide`.
-          ev-mid : eval-↭ (subst₂ Perm._↭_ P qq (PermProp.map⁺ vlJ pJ))
-                   ≈-fb subst₂ FinBij (cong length P) (cong length qq)
-                          (eval-↭ (PermProp.map⁺ vlJ pJ))
-          ev-mid = ≈-fb-of-≡ (eval-subst₂-↭ P qq (PermProp.map⁺ vlJ pJ))
-
-          ev-coin : subst₂ FinBij (cong length P) (cong length qq)
-                          (eval-↭ (PermProp.map⁺ vlJ pJ))
-                    ≈-fb eval-↭ (PermProp.map⁺ vlH permH)
-          ev-coin = eval-coincide {H.nV} {J.nV} {X} φ φ-inj vlJ vlH φ-lab
-                      (H.ein e) sH restH permH pJ P qq eqH eJ
-
-          ev : eval-↭ (subst₂ Perm._↭_ P qq (PermProp.map⁺ vlJ pJ))
-               ≈-fb eval-↭ (PermProp.map⁺ vlH permH)
-          ev i = trans (ev-mid i) (ev-coin i)
-
-          -- the X-level identification: `Xh ≈ castˢ (cong(map id)P)(cong(map id)qq) Xj`.
-          K-step : Xh ≈ˢ castˢ (cong (map (λ x → x)) P) (cong (map (λ x → x)) qq) Xj
-          K-step =
-            ≈-trans
-              (≈-sym (permˢ-K-X (subst₂ Perm._↭_ P qq (PermProp.map⁺ vlJ pJ))
-                                (PermProp.map⁺ vlH permH) ev))
-              (≡⇒≈ˢ (permuteˣ-subst₂ P qq (PermProp.map⁺ vlJ pJ)))
-
-          -- `castˢ P qq (castˢ mpJ Xj) ≈ castˢ mpH Xh`: both sides drop to the
-          -- bare X-permute (`cast-≈̂`) and are identified by the `K-step`; the
-          -- `_≈̂_` combinators absorb the former `cast-fuse`/`cast-irrel` nest.
-          middle : castˢ P qq (castˢ mpJd mpJc Xj) ≈ˢ castˢ mpHd mpHc Xh
-          middle =
-            ≈̂⇒≈ˢ
-              (≈̂-trans (≈̂-trans (cast-≈̂ {p = P} {q = qq})
-                                (cast-≈̂ {p = mpJd} {q = mpJc}))
-              (≈̂-trans (≈̂-sym (≈̂-trans (≈ˢ⇒≈̂ K-step)
-                                        (cast-≈̂ {p = cong (map (λ x → x)) P}
-                                                {q = cong (map (λ x → x)) qq})))
-                       (≈̂-sym (cast-≈̂ {p = mpHd} {q = mpHc}))))
+        perm-cross-K vlJ vlH pJ permH P qq
+          (λ i → trans (≈-fb-of-≡ (eval-subst₂-↭ P qq (PermProp.map⁺ vlJ pJ)) i)
+                       (eval-coincide {H.nV} {J.nV} {X} φ φ-inj vlJ vlH φ-lab
+                          (H.ein e) sH restH permH pJ P qq eqH eJ i))
 
 
   ----------------------------------------------------------------------

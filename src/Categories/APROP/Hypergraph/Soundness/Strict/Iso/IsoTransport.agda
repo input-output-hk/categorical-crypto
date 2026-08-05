@@ -24,8 +24,9 @@
 --     (φ = iso's vertex map, ψ = iso's edge map) — the `subst₂ HomTerm` /
 --     `subst₂-∘-distrib` / `map⁺`-lift mass of the non-strict §3 VANISHES into
 --     `castˢ`; its permute factor is `permute-relabel-freeˢ` (§5b ported
---     verbatim at the FinBij level, routed through the X-level permute
---     `permuteˢ-X` and discharged by `permˢ-K-X`).
+--     verbatim at the FinBij level, closed by `DecodeCompose.perm-cross-K`,
+--     which routes both permutes through `permuteˢ-X` and discharges by the
+--     X-level Kelly residual `permˢ-K-X`).
 --   * `order-invariantˢ` (`IsoInvarianceConcrete`, BUILT) bridges `τ` to the
 --     natural order `range nE_f`.
 --
@@ -65,9 +66,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Iso.IsoInvarianceConcrete si
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ as DC2
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTail sig _≟X_
   using (RunInterchangeˢ)
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
-  using (module Support)
 
 open import Data.Fin.Base using (Fin)
 open import Data.List using (List; _∷_; _++_; map; length; lookup)
@@ -201,23 +199,11 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
       step = subst (λ z → z Perm.↭ map φ H.cod) fin-eq (subst (λ z → sJ-final Perm.↭ z) φ-cod vJ)
 
   ------------------------------------------------------------------------
-  -- §4.  The X-level permute kit + the FINAL-permute relabel-freeness.
-  --
-  -- The strict `permuteˢ` is vertex-level; to compare a J-vertex permute
-  -- with an H-vertex permute under the `map vlab` boundary casts we route
-  -- both through the X-level permute (`permuteˢ-X`) and discharge by the
-  -- X-level Kelly residual `permˢ-K-X`.  The premise is the FinBij-level
-  -- `≅↭` evidence `permute-relabel-free-≅↭` (§5b, ported verbatim).
+  -- §4.  The two final-permute derivations, lifted to the common X-level
+  -- pair of `map _.vlab _` lists, plus the length casts §5b reasons under.
   ------------------------------------------------------------------------
 
   private
-    permˢ-K-X : Support.PermK X (λ x → x)
-    permˢ-K-X = PK.permˢ-K X _≟X_ (λ x → x)
-
-    open DC2.XPerm using (permuteˣ)
-    -- the X-level permute boundary cast helper from §0.
-    open DC2 using (permuteˢ-X; mp)
-
     -- The two final-permute derivations, lifted to the common X-level pair
     -- of `map _.vlab _` lists.
     permJ-↭ : (vJ : SG.Validˢ (range J.nE)) → map J.vlab sJ-final Perm.↭ map J.vlab J.cod
@@ -382,76 +368,18 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
                (subst-Fin-roundtrip cH-cod kH))
 
   ------------------------------------------------------------------------
-  -- §5.  The FINAL-permute relabel-free `≈ˢ`, from `permˢ-K-X` + §5b,
-  -- routed through `permuteˢ-X`.
+  -- §5.  The FINAL-permute relabel-free `≈ˢ`: `DecodeCompose`'s shared
+  -- cross-vertex-type closing argument (`perm-cross-K`, which routes both
+  -- permutes through `permuteˢ-X` and discharges by `permˢ-K-X`) at
+  -- `(J.vlab, H.vlab)`, with §5b as its FinBij-level premise.
   ------------------------------------------------------------------------
 
-  private
-    -- `permuteˢ` commutes with `map⁺ vlab` routed through the X-level permute.
-    -- (the §0 `permuteˢ-X` instance at the relevant vertex set.)
-    pXJ : ∀ {xs ys : List (Fin J.nV)} (p : xs Perm.↭ ys)
-        → castˢ (mp (Fin J.nV) J.vlab xs) (mp (Fin J.nV) J.vlab ys)
-            (permuteˣ (PermProp.map⁺ J.vlab p)) ≈ˢ RJ.permuteˢ p
-    pXJ = permuteˢ-X (Fin J.nV) J.vlab
-
-    pXH : ∀ {xs ys : List (Fin H.nV)} (p : xs Perm.↭ ys)
-        → castˢ (mp (Fin H.nV) H.vlab xs) (mp (Fin H.nV) H.vlab ys)
-            (permuteˣ (PermProp.map⁺ H.vlab p)) ≈ˢ RH.permuteˢ p
-    pXH = permuteˢ-X (Fin H.nV) H.vlab
-
-  -- The strict final-permute relabel-free lemma.
   permute-relabel-freeˢ
     : (vJ : SG.Validˢ (range J.nE))
     → castˢ mid-iso ci (RJ.permuteˢ vJ) ≈ˢ RH.permuteˢ (iso-validˢ vJ)
   permute-relabel-freeˢ vJ =
-    -- LHS: castˢ mid-iso ci (permuteˢ_J vJ)
-    --   ≈  castˢ mid-iso ci (castˢ (mp .) (mp .) (permuteˣ (map⁺ vlJ vJ)))   [≈-sym pXJ]
-    --   →  rebracket to a single castˢ of permuteˣ (map⁺ vlJ vJ);
-    -- the X-level Kelly residual swaps `map⁺ vlJ vJ` for `map⁺ vlH (isoval)`;
-    -- RHS: re-express via pXH.
-    ≈-trans (cast-resp mid-iso ci (≈-sym (pXJ vJ)))
-    (≈-trans middle (pXH (iso-validˢ vJ)))
-    where
-      mpJd = mp (Fin J.nV) J.vlab sJ-final
-      mpJc = mp (Fin J.nV) J.vlab J.cod
-      mpHd = mp (Fin H.nV) H.vlab sH-final
-      mpHc = mp (Fin H.nV) H.vlab H.cod
-      Xj = permuteˣ (PermProp.map⁺ J.vlab vJ)
-      Xh = permuteˣ (PermProp.map⁺ H.vlab (iso-validˢ vJ))
-
-      -- the FinBij identification: `permJ-↭' vJ` IS this `subst₂`, so §5b is it.
-      ev : eval-↭ (subst₂ Perm._↭_ mid-iso ci (PermProp.map⁺ J.vlab vJ))
-           ≈-fb eval-↭ (PermProp.map⁺ H.vlab (iso-validˢ vJ))
-      ev = permute-relabel-free-≅↭ vJ
-
-      -- the X-level identification:
-      --   Xh ≈ castˢ (cong(map id)mid-iso)(cong(map id)ci) Xj
-      private-permuteˣ-subst₂
-        : ∀ {xs xs' ys ys' : List X} (p : xs ≡ xs') (q : ys ≡ ys')
-            (r : xs Perm.↭ ys)
-        → permuteˣ (subst₂ Perm._↭_ p q r)
-          ≡ castˢ (cong (map (λ x → x)) p) (cong (map (λ x → x)) q) (permuteˣ r)
-      private-permuteˣ-subst₂ refl refl r = refl
-
-      K-step : Xh ≈ˢ castˢ (cong (map (λ x → x)) mid-iso) (cong (map (λ x → x)) ci) Xj
-      K-step =
-        ≈-trans
-          (≈-sym (permˢ-K-X (subst₂ Perm._↭_ mid-iso ci (PermProp.map⁺ J.vlab vJ))
-                            (PermProp.map⁺ H.vlab (iso-validˢ vJ)) ev))
-          (≡⇒≈ˢ (private-permuteˣ-subst₂ mid-iso ci (PermProp.map⁺ J.vlab vJ)))
-
-      -- `castˢ mid-iso ci (castˢ mpJ Xj) ≈ castˢ mpH Xh`, via cast-fuse on
-      -- both sides + cast-irrel (endpoints coincide after K-step).
-      middle : castˢ mid-iso ci (castˢ mpJd mpJc Xj) ≈ˢ castˢ mpHd mpHc Xh
-      middle =
-        ≈-trans (≡⇒≈ˢ (cast-fuse mpJd mid-iso mpJc ci Xj))
-        (≈-trans (≡⇒≈ˢ (cast-irrel (trans mpJd mid-iso)
-                          (trans (cong (map (λ x → x)) mid-iso) mpHd)
-                          (trans mpJc ci)
-                          (trans (cong (map (λ x → x)) ci) mpHc) Xj))
-        (≈-trans (≡⇒≈ˢ (sym (cast-fuse (cong (map (λ x → x)) mid-iso) mpHd
-                                       (cong (map (λ x → x)) ci) mpHc Xj)))
-          (≈-sym (cast-resp mpHd mpHc K-step))))
+    DC2.perm-cross-K J.vlab H.vlab vJ (iso-validˢ vJ) mid-iso ci
+      (permute-relabel-free-≅↭ vJ)
 
   ------------------------------------------------------------------------
   -- §6.  `iso-transportˢ`: the J-side decoding at `range J.nE` casts to the
