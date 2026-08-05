@@ -27,7 +27,7 @@ open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig using (unfl
 open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
   using ( cancel-mid-iso; c-iso-assoc-to; c-iso-assoc-from
         ; subst-id-dom; subst-id-cod
-        ; cast-dc; cast-cd; cast-cancel; cast-cancel′; cod-cancel; dom-cancel
+        ; cast-dc; cast-cancel′; cod-cancel; dom-cancel
         ; subst-cod-cons )
 
 open import Categories.FreeStrictSMC using (module Build)
@@ -270,13 +270,13 @@ private
       Sc₂ ∘ Sd₂ ∘ (emb (f ⊗ˢ (g ⊗ˢ h)) ∘ Sc₁) ∘ Sd₁
         ≈⟨ ≈-Term-sym FM.assoc ⟩
       (Sc₂ ∘ Sd₂) ∘ (emb (f ⊗ˢ (g ⊗ˢ h)) ∘ Sc₁) ∘ Sd₁
-        ≈⟨ cast-cancel A₂ ⟩∘⟨refl ⟩
+        ≈⟨ cod-cancel A₂ ⟩∘⟨refl ⟩
       id ∘ (emb (f ⊗ˢ (g ⊗ˢ h)) ∘ Sc₁) ∘ Sd₁
         ≈⟨ idˡ ⟩
       (emb (f ⊗ˢ (g ⊗ˢ h)) ∘ Sc₁) ∘ Sd₁
         ≈⟨ FM.assoc ⟩
       emb (f ⊗ˢ (g ⊗ˢ h)) ∘ Sc₁ ∘ Sd₁
-        ≈⟨ refl⟩∘⟨ cast-cancel A₁ ⟩
+        ≈⟨ refl⟩∘⟨ cod-cancel A₁ ⟩
       emb (f ⊗ˢ (g ⊗ˢ h)) ∘ id
         ≈⟨ idʳ ⟩
       emb (f ⊗ˢ (g ⊗ˢ h)) ∎
@@ -477,7 +477,7 @@ private
     T zs (xs ++ ys) ∘ (id ⊗₁ T xs ys)
       ≈⟨ ≈-Term-sym idˡ ⟩
     id ∘ (T zs (xs ++ ys) ∘ (id ⊗₁ T xs ys))
-      ≈⟨ ≈-Term-sym (cast-cancel (++-assoc zs xs ys)) ⟩∘⟨refl ⟩
+      ≈⟨ ≈-Term-sym (cod-cancel (++-assoc zs xs ys)) ⟩∘⟨refl ⟩
     (subst-id-cod (++-assoc zs xs ys) ∘ subst-id-dom (++-assoc zs xs ys))
       ∘ (T zs (xs ++ ys) ∘ (id ⊗₁ T xs ys))
       ≈⟨ FM.assoc ⟩
@@ -527,8 +527,6 @@ private
       ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ TFfold ⟩
     F (xs ++ zs) ys ∘ subst-id-dom (++-assoc xs zs ys) ∘ T xs (zs ++ ys) ∘ id
       ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idʳ ⟩
-    F (xs ++ zs) ys ∘ subst-id-dom (++-assoc xs zs ys) ∘ T xs (zs ++ ys)
-      ≈⟨ refl⟩∘⟨ (cast-cd (++-assoc xs zs ys) ⟩∘⟨refl) ⟩
     F (xs ++ zs) ys ∘ subst-id-cod (sym (++-assoc xs zs ys)) ∘ T xs (zs ++ ys) ∎)
     where
       TFfold : (id ⊗₁ T zs ys) ∘ (id ⊗₁ F zs ys) ≈Term id

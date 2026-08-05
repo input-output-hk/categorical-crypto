@@ -54,7 +54,7 @@ open FM.HomReasoning
 --
 -- Two 3-fold composites sharing a middle iso `Fm ∘ Tm ≈ id` cancel it, leaving
 -- `To ∘ M₁ ∘ M₂ ∘ Ff`.  No assumption on `M₁` / `M₂`.  (Part of the
--- transport-absorption algebra of §2, hoisted above §1 because the
+-- transport-absorption algebra of §1, hoisted above it because the
 -- `c-iso-assoc-to` inversion chases below consume it.)
 cancel-mid-iso
   : ∀ {A₀ A₁ A₂ A₃ A₄ A₅ : ObjTerm}
@@ -77,7 +77,48 @@ cancel-mid-iso To M₁ Fm Tm M₂ Ff m-iso = begin
   To ∘ M₁ ∘ M₂ ∘ Ff ∎
 
 --------------------------------------------------------------------------------
--- ## 1.  Associativity coherence, `to`-side.
+-- ## 1.  `subst`-identity morphisms on the domain / codomain, over
+-- `unflatten` (the surviving slice of the transport-absorption algebra).
+
+subst-id-cod : ∀ {c d : List X} → c ≡ d → HomTerm (unflatten c) (unflatten d)
+subst-id-cod {c} q = subst (λ z → HomTerm (unflatten c) (unflatten z)) q id
+
+-- The domain-side spelling IS the codomain-side one at the inverse proof, and
+-- is kept as a name because that is how the `Embed` chains read.  Being
+-- definitional, it costs no `≈Term` step to cross.
+subst-id-dom : ∀ {a b : List X} → a ≡ b → HomTerm (unflatten b) (unflatten a)
+subst-id-dom p = subst-id-cod (sym p)
+
+-- Their groupoid laws: `sym`-exchange (the OTHER direction, where `sym (sym p)`
+-- is not `p`), the cancellations, the cons-frame law, and the `subst₂`
+-- presentation.
+cast-dc : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom (sym p) ≈Term subst-id-cod p
+cast-dc refl = ≈-Term-refl
+
+cast-cancel′ : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom p ∘ subst-id-cod p ≈Term id
+cast-cancel′ refl = idˡ
+
+cod-cancel : ∀ {a b : List X} (p : a ≡ b) → subst-id-cod p ∘ subst-id-cod (sym p) ≈Term id
+cod-cancel refl = idˡ
+
+dom-cancel : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom (sym p) ∘ subst-id-dom p ≈Term id
+dom-cancel refl = idˡ
+
+subst-cod-cons
+  : ∀ {x : X} {a b : List X} (e : a ≡ b)
+  → id {Var x} ⊗₁ subst-id-cod e ≈Term subst-id-cod (cong (x ∷_) e)
+subst-cod-cons refl = id⊗id≈id
+
+cod-as-subst₂ : ∀ {a b : List X} (e : a ≡ b)
+              → subst-id-cod e ≡ subst₂ HomTerm refl (cong unflatten e) (id {unflatten a})
+cod-as-subst₂ refl = refl
+
+dom-as-subst₂ : ∀ {a b : List X} (e : a ≡ b)
+              → subst-id-cod (sym e) ≡ subst₂ HomTerm (cong unflatten e) refl (id {unflatten a})
+dom-as-subst₂ refl = refl
+
+--------------------------------------------------------------------------------
+-- ## 2.  Associativity coherence, `to`-side.
 --
 -- `c-iso-assoc-from` (re-exported above) is the `from`-side pentagon.  Its
 -- `to`-side dual is obtained by composite inversion:
@@ -90,8 +131,7 @@ c-iso-assoc-to
   → _≅_.to (unflatten-++-≅ (xs₁ ++ xs₂) ys)
     ∘ (_≅_.to (unflatten-++-≅ xs₁ xs₂) ⊗₁ id)
     ∘ α⇐ {unflatten xs₁} {unflatten xs₂} {unflatten ys}
-  ≈Term subst (λ z → HomTerm (unflatten z) (unflatten ((xs₁ ++ xs₂) ++ ys)))
-              (++-assoc xs₁ xs₂ ys) id
+  ≈Term subst-id-dom (++-assoc xs₁ xs₂ ys)
         ∘ _≅_.to (unflatten-++-≅ xs₁ (xs₂ ++ ys))
         ∘ (id {unflatten xs₁} ⊗₁ _≅_.to (unflatten-++-≅ xs₂ ys))
 c-iso-assoc-to xs₁ xs₂ ys = begin
@@ -122,25 +162,14 @@ c-iso-assoc-to xs₁ xs₂ ys = begin
     from₁₂₃  = _≅_.from (unflatten-++-≅ xs₁ (xs₂ ++ ys))
     to₁₂₃    = _≅_.to   (unflatten-++-≅ xs₁ (xs₂ ++ ys))
 
-    e   = ++-assoc xs₁ xs₂ ys
-    s-id : HomTerm (unflatten ((xs₁ ++ xs₂) ++ ys)) (unflatten (xs₁ ++ (xs₂ ++ ys)))
-    s-id = subst (λ z → HomTerm (unflatten ((xs₁ ++ xs₂) ++ ys)) (unflatten z)) e id
-    s-id⁻ : HomTerm (unflatten (xs₁ ++ (xs₂ ++ ys))) (unflatten ((xs₁ ++ xs₂) ++ ys))
-    s-id⁻ = subst (λ z → HomTerm (unflatten z) (unflatten ((xs₁ ++ xs₂) ++ ys))) e id
+    e     = ++-assoc xs₁ xs₂ ys
+    s-id  = subst-id-cod e
+    s-id⁻ = subst-id-dom e
 
     Lhs    = α⇒ {U₁} {U₂} {Uys} ∘ (from₁₂ ⊗₁ id) ∘ from₁₂ys
     Rhs    = (id {U₁} ⊗₁ from₂₃) ∘ from₁₂₃ ∘ s-id
     Lhsinv = to₁₂ys ∘ (to₁₂ ⊗₁ id) ∘ α⇐ {U₁} {U₂} {Uys}
     Rhsinv = s-id⁻ ∘ to₁₂₃ ∘ (id {U₁} ⊗₁ to₂₃)
-
-    s-id⁻-s-id : s-id⁻ ∘ s-id ≈Term id
-    s-id⁻-s-id = lemma e
-      where
-        lemma : ∀ {a b : List X} (p : a ≡ b)
-              → subst (λ z → HomTerm (unflatten z) (unflatten a)) p id
-                ∘ subst (λ z → HomTerm (unflatten a) (unflatten z)) p id
-                ≈Term id
-        lemma refl = idˡ
 
     LhsLhsinv : Lhs ∘ Lhsinv ≈Term id
     LhsLhsinv = begin
@@ -173,7 +202,7 @@ c-iso-assoc-to xs₁ xs₂ ys = begin
       s-id⁻ ∘ id ∘ s-id
         ≈⟨ refl⟩∘⟨ idˡ ⟩
       s-id⁻ ∘ s-id
-        ≈⟨ s-id⁻-s-id ⟩
+        ≈⟨ cast-cancel′ e ⟩
       id ∎
       where
         mid-iso : (id {U₁} ⊗₁ to₂₃) ∘ (id ⊗₁ from₂₃) ≈Term id
@@ -181,46 +210,3 @@ c-iso-assoc-to xs₁ xs₂ ys = begin
           ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
             (≈-Term-trans (⊗-resp-≈ idˡ (_≅_.isoˡ (unflatten-++-≅ xs₂ ys)))
                           id⊗id≈id)
-
---------------------------------------------------------------------------------
--- ## 2.  `subst`-identity morphisms on the domain / codomain, over
--- `unflatten` (the surviving slice of the transport-absorption algebra).
-
-subst-id-dom : ∀ {a b : List X} → a ≡ b → HomTerm (unflatten b) (unflatten a)
-subst-id-dom {a} p = subst (λ z → HomTerm (unflatten z) (unflatten a)) p id
-
-subst-id-cod : ∀ {c d : List X} → c ≡ d → HomTerm (unflatten c) (unflatten d)
-subst-id-cod {c} q = subst (λ z → HomTerm (unflatten c) (unflatten z)) q id
-
--- Their groupoid laws: `sym`-exchange between the two sides, the four
--- cancellations, the cons-frame law, and the `subst₂` presentation.
-cast-dc : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom (sym p) ≈Term subst-id-cod p
-cast-dc refl = ≈-Term-refl
-
-cast-cd : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom p ≈Term subst-id-cod (sym p)
-cast-cd refl = ≈-Term-refl
-
-cast-cancel : ∀ {a b : List X} (p : a ≡ b) → subst-id-cod p ∘ subst-id-dom p ≈Term id
-cast-cancel refl = idˡ
-
-cast-cancel′ : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom p ∘ subst-id-cod p ≈Term id
-cast-cancel′ refl = idˡ
-
-cod-cancel : ∀ {a b : List X} (p : a ≡ b) → subst-id-cod p ∘ subst-id-cod (sym p) ≈Term id
-cod-cancel refl = idˡ
-
-dom-cancel : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom (sym p) ∘ subst-id-dom p ≈Term id
-dom-cancel refl = idˡ
-
-subst-cod-cons
-  : ∀ {x : X} {a b : List X} (e : a ≡ b)
-  → id {Var x} ⊗₁ subst-id-cod e ≈Term subst-id-cod (cong (x ∷_) e)
-subst-cod-cons refl = id⊗id≈id
-
-cod-as-subst₂ : ∀ {a b : List X} (e : a ≡ b)
-              → subst-id-cod e ≡ subst₂ HomTerm refl (cong unflatten e) (id {unflatten a})
-cod-as-subst₂ refl = refl
-
-dom-as-subst₂ : ∀ {a b : List X} (e : a ≡ b)
-              → subst-id-cod (sym e) ≡ subst₂ HomTerm (cong unflatten e) refl (id {unflatten a})
-dom-as-subst₂ refl = refl
