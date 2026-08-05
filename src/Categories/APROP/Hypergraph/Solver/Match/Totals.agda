@@ -10,11 +10,11 @@ module Categories.APROP.Hypergraph.Solver.Match.Totals where
 
 open import Data.Fin using (Fin; zero; suc)
 open import Data.List.Base using (List; map)
-open import Data.List.Properties using (map-∘; map-cong)
+open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Nat using (ℕ)
 open import Data.Product using (Σ; _,_)
-open import Relation.Binary.PropositionalEquality using (_≡_; cong; trans; sym)
+open import Relation.Binary.PropositionalEquality using (_≡_; cong; trans)
 
 -- Σ-packaged total function with pointwise evidence.
 Total : ∀ {n m} → (Fin n → Maybe (Fin m)) → Set
@@ -37,14 +37,9 @@ totalise {ℕ.suc n} p with p zero in eq
 -- and `Verify-Sub` (L/S labels); both invoke it per edge (verify body and the
 -- atom-ein/atom-eout record fields).
 deriveAtomEq
-  : ∀ {V₁ V₂ X : Set}
-      (vlab₁ : V₁ → X) (vlab₂ : V₂ → X)
-      (φ : V₁ → V₂)
+  : ∀ {V₁ V₂ X : Set} {vlab₁ : V₁ → X} {vlab₂ : V₂ → X} {φ : V₁ → V₂}
   → (∀ i → vlab₂ (φ i) ≡ vlab₁ i)
-  → ∀ (xs : List V₁) (ys : List V₂)
-  → ys ≡ map φ xs
+  → ∀ (xs : List V₁) {ys : List V₂} → ys ≡ map φ xs
   → map vlab₂ ys ≡ map vlab₁ xs
-deriveAtomEq vlab₁ vlab₂ φ φ-lab xs ys p =
-  trans (cong (map vlab₂) p)
-  (trans (sym (map-∘ xs))
-         (map-cong φ-lab xs))
+deriveAtomEq {vlab₂ = vlab₂} φ-lab xs p =
+  trans (cong (map vlab₂) p) (map-∘-cong φ-lab xs)

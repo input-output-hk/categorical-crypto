@@ -186,8 +186,8 @@ module Verify (H J : Hypergraph FlatGen)
             | just φ-lab  | just ψ-ein  | just ψ-eout
             | yes φ-dom   | yes φ-cod
               with ∀F? (λ e → flat-match-subst
-                     (deriveAtomEq H.vlab J.vlab φ φ-lab (H.ein  e) (J.ein  (ψ e)) (ψ-ein  e))
-                     (deriveAtomEq H.vlab J.vlab φ φ-lab (H.eout e) (J.eout (ψ e)) (ψ-eout e))
+                     (deriveAtomEq φ-lab (H.ein  e) (ψ-ein  e))
+                     (deriveAtomEq φ-lab (H.eout e) (ψ-eout e))
                      (J.elab (ψ e))
                      (H.elab e))
   ...         | nothing = nothing
@@ -205,7 +205,7 @@ module Verify (H J : Hypergraph FlatGen)
                 ; ψ-eout    = ψ-eout
                 ; φ-dom     = φ-dom
                 ; φ-cod     = φ-cod
-                ; atom-ein  = λ e → deriveAtomEq H.vlab J.vlab φ φ-lab (H.ein  e) (J.ein  (ψ e)) (ψ-ein  e)
-                ; atom-eout = λ e → deriveAtomEq H.vlab J.vlab φ φ-lab (H.eout e) (J.eout (ψ e)) (ψ-eout e)
+                ; atom-ein  = λ e → deriveAtomEq φ-lab (H.ein  e) (ψ-ein  e)
+                ; atom-eout = λ e → deriveAtomEq φ-lab (H.eout e) (ψ-eout e)
                 ; ψ-elab    = ψ-elab
                 }
