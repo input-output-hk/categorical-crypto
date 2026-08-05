@@ -22,7 +22,6 @@
 module Categories.Hypergraph.ExtractPrefixEvalPhi where
 
 open import Data.Nat using (ℕ)
-open import Data.Nat.Properties using () renaming (_≟_ to _≟ℕ_)
 open import Data.Fin using (Fin; _≟_)
 open import Data.List using (List; []; _∷_; _++_; map; length)
 open import Data.List.Properties using (map-++; length-map; ≡-dec)
@@ -41,16 +40,7 @@ open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 
 open import Categories.Hypergraph.ExtractPrefix using (extract-elem; extract-prefix)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
-open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _≈-fb_; ≈-fb-refl)
-
--- UIP on ℕ (Hedberg).
-ℕ-uip : ∀ {a b : ℕ} (p q : a ≡ b) → p ≡ q
-ℕ-uip = Decidable⇒UIP.≡-irrelevant _≟ℕ_
-
--- ≈-fb from ≡.
-≈-fb-of-≡ : ∀ {n m} {π ρ : FinBij n m} → π ≡ ρ → π ≈-fb ρ
-≈-fb-of-≡ {π = π} refl = ≈-fb-refl {π = π}
+open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_)
 
 --------------------------------------------------------------------------------
 -- §1.  φ-naturality of the search at the derivation level.
@@ -132,20 +122,9 @@ module _ {n m : ℕ} (f : Fin n → Fin m)
 -- `PermuteCoherence.FinBijSubst` (re-exported `public` for downstream
 -- consumers that imported it from here).
 
-open import Categories.PermuteCoherence.FinBijSubst using (eval-map⁺) public
-
--- Composition of two `subst₂ FinBij` casts.
-subst₂-FinBij-∘
-  : ∀ {n n' n'' m m' m''}
-      (a : n ≡ n') (a' : n' ≡ n'') (b : m ≡ m') (b' : m' ≡ m'') (π : FinBij n m)
-  → subst₂ FinBij a' b' (subst₂ FinBij a b π) ≡ subst₂ FinBij (trans a a') (trans b b') π
-subst₂-FinBij-∘ refl refl refl refl π = refl
-
--- Any two `subst₂ FinBij` casts with the same endpoints agree (ℕ-UIP).
-cast-irrel
-  : ∀ {n n' m m'} (a a' : n ≡ n') (b b' : m ≡ m') (π : FinBij n m)
-  → subst₂ FinBij a b π ≡ subst₂ FinBij a' b' π
-cast-irrel a a' b b' π rewrite ℕ-uip a a' | ℕ-uip b b' = refl
+open import Categories.PermuteCoherence.FinBijSubst
+  using ( eval-map⁺; _≈̂-fb_; ≈̂-fb-of-≡; ≈̂-fb-sym; _○-fb_; cast-≈̂-fb
+        ; ≈̂-fb⇒≈-fb ) public
 
 -- `eval-↭` of a codomain-`subst` is a `subst₂ FinBij refl (cong length _)`.
 eval-subst-cod
@@ -189,60 +168,31 @@ module _ {nH nJ : ℕ} {X : Set}
         (eval-↭ (PermProp.map⁺ vJ permJ))
       ≈-fb eval-↭ (PermProp.map⁺ vH permH)
   eval-coincide ks xs rest permH permJ dom-eq cod-eq eqH eqJ =
-    ≈-fb-of-≡
-      (trans (cong (subst₂ FinBij (cong length dom-eq) (cong length cod-eq)) chainJ)
-      (trans (subst₂-FinBij-∘ aJ (cong length dom-eq) bJ (cong length cod-eq) (eval-↭ permH))
-      (trans (cast-irrel (trans aJ (cong length dom-eq)) (sym (length-map vH xs))
-                         (trans bJ (cong length cod-eq)) (sym (length-map vH (ks ++ rest)))
-                         (eval-↭ permH))
-             (sym (eval-map⁺ vH permH)))))
+    ≈̂-fb⇒≈-fb
+      (cast-≈̂-fb (cong length dom-eq) (cong length cod-eq) _
+        ○-fb chainJ
+        ○-fb ≈̂-fb-sym (≈̂-fb-of-≡ (eval-map⁺ vH permH) ○-fb cast-≈̂-fb _ _ _))
     where
+      mpp = map-++ φ ks rest
+
       permJ≡ : permJ
-             ≡ subst (λ z → map φ xs ↭ z) (map-++ φ ks rest) (PermProp.map⁺ φ permH)
+             ≡ subst (λ z → map φ xs ↭ z) mpp (PermProp.map⁺ φ permH)
       permJ≡ = ,-injectiveʳ-UIP listFin-uip
                  (just-injective
                    (trans (sym eqJ)
                           (extract-prefix-map⁺ φ φ-inj ks xs rest permH eqH)))
 
-      -- Domain/codomain endpoint equalities for the J-side single `subst₂`.
-      aJ : length xs ≡ length (map vJ (map φ xs))
-      aJ = trans (sym (length-map φ xs))
-                 (sym (length-map vJ (map φ xs)))
-
-      bJ : length (ks ++ rest) ≡ length (map vJ (map φ ks ++ map φ rest))
-      bJ = trans (sym (length-map φ (ks ++ rest)))
-                 (trans (cong length (map-++ φ ks rest))
-                        (sym (length-map vJ (map φ ks ++ map φ rest))))
-
-      -- `eval-↭ (map⁺ vJ permJ)` as a SINGLE `subst₂ FinBij` of `eval-↭ permH`.
-      chainJ : eval-↭ (PermProp.map⁺ vJ permJ)
-             ≡ subst₂ FinBij aJ bJ (eval-↭ permH)
+      -- `eval-↭ (map⁺ vJ permJ)` is `eval-↭ permH` up to casts: rewrite `permJ`,
+      -- push `map⁺ vJ`/`eval-↭` through the codomain-`subst`, then drop each
+      -- `length-map` cast `eval-map⁺` produces.
+      chainJ : eval-↭ (PermProp.map⁺ vJ permJ) ≈̂-fb eval-↭ permH
       chainJ =
-        trans (cong (λ d → eval-↭ (PermProp.map⁺ vJ d)) permJ≡)
-        (trans (cong eval-↭ (map⁺-subst-cod vJ (map-++ φ ks rest) (PermProp.map⁺ φ permH)))
-        (trans (eval-subst-cod (cong (map vJ) (map-++ φ ks rest))
-                               (PermProp.map⁺ vJ (PermProp.map⁺ φ permH)))
-        (trans (cong (subst₂ FinBij refl (cong length (cong (map vJ) (map-++ φ ks rest))))
-                     (eval-map⁺ vJ (PermProp.map⁺ φ permH)))
-        (trans (cong (subst₂ FinBij refl (cong length (cong (map vJ) (map-++ φ ks rest))))
-                     (cong (subst₂ FinBij (sym (length-map vJ (map φ xs)))
-                                          (sym (length-map vJ (map φ (ks ++ rest)))))
-                           (eval-map⁺ φ permH)))
-        (trans (cong (subst₂ FinBij refl (cong length (cong (map vJ) (map-++ φ ks rest))))
-                     (subst₂-FinBij-∘ (sym (length-map φ xs)) (sym (length-map vJ (map φ xs)))
-                                      (sym (length-map φ (ks ++ rest)))
-                                      (sym (length-map vJ (map φ (ks ++ rest))))
-                                      (eval-↭ permH)))
-        (trans (subst₂-FinBij-∘
-                  (trans (sym (length-map φ xs)) (sym (length-map vJ (map φ xs))))
-                  refl
-                  (trans (sym (length-map φ (ks ++ rest))) (sym (length-map vJ (map φ (ks ++ rest)))))
-                  (cong length (cong (map vJ) (map-++ φ ks rest)))
-                  (eval-↭ permH))
-               (cast-irrel
-                  (trans (trans (sym (length-map φ xs)) (sym (length-map vJ (map φ xs)))) refl)
-                  aJ
-                  (trans (trans (sym (length-map φ (ks ++ rest))) (sym (length-map vJ (map φ (ks ++ rest)))))
-                         (cong length (cong (map vJ) (map-++ φ ks rest))))
-                  bJ
-                  (eval-↭ permH))))))))
+        ≈̂-fb-of-≡ (cong (λ d → eval-↭ (PermProp.map⁺ vJ d)) permJ≡)
+          ○-fb ≈̂-fb-of-≡ (cong eval-↭ (map⁺-subst-cod vJ mpp (PermProp.map⁺ φ permH)))
+          ○-fb ≈̂-fb-of-≡ (eval-subst-cod (cong (map vJ) mpp)
+                            (PermProp.map⁺ vJ (PermProp.map⁺ φ permH)))
+          ○-fb cast-≈̂-fb refl (cong length (cong (map vJ) mpp)) _
+          ○-fb ≈̂-fb-of-≡ (eval-map⁺ vJ (PermProp.map⁺ φ permH))
+          ○-fb cast-≈̂-fb _ _ _
+          ○-fb ≈̂-fb-of-≡ (eval-map⁺ φ permH)
+          ○-fb cast-≈̂-fb _ _ _

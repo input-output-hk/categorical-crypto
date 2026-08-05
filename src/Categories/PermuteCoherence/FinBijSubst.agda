@@ -11,6 +11,8 @@ open Perm using (_↭_)
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 import Data.Fin.Permutation as P
 
+open import Data.Product using (Σ-syntax; _,_)
+open import Data.Nat.Properties using () renaming (≡-irrelevant to ℕ-≡-irrelevant)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst; subst₂)
 
@@ -117,6 +119,52 @@ eval-subst-cod refl p = refl
 ≈-fb-of-≡ refl _ = refl
 
 ------------------------------------------------------------------------
+-- Heterogeneous, cast-insensitive equality on `FinBij`.
+--
+-- `_≈̂-fb_` packages the two endpoint equalities so a chain never names them,
+-- exactly as `_≈̂_` does for `HomS` in `FreeStrictSMC`: `cast-≈̂-fb` retires the
+-- `subst₂ FinBij`-composition/irrelevance nests, `≈̂-fb⇒≈-fb` projects onto the
+-- pointwise `_≈-fb_` at equal indices, and `≈̂-fb-app` (below) applies a chain
+-- at an index with the CALLER's casts.  The residue is `_≡_`, not `_≈-fb_`:
+-- every `FinBij`-level fact in the tree is an `_≡_`, and keeping it so is what
+-- makes a chain's middle bijection *inferable* (behind `⟨$⟩ʳ` it is not).
+
+infix 4 _≈̂-fb_
+_≈̂-fb_ : ∀ {n m n' m'} → FinBij n m → FinBij n' m' → Set
+_≈̂-fb_ {n} {m} {n'} {m'} π ρ =
+  Σ[ a ∈ n ≡ n' ] Σ[ b ∈ m ≡ m' ] (subst₂ FinBij a b π ≡ ρ)
+
+≈̂-fb-of-≡ : ∀ {n m} {π ρ : FinBij n m} → π ≡ ρ → π ≈̂-fb ρ
+≈̂-fb-of-≡ e = refl , refl , e
+
+≈̂-fb-refl : ∀ {n m} {π : FinBij n m} → π ≈̂-fb π
+≈̂-fb-refl = ≈̂-fb-of-≡ refl
+
+≈̂-fb-sym : ∀ {n m n' m'} {π : FinBij n m} {ρ : FinBij n' m'}
+         → π ≈̂-fb ρ → ρ ≈̂-fb π
+≈̂-fb-sym (refl , refl , e) = refl , refl , sym e
+
+infixr 4 _○-fb_
+_○-fb_ : ∀ {n m n' m' n'' m''} {π : FinBij n m} {ρ : FinBij n' m'}
+           {τ : FinBij n'' m''}
+       → π ≈̂-fb ρ → ρ ≈̂-fb τ → π ≈̂-fb τ
+(refl , refl , e₁) ○-fb (refl , refl , e₂) = refl , refl , trans e₁ e₂
+
+-- A cast is heterogeneously equal to its content.
+cast-≈̂-fb : ∀ {n m n' m'} (a : n ≡ n') (b : m ≡ m') (π : FinBij n m)
+          → subst₂ FinBij a b π ≈̂-fb π
+cast-≈̂-fb refl refl π = ≈̂-fb-refl
+
+-- At equal indices the endpoint proofs are `refl` by ℕ-UIP, so the
+-- heterogeneous equality projects onto the homogeneous one.
+≈̂-fb⇒≈-fb : ∀ {n m} {π ρ : FinBij n m} → π ≈̂-fb ρ → π ≈-fb ρ
+≈̂-fb⇒≈-fb {π = π} (a , b , e) =
+  ≈-fb-of-≡
+    (trans (sym (subst₂-FinBij-irr a refl b refl π
+                   (ℕ-≡-irrelevant a refl) (ℕ-≡-irrelevant b refl)))
+           e)
+
+------------------------------------------------------------------------
 -- `subst Fin` cast algebra for the cross-iso (φ-equivariance) rigidity.
 ------------------------------------------------------------------------
 
@@ -164,7 +212,6 @@ cast-irr
   : ∀ {n m : ℕ} (e e' : n ≡ m) (i : Fin n)
   → subst Fin e i ≡ subst Fin e' i
 cast-irr e e' i = cong (λ z → subst Fin z i) (ℕ-≡-irrelevant e e')
-  where open import Data.Nat.Properties using () renaming (≡-irrelevant to ℕ-≡-irrelevant)
 
 -- Two nested `subst Fin`-casts collapse to a single one (matched at refl).
 subst-Fin-trans
@@ -172,12 +219,19 @@ subst-Fin-trans
   → subst Fin e' (subst Fin e i) ≡ subst Fin (trans e e') i
 subst-Fin-trans refl refl i = refl
 
--- `lookup` along a list equality: transporting the index by the
--- `cong length`-cast of `e : xs ≡ ys` re-indexes `ys` to agree with `xs`.
-lookup-subst-list
-  : ∀ {a} {A : Set a} {xs ys : List A} (e : xs ≡ ys) (k : Fin (length xs))
-  → lookup ys (subst Fin (cong length e) k) ≡ lookup xs k
-lookup-subst-list refl k = refl
+-- `lookup` across a `map`-relabelling, at an ARBITRARY length cast: if
+-- `map g xs ≡ ys` then `lookup ys` factors as `g ∘ lookup xs`.  The cast is a
+-- parameter — ℕ-UIP makes its proof irrelevant — so callers never reconcile
+-- their own `length` proof with the one `lookup-map` produces.
+lookup-relabel
+  : ∀ {A B : Set} (g : A → B) {xs : List A} {ys : List B} (e : map g xs ≡ ys)
+      (ln : length ys ≡ length xs) (k : Fin (length ys))
+  → g (lookup xs (subst Fin ln k)) ≡ lookup ys k
+lookup-relabel g {xs} refl ln k =
+  trans (sym (lookup-map g xs (subst Fin ln k)))
+        (cong (lookup (map g xs))
+              (trans (subst-Fin-trans ln (sym (length-map g xs)) k)
+                     (cast-irr (trans ln (sym (length-map g xs))) refl k)))
 
 -- A `subst Fin` round-trip (cast then inverse cast) is the identity.
 subst-Fin-roundtrip
@@ -191,9 +245,17 @@ subst-Fin-roundtrip'
   → subst Fin e (subst Fin (sym e) i) ≡ i
 subst-Fin-roundtrip' refl i = refl
 
--- `subst Fin (sym (sym e)) = subst Fin e` (cast-irr, since `sym (sym e)`
--- and `e` have the same endpoints).
-subst-Fin-sym-sym
-  : ∀ {n m : ℕ} (e : n ≡ m) (i : Fin n)
-  → subst Fin (sym (sym e)) i ≡ subst Fin e i
-subst-Fin-sym-sym e i = cast-irr (sym (sym e)) e i
+-- Applying a heterogeneous equality at an index: the two endpoint casts are
+-- the CALLER's, not the ones the `≈̂-fb` proof happens to carry.  This is what
+-- lets an index-level chase consume a cast-free `≈̂-fb` chain.
+≈̂-fb-app
+  : ∀ {n m n' m'} {π : FinBij n m} {ρ : FinBij n' m'}
+  → π ≈̂-fb ρ → (a : n ≡ n') (b : m ≡ m') (i : Fin n)
+  → subst Fin b (π P.⟨$⟩ʳ i) ≡ ρ P.⟨$⟩ʳ subst Fin a i
+≈̂-fb-app {π = π} (a₀ , b₀ , e) a b i =
+  trans (cast-irr b b₀ (π P.⟨$⟩ʳ i))
+  (trans (cong (λ j → subst Fin b₀ (π P.⟨$⟩ʳ j))
+               (sym (trans (subst-Fin-trans a (sym a₀) i)
+                           (cast-irr (trans a (sym a₀)) refl i))))
+  (trans (sym (subst₂-FinBij-as-subst a₀ b₀ π (subst Fin a i)))
+         (cong (λ σ → σ P.⟨$⟩ʳ subst Fin a i) e)))

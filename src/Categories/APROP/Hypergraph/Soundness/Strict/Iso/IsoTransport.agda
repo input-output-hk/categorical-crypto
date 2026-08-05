@@ -78,13 +78,13 @@ import Data.Fin.Permutation as P
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 
-open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_)
+open import Categories.PermuteCoherence.FinBij using (_≈-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.Rigid using (lookup-injective-unique; lookup-sound)
 open import Categories.PermuteCoherence.FinBijSubst
-  using ( eval-map⁺; lookup-map; subst₂-FinBij-as-subst; cast-irr
-        ; subst-Fin-trans; lookup-subst-list; subst-Fin-roundtrip
-        ; subst-Fin-roundtrip'; subst-Fin-sym-sym; eval-subst₂-↭ )
+  using ( eval-map⁺; cast-irr; subst-Fin-trans; lookup-relabel
+        ; subst-Fin-roundtrip; subst-Fin-roundtrip'; eval-subst₂-↭
+        ; _≈̂-fb_; ≈̂-fb-of-≡; _○-fb_; cast-≈̂-fb; ≈̂-fb-app )
 
 ------------------------------------------------------------------------
 -- The cross-iso module.  `H = ⟪f⟫`, `J = ⟪g⟫`.
@@ -230,19 +230,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
 
     -- `lookup J.cod` factors as `φ ∘ lookup H.cod` after the `cJH` cast.
     lookup-Jcod-φ : (k : Fin (length J.cod)) → φ (lookup H.cod (subst Fin cJH k)) ≡ lookup J.cod k
-    lookup-Jcod-φ k =
-      trans (sym (lookup-map φ H.cod (subst Fin cJH k)))
-        (trans (cong (lookup (map φ H.cod)) reduce-idx)
-               (lookup-subst-list φ-cod k))
-      where
-        reduce-idx
-          : subst Fin (sym (length-map φ H.cod)) (subst Fin cJH k)
-            ≡ subst Fin (cong length φ-cod) k
-        reduce-idx =
-          trans (cong (subst Fin (sym (length-map φ H.cod)))
-                      (sym (subst-Fin-trans (cong length φ-cod) (length-map φ H.cod) k)))
-                (subst-Fin-roundtrip (length-map φ H.cod)
-                   (subst Fin (cong length φ-cod) k))
+    lookup-Jcod-φ = lookup-relabel φ (sym φ-cod) cJH
 
     cSJH : length sJ-final ≡ length sH-final
     cSJH = trans (cong length fin-eq) (length-map φ sH-final)
@@ -250,19 +238,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
     lookup-sJ-φ
       : (k : Fin (length sJ-final))
       → φ (lookup sH-final (subst Fin cSJH k)) ≡ lookup sJ-final k
-    lookup-sJ-φ k =
-      trans (sym (lookup-map φ sH-final (subst Fin cSJH k)))
-        (trans (cong (lookup (map φ sH-final)) reduce-idx)
-               (lookup-subst-list fin-eq k))
-      where
-        reduce-idx
-          : subst Fin (sym (length-map φ sH-final)) (subst Fin cSJH k)
-            ≡ subst Fin (cong length fin-eq) k
-        reduce-idx =
-          trans (cong (subst Fin (sym (length-map φ sH-final)))
-                      (sym (subst-Fin-trans (cong length fin-eq) (length-map φ sH-final) k)))
-                (subst-Fin-roundtrip (length-map φ sH-final)
-                   (subst Fin (cong length fin-eq) k))
+    lookup-sJ-φ = lookup-relabel φ (sym fin-eq) cSJH
 
   -- §5b.  φ-equivariant rigidity of the two final permutes, at the
   -- FinBij level.
@@ -280,15 +256,10 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
 
       kH≡ : subst Fin cH-cod kH ≡ eval-↭ (iso-validˢ vJ) P.⟨$⟩ʳ iH
       kH≡ =
-        trans (cong (λ z → subst Fin cH-cod (z P.⟨$⟩ʳ i))
-                    (eval-map⁺ H.vlab (iso-validˢ vJ)))
-        (trans (cong (subst Fin cH-cod)
-                     (subst₂-FinBij-as-subst (sym cH-dom) (sym cH-cod)
-                        (eval-↭ (iso-validˢ vJ)) i))
-        (trans (subst-Fin-roundtrip' cH-cod
-                  (eval-↭ (iso-validˢ vJ) P.⟨$⟩ʳ subst Fin (sym (sym cH-dom)) i))
-               (cong (eval-↭ (iso-validˢ vJ) P.⟨$⟩ʳ_)
-                     (subst-Fin-sym-sym cH-dom i))))
+        ≈̂-fb-app (≈̂-fb-of-≡ (eval-map⁺ H.vlab (iso-validˢ vJ))
+                    ○-fb cast-≈̂-fb (sym cH-dom) (sym cH-cod)
+                           (eval-↭ (iso-validˢ vJ)))
+                 cH-dom cH-cod i
 
       H-step : lookup H.cod (subst Fin cH-cod kH) ≡ lookup sH-final iH
       H-step = trans (cong (lookup H.cod) kH≡) (lookup-sound (iso-validˢ vJ) iH)
@@ -299,53 +270,30 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
       jJ : Fin (length J.cod)
       jJ = eval-↭ vJ P.⟨$⟩ʳ iJ
 
-      private-lmJd : length (map J.vlab sJ-final) ≡ length sJ-final
-      private-lmJd = length-map J.vlab sJ-final
-      private-lmJc : length (map J.vlab J.cod) ≡ length J.cod
-      private-lmJc = length-map J.vlab J.cod
+      -- The caller's own endpoint casts for the J-side application.
+      dJ : length (map H.vlab sH-final) ≡ length sJ-final
+      dJ = trans cH-dom (sym cSJH)
+
+      bJ : length (map H.vlab H.cod) ≡ length J.cod
+      bJ = trans cH-cod (sym cJH)
+
+      -- `eval-↭ (permJ-↭' vJ)` is `eval-↭ vJ` up to casts.
+      evJ : eval-↭ (permJ-↭' vJ) ≈̂-fb eval-↭ vJ
+      evJ =
+        ≈̂-fb-of-≡ (eval-subst₂-↭ mid-iso ci (permJ-↭ vJ))
+          ○-fb cast-≈̂-fb (cong length mid-iso) (cong length ci)
+                 (eval-↭ (permJ-↭ vJ))
+          ○-fb ≈̂-fb-of-≡ (eval-map⁺ J.vlab vJ)
+          ○-fb cast-≈̂-fb (sym (length-map J.vlab sJ-final))
+                         (sym (length-map J.vlab J.cod)) (eval-↭ vJ)
 
       kJ≡ : subst Fin cH-cod kJ ≡ subst Fin cJH jJ
       kJ≡ =
-        trans (cong (λ z → subst Fin cH-cod (z P.⟨$⟩ʳ i))
-                    (trans (eval-subst₂-↭ mid-iso ci (permJ-↭ vJ))
-                           (cong (subst₂ FinBij (cong length mid-iso)
-                                                 (cong length ci))
-                                 (eval-map⁺ J.vlab vJ))))
-        (trans (cong (subst Fin cH-cod)
-                     (subst₂-FinBij-as-subst (cong length mid-iso) (cong length ci)
-                        (subst₂ FinBij (sym private-lmJd) (sym private-lmJc) (eval-↭ vJ)) i))
-        (trans (cong (λ z → subst Fin cH-cod (subst Fin (cong length ci) z))
-                     (subst₂-FinBij-as-subst (sym private-lmJd) (sym private-lmJc) (eval-↭ vJ)
-                        (subst Fin (sym (cong length mid-iso)) i)))
-          (cod-collapse)))
-        where
-          DOM₀ : Fin (length sJ-final)
-          DOM₀ = subst Fin (sym (sym private-lmJd)) (subst Fin (sym (cong length mid-iso)) i)
-
-          IMG : Fin (length J.cod)
-          IMG = eval-↭ vJ P.⟨$⟩ʳ DOM₀
-
-          dom-eq : DOM₀ ≡ iJ
-          dom-eq =
-            trans (subst-Fin-trans (sym (cong length mid-iso)) (sym (sym private-lmJd)) i)
-            (trans (cast-irr (trans (sym (cong length mid-iso)) (sym (sym private-lmJd)))
-                             (trans cH-dom (sym cSJH)) i)
-                   (sym (subst-Fin-trans cH-dom (sym cSJH) i)))
-
-          cod-collapse
-            : subst Fin cH-cod
-                (subst Fin (cong length ci)
-                   (subst Fin (sym private-lmJc) IMG))
-              ≡ subst Fin cJH jJ
-          cod-collapse =
-            trans (cong (subst Fin cH-cod)
-                        (subst-Fin-trans (sym private-lmJc) (cong length ci) IMG))
-            (trans (subst-Fin-trans
-                      (trans (sym private-lmJc) (cong length ci)) cH-cod IMG)
-            (trans (cast-irr
-                      (trans (trans (sym private-lmJc) (cong length ci)) cH-cod)
-                      cJH IMG)
-                   (cong (subst Fin cJH) (cong (eval-↭ vJ P.⟨$⟩ʳ_) dom-eq))))
+        sym (trans (cong (λ z → subst Fin cJH (eval-↭ vJ P.⟨$⟩ʳ z))
+                         (subst-Fin-trans cH-dom (sym cSJH) i))
+            (trans (cong (subst Fin cJH) (sym (≈̂-fb-app evJ dJ bJ i)))
+            (trans (subst-Fin-trans bJ cJH kJ)
+                   (cast-irr (trans bJ cJH) cH-cod kJ))))
 
       J-step : lookup H.cod (subst Fin cH-cod kJ) ≡ lookup sH-final iH
       J-step =
