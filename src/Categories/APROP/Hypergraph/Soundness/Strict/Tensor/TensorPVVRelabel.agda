@@ -13,7 +13,7 @@
 -- `permuteˢ vJ (map⁺ φ p)` and `permuteˢ vH p` are the SAME wiring term up to
 -- the vertex relabelling of their atoms, and the coincidence follows by a
 -- four-case induction over `p` in `_≈̂_` (the endpoint bookkeeping is exactly
--- `vmap = map-∘ ⨾ map-cong veq`).  No `permˢ-K`/`eval-↭`/`FinBij` machinery is
+-- `vmap = map-∘-cong veq`).  No `permˢ-K`/`eval-↭`/`FinBij` machinery is
 -- involved — contrast `IsoTransport.permute-relabel-freeˢ`, where the two
 -- derivations are genuinely UNRELATED and rigidity IS the content.
 --------------------------------------------------------------------------------
@@ -33,8 +33,8 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; map)
-open import Data.List.Properties using (map-∘; map-cong)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
+open import Data.List.Properties.Ext using (map-∘-cong)
+open import Relation.Binary.PropositionalEquality using (_≡_; cong)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
@@ -45,7 +45,7 @@ module _ {nH nJ : ℕ} (φ : Fin nH → Fin nJ)
          where
   private
     vmap : (as : List (Fin nH)) → map vJ (map φ as) ≡ map vH as
-    vmap as = trans (sym (map-∘ as)) (map-cong veq as)
+    vmap as = map-∘-cong veq as
 
     pvv-≈̂
       : ∀ {xs ys : List (Fin nH)} (p : xs Perm.↭ ys)

@@ -39,7 +39,8 @@ import Data.Fin as Fin
 open import Data.Nat using (ℕ)
 import Data.Nat as Nat
 open import Data.List using (List; _∷_; map; tabulate)
-open import Data.List.Properties using (map-∘; map-cong; map-tabulate)
+open import Data.List.Properties using (map-tabulate)
+open import Data.List.Properties.Ext using (map-∘-cong)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
@@ -109,15 +110,11 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J) where
   -- boundary lists).
   domL-iso : domL J ≡ domL H
   domL-iso =
-    trans (cong (map J.vlab) φ-dom)
-          (trans (sym (map-∘ H.dom))
-                 (map-cong φ-lab H.dom))
+    trans (cong (map J.vlab) φ-dom) (map-∘-cong φ-lab H.dom)
 
   codL-iso : codL J ≡ codL H
   codL-iso =
-    trans (cong (map J.vlab) φ-cod)
-          (trans (sym (map-∘ H.cod))
-                 (map-cong φ-lab H.cod))
+    trans (cong (map J.vlab) φ-cod) (map-∘-cong φ-lab H.cod)
 
   -- The ψ-pullback of J's natural order onto H's edges.  `≺⇒ψ≺ Φ`
   -- makes it a linear extension of `Dep H`.

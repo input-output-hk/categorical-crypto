@@ -53,7 +53,8 @@ open import Categories.PermuteCoherence.FinBijSubst
 
 open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; _++_; map; length)
-open import Data.List.Properties using (map-∘; map-cong; map-++; map-id)
+open import Data.List.Properties using (map-++; map-id)
+open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.Maybe using (just; nothing)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
@@ -348,7 +349,7 @@ module TermEmbedˢ
 
   -- `map vlJ (map φ s) ≡ map vlH s` (the label-pushed cast).
   vlab-φ : ∀ (s : List (Fin H.nV)) → map vlJ (map φ s) ≡ map vlH s
-  vlab-φ s = trans (sym (map-∘ s)) (map-cong φ-lab s)
+  vlab-φ s = map-∘-cong φ-lab s
 
   ----------------------------------------------------------------------
   -- J-side extract-prefix lock-step with the H-side (term-free; copy of

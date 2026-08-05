@@ -69,7 +69,8 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunIntercha
 
 open import Data.Fin.Base using (Fin)
 open import Data.List using (List; _∷_; _++_; map; length; lookup)
-open import Data.List.Properties using (map-∘; map-cong; map-id; map-injective; length-map)
+open import Data.List.Properties using (map-injective; length-map)
+open import Data.List.Properties.Ext using (map-∘-id)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
@@ -152,9 +153,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
 
   -- `map ψ τ = range J.nE` (ψ⁻¹ then ψ collapses).
   mapψτ : map ψ τ ≡ range J.nE
-  mapψτ =
-    trans (sym (map-∘ (range J.nE)))
-          (trans (map-cong ψ-rght (range J.nE)) (map-id (range J.nE)))
+  mapψτ = map-∘-id ψ-rght (range J.nE)
 
   -- `map φ H.dom = J.dom`.
   mapφdom : map φ H.dom ≡ J.dom

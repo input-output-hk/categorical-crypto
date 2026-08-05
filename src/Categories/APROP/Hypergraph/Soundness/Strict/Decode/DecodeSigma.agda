@@ -51,7 +51,8 @@ open import Categories.Morphism.Reasoning SCat using (pullʳ)
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_; _++_; map; length; lookup)
-open import Data.List.Properties using (++-identityʳ; ++-assoc; map-++; map-∘; map-cong)
+open import Data.List.Properties using (++-identityʳ; ++-assoc; map-++)
+open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Product using (proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
@@ -227,13 +228,11 @@ module _
       vlab-inR i = cong [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt-↑ʳ nA nB i)
 
       mLblk≡ : map Hf.vlab Lblk ≡ flatten A
-      mLblk≡ = trans (sym (map-∘ (range nA)))
-                     (trans (map-cong vlab-inL (range nA))
-                            (map-lookup-range (flatten A)))
+      mLblk≡ = trans (map-∘-cong vlab-inL (range nA))
+                     (map-lookup-range (flatten A))
       mRblk≡ : map Hf.vlab Rblk ≡ flatten B
-      mRblk≡ = trans (sym (map-∘ (range nB)))
-                     (trans (map-cong vlab-inR (range nB))
-                            (map-lookup-range (flatten B)))
+      mRblk≡ = trans (map-∘-cong vlab-inR (range nB))
+                     (map-lookup-range (flatten B))
 
       -- the canonical derivation `dom ↭ cod`.
       bsw : Hf.dom ↭ Hf.cod

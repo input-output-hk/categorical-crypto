@@ -14,7 +14,8 @@ open import Categories.APROP.Hypergraph.Model.Core
 
 open import Data.Fin using (Fin)
 open import Data.List using (List; map)
-open import Data.List.Properties using (map-∘; map-cong; map-id)
+open import Data.List.Properties using (map-∘)
+open import Data.List.Properties.Ext using (map-∘-id)
 open import Function using (id; _∘_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; trans; sym; subst₂)
@@ -112,7 +113,7 @@ module _ {X : Set} {Gen : List X → List X → Set} where
 
       -- `map (φ⁻¹ ∘ φ) ≗ id`, so `map φ⁻¹ (map φ xs) ≡ xs`.
       map-φ⁻¹φ : (xs : List (Fin G.nV)) → map φ⁻¹ (map φ xs) ≡ xs
-      map-φ⁻¹φ xs = trans (sym (map-∘ xs)) (trans (map-cong φ-left xs) (map-id xs))
+      map-φ⁻¹φ xs = map-∘-id φ-left xs
 
       -- ein equation in the flipped direction (via map-φ⁻¹φ + ψ-rght).
       ein-sym : ∀ e → G.ein (ψ⁻¹ e) ≡ map φ⁻¹ (K.ein e)

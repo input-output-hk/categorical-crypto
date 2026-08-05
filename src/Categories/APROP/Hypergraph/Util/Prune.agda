@@ -22,7 +22,7 @@ open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.Fin.Properties using (_≟_; splitAt-↑ˡ; splitAt-↑ʳ; ↑ˡ-injective; ↑ʳ-injective)
 open import Data.List using (List; _∷_; length; filter; allFin; lookup; map)
-open import Data.List.Properties using (map-cong; map-∘)
+open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.List.Relation.Unary.All using (All; _∷_)
 open import Data.List.Relation.Unary.Any using (index)
 open import Data.List.Relation.Unary.Any.Properties using (lookup-index)
@@ -183,8 +183,7 @@ module _ {a} {X : Set a} {n m : ℕ} where
                 ≡ map ([ λG , (λ j → λK (lookup (nonMem xs) j)) ]′ ∘ splitAt m)
                       (map (remap xs f) ys)
   map-via-remap xs f λK λG bdy ys =
-    trans (sym (map-cong (remap-vlab xs f λK λG bdy) ys))
-          (map-∘ ys)
+    sym (map-∘-cong (remap-vlab xs f λK λG bdy) ys)
 
 --------------------------------------------------------------------------------
 -- Global injectivity of `remap xs f`, assuming `Unique xs` and `f`

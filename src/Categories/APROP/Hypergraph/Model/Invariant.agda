@@ -159,10 +159,9 @@ range-++ (suc n) m = cong (zero ∷_)
   (trans (cong (map Fin.suc) (range-++ n m))
   (trans (map-++ Fin.suc (map (_↑ˡ m) (range n)) (map (n ↑ʳ_) (range m)))
          (cong₂ _++_
-           (trans (sym (map-∘ (range n)))
-           (trans (map-cong (λ _ → refl) (range n))
-                  (map-∘ (range n))))
+           (trans (map-∘-cong (λ _ → refl) (range n)) (map-∘ (range n)))
            (sym (map-∘ (range m))))))
   where
-    open import Data.List.Properties using (map-++; map-∘; map-cong)
+    open import Data.List.Properties using (map-++; map-∘)
+    open import Data.List.Properties.Ext using (map-∘-cong)
     import Data.Fin as Fin
