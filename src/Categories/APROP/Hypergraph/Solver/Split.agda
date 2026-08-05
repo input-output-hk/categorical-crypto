@@ -49,6 +49,8 @@ import Data.Maybe.Base as Maybe
 open import Data.Nat.Base
 open import Relation.Binary.PropositionalEquality
 
+open import Relation.Binary.Construct.Closure.ReflexiveTransitive
+  using (Star; ε; _◅_; _◅◅_)
 open import Relation.Nullary
 open import Axiom.UniquenessOfIdentityProofs
 
@@ -176,33 +178,32 @@ reassoc f        = f
 -- like `reassoc` in `deepFrame` — it needs no soundness proof.
 
 private
-  data Chain : ObjTerm → ObjTerm → Set where
-    [_] : ∀ {A B} → HomTerm A B → Chain A B
-    _◂_ : ∀ {A B C} → HomTerm B C → Chain A B → Chain A C
-
-  appC : ∀ {A B C} → Chain B C → Chain A B → Chain A C
-  appC [ f ]    c = f ◂ c
-  appC (g ◂ gs) c = g ◂ appC gs c
+  -- The `∘`-spine from `A` to `B`, head = last-applied factor: stdlib's `Star`
+  -- of `HomTerm` read backwards, so `_◅◅_` concatenates and `ε` is the empty
+  -- spine — whose `A ≡ B` lets the passes below drop a factor outright.
+  Chain : ObjTerm → ObjTerm → Set
+  Chain A B = Star (λ Y Z → HomTerm Z Y) B A
 
   lenC : ∀ {A B} → Chain A B → ℕ
-  lenC [ _ ]    = 1
-  lenC (_ ◂ gs) = suc (lenC gs)
+  lenC ε        = 0
+  lenC (_ ◅ gs) = suc (lenC gs)
 
   -- One pairing pass: combine adjacent factors, halving the chain length.
   pairC : ∀ {A B} → Chain A B → Chain A B
-  pairC [ f ]          = [ f ]
-  pairC (h ◂ [ g ])    = [ h ∘ g ]
-  pairC (h ◂ (g ◂ gs)) = (h ∘ g) ◂ pairC gs
+  pairC ε              = ε
+  pairC (h ◅ ε)        = h ◅ ε
+  pairC (h ◅ (g ◅ gs)) = (h ∘ g) ◅ pairC gs
 
   -- Right-collapse (only the fuel-exhausted fallback; unreachable with fuel = length).
   oneC : ∀ {A B} → Chain A B → HomTerm A B
-  oneC [ f ]    = f
-  oneC (g ◂ gs) = g ∘ oneC gs
+  oneC ε        = id
+  oneC (g ◅ gs) = g ∘ oneC gs
 
   balC : ∀ {A B} → ℕ → Chain A B → HomTerm A B
-  balC _       [ f ]     = f
-  balC zero    (g ◂ gs)  = oneC (g ◂ gs)
-  balC (suc n) (g ◂ gs)  = balC n (pairC (g ◂ gs))
+  balC _       ε        = id
+  balC _       (f ◅ ε)  = f
+  balC zero    (g ◅ gs) = oneC (g ◅ gs)
+  balC (suc n) (g ◅ gs) = balC n (pairC (g ◅ gs))
 
   -- Identity elimination on a chain.  Every `id` factor in a `∘`-spine
   -- translates (`⟪_⟫`) to an `hComposeP` seam against an edge-free `hId`
@@ -213,12 +214,10 @@ private
   -- (`findIsoᵀ`/`Verify`) success UNCHANGED while shortening the tower the
   -- finder must force.  A matched `id : HomTerm B C` forces `C ≡ B`, so the
   -- tail `gs : Chain A B` is already at the demanded type `Chain A C`.
-  -- The last factor is kept verbatim (a sole `id` chain has no spine to
-  -- collapse into, and the frame's endpoint objects must be preserved).
   dropIdC : ∀ {A B} → Chain A B → Chain A B
-  dropIdC [ f ]        = [ f ]
-  dropIdC (id   ◂ gs)  = dropIdC gs
-  dropIdC (g    ◂ gs)  = g ◂ dropIdC gs
+  dropIdC ε           = ε
+  dropIdC (id   ◅ gs) = dropIdC gs
+  dropIdC (g    ◅ gs) = g ◅ dropIdC gs
 
   -- Recognise a *fully identity* term: syntactically `id`, or a tensor whose
   -- both sides are themselves fully identity.  Returns `A ≡ B` (the endpoints
@@ -242,44 +241,37 @@ private
   -- at matching types), so the pair translates to a graph identity and can be
   -- dropped without changing the carve gate's verdict.  When the two
   -- constructors are matched as a definite inverse pair, the shared boundary
-  -- forces the outer endpoints to coincide, so the remaining tail is already
-  -- at the demanded type.  A single right-to-left pass with look-again after a
-  -- cancellation handles cascading seams; non-cancelling heads are kept.
+  -- forces the outer endpoints to coincide, so the remaining tail is already at
+  -- the demanded type — `ε` included, which is what lets one clause per pair
+  -- also cover the end-of-chain occurrence.  A single right-to-left pass with
+  -- look-again after a cancellation handles cascading seams.
   cancelC : ∀ {A B} → Chain A B → Chain A B
-  cancelC [ f ]      = [ f ]
-  cancelC (g ◂ gs)   = step g (cancelC gs)
+  cancelC ε          = ε
+  cancelC (g ◅ gs)   = step g (cancelC gs)
     where
       step : ∀ {A B C} → HomTerm B C → Chain A B → Chain A C
-      step α⇒ (α⇐ ◂ gs) = gs
-      step α⇐ (α⇒ ◂ gs) = gs
-      step λ⇒ (λ⇐ ◂ gs) = gs
-      step λ⇐ (λ⇒ ◂ gs) = gs
-      step ρ⇒ (ρ⇐ ◂ gs) = gs
-      step ρ⇐ (ρ⇒ ◂ gs) = gs
-      step (σ ⦃ _ ⦄) ((σ ⦃ _ ⦄) ◂ gs) = id ◂ gs
-      -- End-of-chain pairs: the inverse partner is the final factor.
-      step α⇒ [ α⇐ ] = [ id ]
-      step α⇐ [ α⇒ ] = [ id ]
-      step λ⇒ [ λ⇐ ] = [ id ]
-      step λ⇐ [ λ⇒ ] = [ id ]
-      step ρ⇒ [ ρ⇐ ] = [ id ]
-      step ρ⇐ [ ρ⇒ ] = [ id ]
-      step (σ ⦃ _ ⦄) [ σ ⦃ _ ⦄ ] = [ id ]
-      step g  gs        = g ◂ gs
+      step α⇒ (α⇐ ◅ gs) = gs
+      step α⇐ (α⇒ ◅ gs) = gs
+      step λ⇒ (λ⇐ ◅ gs) = gs
+      step λ⇐ (λ⇒ ◅ gs) = gs
+      step ρ⇒ (ρ⇐ ◅ gs) = gs
+      step ρ⇐ (ρ⇒ ◅ gs) = gs
+      step (σ ⦃ _ ⦄) ((σ ⦃ _ ⦄) ◅ gs) = id ◅ gs
+      step g  gs        = g ◅ gs
 
 mutual
   flat∘ : ∀ {A B} → HomTerm A B → Chain A B
-  flat∘ (g ∘ f)  = appC (flat∘ g) (flat∘ f)
+  flat∘ (g ∘ f)  = flat∘ g ◅◅ flat∘ f
   flat∘ (f ⊗₁ g) = tensorLeaf (reassocBal f) (reassocBal g)
-  flat∘ f        = [ f ]
+  flat∘ f        = f ◅ ε
 
   -- Build the `⊗₁` leaf, collapsing it to a single `id` when both reassociated
   -- factors are fully identity (so the downstream `dropIdC` can then erase it
   -- entirely from any enclosing spine).
   tensorLeaf : ∀ {A B C D} → HomTerm A C → HomTerm B D → Chain (A ⊗₀ B) (C ⊗₀ D)
   tensorLeaf f g with isIdᵗ f | isIdᵗ g
-  ... | just refl | just refl = [ id ]
-  ... | _         | _         = [ f ⊗₁ g ]
+  ... | just refl | just refl = id ◅ ε
+  ... | _         | _         = (f ⊗₁ g) ◅ ε
 
   reassocBal : ∀ {A B} → HomTerm A B → HomTerm A B
   reassocBal f = let c = dropIdC (cancelC (dropIdC (flat∘ f))) in balC (lenC c) c
