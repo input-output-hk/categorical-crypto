@@ -33,10 +33,8 @@ open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
 open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
   using ( subst-id-cod; cod-as-subst₂; dom-as-subst₂; cod-cancel
         ; subst-cod-cons )
-open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeOps sig
-  using (bridge-∘; bridge-⊗)
 open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
-  using ( bridge-id-is-id; bridge-λ⇒-is-id; bridge-λ⇐-is-id
+  using ( bridge-∘; bridge-⊗; bridge-id-is-id; bridge-λ⇒-is-id; bridge-λ⇐-is-id
         ; ρ⇒-coherence; ρ⇐-coherence; α⇒-form-list )
 import Categories.APROP.Hypergraph.Soundness.Discharge.BridgeAlphaFormCompound
   sig as BAFC
