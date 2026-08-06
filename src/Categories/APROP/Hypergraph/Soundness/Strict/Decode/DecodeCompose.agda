@@ -3,11 +3,6 @@
 --------------------------------------------------------------------------------
 -- Strict decoder `∘`-SHAPE, Stage 1: block-level factoring of the strict run.
 --
---   §0  permuteˢ-X   — cross-vertex-type permute bridge (a V-level strict
---                      permute equals, modulo a map-id boundary cast, the
---                      X-level permuteˣ of the label-pushed derivation).  The
---                      keystone letting the single-vertex-type residual
---                      discharge cross-hypergraph permute equalities.
 --   §1  pe-*-++ˢ / run-split-atˢ — strict stack/term factoring of the run at
 --                      `es ≡ gblk ++ kblk`.
 --   TermEmbedˢ / Equivariantˢ — the per-edge relabelling twin
@@ -38,22 +33,16 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_ public
 
--- The single deferred Kelly residual, at the X-level (identity labelling).
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
-  using (module Support)
-
--- The eval-coincidence keystone (injective relabel ⇒ same evaluated bijection).
-open import Categories.Hypergraph.ExtractPrefixEvalPhi using (eval-coincide)
-open import Categories.PermuteCoherence.Eval using (eval-↭)
-open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _≈-fb_)
-open import Categories.PermuteCoherence.FinBijSubst
-  using (≈-fb-of-≡; eval-subst₂-↭)
+-- The search's φ-naturality: the relabelled search PRODUCES `map⁺ φ permH`.
+open import Categories.Hypergraph.ExtractPrefixEvalPhi using (extract-prefix-pin)
+-- The cross-vertex-type permute relabel (functoriality of `map⁺` under
+-- `permuteˢ`); it imports only `Strict.Decode.Decode`, so no cycle.
+import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig _≟X_
+  as PVV
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; _++_; map; length)
-open import Data.List.Properties using (map-++; map-id)
+open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.List.Properties using (map-++)
 open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.Maybe using (just; nothing)
 open import Data.Empty using (⊥; ⊥-elim)
@@ -62,52 +51,6 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-
---------------------------------------------------------------------------------
--- ## §0.  The cross-vertex-type permute bridge.
---
--- The strict Kelly residual `permˢ-K` is parameterised by a SINGLE vertex
--- type `V`.  The composition `∘`-shape, however, relates the run over the
--- relabelled composite (vertex type `Fin C.nV`) to the sub-decoder runs
--- (vertex types `Fin G.nV` / `Fin K.nV`).  To compare `permuteˢ` derivations
--- across vertex types we route both through the X-LEVEL permute (vertex type
--- `X`, label `id`): `permuteˢ {V} vlab p` and the X-level permute of
--- `map⁺ vlab p` build the SAME `HomS` term, modulo the `map-id`/`map-∘`
--- relabelling of the boundary lists.  Then `permˢ-K X id` (driven by
--- `eval-coincide`) identifies the two X-level permutes.
-
-module XPerm where
-  open Perm′ X (λ x → x) public renaming (permuteˢ to permuteˣ)
-
--- `permuteˢ` at a vertex type `V` equals (up to the `map-id ∘ map-∘`
--- boundary cast) the X-level permute of the label-pushed derivation.
-module _ (V : Set) (vlab : V → X) where
-  open Perm′ V vlab using (permuteˢ)
-  open XPerm using (permuteˣ)
-
-  -- boundary: map id (map vlab xs) ≡ map vlab xs
-  mp : (xs : List V) → map (λ x → x) (map vlab xs) ≡ map vlab xs
-  mp xs = map-id (map vlab xs)
-
-  permuteˢ-X
-    : ∀ {xs ys : List V} (p : xs Perm.↭ ys)
-    → castˢ (mp xs) (mp ys) (permuteˣ (PermProp.map⁺ vlab p)) ≈ˢ permuteˢ p
-  permuteˢ-X {xs} Perm.refl = cast-id (mp xs) (mp xs)
-  permuteˢ-X (Perm.prep x p) =
-    ≈-trans
-      (cast-⊗-frame (idˢ {vlab x ∷ []}) (mp _) (mp _)
-        (permuteˣ (PermProp.map⁺ vlab p)) _ _)
-      (⊗-resp ≈-refl (permuteˢ-X p))
-  permuteˢ-X (Perm.swap x y p) =
-    ≈-trans
-      (cast-⊗-frame (σˢ (vlab x ∷ []) (vlab y ∷ [])) (mp _) (mp _)
-        (permuteˣ (PermProp.map⁺ vlab p)) _ _)
-      (⊗-resp ≈-refl (permuteˢ-X p))
-  permuteˢ-X (Perm.trans p q) =
-    ≈-trans
-      (∘-cast-split (mp _) (mp _) (mp _)
-        (permuteˣ (PermProp.map⁺ vlab q)) (permuteˣ (PermProp.map⁺ vlab p)))
-      (∘-resp (permuteˢ-X q) (permuteˢ-X p))
 
 --------------------------------------------------------------------------------
 -- ## §1.  Per-hypergraph block factoring (strict).
@@ -205,10 +148,6 @@ module RunBlocks (H : Hypergraph FlatGen) where
 -- ## Local plumbing.
 
 private
-  -- The X-level Kelly residual (vertex type `X`, labelling `id`).
-  permˢ-K-X : Support.PermK X (λ x → x)
-  permˢ-K-X = PK.permˢ-K X _≟X_ (λ x → x)
-
   -- generator-cast: a `castˢ` of a `genˢ` is the `genˢ` of the `subst₂`-ed
   -- generator.  (`refl refl` matched.)
   gen-cast
@@ -230,55 +169,6 @@ private
         (P : xs ++ us ≡ xs' ++ us') (Q : ys ++ vs ≡ ys' ++ vs')
     → castˢ P Q (f ⊗ˢ g) ≈ˢ castˢ px py f ⊗ˢ castˢ pu pv g
   cast-⊗-split refl refl refl refl f g P Q rewrite uipL P refl | uipL Q refl = ≈-refl
-
-  open XPerm using (permuteˣ)
-
-  -- two-sided subst on a derivation = a `castˢ` of the X-level permute.
-  -- (`map id xs ≡ xs` definitionally, so `castˢ` lands on the bare lists.)
-  permuteˣ-subst₂
-    : ∀ {xs xs' ys ys' : List X} (p : xs ≡ xs') (q : ys ≡ ys')
-        (r : xs Perm.↭ ys)
-    → permuteˣ (subst₂ Perm._↭_ p q r)
-      ≡ castˢ (cong (map (λ x → x)) p) (cong (map (λ x → x)) q) (permuteˣ r)
-  permuteˣ-subst₂ refl refl r = refl
-
--- The cross-vertex-type closing argument: two `permuteˢ`s over DIFFERENT
--- vertex types whose boundaries agree after `map vlab` are `castˢ`-equal as
--- soon as their evaluated bijections do.  Both sides drop to the bare X-level
--- permute (`permuteˢ-X`), where the single Kelly residual `permˢ-K-X` applies.
--- Sole consumer: the ∘-shape's per-edge perm twin (`perm-emb`, below).
-perm-cross-K
-  : ∀ {V W : Set} (vlV : V → X) (vlW : W → X)
-      {xs ys : List V} {xs' ys' : List W}
-      (p : xs Perm.↭ ys) (q : xs' Perm.↭ ys')
-      (P : map vlV xs ≡ map vlW xs') (Q : map vlV ys ≡ map vlW ys')
-  → eval-↭ (subst₂ Perm._↭_ P Q (PermProp.map⁺ vlV p))
-    ≈-fb eval-↭ (PermProp.map⁺ vlW q)
-  → castˢ P Q (Perm′.permuteˢ V vlV p) ≈ˢ Perm′.permuteˢ W vlW q
-perm-cross-K {V} {W} vlV vlW {xs} {ys} {xs'} {ys'} p q P Q ev =
-  ≈-trans (cast-resp P Q (≈-sym (permuteˢ-X V vlV p)))
-  (≈-trans middle (permuteˢ-X W vlW q))
-  where
-    Xj = permuteˣ (PermProp.map⁺ vlV p)
-    Xh = permuteˣ (PermProp.map⁺ vlW q)
-
-    K-step : Xh ≈ˢ castˢ (cong (map (λ x → x)) P) (cong (map (λ x → x)) Q) Xj
-    K-step =
-      ≈-trans
-        (≈-sym (permˢ-K-X (subst₂ Perm._↭_ P Q (PermProp.map⁺ vlV p))
-                          (PermProp.map⁺ vlW q) ev))
-        (≡⇒≈ˢ (permuteˣ-subst₂ P Q (PermProp.map⁺ vlV p)))
-
-    middle : castˢ P Q (castˢ (mp V vlV xs) (mp V vlV ys) Xj)
-             ≈ˢ castˢ (mp W vlW xs') (mp W vlW ys') Xh
-    middle =
-      ≈̂⇒≈ˢ
-        (≈̂-trans (≈̂-trans (cast-≈̂ {p = P} {q = Q})
-                          (cast-≈̂ {p = mp V vlV xs} {q = mp V vlV ys}))
-        (≈̂-trans (≈̂-sym (≈̂-trans (≈ˢ⇒≈̂ K-step)
-                                  (cast-≈̂ {p = cong (map (λ x → x)) P}
-                                          {q = cong (map (λ x → x)) Q})))
-                 (≈̂-sym (cast-≈̂ {p = mp W vlW xs'} {q = mp W vlW ys'}))))
 
 --------------------------------------------------------------------------------
 -- ## Smart builder for the `atom-ein`/`atom-eout`/`ψ-elab` glue of `TermEmbedˢ`.
@@ -402,9 +292,13 @@ module TermEmbedˢ
 
   ----------------------------------------------------------------------
   -- FIRE permute factor.  `permuteˢ_J permJ` casts to `permuteˢ_H permH`.
-  -- Route both through the X-LEVEL permute (§0 `permuteˢ-X`); the two
-  -- X-permutes are identified by `permˢ-K-X`, whose evaluated-bijection
-  -- premise is `eval-coincide` (transported by `eval-subst₂-↭`).
+  --
+  -- The search on the relabelled stack PRODUCES `map⁺ φ permH`
+  -- (`extract-prefix-pin`), so the two derivations are not independent and no
+  -- rigidity/`FinBij` machinery is needed: rewrite `permJ`, let
+  -- `permuteˢ-subst` turn the transport into a cast, peel the casts in `_≈̂_`,
+  -- and close with the cross-vertex-type relabel `pvv-relabelˢ` (pure
+  -- functoriality of `map⁺`, proved by structural induction).
 
   perm-emb
     : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
@@ -428,10 +322,23 @@ module TermEmbedˢ
         → rJ ≡ map φ restH
         → castˢ P qq (RJ.permuteˢ pJ) ≈ˢ RH.permuteˢ permH
       helper .(map φ restH) pJ eJ qq refl rewrite ψ-ein e =
-        perm-cross-K vlJ vlH pJ permH P qq
-          (λ i → trans (≈-fb-of-≡ (eval-subst₂-↭ P qq (PermProp.map⁺ vlJ pJ)) i)
-                       (eval-coincide {H.nV} {J.nV} {X} φ φ-inj vlJ vlH φ-lab
-                          (H.ein e) sH restH permH pJ P qq eqH eJ i))
+        ≈̂⇒castˢ
+          (≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (trans (cong RJ.permuteˢ pinned)
+                                       (RJ.permuteˢ-subst mpp lift))))
+          (≈̂-trans cast-≈̂
+          (≈̂-trans (≈̂-sym (cast-≈̂ {p = P} {q = Qφ}))
+                   (≈ˢ⇒≈̂ (PVV.pvv-relabelˢ φ vlJ vlH φ-lab permH P Qφ)))))
+          P qq
+        where
+          mpp = map-++ φ (H.ein e) restH
+          lift = PermProp.map⁺ φ permH
+
+          -- `pvv-relabelˢ`'s codomain proof, at the UNSPLIT `map φ (ein ++ rest)`.
+          Qφ : map vlJ (map φ (H.ein e ++ restH)) ≡ map vlH (H.ein e ++ restH)
+          Qφ = trans (cong (map vlJ) mpp) qq
+
+          pinned : pJ ≡ subst (λ z → map φ sH Perm.↭ z) mpp lift
+          pinned = extract-prefix-pin φ φ-inj (H.ein e) sH restH permH pJ eqH eJ
 
 
   ----------------------------------------------------------------------

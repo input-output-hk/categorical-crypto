@@ -1,30 +1,25 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The eval-coincidence behind `fire-perm-rel` (permute factor of Lemma 0b),
--- proved generically (no APROP, fast).
+-- The φ-naturality of the `extract-elem`/`extract-prefix` search, proved
+-- generically (no APROP, fast).
 --
--- Given an injective vertex relabel `φ : Fin nH → Fin nJ` and two labellings
--- `vJ`, `vH` with `vJ ∘ φ ≗ vH`, the two `extract-prefix` search permutations
--- (one on the relabelled input) have the SAME evaluated finite bijection after
--- labelling:  `eval-↭ (map⁺ vJ permJ) ≡ eval-↭ (map⁺ vH permH)`.
+-- §1 proves it at the DERIVATION level: for an injective vertex relabel
+-- `φ : Fin nH → Fin nJ`, the search on the relabelled input returns exactly the
+-- `map⁺ φ`-lift of the H-side derivation (`extract-prefix-map⁺`).
 --
--- Because `length (map g l) = length l` definitionally, the two `eval-↭`s have
--- the same `FinBij` type with no casts; the internal `length-map` casts from
--- `eval-map⁺` collapse via ℕ-UIP.  The search-naturality `extract-prefix-map⁺`
--- supplies `permJ = subst (map-++) (map⁺ φ permH)`, so the result is K-free.
---
--- §1 first proves that search naturality (`extract-prefix-map⁺`): the
--- `extract-elem`/`extract-prefix` search commutes with an injective
--- relabel `map f` at the DERIVATION level.
+-- §2 turns that into the form the strict decoder's per-edge permute twin
+-- consumes: since the result type is a `Maybe (List (Fin nJ) × _)` and
+-- `List (Fin nJ)` has decidable equality (hence UIP), the derivation is PINNED —
+-- whatever `permJ` the caller holds must BE that lift (`extract-prefix-pin`).
 --------------------------------------------------------------------------------
 
 module Categories.Hypergraph.ExtractPrefixEvalPhi where
 
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin; _≟_)
-open import Data.List using (List; []; _∷_; _++_; map; length)
-open import Data.List.Properties using (map-++; length-map; ≡-dec)
+open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.List.Properties using (map-++; ≡-dec)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Maybe.Properties using (just-injective)
 open import Data.Product using (_,_)
@@ -35,12 +30,10 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
 open import Data.Empty using (⊥-elim)
 open import Relation.Nullary using (yes; no)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst; subst₂)
+  using (_≡_; refl; sym; trans; cong; subst)
 open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 
 open import Categories.Hypergraph.ExtractPrefix using (extract-elem; extract-prefix)
-open import Categories.PermuteCoherence.Eval using (eval-↭)
-open import Categories.PermuteCoherence.FinBij using (FinBij; _≈-fb_)
 
 --------------------------------------------------------------------------------
 -- §1.  φ-naturality of the search at the derivation level.
@@ -118,81 +111,34 @@ module _ {n m : ℕ} (f : Fin n → Fin m)
 
 
 --------------------------------------------------------------------------------
--- `eval-map⁺` is imported from the canonical (K-free)
--- `PermuteCoherence.FinBijSubst` (re-exported `public` for downstream
--- consumers that imported it from here).
+-- §2.  The pinned derivation.
+--
+-- `extract-prefix-map⁺` says the relabelled search *produces* the `map⁺ φ`-lift
+-- of the H-side derivation.  Since `extract-prefix`'s result is a `Maybe` pair
+-- and the index type is a `List (Fin nJ)` (decidable, hence UIP), that pins the
+-- SECOND component too: any `permJ` the caller happens to be holding IS
+-- `map⁺ φ permH` transported along `map-++`.  This is strictly stronger than —
+-- and used to be derived on the first line of, and then discarded by — the
+-- former `eval-coincide`, which spent 50 lines walking both derivations down to
+-- finite bijections to buy the same fact back.
 
-open import Categories.PermuteCoherence.FinBijSubst
-  using ( eval-map⁺; _≈̂-fb_; ≈̂-fb-of-≡; ≈̂-fb-sym; _○-fb_; cast-≈̂-fb
-        ; ≈̂-fb⇒≈-fb ) public
-
--- `eval-↭` of a codomain-`subst` is a `subst₂ FinBij refl (cong length _)`.
-eval-subst-cod
-  : ∀ {A : Set} {xs ys ys' : List A} (e : ys ≡ ys') (d : xs ↭ ys)
-  → eval-↭ (subst (λ z → xs ↭ z) e d)
-    ≡ subst₂ FinBij refl (cong length e) (eval-↭ d)
-eval-subst-cod refl d = refl
-
--- `map⁺ h` commutes with a codomain-`subst`.
-map⁺-subst-cod
-  : ∀ {A C : Set} (h : A → C) {xs ys ys' : List A} (e : ys ≡ ys') (d : xs ↭ ys)
-  → PermProp.map⁺ h (subst (λ z → xs ↭ z) e d)
-    ≡ subst (λ z → map h xs ↭ z) (cong (map h) e) (PermProp.map⁺ h d)
-map⁺-subst-cod h refl d = refl
-
---------------------------------------------------------------------------------
-
-module _ {nH nJ : ℕ} {X : Set}
-         (φ : Fin nH → Fin nJ) (φ-inj : ∀ {x y} → φ x ≡ φ y → x ≡ y)
-         (vJ : Fin nJ → X) (vH : Fin nH → X)
-         (veq : ∀ v → vJ (φ v) ≡ vH v) where
+module _ {nH nJ : ℕ}
+         (φ : Fin nH → Fin nJ) (φ-inj : ∀ {x y} → φ x ≡ φ y → x ≡ y) where
 
   -- UIP on `List (Fin nJ)` (the residual type), via decidable equality.
   private
     listFin-uip : ∀ {x y : List (Fin nJ)} (p q : x ≡ y) → p ≡ q
     listFin-uip = Decidable⇒UIP.≡-irrelevant (≡-dec _≟_)
 
-  -- The eval-coincidence, in the form `fire-perm-rel` consumes (the boundary
-  -- list-equalities `dom-eq`/`cod-eq` are supplied; here they come from
-  -- `vJ ∘ φ ≗ vH`).  Stated with `subst₂ FinBij` casts because, for a VARIABLE
-  -- list, `length (map g l)` is a stuck neutral (NOT definitionally `length l`).
-  eval-coincide
+  extract-prefix-pin
     : ∀ (ks xs rest : List (Fin nH))
         (permH : xs ↭ ks ++ rest)
         (permJ : map φ xs ↭ map φ ks ++ map φ rest)
-        (dom-eq : map vJ (map φ xs) ≡ map vH xs)
-        (cod-eq : map vJ (map φ ks ++ map φ rest) ≡ map vH (ks ++ rest))
     → extract-prefix ks xs ≡ just (rest , permH)
     → extract-prefix (map φ ks) (map φ xs) ≡ just (map φ rest , permJ)
-    → subst₂ FinBij (cong length dom-eq) (cong length cod-eq)
-        (eval-↭ (PermProp.map⁺ vJ permJ))
-      ≈-fb eval-↭ (PermProp.map⁺ vH permH)
-  eval-coincide ks xs rest permH permJ dom-eq cod-eq eqH eqJ =
-    ≈̂-fb⇒≈-fb
-      (cast-≈̂-fb (cong length dom-eq) (cong length cod-eq) _
-        ○-fb chainJ
-        ○-fb ≈̂-fb-sym (≈̂-fb-of-≡ (eval-map⁺ vH permH) ○-fb cast-≈̂-fb _ _ _))
-    where
-      mpp = map-++ φ ks rest
-
-      permJ≡ : permJ
-             ≡ subst (λ z → map φ xs ↭ z) mpp (PermProp.map⁺ φ permH)
-      permJ≡ = ,-injectiveʳ-UIP listFin-uip
-                 (just-injective
-                   (trans (sym eqJ)
-                          (extract-prefix-map⁺ φ φ-inj ks xs rest permH eqH)))
-
-      -- `eval-↭ (map⁺ vJ permJ)` is `eval-↭ permH` up to casts: rewrite `permJ`,
-      -- push `map⁺ vJ`/`eval-↭` through the codomain-`subst`, then drop each
-      -- `length-map` cast `eval-map⁺` produces.
-      chainJ : eval-↭ (PermProp.map⁺ vJ permJ) ≈̂-fb eval-↭ permH
-      chainJ =
-        ≈̂-fb-of-≡ (cong (λ d → eval-↭ (PermProp.map⁺ vJ d)) permJ≡)
-          ○-fb ≈̂-fb-of-≡ (cong eval-↭ (map⁺-subst-cod vJ mpp (PermProp.map⁺ φ permH)))
-          ○-fb ≈̂-fb-of-≡ (eval-subst-cod (cong (map vJ) mpp)
-                            (PermProp.map⁺ vJ (PermProp.map⁺ φ permH)))
-          ○-fb cast-≈̂-fb refl (cong length (cong (map vJ) mpp)) _
-          ○-fb ≈̂-fb-of-≡ (eval-map⁺ vJ (PermProp.map⁺ φ permH))
-          ○-fb cast-≈̂-fb _ _ _
-          ○-fb ≈̂-fb-of-≡ (eval-map⁺ φ permH)
-          ○-fb cast-≈̂-fb _ _ _
+    → permJ ≡ subst (λ z → map φ xs ↭ z) (map-++ φ ks rest)
+                    (PermProp.map⁺ φ permH)
+  extract-prefix-pin ks xs rest permH permJ eqH eqJ =
+    ,-injectiveʳ-UIP listFin-uip
+      (just-injective
+        (trans (sym eqJ) (extract-prefix-map⁺ φ φ-inj ks xs rest permH eqH)))
