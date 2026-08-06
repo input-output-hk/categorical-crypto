@@ -29,9 +29,6 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 open import Categories.APROP.Hypergraph.Model.Iso
 open import Categories.APROP.Hypergraph.Solver.Match.PBij
 
-open import Categories.APROP.Hypergraph.Solver.Match.Totals
-
-
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Base

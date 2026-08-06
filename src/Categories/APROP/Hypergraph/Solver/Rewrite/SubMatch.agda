@@ -39,9 +39,9 @@ module Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch (sig-dec : APROPSigna
 open APROPSignatureDec sig-dec
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Solver.Match.PBij using (PBij; forward; backward; emptyBij)
+open import Categories.APROP.Hypergraph.Solver.Match.PBij
+  using (PBij; forward; backward; emptyBij; totalise; deriveAtomEq)
 open import Categories.APROP.Hypergraph.Solver.Match.Search sig-dec using (searchAll-default)
-open import Categories.APROP.Hypergraph.Solver.Match.Totals using (totalise; deriveAtomEq)
 open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec
   using (flat-match-subst; ∀F?)
 
