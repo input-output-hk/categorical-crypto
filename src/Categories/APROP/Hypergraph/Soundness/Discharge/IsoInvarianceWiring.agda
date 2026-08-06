@@ -88,7 +88,7 @@ module PerHG (H : Hypergraph FlatGen) where
   -- NOTE (weak-decoder demotion, Review-2 F2): the CONCRETE order-indexed
   -- decoder `decodeOrd` (`permute-via-vlab H.vlab p ∘ proj₂ (process-edges …)`)
   -- had zero live consumers — downstream (`IsoInvarianceConcrete`,
-  -- `IsoTransport`, `SwapStep`, `DecodePRespIso`) uses only `Order`/`Valid`
+  -- `IsoTransport`, `SwapStep`, `PartII`) uses only `Order`/`Valid`
   -- and the strict twin `decodeOrdˢ`.  It has been deleted with the weak
   -- morphism apparatus; only this stack-level `Valid` witness survives.
   Valid : Order → Set

@@ -14,7 +14,7 @@
 --               (SG.decodeOrdˢ (range nE_g) vJ)
 --         ≈ˢ SF.decodeOrdˢ (range nE_f) vH
 --
--- — exactly the parameter `Strict.Decode.DecodePRespIso`'s headline consumes.
+-- — exactly the cross-iso agreement `Strict.PartII`'s headline consumes.
 --
 -- Structure (§1-§5 + the order-invariant bridge):
 --
@@ -33,7 +33,7 @@
 -- The order-theory `NoInv`/`NoInv-τ`/`τ`/`τ↭range` are reused verbatim from
 -- the term-free non-strict wiring (`IsoInvarianceWiring`).
 -- The strict run-interchange residual `run-interchange-H` is threaded as a
--- module parameter (the same residual `DecodePRespIso`'s headline takes).
+-- module parameter (discharged by `PartII.run-interchange-H`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
