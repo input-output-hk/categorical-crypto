@@ -95,7 +95,8 @@ f' = Agen gf
 bodyLᵗ : HomTerm ((a⁺ ⊗₀ b⁻) ⊗₀ (b⁻ ⊗₀ b⁺)) ((a⁻ ⊗₀ b⁺) ⊗₀ (b⁻ ⊗₀ b⁺))
 bodyLᵗ = αᵗ ∘ σ ⊗₁ f' ∘ γᵗ
 
-hLᵗ : HomTerm ((a⁺ ⊗₀ b⁻) ⊗₀ b⁻) ((a⁻ ⊗₀ b⁻) ⊗₀ b⁺)
+-- the yank core at any superposed wire `W`; `RSᵗ-rhs` is its `W := y` reading
+hLᵗ : ∀ {W} → HomTerm ((a⁺ ⊗₀ W) ⊗₀ b⁻) ((a⁻ ⊗₀ W) ⊗₀ b⁺)
 hLᵗ = βᵗ ∘ f' ⊗₁ id ∘ βᵗ
 
 E₂Lᵗ : HomTerm (((a⁻ ⊗₀ b⁻) ⊗₀ b⁺) ⊗₀ b⁺) (((a⁻ ⊗₀ b⁺) ⊗₀ b⁻) ⊗₀ b⁺)
@@ -121,7 +122,8 @@ bodyRᵗ = αᵗ ∘ f' ⊗₁ σ ∘ γᵗ
 PRᵗ : HomTerm ((a⁺ ⊗₀ b⁻) ⊗₀ a⁻) ((b⁻ ⊗₀ a⁻) ⊗₀ a⁺)
 PRᵗ = βᵗ ∘ σ ⊗₁ id
 
-QRᵗ : HomTerm ((b⁻ ⊗₀ a⁻) ⊗₀ a⁺) ((a⁺ ⊗₀ b⁻) ⊗₀ a⁻)
+-- the routing iso rotating the outer factor to the front; `E₂Rᵗ` is a reading
+QRᵗ : ∀ {P Q R} → HomTerm ((P ⊗₀ Q) ⊗₀ R) ((R ⊗₀ P) ⊗₀ Q)
 QRᵗ = σ ⊗₁ id ∘ βᵗ
 
 mRᵗ : HomTerm ((b⁻ ⊗₀ a⁻) ⊗₀ a⁺) ((a⁻ ⊗₀ b⁺) ⊗₀ a⁻)
@@ -131,7 +133,7 @@ hRᵗ : HomTerm (a⁺ ⊗₀ b⁻) (b⁺ ⊗₀ a⁻)
 hRᵗ = σ ∘ f'
 
 E₂Rᵗ : HomTerm ((b⁺ ⊗₀ a⁻) ⊗₀ a⁻) ((a⁻ ⊗₀ b⁺) ⊗₀ a⁻)
-E₂Rᵗ = σ ⊗₁ id ∘ βᵗ
+E₂Rᵗ = QRᵗ
 
 C1Rᵗ-lhs C1Rᵗ-rhs : HomTerm (((a⁺ ⊗₀ b⁻) ⊗₀ a⁻) ⊗₀ a⁺) (((a⁻ ⊗₀ b⁺) ⊗₀ a⁻) ⊗₀ a⁺)
 C1Rᵗ-lhs = α⇐ ∘ bodyRᵗ ∘ α⇒
@@ -146,7 +148,7 @@ C3Rᵗ-rhs = E₂Rᵗ ∘ hRᵗ ⊗₁ id
 
 RSᵗ-lhs RSᵗ-rhs : HomTerm ((A' ⊗₀ Y) ⊗₀ X⁻) ((B' ⊗₀ Y) ⊗₀ X⁺)
 RSᵗ-lhs = σ ⊗₁ id ∘ (α⇐ ∘ id ⊗₁ f' ∘ α⇒) ∘ σ ⊗₁ id
-RSᵗ-rhs = βᵗ ∘ f' ⊗₁ id ∘ βᵗ
+RSᵗ-rhs = hLᵗ
 
 --------------------------------------------------------------------------------
 -- Solver obligations (call-pattern rules per docs/smc-solver-performance.md)
@@ -161,27 +163,22 @@ private
   force! : ∀ {a} {A : Set a} (m : Maybe A) → is-just m ≡ true → A
   force! (just x) _ = x
 
-  iso-C1L : ⟪ C1Lᵗ-lhs ⟫ ≅ᴴ ⟪ C1Lᵗ-rhs ⟫
-  iso-C1L = force! (findIsoᵀ ⟪ C1Lᵗ-lhs ⟫ ⟪ C1Lᵗ-rhs ⟫) refl
-  iso-C3L : ⟪ C3Lᵗ-lhs ⟫ ≅ᴴ ⟪ C3Lᵗ-rhs ⟫
-  iso-C3L = force! (findIsoᵀ ⟪ C3Lᵗ-lhs ⟫ ⟪ C3Lᵗ-rhs ⟫) refl
-  iso-C1R : ⟪ C1Rᵗ-lhs ⟫ ≅ᴴ ⟪ C1Rᵗ-rhs ⟫
-  iso-C1R = force! (findIsoᵀ ⟪ C1Rᵗ-lhs ⟫ ⟪ C1Rᵗ-rhs ⟫) refl
-  iso-C3R : ⟪ C3Rᵗ-lhs ⟫ ≅ᴴ ⟪ C3Rᵗ-rhs ⟫
-  iso-C3R = force! (findIsoᵀ ⟪ C3Rᵗ-lhs ⟫ ⟪ C3Rᵗ-rhs ⟫) refl
-  iso-RS : ⟪ RSᵗ-lhs ⟫ ≅ᴴ ⟪ RSᵗ-rhs ⟫
-  iso-RS = force! (findIsoᵀ ⟪ RSᵗ-lhs ⟫ ⟪ RSᵗ-rhs ⟫) refl
+  -- one leaf, one line, with the search's success discharged by a refl-checked
+  -- equation and never by an inferred witness (the `Decomp.step!` idiom).
+  solve! : ∀ {A B} (f g : HomTerm A B)
+         → is-just (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫) ≡ true → f ≈Term g
+  solve! f g ok = soundness {f = f} {g = g} (force! (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫) ok)
 
 C1Lᵗ : C1Lᵗ-lhs ≈Term C1Lᵗ-rhs
-C1Lᵗ = soundness {f = C1Lᵗ-lhs} {g = C1Lᵗ-rhs} iso-C1L
+C1Lᵗ = solve! C1Lᵗ-lhs C1Lᵗ-rhs refl
 C3Lᵗ : C3Lᵗ-lhs ≈Term C3Lᵗ-rhs
-C3Lᵗ = soundness {f = C3Lᵗ-lhs} {g = C3Lᵗ-rhs} iso-C3L
+C3Lᵗ = solve! C3Lᵗ-lhs C3Lᵗ-rhs refl
 C1Rᵗ : C1Rᵗ-lhs ≈Term C1Rᵗ-rhs
-C1Rᵗ = soundness {f = C1Rᵗ-lhs} {g = C1Rᵗ-rhs} iso-C1R
+C1Rᵗ = solve! C1Rᵗ-lhs C1Rᵗ-rhs refl
 C3Rᵗ : C3Rᵗ-lhs ≈Term C3Rᵗ-rhs
-C3Rᵗ = soundness {f = C3Rᵗ-lhs} {g = C3Rᵗ-rhs} iso-C3R
+C3Rᵗ = solve! C3Rᵗ-lhs C3Rᵗ-rhs refl
 RSᵗ : RSᵗ-lhs ≈Term RSᵗ-rhs
-RSᵗ = soundness {f = RSᵗ-lhs} {g = RSᵗ-rhs} iso-RS
+RSᵗ = solve! RSᵗ-lhs RSᵗ-rhs refl
 
 --------------------------------------------------------------------------------
 -- Transport into an arbitrary SMC.
