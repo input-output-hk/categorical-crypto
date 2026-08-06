@@ -31,7 +31,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (flatten; range; map-lookup-range)
+  using (flatten; range; module hGenSwap-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique
   sig using (Linear⇒cod-Unique)
@@ -50,9 +50,8 @@ open import Categories.Morphism.Reasoning SCat using (pullʳ)
 
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; []; _∷_; _++_; map; length; lookup)
+open import Data.List using (List; []; _∷_; _++_; map; length)
 open import Data.List.Properties using (++-identityʳ; ++-assoc; map-++)
-open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Product using (proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
@@ -215,22 +214,9 @@ module _
 
       -- `Hf.dom = Lblk ++ Rblk`, `Hf.cod = Rblk ++ Lblk` (definitional).
 
-      -- per-block vertex-label evaluations (re-derived as in FromAPROP).
-      open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
-      open import Data.Sum using ([_,_]′)
-
-      nA = length (flatten A)
-      nB = length (flatten B)
-
-      vlab-inL : ∀ (i : Fin nA) → Hf.vlab (i ↑ˡ nB) ≡ lookup (flatten A) i
-      vlab-inL i = cong [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt-↑ˡ nA i nB)
-      vlab-inR : ∀ (i : Fin nB) → Hf.vlab (nA ↑ʳ i) ≡ lookup (flatten B) i
-      vlab-inR i = cong [ lookup (flatten A) , lookup (flatten B) ]′ (splitAt-↑ʳ nA nB i)
-
-      mLblk≡ : map Hf.vlab Lblk ≡ flatten A
-      mLblk≡ = trans (map-∘-cong vlab-inL (range nA)) (map-lookup-range (flatten A))
-      mRblk≡ : map Hf.vlab Rblk ≡ flatten B
-      mRblk≡ = trans (map-∘-cong vlab-inR (range nB)) (map-lookup-range (flatten B))
+      -- per-block vertex-label evaluations: `Hf.vlab` IS `hGenSwap-impl`'s
+      -- `vlab-c` (`⟪ σ ⟫ = hSwap A B`), so its own `lem-L`/`lem-R` apply.
+      open hGenSwap-impl A B using (lem-L; lem-R)
 
       -- the canonical derivation `dom ↭ cod`.
       bsw : Hf.dom ↭ Hf.cod
@@ -286,7 +272,7 @@ module _
                     (trans (sym (map-++ Hf.vlab Rblk Lblk)) (⟪⟫-codL f))
                 (σˢ (map Hf.vlab Lblk) (map Hf.vlab Rblk))
               ≈ˢ σˢ (flatten A) (flatten B)
-      σblk≈ = go mLblk≡ mRblk≡ _ _
+      σblk≈ = go lem-L lem-R _ _
         where
           go : ∀ {ml mr} (eL : ml ≡ flatten A) (eR : mr ≡ flatten B)
                  (P : ml ++ mr ≡ flatten A ++ flatten B)
