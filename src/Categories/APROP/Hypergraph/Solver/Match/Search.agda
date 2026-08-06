@@ -36,10 +36,11 @@ open import Categories.APROP.Hypergraph.Solver.Match.PBij
   using (PBij; forward; extend-bij; pairUp)
 open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec using (flat-match-subst)
 
+open import Data.Bool.Base using (not)
 open import Data.Fin using (Fin; zero; suc)
-open import Data.List.Base using (List; []; _∷_; _++_; head; map; mapMaybe)
+open import Data.List.Base using (List; []; _∷_; _++_; head; map; mapMaybe; findᵇ)
 open import Data.List.Properties using (≡-dec)
-open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
+open import Data.Maybe.Base using (Maybe; just; nothing; is-just; _>>=_)
 open import Data.Nat using (ℕ; _*_)
 open import Data.Product using (_×_; _,_)
 open import Relation.Binary.PropositionalEquality using (sym)
@@ -58,13 +59,7 @@ _≟L_ = ≡-dec _≟X_
 -- all edges are matched (the search exit condition).
 
 firstUnmatched : ∀ {nEH nEJ} → PBij nEH nEJ → Maybe (Fin nEH)
-firstUnmatched {nEH} ψ = go nEH (λ i → i)
-  where
-    go : (count : ℕ) → (Fin count → Fin nEH) → Maybe (Fin nEH)
-    go ℕ.zero    _   = nothing
-    go (ℕ.suc n) inj with forward ψ (inj zero)
-    ... | nothing = just (inj zero)
-    ... | just _  = go n (λ i → inj (suc i))
+firstUnmatched {nEH} ψ = findᵇ (λ e → not (is-just (forward ψ e))) (range nEH)
 
 module _
          (H J : Hypergraph FlatGen) where
