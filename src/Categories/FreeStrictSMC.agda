@@ -583,36 +583,37 @@ module Build
                      (≈̂-sym (cast-≈̂ {p = sym (map-++ vlab as us)}
                                     {q = sym (map-++ vlab cs ws)}))))
 
-    ⊗-assocᵛ
-      : ∀ {as bs us vs ps qs}
-          (f : HomV as bs) (g : HomV us vs) (h : HomV ps qs)
-      → castᵛ (++-assoc as us ps) (++-assoc bs vs qs) ((f ⊗ᵛ g) ⊗ᵛ h)
-        ≈ᵛ f ⊗ᵛ (g ⊗ᵛ h)
-    ⊗-assocᵛ {as} {bs} {us} {vs} {ps} {qs} f g h =
-      ≈̂⇒≈ˢ
-        (≈̂-trans lhs≈
-        (≈̂-trans (≈̂-trans (≈̂-sym (cast-≈̂ {p = ++-assoc (m as) (m us) (m ps)}
-                                          {q = ++-assoc (m bs) (m vs) (m qs)}))
-                          (≈ˢ⇒≈̂ (⊗-assocˢ f g h)))
-                 (≈̂-sym rhs≈)))
-      where
-        lhs≈ : castᵛ (++-assoc as us ps) (++-assoc bs vs qs) ((f ⊗ᵛ g) ⊗ᵛ h)
-               ≈̂ ((f ⊗ˢ g) ⊗ˢ h)
-        lhs≈ =
-          ≈̂-trans (castᵛ-≈̂ (++-assoc as us ps) (++-assoc bs vs qs)
-                    ((f ⊗ᵛ g) ⊗ᵛ h))
-          (≈̂-trans (cast-≈̂ {p = sym (map-++ vlab (as ++ us) ps)}
-                           {q = sym (map-++ vlab (bs ++ vs) qs)})
-                   (⊗-resp-≈̂ (cast-≈̂ {p = sym (map-++ vlab as us)}
-                                     {q = sym (map-++ vlab bs vs)}) ≈̂-refl))
+    private
+      ⊗-assocᵛ
+        : ∀ {as bs us vs ps qs}
+            (f : HomV as bs) (g : HomV us vs) (h : HomV ps qs)
+        → castᵛ (++-assoc as us ps) (++-assoc bs vs qs) ((f ⊗ᵛ g) ⊗ᵛ h)
+          ≈ᵛ f ⊗ᵛ (g ⊗ᵛ h)
+      ⊗-assocᵛ {as} {bs} {us} {vs} {ps} {qs} f g h =
+        ≈̂⇒≈ˢ
+          (≈̂-trans lhs≈
+          (≈̂-trans (≈̂-trans (≈̂-sym (cast-≈̂ {p = ++-assoc (m as) (m us) (m ps)}
+                                            {q = ++-assoc (m bs) (m vs) (m qs)}))
+                            (≈ˢ⇒≈̂ (⊗-assocˢ f g h)))
+                   (≈̂-sym rhs≈)))
+        where
+          lhs≈ : castᵛ (++-assoc as us ps) (++-assoc bs vs qs) ((f ⊗ᵛ g) ⊗ᵛ h)
+                 ≈̂ ((f ⊗ˢ g) ⊗ˢ h)
+          lhs≈ =
+            ≈̂-trans (castᵛ-≈̂ (++-assoc as us ps) (++-assoc bs vs qs)
+                      ((f ⊗ᵛ g) ⊗ᵛ h))
+            (≈̂-trans (cast-≈̂ {p = sym (map-++ vlab (as ++ us) ps)}
+                             {q = sym (map-++ vlab (bs ++ vs) qs)})
+                     (⊗-resp-≈̂ (cast-≈̂ {p = sym (map-++ vlab as us)}
+                                       {q = sym (map-++ vlab bs vs)}) ≈̂-refl))
 
-        rhs≈ : f ⊗ᵛ (g ⊗ᵛ h) ≈̂ (f ⊗ˢ (g ⊗ˢ h))
-        rhs≈ =
-          ≈̂-trans (cast-≈̂ {p = sym (map-++ vlab as (us ++ ps))}
-                          {q = sym (map-++ vlab bs (vs ++ qs))})
-                  (⊗-resp-≈̂ ≈̂-refl
-                     (cast-≈̂ {p = sym (map-++ vlab us ps)}
-                             {q = sym (map-++ vlab vs qs)}))
+          rhs≈ : f ⊗ᵛ (g ⊗ᵛ h) ≈̂ (f ⊗ˢ (g ⊗ˢ h))
+          rhs≈ =
+            ≈̂-trans (cast-≈̂ {p = sym (map-++ vlab as (us ++ ps))}
+                            {q = sym (map-++ vlab bs (vs ++ qs))})
+                    (⊗-resp-≈̂ ≈̂-refl
+                       (cast-≈̂ {p = sym (map-++ vlab us ps)}
+                               {q = sym (map-++ vlab vs qs)}))
 
     ⊗-unitʳᵛ
       : ∀ {as bs} (f : HomV as bs)
