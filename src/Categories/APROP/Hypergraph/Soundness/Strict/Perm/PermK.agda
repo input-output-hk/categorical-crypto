@@ -27,7 +27,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _�
   using (module Support)
 
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermDischarge X _≟X_ as PD
-import Categories.APROP.Hypergraph.Soundness.Strict.Braid X _≟X_ as BR
+import Categories.APROP.Hypergraph.Soundness.Strict.Perm.Braid X _≟X_ as BR
 
 open import Data.List using (List)
 

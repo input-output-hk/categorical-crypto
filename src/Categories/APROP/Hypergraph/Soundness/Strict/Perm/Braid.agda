@@ -23,7 +23,7 @@
 
 open import Relation.Binary using (DecidableEquality)
 
-module Categories.APROP.Hypergraph.Soundness.Strict.Braid
+module Categories.APROP.Hypergraph.Soundness.Strict.Perm.Braid
   (X : Set) (_≟X_ : DecidableEquality X)
   where
 

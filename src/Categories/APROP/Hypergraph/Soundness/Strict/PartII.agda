@@ -17,7 +17,7 @@
 --     witnesses derive into the `Unique` codomain `cod ⟪f⟫`);
 --   * the cross-iso decoder agreement `IsoTransport.decode-ordˢ-resp-iso`,
 --     which assembles the order-theory core `order-invariantˢ`
---     (`IsoInvarianceConcrete`) with the strict cross-iso transport residual,
+--     (now local to `IsoTransport`) with the strict cross-iso transport residual,
 --     fed the (N) per-swap `RunInterchangeˢ` witness `run-interchange-H`
 --     built below from the UNCONDITIONAL `FireMid.run-interchange₀ˢ` and
 --     `Interchange.RunInterchangeTail.run-interchange-tailˢ` — exactly as the

@@ -225,7 +225,7 @@ module _
 
 --------------------------------------------------------------------------------
 -- ## The UNCONDITIONAL ⊗-shape at the CONCRETE Kelly residual `PK.permˢ-K`
--- (axiom-free, discharged by `Strict.Perm.PermK` ⇐ `Strict.Braid`).  This has
+-- (axiom-free, discharged by `Strict.Perm.PermK` ⇐ `Strict.Perm.Braid`).  This has
 -- the EXACT type of `PartI`'s / `Soundness`'s `decodePˢ-⊗` parameter, so
 -- it closes the last residual of the strict soundness assembly.
 

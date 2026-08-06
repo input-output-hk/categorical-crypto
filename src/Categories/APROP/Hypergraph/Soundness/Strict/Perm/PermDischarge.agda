@@ -41,7 +41,7 @@ open Perm using (_↭_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.FinBij using (_≈-fb_)
 
-import Categories.APROP.Hypergraph.Soundness.Strict.Braid X _≟X_ as BR
+import Categories.APROP.Hypergraph.Soundness.Strict.Perm.Braid X _≟X_ as BR
 
 --------------------------------------------------------------------------------
 -- The element-level inductive congruence `_≅↭ⁱ_` and its combinatorial

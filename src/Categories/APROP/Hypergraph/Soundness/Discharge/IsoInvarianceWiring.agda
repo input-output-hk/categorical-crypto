@@ -9,7 +9,7 @@
 -- boundary identifications + ψ-pullback order `τ` and its no-inversion
 -- transport `NoInv-τ` (Lemma 4).  The analytic steps (`swap-≈`,
 -- `order-invariant`, `iso-transport`) live downstream in
--- `IsoInvarianceConcrete` / `SwapStep` / `IsoTransport`.
+-- `SwapStep` / `IsoTransport`.
 {-# OPTIONS --safe --without-K #-}
 
 open import Categories.APROP
@@ -87,8 +87,8 @@ module PerHG (H : Hypergraph FlatGen) where
   --
   -- NOTE (weak-decoder demotion, Review-2 F2): the CONCRETE order-indexed
   -- decoder `decodeOrd` (`permute-via-vlab H.vlab p ∘ proj₂ (process-edges …)`)
-  -- had zero live consumers — downstream (`IsoInvarianceConcrete`,
-  -- `IsoTransport`, `SwapStep`, `PartII`) uses only `Order`/`Valid`
+  -- had zero live consumers — downstream (`IsoTransport`, `SwapStep`,
+  -- `PartII`) uses only `Order`/`Valid`
   -- and the strict twin `decodeOrdˢ`.  It has been deleted with the weak
   -- morphism apparatus; only this stack-level `Valid` witness survives.
   Valid : Order → Set
