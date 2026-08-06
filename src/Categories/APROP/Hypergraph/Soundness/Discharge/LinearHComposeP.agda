@@ -41,6 +41,7 @@ open import Data.List.Properties using
   ; tabulate-cong; map-tabulate; concat-map; concat-++)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
+open import Data.List.Membership.Propositional.Properties using (∈-lookup)
 import Data.List.Relation.Unary.All as All
 import Data.List.Relation.Unary.AllPairs as AllPairs
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
@@ -60,7 +61,7 @@ open import Relation.Binary.PropositionalEquality using (_≢_)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
   using ( count-cons-yes; count-cons-no
-        ; count-mono-cons; count-map-resp)
+        ; count-mono-cons; count-map-resp; ∈→count-pos)
 
 private
 
@@ -426,14 +427,11 @@ module _
                               (lookup-count-pos K.dom i
                                 (classify-inj₁-lookup K.dom k i cls))))
       where
-        -- `lookup xs i ≡ k` ⇒ `0 < count k xs`.
+        -- `lookup xs i ≡ k` ⇒ `0 < count k xs`: `∈→count-pos ∘ ∈-lookup`.
         lookup-count-pos : ∀ (xs : List (Fin K.nV)) (i : Fin (length xs)) {k}
                          → lookup xs i ≡ k → 0 Nat.< count k xs
-        lookup-count-pos (x ∷ xs) zero    {k} eq =
-          subst (λ z → 0 Nat.< count k (z ∷ xs)) (sym eq)
-            (subst (0 Nat.<_) (sym (count-cons-yes k xs)) (s≤s z≤n))
-        lookup-count-pos (x ∷ xs) (suc i) {k} eq =
-          Nat.<-≤-trans (lookup-count-pos xs i eq) (count-mono-cons k x xs)
+        lookup-count-pos xs i {k} eq =
+          subst (λ z → 0 Nat.< count z xs) eq (∈→count-pos (∈-lookup {xs = xs} i))
 
     -- Only K.dom members route to `↑ˡ`-slots (injL).
     remapP-injL→inDom : ∀ (k : Fin K.nV) (i : Fin G.nV) → remapP k ≡ injL i → 0 Nat.< count k K.dom
