@@ -21,7 +21,6 @@ import Categories.Category.Monoidal.Braided.Properties
 
 import Categories.Category.Monoidal.Utilities as U
 
-open import Categories.Tactic.Category
 import Categories.GConstructionCoherence as GCoh
 import Categories.GConstructionIdentityCoherence as GCohId
 
