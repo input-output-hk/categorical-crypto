@@ -7,8 +7,8 @@
 -- This assembles the located normal-form pieces:
 -- the per-order located normal forms `nf-genᵛ` (a single, block-symmetric
 -- single-order chase), instantiated for the two firing orders, then threaded
--- through `cross-NFᵛ`
--- with the proven `vin-cohᵛ`/`vout-cohᵛ` (FMS2) to give the both-fire core
+-- through `cross-NFᵛ` with the proven `vin-cohᵛ`/`vout-cohᵛ` (FMS2) to give
+-- the both-fire core
 -- `fire-mid-interchangeˢ`.  Instantiating `SwapCoreRun.RunInterchange` with
 -- it yields the UNCONDITIONAL `run-interchange₀ˢ`.  The whole assembly runs
 -- in the `Restrict` layer (F7): the located block shapes `(A ++ A') ++ Rl`
@@ -276,13 +276,13 @@ module _ (H : Hypergraph FlatGen)
   -- SwapCore brick aliases.
   fire-termˢ′ = fire-termˢ H
 
-  -- The thin wiring-groupoid calculus (F11): ⟦absorbˡ⟧/⟦absorbʳ⟧/⟦frameˡ⟧ᵛ/
-  -- ⟦bswap⟧ᵛ + rigid-≈̂.
+  -- The thin wiring-groupoid calculus (F11): ⟦absorbˡ⟧/⟦absorbʳ⟧/⟦bswap⟧ᵛ +
+  -- rigid-≈̂.
   open PC.Kit H permˢ-K
-    using (⟦absorbˡ⟧; ⟦absorbʳ⟧; ⟦frameˡ⟧ᵛ; ⟦bswap⟧ᵛ; rigid-≈̂)
+    using (⟦absorbˡ⟧; ⟦absorbʳ⟧; ⟦bswap⟧ᵛ; rigid-≈̂)
 
   open Restrict (Fin H.nV) vl
-    using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ
+    using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; permuteᵛ-frameˡ
           ; castᵛ-≈̂; cast-respᵛ; ∘-castᵛ
           ; ⊗-respᵛ; interchangeᵛ; ⊗id-distᵛ; box-suffix-ᵛ; σ-natᵛ )
 
@@ -323,7 +323,7 @@ module _ (H : Hypergraph FlatGen)
     fire-locatedᵛ e s rest C Rl perm q =
       ≈-trans (edge-step-firedᵛ e rest perm)
       (≈-trans (∘-resp (box-resid3ᵛ′ e {rest} {C} {Rl} q) ≈-refl)
-      (pullʳ (pullʳ (∘-resp (≈-sym (⟦frameˡ⟧ᵛ (H.ein e) q)) ≈-refl))))
+      (pullʳ (pullʳ (∘-resp (≈-sym (permuteᵛ-frameˡ (H.ein e) q)) ≈-refl))))
 
     -- The block-bracketed box merge.  The two located boxes (front box `g`
     -- on residual `A' ++ Rl`, back box `g'` on residual `B ++ Rl`) with the
@@ -460,7 +460,7 @@ module _ (H : Hypergraph FlatGen)
 
       MID-eq : IN2 ∘ᵛ OUT1 ≈ᵛ Mid
       MID-eq =
-        ≈-trans (∘-resp ≈-refl (≈-sym (⟦frameˡ⟧ᵛ B (Perm.↭-sym ρ₁))))
+        ≈-trans (∘-resp ≈-refl (≈-sym (permuteᵛ-frameˡ B (Perm.↭-sym ρ₁))))
           (≈̂⇒≈ˢ
             (≈̂-trans (rigid-≈̂ us-mid-img mid-comp bridgeD)
             (≈̂-trans (⟦absorbʳ⟧ (sym (++-assoc B A' R)))
@@ -525,7 +525,7 @@ module _ (H : Hypergraph FlatGen)
       out-eq : OUT2 ∘ᵛ out-part ≈ᵛ Lout
       out-eq = ≈̂⇒≈ˢ
         (≈̂-trans
-          (∘-resp-≈̂ (≈̂-sym (≈ˢ⇒≈̂ (⟦frameˡ⟧ᵛ B' (Perm.↭-sym ρ₂))))
+          (∘-resp-≈̂ (≈̂-sym (≈ˢ⇒≈̂ (permuteᵛ-frameˡ B' (Perm.↭-sym ρ₂))))
             (≈̂-trans (castᵛ-≈̂ refl (++-assoc B' B R) σ-out)
               (≈̂-sym (≈̂-trans (⟦absorbˡ⟧ (++-assoc B' B R))
                               (≈ˢ⇒≈̂ (⟦bswap⟧ᵛ B B' R))))))

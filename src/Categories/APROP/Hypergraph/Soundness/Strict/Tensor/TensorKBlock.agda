@@ -58,7 +58,8 @@ module TKBBase (H : Hypergraph FlatGen) where
   open Dec.StrictDecoder H public
 
   open Restrict (Fin H.nV) vl public
-    using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; castᵛ-≈̂; castᵛ-perm
+    using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; permuteᵛ-frameˡ
+          ; castᵛ-≈̂; castᵛ-perm
           ; ⊗-respᵛ; ⊗-idᵛ; id⊗-distᵛ; ⊗id-distᵛ; box-conjᵛ; ⊗-assoc-≈̂ᵛ
           ; box-suffix-≈̂ᵛ )
 
@@ -84,7 +85,7 @@ module TKB2 (H : Hypergraph FlatGen) where
   open EdgeStepView H public using (fire-termˢ)
 
   module _ (permˢ-K : Kmod.PermK) where
-    -- The thin wiring-groupoid calculus (F11): ⟦bswap⟧ᵛ/⟦frameˡ⟧ᵛ/⟦absorbˡ⟧ +
+    -- The thin wiring-groupoid calculus (F11): ⟦bswap⟧ᵛ/⟦absorbˡ⟧ +
     -- rigid-≈̂.
     open PC.Kit H permˢ-K
 
@@ -243,7 +244,7 @@ module TKB2 (H : Hypergraph FlatGen) where
       -- and the located layer permute is the canonical inner box.  The box
       -- re-bracketing is `⊗-assoc-≈̂ᵛ`; the wiring is rigid (`rigid-≈̂` on the
       -- `Unique` input stack), with `⟦bswap⟧ᵛ` presenting the σ-block and
-      -- `⟦frameˡ⟧ᵛ` the frame.
+      -- `permuteᵛ-frameˡ` the frame.
       mid-in-canon
         : ∀ (e : Fin H.nE) (L xs rest : List (Fin H.nV))
             (perm' : (L ++ xs) Perm.↭ H.ein e ++ (L ++ rest))
@@ -268,7 +269,7 @@ module TKB2 (H : Hypergraph FlatGen) where
                             (ibraid e L rest))
                 (Perm.trans (PermProp.++⁺ˡ L p) (Perm.↭-reflexive (brkL e L rest))))
               (≈̂-trans (⟦absorbˡ⟧ (brkL e L rest))
-                       (≈ˢ⇒≈̂ (⟦frameˡ⟧ᵛ L p))))
+                       (≈ˢ⇒≈̂ (permuteᵛ-frameˡ L p))))
 
     ----------------------------------------------------------------------
     -- ## (b) `fire-slideˢ` — the single fired box slides past `L`.

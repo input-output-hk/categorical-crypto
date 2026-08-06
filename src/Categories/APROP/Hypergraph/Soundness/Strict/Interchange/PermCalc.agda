@@ -19,7 +19,7 @@
 --
 -- The bridges are `≈̂`-restatements of EXISTING lemmas:
 --   ⟦absorbˡ⟧/⟦absorbʳ⟧ — a reindexing factor is absorbed (`idˡ`/`idʳ`)
---   ⟦frameˡ⟧    — `FreeStrictSMC.Perm′.permuteˢ-frameˡ`  (+ its V face ⟦frameˡ⟧ᵛ)
+--   ⟦frameˡ⟧    — `FreeStrictSMC.Perm′.permuteˢ-frameˡ`
 --   ⟦frameʳ⟧    — `FreeStrictSMC.Perm′.permuteˢ-frame`
 --   ⟦bswap⟧ᵛ    — `BlockSwapComm.swap-block`
 --   rigid-≈̂     — `SwapCore.perm-rigidˢ`   (the rigidity discharge)
@@ -50,7 +50,6 @@ open import Data.List using (List; map)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-open import Data.List.Properties using (map-++)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 --------------------------------------------------------------------------------
@@ -97,13 +96,6 @@ module Kit (H : Hypergraph FlatGen)
     : ∀ (ls : List (Fin H.nV)) {xs ys : List (Fin H.nV)} (p : xs Perm.↭ ys)
     → permuteˢ (PermProp.++⁺ˡ ls p) ≈̂ idˢ {m ls} ⊗ˢ permuteˢ p
   ⟦frameˡ⟧ ls p = ≈̂-trans (≈̂-sym cast-≈̂) (≈ˢ⇒≈̂ (perm-frameˡ′ ls p))
-
-  -- …and its V-level face, where the frame IS `idᵛ ⊗ᵛ_` (no cast to peel).
-  ⟦frameˡ⟧ᵛ
-    : ∀ (ls : List (Fin H.nV)) {xs ys : List (Fin H.nV)} (p : xs Perm.↭ ys)
-    → permuteᵛ (PermProp.++⁺ˡ ls p) ≈ᵛ idᵛ {ls} ⊗ᵛ permuteᵛ p
-  ⟦frameˡ⟧ᵛ ls {xs} {ys} p =
-    cast-flip (map-++ vl ls xs) (map-++ vl ls ys) (perm-frameˡ′ ls p)
 
   ------------------------------------------------------------------------
   -- ⟦frameʳ⟧ : a `++⁺ʳ R` frame becomes a `_⊗ˢ idˢ` frame.
