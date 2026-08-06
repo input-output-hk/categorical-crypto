@@ -119,7 +119,7 @@ module StrictDecoder (H : Hypergraph FlatGen) where
 
   open Restrict (Fin H.nV) vl
     using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ; permuteᵛ-frame
-          ; castᵛ-≈̂; ⊗-respᵛ; ⊗-resp-≈̂ᵛ; ⊗-idᵛ; interchangeᵛ; ⊗id-distᵛ
+          ; castᵛ-≈̂; ⊗ᵛ-≈̂; ⊗-respᵛ; ⊗-resp-≈̂ᵛ; ⊗-idᵛ; interchangeᵛ; ⊗id-distᵛ
           ; box-suffix-≈̂ᵛ; cast-idᵛ )
 
   -- the fired layer, at V level: a box on `ein e` framed by the residual,
@@ -142,8 +142,7 @@ module StrictDecoder (H : Hypergraph FlatGen) where
     ≈̂⇒≈ˢ
       (≈̂-trans (cast-≈̂ {p = refl} {q = sym (map-++ vl (H.eout e) rest)})
                (∘-resp-≈̂
-                 (≈̂-sym (cast-≈̂ {p = sym (map-++ vl (H.ein e) rest)}
-                                {q = sym (map-++ vl (H.eout e) rest)}))
+                 (≈̂-sym (⊗ᵛ-≈̂ (genˢ (H.elab e)) (idᵛ {rest})))
                  (cast-≈̂ {p = refl} {q = map-++ vl (H.ein e) rest})))
 
   -- `process-edgesˢ` respects propositional stack equality (UIP-trivially)

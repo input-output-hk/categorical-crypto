@@ -537,17 +537,28 @@ module Build
       → castᵛ q r g ∘ᵛ castᵛ p q f ≈ᵛ castᵛ p r (g ∘ᵛ f)
     ∘-castᵛ refl refl refl g f = ≈-refl
 
+    -- the two OPERATOR faces of the kit: `_⊗ᵛ_` and `σᵛ` are themselves `castˢ`s
+    -- along the `map-++` endpoint proofs, so each is heterogeneously equal to
+    -- its ˢ-level content — `cast-≈̂` at exactly the endpoints the operator
+    -- inserts.  The factors are explicit because that pins the same information
+    -- the hand-spelled `{p}`/`{q}` used to (see the discipline note above).
+    ⊗ᵛ-≈̂ : ∀ {as bs us vs} (f : HomV as bs) (g : HomV us vs)
+         → (f ⊗ᵛ g) ≈̂ (f ⊗ˢ g)
+    ⊗ᵛ-≈̂ {as} {bs} {us} {vs} f g =
+      cast-≈̂ {p = sym (map-++ vlab as us)} {q = sym (map-++ vlab bs vs)}
+
+    σᵛ-≈̂ : ∀ as bs → σᵛ as bs ≈̂ σˢ (m as) (m bs)
+    σᵛ-≈̂ as bs =
+      cast-≈̂ {p = sym (map-++ vlab as bs)} {q = sym (map-++ vlab bs as)}
+
     -- `_⊗ᵛ_`/`castᵛ` congruences for `≈̂` chains (the `⊗ᵛ`/`castᵛ` casts peel)
     ⊗-resp-≈̂ᵛ
       : ∀ {as bs us vs as' bs' us' vs'}
           {f : HomV as bs} {f' : HomV as' bs'}
           {g : HomV us vs} {g' : HomV us' vs'}
       → f ≈̂ f' → g ≈̂ g' → (f ⊗ᵛ g) ≈̂ (f' ⊗ᵛ g')
-    ⊗-resp-≈̂ᵛ {as} {bs} {us} {vs} {as'} {bs'} {us'} {vs'} ef eg =
-      ≈̂-trans (cast-≈̂ {p = sym (map-++ vlab as us)} {q = sym (map-++ vlab bs vs)})
-      (≈̂-trans (⊗-resp-≈̂ ef eg)
-               (≈̂-sym (cast-≈̂ {p = sym (map-++ vlab as' us')}
-                              {q = sym (map-++ vlab bs' vs')})))
+    ⊗-resp-≈̂ᵛ {f = f} {f'} {g} {g'} ef eg =
+      ≈̂-trans (⊗ᵛ-≈̂ f g) (≈̂-trans (⊗-resp-≈̂ ef eg) (≈̂-sym (⊗ᵛ-≈̂ f' g')))
 
     castᵛ-≈̂
       : ∀ {as as' bs bs'} (p : as ≡ as') (q : bs ≡ bs') (t : HomV as bs)
@@ -574,14 +585,10 @@ module Build
       : ∀ {as bs cs us vs ws}
           {f : HomV bs cs} {g : HomV vs ws} {f' : HomV as bs} {g' : HomV us vs}
       → (f ⊗ᵛ g) ∘ᵛ (f' ⊗ᵛ g') ≈ᵛ (f ∘ᵛ f') ⊗ᵛ (g ∘ᵛ g')
-    interchangeᵛ {as} {bs} {cs} {us} {vs} {ws} =
-      ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ (cast-≈̂ {p = sym (map-++ vlab bs vs)}
-                                       {q = sym (map-++ vlab cs ws)})
-                               (cast-≈̂ {p = sym (map-++ vlab as us)}
-                                       {q = sym (map-++ vlab bs vs)}))
+    interchangeᵛ {f = f} {g} {f'} {g'} =
+      ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ (⊗ᵛ-≈̂ f g) (⊗ᵛ-≈̂ f' g'))
             (≈̂-trans (≈ˢ⇒≈̂ interchangeˢ)
-                     (≈̂-sym (cast-≈̂ {p = sym (map-++ vlab as us)}
-                                    {q = sym (map-++ vlab cs ws)}))))
+                     (≈̂-sym (⊗ᵛ-≈̂ (f ∘ᵛ f') (g ∘ᵛ g')))))
 
     private
       ⊗-assocᵛ
@@ -602,18 +609,13 @@ module Build
           lhs≈ =
             ≈̂-trans (castᵛ-≈̂ (++-assoc as us ps) (++-assoc bs vs qs)
                       ((f ⊗ᵛ g) ⊗ᵛ h))
-            (≈̂-trans (cast-≈̂ {p = sym (map-++ vlab (as ++ us) ps)}
-                             {q = sym (map-++ vlab (bs ++ vs) qs)})
-                     (⊗-resp-≈̂ (cast-≈̂ {p = sym (map-++ vlab as us)}
-                                       {q = sym (map-++ vlab bs vs)}) ≈̂-refl))
+            (≈̂-trans (⊗ᵛ-≈̂ (f ⊗ᵛ g) h)
+                     (⊗-resp-≈̂ (⊗ᵛ-≈̂ f g) ≈̂-refl))
 
           rhs≈ : f ⊗ᵛ (g ⊗ᵛ h) ≈̂ (f ⊗ˢ (g ⊗ˢ h))
           rhs≈ =
-            ≈̂-trans (cast-≈̂ {p = sym (map-++ vlab as (us ++ ps))}
-                            {q = sym (map-++ vlab bs (vs ++ qs))})
-                    (⊗-resp-≈̂ ≈̂-refl
-                       (cast-≈̂ {p = sym (map-++ vlab us ps)}
-                               {q = sym (map-++ vlab vs qs)}))
+            ≈̂-trans (⊗ᵛ-≈̂ f (g ⊗ᵛ h))
+                    (⊗-resp-≈̂ ≈̂-refl (⊗ᵛ-≈̂ g h))
 
     ⊗-unitʳᵛ
       : ∀ {as bs} (f : HomV as bs)
@@ -621,8 +623,7 @@ module Build
     ⊗-unitʳᵛ {as} {bs} f =
       ≈̂⇒≈ˢ
         (≈̂-trans (castᵛ-≈̂ (++-identityʳ as) (++-identityʳ bs) (f ⊗ᵛ idᵛ {[]}))
-        (≈̂-trans (cast-≈̂ {p = sym (map-++ vlab as [])}
-                         {q = sym (map-++ vlab bs [])})
+        (≈̂-trans (⊗ᵛ-≈̂ f (idᵛ {[]}))
                  (≈̂-trans (≈̂-sym (cast-≈̂ {p = ++-identityʳ (m as)}
                                           {q = ++-identityʳ (m bs)}))
                           (≈ˢ⇒≈̂ (⊗-unitʳˢ f)))))
@@ -630,23 +631,14 @@ module Build
     σ-natᵛ
       : ∀ {as bs us vs} {f : HomV as bs} {g : HomV us vs}
       → σᵛ bs vs ∘ᵛ (f ⊗ᵛ g) ≈ᵛ (g ⊗ᵛ f) ∘ᵛ σᵛ as us
-    σ-natᵛ {as} {bs} {us} {vs} =
-      ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ (cast-≈̂ {p = sym (map-++ vlab bs vs)}
-                                       {q = sym (map-++ vlab vs bs)})
-                               (cast-≈̂ {p = sym (map-++ vlab as us)}
-                                       {q = sym (map-++ vlab bs vs)}))
+    σ-natᵛ {as} {bs} {us} {vs} {f} {g} =
+      ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ (σᵛ-≈̂ bs vs) (⊗ᵛ-≈̂ f g))
             (≈̂-trans (≈ˢ⇒≈̂ σ-natˢ)
-                     (≈̂-sym (∘-resp-≈̂ (cast-≈̂ {p = sym (map-++ vlab us as)}
-                                              {q = sym (map-++ vlab vs bs)})
-                                      (cast-≈̂ {p = sym (map-++ vlab as us)}
-                                              {q = sym (map-++ vlab us as)})))))
+                     (≈̂-sym (∘-resp-≈̂ (⊗ᵛ-≈̂ g f) (σᵛ-≈̂ as us)))))
 
     σ-σᵛ : ∀ {as bs} → σᵛ bs as ∘ᵛ σᵛ as bs ≈ᵛ idᵛ {as ++ bs}
     σ-σᵛ {as} {bs} =
-      ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ (cast-≈̂ {p = sym (map-++ vlab bs as)}
-                                       {q = sym (map-++ vlab as bs)})
-                               (cast-≈̂ {p = sym (map-++ vlab as bs)}
-                                       {q = sym (map-++ vlab bs as)}))
+      ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ (σᵛ-≈̂ bs as) (σᵛ-≈̂ as bs))
             (≈̂-trans (≈ˢ⇒≈̂ σ-σˢ)
                      (≈̂-sym (idˢ-≈̂ (map-++ vlab as bs)))))
 
@@ -666,8 +658,7 @@ module Build
         C = (σˢ a c ⊗ˢ idˢ {b}) ∘ˢ Cinner
 
         lhs≈ : σᵛ (as ++ bs) cs ≈̂ σˢ (m (as ++ bs)) c
-        lhs≈ = cast-≈̂ {p = sym (map-++ vlab (as ++ bs) cs)}
-                      {q = sym (map-++ vlab cs (as ++ bs))}
+        lhs≈ = σᵛ-≈̂ (as ++ bs) cs
 
         hexC : σˢ (a ++ b) c ≈̂ C
         hexC = ≈̂-trans (≈ˢ⇒≈̂ (σ-hexˢ a b c))
@@ -675,21 +666,16 @@ module Build
 
         leftC : (σᵛ as cs ⊗ᵛ idᵛ {bs}) ≈̂ (σˢ a c ⊗ˢ idˢ {b})
         leftC =
-          ≈̂-trans (cast-≈̂ {p = sym (map-++ vlab (as ++ cs) bs)}
-                          {q = sym (map-++ vlab (cs ++ as) bs)})
-                  (⊗-resp-≈̂ (cast-≈̂ {p = sym (map-++ vlab as cs)}
-                                    {q = sym (map-++ vlab cs as)}) ≈̂-refl)
+          ≈̂-trans (⊗ᵛ-≈̂ (σᵛ as cs) (idᵛ {bs}))
+                  (⊗-resp-≈̂ (σᵛ-≈̂ as cs) ≈̂-refl)
 
         rightC : castᵛ refl (sym (++-assoc as cs bs)) (idᵛ {as} ⊗ᵛ σᵛ bs cs)
                  ≈̂ Cinner
         rightC =
           ≈̂-trans
             (≈̂-trans (castᵛ-≈̂ refl (sym (++-assoc as cs bs)) (idᵛ {as} ⊗ᵛ σᵛ bs cs))
-            (≈̂-trans (cast-≈̂ {p = sym (map-++ vlab as (bs ++ cs))}
-                             {q = sym (map-++ vlab as (cs ++ bs))})
-                     (⊗-resp-≈̂ ≈̂-refl
-                        (cast-≈̂ {p = sym (map-++ vlab bs cs)}
-                                {q = sym (map-++ vlab cs bs)}))))
+            (≈̂-trans (⊗ᵛ-≈̂ (idᵛ {as}) (σᵛ bs cs))
+                     (⊗-resp-≈̂ ≈̂-refl (σᵛ-≈̂ bs cs))))
             (≈̂-sym (cast-≈̂ {p = refl} {q = sym (++-assoc a c b)}))
 
         rhs≈ : castᵛ (sym (++-assoc as bs cs)) (++-assoc cs as bs)
