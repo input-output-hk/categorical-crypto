@@ -224,9 +224,9 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   ----------------------------------------------------------------------
   -- ## The strict cross-vertex-type relabel `pvv-relabelˢ` (strict twin of
   -- the former non-strict `HomTermTransport.pvv-relabel`).  Routes a `Fin nJ`-level
-  -- permute of `map⁺ φ p` onto the `Fin nH`-level permute of `p` via §0
-  -- `permuteˢ-X` (both sides) + `permˢ-K-X`, whose evaluated-bijection
-  -- premise is the `eval-map⁺`/`subst₂-FinBij-∘` chain.
+  -- permute of `map⁺ φ p` onto the `Fin nH`-level permute of `p` by a four-case
+  -- `_≈̂_` induction over `p` — `map⁺ φ` is structural, so this is
+  -- functoriality, with no `permˢ-K`/`eval-↭`/`FinBij` machinery involved.
   --
   -- This is the SAME relabel as the ⊗-shape's; it lives standalone in
   -- `Strict.Tensor.TensorPVVRelabel` (imported above as `PVV`) so both the
