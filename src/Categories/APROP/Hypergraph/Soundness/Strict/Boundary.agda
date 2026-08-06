@@ -48,7 +48,10 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst₂)
 
 open import Categories.Category using (Category)
-open import Categories.Morphism.Reasoning SCat using (cancelˡ; elimʳ)
+-- `elim²ᵀ`/`inv-uniqueᵀ` used to be hand-rolled here because these two opens
+-- were missing: they ARE `cancelˡ` and `inv-resp` at the term-level category.
+open import Categories.Morphism.Reasoning FreeMonoidal using (cancelˡ)
+open import Categories.Morphism.Reasoning.Ext FreeMonoidal using (inv-resp)
 
 private
   module FM = Category FreeMonoidal
@@ -104,19 +107,6 @@ coe-conj
   → castˢ p q t ≈ˢ coe q ∘ˢ t ∘ˢ coe (sym p)
 coe-conj refl refl t = ≈-sym (≈-trans idˡ idʳ)
 
--- `(HomS , _≈ˢ_)`'s `Morphism.Reasoning` combinators.  `elim²` IS `cancelˡ`
--- and inverse-uniqueness is `elimʳ` + `cancelˡ`; both stay named here (and
--- `public`) because `DecodeSigma` consumes them under these names.
-elim²
-  : ∀ {as bs cs} {f : HomS as bs} {f' : HomS bs as} {h : HomS cs as}
-  → f' ∘ˢ f ≈ˢ idˢ → f' ∘ˢ (f ∘ˢ h) ≈ˢ h
-elim² e = cancelˡ e
-
-inv-uniqueˢ
-  : ∀ {as bs} {u : HomS as bs} {v w : HomS bs as}
-  → v ∘ˢ u ≈ˢ idˢ → u ∘ˢ w ≈ˢ idˢ → v ≈ˢ w
-inv-uniqueˢ e₁ e₂ = ≈-trans (≈-sym (elimʳ e₂)) (cancelˡ e₁)
-
 --------------------------------------------------------------------------------
 -- The strictification functor.
 
@@ -158,21 +148,6 @@ private
     ≈-Term-trans (BAFC.Worker.work A B C)
                  (α-form-cast (flatten A) (flatten B) (flatten C))
 
-  elim²ᵀ
-    : ∀ {A B C} {f : HomTerm A B} {f' : HomTerm B A} {h : HomTerm C A}
-    → f' ∘ f ≈Term id → f' ∘ (f ∘ h) ≈Term h
-  elim²ᵀ e = ≈-Term-trans (≈-Term-sym FM.assoc)
-               (≈-Term-trans (∘-resp-≈ e ≈-Term-refl) idˡ)
-
-  inv-uniqueᵀ
-    : ∀ {A B} {u : HomTerm A B} {v w : HomTerm B A}
-    → v ∘ u ≈Term id → u ∘ w ≈Term id → v ≈Term w
-  inv-uniqueᵀ e₁ e₂ =
-    ≈-Term-trans (≈-Term-sym idʳ)
-    (≈-Term-trans (∘-resp-≈ ≈-Term-refl (≈-Term-sym e₂))
-    (≈-Term-trans (≈-Term-sym FM.assoc)
-    (≈-Term-trans (∘-resp-≈ e₁ ≈-Term-refl) idˡ)))
-
 st-roundtrip : ∀ {A B} (f : HomTerm A B) → embF (st f) ≈Term bridge f
 st-roundtrip (Agen g)  = ≈-Term-refl
 st-roundtrip (id {A})  = ≈-Term-sym (bridge-id-is-id A)
@@ -200,7 +175,7 @@ st-roundtrip (α⇐ {A} {B} {C}) =
   ≈-Term-trans
     (≡⇒≈Term (embF-coe (sym P)))
     (≈-Term-sym
-      (inv-uniqueᵀ
+      (inv-resp
         -- bridge α⇐ ∘ bridge α⇒ ≈ id
         (≈-Term-trans (≈-Term-sym (bridge-∘ (α⇐ {A} {B} {C}) α⇒))
           (≈-Term-trans
@@ -208,7 +183,8 @@ st-roundtrip (α⇐ {A} {B} {C}) =
             (bridge-id-is-id _)))
         -- bridge α⇒ ∘ subst-id-cod (sym P) ≈ id
         (≈-Term-trans (∘-resp-≈ (bridge-α⇒-cast A B C) ≈-Term-refl)
-          (cod-cancel P))))
+          (cod-cancel P))
+        ≈-Term-refl))
   where P = ++-assoc (flatten A) (flatten B) (flatten C)
 st-roundtrip (σ {A} {B} ⦃ v≤v ⦄) = ≈-Term-sym (begin
   (T ∘ (from-B ⊗₁ from-A)) ∘ (σ ∘ ((to-A ⊗₁ to-B) ∘ F))
@@ -220,7 +196,7 @@ st-roundtrip (σ {A} {B} ⦃ v≤v ⦄) = ≈-Term-sym (begin
   T ∘ ((σ ∘ (from-A ⊗₁ from-B)) ∘ ((to-A ⊗₁ to-B) ∘ F))
     ≈⟨ refl⟩∘⟨ FM.assoc ⟩
   T ∘ (σ ∘ ((from-A ⊗₁ from-B) ∘ ((to-A ⊗₁ to-B) ∘ F)))
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ elim²ᵀ ⊗-iso-cancel ⟩
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ cancelˡ ⊗-iso-cancel ⟩
   T ∘ (σ ∘ F) ∎)
   where
     a = flatten A ; b = flatten B

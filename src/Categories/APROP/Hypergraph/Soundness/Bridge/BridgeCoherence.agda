@@ -20,6 +20,8 @@ open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
+open import Categories.Morphism.Reasoning FreeMonoidal
+  using (center; cancelʳ; cancelˡ; pullˡ; elim-center)
 open import Categories.Morphism.Reasoning.Ext FreeMonoidal using (inv-resp)
 open import Categories.Category.Monoidal.Properties Monoidal-FreeMonoidal
   using (module Kelly's)
@@ -49,29 +51,11 @@ open FM.HomReasoning
 bridge-∘
   : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
   → bridge (g ∘ f) ≈Term bridge g ∘ bridge f
-bridge-∘ {A} {B} {C} g f = ≈-Term-sym chain
-  where
-    F-C = _≅_.from (unflatten-flatten-≈ C)
-    F-B = _≅_.from (unflatten-flatten-≈ B)
-    T-B = _≅_.to   (unflatten-flatten-≈ B)
-    T-A = _≅_.to   (unflatten-flatten-≈ A)
-
-    chain : bridge g ∘ bridge f ≈Term bridge (g ∘ f)
-    chain = begin
-      (F-C ∘ g ∘ T-B) ∘ (F-B ∘ f ∘ T-A)
-        ≈⟨ FM.assoc ⟩
-      F-C ∘ (g ∘ T-B) ∘ (F-B ∘ f ∘ T-A)
-        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-      F-C ∘ g ∘ T-B ∘ F-B ∘ f ∘ T-A
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-      F-C ∘ g ∘ (T-B ∘ F-B) ∘ f ∘ T-A
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoˡ (unflatten-flatten-≈ B) ⟩∘⟨refl ⟩
-      F-C ∘ g ∘ id ∘ f ∘ T-A
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.identityˡ ⟩
-      F-C ∘ g ∘ f ∘ T-A
-        ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-      F-C ∘ (g ∘ f) ∘ T-A
-        ∎
+-- `cancelʳ (isoˡ B) : (g ∘ T-B) ∘ F-B ≈ g`, in the `center` of the composite;
+-- one `sym-assoc` then re-brackets `g ∘ (f ∘ T-A)` as `(g ∘ f) ∘ T-A`.
+bridge-∘ {B = B} g f =
+  ⟺ (center (cancelʳ (_≅_.isoˡ (unflatten-flatten-≈ B)))
+      ○ (refl⟩∘⟨ FM.sym-assoc))
 
 -- bridge-⊗: bridge distributes over tensor (modulo unflatten-++-≅ coherence).
 bridge-⊗
@@ -144,28 +128,24 @@ bridge-inv-id {A} g f e =
     (≈-Term-trans (bridge-resp-≈Term e) (bridge-id-is-id A))
 
 --------------------------------------------------------------------------------
+-- The shape shared by the two bridge-unitor lemmas below: the unitor `U` slides
+-- the `to`-leg `T` out of its `⊗`-frame (`nat`), whereupon the `from`-leg
+-- absorbs it (`iso`) and only `U ∘ W` survives.
+
+absorb-slide
+  : ∀ {A₀ A₁ A₂ A₃ A₄ : ObjTerm}
+      {W : HomTerm A₀ A₁} {V : HomTerm A₁ A₂} {U₁ : HomTerm A₂ A₃}
+      {U₂ : HomTerm A₁ A₄} {T : HomTerm A₄ A₃} {F : HomTerm A₃ A₄}
+  → U₁ ∘ V ≈Term T ∘ U₂ → F ∘ T ≈Term id
+  → F ∘ U₁ ∘ V ∘ W ≈Term U₂ ∘ W
+absorb-slide nat iso = (refl⟩∘⟨ pullˡ nat) ○ (refl⟩∘⟨ FM.assoc) ○ cancelˡ iso
+
+--------------------------------------------------------------------------------
 -- bridge (λ⇒) and bridge (λ⇐) reduce to `id`.
 
 bridge-λ⇒-is-id : ∀ A → bridge (λ⇒ {A}) ≈Term id
-bridge-λ⇒-is-id A = begin
-  F-A ∘ λ⇒ ∘ (id ⊗₁ T-A) ∘ λ⇐
-    ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-  F-A ∘ (λ⇒ ∘ (id ⊗₁ T-A)) ∘ λ⇐
-    ≈⟨ refl⟩∘⟨ λ⇒∘id⊗f≈f∘λ⇒ ⟩∘⟨refl ⟩
-  F-A ∘ (T-A ∘ λ⇒) ∘ λ⇐
-    ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-  F-A ∘ T-A ∘ λ⇒ ∘ λ⇐
-    ≈⟨ FM.sym-assoc ⟩
-  (F-A ∘ T-A) ∘ λ⇒ ∘ λ⇐
-    ≈⟨ _≅_.isoʳ (unflatten-flatten-≈ A) ⟩∘⟨refl ⟩
-  id ∘ λ⇒ ∘ λ⇐
-    ≈⟨ idˡ ⟩
-  λ⇒ ∘ λ⇐
-    ≈⟨ λ⇒∘λ⇐≈id ⟩
-  id ∎
-  where
-    F-A = _≅_.from (unflatten-flatten-≈ A)
-    T-A = _≅_.to   (unflatten-flatten-≈ A)
+bridge-λ⇒-is-id A =
+  absorb-slide λ⇒∘id⊗f≈f∘λ⇒ (_≅_.isoʳ (unflatten-flatten-≈ A)) ○ λ⇒∘λ⇐≈id
 
 -- `flatten (unit ⊗₀ A)` reduces to `flatten A`, so both bridges are endo at
 -- `unflatten (flatten A)` and `λ⇐` is `λ⇒`'s inverse there.
@@ -180,24 +160,8 @@ bridge-ρ⇒-form
   : ∀ A → bridge (ρ⇒ {A})
        ≈Term ρ⇒ {unflatten (flatten A)}
               ∘ _≅_.from (unflatten-++-≅ (flatten A) [])
-bridge-ρ⇒-form A = begin
-  F-A ∘ ρ⇒ ∘ (T-A ⊗₁ id) ∘ cAA-from
-    ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-  F-A ∘ (ρ⇒ ∘ (T-A ⊗₁ id)) ∘ cAA-from
-    ≈⟨ refl⟩∘⟨ ρ⇒∘f⊗id≈f∘ρ⇒ ⟩∘⟨refl ⟩
-  F-A ∘ (T-A ∘ ρ⇒) ∘ cAA-from
-    ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-  F-A ∘ T-A ∘ ρ⇒ ∘ cAA-from
-    ≈⟨ FM.sym-assoc ⟩
-  (F-A ∘ T-A) ∘ ρ⇒ ∘ cAA-from
-    ≈⟨ _≅_.isoʳ (unflatten-flatten-≈ A) ⟩∘⟨refl ⟩
-  id ∘ ρ⇒ ∘ cAA-from
-    ≈⟨ idˡ ⟩
-  ρ⇒ ∘ cAA-from ∎
-  where
-    F-A = _≅_.from (unflatten-flatten-≈ A)
-    T-A = _≅_.to   (unflatten-flatten-≈ A)
-    cAA-from = _≅_.from (unflatten-++-≅ (flatten A) [])
+bridge-ρ⇒-form A =
+  absorb-slide ρ⇒∘f⊗id≈f∘ρ⇒ (_≅_.isoʳ (unflatten-flatten-≈ A))
 
 --------------------------------------------------------------------------------
 -- List-coherence for ρ⇒.
@@ -328,18 +292,12 @@ private
           ⊗₁ (_≅_.from (unflatten-flatten-≈ C) ∘ _≅_.to (unflatten-flatten-≈ C)))
       ∘ _≅_.from (unflatten-++-≅ (flatten B) (flatten C))
     ≈Term id
-  collapse-c-FT B C = begin
-    cBC-to ∘ ((F-B ∘ T-B) ⊗₁ (F-C ∘ T-C)) ∘ cBC-from
-      ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (_≅_.isoʳ (unflatten-flatten-≈ B))
-                           (_≅_.isoʳ (unflatten-flatten-≈ C)) ⟩∘⟨refl ⟩
-    cBC-to ∘ (id ⊗₁ id) ∘ cBC-from
-      ≈⟨ refl⟩∘⟨ id⊗id≈id ⟩∘⟨refl ⟩
-    cBC-to ∘ id ∘ cBC-from
-      ≈⟨ refl⟩∘⟨ idˡ ⟩
-    cBC-to ∘ cBC-from
-      ≈⟨ _≅_.isoˡ (unflatten-++-≅ (flatten B) (flatten C)) ⟩
-    id ∎
-    where open FT B C
+  collapse-c-FT B C =
+    -- the ⊗ of two iso cancellations IS the identity, so `elim-center` drops it
+    elim-center (⊗-resp-≈ (_≅_.isoʳ (unflatten-flatten-≈ B))
+                          (_≅_.isoʳ (unflatten-flatten-≈ C))
+                 ○ id⊗id≈id)
+    ○ _≅_.isoˡ (unflatten-++-≅ (flatten B) (flatten C))
 
 --------------------------------------------------------------------------------
 -- Var-base case of bridge-α⇒-form.

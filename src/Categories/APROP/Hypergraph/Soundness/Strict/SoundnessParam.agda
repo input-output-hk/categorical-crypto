@@ -37,6 +37,8 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
+open import Categories.Morphism.Reasoning FreeMonoidal
+  using (pullʳ; cancelʳ; cancelˡ)
 
 private
   module FM = Category FreeMonoidal
@@ -53,28 +55,11 @@ bridge⁻¹
 bridge⁻¹ {A} {B} h =
   _≅_.to (unflatten-flatten-≈ B) ∘ h ∘ _≅_.from (unflatten-flatten-≈ A)
 
+-- the A-side pair cancels under `to-B ∘ (from-B ∘ _)`, which then cancels too.
 bridge-cancel : ∀ {A B} (f : HomTerm A B) → bridge⁻¹ (bridge f) ≈Term f
-bridge-cancel {A} {B} f = begin
-  to-B ∘ (from-B ∘ (f ∘ to-A)) ∘ from-A
-    ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-  to-B ∘ from-B ∘ (f ∘ to-A) ∘ from-A
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-  to-B ∘ from-B ∘ f ∘ to-A ∘ from-A
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ _≅_.isoˡ (unflatten-flatten-≈ A) ⟩
-  to-B ∘ from-B ∘ f ∘ id
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.identityʳ ⟩
-  to-B ∘ from-B ∘ f
-    ≈⟨ FM.sym-assoc ⟩
-  (to-B ∘ from-B) ∘ f
-    ≈⟨ _≅_.isoˡ (unflatten-flatten-≈ B) ⟩∘⟨refl ⟩
-  id ∘ f
-    ≈⟨ FM.identityˡ ⟩
-  f ∎
-  where
-    from-A = _≅_.from (unflatten-flatten-≈ A)
-    to-A   = _≅_.to   (unflatten-flatten-≈ A)
-    from-B = _≅_.from (unflatten-flatten-≈ B)
-    to-B   = _≅_.to   (unflatten-flatten-≈ B)
+bridge-cancel {A} {B} f =
+  (refl⟩∘⟨ pullʳ (cancelʳ (_≅_.isoˡ (unflatten-flatten-≈ A))))
+  ○ cancelˡ (_≅_.isoˡ (unflatten-flatten-≈ B))
 
 --------------------------------------------------------------------------------
 -- The strict soundness theorem, parameterised over the two halves.
@@ -103,7 +88,6 @@ module _
   soundness-strict : ∀ {A B} {f g : HomTerm A B} → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g
   soundness-strict {f = f} {g = g} iso = begin
     f                       ≈⟨ bridge-cancel f ⟨
-    bridge⁻¹ (bridge f)     ≈⟨ ∘-resp-≈ FM.Equiv.refl
-                                 (∘-resp-≈ (bridge-resp-iso f g iso) FM.Equiv.refl) ⟩
+    bridge⁻¹ (bridge f)     ≈⟨ refl⟩∘⟨ (bridge-resp-iso f g iso ⟩∘⟨refl) ⟩
     bridge⁻¹ (bridge g)     ≈⟨ bridge-cancel g ⟩
     g ∎

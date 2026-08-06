@@ -41,6 +41,7 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.CIsoAssocFromCons si
   using (c-iso-assoc-from)
 
 open import Categories.Category using (Category)
+open import Categories.Morphism.Reasoning FreeMonoidal using (center; cancelʳ)
 
 open import Data.List using (_++_)
 open import Data.List.Properties using (++-assoc)
@@ -64,18 +65,8 @@ cancel-mid-iso
   → Fm ∘ Tm ≈Term id
   → (To ∘ M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
     ≈Term To ∘ M₁ ∘ M₂ ∘ Ff
-cancel-mid-iso To M₁ Fm Tm M₂ Ff m-iso = begin
-  (To ∘ M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
-    ≈⟨ FM.assoc ⟩
-  To ∘ (M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
-    ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-  To ∘ M₁ ∘ Fm ∘ Tm ∘ M₂ ∘ Ff
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-  To ∘ M₁ ∘ (Fm ∘ Tm) ∘ M₂ ∘ Ff
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ m-iso ⟩∘⟨refl ⟩
-  To ∘ M₁ ∘ id ∘ M₂ ∘ Ff
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idˡ ⟩
-  To ∘ M₁ ∘ M₂ ∘ Ff ∎
+-- `cancelʳ m-iso : (M₁ ∘ Fm) ∘ Tm ≈ M₁`, in the `center` of the composite.
+cancel-mid-iso _ _ _ _ _ _ m-iso = center (cancelʳ m-iso)
 
 --------------------------------------------------------------------------------
 -- ## 1.  Associativity coherence, `to`-side.

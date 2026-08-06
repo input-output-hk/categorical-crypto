@@ -44,9 +44,9 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_
   using ( coe; coe-uip; coe-conj
-        ; coe-cancel; coe-cancelʳ
-        ; elim²; inv-uniqueˢ )
-open import Categories.Morphism.Reasoning SCat using (pullʳ)
+        ; coe-cancel; coe-cancelʳ )
+open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelˡ)
+open import Categories.Morphism.Reasoning.Ext SCat using (inv-resp)
 
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
@@ -62,7 +62,7 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
 
 --------------------------------------------------------------------------------
 -- The RIGHT hexagon: `σˢ a (b ++ c)` decomposed.  Derived from the `σ-hexˢ`
--- axiom by the same `inv-uniqueˢ` argument as `Braid`'s `hexagon` case (which
+-- axiom by the same inverse-uniqueness argument as `Braid`'s `hexagon` case (which
 -- proves exactly this for `a,b,c = flatten _`); here generic on `List X`.
 
 σ-hexˢʳ
@@ -109,18 +109,18 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
       (≈-trans (pullʳ assocˢ)
       (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl assocˢ))
       (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl
-                 (∘-resp ≈-refl (elim² (coe-cancelʳ Q)))))
+                 (∘-resp ≈-refl (cancelˡ (coe-cancelʳ Q)))))
       (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl assocˢ))
       (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl
                  (∘-resp ≈-refl (∘-resp ≈-refl M-nest))))
       (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl
-                 (∘-resp ≈-refl (elim² step-σʳ))))
-      (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl (elim² (coe-cancel R))))
-      (≈-trans (∘-resp ≈-refl (elim² step-σˡ))
+                 (∘-resp ≈-refl (cancelˡ step-σʳ))))
+      (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl (cancelˡ (coe-cancel R))))
+      (≈-trans (∘-resp ≈-refl (cancelˡ step-σˡ))
         (coe-cancelʳ P)))))))))
 
     H : σˢ a (b ++ c) ≈ˢ coe (sym Q) ∘ˢ (L ∘ˢ coe (sym P))
-    H = inv-uniqueˢ σ-σˢ cancel
+    H = inv-resp σ-σˢ cancel ≈-refl
 
 --------------------------------------------------------------------------------
 -- The canonical block-swap derivation + its `permuteˢ ≈ σˢ` identity (the
