@@ -17,7 +17,7 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (flatten)
 
 open import Data.List using (List; []; _∷_; _++_)
 
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; cong; subst)
 
 open import Categories.Category.Monoidal using (Monoidal)
 open import Categories.Category.Monoidal.Utilities Monoidal-FreeMonoidal using (_⊗ᵢ_)
@@ -58,3 +58,37 @@ unflatten-flatten-≈ (A ⊗₀ B) =
 
 bridge : ∀ {A B} → HomTerm A B → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
 bridge {A} {B} f = _≅_.from (unflatten-flatten-≈ B) ∘ f ∘ _≅_.to (unflatten-flatten-≈ A)
+
+--------------------------------------------------------------------------------
+-- `subst`-identity morphisms on the domain / codomain, over `unflatten`, and
+-- their groupoid laws.  They live here — below every consumer — so that the
+-- bridge/boundary layer, the coherence-iso layer (`UnflattenMonoidal`, which
+-- re-exports them) and `Discharge/CIsoAssocFromCons` all share ONE spelling.
+
+subst-id-cod : ∀ {c d : List X} → c ≡ d → HomTerm (unflatten c) (unflatten d)
+subst-id-cod {c} q = subst (λ z → HomTerm (unflatten c) (unflatten z)) q id
+
+-- The domain-side spelling IS the codomain-side one at the inverse proof, and
+-- is kept as a name because that is how the `Embed` chains read.  Being
+-- definitional, it costs no `≈Term` step to cross.
+subst-id-dom : ∀ {a b : List X} → a ≡ b → HomTerm (unflatten b) (unflatten a)
+subst-id-dom p = subst-id-cod (sym p)
+
+-- `sym`-exchange (the OTHER direction, where `sym (sym p)` is not `p`), the
+-- cancellations, and the cons-frame law.
+cast-dc : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom (sym p) ≈Term subst-id-cod p
+cast-dc refl = ≈-Term-refl
+
+cast-cancel′ : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom p ∘ subst-id-cod p ≈Term id
+cast-cancel′ refl = idˡ
+
+cod-cancel : ∀ {a b : List X} (p : a ≡ b) → subst-id-cod p ∘ subst-id-cod (sym p) ≈Term id
+cod-cancel refl = idˡ
+
+dom-cancel : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom (sym p) ∘ subst-id-dom p ≈Term id
+dom-cancel refl = idˡ
+
+subst-cod-cons
+  : ∀ {x : X} {a b : List X} (e : a ≡ b)
+  → id {Var x} ⊗₁ subst-id-cod e ≈Term subst-id-cod (cong (x ∷_) e)
+subst-cod-cons refl = id⊗id≈id

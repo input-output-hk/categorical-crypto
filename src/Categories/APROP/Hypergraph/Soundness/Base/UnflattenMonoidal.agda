@@ -16,8 +16,9 @@
 --   * `c-iso-assoc-from` — re-exported from `Discharge/CIsoAssocFromCons.agda`
 --     (the `from`-side pentagon);
 --   * `c-iso-assoc-to`   — its `to`-side dual, by composite inversion;
---   * `cancel-mid-iso` and the `subst`-identity morphisms
---     `subst-id-{dom,cod}`.
+--   * `cancel-mid-iso`, and the `subst₂` presentations of the transported
+--     identities `subst-id-{dom,cod}` (whose own groupoid laws live one level
+--     down, in `Soundness/Base/Unflatten.agda`, and are re-exported here).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -27,10 +28,13 @@ module Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal
 
 open APROP sig
 
--- Re-export `unflatten` / `unflatten-++-≅` so consumers can open this module
--- alone for the full boundary-coherence interface.
+-- Re-export `unflatten` / `unflatten-++-≅` and the transported-identity kit so
+-- consumers can open this module alone for the full boundary-coherence
+-- interface.
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig public
-  using (unflatten; unflatten-++-≅; _≅_; flatten-unflatten; unflatten-flatten-≈)
+  using ( unflatten; unflatten-++-≅; _≅_; flatten-unflatten; unflatten-flatten-≈
+        ; subst-id-cod; subst-id-dom; cast-dc; cast-cancel′
+        ; cod-cancel; dom-cancel; subst-cod-cons )
 
 -- The `from`-side associativity pentagon, imported and re-exported as-is.
 open import Categories.APROP.Hypergraph.Soundness.Discharge.CIsoAssocFromCons sig public
@@ -77,37 +81,8 @@ cancel-mid-iso To M₁ Fm Tm M₂ Ff m-iso = begin
   To ∘ M₁ ∘ M₂ ∘ Ff ∎
 
 --------------------------------------------------------------------------------
--- ## 1.  `subst`-identity morphisms on the domain / codomain, over
--- `unflatten` (the surviving slice of the transport-absorption algebra).
-
-subst-id-cod : ∀ {c d : List X} → c ≡ d → HomTerm (unflatten c) (unflatten d)
-subst-id-cod {c} q = subst (λ z → HomTerm (unflatten c) (unflatten z)) q id
-
--- The domain-side spelling IS the codomain-side one at the inverse proof, and
--- is kept as a name because that is how the `Embed` chains read.  Being
--- definitional, it costs no `≈Term` step to cross.
-subst-id-dom : ∀ {a b : List X} → a ≡ b → HomTerm (unflatten b) (unflatten a)
-subst-id-dom p = subst-id-cod (sym p)
-
--- Their groupoid laws: `sym`-exchange (the OTHER direction, where `sym (sym p)`
--- is not `p`), the cancellations, the cons-frame law, and the `subst₂`
--- presentation.
-cast-dc : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom (sym p) ≈Term subst-id-cod p
-cast-dc refl = ≈-Term-refl
-
-cast-cancel′ : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom p ∘ subst-id-cod p ≈Term id
-cast-cancel′ refl = idˡ
-
-cod-cancel : ∀ {a b : List X} (p : a ≡ b) → subst-id-cod p ∘ subst-id-cod (sym p) ≈Term id
-cod-cancel refl = idˡ
-
-dom-cancel : ∀ {a b : List X} (p : a ≡ b) → subst-id-dom (sym p) ∘ subst-id-dom p ≈Term id
-dom-cancel refl = idˡ
-
-subst-cod-cons
-  : ∀ {x : X} {a b : List X} (e : a ≡ b)
-  → id {Var x} ⊗₁ subst-id-cod e ≈Term subst-id-cod (cong (x ∷_) e)
-subst-cod-cons refl = id⊗id≈id
+-- ## 1.  The `subst₂` presentations of the transported identities (the only
+-- part of the kit that is not already at `Base/Unflatten`).
 
 cod-as-subst₂ : ∀ {a b : List X} (e : a ≡ b)
               → subst-id-cod e ≡ subst₂ HomTerm refl (cong unflatten e) (id {unflatten a})
