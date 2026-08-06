@@ -29,10 +29,8 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flat; flat-rec; flatten)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-  using (unflatten; unflatten-++-≅; unflatten-flatten-≈; _≅_; bridge)
-open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
-  using ( subst-id-cod; cod-as-subst₂; dom-as-subst₂; cod-cancel
-        ; subst-cod-cons )
+  using ( unflatten; unflatten-++-≅; unflatten-flatten-≈; _≅_; bridge
+        ; subst-id-cod; cod-cancel; subst-cod-cons )
 open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
   using ( bridge-∘; bridge-⊗; bridge-id-is-id; bridge-λ⇒-is-id; bridge-λ⇐-is-id
         ; ρ⇒-coherence; ρ⇐-coherence; α⇒-form-list )
@@ -190,12 +188,10 @@ st-roundtrip (λ⇒ {A})  = ≈-Term-sym (bridge-λ⇒-is-id A)
 st-roundtrip (λ⇐ {A})  = ≈-Term-sym (bridge-λ⇐-is-id A)
 st-roundtrip (ρ⇒ {A})  =
   ≈-Term-trans (≡⇒≈Term (embF-coe (++-identityʳ (flatten A))))
-  (≈-Term-trans (≡⇒≈Term (cod-as-subst₂ (++-identityʳ (flatten A))))
-    (ρ⇒-coherence A))
+               (ρ⇒-coherence A)
 st-roundtrip (ρ⇐ {A})  =
   ≈-Term-trans (≡⇒≈Term (embF-coe (sym (++-identityʳ (flatten A)))))
-  (≈-Term-trans (≡⇒≈Term (dom-as-subst₂ (++-identityʳ (flatten A))))
-    (ρ⇐-coherence A))
+               (ρ⇐-coherence A)
 st-roundtrip (α⇒ {A} {B} {C}) =
   ≈-Term-trans
     (≡⇒≈Term (embF-coe (++-assoc (flatten A) (flatten B) (flatten C))))

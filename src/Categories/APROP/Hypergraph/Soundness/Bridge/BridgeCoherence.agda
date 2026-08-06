@@ -15,7 +15,8 @@ module Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (flatten)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-  using (unflatten; unflatten-flatten-≈; unflatten-++-≅; bridge)
+  using ( unflatten; unflatten-flatten-≈; unflatten-++-≅; bridge
+        ; subst-id-cod; subst-id-dom; subst-cod-cons; cast-cancel′ )
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
@@ -32,9 +33,6 @@ open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F; 7F; 8F; 9F)
 import Data.Vec as Vec
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-identityʳ)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; sym; subst; subst₂)
-open import Relation.Binary.PropositionalEquality.Properties using (subst-∘)
 
 private
   module FM = Category FreeMonoidal
@@ -176,41 +174,6 @@ bridge-λ⇐-is-id A =
   inv-resp (bridge-inv-id λ⇐ λ⇒ λ⇐∘λ⇒≈id) idˡ (bridge-λ⇒-is-id A)
 
 --------------------------------------------------------------------------------
--- `subst (cong unflatten _)`-of-`id` workhorses.  (`≡⇒≈Term` itself lives in
--- `Categories.FreeMonoidal`, reachable everywhere via `open APROP sig`.)
-
-subst₂-refl-cod
-  : ∀ {As As' : List X} (eq : As ≡ As')
-  → subst₂ HomTerm refl (cong unflatten eq) (id {unflatten As})
-  ≡ subst (λ z → HomTerm (unflatten As) (unflatten z)) eq id
-subst₂-refl-cod refl = refl
-
--- the dom- and cod-transported identities are mutually inverse
-cast₂-inv
-  : ∀ {as as' : List X} (eq : as ≡ as')
-  → subst₂ HomTerm (cong unflatten eq) refl (id {unflatten as})
-      ∘ subst₂ HomTerm refl (cong unflatten eq) (id {unflatten as})
-    ≈Term id
-cast₂-inv refl = idˡ
-
-subst-cod-cons
-  : ∀ (y : X) {as as' : List X} (eq : as ≡ as')
-  → subst (λ z → HomTerm (Var y ⊗₀ unflatten as) (Var y ⊗₀ unflatten z)) eq id
-  ≈Term id {Var y} ⊗₁ subst (λ z → HomTerm (unflatten as) (unflatten z)) eq id
-subst-cod-cons y refl = ≈-Term-sym id⊗id≈id
-
--- The shared first step of all four `*-coh-list` cons cases: push the
--- `cong (y ∷_)` of a `subst` through `unflatten` via `subst-∘`, re-binding
--- the substituted variable to the tail.  `L`/`R` are the dom/cod endpoints.
-cons-coh-step
-  : ∀ (y : X) {as as' : List X} (eq : as ≡ as') (L R : List X → ObjTerm)
-      (m : HomTerm (L (y ∷ as)) (R (y ∷ as)))
-  → subst (λ z → HomTerm (L z) (R z)) (cong (y ∷_) eq) m
-    ≈Term subst (λ z → HomTerm (L (y ∷ z)) (R (y ∷ z))) eq m
-cons-coh-step y eq L R m =
-  ≡⇒≈Term (sym (subst-∘ {P = λ z → HomTerm (L z) (R z)} {f = y ∷_} eq))
-
---------------------------------------------------------------------------------
 -- Bridge form for ρ⇒.
 
 bridge-ρ⇒-form
@@ -241,24 +204,16 @@ bridge-ρ⇒-form A = begin
 
 ρ⇒-coh-list
   : ∀ (xs : List X)
-  → subst (λ z → HomTerm (unflatten (xs ++ [])) (unflatten z))
-          (++-identityʳ xs) id
+  → subst-id-cod (++-identityʳ xs)
     ≈Term ρ⇒ {unflatten xs} ∘ _≅_.from (unflatten-++-≅ xs [])
 ρ⇒-coh-list []       = begin
   id           ≈⟨ ≈-Term-sym λ⇒∘λ⇐≈id ⟩
   λ⇒ ∘ λ⇐      ≈⟨ coherence₃ ⟩∘⟨refl ⟩
   ρ⇒ ∘ λ⇐      ∎
 ρ⇒-coh-list (y ∷ ys) = begin
-  subst (λ z → HomTerm (Var y ⊗₀ unflatten (ys ++ [])) (unflatten z))
-        (cong (y ∷_) (++-identityʳ ys)) id
-    ≈⟨ cons-coh-step y (++-identityʳ ys)
-         (λ _ → Var y ⊗₀ unflatten (ys ++ [])) (λ z → unflatten z) id ⟩
-  subst (λ z → HomTerm (Var y ⊗₀ unflatten (ys ++ []))
-                        (Var y ⊗₀ unflatten z))
-        (++-identityʳ ys) id
-    ≈⟨ subst-cod-cons y (++-identityʳ ys) ⟩
-  id ⊗₁ subst (λ z → HomTerm (unflatten (ys ++ [])) (unflatten z))
-              (++-identityʳ ys) id
+  subst-id-cod (++-identityʳ (y ∷ ys))
+    ≈⟨ ≈-Term-sym (subst-cod-cons (++-identityʳ ys)) ⟩
+  id {Var y} ⊗₁ subst-id-cod (++-identityʳ ys)
     ≈⟨ ⊗-resp-≈ ≈-Term-refl (ρ⇒-coh-list ys) ⟩
   id ⊗₁ (ρ⇒ ∘ inner-from)
     ≈⟨ ρ-slide ⟩
@@ -284,25 +239,16 @@ bridge-ρ⇒-form A = begin
 -- ρ⇒-coherence / ρ⇐-coherence: combine list-coherence with bridge-form.
 
 ρ⇒-coherence
-  : ∀ A → subst₂ HomTerm refl (cong unflatten (++-identityʳ (flatten A))) id
-       ≈Term bridge (ρ⇒ {A})
-ρ⇒-coherence A = begin
-  subst₂ HomTerm refl (cong unflatten (++-identityʳ (flatten A))) id
-    ≈⟨ ≡⇒≈Term (subst₂-refl-cod (++-identityʳ (flatten A))) ⟩
-  subst (λ z → HomTerm (unflatten (flatten A ++ [])) (unflatten z))
-        (++-identityʳ (flatten A)) id
-    ≈⟨ ρ⇒-coh-list (flatten A) ⟩
-  ρ⇒ ∘ _≅_.from (unflatten-++-≅ (flatten A) [])
-    ≈⟨ ≈-Term-sym (bridge-ρ⇒-form A) ⟩
-  bridge (ρ⇒ {A}) ∎
+  : ∀ A → subst-id-cod (++-identityʳ (flatten A)) ≈Term bridge (ρ⇒ {A})
+ρ⇒-coherence A =
+  ≈-Term-trans (ρ⇒-coh-list (flatten A)) (≈-Term-sym (bridge-ρ⇒-form A))
 
 -- the ⇐ direction is the ⇒ one transposed: both sides are inverse pairs at
 -- `unflatten (flatten A ++ [])`, so `inv-resp` transports the equation.
 ρ⇐-coherence
-  : ∀ A → subst₂ HomTerm (cong unflatten (++-identityʳ (flatten A))) refl id
-       ≈Term bridge (ρ⇐ {A})
+  : ∀ A → subst-id-dom (++-identityʳ (flatten A)) ≈Term bridge (ρ⇐ {A})
 ρ⇐-coherence A =
-  inv-resp (cast₂-inv (++-identityʳ (flatten A)))
+  inv-resp (cast-cancel′ (++-identityʳ (flatten A)))
            (bridge-inv-id ρ⇒ ρ⇐ ρ⇒∘ρ⇐≈id)
            (ρ⇒-coherence A)
 

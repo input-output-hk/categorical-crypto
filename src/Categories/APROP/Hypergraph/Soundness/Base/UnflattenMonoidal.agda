@@ -16,9 +16,9 @@
 --   * `c-iso-assoc-from` — re-exported from `Discharge/CIsoAssocFromCons.agda`
 --     (the `from`-side pentagon);
 --   * `c-iso-assoc-to`   — its `to`-side dual, by composite inversion;
---   * `cancel-mid-iso`, and the `subst₂` presentations of the transported
---     identities `subst-id-{dom,cod}` (whose own groupoid laws live one level
---     down, in `Soundness/Base/Unflatten.agda`, and are re-exported here).
+--   * `cancel-mid-iso`.
+-- The transported identities `subst-id-{dom,cod}` and their groupoid laws live
+-- one level down, in `Soundness/Base/Unflatten.agda`, and are re-exported here.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -42,11 +42,8 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.CIsoAssocFromCons si
 
 open import Categories.Category using (Category)
 
-open import Data.List using (List; _∷_; _++_)
+open import Data.List using (_++_)
 open import Data.List.Properties using (++-assoc)
-
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; cong; subst; subst₂)
 
 private
   module FM = Category FreeMonoidal
@@ -58,8 +55,8 @@ open FM.HomReasoning
 --
 -- Two 3-fold composites sharing a middle iso `Fm ∘ Tm ≈ id` cancel it, leaving
 -- `To ∘ M₁ ∘ M₂ ∘ Ff`.  No assumption on `M₁` / `M₂`.  (Part of the
--- transport-absorption algebra of §1, hoisted above it because the
--- `c-iso-assoc-to` inversion chases below consume it.)
+-- transport-absorption algebra, kept here because the `c-iso-assoc-to`
+-- inversion chases below consume it.)
 cancel-mid-iso
   : ∀ {A₀ A₁ A₂ A₃ A₄ A₅ : ObjTerm}
       (To : HomTerm A₄ A₅) (M₁ : HomTerm A₂ A₄) (Fm : HomTerm A₃ A₂)
@@ -81,19 +78,7 @@ cancel-mid-iso To M₁ Fm Tm M₂ Ff m-iso = begin
   To ∘ M₁ ∘ M₂ ∘ Ff ∎
 
 --------------------------------------------------------------------------------
--- ## 1.  The `subst₂` presentations of the transported identities (the only
--- part of the kit that is not already at `Base/Unflatten`).
-
-cod-as-subst₂ : ∀ {a b : List X} (e : a ≡ b)
-              → subst-id-cod e ≡ subst₂ HomTerm refl (cong unflatten e) (id {unflatten a})
-cod-as-subst₂ refl = refl
-
-dom-as-subst₂ : ∀ {a b : List X} (e : a ≡ b)
-              → subst-id-cod (sym e) ≡ subst₂ HomTerm (cong unflatten e) refl (id {unflatten a})
-dom-as-subst₂ refl = refl
-
---------------------------------------------------------------------------------
--- ## 2.  Associativity coherence, `to`-side.
+-- ## 1.  Associativity coherence, `to`-side.
 --
 -- `c-iso-assoc-from` (re-exported above) is the `from`-side pentagon.  Its
 -- `to`-side dual is obtained by composite inversion:
