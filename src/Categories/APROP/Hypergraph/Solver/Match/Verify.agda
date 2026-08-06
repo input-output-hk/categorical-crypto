@@ -33,7 +33,7 @@ open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Base
 open import Data.List.Properties
-open import Data.Maybe.Base using (Maybe; just; nothing)
+open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
 open import Data.Nat using (ℕ)
 open import Data.Product using (_,_)
 open import Function
@@ -144,61 +144,46 @@ module Verify (H J : Hypergraph FlatGen)
     _≟LF-J_ = ≡-dec _≟F_
 
   --------------------------------------------------------------------------
-  -- Main entry point: a nested `with` extracting totals, then checking
-  -- bijection laws, vertex labels, edge endpoints, boundaries, and finally
-  -- edge labels.  Every stage returns `nothing` on first failure.
+  -- Main entry point: extract the totals, then check bijection laws, vertex
+  -- labels, edge endpoints, boundaries, and finally edge labels.  Every stage
+  -- returns `nothing` on first failure — `_>>=_` stops at the first one, in
+  -- the order written.
 
   verify : Maybe (H ≅ᴴ J)
-  verify with totalise (forward φB) | totalise (backward φB)
-              | totalise (forward ψB) | totalise (backward ψB)
-  ... | nothing | _       | _       | _       = nothing
-  ... | _       | nothing | _       | _       = nothing
-  ... | _       | _       | nothing | _       = nothing
-  ... | _       | _       | _       | nothing = nothing
-  ... | just (φ , _) | just (φ⁻¹ , _)
-      | just (ψ , _) | just (ψ⁻¹ , _)
-        with ∀F? (λ i → dec⇒maybe (φ⁻¹ (φ i) ≟F i))
-           | ∀F? (λ j → dec⇒maybe (φ (φ⁻¹ j) ≟F j))
-           | ∀F? (λ e → dec⇒maybe (ψ⁻¹ (ψ e) ≟F e))
-           | ∀F? (λ k → dec⇒maybe (ψ (ψ⁻¹ k) ≟F k))
-           | ∀F? (λ i → dec⇒maybe (J.vlab (φ i) ≟X H.vlab i))
-           | ∀F? (λ e → dec⇒maybe (J.ein  (ψ e) ≟LF-J map φ (H.ein  e)))
-           | ∀F? (λ e → dec⇒maybe (J.eout (ψ e) ≟LF-J map φ (H.eout e)))
-           | J.dom ≟LF-J map φ H.dom
-           | J.cod ≟LF-J map φ H.cod
-  ...       | nothing | _ | _ | _ | _ | _ | _ | _     | _     = nothing
-  ...       | _ | nothing | _ | _ | _ | _ | _ | _     | _     = nothing
-  ...       | _ | _ | nothing | _ | _ | _ | _ | _     | _     = nothing
-  ...       | _ | _ | _ | nothing | _ | _ | _ | _     | _     = nothing
-  ...       | _ | _ | _ | _ | nothing | _ | _ | _     | _     = nothing
-  ...       | _ | _ | _ | _ | _ | nothing | _ | _     | _     = nothing
-  ...       | _ | _ | _ | _ | _ | _ | nothing | _     | _     = nothing
-  ...       | _ | _ | _ | _ | _ | _ | _       | no _  | _     = nothing
-  ...       | _ | _ | _ | _ | _ | _ | _       | _     | no _  = nothing
-  ...       | just φ-left | just φ-rght | just ψ-left | just ψ-rght
-            | just φ-lab  | just ψ-ein  | just ψ-eout
-            | yes φ-dom   | yes φ-cod
-              with ∀F? (λ e → flat-match-subst
-                     (deriveAtomEq φ-lab (H.ein  e) (ψ-ein  e))
-                     (deriveAtomEq φ-lab (H.eout e) (ψ-eout e))
-                     (J.elab (ψ e))
-                     (H.elab e))
-  ...         | nothing = nothing
-  ...         | just ψ-elab = just record
-                { φ         = φ
-                ; φ⁻¹       = φ⁻¹
-                ; φ-left    = φ-left
-                ; φ-rght    = φ-rght
-                ; ψ         = ψ
-                ; ψ⁻¹       = ψ⁻¹
-                ; ψ-left    = ψ-left
-                ; ψ-rght    = ψ-rght
-                ; φ-lab     = φ-lab
-                ; ψ-ein     = ψ-ein
-                ; ψ-eout    = ψ-eout
-                ; φ-dom     = φ-dom
-                ; φ-cod     = φ-cod
-                ; atom-ein  = λ e → deriveAtomEq φ-lab (H.ein  e) (ψ-ein  e)
-                ; atom-eout = λ e → deriveAtomEq φ-lab (H.eout e) (ψ-eout e)
-                ; ψ-elab    = ψ-elab
-                }
+  verify =
+    totalise (forward  φB)                                       >>= λ (φ   , _) →
+    totalise (backward φB)                                       >>= λ (φ⁻¹ , _) →
+    totalise (forward  ψB)                                       >>= λ (ψ   , _) →
+    totalise (backward ψB)                                       >>= λ (ψ⁻¹ , _) →
+    ∀F? (λ i → dec⇒maybe (φ⁻¹ (φ i) ≟F i))                       >>= λ φ-left →
+    ∀F? (λ j → dec⇒maybe (φ (φ⁻¹ j) ≟F j))                       >>= λ φ-rght →
+    ∀F? (λ e → dec⇒maybe (ψ⁻¹ (ψ e) ≟F e))                       >>= λ ψ-left →
+    ∀F? (λ k → dec⇒maybe (ψ (ψ⁻¹ k) ≟F k))                       >>= λ ψ-rght →
+    ∀F? (λ i → dec⇒maybe (J.vlab (φ i) ≟X H.vlab i))             >>= λ φ-lab →
+    ∀F? (λ e → dec⇒maybe (J.ein  (ψ e) ≟LF-J map φ (H.ein  e)))  >>= λ ψ-ein →
+    ∀F? (λ e → dec⇒maybe (J.eout (ψ e) ≟LF-J map φ (H.eout e)))  >>= λ ψ-eout →
+    dec⇒maybe (J.dom ≟LF-J map φ H.dom)                          >>= λ φ-dom →
+    dec⇒maybe (J.cod ≟LF-J map φ H.cod)                          >>= λ φ-cod →
+    ∀F? (λ e → flat-match-subst
+                 (deriveAtomEq φ-lab (H.ein  e) (ψ-ein  e))
+                 (deriveAtomEq φ-lab (H.eout e) (ψ-eout e))
+                 (J.elab (ψ e))
+                 (H.elab e))                                     >>= λ ψ-elab →
+    just record
+      { φ         = φ
+      ; φ⁻¹       = φ⁻¹
+      ; φ-left    = φ-left
+      ; φ-rght    = φ-rght
+      ; ψ         = ψ
+      ; ψ⁻¹       = ψ⁻¹
+      ; ψ-left    = ψ-left
+      ; ψ-rght    = ψ-rght
+      ; φ-lab     = φ-lab
+      ; ψ-ein     = ψ-ein
+      ; ψ-eout    = ψ-eout
+      ; φ-dom     = φ-dom
+      ; φ-cod     = φ-cod
+      ; atom-ein  = λ e → deriveAtomEq φ-lab (H.ein  e) (ψ-ein  e)
+      ; atom-eout = λ e → deriveAtomEq φ-lab (H.eout e) (ψ-eout e)
+      ; ψ-elab    = ψ-elab
+      }
