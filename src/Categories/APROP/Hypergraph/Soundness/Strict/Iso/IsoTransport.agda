@@ -16,8 +16,12 @@
 --
 -- — exactly the cross-iso agreement `Strict.PartII`'s headline consumes.
 --
--- Structure (§1-§6):
+-- Structure (§0-§6):
 --
+--   * `order-invariantˢ` (§0, BUILT) bridges any two `NoInv` orders of one
+--     hypergraph: PURE `≈ˢ`-transitivity plumbing over the adjacent-swap
+--     closure, threading the strict validity witness `Validˢ` and the swap-site
+--     `↭ range nE` provenance.  No Mac-Lane content.
 --   * `iso-transportˢ`   transports the J=⟪g⟫-side natural-order decoding to
 --     the H=⟪f⟫-side ψ-pullback order `τ = map ψ⁻¹ (range J.nE)`.  Its term
 --     factor is the strict embedding engine `TermEmbedˢ.process-edges-term-embˢ`
@@ -27,8 +31,7 @@
 --     groupoid's RIGIDITY at the `Unique` codomain `J.cod` — the same
 --     `rigid-≈̂`/`⟦absorb⟧`/`pvv-relabelˢ` discharge `DecodeComposeAssembly`
 --     runs for its G- and K-blocks.
---   * `order-invariantˢ` (`IsoInvarianceConcrete`, BUILT) bridges `τ` to the
---     natural order `range nE_f`.
+--     `order-invariantˢ` then bridges `τ` to the natural order `range nE_f`.
 --
 -- The order-theory `NoInv`/`NoInv-τ`/`τ`/`τ↭range` are reused verbatim from
 -- the term-free non-strict wiring (`IsoInvarianceWiring`).
@@ -47,12 +50,13 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Iso.IsoTransport
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (range)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Model.HomTermInvariant sig using (⟪_⟫-cod-unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl sig using (dep-irrefl-⟪⟫)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.FinOrderNoInv sig
   using (fin-order-NoInv-⟪⟫)
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
@@ -62,7 +66,6 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_ using (module Run)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig _≟X_ as SS
-import Categories.APROP.Hypergraph.Soundness.Strict.Iso.IsoInvarianceConcrete sig _≟X_ as IC
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ as DC2
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTail sig _≟X_
   using (RunInterchangeˢ)
@@ -77,12 +80,67 @@ open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; _∷_; _++_; map)
 open import Data.List.Properties using (map-injective)
 open import Data.List.Properties.Ext using (map-∘-id)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Function using (Injective)
+open import Relation.Binary.Construct.Closure.ReflexiveTransitive using (ε; _◅_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst)
+open import Relation.Nullary using (¬_)
+
+------------------------------------------------------------------------
+-- §0.  Per-hypergraph: the closure-lift and order-invariance.  Threads the
+-- (N) residual `run-interchange` (the strict `RunInterchangeˢ` witness).
+------------------------------------------------------------------------
+
+module PerHG (H : Hypergraph FlatGen)
+             (dih : ∀ {e} → ¬ (Dep H e e))
+             (lin : Linear H)
+             (uniq-cod : Unique (Hypergraph.cod H))
+             (run-interchange
+               : ∀ (ps qs : SS.PerHG.Order H dih lin)
+                   {e e' : Fin (Hypergraph.nE H)}
+                   (inc : SS.PerHG.Incompˢ H dih lin e e')
+                 → (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE H)
+                 → RunInterchangeˢ H lin ps qs inc) where
+  open SS.PerHG H dih lin
+    using (Order; Validˢ; decodeOrdˢ; _↝_; _↝*_; NoInv; connectivity
+          ; swap-step; swap-validityˢ)
+
+  -- The per-swap analytic step (`SwapStep`), threaded the provenance.
+  swap-≈ˢ : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂
+          → o₁ Perm.↭ range (Hypergraph.nE H)
+          → (p₁ : Validˢ o₁) (p₂ : Validˢ o₂)
+          → decodeOrdˢ o₁ p₁ ≈ˢ decodeOrdˢ o₂ p₂
+  swap-≈ˢ = SS.swap-≈ˢ H dih lin uniq-cod run-interchange
+
+  -- An adjacent-independent swap IS a permutation (a transposition under
+  -- the prefix `ps`), so it preserves the `↭ range nE` provenance.
+  ↝⇒↭ : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂ → o₁ Perm.↭ o₂
+  ↝⇒↭ (swap-step ps {x} {y} qs _) = PermProp.++⁺ˡ ps (Perm.swap x y Perm.refl)
+
+  -- Lift the per-swap step to the reflexive-transitive closure, threading
+  -- both the validity witness and the `↭ range nE` provenance.
+  ↝*⇒≈ˢ : ∀ {o₁ o₂ : Order} → o₁ ↝* o₂
+        → o₁ Perm.↭ range (Hypergraph.nE H)
+        → (p₁ : Validˢ o₁)
+        → Σ[ p₂ ∈ Validˢ o₂ ] decodeOrdˢ o₁ p₁ ≈ˢ decodeOrdˢ o₂ p₂
+  ↝*⇒≈ˢ ε        o₁↭range p₁ = p₁ , ≈-refl
+  ↝*⇒≈ˢ (s ◅ ss) o₁↭range p₁ =
+    let p-mid          = swap-validityˢ s p₁
+        o-mid↭range    = Perm.↭-trans (Perm.↭-sym (↝⇒↭ s)) o₁↭range
+        (p₂ , mid≈rec) = ↝*⇒≈ˢ ss o-mid↭range p-mid
+    in  p₂ , ≈-trans (swap-≈ˢ s o₁↭range p₁ p-mid) mid≈rec
+
+  -- Order-invariance of the decoder, driven by `connectivity`.
+  order-invariantˢ :
+    ∀ (o₁ o₂ : Order) → o₁ Perm.↭ o₂ → NoInv o₁ → NoInv o₂ →
+    o₁ Perm.↭ range (Hypergraph.nE H) →
+    (p₁ : Validˢ o₁) →
+    Σ[ p₂ ∈ Validˢ o₂ ] decodeOrdˢ o₁ p₁ ≈ˢ decodeOrdˢ o₂ p₂
+  order-invariantˢ o₁ o₂ p n₁ n₂ o₁↭range p₁ = ↝*⇒≈ˢ (connectivity p n₁ n₂) o₁↭range p₁
 
 ------------------------------------------------------------------------
 -- The cross-iso module.  `H = ⟪f⟫`, `J = ⟪g⟫`.
@@ -301,7 +359,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
   ------------------------------------------------------------------------
 
   private
-    module CPH = IC.PerHG H dihH linH (⟪ f ⟫-cod-unique) run-interchange-H
+    module CPH = PerHG H dihH linH (⟪ f ⟫-cod-unique) run-interchange-H
 
   -- the natural-order no-inversion witnesses (`FinOrderNoInv`, BUILT).
   noInvH : SF.NoInv (range H.nE)
