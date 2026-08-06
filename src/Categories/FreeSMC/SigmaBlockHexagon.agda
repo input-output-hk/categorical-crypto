@@ -20,6 +20,7 @@ module Categories.FreeSMC.SigmaBlockHexagon
 open FreeMonoidal d
 
 open import Categories.Category using (Category)
+open import Categories.Morphism.Reasoning FreeMonoidal using (cancelˡ; cancelʳ)
 
 private
   module FM = Category FreeMonoidal
@@ -57,29 +58,14 @@ private
             ∘ α⇐ {A = A} {B = C} {C = B}
             ∘ (id {A = A} ⊗₁ σ {A = B} {B = C})
             ∘ α⇒ {A = A} {B = B} {C = C}
-σ-A⊗B-expand {A} {B} {C} =
-    begin
-      σ
-        ≈⟨ ≈-Term-sym idˡ ⟩
-      id ∘ σ
-        ≈⟨ (≈-Term-sym α⇒∘α⇐≈id) ⟩∘⟨refl ⟩
-      (α⇒ ∘ α⇐) ∘ σ
-        ≈⟨ assoc ⟩
-      α⇒ ∘ (α⇐ ∘ σ)
-        ≈⟨ refl⟩∘⟨ (≈-Term-sym idʳ) ⟩
-      α⇒ ∘ ((α⇐ ∘ σ) ∘ id)
-        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (≈-Term-sym α⇐∘α⇒≈id)) ⟩
-      α⇒ ∘ ((α⇐ ∘ σ) ∘ (α⇐ ∘ α⇒))
-        ≈⟨ refl⟩∘⟨ (≈-Term-trans (≈-Term-sym assoc)
-               (assoc ⟩∘⟨refl)) ⟩
-      α⇒ ∘ ((α⇐ ∘ (σ ∘ α⇐)) ∘ α⇒)
-        ≈⟨ refl⟩∘⟨ ((≈-Term-sym assoc) ⟩∘⟨refl) ⟩
-      α⇒ ∘ (((α⇐ ∘ σ) ∘ α⇐) ∘ α⇒)
-        -- center α⇐ ∘ σ ∘ α⇐ rewritten by hexagon₂ (sym).
-        ≈⟨ refl⟩∘⟨ ((≈-Term-trans assoc (≈-Term-sym hexagon₂)) ⟩∘⟨refl) ⟩
-      α⇒ ∘ (((σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ)) ∘ α⇒)
-        ≈⟨ refl⟩∘⟨ assoc ⟩
-      α⇒ ∘ ((σ ⊗₁ id) ∘ ((α⇐ ∘ (id ⊗₁ σ)) ∘ α⇒))
-        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ assoc) ⟩
-      α⇒ ∘ (σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒
-    ∎
+-- Read right-to-left: re-bracket the RHS until `hexagon₂`'s left-hand side is
+-- exposed in the middle, rewrite it, then the two associator pairs cancel
+-- (`cancelˡ` on the outside, `cancelʳ` on the inside).  The `hexagon₂` step is
+-- the only content; everything else is `Morphism.Reasoning` bookkeeping.
+σ-A⊗B-expand =
+  ⟺ ( (refl⟩∘⟨ (refl⟩∘⟨ ⟺ assoc))
+    ○ (refl⟩∘⟨ ⟺ assoc)
+    ○ (refl⟩∘⟨ (hexagon₂ ⟩∘⟨refl))
+    ○ (refl⟩∘⟨ assoc)
+    ○ cancelˡ α⇒∘α⇐≈id
+    ○ cancelʳ α⇐∘α⇒≈id )

@@ -38,6 +38,8 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; cong;
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
+open import Categories.Morphism.Reasoning FreeMonoidal
+  using ( pullˡ; pullʳ; cancelˡ; cancelʳ; cancelInner; elimʳ )
 
 private
   module FM = Category FreeMonoidal
@@ -186,14 +188,7 @@ private
     : ∀ {A B C A' B' C'} (m : HomTerm A A') (n : HomTerm B B') (k : HomTerm C C')
     → (m ⊗₁ n) ⊗₁ k
       ≈Term α⇐ ∘ (m ⊗₁ (n ⊗₁ k)) ∘ α⇒
-  α-conjE m n k = begin
-    (m ⊗₁ n) ⊗₁ k                       ≈⟨ ≈-Term-sym idˡ ⟩
-    id ∘ ((m ⊗₁ n) ⊗₁ k)                ≈⟨ ≈-Term-sym α⇐∘α⇒≈id ⟩∘⟨refl ⟩
-    (α⇐ ∘ α⇒) ∘ ((m ⊗₁ n) ⊗₁ k)        ≈⟨ FM.assoc ⟩
-    α⇐ ∘ (α⇒ ∘ ((m ⊗₁ n) ⊗₁ k))        ≈⟨ refl⟩∘⟨ α-comm ⟩
-    α⇐ ∘ ((m ⊗₁ (n ⊗₁ k)) ∘ α⇒)        ≈⟨ ≈-Term-sym FM.assoc ⟩
-    (α⇐ ∘ (m ⊗₁ (n ⊗₁ k))) ∘ α⇒        ≈⟨ FM.assoc ⟩
-    α⇐ ∘ (m ⊗₁ (n ⊗₁ k)) ∘ α⇒          ∎
+  α-conjE m n k = ⟺ (cancelˡ α⇐∘α⇒≈id) ○ (refl⟩∘⟨ α-comm)
 
 ⊗-assoc-case
   : ∀ {xs ys us vs ps qs}
@@ -262,24 +257,10 @@ private
       Sd₂ ∘ (T ys (vs ++ qs) ∘ (ef ⊗₁ (T vs qs ∘ (eg ⊗₁ eh) ∘ F us ps)) ∘ F xs (us ++ ps)) ∘ Sc₁ ∎
 
     main : Sc₂ ∘ emb ((f ⊗ˢ g) ⊗ˢ h) ∘ Sd₁ ≈Term emb (f ⊗ˢ (g ⊗ˢ h))
-    main = begin
-      Sc₂ ∘ emb ((f ⊗ˢ g) ⊗ˢ h) ∘ Sd₁
-        ≈⟨ refl⟩∘⟨ (core ⟩∘⟨refl) ⟩
-      Sc₂ ∘ (Sd₂ ∘ emb (f ⊗ˢ (g ⊗ˢ h)) ∘ Sc₁) ∘ Sd₁
-        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-      Sc₂ ∘ Sd₂ ∘ (emb (f ⊗ˢ (g ⊗ˢ h)) ∘ Sc₁) ∘ Sd₁
-        ≈⟨ ≈-Term-sym FM.assoc ⟩
-      (Sc₂ ∘ Sd₂) ∘ (emb (f ⊗ˢ (g ⊗ˢ h)) ∘ Sc₁) ∘ Sd₁
-        ≈⟨ cod-cancel A₂ ⟩∘⟨refl ⟩
-      id ∘ (emb (f ⊗ˢ (g ⊗ˢ h)) ∘ Sc₁) ∘ Sd₁
-        ≈⟨ idˡ ⟩
-      (emb (f ⊗ˢ (g ⊗ˢ h)) ∘ Sc₁) ∘ Sd₁
-        ≈⟨ FM.assoc ⟩
-      emb (f ⊗ˢ (g ⊗ˢ h)) ∘ Sc₁ ∘ Sd₁
-        ≈⟨ refl⟩∘⟨ cod-cancel A₁ ⟩
-      emb (f ⊗ˢ (g ⊗ˢ h)) ∘ id
-        ≈⟨ idʳ ⟩
-      emb (f ⊗ˢ (g ⊗ˢ h)) ∎
+    main =
+      (refl⟩∘⟨ (core ⟩∘⟨refl))
+      ○ (refl⟩∘⟨ pullʳ (cancelʳ (cod-cancel A₁)))
+      ○ cancelˡ (cod-cancel A₂)
 
 --------------------------------------------------------------------------------
 -- The `⊗-unitʳˢ` case — the right-unit payment (a small induction on the
@@ -291,22 +272,8 @@ open Kelly's using (coherence₂; coherence₃)
 private
   -- the ρ-flavoured triangle: α⇒ ∘ ρ⇐ ≈ id ⊗ ρ⇐
   ρ⇐-tri : ∀ {A B} → α⇒ {A} {B} {unit} ∘ ρ⇐ {A ⊗₀ B} ≈Term id ⊗₁ ρ⇐
-  ρ⇐-tri {A} {B} = begin
-    α⇒ ∘ ρ⇐
-      ≈⟨ ≈-Term-sym idˡ ⟩
-    id ∘ (α⇒ ∘ ρ⇐)
-      ≈⟨ ≈-Term-sym lem ⟩∘⟨refl ⟩
-    ((id ⊗₁ ρ⇐) ∘ (id ⊗₁ ρ⇒)) ∘ (α⇒ ∘ ρ⇐)
-      ≈⟨ FM.assoc ⟩
-    (id ⊗₁ ρ⇐) ∘ ((id ⊗₁ ρ⇒) ∘ (α⇒ ∘ ρ⇐))
-      ≈⟨ refl⟩∘⟨ ≈-Term-sym FM.assoc ⟩
-    (id ⊗₁ ρ⇐) ∘ (((id ⊗₁ ρ⇒) ∘ α⇒) ∘ ρ⇐)
-      ≈⟨ refl⟩∘⟨ (coherence₂ ⟩∘⟨refl) ⟩
-    (id ⊗₁ ρ⇐) ∘ (ρ⇒ ∘ ρ⇐)
-      ≈⟨ refl⟩∘⟨ ρ⇒∘ρ⇐≈id ⟩
-    (id ⊗₁ ρ⇐) ∘ id
-      ≈⟨ idʳ ⟩
-    id ⊗₁ ρ⇐ ∎
+  ρ⇐-tri {A} {B} =
+    ⟺ (cancelˡ lem) ○ (refl⟩∘⟨ pullˡ coherence₂) ○ elimʳ ρ⇒∘ρ⇐≈id
     where
       lem : (id ⊗₁ ρ⇐) ∘ (id ⊗₁ ρ⇒) ≈Term id {A ⊗₀ (B ⊗₀ unit)}
       lem = ≈-Term-trans (≈-Term-sym ⊗-∘-dist) (≈-Term-trans (⊗-resp-≈ idˡ ρ⇐∘ρ⇒≈id) id⊗id≈id)
@@ -333,36 +300,15 @@ private
 
   -- its inverse composite, by uniqueness of inverses
   FR : ∀ a → ρ⇒ ∘ F a [] ≈Term subst-id-dom (sym (++-identityʳ a))
-  FR a = begin
-    ρ⇒ ∘ F a []
-      ≈⟨ ≈-Term-sym idˡ ⟩
-    id ∘ (ρ⇒ ∘ F a [])
-      ≈⟨ ≈-Term-sym (cast-cancel′ (sym (++-identityʳ a))) ⟩∘⟨refl ⟩
-    (subst-id-dom (sym (++-identityʳ a)) ∘ subst-id-cod (sym (++-identityʳ a)))
-      ∘ (ρ⇒ ∘ F a [])
-      ≈⟨ FM.assoc ⟩
-    subst-id-dom (sym (++-identityʳ a))
-      ∘ (subst-id-cod (sym (++-identityʳ a)) ∘ (ρ⇒ ∘ F a []))
-      ≈⟨ refl⟩∘⟨ (≈-Term-sym (TR a) ⟩∘⟨refl) ⟩
-    subst-id-dom (sym (++-identityʳ a)) ∘ ((T a [] ∘ ρ⇐) ∘ (ρ⇒ ∘ F a []))
-      ≈⟨ refl⟩∘⟨ collapse ⟩
-    subst-id-dom (sym (++-identityʳ a)) ∘ id
-      ≈⟨ idʳ ⟩
-    subst-id-dom (sym (++-identityʳ a)) ∎
+  FR a =
+    ⟺ (cancelˡ (cast-cancel′ (sym (++-identityʳ a))))
+    ○ (refl⟩∘⟨ (⟺ (TR a) ⟩∘⟨refl))
+    ○ (refl⟩∘⟨ collapse)
+    ○ idʳ
     where
       collapse : (T a [] ∘ ρ⇐) ∘ (ρ⇒ ∘ F a []) ≈Term id
-      collapse = begin
-        (T a [] ∘ ρ⇐) ∘ (ρ⇒ ∘ F a [])
-          ≈⟨ FM.assoc ⟩
-        T a [] ∘ (ρ⇐ ∘ (ρ⇒ ∘ F a []))
-          ≈⟨ refl⟩∘⟨ ≈-Term-sym FM.assoc ⟩
-        T a [] ∘ ((ρ⇐ ∘ ρ⇒) ∘ F a [])
-          ≈⟨ refl⟩∘⟨ (ρ⇐∘ρ⇒≈id ⟩∘⟨refl) ⟩
-        T a [] ∘ (id ∘ F a [])
-          ≈⟨ refl⟩∘⟨ idˡ ⟩
-        T a [] ∘ F a []
-          ≈⟨ _≅_.isoˡ (unflatten-++-≅ a []) ⟩
-        id ∎
+      collapse =
+        cancelInner ρ⇐∘ρ⇒≈id ○ _≅_.isoˡ (unflatten-++-≅ a [])
 
 ⊗-unitʳ-case
   : ∀ {xs ys} (f : HomS xs ys)
@@ -379,48 +325,20 @@ private
 
     -- ef ⊗ id_unit ≈ ρ⇐ ∘ ef ∘ ρ⇒
     padE : ef ⊗₁ id {unit} ≈Term ρ⇐ ∘ ef ∘ ρ⇒
-    padE = begin
-      ef ⊗₁ id
-        ≈⟨ ≈-Term-sym idˡ ⟩
-      id ∘ (ef ⊗₁ id)
-        ≈⟨ ≈-Term-sym ρ⇐∘ρ⇒≈id ⟩∘⟨refl ⟩
-      (ρ⇐ ∘ ρ⇒) ∘ (ef ⊗₁ id)
-        ≈⟨ FM.assoc ⟩
-      ρ⇐ ∘ (ρ⇒ ∘ (ef ⊗₁ id))
-        ≈⟨ refl⟩∘⟨ ρ⇒∘f⊗id≈f∘ρ⇒ ⟩
-      ρ⇐ ∘ (ef ∘ ρ⇒) ∎
+    padE = ⟺ (cancelˡ ρ⇐∘ρ⇒≈id) ○ (refl⟩∘⟨ ρ⇒∘f⊗id≈f∘ρ⇒)
 
     -- the de-cast'd embedding collapses
     main : Sc ∘ emb (f ⊗ˢ idˢ {[]}) ∘ Sd ≈Term ef
-    main = begin
-      Sc ∘ (T ys [] ∘ (ef ⊗₁ id) ∘ F xs []) ∘ Sd
-        ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ (padE ⟩∘⟨refl)) ⟩∘⟨refl) ⟩
-      Sc ∘ (T ys [] ∘ (ρ⇐ ∘ ef ∘ ρ⇒) ∘ F xs []) ∘ Sd
-        ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ FM.assoc) ⟩∘⟨refl) ⟩
-      Sc ∘ (T ys [] ∘ ρ⇐ ∘ (ef ∘ ρ⇒) ∘ F xs []) ∘ Sd
-        ≈⟨ refl⟩∘⟨ (≈-Term-sym FM.assoc ⟩∘⟨refl) ⟩
-      Sc ∘ ((T ys [] ∘ ρ⇐) ∘ (ef ∘ ρ⇒) ∘ F xs []) ∘ Sd
-        ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ FM.assoc) ⟩∘⟨refl) ⟩
-      Sc ∘ ((T ys [] ∘ ρ⇐) ∘ ef ∘ (ρ⇒ ∘ F xs [])) ∘ Sd
-        ≈⟨ refl⟩∘⟨ ((TR ys ⟩∘⟨ (refl⟩∘⟨ FR xs)) ⟩∘⟨refl) ⟩
-      Sc ∘ (subst-id-cod (sym (++-identityʳ ys))
-             ∘ ef ∘ subst-id-dom (sym (++-identityʳ xs))) ∘ Sd
-        ≈⟨ ≈-Term-sym FM.assoc ⟩
-      (Sc ∘ subst-id-cod (sym (++-identityʳ ys))
-             ∘ ef ∘ subst-id-dom (sym (++-identityʳ xs))) ∘ Sd
-        ≈⟨ (≈-Term-sym FM.assoc) ⟩∘⟨refl ⟩
-      ((Sc ∘ subst-id-cod (sym (++-identityʳ ys)))
-             ∘ ef ∘ subst-id-dom (sym (++-identityʳ xs))) ∘ Sd
-        ≈⟨ (cod-cancel (++-identityʳ ys) ⟩∘⟨refl) ⟩∘⟨refl ⟩
-      (id ∘ ef ∘ subst-id-dom (sym (++-identityʳ xs))) ∘ Sd
-        ≈⟨ idˡ ⟩∘⟨refl ⟩
-      (ef ∘ subst-id-dom (sym (++-identityʳ xs))) ∘ Sd
-        ≈⟨ FM.assoc ⟩
-      ef ∘ (subst-id-dom (sym (++-identityʳ xs)) ∘ Sd)
-        ≈⟨ refl⟩∘⟨ dom-cancel (++-identityʳ xs) ⟩
-      ef ∘ id
-        ≈⟨ idʳ ⟩
-      ef ∎
+    main =
+      -- pad `ef` with the ρ-pair, slide the laxator legs onto it (`TR`/`FR`),
+      -- then the two transported-identity pairs cancel.
+      (refl⟩∘⟨ ((refl⟩∘⟨ (padE ⟩∘⟨refl)) ⟩∘⟨refl))
+      ○ (refl⟩∘⟨ ((refl⟩∘⟨ FM.assoc) ⟩∘⟨refl))
+      ○ (refl⟩∘⟨ (≈-Term-sym FM.assoc ⟩∘⟨refl))
+      ○ (refl⟩∘⟨ ((refl⟩∘⟨ FM.assoc) ⟩∘⟨refl))
+      ○ (refl⟩∘⟨ ((TR ys ⟩∘⟨ (refl⟩∘⟨ FR xs)) ⟩∘⟨refl))
+      ○ (refl⟩∘⟨ pullʳ (cancelʳ (dom-cancel (++-identityʳ xs))))
+      ○ cancelˡ (cod-cancel (++-identityʳ ys))
 
 --------------------------------------------------------------------------------
 -- The `σ-hexˢ` case — the block-braiding payment.  Strategy: reduce BOTH
@@ -450,18 +368,8 @@ private
     : ∀ xs ys zs
     → σ {U (xs ++ ys)} {U zs}
       ≈Term (id ⊗₁ T xs ys) ∘ σ {U xs ⊗₀ U ys} {U zs} ∘ (F xs ys ⊗₁ id)
-  σ-split xs ys zs = begin
-    σ
-      ≈⟨ ≈-Term-sym idʳ ⟩
-    σ ∘ id
-      ≈⟨ refl⟩∘⟨ ≈-Term-sym TFid ⟩
-    σ ∘ ((T xs ys ⊗₁ id) ∘ (F xs ys ⊗₁ id))
-      ≈⟨ ≈-Term-sym FM.assoc ⟩
-    (σ ∘ (T xs ys ⊗₁ id)) ∘ (F xs ys ⊗₁ id)
-      ≈⟨ σ∘[f⊗g]≈[g⊗f]∘σ ⟩∘⟨refl ⟩
-    ((id ⊗₁ T xs ys) ∘ σ) ∘ (F xs ys ⊗₁ id)
-      ≈⟨ FM.assoc ⟩
-    (id ⊗₁ T xs ys) ∘ σ ∘ (F xs ys ⊗₁ id) ∎
+  σ-split xs ys zs =
+    ⟺ (pullˡ (⟺ σ∘[f⊗g]≈[g⊗f]∘σ) ○ cancelʳ TFid)
     where
       TFid : (T xs ys ⊗₁ id {U zs}) ∘ (F xs ys ⊗₁ id) ≈Term id
       TFid = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
@@ -473,61 +381,27 @@ private
      → T zs (xs ++ ys) ∘ (id ⊗₁ T xs ys)
        ≈Term subst-id-cod (++-assoc zs xs ys)
              ∘ T (zs ++ xs) ys ∘ (T zs xs ⊗₁ id) ∘ α⇐
-  L1 xs ys zs = begin
-    T zs (xs ++ ys) ∘ (id ⊗₁ T xs ys)
-      ≈⟨ ≈-Term-sym idˡ ⟩
-    id ∘ (T zs (xs ++ ys) ∘ (id ⊗₁ T xs ys))
-      ≈⟨ ≈-Term-sym (cod-cancel (++-assoc zs xs ys)) ⟩∘⟨refl ⟩
-    (subst-id-cod (++-assoc zs xs ys) ∘ subst-id-dom (++-assoc zs xs ys))
-      ∘ (T zs (xs ++ ys) ∘ (id ⊗₁ T xs ys))
-      ≈⟨ FM.assoc ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ (subst-id-dom (++-assoc zs xs ys) ∘ (T zs (xs ++ ys) ∘ (id ⊗₁ T xs ys)))
-      ≈⟨ refl⟩∘⟨ ≈-Term-sym (c-iso-assoc-to zs xs ys) ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ (T (zs ++ xs) ys ∘ (T zs xs ⊗₁ id) ∘ α⇐) ∎
+  L1 xs ys zs =
+    ⟺ ( (refl⟩∘⟨ c-iso-assoc-to zs xs ys)
+      ○ cancelˡ (cod-cancel (++-assoc zs xs ys)) )
 
   -- L2: the dom-side laxator chain, c-iso-assoc-from re-oriented
   L2 : ∀ xs ys zs
      → (F xs ys ⊗₁ id {U zs}) ∘ F (xs ++ ys) zs
        ≈Term α⇐ ∘ (id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
              ∘ subst-id-cod (++-assoc xs ys zs)
-  L2 xs ys zs = begin
-    (F xs ys ⊗₁ id) ∘ F (xs ++ ys) zs
-      ≈⟨ ≈-Term-sym idˡ ⟩
-    id ∘ ((F xs ys ⊗₁ id) ∘ F (xs ++ ys) zs)
-      ≈⟨ ≈-Term-sym α⇐∘α⇒≈id ⟩∘⟨refl ⟩
-    (α⇐ ∘ α⇒) ∘ ((F xs ys ⊗₁ id) ∘ F (xs ++ ys) zs)
-      ≈⟨ FM.assoc ⟩
-    α⇐ ∘ (α⇒ ∘ ((F xs ys ⊗₁ id) ∘ F (xs ++ ys) zs))
-      ≈⟨ refl⟩∘⟨ c-iso-assoc-from xs ys zs ⟩
-    α⇐ ∘ ((id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
-           ∘ subst-id-cod (++-assoc xs ys zs)) ∎
+  L2 xs ys zs =
+    ⟺ ( (refl⟩∘⟨ ⟺ (c-iso-assoc-from xs ys zs))
+      ○ cancelˡ α⇐∘α⇒≈id )
 
   -- J: the junction between the two σ-frames on the RHS
   J : ∀ xs ys zs
     → F (xs ++ zs) ys ∘ subst-id-cod (sym (++-assoc xs zs ys)) ∘ T xs (zs ++ ys)
       ≈Term (T xs zs ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ F zs ys)
-  J xs ys zs = ≈-Term-sym (begin
-    (T xs zs ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ F zs ys)
-      ≈⟨ ≈-Term-sym FM.assoc ⟩
-    ((T xs zs ⊗₁ id) ∘ α⇐) ∘ (id ⊗₁ F zs ys)
-      ≈⟨ star ⟩∘⟨refl ⟩
-    (F (xs ++ zs) ys ∘ subst-id-dom (++-assoc xs zs ys)
-       ∘ T xs (zs ++ ys) ∘ (id ⊗₁ T zs ys)) ∘ (id ⊗₁ F zs ys)
-      ≈⟨ FM.assoc ⟩
-    F (xs ++ zs) ys ∘ ((subst-id-dom (++-assoc xs zs ys)
-       ∘ T xs (zs ++ ys) ∘ (id ⊗₁ T zs ys)) ∘ (id ⊗₁ F zs ys))
-      ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-    F (xs ++ zs) ys ∘ subst-id-dom (++-assoc xs zs ys)
-       ∘ ((T xs (zs ++ ys) ∘ (id ⊗₁ T zs ys)) ∘ (id ⊗₁ F zs ys))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-    F (xs ++ zs) ys ∘ subst-id-dom (++-assoc xs zs ys)
-       ∘ T xs (zs ++ ys) ∘ ((id ⊗₁ T zs ys) ∘ (id ⊗₁ F zs ys))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ TFfold ⟩
-    F (xs ++ zs) ys ∘ subst-id-dom (++-assoc xs zs ys) ∘ T xs (zs ++ ys) ∘ id
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ idʳ ⟩
-    F (xs ++ zs) ys ∘ subst-id-cod (sym (++-assoc xs zs ys)) ∘ T xs (zs ++ ys) ∎)
+  J xs ys zs =
+    ⟺ ( ⟺ FM.assoc
+      ○ (star ⟩∘⟨refl)
+      ○ pullʳ (pullʳ (cancelʳ TFfold)) )
     where
       TFfold : (id ⊗₁ T zs ys) ∘ (id ⊗₁ F zs ys) ≈Term id
       TFfold = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
@@ -537,44 +411,17 @@ private
       star : (T xs zs ⊗₁ id {U ys}) ∘ α⇐
              ≈Term F (xs ++ zs) ys ∘ subst-id-dom (++-assoc xs zs ys)
                    ∘ T xs (zs ++ ys) ∘ (id ⊗₁ T zs ys)
-      star = begin
-        (T xs zs ⊗₁ id) ∘ α⇐
-          ≈⟨ ≈-Term-sym idˡ ⟩
-        id ∘ ((T xs zs ⊗₁ id) ∘ α⇐)
-          ≈⟨ ≈-Term-sym (_≅_.isoʳ (unflatten-++-≅ (xs ++ zs) ys)) ⟩∘⟨refl ⟩
-        (F (xs ++ zs) ys ∘ T (xs ++ zs) ys) ∘ ((T xs zs ⊗₁ id) ∘ α⇐)
-          ≈⟨ FM.assoc ⟩
-        F (xs ++ zs) ys ∘ (T (xs ++ zs) ys ∘ ((T xs zs ⊗₁ id) ∘ α⇐))
-          ≈⟨ refl⟩∘⟨ c-iso-assoc-to xs zs ys ⟩
-        F (xs ++ zs) ys ∘ (subst-id-dom (++-assoc xs zs ys)
-           ∘ T xs (zs ++ ys) ∘ (id ⊗₁ T zs ys)) ∎
+      star =
+        ⟺ (cancelˡ (_≅_.isoʳ (unflatten-++-≅ (xs ++ zs) ys)))
+        ○ (refl⟩∘⟨ c-iso-assoc-to xs zs ys)
 
 private
   -- α⇒ ∘ (α⇐ ∘ W) ≈ W
-  junction : ∀ {A B C D} {W : HomTerm A (B ⊗₀ (C ⊗₀ D))} → α⇒ ∘ (α⇐ ∘ W) ≈Term W
-  junction = ≈-Term-trans (≈-Term-sym FM.assoc) (≈-Term-trans (α⇒∘α⇐≈id ⟩∘⟨refl) idˡ)
-
   tidyL : ∀ xs zs → (T zs xs ∘ σ ∘ F xs zs) ∘ T xs zs ≈Term T zs xs ∘ σ
-  tidyL xs zs = begin
-    (T zs xs ∘ σ ∘ F xs zs) ∘ T xs zs
-      ≈⟨ FM.assoc ⟩
-    T zs xs ∘ ((σ ∘ F xs zs) ∘ T xs zs)
-      ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-    T zs xs ∘ (σ ∘ (F xs zs ∘ T xs zs))
-      ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ _≅_.isoʳ (unflatten-++-≅ xs zs)) ⟩
-    T zs xs ∘ (σ ∘ id)
-      ≈⟨ refl⟩∘⟨ idʳ ⟩
-    T zs xs ∘ σ ∎
+  tidyL xs zs = pullʳ (cancelʳ (_≅_.isoʳ (unflatten-++-≅ xs zs)))
 
   tidyR : ∀ ys zs → F zs ys ∘ (T zs ys ∘ σ ∘ F ys zs) ≈Term σ ∘ F ys zs
-  tidyR ys zs = begin
-    F zs ys ∘ (T zs ys ∘ σ ∘ F ys zs)
-      ≈⟨ ≈-Term-sym FM.assoc ⟩
-    (F zs ys ∘ T zs ys) ∘ (σ ∘ F ys zs)
-      ≈⟨ _≅_.isoʳ (unflatten-++-≅ zs ys) ⟩∘⟨refl ⟩
-    id ∘ (σ ∘ F ys zs)
-      ≈⟨ idˡ ⟩
-    σ ∘ F ys zs ∎
+  tidyR ys zs = cancelˡ (_≅_.isoʳ (unflatten-++-≅ zs ys))
 
   lhs→N
     : ∀ xs ys zs
@@ -682,7 +529,7 @@ private
       ∘ (id ⊗₁ σ)
       ∘ (α⇒ ∘ (α⇐ ∘ (id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
                 ∘ subst-id-cod (++-assoc xs ys zs)))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ junction ⟩
+      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ cancelˡ α⇒∘α⇐≈id ⟩
     subst-id-cod (++-assoc zs xs ys)
       ∘ T (zs ++ xs) ys
       ∘ ((T zs xs ∘ σ) ⊗₁ id)
