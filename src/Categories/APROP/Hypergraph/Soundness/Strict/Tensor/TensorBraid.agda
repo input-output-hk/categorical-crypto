@@ -454,17 +454,12 @@ module _
       decf-inner : HomS (map Gd.vlab Gd.dom) (map Gd.vlab Gd.cod)
       decf-inner = Gd'.permuteˢ (finalPermˢ f) ∘ˢ Grun
 
-      -- G-part permute relabel: `castˢ φGsf φGcod (permuteˢ pL) ≈ permuteˢ_G fpf`.
+      -- G-part permute relabel.  `pL` IS `map⁺ injL (finalPermˢ f)`, so this is
+      -- `pvv-relabelˢ` at the goal's own endpoint proofs — nothing to reconcile.
       Gperm-relabel : castˢ φGsf φGcod (RF.permuteˢ pL) ≈ˢ Gd'.permuteˢ (finalPermˢ f)
       Gperm-relabel =
-        ≈-trans (≡⇒≈ˢ (cast-irrel φGsf PGd φGcod PGc (RF.permuteˢ pL)))
-                (pvv-relabelˢ injL vl Gd.vlab (Embeds.vlab-injL G K)
-                   (finalPermˢ f) PGd PGc)
-        where
-          PGd : map vl (map injL s_G_final) ≡ map Gd.vlab s_G_final
-          PGd = φGsf
-          PGc : map vl (map injL Gd.cod) ≡ map Gd.vlab Gd.cod
-          PGc = φGcod
+        pvv-relabelˢ injL vl Gd.vlab (Embeds.vlab-injL G K)
+          (finalPermˢ f) φGsf φGcod
 
       -- G-part twin: `castˢ φGdom φGcod Gc ≈ decf-inner`.
       Gc-twin : castˢ φGdom φGcod Gc ≈ˢ decf-inner
@@ -472,13 +467,14 @@ module _
         ≈-trans (∘-cast-split φGdom φGsf φGcod (RF.permuteˢ pL) Gon')
                 (∘-resp Gperm-relabel Gon'-bridge)
         where
-          -- `castˢ φGdom φGsf Gon' ≈ Grun` (fuse the `sG≡` cast into `Gbridge`).
+          -- peel BOTH casts off `Gon` in `_≈̂_`, re-attach `Gbridge`'s pair
+          -- (the `≈̂` kit IS the `cast-fuse`/`cast-irrel` sandwich).
           Gon'-bridge : castˢ φGdom φGsf Gon' ≈ˢ Grun
           Gon'-bridge =
-            ≈-trans (≡⇒≈ˢ (cast-fuse refl φGdom (cong (map vl) sG≡) φGsf Gon))
-            (≈-trans (≡⇒≈ˢ (cast-irrel (trans refl φGdom) φGdom
-                              (trans (cong (map vl) sG≡) φGsf) pCodG Gon))
-                     Gbridge)
+            ≈̂⇒castˢ (≈̂-trans cast-≈̂
+                      (≈̂-trans (≈̂-sym (cast-≈̂ {p = φGdom} {q = pCodG}))
+                               (≈ˢ⇒≈̂ Gbridge)))
+                     φGdom φGsf
 
       -- K-side `Kfin≡`-corrected clean K-run, and the C-level K-part.
       Kclean' : HomV (map injR Kd.dom) (map injR s_K_final)
@@ -490,16 +486,11 @@ module _
       decg-inner : HomS (map Kd.vlab Kd.dom) (map Kd.vlab Kd.cod)
       decg-inner = Kd'.permuteˢ (finalPermˢ g) ∘ˢ Krun-K
 
+      -- mirror of `Gperm-relabel` / `Gc-twin` at `φ = injR`.
       Kperm-relabel : castˢ φKsf φKcod (RF.permuteˢ pR) ≈ˢ Kd'.permuteˢ (finalPermˢ g)
       Kperm-relabel =
-        ≈-trans (≡⇒≈ˢ (cast-irrel φKsf PKd φKcod PKc (RF.permuteˢ pR)))
-                (pvv-relabelˢ injR vl Kd.vlab (Embeds.vlab-injR G K)
-                   (finalPermˢ g) PKd PKc)
-        where
-          PKd : map vl (map injR s_K_final) ≡ map Kd.vlab s_K_final
-          PKd = φKsf
-          PKc : map vl (map injR Kd.cod) ≡ map Kd.vlab Kd.cod
-          PKc = φKcod
+        pvv-relabelˢ injR vl Kd.vlab (Embeds.vlab-injR G K)
+          (finalPermˢ g) φKsf φKcod
 
       Kc-twin : castˢ φKdom φKcod Kc ≈ˢ decg-inner
       Kc-twin =
@@ -508,10 +499,10 @@ module _
         where
           Kclean'-bridge : castˢ φKdom φKsf Kclean' ≈ˢ Krun-K
           Kclean'-bridge =
-            ≈-trans (≡⇒≈ˢ (cast-fuse refl φKdom (cong (map vl) Kfin≡) φKsf Kclean))
-            (≈-trans (≡⇒≈ˢ (cast-irrel (trans refl φKdom) φKdom
-                              (trans (cong (map vl) Kfin≡) φKsf) pCodK Kclean))
-                     Kbridge)
+            ≈̂⇒castˢ (≈̂-trans cast-≈̂
+                      (≈̂-trans (≈̂-sym (cast-≈̂ {p = φKdom} {q = pCodK}))
+                               (≈ˢ⇒≈̂ Kbridge)))
+                     φKdom φKsf
 
       ------------------------------------------------------------------
       -- ### `permuteˢ combRaw` frame-decomposition.
