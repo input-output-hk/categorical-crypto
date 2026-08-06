@@ -45,7 +45,7 @@ open import Data.List.Relation.Binary.Permutation.Propositional.Properties using
 open import Data.Product using (_,_; proj₁; proj₂; Σ-syntax)
 
 open import Categories.PermuteCoherence.FinBij
-  using (_≈-fb_; cons-fb; swap-fb; id-fb; _∘-fb_)
+  using (FinBij; _≈-fb_; cons-fb; swap-fb; id-fb; _∘-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.EvalSoundness
   using ( cons-fb-functor-id; cons-fb-functor-comp; swap-fb-involutive
@@ -60,9 +60,6 @@ open import Categories.PermuteCoherence.InsertProof using (straightenW)
 open import Categories.PermuteCoherence.WordInterp {X = X}
   using ( swapAt; swapAt-↭; applyW; applyW-length; ⟦_⟧↭
         ; cast-push; eval-respect)
-open import Categories.PermuteCoherence.FinBijSubst
-  using ( eval-subst-cod )
-
 private
   variable
     x y z a b c e : X
@@ -472,6 +469,12 @@ private
   subst₂-refl-l : {as bs cs : List X} (e : bs ≡ cs) (p : as ↭ bs)
                 → subst₂ Perm._↭_ refl e p ≡ subst (λ z → as ↭ z) e p
   subst₂-refl-l refl p = refl
+
+  -- eval commutes with subst on the codomain.
+  eval-subst-cod : {as C D : List X} (eq : C ≡ D) (p : as ↭ C)
+    → eval-↭ (subst (λ z → as ↭ z) eq p)
+      ≡ subst (λ n → FinBij (length as) n) (cong length eq) (eval-↭ p)
+  eval-subst-cod refl p = refl
 
   subst-FinBij-cod-push : {n m m′ : ℕ} (e : m ≡ m′) (b : P.Permutation n m)
                           (k : Fin n)
