@@ -257,8 +257,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → ⟦ s ⟧₁ C.≈ ⟦ focFrame s lᵗ rᵗ n found ⟧₁
   rewriteAutoₙ! s lᵗ rᵗ n rule {found} {cert} =
     C.Equiv.trans
-      (solveH s (focFrame s lᵗ lᵗ n found)
-              (fromWitness! (findIso ⟪ s ⟫ ⟪ focFrame s lᵗ lᵗ n found ⟫) cert))
+      (solveH! s (focFrame s lᵗ lᵗ n found) {cert})
       (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule))))
 
   -- The first occurrence (`n = 0`).
@@ -287,8 +286,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → ⟦ s ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ n found ⟧₁
   rewriteDeepₙ! s lᵗ rᵗ n rule {found} {cert} =
     C.Equiv.trans
-      (solveH s (deepFrame s lᵗ lᵗ n found)
-              (fromWitness! (findIsoᵀ ⟪ s ⟫ ⟪ deepFrame s lᵗ lᵗ n found ⟫) cert))
+      (solveH!ᵀ s (deepFrame s lᵗ lᵗ n found) {cert})
       (frame-rule-step s lᵗ rᵗ n rule found)
 
   -- The first carvable occurrence (`n = 0`).
@@ -321,8 +319,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     C.Equiv.trans
       (rewriteDeepₙ! s lᵗ rᵗ n rule {found} {c₁})
       (C.Equiv.sym
-        (solveH t (deepFrame s lᵗ rᵗ n found)
-                (fromWitness! (findIsoᵀ ⟪ t ⟫ ⟪ deepFrame s lᵗ rᵗ n found ⟫) c₂)))
+        (solveH!ᵀ t (deepFrame s lᵗ rᵗ n found) {c₂}))
 
   --------------------------------------------------------------------------------
   -- Rewrite DRIVERS: normalisation with respect to a list of rules.
@@ -417,5 +414,5 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁
   normalizeTo! s t rules fuel {c} =
     C.Equiv.trans (proj₂ D)
-      (solveH (proj₁ D) t (fromWitness! (findIsoᵀ ⟪ proj₁ D ⟫ ⟪ t ⟫) c))
+      (solveH!ᵀ (proj₁ D) t {c})
     where D = drive rules fuel s
