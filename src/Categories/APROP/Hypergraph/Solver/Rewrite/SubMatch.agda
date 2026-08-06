@@ -49,7 +49,7 @@ open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Base using (List; head; map; mapMaybe)
 open import Data.List.Properties using () renaming (≡-dec to ≡-decL)
-open import Data.Maybe.Base using (Maybe; just; nothing)
+open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
 open import Data.Maybe.Properties using () renaming (≡-dec to ≡-decM)
 open import Data.Product using (_,_)
 open import Relation.Binary.Definitions using (DecidableEquality)
@@ -129,41 +129,33 @@ module Verify-Sub (L S : Hypergraph FlatGen)
     _≟ME_ = ≡-decM _≟F_
 
   verifySub : Maybe (L ↪ᴴ S)
-  verifySub with totalise (forward φB) | totalise (forward ψB)
-  ... | nothing       | _            = nothing
-  ... | _             | nothing      = nothing
-  ... | just (φ , _)  | just (ψ , _)
-        with ∀F? (λ i → dec⇒maybe (backward φB (φ i) ≟MV just i))
-           | ∀F? (λ e → dec⇒maybe (backward ψB (ψ e) ≟ME just e))
-           | ∀F? (λ i → dec⇒maybe (S.vlab (φ i) ≟X L.vlab i))
-           | ∀F? (λ e → dec⇒maybe (S.ein  (ψ e) ≟LF-S map φ (L.ein  e)))
-           | ∀F? (λ e → dec⇒maybe (S.eout (ψ e) ≟LF-S map φ (L.eout e)))
-  ...     | nothing | _ | _ | _ | _ = nothing
-  ...     | _ | nothing | _ | _ | _ = nothing
-  ...     | _ | _ | nothing | _ | _ = nothing
-  ...     | _ | _ | _ | nothing | _ = nothing
-  ...     | _ | _ | _ | _ | nothing = nothing
-  ...     | just φ-inv | just ψ-inv | just φ-lab | just ψ-ein | just ψ-eout
-            with ∀F? (λ e → flat-match-subst
-                     (deriveAtomEq φ-lab (L.ein  e) (ψ-ein  e))
-                     (deriveAtomEq φ-lab (L.eout e) (ψ-eout e))
-                     (S.elab (ψ e))
-                     (L.elab e))
-  ...       | nothing      = nothing
-  ...       | just ψ-elab  = just record
-                { φ         = φ
-                ; φ⁻¹       = backward φB
-                ; φ-inv     = φ-inv
-                ; ψ         = ψ
-                ; ψ⁻¹       = backward ψB
-                ; ψ-inv     = ψ-inv
-                ; φ-lab     = φ-lab
-                ; ψ-ein     = ψ-ein
-                ; ψ-eout    = ψ-eout
-                ; atom-ein  = λ e → deriveAtomEq φ-lab (L.ein  e) (ψ-ein  e)
-                ; atom-eout = λ e → deriveAtomEq φ-lab (L.eout e) (ψ-eout e)
-                ; ψ-elab    = ψ-elab
-                }
+  verifySub =
+    totalise (forward φB)                                          >>= λ (φ , _) →
+    totalise (forward ψB)                                          >>= λ (ψ , _) →
+    ∀F? (λ i → dec⇒maybe (backward φB (φ i) ≟MV just i))           >>= λ φ-inv →
+    ∀F? (λ e → dec⇒maybe (backward ψB (ψ e) ≟ME just e))           >>= λ ψ-inv →
+    ∀F? (λ i → dec⇒maybe (S.vlab (φ i) ≟X L.vlab i))               >>= λ φ-lab →
+    ∀F? (λ e → dec⇒maybe (S.ein  (ψ e) ≟LF-S map φ (L.ein  e)))    >>= λ ψ-ein →
+    ∀F? (λ e → dec⇒maybe (S.eout (ψ e) ≟LF-S map φ (L.eout e)))    >>= λ ψ-eout →
+    ∀F? (λ e → flat-match-subst
+                 (deriveAtomEq φ-lab (L.ein  e) (ψ-ein  e))
+                 (deriveAtomEq φ-lab (L.eout e) (ψ-eout e))
+                 (S.elab (ψ e))
+                 (L.elab e))                                       >>= λ ψ-elab →
+    just record
+      { φ         = φ
+      ; φ⁻¹       = backward φB
+      ; φ-inv     = φ-inv
+      ; ψ         = ψ
+      ; ψ⁻¹       = backward ψB
+      ; ψ-inv     = ψ-inv
+      ; φ-lab     = φ-lab
+      ; ψ-ein     = ψ-ein
+      ; ψ-eout    = ψ-eout
+      ; atom-ein  = λ e → deriveAtomEq φ-lab (L.ein  e) (ψ-ein  e)
+      ; atom-eout = λ e → deriveAtomEq φ-lab (L.eout e) (ψ-eout e)
+      ; ψ-elab    = ψ-elab
+      }
 
 --------------------------------------------------------------------------------
 -- Top-level: search (no interface seed) then verify.
