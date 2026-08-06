@@ -244,7 +244,7 @@ module FrontSwap (H : Hypergraph FlatGen)
   front-swap-≈ˢ
     : ∀ (ps qs : Order) {e e' : Fin H.nE}
         (inc : Incompˢ e e')
-        (RI : RunInterchangeˢ H dih lin ps qs inc)
+        (RI : RunInterchangeˢ H lin ps qs inc)
         (p₁ : Validˢ (ps ++ e ∷ e' ∷ qs))
         (p₂ : Validˢ (ps ++ e' ∷ e ∷ qs))
     → ( permuteˢ p₁
@@ -305,7 +305,7 @@ module _ (H : Hypergraph FlatGen)
   module _ (run-interchange
               : ∀ (ps qs : Order) {e e' : Fin (Hypergraph.nE H)} (inc : Incompˢ e e')
               → (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE H)
-              → RunInterchangeˢ H dih lin ps qs inc) where
+              → RunInterchangeˢ H lin ps qs inc) where
 
     swap-≈ˢ
       : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂

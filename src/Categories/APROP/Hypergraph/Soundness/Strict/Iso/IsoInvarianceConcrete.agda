@@ -58,7 +58,7 @@ module PerHG (H : Hypergraph FlatGen)
                    {e e' : Fin (Hypergraph.nE H)}
                    (inc : SS.PerHG.Incompˢ H dih lin e e')
                  → (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE H)
-                 → RunInterchangeˢ H dih lin ps qs inc) where
+                 → RunInterchangeˢ H lin ps qs inc) where
   open SS.PerHG H dih lin
     using (Order; Validˢ; decodeOrdˢ; _↝_; _↝*_; NoInv; connectivity
           ; swap-step; swap-validityˢ)

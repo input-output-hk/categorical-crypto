@@ -167,7 +167,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
                {e e' : Fin (Hypergraph.nE ⟪ f ⟫)}
                (inc : SS.PerHG.Incompˢ ⟪ f ⟫ (dep-irrefl-⟪⟫ f) (DAL.⟪⟫-LinearP f) e e')
              → (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE ⟪ f ⟫)
-             → RunInterchangeˢ ⟪ f ⟫ (dep-irrefl-⟪⟫ f) (DAL.⟪⟫-LinearP f) ps qs inc)
+             → RunInterchangeˢ ⟪ f ⟫ (DAL.⟪⟫-LinearP f) ps qs inc)
          -- the cross-iso decoder agreement (the strict `IsoTransport`
          -- residual, fed `vrangeˢ g`).
          (decode-ordˢ-resp-iso

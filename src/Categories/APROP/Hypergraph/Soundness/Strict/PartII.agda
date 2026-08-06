@@ -77,9 +77,9 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
         {e e' : Fin (Hypergraph.nE F)}
         (inc : SS.PerHG.Incompˢ F dih lin e e')
     → (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE F)
-    → RunInterchangeˢ F dih lin ps qs inc
+    → RunInterchangeˢ F lin ps qs inc
   run-interchange-H ps qs {e} {e'} inc prov =
-    run-interchange-tailˢ F dih lin ps qs inc prov
+    run-interchange-tailˢ F lin ps qs inc prov
       (record { reshuffle = proj₁ ri₀ ; run-eq = proj₂ ri₀ })
     where
       -- the full swap-order reservoir, from the swap-site provenance.

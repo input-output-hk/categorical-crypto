@@ -36,8 +36,6 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
-
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 open import Categories.Morphism.Reasoning SCat using (pullʳ)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
@@ -51,16 +49,14 @@ open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.Product using (Σ-syntax; proj₁; proj₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst)
 
 ------------------------------------------------------------------------
--- Per-hypergraph: fix `H`, `dih`, `lin`.
+-- Per-hypergraph: fix `H`, `lin`.
 ------------------------------------------------------------------------
 
 module _ (H : Hypergraph FlatGen)
-         (dih : ∀ {e} → ¬ (Dep H e e))
          (lin : Linear H)
          where
   private module H = Hypergraph H
