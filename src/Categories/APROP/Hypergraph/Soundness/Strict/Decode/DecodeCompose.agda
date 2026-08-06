@@ -632,10 +632,6 @@ module TermEmbedˢ
 -- strict one invokes the per-hypergraph `permˢ-K` on the SELF-LOOP whose
 -- evaluated bijection is the identity (`eval-rigid`-free: direct).
 
-open import Categories.PermuteCoherence.EvalSoundness using (eval-↭-sym)
-open import Categories.PermuteCoherence.FinBij using (inv-fb)
-open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-
 module Equivariantˢ (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
   open Run H public

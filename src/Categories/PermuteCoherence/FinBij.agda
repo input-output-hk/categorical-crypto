@@ -17,8 +17,7 @@ open import Data.Fin.Base using (suc)
 open import Data.Fin.Patterns using (0F; 1F)
 import Data.Fin.Permutation as P
 open P using (Permutation; _∘ₚ_; transpose; lift₀)
-open import Relation.Binary.PropositionalEquality.Core
-  using (refl; trans)
+open import Relation.Binary.PropositionalEquality.Core using (trans)
 
 private
   variable
@@ -61,9 +60,6 @@ swap-fb _ = transpose 0F 1F
 infix 4 _≈-fb_
 _≈-fb_ : FinBij n m → FinBij n m → Set
 π ≈-fb ρ = P._≈_ π ρ
-
-≈-fb-refl : {π : FinBij n m} → π ≈-fb π
-≈-fb-refl _ = refl
 
 ≈-fb-trans : {b b′ b″ : FinBij n m} → b ≈-fb b′ → b′ ≈-fb b″ → b ≈-fb b″
 ≈-fb-trans h₁ h₂ x = trans (h₁ x) (h₂ x)
