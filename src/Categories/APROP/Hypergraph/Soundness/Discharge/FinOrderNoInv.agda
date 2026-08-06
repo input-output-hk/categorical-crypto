@@ -65,7 +65,7 @@ import Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP sig as LH
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
   using (⟪⟫-LinearP)
 open import Categories.APROP.Hypergraph.Util.Prune
-  using (count-non; classify; classify-inj₁-∈)
+  using (count-non; classify; classify-view; ClassifyV; is-mem; is-non)
 open import Data.List.Membership.Propositional.Properties
   using (∈-concat⁺′; ∈-tabulate⁺)
 open import Data.Empty using (⊥; ⊥-elim)
@@ -298,14 +298,14 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
             (Nat.+-mono-≤ (∈→count-pos k∈dom) (∈→count-pos k∈eb))
 
     -- Only `K.dom` members route to the `_↑ˡ cn` (G-side) slots: if
-    -- `remapP k ≡ i ↑ˡ cn` then `k ∈ K.dom`.  Case-split `classify K.dom k`:
-    -- `inj₁` gives `k ∈ K.dom`; `inj₂ j` reduces `remapP k` to `G.nV ↑ʳ j`,
-    -- absurd against `i ↑ˡ cn` by `Inv.↑ˡ≢↑ʳ`.
+    -- `remapP k ≡ i ↑ˡ cn` then `k ∈ K.dom`.  `Prune.classify-view` splits
+    -- `classify K.dom k`: `mem` *is* the wanted `k ∈ K.dom`; `out` reduces
+    -- `remapP k` to a `G.nV ↑ʳ_` slot, absurd against `i ↑ˡ cn` by `Inv.↑ˡ≢↑ʳ`.
     remapP-injL→dom
       : ∀ (k : Fin K.nV) (i : Fin G.nV) → C.remapP k ≡ i ↑ˡ cn → k ∈ K.dom
-    remapP-injL→dom k i hyp with classify K.dom k in cls
-    ... | inj₁ _ = classify-inj₁-∈ cls
-    ... | inj₂ j = ⊥-elim (Inv.↑ˡ≢↑ʳ i j (sym hyp))
+    remapP-injL→dom k i hyp with classify K.dom k | classify-view K.dom k
+    ... | _ | is-mem k∈  = k∈
+    ... | _ | is-non _   = ⊥-elim (Inv.↑ˡ≢↑ʳ i _ (sym hyp))
 
   compose-cross-acyclic : ∀ {ea : Fin G.nE} {eb : Fin K.nE}
                         → ¬ Dep Hc (injREc eb) (injLEc ea)

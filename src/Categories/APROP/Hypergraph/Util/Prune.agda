@@ -87,18 +87,20 @@ module _ {n : ℕ} where
   ... | yes v∈xs = inj₁ (index v∈xs)
   ... | no  v∉xs = inj₂ (index (∈-filter⁺ (nonMem? xs) (∈-allFin v) v∉xs))
 
-  -- Inversion: when classify returns `inj₁ i`, the member slot `i` in
-  -- `xs` looks back to `v`.
-  classify-inj₁-lookup : (xs : List (Fin n)) (v : Fin n) (i : Fin (length xs))
-                       → classify xs v ≡ inj₁ i
-                       → lookup xs i ≡ v
-  classify-inj₁-lookup xs v i eq with v ∈? xs
-  classify-inj₁-lookup xs v .(index v∈xs) refl | yes v∈xs = sym (lookup-index v∈xs)
-  -- When classify returns inj₁, the scrutinee is in xs.
-  classify-inj₁-∈ : ∀ {xs v i} → classify xs v ≡ inj₁ i → v ∈ xs
-  classify-inj₁-∈ {xs} {v} eq with v ∈? xs
-  classify-inj₁-∈ _ | yes v∈ = v∈
-  classify-inj₁-∈ () | no _
+  -- The view on `classify`: every value it returns is `inj₁ (index p)` for a
+  -- membership witness `p`, or `inj₂ (index p)` for a non-membership one.
+  -- Consumers write `with classify xs v | classify-view xs v` and read both the
+  -- witness and the refined sum value off one pattern, replacing the
+  -- `with … in cls`-plus-inversion-lemma idiom.
+  data ClassifyV (xs : List (Fin n)) (v : Fin n)
+       : Fin (length xs) ⊎ Fin (count-non xs) → Set where
+    is-mem : (p : v ∈ xs)        → ClassifyV xs v (inj₁ (index p))
+    is-non : (p : v ∈ nonMem xs) → ClassifyV xs v (inj₂ (index p))
+
+  classify-view : (xs : List (Fin n)) (v : Fin n) → ClassifyV xs v (classify xs v)
+  classify-view xs v with v ∈? xs
+  ... | yes p = is-mem p
+  ... | no  q = is-non (∈-filter⁺ (nonMem? xs) (∈-allFin v) q)
 
   -- For Unique xs, the classify index of `lookup xs j` is `j`.
   classify-lookup-Unique
@@ -141,10 +143,6 @@ module _ {n : ℕ} where
 -- `Unique xs` / `nonMem xs`, and the `↑ˡ`/`↑ʳ` slot families are disjoint.
 
 module _ {n m : ℕ} where
-  open import Data.List.Membership.DecPropositional (_≟_ {n = n}) using (_∈?_)
-  open import Data.List.Membership.Propositional using (_∈_; _∉_)
-  open import Data.List.Membership.Propositional.Properties using (∈-filter⁺; ∈-allFin)
-
   remap : (xs : List (Fin n)) → (Fin (length xs) → Fin m) → Fin n → Fin (m + count-non xs)
   remap xs f v = [ (λ i → f i ↑ˡ count-non xs) , (λ j → m ↑ʳ j) ]′ (classify xs v)
 
@@ -156,40 +154,23 @@ module _ {n m : ℕ} where
   remap-inj₁ xs f v i eq with classify xs v
   remap-inj₁ xs f v i refl | inj₁ .i = refl
 
-  -- Reduction of `remap` in the `inj₂` (non-member) case.
-  remap-inj₂ : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
-               (v : Fin n) (j : Fin (count-non xs))
-             → classify xs v ≡ inj₂ j
-             → remap xs f v ≡ m ↑ʳ j
-  remap-inj₂ xs f v j eq with classify xs v
-  remap-inj₂ xs f v j refl | inj₂ .j = refl
-
   remap-injective
     : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
     → Unique xs
     → (∀ {i j : Fin (length xs)} → f i ≡ f j → i ≡ j)
     → ∀ {v v' : Fin n} → remap xs f v ≡ remap xs f v' → v ≡ v'
-  remap-injective xs f xs-uniq f-inj {v} {v'} eq with v ∈? xs | v' ∈? xs
-  ... | yes v∈ | yes v'∈ =
+  remap-injective xs f xs-uniq f-inj {v} {v'} eq
+    with classify xs v | classify-view xs v | classify xs v' | classify-view xs v'
+  ... | _ | is-mem v∈  | _ | is-mem v'∈ =
     trans (lookup-index v∈)
-      (trans (cong (lookup xs) idx-eq) (sym (lookup-index v'∈)))
-    where
-      f-eq : f (index v∈) ≡ f (index v'∈)
-      f-eq = ↑ˡ-inj (count-non xs) eq
-      idx-eq : index v∈ ≡ index v'∈
-      idx-eq = f-inj f-eq
-  ... | yes v∈ | no v'∉ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ eq)
-  ... | no v∉  | yes v'∈ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ (sym eq))
-  ... | no v∉  | no v'∉ =
-    trans (lookup-index v∈nonMem)
-      (trans (cong (lookup (nonMem xs)) idx-eq) (sym (lookup-index v'∈nonMem)))
-    where
-      v∈nonMem : v ∈ nonMem xs
-      v∈nonMem = ∈-filter⁺ (λ u → ¬? (u ∈? xs)) (∈-allFin v) v∉
-      v'∈nonMem : v' ∈ nonMem xs
-      v'∈nonMem = ∈-filter⁺ (λ u → ¬? (u ∈? xs)) (∈-allFin v') v'∉
-      idx-eq : index v∈nonMem ≡ index v'∈nonMem
-      idx-eq = ↑ʳ-inj m eq
+      (trans (cong (lookup xs) (f-inj (↑ˡ-inj (count-non xs) eq)))
+             (sym (lookup-index v'∈)))
+  ... | _ | is-mem _   | _ | is-non _   = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ eq)
+  ... | _ | is-non _   | _ | is-mem _   = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ (sym eq))
+  ... | _ | is-non v∈ⁿ | _ | is-non v'∈ⁿ =
+    trans (lookup-index v∈ⁿ)
+      (trans (cong (lookup (nonMem xs)) (↑ʳ-inj m eq))
+             (sym (lookup-index v'∈ⁿ)))
 
 --------------------------------------------------------------------------------
 -- Label preservation — the key lemma that makes `hComposeP` work.
@@ -199,9 +180,6 @@ module _ {n m : ℕ} where
 -- `vlab-c (remap xs f v) ≡ λK v` for every `v`.
 
 module _ {a} {X : Set a} {n m : ℕ} where
-  open import Data.List.Membership.DecPropositional (_≟_ {n = n}) using (_∈?_)
-  open import Data.List.Membership.Propositional.Properties using (∈-filter⁺; ∈-allFin)
-
   remap-vlab : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
                (λK : Fin n → X) (λG : Fin m → X)
                (bdy : ∀ i → λK (lookup xs i) ≡ λG (f i))
@@ -209,19 +187,18 @@ module _ {a} {X : Set a} {n m : ℕ} where
              → [ λG , (λ j → λK (lookup (nonMem xs) j)) ]′
                   (splitAt m (remap xs f v))
              ≡ λK v
-  remap-vlab xs f λK λG bdy v with v ∈? xs
-  ... | yes v∈xs =
+  remap-vlab xs f λK λG bdy v with classify xs v | classify-view xs v
+  ... | _ | is-mem v∈xs =
     trans
       (cong [ λG , (λ k → λK (lookup (nonMem xs) k)) ]′
         (splitAt-↑ˡ m (f (index v∈xs)) (count-non xs)))
       (trans (sym (bdy (index v∈xs)))
              (cong λK (sym (lookup-index v∈xs))))
-  ... | no v∉xs =
-    let v∈nonMem = ∈-filter⁺ (λ u → ¬? (u ∈? xs)) (∈-allFin v) v∉xs in
+  ... | _ | is-non v∈ⁿ =
     trans
       (cong [ λG , (λ k → λK (lookup (nonMem xs) k)) ]′
-        (splitAt-↑ʳ m (count-non xs) (index v∈nonMem)))
-      (cong λK (sym (lookup-index v∈nonMem)))
+        (splitAt-↑ʳ m (count-non xs) (index v∈ⁿ)))
+      (cong λK (sym (lookup-index v∈ⁿ)))
 
   -- List-wise version of `remap-vlab`: the labels of any list of K-vertices
   -- agree with the labels obtained by going through `remap` and then the

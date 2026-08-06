@@ -18,9 +18,9 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Util.Prune
-  using ( count-non; classify
-        ; remap-inj₁; remap-inj₂; remap-injective
-        ; classify-lookup-Unique; classify-inj₁-lookup
+  using ( count-non; classify; classify-view; ClassifyV; is-mem; is-non
+        ; remap-inj₁; remap-injective
+        ; classify-lookup-Unique
         ; lookup-injective-unique)
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig using (hComposeP; module hComposeP-impl)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
@@ -41,7 +41,6 @@ open import Data.List.Properties using
   ; tabulate-cong; map-tabulate; concat-map; concat-++)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-open import Data.List.Membership.Propositional.Properties using (∈-lookup)
 import Data.List.Relation.Unary.All as All
 import Data.List.Relation.Unary.AllPairs as AllPairs
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
@@ -418,31 +417,14 @@ module _
             (K-eb-bnd k)
     ... | inj₂ none = Nat.≤-trans (Nat.≤-reflexive (count-map-no-list-preimage remapP K-eb none)) z≤n
 
-    -- If `count k K.dom ≡ 0` then `classify K.dom k` lands in `inj₂`.
-    classify-from-count-zero : ∀ (k : Fin K.nV) → count k K.dom ≡ 0 → Σ[ j ∈ Fin cn ] classify K.dom k ≡ inj₂ j
-    classify-from-count-zero k c0 with classify K.dom k in cls
-    ... | inj₂ j = j , refl
-    ... | inj₁ i = ⊥-elim (Nat.<-irrefl refl
-                            (subst (0 Nat.<_) c0
-                              (lookup-count-pos K.dom i
-                                (classify-inj₁-lookup K.dom k i cls))))
-      where
-        -- `lookup xs i ≡ k` ⇒ `0 < count k xs`: `∈→count-pos ∘ ∈-lookup`.
-        lookup-count-pos : ∀ (xs : List (Fin K.nV)) (i : Fin (length xs)) {k}
-                         → lookup xs i ≡ k → 0 Nat.< count k xs
-        lookup-count-pos xs i {k} eq =
-          subst (λ z → 0 Nat.< count z xs) eq (∈→count-pos (∈-lookup {xs = xs} i))
-
-    -- Only K.dom members route to `↑ˡ`-slots (injL).
+    -- Only K.dom members route to `↑ˡ`-slots (injL).  `Prune.classify-view`
+    -- gives both halves in one split: `mem` is the membership witness, whose
+    -- count is positive (`∈→count-pos`); `out` reduces `remapP k` to a
+    -- `G.nV ↑ʳ_` slot, absurd against `injL i` by `↑ˡ≢↑ʳ`.
     remapP-injL→inDom : ∀ (k : Fin K.nV) (i : Fin G.nV) → remapP k ≡ injL i → 0 Nat.< count k K.dom
-    remapP-injL→inDom k i rpk with count k K.dom in cd
-    ... | suc _ = s≤s z≤n
-    ... | zero  = ⊥-elim (↑ˡ≢↑ʳ i j₀ (trans (sym rpk) k-raise))
-      where
-        cls = classify-from-count-zero k cd
-        j₀  = proj₁ cls
-        k-raise : remapP k ≡ G.nV ↑ʳ j₀
-        k-raise = remap-inj₂ K.dom lookup-cod k j₀ (proj₂ cls)
+    remapP-injL→inDom k i rpk with classify K.dom k | classify-view K.dom k
+    ... | _ | is-mem k∈ = ∈→count-pos k∈
+    ... | _ | is-non _  = ⊥-elim (↑ˡ≢↑ʳ i _ (sym rpk))
 
     -- The K-eb contribution at an injL-slot vanishes.
     count-injL-remapP-K-eb-zero : ∀ (i : Fin G.nV) → count (injL i) (map remapP K-eb) ≡ 0
