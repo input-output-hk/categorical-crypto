@@ -16,8 +16,9 @@
 --   * the common right tail `M` is carried by `box-suffix-ˢ`/`⊗-assocˢ`
 --     (both refl-cast at singleton frames) and an interchange distribution.
 --
--- `PermDischarge.Discharge` opens `Build X _≟X_ (λ _ _ → V)`, so it instantiates
--- `Generic.strict-braid` at `mor := (λ _ _ → V)`.
+-- `PermDischarge.Discharge` DEFINES its `StrictBraid` residual as `BraidAt`, so
+-- the socket and this plug cannot drift apart; `Perm.PermK` fills it with
+-- `Generic.strict-braid` at `mor := FlatGen`.
 --------------------------------------------------------------------------------
 
 open import Relation.Binary using (DecidableEquality)
@@ -79,9 +80,6 @@ module Generic (mor : List X → List X → Set) where
   -- Pull `idˢ {L}` out of every factor (`box-suffix-ˢ`/`⊗-assocˢ`, refl-cast
   -- at singleton frames), distribute the tail past the composition
   -- (interchange), and apply `braid₀`.
-  --
-  -- This is exactly `PermDischarge.Discharge.StrictBraid` once
-  -- `mor := (λ _ _ → V)`.
   strict-braid : ∀ (a b c : X) (L : List X) → BraidAt a b c L
   strict-braid a b c L =
     ≈-trans (≈-sym expand-L)

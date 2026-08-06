@@ -41,6 +41,8 @@ open Perm using (_↭_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.FinBij using (_≈-fb_)
 
+import Categories.APROP.Hypergraph.Soundness.Strict.Braid X _≟X_ as BR
+
 --------------------------------------------------------------------------------
 -- The element-level inductive congruence `_≅↭ⁱ_` and its combinatorial
 -- completeness `complete`, instantiated directly at the vertex set `V`.
@@ -54,25 +56,19 @@ module Discharge (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X)
 
   open Build X _≟X_ mor
   open Perm′ V vlab
+  module BG = BR.Generic mor
 
   ------------------------------------------------------------------------
   -- The SINGLE residual of this discharge: the strict Yang-Baxter braid on
-  -- three single strands `[a] [b] [c]` with a common right tail `M`.  It is a
-  -- closed, finite, semantics-free coherence equation (`s₁s₂s₁ = s₂s₁s₂`),
-  -- TRUE in every symmetric monoidal category and derivable from `σ-hexˢ` +
-  -- `σ-natˢ` (the strict mirror of `SigmaBlockHexagon.σ-block-hexagon`).  It is
-  -- threaded as a parameter here; everything else is constructed.
+  -- three single strands `[a] [b] [c]` with a common right tail `M`, i.e.
+  -- `Braid.Generic.BraidAt` at this very `Build X _≟X_ mor` instance — a
+  -- closed, semantics-free coherence equation (`s₁s₂s₁ = s₂s₁s₂`), TRUE in
+  -- every symmetric monoidal category and proven for every generator family by
+  -- `Braid.Generic.strict-braid`.  It is threaded as a parameter here;
+  -- everything else is constructed.
 
   StrictBraid : Set
-  StrictBraid =
-    ∀ (a b c : X) (M : List X)
-    → ((σˢ (b ∷ []) (c ∷ []) ⊗ˢ idˢ {a ∷ M})
-        ∘ˢ (idˢ {b ∷ []} ⊗ˢ (σˢ (a ∷ []) (c ∷ []) ⊗ˢ idˢ {M})))
-          ∘ˢ (σˢ (a ∷ []) (b ∷ []) ⊗ˢ idˢ {c ∷ M})
-      ≈ˢ
-      ((idˢ {c ∷ []} ⊗ˢ (σˢ (a ∷ []) (b ∷ []) ⊗ˢ idˢ {M}))
-        ∘ˢ (σˢ (a ∷ []) (c ∷ []) ⊗ˢ idˢ {b ∷ M}))
-          ∘ˢ (idˢ {a ∷ []} ⊗ˢ (σˢ (b ∷ []) (c ∷ []) ⊗ˢ idˢ {M}))
+  StrictBraid = ∀ (a b c : X) (M : List X) → BG.BraidAt a b c M
 
   module Main (braidX : StrictBraid) where
 
