@@ -5,7 +5,8 @@
 -- both-fire core `fire-mid-interchangeˢ`.
 --
 -- This is the assembly file for part (II)ˢ's per-swap lemma: it consumes the
--- algebra bricks of `Strict.SwapCore` (`EdgeStepRˢ`, `perm-rigidˢ`) and the
+-- algebra bricks of `Strict.Interchange.SwapCore` (`EdgeStepRˢ`, `perm-rigidˢ`)
+-- and the
 -- V-level interchange kernel of `Interchange.FireMid` (`box-crossᵛ`,
 -- `cross-NFᵛ`), plus the TERM-FREE combinatorics of
 -- `Discharge.Sub.FireMidInterchangeComb` (`SimLoc`, `sim-loc`, the stability
@@ -14,7 +15,7 @@
 --   * `fire-mid-interchangeˢ` — the both-fire interchange core.
 --   * `run-interchange₀ˢ`     — the four-way firing split (skeleton).
 --
--- The concrete `permˢ-K` is supplied via `Strict.PermK`.
+-- The concrete `permˢ-K` is supplied via `Strict.Perm.PermK`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -144,9 +145,8 @@ module _ (H : Hypergraph FlatGen)
 
   module RunInterchange (FMI : FireMidInterchangeˢ) where
 
-    -- `build`: the abstract-index four-way split (strict twin of
-    -- `RunInterchangeEmptyTail.build`).  The three `Unique` arguments feed
-    -- the both-fire branch only.
+    -- `build`: the abstract-index four-way split.  The three `Unique`
+    -- arguments feed the both-fire branch only.
     build
       : ∀ {e e' : Fin H.nE} (e≢e' : ¬ (e ≡ e')) (inc : Incompˢ e e')
           (sp : List (Fin H.nV))
@@ -244,8 +244,7 @@ module _ (H : Hypergraph FlatGen)
              (sym (RH.stacks-agree rest (pe-stackˢ′ ps s)))))
 
     ----------------------------------------------------------------------
-    -- The EMPTY-TAIL interchange core: strict twin of
-    -- `RunInterchangeEmptyTail.run-interchange₀`.
+    -- The EMPTY-TAIL interchange core.
     ----------------------------------------------------------------------
 
     run-interchange₀ˢ

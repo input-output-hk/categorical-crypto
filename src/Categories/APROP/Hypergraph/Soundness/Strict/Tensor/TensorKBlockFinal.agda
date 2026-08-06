@@ -7,7 +7,7 @@
 --
 -- by supplying the LAST residual — the K-block braid `KBlockσ` of
 -- `TensorBraid.Braid` — from the RESERVOIR-THREADED K-block factorization
--- `TensorKBlock6.kblock-factorize-res` (the false per-edge `Unique`-family
+-- `TensorKBlock.TKB6.kblock-factorize-res` (the false per-edge `Unique`-family
 -- `puq` is GONE: each step's `Unique` is DERIVED from the run-order freshness
 -- invariant `StackUniqueReach.Reservoir≤1`).
 --
@@ -262,8 +262,8 @@ module _
 
 --------------------------------------------------------------------------------
 -- ## The UNCONDITIONAL ⊗-shape at the CONCRETE Kelly residual `PK.permˢ-K`
--- (axiom-free, discharged by `Strict.PermK` ⇐ `Strict.Braid`).  This has the
--- EXACT type of `PartI`'s / `Soundness`'s `decodePˢ-⊗` parameter, so
+-- (axiom-free, discharged by `Strict.Perm.PermK` ⇐ `Strict.Braid`).  This has
+-- the EXACT type of `PartI`'s / `Soundness`'s `decodePˢ-⊗` parameter, so
 -- it closes the last residual of the strict soundness assembly.
 
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK

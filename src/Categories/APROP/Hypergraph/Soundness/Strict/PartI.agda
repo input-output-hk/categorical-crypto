@@ -8,7 +8,8 @@
 -- by induction on `f`, combining the per-constructor decoder shape lemmas.
 -- The atomic (id/λ/ρ/α), σ, ∘, and `Agen` (single-generator base case)
 -- shapes are wired CONCRETELY (their deferred `permˢ-K`/`bswap-σ` are
--- discharged axiom-free by `Strict.PermK` and `Strict.BlockSwapComm`, and
+-- discharged axiom-free by `Strict.Perm.PermK` and
+-- `Strict.Interchange.BlockSwapComm`, and
 -- `Agen` is concrete via `Strict.Decode.DecodeGen`).  ONE shape — ⊗ (via the
 -- K-prepend box-braid `KBlockσ`) — is taken as a module parameter, so this
 -- assembly is unconditional given exactly that one.

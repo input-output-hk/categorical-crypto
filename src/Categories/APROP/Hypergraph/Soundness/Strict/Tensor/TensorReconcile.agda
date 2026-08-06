@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- DISCHARGE WORK for the `reconcileˢ` residual of `Strict.DecodeTensorS` — the
--- K-block prepend-asymmetry braid + final-permute resort completing the
+-- DISCHARGE WORK for the `reconcileˢ` residual of `Strict.Decode.DecodeTensor`
+-- — the K-block prepend-asymmetry braid + final-permute resort completing the
 -- ⊗-shape.  This is the strict port of the whole-run assembly TAIL of the
 -- former non-strict `DecodeTensorShape`.
 --

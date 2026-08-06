@@ -2,7 +2,7 @@
 
 --------------------------------------------------------------------------------
 -- The strict block-swap-commutation residual `bswap-σ` of
--- `Strict/DecodeSigma.agda` (the parameter `BSwapσ : Scr.BswapSig`).
+-- `Strict/Decode/DecodeSigma.agda` (the parameter `BSwapσ : Scr.BswapSig`).
 --
 --   block-swap-comm : ∀ (L R : List V) → permuteᵛ (bswap L R) ≈ᵛ σᵛ L R
 --

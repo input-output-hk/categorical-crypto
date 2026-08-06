@@ -94,7 +94,7 @@ module EquivStep (H : Hypergraph FlatGen) where
 
   ----------------------------------------------------------------------
   -- The strict fired layer + `EdgeStepRˢ` graph view, shared with
-  -- `Strict.SwapCore` via the `EdgeStepRel` leaf.
+  -- `Strict.Interchange.SwapCore` via the `EdgeStepRel` leaf.
   ----------------------------------------------------------------------
 
   open EdgeStepView H public

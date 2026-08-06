@@ -14,7 +14,7 @@
 --               (SG.decodeOrdˢ (range nE_g) vJ)
 --         ≈ˢ SF.decodeOrdˢ (range nE_f) vH
 --
--- — exactly the parameter `Strict.DecodePRespIso`'s headline consumes.
+-- — exactly the parameter `Strict.Decode.DecodePRespIso`'s headline consumes.
 --
 -- Structure (§1-§5 + the order-invariant bridge):
 --

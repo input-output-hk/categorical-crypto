@@ -19,7 +19,7 @@
 --
 -- The bridges are `≈̂`-restatements of EXISTING lemmas:
 --   ⟦absorbˡ⟧/⟦absorbʳ⟧ — a reindexing factor is absorbed (`idˡ`/`idʳ`)
---   ⟦frameˡ⟧    — `SwapCore.permuteˢ-frameˡ`  (+ its V face ⟦frameˡ⟧ᵛ)
+--   ⟦frameˡ⟧    — `FreeStrictSMC.Perm′.permuteˢ-frameˡ`  (+ its V face ⟦frameˡ⟧ᵛ)
 --   ⟦frameʳ⟧    — `FreeStrictSMC.Perm′.permuteˢ-frame`
 --   ⟦bswap⟧ᵛ    — `BlockSwapComm.swap-block`
 --   rigid-≈̂     — `SwapCore.perm-rigidˢ`   (the rigidity discharge)

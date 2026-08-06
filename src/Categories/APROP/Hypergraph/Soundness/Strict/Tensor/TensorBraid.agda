@@ -1,7 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The K-BLOCK BRAID `braidˢ` of `Strict.TensorReconcile` — the LAST residual
+-- The K-BLOCK BRAID `braidˢ` of `Strict.Tensor.TensorReconcile` — the LAST
+-- residual
 -- of the strict ⊗-shape `decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g`.
 --
 -- `⟪ f ⊗₁ g ⟫ = hTensor ⟪f⟫ ⟪g⟫`, edges `range C.nE = gblk ++ kblk`

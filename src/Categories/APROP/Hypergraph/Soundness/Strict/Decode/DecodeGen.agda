@@ -23,7 +23,8 @@
 -- plus the boundary `castˢ`s `⟪⟫-domL`/`-codL`.
 --
 -- PROVEN HERE, postulate-free, holes-free, `--safe --without-K`; the concrete
--- `permˢ-K` (from `Strict.PermK`) is threaded directly (not as a parameter),
+-- `permˢ-K` (from `Strict.Perm.PermK`) is threaded directly (not as a
+-- parameter),
 -- exactly as the σ-shape does.
 --------------------------------------------------------------------------------
 

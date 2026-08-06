@@ -3,7 +3,8 @@
 --------------------------------------------------------------------------------
 -- LEFT-frame separability of the strict decoder — what IS true.
 --
--- Intended as the MIRROR of the RIGHT-frame `term-sepˢ` (in `Strict.Decoder`),
+-- Intended as the MIRROR of the RIGHT-frame `term-sepˢ` (in
+-- `Strict.Decode.Decoder`),
 -- which fixes a SUFFIX `R` of the stack untouched (`xs ++ R`, frame on the
 -- right via stdlib `++⁺ʳ`) and proves the run factors as `(run on xs) ⊗ˢ id`.
 --
@@ -57,8 +58,8 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SeparableStack s
 --
 -- Take `es = e ∷ []`, `xs` such that `extract-prefix (H.ein e) xs
 -- ≡ just (rest , p)`, and `L` disjoint from `H.ein e`.  Then:
---   * RIGHT frame (`Strict.Decoder`): `edge-stepˢ` on `xs ++ R` gives stack
---     `H.eout e ++ (rest ++ R) = (H.eout e ++ rest) ++ R`.  The untouched
+--   * RIGHT frame (`Strict.Decode.Decoder`): `edge-stepˢ` on `xs ++ R` gives
+--     stack `H.eout e ++ (rest ++ R) = (H.eout e ++ rest) ++ R`.  The untouched
 --     `R` is at the END, the prepended output `H.eout e` lands BEFORE it, so
 --     `R` remains a suffix and `… ⊗ˢ idˢ {map vl R}` types.
 --   * LEFT frame (here): `extract-prefix-++ʳ` gives residual `L ++ rest`,

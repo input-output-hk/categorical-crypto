@@ -1,8 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- STRICT TAIL-EXTENSION of the run-level interchange (strict twin of
--- `Discharge/Sub/RunInterchangeTail.run-interchange-tail`).
+-- STRICT TAIL-EXTENSION of the run-level interchange.
 --
 -- The substantive content of the `RunInterchangeˢ` record sits at the EMPTY
 -- tail (the two-edge interchange, `SwapCoreRun.run-interchange₀ˢ`); lifting
@@ -76,7 +75,8 @@ module _ (H : Hypergraph FlatGen)
   Incompˢ = SC.Incomp H
 
   ----------------------------------------------------------------------
-  -- The strict (N) residual record — twin of `FrontSwap.RunInterchange`.
+  -- The strict (N) residual record — consumed as the `RI` argument of
+  -- `SwapStep.FrontSwap`.
   -- `reshuffle` between the two post-front stacks; `run-eq` is the (N)
   -- run-level interchange equation, at the VERTEX-level `permuteˢ`.
   ----------------------------------------------------------------------

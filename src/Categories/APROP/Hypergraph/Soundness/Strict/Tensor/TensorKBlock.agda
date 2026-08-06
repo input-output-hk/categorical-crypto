@@ -2,9 +2,9 @@
 
 --------------------------------------------------------------------------------
 -- The K-block braid residual `KBlockσ` and its supporting lemmas, organised as
--- submodules TKB/TKB2/.../TKB6 (each carrying its own clash-free imports) plus
--- the top-level `KBlockDisjoint`.  `TensorKBlockFinal` stays separate to avoid
--- the `TensorBraid` import cycle.
+-- submodules `TKBBase` (the shared header), `TKB2`, `TKB4`, `TKB6` (each
+-- carrying its own clash-free imports) plus the top-level `KBlockDisjoint`.
+-- `TensorKBlockFinal` stays separate to avoid the `TensorBraid` import cycle.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

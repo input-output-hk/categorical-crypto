@@ -49,8 +49,8 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; rang
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; _≅_)
 -- `permute-via-vlab` is imported directly from `Categories.Hypergraph.Steps`
--- (rather than via the `Soundness.Base.Permute` re-export shim) so APROP and
--- generic SMC code observe definitional equality.
+-- (rather than through any intermediate re-export) so APROP and generic SMC
+-- code observe definitional equality.
 open import Categories.Hypergraph.Steps asFreeMonoidalData
   using (permute-via-vlab)
 

@@ -111,8 +111,8 @@ module Build
   ------------------------------------------------------------------------
   -- `(HomS , _≈ˢ_)` as a `Category`.  Its four axioms are `_≈ˢ_`
   -- constructors on the nose, so the bundle is free — and it is what lets the
-  -- strict cone open `HomReasoning` and `Categories.Morphism.Reasoning`
-  -- (`pullˡ`/`pushʳ`/`cancelˡ`/`center`/…) instead of re-deriving those
+  -- strict cone open `Categories.Morphism.Reasoning` (`pullʳ`, `pullˡ`,
+  -- `cancelInner`, `cancelˡ`, `elimʳ`) instead of re-deriving those
   -- combinators locally.  Not the monoidal structure: `_⊗ˢ_`'s associativity
   -- and unit laws are `castˢ`-mediated, so `⊗` is not a `Bifunctor` over
   -- `List X` without the strictification, which is what `FreeStrictMonoidal`

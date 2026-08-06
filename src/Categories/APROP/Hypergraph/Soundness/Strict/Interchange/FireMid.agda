@@ -6,9 +6,8 @@
 --
 -- This assembles the located normal-form pieces:
 -- the per-order located normal forms `nf-genᵛ` (a single, block-symmetric
--- single-order chase, the strict twin of the former non-strict
--- `BlockNFNf2.block-bracket-pf`),
--- instantiated for the two firing orders, then threaded through `cross-NFᵛ`
+-- single-order chase), instantiated for the two firing orders, then threaded
+-- through `cross-NFᵛ`
 -- with the proven `vin-cohᵛ`/`vout-cohᵛ` (FMS2) to give the both-fire core
 -- `fire-mid-interchangeˢ`.  Instantiating `SwapCoreRun.RunInterchange` with
 -- it yields the UNCONDITIONAL `run-interchange₀ˢ`.  The whole assembly runs

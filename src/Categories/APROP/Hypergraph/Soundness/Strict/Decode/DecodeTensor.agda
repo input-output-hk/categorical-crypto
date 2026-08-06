@@ -27,7 +27,8 @@
 -- level, where the final extract-exact permutation `finalPermˢ (f ⊗₁ g)`
 -- re-sorts the braided K-outputs back behind `G.cod`.  This is exactly the σ/K
 -- content; in the strict SMC it collapses to the `σˢ`/`σ-hexˢ` machinery of
--- `Strict/Braid.agda` + `Strict/DecodeSigma.agda` (`σ-hexˢʳ`) and is discharged
+-- `Strict/Braid.agda` + `Strict/Decode/DecodeSigma.agda` (`σ-hexˢʳ`) and is
+-- discharged
 -- by `perm-rigidˢ` on the final permutation.
 --------------------------------------------------------------------------------
 

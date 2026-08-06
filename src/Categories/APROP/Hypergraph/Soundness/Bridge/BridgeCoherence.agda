@@ -15,8 +15,8 @@ module Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence
 open APROP sig
 -- `bridge-∘` / `bridge-⊗` are the factored-out distributivity lemmas; we
 -- re-export them so this module's downstream consumers (Strict/Boundary,
--- Discharge/Sub/HomTermTransport, Discharge/BridgeAlphaFormCompound) keep
--- resolving `bridge-∘` / `bridge-⊗` through `BridgeCoherence`.
+-- Discharge/BridgeAlphaFormCompound) keep resolving `bridge-∘` / `bridge-⊗`
+-- through `BridgeCoherence`.
 open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeOps sig
   using (bridge-∘; bridge-⊗) public
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (flatten)
@@ -53,7 +53,7 @@ open FM.HomReasoning
 
 --------------------------------------------------------------------------------
 -- Foundation lemmas `bridge-∘` / `bridge-⊗` are re-exported from
--- `Soundness.BridgeOps` (see the import section above).
+-- `Soundness.Bridge.BridgeOps` (see the import section above).
 
 --------------------------------------------------------------------------------
 -- `bridge (id {A}) ≈Term id`: the iso `unflatten-flatten-≈ A` cancels.
