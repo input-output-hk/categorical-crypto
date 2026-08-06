@@ -21,7 +21,7 @@
 --   * the LEFT frame is FALSE for any firing block: in `hTensor G K`, after
 --     G's block fires (leaving `G.cod ++ K.dom`-shaped stack), K's edges act on
 --     the K-input suffix and PREPEND K's outputs in FRONT of `G.cod`, producing
---     a BRAIDED form (`Separability`'s obstruction note proves no left frame).
+--     a BRAIDED form (`SeparableStack`'s obstruction note: no left frame).
 --
 -- So the clean `decodePˢ f ⊗ˢ decodePˢ g` is recovered ONLY at the whole-decode
 -- level, where the final extract-exact permutation `finalPermˢ (f ⊗₁ g)`

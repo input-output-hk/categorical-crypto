@@ -518,7 +518,7 @@ module TKB6 (H : Hypergraph FlatGen) where
     using (extract-elem; extract-prefix)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
     using (module EquivStep)
-  open import Categories.APROP.Hypergraph.Soundness.Strict.Separability sig
+  open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SeparableStack sig
     using (extract-prefix-++ʳ; extract-prefix-++ʳ-nothing)
   import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig as SU
   import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR

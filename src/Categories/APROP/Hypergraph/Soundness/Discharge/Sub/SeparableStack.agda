@@ -185,6 +185,25 @@ extract-prefix-++ˡ-nothing (k ∷ ks) xs R (dk ∷ dks) eqn with extract-elem k
 -- through whole onto the residual: the residual on `F ++ xs` is
 -- `F ++ (residual on xs)`.  Only the `just`/prefix directions are new; the
 -- `nothing`-direction reuses `extract-elem-++ˡ-nothing` (which is symmetric).
+--
+-- OBSTRUCTION — why these stack lemmas are the strongest left-hand statement
+-- available, i.e. why there is no TERM-level mirror `term-sepˢ-ˡ` of
+-- `Decoder.term-sepˢ` for a block that fires.  Take `es = e ∷ []`, an `xs` with
+-- `extract-prefix (H.ein e) xs ≡ just (rest , p)`, and an `L` disjoint from
+-- `H.ein e`.  Then `extract-prefix-++ʳ` gives residual `L ++ rest`, so
+-- `edge-stepˢ` on `L ++ xs` produces the stack
+--     proj₁ (process-edgesˢ (e ∷ []) (L ++ xs)) = H.eout e ++ (L ++ rest)
+-- whereas the framed form would need
+--     L ++ proj₁ (process-edgesˢ (e ∷ []) xs)   = L ++ (H.eout e ++ rest)
+-- and the two differ whenever `H.eout e` and `L` are non-empty and distinct:
+-- the prepended output lands BEFORE the untouched `L`, so `map vl L` is no
+-- longer a left prefix of the codomain and the codomain coherence `Q` of a
+-- term-level `castˢ … Q … ≈ˢ idˢ {map vl L} ⊗ˢ …` cannot be supplied at all.
+-- That is a list-equality mismatch, not a coherence gap, so no `≈ˢ`/cast
+-- manoeuvre repairs it; a left frame for a firing block would have to slide
+-- `H.eout e` back past `L` via `σ`, giving a BRAIDED form.  The RIGHT frame
+-- survives precisely because outputs prepend, and the pure-permutation left
+-- frame is `FreeStrictSMC.Restrict.permuteᵛ-frameˡ`.
 --------------------------------------------------------------------------------
 
 -- `extract-elem` on `F ++ xs` with `k` absent from `F`: `k` is located in `xs`
