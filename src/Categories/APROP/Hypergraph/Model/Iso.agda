@@ -111,30 +111,22 @@ module _ {X : Set} {Gen : List X → List X → Set} where
       module G = Hypergraph G
       module K = Hypergraph K
 
-      -- `map (φ⁻¹ ∘ φ) ≗ id`, so `map φ⁻¹ (map φ xs) ≡ xs`.
-      map-φ⁻¹φ : (xs : List (Fin G.nV)) → map φ⁻¹ (map φ xs) ≡ xs
-      map-φ⁻¹φ xs = map-∘-id φ-left xs
+      -- any `map φ` equation read in the flipped direction, via
+      -- `map φ⁻¹ (map φ xs) ≡ xs`.
+      flip-map : ∀ {xs ys} → ys ≡ map φ xs → xs ≡ map φ⁻¹ ys
+      flip-map {xs} p = trans (sym (map-∘-id φ-left xs)) (sym (cong (map φ⁻¹) p))
 
-      -- ein equation in the flipped direction (via map-φ⁻¹φ + ψ-rght).
       ein-sym : ∀ e → G.ein (ψ⁻¹ e) ≡ map φ⁻¹ (K.ein e)
-      ein-sym e =
-        trans (sym (map-φ⁻¹φ (G.ein (ψ⁻¹ e))))
-              (cong (map φ⁻¹)
-                (trans (sym (ψ-ein (ψ⁻¹ e)))
-                       (cong K.ein (ψ-rght e))))
+      ein-sym e = flip-map (trans (sym (cong K.ein (ψ-rght e))) (ψ-ein (ψ⁻¹ e)))
 
       eout-sym : ∀ e → G.eout (ψ⁻¹ e) ≡ map φ⁻¹ (K.eout e)
-      eout-sym e =
-        trans (sym (map-φ⁻¹φ (G.eout (ψ⁻¹ e))))
-              (cong (map φ⁻¹)
-                (trans (sym (ψ-eout (ψ⁻¹ e)))
-                       (cong K.eout (ψ-rght e))))
+      eout-sym e = flip-map (trans (sym (cong K.eout (ψ-rght e))) (ψ-eout (ψ⁻¹ e)))
 
       dom-sym : G.dom ≡ map φ⁻¹ K.dom
-      dom-sym = trans (sym (map-φ⁻¹φ G.dom)) (sym (cong (map φ⁻¹) φ-dom))
+      dom-sym = flip-map φ-dom
 
       cod-sym : G.cod ≡ map φ⁻¹ K.cod
-      cod-sym = trans (sym (map-φ⁻¹φ G.cod)) (sym (cong (map φ⁻¹) φ-cod))
+      cod-sym = flip-map φ-cod
 
       atom-ein-sym : ∀ e → map G.vlab (G.ein (ψ⁻¹ e)) ≡ map K.vlab (K.ein e)
       atom-ein-sym e =
@@ -240,27 +232,22 @@ module _ {X : Set} {Gen : List X → List X → Set} where
       ψ₂      = I₂.ψ      ; ψ⁻¹₂    = I₂.ψ⁻¹
       ψ-left₂ = I₂.ψ-left ; ψ-rght₂ = I₂.ψ-rght
 
+      -- two `map`-legs (through `φ₂` then `φ₁`) fused into one `map (φ₂ ∘ φ₁)`.
+      via₂ : ∀ {xs ys zs} → xs ≡ map φ₂ ys → ys ≡ map φ₁ zs
+           → xs ≡ map (λ i → φ₂ (φ₁ i)) zs
+      via₂ p q = trans p (trans (cong (map φ₂) q) (sym (map-∘ _)))
+
       ein-trans : ∀ e → K.ein (ψ₂ (ψ₁ e)) ≡ map (λ i → φ₂ (φ₁ i)) (G.ein e)
-      ein-trans e =
-        trans (I₂.ψ-ein (ψ₁ e))
-        (trans (cong (map φ₂) (I₁.ψ-ein e))
-               (sym (map-∘ (G.ein e))))
+      ein-trans e = via₂ (I₂.ψ-ein (ψ₁ e)) (I₁.ψ-ein e)
 
       eout-trans : ∀ e → K.eout (ψ₂ (ψ₁ e)) ≡ map (λ i → φ₂ (φ₁ i)) (G.eout e)
-      eout-trans e =
-        trans (I₂.ψ-eout (ψ₁ e))
-        (trans (cong (map φ₂) (I₁.ψ-eout e))
-               (sym (map-∘ (G.eout e))))
+      eout-trans e = via₂ (I₂.ψ-eout (ψ₁ e)) (I₁.ψ-eout e)
 
       dom-trans : K.dom ≡ map (λ i → φ₂ (φ₁ i)) G.dom
-      dom-trans = trans I₂.φ-dom
-                  (trans (cong (map φ₂) I₁.φ-dom)
-                         (sym (map-∘ G.dom)))
+      dom-trans = via₂ I₂.φ-dom I₁.φ-dom
 
       cod-trans : K.cod ≡ map (λ i → φ₂ (φ₁ i)) G.cod
-      cod-trans = trans I₂.φ-cod
-                  (trans (cong (map φ₂) I₁.φ-cod)
-                         (sym (map-∘ G.cod)))
+      cod-trans = via₂ I₂.φ-cod I₁.φ-cod
 
       atom-ein-trans : ∀ e → map K.vlab (K.ein (ψ₂ (ψ₁ e))) ≡ map G.vlab (G.ein e)
       atom-ein-trans e = trans (I₂.atom-ein (ψ₁ e)) (I₁.atom-ein e)
