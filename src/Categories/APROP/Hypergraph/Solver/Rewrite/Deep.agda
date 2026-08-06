@@ -37,6 +37,7 @@ open import Data.Fin using (Fin)
 open import Data.List.Base
   using (List; []; _∷_; _++_; map; mapMaybe; concatMap; length; lookup)
 open import Data.List.Properties using (≡-dec)
+open import Data.List.Properties.Ext using (lookupMaybe)
 open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
 import Data.Maybe.Base as Maybe
 open import Data.Nat using (ℕ; suc)
@@ -52,7 +53,7 @@ open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch sig-dec
   using (subMatchAll; _↪ᴴ_)
 open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig-dec
-  using (Foc; lookupMaybe)
+  using (Foc)
 open import Categories.APROP.Hypergraph.Solver.Rewrite.Kahn using (kahn)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-flatten-≈; _≅_)

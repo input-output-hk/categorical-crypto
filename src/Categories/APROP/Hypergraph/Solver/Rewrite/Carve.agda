@@ -34,8 +34,9 @@ open APROP sig
 
 open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
 open import Data.Bool.Base using (Bool; true; false)
-open import Data.List.Base using (List; []; _∷_; _++_; map; head; drop)
-open import Data.Nat using (ℕ; zero; suc)
+open import Data.List.Base using (List; []; _∷_; _++_; map)
+open import Data.List.Properties.Ext using (lookupMaybe)
+open import Data.Nat using (ℕ)
 open import Data.Product using (Σ; _×_; _,_)
 open import Relation.Nullary using (yes)
 open import Relation.Binary.PropositionalEquality using (refl)
@@ -92,9 +93,6 @@ focusAll s lᵗ with leaf-try s lᵗ
 --------------------------------------------------------------------------------
 -- Indexed entry point: the `n`-th focus position (0-based, in the order above),
 -- and `focusAt` as the first one.
-
-lookupMaybe : ∀ {a} {A : Set a} → List A → ℕ → Maybe A
-lookupMaybe xs n = head (drop n xs)
 
 focusAtₙ : ∀ {A B P Q} → HomTerm A B → HomTerm P Q → ℕ → Maybe (Foc A B P Q)
 focusAtₙ s lᵗ n = lookupMaybe (focusAll s lᵗ) n

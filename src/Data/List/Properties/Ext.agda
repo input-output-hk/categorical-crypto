@@ -7,9 +7,10 @@
 module Data.List.Properties.Ext where
 
 open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
-open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.List using (List; []; _∷_; _++_; map; head; drop)
 open import Data.List.Properties using (≡-dec; ++-assoc; map-∘; map-cong; map-id)
 open import Data.Maybe as Maybe using (Maybe; just; nothing)
+open import Data.Nat.Base using (ℕ)
 open import Data.Product using (Σ-syntax; _,_)
 open import Relation.Binary.Definitions using (DecidableEquality; Irrelevant)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; cong₂)
@@ -22,6 +23,12 @@ open import Relation.Nullary using (yes; no)
 ++-assoc-mid : ∀ {a} {A : Set a} (p x s r : List A)
              → (p ++ (x ++ s)) ++ r ≡ p ++ (x ++ (s ++ r))
 ++-assoc-mid p x s r = trans (++-assoc p (x ++ s) r) (cong (p ++_) (++-assoc x s r))
+
+-- positional lookup as a partial function: the `n`-th element (0-based) of
+-- `xs`, or `nothing` past the end.  Signature-free, so consumers inside a
+-- parameterised module do not re-elaborate it per instantiation.
+lookupMaybe : ∀ {a} {A : Set a} → List A → ℕ → Maybe A
+lookupMaybe xs n = head (drop n xs)
 
 -- decidable prefix strip: if `p` is a prefix of `xs`, recover the remainder
 -- `ys` together with a propositional witness `xs ≡ p ++ ys`.

@@ -50,7 +50,7 @@ open import Data.Nat.Base
 open import Relation.Binary.PropositionalEquality
 
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive
-  using (Star; ε; _◅_; _◅◅_)
+  using (Star; ε; _◅_; _◅◅_; fold)
 open import Relation.Nullary
 
 --------------------------------------------------------------------------------
@@ -188,8 +188,7 @@ private
 
   -- Right-collapse (only the fuel-exhausted fallback; unreachable with fuel = length).
   oneC : ∀ {A B} → Chain A B → HomTerm A B
-  oneC ε        = id
-  oneC (g ◅ gs) = g ∘ oneC gs
+  oneC = fold (λ Y Z → HomTerm Z Y) _∘_ id
 
   balC : ∀ {A B} → ℕ → Chain A B → HomTerm A B
   balC _       ε        = id

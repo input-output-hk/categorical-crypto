@@ -17,17 +17,24 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_)
+import Data.Fin as Fin
+open import Data.Fin.Properties using (suc-injective)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.List using (List; []; _∷_; _++_; map; length)
+open import Data.List.Properties using (map-id; map-cong; map-++; map-∘)
+open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties
   using (∈-map⁻)
 open import Data.List.Relation.Binary.Disjoint.Propositional using (Disjoint)
+import Data.List.Relation.Unary.All                as ListAll
+import Data.List.Relation.Unary.All.Properties     as ListAll-Prop
+import Data.List.Relation.Unary.AllPairs           as AllPairs
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
 open import Data.Product using (_,_)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; subst; cong; cong₂)
+  using (_≡_; _≢_; refl; sym; trans; subst; cong; cong₂)
 
 --------------------------------------------------------------------------------
 -- For identity hypergraphs, `dom ≡ cod` as lists (every `hId` branch uses
@@ -63,11 +70,7 @@ disj-L-R {m} {n} xs ys (v∈L , v∈R) with ∈-map⁻ (_↑ˡ n) v∈L | ∈-ma
 
 hId-dom-Unique : ∀ A → Unique (Hypergraph.dom (hId A))
 hId-dom-Unique unit     = AllPairs.[]
-  where import Data.List.Relation.Unary.AllPairs as AllPairs
-hId-dom-Unique (Var x)  = All.[] AllPairs.∷ AllPairs.[]
-  where
-    import Data.List.Relation.Unary.AllPairs as AllPairs
-    import Data.List.Relation.Unary.All       as All
+hId-dom-Unique (Var x)  = ListAll.[] AllPairs.∷ AllPairs.[]
 hId-dom-Unique (A ⊗₀ B) =
   Uniq-Prop.++⁺
     (Uniq-Prop.map⁺ (inject+-inj (Hypergraph.nV (hId B))) (hId-dom-Unique A))
@@ -80,26 +83,14 @@ hId-cod-Unique A = subst Unique (sym (hId-cod≡dom A)) (hId-dom-Unique A)
 
 --------------------------------------------------------------------------------
 -- Unique witnesses for `range n` and for `hSwap` / `hGen`.
-
-import Data.List.Relation.Unary.All        as ListAll
-import Data.List.Relation.Unary.AllPairs   as AllPairs
-import Data.Fin                            as Fin
-open import Relation.Binary.PropositionalEquality using (_≢_)
-
-private
-  all-≢-zero : ∀ {n} (xs : List (Fin n))
-             → ListAll.All (Fin.zero {n = n} ≢_) (map Fin.suc xs)
-  all-≢-zero []       = ListAll.[]
-  all-≢-zero (x ∷ xs) = (λ ()) ListAll.∷ all-≢-zero xs
-
-  fin-suc-inj : ∀ {n} {i j : Fin n} → Fin.suc i ≡ Fin.suc j → i ≡ j
-  fin-suc-inj refl = refl
+-- `zero ≢ suc _` pointwise (`All.universal`) transported across the `map suc`
+-- (`All.Properties.map⁺`) is the head condition; the tail is `suc`-injectivity.
 
 range-Unique : ∀ n → Unique (range n)
 range-Unique 0             = AllPairs.[]
 range-Unique (suc n)  =
-  all-≢-zero (range n)
-    AllPairs.∷ Uniq-Prop.map⁺ fin-suc-inj (range-Unique n)
+  ListAll-Prop.map⁺ (ListAll.universal (λ _ → λ ()) (range n))
+    AllPairs.∷ Uniq-Prop.map⁺ suc-injective (range-Unique n)
 
 hSwap-dom-Unique : ∀ A B → Unique (Hypergraph.dom (hSwap A B))
 hSwap-dom-Unique A B =
@@ -134,14 +125,9 @@ range-++ : ∀ (n m : ℕ)
          → range (n + m) ≡ map (_↑ˡ m) (range n) ++ map (n ↑ʳ_) (range m)
 range-++ zero    m = trans (sym (map-id (range m)))
                            (sym (map-cong (λ _ → refl) (range m)))
-  where open import Data.List.Properties using (map-id; map-cong)
 range-++ (suc n) m = cong (zero ∷_)
   (trans (cong (map Fin.suc) (range-++ n m))
   (trans (map-++ Fin.suc (map (_↑ˡ m) (range n)) (map (n ↑ʳ_) (range m)))
          (cong₂ _++_
            (trans (map-∘-cong (λ _ → refl) (range n)) (map-∘ (range n)))
            (sym (map-∘ (range m))))))
-  where
-    open import Data.List.Properties using (map-++; map-∘)
-    open import Data.List.Properties.Ext using (map-∘-cong)
-    import Data.Fin as Fin

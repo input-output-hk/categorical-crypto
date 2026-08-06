@@ -20,7 +20,8 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (module hComposeP-impl)
-open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
+open import Categories.APROP.Hypergraph.Model.Translation sig
+  using (⟪_⟫; ⟪⟫-codL; ⟪⟫-domL)
 open import Categories.APROP.Hypergraph.Model.Invariant sig
   using ( hId-dom-Unique; hSwap-dom-Unique; hGen-dom-Unique
         ; hId-cod-Unique; hSwap-cod-Unique; hGen-cod-Unique
@@ -29,7 +30,7 @@ open import Categories.APROP.Hypergraph.Model.Invariant sig
 open import Data.List using (List; _++_)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
-open import Relation.Binary.PropositionalEquality using (sym)
+open import Relation.Binary.PropositionalEquality using (sym; trans)
 
 --------------------------------------------------------------------------------
 -- `⟪ f ⟫.dom` is Unique for every APROP term.
@@ -79,9 +80,6 @@ open import Relation.Binary.PropositionalEquality using (sym)
     (hCP.remapP-injective-from-unique (⟪_⟫-cod-unique h) (⟪_⟫-dom-unique g))
     (⟪_⟫-cod-unique g)
   where
-    open import Relation.Binary.PropositionalEquality using (trans)
-    open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪⟫-codL; ⟪⟫-domL)
-
     bdy = trans (⟪⟫-codL h) (sym (⟪⟫-domL g))
     module hCP = hComposeP-impl ⟪ h ⟫ ⟪ g ⟫ bdy
 

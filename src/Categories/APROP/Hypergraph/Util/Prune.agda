@@ -116,11 +116,35 @@ module _ {n : ℕ} where
       ∈-lookup-helper = ∈-lookup-std j
 
 --------------------------------------------------------------------------------
+-- `_↑ˡ k` / `k ↑ʳ_` injectivity (thin wrappers over the stdlib lemmas, with
+-- `k` explicit and `i j` implicit to match the call sites) and disjointness of
+-- their ranges.  The single home tree-wide: `Model.Invariant` re-exports these
+-- as `inject+-inj`/`raise-inj`/`↑ˡ≢↑ʳ` (it is `sig`-parameterised, so the
+-- dependency can only run in this direction).
+
+↑ˡ-inj : ∀ {n} (k : ℕ) {i j : Fin n} → i ↑ˡ k ≡ j ↑ˡ k → i ≡ j
+↑ˡ-inj k {i} {j} eq = ↑ˡ-injective k i j eq
+
+↑ʳ-inj : ∀ (k : ℕ) {n} {i j : Fin n} → k ↑ʳ i ≡ k ↑ʳ j → i ≡ j
+↑ʳ-inj k {n} {i} {j} eq = ↑ʳ-injective k i j eq
+
+↑ˡ-↑ʳ-disjoint : ∀ {m k} (i : Fin m) (j : Fin k) → i ↑ˡ k ≡ m ↑ʳ j → ⊥
+↑ˡ-↑ʳ-disjoint {m} {k} i j eq
+  with trans (sym (splitAt-↑ˡ m i k)) (trans (cong (splitAt m) eq) (splitAt-↑ʳ m k j))
+... | ()
+
+--------------------------------------------------------------------------------
 -- Remap combinator.  Given `xs ⊂ Fin n` and a target map `f : Fin (length
 -- xs) → Fin m`, produces `Fin n → Fin (m + count-non xs)` routing members to
--- `f i ↑ˡ count-non xs` and non-members to `m ↑ʳ j`.
+-- `f i ↑ˡ count-non xs` and non-members to `m ↑ʳ j`.  It is globally injective
+-- when `xs` is `Unique` and `f` is injective: `lookup` is injective on
+-- `Unique xs` / `nonMem xs`, and the `↑ˡ`/`↑ʳ` slot families are disjoint.
 
 module _ {n m : ℕ} where
+  open import Data.List.Membership.DecPropositional (_≟_ {n = n}) using (_∈?_)
+  open import Data.List.Membership.Propositional using (_∈_; _∉_)
+  open import Data.List.Membership.Propositional.Properties using (∈-filter⁺; ∈-allFin)
+
   remap : (xs : List (Fin n)) → (Fin (length xs) → Fin m) → Fin n → Fin (m + count-non xs)
   remap xs f v = [ (λ i → f i ↑ˡ count-non xs) , (λ j → m ↑ʳ j) ]′ (classify xs v)
 
@@ -139,6 +163,33 @@ module _ {n m : ℕ} where
              → remap xs f v ≡ m ↑ʳ j
   remap-inj₂ xs f v j eq with classify xs v
   remap-inj₂ xs f v j refl | inj₂ .j = refl
+
+  remap-injective
+    : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
+    → Unique xs
+    → (∀ {i j : Fin (length xs)} → f i ≡ f j → i ≡ j)
+    → ∀ {v v' : Fin n} → remap xs f v ≡ remap xs f v' → v ≡ v'
+  remap-injective xs f xs-uniq f-inj {v} {v'} eq with v ∈? xs | v' ∈? xs
+  ... | yes v∈ | yes v'∈ =
+    trans (lookup-index v∈)
+      (trans (cong (lookup xs) idx-eq) (sym (lookup-index v'∈)))
+    where
+      f-eq : f (index v∈) ≡ f (index v'∈)
+      f-eq = ↑ˡ-inj (count-non xs) eq
+      idx-eq : index v∈ ≡ index v'∈
+      idx-eq = f-inj f-eq
+  ... | yes v∈ | no v'∉ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ eq)
+  ... | no v∉  | yes v'∈ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ (sym eq))
+  ... | no v∉  | no v'∉ =
+    trans (lookup-index v∈nonMem)
+      (trans (cong (lookup (nonMem xs)) idx-eq) (sym (lookup-index v'∈nonMem)))
+    where
+      v∈nonMem : v ∈ nonMem xs
+      v∈nonMem = ∈-filter⁺ (λ u → ¬? (u ∈? xs)) (∈-allFin v) v∉
+      v'∈nonMem : v' ∈ nonMem xs
+      v'∈nonMem = ∈-filter⁺ (λ u → ¬? (u ∈? xs)) (∈-allFin v') v'∉
+      idx-eq : index v∈nonMem ≡ index v'∈nonMem
+      idx-eq = ↑ʳ-inj m eq
 
 --------------------------------------------------------------------------------
 -- Label preservation — the key lemma that makes `hComposeP` work.
@@ -184,59 +235,3 @@ module _ {a} {X : Set a} {n m : ℕ} where
                       (map (remap xs f) ys)
   map-via-remap xs f λK λG bdy ys =
     sym (map-∘-cong (remap-vlab xs f λK λG bdy) ys)
-
---------------------------------------------------------------------------------
--- `_↑ˡ k` / `k ↑ʳ_` injectivity (thin wrappers over the stdlib lemmas, with
--- `k` explicit and `i j` implicit to match the call sites) and disjointness of
--- their ranges.  The single home tree-wide: `Model.Invariant` re-exports these
--- as `inject+-inj`/`raise-inj`/`↑ˡ≢↑ʳ` (it is `sig`-parameterised, so the
--- dependency can only run in this direction).
-
-↑ˡ-inj : ∀ {n} (k : ℕ) {i j : Fin n} → i ↑ˡ k ≡ j ↑ˡ k → i ≡ j
-↑ˡ-inj k {i} {j} eq = ↑ˡ-injective k i j eq
-
-↑ʳ-inj : ∀ (k : ℕ) {n} {i j : Fin n} → k ↑ʳ i ≡ k ↑ʳ j → i ≡ j
-↑ʳ-inj k {n} {i} {j} eq = ↑ʳ-injective k i j eq
-
-↑ˡ-↑ʳ-disjoint : ∀ {m k} (i : Fin m) (j : Fin k) → i ↑ˡ k ≡ m ↑ʳ j → ⊥
-↑ˡ-↑ʳ-disjoint {m} {k} i j eq
-  with trans (sym (splitAt-↑ˡ m i k)) (trans (cong (splitAt m) eq) (splitAt-↑ʳ m k j))
-... | ()
-
---------------------------------------------------------------------------------
--- Global injectivity of `remap xs f`, assuming `Unique xs` and `f`
--- injective.  Members route to `↑ˡ` slots and non-members to `↑ʳ` slots;
--- distinct inputs yield distinct outputs because lookup is injective on
--- `Unique xs` / `nonMem xs`, and the two slot families are disjoint.
-
-module _ {n m : ℕ} where
-  open import Data.List.Membership.DecPropositional (_≟_ {n = n}) using (_∈?_)
-  open import Data.List.Membership.Propositional using (_∈_; _∉_)
-  open import Data.List.Membership.Propositional.Properties using (∈-filter⁺; ∈-allFin)
-
-  remap-injective
-    : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
-    → Unique xs
-    → (∀ {i j : Fin (length xs)} → f i ≡ f j → i ≡ j)
-    → ∀ {v v' : Fin n} → remap xs f v ≡ remap xs f v' → v ≡ v'
-  remap-injective xs f xs-uniq f-inj {v} {v'} eq with v ∈? xs | v' ∈? xs
-  ... | yes v∈ | yes v'∈ =
-    trans (lookup-index v∈)
-      (trans (cong (lookup xs) idx-eq) (sym (lookup-index v'∈)))
-    where
-      f-eq : f (index v∈) ≡ f (index v'∈)
-      f-eq = ↑ˡ-inj (count-non xs) eq
-      idx-eq : index v∈ ≡ index v'∈
-      idx-eq = f-inj f-eq
-  ... | yes v∈ | no v'∉ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ eq)
-  ... | no v∉  | yes v'∈ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ (sym eq))
-  ... | no v∉  | no v'∉ =
-    trans (lookup-index v∈nonMem)
-      (trans (cong (lookup (nonMem xs)) idx-eq) (sym (lookup-index v'∈nonMem)))
-    where
-      v∈nonMem : v ∈ nonMem xs
-      v∈nonMem = ∈-filter⁺ (λ u → ¬? (u ∈? xs)) (∈-allFin v) v∉
-      v'∈nonMem : v' ∈ nonMem xs
-      v'∈nonMem = ∈-filter⁺ (λ u → ¬? (u ∈? xs)) (∈-allFin v') v'∉
-      idx-eq : index v∈nonMem ≡ index v'∈nonMem
-      idx-eq = ↑ʳ-inj m eq
