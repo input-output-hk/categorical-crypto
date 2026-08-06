@@ -28,16 +28,14 @@ module Categories.FreeStrictMonoidal where
 -- right unitor of `MonoidalStrictR` are the transport isos `coeʷ` along those
 -- proofs (the left unitor is the definitional identity).  The coherence squares
 -- and the triangle/pentagon collapse to `coeʷ` transports of `≡`-proofs closed
--- by Hedberg irrelevance, hence the instance is gated on `⦃ DecEq X ⦄`.  We also
--- expose the plain `Category` `Strict` (the theory at the empty engine
--- `R = λ _ _ → ⊥`).  Opening `Categories.Category.Monoidal.Reasoning` on the
--- instance supplies the generic tensor vocabulary (`serialize`/`split`).
+-- by Hedberg irrelevance, hence the instance is gated on `⦃ DecEq X ⦄`.
+-- Opening `Categories.Category.Monoidal.Reasoning` on the instance supplies
+-- the generic tensor vocabulary (`serialize`/`split`).
 --------------------------------------------------------------------------------
 
 open import Level
 open import Data.List
 open import Data.List.Properties
-open import Data.Empty
 open import Data.Product using (uncurry)
 open import Relation.Binary.PropositionalEquality
 import Data.List.Properties.Ext as ListExt
@@ -641,7 +639,3 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
           castʷ E₂ (castʷ (sym E₂) (castʷᵈ (sym E₄) CANON))
             ≈⟨ ≡→≈ʷ (castʷ-symʳ E₂ (castʷᵈ (sym E₄) CANON)) ⟩
           castʷᵈ (sym E₄) CANON ∎
-
-  -- The plain free strict monoidal category: the theory with the empty engine.
-  Strict : Category 0ℓ 0ℓ 0ℓ
-  Strict = Theory.StrictR (λ _ _ → ⊥)
