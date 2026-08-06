@@ -6,11 +6,7 @@
 -- (`bij-fin-ℕ-≡`, `tabulate-bij-↭-via-eq`).
 --------------------------------------------------------------------------------
 
-open import Categories.APROP
-
-module Categories.APROP.Hypergraph.Soundness.Linearity.LinearityIso (sig : APROPSignature) where
-
-open APROP sig
+module Categories.APROP.Hypergraph.Soundness.Linearity.LinearityIso where
 
 open import Data.Fin using (Fin; zero; suc)
 open import Data.List using (_∷_; tabulate)
