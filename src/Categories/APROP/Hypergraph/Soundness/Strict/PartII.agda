@@ -100,14 +100,12 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
       ri₀ = FMD.run-interchange₀ˢ F dih lin ps inc res-empty-tail
 
 ------------------------------------------------------------------------
--- THE UNCONDITIONAL HEADLINE.  Feed both now-discharged inputs into
+-- THE UNCONDITIONAL HEADLINE.  Feed the now-discharged input into
 -- `DecodePRespIso`'s headline module (the `decode-ordˢ-resp-iso` parameter
--- is `IsoTransport.decode-ordˢ-resp-iso`, applied to the SAME
--- `run-interchange-H`).
+-- is `IsoTransport.decode-ordˢ-resp-iso`, applied to `run-interchange-H`).
 ------------------------------------------------------------------------
 
 decodePˢ-resp-iso : ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → decodePˢ f ≈ˢ decodePˢ g
 decodePˢ-resp-iso f g iso =
   DP.decodePˢ-resp-iso f g iso
-    (run-interchange-H f)
     (IT.decode-ordˢ-resp-iso f g iso (run-interchange-H f))

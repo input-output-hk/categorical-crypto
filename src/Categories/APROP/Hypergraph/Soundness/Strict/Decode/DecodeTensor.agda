@@ -45,37 +45,32 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 
 open import Data.Product using (proj₂)
 open import Relation.Binary.PropositionalEquality using (refl; sym)
 
-module _
-  (permˢ-K : ∀ (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X) → Support.PermK V vlab)
+module Tensor {A B C D : ObjTerm}
+  (f : HomTerm A B) (g : HomTerm C D)
+  -- RESIDUAL 1 (the K-block braid + final reconciliation, folded into a
+  -- single `≈ˢ` between the C-run inner term and the clean tensor — the
+  -- strict, whole-decode-level analogue of `DecodeTensorShape`'s
+  -- σ-resort).  Stated at the boundary objects, hence cast-FREE.
+  (reconcileˢ
+    : Run.permuteˢ ⟪ f ⊗₁ g ⟫ (finalPermˢ (f ⊗₁ g))
+        ∘ˢ proj₂ (Run.runˢ ⟪ f ⊗₁ g ⟫)
+      ≈ˢ castˢ (sym (⟪⟫-domL (f ⊗₁ g))) (sym (⟪⟫-codL (f ⊗₁ g)))
+          (decodePˢ f ⊗ˢ decodePˢ g))
   where
 
-  module Tensor {A B C D : ObjTerm}
-    (f : HomTerm A B) (g : HomTerm C D)
-    -- RESIDUAL 1 (the K-block braid + final reconciliation, folded into a
-    -- single `≈ˢ` between the C-run inner term and the clean tensor — the
-    -- strict, whole-decode-level analogue of `DecodeTensorShape`'s
-    -- σ-resort).  Stated at the boundary objects, hence cast-FREE.
-    (reconcileˢ
-      : Run.permuteˢ ⟪ f ⊗₁ g ⟫ (finalPermˢ (f ⊗₁ g))
-          ∘ˢ proj₂ (Run.runˢ ⟪ f ⊗₁ g ⟫)
-        ≈ˢ castˢ (sym (⟪⟫-domL (f ⊗₁ g))) (sym (⟪⟫-codL (f ⊗₁ g)))
-            (decodePˢ f ⊗ˢ decodePˢ g))
-    where
-
-    -- the ⊗-shape: boundaries align definitionally (flatten distributes over
-    -- ⊗₀ as `_++_`), so the statement is cast-free.
-    decodePˢ-⊗ : decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
-    decodePˢ-⊗ =
-      ≈-trans (cast-resp (⟪⟫-domL (f ⊗₁ g)) (⟪⟫-codL (f ⊗₁ g)) reconcileˢ)
-      (≈-trans (≡⇒≈ˢ (cast-fuse (sym (⟪⟫-domL (f ⊗₁ g))) (⟪⟫-domL (f ⊗₁ g))
-                                (sym (⟪⟫-codL (f ⊗₁ g))) (⟪⟫-codL (f ⊗₁ g))
-                                (decodePˢ f ⊗ˢ decodePˢ g)))
-        (≡⇒≈ˢ (cast-irrel _ refl _ refl (decodePˢ f ⊗ˢ decodePˢ g))))
+  -- the ⊗-shape: boundaries align definitionally (flatten distributes over
+  -- ⊗₀ as `_++_`), so the statement is cast-free.
+  decodePˢ-⊗ : decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
+  decodePˢ-⊗ =
+    ≈-trans (cast-resp (⟪⟫-domL (f ⊗₁ g)) (⟪⟫-codL (f ⊗₁ g)) reconcileˢ)
+    (≈-trans (≡⇒≈ˢ (cast-fuse (sym (⟪⟫-domL (f ⊗₁ g))) (⟪⟫-domL (f ⊗₁ g))
+                              (sym (⟪⟫-codL (f ⊗₁ g))) (⟪⟫-codL (f ⊗₁ g))
+                              (decodePˢ f ⊗ˢ decodePˢ g)))
+      (≡⇒≈ˢ (cast-irrel _ refl _ refl (decodePˢ f ⊗ˢ decodePˢ g))))
 
 --------------------------------------------------------------------------------
 -- `decodePˢ-⊗` is reduced to the single boundary residual `reconcileˢ`,

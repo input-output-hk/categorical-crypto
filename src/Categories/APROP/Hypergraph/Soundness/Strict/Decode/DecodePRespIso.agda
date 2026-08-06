@@ -19,10 +19,9 @@
 --     `order-invariantˢ` (`IsoInvarianceConcrete`) with the strict cross-iso
 --     transport residual (`IsoTransport`).
 --
--- `decode-ordˢ-resp-iso` and the (N) `run-interchange` witness are exposed as
--- CLEARLY-TYPED module parameters (discharged in `Strict/Iso/IsoTransport` and
--- the `RunInterchange` machinery); the order-theory core `order-invariantˢ`
--- and the boundary are wired here in full.
+-- `decode-ordˢ-resp-iso` is exposed as a CLEARLY-TYPED module parameter
+-- (discharged in `Strict/Iso/IsoTransport`); the order-theory core
+-- `order-invariantˢ` and the boundary are wired here in full.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -51,19 +50,16 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _�
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
   using (decodePˢ; finalPermˢ)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig _≟X_ as SS
-open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTail sig _≟X_
-  using (RunInterchangeˢ)
 
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (_∷_; _++_)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Product using (Σ-syntax; proj₁; proj₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; subst₂)
+  using (_≡_; refl; sym; subst₂)
 
 ------------------------------------------------------------------------
 -- Convenience: the strict per-HG decoder at the translation `⟪f⟫`.
@@ -156,18 +152,10 @@ module Boundary {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ 
 ------------------------------------------------------------------------
 -- The HEADLINE.  Wires the order-theory core (`order-invariantˢ`, BUILT)
 -- and the boundary, parameterised over the strict cross-iso decoder
--- agreement `decode-ordˢ-resp-iso` and the (N) `run-interchange-H` witness
--- (discharged in `Strict/Iso/IsoTransport` and the `RunInterchange` machinery).
+-- agreement `decode-ordˢ-resp-iso` (discharged in `Strict/Iso/IsoTransport`).
 ------------------------------------------------------------------------
 
 module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
-         -- (N) the strict per-swap RunInterchangeˢ witness for `⟪f⟫`.
-         (run-interchange-H
-           : ∀ (ps qs : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f) (DAL.⟪⟫-LinearP f))
-               {e e' : Fin (Hypergraph.nE ⟪ f ⟫)}
-               (inc : SS.PerHG.Incompˢ ⟪ f ⟫ (dep-irrefl-⟪⟫ f) (DAL.⟪⟫-LinearP f) e e')
-             → (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE ⟪ f ⟫)
-             → RunInterchangeˢ ⟪ f ⟫ (DAL.⟪⟫-LinearP f) ps qs inc)
          -- the cross-iso decoder agreement (the strict `IsoTransport`
          -- residual, fed `vrangeˢ g`).
          (decode-ordˢ-resp-iso

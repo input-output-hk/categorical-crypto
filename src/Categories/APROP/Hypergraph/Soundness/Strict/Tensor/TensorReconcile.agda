@@ -149,7 +149,7 @@ module _
                 (decodePˢ f ⊗ˢ decodePˢ g))
       → decodePˢ fg ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
     decodePˢ-⊗-from-braid cand braidˢ =
-      DT.Tensor.decodePˢ-⊗ permˢ-K f g (reconcile-from-braid cand braidˢ)
+      DT.Tensor.decodePˢ-⊗ f g (reconcile-from-braid cand braidˢ)
 
 --------------------------------------------------------------------------------
 -- `reconcileˢ` = `final-resortˢ` (proven here, via `perm-rigidˢ` on the
