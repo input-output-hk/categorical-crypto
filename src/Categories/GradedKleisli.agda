@@ -1,5 +1,11 @@
 {-# OPTIONS --safe --without-K #-}
 
+-- The graded Kleisli category of a graded Kleisli triple ℳ over a monoidal ℐ:
+-- objects ℐ.Obj × 𝒞.Obj, and a hom (i , c) ⇒ (j , d) is a grade k together with
+-- 𝒞 [ c , T₀ k d ] and ℐ.U [ i ⊗ k , j ], quotiented by the `Slide` generator
+-- that moves a grade morphism between the two components.  `U-functor` is the
+-- forgetful functor to 𝒞 and `F⊣U` the resulting adjunction.
+
 module Categories.GradedKleisli where
 
 open import Level using (Level; _⊔_) renaming (suc to lsuc)
@@ -7,12 +13,10 @@ open import Level using (Level; _⊔_) renaming (suc to lsuc)
 open import Categories.Adjoint
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Categories.Category.EquivClosureHelper using (categoryHelperᵉ)
-open import Categories.Category.Instance.Sets using (Sets)
 open import Categories.Category.Monoidal using (MonoidalCategory)
 import Categories.Category.Monoidal.Reasoning as MonR
 open import Categories.Coherence.Monoidal using (module MorAtoms; module MorSolve)
 open import Categories.Functor using (Functor)
-open import Categories.Functor.Presheaf using (Presheaf)
 open import Categories.Monad.Graded using (GradedMonad; GradedKleisliTriple)
 import Categories.Morphism.Reasoning as MR
 open import Categories.NaturalTransformation using (NaturalTransformation; ntHelper)
@@ -124,7 +128,6 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
              fα I.∘ (gα ⊗₁ I.id) I.∘ α⇐ ∎)
     }
 
-  -- Componentwise congruence at a fixed grade
   ≈-components : ∀ {i j k : I.Obj} {c d : C.Obj} {f g : C [ c , T₀ k d ]}
                  {α β : I.U [ i ⊗₀ k , j ]} → C [ f ≈ g ] → I.U [ α ≈ β ]
                → GradedKleisli [ (k , f , α) ≈ (k , g , β) ]
@@ -135,7 +138,6 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
 
   private module K = Category GradedKleisli
 
-  -- Forgetful functor
   U₀ : K.Obj → C.Obj
   U₀ (i , c) = T₀ i c
 
@@ -203,14 +205,12 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
     }
 
   private
-    -- sub of a unitor cancels its inverse; shared monad-coherence glue.
     subλ⇐λ⇒ : ∀ {X A} → C [ sub (λ⇐ {X}) C.∘ sub λ⇒ ≈ C.id {T₀ (I.unit ⊗₀ X) A} ]
     subλ⇐λ⇒ = let open C in ⟺ sub-homomorphism ○ sub-resp-≈ I.unitorˡ.isoˡ ○ sub-identity
 
     subλ⇒λ⇐ : ∀ {X A} → C [ sub λ⇒ C.∘ sub (λ⇐ {X}) ≈ C.id {T₀ X A} ]
     subλ⇒λ⇐ = let open C in ⟺ sub-homomorphism ○ sub-resp-≈ I.unitorˡ.isoʳ ○ sub-identity
 
-    -- The graded left-unit law, solved for μ: `μ unit v ∘ return ≈ sub λ⇐`.
     μ-ret : ∀ {v A} → C [ μ I.unit v C.∘ return {T₀ v A} ≈ sub λ⇐ ]
     μ-ret = let open C in introˡ subλ⇐λ⇒ ○ assoc ○ (refl⟩∘⟨ μ-identityˡ) ○ identityʳ
 
@@ -238,7 +238,6 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
           sub λ⇐ ∘ (sub λ⇒ ∘ (ext I.unit (return ∘ g) ∘ return))        ≈⟨ refl⟩∘⟨ ext-identityʳ ⟩
           sub λ⇐ ∘ (return ∘ g)                                         ∎
 
-  -- Free functor
   F : Functor C GradedKleisli
   F = record
     { F₀ = I.unit ,_
@@ -255,7 +254,6 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
     ; F-resp-≈ = λ p → EqC.return (I.id , F-resp₁ p , Iᵁ.elimʳ (identity (I.unit ⊗-)))
     }
 
-  -- The graded Kleisli adjunction F ⊣ U
   F⊣U : Adjoint F U-functor
   F⊣U = record
     { unit = ntHelper record

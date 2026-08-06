@@ -14,13 +14,11 @@ import Relation.Binary.Reasoning.Setoid as SetoidR
 open import Categories.Category
 open import Categories.Category.Instance.Setoids
 open import Categories.Category.Monoidal
-open import Categories.CoherenceIsos using (module Coherence)
+open import Categories.CoherenceIsos
 open import Categories.Functor
-open import Categories.Functor.Presheaf
 import Categories.GradedKleisli as GK
 import Categories.GradedKleisli.Regrade as Rg
 import Categories.KernelCongruence as KernelCong
-open import Categories.Monad.Graded
 
 open import CategoricalCrypto.UCSetup
 
@@ -37,7 +35,8 @@ module AbstractUC
   Regrade₀ = Rg.Regrade₀  𝒞 Coh ℐ ⟦-⟧-monoidal ℳ
   Regrade₁ = Rg.Regrade₁  𝒞 Coh ℐ ⟦-⟧-monoidal ℳ
   ι-hom    = Functor.homomorphism (Rg.Regrade 𝒞 Coh ℐ ⟦-⟧-monoidal ℳ)
-  private module OAP = Category OAP
+  module OAP = Category OAP
+  module OP  = Category OP
 
   U-resp = GK.U-resp 𝒞 ℐ ℳ
   U-∘C   = GK.U-∘ 𝒞 ℐ ℳ
@@ -48,9 +47,6 @@ module AbstractUC
   Iᵤ : Category o ℓ e
   Iᵤ = ℐ.U
 
-  -- TODO: these two should follow the established pattern - instead of `idᴼ`, use `OAP.id`
-  open Category OAP using () renaming (id to idᴼ; _∘_ to _∘ᴼ_; _≈_ to _≋_; assoc to oap-assoc) public
-  open Category OP  using () renaming (id to idᴼᴾ; _∘_ to _∘ᴼᴾ_) public
 
   ⟨_,_⟩ : 𝒞.Obj → ℐ.Obj → OAP.Obj
   ⟨ A , I ⟩ = I , A
@@ -65,7 +61,6 @@ module AbstractUC
 
   pattern mkᴼ X f a = X , f , a
 
-  -- forgetful functor
   U : ∀ {A B} → (A ⇒ᴼ B) → T₀ (grd A) (car A) 𝒞.⇒ T₀ (grd B) (car B)
   U = GK.U₁ 𝒞 ℐ ℳ
 
@@ -96,10 +91,10 @@ module AbstractUC
   ≈ℰ'⇒U-≈ℰ : ∀ {A B} {x y : A ⇒ᴼ B} → x ≈ℰ' y → U x ≈ℰ U y
   ≈ℰ'⇒U-≈ℰ p = KE.mk∼ (KO.run∼ p)
 
-  U-≋ : ∀ {A B} {x y : A ⇒ᴼ B} → x ≋ y → U x ≈ℰ U y
+  U-≋ : ∀ {A B} {x y : A ⇒ᴼ B} → x OAP.≈ y → U x ≈ℰ U y
   U-≋ p = ≈C⇒≈ℰ (U-resp p)
 
-  U-∘ : ∀ {A B C} (x : B ⇒ᴼ C) (y : A ⇒ᴼ B) → U (x ∘ᴼ y) ≈ℰ (U x 𝒞.∘ U y)
+  U-∘ : ∀ {A B C} (x : B ⇒ᴼ C) (y : A ⇒ᴼ B) → U (x OAP.∘ y) ≈ℰ (U x 𝒞.∘ U y)
   U-∘ x y = ≈C⇒≈ℰ (U-∘C x y)
 
   ------------------------------------------------------------------------
@@ -127,7 +122,6 @@ module AbstractUC
   pureAtk-id = ≈C⇒≈ℰ (U-pureAtk ℐ.id ○ sub-identity)
     where open 𝒞.HomReasoning
 
-  -- OP-homs are graded-Kleisli homs whose ℐ-adversary interface is a coherence iso
   Objᴼᴾ : Set (o ⊔ o′)
   Objᴼᴾ = Category.Obj OP
 
@@ -140,32 +134,35 @@ module AbstractUC
   ι : ∀ {A B} → A ⇒ᴼᴾ B → Regrade₀ A ⇒ᴼ Regrade₀ B
   ι = Regrade₁
 
+  ------------------------------------------------------------------------
   -- The pure-attack algebra
+  ------------------------------------------------------------------------
 
-  atk-idˡ : ∀ {A B} (x : A ⇒ᴼ B) → pureAtk ℐ.id ∘ᴼ x ≈ℰ' x
+
+  atk-idˡ : ∀ {A B} (x : A ⇒ᴼ B) → pureAtk ℐ.id OAP.∘ x ≈ℰ' x
   atk-idˡ x = U-≈ℰ⇒≈ℰ' (begin
-      U (pureAtk ℐ.id ∘ᴼ x)      ≈⟨ U-∘ (pureAtk ℐ.id) x ⟩
-      U (pureAtk ℐ.id) 𝒞.∘ U x   ≈⟨ ≈ℰ-cong-pre (U x) pureAtk-id ⟩
-      𝒞.id 𝒞.∘ U x               ≈⟨ ≈C⇒≈ℰ 𝒞.identityˡ ⟩
-      U x                        ∎)
+      U (pureAtk ℐ.id OAP.∘ x)  ≈⟨ U-∘ (pureAtk ℐ.id) x ⟩
+      U (pureAtk ℐ.id) 𝒞.∘ U x  ≈⟨ ≈ℰ-cong-pre (U x) pureAtk-id ⟩
+      𝒞.id 𝒞.∘ U x              ≈⟨ ≈C⇒≈ℰ 𝒞.identityˡ ⟩
+      U x                       ∎)
     where open SetoidR (≈ℰ-setoid _ _)
 
-  atk-idʳ : ∀ {A B} (x : A ⇒ᴼ B) → x ∘ᴼ pureAtk ℐ.id ≈ℰ' x
+  atk-idʳ : ∀ {A B} (x : A ⇒ᴼ B) → x OAP.∘ pureAtk ℐ.id ≈ℰ' x
   atk-idʳ x = U-≈ℰ⇒≈ℰ' (begin
-      U (x ∘ᴼ pureAtk ℐ.id)      ≈⟨ U-∘ x (pureAtk ℐ.id) ⟩
-      U x 𝒞.∘ U (pureAtk ℐ.id)   ≈⟨ ≈ℰ-cong-post (U x) pureAtk-id ⟩
-      U x 𝒞.∘ 𝒞.id               ≈⟨ ≈C⇒≈ℰ 𝒞.identityʳ ⟩
-      U x                        ∎)
+      U (x OAP.∘ pureAtk ℐ.id)  ≈⟨ U-∘ x (pureAtk ℐ.id) ⟩
+      U x 𝒞.∘ U (pureAtk ℐ.id)  ≈⟨ ≈ℰ-cong-post (U x) pureAtk-id ⟩
+      U x 𝒞.∘ 𝒞.id              ≈⟨ ≈C⇒≈ℰ 𝒞.identityʳ ⟩
+      U x                       ∎)
     where open SetoidR (≈ℰ-setoid _ _)
 
   pureAtk-∘ : ∀ {A X Y Z} (a′ : Y ℐ.⇒ Z) (a : X ℐ.⇒ Y)
-            → pureAtk {A} a′ ∘ᴼ pureAtk a ≈ℰ' pureAtk (a′ ℐ.∘ a)
+            → pureAtk {A} a′ OAP.∘ pureAtk a ≈ℰ' pureAtk (a′ ℐ.∘ a)
   pureAtk-∘ a′ a = U-≈ℰ⇒≈ℰ' (≈C⇒≈ℰ (begin
-      U (pureAtk a′ ∘ᴼ pureAtk a)        ≈⟨ U-∘C (pureAtk a′) (pureAtk a) ⟩
-      U (pureAtk a′) 𝒞.∘ U (pureAtk a)   ≈⟨ U-pureAtk a′ ⟩∘⟨ U-pureAtk a ⟩
-      sub a′ 𝒞.∘ sub a                   ≈⟨ sub-homomorphism ⟨
-      sub (a′ ℐ.∘ a)                     ≈⟨ U-pureAtk (a′ ℐ.∘ a) ⟨
-      U (pureAtk (a′ ℐ.∘ a))             ∎))
+      U (pureAtk a′ OAP.∘ pureAtk a)    ≈⟨ U-∘C (pureAtk a′) (pureAtk a) ⟩
+      U (pureAtk a′) 𝒞.∘ U (pureAtk a)  ≈⟨ U-pureAtk a′ ⟩∘⟨ U-pureAtk a ⟩
+      sub a′ 𝒞.∘ sub a                  ≈⟨ sub-homomorphism ⟨
+      sub (a′ ℐ.∘ a)                    ≈⟨ U-pureAtk (a′ ℐ.∘ a) ⟨
+      U (pureAtk (a′ ℐ.∘ a))            ∎))
     where open 𝒞.HomReasoning
 
   -- Transport of a grade-only attack across an included OP-hom.  Its adversary
@@ -173,7 +170,7 @@ module AbstractUC
   -- naturality of `sub` conjugated by `a`: the simulator is `s″ = a ∘ (s⊗id) ∘ a⁻¹`.
   pureAtk-transport : ∀ {B C : 𝒞.Obj} {K M : ℂ.Obj}
                         (k : ⟨ B , K ⟩ᴼᴾ ⇒ᴼᴾ ⟨ C , M ⟩ᴼᴾ) (s : ⟦ K ⟧₀ ℐ.⇒ ⟦ K ⟧₀)
-                    → Σ[ s″ ∈ ⟦ M ⟧₀ ℐ.⇒ ⟦ M ⟧₀ ] ι k ∘ᴼ pureAtk s ≈ℰ' pureAtk s″ ∘ᴼ ι k
+                    → Σ[ s″ ∈ ⟦ M ⟧₀ ℐ.⇒ ⟦ M ⟧₀ ] ι k OAP.∘ pureAtk s ≈ℰ' pureAtk s″ OAP.∘ ι k
   pureAtk-transport {K = K} {M} (mkᴼ β g α) s = s″ , U-≈ℰ⇒≈ℰ' (≈C⇒≈ℰ chain)
     where
       -- `a` is the adversary component of `ι k`: ⟦α⟧₁ post-composed with the
@@ -187,11 +184,11 @@ module AbstractUC
 
       ℐeqn : a ℐ.∘ (s ℐ.⊗₁ ℐ.id) ℐ.≈ s″ ℐ.∘ a
       ℐeqn = ℐ.Equiv.sym (begin
-          s″ ℐ.∘ a                                            ≈⟨ ℐ.assoc ⟩
-          a ℐ.∘ ((s ℐ.⊗₁ ℐ.id) ℐ.∘ a⁻¹) ℐ.∘ a                 ≈⟨ refl⟩∘⟨ ℐ.assoc ⟩
-          a ℐ.∘ (s ℐ.⊗₁ ℐ.id) ℐ.∘ a⁻¹ ℐ.∘ a                   ≈⟨ refl⟩∘⟨ refl⟩∘⟨ a⁻¹∘a ⟩
-          a ℐ.∘ (s ℐ.⊗₁ ℐ.id) ℐ.∘ ℐ.id                        ≈⟨ refl⟩∘⟨ ℐ.identityʳ ⟩
-          a ℐ.∘ (s ℐ.⊗₁ ℐ.id)                                 ∎)
+          s″ ℐ.∘ a                             ≈⟨ ℐ.assoc ⟩
+          a ℐ.∘ ((s ℐ.⊗₁ ℐ.id) ℐ.∘ a⁻¹) ℐ.∘ a  ≈⟨ refl⟩∘⟨ ℐ.assoc ⟩
+          a ℐ.∘ (s ℐ.⊗₁ ℐ.id) ℐ.∘ a⁻¹ ℐ.∘ a    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ a⁻¹∘a ⟩
+          a ℐ.∘ (s ℐ.⊗₁ ℐ.id) ℐ.∘ ℐ.id         ≈⟨ refl⟩∘⟨ ℐ.identityʳ ⟩
+          a ℐ.∘ (s ℐ.⊗₁ ℐ.id)                  ∎)
         where open ℐ.HomReasoning
 
       slide : U (ι (mkᴼ β g α)) 𝒞.∘ sub s 𝒞.≈ sub s″ 𝒞.∘ U (ι (mkᴼ β g α))
@@ -221,14 +218,14 @@ module AbstractUC
           sub s″ 𝒞.∘ sub a 𝒞.∘ μ ⟦ K ⟧₀ ⟦ β ⟧₀ 𝒞.∘ T₁ ⟦ K ⟧₀ g  ∎
         where open 𝒞.HomReasoning
 
-      chain : U (ι (mkᴼ β g α) ∘ᴼ pureAtk s) 𝒞.≈ U (pureAtk s″ ∘ᴼ ι (mkᴼ β g α))
+      chain : U (ι (mkᴼ β g α) OAP.∘ pureAtk s) 𝒞.≈ U (pureAtk s″ OAP.∘ ι (mkᴼ β g α))
       chain = begin
-          U (ι (mkᴼ β g α) ∘ᴼ pureAtk s)              ≈⟨ U-∘C (ι (mkᴼ β g α)) (pureAtk s) ⟩
-          U (ι (mkᴼ β g α)) 𝒞.∘ U (pureAtk s)         ≈⟨ refl⟩∘⟨ U-pureAtk s ⟩
-          U (ι (mkᴼ β g α)) 𝒞.∘ sub s                 ≈⟨ slide ⟩
-          sub s″ 𝒞.∘ U (ι (mkᴼ β g α))                ≈⟨ ⟺ (U-pureAtk s″) ⟩∘⟨refl ⟩
-          U (pureAtk s″) 𝒞.∘ U (ι (mkᴼ β g α))        ≈⟨ U-∘C (pureAtk s″) (ι (mkᴼ β g α)) ⟨
-          U (pureAtk s″ ∘ᴼ ι (mkᴼ β g α))             ∎
+          U (ι (mkᴼ β g α) OAP.∘ pureAtk s)     ≈⟨ U-∘C (ι (mkᴼ β g α)) (pureAtk s) ⟩
+          U (ι (mkᴼ β g α)) 𝒞.∘ U (pureAtk s)   ≈⟨ refl⟩∘⟨ U-pureAtk s ⟩
+          U (ι (mkᴼ β g α)) 𝒞.∘ sub s           ≈⟨ slide ⟩
+          sub s″ 𝒞.∘ U (ι (mkᴼ β g α))          ≈⟨ ⟺ (U-pureAtk s″) ⟩∘⟨refl ⟩
+          U (pureAtk s″) 𝒞.∘ U (ι (mkᴼ β g α))  ≈⟨ U-∘C (pureAtk s″) (ι (mkᴼ β g α)) ⟨
+          U (pureAtk s″ OAP.∘ ι (mkᴼ β g α))    ∎
         where open 𝒞.HomReasoning
 
   -- UC emulation
@@ -236,25 +233,27 @@ module AbstractUC
     → ⟨ A , X ⟩ᴼᴾ ⇒ᴼᴾ ⟨ B , Y ⟩ᴼᴾ → ⟨ A , X′ ⟩ᴼᴾ ⇒ᴼᴾ ⟨ B , Y′ ⟩ᴼᴾ → Set (o ⊔ ℓ ⊔ cs ⊔ ℓs)
   _≤UC_ {X = X} {X′} {Y} {Y′} f g =
     ∀ {D} (a : ⟦ Y ⟧₀ ℐ.⇒ D) → Σ[ s⁺ ∈ ⟦ Y′ ⟧₀ ℐ.⇒ D ] Σ[ s⁻ ∈ ⟦ X ⟧₀ ℐ.⇒ ⟦ X′ ⟧₀ ]
-      pureAtk a ∘ᴼ ι f ≈ℰ' pureAtk s⁺ ∘ᴼ ι g ∘ᴼ pureAtk s⁻
+      pureAtk a OAP.∘ ι f ≈ℰ' pureAtk s⁺ OAP.∘ ι g OAP.∘ pureAtk s⁻
 
-  -- ── The theorems, PROVED (short ≈ℰ' chains over the primitive lemmas) ────────
+  ------------------------------------------------------------------------
+  -- The metatheorems
+  ------------------------------------------------------------------------
 
-  ≤UC-refl : ∀ {A B : 𝒞.Obj} {I J : ℂ.Obj}
-               {f : ⟨ A , I ⟩ᴼᴾ ⇒ᴼᴾ ⟨ B , J ⟩ᴼᴾ} → f ≤UC f
+  ≤UC-refl : ∀ {A B : 𝒞.Obj} {I J : ℂ.Obj} {f : ⟨ A , I ⟩ᴼᴾ ⇒ᴼᴾ ⟨ B , J ⟩ᴼᴾ} → f ≤UC f
   ≤UC-refl {f = f} w = w , ℐ.id , ≈'-congˡ (pureAtk w) (≈'-sym (atk-idʳ (ι f)))
 
-  -- Completeness of the dummy adversary (Machine.Core `_≤'UC_` ⇒ `_≤UC_`).
+  -- Completeness of the dummy adversary: `_≤UC_` at the input-side mediator
+  -- `u`, of which Machine.Core's `_≤'UC_` is the `u := ℐ.id` instance.
   dummy-complete : ∀ {A B : 𝒞.Obj} {I I′ J K : ℂ.Obj}
                      {f : ⟨ A , I ⟩ᴼᴾ ⇒ᴼᴾ ⟨ B , J ⟩ᴼᴾ} {g : ⟨ A , I′ ⟩ᴼᴾ ⇒ᴼᴾ ⟨ B , K ⟩ᴼᴾ}
                  → Σ[ s ∈ ⟦ K ⟧₀ ℐ.⇒ ⟦ J ⟧₀ ] Σ[ u ∈ ⟦ I ⟧₀ ℐ.⇒ ⟦ I′ ⟧₀ ]
-                     ι f ≈ℰ' (pureAtk s ∘ᴼ ι g ∘ᴼ pureAtk u)
+                     ι f ≈ℰ' (pureAtk s OAP.∘ ι g OAP.∘ pureAtk u)
                  → f ≤UC g
   dummy-complete {f = f} {g} (s , u , e) w = w ℐ.∘ s , u , (begin
-      pureAtk w ∘ᴼ ι f                              ≈⟨ ≈'-congˡ (pureAtk w) e ⟩
-      pureAtk w ∘ᴼ pureAtk s ∘ᴼ ι g ∘ᴼ pureAtk u    ≈⟨ ≋⇒≈ℰ' oap-assoc ⟨
-      (pureAtk w ∘ᴼ pureAtk s) ∘ᴼ ι g ∘ᴼ pureAtk u  ≈⟨ ≈'-congʳ (ι g ∘ᴼ pureAtk u) (pureAtk-∘ w s) ⟩
-      pureAtk (w ℐ.∘ s) ∘ᴼ ι g ∘ᴼ pureAtk u         ∎)
+      pureAtk w OAP.∘ ι f                                    ≈⟨ ≈'-congˡ (pureAtk w) e ⟩
+      pureAtk w OAP.∘ pureAtk s OAP.∘ ι g OAP.∘ pureAtk u    ≈⟨ ≋⇒≈ℰ' OAP.assoc ⟨
+      (pureAtk w OAP.∘ pureAtk s) OAP.∘ ι g OAP.∘ pureAtk u  ≈⟨ ≈'-congʳ (ι g OAP.∘ pureAtk u) (pureAtk-∘ w s) ⟩
+      pureAtk (w ℐ.∘ s) OAP.∘ ι g OAP.∘ pureAtk u            ∎)
     where open SetoidR (≈'-setoid _ _)
 
   ≤UC-trans : ∀ {A B : 𝒞.Obj} {I I′ I″ J K L : ℂ.Obj}
@@ -266,37 +265,41 @@ module AbstractUC
         (s₂ , u₂ , e₂) = g≤h s₁
         open SetoidR (≈'-setoid _ _)
     in s₂ , (u₂ ℐ.∘ u₁) , (begin
-      pureAtk w ∘ᴼ ι f                                 ≈⟨ e₁ ⟩
-      pureAtk s₁ ∘ᴼ ι g ∘ᴼ pureAtk u₁                  ≈⟨ ≋⇒≈ℰ' oap-assoc ⟨
-      (pureAtk s₁ ∘ᴼ ι g) ∘ᴼ pureAtk u₁                ≈⟨ ≈'-congʳ (pureAtk u₁) e₂ ⟩
-      (pureAtk s₂ ∘ᴼ ι h ∘ᴼ pureAtk u₂) ∘ᴼ pureAtk u₁  ≈⟨ ≋⇒≈ℰ' oap-assoc ⟩
-      pureAtk s₂ ∘ᴼ (ι h ∘ᴼ pureAtk u₂) ∘ᴼ pureAtk u₁  ≈⟨ ≈'-congˡ (pureAtk s₂) (≋⇒≈ℰ' oap-assoc) ⟩
-      pureAtk s₂ ∘ᴼ ι h ∘ᴼ pureAtk u₂ ∘ᴼ pureAtk u₁    ≈⟨ ≈'-congˡ (pureAtk s₂) (≈'-congˡ (ι h) (pureAtk-∘ u₂ u₁)) ⟩
-      pureAtk s₂ ∘ᴼ ι h ∘ᴼ pureAtk (u₂ ℐ.∘ u₁)         ∎)
+      pureAtk w OAP.∘ ι f                                       ≈⟨ e₁ ⟩
+      pureAtk s₁ OAP.∘ ι g OAP.∘ pureAtk u₁                     ≈⟨ ≋⇒≈ℰ' OAP.assoc ⟨
+      (pureAtk s₁ OAP.∘ ι g) OAP.∘ pureAtk u₁                   ≈⟨ ≈'-congʳ (pureAtk u₁) e₂ ⟩
+      (pureAtk s₂ OAP.∘ ι h OAP.∘ pureAtk u₂) OAP.∘ pureAtk u₁  ≈⟨ ≋⇒≈ℰ' OAP.assoc ⟩
+      pureAtk s₂ OAP.∘ (ι h OAP.∘ pureAtk u₂) OAP.∘ pureAtk u₁  ≈⟨ ≈'-congˡ (pureAtk s₂) (≋⇒≈ℰ' OAP.assoc) ⟩
+      pureAtk s₂ OAP.∘ ι h OAP.∘ pureAtk u₂ OAP.∘ pureAtk u₁    ≈⟨ ≈'-congˡ (pureAtk s₂) (≈'-congˡ (ι h) (pureAtk-∘ u₂ u₁)) ⟩
+      pureAtk s₂ OAP.∘ ι h OAP.∘ pureAtk (u₂ ℐ.∘ u₁)            ∎)
 
-  -- Universal composition: plain monotonicity of ∘ᴼᴾ in both arguments (the
+  -- Universal composition: plain monotonicity of OP.∘ in both arguments (the
   -- heterogeneous grades make h ≤UC k well-typed across the middle interface).
   UC-compose : ∀ {A B C : 𝒞.Obj} {I I′ J K L M : ℂ.Obj}
                  {f : ⟨ A , I ⟩ᴼᴾ ⇒ᴼᴾ ⟨ B , J ⟩ᴼᴾ} {g : ⟨ A , I′ ⟩ᴼᴾ ⇒ᴼᴾ ⟨ B , K ⟩ᴼᴾ}
                  {h : ⟨ B , J ⟩ᴼᴾ ⇒ᴼᴾ ⟨ C , L ⟩ᴼᴾ} {k : ⟨ B , K ⟩ᴼᴾ ⇒ᴼᴾ ⟨ C , M ⟩ᴼᴾ}
-             → f ≤UC g → h ≤UC k → h ∘ᴼᴾ f ≤UC k ∘ᴼᴾ g
+             → f ≤UC g → h ≤UC k → h OP.∘ f ≤UC k OP.∘ g
   UC-compose {f = f} {g} {h} {k} f≤g h≤k w =
     let (s , u , e₂) = h≤k w
         (s′ , u′ , e₁) = f≤g u
         (s″ , eT) = pureAtk-transport k s′
         open SetoidR (≈'-setoid _ _)
     in (s ℐ.∘ s″) , u′ , (begin
-      pureAtk w ∘ᴼ ι (h ∘ᴼᴾ f)                               ≈⟨ ≈'-congˡ (pureAtk w) (≋⇒≈ℰ' (ι-hom {f = f} {g = h})) ⟩
-      pureAtk w ∘ᴼ ι h ∘ᴼ ι f                                ≈⟨ ≋⇒≈ℰ' oap-assoc ⟨
-      (pureAtk w ∘ᴼ ι h) ∘ᴼ ι f                              ≈⟨ ≈'-congʳ (ι f) e₂ ⟩
-      (pureAtk s ∘ᴼ ι k ∘ᴼ pureAtk u) ∘ᴼ ι f                 ≈⟨ ≋⇒≈ℰ' oap-assoc ⟩
-      pureAtk s ∘ᴼ (ι k ∘ᴼ pureAtk u) ∘ᴼ ι f                 ≈⟨ ≈'-congˡ (pureAtk s) (≋⇒≈ℰ' oap-assoc) ⟩
-      pureAtk s ∘ᴼ ι k ∘ᴼ pureAtk u ∘ᴼ ι f                   ≈⟨ ≈'-congˡ (pureAtk s) (≈'-congˡ (ι k) e₁) ⟩
-      pureAtk s ∘ᴼ ι k ∘ᴼ pureAtk s′ ∘ᴼ ι g ∘ᴼ pureAtk u′    ≈⟨ ≈'-congˡ (pureAtk s) (≋⇒≈ℰ' oap-assoc) ⟨
-      pureAtk s ∘ᴼ (ι k ∘ᴼ pureAtk s′) ∘ᴼ ι g ∘ᴼ pureAtk u′  ≈⟨ ≈'-congˡ (pureAtk s) (≈'-congʳ (ι g ∘ᴼ pureAtk u′) eT) ⟩
-      pureAtk s ∘ᴼ (pureAtk s″ ∘ᴼ ι k) ∘ᴼ ι g ∘ᴼ pureAtk u′  ≈⟨ ≈'-congˡ (pureAtk s) (≋⇒≈ℰ' oap-assoc) ⟩
-      pureAtk s ∘ᴼ pureAtk s″ ∘ᴼ ι k ∘ᴼ ι g ∘ᴼ pureAtk u′    ≈⟨ ≋⇒≈ℰ' oap-assoc ⟨
-      (pureAtk s ∘ᴼ pureAtk s″) ∘ᴼ ι k ∘ᴼ ι g ∘ᴼ pureAtk u′  ≈⟨ ≈'-congʳ (ι k ∘ᴼ ι g ∘ᴼ pureAtk u′) (pureAtk-∘ s s″) ⟩
-      pureAtk (s ℐ.∘ s″) ∘ᴼ ι k ∘ᴼ ι g ∘ᴼ pureAtk u′         ≈⟨ ≈'-congˡ (pureAtk (s ℐ.∘ s″)) (≋⇒≈ℰ' oap-assoc) ⟨
-      pureAtk (s ℐ.∘ s″) ∘ᴼ (ι k ∘ᴼ ι g) ∘ᴼ pureAtk u′       ≈⟨ ≈'-congˡ (pureAtk (s ℐ.∘ s″)) (≈'-congʳ (pureAtk u′) (≋⇒≈ℰ' (OAP.Equiv.sym (ι-hom {f = g} {g = k})))) ⟩
-      pureAtk (s ℐ.∘ s″) ∘ᴼ ι (k ∘ᴼᴾ g) ∘ᴼ pureAtk u′        ∎)
+      pureAtk w OAP.∘ ι (h OP.∘ f)
+        ≈⟨ ≈'-congˡ (pureAtk w) (≋⇒≈ℰ' (ι-hom {f = f} {g = h})) ⟩
+      pureAtk w OAP.∘ ι h OAP.∘ ι f                                      ≈⟨ ≋⇒≈ℰ' OAP.assoc ⟨
+      (pureAtk w OAP.∘ ι h) OAP.∘ ι f                                    ≈⟨ ≈'-congʳ (ι f) e₂ ⟩
+      (pureAtk s OAP.∘ ι k OAP.∘ pureAtk u) OAP.∘ ι f                    ≈⟨ ≋⇒≈ℰ' OAP.assoc ⟩
+      pureAtk s OAP.∘ (ι k OAP.∘ pureAtk u) OAP.∘ ι f                    ≈⟨ ≈'-congˡ (pureAtk s) (≋⇒≈ℰ' OAP.assoc) ⟩
+      pureAtk s OAP.∘ ι k OAP.∘ pureAtk u OAP.∘ ι f                      ≈⟨ ≈'-congˡ (pureAtk s) (≈'-congˡ (ι k) e₁) ⟩
+      pureAtk s OAP.∘ ι k OAP.∘ pureAtk s′ OAP.∘ ι g OAP.∘ pureAtk u′    ≈⟨ ≈'-congˡ (pureAtk s) (≋⇒≈ℰ' OAP.assoc) ⟨
+      pureAtk s OAP.∘ (ι k OAP.∘ pureAtk s′) OAP.∘ ι g OAP.∘ pureAtk u′
+        ≈⟨ ≈'-congˡ (pureAtk s) (≈'-congʳ (ι g OAP.∘ pureAtk u′) eT) ⟩
+      pureAtk s OAP.∘ (pureAtk s″ OAP.∘ ι k) OAP.∘ ι g OAP.∘ pureAtk u′  ≈⟨ ≈'-congˡ (pureAtk s) (≋⇒≈ℰ' OAP.assoc) ⟩
+      pureAtk s OAP.∘ pureAtk s″ OAP.∘ ι k OAP.∘ ι g OAP.∘ pureAtk u′    ≈⟨ ≋⇒≈ℰ' OAP.assoc ⟨
+      (pureAtk s OAP.∘ pureAtk s″) OAP.∘ ι k OAP.∘ ι g OAP.∘ pureAtk u′
+        ≈⟨ ≈'-congʳ (ι k OAP.∘ ι g OAP.∘ pureAtk u′) (pureAtk-∘ s s″) ⟩
+      pureAtk (s ℐ.∘ s″) OAP.∘ ι k OAP.∘ ι g OAP.∘ pureAtk u′            ≈⟨ ≈'-congˡ (pureAtk (s ℐ.∘ s″)) (≋⇒≈ℰ' OAP.assoc) ⟨
+      pureAtk (s ℐ.∘ s″) OAP.∘ (ι k OAP.∘ ι g) OAP.∘ pureAtk u′
+        ≈⟨ ≈'-congˡ (pureAtk (s ℐ.∘ s″)) (≈'-congʳ (pureAtk u′) (≋⇒≈ℰ' (OAP.Equiv.sym (ι-hom {f = g} {g = k})))) ⟩
+      pureAtk (s ℐ.∘ s″) OAP.∘ ι (k OP.∘ g) OAP.∘ pureAtk u′             ∎)

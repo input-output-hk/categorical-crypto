@@ -9,7 +9,6 @@ module Categories.LocallyGraded where
 open import Level
 open import Relation.Binary
 
-open import Categories.Category
 open import Categories.Category.Instance.Setoids
 open import Categories.Category.Monoidal
 import Categories.Category.Monoidal.Utilities as Utilities

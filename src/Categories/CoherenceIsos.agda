@@ -8,21 +8,21 @@
 
 module Categories.CoherenceIsos where
 
-open import Level using (Level; 0ℓ)
-open import Data.Empty using (⊥)
+open import Level
+open import Data.Empty
 
-open import Categories.Category using (Category; _[_,_]; _[_≈_])
-open import Categories.Category.Groupoid using (Groupoid)
-open import Categories.Category.Monoidal using (MonoidalCategory)
+open import Categories.Category
+open import Categories.Category.Groupoid
+open import Categories.Category.Monoidal
 import Categories.Category.Monoidal.Reasoning as MonR
-open import Categories.Coherence.Monoidal.MacLane using (module CoherenceThm)
+open import Categories.Coherence.Monoidal.MacLane
 open import Categories.FreeMonoidal
-open import Categories.Functor using (Functor)
-open import Categories.Functor.Monoidal using (MonoidalFunctor)
-open import Categories.Functor.Properties using (Faithful)
+open import Categories.Functor hiding (id)
+open import Categories.Functor.Monoidal
+open import Categories.Functor.Properties
 import Categories.Morphism.Reasoning as MR
 
-open import Class.DecEq using (DecEq)
+open import Class.DecEq
 
 module Coherence {o ℓ e : Level} (ℐ : MonoidalCategory o ℓ e) where
   private module ℐ = MonoidalCategory ℐ
@@ -49,46 +49,47 @@ module Coherence {o ℓ e : Level} (ℐ : MonoidalCategory o ℓ e) where
 
   -- Coh(ℐ) is a groupoid
   private module FM = FreeMonoidal cohData
+  open FM
   open FM public using (Var)
 
-  inv : ∀ {A B} → FM.HomTerm A B → FM.HomTerm B A
-  inv (FM.var ())
-  inv FM.id       = FM.id
-  inv (g FM.∘ f)  = inv f FM.∘ inv g
-  inv (f FM.⊗₁ g) = inv f FM.⊗₁ inv g
-  inv FM.λ⇒       = FM.λ⇐
-  inv FM.λ⇐       = FM.λ⇒
-  inv FM.ρ⇒       = FM.ρ⇐
-  inv FM.ρ⇐       = FM.ρ⇒
-  inv FM.α⇒       = FM.α⇐
-  inv FM.α⇐       = FM.α⇒
+  inv : ∀ {A B} → HomTerm A B → HomTerm B A
+  inv (var ())
+  inv id       = id
+  inv (g ∘ f)  = inv f ∘ inv g
+  inv (f ⊗₁ g) = inv f ⊗₁ inv g
+  inv λ⇒       = λ⇐
+  inv λ⇐       = λ⇒
+  inv ρ⇒       = ρ⇐
+  inv ρ⇐       = ρ⇒
+  inv α⇒       = α⇐
+  inv α⇐       = α⇒
 
   open MonR (MonoidalCategory.monoidal Coh)
-  open MR FM.FreeMonoidal
+  open MR FreeMonoidal
 
-  inv-isoˡ : ∀ {A B} (f : FM.HomTerm A B) → FM.FreeMonoidal [ inv f FM.∘ f ≈ FM.id ]
-  inv-isoˡ (FM.var ())
-  inv-isoˡ FM.id       = FM.idˡ
-  inv-isoˡ (g FM.∘ f)  = cancelInner (inv-isoˡ g) ○ inv-isoˡ f
-  inv-isoˡ (f FM.⊗₁ g) = ⟺ FM.⊗-∘-dist ○ (inv-isoˡ f ⟩⊗⟨ inv-isoˡ g) ○ FM.id⊗id≈id
-  inv-isoˡ FM.λ⇒       = FM.λ⇐∘λ⇒≈id
-  inv-isoˡ FM.λ⇐       = FM.λ⇒∘λ⇐≈id
-  inv-isoˡ FM.ρ⇒       = FM.ρ⇐∘ρ⇒≈id
-  inv-isoˡ FM.ρ⇐       = FM.ρ⇒∘ρ⇐≈id
-  inv-isoˡ FM.α⇒       = FM.α⇐∘α⇒≈id
-  inv-isoˡ FM.α⇐       = FM.α⇒∘α⇐≈id
+  inv-isoˡ : ∀ {A B} (f : HomTerm A B) → FreeMonoidal [ inv f ∘ f ≈ id ]
+  inv-isoˡ (var ())
+  inv-isoˡ id       = idˡ
+  inv-isoˡ (g ∘ f)  = cancelInner (inv-isoˡ g) ○ inv-isoˡ f
+  inv-isoˡ (f ⊗₁ g) = ⟺ ⊗-∘-dist ○ (inv-isoˡ f ⟩⊗⟨ inv-isoˡ g) ○ id⊗id≈id
+  inv-isoˡ λ⇒       = λ⇐∘λ⇒≈id
+  inv-isoˡ λ⇐       = λ⇒∘λ⇐≈id
+  inv-isoˡ ρ⇒       = ρ⇐∘ρ⇒≈id
+  inv-isoˡ ρ⇐       = ρ⇒∘ρ⇐≈id
+  inv-isoˡ α⇒       = α⇐∘α⇒≈id
+  inv-isoˡ α⇐       = α⇒∘α⇐≈id
 
-  inv-isoʳ : ∀ {A B} (f : FM.HomTerm A B) → FM.FreeMonoidal [ f FM.∘ inv f ≈ FM.id ]
-  inv-isoʳ (FM.var ())
-  inv-isoʳ FM.id       = FM.idˡ
-  inv-isoʳ (g FM.∘ f)  = cancelInner (inv-isoʳ f) ○ inv-isoʳ g
-  inv-isoʳ (f FM.⊗₁ g) = ⟺ FM.⊗-∘-dist ○ (inv-isoʳ f ⟩⊗⟨ inv-isoʳ g) ○ FM.id⊗id≈id
-  inv-isoʳ FM.λ⇒       = FM.λ⇒∘λ⇐≈id
-  inv-isoʳ FM.λ⇐       = FM.λ⇐∘λ⇒≈id
-  inv-isoʳ FM.ρ⇒       = FM.ρ⇒∘ρ⇐≈id
-  inv-isoʳ FM.ρ⇐       = FM.ρ⇐∘ρ⇒≈id
-  inv-isoʳ FM.α⇒       = FM.α⇒∘α⇐≈id
-  inv-isoʳ FM.α⇐       = FM.α⇐∘α⇒≈id
+  inv-isoʳ : ∀ {A B} (f : HomTerm A B) → FreeMonoidal [ f ∘ inv f ≈ id ]
+  inv-isoʳ (var ())
+  inv-isoʳ id       = idˡ
+  inv-isoʳ (g ∘ f)  = cancelInner (inv-isoʳ f) ○ inv-isoʳ g
+  inv-isoʳ (f ⊗₁ g) = ⟺ ⊗-∘-dist ○ (inv-isoʳ f ⟩⊗⟨ inv-isoʳ g) ○ id⊗id≈id
+  inv-isoʳ λ⇒       = λ⇒∘λ⇐≈id
+  inv-isoʳ λ⇐       = λ⇐∘λ⇒≈id
+  inv-isoʳ ρ⇒       = ρ⇒∘ρ⇐≈id
+  inv-isoʳ ρ⇐       = ρ⇐∘ρ⇒≈id
+  inv-isoʳ α⇒       = α⇒∘α⇐≈id
+  inv-isoʳ α⇐       = α⇐∘α⇒≈id
 
   Coh-groupoid : Groupoid o o o
   Coh-groupoid = record
@@ -101,8 +102,8 @@ module Coherence {o ℓ e : Level} (ℐ : MonoidalCategory o ℓ e) where
 -- Faithfulness of ⟦-⟧
 module Faithfulness (ℐ : MonoidalCategory 0ℓ 0ℓ 0ℓ)
                     ⦃ _ : DecEq (MonoidalCategory.Obj ℐ) ⦄ where
-  open Coherence ℐ using (⟦-⟧)
-  open CoherenceThm (MonoidalCategory.Obj ℐ) using (all-Comm)
+  open Coherence ℐ
+  open CoherenceThm (MonoidalCategory.Obj ℐ)
 
   ⟦-⟧-faithful : Faithful ⟦-⟧
   ⟦-⟧-faithful {x = f} {y = g} _ = all-Comm f g

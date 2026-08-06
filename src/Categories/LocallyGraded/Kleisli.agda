@@ -7,12 +7,12 @@
 
 module Categories.LocallyGraded.Kleisli where
 
-open import Level using (Level)
+open import Level
 
-open import Categories.Category using (Category)
-open import Categories.Category.Monoidal using (MonoidalCategory)
-open import Categories.LocallyGraded using (LocallyGradedCategory)
-open import Categories.Monad.Graded using (GradedKleisliTriple)
+open import Categories.Category
+open import Categories.Category.Monoidal
+open import Categories.LocallyGraded
+open import Categories.Monad.Graded
 import Categories.Morphism.Reasoning as MR
 
 module _ {o ℓ e o′ ℓ′ e′ : Level} {ℐ : MonoidalCategory o ℓ e} {𝒞 : Category o′ ℓ′ e′} where
