@@ -55,17 +55,13 @@ open import Relation.Nullary.Decidable using (dec⇒maybe)
 ...   | just ps = just λ { zero → p₀ ; (suc i) → ps i }
 
 --------------------------------------------------------------------------------
--- Decidable list equality at the atom alphabet `X`, and UIP derived
--- from it via Hedberg's theorem.
+-- UIP at `List X`, from decidable atom equality via Hedberg's theorem.
 
-_≟LX_ : DecidableEquality (List X)
-_≟LX_ = ≡-dec _≟X_
-
-open import Axiom.UniquenessOfIdentityProofs
-import Axiom.UniquenessOfIdentityProofs as UIP-mod
+open import Axiom.UniquenessOfIdentityProofs using (UIP)
+open import Data.List.Properties.Ext using (≡-irrelevant)
 
 UIP-ListX : UIP (List X)
-UIP-ListX = UIP-mod.Decidable⇒UIP.≡-irrelevant _≟LX_
+UIP-ListX = ≡-irrelevant _≟X_
 
 --------------------------------------------------------------------------------
 -- FlatView : explicit view extracting the hidden `(A, B, f)` from a
