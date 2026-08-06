@@ -186,6 +186,24 @@ module _ {a} {X : Set a} {n m : ℕ} where
     sym (map-∘-cong (remap-vlab xs f λK λG bdy) ys)
 
 --------------------------------------------------------------------------------
+-- `_↑ˡ k` / `k ↑ʳ_` injectivity (thin wrappers over the stdlib lemmas, with
+-- `k` explicit and `i j` implicit to match the call sites) and disjointness of
+-- their ranges.  The single home tree-wide: `Model.Invariant` re-exports these
+-- as `inject+-inj`/`raise-inj`/`↑ˡ≢↑ʳ` (it is `sig`-parameterised, so the
+-- dependency can only run in this direction).
+
+↑ˡ-inj : ∀ {n} (k : ℕ) {i j : Fin n} → i ↑ˡ k ≡ j ↑ˡ k → i ≡ j
+↑ˡ-inj k {i} {j} eq = ↑ˡ-injective k i j eq
+
+↑ʳ-inj : ∀ (k : ℕ) {n} {i j : Fin n} → k ↑ʳ i ≡ k ↑ʳ j → i ≡ j
+↑ʳ-inj k {n} {i} {j} eq = ↑ʳ-injective k i j eq
+
+↑ˡ-↑ʳ-disjoint : ∀ {m k} (i : Fin m) (j : Fin k) → i ↑ˡ k ≡ m ↑ʳ j → ⊥
+↑ˡ-↑ʳ-disjoint {m} {k} i j eq
+  with trans (sym (splitAt-↑ˡ m i k)) (trans (cong (splitAt m) eq) (splitAt-↑ʳ m k j))
+... | ()
+
+--------------------------------------------------------------------------------
 -- Global injectivity of `remap xs f`, assuming `Unique xs` and `f`
 -- injective.  Members route to `↑ˡ` slots and non-members to `↑ʳ` slots;
 -- distinct inputs yield distinct outputs because lookup is injective on
@@ -195,24 +213,6 @@ module _ {n m : ℕ} where
   open import Data.List.Membership.DecPropositional (_≟_ {n = n}) using (_∈?_)
   open import Data.List.Membership.Propositional using (_∈_; _∉_)
   open import Data.List.Membership.Propositional.Properties using (∈-filter⁺; ∈-allFin)
-  open import Data.Sum using (inj₁; inj₂)
-
-  -- `_↑ˡ k` / `k ↑ʳ_` injectivity — thin wrappers over the stdlib lemmas
-  -- (`k` explicit, `i j` implicit, matching the call sites below).
-  ↑ˡ-inj : ∀ {n} (k : ℕ) {i j : Fin n} → i ↑ˡ k ≡ j ↑ˡ k → i ≡ j
-  ↑ˡ-inj k {i} {j} eq = ↑ˡ-injective k i j eq
-
-  ↑ʳ-inj : ∀ (k : ℕ) {n} {i j : Fin n} → k ↑ʳ i ≡ k ↑ʳ j → i ≡ j
-  ↑ʳ-inj k {n} {i} {j} eq = ↑ʳ-injective k i j eq
-
-  -- Disjointness of `_↑ˡ k` and `m ↑ʳ_` ranges.
-  ↑ˡ-↑ʳ-disjoint : (k : ℕ) (i : Fin m) (j : Fin k) → i ↑ˡ k ≡ m ↑ʳ j → ⊥
-  ↑ˡ-↑ʳ-disjoint k i j eq with splitAt-↑ˡ m i k | splitAt-↑ʳ m k j | cong (splitAt m) eq
-  ... | i-red | j-red | split-eq =
-    case-absurd (trans (sym i-red) (trans split-eq j-red))
-    where
-      case-absurd : ∀ {X Y : Set} {x : X} {y : Y} → inj₁ x ≡ inj₂ y → ⊥
-      case-absurd ()
 
   remap-injective
     : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
@@ -228,8 +228,8 @@ module _ {n m : ℕ} where
       f-eq = ↑ˡ-inj (count-non xs) eq
       idx-eq : index v∈ ≡ index v'∈
       idx-eq = f-inj f-eq
-  ... | yes v∈ | no v'∉ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ _ eq)
-  ... | no v∉  | yes v'∈ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ _ (sym eq))
+  ... | yes v∈ | no v'∉ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ eq)
+  ... | no v∉  | yes v'∈ = ⊥-elim (↑ˡ-↑ʳ-disjoint _ _ (sym eq))
   ... | no v∉  | no v'∉ =
     trans (lookup-index v∈nonMem)
       (trans (cong (lookup (nonMem xs)) idx-eq) (sym (lookup-index v'∈nonMem)))

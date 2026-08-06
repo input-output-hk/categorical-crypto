@@ -97,10 +97,6 @@ open import Relation.Binary.PropositionalEquality
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
   using (∈→count-pos)
 
--- The `_↑ˡ_` and `_↑ʳ_` images of `Fin (m + k)` are disjoint (shared from Invariant).
-↑ˡ-↑ʳ-disjoint : ∀ {m k} (i : Fin m) (j : Fin k) → i ↑ˡ k ≡ m ↑ʳ j → ⊥
-↑ˡ-↑ʳ-disjoint = Inv.↑ˡ≢↑ʳ
-
 --------------------------------------------------------------------------------
 -- ## The `NoInv` predicate as a bare `AllPairs`.
 --
@@ -304,12 +300,12 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
     -- Only `K.dom` members route to the `_↑ˡ cn` (G-side) slots: if
     -- `remapP k ≡ i ↑ˡ cn` then `k ∈ K.dom`.  Case-split `classify K.dom k`:
     -- `inj₁` gives `k ∈ K.dom`; `inj₂ j` reduces `remapP k` to `G.nV ↑ʳ j`,
-    -- absurd against `i ↑ˡ cn` by `↑ˡ-↑ʳ-disjoint`.
+    -- absurd against `i ↑ˡ cn` by `Inv.↑ˡ≢↑ʳ`.
     remapP-injL→dom
       : ∀ (k : Fin K.nV) (i : Fin G.nV) → C.remapP k ≡ i ↑ˡ cn → k ∈ K.dom
     remapP-injL→dom k i hyp with classify K.dom k in cls
     ... | inj₁ _ = classify-inj₁-∈ cls
-    ... | inj₂ j = ⊥-elim (↑ˡ-↑ʳ-disjoint i j (sym hyp))
+    ... | inj₂ j = ⊥-elim (Inv.↑ˡ≢↑ʳ i j (sym hyp))
 
   compose-cross-acyclic : ∀ {ea : Fin G.nE} {eb : Fin K.nE}
                         → ¬ Dep Hc (injREc eb) (injLEc ea)

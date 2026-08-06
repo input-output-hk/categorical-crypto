@@ -16,10 +16,7 @@ module Categories.APROP.Hypergraph.Model.Invariant (sig : APROPSignature) where
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-open import Data.Empty using (⊥)
-open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
-open import Data.Fin.Properties using
-  (splitAt-↑ˡ; splitAt-↑ʳ; ↑ˡ-injective; ↑ʳ-injective)
+open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.List using (List; []; _∷_; _++_; map; length)
 open import Data.List.Membership.Propositional using (_∈_)
@@ -29,7 +26,6 @@ open import Data.List.Relation.Binary.Disjoint.Propositional using (Disjoint)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
 open import Data.Product using (_,_)
-open import Data.Sum using (inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; subst; cong; cong₂)
 
@@ -49,37 +45,21 @@ hId-cod≡dom (A ⊗₀ B)  =
 -- `Unique` for identity's dom.  The tensor case needs `map⁺` with `_↑ˡ_` /
 -- `_↑ʳ_` injectivity on each side + `++⁺` with disjointness of their images.
 
--- injectivity of `_↑ˡ_` and `_↑ʳ_` (thin wrappers over the stdlib lemmas).
--- Public: used by `HomTermInvariant`.
-inject+-inj : ∀ {m} (n : ℕ) {i j : Fin m} → i ↑ˡ n ≡ j ↑ˡ n → i ≡ j
-inject+-inj n {i} {j} eq = ↑ˡ-injective n i j eq
+-- injectivity of `_↑ˡ_`/`_↑ʳ_` and element-level disjointness of their images:
+-- one home in the stdlib-only `Util.Prune`, re-exported here under the names
+-- the decode pipeline and `HomTermInvariant` use.  (`Prune` cannot import this
+-- module, which is `sig`-parameterised, so only this direction is available.)
+open import Categories.APROP.Hypergraph.Util.Prune
+  using ()
+  renaming (↑ˡ-inj to inject+-inj; ↑ʳ-inj to raise-inj; ↑ˡ-↑ʳ-disjoint to ↑ˡ≢↑ʳ)
+  public
 
-raise-inj : ∀ (m : ℕ) {n} {i j : Fin n} → m ↑ʳ i ≡ m ↑ʳ j → i ≡ j
-raise-inj m {n} {i} {j} eq = ↑ʳ-injective m i j eq
-
--- `_↑ˡ_` and `_↑ʳ_` images are disjoint at the element level (the primitive
--- behind disj-L-R; also shared with the Soundness/Discharge decode pipeline).
-↑ˡ≢↑ʳ : ∀ {m k} (i : Fin m) (j : Fin k) → i ↑ˡ k ≡ m ↑ʳ j → ⊥
-↑ˡ≢↑ʳ {m} {k} i j p
-  with trans (sym (splitAt-↑ˡ m i k)) (trans (cong (splitAt m) p) (splitAt-↑ʳ m k j))
-... | ()
-
--- map `_↑ˡ_` and map `_↑ʳ_` produce disjoint lists: a common `v` would
--- force `splitAt m v` to be both `inj₁` and `inj₂`.
+-- map `_↑ˡ_` and map `_↑ʳ_` produce disjoint lists: a common `v` would be both
+-- an `_↑ˡ n` and an `m ↑ʳ_`, which `↑ˡ≢↑ʳ` refutes.
 disj-L-R : ∀ {m n} (xs : List (Fin m)) (ys : List (Fin n))
          → Disjoint (map (_↑ˡ n) xs) (map (m ↑ʳ_) ys)
-disj-L-R {m} {n} xs ys {v} (v∈L , v∈R) with ∈-map⁻ (_↑ˡ n) v∈L | ∈-map⁻ (m ↑ʳ_) v∈R
-... | vL , _ , v≡L | vR , _ , v≡R
-  = case-absurd (trans (sym sp-L) sp-R)
-  where
-    sp-L : splitAt m v ≡ inj₁ vL
-    sp-L = trans (cong (splitAt m) v≡L) (splitAt-↑ˡ m vL n)
-
-    sp-R : splitAt m v ≡ inj₂ vR
-    sp-R = trans (cong (splitAt m) v≡R) (splitAt-↑ʳ m n vR)
-
-    case-absurd : ∀ {ℓ} {X : Set ℓ} → inj₁ {B = Fin n} vL ≡ inj₂ vR → X
-    case-absurd ()
+disj-L-R {m} {n} xs ys (v∈L , v∈R) with ∈-map⁻ (_↑ˡ n) v∈L | ∈-map⁻ (m ↑ʳ_) v∈R
+... | vL , _ , v≡L | vR , _ , v≡R = ↑ˡ≢↑ʳ vL vR (trans (sym v≡L) v≡R)
 
 hId-dom-Unique : ∀ A → Unique (Hypergraph.dom (hId A))
 hId-dom-Unique unit     = AllPairs.[]

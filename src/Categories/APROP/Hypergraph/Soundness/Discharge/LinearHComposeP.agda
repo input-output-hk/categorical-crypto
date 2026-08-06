@@ -381,10 +381,6 @@ module _
   --     giving count ≥ 2 in `K.dom ++ K-eb`, contradicting K-bound.
 
   private
-    -- Disjointness of `_↑ˡ cn` and `G.nV ↑ʳ_` ranges (shared from Invariant).
-    ↑ˡ-↑ʳ-disjoint : (i : Fin G.nV) (j : Fin cn) → i ↑ˡ cn ≡ G.nV ↑ʳ j → ⊥
-    ↑ˡ-↑ʳ-disjoint = ↑ˡ≢↑ʳ {G.nV} {cn}
-
     K-eb-bnd : ∀ k → count k K-eb Nat.≤ 1
     K-eb-bnd k =
       Nat.≤-trans
@@ -443,7 +439,7 @@ module _
     remapP-injL→inDom : ∀ (k : Fin K.nV) (i : Fin G.nV) → remapP k ≡ injL i → 0 Nat.< count k K.dom
     remapP-injL→inDom k i rpk with count k K.dom in cd
     ... | suc _ = s≤s z≤n
-    ... | zero  = ⊥-elim (↑ˡ-↑ʳ-disjoint i j₀ (trans (sym rpk) k-raise))
+    ... | zero  = ⊥-elim (↑ˡ≢↑ʳ i j₀ (trans (sym rpk) k-raise))
       where
         cls = classify-from-count-zero k cd
         j₀  = proj₁ cls
