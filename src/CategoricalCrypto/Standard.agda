@@ -6,7 +6,6 @@ module CategoricalCrypto.Standard where
 
 open import Level
 
-open import Categories.Category
 open import Categories.Category.Instance.Setoids
 open import Categories.Category.Monoidal
 open import Categories.Functor.Monoidal.CurriedTensor

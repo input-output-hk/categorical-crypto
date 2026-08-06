@@ -3,9 +3,11 @@
 module Categories.FreeMonoidal where
 
 --------------------------------------------------------------------------------
--- Various free monoidal categories. The intended interface to this
--- file is further below, the `FreeMonoidalData` type and
--- `FreeMonoidal` module.
+-- Various free monoidal categories.  Two entry points: `FreeMonoidalHelper`
+-- (the term syntax — ObjTerm/HomTerm, wires/flatten, merge/split and the
+-- pad algebra) is what the solver front-ends build on; `FreeMonoidalData` plus
+-- the `FreeMonoidal`/`FreeFunctor` modules package a free category and its
+-- interpretation functor into a concrete monoidal category.
 --------------------------------------------------------------------------------
 
 open import Level
@@ -68,7 +70,7 @@ record ⟦_⟧ᵥ (v : Variant) {o ℓ e} : Set (suc (o ⊔ ℓ ⊔ e)) where
 -- target category is reflected into (the free functor, the object map, FSolve.Into).
 fromMC : ∀ {v} (C : MonoidalCategory o ℓ e)
        → (⦃ Symm ≤ v ⦄ → Symmetric (C .MonoidalCategory.monoidal))
-       → ⟦ v ⟧ᵥ {o} {ℓ} {e}
+       → ⟦ v ⟧ᵥ
 fromMC C sym = record
   { C           = C .MonoidalCategory.U
   ; Monoidal-C  = C .MonoidalCategory.monoidal
@@ -88,7 +90,6 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
   wires []       = unit
   wires (x ∷ xs) = Var x ⊗₀ wires xs
 
-  -- the flat wire-list of an object term
   flatten : ObjTerm → List X
   flatten unit      = []
   flatten (Y ⊗₀ Z) = flatten Y ++ flatten Z
@@ -210,8 +211,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
     --------------------------------------------------------------------------
     -- Structural merge / split isos between `wires a ⊗₀ wires suf` and the
     -- flat `wires (a ++ suf)`.  Only λ/α coherence morphisms appear, so they
-    -- are box-independent; the wire-level engine and the solver front-ends
-    -- instantiate them at their generator families instead of re-defining.
+    -- are box-independent.
     --------------------------------------------------------------------------
     merge : (a : List X) {suf : List X} → HomTerm (wires a ⊗₀ wires suf) (wires (a ++ suf))
     merge []      = λ⇒
@@ -273,16 +273,13 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
 
     --------------------------------------------------------------------------
     -- The flat-shift wire-frame algebra: `rpad` (suffix idle wires), `liftW`
-    -- (prefix idle wires), `pad` (both), and their functoriality lemmas.  Only
-    -- `merge`/`split` and the monoidal structure appear, so they live here
-    -- alongside merge/split; the wire-level engine and the front-ends
-    -- re-export them.
+    -- (prefix idle wires), `pad` (both), and their functoriality lemmas.
     --------------------------------------------------------------------------
 
     -- right-pad a morphism g : wires a ⇒ wires b by `suf` idle wires.
     rpad : ∀ {a b} (suf : List X) → HomTerm (wires a) (wires b)
          → HomTerm (wires (a ++ suf)) (wires (b ++ suf))
-    rpad {a} {b} suf g = merge b ∘ (g ⊗₁ id {wires suf}) ∘ split a
+    rpad {a} {b} suf g = merge b ∘ (g ⊗₁ id) ∘ split a
 
     -- `liftW p W` : prepend `p` idle wires to a flat morphism on `wires u`.
     liftW : (p : List X) {u v : List X} → HomTerm (wires u) (wires v)
@@ -295,58 +292,6 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
     pad : ∀ {a b} (pre : List X) (suf : List X) → HomTerm (wires a) (wires b)
         → HomTerm (wires (pre ++ (a ++ suf))) (wires (pre ++ (b ++ suf)))
     pad pre suf g = liftW pre (rpad suf g)
-
-    -- liftW p respects ≈ and ∘ (functoriality of the flat shift).
-    liftW-resp : ∀ (p : List X) {u v} {P Q : HomTerm (wires u) (wires v)}
-               → P ≈Term Q → liftW p P ≈Term liftW p Q
-    liftW-resp []      eq = eq
-    liftW-resp (x ∷ p) eq = refl⟩⊗⟨ liftW-resp p eq
-
-    liftW-∘ : ∀ (p : List X) {u v w} (P : HomTerm (wires v) (wires w)) (Q : HomTerm (wires u) (wires v))
-            → liftW p (P ∘ Q) ≈Term liftW p P ∘ liftW p Q
-    liftW-∘ []      P Q = ≈-Term-refl
-    liftW-∘ (x ∷ p) P Q = (refl⟩⊗⟨ liftW-∘ p P Q) ○ (⟺ (id⊗-∘ _ _))
-
-    -- liftW of an identity is an identity.
-    liftW-id : ∀ (p : List X) {u} → liftW p (id {wires u}) ≈Term id
-    liftW-id []      = ≈-Term-refl
-    liftW-id (x ∷ p) = (refl⟩⊗⟨ liftW-id p) ○ id⊗id≈id
-
-    -- rpad respects ≈.
-    rpad-resp : ∀ {a b} (suf : List X) {g g' : HomTerm (wires a) (wires b)}
-              → g ≈Term g' → rpad suf g ≈Term rpad suf g'
-    rpad-resp suf eq = refl⟩∘⟨ ((eq ⟩⊗⟨refl) ⟩∘⟨refl)
-
-    -- rpad of an identity is an identity.
-    rpad-id : ∀ (rt : List X) {u} → rpad rt (id {wires u}) ≈Term id
-    rpad-id rt {u} =
-      refl⟩∘⟨ (id⊗id≈id ⟩∘⟨refl)
-      ○ refl⟩∘⟨ idˡ
-      ○ merge∘split u
-
-    -- rpad distributes over ∘.
-    rpad-∘ : ∀ (rt : List X) {u v w} (P : HomTerm (wires v) (wires w)) (Q : HomTerm (wires u) (wires v))
-           → rpad rt (P ∘ Q) ≈Term rpad rt P ∘ rpad rt Q
-    rpad-∘ rt {u} {v} {w} P Q =
-      refl⟩∘⟨ (split₁ʳ ⟩∘⟨refl)
-      ○ refl⟩∘⟨ (insertInner (split∘merge v) ⟩∘⟨refl)
-      ○ center⁻¹ ≈-Term-refl assoc
-
-    -- pad respects ≈.  `pad pre suf = liftW pre ∘ rpad suf` definitionally, so
-    -- the pad functoriality lemmas factor through the liftW-*/rpad-* ones.
-    pad-resp : ∀ {a b} (pre suf : List X) {g g' : HomTerm (wires a) (wires b)}
-             → g ≈Term g' → pad pre suf g ≈Term pad pre suf g'
-    pad-resp pre suf eq    = liftW-resp pre (rpad-resp suf eq)
-
-    -- pad of an identity is an identity.
-    pad-id : ∀ {a} (pre suf : List X) → pad pre suf (id {wires a}) ≈Term id
-    pad-id pre suf         = liftW-resp pre (rpad-id suf) ○ liftW-id pre
-
-    -- pad distributes over ∘.
-    pad-∘ : ∀ {a b c} (pre suf : List X)
-              (g : HomTerm (wires b) (wires c)) (f : HomTerm (wires a) (wires b))
-          → pad pre suf (g ∘ f) ≈Term pad pre suf g ∘ pad pre suf f
-    pad-∘ pre suf g f      = liftW-resp pre (rpad-∘ suf g f) ○ liftW-∘ pre _ _
 
     module _ ⦃ _ : Symm ≤ v ⦄ where
       open import Categories.Morphism FreeMonoidal
@@ -466,7 +411,7 @@ record FreeFunctorData (d : FreeMonoidalData {ℓ′}) {o ℓ e : Level} : Set (
 
   field ⟦_⟧ᵖ₀ : X → C.Obj
 
-  open Go ⟦_⟧ᵖ₀ public -- this gives us ⟦_⟧₀
+  open Go ⟦_⟧ᵖ₀ public
 
   field ⟦_⟧ᵖ₁ : ∀ {x y} → mor x y → ⟦ x ⟧₀ C.⇒ ⟦ y ⟧₀
 

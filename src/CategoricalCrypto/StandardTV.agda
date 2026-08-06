@@ -3,7 +3,7 @@
 -- The standard UC layer instantiated at the vanishing-TV world:
 -- 𝒞 = ℐ = 𝒞^ω, ℳ = ⊗, ℰ = ℰᵗᵛ.
 
-open import Axiom.UniquenessOfIdentityProofs using (UIP)
+open import Axiom.UniquenessOfIdentityProofs
 open import Level
 
 open import Categories.Category.Monoidal
@@ -15,22 +15,19 @@ module CategoricalCrypto.StandardTV
   (Obj-set : UIP (MonoidalCategory.Obj (MachineAxioms.𝕄 MA)))
   where
 
-open import Data.Nat using (ℕ)
 open import Function
 
 open import CategoricalCrypto.FamilyCategory MA
 open import CategoricalCrypto.Standard2
 open import CategoricalCrypto.UCSetup
 
-open import Categories.Functor.Monoidal.CurriedTensor.Properties 𝒞^ω using (T₁-⊗)
+open import Categories.Functor.Monoidal.CurriedTensor.Properties 𝒞^ω
 
 import CategoricalCrypto.VanishingTV as VTV
 private module TV = VTV MA
 
 open StdUC 𝒞^ω TV.ℰᵗᵛ public
-open TV public using () renaming
-  ( absorb to absorbᵗᵛ; _≈ℰ[_]_ to infix 4 _≈ℰᵗᵛ[_]_
-  ; VanishingBound to VanishingBoundᵗᵛ )
+open TV public using (absorb; _≈ℰ[_]_; VanishingBound)
 
 StdSetupᵗᵛ : UCSetup o (ℓ ⊔ qs) e o (ℓ ⊔ qs) e (o ⊔ ℓ ⊔ qs) (o ⊔ ℓ ⊔ qs)
 StdSetupᵗᵛ = StdSetup
@@ -41,6 +38,4 @@ grade-stableᵗᵛ Y {h} {h′} e =
     (≈ℰ-trans (TV.grade-stable Obj-set Y e) (≈ℰ-sym (≈C⇒≈ℰ (T₁-⊗ Y h′))))
 
 ≈ᵁ⇔≈ℰᵗᵛ : {A B X : Channel} {f g : A ⇒ T₀ X B} → f ≈ᵁ g ⇔ f ≈ℰ g
-≈ᵁ⇔≈ℰᵗᵛ {A} {B} {X} {f} {g} =
-  mk⇔ (≈ᵁ⇒≈ℰ {A = A} {X = X} {B = B} {f = f} {g = g})
-      (bridge {A = A} {X = X} {B = B} {f = f} {g = g} grade-stableᵗᵛ)
+≈ᵁ⇔≈ℰᵗᵛ {f = f} {g = g} = mk⇔ ≈ᵁ⇒≈ℰ (bridge {f = f} {g = g} grade-stableᵗᵛ)

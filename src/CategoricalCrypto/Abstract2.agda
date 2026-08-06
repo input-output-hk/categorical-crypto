@@ -5,14 +5,13 @@
 -- the grade, carried on the morphism — and an adversary/simulator is a grade
 -- morphism acting by `sub`.  Observational equivalence is the U-kernel _≈ᵁ_,
 -- the kernel of the ENRICHED forgetful functor into graded families: all
--- prefix-context components μ ∘ T₁ agree under the bare kernel _≈ℰ_ (theory
--- notes: docs/uc-lgc-theory.md; the layer-0 structure is McDermott–Uustalu,
--- MPC 2022).  Over ≈ᵁ the four UC metatheorems — ≤UC-refl, dummy-complete,
--- ≤UC-trans, UC-compose — are hypothesis-free.  `GradeStable` (the ℳ-module
--- property of ℰ: bare kernel = U-kernel) is needed only by `bridge`, which
--- ingests a bare ≈ℰ artifact into the compositional world — a conservation law
--- paid once at artifact ingestion, never in the metatheory.  Design memo:
--- docs/uc-emulation-options.typ §9.
+-- prefix-context components μ ∘ T₁ agree under the bare kernel _≈ℰ_ (the
+-- layer-0 structure is McDermott–Uustalu, MPC 2022).  Over ≈ᵁ the four UC
+-- metatheorems — ≤UC-refl, dummy-complete, ≤UC-trans, UC-compose — are
+-- hypothesis-free.  `GradeStable` (the ℳ-module property of ℰ) is sufficient
+-- for the converse of ≈ᵁ⇒≈ℰ and is needed only by `bridge`, which ingests a
+-- bare ≈ℰ artifact into the compositional world — a conservation law paid once
+-- at artifact ingestion, never in the metatheory.
 
 module CategoricalCrypto.Abstract2 where
 
@@ -21,15 +20,10 @@ open import Level
 open import Relation.Binary.Bundles
 import Relation.Binary.Reasoning.Setoid as SetoidR
 
-open import Categories.Category
 open import Categories.Category.Instance.Setoids
-open import Categories.Category.Monoidal
-open import Categories.Functor.Presheaf
 import Categories.KernelCongruence as KernelCong
 open import Categories.LocallyGraded
 import Categories.LocallyGraded.Kleisli as LGKleisli
-open import Categories.Monad.Graded
-import Categories.Morphism.Reasoning as MR
 
 open import CategoricalCrypto.UCSetup
 
@@ -118,8 +112,7 @@ module AbstractUC
     where extassoc : ext W (ext X h) 𝒞.≈ sub α⇒ 𝒞.∘ ext (W ⊗₀ X) h 𝒞.∘ μ W X
           extassoc = let open 𝒞 in ⟺ (ext-resp-≈ identityʳ) ○ ext-assoc
 
-  sub-cong : (c : X ℐ.⇒ X′) {x x′ : A 𝒞.⇒ T₀ X B}
-           → x ≈ᵁ x′ → sub c 𝒞.∘ x ≈ᵁ sub c 𝒞.∘ x′
+  sub-cong : (c : X ℐ.⇒ X′) {x x′ : A 𝒞.⇒ T₀ X B} → x ≈ᵁ x′ → sub c 𝒞.∘ x ≈ᵁ sub c 𝒞.∘ x′
   sub-cong c {x} {x′} e Y = ≈ℰ-trans (≈C⇒≈ℰ (sub-decomp c x Y))
       (≈ℰ-trans (≈ℰ-cong-post (sub (ℐ.id ⊗₁ c)) (e Y))
                 (≈ℰ-sym (≈C⇒≈ℰ (sub-decomp c x′ Y))))
@@ -136,11 +129,10 @@ module AbstractUC
       (≈ℰ-trans (≈ℰ-cong-pre (μ W X 𝒞.∘ T₁ W f) (≈ℰ-cong-post (sub α⇒) extℰ))
                 (≈ℰ-sym (≈C⇒≈ℰ (∙-decomp h′ f W))))
     where extℰ : ext (W ⊗₀ X) h ≈ℰ ext (W ⊗₀ X) h′
-          extℰ = ≈ℰ-trans (≈ℰ-sym (≈C⇒≈ℰ (μT h)))
-                   (≈ℰ-trans (e (W ⊗₀ X)) (≈C⇒≈ℰ (μT h′)))
+          extℰ = ≈ℰ-trans (≈ℰ-sym (≈C⇒≈ℰ (μT h))) (≈ℰ-trans (e (W ⊗₀ X)) (≈C⇒≈ℰ (μT h′)))
 
   ------------------------------------------------------------------------
-  -- ≈ᵁ refines ≈ℰ; GradeStable is exactly the converse
+  -- ≈ᵁ refines ≈ℰ; GradeStable suffices for the converse
   ------------------------------------------------------------------------
 
   subλ⇐λ⇒ : sub λ⇐ 𝒞.∘ sub λ⇒ 𝒞.≈ 𝒞.id {T₀ (ℐ.unit ⊗₀ X) A}
@@ -262,7 +254,6 @@ module AbstractUC
   -- The naive graded Kleisli layer, packaged
   ------------------------------------------------------------------------
 
-  -- Bare graded-Kleisli homs with `sub`-reindexing, `return`, and `_∙_` form a
-  -- locally ℐ-graded category: the general construction, at the setup's triple.
+  -- Note the hom-equality of this packaging is 𝒞._≈_, NOT ≈ᵁ.
   naiveKleisli : LocallyGradedCategory ℐ o′ ℓ′ e′
   naiveKleisli = LGKleisli.naiveKleisli ℳ
