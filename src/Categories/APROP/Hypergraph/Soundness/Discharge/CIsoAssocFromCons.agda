@@ -19,7 +19,7 @@ module Categories.APROP.Hypergraph.Soundness.Discharge.CIsoAssocFromCons
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-  using (unflatten; unflatten-++-≅)
+  using (unflatten; unflatten-++-≅; subst-id-cod; subst-cod-cons)
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal using (MonoidalCategory)
@@ -31,9 +31,6 @@ open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F)
 import Data.Vec as Vec
 open import Data.List using ([]; _∷_; _++_)
 open import Data.List.Properties using (++-assoc)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; subst)
-open import Relation.Binary.PropositionalEquality.Properties using (subst-∘)
 
 private
   module FM = Category FreeMonoidal
@@ -45,15 +42,6 @@ private
 open FM.HomReasoning
 
 --------------------------------------------------------------------------------
--- Relates `id ⊗ subst-id-along-e` to the subst-id at the (Var x)-tensored
--- predicate (by J on `e`).
-id-⊗-subst-bridge
-  : ∀ {x : X} {xs₁ ys'} (e : xs₁ ≡ ys')
-  → (id {Var x} ⊗₁ subst (λ z → HomTerm (unflatten xs₁) (unflatten z)) e id)
-  ≈Term subst (λ z → HomTerm (Var x ⊗₀ unflatten xs₁) (Var x ⊗₀ unflatten z)) e id
-id-⊗-subst-bridge refl = id⊗id≈id
-
---------------------------------------------------------------------------------
 -- The c-iso pentagon, by list induction on xs₁.
 
 c-iso-assoc-from
@@ -63,8 +51,7 @@ c-iso-assoc-from
     ∘ _≅_.from (unflatten-++-≅ (xs₁ ++ xs₂) ys)
   ≈Term (id {unflatten xs₁} ⊗₁ _≅_.from (unflatten-++-≅ xs₂ ys))
         ∘ _≅_.from (unflatten-++-≅ xs₁ (xs₂ ++ ys))
-        ∘ subst (λ z → HomTerm (unflatten ((xs₁ ++ xs₂) ++ ys)) (unflatten z))
-                (++-assoc xs₁ xs₂ ys) id
+        ∘ subst-id-cod (++-assoc xs₁ xs₂ ys)
 
 -- Base case: xs₁ = [].
 c-iso-assoc-from [] xs₂ ys = solveMor! lhsᵗ rhsᵗ
@@ -99,8 +86,7 @@ c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
     e     = ++-assoc xs₁' xs₂ ys
     e'    = ++-assoc (x ∷ xs₁') xs₂ ys  -- = cong (x ∷_) e definitionally.
 
-    subst-id-xs₁' = subst (λ z → HomTerm (unflatten ((xs₁' ++ xs₂) ++ ys))
-                                          (unflatten z)) e id
+    subst-id-xs₁' = subst-id-cod e
 
     ih : α⇒ {U₁'} {U₂} {U-ys} ∘ (c-1 ⊗₁ id) ∘ c-2
        ≈Term (id {U₁'} ⊗₁ c-3) ∘ c-4 ∘ subst-id-xs₁'
@@ -165,9 +151,7 @@ c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
         ∘ _≅_.from (unflatten-++-≅ ((x ∷ xs₁') ++ xs₂) ys)
       ≈Term (id {unflatten (x ∷ xs₁')} ⊗₁ _≅_.from (unflatten-++-≅ xs₂ ys))
             ∘ _≅_.from (unflatten-++-≅ (x ∷ xs₁') (xs₂ ++ ys))
-            ∘ subst (λ z → HomTerm (unflatten (((x ∷ xs₁') ++ xs₂) ++ ys))
-                                    (unflatten z))
-                    (++-assoc (x ∷ xs₁') xs₂ ys) id
+            ∘ subst-id-cod (++-assoc (x ∷ xs₁') xs₂ ys)
     body = begin
       -- Step 1 (solver): the free pre-IH shuffle — pentagon, α-naturality,
       -- interchange, and the structural-iso cancellations.
@@ -182,27 +166,16 @@ c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
       α⇐
         ∘ id ⊗₁ ((id ⊗₁ c-3) ∘ c-4 ∘ subst-id-xs₁')
         -- Step 3 (solver): the free post-IH shuffle — α⇐-naturality +
-        -- interchange, regrouping around the subst-id factor.
+        -- interchange, regrouping around the transported-identity factor.
           ≈⟨ shuffle₂ ⟩
       id ⊗₁ c-3
         ∘ (α⇐ {Vx} {U₁'} {U-23} ∘ (id ⊗₁ c-4))
         ∘ (id ⊗₁ subst-id-xs₁')
-        -- Step 4: convert (id ⊗ subst-id-xs₁') to subst-id-(x∷xs₁') via
-        --   id-⊗-subst-bridge then `subst-∘` (folding the `(x ∷_)`).
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ id-⊗-subst-bridge e ⟩
+        -- Step 4: fold `id {Var x} ⊗ subst-id-cod e` into the transported
+        -- identity along `cong (x ∷_) e`, which IS `e'`.
+          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ subst-cod-cons e ⟩
       id ⊗₁ c-3
         ∘ (α⇐ {Vx} {U₁'} {U-23} ∘ (id ⊗₁ c-4))
-        ∘ subst (λ z → HomTerm (Vx ⊗₀ unflatten ((xs₁' ++ xs₂) ++ ys))
-                                (Vx ⊗₀ unflatten z)) e id
-          ≈⟨ refl⟩∘⟨ refl⟩∘⟨
-             ≡⇒≈Term (subst-∘
-                {P = λ z → HomTerm (Vx ⊗₀ unflatten ((xs₁' ++ xs₂) ++ ys))
-                                   (unflatten z)}
-                {f = x ∷_}
-                e) ⟩
-      id ⊗₁ c-3
-        ∘ (α⇐ {Vx} {U₁'} {U-23} ∘ (id ⊗₁ c-4))
-        ∘ subst (λ z → HomTerm (Vx ⊗₀ unflatten ((xs₁' ++ xs₂) ++ ys))
-                                (unflatten z)) e' id
+        ∘ subst-id-cod e'
         ∎
 
