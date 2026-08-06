@@ -299,6 +299,16 @@ pentagon-rewrite {X} {Y} {Z} {W} = solveMor! lhsᵗ rhsᵗ
 -- (which lie OUTSIDE the free-monoidal fragment `solveMor!` decides).
 
 private
+  -- the six `unflatten-flatten-≈`/`unflatten-++-≅` legs the three lemmas below
+  -- all name; opened in place at each one's own `B`/`C`.
+  module FT (B C : ObjTerm) where
+    F-B = _≅_.from (unflatten-flatten-≈ B)
+    F-C = _≅_.from (unflatten-flatten-≈ C)
+    T-B = _≅_.to   (unflatten-flatten-≈ B)
+    T-C = _≅_.to   (unflatten-flatten-≈ C)
+    cBC-to   = _≅_.to   (unflatten-++-≅ (flatten B) (flatten C))
+    cBC-from = _≅_.from (unflatten-++-≅ (flatten B) (flatten C))
+
   collapse-c-FT
     : ∀ B C
     → _≅_.to (unflatten-++-≅ (flatten B) (flatten C))
@@ -317,13 +327,7 @@ private
     cBC-to ∘ cBC-from
       ≈⟨ _≅_.isoˡ (unflatten-++-≅ (flatten B) (flatten C)) ⟩
     id ∎
-    where
-      F-B = _≅_.from (unflatten-flatten-≈ B)
-      F-C = _≅_.from (unflatten-flatten-≈ C)
-      T-B = _≅_.to   (unflatten-flatten-≈ B)
-      T-C = _≅_.to   (unflatten-flatten-≈ C)
-      cBC-to   = _≅_.to   (unflatten-++-≅ (flatten B) (flatten C))
-      cBC-from = _≅_.from (unflatten-++-≅ (flatten B) (flatten C))
+    where open FT B C
 
 --------------------------------------------------------------------------------
 -- Var-base case of bridge-α⇒-form.
@@ -338,12 +342,7 @@ bridge-α⇒-form-Var x B C = begin
     ≈⟨ ⊗-resp-≈ ≈-Term-refl (collapse-c-FT B C) ⟩
   id ⊗₁ id ∎
   where
-    F-B = _≅_.from (unflatten-flatten-≈ B)
-    F-C = _≅_.from (unflatten-flatten-≈ C)
-    T-B = _≅_.to   (unflatten-flatten-≈ B)
-    T-C = _≅_.to   (unflatten-flatten-≈ C)
-    cBC-to   = _≅_.to   (unflatten-++-≅ (flatten B) (flatten C))
-    cBC-from = _≅_.from (unflatten-++-≅ (flatten B) (flatten C))
+    open FT B C
 
     -- the free part of the chase: all coherence/naturality/interchange,
     -- bringing each `from`/`to` leg adjacent to its partner.
@@ -399,12 +398,7 @@ bridge-α⇒-form-unit B C = begin
     ≈⟨ collapse-c-FT B C ⟩
   id ∎
   where
-    F-B = _≅_.from (unflatten-flatten-≈ B)
-    F-C = _≅_.from (unflatten-flatten-≈ C)
-    T-B = _≅_.to   (unflatten-flatten-≈ B)
-    T-C = _≅_.to   (unflatten-flatten-≈ C)
-    cBC-to   = _≅_.to   (unflatten-++-≅ (flatten B) (flatten C))
-    cBC-from = _≅_.from (unflatten-++-≅ (flatten B) (flatten C))
+    open FT B C
 
     -- the free part of the chase: all coherence/naturality/interchange,
     -- bringing each `from`/`to` leg adjacent to its partner.
