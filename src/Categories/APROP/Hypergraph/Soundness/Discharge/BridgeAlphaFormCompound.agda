@@ -236,29 +236,28 @@ private
   cfrom : (as bs : List X) → HomTerm (unflatten (as ++ bs)) (unflatten as ⊗₀ unflatten bs)
   cfrom as bs = _≅_.from (unflatten-++-≅ as bs)
 
+  -- the 4-fold composite `pentagon-rewrite` produces, at prefix `p`.
+  collapse-lhs
+    : ∀ (p a b c : List X)
+    → HomTerm (unflatten (((p ++ a) ++ b) ++ c)) (unflatten ((p ++ a) ++ b ++ c))
+  collapse-lhs p a b c =
+    α⇐-form-list p a (b ++ c)
+      ∘ ( cto p (a ++ b ++ c)
+        ∘ (id ⊗₁ α⇒-form-list a b c)
+        ∘ cfrom p ((a ++ b) ++ c) )
+      ∘ α⇒-form-list p (a ++ b) c
+      ∘ ( cto (p ++ a ++ b) c
+        ∘ (α⇒-form-list p a b ⊗₁ id)
+        ∘ cfrom ((p ++ a) ++ b) c )
+
   list-collapse-gen
     : ∀ (p a b c : List X)
-    → α⇐-form-list p a (b ++ c)
-        ∘ ( cto p (a ++ b ++ c)
-          ∘ (id ⊗₁ α⇒-form-list a b c)
-          ∘ cfrom p ((a ++ b) ++ c) )
-        ∘ α⇒-form-list p (a ++ b) c
-        ∘ ( cto (p ++ a ++ b) c
-          ∘ (α⇒-form-list p a b ⊗₁ id)
-          ∘ cfrom ((p ++ a) ++ b) c )
-      ≈Term α⇒-form-list (p ++ a) b c
+    → collapse-lhs p a b c ≈Term α⇒-form-list (p ++ a) b c
   -- Base p = []:  all `α…-form-list [] …` are `id`, `cto [] = λ⇒`, `cfrom []
   -- = λ⇐`; one free shuffle collapses the unitor frames and brings the
   -- `cto/cfrom` legs adjacent; the iso law finishes.
   list-collapse-gen [] a b c = begin
-    α⇐-form-list [] a (b ++ c)
-      ∘ ( cto [] (a ++ b ++ c)
-        ∘ (id ⊗₁ α⇒-form-list a b c)
-        ∘ cfrom [] ((a ++ b) ++ c) )
-      ∘ α⇒-form-list [] (a ++ b) c
-      ∘ ( cto (a ++ b) c
-        ∘ (α⇒-form-list [] a b ⊗₁ id {unflatten c})
-        ∘ cfrom (a ++ b) c )
+    collapse-lhs [] a b c
       ≈⟨ shuffle ⟩
     α⇒-form-list a b c ∘ ( cto (a ++ b) c ∘ cfrom (a ++ b) c )
       ≈⟨ refl⟩∘⟨ _≅_.isoˡ (unflatten-++-≅ (a ++ b) c) ⟩
@@ -267,14 +266,7 @@ private
     α⇒-form-list a b c ∎
     where
       shuffle
-        : α⇐-form-list [] a (b ++ c)
-            ∘ ( cto [] (a ++ b ++ c)
-              ∘ (id ⊗₁ α⇒-form-list a b c)
-              ∘ cfrom [] ((a ++ b) ++ c) )
-            ∘ α⇒-form-list [] (a ++ b) c
-            ∘ ( cto (a ++ b) c
-              ∘ (α⇒-form-list [] a b ⊗₁ id {unflatten c})
-              ∘ cfrom (a ++ b) c )
+        : collapse-lhs [] a b c
         ≈Term α⇒-form-list a b c ∘ ( cto (a ++ b) c ∘ cfrom (a ++ b) c )
       shuffle = solveMor! lhsᵗ rhsᵗ
         where
@@ -302,43 +294,15 @@ private
   -- one free shuffle (the `cto/cfrom (x∷_)` associator frames slide across the
   -- opaque factors and cancel), then the IH finishes.
   list-collapse-gen (x ∷ p') a b c = begin
-    α⇐-form-list (x ∷ p') a (b ++ c)
-      ∘ ( cto (x ∷ p') (a ++ b ++ c)
-        ∘ (id {Var x ⊗₀ unflatten p'} ⊗₁ α⇒-form-list a b c)
-        ∘ cfrom (x ∷ p') ((a ++ b) ++ c) )
-      ∘ α⇒-form-list (x ∷ p') (a ++ b) c
-      ∘ ( cto ((x ∷ p') ++ a ++ b) c
-        ∘ (α⇒-form-list (x ∷ p') a b ⊗₁ id {unflatten c})
-        ∘ cfrom (((x ∷ p') ++ a) ++ b) c )
+    collapse-lhs (x ∷ p') a b c
       ≈⟨ peel ⟩
-    id {Var x} ⊗₁ ( α⇐-form-list p' a (b ++ c)
-                  ∘ ( cto p' (a ++ b ++ c)
-                    ∘ (id ⊗₁ α⇒-form-list a b c)
-                    ∘ cfrom p' ((a ++ b) ++ c) )
-                  ∘ α⇒-form-list p' (a ++ b) c
-                  ∘ ( cto (p' ++ a ++ b) c
-                    ∘ (α⇒-form-list p' a b ⊗₁ id {unflatten c})
-                    ∘ cfrom ((p' ++ a) ++ b) c ) )
+    id {Var x} ⊗₁ collapse-lhs p' a b c
       ≈⟨ ⊗-resp-≈ ≈-Term-refl (list-collapse-gen p' a b c) ⟩
     id {Var x} ⊗₁ α⇒-form-list (p' ++ a) b c ∎
     where
       peel
-        : α⇐-form-list (x ∷ p') a (b ++ c)
-            ∘ ( cto (x ∷ p') (a ++ b ++ c)
-              ∘ (id {Var x ⊗₀ unflatten p'} ⊗₁ α⇒-form-list a b c)
-              ∘ cfrom (x ∷ p') ((a ++ b) ++ c) )
-            ∘ α⇒-form-list (x ∷ p') (a ++ b) c
-            ∘ ( cto ((x ∷ p') ++ a ++ b) c
-              ∘ (α⇒-form-list (x ∷ p') a b ⊗₁ id {unflatten c})
-              ∘ cfrom (((x ∷ p') ++ a) ++ b) c )
-        ≈Term id {Var x} ⊗₁ ( α⇐-form-list p' a (b ++ c)
-                            ∘ ( cto p' (a ++ b ++ c)
-                              ∘ (id ⊗₁ α⇒-form-list a b c)
-                              ∘ cfrom p' ((a ++ b) ++ c) )
-                            ∘ α⇒-form-list p' (a ++ b) c
-                            ∘ ( cto (p' ++ a ++ b) c
-                              ∘ (α⇒-form-list p' a b ⊗₁ id {unflatten c})
-                              ∘ cfrom ((p' ++ a) ++ b) c ) )
+        : collapse-lhs (x ∷ p') a b c
+        ≈Term id {Var x} ⊗₁ collapse-lhs p' a b c
       peel = solveMor! lhsᵗ rhsᵗ
         where
           -- atoms: 0 ↦ Var x, 1 ↦ uf p', 2 ↦ uf ((a++b)++c),
@@ -536,15 +500,8 @@ module Worker where
           ∘ bridge (α⇒ {P} {A₂ ⊗₀ B} {C})
           ∘ bridge (α⇒ {P} {A₂} {B} ⊗₁ id {C})
           ≈⟨ br-⇐ ⟩∘⟨ bx-mid ⟩∘⟨ br-mid ⟩∘⟨ bx-low ⟩
-        α⇐-form-list p (flatten A₂) (flatten B ++ flatten C)
-          ∘ ( c-to p (flatten A₂ ++ flatten B ++ flatten C)
-            ∘ (id ⊗₁ α⇒-form-list (flatten A₂) (flatten B) (flatten C))
-            ∘ c-from p ((flatten A₂ ++ flatten B) ++ flatten C) )
-          ∘ α⇒-form-list p (flatten A₂ ++ flatten B) (flatten C)
-          ∘ ( c-to (p ++ flatten A₂ ++ flatten B) (flatten C)
-            ∘ (α⇒-form-list p (flatten A₂) (flatten B) ⊗₁ id)
-            ∘ c-from ((p ++ flatten A₂) ++ flatten B) (flatten C) )
-          ≈⟨ list-collapse ⟩
+        collapse-lhs p (flatten A₂) (flatten B) (flatten C)
+          ≈⟨ list-collapse-gen p (flatten A₂) (flatten B) (flatten C) ⟩
         α⇒-form-list ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂)
                      (flatten B) (flatten C) ∎
         where
@@ -588,19 +545,6 @@ module Worker where
             c-to (p ++ flatten A₂ ++ flatten B) (flatten C)
               ∘ (α⇒-form-list p (flatten A₂) (flatten B) ⊗₁ id)
               ∘ c-from ((p ++ flatten A₂) ++ flatten B) (flatten C) ∎
-
-          list-collapse
-              : α⇐-form-list p (flatten A₂) (flatten B ++ flatten C)
-                  ∘ ( c-to p (flatten A₂ ++ flatten B ++ flatten C)
-                    ∘ (id ⊗₁ α⇒-form-list (flatten A₂) (flatten B) (flatten C))
-                    ∘ c-from p ((flatten A₂ ++ flatten B) ++ flatten C) )
-                  ∘ α⇒-form-list p (flatten A₂ ++ flatten B) (flatten C)
-                  ∘ ( c-to (p ++ flatten A₂ ++ flatten B) (flatten C)
-                    ∘ (α⇒-form-list p (flatten A₂) (flatten B) ⊗₁ id)
-                    ∘ c-from ((p ++ flatten A₂) ++ flatten B) (flatten C) )
-              ≈Term α⇒-form-list ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂)
-                                  (flatten B) (flatten C)
-          list-collapse = list-collapse-gen p (flatten A₂) (flatten B) (flatten C)
 
           bridge-∘4
             : bridge ( α⇐ {P} {A₂} {B ⊗₀ C}
