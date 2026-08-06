@@ -20,15 +20,11 @@
 -- `Generic.strict-braid` at `mor := (λ _ _ → V)`.
 --------------------------------------------------------------------------------
 
-open import Categories.APROP
 open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Braid
-  (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
+  (X : Set) (_≟X_ : DecidableEquality X)
   where
-
-open APROP sig using (X)
 
 open import Data.List using (List; []; _∷_)
 open import Categories.FreeStrictSMC using (module Build)
