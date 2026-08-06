@@ -66,7 +66,7 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _�
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorReconcile sig _≟X_ as TR
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
 open import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorKBlock sig _≟X_
-  using (module TKB4)
+  using (module TKB4; module KBlockDisjoint)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig _≟X_
   using (pvv-relabelˢ)
 
@@ -74,7 +74,6 @@ open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using (↑ˡ-injective; ↑ʳ-injective)
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-++)
-open import Data.Maybe using (nothing)
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst)
@@ -176,56 +175,19 @@ module _
 
       open DC.RunBlocks ⟪ fg ⟫
         using (absorbˢ; coeCod; run-split-atˢ; pe-stack-++ˢ)
+      module KBD = KBlockDisjoint G K
       open StrictDecoder ⟪ fg ⟫
-        using (block-disjoint; ein-disjoint; stack-sepˢ; term-sepᵛ)
+        using (block-disjoint; stack-sepˢ; term-sepᵛ)
       open Restrict (Fin Hf.nV) vl
         using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ; cast-flipᵛ
               ; ⊗-respᵛ; interchangeᵛ )
 
-      open import Data.Fin using (splitAt)
-      open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
-      import Data.Fin.Properties as FinP
-      open import Data.List.Relation.Unary.All using (All) renaming ([] to []ᴬ; _∷_ to _∷ᴬ_)
-      open import Data.Empty using (⊥; ⊥-elim)
-      open import Relation.Nullary using (yes; no)
-      open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig using (extract-elem)
       open Embeds G K using (injL; injR)
 
-      -- `injL k ≢ injR j` (split lands in `inj₁` vs `inj₂`).
-      injL≢injR : ∀ {k : Fin Gd.nV} {j : Fin Kd.nV} → injL k ≡ injR j → ⊥
-      injL≢injR {k} {j} eq with trans (sym (splitAt-↑ˡ Gd.nV k Kd.nV))
-                                (trans (cong (splitAt Gd.nV) eq)
-                                       (splitAt-↑ʳ Gd.nV Kd.nV j))
-      ... | ()
-
-      injL∉injRs : ∀ (k : Fin Gd.nV) (ys : List (Fin Kd.nV))
-                 → extract-elem (injL k) (map injR ys) ≡ nothing
-      injL∉injRs k []       = refl
-      injL∉injRs k (y ∷ ys) with injR y FinP.≟ injL k
-      ... | yes p  = ⊥-elim (injL≢injR (sym p))
-      ... | no  _  rewrite injL∉injRs k ys = refl
-
-      -- The whole G-block's inputs are absent from the `injR` residual.
+      -- The whole G-block's inputs are absent from the `injR` residual; the
+      -- proof lives at the `hTensor G K` layout, in `TensorKBlock.KBlockDisjoint`.
       g-disjoint : block-disjoint gblk (map injR Kd.dom)
-      g-disjoint = all-gblk (range Gd.nE)
-        where
-          open Embeds G K using (ein-c-inj₁-red)
-          all-injL : ∀ (ks : List (Fin Gd.nV))
-                   → All (λ k → extract-elem k (map injR Kd.dom) ≡ nothing)
-                         (map injL ks)
-          all-injL []       = []ᴬ
-          all-injL (k ∷ ks) = injL∉injRs k Kd.dom ∷ᴬ all-injL ks
-
-          ein-disjointG : ∀ (eG : Fin Gd.nE) → ein-disjoint (eG ↑ˡ Kd.nE) (map injR Kd.dom)
-          ein-disjointG eG =
-            subst (λ ks → All (λ k → extract-elem k (map injR Kd.dom) ≡ nothing) ks)
-                  (sym (ein-c-inj₁-red eG))
-                  (all-injL (Gd.ein eG))
-
-          all-gblk : ∀ (es : List (Fin Gd.nE))
-                   → block-disjoint (map (_↑ˡ Kd.nE) es) (map injR Kd.dom)
-          all-gblk []       = []ᴬ
-          all-gblk (e ∷ es) = ein-disjointG e ∷ᴬ all-gblk es
+      g-disjoint = KBD.gblock-disjoint
 
       ------------------------------------------------------------------
       -- ## The G-block FRAME (the G-side core, via the proven RIGHT-frame

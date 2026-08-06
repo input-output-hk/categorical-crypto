@@ -794,12 +794,16 @@ module TKB6 (H : Hypergraph FlatGen) where
       kfac-gen-resˢ L (head-provider-res L) es disj s_R s pf Br res
 
 --------------------------------------------------------------------------------
--- ## K-block disjointness at the concrete `hTensor` layout.
+-- ## Block disjointness at the concrete `hTensor` layout, both sides.
 --
--- The K-edge inputs `H.ein (ψK eK) = map injR (K.ein eK)` are disjoint from any
--- `injL`-block `map injL P` — the side condition `head-provider`/`head-slide`
--- need at `L = Lpre = map injL Gd.dom`, `e = ψK eK`.  Mirror of
--- `TensorBraid.Braid.g-disjoint`/`injL∉injRs`, on the K-side (`injR∉injLs`).
+-- K-side: the K-edge inputs `H.ein (ψK eK) = map injR (K.ein eK)` are disjoint
+-- from any `injL`-block `map injL P` — the side condition
+-- `head-provider`/`head-slide` need at `L = Lpre = map injL Gd.dom`,
+-- `e = ψK eK`.
+-- G-side (the mirror `injL∉injRs`/`gblock-disjoint`): the whole G-block's
+-- inputs are absent from the `injR` residual `map injR K.dom` — the
+-- `stack-sepˢ`/`term-sepᵛ` side condition consumed by `TensorBraid.Braid` and
+-- `TensorKBlockFinal`.
 --------------------------------------------------------------------------------
 
 
@@ -823,8 +827,8 @@ module KBlockDisjoint (G K : Hypergraph FlatGen) where
     module G = Hypergraph G
     module K = Hypergraph K
     module C = Hypergraph (hTensor G K)
-  open hTensor-impl G K using (injL; injR; ein-c-inj₂-red)
-  open Dec.StrictDecoder (hTensor G K) using (vl)
+  open hTensor-impl G K using (injL; injR; ein-c-inj₁-red; ein-c-inj₂-red)
+  open Dec.StrictDecoder (hTensor G K) using (vl; ein-disjoint; block-disjoint)
 
   ψK : Fin K.nE → Fin C.nE
   ψK eK = G.nE ↑ʳ eK
@@ -858,4 +862,45 @@ module KBlockDisjoint (G K : Hypergraph FlatGen) where
                      (map injR js)
       all-injR []       = []
       all-injR (j ∷ js) = injR∉injLs j P ∷ all-injR js
+
+  ψG : Fin G.nE → Fin C.nE
+  ψG eG = eG ↑ˡ K.nE
+
+  -- `injL k ≢ injR j` (split lands in `inj₁` vs `inj₂`).
+  injL≢injR : ∀ {k : Fin G.nV} {j : Fin K.nV} → injL k ≡ injR j → ⊥
+  injL≢injR {k} {j} eq with trans (sym (splitAt-↑ˡ G.nV k K.nV))
+                            (trans (cong (splitAt G.nV) eq)
+                                   (splitAt-↑ʳ G.nV K.nV j))
+  ... | ()
+
+  -- `injL k` is absent from any `injR`-block.
+  injL∉injRs : ∀ (k : Fin G.nV) (Q : List (Fin K.nV)) → extract-elem (injL k) (map injR Q) ≡ nothing
+  injL∉injRs k []       = refl
+  injL∉injRs k (j ∷ js) with injR j FinP.≟ injL k
+  ... | yes p  = ⊥-elim (injL≢injR (sym p))
+  ... | no  _  rewrite injL∉injRs k js = refl
+
+  -- `ein-disjⁱ (ψG eG) (map injR Q)` at `H = hTensor G K`.
+  gblock-ein-disjoint : ∀ (eG : Fin G.nE) (Q : List (Fin K.nV)) → ein-disjoint (ψG eG) (map injR Q)
+  gblock-ein-disjoint eG Q =
+    subst (λ ks → All (λ k → extract-elem k (map injR Q) ≡ nothing) ks)
+          (sym (ein-c-inj₁-red eG))
+          (all-injL (G.ein eG))
+    where
+      all-injL : ∀ (ks : List (Fin G.nV))
+               → All (λ k → extract-elem k (map injR Q) ≡ nothing)
+                     (map injL ks)
+      all-injL []       = []
+      all-injL (k ∷ ks) = injL∉injRs k Q ∷ all-injL ks
+
+  gblk : List (Fin C.nE)
+  gblk = map (_↑ˡ K.nE) (range G.nE)
+
+  -- the whole G-block's inputs are absent from the `injR` residual.
+  gblock-disjoint : block-disjoint gblk (map injR K.dom)
+  gblock-disjoint = all-gblk (range G.nE)
+    where
+      all-gblk : ∀ (es : List (Fin G.nE)) → block-disjoint (map (_↑ˡ K.nE) es) (map injR K.dom)
+      all-gblk []       = []
+      all-gblk (e ∷ es) = gblock-ein-disjoint e K.dom ∷ all-gblk es
 

@@ -51,11 +51,7 @@ import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig as DA
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
 
-open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_; splitAt)
-open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
-import Data.Fin.Properties as FinP
-open import Data.Empty using (⊥; ⊥-elim)
-open import Relation.Nullary using (yes; no)
+open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Maybe using (nothing)
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
@@ -114,45 +110,12 @@ module _
       aG = Rec.aGᴾ
 
       ------------------------------------------------------------------
-      -- ### G-block disjointness `block-disjoint gblk Rsuf` (mirror of
-      -- `TensorBraid.Braid.g-disjoint` / `KBlockDisjoint` on the G-side:
-      -- `injL k ≢ injR j`, so `injL k` is absent from any `injR`-block).
-
-      injL≢injR : ∀ {k : Fin Gd.nV} {j : Fin Kd.nV} → injL k ≡ injR j → ⊥
-      injL≢injR {k} {j} eq with trans (sym (splitAt-↑ˡ Gd.nV k Kd.nV))
-                                (trans (cong (splitAt Gd.nV) eq)
-                                       (splitAt-↑ʳ Gd.nV Kd.nV j))
-      ... | ()
-
-      injL∉injRs : ∀ (k : Fin Gd.nV) (ys : List (Fin Kd.nV))
-                 → extract-elem (injL k) (map injR ys) ≡ nothing
-      injL∉injRs k []       = refl
-      injL∉injRs k (y ∷ ys) with injR y FinP.≟ injL k
-      ... | yes p = ⊥-elim (injL≢injR (sym p))
-      ... | no  _ rewrite injL∉injRs k ys = refl
-
-      open hTensor-impl G K using (ein-c-inj₁-red)
+      -- ### G-block disjointness `block-disjoint gblk Rsuf`, at the `hTensor`
+      -- layout in `TensorKBlock.KBlockDisjoint` (the `injL`/`injR` mirror of
+      -- `kblock-ein-disjoint`).
 
       g-disjoint : StrictDecoder.block-disjoint Hf gblk Rsuf
-      g-disjoint = all-gblk (range Gd.nE)
-        where
-          ein-disjointG
-            : ∀ (eG : Fin Gd.nE)
-            → All (λ k → extract-elem k Rsuf ≡ nothing) (Hfm.ein (eG ↑ˡ Kd.nE))
-          ein-disjointG eG =
-            subst (λ ks → All (λ k → extract-elem k Rsuf ≡ nothing) ks)
-                  (sym (ein-c-inj₁-red eG))
-                  (all-injL (Gd.ein eG))
-            where
-              all-injL : ∀ (ks : List (Fin Gd.nV))
-                       → All (λ k → extract-elem k Rsuf ≡ nothing) (map injL ks)
-              all-injL []       = []
-              all-injL (k ∷ ks) = injL∉injRs k Kd.dom ∷ all-injL ks
-          all-gblk : ∀ (es : List (Fin Gd.nE))
-                   → All (λ e → StrictDecoder.ein-disjoint Hf e Rsuf)
-                         (map (_↑ˡ Kd.nE) es)
-          all-gblk []       = []
-          all-gblk (e ∷ es) = ein-disjointG e ∷ all-gblk es
+      g-disjoint = KBD.gblock-disjoint
 
       -- `aG ≡ sG ++ Rsuf` (rebuilt `sep`; `Hf.dom = Lpre ++ Rsuf` definitional).
       sep : aG ≡ sG ++ Rsuf
