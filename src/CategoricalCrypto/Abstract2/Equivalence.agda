@@ -4,7 +4,7 @@
 -- Coh unit ("closed on the resource side").  ⌊_⌋ flattens such a protocol to
 -- its bare graded-Kleisli morphism, ⌈_⌉ presents a bare morphism at the
 -- syntactic grade Var X, and ≤UCᵇ is the bare one-sided emulation over ≈ℰ.
--- The conditional structure is the point (docs/uc-lgc-theory.md C6):
+-- The conditional structure is the point:
 --
 --   oap⇒bare :               f ≤UC g (OAP)    → ⌊f⌋ ≤UCᵇ ⌊g⌋      (always)
 --   ᵁ⇒bare   :               f ≤UC g (≈ᵁ)     → f ≤UCᵇ g          (always)
@@ -12,8 +12,8 @@
 --   bare⇒ᵁ   : GradeStable → f ≤UCᵇ g         → f ≤UC g (≈ᵁ)
 --   bare⇒oap : GradeStable → ⌊f⌋ ≤UCᵇ ⌊g⌋     → f ≤UC g (OAP)
 --
--- GradeStable — the ℳ-module property of ℰ — is exactly the bare ↔ U-kernel
--- bridge: ≤UCᵇ records observations at the protocol's own domain A, while
+-- GradeStable — the ℳ-module property of ℰ — is what bridges bare to U-kernel
+-- (sufficient, not equivalent): ≤UCᵇ records observations at the domain A, while
 -- the OAP and ≈ᵁ relations compare components of the enriched image (domain
 -- T₀ unit A), and lifting a bare artifact into a component is T₁-descent.
 -- Hence bare⇒oap is NOT unconditional; ᵁ⇒oap is hypothesis-free because its
@@ -35,9 +35,8 @@ open import Data.Product
 open import Function using (_⇔_; mk⇔)
 import Relation.Binary.Reasoning.Setoid as SetoidR
 
-open import Categories.Category
 open import Categories.Category.Monoidal
-open import Categories.CoherenceIsos using (module Coherence)
+open import Categories.CoherenceIsos
 
 open AbstractUC setup
 
@@ -45,9 +44,10 @@ setupᴼ : UCSetup o ℓ e o′ ℓ′ e′ cs ℓs
 setupᴼ = record { 𝒞 = 𝒞 ; ℐ = ℐ ; ℳ = ℳ ; ℰ = ℰ }
 
 module OAP = Abstract.AbstractUC setupᴼ
-open OAP using (U; ι; pureAtk; _∘ᴼ_; oap-assoc; ≋⇒≈ℰ'; U-∘C; U-pureAtk; pureAtk-∘;
+open OAP using (U; ι; pureAtk; ≋⇒≈ℰ'; U-∘C; U-pureAtk; pureAtk-∘;
                 pureAtk-transport; atk-idʳ; ≈'-congˡ; ≈'-congʳ; ≈'-setoid;
                 U-≈ℰ⇒≈ℰ'; ≈ℰ'⇒U-≈ℰ)
+module OAPᶜ = OAP.OAP
 
 open Coherence ℐ
 module ℂ = MonoidalCategory Coh
@@ -71,8 +71,8 @@ Prot A B J = OAP.⟨ A , ℂ.unit ⟩ᴼᴾ OAP.⇒ᴼᴾ OAP.⟨ B , J ⟩ᴼ�
 
 infix 4 _≤UCᵇ_
 
--- The bare-kernel one-sided emulation (SpikeR2's shape): output-side
--- simulators only, compared under ≈ℰ.
+-- The bare-kernel one-sided emulation: output-side simulators only, compared
+-- under ≈ℰ.
 _≤UCᵇ_ : A 𝒞.⇒ T₀ X B → A 𝒞.⇒ T₀ Y B → Set (o ⊔ ℓ ⊔ cs ⊔ ℓs)
 _≤UCᵇ_ {X = X} {Y = Y} f g =
   ∀ {X′} (a : X ℐ.⇒ X′) → Σ[ s ∈ Y ℐ.⇒ X′ ] (sub a 𝒞.∘ f) ≈ℰ (sub s 𝒞.∘ g)
@@ -108,20 +108,20 @@ Uι-decomp (β , g , α) = let open 𝒞 in ⟺ (begin
 -- The attacked composite under U, as the unit-grade ≈ᵁ-component of the
 -- attacked bare protocol.
 U-atk : (x : Prot A B J) (a : ⟦ J ⟧₀ ℐ.⇒ Z)
-      → U (pureAtk a ∘ᴼ ι x)
+      → U (pureAtk a OAPᶜ.∘ ι x)
         𝒞.≈ sub λ⇒ 𝒞.∘ (μ ℐ.unit Z 𝒞.∘ T₁ ℐ.unit (sub a 𝒞.∘ ⌊ x ⌋))
 U-atk {Z = Z} x a = let open 𝒞 in begin
-    U (pureAtk a ∘ᴼ ι x)                                ≈⟨ U-∘C (pureAtk a) (ι x) ⟩
-    U (pureAtk a) ∘ U (ι x)                             ≈⟨ U-pureAtk a ⟩∘⟨ Uι-decomp x ⟩
-    sub a ∘ (sub λ⇒ ∘ ext ℐ.unit ⌊ x ⌋)                 ≈⟨ pullˡ (⟺ sub-homomorphism) ⟩
-    sub (a ℐ.∘ λ⇒) ∘ ext ℐ.unit ⌊ x ⌋                   ≈⟨ sub-resp-≈ (ℐ.Equiv.sym ℐ.unitorˡ-commute-from) ⟩∘⟨refl ⟩
-    sub (λ⇒ ℐ.∘ ℐ.id ⊗₁ a) ∘ ext ℐ.unit ⌊ x ⌋           ≈⟨ pushˡ sub-homomorphism ⟩
-    sub λ⇒ ∘ (sub (ℐ.id ⊗₁ a) ∘ ext ℐ.unit ⌊ x ⌋)       ≈⟨ refl⟩∘⟨ ⟺ sub-commute₂ ⟩
-    sub λ⇒ ∘ ext ℐ.unit (sub a ∘ ⌊ x ⌋)                 ≈⟨ refl⟩∘⟨ ⟺ (μT (sub a ∘ ⌊ x ⌋)) ⟩
+    U (pureAtk a OAPᶜ.∘ ι x)                           ≈⟨ U-∘C (pureAtk a) (ι x) ⟩
+    U (pureAtk a) ∘ U (ι x)                            ≈⟨ U-pureAtk a ⟩∘⟨ Uι-decomp x ⟩
+    sub a ∘ (sub λ⇒ ∘ ext ℐ.unit ⌊ x ⌋)                ≈⟨ pullˡ (⟺ sub-homomorphism) ⟩
+    sub (a ℐ.∘ λ⇒) ∘ ext ℐ.unit ⌊ x ⌋                  ≈⟨ sub-resp-≈ (ℐ.Equiv.sym ℐ.unitorˡ-commute-from) ⟩∘⟨refl ⟩
+    sub (λ⇒ ℐ.∘ ℐ.id ⊗₁ a) ∘ ext ℐ.unit ⌊ x ⌋          ≈⟨ pushˡ sub-homomorphism ⟩
+    sub λ⇒ ∘ (sub (ℐ.id ⊗₁ a) ∘ ext ℐ.unit ⌊ x ⌋)      ≈⟨ refl⟩∘⟨ ⟺ sub-commute₂ ⟩
+    sub λ⇒ ∘ ext ℐ.unit (sub a ∘ ⌊ x ⌋)                ≈⟨ refl⟩∘⟨ ⟺ (μT (sub a ∘ ⌊ x ⌋)) ⟩
     sub λ⇒ ∘ (μ ℐ.unit Z ∘ T₁ ℐ.unit (sub a ∘ ⌊ x ⌋))  ∎
 
 atk-return : (x : Prot A B J) (a : ⟦ J ⟧₀ ℐ.⇒ Z)
-           → U (pureAtk a ∘ᴼ ι x) 𝒞.∘ return 𝒞.≈ sub a 𝒞.∘ ⌊ x ⌋
+           → U (pureAtk a OAPᶜ.∘ ι x) 𝒞.∘ return 𝒞.≈ sub a 𝒞.∘ ⌊ x ⌋
 atk-return x a = let open 𝒞 in
   ((U-∘C (pureAtk a) (ι x) ○ (U-pureAtk a ⟩∘⟨refl)) ⟩∘⟨refl) ○ assoc ○ (refl⟩∘⟨ ⌊⌋-return x)
 
@@ -136,24 +136,21 @@ oap⇒bare : {f : Prot A B J} {g : Prot A B K} → f OAP.≤UC g → ⌊ f ⌋ �
 oap⇒bare {f = f} {g = g} f≤g a =
   let (s⁺ , s⁻ , E) = f≤g a
       (s″ , E″)     = pureAtk-transport g s⁻
-      E′ : (pureAtk a ∘ᴼ ι f) OAP.≈ℰ' (pureAtk (s⁺ ℐ.∘ s″) ∘ᴼ ι g)
+      E′ : (pureAtk a OAPᶜ.∘ ι f) OAP.≈ℰ' (pureAtk (s⁺ ℐ.∘ s″) OAPᶜ.∘ ι g)
       E′ = let open SetoidR (≈'-setoid _ _) in begin
-        pureAtk a ∘ᴼ ι f                    ≈⟨ E ⟩
-        pureAtk s⁺ ∘ᴼ ι g ∘ᴼ pureAtk s⁻     ≈⟨ ≈'-congˡ (pureAtk s⁺) E″ ⟩
-        pureAtk s⁺ ∘ᴼ pureAtk s″ ∘ᴼ ι g     ≈⟨ ≋⇒≈ℰ' oap-assoc ⟨
-        (pureAtk s⁺ ∘ᴼ pureAtk s″) ∘ᴼ ι g   ≈⟨ ≈'-congʳ (ι g) (pureAtk-∘ s⁺ s″) ⟩
-        pureAtk (s⁺ ℐ.∘ s″) ∘ᴼ ι g          ∎
+        pureAtk a OAPᶜ.∘ ι f                       ≈⟨ E ⟩
+        pureAtk s⁺ OAPᶜ.∘ ι g OAPᶜ.∘ pureAtk s⁻    ≈⟨ ≈'-congˡ (pureAtk s⁺) E″ ⟩
+        pureAtk s⁺ OAPᶜ.∘ pureAtk s″ OAPᶜ.∘ ι g    ≈⟨ ≋⇒≈ℰ' OAPᶜ.assoc ⟨
+        (pureAtk s⁺ OAPᶜ.∘ pureAtk s″) OAPᶜ.∘ ι g  ≈⟨ ≈'-congʳ (ι g) (pureAtk-∘ s⁺ s″) ⟩
+        pureAtk (s⁺ ℐ.∘ s″) OAPᶜ.∘ ι g             ∎
   in s⁺ ℐ.∘ s″ ,
      ≈ℰ-trans (≈ℰ-sym (≈C⇒≈ℰ (atk-return f a)))
        (≈ℰ-trans (≈ℰ-cong-pre return (≈ℰ'⇒U-≈ℰ E′)) (≈C⇒≈ℰ (atk-return g (s⁺ ℐ.∘ s″))))
 
--- The U-kernel relation refines the bare one, unconditionally (≈ᵁ⇒≈ℰ).
 ᵁ⇒bare : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B} → f ≤UC g → f ≤UCᵇ g
 ᵁ⇒bare f≤g a = let (s , e) = f≤g a in s , ≈ᵁ⇒≈ℰ e
 
--- GradeStable is exactly what lifts a bare artifact into the U-kernel.
-bare⇒ᵁ : GradeStable → {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
-       → f ≤UCᵇ g → f ≤UC g
+bare⇒ᵁ : GradeStable → {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B} → f ≤UCᵇ g → f ≤UC g
 bare⇒ᵁ gs f≤g a = let (s , e) = f≤g a in s , bridge gs e
 
 -- U-kernel emulation of the flattenings gives OAP emulation with NO
@@ -163,20 +160,16 @@ bare⇒ᵁ gs f≤g a = let (s , e) = f≤g a in s , bridge gs e
 ᵁ⇒oap {f = f} {g = g} f≤g a =
   let (s , e) = f≤g a
   in s , ℐ.id , U-≈ℰ⇒≈ℰ' (let open SetoidR (≈ℰ-setoid _ _) in begin
-    U (pureAtk a ∘ᴼ ι f)
+    U (pureAtk a OAPᶜ.∘ ι f)
       ≈⟨ ≈C⇒≈ℰ (U-atk f a) ⟩
     sub λ⇒ 𝒞.∘ (μ ℐ.unit _ 𝒞.∘ T₁ ℐ.unit (sub a 𝒞.∘ ⌊ f ⌋))
       ≈⟨ ≈ℰ-cong-post (sub λ⇒) (e ℐ.unit) ⟩
     sub λ⇒ 𝒞.∘ (μ ℐ.unit _ 𝒞.∘ T₁ ℐ.unit (sub s 𝒞.∘ ⌊ g ⌋))
       ≈⟨ ≈C⇒≈ℰ (U-atk g s) ⟨
-    U (pureAtk s ∘ᴼ ι g)
+    U (pureAtk s OAPᶜ.∘ ι g)
       ≈⟨ ≈ℰ'⇒U-≈ℰ (≈'-congˡ (pureAtk s) (atk-idʳ (ι g))) ⟨
-    U (pureAtk s ∘ᴼ ι g ∘ᴼ pureAtk ℐ.id)  ∎)
+    U (pureAtk s OAPᶜ.∘ ι g OAPᶜ.∘ pureAtk ℐ.id)  ∎)
 
--- 2. The brief's unconditional form is NOT provable — nor true in general:
--- ⌊_⌋ retains only domain-A observations, ≈ℰ' compares U-images on domain
--- T₀ unit A, and the lift `ext ℐ.unit` descends to ≈ℰ exactly under
--- GradeStable (C6).  ᵁ⇒oap is the hypothesis-free route into OAP.
 bare⇒oap : GradeStable → {f : Prot A B J} {g : Prot A B K}
          → ⌊ f ⌋ ≤UCᵇ ⌊ g ⌋ → f OAP.≤UC g
 bare⇒oap gs {f = f} {g = g} f≤g = ᵁ⇒oap {f = f} {g = g} (bare⇒ᵁ gs f≤g)
@@ -190,14 +183,13 @@ oap⇔ᵁ gs {f = f} {g = g} = mk⇔ fwd (ᵁ⇒oap {f = f} {g = g})
         fwd f≤g = bare⇒ᵁ gs (oap⇒bare {f = f} {g = g} f≤g)
 
 ------------------------------------------------------------------------
--- The ⌈_⌉ counterparts: ⌊_⌋ retracts ⌈_⌉ on the nose
+-- The ⌈_⌉ counterparts: ⌊_⌋ retracts ⌈_⌉
 ------------------------------------------------------------------------
 
 ⌊⌈⌉⌋-id : (x : A 𝒞.⇒ T₀ X B) → ⌊ ⌈ x ⌉ ⌋ 𝒞.≈ x
 ⌊⌈⌉⌋-id x = let open 𝒞 in elimˡ (sub-resp-≈ ℐ.unitorˡ.isoʳ ○ sub-identity)
 
-oap⇒bare-⌈⌉ : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
-            → ⌈ f ⌉ OAP.≤UC ⌈ g ⌉ → f ≤UCᵇ g
+oap⇒bare-⌈⌉ : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B} → ⌈ f ⌉ OAP.≤UC ⌈ g ⌉ → f ≤UCᵇ g
 oap⇒bare-⌈⌉ {f = f} {g = g} f≤g =
   ≤UCᵇ-resp-≈ (⌊⌈⌉⌋-id f) (⌊⌈⌉⌋-id g) (oap⇒bare {f = ⌈ f ⌉} {g = ⌈ g ⌉} f≤g)
 

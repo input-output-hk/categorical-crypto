@@ -1,33 +1,31 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- THE BRIDGE THEOREM.  For a graded Kleisli triple ℳ over ℐ in 𝒞, the free
--- actegory ∮ (naiveKleisli ℳ) on its locally graded presentation (grade on the
--- morphism: GKOS / McDermott–Uustalu) IS the grade-on-object graded Kleisli
--- category of Fujii/FKM (Categories.GradedKleisli).
+-- For a graded Kleisli triple ℳ over ℐ in 𝒞, the free actegory ∮ on
+-- its locally graded presentation (GKOS / McDermott–Uustalu) is the
+-- graded Kleisli category of Fujii/FKM.
 --------------------------------------------------------------------------------
 
-open import Categories.Category using (Category)
-open import Categories.Category.Monoidal using (MonoidalCategory)
-open import Categories.Monad.Graded using (GradedKleisliTriple)
+open import Categories.Category
+open import Categories.Category.Monoidal
+open import Categories.Monad.Graded
 
 module Categories.LocallyGraded.FreeActegory.Kleisli
   {o ℓ e o′ ℓ′ e′} (𝒞 : Category o′ ℓ′ e′) (ℐ : MonoidalCategory o ℓ e)
   (ℳ : GradedKleisliTriple ℐ 𝒞) where
 
-open import Categories.Category using (_[_≈_]; _[_∘_])
 open import Categories.Category.Equivalence using (StrongEquivalence)
-open import Categories.Functor using (Functor; _∘F_)
-open import Categories.Functor.Equivalence using (_≡F_)
-open import Categories.GradedKleisli using (GradedKleisli; U₁; U-∘; U-resp; U-functor)
+open import Categories.Functor
+open import Categories.Functor.Equivalence
+open import Categories.GradedKleisli
 open import Categories.LocallyGraded.FreeActegory using (∮)
-open import Categories.LocallyGraded.Kleisli using (naiveKleisli)
+open import Categories.LocallyGraded.Kleisli
 import Categories.Morphism.Reasoning as MR
 open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)
 
-open import Data.Product using (_,_)
+open import Data.Product
 open import Relation.Binary.Construct.Closure.Equivalence as EqC using ()
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality
 
 private
   module 𝒞 where
@@ -41,8 +39,8 @@ private
     open MR ℐ.U public
 
 open ℐ using (_⊗-)
-open Functor using (identity; ₁)
-open GradedKleisliTriple ℳ using (T₀; T₁; μ; μ-identityʳ; sub; sub-identity)
+open Functor
+open GradedKleisliTriple ℳ
 
 private
   K∮ = ∮ (naiveKleisli ℳ)
@@ -68,8 +66,7 @@ Hom-≡ = refl
 id-≡ : ∀ {X} → K∮.id {X} ≡ K.id {X}
 id-≡ = refl
 
-∘-≡ : ∀ {X Y Z} {g : Y K∮.⇒ Z} {f : X K∮.⇒ Y}
-    → (K∮ [ g ∘ f ]) ≡ (K [ g ∘ f ])
+∘-≡ : ∀ {X Y Z} {g : Y K∮.⇒ Z} {f : X K∮.⇒ Y} → (K∮ [ g ∘ f ]) ≡ (K [ g ∘ f ])
 ∘-≡ = refl
 
 -- Hom equality both ways: the equivalence closures of the coend's
@@ -77,14 +74,12 @@ id-≡ = refl
 -- generator-for-generator (Slide's witness is the coend's sliding morphism,
 -- applied to the witness (f₀ , β₀)).
 private
-  toStep : ∀ {ai bj c d} {x y : (ai , c) K.⇒ (bj , d)}
-         → K [ x ≈ y ] → K∮ [ x ≈ y ]
+  toStep : ∀ {ai bj c d} {x y : (ai , c) K.⇒ (bj , d)} → K [ x ≈ y ] → K∮ [ x ≈ y ]
   toStep {ai} = EqC.map λ where
     {X , f₀ , α₀} {Y , g₀ , β₀} (φ , p , q) →
       φ , (f₀ , β₀) , (𝒞.elimˡ sub-identity , q) , (p , ℐᵁ.elimʳ (identity (ai ⊗-)))
 
-  toSlide : ∀ {ai bj c d} {x y : (ai , c) K∮.⇒ (bj , d)}
-          → K∮ [ x ≈ y ] → K [ x ≈ y ]
+  toSlide : ∀ {ai bj c d} {x y : (ai , c) K∮.⇒ (bj , d)} → K∮ [ x ≈ y ] → K [ x ≈ y ]
   toSlide {ai} = EqC.map λ where
     {X , f₀ , α₀} {Y , g₀ , β₀} (φ , (w₁ , w₂) , (e₁ , e₂) , (e₃ , e₄)) →
         φ
@@ -117,7 +112,6 @@ fromFreeActegory = record
   ; F-resp-≈     = toSlide
   }
 
--- ∮ (naiveKleisli ℳ) ≌ GradedKleisli 𝒞 ℐ ℳ, with identity carriers both ways.
 bridge : StrongEquivalence K∮ K
 bridge = record
   { F            = fromFreeActegory
@@ -137,11 +131,9 @@ bridge = record
   }
 
 ------------------------------------------------------------------------
--- The flattened forgetful factorization (C3 iv)
+-- The flattened forgetful factorization
 ------------------------------------------------------------------------
 
--- Evaluate a representative in 𝒞: (i , A) ↦ T₀ i A, (k , f , α) ↦
--- sub α ∘ μ ∘ T₁ f.
 ev∮ : Functor K∮ 𝒞
 ev∮ = record
   { F₀           = λ (i , A) → T₀ i A
@@ -151,6 +143,5 @@ ev∮ = record
   ; F-resp-≈     = λ e → U-resp 𝒞 ℐ ℳ (toSlide e)
   }
 
--- Under the bridge, ev∮ is GradedKleisli's forgetful functor on the nose.
 ev∮-factors : ev∮ ≡F (U-functor 𝒞 ℐ ℳ ∘F fromFreeActegory)
 ev∮-factors = record { eq₀ = λ _ → refl ; eq₁ = λ _ → 𝒞.id-comm-sym }

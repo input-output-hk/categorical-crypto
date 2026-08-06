@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- ⊗ : 𝒞 × 𝒞 → 𝒞 is a monoidal functor
+-- The curried tensor X ↦ (X ⊗ -) as a monoidal functor M → Endofunctors 𝒞.
 
 open import Categories.Category.Monoidal
 
@@ -15,7 +15,7 @@ open import Categories.Category.Construction.Functors
 open import Categories.Category.Monoidal.Construction.Endofunctors
 open import Categories.Category.Product
 import Categories.Coherence.Monoidal as Coh
-open import Categories.Functor using (Functor; _∘F_) renaming (id to idF)
+open import Categories.Functor renaming (id to idF)
 open import Categories.Functor.Monoidal
 open import Categories.NaturalTransformation
 
@@ -84,7 +84,7 @@ curriedTensor = record { F = F ; isMonoidal = isMon }
             (((S.id {x₀} S.⊗₁ S.α⇐ {y₀} {z₀} {q₀}) S.∘ S.id) S.∘ S.id)
 
   unitˡ-law : ∀ {X x} → λ⇒ ⊗₁ 𝒞.id 𝒞.∘ α⇐ 𝒞.∘ 𝒞.id ⊗₁ 𝒞.id 𝒞.∘ λ⇐ 𝒞.≈ 𝒞.id
-  unitˡ-law {X} {x} = S.solveM lhs rhs
+  unitˡ-law {X} {x} = S.solveM lhs (S.id {x₀ S.⊗₀ q₀})
     where
       module S = Coh.Structural M (X ∷ x ∷ [])
       x₀ = S.Var zero
@@ -92,10 +92,9 @@ curriedTensor = record { F = F ; isMonoidal = isMon }
       lhs = (S.λ⇒ {x₀} S.⊗₁ S.id {q₀}) S.∘
             (S.α⇐ {S.unit} {x₀} {q₀} S.∘
              ((S.id {S.unit} S.⊗₁ S.id {x₀ S.⊗₀ q₀}) S.∘ S.λ⇐ {x₀ S.⊗₀ q₀}))
-      rhs = S.id {x₀ S.⊗₀ q₀}
 
   unitʳ-law : ∀ {X x} → ρ⇒ ⊗₁ 𝒞.id 𝒞.∘ α⇐ 𝒞.∘ 𝒞.id ⊗₁ λ⇐ 𝒞.∘ 𝒞.id 𝒞.≈ 𝒞.id
-  unitʳ-law {X} {x} = S.solveM lhs rhs
+  unitʳ-law {X} {x} = S.solveM lhs (S.id {x₀ S.⊗₀ q₀})
     where
       module S = Coh.Structural M (X ∷ x ∷ [])
       x₀ = S.Var zero
@@ -103,7 +102,6 @@ curriedTensor = record { F = F ; isMonoidal = isMon }
       lhs = (S.ρ⇒ {x₀} S.⊗₁ S.id {q₀}) S.∘
             (S.α⇐ {x₀} {S.unit} {q₀} S.∘
              ((S.id {x₀} S.⊗₁ S.λ⇐ {q₀}) S.∘ S.id))
-      rhs = S.id {x₀ S.⊗₀ q₀}
 
   isMon : IsMonoidalFunctor M E F
   isMon = record

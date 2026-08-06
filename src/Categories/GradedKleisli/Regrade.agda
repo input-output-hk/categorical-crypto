@@ -1,25 +1,25 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- Change of grading along a (lax) monoidal functor Φ : 𝒥 → ℐ: the functor
--- `Regrade : Kl(Φ*ℳ) → Kl(ℳ)`.  Functoriality in Φ (the pointwise laws and
--- the `_≡F_` bridge functors) lives in `Categories.GradedKleisli.Functorial`.
+-- `Regrade : Kl(Φ*ℳ) → Kl(ℳ)`.  Downstream handles are `Klℐ` and `Kl𝒥` (the
+-- source and target categories) together with `Regrade₀`/`Regrade₁`.
 
 module Categories.GradedKleisli.Regrade where
 
-open import Level using (Level)
-open import Data.Product using (_,_)
+open import Level
+open import Data.Product
 
-open import Categories.Category using (Category; _[_,_]; _[_≈_])
-open import Categories.Category.Monoidal using (MonoidalCategory)
+open import Categories.Category
+open import Categories.Category.Monoidal
 import Categories.Category.Monoidal.Reasoning as MonR
-open import Categories.Functor using (Functor)
-open import Categories.Functor.Monoidal using (MonoidalFunctor)
+open import Categories.Functor
+open import Categories.Functor.Monoidal
 open import Categories.Functor.Properties
 open import Categories.GradedKleisli
-open import Categories.Monad.Graded using (GradedKleisliTriple)
+open import Categories.Monad.Graded
 open import Categories.Monad.Graded.Pullback using (pullback; pullback-return; pullback-ext)
 import Categories.Morphism.Reasoning as MR
-open import Categories.Tactic.Category using (solve)
+open import Categories.Tactic.Category
 
 import Relation.Binary.Construct.Closure.Equivalence as EqC
 
@@ -34,7 +34,7 @@ module _ {o ℓ e oⱼ ℓⱼ eⱼ o′ ℓ′ e′ : Level}
     module Φ = MonoidalFunctor Φ
   open GradedKleisliTriple ℳ
   open ℐ
-  open import Categories.Category.Monoidal.Utilities ℐ.monoidal using (module Shorthands)
+  open import Categories.Category.Monoidal.Utilities ℐ.monoidal
   open Shorthands
   open MR ℐ.U
   open MonR ℐ.monoidal using (_⟩⊗⟨_)
@@ -96,7 +96,7 @@ module _ {o ℓ e oⱼ ℓⱼ eⱼ o′ ℓ′ e′ : Level}
           Φ₁ α ℐ.∘ H (Xi , i)                        ∎
         where open ℐ.HomReasoning
 
-      id-law : ∀ {A} → Klℐ [ Regrade₁ (Category.id Kl𝒥 {A}) ≈ Category.id Klℐ {Regrade₀ A} ]
+      id-law : ∀ {A} → Klℐ [ Regrade₁ (Category.id Kl𝒥) ≈ Category.id Klℐ {Regrade₀ A} ]
       id-law = Klℐ.Equiv.sym (EqC.return
         ( Φ.ε
         , 𝒞.Equiv.sym return-ext

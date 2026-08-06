@@ -20,13 +20,12 @@ private
   ℳ : GradedKleisliTriple M U
   ℳ = GradedMonad⇒GradedKleisliTriple curriedTensor
 
-open GradedKleisliTriple ℳ using (T₁)
+open GradedKleisliTriple ℳ
 
 T₁-⊗ : ∀ u {A B} (h : A ⇒ B) → T₁ u h ≈ id ⊗₁ h
 T₁-⊗ u h = begin
-    (ρ⇒ ⊗₁ id) ∘ (α⇐ ∘ (id ⊗₁ (λ⇐ ∘ h)))                 ≈⟨ refl⟩∘⟨ refl⟩∘⟨ split₂ˡ ⟩
-    (ρ⇒ ⊗₁ id) ∘ (α⇐ ∘ ((id ⊗₁ λ⇐) ∘ (id ⊗₁ h)))         ≈⟨ (⟺ triangle) ⟩∘⟨refl ⟩
-    ((id ⊗₁ λ⇒) ∘ α⇒) ∘ (α⇐ ∘ ((id ⊗₁ λ⇐) ∘ (id ⊗₁ h)))  ≈⟨ cancelInner associator.isoʳ ⟩
-    (id ⊗₁ λ⇒) ∘ ((id ⊗₁ λ⇐) ∘ (id ⊗₁ h))                ≈⟨ pullˡ merge₂ˡ ⟩
-    (id ⊗₁ (λ⇒ ∘ λ⇐)) ∘ (id ⊗₁ h)                        ≈⟨ elimˡ ((refl⟩⊗⟨ unitorˡ.isoʳ) ○ ⊗.identity) ⟩
-    id ⊗₁ h                                              ∎
+    (ρ⇒ ⊗₁ id) ∘ (α⇐ ∘ (id ⊗₁ (λ⇐ ∘ h)))         ≈⟨ (⟺ triangle) ⟩∘⟨refl ⟩
+    ((id ⊗₁ λ⇒) ∘ α⇒) ∘ (α⇐ ∘ (id ⊗₁ (λ⇐ ∘ h)))  ≈⟨ cancelInner associator.isoʳ ⟩
+    (id ⊗₁ λ⇒) ∘ (id ⊗₁ (λ⇐ ∘ h))                ≈⟨ merge₂ʳ ⟩
+    id ⊗₁ (λ⇒ ∘ (λ⇐ ∘ h))                        ≈⟨ refl⟩⊗⟨ cancelˡ unitorˡ.isoʳ ⟩
+    id ⊗₁ h                                      ∎

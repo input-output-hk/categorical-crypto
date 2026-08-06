@@ -25,7 +25,7 @@ open import Categories.Category.Helper
 open import Categories.Category.Instance.Setoids
 open import Categories.Category.Monoidal
 open import Categories.Coherence.Monoidal
-open import Categories.Diagram.Coend.Setoids
+open import Categories.Diagram.Coend.Ext.Setoids
 open import Categories.FreeMonoidal
 open import Categories.Functor
 open import Categories.Functor.Bifunctor
