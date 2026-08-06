@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- The vanishing-TV layer over 𝒞^ω. Observation sequences are identified
--- (_⇝_) when their advantage vanishes asymptotically.  The environment
+-- (_∼ᵛ_) when their advantage vanishes asymptotically.  The environment
 -- presheaf ℰᵗᵛ sends A to joint ancilla-tests (Y , E : Y ⊗ A ⇒ Δ Ω).
 -- The kernel congruence of ℰᵗᵛ is exactly the adaptive single-environment
 -- relation R (≈ℰ⇒R / R⇒≈ℰ), which is grade-stable by its own ancilla
@@ -14,7 +14,7 @@ open import CategoricalCrypto.MachineAxioms
 module CategoricalCrypto.VanishingTV
   {o ℓ e os ℓs qs : Level} (MA : MachineAxioms o ℓ e os ℓs qs) where
 
-open import Axiom.UniquenessOfIdentityProofs using (UIP)
+open import Axiom.UniquenessOfIdentityProofs
 open import Data.Nat as ℕ using (ℕ)
 open import Data.Nat.Poly
 import Data.Nat.Properties as ℕₚ
@@ -51,23 +51,22 @@ private variable
 run : 𝟙^ω ⇒^ω Δ Ω → ℕ → Obs.Carrier
 run u n = ⟦ proj₁ u n ⟧
 
-infix 4 _⇝_ _→0
+infix 4 _∼ᵛ_ _→0
 
--- TODO: this isn't really the best symbol for an equivalence relation
-_⇝_ : (μ ν : ℕ → Obs.Carrier) → Set
-μ ⇝ ν = ∀ ε → ε ℚ.> 0ℚ → Σ[ N ∈ ℕ ] ∀ n → N ℕ.≤ n → adv (μ n) (ν n) ℚ.≤ ε
+_∼ᵛ_ : (μ ν : ℕ → Obs.Carrier) → Set
+μ ∼ᵛ ν = ∀ ε → ε ℚ.> 0ℚ → Σ[ N ∈ ℕ ] ∀ n → N ℕ.≤ n → adv (μ n) (ν n) ℚ.≤ ε
 
 _→0 : (ℕ → ℚ) → Set
 s →0 = ∀ ε → ε ℚ.> 0ℚ → Σ[ N ∈ ℕ ] ∀ n → N ℕ.≤ n → s n ℚ.≤ ε
 
-⇝-pointwise : (∀ n → μ n Obs.≈ ν n) → μ ⇝ ν
-⇝-pointwise h ε ε>0 = 0 , λ n _ → subst (ℚ._≤ ε) (sym (adv-≈⇒0 (h n))) (<⇒≤ ε>0)
+∼ᵛ-pointwise : (∀ n → μ n Obs.≈ ν n) → μ ∼ᵛ ν
+∼ᵛ-pointwise h ε ε>0 = 0 , λ n _ → subst (ℚ._≤ ε) (sym (adv-≈⇒0 (h n))) (<⇒≤ ε>0)
 
-⇝-refl : μ ⇝ μ
-⇝-refl = ⇝-pointwise λ _ → Obs.refl
+∼ᵛ-refl : μ ∼ᵛ μ
+∼ᵛ-refl = ∼ᵛ-pointwise λ _ → Obs.refl
 
-⇝-sym : μ ⇝ ν → ν ⇝ μ
-⇝-sym {μ} {ν} h ε ε>0 = let (N , b) = h ε ε>0 in
+∼ᵛ-sym : μ ∼ᵛ ν → ν ∼ᵛ μ
+∼ᵛ-sym {μ} {ν} h ε ε>0 = let (N , b) = h ε ε>0 in
   N , λ n N≤n → subst (ℚ._≤ ε) (adv-sym (μ n) (ν n)) (b n N≤n)
 
 private
@@ -77,8 +76,8 @@ private
   half+half : ∀ ε → ½ ℚ.* ε ℚ.+ ½ ℚ.* ε ≡ ε
   half+half ε = trans (sym (*-distribʳ-+ ε ½ ½)) (*-identityˡ ε)
 
-⇝-trans : μ ⇝ ν → ν ⇝ ρ → μ ⇝ ρ
-⇝-trans {μ} {ν} {ρ} h₁ h₂ ε ε>0 =
+∼ᵛ-trans : μ ∼ᵛ ν → ν ∼ᵛ ρ → μ ∼ᵛ ρ
+∼ᵛ-trans {μ} {ν} {ρ} h₁ h₂ ε ε>0 =
   let (N₁ , b₁) = h₁ (½ ℚ.* ε) (half-pos ε>0)
       (N₂ , b₂) = h₂ (½ ℚ.* ε) (half-pos ε>0)
   in N₁ ℕ.⊔ N₂ , λ n le → subst (λ q → adv (μ n) (ρ n) ℚ.≤ q) (half+half ε)
@@ -86,15 +85,15 @@ private
                 (+-mono-≤ (b₁ n (ℕₚ.≤-trans (ℕₚ.m≤m⊔n N₁ N₂) le))
                           (b₂ n (ℕₚ.≤-trans (ℕₚ.m≤n⊔m N₁ N₂) le))))
 
-⇝-setoid : Setoid os 0ℓ
-⇝-setoid = record { Carrier = ℕ → Obs.Carrier ; _≈_ = _⇝_
-  ; isEquivalence = record { refl = ⇝-refl ; sym = ⇝-sym ; trans = ⇝-trans } }
+∼ᵛ-setoid : Setoid os 0ℓ
+∼ᵛ-setoid = record { Carrier = ℕ → Obs.Carrier ; _≈_ = _∼ᵛ_
+  ; isEquivalence = record { refl = ∼ᵛ-refl ; sym = ∼ᵛ-sym ; trans = ∼ᵛ-trans } }
 
-⇝-resp : {u u′ v v′ : ∀ n → 𝕄.unit 𝕄.⇒ Ω}
+∼ᵛ-resp : {u u′ v v′ : ∀ n → 𝕄.unit 𝕄.⇒ Ω}
        → (∀ n → u n 𝕄.≈ u′ n) → (∀ n → v n 𝕄.≈ v′ n)
-       → (λ n → ⟦ u n ⟧) ⇝ (λ n → ⟦ v n ⟧) → (λ n → ⟦ u′ n ⟧) ⇝ (λ n → ⟦ v′ n ⟧)
-⇝-resp eu ev huv = ⇝-trans (⇝-pointwise λ n → Obs.sym (⟦⟧-resp-≈ (eu n)))
-                   (⇝-trans huv (⇝-pointwise λ n → ⟦⟧-resp-≈ (ev n)))
+       → (λ n → ⟦ u n ⟧) ∼ᵛ (λ n → ⟦ v n ⟧) → (λ n → ⟦ u′ n ⟧) ∼ᵛ (λ n → ⟦ v′ n ⟧)
+∼ᵛ-resp eu ev huv = ∼ᵛ-trans (∼ᵛ-pointwise λ n → Obs.sym (⟦⟧-resp-≈ (eu n)))
+                   (∼ᵛ-trans huv (∼ᵛ-pointwise λ n → ⟦⟧-resp-≈ (ev n)))
 
 ------------------------------------------------------------------------
 -- ℰᵗᵛ: joint ancilla-tests up to vanishing advantage under all closures
@@ -103,36 +102,36 @@ private
 TVTest : Obj^ω → Set (o ⊔ ℓ ⊔ qs)
 TVTest A = Σ[ Y ∈ Obj^ω ] Test^ω (Y 𝒞ω.⊗₀ A)
 
--- Two tests are the 'same', iff running them on the same input gives
--- the 'same' results
+-- Tests agree iff running them on every closure gives vanishing advantage.
+-- Note `same` forces the two sides to share ONE ancilla Y: that is why
+-- eliminating a SameTV between general TVTests needs transport (substCl).
 data SameTV (A : Obj^ω) : TVTest A → TVTest A → Set (o ⊔ ℓ ⊔ qs) where
   same : {Y : Obj^ω} {E₁ E₂ : Test^ω (Y 𝒞ω.⊗₀ A)}
-       → (∀ (m : Closure^ω (Y 𝒞ω.⊗₀ A)) → run (E₁ 𝒞ω.∘ m) ⇝ run (E₂ 𝒞ω.∘ m))
+       → (∀ (m : Closure^ω (Y 𝒞ω.⊗₀ A)) → run (E₁ 𝒞ω.∘ m) ∼ᵛ run (E₂ 𝒞ω.∘ m))
        → SameTV A (Y , E₁) (Y , E₂)
 
 same-≈ : {E₁ E₂ : Test^ω (Y 𝒞ω.⊗₀ A)} → E₁ ≈^ω E₂ → SameTV A (Y , E₁) (Y , E₂)
-same-≈ eq = same λ _ → ⇝-pointwise λ n → ⟦⟧-resp-≈ (𝕄.∘-resp-≈ˡ (eq n))
+same-≈ eq = same λ _ → ∼ᵛ-pointwise λ n → ⟦⟧-resp-≈ (𝕄.∘-resp-≈ˡ (eq n))
 
 substCl : {Y Z : Obj^ω} → Y ≡ Z → Closure^ω (Y 𝒞ω.⊗₀ A) → Closure^ω (Z 𝒞ω.⊗₀ A)
 substCl {A = A} p = subst (λ W → Closure^ω (W 𝒞ω.⊗₀ A)) p
 
--- SameTV's elimination principle
 SameTV-Σ : {x y : TVTest A} → SameTV A x y
-  → Σ[ p ∈ proj₁ x ≡ proj₁ y ] (∀ m → run (proj₂ x 𝒞ω.∘ m) ⇝ run (proj₂ y 𝒞ω.∘ substCl p m))
+  → Σ[ p ∈ proj₁ x ≡ proj₁ y ] (∀ m → run (proj₂ x 𝒞ω.∘ m) ∼ᵛ run (proj₂ y 𝒞ω.∘ substCl p m))
 SameTV-Σ (same h) = refl , h
 
 ℰᵗᵛ₀ : Obj^ω → Setoid (o ⊔ ℓ ⊔ qs) (o ⊔ ℓ ⊔ qs)
 ℰᵗᵛ₀ A = record { Carrier = TVTest A ; _≈_ = SameTV A ; isEquivalence = record
-  { refl  = same λ _ → ⇝-refl
-  ; sym   = λ { (same h) → same λ m → ⇝-sym (h m) }
-  ; trans = λ { (same h₁) (same h₂) → same λ m → ⇝-trans (h₁ m) (h₂ m) } } }
+  { refl  = same λ _ → ∼ᵛ-refl
+  ; sym   = λ { (same h) → same λ m → ∼ᵛ-sym (h m) }
+  ; trans = λ { (same h₁) (same h₂) → same λ m → ∼ᵛ-trans (h₁ m) (h₂ m) } } }
 
 tv₁ : A ⇒^ω B → TVTest B → TVTest A
 tv₁ f (Y , E) = Y , E 𝒞ω.∘ (𝒞ω.id 𝒞ω.⊗₁ f)
 
 tv₁-cong : (f : A ⇒^ω B) {x y : TVTest B} → SameTV B x y → SameTV A (tv₁ f x) (tv₁ f y)
 tv₁-cong f (same h) = same λ m →
-  ⇝-resp (λ _ → 𝕄.sym-assoc) (λ _ → 𝕄.sym-assoc) (h ((𝒞ω.id 𝒞ω.⊗₁ f) 𝒞ω.∘ m))
+  ∼ᵛ-resp (λ _ → 𝕄.sym-assoc) (λ _ → 𝕄.sym-assoc) (h ((𝒞ω.id 𝒞ω.⊗₁ f) 𝒞ω.∘ m))
 
 ℰᵗᵛ : Presheaf Fam (Setoids (o ⊔ ℓ ⊔ qs) (o ⊔ ℓ ⊔ qs))
 ℰᵗᵛ = record
@@ -157,30 +156,23 @@ open KE public using () renaming (_∼_ to _≈ℰ_)
 R : (f g : A ⇒^ω B) → Set (o ⊔ ℓ ⊔ qs)
 R {A = A} {B = B} f g =
   ∀ (Y : Obj^ω) (E′ : Test^ω (Y 𝒞ω.⊗₀ B)) (m : Closure^ω (Y 𝒞ω.⊗₀ A))
-  → run (E′ 𝒞ω.∘ ((𝒞ω.id 𝒞ω.⊗₁ f) 𝒞ω.∘ m)) ⇝ run (E′ 𝒞ω.∘ ((𝒞ω.id 𝒞ω.⊗₁ g) 𝒞ω.∘ m))
+  → run (E′ 𝒞ω.∘ ((𝒞ω.id 𝒞ω.⊗₁ f) 𝒞ω.∘ m)) ∼ᵛ run (E′ 𝒞ω.∘ ((𝒞ω.id 𝒞ω.⊗₁ g) 𝒞ω.∘ m))
 
 R⇒≈ℰ : {f g : A ⇒^ω B} → R f g → f ≈ℰ g
 R⇒≈ℰ r = KE.mk∼ λ {x} → same λ m →
-  ⇝-resp (λ _ → 𝕄.sym-assoc) (λ _ → 𝕄.sym-assoc) (r (proj₁ x) (proj₂ x) m)
+  ∼ᵛ-resp (λ _ → 𝕄.sym-assoc) (λ _ → 𝕄.sym-assoc) (r (proj₁ x) (proj₂ x) m)
 
 private
   conj𝕄 : ∀ {w y a b} (E : (w 𝕄.⊗₀ (y 𝕄.⊗₀ b)) 𝕄.⇒ Ω) (K : a 𝕄.⇒ b)
             (M : 𝕄.unit 𝕄.⇒ (w 𝕄.⊗₀ (y 𝕄.⊗₀ a)))
         → ((E 𝕄.∘ α⇒) 𝕄.∘ ((𝕄.id 𝕄.⊗₁ K) 𝕄.∘ (α⇐ 𝕄.∘ M)))
             𝕄.≈ (E 𝕄.∘ ((𝕄.id 𝕄.⊗₁ (𝕄.id 𝕄.⊗₁ K)) 𝕄.∘ M))
-  conj𝕄 E K M = begin
-      (E ∘ α⇒) ∘ ((id ⊗₁ K) ∘ (α⇐ ∘ M))            ≈⟨ assoc ⟩
-      E ∘ (α⇒ ∘ ((id ⊗₁ K) ∘ (α⇐ ∘ M)))            ≈⟨ refl⟩∘⟨ sym-assoc ⟩
-      E ∘ ((α⇒ ∘ (id ⊗₁ K)) ∘ (α⇐ ∘ M))            ≈⟨ refl⟩∘⟨ α-nat ⟩∘⟨refl ⟩
-      E ∘ (((id ⊗₁ (id ⊗₁ K)) ∘ α⇒) ∘ (α⇐ ∘ M))    ≈⟨ refl⟩∘⟨ assoc ⟩
-      E ∘ ((id ⊗₁ (id ⊗₁ K)) ∘ (α⇒ ∘ (α⇐ ∘ M)))    ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ sym-assoc) ⟩
-      E ∘ ((id ⊗₁ (id ⊗₁ K)) ∘ ((α⇒ ∘ α⇐) ∘ M))    ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (associator.isoʳ ⟩∘⟨refl)) ⟩
-      E ∘ ((id ⊗₁ (id ⊗₁ K)) ∘ (id ∘ M))           ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ identityˡ) ⟩
-      E ∘ ((id ⊗₁ (id ⊗₁ K)) ∘ M)                  ∎
+  conj𝕄 E K M = center α-nat ○ (refl⟩∘⟨ cancelInner associator.isoʳ)
     where
     open 𝕄
-    open 𝕄.HomReasoning
-    α-nat = (refl⟩∘⟨ ⊗.F-resp-≈ (⟺ ⊗.identity , Equiv.refl)) ○ assoc-commute-from
+    open MonoidalR monoidal
+    open MR U
+    α-nat = (refl⟩∘⟨ (⟺ ⊗.identity) ⟩⊗⟨refl) ○ assoc-commute-from
 
 -- TODO: should `UIP 𝕄.Obj` become a MachineAxioms field?
 module _ (Obj-set : UIP 𝕄.Obj) where
@@ -199,30 +191,28 @@ module _ (Obj-set : UIP 𝕄.Obj) where
   ≈ℰ⇒R : {f g : A ⇒^ω B} → f ≈ℰ g → R f g
   ≈ℰ⇒R e Y E′ m =
     let (p , s) = SameTV-Σ (KE.run∼ e {Y , E′})
-    in ⇝-resp (λ _ → 𝕄.assoc)
+    in ∼ᵛ-resp (λ _ → 𝕄.assoc)
               (λ n → 𝕄.Equiv.trans (𝕄.∘-resp-≈ʳ (substCl-loop p m n)) 𝕄.assoc)
               (s m)
 
-  ----------------------------------------------------------------------
-  -- Grade stability: the ancilla quantifier absorbs the bypass wire
-  ----------------------------------------------------------------------
-
+  -- Grade stability: the ancilla quantifier absorbs the bypass wire.
   grade-stable : ∀ Y {h h′ : A ⇒^ω B} → h ≈ℰ h′ → 𝒞ω.id {Y} 𝒞ω.⊗₁ h ≈ℰ 𝒞ω.id {Y} 𝒞ω.⊗₁ h′
   grade-stable Y {h} {h′} e = R⇒≈ℰ stable
     where
     stable : R (𝒞ω.id {Y} 𝒞ω.⊗₁ h) (𝒞ω.id {Y} 𝒞ω.⊗₁ h′)
     stable W E′ m =
-      ⇝-resp (λ n → conj𝕄 (proj₁ E′ n) (proj₁ h n) (proj₁ m n))
+      ∼ᵛ-resp (λ n → conj𝕄 (proj₁ E′ n) (proj₁ h n) (proj₁ m n))
              (λ n → conj𝕄 (proj₁ E′ n) (proj₁ h′ n) (proj₁ m n))
              (≈ℰ⇒R e (W 𝒞ω.⊗₀ Y) (E′ 𝒞ω.∘ Sω.α⇒) (Sω.α⇐ 𝒞ω.∘ m))
 
 ------------------------------------------------------------------------
--- Ingestion: per-level bounds fed by the context's polynomial budget
+-- Ingestion: per-level advantage bounds with a polynomial query budget
 ------------------------------------------------------------------------
 
 infix 4 _≈ℰ[_]_
 
--- a variant of `_≈ℰ_` with an explicit bound
+-- `R` with the vanishing-advantage conclusion replaced by an explicit bound,
+-- whose query budget `p` must be polynomial
 _≈ℰ[_]_ : A ⇒^ω B → (ℕ → ℕ → ℚ) → A ⇒^ω B → Set (o ⊔ ℓ ⊔ qs)
 _≈ℰ[_]_ {A = A} {B = B} f ε g =
   ∀ (Y : Obj^ω) (E′ : Test^ω (Y 𝒞ω.⊗₀ B)) (m : Closure^ω (Y 𝒞ω.⊗₀ A))

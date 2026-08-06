@@ -13,7 +13,7 @@
 open import Level
 
 import CategoricalCrypto.Abstract as Abstract
-open import CategoricalCrypto.UCSetup using (UCSetup)
+open import CategoricalCrypto.UCSetup
 
 module CategoricalCrypto.Abstract2.OAPEmulation
   {o ℓ e o′ ℓ′ e′ cs ℓs : Level}
@@ -36,7 +36,7 @@ infix 4 _≤UCᴼ_
 _≤UCᴼ_ : ⟨ A , X ⟩ ⇒ᴼ ⟨ B , Y ⟩ → ⟨ A , X′ ⟩ ⇒ᴼ ⟨ B , Y′ ⟩ → Set (o ⊔ ℓ ⊔ cs ⊔ ℓs)
 _≤UCᴼ_ {X = X} {Y = Y} {X′ = X′} {Y′ = Y′} x y =
   ∀ {D} (a : Y ℐ.⇒ D) → Σ[ s⁺ ∈ Y′ ℐ.⇒ D ] Σ[ s⁻ ∈ X ℐ.⇒ X′ ]
-    pureAtk a ∘ᴼ x ≈ℰ' pureAtk s⁺ ∘ᴼ y ∘ᴼ pureAtk s⁻
+    pureAtk a OAP.∘ x ≈ℰ' pureAtk s⁺ OAP.∘ y OAP.∘ pureAtk s⁻
 
 ------------------------------------------------------------------------
 -- Restriction to OP: `_≤UC_` is `_≤UCᴼ_` at `ι`, definitionally
@@ -64,13 +64,13 @@ oap⇒op h = h
 -- Completeness of the dummy adversary.
 dummy-completeᴼ : {x : ⟨ A , X ⟩ ⇒ᴼ ⟨ B , Y ⟩} {y : ⟨ A , X′ ⟩ ⇒ᴼ ⟨ B , Y′ ⟩}
                 → Σ[ s ∈ Y′ ℐ.⇒ Y ] Σ[ u ∈ X ℐ.⇒ X′ ]
-                    (x ≈ℰ' pureAtk s ∘ᴼ y ∘ᴼ pureAtk u)
+                    (x ≈ℰ' pureAtk s OAP.∘ y OAP.∘ pureAtk u)
                 → x ≤UCᴼ y
 dummy-completeᴼ {x = x} {y = y} (s , u , e) w = (w ℐ.∘ s) , u , (begin
-    pureAtk w ∘ᴼ x                              ≈⟨ ≈'-congˡ (pureAtk w) e ⟩
-    pureAtk w ∘ᴼ pureAtk s ∘ᴼ y ∘ᴼ pureAtk u    ≈⟨ ≋⇒≈ℰ' oap-assoc ⟨
-    (pureAtk w ∘ᴼ pureAtk s) ∘ᴼ y ∘ᴼ pureAtk u  ≈⟨ ≈'-congʳ (y ∘ᴼ pureAtk u) (pureAtk-∘ w s) ⟩
-    pureAtk (w ℐ.∘ s) ∘ᴼ y ∘ᴼ pureAtk u         ∎)
+    pureAtk w OAP.∘ x                                    ≈⟨ ≈'-congˡ (pureAtk w) e ⟩
+    pureAtk w OAP.∘ pureAtk s OAP.∘ y OAP.∘ pureAtk u    ≈⟨ ≋⇒≈ℰ' OAP.assoc ⟨
+    (pureAtk w OAP.∘ pureAtk s) OAP.∘ y OAP.∘ pureAtk u  ≈⟨ ≈'-congʳ (y OAP.∘ pureAtk u) (pureAtk-∘ w s) ⟩
+    pureAtk (w ℐ.∘ s) OAP.∘ y OAP.∘ pureAtk u            ∎)
   where open SetoidR (≈'-setoid _ _)
 
 ≤UCᴼ-trans : {x : ⟨ A , X ⟩ ⇒ᴼ ⟨ B , Y ⟩} {y : ⟨ A , X′ ⟩ ⇒ᴼ ⟨ B , Y′ ⟩}
@@ -81,10 +81,10 @@ dummy-completeᴼ {x = x} {y = y} (s , u , e) w = (w ℐ.∘ s) , u , (begin
       (s₂ , u₂ , e₂) = y≤z s₁
       open SetoidR (≈'-setoid _ _)
   in s₂ , (u₂ ℐ.∘ u₁) , (begin
-    pureAtk w ∘ᴼ x                                 ≈⟨ e₁ ⟩
-    pureAtk s₁ ∘ᴼ y ∘ᴼ pureAtk u₁                  ≈⟨ ≋⇒≈ℰ' oap-assoc ⟨
-    (pureAtk s₁ ∘ᴼ y) ∘ᴼ pureAtk u₁                ≈⟨ ≈'-congʳ (pureAtk u₁) e₂ ⟩
-    (pureAtk s₂ ∘ᴼ z ∘ᴼ pureAtk u₂) ∘ᴼ pureAtk u₁  ≈⟨ ≋⇒≈ℰ' oap-assoc ⟩
-    pureAtk s₂ ∘ᴼ (z ∘ᴼ pureAtk u₂) ∘ᴼ pureAtk u₁  ≈⟨ ≈'-congˡ (pureAtk s₂) (≋⇒≈ℰ' oap-assoc) ⟩
-    pureAtk s₂ ∘ᴼ z ∘ᴼ pureAtk u₂ ∘ᴼ pureAtk u₁    ≈⟨ ≈'-congˡ (pureAtk s₂) (≈'-congˡ z (pureAtk-∘ u₂ u₁)) ⟩
-    pureAtk s₂ ∘ᴼ z ∘ᴼ pureAtk (u₂ ℐ.∘ u₁)         ∎)
+    pureAtk w OAP.∘ x                                       ≈⟨ e₁ ⟩
+    pureAtk s₁ OAP.∘ y OAP.∘ pureAtk u₁                     ≈⟨ ≋⇒≈ℰ' OAP.assoc ⟨
+    (pureAtk s₁ OAP.∘ y) OAP.∘ pureAtk u₁                   ≈⟨ ≈'-congʳ (pureAtk u₁) e₂ ⟩
+    (pureAtk s₂ OAP.∘ z OAP.∘ pureAtk u₂) OAP.∘ pureAtk u₁  ≈⟨ ≋⇒≈ℰ' OAP.assoc ⟩
+    pureAtk s₂ OAP.∘ (z OAP.∘ pureAtk u₂) OAP.∘ pureAtk u₁  ≈⟨ ≈'-congˡ (pureAtk s₂) (≋⇒≈ℰ' OAP.assoc) ⟩
+    pureAtk s₂ OAP.∘ z OAP.∘ pureAtk u₂ OAP.∘ pureAtk u₁    ≈⟨ ≈'-congˡ (pureAtk s₂) (≈'-congˡ z (pureAtk-∘ u₂ u₁)) ⟩
+    pureAtk s₂ OAP.∘ z OAP.∘ pureAtk (u₂ ℐ.∘ u₁)            ∎)

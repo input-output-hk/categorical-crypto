@@ -2,30 +2,30 @@
 
 -- §3 of the plan (M5/M6) over the naive locally graded layer: the random
 -- oracle, end to end, derived from the Abstract2 §1 metatheory.  Protocols are
--- bare machine morphisms, so the old OP bridges vanish: the real protocol IS
--- the composite MD-mach ∘ Comp-M (T₀ Jre GenIf reduces to Jre ⊗ GenIf under
--- the curriedTensor triple), U-real is gone, and U-ideal shrinks to
--- `ideal-bridge` — no U, ι, or pureAtk plumbing.  The one honest new
--- hypothesis of the ≈ᵁ formulation is `stable` : GradeStable, the ℳ-module
--- property of the concrete ℰ — the conservation-law payment made once here at
--- artifact ingestion, turning the bare ≈ℰ equality `md-emulate` into the
--- U-kernel ≈ᵁ that `_≤UC_` consumes (via `bridge`).  The MD artifacts stay at
--- their exact MerkleDamgard.agda types, and `MD ≤UC RO` is DERIVED from the
--- §1 dummy-adversary theorem.  Everything still open is bundled in `ROData`.
+-- bare machine morphisms: the real protocol IS the composite MD-mach ∘ Comp-M,
+-- because `T₀ Jre GenIf` reduces to `Jre ⊗ GenIf` under the curriedTensor
+-- triple.  The one honest new hypothesis of the ≈ᵁ formulation is
+-- `stable` : GradeStable, the ℳ-module property of the concrete ℰ — the
+-- conservation-law payment made once here at artifact ingestion, which converts
+-- the bare ≈ℰ equality `md-emulate` into the U-kernel ≈ᵁ that `_≤UC_` consumes
+-- (via `bridge`).  The MD artifacts are hypothesised at their exact types in
+-- src/CategoricalCrypto/Examples/MerkleDamgard.agda on branch `random-oracle`,
+-- and `MD ≤UC RO` is DERIVED from the §1 dummy-adversary theorem.  Everything
+-- still open is bundled in `ROData` — this module itself is hypothesis-free.
 
 module CategoricalCrypto.RandomOracle2 where
 
 open import Data.Nat.Base using (ℕ)
-open import Data.Product using (_,_)
-open import Level using (Level; _⊔_; suc)
+open import Data.Product
+open import Level
 import Relation.Binary.Reasoning.Setoid as SetoidR
 
-open import Categories.Category using (_[_,_])
-open import Categories.Category.Instance.Setoids using (Setoids)
-open import Categories.Category.Monoidal using (MonoidalCategory)
-open import Categories.Functor.Presheaf using (Presheaf)
+open import Categories.Category
+open import Categories.Category.Instance.Setoids
+open import Categories.Category.Monoidal
+open import Categories.Functor.Presheaf
 
-open import CategoricalCrypto.Standard2 using (module StdUC)
+open import CategoricalCrypto.Standard2
 
 module RO
   {o ℓ e cs ℓs ℓq ℓr : Level}
@@ -51,14 +51,15 @@ module RO
   record ROData : Set (suc ℓr ⊔ ℓq ⊔ o ⊔ ℓ ⊔ cs ⊔ ℓs) where
     infix 4 _≈ℰ[_]_
     field
-      -- `_≈ℰ[ ε ]_`: any distinguisher of ≤ n queries has advantage ≤ ε n
-      -- (MD `_≈ℰ[_]_`, generalised from the closed domain to the graded codomain).
+      -- `_≈ℰ[ ε ]_`: any distinguisher of ≤ n queries has advantage ≤ ε n.  MD's
+      -- own `_≈ℰ[_]_` already quantifies the codomain but pins the domain at the
+      -- unit channel; only that domain is generalised here.
       _≈ℰ[_]_ : ∀ {A B} → ∣machines∣ [ A , B ] → (ℕ → ℚ) → ∣machines∣ [ A , B ] → Set ℓr
-      bound   : ℕ → ℚ                              -- MerkleDamgard.agda bound
-      Comp-M    : ∣machines∣ [ Ao , Mid ]          -- MerkleDamgard.agda Comp.M
-      MD-mach   : ∣machines∣ [ Mid , Bo ]          -- MerkleDamgard.agda MD
-      General-M : ∣machines∣ [ Ao , Bo ]           -- MerkleDamgard.agda General.M (the ideal RO)
-      MD-secure : General-M ≈ℰ[ bound ] MD-mach ∘ Comp-M  -- MerkleDamgard.agda MD-secure
+      bound   : ℕ → ℚ                              -- bound
+      Comp-M    : ∣machines∣ [ Ao , Mid ]          -- Comp.M
+      MD-mach   : ∣machines∣ [ Mid , Bo ]          -- MD
+      General-M : ∣machines∣ [ Ao , Bo ]           -- General.M (the ideal RO)
+      MD-secure : General-M ≈ℰ[ bound ] MD-mach ∘ Comp-M  -- indistinguishable
       -- BRIDGE (M5): a concrete per-budget bound with a vanishing profile
       -- establishes the ε-absorption setoid equality (the kernel of ℰ-standard).
       VanishingBound : (ℕ → ℚ) → Set ℓr
@@ -77,7 +78,7 @@ module RO
     open ROData ro
 
     -- The real protocol is the MD composite itself — a bare machine morphism at
-    -- grade Jre; no bridging field.
+    -- grade Jre.
     mdProtocol : ∣machines∣ [ Ao , T₀ Jre GenIf ]
     mdProtocol = MD-mach ∘ Comp-M
 

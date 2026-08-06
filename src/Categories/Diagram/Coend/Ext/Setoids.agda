@@ -12,7 +12,7 @@
 -- Day constructions need.
 --------------------------------------------------------------------------------
 
-module Categories.Diagram.Coend.Setoids where
+module Categories.Diagram.Coend.Ext.Setoids where
 
 open import Level
 
@@ -23,7 +23,7 @@ open import Categories.Diagram.Cowedge
 open import Categories.Functor
 open import Categories.Functor.Bifunctor
 open import Categories.Functor.Presheaf
-open import Categories.NaturalTransformation using (NaturalTransformation; _∘ᵥ_) renaming (id to idN)
+open import Categories.NaturalTransformation renaming (id to idN)
 open import Categories.NaturalTransformation.Dinatural
   using (DinaturalTransformation; extranaturalˡ; extranatural-commˡ)
 open import Categories.NaturalTransformation.Equivalence
@@ -194,7 +194,6 @@ module _ {o ℓ e c ℓs} {C : Category o ℓ e}
 
   private
     module C = Category C
-    module F = Functor F
     module G = Functor G
     module η = NaturalTransformation η
     module ∫F = SetoidCoend F
@@ -254,5 +253,5 @@ module _ {o ℓ e} (c ℓs : Level) {C : Category o ℓ e}
         ; dinatural = λ f w → extranatural-commˡ (Cowedge.dinatural W)
         })
     ; universal = λ {W} → Setoid.refl (Cowedge.E W)
-    ; unique    = λ {W} {g} eq {p} → Setoid.sym (Cowedge.E W) (eq {proj₁ p} {proj₂ p})
+    ; unique    = λ {W} {g} eq {p} → Setoid.sym (Cowedge.E W) eq
     }
