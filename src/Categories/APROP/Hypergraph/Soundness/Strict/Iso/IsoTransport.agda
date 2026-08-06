@@ -16,17 +16,17 @@
 --
 -- — exactly the cross-iso agreement `Strict.PartII`'s headline consumes.
 --
--- Structure (§1-§5 + the order-invariant bridge):
+-- Structure (§1-§6):
 --
 --   * `iso-transportˢ`   transports the J=⟪g⟫-side natural-order decoding to
 --     the H=⟪f⟫-side ψ-pullback order `τ = map ψ⁻¹ (range J.nE)`.  Its term
 --     factor is the strict embedding engine `TermEmbedˢ.process-edges-term-embˢ`
 --     (φ = iso's vertex map, ψ = iso's edge map) — the `subst₂ HomTerm` /
 --     `subst₂-∘-distrib` / `map⁺`-lift mass of the non-strict §3 VANISHES into
---     `castˢ`; its permute factor is `permute-relabel-freeˢ` (§5b ported
---     verbatim at the FinBij level, closed by `DecodeCompose.perm-cross-K`,
---     which routes both permutes through `permuteˢ-X` and discharges by the
---     X-level Kelly residual `permˢ-K-X`).
+--     `castˢ`; its permute factor is `permute-relabel-freeˢ` (§4), the wiring
+--     groupoid's RIGIDITY at the `Unique` codomain `J.cod` — the same
+--     `rigid-≈̂`/`⟦absorb⟧`/`pvv-relabelˢ` discharge `DecodeComposeAssembly`
+--     runs for its G- and K-blocks.
 --   * `order-invariantˢ` (`IsoInvarianceConcrete`, BUILT) bridges `τ` to the
 --     natural order `range nE_f`.
 --
@@ -66,26 +66,23 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Iso.IsoInvarianceConcrete si
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ as DC2
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTail sig _≟X_
   using (RunInterchangeˢ)
+import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
+open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
+  using (module Support)
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
+import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig _≟X_ as PVV
 
 open import Data.Fin.Base using (Fin)
-open import Data.List using (List; _∷_; _++_; map; length; lookup)
-open import Data.List.Properties using (map-injective; length-map)
+open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
+open import Data.List using (List; _∷_; _++_; map)
+open import Data.List.Properties using (map-injective)
 open import Data.List.Properties.Ext using (map-∘-id)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Function using (Injective)
-import Data.Fin.Permutation as P
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
-
-open import Categories.PermuteCoherence.FinBij using (_≈-fb_)
-open import Categories.PermuteCoherence.Eval using (eval-↭)
-open import Categories.PermuteCoherence.Rigid using (lookup-injective-unique; lookup-sound)
-open import Categories.PermuteCoherence.FinBijSubst
-  using ( eval-map⁺; cast-irr; subst-Fin-trans; lookup-relabel
-        ; subst-Fin-roundtrip; subst-Fin-roundtrip'; eval-subst₂-↭
-        ; _≈̂-fb_; ≈̂-fb-of-≡; _○-fb_; cast-≈̂-fb; ≈̂-fb-app )
+  using (_≡_; refl; sym; trans; cong; cong₂; subst)
 
 ------------------------------------------------------------------------
 -- The cross-iso module.  `H = ⟪f⟫`, `J = ⟪g⟫`.
@@ -198,138 +195,53 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
       step = subst (λ z → z Perm.↭ map φ H.cod) fin-eq (subst (λ z → sJ-final Perm.↭ z) φ-cod vJ)
 
   ------------------------------------------------------------------------
-  -- §4.  The two final-permute derivations, lifted to the common X-level
-  -- pair of `map _.vlab _` lists, plus the length casts §5b reasons under.
+  -- §4.  The FINAL-permute relabel-free `≈ˢ`.
+  --
+  -- Both derivations land on `J.cod`, which is `Unique`, so RIGIDITY of the
+  -- wiring groupoid settles them: reindex the H-side derivation along `φ`
+  -- (`φ-lift`), let `⟦absorbˡ⟧`/`⟦absorbʳ⟧` swallow its two reindexing
+  -- factors, and hand the residual to the cross-vertex-type relabel
+  -- `pvv-relabelˢ`.  This is `DecodeComposeAssembly`'s `gperm'`/`kperm'`
+  -- shape at `(J.vlab, H.vlab)` — no `eval-↭`, no `FinBij`, no `lookup`.
   ------------------------------------------------------------------------
 
   private
-    -- The two final-permute derivations, lifted to the common X-level pair
-    -- of `map _.vlab _` lists.
-    permJ-↭ : (vJ : SG.Validˢ (range J.nE)) → map J.vlab sJ-final Perm.↭ map J.vlab J.cod
-    permJ-↭ vJ = PermProp.map⁺ J.vlab vJ
-
     -- the mid (final-stack) object-equality.
     mid-iso : map J.vlab sJ-final ≡ map H.vlab sH-final
     mid-iso = trans (cong (map J.vlab) fin-eq) (vlab-φ sH-final)
 
-    permJ-↭' : (vJ : SG.Validˢ (range J.nE)) → map H.vlab sH-final Perm.↭ map H.vlab H.cod
-    permJ-↭' vJ = subst₂ Perm._↭_ mid-iso ci (permJ-↭ vJ)
+    permˢ-K-J : Support.PermK (Fin J.nV) J.vlab
+    permˢ-K-J = PK.permˢ-K (Fin J.nV) _≟F_ J.vlab
 
-    permH-↭ : (vJ : SG.Validˢ (range J.nE)) → map H.vlab sH-final Perm.↭ map H.vlab H.cod
-    permH-↭ vJ = PermProp.map⁺ H.vlab (iso-validˢ vJ)
+    open PC.Kit J permˢ-K-J using (⟦absorbˡ⟧; ⟦absorbʳ⟧; rigid-≈̂)
 
-    -- The length casts.
-    cH-dom : length (map H.vlab sH-final) ≡ length sH-final
-    cH-dom = length-map H.vlab sH-final
-    cH-cod : length (map H.vlab H.cod) ≡ length H.cod
-    cH-cod = length-map H.vlab H.cod
-
-    cJH : length J.cod ≡ length H.cod
-    cJH = trans (cong length φ-cod) (length-map φ H.cod)
-
-    -- `lookup J.cod` factors as `φ ∘ lookup H.cod` after the `cJH` cast.
-    lookup-Jcod-φ : (k : Fin (length J.cod)) → φ (lookup H.cod (subst Fin cJH k)) ≡ lookup J.cod k
-    lookup-Jcod-φ = lookup-relabel φ (sym φ-cod) cJH
-
-    cSJH : length sJ-final ≡ length sH-final
-    cSJH = trans (cong length fin-eq) (length-map φ sH-final)
-
-    lookup-sJ-φ
-      : (k : Fin (length sJ-final))
-      → φ (lookup sH-final (subst Fin cSJH k)) ≡ lookup sJ-final k
-    lookup-sJ-φ = lookup-relabel φ (sym fin-eq) cSJH
-
-  -- §5b.  φ-equivariant rigidity of the two final permutes, at the
-  -- FinBij level.
-  permute-relabel-free-≅↭
-    : (vJ : SG.Validˢ (range J.nE))
-    → eval-↭ (permJ-↭' vJ) ≈-fb eval-↭ (permH-↭ vJ)
-  permute-relabel-free-≅↭ vJ i = goal
-    where
-      kJ kH : Fin (length (map H.vlab H.cod))
-      kJ = eval-↭ (permJ-↭' vJ) P.⟨$⟩ʳ i
-      kH = eval-↭ (permH-↭ vJ) P.⟨$⟩ʳ i
-
-      iH : Fin (length sH-final)
-      iH = subst Fin cH-dom i
-
-      kH≡ : subst Fin cH-cod kH ≡ eval-↭ (iso-validˢ vJ) P.⟨$⟩ʳ iH
-      kH≡ =
-        ≈̂-fb-app (≈̂-fb-of-≡ (eval-map⁺ H.vlab (iso-validˢ vJ))
-                    ○-fb cast-≈̂-fb (sym cH-dom) (sym cH-cod)
-                           (eval-↭ (iso-validˢ vJ)))
-                 cH-dom cH-cod i
-
-      H-step : lookup H.cod (subst Fin cH-cod kH) ≡ lookup sH-final iH
-      H-step = trans (cong (lookup H.cod) kH≡) (lookup-sound (iso-validˢ vJ) iH)
-
-      iJ : Fin (length sJ-final)
-      iJ = subst Fin (sym cSJH) iH
-
-      jJ : Fin (length J.cod)
-      jJ = eval-↭ vJ P.⟨$⟩ʳ iJ
-
-      -- The caller's own endpoint casts for the J-side application.
-      dJ : length (map H.vlab sH-final) ≡ length sJ-final
-      dJ = trans cH-dom (sym cSJH)
-
-      bJ : length (map H.vlab H.cod) ≡ length J.cod
-      bJ = trans cH-cod (sym cJH)
-
-      -- `eval-↭ (permJ-↭' vJ)` is `eval-↭ vJ` up to casts.
-      evJ : eval-↭ (permJ-↭' vJ) ≈̂-fb eval-↭ vJ
-      evJ =
-        ≈̂-fb-of-≡ (eval-subst₂-↭ mid-iso ci (permJ-↭ vJ))
-          ○-fb cast-≈̂-fb (cong length mid-iso) (cong length ci)
-                 (eval-↭ (permJ-↭ vJ))
-          ○-fb ≈̂-fb-of-≡ (eval-map⁺ J.vlab vJ)
-          ○-fb cast-≈̂-fb (sym (length-map J.vlab sJ-final))
-                         (sym (length-map J.vlab J.cod)) (eval-↭ vJ)
-
-      kJ≡ : subst Fin cH-cod kJ ≡ subst Fin cJH jJ
-      kJ≡ =
-        sym (trans (cong (λ z → subst Fin cJH (eval-↭ vJ P.⟨$⟩ʳ z))
-                         (subst-Fin-trans cH-dom (sym cSJH) i))
-            (trans (cong (subst Fin cJH) (sym (≈̂-fb-app evJ dJ bJ i)))
-            (trans (subst-Fin-trans bJ cJH kJ)
-                   (cast-irr (trans bJ cJH) cH-cod kJ))))
-
-      J-step : lookup H.cod (subst Fin cH-cod kJ) ≡ lookup sH-final iH
-      J-step =
-        φ-inj
-          (trans
-            (trans (cong (λ z → φ (lookup H.cod z)) kJ≡)
-              (trans (lookup-Jcod-φ jJ)
-                     (lookup-sound vJ iJ)))
-            (trans (sym (lookup-sJ-φ iJ))
-                   (cong (λ z → φ (lookup sH-final z))
-                         (subst-Fin-roundtrip' cSJH iH))))
-
-      goal : kJ ≡ kH
-      goal =
-        trans (sym (subst-Fin-roundtrip cH-cod kJ))
-        (trans (cong (subst Fin (sym cH-cod))
-                     (lookup-injective-unique (⟪ f ⟫-cod-unique)
-                        (subst Fin cH-cod kJ) (subst Fin cH-cod kH)
-                        (trans J-step (sym H-step))))
-               (subst-Fin-roundtrip cH-cod kH))
-
-  ------------------------------------------------------------------------
-  -- §5.  The FINAL-permute relabel-free `≈ˢ`: `DecodeCompose`'s shared
-  -- cross-vertex-type closing argument (`perm-cross-K`, which routes both
-  -- permutes through `permuteˢ-X` and discharges by `permˢ-K-X`) at
-  -- `(J.vlab, H.vlab)`, with §5b as its FinBij-level premise.
-  ------------------------------------------------------------------------
+    -- The H-side derivation, reindexed along `φ` onto `sJ-final ↭ J.cod`,
+    -- with both reindexings INSIDE the derivation so the absorptions apply.
+    φ-lift : SF.Validˢ τ → sJ-final Perm.↭ J.cod
+    φ-lift vτ = Perm.trans (Perm.↭-reflexive fin-eq)
+                  (Perm.trans (PermProp.map⁺ φ vτ)
+                              (Perm.↭-reflexive (sym φ-cod)))
 
   permute-relabel-freeˢ
     : (vJ : SG.Validˢ (range J.nE))
     → castˢ mid-iso ci (RJ.permuteˢ vJ) ≈ˢ RH.permuteˢ (iso-validˢ vJ)
   permute-relabel-freeˢ vJ =
-    DC2.perm-cross-K J.vlab H.vlab vJ (iso-validˢ vJ) mid-iso ci
-      (permute-relabel-free-≅↭ vJ)
+    ≈̂⇒≈ˢ
+      (≈̂-trans (cast-≈̂ {p = mid-iso} {q = ci})
+      (≈̂-trans (rigid-≈̂ (⟪ g ⟫-cod-unique) vJ (φ-lift (iso-validˢ vJ)))
+      (≈̂-trans (⟦absorbʳ⟧ fin-eq)
+      (≈̂-trans (⟦absorbˡ⟧ (sym φ-cod))
+      (≈̂-trans (≈̂-sym (cast-≈̂ {p = Pdom} {q = Pcod}))
+               (≈ˢ⇒≈̂ (PVV.pvv-relabelˢ φ J.vlab H.vlab φ-lab
+                        (iso-validˢ vJ) Pdom Pcod)))))))
+    where
+      Pdom : map J.vlab (map φ sH-final) ≡ map H.vlab sH-final
+      Pdom = vlab-φ sH-final
+      Pcod : map J.vlab (map φ H.cod) ≡ map H.vlab H.cod
+      Pcod = vlab-φ H.cod
 
   ------------------------------------------------------------------------
-  -- §6.  `iso-transportˢ`: the J-side decoding at `range J.nE` casts to the
+  -- §5.  `iso-transportˢ`: the J-side decoding at `range J.nE` casts to the
   -- H-side decoding at the pullback order `τ`.
   ------------------------------------------------------------------------
 
@@ -384,7 +296,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
       permJ = RJ.permuteˢ vJ
 
   ------------------------------------------------------------------------
-  -- §7.  Bridge `τ` to the natural order `range nE_f` via `order-invariantˢ`,
+  -- §6.  Bridge `τ` to the natural order `range nE_f` via `order-invariantˢ`,
   -- and assemble the headline.
   ------------------------------------------------------------------------
 

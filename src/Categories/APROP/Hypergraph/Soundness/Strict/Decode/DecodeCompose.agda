@@ -246,8 +246,7 @@ private
 -- vertex types whose boundaries agree after `map vlab` are `castˢ`-equal as
 -- soon as their evaluated bijections do.  Both sides drop to the bare X-level
 -- permute (`permuteˢ-X`), where the single Kelly residual `permˢ-K-X` applies.
--- Shared by the ∘-shape's per-edge perm twin (`perm-emb`, below) and by
--- `Iso/IsoTransport.permute-relabel-freeˢ`.
+-- Sole consumer: the ∘-shape's per-edge perm twin (`perm-emb`, below).
 perm-cross-K
   : ∀ {V W : Set} (vlV : V → X) (vlW : W → X)
       {xs ys : List V} {xs' ys' : List W}
