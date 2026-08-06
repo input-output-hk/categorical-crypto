@@ -33,7 +33,7 @@ module Categories.APROP.Hypergraph.Solver.Rewrite.ExtendSig
   (P Q : ObjTerm)
   where
 
-open import Data.List.Base
+open import Data.List.Base using (_++_)
 open import Data.Maybe.Base
 open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality
@@ -107,12 +107,8 @@ retract : ∀ {A B} → HomTerm⁺ A B → Maybe (HomTerm A B)
 retract (Agen⁺ (old f))    = just (Agen f)
 retract (Agen⁺ (hole _ _)) = nothing
 retract id⁺             = just id
-retract (g ∘⁺ f)        with retract g | retract f
-... | just g' | just f' = just (g' ∘ f')
-... | _       | _       = nothing
-retract (f ⊗₁⁺ g)       with retract f | retract g
-... | just f' | just g' = just (f' ⊗₁ g')
-... | _       | _       = nothing
+retract (g ∘⁺ f)        = zipWith _∘_  (retract g) (retract f)
+retract (f ⊗₁⁺ g)       = zipWith _⊗₁_ (retract f) (retract g)
 retract λ⇒⁺             = just λ⇒
 retract λ⇐⁺             = just λ⇐
 retract ρ⇒⁺             = just ρ⇒

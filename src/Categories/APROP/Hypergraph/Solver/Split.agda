@@ -78,13 +78,10 @@ eqH? (Agen m) (Agen m') refl refl with m ≟-mor m'
 eqH? id id refl q with uip-ObjTerm q refl
 ... | refl = just refl
 eqH? (_∘_ {B = M} f₂ f₁) (_∘_ {B = N} g₂ g₁) refl refl with M ≟-ObjTerm N
-... | no _ = nothing
-... | yes refl with eqH? f₂ g₂ refl refl | eqH? f₁ g₁ refl refl
-...   | just e₂ | just e₁ = just (cong₂ _∘_ e₂ e₁)
-...   | _       | _       = nothing
-eqH? (f₁ ⊗₁ f₂) (g₁ ⊗₁ g₂) refl refl with eqH? f₁ g₁ refl refl | eqH? f₂ g₂ refl refl
-... | just e₁ | just e₂ = just (cong₂ _⊗₁_ e₁ e₂)
-... | _       | _       = nothing
+... | no _     = nothing
+... | yes refl = zipWith (cong₂ _∘_) (eqH? f₂ g₂ refl refl) (eqH? f₁ g₁ refl refl)
+eqH? (f₁ ⊗₁ f₂) (g₁ ⊗₁ g₂) refl refl =
+  zipWith (cong₂ _⊗₁_) (eqH? f₁ g₁ refl refl) (eqH? f₂ g₂ refl refl)
 eqH? λ⇒ λ⇒ p refl with uip-ObjTerm p refl
 ... | refl = just refl
 eqH? λ⇐ λ⇐ refl q with uip-ObjTerm q refl
@@ -122,13 +119,11 @@ solveSplit? : ∀ {A B} (f g : HomTerm A B) → Maybe (f ≈Term g)
 solveSplit? f g with eq? f g
 solveSplit? f g | just refl = just ≈-Term-refl
 solveSplit? (_∘_ {B = M} f₂ f₁) (_∘_ {B = N} g₂ g₁) | nothing with M ≟-ObjTerm N
-... | no _ = fallback (f₂ ∘ f₁) (g₂ ∘ g₁)
-... | yes refl with solveSplit? f₂ g₂ | solveSplit? f₁ g₁
-...   | just p₂ | just p₁ = just (∘-resp-≈ p₂ p₁)
-...   | _       | _       = fallback (f₂ ∘ f₁) (g₂ ∘ g₁)
-solveSplit? (f₁ ⊗₁ f₂) (g₁ ⊗₁ g₂) | nothing with solveSplit? f₁ g₁ | solveSplit? f₂ g₂
-... | just p₁ | just p₂ = just (⊗-resp-≈ p₁ p₂)
-... | _       | _       = fallback (f₁ ⊗₁ f₂) (g₁ ⊗₁ g₂)
+... | no _     = fallback (f₂ ∘ f₁) (g₂ ∘ g₁)
+... | yes refl = zipWith ∘-resp-≈ (solveSplit? f₂ g₂) (solveSplit? f₁ g₁)
+                   <∣> fallback (f₂ ∘ f₁) (g₂ ∘ g₁)
+solveSplit? (f₁ ⊗₁ f₂) (g₁ ⊗₁ g₂) | nothing =
+  zipWith ⊗-resp-≈ (solveSplit? f₁ g₁) (solveSplit? f₂ g₂) <∣> fallback (f₁ ⊗₁ f₂) (g₁ ⊗₁ g₂)
 solveSplit? f g | nothing = fallback f g
 
 --------------------------------------------------------------------------------
