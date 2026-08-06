@@ -18,6 +18,7 @@ open import Categories.APROP using (APROPSignature)
 
 module Categories.APROP.Hypergraph.Solver.Signature where
 
+open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 open import Relation.Binary.Definitions using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂)
 open import Relation.Nullary using (yes; no)
@@ -57,6 +58,11 @@ module ObjTermDec {X : Set} (_≟X_ : DecidableEquality X) where
   ≟-ObjTerm (Var _)  (_ ⊗₀ _)   = no λ ()
   ≟-ObjTerm (Var x)  (Var y)    = map′ (cong Var) Var-inj (x ≟X y)
 
+  -- UIP on `ObjTerm` (decidable equality ⇒ UIP, no `K`): collapses the
+  -- reflexive endpoint equations that `--without-K` unification refuses to
+  -- delete when matching index-constrained constructors twice.
+  open Decidable⇒UIP ≟-ObjTerm public using () renaming (≡-irrelevant to uip-ObjTerm)
+
 record APROPSignatureDec : Set₁ where
   field
     sig : APROPSignature
@@ -67,8 +73,8 @@ record APROPSignatureDec : Set₁ where
     _≟X_    : DecidableEquality X
     _≟-mor_ : ∀ {A B} → DecidableEquality (mor A B)
 
-  -- Derived: decidable equality on `ObjTerm` from `_≟X_`.
-  open ObjTermDec _≟X_ public using (ObjTerm; unit; _⊗₀_; Var)
+  -- Derived: decidable equality on `ObjTerm` from `_≟X_`, and UIP with it.
+  open ObjTermDec _≟X_ public using (ObjTerm; unit; _⊗₀_; Var; uip-ObjTerm)
 
   _≟-ObjTerm_ : DecidableEquality ObjTerm
   _≟-ObjTerm_ = ObjTermDec.≟-ObjTerm _≟X_

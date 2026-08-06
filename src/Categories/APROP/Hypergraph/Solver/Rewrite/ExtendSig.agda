@@ -28,7 +28,7 @@ open import Categories.APROP
 module Categories.APROP.Hypergraph.Solver.Rewrite.ExtendSig
   (sig-dec : APROPSignatureDec)
   (let open APROPSignatureDec sig-dec
-         using (sig; _≟X_; _≟-mor_; _≟-ObjTerm_; ObjTerm; unit; _⊗₀_; Var))
+         using (sig; _≟X_; _≟-mor_; uip-ObjTerm; ObjTerm; unit; _⊗₀_; Var))
   (let open APROPSignature sig)
   (P Q : ObjTerm)
   where
@@ -63,16 +63,11 @@ private
   old-inj : ∀ {A B} {f g : mor A B} → old f ≡ old g → f ≡ g
   old-inj refl = refl
 
-  open import Axiom.UniquenessOfIdentityProofs
-
-  uipObj : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q
-  uipObj = Decidable⇒UIP.≡-irrelevant _≟-ObjTerm_
-
 _≟-Mor⁺_ : ∀ {A B} → DecidableEquality (Mor⁺ A B)
 old f    ≟-Mor⁺ old g     = map′ (cong old) old-inj (f ≟-mor g)
 old f    ≟-Mor⁺ hole _ _  = no λ ()
 hole _ _ ≟-Mor⁺ old g     = no λ ()
-hole p q ≟-Mor⁺ hole p' q' = yes (cong₂ hole (uipObj p p') (uipObj q q'))
+hole p q ≟-Mor⁺ hole p' q' = yes (cong₂ hole (uip-ObjTerm p p') (uip-ObjTerm q q'))
 
 sig⁺-dec : APROPSignatureDec
 sig⁺-dec = record { sig = sig⁺ ; _≟X_ = _≟X_ ; _≟-mor_ = _≟-Mor⁺_ }

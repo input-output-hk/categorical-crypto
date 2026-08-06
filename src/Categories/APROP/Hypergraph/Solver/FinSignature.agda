@@ -38,14 +38,12 @@ open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 open import Relation.Nullary using (yes; no)
-open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 
 open import Categories.APROP using (APROPSignature)
 open import Categories.APROP.Hypergraph.Solver.Signature
   using (APROPSignatureDec; module ObjTermDec)
 
-open ObjTermDec _≟X_ using (≟-ObjTerm)
-open Decidable⇒UIP ≟-ObjTerm using (≡-irrelevant)
+open ObjTermDec _≟X_ using (uip-ObjTerm)
 
 -- Source and target of each generator, as the projections of its arity.
 dom cod : Fin n → ObjTerm
@@ -79,7 +77,7 @@ _≟-FinMor_ : ∀ {A B} → DecidableEquality (FinMor A B)
 (i , p , q) ≟-FinMor (j , _ , _) with i ≟Fin j
 ... | no  i≢j  = no λ eq → i≢j (cong proj₁ eq)
 (i , p , q) ≟-FinMor (.i , p' , q') | yes refl
-  rewrite ≡-irrelevant p p' | ≡-irrelevant q q' = yes refl
+  rewrite uip-ObjTerm p p' | uip-ObjTerm q q' = yes refl
 
 finSig : APROPSignature
 finSig = record { X = X ; mor = FinMor }

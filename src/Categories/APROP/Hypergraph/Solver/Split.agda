@@ -36,7 +36,7 @@ module Categories.APROP.Hypergraph.Solver.Split (sig-dec : APROPSignatureDec) wh
 open import Categories.APROP
 open import Categories.FreeMonoidal
 
-open APROPSignatureDec sig-dec using (sig; _≟-mor_; _≟-ObjTerm_)
+open APROPSignatureDec sig-dec using (sig; _≟-mor_; _≟-ObjTerm_; uip-ObjTerm)
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Translation sig
@@ -52,14 +52,6 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive
   using (Star; ε; _◅_; _◅◅_)
 open import Relation.Nullary
-open import Axiom.UniquenessOfIdentityProofs
-
-private
-  -- UIP on `ObjTerm` (decidable equality ⇒ UIP, no `K`): collapses the
-  -- reflexive endpoint equations that `--without-K` unification refuses to
-  -- delete when matching index-constrained constructors twice.
-  uip : ∀ {A B : ObjTerm} (p q : A ≡ B) → p ≡ q
-  uip = Decidable⇒UIP.≡-irrelevant _≟-ObjTerm_
 
 --------------------------------------------------------------------------------
 -- Conservative syntactic equality.  Only the yes-direction is needed: a
@@ -71,7 +63,7 @@ private
 -- `--without-K` (reflexive equations like `A ≟ A` cannot be deleted), so —
 -- as in `Verify.flat-match-subst` — the worker `eqH?` compares terms at fully
 -- general endpoints, taking the endpoint equalities as explicit proof
--- arguments; whatever reflexive proofs remain are collapsed by `uip`.
+-- arguments; whatever reflexive proofs remain are collapsed by `uip-ObjTerm`.
 -- For `_∘_` the middle object is existential and is compared via
 -- `_≟-ObjTerm_` (taking only the `yes` branch); generator labels via
 -- `_≟-mor_`; the σ instance argument is matched as `v≤v`, the unique
@@ -83,7 +75,7 @@ eqH? : ∀ {A B A' B'} (f : HomTerm A B) (g : HomTerm A' B')
 eqH? (Agen m) (Agen m') refl refl with m ≟-mor m'
 ... | yes r = just (cong Agen r)
 ... | no _  = nothing
-eqH? id id refl q with uip q refl
+eqH? id id refl q with uip-ObjTerm q refl
 ... | refl = just refl
 eqH? (_∘_ {B = M} f₂ f₁) (_∘_ {B = N} g₂ g₁) refl refl with M ≟-ObjTerm N
 ... | no _ = nothing
@@ -93,19 +85,19 @@ eqH? (_∘_ {B = M} f₂ f₁) (_∘_ {B = N} g₂ g₁) refl refl with M ≟-Ob
 eqH? (f₁ ⊗₁ f₂) (g₁ ⊗₁ g₂) refl refl with eqH? f₁ g₁ refl refl | eqH? f₂ g₂ refl refl
 ... | just e₁ | just e₂ = just (cong₂ _⊗₁_ e₁ e₂)
 ... | _       | _       = nothing
-eqH? λ⇒ λ⇒ p refl with uip p refl
+eqH? λ⇒ λ⇒ p refl with uip-ObjTerm p refl
 ... | refl = just refl
-eqH? λ⇐ λ⇐ refl q with uip q refl
+eqH? λ⇐ λ⇐ refl q with uip-ObjTerm q refl
 ... | refl = just refl
-eqH? ρ⇒ ρ⇒ p refl with uip p refl
+eqH? ρ⇒ ρ⇒ p refl with uip-ObjTerm p refl
 ... | refl = just refl
-eqH? ρ⇐ ρ⇐ refl q with uip q refl
+eqH? ρ⇐ ρ⇐ refl q with uip-ObjTerm q refl
 ... | refl = just refl
-eqH? α⇒ α⇒ refl q with uip q refl
+eqH? α⇒ α⇒ refl q with uip-ObjTerm q refl
 ... | refl = just refl
-eqH? α⇐ α⇐ refl q with uip q refl
+eqH? α⇐ α⇐ refl q with uip-ObjTerm q refl
 ... | refl = just refl
-eqH? (σ ⦃ v≤v ⦄) (σ ⦃ v≤v ⦄) refl q with uip q refl
+eqH? (σ ⦃ v≤v ⦄) (σ ⦃ v≤v ⦄) refl q with uip-ObjTerm q refl
 ... | refl = just refl
 eqH? _ _ _ _ = nothing
 
