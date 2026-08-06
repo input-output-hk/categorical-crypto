@@ -173,12 +173,10 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
     using (φ; φ⁻¹; ψ; ψ⁻¹; φ-left; ψ-rght
           ; φ-lab; φ-dom; φ-cod; ψ-ein; ψ-eout; atom-ein; atom-eout; ψ-elab)
 
-  -- φ injectivity (from the left inverse).
-  φ-inj : ∀ {x y} → φ x ≡ φ y → x ≡ y
+  -- φ injectivity (from the left inverse).  Stated at stdlib's `Injective`,
+  -- which unfolds to the `∀ {x y} → φ x ≡ φ y → x ≡ y` the engine wants.
+  φ-inj : Injective _≡_ _≡_ φ
   φ-inj {x} {y} eq = trans (sym (φ-left x)) (trans (cong φ⁻¹ eq) (φ-left y))
-
-  φ-Injective : Injective _≡_ _≡_ φ
-  φ-Injective = φ-inj
 
   -- The boundary list equalities (= `IW.domL-iso`/`codL-iso iso`).
   di : domL J ≡ domL H
@@ -242,7 +240,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
   map-φ-↭⁻ {xs} {ys} p with PermProp.↭-map-inv φ p
   ... | ys' , mapφys≡mapφys' , xs↭ys' =
         subst (xs Perm.↭_)
-              (sym (map-injective {f = φ} φ-Injective mapφys≡mapφys'))
+              (sym (map-injective {f = φ} φ-inj mapφys≡mapφys'))
               xs↭ys'
 
   -- The strict validity `SG.Validˢ (range J.nE) = sJ-final ↭ J.cod`.
