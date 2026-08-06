@@ -34,6 +34,8 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
       open Category C public
       open Traced Traced public
       open U Monoidal public
+      open import Categories.Category.Monoidal.Reasoning Monoidal public
+        using (serialize₁₂; serialize₂₁)
       open Shorthands public
       module BP = Categories.Category.Monoidal.Braided.Properties braided
       open BP.Shorthands public
@@ -148,19 +150,6 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
               (record { U = Cᵤ ; monoidal = Monoidal ; symmetric = C.symmetric })
               (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) f
 
-        -- ⊗ bifunctoriality helpers
-        serialize₁₂ : ∀ {X₁ Y₁ X₂ Y₂ : C.Obj} {f' : X₁ C.⇒ Y₁} {g' : X₂ C.⇒ Y₂} →
-                       f' C.⊗₁ g' C.≈ f' C.⊗₁ C.id C.∘ C.id C.⊗₁ g'
-        serialize₁₂ = C.Equiv.trans
-          (Functor.F-resp-≈ C.⊗ (C.Equiv.sym C.identityʳ , C.Equiv.sym C.identityˡ))
-          (Functor.homomorphism C.⊗)
-
-        serialize₂₁ : ∀ {X₁ Y₁ X₂ Y₂ : C.Obj} {f' : X₁ C.⇒ Y₁} {g' : X₂ C.⇒ Y₂} →
-                       f' C.⊗₁ g' C.≈ C.id C.⊗₁ g' C.∘ f' C.⊗₁ C.id
-        serialize₂₁ = C.Equiv.trans
-          (Functor.F-resp-≈ C.⊗ (C.Equiv.sym C.identityˡ , C.Equiv.sym C.identityʳ))
-          (Functor.homomorphism C.⊗)
-
         -- Right superposing: trace(f) ⊗₁ id ≈ trace(β ∘ f ⊗₁ id ∘ β)
         right-superposing : ∀ {X Y A' B'} {f' : A' C.⊗₀ X C.⇒ B' C.⊗₀ X} →
           C.trace f' C.⊗₁ C.id {Y} C.≈ C.trace (β C.∘ f' C.⊗₁ C.id C.∘ β)
@@ -211,7 +200,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
           -- LHS: trace_B(α ∘ trace_D(m) ⊗₁ f ∘ γ)
           C.trace (α C.∘ C.trace m C.⊗₁ f C.∘ γ)
             -- 1. serialize: trace(m) ⊗₁ f → (trace(m) ⊗₁ id) ∘ (id ⊗₁ f)
-            ≈⟨ trace-resp-≈ (refl⟩∘⟨ serialize₁₂ ⟩∘⟨refl) ⟩
+            ≈⟨ trace-resp-≈ (refl⟩∘⟨ C.serialize₁₂ ⟩∘⟨refl) ⟩
           C.trace (α C.∘ (C.trace m C.⊗₁ C.id C.∘ C.id C.⊗₁ f) C.∘ γ)
             -- 2. reassociate
             ≈⟨ trace-resp-≈ (refl⟩∘⟨ C.assoc) ⟩
@@ -246,7 +235,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
             ≈⟨ trace-resp-≈ (refl⟩∘⟨ C.sym-assoc) ⟩
           C.trace (α C.∘ (C.id C.⊗₁ C.trace k C.∘ h C.⊗₁ C.id) C.∘ γ)
             -- 11. serialize⁻¹: (id ⊗₁ trace(k)) ∘ (h ⊗₁ id) → h ⊗₁ trace(k)
-            ≈⟨ trace-resp-≈ (refl⟩∘⟨ C.Equiv.sym serialize₂₁ ⟩∘⟨refl) ⟩
+            ≈⟨ trace-resp-≈ (refl⟩∘⟨ C.Equiv.sym C.serialize₂₁ ⟩∘⟨refl) ⟩
           C.trace (α C.∘ h C.⊗₁ C.trace k C.∘ γ)
           ∎
           where
