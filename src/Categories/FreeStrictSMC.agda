@@ -567,6 +567,14 @@ module Build
       ≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (castᵛ-cast p q t)))
               (cast-≈̂ {p = cong m p} {q = cong m q})
 
+    -- EVERY V-level axiom below is this sandwich: re-spell the LHS at ˢ level,
+    -- cite the ˢ axiom, re-spell the RHS back.  Naming it makes the layer's
+    -- content visible — V level IS ˢ level conjugated by the `map-++`
+    -- re-spelling — and leaves each axiom's middle argument the bare ˢ axiom.
+    viaˢ : ∀ {as bs} {u v : HomV as bs} {as' bs'} {u' v' : HomS as' bs'}
+         → u ≈̂ u' → u' ≈ˢ v' → v ≈̂ v' → u ≈ᵛ v
+    viaˢ l e r = ≈̂⇒≈ˢ (≈̂-trans l (≈̂-trans (≈ˢ⇒≈̂ e) (≈̂-sym r)))
+
     ------------------------------------------------------------------------
     -- The presentation, re-proved at V level.  Category and `_≈ᵛ_` structure
     -- are INHERITED (`idᵛ`/`_∘ᵛ_`/`_≈ᵛ_` are the strict ones); only the
@@ -586,9 +594,8 @@ module Build
           {f : HomV bs cs} {g : HomV vs ws} {f' : HomV as bs} {g' : HomV us vs}
       → (f ⊗ᵛ g) ∘ᵛ (f' ⊗ᵛ g') ≈ᵛ (f ∘ᵛ f') ⊗ᵛ (g ∘ᵛ g')
     interchangeᵛ {f = f} {g} {f'} {g'} =
-      ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ (⊗ᵛ-≈̂ f g) (⊗ᵛ-≈̂ f' g'))
-            (≈̂-trans (≈ˢ⇒≈̂ interchangeˢ)
-                     (≈̂-sym (⊗ᵛ-≈̂ (f ∘ᵛ f') (g ∘ᵛ g')))))
+      viaˢ (∘-resp-≈̂ (⊗ᵛ-≈̂ f g) (⊗ᵛ-≈̂ f' g')) interchangeˢ
+           (⊗ᵛ-≈̂ (f ∘ᵛ f') (g ∘ᵛ g'))
 
     private
       ⊗-assocᵛ
@@ -597,20 +604,18 @@ module Build
         → castᵛ (++-assoc as us ps) (++-assoc bs vs qs) ((f ⊗ᵛ g) ⊗ᵛ h)
           ≈ᵛ f ⊗ᵛ (g ⊗ᵛ h)
       ⊗-assocᵛ {as} {bs} {us} {vs} {ps} {qs} f g h =
-        ≈̂⇒≈ˢ
-          (≈̂-trans lhs≈
-          (≈̂-trans (≈̂-trans (≈̂-sym (cast-≈̂ {p = ++-assoc (m as) (m us) (m ps)}
-                                            {q = ++-assoc (m bs) (m vs) (m qs)}))
-                            (≈ˢ⇒≈̂ (⊗-assocˢ f g h)))
-                   (≈̂-sym rhs≈)))
+        viaˢ lhs≈ (⊗-assocˢ f g h) rhs≈
         where
           lhs≈ : castᵛ (++-assoc as us ps) (++-assoc bs vs qs) ((f ⊗ᵛ g) ⊗ᵛ h)
-                 ≈̂ ((f ⊗ˢ g) ⊗ˢ h)
+                 ≈̂ castˢ (++-assoc (m as) (m us) (m ps))
+                         (++-assoc (m bs) (m vs) (m qs)) ((f ⊗ˢ g) ⊗ˢ h)
           lhs≈ =
             ≈̂-trans (castᵛ-≈̂ (++-assoc as us ps) (++-assoc bs vs qs)
                       ((f ⊗ᵛ g) ⊗ᵛ h))
             (≈̂-trans (⊗ᵛ-≈̂ (f ⊗ᵛ g) h)
-                     (⊗-resp-≈̂ (⊗ᵛ-≈̂ f g) ≈̂-refl))
+            (≈̂-trans (⊗-resp-≈̂ (⊗ᵛ-≈̂ f g) ≈̂-refl)
+                     (≈̂-sym (cast-≈̂ {p = ++-assoc (m as) (m us) (m ps)}
+                                    {q = ++-assoc (m bs) (m vs) (m qs)}))))
 
           rhs≈ : f ⊗ᵛ (g ⊗ᵛ h) ≈̂ (f ⊗ˢ (g ⊗ˢ h))
           rhs≈ =
@@ -621,26 +626,23 @@ module Build
       : ∀ {as bs} (f : HomV as bs)
       → castᵛ (++-identityʳ as) (++-identityʳ bs) (f ⊗ᵛ idᵛ {[]}) ≈ᵛ f
     ⊗-unitʳᵛ {as} {bs} f =
-      ≈̂⇒≈ˢ
-        (≈̂-trans (castᵛ-≈̂ (++-identityʳ as) (++-identityʳ bs) (f ⊗ᵛ idᵛ {[]}))
-        (≈̂-trans (⊗ᵛ-≈̂ f (idᵛ {[]}))
-                 (≈̂-trans (≈̂-sym (cast-≈̂ {p = ++-identityʳ (m as)}
-                                          {q = ++-identityʳ (m bs)}))
-                          (≈ˢ⇒≈̂ (⊗-unitʳˢ f)))))
+      viaˢ (≈̂-trans (castᵛ-≈̂ (++-identityʳ as) (++-identityʳ bs) (f ⊗ᵛ idᵛ {[]}))
+           (≈̂-trans (⊗ᵛ-≈̂ f (idᵛ {[]}))
+                    (≈̂-sym (cast-≈̂ {p = ++-identityʳ (m as)}
+                                   {q = ++-identityʳ (m bs)}))))
+           (⊗-unitʳˢ f) ≈̂-refl
 
     σ-natᵛ
       : ∀ {as bs us vs} {f : HomV as bs} {g : HomV us vs}
       → σᵛ bs vs ∘ᵛ (f ⊗ᵛ g) ≈ᵛ (g ⊗ᵛ f) ∘ᵛ σᵛ as us
     σ-natᵛ {as} {bs} {us} {vs} {f} {g} =
-      ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ (σᵛ-≈̂ bs vs) (⊗ᵛ-≈̂ f g))
-            (≈̂-trans (≈ˢ⇒≈̂ σ-natˢ)
-                     (≈̂-sym (∘-resp-≈̂ (⊗ᵛ-≈̂ g f) (σᵛ-≈̂ as us)))))
+      viaˢ (∘-resp-≈̂ (σᵛ-≈̂ bs vs) (⊗ᵛ-≈̂ f g)) σ-natˢ
+           (∘-resp-≈̂ (⊗ᵛ-≈̂ g f) (σᵛ-≈̂ as us))
 
     σ-σᵛ : ∀ {as bs} → σᵛ bs as ∘ᵛ σᵛ as bs ≈ᵛ idᵛ {as ++ bs}
     σ-σᵛ {as} {bs} =
-      ≈̂⇒≈ˢ (≈̂-trans (∘-resp-≈̂ (σᵛ-≈̂ bs as) (σᵛ-≈̂ as bs))
-            (≈̂-trans (≈ˢ⇒≈̂ σ-σˢ)
-                     (≈̂-sym (idˢ-≈̂ (map-++ vlab as bs)))))
+      viaˢ (∘-resp-≈̂ (σᵛ-≈̂ bs as) (σᵛ-≈̂ as bs)) σ-σˢ
+           (idˢ-≈̂ (map-++ vlab as bs))
 
     σ-hexᵛ
       : ∀ as bs cs
@@ -649,20 +651,13 @@ module Build
              ((σᵛ as cs ⊗ᵛ idᵛ {bs})
                ∘ᵛ castᵛ refl (sym (++-assoc as cs bs)) (idᵛ {as} ⊗ᵛ σᵛ bs cs))
     σ-hexᵛ as bs cs =
-      ≈̂⇒≈ˢ (≈̂-trans lhs≈ (≈̂-trans (σ-≈̂ (map-++ vlab as bs) refl)
-                          (≈̂-trans hexC (≈̂-sym rhs≈))))
+      viaˢ (≈̂-trans (σᵛ-≈̂ (as ++ bs) cs) (σ-≈̂ (map-++ vlab as bs) refl))
+           (σ-hexˢ a b c) rhs≈
       where
         a = m as ; b = m bs ; c = m cs
 
         Cinner = castˢ refl (sym (++-assoc a c b)) (idˢ {a} ⊗ˢ σˢ b c)
         C = (σˢ a c ⊗ˢ idˢ {b}) ∘ˢ Cinner
-
-        lhs≈ : σᵛ (as ++ bs) cs ≈̂ σˢ (m (as ++ bs)) c
-        lhs≈ = σᵛ-≈̂ (as ++ bs) cs
-
-        hexC : σˢ (a ++ b) c ≈̂ C
-        hexC = ≈̂-trans (≈ˢ⇒≈̂ (σ-hexˢ a b c))
-                       (cast-≈̂ {p = sym (++-assoc a b c)} {q = ++-assoc c a b})
 
         leftC : (σᵛ as cs ⊗ᵛ idᵛ {bs}) ≈̂ (σˢ a c ⊗ˢ idˢ {b})
         leftC =
@@ -681,10 +676,12 @@ module Build
         rhs≈ : castᵛ (sym (++-assoc as bs cs)) (++-assoc cs as bs)
                  ((σᵛ as cs ⊗ᵛ idᵛ {bs})
                    ∘ᵛ castᵛ refl (sym (++-assoc as cs bs)) (idᵛ {as} ⊗ᵛ σᵛ bs cs))
-               ≈̂ C
+               ≈̂ castˢ (sym (++-assoc a b c)) (++-assoc c a b) C
         rhs≈ =
           ≈̂-trans (castᵛ-≈̂ (sym (++-assoc as bs cs)) (++-assoc cs as bs) _)
-                  (∘-resp-≈̂ leftC rightC)
+          (≈̂-trans (∘-resp-≈̂ leftC rightC)
+                   (≈̂-sym (cast-≈̂ {p = sym (++-assoc a b c)}
+                                  {q = ++-assoc c a b})))
 
     σ-unitᵛ
       : ∀ as → σᵛ [] as ≈ᵛ castᵛ refl (sym (++-identityʳ as)) (idᵛ {as})
