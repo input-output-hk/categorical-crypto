@@ -16,7 +16,7 @@
 
 open import Categories.APROP
 
-module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique
+module Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
   (sig : APROPSignature) where
 
 open import Data.Empty using (⊥; ⊥-elim)

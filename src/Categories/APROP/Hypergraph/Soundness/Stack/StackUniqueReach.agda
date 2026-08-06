@@ -23,7 +23,7 @@
 
 open import Categories.APROP
 
-module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach
+module Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach
   (sig : APROPSignature) where
 
 open import Data.Fin using (Fin; zero; suc)
@@ -51,7 +51,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 open import Data.Nat using (_+_) renaming (_≤_ to _≤ⁿ_)
 import Data.Nat.Properties as Nat
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig
+open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig
   using (count≤1⇒Unique; Unique⇒count≤1; Unique-resp-↭)
 
 private

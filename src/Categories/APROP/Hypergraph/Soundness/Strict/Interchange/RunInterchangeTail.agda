@@ -42,7 +42,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv 
   using (module EquivStep)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_ as SC
 
-import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig
+import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig
   as SUR
 
 open import Data.Fin using (Fin)

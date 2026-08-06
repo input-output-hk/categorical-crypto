@@ -49,7 +49,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorKBlock sig
   using (module TKB6; module KBlockDisjoint)
 import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig as DA
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
-import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
+import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
 
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Maybe using (nothing)

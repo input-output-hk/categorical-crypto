@@ -47,7 +47,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-prefix)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-self)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique
+open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
   sig using (Linear⇒cod-Unique)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
   sig using (⟪⟫-LinearP)

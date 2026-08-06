@@ -44,7 +44,7 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.FireMidInterchangeComb sig
   as FMIC
-import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig
+import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig
   as SU
 open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
   using (++-cancelˡ)

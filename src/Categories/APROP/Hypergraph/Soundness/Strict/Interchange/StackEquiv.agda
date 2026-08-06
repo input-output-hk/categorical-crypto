@@ -52,8 +52,8 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
   using (module Support)
 
-import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig as SU
-import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
+import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig as SU
+import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
 
 open import Categories.PermuteCoherence.Canonical using (_≅↭_)
 

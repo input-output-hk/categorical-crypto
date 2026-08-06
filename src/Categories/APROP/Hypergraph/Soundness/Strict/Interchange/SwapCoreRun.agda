@@ -10,7 +10,7 @@
 -- V-level interchange kernel of `Interchange.FireMid` (`box-crossᵛ`,
 -- `cross-NFᵛ`), plus the TERM-FREE combinatorics of
 -- `Discharge.Sub.FireMidInterchangeComb` (`SimLoc`, `sim-loc`, the stability
--- lemmas) and `Discharge.Sub.StackUniqueReach` (`Reservoir≤1`) to build:
+-- lemmas) and `Stack.StackUniqueReach` (`Reservoir≤1`) to build:
 --
 --   * `fire-mid-interchangeˢ` — the both-fire interchange core.
 --   * `run-interchange₀ˢ`     — the four-way firing split (skeleton).
@@ -45,7 +45,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore si
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.FireMidInterchangeComb sig
   as FMIC
-import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig
+import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig
   as SUR
 
 open import Data.Empty using (⊥; ⊥-elim)

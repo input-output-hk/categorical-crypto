@@ -309,7 +309,7 @@ module TKB4 (H : Hypergraph FlatGen) where
   open TKBBase H
   open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
     using (module EquivStep)
-  import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
+  import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
   open import Data.List.Relation.Unary.All using (All; []; _∷_)
 
   open Run H using (edge-stack-agree)
@@ -520,8 +520,8 @@ module TKB6 (H : Hypergraph FlatGen) where
     using (module EquivStep)
   open import Categories.APROP.Hypergraph.Soundness.Strict.Separability sig
     using (extract-prefix-++ʳ; extract-prefix-++ʳ-nothing)
-  import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUnique sig as SU
-  import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.StackUniqueReach sig as SUR
+  import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig as SU
+  import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
   open import Data.Fin using (_↑ˡ_; _↑ʳ_; splitAt)
   open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
   import Data.Fin.Properties as FinP
