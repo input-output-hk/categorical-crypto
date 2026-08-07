@@ -430,121 +430,30 @@ private
             ∘ T (zs ++ xs) ys ∘ ((T zs xs ∘ σ) ⊗₁ id)
             ∘ α⇐ ∘ (id ⊗₁ (σ ∘ F ys zs)) ∘ F xs (ys ++ zs)
             ∘ subst-id-cod (++-assoc xs ys zs)
-  lhs→N xs ys zs = begin
-    T zs (xs ++ ys) ∘ σ ∘ F (xs ++ ys) zs
-      ≈⟨ refl⟩∘⟨ (σ-split xs ys zs ⟩∘⟨refl) ⟩
-    T zs (xs ++ ys)
-      ∘ ((id ⊗₁ T xs ys) ∘ σ ∘ (F xs ys ⊗₁ id)) ∘ F (xs ++ ys) zs
-      ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ (SBH.σ-A⊗B-expand ⟩∘⟨refl)) ⟩∘⟨refl) ⟩
-    T zs (xs ++ ys)
-      ∘ ((id ⊗₁ T xs ys)
-          ∘ (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒) ∘ (F xs ys ⊗₁ id))
-      ∘ F (xs ++ ys) zs
-      ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-    T zs (xs ++ ys)
-      ∘ (id ⊗₁ T xs ys)
-      ∘ (((α⇒ ∘ (σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒) ∘ (F xs ys ⊗₁ id))
-          ∘ F (xs ++ ys) zs)
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-    T zs (xs ++ ys)
-      ∘ (id ⊗₁ T xs ys)
-      ∘ (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒)
-      ∘ ((F xs ys ⊗₁ id) ∘ F (xs ++ ys) zs)
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ L2 xs ys zs ⟩
-    T zs (xs ++ ys)
-      ∘ (id ⊗₁ T xs ys)
-      ∘ (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒)
-      ∘ (α⇐ ∘ (id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
-          ∘ subst-id-cod (++-assoc xs ys zs))
-      ≈⟨ ≈-Term-sym FM.assoc ⟩
-    (T zs (xs ++ ys) ∘ (id ⊗₁ T xs ys))
-      ∘ (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒)
-      ∘ (α⇐ ∘ (id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
-          ∘ subst-id-cod (++-assoc xs ys zs))
-      ≈⟨ L1 xs ys zs ⟩∘⟨refl ⟩
-    (subst-id-cod (++-assoc zs xs ys)
-       ∘ T (zs ++ xs) ys ∘ (T zs xs ⊗₁ id) ∘ α⇐)
-      ∘ (α⇒ ∘ (σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒)
-      ∘ (α⇐ ∘ (id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
-          ∘ subst-id-cod (++-assoc xs ys zs))
-      ≈⟨ (refl⟩∘⟨ ≈-Term-sym FM.assoc) ⟩∘⟨refl ⟩
-    (subst-id-cod (++-assoc zs xs ys)
-       ∘ (T (zs ++ xs) ys ∘ (T zs xs ⊗₁ id)) ∘ α⇐)
-      ∘ ((α⇒ ∘ (σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒)
-          ∘ (α⇐ ∘ (id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
-              ∘ subst-id-cod (++-assoc xs ys zs)))
-      ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-    (subst-id-cod (++-assoc zs xs ys)
-       ∘ (T (zs ++ xs) ys ∘ (T zs xs ⊗₁ id)) ∘ α⇐)
-      ∘ (α⇒ ∘ (((σ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ σ) ∘ α⇒)
-          ∘ (α⇐ ∘ (id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
-              ∘ subst-id-cod (++-assoc xs ys zs))))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-    (subst-id-cod (++-assoc zs xs ys)
-       ∘ (T (zs ++ xs) ys ∘ (T zs xs ⊗₁ id)) ∘ α⇐)
-      ∘ (α⇒ ∘ (σ ⊗₁ id)
-          ∘ ((α⇐ ∘ (id ⊗₁ σ) ∘ α⇒)
-              ∘ (α⇐ ∘ (id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
-                  ∘ subst-id-cod (++-assoc xs ys zs))))
-      ≈⟨ cancel-mid-iso (subst-id-cod (++-assoc zs xs ys))
-           (T (zs ++ xs) ys ∘ (T zs xs ⊗₁ id)) α⇐ α⇒ (σ ⊗₁ id)
-           ((α⇐ ∘ (id ⊗₁ σ) ∘ α⇒)
-             ∘ (α⇐ ∘ (id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
-                 ∘ subst-id-cod (++-assoc xs ys zs)))
-           α⇐∘α⇒≈id ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ (T (zs ++ xs) ys ∘ (T zs xs ⊗₁ id))
-      ∘ (σ ⊗₁ id)
-      ∘ ((α⇐ ∘ (id ⊗₁ σ) ∘ α⇒)
-          ∘ (α⇐ ∘ (id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
-              ∘ subst-id-cod (++-assoc xs ys zs)))
-      ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ⊗₁ id)
-          ∘ (σ ⊗₁ id)
-          ∘ ((α⇐ ∘ (id ⊗₁ σ) ∘ α⇒)
-              ∘ (α⇐ ∘ (id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
-                  ∘ subst-id-cod (++-assoc xs ys zs))))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ fold⊗ˡ ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ) ⊗₁ id)
-      ∘ ((α⇐ ∘ (id ⊗₁ σ) ∘ α⇒)
-          ∘ (α⇐ ∘ (id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
-              ∘ subst-id-cod (++-assoc xs ys zs)))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ) ⊗₁ id)
-      ∘ α⇐
-      ∘ (((id ⊗₁ σ) ∘ α⇒)
-          ∘ (α⇐ ∘ (id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
-              ∘ subst-id-cod (++-assoc xs ys zs)))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ) ⊗₁ id)
-      ∘ α⇐
-      ∘ (id ⊗₁ σ)
-      ∘ (α⇒ ∘ (α⇐ ∘ (id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
-                ∘ subst-id-cod (++-assoc xs ys zs)))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ cancelˡ α⇒∘α⇐≈id ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ) ⊗₁ id)
-      ∘ α⇐
-      ∘ (id ⊗₁ σ)
-      ∘ (id ⊗₁ F ys zs) ∘ F xs (ys ++ zs)
-      ∘ subst-id-cod (++-assoc xs ys zs)
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ fold⊗ʳ ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ) ⊗₁ id)
-      ∘ α⇐
-      ∘ (id ⊗₁ (σ ∘ F ys zs))
-      ∘ F xs (ys ++ zs)
-      ∘ subst-id-cod (++-assoc xs ys zs) ∎
+  lhs→N xs ys zs =
+    -- phase 1: split σ off the fused block, then expand it by the hexagon
+    (refl⟩∘⟨ (σ-split xs ys zs ⟩∘⟨refl))
+    ○ (refl⟩∘⟨ ((refl⟩∘⟨ (SBH.σ-A⊗B-expand ⟩∘⟨refl)) ⟩∘⟨refl))
+    -- phase 2: reassociate onto the dom-side laxator run, then L2
+    ○ (refl⟩∘⟨ FM.assoc)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ FM.assoc)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ L2 xs ys zs)
+    -- phase 3: regroup onto the cod-side laxator run, then L1
+    ○ ≈-Term-sym FM.assoc
+    ○ (L1 xs ys zs ⟩∘⟨refl)
+    -- phase 4: expose the inner α⇐/α⇒ pair and cancel it
+    ○ ((refl⟩∘⟨ ≈-Term-sym FM.assoc) ⟩∘⟨refl)
+    ○ (refl⟩∘⟨ FM.assoc)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ FM.assoc)
+    ○ cancel-mid-iso _ _ _ _ _ _ α⇐∘α⇒≈id
+    -- phase 5: fold the left frame into (T zs xs ∘ σ) ⊗ id
+    ○ (refl⟩∘⟨ FM.assoc)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ fold⊗ˡ)
+    -- phase 6: cancel the outer α-pair and fold the right frame
+    ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ cancelˡ α⇒∘α⇐≈id)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ fold⊗ʳ)
 
 private
   rhs→N
@@ -557,147 +466,33 @@ private
             ∘ T (zs ++ xs) ys ∘ ((T zs xs ∘ σ) ⊗₁ id)
             ∘ α⇐ ∘ (id ⊗₁ (σ ∘ F ys zs)) ∘ F xs (ys ++ zs)
             ∘ subst-id-cod (++-assoc xs ys zs)
-  rhs→N xs ys zs = begin
-    emb (castˢ (sym (++-assoc xs ys zs)) (++-assoc zs xs ys)
-          ((σˢ xs zs ⊗ˢ idˢ {ys})
-            ∘ˢ castˢ refl (sym (++-assoc xs zs ys)) (idˢ {xs} ⊗ˢ σˢ ys zs)))
-      ≈⟨ ≡⇒≈Term (emb-cast (sym (++-assoc xs ys zs)) (++-assoc zs xs ys) _) ⟩
-    subst₂ HomTerm (cong U (sym (++-assoc xs ys zs))) (cong U (++-assoc zs xs ys))
-      (emb ((σˢ xs zs ⊗ˢ idˢ {ys})
-             ∘ˢ castˢ refl (sym (++-assoc xs zs ys)) (idˢ {xs} ⊗ˢ σˢ ys zs)))
-      ≈⟨ subst₂-conj (sym (++-assoc xs ys zs)) (++-assoc zs xs ys) _ ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ ((T (zs ++ xs) ys ∘ ((T zs xs ∘ σ ∘ F xs zs) ⊗₁ id) ∘ F (xs ++ zs) ys)
-          ∘ emb (castˢ refl (sym (++-assoc xs zs ys)) (idˢ {xs} ⊗ˢ σˢ ys zs)))
-      ∘ subst-id-dom (sym (++-assoc xs ys zs))
-      ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ stepC) ⟩∘⟨refl) ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ ((T (zs ++ xs) ys ∘ ((T zs xs ∘ σ ∘ F xs zs) ⊗₁ id) ∘ F (xs ++ zs) ys)
-          ∘ (subst-id-cod (sym (++-assoc xs zs ys))
-              ∘ (T xs (zs ++ ys)
-                  ∘ (id ⊗₁ (T zs ys ∘ σ ∘ F ys zs)) ∘ F xs (ys ++ zs))))
-      ∘ subst-id-dom (sym (++-assoc xs ys zs))
-      ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ cast-dc (++-assoc xs ys zs)) ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ ((T (zs ++ xs) ys ∘ ((T zs xs ∘ σ ∘ F xs zs) ⊗₁ id) ∘ F (xs ++ zs) ys)
-          ∘ (subst-id-cod (sym (++-assoc xs zs ys))
-              ∘ (T xs (zs ++ ys)
-                  ∘ (id ⊗₁ (T zs ys ∘ σ ∘ F ys zs)) ∘ F xs (ys ++ zs))))
-      ∘ subst-id-cod (++-assoc xs ys zs)
-      ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ (T (zs ++ xs) ys ∘ ((T zs xs ∘ σ ∘ F xs zs) ⊗₁ id) ∘ F (xs ++ zs) ys)
-      ∘ ((subst-id-cod (sym (++-assoc xs zs ys))
-           ∘ (T xs (zs ++ ys)
-               ∘ (id ⊗₁ (T zs ys ∘ σ ∘ F ys zs)) ∘ F xs (ys ++ zs)))
-          ∘ subst-id-cod (++-assoc xs ys zs))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ (T (zs ++ xs) ys ∘ ((T zs xs ∘ σ ∘ F xs zs) ⊗₁ id) ∘ F (xs ++ zs) ys)
-      ∘ subst-id-cod (sym (++-assoc xs zs ys))
-      ∘ ((T xs (zs ++ ys) ∘ (id ⊗₁ (T zs ys ∘ σ ∘ F ys zs)) ∘ F xs (ys ++ zs))
-          ∘ subst-id-cod (++-assoc xs ys zs))
-      ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((((T zs xs ∘ σ ∘ F xs zs) ⊗₁ id) ∘ F (xs ++ zs) ys)
-          ∘ subst-id-cod (sym (++-assoc xs zs ys))
-          ∘ ((T xs (zs ++ ys) ∘ (id ⊗₁ (T zs ys ∘ σ ∘ F ys zs)) ∘ F xs (ys ++ zs))
-              ∘ subst-id-cod (++-assoc xs ys zs)))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ ∘ F xs zs) ⊗₁ id)
-      ∘ (F (xs ++ zs) ys
-          ∘ subst-id-cod (sym (++-assoc xs zs ys))
-          ∘ ((T xs (zs ++ ys) ∘ (id ⊗₁ (T zs ys ∘ σ ∘ F ys zs)) ∘ F xs (ys ++ zs))
-              ∘ subst-id-cod (++-assoc xs ys zs)))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ ∘ F xs zs) ⊗₁ id)
-      ∘ (F (xs ++ zs) ys
-          ∘ subst-id-cod (sym (++-assoc xs zs ys))
-          ∘ (T xs (zs ++ ys)
-              ∘ ((id ⊗₁ (T zs ys ∘ σ ∘ F ys zs)) ∘ F xs (ys ++ zs))
-                  ∘ subst-id-cod (++-assoc xs ys zs)))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ ∘ F xs zs) ⊗₁ id)
-      ∘ (F (xs ++ zs) ys
-          ∘ subst-id-cod (sym (++-assoc xs zs ys))
-          ∘ (T xs (zs ++ ys)
-              ∘ ((id ⊗₁ (T zs ys ∘ σ ∘ F ys zs))
-                  ∘ (F xs (ys ++ zs) ∘ subst-id-cod (++-assoc xs ys zs)))))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ (refl⟩∘⟨ ≈-Term-sym FM.assoc) ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ ∘ F xs zs) ⊗₁ id)
-      ∘ (F (xs ++ zs) ys
-          ∘ ((subst-id-cod (sym (++-assoc xs zs ys)) ∘ T xs (zs ++ ys))
-              ∘ ((id ⊗₁ (T zs ys ∘ σ ∘ F ys zs))
-                  ∘ (F xs (ys ++ zs) ∘ subst-id-cod (++-assoc xs ys zs)))))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym FM.assoc ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ ∘ F xs zs) ⊗₁ id)
-      ∘ ((F (xs ++ zs) ys
-           ∘ (subst-id-cod (sym (++-assoc xs zs ys)) ∘ T xs (zs ++ ys)))
-          ∘ ((id ⊗₁ (T zs ys ∘ σ ∘ F ys zs))
-              ∘ (F xs (ys ++ zs) ∘ subst-id-cod (++-assoc xs ys zs))))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ (J xs ys zs ⟩∘⟨refl) ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ ∘ F xs zs) ⊗₁ id)
-      ∘ (((T xs zs ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ F zs ys))
-          ∘ ((id ⊗₁ (T zs ys ∘ σ ∘ F ys zs))
-              ∘ (F xs (ys ++ zs) ∘ subst-id-cod (++-assoc xs ys zs))))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ ∘ F xs zs) ⊗₁ id)
-      ∘ (T xs zs ⊗₁ id)
-      ∘ ((α⇐ ∘ (id ⊗₁ F zs ys))
-          ∘ ((id ⊗₁ (T zs ys ∘ σ ∘ F ys zs))
-              ∘ (F xs (ys ++ zs) ∘ subst-id-cod (++-assoc xs ys zs))))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ fold⊗ˡ ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ (((T zs xs ∘ σ ∘ F xs zs) ∘ T xs zs) ⊗₁ id)
-      ∘ ((α⇐ ∘ (id ⊗₁ F zs ys))
-          ∘ ((id ⊗₁ (T zs ys ∘ σ ∘ F ys zs))
-              ∘ (F xs (ys ++ zs) ∘ subst-id-cod (++-assoc xs ys zs))))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (⊗-resp-≈ (tidyL xs zs) ≈-Term-refl ⟩∘⟨refl) ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ) ⊗₁ id)
-      ∘ ((α⇐ ∘ (id ⊗₁ F zs ys))
-          ∘ ((id ⊗₁ (T zs ys ∘ σ ∘ F ys zs))
-              ∘ (F xs (ys ++ zs) ∘ subst-id-cod (++-assoc xs ys zs))))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ) ⊗₁ id)
-      ∘ α⇐
-      ∘ ((id ⊗₁ F zs ys)
-          ∘ ((id ⊗₁ (T zs ys ∘ σ ∘ F ys zs))
-              ∘ (F xs (ys ++ zs) ∘ subst-id-cod (++-assoc xs ys zs))))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ fold⊗ʳ ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ) ⊗₁ id)
-      ∘ α⇐
-      ∘ ((id ⊗₁ (F zs ys ∘ (T zs ys ∘ σ ∘ F ys zs)))
-          ∘ (F xs (ys ++ zs) ∘ subst-id-cod (++-assoc xs ys zs)))
-      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨
-           (⊗-resp-≈ ≈-Term-refl (tidyR ys zs) ⟩∘⟨refl) ⟩
-    subst-id-cod (++-assoc zs xs ys)
-      ∘ T (zs ++ xs) ys
-      ∘ ((T zs xs ∘ σ) ⊗₁ id)
-      ∘ α⇐
-      ∘ ((id ⊗₁ (σ ∘ F ys zs))
-          ∘ (F xs (ys ++ zs) ∘ subst-id-cod (++-assoc xs ys zs))) ∎
+  rhs→N xs ys zs =
+    -- phase 1: de-cast the outer cast into a conjugation by transported ids
+    ≡⇒≈Term (emb-cast (sym (++-assoc xs ys zs)) (++-assoc zs xs ys) _)
+    ○ subst₂-conj (sym (++-assoc xs ys zs)) (++-assoc zs xs ys) _
+    -- phase 2: de-cast the inner factor (`stepC`), then merge the dom-side cast
+    ○ (refl⟩∘⟨ ((refl⟩∘⟨ stepC) ⟩∘⟨refl))
+    ○ (refl⟩∘⟨ (refl⟩∘⟨ cast-dc (++-assoc xs ys zs)))
+    -- phase 3: reassociate the two σ-frames into one right-nested spine
+    ○ (refl⟩∘⟨ FM.assoc)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ FM.assoc)
+    ○ (refl⟩∘⟨ FM.assoc)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ FM.assoc)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc)
+    -- phase 4: regroup the junction between the frames and discharge it by J
+    ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ (refl⟩∘⟨ ≈-Term-sym FM.assoc))
+    ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym FM.assoc)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ (J xs ys zs ⟩∘⟨refl))
+    -- phase 5: fold the left frame and tidy it to (T zs xs ∘ σ) ⊗ id
+    ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ fold⊗ˡ)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ (⊗-resp-≈ (tidyL xs zs) ≈-Term-refl ⟩∘⟨refl))
+    -- phase 6: fold the right frame and tidy it to id ⊗ (σ ∘ F ys zs)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ fold⊗ʳ)
+    ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨
+         (⊗-resp-≈ ≈-Term-refl (tidyR ys zs) ⟩∘⟨refl))
     where
       stepC
         : emb (castˢ refl (sym (++-assoc xs zs ys)) (idˢ {xs} ⊗ˢ σˢ ys zs))
