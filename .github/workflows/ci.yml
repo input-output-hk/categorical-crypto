@@ -12,3 +12,4 @@ jobs:
     with:
       pages: true
       cache: true
+      gc-max-store-size: 9G
