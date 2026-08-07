@@ -24,11 +24,12 @@ open import Relation.Binary.PropositionalEquality
 -- Helpers for shuffling `subst₂` along proof equalities.
 
 private
-  -- Inverse: `subst₂ P (sym p) (sym q)` undoes `subst₂ P p q`.
-  subst₂-sym-subst₂ : ∀ {A B : Set} {P : A → B → Set} {a a'} {b b'}
-                    → (p : a ≡ a') (q : b ≡ b') (x : P a b)
-                    → subst₂ P (sym p) (sym q) (subst₂ P p q x) ≡ x
-  subst₂-sym-subst₂ refl refl _ = refl
+  -- Inverse, read as an equation flip: `subst₂ P (sym p) (sym q)` undoes
+  -- `subst₂ P p q`, so a forwards transport equation runs backwards.
+  subst₂-sym-flip : ∀ {A B : Set} {P : A → B → Set} {a a'} {b b'}
+                  → (p : a ≡ a') (q : b ≡ b') {x : P a b} {y : P a' b'}
+                  → subst₂ P p q x ≡ y → subst₂ P (sym p) (sym q) y ≡ x
+  subst₂-sym-flip refl refl refl = refl
 
   -- Composition: two nested transports collapse.
   subst₂-trans : ∀ {A B : Set} {P : A → B → Set} {a₁ a₂ a₃} {b₁ b₂ b₃}
@@ -148,48 +149,16 @@ module _ {X : Set} {Gen : List X → List X → Set} where
       elab-sym : ∀ e → subst₂ Gen (atom-ein-sym e) (atom-eout-sym e)
                                   (G.elab (ψ⁻¹ e))
                        ≡ K.elab e
-      elab-sym e =
-        let
-          step₁ : subst₂ Gen (atom-ein (ψ⁻¹ e)) (atom-eout (ψ⁻¹ e))
-                    (K.elab (ψ (ψ⁻¹ e)))
-                  ≡ G.elab (ψ⁻¹ e)
-          step₁ = ψ-elab (ψ⁻¹ e)
-          step₂ : K.elab (ψ (ψ⁻¹ e))
-                  ≡ subst₂ Gen (sym (atom-ein (ψ⁻¹ e)))
-                               (sym (atom-eout (ψ⁻¹ e)))
-                               (G.elab (ψ⁻¹ e))
-          step₂ = trans (sym (subst₂-sym-subst₂ (atom-ein (ψ⁻¹ e))
-                                                 (atom-eout (ψ⁻¹ e))
-                                                 (K.elab (ψ (ψ⁻¹ e)))))
-                        (cong (subst₂ Gen (sym (atom-ein (ψ⁻¹ e)))
-                                           (sym (atom-eout (ψ⁻¹ e)))) step₁)
-          step₃ : K.elab e
-                  ≡ subst₂ Gen (cong (λ z → map K.vlab (K.ein z)) (ψ-rght e))
-                                (cong (λ z → map K.vlab (K.eout z)) (ψ-rght e))
-                                (K.elab (ψ (ψ⁻¹ e)))
-          step₃ = K-elab-cong (ψ-rght e)
-          combined : K.elab e
-                     ≡ subst₂ Gen (cong (λ z → map K.vlab (K.ein z)) (ψ-rght e))
-                                   (cong (λ z → map K.vlab (K.eout z)) (ψ-rght e))
-                          (subst₂ Gen (sym (atom-ein (ψ⁻¹ e)))
-                                       (sym (atom-eout (ψ⁻¹ e)))
-                                       (G.elab (ψ⁻¹ e)))
-          combined = trans step₃ (cong (subst₂ Gen _ _) step₂)
-          collapsed : subst₂ Gen
-                        (trans (sym (atom-ein (ψ⁻¹ e)))
-                               (cong (λ z → map K.vlab (K.ein z)) (ψ-rght e)))
-                        (trans (sym (atom-eout (ψ⁻¹ e)))
-                               (cong (λ z → map K.vlab (K.eout z)) (ψ-rght e)))
-                        (G.elab (ψ⁻¹ e))
-                     ≡ K.elab e
-          collapsed = trans (sym (subst₂-trans
-                                    (sym (atom-ein (ψ⁻¹ e)))
-                                    (cong (λ z → map K.vlab (K.ein z)) (ψ-rght e))
-                                    (sym (atom-eout (ψ⁻¹ e)))
-                                    (cong (λ z → map K.vlab (K.eout z)) (ψ-rght e))
-                                    (G.elab (ψ⁻¹ e))))
-                            (sym combined)
-        in collapsed
+      elab-sym e = trans
+        (sym (subst₂-trans (sym (atom-ein (ψ⁻¹ e)))
+                           (cong (λ z → map K.vlab (K.ein  z)) (ψ-rght e))
+                           (sym (atom-eout (ψ⁻¹ e)))
+                           (cong (λ z → map K.vlab (K.eout z)) (ψ-rght e))
+                           (G.elab (ψ⁻¹ e))))
+        (trans (cong (subst₂ Gen _ _)
+                     (subst₂-sym-flip (atom-ein (ψ⁻¹ e)) (atom-eout (ψ⁻¹ e))
+                                      (ψ-elab (ψ⁻¹ e))))
+               (sym (K-elab-cong (ψ-rght e))))
 
 --------------------------------------------------------------------------------
 -- Transitivity. Compose the two bijections.
@@ -260,26 +229,10 @@ module _ {X : Set} {Gen : List X → List X → Set} where
         subst₂ Gen (atom-ein-trans e) (atom-eout-trans e)
                    (K.elab (ψ₂ (ψ₁ e)))
         ≡ G.elab e
-      elab-trans e =
-        let
-          step₂ : subst₂ Gen (I₂.atom-ein (ψ₁ e)) (I₂.atom-eout (ψ₁ e))
-                             (K.elab (ψ₂ (ψ₁ e)))
-                  ≡ H.elab (ψ₁ e)
-          step₂ = I₂.ψ-elab (ψ₁ e)
-
-          step₁ : subst₂ Gen (I₁.atom-ein e) (I₁.atom-eout e)
-                             (H.elab (ψ₁ e))
-                  ≡ G.elab e
-          step₁ = I₁.ψ-elab e
-
-          chained : subst₂ Gen (trans (I₂.atom-ein (ψ₁ e)) (I₁.atom-ein e))
-                                (trans (I₂.atom-eout (ψ₁ e)) (I₁.atom-eout e))
-                                (K.elab (ψ₂ (ψ₁ e)))
-                    ≡ G.elab e
-          chained = trans
-            (sym (subst₂-trans (I₂.atom-ein (ψ₁ e)) (I₁.atom-ein e)
-                               (I₂.atom-eout (ψ₁ e)) (I₁.atom-eout e)
-                               (K.elab (ψ₂ (ψ₁ e)))))
-            (trans (cong (subst₂ Gen (I₁.atom-ein e) (I₁.atom-eout e)) step₂)
-                   step₁)
-        in chained
+      elab-trans e = trans
+        (sym (subst₂-trans (I₂.atom-ein  (ψ₁ e)) (I₁.atom-ein  e)
+                           (I₂.atom-eout (ψ₁ e)) (I₁.atom-eout e)
+                           (K.elab (ψ₂ (ψ₁ e)))))
+        (trans (cong (subst₂ Gen (I₁.atom-ein e) (I₁.atom-eout e))
+                     (I₂.ψ-elab (ψ₁ e)))
+               (I₁.ψ-elab e))
