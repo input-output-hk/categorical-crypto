@@ -17,20 +17,18 @@
 
 module Categories.PermuteCoherence.Rigid where
 
-open import Data.Empty using (⊥-elim)
 open import Data.Nat.Base using (zero; suc)
-open import Data.Fin.Base using (Fin; zero; suc)
+open import Data.Fin.Base using (Fin; suc)
 open import Data.Fin.Patterns using (0F)
-open import Data.List.Base using (List; _∷_; length; lookup)
+open import Data.List.Base using (List; length; lookup)
+open import Data.List.Properties.Ext using (lookup-injective-unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
-open import Data.List.Relation.Unary.All using (All; _∷_)
-open import Data.List.Relation.Unary.AllPairs using (_∷_)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.Fin.Permutation as P
 
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong)
+  using (_≡_; refl; sym; trans)
 
 open import Categories.PermuteCoherence.FinBij using (_≈-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
@@ -41,25 +39,6 @@ private
   variable
     a : Level
     A : Set a
-
-------------------------------------------------------------------------
--- `Unique` lists have injective `lookup`.  Public so `--without-K`
--- consumers (IsoTransport) can reuse them directly.
-
-All-lookup : ∀ {p} {Q : A → Set p} {xs : List A}
-           → All Q xs → (i : Fin (length xs)) → Q (lookup xs i)
-All-lookup (q ∷ _)  zero    = q
-All-lookup (_ ∷ qs) (suc i) = All-lookup qs i
-
-lookup-injective-unique
-  : ∀ {xs : List A}
-  → Unique xs → (i j : Fin (length xs))
-  → lookup xs i ≡ lookup xs j
-  → i ≡ j
-lookup-injective-unique (_  ∷ _ ) zero    zero    _  = refl
-lookup-injective-unique (x≢ ∷ _ ) zero    (suc j) eq = ⊥-elim (All-lookup x≢ j eq)
-lookup-injective-unique (x≢ ∷ _ ) (suc i) zero    eq = ⊥-elim (All-lookup x≢ i (sym eq))
-lookup-injective-unique (_  ∷ uq) (suc i) (suc j) eq = cong suc (lookup-injective-unique uq i j eq)
 
 ------------------------------------------------------------------------
 -- Lookup-soundness of `eval-↭`:  `eval-↭ p` carries position `i` of

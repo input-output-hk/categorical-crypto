@@ -23,41 +23,18 @@ open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.Fin.Properties using (_≟_; splitAt-↑ˡ; splitAt-↑ʳ; ↑ˡ-injective; ↑ʳ-injective)
 open import Data.List using (List; _∷_; length; filter; allFin; lookup; map)
 open import Data.List.Properties.Ext using (map-∘-cong)
-open import Data.List.Relation.Unary.All using (All; _∷_)
+-- generic list/uniqueness facts (not Fin-specific); re-exported for the
+-- pruning consumers that reach them through this module.
+open import Data.List.Properties.Ext
+  using (All-lookup; lookup-injective-unique) public
 open import Data.List.Relation.Unary.Any using (index)
 open import Data.List.Relation.Unary.Any.Properties using (lookup-index)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-import Data.List.Relation.Unary.AllPairs as AllPairs
 open import Data.Nat using (ℕ; _+_)
 open import Data.Sum using (_⊎_; inj₁; inj₂; [_,_]′)
 open import Function using (_∘_)
-open import Level using (Level)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
 open import Relation.Nullary.Decidable using (¬?; yes; no)
-
---------------------------------------------------------------------------------
--- Generic list/uniqueness helpers (not Fin-specific).
-
-module _ {ℓ} {A : Set ℓ} where
-  -- Apply an `All P xs` witness at a Fin position.
-  All-lookup : ∀ {p} {P : A → Set p} {xs : List A}
-             → All P xs → (i : Fin (length xs)) → P (lookup xs i)
-  All-lookup (p ∷ _)  zero    = p
-  All-lookup (_ ∷ ps) (suc i) = All-lookup ps i
-
-  -- Unique lists have injective `lookup`.
-  lookup-injective-unique : ∀ {xs : List A}
-                          → Unique xs
-                          → ∀ (i j : Fin (length xs))
-                          → lookup xs i ≡ lookup xs j
-                          → i ≡ j
-  lookup-injective-unique {xs = _ ∷ _ } (_  AllPairs.∷ _ ) zero    zero    _  = refl
-  lookup-injective-unique {xs = _ ∷ _ } (x≢ AllPairs.∷ _ ) zero    (suc j) eq =
-    ⊥-elim (All-lookup x≢ j eq)
-  lookup-injective-unique {xs = _ ∷ _ } (x≢ AllPairs.∷ _ ) (suc i) zero    eq =
-    ⊥-elim (All-lookup x≢ i (sym eq))
-  lookup-injective-unique {xs = _ ∷ _ } (_  AllPairs.∷ uq) (suc i) (suc j) eq =
-    cong suc (lookup-injective-unique uq i j eq)
 
 --------------------------------------------------------------------------------
 -- Non-members of a Fin list.

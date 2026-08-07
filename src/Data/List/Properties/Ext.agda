@@ -7,8 +7,13 @@
 module Data.List.Properties.Ext where
 
 open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
-open import Data.List using (List; []; _∷_; _++_; map; head; drop)
+open import Data.Empty using (⊥-elim)
+open import Data.Fin.Base using (Fin; zero; suc)
+open import Data.List using (List; []; _∷_; _++_; map; head; drop; length; lookup)
 open import Data.List.Properties using (≡-dec; ++-assoc; map-∘; map-cong; map-id)
+open import Data.List.Relation.Unary.All using (All; _∷_)
+open import Data.List.Relation.Unary.AllPairs using (_∷_)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe as Maybe using (Maybe; just; nothing)
 open import Data.Nat.Base using (ℕ)
 open import Data.Product using (Σ-syntax; _,_)
@@ -53,3 +58,22 @@ map-∘-id : ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {g : B → A}
          → (∀ x → g (f x) ≡ x)
          → (xs : List A) → map g (map f xs) ≡ xs
 map-∘-id p xs = trans (map-∘-cong p xs) (map-id xs)
+
+-- apply an `All P xs` witness at a Fin position.  stdlib's `All.lookup` is
+-- `∈`-indexed, not `Fin (length xs)`-indexed.
+All-lookup : ∀ {a p} {A : Set a} {P : A → Set p} {xs : List A}
+           → All P xs → (i : Fin (length xs)) → P (lookup xs i)
+All-lookup (p ∷ _)  zero    = p
+All-lookup (_ ∷ ps) (suc i) = All-lookup ps i
+
+-- `Unique` lists have injective `lookup`.
+lookup-injective-unique : ∀ {a} {A : Set a} {xs : List A}
+                        → Unique xs
+                        → ∀ (i j : Fin (length xs))
+                        → lookup xs i ≡ lookup xs j
+                        → i ≡ j
+lookup-injective-unique (_  ∷ _ ) zero    zero    _  = refl
+lookup-injective-unique (x≢ ∷ _ ) zero    (suc j) eq = ⊥-elim (All-lookup x≢ j eq)
+lookup-injective-unique (x≢ ∷ _ ) (suc i) zero    eq = ⊥-elim (All-lookup x≢ i (sym eq))
+lookup-injective-unique (_  ∷ uq) (suc i) (suc j) eq =
+  cong suc (lookup-injective-unique uq i j eq)
