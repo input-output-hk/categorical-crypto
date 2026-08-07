@@ -59,6 +59,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _�
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig _≟X_ as PVV
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
+open import Categories.Tactic.Category using (solve)
 
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
@@ -293,11 +294,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
           (Ctᵗ : HomS o2 o2') (Gtᵗ : HomS o1 o2)
       → Aᵗ ∘ˢ ((Bᵗ ∘ˢ (Ktᵗ ∘ˢ Ctᵗ)) ∘ˢ Gtᵗ)
         ≈ˢ (Aᵗ ∘ˢ (Bᵗ ∘ˢ Ktᵗ)) ∘ˢ (Ctᵗ ∘ˢ Gtᵗ)
-    reassocˢ Aᵗ Bᵗ Ktᵗ Ctᵗ Gtᵗ =
-      ≈-trans (∘-resp ≈-refl assocˢ)
-      (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl assocˢ))
-      (≈-trans (∘-resp ≈-refl (≈-sym assocˢ))
-               (≈-sym assocˢ)))
+    reassocˢ Aᵗ Bᵗ Ktᵗ Ctᵗ Gtᵗ = solve SCat
 
   Pcomp-eqˢ : PCˢ ∘ˢ Pcomposite ≈ˢ Xcˢ ∘ˢ Ycˢ
   Pcomp-eqˢ =
