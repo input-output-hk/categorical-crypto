@@ -138,12 +138,32 @@ count-swap v xs ys =
 
 -- `tabulate` over `Fin (m + n)` splits along the `↑ˡ`/`↑ʳ` boundary.
 
--- (public: also reused by Discharge.LinearHComposeP)
 tabulate-+ : ∀ {m n} {A : Set} (f : Fin (m + n) → A)
            → tabulate f
            ≡ tabulate (λ i → f (i ↑ˡ n)) ++ tabulate (λ j → f (m ↑ʳ j))
 tabulate-+ {m = zero}              f = refl
 tabulate-+ {m = suc m} {n = n}     f = cong (f zero ∷_) (tabulate-+ {m = m} {n = n} (f Fun.∘ suc))
+
+-- A block-indexed `concat ∘ tabulate` splits into its two relabelled blocks.
+-- `fc` is a family over `Fin (m + n)` that reduces, on each side of the
+-- `↑ˡ`/`↑ʳ` boundary, to a relabelling (`gL` / `gR`) of a family over that
+-- side alone.  Used at all four `{eout,ein}-{tensor,comp}-eq` sites.
+-- (public: also reused by Discharge.LinearHComposeP)
+concat-tabulate-blocks
+  : ∀ {m n} {A B C : Set}
+      (fc : Fin (m + n) → List C) (fG : Fin m → List A) (fK : Fin n → List B)
+      (gL : A → C) (gR : B → C)
+  → (∀ e → fc (e ↑ˡ n) ≡ map gL (fG e))
+  → (∀ e → fc (m ↑ʳ e) ≡ map gR (fK e))
+  → concat (tabulate fc)
+    ≡ map gL (concat (tabulate fG)) ++ map gR (concat (tabulate fK))
+concat-tabulate-blocks {m} {n} fc fG fK gL gR redL redR =
+  trans (cong concat (tabulate-+ {m = m} {n = n} fc))
+  (trans (cong concat
+            (cong₂ _++_ (trans (tabulate-cong redL) (sym (map-tabulate fG (map gL))))
+                        (trans (tabulate-cong redR) (sym (map-tabulate fK (map gR))))))
+  (trans (sym (concat-++ (map (map gL) (tabulate fG)) (map (map gR) (tabulate fK))))
+         (cong₂ _++_ (concat-map (tabulate fG)) (concat-map (tabulate fK)))))
 
 -- The combined `LL ++ RR` list contains every Fin (nA + nB) exactly once.
 
@@ -203,35 +223,15 @@ Linear-hTensor G K (G-bal , G-bnd) (K-bal , K-bnd) = balance , bound
       : concat (tabulate eout-c)
       ≡ map injL (concat (tabulate G.eout))
         ++ map injR (concat (tabulate K.eout))
-    eout-tensor-eq =
-      trans (cong concat (tabulate-+ {m = G.nE} {n = K.nE} eout-c))
-      (trans (cong concat
-                (cong₂ _++_
-                   (trans (tabulate-cong eout-c-inj₁-red)
-                          (sym (map-tabulate G.eout (map injL))))
-                   (trans (tabulate-cong eout-c-inj₂-red)
-                          (sym (map-tabulate K.eout (map injR))))))
-      (trans (sym (concat-++ (map (map injL) (tabulate G.eout))
-                              (map (map injR) (tabulate K.eout))))
-             (cong₂ _++_ (concat-map (tabulate G.eout))
-                         (concat-map (tabulate K.eout)))))
+    eout-tensor-eq = concat-tabulate-blocks eout-c G.eout K.eout injL injR
+                       eout-c-inj₁-red eout-c-inj₂-red
 
     ein-tensor-eq
       : concat (tabulate ein-c)
       ≡ map injL (concat (tabulate G.ein))
         ++ map injR (concat (tabulate K.ein))
-    ein-tensor-eq =
-      trans (cong concat (tabulate-+ {m = G.nE} {n = K.nE} ein-c))
-      (trans (cong concat
-                (cong₂ _++_
-                   (trans (tabulate-cong ein-c-inj₁-red)
-                          (sym (map-tabulate G.ein (map injL))))
-                   (trans (tabulate-cong ein-c-inj₂-red)
-                          (sym (map-tabulate K.ein (map injR))))))
-      (trans (sym (concat-++ (map (map injL) (tabulate G.ein))
-                              (map (map injR) (tabulate K.ein))))
-             (cong₂ _++_ (concat-map (tabulate G.ein))
-                         (concat-map (tabulate K.ein)))))
+    ein-tensor-eq = concat-tabulate-blocks ein-c G.ein K.ein injL injR
+                      ein-c-inj₁-red ein-c-inj₂-red
 
     count-injL-mixed
       : ∀ (i : Fin G.nV) (xs : List (Fin G.nV)) (ys : List (Fin K.nV))

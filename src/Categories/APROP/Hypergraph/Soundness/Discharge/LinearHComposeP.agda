@@ -26,7 +26,7 @@ open import Categories.APROP.Hypergraph.Model.PrunedCompose sig using (hComposeP
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using ( count; count-++; count-map-↑ˡ; count-map-inj
         ; count-map-↑ˡ-mismatch; count-swap
-        ; producedList; consumedList; Linear; tabulate-+)
+        ; producedList; consumedList; Linear; concat-tabulate-blocks)
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (↑ˡ≢↑ʳ)
 
 open import Data.Empty using (⊥; ⊥-elim)
@@ -36,9 +36,7 @@ open import Data.Fin.Properties using
   ; splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ
   ; toℕ-cast; toℕ-injective)
 open import Data.List as List using (List; []; _∷_; _++_; length; map; tabulate; concat; lookup)
-open import Data.List.Properties using
-  ( map-++
-  ; tabulate-cong; map-tabulate; concat-map; concat-++)
+open import Data.List.Properties using (map-++)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 import Data.List.Relation.Unary.All as All
@@ -251,32 +249,12 @@ module _
           ; ein-c-inj₁-red; ein-c-inj₂-red )
 
   eout-comp-eq : concat (tabulate eout-c) ≡ map injL G-eb ++ map remapP K-eb
-  eout-comp-eq =
-    trans (cong concat (tabulate-+ {m = G.nE} {n = K.nE} eout-c))
-    (trans (cong concat
-              (cong₂ _++_
-                 (trans (tabulate-cong eout-c-inj₁-red)
-                        (sym (map-tabulate G.eout (map injL))))
-                 (trans (tabulate-cong eout-c-inj₂-red)
-                        (sym (map-tabulate K.eout (map remapP))))))
-    (trans (sym (concat-++ (map (map injL) (tabulate G.eout))
-                            (map (map remapP) (tabulate K.eout))))
-           (cong₂ _++_ (concat-map (tabulate G.eout))
-                       (concat-map (tabulate K.eout)))))
+  eout-comp-eq = concat-tabulate-blocks eout-c G.eout K.eout injL remapP
+                   eout-c-inj₁-red eout-c-inj₂-red
 
   ein-comp-eq : concat (tabulate ein-c) ≡ map injL G-ein-b ++ map remapP K-ein-b
-  ein-comp-eq =
-    trans (cong concat (tabulate-+ {m = G.nE} {n = K.nE} ein-c))
-    (trans (cong concat
-              (cong₂ _++_
-                 (trans (tabulate-cong ein-c-inj₁-red)
-                        (sym (map-tabulate G.ein (map injL))))
-                 (trans (tabulate-cong ein-c-inj₂-red)
-                        (sym (map-tabulate K.ein (map remapP))))))
-    (trans (sym (concat-++ (map (map injL) (tabulate G.ein))
-                            (map (map remapP) (tabulate K.ein))))
-           (cong₂ _++_ (concat-map (tabulate G.ein))
-                       (concat-map (tabulate K.ein)))))
+  ein-comp-eq = concat-tabulate-blocks ein-c G.ein K.ein injL remapP
+                  ein-c-inj₁-red ein-c-inj₂-red
 
   ------------------------------------------------------------------------
   -- The dom/cod of the composite (from `hComposeP`'s record):
