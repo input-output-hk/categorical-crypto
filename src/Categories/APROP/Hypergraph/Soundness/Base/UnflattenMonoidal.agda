@@ -41,7 +41,9 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.CIsoAssocFromCons si
   using (c-iso-assoc-from)
 
 open import Categories.Category using (Category)
-open import Categories.Morphism.Reasoning FreeMonoidal using (center; cancelʳ)
+open import Categories.Morphism.Reasoning FreeMonoidal
+  using (center; cancelʳ; cancelˡ)
+open import Categories.Morphism.Reasoning.Ext FreeMonoidal using (inv-resp)
 
 open import Data.List using (_++_)
 open import Data.List.Properties using (++-assoc)
@@ -55,9 +57,7 @@ open FM.HomReasoning
 -- ## 0.  Generic middle-iso cancellation.
 --
 -- Two 3-fold composites sharing a middle iso `Fm ∘ Tm ≈ id` cancel it, leaving
--- `To ∘ M₁ ∘ M₂ ∘ Ff`.  No assumption on `M₁` / `M₂`.  (Part of the
--- transport-absorption algebra, kept here because the `c-iso-assoc-to`
--- inversion chases below consume it.)
+-- `To ∘ M₁ ∘ M₂ ∘ Ff`.  No assumption on `M₁` / `M₂`.
 cancel-mid-iso
   : ∀ {A₀ A₁ A₂ A₃ A₄ A₅ : ObjTerm}
       (To : HomTerm A₄ A₅) (M₁ : HomTerm A₂ A₄) (Fm : HomTerm A₃ A₂)
@@ -68,14 +68,22 @@ cancel-mid-iso
 -- `cancelʳ m-iso : (M₁ ∘ Fm) ∘ Tm ≈ M₁`, in the `center` of the composite.
 cancel-mid-iso _ _ _ _ _ _ m-iso = center (cancelʳ m-iso)
 
+-- A 3-fold composite and its reverse cancel, innermost pair first.
+cancel₃
+  : ∀ {A₀ A₁ A₂ A₃ : ObjTerm}
+      {a : HomTerm A₂ A₃} {b : HomTerm A₁ A₂} {c : HomTerm A₀ A₁}
+      {c⁻ : HomTerm A₁ A₀} {b⁻ : HomTerm A₂ A₁} {a⁻ : HomTerm A₃ A₂}
+  → c ∘ c⁻ ≈Term id → b ∘ b⁻ ≈Term id → a ∘ a⁻ ≈Term id
+  → (a ∘ b ∘ c) ∘ (c⁻ ∘ b⁻ ∘ a⁻) ≈Term id
+cancel₃ hc hb ha = center (cancelʳ hc) ○ (refl⟩∘⟨ cancelˡ hb) ○ ha
+
 --------------------------------------------------------------------------------
 -- ## 1.  Associativity coherence, `to`-side.
 --
 -- `c-iso-assoc-from` (re-exported above) is the `from`-side pentagon.  Its
--- `to`-side dual is obtained by composite inversion:
---   `Lhsinv ≈ Rhsinv ∘ Rhs ∘ Lhsinv ≈ Rhsinv ∘ Lhs ∘ Lhsinv ≈ Rhsinv`,
--- using `c-iso-assoc-from` for `Rhs ≈ Lhs` and the `unflatten-++-≅` iso laws
--- to collapse `Lhs ∘ Lhsinv ≈ id` and `Rhsinv ∘ Rhs ≈ id`.
+-- `to`-side dual is that same equation between the two INVERSE composites:
+-- each side is a 3-fold composite whose reverse cancels pairwise (`cancel₃`),
+-- so `inv-resp` transports `Rhs ≈ Lhs` to `Rhsinv ≈ Lhsinv`.
 
 c-iso-assoc-to
   : ∀ xs₁ xs₂ ys
@@ -85,79 +93,13 @@ c-iso-assoc-to
   ≈Term subst-id-dom (++-assoc xs₁ xs₂ ys)
         ∘ _≅_.to (unflatten-++-≅ xs₁ (xs₂ ++ ys))
         ∘ (id {unflatten xs₁} ⊗₁ _≅_.to (unflatten-++-≅ xs₂ ys))
-c-iso-assoc-to xs₁ xs₂ ys = begin
-  Lhsinv
-    ≈⟨ ≈-Term-sym idˡ ⟩
-  id ∘ Lhsinv
-    ≈⟨ ≈-Term-sym RhsinvRhs ⟩∘⟨refl ⟩
-  (Rhsinv ∘ Rhs) ∘ Lhsinv
-    ≈⟨ (refl⟩∘⟨ ≈-Term-sym (c-iso-assoc-from xs₁ xs₂ ys)) ⟩∘⟨refl ⟩
-  (Rhsinv ∘ Lhs) ∘ Lhsinv
-    ≈⟨ FM.assoc ⟩
-  Rhsinv ∘ (Lhs ∘ Lhsinv)
-    ≈⟨ refl⟩∘⟨ LhsLhsinv ⟩
-  Rhsinv ∘ id
-    ≈⟨ idʳ ⟩
-  Rhsinv ∎
+c-iso-assoc-to xs₁ xs₂ ys =
+  ⟺ (inv-resp RhsinvRhs LhsLhsinv (⟺ (c-iso-assoc-from xs₁ xs₂ ys)))
   where
-    U₁  = unflatten xs₁
-    U₂  = unflatten xs₂
-    Uys = unflatten ys
+    RhsinvRhs = cancel₃ (⊗-cancel idˡ (_≅_.isoˡ (unflatten-++-≅ xs₂ ys)))
+                        (_≅_.isoˡ (unflatten-++-≅ xs₁ (xs₂ ++ ys)))
+                        (cast-cancel′ (++-assoc xs₁ xs₂ ys))
 
-    from₁₂   = _≅_.from (unflatten-++-≅ xs₁ xs₂)
-    to₁₂     = _≅_.to   (unflatten-++-≅ xs₁ xs₂)
-    from₁₂ys = _≅_.from (unflatten-++-≅ (xs₁ ++ xs₂) ys)
-    to₁₂ys   = _≅_.to   (unflatten-++-≅ (xs₁ ++ xs₂) ys)
-    from₂₃   = _≅_.from (unflatten-++-≅ xs₂ ys)
-    to₂₃     = _≅_.to   (unflatten-++-≅ xs₂ ys)
-    from₁₂₃  = _≅_.from (unflatten-++-≅ xs₁ (xs₂ ++ ys))
-    to₁₂₃    = _≅_.to   (unflatten-++-≅ xs₁ (xs₂ ++ ys))
-
-    e     = ++-assoc xs₁ xs₂ ys
-    s-id  = subst-id-cod e
-    s-id⁻ = subst-id-dom e
-
-    Lhs    = α⇒ {U₁} {U₂} {Uys} ∘ (from₁₂ ⊗₁ id) ∘ from₁₂ys
-    Rhs    = (id {U₁} ⊗₁ from₂₃) ∘ from₁₂₃ ∘ s-id
-    Lhsinv = to₁₂ys ∘ (to₁₂ ⊗₁ id) ∘ α⇐ {U₁} {U₂} {Uys}
-    Rhsinv = s-id⁻ ∘ to₁₂₃ ∘ (id {U₁} ⊗₁ to₂₃)
-
-    LhsLhsinv : Lhs ∘ Lhsinv ≈Term id
-    LhsLhsinv = begin
-      (α⇒ ∘ (from₁₂ ⊗₁ id) ∘ from₁₂ys) ∘ (to₁₂ys ∘ (to₁₂ ⊗₁ id) ∘ α⇐)
-        ≈⟨ cancel-mid-iso α⇒ (from₁₂ ⊗₁ id) from₁₂ys to₁₂ys (to₁₂ ⊗₁ id) α⇐
-             (_≅_.isoʳ (unflatten-++-≅ (xs₁ ++ xs₂) ys)) ⟩
-      α⇒ ∘ (from₁₂ ⊗₁ id) ∘ (to₁₂ ⊗₁ id) ∘ α⇐
-        ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-      α⇒ ∘ ((from₁₂ ⊗₁ id) ∘ (to₁₂ ⊗₁ id)) ∘ α⇐
-        ≈⟨ refl⟩∘⟨ ≈-Term-sym ⊗-∘-dist ⟩∘⟨refl ⟩
-      α⇒ ∘ ((from₁₂ ∘ to₁₂) ⊗₁ (id ∘ id)) ∘ α⇐
-        ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (_≅_.isoʳ (unflatten-++-≅ xs₁ xs₂)) idˡ ⟩∘⟨refl ⟩
-      α⇒ ∘ (id ⊗₁ id) ∘ α⇐
-        ≈⟨ refl⟩∘⟨ id⊗id≈id ⟩∘⟨refl ⟩
-      α⇒ ∘ id ∘ α⇐
-        ≈⟨ refl⟩∘⟨ idˡ ⟩
-      α⇒ ∘ α⇐
-        ≈⟨ α⇒∘α⇐≈id ⟩
-      id ∎
-
-    RhsinvRhs : Rhsinv ∘ Rhs ≈Term id
-    RhsinvRhs = begin
-      (s-id⁻ ∘ to₁₂₃ ∘ (id ⊗₁ to₂₃)) ∘ ((id ⊗₁ from₂₃) ∘ from₁₂₃ ∘ s-id)
-        ≈⟨ cancel-mid-iso s-id⁻ to₁₂₃ (id ⊗₁ to₂₃) (id ⊗₁ from₂₃) from₁₂₃ s-id
-             mid-iso ⟩
-      s-id⁻ ∘ to₁₂₃ ∘ from₁₂₃ ∘ s-id
-        ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-      s-id⁻ ∘ (to₁₂₃ ∘ from₁₂₃) ∘ s-id
-        ≈⟨ refl⟩∘⟨ _≅_.isoˡ (unflatten-++-≅ xs₁ (xs₂ ++ ys)) ⟩∘⟨refl ⟩
-      s-id⁻ ∘ id ∘ s-id
-        ≈⟨ refl⟩∘⟨ idˡ ⟩
-      s-id⁻ ∘ s-id
-        ≈⟨ cast-cancel′ e ⟩
-      id ∎
-      where
-        mid-iso : (id {U₁} ⊗₁ to₂₃) ∘ (id ⊗₁ from₂₃) ≈Term id
-        mid-iso =
-          ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-            (≈-Term-trans (⊗-resp-≈ idˡ (_≅_.isoˡ (unflatten-++-≅ xs₂ ys)))
-                          id⊗id≈id)
+    LhsLhsinv = cancel₃ (_≅_.isoʳ (unflatten-++-≅ (xs₁ ++ xs₂) ys))
+                        (⊗-cancel (_≅_.isoʳ (unflatten-++-≅ xs₁ xs₂)) idˡ)
+                        α⇒∘α⇐≈id
