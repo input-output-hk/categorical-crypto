@@ -50,7 +50,8 @@ open import Relation.Binary.PropositionalEquality
 open import Categories.Category using (Category)
 -- `elim²ᵀ`/`inv-uniqueᵀ` used to be hand-rolled here because these two opens
 -- were missing: they ARE `cancelˡ` and `inv-resp` at the term-level category.
-open import Categories.Morphism.Reasoning FreeMonoidal using (cancelˡ)
+open import Categories.Morphism.Reasoning FreeMonoidal
+  using (cancelˡ; center; cancelInner)
 open import Categories.Morphism.Reasoning.Ext FreeMonoidal using (inv-resp)
 
 private
@@ -186,18 +187,9 @@ st-roundtrip (α⇐ {A} {B} {C}) =
           (cod-cancel P))
         ≈-Term-refl))
   where P = ++-assoc (flatten A) (flatten B) (flatten C)
-st-roundtrip (σ {A} {B} ⦃ v≤v ⦄) = ≈-Term-sym (begin
-  (T ∘ (from-B ⊗₁ from-A)) ∘ (σ ∘ ((to-A ⊗₁ to-B) ∘ F))
-    ≈⟨ FM.assoc ⟩
-  T ∘ ((from-B ⊗₁ from-A) ∘ (σ ∘ ((to-A ⊗₁ to-B) ∘ F)))
-    ≈⟨ refl⟩∘⟨ ≈-Term-sym FM.assoc ⟩
-  T ∘ (((from-B ⊗₁ from-A) ∘ σ) ∘ ((to-A ⊗₁ to-B) ∘ F))
-    ≈⟨ refl⟩∘⟨ (≈-Term-sym σ∘[f⊗g]≈[g⊗f]∘σ ⟩∘⟨refl) ⟩
-  T ∘ ((σ ∘ (from-A ⊗₁ from-B)) ∘ ((to-A ⊗₁ to-B) ∘ F))
-    ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-  T ∘ (σ ∘ ((from-A ⊗₁ from-B) ∘ ((to-A ⊗₁ to-B) ∘ F)))
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ cancelˡ ⊗-iso-cancel ⟩
-  T ∘ (σ ∘ F) ∎)
+st-roundtrip (σ {A} {B} ⦃ v≤v ⦄) =
+  ≈-Term-sym (center (≈-Term-sym σ∘[f⊗g]≈[g⊗f]∘σ)
+              ○ (refl⟩∘⟨ cancelInner ⊗-iso-cancel))
   where
     a = flatten A ; b = flatten B
     T      = _≅_.to (unflatten-++-≅ b a)
@@ -208,9 +200,5 @@ st-roundtrip (σ {A} {B} ⦃ v≤v ⦄) = ≈-Term-sym (begin
     to-B   = _≅_.to (unflatten-flatten-≈ B)
 
     ⊗-iso-cancel : (from-A ⊗₁ from-B) ∘ (to-A ⊗₁ to-B) ≈Term id
-    ⊗-iso-cancel =
-      ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-      (≈-Term-trans
-        (⊗-resp-≈ (_≅_.isoʳ (unflatten-flatten-≈ A))
-                  (_≅_.isoʳ (unflatten-flatten-≈ B)))
-        id⊗id≈id)
+    ⊗-iso-cancel = ⊗-cancel (_≅_.isoʳ (unflatten-flatten-≈ A))
+                            (_≅_.isoʳ (unflatten-flatten-≈ B))

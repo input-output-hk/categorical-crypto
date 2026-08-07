@@ -239,14 +239,7 @@ bridge-ρ⇒-form A =
   : ∀ (xs ys zs : List X)
   → α⇒-form-list xs ys zs ∘ α⇐-form-list xs ys zs ≈Term id
 α⇒-α⇐-iso []       ys zs = idˡ
-α⇒-α⇐-iso (x ∷ xs) ys zs = begin
-  (id {Var x} ⊗₁ α⇒-form-list xs ys zs) ∘ (id {Var x} ⊗₁ α⇐-form-list xs ys zs)
-    ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-  (id ∘ id) ⊗₁ (α⇒-form-list xs ys zs ∘ α⇐-form-list xs ys zs)
-    ≈⟨ ⊗-resp-≈ idˡ (α⇒-α⇐-iso xs ys zs) ⟩
-  id ⊗₁ id
-    ≈⟨ id⊗id≈id ⟩
-  id ∎
+α⇒-α⇐-iso (x ∷ xs) ys zs = id⊗-cancel (α⇒-α⇐-iso xs ys zs)
 
 --------------------------------------------------------------------------------
 -- Mac Lane / solver helpers.

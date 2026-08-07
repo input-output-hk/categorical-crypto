@@ -237,6 +237,13 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
                → P ∘ Q ≈Term id → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ≈Term id
     id⊗-cancel {P = P} {Q} PQ = id⊗-∘ P Q ○ (refl⟩⊗⟨ PQ) ○ id⊗id≈id
 
+    -- a ⊗-pair of cancelling composites cancels.
+    ⊗-cancel : ∀ {A A' B B'} {P : HomTerm A' A} {Q : HomTerm A A'}
+                 {R : HomTerm B' B} {S : HomTerm B B'}
+             → P ∘ Q ≈Term id → R ∘ S ≈Term id
+             → (P ⊗₁ R) ∘ (Q ⊗₁ S) ≈Term id
+    ⊗-cancel PQ RS = ⟺ ⊗-∘-dist ○ (PQ ⟩⊗⟨ RS) ○ id⊗id≈id
+
     α-conj : ∀ {A B C D E G} (f : HomTerm A B) (g : HomTerm C D) (h : HomTerm E G)
            → α⇒ ∘ (f ⊗₁ g) ⊗₁ h ∘ α⇐ ≈Term f ⊗₁ (g ⊗₁ h)
     α-conj f g h = pullˡ α-comm ○ cancelʳ α⇒∘α⇐≈id
@@ -266,9 +273,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
     flat⇐∘flat⇒ unit = idˡ
     flat⇐∘flat⇒ (Y ⊗₀ Z) =
       cancelInner (split∘merge (flatten Y))
-      ○ ⟺ ⊗-∘-dist
-      ○ (flat⇐∘flat⇒ Y ⟩⊗⟨ flat⇐∘flat⇒ Z)
-      ○ id⊗id≈id
+      ○ ⊗-cancel (flat⇐∘flat⇒ Y) (flat⇐∘flat⇒ Z)
     flat⇐∘flat⇒ (Var x) = ρ⇒∘ρ⇐≈id
 
     --------------------------------------------------------------------------
@@ -438,8 +443,7 @@ module FreeMonoidal (d : FreeMonoidalData) where
     hiding ( liftW; liftW-id; liftW-resp; liftW-∘
            ; merge; merge∘split; split; split∘merge
            ; pad; pad-id; pad-resp; pad-∘
-           ; rpad; rpad-id; rpad-resp; rpad-∘
-           ; id⊗-cancel; id⊗-∘; id⊗-∘3; α-conj )
+           ; rpad; rpad-id; rpad-resp; rpad-∘ )
 
 -- The object action of the free functor depends only on the atoms'
 -- interpretation `⟦_⟧ᵖ₀`, never on the generating morphisms `mor`.  Hoisting
