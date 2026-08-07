@@ -132,7 +132,10 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
     data HomTerm : ObjTerm → ObjTerm → Set where
       var : mor A B → HomTerm A B
       id : HomTerm A A
-      _∘_ : HomTerm B C → HomTerm A B → HomTerm A C
+      -- `{A B C}` spelled out, NOT generalised (which would order them
+      -- `{B}{C}{A}`): only then does a `Category`'s `_∘_ = _∘_` eta-contract to
+      -- the constructor, which is what `Tactic.Category.solve` matches on.
+      _∘_ : ∀ {A B C} → HomTerm B C → HomTerm A B → HomTerm A C
       _⊗₁_ : HomTerm A B → HomTerm C D → HomTerm (A ⊗₀ C) (B ⊗₀ D)
       λ⇒ : HomTerm (unit ⊗₀ A) A
       λ⇐ : HomTerm A (unit ⊗₀ A)
