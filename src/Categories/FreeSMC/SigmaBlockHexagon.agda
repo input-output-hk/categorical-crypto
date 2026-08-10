@@ -20,7 +20,8 @@ module Categories.FreeSMC.SigmaBlockHexagon
 open FreeMonoidal d
 
 open import Categories.Category using (Category)
-open import Categories.Morphism.Reasoning FreeMonoidal using (cancelˡ; cancelʳ)
+open import Categories.Morphism.Reasoning FreeMonoidal
+  using (cancelˡ; cancelʳ; assoc²εβ)
 
 private
   module FM = Category FreeMonoidal
@@ -63,8 +64,7 @@ private
 -- (`cancelˡ` on the outside, `cancelʳ` on the inside).  The `hexagon₂` step is
 -- the only content; everything else is `Morphism.Reasoning` bookkeeping.
 σ-A⊗B-expand =
-  ⟺ ( (refl⟩∘⟨ (refl⟩∘⟨ ⟺ assoc))
-    ○ (refl⟩∘⟨ ⟺ assoc)
+  ⟺ ( (refl⟩∘⟨ assoc²εβ)
     ○ (refl⟩∘⟨ (hexagon₂ ⟩∘⟨refl))
     ○ (refl⟩∘⟨ assoc)
     ○ cancelˡ α⇒∘α⇐≈id
