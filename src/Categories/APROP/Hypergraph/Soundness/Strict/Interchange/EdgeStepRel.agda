@@ -34,7 +34,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; _++_; map)
+open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-++)
 open import Data.Maybe using (just; nothing)
 open import Data.Product using (_,_; proj₁; proj₂)
@@ -72,6 +72,14 @@ module EdgeStepView (H : Hypergraph FlatGen) where
   pe-termˢ : (o : List (Fin H.nE)) (s : List (Fin H.nV))
            → HomS (map vl s) (map vl (pe-stackˢ o s))
   pe-termˢ o s = proj₂ (process-edgesˢ o s)
+
+  -- `process-edgesˢ` factors over an order split: the run recurses on the
+  -- prefix, so this is a direct induction (no `stacks-agree` detour).
+  ++-stackˢ
+    : ∀ (ps rest : List (Fin H.nE)) (s : List (Fin H.nV))
+    → pe-stackˢ (ps ++ rest) s ≡ pe-stackˢ rest (pe-stackˢ ps s)
+  ++-stackˢ []       rest s = refl
+  ++-stackˢ (e ∷ ps) rest s = ++-stackˢ ps rest (proj₁ (edge-stepˢ s e))
 
   -- The function realises the relation.
   edge-stepˢ-graph

@@ -32,8 +32,6 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-edges)
-open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
-  using (process-edges-++-stack)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
   using (module Run)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
@@ -85,6 +83,7 @@ module _ (H : Hypergraph FlatGen)
   Incompˢ     = Incomp H
   pe-stackˢ′  = pe-stackˢ H
   pe-termˢ′   = pe-termˢ H
+  ++-stackˢ′  = ++-stackˢ H
 
   -- EdgeStepRˢ view aliases.
   EdgeStepRˢ′      = EdgeStepRˢ H
@@ -231,18 +230,6 @@ module _ (H : Hypergraph FlatGen)
                        ∘ˢ fire-termˢ′ e sp r₁ p₁ )
         box-eq = proj₂ RI
 
-    -- Strict `++`-factoring of the stack (bridged to the non-strict
-    -- `process-edges-++-stack` through `Run.stacks-agree`).
-    ++-stackˢ
-      : ∀ (ps rest : List (Fin H.nE)) (s : List (Fin H.nV))
-      → pe-stackˢ′ (ps ++ rest) s ≡ pe-stackˢ′ rest (pe-stackˢ′ ps s)
-    ++-stackˢ ps rest s =
-      trans (RH.stacks-agree (ps ++ rest) s)
-      (trans (process-edges-++-stack H ps rest s)
-      (trans (cong (λ z → (process-edges H rest z))
-                   (sym (RH.stacks-agree ps s)))
-             (sym (RH.stacks-agree rest (pe-stackˢ′ ps s)))))
-
     ----------------------------------------------------------------------
     -- The EMPTY-TAIL interchange core.
     ----------------------------------------------------------------------
@@ -301,15 +288,15 @@ module _ (H : Hypergraph FlatGen)
 
         us-s1 : Unique (proj₁ (edge-stepˢ sp e))
         us-s1 = subst Unique
-                  (trans (++-stackˢ ps (e ∷ []) H.dom) refl)
+                  (trans (++-stackˢ′ ps (e ∷ []) H.dom) refl)
                   (reached-Uniqueˢ-from (ps ++ e ∷ []) res-e)
 
         us-u1 : Unique (proj₁ (edge-stepˢ sp e'))
         us-u1 = subst Unique
-                  (trans (++-stackˢ ps (e' ∷ []) H.dom) refl)
+                  (trans (++-stackˢ′ ps (e' ∷ []) H.dom) refl)
                   (reached-Uniqueˢ-from (ps ++ e' ∷ []) res-e')
 
         us-u2 : Unique (proj₁ (edge-stepˢ (proj₁ (edge-stepˢ sp e')) e))
         us-u2 = subst Unique
-                  (trans (++-stackˢ ps (e' ∷ e ∷ []) H.dom) refl)
+                  (trans (++-stackˢ′ ps (e' ∷ e ∷ []) H.dom) refl)
                   (reached-Uniqueˢ-from (ps ++ e' ∷ e ∷ []) res-comb)
