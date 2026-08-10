@@ -293,7 +293,6 @@ module _ (G K : Hypergraph FlatGen) where
     module K = Hypergraph K
     open hTensor-impl G K
 
-  private
     hTensor-boundary
       : (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
       → map vlab-c (map injL xs ++ map injR ys)
@@ -369,18 +368,11 @@ hGen {A} {B} f = record
   ; nE = 1
   ; ein = λ _ → map (_↑ˡ nB) (range nA)
   ; eout = λ _ → map (nA ↑ʳ_) (range nB)
-  ; elab = λ _ → retype lem-in lem-out (flat f)
+  ; elab = λ _ → retype (sym lem-L) (sym lem-R) (flat f)
   ; dom = map (_↑ˡ nB) (range nA)
   ; cod = map (nA ↑ʳ_) (range nB)
   }
-  where
-    open hGenSwap-impl A B
-
-    lem-in : flatten A ≡ map vlab-c (map (_↑ˡ nB) (range nA))
-    lem-in = sym lem-L
-
-    lem-out : flatten B ≡ map vlab-c (map (nA ↑ʳ_) (range nB))
-    lem-out = sym lem-R
+  where open hGenSwap-impl A B
 
 domL-hGen : ∀ {A B} (g : mor A B) → domL (hGen g) ≡ flatten A
 domL-hGen {A} {B} _ = lem-L
