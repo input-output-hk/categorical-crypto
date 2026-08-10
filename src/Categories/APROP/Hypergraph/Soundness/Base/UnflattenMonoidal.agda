@@ -13,7 +13,7 @@
 -- fold from `Soundness/Base/Unflatten.agda`) and the structure iso (laxator)
 -- is `unflatten-++-≅`.  It gathers the associativity coherence (both
 -- directions):
---   * `c-iso-assoc-from` — re-exported from `Discharge/CIsoAssocFromCons.agda`
+--   * `c-iso-assoc-from` — re-exported from `Base/CIsoAssoc.agda`
 --     (the `from`-side pentagon);
 --   * `c-iso-assoc-to`   — its `to`-side dual, by composite inversion.
 -- The transported identities `subst-id-{dom,cod}` and their groupoid laws live
@@ -36,7 +36,7 @@ open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig public
         ; cod-cancel; dom-cancel; subst-cod-cons )
 
 -- The `from`-side associativity pentagon, imported and re-exported as-is.
-open import Categories.APROP.Hypergraph.Soundness.Discharge.CIsoAssocFromCons sig public
+open import Categories.APROP.Hypergraph.Soundness.Base.CIsoAssoc sig public
   using (c-iso-assoc-from)
 
 open import Categories.Category using (Category)

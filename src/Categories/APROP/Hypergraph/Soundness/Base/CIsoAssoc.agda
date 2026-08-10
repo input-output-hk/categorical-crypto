@@ -13,7 +13,7 @@
 
 open import Categories.APROP
 
-module Categories.APROP.Hypergraph.Soundness.Discharge.CIsoAssocFromCons
+module Categories.APROP.Hypergraph.Soundness.Base.CIsoAssoc
   (sig : APROPSignature) where
 
 open APROP sig
