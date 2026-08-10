@@ -112,15 +112,7 @@ module Discharge (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X)
 
       -- The Yang-Baxter braid in the exact shape produced by `permuteˢ` of
       -- the two `swap-braid` derivations; delegated to the `braidX` residual.
-      braid₃
-        : ∀ (x y z : V) (M : List X)
-        → ((σˢ (vlab y ∷ []) (vlab z ∷ []) ⊗ˢ idˢ {vlab x ∷ M})
-            ∘ˢ (idˢ {vlab y ∷ []} ⊗ˢ (σˢ (vlab x ∷ []) (vlab z ∷ []) ⊗ˢ idˢ {M})))
-              ∘ˢ (σˢ (vlab x ∷ []) (vlab y ∷ []) ⊗ˢ idˢ {vlab z ∷ M})
-          ≈ˢ
-          ((idˢ {vlab z ∷ []} ⊗ˢ (σˢ (vlab x ∷ []) (vlab y ∷ []) ⊗ˢ idˢ {M}))
-            ∘ˢ (σˢ (vlab x ∷ []) (vlab z ∷ []) ⊗ˢ idˢ {vlab y ∷ M}))
-              ∘ˢ (idˢ {vlab x ∷ []} ⊗ˢ (σˢ (vlab y ∷ []) (vlab z ∷ []) ⊗ˢ idˢ {M}))
+      braid₃ : ∀ (x y z : V) (M : List X) → BG.BraidAt (vlab x) (vlab y) (vlab z) M
       braid₃ x y z M = braidX (vlab x) (vlab y) (vlab z) M
 
       swap-braid-case
