@@ -210,6 +210,11 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
       ; pentagon        = pentagon
       }
 
+    -- the free monoidal category itself, as the coherence solver's target
+    -- bundle (`FinSetup FMC`).
+    FMC : MonoidalCategory _ _ _
+    FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
+
     --------------------------------------------------------------------------
     -- Structural merge / split isos between `wires a ⊗₀ wires suf` and the
     -- flat `wires (a ++ suf)`.  Only λ/α coherence morphisms appear, so they

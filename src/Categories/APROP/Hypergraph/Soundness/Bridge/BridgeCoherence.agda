@@ -7,7 +7,6 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Categories.Category.Monoidal using (Monoidal; MonoidalCategory)
 
 module Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence
   (sig : APROPSignature) where
@@ -38,10 +37,6 @@ open import Data.List.Properties using (++-identityʳ)
 
 private
   module FM = Category FreeMonoidal
-
-  -- the free monoidal category itself, as the solver's target bundle.
-  FMC : MonoidalCategory _ _ _
-  FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
 
 open FM.HomReasoning
 

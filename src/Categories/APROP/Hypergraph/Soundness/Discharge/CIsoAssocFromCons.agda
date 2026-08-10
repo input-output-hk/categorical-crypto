@@ -22,7 +22,6 @@ open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; subst-id-cod; subst-cod-cons)
 
 open import Categories.Category using (Category)
-open import Categories.Category.Monoidal using (MonoidalCategory)
 open import Categories.Morphism FreeMonoidal using (_≅_)
 -- Morphism-variable monoidal solver (cf. `BridgeAlphaFormCompound.agda`).
 open import Categories.Coherence.Monoidal.Frontend using (module FinSetup)
@@ -34,10 +33,6 @@ open import Data.List.Properties using (++-assoc)
 
 private
   module FM = Category FreeMonoidal
-
-  -- the free monoidal category itself, as the solver's target bundle.
-  FMC : MonoidalCategory _ _ _
-  FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
 
 open FM.HomReasoning
 

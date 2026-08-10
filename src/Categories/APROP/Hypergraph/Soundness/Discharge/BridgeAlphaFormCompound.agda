@@ -41,7 +41,6 @@ open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
 open import Categories.Morphism.Reasoning.Ext FreeMonoidal using (inv-resp)
-open import Categories.Category.Monoidal using (Monoidal; MonoidalCategory)
 -- Morphism-variable monoidal solver: discharges the F-/T-decomp chases
 -- (coherence + naturality + interchange around the opaque unflatten isos)
 -- as single `solveMor!` calls at the free monoidal category itself.
@@ -55,10 +54,6 @@ open import Data.List using (List; []; _∷_; _++_)
 
 private
   module FM = Category FreeMonoidal
-
-  -- the free monoidal category itself, as the solver's target bundle.
-  FMC : MonoidalCategory _ _ _
-  FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
 
 open FM.HomReasoning
 
