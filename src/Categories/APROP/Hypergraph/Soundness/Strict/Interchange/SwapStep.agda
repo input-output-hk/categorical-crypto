@@ -89,6 +89,16 @@ module PerHG (H : Hypergraph FlatGen)
   Incompˢ : Fin H.nE → Fin H.nE → Set
   Incompˢ = SC.Incomp H
 
+  -- The (N) residual as a NAMED telescope: for any orders `ps`/`qs` and any
+  -- incomparable adjacent pair carrying the `↭ range nE` provenance, the
+  -- strict run-interchange.  `swap-≈ˢ` below, `Iso.IsoTransport` (twice) and
+  -- `PartII`'s plug all state this socket BY NAME, so it cannot drift.
+  RunInterchangeAt : Set
+  RunInterchangeAt =
+    ∀ (ps qs : Order) {e e' : Fin H.nE} (inc : Incompˢ e e')
+    → (ps ++ e' ∷ e ∷ qs) Perm.↭ range H.nE
+    → RunInterchangeˢ H lin ps qs inc
+
   -- The concrete strict Kelly residual at this vertex set.
   private
     permˢ-K : Support.PermK (Fin H.nV) vl
@@ -302,10 +312,7 @@ module _ (H : Hypergraph FlatGen)
   module FS = FrontSwap H dih lin uniq-cod
   open FS using (front-swap-≈ˢ)
 
-  module _ (run-interchange
-              : ∀ (ps qs : Order) {e e' : Fin (Hypergraph.nE H)} (inc : Incompˢ e e')
-              → (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE H)
-              → RunInterchangeˢ H lin ps qs inc) where
+  module _ (run-interchange : RunInterchangeAt) where
 
     swap-≈ˢ
       : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂

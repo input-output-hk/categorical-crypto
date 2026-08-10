@@ -54,7 +54,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig _≟X_ as SS
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTail sig _≟X_
-  using (RunInterchangeˢ; run-interchange-tailˢ)
+  using (run-interchange-tailˢ)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.FireMid sig _≟X_ as FMD
 import Categories.APROP.Hypergraph.Soundness.Strict.Iso.IsoTransport sig _≟X_ as IT
 
@@ -106,12 +106,7 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
       ≡ castˢ (⟪⟫-domL f) (⟪⟫-codL f) (decodeOrdˢ (range (Hypergraph.nE F)) vrangeˢ)
   decodePˢ-≡-cast = refl
 
-  run-interchange-H
-    : ∀ (ps qs : SS.PerHG.Order F dih lin)
-        {e e' : Fin (Hypergraph.nE F)}
-        (inc : SS.PerHG.Incompˢ F dih lin e e')
-    → (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE F)
-    → RunInterchangeˢ F lin ps qs inc
+  run-interchange-H : SS.PerHG.RunInterchangeAt F dih lin
   run-interchange-H ps qs {e} {e'} inc prov =
     run-interchange-tailˢ F lin ps qs inc prov
       (record { reshuffle = proj₁ ri₀ ; run-eq = proj₂ ri₀ })

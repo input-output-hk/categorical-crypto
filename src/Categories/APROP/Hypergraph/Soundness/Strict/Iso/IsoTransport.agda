@@ -67,8 +67,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_ using (module Run)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig _≟X_ as SS
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ as DC2
-open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTail sig _≟X_
-  using (RunInterchangeˢ)
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
   using (module Support)
@@ -76,7 +74,7 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _�
 
 open import Data.Fin.Base using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; _∷_; _++_; map)
+open import Data.List using (List; map)
 open import Data.List.Properties using (map-injective)
 open import Data.List.Properties.Ext using (map-∘-id)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
@@ -98,12 +96,7 @@ module PerHG (H : Hypergraph FlatGen)
              (dih : ∀ {e} → ¬ (Dep H e e))
              (lin : Linear H)
              (uniq-cod : Unique (Hypergraph.cod H))
-             (run-interchange
-               : ∀ (ps qs : SS.PerHG.Order H dih lin)
-                   {e e' : Fin (Hypergraph.nE H)}
-                   (inc : SS.PerHG.Incompˢ H dih lin e e')
-                 → (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE H)
-                 → RunInterchangeˢ H lin ps qs inc) where
+             (run-interchange : SS.PerHG.RunInterchangeAt H dih lin) where
   open SS.PerHG H dih lin
     using (Order; Validˢ; decodeOrdˢ; _↝_; _↝*_; NoInv; connectivity
           ; swap-step; swap-validityˢ)
@@ -147,11 +140,7 @@ module PerHG (H : Hypergraph FlatGen)
 
 module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
          (run-interchange-H
-           : ∀ (ps qs : SS.PerHG.Order ⟪ f ⟫ (dep-irrefl-⟪⟫ f) (DAL.⟪⟫-LinearP f))
-               {e e' : Fin (Hypergraph.nE ⟪ f ⟫)}
-               (inc : SS.PerHG.Incompˢ ⟪ f ⟫ (dep-irrefl-⟪⟫ f) (DAL.⟪⟫-LinearP f) e e')
-             → (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE ⟪ f ⟫)
-             → RunInterchangeˢ ⟪ f ⟫ (DAL.⟪⟫-LinearP f) ps qs inc)
+           : SS.PerHG.RunInterchangeAt ⟪ f ⟫ (dep-irrefl-⟪⟫ f) (DAL.⟪⟫-LinearP f))
          where
 
   private
