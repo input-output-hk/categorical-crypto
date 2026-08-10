@@ -4,18 +4,10 @@ module Categories.GConstruction where
 open import Categories.Category
 open import Categories.Category.Helper
 open import Categories.Category.Monoidal
-open import Categories.Category.Monoidal.Properties
+open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
 open import Categories.Functor hiding (id)
-open import Categories.Functor.Bifunctor
-open import Categories.Functor.Monoidal
-open import Categories.Functor.Presheaf
-open import Categories.Monad.Graded
-open import Categories.Morphism
-open import Categories.NaturalTransformation hiding (id)
 open import Categories.Category.Monoidal.Traced
-open import Categories.Category.Monoidal.Symmetric
 
-open import Categories.Category.Instance.Sets
 open import categorical-crypto.Prelude hiding (id; _∘_; _⊗_; lookup; Dec; [_]; ⊤; ⊥; Functor)
 import Categories.Category.Monoidal.Braided.Properties
 
@@ -35,10 +27,16 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
       open Traced Traced public
       open U Monoidal public
       open import Categories.Category.Monoidal.Reasoning Monoidal public
-        using (serialize₁₂; serialize₂₁)
+        using (serialize₁₂; serialize₂₁; _⟩⊗⟨_; refl⟩⊗⟨_)
+      open import Categories.Morphism.Reasoning C public
+        using (introˡ; pullʳ)
       open Shorthands public
       module BP = Categories.Category.Monoidal.Braided.Properties braided
       open BP.Shorthands public
+
+    -- the bundle the transported coherence lemmas are instantiated at
+    Cˢ : SymmetricMonoidalCategory a b c
+    Cˢ = record { U = Cᵤ ; monoidal = Monoidal ; symmetric = C.symmetric }
 
   -- Derived trace properties needed for the G-construction.
   -- These are standard properties of traced monoidal categories:
@@ -75,7 +73,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
       ; identityʳ = identityʳ'
       ; equiv = C.equiv
       ; ∘-resp-≈ = λ p q → trace-resp-≈ (C.∘-resp-≈ C.Equiv.refl
-                     (C.∘-resp-≈ (Functor.F-resp-≈ C.⊗ (p , q)) C.Equiv.refl))
+                     (C.∘-resp-≈ (p C.⟩⊗⟨ q) C.Equiv.refl))
       }
       where
         open C.HomReasoning
@@ -100,32 +98,25 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
         -- a parallel copy of itself, so its trace is the identity.
         trace-βyank : ∀ {Y X : C.Obj} → C.trace (β {Y} {X} {X}) C.≈ C.id
         trace-βyank =
-          C.Equiv.trans C.superposing
-          (C.Equiv.trans (Functor.F-resp-≈ C.⊗ (C.Equiv.refl , C.yanking))
-                         (Functor.identity C.⊗))
+          C.superposing ○ (C.refl⟩⊗⟨ C.yanking) ○ Functor.identity C.⊗
 
         -- framed yanking: a loop whose body is a yanking core followed by
         -- loop-independent processing g collapses to g.
         trace-gyank : ∀ {Y X B' : C.Obj} {g : Y C.⊗₀ X C.⇒ B'} →
                       C.trace (g C.⊗₁ C.id C.∘ β {Y} {X} {X}) C.≈ g
-        trace-gyank =
-          C.Equiv.trans (C.Equiv.sym trace-∘ˡ)
-          (C.Equiv.trans (C.∘-resp-≈ʳ trace-βyank) C.identityʳ)
+        trace-gyank = ⟺ trace-∘ˡ ○ (refl⟩∘⟨ trace-βyank) ○ C.identityʳ
 
         -- identityˡ: id ∘G f ≈ f, i.e. trace(α ∘ σ⇒ ⊗₁ f ∘ γ) ≈ f
         identityˡ' : ∀ {A B : C.Obj × C.Obj}
                        {f : proj₁ A C.⊗₀ proj₂ B C.⇒ proj₂ A C.⊗₀ proj₁ B} →
                      C.trace (α C.∘ C.σ⇒ C.⊗₁ f C.∘ γ) C.≈ f
         identityˡ' {A} {B} {f} =
-          C.Equiv.trans (C.Equiv.sym (C.vanishing₂ {X = proj₂ B} {Y = proj₁ B}))
-          (C.Equiv.trans (trace-resp-≈ (trace-resp-≈ ICW.C1L))
-          (C.Equiv.trans (trace-resp-≈ (C.Equiv.sym trace-∘ʳ))
-          (C.Equiv.trans (trace-resp-≈ (C.∘-resp-≈ˡ trace-gyank))
-          (C.Equiv.trans (trace-resp-≈ ICW.C3L)
-          trace-gyank))))
+          ⟺ (C.vanishing₂ {X = proj₂ B} {Y = proj₁ B})
+          ○ trace-resp-≈ (trace-resp-≈ ICW.C1L ○ ⟺ trace-∘ʳ
+                          ○ (trace-gyank ⟩∘⟨refl) ○ ICW.C3L)
+          ○ trace-gyank
           where
-            module ICW = GCohId.Transport.WithGen
-              (record { U = Cᵤ ; monoidal = Monoidal ; symmetric = C.symmetric })
+            module ICW = GCohId.Transport.WithGen Cˢ
               (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) f
 
         -- identityʳ: f ∘G id ≈ f, i.e. trace(α ∘ f ⊗₁ σ⇒ ∘ γ) ≈ f
@@ -133,21 +124,14 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
                        {f : proj₁ A C.⊗₀ proj₂ B C.⇒ proj₂ A C.⊗₀ proj₁ B} →
                      C.trace (α C.∘ f C.⊗₁ C.σ⇒ C.∘ γ) C.≈ f
         identityʳ' {A} {B} {f} =
-          C.Equiv.trans (C.Equiv.sym (C.vanishing₂ {X = proj₂ A} {Y = proj₁ A}))
-          (C.Equiv.trans (trace-resp-≈ (trace-resp-≈ ICW.C1R))
-          (C.Equiv.trans (trace-resp-≈
-            (C.Equiv.trans (C.Equiv.sym trace-∘ˡ)
-            (C.∘-resp-≈ʳ (C.Equiv.trans (C.Equiv.sym trace-∘ʳ)
-                         (C.Equiv.trans (C.∘-resp-≈ˡ trace-βyank) C.identityˡ)))))
-          (C.Equiv.trans (trace-resp-≈ ICW.C3R)
-          (C.Equiv.trans (C.Equiv.sym trace-∘ʳ)
-          (C.Equiv.trans (C.∘-resp-≈ˡ trace-gyank)
-          (C.Equiv.trans (C.Equiv.sym C.assoc)
-          (C.Equiv.trans (C.∘-resp-≈ˡ C.commutative)
-          C.identityˡ)))))))
+          ⟺ (C.vanishing₂ {X = proj₂ A} {Y = proj₁ A})
+          ○ trace-resp-≈ (trace-resp-≈ ICW.C1R ○ ⟺ trace-∘ˡ
+                          ○ (refl⟩∘⟨ (⟺ trace-∘ʳ ○ (trace-βyank ⟩∘⟨refl) ○ C.identityˡ))
+                          ○ ICW.C3R)
+          ○ ⟺ trace-∘ʳ ○ (trace-gyank ⟩∘⟨refl)
+          ○ ⟺ C.assoc ○ (C.commutative ⟩∘⟨refl) ○ C.identityˡ
           where
-            module ICW = GCohId.Transport.WithGen
-              (record { U = Cᵤ ; monoidal = Monoidal ; symmetric = C.symmetric })
+            module ICW = GCohId.Transport.WithGen Cˢ
               (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) f
 
         -- Right superposing: trace(f) ⊗₁ id ≈ trace(β ∘ f ⊗₁ id ∘ β)
@@ -171,23 +155,13 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
             ≈⟨ trace-resp-≈ coherence ⟩
           C.trace (β C.∘ f' C.⊗₁ C.id C.∘ β)
           ∎
-          where braiding-swap : C.trace f' C.⊗₁ C.id C.≈
+          where -- introduce σ⇒ ∘ σ⇒ ≈ id on the left, then braiding naturality
+                braiding-swap : C.trace f' C.⊗₁ C.id C.≈
                   C.σ⇒ {Y} {B'} C.∘ C.id C.⊗₁ C.trace f' C.∘ C.σ⇒
-                braiding-swap = begin
-                  C.trace f' C.⊗₁ C.id
-                    ≈˘⟨ C.identityˡ ⟩
-                  C.id C.∘ C.trace f' C.⊗₁ C.id
-                    ≈˘⟨ C.commutative ⟩∘⟨refl ⟩
-                  (C.σ⇒ {Y} {B'} C.∘ C.σ⇒) C.∘ C.trace f' C.⊗₁ C.id
-                    ≈⟨ C.assoc ⟩
-                  C.σ⇒ C.∘ C.σ⇒ C.∘ C.trace f' C.⊗₁ C.id
-                    ≈⟨ refl⟩∘⟨ C.braiding.⇒.commute _ ⟩
-                  C.σ⇒ C.∘ C.id C.⊗₁ C.trace f' C.∘ C.σ⇒
-                  ∎
+                braiding-swap = C.introˡ C.commutative
+                              ○ C.pullʳ (C.braiding.⇒.commute _)
 
-                coherence = GCohId.TransportRS.WithGen.RS
-                  (record { U = Cᵤ ; monoidal = Monoidal ; symmetric = C.symmetric })
-                  A' B' X Y f'
+                coherence = GCohId.TransportRS.WithGen.RS Cˢ A' B' X Y f'
 
         -- Associativity
         assoc' : ∀ {A B D E : C.Obj × C.Obj}
@@ -263,8 +237,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
             -- Discharged by the transported free-level solver result
             -- (GConstructionCoherence.Transport.WithGens.coherence).
             assoc'-coherence {A⁺} {A⁻'} {B⁺'} {B⁻'} {D⁺'} {D⁻'} {E⁺'} {E⁻'} f' g' h' =
-              GCoh.Transport.WithGens.coherence
-                (record { U = Cᵤ ; monoidal = Monoidal ; symmetric = C.symmetric })
+              GCoh.Transport.WithGens.coherence Cˢ
                 A⁺ A⁻' B⁺' B⁻' D⁺' D⁻' E⁺' E⁻'
                 f' g' h'
 
