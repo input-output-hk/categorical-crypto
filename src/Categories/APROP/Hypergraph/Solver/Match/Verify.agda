@@ -38,7 +38,7 @@ open import Data.Nat using (ℕ)
 open import Data.Product using (_,_)
 open import Function
 open import Relation.Binary.Definitions
-open import Relation.Binary.PropositionalEquality as Eq
+open import Relation.Binary.PropositionalEquality
 
 open import Relation.Nullary
 open import Relation.Nullary.Decidable using (dec⇒maybe)
@@ -52,6 +52,13 @@ open import Relation.Nullary.Decidable using (dec⇒maybe)
   d zero                >>= λ p₀ →
   ∀F? (λ i → d (suc i)) >>= λ ps →
   just λ { zero → p₀ ; (suc i) → ps i }
+
+--------------------------------------------------------------------------------
+-- Decidable equality on Fin-index lists, at any arity: the endpoint and
+-- boundary checks of `Verify` and of `SubMatch`'s `verifySub` share it.
+
+_≟LF_ : ∀ {n} → DecidableEquality (List (Fin n))
+_≟LF_ = ≡-dec _≟F_
 
 --------------------------------------------------------------------------------
 -- UIP at `List X`, from decidable atom equality via Hedberg's theorem.
@@ -138,10 +145,6 @@ module Verify (H J : Hypergraph FlatGen)
   module H = Hypergraph H
   module J = Hypergraph J
 
-  private
-    _≟LF-J_ : DecidableEquality (List (Fin J.nV))
-    _≟LF-J_ = ≡-dec _≟F_
-
   --------------------------------------------------------------------------
   -- Main entry point: extract the totals, then check bijection laws, vertex
   -- labels, edge endpoints, boundaries, and finally edge labels.  Every stage
@@ -159,10 +162,10 @@ module Verify (H J : Hypergraph FlatGen)
     ∀F? (λ e → dec⇒maybe (ψ⁻¹ (ψ e) ≟F e))                       >>= λ ψ-left →
     ∀F? (λ k → dec⇒maybe (ψ (ψ⁻¹ k) ≟F k))                       >>= λ ψ-rght →
     ∀F? (λ i → dec⇒maybe (J.vlab (φ i) ≟X H.vlab i))             >>= λ φ-lab →
-    ∀F? (λ e → dec⇒maybe (J.ein  (ψ e) ≟LF-J map φ (H.ein  e)))  >>= λ ψ-ein →
-    ∀F? (λ e → dec⇒maybe (J.eout (ψ e) ≟LF-J map φ (H.eout e)))  >>= λ ψ-eout →
-    dec⇒maybe (J.dom ≟LF-J map φ H.dom)                          >>= λ φ-dom →
-    dec⇒maybe (J.cod ≟LF-J map φ H.cod)                          >>= λ φ-cod →
+    ∀F? (λ e → dec⇒maybe (J.ein  (ψ e) ≟LF map φ (H.ein  e)))  >>= λ ψ-ein →
+    ∀F? (λ e → dec⇒maybe (J.eout (ψ e) ≟LF map φ (H.eout e)))  >>= λ ψ-eout →
+    dec⇒maybe (J.dom ≟LF map φ H.dom)                          >>= λ φ-dom →
+    dec⇒maybe (J.cod ≟LF map φ H.cod)                          >>= λ φ-cod →
     ∀F? (λ e → flat-match-subst
                  (deriveAtomEq φ-lab (H.ein  e) (ψ-ein  e))
                  (deriveAtomEq φ-lab (H.eout e) (ψ-eout e))

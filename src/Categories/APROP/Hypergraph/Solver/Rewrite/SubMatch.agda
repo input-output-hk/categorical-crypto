@@ -43,12 +43,11 @@ open import Categories.APROP.Hypergraph.Solver.Match.PBij
   using (PBij; forward; backward; emptyBij; totalise; deriveAtomEq)
 open import Categories.APROP.Hypergraph.Solver.Match.Search sig-dec using (searchAll-default)
 open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec
-  using (flat-match-subst; ∀F?)
+  using (flat-match-subst; ∀F?; _≟LF_)
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Base using (List; head; map; mapMaybe)
-open import Data.List.Properties using () renaming (≡-dec to ≡-decL)
 open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
 open import Data.Maybe.Properties using () renaming (≡-dec to ≡-decM)
 open import Data.Product using (_,_)
@@ -119,24 +118,19 @@ module Verify-Sub (L S : Hypergraph FlatGen)
   module S = Hypergraph S
 
   private
-    _≟LF-S_ : DecidableEquality (List (Fin S.nV))
-    _≟LF-S_ = ≡-decL _≟F_
-
-    _≟MV_ : DecidableEquality (Maybe (Fin L.nV))
-    _≟MV_ = ≡-decM _≟F_
-
-    _≟ME_ : DecidableEquality (Maybe (Fin L.nE))
-    _≟ME_ = ≡-decM _≟F_
+    -- one decider for both `Maybe (Fin L.nV)` and `Maybe (Fin L.nE)`.
+    _≟M_ : ∀ {k} → DecidableEquality (Maybe (Fin k))
+    _≟M_ = ≡-decM _≟F_
 
   verifySub : Maybe (L ↪ᴴ S)
   verifySub =
     totalise (forward φB)                                          >>= λ (φ , _) →
     totalise (forward ψB)                                          >>= λ (ψ , _) →
-    ∀F? (λ i → dec⇒maybe (backward φB (φ i) ≟MV just i))           >>= λ φ-inv →
-    ∀F? (λ e → dec⇒maybe (backward ψB (ψ e) ≟ME just e))           >>= λ ψ-inv →
+    ∀F? (λ i → dec⇒maybe (backward φB (φ i) ≟M just i))           >>= λ φ-inv →
+    ∀F? (λ e → dec⇒maybe (backward ψB (ψ e) ≟M just e))           >>= λ ψ-inv →
     ∀F? (λ i → dec⇒maybe (S.vlab (φ i) ≟X L.vlab i))               >>= λ φ-lab →
-    ∀F? (λ e → dec⇒maybe (S.ein  (ψ e) ≟LF-S map φ (L.ein  e)))    >>= λ ψ-ein →
-    ∀F? (λ e → dec⇒maybe (S.eout (ψ e) ≟LF-S map φ (L.eout e)))    >>= λ ψ-eout →
+    ∀F? (λ e → dec⇒maybe (S.ein  (ψ e) ≟LF map φ (L.ein  e)))    >>= λ ψ-ein →
+    ∀F? (λ e → dec⇒maybe (S.eout (ψ e) ≟LF map φ (L.eout e)))    >>= λ ψ-eout →
     ∀F? (λ e → flat-match-subst
                  (deriveAtomEq φ-lab (L.ein  e) (ψ-ein  e))
                  (deriveAtomEq φ-lab (L.eout e) (ψ-eout e))
