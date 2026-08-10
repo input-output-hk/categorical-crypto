@@ -7,8 +7,10 @@
 module Data.Maybe.Ext where
 
 open import Data.Bool.Base using (T)
-open import Data.Maybe.Base using (Maybe; is-just)
+open import Data.Empty using (⊥)
+open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
 open import Level using (Level)
+open import Relation.Binary.PropositionalEquality using (_≡_)
 
 private
   variable
@@ -21,3 +23,9 @@ private
 -- reduces to a `just`.  Eliminate it with `Data.Maybe.to-witness-T`.
 IsJust : Maybe A → Set
 IsJust x = T (is-just x)
+
+-- `just x ≢ nothing`, as the absurd-pattern eliminator the `⊥-elim` sites
+-- want.  stdlib 2.3 has no counterpart (`Data.Maybe.Properties` stops at
+-- `just-injective`).
+just≢nothing : {x : A} → just x ≡ nothing → ⊥
+just≢nothing ()

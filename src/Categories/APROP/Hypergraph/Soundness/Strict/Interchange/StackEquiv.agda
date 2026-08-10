@@ -64,6 +64,7 @@ open import Data.List.Properties using (map-++)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just; nothing)
 open import Data.Maybe.Properties using (just-injective)
+open import Data.Maybe.Ext using (just≢nothing)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Product using (Σ-syntax; _,_; _×_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
@@ -88,9 +89,6 @@ module EquivStep (H : Hypergraph FlatGen) where
 
     permˢ-K-H : Support.PermK (Fin H.nV) H.vlab
     permˢ-K-H = PK.permˢ-K (Fin H.nV) _≟V_ H.vlab
-
-    just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
-    just≢nothing ()
 
   ----------------------------------------------------------------------
   -- The strict fired layer + `EdgeStepRˢ` graph view, shared with

@@ -45,6 +45,7 @@ open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-++)
 open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.Maybe using (just; nothing)
+open import Data.Maybe.Ext using (just≢nothing)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
@@ -441,15 +442,9 @@ module TermEmbedˢ
   ... | nothing | nothing = cast-id pDom pCod
   ... | nothing | just (restJ , permJ) =
         ⊥-elim (just≢nothing (trans (sym eqJ) (extract-prefix-J-nothing e sH eqH)))
-        where
-          just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
-          just≢nothing ()
   ... | just (restH , permH) | nothing =
         ⊥-elim (just≢nothing
           (trans (sym (proj₂ (extract-prefix-J-just e sH restH permH eqH))) eqJ))
-        where
-          just≢nothing : ∀ {a} {A : Set a} {x : A} → just x ≡ nothing → ⊥
-          just≢nothing ()
   ... | just (restH , permH) | just (restJ , permJ) =
         edge-step-fire-embˢ e sH restH permH eqH restJ permJ eqJ restJ≡ pDom pCod
         where
