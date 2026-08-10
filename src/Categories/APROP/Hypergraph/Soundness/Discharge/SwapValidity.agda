@@ -52,9 +52,9 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
   using (process-edges-++-stack)
 
 -- Shared per-H combinatorics: firing stability + the both-fire multiset
--- bridge live in the `Sub/FireMidInterchangeComb` leaf (also consumed by
+-- bridge live in the `Discharge/FireMidInterchangeComb` leaf (also consumed by
 -- `Sub/RunInterchangeEmptyTail`).
-import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.FireMidInterchangeComb sig as FMIC
+import Categories.APROP.Hypergraph.Soundness.Discharge.FireMidInterchangeComb sig as FMIC
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 
@@ -181,7 +181,7 @@ module PerHG (H : Hypergraph FlatGen)
 
   ------------------------------------------------------------------------
   -- BOTH-FIRE multiset bridge + FIRING STABILITY, shared with
-  -- `Sub/RunInterchangeEmptyTail` via the `Sub/FireMidInterchangeComb`
+  -- `Sub/RunInterchangeEmptyTail` via the `Discharge/FireMidInterchangeComb`
   -- leaf: `post-swap-stack-↭` is the pure `_↭_` order-independence of
   -- the both-fire multiset content; `e'-fires-stable` / `e'-skips-stable`
   -- say `e'`'s firing decision is the same on `s` and on the post-`e`

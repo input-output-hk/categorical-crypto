@@ -15,7 +15,7 @@ module Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties (sig : APRO
 open APROP sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-elem; extract-prefix)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SeparableStack sig
+open import Categories.APROP.Hypergraph.Soundness.Stack.SeparableStack sig
   using ( extract-prefix-++ˡ; extract-prefix-++ˡ-nothing
         ; extract-prefix-++ʳ-nothing )
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (inject+-inj; raise-inj; ↑ˡ≢↑ʳ)
@@ -185,7 +185,7 @@ extract-prefix-via-injective-just f f-inj ks xs rest p eq =
 -- so the bespoke `with x ≟ k` cascades are gone (F18):
 --   * equivariance under an injection — `extract-*-via-injective-*`;
 --   * frame insensitivity — the `++ˡ` (right-frame) / `++ʳ` (left-frame)
---     families in `Discharge.Sub.SeparableStack`.
+--     families in `Stack.SeparableStack`.
 -- L-side keys (`↑ˡ`) put the `↑ʳ`-block on the RIGHT ⇒ right frame; R-side
 -- keys (`↑ʳ`) put the `↑ˡ`-block on the LEFT ⇒ left frame (whose disjointness
 -- side condition is discharged by `extract-elem-↑ʳ-on-↑ˡ-list`).

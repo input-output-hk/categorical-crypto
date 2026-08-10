@@ -122,7 +122,7 @@ open import Relation.Binary.PropositionalEquality
 -- ## Generic count / disjointness helpers (used by the `∘` cross-acyclicity).
 
 -- Membership ⇒ positive `count`: shared `CountCombinatorics` leaf.
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
+open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
   using (∈→count-pos)
 
 --------------------------------------------------------------------------------

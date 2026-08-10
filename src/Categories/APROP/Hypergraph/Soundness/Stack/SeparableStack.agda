@@ -11,7 +11,7 @@
 
 open import Categories.APROP
 
-module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.SeparableStack
+module Categories.APROP.Hypergraph.Soundness.Stack.SeparableStack
   (sig : APROPSignature) where
 
 open APROP sig

@@ -42,11 +42,11 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCoreRun sig 
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_ as DSS
 
-import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.FireMidInterchangeComb sig
+import Categories.APROP.Hypergraph.Soundness.Discharge.FireMidInterchangeComb sig
   as FMIC
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig
   as SU
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
+open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
   using (++-cancelˡ)
 
 open import Data.Fin using (Fin)

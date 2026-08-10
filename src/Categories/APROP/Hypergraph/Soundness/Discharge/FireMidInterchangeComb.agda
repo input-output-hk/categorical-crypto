@@ -17,7 +17,7 @@
 
 open import Categories.APROP
 
-module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.FireMidInterchangeComb
+module Categories.APROP.Hypergraph.Soundness.Discharge.FireMidInterchangeComb
   (sig : APROPSignature) where
 
 open APROP sig
@@ -50,7 +50,7 @@ open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
+open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
   using ( ↭⇒count; count-≡⇒↭; count-pos→∈; count-≤→extract-prefix; ++-cancelˡ
         ; extract-prefix-just→count-≤
         ; count-concat-tabulate-pair-≤)

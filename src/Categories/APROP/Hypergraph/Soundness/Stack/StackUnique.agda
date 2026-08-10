@@ -55,7 +55,7 @@ private
 --------------------------------------------------------------------------------
 -- 0.  `count` cons reductions and `↭`-invariance (shared leaf).
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
+open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
   using (count-cons-yes; count-cons-no; ↭⇒count; count-mono-cons)
 
 --------------------------------------------------------------------------------

@@ -10,7 +10,7 @@
 
 open import Categories.APROP
 
-module Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics
+module Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics
   (sig : APROPSignature) where
 
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig

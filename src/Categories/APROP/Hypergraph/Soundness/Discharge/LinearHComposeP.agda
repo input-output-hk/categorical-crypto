@@ -56,7 +56,7 @@ open import Relation.Binary.PropositionalEquality using (_≢_)
 --------------------------------------------------------------------------------
 -- Count / permutation helpers.
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.Sub.CountCombinatorics sig
+open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
   using ( count-cons-yes; count-cons-no
         ; count-mono-cons; count-map-resp; ∈→count-pos)
 
