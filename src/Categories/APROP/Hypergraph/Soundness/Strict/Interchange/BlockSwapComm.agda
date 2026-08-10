@@ -48,7 +48,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig 
   using (σ-hexˢʳ; module Scr)
 
 open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (++-assoc; map-++)
+open import Data.List.Properties using (++-assoc)
 open import Relation.Binary.PropositionalEquality using (refl; sym)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
@@ -62,7 +62,7 @@ module _ (V : Set) (vlab : V → X) where
   open Restrict V vlab
     using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; permuteᵛ-frame
           ; ⊗-respᵛ; interchangeᵛ; σ-hexᵛ; castᵛ-≈̂; ⊗-resp-≈̂ᵛ
-          ; ⊗-assoc-≈̂ᵛ; box-suffix-≈̂ᵛ )
+          ; ⊗-assoc-≈̂ᵛ; box-suffix-≈̂ᵛ; σᵛ-≈̂; viaˢ )
 
   private
     m : List V → List X
@@ -77,7 +77,7 @@ module _ (V : Set) (vlab : V → X) where
     : (v x : V) (R : List V)
     → σᵛ (v ∷ []) (x ∷ R)
       ≈ᵛ (idᵛ {x ∷ []} ⊗ᵛ σᵛ (v ∷ []) R) ∘ᵛ (σᵛ (v ∷ []) (x ∷ []) ⊗ᵛ idᵛ {R})
-  hexᵛ v x R = ≈̂⇒≈ˢ (≈̂-trans lhs (≈̂-sym rhs))
+  hexᵛ v x R = viaˢ (σᵛ-≈̂ (v ∷ []) (x ∷ R)) hex' rhs
     where
       a b c : List X
       a = vlab v ∷ []
@@ -94,17 +94,9 @@ module _ (V : Set) (vlab : V → X) where
           (∘-resp ≈-refl
             (≈-trans (∘-resp (coe-id≈ (++-assoc b a c)) ≈-refl) idˡ))))))
 
-      lhs : σᵛ (v ∷ []) (x ∷ R) ≈̂ (idˢ {b} ⊗ˢ σˢ a c) ∘ˢ (σˢ a b ⊗ˢ idˢ {c})
-      lhs = ≈̂-trans (cast-≈̂ {p = refl} {q = sym (map-++ vlab (x ∷ R) (v ∷ []))})
-                    (≈ˢ⇒≈̂ hex')
-
       rhs : (idᵛ {x ∷ []} ⊗ᵛ σᵛ (v ∷ []) R) ∘ᵛ (σᵛ (v ∷ []) (x ∷ []) ⊗ᵛ idᵛ {R})
             ≈̂ (idˢ {b} ⊗ˢ σˢ a c) ∘ˢ (σˢ a b ⊗ˢ idˢ {c})
-      rhs =
-        ∘-resp-≈̂
-          (⊗-resp-≈̂ ≈̂-refl
-            (cast-≈̂ {p = refl} {q = sym (map-++ vlab R (v ∷ []))}))
-          ≈̂-refl
+      rhs = ∘-resp-≈̂ (⊗-resp-≈̂ ≈̂-refl (σᵛ-≈̂ (v ∷ []) R)) ≈̂-refl
 
   --------------------------------------------------------------------------
   -- (B)  The full shift-sym slide, by induction on R.  The only surviving
