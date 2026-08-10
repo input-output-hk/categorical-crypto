@@ -66,6 +66,7 @@ import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (just; nothing)
 open import Data.Maybe.Properties using (just-injective)
+open import Data.Maybe.Ext using (nothing≢just)
 open import Data.Product using (_,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_; yes; no)
 open import Relation.Binary.PropositionalEquality
@@ -88,10 +89,6 @@ module PerHG (H : Hypergraph FlatGen)
   -- `Incomp e e' = (¬ Dep H e e') × (¬ Dep H e' e)` and the swap-step
   -- constructor, from the LinExt instantiation `PH.L`.
   open PH.L public using (Incomp; swap-step)
-
-  private
-    nothing≢just : ∀ {A : Set} {x : A} → nothing ≡ just x → ⊥
-    nothing≢just ()
 
   ------------------------------------------------------------------------
   -- The final stack of running an order from a stack (generalised over

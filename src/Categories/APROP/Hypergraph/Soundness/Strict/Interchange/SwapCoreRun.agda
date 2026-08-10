@@ -56,13 +56,10 @@ import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (just; nothing)
 open import Data.Maybe.Properties using (just-injective)
+open import Data.Maybe.Ext using (nothing≢just)
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_; yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
-
-private
-  nothing≢just : ∀ {A : Set} {x : A} → nothing ≡ just x → ⊥
-  nothing≢just ()
 
 --------------------------------------------------------------------------------
 

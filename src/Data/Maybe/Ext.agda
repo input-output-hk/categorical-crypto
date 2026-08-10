@@ -24,8 +24,11 @@ private
 IsJust : Maybe A → Set
 IsJust x = T (is-just x)
 
--- `just x ≢ nothing`, as the absurd-pattern eliminator the `⊥-elim` sites
--- want.  stdlib 2.3 has no counterpart (`Data.Maybe.Properties` stops at
--- `just-injective`).
+-- `just x ≢ nothing` and its mirror, as the absurd-pattern eliminators the
+-- `⊥-elim` sites want.  stdlib 2.3 has no counterpart
+-- (`Data.Maybe.Properties` stops at `just-injective`).
 just≢nothing : {x : A} → just x ≡ nothing → ⊥
 just≢nothing ()
+
+nothing≢just : {x : A} → nothing ≡ just x → ⊥
+nothing≢just ()
