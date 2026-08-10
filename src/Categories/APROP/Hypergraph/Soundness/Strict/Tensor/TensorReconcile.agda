@@ -99,6 +99,15 @@ module _
       uniqCod : Unique Hf.cod
       uniqCod = Linear⇒cod-Unique ⟪ fg ⟫ (⟪⟫-LinearP fg)
 
+    -- THE `braidˢ` RESIDUAL, named: the C-run inner term post-sorted by
+    -- `cand` is the clean tensor at the boundary objects.  `reconcileˢ` IS
+    -- this signature at `cand := finalPermˢ fg`.
+    BraidSigˢ : RF.s-finˢ ↭ Hf.cod → Set
+    BraidSigˢ cand =
+      RF.permuteˢ cand ∘ˢ proj₂ (Run.runˢ ⟪ fg ⟫)
+        ≈ˢ castˢ (sym (⟪⟫-domL fg)) (sym (⟪⟫-codL fg))
+            (decodePˢ f ⊗ˢ decodePˢ g)
+
     ----------------------------------------------------------------------
     -- ## The FINAL-PERMUTE RESORT half (FULLY PROVEN).
     --
@@ -125,14 +134,7 @@ module _
     -- `permuteˢ (finalPermˢ fg)` to `permuteˢ cand` via `final-resortˢ`.
 
     reconcile-from-braid
-      : (cand : RF.s-finˢ ↭ Hf.cod)
-      → (braidˢ
-          : RF.permuteˢ cand ∘ˢ proj₂ (Run.runˢ ⟪ fg ⟫)
-            ≈ˢ castˢ (sym (⟪⟫-domL fg)) (sym (⟪⟫-codL fg))
-                (decodePˢ f ⊗ˢ decodePˢ g))
-      → RF.permuteˢ (finalPermˢ fg) ∘ˢ proj₂ (Run.runˢ ⟪ fg ⟫)
-        ≈ˢ castˢ (sym (⟪⟫-domL fg)) (sym (⟪⟫-codL fg))
-            (decodePˢ f ⊗ˢ decodePˢ g)
+      : (cand : RF.s-finˢ ↭ Hf.cod) → BraidSigˢ cand → BraidSigˢ (finalPermˢ fg)
     reconcile-from-braid cand braidˢ = ≈-trans (∘-resp (final-resortˢ cand) ≈-refl) braidˢ
 
     ----------------------------------------------------------------------
@@ -142,11 +144,7 @@ module _
     -- decodePˢ g` modulo the single residual `braidˢ` (the K-block braid).
 
     decodePˢ-⊗-from-braid
-      : (cand : RF.s-finˢ ↭ Hf.cod)
-      → (braidˢ
-          : RF.permuteˢ cand ∘ˢ proj₂ (Run.runˢ ⟪ fg ⟫)
-            ≈ˢ castˢ (sym (⟪⟫-domL fg)) (sym (⟪⟫-codL fg))
-                (decodePˢ f ⊗ˢ decodePˢ g))
+      : (cand : RF.s-finˢ ↭ Hf.cod) → BraidSigˢ cand
       → decodePˢ fg ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
     decodePˢ-⊗-from-braid cand braidˢ =
       DT.Tensor.decodePˢ-⊗ f g (reconcile-from-braid cand braidˢ)
