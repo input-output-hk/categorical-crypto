@@ -30,6 +30,19 @@
   out of scope here.]
 ])
 
+#block(inset: (x: 1.2em), stroke: (left: 2pt + luma(60%)), [
+  #text(9.5pt)[*Note on the formalization (added later).* The mathematics below is unchanged,
+  but the Agda development has since been *strictified*: the decoder and every shape lemma
+  now live in a presented strict SMC (`Categories.FreeStrictSMC`), and the Mac-Lane
+  re-bracketing $bold(M)$ is paid *once*, at the boundary functor `Soundness/Strict/Embed.agda`,
+  instead of per positional case. Consequently the claim below that $bold(M)$ is "by far the
+  largest part of the formalization" describes the *former* non-strict architecture and is no
+  longer true of `src/`: the large modules today are the K-block / interchange combinatorics.
+  Module names in this report have been repointed to their live homes; the deleted non-strict
+  modules (`Sub/DecodeTensorShape`, the `Sub/BlockNF*` family, `DecodeComposeShape`,
+  `DecodeAgenSigmaShape`, `SigmaBlockCommRaw`, `BlockNFBraid`) do not exist in the tree.]
+])
+
 = Introduction
 
 Morphisms of a free symmetric monoidal category (SMC) on a signature — equivalently, a PROP
@@ -405,7 +418,7 @@ So @runeq is *$bold(S)$ (disjointness) $+$ plain bifunctoriality (the boxes comm
 (the re-association bulk) $+ bold(K)$ (the reshuffle)*. The braiding lives entirely in the
 reshuffle, absorbed by $bold(K)$; and the genuine bulk is the $bold(M)$ re-bracketing — the
 solver-unfriendly heart of braided-monoidal coherence, and by far the largest part of the
-formalization (the `Sub/BlockNF*` re-bracketing here, `Sub/DecodeTensorShape` in part (I)).
+formalization (`Strict/Interchange/*` here, `Strict/Tensor/*` in part (I); see the note in §1).
 
 = The normal-form theorem, part (I)
 
@@ -422,12 +435,12 @@ By induction on $f$, using the action of $⟪dot.c⟫$ on each constructor:
   [*$alpha$*],
   [edge-free, but *not* cheap: $"decode" ⟪alpha⟫$ is a $"permute"$ matched to the associator by a
    well-founded recursion over the object's $times.o$-structure plus a pentagon / `c-iso-assoc` step —
-   $bold(M)$ (`BridgeAlphaFormCompound`, `CIsoAssocFromCons`; together over a thousand lines).],
+   $bold(M)$ (`Bridge/BridgeAlphaFormCompound`, `Base/CIsoAssoc`; together about a thousand lines).],
   [*$sigma$*],
   [edge-free; $sigma$ is the generator $sigma_(A,B)$, so $"decode" ⟪sigma⟫$ is the $"permute"$ of
    the *block* swap of $"flatten" A$, $"flatten" B$ — an iterated braiding, *not* a single
    transposition — matched to $sigma$ by $bold(K)$ on top of the $sigma$-block braiding algebra
-   (`DecodeAgenSigmaShape`, `SigmaBlockCommRaw`, `BlockNFBraid`).],
+   (`Strict/Decode/DecodeSigma`, `Strict/Interchange/BlockSwapComm`).],
   [*$"Agen" u$*],
   [one edge; $"decode" ⟪"Agen" u⟫ = ("coerce") compose ("Agen" u times.o "id") compose ("coerce") compose "permute"("id")$,
    equal to $"Agen" u$ by $bold(M)$ (unitor/associator isos around the single box).],
@@ -436,13 +449,13 @@ By induction on $f$, using the action of $⟪dot.c⟫$ on each constructor:
    $"decode" ⟪g⟫ compose "decode" ⟪h⟫$ (the stack at the gluing frontier *is*
    $"decode" ⟪h⟫$'s output) — the $compose$-shape lemma — then the IH. The shape lemma itself is
    $bold(M)$ (frame re-bracketing) $+ bold(K)$ (final-permute collapse), *not* mere combinatorics
-   (`DecodeComposeShape`).],
+   (`Strict/Decode/DecodeCompose`, `Strict/Decode/DecodeComposeAssembly`).],
   [*$g times.o h$*],
   [$⟪g times.o h⟫$ is the disjoint juxtaposition; $"decode"$ factors as
    $("coerce") compose ("decode" ⟪g⟫ times.o "decode" ⟪h⟫) compose ("coerce")$ after
    interleaving the two edge-streams — the $times.o$-shape lemma — then the IH. This lemma is the
-   *single largest part of the whole development* (`Sub/DecodeTensorShape`, $approx 7000$
-   lines): its bulk is the per-edge `box-suffix` / `box-prefix` Mac-Lane re-bracketing ($bold(M)$)
+   *single largest part of the whole development* (`Strict/Decode/DecodeTensor`, `Strict/Tensor/{TensorBraid, TensorReconcile,
+   TensorKBlockFinal}`): its bulk is the per-edge `box-suffix` / `box-prefix` Mac-Lane re-bracketing ($bold(M)$)
    that aligns the two box-streams onto disjoint factors, closed by $bold(K)$ — not the light
    $bold(S)$ glue the one-line shape equation suggests.],
 )
@@ -467,8 +480,8 @@ Every step above draws on one of four kinds of ingredient.
   [$bold(M)$ — monoidal ($alpha, lambda, rho$) coherence $+$ plain bifunctoriality; *the bulk of
    the formalization*],
   [(I) $alpha$, $"Agen"$, base / coercion cases, *and the box re-bracketing inside the
-   $compose$/$times.o$-shape lemmas* (`DecodeTensorShape`, the largest module); (II) the per-swap
-   re-bracketing (`BlockNF*`); Lemma 0b box factor],
+   $compose$/$times.o$-shape lemmas* (`Strict/Tensor/*`); (II) the per-swap
+   re-bracketing (`Strict/Interchange/*`); Lemma 0b box factor],
 
   [$bold(S)$ — structural combinatorics: Lemma 0a, Lemma A, connectivity, Lemma C, monogamy],
   [(I), (II)],
@@ -481,8 +494,8 @@ $"permute"(pi) approx "permute"(pi')$ whenever $"eval"(pi) = "eval"(pi')$ — wh
 separately and out of scope here. $bold(M)$ — Mac-Lane (associator / unitor) coherence with plain
 bifunctoriality — is by contrast the one *large* ingredient: it has no canonical-form solver in
 the symmetric fragment, so it is chased per positional case, and the box re-bracketing it demands
-(`Sub/DecodeTensorShape`, the `Sub/BlockNF*` family) is by far the largest part of the
-formalization. $bold(S)$ is finite combinatorics.
+(now paid once in `Soundness/Strict/Embed.agda`) was by far the largest part of the
+formalization before strictification (see the note in §1). $bold(S)$ is finite combinatorics.
 
 = Conclusion
 

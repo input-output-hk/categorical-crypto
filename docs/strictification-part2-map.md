@@ -1,5 +1,10 @@
 # Strictification map for part (II) — the iso-invariance chain
 
+> **Repointing note (2026-08-10).** `Discharge/DepIrrefl` no longer exists: it was
+> dissolved into `Discharge/FinOrderNoInv`, where its statement is exported as
+> `NoSelfDep` (types byte-identical).  Read every `DepIrrefl` below as
+> `FinOrderNoInv.NoSelfDep`.
+
 Status: reconnaissance over commit `2d2c8e5` ("Strictification phase 0").
 Companion deliverables `Strict/PermAlgebra.agda` and `Strict/SwapCore.agda` (§4) are
 DESIGNED here but not yet written.
