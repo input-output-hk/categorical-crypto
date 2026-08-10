@@ -98,6 +98,8 @@ module Embeds (G K : Hypergraph FlatGen) where
     using ( injL; injR; vlab-injL; vlab-injR
           ; ein-c-inj₁-red; eout-c-inj₁-red; ein-c-inj₂-red; eout-c-inj₂-red
           ; elab-c-inj₁; elab-c-inj₂ )
+  -- the two edge injections, from their one home in `TensorKBlock`.
+  open KBlockDisjoint G K using (ψG; ψK)
 
   ------------------------------------------------------------------------
   -- G-side embedding: φ = injL, ψ = _↑ˡ K.nE, H = G, J = hTensor G K.
@@ -105,9 +107,6 @@ module Embeds (G K : Hypergraph FlatGen) where
   -- `atom-ein`/`atom-eout`/`ψ-elab` are DERIVED from the raw endpoint
   -- reductions + edge-label reduction by `DC.EmbedGlue` (same builder
   -- `DecodeComposeAssembly` uses for the `hComposeP` twin).
-
-  ψG : Fin G.nE → Fin C.nE
-  ψG eG = eG ↑ˡ K.nE
 
   module GG = DC.EmbedGlue {H = G} {J = hTensor G K}
                 injL ψG ein-c-inj₁-red eout-c-inj₁-red
@@ -121,9 +120,6 @@ module Embeds (G K : Hypergraph FlatGen) where
 
   ------------------------------------------------------------------------
   -- K-side embedding: φ = injR, ψ = G.nE ↑ʳ_, H = K, J = hTensor G K.
-
-  ψK : Fin K.nE → Fin C.nE
-  ψK eK = G.nE ↑ʳ eK
 
   module KG = DC.EmbedGlue {H = K} {J = hTensor G K}
                 injR ψK ein-c-inj₂-red eout-c-inj₂-red
