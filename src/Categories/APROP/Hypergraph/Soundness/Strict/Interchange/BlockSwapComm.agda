@@ -62,7 +62,7 @@ module _ (V : Set) (vlab : V → X) where
   open Restrict V vlab
     using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; permuteᵛ-frame
           ; ⊗-respᵛ; interchangeᵛ; σ-hexᵛ; castᵛ-≈̂; ⊗-resp-≈̂ᵛ
-          ; ⊗-assoc-≈̂ᵛ; box-suffix-≈̂ᵛ; σᵛ-≈̂; viaˢ )
+          ; ⊗-assoc-≈̂ᵛ; box-suffix-≈̂ᵛ; σᵛ-≈̂ )
 
   private
     m : List V → List X
