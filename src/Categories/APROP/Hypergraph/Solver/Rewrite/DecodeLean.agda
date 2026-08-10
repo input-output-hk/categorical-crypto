@@ -17,8 +17,9 @@
 -- (`extract-prefix`, `extract-exact`) and its generic per-edge generator
 -- (`Agen-edge-aux`), so its stack trajectory over `range H.nE` (in kahn order)
 -- coincides definitionally with `Decode`'s bare-stack fold — that stack
--- agreement is exactly what makes the `bridged`/`final-permute` list-equality
--- guards below (`s ≟ ein e ++ rest`, `s_final ≟ H.cod`) meaningful.
+-- agreement is exactly what makes `permOrId`'s list-equality guards below
+-- (`s ≟ ein e ++ rest` at an edge step, `s_final ≟ H.cod` at the final
+-- bridge) meaningful.
 --
 -- The identity-guard collapse: at each `permute-via-vlab` slot `DecodeLean`
 -- adds a *decidable* identity pre-check.  When the running stack already
@@ -27,7 +28,8 @@
 -- permute — the locating permutation is the identity, so a naive full-permute
 -- decoder would emit a `permute Perm.refl`-flavoured `id ⊗₁ (id ⊗₁ …)` tower
 -- of `O(nV)` `id`s.  That tower translates (`⟪_⟫`) to edge-free `hId`s that are
--- *pruned* at the `hComposeP` seam, so dropping it leaves `⟪frame⟫` IDENTICAL.
+-- *pruned* at the `hComposeP` seam, so dropping it leaves the translated
+-- graph of the emitted frame IDENTICAL.
 -- We therefore emit a single `id` (well-typed by the `refl` from the `≟`),
 -- collapsing the bulk identity padding.  A *non*-identity permutation never
 -- passes the `≟` guard, so it is never collapsed.
