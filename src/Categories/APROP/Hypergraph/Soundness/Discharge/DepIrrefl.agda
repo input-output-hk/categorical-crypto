@@ -7,7 +7,15 @@
 --
 -- i.e. no translated edge's in-vertices and out-vertices share a vertex.
 --
--- ROUTE: structural induction on `f`.  Zero-edge cases are vacuous; `hGen`
+-- ROUTE: structural induction on `f`.  Like `FinOrderNoInv`'s `NoInv`, this
+-- is FORCED: irreflexivity is a property of the TRANSLATION and does NOT
+-- follow from `Linear H` plus the decoder's totality witness
+-- `IW.PerHG.Valid (range H.nE)`.  The self-loop `nV = nE = 1`,
+-- `ein = eout = v₀ ∷ []`, `dom = cod = []` is `Linear` (v₀ produced once,
+-- consumed once) AND `Valid` (the edge SKIPS, so the final stack is
+-- `dom = []` `↭ cod = []`), yet `Dep H e e` holds.
+--
+-- Zero-edge cases are vacuous; `hGen`
 -- has `ein`/`eout` of disjoint `_↑ˡ_`/`_↑ʳ_` form; `hTensor`/`hComposeP`
 -- route each composite edge through an injective `h` (`injL`/`injR`/the
 -- pruned `remapP`), so `EdgeDependency.Dep-reflect` reflects a composite

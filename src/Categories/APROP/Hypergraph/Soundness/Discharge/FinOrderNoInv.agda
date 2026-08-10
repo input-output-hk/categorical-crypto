@@ -11,15 +11,32 @@
 --
 -- ## Route
 --
--- A DIRECT structural induction on `f`.  This avoids the
--- `AllFire-natural-range ⇒ NoInv` bridge, which lives in an
--- `APROPSignatureDec`-parameterised module (decidable equality) and so is
--- NOT reachable from this bare-`APROPSignature` module.  The translation's
--- smart constructors lay edges in a topologically-sound order, so `NoInv`
--- follows constructor-by-constructor:
+-- A DIRECT structural induction on `f`.  This is FORCED, not a convenience:
+-- `NoInv (range nE)` is a property of the TRANSLATION, not of the decoder's
+-- run, and it does NOT follow from the two order-free facts the Stack layer
+-- tracks for an arbitrary hypergraph — `Linear H` (`Linearity`) and the
+-- decoder's totality witness `IW.PerHG.Valid (range H.nE)`, i.e.
+-- `process-all-edges H H.dom ↭ H.cod` (what
+-- `DecodeAttemptLinearP.decode-attempt-LinearP` supplies).  Counterexample:
+-- `nV = nE = 2`, `dom = cod = []`, `ein/eout` a 2-cycle (`e₀ : v₀ ↦ v₁`,
+-- `e₁ : v₁ ↦ v₀`).  It is `Linear` (each vertex produced once and consumed
+-- once) and `Valid` — BOTH edges SKIP, since neither `ein` is ever on the
+-- stack, so the final stack is `dom = []`, which is `↭ cod = []` — yet
+-- `e₁ ≺ e₀` while `e₀` precedes `e₁` in `range 2`: an inversion.  Validity is
+-- blind to skipped edges, so "every edge fires in the natural order" is a
+-- strictly stronger and likewise `⟪·⟫`-specific claim; routing `NoInv`
+-- through it (`Reservoir≤1` then supplies the contradiction in one step)
+-- would still need every per-constructor argument below, plus the run
+-- threading on top.
 --
---   * Zero-edge cases (`id`, `λ`, `ρ`, `α`, `σ`): `range 0 = []`.
---   * Single-edge `Agen g`: singleton has no pairs.
+-- The translation's smart constructors lay edges in a topologically-sound
+-- order, so `NoInv` follows constructor-by-constructor:
+--
+--   * `hId`-shaped cases (`id`, `λ`, `ρ`, `α`): `nE (hId A)` is not literally
+--     `0` for an abstract `A`, so `NoInvH-hId` recurses on `A` (`hEmpty`/
+--     `hVar` have `nE = 0`; `A ⊗₀ B` is the tensor assembly).
+--   * `σ`: `nE (hSwap A B) = 0` literally ⇒ `range 0 = []`.
+--   * Single-edge `Agen g`: `range 1`'s singleton has no pairs.
 --   * Tensor `f ⊗₁ g`: `hTensor` lays G-edges (`injL = _↑ˡ_`) before K-edges
 --     (`injR = _↑ʳ_`); the two vertex images are DISJOINT (`disj-L-R`), so no
 --     cross-block dependency exists; within each block dependency reflects
