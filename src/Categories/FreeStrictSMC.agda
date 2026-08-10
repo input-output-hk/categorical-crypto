@@ -289,6 +289,18 @@ module Build
     → f ≈̂ g → (P : as ≡ as') (Q : bs ≡ bs') → castˢ P Q f ≈ˢ g
   ≈̂⇒castˢ {f = f} (p , q , e) P Q = ≈-trans (≡⇒≈ˢ (cast-irrel P p Q q f)) e
 
+  -- the re-spelling sandwich: cite an equation at whatever endpoints it is
+  -- stated, framed by two `≈̂` re-spellings of the sides.  EVERY V-level axiom
+  -- (`Restrict`, below) is `viaˢ`; the `≈̂`-middle twin `viâ` serves the same
+  -- shape where the middle is itself heterogeneous.
+  viâ : ∀ {as bs as' bs'} {u v : HomS as bs} {u' v' : HomS as' bs'}
+      → u ≈̂ u' → u' ≈̂ v' → v ≈̂ v' → u ≈ˢ v
+  viâ l e r = ≈̂⇒≈ˢ (≈̂-trans l (≈̂-trans e (≈̂-sym r)))
+
+  viaˢ : ∀ {as bs as' bs'} {u v : HomS as bs} {u' v' : HomS as' bs'}
+       → u ≈̂ u' → u' ≈ˢ v' → v ≈̂ v' → u ≈ˢ v
+  viaˢ l e r = viâ l (≈ˢ⇒≈̂ e) r
+
   ------------------------------------------------------------------------
   -- Unit-side laws, DERIVED from `σ-unitˢ` (the left forms are cast-free
   -- because `[] ++ xs` reduces).
@@ -567,13 +579,8 @@ module Build
       ≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (castᵛ-cast p q t)))
               (cast-≈̂ {p = cong m p} {q = cong m q})
 
-    -- EVERY V-level axiom below is this sandwich: re-spell the LHS at ˢ level,
-    -- cite the ˢ axiom, re-spell the RHS back.  Naming it makes the layer's
-    -- content visible — V level IS ˢ level conjugated by the `map-++`
-    -- re-spelling — and leaves each axiom's middle argument the bare ˢ axiom.
-    viaˢ : ∀ {as bs} {u v : HomV as bs} {as' bs'} {u' v' : HomS as' bs'}
-         → u ≈̂ u' → u' ≈ˢ v' → v ≈̂ v' → u ≈ᵛ v
-    viaˢ l e r = ≈̂⇒≈ˢ (≈̂-trans l (≈̂-trans (≈ˢ⇒≈̂ e) (≈̂-sym r)))
+    -- EVERY V-level axiom below is `Build`'s `viaˢ`, which covers V level on
+    -- the nose (`HomV as bs = HomS (m as) (m bs)` and `_≈ᵛ_` IS `_≈ˢ_`).
 
     ------------------------------------------------------------------------
     -- The presentation, re-proved at V level.  Category and `_≈ᵛ_` structure
