@@ -36,8 +36,8 @@ module _ {X : Set} {Gen : List X → List X → Set} where
   -- along an edge embedding `embE` and an injective vertex embedding `embV`,
   -- given that `sub`'s in/out ports transport to `H`'s along `embV`.  This is
   -- the mechanical engine shared by the tensor/compose block-reflection lemmas
-  -- (`FinOrderNoInv.*-reflect`) and the self-dependency diagonal
-  -- (`DepIrrefl`, at `ea ≡ eb`).
+  -- (`FinOrderNoInv.*-reflect`) and, at `ea ≡ eb`, the self-dependency
+  -- diagonal (`FinOrderNoInv.NoSelfDep-*`).
   Dep-reflect
     : {sub H : Hypergraph Gen}
     → (embV : Fin (nV sub) → Fin (nV H))

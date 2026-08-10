@@ -55,10 +55,9 @@ open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Model.HomTermInvariant sig using (⟪_⟫-cod-unique)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.DepIrrefl sig using (dep-irrefl-⟪⟫)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.FinOrderNoInv sig
-  using (fin-order-NoInv-⟪⟫)
+  using (fin-order-NoInv-⟪⟫; dep-irrefl-⟪⟫)
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)

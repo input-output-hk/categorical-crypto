@@ -123,9 +123,9 @@ module hComposeP-impl
   -- Injectivity of `remapP` from `Unique` boundaries.  `lookup-cod` is
   -- injective when `G.cod` is `Unique` (through `Fin.cast`
   -- proof-irrelevance), and `remapP = remap K.dom lookup-cod` is then
-  -- injective when `K.dom` is also `Unique`.  Shared by `HomTermInvariant`
-  -- and `DepIrrefl` (the from-`Unique` family; `LinearHComposeP` derives the
-  -- from-`Linear` twin).
+  -- injective when `K.dom` is also `Unique`.  Used by `HomTermInvariant`
+  -- (the from-`Unique` family; `LinearHComposeP` derives the from-`Linear`
+  -- twin, which is what the ordering machinery uses).
 
   private
     cast-inj : ∀ {i j} → cast dom-cod-len i ≡ cast dom-cod-len j → i ≡ j

@@ -9,6 +9,13 @@
 -- nE)` — "for edges `a` before `b` in `range`, `b` does not produce a wire
 -- that `a` consumes" (no earlier-consumes-later inversion).
 --
+-- Second goal, on the DIAGONAL that `AllPairs` never reaches:
+-- `dep-irrefl-⟪⟫ : ∀ {A B} (f : HomTerm A B) {e} → ¬ Dep ⟪f⟫ e e` — no
+-- translated edge's in- and out-vertices share a vertex.  It is proven here
+-- because it needs exactly the same per-block reflections at `ea ≡ eb`, and
+-- is refuted by the same kind of counterexample (below) from the run-level
+-- facts alone.
+--
 -- ## Route
 --
 -- A DIRECT structural induction on `f`.  This is FORCED, not a convenience:
@@ -27,16 +34,19 @@
 -- strictly stronger and likewise `⟪·⟫`-specific claim; routing `NoInv`
 -- through it (`Reservoir≤1` then supplies the contradiction in one step)
 -- would still need every per-constructor argument below, plus the run
--- threading on top.
+-- threading on top.  Likewise for the diagonal: the self-loop `nV = nE = 1`,
+-- `ein = eout = v₀ ∷ []`, `dom = cod = []` is `Linear` and `Valid` (the edge
+-- SKIPS) yet has `Dep H e e`.
 --
 -- The translation's smart constructors lay edges in a topologically-sound
--- order, so `NoInv` follows constructor-by-constructor:
+-- order, so both facts follow constructor-by-constructor:
 --
 --   * `hId`-shaped cases (`id`, `λ`, `ρ`, `α`): `nE (hId A)` is not literally
---     `0` for an abstract `A`, so `NoInvH-hId` recurses on `A` (`hEmpty`/
---     `hVar` have `nE = 0`; `A ⊗₀ B` is the tensor assembly).
+--     `0` for an abstract `A`, so `NoInvH-hId`/`NoSelfDep-hId` recurse on `A`
+--     (`hEmpty`/`hVar` have `nE = 0`; `A ⊗₀ B` is the tensor case).
 --   * `σ`: `nE (hSwap A B) = 0` literally ⇒ `range 0 = []`.
---   * Single-edge `Agen g`: `range 1`'s singleton has no pairs.
+--   * Single-edge `Agen g`: `range 1`'s singleton has no pairs; on the
+--     diagonal, `ein`/`eout` are disjoint `_↑ˡ_`/`_↑ʳ_` images.
 --   * Tensor `f ⊗₁ g`: `hTensor` lays G-edges (`injL = _↑ˡ_`) before K-edges
 --     (`injR = _↑ʳ_`); the two vertex images are DISJOINT (`disj-L-R`), so no
 --     cross-block dependency exists; within each block dependency reflects
@@ -64,7 +74,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; range; hId; hTensor
+  using (FlatGen; range; flatten; hEmpty; hVar; hGen; hId; hSwap; hTensor
         ; module hTensor-impl)
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
@@ -86,15 +96,16 @@ open import Categories.APROP.Hypergraph.Util.Prune
 open import Data.List.Membership.Propositional.Properties
   using (∈-concat⁺′; ∈-tabulate⁺)
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Sum using (inj₁; inj₂)
+open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Nat using () renaming (_<_ to _ℕ<_)
 import Data.Nat.Properties as Nat
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig
   as IW
 
-open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
-open import Data.List using (List; []; _∷_; _++_; map; concat; tabulate)
+open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_; splitAt; join)
+open import Data.Fin.Properties using (join-splitAt)
+open import Data.List using (List; []; _∷_; _++_; length; map; concat; tabulate)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties using (∈-map⁻)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
@@ -129,6 +140,37 @@ BelowH H a b = ¬ Dep H b a
 -- `NoInvH H xs` = `AllPairs (BelowH H) xs`.
 NoInvH : (H : Hypergraph FlatGen) → List (Fin (Hypergraph.nE H)) → Set
 NoInvH H = AllPairs (BelowH H)
+
+-- The DIAGONAL of `BelowH`: `NoSelfDep H = ∀ {e} → BelowH H e e`, i.e. no
+-- edge produces a wire it also consumes.  `AllPairs` never pairs an element
+-- with itself, so this is genuinely extra content, not a consequence of
+-- `NoInvH H (range nE)` — but it is refuted by the very same per-block
+-- reflections (`EdgeDependency.Dep-reflect` at `ea ≡ eb`), so it rides along
+-- on this induction rather than repeating it in a second module.
+NoSelfDep : Hypergraph FlatGen → Set
+NoSelfDep H = ∀ {e} → ¬ Dep H e e
+
+--------------------------------------------------------------------------------
+-- ## `NoSelfDep` base cases.
+
+-- `nE = 0`: no edge exists, so `Dep` is vacuous.
+NoSelfDep-hEmpty : NoSelfDep hEmpty
+NoSelfDep-hEmpty {()}
+
+NoSelfDep-hVar : ∀ x → NoSelfDep (hVar x)
+NoSelfDep-hVar x {()}
+
+NoSelfDep-hSwap : ∀ A B → NoSelfDep (hSwap A B)
+NoSelfDep-hSwap A B {()}
+
+-- `hGen f`: the unique edge has `ein` of `_↑ˡ_` form and `eout` of `_↑ʳ_`
+-- form, disjoint by `Inv.↑ˡ≢↑ʳ`.
+NoSelfDep-hGen : ∀ {A B} (f : mor A B) → NoSelfDep (hGen f)
+NoSelfDep-hGen {A} {B} f {zero} (v , v∈out , v∈in)
+  with ∈-map⁻ (length (flatten A) ↑ʳ_) v∈out
+     | ∈-map⁻ (_↑ˡ length (flatten B)) v∈in
+... | jB , _ , v≡raise | iA , _ , v≡inject =
+  Inv.↑ˡ≢↑ʳ iA jB (trans (sym v≡inject) v≡raise)
 
 --------------------------------------------------------------------------------
 -- ## Generic two-block assembly (shared by the tensor and `∘` cases).
@@ -245,6 +287,20 @@ module _ (G K : Hypergraph FlatGen) where
     Assemble.NoInvH-assemble G K H injLE injRE
       Below-injLE Below-injRE tensor-cross-acyclic
 
+  ------------------------------------------------------------------------------
+  -- The diagonal.  An arbitrary composite edge is `splitAt`-dispatched into
+  -- the G- or the K-block, where the SAME two reflections apply at `ea ≡ eb`.
+
+  NoSelfDep-tensor : NoSelfDep G → NoSelfDep K → NoSelfDep H
+  NoSelfDep-tensor G-nd K-nd {e} dep =
+    dispatch (splitAt G.nE e)
+             (subst (λ x → Dep H x x) (sym (join-splitAt G.nE K.nE e)) dep)
+    where
+      dispatch : (s : Fin G.nE ⊎ Fin K.nE)
+               → Dep H (join G.nE K.nE s) (join G.nE K.nE s) → ⊥
+      dispatch (inj₁ eG) d = G-nd (tensor-GG-reflect d)
+      dispatch (inj₂ eK) d = K-nd (tensor-KK-reflect d)
+
 --------------------------------------------------------------------------------
 -- ## Composition case.  `hComposeP G K bdy` lays G-edges (`injL = _↑ˡ_`)
 -- before K-edges (pruning `remapP`).  `Linear G`/`Linear K` are threaded in
@@ -352,6 +408,22 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
     Assemble.NoInvH-assemble G K Hc injLEc injREc
       Below-injLEc Below-injREc compose-cross-acyclic
 
+  ------------------------------------------------------------------------------
+  -- The diagonal, exactly as in the tensor case: `splitAt`-dispatch, then the
+  -- two block reflections at `ea ≡ eb`.  Note that `remapP`-injectivity comes
+  -- from `Linear G`/`Linear K` here — the `Unique`-boundary route
+  -- (`PrunedCompose.remapP-injective-from-unique`) is not needed.
+
+  NoSelfDep-compose : NoSelfDep G → NoSelfDep K → NoSelfDep Hc
+  NoSelfDep-compose G-nd K-nd {e} dep =
+    dispatch (splitAt G.nE e)
+             (subst (λ x → Dep Hc x x) (sym (join-splitAt G.nE K.nE e)) dep)
+    where
+      dispatch : (s : Fin G.nE ⊎ Fin K.nE)
+               → Dep Hc (join G.nE K.nE s) (join G.nE K.nE s) → ⊥
+      dispatch (inj₁ eG) d = G-nd (compose-GG-reflect d)
+      dispatch (inj₂ eK) d = K-nd (compose-KK-reflect d)
+
 --------------------------------------------------------------------------------
 -- ## `hId A` has no inversions.
 --
@@ -422,9 +494,43 @@ NoInvH-range-⟪⟫ (g ∘ f) =
     bdy = trans (⟪⟫-codL f) (sym (⟪⟫-domL g))
 
 --------------------------------------------------------------------------------
--- ## The target, in `IW.PerHG.NoInv` form (= `NoInvH ⟪ f ⟫` definitionally).
+-- ## The same induction on the diagonal: `NoSelfDep ⟪ f ⟫`.
+
+NoSelfDep-hId : ∀ A → NoSelfDep (hId A)
+NoSelfDep-hId unit      {e} = NoSelfDep-hEmpty {e}
+NoSelfDep-hId (Var x)   {e} = NoSelfDep-hVar x {e}
+NoSelfDep-hId (A ⊗₀ B)  {e} =
+  NoSelfDep-tensor (hId A) (hId B) (NoSelfDep-hId A) (NoSelfDep-hId B) {e}
+
+NoSelfDep-⟪⟫ : ∀ {A B} (f : HomTerm A B) → NoSelfDep ⟪ f ⟫
+NoSelfDep-⟪⟫ (id {A})       {e} = NoSelfDep-hId A {e}
+NoSelfDep-⟪⟫ (λ⇒ {A})       {e} = NoSelfDep-hId A {e}
+NoSelfDep-⟪⟫ (λ⇐ {A})       {e} = NoSelfDep-hId A {e}
+NoSelfDep-⟪⟫ (ρ⇒ {A})       {e} = NoSelfDep-hId (A ⊗₀ unit) {e}
+NoSelfDep-⟪⟫ (ρ⇐ {A})       {e} = NoSelfDep-hId (A ⊗₀ unit) {e}
+NoSelfDep-⟪⟫ (α⇒ {A}{B}{C}) {e} = NoSelfDep-hId ((A ⊗₀ B) ⊗₀ C) {e}
+NoSelfDep-⟪⟫ (α⇐ {A}{B}{C}) {e} = NoSelfDep-hId ((A ⊗₀ B) ⊗₀ C) {e}
+NoSelfDep-⟪⟫ (σ {A}{B})     {e} = NoSelfDep-hSwap A B {e}
+NoSelfDep-⟪⟫ (Agen g)       {e} = NoSelfDep-hGen g {e}
+NoSelfDep-⟪⟫ (f ⊗₁ g)       {e} =
+  NoSelfDep-tensor ⟪ f ⟫ ⟪ g ⟫ (NoSelfDep-⟪⟫ f) (NoSelfDep-⟪⟫ g) {e}
+NoSelfDep-⟪⟫ (g ∘ f)        {e} =
+  NoSelfDep-compose ⟪ f ⟫ ⟪ g ⟫ (trans (⟪⟫-codL f) (sym (⟪⟫-domL g)))
+    (⟪⟫-LinearP f) (⟪⟫-LinearP g)
+    (NoSelfDep-⟪⟫ f) (NoSelfDep-⟪⟫ g) {e}
+
+--------------------------------------------------------------------------------
+-- ## The targets.  `fin-order-NoInv-⟪⟫` in `IW.PerHG.NoInv` form
+-- (= `NoInvH ⟪ f ⟫` definitionally); `dep-irrefl-⟪⟫` on the diagonal.
+--
+-- `IsoInvarianceWiring.PerHG` asks `¬ Dep H e e` for an ARBITRARY `H`, which
+-- is FALSE in general (a self-loop edge); `dep-irrefl-⟪⟫` is the honest
+-- `⟪f⟫`-specific statement, supplied at the `H = ⟪f⟫` call site.
 
 fin-order-NoInv-⟪⟫
   : ∀ {A B} (f : HomTerm A B)
   → IW.PerHG.NoInv ⟪ f ⟫ (range (Hypergraph.nE ⟪ f ⟫))
 fin-order-NoInv-⟪⟫ f = NoInvH-range-⟪⟫ f
+
+dep-irrefl-⟪⟫ : ∀ {A B} (f : HomTerm A B) {e} → ¬ (Dep ⟪ f ⟫ e e)
+dep-irrefl-⟪⟫ f = NoSelfDep-⟪⟫ f

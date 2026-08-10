@@ -74,7 +74,7 @@ module PerHG (H : Hypergraph FlatGen) where
   -- predicates (`NoInv`/`_↝_`/`_↝*_`) need no hypotheses on `Dep H`;
   -- `connectivity` takes its irreflexivity witness (acyclicity, FALSE
   -- for an arbitrary `H`) as an explicit argument, supplied at
-  -- `H = ⟪f⟫`/`⟪g⟫` via the proven `DepIrrefl.dep-irrefl-⟪⟫`.
+  -- `H = ⟪f⟫`/`⟪g⟫` via the proven `FinOrderNoInv.dep-irrefl-⟪⟫`.
   module L = LinExt (Fin H.nE) (Dep H)
   open L public using (NoInv; _↝_; _↝*_; connectivity)
 

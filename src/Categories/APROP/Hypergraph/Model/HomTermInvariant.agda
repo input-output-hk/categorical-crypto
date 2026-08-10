@@ -5,7 +5,7 @@
 -- `⟪ f ⟫` has a `Unique` domain (and codomain) interface.
 --
 -- Used by the strict decoder's iso-invariance (`decodePˢ-resp-iso`) and the
--- ordering machinery (`DepIrrefl`, `IsoTransport`): the `Unique` interface
+-- ordering machinery (`IsoTransport`, `PartII`): the `Unique` interface
 -- discharges the translated-term side conditions.
 --
 -- Structural induction on `f`: `hId`/`hSwap`/`hGen` cases from the matching
