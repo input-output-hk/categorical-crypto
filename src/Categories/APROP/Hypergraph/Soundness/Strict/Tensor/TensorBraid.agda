@@ -63,18 +63,27 @@ open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelInner)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
   using (module EquivStep; module TermEmbedˢ)
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
+  using (extract-elem)
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ as DC
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_ as DSS
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig _≟X_ as BSC
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorReconcile sig _≟X_ as TR
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
 open import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorKBlock sig _≟X_
   using (module KBlockDisjoint)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig _≟X_
   using (pvv-relabelˢ)
+import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
+import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig as SU
+import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
 
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using (↑ˡ-injective; ↑ʳ-injective)
+open import Data.Maybe using (nothing)
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-++)
+open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst)
@@ -176,8 +185,8 @@ module _
       open StrictDecoder ⟪ fg ⟫
         using (block-disjoint; stack-sepˢ; term-sepᵛ)
       open Restrict (Fin Hf.nV) vl
-        using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ; cast-flipᵛ
-              ; ⊗-respᵛ; interchangeᵛ )
+        using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; cast-flipᵛ
+              ; cast-respᵛ; box-conjᵛ; ⊗-respᵛ; interchangeᵛ )
 
       open Embeds G K using (injL; injR)
 
@@ -353,24 +362,11 @@ module _
         KCln : HomV (sG ++ Rsuf) (sG ++ Kfin)
         KCln = idᵛ {sG} ⊗ᵛ Kclean
 
-      -- PUBLIC re-exports (so the new file `TensorKBlockFinal` can state the
-      -- `Br` / `KFAC` it feeds in, mirroring the private bindings).
-      sGᴾ aGᴾ Kfinᴾ : List (Fin Hf.nV)
-      sGᴾ   = sG
-      aGᴾ   = aG
-      Kfinᴾ = Kfin
+        module Kmod = Support (Fin Hf.nV) Hf.vlab
+        perm-rigidᵛ = Kmod.perm-rigidˢ permˢ-K-fg
 
-      KClnᴾ : HomS (map vl (sGᴾ ++ Rsuf)) (map vl (sGᴾ ++ Kfinᴾ))
-      KClnᴾ = KCln
-
-      -- the two K-block-layout IDENTITIES, so `TensorKBlockFinal` does not
-      -- re-prove them (their types name `Braid`-private layout, exactly as
-      -- `KClnᴾ`/`pf₀ᴾ` already do).
-      sepᴾ : aGᴾ ≡ sGᴾ ++ Rsuf
-      sepᴾ = sep
-
-      range≡ᴾ : range Hf.nE ≡ gblk ++ kblk
-      range≡ᴾ = range≡
+        open DSS.Scr (Fin Hf.nV) Hf.vlab using (bswap)
+        open EquivStep ⟪ fg ⟫ using (process-edges-equivariantˢ)
 
       ------------------------------------------------------------------
       -- ### Foundational stack / boundary identities.
@@ -760,6 +756,144 @@ module _
             ≈-trans (∘-resp ≈-refl (cast-resp refl (cong (map vl) stkSplit₀) stepA))
             (≈-trans stepBC (≈-trans stepD target-final))
 
-      -- PUBLIC re-export of the chosen reflexive `pf₀`.
-      pf₀ᴾ : aGᴾ Perm.↭ sGᴾ ++ Rsuf
-      pf₀ᴾ = pf₀
+      ----------------------------------------------------------------
+      -- ## THE K-BLOCK FACTORIZATION, from three already-proven theorems.
+      --
+      -- `KBlockσ-from-factorization` quantifies `Br` universally (it cancels
+      -- against `cand` by `pvv-inverse-leftˢ`), so ANY braid does — including
+      -- the one the derivation below produces:
+      --
+      --   1. EQUIVARIANCE (`process-edges-equivariantˢ`) — conjugate the
+      --      K-block run from the actual post-G stack `aG` onto the
+      --      BLOCK-SWAPPED clean stack `Rsuf ++ sG`, along
+      --      `ρ = sep ⨟ bswap sG Rsuf`;
+      --   2. RIGHT-frame SEPARABILITY (`stack-sepˢ`/`term-sepᵛ`) — on
+      --      `Rsuf ++ sG` the inert G-output block `sG` is a SUFFIX, so the run
+      --      there is `Kclean ⊗ᵛ idᵛ {sG}`;
+      --   3. σ-CONJUGATION (`box-conjᵛ` + `block-swap-comm`) — turn that right
+      --      frame into the LEFT frame `KCln`, both σ-blocks realised as
+      --      `permuteᵛ (bswap …)`.
+      --
+      -- The derived locating permute `pf'` is reconciled to the reflexive `pf₀`
+      -- by one `perm-rigidˢ` on the `Unique` stack (`Reservoir≤1⇒Unique`).
+      -- Putting the inert block on the RIGHT is what makes the frame clean: the
+      -- naive LEFT-frame separability is FALSE (fired outputs push in front of
+      -- the untouched prefix).
+      ----------------------------------------------------------------
+
+      private
+        -- ### the K-block disjointness `All (ein-disjⁱ · sG) kblk`, transported
+        -- from `kblock-ein-disjoint` (stated at `map injL s_G_final`) along
+        -- `sG≡`.
+        disj-kblk : block-disjoint kblk sG
+        disj-kblk = aux (range Kd.nE)
+          where
+            aux : ∀ (es : List (Fin Kd.nE))
+                → All (λ e → All (λ k → extract-elem k sG ≡ nothing) (Hf.ein e))
+                      (map (Gd.nE ↑ʳ_) es)
+            aux []       = []
+            aux (e ∷ es) =
+              subst (λ z → All (λ k → extract-elem k z ≡ nothing)
+                               (Hf.ein (Gd.nE ↑ʳ e)))
+                    (sym sG≡)
+                    (KBD.kblock-ein-disjoint e s_G_final)
+              ∷ aux es
+
+        -- ### the run-order reservoir `Reservoir≤1 ⟪fg⟫ kblk aG`: the full-run
+        -- reservoir from linearity (`dom-reservoir-prov` at the trivial
+        -- `range ↭ range`), split at the `gblk ++ kblk` edge-range, bridged to
+        -- the strict post-G stack `aG` by `stacks-agree`.
+        res-kblk : SUR.Reservoir≤1 ⟪ fg ⟫ kblk aG
+        res-kblk =
+          subst (SUR.Reservoir≤1 ⟪ fg ⟫ kblk) (sym (RF.stacks-agree gblk Hf.dom))
+            (SUR.reservoir-split ⟪ fg ⟫ gblk kblk Hf.dom
+              (subst (λ z → SUR.Reservoir≤1 ⟪ fg ⟫ z Hf.dom) range≡
+                (SUR.dom-reservoir-prov ⟪ fg ⟫ (proj₂ (DAL.⟪⟫-LinearP fg))
+                  (range Hf.nE) Perm.↭-refl)))
+
+        -- ### (1) equivariance onto the block-swapped clean stack.
+        ρ : aG Perm.↭ Rsuf ++ sG
+        ρ = Perm.trans (Perm.↭-reflexive sep) (bswap sG Rsuf)
+
+        equiv = process-edges-equivariantˢ kblk {s = Rsuf ++ sG} {s' = aG} ρ res-kblk
+
+        ρf : proj₁ (process-edgesˢ kblk aG)
+             Perm.↭ proj₁ (process-edgesˢ kblk (Rsuf ++ sG))
+        ρf = proj₁ equiv
+
+        -- ### (2) right-frame separability + (3) σ-conjugation, kept
+        -- HOMOGENEOUS under the single `castᵛ refl (sym sepK)`.
+        sepK : proj₁ (process-edgesˢ kblk (Rsuf ++ sG)) ≡ Kfin ++ sG
+        sepK = stack-sepˢ kblk Rsuf sG disj-kblk
+
+        -- W: the σ-conjugated clean form, with the σs realised as permutes.
+        W' : HomV (Rsuf ++ sG) (Kfin ++ sG)
+        W' = permuteᵛ (bswap sG Kfin) ∘ᵛ (KCln ∘ᵛ permuteᵛ (bswap Rsuf sG))
+
+        mid-form
+          : proj₂ (process-edgesˢ kblk (Rsuf ++ sG))
+            ≈ᵛ castᵛ refl (sym sepK) W'
+        mid-form =
+          ≈-trans (cast-flipᵛ refl sepK (term-sepᵛ kblk Rsuf sG disj-kblk sepK))
+            (cast-respᵛ refl (sym sepK)
+              (≈-trans (box-conjᵛ Kclean sG)
+                (∘-resp (≈-sym (BSC.block-swap-comm (Fin Hf.nV) Hf.vlab sG Kfin))
+                        (∘-resp ≈-refl
+                          (≈-sym (BSC.block-swap-comm (Fin Hf.nV) Hf.vlab
+                                    Rsuf sG))))))
+
+        -- ### (4) absorb the separation cast into the equivariance permute, as
+        -- a reflexive reindexing factor of the derivation.
+        perm-cast-absorb
+          : ∀ {as s s' ys : List (Fin Hf.nV)}
+              (eq : s ≡ s') (p : s' Perm.↭ ys) (T : HomV as s)
+          → permuteᵛ p ∘ᵛ castᵛ refl eq T
+            ≈ᵛ permuteᵛ (Perm.trans (Perm.↭-reflexive eq) p) ∘ᵛ T
+        perm-cast-absorb refl p T = ≈-sym (∘-resp idʳ ≈-refl)
+
+        -- ### (5) the derived braid, the derived locating perm, and rigidity.
+        Br' : (sG ++ Kfin) Perm.↭ proj₁ (process-edgesˢ kblk aG)
+        Br' = Perm.trans (bswap sG Kfin)
+                (Perm.trans (Perm.↭-reflexive (sym sepK)) (Perm.↭-sym ρf))
+
+        pf' : aG Perm.↭ sG ++ Rsuf
+        pf' = Perm.trans ρ (bswap Rsuf sG)
+
+        pf-rigid : permuteᵛ pf' ≈ᵛ permuteᵛ pf₀
+        pf-rigid =
+          perm-rigidᵛ
+            (SU.Unique-resp-↭ (Perm.↭-reflexive sep)
+              (SUR.Reservoir≤1⇒Unique ⟪ fg ⟫ kblk aG res-kblk))
+            pf' pf₀
+
+        -- pure homogeneous regrouping:
+        --   (H ∘ (O ∘ (M ∘ I))) ∘ P  ≈ˢ  (H ∘ O) ∘ (M ∘ (I ∘ P))
+        regroup
+          : ∀ {o1 o2 o3 o4 o5 o6 : List X}
+              {H : HomS o5 o6} {O : HomS o4 o5} {M : HomS o3 o4}
+              {I : HomS o2 o3} {P : HomS o1 o2}
+          → (H ∘ˢ (O ∘ˢ (M ∘ˢ I))) ∘ˢ P
+            ≈ˢ (H ∘ˢ O) ∘ˢ (M ∘ˢ (I ∘ˢ P))
+        regroup =
+          ≈-trans (∘-resp (≈-sym assocˢ) ≈-refl)
+          (≈-trans assocˢ (∘-resp ≈-refl assocˢ))
+
+        kfac
+          : proj₂ (process-edgesˢ kblk aG)
+            ≈ᵛ permuteᵛ Br' ∘ᵛ (KCln ∘ᵛ permuteᵛ pf₀)
+        kfac =
+          ≈-trans (proj₂ equiv)
+          (≈-trans (∘-resp ≈-refl (∘-resp mid-form ≈-refl))
+          -- perm(↭-sym ρf) ∘ (castᵛ refl (sym sepK) W' ∘ perm ρ)
+          (≈-trans (≈-sym assocˢ)
+          -- (perm(↭-sym ρf) ∘ castᵛ refl (sym sepK) W') ∘ perm ρ
+          (≈-trans (∘-resp (perm-cast-absorb (sym sepK) (Perm.↭-sym ρf) W') ≈-refl)
+          -- (perm(trans refl' (↭-sym ρf)) ∘ W') ∘ perm ρ
+          (≈-trans regroup
+          -- (perm … ∘ perm bswapOut) ∘ (KCln ∘ (perm bswapIn ∘ perm ρ))
+            (∘-resp ≈-refl (∘-resp ≈-refl pf-rigid))))))
+
+      -- ## THE K-BLOCK BRAID, discharged.  This is the last residual of the
+      -- strict ⊗-shape; `TensorKBlockFinal` only instantiates it.
+      kblockσ : KBlockσ
+      kblockσ = KBlockσ-from-factorization Br' kfac
