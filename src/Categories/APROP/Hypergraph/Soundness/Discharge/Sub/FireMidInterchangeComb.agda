@@ -91,7 +91,6 @@ private
 --------------------------------------------------------------------------------
 
 module _ (H : Hypergraph FlatGen)
-         (dih : ∀ {e} → ¬ (Dep H e e))
          (lin : Linear H)
          where
   private module H = Hypergraph H

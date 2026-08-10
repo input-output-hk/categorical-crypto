@@ -131,8 +131,8 @@ module _ (H : Hypergraph FlatGen)
         (SUR.reservoir-split H o [] H.dom inv))
 
   private
-    e'-fires-stable = FMIC.e'-fires-stable H dih lin
-    e'-skips-stable = FMIC.e'-skips-stable H dih lin
+    e'-fires-stable = FMIC.e'-fires-stable H lin
+    e'-skips-stable = FMIC.e'-skips-stable H lin
 
   ------------------------------------------------------------------------
   -- The four-way firing split + empty-tail interchange, parameterised by
