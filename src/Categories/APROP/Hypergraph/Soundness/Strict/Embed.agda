@@ -189,10 +189,8 @@ private
   -- the ρ-flavoured triangle: α⇒ ∘ ρ⇐ ≈ id ⊗ ρ⇐
   ρ⇐-tri : ∀ {A B} → α⇒ {A} {B} {unit} ∘ ρ⇐ {A ⊗₀ B} ≈Term id ⊗₁ ρ⇐
   ρ⇐-tri {A} {B} =
-    ⟺ (cancelˡ lem) ○ (refl⟩∘⟨ pullˡ coherence₂) ○ elimʳ ρ⇒∘ρ⇐≈id
-    where
-      lem : (id ⊗₁ ρ⇐) ∘ (id ⊗₁ ρ⇒) ≈Term id {A ⊗₀ (B ⊗₀ unit)}
-      lem = ≈-Term-trans (≈-Term-sym ⊗-∘-dist) (≈-Term-trans (⊗-resp-≈ idˡ ρ⇐∘ρ⇒≈id) id⊗id≈id)
+    ⟺ (cancelˡ (id⊗-cancel ρ⇐∘ρ⇒≈id)) ○ (refl⟩∘⟨ pullˡ coherence₂)
+      ○ elimʳ ρ⇒∘ρ⇐≈id
 
   -- T a [] ∘ ρ⇐  collapses to a pure cast
   TR : ∀ a → T a [] ∘ ρ⇐ ≈Term subst-id-cod (sym (++-identityʳ a))
@@ -281,12 +279,8 @@ private
     → σ {U (xs ++ ys)} {U zs}
       ≈Term (id ⊗₁ T xs ys) ∘ σ {U xs ⊗₀ U ys} {U zs} ∘ (F xs ys ⊗₁ id)
   σ-split xs ys zs =
-    ⟺ (pullˡ (⟺ σ∘[f⊗g]≈[g⊗f]∘σ) ○ cancelʳ TFid)
-    where
-      TFid : (T xs ys ⊗₁ id {U zs}) ∘ (F xs ys ⊗₁ id) ≈Term id
-      TFid = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-               (≈-Term-trans (⊗-resp-≈ (_≅_.isoˡ (unflatten-++-≅ xs ys)) idˡ)
-                             id⊗id≈id)
+    ⟺ (pullˡ (⟺ σ∘[f⊗g]≈[g⊗f]∘σ)
+        ○ cancelʳ (⊗-cancel (_≅_.isoˡ (unflatten-++-≅ xs ys)) idˡ))
 
   -- L1: the cod-side laxator chain, c-iso-assoc-to re-oriented
   L1 : ∀ xs ys zs
@@ -313,13 +307,8 @@ private
   J xs ys zs =
     ⟺ ( ⟺ FM.assoc
       ○ (star ⟩∘⟨refl)
-      ○ pullʳ (pullʳ (cancelʳ TFfold)) )
+      ○ pullʳ (pullʳ (cancelʳ (id⊗-cancel (_≅_.isoˡ (unflatten-++-≅ zs ys))))) )
     where
-      TFfold : (id ⊗₁ T zs ys) ∘ (id ⊗₁ F zs ys) ≈Term id
-      TFfold = ≈-Term-trans (≈-Term-sym ⊗-∘-dist)
-                 (≈-Term-trans (⊗-resp-≈ idˡ (_≅_.isoˡ (unflatten-++-≅ zs ys)))
-                               id⊗id≈id)
-
       star : (T xs zs ⊗₁ id {U ys}) ∘ α⇐
              ≈Term F (xs ++ zs) ys ∘ subst-id-dom (++-assoc xs zs ys)
                    ∘ T xs (zs ++ ys) ∘ (id ⊗₁ T zs ys)
