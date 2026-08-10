@@ -15,7 +15,7 @@
 -- Also hosts `straightenW` (its sole consumer is `FaithfulnessInductive`);
 -- its public interface is unchanged.
 ------------------------------------------------------------------------
-module Categories.PermuteCoherence.InsertProof where
+module Categories.PermuteCoherence.Coxeter.InsertProof where
 
 open import Data.Nat.Base using (ℕ; zero; suc)
 open import Data.Fin.Base using (Fin) renaming (suc to fsuc)
@@ -27,10 +27,10 @@ open import Relation.Binary.PropositionalEquality.Core
   using (_≡_; refl; sym; trans; cong)
 
 open import Categories.PermuteCoherence.FinBij
-open import Categories.PermuteCoherence.EvalSoundness
+open import Categories.PermuteCoherence.Coxeter.EvalSoundness
   using (cons-fb-functor-comp; cons-fb-functor-id)
-open import Categories.PermuteCoherence.Word
-open import Categories.PermuteCoherence.LehmerRotate
+open import Categories.PermuteCoherence.Coxeter.Word
+open import Categories.PermuteCoherence.Coxeter.LehmerRotate
 
 private
   variable

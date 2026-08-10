@@ -23,7 +23,7 @@
 
 open import Relation.Binary using (DecidableEquality)
 
-module Categories.PermuteCoherence.FaithfulnessInductive
+module Categories.PermuteCoherence.Coxeter.FaithfulnessInductive
   (X : Set)
   (_≟X_ : DecidableEquality X) where
 
@@ -46,17 +46,17 @@ open import Data.Product using (_,_; proj₁; proj₂; Σ-syntax)
 open import Categories.PermuteCoherence.FinBij
   using (FinBij; _≈-fb_; cons-fb; swap-fb; id-fb; _∘-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
-open import Categories.PermuteCoherence.EvalSoundness
+open import Categories.PermuteCoherence.Coxeter.EvalSoundness
   using ( cons-fb-functor-id; cons-fb-functor-comp; swap-fb-involutive
         ; swap-fb-natural; yang-baxter )
 -- The Word model (position level) and its list-level interpretation.
-open import Categories.PermuteCoherence.Word
+open import Categories.PermuteCoherence.Coxeter.Word
   using ( Word; liftW; _~ʷ_; ~refl; ~sym; ~trans; ∷c; c1; c2; c3
         ; Far; far0ˡ; far0ʳ; farS; Adj; adj0; adjS
         ; evalW; canonW-resp-≈
         ; cons-fb-cong )
-open import Categories.PermuteCoherence.InsertProof using (straightenW)
-open import Categories.PermuteCoherence.WordInterp {X = X}
+open import Categories.PermuteCoherence.Coxeter.InsertProof using (straightenW)
+open import Categories.PermuteCoherence.Coxeter.WordInterp {X = X}
   using ( swapAt; swapAt-↭; applyW; applyW-length; ⟦_⟧↭
         ; cast-push; eval-respect)
 private

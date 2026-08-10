@@ -17,7 +17,7 @@
 -- See `docs/word-model.typ` for the design rationale.
 ------------------------------------------------------------------------
 
-module Categories.PermuteCoherence.Word where
+module Categories.PermuteCoherence.Coxeter.Word where
 
 open import Data.Nat.Base using (ℕ; zero; suc)
 open import Data.Fin.Base using (Fin; zero) renaming (suc to fsuc)
@@ -31,7 +31,7 @@ open import Relation.Binary.PropositionalEquality.Core
   using (_≡_; refl; sym; cong; trans; subst)
 
 open import Categories.PermuteCoherence.FinBij
-open import Categories.PermuteCoherence.EvalSoundness as Snd
+open import Categories.PermuteCoherence.Coxeter.EvalSoundness as Snd
 -- `residual-pw-cong`: `remove 0F` respects pointwise (`≈-fb`) equality.
 open import Categories.PermuteCoherence.Canonical using (residual-pw-cong)
 

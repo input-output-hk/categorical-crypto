@@ -15,7 +15,7 @@
 -- position-level `FinBij` evaluation.
 ------------------------------------------------------------------------
 
-module Categories.PermuteCoherence.WordInterp {a} {X : Set a} where
+module Categories.PermuteCoherence.Coxeter.WordInterp {a} {X : Set a} where
 
 open import Data.Nat.Base using (ℕ; suc)
 open import Data.Nat.Properties using (suc-injective)
@@ -31,7 +31,7 @@ open import Relation.Binary.PropositionalEquality.Properties using (trans-assoc)
 
 import Data.Fin.Permutation as P
 
-open import Categories.PermuteCoherence.Word
+open import Categories.PermuteCoherence.Coxeter.Word
   using ( Word; genFB; evalW; ∘-fb-cong; cons-fb-cong )
 
 open import Categories.PermuteCoherence.FinBij
@@ -39,7 +39,7 @@ open import Categories.PermuteCoherence.FinBij
 
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 
-open import Categories.PermuteCoherence.EvalSoundness
+open import Categories.PermuteCoherence.Coxeter.EvalSoundness
   using ( cons-fb-functor-id )
 
 private

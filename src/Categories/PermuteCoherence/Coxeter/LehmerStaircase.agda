@@ -17,7 +17,7 @@
 -- `map suc`/`shift` bookkeeping is needed.
 ------------------------------------------------------------------------
 
-module Categories.PermuteCoherence.LehmerStaircase where
+module Categories.PermuteCoherence.Coxeter.LehmerStaircase where
 
 open import Data.Nat.Base using (ℕ; zero; suc; _≤_; s≤s; _<_; _+_)
 open import Data.Nat.Properties
@@ -29,7 +29,7 @@ open import Data.List.Properties using (++-identityʳ)
 open import Relation.Binary.PropositionalEquality.Core
   using (_≡_; refl; sym; cong; trans; subst)
 
-open import Categories.PermuteCoherence.Word
+open import Categories.PermuteCoherence.Coxeter.Word
 
 private
   variable

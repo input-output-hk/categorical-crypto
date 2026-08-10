@@ -50,7 +50,7 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Perm.Braid X _≟X_ as BR
 module Discharge (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X)
   (mor : List X → List X → Set) where
 
-  open import Categories.PermuteCoherence.FaithfulnessInductive V _≟V_
+  open import Categories.PermuteCoherence.Coxeter.FaithfulnessInductive V _≟V_
     using (_≅↭ⁱ_; complete)
   open _≅↭ⁱ_
 

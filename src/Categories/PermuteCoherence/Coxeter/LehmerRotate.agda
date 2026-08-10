@@ -18,7 +18,7 @@
 --   BringToFront{Base,AdjL,AdjR,Cases,}, InsertProof{Base,Matsumoto}.
 ------------------------------------------------------------------------
 
-module Categories.PermuteCoherence.LehmerRotate where
+module Categories.PermuteCoherence.Coxeter.LehmerRotate where
 
 open import Data.Nat.Base using (ℕ; zero; suc; _≤_; z≤n; s≤s; _<_; _+_)
 open import Data.Nat.Properties
@@ -35,11 +35,11 @@ open import Relation.Binary.PropositionalEquality.Core
   using (_≡_; refl; sym; cong; cong₂; trans; subst; subst₂)
 
 open import Categories.PermuteCoherence.FinBij
-open import Categories.PermuteCoherence.EvalSoundness as Snd
+open import Categories.PermuteCoherence.Coxeter.EvalSoundness as Snd
   using (cons-fb-functor-comp; cons-fb-functor-id; swap-fb-natural)
 open import Categories.PermuteCoherence.Canonical using (residual-pw-cong)
-open import Categories.PermuteCoherence.Word
-open import Categories.PermuteCoherence.LehmerStaircase
+open import Categories.PermuteCoherence.Coxeter.Word
+open import Categories.PermuteCoherence.Coxeter.LehmerStaircase
 
 private
   variable
@@ -59,7 +59,7 @@ remove-cons X = cons-fb-injective (P.lift₀-remove (cons-fb X) refl)
 -- 2. The peel lemma (every `b` factors as `cons-fb (residual) ∘ ρ_m`) now
 --    lives upstream in `Word`, next to `canonW`
 --    [REVIEW3/00-conceptual-unbiased.md F3]; `peel` is visible here via the
---    unrestricted `open import Categories.PermuteCoherence.Word` above.
+--    unrestricted `open import Categories.PermuteCoherence.Coxeter.Word` above.
 
 ------------------------------------------------------------------------
 -- 3. `canonW` of a `cons-fb X ∘ rotate-fb k`:  the peel is realised at

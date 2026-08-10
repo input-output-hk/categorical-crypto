@@ -350,7 +350,7 @@ connectivity-go R-irrefl (x ∷ L′) M perm noL noM =
 
 -- Cross-reference: `connectivity`/`connectivity-go` bubble `x` to the
 -- front by adjacent swaps and recurse on the tail — the same
--- bubble-to-front recursion shape as `PermuteCoherence.Word.canonW`
+-- bubble-to-front recursion shape as `PermuteCoherence.Coxeter.Word.canonW`
 -- (`canonW` rotates the destined-front element via a rotation word and
 -- recurses on the residual). The carriers (linear extensions of a poset
 -- here vs. `FinBij`/words there) and side-conditions (`NoInv`-guarded
