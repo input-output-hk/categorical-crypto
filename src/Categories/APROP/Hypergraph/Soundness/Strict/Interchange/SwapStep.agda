@@ -45,7 +45,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_ as SC
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
-  using (module EquivStep)
+  using (module EquivStep; module RunBlocks)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTail sig _≟X_
   using (RunInterchangeˢ)
 
@@ -131,13 +131,8 @@ module PerHG (H : Hypergraph FlatGen)
   swap-validityˢ {o₁} {o₂} s p =
     of-PHValid o₂ (SV.PerHG.swap-validity H dih lin s (to-PHValid o₁ p))
 
-  --------------------------------------------------------------------
-  -- cod-only stack transport (strict twin of `coe-cod`; `castˢ refl refl`
-  -- reduces definitionally).
-  coe-cod
-    : ∀ {d : List (Fin H.nV)} {s s' : List (Fin H.nV)} → s ≡ s'
-    → HomS (map vl d) (map vl s) → HomS (map vl d) (map vl s')
-  coe-cod eq = castˢ refl (cong (map vl) eq)
+  -- cod-only stack transport, from the strict `DecodeCompose` run blocks.
+  open RunBlocks H using (coeCod) public
 
   ------------------------------------------------------------------------
   -- PLUMBING 1 — term-level factoring of `process-edgesˢ` over `_++_`.
@@ -146,13 +141,13 @@ module PerHG (H : Hypergraph FlatGen)
   process-edges-++-≈ˢ
     : ∀ (ps rest : Order) (s : List (Fin H.nV))
     → pe-termˢ (ps ++ rest) s
-      ≈ˢ coe-cod (sym (++-stackˢ ps rest s))
+      ≈ˢ coeCod (sym (++-stackˢ ps rest s))
               (pe-termˢ rest (pe-stackˢ ps s) ∘ˢ pe-termˢ ps s)
   process-edges-++-≈ˢ []         rest s = ≈-sym idʳ
   process-edges-++-≈ˢ (e ∷ ps)   rest s =
     ≈-trans
       (∘-resp (process-edges-++-≈ˢ ps rest s') ≈-refl)
-      (coe-cod-assoc (sym (++-stackˢ ps rest s'))
+      (coeCod-assoc (sym (++-stackˢ ps rest s'))
                      (pe-termˢ rest (pe-stackˢ ps s'))
                      (pe-termˢ ps s')
                      t)
@@ -160,13 +155,13 @@ module PerHG (H : Hypergraph FlatGen)
       s' = proj₁ (edge-stepˢ s e)
       t  = proj₂ (edge-stepˢ s e)
 
-      coe-cod-assoc
+      coeCod-assoc
         : ∀ {a b : List (Fin H.nV)} (eq : a ≡ b)
             (g : HomS (map vl (pe-stackˢ ps s')) (map vl a))
             (f : HomS (map vl s') (map vl (pe-stackˢ ps s')))
             (t0 : HomS (map vl s) (map vl s'))
-        → coe-cod eq (g ∘ˢ f) ∘ˢ t0 ≈ˢ coe-cod eq (g ∘ˢ (f ∘ˢ t0))
-      coe-cod-assoc refl g f t0 = assocˢ
+        → coeCod eq (g ∘ˢ f) ∘ˢ t0 ≈ˢ coeCod eq (g ∘ˢ (f ∘ˢ t0))
+      coeCod-assoc refl g f t0 = assocˢ
 
   ------------------------------------------------------------------------
   -- PLUMBING 2 — `decodeOrdˢ` over a prefixed order factors so the prefix
@@ -177,7 +172,7 @@ module PerHG (H : Hypergraph FlatGen)
     : ∀ (ps rest : Order) (p : Validˢ (ps ++ rest))
     → decodeOrdˢ (ps ++ rest) p
       ≈ˢ ( permuteˢ p
-            ∘ˢ coe-cod (sym (++-stackˢ ps rest H.dom))
+            ∘ˢ coeCod (sym (++-stackˢ ps rest H.dom))
                        (pe-termˢ rest (pe-stackˢ ps H.dom)) )
           ∘ˢ pe-termˢ ps H.dom
   decodeOrdˢ-factor ps rest p =
@@ -185,17 +180,17 @@ module PerHG (H : Hypergraph FlatGen)
       (∘-resp ≈-refl (process-edges-++-≈ˢ ps rest H.dom))
       (≈-trans
         (∘-resp ≈-refl
-          (coe-cod-∘ (sym (++-stackˢ ps rest H.dom))
+          (coeCod-∘ (sym (++-stackˢ ps rest H.dom))
                      (pe-termˢ rest (pe-stackˢ ps H.dom))
                      (pe-termˢ ps H.dom)))
         (≈-sym assocˢ))
     where
-      coe-cod-∘
+      coeCod-∘
         : ∀ {a b : List (Fin H.nV)} (eq : a ≡ b)
             (g : HomS (map vl (pe-stackˢ ps H.dom)) (map vl a))
             (f : HomS (map vl H.dom) (map vl (pe-stackˢ ps H.dom)))
-        → coe-cod eq (g ∘ˢ f) ≈ˢ coe-cod eq g ∘ˢ f
-      coe-cod-∘ refl g f = ≈-refl
+        → coeCod eq (g ∘ˢ f) ≈ˢ coeCod eq g ∘ˢ f
+      coeCod-∘ refl g f = ≈-refl
 
 ------------------------------------------------------------------------
 -- The front-of-stack swap.  Fix an INDEPENDENT pair `e e'`; the two runs
@@ -246,11 +241,11 @@ module FrontSwap (H : Hypergraph FlatGen)
         (p₁ : Validˢ (ps ++ e ∷ e' ∷ qs))
         (p₂ : Validˢ (ps ++ e' ∷ e ∷ qs))
     → ( permuteˢ p₁
-          ∘ˢ coe-cod (sym (++-stackˢ ps (e ∷ e' ∷ qs) H.dom))
+          ∘ˢ coeCod (sym (++-stackˢ ps (e ∷ e' ∷ qs) H.dom))
                      (pe-termˢ (e ∷ e' ∷ qs) (pe-stackˢ ps H.dom)) )
       ≈ˢ
       ( permuteˢ p₂
-          ∘ˢ coe-cod (sym (++-stackˢ ps (e' ∷ e ∷ qs) H.dom))
+          ∘ˢ coeCod (sym (++-stackˢ ps (e' ∷ e ∷ qs) H.dom))
                      (pe-termˢ (e' ∷ e ∷ qs) (pe-stackˢ ps H.dom)) )
   front-swap-≈ˢ ps qs {e} {e'} inc RI p₁ p₂ =
     ≈-trans (coe-vanish (++-stackˢ ps (e ∷ e' ∷ qs) H.dom) p₁ run₁)
@@ -270,12 +265,12 @@ module FrontSwap (H : Hypergraph FlatGen)
       p₂' = subst (Perm._↭ H.cod) (++-stackˢ ps (e' ∷ e ∷ qs) H.dom) p₂
 
       -- `coe-vanish`: with the stack-equality matched at `refl`, the
-      -- codomain `coe-cod` collapses onto the un-transported run.
+      -- codomain `coeCod` collapses onto the un-transported run.
       coe-vanish
         : ∀ {FS B : List (Fin H.nV)} (eq : FS ≡ B)
             (pv : FS Perm.↭ H.cod)
             (run : HomS (map vl sp) (map vl B))
-        → permuteˢ pv ∘ˢ coe-cod (sym eq) run
+        → permuteˢ pv ∘ˢ coeCod (sym eq) run
           ≈ˢ permuteˢ (subst (Perm._↭ H.cod) eq pv) ∘ˢ run
       coe-vanish refl pv run = ≈-refl
 
