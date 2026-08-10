@@ -162,11 +162,9 @@ module StrictDecoder (H : Hypergraph FlatGen) where
           (prefix-++ˡ-perm (H.ein e) (PermProp.++⁺ʳ R p)))
       ≈ᵛ firedᵛ e rest p ⊗ᵛ idᵛ {R}
   layer-sepᵛ e R rest {xs} p =
-    ≈̂⇒≈ˢ
-      (≈̂-trans (castᵛ-≈̂ refl (sym (++-assoc B rest R))
-                  (firedᵛ e (rest ++ R) pbig))
-      (≈̂-trans (∘-resp-≈̂ G-side P-side)
-               (≈̂-sym (≈ˢ⇒≈̂ (⊗id-distᵛ Box_r (permuteᵛ p))))))
+    viâ (castᵛ-≈̂ refl (sym (++-assoc B rest R)) (firedᵛ e (rest ++ R) pbig))
+        (∘-resp-≈̂ G-side P-side)
+        (≈ˢ⇒≈̂ (⊗id-distᵛ Box_r (permuteᵛ p)))
     where
       A = H.ein e ; B = H.eout e
       G₀ = genˢ (H.elab e)

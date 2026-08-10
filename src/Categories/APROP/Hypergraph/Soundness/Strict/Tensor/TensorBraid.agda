@@ -636,9 +636,8 @@ module _
         : RF.permuteˢ comb
           ≈ˢ castˢ combDom (sym mLcc) (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR)
       comb-frame =
-        ≈̂⇒≈ˢ (≈̂-trans (⟦absorbʳ⟧ (cong₂ _++_ sG≡ Kfin≡))
-              (≈̂-trans combRaw-frame
-                       (≈̂-sym (cast-≈̂ {p = combDom} {q = sym mLcc}))))
+        viâ (⟦absorbʳ⟧ (cong₂ _++_ sG≡ Kfin≡)) combRaw-frame
+            (cast-≈̂ {p = combDom} {q = sym mLcc})
 
       private
         -- `Gon ⊗ᵛ Kclean ≈ castₚ (Gon' ⊗ˢ Kclean')` (push the `sG≡`/`Kfin≡`

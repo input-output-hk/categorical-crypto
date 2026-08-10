@@ -369,12 +369,10 @@ module TermEmbedˢ
     -- endpoint), and re-cast the H-side.  The former `cast-fuse`/`cast-irrel`/
     -- `∘-cast-split` reconciliation nest is absorbed by the `_≈̂_` combinators;
     -- the genuine `⊗`-frame content stays inside `box-emb`/`perm-emb`.
-    ≈̂⇒≈ˢ
-      (≈̂-trans (≈̂-trans (≈̂-trans (cast-≈̂ {p = pDom} {q = pCod})
-                                  (cast-≈̂ {p = refl}
-                                          {q = sym (map-++ vlJ (J.eout (ψ e)) restJ)}))
-                         (∘-resp-≈̂ box-part jperm-part))
-               (≈̂-sym (cast-≈̂ {p = refl} {q = sym (map-++ vlH (H.eout e) restH)})))
+    viâ (≈̂-trans (cast-≈̂ {p = pDom} {q = pCod})
+                 (cast-≈̂ {p = refl} {q = sym (map-++ vlJ (J.eout (ψ e)) restJ)}))
+        (∘-resp-≈̂ box-part jperm-part)
+        (cast-≈̂ {p = refl} {q = sym (map-++ vlH (H.eout e) restH)})
     where
       Jperm = castˢ refl (map-++ vlJ (J.ein (ψ e)) restJ) (RJ.permuteˢ permJ)
       Jbox  = genˢ (J.elab (ψ e)) ⊗ˢ idˢ {map vlJ restJ}

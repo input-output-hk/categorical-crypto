@@ -461,13 +461,12 @@ module _ (H : Hypergraph FlatGen)
       MID-eq : IN2 ∘ᵛ OUT1 ≈ᵛ Mid
       MID-eq =
         ≈-trans (∘-resp ≈-refl (≈-sym (permuteᵛ-frameˡ B (Perm.↭-sym ρ₁))))
-          (≈̂⇒≈ˢ
-            (≈̂-trans (rigid-≈̂ us-mid-img mid-comp bridgeD)
+          (viâ (rigid-≈̂ us-mid-img mid-comp bridgeD)
             (≈̂-trans (⟦absorbʳ⟧ (sym (++-assoc B A' R)))
             (≈̂-trans (⟦absorbˡ⟧ (++-assoc A' B R))
-            (≈̂-trans (≈ˢ⇒≈̂ (⟦bswap⟧ᵛ B A' R))
-                     (≈̂-sym (castᵛ-≈̂ (++-assoc B A' R) (++-assoc A' B R)
-                               (σᵛ B A' ⊗ᵛ idᵛ {R}))))))))
+                     (≈ˢ⇒≈̂ (⟦bswap⟧ᵛ B A' R))))
+            (castᵛ-≈̂ (++-assoc B A' R) (++-assoc A' B R)
+              (σᵛ B A' ⊗ᵛ idᵛ {R})))
 
     ------------------------------------------------------------------
     -- The central merge: the two located boxes around the mid block-swap

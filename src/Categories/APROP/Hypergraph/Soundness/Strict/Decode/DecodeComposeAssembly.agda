@@ -418,20 +418,18 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
     -- cast of `PFˢ ∘ˢ pterm-f`); the `_≈̂_` kit absorbs the `cast-irrel`/`cast-fuse`.
     Gpartˢ : castˢ domGF midGFᵉ Ycˢ ≈ˢ decodePˢ f
     Gpartˢ =
-      ≈̂⇒≈ˢ
-        (≈̂-trans (cast-≈̂ {p = domGF} {q = midGFᵉ})
-        (≈̂-trans (≈̂-trans (≈̂-sym (cast-≈̂ {p = TG.vlab-φ G.dom} {q = midG-cod}))
-                           (≈ˢ⇒≈̂ Yc-twinˢ))
-                 (≈̂-sym (cast-≈̂ {p = ⟪⟫-domL f} {q = ⟪⟫-codL f}))))
+      viâ (cast-≈̂ {p = domGF} {q = midGFᵉ})
+          (≈̂-trans (≈̂-sym (cast-≈̂ {p = TG.vlab-φ G.dom} {q = midG-cod}))
+                   (≈ˢ⇒≈̂ Yc-twinˢ))
+          (cast-≈̂ {p = ⟪⟫-domL f} {q = ⟪⟫-codL f})
 
     -- K-part: `castˢ midGFᵉ codGF Xcˢ ≈ˢ decodePˢ g`.  Mirror of `Gpartˢ`.
     Kpartˢ : castˢ midGFᵉ codGF Xcˢ ≈ˢ decodePˢ g
     Kpartˢ =
-      ≈̂⇒≈ˢ
-        (≈̂-trans (cast-≈̂ {p = midGFᵉ} {q = codGF})
-        (≈̂-trans (≈̂-trans (≈̂-sym (cast-≈̂ {p = TK.vlab-φ K.dom} {q = TK.vlab-φ K.cod}))
-                           (≈ˢ⇒≈̂ Xc-twinˢ))
-                 (≈̂-sym (cast-≈̂ {p = ⟪⟫-domL g} {q = ⟪⟫-codL g}))))
+      viâ (cast-≈̂ {p = midGFᵉ} {q = codGF})
+          (≈̂-trans (≈̂-sym (cast-≈̂ {p = TK.vlab-φ K.dom} {q = TK.vlab-φ K.cod}))
+                   (≈ˢ⇒≈̂ Xc-twinˢ))
+          (cast-≈̂ {p = ⟪⟫-domL g} {q = ⟪⟫-codL g})
 
   -- The full strict `∘`-shape.
   decodePˢ-∘-shape : decodePˢ (g ∘ f) ≈ˢ decodePˢ g ∘ˢ decodePˢ f

@@ -180,12 +180,11 @@ module Boundary {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ 
     -- The whole chain is endpoint bookkeeping: drop the two boundary casts,
     -- swap `vf` for `vH` (K₁), reverse the wiring, and re-cast — the `_≈̂_`
     -- combinators absorb the `cast-fuse`/`cast-irrel` `List X`-UIP algebra.
-    ≈̂⇒≈ˢ
-      (≈̂-trans cast-≈̂                                -- drop `df`/`cf`
-      (≈̂-trans (≈ˢ⇒≈̂ (decodeOrdˢ-witness-coh vf vH))  -- (K₁) `vf` → `vH`
-      (≈̂-trans (≈̂-sym (≈ˢ⇒≈̂ wiring≈))                 -- reversed wiring
-      (≈̂-trans (cast-≈̂ {p = di} {q = ci})            -- drop `di`/`ci` (pinned)
-               (≈̂-sym cast-≈̂)))))                    -- re-cast `dg`/`cg`
+    viâ cast-≈̂                                       -- drop `df`/`cf`
+        (≈̂-trans (≈ˢ⇒≈̂ (decodeOrdˢ-witness-coh vf vH))  -- (K₁) `vf` → `vH`
+        (≈̂-trans (≈̂-sym (≈ˢ⇒≈̂ wiring≈))                 -- reversed wiring
+                 (cast-≈̂ {p = di} {q = ci})))           -- drop `di`/`ci` (pinned)
+        cast-≈̂                                       -- re-cast `dg`/`cg`
 
 ------------------------------------------------------------------------
 -- THE UNCONDITIONAL HEADLINE.  Wires the order-theory core

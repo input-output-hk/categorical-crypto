@@ -108,12 +108,11 @@ module _ (V : Set) (vlab : V → X) where
       ≈ᵛ castᵛ refl (++-assoc R (v ∷ []) L) (σᵛ (v ∷ []) R ⊗ᵛ idᵛ {L})
   shift-symᵛ v []      L = permuteˢ-shift-sym-base v L
   shift-symᵛ v (x ∷ R) L =
-    ≈̂⇒≈ˢ
-      (≈̂-trans (∘-resp-≈̂ F1 F2)
-      (≈̂-trans (≈ˢ⇒≈̂ interchangeᵛ)
-      (≈̂-trans (⊗-resp-≈̂ᵛ (≈ˢ⇒≈̂ (≈-sym (hexᵛ v x R))) (≈ˢ⇒≈̂ idˡ))
-               (≈̂-sym (castᵛ-≈̂ refl (++-assoc (x ∷ R) (v ∷ []) L)
-                         (σᵛ (v ∷ []) (x ∷ R) ⊗ᵛ idᵛ {L}))))))
+    viâ (∘-resp-≈̂ F1 F2)
+        (≈̂-trans (≈ˢ⇒≈̂ interchangeᵛ)
+                 (⊗-resp-≈̂ᵛ (≈ˢ⇒≈̂ (≈-sym (hexᵛ v x R))) (≈ˢ⇒≈̂ idˡ)))
+        (castᵛ-≈̂ refl (++-assoc (x ∷ R) (v ∷ []) L)
+          (σᵛ (v ∷ []) (x ∷ R) ⊗ᵛ idᵛ {L}))
     where
       F1 : idᵛ {x ∷ []} ⊗ᵛ permuteᵛ (Perm.↭-sym (PermProp.shift v R L))
            ≈̂ (idᵛ {x ∷ []} ⊗ᵛ σᵛ (v ∷ []) R) ⊗ᵛ idᵛ {L}

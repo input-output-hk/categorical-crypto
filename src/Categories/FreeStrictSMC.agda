@@ -293,7 +293,11 @@ module Build
   -- stated, framed by two `≈̂` re-spellings of the sides.  EVERY V-level axiom
   -- (`Restrict`, below) is `viaˢ`; the `≈̂`-middle twin `viâ` serves the same
   -- shape where the middle is itself heterogeneous.
-  viâ : ∀ {as bs as' bs'} {u v : HomS as bs} {u' v' : HomS as' bs'}
+  -- `viâ`'s middle is genuinely heterogeneous on BOTH sides — that is the
+  -- point of the `≈̂` layer, and the ˢ-level sites re-spell endpoints that do
+  -- not agree — so `u'`/`v'` here are at independent boundaries.
+  viâ : ∀ {as bs cs ds es fs} {u v : HomS as bs}
+          {u' : HomS cs ds} {v' : HomS es fs}
       → u ≈̂ u' → u' ≈̂ v' → v ≈̂ v' → u ≈ˢ v
   viâ l e r = ≈̂⇒≈ˢ (≈̂-trans l (≈̂-trans e (≈̂-sym r)))
 
