@@ -31,7 +31,6 @@ open import Data.Maybe.Base using (Maybe; just; is-just)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Categories.FreeMonoidal using (Symm; _≤_; v≤v)
 open import Categories.GConstructionCoherence.Terms
-open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
 open import Categories.APROP.Hypergraph.Model.Translation (APROPSignatureDec.sig gSigDec) using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.Match.FindIso gSigDec using (findIso)
@@ -80,24 +79,21 @@ private
   R₂ᵇ = (αᵇ ⊗₁ id ∘ (h' ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ id ⊗₁ αᵇ)
   L₂ρ₂ᵇ = ((βᵇ ∘ αᵇ ⊗₁ id) ∘ (βᵇ ∘ αᵇ ⊗₁ id)) ∘ ((h' ⊗₁ id) ⊗₁ id ∘ α⇐)
 
+  -- one leaf, one line: the search's success is discharged by a refl-checked
+  -- equation, never by an inferred witness (the `Decomp.step!` idiom)
+  solve! : ∀ {A B} (f g : HomTerm A B)
+         → is-just (findIso ⟪ f ⟫ ⟪ g ⟫) ≡ true → f ≈Term g
+  solve! f g ok = soundness {f = f} {g = g} (force! (findIso ⟪ f ⟫ ⟪ g ⟫) ok)
+
   -- the solver obligations, on the balanced spellings
-  iso₀ : ⟪ ρ₁R₀ᵇ ⟫ ≅ᴴ ⟪ L₀ᵇ ⟫
-  iso₀ = force! (findIso ⟪ ρ₁R₀ᵇ ⟫ ⟪ L₀ᵇ ⟫) refl
-
-  iso₁ : ⟪ ρ₂R₁ᵇ ⟫ ≅ᴴ ⟪ L₁ρ₁ᵇ ⟫
-  iso₁ = force! (findIso ⟪ ρ₂R₁ᵇ ⟫ ⟪ L₁ρ₁ᵇ ⟫) refl
-
-  iso₂ : ⟪ R₂ᵇ ⟫ ≅ᴴ ⟪ L₂ρ₂ᵇ ⟫
-  iso₂ = force! (findIso ⟪ R₂ᵇ ⟫ ⟪ L₂ρ₂ᵇ ⟫) refl
-
   ob₀ᵇ : ρ₁R₀ᵇ ≈Term L₀ᵇ
-  ob₀ᵇ = soundness {f = ρ₁R₀ᵇ} {g = L₀ᵇ} iso₀
+  ob₀ᵇ = solve! ρ₁R₀ᵇ L₀ᵇ refl
 
   ob₁ᵇ : ρ₂R₁ᵇ ≈Term L₁ρ₁ᵇ
-  ob₁ᵇ = soundness {f = ρ₂R₁ᵇ} {g = L₁ρ₁ᵇ} iso₁
+  ob₁ᵇ = solve! ρ₂R₁ᵇ L₁ρ₁ᵇ refl
 
   ob₂ᵇ : R₂ᵇ ≈Term L₂ρ₂ᵇ
-  ob₂ᵇ = soundness {f = R₂ᵇ} {g = L₂ρ₂ᵇ} iso₂
+  ob₂ᵇ = solve! R₂ᵇ L₂ρ₂ᵇ refl
 
 -- the obligations at the segment statements (pure-assoc bridges)
 ob₀ : (ρ₁ᵗ ∘ R₀ᵗ) ≈Term L₀ᵗ
