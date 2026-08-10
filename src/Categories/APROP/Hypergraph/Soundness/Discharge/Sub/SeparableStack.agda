@@ -134,21 +134,6 @@ extract-elem-++ˡ-nothing k (x ∷ xs) R eqx eqR with x ≟ k
 extract-elem-++ˡ-nothing k (x ∷ xs) R eqx eqR | no ¬q with extract-elem k xs in eqxs
 ... | nothing rewrite extract-elem-++ˡ-nothing k xs R eqxs eqR = refl
 
--- NOTHING-direction of `extract-prefix-++ˡ`.  Same disjointness side
--- condition, lifted to the prefix: as long as NO prefix element is found in
--- `R` alone, a `nothing` on `xs` stays `nothing` on `xs ++ R`.  We phrase the
--- side condition as "every cons step that fails on `xs` also fails on
--- `xs' ++ R`"; for the clean block case (`ks ∩ R = ∅`) it is discharged by
--- `extract-elem-++ˡ-nothing`.  For the spike, the only `nothing`-case we hit
--- is the FIRST prefix element failing, so we state exactly that.
-extract-prefix-++ˡ-nothing-head
-  : ∀ {n} (k : Fin n) (ks xs R : List (Fin n))
-  → extract-elem k xs ≡ nothing
-  → extract-elem k R  ≡ nothing
-  → extract-prefix (k ∷ ks) (xs ++ R) ≡ nothing
-extract-prefix-++ˡ-nothing-head k ks xs R eqx eqR
-  rewrite extract-elem-++ˡ-nothing k xs R eqx eqR = refl
-
 -- FULL `nothing`-transport for `extract-prefix`.  If `ks` fails to extract from
 -- `xs` AND every element of `ks` is absent from `R` (the disjointness side
 -- condition), then `ks` fails to extract from `xs ++ R`.
@@ -161,7 +146,7 @@ extract-prefix-++ˡ-nothing
 extract-prefix-++ˡ-nothing []       xs R _          ()
 extract-prefix-++ˡ-nothing (k ∷ ks) xs R (dk ∷ dks) eqn with extract-elem k xs in eqe
 -- head not found in `xs`: by disjointness not in `R`, so not in `xs ++ R`.
-... | nothing       = extract-prefix-++ˡ-nothing-head k ks xs R eqe dk
+... | nothing rewrite extract-elem-++ˡ-nothing k xs R eqe dk = refl
 -- head found in `xs` with residual `xs'`: split on the tail.  `eqn` (whose type
 -- reduces along the located head) forces the tail to fail; recurse on `ks` over
 -- `xs'`, re-locating `k` in `xs ++ R` (`extract-elem-++ˡ`).
