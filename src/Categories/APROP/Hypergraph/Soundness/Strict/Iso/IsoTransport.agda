@@ -28,9 +28,9 @@
 --     (φ = iso's vertex map, ψ = iso's edge map) — the `subst₂ HomTerm` /
 --     `subst₂-∘-distrib` / `map⁺`-lift mass of the non-strict §3 VANISHES into
 --     `castˢ`; its permute factor is `permute-relabel-freeˢ` (§4), the wiring
---     groupoid's RIGIDITY at the `Unique` codomain `J.cod` — the same
---     `rigid-≈̂`/`⟦absorb⟧`/`pvv-relabelˢ` discharge `DecodeComposeAssembly`
---     runs for its G- and K-blocks.
+--     groupoid's RIGIDITY at the `Unique` codomain `J.cod` — the calculus's
+--     `PermCalc.Kit.⟦relabel-rigid⟧` face, shared with the G- and K-blocks of
+--     `DecodeComposeAssembly`.
 --     `order-invariantˢ` then bridges `τ` to the natural order `range nE_f`.
 --
 -- The order-theory `NoInv`/`NoInv-τ`/`τ`/`τ↭range` are reused verbatim from
@@ -73,7 +73,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
   using (module Support)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
-import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig _≟X_ as PVV
 
 open import Data.Fin.Base using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
@@ -254,11 +253,12 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
   -- §4.  The FINAL-permute relabel-free `≈ˢ`.
   --
   -- Both derivations land on `J.cod`, which is `Unique`, so RIGIDITY of the
-  -- wiring groupoid settles them: reindex the H-side derivation along `φ`
-  -- (`φ-lift`), let `⟦absorbˡ⟧`/`⟦absorbʳ⟧` swallow its two reindexing
-  -- factors, and hand the residual to the cross-vertex-type relabel
-  -- `pvv-relabelˢ`.  This is `DecodeComposeAssembly`'s `gperm'`/`kperm'`
-  -- shape at `(J.vlab, H.vlab)` — no `eval-↭`, no `FinBij`, no `lookup`.
+  -- wiring groupoid settles them.  That is the calculus's `⟦relabel-rigid⟧`
+  -- face verbatim, at `φ = ` the iso's vertex map: it builds the φ-lift of the
+  -- H-side derivation from `fin-eq`/`sym φ-cod` itself, absorbs both
+  -- reindexings, and hands the residual to `pvv-relabelˢ`.  Shared with
+  -- `DecodeComposeAssembly`'s `gperm'`/`kperm'` — no `eval-↭`, no `FinBij`,
+  -- no `lookup`.
   ------------------------------------------------------------------------
 
   private
@@ -269,32 +269,14 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
     permˢ-K-J : Support.PermK (Fin J.nV) J.vlab
     permˢ-K-J = PK.permˢ-K (Fin J.nV) _≟F_ J.vlab
 
-    open PC.Kit J permˢ-K-J using (⟦absorbˡ⟧; ⟦absorbʳ⟧; rigid-≈̂)
-
-    -- The H-side derivation, reindexed along `φ` onto `sJ-final ↭ J.cod`,
-    -- with both reindexings INSIDE the derivation so the absorptions apply.
-    φ-lift : SF.Validˢ τ → sJ-final Perm.↭ J.cod
-    φ-lift vτ = Perm.trans (Perm.↭-reflexive fin-eq)
-                  (Perm.trans (PermProp.map⁺ φ vτ)
-                              (Perm.↭-reflexive (sym φ-cod)))
+    open PC.Kit J permˢ-K-J using (⟦relabel-rigid⟧)
 
   permute-relabel-freeˢ
     : (vJ : SG.Validˢ (range J.nE))
     → castˢ mid-iso ci (RJ.permuteˢ vJ) ≈ˢ RH.permuteˢ (iso-validˢ vJ)
   permute-relabel-freeˢ vJ =
-    ≈̂⇒≈ˢ
-      (≈̂-trans (cast-≈̂ {p = mid-iso} {q = ci})
-      (≈̂-trans (rigid-≈̂ (⟪ g ⟫-cod-unique) vJ (φ-lift (iso-validˢ vJ)))
-      (≈̂-trans (⟦absorbʳ⟧ fin-eq)
-      (≈̂-trans (⟦absorbˡ⟧ (sym φ-cod))
-      (≈̂-trans (≈̂-sym (cast-≈̂ {p = Pdom} {q = Pcod}))
-               (≈ˢ⇒≈̂ (PVV.pvv-relabelˢ φ J.vlab H.vlab φ-lab
-                        (iso-validˢ vJ) Pdom Pcod)))))))
-    where
-      Pdom : map J.vlab (map φ sH-final) ≡ map H.vlab sH-final
-      Pdom = vlab-φ sH-final
-      Pcod : map J.vlab (map φ H.cod) ≡ map H.vlab H.cod
-      Pcod = vlab-φ H.cod
+    ⟦relabel-rigid⟧ H.vlab φ φ-lab (⟪ g ⟫-cod-unique) fin-eq (sym φ-cod)
+                    vJ (iso-validˢ vJ) mid-iso ci
 
   ------------------------------------------------------------------------
   -- §5.  `iso-transportˢ`: the J-side decoding at `range J.nE` casts to the

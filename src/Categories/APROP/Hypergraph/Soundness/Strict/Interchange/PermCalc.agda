@@ -23,6 +23,8 @@
 --   ⟦frameʳ⟧    — `FreeStrictSMC.Perm′.permuteˢ-frame`
 --   ⟦bswap⟧ᵛ    — `BlockSwapComm.swap-block`
 --   rigid-≈̂     — `SwapCore.perm-rigidˢ`   (the rigidity discharge)
+-- plus one COMPOSITE face, ⟦relabel-rigid⟧ (rigidity + both absorptions +
+-- `TensorPVVRelabel.pvv-relabelˢ`), which is every located FINAL permute.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -44,9 +46,12 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore si
 
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig _≟X_ as BSC
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_ as DSS
+import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig _≟X_ as PVV
 
+open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
 open import Data.List using (List; map)
+open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
@@ -122,3 +127,38 @@ module Kit (H : Hypergraph FlatGen)
     : ∀ {xs ys : List (Fin H.nV)} → Unique ys
     → (p q : xs Perm.↭ ys) → permuteˢ p ≈̂ permuteˢ q
   rigid-≈̂ u p q = ≈ˢ⇒≈̂ (perm-rigidˢ′ u p q)
+
+  ------------------------------------------------------------------------
+  -- ⟦relabel-rigid⟧ : the CANONICAL "located final permute" discharge — `D`
+  -- here against an UNRELATED derivation `p` over a relabelling source type.
+  -- Rigidity at the `Unique` cod identifies `D` with the φ-lift of `p` (BUILT
+  -- here from `e₁`/`e₂`, not supplied), the absorptions swallow the lift's two
+  -- reindexings, and the residual is functoriality (`PVV.pvv-relabelˢ`).
+  -- `e₂ = refl` covers a definitional codomain reindexing.  Consumers:
+  -- `DecodeComposeAssembly.{gperm',kperm'}`, `IsoTransport.permute-relabel-freeˢ`.
+  ------------------------------------------------------------------------
+  module _ {nK : ℕ} (vlK : Fin nK → X) (φ : Fin nK → Fin H.nV)
+           (φ-lab : ∀ i → vl (φ i) ≡ vlK i) where
+
+    ⟦relabel-rigid⟧
+      : ∀ {xs ys : List (Fin nK)} {as bs : List (Fin H.nV)}
+          (u : Unique bs) (e₁ : as ≡ map φ xs) (e₂ : map φ ys ≡ bs)
+          (D : as Perm.↭ bs) (p : xs Perm.↭ ys)
+          (P : m as ≡ map vlK xs) (Q : m bs ≡ map vlK ys)
+      → castˢ P Q (permuteˢ D) ≈ˢ Perm′.permuteˢ (Fin nK) vlK p
+    ⟦relabel-rigid⟧ {xs} {ys} {as} {bs} u e₁ e₂ D p P Q =
+      ≈̂⇒≈ˢ
+        (≈̂-trans (cast-≈̂ {p = P} {q = Q})
+        (≈̂-trans (rigid-≈̂ u D φ-lift)
+        (≈̂-trans (⟦absorbʳ⟧ e₁)
+        (≈̂-trans (⟦absorbˡ⟧ e₂)
+        (≈̂-trans (≈̂-sym (cast-≈̂ {p = Pdom} {q = Pcod}))
+                 (≈ˢ⇒≈̂ (PVV.pvv-relabelˢ φ vl vlK φ-lab p Pdom Pcod)))))))
+      where
+        φ-lift : as Perm.↭ bs
+        φ-lift = Perm.trans (Perm.↭-reflexive e₁)
+                   (Perm.trans (PermProp.map⁺ φ p) (Perm.↭-reflexive e₂))
+        Pdom : m (map φ xs) ≡ map vlK xs
+        Pdom = map-∘-cong φ-lab xs
+        Pcod : m (map φ ys) ≡ map vlK ys
+        Pcod = map-∘-cong φ-lab ys
