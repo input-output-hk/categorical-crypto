@@ -22,6 +22,9 @@ open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.Fin.Properties using (_≟_; splitAt-↑ˡ; splitAt-↑ʳ; ↑ˡ-injective; ↑ʳ-injective)
 open import Data.List using (List; _∷_; length; filter; allFin; lookup; map)
+open import Data.List.Membership.Propositional using (_∈_; _∉_)
+open import Data.List.Membership.Propositional.Properties
+  using (∈-filter⁺; ∈-allFin; ∈-lookup)
 open import Data.List.Properties.Ext using (map-∘-cong)
 -- generic list/uniqueness facts (not Fin-specific); re-exported for the
 -- pruning consumers that reach them through this module.
@@ -34,16 +37,14 @@ open import Data.Nat using (ℕ; _+_)
 open import Data.Sum using (_⊎_; inj₁; inj₂; [_,_]′)
 open import Function using (_∘_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
-open import Relation.Nullary.Decidable using (¬?; yes; no)
+open import Relation.Nullary.Decidable using (Dec; ¬?; yes; no)
 
 --------------------------------------------------------------------------------
 -- Non-members of a Fin list.
 
 module _ {n : ℕ} where
+  -- the only genuinely `n`-dependent import: it needs the telescope's `n`.
   open import Data.List.Membership.DecPropositional (_≟_ {n = n}) using (_∈?_)
-  open import Data.List.Membership.Propositional using (_∈_; _∉_)
-  open import Data.List.Membership.Propositional.Properties using (∈-filter⁺; ∈-allFin)
-  open import Relation.Nullary.Decidable using (Dec)
 
   -- The predicate "v is not in xs", as a decidable.
   nonMem? : (xs : List (Fin n)) → (v : Fin n) → Dec (v ∉ xs)
@@ -87,12 +88,7 @@ module _ {n : ℕ} where
   classify-lookup-Unique xs unique j with lookup xs j ∈? xs
   ... | yes v∈ = cong inj₁
     (lookup-injective-unique unique (index v∈) j (sym (lookup-index v∈)))
-  ... | no  v∉ = ⊥-elim (v∉ ∈-lookup-helper)
-    where
-      open import Data.List.Membership.Propositional.Properties
-        using () renaming (∈-lookup to ∈-lookup-std)
-      ∈-lookup-helper : lookup xs j ∈ xs
-      ∈-lookup-helper = ∈-lookup-std j
+  ... | no  v∉ = ⊥-elim (v∉ (∈-lookup j))
 
 --------------------------------------------------------------------------------
 -- `_↑ˡ k` / `k ↑ʳ_` injectivity (thin wrappers over the stdlib lemmas, with
