@@ -19,25 +19,8 @@ open import Data.List.Properties.Ext using (map-∘-id)
 open import Function using (id; _∘_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; trans; sym; subst₂)
-
---------------------------------------------------------------------------------
--- Helpers for shuffling `subst₂` along proof equalities.
-
-private
-  -- Inverse, read as an equation flip: `subst₂ P (sym p) (sym q)` undoes
-  -- `subst₂ P p q`, so a forwards transport equation runs backwards.
-  subst₂-sym-flip : ∀ {A B : Set} {P : A → B → Set} {a a'} {b b'}
-                  → (p : a ≡ a') (q : b ≡ b') {x : P a b} {y : P a' b'}
-                  → subst₂ P p q x ≡ y → subst₂ P (sym p) (sym q) y ≡ x
-  subst₂-sym-flip refl refl refl = refl
-
-  -- Composition: two nested transports collapse.
-  subst₂-trans : ∀ {A B : Set} {P : A → B → Set} {a₁ a₂ a₃} {b₁ b₂ b₃}
-               → (p : a₁ ≡ a₂) (p' : a₂ ≡ a₃) (q : b₁ ≡ b₂) (q' : b₂ ≡ b₃)
-               → (x : P a₁ b₁)
-               → subst₂ P p' q' (subst₂ P p q x)
-               ≡ subst₂ P (trans p p') (trans q q') x
-  subst₂-trans refl refl refl refl _ = refl
+open import Relation.Binary.PropositionalEquality.Properties.Ext
+  using (subst₂-sym-flip; subst₂-trans)
 
 --------------------------------------------------------------------------------
 -- The isomorphism relation.

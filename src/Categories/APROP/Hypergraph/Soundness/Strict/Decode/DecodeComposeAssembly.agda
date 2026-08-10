@@ -130,8 +130,8 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   --
   -- The `atom-ein`/`atom-eout`/`ψ-elab` glue of each block twin is DERIVED
   -- from the raw endpoint reductions + edge-label reduction by `EmbedGlue`
-  -- (DecodeCompose), whose `ψ-elab` cancellation reuses the exported
-  -- `subst₂-FlatGen-cancel`.
+  -- (DecodeCompose), whose `ψ-elab` cancellation reuses the generic
+  -- `subst₂` groupoid laws.
 
   -- ### G-side: φ = injL, ψ = _↑ˡ K.nE, H = G, J = C.
 

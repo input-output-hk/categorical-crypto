@@ -25,7 +25,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; subst₂-FlatGen-cancel; subst₂-FlatGen-cancel′)
+  using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-prefix)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
@@ -50,6 +50,8 @@ open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
+open import Relation.Binary.PropositionalEquality.Properties.Ext
+  using (subst₂-sym-flip; subst₂-trans)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
@@ -177,9 +179,9 @@ private
 -- These three inputs are NOT independent data: given the raw endpoint
 -- reductions (`ein-red`/`eout-red`), the label-pushed `map-via` cast (`mv`),
 -- and the edge-label reduction (`elab-c`), all three are DERIVED uniformly.
--- The `ψ-elab` derivation is the two-cast cancellation `subst₂-FlatGen-cancel`
--- (+ `′`); previously each block-twin (G-side / K-side / braid) hand-rolled the
--- same construction with a locally-duplicated cancellation lemma.
+-- The `ψ-elab` derivation is the two-cast cancellation `subst₂-trans` +
+-- `subst₂-sym-flip`; previously each block-twin (G-side / K-side / braid)
+-- hand-rolled the same construction with a locally-duplicated lemma.
 module EmbedGlue
   {H J : Hypergraph FlatGen}
   (let module H = Hypergraph H)
@@ -201,11 +203,11 @@ module EmbedGlue
 
   ψ-elab : ∀ e → subst₂ FlatGen (atom-ein e) (atom-eout e) (J.elab (ψ e)) ≡ H.elab e
   ψ-elab e =
-    trans (subst₂-FlatGen-cancel
-             (cong (map J.vlab) (ein-red e)) (cong (map J.vlab) (eout-red e))
-             (mv (H.ein e)) (mv (H.eout e)) (J.elab (ψ e)))
+    trans (sym (subst₂-trans (cong (map J.vlab) (ein-red e)) (sym (mv (H.ein e)))
+                             (cong (map J.vlab) (eout-red e)) (sym (mv (H.eout e)))
+                             (J.elab (ψ e))))
       (trans (cong (subst₂ FlatGen (sym (mv (H.ein e))) (sym (mv (H.eout e)))) (elab-c e))
-             (subst₂-FlatGen-cancel′ (mv (H.ein e)) (mv (H.eout e)) (H.elab e)))
+             (subst₂-sym-flip (mv (H.ein e)) (mv (H.eout e)) refl))
 
 --------------------------------------------------------------------------------
 -- ## (A)  The generic embedding-based per-edge + process-edges term-twins,

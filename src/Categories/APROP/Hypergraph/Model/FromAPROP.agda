@@ -105,21 +105,6 @@ retype-≡ : ∀ {As Bs As' Bs'} (p : As ≡ As') (q : Bs ≡ Bs') (v : FlatGen 
 retype-≡ refl refl (flat-rec oa ob g) =
   cong₂ (λ a b → flat-rec a b g) (trans-reflʳ oa) (trans-reflʳ ob)
 
--- Trivial `subst₂ FlatGen` cancellations over the boundary indices, shared by
--- the strict tensor-braid decode residual (`Strict/Tensor/TensorBraid`).
-subst₂-FlatGen-cancel
-  : ∀ {is is' os os' : List X} (p : is ≡ is') (q : os ≡ os')
-      {is'' os'' : List X} (p' : is'' ≡ is') (q' : os'' ≡ os')
-      (z : FlatGen is os)
-  → subst₂ FlatGen (trans p (sym p')) (trans q (sym q')) z
-    ≡ subst₂ FlatGen (sym p') (sym q') (subst₂ FlatGen p q z)
-subst₂-FlatGen-cancel refl refl refl refl z = refl
-
-subst₂-FlatGen-cancel′
-  : ∀ {is is' os os' : List X} (p : is ≡ is') (q : os ≡ os') (z : FlatGen is os)
-  → subst₂ FlatGen (sym p) (sym q) (subst₂ FlatGen p q z) ≡ z
-subst₂-FlatGen-cancel′ refl refl z = refl
-
 --------------------------------------------------------------------------------
 -- Fin-range helpers.
 
