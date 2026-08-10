@@ -15,8 +15,7 @@
 -- directions):
 --   * `c-iso-assoc-from` — re-exported from `Discharge/CIsoAssocFromCons.agda`
 --     (the `from`-side pentagon);
---   * `c-iso-assoc-to`   — its `to`-side dual, by composite inversion;
---   * `cancel-mid-iso`.
+--   * `c-iso-assoc-to`   — its `to`-side dual, by composite inversion.
 -- The transported identities `subst-id-{dom,cod}` and their groupoid laws live
 -- one level down, in `Soundness/Base/Unflatten.agda`, and are re-exported here.
 --------------------------------------------------------------------------------
@@ -41,8 +40,6 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.CIsoAssocFromCons si
   using (c-iso-assoc-from)
 
 open import Categories.Category using (Category)
-open import Categories.Morphism.Reasoning FreeMonoidal
-  using (center; cancelʳ; cancelˡ)
 open import Categories.Morphism.Reasoning.Ext FreeMonoidal using (inv-resp)
 
 open import Data.List using (_++_)
@@ -54,31 +51,7 @@ private
 open FM.HomReasoning
 
 --------------------------------------------------------------------------------
--- ## 0.  Generic middle-iso cancellation.
---
--- Two 3-fold composites sharing a middle iso `Fm ∘ Tm ≈ id` cancel it, leaving
--- `To ∘ M₁ ∘ M₂ ∘ Ff`.  No assumption on `M₁` / `M₂`.
-cancel-mid-iso
-  : ∀ {A₀ A₁ A₂ A₃ A₄ A₅ : ObjTerm}
-      (To : HomTerm A₄ A₅) (M₁ : HomTerm A₂ A₄) (Fm : HomTerm A₃ A₂)
-      (Tm : HomTerm A₂ A₃) (M₂ : HomTerm A₁ A₂) (Ff : HomTerm A₀ A₁)
-  → Fm ∘ Tm ≈Term id
-  → (To ∘ M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
-    ≈Term To ∘ M₁ ∘ M₂ ∘ Ff
--- `cancelʳ m-iso : (M₁ ∘ Fm) ∘ Tm ≈ M₁`, in the `center` of the composite.
-cancel-mid-iso _ _ _ _ _ _ m-iso = center (cancelʳ m-iso)
-
--- A 3-fold composite and its reverse cancel, innermost pair first.
-cancel₃
-  : ∀ {A₀ A₁ A₂ A₃ : ObjTerm}
-      {a : HomTerm A₂ A₃} {b : HomTerm A₁ A₂} {c : HomTerm A₀ A₁}
-      {c⁻ : HomTerm A₁ A₀} {b⁻ : HomTerm A₂ A₁} {a⁻ : HomTerm A₃ A₂}
-  → c ∘ c⁻ ≈Term id → b ∘ b⁻ ≈Term id → a ∘ a⁻ ≈Term id
-  → (a ∘ b ∘ c) ∘ (c⁻ ∘ b⁻ ∘ a⁻) ≈Term id
-cancel₃ hc hb ha = center (cancelʳ hc) ○ (refl⟩∘⟨ cancelˡ hb) ○ ha
-
---------------------------------------------------------------------------------
--- ## 1.  Associativity coherence, `to`-side.
+-- Associativity coherence, `to`-side.
 --
 -- `c-iso-assoc-from` (re-exported above) is the `from`-side pentagon.  Its
 -- `to`-side dual is that same equation between the two INVERSE composites:

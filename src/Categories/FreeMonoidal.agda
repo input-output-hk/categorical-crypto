@@ -252,6 +252,27 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
              → (P ⊗₁ R) ∘ (Q ⊗₁ S) ≈Term id
     ⊗-cancel PQ RS = ⟺ ⊗-∘-dist ○ (PQ ⟩⊗⟨ RS) ○ id⊗id≈id
 
+    -- Two 3-fold composites sharing a middle iso `Fm ∘ Tm ≈ id` cancel it,
+    -- leaving `To ∘ M₁ ∘ M₂ ∘ Ff`.  No assumption on `M₁` / `M₂`.
+    cancel-mid-iso
+      : ∀ {A₀ A₁ A₂ A₃ A₄ A₅ : ObjTerm}
+          (To : HomTerm A₄ A₅) (M₁ : HomTerm A₂ A₄) (Fm : HomTerm A₃ A₂)
+          (Tm : HomTerm A₂ A₃) (M₂ : HomTerm A₁ A₂) (Ff : HomTerm A₀ A₁)
+      → Fm ∘ Tm ≈Term id
+      → (To ∘ M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
+        ≈Term To ∘ M₁ ∘ M₂ ∘ Ff
+    -- `cancelʳ m-iso : (M₁ ∘ Fm) ∘ Tm ≈ M₁`, in the `center` of the composite.
+    cancel-mid-iso _ _ _ _ _ _ m-iso = center (cancelʳ m-iso)
+
+    -- A 3-fold composite and its reverse cancel, innermost pair first.
+    cancel₃
+      : ∀ {A₀ A₁ A₂ A₃ : ObjTerm}
+          {a : HomTerm A₂ A₃} {b : HomTerm A₁ A₂} {c : HomTerm A₀ A₁}
+          {c⁻ : HomTerm A₁ A₀} {b⁻ : HomTerm A₂ A₁} {a⁻ : HomTerm A₃ A₂}
+      → c ∘ c⁻ ≈Term id → b ∘ b⁻ ≈Term id → a ∘ a⁻ ≈Term id
+      → (a ∘ b ∘ c) ∘ (c⁻ ∘ b⁻ ∘ a⁻) ≈Term id
+    cancel₃ hc hb ha = center (cancelʳ hc) ○ (refl⟩∘⟨ cancelˡ hb) ○ ha
+
     α-conj : ∀ {A B C D E G} (f : HomTerm A B) (g : HomTerm C D) (h : HomTerm E G)
            → α⇒ ∘ (f ⊗₁ g) ⊗₁ h ∘ α⇐ ≈Term f ⊗₁ (g ⊗₁ h)
     α-conj f g h = pullˡ α-comm ○ cancelʳ α⇒∘α⇐≈id

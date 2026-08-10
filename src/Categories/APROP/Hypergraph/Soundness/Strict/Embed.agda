@@ -26,7 +26,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig using (unflatten; unflatten-++-≅)
 open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
-  using ( cancel-mid-iso; c-iso-assoc-to; c-iso-assoc-from
+  using ( c-iso-assoc-to; c-iso-assoc-from
         ; subst-id-dom; subst-id-cod
         ; cast-dc; cast-cancel′; cod-cancel; dom-cancel
         ; subst-cod-cons )
