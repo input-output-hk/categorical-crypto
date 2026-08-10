@@ -8,9 +8,10 @@
 -- arbitrary HomTerms (`morL`); other generator families enter via
 -- `FreeStrictSMC.Map` along their interpretation into HomTerms.
 --
--- Structure: the cheap cases are proved inline; the three substantial ones
--- (`⊗-assocˢ` — the laxator associativity, `⊗-unitʳˢ`, `σ-hexˢ`) are proved
--- as standalone lemmas and instantiated in `EmbRespFull`.
+-- Structure: the substantial cases (`⊗-assocˢ` — the laxator associativity,
+-- `⊗-unitʳˢ`, `σ-hexˢ`, `σ-unitˢ`) are proved first as standalone lemmas;
+-- `EmbRespFull.emb-resp-≈ˢ` at the end closes all sixteen, the cheap ones
+-- inline.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -40,6 +41,8 @@ open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
 open import Categories.Morphism.Reasoning FreeMonoidal
   using ( pullˡ; pullʳ; cancelˡ; cancelʳ; cancelInner; elimʳ )
+open import Categories.Category.Monoidal.Reasoning Monoidal-FreeMonoidal
+  using ( merge₁ʳ; merge₂ʳ; split₁ˡ; split₁ʳ )
 
 private
   module FM = Category FreeMonoidal
@@ -87,96 +90,13 @@ subst₂-conj
     ≈Term subst-id-cod q ∘ t ∘ subst-id-dom p
 subst₂-conj refl refl t = ≈-Term-sym (≈-Term-trans idˡ idʳ)
 
---------------------------------------------------------------------------------
--- `emb` respects `_≈ˢ_`: the cheap cases, with the three substantial ones
--- taken as parameters (proved standalone below and instantiated at the end).
+-- the de-casting step, used at every `castˢ` case below
+emb-cast-conj
+  : ∀ {xs xs' ys ys'} (p : xs ≡ xs') (q : ys ≡ ys') (t : HomS xs ys)
+  → emb (castˢ p q t) ≈Term subst-id-cod q ∘ emb t ∘ subst-id-dom p
+emb-cast-conj p q t =
+  ≈-Term-trans (≡⇒≈Term (emb-cast p q t)) (subst₂-conj p q (emb t))
 
-module EmbResp
-  (⊗-assoc-case
-    : ∀ {xs ys us vs ps qs}
-        (f : HomS xs ys) (g : HomS us vs) (h : HomS ps qs)
-    → emb (castˢ (++-assoc xs us ps) (++-assoc ys vs qs) ((f ⊗ˢ g) ⊗ˢ h))
-      ≈Term emb (f ⊗ˢ (g ⊗ˢ h)))
-  (⊗-unitʳ-case
-    : ∀ {xs ys} (f : HomS xs ys)
-    → emb (castˢ (++-identityʳ xs) (++-identityʳ ys) (f ⊗ˢ idˢ {[]}))
-      ≈Term emb f)
-  (σ-hex-case
-    : ∀ xs ys zs
-    → emb (σˢ (xs ++ ys) zs)
-      ≈Term emb (castˢ (sym (++-assoc xs ys zs)) (++-assoc zs xs ys)
-                   ((σˢ xs zs ⊗ˢ idˢ {ys})
-                     ∘ˢ castˢ refl (sym (++-assoc xs zs ys))
-                          (idˢ {xs} ⊗ˢ σˢ ys zs))))
-  (σ-unit-case
-    : ∀ xs
-    → emb (σˢ [] xs)
-      ≈Term emb (castˢ refl (sym (++-identityʳ xs)) (idˢ {xs})))
-  where
-
-  emb-resp-≈ˢ : ∀ {xs ys} {f g : HomS xs ys} → f ≈ˢ g → emb f ≈Term emb g
-  emb-resp-≈ˢ ≈-refl           = ≈-Term-refl
-  emb-resp-≈ˢ (≈-sym e)        = ≈-Term-sym (emb-resp-≈ˢ e)
-  emb-resp-≈ˢ (≈-trans e e')   = ≈-Term-trans (emb-resp-≈ˢ e) (emb-resp-≈ˢ e')
-  emb-resp-≈ˢ (∘-resp e e')    = ∘-resp-≈ (emb-resp-≈ˢ e) (emb-resp-≈ˢ e')
-  emb-resp-≈ˢ (⊗-resp e e')    = refl⟩∘⟨ (⊗-resp-≈ (emb-resp-≈ˢ e) (emb-resp-≈ˢ e') ⟩∘⟨refl)
-  emb-resp-≈ˢ idˡ              = idˡ
-  emb-resp-≈ˢ idʳ              = idʳ
-  emb-resp-≈ˢ assocˢ           = FM.assoc
-  -- to ∘ (id ⊗ id) ∘ from  ≈  id
-  emb-resp-≈ˢ (⊗-id {xs} {us}) = begin
-    T xs us ∘ (id ⊗₁ id) ∘ F xs us
-      ≈⟨ refl⟩∘⟨ (id⊗id≈id ⟩∘⟨refl) ⟩
-    T xs us ∘ id ∘ F xs us
-      ≈⟨ refl⟩∘⟨ idˡ ⟩
-    T xs us ∘ F xs us
-      ≈⟨ _≅_.isoˡ (unflatten-++-≅ xs us) ⟩
-    id ∎
-  -- (T∘(a⊗b)∘F) ∘ (T∘(c⊗d)∘F)  ≈  T∘((a∘c)⊗(b∘d))∘F
-  emb-resp-≈ˢ (interchangeˢ {xs} {ys} {zs} {us} {vs} {ws} {a} {b} {c} {d}) = begin
-    (T zs ws ∘ (emb a ⊗₁ emb b) ∘ F ys vs)
-      ∘ (T ys vs ∘ (emb c ⊗₁ emb d) ∘ F xs us)
-      ≈⟨ cancel-mid-iso (T zs ws) (emb a ⊗₁ emb b) (F ys vs)
-           (T ys vs) (emb c ⊗₁ emb d) (F xs us)
-           (_≅_.isoʳ (unflatten-++-≅ ys vs)) ⟩
-    T zs ws ∘ (emb a ⊗₁ emb b) ∘ (emb c ⊗₁ emb d) ∘ F xs us
-      ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-    T zs ws ∘ ((emb a ⊗₁ emb b) ∘ (emb c ⊗₁ emb d)) ∘ F xs us
-      ≈⟨ refl⟩∘⟨ (≈-Term-sym ⊗-∘-dist ⟩∘⟨refl) ⟩
-    T zs ws ∘ ((emb a ∘ emb c) ⊗₁ (emb b ∘ emb d)) ∘ F xs us ∎
-  emb-resp-≈ˢ (⊗-assocˢ f g h) = ⊗-assoc-case f g h
-  emb-resp-≈ˢ (⊗-unitʳˢ f)     = ⊗-unitʳ-case f
-  -- (T∘σ∘F) ∘ (T∘(f⊗g)∘F)  ≈  (T∘(g⊗f)∘F) ∘ (T∘σ∘F)
-  emb-resp-≈ˢ (σ-natˢ {xs} {ys} {us} {vs} {f} {g}) = begin
-    (T vs ys ∘ σ ∘ F ys vs) ∘ (T ys vs ∘ (emb f ⊗₁ emb g) ∘ F xs us)
-      ≈⟨ cancel-mid-iso (T vs ys) σ (F ys vs) (T ys vs)
-           (emb f ⊗₁ emb g) (F xs us) (_≅_.isoʳ (unflatten-++-≅ ys vs)) ⟩
-    T vs ys ∘ σ ∘ (emb f ⊗₁ emb g) ∘ F xs us
-      ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-    T vs ys ∘ (σ ∘ (emb f ⊗₁ emb g)) ∘ F xs us
-      ≈⟨ refl⟩∘⟨ (σ∘[f⊗g]≈[g⊗f]∘σ ⟩∘⟨refl) ⟩
-    T vs ys ∘ ((emb g ⊗₁ emb f) ∘ σ) ∘ F xs us
-      ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-    T vs ys ∘ (emb g ⊗₁ emb f) ∘ σ ∘ F xs us
-      ≈⟨ ≈-Term-sym (cancel-mid-iso (T vs ys) (emb g ⊗₁ emb f) (F us xs)
-           (T us xs) σ (F xs us) (_≅_.isoʳ (unflatten-++-≅ us xs))) ⟩
-    (T vs ys ∘ (emb g ⊗₁ emb f) ∘ F us xs) ∘ (T us xs ∘ σ ∘ F xs us) ∎
-  -- (T∘σ∘F) ∘ (T∘σ∘F)  ≈  id
-  emb-resp-≈ˢ (σ-σˢ {xs} {ys}) = begin
-    (T xs ys ∘ σ ∘ F ys xs) ∘ (T ys xs ∘ σ ∘ F xs ys)
-      ≈⟨ cancel-mid-iso (T xs ys) σ (F ys xs) (T ys xs) σ (F xs ys)
-           (_≅_.isoʳ (unflatten-++-≅ ys xs)) ⟩
-    T xs ys ∘ σ ∘ σ ∘ F xs ys
-      ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-    T xs ys ∘ (σ ∘ σ) ∘ F xs ys
-      ≈⟨ refl⟩∘⟨ (σ∘σ≈id ⟩∘⟨refl) ⟩
-    T xs ys ∘ id ∘ F xs ys
-      ≈⟨ refl⟩∘⟨ idˡ ⟩
-    T xs ys ∘ F xs ys
-      ≈⟨ _≅_.isoˡ (unflatten-++-≅ xs ys) ⟩
-    id ∎
-  emb-resp-≈ˢ (σ-hexˢ xs ys zs) = σ-hex-case xs ys zs
-  emb-resp-≈ˢ (σ-unitˢ xs)      = σ-unit-case xs
 
 --------------------------------------------------------------------------------
 -- THE CRUX: the `⊗-assocˢ` case — the laxator-associativity payment,
@@ -196,9 +116,7 @@ private
   → emb (castˢ (++-assoc xs us ps) (++-assoc ys vs qs) ((f ⊗ˢ g) ⊗ˢ h))
     ≈Term emb (f ⊗ˢ (g ⊗ˢ h))
 ⊗-assoc-case {xs} {ys} {us} {vs} {ps} {qs} f g h =
-  ≈-Term-trans
-    (≡⇒≈Term (emb-cast (++-assoc xs us ps) (++-assoc ys vs qs) ((f ⊗ˢ g) ⊗ˢ h)))
-    (≈-Term-trans (subst₂-conj (++-assoc xs us ps) (++-assoc ys vs qs) _) main)
+  emb-cast-conj (++-assoc xs us ps) (++-assoc ys vs qs) _ ○ main
   where
     A₁ = ++-assoc xs us ps
     A₂ = ++-assoc ys vs qs
@@ -211,11 +129,9 @@ private
     core : emb ((f ⊗ˢ g) ⊗ˢ h) ≈Term Sd₂ ∘ emb (f ⊗ˢ (g ⊗ˢ h)) ∘ Sc₁
     core = begin
       T (ys ++ vs) qs ∘ ((T ys vs ∘ (ef ⊗₁ eg) ∘ F xs us) ⊗₁ eh) ∘ F (xs ++ us) ps
-        ≈⟨ refl⟩∘⟨ (⊗-resp-≈ ≈-Term-refl (≈-Term-sym (≈-Term-trans idˡ idʳ)) ⟩∘⟨refl) ⟩
-      T (ys ++ vs) qs ∘ ((T ys vs ∘ (ef ⊗₁ eg) ∘ F xs us) ⊗₁ (id ∘ eh ∘ id)) ∘ F (xs ++ us) ps
-        ≈⟨ refl⟩∘⟨ (⊗-∘-dist ⟩∘⟨refl) ⟩
-      T (ys ++ vs) qs ∘ ((T ys vs ⊗₁ id) ∘ (((ef ⊗₁ eg) ∘ F xs us) ⊗₁ (eh ∘ id))) ∘ F (xs ++ us) ps
-        ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ ⊗-∘-dist) ⟩∘⟨refl) ⟩
+        ≈⟨ refl⟩∘⟨ (split₁ˡ ⟩∘⟨refl) ⟩
+      T (ys ++ vs) qs ∘ ((T ys vs ⊗₁ id) ∘ (((ef ⊗₁ eg) ∘ F xs us) ⊗₁ eh)) ∘ F (xs ++ us) ps
+        ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ split₁ʳ) ⟩∘⟨refl) ⟩
       T (ys ++ vs) qs ∘ ((T ys vs ⊗₁ id) ∘ ((ef ⊗₁ eg) ⊗₁ eh) ∘ (F xs us ⊗₁ id)) ∘ F (xs ++ us) ps
         ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ (α-conjE ef eg eh ⟩∘⟨refl)) ⟩∘⟨refl) ⟩
       T (ys ++ vs) qs ∘ ((T ys vs ⊗₁ id) ∘ (α⇐ ∘ N ∘ α⇒) ∘ (F xs us ⊗₁ id)) ∘ F (xs ++ us) ps
@@ -315,9 +231,7 @@ private
   → emb (castˢ (++-identityʳ xs) (++-identityʳ ys) (f ⊗ˢ idˢ {[]}))
     ≈Term emb f
 ⊗-unitʳ-case {xs} {ys} f =
-  ≈-Term-trans
-    (≡⇒≈Term (emb-cast (++-identityʳ xs) (++-identityʳ ys) (f ⊗ˢ idˢ {[]})))
-    (≈-Term-trans (subst₂-conj (++-identityʳ xs) (++-identityʳ ys) _) main)
+  emb-cast-conj (++-identityʳ xs) (++-identityʳ ys) _ ○ main
   where
     ef = emb f
     Sd = subst-id-dom (++-identityʳ xs)
@@ -354,14 +268,12 @@ private
   fold⊗ʳ
     : ∀ {A B C D E} {p : HomTerm B C} {q : HomTerm A B} {W : HomTerm E (D ⊗₀ A)}
     → (id {D} ⊗₁ p) ∘ ((id {D} ⊗₁ q) ∘ W) ≈Term (id {D} ⊗₁ (p ∘ q)) ∘ W
-  fold⊗ʳ = ≈-Term-trans (≈-Term-sym FM.assoc)
-             ((≈-Term-trans (≈-Term-sym ⊗-∘-dist) (⊗-resp-≈ idˡ ≈-Term-refl)) ⟩∘⟨refl)
+  fold⊗ʳ = pullˡ merge₂ʳ
 
   fold⊗ˡ
     : ∀ {A B C D E} {p : HomTerm B C} {q : HomTerm A B} {W : HomTerm E (A ⊗₀ D)}
     → (p ⊗₁ id {D}) ∘ ((q ⊗₁ id {D}) ∘ W) ≈Term ((p ∘ q) ⊗₁ id {D}) ∘ W
-  fold⊗ˡ = ≈-Term-trans (≈-Term-sym FM.assoc)
-             ((≈-Term-trans (≈-Term-sym ⊗-∘-dist) (⊗-resp-≈ ≈-Term-refl idˡ)) ⟩∘⟨refl)
+  fold⊗ˡ = pullˡ merge₁ʳ
 
   -- σ at a fused block, split through the laxator
   σ-split
@@ -468,8 +380,7 @@ private
             ∘ subst-id-cod (++-assoc xs ys zs)
   rhs→N xs ys zs =
     -- phase 1: de-cast the outer cast into a conjugation by transported ids
-    ≡⇒≈Term (emb-cast (sym (++-assoc xs ys zs)) (++-assoc zs xs ys) _)
-    ○ subst₂-conj (sym (++-assoc xs ys zs)) (++-assoc zs xs ys) _
+    emb-cast-conj (sym (++-assoc xs ys zs)) (++-assoc zs xs ys) _
     -- phase 2: de-cast the inner factor (`stepC`), then merge the dom-side cast
     ○ (refl⟩∘⟨ ((refl⟩∘⟨ stepC) ⟩∘⟨refl))
     ○ (refl⟩∘⟨ (refl⟩∘⟨ cast-dc (++-assoc xs ys zs)))
@@ -499,12 +410,7 @@ private
           ≈Term subst-id-cod (sym (++-assoc xs zs ys))
                 ∘ (T xs (zs ++ ys)
                     ∘ (id ⊗₁ (T zs ys ∘ σ ∘ F ys zs)) ∘ F xs (ys ++ zs))
-      stepC =
-        ≈-Term-trans
-          (≡⇒≈Term (emb-cast refl (sym (++-assoc xs zs ys)) (idˢ {xs} ⊗ˢ σˢ ys zs)))
-          (≈-Term-trans
-            (subst₂-conj refl (sym (++-assoc xs zs ys)) _)
-            (refl⟩∘⟨ idʳ))
+      stepC = emb-cast-conj refl (sym (++-assoc xs zs ys)) _ ○ (refl⟩∘⟨ idʳ)
 
 σ-hex-case
   : ∀ xs ys zs
@@ -537,13 +443,74 @@ open import Categories.Category.Monoidal.Braided.Properties
   emb (castˢ refl (sym (++-identityʳ xs)) (idˢ {xs})) ∎
   where
     rhs : emb (castˢ refl (sym (++-identityʳ xs)) (idˢ {xs})) ≈Term subst-id-cod (sym (++-identityʳ xs))
-    rhs =
-      ≈-Term-trans
-        (≡⇒≈Term (emb-cast refl (sym (++-identityʳ xs)) idˢ))
-        (≈-Term-trans (subst₂-conj refl (sym (++-identityʳ xs)) id)
-          (≈-Term-trans (∘-resp-≈ ≈-Term-refl idˡ) idʳ))
+    rhs = emb-cast-conj refl (sym (++-identityʳ xs)) _ ○ (refl⟩∘⟨ idˡ) ○ idʳ
 
 --------------------------------------------------------------------------------
--- All sixteen cases closed.
+-- `emb` respects `_≈ˢ_` — all sixteen cases closed: the cheap ones inline, the
+-- four substantial ones by the standalone lemmas above.
 
-module EmbRespFull = EmbResp ⊗-assoc-case ⊗-unitʳ-case σ-hex-case σ-unit-case
+module EmbRespFull where
+
+  emb-resp-≈ˢ : ∀ {xs ys} {f g : HomS xs ys} → f ≈ˢ g → emb f ≈Term emb g
+  emb-resp-≈ˢ ≈-refl           = ≈-Term-refl
+  emb-resp-≈ˢ (≈-sym e)        = ≈-Term-sym (emb-resp-≈ˢ e)
+  emb-resp-≈ˢ (≈-trans e e')   = ≈-Term-trans (emb-resp-≈ˢ e) (emb-resp-≈ˢ e')
+  emb-resp-≈ˢ (∘-resp e e')    = ∘-resp-≈ (emb-resp-≈ˢ e) (emb-resp-≈ˢ e')
+  emb-resp-≈ˢ (⊗-resp e e')    = refl⟩∘⟨ (⊗-resp-≈ (emb-resp-≈ˢ e) (emb-resp-≈ˢ e') ⟩∘⟨refl)
+  emb-resp-≈ˢ idˡ              = idˡ
+  emb-resp-≈ˢ idʳ              = idʳ
+  emb-resp-≈ˢ assocˢ           = FM.assoc
+  -- to ∘ (id ⊗ id) ∘ from  ≈  id
+  emb-resp-≈ˢ (⊗-id {xs} {us}) = begin
+    T xs us ∘ (id ⊗₁ id) ∘ F xs us
+      ≈⟨ refl⟩∘⟨ (id⊗id≈id ⟩∘⟨refl) ⟩
+    T xs us ∘ id ∘ F xs us
+      ≈⟨ refl⟩∘⟨ idˡ ⟩
+    T xs us ∘ F xs us
+      ≈⟨ _≅_.isoˡ (unflatten-++-≅ xs us) ⟩
+    id ∎
+  -- (T∘(a⊗b)∘F) ∘ (T∘(c⊗d)∘F)  ≈  T∘((a∘c)⊗(b∘d))∘F
+  emb-resp-≈ˢ (interchangeˢ {xs} {ys} {zs} {us} {vs} {ws} {a} {b} {c} {d}) = begin
+    (T zs ws ∘ (emb a ⊗₁ emb b) ∘ F ys vs)
+      ∘ (T ys vs ∘ (emb c ⊗₁ emb d) ∘ F xs us)
+      ≈⟨ cancel-mid-iso (T zs ws) (emb a ⊗₁ emb b) (F ys vs)
+           (T ys vs) (emb c ⊗₁ emb d) (F xs us)
+           (_≅_.isoʳ (unflatten-++-≅ ys vs)) ⟩
+    T zs ws ∘ (emb a ⊗₁ emb b) ∘ (emb c ⊗₁ emb d) ∘ F xs us
+      ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+    T zs ws ∘ ((emb a ⊗₁ emb b) ∘ (emb c ⊗₁ emb d)) ∘ F xs us
+      ≈⟨ refl⟩∘⟨ (≈-Term-sym ⊗-∘-dist ⟩∘⟨refl) ⟩
+    T zs ws ∘ ((emb a ∘ emb c) ⊗₁ (emb b ∘ emb d)) ∘ F xs us ∎
+  emb-resp-≈ˢ (⊗-assocˢ f g h) = ⊗-assoc-case f g h
+  emb-resp-≈ˢ (⊗-unitʳˢ f)     = ⊗-unitʳ-case f
+  -- (T∘σ∘F) ∘ (T∘(f⊗g)∘F)  ≈  (T∘(g⊗f)∘F) ∘ (T∘σ∘F)
+  emb-resp-≈ˢ (σ-natˢ {xs} {ys} {us} {vs} {f} {g}) = begin
+    (T vs ys ∘ σ ∘ F ys vs) ∘ (T ys vs ∘ (emb f ⊗₁ emb g) ∘ F xs us)
+      ≈⟨ cancel-mid-iso (T vs ys) σ (F ys vs) (T ys vs)
+           (emb f ⊗₁ emb g) (F xs us) (_≅_.isoʳ (unflatten-++-≅ ys vs)) ⟩
+    T vs ys ∘ σ ∘ (emb f ⊗₁ emb g) ∘ F xs us
+      ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+    T vs ys ∘ (σ ∘ (emb f ⊗₁ emb g)) ∘ F xs us
+      ≈⟨ refl⟩∘⟨ (σ∘[f⊗g]≈[g⊗f]∘σ ⟩∘⟨refl) ⟩
+    T vs ys ∘ ((emb g ⊗₁ emb f) ∘ σ) ∘ F xs us
+      ≈⟨ refl⟩∘⟨ FM.assoc ⟩
+    T vs ys ∘ (emb g ⊗₁ emb f) ∘ σ ∘ F xs us
+      ≈⟨ ≈-Term-sym (cancel-mid-iso (T vs ys) (emb g ⊗₁ emb f) (F us xs)
+           (T us xs) σ (F xs us) (_≅_.isoʳ (unflatten-++-≅ us xs))) ⟩
+    (T vs ys ∘ (emb g ⊗₁ emb f) ∘ F us xs) ∘ (T us xs ∘ σ ∘ F xs us) ∎
+  -- (T∘σ∘F) ∘ (T∘σ∘F)  ≈  id
+  emb-resp-≈ˢ (σ-σˢ {xs} {ys}) = begin
+    (T xs ys ∘ σ ∘ F ys xs) ∘ (T ys xs ∘ σ ∘ F xs ys)
+      ≈⟨ cancel-mid-iso (T xs ys) σ (F ys xs) (T ys xs) σ (F xs ys)
+           (_≅_.isoʳ (unflatten-++-≅ ys xs)) ⟩
+    T xs ys ∘ σ ∘ σ ∘ F xs ys
+      ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
+    T xs ys ∘ (σ ∘ σ) ∘ F xs ys
+      ≈⟨ refl⟩∘⟨ (σ∘σ≈id ⟩∘⟨refl) ⟩
+    T xs ys ∘ id ∘ F xs ys
+      ≈⟨ refl⟩∘⟨ idˡ ⟩
+    T xs ys ∘ F xs ys
+      ≈⟨ _≅_.isoˡ (unflatten-++-≅ xs ys) ⟩
+    id ∎
+  emb-resp-≈ˢ (σ-hexˢ xs ys zs) = σ-hex-case xs ys zs
+  emb-resp-≈ˢ (σ-unitˢ xs)      = σ-unit-case xs
