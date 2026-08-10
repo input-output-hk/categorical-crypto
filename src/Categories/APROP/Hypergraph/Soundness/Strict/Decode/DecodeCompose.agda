@@ -27,7 +27,7 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; subst₂-FlatGen-cancel; subst₂-FlatGen-cancel′)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (edge-step; process-edges; extract-prefix)
+  using (extract-prefix)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-via-injective-just; extract-prefix-via-injective-nothing)
 
