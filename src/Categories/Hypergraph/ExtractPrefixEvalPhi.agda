@@ -19,7 +19,8 @@ module Categories.Hypergraph.ExtractPrefixEvalPhi where
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin; _≟_)
 open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (map-++; ≡-dec)
+open import Data.List.Properties using (map-++)
+open import Data.List.Properties.Ext using (≡-irrelevant)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Maybe.Properties using (just-injective)
 open import Data.Product using (_,_)
@@ -125,11 +126,6 @@ module _ {n m : ℕ} (f : Fin n → Fin m)
 module _ {nH nJ : ℕ}
          (φ : Fin nH → Fin nJ) (φ-inj : ∀ {x y} → φ x ≡ φ y → x ≡ y) where
 
-  -- UIP on `List (Fin nJ)` (the residual type), via decidable equality.
-  private
-    listFin-uip : ∀ {x y : List (Fin nJ)} (p q : x ≡ y) → p ≡ q
-    listFin-uip = Decidable⇒UIP.≡-irrelevant (≡-dec _≟_)
-
   extract-prefix-pin
     : ∀ (ks xs rest : List (Fin nH))
         (permH : xs ↭ ks ++ rest)
@@ -139,6 +135,6 @@ module _ {nH nJ : ℕ}
     → permJ ≡ subst (λ z → map φ xs ↭ z) (map-++ φ ks rest)
                     (PermProp.map⁺ φ permH)
   extract-prefix-pin ks xs rest permH permJ eqH eqJ =
-    ,-injectiveʳ-UIP listFin-uip
+    ,-injectiveʳ-UIP (≡-irrelevant _≟_)
       (just-injective
         (trans (sym eqJ) (extract-prefix-map⁺ φ φ-inj ks xs rest permH eqH)))
