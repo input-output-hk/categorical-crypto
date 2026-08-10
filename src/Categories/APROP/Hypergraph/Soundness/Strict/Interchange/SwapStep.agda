@@ -86,7 +86,6 @@ module PerHG (H : Hypergraph FlatGen)
   connectivity : ∀ {L M : Order} → L Perm.↭ M → NoInv L → NoInv M → L ↝* M
   connectivity = PH.connectivity dih
 
-  Incompˢ : Fin H.nE → Fin H.nE → Set
   Incompˢ = SC.Incomp H
 
   -- The (N) residual as a NAMED telescope: for any orders `ps`/`qs` and any
@@ -99,14 +98,13 @@ module PerHG (H : Hypergraph FlatGen)
     → (ps ++ e' ∷ e ∷ qs) Perm.↭ range H.nE
     → RunInterchangeˢ H lin ps qs inc
 
-  -- The concrete strict Kelly residual at this vertex set.
+  -- The concrete strict Kelly residual at this vertex set, and the rigidity
+  -- discharge `SwapCore` already states at it.
   private
     permˢ-K : Support.PermK (Fin H.nV) vl
     permˢ-K = PK.permˢ-K (Fin H.nV) _≟F_ vl
 
-  perm-rigidˢ : ∀ {xs ys : List (Fin H.nV)} → Unique ys
-              → (p q : xs Perm.↭ ys) → permuteˢ p ≈ˢ permuteˢ q
-  perm-rigidˢ = Support.perm-rigidˢ (Fin H.nV) vl permˢ-K
+  perm-rigidˢ = SC.perm-rigidˢ H permˢ-K
 
   --------------------------------------------------------------------
   -- STRICT validity + the strict order-indexed decoder.  `Validˢ o`

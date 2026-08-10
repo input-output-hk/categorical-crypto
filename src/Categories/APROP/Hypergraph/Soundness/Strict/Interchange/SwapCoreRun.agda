@@ -122,14 +122,11 @@ module _ (H : Hypergraph FlatGen)
 
   private module RH = Run H
 
-  pe-stack-agree : ∀ o s → pe-stackˢ′ o s ≡ (process-edges H o s)
-  pe-stack-agree o s = RH.stacks-agree o s
-
   reached-Uniqueˢ-from
     : ∀ (o : List (Fin H.nE)) → SUR.Reservoir≤1 H (o ++ []) H.dom
     → Unique (pe-stackˢ′ o H.dom)
   reached-Uniqueˢ-from o inv =
-    subst Unique (sym (pe-stack-agree o H.dom))
+    subst Unique (sym (RH.stacks-agree o H.dom))
       (SUR.Reservoir≤1⇒Unique H [] ((process-edges H o H.dom))
         (SUR.reservoir-split H o [] H.dom inv))
 
@@ -144,91 +141,92 @@ module _ (H : Hypergraph FlatGen)
 
   module RunInterchange (FMI : FireMidInterchangeˢ) where
 
-    -- `build`: the abstract-index four-way split.  The three `Unique`
-    -- arguments feed the both-fire branch only.
-    build
-      : ∀ {e e' : Fin H.nE} (e≢e' : ¬ (e ≡ e')) (inc : Incompˢ e e')
-          (sp : List (Fin H.nV))
-          {s1 t1} (we  : EdgeStepRˢ′ sp e  s1 t1)
-          {s2 t2} (we' : EdgeStepRˢ′ s1 e' s2 t2)
-          {u1 v1} (ue  : EdgeStepRˢ′ sp e' u1 v1)
-          {u2 w2} (ue' : EdgeStepRˢ′ u1 e  u2 w2)
-          (us-s1 : Unique s1) (us-u1 : Unique u1) (us-u2 : Unique u2)
-          (us-sp : Unique sp)
-      → Σ[ r ∈ s2 Perm.↭ u2 ]
-          ((idˢ ∘ˢ w2) ∘ˢ v1)
-          ≈ˢ permuteˢ r ∘ˢ ((idˢ ∘ˢ t2) ∘ˢ t1)
+    private
+      -- `build`: the abstract-index four-way split.  The three `Unique`
+      -- arguments feed the both-fire branch only.
+      build
+        : ∀ {e e' : Fin H.nE} (e≢e' : ¬ (e ≡ e')) (inc : Incompˢ e e')
+            (sp : List (Fin H.nV))
+            {s1 t1} (we  : EdgeStepRˢ′ sp e  s1 t1)
+            {s2 t2} (we' : EdgeStepRˢ′ s1 e' s2 t2)
+            {u1 v1} (ue  : EdgeStepRˢ′ sp e' u1 v1)
+            {u2 w2} (ue' : EdgeStepRˢ′ u1 e  u2 w2)
+            (us-s1 : Unique s1) (us-u1 : Unique u1) (us-u2 : Unique u2)
+            (us-sp : Unique sp)
+        → Σ[ r ∈ s2 Perm.↭ u2 ]
+            ((idˢ ∘ˢ w2) ∘ˢ v1)
+            ≈ˢ permuteˢ r ∘ˢ ((idˢ ∘ˢ t2) ∘ˢ t1)
 
-    -- (1) e SKIPS sp.
-    -- BOTH-SKIP.
-    build e≢e' inc sp (skipRˢ eqe) (skipRˢ eqe') (skipRˢ _) (skipRˢ _) _ _ _ _ =
-      Perm.refl , ≈-sym idˡ
-    build e≢e' inc sp (skipRˢ eqe) (skipRˢ eqe') (fireRˢ ur₂' up₂' ueqe') _ _ _ _ _ =
-      ⊥-elim (nothing≢just (trans (sym eqe') ueqe'))
-    build e≢e' inc sp (skipRˢ eqe) (skipRˢ eqe') (skipRˢ ueqe') (fireRˢ ur₁ up₁ ueqe1) _ _ _ _ =
-      ⊥-elim (nothing≢just (trans (sym eqe) ueqe1))
-    build e≢e' inc sp (skipRˢ eqe) (fireRˢ r₂' p₂' eqe') (skipRˢ eqe'-bad) _ _ _ _ _ =
-      ⊥-elim (nothing≢just (trans (sym eqe'-bad) eqe'))
-    build e≢e' inc sp (skipRˢ eqe) (fireRˢ r₂' p₂' eqe') (fireRˢ ur₂' up₂' ueqe')
-          (fireRˢ r₁' p₁' eqe1) _ _ _ _ =
-      ⊥-elim (nothing≢just
-        (trans (sym (e'-skips-stable (λ eq → e≢e' (sym eq)) (proj₂ inc)
-                       ur₂' sp up₂' eqe)) eqe1))
-    build e≢e' inc sp (skipRˢ eqe) (fireRˢ r₂' p₂' eqe') (fireRˢ ur₂' up₂' ueqe')
-          (skipRˢ eqe1) _ _ _ _ =
-      pin (just-injective (trans (sym ueqe') eqe'))
-      where
-        pin : (ur₂' , up₂') ≡ (r₂' , p₂') → _
-        pin refl =
-          Perm.refl ,
-          ≈-trans (∘-resp idˡ ≈-refl)
-            (≈-trans idˡ
-              (≈-sym (≈-trans idˡ (≈-trans (∘-resp idˡ ≈-refl) idʳ))))
+      -- (1) e SKIPS sp.
+      -- BOTH-SKIP.
+      build e≢e' inc sp (skipRˢ eqe) (skipRˢ eqe') (skipRˢ _) (skipRˢ _) _ _ _ _ =
+        Perm.refl , ≈-sym idˡ
+      build e≢e' inc sp (skipRˢ eqe) (skipRˢ eqe') (fireRˢ ur₂' up₂' ueqe') _ _ _ _ _ =
+        ⊥-elim (nothing≢just (trans (sym eqe') ueqe'))
+      build e≢e' inc sp (skipRˢ eqe) (skipRˢ eqe') (skipRˢ ueqe') (fireRˢ ur₁ up₁ ueqe1) _ _ _ _ =
+        ⊥-elim (nothing≢just (trans (sym eqe) ueqe1))
+      build e≢e' inc sp (skipRˢ eqe) (fireRˢ r₂' p₂' eqe') (skipRˢ eqe'-bad) _ _ _ _ _ =
+        ⊥-elim (nothing≢just (trans (sym eqe'-bad) eqe'))
+      build e≢e' inc sp (skipRˢ eqe) (fireRˢ r₂' p₂' eqe') (fireRˢ ur₂' up₂' ueqe')
+            (fireRˢ r₁' p₁' eqe1) _ _ _ _ =
+        ⊥-elim (nothing≢just
+          (trans (sym (e'-skips-stable (λ eq → e≢e' (sym eq)) (proj₂ inc)
+                         ur₂' sp up₂' eqe)) eqe1))
+      build e≢e' inc sp (skipRˢ eqe) (fireRˢ r₂' p₂' eqe') (fireRˢ ur₂' up₂' ueqe')
+            (skipRˢ eqe1) _ _ _ _ =
+        pin (just-injective (trans (sym ueqe') eqe'))
+        where
+          pin : (ur₂' , up₂') ≡ (r₂' , p₂') → _
+          pin refl =
+            Perm.refl ,
+            ≈-trans (∘-resp idˡ ≈-refl)
+              (≈-trans idˡ
+                (≈-sym (≈-trans idˡ (≈-trans (∘-resp idˡ ≈-refl) idʳ))))
 
-    -- (2) e FIRES sp.
-    build e≢e' inc sp (fireRˢ r₁ p₁ eqe) (skipRˢ eqe2) (fireRˢ ur₂' up₂' ueqe') _ _ _ _ _ =
-      ⊥-elim (nothing≢just
-        (trans (sym eqe2)
-          (proj₂ (proj₂ (e'-fires-stable e≢e' (proj₁ inc) r₁ sp p₁ ueqe')))))
-    build e≢e' inc sp (fireRˢ r₁ p₁ eqe) (skipRˢ eqe2) (skipRˢ eqe'n) (skipRˢ eqe-bad) _ _ _ _ =
-      ⊥-elim (nothing≢just (trans (sym eqe-bad) eqe))
-    build e≢e' inc sp (fireRˢ r₁ p₁ eqe) (skipRˢ eqe2) (skipRˢ eqe'n)
-          (fireRˢ ur₁ up₁ ueqe) _ _ _ _ =
-      pin (just-injective (trans (sym ueqe) eqe))
-      where
-        pin : (ur₁ , up₁) ≡ (r₁ , p₁) → _
-        pin refl =
-          Perm.refl ,
-          ≈-trans (∘-resp idˡ ≈-refl)
-            (≈-trans idʳ
-              (≈-sym (≈-trans idˡ (≈-trans (∘-resp idˡ ≈-refl) idˡ))))
-    build e≢e' inc sp (fireRˢ r₁ p₁ eqe) (fireRˢ r₂ p₂ eqe2) (skipRˢ eqe'n) _ _ _ _ _ =
-      ⊥-elim (nothing≢just
-        (trans (sym (e'-skips-stable e≢e' (proj₁ inc) r₁ sp p₁ eqe'n)) eqe2))
-    build e≢e' inc sp (fireRˢ r₁ p₁ eqe) (fireRˢ r₂ p₂ eqe2) (fireRˢ r₂' p₂' eqe')
-          (skipRˢ eqe1) _ _ _ _ =
-      ⊥-elim (nothing≢just
-        (trans (sym eqe1)
-          (proj₂ (proj₂
-            (e'-fires-stable (λ eq → e≢e' (sym eq)) (proj₂ inc)
-              r₂' sp p₂' eqe)))))
-    -- BOTH-FIRE — the genuine content.
-    build {e} {e'} e≢e' inc sp (fireRˢ r₁ p₁ eqe) (fireRˢ r₂ p₂ eqe2)
-          (fireRˢ r₂' p₂' eqe') (fireRˢ r₁' p₁' eqe1) us-s1 us-u1 us-u2 us-sp =
-      r ,
-      ≈-trans (∘-resp idˡ ≈-refl)
-        (≈-trans box-eq
-          (∘-resp ≈-refl (∘-resp (≈-sym idˡ) ≈-refl)))
-      where
-        RI = FMI inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-s1 us-u1 us-u2
-        r  = proj₁ RI
-        box-eq
-          : ( fire-termˢ′ e (H.eout e' ++ r₂') r₁' p₁'
-                ∘ˢ fire-termˢ′ e' sp r₂' p₂' )
-            ≈ˢ permuteˢ r
-                ∘ˢ ( fire-termˢ′ e' (H.eout e ++ r₁) r₂ p₂
-                       ∘ˢ fire-termˢ′ e sp r₁ p₁ )
-        box-eq = proj₂ RI
+      -- (2) e FIRES sp.
+      build e≢e' inc sp (fireRˢ r₁ p₁ eqe) (skipRˢ eqe2) (fireRˢ ur₂' up₂' ueqe') _ _ _ _ _ =
+        ⊥-elim (nothing≢just
+          (trans (sym eqe2)
+            (proj₂ (proj₂ (e'-fires-stable e≢e' (proj₁ inc) r₁ sp p₁ ueqe')))))
+      build e≢e' inc sp (fireRˢ r₁ p₁ eqe) (skipRˢ eqe2) (skipRˢ eqe'n) (skipRˢ eqe-bad) _ _ _ _ =
+        ⊥-elim (nothing≢just (trans (sym eqe-bad) eqe))
+      build e≢e' inc sp (fireRˢ r₁ p₁ eqe) (skipRˢ eqe2) (skipRˢ eqe'n)
+            (fireRˢ ur₁ up₁ ueqe) _ _ _ _ =
+        pin (just-injective (trans (sym ueqe) eqe))
+        where
+          pin : (ur₁ , up₁) ≡ (r₁ , p₁) → _
+          pin refl =
+            Perm.refl ,
+            ≈-trans (∘-resp idˡ ≈-refl)
+              (≈-trans idʳ
+                (≈-sym (≈-trans idˡ (≈-trans (∘-resp idˡ ≈-refl) idˡ))))
+      build e≢e' inc sp (fireRˢ r₁ p₁ eqe) (fireRˢ r₂ p₂ eqe2) (skipRˢ eqe'n) _ _ _ _ _ =
+        ⊥-elim (nothing≢just
+          (trans (sym (e'-skips-stable e≢e' (proj₁ inc) r₁ sp p₁ eqe'n)) eqe2))
+      build e≢e' inc sp (fireRˢ r₁ p₁ eqe) (fireRˢ r₂ p₂ eqe2) (fireRˢ r₂' p₂' eqe')
+            (skipRˢ eqe1) _ _ _ _ =
+        ⊥-elim (nothing≢just
+          (trans (sym eqe1)
+            (proj₂ (proj₂
+              (e'-fires-stable (λ eq → e≢e' (sym eq)) (proj₂ inc)
+                r₂' sp p₂' eqe)))))
+      -- BOTH-FIRE — the genuine content.
+      build {e} {e'} e≢e' inc sp (fireRˢ r₁ p₁ eqe) (fireRˢ r₂ p₂ eqe2)
+            (fireRˢ r₂' p₂' eqe') (fireRˢ r₁' p₁' eqe1) us-s1 us-u1 us-u2 us-sp =
+        r ,
+        ≈-trans (∘-resp idˡ ≈-refl)
+          (≈-trans box-eq
+            (∘-resp ≈-refl (∘-resp (≈-sym idˡ) ≈-refl)))
+        where
+          RI = FMI inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-s1 us-u1 us-u2
+          r  = proj₁ RI
+          box-eq
+            : ( fire-termˢ′ e (H.eout e' ++ r₂') r₁' p₁'
+                  ∘ˢ fire-termˢ′ e' sp r₂' p₂' )
+              ≈ˢ permuteˢ r
+                  ∘ˢ ( fire-termˢ′ e' (H.eout e ++ r₁) r₂ p₂
+                         ∘ˢ fire-termˢ′ e sp r₁ p₁ )
+          box-eq = proj₂ RI
 
     ----------------------------------------------------------------------
     -- The EMPTY-TAIL interchange core.

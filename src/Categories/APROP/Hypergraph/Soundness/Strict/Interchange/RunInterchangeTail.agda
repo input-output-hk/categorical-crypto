@@ -67,7 +67,6 @@ module _ (H : Hypergraph FlatGen)
 
   -- `Incomp` from `SwapCore` (so the record matches the `run-interchange₀ˢ`
   -- consumer).
-  Incompˢ : Fin H.nE → Fin H.nE → Set
   Incompˢ = SC.Incomp H
 
   ----------------------------------------------------------------------
