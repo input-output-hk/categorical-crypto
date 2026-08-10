@@ -833,65 +833,56 @@ module KBlockDisjoint (G K : Hypergraph FlatGen) where
   ψK : Fin K.nE → Fin C.nE
   ψK eK = G.nE ↑ʳ eK
 
-  -- `injR j ≢ injL k` (split lands in `inj₂` vs `inj₁`).
+  ψG : Fin G.nE → Fin C.nE
+  ψG eG = eG ↑ˡ K.nE
+
+  private
+    -- `x` is absent from an `f`-block whenever `f` never hits `x`.
+    ∉-map : ∀ {m} {f : Fin m → Fin C.nV} {x : Fin C.nV} (P : List (Fin m))
+          → (∀ k → f k ≡ x → ⊥) → extract-elem x (map f P) ≡ nothing
+    ∉-map []       _  = refl
+    ∉-map {f = f} {x} (k ∷ ks) ne with f k FinP.≟ x
+    ... | yes p  = ⊥-elim (ne k p)
+    ... | no  _  rewrite ∉-map ks ne = refl
+
+    -- an `f`-block avoids `blk` pointwise ⇒ it avoids it as a list.
+    all-∉-map
+      : ∀ {m} {f : Fin m → Fin C.nV} (blk : List (Fin C.nV))
+      → (∀ k → extract-elem (f k) blk ≡ nothing)
+      → ∀ (ks : List (Fin m))
+      → All (λ k → extract-elem k blk ≡ nothing) (map f ks)
+    all-∉-map blk h []       = []
+    all-∉-map blk h (k ∷ ks) = h k ∷ all-∉-map blk h ks
+
+  -- the two injections are disjoint (`splitAt` lands in `inj₂` vs `inj₁`).
   injR≢injL : ∀ {j : Fin K.nV} {k : Fin G.nV} → injR j ≡ injL k → ⊥
   injR≢injL {j} {k} eq with trans (sym (splitAt-↑ʳ G.nV K.nV j))
                             (trans (cong (splitAt G.nV) eq)
                                    (splitAt-↑ˡ G.nV k K.nV))
   ... | ()
 
-  -- `injR j` is absent from any `injL`-block.
+  -- `injR j` is absent from any `injL`-block, and dually.
   injR∉injLs : ∀ (j : Fin K.nV) (P : List (Fin G.nV)) → extract-elem (injR j) (map injL P) ≡ nothing
-  injR∉injLs j []       = refl
-  injR∉injLs j (k ∷ ks) with injL k FinP.≟ injR j
-  ... | yes p  = ⊥-elim (injR≢injL (sym p))
-  ... | no  _  rewrite injR∉injLs j ks = refl
+  injR∉injLs j P = ∉-map P (λ _ eq → injR≢injL (sym eq))
 
-  -- `ein-disjⁱ (ψK eK) (map injL P)` at `H = hTensor G K`.
+  injL∉injRs : ∀ (k : Fin G.nV) (Q : List (Fin K.nV)) → extract-elem (injL k) (map injR Q) ≡ nothing
+  injL∉injRs k Q = ∉-map Q (λ _ → injR≢injL)
+
+  -- `ein-disjⁱ (ψK eK) (map injL P)` / `ein-disjⁱ (ψG eG) (map injR Q)` at
+  -- `H = hTensor G K`: the block's inputs are all on the other side.
   kblock-ein-disjoint
     : ∀ (eK : Fin K.nE) (P : List (Fin G.nV))
-    → All (λ k → extract-elem k (map injL P) ≡ nothing)
-          (C.ein (ψK eK))
+    → All (λ k → extract-elem k (map injL P) ≡ nothing) (C.ein (ψK eK))
   kblock-ein-disjoint eK P =
-    subst (λ ks → All (λ k → extract-elem k (map injL P) ≡ nothing) ks)
+    subst (All (λ k → extract-elem k (map injL P) ≡ nothing))
           (sym (ein-c-inj₂-red eK))
-          (all-injR (K.ein eK))
-    where
-      all-injR : ∀ (js : List (Fin K.nV))
-               → All (λ k → extract-elem k (map injL P) ≡ nothing)
-                     (map injR js)
-      all-injR []       = []
-      all-injR (j ∷ js) = injR∉injLs j P ∷ all-injR js
+          (all-∉-map (map injL P) (λ j → injR∉injLs j P) (K.ein eK))
 
-  ψG : Fin G.nE → Fin C.nE
-  ψG eG = eG ↑ˡ K.nE
-
-  -- `injL k ≢ injR j` (split lands in `inj₁` vs `inj₂`).
-  injL≢injR : ∀ {k : Fin G.nV} {j : Fin K.nV} → injL k ≡ injR j → ⊥
-  injL≢injR {k} {j} eq with trans (sym (splitAt-↑ˡ G.nV k K.nV))
-                            (trans (cong (splitAt G.nV) eq)
-                                   (splitAt-↑ʳ G.nV K.nV j))
-  ... | ()
-
-  -- `injL k` is absent from any `injR`-block.
-  injL∉injRs : ∀ (k : Fin G.nV) (Q : List (Fin K.nV)) → extract-elem (injL k) (map injR Q) ≡ nothing
-  injL∉injRs k []       = refl
-  injL∉injRs k (j ∷ js) with injR j FinP.≟ injL k
-  ... | yes p  = ⊥-elim (injL≢injR (sym p))
-  ... | no  _  rewrite injL∉injRs k js = refl
-
-  -- `ein-disjⁱ (ψG eG) (map injR Q)` at `H = hTensor G K`.
   gblock-ein-disjoint : ∀ (eG : Fin G.nE) (Q : List (Fin K.nV)) → ein-disjoint (ψG eG) (map injR Q)
   gblock-ein-disjoint eG Q =
-    subst (λ ks → All (λ k → extract-elem k (map injR Q) ≡ nothing) ks)
+    subst (All (λ k → extract-elem k (map injR Q) ≡ nothing))
           (sym (ein-c-inj₁-red eG))
-          (all-injL (G.ein eG))
-    where
-      all-injL : ∀ (ks : List (Fin G.nV))
-               → All (λ k → extract-elem k (map injR Q) ≡ nothing)
-                     (map injL ks)
-      all-injL []       = []
-      all-injL (k ∷ ks) = injL∉injRs k Q ∷ all-injL ks
+          (all-∉-map (map injR Q) (λ k → injL∉injRs k Q) (G.ein eG))
 
   gblk : List (Fin C.nE)
   gblk = map (_↑ˡ K.nE) (range G.nE)
