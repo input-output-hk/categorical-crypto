@@ -190,14 +190,16 @@ import Categories.APROP.Hypergraph.Solver.Frontend as Interp
 
 private module IM = Interp iSigDec
 
+-- One scaffold for both readings of the signature: the identity laws do not
+-- mention the fifth atom (pass any object for `u`), while `right-superposing`
+-- reads it as the superposed wire and takes the loop wire's two ends equal.
 module Transport {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e)
   (let module C = SymmetricMonoidalCategory C)
-  (x⁺ x⁻ y⁺ y⁻ : C.Obj)
+  (x⁺ x⁻ y⁺ y⁻ u : C.Obj)
   where
 
-  -- the atom y does not occur in the identity-law statements
   ⟦_⟧ᵖ₀ : Fin 5 → C.Obj
-  ⟦ 0F ⟧ᵖ₀ = x⁺ ; ⟦ 1F ⟧ᵖ₀ = x⁻ ; ⟦ 2F ⟧ᵖ₀ = y⁺ ; ⟦ 3F ⟧ᵖ₀ = y⁻ ; ⟦ 4F ⟧ᵖ₀ = x⁺
+  ⟦ 0F ⟧ᵖ₀ = x⁺ ; ⟦ 1F ⟧ᵖ₀ = x⁻ ; ⟦ 2F ⟧ᵖ₀ = y⁺ ; ⟦ 3F ⟧ᵖ₀ = y⁻ ; ⟦ 4F ⟧ᵖ₀ = u
 
   module OI = IM.ObjInterp C ⟦_⟧ᵖ₀
 
@@ -217,23 +219,7 @@ module Transport {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e)
     C3R : ⟦ C3Rᵗ-lhs ⟧₁ C.≈ ⟦ C3Rᵗ-rhs ⟧₁
     C3R = Functor.F-resp-≈ freeFunctor C3Rᵗ
 
--- right-superposing's reading: the loop wire's two ends are one object.
-module TransportRS {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e)
-  (let module C = SymmetricMonoidalCategory C)
-  (a b x u : C.Obj)
-  where
-
-  ⟦_⟧ᵖ₀ : Fin 5 → C.Obj
-  ⟦ 0F ⟧ᵖ₀ = a ; ⟦ 1F ⟧ᵖ₀ = b ; ⟦ 2F ⟧ᵖ₀ = x ; ⟦ 3F ⟧ᵖ₀ = x ; ⟦ 4F ⟧ᵖ₀ = u
-
-  module OI = IM.ObjInterp C ⟦_⟧ᵖ₀
-
-  module WithGen (f₀ : OI.⟦ A' ⊗₀ X⁻ ⟧₀ C.⇒ OI.⟦ B' ⊗₀ X⁺ ⟧₀) where
-
-    ⟦_⟧ᵖ₁ : ∀ {p q} → IMor p q → OI.⟦ p ⟧₀ C.⇒ OI.⟦ q ⟧₀
-    ⟦ gf ⟧ᵖ₁ = f₀
-
-    open IM.Solver C ⟦_⟧ᵖ₀ ⟦_⟧ᵖ₁
-
+    -- `right-superposing`'s reading (`x⁺`/`x⁻` = A'/B', `y⁺`/`y⁻` the loop
+    -- wire's two ends, `u` the superposed wire)
     RS : ⟦ RSᵗ-lhs ⟧₁ C.≈ ⟦ RSᵗ-rhs ⟧₁
     RS = Functor.F-resp-≈ freeFunctor RSᵗ

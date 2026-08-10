@@ -117,7 +117,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
           ○ trace-gyank
           where
             module ICW = GCohId.Transport.WithGen Cˢ
-              (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) f
+              (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) (proj₁ A) f
 
         -- identityʳ: f ∘G id ≈ f, i.e. trace(α ∘ f ⊗₁ σ⇒ ∘ γ) ≈ f
         identityʳ' : ∀ {A B : C.Obj × C.Obj}
@@ -132,7 +132,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
           ○ ⟺ C.assoc ○ (C.commutative ⟩∘⟨refl) ○ C.identityˡ
           where
             module ICW = GCohId.Transport.WithGen Cˢ
-              (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) f
+              (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) (proj₁ A) f
 
         -- Right superposing: trace(f) ⊗₁ id ≈ trace(β ∘ f ⊗₁ id ∘ β)
         right-superposing : ∀ {X Y A' B'} {f' : A' C.⊗₀ X C.⇒ B' C.⊗₀ X} →
@@ -161,7 +161,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
                 braiding-swap = C.introˡ C.commutative
                               ○ C.pullʳ (C.braiding.⇒.commute _)
 
-                coherence = GCohId.TransportRS.WithGen.RS Cˢ A' B' X Y f'
+                coherence = GCohId.Transport.WithGen.RS Cˢ A' B' X X Y f'
 
         -- Associativity
         assoc' : ∀ {A B D E : C.Obj × C.Obj}
