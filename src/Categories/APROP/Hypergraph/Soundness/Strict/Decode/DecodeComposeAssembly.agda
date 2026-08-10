@@ -16,11 +16,11 @@
 -- the strict `castˢ` kit (refl-matching + UIP), so the proof is materially
 -- shorter than the non-strict original.
 --
--- STATEMENT (boundary-cast form).  The headline `decodePˢ`-equation is stated
--- with abstract boundary-cast proofs (`dom≡`/`cod≡`/`mid≡`), exactly as the
--- caller's `Decoder`/`Decode` boundary casts: the boundary objects align
--- definitionally (`C.dom = map injL G.dom`, `C.cod = map remapP K.cod`,
--- `C.nE = G.nE + K.nE`), so the proof is unconditional in those proofs.
+-- STATEMENT.  The headline equation is CAST-FREE — `decodePˢ (g ∘ f) ≈ˢ
+-- decodePˢ g ∘ˢ decodePˢ f`, no boundary-cast hypotheses.  The boundary
+-- objects align definitionally (`C.dom = map injL G.dom`, `C.cod = map remapP
+-- K.cod`, `C.nE = G.nE + K.nE`), so the internal casts `domGF`/`midGFᵉ`/
+-- `codGF` are the caller's own `⟪⟫-domL`/`⟪⟫-codL`, not extra parameters.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
