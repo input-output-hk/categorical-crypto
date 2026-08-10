@@ -21,14 +21,15 @@
 --      `decodePˢ f` through `TermEmbedˢ` at `φ = injL, ψ = _↑ˡ K.nE`.
 --   3. K-BLOCK BRAID.  After G fires, the K-edge block acts on the `injR`
 --      suffix but PREPENDS K's outputs in FRONT of `injL G.cod`, giving a
---      BRAIDED stack.  This is the genuine residual `kblock-braidˢ` below
---      (the strict twin of the non-strict `kblock-factor` + `box-braid`):
---      one clearly-typed `≈ˢ` stating the K-block run on the clean mixed
---      stack `map injL sG ++ map injR K.dom` factors as a `permuteˢ` braid
+--      BRAIDED stack.  This is the genuine residual `KBlockσ` below (the
+--      strict twin of the non-strict `kblock-factor` + `box-braid`): one
+--      clearly-typed `≈ˢ` stating the K-block run on the clean mixed stack
+--      `map injL sG ++ map injR K.dom` factors as a `permuteˢ` braid
 --      composed with `idˢ {injL sG} ⊗ˢ (K-run)`.  The K-run is bridged to
 --      `decodePˢ g` through `TermEmbedˢ` at `φ = injR, ψ = G.nE ↑ʳ_`.
 --   4. EQUIVARIANCE.  `process-edges-equivariantˢ` conjugates the K-block on
---      the actual `after-G` stack onto the canonical clean stack.
+--      the actual `after-G` stack onto the canonical clean stack — the route
+--      `TensorKBlockFinal` takes to discharge `KBlockσ`.
 --   5. CANONICAL `cand` + FINAL RESORT.  `cand` is the assembled derivation;
 --      `TensorReconcile.final-resortˢ` (`perm-rigidˢ`, `Unique` cod) closes
 --      the loop with `finalPermˢ`.
@@ -66,7 +67,7 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _�
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorReconcile sig _≟X_ as TR
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
 open import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorKBlock sig _≟X_
-  using (module TKB4; module KBlockDisjoint)
+  using (module KBlockDisjoint)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig _≟X_
   using (pvv-relabelˢ)
 
@@ -310,11 +311,11 @@ module _
     ----------------------------------------------------------------------
     -- ## (e)-RECONCILE: `KBlockσ` from the K-block run factorization.
     --
-    -- This is the LAST step.  `TKB6.kblock-factorize-res`, instantiated
-    -- at the concrete K-block (`L = sG`, the G-output block; `s = aG`, the
-    -- post-G stack; `s_R = Rsuf`, the canonical pure-`injR` K-stack), supplies
-    -- the K-prepend braid + clean factorization
-    --     Krun ≈ˢ permuteˢ Br ∘ˢ (KCleanˢ kblk sG Rsuf ∘ˢ permuteˢ pf).
+    -- This is the LAST step.  `TensorKBlockFinal` supplies the K-block run
+    -- factorization at the concrete K-block (`L = sG`, the G-output block;
+    -- `s = aG`, the post-G stack; `s_R = Rsuf`, the canonical pure-`injR`
+    -- K-stack), for ANY K-prepend braid `Br`:
+    --     Krun ≈ˢ permuteˢ Br ∘ˢ (KCln ∘ˢ permuteˢ pf₀).
     -- We reconcile this to `KBlockσ` by: collapsing the G-frame against the
     -- clean K-head via `interchangeˢ` (giving `Gon ⊗ Kclean`), bridging `Gon`
     -- ↦ `decodePˢ f`-core / `Kclean` ↦ `decodePˢ g`-core via `TG`/`TK`, and
@@ -324,8 +325,8 @@ module _
 
     module Reconcile-e where
       private
-        -- the `Fin Hf.nV` Kelly instance (the same one `TensorReconcile` /
-        -- `kblock-factorize-res` thread).
+        -- the `Fin Hf.nV` Kelly instance (the same one `TensorReconcile` and
+        -- `TensorKBlockFinal` thread).
         open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
         permˢ-K-fg : Support.PermK (Fin Hf.nV) Hf.vlab
         permˢ-K-fg = permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
@@ -347,10 +348,10 @@ module _
         Kclean : HomV Rsuf Kfin
         Kclean = proj₂ (process-edgesˢ kblk Rsuf)
 
-        -- the clean K-block frame `idˢ {m sG} ⊗ Kclean`, `map-++`-cast-framed
-        -- (DEFINITIONALLY `TKB4.KCleanˢ ⟪fg⟫ permˢ-K-fg kblk sG Rsuf`).
+        -- the clean K-block frame: the clean K-run on the pure-`injR` stack,
+        -- framed on the left by the inert G-output block.
         KCln : HomV (sG ++ Rsuf) (sG ++ Kfin)
-        KCln = TKB4.KCleanˢ ⟪ fg ⟫ permˢ-K-fg kblk sG Rsuf
+        KCln = idᵛ {sG} ⊗ᵛ Kclean
 
       -- PUBLIC re-exports (so the new file `TensorKBlockFinal` can state the
       -- `Br` / `KFAC` it feeds in, mirroring the private bindings).
