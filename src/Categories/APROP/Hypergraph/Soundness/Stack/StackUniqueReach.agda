@@ -2,7 +2,7 @@
 
 --------------------------------------------------------------------------------
 -- The stack-Uniqueness reachability invariant — the keystone supplying the
--- `Unique`-codomain witness the eval-coincidence family needs.
+-- `Unique`-codomain witness the stack-`≅↭` family needs.
 --
 -- Per-edge-step `Unique`-preservation is FALSE for an arbitrary `Unique s`
 -- (firing an edge whose `eout e` is already live duplicates a wire); it

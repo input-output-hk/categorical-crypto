@@ -14,8 +14,8 @@
 --
 -- The two inductive steps `bswap-σ (v ∷ L)` / `permuteˢ-shift-sym v (x∷R)`
 -- (the hexagon-reconciliation content) are reduced to the single clearly-typed
--- `≈ˢ` fact `bswap-σ` (`Scr.BswapSig`), threaded as the module parameter
--- `BSwapσ` and discharged in `Strict/Interchange/BlockSwapComm.agda`.  The
+-- `≈ˢ` fact `bswap-σ` (`Scr.BswapSig`), threaded as a module parameter and
+-- discharged in `Strict/Interchange/BlockSwapComm.agda`.  The
 -- strict vertex-level block-swap-commutes keystone.
 --------------------------------------------------------------------------------
 

@@ -16,8 +16,8 @@
 --      `(K-block run on after-G) ∘ˢ (G-block run on C.dom)` — PROVEN
 --      `DecodeCompose.RunBlocks.pe-term-++ˢ`.
 --   2. G-BLOCK FRAME.  The G-block run factors `(G-run on injL G.dom) ⊗ˢ
---      idˢ {map injR K.dom}` via the proven right-frame `term-sepˢ`
---      (`DecodeTensor.GBlock.G-block-frameˢ`); the G-run is bridged to
+--      idˢ {map injR K.dom}` via the proven right-frame `Decoder.term-sepᵛ`
+--      (assembled as `gframe` below); the G-run is bridged to
 --      `decodePˢ f` through `TermEmbedˢ` at `φ = injL, ψ = _↑ˡ K.nE`.
 --   3. K-BLOCK BRAID.  After G fires, the K-edge block acts on the `injR`
 --      suffix but PREPENDS K's outputs in FRONT of `injL G.cod`, giving a
@@ -374,7 +374,7 @@ module _
     -- ## `braidˢ` from `KBlockσ`.
     --
     -- Substituting the run-split `run-split-atˢ` (PROVEN) and the G-frame
-    -- `gframe` (PROVEN, ⇐ `term-sepˢ`) into the C-run turns `KBlockσ` into
+    -- `gframe` (PROVEN, ⇐ `term-sepᵛ`) into the C-run turns `KBlockσ` into
     -- exactly the `braidˢ` parameter of `TensorReconcile.reconcile-from-braid`
     -- for the chosen `cand`.  The narrowed `KBlockσ` now mentions only the
     -- K-block run and the FRAMED G-side `Gon ⊗ˢ idˢ`.

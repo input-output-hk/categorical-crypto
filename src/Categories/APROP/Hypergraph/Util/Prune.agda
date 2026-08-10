@@ -10,10 +10,24 @@
 --
 --   * `nonMem xs`     — the Fin values not in `xs`.
 --   * `count-non xs`  — its length (the "survivors").
---   * `classify xs v` — cases `v` as a position in `xs` or in `nonMem xs`.
+--   * `classify xs v` — cases `v` as a position in `xs` or in `nonMem xs`, and
+--                       `ClassifyV`/`classify-view` (constructors `is-mem` /
+--                       `is-non`) — the VIEW consumers should use: writing
+--                       `with classify xs v | classify-view xs v` reads the
+--                       membership witness and the refined sum value off one
+--                       pattern, replacing the `with … in cls`-plus-inversion
+--                       idiom every consumer used to hand-roll.
+--                       `classify-lookup-Unique` pins the index for `Unique`
+--                       `xs`.
 --   * `remap xs f`    — routes members of `xs` to an arbitrary target space
 --                       via `f`, non-members to the fresh pruned space of
---                       size `count-non xs`.
+--                       size `count-non xs`; with `remap-inj₁`,
+--                       `remap-injective`, and the two label-transport faces
+--                       `remap-vlab` / `map-via-remap`.
+--
+-- Also re-exports (`public`) the two generic list/uniqueness facts
+-- `All-lookup` / `lookup-injective-unique` from `Data.List.Properties.Ext`,
+-- so the pruning consumers reach them through this module.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Util.Prune where

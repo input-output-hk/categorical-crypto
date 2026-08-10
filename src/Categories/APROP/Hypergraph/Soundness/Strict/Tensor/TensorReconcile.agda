@@ -36,9 +36,9 @@
 --   `braidˢ`, the K-block braid: the strict statement that the C-run inner
 --   term `permuteˢ cand ∘ˢ proj₂ runˢ`, with `cand` the canonical block-braid
 --   derivation, equals `castˢ … (decodePˢ f ⊗ˢ decodePˢ g)`.  This is the
---   G-block frame (`G-block-frameˢ`, available) tensored with the K-block run
---   slid back past `G.cod` via `σˢ`/`σ-hexˢʳ`/`strict-braid`, reconciled with
---   the sub-decoder runs through the cross-vertex bridge `permuteˢ-X`.
+--   G-block frame (`TensorBraid.gframe`, available) tensored with the K-block
+--   run slid back past `G.cod` via `σˢ`/`σ-hexˢʳ`/`strict-braid`, reconciled
+--   with the sub-decoder runs through `TensorPVVRelabel.pvv-relabelˢ`.
 --   `braidˢ` is supplied downstream by `Strict.Tensor.TensorBraid` (via the
 --   K-prepend box-braid `KBlockσ`), so `decodePˢ-⊗-from-braid` here is fed a
 --   concrete witness in `TensorKBlockFinal.decodePˢ-⊗-concrete` — making the

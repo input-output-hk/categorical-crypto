@@ -45,8 +45,8 @@ private
 open FM.HomReasoning
 
 --------------------------------------------------------------------------------
--- Inverse bridge + cancellation (same as `Soundness`, replicated
--- here so this module is parameterised by `(sig)(_≟X_)` directly).
+-- Inverse bridge + cancellation.  This is their only home; the root
+-- `Soundness.agda` is a 34-line aggregator and defines neither.
 
 bridge⁻¹
   : ∀ {A B}

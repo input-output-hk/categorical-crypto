@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Stack-Uniqueness and the close of the eval-coincidence residual family
+-- Stack-Uniqueness and the close of the stack-`≅↭` residual family
 -- (`residual-recon`) via `Rigid.eval-rigid`.
 --
 -- `eval-rigid` says: two `↭`-derivations `p, q : xs ↭ ys` with a `Unique`
@@ -126,7 +126,7 @@ Unique-resp-↭ p uxs = count≤1⇒Unique (λ v → subst (_≤ⁿ 1) (↭⇒co
 --------------------------------------------------------------------------------
 -- 3.  The Fin-index `≅↭` family, closed by `eval-rigid`.
 
--- Closes the eval-coincidence residual (consumed by `Strict/Interchange/
+-- Closes the stack-`≅↭` residual (consumed by `Strict/Interchange/
 -- StackEquiv`), modulo a `Unique (ks ++ rest)` hypothesis, via the real
 -- `extract-prefix-↭-residual`.
 residual-recon

@@ -1,12 +1,26 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Term-free structural invariants for the decoder's `process-edges`
--- (postulate-free, `--safe`): firing stays inside the prefix
--- (`extract-elem-++ˡ`, `extract-prefix-++ˡ`, and their `nothing`-mirrors).
--- The three `Fin n`-list/permutation lemmas `prefix-++ˡ-perm`,
--- `extract-prefix-++ˡ`, `extract-prefix-++ˡ-nothing` are consumed by
--- `Strict/Decode/Decoder.agda`.
+-- Term-free structural invariants of the decoder's stack search, both frames
+-- (postulate-free, `--safe`).  Two sections:
+--
+--   §1 (`:37`)  RIGHT frame — firing stays inside the prefix: on `xs ++ R`
+--               the search that succeeds within `xs` succeeds identically,
+--               and the one that fails on `xs` fails identically
+--               (`extract-elem-++ˡ`, `extract-prefix-++ˡ`,
+--               `prefix-++ˡ-perm`, and their two `nothing`-mirrors).
+--               Consumed by `Strict/Decode/Decoder.agda`'s `stack-sepˢ`.
+--   §2 (`:161`) LEFT frame — the `++ʳ` family (`extract-elem-++ʳ`,
+--               `extract-prefix-++ʳ`, `extract-prefix-++ʳ-nothing`): a frame
+--               block `L` disjoint from the searched list passes through
+--               whole onto the residual.  Consumed by
+--               `Decode/DecodeProperties.agda`.
+--
+-- §2 carries the OBSTRUCTION note (`:174`) explaining why these STACK lemmas
+-- are the strongest left-hand statement available — the TERM-level left-frame
+-- mirror of `Decoder.term-sepᵛ` is FALSE for a block that fires, because the
+-- residual comes out as `eout e ++ (L ++ rest)` where the framed form needs
+-- `L ++ (eout e ++ rest)`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -172,8 +186,8 @@ extract-prefix-++ˡ-nothing (k ∷ ks) xs R (dk ∷ dks) eqn with extract-elem k
 -- `nothing`-direction reuses `extract-elem-++ˡ-nothing` (which is symmetric).
 --
 -- OBSTRUCTION — why these stack lemmas are the strongest left-hand statement
--- available, i.e. why there is no TERM-level mirror `term-sepˢ-ˡ` of
--- `Decoder.term-sepˢ` for a block that fires.  Take `es = e ∷ []`, an `xs` with
+-- available, i.e. why there is no LEFT-frame TERM-level mirror of
+-- `Decoder.term-sepᵛ` for a block that fires.  Take `es = e ∷ []`, an `xs` with
 -- `extract-prefix (H.ein e) xs ≡ just (rest , p)`, and an `L` disjoint from
 -- `H.ein e`.  Then `extract-prefix-++ʳ` gives residual `L ++ rest`, so
 -- `edge-stepˢ` on `L ++ xs` produces the stack

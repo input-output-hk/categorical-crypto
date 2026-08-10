@@ -5,7 +5,7 @@
 -- `perm-rigidˢ` wrapper that all of parts (I)ˢ/(II)ˢ consume.
 --
 -- `permˢ-K` is the strict, VERTEX-LEVEL analogue of the proven
--- `FaithfulnessInductive.faithfulness` (the deep "K" ingredient):
+-- `Coxeter.FaithfulnessInductive.complete` (the deep "K" ingredient):
 -- two permutation derivations whose evaluated bijections coincide produce
 -- `_≈ˢ_`-equal terms under `permuteˢ`.  It is threaded here as a module
 -- PARAMETER and discharged axiom-free in `Strict.Perm.PermK` via
