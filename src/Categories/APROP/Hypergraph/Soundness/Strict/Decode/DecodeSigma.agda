@@ -128,18 +128,13 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
 
 module Scr (V : Set) (vlab : V → X) where
   open Support V vlab public
+  open DShapes.Trivial V vlab public
   open Restrict V vlab
     using (idᵛ; _⊗ᵛ_; σᵛ; _≈ᵛ_; permuteᵛ; castᵛ-cast; σ-unitᵛ)
 
   bswap : (L R : List V) → (L ++ R) ↭ (R ++ L)
   bswap []      R = Perm.↭-reflexive (sym (++-identityʳ R))
   bswap (v ∷ L) R = Perm.trans (Perm.prep v (bswap L R)) (Perm.↭-sym (PermProp.shift v R L))
-
-  refl-trivial
-    : ∀ {xs ys : List V} (e : xs ≡ ys)
-    → permuteˢ (Perm.↭-reflexive e)
-      ≈ˢ castˢ refl (cong (map vlab) e) (idˢ {map vlab xs})
-  refl-trivial refl = ≈-refl
 
   -- `permuteᵛ (↭-sym (shift v R L))` is the braiding of `v ∷ []` past the
   -- block `R`, framed by `idᵛ {L}` — stated in the `Restrict` layer, so the

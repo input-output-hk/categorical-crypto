@@ -59,6 +59,20 @@ import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 
 --------------------------------------------------------------------------------
+-- A `↭-reflexive` derivation is the boundary cast of `idˢ`.  Needs neither the
+-- K-faithfulness residual nor a `DecidableEquality`, hence its home ABOVE the
+-- residual block: that is what `DecodeSigma.Scr` can consume.
+
+module Trivial (V : Set) (vlab : V → X) where
+  open Support V vlab
+
+  refl-trivial
+    : ∀ {xs ys : List V} (e : xs ≡ ys)
+    → permuteˢ (Perm.↭-reflexive e)
+      ≈ˢ castˢ refl (cong (map vlab) e) (idˢ {map vlab xs})
+  refl-trivial refl = ≈-refl
+
+--------------------------------------------------------------------------------
 -- The single deferred residual, threaded polymorphically over the vertex
 -- set (mirrors how the non-strict tree threads `K : FaithfulnessResidual`).
 
@@ -90,15 +104,10 @@ module _
 
   module Triv (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X) where
     open Support V vlab
+    open Trivial V vlab public
 
     K : PermK
     K = permˢ-K V _≟V_ vlab
-
-    refl-trivial
-      : ∀ {xs ys : List V} (e : xs ≡ ys)
-      → permuteˢ (Perm.↭-reflexive e)
-        ≈ˢ castˢ refl (cong (map vlab) e) (idˢ {map vlab xs})
-    refl-trivial refl = ≈-refl
 
     perm-trivial
       : ∀ {xs ys : List V} (e : xs ≡ ys) → Unique ys → (p : xs ↭ ys)
