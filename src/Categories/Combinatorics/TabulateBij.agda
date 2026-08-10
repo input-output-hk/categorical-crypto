@@ -6,7 +6,7 @@
 -- (`bij-fin-ℕ-≡`, `tabulate-bij-↭-via-eq`).
 --------------------------------------------------------------------------------
 
-module Categories.APROP.Hypergraph.Soundness.Linearity.LinearityIso where
+module Categories.Combinatorics.TabulateBij where
 
 open import Data.Fin using (Fin; zero; suc)
 open import Data.List using (_∷_; tabulate)

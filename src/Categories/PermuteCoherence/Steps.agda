@@ -12,7 +12,7 @@
 
 open import Categories.FreeMonoidal
 
-module Categories.Hypergraph.Steps
+module Categories.PermuteCoherence.Steps
   (d : FreeMonoidalData) ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
 
 open FreeMonoidalData d using (X)

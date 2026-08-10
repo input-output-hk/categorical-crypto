@@ -14,7 +14,7 @@ open import Categories.FreeMonoidal
 
 -- Stated over an arbitrary `FreeMonoidalData` with a symmetric structure;
 -- the body uses only the free (symmetric) monoidal structure.
-module Categories.FreeSMC.SigmaBlockHexagon
+module Categories.FreeMonoidal.SigmaBlockHexagon
   (d : FreeMonoidalData) ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
 
 open FreeMonoidal d

@@ -258,7 +258,7 @@ private
 --   N = Sc A₂ ∘ T (zs++xs) ys ∘ ((T zs xs ∘ σ) ⊗ id)
 --         ∘ α⇐ ∘ (id ⊗ (σ ∘ F ys zs)) ∘ F xs (ys++zs) ∘ Sc A₁ .
 
-import Categories.FreeSMC.SigmaBlockHexagon
+import Categories.FreeMonoidal.SigmaBlockHexagon
   asFreeMonoidalData as SBH
 
 private

@@ -50,10 +50,10 @@ open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; _≅_)
--- `permute-via-vlab` is imported directly from `Categories.Hypergraph.Steps`
+-- `permute-via-vlab` is imported directly from `Categories.PermuteCoherence.Steps`
 -- (rather than through any intermediate re-export) so APROP and generic SMC
 -- code observe definitional equality.
-open import Categories.Hypergraph.Steps asFreeMonoidalData
+open import Categories.PermuteCoherence.Steps asFreeMonoidalData
   using (permute-via-vlab)
 
 -- Shared helpers from the soundness decoder: `Agen-edge-aux` (the canonical

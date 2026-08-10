@@ -29,7 +29,7 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
 import Data.List.Relation.Unary.AllPairs as AP
 open import Data.List.Relation.Unary.AllPairs using (AllPairs)
 import Data.List.Relation.Unary.AllPairs.Properties as APProp
-open import Categories.APROP.Hypergraph.Soundness.Linearity.LinearityIso
+open import Categories.Combinatorics.TabulateBij
   using (bij-fin-ℕ-≡; tabulate-bij-↭-via-eq)
 
 import Categories.Combinatorics.LinearExtension as LinExt
