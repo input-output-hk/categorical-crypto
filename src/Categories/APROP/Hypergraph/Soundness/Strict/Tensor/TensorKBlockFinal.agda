@@ -38,7 +38,6 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; range; module hTensor-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Model.Invariant sig using (range-++)
 
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-elem; process-edges)
@@ -85,7 +84,7 @@ module _
 
       open hTensor-impl G K using (injL; injR)
       open StrictDecoder Hf
-        using (process-edgesˢ; stack-sepˢ; permuteˢ)
+        using (process-edgesˢ; permuteˢ)
       open Run Hf using (stacks-agree)
 
       open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
@@ -101,25 +100,17 @@ module _
       gblk = map (_↑ˡ Kd.nE) (range Gd.nE)
       kblk = map (Gd.nE ↑ʳ_) (range Kd.nE)
 
-      Lpre Rsuf : List (Fin Hfm.nV)
-      Lpre = map injL Gd.dom
+      Rsuf : List (Fin Hfm.nV)
       Rsuf = map injR Kd.dom
 
       sG aG : List (Fin Hfm.nV)
       sG = Rec.sGᴾ
       aG = Rec.aGᴾ
 
-      ------------------------------------------------------------------
-      -- ### G-block disjointness `block-disjoint gblk Rsuf`, at the `hTensor`
-      -- layout in `TensorKBlock.KBlockDisjoint` (the `injL`/`injR` mirror of
-      -- `kblock-ein-disjoint`).
-
-      g-disjoint : StrictDecoder.block-disjoint Hf gblk Rsuf
-      g-disjoint = KBD.gblock-disjoint
-
-      -- `aG ≡ sG ++ Rsuf` (rebuilt `sep`; `Hf.dom = Lpre ++ Rsuf` definitional).
+      -- `aG ≡ sG ++ Rsuf`: `Braid` already proves this from the G-block
+      -- disjointness `KBD.gblock-disjoint` and `stack-sepˢ`.
       sep : aG ≡ sG ++ Rsuf
-      sep = stack-sepˢ gblk Lpre Rsuf g-disjoint
+      sep = Rec.sepᴾ
 
       ------------------------------------------------------------------
       -- ### K-block disjointness `All (ein-disjⁱ · sG) kblk`, transported
@@ -150,7 +141,7 @@ module _
       -- the strict post-G stack `aG` by `stacks-agree`.
 
       range≡ : range Hfm.nE ≡ gblk ++ kblk
-      range≡ = range-++ Gd.nE Kd.nE
+      range≡ = Rec.range≡ᴾ
 
       res-full : SUR.Reservoir≤1 Hf (range Hfm.nE) Hfm.dom
       res-full = SUR.dom-reservoir-prov Hf (proj₂ (DAL.⟪⟫-LinearP (f ⊗₁ g)))

@@ -362,6 +362,15 @@ module _
       KClnᴾ : HomS (map vl (sGᴾ ++ Rsuf)) (map vl (sGᴾ ++ Kfinᴾ))
       KClnᴾ = KCln
 
+      -- the two K-block-layout IDENTITIES, so `TensorKBlockFinal` does not
+      -- re-prove them (their types name `Braid`-private layout, exactly as
+      -- `KClnᴾ`/`pf₀ᴾ` already do).
+      sepᴾ : aGᴾ ≡ sGᴾ ++ Rsuf
+      sepᴾ = sep
+
+      range≡ᴾ : range Hf.nE ≡ gblk ++ kblk
+      range≡ᴾ = range≡
+
       ------------------------------------------------------------------
       -- ### Foundational stack / boundary identities.
 
