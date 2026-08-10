@@ -23,7 +23,7 @@ open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
--- Morphism-variable monoidal solver (cf. `BridgeAlphaFormCompound.agda`).
+-- Morphism-variable monoidal solver (cf. `Bridge/BridgeAlphaFormCompound.agda`).
 open import Categories.Coherence.Monoidal.Frontend using (module FinSetup)
 open import Data.Product using (_,_)
 open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F)

@@ -34,7 +34,7 @@ open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
 open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
   using ( bridge-∘; bridge-⊗; bridge-id-is-id; bridge-λ⇒-is-id; bridge-λ⇐-is-id
         ; ρ⇒-coherence; ρ⇐-coherence; α⇒-form-list )
-import Categories.APROP.Hypergraph.Soundness.Discharge.BridgeAlphaFormCompound
+import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeAlphaFormCompound
   sig as BAFC
 
 open import Categories.FreeMonoidal using (v≤v)

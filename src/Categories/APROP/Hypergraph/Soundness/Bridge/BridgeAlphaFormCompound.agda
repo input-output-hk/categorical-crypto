@@ -16,7 +16,7 @@
 
 open import Categories.APROP
 
-module Categories.APROP.Hypergraph.Soundness.Discharge.BridgeAlphaFormCompound
+module Categories.APROP.Hypergraph.Soundness.Bridge.BridgeAlphaFormCompound
   (sig : APROPSignature) where
 
 open APROP sig
