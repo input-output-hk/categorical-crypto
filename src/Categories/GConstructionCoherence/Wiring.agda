@@ -16,7 +16,9 @@
 --     `from-just`/inferred witnesses (slow elaborator path);
 --   * ⟪_⟫ spelled EXACTLY as Soundness's instantiated signature
 --     spells it (syntactic fast path in conversion);
---   * one module for all three obligations (~15 s import overhead once);
+--   * one module for all three obligations (a merge with `Decomp` would be
+--     perf-neutral — measured 0.5 % — since `Split` already gives both the
+--     same import cone; the boundary is narrative, not a cost);
 --   * plain `findIso` (~20% cheaper than `findIsoᵀ` on 1-box cross-pairs);
 --   * the solver sees BALANCED ∘-spellings of the obligation sides
 --     (α/γ internals included) — measured 6.4×/1.7× cheaper than the

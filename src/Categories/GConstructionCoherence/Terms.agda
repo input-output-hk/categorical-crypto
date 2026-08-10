@@ -72,7 +72,7 @@ f' = Agen gf
 g' = Agen gg
 h' = Agen gh
 
--- The routing isos, generic (mirror GConstruction lines 49/83/87).
+-- The routing isos, generic (mirror `GConstruction`'s `β`/`α`/`γ`).
 βᵗ : ∀ {P Q R} → HomTerm ((P ⊗₀ Q) ⊗₀ R) ((P ⊗₀ R) ⊗₀ Q)
 βᵗ = α⇐ ∘ id ⊗₁ σ ∘ α⇒
 

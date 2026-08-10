@@ -13,8 +13,8 @@
 --     each a single-box solver obligation.
 -- The 50-morphism equation is never solved whole.
 --
--- `Transport.coherence` interprets the result in any SMC via the free
--- functor; its statement is definitionally GConstruction's
+-- `Transport.WithGens.coherence` interprets the result in any SMC via the
+-- free functor; its statement is definitionally GConstruction's
 -- `assoc'-coherence` goal.
 --------------------------------------------------------------------------------
 
