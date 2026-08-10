@@ -89,12 +89,11 @@ module _
            ≟L map (Hypergraph.vlab J) (Hypergraph.eout J e')
   ... | no _  | _     = nothing
   ... | _     | no _  = nothing
-  ... | yes p | yes q
-    -- Shape agrees; transport J's label to H's index and compare.
-    with flat-match-subst (sym p) (sym q) (Hypergraph.elab J e')
-                          (Hypergraph.elab H e)
-  ... | nothing = nothing
-  ... | just _  =
+  -- Shape agrees; transport J's label to H's index and compare.  The label
+  -- witness is discarded, so it is one more link in the bind chain.
+  ... | yes p | yes q =
+        flat-match-subst (sym p) (sym q) (Hypergraph.elab J e')
+                         (Hypergraph.elab H e)                 >>= λ _   →
         pairUp φ  (Hypergraph.ein  H e) (Hypergraph.ein  J e') >>= λ φ'  →
         pairUp φ' (Hypergraph.eout H e) (Hypergraph.eout J e') >>= λ φ'' →
         extend-bij ψ e e'                                      >>= λ ψ'  →
