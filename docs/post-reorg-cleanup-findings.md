@@ -1,5 +1,10 @@
 # Post-reorg cleanup findings (2026-06-17)
 
+> **Repointing note (2026-08-10).** `Soundness/Discharge/DepIrrefl.agda` no longer exists:
+> it was dissolved into `Soundness/Discharge/FinOrderNoInv.agda`, where its statement is
+> exported as `NoSelfDep` (types byte-identical).  Read every `DepIrrefl` below — including
+> the file paths in the findings' `files:` lines — as `FinOrderNoInv`.
+
 Produced by the `post-reorg-cleanup-discovery` workflow: one read-only auditor per major
 subtree -> adversarial verification of every finding -> cross-cutting synthesis.
 58 findings: 49 confirmed, 9 needs-care, 1 dropped as false-positive.
