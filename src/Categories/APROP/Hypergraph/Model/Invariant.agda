@@ -27,6 +27,7 @@ open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties
   using (∈-map⁻)
 open import Data.List.Relation.Binary.Disjoint.Propositional using (Disjoint)
+import Data.List.Relation.Binary.Disjoint.Propositional.Properties as Disj
 import Data.List.Relation.Unary.All                as ListAll
 import Data.List.Relation.Unary.All.Properties     as ListAll-Prop
 import Data.List.Relation.Unary.AllPairs           as AllPairs
@@ -105,11 +106,8 @@ hSwap-cod-Unique A B =
   Uniq-Prop.++⁺
     (Uniq-Prop.map⁺ (raise-inj   _) (range-Unique _))
     (Uniq-Prop.map⁺ (inject+-inj _) (range-Unique _))
-    (disj-R-L (range (length (flatten B))) (range (length (flatten A))))
-  where
-    disj-R-L : ∀ {m n} (ys : List (Fin n)) (xs : List (Fin m))
-             → Disjoint (map (m ↑ʳ_) ys) (map (_↑ˡ n) xs)
-    disj-R-L ys xs (v∈R , v∈L) = disj-L-R xs ys (v∈L , v∈R)
+    (Disj.sym (disj-L-R (range (length (flatten A)))
+                        (range (length (flatten B)))))
 
 hGen-dom-Unique : ∀ {A B : ObjTerm} (f : mor A B) → Unique (Hypergraph.dom (hGen f))
 hGen-dom-Unique {A} f = Uniq-Prop.map⁺ (inject+-inj _) (range-Unique _)
