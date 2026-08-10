@@ -65,6 +65,14 @@ module EdgeStepView (H : Hypergraph FlatGen) where
            → extract-prefix (H.ein e) s ≡ just (rest , perm)
            → EdgeStepRˢ s e (H.eout e ++ rest) (fire-termˢ e s rest perm)
 
+  -- The two `process-edgesˢ` projections (shared abbreviations).
+  pe-stackˢ : List (Fin H.nE) → List (Fin H.nV) → List (Fin H.nV)
+  pe-stackˢ o s = proj₁ (process-edgesˢ o s)
+
+  pe-termˢ : (o : List (Fin H.nE)) (s : List (Fin H.nV))
+           → HomS (map vl s) (map vl (pe-stackˢ o s))
+  pe-termˢ o s = proj₂ (process-edgesˢ o s)
+
   -- The function realises the relation.
   edge-stepˢ-graph
     : ∀ (s : List (Fin H.nV)) (e : Fin H.nE)

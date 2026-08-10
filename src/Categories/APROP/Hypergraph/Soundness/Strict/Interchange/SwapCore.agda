@@ -31,10 +31,10 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.EdgeStepRel
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; map)
+open import Data.List using (List)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open import Data.Product using (_×_; proj₁; proj₂)
+open import Data.Product using (_×_)
 open import Relation.Nullary using (¬_)
 
 --------------------------------------------------------------------------------
@@ -57,18 +57,11 @@ module _ (H : Hypergraph FlatGen) where
   open EdgeStepView H public
 
   --------------------------------------------------------------------
-  -- Abbreviations for the two `process-edgesˢ` projections + `Incomp`.
+  -- Incomparability of two edges.
   --------------------------------------------------------------------
 
   Incomp : Fin H.nE → Fin H.nE → Set
   Incomp e e' = (¬ Dep H e e') × (¬ Dep H e' e)
-
-  pe-stackˢ : List (Fin H.nE) → List (Fin H.nV) → List (Fin H.nV)
-  pe-stackˢ o s = proj₁ (process-edgesˢ o s)
-
-  pe-termˢ : (o : List (Fin H.nE)) (s : List (Fin H.nV))
-           → HomS (map vl s) (map vl (pe-stackˢ o s))
-  pe-termˢ o s = proj₂ (process-edgesˢ o s)
 
   --------------------------------------------------------------------
   -- RIGIDITY: any two derivations into a `Unique` stack are `permuteˢ`-equal.

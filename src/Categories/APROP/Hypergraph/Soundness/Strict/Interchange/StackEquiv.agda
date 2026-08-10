@@ -349,16 +349,6 @@ module EquivStep (H : Hypergraph FlatGen) where
       μ = fire-μ e ρ permH permH' eqH' us'
 
   ----------------------------------------------------------------------
-  -- `process-edgesˢ` projections (abbreviations).
-  ----------------------------------------------------------------------
-  pe-stackˢ : List (Fin H.nE) → List (Fin H.nV) → List (Fin H.nV)
-  pe-stackˢ qs s = proj₁ (process-edgesˢ qs s)
-
-  pe-termˢ : (qs : List (Fin H.nE)) (s : List (Fin H.nV))
-           → HomS (map vl s) (map vl (pe-stackˢ qs s))
-  pe-termˢ qs s = proj₂ (process-edgesˢ qs s)
-
-  ----------------------------------------------------------------------
   -- MAIN THEOREM — `process-edges-equivariantˢ`.
   --
   -- Induction on `qs`.  Empty: ρf = ρ, terms are idˢ, `pvv-inverse-leftˢ`
