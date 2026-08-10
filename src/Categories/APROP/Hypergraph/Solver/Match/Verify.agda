@@ -48,11 +48,10 @@ open import Relation.Nullary.Decidable using (dec⇒maybe)
 
 ∀F? : ∀ {ℓ} {n : ℕ} {P : Fin n → Set ℓ} → (∀ i → Maybe (P i)) → Maybe (∀ i → P i)
 ∀F? {n = ℕ.zero}  d = just λ ()
-∀F? {n = ℕ.suc n} d with d zero
-... | nothing = nothing
-... | just p₀ with ∀F? (λ i → d (suc i))
-...   | nothing = nothing
-...   | just ps = just λ { zero → p₀ ; (suc i) → ps i }
+∀F? {n = ℕ.suc n} d =
+  d zero                >>= λ p₀ →
+  ∀F? (λ i → d (suc i)) >>= λ ps →
+  just λ { zero → p₀ ; (suc i) → ps i }
 
 --------------------------------------------------------------------------------
 -- UIP at `List X`, from decidable atom equality via Hedberg's theorem.

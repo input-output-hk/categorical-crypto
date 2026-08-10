@@ -25,15 +25,15 @@ open import Categories.APROP.Hypergraph.Solver.Match.PBij
   using (PBij; emptyBij; pairUp; forward)
 open import Categories.APROP.Hypergraph.Solver.Match.Search sig-dec
   using (searchIso-default)
-open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec using (module Verify)
+open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec
+  using (module Verify; ∀F?)
 
-open import Data.Fin using (Fin; zero; suc)
+open import Data.Fin using (Fin)
 open import Data.List using (List)
 open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
-open import Data.Nat using (ℕ; zero; suc)
 open import Data.Product using (_,_)
 open import Data.Unit.Base using (⊤; tt)
-open import Relation.Nullary using (yes; no)
+open import Relation.Nullary.Decidable using (dec⇒maybe)
 
 --------------------------------------------------------------------------------
 -- Stage 1: interface seeding.
@@ -57,19 +57,13 @@ check-vlab
     (H J : Hypergraph FlatGen)
   → (Fin (Hypergraph.nV H) → Maybe (Fin (Hypergraph.nV J)))
   → Maybe ⊤
-check-vlab H J p = go (Hypergraph.nV H) λ i → i
+check-vlab H J p = ∀F? (λ i → ok (p i) i) >>= λ _ → just tt
   where
-    -- `count` = positions left to examine; `inj` injects `Fin count` back
-    -- into `Fin H.nV`, post-composed with `suc` each step to skip the head.
-    go : (count : ℕ) → (Fin count → Fin (Hypergraph.nV H)) → Maybe ⊤
-    go zero      _   = just tt
-    go (suc n) inj = step (p (inj zero))
-      where
-        step : Maybe (Fin (Hypergraph.nV J)) → Maybe ⊤
-        step nothing  = go n (λ i → inj (suc i))
-        step (just j) with Hypergraph.vlab J j ≟X Hypergraph.vlab H (inj zero)
-        ...             | yes _ = go n (λ i → inj (suc i))
-        ...             | no _  = nothing
+    -- unbound positions pass; bound ones must agree on `vlab`.
+    ok : Maybe (Fin (Hypergraph.nV J)) → Fin (Hypergraph.nV H) → Maybe ⊤
+    ok nothing  _ = just tt
+    ok (just j) i =
+      dec⇒maybe (Hypergraph.vlab J j ≟X Hypergraph.vlab H i) >>= λ _ → just tt
 
 seedFromInterfaces
   : ∀
