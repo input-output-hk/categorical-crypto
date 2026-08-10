@@ -60,7 +60,6 @@ open import Categories.PermuteCoherence.Canonical using (_≅↭_)
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (map-++)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just; nothing)
 open import Data.Maybe.Properties using (just-injective)
@@ -153,10 +152,7 @@ module EquivStep (H : Hypergraph FlatGen) where
   fire-midˢ
     : ∀ (e : Fin H.nE) (rest : List (Fin H.nV))
     → HomS (map vl (H.ein e ++ rest)) (map vl (H.eout e ++ rest))
-  fire-midˢ e rest =
-    castˢ refl (sym (map-++ vl (H.eout e) rest))
-      ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
-        ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) idˢ)
+  fire-midˢ e rest = fire-termˢ e (H.ein e ++ rest) rest Perm.refl
 
   -- `fire-midˢ` collapsed to the `Restrict`-layer box `genˢ (elab e) ⊗ᵛ
   -- idᵛ {rest}`.  `fire-midˢ e rest` IS `fire-termˢ e _ rest Perm.refl`, so
