@@ -253,50 +253,39 @@ module _ (H : Hypergraph FlatGen)
       where
         sp = pe-stackˢ′ ps H.dom
 
+        -- the reservoir restricted to a one-edge extension of the prefix,
+        -- and the `Unique` it reaches on the resulting stack.
+        res-prefix
+          : ∀ (x y : Fin H.nE) → SUR.Reservoir≤1 H (ps ++ x ∷ y ∷ []) H.dom
+          → SUR.Reservoir≤1 H ((ps ++ x ∷ []) ++ []) H.dom
+        res-prefix x y r =
+          subst (λ z → SUR.Reservoir≤1 H z H.dom)
+            (sym (++-identityʳ (ps ++ x ∷ [])))
+            (SUR.reservoir-prefix H (ps ++ x ∷ []) (y ∷ []) H.dom
+              (subst (λ z → SUR.Reservoir≤1 H z H.dom)
+                     (sym (++-assoc ps (x ∷ []) (y ∷ []))) r))
+
+        us-of
+          : ∀ (o : List (Fin H.nE)) → SUR.Reservoir≤1 H ((ps ++ o) ++ []) H.dom
+          → Unique (pe-stackˢ′ o sp)
+        us-of o r = subst Unique (++-stackˢ′ ps o H.dom)
+                      (reached-Uniqueˢ-from (ps ++ o) r)
+
         us-sp : Unique sp
-        us-sp = reached-Uniqueˢ-from ps res-ps
-          where
-            res-ps : SUR.Reservoir≤1 H (ps ++ []) H.dom
-            res-ps = subst (λ z → SUR.Reservoir≤1 H z H.dom)
-                       (sym (++-identityʳ ps))
-                       (SUR.reservoir-prefix H ps (e' ∷ e ∷ []) H.dom res)
-
-        -- The three reservoir restrictions to the run prefixes.
-        res-e' : SUR.Reservoir≤1 H ((ps ++ e' ∷ []) ++ []) H.dom
-        res-e' =
-          subst (λ z → SUR.Reservoir≤1 H z H.dom)
-            (sym (++-identityʳ (ps ++ e' ∷ [])))
-            (SUR.reservoir-prefix H (ps ++ e' ∷ []) (e ∷ []) H.dom
-              (subst (λ z → SUR.Reservoir≤1 H z H.dom)
-                     (sym (++-assoc ps (e' ∷ []) (e ∷ [])))
-                     res))
-
-        res-e : SUR.Reservoir≤1 H ((ps ++ e ∷ []) ++ []) H.dom
-        res-e =
-          subst (λ z → SUR.Reservoir≤1 H z H.dom)
-            (sym (++-identityʳ (ps ++ e ∷ [])))
-            (SUR.reservoir-prefix H (ps ++ e ∷ []) (e' ∷ []) H.dom
-              (subst (λ z → SUR.Reservoir≤1 H z H.dom)
-                     (sym (++-assoc ps (e ∷ []) (e' ∷ [])))
-                     (SUR.reservoir-resp-↭ H H.dom
-                       (PermProp.++⁺ˡ ps (Perm.swap e' e Perm.refl))
-                       res)))
-
-        res-comb : SUR.Reservoir≤1 H ((ps ++ e' ∷ e ∷ []) ++ []) H.dom
-        res-comb = subst (λ z → SUR.Reservoir≤1 H z H.dom)
-                     (sym (++-identityʳ (ps ++ e' ∷ e ∷ []))) res
+        us-sp =
+          reached-Uniqueˢ-from ps
+            (subst (λ z → SUR.Reservoir≤1 H z H.dom) (sym (++-identityʳ ps))
+              (SUR.reservoir-prefix H ps (e' ∷ e ∷ []) H.dom res))
 
         us-s1 : Unique (proj₁ (edge-stepˢ sp e))
-        us-s1 = subst Unique
-                  (trans (++-stackˢ′ ps (e ∷ []) H.dom) refl)
-                  (reached-Uniqueˢ-from (ps ++ e ∷ []) res-e)
+        us-s1 = us-of (e ∷ []) (res-prefix e e'
+                  (SUR.reservoir-resp-↭ H H.dom
+                    (PermProp.++⁺ˡ ps (Perm.swap e' e Perm.refl)) res))
 
         us-u1 : Unique (proj₁ (edge-stepˢ sp e'))
-        us-u1 = subst Unique
-                  (trans (++-stackˢ′ ps (e' ∷ []) H.dom) refl)
-                  (reached-Uniqueˢ-from (ps ++ e' ∷ []) res-e')
+        us-u1 = us-of (e' ∷ []) (res-prefix e' e res)
 
         us-u2 : Unique (proj₁ (edge-stepˢ (proj₁ (edge-stepˢ sp e')) e))
-        us-u2 = subst Unique
-                  (trans (++-stackˢ′ ps (e' ∷ e ∷ []) H.dom) refl)
-                  (reached-Uniqueˢ-from (ps ++ e' ∷ e ∷ []) res-comb)
+        us-u2 = us-of (e' ∷ e ∷ [])
+                  (subst (λ z → SUR.Reservoir≤1 H z H.dom)
+                         (sym (++-identityʳ (ps ++ e' ∷ e ∷ []))) res)
