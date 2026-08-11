@@ -12,43 +12,12 @@
 module Categories.APROP.Hypergraph.Solver.Test.SubMatchTests where
 
 open import Data.Bool.Base using (Bool; true; false)
-open import Data.Fin using (Fin; zero; suc)
-open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.Maybe.Base using (is-just)
-open import Relation.Binary.Definitions using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open import Relation.Nullary using (yes)
 
-open import Categories.APROP using (APROPSignature; module APROP)
-open import Categories.FreeMonoidal
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
-
-X : Set
-X = Fin 3
-
-open FreeMonoidalHelper Symm X using (ObjTerm; Var)
-
-private
-  a₀ a₁ a₂ : ObjTerm
-  a₀ = Var zero
-  a₁ = Var (suc zero)
-  a₂ = Var (suc (suc zero))
-
-data MyMor : ObjTerm → ObjTerm → Set where
-  f : MyMor a₀ a₁
-  g : MyMor a₁ a₂
-  h : MyMor a₂ a₀
-
-_≟-MyMor_ : ∀ {A B} → DecidableEquality (MyMor A B)
-f ≟-MyMor f = yes refl
-g ≟-MyMor g = yes refl
-h ≟-MyMor h = yes refl
-
-mySig : APROPSignature
-mySig = record { X = X ; mor = MyMor }
-
-mySigDec : APROPSignatureDec
-mySigDec = record { sig     = mySig ; _≟X_    = _≟F_ ; _≟-mor_ = _≟-MyMor_ }
+open import Categories.APROP using (module APROP)
+open import Categories.APROP.Hypergraph.Solver.Test.ThreeGens
+  using (a₀; a₁; a₂; f; g; h; mySig; mySigDec)
 
 open import Categories.APROP.Hypergraph.Model.Translation mySig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch mySigDec using (subMatch)

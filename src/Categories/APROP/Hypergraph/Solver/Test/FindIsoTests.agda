@@ -16,55 +16,11 @@
 
 module Categories.APROP.Hypergraph.Solver.Test.FindIsoTests where
 
-open import Data.Fin using (Fin; zero; suc)
-open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.Maybe.Base using (from-just)
-open import Relation.Binary.Definitions using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality using (refl)
-open import Relation.Nullary using (yes)
 
-open import Categories.APROP using (APROPSignature; module APROP)
-open import Categories.FreeMonoidal
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
-
---------------------------------------------------------------------------------
--- Atom alphabet.
-
-X : Set
-X = Fin 3
-
-open FreeMonoidalHelper Symm X using (ObjTerm; Var)
-
-private
-  -- Shorthand for the three atoms.
-  a₀ a₁ a₂ : ObjTerm
-  a₀ = Var zero
-  a₁ = Var (suc zero)
-  a₂ = Var (suc (suc zero))
-
---------------------------------------------------------------------------------
--- Generator data type.  Three constructors at distinct (dom, cod), so index
--- unification rules out the cross cases and `_≟-MyMor_` need only handle the
--- diagonal.
-
-data MyMor : ObjTerm → ObjTerm → Set where
-  f : MyMor a₀ a₁
-  g : MyMor a₁ a₂
-  h : MyMor a₂ a₀
-
-_≟-MyMor_ : ∀ {A B} → DecidableEquality (MyMor A B)
-f ≟-MyMor f = yes refl
-g ≟-MyMor g = yes refl
-h ≟-MyMor h = yes refl
-
---------------------------------------------------------------------------------
--- Build the signature.
-
-mySig : APROPSignature
-mySig = record { X = X ; mor = MyMor }
-
-mySigDec : APROPSignatureDec
-mySigDec = record { sig     = mySig ; _≟X_    = _≟F_ ; _≟-mor_ = _≟-MyMor_ }
+open import Categories.APROP using (module APROP)
+open import Categories.APROP.Hypergraph.Solver.Test.ThreeGens
+  using (a₀; a₁; a₂; f; g; h; mySig; mySigDec)
 
 --------------------------------------------------------------------------------
 -- Bring in the term language, the solver, and the soundness theorem.
