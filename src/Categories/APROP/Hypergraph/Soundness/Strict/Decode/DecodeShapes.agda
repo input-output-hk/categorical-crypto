@@ -142,23 +142,17 @@ module _
       s≡ = proj₁ collapse
 
       -- `proj₂ runˢ` is the cod-cast of `idˢ` coming from the collapse
-      -- (`subst` over the cod position is definitionally a `castˢ refl …`).
+      -- (`subst` over the `map vlab`-cod position IS a `castˢ refl (cong …)`).
       subst-cod≡cast
-        : ∀ {a b b' : List X} (e : b ≡ b') (t : HomS a b)
-        → subst (λ z → HomS a z) e t ≡ castˢ refl e t
-      subst-cod≡cast refl t = refl
-
-      subst-cod-cong
-        : ∀ {u v v' : List (Fin Hf.nV)} (e : v ≡ v') (t : HomS (map Hf.vlab u) (map Hf.vlab v))
+        : ∀ {u v v' : List (Fin Hf.nV)} (e : v ≡ v')
+          (t : HomS (map Hf.vlab u) (map Hf.vlab v))
         → subst (λ z → HomS (map Hf.vlab u) (map Hf.vlab z)) e t
-          ≡ subst (λ z → HomS (map Hf.vlab u) z) (cong (map Hf.vlab) e) t
-      subst-cod-cong refl t = refl
+          ≡ castˢ refl (cong (map Hf.vlab) e) t
+      subst-cod≡cast refl t = refl
 
       run≡ : proj₂ RF.runˢ
              ≡ castˢ refl (cong (map Hf.vlab) (sym s≡)) (idˢ {map Hf.vlab Hf.dom})
-      run≡ = trans (proj₂ collapse)
-             (trans (subst-cod-cong (sym s≡) idˢ)
-                    (subst-cod≡cast (cong (map Hf.vlab) (sym s≡)) idˢ))
+      run≡ = trans (proj₂ collapse) (subst-cod≡cast (sym s≡) idˢ)
 
       module T = Triv (Fin Hf.nV) _≟F_ Hf.vlab
 
