@@ -18,7 +18,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using (count; count-++)
 
-open import Data.Empty using (⊥-elim)
+open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using (_≟_)
 open import Data.List using (List; []; _∷_; _++_; map; concat; length; filter)
@@ -70,6 +70,10 @@ count-pos→∈ {v = v} {[]}     ()
 count-pos→∈ {v = v} {x ∷ xs} c with v ≟ x
 ... | yes refl = here refl
 ... | no  _    = there (count-pos→∈ c)
+
+-- Contrapositive of `count-pos→∈`.
+∉→count-zero : ∀ {v : Fin n} {xs} → ¬ (v ∈ xs) → count v xs ≡ 0
+∉→count-zero v∉ = Nat.n≤0⇒n≡0 (Nat.≮⇒≥ λ pos → v∉ (count-pos→∈ pos))
 
 --------------------------------------------------------------------------------
 -- Permutation preserves `count`: `count v` is `length ∘ filter (v ≟_)`, and
@@ -139,6 +143,23 @@ extract-prefix-just→count-≤ ks xs rest p v =
   Nat.≤-trans (Nat.m≤m+n (count v ks) (count v rest))
               (Nat.≤-reflexive (trans (sym (count-++ v ks rest))
                                       (sym (↭⇒count p v))))
+
+-- A `count ≤ 1` bound on a concatenation makes its two sides disjoint.
+++-bnd→disjoint : ∀ {v : Fin n} (xs ys : List (Fin n))
+                → count v (xs ++ ys) ≤ⁿ 1 → v ∈ xs → v ∈ ys → ⊥
+++-bnd→disjoint {v = v} xs ys bnd v∈xs v∈ys =
+  Nat.<-irrefl refl (Nat.<-≤-trans
+    (subst (1 <ⁿ_) (sym (count-++ v xs ys))
+           (Nat.+-mono-≤ (∈→count-pos v∈xs) (∈→count-pos v∈ys))) bnd)
+
+-- A `count` bound on a concatenation bounds each side.
+count-++-bndˡ : ∀ {k : ℕ} (v : Fin n) (xs ys : List (Fin n)) → count v (xs ++ ys) ≤ⁿ k → count v xs ≤ⁿ k
+count-++-bndˡ v xs ys bnd =
+  Nat.≤-trans (Nat.≤-trans (Nat.m≤m+n _ _) (Nat.≤-reflexive (sym (count-++ v xs ys)))) bnd
+
+count-++-bndʳ : ∀ {k : ℕ} (v : Fin n) (xs ys : List (Fin n)) → count v (xs ++ ys) ≤ⁿ k → count v ys ≤ⁿ k
+count-++-bndʳ v xs ys bnd =
+  Nat.≤-trans (Nat.≤-trans (Nat.m≤n+m _ _) (Nat.≤-reflexive (sym (count-++ v xs ys)))) bnd
 
 --------------------------------------------------------------------------------
 -- `count` over a `concat (tabulate f)` family: each member's count is ≤ the
