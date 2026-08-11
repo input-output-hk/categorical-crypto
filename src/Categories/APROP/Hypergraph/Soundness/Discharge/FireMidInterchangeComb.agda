@@ -52,6 +52,7 @@ open import Relation.Binary.PropositionalEquality
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
   using ( ↭⇒count; count-≡⇒↭; count-pos→∈; count-≤→extract-prefix; ++-cancelˡ
+        ; count-++-bndʳ
         ; extract-prefix-just→count-≤
         ; count-concat-tabulate-pair-≤)
 
@@ -102,11 +103,7 @@ module _ (H : Hypergraph FlatGen)
     consume-bnd v = subst (_≤ⁿ 1) (proj₁ lin v) (proj₂ lin v)
 
     ein-concat-bnd : ∀ (v : Fin H.nV) → count v (concat (tabulate H.ein)) ≤ⁿ 1
-    ein-concat-bnd v =
-      Nat.≤-trans
-        (Nat.≤-trans (Nat.m≤n+m _ (count v H.cod))
-                     (Nat.≤-reflexive (sym (count-++ v H.cod _))))
-        (consume-bnd v)
+    ein-concat-bnd v = count-++-bndʳ v H.cod _ (consume-bnd v)
 
   -- `ein e ⊥ ein e'` (Linear): no vertex is consumed by two distinct edges.
   ein-ein-disjoint
@@ -224,14 +221,9 @@ module _ (H : Hypergraph FlatGen)
     : ∀ {e e' : Fin H.nE} → ¬ (Dep H e e')
     → (r₁ r₂ : List (Fin H.nV)) → H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂
     → ∀ v → count v (H.ein e') ≤ⁿ count v r₁
-  ein'-≤-r₁ {e} {e'} ¬dep r₁ r₂ p₂ v with count-pos-or-zero v
-    where
-      count-pos-or-zero : (v : Fin H.nV) → (0 <ⁿ count v (H.ein e')) ⊎ (count v (H.ein e') ≡ 0)
-      count-pos-or-zero v with count v (H.ein e')
-      ... | zero  = inj₂ refl
-      ... | suc _ = inj₁ (s≤sⁿ z≤nⁿ)
-  ... | inj₂ z   = subst (_≤ⁿ count v r₁) (sym z) z≤nⁿ
-  ... | inj₁ pos =
+  ein'-≤-r₁ {e} {e'} ¬dep r₁ r₂ p₂ v with count-zero-or-pos e' v
+  ... | inj₁ z   = subst (_≤ⁿ count v r₁) (sym z) z≤nⁿ
+  ... | inj₂ pos =
         Nat.≤-trans (Nat.m≤m+n (count v (H.ein e')) (count v r₂))
         (Nat.≤-reflexive
           (trans (sym (count-++ v (H.ein e') r₂))
