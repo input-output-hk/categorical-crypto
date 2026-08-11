@@ -27,7 +27,6 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
   using (Dep; ≺⇒ψ≺)
 import Data.List.Relation.Unary.AllPairs as AP
-open import Data.List.Relation.Unary.AllPairs using (AllPairs)
 import Data.List.Relation.Unary.AllPairs.Properties as APProp
 open import Categories.Combinatorics.TabulateBij
   using (bij-fin-ℕ-≡; tabulate-bij-↭-via-eq)
@@ -147,20 +146,14 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J) where
   --   * `AllPairs.Properties.map⁺` — push `on ψ⁻¹` through `map ψ⁻¹`.
   ------------------------------------------------------------------------
 
-  -- Dependency reflection along ψ⁻¹: `ψ⁻¹ b ≺ ψ⁻¹ a` in H ⇒ `b ≺ a` in J.
-  dep-reflect : ∀ {a b} → Dep H (ψ⁻¹ b) (ψ⁻¹ a) → Dep J b a
-  dep-reflect {a} {b} d = subst₂ (Dep J) (ψ-rght b) (ψ-rght a) (≺⇒ψ≺ Φ d)
-
-  -- Pointwise: J's `Below` implies H's `Below` pulled back along ψ⁻¹.
+  -- Pointwise: J's `Below` implies H's `Below` pulled back along ψ⁻¹ (the
+  -- dependency `ψ⁻¹ b ≺ ψ⁻¹ a` in H reflects to `b ≺ a` in J along `≺⇒ψ≺`).
   below-pull : ∀ {a b} → (¬ Dep J b a) → ¬ Dep H (ψ⁻¹ b) (ψ⁻¹ a)
-  below-pull ndJ dH = ndJ (dep-reflect dH)
+  below-pull {a} {b} ndJ dH =
+    ndJ (subst₂ (Dep J) (ψ-rght b) (ψ-rght a) (≺⇒ψ≺ Φ dH))
 
-  -- The `map`-of-relation step (over the FIXED list `range J.nE`).
-  step-on : AllPairs (λ a b → ¬ Dep J b a) (range J.nE)
-          → AllPairs (λ a b → ¬ Dep H (ψ⁻¹ b) (ψ⁻¹ a)) (range J.nE)
-  step-on = AP.map below-pull
-
-  -- The `map ψ⁻¹` step (`AllPairs.Properties.map⁺` at `f = ψ⁻¹`;
+  -- `AP.map below-pull` is the relation step over the FIXED list `range J.nE`;
+  -- `AllPairs.Properties.map⁺` then pushes it through `map ψ⁻¹` (at `f = ψ⁻¹`,
   -- `(Below_H on ψ⁻¹) a b = ¬ Dep H (ψ⁻¹ b) (ψ⁻¹ a)` definitionally).
   NoInv-τ : PerHG.NoInv J (range J.nE) → PerHG.NoInv H τ
-  NoInv-τ noJ = APProp.map⁺ (step-on noJ)
+  NoInv-τ noJ = APProp.map⁺ (AP.map below-pull noJ)
