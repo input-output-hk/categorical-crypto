@@ -27,7 +27,7 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Boundary
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flat; flat-rec; flatten)
+  using (FlatGen; flat-rec; flatten)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using ( unflatten; unflatten-flatten-≈; _≅_; bridge
         ; subst-id-cod; cod-cancel; subst-cod-cons )
@@ -42,16 +42,17 @@ open import Categories.FreeStrictSMC using (module Map)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Embed sig _≟X_ as E
 
-open import Data.List using (List; []; _∷_; _++_)
+open import Data.List using (List; []; _∷_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst₂)
+  using (_≡_; refl; sym; subst₂)
 
 open import Categories.Category using (Category)
--- `elim²ᵀ`/`inv-uniqueᵀ` used to be hand-rolled here because these two opens
--- were missing: they ARE `cancelˡ` and `inv-resp` at the term-level category.
+-- `inv-uniqueᵀ` used to be hand-rolled here because these opens were missing:
+-- the σ/α⇐ chases ARE `center`/`cancelInner`/`inv-resp` at the term-level
+-- category.
 open import Categories.Morphism.Reasoning FreeMonoidal
-  using (cancelˡ; center; cancelInner)
+  using (center; cancelInner)
 open import Categories.Morphism.Reasoning.Ext FreeMonoidal using (inv-resp)
 
 private

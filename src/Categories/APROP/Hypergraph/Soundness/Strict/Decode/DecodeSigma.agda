@@ -52,7 +52,7 @@ open import Data.List.Properties using (++-identityʳ; ++-assoc; map-++)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Product using (proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
+  using (_≡_; refl; sym; trans; subst)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp

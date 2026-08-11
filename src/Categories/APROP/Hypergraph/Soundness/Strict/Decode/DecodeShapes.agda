@@ -102,7 +102,7 @@ module _
 
   module Triv (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X) where
     open Support V vlab
-    open Trivial V vlab public
+    open Trivial V vlab
 
     K : PermK
     K = permˢ-K V _≟V_ vlab
