@@ -87,18 +87,16 @@ open Inv using (inject+-inj; raise-inj; disj-L-R; range-++)
 -- Linearity layer: the `Linear` invariant, `count`, the pruned-translation
 -- linearity witness, and the pruning machinery for the `∘` case.
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
-  using (Linear; count; count-++; producedList)
+  using (Linear)
 import Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP sig as LHC
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
   using (⟪⟫-LinearP)
 open import Categories.APROP.Hypergraph.Util.Prune
-  using (count-non; classify; classify-view; ClassifyV; is-mem; is-non)
+  using (count-non; classify; classify-view; is-mem; is-non)
 open import Data.List.Membership.Propositional.Properties
   using (∈-concat⁺′; ∈-tabulate⁺)
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Sum using (_⊎_; inj₁; inj₂)
-open import Data.Nat using () renaming (_<_ to _ℕ<_)
-import Data.Nat.Properties as Nat
+open import Data.Sum using (inj₁; inj₂)
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig
   as IW
@@ -108,22 +106,23 @@ open import Data.Fin.Properties using (join-splitAt)
 open import Data.List using (List; []; _∷_; _++_; length; map; concat; tabulate)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties using (∈-map⁻)
-open import Data.List.Relation.Unary.All using (All; []; _∷_)
-  renaming (map to All-map)
+open import Data.List.Relation.Unary.All using (All; []; _∷_; universal)
+import Data.List.Relation.Unary.All.Properties as AllProp
 open import Data.List.Relation.Unary.AllPairs using (AllPairs; []; _∷_)
+import Data.List.Relation.Unary.AllPairs as AP
 import Data.List.Relation.Unary.AllPairs.Properties as AllPairsProp
-open import Data.Nat using (_+_; _≤_)
+open import Data.Nat using (_+_)
 open import Data.Product using (_,_; proj₂)
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; subst)
+  using (_≡_; sym; trans; subst)
 
 --------------------------------------------------------------------------------
 -- ## Generic count / disjointness helpers (used by the `∘` cross-acyclicity).
 
 -- Membership ⇒ positive `count`: shared `CountCombinatorics` leaf.
 open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
-  using (∈→count-pos)
+  using (++-bnd→disjoint)
 
 --------------------------------------------------------------------------------
 -- ## The `NoInv` predicate as a bare `AllPairs`.
@@ -149,6 +148,17 @@ NoInvH H = AllPairs (BelowH H)
 -- on this induction rather than repeating it in a second module.
 NoSelfDep : Hypergraph FlatGen → Set
 NoSelfDep H = ∀ {e} → ¬ Dep H e e
+
+-- Every edge index of a two-block hypergraph is an `_↑ˡ_`- or an `_↑ʳ_`-image,
+-- so a property of a single index (i.e. a DIAGONAL property) that holds on both
+-- blocks holds everywhere.  Used by both two-block `NoSelfDep` cases.
+splitE : ∀ {m n} (P : Fin (m + n) → Set)
+       → (∀ a → P (a ↑ˡ n)) → (∀ b → P (m ↑ʳ b)) → ∀ e → P e
+splitE {m} {n} P pl pr e = subst P (join-splitAt m n e) (go (splitAt m e))
+  where
+    go : ∀ s → P (join m n s)
+    go (inj₁ a) = pl a
+    go (inj₂ b) = pr b
 
 --------------------------------------------------------------------------------
 -- ## `NoSelfDep` base cases.
@@ -177,53 +187,36 @@ NoSelfDep-hGen {A} {B} f {zero} (v , v∈out , v∈in)
 --
 -- Both cases lay a G-block of edges (embedded by `iL`) before a K-block
 -- (embedded by `iR`) and assemble `NoInvH H` of the concatenation from
--- `NoInvH G`/`NoInvH K`.  Given the two per-block `BelowH` transports and the
--- cross-block acyclicity, the assembly is pure stdlib
--- `AllPairs.Properties.++⁺`/`map⁺` plumbing — proved once here and instantiated
--- by each case with its own transports.
+-- `NoInvH G`/`NoInvH K`.  Given the two per-block dependency REFLECTIONS and
+-- the cross-block acyclicity, the assembly is pure stdlib plumbing
+-- (`AllPairs.map` to relabel each block, `AllPairs.Properties.map⁺`/`++⁺` to
+-- concatenate, `All.universal` for the constant cross rows) — proved once here
+-- and instantiated by each case with its own reflections.
+--
+-- The reflections (rather than pre-composed `BelowH` transports) are the
+-- parameters because they are also what the DIAGONAL needs, so each case
+-- supplies exactly two lemmas for both jobs.
 
 module Assemble
   (G K H : Hypergraph FlatGen)
   (iL : Fin (Hypergraph.nE G) → Fin (Hypergraph.nE H))
   (iR : Fin (Hypergraph.nE K) → Fin (Hypergraph.nE H))
-  (bLE   : ∀ {a b} → BelowH G a b → BelowH H (iL a) (iL b))
-  (bRE   : ∀ {a b} → BelowH K a b → BelowH H (iR a) (iR b))
+  (rL : ∀ {ea eb} → Dep H (iL eb) (iL ea) → Dep G eb ea)
+  (rR : ∀ {ea eb} → Dep H (iR eb) (iR ea) → Dep K eb ea)
   (cross : ∀ {ea eb} → BelowH H (iL ea) (iR eb))
   where
   private
     module G = Hypergraph G
     module K = Hypergraph K
 
-  -- Every G-block edge is `BelowH H` every K-block edge (the cross `All`).
-  cross-all-row : ∀ (ea : Fin G.nE) (ks : List (Fin K.nE))
-                → All (BelowH H (iL ea)) (map iR ks)
-  cross-all-row ea []        = []
-  cross-all-row ea (eb ∷ ks) = cross ∷ cross-all-row ea ks
-
-  cross-all : ∀ (gs : List (Fin G.nE)) (ks : List (Fin K.nE))
-            → All (λ a → All (BelowH H a) (map iR ks)) (map iL gs)
-  cross-all []        ks = []
-  cross-all (ea ∷ gs) ks = cross-all-row ea ks ∷ cross-all gs ks
-
-  -- Relabel a sub-`AllPairs` through `iL`/`iR` using the `Below` transports.
-  mapAP-G : ∀ {gs} → AllPairs (BelowH G) gs
-          → AllPairs (λ a b → BelowH H (iL a) (iL b)) gs
-  mapAP-G []          = []
-  mapAP-G (px ∷ rest) = All-map bLE px ∷ mapAP-G rest
-
-  mapAP-K : ∀ {ks} → AllPairs (BelowH K) ks
-          → AllPairs (λ a b → BelowH H (iR a) (iR b)) ks
-  mapAP-K []          = []
-  mapAP-K (px ∷ rest) = All-map bRE px ∷ mapAP-K rest
-
   NoInvH-assemble : ∀ (gs : List (Fin G.nE)) (ks : List (Fin K.nE))
                   → NoInvH G gs → NoInvH K ks
                   → NoInvH H (map iL gs ++ map iR ks)
   NoInvH-assemble gs ks noG noK =
     AllPairsProp.++⁺
-      (AllPairsProp.map⁺ (mapAP-G noG))
-      (AllPairsProp.map⁺ (mapAP-K noK))
-      (cross-all gs ks)
+      (AllPairsProp.map⁺ (AP.map (λ nd dep → nd (rL dep)) noG))
+      (AllPairsProp.map⁺ (AP.map (λ nd dep → nd (rR dep)) noK))
+      (AllProp.map⁺ (universal (λ _ → AllProp.map⁺ (universal (λ _ → cross) ks)) gs))
 
 --------------------------------------------------------------------------------
 -- ## Tensor case.
@@ -271,35 +264,22 @@ module _ (G K : Hypergraph FlatGen) where
   ------------------------------------------------------------------------------
   -- Assemble `NoInvH H (range (G.nE + K.nE))` from `NoInvH G/K`.
 
-  -- `BelowH G` ⇒ `BelowH H` along `injLE` (G-block).
-  Below-injLE : ∀ {a b : Fin G.nE} → BelowH G a b → BelowH H (injLE a) (injLE b)
-  Below-injLE noG dep = noG (tensor-GG-reflect dep)
-
-  -- `BelowH K` ⇒ `BelowH H` along `injRE` (K-block).
-  Below-injRE : ∀ {a b : Fin K.nE} → BelowH K a b → BelowH H (injRE a) (injRE b)
-  Below-injRE noK dep = noK (tensor-KK-reflect dep)
-
-  -- Assemble via the shared `Assemble` skeleton with the tensor transports.
+  -- Assemble via the shared `Assemble` skeleton with the tensor reflections.
   NoInvH-tensor : ∀ (gs : List (Fin G.nE)) (ks : List (Fin K.nE))
                 → NoInvH G gs → NoInvH K ks
                 → NoInvH H (map injLE gs ++ map injRE ks)
   NoInvH-tensor =
     Assemble.NoInvH-assemble G K H injLE injRE
-      Below-injLE Below-injRE tensor-cross-acyclic
+      tensor-GG-reflect tensor-KK-reflect tensor-cross-acyclic
 
   ------------------------------------------------------------------------------
-  -- The diagonal.  An arbitrary composite edge is `splitAt`-dispatched into
-  -- the G- or the K-block, where the SAME two reflections apply at `ea ≡ eb`.
+  -- The diagonal.  An arbitrary composite edge is `splitE`-dispatched into the
+  -- G- or the K-block, where the SAME two reflections apply at `ea ≡ eb`.
 
   NoSelfDep-tensor : NoSelfDep G → NoSelfDep K → NoSelfDep H
-  NoSelfDep-tensor G-nd K-nd {e} dep =
-    dispatch (splitAt G.nE e)
-             (subst (λ x → Dep H x x) (sym (join-splitAt G.nE K.nE e)) dep)
-    where
-      dispatch : (s : Fin G.nE ⊎ Fin K.nE)
-               → Dep H (join G.nE K.nE s) (join G.nE K.nE s) → ⊥
-      dispatch (inj₁ eG) d = G-nd (tensor-GG-reflect d)
-      dispatch (inj₂ eK) d = K-nd (tensor-KK-reflect d)
+  NoSelfDep-tensor G-nd K-nd {e} =
+    splitE {G.nE} {K.nE} (λ x → ¬ Dep H x x)
+           (λ _ d → G-nd (tensor-GG-reflect d)) (λ _ d → K-nd (tensor-KK-reflect d)) e
 
 --------------------------------------------------------------------------------
 -- ## Composition case.  `hComposeP G K bdy` lays G-edges (`injL = _↑ˡ_`)
@@ -350,25 +330,15 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
   private
     cn = count-non K.dom
 
-    -- `producedList K` count of an edge-output that is also in `K.dom` is ≥ 2.
+    -- An edge-output that is also in `K.dom` occurs in BOTH summands of
+    -- `producedList K = K.dom ++ concat (tabulate eout)`, so `Linear K`'s
+    -- `count ≤ 1` bound on that concatenation refutes it.
     dom-and-out→absurd
       : ∀ (k : Fin K.nV) (eb : Fin K.nE)
       → k ∈ K.dom → k ∈ K.eout eb → ⊥
     dom-and-out→absurd k eb k∈dom k∈out =
-      Nat.<-irrefl refl
-        (Nat.<-≤-trans 1<prod (proj₂ lin-K k))
-      where
-        k∈eb : k ∈ concat (tabulate K.eout)
-        k∈eb = ∈-concat⁺′ k∈out (∈-tabulate⁺ eb)
-
-        prod-eq : count k (producedList K)
-                ≡ count k K.dom + count k (concat (tabulate K.eout))
-        prod-eq = count-++ k K.dom (concat (tabulate K.eout))
-
-        1<prod : 1 ℕ< count k (producedList K)
-        1<prod =
-          subst (1 ℕ<_) (sym prod-eq)
-            (Nat.+-mono-≤ (∈→count-pos k∈dom) (∈→count-pos k∈eb))
+      ++-bnd→disjoint K.dom (concat (tabulate K.eout)) (proj₂ lin-K k)
+                      k∈dom (∈-concat⁺′ k∈out (∈-tabulate⁺ eb))
 
     -- Only `K.dom` members route to the `_↑ˡ cn` (G-side) slots: if
     -- `remapP k ≡ i ↑ˡ cn` then `k ∈ K.dom`.  `Prune.classify-view` splits
@@ -394,35 +364,24 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
   ------------------------------------------------------------------------------
   -- Assembly of `NoInvH Hc (range …)`, parallel to the tensor assembly.
 
-  Below-injLEc : ∀ {a b : Fin G.nE} → BelowH G a b → BelowH Hc (injLEc a) (injLEc b)
-  Below-injLEc noG dep = noG (compose-GG-reflect dep)
-
-  Below-injREc : ∀ {a b : Fin K.nE} → BelowH K a b → BelowH Hc (injREc a) (injREc b)
-  Below-injREc noK dep = noK (compose-KK-reflect dep)
-
-  -- Assemble via the shared `Assemble` skeleton with the composition transports.
+  -- Assemble via the shared `Assemble` skeleton with the composition reflections.
   NoInvH-compose : ∀ (gs : List (Fin G.nE)) (ks : List (Fin K.nE))
                  → NoInvH G gs → NoInvH K ks
                  → NoInvH Hc (map injLEc gs ++ map injREc ks)
   NoInvH-compose =
     Assemble.NoInvH-assemble G K Hc injLEc injREc
-      Below-injLEc Below-injREc compose-cross-acyclic
+      compose-GG-reflect compose-KK-reflect compose-cross-acyclic
 
   ------------------------------------------------------------------------------
-  -- The diagonal, exactly as in the tensor case: `splitAt`-dispatch, then the
+  -- The diagonal, exactly as in the tensor case: `splitE`-dispatch, then the
   -- two block reflections at `ea ≡ eb`.  Note that `remapP`-injectivity comes
   -- from `Linear G`/`Linear K` here — the `Unique`-boundary route
   -- (`PrunedCompose.remapP-injective-from-unique`) is not needed.
 
   NoSelfDep-compose : NoSelfDep G → NoSelfDep K → NoSelfDep Hc
-  NoSelfDep-compose G-nd K-nd {e} dep =
-    dispatch (splitAt G.nE e)
-             (subst (λ x → Dep Hc x x) (sym (join-splitAt G.nE K.nE e)) dep)
-    where
-      dispatch : (s : Fin G.nE ⊎ Fin K.nE)
-               → Dep Hc (join G.nE K.nE s) (join G.nE K.nE s) → ⊥
-      dispatch (inj₁ eG) d = G-nd (compose-GG-reflect d)
-      dispatch (inj₂ eK) d = K-nd (compose-KK-reflect d)
+  NoSelfDep-compose G-nd K-nd {e} =
+    splitE {G.nE} {K.nE} (λ x → ¬ Dep Hc x x)
+           (λ _ d → G-nd (compose-GG-reflect d)) (λ _ d → K-nd (compose-KK-reflect d)) e
 
 --------------------------------------------------------------------------------
 -- ## `hId A` has no inversions.
