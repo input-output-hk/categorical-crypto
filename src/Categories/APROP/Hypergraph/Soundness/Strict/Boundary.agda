@@ -29,7 +29,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flat; flat-rec; flatten)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-  using ( unflatten; unflatten-++-≅; unflatten-flatten-≈; _≅_; bridge
+  using ( unflatten; unflatten-flatten-≈; _≅_; bridge
         ; subst-id-cod; cod-cancel; subst-cod-cons )
 open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
   using ( bridge-∘; bridge-⊗; bridge-id-is-id; bridge-λ⇒-is-id; bridge-λ⇐-is-id
@@ -148,14 +148,5 @@ st-roundtrip (σ {A} {B} ⦃ v≤v ⦄) =
   ≈-Term-sym (center (≈-Term-sym σ∘[f⊗g]≈[g⊗f]∘σ)
               ○ (refl⟩∘⟨ cancelInner ⊗-iso-cancel))
   where
-    a = flatten A ; b = flatten B
-    T      = _≅_.to (unflatten-++-≅ b a)
-    F      = _≅_.from (unflatten-++-≅ a b)
-    from-A = _≅_.from (unflatten-flatten-≈ A)
-    from-B = _≅_.from (unflatten-flatten-≈ B)
-    to-A   = _≅_.to (unflatten-flatten-≈ A)
-    to-B   = _≅_.to (unflatten-flatten-≈ B)
-
-    ⊗-iso-cancel : (from-A ⊗₁ from-B) ∘ (to-A ⊗₁ to-B) ≈Term id
     ⊗-iso-cancel = ⊗-cancel (_≅_.isoʳ (unflatten-flatten-≈ A))
                             (_≅_.isoʳ (unflatten-flatten-≈ B))
