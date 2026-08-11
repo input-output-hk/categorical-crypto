@@ -21,12 +21,13 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using (_≟_)
-open import Data.List using (List; []; _∷_; _++_; map; concat)
+open import Data.List using (List; []; _∷_; _++_; map; concat; length; filter)
 open import Data.List.Base using (tabulate)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Relation.Unary.Any using (here; there)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
+import Data.List.Relation.Binary.Permutation.Setoid.Properties as SetoidPropM
 open import Data.Maybe using (just)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Nat using (s≤s⁻¹) renaming (_≤_ to _≤ⁿ_; _<_ to _<ⁿ_; s≤s to s≤sⁿ; z≤n to z≤nⁿ)
@@ -34,10 +35,13 @@ import Data.Nat.Properties as Nat
 open import Data.Product using (Σ-syntax; _,_)
 open import Relation.Nullary using (¬_; yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
+open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to ≡-setoid)
 
 private
   variable
     n : ℕ
+
+module SetoidProp {n} = SetoidPropM (≡-setoid (Fin n))
 
 --------------------------------------------------------------------------------
 -- `count` cons reductions.
@@ -68,41 +72,23 @@ count-pos→∈ {v = v} {x ∷ xs} c with v ≟ x
 ... | no  _    = there (count-pos→∈ c)
 
 --------------------------------------------------------------------------------
--- Permutation preserves `count`.
+-- Permutation preserves `count`: `count v` is `length ∘ filter (v ≟_)`, and
+-- both factors respect `_↭_` (stdlib `filter⁺` at the propositional setoid,
+-- then `↭-length`).
+
+count≡filter-length : (v : Fin n) (xs : List (Fin n)) → count v xs ≡ length (filter (v ≟_) xs)
+count≡filter-length v []       = refl
+count≡filter-length v (x ∷ xs) with v ≟ x
+... | yes _ = cong suc (count≡filter-length v xs)
+... | no  _ = count≡filter-length v xs
 
 ↭⇒count : {xs ys : List (Fin n)} → xs Perm.↭ ys → ∀ v → count v xs ≡ count v ys
-↭⇒count Perm.refl                       v = refl
-↭⇒count (Perm.prep x p)                 v with v ≟ x
-... | yes _ = cong suc (↭⇒count p v)
-... | no  _ = ↭⇒count p v
-↭⇒count (Perm.swap {xs = xs} {ys = ys} x y p) v = swap-case (v ≟ x) (v ≟ y)
-  where
-    swap-case : _ → _ → count v (x ∷ y ∷ xs) ≡ count v (y ∷ x ∷ ys)
-    swap-case (yes refl) (yes refl) =
-      trans (count-cons-yes v (v ∷ xs))
-      (trans (cong suc (count-cons-yes v xs))
-      (trans (cong suc (cong suc (↭⇒count p v)))
-      (trans (cong suc (sym (count-cons-yes v ys)))
-             (sym (count-cons-yes v (v ∷ ys))))))
-    swap-case (yes refl) (no  q) =
-      trans (count-cons-yes v (y ∷ xs))
-      (trans (cong suc (count-cons-no v y xs q))
-      (trans (cong suc (↭⇒count p v))
-      (trans (sym (count-cons-yes v ys))
-             (sym (count-cons-no v y (v ∷ ys) q)))))
-    swap-case (no  q) (yes refl) =
-      trans (count-cons-no v x (v ∷ xs) q)
-      (trans (count-cons-yes v xs)
-      (trans (cong suc (↭⇒count p v))
-      (trans (cong suc (sym (count-cons-no v x ys q)))
-             (sym (count-cons-yes v (x ∷ ys))))))
-    swap-case (no  q₁) (no  q₂) =
-      trans (count-cons-no v x (y ∷ xs) q₁)
-      (trans (count-cons-no v y xs q₂)
-      (trans (↭⇒count p v)
-      (trans (sym (count-cons-no v x ys q₁))
-             (sym (count-cons-no v y (x ∷ ys) q₂)))))
-↭⇒count (Perm.trans p₁ p₂)              v = trans (↭⇒count p₁ v) (↭⇒count p₂ v)
+↭⇒count {xs = xs} {ys} p v =
+  trans (count≡filter-length v xs)
+  (trans (PermProp.↭-length
+           (Perm.↭ₛ⇒↭ (SetoidProp.filter⁺ (v ≟_) (λ x≡y v≡x → trans v≡x x≡y)
+                        (Perm.↭⇒↭ₛ p))))
+         (sym (count≡filter-length v ys)))
 
 --------------------------------------------------------------------------------
 -- `extract-elem` / `extract-prefix` succeed under the corresponding count
