@@ -47,6 +47,7 @@ open import Categories.APROP.Hypergraph.Soundness sig-dec
 open import Data.Maybe.Base
 import Data.Maybe.Base as Maybe
 open import Data.Nat.Base
+open import Data.Product using (Σ; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
 
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive
@@ -132,28 +133,34 @@ solveSplit? f g | nothing = fallback f g
 -- right-nested spine.  Soundness uses only `assoc` and the congruence
 -- rules — no coherence.
 
+-- The graft and its soundness proof in ONE recursion: pairing the term with
+-- its witness lets the nine non-`∘` constructors be covered by the CATCH-ALL
+-- clause.  As two separate definitions they must each be enumerated, because
+-- `comp g f` does not reduce at a variable `g`.
+private
+  compS : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
+        → Σ (HomTerm A C) (λ h → h ≈Term g ∘ f)
+  compS (h ∘ g) f with compS g f
+  ... | gf , p = h ∘ gf , ≈-Term-trans (∘-resp-≈ ≈-Term-refl p) (≈-Term-sym assoc)
+  compS h f = h ∘ f , ≈-Term-refl
+
 comp : ∀ {A B C} → HomTerm B C → HomTerm A B → HomTerm A C
-comp (h ∘ g) f = h ∘ comp g f
-comp h       f = h ∘ f
+comp g f = proj₁ (compS g f)
 
 comp-sound : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B) → comp g f ≈Term g ∘ f
-comp-sound (h ∘ g)   f = ≈-Term-trans (∘-resp-≈ ≈-Term-refl (comp-sound g f))
-                                      (≈-Term-sym assoc)
-comp-sound (Agen m)  f = ≈-Term-refl
-comp-sound id        f = ≈-Term-refl
-comp-sound (g ⊗₁ g') f = ≈-Term-refl
-comp-sound λ⇒        f = ≈-Term-refl
-comp-sound λ⇐        f = ≈-Term-refl
-comp-sound ρ⇒        f = ≈-Term-refl
-comp-sound ρ⇐        f = ≈-Term-refl
-comp-sound α⇒        f = ≈-Term-refl
-comp-sound α⇐        f = ≈-Term-refl
-comp-sound σ         f = ≈-Term-refl
+comp-sound g f = proj₂ (compS g f)
+
+private
+  reassocS : ∀ {A B} (f : HomTerm A B) → Σ (HomTerm A B) (λ g → g ≈Term f)
+  reassocS (g ∘ f) with reassocS g | reassocS f
+  ... | g' , pg | f' , pf =
+        comp g' f' , ≈-Term-trans (comp-sound g' f') (∘-resp-≈ pg pf)
+  reassocS (f ⊗₁ g) with reassocS f | reassocS g
+  ... | f' , pf | g' , pg = f' ⊗₁ g' , ⊗-resp-≈ pf pg
+  reassocS f = f , ≈-Term-refl
 
 reassoc : ∀ {A B} → HomTerm A B → HomTerm A B
-reassoc (g ∘ f)  = comp (reassoc g) (reassoc f)
-reassoc (f ⊗₁ g) = reassoc f ⊗₁ reassoc g
-reassoc f        = f
+reassoc f = proj₁ (reassocS f)
 
 --------------------------------------------------------------------------------
 -- BALANCED reassociation: flatten the ∘-spine into a `Chain`, then rebuild it
@@ -263,18 +270,7 @@ mutual
   reassocBal f = let c = dropIdC (cancelC (dropIdC (flat∘ f))) in balC (lenC c) c
 
 reassoc-sound : ∀ {A B} (f : HomTerm A B) → reassoc f ≈Term f
-reassoc-sound (g ∘ f)  = ≈-Term-trans (comp-sound (reassoc g) (reassoc f))
-                                      (∘-resp-≈ (reassoc-sound g) (reassoc-sound f))
-reassoc-sound (f ⊗₁ g) = ⊗-resp-≈ (reassoc-sound f) (reassoc-sound g)
-reassoc-sound (Agen m) = ≈-Term-refl
-reassoc-sound id       = ≈-Term-refl
-reassoc-sound λ⇒       = ≈-Term-refl
-reassoc-sound λ⇐       = ≈-Term-refl
-reassoc-sound ρ⇒       = ≈-Term-refl
-reassoc-sound ρ⇐       = ≈-Term-refl
-reassoc-sound α⇒       = ≈-Term-refl
-reassoc-sound α⇐       = ≈-Term-refl
-reassoc-sound σ        = ≈-Term-refl
+reassoc-sound f = proj₂ (reassocS f)
 
 --------------------------------------------------------------------------------
 -- Entry point: reassociate both sides, split, then transport the result
