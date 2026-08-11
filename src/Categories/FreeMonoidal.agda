@@ -245,7 +245,9 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
                → P ∘ Q ≈Term id → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ≈Term id
     id⊗-cancel {P = P} {Q} PQ = id⊗-∘ P Q ○ (refl⟩⊗⟨ PQ) ○ id⊗id≈id
 
-    -- a ⊗-pair of cancelling composites cancels.
+    -- a ⊗-pair of cancelling composites cancels.  This is the drawer's ⊗-face;
+    -- `id⊗-cancel` above is exactly its left-framed instance `⊗-cancel idˡ`,
+    -- named because four sites want that framing.
     ⊗-cancel : ∀ {A A' B B'} {P : HomTerm A' A} {Q : HomTerm A A'}
                  {R : HomTerm B' B} {S : HomTerm B B'}
              → P ∘ Q ≈Term id → R ∘ S ≈Term id
@@ -264,14 +266,15 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
     -- `cancelʳ m-iso : (M₁ ∘ Fm) ∘ Tm ≈ M₁`, in the `center` of the composite.
     cancel-mid-iso _ _ _ _ _ _ m-iso = center (cancelʳ m-iso)
 
-    -- A 3-fold composite and its reverse cancel, innermost pair first.
+    -- A 3-fold composite and its reverse cancel, innermost pair first: the
+    -- `cancel-mid-iso` face above, then the two outer pairs.
     cancel₃
       : ∀ {A₀ A₁ A₂ A₃ : ObjTerm}
           {a : HomTerm A₂ A₃} {b : HomTerm A₁ A₂} {c : HomTerm A₀ A₁}
           {c⁻ : HomTerm A₁ A₀} {b⁻ : HomTerm A₂ A₁} {a⁻ : HomTerm A₃ A₂}
       → c ∘ c⁻ ≈Term id → b ∘ b⁻ ≈Term id → a ∘ a⁻ ≈Term id
       → (a ∘ b ∘ c) ∘ (c⁻ ∘ b⁻ ∘ a⁻) ≈Term id
-    cancel₃ hc hb ha = center (cancelʳ hc) ○ (refl⟩∘⟨ cancelˡ hb) ○ ha
+    cancel₃ hc hb ha = cancel-mid-iso _ _ _ _ _ _ hc ○ (refl⟩∘⟨ cancelˡ hb) ○ ha
 
     α-conj : ∀ {A B C D E G} (f : HomTerm A B) (g : HomTerm C D) (h : HomTerm E G)
            → α⇒ ∘ (f ⊗₁ g) ⊗₁ h ∘ α⇐ ≈Term f ⊗₁ (g ⊗₁ h)

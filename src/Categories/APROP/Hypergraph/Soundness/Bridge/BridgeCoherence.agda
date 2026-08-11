@@ -20,7 +20,7 @@ open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
 open import Categories.Morphism.Reasoning FreeMonoidal
-  using (center; cancelʳ; cancelˡ; pullˡ; elim-center)
+  using (cancelˡ; pullˡ; elim-center)
 open import Categories.Morphism.Reasoning.Ext FreeMonoidal using (inv-resp)
 open import Categories.Category.Monoidal.Properties Monoidal-FreeMonoidal
   using (module Kelly's)
@@ -46,10 +46,11 @@ open FM.HomReasoning
 bridge-∘
   : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
   → bridge (g ∘ f) ≈Term bridge g ∘ bridge f
--- `cancelʳ (isoˡ B) : (g ∘ T-B) ∘ F-B ≈ g`, in the `center` of the composite;
--- one `sym-assoc` then re-brackets `g ∘ (f ∘ T-A)` as `(g ∘ f) ∘ T-A`.
+-- `bridge h = F-cod ∘ h ∘ T-dom` (`Unflatten`), so `bridge g ∘ bridge f` IS the
+-- drawer's `cancel-mid-iso` shape with `isoˡ B` as the middle iso; one
+-- `sym-assoc` then re-brackets `g ∘ (f ∘ T-A)` as `(g ∘ f) ∘ T-A`.
 bridge-∘ {B = B} g f =
-  ⟺ (center (cancelʳ (_≅_.isoˡ (unflatten-flatten-≈ B)))
+  ⟺ (cancel-mid-iso _ _ _ _ _ _ (_≅_.isoˡ (unflatten-flatten-≈ B))
       ○ (refl⟩∘⟨ FM.sym-assoc))
 
 -- bridge-⊗: bridge distributes over tensor (modulo unflatten-++-≅ coherence).
