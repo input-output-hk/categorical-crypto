@@ -114,11 +114,15 @@ weight-sum-cons-middle : ∀ {P : ProbDistr Ω} {a : Ω}
                          (f : Ω → Probability)
                        → weight-sum P f (xs ++ a ∷ ys)
                        ≈ P ∙ (a ≡_) * f a + weight-sum P f (xs ++ ys)
-weight-sum-cons-middle {P = P} {a} xs {ys} f = Eq.trans
-  (weight-sum-++ f xs (a ∷ ys))
-  (Eq.trans
-    (solve-≈ Probabilityᴿ)
-    (+-congˡ (Eq.sym (weight-sum-++ f xs ys))))
+weight-sum-cons-middle {P = P} {a} xs {ys} f = begin
+  weight-sum P f (xs ++ a ∷ ys)
+    ≈⟨ weight-sum-++ f xs (a ∷ ys) ⟩
+  weight-sum P f xs + (P ∙ (a ≡_) * f a + weight-sum P f ys)
+    ≈⟨ solve-≈ Probabilityᴿ ⟩
+  P ∙ (a ≡_) * f a + (weight-sum P f xs + weight-sum P f ys)
+    ≈⟨ +-congˡ (Eq.sym (weight-sum-++ f xs ys)) ⟩
+  P ∙ (a ≡_) * f a + weight-sum P f (xs ++ ys) ∎
+  where open ≈-Reasoning setoid
 
 -- `weight-sum` is invariant under permutation of the support.  Each
 -- constructor case is a single ring rearrangement on the head, so the

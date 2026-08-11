@@ -17,6 +17,10 @@ open import ProbabilisticLogic.Reasoning
 
 module ProbabilisticLogic.Examples.Coins c ℓ (a : Abstract c ℓ) where
 
+-- `Prelude` deliberately stopped registering the product instance; the pair
+-- sample space below needs it.
+instance DecEq-×′ = DecEq-×
+
 open Abstract a
 open import ProbabilisticLogic.Logic c ℓ a
 
