@@ -152,12 +152,12 @@ module _ {X : Set} {Gen : List X → List X → Set} where
   trans-≅ᴴ {G} {H} {K} iso₁ iso₂ = record
     { φ         = λ i → φ₂ (φ₁ i)
     ; φ⁻¹       = λ k → φ⁻¹₁ (φ⁻¹₂ k)
-    ; φ-left    = λ i → trans (cong φ⁻¹₁ (φ-left₂ (φ₁ i))) (φ-left₁ i)
-    ; φ-rght    = λ k → trans (cong φ₂ (φ-rght₁ (φ⁻¹₂ k))) (φ-rght₂ k)
+    ; φ-left    = λ i → trans (cong φ⁻¹₁ (I₂.φ-left (φ₁ i))) (I₁.φ-left i)
+    ; φ-rght    = λ k → trans (cong φ₂ (I₁.φ-rght (φ⁻¹₂ k))) (I₂.φ-rght k)
     ; ψ         = λ e → ψ₂ (ψ₁ e)
     ; ψ⁻¹       = λ k → ψ⁻¹₁ (ψ⁻¹₂ k)
-    ; ψ-left    = λ e → trans (cong ψ⁻¹₁ (ψ-left₂ (ψ₁ e))) (ψ-left₁ e)
-    ; ψ-rght    = λ k → trans (cong ψ₂ (ψ-rght₁ (ψ⁻¹₂ k))) (ψ-rght₂ k)
+    ; ψ-left    = λ e → trans (cong ψ⁻¹₁ (I₂.ψ-left (ψ₁ e))) (I₁.ψ-left e)
+    ; ψ-rght    = λ k → trans (cong ψ₂ (I₁.ψ-rght (ψ⁻¹₂ k))) (I₂.ψ-rght k)
     ; φ-lab     = λ i → trans (I₂.φ-lab (φ₁ i)) (I₁.φ-lab i)
     ; ψ-ein     = λ e → ein-trans e
     ; ψ-eout    = λ e → eout-trans e
@@ -174,15 +174,8 @@ module _ {X : Set} {Gen : List X → List X → Set} where
       module H = Hypergraph H
       module K = Hypergraph K
 
-      φ₁      = I₁.φ      ; φ⁻¹₁    = I₁.φ⁻¹
-      φ-left₁ = I₁.φ-left ; φ-rght₁ = I₁.φ-rght
-      ψ₁      = I₁.ψ      ; ψ⁻¹₁    = I₁.ψ⁻¹
-      ψ-left₁ = I₁.ψ-left ; ψ-rght₁ = I₁.ψ-rght
-
-      φ₂      = I₂.φ      ; φ⁻¹₂    = I₂.φ⁻¹
-      φ-left₂ = I₂.φ-left ; φ-rght₂ = I₂.φ-rght
-      ψ₂      = I₂.ψ      ; ψ⁻¹₂    = I₂.ψ⁻¹
-      ψ-left₂ = I₂.ψ-left ; ψ-rght₂ = I₂.ψ-rght
+      open I₁ using () renaming (φ to φ₁; φ⁻¹ to φ⁻¹₁; ψ to ψ₁; ψ⁻¹ to ψ⁻¹₁)
+      open I₂ using () renaming (φ to φ₂; φ⁻¹ to φ⁻¹₂; ψ to ψ₂; ψ⁻¹ to ψ⁻¹₂)
 
       -- two `map`-legs (through `φ₂` then `φ₁`) fused into one `map (φ₂ ∘ φ₁)`.
       via₂ : ∀ {xs ys zs} → xs ≡ map φ₂ ys → ys ≡ map φ₁ zs
