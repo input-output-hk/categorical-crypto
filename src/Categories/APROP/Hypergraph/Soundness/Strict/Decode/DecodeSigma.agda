@@ -42,9 +42,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟X_
   as DShapes
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_
-  using ( coe; coe-uip; coe-conj
-        ; coe-cancel; coe-cancelʳ )
 open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelˡ)
 open import Categories.Morphism.Reasoning.Ext SCat using (inv-resp)
 

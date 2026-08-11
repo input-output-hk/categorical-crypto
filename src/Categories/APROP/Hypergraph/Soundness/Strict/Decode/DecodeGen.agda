@@ -55,8 +55,6 @@ open import Categories.APROP.Hypergraph.Model.Invariant sig using (hGen-dom-Uniq
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_
-  using (st)
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
 open import Data.Fin using (Fin) renaming (_≟_ to _≟F_)

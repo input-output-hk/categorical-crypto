@@ -209,11 +209,11 @@ module EquivStep (H : Hypergraph FlatGen) where
            (us' : Unique s')
            where
     private
-      st = extract-prefix-↭-residual (H.ein e) s' restH (Perm.trans ρ permH)
-      restHc  = proj₁ st
-      permHc  = proj₁ (proj₂ st)
-      eqHc    = proj₁ (proj₂ (proj₂ st))
-      rpc     = proj₂ (proj₂ (proj₂ st))
+      xpr = extract-prefix-↭-residual (H.ein e) s' restH (Perm.trans ρ permH)
+      restHc  = proj₁ xpr
+      permHc  = proj₁ (proj₂ xpr)
+      eqHc    = proj₁ (proj₂ (proj₂ xpr))
+      rpc     = proj₂ (proj₂ (proj₂ xpr))
 
       pair-eq : (restHc , permHc) ≡ (restH' , permH')
       pair-eq = just-injective (trans (sym eqHc) eqH')
@@ -327,8 +327,8 @@ module EquivStep (H : Hypergraph FlatGen) where
     ⊥-elim (just≢nothing (trans (sym eqH') (fire-stable-nothing e ρ eqH)))
   edge-step-equivariantˢ e {s} {s'} ρ (fireRˢ restH permH eqH) (skipRˢ eqH') us' =
     ⊥-elim (just≢nothing
-      (let st = fire-stable-just e ρ permH eqH
-       in trans (sym (proj₁ (proj₂ (proj₂ st)))) eqH'))
+      (let fsj = fire-stable-just e ρ permH eqH
+       in trans (sym (proj₁ (proj₂ (proj₂ fsj)))) eqH'))
   -- FIRE/FIRE.
   edge-step-equivariantˢ e {s} {s'} ρ
       (fireRˢ restH permH eqH) (fireRˢ restH' permH' eqH') us' =

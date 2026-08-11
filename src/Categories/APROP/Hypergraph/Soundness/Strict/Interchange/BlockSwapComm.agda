@@ -42,8 +42,6 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_
-  using (coe; coe-id≈)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_
   using (σ-hexˢʳ; module Scr)
 

@@ -43,8 +43,6 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_
-  using (st; coe; coe-id≈; coe-uip; coe-trans)
 
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)

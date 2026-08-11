@@ -31,7 +31,7 @@ open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_
-  using (st; embF; embF-resp-≈ˢ; st-roundtrip)
+  using (embF; embF-resp-≈ˢ; st-roundtrip)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
   using (decodePˢ)
 
