@@ -524,6 +524,12 @@ module Build
       → castᵛ p q t ≡ castˢ (cong m p) (cong m q) t
     castᵛ-cast refl refl t = refl
 
+    -- a `subst` over the codomain stack IS the cod-only `castᵛ` (UIP-trivial)
+    subst-codᵛ
+      : ∀ {as bs bs'} (q : bs ≡ bs') (t : HomV as bs)
+      → subst (HomV as) q t ≡ castᵛ refl q t
+    subst-codᵛ refl t = refl
+
     cast-respᵛ
       : ∀ {as as' bs bs'} (p : as ≡ as') (q : bs ≡ bs') {f g : HomV as bs}
       → f ≈ᵛ g → castᵛ p q f ≈ᵛ castᵛ p q g

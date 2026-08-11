@@ -184,7 +184,7 @@ module _
       module Hf = Hypergraph ⟪ f ⟫
       open Support (Fin Hf.nV) Hf.vlab
       open Restrict (Fin Hf.nV) Hf.vlab
-        using (HomV; idᵛ; _∘ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; ∘-castᵛ)
+        using (idᵛ; _∘ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; ∘-castᵛ; subst-codᵛ)
 
       K : PermK
       K = permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
@@ -229,13 +229,8 @@ module _
 
     private
       -- the run collapses to `coe` of the stack-equality (nE ≡ 0).
-      subst-cod≡castᵛ
-        : ∀ {u v v' : List (Fin Hf.nV)} (e : v ≡ v') (t : HomV u v)
-        → subst (λ z → HomS (map Hf.vlab u) (map Hf.vlab z)) e t ≡ castᵛ refl e t
-      subst-cod≡castᵛ refl t = refl
-
       run≡ : proj₂ RF.runˢ ≡ castᵛ refl (sym s≡) (idᵛ {Hf.dom})
-      run≡ = trans (proj₂ collapse) (subst-cod≡castᵛ (sym s≡) idᵛ)
+      run≡ = trans (proj₂ collapse) (subst-codᵛ (sym s≡) idᵛ)
 
       -- `permuteᵛ` of the `s≡`-substituted canonical derivation is a `castᵛ`
       -- of `permuteᵛ bsw`.

@@ -97,7 +97,8 @@ module Gen {A B : ObjTerm} (g : mor A B) where
     open Support (Fin Hf.nV) Hf.vlab
     open Restrict (Fin Hf.nV) Hf.vlab
       using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ
-            ; castᵛ-cast; cast-flipᵛ; cast-respᵛ; cast-fuseᵛ; ∘-castᵛ; ⊗-unitʳᵛ )
+            ; castᵛ-cast; cast-flipᵛ; cast-respᵛ; cast-fuseᵛ; ∘-castᵛ; ⊗-unitʳᵛ
+            ; subst-codᵛ )
 
     K : PermK
     K = permˢ-K Hf.nV Hf.vlab
@@ -141,12 +142,6 @@ module Gen {A B : ObjTerm} (g : mor A B) where
     G0 : HomV (Hf.ein e₀) (Hf.eout e₀)
     G0 = genˢ (Hf.elab e₀)
 
-    -- `subst` over the codomain stack is a `castᵛ refl …` (UIP-trivial).
-    subst-cod≡castᵛ
-      : ∀ {u v v' : List (Fin Hf.nV)} (e : v ≡ v') (t : HomV u v)
-      → subst (λ z → HomS (map Hf.vlab u) (map Hf.vlab z)) e t ≡ castᵛ refl e t
-    subst-cod≡castᵛ refl t = refl
-
     -- rigidity AT a reindexing (the V-level face of `rigid-≈̂ ⨾ ⟦reflexive⟧`).
     rigid-reflexiveᵛ
       : ∀ {xs ys : List (Fin Hf.nV)} → Unique ys
@@ -160,7 +155,7 @@ module Gen {A B : ObjTerm} (g : mor A B) where
   private
     run≈ : proj₂ RF.runˢ ≈ᵛ castᵛ refl (sym s≡) layer
     run≈ =
-      ≈-trans (≡⇒≈ˢ (trans run-form (subst-cod≡castᵛ (sym s≡) (idˢ ∘ˢ layer))))
+      ≈-trans (≡⇒≈ˢ (trans run-form (subst-codᵛ (sym s≡) (idˢ ∘ˢ layer))))
               (cast-respᵛ refl (sym s≡) idˡ)
 
   --------------------------------------------------------------------------
