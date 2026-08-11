@@ -122,7 +122,7 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J) where
   -- `τ ↭ range H.nE`, via the Fin-bijection permutation lemma
   -- `tabulate-bij-↭-via-eq`, bridged from `range` to `tabulate id`.
   τ↭range : τ Perm.↭ range H.nE
-  τ↭range = subst (λ xs → xs Perm.↭ range H.nE) bridge step
+  τ↭range = subst (λ xs → xs Perm.↭ range H.nE) bridge base-range
     where
       nE-eq : H.nE ≡ J.nE
       nE-eq = bij-fin-ℕ-≡ ψ ψ⁻¹ ψ-left ψ-rght
@@ -138,9 +138,6 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J) where
       -- tabulate ψ⁻¹ ≡ map ψ⁻¹ (range J.nE) = τ
       bridge : tabulate {n = J.nE} (λ i → ψ⁻¹ i) ≡ map ψ⁻¹ (range J.nE)
       bridge = tabulate-as-map-range ψ⁻¹
-
-      step : tabulate {n = J.nE} (λ i → ψ⁻¹ i) Perm.↭ range H.nE
-      step = base-range
 
   ------------------------------------------------------------------------
   -- LEMMA 4.  `NoInv-τ`: transport J's no-inversion across the edge

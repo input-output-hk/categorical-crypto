@@ -129,7 +129,7 @@ module PerHG (H : Hypergraph FlatGen)
   -- Validity is preserved by an adjacent-independent swap.
   swap-validityˢ : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂ → Validˢ o₁ → Validˢ o₂
   swap-validityˢ {o₁} {o₂} s p =
-    of-PHValid o₂ (SV.PerHG.swap-validity H dih lin s (to-PHValid o₁ p))
+    of-PHValid o₂ (SV.PerHG.swap-validity H lin s (to-PHValid o₁ p))
 
   -- cod-only stack transport, from the strict `DecodeCompose` run blocks.
   open RunBlocks H using (coeCod) public

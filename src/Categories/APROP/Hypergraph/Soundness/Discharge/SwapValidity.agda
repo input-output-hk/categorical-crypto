@@ -73,13 +73,10 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst)
 
 ------------------------------------------------------------------------
--- Per-hypergraph: fix `H`, a `Dep`-irreflexivity witness `dih`, and
--- `lin : Linear H`.
+-- Per-hypergraph: fix `H` and `lin : Linear H`.
 ------------------------------------------------------------------------
 
-module PerHG (H : Hypergraph FlatGen)
-             (dih : ∀ {e} → ¬ (Dep H e e))
-             (lin : Linear H) where
+module PerHG (H : Hypergraph FlatGen) (lin : Linear H) where
   private module H = Hypergraph H
 
   -- The per-hypergraph module from the chain (read-only); we match its

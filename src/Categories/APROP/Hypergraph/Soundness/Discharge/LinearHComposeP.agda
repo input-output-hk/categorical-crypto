@@ -18,7 +18,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Util.Prune
-  using ( count-non; classify; classify-view; ClassifyV; is-mem; is-non
+  using ( count-non; classify; classify-view; is-mem; is-non
         ; remap-inj₁; remap-injective
         ; classify-lookup-Unique
         ; lookup-injective-unique)
