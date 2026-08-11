@@ -141,6 +141,10 @@ open import CategoricalCrypto.Examples.RandomOracle
 open import Relation.Binary using (Setoid)
 import Relation.Binary.Reasoning.Setoid as RS
 
+-- `Prelude` deliberately stopped registering the product instance; the
+-- compression oracle's 4-tuple query type below needs it.
+instance DecEq-×′ = DecEq-×
+
 --------------------------------------------------------------------------------
 -- 1. ASSUMED FROM THE THEORY  (probabilistic G-construction + graded Kleisli)
 --------------------------------------------------------------------------------
