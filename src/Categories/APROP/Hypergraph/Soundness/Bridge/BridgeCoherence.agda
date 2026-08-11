@@ -102,12 +102,7 @@ bridge-⊗ {A} {B} {C} {D} f g = solveMor! lhsᵗ rhsᵗ
 -- `bridge (id {A}) ≈Term id`: the iso `unflatten-flatten-≈ A` cancels.
 
 bridge-id-is-id : ∀ A → bridge (id {A}) ≈Term id
-bridge-id-is-id A = begin
-  _≅_.from (unflatten-flatten-≈ A) ∘ id ∘ _≅_.to (unflatten-flatten-≈ A)
-    ≈⟨ refl⟩∘⟨ idˡ ⟩
-  _≅_.from (unflatten-flatten-≈ A) ∘ _≅_.to (unflatten-flatten-≈ A)
-    ≈⟨ _≅_.isoʳ (unflatten-flatten-≈ A) ⟩
-  id ∎
+bridge-id-is-id A = (refl⟩∘⟨ idˡ) ○ _≅_.isoʳ (unflatten-flatten-≈ A)
 
 -- `bridge` is a whiskering by the two `unflatten` legs, so it respects `≈Term`
 -- and carries a one-sided inverse pair to a one-sided inverse pair.  With
@@ -165,10 +160,7 @@ bridge-ρ⇒-form A =
   : ∀ (xs : List X)
   → subst-id-cod (++-identityʳ xs)
     ≈Term ρ⇒ {unflatten xs} ∘ _≅_.from (unflatten-++-≅ xs [])
-ρ⇒-coh-list []       = begin
-  id           ≈⟨ ≈-Term-sym λ⇒∘λ⇐≈id ⟩
-  λ⇒ ∘ λ⇐      ≈⟨ coherence₃ ⟩∘⟨refl ⟩
-  ρ⇒ ∘ λ⇐      ∎
+ρ⇒-coh-list []       = ⟺ λ⇒∘λ⇐≈id ○ (coherence₃ ⟩∘⟨refl)
 ρ⇒-coh-list (y ∷ ys) = begin
   subst-id-cod (++-identityʳ (y ∷ ys))
     ≈⟨ ≈-Term-sym (subst-cod-cons (++-identityʳ ys)) ⟩
@@ -273,14 +265,11 @@ private
     cBC-to   = _≅_.to   (unflatten-++-≅ (flatten B) (flatten C))
     cBC-from = _≅_.from (unflatten-++-≅ (flatten B) (flatten C))
 
-  collapse-c-FT
-    : ∀ B C
-    → _≅_.to (unflatten-++-≅ (flatten B) (flatten C))
-      ∘ (( _≅_.from (unflatten-flatten-≈ B) ∘ _≅_.to (unflatten-flatten-≈ B))
-          ⊗₁ (_≅_.from (unflatten-flatten-≈ C) ∘ _≅_.to (unflatten-flatten-≈ C)))
-      ∘ _≅_.from (unflatten-++-≅ (flatten B) (flatten C))
-    ≈Term id
-  collapse-c-FT B C =
+  module _ (B C : ObjTerm) where
+   open FT B C
+
+   collapse-c-FT : cBC-to ∘ ((F-B ∘ T-B) ⊗₁ (F-C ∘ T-C)) ∘ cBC-from ≈Term id
+   collapse-c-FT =
     -- the ⊗ of two iso cancellations IS the identity, so `elim-center` drops it
     elim-center (⊗-resp-≈ (_≅_.isoʳ (unflatten-flatten-≈ B))
                           (_≅_.isoʳ (unflatten-flatten-≈ C))
