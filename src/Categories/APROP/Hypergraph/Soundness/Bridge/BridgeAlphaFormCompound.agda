@@ -48,7 +48,6 @@ open import Categories.Coherence.Monoidal.Frontend using (module FinSetup)
 open import Data.Product using (_,_)
 open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F; 7F; 8F; 9F)
 import Data.Vec as Vec
-open Vec using (Vec)
 import Data.Fin as Fin
 open import Data.List using (List; []; _∷_; _++_)
 
@@ -489,7 +488,7 @@ module Worker where
                ∘ id {P} ⊗₁ α⇒ {A₂} {B} {C}
                ∘ α⇒ {P} {A₂ ⊗₀ B} {C}
                ∘ α⇒ {P} {A₂} {B} ⊗₁ id {C} )
-          ≈⟨ bridge-∘4 ⟩
+          ≈⟨ bridge-∘ _ _ ○ (refl⟩∘⟨ bridge-∘ _ _) ○ (refl⟩∘⟨ refl⟩∘⟨ bridge-∘ _ _) ⟩
         bridge (α⇐ {P} {A₂} {B ⊗₀ C})
           ∘ bridge (id {P} ⊗₁ α⇒ {A₂} {B} {C})
           ∘ bridge (α⇒ {P} {A₂ ⊗₀ B} {C})
@@ -506,60 +505,34 @@ module Worker where
                ≈Term α⇐-form-list p (flatten A₂) (flatten B ++ flatten C)
           br-⇐ = derive-⇐ P A₂ (B ⊗₀ C) br⇒-P
 
-          c-to   = λ as bs → _≅_.to   (unflatten-++-≅ as bs)
-          c-from = λ as bs → _≅_.from (unflatten-++-≅ as bs)
-
           bx-mid
             : bridge (id {P} ⊗₁ α⇒ {A₂} {B} {C})
-            ≈Term c-to p (flatten A₂ ++ flatten B ++ flatten C)
+            ≈Term cto p (flatten A₂ ++ flatten B ++ flatten C)
                  ∘ (id ⊗₁ α⇒-form-list (flatten A₂) (flatten B) (flatten C))
-                 ∘ c-from p ((flatten A₂ ++ flatten B) ++ flatten C)
+                 ∘ cfrom p ((flatten A₂ ++ flatten B) ++ flatten C)
           bx-mid = begin
             bridge (id {P} ⊗₁ α⇒ {A₂} {B} {C})
               ≈⟨ bridge-⊗ (id {P}) (α⇒ {A₂} {B} {C}) ⟩
-            c-to p (flatten A₂ ++ flatten B ++ flatten C)
+            cto p (flatten A₂ ++ flatten B ++ flatten C)
               ∘ (bridge (id {P}) ⊗₁ bridge (α⇒ {A₂} {B} {C}))
-              ∘ c-from p ((flatten A₂ ++ flatten B) ++ flatten C)
+              ∘ cfrom p ((flatten A₂ ++ flatten B) ++ flatten C)
               ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (bridge-id-is-id P) br-A₂ ⟩∘⟨refl ⟩
-            c-to p (flatten A₂ ++ flatten B ++ flatten C)
+            cto p (flatten A₂ ++ flatten B ++ flatten C)
               ∘ (id ⊗₁ α⇒-form-list (flatten A₂) (flatten B) (flatten C))
-              ∘ c-from p ((flatten A₂ ++ flatten B) ++ flatten C) ∎
+              ∘ cfrom p ((flatten A₂ ++ flatten B) ++ flatten C) ∎
 
           bx-low
             : bridge (α⇒ {P} {A₂} {B} ⊗₁ id {C})
-            ≈Term c-to (p ++ flatten A₂ ++ flatten B) (flatten C)
+            ≈Term cto (p ++ flatten A₂ ++ flatten B) (flatten C)
                  ∘ (α⇒-form-list p (flatten A₂) (flatten B) ⊗₁ id)
-                 ∘ c-from ((p ++ flatten A₂) ++ flatten B) (flatten C)
+                 ∘ cfrom ((p ++ flatten A₂) ++ flatten B) (flatten C)
           bx-low = begin
             bridge (α⇒ {P} {A₂} {B} ⊗₁ id {C})
               ≈⟨ bridge-⊗ (α⇒ {P} {A₂} {B}) (id {C}) ⟩
-            c-to (p ++ flatten A₂ ++ flatten B) (flatten C)
+            cto (p ++ flatten A₂ ++ flatten B) (flatten C)
               ∘ (bridge (α⇒ {P} {A₂} {B}) ⊗₁ bridge (id {C}))
-              ∘ c-from ((p ++ flatten A₂) ++ flatten B) (flatten C)
+              ∘ cfrom ((p ++ flatten A₂) ++ flatten B) (flatten C)
               ≈⟨ refl⟩∘⟨ ⊗-resp-≈ br-low (bridge-id-is-id C) ⟩∘⟨refl ⟩
-            c-to (p ++ flatten A₂ ++ flatten B) (flatten C)
+            cto (p ++ flatten A₂ ++ flatten B) (flatten C)
               ∘ (α⇒-form-list p (flatten A₂) (flatten B) ⊗₁ id)
-              ∘ c-from ((p ++ flatten A₂) ++ flatten B) (flatten C) ∎
-
-          bridge-∘4
-            : bridge ( α⇐ {P} {A₂} {B ⊗₀ C}
-                     ∘ id {P} ⊗₁ α⇒ {A₂} {B} {C}
-                     ∘ α⇒ {P} {A₂ ⊗₀ B} {C}
-                     ∘ α⇒ {P} {A₂} {B} ⊗₁ id {C} )
-            ≈Term bridge (α⇐ {P} {A₂} {B ⊗₀ C})
-                ∘ bridge (id {P} ⊗₁ α⇒ {A₂} {B} {C})
-                ∘ bridge (α⇒ {P} {A₂ ⊗₀ B} {C})
-                ∘ bridge (α⇒ {P} {A₂} {B} ⊗₁ id {C})
-          bridge-∘4 = begin
-            bridge (f0 ∘ f1 ∘ f2 ∘ f3)
-              ≈⟨ bridge-∘ f0 (f1 ∘ f2 ∘ f3) ⟩
-            bridge f0 ∘ bridge (f1 ∘ f2 ∘ f3)
-              ≈⟨ refl⟩∘⟨ bridge-∘ f1 (f2 ∘ f3) ⟩
-            bridge f0 ∘ bridge f1 ∘ bridge (f2 ∘ f3)
-              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ bridge-∘ f2 f3 ⟩
-            bridge f0 ∘ bridge f1 ∘ bridge f2 ∘ bridge f3 ∎
-            where
-              f0 = α⇐ {P} {A₂} {B ⊗₀ C}
-              f1 = id {P} ⊗₁ α⇒ {A₂} {B} {C}
-              f2 = α⇒ {P} {A₂ ⊗₀ B} {C}
-              f3 = α⇒ {P} {A₂} {B} ⊗₁ id {C}
+              ∘ cfrom ((p ++ flatten A₂) ++ flatten B) (flatten C) ∎
