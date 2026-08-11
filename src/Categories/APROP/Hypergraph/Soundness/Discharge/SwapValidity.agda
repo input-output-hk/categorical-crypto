@@ -70,7 +70,7 @@ open import Data.Maybe.Ext using (nothing≢just)
 open import Data.Product using (_,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_; yes; no)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; subst)
+  using (_≡_; refl; sym; trans; cong; subst)
 
 ------------------------------------------------------------------------
 -- Per-hypergraph: fix `H`, a `Dep`-irreflexivity witness `dih`, and
@@ -223,10 +223,8 @@ module PerHG (H : Hypergraph FlatGen)
                      ur₂' s up₂' eqe)) eqe1))
   two-edge-swap-gen e≢e' inc s (skipR eqe) (fireR r₂' p₂' eqe')
                     (fireR ur₂' up₂' ueqe') (skipR eqe1) =
-    pin (just-injective (trans (sym ueqe') eqe'))
-    where
-      pin : (ur₂' , up₂') ≡ (r₂' , p₂') → _
-      pin refl = Perm.refl
+    Perm.↭-reflexive (cong (λ z → H.eout _ ++ proj₁ z)
+                           (sym (just-injective (trans (sym ueqe') eqe'))))
   -- (2) e FIRES s.
   two-edge-swap-gen e≢e' inc s (fireR r₁ p₁ eqe) (skipR eqe2)
                     (fireR ur₂' up₂' ueqe') _ =
@@ -238,10 +236,8 @@ module PerHG (H : Hypergraph FlatGen)
     ⊥-elim (nothing≢just (trans (sym eqe-bad) eqe))
   two-edge-swap-gen e≢e' inc s (fireR r₁ p₁ eqe) (skipR eqe2) (skipR eqe'n)
                     (fireR ur₁ up₁ ueqe) =
-    pin (just-injective (trans (sym ueqe) eqe))
-    where
-      pin : (ur₁ , up₁) ≡ (r₁ , p₁) → _
-      pin refl = Perm.refl
+    Perm.↭-reflexive (cong (λ z → H.eout _ ++ proj₁ z)
+                           (sym (just-injective (trans (sym ueqe) eqe))))
   two-edge-swap-gen e≢e' inc s (fireR r₁ p₁ eqe) (fireR r₂ p₂ eqe2)
                     (skipR eqe'n) _ =
     ⊥-elim (nothing≢just
