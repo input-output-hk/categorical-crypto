@@ -354,80 +354,75 @@ module _ (H : Hypergraph FlatGen)
           ↭⟨ PermProp.++⁺ˡ (H.eout e') (Perm.↭-sym r₂-eq) ⟩
         H.eout e' ++ r₂ ∎
 
-  record SimLoc
+  module _
     {e e' : Fin H.nE} (¬dep-ee' : ¬ (Dep H e e')) (¬dep-e'e : ¬ (Dep H e' e))
     (sp : List (Fin H.nV))
     (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
     (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
     (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
     (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-    : Set where
-    field
-      Rlist     : List (Fin H.nV)
-      loc₁      : sp Perm.↭ (H.ein e  ++ H.ein e') ++ Rlist
-      loc₂      : sp Perm.↭ (H.ein e' ++ H.ein e ) ++ Rlist
-      vout-loc₁ : (H.eout e  ++ H.eout e') ++ Rlist Perm.↭ H.eout e' ++ r₂
-      vout-loc₂ : (H.eout e' ++ H.eout e ) ++ Rlist Perm.↭ H.eout e  ++ r₁'
-      r-stk     : H.eout e' ++ r₂ Perm.↭ H.eout e ++ r₁'
-
-  sim-loc
-    : ∀ {e e' : Fin H.nE} (¬dep-ee' : ¬ (Dep H e e')) (¬dep-e'e : ¬ (Dep H e' e))
-        (sp : List (Fin H.nV))
-        (r₁  : List (Fin H.nV)) (p₁  : sp Perm.↭ H.ein e ++ r₁)
-        (r₂  : List (Fin H.nV)) (p₂  : H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂)
-        (r₂' : List (Fin H.nV)) (p₂' : sp Perm.↭ H.ein e' ++ r₂')
-        (r₁' : List (Fin H.nV)) (p₁' : H.eout e' ++ r₂' Perm.↭ H.ein e ++ r₁')
-    → SimLoc ¬dep-ee' ¬dep-e'e sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
-  sim-loc {e} {e'} ¬dep-ee' ¬dep-e'e sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' =
-    record
-      { Rlist = Rlist ; loc₁ = loc₁ ; loc₂ = loc₂'-bridged
-      ; vout-loc₁ = vout-loc₁ ; vout-loc₂ = vout-loc₂-bridged
-      ; r-stk = r-stk }
     where
-      open Perm.PermutationReasoning
 
-      -- Residual for the e-first order.
-      Rlist : List (Fin H.nV)
-      Rlist = proj₁ (extract-ein' ¬dep-ee' r₁ r₂ p₂)
-      q₁ : r₁ Perm.↭ H.ein e' ++ Rlist
-      q₁ = proj₂ (extract-ein' ¬dep-ee' r₁ r₂ p₂)
+    record SimLoc : Set where
+      field
+        Rlist     : List (Fin H.nV)
+        loc₁      : sp Perm.↭ (H.ein e  ++ H.ein e') ++ Rlist
+        loc₂      : sp Perm.↭ (H.ein e' ++ H.ein e ) ++ Rlist
+        vout-loc₁ : (H.eout e  ++ H.eout e') ++ Rlist Perm.↭ H.eout e' ++ r₂
+        vout-loc₂ : (H.eout e' ++ H.eout e ) ++ Rlist Perm.↭ H.eout e  ++ r₁'
+        r-stk     : H.eout e' ++ r₂ Perm.↭ H.eout e ++ r₁'
 
-      loc₁ : sp Perm.↭ (H.ein e ++ H.ein e') ++ Rlist
-      loc₁ = block-loc-e ¬dep-ee' sp r₁ r₂ p₁ p₂ Rlist q₁
+    sim-loc : SimLoc
+    sim-loc =
+      record
+        { Rlist = Rlist ; loc₁ = loc₁ ; loc₂ = loc₂'-bridged
+        ; vout-loc₁ = vout-loc₁ ; vout-loc₂ = vout-loc₂-bridged
+        ; r-stk = r-stk }
+      where
+        open Perm.PermutationReasoning
 
-      vout-loc₁ : (H.eout e ++ H.eout e') ++ Rlist Perm.↭ H.eout e' ++ r₂
-      vout-loc₁ = vout-loc-e {e} {e'} r₁ r₂ Rlist p₂ q₁
+        -- Residual for the e-first order.
+        Rlist : List (Fin H.nV)
+        Rlist = proj₁ (extract-ein' ¬dep-ee' r₁ r₂ p₂)
+        q₁ : r₁ Perm.↭ H.ein e' ++ Rlist
+        q₁ = proj₂ (extract-ein' ¬dep-ee' r₁ r₂ p₂)
 
-      -- Residual for the e'-first order.
-      Rlist' : List (Fin H.nV)
-      Rlist' = proj₁ (extract-ein' ¬dep-e'e r₂' r₁' p₁')
-      q₂' : r₂' Perm.↭ H.ein e ++ Rlist'
-      q₂' = proj₂ (extract-ein' ¬dep-e'e r₂' r₁' p₁')
+        loc₁ : sp Perm.↭ (H.ein e ++ H.ein e') ++ Rlist
+        loc₁ = block-loc-e ¬dep-ee' sp r₁ r₂ p₁ p₂ Rlist q₁
 
-      loc₂' : sp Perm.↭ (H.ein e' ++ H.ein e) ++ Rlist'
-      loc₂' = block-loc-e ¬dep-e'e sp r₂' r₁' p₂' p₁' Rlist' q₂'
+        vout-loc₁ : (H.eout e ++ H.eout e') ++ Rlist Perm.↭ H.eout e' ++ r₂
+        vout-loc₁ = vout-loc-e {e} {e'} r₁ r₂ Rlist p₂ q₁
 
-      vout-loc₂' : (H.eout e' ++ H.eout e) ++ Rlist' Perm.↭ H.eout e ++ r₁'
-      vout-loc₂' = vout-loc-e {e'} {e} r₂' r₁' Rlist' p₁' q₂'
+        -- Residual for the e'-first order.
+        Rlist' : List (Fin H.nV)
+        Rlist' = proj₁ (extract-ein' ¬dep-e'e r₂' r₁' p₁')
+        q₂' : r₂' Perm.↭ H.ein e ++ Rlist'
+        q₂' = proj₂ (extract-ein' ¬dep-e'e r₂' r₁' p₁')
 
-      -- The two residuals are perm-equal: align the `ein` prefixes via
-      -- `++-comm`, then cancel.
-      prefix-comm : (H.ein e' ++ H.ein e) ++ Rlist' Perm.↭ (H.ein e ++ H.ein e') ++ Rlist'
-      prefix-comm = PermProp.++⁺ʳ Rlist' (PermProp.++-comm (H.ein e') (H.ein e))
+        loc₂' : sp Perm.↭ (H.ein e' ++ H.ein e) ++ Rlist'
+        loc₂' = block-loc-e ¬dep-e'e sp r₂' r₁' p₂' p₁' Rlist' q₂'
 
-      Rlist'-Rlist : Rlist' Perm.↭ Rlist
-      Rlist'-Rlist =
-        ++-cancelˡ (H.ein e ++ H.ein e')
-          (Perm.↭-trans (Perm.↭-sym prefix-comm)
-            (Perm.↭-trans (Perm.↭-sym loc₂') loc₁))
+        vout-loc₂' : (H.eout e' ++ H.eout e) ++ Rlist' Perm.↭ H.eout e ++ r₁'
+        vout-loc₂' = vout-loc-e {e'} {e} r₂' r₁' Rlist' p₁' q₂'
 
-      loc₂'-bridged : sp Perm.↭ (H.ein e' ++ H.ein e) ++ Rlist
-      loc₂'-bridged = Perm.↭-trans loc₂' (PermProp.++⁺ˡ (H.ein e' ++ H.ein e) Rlist'-Rlist)
+        -- The two residuals are perm-equal: align the `ein` prefixes via
+        -- `++-comm`, then cancel.
+        prefix-comm : (H.ein e' ++ H.ein e) ++ Rlist' Perm.↭ (H.ein e ++ H.ein e') ++ Rlist'
+        prefix-comm = PermProp.++⁺ʳ Rlist' (PermProp.++-comm (H.ein e') (H.ein e))
 
-      vout-loc₂-bridged : (H.eout e' ++ H.eout e) ++ Rlist Perm.↭ H.eout e ++ r₁'
-      vout-loc₂-bridged =
-        Perm.↭-trans (PermProp.++⁺ˡ (H.eout e' ++ H.eout e) (Perm.↭-sym Rlist'-Rlist))
-                     vout-loc₂'
+        Rlist'-Rlist : Rlist' Perm.↭ Rlist
+        Rlist'-Rlist =
+          ++-cancelˡ (H.ein e ++ H.ein e')
+            (Perm.↭-trans (Perm.↭-sym prefix-comm)
+              (Perm.↭-trans (Perm.↭-sym loc₂') loc₁))
 
-      r-stk : H.eout e' ++ r₂ Perm.↭ H.eout e ++ r₁'
-      r-stk = post-swap-stack-↭ e e' sp r₁ r₂ r₁' r₂' p₁ p₂ p₂' p₁'
+        loc₂'-bridged : sp Perm.↭ (H.ein e' ++ H.ein e) ++ Rlist
+        loc₂'-bridged = Perm.↭-trans loc₂' (PermProp.++⁺ˡ (H.ein e' ++ H.ein e) Rlist'-Rlist)
+
+        vout-loc₂-bridged : (H.eout e' ++ H.eout e) ++ Rlist Perm.↭ H.eout e ++ r₁'
+        vout-loc₂-bridged =
+          Perm.↭-trans (PermProp.++⁺ˡ (H.eout e' ++ H.eout e) (Perm.↭-sym Rlist'-Rlist))
+                       vout-loc₂'
+
+        r-stk : H.eout e' ++ r₂ Perm.↭ H.eout e ++ r₁'
+        r-stk = post-swap-stack-↭ e e' sp r₁ r₂ r₁' r₂' p₁ p₂ p₂' p₁'
