@@ -3,8 +3,7 @@
 --------------------------------------------------------------------------------
 -- Totality of the decoder on the translation `⟪_⟫ₚ`, whose `∘` case uses
 -- `hComposeP`.  Three pieces: `decode-attempt-hComposeP` (the `∘` lift),
--- `⟪⟫-LinearP` (the invariant), `decode-attempt-LinearP` (totality), plus
--- the packaged total decoder `decodeP`.
+-- `⟪⟫-LinearP` (the invariant), `decode-attempt-LinearP` (totality).
 --
 -- Pruning removes only vertices, never edges (same `nE`, same Fin order),
 -- so every atomic (non-`∘`) decode lemma from `DecodeAttempt` is reused
@@ -35,8 +34,6 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
 import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
 open Inv
 import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
-open import Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP sig
-  using (Linear-hComposeP)
 import Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP sig as LP
 
 -- Reused-as-is generic decode lemmas (arbitrary `H`).
@@ -239,7 +236,7 @@ decode-attempt-hComposeP G K bdy-eq lin-G lin-K perm-G perm-K =
 ⟪⟫-LinearP (Agen g)        = Lin.Linear-hGen g
 ⟪⟫-LinearP (id {A})        = Lin.Linear-hId A
 ⟪⟫-LinearP (g ∘ f)         =
-  Linear-hComposeP ⟪ f ⟫ₚ ⟪ g ⟫ₚ
+  LP.Linear-hComposeP ⟪ f ⟫ₚ ⟪ g ⟫ₚ
     (trans (⟪⟫ₚ-codL f) (sym (⟪⟫ₚ-domL g)))
     (⟪⟫-LinearP f) (⟪⟫-LinearP g)
 ⟪⟫-LinearP (f ⊗₁ g)        = Lin.Linear-hTensor ⟪ f ⟫ₚ ⟪ g ⟫ₚ (⟪⟫-LinearP f) (⟪⟫-LinearP g)
