@@ -129,13 +129,9 @@ module _
     private
       module RF = Run ⟪ f ⟫
       module Hf = Hypergraph ⟪ f ⟫
-      open Support (Fin Hf.nV) Hf.vlab
 
       uniqCod : Unique Hf.cod
       uniqCod = Linear⇒cod-Unique ⟪ f ⟫ (⟪⟫-LinearP f)
-
-      K : PermK
-      K = permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
 
       collapse = nE0-run ⟪ f ⟫ nE≡0
       s≡ : RF.s-finˢ ≡ Hf.dom
