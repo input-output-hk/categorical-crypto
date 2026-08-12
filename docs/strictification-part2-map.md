@@ -5,6 +5,14 @@
 > `NoSelfDep` (types byte-identical).  Read every `DepIrrefl` below as
 > `FinOrderNoInv.NoSelfDep`.
 
+> **Repointing note (2026-08-12).** `permˢ-K` is no longer threaded as a module
+> parameter anywhere below `Perm/PermSupport` (the type's definition site):
+> `Perm/PermK` discharges it axiom-free for every vertex set and every generator
+> family, and `SwapCore`, `PermCalc.Kit`, the decoder shape lemmas and the
+> ⊗-shape all take `PK.permˢ-K` / `PK.perm-rigidˢ` directly.  Read the
+> "module parameter" passages below as a record of the discharge plan, not of the
+> live wiring.
+
 Status: reconnaissance over commit `2d2c8e5` ("Strictification phase 0").
 Companion deliverables `Strict/PermAlgebra.agda` and `Strict/SwapCore.agda` (§4) are
 DESIGNED here but not yet written.
