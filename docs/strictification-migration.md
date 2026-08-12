@@ -1,5 +1,12 @@
 # Strictification migration plan
 
+> **Repointing note (2026-08-12).** Two names below are stale.  `permˢ-K` is a
+> module parameter only in `Perm/PermSupport` (its definition site) — everything
+> else takes the axiom-free `Perm/PermK.permˢ-K` directly.  And
+> `Strict/SoundnessParam.agda` no longer exists: its content (`bridge⁻¹`,
+> `bridge-cancel`, `st-resp-iso`, `soundness-strict`) now lives, concrete, in
+> `Strict/Soundness.agda`.
+
 Goal: re-base the soundness proof `soundness-full-wired : ⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g`
 on a presented strict SMC `S`, collapsing the per-site Mac-Lane tax
 (`unflatten-++-≅` conjugation + `subst₂` transport) into a one-time boundary.

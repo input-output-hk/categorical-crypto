@@ -1,16 +1,18 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The single deferred residual of the strict pipeline, `permˢ-K`, and the
--- `perm-rigidˢ` wrapper that all of parts (I)ˢ/(II)ˢ consume.
+-- The strict Kelly residual `permˢ-K` — its TYPE and the `perm-rigidˢ`
+-- wrapper that all of parts (I)ˢ/(II)ˢ consume.
 --
 -- `permˢ-K` is the strict, VERTEX-LEVEL analogue of the proven
 -- `Coxeter.FaithfulnessInductive.complete` (the deep "K" ingredient):
 -- two permutation derivations whose evaluated bijections coincide produce
--- `_≈ˢ_`-equal terms under `permuteˢ`.  It is threaded here as a module
--- PARAMETER and discharged axiom-free in `Strict.Perm.PermK` via
--- `PermDischarge` + `Braid.Generic.strict-braid` (NOT via `Strict.Embed`,
--- which is not imported on that route).
+-- `_≈ˢ_`-equal terms under `permuteˢ`.  It is a module PARAMETER *here and
+-- only here* — this is the type's definition site, so `Strict.Perm.PermK`
+-- (which discharges it axiom-free via `PermDischarge` +
+-- `Braid.Generic.strict-braid`, NOT via `Strict.Embed`) cannot be imported
+-- back.  Every other consumer in the strict cone takes `PK.permˢ-K` /
+-- `PK.perm-rigidˢ` directly.
 --
 -- `perm-rigidˢ` specialises it to the form every decoder use actually
 -- needs: two derivations into a `Unique` stack are identified (the

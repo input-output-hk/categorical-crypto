@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- DISCHARGE of the strict Kelly residual `permˢ-K` (the single deferred
--- residual of the strictified soundness pipeline; see `PermSupport`).
+-- DISCHARGE of the strict Kelly residual `permˢ-K` (the single deep residual
+-- of the strictified soundness pipeline; see `PermSupport`).
 --
 -- Strategy (route (i) of the migration brief): rather than transporting the
 -- non-strict `permute`-faithfulness through the embedding `embF` and then

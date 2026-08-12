@@ -22,10 +22,8 @@
 -- `genˢ (elab e₀)` is reconciled with `genˢ (flat g)` by the `gen-cast` lemma
 -- plus the boundary `castˢ`s `⟪⟫-domL`/`-codL`.
 --
--- PROVEN HERE, postulate-free, holes-free, `--safe --without-K`; the concrete
--- `permˢ-K` (from `Strict.Perm.PermK`) is threaded directly (not as a
--- parameter),
--- exactly as the σ-shape does.
+-- PROVEN HERE, postulate-free, holes-free, `--safe --without-K`, at the
+-- concrete `permˢ-K` of `Strict.Perm.PermK`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -69,13 +67,6 @@ open import Relation.Binary.PropositionalEquality
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 
 --------------------------------------------------------------------------------
--- The concrete strict residual at the (Fin nV)-vertex sets, threaded
--- directly (NOT as a parameter), exactly as the σ-shape uses `permˢ-K`.
-
-permˢ-K : ∀ (n : ℕ) (vlab : Fin n → X) → Support.PermK (Fin n) vlab
-permˢ-K n vlab = PK.permˢ-K (Fin n) (_≟F_) vlab
-
---------------------------------------------------------------------------------
 -- `genˢ` commutes with `castˢ` (boundary transport of a generator), proven
 -- definitionally (`refl refl`); the strict twin of `subst₂`-on-`flat`.
 
@@ -101,7 +92,7 @@ module Gen {A B : ObjTerm} (g : mor A B) where
             ; subst-codᵛ )
 
     K : PermK
-    K = permˢ-K Hf.nV Hf.vlab
+    K = PK.permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
 
     uniqCod : Unique Hf.cod
     uniqCod = Linear⇒cod-Unique ⟪ f ⟫ (⟪⟫-LinearP f)
