@@ -62,6 +62,7 @@ open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; �
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelInner)
+open import Categories.Tactic.Category using (solve)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
   using (module EquivStep; module TermEmbedˢ)
@@ -920,9 +921,7 @@ module _
               {I : HomS o2 o3} {P : HomS o1 o2}
           → (H ∘ˢ (O ∘ˢ (M ∘ˢ I))) ∘ˢ P
             ≈ˢ (H ∘ˢ O) ∘ˢ (M ∘ˢ (I ∘ˢ P))
-        regroup =
-          ≈-trans (∘-resp (≈-sym assocˢ) ≈-refl)
-          (≈-trans assocˢ (∘-resp ≈-refl assocˢ))
+        regroup = solve SCat
 
         kfac
           : proj₂ (process-edgesˢ kblk aG)
