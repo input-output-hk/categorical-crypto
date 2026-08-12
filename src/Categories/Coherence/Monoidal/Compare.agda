@@ -62,10 +62,6 @@ module CompareI {v : Variant} {X : Set}
       encode ([]_ n)               = []
       encode (pre ▸ suf ∷ f ⟨ d ⟩) = (pre , suf , gen f) ∷ encode d
 
-      instance
-        DecEq-LayerE : DecEq LayerE
-        DecEq-LayerE = DecEq-× ⦃ it ⦄ ⦃ DecEq-× ⦄
-
       ≈NF⇒width : {d : Diag n m} {d' : Diag n' m'} → d ≈NF d' → n ≡ n'
       ≈NF⇒width nf[]        = refl
       ≈NF⇒width (nf∷ _ _)   = refl

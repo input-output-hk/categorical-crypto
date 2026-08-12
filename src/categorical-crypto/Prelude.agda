@@ -53,6 +53,8 @@ open import Class.Monoid public
 open import Class.CommutativeMonoid public
 open import Class.Applicative public
 open import Class.Monad public
-open import Class.DecEq public
+-- `DecEq-×` is not an upstream instance (it competes with the `--with-K`
+-- `DecEq-Σ`); register it, since product sample spaces are pervasive here.
+open import Class.DecEq public; instance DecEq-×′ = DecEq-×
 open import Class.Decidable public
 open import Class.Show public
