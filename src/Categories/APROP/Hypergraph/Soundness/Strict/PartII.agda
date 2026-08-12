@@ -126,7 +126,7 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
                  assoc-eq res-full)
 
       -- the empty-tail two-edge interchange (UNCONDITIONAL).
-      ri₀ = FMD.run-interchange₀ˢ F dih lin ps inc res-empty-tail
+      ri₀ = FMD.run-interchange₀ˢ F lin ps inc res-empty-tail
 
 ------------------------------------------------------------------------
 -- The boundary lemma: relate the two natural-order decodings of `⟪f⟫`/`⟪g⟫`

@@ -15,7 +15,7 @@
 -- ARE the vertex stacks the located derivations produce, so the block frames
 -- carry no `map-++` transport.  The interchange kernel lives in submodule
 -- `FMS`, the coherences in `FMS2`, and the capstone `fire-mid-interchangeˢ`
--- in the final `module _ (H dih lin)`.
+-- in the final `module _ (H lin)`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -29,8 +29,6 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.FireMid
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
-
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 open import Categories.Morphism.Reasoning SCat using (pullʳ)
@@ -57,7 +55,6 @@ open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Product using (_,_; proj₁; proj₂)
-open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality using (refl; sym)
 
 --------------------------------------------------------------------------------
@@ -174,7 +171,6 @@ module FMS (H : Hypergraph FlatGen) where
 --------------------------------------------------------------------------------
 
 module FMS2 (H : Hypergraph FlatGen)
-         (dih : ∀ {e} → ¬ (Dep H e e))
          (lin : Linear H)
          where
   private module H = Hypergraph H
@@ -263,7 +259,6 @@ module FMS2 (H : Hypergraph FlatGen)
 --------------------------------------------------------------------------------
 
 module _ (H : Hypergraph FlatGen)
-         (dih : ∀ {e} → ¬ (Dep H e e))
          (lin : Linear H)
          where
   private module H = Hypergraph H
@@ -292,7 +287,7 @@ module _ (H : Hypergraph FlatGen)
   open DSS.Scr (Fin H.nV) H.vlab using (bswap)
 
   FireMidInterchangeˢ : Set
-  FireMidInterchangeˢ = SCR.FireMidInterchangeˢ H dih lin
+  FireMidInterchangeˢ = SCR.FireMidInterchangeˢ H lin
 
   private
     -- Pure-SMC box merge: the back box `g'` brought to front by the block
@@ -568,7 +563,7 @@ module _ (H : Hypergraph FlatGen)
                         us-sp us-mid₁ us-mid₂ us-cod =
     r-stk , goal
     where
-      open FMS2.Located H dih lin inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod
+      open FMS2.Located H lin inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod
       open FMIC.SimLoc
         (FMIC.sim-loc H lin (proj₁ inc) (proj₂ inc)
            sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
@@ -652,7 +647,7 @@ module _ (H : Hypergraph FlatGen)
   ----------------------------------------------------------------------
 
   module RunInterchangeˢ =
-    SCR.RunInterchange H dih lin fire-mid-interchangeˢ
+    SCR.RunInterchange H lin fire-mid-interchangeˢ
 
   -- Re-export the headline result.
   open RunInterchangeˢ using (run-interchange₀ˢ) public

@@ -36,8 +36,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X
   using (module Run)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
-
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_
 
@@ -64,7 +62,6 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans
 --------------------------------------------------------------------------------
 
 module _ (H : Hypergraph FlatGen)
-         (dih : ∀ {e} → ¬ (Dep H e e))
          (lin : Linear H)
          where
   private module H = Hypergraph H
