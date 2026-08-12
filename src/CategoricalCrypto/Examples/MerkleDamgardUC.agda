@@ -1,3 +1,5 @@
+{-# OPTIONS --safe #-}
+
 --------------------------------------------------------------------------------
 -- The Merkle-Damgård artifact as a `MachineAxioms` model.
 --
@@ -16,16 +18,20 @@
 --
 -- What is NOT proven here, and why it is a hypothesis rather than a `postulate`
 -- (house standard: axioms are record fields):
---   • the CATEGORY laws of the 𝒢-composition `_⊚_` — MD postulates `⊚` with no
---     laws at all, since the trace operator they hold of lives on the
+--   • the CATEGORY laws of the 𝒢-composition `_⊚_` — `MDAssumptions` gives `⊚`
+--     with no laws at all, since the trace operator they hold of lives on the
 --     g-construction branch (plan debt 1/2);
 --   • the MONOIDAL structure over `_⊗ₚ_` (plan debt 1);
 --   • the query-bound instrument `QB` and its laws (plan debt 3).
 -- `MachineHyp` is exactly that debt, as one record.
-
+--
+-- The UC payoff itself — `MD ≤UC RO` — is derived one level up, in
+-- `CategoricalCrypto.RandomOracle2`, from the artifact families assembled here.
 --------------------------------------------------------------------------------
 
-module CategoricalCrypto.Examples.MerkleDamgardUC where
+open import CategoricalCrypto.Examples.MerkleDamgard.Base
+
+module CategoricalCrypto.Examples.MerkleDamgardUC (mdAssumptions : MDAssumptions) where
 
 open import Data.Bool.Base using (Bool)
 open import Data.Nat as ℕ using (ℕ; NonZero)
@@ -53,13 +59,14 @@ open import ProbabilisticLogic.Distribution.RationalDist.Partial
 open import ProbabilisticLogic.Distribution.RationalDist.Setoid
 
 open import CategoricalCrypto.Channel.Core using (Channel; _⇿_; I)
-open import CategoricalCrypto.Examples.MerkleDamgard
+open import CategoricalCrypto.Examples.MerkleDamgard mdAssumptions
 import CategoricalCrypto.FamilyCategory
 open import CategoricalCrypto.MachineAxioms using (MachineAxioms)
-import CategoricalCrypto.RandomOracle2
 open import CategoricalCrypto.SFunM using (_≈ᵉ_; ≈ᵉ-isEquivalence)
 import CategoricalCrypto.StandardTV
 import CategoricalCrypto.VanishingTV
+
+open MDAssumptions mdAssumptions
 
 ------------------------------------------------------------------------
 -- Observational hom-equality of machines
@@ -134,8 +141,8 @@ adv⊥-≈⇒0 {μ} {ν} e = trans (cong (λ z → ∣ Pr₁⊥ μ -ℚ z ∣ℚ
 ------------------------------------------------------------------------
 -- The machine layer's outstanding debt, as hypotheses
 
--- The 𝒢-composition's category laws.  MD postulates `_⊚_` with no laws at all:
--- the trace operator these hold of lives on the g-construction branch.
+-- The 𝒢-composition's category laws.  `MDAssumptions` gives `_⊚_` with no laws at
+-- all: the trace operator these hold of lives on the g-construction branch.
 record MachineCatHyp : Set (suc 0ℓ) where
   field
     ⊚-assoc     : ∀ {A B C D} {f : PMachine A B} {g : PMachine B C} {h : PMachine C D}
@@ -242,15 +249,16 @@ mdArtifact n k IV = record
   }
 
 ------------------------------------------------------------------------
--- The degenerate-grade UC payoff
+-- The artifact at the degenerate grade
 --
 -- MD's theorem is OUTPUT-ONLY: its interfaces carry no adversary wire and it
--- has no simulator.  Instantiating `RandomOracle2.RO` at `Jre = Kid = 𝟙` lifts
--- it into the ≤UC formulation honestly — the simulator is the identity and
--- `ideal-bridge` collapses to `sub id ∘ General-M ≈ℰ General-M` — at the cost
--- that the UC statement obtained is the no-adversary-interface degenerate
--- case.  The public-RO shape (a real indifferentiability simulator) is the one
--- item with genuinely new cryptographic content, and is out of scope here.
+-- has no simulator.  The whole development is therefore run at the degenerate
+-- grade `𝟙^ω` — where the simulator is the identity and the ideal bridge
+-- collapses to `sub id ∘ General-M ≈ℰ General-M` — which lifts MD's theorem
+-- into the ≤UC formulation honestly, at the cost that the UC statement
+-- obtained is the no-adversary-interface degenerate case.  The public-RO shape
+-- (a real indifferentiability simulator) is the one item with genuinely new
+-- cryptographic content, and is out of scope here.
 
 module AtUnitGrade
   (mh : MachineHyp)
@@ -260,21 +268,24 @@ module AtUnitGrade
   open MachineHyp mh
   open MonoidalUtilities.Shorthands mono
 
-  private
-    module A (j : ℕ) = ROArtifact (art j)
-    module FC = CategoricalCrypto.FamilyCategory axioms
-    module VT = CategoricalCrypto.VanishingTV axioms
-    module ST = CategoricalCrypto.StandardTV axioms hom-triv
-    module Cω = MonoidalCategory FC.𝒞^ω
+  module A (j : ℕ) = ROArtifact (art j)
+  module FC = CategoricalCrypto.FamilyCategory axioms
+  module VT = CategoricalCrypto.VanishingTV axioms
+  module ST = CategoricalCrypto.StandardTV axioms hom-triv
+  module Cω = MonoidalCategory FC.𝒞^ω
 
   GenIf Mid : FC.Obj^ω
   GenIf = A.Gen-If
   Mid   = A.Comp-If
 
-  private
-    module RO = CategoricalCrypto.RandomOracle2.RO {ℓr = suc 0ℓ} {ℓv = 0ℓ}
-                  FC.𝒞^ω VT.ℰᵗᵛ (ℕ → ℚ) GenIf Mid FC.𝟙^ω FC.𝟙^ω
+  -- The protocol domain is closed on the input side; the codomain carries the
+  -- degenerate adversary grade, so `Bo` is `T₀ 𝟙^ω GenIf` under the
+  -- curried-tensor triple.
+  Ao Bo : FC.Obj^ω
+  Ao = Cω.unit Cω.⊗₀ Cω.unit
+  Bo = FC.𝟙^ω Cω.⊗₀ GenIf
 
+  private
     _⊗ω_ : FC.Obj^ω → FC.Obj^ω → FC.Obj^ω
     (Y ⊗ω B) j = Y j M.⊗₀ B j
 
@@ -303,8 +314,8 @@ module AtUnitGrade
 
   -- The closed run of a machine plugged into a budgeted ancilla context.  This
   -- is `VanishingTV.run` of the context composite, spelled level by level.
-  ctxRun : (Y : FC.Obj^ω) → FC.Test^ω (Y ⊗ω RO.Bo) → FC.Closure^ω (Y ⊗ω RO.Ao)
-         → ∀ j → PMachine (RO.Ao j) (RO.Bo j) → Dist⊥ Bool
+  ctxRun : (Y : FC.Obj^ω) → FC.Test^ω (Y ⊗ω Bo) → FC.Closure^ω (Y ⊗ω Ao)
+         → ∀ j → PMachine (Ao j) (Bo j) → Dist⊥ Bool
   ctxRun Y E m j f = obs (proj₁ E j ⊚ ((M.id M.⊗₁ f) ⊚ proj₁ m j))
 
   private
@@ -319,7 +330,7 @@ module AtUnitGrade
   -- machine-layer obligation that lets MD's `∀ d`-quantified theorem be read as
   -- an ℰᵗᵛ-statement.  Not provable while `⟦_⟧`/`_⊚_` carry no laws.
   Reflects : Set (suc 0ℓ)
-  Reflects = ∀ (Y : FC.Obj^ω) (E : FC.Test^ω (Y ⊗ω RO.Bo)) (m : FC.Closure^ω (Y ⊗ω RO.Ao))
+  Reflects = ∀ (Y : FC.Obj^ω) (E : FC.Test^ω (Y ⊗ω Bo)) (m : FC.Closure^ω (Y ⊗ω Ao))
            → Σ[ p ∈ (ℕ → ℕ) ] Poly p ×
              (∀ j → Σ[ d ∈ Dgr (Channel.outType (GenIf j)) (Channel.inType (GenIf j)) ]
                       asks≤ (p j) d ×
@@ -329,13 +340,13 @@ module AtUnitGrade
   -- The three artifact legs as morphism FAMILIES; their polynomial query budgets
   -- are the one deferred item (`Nfuel = double k` makes them look mechanical, but
   -- discharging them needs a concrete `QB`, so they stay hypotheses).
-  compFam : ∀ j → PMachine (RO.Ao j) (Mid j)
+  compFam : ∀ j → PMachine (Ao j) (Mid j)
   compFam j = fromI (A.compM j) ⊚ λ⇒
 
-  mdFam : ∀ j → PMachine (Mid j) (RO.Bo j)
+  mdFam : ∀ j → PMachine (Mid j) (Bo j)
   mdFam j = λ⇐ ⊚ A.mdM j
 
-  genFam : ∀ j → PMachine (RO.Ao j) (RO.Bo j)
+  genFam : ∀ j → PMachine (Ao j) (Bo j)
   genFam j = conj (A.genM j)
 
   module Assemble
@@ -346,13 +357,13 @@ module AtUnitGrade
     (van : VT.VanishingBound A.bnd)
     where
 
-    Comp-M : FC._⇒^ω_ RO.Ao Mid
+    Comp-M : FC._⇒^ω_ Ao Mid
     Comp-M = compFam , qbComp
 
-    MD-mach : FC._⇒^ω_ Mid RO.Bo
+    MD-mach : FC._⇒^ω_ Mid Bo
     MD-mach = mdFam , qbMD
 
-    General-M : FC._⇒^ω_ RO.Ao RO.Bo
+    General-M : FC._⇒^ω_ Ao Bo
     General-M = genFam , qbGen
 
     private
@@ -385,25 +396,3 @@ module AtUnitGrade
       in p , Pp , λ j → let (d , le , eq) = h j in
          subst (λ z → z ≤ℚ A.bnd j (p j)) (sym (advEq Y E m j d eq))
                (A.secure j (p j) d le)
-
-    roData : RO.ROData
-    roData = record
-      { _≈ℰ[_]_        = VT._≈ℰ[_]_
-      ; bound          = A.bnd
-      ; Comp-M         = Comp-M
-      ; MD-mach        = MD-mach
-      ; General-M      = General-M
-      ; MD-secure      = MD-secure
-      ; VanishingBound = VT.VanishingBound
-      ; van            = van
-      -- `ε` must be pinned: it occurs applied (`ε n (p n)`) inside `≈ℰ[_]`, so
-      -- inferring it strands a non-pattern constraint.
-      ; absorb         = λ {_} {_} {_} {_} {ε} → VT.absorb {ε = ε}
-      ; roIdeal        = General-M
-      ; roSimulator    = Cω.id
-      ; ideal-bridge   = ST.≈C⇒≈ℰ (ST.sub-identityˡ General-M)
-      ; stable         = ST.grade-stableᵗᵛ
-      }
-
-    MD≤UC-ROᵗᵛ : (MD-mach Cω.∘ Comp-M) ST.≤UC General-M
-    MD≤UC-ROᵗᵛ = RO.Payoff.MD≤UC-RO roData
