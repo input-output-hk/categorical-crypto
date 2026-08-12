@@ -8,6 +8,13 @@ decision procedure** — one that decides free symmetric-monoidal term equality 
 
 This note investigates what building that would take.
 
+> **Repointing note (2026-08, round 7 / S7-4).** Where this note says
+> `PermuteCoherence.Faithfulness`, the module is now
+> `Categories.PermuteCoherence.Unflatten` — it was renamed after the
+> combinatorial faithfulness core moved to
+> `PermuteCoherence.Coxeter.FaithfulnessInductive`, which is what `FaithfulnessInductive`
+> below refers to.  No content in this note changed.
+
 ## What "direct" buys: non-circular and fast
 
 The APROP `Solver` decides `f ≈Term g` via `soundness-full-wired (from-just (findIso ⟪f⟫ ⟪g⟫))`.
