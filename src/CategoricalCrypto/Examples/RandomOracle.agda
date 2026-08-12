@@ -1,4 +1,4 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --without-K #-}
 
 module CategoricalCrypto.Examples.RandomOracle where
 

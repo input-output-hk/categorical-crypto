@@ -1,4 +1,4 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --without-K #-}
 
 -- Uniform sampling on bit-strings of fixed length, with the basic
 -- probability lemma `P-uniform-Vec`: each specific bit-string is
