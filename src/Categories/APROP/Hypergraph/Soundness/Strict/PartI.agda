@@ -7,12 +7,11 @@
 --
 -- by induction on `f`, combining the per-constructor decoder shape lemmas.
 -- The atomic (id/λ/ρ/α), σ, ∘, and `Agen` (single-generator base case)
--- shapes are wired CONCRETELY (their deferred `permˢ-K`/`bswap-σ` are
--- discharged axiom-free by `Strict.Perm.PermK` and
--- `Strict.Interchange.BlockSwapComm`, and
--- `Agen` is concrete via `Strict.Decode.DecodeGen`).  ONE shape — ⊗ (via the
--- K-prepend box-braid `KBlockσ`) — is taken as a module parameter, so this
--- assembly is unconditional given exactly that one.
+-- shapes are wired CONCRETELY (the σ-shape's `bswap-σ` is discharged by
+-- `Strict.Interchange.BlockSwapComm`, `Agen` by `Strict.Decode.DecodeGen`).
+-- ONE shape — ⊗ (via the K-prepend box-braid `KBlockσ`) — is taken as a
+-- module parameter, so this assembly is unconditional given exactly that
+-- one.
 --
 -- Composed with `Boundary.st-roundtrip` (embF (st f) ≈Term bridge f) and
 -- part (II)ˢ (`decodePˢ`-iso-invariance), this yields the re-pointed
@@ -39,7 +38,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes   sig _≟X_ as DSh
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma   sig _≟X_ as DSig
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeComposeAssembly sig _≟X_ as DComp
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK          sig _≟X_ as PK
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm  sig _≟X_ as BSC
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeGen      sig _≟X_ as DGen
 
@@ -47,9 +45,9 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeGen      sig _�
 -- The concretely-discharged shapes (atomic + σ + ∘).
 
 private
-  -- σ shape (DecodeSigma, at concrete permˢ-K + bswap-σ)
+  -- σ shape (DecodeSigma, at the concrete `bswap-σ`)
   d-σ : ∀ A B → decodePˢ (σ {A} {B}) ≈ˢ σˢ (flatten A) (flatten B)
-  d-σ A B = DSig.Sigma.decodePˢ-σ PK.permˢ-K BSC.block-swap-comm A B
+  d-σ A B = DSig.Sigma.decodePˢ-σ BSC.block-swap-comm A B
 
   -- ∘ shape (DecodeComposeAssembly, unconditional)
   d-∘ : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
@@ -72,17 +70,17 @@ module _
 
   st-≈-decodePˢ : ∀ {A B} (f : HomTerm A B) → st f ≈ˢ decodePˢ f
   st-≈-decodePˢ (Agen g)        = ≈-sym (decodePˢ-Agen g)
-  st-≈-decodePˢ (id {A})        = ≈-sym (DSh.decodePˢ-id PK.permˢ-K {A})
+  st-≈-decodePˢ (id {A})        = ≈-sym (DSh.decodePˢ-id {A})
   st-≈-decodePˢ (g ∘ f)         =
     ≈-trans (∘-resp (st-≈-decodePˢ g) (st-≈-decodePˢ f))
             (≈-sym (d-∘ g f))
   st-≈-decodePˢ (f ⊗₁ g)        =
     ≈-trans (⊗-resp (st-≈-decodePˢ f) (st-≈-decodePˢ g))
             (≈-sym (decodePˢ-⊗ f g))
-  st-≈-decodePˢ (λ⇒ {A})        = ≈-sym (DSh.decodePˢ-λ⇒ PK.permˢ-K {A})
-  st-≈-decodePˢ (λ⇐ {A})        = ≈-sym (DSh.decodePˢ-λ⇐ PK.permˢ-K {A})
-  st-≈-decodePˢ (ρ⇒ {A})        = ≈-sym (DSh.decodePˢ-ρ⇒ PK.permˢ-K {A})
-  st-≈-decodePˢ (ρ⇐ {A})        = ≈-sym (DSh.decodePˢ-ρ⇐ PK.permˢ-K {A})
-  st-≈-decodePˢ (α⇒ {A} {B} {C}) = ≈-sym (DSh.decodePˢ-α⇒ PK.permˢ-K {A} {B} {C})
-  st-≈-decodePˢ (α⇐ {A} {B} {C}) = ≈-sym (DSh.decodePˢ-α⇐ PK.permˢ-K {A} {B} {C})
+  st-≈-decodePˢ (λ⇒ {A})        = ≈-sym (DSh.decodePˢ-λ⇒ {A})
+  st-≈-decodePˢ (λ⇐ {A})        = ≈-sym (DSh.decodePˢ-λ⇐ {A})
+  st-≈-decodePˢ (ρ⇒ {A})        = ≈-sym (DSh.decodePˢ-ρ⇒ {A})
+  st-≈-decodePˢ (ρ⇐ {A})        = ≈-sym (DSh.decodePˢ-ρ⇐ {A})
+  st-≈-decodePˢ (α⇒ {A} {B} {C}) = ≈-sym (DSh.decodePˢ-α⇒ {A} {B} {C})
+  st-≈-decodePˢ (α⇐ {A} {B} {C}) = ≈-sym (DSh.decodePˢ-α⇐ {A} {B} {C})
   st-≈-decodePˢ (σ {A} {B} ⦃ v≤v ⦄) = ≈-sym (d-σ A B)

@@ -41,6 +41,7 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟X_
   as DShapes
+import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelˡ)
 open import Categories.Morphism.Reasoning.Ext SCat using (inv-resp)
@@ -163,14 +164,8 @@ module Scr (V : Set) (vlab : V → X) where
 -- `nE ≡ 0` collapse and `perm-rigidˢ`.
 
 module _
-  (permˢ-K : ∀ (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X) → Support.PermK V vlab)
   (bswap-σ : ∀ (V : Set) (vlab : V → X) → Scr.BswapSig V vlab)
   where
-
-  ------------------------------------------------------------------------
-  -- `nE = 0` collapse (shared with `DecodeShapes`).
-
-  nE0-run = DShapes.nE0-run permˢ-K
 
   ------------------------------------------------------------------------
   -- The σ-shape.
@@ -187,7 +182,7 @@ module _
         using (idᵛ; _∘ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; ∘-castᵛ; subst-codᵛ)
 
       K : PermK
-      K = permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
+      K = PK.permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
 
       uniqCod : Unique Hf.cod
       uniqCod = Linear⇒cod-Unique ⟪ f ⟫ (⟪⟫-LinearP f)
@@ -195,7 +190,7 @@ module _
       nE≡0 : Hf.nE ≡ 0
       nE≡0 = refl
 
-      collapse = nE0-run ⟪ f ⟫ nE≡0
+      collapse = DShapes.nE0-run ⟪ f ⟫ nE≡0
       s≡ : RF.s-finˢ ≡ Hf.dom
       s≡ = proj₁ collapse
 
