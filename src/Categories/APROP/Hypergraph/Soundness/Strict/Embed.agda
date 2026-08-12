@@ -127,50 +127,35 @@ private
 
     -- E ≈ Sd₂ ∘ emb (f ⊗ (g ⊗ h)) ∘ Sc₁
     core : emb ((f ⊗ˢ g) ⊗ˢ h) ≈Term Sd₂ ∘ emb (f ⊗ˢ (g ⊗ˢ h)) ∘ Sc₁
-    core = begin
-      T (ys ++ vs) qs ∘ ((T ys vs ∘ (ef ⊗₁ eg) ∘ F xs us) ⊗₁ eh) ∘ F (xs ++ us) ps
-        ≈⟨ refl⟩∘⟨ (split₁ˡ ⟩∘⟨refl) ⟩
-      T (ys ++ vs) qs ∘ ((T ys vs ⊗₁ id) ∘ (((ef ⊗₁ eg) ∘ F xs us) ⊗₁ eh)) ∘ F (xs ++ us) ps
-        ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ split₁ʳ) ⟩∘⟨refl) ⟩
-      T (ys ++ vs) qs ∘ ((T ys vs ⊗₁ id) ∘ ((ef ⊗₁ eg) ⊗₁ eh) ∘ (F xs us ⊗₁ id)) ∘ F (xs ++ us) ps
-        ≈⟨ refl⟩∘⟨ ((refl⟩∘⟨ (α-conjE ef eg eh ⟩∘⟨refl)) ⟩∘⟨refl) ⟩
-      T (ys ++ vs) qs ∘ ((T ys vs ⊗₁ id) ∘ (α⇐ ∘ N ∘ α⇒) ∘ (F xs us ⊗₁ id)) ∘ F (xs ++ us) ps
-        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-      T (ys ++ vs) qs ∘ (T ys vs ⊗₁ id) ∘ ((α⇐ ∘ N ∘ α⇒) ∘ (F xs us ⊗₁ id)) ∘ F (xs ++ us) ps
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-      T (ys ++ vs) qs ∘ (T ys vs ⊗₁ id) ∘ (α⇐ ∘ N ∘ α⇒) ∘ (F xs us ⊗₁ id) ∘ F (xs ++ us) ps
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-      T (ys ++ vs) qs ∘ (T ys vs ⊗₁ id) ∘ α⇐ ∘ (N ∘ α⇒) ∘ (F xs us ⊗₁ id) ∘ F (xs ++ us) ps
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc ⟩
-      T (ys ++ vs) qs ∘ (T ys vs ⊗₁ id) ∘ α⇐ ∘ N ∘ α⇒ ∘ (F xs us ⊗₁ id) ∘ F (xs ++ us) ps
-        ≈⟨ ≈-Term-sym FM.assoc ⟩
-      (T (ys ++ vs) qs ∘ (T ys vs ⊗₁ id)) ∘ α⇐ ∘ N ∘ α⇒ ∘ (F xs us ⊗₁ id) ∘ F (xs ++ us) ps
-        ≈⟨ ≈-Term-sym FM.assoc ⟩
-      ((T (ys ++ vs) qs ∘ (T ys vs ⊗₁ id)) ∘ α⇐) ∘ N ∘ α⇒ ∘ (F xs us ⊗₁ id) ∘ F (xs ++ us) ps
-        ≈⟨ FM.assoc ⟩∘⟨refl ⟩
-      (T (ys ++ vs) qs ∘ (T ys vs ⊗₁ id) ∘ α⇐) ∘ N ∘ α⇒ ∘ (F xs us ⊗₁ id) ∘ F (xs ++ us) ps
-        ≈⟨ c-iso-assoc-to ys vs qs ⟩∘⟨refl ⟩
-      (Sd₂ ∘ T ys (vs ++ qs) ∘ (id ⊗₁ T vs qs)) ∘ N ∘ α⇒ ∘ (F xs us ⊗₁ id) ∘ F (xs ++ us) ps
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (c-iso-assoc-from xs us ps) ⟩
-      (Sd₂ ∘ T ys (vs ++ qs) ∘ (id ⊗₁ T vs qs)) ∘ N ∘ (id ⊗₁ F us ps) ∘ F xs (us ++ ps) ∘ Sc₁
-        ≈⟨ FM.assoc ⟩
-      Sd₂ ∘ (T ys (vs ++ qs) ∘ (id ⊗₁ T vs qs)) ∘ N ∘ (id ⊗₁ F us ps) ∘ F xs (us ++ ps) ∘ Sc₁
-        ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-      Sd₂ ∘ T ys (vs ++ qs) ∘ (id ⊗₁ T vs qs) ∘ N ∘ (id ⊗₁ F us ps) ∘ F xs (us ++ ps) ∘ Sc₁
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym FM.assoc ⟩
-      Sd₂ ∘ T ys (vs ++ qs) ∘ ((id ⊗₁ T vs qs) ∘ N) ∘ (id ⊗₁ F us ps) ∘ F xs (us ++ ps) ∘ Sc₁
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (≈-Term-sym ⊗-∘-dist ⟩∘⟨refl) ⟩
-      Sd₂ ∘ T ys (vs ++ qs) ∘ ((id ∘ ef) ⊗₁ (T vs qs ∘ (eg ⊗₁ eh))) ∘ (id ⊗₁ F us ps) ∘ F xs (us ++ ps) ∘ Sc₁
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym FM.assoc ⟩
-      Sd₂ ∘ T ys (vs ++ qs) ∘ (((id ∘ ef) ⊗₁ (T vs qs ∘ (eg ⊗₁ eh))) ∘ (id ⊗₁ F us ps)) ∘ F xs (us ++ ps) ∘ Sc₁
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (≈-Term-sym ⊗-∘-dist ⟩∘⟨refl) ⟩
-      Sd₂ ∘ T ys (vs ++ qs) ∘ (((id ∘ ef) ∘ id) ⊗₁ ((T vs qs ∘ (eg ⊗₁ eh)) ∘ F us ps)) ∘ F xs (us ++ ps) ∘ Sc₁
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (⊗-resp-≈ (≈-Term-trans idʳ idˡ) FM.assoc ⟩∘⟨refl) ⟩
-      Sd₂ ∘ T ys (vs ++ qs) ∘ (ef ⊗₁ (T vs qs ∘ (eg ⊗₁ eh) ∘ F us ps)) ∘ F xs (us ++ ps) ∘ Sc₁
-        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym FM.assoc ⟩
-      Sd₂ ∘ T ys (vs ++ qs) ∘ ((ef ⊗₁ (T vs qs ∘ (eg ⊗₁ eh) ∘ F us ps)) ∘ F xs (us ++ ps)) ∘ Sc₁
-        ≈⟨ refl⟩∘⟨ ≈-Term-sym FM.assoc ⟩
-      Sd₂ ∘ (T ys (vs ++ qs) ∘ (ef ⊗₁ (T vs qs ∘ (eg ⊗₁ eh) ∘ F us ps)) ∘ F xs (us ++ ps)) ∘ Sc₁ ∎
+    core =
+      -- phase 1: split the G-side laxator legs out of the left ⊗-factor
+      (refl⟩∘⟨ (split₁ˡ ⟩∘⟨refl))
+      ○ (refl⟩∘⟨ ((refl⟩∘⟨ split₁ʳ) ⟩∘⟨refl))
+      -- phase 2: α-conjugate the ⊗-pair (the Mac Lane move, once)
+      ○ (refl⟩∘⟨ ((refl⟩∘⟨ (α-conjE ef eg eh ⟩∘⟨refl)) ⟩∘⟨refl))
+      -- phase 3: flatten to a right-nested spine, then re-bracket the three
+      -- cod-side legs into one factor
+      ○ (refl⟩∘⟨ FM.assoc)
+      ○ (refl⟩∘⟨ refl⟩∘⟨ FM.assoc)
+      ○ (refl⟩∘⟨ refl⟩∘⟨ FM.assoc)
+      ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc)
+      ○ ≈-Term-sym FM.assoc
+      ○ ≈-Term-sym FM.assoc
+      ○ (FM.assoc ⟩∘⟨refl)
+      -- phase 4: the two laxator-associativity payments (cod side, then dom)
+      ○ (c-iso-assoc-to ys vs qs ⟩∘⟨refl)
+      ○ (refl⟩∘⟨ refl⟩∘⟨ (c-iso-assoc-from xs us ps))
+      -- phase 5: re-nest, then fuse the two ⊗-frames onto `N`
+      ○ FM.assoc
+      ○ (refl⟩∘⟨ FM.assoc)
+      ○ (refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym FM.assoc)
+      ○ (refl⟩∘⟨ refl⟩∘⟨ (≈-Term-sym ⊗-∘-dist ⟩∘⟨refl))
+      ○ (refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym FM.assoc)
+      ○ (refl⟩∘⟨ refl⟩∘⟨ (≈-Term-sym ⊗-∘-dist ⟩∘⟨refl))
+      ○ (refl⟩∘⟨ refl⟩∘⟨ (⊗-resp-≈ (≈-Term-trans idʳ idˡ) FM.assoc ⟩∘⟨refl))
+      -- phase 6: re-bracket into `emb (f ⊗ˢ (g ⊗ˢ h))`'s own shape
+      ○ (refl⟩∘⟨ refl⟩∘⟨ ≈-Term-sym FM.assoc)
+      ○ (refl⟩∘⟨ ≈-Term-sym FM.assoc)
 
     main : Sc₂ ∘ emb ((f ⊗ˢ g) ⊗ˢ h) ∘ Sd₁ ≈Term emb (f ⊗ˢ (g ⊗ˢ h))
     main =
