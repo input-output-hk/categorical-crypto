@@ -1,4 +1,4 @@
-{-# OPTIONS --no-require-unique-meta-solutions #-}
+{-# OPTIONS --safe --no-require-unique-meta-solutions #-}
 
 --------------------------------------------------------------------------------
 -- MERKLE–DAMGÅRD as a secure realization of a random oracle.
@@ -44,7 +44,7 @@
 --   • `ghost-erase` — flag + ghost table are invisible to the real world, whose
 --     kernel marginalises back to plain MD chaining (`walkR`).
 -- The only probabilistic assumption these rest on is expectation MONOTONICITY
--- (`E-mono`), postulated because the `Dist-ℚ` library tracks mass = 1 but not
+-- (`E-mono`), assumed because the `Dist-ℚ` library tracks mass = 1 but not
 -- non-negativity of weights; linearity, boundedness of `Pr₁`, and the expectation
 -- triangle inequality are derived from it.
 --
@@ -54,7 +54,7 @@
 --     and never increases in expectation per query bounds the bad-probability of
 --     ANY adaptive distinguisher by the initial potential.  This carries the
 --     whole adaptivity argument; `bad-bound` is PROVEN from `md-cert`,
---     which is itself ASSEMBLED (not postulated) below.
+--     which is itself ASSEMBLED (not assumed) below.
 --
 -- The certificate's PROBABILISTIC side is PROVEN (design: docs/md-cert-design.md):
 -- the potential φ = collision count + triangle budget is an EXACT martingale
@@ -64,7 +64,7 @@
 -- invariant and no support reasoning.
 --
 -- ★★ THE ENTIRE CRYPTOGRAPHIC CONTENT IS PROVEN. ★★  There is NO crypto-specific
--- postulate left.  The chain-forest invariant `MDInv` and its preservation are proven
+-- assumption left.  The chain-forest invariant `MDInv` and its preservation are proven
 -- on every branch: flagged (`flagged-step`), unflagged REPEAT (`mdInv-good-repeat` via
 -- `walk-replay`), and unflagged NEW — UniqueKeys/Rooted/RecChains (`walk-supp` +
 -- `rec-extend`), OwnedLast (`walk-owned` via the final-key tracker `walk-fk`), and the
@@ -73,38 +73,21 @@
 -- prefix, `toBlocks`-injectivity ⇒ the message was already recorded, ⊥).  Together with
 -- `MDInv₀`, `flag⇒coll`, the collision-count-monotonicity backbone, `md-cert`,
 -- `badProb-super`, FLGP, `ideal-marginal`, and `ghost-erase` — all proven — the theorem
--- `indistinguishable` rests solely on framework + standard-math postulates:
---   • PMachine/pid/⊚/⊗ₚ/asResource/liftFun/⟦_⟧
---                               — framework primitives: `PMachine` is 𝒢(SFun⊥) and
---                                 `⟦_⟧` returns the UNDERLYING SFun⊥ morphism of a
---                                 𝒢-hom (partiality via `Dist⊥ = Dist-ℚ ∘ Maybe`).
---   • 𝒢-layer: _∘ᵍ_, ⟦⟧-∘, ∘ᵍ-unfold, liftFun-sem, asResource-sem
---                               — the honest G-composition on underlying morphisms
---                                 (trace over the middle interface), FUNCTORIALITY of
---                                 `⟦_⟧` w.r.t. `⊚` (the composition law, in `SFunM`'s
---                                 trace setoid `_≈ᵉ_` at `Dist⊥`), the trace's fuelled
---                                 UNFOLDING law (`∘ᵍ` of a fuel-saturated loop is the
---                                 `GComp` token machine), and the `liftFun`/
---                                 `asResource` retraction laws.  ALL dischargeable by
---                                 the g-construction branch (not merge-ready due to
---                                 its SMC-solver dependency).  `⟦General⟧-sem`,
---                                 `⟦MD⟧-sem` AND the per-machine computation fact
---                                 `∘ᵍ-MD` (bounded loop-replay, via `∘ᵍ-unfold`) are
---                                 all DERIVED from these — NO machine-specific
---                                 postulate remains.
---   • ≈ᵉ⇒run                    — PROVABLE, standard, crypto-free: fixed-list trace
---                                 equivalence determines adaptive behaviour of
---                                 stateful kernels.
---   • E-mono-on                 — support-level expectation monotonicity (the one
---                                 order fact missing from the probability library;
---                                 `E-mono` is DERIVED from it).
+-- `indistinguishable` rests solely on the framework + standard-math assumptions of
+-- the module parameter `MDAssumptions` (documented field by field where it is
+-- declared, in `MerkleDamgard.Base`): the 𝒢-construction primitives, the trace over
+-- the shared interface and its two laws, `≈ᵉ⇒run`, and expectation monotonicity on
+-- the support.  `⟦General⟧-sem`, `⟦MD⟧-sem`, the per-machine computation fact
+-- `∘ᵍ-MD` and global monotonicity `E-mono` are all DERIVED from them — no
+-- machine-specific assumption remains, and this module is `--safe`.
 --
--- NOT `--safe` (it still postulates the framework + the standard-math facts above).
---
--- Warm single-module typecheck: ~510 s (measured 2026-08-11, `+RTS -M10G -H2G`).
+-- Warm single-module typecheck: ~535 s (measured 2026-08-12, `+RTS -M10G -H2G`;
+-- was ~510 s before the `MDAssumptions` parametrization).
 --------------------------------------------------------------------------------
 
-module CategoricalCrypto.Examples.MerkleDamgard where
+open import CategoricalCrypto.Examples.MerkleDamgard.Base
+
+module CategoricalCrypto.Examples.MerkleDamgard (mdAssumptions : MDAssumptions) where
 
 open import categorical-crypto.Prelude hiding (_/_; _>>=_; _*_; Stable)
 open import Data.Nat using (_+_; _*_; _≤_; _<_; _∸_; NonZero; _≤′_; ≤′-refl; ≤′-step)
@@ -142,63 +125,12 @@ open import CategoricalCrypto.Examples.RandomOracle
 open import Relation.Binary using (Setoid)
 import Relation.Binary.Reasoning.Setoid as RS
 
---------------------------------------------------------------------------------
--- 1. ASSUMED FROM THE THEORY  (probabilistic G-construction + graded Kleisli)
---------------------------------------------------------------------------------
-
-postulate
-  PMachine : Channel → Channel → Type₁
-  pid      : ∀ {A}       → PMachine A A
-  _⊚_      : ∀ {A B C}   → PMachine B C → PMachine A B → PMachine A C
-  _⊗ₚ_     : ∀ {A B C D} → PMachine A B → PMachine C D → PMachine (A ⊗₀ C) (B ⊗₀ D)
-
-infixr 9 _⊚_
-infixr 10 _⊗ₚ_
-
-postulate
-  -- Embed a functionality as a *resource*.
-  asResource : ∀ {A B} → SFunᵉ {M = Dist-ℚ} A B → SFunᵉ {M = Dist-ℚ} (⊥ ⊎ A) (⊥ ⊎ B)
-
-  -- Lift a stateful functionality `SFunᵉ A B` into a machine, mirroring the
-  -- G-construction `F : Kl(Dist) → 𝒢(Kl(Dist))` (cf. `Machine.Core`'s `Machine I C`:
-  -- empty subroutine domain `I`).  Two shared copies of the interface `A ⇿ B` model
-  -- a *public* random oracle: honest queries plus an adversary backdoor.  [WIP]
-  liftFun : ∀ {A⁺ A⁻ B⁺ B⁻} → SFunᵉ {M = Dist-ℚ} (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺) → PMachine (A⁺ ⇿ A⁻) (B⁺ ⇿ B⁻)
-
--- Generic expectation on `Dist-ℚ`  (= `lookupᴰℚ` over the entries).
-E : ∀ {A : Type} → Dist-ℚ A → (A → ℚ) → ℚ
-E μ f = lookupᴰℚ (entries μ) f
-
-postulate
-  -- Observable reactive semantics of a machine: a stateful response kernel.  The
-  -- subroutine (`A`) and environment (`B`) interfaces jointly send on
-  -- `inType A ⊎ outType B` and receive `outType A ⊎ inType B` — EXACTLY the type
-  -- `liftFun` consumes, so that `⟦_⟧` and `liftFun` can be mutually inverse.
-  ⟦_⟧ : ∀ {A B : Channel}
-      → PMachine A B
-      → SFun⊥ (Channel.inType A ⊎ Channel.outType B) (Channel.outType A ⊎ Channel.inType B)
+open MDAssumptions mdAssumptions
 
 -- Closed semantics: a machine with no subroutine (input channel `I = ⊥ ⇿ ⊥`) has a
 -- plain kernel `outType C → inType C` — the empty `⊥` interface is dropped.
-stripᵉ : ∀ {A B : Type} → SFunᵉ {M = Dist-ℚ} (⊥ ⊎ A) (⊥ ⊎ B) → SFunᵉ {M = Dist-ℚ} A B
-stripᵉ f = record
-  { State = SFunᵉ.State f
-  ; init  = SFunᵉ.init f
-  ; fun   = λ sa → SFunᵉ.fun f (proj₁ sa , inj₂ (proj₂ sa))
-                     >>=ᴹ λ sr → return-ℚ (proj₁ sr , unbot (proj₂ sr))
-  }
-
 ⟦_⟧cl : ∀ {C : Channel} → PMachine I C → SFun⊥ (Channel.outType C) (Channel.inType C)
 ⟦ m ⟧cl = strip⊥ ⟦ m ⟧
-
-postulate
-  -- ★ GENERIC framework laws (no cryptographic content), replacing the per-machine
-  -- semantics postulates.  `liftFun-sem`: `⟦_⟧` inverts `liftFun` (their types now
-  -- match on the nose).  `asResource-sem`: embedding a subroutine-free functionality
-  -- on the environment side and stripping the empty subroutine side is the identity.
-  liftFun-sem    : ∀ {A⁺ A⁻ B⁺ B⁻} (f : SFunᵉ {M = Dist-ℚ} (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺))
-                 → ⟦ liftFun f ⟧ ≡ embed⊥ f
-  asResource-sem : ∀ {A B} (g : SFunᵉ {M = Dist-ℚ} A B) → stripᵉ (asResource g) ≡ g
 
 -- Setoid reasoning for `_≈Mℚ_` (its relation mentions only `entries`, so an
 -- inferred intermediate distribution would leave `mass-1` a stray meta; the
@@ -210,120 +142,9 @@ private
   module Mℚ {A : Type} = Setoid (Mℚ-setoid A)
 
 --------------------------------------------------------------------------------
--- The 𝒢(SFun⊥) machine layer.  `PMachine` is `𝒢(SFun⊥)`: composition `⊚` is the
--- G-construction composition and hom-equality is `SFunM`'s trace setoid `_≈ᵉ_`.
--- The trace operator itself lives on the g-construction branch (it depends on
--- the SMC solver, not merge-ready), so the composition `_∘ᵍ_`, the functoriality
--- law `⟦⟧-∘`, and the fuelled unfolding law `∘ᵍ-unfold` are postulated here in a
--- shape that branch discharges against the real trace.  Nothing cryptographic,
--- and nothing machine-specific: the per-machine fact `∘ᵍ-MD` is DERIVED from
--- `∘ᵍ-unfold` below (bounded loop-replay over the `GComp` token dynamics).
---------------------------------------------------------------------------------
-
-postulate
-  -- G-composition on underlying morphisms: the trace over the shared middle
-  -- interface `B⁻ ⊎ B⁺` of the wiring of `|g| ⊎ |f|`.  Fully general, total.
-  _∘ᵍ_ : {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Type}
-       → SFun⊥ (B⁺ ⊎ C⁻) (B⁻ ⊎ C⁺) → SFun⊥ (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺)
-       → SFun⊥ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺)
-
-  -- Functoriality of `⟦_⟧` (this IS the composition law): the observable morphism
-  -- of a composite machine is the 𝒢-composite of the observable morphisms.
-  ⟦⟧-∘ : ∀ {A B C : Channel} (g : PMachine B C) (f : PMachine A B)
-       → (_≈ᵉ_ {M = Dist⊥}) ⟦ g ⊚ f ⟧ (⟦ g ⟧ ∘ᵍ ⟦ f ⟧)
-
-  -- The trace's fuelled UNFOLDING law: `∘ᵍ` is the ⊎-trace over the shared
-  -- middle interface, whose fuelled approximants are the `GComp` token
-  -- machines (`machineAt`), and the limit of an eventually-constant chain
-  -- (`Stable n`, i.e. every deeper approximant already agrees with `machineAt n`)
-  -- is its tail `machineAt n`.  Branch-dischargeable: BOUNDED trace = finite
-  -- unrolling, so once fuel `n` suffices for every reachable activation the
-  -- exact `∘ᵍ` coincides with the `n`-th approximant.  Nothing cryptographic.
-  ∘ᵍ-unfold : ∀ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Type}
-              (g : SFun⊥ (B⁺ ⊎ C⁻) (B⁻ ⊎ C⁺)) (f : SFun⊥ (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺))
-              (n : ℕ) → GComp.Stable g f n
-            → (_≈ᵉ_ {M = Dist⊥}) (g ∘ᵍ f) (GComp.machineAt g f n)
-
---------------------------------------------------------------------------------
--- Reactive interaction model.  An adaptive distinguisher runs against a stateful
--- response kernel; ε-indistinguishability is *defined* from the resulting bit, and
--- the bridge is the Fundamental Lemma of Game-Playing (adaptive-robust).
---------------------------------------------------------------------------------
-
--- An adaptive distinguisher: at each node output a guess, or query and branch on
--- the response.
-data Dgr (Q R : Type) : Type where
-  out : Bool → Dgr Q R
-  ask : Q → (R → Dgr Q R) → Dgr Q R
-
--- "issues at most n queries on every branch"
-asks≤ : {Q R : Type} → ℕ → Dgr Q R → Type
-asks≤ _       (out _)   = ⊤
-asks≤ zero    (ask _ _) = ⊥
-asks≤ (suc n) (ask _ k) = ∀ r → asks≤ n (k r)
-
--- Run a distinguisher against a bare response kernel, returning the output bit, resp.
--- the final state (to read off the bad flag afterwards).
-runWith : {Q R St : Type} → (St → Q → Dist-ℚ (St × R)) → St → Dgr Q R → Dist-ℚ Bool
-runWith resp s (out b)   = return-ℚ b
-runWith resp s (ask q k) = resp s q >>=ᴹ λ sr → runWith resp (proj₁ sr) (k (proj₂ sr))
-
--- The probability that `bad` fires at some visited state during the run of `d`
--- against `resp` from `s` (1 immediately at a bad state — no monotonicity needed).
-badProb : {Q R St : Type} → (St → Q → Dist-ℚ (St × R)) → (St → Bool) → St → Dgr Q R → ℚ
-badProb resp bad s (out _)   = bool→ℚ (bad s)
-badProb resp bad s (ask q k) with bad s
-... | true  = 1ℚ
-... | false = E (resp s q) (λ sr → badProb resp bad (proj₁ sr) (k (proj₂ sr)))
-
--- Run against a stateful system (an `SFunᵉ`), from its initial state.
-run : {Q R : Type} → SFunᵉ {M = Dist-ℚ} Q R → Dgr Q R → Dist-ℚ Bool
-run f = runWith (λ s q → SFunᵉ.fun f (s , q)) (SFunᵉ.init f)
-
--- Probability the run outputs `true`, and the distinguishing advantage of `d`.
-Pr₁ : Dist-ℚ Bool → ℚ
-Pr₁ μ = E μ bool→ℚ
-
--- ────────────────────────────────────────────────────────────────────────────
--- The partial (`SFun⊥`) run/advantage layer — what the closed-machine semantics
--- `⟦_⟧cl` feeds.  `mb` sends the divergence sink `nothing` to `0`.
-
-mb : Maybe Bool → ℚ
-mb (just b) = bool→ℚ b
-mb nothing  = 0ℚ
-
-Pr₁⊥ : Dist⊥ Bool → ℚ
-Pr₁⊥ μ = E μ mb
-
-runWith⊥ : {Q R St : Type} → (St → Q → Dist⊥ (St × R)) → St → Dgr Q R → Dist⊥ Bool
-runWith⊥ resp s (out b)   = return⊥ b
-runWith⊥ resp s (ask q k) = resp s q >>=⊥ λ sr → runWith⊥ resp (proj₁ sr) (k (proj₂ sr))
-
-run⊥ : {Q R : Type} → SFun⊥ Q R → Dgr Q R → Dist⊥ Bool
-run⊥ f = runWith⊥ (λ s q → SFunᵉ.fun f (s , q)) (SFunᵉ.init f)
-
-adv : {Q R : Type} → SFun⊥ Q R → SFun⊥ Q R → Dgr Q R → ℚ
-adv f g d = ∣ Pr₁⊥ (run⊥ f d) -ℚ Pr₁⊥ (run⊥ g d) ∣ℚ
-
-postulate
-  -- PROVABLE — standard, crypto-free.  A fixed-list (trace) equivalence
-  -- determines adaptive behaviour of stateful kernels: transcript probabilities
-  -- decompose prefix-wise into functionals of fixed-list joint distributions
-  -- (finite support + DecEq outputs make this formalizable).  The one new
-  -- standard-math obligation of the 𝒢 layer.
-  ≈ᵉ⇒run : {Q R : Type} {f g : SFun⊥ Q R}
-         → (_≈ᵉ_ {M = Dist⊥}) f g → ∀ d → run⊥ f d ≈Mℚ run⊥ g d
-
---------------------------------------------------------------------------------
 -- Bridging lemmas: the `SFun⊥` run relates to the total `Dist-ℚ` run by the
 -- `Dmap just` embedding, and `strip⊥`/`embed⊥` commute up to `_≈ᵉ_`.
 --------------------------------------------------------------------------------
-
-Pr₁⊥-just : ∀ (μ : Dist-ℚ Bool) → Pr₁⊥ (Dmap just μ) ≡ Pr₁ μ
-Pr₁⊥-just μ = lookupᴰℚ-Dmap just μ mb
-
-Pr₁⊥-cong : (μ ν : Dist⊥ Bool) → μ ≈Mℚ ν → Pr₁⊥ μ ≡ Pr₁⊥ ν
-Pr₁⊥-cong μ ν μ≈ν = μ≈ν mb
 
 -- Reflexive-subject / reflexive-continuation bind congruences with the reflexive
 -- side PINNED explicitly.  Inside a setoid-reasoning chain the "to" endpoint is a
@@ -515,17 +336,10 @@ strip⊥-cong {f = f} {g} f≈g xs = begin
   where open RS (Mℚ-setoid _)
 
 --------------------------------------------------------------------------------
--- Expectation facts.  Only MONOTONICITY is postulated (the `Dist-ℚ` library tracks
--- mass = 1 but not non-negativity of weights); linearity / boundedness / the
--- expectation triangle inequality are then derived in terms of it.
+-- Expectation facts.  Only MONOTONICITY is assumed (`MDAssumptions.E-mono-on`);
+-- linearity / boundedness / the expectation triangle inequality are then derived
+-- in terms of it.
 --------------------------------------------------------------------------------
-
-postulate
-  -- The ONE probabilistic order fact assumed: expectation monotonicity on the
-  -- support — true because weights are non-negative, which the `Dist-ℚ` library
-  -- does not track (its invariant is only mass ≡ 1).
-  E-mono-on : ∀ {A : Type} (μ : Dist-ℚ A) (f g : A → ℚ)
-            → OnSupport (λ a → f a ≤ℚ g a) μ → E μ f ≤ℚ E μ g
 
 private
   all-univ : ∀ {A : Type} {P : A → Type} → (∀ x → P x)
@@ -1330,7 +1144,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     machine-eval : (_≈ᵉ_ {M = Dist⊥}) (strip⊥ (machineAt Nfuel)) (embed⊥ (respRHM H))
     machine-eval xs = machine-trace hr.init xs
 
-  -- ∘ᵍ-MD: now a DERIVED THEOREM (was a per-machine postulate).  The composite's
+  -- ∘ᵍ-MD: now a DERIVED THEOREM (was a per-machine assumption).  The composite's
   -- underlying morphism is the trace `embed⊥ mdArrow ∘ᵍ embed⊥ (asResource Comp.Functionality)`;
   -- `∘ᵍ-unfold` (fuel-saturated at `Nfuel`, `RC.stableN`) rewrites it to the token machine
   -- `machineAt Nfuel`, `RC.machine-eval` computes that to the embedded `respRHM`, and the
