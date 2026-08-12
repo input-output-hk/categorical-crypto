@@ -465,32 +465,23 @@ private
                 → subst Fin e k ≡ subst Fin e′ k
   subst-Fin-uip e e′ k = cong (λ z → subst Fin z k) (ℕ-≡-irrelevant e e′)
 
-  -- `eval-↭` commutes with a codomain `subst₂`, pointwise; the resulting
-  -- `Fin`-transport is UIP-irrelevant, so the length proof may be chosen
-  -- freely.  Fuses the former `subst₂-refl-l`, `eval-subst-cod` (the last
-  -- inhabitant of the dissolved `FinBijSubst`), `subst-FinBij-cod-push`
-  -- and the stdlib `subst-subst` step.
-  eval-subst₂-cod : {as bs cs : List X} (e : bs ≡ cs) (p : as ↭ bs)
-                    (k : Fin (length as)) {m : ℕ}
-                    (e₁ : length cs ≡ m) (e₂ : length bs ≡ m)
-                  → subst Fin e₁ (eval-↭ (subst₂ Perm._↭_ refl e p) P.⟨$⟩ʳ k)
-                    ≡ subst Fin e₂ (eval-↭ p P.⟨$⟩ʳ k)
-  eval-subst₂-cod refl p k e₁ e₂ = subst-Fin-uip e₁ e₂ (eval-↭ p P.⟨$⟩ʳ k)
-
-  -- The `flatten`ed word's `evalW` agrees with `eval-↭ p`, transported
-  -- along the length proof.  Pointwise.
+  -- The `flatten`ed word's `evalW` agrees with `eval-↭ p`, transported along
+  -- the length proof.  Pointwise.  The wrapper's codomain equality has a free
+  -- left endpoint, so it is matched to `refl` here (only the domain one is
+  -- constrained and needs `uipX`); `subst₂ refl refl` then vanishes and all
+  -- that is left of the transport algebra is one choice of length proof.
   flatten-eval
     : {z : X} {zs ys : List X} (p : (z ∷ zs) ↭ ys) (w : Word (length zs))
     → p ≅↭ᴴ ⟦ w ⟧↭ (z ∷ zs)
     → (k : Fin (suc (length zs)))
     → evalW w P.⟨$⟩ʳ k
       ≡ subst Fin (sym (↭-length p)) (eval-↭ p P.⟨$⟩ʳ k)
-  flatten-eval {z = z} {zs} {ys} p w (el , er , h) k
+  flatten-eval {z = z} {zs} p w (el , refl , h) k
     rewrite uipX el refl =
     trans (sym (eval-respect w (z ∷ zs) refl k))
     (trans (cast-push refl L (eval-↭ (⟦ w ⟧↭ (z ∷ zs))) k)
     (trans (cong (subst Fin L) (sym (sound h k)))
-           (eval-subst₂-cod er p k L (sym (↭-length p)))))
+           (subst-Fin-uip L (sym (↭-length p)) (eval-↭ p P.⟨$⟩ʳ k))))
     where
     L : length (applyW w (z ∷ zs)) ≡ suc (length zs)
     L = trans (applyW-length w (z ∷ zs)) refl
