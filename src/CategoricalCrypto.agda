@@ -16,6 +16,7 @@ open import CategoricalCrypto.Channel.Core public
 open import CategoricalCrypto.Channel.Selection public
 open import CategoricalCrypto.Machine.Constraints public
 open import CategoricalCrypto.Machine.Core public
+open import CategoricalCrypto.Machine.Probabilistic public
 open import CategoricalCrypto.SFunM public
 open import CategoricalCrypto.SFunPartial public
 open import CategoricalCrypto.SFunPossibility

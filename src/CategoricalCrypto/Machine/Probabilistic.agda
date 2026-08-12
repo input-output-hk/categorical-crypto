@@ -1,42 +1,48 @@
 {-# OPTIONS --safe #-}
 
 --------------------------------------------------------------------------------
--- What the Merkle–Damgård development assumes of the framework, as ONE record.
+-- The probabilistic machine layer, as a structure.
 --
--- Every open axiom is a record field, so `Examples.MerkleDamgard` — and
--- everything above it — is `--safe`.  Nothing cryptographic is assumed: the
--- fields are the 𝒢-construction primitives, the trace over the shared
--- interface, one standard fact about adaptive runs, and one probability-library
--- order fact.
+-- A machine is a 𝒢-construction hom over the partial probabilistic stateful
+-- functions `SFun⊥`: `PMachine A B` has a subroutine interface `A` and an
+-- environment interface `B`, and its observable semantics `⟦_⟧` is the reactive
+-- kernel that jointly serves both.  Composition `_⊚_` plugs the environment
+-- interface of one machine into the subroutine interface of the next, and its
+-- semantics is the TRACE `_∘ᵍ_` over the shared interface (`⟦⟧-∘`).
+--
+-- The construction itself lives on the `g-construction` branch (it depends on
+-- the SMC solver and is not merge-ready), so this module states it rather than
+-- builds it: `Machines` is the structure a model must provide, and every theorem
+-- above it — the machine category, its `MachineAxioms` model, the UC payoff — is
+-- parametric in one.  Nothing here is cryptographic, and nothing here is about
+-- Merkle–Damgård.
+--
+-- Laws come one level up (`Machine.Probabilistic.Model`), because they are
+-- stated against the OBSERVATIONAL hom-equality `⟦ f ⟧ ≈ᵉ ⟦ g ⟧`, which these
+-- fields define; a concrete-security theorem such as `Examples.MerkleDamgard`
+-- needs the structure but none of the laws.
 --------------------------------------------------------------------------------
 
 open import categorical-crypto.Prelude hiding (_/_; _>>=_; _*_)
 
-open import CategoricalCrypto.Channel.Core using (Channel; _⇿_; _⊗₀_)
-open import CategoricalCrypto.Interaction using (TraceDeterminesRun)
+open import CategoricalCrypto.Channel.Core using (Channel; _⇿_)
 open import CategoricalCrypto.SFunM
 open import CategoricalCrypto.SFunPartial
 open import ProbabilisticLogic.Distribution.RationalDist
-open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (E-Mono-On)
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
 open import ProbabilisticLogic.Distribution.RationalDist.Setoid
 
-module CategoricalCrypto.Examples.MerkleDamgard.Base where
+module CategoricalCrypto.Machine.Probabilistic where
 
-record MDAssumptions : Type₂ where
+record Machines : Type₂ where
   infixr 9 _⊚_
-  infixr 10 _⊗ₚ_
   field
-    -- ── The probabilistic 𝒢-construction (plan debt 1 + 2) ──────────────────
-    -- The machine type and its composition/tensor.  `PMachine` is 𝒢(SFun⊥) and
-    -- `⟦_⟧` returns the UNDERLYING SFun⊥ morphism of a 𝒢-hom (partiality via
-    -- `Dist⊥ = Dist-ℚ ∘ Maybe`).  No laws are assumed here: the category laws
-    -- are `MerkleDamgardUC.MachineCatHyp` and the monoidal structure is
-    -- `MachineHyp.mono`, both stated against the observational hom-equality.
+    -- The machine type and its composition.  `PMachine` is 𝒢(SFun⊥); `⟦_⟧`
+    -- returns the UNDERLYING SFun⊥ morphism of a 𝒢-hom (partiality via
+    -- `Dist⊥ = Dist-ℚ ∘ Maybe`).
     PMachine : Channel → Channel → Type₁
-    pid      : ∀ {A}       → PMachine A A
-    _⊚_      : ∀ {A B C}   → PMachine B C → PMachine A B → PMachine A C
-    _⊗ₚ_     : ∀ {A B C D} → PMachine A B → PMachine C D → PMachine (A ⊗₀ C) (B ⊗₀ D)
+    pid      : ∀ {A}     → PMachine A A
+    _⊚_      : ∀ {A B C} → PMachine B C → PMachine A B → PMachine A C
 
     -- Embed a functionality as a *resource*.
     asResource : ∀ {A B} → SFunᵉ {M = Dist-ℚ} A B → SFunᵉ {M = Dist-ℚ} (⊥ ⊎ A) (⊥ ⊎ B)
@@ -48,8 +54,8 @@ record MDAssumptions : Type₂ where
     -- adversary backdoor.
     liftFun : ∀ {A⁺ A⁻ B⁺ B⁻} → SFunᵉ {M = Dist-ℚ} (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺) → PMachine (A⁺ ⇿ A⁻) (B⁺ ⇿ B⁻)
 
-    -- Observable reactive semantics of a machine: a stateful response kernel.
-    -- The subroutine (`A`) and environment (`B`) interfaces jointly send on
+    -- Observable reactive semantics: a stateful response kernel.  The subroutine
+    -- (`A`) and environment (`B`) interfaces jointly send on
     -- `inType A ⊎ outType B` and receive `outType A ⊎ inType B` — EXACTLY the
     -- type `liftFun` consumes, so that `⟦_⟧` and `liftFun` are mutually inverse.
     ⟦_⟧ : ∀ {A B : Channel}
@@ -62,13 +68,6 @@ record MDAssumptions : Type₂ where
     liftFun-sem    : ∀ {A⁺ A⁻ B⁺ B⁻} (f : SFunᵉ {M = Dist-ℚ} (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺))
                    → ⟦ liftFun f ⟧ ≡ embed⊥ f
     asResource-sem : ∀ {A B} (g : SFunᵉ {M = Dist-ℚ} A B) → stripᵉ (asResource g) ≡ g
-
-    -- ── The trace over the shared interface (plan debt 1/2, same route) ─────
-    -- The trace operator lives on the `g-construction` branch (it depends on the
-    -- SMC solver, not merge-ready), so its composition and two laws are assumed
-    -- in the shape that branch discharges against the real trace.  Nothing
-    -- machine-specific: the per-machine fact `∘ᵍ-MD` is DERIVED from
-    -- `∘ᵍ-unfold` in `MerkleDamgard`.
 
     -- G-composition on underlying morphisms: the trace over the shared middle
     -- interface `B⁻ ⊎ B⁺` of the wiring of `|g| ⊎ |f|`.  Fully general, total.
@@ -93,7 +92,3 @@ record MDAssumptions : Type₂ where
                 (g : SFun⊥ (B⁺ ⊎ C⁻) (B⁻ ⊎ C⁺)) (f : SFun⊥ (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺))
                 (n : ℕ) → GComp.Stable g f n
               → (_≈ᵉ_ {M = Dist⊥}) (g ∘ᵍ f) (GComp.machineAt g f n)
-
-    -- ── The two layers below, at their own declarations ─────────────────────
-    ≈ᵉ⇒run    : TraceDeterminesRun   -- `CategoricalCrypto.Interaction`
-    E-mono-on : E-Mono-On            -- `…Distribution.RationalDist.Expectation`

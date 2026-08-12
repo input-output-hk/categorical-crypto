@@ -23,7 +23,7 @@ open import ProbabilisticLogic.Distribution.RationalDist.Setoid
 
 module CategoricalCrypto.Interaction where
 
-private variable A B Q R St : Type
+private variable Q R St : Type
 
 -- An adaptive distinguisher: at each node output a guess, or query and branch on
 -- the response.

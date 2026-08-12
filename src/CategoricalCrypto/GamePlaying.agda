@@ -19,10 +19,10 @@
 
 open import categorical-crypto.Prelude hiding (_>>=_)
 
+open import Data.List.Relation.Unary.All as ListAll using ()
 open import Data.Rational using (ℚ; 0ℚ; 1ℚ)
   renaming (_+_ to _+ℚ_; _-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
 open import Data.Rational.Properties using (≤-refl; ≤-reflexive; ≤-trans; +-inverseʳ; 0≤p⇒∣p∣≡p)
-open import Data.List.Relation.Unary.All as ListAll using ()
 
 open import CategoricalCrypto.Interaction
 open import ProbabilisticLogic.Distribution.RationalDist

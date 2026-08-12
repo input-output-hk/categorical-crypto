@@ -18,9 +18,9 @@
 -- oracle", phrased the standard cryptographic way: against ANY adaptive
 -- distinguisher `d` issuing `≤ n` queries, the distinguishing advantage is `≤ bound n`
 -- (concrete security — the bound is a function of the query count, since more queries
--- genuinely help).  `≈ℰ`, the advantage and the distinguisher are all *defined* via a
--- reactive interaction model (`Dgr`/`run`/`adv`); the bridge is the Fundamental Lemma
--- of Game-Playing (`FLGP`), adaptive-robust by construction.  Assembly:
+-- genuinely help).  `_≈adv[_]_`, the advantage and the distinguisher are all *defined*
+-- by the reactive interaction model (`Dgr`/`run`/`adv`); the bridge is the Fundamental
+-- Lemma of Game-Playing (`FLGP`), adaptive-robust by construction.  Assembly:
 --
 --   adv ⟦General.M⟧ ⟦MD⊚Comp.M⟧ d
 --     = ∣ Pr₁(runWith C.idealK s₀ d) − Pr₁(runWith C.realK s₀ d) ∣
@@ -73,30 +73,38 @@
 -- prefix, `toBlocks`-injectivity ⇒ the message was already recorded, ⊥).  Together with
 -- `MDInv₀`, `flag⇒coll`, the collision-count-monotonicity backbone, `md-cert`,
 -- `badProb-super`, FLGP, `ideal-marginal`, and `ghost-erase` — all proven — the theorem
--- `indistinguishable` rests solely on the framework + standard-math assumptions of
--- the module parameter `MDAssumptions` (documented field by field where it is
--- declared, in `MerkleDamgard.Base`): the 𝒢-construction primitives, the trace over
--- the shared interface and its two laws, `≈ᵉ⇒run`, and expectation monotonicity on
--- the support.  `⟦General⟧-sem`, `⟦MD⟧-sem`, the per-machine computation fact
--- `∘ᵍ-MD` and global monotonicity `E-mono` are all DERIVED from them — no
--- machine-specific assumption remains, and this module is `--safe`.
+-- `indistinguishable` rests solely on the three module parameters, each declared
+-- at its own layer and none of them cryptographic: the machine structure
+-- (`Machine.Probabilistic.Machines` — the 𝒢-construction primitives, the trace
+-- over the shared interface and its two laws), `TraceDeterminesRun`
+-- (`CategoricalCrypto.Interaction`) and `E-Mono-On` (the expectation
+-- monotonicity `Dist-ℚ` cannot currently supply).  `⟦General⟧-sem`, `⟦MD⟧-sem`,
+-- the per-machine computation fact `∘ᵍ-MD` and global monotonicity `E-mono` are
+-- all DERIVED from them — no machine-specific assumption remains, and this
+-- module is `--safe`.
 --
--- Warm single-module typecheck: ~535 s (measured 2026-08-12, `+RTS -M10G -H2G`;
--- was ~510 s before the `MDAssumptions` parametrization).
+-- The UC reading of `indistinguishable` — Merkle-Damgård ≤UC a random oracle —
+-- is `Examples.MerkleDamgard.UC`, via the general ladder in
+-- `CategoricalCrypto.OutputOnly`.
+--
+-- Warm single-module typecheck: ~520 s (measured 2026-08-12, `+RTS -M10G -H2G`).
 --------------------------------------------------------------------------------
 
-open import CategoricalCrypto.Examples.MerkleDamgard.Base
+open import CategoricalCrypto.Interaction using (TraceDeterminesRun)
+open import CategoricalCrypto.Machine.Probabilistic using (Machines)
+open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (E-Mono-On)
 
-module CategoricalCrypto.Examples.MerkleDamgard (mdAssumptions : MDAssumptions) where
+module CategoricalCrypto.Examples.MerkleDamgard
+  (PM : Machines) (trace-run : TraceDeterminesRun) (E-mono-on : E-Mono-On) where
 
 open import categorical-crypto.Prelude hiding (_/_; _>>=_; _*_; Stable)
 open import Data.Nat using (_+_; _*_; _≤_; _<_; _∸_; NonZero; _≤′_; ≤′-refl; ≤′-step)
 open import Data.Nat.Properties using (_<?_)
 import Data.Nat.Properties as ℕP
 open import Data.Fin using (Fin; zero)
-open import Data.Vec using (Vec; []; _∷_; cast; toList) renaming (_++_ to _++ᵛ_; take to takeᵛ; drop to dropᵛ; replicate to replicateᵛ)
+open import Data.Vec using (Vec; []; _∷_; toList) renaming (_++_ to _++ᵛ_; take to takeᵛ; drop to dropᵛ; replicate to replicateᵛ)
 import Data.Vec as DV
-open import Data.List using (_++_; foldl; length)
+open import Data.List using (_++_; length)
 import Data.List as L
 open import Data.List.Properties using (∷-injective; length-++)
 import Data.List.Relation.Unary.Any as ListAny
@@ -105,20 +113,19 @@ open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Rational using (ℚ; 0ℚ; 1ℚ; nonNegative)
   renaming (_*_ to _*ℚ_; _+_ to _+ℚ_; _-_ to _-ℚ_; -_ to -ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_; _≟_ to _≟ℚ_)
 open import Data.Rational.Properties using
-  ( ≤-trans; ≤-refl; ≤-reflexive; ≤-total; neg-antimono-≤; +-monoʳ-≤; +-monoˡ-≤
-  ; +-mono-≤; *-identityˡ; *-zeroˡ; *-zeroʳ; *-distribʳ-+
-  ; *-monoʳ-≤-nonNeg; *-monoˡ-≤-nonNeg
-  ; +-assoc; +-comm; +-identityˡ; +-identityʳ; +-inverseˡ; +-inverseʳ; neg-distrib-+
-  ; 0≤∣p∣; 0≤p⇒∣p∣≡p; ∣-p∣≡∣p∣; ≤-antisym; 1≢0 )
+  ( ≤-trans; ≤-refl; ≤-reflexive; +-monoʳ-≤; +-monoˡ-≤; +-mono-≤
+  ; *-zeroˡ; *-distribʳ-+; *-monoʳ-≤-nonNeg
+  ; +-assoc; +-comm; +-identityˡ; +-identityʳ; ≤-antisym; 1≢0 )
 open import Data.Rational.Properties.Ext
 import Data.List.NonEmpty as NE
 import Data.List.Relation.Unary.All as ListAll
 open import Data.List.Run
 open import Data.Vec.Properties.Ext using (take-drop-inj)
-open import CategoricalCrypto.Channel.Core using (Channel; _⇿_; I; _⊗₀_)
+open import CategoricalCrypto.Channel.Core using (Channel; _⇿_; I)
 open import CategoricalCrypto.Examples.RandomOracle
 open import CategoricalCrypto.GamePlaying
 open import CategoricalCrypto.Interaction
+open import CategoricalCrypto.Machine.Probabilistic.Model PM
 open import CategoricalCrypto.SFunM
 open import CategoricalCrypto.SFunPartial
 open import ProbabilisticLogic.Distribution.RationalDist
@@ -128,18 +135,8 @@ open import ProbabilisticLogic.Distribution.RationalDist.Setoid
 open import ProbabilisticLogic.Distribution.Uniform using (inv-pow-2; bool→ℚ; fromℕ; δ; P-uniform-Vec)
 import Relation.Binary.Reasoning.Setoid as RS
 
-open MDAssumptions mdAssumptions
 open Bounds E-mono-on
 open Monotone E-mono-on
-
--- Closed semantics: a machine with no subroutine (input channel `I = ⊥ ⇿ ⊥`) has a
--- plain kernel `outType C → inType C` — the empty `⊥` interface is dropped.
-⟦_⟧cl : ∀ {C : Channel} → PMachine I C → SFun⊥ (Channel.outType C) (Channel.inType C)
-⟦ m ⟧cl = strip⊥ ⟦ m ⟧
-
--- any distinguisher issuing ≤ n queries has advantage ≤ ε n
-_≈ℰ[_]_ : ∀ {C : Channel} → PMachine I C → (ℕ → ℚ) → PMachine I C → Type
-f ≈ℰ[ ε ] g = ∀ n d → asks≤ n d → adv ⟦ f ⟧cl ⟦ g ⟧cl d ≤ℚ ε n
 
 --------------------------------------------------------------------------------
 -- 2. THE EXAMPLE
@@ -1059,7 +1056,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
             (Mℚ.trans {i = run⊥ ⟦ General.M ⟧cl d}
                       {j = run⊥ (embed⊥ General.Functionality) d}
                       {k = Dmap just (run General.Functionality d)}
-               (≈ᵉ⇒run {f = ⟦ General.M ⟧cl} {embed⊥ General.Functionality} sem≈ d)
+               (trace-run {f = ⟦ General.M ⟧cl} {embed⊥ General.Functionality} sem≈ d)
                (run⊥-embed General.Functionality d)))
           (Pr₁⊥-just (run General.Functionality d))
     where
@@ -1079,7 +1076,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
             (Mℚ.trans {i = run⊥ ⟦ MD ⊚ Comp.M ⟧cl d}
                       {j = run⊥ (embed⊥ respRM) d}
                       {k = Dmap just (run respRM d)}
-               (≈ᵉ⇒run {f = ⟦ MD ⊚ Comp.M ⟧cl} {embed⊥ respRM} sem≈ d)
+               (trace-run {f = ⟦ MD ⊚ Comp.M ⟧cl} {embed⊥ respRM} sem≈ d)
                (run⊥-embed respRM d)))
           (Pr₁⊥-just (run respRM d))
     where
@@ -2363,7 +2360,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   bad-bound n d le = badProb-bounded md-cert n d le
 
   -- advantage of any adaptive n-query distinguisher ≤ bound n
-  indistinguishable : General.M ≈ℰ[ bound ] (MD ⊚ Comp.M)
+  indistinguishable : General.M ≈adv[ bound ] (MD ⊚ Comp.M)
   indistinguishable n d le =
     subst (_≤ℚ bound n) (sym (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ) xEq yEq))
           (≤-trans (C.FLGP (false , [] , []) d) (bad-bound n d le))
