@@ -8,8 +8,9 @@
 --
 -- This is the strict, VERTEX-LEVEL twin of the non-strict keystone
 -- `BNV.σ-block-comm` (`pvl (++-comm L R) ≈ σ-block`), proven entirely from the
--- `FreeStrictSMC.Build` axioms + the reusable `σ-hexˢʳ` (RIGHT-hexagon)
--- companion lemma and the `[]` base cases proven in `DecodeSigma`.
+-- `FreeStrictSMC.Build` axioms + the RIGHT-hexagon companion lemma `σ-hexˢʳ`
+-- (below, generic on `List X`; this module is its only consumer) and the `[]`
+-- base cases proven in `DecodeSigma`.
 --
 -- The whole module runs in the `Restrict` layer (F7): `HomV as bs = HomS
 -- (map vlab as) (map vlab bs)`, whose `_⊗ᵛ_`/`σᵛ` absorb the `map-++`
@@ -21,7 +22,9 @@
 --
 -- Proof structure (mirrors `BlockNFBraid.σ-block-comm` / `prep-step`):
 --
---   * `hexᵛ v x R` — the RIGHT hexagon at the singleton frames `v ∷ []`,
+--   * `σ-hexˢʳ a b c` — the RIGHT hexagon `σˢ a (b ++ c)` on `List X`, from
+--     the `σ-hexˢ` axiom by inverse-uniqueness;
+--   * `hexᵛ v x R` — that hexagon at the singleton frames `v ∷ []`,
 --     `x ∷ []`, `R`, where all three associators collapse to `coe refl`;
 --   * `shift-symᵛ v R L` — the FULL `permuteᵛ (↭-sym (shift v R L))` slide
 --     (induction on `R`), base `Scr.permuteˢ-shift-sym-base`;
@@ -43,13 +46,77 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_
-  using (σ-hexˢʳ; module Scr)
+  using (module Scr)
+open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelˡ)
+open import Categories.Morphism.Reasoning.Ext SCat using (inv-resp)
 
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (++-assoc)
 open import Relation.Binary.PropositionalEquality using (refl; sym)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
+
+--------------------------------------------------------------------------------
+-- The RIGHT hexagon: `σˢ a (b ++ c)` decomposed.  Derived from the `σ-hexˢ`
+-- axiom by the same inverse-uniqueness argument as `Braid`'s `hexagon` case (which
+-- proves exactly this for `a,b,c = flatten _`); here generic on `List X`.
+
+σ-hexˢʳ
+  : ∀ (a b c : List X)
+  → σˢ a (b ++ c)
+    ≈ˢ coe (sym (++-assoc b c a))
+        ∘ˢ (((idˢ {b} ⊗ˢ σˢ a c)
+              ∘ˢ coe (++-assoc b a c) ∘ˢ (σˢ a b ⊗ˢ idˢ {c}))
+            ∘ˢ coe (sym (++-assoc a b c)))
+σ-hexˢʳ a b c = H
+  where
+    P = ++-assoc a b c
+    Q = ++-assoc b c a
+    R = ++-assoc b a c
+
+    X₁ = σˢ a b ⊗ˢ idˢ {c}
+    X₂ = idˢ {b} ⊗ˢ σˢ a c
+    W₁ = σˢ b a ⊗ˢ idˢ {c}
+    W₂ = idˢ {b} ⊗ˢ σˢ c a
+
+    L : HomS ((a ++ b) ++ c) (b ++ c ++ a)
+    L = X₂ ∘ˢ coe R ∘ˢ X₁
+
+    step-σʳ : W₂ ∘ˢ X₂ ≈ˢ idˢ
+    step-σʳ = ≈-trans interchangeˢ (≈-trans (⊗-resp idˡ σ-σˢ) ⊗-id)
+
+    step-σˡ : W₁ ∘ˢ X₁ ≈ˢ idˢ
+    step-σˡ = ≈-trans interchangeˢ (≈-trans (⊗-resp σ-σˢ idˡ) ⊗-id)
+
+    u-form : σˢ (b ++ c) a ≈ˢ coe P ∘ˢ (W₁ ∘ˢ ((coe (sym R) ∘ˢ W₂) ∘ˢ coe Q))
+    u-form =
+      ≈-trans (σ-hexˢ b c a)
+      (≈-trans (coe-conj (sym Q) P (W₁ ∘ˢ castˢ refl (sym R) W₂))
+      (∘-resp ≈-refl
+        (pullʳ (∘-resp (≈-trans (coe-conj refl (sym R) W₂) (∘-resp ≈-refl idʳ))
+                       (coe-uip (sym (sym Q)) Q)))))
+
+    M-nest : L ∘ˢ coe (sym P) ≈ˢ X₂ ∘ˢ (coe R ∘ˢ (X₁ ∘ˢ coe (sym P)))
+    M-nest = pullʳ assocˢ
+
+    cancel : σˢ (b ++ c) a ∘ˢ (coe (sym Q) ∘ˢ (L ∘ˢ coe (sym P))) ≈ˢ idˢ
+    cancel =
+      ≈-trans (∘-resp u-form ≈-refl)
+      (≈-trans (pullʳ assocˢ)
+      (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl assocˢ))
+      (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl
+                 (∘-resp ≈-refl (cancelˡ (coe-cancelʳ Q)))))
+      (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl assocˢ))
+      (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl
+                 (∘-resp ≈-refl (∘-resp ≈-refl M-nest))))
+      (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl
+                 (∘-resp ≈-refl (cancelˡ step-σʳ))))
+      (≈-trans (∘-resp ≈-refl (∘-resp ≈-refl (cancelˡ (coe-cancel R))))
+      (≈-trans (∘-resp ≈-refl (cancelˡ step-σˡ))
+        (coe-cancelʳ P)))))))))
+
+    H : σˢ a (b ++ c) ≈ˢ coe (sym Q) ∘ˢ (L ∘ˢ coe (sym P))
+    H = inv-resp σ-σˢ cancel ≈-refl
 
 --------------------------------------------------------------------------------
 
