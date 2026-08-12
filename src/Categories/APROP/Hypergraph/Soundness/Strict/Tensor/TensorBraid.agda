@@ -552,20 +552,18 @@ module _
         pvv-relabelˢ injL vl Gd.vlab (Embeds.vlab-injL G K)
           (finalPermˢ f) φGsf φGcod
 
-      -- G-part twin: `castˢ φGdom φGcod Gc ≈ decf-inner`.
-      Gc-twin : castˢ φGdom φGcod Gc ≈ˢ decf-inner
-      Gc-twin =
-        ≈-trans (∘-cast-split φGdom φGsf φGcod (RF.permuteˢ pL) Gon')
-                (∘-resp Gperm-relabel Gon'-bridge)
+      -- G-part twin, HETEROGENEOUSLY: `Gc ≈̂ decf-inner`, factor by factor.
+      -- Nothing names `φGsf` as a MIDDLE any more, so `∘-cast-split` goes.
+      Gc-≈̂ : Gc ≈̂ decf-inner
+      Gc-≈̂ = ∘-resp-≈̂ Gperm-≈̂ Gon'-≈̂
         where
-          -- peel BOTH casts off `Gon` in `_≈̂_`, re-attach `Gbridge`'s pair
-          -- (the `≈̂` kit IS the `cast-fuse`/`cast-irrel` sandwich).
-          Gon'-bridge : castˢ φGdom φGsf Gon' ≈ˢ Grun
-          Gon'-bridge =
-            ≈̂⇒castˢ (≈̂-trans cast-≈̂
-                      (≈̂-trans (≈̂-sym (cast-≈̂ {p = φGdom} {q = pCodG}))
-                               (≈ˢ⇒≈̂ Gbridge)))
-                     φGdom φGsf
+          Gperm-≈̂ : RF.permuteˢ pL ≈̂ Gd'.permuteˢ (finalPermˢ f)
+          Gperm-≈̂ = ≈̂-trans (≈̂-sym (cast-≈̂ {p = φGsf} {q = φGcod}))
+                            (≈ˢ⇒≈̂ Gperm-relabel)
+          Gon'-≈̂ : Gon' ≈̂ Grun
+          Gon'-≈̂ =
+            ≈̂-trans cast-≈̂
+              (≈̂-trans (≈̂-sym (cast-≈̂ {p = φGdom} {q = pCodG})) (≈ˢ⇒≈̂ Gbridge))
 
       -- K-side `Kfin≡`-corrected clean K-run, and the C-level K-part.
       Kclean' : HomV (map injR Kd.dom) (map injR s_K_final)
@@ -583,17 +581,16 @@ module _
         pvv-relabelˢ injR vl Kd.vlab (Embeds.vlab-injR G K)
           (finalPermˢ g) φKsf φKcod
 
-      Kc-twin : castˢ φKdom φKcod Kc ≈ˢ decg-inner
-      Kc-twin =
-        ≈-trans (∘-cast-split φKdom φKsf φKcod (RF.permuteˢ pR) Kclean')
-                (∘-resp Kperm-relabel Kclean'-bridge)
+      Kc-≈̂ : Kc ≈̂ decg-inner
+      Kc-≈̂ = ∘-resp-≈̂ Kperm-≈̂ Kclean'-≈̂
         where
-          Kclean'-bridge : castˢ φKdom φKsf Kclean' ≈ˢ Krun-K
-          Kclean'-bridge =
-            ≈̂⇒castˢ (≈̂-trans cast-≈̂
-                      (≈̂-trans (≈̂-sym (cast-≈̂ {p = φKdom} {q = pCodK}))
-                               (≈ˢ⇒≈̂ Kbridge)))
-                     φKdom φKsf
+          Kperm-≈̂ : RF.permuteˢ pR ≈̂ Kd'.permuteˢ (finalPermˢ g)
+          Kperm-≈̂ = ≈̂-trans (≈̂-sym (cast-≈̂ {p = φKsf} {q = φKcod}))
+                            (≈ˢ⇒≈̂ Kperm-relabel)
+          Kclean'-≈̂ : Kclean' ≈̂ Krun-K
+          Kclean'-≈̂ =
+            ≈̂-trans cast-≈̂
+              (≈̂-trans (≈̂-sym (cast-≈̂ {p = φKdom} {q = pCodK})) (≈ˢ⇒≈̂ Kbridge))
 
       ------------------------------------------------------------------
       -- ### `permuteˢ combRaw` frame-decomposition.
@@ -610,16 +607,6 @@ module _
                           (⟦frameʳ⟧ (map injR s_K_final) pL))
                 (≈ˢ⇒≈̂ (≈-trans interchangeˢ (⊗-resp idˡ idʳ)))
 
-      ------------------------------------------------------------------
-      -- ### The two block twins, HETEROGENEOUSLY.  `_≈̂_` carries the φ
-      -- boundary proofs inside the relation, so neither the two `cong₂ _++_`
-      -- endpoint pairs nor `cast-⊗-both` is ever named.
-
-      Gc-≈̂ : Gc ≈̂ decf-inner
-      Gc-≈̂ = ≈̂-trans (≈̂-sym (cast-≈̂ {p = φGdom} {q = φGcod})) (≈ˢ⇒≈̂ Gc-twin)
-
-      Kc-≈̂ : Kc ≈̂ decg-inner
-      Kc-≈̂ = ≈̂-trans (≈̂-sym (cast-≈̂ {p = φKdom} {q = φKcod})) (≈ˢ⇒≈̂ Kc-twin)
 
       ------------------------------------------------------------------
       -- ### `Gc ⊗ Kc` decomposition 2: to `permuteˢ comb ∘ (Gon ⊗ Kclean)`.
