@@ -64,6 +64,7 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
+import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeTensor sig _≟X_ as DT
 
 open import Data.Fin using (Fin)
@@ -75,79 +76,75 @@ import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 
 --------------------------------------------------------------------------------
--- Threaded through the SAME deferred residual `permˢ-K` the whole strict chain
--- consumes (a `Support.PermK`, polymorphic over the vertex set).
+-- The strict Kelly residual is taken CONCRETELY from `Perm.PermK` (axiom-free
+-- for every vertex set), exactly as the rest of the strict chain takes it.
 
-module _
-  (permˢ-K : ∀ (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X) → Support.PermK V vlab)
+module Reconcile {A B C D : ObjTerm}
+  (f : HomTerm A B) (g : HomTerm C D)
   where
+  private
+    fg : HomTerm (A ⊗₀ C) (B ⊗₀ D)
+    fg = f ⊗₁ g
 
-  module Reconcile {A B C D : ObjTerm}
-    (f : HomTerm A B) (g : HomTerm C D)
-    where
-    private
-      fg : HomTerm (A ⊗₀ C) (B ⊗₀ D)
-      fg = f ⊗₁ g
+    module RF = Run ⟪ fg ⟫
+    module Hf = Hypergraph ⟪ fg ⟫
+    open Support (Fin Hf.nV) Hf.vlab
 
-      module RF = Run ⟪ fg ⟫
-      module Hf = Hypergraph ⟪ fg ⟫
-      open Support (Fin Hf.nV) Hf.vlab
+    K : PermK
+    K = PK.permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
 
-      K : PermK
-      K = permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
+    uniqCod : Unique Hf.cod
+    uniqCod = Linear⇒cod-Unique ⟪ fg ⟫ (⟪⟫-LinearP fg)
 
-      uniqCod : Unique Hf.cod
-      uniqCod = Linear⇒cod-Unique ⟪ fg ⟫ (⟪⟫-LinearP fg)
+  -- THE `braidˢ` RESIDUAL, named: the C-run inner term post-sorted by
+  -- `cand` is the clean tensor at the boundary objects.  `reconcileˢ` IS
+  -- this signature at `cand := finalPermˢ fg`.
+  BraidSigˢ : RF.s-finˢ ↭ Hf.cod → Set
+  BraidSigˢ cand =
+    RF.permuteˢ cand ∘ˢ proj₂ (Run.runˢ ⟪ fg ⟫)
+      ≈ˢ castˢ (sym (⟪⟫-domL fg)) (sym (⟪⟫-codL fg))
+          (decodePˢ f ⊗ˢ decodePˢ g)
 
-    -- THE `braidˢ` RESIDUAL, named: the C-run inner term post-sorted by
-    -- `cand` is the clean tensor at the boundary objects.  `reconcileˢ` IS
-    -- this signature at `cand := finalPermˢ fg`.
-    BraidSigˢ : RF.s-finˢ ↭ Hf.cod → Set
-    BraidSigˢ cand =
-      RF.permuteˢ cand ∘ˢ proj₂ (Run.runˢ ⟪ fg ⟫)
-        ≈ˢ castˢ (sym (⟪⟫-domL fg)) (sym (⟪⟫-codL fg))
-            (decodePˢ f ⊗ˢ decodePˢ g)
+  ----------------------------------------------------------------------
+  -- ## The FINAL-PERMUTE RESORT half (FULLY PROVEN).
+  --
+  -- The algorithm's `finalPermˢ (f ⊗₁ g)` is a derivation `s-finˢ ↭ C.cod`
+  -- into the `Unique` codomain `C.cod`.  By `perm-rigidˢ` it is
+  -- `permuteˢ`-equal to ANY other derivation with the same endpoints — in
+  -- particular the canonical block-braid derivation `cand` the braid half
+  -- will supply.  This is the K-faithfulness consumption point.
 
-    ----------------------------------------------------------------------
-    -- ## The FINAL-PERMUTE RESORT half (FULLY PROVEN).
-    --
-    -- The algorithm's `finalPermˢ (f ⊗₁ g)` is a derivation `s-finˢ ↭ C.cod`
-    -- into the `Unique` codomain `C.cod`.  By `perm-rigidˢ` it is
-    -- `permuteˢ`-equal to ANY other derivation with the same endpoints — in
-    -- particular the canonical block-braid derivation `cand` the braid half
-    -- will supply.  This is the K-faithfulness consumption point.
+  final-resortˢ
+    : (cand : RF.s-finˢ ↭ Hf.cod)
+    → RF.permuteˢ (finalPermˢ fg) ≈ˢ RF.permuteˢ cand
+  final-resortˢ cand = perm-rigidˢ K uniqCod (finalPermˢ fg) cand
 
-    final-resortˢ
-      : (cand : RF.s-finˢ ↭ Hf.cod)
-      → RF.permuteˢ (finalPermˢ fg) ≈ˢ RF.permuteˢ cand
-    final-resortˢ cand = perm-rigidˢ K uniqCod (finalPermˢ fg) cand
+  ----------------------------------------------------------------------
+  -- ## The REDUCTION: ⊗-shape ⇐ K-block braid.
+  --
+  -- The K-block braid `braidˢ` is the single clearly-typed `≈ˢ` fact: the
+  -- C-run inner term, with the final permute REPLACED by the canonical
+  -- derivation `cand`, equals the clean tensor at the boundary objects.
+  -- (Cast-FREE: stated at the boundary objects, like `reconcileˢ` itself.)
+  --
+  -- Given `braidˢ`, `reconcileˢ` follows by rewriting the algorithm's
+  -- `permuteˢ (finalPermˢ fg)` to `permuteˢ cand` via `final-resortˢ`.
 
-    ----------------------------------------------------------------------
-    -- ## The REDUCTION: ⊗-shape ⇐ K-block braid.
-    --
-    -- The K-block braid `braidˢ` is the single clearly-typed `≈ˢ` fact: the
-    -- C-run inner term, with the final permute REPLACED by the canonical
-    -- derivation `cand`, equals the clean tensor at the boundary objects.
-    -- (Cast-FREE: stated at the boundary objects, like `reconcileˢ` itself.)
-    --
-    -- Given `braidˢ`, `reconcileˢ` follows by rewriting the algorithm's
-    -- `permuteˢ (finalPermˢ fg)` to `permuteˢ cand` via `final-resortˢ`.
+  reconcile-from-braid
+    : (cand : RF.s-finˢ ↭ Hf.cod) → BraidSigˢ cand → BraidSigˢ (finalPermˢ fg)
+  reconcile-from-braid cand braidˢ = ≈-trans (∘-resp (final-resortˢ cand) ≈-refl) braidˢ
 
-    reconcile-from-braid
-      : (cand : RF.s-finˢ ↭ Hf.cod) → BraidSigˢ cand → BraidSigˢ (finalPermˢ fg)
-    reconcile-from-braid cand braidˢ = ≈-trans (∘-resp (final-resortˢ cand) ≈-refl) braidˢ
+  ----------------------------------------------------------------------
+  -- VERIFICATION that `reconcile-from-braid` produces EXACTLY the
+  -- `reconcileˢ` parameter of `DecodeTensor.Tensor`, and that feeding it
+  -- yields the ⊗-shape THEOREM `decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ
+  -- decodePˢ g` modulo the single residual `braidˢ` (the K-block braid).
 
-    ----------------------------------------------------------------------
-    -- VERIFICATION that `reconcile-from-braid` produces EXACTLY the
-    -- `reconcileˢ` parameter of `DecodeTensor.Tensor`, and that feeding it
-    -- yields the ⊗-shape THEOREM `decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ
-    -- decodePˢ g` modulo the single residual `braidˢ` (the K-block braid).
-
-    decodePˢ-⊗-from-braid
-      : (cand : RF.s-finˢ ↭ Hf.cod) → BraidSigˢ cand
-      → decodePˢ fg ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
-    decodePˢ-⊗-from-braid cand braidˢ =
-      DT.Tensor.decodePˢ-⊗ f g (reconcile-from-braid cand braidˢ)
+  decodePˢ-⊗-from-braid
+    : (cand : RF.s-finˢ ↭ Hf.cod) → BraidSigˢ cand
+    → decodePˢ fg ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
+  decodePˢ-⊗-from-braid cand braidˢ =
+    DT.Tensor.decodePˢ-⊗ f g (reconcile-from-braid cand braidˢ)
 
 --------------------------------------------------------------------------------
 -- `reconcileˢ` = `final-resortˢ` (proven here, via `perm-rigidˢ` on the

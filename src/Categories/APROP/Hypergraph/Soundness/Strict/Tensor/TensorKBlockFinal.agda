@@ -9,8 +9,7 @@
 -- K-block braid `KBlockσ` — which `Braid.Reconcile-e.kblockσ` discharges from
 -- three already-proven theorems (`process-edges-equivariantˢ`,
 -- `stack-sepˢ`/`term-sepᵛ`, `box-conjᵛ`/`block-swap-comm`; see the derivation's
--- header there), and by instantiating the deferred Kelly residual `permˢ-K` at
--- the concrete `Strict.Perm.PermK.permˢ-K`.
+-- header there).
 --
 -- ZERO postulates, `--safe --without-K`.
 --------------------------------------------------------------------------------
@@ -26,32 +25,16 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorKBlockFinal
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorBraid sig _≟X_ as TB
 
 --------------------------------------------------------------------------------
-
-module _
-  (permˢ-K : ∀ (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X)
-           → Support.PermK V vlab)
-  where
-
-  module _ {A B C D : ObjTerm} (f : HomTerm A B) (g : HomTerm C D) where
-    private
-      module Brd = TB.Braid permˢ-K {A} {B} {C} {D} f g
-
-    decodePˢ-⊗ : decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
-    decodePˢ-⊗ = Brd.decodePˢ-⊗-cond Brd.Reconcile-e.kblockσ
-
---------------------------------------------------------------------------------
--- ## The UNCONDITIONAL ⊗-shape at the CONCRETE Kelly residual `PK.permˢ-K`
--- (axiom-free, discharged by `Strict.Perm.PermK` ⇐ `Strict.Perm.Braid`).  This has
--- the EXACT type of `PartI`'s / `Soundness`'s `decodePˢ-⊗` parameter, so
--- it closes the last residual of the strict soundness assembly.
-
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
+-- ## The UNCONDITIONAL ⊗-shape.  `TensorBraid` supplies the conditional shape
+-- and `Reconcile-e.kblockσ` its last hypothesis; this has the EXACT type of
+-- `PartI`'s / `Strict.Soundness`'s `decodePˢ-⊗` parameter, so it closes the
+-- last residual of the strict soundness assembly.
 
 decodePˢ-⊗-concrete
   : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
   → decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
-decodePˢ-⊗-concrete f g = decodePˢ-⊗ PK.permˢ-K f g
+decodePˢ-⊗-concrete f g = Brd.decodePˢ-⊗-cond Brd.Reconcile-e.kblockσ
+  where module Brd = TB.Braid f g
