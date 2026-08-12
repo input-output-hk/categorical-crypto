@@ -95,8 +95,9 @@ module FCore (v : Variant) {X : Set}
     syntax stepF-≈˘ f gh gf = f ≈F⟨ gf ⟨ gh
 
 ------------------------------------------------------------------------
--- FinSig: the shared Fin-indexed signature prelude for the call-site
--- wrappers (`FinSetup` / `FinSetupσ`).
+-- FinSig: the Fin-indexed signature prelude for the call-site wrapper
+-- `FinSetup`.  (It was shared with `FinSetupσ` until the σ arm of this solver
+-- was deleted; `FinSetup` is the only wrapper left.)
 --
 -- The generator family `GenS` is a `Fin nG`-indexed data family at the
 -- ObjTerm arities — crucially NOT parametrized by any target category, so a
@@ -656,8 +657,9 @@ module FSolve
       open FF.Rewrite C ⟦_⟧ₒ ⟦_⟧₁ solveMor! plugCong public using (rewriteMor!; rewriteMorₙ!; rewriteMorAuto!)
 
 ------------------------------------------------------------------------
--- FinSetupCore: the shared body of the two call-site convenience wrappers
--- (`Frontend.FinSetup` / `Frontend.Sigma.FinSetupσ`).
+-- FinSetupCore: the body of the call-site convenience wrapper
+-- `Frontend.FinSetup`.  (It was the shared body of two wrappers until the σ
+-- arm — `Frontend.Sigma.FinSetupσ` — was deleted.)
 --
 -- From a target monoidal category `C` (with the variant's symmetric
 -- structure `sym`) and a `Vec` of object atoms it exposes the object
@@ -665,7 +667,8 @@ module FSolve
 -- assembles the Fin-indexed signature (`FinSig`) and runs the full
 -- `FSolve`/`Into`/`WithGen` pipeline uniformly in the `Variant`.  The only
 -- genuinely variant-specific input is the per-arity decision builder
--- `decide?F`, supplied by each wrapper's front-end (`Frontend`/`FrontendS`).
+-- `decide?F`, supplied by the wrapper's front-end (`Frontend`; the σ arm's
+-- `FrontendS` is gone).
 -- The crux that makes this sound: running `FinSig v arity` here yields the
 -- SAME `GenS`/`S` as the wrapper's own `FinSig v arity` (module application
 -- is non-generative), so the wrapper's `decide?F` matches the `S.HomTerm`

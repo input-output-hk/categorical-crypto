@@ -145,8 +145,8 @@ module Frontend
 -- assembles the signature, decidable equalities and rank, exposing the term
 -- language `S`, the embedding `gen`, the object interpretation `⟦_⟧ₒ` and —
 -- after `WithGen` supplies the generator interpretations — `solveMor!`.
--- (Mirror of `Frontend.Sigma`'s `FinSetupσ`.  The entry points in
--- `Categories.Coherence.Monoidal` go through these wrappers; the negative
+-- (The only such wrapper since the σ arm's `FinSetupσ` was deleted.  The
+-- entry points in `Categories.Coherence.Monoidal` go through it; the negative
 -- test suites instead open `Frontend`/`Decide` directly, to state
 -- `decide?F … ≡ nothing` boundaries.)
 --------------------------------------------------------------------------------

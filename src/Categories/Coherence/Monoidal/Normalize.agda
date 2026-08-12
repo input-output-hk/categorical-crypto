@@ -111,10 +111,10 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v)
         (yes sy≡) →
           just (leftFit py mid sx (trans px≡ (cong (py ++_) r1≡)) refl refl sy≡)
 
-    -- Both `Frontend.Decide` and `Sigma.Decideσ` run the same
-    -- fuel-driven bubble-sort loop around a per-position oracle; this factors
-    -- out everything INDEPENDENT of that oracle, each `Decide` passing its own
-    -- `step?` to `normFuelWith`.
+    -- `Frontend.Decide` runs a fuel-driven bubble-sort loop around a
+    -- per-position oracle; this factors out everything INDEPENDENT of that
+    -- oracle, `Decide` passing its own `step?` to `normFuelWith`.  (The
+    -- factoring was shared with the σ arm's `Decideσ`, since deleted.)
 
     -- AMBIGUOUS when the reverse pair would also fit (ax ≡ [] ∧ by ≡ [] ∧
     -- mid ≡ []); such pairs are ordered by rank instead.
@@ -275,10 +275,10 @@ module NormalizeI {v : Variant} {X : Set} (E : WireEngine v)
     -- The generic traversal + fuel loop, parametrized by the primitive-step
     -- family `Prim`: `stepWith` turns a prim-level per-position oracle into a
     -- single `_⤳D_` rewrite (wrapping `prim` at the hit, `consᴰ` down the
-    -- spine); `normFuelWith` chains a bounded run of them with `transᴰ`.  Each
-    -- front-end instantiates `Prim` (Mon: `PrimSwap`; σ: `Sigma.PrimSigma`) and
-    -- turns the resulting `_⤳D_` trace into a semantic witness with the single
-    -- soundness induction `⤳D-sound`.
+    -- spine); `normFuelWith` chains a bounded run of them with `transᴰ`.  The
+    -- front-end instantiates `Prim` (`PrimSwap`; the σ arm's `PrimSigma` is
+    -- gone) and turns the resulting `_⤳D_` trace into a semantic witness with
+    -- the single soundness induction `⤳D-sound`.
     module Steps (Prim : ∀ {n k} → Diag n k → Diag n k → Set) where
       open DClosure Prim public
 
