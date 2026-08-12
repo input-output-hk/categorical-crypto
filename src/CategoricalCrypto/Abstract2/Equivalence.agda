@@ -37,6 +37,10 @@ import Relation.Binary.Reasoning.Setoid as SetoidR
 
 open import Categories.Category.Monoidal
 open import Categories.CoherenceIsos
+open import Categories.Functor hiding (id)
+import Categories.GradedKleisli as GK
+import Categories.LocallyGraded.FreeActegory as FA
+import Categories.LocallyGraded.FreeActegory.Kleisli as FAK
 
 open AbstractUC setup
 
@@ -183,11 +187,18 @@ oap⇔ᵁ gs {f = f} {g = g} = mk⇔ fwd (ᵁ⇒oap {f = f} {g = g})
         fwd f≤g = bare⇒ᵁ gs (oap⇒bare {f = f} {g = g} f≤g)
 
 ------------------------------------------------------------------------
--- The ⌈_⌉ counterparts: ⌊_⌋ retracts ⌈_⌉
+-- The ⌈_⌉ counterparts: ⌊_⌋ and ⌈_⌉ are mutually inverse
 ------------------------------------------------------------------------
 
 ⌊⌈⌉⌋-id : (x : A 𝒞.⇒ T₀ X B) → ⌊ ⌈ x ⌉ ⌋ 𝒞.≈ x
-⌊⌈⌉⌋-id x = let open 𝒞 in elimˡ (sub-resp-≈ ℐ.unitorˡ.isoʳ ○ sub-identity)
+⌊⌈⌉⌋-id = FA.flatten-unflatten naiveKleisli
+
+ι⌈⌊⌋⌉-id : (x : Prot A B J) → ι ⌈ ⌊ x ⌋ ⌉ OAPᶜ.≈ ι x
+ι⌈⌊⌋⌉-id x = OAPᶜ.Equiv.trans
+  (GK.≈-components 𝒞 ℐ ℳ
+    (𝒞.∘-resp-≈ˡ (sub-resp-≈ (ℐ.∘-resp-≈ˡ (ℐ.Equiv.sym ℐ.identityʳ)))) ℐ.identityʳ)
+  (Functor.F-resp-≈ (FAK.fromFreeActegory 𝒞 ℐ ℳ)
+    (FA.unflatten-flatten naiveKleisli (ι x)))
 
 oap⇒bare-⌈⌉ : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B} → ⌈ f ⌉ OAP.≤UC ⌈ g ⌉ → f ≤UCᵇ g
 oap⇒bare-⌈⌉ {f = f} {g = g} f≤g =

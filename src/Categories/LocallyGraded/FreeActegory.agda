@@ -74,9 +74,8 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
        → Bifunctor (Category.op ℐ.U) ℐ.U (Setoids (ℓ ⊔ ℓ′) (e ⊔ e′))
   GHom i j A B = HomF L A B ×ᵈ Fit i j
 
-  private
-    ∮hom : (X Y : ℐ.Obj × L.Obj) → Setoid (o ⊔ ℓ ⊔ ℓ′) (o ⊔ ℓ ⊔ ℓ′ ⊔ e ⊔ e′)
-    ∮hom (i , A) (j , B) = SetoidCoend.∫ (GHom i j A B)
+  ∮hom : (X Y : ℐ.Obj × L.Obj) → Setoid (o ⊔ ℓ ⊔ ℓ′) (o ⊔ ℓ ⊔ ℓ′ ⊔ e ⊔ e′)
+  ∮hom (i , A) (j , B) = SetoidCoend.∫ (GHom i j A B)
 
   ∮Elt : (X Y : ℐ.Obj × L.Obj) → Set (o ⊔ ℓ ⊔ ℓ′)
   ∮Elt X Y = Setoid.Carrier (∮hom X Y)
@@ -413,4 +412,105 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
                        S.∘ (S.id S.⊗₁ (S.ρ⇐ S.∘ S.λ⇒) S.∘ S.α⇒)
                        S.∘ ((S.ρ⇐ S.∘ S.λ⇒) S.⊗₁ S.id) S.∘ S.α⇐)
                     (S.ρ⇐ {V (# 0) ⊗ᵒ V (# 1)} S.∘ S.λ⇒)) )
+    }
+
+  --------------------------------------------------------------------------------
+  -- η∮ is fully faithful
+  --------------------------------------------------------------------------------
+
+  private variable
+    i i′ : ℐ.Obj
+    A B : L.Obj
+
+  flatten : ∮Elt (ℐ.unit , A) (i , B) → L.Hom i A B
+  flatten (k , f , α) = L.sub[ α ℐᵁ.∘ λ⇐ ] f
+
+  unflatten : L.Hom i A B → ∮Elt (ℐ.unit , A) (i , B)
+  unflatten {i = i} f = i , f , λ⇒
+
+  flatten-resp-≈ : {x y : ∮Elt (ℐ.unit , A) (i , B)} → x ≈∮ y → flatten x L.≈ flatten y
+  flatten-resp-≈ {A = A} {i = i} {B = B} = Func.cong (SetoidCoend.copair (GHom ℐ.unit i A B)
+    {S = F₀ (HomF L A B) i} record
+    { at        = λ k → record
+        { to   = λ (f , α) → L.sub[ α ℐᵁ.∘ λ⇐ ] f
+        ; cong = λ (f≈ , α≈) → L.sub-resp-≈ (ℐᵁ.∘-resp-≈ˡ α≈) f≈ }
+    ; dinatural = λ φ (w , ω) →
+        L.Equiv.trans (L.sub-resp-≈ ℐᵁ.Equiv.refl L.sub-identity)
+          (L.Equiv.trans
+            (L.sub-resp-≈
+              (let open ℐᵁ in
+               ⟺ (((elimʳ (identity (ℐ.unit ⊗-)) ⟩∘⟨refl) ⟩∘⟨refl) ○ assoc
+                    ○ (refl⟩∘⟨ ℐ.unitorˡ-commute-to) ○ sym-assoc))
+              L.Equiv.refl)
+            L.sub-homomorphism)
+    })
+
+  unflatten-resp-≈ : {f g : L.Hom i A B} → f L.≈ g → unflatten f ≈∮ unflatten g
+  unflatten-resp-≈ f≈ = ι-resp f≈ ℐᵁ.Equiv.refl
+
+  flatten-unflatten : (f : L.Hom i A B) → flatten (unflatten f) L.≈ f
+  flatten-unflatten f =
+    L.Equiv.trans (L.sub-resp-≈ ℐ.unitorˡ.isoʳ L.Equiv.refl) L.sub-identity
+
+  unflatten-flatten : (x : ∮Elt (ℐ.unit , A) (i , B)) → unflatten (flatten x) ≈∮ x
+  unflatten-flatten (k , f , α) = ∮C.Equiv.sym (return
+    ( α ℐᵁ.∘ λ⇐
+    , (f , λ⇒)
+    , ( L.sub-identity
+      , (let open ℐᵁ in ℐ.unitorˡ-commute-from ○ assoc ○ elimʳ ℐ.unitorˡ.isoˡ) )
+    , ( L.Equiv.refl , ℐᵁ.elimʳ (identity (ℐ.unit ⊗-)) ) ))
+
+  flatten-inverse : Inverse (∮hom (ℐ.unit , A) (i , B)) (F₀ (HomF L A B) i)
+  flatten-inverse = record
+    { to        = flatten
+    ; from      = unflatten
+    ; to-cong   = flatten-resp-≈
+    ; from-cong = unflatten-resp-≈
+    ; inverse   = (λ y≈ → L.Equiv.trans (flatten-resp-≈ y≈) (flatten-unflatten _))
+                , (λ y≈ → ∮C.Equiv.trans (unflatten-resp-≈ y≈) (unflatten-flatten _))
+    }
+
+  flatten-reindex : (c : i ℐᵁ.⇒ i′) (x : ∮Elt (ℐ.unit , A) (i , B))
+                  → flatten (reindex c ∘∮ x) L.≈ L.sub[ c ] (flatten x)
+  flatten-reindex c (k , f , α) = L.Equiv.trans (flatten-resp-≈ (reindex-∘ˡ c f α))
+    (L.Equiv.trans (L.sub-resp-≈ ℐᵁ.assoc L.Equiv.refl) L.sub-homomorphism)
+
+  unflatten-sub : (c : i ℐᵁ.⇒ i′) (f : L.Hom i A B)
+                → unflatten (L.sub[ c ] f) ≈∮ reindex c ∘∮ unflatten f
+  unflatten-sub c f = ∮C.Equiv.sym (∮C.Equiv.trans (reindex-∘ˡ c f λ⇒) (return
+    ( c
+    , (f , λ⇒)
+    , ( L.sub-identity , ℐ.unitorˡ-commute-from )
+    , ( L.Equiv.refl , ℐᵁ.elimʳ (identity (ℐ.unit ⊗-)) ) )))
+
+  private module η = LocallyGradedFunctor η∮
+
+  unflatten-η∮ : (f : L.Hom i A B) → unflatten f ≈∮ reindex ρ⇒ ∘∮ η.F₁ f
+  unflatten-η∮ f = ∮C.Equiv.sym (∮C.Equiv.trans (reindex-∘ˡ ρ⇒ f (ρ⇐ ℐᵁ.∘ λ⇒))
+    (ι-resp L.Equiv.refl (ℐᵁ.cancelˡ ℐ.unitorʳ.isoʳ)))
+
+  η∮-unflatten : (f : L.Hom i A B) → reindex ρ⇐ ∘∮ unflatten f ≈∮ η.F₁ f
+  η∮-unflatten f = reindex-∘ˡ ρ⇐ f λ⇒
+
+  η∮-faithful : (f : L.Hom i A B) → flatten (reindex ρ⇒ ∘∮ η.F₁ f) L.≈ f
+  η∮-faithful f = L.Equiv.trans (flatten-resp-≈ (∮C.Equiv.sym (unflatten-η∮ f)))
+                                (flatten-unflatten f)
+
+  η∮-full : (x : ∮Elt (ℐ.unit , A) (i ⊗₀ ℐ.unit , B))
+          → η.F₁ (flatten (reindex ρ⇒ ∘∮ x)) ≈∮ x
+  η∮-full x = let open ∮C.HomReasoning in
+    ⟺ (η∮-unflatten _)
+      ○ ∮C.∘-resp-≈ʳ (unflatten-flatten (reindex ρ⇒ ∘∮ x))
+      ○ ∮C.sym-assoc
+      ○ ∮C.∘-resp-≈ˡ (reindex-∘ ρ⇐ ρ⇒ ○ reindex-resp-≈ ℐ.unitorʳ.isoˡ ○ reindex-id)
+      ○ ∮C.identityˡ
+
+  η∮-fully-faithful : Inverse (F₀ (HomF L A B) i) (∮hom (ℐ.unit , A) (i ⊗₀ ℐ.unit , B))
+  η∮-fully-faithful = record
+    { to        = η.F₁
+    ; from      = λ x → flatten (reindex ρ⇒ ∘∮ x)
+    ; to-cong   = η.F-resp-≈
+    ; from-cong = λ x≈ → flatten-resp-≈ (∮C.∘-resp-≈ʳ x≈)
+    ; inverse   = (λ y≈ → ∮C.Equiv.trans (η.F-resp-≈ y≈) (η∮-full _))
+                , (λ y≈ → L.Equiv.trans (flatten-resp-≈ (∮C.∘-resp-≈ʳ y≈)) (η∮-faithful _))
     }
