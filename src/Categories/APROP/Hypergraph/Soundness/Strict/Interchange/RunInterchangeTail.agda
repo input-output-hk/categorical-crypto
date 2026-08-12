@@ -201,7 +201,9 @@ module _ (H : Hypergraph FlatGen)
           (≈-trans
             (∘-resp eqv run-eq₀)
             (≈-trans
-              reassoc
+              -- reassociate into `… ∘ˢ (… ∘ˢ ((p⁻¹ ∘ˢ p) ∘ˢ …))`; both
+              -- endpoints are pinned by the neighbouring steps.
+              (pullʳ (pullʳ (≈-sym assocˢ)))
               (∘-resp ≈-refl
                 (≈-trans
                   (∘-resp ≈-refl
@@ -209,14 +211,3 @@ module _ (H : Hypergraph FlatGen)
                       (∘-resp (pvv-inverse-leftˢ r₀) ≈-refl)
                       idˡ))
                   split₁))))
-        where
-          reassoc
-            : ( ( permuteˢ (Perm.↭-sym ρf)
-                    ∘ˢ ( pe-termˢ qs A ∘ˢ permuteˢ (Perm.↭-sym r₀) ) )
-                ∘ˢ ( permuteˢ r₀ ∘ˢ pe-termˢ (e ∷ e' ∷ []) sp ) )
-              ≈ˢ
-              ( permuteˢ (Perm.↭-sym ρf)
-                  ∘ˢ ( pe-termˢ qs A
-                      ∘ˢ ( ( permuteˢ (Perm.↭-sym r₀) ∘ˢ permuteˢ r₀ )
-                          ∘ˢ pe-termˢ (e ∷ e' ∷ []) sp ) ) )
-          reassoc = pullʳ (pullʳ (≈-sym assocˢ))
