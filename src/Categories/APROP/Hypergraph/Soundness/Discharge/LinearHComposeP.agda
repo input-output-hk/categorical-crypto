@@ -397,16 +397,10 @@ module _
   ...                | refl = bound-raise j
 
   ------------------------------------------------------------------------
-  -- The pruned composition preserves linearity.
+  -- The pruned composition preserves linearity.  The section's parameters
+  -- ARE this module's public face: applied, its type is
+  --   (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
+  --   → Linear G → Linear K → Linear (hComposeP G K bdy-eq).
 
-  Linear-hComposeP-internal : Linear (hComposeP G K bdy-eq)
-  Linear-hComposeP-internal = balance , bound
-
---------------------------------------------------------------------------------
--- Public face.
-
-Linear-hComposeP
-  : (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
-  → Linear G → Linear K
-  → Linear (hComposeP G K bdy-eq)
-Linear-hComposeP G K bdy-eq lin-G lin-K = Linear-hComposeP-internal G K bdy-eq lin-G lin-K
+  Linear-hComposeP : Linear (hComposeP G K bdy-eq)
+  Linear-hComposeP = balance , bound
