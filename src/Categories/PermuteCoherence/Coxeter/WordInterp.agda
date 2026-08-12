@@ -40,7 +40,7 @@ open import Categories.PermuteCoherence.FinBij
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 
 open import Categories.PermuteCoherence.Coxeter.EvalSoundness
-  using ( cons-fb-functor-id )
+  using ( cons²-fb-id )
 
 private
   variable
@@ -151,9 +151,7 @@ gen-eval {suc n} 0F (a ∷ b ∷ rest) len k =
                 {f = cons-fb (cons-fb (id-fb {n = length rest}))}
                 {f′ = id-fb {n = suc (suc (length rest))}}
                 (λ _ → refl)
-                -- cons-fb (cons-fb id-fb) ≈ id-fb, chained pointwise.
-                (λ p → trans (cons-fb-cong (cons-fb-functor-id {n = length rest}) p)
-                             (cons-fb-functor-id {n = suc (length rest)} p))
+                (cons²-fb-id {n = length rest})
                 j
 -- `fsuc i`: recode both of the goal's length proofs into the `cong suc`
 -- shape `cons-cast` wants (free, by `cast-irr`), move the cast through

@@ -47,8 +47,8 @@ open import Categories.PermuteCoherence.FinBij
   using (FinBij; _≈-fb_; cons-fb; swap-fb; id-fb; _∘-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.Coxeter.EvalSoundness
-  using ( cons-fb-functor-id; cons-fb-functor-comp; swap-fb-involutive
-        ; swap-fb-natural; yang-baxter )
+  using ( cons-fb-functor-id; cons²-fb-id; cons-fb-functor-comp
+        ; swap-fb-involutive; swap-fb-natural; yang-baxter )
 -- The Word model (position level) and its list-level interpretation.
 open import Categories.PermuteCoherence.Coxeter.Word
   using ( Word; liftW; _~ʷ_; ~refl; ~sym; ~trans; ∷c; c1; c2; c3
@@ -134,14 +134,8 @@ data _≅↭ⁱ_ : {xs ys : List X} → xs ↭ ys → xs ↭ ys → Set where
 -- (below) is the COMBINATORIAL core.  Together they give `_≅↭ⁱ_ ⟺ _≅↭_`.
 
 private
-  -- cons² of the identity is the identity.
-  cons²-id : ∀ {n} → cons-fb (cons-fb (id-fb {n})) ≈-fb id-fb {suc (suc n)}
-  cons²-id 0F            = refl
-  cons²-id (fsuc 0F)     = refl
-  cons²-id (fsuc (fsuc i)) = refl
-
   sw∘c≈sw : ∀ {n} → swap-fb n ∘-fb cons-fb (cons-fb (id-fb {n})) ≈-fb swap-fb n
-  sw∘c≈sw {n} i = cong (swap-fb n P.⟨$⟩ʳ_) (cons²-id {n} i)
+  sw∘c≈sw {n} i = cong (swap-fb n P.⟨$⟩ʳ_) (cons²-fb-id {n} i)
 
 sound : {p q : xs ↭ ys} → p ≅↭ⁱ q → eval-↭ p ≈-fb eval-↭ q
 sound iref          = λ i → refl
@@ -159,16 +153,16 @@ sound (prep-tr {p = p} {q = q}) =
   cons-fb-functor-comp (eval-↭ q) (eval-↭ p)
 sound (swap-nat {p = p}) =
   λ i → cong (swap-fb _ P.⟨$⟩ʳ_)
-             (sym (cons²-id (cons-fb (cons-fb (eval-↭ p)) P.⟨$⟩ʳ i)))
+             (sym (cons²-fb-id (cons-fb (cons-fb (eval-↭ p)) P.⟨$⟩ʳ i)))
 sound (swap-nat-left {p = p}) =
   λ i → trans (swap-fb-natural (eval-↭ p) i)
               (cong (cons-fb (cons-fb (eval-↭ p)) P.⟨$⟩ʳ_)
-                    (cong (swap-fb _ P.⟨$⟩ʳ_) (sym (cons²-id i))))
+                    (cong (swap-fb _ P.⟨$⟩ʳ_) (sym (cons²-fb-id i))))
 sound (swap-invol {xs = xs}) i =
   trans (cong (swap-fb (length xs) P.⟨$⟩ʳ_)
-              (trans (cons²-id (swap-fb (length xs)
+              (trans (cons²-fb-id (swap-fb (length xs)
                         P.⟨$⟩ʳ (cons-fb (cons-fb (id-fb {length xs})) P.⟨$⟩ʳ i)))
-                     (cong (swap-fb (length xs) P.⟨$⟩ʳ_) (cons²-id i))))
+                     (cong (swap-fb (length xs) P.⟨$⟩ʳ_) (cons²-fb-id i))))
         (swap-fb-involutive {length xs} i)
 -- `swap-braid` is proved POINTWISE (at a fixed index `i`): `≈-fb` only
 -- constrains the FORWARD map, so a combinator-style proof would leave
@@ -183,7 +177,7 @@ sound (swap-braid {xs = xs}) i =
   c2s = cons-fb (cons-fb (id-fb {suc L}))           -- collapsible `cons²(id)`
   D  = cons-fb (swap-fb L ∘-fb cons-fb (cons-fb (id-fb {L})))
   ccx : ∀ k → c2s P.⟨$⟩ʳ k ≡ k
-  ccx = cons²-id {suc L}
+  ccx = cons²-fb-id {suc L}
   collM : ∀ k → D P.⟨$⟩ʳ k ≡ cs P.⟨$⟩ʳ k            -- inner lift collapses
   collM = cons-fb-cong (sw∘c≈sw {L})
   -- LHS at `i` reduces to YB-LHS.

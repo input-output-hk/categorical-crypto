@@ -29,6 +29,15 @@ private
 cons-fb-functor-id : cons-fb (id-fb {n = n}) ≈-fb id-fb {n = suc n}
 cons-fb-functor-id = P.lift₀-id
 
+-- `cons-fb` twice on the identity: needed by `WordInterp.gen-eval`'s base
+-- case and by six sites of `FaithfulnessInductive.sound`.  By cases, not by
+-- chaining `cons-fb-functor-id` — chaining wants `Word.cons-fb-cong`, and
+-- `Word` imports THIS module.
+cons²-fb-id : cons-fb (cons-fb (id-fb {n = n})) ≈-fb id-fb {n = suc (suc n)}
+cons²-fb-id 0F            = refl
+cons²-fb-id (suc 0F)      = refl
+cons²-fb-id (suc (suc i)) = refl
+
 cons-fb-functor-comp : ∀ {n m k} (g : FinBij m k) (f : FinBij n m) →
                        cons-fb (g ∘-fb f) ≈-fb cons-fb g ∘-fb cons-fb f
 cons-fb-functor-comp g f i = sym (P.lift₀-comp f g i)
