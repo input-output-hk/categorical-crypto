@@ -180,22 +180,17 @@ private
   -- T a [] ∘ ρ⇐  collapses to a pure cast
   TR : ∀ a → T a [] ∘ ρ⇐ ≈Term subst-id-cod (sym (++-identityʳ a))
   TR [] = begin λ⇒ ∘ ρ⇐    ≈⟨ coherence₃ ⟩∘⟨refl ⟩ ρ⇒ ∘ ρ⇐    ≈⟨ ρ⇒∘ρ⇐≈id ⟩ id ∎
-  TR (x ∷ a) = begin
-    ((id ⊗₁ T a []) ∘ α⇒) ∘ ρ⇐
-      ≈⟨ FM.assoc ⟩
-    (id ⊗₁ T a []) ∘ (α⇒ ∘ ρ⇐)
-      ≈⟨ refl⟩∘⟨ ρ⇐-tri ⟩
-    (id ⊗₁ T a []) ∘ (id ⊗₁ ρ⇐)
-      ≈⟨ ≈-Term-sym ⊗-∘-dist ⟩
-    (id ∘ id) ⊗₁ (T a [] ∘ ρ⇐)
-      ≈⟨ ⊗-resp-≈ idˡ (TR a) ⟩
-    id ⊗₁ subst-id-cod (sym (++-identityʳ a))
-      ≈⟨ subst-cod-cons (sym (++-identityʳ a)) ⟩
-    subst-id-cod (cong (x ∷_) (sym (++-identityʳ a)))
-      ≈⟨ ≡⇒≈Term (cong subst-id-cod
-           (uipL (cong (x ∷_) (sym (++-identityʳ a)))
-                 (sym (++-identityʳ (x ∷ a))))) ⟩
-    subst-id-cod (sym (++-identityʳ (x ∷ a))) ∎
+  TR (x ∷ a) =
+    -- reassociate onto the ρ-triangle, fold the two right frames, recurse,
+    -- then re-spell the cons cast by UIP
+    FM.assoc
+    ○ (refl⟩∘⟨ ρ⇐-tri)
+    ○ ≈-Term-sym ⊗-∘-dist
+    ○ ⊗-resp-≈ idˡ (TR a)
+    ○ subst-cod-cons (sym (++-identityʳ a))
+    ○ ≡⇒≈Term (cong subst-id-cod
+        (uipL (cong (x ∷_) (sym (++-identityʳ a)))
+              (sym (++-identityʳ (x ∷ a)))))
 
   -- its inverse composite, by uniqueness of inverses
   FR : ∀ a → ρ⇒ ∘ F a [] ≈Term subst-id-dom (sym (++-identityʳ a))
@@ -435,56 +430,30 @@ module EmbRespFull where
   emb-resp-≈ˢ idʳ              = idʳ
   emb-resp-≈ˢ assocˢ           = FM.assoc
   -- to ∘ (id ⊗ id) ∘ from  ≈  id
-  emb-resp-≈ˢ (⊗-id {xs} {us}) = begin
-    T xs us ∘ (id ⊗₁ id) ∘ F xs us
-      ≈⟨ refl⟩∘⟨ (id⊗id≈id ⟩∘⟨refl) ⟩
-    T xs us ∘ id ∘ F xs us
-      ≈⟨ refl⟩∘⟨ idˡ ⟩
-    T xs us ∘ F xs us
-      ≈⟨ _≅_.isoˡ (unflatten-++-≅ xs us) ⟩
-    id ∎
+  emb-resp-≈ˢ (⊗-id {xs} {us}) =
+    (refl⟩∘⟨ (id⊗id≈id ⟩∘⟨refl)) ○ (refl⟩∘⟨ idˡ)
+    ○ _≅_.isoˡ (unflatten-++-≅ xs us)
   -- (T∘(a⊗b)∘F) ∘ (T∘(c⊗d)∘F)  ≈  T∘((a∘c)⊗(b∘d))∘F
-  emb-resp-≈ˢ (interchangeˢ {xs} {ys} {zs} {us} {vs} {ws} {a} {b} {c} {d}) = begin
-    (T zs ws ∘ (emb a ⊗₁ emb b) ∘ F ys vs)
-      ∘ (T ys vs ∘ (emb c ⊗₁ emb d) ∘ F xs us)
-      ≈⟨ cancel-mid-iso (T zs ws) (emb a ⊗₁ emb b) (F ys vs)
-           (T ys vs) (emb c ⊗₁ emb d) (F xs us)
-           (_≅_.isoʳ (unflatten-++-≅ ys vs)) ⟩
-    T zs ws ∘ (emb a ⊗₁ emb b) ∘ (emb c ⊗₁ emb d) ∘ F xs us
-      ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-    T zs ws ∘ ((emb a ⊗₁ emb b) ∘ (emb c ⊗₁ emb d)) ∘ F xs us
-      ≈⟨ refl⟩∘⟨ (≈-Term-sym ⊗-∘-dist ⟩∘⟨refl) ⟩
-    T zs ws ∘ ((emb a ∘ emb c) ⊗₁ (emb b ∘ emb d)) ∘ F xs us ∎
+  emb-resp-≈ˢ (interchangeˢ {xs} {ys} {zs} {us} {vs} {ws} {a} {b} {c} {d}) =
+    cancel-mid-iso _ _ _ _ _ _ (_≅_.isoʳ (unflatten-++-≅ ys vs))
+    ○ (refl⟩∘⟨ FM.sym-assoc)
+    ○ (refl⟩∘⟨ (≈-Term-sym ⊗-∘-dist ⟩∘⟨refl))
   emb-resp-≈ˢ (⊗-assocˢ f g h) = ⊗-assoc-case f g h
   emb-resp-≈ˢ (⊗-unitʳˢ f)     = ⊗-unitʳ-case f
   -- (T∘σ∘F) ∘ (T∘(f⊗g)∘F)  ≈  (T∘(g⊗f)∘F) ∘ (T∘σ∘F)
-  emb-resp-≈ˢ (σ-natˢ {xs} {ys} {us} {vs} {f} {g}) = begin
-    (T vs ys ∘ σ ∘ F ys vs) ∘ (T ys vs ∘ (emb f ⊗₁ emb g) ∘ F xs us)
-      ≈⟨ cancel-mid-iso (T vs ys) σ (F ys vs) (T ys vs)
-           (emb f ⊗₁ emb g) (F xs us) (_≅_.isoʳ (unflatten-++-≅ ys vs)) ⟩
-    T vs ys ∘ σ ∘ (emb f ⊗₁ emb g) ∘ F xs us
-      ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-    T vs ys ∘ (σ ∘ (emb f ⊗₁ emb g)) ∘ F xs us
-      ≈⟨ refl⟩∘⟨ (σ∘[f⊗g]≈[g⊗f]∘σ ⟩∘⟨refl) ⟩
-    T vs ys ∘ ((emb g ⊗₁ emb f) ∘ σ) ∘ F xs us
-      ≈⟨ refl⟩∘⟨ FM.assoc ⟩
-    T vs ys ∘ (emb g ⊗₁ emb f) ∘ σ ∘ F xs us
-      ≈⟨ ≈-Term-sym (cancel-mid-iso (T vs ys) (emb g ⊗₁ emb f) (F us xs)
-           (T us xs) σ (F xs us) (_≅_.isoʳ (unflatten-++-≅ us xs))) ⟩
-    (T vs ys ∘ (emb g ⊗₁ emb f) ∘ F us xs) ∘ (T us xs ∘ σ ∘ F xs us) ∎
+  emb-resp-≈ˢ (σ-natˢ {xs} {ys} {us} {vs} {f} {g}) =
+    cancel-mid-iso _ _ _ _ _ _ (_≅_.isoʳ (unflatten-++-≅ ys vs))
+    ○ (refl⟩∘⟨ FM.sym-assoc)
+    ○ (refl⟩∘⟨ (σ∘[f⊗g]≈[g⊗f]∘σ ⟩∘⟨refl))
+    ○ (refl⟩∘⟨ FM.assoc)
+    ○ ≈-Term-sym (cancel-mid-iso (T vs ys) (emb g ⊗₁ emb f) (F us xs)
+        (T us xs) σ (F xs us) (_≅_.isoʳ (unflatten-++-≅ us xs)))
   -- (T∘σ∘F) ∘ (T∘σ∘F)  ≈  id
-  emb-resp-≈ˢ (σ-σˢ {xs} {ys}) = begin
-    (T xs ys ∘ σ ∘ F ys xs) ∘ (T ys xs ∘ σ ∘ F xs ys)
-      ≈⟨ cancel-mid-iso (T xs ys) σ (F ys xs) (T ys xs) σ (F xs ys)
-           (_≅_.isoʳ (unflatten-++-≅ ys xs)) ⟩
-    T xs ys ∘ σ ∘ σ ∘ F xs ys
-      ≈⟨ refl⟩∘⟨ FM.sym-assoc ⟩
-    T xs ys ∘ (σ ∘ σ) ∘ F xs ys
-      ≈⟨ refl⟩∘⟨ (σ∘σ≈id ⟩∘⟨refl) ⟩
-    T xs ys ∘ id ∘ F xs ys
-      ≈⟨ refl⟩∘⟨ idˡ ⟩
-    T xs ys ∘ F xs ys
-      ≈⟨ _≅_.isoˡ (unflatten-++-≅ xs ys) ⟩
-    id ∎
+  emb-resp-≈ˢ (σ-σˢ {xs} {ys}) =
+    cancel-mid-iso _ _ _ _ _ _ (_≅_.isoʳ (unflatten-++-≅ ys xs))
+    ○ (refl⟩∘⟨ FM.sym-assoc)
+    ○ (refl⟩∘⟨ (σ∘σ≈id ⟩∘⟨refl))
+    ○ (refl⟩∘⟨ idˡ)
+    ○ _≅_.isoˡ (unflatten-++-≅ xs ys)
   emb-resp-≈ˢ (σ-hexˢ xs ys zs) = σ-hex-case xs ys zs
   emb-resp-≈ˢ (σ-unitˢ xs)      = σ-unit-case xs
