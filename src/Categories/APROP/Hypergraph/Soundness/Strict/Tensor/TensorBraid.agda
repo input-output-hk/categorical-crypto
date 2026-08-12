@@ -611,22 +611,15 @@ module _
                 (≈ˢ⇒≈̂ (≈-trans interchangeˢ (⊗-resp idˡ idʳ)))
 
       ------------------------------------------------------------------
-      -- ### `Gc ⊗ Kc` decomposition 1: to the sub-decoder cores.
-      --
-      -- `cast-⊗-both` (the two-sided cast pull-out across `⊗`) is now the kit
-      -- combinator from `FreeStrictSMC`; it splits `cast (h ⊗ k)`, so the
-      -- fuse direction used here is its `sym`.
+      -- ### The two block twins, HETEROGENEOUSLY.  `_≈̂_` carries the φ
+      -- boundary proofs inside the relation, so neither the two `cong₂ _++_`
+      -- endpoint pairs nor `cast-⊗-both` is ever named.
 
-      GcKc→dec
-        : Gc ⊗ˢ Kc
-          ≈ˢ castˢ (cong₂ _++_ (sym φGdom) (sym φKdom))
-                   (cong₂ _++_ (sym φGcod) (sym φKcod))
-              (decf-inner ⊗ˢ decg-inner)
-      GcKc→dec =
-        ≈-trans (⊗-resp (cast-flip φGdom φGcod Gc-twin)
-                        (cast-flip φKdom φKcod Kc-twin))
-                (≡⇒≈ˢ (sym (cast-⊗-both (sym φGdom) (sym φGcod) (sym φKdom) (sym φKcod)
-                             decf-inner decg-inner)))
+      Gc-≈̂ : Gc ≈̂ decf-inner
+      Gc-≈̂ = ≈̂-trans (≈̂-sym (cast-≈̂ {p = φGdom} {q = φGcod})) (≈ˢ⇒≈̂ Gc-twin)
+
+      Kc-≈̂ : Kc ≈̂ decg-inner
+      Kc-≈̂ = ≈̂-trans (≈̂-sym (cast-≈̂ {p = φKdom} {q = φKcod})) (≈ˢ⇒≈̂ Kc-twin)
 
       ------------------------------------------------------------------
       -- ### `Gc ⊗ Kc` decomposition 2: to `permuteˢ comb ∘ (Gon ⊗ Kclean)`.
@@ -652,30 +645,20 @@ module _
       decT-cast = sym (cast-⊗-both Df Cf Dg Cg decf-inner decg-inner)
 
       ------------------------------------------------------------------
-      -- ### TARGET equation: the C-level `(pL⊗pR) ∘ (Gon'⊗Kclean')` equals the
-      -- boundary tensor, modulo the explicit boundary casts `Bd⁻`/`Bc⁻`.
+      -- ### TARGET equation, HETEROGENEOUSLY: the C-level
+      -- `(pL⊗pR) ∘ (Gon'⊗Kclean')` IS the boundary tensor.  Cast-free: the
+      -- two boundary casts are re-attached by `viâ` at the two consumers'
+      -- own endpoint proofs, so no `Bd⁻`/`Bc⁻`/`cast-fuse`/`cast-irrel`
+      -- endpoint algebra survives.
 
-      Bd⁻ = cong₂ _++_ (trans φGdom Df) (trans φKdom Dg)
-      Bc⁻ = cong₂ _++_ (trans φGcod Cf) (trans φKcod Cg)
-
-      target-core
-        : castˢ Bd⁻ Bc⁻ ((RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR) ∘ˢ (Gon' ⊗ˢ Kclean'))
-          ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
-      target-core =
-        ≈-trans (cast-resp Bd⁻ Bc⁻ (≈-trans (≈-sym GcKc→comb) GcKc→dec))
-        -- castˢ Bd⁻ Bc⁻ (castₚ (decf-inner ⊗ decg-inner))
-        (≈-trans
-          (≡⇒≈ˢ
-            (trans (cast-fuse (cong₂ _++_ (sym φGdom) (sym φKdom)) Bd⁻
-                      (cong₂ _++_ (sym φGcod) (sym φKcod)) Bc⁻
-                      (decf-inner ⊗ˢ decg-inner))
-                   (cast-irrel
-                     (trans (cong₂ _++_ (sym φGdom) (sym φKdom)) Bd⁻)
-                     (cong₂ _++_ Df Dg)
-                     (trans (cong₂ _++_ (sym φGcod) (sym φKcod)) Bc⁻)
-                     (cong₂ _++_ Cf Cg)
-                     (decf-inner ⊗ˢ decg-inner))))
-          (≡⇒≈ˢ (sym decT-cast)))
+      target-≈̂
+        : (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR) ∘ˢ (Gon' ⊗ˢ Kclean')
+          ≈̂ decodePˢ f ⊗ˢ decodePˢ g
+      target-≈̂ =
+        ≈̂-trans (≈ˢ⇒≈̂ (≈-sym GcKc→comb))
+        (≈̂-trans (⊗-resp-≈̂ Gc-≈̂ Kc-≈̂)
+        (≈̂-trans (≈̂-sym (cast-≈̂ {p = cong₂ _++_ Df Dg} {q = cong₂ _++_ Cf Cg}))
+                 (≈ˢ⇒≈̂ (≡⇒≈ˢ (sym decT-cast)))))
 
       ------------------------------------------------------------------
       -- ### The G-framed factor (matching `KBlockσ`'s body), and the inner
@@ -818,23 +801,6 @@ module _
                        (sym mLcc)
                        (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR) (Gon' ⊗ˢ Kclean'))))
 
-          -- Step E (target-final): bridge to the boundary tensor via `target-core`.
-          target-final
-            : castˢ (sym (map-++ vl Lpre Rsuf)) (sym mLcc)
-                ((RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR) ∘ˢ (Gon' ⊗ˢ Kclean'))
-              ≈ˢ castˢ (sym (⟪⟫-domL fg)) (sym (⟪⟫-codL fg))
-                  (decodePˢ f ⊗ˢ decodePˢ g)
-          target-final =
-            ≈-trans
-              (≡⇒≈ˢ (cast-irrel (sym (map-++ vl Lpre Rsuf))
-                       (trans Bd⁻ (sym (⟪⟫-domL fg)))
-                       (sym mLcc) (trans Bc⁻ (sym (⟪⟫-codL fg)))
-                       ((RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR) ∘ˢ (Gon' ⊗ˢ Kclean'))))
-            (≈-trans
-              (≡⇒≈ˢ (sym (cast-fuse Bd⁻ (sym (⟪⟫-domL fg)) Bc⁻ (sym (⟪⟫-codL fg))
-                          ((RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR) ∘ˢ (Gon' ⊗ˢ Kclean')))))
-              (cast-resp (sym (⟪⟫-domL fg)) (sym (⟪⟫-codL fg)) target-core))
-
           goal
             : RF.permuteˢ cand
                 ∘ˢ coeCod stkSplit₀ (Krun ∘ᵛ G-framed)
@@ -842,7 +808,12 @@ module _
                   (decodePˢ f ⊗ˢ decodePˢ g)
           goal =
             ≈-trans (∘-resp ≈-refl (cast-resp refl (cong (map vl) stkSplit₀) stepA))
-            (≈-trans stepBC (≈-trans stepD target-final))
+            (≈-trans stepBC
+            (≈-trans stepD
+              -- Step E: re-attach BOTH boundary casts around `target-≈̂`.
+              (viâ (cast-≈̂ {p = sym (map-++ vl Lpre Rsuf)} {q = sym mLcc})
+                   target-≈̂
+                   (cast-≈̂ {p = sym (⟪⟫-domL fg)} {q = sym (⟪⟫-codL fg)}))))
 
       ----------------------------------------------------------------
       -- ## THE K-BLOCK FACTORIZATION, from three already-proven theorems.
