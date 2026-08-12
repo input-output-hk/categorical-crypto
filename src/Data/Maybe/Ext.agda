@@ -10,7 +10,7 @@ open import Data.Bool.Base using (T)
 open import Data.Empty using (⊥)
 open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
 open import Level using (Level)
-open import Relation.Binary.PropositionalEquality using (_≡_)
+open import Relation.Binary.PropositionalEquality.Core using (_≡_)
 
 private
   variable

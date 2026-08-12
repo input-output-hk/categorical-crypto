@@ -2,6 +2,13 @@
 
 ------------------------------------------------------------------------
 -- Extensions to `Data.List.Properties`.
+--
+-- Charter (fan-in 19, so the import cone here is paid by every consumer):
+-- list facts provable from `Data.List.Base` + `Data.List.Properties` +
+-- `Core` equality alone.  Anything needing a new stdlib module belongs in
+-- its consumer, not here.  Splitting this leaf into its four honest
+-- clusters was priced at +33 lines of ceremony to relocate ~25 and is NOT
+-- the answer; the answer is keeping the cone narrow.
 ------------------------------------------------------------------------
 
 module Data.List.Properties.Ext where
@@ -9,16 +16,16 @@ module Data.List.Properties.Ext where
 open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 open import Data.Empty using (⊥-elim)
 open import Data.Fin.Base using (Fin; zero; suc)
-open import Data.List using (List; []; _∷_; _++_; map; head; drop; length; lookup)
+open import Data.List.Base using (List; []; _∷_; _++_; map; head; drop; length; lookup)
 open import Data.List.Properties using (≡-dec; ++-assoc; map-∘; map-cong; map-id)
 open import Data.List.Relation.Unary.All using (All; _∷_)
 open import Data.List.Relation.Unary.AllPairs using (_∷_)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-open import Data.Maybe as Maybe using (Maybe; just; nothing)
+open import Data.Maybe.Base as Maybe using (Maybe; just; nothing)
 open import Data.Nat.Base using (ℕ)
 open import Data.Product using (Σ-syntax; _,_)
 open import Relation.Binary.Definitions using (DecidableEquality; Irrelevant)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; cong₂)
+open import Relation.Binary.PropositionalEquality.Core using (_≡_; refl; sym; trans; cong; cong₂)
 open import Relation.Nullary using (yes; no)
 
 ≡-irrelevant : ∀ {a} {A : Set a} → DecidableEquality A → Irrelevant {A = List A} _≡_

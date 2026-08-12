@@ -8,7 +8,7 @@
 
 module Relation.Binary.PropositionalEquality.Properties.Ext where
 
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; subst₂)
+open import Relation.Binary.PropositionalEquality.Core using (_≡_; refl; sym; trans; subst₂)
 
 -- Inverse, read as an equation flip: `subst₂ P (sym p) (sym q)` undoes
 -- `subst₂ P p q`, so a forwards transport equation runs backwards.  At
