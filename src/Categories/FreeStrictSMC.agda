@@ -610,6 +610,16 @@ module Build
       ≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (castᵛ-cast p q t)))
               (cast-≈̂ {p = cong m p} {q = cong m q})
 
+    -- the V-level `castˢ⇒≈̂`: a proven `castᵛ`-equation is the heterogeneous
+    -- equation, through `castᵛ-cast`'s single `≡`-step
+    castᵛ⇒≈̂
+      : ∀ {as as' bs bs'} (p : as ≡ as') (q : bs ≡ bs') (t : HomV as bs)
+          {v : HomV as' bs'}
+      → castᵛ p q t ≈ᵛ v → t ≈̂ v
+    castᵛ⇒≈̂ p q t e =
+      castˢ⇒≈̂ (cong m p) (cong m q)
+              (≈-trans (≡⇒≈ˢ (sym (castᵛ-cast p q t))) e)
+
     -- EVERY V-level axiom below is `Build`'s `viaˢ`, which covers V level on
     -- the nose (`HomV as bs = HomS (m as) (m bs)` and `_≈ᵛ_` IS `_≈ˢ_`).
 

@@ -119,7 +119,7 @@ module StrictDecoder (H : Hypergraph FlatGen) where
 
   open Restrict (Fin H.nV) vl
     using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ; permuteᵛ-frame
-          ; castᵛ-≈̂; ⊗ᵛ-≈̂; ⊗-respᵛ; ⊗-resp-≈̂ᵛ; ⊗-idᵛ; interchangeᵛ; ⊗id-distᵛ
+          ; castᵛ-≈̂; castᵛ⇒≈̂; ⊗ᵛ-≈̂; ⊗-respᵛ; ⊗-resp-≈̂ᵛ; ⊗-idᵛ; interchangeᵛ; ⊗id-distᵛ
           ; box-suffix-≈̂ᵛ; cast-idᵛ )
 
   -- the fired layer, at V level: a box on `ein e` framed by the residual,
@@ -196,9 +196,7 @@ module StrictDecoder (H : Hypergraph FlatGen) where
         rewrite extract-prefix-++ˡ-nothing (H.ein e) xs R de eq
         = ≈̂⇒≈ˢ
             (≈̂-trans (castᵛ-≈̂ refl Q _)
-            (≈̂-trans (∘-resp-≈̂ (≈̂-trans (≈̂-sym (castᵛ-≈̂ refl Q _))
-                                        (≈ˢ⇒≈̂ (term-sepᵛ es xs R des Q)))
-                               ≈̂-refl)
+            (≈̂-trans (∘-resp-≈̂ (castᵛ⇒≈̂ refl Q _ (term-sepᵛ es xs R des Q)) ≈̂-refl)
                      (≈ˢ⇒≈̂ (≈-trans idʳ (⊗-respᵛ (≈-sym idʳ) ≈-refl)))))
   ... | just (rest , p)
         rewrite extract-prefix-++ˡ (H.ein e) xs R eq
@@ -224,8 +222,7 @@ module StrictDecoder (H : Hypergraph FlatGen) where
             ≈̂-trans
               (≈̂-sym (≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (pe-respᵛ es E∘ E₁)))
                               (castᵛ-≈̂ E∘ E₁ _)))
-              (≈̂-trans (≈̂-sym (castᵛ-≈̂ refl QIH _))
-                       (≈ˢ⇒≈̂ (term-sepᵛ es xs₁ R des QIH)))
+              (castᵛ⇒≈̂ refl QIH _ (term-sepᵛ es xs₁ R des QIH))
 
           Bside : castˢ refl (sym (map-++ vl B (rest ++ R)))
                     ((genˢ (H.elab e) ⊗ˢ idˢ {map vl (rest ++ R)})
@@ -235,8 +232,8 @@ module StrictDecoder (H : Hypergraph FlatGen) where
                   ≈̂ (firedᵛ e rest p ⊗ᵛ idᵛ {R})
           Bside =
             ≈̂-trans (≈ˢ⇒≈̂ (edge-step-firedᵛ e (rest ++ R) _))
-            (≈̂-trans (≈̂-sym (castᵛ-≈̂ refl (sym (++-assoc B rest R)) _))
-                     (≈ˢ⇒≈̂ (layer-sepᵛ e R rest p)))
+                    (castᵛ⇒≈̂ refl (sym (++-assoc B rest R)) _
+                              (layer-sepᵛ e R rest p))
 
           main
             : castᵛ refl Q
