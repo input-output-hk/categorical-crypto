@@ -4,7 +4,7 @@
 -- The THIN WIRING-GROUPOID calculus (`≈̂`-level `PermCalc`, F11).
 --
 -- Every "located coherence" proof in the strict interchange/tensor cone
--- (`FireMid`'s `vin-cohᵛ`/`vout-cohᵛ` and `in-eq`/`out-eq`, `TensorKBlock`'s
+-- (`FireMid`'s `vin-cohᵛ`/`vout-cohᵛ` and `in-eq`/`out-eq`, `TensorBraid`'s
 -- input/output block braids, every decoder block's FINAL permute) has the
 -- SAME skeleton: present each side as `permuteˢ` of a
 -- `_↭_`-derivation, identify the two derivations by rigidity on their `Unique`

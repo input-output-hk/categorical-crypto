@@ -57,11 +57,11 @@
 --     REVERSE flow.  The G-block reflection is like the tensor's; the K-block
 --     reflection and cross-block acyclicity rest on the LINEARITY invariant
 --     (`Linear`), threaded in as `Linear G`/`Linear K`:
---       - `compose-KK-reflect` reuses `LinearHComposeP.remapP-injective`;
+--       - `compose-KK-reflect` reuses `DecodeAttemptLinearP.remapP-injective`;
 --       - `compose-cross-acyclic`: a `remapP`-image of a K-output that is also
 --         an `injL`-image forces the K-output into `K.dom`, occurring in BOTH
 --         summands of `producedList K` (`count ≥ 2`), contradicting `Linear K`.
---     `Linearity` and `LinearHComposeP`/`DecodeAttemptLinearP` are all
+--     `Linearity` and `DecodeAttemptLinearP` are both
 --     bare-`sig` modules, so the whole `∘` case is reachable here.
 --------------------------------------------------------------------------------
 
@@ -310,7 +310,7 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
 
   -- K-block dependency reflects to K (like `tensor-KK-reflect`, with `injR`
   -- replaced by `remapP` and `raise-inj` by `remapP`'s injectivity on
-  -- edge-port vertices = `LinearHComposeP.remapP-injective`).
+  -- edge-port vertices = `DecodeAttemptLinearP.remapP-injective`).
   remapP-inj : ∀ {v v'} → C.remapP v ≡ C.remapP v' → v ≡ v'
   remapP-inj = remapP-injective G K bdy lin-G lin-K
 

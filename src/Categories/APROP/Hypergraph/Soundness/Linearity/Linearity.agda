@@ -16,7 +16,7 @@
 --
 -- The pruned translation always satisfies linearity
 -- (`DecodeAttemptLinearP.⟪⟫-LinearP`), by structural induction using
--- `Linear-hTensor` here and `LinearHComposeP.Linear-hComposeP`.
+-- `Linear-hTensor` here and `DecodeAttemptLinearP.Linear-hComposeP`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -69,7 +69,7 @@ count-++ v (x ∷ xs) ys with v ≟ x
 -- Generic `count` behaviour under `map f`: an injective `f` preserves the
 -- count of any preimage, and a value with no `f`-preimage has count 0.  All
 -- the per-injection lemmas below are instances (see also the fiber form in
--- `Discharge.LinearHComposeP`, which is likewise `count-map-inj` up to a
+-- `Discharge.DecodeAttemptLinearP`, which is likewise `count-map-inj` up to a
 -- rewrite of the counted value).
 
 count-map-inj : ∀ {n m} (f : Fin n → Fin m) → (∀ {a b} → f a ≡ f b → a ≡ b)
@@ -148,7 +148,7 @@ tabulate-+ {m = suc m} {n = n}     f = cong (f zero ∷_) (tabulate-+ {m = m} {n
 -- `fc` is a family over `Fin (m + n)` that reduces, on each side of the
 -- `↑ˡ`/`↑ʳ` boundary, to a relabelling (`gL` / `gR`) of a family over that
 -- side alone.  Used at all four `{eout,ein}-{tensor,comp}-eq` sites.
--- (public: also reused by Discharge.LinearHComposeP)
+-- (public: also reused by Discharge.DecodeAttemptLinearP)
 concat-tabulate-blocks
   : ∀ {m n} {A B C : Set}
       (fc : Fin (m + n) → List C) (fG : Fin m → List A) (fK : Fin n → List B)
