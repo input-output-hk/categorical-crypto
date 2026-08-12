@@ -12,12 +12,13 @@
 --     `HomTerm (unflatten xs) (unflatten ys)`.
 --
 -- The combinatorial faithfulness core (`_≅↭ⁱ_`, `complete`) lives in
--- `FaithfulnessInductive`.
+-- `PermuteCoherence.Coxeter.FaithfulnessInductive`, which does not depend on
+-- this module.
 ------------------------------------------------------------------------
 
 open import Categories.FreeMonoidal
 
-module Categories.PermuteCoherence.Faithfulness
+module Categories.PermuteCoherence.Unflatten
   (d : FreeMonoidalData) ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
 
 open FreeMonoidal d

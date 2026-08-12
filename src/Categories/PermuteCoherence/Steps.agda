@@ -6,7 +6,7 @@
 -- Provides `permute-via-vlab` (a vertex-list permutation realised as a
 -- HomTerm on the unflattened tensor products, parameterised only over a
 -- labelling function `vlab : Fin n → X`, no APROP signature).  It is built
--- from the same `permute`/`unflatten` as `PermuteCoherence.Faithfulness`, so
+-- from the same `permute`/`unflatten` as `PermuteCoherence.Unflatten`, so
 -- generic SMC code stays definitionally aligned with APROP's `Decode`.
 --------------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ module Categories.PermuteCoherence.Steps
 open FreeMonoidalData d using (X)
 open FreeMonoidal d
 
-open import Categories.PermuteCoherence.Faithfulness d
+open import Categories.PermuteCoherence.Unflatten d
   using (unflatten; permute)
 
 open import Data.Fin using (Fin)

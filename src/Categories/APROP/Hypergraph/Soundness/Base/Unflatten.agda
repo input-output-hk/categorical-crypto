@@ -26,11 +26,11 @@ open import Categories.Morphism FreeMonoidal public using (_≅_; module ≅)
 open Monoidal Monoidal-FreeMonoidal using (unitorʳ)
 
 --------------------------------------------------------------------------------
--- `unflatten` is re-exported from `PermuteCoherence.Faithfulness` (same
+-- `unflatten` is re-exported from `PermuteCoherence.Unflatten` (same
 -- definition over generic `FreeMonoidalData`) so SMC bridges observe
 -- definitional equality between the two unflattens.
 
-open import Categories.PermuteCoherence.Faithfulness asFreeMonoidalData public
+open import Categories.PermuteCoherence.Unflatten asFreeMonoidalData public
   using (unflatten; unflatten-++-≅)
 
 --------------------------------------------------------------------------------

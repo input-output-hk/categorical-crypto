@@ -504,7 +504,7 @@ module FreeMonoidal (d : FreeMonoidalData) where
   -- `wires`/`flatten`/`≟ObjTerm` are withheld so that the APROP cone can bind
   -- those three names itself; the cost is that a consumer wanting the shared
   -- definition has to reach into `FreeMonoidalHelper` laterally (as
-  -- `PermuteCoherence.Faithfulness` does) or re-roll it (as
+  -- `PermuteCoherence.Unflatten` does) or re-roll it (as
   -- `Model.FromAPROP.flatten` still does).
   open FreeMonoidalHelper v X hiding (module Mor; wires; flatten; ≟ObjTerm) public
   -- The wire-combinator helpers (`split`/`merge`/`liftW`/`pad`/`rpad`/…) live
