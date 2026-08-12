@@ -8,9 +8,10 @@ module ProbabilisticLogic.Distribution.Uniform where
 
 open import categorical-crypto.Prelude hiding (_/_; _>>=_; _*_)
 
-open import Data.Integer using (+_)
+open import Data.Integer using (+_; +≤+)
 import Data.List.NonEmpty as NE
-open import Data.Rational using (ℚ; 0ℚ; 1ℚ; _/_; _+_; _*_)
+import Data.List.Relation.Unary.All as All
+open import Data.Rational using (ℚ; 0ℚ; 1ℚ; _/_; _+_; _*_; _≤_; *≤*)
 open import Data.Rational.Properties using
   (*-zeroʳ; *-identityˡ; +-identityˡ; +-identityʳ; *-distribʳ-+)
 open import Data.Vec using (Vec; []; _∷_)
@@ -68,6 +69,9 @@ suc·c n c = trans (cong (_+ n * c) (sym (*-identityˡ c)))
 
 uniform-Bool : Dist-ℚ Bool
 uniform-Bool = mk-Dist (((+ 1 / 2) , false) NE.∷ ((+ 1 / 2) , true) ∷ []) refl
+                       (0≤½ All.∷ 0≤½ All.∷ All.[])
+  where 0≤½ : 0ℚ ≤ (+ 1 / 2)
+        0≤½ = *≤* (+≤+ z≤n)
 
 uniform-Vec : (k : ℕ) → Dist-ℚ (Vec Bool k)
 uniform-Vec zero    = return-ℚ []
