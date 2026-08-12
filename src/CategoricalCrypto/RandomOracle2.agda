@@ -28,7 +28,7 @@ open import Categories.Functor.Presheaf
 open import CategoricalCrypto.Standard2
 
 module RO
-  {o ℓ e cs ℓs ℓq ℓr : Level}
+  {o ℓ e cs ℓs ℓq ℓr ℓv : Level}
   (ℐ-machines : MonoidalCategory o ℓ e)
   (ℰ-standard : Presheaf (MonoidalCategory.U ℐ-machines) (Setoids cs ℓs))
   (ℚ          : Set ℓq)
@@ -48,7 +48,7 @@ module RO
   --   E Dgr asks≤ runWith badProb Pr₁ adv
   --   Preserved badProb-super SuperCert badProb-bounded
   --   Coupling{fR,fI,realK,idealK,FLGP}  _≈ℰ[_]_  bound
-  record ROData : Set (suc ℓr ⊔ ℓq ⊔ o ⊔ ℓ ⊔ cs ⊔ ℓs) where
+  record ROData : Set (suc ℓr ⊔ suc ℓv ⊔ ℓq ⊔ o ⊔ ℓ ⊔ cs ⊔ ℓs) where
     infix 4 _≈ℰ[_]_
     field
       -- `_≈ℰ[ ε ]_`: any distinguisher of ≤ n queries has advantage ≤ ε n.  MD's
@@ -62,7 +62,7 @@ module RO
       MD-secure : General-M ≈ℰ[ bound ] MD-mach ∘ Comp-M  -- indistinguishable
       -- BRIDGE (M5): a concrete per-budget bound with a vanishing profile
       -- establishes the ε-absorption setoid equality (the kernel of ℰ-standard).
-      VanishingBound : (ℕ → ℚ) → Set ℓr
+      VanishingBound : (ℕ → ℚ) → Set ℓv
       van            : VanishingBound bound
       absorb : ∀ {A B} {f g : ∣machines∣ [ A , B ]} {ε : ℕ → ℚ} → f ≈ℰ[ ε ] g → VanishingBound ε → f ≈ℰ g
       -- BRIDGE (M6): the ideal protocol and its simulator.

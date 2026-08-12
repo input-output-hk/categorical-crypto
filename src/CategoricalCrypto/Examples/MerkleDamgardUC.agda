@@ -272,7 +272,7 @@ module AtUnitGrade
   Mid   = A.Comp-If
 
   private
-    module RO = CategoricalCrypto.RandomOracle2.RO {ℓr = suc 0ℓ}
+    module RO = CategoricalCrypto.RandomOracle2.RO {ℓr = suc 0ℓ} {ℓv = 0ℓ}
                   FC.𝒞^ω VT.ℰᵗᵛ (ℕ → ℚ) GenIf Mid FC.𝟙^ω FC.𝟙^ω
 
     _⊗ω_ : FC.Obj^ω → FC.Obj^ω → FC.Obj^ω
@@ -343,7 +343,7 @@ module AtUnitGrade
     (qbMD   : FC.PolyQB mdFam)
     (qbGen  : FC.PolyQB genFam)
     (reflects : Reflects)
-    (van : ST.VanishingBound A.bnd)
+    (van : VT.VanishingBound A.bnd)
     where
 
     Comp-M : FC._⇒^ω_ RO.Ao Mid
@@ -386,10 +386,24 @@ module AtUnitGrade
          subst (λ z → z ≤ℚ A.bnd j (p j)) (sym (advEq Y E m j d eq))
                (A.secure j (p j) d le)
 
-    -- `Comp-M`, `MD-mach`, `General-M` and `MD-secure` are exactly
-    -- `RandomOracle2.RO.ROData`'s four artifact fields at the degenerate grade.
-    -- Assembling the record around them is blocked on ONE field,
-    -- `ideal-bridge : sub roSimulator ∘ roIdeal ≈ℰ General-M`: `sub`'s object
-    -- implicit and `sub-identity`'s grade implicit will not resolve at these
-    -- concrete `𝒞^ω`/ℰᵗᵛ types.  Not a soundness or a performance issue (the
-    -- whole module is ~12 s) — see `docs/ro-b1-report.md`.
+    roData : RO.ROData
+    roData = record
+      { _≈ℰ[_]_        = VT._≈ℰ[_]_
+      ; bound          = A.bnd
+      ; Comp-M         = Comp-M
+      ; MD-mach        = MD-mach
+      ; General-M      = General-M
+      ; MD-secure      = MD-secure
+      ; VanishingBound = VT.VanishingBound
+      ; van            = van
+      -- `ε` must be pinned: it occurs applied (`ε n (p n)`) inside `≈ℰ[_]`, so
+      -- inferring it strands a non-pattern constraint.
+      ; absorb         = λ {_} {_} {_} {_} {ε} → VT.absorb {ε = ε}
+      ; roIdeal        = General-M
+      ; roSimulator    = Cω.id
+      ; ideal-bridge   = ST.≈C⇒≈ℰ (ST.sub-identityˡ General-M)
+      ; stable         = ST.grade-stableᵗᵛ
+      }
+
+    MD≤UC-ROᵗᵛ : (MD-mach Cω.∘ Comp-M) ST.≤UC General-M
+    MD≤UC-ROᵗᵛ = RO.Payoff.MD≤UC-RO roData
