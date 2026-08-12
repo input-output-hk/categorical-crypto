@@ -16,13 +16,11 @@
 -- hypothesis of the payoff rather than a theorem here.
 --------------------------------------------------------------------------------
 
-open import CategoricalCrypto.Interaction using (TraceDeterminesRun)
 open import CategoricalCrypto.Machine.Probabilistic using (Machines)
 import CategoricalCrypto.Machine.Probabilistic.Model as Machine
-open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (E-Mono-On)
 
 module CategoricalCrypto.Examples.MerkleDamgard.UC
-  (PM : Machines) (MM : Machine.MachineModel PM) (E-mono-on : E-Mono-On) where
+  (PM : Machines) (MM : Machine.MachineModel PM) where
 
 open import Data.Bool.Base using (Bool)
 open import Data.Nat using (ℕ; NonZero)
@@ -31,7 +29,7 @@ open import Data.Vec.Base using (Vec)
 open Machine PM
 open MachineModel MM
 
-open import CategoricalCrypto.Examples.MerkleDamgard PM trace-run E-mono-on
+open import CategoricalCrypto.Examples.MerkleDamgard PM trace-run
 open import CategoricalCrypto.OutputOnly PM MM
 
 -- The Merkle–Damgård artifact at one security level: the compression oracle as

@@ -43,10 +43,9 @@
 --     (`detach`).  All chain-forest combinatorics moves into `bad-bound`.
 --   • `ghost-erase` — flag + ghost table are invisible to the real world, whose
 --     kernel marginalises back to plain MD chaining (`walkR`).
--- The only probabilistic assumption these rest on is expectation MONOTONICITY
--- (`E-mono`), assumed because the `Dist-ℚ` library tracks mass = 1 but not
--- non-negativity of weights; linearity, boundedness of `Pr₁`, and the expectation
--- triangle inequality are derived from it.
+-- These use no probabilistic assumption: expectation monotonicity, linearity,
+-- boundedness of `Pr₁` and the expectation triangle inequality are all theorems
+-- of the `Dist-ℚ` layer.
 --
 -- The `bad-bound` side is reduced to a NON-adaptive per-step certificate:
 --   • `badProb-super` (PROVEN) — the supermartingale bound: an invariant `Inv`
@@ -73,15 +72,13 @@
 -- prefix, `toBlocks`-injectivity ⇒ the message was already recorded, ⊥).  Together with
 -- `MDInv₀`, `flag⇒coll`, the collision-count-monotonicity backbone, `md-cert`,
 -- `badProb-super`, FLGP, `ideal-marginal`, and `ghost-erase` — all proven — the theorem
--- `indistinguishable` rests solely on the three module parameters, each declared
--- at its own layer and none of them cryptographic: the machine structure
+-- `indistinguishable` rests solely on the two module parameters, each declared
+-- at its own layer and neither of them cryptographic: the machine structure
 -- (`Machine.Probabilistic.Machines` — the 𝒢-construction primitives, the trace
--- over the shared interface and its two laws), `TraceDeterminesRun`
--- (`CategoricalCrypto.Interaction`) and `E-Mono-On` (the expectation
--- monotonicity `Dist-ℚ` cannot currently supply).  `⟦General⟧-sem`, `⟦MD⟧-sem`,
--- the per-machine computation fact `∘ᵍ-MD` and global monotonicity `E-mono` are
--- all DERIVED from them — no machine-specific assumption remains, and this
--- module is `--safe`.
+-- over the shared interface and its two laws) and `TraceDeterminesRun`
+-- (`CategoricalCrypto.Interaction`).  `⟦General⟧-sem`, `⟦MD⟧-sem` and the
+-- per-machine computation fact `∘ᵍ-MD` are all DERIVED from them — no
+-- machine-specific assumption remains, and this module is `--safe`.
 --
 -- The UC reading of `indistinguishable` — Merkle-Damgård ≤UC a random oracle —
 -- is `Examples.MerkleDamgard.UC`, via the general ladder in
@@ -92,10 +89,9 @@
 
 open import CategoricalCrypto.Interaction using (TraceDeterminesRun)
 open import CategoricalCrypto.Machine.Probabilistic using (Machines)
-open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (E-Mono-On)
 
 module CategoricalCrypto.Examples.MerkleDamgard
-  (PM : Machines) (trace-run : TraceDeterminesRun) (E-mono-on : E-Mono-On) where
+  (PM : Machines) (trace-run : TraceDeterminesRun) where
 
 open import categorical-crypto.Prelude hiding (_/_; _>>=_; _*_; Stable)
 open import Data.Nat using (_+_; _*_; _≤_; _<_; _∸_; NonZero; _≤′_; ≤′-refl; ≤′-step)
@@ -134,9 +130,6 @@ open import ProbabilisticLogic.Distribution.RationalDist.Partial
 open import ProbabilisticLogic.Distribution.RationalDist.Setoid
 open import ProbabilisticLogic.Distribution.Uniform using (inv-pow-2; bool→ℚ; fromℕ; δ; P-uniform-Vec)
 import Relation.Binary.Reasoning.Setoid as RS
-
-open Bounds E-mono-on
-open Monotone E-mono-on
 
 --------------------------------------------------------------------------------
 -- 2. THE EXAMPLE
