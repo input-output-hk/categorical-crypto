@@ -68,13 +68,9 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_ using (module Run)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig _≟X_ as SS
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ as DC2
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
-  using (module Support)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
 
 open import Data.Fin.Base using (Fin)
-open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; map)
 open import Data.List.Properties using (map-injective)
 open import Data.List.Properties.Ext using (map-∘-id)
@@ -256,10 +252,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
     mid-iso : map J.vlab sJ-final ≡ map H.vlab sH-final
     mid-iso = trans (cong (map J.vlab) fin-eq) (vlab-φ sH-final)
 
-    permˢ-K-J : Support.PermK (Fin J.nV) J.vlab
-    permˢ-K-J = PK.permˢ-K (Fin J.nV) _≟F_ J.vlab
-
-    open PC.Kit J permˢ-K-J using (⟦relabel-rigid⟧)
+    open PC.Kit J using (⟦relabel-rigid⟧)
 
   permute-relabel-freeˢ
     : (vJ : SG.Validˢ (range J.nE))

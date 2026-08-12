@@ -42,17 +42,13 @@ import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig a
 import Categories.APROP.Hypergraph.Soundness.Discharge.SwapValidity sig as SV
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_ as SC
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
   using (module EquivStep; module RunBlocks)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTail sig _≟X_
   using (RunInterchangeˢ)
 
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
-
 open import Data.Fin using (Fin)
-open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
@@ -98,13 +94,8 @@ module PerHG (H : Hypergraph FlatGen)
     → (ps ++ e' ∷ e ∷ qs) Perm.↭ range H.nE
     → RunInterchangeˢ H lin ps qs inc
 
-  -- The concrete strict Kelly residual at this vertex set, and the rigidity
-  -- discharge `SwapCore` already states at it.
-  private
-    permˢ-K : Support.PermK (Fin H.nV) vl
-    permˢ-K = PK.permˢ-K (Fin H.nV) _≟F_ vl
-
-  perm-rigidˢ = SC.perm-rigidˢ H permˢ-K
+  -- The rigidity discharge `SwapCore` states at this vertex set.
+  perm-rigidˢ = SC.perm-rigidˢ H
 
   --------------------------------------------------------------------
   -- STRICT validity + the strict order-indexed decoder.  `Validˢ o`

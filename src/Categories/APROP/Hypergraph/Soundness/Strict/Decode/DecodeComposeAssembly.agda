@@ -53,11 +53,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv 
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig
   using (Linear⇒cod-Unique)
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
-  using (module Support)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
-open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Categories.Tactic.Category using (solve)
 
 open import Data.Nat using (ℕ)
@@ -219,11 +215,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   -- cross-vertex-type relabel `TensorPVVRelabel.pvv-relabelˢ` — which the
   -- ⊗-shape (`TensorBraid`/`TensorKBlockFinal`) consumes from the same home.
 
-  private
-    permˢ-K-C : Support.PermK (Fin C.nV) C.vlab
-    permˢ-K-C = PK.permˢ-K (Fin C.nV) _≟F_ C.vlab
-
-    open PC.Kit Chg permˢ-K-C using (⟦relabel-rigid⟧)
+  open PC.Kit Chg using (⟦relabel-rigid⟧)
 
   ----------------------------------------------------------------------
   -- ## Run-split (strict) + the cast-absorb lemma.

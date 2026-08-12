@@ -42,7 +42,6 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_
 
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig _≟X_ as BSC
@@ -60,9 +59,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 --------------------------------------------------------------------------------
 
-module Kit (H : Hypergraph FlatGen)
-           (permˢ-K : Support.PermK (Fin (Hypergraph.nV H)) (Hypergraph.vlab H))
-           where
+module Kit (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
 
   open StrictDecoder H
@@ -76,7 +73,7 @@ module Kit (H : Hypergraph FlatGen)
 
   -- Existing bridges, threaded at this hypergraph's vertex set.
   private
-    perm-rigidˢ′ = perm-rigidˢ H permˢ-K
+    perm-rigidˢ′ = perm-rigidˢ H
     perm-frameˡ′ = permuteˢ-frameˡ
     swap-block′  = BSC.swap-block (Fin H.nV) H.vlab
   open DSS.Scr (Fin H.nV) H.vlab using (bswap)

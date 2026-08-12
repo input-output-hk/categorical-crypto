@@ -43,3 +43,7 @@ module _ (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X) where
 
   permˢ-K : Support.PermK V vlab
   permˢ-K = M.permˢ-K
+
+  -- The form every consumer needs: two derivations into a `Unique` stack are
+  -- `permuteˢ`-equal (`eval-rigid` supplies the evaluated-bijection equality).
+  perm-rigidˢ = Support.perm-rigidˢ V vlab permˢ-K

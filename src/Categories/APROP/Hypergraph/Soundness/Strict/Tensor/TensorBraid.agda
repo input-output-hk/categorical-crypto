@@ -431,7 +431,7 @@ module _
         permˢ-K-fg = permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
 
         -- the wiring-groupoid calculus at `⟪ fg ⟫` (the `≈̂`-level frames).
-        open PC.Kit ⟪ fg ⟫ permˢ-K-fg using (⟦absorbʳ⟧; ⟦frameˡ⟧; ⟦frameʳ⟧)
+        open PC.Kit ⟪ fg ⟫ using (⟦absorbʳ⟧; ⟦frameˡ⟧; ⟦frameʳ⟧)
 
         -- the G-output block (all `injL`), and the post-G stack `aG`.
         sG : List (Fin Hf.nV)

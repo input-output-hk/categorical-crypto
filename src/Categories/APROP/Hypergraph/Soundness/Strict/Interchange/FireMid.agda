@@ -32,10 +32,8 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using 
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 open import Categories.Morphism.Reasoning SCat using (pullʳ)
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_
 
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCoreRun sig _≟X_ as SCR
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_ as DSS
@@ -48,7 +46,6 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics s
   using (++-cancelˡ)
 
 open import Data.Fin using (Fin)
-open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; _++_)
 open import Data.List.Properties using (++-assoc)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
@@ -180,15 +177,12 @@ module FMS2 (H : Hypergraph FlatGen)
   open Restrict (Fin H.nV) vl
     using (HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; _≈ᵛ_; permuteᵛ)
 
-  permˢ-K : Support.PermK (Fin H.nV) vl
-  permˢ-K = PK.permˢ-K (Fin H.nV) _≟F_ vl
-
   -- SwapCore brick aliases.
   Incompˢ = Incomp H
-  rigidᵛ  = perm-rigidˢ H permˢ-K
+  rigidᵛ  = perm-rigidˢ H
 
   -- The thin wiring-groupoid calculus (F11): ⟦bswap⟧ᵛ.
-  open PC.Kit H permˢ-K using (⟦bswap⟧ᵛ)
+  open PC.Kit H using (⟦bswap⟧ᵛ)
 
   open DSS.Scr (Fin H.nV) H.vlab using (bswap)
 
@@ -265,15 +259,12 @@ module _ (H : Hypergraph FlatGen)
 
   open StrictDecoder H
 
-  permˢ-K : Support.PermK (Fin H.nV) vl
-  permˢ-K = PK.permˢ-K (Fin H.nV) _≟F_ vl
-
   -- SwapCore brick aliases.
   fire-termˢ′ = fire-termˢ H
 
   -- The thin wiring-groupoid calculus (F11): ⟦absorbˡ⟧/⟦absorbʳ⟧/⟦bswap⟧ᵛ +
   -- rigid-≈̂.
-  open PC.Kit H permˢ-K
+  open PC.Kit H
     using (⟦absorbˡ⟧; ⟦absorbʳ⟧; ⟦bswap⟧ᵛ; rigid-≈̂)
 
   open Restrict (Fin H.nV) vl

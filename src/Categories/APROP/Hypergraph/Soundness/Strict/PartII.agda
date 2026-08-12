@@ -48,7 +48,6 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using 
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
   using (decodePˢ; finalPermˢ)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig _≟X_ as SS
@@ -147,13 +146,7 @@ module Boundary {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ 
     module SF = SS.PerHG F dihF linF
     module SG = SS.PerHG G dihG linG
 
-    permˢ-K-F : Support.PermK (Fin (Hypergraph.nV F)) (StrictDecoder.vl F)
-    permˢ-K-F = PK.permˢ-K (Fin (Hypergraph.nV F)) _≟F_ (StrictDecoder.vl F)
-
-    perm-rigidˢ-F
-      : ∀ {xs ys} → Unique ys → (p q : xs Perm.↭ ys)
-      → StrictDecoder.permuteˢ F p ≈ˢ StrictDecoder.permuteˢ F q
-    perm-rigidˢ-F = Support.perm-rigidˢ (Fin (Hypergraph.nV F)) (StrictDecoder.vl F) permˢ-K-F
+    perm-rigidˢ-F = PK.perm-rigidˢ (Fin (Hypergraph.nV F)) _≟F_ (StrictDecoder.vl F)
 
     rng-F = range (Hypergraph.nE F)
     rng-G = range (Hypergraph.nE G)

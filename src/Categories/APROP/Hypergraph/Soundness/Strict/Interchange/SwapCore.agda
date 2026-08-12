@@ -9,7 +9,7 @@
 --   * `Incomp`, `pe-stackˢ`/`pe-termˢ` — incomparability + `process-edgesˢ`
 --     projection abbreviations.
 --   * `perm-rigidˢ` — the rigidity discharge for the located two-box
---     interchange kernel (the deferred K residual `permˢ-K` enters here).
+--     interchange kernel (the strict Kelly residual enters here).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -28,9 +28,10 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.EdgeStepRel sig _≟X_
   using (module EdgeStepView)
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
+import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
 open import Data.Fin using (Fin)
+open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
@@ -43,11 +44,6 @@ module _ (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
 
   open StrictDecoder H
-
-  -- The deferred strict Kelly residual, specialised to this hypergraph's
-  -- vertex set.  `perm-rigidˢ` is its only consumer.
-  module Kmod = Support (Fin H.nV) H.vlab
-  open Kmod using (PermK)
 
   --------------------------------------------------------------------
   -- The strict fired layer (`fire-termˢ`) + the `EdgeStepRˢ` graph of
@@ -65,12 +61,12 @@ module _ (H : Hypergraph FlatGen) where
 
   --------------------------------------------------------------------
   -- RIGIDITY: any two derivations into a `Unique` stack are `permuteˢ`-equal.
-  -- The deferred K residual `permˢ-K` enters here, and only here.
+  -- The strict Kelly residual enters here, and only here, at the concrete
+  -- `Perm.PermK` (axiom-free for every vertex set).
   --------------------------------------------------------------------
 
-  module _ (permˢ-K : PermK) where
-    perm-rigidˢ
-      : ∀ {xs ys : List (Fin H.nV)} → Unique ys
-        → (p q : xs Perm.↭ ys) → permuteˢ p ≈ˢ permuteˢ q
-    perm-rigidˢ = Kmod.perm-rigidˢ permˢ-K
+  perm-rigidˢ
+    : ∀ {xs ys : List (Fin H.nV)} → Unique ys
+      → (p q : xs Perm.↭ ys) → permuteˢ p ≈ˢ permuteˢ q
+  perm-rigidˢ = PK.perm-rigidˢ (Fin H.nV) _≟F_ H.vlab
 
