@@ -11,10 +11,9 @@
 --               `prefix-++ˡ-perm`, and their two `nothing`-mirrors).
 --               Consumed by `Strict/Decode/Decoder.agda`'s `stack-sepˢ`.
 --   §2 (`:161`) LEFT frame — the `++ʳ` family (`extract-elem-++ʳ`,
---               `extract-prefix-++ʳ`, `extract-prefix-++ʳ-nothing`): a frame
---               block `L` disjoint from the searched list passes through
---               whole onto the residual.  Consumed by
---               `Decode/DecodeProperties.agda`.
+--               `extract-prefix-++ʳ-nothing`): a frame block `L` disjoint from
+--               the searched list passes through whole onto the residual.
+--               Consumed by `Decode/DecodeProperties.agda`.
 --
 -- §2 carries the OBSTRUCTION note (`:174`) explaining why these STACK lemmas
 -- are the strongest left-hand statement available — the TERM-level left-frame
@@ -189,7 +188,7 @@ extract-prefix-++ˡ-nothing (k ∷ ks) xs R (dk ∷ dks) eqn with extract-elem k
 -- available, i.e. why there is no LEFT-frame TERM-level mirror of
 -- `Decoder.term-sepᵛ` for a block that fires.  Take `es = e ∷ []`, an `xs` with
 -- `extract-prefix (H.ein e) xs ≡ just (rest , p)`, and an `L` disjoint from
--- `H.ein e`.  Then `extract-prefix-++ʳ` gives residual `L ++ rest`, so
+-- `H.ein e`.  Then the `++ʳ` shape gives residual `L ++ rest`, so
 -- `edge-stepˢ` on `L ++ xs` produces the stack
 --     proj₁ (process-edgesˢ (e ∷ []) (L ++ xs)) = H.eout e ++ (L ++ rest)
 -- whereas the framed form would need
@@ -225,31 +224,6 @@ extract-elem-++ʳ k (f ∷ F) xs eqF eqx | no ¬q with extract-elem k F in eqFi
 ...              | _ , e rewrite e = _ , refl
 extract-elem-++ʳ k (f ∷ F) xs eqF eqx | no ¬q | just _ with eqF
 ... | ()
-
--- `extract-prefix` on `F ++ ys` with every key absent from `F`: located in `ys`
--- with residual `rest`, hence in `F ++ ys` with residual `F ++ rest`.  The
--- located head keeps `F` in front (residual `F ++ ys'`), so the same `F` and
--- the tail of the `All` witness carry the recursion.
-extract-prefix-++ʳ
-  : ∀ {n} (ks F ys : List (Fin n))
-      {rest : List (Fin n)} {p : ys Perm.↭ ks ++ rest}
-  → All (λ k → extract-elem k F ≡ nothing) ks
-  → extract-prefix ks ys ≡ just (rest , p)
-  → ∃[ q ] extract-prefix ks (F ++ ys) ≡ just (F ++ rest , q)
-extract-prefix-++ʳ []       F ys {rest} {p} _ eq with eq
-... | refl = _ , refl
-extract-prefix-++ʳ (k ∷ ks) F ys (ak ∷ aks) eq with extract-elem k ys in eqe
-... | nothing with eq
-...              | ()
-extract-prefix-++ʳ (k ∷ ks) F ys (ak ∷ aks) eq | just (ys' , pe)
-    with extract-prefix ks ys' in eqp
-... | nothing with eq
-...              | ()
-extract-prefix-++ʳ (k ∷ ks) F ys (ak ∷ aks) eq | just (ys' , pe)
-    | just (rest' , pp) with eq
-... | refl with extract-elem-++ʳ k F ys ak eqe
-...           | _ , e-elem with extract-prefix-++ʳ ks F ys' aks eqp
-...              | _ , e-prefix rewrite e-elem | e-prefix = _ , refl
 
 -- NOTHING-direction of the left frame.  Same disjointness side condition;
 -- structure mirrors `extract-prefix-via-injective-nothing`.
