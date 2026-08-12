@@ -15,21 +15,19 @@
 --     only on the small (D , D') pair (1–3 boxes, ≤ ~19 morphisms).
 --------------------------------------------------------------------------------
 
--- Two call-pattern performance rules (docs/smc-solver-performance.md,
--- "the 8-atom wall"):
---   * forcing must be routed through refl-checked equations (`force!`),
---     never `from-just`/inferred witnesses (slow elaborator path);
---   * instantiated types must be SPELLED as the consuming signature spells
---     them (Translation (APROPSignatureDec.sig gSigDec), not Translation gSig).
+-- Call-pattern performance rule (docs/smc-solver-performance.md, "the 8-atom
+-- wall"): forcing must be routed through refl-checked equations (`force!`,
+-- from `Terms`), never `from-just`/inferred witnesses (slow elaborator path).
+-- The companion spelling rule for instantiated signature types belongs to the
+-- modules that instantiate `Translation` — `Wiring` and `GCohId`.
 module Categories.GConstructionCoherence.Decomp where
 
 open import Data.Bool.Base using (true)
-open import Data.Maybe.Base using (Maybe; just; is-just)
+open import Data.Maybe.Base using (is-just)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 open import Categories.GConstructionCoherence.Terms
-open import Categories.APROP.Hypergraph.Solver.Split gSigDec
-  using (solveSplit?; solveSplitR?)
+open import Categories.APROP.Hypergraph.Solver.Split gSigDec using (solveSplit?)
 
 private
   Dom Cod : ObjTerm
@@ -40,15 +38,10 @@ private
   _⊕_ = ≈-Term-trans
   infixr 4 _⊕_
 
-  -- refl-routed forcing (never from-just: see "the 8-atom wall")
-  force! : ∀ {a} {A : Set a} (m : Maybe A) → is-just m ≡ true → A
-  force! (just x) _ = x
-
+  -- refl-routed forcing (`force!`/`stepR!` come from `Terms`; never
+  -- from-just: see "the 8-atom wall")
   step!  : ∀ {A B} (f g : HomTerm A B) → is-just (solveSplit?  f g) ≡ true → f ≈Term g
   step!  f g ok = force! (solveSplit?  f g) ok
-
-  stepR! : ∀ {A B} (f g : HomTerm A B) → is-just (solveSplitR? f g) ≡ true → f ≈Term g
-  stepR! f g ok = force! (solveSplitR? f g) ok
 
 -- ===== lhs ==================================================================
 private

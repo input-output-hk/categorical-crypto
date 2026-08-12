@@ -5,10 +5,9 @@ open import Categories.Category
 open import Categories.Category.Helper
 open import Categories.Category.Monoidal
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Functor hiding (id)
 open import Categories.Category.Monoidal.Traced
 
-open import categorical-crypto.Prelude hiding (id; _∘_; _⊗_; lookup; Dec; [_]; ⊤; ⊥; Functor)
+open import Data.Product using (_×_; _,_; proj₁; proj₂)
 import Categories.Category.Monoidal.Braided.Properties
 
 import Categories.Category.Monoidal.Utilities as U
@@ -19,32 +18,30 @@ import Categories.GConstructionIdentityCoherence as GCohId
 module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced Monoidal) where
 
   private
-    Cᵤ : Category a b c
-    Cᵤ = C
-
     module C where
       open Category C public
       open Traced Traced public
-      open U Monoidal public
+      open U Monoidal public using (module Shorthands)
       open import Categories.Category.Monoidal.Reasoning Monoidal public
         using (serialize₁₂; serialize₂₁; _⟩⊗⟨_; refl⟩⊗⟨_)
       open import Categories.Morphism.Reasoning C public
-        using (introˡ; pullʳ)
+        using (introˡ; pullʳ; pullˡ; pushˡ; elimˡ; elimʳ; cancelˡ)
       open Shorthands public
       module BP = Categories.Category.Monoidal.Braided.Properties braided
       open BP.Shorthands public
 
     -- the bundle the transported coherence lemmas are instantiated at
     Cˢ : SymmetricMonoidalCategory a b c
-    Cˢ = record { U = Cᵤ ; monoidal = Monoidal ; symmetric = C.symmetric }
+    Cˢ = record { U = C ; monoidal = Monoidal ; symmetric = C.symmetric }
 
-  -- Derived trace properties needed for the G-construction.
-  -- These are standard properties of traced monoidal categories:
+  -- Trace properties needed for the G-construction, taken as HYPOTHESES — the
+  -- `module _` below makes all four parameters the caller discharges:
   --   trace-resp-≈ : congruence (trace is a setoid morphism)
-  --   trace-∘ˡ     : left naturality (Hasegawa 1997, Thm 2.3)
-  --   trace-∘ʳ     : right naturality
-  -- All three are derivable from vanishing + superposing + yanking,
-  -- but the derivation is non-trivial for setoid equality.
+  --   trace-∘ˡ / ∘ʳ : left / right naturality      trace-comm : Fubini
+  -- They are not derivable here.  agda-categories' `Traced` declares `trace` as
+  -- a bare field with only `vanishing₁/₂`, `superposing` and `yanking` — no
+  -- congruence and no naturality — although its own header cites a *natural*
+  -- family.  So the standard (Joyal-Street-Verity) laws it omits are assumed.
   -- β swaps the last two factors: (A ⊗ Y) ⊗ X → (A ⊗ X) ⊗ Y
   private
     β : ∀ {P Q R : C.Obj} → (P C.⊗₀ Q) C.⊗₀ R C.⇒ (P C.⊗₀ R) C.⊗₀ Q
@@ -72,8 +69,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
       ; identityˡ = identityˡ'
       ; identityʳ = identityʳ'
       ; equiv = C.equiv
-      ; ∘-resp-≈ = λ p q → trace-resp-≈ (C.∘-resp-≈ C.Equiv.refl
-                     (C.∘-resp-≈ (p C.⟩⊗⟨ q) C.Equiv.refl))
+      ; ∘-resp-≈ = λ p q → trace-resp-≈ (refl⟩∘⟨ ((p C.⟩⊗⟨ q) ⟩∘⟨refl))
       }
       where
         open C.HomReasoning
@@ -98,13 +94,13 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
         -- a parallel copy of itself, so its trace is the identity.
         trace-βyank : ∀ {Y X : C.Obj} → C.trace (β {Y} {X} {X}) C.≈ C.id
         trace-βyank =
-          C.superposing ○ (C.refl⟩⊗⟨ C.yanking) ○ Functor.identity C.⊗
+          C.superposing ○ (C.refl⟩⊗⟨ C.yanking) ○ C.⊗.identity
 
         -- framed yanking: a loop whose body is a yanking core followed by
         -- loop-independent processing g collapses to g.
         trace-gyank : ∀ {Y X B' : C.Obj} {g : Y C.⊗₀ X C.⇒ B'} →
                       C.trace (g C.⊗₁ C.id C.∘ β {Y} {X} {X}) C.≈ g
-        trace-gyank = ⟺ trace-∘ˡ ○ (refl⟩∘⟨ trace-βyank) ○ C.identityʳ
+        trace-gyank = ⟺ trace-∘ˡ ○ C.elimʳ trace-βyank
 
         -- identityˡ: id ∘G f ≈ f, i.e. trace(α ∘ σ⇒ ⊗₁ f ∘ γ) ≈ f
         identityˡ' : ∀ {A B : C.Obj × C.Obj}
@@ -126,10 +122,10 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
         identityʳ' {A} {B} {f} =
           ⟺ (C.vanishing₂ {X = proj₂ A} {Y = proj₁ A})
           ○ trace-resp-≈ (trace-resp-≈ ICW.C1R ○ ⟺ trace-∘ˡ
-                          ○ (refl⟩∘⟨ (⟺ trace-∘ʳ ○ (trace-βyank ⟩∘⟨refl) ○ C.identityˡ))
+                          ○ (refl⟩∘⟨ (⟺ trace-∘ʳ ○ C.elimˡ trace-βyank))
                           ○ ICW.C3R)
           ○ ⟺ trace-∘ʳ ○ (trace-gyank ⟩∘⟨refl)
-          ○ ⟺ C.assoc ○ (C.commutative ⟩∘⟨refl) ○ C.identityˡ
+          ○ C.cancelˡ C.commutative
           where
             module ICW = GCohId.Transport.WithGen Cˢ
               (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) (proj₁ A) f
@@ -173,11 +169,9 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
         assoc' {_ , _} {B⁺ , B⁻} {D⁺ , D⁻} {E⁺ , E⁻} {f} {g} {h} = begin
           -- LHS: trace_B(α ∘ trace_D(m) ⊗₁ f ∘ γ)
           C.trace (α C.∘ C.trace m C.⊗₁ f C.∘ γ)
-            -- 1. serialize: trace(m) ⊗₁ f → (trace(m) ⊗₁ id) ∘ (id ⊗₁ f)
-            ≈⟨ trace-resp-≈ (refl⟩∘⟨ C.serialize₁₂ ⟩∘⟨refl) ⟩
-          C.trace (α C.∘ (C.trace m C.⊗₁ C.id C.∘ C.id C.⊗₁ f) C.∘ γ)
-            -- 2. reassociate
-            ≈⟨ trace-resp-≈ (refl⟩∘⟨ C.assoc) ⟩
+            -- 1-2. serialize + reassociate: trace(m) ⊗₁ f ∘ γ
+            --      → (trace(m) ⊗₁ id) ∘ ((id ⊗₁ f) ∘ γ)
+            ≈⟨ trace-resp-≈ (refl⟩∘⟨ C.pushˡ C.serialize₁₂) ⟩
           C.trace (α C.∘ C.trace m C.⊗₁ C.id C.∘ C.id C.⊗₁ f C.∘ γ)
             -- 3. right-superposing: trace_D(m) ⊗₁ id → trace_D(β ∘ m ⊗₁ id ∘ β)
             ≈⟨ trace-resp-≈ (refl⟩∘⟨ right-superposing ⟩∘⟨refl) ⟩
@@ -205,11 +199,9 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
             -- 9. superposing: trace_B(q) ≈ id ⊗₁ trace_B(k)
             ≈⟨ trace-resp-≈ (refl⟩∘⟨ C.superposing ⟩∘⟨refl) ⟩
           C.trace (α C.∘ C.id C.⊗₁ C.trace k C.∘ h C.⊗₁ C.id C.∘ γ)
-            -- 10. reassociate
-            ≈⟨ trace-resp-≈ (refl⟩∘⟨ C.sym-assoc) ⟩
-          C.trace (α C.∘ (C.id C.⊗₁ C.trace k C.∘ h C.⊗₁ C.id) C.∘ γ)
-            -- 11. serialize⁻¹: (id ⊗₁ trace(k)) ∘ (h ⊗₁ id) → h ⊗₁ trace(k)
-            ≈⟨ trace-resp-≈ (refl⟩∘⟨ C.Equiv.sym C.serialize₂₁ ⟩∘⟨refl) ⟩
+            -- 10-11. reassociate + serialize⁻¹:
+            --        (id ⊗₁ trace(k)) ∘ ((h ⊗₁ id) ∘ γ) → (h ⊗₁ trace(k)) ∘ γ
+            ≈⟨ trace-resp-≈ (refl⟩∘⟨ C.pullˡ (⟺ C.serialize₂₁)) ⟩
           C.trace (α C.∘ h C.⊗₁ C.trace k C.∘ γ)
           ∎
           where

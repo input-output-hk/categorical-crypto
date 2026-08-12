@@ -153,7 +153,6 @@ RSᵗ-rhs = hLᵗ
 --------------------------------------------------------------------------------
 -- Solver obligations (call-pattern rules per docs/smc-solver-performance.md)
 
-open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Model.Translation (APROPSignatureDec.sig iSigDec) using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.Match.FindIsoTab iSigDec using (findIsoᵀ)
 open import Categories.APROP.Hypergraph.Soundness iSigDec
@@ -193,6 +192,9 @@ private module IM = Interp iSigDec
 -- One scaffold for both readings of the signature: the identity laws do not
 -- mention the fifth atom (pass any object for `u`), while `right-superposing`
 -- reads it as the superposed wire and takes the loop wire's two ends equal.
+-- The parameters map onto the atoms through `⟦_⟧ᵖ₀`; for the identity laws
+-- that is `x⁺ x⁻ y⁺ y⁻ ↦ a⁺ a⁻ b⁺ b⁻` (i.e. `GConstruction`'s
+-- `proj₁ A , proj₂ A , proj₁ B , proj₂ B`), with `u` arbitrary.
 module Transport {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e)
   (let module C = SymmetricMonoidalCategory C)
   (x⁺ x⁻ y⁺ y⁻ u : C.Obj)

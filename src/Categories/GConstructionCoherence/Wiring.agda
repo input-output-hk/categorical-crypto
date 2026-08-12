@@ -29,28 +29,23 @@
 module Categories.GConstructionCoherence.Wiring where
 
 open import Data.Bool.Base using (true)
-open import Data.Maybe.Base using (Maybe; just; is-just)
+open import Data.Maybe.Base using (is-just)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Categories.FreeMonoidal using (Symm; _≤_; v≤v)
 open import Categories.GConstructionCoherence.Terms
 open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
 open import Categories.APROP.Hypergraph.Model.Translation (APROPSignatureDec.sig gSigDec) using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.Match.FindIso gSigDec using (findIso)
-open import Categories.APROP.Hypergraph.Solver.Split gSigDec using (solveSplitR?)
 open import Categories.APROP.Hypergraph.Soundness gSigDec
   using (soundness)
+open import Categories.Category using (Category)
+open import Categories.Morphism.Reasoning FreeMonoidal using (center; pullʳ)
+open Category.HomReasoning FreeMonoidal using (_○_; _⟩∘⟨refl; refl⟩∘⟨_)
 
 private instance S≤S : Symm ≤ Symm
                  S≤S = v≤v
 
 private
-  force! : ∀ {a} {A : Set a} (m : Maybe A) → is-just m ≡ true → A
-  force! (just x) _ = x
-
-  -- pure-assoc respelling, validated by reassoc+refl (no solver leaf)
-  assoc! : ∀ {A B} (f g : HomTerm A B) → is-just (solveSplitR? f g) ≡ true → f ≈Term g
-  assoc! f g ok = force! (solveSplitR? f g) ok
-
   -- balanced clones of the routing isos (same morphisms, balanced ∘-trees)
   βᵇ : ∀ {P Q R} → HomTerm ((P ⊗₀ Q) ⊗₀ R) ((P ⊗₀ R) ⊗₀ Q)
   βᵇ = (α⇐ ∘ id ⊗₁ σ) ∘ α⇒
@@ -99,23 +94,14 @@ private
 
 -- the obligations at the segment statements (pure-assoc bridges)
 ob₀ : (ρ₁ᵗ ∘ R₀ᵗ) ≈Term L₀ᵗ
-ob₀ = ≈-Term-trans (assoc! (ρ₁ᵗ ∘ R₀ᵗ) ρ₁R₀ᵇ refl)
-      (≈-Term-trans ob₀ᵇ (assoc! L₀ᵇ L₀ᵗ refl))
+ob₀ = stepR! (ρ₁ᵗ ∘ R₀ᵗ) ρ₁R₀ᵇ refl ○ ob₀ᵇ ○ stepR! L₀ᵇ L₀ᵗ refl
 
 ob₁ : (ρ₂ᵗ ∘ R₁ᵗ) ≈Term (L₁ᵗ ∘ ρ₁ᵗ)
-ob₁ = ≈-Term-trans (assoc! (ρ₂ᵗ ∘ R₁ᵗ) ρ₂R₁ᵇ refl)
-      (≈-Term-trans ob₁ᵇ (assoc! L₁ρ₁ᵇ (L₁ᵗ ∘ ρ₁ᵗ) refl))
+ob₁ = stepR! (ρ₂ᵗ ∘ R₁ᵗ) ρ₂R₁ᵇ refl ○ ob₁ᵇ ○ stepR! L₁ρ₁ᵇ (L₁ᵗ ∘ ρ₁ᵗ) refl
 
 ob₂ : R₂ᵗ ≈Term (L₂ᵗ ∘ ρ₂ᵗ)
-ob₂ = ≈-Term-trans (assoc! R₂ᵗ R₂ᵇ refl)
-      (≈-Term-trans ob₂ᵇ (assoc! L₂ρ₂ᵇ (L₂ᵗ ∘ ρ₂ᵗ) refl))
+ob₂ = stepR! R₂ᵗ R₂ᵇ refl ○ ob₂ᵇ ○ stepR! L₂ρ₂ᵇ (L₂ᵗ ∘ ρ₂ᵗ) refl
 
--- The assembled segment-level equality.
+-- The assembled segment-level equality: the standard three-square paste.
 segments : (R₂ᵗ ∘ R₁ᵗ ∘ R₀ᵗ) ≈Term (L₂ᵗ ∘ L₁ᵗ ∘ L₀ᵗ)
-segments =
-  ≈-Term-trans (∘-resp-≈ ob₂ ≈-Term-refl)
-  (≈-Term-trans assoc
-  (≈-Term-trans (∘-resp-≈ ≈-Term-refl (≈-Term-sym assoc))
-  (≈-Term-trans (∘-resp-≈ ≈-Term-refl (∘-resp-≈ ob₁ ≈-Term-refl))
-  (≈-Term-trans (∘-resp-≈ ≈-Term-refl assoc)
-               (∘-resp-≈ ≈-Term-refl (∘-resp-≈ ≈-Term-refl ob₀))))))
+segments = ob₂ ⟩∘⟨refl ○ center ob₁ ○ (refl⟩∘⟨ pullʳ ob₀)
