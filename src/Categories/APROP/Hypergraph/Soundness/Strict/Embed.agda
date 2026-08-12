@@ -238,9 +238,6 @@ private
 --   N = Sc A₂ ∘ T (zs++xs) ys ∘ ((T zs xs ∘ σ) ⊗ id)
 --         ∘ α⇐ ∘ (id ⊗ (σ ∘ F ys zs)) ∘ F xs (ys++zs) ∘ Sc A₁ .
 
-import Categories.FreeMonoidal.SigmaBlockHexagon
-  asFreeMonoidalData as SBH
-
 private
   -- fold two right-framed / left-framed tensor factors under a tail W
   fold⊗ʳ
@@ -314,7 +311,7 @@ private
   lhs→N xs ys zs =
     -- phase 1: split σ off the fused block, then expand it by the hexagon
     (refl⟩∘⟨ (σ-split xs ys zs ⟩∘⟨refl))
-    ○ (refl⟩∘⟨ ((refl⟩∘⟨ (SBH.σ-A⊗B-expand ⟩∘⟨refl)) ⟩∘⟨refl))
+    ○ (refl⟩∘⟨ ((refl⟩∘⟨ (σ-A⊗B-expand ⟩∘⟨refl)) ⟩∘⟨refl))
     -- phase 2: reassociate onto the dom-side laxator run, then L2
     ○ (refl⟩∘⟨ FM.assoc)
     ○ (refl⟩∘⟨ refl⟩∘⟨ FM.assoc)

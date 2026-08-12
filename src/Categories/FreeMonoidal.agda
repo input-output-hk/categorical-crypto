@@ -398,6 +398,43 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
         ; hexagon     = hexagon
         }
 
+      open Symmetric Symmetric-Monoidal using () renaming (hexagon₂ to S-hexagon₂)
+
+      -- hexagon₂: the dual hexagon at the α⇐ level.  `Symmetric` already carries
+      -- it (derived from `hexagon` + `commutative` by the library's
+      -- `symmetricHelper`); the two statements differ only by `Commutation`'s
+      -- bracketing.
+      private
+        hexagon₂
+          : ∀ {X Y Z : ObjTerm}
+          → (σ {A = X} {B = Z} ⊗₁ id {A = Y}) ∘ α⇐ {A = X} {B = Z} {C = Y}
+              ∘ (id {A = X} ⊗₁ σ {A = Y} {B = Z})
+            ≈Term α⇐ {A = Z} {B = X} {C = Y} ∘ σ {A = X ⊗₀ Y} {B = Z}
+              ∘ α⇐ {A = X} {B = Y} {C = Z}
+        hexagon₂ = ≈-Term-sym assoc ○ S-hexagon₂ ○ assoc
+
+      -- σ_{A⊗B,C} expansion via hexagon₂ (rearranged):
+      --   σ_{A⊗B,C} ≈ α⇒_{C,A,B} ∘ (σ_{A,C} ⊗ id_B) ∘ α⇐_{A,C,B}
+      --                          ∘ (id_A ⊗ σ_{B,C}) ∘ α⇒_{A,B,C}
+      σ-A⊗B-expand
+        : ∀ {A B C : ObjTerm}
+        → σ {A = A ⊗₀ B} {B = C}
+          ≈Term α⇒ {A = C} {B = A} {C = B}
+                  ∘ (σ {A = A} {B = C} ⊗₁ id {A = B})
+                  ∘ α⇐ {A = A} {B = C} {C = B}
+                  ∘ (id {A = A} ⊗₁ σ {A = B} {B = C})
+                  ∘ α⇒ {A = A} {B = B} {C = C}
+      -- Read right-to-left: re-bracket the RHS until `hexagon₂`'s left-hand side
+      -- is exposed in the middle, rewrite it, then the two associator pairs
+      -- cancel (`cancelˡ` on the outside, `cancelʳ` on the inside).  The
+      -- `hexagon₂` step is the only content; the rest is `Morphism.Reasoning`.
+      σ-A⊗B-expand =
+        ⟺ ( (refl⟩∘⟨ assoc²εβ)
+          ○ (refl⟩∘⟨ (hexagon₂ ⟩∘⟨refl))
+          ○ (refl⟩∘⟨ assoc)
+          ○ cancelˡ α⇒∘α⇐≈id
+          ○ cancelʳ α⇐∘α⇒≈id )
+
   --------------------------------------------------------------------------
   -- Generator bind: the free monoidal category construction is functorial in
   -- its generator family.  A map `h` from one generator family into the free
