@@ -32,8 +32,8 @@ open APROPSignatureDec sig-dec using (sig; _≟-ObjTerm_)
 open import Categories.APROP using (module APROP)
 open APROP sig
 
-open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
-open import Data.Bool.Base using (Bool; true; false)
+open import Data.Maybe.Base using (Maybe; just; nothing)
+import Data.Maybe.Base as Maybe
 open import Data.List.Base using (List; []; _∷_; _++_; map)
 open import Data.List.Properties.Ext using (lookupMaybe)
 open import Data.Nat using (ℕ)
@@ -56,9 +56,7 @@ Foc A B P Q = Σ ObjTerm λ k → HomTerm A (k ⊗₀ P) × HomTerm (k ⊗₀ Q)
 
 leaf-try : ∀ {A B P Q} → HomTerm A B → HomTerm P Q → Maybe (Foc A B P Q)
 leaf-try {A} {B} {P} {Q} s lᵗ with A ≟-ObjTerm P | B ≟-ObjTerm Q
-... | yes refl | yes refl with is-just (findIso ⟪ s ⟫ ⟪ lᵗ ⟫)
-...   | true  = just (unit , λ⇐ , λ⇒)
-...   | false = nothing
+... | yes refl | yes refl = Maybe.map (λ _ → unit , λ⇐ , λ⇒) (findIso ⟪ s ⟫ ⟪ lᵗ ⟫)
 leaf-try _ _ | _ | _ = nothing
 
 --------------------------------------------------------------------------------

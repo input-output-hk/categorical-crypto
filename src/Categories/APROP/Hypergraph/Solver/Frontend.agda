@@ -45,7 +45,7 @@ open import Categories.APROP.Hypergraph.Soundness sig-dec using (soundness)
 
 open import Level using (Level; _⊔_)
 open import Data.List.Base using (List; []; _∷_)
-open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
+open import Data.Maybe.Base using (Maybe; just; nothing; is-just; _<∣>_)
 open import Data.Bool.Base using (T)
 open import Data.Nat.Base using (ℕ; zero; suc)
 open import Data.Product.Base using (Σ; _,_; proj₁; proj₂)
@@ -386,9 +386,8 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   driveStep : List Rule → ∀ {A B} (s : HomTerm A B)
             → Maybe (Σ (HomTerm A B) (λ t → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁))
   driveStep []       s = nothing
-  driveStep (r ∷ rs) s with tryFoc r s (deepFocₙ s (Rule.lhs r) zero)
-  ... | nothing       = driveStep rs s
-  ... | just (t , pf) = just (t , pf)
+  driveStep (r ∷ rs) s =
+    tryFoc r s (deepFocₙ s (Rule.lhs r) zero) <∣> driveStep rs s
 
   -- Iterate to (fuel-bounded) exhaustion, accumulating the proof.
   drive : List Rule → ℕ → ∀ {A B} (s : HomTerm A B) → Σ (HomTerm A B) (λ t → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁)
