@@ -180,11 +180,10 @@ module Boundary {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ 
     -- The whole chain is endpoint bookkeeping: drop the two boundary casts,
     -- swap `vf` for `vH` (K₁), reverse the wiring, and re-cast — the `_≈̂_`
     -- combinators absorb the `cast-fuse`/`cast-irrel` `List X`-UIP algebra.
-    viâ cast-≈̂                                       -- drop `df`/`cf`
-        (≈̂-trans (≈ˢ⇒≈̂ (decodeOrdˢ-witness-coh vf vH))  -- (K₁) `vf` → `vH`
-        (≈̂-trans (≈̂-sym (≈ˢ⇒≈̂ wiring≈))                 -- reversed wiring
-                 (cast-≈̂ {p = di} {q = ci})))           -- drop `di`/`ci` (pinned)
-        cast-≈̂                                       -- re-cast `dg`/`cg`
+    viâ cast-≈̂                                          -- drop `df`/`cf`
+        (≈̂-trans (≈ˢ⇒≈̂ (decodeOrdˢ-witness-coh vf vH))   -- (K₁) `vf` → `vH`
+                 (≈̂-sym (castˢ⇒≈̂ di ci wiring≈)))        -- reversed wiring
+        cast-≈̂                                          -- re-cast `dg`/`cg`
 
 ------------------------------------------------------------------------
 -- THE UNCONDITIONAL HEADLINE.  Wires the order-theory core
@@ -195,10 +194,9 @@ module Boundary {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ 
 
 decodePˢ-resp-iso : ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → decodePˢ f ≈ˢ decodePˢ g
 decodePˢ-resp-iso f g iso =
-  subst₂ (λ a b → a ≈ˢ b)
-         (sym (decodePˢ-≡-cast f))
-         (sym (decodePˢ-≡-cast g))
-         (B.decodeOrdˢ-boundary-resp-≈ (vrangeˢ f) (vrangeˢ g) vH wiring≈)
+  -- `decodePˢ-≡-cast` holds by `refl`, so no transport is needed: the
+  -- boundary lemma's statement IS the goal up to unfolding `decodePˢ`.
+  B.decodeOrdˢ-boundary-resp-≈ (vrangeˢ f) (vrangeˢ g) vH wiring≈
   where
     module B = Boundary f g iso
     res = IT.decode-ordˢ-resp-iso f g iso (run-interchange-H f) (vrangeˢ g)

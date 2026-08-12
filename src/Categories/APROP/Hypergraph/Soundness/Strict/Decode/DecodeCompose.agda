@@ -329,8 +329,7 @@ module TermEmbedˢ
           (≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (trans (cong RJ.permuteˢ pinned)
                                        (RJ.permuteˢ-subst mpp lift))))
           (≈̂-trans cast-≈̂
-          (≈̂-trans (≈̂-sym (cast-≈̂ {p = P} {q = Qφ}))
-                   (≈ˢ⇒≈̂ (PVV.pvv-relabelˢ φ vlJ vlH φ-lab permH P Qφ)))))
+                   (castˢ⇒≈̂ P Qφ (PVV.pvv-relabelˢ φ vlJ vlH φ-lab permH P Qφ))))
           P qq
         where
           mpp = map-++ φ (H.ein e) restH
@@ -400,15 +399,13 @@ module TermEmbedˢ
 
       -- BOX twin: `Jbox ≈̂ Hbox` (the `⊗`-frame content is `box-emb`).
       box-part : Jbox ≈̂ Hbox
-      box-part = ≈̂-trans (≈̂-sym (cast-≈̂ {p = Mmid} {q = Qbox}))
-                         (≈ˢ⇒≈̂ (box-emb e restH restJ restJ≡ rest-lab Mmid Qbox))
+      box-part = castˢ⇒≈̂ Mmid Qbox (box-emb e restH restJ restJ≡ rest-lab Mmid Qbox)
 
       -- PERM twin: `Jperm ≈̂ Hperm` (the K-step content is `perm-emb`).
       jperm-part : Jperm ≈̂ Hperm
       jperm-part =
         ≈̂-trans (cast-≈̂ {p = refl} {q = map-++ vlJ (J.ein (ψ e)) restJ})
-        (≈̂-trans (≈̂-trans (≈̂-sym (cast-≈̂ {p = pDom} {q = Qp}))
-                           (≈ˢ⇒≈̂ (perm-emb e sH restH permH eqH restJ permJ eqJ pDom Qp)))
+        (≈̂-trans (castˢ⇒≈̂ pDom Qp (perm-emb e sH restH permH eqH restJ permJ eqJ pDom Qp))
                  (≈̂-sym (cast-≈̂ {p = refl} {q = map-++ vlH (H.ein e) restH})))
 
 
@@ -505,12 +502,7 @@ module TermEmbedˢ
              ∘ˢ proj₂ (RJ.edge-stepˢ (map φ sH) (ψ e)))
           ≈ˢ proj₂ (RH.process-edgesˢ es s'H)
              ∘ˢ proj₂ (RH.edge-stepˢ sH e)
-      goal =
-        ≈-trans
-          (∘-cast-split pDom pMid pCod
-            (proj₂ (RJ.process-edgesˢ (map ψ es) s'J))
-            (proj₂ (RJ.edge-stepˢ (map φ sH) (ψ e))))
-          (∘-resp recTwin headTwin)
+      goal = ∘-cast-resp pDom pMid pCod recTwin headTwin
 
   ----------------------------------------------------------------------
   -- The headline iterated term-twin, at the canonical `sJ = map φ sH`.
