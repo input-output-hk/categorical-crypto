@@ -214,7 +214,7 @@ module FMS2 (H : Hypergraph FlatGen)
 
     SL : FMIC.SimLoc H lin (proj₁ inc) (proj₂ inc) sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
     SL = FMIC.sim-loc H lin (proj₁ inc) (proj₂ inc) sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
-    open FMIC.SimLoc SL
+    open FMIC.SimLoc SL public
 
     -- The located frames.
     Lin₁ : HomV sp ((H.ein e ++ H.ein e') ++ Rlist)
@@ -563,11 +563,9 @@ module _ (H : Hypergraph FlatGen)
                         us-sp us-mid₁ us-mid₂ us-cod =
     r-stk , goal
     where
+      -- `Located` already built the `SimLoc` bundle and re-exports it, so the
+      -- 12-argument `sim-loc` application is NOT respelled here.
       open FMS2.Located H lin inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod
-      open FMIC.SimLoc
-        (FMIC.sim-loc H lin (proj₁ inc) (proj₂ inc)
-           sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁')
-        using (Rlist; loc₁; loc₂; vout-loc₁; vout-loc₂; r-stk)
 
       -- The per-order residual relocates + `Unique` witnesses + `Gen`
       -- instantiation, factored once and instantiated for both orders below
