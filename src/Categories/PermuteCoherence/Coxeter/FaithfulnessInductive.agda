@@ -249,6 +249,12 @@ swapAt-↭-≅↭ᴴ : {n : ℕ} {i j : Fin n} → i ≡ j → (e : xs ≡ ys)
              → swapAt-↭ i xs ≅↭ᴴ swapAt-↭ j ys
 swapAt-↭-≅↭ᴴ refl refl = hrefl
 
+-- …and appending one to a `≅↭ᴴ` needs no new list equality: the one the
+-- wrapper already carries IS `swapAt-↭-≅↭ᴴ`'s argument (4 sites).
+∷ᴴ : {n : ℕ} {i j : Fin n} {p : xs ↭ ys} {q : xs′ ↭ ys′} → i ≡ j → (h : p ≅↭ᴴ q)
+   → Perm.trans p (swapAt-↭ i ys) ≅↭ᴴ Perm.trans q (swapAt-↭ j ys′)
+∷ᴴ eq h = trcᴴ h (swapAt-↭-≅↭ᴴ eq (proj₁ (proj₂ h)))
+
 -- Convert back to the homogeneous relation, once the endpoints coincide
 -- (e.g. at `complete`, where `p q : xs ↭ ys`).  The endpoint equalities
 -- `el : xs ≡ xs`, `er : ys ≡ ys` are reflexive but not free, so we collapse
@@ -330,9 +336,7 @@ bridge-sound : {n : ℕ} {w w′ : Word n} → w ~ʷ w′ → (xs : List X) → 
 bridge-sound ~refl          xs len = hrefl
 bridge-sound (~sym r)       xs len = hsym (bridge-sound r xs len)
 bridge-sound (~trans r₁ r₂) xs len = htrn (bridge-sound r₁ xs len) (bridge-sound r₂ xs len)
-bridge-sound (∷c {i = i} {j = j} eq r) xs len =
-  trcᴴ ih (swapAt-↭-≅↭ᴴ eq (proj₁ (proj₂ ih)))
-  where ih = bridge-sound r xs len
+bridge-sound (∷c {i = i} {j = j} eq r) xs len = ∷ᴴ eq (bridge-sound r xs len)
 bridge-sound (c1 i {w = w}) xs len =
   htrn (liftⁱ tr-assoc)
        (htrn (trcᴴ hrefl (swap²ᴴ i (applyW w xs))) (liftⁱ tr-unitʳ))
@@ -360,18 +364,14 @@ interp-liftW : {n : ℕ} (w : Word n) {x : X} {xs : List X}
              → ⟦ liftW w ⟧↭ (x ∷ xs) ≅↭ᴴ Perm.prep x (⟦ w ⟧↭ xs)
 interp-liftW []        = liftⁱ (isym prep-id)
 interp-liftW (i ∷ w′) =
-  htrn (trcᴴ (interp-liftW w′)
-             (swapAt-↭-≅↭ᴴ refl (proj₁ (proj₂ (interp-liftW w′)))))
-       (liftⁱ (isym prep-tr))
+  htrn (∷ᴴ refl (interp-liftW w′)) (liftⁱ (isym prep-tr))
 
 -- A concatenated word interprets as the composite of the two pieces.
 interp-++ : {n : ℕ} (v w : Word n) {xs : List X}
           → ⟦ v ++ w ⟧↭ xs ≅↭ᴴ Perm.trans (⟦ w ⟧↭ xs) (⟦ v ⟧↭ (applyW w xs))
 interp-++ []       w = liftⁱ (isym tr-unitʳ)
 interp-++ (i ∷ v′) w =
-  htrn (trcᴴ (interp-++ v′ w)
-             (swapAt-↭-≅↭ᴴ refl (proj₁ (proj₂ (interp-++ v′ w)))))
-       (liftⁱ tr-assoc)
+  htrn (∷ᴴ refl (interp-++ v′ w)) (liftⁱ tr-assoc)
 
 ------------------------------------------------------------------------
 -- 5. `flatten`: every `↭`-derivation `p` is `≅↭ᴴ`-equal to the
@@ -417,15 +417,13 @@ flatten (Perm.trans {xs = xs} {ys = ys} {zs = zs} p′ q′)
   er_p = proj₁ (proj₂ rel_p)
 flatten (Perm.swap {xs = z ∷ zs} {ys = ys′} x y p′) with flatten p′
 ... | w′ , rel′ =
-  0F ∷ liftW (liftW w′) , htrn (liftⁱ swap-nat) (trcᴴ piece1 piece2)
+  0F ∷ liftW (liftW w′) ,
+  htrn (liftⁱ swap-nat) (∷ᴴ (refl {x = 0F}) piece1)
   where
   piece1 : Perm.prep x (Perm.prep y p′)
            ≅↭ᴴ ⟦ liftW (liftW w′) ⟧↭ (x ∷ y ∷ z ∷ zs)
   piece1 = htrn (prepᴴ (prepᴴ rel′))
                 (hsym (htrn (interp-liftW (liftW w′)) (prepᴴ (interp-liftW w′))))
-  piece2 : Perm.swap x y (Perm.refl {xs = ys′})
-           ≅↭ᴴ swapAt-↭ 0F (applyW (liftW (liftW w′)) (x ∷ y ∷ z ∷ zs))
-  piece2 = swapAt-↭-≅↭ᴴ {i = 0F} {j = 0F} refl (proj₁ (proj₂ piece1))
 flatten (Perm.swap {xs = []} {ys = ys′} x y p′) with flatten p′
 ... | [] , rel′ =
   0F ∷ [] ,
