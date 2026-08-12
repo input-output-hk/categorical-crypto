@@ -7,7 +7,7 @@
 --
 -- assembled from
 --   * part (I)ˢ   `st-≈-decodePˢ : st h ≈ˢ decodePˢ h`        (Strict.PartI)
---     at the unconditional ⊗-shape `TensorKBlockFinal.decodePˢ-⊗-concrete`
+--     at the unconditional ⊗-shape `TensorBraid.decodePˢ-⊗-concrete`
 --     (its K-block box-braid `KBlockσ` discharged there, ZERO postulates);
 --   * part (II)ˢ  `decodePˢ-resp-iso : ⟪f⟫≅ᴴ⟪g⟫ → decodePˢ f ≈ˢ decodePˢ g`
 --     (Strict.PartII, unconditional);
@@ -42,8 +42,8 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X
 
 import Categories.APROP.Hypergraph.Soundness.Strict.PartI  sig _≟X_ as PI
 import Categories.APROP.Hypergraph.Soundness.Strict.PartII sig _≟X_ as PII
-import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorKBlockFinal sig _≟X_
-  as TKF
+import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorBraid sig _≟X_
+  as TB
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
@@ -74,7 +74,7 @@ bridge-cancel {A} {B} f =
 -- The strict soundness theorem, from its two halves.
 
 private
-  part-Iˢ  = PI.st-≈-decodePˢ TKF.decodePˢ-⊗-concrete
+  part-Iˢ  = PI.st-≈-decodePˢ TB.decodePˢ-⊗-concrete
   part-IIˢ = PII.decodePˢ-resp-iso
 
 -- the strict core: `st f ≈ˢ st g` from the hypergraph iso

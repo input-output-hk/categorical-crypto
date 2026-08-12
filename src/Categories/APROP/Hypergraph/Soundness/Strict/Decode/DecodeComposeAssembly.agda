@@ -213,7 +213,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   -- against the φ-lift of the sub-decoder's final permutation (`φ = injL` /
   -- `remapP`), the lift's reindexings absorbed, residual discharged by the
   -- cross-vertex-type relabel `TensorPVVRelabel.pvv-relabelˢ` — which the
-  -- ⊗-shape (`TensorBraid`/`TensorKBlockFinal`) consumes from the same home.
+  -- ⊗-shape (`TensorBraid`) consumes from the same home.
 
   open PC.Kit Chg using (⟦relabel-rigid⟧)
 

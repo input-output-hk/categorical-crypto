@@ -5,9 +5,10 @@
 -- residual of the strict ⊗-shape
 -- `decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g` — AND, since the round-6
 -- TKB collapse, its DISCHARGE.  The whole K-block argument is here: the
--- residual `KBlockσ`, the ⊗-shape conditional on it, and `Reconcile-e`, the
--- derivation that proves it.  `TensorKBlockFinal` does nothing but apply
--- `Reconcile-e.kblockσ` to `Braid.decodePˢ-⊗-cond`.
+-- residual `KBlockσ`, the ⊗-shape conditional on it, `Reconcile-e` — the
+-- derivation that proves it — and the final wiring
+-- `decodePˢ-⊗-concrete`, which applies `Reconcile-e.kblockσ` to
+-- `Braid.decodePˢ-⊗-cond` (the former `TensorKBlockFinal`).
 --
 -- `⟪ f ⊗₁ g ⟫ = hTensor ⟪f⟫ ⟪g⟫`, edges `range C.nE = gblk ++ kblk`
 -- (`gblk = map (_↑ˡ K.nE)(range G.nE)`, `kblk = map (G.nE ↑ʳ_)(range K.nE)`),
@@ -56,6 +57,9 @@
 --     (`KBlockσ-from-factorization`), and closes with `kblockσ : KBlockσ`.
 --     So the conditional theorem above is discharged IN THIS FILE and nothing
 --     downstream carries `KBlockσ` as a hypothesis.
+--   * `decodePˢ-⊗-concrete` — the final wiring: the UNCONDITIONAL ⊗-shape,
+--     at the exact type of `PartI`'s / `Strict.Soundness`'s `decodePˢ-⊗`
+--     parameter.  This is the file's last definition.
 --   * `Reconcile-e`'s own statements are HETEROGENEOUS (`_≈̂_`) wherever a
 --     homogeneous one would have to name a cast path (`Gc-≈̂`, `Kc-≈̂`,
 --     `combRaw-frame`, `target-≈̂`) — which is why no `cast-fuse` /
@@ -942,6 +946,22 @@ module Braid {A B C D : ObjTerm}
           (∘-resp ≈-refl (∘-resp ≈-refl pf-rigid))))))
 
     -- ## THE K-BLOCK BRAID, discharged.  This is the last residual of the
-    -- strict ⊗-shape; `TensorKBlockFinal` only instantiates it.
+    -- strict ⊗-shape; `decodePˢ-⊗-concrete` below only instantiates it.
     kblockσ : KBlockσ
     kblockσ = KBlockσ-from-factorization Br' kfac
+
+--------------------------------------------------------------------------------
+-- ## Phase 8 — THE FINAL WIRING.  The UNCONDITIONAL ⊗-shape, `Braid`'s
+-- conditional theorem fed its own last hypothesis:
+--
+--     decodePˢ-⊗ : decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g    (UNCOND.)
+--
+-- This has the EXACT type of `PartI`'s / `Strict.Soundness`'s `decodePˢ-⊗`
+-- parameter, so it closes the last residual of the strict soundness assembly.
+-- ZERO postulates, `--safe --without-K`.
+
+decodePˢ-⊗-concrete
+  : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
+  → decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
+decodePˢ-⊗-concrete f g = Brd.decodePˢ-⊗-cond Brd.Reconcile-e.kblockσ
+  where module Brd = Braid f g

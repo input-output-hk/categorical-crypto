@@ -6,7 +6,7 @@
 --   castˢ P Q (permuteˢ {Fin nJ} vJ (map⁺ φ p)) ≈ˢ permuteˢ {Fin nH} vH p
 --
 -- Consumed by BOTH the `∘`-shape (`DecodeComposeAssembly`) and the ⊗-shape
--- (`TensorBraid`/`TensorKBlockFinal`) for the G-/K-block final permutes
+-- (`TensorBraid`) for the G-/K-block final permutes
 -- (`φ = injL / injR / remapP`).
 --
 -- This is FUNCTORIALITY, not rigidity: stdlib's `map⁺ φ` is structural, so

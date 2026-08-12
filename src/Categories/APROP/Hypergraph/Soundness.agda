@@ -5,7 +5,7 @@
 --
 -- `soundness` delegates to `Strict.Soundness.soundness-strict`, which is
 -- assembled at the unconditional strict ⊗-shape
--- `Strict.Tensor.TensorKBlockFinal.decodePˢ-⊗-concrete`.  That path proves
+-- `Strict.Tensor.TensorBraid.decodePˢ-⊗-concrete`.  That path proves
 -- `⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g` entirely inside the presented strict SMC `S`
 -- (part (I)ˢ `st ≈ˢ decodePˢ` + part (II)ˢ `decodePˢ`-iso-invariance,
 -- reflected via `embF`/`st-roundtrip` + the `bridge` cancellation),

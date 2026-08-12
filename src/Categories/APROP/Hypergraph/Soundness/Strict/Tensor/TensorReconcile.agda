@@ -41,8 +41,8 @@
 --   with the sub-decoder runs through `TensorPVVRelabel.pvv-relabelˢ`.
 --   `braidˢ` is supplied downstream by `Strict.Tensor.TensorBraid` (via the
 --   K-prepend box-braid `KBlockσ`), so `decodePˢ-⊗-from-braid` here is fed a
---   concrete witness in `TensorKBlockFinal.decodePˢ-⊗-concrete` — making the
---   whole ⊗-shape UNCONDITIONAL (TensorKBlockFinal has ZERO postulates).
+--   concrete witness in `TensorBraid.decodePˢ-⊗-concrete` — making the
+--   whole ⊗-shape UNCONDITIONAL (with ZERO postulates).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -150,6 +150,6 @@ module Reconcile {A B C D : ObjTerm}
 -- `reconcileˢ` = `final-resortˢ` (proven here, via `perm-rigidˢ` on the
 -- `Unique` cod) + the single K-block braid residual `braidˢ`, discharged
 -- downstream in `Strict/Tensor/TensorBraid` (concrete witness
--- `TensorKBlockFinal.decodePˢ-⊗-concrete`, zero postulates).  See the header
+-- `TensorBraid.decodePˢ-⊗-concrete`, zero postulates).  See the header
 -- for `braidˢ`'s statement and the CRITICAL-ASYMMETRY content it packages.
 --------------------------------------------------------------------------------
