@@ -2,8 +2,12 @@
 
 --------------------------------------------------------------------------------
 -- The K-BLOCK BRAID `braidˢ` of `Strict.Tensor.TensorReconcile` — the LAST
--- residual
--- of the strict ⊗-shape `decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g`.
+-- residual of the strict ⊗-shape
+-- `decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g` — AND, since the round-6
+-- TKB collapse, its DISCHARGE.  The whole K-block argument is here: the
+-- residual `KBlockσ`, the ⊗-shape conditional on it, and `Reconcile-e`, the
+-- derivation that proves it.  `TensorKBlockFinal` does nothing but apply
+-- `Reconcile-e.kblockσ` to `Braid.decodePˢ-⊗-cond`.
 --
 -- `⟪ f ⊗₁ g ⟫ = hTensor ⟪f⟫ ⟪g⟫`, edges `range C.nE = gblk ++ kblk`
 -- (`gblk = map (_↑ˡ K.nE)(range G.nE)`, `kblk = map (G.nE ↑ʳ_)(range K.nE)`),
@@ -34,15 +38,28 @@
 --      `TensorReconcile.final-resortˢ` (`perm-rigidˢ`, `Unique` cod) closes
 --      the loop with `finalPermˢ`.
 --
--- WHAT IS GREEN HERE (postulate-free, `--safe --without-K`):
+-- WHAT IS GREEN HERE (postulate-free, `--safe --without-K`), in file order:
 --   * `KBlockDisjoint` — the `injL`/`injR` block disjointness both steps 2
 --     and 3 need, plus the one home of the two edge injections `ψG`/`ψK`.
---   * `TG` / `TK` — the G-/K-side `TermEmbedˢ` instances, giving the two
---     block term-twins.
---   * `runˢ-factor` — the run-split + G-frame, as a single `≈ˢ`.
---   * the assembly `braidˢ-from-kblock` reducing `braidˢ` (hence the whole
---     ⊗-shape) to the single clearly-typed K-block residual `KBlockσ`.
---   * `decodePˢ-⊗-cond` — the ⊗-shape THEOREM, conditional on `KBlockσ`.
+--   * `Embeds`' `TG` / `TK` — the G-/K-side `TermEmbedˢ` instances, giving the
+--     two block term-twins.
+--   * `Braid.braidˢ-from-kblock` — the run-split (`split-eq`, from the proven
+--     `run-split-atˢ`) and the G-frame (`gframe`, from the proven `term-sepᵛ`)
+--     substituted into the C-run, reducing `braidˢ` — hence the whole ⊗-shape
+--     — to the single clearly-typed K-block residual `KBlockσ`.
+--   * `Braid.decodePˢ-⊗-cond` — the ⊗-shape THEOREM, conditional on
+--     `KBlockσ`, which the next item then discharges.
+--   * `Braid.Reconcile-e` — the (e)-RECONCILE, the file's largest population
+--     (from its own banner below to the end of the file).  It DERIVES the
+--     K-block run factorization here (`kfac`: equivariance + right-frame
+--     separability + σ-conjugation), reconciles it to the residual
+--     (`KBlockσ-from-factorization`), and closes with `kblockσ : KBlockσ`.
+--     So the conditional theorem above is discharged IN THIS FILE and nothing
+--     downstream carries `KBlockσ` as a hypothesis.
+--   * `Reconcile-e`'s own statements are HETEROGENEOUS (`_≈̂_`) wherever a
+--     homogeneous one would have to name a cast path (`Gc-≈̂`, `Kc-≈̂`,
+--     `combRaw-frame`, `target-≈̂`) — which is why no `cast-fuse` /
+--     `cast-irrel` endpoint algebra survives at the boundary.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -105,7 +122,8 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
 -- block-swapped stack.
 -- G-side (the mirror `injL∉injRs`/`gblock-disjoint`): the whole G-block's
 -- inputs are absent from the `injR` residual `map injR K.dom` — the
--- `stack-sepˢ`/`term-sepᵛ` side condition `runˢ-factor` consumes.
+-- `stack-sepˢ`/`term-sepᵛ` side condition the G-frame (`Braid.gframe`)
+-- consumes.
 -- Also the one home of the two EDGE injections `ψG`/`ψK`.
 
 module KBlockDisjoint (G K : Hypergraph FlatGen) where
@@ -406,10 +424,10 @@ module Braid {A B C D : ObjTerm}
   ----------------------------------------------------------------------
   -- ## (e)-RECONCILE: `KBlockσ` from the K-block run factorization.
   --
-  -- This is the LAST step.  `TensorKBlockFinal` supplies the K-block run
-  -- factorization at the concrete K-block (`L = sG`, the G-output block;
-  -- `s = aG`, the post-G stack; `s_R = Rsuf`, the canonical pure-`injR`
-  -- K-stack), for ANY K-prepend braid `Br`:
+  -- This is the LAST step.  The K-block run factorization at the concrete
+  -- K-block (`L = sG`, the G-output block; `s = aG`, the post-G stack;
+  -- `s_R = Rsuf`, the canonical pure-`injR` K-stack) is DERIVED below
+  -- (`kfac`), for ANY K-prepend braid `Br`:
   --     Krun ≈ˢ permuteˢ Br ∘ˢ (KCln ∘ˢ permuteˢ pf₀).
   -- We reconcile this to `KBlockσ` by: collapsing the G-frame against the
   -- clean K-head via `interchangeˢ` (giving `Gon ⊗ Kclean`), bridging `Gon`
