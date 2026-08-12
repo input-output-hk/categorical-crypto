@@ -4,18 +4,18 @@
 -- Term-free structural invariants of the decoder's stack search, both frames
 -- (postulate-free, `--safe`).  Two sections:
 --
---   §1 (`:37`)  RIGHT frame — firing stays inside the prefix: on `xs ++ R`
---               the search that succeeds within `xs` succeeds identically,
---               and the one that fails on `xs` fails identically
---               (`extract-elem-++ˡ`, `extract-prefix-++ˡ`,
---               `prefix-++ˡ-perm`, and their two `nothing`-mirrors).
---               Consumed by `Strict/Decode/Decoder.agda`'s `stack-sepˢ`.
---   §2 (`:161`) LEFT frame — the `++ʳ` family (`extract-elem-++ʳ`,
---               `extract-prefix-++ʳ-nothing`): a frame block `L` disjoint from
---               the searched list passes through whole onto the residual.
---               Consumed by `Decode/DecodeProperties.agda`.
+--   §1  RIGHT frame — firing stays inside the prefix: on `xs ++ R`
+--       the search that succeeds within `xs` succeeds identically,
+--       and the one that fails on `xs` fails identically
+--       (`extract-elem-++ˡ`, `extract-prefix-++ˡ`,
+--       `prefix-++ˡ-perm`, and their two `nothing`-mirrors).
+--       Consumed by `Strict/Decode/Decoder.agda`'s `stack-sepˢ`.
+--   §2  LEFT frame — the `++ʳ` family (`extract-elem-++ʳ`,
+--       `extract-prefix-++ʳ-nothing`): a frame block `L` disjoint from
+--       the searched list passes through whole onto the residual.
+--       Consumed by `Decode/DecodeProperties.agda`.
 --
--- §2 carries the OBSTRUCTION note (`:174`) explaining why these STACK lemmas
+-- §2 carries the OBSTRUCTION note explaining why these STACK lemmas
 -- are the strongest left-hand statement available — the TERM-level left-frame
 -- mirror of `Decoder.term-sepᵛ` is FALSE for a block that fires, because the
 -- residual comes out as `eout e ++ (L ++ rest)` where the framed form needs
@@ -47,7 +47,7 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Decidable using (yes; no)
 
 --------------------------------------------------------------------------------
--- ## Structural invariant: firing stays inside the prefix.
+-- ## §1 Structural invariant: firing stays inside the prefix.
 --
 -- `extract-elem`/`extract-prefix` walk the stack left-to-right and stop at the
 -- FIRST occurrence.  Hence on `xs ++ R`, if the element/prefix is found within
@@ -171,7 +171,7 @@ extract-prefix-++ˡ-nothing (k ∷ ks) xs R (dk ∷ dks) eqn with extract-elem k
 ...       | ()
 
 --------------------------------------------------------------------------------
--- ## LEFT-frame separability (frame block on the LEFT of the searched list).
+-- ## §2 LEFT-frame separability (frame block on the LEFT of the searched list).
 --
 -- Mirror of the `++ˡ` family above.  `extract-elem`/`extract-prefix` walk
 -- left-to-right, so a LEFT frame `F` is only transparent when the searched
