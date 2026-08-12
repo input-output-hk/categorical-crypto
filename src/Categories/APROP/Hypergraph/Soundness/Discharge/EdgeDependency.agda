@@ -2,9 +2,16 @@
 
 --------------------------------------------------------------------------------
 -- The immediate edge-dependency relation `e ≺ e' := ∃ v. v ∈ eout e ×
--- v ∈ ein e'` (a wire produced by `e` is consumed by `e'`), and Lemma A:
--- a hypergraph isomorphism `Φ : H ≅ᴴ J` is an isomorphism of `_≺_`,
---     e ≺_H e'  ⟺  ψ e ≺_J ψ e'.
+-- v ∈ ein e'` (a wire produced by `e` is consumed by `e'`), and its two
+-- transport laws:
+--
+--   * `Dep-reflect` reflects a dependency in a composite back into one of
+--     its blocks, along an edge embedding.  This is what `FinOrderNoInv`
+--     imports, both off the diagonal and (at `ea ≡ eb`) on it.
+--   * Lemma A (`≺⇒ψ≺`): a hypergraph isomorphism `Φ : H ≅ᴴ J` carries `_≺_`
+--     FORWARD,  e ≺_H e'  →  ψ e ≺_J ψ e'.  One direction, not the stated
+--     biconditional of old — the converse is `≺⇒ψ≺ (sym-≅ᴴ Φ)`, and no
+--     consumer has ever needed it.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency where

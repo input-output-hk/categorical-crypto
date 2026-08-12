@@ -121,6 +121,11 @@ module _
   -- The final permutation is identified with the identity derivation by
   -- `perm-rigidˢ` (the `Unique` codomain coming from linearity), exactly
   -- where the non-strict `decode-id-is-id` invokes K-faithfulness.
+  --
+  -- `dc` is what confines this module to the *structural* atoms: it is FALSE
+  -- for `σ`, whose `⟪ σ ⟫` swaps its two boundary lists.  So the σ shape is
+  -- proved separately (`DecodeSigma`), and nothing here may be hoisted to a
+  -- level that quantifies over σ as well.
 
   module Atom {A B : ObjTerm} (f : HomTerm A B)
     (nE≡0 : Hypergraph.nE ⟪ f ⟫ ≡ 0)
