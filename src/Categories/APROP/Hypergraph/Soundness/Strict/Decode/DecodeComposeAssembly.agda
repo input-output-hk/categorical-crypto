@@ -46,7 +46,7 @@ import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
   using (⟪⟫-LinearP; process-edges-↑ˡ-pure-L)
-import Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP sig as LP
+import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as LP
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_ public
 

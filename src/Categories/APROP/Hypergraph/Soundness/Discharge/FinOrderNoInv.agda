@@ -88,9 +88,8 @@ open Inv using (inject+-inj; raise-inj; disj-L-R; range-++)
 -- linearity witness, and the pruning machinery for the `∘` case.
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using (Linear)
-import Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP sig as LHC
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
-  using (⟪⟫-LinearP)
+  using (⟪⟫-LinearP; remapP-injective)
 open import Categories.APROP.Hypergraph.Util.Prune
   using (count-non; classify; classify-view; is-mem; is-non)
 open import Data.List.Membership.Propositional.Properties
@@ -313,7 +312,7 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
   -- replaced by `remapP` and `raise-inj` by `remapP`'s injectivity on
   -- edge-port vertices = `LinearHComposeP.remapP-injective`).
   remapP-inj : ∀ {v v'} → C.remapP v ≡ C.remapP v' → v ≡ v'
-  remapP-inj = LHC.remapP-injective G K bdy lin-G lin-K
+  remapP-inj = remapP-injective G K bdy lin-G lin-K
 
   compose-KK-reflect : ∀ {ea eb : Fin K.nE}
                      → Dep Hc (injREc eb) (injREc ea) → Dep K eb ea
