@@ -399,36 +399,26 @@ flatten : (p : xs ↭ ys) → Σ[ w ∈ Word (pred (length xs)) ] (p ≅↭ᴴ �
 flatten Perm.refl = [] , hrefl
 flatten (Perm.prep {xs = []} x p′) with flatten p′
 ... | [] , rel′ = [] , htrn (prepᴴ rel′) (liftⁱ prep-id)
-flatten (Perm.prep {xs = z ∷ zs} x p′) =
-  liftW w′ , htrn (prepᴴ rel′) (hsym (interp-liftW w′))
-  where
-  fp = flatten p′
-  w′  = proj₁ fp
-  rel′ = proj₂ fp
-flatten (Perm.trans {xs = xs} {ys = ys} {zs = zs} p′ q′) =
+flatten (Perm.prep {xs = z ∷ zs} x p′) with flatten p′
+... | w′ , rel′ = liftW w′ , htrn (prepᴴ rel′) (hsym (interp-liftW w′))
+flatten (Perm.trans {xs = xs} {ys = ys} {zs = zs} p′ q′)
+  with flatten p′ | flatten q′
+... | w_p , rel_p | w_q , rel_q =
   w_q′ ++ w_p ,
   htrn (trcᴴ rel_p (htrn rel_q (interp-cong er_p)))
        (hsym (htrn (interp-++ w_q′ w_p)
                    (trcᴴ hrefl (⟦⟧↭-subst (sym eq′) w_q))))
   where
-  fp = flatten p′
-  fq = flatten q′
-  w_p  = proj₁ fp
-  rel_p = proj₂ fp
-  w_q  = proj₁ fq
-  rel_q = proj₂ fq
   eq′ : pred (length xs) ≡ pred (length ys)
   eq′ = cong pred (↭-length p′)
   w_q′ : Word (pred (length xs))
   w_q′ = subst Word (sym eq′) w_q
   er_p : ys ≡ applyW w_p xs
   er_p = proj₁ (proj₂ rel_p)
-flatten (Perm.swap {xs = z ∷ zs} {ys = ys′} x y p′) =
+flatten (Perm.swap {xs = z ∷ zs} {ys = ys′} x y p′) with flatten p′
+... | w′ , rel′ =
   0F ∷ liftW (liftW w′) , htrn (liftⁱ swap-nat) (trcᴴ piece1 piece2)
   where
-  fp = flatten p′
-  w′  = proj₁ fp
-  rel′ = proj₂ fp
   piece1 : Perm.prep x (Perm.prep y p′)
            ≅↭ᴴ ⟦ liftW (liftW w′) ⟧↭ (x ∷ y ∷ z ∷ zs)
   piece1 = htrn (prepᴴ (prepᴴ rel′))
