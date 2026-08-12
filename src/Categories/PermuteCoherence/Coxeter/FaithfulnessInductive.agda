@@ -44,7 +44,7 @@ open import Data.List.Relation.Binary.Permutation.Propositional.Properties using
 open import Data.Product using (_,_; proj₁; proj₂; Σ-syntax)
 
 open import Categories.PermuteCoherence.FinBij
-  using (FinBij; _≈-fb_; cons-fb; swap-fb; id-fb; _∘-fb_)
+  using (_≈-fb_; cons-fb; swap-fb; id-fb; _∘-fb_)
 open import Categories.PermuteCoherence.Eval using (eval-↭)
 open import Categories.PermuteCoherence.Coxeter.EvalSoundness
   using ( cons-fb-functor-id; cons²-fb-id; cons-fb-functor-comp
@@ -61,7 +61,7 @@ open import Categories.PermuteCoherence.Coxeter.WordInterp {X = X}
         ; cast-push; eval-respect)
 private
   variable
-    x y z a b c e : X
+    x y z : X
     xs ys zs ws : List X
     xs′ ys′ zs′ : List X
 
