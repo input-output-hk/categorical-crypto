@@ -98,11 +98,10 @@
 --   • E-mono-on                 — support-level expectation monotonicity (the one
 --                                 order fact missing from the probability library;
 --                                 `E-mono` is DERIVED from it).
---   • OnSupport-return/bind/Dmap, unique-run, take-drop-inj
---                               — standard, crypto-free, PROVABLE facts postulated
---                                 to defer library work (marked at their sites).
 --
 -- NOT `--safe` (it still postulates the framework + the standard-math facts above).
+--
+-- Warm single-module typecheck: ~510 s (measured 2026-08-11, `+RTS -M10G -H2G`).
 --------------------------------------------------------------------------------
 
 module CategoricalCrypto.Examples.MerkleDamgard where
@@ -130,6 +129,8 @@ open import Data.Rational.Properties using
   ; 0≤∣p∣; 0≤p⇒∣p∣≡p; ∣-p∣≡∣p∣; ≤-antisym; 1≢0 )
 import Data.List.NonEmpty as NE
 import Data.List.Relation.Unary.All as ListAll
+open import Data.List.Run
+open import Data.Vec.Properties.Ext using (take-drop-inj)
 open import CategoricalCrypto.Channel.Core using (Channel; _⇿_; I; _⊗₀_)
 open import CategoricalCrypto.SFunM
 open import ProbabilisticLogic.Distribution.RationalDist
@@ -519,10 +520,6 @@ strip⊥-cong {f = f} {g} f≈g xs = begin
 -- expectation triangle inequality are then derived in terms of it.
 --------------------------------------------------------------------------------
 
--- Support predicate: P holds at every point the distribution actually charges.
-OnSupport : {A : Type} → (A → Type) → Dist-ℚ A → Type
-OnSupport P μ = ListAll.All (λ e → P (proj₂ e)) (NE.toList (entries μ))
-
 postulate
   -- The ONE probabilistic order fact assumed: expectation monotonicity on the
   -- support — true because weights are non-negative, which the `Dist-ℚ` library
@@ -541,40 +538,6 @@ E-mono : ∀ {A : Type} (μ : Dist-ℚ A) (f g : A → ℚ)
        → (∀ a → f a ≤ℚ g a) → E μ f ≤ℚ E μ g
 E-mono μ f g pt =
   E-mono-on μ f g (all-univ (λ e → pt (proj₂ e)) (NE.toList (entries μ)))
-
-postulate
-  -- PROVABLE (standard, representation-level; needs no weight-positivity) —
-  -- the support of the distribution-monad operations:
-  OnSupport-return : {A : Type} {P : A → Type} {a : A}
-                   → P a → OnSupport P (return-ℚ a)
-  OnSupport-bind   : {A B : Type} {P : A → Type} {Q : B → Type}
-                     (μ : Dist-ℚ A) (h : A → Dist-ℚ B)
-                   → OnSupport P μ → (∀ a → P a → OnSupport Q (h a))
-                   → OnSupport Q (μ >>=ᴹ h)
-  OnSupport-Dmap   : {A B : Type} {P : B → Type} (f : A → B) (μ : Dist-ℚ A)
-                   → OnSupport (λ a → P (f a)) μ → OnSupport P (Dmap f μ)
-
--- Runs of a labelled partial transition function.
-runPath : {V L : Type} → (V → L → Maybe V) → V → List L → Maybe V
-runPath step v []       = just v
-runPath step v (l ∷ ls) with step v l
-... | just w  = runPath step w ls
-... | nothing = nothing
-
-postulate
-  -- PROVABLE (standard): in a CO-DETERMINISTIC labelled transition system
-  -- (in-degree ≤ 1), equal-length runs from the same source to the same
-  -- target carry equal labels.
-  unique-run : {V L : Type} (step : V → L → Maybe V)
-             → (∀ {v l v' l' w} → step v l ≡ just w → step v' l' ≡ just w
-                  → (v , l) ≡ (v' , l'))
-             → ∀ {r t} (ls ls' : List L) → length ls ≡ length ls'
-             → runPath step r ls ≡ just t → runPath step r ls' ≡ just t
-             → ls ≡ ls'
-
-  -- PROVABLE (standard): a vector is determined by its take/drop split.
-  take-drop-inj : {A : Type} (m : ℕ) {j : ℕ} (u v : Vec A (m + j))
-                → takeᵛ m u ≡ takeᵛ m v → dropᵛ m u ≡ dropᵛ m v → u ≡ v
 
 private
   -- ℚ cancellation facts (the ring solver is semiring-only, so prove these by hand).
@@ -2327,16 +2290,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     nothing≢just : ∀ {A : Type} {x : A} → nothing ≡ just x → ⊥
     nothing≢just ()
 
-    -- runPath's first step: fixing the head transition unfolds one step.
-    runPath-step : ∀ {V L : Type} (step : V → L → Maybe V) v l w ls
-                 → step v l ≡ just w → runPath step v (l ∷ ls) ≡ runPath step w ls
-    runPath-step step v l w ls eq with step v l | eq
-    ... | just w' | refl = refl
-    runPath-nothing : ∀ {V L : Type} (step : V → L → Maybe V) v l ls
-                    → step v l ≡ nothing → runPath step v (l ∷ ls) ≡ nothing
-    runPath-nothing step v l ls eq with step v l | eq
-    ... | nothing | refl = refl
-
     -- Replaying an EMBEDDED chain: with every lookup a hit, the walk is a
     -- deterministic all-hits run — the table is unchanged and it reaches the
     -- recorded value (support level; `>>=` scales weights but not points).  The
@@ -2406,13 +2359,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   private
     just≢nothing : ∀ {A : Type} {x : A} → just x ≡ nothing → ⊥
     just≢nothing ()
-
-    -- head decomposition of a successful run
-    runPath-cons-inv : ∀ {V L : Type} (step : V → L → Maybe V) r l ls t
-                     → runPath step r (l ∷ ls) ≡ just t
-                     → Σ V λ w → (step r l ≡ just w) × (runPath step w ls ≡ just t)
-    runPath-cons-inv step r l ls t e with step r l | e
-    ... | just w | e' = w , refl , e'
 
     -- "sc' extends sc": every present lookup is preserved (⟹ successful runs preserved)
     _⊒_ : Comp.Table → Comp.Table → Type
@@ -2860,23 +2806,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     labels-++ (x ∷ bs) b j = cong ((x , j) ∷_)
       (trans (labels-++ bs b (suc j))
              (cong (λ z → labels bs (suc j) ++ ((b , z) ∷ [])) (sym (ℕP.+-suc j (length bs)))))
-
-    runPath-single : ∀ {V L : Type} (step : V → L → Maybe V) r l → runPath step r (l ∷ []) ≡ step r l
-    runPath-single step r l with step r l
-    ... | just w  = refl
-    ... | nothing = refl
-
-    -- the last step of a snoc-run
-    runPath-snoc-inv : ∀ {V L : Type} (step : V → L → Maybe V) r ls l t
-                     → runPath step r (ls ++ (l ∷ [])) ≡ just t
-                     → Σ V λ w → (runPath step r ls ≡ just w) × (step w l ≡ just t)
-    runPath-snoc-inv step r []        l t e = r , refl , trans (sym (runPath-single step r l)) e
-    runPath-snoc-inv step r (l0 ∷ ls) l t e =
-      let c = runPath-cons-inv step r l0 (ls ++ (l ∷ [])) t e
-          s = runPath-snoc-inv step (proj₁ c) ls l t (proj₂ (proj₂ c))
-      in proj₁ s
-       , trans (runPath-step step r l0 (proj₁ c) ls (proj₁ (proj₂ c))) (proj₁ (proj₂ s))
-       , proj₂ (proj₂ s)
 
     -- labels is injective at a fixed start position
     labels-inj : ∀ bs bs' j → labels bs j ≡ labels bs' j → bs ≡ bs'
