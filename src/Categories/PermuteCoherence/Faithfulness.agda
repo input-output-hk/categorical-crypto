@@ -21,33 +21,34 @@ module Categories.PermuteCoherence.Faithfulness
   (d : FreeMonoidalData) ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
 
 open FreeMonoidal d
-open FreeMonoidalData d using (X)
+open FreeMonoidalData d using (v; X; mor)
 
 open import Data.List.Base using (List; []; _∷_; _++_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 
-open import Categories.Category.Monoidal using (Monoidal)
-open import Categories.Category.Monoidal.Utilities Monoidal-FreeMonoidal
-  using (_⊗ᵢ_)
-open import Categories.Morphism FreeMonoidal using (_≅_; module ≅)
-open Monoidal Monoidal-FreeMonoidal using (unitorˡ; associator)
+open import Categories.Morphism FreeMonoidal using (_≅_)
+
+-- the wire kit, which `FreeMonoidal d`'s `hiding` list keeps out of the APROP
+-- namespace (the solver stack opens `Mor` directly for the same reason)
+open FreeMonoidalHelper v X using (wires)
+open FreeMonoidalHelper.Mor v X mor using (merge; split; merge∘split; split∘merge)
 
 ------------------------------------------------------------------------
 -- 1. Generic `unflatten` -- the right-associated, unit-padded decoder.
-
+-- Definitionally `wires`, so SMC bridges observe the two as equal.
 unflatten : List X → ObjTerm
-unflatten []       = unit
-unflatten (x ∷ xs) = Var x ⊗₀ unflatten xs
+unflatten = wires
 
 ------------------------------------------------------------------------
--- 1b. `unflatten` distributes over `_++_` up to a coherence iso.
+-- 1b. `unflatten` distributes over `_++_` up to a coherence iso: the
+-- `split`/`merge` pair with its two cancellations.
 
 unflatten-++-≅
   : ∀ (xs ys : List X)
   → unflatten (xs ++ ys) ≅ unflatten xs ⊗₀ unflatten ys
-unflatten-++-≅ []       ys = ≅.sym unitorˡ
-unflatten-++-≅ (x ∷ xs) ys =
-  ≅.trans (≅.refl ⊗ᵢ unflatten-++-≅ xs ys) (≅.sym associator)
+unflatten-++-≅ xs ys = record
+  { from = split xs ; to = merge xs
+  ; iso = record { isoˡ = merge∘split xs ; isoʳ = split∘merge xs } }
 
 ------------------------------------------------------------------------
 -- 2. Generic `permute`.

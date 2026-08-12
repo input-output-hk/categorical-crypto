@@ -501,13 +501,19 @@ record FreeMonoidalData : Set₁ where
 
 module FreeMonoidal (d : FreeMonoidalData) where
   open FreeMonoidalData d
+  -- `wires`/`flatten`/`≟ObjTerm` are withheld so that the APROP cone can bind
+  -- those three names itself; the cost is that a consumer wanting the shared
+  -- definition has to reach into `FreeMonoidalHelper` laterally (as
+  -- `PermuteCoherence.Faithfulness` does) or re-roll it (as
+  -- `Model.FromAPROP.flatten` still does).
   open FreeMonoidalHelper v X hiding (module Mor; wires; flatten; ≟ObjTerm) public
-  -- The wire-combinator helpers (`split`/`merge`/`liftW`/`pad`/`rpad`/…)
-  -- live in `Mor` for the solver's benefit, but are NOT re-exported here:
-  -- downstream consumers that `open FreeMonoidal d` (the APROP cone,
-  -- PermuteCoherence, …) define their own combinators of the same names,
-  -- so re-exporting these would pollute every such namespace. The solver
-  -- opens `FreeMonoidalHelper.Mor` directly and is unaffected.
+  -- The wire-combinator helpers (`split`/`merge`/`liftW`/`pad`/`rpad`/…) live
+  -- in `Mor` for the solver's benefit and are NOT re-exported here.  The
+  -- blocking name is `merge`: stdlib's `Data.List.Base` exports one, and
+  -- `Soundness/Decode/Decode.agda:41` is a bare `open import Data.List`, so
+  -- re-exporting ours makes that module genuinely ambiguous.  The rest travel
+  -- with it rather than being individually contested.  The solver opens
+  -- `FreeMonoidalHelper.Mor` directly and is unaffected.
   open FreeMonoidalHelper.Mor v X mor public
     hiding ( liftW; liftW-id; liftW-resp; liftW-∘
            ; merge; merge∘split; split; split∘merge
