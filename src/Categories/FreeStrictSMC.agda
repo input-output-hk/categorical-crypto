@@ -289,6 +289,27 @@ module Build
     → f ≈̂ g → (P : as ≡ as') (Q : bs ≡ bs') → castˢ P Q f ≈ˢ g
   ≈̂⇒castˢ {f = f} (p , q , e) P Q = ≈-trans (≡⇒≈ˢ (cast-irrel P p Q q f)) e
 
+  -- …and its INTRODUCER: a proven cast-equation IS the heterogeneous equation,
+  -- on the nose (`_≈̂_` is the Σ of exactly those two endpoint proofs with
+  -- exactly this `≈ˢ`).  Without it every consumer rebuilds this out of
+  -- `≈̂-trans (≈̂-sym (cast-≈̂ …)) (≈ˢ⇒≈̂ …)` — four kit faces, two of them
+  -- carrying `cast-fuse`/`cast-irrel` proof terms, for a triple.
+  castˢ⇒≈̂
+    : ∀ {as bs as' bs'} (p : as ≡ as') (q : bs ≡ bs')
+        {f : HomS as bs} {g : HomS as' bs'}
+    → castˢ p q f ≈ˢ g → f ≈̂ g
+  castˢ⇒≈̂ p q e = p , q , e
+
+  -- `∘-cast-split` is never used alone: every consumer immediately `∘-resp`s
+  -- the two split factors against their twins.  Naming the composite also
+  -- makes the two morphism arguments implicit (the goal pins them).
+  ∘-cast-resp
+    : ∀ {as bs cs as' bs' cs'} (P : as ≡ as') (M : bs ≡ bs') (Q : cs ≡ cs')
+        {g : HomS bs cs} {g' : HomS bs' cs'} {f : HomS as bs} {f' : HomS as' bs'}
+    → castˢ M Q g ≈ˢ g' → castˢ P M f ≈ˢ f'
+    → castˢ P Q (g ∘ˢ f) ≈ˢ g' ∘ˢ f'
+  ∘-cast-resp P M Q eg ef = ≈-trans (∘-cast-split P M Q _ _) (∘-resp eg ef)
+
   -- the re-spelling sandwich: cite an equation at whatever endpoints it is
   -- stated, framed by two `≈̂` re-spellings of the sides.  EVERY V-level axiom
   -- (`Restrict`, below) is `viaˢ`; the `≈̂`-middle twin `viâ` serves the same

@@ -348,9 +348,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
 
   -- Y-twin: `castˢ (vlab-φ G.dom) midG-cod Ycˢ ≈ˢ PFˢ ∘ˢ pterm-f`.
   Yc-twinˢ : castˢ (TG.vlab-φ G.dom) midG-cod Ycˢ ≈ˢ PFˢ ∘ˢ pterm-f
-  Yc-twinˢ =
-    ≈-trans (∘-cast-split (TG.vlab-φ G.dom) M1G midG-cod permAG gterm)
-            (∘-resp gperm' gtwin')
+  Yc-twinˢ = ∘-cast-resp (TG.vlab-φ G.dom) M1G midG-cod gperm' gtwin'
 
   ----------------------------------------------------------------------
   -- ## The K-block.
@@ -390,9 +388,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   Xc-twinˢ : castˢ (TK.vlab-φ K.dom) (TK.vlab-φ K.cod) Xcˢ ≈ˢ PGˢ ∘ˢ pterm-g
   Xc-twinˢ =
     ≈-trans (cast-resp (TK.vlab-φ K.dom) (TK.vlab-φ K.cod) Xc-assocˢ)
-    (≈-trans (∘-cast-split (TK.vlab-φ K.dom) MK1 (TK.vlab-φ K.cod)
-                (RC.permuteˢ combPˢ) kterm-canon)
-             (∘-resp kperm' ktwin'))
+            (∘-cast-resp (TK.vlab-φ K.dom) MK1 (TK.vlab-φ K.cod) kperm' ktwin')
 
   ----------------------------------------------------------------------
   -- ## The headline `decodePˢ` equation.
@@ -419,21 +415,18 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
     Gpartˢ : castˢ domGF midGFᵉ Ycˢ ≈ˢ decodePˢ f
     Gpartˢ =
       viâ (cast-≈̂ {p = domGF} {q = midGFᵉ})
-          (≈̂-trans (≈̂-sym (cast-≈̂ {p = TG.vlab-φ G.dom} {q = midG-cod}))
-                   (≈ˢ⇒≈̂ Yc-twinˢ))
+          (castˢ⇒≈̂ (TG.vlab-φ G.dom) midG-cod Yc-twinˢ)
           (cast-≈̂ {p = ⟪⟫-domL f} {q = ⟪⟫-codL f})
 
     -- K-part: `castˢ midGFᵉ codGF Xcˢ ≈ˢ decodePˢ g`.  Mirror of `Gpartˢ`.
     Kpartˢ : castˢ midGFᵉ codGF Xcˢ ≈ˢ decodePˢ g
     Kpartˢ =
       viâ (cast-≈̂ {p = midGFᵉ} {q = codGF})
-          (≈̂-trans (≈̂-sym (cast-≈̂ {p = TK.vlab-φ K.dom} {q = TK.vlab-φ K.cod}))
-                   (≈ˢ⇒≈̂ Xc-twinˢ))
+          (castˢ⇒≈̂ (TK.vlab-φ K.dom) (TK.vlab-φ K.cod) Xc-twinˢ)
           (cast-≈̂ {p = ⟪⟫-domL g} {q = ⟪⟫-codL g})
 
   -- The full strict `∘`-shape.
   decodePˢ-∘-shape : decodePˢ (g ∘ f) ≈ˢ decodePˢ g ∘ˢ decodePˢ f
   decodePˢ-∘-shape =
     ≈-trans (cast-resp domGF codGF Pcomp-eqˢ)
-    (≈-trans (∘-cast-split domGF midGFᵉ codGF Xcˢ Ycˢ)
-             (∘-resp Kpartˢ Gpartˢ))
+            (∘-cast-resp domGF midGFᵉ codGF Kpartˢ Gpartˢ)

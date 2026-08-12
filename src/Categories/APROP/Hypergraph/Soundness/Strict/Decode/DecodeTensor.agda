@@ -66,11 +66,10 @@ module Tensor {A B C D : ObjTerm}
   -- ⊗₀ as `_++_`), so the statement is cast-free.
   decodePˢ-⊗ : decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
   decodePˢ-⊗ =
-    ≈-trans (cast-resp (⟪⟫-domL (f ⊗₁ g)) (⟪⟫-codL (f ⊗₁ g)) reconcileˢ)
-    (≈-trans (≡⇒≈ˢ (cast-fuse (sym (⟪⟫-domL (f ⊗₁ g))) (⟪⟫-domL (f ⊗₁ g))
-                              (sym (⟪⟫-codL (f ⊗₁ g))) (⟪⟫-codL (f ⊗₁ g))
-                              (decodePˢ f ⊗ˢ decodePˢ g)))
-      (≡⇒≈ˢ (cast-irrel _ refl _ refl (decodePˢ f ⊗ˢ decodePˢ g))))
+    viaˢ (cast-≈̂ {p = ⟪⟫-domL (f ⊗₁ g)} {q = ⟪⟫-codL (f ⊗₁ g)})
+         reconcileˢ
+         (≈̂-sym (cast-≈̂ {p = sym (⟪⟫-domL (f ⊗₁ g))}
+                        {q = sym (⟪⟫-codL (f ⊗₁ g))}))
 
 --------------------------------------------------------------------------------
 -- `decodePˢ-⊗` is reduced to the single boundary residual `reconcileˢ`,

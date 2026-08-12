@@ -315,11 +315,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
     → castˢ di ci (SG.decodeOrdˢ (range J.nE) vJ)
       ≈ˢ SF.decodeOrdˢ τ (iso-validˢ vJ)
   iso-transportˢ vJ =
-    ≈-trans (∘-cast-split di mid-iso ci permJ procJ)
-            (∘-resp (permute-relabel-freeˢ vJ) proc-twin)
-    where
-      procJ = proj₂ (RJ.process-edgesˢ (range J.nE) J.dom)
-      permJ = RJ.permuteˢ vJ
+    ∘-cast-resp di mid-iso ci (permute-relabel-freeˢ vJ) proc-twin
 
   ------------------------------------------------------------------------
   -- §6.  Bridge `τ` to the natural order `range nE_f` via `order-invariantˢ`,
