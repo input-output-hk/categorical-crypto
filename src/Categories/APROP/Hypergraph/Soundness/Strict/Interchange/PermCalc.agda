@@ -153,8 +153,7 @@ module Kit (H : Hypergraph FlatGen)
         (≈̂-trans (rigid-≈̂ u D φ-lift)
         (≈̂-trans (⟦absorbʳ⟧ e₁)
         (≈̂-trans (⟦absorbˡ⟧ e₂)
-        (≈̂-trans (≈̂-sym (cast-≈̂ {p = Pdom} {q = Pcod}))
-                 (≈ˢ⇒≈̂ (PVV.pvv-relabelˢ φ vl vlK φ-lab p Pdom Pcod)))))))
+        (castˢ⇒≈̂ Pdom Pcod (PVV.pvv-relabelˢ φ vl vlK φ-lab p Pdom Pcod))))))
       where
         φ-lift : as Perm.↭ bs
         φ-lift = Perm.trans (Perm.↭-reflexive e₁)

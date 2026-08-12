@@ -29,7 +29,7 @@
 --      `decodePˢ g` through `TermEmbedˢ` at `φ = injR, ψ = G.nE ↑ʳ_`.
 --   4. EQUIVARIANCE.  `process-edges-equivariantˢ` conjugates the K-block on
 --      the actual `after-G` stack onto the canonical clean stack — the route
---      `TensorKBlockFinal` takes to discharge `KBlockσ`.
+--      `Reconcile-e` below takes to discharge `KBlockσ`.
 --   5. CANONICAL `cand` + FINAL RESORT.  `cand` is the assembled derivation;
 --      `TensorReconcile.final-resortˢ` (`perm-rigidˢ`, `Unique` cod) closes
 --      the loop with `finalPermˢ`.
@@ -559,12 +559,9 @@ module _
       Gc-≈̂ = ∘-resp-≈̂ Gperm-≈̂ Gon'-≈̂
         where
           Gperm-≈̂ : RF.permuteˢ pL ≈̂ Gd'.permuteˢ (finalPermˢ f)
-          Gperm-≈̂ = ≈̂-trans (≈̂-sym (cast-≈̂ {p = φGsf} {q = φGcod}))
-                            (≈ˢ⇒≈̂ Gperm-relabel)
+          Gperm-≈̂ = castˢ⇒≈̂ φGsf φGcod Gperm-relabel
           Gon'-≈̂ : Gon' ≈̂ Grun
-          Gon'-≈̂ =
-            ≈̂-trans cast-≈̂
-              (≈̂-trans (≈̂-sym (cast-≈̂ {p = φGdom} {q = pCodG})) (≈ˢ⇒≈̂ Gbridge))
+          Gon'-≈̂ = ≈̂-trans cast-≈̂ (castˢ⇒≈̂ φGdom pCodG Gbridge)
 
       -- K-side `Kfin≡`-corrected clean K-run, and the C-level K-part.
       Kclean' : HomV (map injR Kd.dom) (map injR s_K_final)
@@ -586,12 +583,9 @@ module _
       Kc-≈̂ = ∘-resp-≈̂ Kperm-≈̂ Kclean'-≈̂
         where
           Kperm-≈̂ : RF.permuteˢ pR ≈̂ Kd'.permuteˢ (finalPermˢ g)
-          Kperm-≈̂ = ≈̂-trans (≈̂-sym (cast-≈̂ {p = φKsf} {q = φKcod}))
-                            (≈ˢ⇒≈̂ Kperm-relabel)
+          Kperm-≈̂ = castˢ⇒≈̂ φKsf φKcod Kperm-relabel
           Kclean'-≈̂ : Kclean' ≈̂ Krun-K
-          Kclean'-≈̂ =
-            ≈̂-trans cast-≈̂
-              (≈̂-trans (≈̂-sym (cast-≈̂ {p = φKdom} {q = pCodK})) (≈ˢ⇒≈̂ Kbridge))
+          Kclean'-≈̂ = ≈̂-trans cast-≈̂ (castˢ⇒≈̂ φKdom pCodK Kbridge)
 
       ------------------------------------------------------------------
       -- ### `permuteˢ combRaw` frame-decomposition.
@@ -645,8 +639,8 @@ module _
       target-≈̂ =
         ≈̂-trans (≈ˢ⇒≈̂ (≈-sym GcKc→comb))
         (≈̂-trans (⊗-resp-≈̂ Gc-≈̂ Kc-≈̂)
-        (≈̂-trans (≈̂-sym (cast-≈̂ {p = cong₂ _++_ Df Dg} {q = cong₂ _++_ Cf Cg}))
-                 (≈ˢ⇒≈̂ (≡⇒≈ˢ (sym decT-cast)))))
+                 (castˢ⇒≈̂ (cong₂ _++_ Df Dg) (cong₂ _++_ Cf Cg)
+                          (≡⇒≈ˢ (sym decT-cast))))
 
       ------------------------------------------------------------------
       -- ### The G-framed factor (matching `KBlockσ`'s body), and the inner

@@ -14,8 +14,8 @@
 --     `edge-stepˢ` redex (dodges green-slime).
 --   * `edge-stepˢ-graph` — the function realises the relation.
 --
--- Shared by `Interchange.SwapCore` (which re-exports it under its
--- `(H)(dih)(lin)` telescope) and `Interchange.StackEquiv`'s `EquivStep`.
+-- Shared by `Interchange.SwapCore` (which re-exports it under its `(H)`
+-- telescope) and `Interchange.StackEquiv`'s `EquivStep`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
