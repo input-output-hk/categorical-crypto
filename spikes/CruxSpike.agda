@@ -17,10 +17,8 @@ open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.LinearHComposeP sig
-  using (map-remapP-K-dom)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
-  using (⟪⟫-LinearP)
+  using (⟪⟫-LinearP; map-remapP-K-dom)
 open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Model.Invariant sig
