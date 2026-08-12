@@ -146,6 +146,13 @@ residual-recon ks xs rest perm-in uniq =
 --------------------------------------------------------------------------------
 -- 4.  `Linear H ⇒ Unique (cod H)` (sig-level).  A linear hypergraph has a
 --     `count`-balanced, `count ≤ 1`-bounded codomain, hence a `Unique` one.
+--
+--     `Model.HomTermInvariant.⟪_⟫-cod-unique` proves the SAME fact at the
+--     special case `H = ⟪f⟫`, independently, by structural induction on the
+--     `HomTerm` — the two are not a duplication to be merged.  The decoder cone
+--     uses THIS route because it is already inside the linearity cone and so
+--     pays nothing for it; `HomTermInvariant` would cost four of those modules a
+--     new direct edge to `Model.PrunedCompose`/`Model.Invariant`.
 
 Linear⇒cod-Unique : (H : Hypergraph FlatGen) → Linear H → Unique (Hypergraph.cod H)
 Linear⇒cod-Unique H (bal , bnd) = count≤1⇒Unique cod-bnd

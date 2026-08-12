@@ -44,7 +44,7 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
 open import Data.Maybe using (just; nothing)
 open import Data.Product using (_,_; ∃-syntax)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; trans; cong; subst)
+  using (_≡_; refl; cong; subst)
 open import Relation.Nullary.Decidable using (yes; no)
 
 --------------------------------------------------------------------------------

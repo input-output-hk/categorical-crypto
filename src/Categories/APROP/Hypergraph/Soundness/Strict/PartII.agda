@@ -91,7 +91,7 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
     lin : Linear F
     lin = DAL.⟪⟫-LinearP f
 
-  open SS.PerHG F dih lin using (Order; Validˢ; decodeOrdˢ)
+  open SS.PerHG F dih lin using (Validˢ; decodeOrdˢ)
 
   -- `decodePˢ f` exposed as a boundary cast of `decodeOrdˢ` at `range nE`.
   -- This is the strict twin of `decodeP-≡-decodeOrd-range`, holding `≡ refl`:

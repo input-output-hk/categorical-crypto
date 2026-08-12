@@ -23,7 +23,9 @@
 --     closure, threading the strict validity witness `Validˢ` and the swap-site
 --     `↭ range nE` provenance.  No Mac-Lane content.
 --   * `iso-transportˢ`   transports the J=⟪g⟫-side natural-order decoding to
---     the H=⟪f⟫-side ψ-pullback order `τ = map ψ⁻¹ (range J.nE)`.  Its term
+--     the H=⟪f⟫-side ψ-pullback order `τ = IW.τ iso` (which IS
+--     `map ψ⁻¹ (range J.nE)`, but is taken from the wiring, not rebuilt
+--     here).  Its term
 --     factor is the strict embedding engine `TermEmbedˢ.process-edges-term-embˢ`
 --     (φ = iso's vertex map, ψ = iso's edge map) — the `subst₂ HomTerm` /
 --     `subst₂-∘-distrib` / `map⁺`-lift mass of the non-strict §3 VANISHES into
@@ -157,7 +159,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
     module RJ = Run J
 
   open _≅ᴴ_ iso
-    using (φ; φ⁻¹; ψ; ψ⁻¹; φ-left; ψ-rght
+    using (φ; φ⁻¹; ψ; φ-left; ψ-rght
           ; φ-lab; φ-dom; φ-cod; ψ-ein; ψ-eout; atom-ein; atom-eout; ψ-elab)
 
   -- φ injectivity (from the left inverse).  Stated at stdlib's `Injective`,
