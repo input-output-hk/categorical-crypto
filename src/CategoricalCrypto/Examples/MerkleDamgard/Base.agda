@@ -1,117 +1,27 @@
 {-# OPTIONS --safe #-}
 
 --------------------------------------------------------------------------------
--- The vocabulary the Merkle–Damgård development is phrased in, and the framework
--- it assumes, as ONE record.
+-- What the Merkle–Damgård development assumes of the framework, as ONE record.
 --
--- `MDAssumptions` is the house-standard form of what used to be seven
--- `postulate` blocks in `Examples.MerkleDamgard`: every open axiom is a record
--- field, so that module — and everything above it — is `--safe`.  Nothing
--- cryptographic is assumed; the fields are the 𝒢-construction primitives, the
--- trace over the shared interface, and one probability-library order fact.  The
--- reactive interaction model above the record is the vocabulary its last two
--- fields are stated in, and lives here for that reason.
+-- Every open axiom is a record field, so `Examples.MerkleDamgard` — and
+-- everything above it — is `--safe`.  Nothing cryptographic is assumed: the
+-- fields are the 𝒢-construction primitives, the trace over the shared
+-- interface, one standard fact about adaptive runs, and one probability-library
+-- order fact.
 --------------------------------------------------------------------------------
 
 open import categorical-crypto.Prelude hiding (_/_; _>>=_; _*_)
 
-open import Data.Rational using (ℚ; 0ℚ; 1ℚ)
-  renaming (_-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
-
 open import CategoricalCrypto.Channel.Core using (Channel; _⇿_; _⊗₀_)
+open import CategoricalCrypto.Interaction using (TraceDeterminesRun)
 open import CategoricalCrypto.SFunM
 open import CategoricalCrypto.SFunPartial
 open import ProbabilisticLogic.Distribution.RationalDist
+open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (E-Mono-On)
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
 open import ProbabilisticLogic.Distribution.RationalDist.Setoid
-open import ProbabilisticLogic.Distribution.Uniform using (bool→ℚ)
 
 module CategoricalCrypto.Examples.MerkleDamgard.Base where
-
--- Generic expectation on `Dist-ℚ`  (= `lookupᴰℚ` over the entries).
-E : ∀ {A : Type} → Dist-ℚ A → (A → ℚ) → ℚ
-E μ f = lookupᴰℚ (entries μ) f
-
--- Drop an empty (`⊥`) interface component on both sides; `strip⊥` is the same
--- construction at `Dist⊥`.
-stripᵉ : ∀ {A B : Type} → SFunᵉ {M = Dist-ℚ} (⊥ ⊎ A) (⊥ ⊎ B) → SFunᵉ {M = Dist-ℚ} A B
-stripᵉ f = record
-  { State = SFunᵉ.State f
-  ; init  = SFunᵉ.init f
-  ; fun   = λ sa → SFunᵉ.fun f (proj₁ sa , inj₂ (proj₂ sa))
-                     >>=ᴹ λ sr → return-ℚ (proj₁ sr , unbot (proj₂ sr))
-  }
-
---------------------------------------------------------------------------------
--- Reactive interaction model.  An adaptive distinguisher runs against a stateful
--- response kernel; ε-indistinguishability is *defined* from the resulting bit, and
--- the bridge is the Fundamental Lemma of Game-Playing (adaptive-robust).
---------------------------------------------------------------------------------
-
--- An adaptive distinguisher: at each node output a guess, or query and branch on
--- the response.
-data Dgr (Q R : Type) : Type where
-  out : Bool → Dgr Q R
-  ask : Q → (R → Dgr Q R) → Dgr Q R
-
--- "issues at most n queries on every branch"
-asks≤ : {Q R : Type} → ℕ → Dgr Q R → Type
-asks≤ _       (out _)   = ⊤
-asks≤ zero    (ask _ _) = ⊥
-asks≤ (suc n) (ask _ k) = ∀ r → asks≤ n (k r)
-
--- Run a distinguisher against a bare response kernel, returning the output bit, resp.
--- the final state (to read off the bad flag afterwards).
-runWith : {Q R St : Type} → (St → Q → Dist-ℚ (St × R)) → St → Dgr Q R → Dist-ℚ Bool
-runWith resp s (out b)   = return-ℚ b
-runWith resp s (ask q k) = resp s q >>=ᴹ λ sr → runWith resp (proj₁ sr) (k (proj₂ sr))
-
--- The probability that `bad` fires at some visited state during the run of `d`
--- against `resp` from `s` (1 immediately at a bad state — no monotonicity needed).
-badProb : {Q R St : Type} → (St → Q → Dist-ℚ (St × R)) → (St → Bool) → St → Dgr Q R → ℚ
-badProb resp bad s (out _)   = bool→ℚ (bad s)
-badProb resp bad s (ask q k) with bad s
-... | true  = 1ℚ
-... | false = E (resp s q) (λ sr → badProb resp bad (proj₁ sr) (k (proj₂ sr)))
-
--- Run against a stateful system (an `SFunᵉ`), from its initial state.
-run : {Q R : Type} → SFunᵉ {M = Dist-ℚ} Q R → Dgr Q R → Dist-ℚ Bool
-run f = runWith (λ s q → SFunᵉ.fun f (s , q)) (SFunᵉ.init f)
-
--- Probability the run outputs `true`, and the distinguishing advantage of `d`.
-Pr₁ : Dist-ℚ Bool → ℚ
-Pr₁ μ = E μ bool→ℚ
-
--- ────────────────────────────────────────────────────────────────────────────
--- The partial (`SFun⊥`) run/advantage layer — what the closed-machine semantics
--- `⟦_⟧cl` feeds.  `mb` sends the divergence sink `nothing` to `0`.
-
-mb : Maybe Bool → ℚ
-mb (just b) = bool→ℚ b
-mb nothing  = 0ℚ
-
-Pr₁⊥ : Dist⊥ Bool → ℚ
-Pr₁⊥ μ = E μ mb
-
-runWith⊥ : {Q R St : Type} → (St → Q → Dist⊥ (St × R)) → St → Dgr Q R → Dist⊥ Bool
-runWith⊥ resp s (out b)   = return⊥ b
-runWith⊥ resp s (ask q k) = resp s q >>=⊥ λ sr → runWith⊥ resp (proj₁ sr) (k (proj₂ sr))
-
-run⊥ : {Q R : Type} → SFun⊥ Q R → Dgr Q R → Dist⊥ Bool
-run⊥ f = runWith⊥ (λ s q → SFunᵉ.fun f (s , q)) (SFunᵉ.init f)
-
-adv : {Q R : Type} → SFun⊥ Q R → SFun⊥ Q R → Dgr Q R → ℚ
-adv f g d = ∣ Pr₁⊥ (run⊥ f d) -ℚ Pr₁⊥ (run⊥ g d) ∣ℚ
-
-Pr₁⊥-just : ∀ (μ : Dist-ℚ Bool) → Pr₁⊥ (Dmap just μ) ≡ Pr₁ μ
-Pr₁⊥-just μ = lookupᴰℚ-Dmap just μ mb
-
-Pr₁⊥-cong : (μ ν : Dist⊥ Bool) → μ ≈Mℚ ν → Pr₁⊥ μ ≡ Pr₁⊥ ν
-Pr₁⊥-cong μ ν μ≈ν = μ≈ν mb
-
---------------------------------------------------------------------------------
--- What Merkle–Damgård assumes of the theory
---------------------------------------------------------------------------------
 
 record MDAssumptions : Type₂ where
   infixr 9 _⊚_
@@ -184,17 +94,6 @@ record MDAssumptions : Type₂ where
                 (n : ℕ) → GComp.Stable g f n
               → (_≈ᵉ_ {M = Dist⊥}) (g ∘ᵍ f) (GComp.machineAt g f n)
 
-    -- ── Standard mathematics, crypto-free (plan debt 4) ─────────────────────
-    -- A fixed-list (trace) equivalence determines adaptive behaviour of stateful
-    -- kernels: transcript probabilities decompose prefix-wise into functionals
-    -- of fixed-list joint distributions (finite support + DecEq outputs make
-    -- this formalizable).
-    ≈ᵉ⇒run : {Q R : Type} {f g : SFun⊥ Q R}
-           → (_≈ᵉ_ {M = Dist⊥}) f g → ∀ d → run⊥ f d ≈Mℚ run⊥ g d
-
-    -- ── The probability layer's one order fact ──────────────────────────────
-    -- Expectation monotonicity on the support — true because weights are
-    -- non-negative, which the `Dist-ℚ` library does not track (its invariant is
-    -- only mass ≡ 1).  Global monotonicity `E-mono` is DERIVED from it.
-    E-mono-on : ∀ {A : Type} (μ : Dist-ℚ A) (f g : A → ℚ)
-              → OnSupport (λ a → f a ≤ℚ g a) μ → E μ f ≤ℚ E μ g
+    -- ── The two layers below, at their own declarations ─────────────────────
+    ≈ᵉ⇒run    : TraceDeterminesRun   -- `CategoricalCrypto.Interaction`
+    E-mono-on : E-Mono-On            -- `…Distribution.RationalDist.Expectation`
