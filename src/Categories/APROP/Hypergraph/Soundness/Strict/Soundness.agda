@@ -1,19 +1,21 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Final assembly of the strict soundness theorem, parameterised over the
--- ⊗-shape `decodePˢ-⊗`.  Everything else is concrete and axiom-free:
+-- The re-pointed soundness theorem, via the strictified pipeline:
 --
---   * part (I)ˢ  = `PartI.st-≈-decodePˢ decodePˢ-⊗`   (atomic/σ/∘/Agen done)
---   * part (II)ˢ = `PartII.decodePˢ-resp-iso`         (UNCONDITIONAL)
---   * the capstone `SoundnessParam.soundness-strict`.
+--     soundness-strict : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g
 --
--- `decodePˢ-⊗` is now supplied UNCONDITIONALLY by
--- `Strict.Tensor.TensorKBlockFinal.decodePˢ-⊗-concrete` (the ⊗-shape's
--- box-braid `KBlockσ` is discharged there, ZERO postulates).  The capstone
--- `Soundness.soundness` is already re-pointed at `soundness-assembled` fed
--- with that concrete witness; this module stays correctly parametric so the
--- ⊗-shape remains a clean, single dependency.
+-- assembled from
+--   * part (I)ˢ   `st-≈-decodePˢ : st h ≈ˢ decodePˢ h`        (Strict.PartI)
+--     at the unconditional ⊗-shape `TensorKBlockFinal.decodePˢ-⊗-concrete`
+--     (its K-block box-braid `KBlockσ` discharged there, ZERO postulates);
+--   * part (II)ˢ  `decodePˢ-resp-iso : ⟪f⟫≅ᴴ⟪g⟫ → decodePˢ f ≈ˢ decodePˢ g`
+--     (Strict.PartII, unconditional);
+--   * `embF-resp-≈ˢ` + `st-roundtrip` (Strict.Boundary)
+--   * `bridge-cancel` (the `unflatten-flatten-≈` iso cancellation).
+--
+-- Everything here is concrete; the root `Soundness.agda` only re-exports
+-- `soundness-strict` under its final name.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -26,23 +28,73 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Soundness
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (flatten)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
+open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
+  using (unflatten; unflatten-flatten-≈; bridge)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Boundary sig _≟X_
+  using (embF; embF-resp-≈ˢ; st-roundtrip)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
   using (decodePˢ)
 
-import Categories.APROP.Hypergraph.Soundness.Strict.SoundnessParam sig _≟X_ as SST
-import Categories.APROP.Hypergraph.Soundness.Strict.PartI           sig _≟X_ as PI
-import Categories.APROP.Hypergraph.Soundness.Strict.PartII          sig _≟X_ as PII
+import Categories.APROP.Hypergraph.Soundness.Strict.PartI  sig _≟X_ as PI
+import Categories.APROP.Hypergraph.Soundness.Strict.PartII sig _≟X_ as PII
+import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorKBlockFinal sig _≟X_
+  as TKF
 
-module _
-  (decodePˢ-⊗
-    : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
-    → decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g)
-  where
+open import Categories.Category using (Category)
+open import Categories.Morphism FreeMonoidal using (_≅_)
+open import Categories.Morphism.Reasoning FreeMonoidal
+  using (pullʳ; cancelʳ; cancelˡ)
 
-  soundness-assembled : ∀ {A B} {f g : HomTerm A B} → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g
-  soundness-assembled =
-    SST.soundness-strict (PI.st-≈-decodePˢ decodePˢ-⊗) PII.decodePˢ-resp-iso
+private
+  module FM = Category FreeMonoidal
+open FM.HomReasoning
+
+--------------------------------------------------------------------------------
+-- Inverse bridge + cancellation.  This is their only home.
+
+bridge⁻¹
+  : ∀ {A B}
+  → HomTerm (unflatten (flatten A)) (unflatten (flatten B))
+  → HomTerm A B
+bridge⁻¹ {A} {B} h =
+  _≅_.to (unflatten-flatten-≈ B) ∘ h ∘ _≅_.from (unflatten-flatten-≈ A)
+
+-- the A-side pair cancels under `to-B ∘ (from-B ∘ _)`, which then cancels too.
+bridge-cancel : ∀ {A B} (f : HomTerm A B) → bridge⁻¹ (bridge f) ≈Term f
+bridge-cancel {A} {B} f =
+  (refl⟩∘⟨ pullʳ (cancelʳ (_≅_.isoˡ (unflatten-flatten-≈ A))))
+  ○ cancelˡ (_≅_.isoˡ (unflatten-flatten-≈ B))
+
+--------------------------------------------------------------------------------
+-- The strict soundness theorem, from its two halves.
+
+private
+  part-Iˢ  = PI.st-≈-decodePˢ TKF.decodePˢ-⊗-concrete
+  part-IIˢ = PII.decodePˢ-resp-iso
+
+-- the strict core: `st f ≈ˢ st g` from the hypergraph iso
+st-resp-iso : ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → st f ≈ˢ st g
+st-resp-iso f g iso =
+  ≈-trans (part-Iˢ f) (≈-trans (part-IIˢ f g iso) (≈-sym (part-Iˢ g)))
+
+-- transported to the free SMC: `bridge f ≈Term bridge g`
+bridge-resp-iso
+  : ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → bridge f ≈Term bridge g
+bridge-resp-iso f g iso = begin
+  bridge f          ≈⟨ st-roundtrip f ⟨
+  embF (st f)       ≈⟨ embF-resp-≈ˢ (st-resp-iso f g iso) ⟩
+  embF (st g)       ≈⟨ st-roundtrip g ⟩
+  bridge g          ∎
+
+-- the headline theorem
+soundness-strict : ∀ {A B} {f g : HomTerm A B} → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → f ≈Term g
+soundness-strict {f = f} {g = g} iso = begin
+  f                       ≈⟨ bridge-cancel f ⟨
+  bridge⁻¹ (bridge f)     ≈⟨ refl⟩∘⟨ (bridge-resp-iso f g iso ⟩∘⟨refl) ⟩
+  bridge⁻¹ (bridge g)     ≈⟨ bridge-cancel g ⟩
+  g ∎
