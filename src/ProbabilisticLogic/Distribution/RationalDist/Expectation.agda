@@ -1,13 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- Expectation of a ℚ-valued observable under a `Dist-ℚ`, the probability of
--- `true`, and their algebra.  Everything here is proven EXCEPT monotonicity,
--- which is not a theorem of this carrier: `Dist-ℚ`'s only invariant is
--- mass ≡ 1, so weights are unconstrained in sign and `E-Mono-On` is in fact
--- refutable for `Dist-ℚ` as it stands.  It is therefore stated as a named
--- hypothesis (`module Monotone`) rather than assumed: fixing it means adding a
--- non-negativity invariant to `Dist-ℚ`, which is this layer's business, not its
--- consumers'.
+-- `true`, and their algebra.
 
 open import categorical-crypto.Prelude hiding (_>>=_; _*_; _/_)
 
@@ -81,47 +75,45 @@ Pr₁⊥-cong μ ν μ≈ν = μ≈ν mb
 ------------------------------------------------------------------------
 -- Monotonicity, and what it buys
 --
--- `E-Mono-On` is the support-level statement; global monotonicity, the
--- [0,1]-boundedness of `Pr₁` and the expectation triangle inequality all follow
--- from it and nothing else.
+-- `E-mono-on` is where `Dist-ℚ`'s non-negativity invariant is spent; global
+-- monotonicity, the [0,1]-boundedness of `Pr₁` and the expectation triangle
+-- inequality all follow from it and nothing else.
 
-E-Mono-On : Type₁
-E-Mono-On = ∀ {A : Type} (μ : Dist-ℚ A) (f g : A → ℚ)
+E-mono-on : (μ : Dist-ℚ A) (f g : A → ℚ)
           → OnSupport (λ a → f a ≤ℚ g a) μ → E μ f ≤ℚ E μ g
+E-mono-on μ f g = lookupᴰℚ-mono (entries μ) (weights-nn μ)
 
-module Monotone (E-mono-on : E-Mono-On) where
+E-mono : (μ : Dist-ℚ A) (f g : A → ℚ) → (∀ a → f a ≤ℚ g a) → E μ f ≤ℚ E μ g
+E-mono μ f g pt = E-mono-on μ f g
+  (ListAll.universal (λ e → pt (proj₂ e)) (NE.toList (entries μ)))
 
-  E-mono : (μ : Dist-ℚ A) (f g : A → ℚ) → (∀ a → f a ≤ℚ g a) → E μ f ≤ℚ E μ g
-  E-mono μ f g pt = E-mono-on μ f g
-    (ListAll.universal (λ e → pt (proj₂ e)) (NE.toList (entries μ)))
+Pr₁≤1 : (μ : Dist-ℚ Bool) → Pr₁ μ ≤ℚ 1ℚ
+Pr₁≤1 μ = ≤-trans (E-mono μ bool→ℚ (λ _ → 1ℚ) b≤1) (≤-reflexive (E-const μ 1ℚ))
+  where b≤1 : ∀ b → bool→ℚ b ≤ℚ 1ℚ
+        b≤1 true  = ≤-refl
+        b≤1 false = 0≤1ℚ
 
-  Pr₁≤1 : (μ : Dist-ℚ Bool) → Pr₁ μ ≤ℚ 1ℚ
-  Pr₁≤1 μ = ≤-trans (E-mono μ bool→ℚ (λ _ → 1ℚ) b≤1) (≤-reflexive (E-const μ 1ℚ))
-    where b≤1 : ∀ b → bool→ℚ b ≤ℚ 1ℚ
-          b≤1 true  = ≤-refl
-          b≤1 false = 0≤1ℚ
+Pr₁≥0 : (μ : Dist-ℚ Bool) → 0ℚ ≤ℚ Pr₁ μ
+Pr₁≥0 μ = ≤-trans (≤-reflexive (sym (E-const μ 0ℚ))) (E-mono μ (λ _ → 0ℚ) bool→ℚ 0≤bool)
 
-  Pr₁≥0 : (μ : Dist-ℚ Bool) → 0ℚ ≤ℚ Pr₁ μ
-  Pr₁≥0 μ = ≤-trans (≤-reflexive (sym (E-const μ 0ℚ))) (E-mono μ (λ _ → 0ℚ) bool→ℚ 0≤bool)
+-- expectation triangle inequality:  ∣E a − E b∣ ≤ E ∣a − b∣
+E-abs-diff : (μ : Dist-ℚ A) (a b : A → ℚ)
+           → ∣ E μ a -ℚ E μ b ∣ℚ ≤ℚ E μ (λ x → ∣ a x -ℚ b x ∣ℚ)
+E-abs-diff μ a b = ∣∣≤ upper lower
+  where
+    H = λ x → ∣ a x -ℚ b x ∣ℚ
+    upper : (E μ a -ℚ E μ b) ≤ℚ E μ H
+    upper = subst (_≤ℚ E μ H) (E-sub μ a b)
+                  (E-mono μ (λ x → a x -ℚ b x) H (λ x → p≤∣p∣ (a x -ℚ b x)))
+    lower : (-ℚ (E μ a -ℚ E μ b)) ≤ℚ E μ H
+    lower = subst (_≤ℚ E μ H) negEq (E-mono μ (λ x → b x -ℚ a x) H bnd)
+      where
+        negEq : E μ (λ x → b x -ℚ a x) ≡ -ℚ (E μ a -ℚ E μ b)
+        negEq = trans (E-sub μ b a) (neg-sub (E μ b) (E μ a))
+        bnd : ∀ x → (b x -ℚ a x) ≤ℚ H x
+        bnd x = subst ((b x -ℚ a x) ≤ℚ_) absEq (p≤∣p∣ (b x -ℚ a x))
+          where absEq : ∣ b x -ℚ a x ∣ℚ ≡ H x
+                absEq = trans (cong ∣_∣ℚ (neg-sub (b x) (a x))) (∣-p∣≡∣p∣ (a x -ℚ b x))
 
-  -- expectation triangle inequality:  ∣E a − E b∣ ≤ E ∣a − b∣
-  E-abs-diff : (μ : Dist-ℚ A) (a b : A → ℚ)
-             → ∣ E μ a -ℚ E μ b ∣ℚ ≤ℚ E μ (λ x → ∣ a x -ℚ b x ∣ℚ)
-  E-abs-diff μ a b = ∣∣≤ upper lower
-    where
-      H = λ x → ∣ a x -ℚ b x ∣ℚ
-      upper : (E μ a -ℚ E μ b) ≤ℚ E μ H
-      upper = subst (_≤ℚ E μ H) (E-sub μ a b)
-                    (E-mono μ (λ x → a x -ℚ b x) H (λ x → p≤∣p∣ (a x -ℚ b x)))
-      lower : (-ℚ (E μ a -ℚ E μ b)) ≤ℚ E μ H
-      lower = subst (_≤ℚ E μ H) negEq (E-mono μ (λ x → b x -ℚ a x) H bnd)
-        where
-          negEq : E μ (λ x → b x -ℚ a x) ≡ -ℚ (E μ a -ℚ E μ b)
-          negEq = trans (E-sub μ b a) (neg-sub (E μ b) (E μ a))
-          bnd : ∀ x → (b x -ℚ a x) ≤ℚ H x
-          bnd x = subst ((b x -ℚ a x) ≤ℚ_) absEq (p≤∣p∣ (b x -ℚ a x))
-            where absEq : ∣ b x -ℚ a x ∣ℚ ≡ H x
-                  absEq = trans (cong ∣_∣ℚ (neg-sub (b x) (a x))) (∣-p∣≡∣p∣ (a x -ℚ b x))
-
-  ∣Pr-Pr∣≤1 : (μ ν : Dist-ℚ Bool) → ∣ Pr₁ μ -ℚ Pr₁ ν ∣ℚ ≤ℚ 1ℚ
-  ∣Pr-Pr∣≤1 μ ν = ∣diff∣≤1 (Pr₁≥0 μ) (Pr₁≤1 μ) (Pr₁≥0 ν) (Pr₁≤1 ν)
+∣Pr-Pr∣≤1 : (μ ν : Dist-ℚ Bool) → ∣ Pr₁ μ -ℚ Pr₁ ν ∣ℚ ≤ℚ 1ℚ
+∣Pr-Pr∣≤1 μ ν = ∣diff∣≤1 (Pr₁≥0 μ) (Pr₁≤1 μ) (Pr₁≥0 ν) (Pr₁≤1 ν)

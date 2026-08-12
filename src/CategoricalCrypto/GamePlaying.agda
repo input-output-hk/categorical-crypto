@@ -14,8 +14,7 @@
 --     copying the real answer while the POST-state is good.  "Identical until
 --     bad" then holds by construction, so the lemma has NO side conditions.
 --
--- Both live under expectation monotonicity, and nothing else — hence
--- `module Bounds`, parametric in it (see `…RationalDist.Expectation`).
+-- Both rest on expectation monotonicity, and nothing else.
 
 open import categorical-crypto.Prelude hiding (_>>=_)
 
@@ -83,102 +82,97 @@ record SuperCert (resp : St → Q → Dist-ℚ (St × R)) (bad : St → Bool)
 
 ------------------------------------------------------------------------
 -- The two bridges
---
--- Both need expectation monotonicity, and nothing else.
 
-module Bounds (E-mono-on : E-Mono-On) where
+badProb-super :
+  (resp : St → Q → Dist-ℚ (St × R)) (bad : St → Bool)
+  (Inv : St → Type) (φ : ℕ → St → ℚ)
+  → Preserved Inv resp
+  → (∀ m s → Inv s → 0ℚ ≤ℚ φ m s)
+  → (∀ m s → Inv s → bad s ≡ true → 1ℚ ≤ℚ φ m s)
+  → (∀ m s q → Inv s → E (resp s q) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) s)
+  → ∀ m d s → asks≤ m d → Inv s → badProb resp bad s d ≤ℚ φ m s
+badProb-super resp bad Inv φ pres nn lb step m (out b) s le inv with bad s in eqb
+... | true  = lb m s inv eqb
+... | false = nn m s inv
+badProb-super resp bad Inv φ pres nn lb step zero (ask q kd) s () inv
+badProb-super resp bad Inv φ pres nn lb step (suc m) (ask q kd) s le inv
+  with bad s in eqb
+... | true  = lb (suc m) s inv eqb
+... | false = ≤-trans
+    (E-mono-on (resp s q)
+      (λ sr → badProb resp bad (proj₁ sr) (kd (proj₂ sr)))
+      (λ sr → φ m (proj₁ sr))
+      (ListAll.map
+        (λ {e} inv' → badProb-super resp bad Inv φ pres nn lb step m
+                        (kd (proj₂ (proj₂ e))) (proj₁ (proj₂ e))
+                        (le (proj₂ (proj₂ e))) inv')
+        (pres s q inv)))
+    (step m s q inv)
 
-  open Monotone E-mono-on
+badProb-bounded :
+  {resp : St → Q → Dist-ℚ (St × R)} {bad : St → Bool} {s₀ : St} {ε : ℕ → ℚ}
+  → SuperCert resp bad s₀ ε
+  → ∀ m d → asks≤ m d → badProb resp bad s₀ d ≤ℚ ε m
+badProb-bounded {resp = resp} {bad} {s₀} c m d le = ≤-trans
+  (badProb-super resp bad (SuperCert.Inv c) (SuperCert.φ c) (SuperCert.pres c)
+    (SuperCert.φ-nn c) (SuperCert.φ-bad c) (SuperCert.φ-step c)
+    m d s₀ le (SuperCert.inv₀ c))
+  (SuperCert.φ-init c m)
 
-  badProb-super :
-    (resp : St → Q → Dist-ℚ (St × R)) (bad : St → Bool)
-    (Inv : St → Type) (φ : ℕ → St → ℚ)
-    → Preserved Inv resp
-    → (∀ m s → Inv s → 0ℚ ≤ℚ φ m s)
-    → (∀ m s → Inv s → bad s ≡ true → 1ℚ ≤ℚ φ m s)
-    → (∀ m s q → Inv s → E (resp s q) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) s)
-    → ∀ m d s → asks≤ m d → Inv s → badProb resp bad s d ≤ℚ φ m s
-  badProb-super resp bad Inv φ pres nn lb step m (out b) s le inv with bad s in eqb
-  ... | true  = lb m s inv eqb
-  ... | false = nn m s inv
-  badProb-super resp bad Inv φ pres nn lb step zero (ask q kd) s () inv
-  badProb-super resp bad Inv φ pres nn lb step (suc m) (ask q kd) s le inv
-    with bad s in eqb
-  ... | true  = lb (suc m) s inv eqb
-  ... | false = ≤-trans
-      (E-mono-on (resp s q)
-        (λ sr → badProb resp bad (proj₁ sr) (kd (proj₂ sr)))
-        (λ sr → φ m (proj₁ sr))
-        (ListAll.map
-          (λ {e} inv' → badProb-super resp bad Inv φ pres nn lb step m
-                          (kd (proj₂ (proj₂ e))) (proj₁ (proj₂ e))
-                          (le (proj₂ (proj₂ e))) inv')
-          (pres s q inv)))
-      (step m s q inv)
+------------------------------------------------------------------------
+-- The coupled Fundamental Lemma of Game-Playing
 
-  badProb-bounded :
-    {resp : St → Q → Dist-ℚ (St × R)} {bad : St → Bool} {s₀ : St} {ε : ℕ → ℚ}
-    → SuperCert resp bad s₀ ε
-    → ∀ m d → asks≤ m d → badProb resp bad s₀ d ≤ℚ ε m
-  badProb-bounded {resp = resp} {bad} {s₀} c m d le = ≤-trans
-    (badProb-super resp bad (SuperCert.Inv c) (SuperCert.φ c) (SuperCert.pres c)
-      (SuperCert.φ-nn c) (SuperCert.φ-bad c) (SuperCert.φ-step c)
-      m d s₀ le (SuperCert.inv₀ c))
-    (SuperCert.φ-init c m)
+module Coupling (bad : St → Bool)
+                (respB : St → Q → Dist-ℚ (St × (R × R))) where
 
-  --------------------------------------------------------------------------------
+  fR fI : St × (R × R) → St × R
+  fR t = proj₁ t , proj₁ (proj₂ t)
+  fI t = proj₁ t , cond (bad (proj₁ t)) (proj₂ (proj₂ t)) (proj₁ (proj₂ t))
 
-  module Coupling (bad : St → Bool)
-                  (respB : St → Q → Dist-ℚ (St × (R × R))) where
+  realK idealK : St → Q → Dist-ℚ (St × R)
+  realK  s q = Dmap fR (respB s q)
+  idealK s q = Dmap fI (respB s q)
 
-    fR fI : St × (R × R) → St × R
-    fR t = proj₁ t , proj₁ (proj₂ t)
-    fI t = proj₁ t , cond (bad (proj₁ t)) (proj₂ (proj₂ t)) (proj₁ (proj₂ t))
+  FLGP : ∀ s₀ d → ∣ Pr₁ (runWith idealK s₀ d) -ℚ Pr₁ (runWith realK s₀ d) ∣ℚ
+                ≤ℚ badProb realK bad s₀ d
+  FLGP s (out b) = subst (_≤ℚ bool→ℚ (bad s)) (sym lhs≡0) (0≤bool (bad s))
+    where lhs≡0 : ∣ Pr₁ (return-ℚ b) -ℚ Pr₁ (return-ℚ b) ∣ℚ ≡ 0ℚ
+          lhs≡0 = trans (cong ∣_∣ℚ (+-inverseʳ (Pr₁ (return-ℚ b))))
+                        (0≤p⇒∣p∣≡p ≤-refl)
+  FLGP s (ask q k) with bad s in eqbad
+  ... | true  = ∣Pr-Pr∣≤1 (runWith idealK s (ask q k)) (runWith realK s (ask q k))
+  ... | false =
+      ≤-trans (≤-reflexive (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ) eqI eqR))
+     (≤-trans (E-abs-diff (respB s q) AI AR)
+     (≤-trans (E-mono (respB s q) (λ t → ∣ AI t -ℚ AR t ∣ℚ) BB pointwise)
+              (≤-reflexive (sym eqB))))
+    where
+      KI KR : St × R → Dist-ℚ Bool
+      KI sr = runWith idealK (proj₁ sr) (k (proj₂ sr))
+      KR sr = runWith realK  (proj₁ sr) (k (proj₂ sr))
 
-    realK idealK : St → Q → Dist-ℚ (St × R)
-    realK  s q = Dmap fR (respB s q)
-    idealK s q = Dmap fI (respB s q)
+      AI AR BB : St × (R × R) → ℚ
+      AI t = Pr₁ (KI (fI t))
+      AR t = Pr₁ (KR (fR t))
+      BB t = badProb realK bad (proj₁ t) (k (proj₁ (proj₂ t)))
 
-    FLGP : ∀ s₀ d → ∣ Pr₁ (runWith idealK s₀ d) -ℚ Pr₁ (runWith realK s₀ d) ∣ℚ
-                  ≤ℚ badProb realK bad s₀ d
-    FLGP s (out b) = subst (_≤ℚ bool→ℚ (bad s)) (sym lhs≡0) (0≤bool (bad s))
-      where lhs≡0 : ∣ Pr₁ (return-ℚ b) -ℚ Pr₁ (return-ℚ b) ∣ℚ ≡ 0ℚ
-            lhs≡0 = trans (cong ∣_∣ℚ (+-inverseʳ (Pr₁ (return-ℚ b))))
-                          (0≤p⇒∣p∣≡p ≤-refl)
-    FLGP s (ask q k) with bad s in eqbad
-    ... | true  = ∣Pr-Pr∣≤1 (runWith idealK s (ask q k)) (runWith realK s (ask q k))
-    ... | false =
-        ≤-trans (≤-reflexive (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ) eqI eqR))
-       (≤-trans (E-abs-diff (respB s q) AI AR)
-       (≤-trans (E-mono (respB s q) (λ t → ∣ AI t -ℚ AR t ∣ℚ) BB pointwise)
-                (≤-reflexive (sym eqB))))
-      where
-        KI KR : St × R → Dist-ℚ Bool
-        KI sr = runWith idealK (proj₁ sr) (k (proj₂ sr))
-        KR sr = runWith realK  (proj₁ sr) (k (proj₂ sr))
+      eqI : Pr₁ (runWith idealK s (ask q k)) ≡ E (respB s q) AI
+      eqI = trans (Pr₁-bind (idealK s q) KI)
+                  (lookupᴰℚ-Dmap fI (respB s q) (λ sr → Pr₁ (KI sr)))
 
-        AI AR BB : St × (R × R) → ℚ
-        AI t = Pr₁ (KI (fI t))
-        AR t = Pr₁ (KR (fR t))
-        BB t = badProb realK bad (proj₁ t) (k (proj₁ (proj₂ t)))
+      eqR : Pr₁ (runWith realK s (ask q k)) ≡ E (respB s q) AR
+      eqR = trans (Pr₁-bind (realK s q) KR)
+                  (lookupᴰℚ-Dmap fR (respB s q) (λ sr → Pr₁ (KR sr)))
 
-        eqI : Pr₁ (runWith idealK s (ask q k)) ≡ E (respB s q) AI
-        eqI = trans (Pr₁-bind (idealK s q) KI)
-                    (lookupᴰℚ-Dmap fI (respB s q) (λ sr → Pr₁ (KI sr)))
+      eqB : E (realK s q) (λ sr → badProb realK bad (proj₁ sr) (k (proj₂ sr)))
+          ≡ E (respB s q) BB
+      eqB = lookupᴰℚ-Dmap fR (respB s q)
+              (λ sr → badProb realK bad (proj₁ sr) (k (proj₂ sr)))
 
-        eqR : Pr₁ (runWith realK s (ask q k)) ≡ E (respB s q) AR
-        eqR = trans (Pr₁-bind (realK s q) KR)
-                    (lookupᴰℚ-Dmap fR (respB s q) (λ sr → Pr₁ (KR sr)))
-
-        eqB : E (realK s q) (λ sr → badProb realK bad (proj₁ sr) (k (proj₂ sr)))
-            ≡ E (respB s q) BB
-        eqB = lookupᴰℚ-Dmap fR (respB s q)
-                (λ sr → badProb realK bad (proj₁ sr) (k (proj₂ sr)))
-
-        pointwise : ∀ t → ∣ AI t -ℚ AR t ∣ℚ ≤ℚ BB t
-        pointwise t with bad (proj₁ t) in eqt
-        ... | false = FLGP (proj₁ t) (k (proj₁ (proj₂ t)))
-        ... | true  =
-          subst (λ z → ∣ Pr₁ (KI (proj₁ t , proj₂ (proj₂ t))) -ℚ AR t ∣ℚ ≤ℚ z)
-                (sym (badProb-bad realK bad (proj₁ t) (k (proj₁ (proj₂ t))) eqt))
-                (∣Pr-Pr∣≤1 (KI (proj₁ t , proj₂ (proj₂ t))) (KR (fR t)))
+      pointwise : ∀ t → ∣ AI t -ℚ AR t ∣ℚ ≤ℚ BB t
+      pointwise t with bad (proj₁ t) in eqt
+      ... | false = FLGP (proj₁ t) (k (proj₁ (proj₂ t)))
+      ... | true  =
+        subst (λ z → ∣ Pr₁ (KI (proj₁ t , proj₂ (proj₂ t))) -ℚ AR t ∣ℚ ≤ℚ z)
+              (sym (badProb-bad realK bad (proj₁ t) (k (proj₁ (proj₂ t))) eqt))
+              (∣Pr-Pr∣≤1 (KI (proj₁ t , proj₂ (proj₂ t))) (KR (fR t)))
