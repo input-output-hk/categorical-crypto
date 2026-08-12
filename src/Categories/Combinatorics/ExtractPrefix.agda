@@ -12,7 +12,7 @@
 -- their location was APROP-specific).
 --------------------------------------------------------------------------------
 
-module Categories.Hypergraph.ExtractPrefix where
+module Categories.Combinatorics.ExtractPrefix where
 
 open import Data.Fin using (Fin; _≟_)
 open import Data.List using (List; []; _∷_; _++_)

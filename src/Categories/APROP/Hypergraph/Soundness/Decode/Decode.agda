@@ -54,7 +54,7 @@ open import Relation.Nullary
 -- are re-exported from a generic module so APROP and SMC versions are
 -- definitionally equal.
 
-open import Categories.Hypergraph.ExtractPrefix public
+open import Categories.Combinatorics.ExtractPrefix public
   using (extract-elem; extract-prefix)
 
 -- Specialised search for an exact multiset match: look for `ks`

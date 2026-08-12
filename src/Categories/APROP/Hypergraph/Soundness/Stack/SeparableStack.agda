@@ -32,7 +32,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-prefix)
 
-open import Categories.Hypergraph.ExtractPrefix using (extract-elem)
+open import Categories.Combinatorics.ExtractPrefix using (extract-elem)
 
 open import Data.Fin using (Fin; _≟_)
 open import Data.List using (List; []; _∷_; _++_)

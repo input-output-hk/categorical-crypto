@@ -14,7 +14,7 @@
 -- whatever `permJ` the caller holds must BE that lift (`extract-prefix-pin`).
 --------------------------------------------------------------------------------
 
-module Categories.Hypergraph.ExtractPrefixEvalPhi where
+module Categories.Combinatorics.ExtractPrefixEvalPhi where
 
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin; _≟_)
@@ -34,7 +34,7 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst)
 open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
 
-open import Categories.Hypergraph.ExtractPrefix using (extract-elem; extract-prefix)
+open import Categories.Combinatorics.ExtractPrefix using (extract-elem; extract-prefix)
 
 --------------------------------------------------------------------------------
 -- §1.  φ-naturality of the search at the derivation level.

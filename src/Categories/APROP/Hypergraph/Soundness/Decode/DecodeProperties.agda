@@ -20,10 +20,10 @@ open import Categories.APROP.Hypergraph.Soundness.Stack.SeparableStack sig
         ; extract-prefix-++ʳ-nothing )
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (inject+-inj; raise-inj; ↑ˡ≢↑ʳ)
 -- The derivation-level `map⁺`-naturality of the same `extract-elem`/
--- `extract-prefix` (`Decode` re-exports them from `Hypergraph.ExtractPrefix`,
+-- `extract-prefix` (`Decode` re-exports them from `Combinatorics.ExtractPrefix`,
 -- so the statements coincide definitionally); the ∃-forms below just forget
 -- which derivation is produced.
-open import Categories.Hypergraph.ExtractPrefixEvalPhi
+open import Categories.Combinatorics.ExtractPrefixEvalPhi
   using (extract-elem-map⁺; extract-prefix-map⁺)
 
 open import Data.Empty using (⊥-elim)
