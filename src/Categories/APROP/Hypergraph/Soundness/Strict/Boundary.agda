@@ -96,58 +96,47 @@ private
     → α⇒-form-list xs ys zs ≈Term subst-id-cod (++-assoc xs ys zs)
   α-form-cast []       ys zs = ≈-Term-refl
   α-form-cast (x ∷ xs) ys zs =
-    ≈-Term-trans (⊗-resp-≈ ≈-Term-refl (α-form-cast xs ys zs))
-                 (subst-cod-cons (++-assoc xs ys zs))
+    ⊗-resp-≈ ≈-Term-refl (α-form-cast xs ys zs)
+    ○ subst-cod-cons (++-assoc xs ys zs)
 
   bridge-α⇒-cast
     : ∀ A B C
     → bridge (α⇒ {A} {B} {C})
       ≈Term subst-id-cod (++-assoc (flatten A) (flatten B) (flatten C))
   bridge-α⇒-cast A B C =
-    ≈-Term-trans (BAFC.Worker.work A B C)
-                 (α-form-cast (flatten A) (flatten B) (flatten C))
+    BAFC.Worker.work A B C ○ α-form-cast (flatten A) (flatten B) (flatten C)
 
 st-roundtrip : ∀ {A B} (f : HomTerm A B) → embF (st f) ≈Term bridge f
 st-roundtrip (Agen g)  = ≈-Term-refl
-st-roundtrip (id {A})  = ≈-Term-sym (bridge-id-is-id A)
+st-roundtrip (id {A})  = ⟺ (bridge-id-is-id A)
 st-roundtrip (g ∘ f)   =
-  ≈-Term-trans (∘-resp-≈ (st-roundtrip g) (st-roundtrip f))
-               (≈-Term-sym (bridge-∘ g f))
+  (st-roundtrip g ⟩∘⟨ st-roundtrip f) ○ ⟺ (bridge-∘ g f)
 st-roundtrip (f ⊗₁ g)  =
-  ≈-Term-trans
-    (∘-resp-≈ ≈-Term-refl
-      (∘-resp-≈ (⊗-resp-≈ (st-roundtrip f) (st-roundtrip g)) ≈-Term-refl))
-    (≈-Term-sym (bridge-⊗ f g))
-st-roundtrip (λ⇒ {A})  = ≈-Term-sym (bridge-λ⇒-is-id A)
-st-roundtrip (λ⇐ {A})  = ≈-Term-sym (bridge-λ⇐-is-id A)
+  (refl⟩∘⟨ (⊗-resp-≈ (st-roundtrip f) (st-roundtrip g) ⟩∘⟨refl))
+  ○ ⟺ (bridge-⊗ f g)
+st-roundtrip (λ⇒ {A})  = ⟺ (bridge-λ⇒-is-id A)
+st-roundtrip (λ⇐ {A})  = ⟺ (bridge-λ⇐-is-id A)
 st-roundtrip (ρ⇒ {A})  =
-  ≈-Term-trans (≡⇒≈Term (embF-coe (++-identityʳ (flatten A))))
-               (ρ⇒-coherence A)
+  ≡⇒≈Term (embF-coe (++-identityʳ (flatten A))) ○ ρ⇒-coherence A
 st-roundtrip (ρ⇐ {A})  =
-  ≈-Term-trans (≡⇒≈Term (embF-coe (sym (++-identityʳ (flatten A)))))
-               (ρ⇐-coherence A)
+  ≡⇒≈Term (embF-coe (sym (++-identityʳ (flatten A)))) ○ ρ⇐-coherence A
 st-roundtrip (α⇒ {A} {B} {C}) =
-  ≈-Term-trans
-    (≡⇒≈Term (embF-coe (++-assoc (flatten A) (flatten B) (flatten C))))
-    (≈-Term-sym (bridge-α⇒-cast A B C))
+  ≡⇒≈Term (embF-coe (++-assoc (flatten A) (flatten B) (flatten C)))
+  ○ ⟺ (bridge-α⇒-cast A B C)
 st-roundtrip (α⇐ {A} {B} {C}) =
-  ≈-Term-trans
-    (≡⇒≈Term (embF-coe (sym P)))
-    (≈-Term-sym
-      (inv-resp
+  ≡⇒≈Term (embF-coe (sym P))
+  ○ ⟺ (inv-resp
         -- bridge α⇐ ∘ bridge α⇒ ≈ id
-        (≈-Term-trans (≈-Term-sym (bridge-∘ (α⇐ {A} {B} {C}) α⇒))
-          (≈-Term-trans
-            (∘-resp-≈ ≈-Term-refl (∘-resp-≈ α⇐∘α⇒≈id ≈-Term-refl))
-            (bridge-id-is-id _)))
+        (⟺ (bridge-∘ (α⇐ {A} {B} {C}) α⇒)
+          ○ (refl⟩∘⟨ (α⇐∘α⇒≈id ⟩∘⟨refl))
+          ○ bridge-id-is-id _)
         -- bridge α⇒ ∘ subst-id-cod (sym P) ≈ id
-        (≈-Term-trans (∘-resp-≈ (bridge-α⇒-cast A B C) ≈-Term-refl)
-          (cod-cancel P))
-        ≈-Term-refl))
+        ((bridge-α⇒-cast A B C ⟩∘⟨refl) ○ cod-cancel P)
+        ≈-Term-refl)
   where P = ++-assoc (flatten A) (flatten B) (flatten C)
 st-roundtrip (σ {A} {B} ⦃ v≤v ⦄) =
-  ≈-Term-sym (center (≈-Term-sym σ∘[f⊗g]≈[g⊗f]∘σ)
-              ○ (refl⟩∘⟨ cancelInner ⊗-iso-cancel))
+  ⟺ (center (⟺ σ∘[f⊗g]≈[g⊗f]∘σ)
+     ○ (refl⟩∘⟨ cancelInner ⊗-iso-cancel))
   where
     ⊗-iso-cancel = ⊗-cancel (_≅_.isoʳ (unflatten-flatten-≈ A))
                             (_≅_.isoʳ (unflatten-flatten-≈ B))
