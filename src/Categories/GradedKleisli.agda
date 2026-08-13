@@ -46,6 +46,7 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
   open GradedKleisliTriple M
   open import Categories.Category.Monoidal.Utilities (I.monoidal)
   open import Categories.Category.Monoidal.Properties (I.monoidal) using (coherence₃)
+  open import Categories.Monad.Graded.Ext M
   open Shorthands
 
   private
@@ -56,9 +57,6 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
     Slide : ∀ {A B} → OHom A B → OHom A B → Set (ℓ ⊔ e ⊔ e′)
     Slide {ai , _} (i , f , α) (j , g , β) =
       Σ[ φ ∈ I.U [ i , j ] ] C [ sub φ C.∘ f ≈ g ] × I.U [ β I.∘ (₁ (ai ⊗-) φ) ≈ α ]
-
-  μT : ∀ {u v X Y} (k : C [ X , T₀ v Y ]) → C [ μ u v C.∘ T₁ u k ≈ ext u k ]
-  μT k = let open C in ext-T-fusion ○ ext-resp-≈ C.identityˡ
 
   GradedKleisli : Category (o ⊔ o′) (o ⊔ ℓ ⊔ ℓ′) (o ⊔ ℓ ⊔ ℓ′ ⊔ e ⊔ e′)
   GradedKleisli = categoryHelperᵉ record
