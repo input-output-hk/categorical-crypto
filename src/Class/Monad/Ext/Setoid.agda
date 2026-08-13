@@ -60,6 +60,42 @@ record MonadLawsSetoid (M : Type↑) ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M �
 open MonadLawsSetoid ⦃...⦄ public
 
 ------------------------------------------------------------------------
+-- The functorial action derived from `_>>=_`, and how it absorbs into a
+-- neighbouring bind.  Relabelling the result of a computation is the shape
+-- every state-space bookkeeping step takes, so these five turn such steps
+-- into rewrites rather than bind-chain reasoning.
+
+module _ {M : Type↑} ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄ ⦃ _ : MonadLawsSetoid M ⦄ where
+
+  infixl 4 _<$>ᴹ_
+
+  _<$>ᴹ_ : {A : Type ℓ} {B : Type ℓ′} → (A → B) → M A → M B
+  h <$>ᴹ m = m >>= (return ∘ h)
+
+  <$>ᴹ-cong : {A : Type ℓ} {B : Type ℓ′} {h : A → B} {m n : M A}
+            → m ≈ᴹ n → (h <$>ᴹ m) ≈ᴹ (h <$>ᴹ n)
+  <$>ᴹ-cong = >>=-cong-x
+
+  <$>ᴹ-congˡ : {A : Type ℓ} {B : Type ℓ′} {h k : A → B} (m : M A)
+             → h ≗ k → (h <$>ᴹ m) ≈ᴹ (k <$>ᴹ m)
+  <$>ᴹ-congˡ m h≗k = >>=-cong-f λ a → ≈ᴹ.reflexive (cong return (h≗k a))
+
+  <$>ᴹ-∘ : {A : Type ℓ} {B : Type ℓ′} {C : Type ℓ″}
+           (k : B → C) (h : A → B) (m : M A)
+         → (k <$>ᴹ (h <$>ᴹ m)) ≈ᴹ ((k ∘ h) <$>ᴹ m)
+  <$>ᴹ-∘ k h m = ≈ᴹ.trans (>>=-assoc-≈ m) (>>=-cong-f λ _ → >>=-identityˡ-≈)
+
+  <$>ᴹ->>= : {A : Type ℓ} {B : Type ℓ′} {C : Type ℓ″}
+             (h : A → B) (m : M A) (g : B → M C)
+           → ((h <$>ᴹ m) >>= g) ≈ᴹ (m >>= (g ∘ h))
+  <$>ᴹ->>= h m g = ≈ᴹ.trans (>>=-assoc-≈ m) (>>=-cong-f λ _ → >>=-identityˡ-≈)
+
+  >>=-<$>ᴹ : {A : Type ℓ} {B : Type ℓ′} {C : Type ℓ″}
+             (h : B → C) (m : M A) (g : A → M B)
+           → (h <$>ᴹ (m >>= g)) ≈ᴹ (m >>= λ a → h <$>ᴹ g a)
+  >>=-<$>ᴹ h m g = >>=-assoc-≈ m
+
+------------------------------------------------------------------------
 -- Commutativity, stated up to the setoid equivalence.
 
 record CommutativeMonadSetoid (M : Type↑) ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄ : Typeω where
