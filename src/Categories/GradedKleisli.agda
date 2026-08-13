@@ -44,6 +44,7 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
   open GradedKleisliTriple M
   open import Categories.Category.Monoidal.Utilities (I.monoidal)
   open import Categories.Category.Monoidal.Properties (I.monoidal) using (coherence₃)
+  open import Categories.Monad.Graded.Ext M
   open Shorthands
 
   private
@@ -64,9 +65,6 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
 
     _∘ᴳ_ : ∀ {A B D} → (B ⇒ᴳ D) → (A ⇒ᴳ B) → (A ⇒ᴳ D)
     (j , g , β) ∘ᴳ (i , f , α) = i ⊗₀ j , g ⊙ f , β I.∘ (₁ (-⊗ j) α) I.∘ α⇐
-
-  μT : ∀ {u v X Y} (k : C [ X , T₀ v Y ]) → C [ μ u v C.∘ T₁ u k ≈ ext u k ]
-  μT k = let open C in ext-T-fusion ○ ext-resp-≈ C.identityˡ
 
   GradedKleisli : Category (o ⊔ o′) (o ⊔ ℓ ⊔ ℓ′) (o ⊔ ℓ ⊔ ℓ′ ⊔ e ⊔ e′)
   GradedKleisli = categoryHelperᵉ record
