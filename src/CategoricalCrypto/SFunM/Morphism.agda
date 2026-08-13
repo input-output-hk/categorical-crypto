@@ -1,0 +1,166 @@
+{-# OPTIONS --safe --without-K #-}
+
+-- A monad morphism `θ : M ⇒ N` abstracts the effects of a stateful function
+-- without touching its control flow: state space and initial state are kept,
+-- only the step kernel is post-composed with `θ`.  Everything below reduces to
+-- `θ-trace`, the statement that `θ` commutes with running a machine.
+
+open import categorical-crypto.Prelude hiding (Functor)
+
+open import Class.Core
+open import Class.Monad.Ext.Setoid
+
+open import Categories.Category.Core using (Category)
+open import Categories.Functor using (Functor)
+open import Categories.Functor.Monoidal using (StrongMonoidalFunctor)
+open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)
+
+open import Data.Sum.Base using (assocʳ)
+open import Data.Sum.Ext using (unitˡ⇒; unitʳ⇒)
+
+import Relation.Binary.Reasoning.Setoid as R-Setoid
+
+open import CategoricalCrypto.SFunM
+open import CategoricalCrypto.SFunM.Monoidal
+open import CategoricalCrypto.SFunM.Properties
+
+module CategoricalCrypto.SFunM.Morphism where
+
+private variable A B C D St : Type
+
+module _ {M N : Type↑}
+  ⦃ Monad-M : Monad M ⦄ ⦃ MS-M : MonadSetoid M ⦄
+  ⦃ ML-M : MonadLawsSetoid M ⦄ ⦃ MC-M : CommutativeMonadSetoid M ⦄
+  ⦃ Monad-N : Monad N ⦄ ⦃ MS-N : MonadSetoid N ⦄
+  ⦃ ML-N : MonadLawsSetoid N ⦄ ⦃ MC-N : CommutativeMonadSetoid N ⦄
+  (θ : ∀ {ℓ} {A : Type ℓ} → M A → N A)
+  (θ-cong   : ∀ {ℓ} {A : Type ℓ} {x y : M A} → x ≈ᴹ y → θ x ≈ᴹ θ y)
+  (θ-return : ∀ {ℓ} {A : Type ℓ} (a : A) → θ (return {A = A} a) ≈ᴹ return a)
+  (θ-bind   : ∀ {ℓ ℓ′} {A : Type ℓ} {B : Type ℓ′} (m : M A) (k : A → M B)
+            → θ (m >>= k) ≈ᴹ (θ m >>= λ a → θ (k a)))
+  where
+
+  -- Both monads are in scope as instances, so a congruence whose monad only
+  -- shows up under `_≈ᴹ_` has nothing to resolve against: take those from `N`
+  -- by name rather than by instance search.
+  private
+    module N≈ = MonadSetoid MS-N
+    module N-Reasoning {ℓ} {X : Type ℓ} = R-Setoid (N≈.≈ᴹ-setoid {A = X})
+
+  mapᵉ : SFunᵉ {M = M} A B → SFunᵉ {M = N} A B
+  mapᵉ f = record { State = State ; init = init ; fun = θ ∘ fun }
+    where open SFunᵉ f
+
+  θ-trace : (f : SFunType {M = M} A B St) (s : St) (xs : List A)
+          → θ (trace f s xs) ≈ᴹ trace (θ ∘ f) s xs
+  θ-trace f s []       = θ-return []
+  θ-trace f s (a ∷ as) = begin
+    θ (f (s , a) >>= λ (s′ , b) → trace f s′ as >>= λ bs → return (b ∷ bs))
+      ≈⟨ θ-bind (f (s , a)) _ ⟩
+    (θ (f (s , a)) >>= λ (s′ , b) → θ (trace f s′ as >>= λ bs → return (b ∷ bs)))
+      ≈⟨ N≈.>>=-cong-f (λ (s′ , _) → θ-bind (trace f s′ as) _) ⟩
+    (θ (f (s , a)) >>= λ (s′ , b) → θ (trace f s′ as) >>= λ bs → θ (return (b ∷ bs)))
+      ≈⟨ N≈.>>=-cong-f (λ (s′ , b) → N≈.>>=-cong (θ-trace f s′ as) (λ bs → θ-return (b ∷ bs))) ⟩
+    trace (θ ∘ f) s (a ∷ as) ∎
+    where open N-Reasoning
+
+  θ-eval : (f : SFunᵉ {M = M} A B) (xs : List A) → θ (eval f xs) ≈ᴹ eval (mapᵉ f) xs
+  θ-eval f xs = θ-trace (SFunᵉ.fun f) (SFunᵉ.init f) xs
+
+  mapᵉ-cong : {f g : SFunᵉ {M = M} A B} → f ≈ᵉ g → mapᵉ f ≈ᵉ mapᵉ g
+  mapᵉ-cong {f = f} {g} f≈g xs = begin
+    eval (mapᵉ f) xs  ≈˘⟨ θ-eval f xs ⟩
+    θ (eval f xs)     ≈⟨ θ-cong (f≈g xs) ⟩
+    θ (eval g xs)     ≈⟨ θ-eval g xs ⟩
+    eval (mapᵉ g) xs  ∎
+    where open N-Reasoning
+
+  mapᵉ-id : mapᵉ (idᵉ {A = A}) ≈ᵉ idᵉ
+  mapᵉ-id xs = begin
+    eval (mapᵉ idᵉ) xs  ≈˘⟨ θ-eval idᵉ xs ⟩
+    θ (eval idᵉ xs)     ≈˘⟨ θ-cong (id-correct xs) ⟩
+    θ (return xs)       ≈⟨ θ-return xs ⟩
+    return xs           ≈⟨ id-correct xs ⟩
+    eval idᵉ xs         ∎
+    where open N-Reasoning
+
+  mapᵉ-∘ : (g : SFunᵉ {M = M} B C) (f : SFunᵉ {M = M} A B)
+         → mapᵉ (g ∘ᵉ f) ≈ᵉ (mapᵉ g ∘ᵉ mapᵉ f)
+  mapᵉ-∘ g f xs = begin
+    eval (mapᵉ (g ∘ᵉ f)) xs
+      ≈˘⟨ θ-eval (g ∘ᵉ f) xs ⟩
+    θ (eval (g ∘ᵉ f) xs)
+      ≈˘⟨ θ-cong (trace-∘ xs) ⟩
+    θ (eval f xs >>= eval g)
+      ≈⟨ θ-bind (eval f xs) (eval g) ⟩
+    (θ (eval f xs) >>= λ ys → θ (eval g ys))
+      ≈⟨ N≈.>>=-cong (θ-eval f xs) (θ-eval g) ⟩
+    (eval (mapᵉ f) xs >>= eval (mapᵉ g))
+      ≈⟨ trace-∘ xs ⟩
+    eval (mapᵉ g ∘ᵉ mapᵉ f) xs ∎
+    where open N-Reasoning
+
+  SFunᵉ-map : Functor (SFunᵉ-Category {M = M}) (SFunᵉ-Category {M = N})
+  SFunᵉ-map = record
+    { F₀           = id
+    ; F₁           = mapᵉ
+    ; identity     = mapᵉ-id
+    ; homomorphism = λ {_ _ _ f g} → mapᵉ-∘ g f
+    ; F-resp-≈     = mapᵉ-cong
+    }
+
+  ------------------------------------------------------------------------
+  -- Strong monoidality
+  --
+  -- `mapᵉ` is the identity on objects, states and control flow, so every
+  -- comparison morphism is an identity: the functor is STRICT monoidal, and
+  -- only packaged as strong because that is what `UCSetupMorphism`'s smart
+  -- constructor (`Standard2.Morphism.StdUCMorphism`) consumes.
+
+  private
+    module 𝒩 = Category (SFunᵉ-Category {M = N})
+
+    open 𝒩.HomReasoning using (_○_; ⟺)
+
+  mapᵉ-stateless : (h : A → B) → mapᵉ (statelessᵉ {M = M} h) ≈ᵉ statelessᵉ {M = N} h
+  mapᵉ-stateless h = ≈ᵉ-sim id refl λ _ a →
+    N≈.≈ᴹ.trans (<$>ᴹ-cong (θ-return (tt , h a))) >>=-identityˡ-≈
+
+  mapᵉ-⊗ : (f : SFunᵉ {M = M} A B) (g : SFunᵉ {M = M} C D)
+         → mapᵉ (f ⊗ᵉ g) ≈ᵉ (mapᵉ f ⊗ᵉ mapᵉ g)
+  mapᵉ-⊗ f g = ≈ᵉ-sim id refl kern
+    where
+      module F = SFunᵉ f; module G = SFunᵉ g
+
+      kern : ∀ s x → _
+      kern (s , _) (inj₁ a) = N≈.≈ᴹ.trans
+        (<$>ᴹ-cong (N≈.≈ᴹ.trans (θ-bind (F.fun (s , a)) _) (N≈.>>=-cong-f λ p → θ-return _)))
+        (<$>ᴹ-∘ _ _ (θ (F.fun (s , a))))
+      kern (_ , t) (inj₂ c) = N≈.≈ᴹ.trans
+        (<$>ᴹ-cong (N≈.≈ᴹ.trans (θ-bind (G.fun (t , c)) _) (N≈.>>=-cong-f λ p → θ-return _)))
+        (<$>ᴹ-∘ _ _ (θ (G.fun (t , c))))
+
+  SFunᵉ-map-monoidal : StrongMonoidalFunctor (SFunᵉ-MonoidalCategory {M = M})
+                                             (SFunᵉ-MonoidalCategory {M = N})
+  SFunᵉ-map-monoidal = record
+    { F = SFunᵉ-map
+    ; isStrongMonoidal = record
+        { ε      = record { from = idᵉ ; to = idᵉ
+                          ; iso = record { isoˡ = 𝒩.identityˡ ; isoʳ = 𝒩.identityˡ } }
+        ; ⊗-homo = niHelper record
+            { η       = λ _ → idᵉ
+            ; η⁻¹     = λ _ → idᵉ
+            ; commute = λ (f , g) → 𝒩.identityˡ ○ ⟺ (mapᵉ-⊗ f g) ○ ⟺ 𝒩.identityʳ
+            ; iso     = λ _ → record { isoˡ = 𝒩.identityˡ ; isoʳ = 𝒩.identityˡ }
+            }
+        ; associativity = strict assocʳ
+            ○ ⟺ (𝒩.identityˡ ○ 𝒩.∘-resp-≈ (⊗ᵉ-identity {M = N}) 𝒩.Equiv.refl ○ 𝒩.identityˡ)
+        ; unitaryˡ      = strict unitˡ⇒
+        ; unitaryʳ      = strict unitʳ⇒
+        }
+    }
+    where
+      -- `F₁ (stateless h) ∘ (id ∘ (id ⊗₁ id))` is just `stateless h`.
+      strict : (h : A ⊎ C → B)
+             → (mapᵉ (statelessᵉ {M = M} h) ∘ᵉ (idᵉ ∘ᵉ (idᵉ {M = N} ⊗ᵉ idᵉ))) ≈ᵉ statelessᵉ {M = N} h
+      strict h = 𝒩.∘-resp-≈ (mapᵉ-stateless h) (𝒩.identityˡ ○ ⊗ᵉ-identity {M = N}) ○ 𝒩.identityʳ
