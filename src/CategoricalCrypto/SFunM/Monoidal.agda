@@ -35,6 +35,7 @@ private
   module 𝒮 = Category (SFunᵉ-Category {M = M})
 
 open 𝒮.HomReasoning using (_○_; ⟺)
+open import Categories.Morphism.Reasoning (SFunᵉ-Category {M = M}) using (pullˡ; cancelʳ)
 
 ------------------------------------------------------------------------
 -- The tensor
@@ -226,11 +227,7 @@ hexagonᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id swap)
 -- Functoriality
 
 ⊗ᵉ-identity : (idᵉ {M = M} {A} ⊗ᵉ idᵉ {M = M} {B}) ≈ᵉ idᵉ
-⊗ᵉ-identity = ≈ᵉ-sim (λ _ → tt) refl kern
-  where
-    kern : ∀ s x → _
-    kern s (inj₁ a) = ≈ᴹ.trans (<$>ᴹ-cong >>=-identityˡ-≈) >>=-identityˡ-≈
-    kern s (inj₂ b) = ≈ᴹ.trans (<$>ᴹ-cong >>=-identityˡ-≈) >>=-identityˡ-≈
+⊗ᵉ-identity = statelessᵉ-⊗ id id ○ statelessᵉ-cong map-id ○ statelessᵉ-id
 
 ⊗ᵉ-homomorphism : {f : SFunᵉ {M = M} A B} {g : SFunᵉ {M = M} B C}
                   {f′ : SFunᵉ {M = M} A′ B′} {g′ : SFunᵉ {M = M} B′ C′}
@@ -301,22 +298,11 @@ private
   lefts (inj₁ a ∷ xs)  = a ∷ lefts xs
   lefts (inj₂ _ ∷ xs)  = lefts xs
 
-  rights : List (A ⊎ C) → List C
-  rights []            = []
-  rights (inj₁ _ ∷ xs) = rights xs
-  rights (inj₂ c ∷ xs) = c ∷ rights xs
-
   fillˡ : List (A ⊎ C) → List B → List (B ⊎ C)
   fillˡ []                 _        = []
   fillˡ (inj₁ _ ∷ xs)      []       = []
   fillˡ (inj₁ _ ∷ xs)      (b ∷ bs) = inj₁ b ∷ fillˡ xs bs
   fillˡ (inj₂ c ∷ xs)      bs       = inj₂ c ∷ fillˡ xs bs
-
-  fillʳ : List (A ⊎ C) → List D → List (A ⊎ D)
-  fillʳ []                 _        = []
-  fillʳ (inj₁ a ∷ xs)      ds       = inj₁ a ∷ fillʳ xs ds
-  fillʳ (inj₂ _ ∷ xs)      []       = []
-  fillʳ (inj₂ _ ∷ xs)      (d ∷ ds) = inj₂ d ∷ fillʳ xs ds
 
   ⊗idᵏ-trace : (f : SFunType A B S) (s : S) (xs : List (A ⊎ C))
              → trace (f ⊗ᵏ SFunᵉ.fun idᵉ) (s , tt) xs ≈ᴹ (fillˡ xs <$>ᴹ trace f s (lefts xs))
@@ -355,43 +341,6 @@ private
       cont  = λ p → trace (f ⊗ᵏ SFunᵉ.fun idᵉ) (proj₁ p) xs >>= λ bs → return (proj₂ p ∷ bs)
       open R-Setoid ≈ᴹ-setoid
 
-  id⊗ᵏ-trace : (g : SFunType C D S) (t : S) (xs : List (A ⊎ C))
-             → trace (SFunᵉ.fun idᵉ ⊗ᵏ g) (tt , t) xs ≈ᴹ (fillʳ xs <$>ᴹ trace g t (rights xs))
-  id⊗ᵏ-trace g t []            = ≈ᴹ.sym >>=-identityˡ-≈
-  id⊗ᵏ-trace g t (inj₁ a ∷ xs) = begin
-    (((λ (s′ , b) → (s′ , t) , inj₁ b) <$>ᴹ return (tt , a)) >>= cont)
-      ≈⟨ <$>ᴹ->>= _ (return (tt , a)) cont ⟩
-    (return (tt , a) >>= λ p → cont ((proj₁ p , t) , inj₁ (proj₂ p)))
-      ≈⟨ >>=-identityˡ-≈ ⟩
-    (trace (SFunᵉ.fun idᵉ ⊗ᵏ g) (tt , t) xs >>= consˡ)
-      ≈⟨ >>=-cong-x (id⊗ᵏ-trace g t xs) ⟩
-    ((fillʳ xs <$>ᴹ trace g t (rights xs)) >>= consˡ)
-      ≈⟨ <$>ᴹ->>= (fillʳ xs) (trace g t (rights xs)) consˡ ⟩
-    (fillʳ (inj₁ a ∷ xs) <$>ᴹ trace g t (rights xs)) ∎
-    where
-      consˡ = λ ds → return (inj₁ a ∷ ds)
-      cont  = λ p → trace (SFunᵉ.fun idᵉ ⊗ᵏ g) (proj₁ p) xs >>= λ ds → return (proj₂ p ∷ ds)
-      open R-Setoid ≈ᴹ-setoid
-  id⊗ᵏ-trace g t (inj₂ c ∷ xs) = begin
-    (((λ (t′ , d) → (tt , t′) , inj₂ d) <$>ᴹ g (t , c)) >>= cont)
-      ≈⟨ <$>ᴹ->>= _ (g (t , c)) cont ⟩
-    (g (t , c) >>= λ q → trace (SFunᵉ.fun idᵉ ⊗ᵏ g) (tt , proj₁ q) xs >>= consʳ q)
-      ≈⟨ >>=-cong-f (λ q → >>=-cong-x (id⊗ᵏ-trace g (proj₁ q) xs)) ⟩
-    (g (t , c) >>= λ q → (fillʳ xs <$>ᴹ trace g (proj₁ q) (rights xs)) >>= consʳ q)
-      ≈⟨ >>=-cong-f (λ q → <$>ᴹ->>= (fillʳ xs) (trace g (proj₁ q) (rights xs)) (consʳ q)) ⟩
-    (g (t , c) >>= λ q → trace g (proj₁ q) (rights xs) >>= λ ds → return (inj₂ (proj₂ q) ∷ fillʳ xs ds))
-      ≈˘⟨ >>=-cong-f (λ q → >>=-cong-f λ ds → >>=-identityˡ-≈) ⟩
-    (g (t , c) >>= λ q → trace g (proj₁ q) (rights xs) >>= λ ds → fill <$>ᴹ return (proj₂ q ∷ ds))
-      ≈˘⟨ >>=-cong-f (λ q → >>=-<$>ᴹ fill (trace g (proj₁ q) (rights xs)) _) ⟩
-    (g (t , c) >>= λ q → fill <$>ᴹ (trace g (proj₁ q) (rights xs) >>= λ ds → return (proj₂ q ∷ ds)))
-      ≈˘⟨ >>=-<$>ᴹ fill (g (t , c)) _ ⟩
-    (fill <$>ᴹ trace g t (c ∷ rights xs)) ∎
-    where
-      fill  = fillʳ (inj₂ c ∷ xs)
-      consʳ = λ q ds → return (inj₂ (proj₂ q) ∷ ds)
-      cont  = λ p → trace (SFunᵉ.fun idᵉ ⊗ᵏ g) (proj₁ p) xs >>= λ ds → return (proj₂ p ∷ ds)
-      open R-Setoid ≈ᴹ-setoid
-
   ⊗idᵉ-resp : {f g : SFunᵉ {M = M} A B} → f ≈ᵉ g → (f ⊗ᵉ idᵉ {M = M} {C}) ≈ᵉ (g ⊗ᵉ idᵉ {M = M} {C})
   ⊗idᵉ-resp {f = f} {g} f≈g xs = begin
     eval (f ⊗ᵉ idᵉ) xs
@@ -403,16 +352,14 @@ private
     eval (g ⊗ᵉ idᵉ) xs ∎
     where open R-Setoid ≈ᴹ-setoid
 
+  -- `idᵉ ⊗ᵉ f` is the braiding conjugate of `f ⊗ᵉ idᵉ`, so the right factor
+  -- needs no trace argument of its own.
+  σ-conjᵉ : (f : SFunᵉ {M = M} C D) → (σᵉ ∘ᵉ ((f ⊗ᵉ idᵉ {M = M} {A}) ∘ᵉ σᵉ)) ≈ᵉ (idᵉ {M = M} {A} ⊗ᵉ f)
+  σ-conjᵉ f = pullˡ (braiding-commuteᵉ {f = f} {g = idᵉ}) ○ cancelʳ σ-involutiveᵉ
+
   id⊗ᵉ-resp : {f g : SFunᵉ {M = M} C D} → f ≈ᵉ g → (idᵉ {M = M} {A} ⊗ᵉ f) ≈ᵉ (idᵉ {M = M} {A} ⊗ᵉ g)
-  id⊗ᵉ-resp {f = f} {g} f≈g xs = begin
-    eval (idᵉ ⊗ᵉ f) xs
-      ≈⟨ id⊗ᵏ-trace (SFunᵉ.fun f) (SFunᵉ.init f) xs ⟩
-    (fillʳ xs <$>ᴹ eval f (rights xs))
-      ≈⟨ <$>ᴹ-cong (f≈g (rights xs)) ⟩
-    (fillʳ xs <$>ᴹ eval g (rights xs))
-      ≈˘⟨ id⊗ᵏ-trace (SFunᵉ.fun g) (SFunᵉ.init g) xs ⟩
-    eval (idᵉ ⊗ᵉ g) xs ∎
-    where open R-Setoid ≈ᴹ-setoid
+  id⊗ᵉ-resp {f = f} {g} f≈g =
+    ⟺ (σ-conjᵉ f) ○ 𝒮.∘-resp-≈ʳ (𝒮.∘-resp-≈ˡ (⊗idᵉ-resp f≈g)) ○ σ-conjᵉ g
 
 ⊗-split : (f : SFunᵉ {M = M} A B) (g : SFunᵉ {M = M} C D) → (f ⊗ᵉ g) ≈ᵉ ((idᵉ ⊗ᵉ g) ∘ᵉ (f ⊗ᵉ idᵉ))
 ⊗-split f g = ≈ᵉ-sim (λ (s , t) → (tt , t) , (s , tt)) refl kern
