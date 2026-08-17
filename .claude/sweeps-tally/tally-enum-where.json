@@ -1,0 +1,136 @@
+{
+ "sweep": "enum-where",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/SFunM.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/SFunM/Monoidal.agda": {
+   "sites": [
+    {
+     "line": 184,
+     "binding": "Λ",
+     "approxUses": 13,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 186,
+     "binding": "kern",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 204,
+     "binding": "Λ₁",
+     "approxUses": 6,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 205,
+     "binding": "Λf",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 206,
+     "binding": "Λg",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 207,
+     "binding": "mid",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 208,
+     "binding": "outer",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 209,
+     "binding": "cont",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 270,
+     "binding": "fill",
+     "approxUses": 4,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 271,
+     "binding": "consˡ",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 284,
+     "binding": "consʳ",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 310,
+     "binding": "Λφ",
+     "approxUses": 5,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 325,
+     "binding": "K",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/SFunM/Morphism.agda": {
+   "sites": [
+    {
+     "line": 142,
+     "binding": "strict",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    }
+   ]
+  },
+  "src/CategoricalCrypto/SFunM/Properties.agda": {
+   "sites": [
+    {
+     "line": 37,
+     "binding": "cont",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    }
+   ]
+  },
+  "src/CategoricalCrypto/SFunM/Test/Possibility.agda": {
+   "sites": []
+  },
+  "src/Class/Monad/Ext/Setoid.agda": {
+   "sites": []
+  },
+  "src/Class/Monad/Ext.agda": {
+   "sites": []
+  },
+  "src/Data/Sum/Ext.agda": {
+   "sites": []
+  },
+  "src/Data/Bool/ListAction/Ext.agda": {
+   "sites": []
+  },
+  "src/Data/List/Properties/Ext.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto.agda": {
+   "sites": []
+  }
+ },
+ "totalChecks": 0
+}

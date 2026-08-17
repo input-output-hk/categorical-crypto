@@ -1,0 +1,311 @@
+{
+ "sweep": "enum-comments",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/SFunM.agda": {
+   "sites": [
+    {
+     "lines": "88-89",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "trace-∘",
+     "preview": "-- Uses commutativity to swap the next-step `trace f` recursion with the -- current-step `"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/SFunM/Monoidal.agda": {
+   "sites": [
+    {
+     "lines": "36-37",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_⊗ᵏ_",
+     "preview": "------------------------------------------------------------------------ -- The tensor"
+    },
+    {
+     "lines": "50-51",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "λ⇒ᵉ",
+     "preview": "------------------------------------------------------------------------ -- The structural"
+    },
+    {
+     "lines": "109-110",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "λ-isoˡ",
+     "preview": "------------------------------------------------------------------------ -- Coherence"
+    },
+    {
+     "lines": "169-170",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊗ᵉ-identity",
+     "preview": "------------------------------------------------------------------------ -- Functoriality"
+    },
+    {
+     "lines": "236-237",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊗-split",
+     "preview": "-- No simulation is available for the congruence: `f ≈ᵉ g` relates traces, not -- states, "
+    },
+    {
+     "lines": "244-245",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊗-split",
+     "preview": "-- `⊗idᵏ-trace` never reaches the `(inj₁ _ ∷ xs) []` clause: `trace` returns as -- many ou"
+    },
+    {
+     "lines": "298-298",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "⊗-split",
+     "preview": "-- Conjugating by the braiding saves a second trace lemma for the right factor."
+    },
+    {
+     "lines": "355-356",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "SFunᵉ-Monoidal",
+     "preview": "------------------------------------------------------------------------ -- The bundles"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/SFunM/Morphism.agda": {
+   "sites": [
+    {
+     "lines": "3-3",
+     "kind": "header",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-- A monad morphism `θ : M ⇒ N` induces a strong monoidal functor `SFunᵉ M → SFunᵉ N`"
+    },
+    {
+     "lines": "102-103",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "mapᵉ-stateless",
+     "preview": "------------------------------------------------------------------------ -- Strong monoida"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/SFunM/Properties.agda": {
+   "sites": [
+    {
+     "lines": "22-23",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "trace-sim",
+     "preview": "------------------------------------------------------------------------ -- Simulation"
+    },
+    {
+     "lines": "47-48",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "statelessᵏ",
+     "preview": "------------------------------------------------------------------------ -- Stateless mach"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/SFunM/Test/Possibility.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-- The generic machine layer at a concrete monad. `𝒫` is the branch's only -- commutative "
+    },
+    {
+     "lines": "49-51",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "fromMaybeᴹ",
+     "preview": "-- Abstracting a partial machine to a possibilistic one, along `fromMaybe : Maybe ⇒ 𝒫`. --"
+    }
+   ]
+  },
+  "src/Class/Monad/Ext/Setoid.agda": {
+   "sites": [
+    {
+     "lines": "89-89",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "CommutativeMonadSetoid",
+     "preview": "-- Yoneda variant"
+    },
+    {
+     "lines": "115-117",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "MonadMorphismSetoid",
+     "preview": "-- `Categories.Monad.Morphism.Monad⇒-id` is this notion for a `Categories.Monad` -- on a c"
+    }
+   ]
+  },
+  "src/Class/Monad/Ext.agda": {
+   "sites": [
+    {
+     "lines": "44-44",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "CommutativeMonad",
+     "preview": "-- Yoneda variant"
+    }
+   ]
+  },
+  "src/Data/Sum/Ext.agda": {
+   "sites": [
+    {
+     "lines": "12-13",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "unitˡ⇒",
+     "preview": "-- `Data.Sum.Algebra.⊎-identityˡ`/`-identityʳ` bury these inside `↔` bundles, at -- `Data."
+    }
+   ]
+  },
+  "src/Data/Bool/ListAction/Ext.agda": {
+   "sites": [
+    {
+     "lines": "3-3",
+     "kind": "header",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-- `Data.Bool.ListAction` is definitions only: the stdlib proves none of this."
+    },
+    {
+     "lines": "5-6",
+     "kind": "header",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-- `Data.List`'s `any`/`or` are the deprecated aliases of the -- `Data.Bool.ListAction` on"
+    },
+    {
+     "lines": "46-46",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "any-pair",
+     "preview": "-- Fubini for `any`."
+    }
+   ]
+  },
+  "src/Data/List/Properties/Ext.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Data.List.Properties.Ext",
+     "preview": "------------------------------------------------------------------------ -- Extensions to "
+    },
+    {
+     "lines": "21-21",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "concatMap-assoc",
+     "preview": "-- `Data.List.Effectful.MonadProperties.associative` is this at a single level."
+    },
+    {
+     "lines": "29-29",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "++-assoc-mid",
+     "preview": "-- re-associate a mid-nested `++` block: (p ++ (x ++ s)) ++ r → p ++ (x ++ (s ++ r))"
+    },
+    {
+     "lines": "34-35",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "stripPrefix",
+     "preview": "-- decidable prefix strip: if `p` is a prefix of `xs`, recover the remainder -- `ys` toget"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility.agda": {
+   "sites": [
+    {
+     "lines": "3-4",
+     "kind": "header",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-- The finite possibility monad: `List` under the equality that tests it against -- every "
+    },
+    {
+     "lines": "39-41",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": ">>=𝒫-cong",
+     "preview": "------------------------------------------------------------------------ -- Setoid monad s"
+    }
+   ]
+  },
+  "src/CategoricalCrypto.agda": {
+   "sites": [
+    {
+     "lines": "4-4",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.Channel.Category",
+     "preview": "-- Open problems"
+    },
+    {
+     "lines": "6-8",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.Channel.Category",
+     "preview": "-- We want to conveniently specify a machine that, on an input, sends -- messages to other"
+    },
+    {
+     "lines": "10-10",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.Channel.Category",
+     "preview": "-- Can we write constructors more monadically?"
+    },
+    {
+     "lines": "12-12",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.Channel.Category",
+     "preview": "-- Improve syntax generally"
+    }
+   ]
+  }
+ },
+ "totalChecks": 0
+}

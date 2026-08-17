@@ -1,0 +1,612 @@
+{
+ "sweep": "implicit-drop",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/SFunM.agda": {
+   "candidates": 5,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 18,
+     "edit": "drop `{A = X}`"
+    },
+    {
+     "line": 65,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 65,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 72,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 72,
+     "edit": "drop `{B}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 10,
+   "seconds": 81.7
+  },
+  "src/CategoricalCrypto/SFunM/Monoidal.agda": {
+   "candidates": 72,
+   "kept": [
+    {
+     "line": 30,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 33,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 45,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 45,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 45,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 53,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 56,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 59,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 62,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 65,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 68,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 71,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 79,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 84,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 89,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 89,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 89,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 102,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 102,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 175,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 175,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 176,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 176,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 287,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 287,
+     "edit": "drop `{C}`"
+    },
+    {
+     "line": 299,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 299,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 299,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 302,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 302,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 302,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 305,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 305,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 341,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 341,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 356,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 357,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 383,
+     "edit": "drop `{M = M}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 112,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 115,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 118,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 121,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 124,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 124,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 124,
+     "edit": "drop `{C}`"
+    },
+    {
+     "line": 130,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 130,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 130,
+     "edit": "drop `{C}`"
+    },
+    {
+     "line": 136,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 136,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 139,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 139,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 139,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 147,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 147,
+     "edit": "drop `{C}`"
+    },
+    {
+     "line": 147,
+     "edit": "drop `{D}`"
+    },
+    {
+     "line": 147,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 158,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 158,
+     "edit": "drop `{C}`"
+    },
+    {
+     "line": 158,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 158,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 172,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 172,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 172,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 172,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 287,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 287,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 287,
+     "edit": "drop `{C}`"
+    },
+    {
+     "line": 299,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 299,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 302,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 302,
+     "edit": "drop `{A}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 91,
+   "seconds": 879.0
+  },
+  "src/CategoricalCrypto/SFunM/Morphism.agda": {
+   "candidates": 23,
+   "kept": [
+    {
+     "line": 45,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 45,
+     "edit": "drop `{M = N}`"
+    },
+    {
+     "line": 49,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 60,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 64,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 79,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 79,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 93,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 93,
+     "edit": "drop `{M = N}`"
+    },
+    {
+     "line": 110,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 110,
+     "edit": "drop `{M = N}`"
+    },
+    {
+     "line": 114,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 114,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 122,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 123,
+     "edit": "drop `{M = N}`"
+    },
+    {
+     "line": 136,
+     "edit": "drop `{M = N}`"
+    },
+    {
+     "line": 143,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 143,
+     "edit": "drop `{M = N}`"
+    },
+    {
+     "line": 143,
+     "edit": "drop `{M = N}`"
+    },
+    {
+     "line": 144,
+     "edit": "drop `{M = N}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 41,
+     "edit": "drop `{A = X}`"
+    },
+    {
+     "line": 71,
+     "edit": "drop `{A = A}`"
+    },
+    {
+     "line": 106,
+     "edit": "drop `{M = N}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 23,
+   "seconds": 195.7
+  },
+  "src/CategoricalCrypto/SFunM/Properties.agda": {
+   "candidates": 6,
+   "kept": [
+    {
+     "line": 39,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 53,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 81,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 81,
+     "edit": "drop `{M = M}`"
+    },
+    {
+     "line": 98,
+     "edit": "drop `{M = M}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 64,
+     "edit": "drop `{A = A}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 9,
+   "seconds": 54.2
+  },
+  "src/CategoricalCrypto/SFunM/Test/Possibility.agda": {
+   "candidates": 10,
+   "kept": [
+    {
+     "line": 30,
+     "edit": "drop `{M = List}`"
+    },
+    {
+     "line": 32,
+     "edit": "drop `{M = List}`"
+    },
+    {
+     "line": 35,
+     "edit": "drop `{M = List}`"
+    },
+    {
+     "line": 39,
+     "edit": "drop `{M = List}`"
+    },
+    {
+     "line": 41,
+     "edit": "drop `{M = List}`"
+    },
+    {
+     "line": 44,
+     "edit": "drop `{M = List}`"
+    },
+    {
+     "line": 70,
+     "edit": "drop `{M = Maybe}`"
+    },
+    {
+     "line": 70,
+     "edit": "drop `{M = List}`"
+    },
+    {
+     "line": 73,
+     "edit": "drop `{M = Maybe}`"
+    },
+    {
+     "line": 74,
+     "edit": "drop `{M = List}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 23.5
+  },
+  "src/Class/Monad/Ext/Setoid.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 124,
+     "edit": "drop `{A = A}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 23,
+     "edit": "drop `{A = A}`"
+    },
+    {
+     "line": 28,
+     "edit": "drop `{A = A}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 7,
+   "seconds": 42.1
+  },
+  "src/Class/Monad/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/Sum/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/Bool/ListAction/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/List/Properties/Ext.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 18,
+     "edit": "drop `{A = List A}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 8.7
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 74,
+     "edit": "drop `{f}`"
+    },
+    {
+     "line": 74,
+     "edit": "drop `{g}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 27,
+     "edit": "drop `{A = A}`"
+    },
+    {
+     "line": 74,
+     "edit": "drop `{σ = σ}`"
+    },
+    {
+     "line": 74,
+     "edit": "drop `{τ}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 9,
+   "seconds": 50.6
+  },
+  "src/CategoricalCrypto.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  }
+ },
+ "totalChecks": 155
+}

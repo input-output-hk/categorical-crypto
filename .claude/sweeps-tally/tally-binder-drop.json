@@ -1,0 +1,262 @@
+{
+ "sweep": "binder-drop",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/SFunM.agda": {
+   "candidates": 4,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 124,
+     "edit": "drop binder `{h : SFunᵉ C D}` + arrow"
+    },
+    {
+     "line": 138,
+     "edit": "drop binder `{f : SFunᵉ A B}` + arrow"
+    },
+    {
+     "line": 148,
+     "edit": "drop binder `{f : SFunᵉ A B}` + arrow"
+    },
+    {
+     "line": 158,
+     "edit": "drop binder `{g i : SFunᵉ A B}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 8,
+   "seconds": 24.3
+  },
+  "src/CategoricalCrypto/SFunM/Monoidal.agda": {
+   "candidates": 8,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 79,
+     "edit": "drop binder `{f : SFunᵉ {M = M} A B}` + arrow"
+    },
+    {
+     "line": 84,
+     "edit": "drop binder `{f : SFunᵉ {M = M} A B}` + arrow"
+    },
+    {
+     "line": 89,
+     "edit": "drop binder `{h : SFunᵉ {M = M} C C′}` + arrow"
+    },
+    {
+     "line": 102,
+     "edit": "drop binder `{g : SFunᵉ {M = M} B B′}` + arrow"
+    },
+    {
+     "line": 176,
+     "edit": "drop binder `{g′ : SFunᵉ {M = M} B′ C′}` + arrow"
+    },
+    {
+     "line": 287,
+     "edit": "drop binder `{f g : SFunᵉ {M = M} A B}` + arrow"
+    },
+    {
+     "line": 302,
+     "edit": "drop binder `{f g : SFunᵉ {M = M} C D}` + arrow"
+    },
+    {
+     "line": 341,
+     "edit": "drop binder `{g i : SFunᵉ {M = M} C D}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 16,
+   "seconds": 52.8
+  },
+  "src/CategoricalCrypto/SFunM/Morphism.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 64,
+     "edit": "drop binder `{f g : SFunᵉ {M = M} A B}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 12.4
+  },
+  "src/CategoricalCrypto/SFunM/Properties.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 25,
+     "edit": "drop binder `{g : SFunType A B S′}` + arrow"
+    },
+    {
+     "line": 56,
+     "edit": "drop binder `{h k : A → B}` + arrow"
+    },
+    {
+     "line": 77,
+     "edit": "drop binder `{k : B → A}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 6,
+   "seconds": 16.8
+  },
+  "src/CategoricalCrypto/SFunM/Test/Possibility.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Class/Monad/Ext/Setoid.agda": {
+   "candidates": 13,
+   "kept": [
+    {
+     "line": 23,
+     "edit": "drop binder `{A : Type ℓ}` + arrow"
+    },
+    {
+     "line": 122,
+     "edit": "drop binder `{A : Type ℓ}` + arrow"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 21,
+     "edit": "drop binder `{A : Type ℓ}` + arrow"
+    },
+    {
+     "line": 25,
+     "edit": "drop binder `{f g : A → M B}` + arrow"
+    },
+    {
+     "line": 30,
+     "edit": "drop binder `{A : Type ℓ}` + arrow"
+    },
+    {
+     "line": 37,
+     "edit": "drop binder `{f g : A → M B}` + arrow"
+    },
+    {
+     "line": 41,
+     "edit": "drop binder `{f : A → M B}` + arrow"
+    },
+    {
+     "line": 45,
+     "edit": "drop binder `{B : Type ℓ′}` + arrow"
+    },
+    {
+     "line": 48,
+     "edit": "drop binder `{m n : M A}` + arrow"
+    },
+    {
+     "line": 60,
+     "edit": "drop binder `{h : A → M B}` + arrow"
+    },
+    {
+     "line": 64,
+     "edit": "drop binder `{h : B → M C}` + arrow"
+    },
+    {
+     "line": 85,
+     "edit": "drop binder `{y : M Y}` + arrow"
+    },
+    {
+     "line": 123,
+     "edit": "drop binder `{x y : M A}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 27,
+   "seconds": 61.1
+  },
+  "src/Class/Monad/Ext.agda": {
+   "candidates": 4,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 23,
+     "edit": "drop binder `{f g : A → M B}` + arrow"
+    },
+    {
+     "line": 26,
+     "edit": "drop binder `{f g : A → M B}` + arrow"
+    },
+    {
+     "line": 29,
+     "edit": "drop binder `{f : A → M B}` + arrow"
+    },
+    {
+     "line": 41,
+     "edit": "drop binder `{y : M Y}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 8,
+   "seconds": 31.7
+  },
+  "src/Data/Sum/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/Bool/ListAction/Ext.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 23,
+     "edit": "drop binder `{P Q : A → Bool}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 10.7
+  },
+  "src/Data/List/Properties/Ext.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 18,
+     "edit": "drop binder `{A : Set a}` + arrow"
+    },
+    {
+     "line": 36,
+     "edit": "drop binder `{A : Set a}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 11.3
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 24,
+     "edit": "drop binder `{A : Type ℓ}` + arrow"
+    },
+    {
+     "line": 43,
+     "edit": "drop binder `{f g : A → List B}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 13.9
+  },
+  "src/CategoricalCrypto.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  }
+ },
+ "totalChecks": 77
+}
