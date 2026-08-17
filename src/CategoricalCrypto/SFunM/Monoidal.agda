@@ -303,7 +303,7 @@ private
 
   -- Conjugating by the braiding saves a second trace lemma for the right factor.
   σ-conjᵉ : (f : SFunᵉ {M = M} C D) → (σᵉ ∘ᵉ ((f ⊗ᵉ idᵉ {M = M} {A}) ∘ᵉ σᵉ)) ≈ᵉ (idᵉ {M = M} {A} ⊗ᵉ f)
-  σ-conjᵉ f = pullˡ (braiding-commuteᵉ {f = f} {g = idᵉ}) ○ cancelʳ σ-involutiveᵉ
+  σ-conjᵉ f = pullˡ braiding-commuteᵉ ○ cancelʳ σ-involutiveᵉ
 
   id⊗ᵉ-resp : {f g : SFunᵉ {M = M} C D} → f ≈ᵉ g → (idᵉ {M = M} {A} ⊗ᵉ f) ≈ᵉ (idᵉ {M = M} {A} ⊗ᵉ g)
   id⊗ᵉ-resp {f = f} {g} f≈g =
