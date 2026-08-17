@@ -32,7 +32,7 @@ record CommutativeMonad (M : Type↑) ⦃ Monad-M : Monad M ⦄ ⦃ _ : MonadLaw
   field >>=-comm : ∀ {a b} {X : Type a} {Y : Type b} {x : M X} {y : M Y}
           → (x >>= λ x → y >>= λ y → return (x ,′ y)) ≡ (y >>= λ y → x >>= λ x → return (x , y))
 
-  -- yoneda variant
+  -- Yoneda variant
   >>=-comm-y : ∀ ⦃ _ : ExtensionalMonad M ⦄ {X Y Z : Type} {x : M X} {y : M Y} (f : X → Y → M Z)
     → (x >>= λ x → y >>= λ y → f x y) ≡ (y >>= λ y → x >>= λ x → f x y)
   >>=-comm-y {x = x} {y} f = begin

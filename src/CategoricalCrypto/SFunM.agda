@@ -82,9 +82,8 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
     eval idᵉ (a ∷ as) ∎
     where open R-Setoid ≈ᴹ-setoid
 
-  -- Composition of traces unfolds the per-step interleaving into a
-  -- run-then-run sequencing. Uses commutativity to swap the next-step
-  -- `trace f` recursion with the current-step `g` action.
+  -- Uses commutativity to swap the next-step `trace f` recursion with the
+  -- current-step `g` action.
   trace-∘ : ∀ {StateG StateF sg sf}
             {g : SFunType B C StateG} {f : SFunType A B StateF}
             (xs : List A)

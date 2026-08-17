@@ -128,7 +128,6 @@ record MonadMorphismSetoid (M N : Type↑)
     θ-bind   : {A : Type ℓ} {B : Type ℓ′} (m : M A) (k : A → M B)
              → θ (m >>= k) ≈ᴹ (θ m >>= λ a → θ (k a))
 
--- Propositional monads can be turned into setoid monads
 module FromPropositional {M : Type↑}
   ⦃ Monad-M       : Monad M            ⦄
   ⦃ M-Laws        : MonadLaws M        ⦄

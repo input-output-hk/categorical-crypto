@@ -22,9 +22,6 @@ private variable A A′ B C S S′ : Type
 ------------------------------------------------------------------------
 -- Simulation
 
--- A state map `φ` that intertwines the two kernels — running `f` and
--- relabelling the resulting state is running `g` on the relabelled state —
--- makes the two traces equal.
 trace-sim : (φ : S → S′) {f : SFunType A B S} {g : SFunType A B S′}
           → (∀ s a → ((λ (s′ , b) → φ s′ , b) <$>ᴹ f (s , a)) ≈ᴹ g (φ s , a))
           → ∀ s xs → trace f s xs ≈ᴹ trace g (φ s) xs
@@ -41,7 +38,6 @@ trace-sim φ {f} {g} k s (a ∷ as) = begin
     cont = λ (t , b) → trace g t as >>= λ bs → return (b ∷ bs)
     open R-Setoid ≈ᴹ-setoid
 
--- `trace-sim` at the initial states.
 ≈ᵉ-sim : {f g : SFunᵉ {M = M} A B} (φ : SFunᵉ.State f → SFunᵉ.State g)
        → φ (SFunᵉ.init f) ≡ SFunᵉ.init g
        → (∀ s a → ((λ (s′ , b) → φ s′ , b) <$>ᴹ SFunᵉ.fun f (s , a)) ≈ᴹ SFunᵉ.fun g (φ s , a))

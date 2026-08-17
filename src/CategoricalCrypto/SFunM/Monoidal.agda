@@ -1,8 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
--- `SFunᵉ` is symmetric monoidal under the disjoint union of interfaces: two
--- machines run side by side, each activation going to exactly one of them, and
--- the composite state is the pair of the component states.
+-- `SFunᵉ` is symmetric monoidal under the disjoint union of interfaces: the
+-- tensor is a coproduct of interfaces, so the unit is `⊥`.
 
 open import categorical-crypto.Prelude
 
@@ -243,7 +242,6 @@ private
     eval (idᵉ ⊗ᵉ g) xs ∎
     where open R-Setoid ≈ᴹ-setoid
 
--- Every tensor is a one-sided tensor followed by the other one-sided tensor.
 ⊗-split : (f : SFunᵉ {M = M} A B) (g : SFunᵉ {M = M} C D) → (f ⊗ᵉ g) ≈ᵉ ((idᵉ ⊗ᵉ g) ∘ᵉ (f ⊗ᵉ idᵉ))
 ⊗-split f g = ≈ᵉ-sim (λ (s , t) → (tt , t) , (s , tt)) refl kern
   where
