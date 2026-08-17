@@ -183,6 +183,8 @@ hexagonᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id swap)
     module F = SFunᵉ f; module G = SFunᵉ g
     module F′ = SFunᵉ f′; module G′ = SFunᵉ g′
 
+    Λ = λ ((u , v) , y) → ((proj₁ u , proj₁ v) , (proj₂ u , proj₂ v)) , y
+
     kern : ∀ s x → _
     kern ((sg , sf) , (sg′ , sf′)) (inj₁ a) = begin
       (Λ <$>ᴹ (Λ₁ <$>ᴹ (F.fun (sf , a) >>= mid)))
@@ -201,7 +203,6 @@ hexagonᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id swap)
         ≈˘⟨ <$>ᴹ->>= Λf (F.fun (sf , a)) cont ⟩
       ((Λf <$>ᴹ F.fun (sf , a)) >>= cont) ∎
       where
-        Λ     = λ ((u , v) , y) → ((proj₁ u , proj₁ v) , (proj₂ u , proj₂ v)) , y
         Λ₁    = λ (u , c) → (u , (sg′ , sf′)) , inj₁ c
         Λf    = λ (u , b) → (u , sf′) , inj₁ b
         Λg    = λ (u , c) → (u , sg′) , inj₁ c
@@ -226,7 +227,6 @@ hexagonᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id swap)
         ≈˘⟨ <$>ᴹ->>= Λf (F′.fun (sf′ , c)) cont ⟩
       ((Λf <$>ᴹ F′.fun (sf′ , c)) >>= cont) ∎
       where
-        Λ     = λ ((u , v) , y) → ((proj₁ u , proj₁ v) , (proj₂ u , proj₂ v)) , y
         Λ₁    = λ (u , d) → ((sg , sf) , u) , inj₂ d
         Λf    = λ (u , d) → (sf , u) , inj₂ d
         Λg    = λ (u , d) → (sg , u) , inj₂ d
@@ -308,6 +308,8 @@ private
   where
     module F = SFunᵉ f; module G = SFunᵉ g
 
+    Λφ = λ ((u , v) , y) → ((tt , v) , (u , tt)) , y
+
     kern : ∀ s x → _
     kern (s , t) (inj₁ a) = begin
       (Λφ <$>ᴹ (Λ <$>ᴹ F.fun (s , a)))
@@ -318,7 +320,6 @@ private
         ≈˘⟨ <$>ᴹ->>= Λf (F.fun (s , a)) K ⟩
       ((Λf <$>ᴹ F.fun (s , a)) >>= K) ∎
       where
-        Λφ  = λ ((u , v) , y) → ((tt , v) , (u , tt)) , y
         Λ   = λ (s′ , b) → (s′ , t) , inj₁ b
         Λf  = λ (s′ , b) → (s′ , tt) , inj₁ b
         mid = λ p Q → return ((proj₁ Q , (proj₁ p , tt)) , proj₂ Q)
@@ -333,7 +334,6 @@ private
         ≈˘⟨ ≈ᴹ.trans (<$>ᴹ->>= Λf (return (tt , c)) K) >>=-identityˡ-≈ ⟩
       ((Λf <$>ᴹ return (tt , c)) >>= K) ∎
       where
-        Λφ  = λ ((u , v) , y) → ((tt , v) , (u , tt)) , y
         Λ   = λ (t′ , d) → (s , t′) , inj₂ d
         Λf  = λ (u , y) → (s , u) , inj₂ y
         Λg  = λ (t′ , d) → (tt , t′) , inj₂ d
