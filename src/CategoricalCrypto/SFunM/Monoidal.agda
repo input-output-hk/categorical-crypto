@@ -250,12 +250,12 @@ private
   fillˡ (inj₂ c ∷ xs)      bs       = inj₂ c ∷ fillˡ xs bs
 
   ⊗idᵏ-trace : (f : SFunType A B S) (s : S) (xs : List (A ⊎ C))
-             → trace (f ⊗ᵏ SFunᵉ.fun idᵉ) (s , tt) xs ≈ᴹ (fillˡ xs <$>ᴹ trace f s (lefts xs))
+             → trace (f ⊗ᵏ idᵏ) (s , tt) xs ≈ᴹ (fillˡ xs <$>ᴹ trace f s (lefts xs))
   ⊗idᵏ-trace f s []             = ≈ᴹ.sym >>=-identityˡ-≈
   ⊗idᵏ-trace f s (inj₁ a ∷ xs)  = begin
     (((λ (s′ , b) → (s′ , tt) , inj₁ b) <$>ᴹ f (s , a)) >>= cont)
       ≈⟨ <$>ᴹ->>= _ (f (s , a)) cont ⟩
-    (f (s , a) >>= λ p → trace (f ⊗ᵏ SFunᵉ.fun idᵉ) (proj₁ p , tt) xs >>= consˡ p)
+    (f (s , a) >>= λ p → trace (f ⊗ᵏ idᵏ) (proj₁ p , tt) xs >>= consˡ p)
       ≈⟨ >>=-cong-f (λ p → >>=-cong-x (⊗idᵏ-trace f (proj₁ p) xs)) ⟩
     (f (s , a) >>= λ p → (fillˡ xs <$>ᴹ trace f (proj₁ p) (lefts xs)) >>= consˡ p)
       ≈⟨ >>=-cong-f (λ p → <$>ᴹ->>= (fillˡ xs) (trace f (proj₁ p) (lefts xs)) (consˡ p)) ⟩
@@ -269,20 +269,20 @@ private
     where
       fill  = fillˡ (inj₁ a ∷ xs)
       consˡ = λ p bs → return (inj₁ (proj₂ p) ∷ bs)
-      cont  = λ p → trace (f ⊗ᵏ SFunᵉ.fun idᵉ) (proj₁ p) xs >>= λ bs → return (proj₂ p ∷ bs)
+      cont  = λ p → trace (f ⊗ᵏ idᵏ) (proj₁ p) xs >>= λ bs → return (proj₂ p ∷ bs)
   ⊗idᵏ-trace f s (inj₂ c ∷ xs)  = begin
     ((((λ (t′ , d) → (s , t′) , inj₂ d) <$>ᴹ return (tt , c))) >>= cont)
       ≈⟨ <$>ᴹ->>= _ (return (tt , c)) cont ⟩
     (return (tt , c) >>= λ p → cont ((s , proj₁ p) , inj₂ (proj₂ p)))
       ≈⟨ >>=-identityˡ-≈ ⟩
-    (trace (f ⊗ᵏ SFunᵉ.fun idᵉ) (s , tt) xs >>= consʳ)
+    (trace (f ⊗ᵏ idᵏ) (s , tt) xs >>= consʳ)
       ≈⟨ >>=-cong-x (⊗idᵏ-trace f s xs) ⟩
     ((fillˡ xs <$>ᴹ trace f s (lefts xs)) >>= consʳ)
       ≈⟨ <$>ᴹ->>= (fillˡ xs) (trace f s (lefts xs)) consʳ ⟩
     (fillˡ (inj₂ c ∷ xs) <$>ᴹ trace f s (lefts xs)) ∎
     where
       consʳ = λ bs → return (inj₂ c ∷ bs)
-      cont  = λ p → trace (f ⊗ᵏ SFunᵉ.fun idᵉ) (proj₁ p) xs >>= λ bs → return (proj₂ p ∷ bs)
+      cont  = λ p → trace (f ⊗ᵏ idᵏ) (proj₁ p) xs >>= λ bs → return (proj₂ p ∷ bs)
 
   ⊗idᵉ-resp : {f g : SFunᵉ {M = M} A B} → f ≈ᵉ g → (f ⊗ᵉ idᵉ {M = M} {C}) ≈ᵉ (g ⊗ᵉ idᵉ {M = M} {C})
   ⊗idᵉ-resp {f = f} {g} f≈g xs = begin
@@ -322,7 +322,7 @@ private
         Λ   = λ (s′ , b) → (s′ , t) , inj₁ b
         Λf  = λ (s′ , b) → (s′ , tt) , inj₁ b
         mid = λ p Q → return ((proj₁ Q , (proj₁ p , tt)) , proj₂ Q)
-        K   = λ P → (SFunᵉ.fun idᵉ ⊗ᵏ G.fun) ((tt , t) , proj₂ P)
+        K   = λ P → (idᵏ ⊗ᵏ G.fun) ((tt , t) , proj₂ P)
                       >>= λ Q → return ((proj₁ Q , proj₁ P) , proj₂ Q)
     kern (s , t) (inj₂ c) = begin
       (Λφ <$>ᴹ (Λ <$>ᴹ G.fun (t , c)))
@@ -337,7 +337,7 @@ private
         Λf  = λ (u , y) → (s , u) , inj₂ y
         Λg  = λ (t′ , d) → (tt , t′) , inj₂ d
         mid = λ Q → return ((proj₁ Q , (s , tt)) , proj₂ Q)
-        K   = λ P → (SFunᵉ.fun idᵉ ⊗ᵏ G.fun) ((tt , t) , proj₂ P)
+        K   = λ P → (idᵏ ⊗ᵏ G.fun) ((tt , t) , proj₂ P)
                       >>= λ Q → return ((proj₁ Q , proj₁ P) , proj₂ Q)
 
 ⊗ᵉ-resp-≈ : {f h : SFunᵉ {M = M} A B} {g i : SFunᵉ {M = M} C D} → f ≈ᵉ h → g ≈ᵉ i → (f ⊗ᵉ g) ≈ᵉ (h ⊗ᵉ i)

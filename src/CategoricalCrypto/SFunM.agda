@@ -28,8 +28,11 @@ record SFunᵉ (A B : Type) : Type₁ where
 
 private variable A B C D State State′ : Type
 
+idᵏ : SFunType A A ⊤
+idᵏ (_ , a) = return (tt , a)
+
 idᵉ : SFunᵉ A A
-idᵉ = record { State = ⊤ ; init = tt ; fun = λ (_ , a) → return (tt , a) }
+idᵉ = record { State = ⊤ ; init = tt ; fun = idᵏ }
 
 _∘ᵉ'_ : SFunType B C State′ → SFunType A B State → SFunType A C (State′ × State)
 _∘ᵉ'_ g f ((sg , sf) , a) = do

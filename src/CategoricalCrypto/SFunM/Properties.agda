@@ -47,8 +47,11 @@ trace-sim φ {f} {g} k s (a ∷ as) = begin
 ------------------------------------------------------------------------
 -- Stateless machines
 
+statelessᵏ : (A → B) → SFunType A B ⊤
+statelessᵏ h (_ , a) = return (tt , h a)
+
 statelessᵉ : (A → B) → SFunᵉ {M = M} A B
-statelessᵉ h = record { State = ⊤ ; init = tt ; fun = λ (_ , a) → return (tt , h a) }
+statelessᵉ h = record { State = ⊤ ; init = tt ; fun = statelessᵏ h }
 
 statelessᵉ-cong : {h k : A → B} → h ≗ k → statelessᵉ h ≈ᵉ statelessᵉ k
 statelessᵉ-cong h≗k = ≈ᵉ-sim id refl λ _ a →
@@ -62,12 +65,12 @@ statelessᵉ-id : statelessᵉ {A = A} id ≈ᵉ idᵉ
 statelessᵉ-id _ = ≈ᴹ.refl
 
 statelessᵉ-postᵏ : (h : B → C) (k : SFunType A B S) (s : S) (a : A)
-                 → (SFunᵉ.fun (statelessᵉ h) ∘ᵉ' k) ((tt , s) , a)
+                 → (statelessᵏ h ∘ᵉ' k) ((tt , s) , a)
                  ≈ᴹ ((λ (s′ , b) → (tt , s′) , h b) <$>ᴹ k (s , a))
 statelessᵉ-postᵏ h k s a = >>=-cong-f λ _ → >>=-identityˡ-≈
 
 statelessᵉ-preᵏ : (h : A′ → A) (k : SFunType A B S) (s : S) (a : A′)
-                → (k ∘ᵉ' SFunᵉ.fun (statelessᵉ h)) ((s , tt) , a)
+                → (k ∘ᵉ' statelessᵏ h) ((s , tt) , a)
                 ≈ᴹ ((λ (s′ , b) → (s′ , tt) , b) <$>ᴹ k (s , h a))
 statelessᵉ-preᵏ h k s a = >>=-identityˡ-≈
 
