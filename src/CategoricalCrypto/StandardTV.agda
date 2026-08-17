@@ -3,16 +3,13 @@
 -- The standard UC layer instantiated at the vanishing-TV world:
 -- 𝒞 = ℐ = 𝒞^ω, ℳ = ⊗, ℰ = ℰᵗᵛ.
 
-open import Axiom.UniquenessOfIdentityProofs
 open import Level
-
-open import Categories.Category.Monoidal
 
 open import CategoricalCrypto.MachineAxioms
 
 module CategoricalCrypto.StandardTV
   {o ℓ e os ℓs qs : Level} (MA : MachineAxioms o ℓ e os ℓs qs)
-  (Obj-set : UIP (MonoidalCategory.Obj (MachineAxioms.𝕄 MA)))
+  (hom-triv : MachineAxioms.HomTransportTrivial MA)
   where
 
 open import Function
@@ -35,7 +32,7 @@ StdSetupᵗᵛ = StdSetup
 grade-stableᵗᵛ : GradeStable
 grade-stableᵗᵛ Y {h} {h′} e =
   ≈ℰ-trans (≈C⇒≈ℰ (T₁-⊗ Y h))
-    (≈ℰ-trans (TV.grade-stable Obj-set Y e) (≈ℰ-sym (≈C⇒≈ℰ (T₁-⊗ Y h′))))
+    (≈ℰ-trans (TV.grade-stable hom-triv Y e) (≈ℰ-sym (≈C⇒≈ℰ (T₁-⊗ Y h′))))
 
 ≈ᵁ⇔≈ℰᵗᵛ : {A B X : Channel} {f g : A ⇒ T₀ X B} → f ≈ᵁ g ⇔ f ≈ℰ g
-≈ᵁ⇔≈ℰᵗᵛ {f = f} {g = g} = mk⇔ ≈ᵁ⇒≈ℰ (bridge {f = f} {g = g} grade-stableᵗᵛ)
+≈ᵁ⇔≈ℰᵗᵛ {f = f} {g} = mk⇔ {B = f ≈ℰ g} ≈ᵁ⇒≈ℰ (bridge grade-stableᵗᵛ)

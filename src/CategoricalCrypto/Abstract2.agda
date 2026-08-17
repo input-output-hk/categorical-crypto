@@ -20,8 +20,6 @@ open import Level
 open import Relation.Binary.Bundles
 import Relation.Binary.Reasoning.Setoid as SetoidR
 
-open import Categories.Category.Instance.Setoids
-import Categories.KernelCongruence as KernelCong
 open import Categories.LocallyGraded
 import Categories.LocallyGraded.Kleisli as LGKleisli
 
@@ -37,24 +35,11 @@ module AbstractUC
     A B C′ : 𝒞.Obj
     X X′ Y Z P Q : ℐ.Obj
 
-  -- 𝓔-observational equivalence
-  module KE = KernelCong 𝒞.op (Setoids cs ℓs) ℰ
-
-  open KE using () renaming
-    ( _∼_ to _≈ℰ_; ∼-refl to ≈ℰ-refl; ∼-sym to ≈ℰ-sym; ∼-trans to ≈ℰ-trans
-    ; ≈⇒∼ to ≈C⇒≈ℰ; ∼-congˡ to ≈ℰ-cong-pre; ∼-congʳ to ≈ℰ-cong-post ) public
-
-  ≈ℰ-setoid : (A B : 𝒞.Obj) → Setoid ℓ′ (cs ⊔ ℓs)
-  ≈ℰ-setoid A B = KE.∼-setoid B A
-
   infixr 9 _∙_
   infix  4 _≈ᵁ_ _≤UC_
 
   _∙_ : B 𝒞.⇒ T₀ P C′ → A 𝒞.⇒ T₀ X B → A 𝒞.⇒ T₀ (X ⊗₀ P) C′
   _∙_ {X = X} h f = ext X h 𝒞.∘ f
-
-  μT : (k : A 𝒞.⇒ T₀ X B) → μ Y X 𝒞.∘ T₁ Y k 𝒞.≈ ext Y k
-  μT k = let open 𝒞 in ext-T-fusion ○ ext-resp-≈ identityˡ
 
   ------------------------------------------------------------------------
   -- The U-kernel ≈ᵁ and its congruences
@@ -170,9 +155,6 @@ module AbstractUC
           key = ≈ℰ-trans (≈ℰ-sym (≈C⇒≈ℰ (unit-comp f)))
                   (≈ℰ-trans (≈ℰ-cong-pre return (e ℐ.unit)) (≈C⇒≈ℰ (unit-comp g)))
 
-  GradeStable : Set (o ⊔ o′ ⊔ ℓ′ ⊔ cs ⊔ ℓs)
-  GradeStable = ∀ {B C′} (Y : ℐ.Obj) {h h′ : B 𝒞.⇒ C′} → h ≈ℰ h′ → T₁ Y h ≈ℰ T₁ Y h′
-
   bridge : {f g : A 𝒞.⇒ T₀ X B} → GradeStable → f ≈ℰ g → f ≈ᵁ g
   bridge {X = X} gs e Y = ≈ℰ-cong-post (μ Y X) (gs Y e)
 
@@ -217,12 +199,12 @@ module AbstractUC
       t : Q ℐ.⇒ P
       t = proj₁ (h≤k ℐ.id)
       eh : h ≈ᵁ sub t 𝒞.∘ k
-      eh = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (𝒞.elimˡ sub-identity))) (proj₂ (h≤k ℐ.id))
+      eh = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ h))) (proj₂ (h≤k ℐ.id))
 
       sf : Y ℐ.⇒ X
       sf = proj₁ (f≤g ℐ.id)
       ef : f ≈ᵁ sub sf 𝒞.∘ g
-      ef = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (𝒞.elimˡ sub-identity))) (proj₂ (f≤g ℐ.id))
+      ef = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) (proj₂ (f≤g ℐ.id))
 
       s : Y ⊗₀ Q ℐ.⇒ Z
       s = a ℐ.∘ ℐ.id ⊗₁ t ℐ.∘ sf ⊗₁ ℐ.id
@@ -249,10 +231,6 @@ module AbstractUC
           (sub a ∘ sub (ℐ.id ⊗₁ t ℐ.∘ sf ⊗₁ ℐ.id)) ∘ ext Y k ∘ g
             ≈⟨ (⟺ sub-homomorphism) ⟩∘⟨refl ⟩
           sub s ∘ ext Y k ∘ g  ∎
-
-  ------------------------------------------------------------------------
-  -- The naive graded Kleisli layer, packaged
-  ------------------------------------------------------------------------
 
   -- Note the hom-equality of this packaging is 𝒞._≈_, NOT ≈ᵁ.
   naiveKleisli : LocallyGradedCategory ℐ o′ ℓ′ e′
