@@ -54,6 +54,14 @@ record MachineAxioms (o ℓ e os ℓs qs : Level) : Set (suc (o ⊔ ℓ ⊔ e �
     qb-ρ⇒     : ∀ {A} → QB 1 (ρ⇒ {A})
     qb-ρ⇐     : ∀ {A} → QB 1 (ρ⇐ {A})
 
+  -- The one further hypothesis the ℰᵗᵛ layer needs (`VanishingTV`): transport
+  -- along an object LOOP is observationally invisible on closures. Implied by
+  -- `UIP Obj`, and plausible precisely because `≈` is observational. Not a
+  -- field: only `VanishingTV` proves anything with it, the ℰᵗᵛ modules above it
+  -- merely thread it.
+  HomTransportTrivial : Set (o ⊔ ℓ ⊔ e)
+  HomTransportTrivial = ∀ {X} (p : X ≡ X) (m : unit ⇒ X) → subst (unit ⇒_) p m ≈ m
+
   adv-refl : ∀ {x} → adv x x ≡ 0ℚ
   adv-refl = adv-≈⇒0 Obs.refl
 
