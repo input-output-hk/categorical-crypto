@@ -1,7 +1,5 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Setoid variants of the monad laws
-
 open import categorical-crypto.Prelude
 
 open import Level

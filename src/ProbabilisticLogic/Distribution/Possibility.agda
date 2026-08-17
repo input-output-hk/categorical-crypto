@@ -1,10 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The finite POSSIBILITY monad `𝒫`: `List` under the test-extensional equality
--- `_≈𝒫_`.  This is the possibilistic shadow of `Dist-ℚ`, whose own equality
--- `_≈Mℚ_` tests a distribution against every ℚ-valued function; here a list is
--- tested against every `Bool`-valued one, so order and multiplicity are
--- quotiented away and `List` becomes a COMMUTATIVE setoid monad.
+-- The finite possibility monad: `List` under the equality that tests it against
+-- every `Bool`-valued predicate, so order and multiplicity are invisible to it.
 
 open import categorical-crypto.Prelude hiding (any)
 

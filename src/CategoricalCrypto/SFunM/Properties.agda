@@ -63,8 +63,6 @@ statelessᵉ-∘ h k = ≈ᵉ-sim (λ _ → tt , tt) refl λ _ a →
 statelessᵉ-id : statelessᵉ {A = A} id ≈ᵉ idᵉ
 statelessᵉ-id _ = ≈ᴹ.refl
 
--- Composing with a stateless machine leaves the kernel of the other factor
--- alone: it only relabels the output, resp. the input.
 statelessᵉ-postᵏ : (h : B → C) (k : SFunType A B S) (s : S) (a : A)
                  → (SFunᵉ.fun (statelessᵉ h) ∘ᵉ' k) ((tt , s) , a)
                  ≈ᴹ ((λ (s′ , b) → (tt , s′) , h b) <$>ᴹ k (s , a))
@@ -80,8 +78,6 @@ statelessᵉ-inv inv = ≈ᵉ-sim (λ _ → tt) refl λ _ a →
     ≈ᴹ.trans (<$>ᴹ-cong (≈ᴹ.trans >>=-identityˡ-≈ >>=-identityˡ-≈))
   $ ≈ᴹ.trans >>=-identityˡ-≈ (≈ᴹ.reflexive (cong (λ b → return (tt , b)) (inv a)))
 
--- Sliding a stateless machine across an arbitrary one: since neither side
--- carries state of its own, what remains to prove is the kernel square.
 statelessᵉ-natural : {f : SFunᵉ {M = M} A B} {g : SFunᵉ {M = M} A′ C}
                      (h : A → A′) (k : B → C) (ψ : SFunᵉ.State f → SFunᵉ.State g)
                    → ψ (SFunᵉ.init f) ≡ SFunᵉ.init g

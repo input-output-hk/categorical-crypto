@@ -1,8 +1,5 @@
 {-# OPTIONS --safe --without-K #-}
 
--- `SFunᵉ` is symmetric monoidal under the disjoint union of interfaces: the
--- tensor is a coproduct of interfaces, so the unit is `⊥`.
-
 open import categorical-crypto.Prelude
 
 open import Class.Core
@@ -53,9 +50,6 @@ f ⊗ᵉ g = record { State = F.State × G.State ; init = F.init , G.init ; fun 
 
 ------------------------------------------------------------------------
 -- The structural morphisms
---
--- All of them are stateless, so their naturality squares are
--- kernel-level identities.
 
 λ⇒ᵉ : SFunᵉ {M = M} (⊥ ⊎ A) A
 λ⇒ᵉ = statelessᵉ unitˡ⇒
@@ -117,9 +111,6 @@ braiding-commuteᵉ {f = f} {g} =
 
 ------------------------------------------------------------------------
 -- Coherence
---
--- Every law here is between composites of stateless machines, so it reduces
--- to a pointwise equation between `⊎`-shuffles.
 
 λ-isoˡ : (λ⇐ᵉ ∘ᵉ λ⇒ᵉ {A}) ≈ᵉ idᵉ
 λ-isoˡ = statelessᵉ-inv λ where (inj₂ _) → refl
@@ -248,7 +239,8 @@ hexagonᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id swap)
         cont  = λ P → (G.fun ⊗ᵏ G′.fun) ((sg , sg′) , proj₂ P)
                         >>= λ q → return ((proj₁ q , proj₁ P) , proj₂ q)
 
--- Congruence cannot be proven by a simulation, it goes through the trace instead
+-- No simulation is available for the congruence: `f ≈ᵉ g` relates traces, not
+-- states, so it goes through a trace lemma instead.
 private
   lefts : List (A ⊎ C) → List A
   lefts []             = []
@@ -309,8 +301,7 @@ private
     eval (g ⊗ᵉ idᵉ) xs ∎
     where open R-Setoid ≈ᴹ-setoid
 
-  -- `idᵉ ⊗ᵉ f` is the braiding conjugate of `f ⊗ᵉ idᵉ`, so the right factor
-  -- needs no trace argument of its own.
+  -- Conjugating by the braiding saves a second trace lemma for the right factor.
   σ-conjᵉ : (f : SFunᵉ {M = M} C D) → (σᵉ ∘ᵉ ((f ⊗ᵉ idᵉ {M = M} {A}) ∘ᵉ σᵉ)) ≈ᵉ (idᵉ {M = M} {A} ⊗ᵉ f)
   σ-conjᵉ f = pullˡ (braiding-commuteᵉ {f = f} {g = idᵉ}) ○ cancelʳ σ-involutiveᵉ
 

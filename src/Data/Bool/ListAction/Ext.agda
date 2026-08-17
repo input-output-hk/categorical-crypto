@@ -1,7 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- `any` as a homomorphism from the list structure into `_∨_`. The stdlib
--- proves none of this: `Data.Bool.ListAction` is definitions only.
+-- `Data.Bool.ListAction` is definitions only: the stdlib proves none of this.
 
 -- `Data.List`'s `any`/`or` are the deprecated aliases of the
 -- `Data.Bool.ListAction` ones.

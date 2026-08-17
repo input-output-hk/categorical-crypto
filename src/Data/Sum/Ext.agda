@@ -9,7 +9,8 @@ open import Level
 private variable a : Level
                  A : Set a
 
--- `Data.Sum.Algebra` has those only inside an `↔` bundle.
+-- `Data.Sum.Algebra.⊎-identityˡ`/`-identityʳ` bury these inside `↔` bundles, at
+-- `Data.Empty.Polymorphic.⊥`.
 
 unitˡ⇒ : ⊥ ⊎ A → A
 unitˡ⇒ (inj₂ a) = a
