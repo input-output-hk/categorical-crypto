@@ -241,6 +241,8 @@ private
   lefts (inj₁ a ∷ xs)  = a ∷ lefts xs
   lefts (inj₂ _ ∷ xs)  = lefts xs
 
+  -- `⊗idᵏ-trace` never reaches the `(inj₁ _ ∷ xs) []` clause: `trace` returns as
+  -- many outputs as it is given inputs, i.e. `length (lefts xs)` of them.
   fillˡ : List (A ⊎ C) → List B → List (B ⊎ C)
   fillˡ []                 _        = []
   fillˡ (inj₁ _ ∷ xs)      []       = []

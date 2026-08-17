@@ -21,7 +21,7 @@ private variable
   A B C : Type ℓ
 
 any-cong : {P Q : A → Bool} → P ≗ Q → any P ≗ any Q
-any-cong P≗Q xs = cong or (map-cong P≗Q xs)
+any-cong P≗Q = cong or ∘ map-cong P≗Q
 
 any-const-false : (xs : List A) → any (λ _ → false) xs ≡ false
 any-const-false []       = refl
