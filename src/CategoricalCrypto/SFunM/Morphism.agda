@@ -53,9 +53,8 @@ module _ {M N : Type↑}
     θ (f (s , a) >>= λ (s′ , b) → trace f s′ as >>= λ bs → return (b ∷ bs))
       ≈⟨ θ-bind (f (s , a)) _ ⟩
     (θ (f (s , a)) >>= λ (s′ , b) → θ (trace f s′ as >>= λ bs → return (b ∷ bs)))
-      ≈⟨ N≈.>>=-cong-f (λ (s′ , _) → θ-bind (trace f s′ as) _) ⟩
-    (θ (f (s , a)) >>= λ (s′ , b) → θ (trace f s′ as) >>= λ bs → θ (return (b ∷ bs)))
-      ≈⟨ N≈.>>=-cong-f (λ (s′ , b) → N≈.>>=-cong (θ-trace f s′ as) (λ bs → θ-return (b ∷ bs))) ⟩
+      ≈⟨ N≈.>>=-cong-f (λ (s′ , b) → N≈.≈ᴹ.trans (θ-<$>ᴹ (b ∷_) (trace f s′ as))
+                                                (N≈.<$>ᴹ-cong (θ-trace f s′ as))) ⟩
     trace (θ ∘ f) s (a ∷ as) ∎
 
   θ-eval : (f : SFunᵉ {M = M} A B) (xs : List A) → θ (eval f xs) ≈ᴹ eval (mapᵉ f) xs
@@ -114,12 +113,10 @@ module _ {M N : Type↑}
 
   mapᵉ-⊗ : (f : SFunᵉ {M = M} A B) (g : SFunᵉ {M = M} C D) → mapᵉ (f ⊗ᵉ g) ≈ᵉ (mapᵉ f ⊗ᵉ mapᵉ g)
   mapᵉ-⊗ f g = ≈ᵉ-sim id refl λ where
-      (s , _) (inj₁ a) → N≈.≈ᴹ.trans
-        (N≈.<$>ᴹ-cong (N≈.≈ᴹ.trans (θ-bind (F.fun (s , a)) _) (N≈.>>=-cong-f λ p → θ-return _)))
-        (N-Laws.<$>ᴹ-∘ _ _ (θ (F.fun (s , a))))
-      (_ , t) (inj₂ c) → N≈.≈ᴹ.trans
-        (N≈.<$>ᴹ-cong (N≈.≈ᴹ.trans (θ-bind (G.fun (t , c)) _) (N≈.>>=-cong-f λ p → θ-return _)))
-        (N-Laws.<$>ᴹ-∘ _ _ (θ (G.fun (t , c))))
+      (s , _) (inj₁ a) → N≈.≈ᴹ.trans (N≈.<$>ᴹ-cong (θ-<$>ᴹ _ (F.fun (s , a))))
+                                     (N-Laws.<$>ᴹ-∘ _ _ (θ (F.fun (s , a))))
+      (_ , t) (inj₂ c) → N≈.≈ᴹ.trans (N≈.<$>ᴹ-cong (θ-<$>ᴹ _ (G.fun (t , c))))
+                                     (N-Laws.<$>ᴹ-∘ _ _ (θ (G.fun (t , c))))
     where module F = SFunᵉ f; module G = SFunᵉ g
 
   SFunᵉ-map-monoidal : StrongMonoidalFunctor (SFunᵉ-MonoidalCategory {M = M})

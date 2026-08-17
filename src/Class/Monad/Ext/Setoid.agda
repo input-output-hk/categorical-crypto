@@ -117,13 +117,19 @@ open CommutativeMonadSetoid ⦃...⦄ public
 -- `Type↑` with a `_≈ᴹ_` to that, so state it in the presentation used here.
 record MonadMorphismSetoid (M N : Type↑)
   ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄
-  ⦃ _ : Monad N ⦄ ⦃ _ : MonadSetoid N ⦄ : Typeω where
+  ⦃ _ : Monad N ⦄ ⦃ MS-N : MonadSetoid N ⦄ : Typeω where
   field
     θ        : {A : Type ℓ} → M A → N A
     θ-cong   : {A : Type ℓ} {x y : M A} → x ≈ᴹ y → θ x ≈ᴹ θ y
     θ-return : {A : Type ℓ} (a : A) → θ (return {A = A} a) ≈ᴹ return a
     θ-bind   : {A : Type ℓ} {B : Type ℓ′} (m : M A) (k : A → M B)
              → θ (m >>= k) ≈ᴹ (θ m >>= λ a → θ (k a))
+
+  private module N≈ = MonadSetoid MS-N
+
+  θ-<$>ᴹ : {A : Type ℓ} {B : Type ℓ′} (h : A → B) (m : M A)
+         → θ (h <$>ᴹ m) ≈ᴹ (h N≈.<$>ᴹ θ m)
+  θ-<$>ᴹ h m = N≈.≈ᴹ.trans (θ-bind m _) (N≈.>>=-cong-f λ _ → θ-return _)
 
 module FromPropositional {M : Type↑}
   ⦃ Monad-M       : Monad M            ⦄
