@@ -51,6 +51,178 @@ f ⊗ᵉ g = record { State = F.State × G.State ; init = F.init , G.init ; fun 
         module G = SFunᵉ g
 
 ------------------------------------------------------------------------
+-- The structural morphisms
+--
+-- All of them are stateless, so their naturality squares are
+-- kernel-level identities.
+
+λ⇒ᵉ : SFunᵉ {M = M} (⊥ ⊎ A) A
+λ⇒ᵉ = statelessᵉ unitˡ⇒
+
+λ⇐ᵉ : SFunᵉ {M = M} A (⊥ ⊎ A)
+λ⇐ᵉ = statelessᵉ inj₂
+
+ρ⇒ᵉ : SFunᵉ {M = M} (A ⊎ ⊥) A
+ρ⇒ᵉ = statelessᵉ unitʳ⇒
+
+ρ⇐ᵉ : SFunᵉ {M = M} A (A ⊎ ⊥)
+ρ⇐ᵉ = statelessᵉ inj₁
+
+α⇒ᵉ : SFunᵉ {M = M} ((A ⊎ B) ⊎ C) (A ⊎ (B ⊎ C))
+α⇒ᵉ = statelessᵉ assocʳ
+
+α⇐ᵉ : SFunᵉ {M = M} (A ⊎ (B ⊎ C)) ((A ⊎ B) ⊎ C)
+α⇐ᵉ = statelessᵉ assocˡ
+
+σᵉ : SFunᵉ {M = M} (A ⊎ B) (B ⊎ A)
+σᵉ = statelessᵉ swap
+
+statelessᵉ-⊗ : (h : A → B) (k : C → D) → (statelessᵉ h ⊗ᵉ statelessᵉ k) ≈ᵉ statelessᵉ (map⊎ h k)
+statelessᵉ-⊗ h k = ≈ᵉ-sim (λ _ → tt) refl kern
+  where
+    kern : ∀ s x → _
+    kern s (inj₁ a) = ≈ᴹ.trans (<$>ᴹ-cong >>=-identityˡ-≈) >>=-identityˡ-≈
+    kern s (inj₂ c) = ≈ᴹ.trans (<$>ᴹ-cong >>=-identityˡ-≈) >>=-identityˡ-≈
+
+unitorˡ-commuteᵉ : {f : SFunᵉ {M = M} A B} → (λ⇒ᵉ ∘ᵉ (idᵉ ⊗ᵉ f)) ≈ᵉ (f ∘ᵉ λ⇒ᵉ)
+unitorˡ-commuteᵉ {f = f} = ≈ᵉ-sim (λ (_ , (_ , s)) → s , tt) refl kern
+  where
+    module F = SFunᵉ f
+    kern : ∀ s x → _
+    kern (_ , (_ , s)) (inj₂ a) =
+      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ unitˡ⇒ (SFunᵉ.fun (idᵉ {M = M} {⊥}) ⊗ᵏ F.fun) (tt , s) (inj₂ a)))
+      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (s , a))))
+      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (s , a)))
+      $ ≈ᴹ.sym (statelessᵉ-preᵏ unitˡ⇒ F.fun s (inj₂ a))
+
+unitorʳ-commuteᵉ : {f : SFunᵉ {M = M} A B} → (ρ⇒ᵉ ∘ᵉ (f ⊗ᵉ idᵉ)) ≈ᵉ (f ∘ᵉ ρ⇒ᵉ)
+unitorʳ-commuteᵉ {f = f} = ≈ᵉ-sim (λ (_ , (s , _)) → s , tt) refl kern
+  where
+    module F = SFunᵉ f
+    kern : ∀ s x → _
+    kern (_ , (s , _)) (inj₁ a) =
+      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ unitʳ⇒ (F.fun ⊗ᵏ SFunᵉ.fun (idᵉ {M = M} {⊥})) (s , tt) (inj₁ a)))
+      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (s , a))))
+      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (s , a)))
+      $ ≈ᴹ.sym (statelessᵉ-preᵏ unitʳ⇒ F.fun s (inj₁ a))
+
+assoc-commuteᵉ : {f : SFunᵉ {M = M} A A′} {g : SFunᵉ {M = M} B B′} {h : SFunᵉ {M = M} C C′}
+               → (α⇒ᵉ ∘ᵉ ((f ⊗ᵉ g) ⊗ᵉ h)) ≈ᵉ ((f ⊗ᵉ (g ⊗ᵉ h)) ∘ᵉ α⇒ᵉ)
+assoc-commuteᵉ {f = f} {g} {h} = ≈ᵉ-sim (λ (_ , ((u , v) , w)) → (u , (v , w)) , tt) refl kern
+  where
+    module F = SFunᵉ f; module G = SFunᵉ g; module H = SFunᵉ h
+    kern : ∀ s x → _
+    kern (_ , ((u , v) , w)) (inj₁ (inj₁ a)) =
+      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ assocʳ ((F.fun ⊗ᵏ G.fun) ⊗ᵏ H.fun) ((u , v) , w) (inj₁ (inj₁ a))))
+      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (u , a)))))
+      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (u , a))))
+      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (u , a)))
+      $ ≈ᴹ.sym (≈ᴹ.trans (statelessᵉ-preᵏ assocʳ (F.fun ⊗ᵏ (G.fun ⊗ᵏ H.fun)) (u , (v , w)) (inj₁ (inj₁ a)))
+                         (<$>ᴹ-∘ _ _ (F.fun (u , a))))
+    kern (_ , ((u , v) , w)) (inj₁ (inj₂ b)) =
+      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ assocʳ ((F.fun ⊗ᵏ G.fun) ⊗ᵏ H.fun) ((u , v) , w) (inj₁ (inj₂ b))))
+      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (G.fun (v , b)))))
+      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (G.fun (v , b))))
+      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (G.fun (v , b)))
+      $ ≈ᴹ.sym (≈ᴹ.trans (statelessᵉ-preᵏ assocʳ (F.fun ⊗ᵏ (G.fun ⊗ᵏ H.fun)) (u , (v , w)) (inj₁ (inj₂ b)))
+               $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (G.fun (v , b))))
+                          (<$>ᴹ-∘ _ _ (G.fun (v , b))))
+    kern (_ , ((u , v) , w)) (inj₂ c) =
+      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ assocʳ ((F.fun ⊗ᵏ G.fun) ⊗ᵏ H.fun) ((u , v) , w) (inj₂ c)))
+      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (H.fun (w , c))))
+      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (H.fun (w , c)))
+      $ ≈ᴹ.sym (≈ᴹ.trans (statelessᵉ-preᵏ assocʳ (F.fun ⊗ᵏ (G.fun ⊗ᵏ H.fun)) (u , (v , w)) (inj₂ c))
+               $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (H.fun (w , c))))
+                          (<$>ᴹ-∘ _ _ (H.fun (w , c))))
+
+braiding-commuteᵉ : {f : SFunᵉ {M = M} A A′} {g : SFunᵉ {M = M} B B′} → (σᵉ ∘ᵉ (f ⊗ᵉ g)) ≈ᵉ ((g ⊗ᵉ f) ∘ᵉ σᵉ)
+braiding-commuteᵉ {f = f} {g} = ≈ᵉ-sim (λ (_ , (u , v)) → (v , u) , tt) refl kern
+  where
+    module F = SFunᵉ f; module G = SFunᵉ g
+    kern : ∀ s x → _
+    kern (_ , (u , v)) (inj₁ a) =
+      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ swap (F.fun ⊗ᵏ G.fun) (u , v) (inj₁ a)))
+      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (u , a))))
+      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (u , a)))
+      $ ≈ᴹ.sym (≈ᴹ.trans (statelessᵉ-preᵏ swap (G.fun ⊗ᵏ F.fun) (v , u) (inj₁ a))
+                         (<$>ᴹ-∘ _ _ (F.fun (u , a))))
+    kern (_ , (u , v)) (inj₂ b) =
+      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ swap (F.fun ⊗ᵏ G.fun) (u , v) (inj₂ b)))
+      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (G.fun (v , b))))
+      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (G.fun (v , b)))
+      $ ≈ᴹ.sym (≈ᴹ.trans (statelessᵉ-preᵏ swap (G.fun ⊗ᵏ F.fun) (v , u) (inj₂ b))
+                         (<$>ᴹ-∘ _ _ (G.fun (v , b))))
+
+------------------------------------------------------------------------
+-- Coherence
+--
+-- Every law here is between composites of stateless machines, so it reduces
+-- to a pointwise equation between `⊎`-shuffles.
+
+private
+  statelessᵉ-inv : {h : A → B} {k : B → A} → k ∘ h ≗ id → (statelessᵉ k ∘ᵉ statelessᵉ h) ≈ᵉ idᵉ
+  statelessᵉ-inv {h = h} {k} inv = ⟺ (statelessᵉ-∘ k h) ○ statelessᵉ-cong {k = id} inv
+
+λ-isoˡ : (λ⇐ᵉ ∘ᵉ λ⇒ᵉ {A}) ≈ᵉ idᵉ
+λ-isoˡ = statelessᵉ-inv λ where (inj₂ _) → refl
+
+λ-isoʳ : (λ⇒ᵉ ∘ᵉ λ⇐ᵉ {A}) ≈ᵉ idᵉ
+λ-isoʳ = statelessᵉ-inv λ _ → refl
+
+ρ-isoˡ : (ρ⇐ᵉ ∘ᵉ ρ⇒ᵉ {A}) ≈ᵉ idᵉ
+ρ-isoˡ = statelessᵉ-inv λ where (inj₁ _) → refl
+
+ρ-isoʳ : (ρ⇒ᵉ ∘ᵉ ρ⇐ᵉ {A}) ≈ᵉ idᵉ
+ρ-isoʳ = statelessᵉ-inv λ _ → refl
+
+α-isoˡ : (α⇐ᵉ ∘ᵉ α⇒ᵉ {A} {B} {C}) ≈ᵉ idᵉ
+α-isoˡ = statelessᵉ-inv λ where
+  (inj₁ (inj₁ _)) → refl
+  (inj₁ (inj₂ _)) → refl
+  (inj₂ _)        → refl
+
+α-isoʳ : (α⇒ᵉ ∘ᵉ α⇐ᵉ {A} {B} {C}) ≈ᵉ idᵉ
+α-isoʳ = statelessᵉ-inv λ where
+  (inj₁ _)        → refl
+  (inj₂ (inj₁ _)) → refl
+  (inj₂ (inj₂ _)) → refl
+
+σ-involutiveᵉ : (σᵉ ∘ᵉ σᵉ {A} {B}) ≈ᵉ idᵉ
+σ-involutiveᵉ = statelessᵉ-inv swap-involutive
+
+triangleᵉ : ((idᵉ {M = M} {A} ⊗ᵉ λ⇒ᵉ {B}) ∘ᵉ α⇒ᵉ) ≈ᵉ (ρ⇒ᵉ ⊗ᵉ idᵉ)
+triangleᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id unitˡ⇒) 𝒮.Equiv.refl
+          ○ ⟺ (statelessᵉ-∘ (map⊎ id unitˡ⇒) assocʳ)
+          ○ statelessᵉ-cong (λ where
+              (inj₁ (inj₁ _)) → refl
+              (inj₂ _)        → refl)
+          ○ ⟺ (statelessᵉ-⊗ unitʳ⇒ id)
+
+pentagonᵉ : ((idᵉ ⊗ᵉ α⇒ᵉ {B} {C} {D}) ∘ᵉ (α⇒ᵉ ∘ᵉ (α⇒ᵉ {A} ⊗ᵉ idᵉ))) ≈ᵉ (α⇒ᵉ ∘ᵉ α⇒ᵉ)
+pentagonᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id assocʳ)
+                      (∘ᵉ-resp-≈ᵉ 𝒮.Equiv.refl (statelessᵉ-⊗ assocʳ id))
+          ○ ∘ᵉ-resp-≈ᵉ 𝒮.Equiv.refl (⟺ (statelessᵉ-∘ assocʳ (map⊎ assocʳ id)))
+          ○ ⟺ (statelessᵉ-∘ (map⊎ id assocʳ) (assocʳ ∘ map⊎ assocʳ id))
+          ○ statelessᵉ-cong (λ where
+              (inj₁ (inj₁ (inj₁ _))) → refl
+              (inj₁ (inj₁ (inj₂ _))) → refl
+              (inj₁ (inj₂ _))        → refl
+              (inj₂ _)               → refl)
+          ○ statelessᵉ-∘ assocʳ assocʳ
+
+hexagonᵉ : ((idᵉ ⊗ᵉ σᵉ {A} {C}) ∘ᵉ (α⇒ᵉ ∘ᵉ (σᵉ {A} {B} ⊗ᵉ idᵉ))) ≈ᵉ (α⇒ᵉ ∘ᵉ (σᵉ ∘ᵉ α⇒ᵉ))
+hexagonᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id swap)
+                     (∘ᵉ-resp-≈ᵉ 𝒮.Equiv.refl (statelessᵉ-⊗ swap id))
+         ○ ∘ᵉ-resp-≈ᵉ 𝒮.Equiv.refl (⟺ (statelessᵉ-∘ assocʳ (map⊎ swap id)))
+         ○ ⟺ (statelessᵉ-∘ (map⊎ id swap) (assocʳ ∘ map⊎ swap id))
+         ○ statelessᵉ-cong (λ where
+             (inj₁ (inj₁ _)) → refl
+             (inj₁ (inj₂ _)) → refl
+             (inj₂ _)        → refl)
+         ○ (statelessᵉ-∘ assocʳ (swap ∘ assocʳ)
+           ○ ∘ᵉ-resp-≈ᵉ 𝒮.Equiv.refl (statelessᵉ-∘ swap assocʳ))
+
+------------------------------------------------------------------------
 -- Functoriality
 
 ⊗ᵉ-identity : (idᵉ {M = M} {A} ⊗ᵉ idᵉ {M = M} {B}) ≈ᵉ idᵉ
@@ -293,178 +465,6 @@ private
   ; homomorphism = ⊗ᵉ-homomorphism
   ; F-resp-≈     = λ (f≈h , g≈i) → ⊗ᵉ-resp-≈ f≈h g≈i
   }
-
-------------------------------------------------------------------------
--- The structural morphisms
---
--- All of them are stateless, so their naturality squares are
--- kernel-level identities.
-
-λ⇒ᵉ : SFunᵉ {M = M} (⊥ ⊎ A) A
-λ⇒ᵉ = statelessᵉ unitˡ⇒
-
-λ⇐ᵉ : SFunᵉ {M = M} A (⊥ ⊎ A)
-λ⇐ᵉ = statelessᵉ inj₂
-
-ρ⇒ᵉ : SFunᵉ {M = M} (A ⊎ ⊥) A
-ρ⇒ᵉ = statelessᵉ unitʳ⇒
-
-ρ⇐ᵉ : SFunᵉ {M = M} A (A ⊎ ⊥)
-ρ⇐ᵉ = statelessᵉ inj₁
-
-α⇒ᵉ : SFunᵉ {M = M} ((A ⊎ B) ⊎ C) (A ⊎ (B ⊎ C))
-α⇒ᵉ = statelessᵉ assocʳ
-
-α⇐ᵉ : SFunᵉ {M = M} (A ⊎ (B ⊎ C)) ((A ⊎ B) ⊎ C)
-α⇐ᵉ = statelessᵉ assocˡ
-
-σᵉ : SFunᵉ {M = M} (A ⊎ B) (B ⊎ A)
-σᵉ = statelessᵉ swap
-
-statelessᵉ-⊗ : (h : A → B) (k : C → D) → (statelessᵉ h ⊗ᵉ statelessᵉ k) ≈ᵉ statelessᵉ (map⊎ h k)
-statelessᵉ-⊗ h k = ≈ᵉ-sim (λ _ → tt) refl kern
-  where
-    kern : ∀ s x → _
-    kern s (inj₁ a) = ≈ᴹ.trans (<$>ᴹ-cong >>=-identityˡ-≈) >>=-identityˡ-≈
-    kern s (inj₂ c) = ≈ᴹ.trans (<$>ᴹ-cong >>=-identityˡ-≈) >>=-identityˡ-≈
-
-unitorˡ-commuteᵉ : {f : SFunᵉ {M = M} A B} → (λ⇒ᵉ ∘ᵉ (idᵉ ⊗ᵉ f)) ≈ᵉ (f ∘ᵉ λ⇒ᵉ)
-unitorˡ-commuteᵉ {f = f} = ≈ᵉ-sim (λ (_ , (_ , s)) → s , tt) refl kern
-  where
-    module F = SFunᵉ f
-    kern : ∀ s x → _
-    kern (_ , (_ , s)) (inj₂ a) =
-      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ unitˡ⇒ (SFunᵉ.fun (idᵉ {M = M} {⊥}) ⊗ᵏ F.fun) (tt , s) (inj₂ a)))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (s , a))))
-      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (s , a)))
-      $ ≈ᴹ.sym (statelessᵉ-preᵏ unitˡ⇒ F.fun s (inj₂ a))
-
-unitorʳ-commuteᵉ : {f : SFunᵉ {M = M} A B} → (ρ⇒ᵉ ∘ᵉ (f ⊗ᵉ idᵉ)) ≈ᵉ (f ∘ᵉ ρ⇒ᵉ)
-unitorʳ-commuteᵉ {f = f} = ≈ᵉ-sim (λ (_ , (s , _)) → s , tt) refl kern
-  where
-    module F = SFunᵉ f
-    kern : ∀ s x → _
-    kern (_ , (s , _)) (inj₁ a) =
-      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ unitʳ⇒ (F.fun ⊗ᵏ SFunᵉ.fun (idᵉ {M = M} {⊥})) (s , tt) (inj₁ a)))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (s , a))))
-      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (s , a)))
-      $ ≈ᴹ.sym (statelessᵉ-preᵏ unitʳ⇒ F.fun s (inj₁ a))
-
-assoc-commuteᵉ : {f : SFunᵉ {M = M} A A′} {g : SFunᵉ {M = M} B B′} {h : SFunᵉ {M = M} C C′}
-               → (α⇒ᵉ ∘ᵉ ((f ⊗ᵉ g) ⊗ᵉ h)) ≈ᵉ ((f ⊗ᵉ (g ⊗ᵉ h)) ∘ᵉ α⇒ᵉ)
-assoc-commuteᵉ {f = f} {g} {h} = ≈ᵉ-sim (λ (_ , ((u , v) , w)) → (u , (v , w)) , tt) refl kern
-  where
-    module F = SFunᵉ f; module G = SFunᵉ g; module H = SFunᵉ h
-    kern : ∀ s x → _
-    kern (_ , ((u , v) , w)) (inj₁ (inj₁ a)) =
-      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ assocʳ ((F.fun ⊗ᵏ G.fun) ⊗ᵏ H.fun) ((u , v) , w) (inj₁ (inj₁ a))))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (u , a)))))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (u , a))))
-      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (u , a)))
-      $ ≈ᴹ.sym (≈ᴹ.trans (statelessᵉ-preᵏ assocʳ (F.fun ⊗ᵏ (G.fun ⊗ᵏ H.fun)) (u , (v , w)) (inj₁ (inj₁ a)))
-                         (<$>ᴹ-∘ _ _ (F.fun (u , a))))
-    kern (_ , ((u , v) , w)) (inj₁ (inj₂ b)) =
-      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ assocʳ ((F.fun ⊗ᵏ G.fun) ⊗ᵏ H.fun) ((u , v) , w) (inj₁ (inj₂ b))))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (G.fun (v , b)))))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (G.fun (v , b))))
-      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (G.fun (v , b)))
-      $ ≈ᴹ.sym (≈ᴹ.trans (statelessᵉ-preᵏ assocʳ (F.fun ⊗ᵏ (G.fun ⊗ᵏ H.fun)) (u , (v , w)) (inj₁ (inj₂ b)))
-               $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (G.fun (v , b))))
-                          (<$>ᴹ-∘ _ _ (G.fun (v , b))))
-    kern (_ , ((u , v) , w)) (inj₂ c) =
-      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ assocʳ ((F.fun ⊗ᵏ G.fun) ⊗ᵏ H.fun) ((u , v) , w) (inj₂ c)))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (H.fun (w , c))))
-      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (H.fun (w , c)))
-      $ ≈ᴹ.sym (≈ᴹ.trans (statelessᵉ-preᵏ assocʳ (F.fun ⊗ᵏ (G.fun ⊗ᵏ H.fun)) (u , (v , w)) (inj₂ c))
-               $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (H.fun (w , c))))
-                          (<$>ᴹ-∘ _ _ (H.fun (w , c))))
-
-braiding-commuteᵉ : {f : SFunᵉ {M = M} A A′} {g : SFunᵉ {M = M} B B′} → (σᵉ ∘ᵉ (f ⊗ᵉ g)) ≈ᵉ ((g ⊗ᵉ f) ∘ᵉ σᵉ)
-braiding-commuteᵉ {f = f} {g} = ≈ᵉ-sim (λ (_ , (u , v)) → (v , u) , tt) refl kern
-  where
-    module F = SFunᵉ f; module G = SFunᵉ g
-    kern : ∀ s x → _
-    kern (_ , (u , v)) (inj₁ a) =
-      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ swap (F.fun ⊗ᵏ G.fun) (u , v) (inj₁ a)))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (u , a))))
-      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (u , a)))
-      $ ≈ᴹ.sym (≈ᴹ.trans (statelessᵉ-preᵏ swap (G.fun ⊗ᵏ F.fun) (v , u) (inj₁ a))
-                         (<$>ᴹ-∘ _ _ (F.fun (u , a))))
-    kern (_ , (u , v)) (inj₂ b) =
-      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ swap (F.fun ⊗ᵏ G.fun) (u , v) (inj₂ b)))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (G.fun (v , b))))
-      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (G.fun (v , b)))
-      $ ≈ᴹ.sym (≈ᴹ.trans (statelessᵉ-preᵏ swap (G.fun ⊗ᵏ F.fun) (v , u) (inj₂ b))
-                         (<$>ᴹ-∘ _ _ (G.fun (v , b))))
-
-------------------------------------------------------------------------
--- Coherence
---
--- Every law here is between composites of stateless machines, so it reduces
--- to a pointwise equation between `⊎`-shuffles.
-
-private
-  statelessᵉ-inv : {h : A → B} {k : B → A} → k ∘ h ≗ id → (statelessᵉ k ∘ᵉ statelessᵉ h) ≈ᵉ idᵉ
-  statelessᵉ-inv {h = h} {k} inv = ⟺ (statelessᵉ-∘ k h) ○ statelessᵉ-cong {k = id} inv
-
-λ-isoˡ : (λ⇐ᵉ ∘ᵉ λ⇒ᵉ {A}) ≈ᵉ idᵉ
-λ-isoˡ = statelessᵉ-inv λ where (inj₂ _) → refl
-
-λ-isoʳ : (λ⇒ᵉ ∘ᵉ λ⇐ᵉ {A}) ≈ᵉ idᵉ
-λ-isoʳ = statelessᵉ-inv λ _ → refl
-
-ρ-isoˡ : (ρ⇐ᵉ ∘ᵉ ρ⇒ᵉ {A}) ≈ᵉ idᵉ
-ρ-isoˡ = statelessᵉ-inv λ where (inj₁ _) → refl
-
-ρ-isoʳ : (ρ⇒ᵉ ∘ᵉ ρ⇐ᵉ {A}) ≈ᵉ idᵉ
-ρ-isoʳ = statelessᵉ-inv λ _ → refl
-
-α-isoˡ : (α⇐ᵉ ∘ᵉ α⇒ᵉ {A} {B} {C}) ≈ᵉ idᵉ
-α-isoˡ = statelessᵉ-inv λ where
-  (inj₁ (inj₁ _)) → refl
-  (inj₁ (inj₂ _)) → refl
-  (inj₂ _)        → refl
-
-α-isoʳ : (α⇒ᵉ ∘ᵉ α⇐ᵉ {A} {B} {C}) ≈ᵉ idᵉ
-α-isoʳ = statelessᵉ-inv λ where
-  (inj₁ _)        → refl
-  (inj₂ (inj₁ _)) → refl
-  (inj₂ (inj₂ _)) → refl
-
-σ-involutiveᵉ : (σᵉ ∘ᵉ σᵉ {A} {B}) ≈ᵉ idᵉ
-σ-involutiveᵉ = statelessᵉ-inv swap-involutive
-
-triangleᵉ : ((idᵉ {M = M} {A} ⊗ᵉ λ⇒ᵉ {B}) ∘ᵉ α⇒ᵉ) ≈ᵉ (ρ⇒ᵉ ⊗ᵉ idᵉ)
-triangleᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id unitˡ⇒) 𝒮.Equiv.refl
-          ○ ⟺ (statelessᵉ-∘ (map⊎ id unitˡ⇒) assocʳ)
-          ○ statelessᵉ-cong (λ where
-              (inj₁ (inj₁ _)) → refl
-              (inj₂ _)        → refl)
-          ○ ⟺ (statelessᵉ-⊗ unitʳ⇒ id)
-
-pentagonᵉ : ((idᵉ ⊗ᵉ α⇒ᵉ {B} {C} {D}) ∘ᵉ (α⇒ᵉ ∘ᵉ (α⇒ᵉ {A} ⊗ᵉ idᵉ))) ≈ᵉ (α⇒ᵉ ∘ᵉ α⇒ᵉ)
-pentagonᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id assocʳ)
-                      (∘ᵉ-resp-≈ᵉ 𝒮.Equiv.refl (statelessᵉ-⊗ assocʳ id))
-          ○ ∘ᵉ-resp-≈ᵉ 𝒮.Equiv.refl (⟺ (statelessᵉ-∘ assocʳ (map⊎ assocʳ id)))
-          ○ ⟺ (statelessᵉ-∘ (map⊎ id assocʳ) (assocʳ ∘ map⊎ assocʳ id))
-          ○ statelessᵉ-cong (λ where
-              (inj₁ (inj₁ (inj₁ _))) → refl
-              (inj₁ (inj₁ (inj₂ _))) → refl
-              (inj₁ (inj₂ _))        → refl
-              (inj₂ _)               → refl)
-          ○ statelessᵉ-∘ assocʳ assocʳ
-
-hexagonᵉ : ((idᵉ ⊗ᵉ σᵉ {A} {C}) ∘ᵉ (α⇒ᵉ ∘ᵉ (σᵉ {A} {B} ⊗ᵉ idᵉ))) ≈ᵉ (α⇒ᵉ ∘ᵉ (σᵉ ∘ᵉ α⇒ᵉ))
-hexagonᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id swap)
-                     (∘ᵉ-resp-≈ᵉ 𝒮.Equiv.refl (statelessᵉ-⊗ swap id))
-         ○ ∘ᵉ-resp-≈ᵉ 𝒮.Equiv.refl (⟺ (statelessᵉ-∘ assocʳ (map⊎ swap id)))
-         ○ ⟺ (statelessᵉ-∘ (map⊎ id swap) (assocʳ ∘ map⊎ swap id))
-         ○ statelessᵉ-cong (λ where
-             (inj₁ (inj₁ _)) → refl
-             (inj₁ (inj₂ _)) → refl
-             (inj₂ _)        → refl)
-         ○ (statelessᵉ-∘ assocʳ (swap ∘ assocʳ)
-           ○ ∘ᵉ-resp-≈ᵉ 𝒮.Equiv.refl (statelessᵉ-∘ swap assocʳ))
 
 ------------------------------------------------------------------------
 -- The bundles
