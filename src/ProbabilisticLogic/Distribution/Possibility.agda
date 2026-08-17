@@ -6,15 +6,19 @@
 -- tested against every `Bool`-valued one, so order and multiplicity are
 -- quotiented away and `List` becomes a COMMUTATIVE setoid monad.
 
--- `Data.List`'s `any` is the deprecated alias of `Data.Bool.ListAction.any`.
-open import categorical-crypto.Prelude hiding (any)
+-- `Data.List`'s `any`/`or` are the deprecated aliases of the
+-- `Data.Bool.ListAction` ones.
+open import categorical-crypto.Prelude hiding (any; or)
 
 open import Class.Monad.Ext.Setoid
 
+open import Algebra.Bundles using (CommutativeMonoid)
 open import Data.Bool.ListAction
 open import Data.Bool.Properties
 open import Data.List.Properties
 open import Relation.Binary
+open import Algebra.Properties.CommutativeSemigroup
+  (CommutativeMonoid.commutativeSemigroup ∨-commutativeMonoid) using (interchange)
 
 module ProbabilisticLogic.Distribution.Possibility where
 
@@ -42,9 +46,8 @@ module 𝒫 {ℓ} {A : Type ℓ} = Setoid (𝒫-setoid A)
 ------------------------------------------------------------------------
 -- `any` as a homomorphism from the list structure into `_∨_`.
 
-any-cong : {P Q : A → Bool} → (∀ a → P a ≡ Q a) → (xs : List A) → any P xs ≡ any Q xs
-any-cong P≡Q []       = refl
-any-cong P≡Q (x ∷ xs) = cong₂ _∨_ (P≡Q x) (any-cong P≡Q xs)
+any-cong : {P Q : A → Bool} → P ≗ Q → any P ≗ any Q
+any-cong P≗Q xs = cong or (map-cong P≗Q xs)
 
 any-const-false : (xs : List A) → any (λ _ → false) xs ≡ false
 any-const-false []       = refl
@@ -61,16 +64,10 @@ any-concatMap P f []       = refl
 any-concatMap P f (x ∷ xs) = trans (any-++ P (f x) (concatMap f xs))
                                    (cong (any P (f x) ∨_) (any-concatMap P f xs))
 
-private
-  ∨-middle : (a b c d : Bool) → (a ∨ b) ∨ (c ∨ d) ≡ (a ∨ c) ∨ (b ∨ d)
-  ∨-middle true  b c d = refl
-  ∨-middle false b c d =
-    trans (sym (∨-assoc b c d)) (trans (cong (_∨ d) (∨-comm b c)) (∨-assoc c b d))
-
 any-∨ : (P Q : A → Bool) (xs : List A) → any (λ a → P a ∨ Q a) xs ≡ any P xs ∨ any Q xs
 any-∨ P Q []       = refl
 any-∨ P Q (x ∷ xs) = trans (cong ((P x ∨ Q x) ∨_) (any-∨ P Q xs))
-                           (∨-middle (P x) (Q x) (any P xs) (any Q xs))
+                           (interchange (P x) (Q x) (any P xs) (any Q xs))
 
 -- Fubini for `any`: the reason `_≈𝒫_` makes `List` commutative.
 any-pair : (Q : A × B → Bool) (xs : List A) (ys : List B)
