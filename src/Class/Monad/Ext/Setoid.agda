@@ -127,8 +127,7 @@ record MonadMorphismSetoid (M N : Type↑)
 
   private module N≈ = MonadSetoid MS-N
 
-  θ-<$>ᴹ : {A : Type ℓ} {B : Type ℓ′} (h : A → B) (m : M A)
-         → θ (h <$>ᴹ m) ≈ᴹ (h N≈.<$>ᴹ θ m)
+  θ-<$>ᴹ : {A : Type ℓ} {B : Type ℓ′} (h : A → B) (m : M A) → θ (h <$>ᴹ m) ≈ᴹ (h N≈.<$>ᴹ θ m)
   θ-<$>ᴹ h m = N≈.≈ᴹ.trans (θ-bind m _) (N≈.>>=-cong-f λ _ → θ-return _)
 
 module FromPropositional {M : Type↑}

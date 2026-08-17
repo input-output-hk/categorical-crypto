@@ -322,8 +322,7 @@ private
         Λ   = λ (s′ , b) → (s′ , t) , inj₁ b
         Λf  = λ (s′ , b) → (s′ , tt) , inj₁ b
         mid = λ p Q → return ((proj₁ Q , (proj₁ p , tt)) , proj₂ Q)
-        K   = λ P → (idᵏ ⊗ᵏ G.fun) ((tt , t) , proj₂ P)
-                      >>= λ Q → return ((proj₁ Q , proj₁ P) , proj₂ Q)
+        K   = λ P → (idᵏ ⊗ᵏ G.fun) ((tt , t) , proj₂ P) >>= λ Q → return ((proj₁ Q , proj₁ P) , proj₂ Q)
     kern (s , t) (inj₂ c) = begin
       (Λφ <$>ᴹ (Λ <$>ᴹ G.fun (t , c)))
         ≈⟨ <$>ᴹ-∘ Λφ Λ (G.fun (t , c)) ⟩
@@ -337,8 +336,7 @@ private
         Λf  = λ (u , y) → (s , u) , inj₂ y
         Λg  = λ (t′ , d) → (tt , t′) , inj₂ d
         mid = λ Q → return ((proj₁ Q , (s , tt)) , proj₂ Q)
-        K   = λ P → (idᵏ ⊗ᵏ G.fun) ((tt , t) , proj₂ P)
-                      >>= λ Q → return ((proj₁ Q , proj₁ P) , proj₂ Q)
+        K   = λ P → (idᵏ ⊗ᵏ G.fun) ((tt , t) , proj₂ P) >>= λ Q → return ((proj₁ Q , proj₁ P) , proj₂ Q)
 
 ⊗ᵉ-resp-≈ : {f h : SFunᵉ {M = M} A B} {g i : SFunᵉ {M = M} C D} → f ≈ᵉ h → g ≈ᵉ i → (f ⊗ᵉ g) ≈ᵉ (h ⊗ᵉ i)
 ⊗ᵉ-resp-≈ {f = f} {h} {g} {i} f≈h g≈i = ⊗-split f g ○ id⊗ᵉ-resp g≈i ⟩∘⟨ ⊗idᵉ-resp f≈h ○ ⟺ (⊗-split h i)

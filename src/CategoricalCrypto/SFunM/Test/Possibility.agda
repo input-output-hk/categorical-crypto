@@ -15,8 +15,8 @@ open import Categories.Category.Monoidal.Symmetric
 open import Categories.Functor using (Functor)
 open import Categories.Functor.Monoidal
 
-open import Data.List.Base using (fromMaybe)
-open import Data.List.Properties using (++-identityʳ)
+open import Data.List.Base
+open import Data.List.Properties
 
 open import CategoricalCrypto.SFunM
 open import CategoricalCrypto.SFunM.Monoidal
