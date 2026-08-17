@@ -298,8 +298,7 @@ private
   σ-conjᵉ f = pullˡ braiding-commuteᵉ ○ cancelʳ σ-involutiveᵉ
 
   id⊗ᵉ-resp : {f g : SFunᵉ {M = M} C D} → f ≈ᵉ g → (idᵉ {M = M} {A} ⊗ᵉ f) ≈ᵉ (idᵉ {M = M} {A} ⊗ᵉ g)
-  id⊗ᵉ-resp {f = f} {g} f≈g =
-    ⟺ (σ-conjᵉ f) ○ refl⟩∘⟨ (⊗idᵉ-resp f≈g ⟩∘⟨refl) ○ σ-conjᵉ g
+  id⊗ᵉ-resp {f = f} {g} f≈g = ⟺ (σ-conjᵉ f) ○ refl⟩∘⟨ (⊗idᵉ-resp f≈g ⟩∘⟨refl) ○ σ-conjᵉ g
 
 ⊗-split : (f : SFunᵉ {M = M} A B) (g : SFunᵉ {M = M} C D) → (f ⊗ᵉ g) ≈ᵉ ((idᵉ ⊗ᵉ g) ∘ᵉ (f ⊗ᵉ idᵉ))
 ⊗-split f g = ≈ᵉ-sim (λ (s , t) → (tt , t) , (s , tt)) refl kern
@@ -340,8 +339,7 @@ private
                       >>= λ Q → return ((proj₁ Q , proj₁ P) , proj₂ Q)
 
 ⊗ᵉ-resp-≈ : {f h : SFunᵉ {M = M} A B} {g i : SFunᵉ {M = M} C D} → f ≈ᵉ h → g ≈ᵉ i → (f ⊗ᵉ g) ≈ᵉ (h ⊗ᵉ i)
-⊗ᵉ-resp-≈ {f = f} {h} {g} {i} f≈h g≈i =
-  ⊗-split f g ○ id⊗ᵉ-resp g≈i ⟩∘⟨ ⊗idᵉ-resp f≈h ○ ⟺ (⊗-split h i)
+⊗ᵉ-resp-≈ {f = f} {h} {g} {i} f≈h g≈i = ⊗-split f g ○ id⊗ᵉ-resp g≈i ⟩∘⟨ ⊗idᵉ-resp f≈h ○ ⟺ (⊗-split h i)
 
 ⊗ᵉ-bifunctor : CatBi.Bifunctor SFunᵉ-Category SFunᵉ-Category SFunᵉ-Category
 ⊗ᵉ-bifunctor = record

@@ -118,8 +118,7 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
       g (sg , b) >>= (λ (sg' , c) → return ((sg' , sf') , c))))
       >>= (λ (s , c) → trace (g ∘ᵉ' f) s as >>= (λ cs → return (c ∷ cs)))) ∎
 
-  assoc-∘ᵉ : {f : SFunᵉ A B} {g : SFunᵉ B C} {h : SFunᵉ C D}
-           → ((h ∘ᵉ g) ∘ᵉ f) ≈ᵉ (h ∘ᵉ (g ∘ᵉ f))
+  assoc-∘ᵉ : {f : SFunᵉ A B} {g : SFunᵉ B C} {h : SFunᵉ C D} → ((h ∘ᵉ g) ∘ᵉ f) ≈ᵉ (h ∘ᵉ (g ∘ᵉ f))
   assoc-∘ᵉ {f = f} {g} {h} xs = begin
     eval ((h ∘ᵉ g) ∘ᵉ f) xs
       ≈˘⟨ trace-∘ xs ⟩
@@ -153,8 +152,7 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
       ≈⟨ >>=-identityˡ-≈ ⟩
     eval f xs ∎
 
-  ∘ᵉ-resp-≈ᵉ : {f h : SFunᵉ B C} {g i : SFunᵉ A B}
-             → f ≈ᵉ h → g ≈ᵉ i → (f ∘ᵉ g) ≈ᵉ (h ∘ᵉ i)
+  ∘ᵉ-resp-≈ᵉ : {f h : SFunᵉ B C} {g i : SFunᵉ A B} → f ≈ᵉ h → g ≈ᵉ i → (f ∘ᵉ g) ≈ᵉ (h ∘ᵉ i)
   ∘ᵉ-resp-≈ᵉ {f = f} {h} {g} {i} f≈h g≈i xs = begin
     eval (f ∘ᵉ g) xs
       ≈˘⟨ trace-∘ xs ⟩
