@@ -75,6 +75,23 @@ statelessᵉ-preᵏ : (h : A′ → A) (k : SFunType A B S) (s : S) (a : A′)
                 ≈ᴹ ((λ (s′ , b) → (s′ , tt) , b) <$>ᴹ k (s , h a))
 statelessᵉ-preᵏ h k s a = >>=-identityˡ-≈
 
+-- Sliding a stateless machine across an arbitrary one: since neither side
+-- carries state of its own, what remains to prove is the kernel square.
+statelessᵉ-natural : {f : SFunᵉ {M = M} A B} {g : SFunᵉ {M = M} A′ C}
+                     (h : A → A′) (k : B → C) (ψ : SFunᵉ.State f → SFunᵉ.State g)
+                   → ψ (SFunᵉ.init f) ≡ SFunᵉ.init g
+                   → (∀ s a → ((λ (s′ , b) → ψ s′ , k b) <$>ᴹ SFunᵉ.fun f (s , a))
+                            ≈ᴹ SFunᵉ.fun g (ψ s , h a))
+                   → (statelessᵉ k ∘ᵉ f) ≈ᵉ (g ∘ᵉ statelessᵉ h)
+statelessᵉ-natural {f = f} {g} h k ψ init≡ sq =
+  ≈ᵉ-sim (λ (_ , s) → ψ s , tt) (cong (_, tt) init≡) λ (_ , s) a →
+    ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ k F.fun s a))
+  $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (s , a)))
+  $ ≈ᴹ.sym
+  $ ≈ᴹ.trans (statelessᵉ-preᵏ h G.fun (ψ s) a)
+  $ ≈ᴹ.trans (<$>ᴹ-cong (≈ᴹ.sym (sq s a))) (<$>ᴹ-∘ _ _ (F.fun (s , a)))
+  where module F = SFunᵉ f; module G = SFunᵉ g
+
 module _ ⦃ M-Comm : CommutativeMonadSetoid M ⦄ where
 
   statelessᵉ-Functor : Functor (Sets 0ℓ) (SFunᵉ-Category {M = M})

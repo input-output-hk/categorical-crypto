@@ -86,73 +86,34 @@ statelessᵉ-⊗ h k = ≈ᵉ-sim (λ _ → tt) refl kern
     kern s (inj₂ c) = ≈ᴹ.trans (<$>ᴹ-cong >>=-identityˡ-≈) >>=-identityˡ-≈
 
 unitorˡ-commuteᵉ : {f : SFunᵉ {M = M} A B} → (λ⇒ᵉ ∘ᵉ (idᵉ ⊗ᵉ f)) ≈ᵉ (f ∘ᵉ λ⇒ᵉ)
-unitorˡ-commuteᵉ {f = f} = ≈ᵉ-sim (λ (_ , (_ , s)) → s , tt) refl kern
-  where
-    module F = SFunᵉ f
-    kern : ∀ s x → _
-    kern (_ , (_ , s)) (inj₂ a) =
-      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ unitˡ⇒ (SFunᵉ.fun (idᵉ {M = M} {⊥}) ⊗ᵏ F.fun) (tt , s) (inj₂ a)))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (s , a))))
-      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (s , a)))
-      $ ≈ᴹ.sym (statelessᵉ-preᵏ unitˡ⇒ F.fun s (inj₂ a))
+unitorˡ-commuteᵉ {f = f} = statelessᵉ-natural unitˡ⇒ unitˡ⇒ proj₂ refl λ where
+    (_ , s) (inj₂ a) → ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (s , a))) (>>=-identityʳ-≈ (F.fun (s , a)))
+  where module F = SFunᵉ f
 
 unitorʳ-commuteᵉ : {f : SFunᵉ {M = M} A B} → (ρ⇒ᵉ ∘ᵉ (f ⊗ᵉ idᵉ)) ≈ᵉ (f ∘ᵉ ρ⇒ᵉ)
-unitorʳ-commuteᵉ {f = f} = ≈ᵉ-sim (λ (_ , (s , _)) → s , tt) refl kern
-  where
-    module F = SFunᵉ f
-    kern : ∀ s x → _
-    kern (_ , (s , _)) (inj₁ a) =
-      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ unitʳ⇒ (F.fun ⊗ᵏ SFunᵉ.fun (idᵉ {M = M} {⊥})) (s , tt) (inj₁ a)))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (s , a))))
-      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (s , a)))
-      $ ≈ᴹ.sym (statelessᵉ-preᵏ unitʳ⇒ F.fun s (inj₁ a))
+unitorʳ-commuteᵉ {f = f} = statelessᵉ-natural unitʳ⇒ unitʳ⇒ proj₁ refl λ where
+    (s , _) (inj₁ a) → ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (s , a))) (>>=-identityʳ-≈ (F.fun (s , a)))
+  where module F = SFunᵉ f
 
 assoc-commuteᵉ : {f : SFunᵉ {M = M} A A′} {g : SFunᵉ {M = M} B B′} {h : SFunᵉ {M = M} C C′}
                → (α⇒ᵉ ∘ᵉ ((f ⊗ᵉ g) ⊗ᵉ h)) ≈ᵉ ((f ⊗ᵉ (g ⊗ᵉ h)) ∘ᵉ α⇒ᵉ)
-assoc-commuteᵉ {f = f} {g} {h} = ≈ᵉ-sim (λ (_ , ((u , v) , w)) → (u , (v , w)) , tt) refl kern
-  where
-    module F = SFunᵉ f; module G = SFunᵉ g; module H = SFunᵉ h
-    kern : ∀ s x → _
-    kern (_ , ((u , v) , w)) (inj₁ (inj₁ a)) =
-      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ assocʳ ((F.fun ⊗ᵏ G.fun) ⊗ᵏ H.fun) ((u , v) , w) (inj₁ (inj₁ a))))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (u , a)))))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (u , a))))
-      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (u , a)))
-      $ ≈ᴹ.sym (≈ᴹ.trans (statelessᵉ-preᵏ assocʳ (F.fun ⊗ᵏ (G.fun ⊗ᵏ H.fun)) (u , (v , w)) (inj₁ (inj₁ a)))
-                         (<$>ᴹ-∘ _ _ (F.fun (u , a))))
-    kern (_ , ((u , v) , w)) (inj₁ (inj₂ b)) =
-      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ assocʳ ((F.fun ⊗ᵏ G.fun) ⊗ᵏ H.fun) ((u , v) , w) (inj₁ (inj₂ b))))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (G.fun (v , b)))))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (G.fun (v , b))))
-      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (G.fun (v , b)))
-      $ ≈ᴹ.sym (≈ᴹ.trans (statelessᵉ-preᵏ assocʳ (F.fun ⊗ᵏ (G.fun ⊗ᵏ H.fun)) (u , (v , w)) (inj₁ (inj₂ b)))
-               $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (G.fun (v , b))))
-                          (<$>ᴹ-∘ _ _ (G.fun (v , b))))
-    kern (_ , ((u , v) , w)) (inj₂ c) =
-      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ assocʳ ((F.fun ⊗ᵏ G.fun) ⊗ᵏ H.fun) ((u , v) , w) (inj₂ c)))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (H.fun (w , c))))
-      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (H.fun (w , c)))
-      $ ≈ᴹ.sym (≈ᴹ.trans (statelessᵉ-preᵏ assocʳ (F.fun ⊗ᵏ (G.fun ⊗ᵏ H.fun)) (u , (v , w)) (inj₂ c))
-               $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (H.fun (w , c))))
-                          (<$>ᴹ-∘ _ _ (H.fun (w , c))))
+assoc-commuteᵉ {f = f} {g} {h} =
+    statelessᵉ-natural assocʳ assocʳ (λ ((u , v) , w) → u , (v , w)) refl λ where
+      ((u , _) , _) (inj₁ (inj₁ a)) →
+        ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (u , a)))) (<$>ᴹ-∘ _ _ (F.fun (u , a)))
+      ((_ , v) , _) (inj₁ (inj₂ b)) →
+        ≈ᴹ.trans (≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (G.fun (v , b)))) (<$>ᴹ-∘ _ _ (G.fun (v , b))))
+                 (≈ᴹ.sym (<$>ᴹ-∘ _ _ (G.fun (v , b))))
+      ((_ , _) , w) (inj₂ c) →
+        ≈ᴹ.trans (<$>ᴹ-∘ _ _ (H.fun (w , c))) (≈ᴹ.sym (<$>ᴹ-∘ _ _ (H.fun (w , c))))
+  where module F = SFunᵉ f; module G = SFunᵉ g; module H = SFunᵉ h
 
 braiding-commuteᵉ : {f : SFunᵉ {M = M} A A′} {g : SFunᵉ {M = M} B B′} → (σᵉ ∘ᵉ (f ⊗ᵉ g)) ≈ᵉ ((g ⊗ᵉ f) ∘ᵉ σᵉ)
-braiding-commuteᵉ {f = f} {g} = ≈ᵉ-sim (λ (_ , (u , v)) → (v , u) , tt) refl kern
-  where
-    module F = SFunᵉ f; module G = SFunᵉ g
-    kern : ∀ s x → _
-    kern (_ , (u , v)) (inj₁ a) =
-      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ swap (F.fun ⊗ᵏ G.fun) (u , v) (inj₁ a)))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (F.fun (u , a))))
-      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (u , a)))
-      $ ≈ᴹ.sym (≈ᴹ.trans (statelessᵉ-preᵏ swap (G.fun ⊗ᵏ F.fun) (v , u) (inj₁ a))
-                         (<$>ᴹ-∘ _ _ (F.fun (u , a))))
-    kern (_ , (u , v)) (inj₂ b) =
-      ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ swap (F.fun ⊗ᵏ G.fun) (u , v) (inj₂ b)))
-      $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (G.fun (v , b))))
-      $ ≈ᴹ.trans (<$>ᴹ-∘ _ _ (G.fun (v , b)))
-      $ ≈ᴹ.sym (≈ᴹ.trans (statelessᵉ-preᵏ swap (G.fun ⊗ᵏ F.fun) (v , u) (inj₂ b))
-                         (<$>ᴹ-∘ _ _ (G.fun (v , b))))
+braiding-commuteᵉ {f = f} {g} =
+    statelessᵉ-natural swap swap (λ (u , v) → v , u) refl λ where
+      (u , _) (inj₁ a) → <$>ᴹ-∘ _ _ (F.fun (u , a))
+      (_ , v) (inj₂ b) → <$>ᴹ-∘ _ _ (G.fun (v , b))
+  where module F = SFunᵉ f; module G = SFunᵉ g
 
 ------------------------------------------------------------------------
 -- Coherence
