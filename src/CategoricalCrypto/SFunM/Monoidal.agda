@@ -9,15 +9,15 @@ open import categorical-crypto.Prelude
 open import Class.Core
 open import Class.Monad.Ext.Setoid
 
-open import Categories.Category.Core using (Category)
-open import Categories.Category.Monoidal using (Monoidal; MonoidalCategory; monoidalHelper)
-open import Categories.Category.Monoidal.Symmetric using (Symmetric; symmetricHelper)
+open import Categories.Category.Core
+open import Categories.Category.Monoidal
+open import Categories.Category.Monoidal.Symmetric
 import Categories.Functor.Bifunctor as CatBi
 open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)
 
-open import Data.Sum.Base using (assocʳ; assocˡ; swap) renaming (map to map⊎)
-open import Data.Sum.Ext using (unitˡ⇒; unitʳ⇒)
-open import Data.Sum.Properties using (swap-involutive)
+open import Data.Sum.Base renaming (map to map⊎)
+open import Data.Sum.Ext
+open import Data.Sum.Properties
 
 import Relation.Binary.Reasoning.Setoid as R-Setoid
 

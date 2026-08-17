@@ -11,10 +11,10 @@ open import categorical-crypto.Prelude hiding (any)
 
 open import Class.Monad.Ext.Setoid
 
-open import Data.Bool.ListAction using (any)
-open import Data.Bool.Properties using (∨-assoc; ∨-comm; ∨-identityʳ)
-open import Data.List.Properties using (++-identityʳ; concatMap-pure)
-open import Relation.Binary using (IsEquivalence; Setoid)
+open import Data.Bool.ListAction
+open import Data.Bool.Properties
+open import Data.List.Properties
+open import Relation.Binary
 
 module ProbabilisticLogic.Distribution.Possibility where
 

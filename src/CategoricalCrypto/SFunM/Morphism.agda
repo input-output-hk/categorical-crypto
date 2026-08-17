@@ -108,7 +108,7 @@ module _ {M N : Type↑}
   private
     module 𝒩 = Category (SFunᵉ-Category {M = N})
 
-    open 𝒩.HomReasoning using (_○_; ⟺)
+    open 𝒩.HomReasoning
 
   mapᵉ-stateless : (h : A → B) → mapᵉ (statelessᵉ {M = M} h) ≈ᵉ statelessᵉ {M = N} h
   mapᵉ-stateless h = ≈ᵉ-sim id refl λ _ a →

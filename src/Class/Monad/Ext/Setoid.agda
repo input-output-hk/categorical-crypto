@@ -9,7 +9,7 @@ open import Class.Core
 open import Class.Monad
 open import Class.Monad.Ext
 open import Class.Prelude using (Typeω)
-open import Relation.Binary using (IsEquivalence; Setoid)
+open import Relation.Binary
 import Relation.Binary.Reasoning.Setoid as R-Setoid
 
 module Class.Monad.Ext.Setoid where
@@ -135,7 +135,6 @@ module FromPropositional {M : Type↑}
   ⦃ M-Extensional : ExtensionalMonad M ⦄ where
 
   open import Relation.Binary.PropositionalEquality
-    using (_≡_; refl; isEquivalence)
 
   Propositional-MonadSetoid : MonadSetoid M
   Propositional-MonadSetoid = record
