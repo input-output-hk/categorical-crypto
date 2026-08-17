@@ -68,7 +68,6 @@ statelessᵉ-∘ h k = ≈ᵉ-sim (λ _ → tt , tt) refl λ _ a →
 statelessᵉ-id : statelessᵉ {A = A} id ≈ᵉ idᵉ
 statelessᵉ-id _ = ≈ᴹ.refl
 
--- TODO: isn't there a nicer way to state this?
 -- Composing with a stateless machine leaves the kernel of the other factor
 -- alone: it only relabels the output, resp. the input.
 statelessᵉ-postᵏ : (h : B → C) (k : SFunType A B S) (s : S) (a : A)
