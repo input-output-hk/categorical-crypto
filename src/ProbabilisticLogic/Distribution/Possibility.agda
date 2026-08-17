@@ -10,6 +10,7 @@ open import Class.Monad.Ext.Setoid
 open import Data.Bool.ListAction
 open import Data.Bool.ListAction.Ext
 open import Data.List.Properties
+open import Data.List.Properties.Ext
 open import Relation.Binary
 
 module ProbabilisticLogic.Distribution.Possibility where
@@ -57,13 +58,7 @@ module 𝒫 {ℓ} {A : Type ℓ} = Setoid (𝒫-setoid A)
 
 >>=𝒫-assoc : (σ : List A) (g : A → List B) (h : B → List C)
            → concatMap h (concatMap g σ) ≈𝒫 concatMap (λ a → concatMap h (g a)) σ
->>=𝒫-assoc σ g h P = begin
-  any P (concatMap h (concatMap g σ))         ≡⟨ any-concatMap P h (concatMap g σ) ⟩
-  any (λ b → any P (h b)) (concatMap g σ)     ≡⟨ any-concatMap (λ b → any P (h b)) g σ ⟩
-  any (λ a → any (λ b → any P (h b)) (g a)) σ ≡⟨ any-cong (λ a → sym (any-concatMap P h (g a))) σ ⟩
-  any (λ a → any P (concatMap h (g a))) σ     ≡⟨ sym (any-concatMap P (λ a → concatMap h (g a)) σ) ⟩
-  any P (concatMap (λ a → concatMap h (g a)) σ) ∎
-  where open ≡-Reasoning
+>>=𝒫-assoc σ g h = 𝒫.reflexive (concatMap-assoc σ g h)
 
 >>=𝒫-comm : (σ : List A) (τ : List B)
           → concatMap (λ a → concatMap (λ b → (a ,′ b) ∷ []) τ) σ
