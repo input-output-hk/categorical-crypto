@@ -27,7 +27,7 @@ record SFunᵉ (A B : Type) : Type₁ where
 private variable A B C D State State′ : Type
 
 idᵉ : SFunᵉ A A
-idᵉ = record { State = ⊤ ; fun = λ (_ , a) → return (_ , a) }
+idᵉ = record { State = ⊤ ; init = tt ; fun = λ (_ , a) → return (tt , a) }
 
 _∘ᵉ'_ : SFunType B C State′ → SFunType A B State → SFunType A C (State′ × State)
 _∘ᵉ'_ g f ((sg , sf) , a) = do
@@ -71,11 +71,11 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
   id-correct []       = ≈ᴹ.refl
   id-correct (a ∷ as) = begin
     return (a ∷ as)
-      ≈⟨ ≈ᴹ.sym >>=-identityˡ-≈ ⟩
+      ≈˘⟨ >>=-identityˡ-≈ ⟩
     (return as >>= λ as → return (a ∷ as))
       ≈⟨ >>=-cong-x (id-correct as) ⟩
     (eval idᵉ as >>= λ as → return (a ∷ as))
-      ≈⟨ ≈ᴹ.sym >>=-identityˡ-≈ ⟩
+      ≈˘⟨ >>=-identityˡ-≈ ⟩
     eval idᵉ (a ∷ as) ∎
     where open R-Setoid ≈ᴹ-setoid
 
@@ -110,7 +110,7 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
     (f (sf , a) >>= (λ (sf' , b) →
       (g (sg , b) >>= (λ (sg' , c) → return ((sg' , sf') , c)))
       >>= (λ (s , c) → trace (g ∘ᵉ' f) s as >>= (λ cs → return (c ∷ cs)))))
-      ≈⟨ ≈ᴹ.sym (>>=-assoc-≈ (f (sf , a))) ⟩
+      ≈˘⟨ >>=-assoc-≈ (f (sf , a)) ⟩
     ((f (sf , a) >>= (λ (sf' , b) →
       g (sg , b) >>= (λ (sg' , c) → return ((sg' , sf') , c))))
       >>= (λ (s , c) → trace (g ∘ᵉ' f) s as >>= (λ cs → return (c ∷ cs)))) ∎
@@ -120,11 +120,11 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
            → ((h ∘ᵉ g) ∘ᵉ f) ≈ᵉ (h ∘ᵉ (g ∘ᵉ f))
   assoc-∘ᵉ {f = f} {g} {h} xs = begin
     eval ((h ∘ᵉ g) ∘ᵉ f) xs
-      ≈⟨ ≈ᴹ.sym (trace-∘ xs) ⟩
+      ≈˘⟨ trace-∘ xs ⟩
     (eval f xs >>= eval (h ∘ᵉ g))
       ≈⟨ >>=-cong-f (λ ys → ≈ᴹ.sym (trace-∘ ys)) ⟩
     (eval f xs >>= λ ys → eval g ys >>= eval h)
-      ≈⟨ ≈ᴹ.sym (>>=-assoc-≈ (eval f xs)) ⟩
+      ≈˘⟨ >>=-assoc-≈ (eval f xs) ⟩
     ((eval f xs >>= eval g) >>= eval h)
       ≈⟨ >>=-cong-x (trace-∘ xs) ⟩
     (eval (g ∘ᵉ f) xs >>= eval h)
@@ -135,7 +135,7 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
   identityˡ-∘ᵉ : {f : SFunᵉ A B} → (idᵉ ∘ᵉ f) ≈ᵉ f
   identityˡ-∘ᵉ {f = f} xs = begin
     eval (idᵉ ∘ᵉ f) xs
-      ≈⟨ ≈ᴹ.sym (trace-∘ xs) ⟩
+      ≈˘⟨ trace-∘ xs ⟩
     (eval f xs >>= eval idᵉ)
       ≈⟨ >>=-cong-f (λ ys → ≈ᴹ.sym (id-correct ys)) ⟩
     (eval f xs >>= return)
@@ -146,7 +146,7 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
   identityʳ-∘ᵉ : {f : SFunᵉ A B} → (f ∘ᵉ idᵉ) ≈ᵉ f
   identityʳ-∘ᵉ {f = f} xs = begin
     eval (f ∘ᵉ idᵉ) xs
-      ≈⟨ ≈ᴹ.sym (trace-∘ xs) ⟩
+      ≈˘⟨ trace-∘ xs ⟩
     (eval idᵉ xs >>= eval f)
       ≈⟨ >>=-cong-x (≈ᴹ.sym (id-correct xs)) ⟩
     (return xs >>= eval f)
@@ -158,7 +158,7 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
              → f ≈ᵉ h → g ≈ᵉ i → (f ∘ᵉ g) ≈ᵉ (h ∘ᵉ i)
   ∘ᵉ-resp-≈ᵉ {f = f} {h} {g} {i} f≈h g≈i xs = begin
     eval (f ∘ᵉ g) xs
-      ≈⟨ ≈ᴹ.sym (trace-∘ xs) ⟩
+      ≈˘⟨ trace-∘ xs ⟩
     (eval g xs >>= eval f)
       ≈⟨ >>=-cong (g≈i xs) (λ ys → f≈h ys) ⟩
     (eval i xs >>= eval h)
