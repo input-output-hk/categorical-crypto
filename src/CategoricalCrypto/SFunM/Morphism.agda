@@ -1,22 +1,19 @@
 {-# OPTIONS --safe --without-K #-}
 
--- A monad morphism `θ : M ⇒ N` abstracts the effects of a stateful function
--- without touching its control flow: state space and initial state are kept,
--- only the step kernel is post-composed with `θ`.  Everything below reduces to
--- `θ-trace`, the statement that `θ` commutes with running a machine.
+-- A monad morphism `θ : M ⇒ N` induces a strong monoidal functor `SFunᵉ M → SFunᵉ N`
 
 open import categorical-crypto.Prelude hiding (Functor)
 
 open import Class.Core
 open import Class.Monad.Ext.Setoid
 
-open import Categories.Category.Core using (Category)
+open import Categories.Category
 open import Categories.Functor using (Functor)
-open import Categories.Functor.Monoidal using (StrongMonoidalFunctor)
+open import Categories.Functor.Monoidal
 open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)
 
-open import Data.Sum.Base using (assocʳ)
-open import Data.Sum.Ext using (unitˡ⇒; unitʳ⇒)
+open import Data.Sum
+open import Data.Sum.Ext
 
 import Relation.Binary.Reasoning.Setoid as R-Setoid
 
@@ -33,6 +30,7 @@ module _ {M N : Type↑}
   ⦃ ML-M : MonadLawsSetoid M ⦄ ⦃ MC-M : CommutativeMonadSetoid M ⦄
   ⦃ Monad-N : Monad N ⦄ ⦃ MS-N : MonadSetoid N ⦄
   ⦃ ML-N : MonadLawsSetoid N ⦄ ⦃ MC-N : CommutativeMonadSetoid N ⦄
+  -- TODO: surely a monad morphism already exists somewhere? If not, we should define it
   (θ : ∀ {ℓ} {A : Type ℓ} → M A → N A)
   (θ-cong   : ∀ {ℓ} {A : Type ℓ} {x y : M A} → x ≈ᴹ y → θ x ≈ᴹ θ y)
   (θ-return : ∀ {ℓ} {A : Type ℓ} (a : A) → θ (return {A = A} a) ≈ᴹ return a)
@@ -40,9 +38,6 @@ module _ {M N : Type↑}
             → θ (m >>= k) ≈ᴹ (θ m >>= λ a → θ (k a)))
   where
 
-  -- Both monads are in scope as instances, so a congruence whose monad only
-  -- shows up under `_≈ᴹ_` has nothing to resolve against: take those from `N`
-  -- by name rather than by instance search.
   private
     module N≈ = MonadSetoid MS-N
     module N-Reasoning {ℓ} {X : Type ℓ} = R-Setoid (N≈.≈ᴹ-setoid {A = X})
@@ -111,11 +106,6 @@ module _ {M N : Type↑}
 
   ------------------------------------------------------------------------
   -- Strong monoidality
-  --
-  -- `mapᵉ` is the identity on objects, states and control flow, so every
-  -- comparison morphism is an identity: the functor is STRICT monoidal, and
-  -- only packaged as strong because that is what `UCSetupMorphism`'s smart
-  -- constructor (`Standard2.Morphism.StdUCMorphism`) consumes.
 
   private
     module 𝒩 = Category (SFunᵉ-Category {M = N})
@@ -160,7 +150,6 @@ module _ {M N : Type↑}
         }
     }
     where
-      -- `F₁ (stateless h) ∘ (id ∘ (id ⊗₁ id))` is just `stateless h`.
       strict : (h : A ⊎ C → B)
              → (mapᵉ (statelessᵉ {M = M} h) ∘ᵉ (idᵉ ∘ᵉ (idᵉ {M = N} ⊗ᵉ idᵉ))) ≈ᵉ statelessᵉ {M = N} h
       strict h = 𝒩.∘-resp-≈ (mapᵉ-stateless h) (𝒩.identityˡ ○ ⊗ᵉ-identity {M = N}) ○ 𝒩.identityʳ

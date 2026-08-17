@@ -46,9 +46,6 @@ record MonadSetoid (M : Type↑) ⦃ _ : Monad M ⦄ : Typeω where
 
 open MonadSetoid ⦃...⦄ public
 
-------------------------------------------------------------------------
--- The three monad laws, stated up to the setoid equivalence.
-
 record MonadLawsSetoid (M : Type↑) ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄ : Typeω where
   field
     >>=-identityˡ-≈ : {A : Type ℓ} {B : Type ℓ′} {a : A} {h : A → M B}
@@ -59,12 +56,7 @@ record MonadLawsSetoid (M : Type↑) ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M �
                     → ((m >>= g) >>= h) ≈ᴹ (m >>= λ x → g x >>= h)
 open MonadLawsSetoid ⦃...⦄ public
 
-------------------------------------------------------------------------
--- The functorial action derived from `_>>=_`, and how it absorbs into a
--- neighbouring bind.  Relabelling the result of a computation is the shape
--- every state-space bookkeeping step takes, so these five turn such steps
--- into rewrites rather than bind-chain reasoning.
-
+-- TODO: integrate this module with `MonadSetoid` and `MonadLawsSetoid`
 module _ {M : Type↑} ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄ ⦃ _ : MonadLawsSetoid M ⦄ where
 
   infixl 4 _<$>ᴹ_
@@ -95,16 +87,13 @@ module _ {M : Type↑} ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄ ⦃ _ : Mon
            → (h <$>ᴹ (m >>= g)) ≈ᴹ (m >>= λ a → h <$>ᴹ g a)
   >>=-<$>ᴹ h m g = >>=-assoc-≈ m
 
-------------------------------------------------------------------------
--- Commutativity, stated up to the setoid equivalence.
-
 record CommutativeMonadSetoid (M : Type↑) ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄ : Typeω where
   field
     >>=-comm-≈ : {X : Type ℓ} {Y : Type ℓ′} {x : M X} {y : M Y}
                → (x >>= λ x′ → y >>= λ y′ → return (x′ ,′ y′))
                ≈ᴹ (y >>= λ y′ → x >>= λ x′ → return (x′ , y′))
 
-  -- Yoneda variant: with both laws and commutativity in scope.
+  -- Yoneda variant
   >>=-comm-y-≈ : ⦃ MonadLawsSetoid M ⦄
     → {X : Type ℓ} {Y : Type ℓ′} {Z : Type ℓ″}
       {x : M X} {y : M Y} (f : X → Y → M Z)
@@ -130,14 +119,7 @@ record CommutativeMonadSetoid (M : Type↑) ⦃ _ : Monad M ⦄ ⦃ _ : MonadSet
 
 open CommutativeMonadSetoid ⦃...⦄ public
 
-------------------------------------------------------------------------
--- Bridge: any monad with propositional MonadLaws + ExtensionalMonad
--- gets a "trivial" setoid (equality is propositional equality), and
--- with CommutativeMonad we get the setoid-commutativity for free.
---
--- This lets users keep using the propositional-equality monads
--- (Maybe, List, …) with code parameterised by MonadSetoid.
-
+-- Propositional monads can be turned into setoid monads
 module FromPropositional {M : Type↑}
   ⦃ Monad-M       : Monad M            ⦄
   ⦃ M-Laws        : MonadLaws M        ⦄

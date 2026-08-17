@@ -8,11 +8,11 @@ open import Class.Monad.Ext.Setoid
 open import Categories.Category.Core
 open import Categories.Category.Helper
 
-open import Relation.Binary using (IsEquivalence)
+open import Relation.Binary
 import Relation.Binary.Reasoning.Setoid as R-Setoid
 
 module CategoricalCrypto.SFunM {M : Type↑}
-  ⦃ Monad-M : Monad M     ⦄
+  ⦃ Monad-M : Monad M       ⦄
   ⦃ MS      : MonadSetoid M ⦄ where
 
 SFunType : Type → Type → Type → Type

@@ -1,19 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
--- `SFunᵉ` is symmetric monoidal under the DISJOINT UNION of interfaces: two
+-- `SFunᵉ` is symmetric monoidal under the disjoint union of interfaces: two
 -- machines run side by side, each activation going to exactly one of them, and
--- the composite state is the pair of the component states.  The unit is the
--- empty interface `⊥`, so `⊥ ⊎ A ≅ A` is the "machine with no subroutine" the
--- closed semantics of `SFunPartial` strips away.
---
--- Two facts carry the whole development.  The structural morphisms are
--- STATELESS (`SFunM.Properties.statelessᵉ`), so every coherence law reduces to
--- a pointwise equation between `⊎`-shuffles; and every law relating the tensor
--- to composition is a SIMULATION (`≈ᵉ-sim`), the state bookkeeping being a pure
--- reassociation of pairs.  The one exception is `⊗ᵉ-resp-≈`, which compares
--- machines with unrelated state spaces and so has to go through the trace: a
--- one-sided tensor `f ⊗ᵉ idᵉ` runs `f` on the left-hand activations only, and
--- re-inserts the right-hand ones untouched (`⊗idᵏ-trace`).
+-- the composite state is the pair of the component states.
 
 open import categorical-crypto.Prelude
 
@@ -134,10 +123,7 @@ f ⊗ᵉ g = record { State = F.State × G.State ; init = F.init , G.init ; fun 
         cont  = λ P → (G.fun ⊗ᵏ G′.fun) ((sg , sg′) , proj₂ P)
                         >>= λ q → return ((proj₁ q , proj₁ P) , proj₂ q)
 
--- Congruence is the one law that compares machines with unrelated state
--- spaces, so it cannot be a simulation.  It goes through the trace instead:
--- `f ⊗ᵉ idᵉ` runs `f` on the left-hand activations and passes the right-hand
--- ones through, and a general tensor splits into two such one-sided ones.
+-- Congruence cannot be proven by a simulation, it goes through the trace instead
 private
   lefts : List (A ⊎ C) → List A
   lefts []             = []
@@ -314,9 +300,8 @@ private
 ------------------------------------------------------------------------
 -- The structural morphisms
 --
--- All of them are stateless (`⊎`-shuffles), so their naturality squares are
--- kernel-level identities: normalise both sides with `statelessᵉ-postᵏ` /
--- `statelessᵉ-preᵏ` and fuse the relabellings.
+-- All of them are stateless, so their naturality squares are
+-- kernel-level identities.
 
 λ⇒ᵉ : SFunᵉ {M = M} (⊥ ⊎ A) A
 λ⇒ᵉ = statelessᵉ unitˡ⇒

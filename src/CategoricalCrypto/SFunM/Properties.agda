@@ -1,10 +1,5 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Two general facts about `SFunᵉ` that the monoidal structure runs on: a
--- SIMULATION principle (a state map that intertwines two step kernels makes
--- the machines observationally equal) and the stateless machines (a pure
--- relabelling, functorially embedding `(Type , →)` into `SFunᵉ`).
-
 open import categorical-crypto.Prelude
 
 open import Class.Core
@@ -26,8 +21,7 @@ private variable A A′ B C S S′ : Type
 
 -- A state map `φ` that intertwines the two kernels — running `f` and
 -- relabelling the resulting state is running `g` on the relabelled state —
--- makes the two traces equal.  This is the only way state spaces are ever
--- compared here: `_≈ᵉ_` sees a machine's runs, not its states.
+-- makes the two traces equal.
 trace-sim : (φ : S → S′) {f : SFunType A B S} {g : SFunType A B S′}
           → (∀ s a → ((λ (s′ , b) → φ s′ , b) <$>ᴹ f (s , a)) ≈ᴹ g (φ s , a))
           → ∀ s xs → trace f s xs ≈ᴹ trace g (φ s) xs
@@ -56,6 +50,7 @@ trace-sim φ {f} {g} k s (a ∷ as) = begin
 ------------------------------------------------------------------------
 -- Stateless machines
 
+-- TODO: if we're already going this far, let's also prove that `statelessᵉ` is a functor. Maybe this also helps with the `Monoidal` proofs?
 statelessᵉ : (A → B) → SFunᵉ {M = M} A B
 statelessᵉ h = record { State = ⊤ ; init = tt ; fun = λ (_ , a) → return (tt , h a) }
 
@@ -68,6 +63,7 @@ statelessᵉ-∘ : (h : B → C) (k : A → B)
 statelessᵉ-∘ h k = ≈ᵉ-sim (λ _ → tt , tt) refl λ _ a →
   ≈ᴹ.trans >>=-identityˡ-≈ (≈ᴹ.sym (≈ᴹ.trans >>=-identityˡ-≈ >>=-identityˡ-≈))
 
+-- TODO: isn't there a nicer way to state this?
 -- Composing with a stateless machine leaves the kernel of the other factor
 -- alone: it only relabels the output, resp. the input.
 statelessᵉ-postᵏ : (h : B → C) (k : SFunType A B S) (s : S) (a : A)
