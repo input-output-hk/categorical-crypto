@@ -24,21 +24,18 @@ record SFunᵉ (A B : Type) : Type₁ where
     init  : State
     fun   : SFunType A B State
 
-private variable A B C D State : Type
+private variable A B C D State State′ : Type
 
 idᵉ : SFunᵉ A A
 idᵉ = record { State = ⊤ ; fun = λ (_ , a) → return (_ , a) }
 
-_∘ᵉ'_ : ∀ {A B C State₁ State₂}
-  → SFunType B C State₂
-  → SFunType A B State₁
-  → SFunType A C (State₂ × State₁)
+_∘ᵉ'_ : SFunType B C State′ → SFunType A B State → SFunType A C (State′ × State)
 _∘ᵉ'_ g f ((sg , sf) , a) = do
   (sf , b) ← f (sf , a)
   (sg , c) ← g (sg , b)
   return ((sg , sf) , c)
 
-_∘ᵉ_ : ∀ {A B C} → SFunᵉ B C → SFunᵉ A B → SFunᵉ A C
+_∘ᵉ_ : SFunᵉ B C → SFunᵉ A B → SFunᵉ A C
 _∘ᵉ_ g f = let module g = SFunᵉ g; module f = SFunᵉ f in record
   { State = g.State × f.State
   ; init  = g.init , f.init
@@ -60,7 +57,7 @@ infix 4 _≈ᵉ_
 _≈ᵉ_ : SFunᵉ A B → SFunᵉ A B → Type
 f ≈ᵉ g = ∀ xs → eval f xs ≈ᴹ eval g xs
 
-≈ᵉ-isEquivalence : ∀ {A B} → IsEquivalence (_≈ᵉ_ {A} {B})
+≈ᵉ-isEquivalence : IsEquivalence (_≈ᵉ_ {A} {B})
 ≈ᵉ-isEquivalence = record
   { refl  = λ _ → ≈ᴹ.refl
   ; sym   = λ f≈g xs → ≈ᴹ.sym (f≈g xs)
@@ -70,7 +67,7 @@ f ≈ᵉ g = ∀ xs → eval f xs ≈ᴹ eval g xs
 module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
          ⦃ M-Comm : CommutativeMonadSetoid M ⦄ where
 
-  id-correct : ∀ {A} (xs : List A) → return xs ≈ᴹ eval (idᵉ {A}) xs
+  id-correct : (xs : List A) → return xs ≈ᴹ eval idᵉ xs
   id-correct []       = ≈ᴹ.refl
   id-correct (a ∷ as) = begin
     return (a ∷ as)
@@ -84,8 +81,8 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
 
   -- Uses commutativity to swap the next-step `trace f` recursion with the
   -- current-step `g` action.
-  trace-∘ : ∀ {StateG StateF sg sf}
-            {g : SFunType B C StateG} {f : SFunType A B StateF}
+  trace-∘ : {sg : State′} {sf : State}
+            {g : SFunType B C State′} {f : SFunType A B State}
             (xs : List A)
     → (trace f sf xs >>= trace g sg) ≈ᴹ trace (g ∘ᵉ' f) (sg , sf) xs
   trace-∘ {sg = sg} {sf} {g} {f} [] = >>=-identityˡ-≈
@@ -119,7 +116,7 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
       >>= (λ (s , c) → trace (g ∘ᵉ' f) s as >>= (λ cs → return (c ∷ cs)))) ∎
     where open R-Setoid ≈ᴹ-setoid
 
-  assoc-∘ᵉ : {A B C D : Type} {f : SFunᵉ A B} {g : SFunᵉ B C} {h : SFunᵉ C D}
+  assoc-∘ᵉ : {f : SFunᵉ A B} {g : SFunᵉ B C} {h : SFunᵉ C D}
            → ((h ∘ᵉ g) ∘ᵉ f) ≈ᵉ (h ∘ᵉ (g ∘ᵉ f))
   assoc-∘ᵉ {f = f} {g} {h} xs = begin
     eval ((h ∘ᵉ g) ∘ᵉ f) xs
@@ -157,7 +154,7 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
     eval f xs ∎
     where open R-Setoid ≈ᴹ-setoid
 
-  ∘ᵉ-resp-≈ᵉ : {A B C : Type} {f h : SFunᵉ B C} {g i : SFunᵉ A B}
+  ∘ᵉ-resp-≈ᵉ : {f h : SFunᵉ B C} {g i : SFunᵉ A B}
              → f ≈ᵉ h → g ≈ᵉ i → (f ∘ᵉ g) ≈ᵉ (h ∘ᵉ i)
   ∘ᵉ-resp-≈ᵉ {f = f} {h} {g} {i} f≈h g≈i xs = begin
     eval (f ∘ᵉ g) xs
