@@ -27,7 +27,7 @@ import Categories.KernelCongruence as KernelCong
 open import Categories.NaturalTransformation renaming (id to idN)
 
 private variable
-  oc ℓc ec od ℓd ed cs ℓs : Level
+  oc ℓc ec od ℓd ed oe ℓe ee cs ℓs : Level
 
 record PresheafMorphism {C : Category oc ℓc ec} {D : Category od ℓd ed}
                         (F : Functor C D) (P : Presheaf C (Setoids cs ℓs))
@@ -112,6 +112,31 @@ module _ {C : Category oc ℓc ec} {D : Category od ℓd ed} {F : Functor C D}
 
   fromImage-mono : PresheafMorphism.Mono fromImage
   fromImage-mono e = e
+
+------------------------------------------------------------------------
+-- Pasting along a composite base
+------------------------------------------------------------------------
+
+module _ {C : Category oc ℓc ec} {D : Category od ℓd ed} {E : Category oe ℓe ee}
+         {G : Functor C D} {F : Functor D E}
+         {P : Presheaf C (Setoids cs ℓs)} {Q : Presheaf D (Setoids cs ℓs)}
+         {R : Presheaf E (Setoids cs ℓs)} where
+  private
+    module G = Functor G
+    module R = Functor R
+
+  infixr 9 _∘ᵛ_
+
+  _∘ᵛ_ : PresheafMorphism F Q R → PresheafMorphism G P Q
+       → PresheafMorphism (F ∘F G) P R
+  ν′ ∘ᵛ ν = record { ν = ntHelper record
+    { η = λ A → record
+      { to = λ x → ν′.η (G.₀ A) ⟨$⟩ (ν.η A ⟨$⟩ x)
+      ; cong = λ e → Func.cong (ν′.η (G.₀ A)) (Func.cong (ν.η A) e) }
+    ; commute = λ f → Setoid.trans (R.₀ _) (Func.cong (ν′.η _) (ν.commute f))
+                                           (ν′.commute (G.₁ f)) } }
+    where module ν = PresheafMorphism ν
+          module ν′ = PresheafMorphism ν′
 
 ------------------------------------------------------------------------
 -- The two comparisons that change nothing
