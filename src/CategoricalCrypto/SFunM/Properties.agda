@@ -1,9 +1,12 @@
 {-# OPTIONS --safe --without-K #-}
 
-open import categorical-crypto.Prelude
+open import categorical-crypto.Prelude hiding (Functor)
 
 open import Class.Core
 open import Class.Monad.Ext.Setoid
+
+open import Categories.Category.Instance.Sets
+open import Categories.Functor using (Functor)
 
 import Relation.Binary.Reasoning.Setoid as R-Setoid
 
@@ -50,7 +53,6 @@ trace-sim φ {f} {g} k s (a ∷ as) = begin
 ------------------------------------------------------------------------
 -- Stateless machines
 
--- TODO: if we're already going this far, let's also prove that `statelessᵉ` is a functor. Maybe this also helps with the `Monoidal` proofs?
 statelessᵉ : (A → B) → SFunᵉ {M = M} A B
 statelessᵉ h = record { State = ⊤ ; init = tt ; fun = λ (_ , a) → return (tt , h a) }
 
@@ -62,6 +64,9 @@ statelessᵉ-∘ : (h : B → C) (k : A → B)
              → statelessᵉ (h ∘ k) ≈ᵉ (statelessᵉ h ∘ᵉ statelessᵉ k)
 statelessᵉ-∘ h k = ≈ᵉ-sim (λ _ → tt , tt) refl λ _ a →
   ≈ᴹ.trans >>=-identityˡ-≈ (≈ᴹ.sym (≈ᴹ.trans >>=-identityˡ-≈ >>=-identityˡ-≈))
+
+statelessᵉ-id : statelessᵉ {A = A} id ≈ᵉ idᵉ
+statelessᵉ-id _ = ≈ᴹ.refl
 
 -- TODO: isn't there a nicer way to state this?
 -- Composing with a stateless machine leaves the kernel of the other factor
@@ -75,3 +80,14 @@ statelessᵉ-preᵏ : (h : A′ → A) (k : SFunType A B S) (s : S) (a : A′)
                 → (k ∘ᵉ' SFunᵉ.fun (statelessᵉ h)) ((s , tt) , a)
                 ≈ᴹ ((λ (s′ , b) → (s′ , tt) , b) <$>ᴹ k (s , h a))
 statelessᵉ-preᵏ h k s a = >>=-identityˡ-≈
+
+module _ ⦃ M-Comm : CommutativeMonadSetoid M ⦄ where
+
+  statelessᵉ-Functor : Functor (Sets 0ℓ) (SFunᵉ-Category {M = M})
+  statelessᵉ-Functor = record
+    { F₀           = id
+    ; F₁           = statelessᵉ
+    ; identity     = statelessᵉ-id
+    ; homomorphism = λ {_ _ _ k h} → statelessᵉ-∘ h k
+    ; F-resp-≈     = statelessᵉ-cong
+    }
