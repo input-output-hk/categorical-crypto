@@ -115,6 +115,19 @@ record CommutativeMonadSetoid (M : Type↑) ⦃ _ : Monad M ⦄ ⦃ _ : MonadSet
 
 open CommutativeMonadSetoid ⦃...⦄ public
 
+-- `Categories.Monad.Morphism.Monad⇒-id` is this notion for a `Categories.Monad`
+-- on a category, i.e. in the (η , μ)-presentation; there is no bridge from a
+-- `Type↑` with a `_≈ᴹ_` to that, so state it in the presentation used here.
+record MonadMorphismSetoid (M N : Type↑)
+  ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄
+  ⦃ _ : Monad N ⦄ ⦃ _ : MonadSetoid N ⦄ : Typeω where
+  field
+    θ        : {A : Type ℓ} → M A → N A
+    θ-cong   : {A : Type ℓ} {x y : M A} → x ≈ᴹ y → θ x ≈ᴹ θ y
+    θ-return : {A : Type ℓ} (a : A) → θ (return {A = A} a) ≈ᴹ return a
+    θ-bind   : {A : Type ℓ} {B : Type ℓ′} (m : M A) (k : A → M B)
+             → θ (m >>= k) ≈ᴹ (θ m >>= λ a → θ (k a))
+
 -- Propositional monads can be turned into setoid monads
 module FromPropositional {M : Type↑}
   ⦃ Monad-M       : Monad M            ⦄

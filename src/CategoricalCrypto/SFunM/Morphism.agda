@@ -30,13 +30,10 @@ module _ {M N : Type↑}
   ⦃ ML-M : MonadLawsSetoid M ⦄ ⦃ MC-M : CommutativeMonadSetoid M ⦄
   ⦃ Monad-N : Monad N ⦄ ⦃ MS-N : MonadSetoid N ⦄
   ⦃ ML-N : MonadLawsSetoid N ⦄ ⦃ MC-N : CommutativeMonadSetoid N ⦄
-  -- TODO: surely a monad morphism already exists somewhere? If not, we should define it
-  (θ : ∀ {ℓ} {A : Type ℓ} → M A → N A)
-  (θ-cong   : ∀ {ℓ} {A : Type ℓ} {x y : M A} → x ≈ᴹ y → θ x ≈ᴹ θ y)
-  (θ-return : ∀ {ℓ} {A : Type ℓ} (a : A) → θ (return {A = A} a) ≈ᴹ return a)
-  (θ-bind   : ∀ {ℓ ℓ′} {A : Type ℓ} {B : Type ℓ′} (m : M A) (k : A → M B)
-            → θ (m >>= k) ≈ᴹ (θ m >>= λ a → θ (k a)))
+  (Θ : MonadMorphismSetoid M N)
   where
+
+  open MonadMorphismSetoid Θ
 
   private
     module N≈ = MonadSetoid MS-N
