@@ -59,7 +59,8 @@ module _ {M N : Type↑}
     trace (θ ∘ f) s (a ∷ as) ∎
 
   θ-eval : (f : SFunᵉ {M = M} A B) (xs : List A) → θ (eval f xs) ≈ᴹ eval (mapᵉ f) xs
-  θ-eval f xs = θ-trace (SFunᵉ.fun f) (SFunᵉ.init f) xs
+  θ-eval f xs = θ-trace fun init xs
+    where open SFunᵉ f
 
   mapᵉ-cong : {f g : SFunᵉ {M = M} A B} → f ≈ᵉ g → mapᵉ f ≈ᵉ mapᵉ g
   mapᵉ-cong {f = f} {g} f≈g xs = begin

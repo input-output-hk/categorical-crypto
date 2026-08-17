@@ -289,12 +289,13 @@ private
   ⊗idᵉ-resp : {f g : SFunᵉ {M = M} A B} → f ≈ᵉ g → (f ⊗ᵉ idᵉ {M = M} {C}) ≈ᵉ (g ⊗ᵉ idᵉ {M = M} {C})
   ⊗idᵉ-resp {f = f} {g} f≈g xs = begin
     eval (f ⊗ᵉ idᵉ) xs
-      ≈⟨ ⊗idᵏ-trace (SFunᵉ.fun f) (SFunᵉ.init f) xs ⟩
+      ≈⟨ ⊗idᵏ-trace F.fun F.init xs ⟩
     (fillˡ xs <$>ᴹ eval f (lefts xs))
       ≈⟨ <$>ᴹ-cong (f≈g (lefts xs)) ⟩
     (fillˡ xs <$>ᴹ eval g (lefts xs))
-      ≈˘⟨ ⊗idᵏ-trace (SFunᵉ.fun g) (SFunᵉ.init g) xs ⟩
+      ≈˘⟨ ⊗idᵏ-trace G.fun G.init xs ⟩
     eval (g ⊗ᵉ idᵉ) xs ∎
+    where module F = SFunᵉ f; module G = SFunᵉ g
 
   -- Conjugating by the braiding saves a second trace lemma for the right factor.
   σ-conjᵉ : (f : SFunᵉ {M = M} C D) → (σᵉ ∘ᵉ ((f ⊗ᵉ idᵉ {M = M} {A}) ∘ᵉ σᵉ)) ≈ᵉ (idᵉ {M = M} {A} ⊗ᵉ f)
