@@ -29,7 +29,7 @@ private
 
   module 𝒮 = Category (SFunᵉ-Category {M = M})
 
-open 𝒮.HomReasoning using (_○_; ⟺)
+open 𝒮.HomReasoning using (_○_; ⟺; _⟩∘⟨_; refl⟩∘⟨_; _⟩∘⟨refl)
 open import Categories.Morphism.Reasoning (SFunᵉ-Category {M = M})
 open ≈ᴹ-Reasoning
 
@@ -137,7 +137,7 @@ braiding-commuteᵉ {f = f} {g} =
 σ-involutiveᵉ = statelessᵉ-inv swap-involutive
 
 triangleᵉ : ((idᵉ {M = M} {A} ⊗ᵉ λ⇒ᵉ {B}) ∘ᵉ α⇒ᵉ) ≈ᵉ (ρ⇒ᵉ ⊗ᵉ idᵉ)
-triangleᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id unitˡ⇒) 𝒮.Equiv.refl
+triangleᵉ = statelessᵉ-⊗ id unitˡ⇒ ⟩∘⟨refl
           ○ ⟺ (statelessᵉ-∘ (map⊎ id unitˡ⇒) assocʳ)
           ○ statelessᵉ-cong (λ where
               (inj₁ (inj₁ _)) → refl
@@ -145,9 +145,8 @@ triangleᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id unitˡ⇒) 𝒮.Equiv.refl
           ○ ⟺ (statelessᵉ-⊗ unitʳ⇒ id)
 
 pentagonᵉ : ((idᵉ ⊗ᵉ α⇒ᵉ {B} {C} {D}) ∘ᵉ (α⇒ᵉ ∘ᵉ (α⇒ᵉ {A} ⊗ᵉ idᵉ))) ≈ᵉ (α⇒ᵉ ∘ᵉ α⇒ᵉ)
-pentagonᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id assocʳ)
-                      (∘ᵉ-resp-≈ᵉ 𝒮.Equiv.refl (statelessᵉ-⊗ assocʳ id))
-          ○ ∘ᵉ-resp-≈ᵉ 𝒮.Equiv.refl (⟺ (statelessᵉ-∘ assocʳ (map⊎ assocʳ id)))
+pentagonᵉ = statelessᵉ-⊗ id assocʳ ⟩∘⟨ (refl⟩∘⟨ statelessᵉ-⊗ assocʳ id)
+          ○ refl⟩∘⟨ (⟺ (statelessᵉ-∘ assocʳ (map⊎ assocʳ id)))
           ○ ⟺ (statelessᵉ-∘ (map⊎ id assocʳ) (assocʳ ∘ map⊎ assocʳ id))
           ○ statelessᵉ-cong (λ where
               (inj₁ (inj₁ (inj₁ _))) → refl
@@ -157,16 +156,15 @@ pentagonᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id assocʳ)
           ○ statelessᵉ-∘ assocʳ assocʳ
 
 hexagonᵉ : ((idᵉ ⊗ᵉ σᵉ {A} {C}) ∘ᵉ (α⇒ᵉ ∘ᵉ (σᵉ {A} {B} ⊗ᵉ idᵉ))) ≈ᵉ (α⇒ᵉ ∘ᵉ (σᵉ ∘ᵉ α⇒ᵉ))
-hexagonᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id swap)
-                     (∘ᵉ-resp-≈ᵉ 𝒮.Equiv.refl (statelessᵉ-⊗ swap id))
-         ○ ∘ᵉ-resp-≈ᵉ 𝒮.Equiv.refl (⟺ (statelessᵉ-∘ assocʳ (map⊎ swap id)))
+hexagonᵉ = statelessᵉ-⊗ id swap ⟩∘⟨ (refl⟩∘⟨ statelessᵉ-⊗ swap id)
+         ○ refl⟩∘⟨ (⟺ (statelessᵉ-∘ assocʳ (map⊎ swap id)))
          ○ ⟺ (statelessᵉ-∘ (map⊎ id swap) (assocʳ ∘ map⊎ swap id))
          ○ statelessᵉ-cong (λ where
              (inj₁ (inj₁ _)) → refl
              (inj₁ (inj₂ _)) → refl
              (inj₂ _)        → refl)
          ○ (statelessᵉ-∘ assocʳ (swap ∘ assocʳ)
-           ○ ∘ᵉ-resp-≈ᵉ 𝒮.Equiv.refl (statelessᵉ-∘ swap assocʳ))
+           ○ refl⟩∘⟨ statelessᵉ-∘ swap assocʳ)
 
 ------------------------------------------------------------------------
 -- Functoriality
@@ -301,7 +299,7 @@ private
 
   id⊗ᵉ-resp : {f g : SFunᵉ {M = M} C D} → f ≈ᵉ g → (idᵉ {M = M} {A} ⊗ᵉ f) ≈ᵉ (idᵉ {M = M} {A} ⊗ᵉ g)
   id⊗ᵉ-resp {f = f} {g} f≈g =
-    ⟺ (σ-conjᵉ f) ○ 𝒮.∘-resp-≈ʳ (𝒮.∘-resp-≈ˡ (⊗idᵉ-resp f≈g)) ○ σ-conjᵉ g
+    ⟺ (σ-conjᵉ f) ○ refl⟩∘⟨ (⊗idᵉ-resp f≈g ⟩∘⟨refl) ○ σ-conjᵉ g
 
 ⊗-split : (f : SFunᵉ {M = M} A B) (g : SFunᵉ {M = M} C D) → (f ⊗ᵉ g) ≈ᵉ ((idᵉ ⊗ᵉ g) ∘ᵉ (f ⊗ᵉ idᵉ))
 ⊗-split f g = ≈ᵉ-sim (λ (s , t) → (tt , t) , (s , tt)) refl kern
@@ -343,7 +341,7 @@ private
 
 ⊗ᵉ-resp-≈ : {f h : SFunᵉ {M = M} A B} {g i : SFunᵉ {M = M} C D} → f ≈ᵉ h → g ≈ᵉ i → (f ⊗ᵉ g) ≈ᵉ (h ⊗ᵉ i)
 ⊗ᵉ-resp-≈ {f = f} {h} {g} {i} f≈h g≈i =
-  ⊗-split f g ○ ∘ᵉ-resp-≈ᵉ (id⊗ᵉ-resp g≈i) (⊗idᵉ-resp f≈h) ○ ⟺ (⊗-split h i)
+  ⊗-split f g ○ id⊗ᵉ-resp g≈i ⟩∘⟨ ⊗idᵉ-resp f≈h ○ ⟺ (⊗-split h i)
 
 ⊗ᵉ-bifunctor : CatBi.Bifunctor SFunᵉ-Category SFunᵉ-Category SFunᵉ-Category
 ⊗ᵉ-bifunctor = record

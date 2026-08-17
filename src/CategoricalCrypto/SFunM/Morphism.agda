@@ -136,7 +136,7 @@ module _ {M N : Type↑}
             ; iso     = λ _ → record { isoˡ = 𝒩.identityˡ ; isoʳ = 𝒩.identityˡ }
             }
         ; associativity = strict assocʳ
-            ○ ⟺ (𝒩.identityˡ ○ 𝒩.∘-resp-≈ (⊗ᵉ-identity {M = N}) 𝒩.Equiv.refl ○ 𝒩.identityˡ)
+            ○ ⟺ (𝒩.identityˡ ○ ⊗ᵉ-identity {M = N} ⟩∘⟨refl ○ 𝒩.identityˡ)
         ; unitaryˡ      = strict unitˡ⇒
         ; unitaryʳ      = strict unitʳ⇒
         }
@@ -144,4 +144,4 @@ module _ {M N : Type↑}
     where
       strict : (h : A ⊎ C → B)
              → (mapᵉ (statelessᵉ {M = M} h) ∘ᵉ (idᵉ ∘ᵉ (idᵉ {M = N} ⊗ᵉ idᵉ))) ≈ᵉ statelessᵉ {M = N} h
-      strict h = 𝒩.∘-resp-≈ (mapᵉ-stateless h) (𝒩.identityˡ ○ ⊗ᵉ-identity {M = N}) ○ 𝒩.identityʳ
+      strict h = mapᵉ-stateless h ⟩∘⟨ (𝒩.identityˡ ○ ⊗ᵉ-identity {M = N}) ○ 𝒩.identityʳ
