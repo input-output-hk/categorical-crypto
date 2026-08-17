@@ -121,10 +121,6 @@ braiding-commuteᵉ {f = f} {g} =
 -- Every law here is between composites of stateless machines, so it reduces
 -- to a pointwise equation between `⊎`-shuffles.
 
-private
-  statelessᵉ-inv : {h : A → B} {k : B → A} → k ∘ h ≗ id → (statelessᵉ k ∘ᵉ statelessᵉ h) ≈ᵉ idᵉ
-  statelessᵉ-inv {h = h} {k} inv = ⟺ (statelessᵉ-∘ k h) ○ statelessᵉ-cong {k = id} inv
-
 λ-isoˡ : (λ⇐ᵉ ∘ᵉ λ⇒ᵉ {A}) ≈ᵉ idᵉ
 λ-isoˡ = statelessᵉ-inv λ where (inj₂ _) → refl
 

@@ -75,6 +75,11 @@ statelessᵉ-preᵏ : (h : A′ → A) (k : SFunType A B S) (s : S) (a : A′)
                 ≈ᴹ ((λ (s′ , b) → (s′ , tt) , b) <$>ᴹ k (s , h a))
 statelessᵉ-preᵏ h k s a = >>=-identityˡ-≈
 
+statelessᵉ-inv : {h : A → B} {k : B → A} → k ∘ h ≗ id → (statelessᵉ k ∘ᵉ statelessᵉ h) ≈ᵉ idᵉ
+statelessᵉ-inv inv = ≈ᵉ-sim (λ _ → tt) refl λ _ a →
+    ≈ᴹ.trans (<$>ᴹ-cong (≈ᴹ.trans >>=-identityˡ-≈ >>=-identityˡ-≈))
+  $ ≈ᴹ.trans >>=-identityˡ-≈ (≈ᴹ.reflexive (cong (λ b → return (tt , b)) (inv a)))
+
 -- Sliding a stateless machine across an arbitrary one: since neither side
 -- carries state of its own, what remains to prove is the kernel square.
 statelessᵉ-natural : {f : SFunᵉ {M = M} A B} {g : SFunᵉ {M = M} A′ C}
