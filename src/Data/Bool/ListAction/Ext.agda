@@ -6,12 +6,12 @@
 -- `Data.Bool.ListAction` ones.
 open import categorical-crypto.Prelude hiding (any; or)
 
-open import Algebra.Bundles using (CommutativeMonoid)
+open import Algebra.Bundles
 open import Data.Bool.ListAction
 open import Data.Bool.Properties
 open import Data.List.Properties
 open import Algebra.Properties.CommutativeSemigroup
-  (CommutativeMonoid.commutativeSemigroup ∨-commutativeMonoid) using (interchange)
+  (CommutativeMonoid.commutativeSemigroup ∨-commutativeMonoid)
 
 module Data.Bool.ListAction.Ext where
 

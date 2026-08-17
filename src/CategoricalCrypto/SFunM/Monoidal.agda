@@ -32,7 +32,7 @@ private
   module 𝒮 = Category (SFunᵉ-Category {M = M})
 
 open 𝒮.HomReasoning using (_○_; ⟺)
-open import Categories.Morphism.Reasoning (SFunᵉ-Category {M = M}) using (pullˡ; cancelʳ)
+open import Categories.Morphism.Reasoning (SFunᵉ-Category {M = M})
 
 ------------------------------------------------------------------------
 -- The tensor
