@@ -18,7 +18,8 @@ private variable ℓ ℓ′ ℓ″ : Level
                  A B : Type ℓ
 
 record MonadSetoid (M : Type↑) ⦃ _ : Monad M ⦄ : Typeω where
-  infix 4 _≈ᴹ_
+  infix  4 _≈ᴹ_
+  infixl 4 _<$>ᴹ_
   field
     _≈ᴹ_ : {A : Type ℓ} → M A → M A → Type ℓ
 
@@ -44,23 +45,6 @@ record MonadSetoid (M : Type↑) ⦃ _ : Monad M ⦄ : Typeω where
              → x ≈ᴹ y → (x >>= f) ≈ᴹ (y >>= f)
   >>=-cong-x x≈y = >>=-cong x≈y (λ _ → ≈ᴹ.refl)
 
-open MonadSetoid ⦃...⦄ public
-
-record MonadLawsSetoid (M : Type↑) ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄ : Typeω where
-  field
-    >>=-identityˡ-≈ : {A : Type ℓ} {B : Type ℓ′} {a : A} {h : A → M B}
-                    → (return a >>= h) ≈ᴹ h a
-    >>=-identityʳ-≈ : {A : Type ℓ} (m : M A) → (m >>= return) ≈ᴹ m
-    >>=-assoc-≈     : {A : Type ℓ} {B : Type ℓ′} {C : Type ℓ″}
-                      (m : M A) {g : A → M B} {h : B → M C}
-                    → ((m >>= g) >>= h) ≈ᴹ (m >>= λ x → g x >>= h)
-open MonadLawsSetoid ⦃...⦄ public
-
--- TODO: integrate this module with `MonadSetoid` and `MonadLawsSetoid`
-module _ {M : Type↑} ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄ ⦃ _ : MonadLawsSetoid M ⦄ where
-
-  infixl 4 _<$>ᴹ_
-
   _<$>ᴹ_ : {A : Type ℓ} {B : Type ℓ′} → (A → B) → M A → M B
   h <$>ᴹ m = m >>= (return ∘ h)
 
@@ -71,6 +55,17 @@ module _ {M : Type↑} ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄ ⦃ _ : Mon
   <$>ᴹ-congˡ : {A : Type ℓ} {B : Type ℓ′} {h k : A → B} (m : M A)
              → h ≗ k → (h <$>ᴹ m) ≈ᴹ (k <$>ᴹ m)
   <$>ᴹ-congˡ m h≗k = >>=-cong-f λ a → ≈ᴹ.reflexive (cong return (h≗k a))
+
+open MonadSetoid ⦃...⦄ public
+
+record MonadLawsSetoid (M : Type↑) ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄ : Typeω where
+  field
+    >>=-identityˡ-≈ : {A : Type ℓ} {B : Type ℓ′} {a : A} {h : A → M B}
+                    → (return a >>= h) ≈ᴹ h a
+    >>=-identityʳ-≈ : {A : Type ℓ} (m : M A) → (m >>= return) ≈ᴹ m
+    >>=-assoc-≈     : {A : Type ℓ} {B : Type ℓ′} {C : Type ℓ″}
+                      (m : M A) {g : A → M B} {h : B → M C}
+                    → ((m >>= g) >>= h) ≈ᴹ (m >>= λ x → g x >>= h)
 
   <$>ᴹ-∘ : {A : Type ℓ} {B : Type ℓ′} {C : Type ℓ″}
            (k : B → C) (h : A → B) (m : M A)
@@ -86,6 +81,7 @@ module _ {M : Type↑} ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄ ⦃ _ : Mon
              (h : B → C) (m : M A) (g : A → M B)
            → (h <$>ᴹ (m >>= g)) ≈ᴹ (m >>= λ a → h <$>ᴹ g a)
   >>=-<$>ᴹ h m g = >>=-assoc-≈ m
+open MonadLawsSetoid ⦃...⦄ public
 
 record CommutativeMonadSetoid (M : Type↑) ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄ : Typeω where
   field

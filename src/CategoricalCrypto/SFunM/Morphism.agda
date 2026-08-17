@@ -40,6 +40,7 @@ module _ {M N : Type↑}
 
   private
     module N≈ = MonadSetoid MS-N
+    module N-Laws = MonadLawsSetoid ML-N
     module N-Reasoning {ℓ} {X : Type ℓ} = R-Setoid (N≈.≈ᴹ-setoid {A = X})
 
   mapᵉ : SFunᵉ {M = M} A B → SFunᵉ {M = N} A B
@@ -114,7 +115,7 @@ module _ {M N : Type↑}
 
   mapᵉ-stateless : (h : A → B) → mapᵉ (statelessᵉ {M = M} h) ≈ᵉ statelessᵉ {M = N} h
   mapᵉ-stateless h = ≈ᵉ-sim id refl λ _ a →
-    N≈.≈ᴹ.trans (<$>ᴹ-cong (θ-return (tt , h a))) >>=-identityˡ-≈
+    N≈.≈ᴹ.trans (N≈.<$>ᴹ-cong (θ-return (tt , h a))) >>=-identityˡ-≈
 
   mapᵉ-⊗ : (f : SFunᵉ {M = M} A B) (g : SFunᵉ {M = M} C D)
          → mapᵉ (f ⊗ᵉ g) ≈ᵉ (mapᵉ f ⊗ᵉ mapᵉ g)
@@ -124,11 +125,11 @@ module _ {M N : Type↑}
 
       kern : ∀ s x → _
       kern (s , _) (inj₁ a) = N≈.≈ᴹ.trans
-        (<$>ᴹ-cong (N≈.≈ᴹ.trans (θ-bind (F.fun (s , a)) _) (N≈.>>=-cong-f λ p → θ-return _)))
-        (<$>ᴹ-∘ _ _ (θ (F.fun (s , a))))
+        (N≈.<$>ᴹ-cong (N≈.≈ᴹ.trans (θ-bind (F.fun (s , a)) _) (N≈.>>=-cong-f λ p → θ-return _)))
+        (N-Laws.<$>ᴹ-∘ _ _ (θ (F.fun (s , a))))
       kern (_ , t) (inj₂ c) = N≈.≈ᴹ.trans
-        (<$>ᴹ-cong (N≈.≈ᴹ.trans (θ-bind (G.fun (t , c)) _) (N≈.>>=-cong-f λ p → θ-return _)))
-        (<$>ᴹ-∘ _ _ (θ (G.fun (t , c))))
+        (N≈.<$>ᴹ-cong (N≈.≈ᴹ.trans (θ-bind (G.fun (t , c)) _) (N≈.>>=-cong-f λ p → θ-return _)))
+        (N-Laws.<$>ᴹ-∘ _ _ (θ (G.fun (t , c))))
 
   SFunᵉ-map-monoidal : StrongMonoidalFunctor (SFunᵉ-MonoidalCategory {M = M})
                                              (SFunᵉ-MonoidalCategory {M = N})
