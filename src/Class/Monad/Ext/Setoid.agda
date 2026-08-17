@@ -64,15 +64,15 @@ record MonadLawsSetoid (M : Type↑) ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M �
                       (m : M A) {g : A → M B} {h : B → M C}
                     → ((m >>= g) >>= h) ≈ᴹ (m >>= λ x → g x >>= h)
 
-  <$>ᴹ-∘ : {A : Type ℓ} {B : Type ℓ′} {C : Type ℓ″}
-           (k : B → C) (h : A → B) (m : M A)
-         → (k <$>ᴹ (h <$>ᴹ m)) ≈ᴹ ((k ∘ h) <$>ᴹ m)
-  <$>ᴹ-∘ k h m = ≈ᴹ.trans (>>=-assoc-≈ m) (>>=-cong-f λ _ → >>=-identityˡ-≈)
-
   <$>ᴹ->>= : {A : Type ℓ} {B : Type ℓ′} {C : Type ℓ″}
              (h : A → B) (m : M A) (g : B → M C)
            → ((h <$>ᴹ m) >>= g) ≈ᴹ (m >>= (g ∘ h))
   <$>ᴹ->>= h m g = ≈ᴹ.trans (>>=-assoc-≈ m) (>>=-cong-f λ _ → >>=-identityˡ-≈)
+
+  <$>ᴹ-∘ : {A : Type ℓ} {B : Type ℓ′} {C : Type ℓ″}
+           (k : B → C) (h : A → B) (m : M A)
+         → (k <$>ᴹ (h <$>ᴹ m)) ≈ᴹ ((k ∘ h) <$>ᴹ m)
+  <$>ᴹ-∘ k h m = <$>ᴹ->>= h m (return ∘ k)
 
   >>=-<$>ᴹ : {A : Type ℓ} {B : Type ℓ′} {C : Type ℓ″}
              (h : B → C) (m : M A) (g : A → M B)
