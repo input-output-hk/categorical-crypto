@@ -113,17 +113,14 @@ module _ {M N : Type↑}
     N≈.≈ᴹ.trans (N≈.<$>ᴹ-cong (θ-return (tt , h a))) >>=-identityˡ-≈
 
   mapᵉ-⊗ : (f : SFunᵉ {M = M} A B) (g : SFunᵉ {M = M} C D) → mapᵉ (f ⊗ᵉ g) ≈ᵉ (mapᵉ f ⊗ᵉ mapᵉ g)
-  mapᵉ-⊗ f g = ≈ᵉ-sim id refl kern
-    where
-      module F = SFunᵉ f; module G = SFunᵉ g
-
-      kern : ∀ s x → _
-      kern (s , _) (inj₁ a) = N≈.≈ᴹ.trans
+  mapᵉ-⊗ f g = ≈ᵉ-sim id refl λ where
+      (s , _) (inj₁ a) → N≈.≈ᴹ.trans
         (N≈.<$>ᴹ-cong (N≈.≈ᴹ.trans (θ-bind (F.fun (s , a)) _) (N≈.>>=-cong-f λ p → θ-return _)))
         (N-Laws.<$>ᴹ-∘ _ _ (θ (F.fun (s , a))))
-      kern (_ , t) (inj₂ c) = N≈.≈ᴹ.trans
+      (_ , t) (inj₂ c) → N≈.≈ᴹ.trans
         (N≈.<$>ᴹ-cong (N≈.≈ᴹ.trans (θ-bind (G.fun (t , c)) _) (N≈.>>=-cong-f λ p → θ-return _)))
         (N-Laws.<$>ᴹ-∘ _ _ (θ (G.fun (t , c))))
+    where module F = SFunᵉ f; module G = SFunᵉ g
 
   SFunᵉ-map-monoidal : StrongMonoidalFunctor (SFunᵉ-MonoidalCategory {M = M})
                                              (SFunᵉ-MonoidalCategory {M = N})

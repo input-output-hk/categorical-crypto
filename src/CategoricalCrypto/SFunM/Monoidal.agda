@@ -72,11 +72,9 @@ f ⊗ᵉ g = record { State = F.State × G.State ; init = F.init , G.init ; fun 
 σᵉ = statelessᵉ swap
 
 statelessᵉ-⊗ : (h : A → B) (k : C → D) → (statelessᵉ h ⊗ᵉ statelessᵉ k) ≈ᵉ statelessᵉ (map⊎ h k)
-statelessᵉ-⊗ h k = ≈ᵉ-sim (λ _ → tt) refl kern
-  where
-    kern : ∀ s x → _
-    kern s (inj₁ a) = ≈ᴹ.trans (<$>ᴹ-cong >>=-identityˡ-≈) >>=-identityˡ-≈
-    kern s (inj₂ c) = ≈ᴹ.trans (<$>ᴹ-cong >>=-identityˡ-≈) >>=-identityˡ-≈
+statelessᵉ-⊗ h k = ≈ᵉ-sim (λ _ → tt) refl λ where
+  _ (inj₁ _) → ≈ᴹ.trans (<$>ᴹ-cong >>=-identityˡ-≈) >>=-identityˡ-≈
+  _ (inj₂ _) → ≈ᴹ.trans (<$>ᴹ-cong >>=-identityˡ-≈) >>=-identityˡ-≈
 
 unitorˡ-commuteᵉ : {f : SFunᵉ {M = M} A B} → (λ⇒ᵉ ∘ᵉ (idᵉ ⊗ᵉ f)) ≈ᵉ (f ∘ᵉ λ⇒ᵉ)
 unitorˡ-commuteᵉ {f = f} = statelessᵉ-natural unitˡ⇒ unitˡ⇒ proj₂ refl λ where
