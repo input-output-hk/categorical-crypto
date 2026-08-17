@@ -40,6 +40,8 @@ module _ {M N : Type↑}
     module N-Laws = MonadLawsSetoid ML-N
     module N-Reasoning {ℓ} {X : Type ℓ} = R-Setoid (N≈.≈ᴹ-setoid {A = X})
 
+  open N-Reasoning
+
   mapᵉ : SFunᵉ {M = M} A B → SFunᵉ {M = N} A B
   mapᵉ f = record { State = State ; init = init ; fun = θ ∘ fun }
     where open SFunᵉ f
@@ -55,7 +57,6 @@ module _ {M N : Type↑}
     (θ (f (s , a)) >>= λ (s′ , b) → θ (trace f s′ as) >>= λ bs → θ (return (b ∷ bs)))
       ≈⟨ N≈.>>=-cong-f (λ (s′ , b) → N≈.>>=-cong (θ-trace f s′ as) (λ bs → θ-return (b ∷ bs))) ⟩
     trace (θ ∘ f) s (a ∷ as) ∎
-    where open N-Reasoning
 
   θ-eval : (f : SFunᵉ {M = M} A B) (xs : List A) → θ (eval f xs) ≈ᴹ eval (mapᵉ f) xs
   θ-eval f xs = θ-trace (SFunᵉ.fun f) (SFunᵉ.init f) xs
@@ -66,7 +67,6 @@ module _ {M N : Type↑}
     θ (eval f xs)     ≈⟨ θ-cong (f≈g xs) ⟩
     θ (eval g xs)     ≈⟨ θ-eval g xs ⟩
     eval (mapᵉ g) xs  ∎
-    where open N-Reasoning
 
   mapᵉ-id : mapᵉ (idᵉ {A = A}) ≈ᵉ idᵉ
   mapᵉ-id xs = begin
@@ -75,7 +75,6 @@ module _ {M N : Type↑}
     θ (return xs)       ≈⟨ θ-return xs ⟩
     return xs           ≈⟨ id-correct xs ⟩
     eval idᵉ xs         ∎
-    where open N-Reasoning
 
   mapᵉ-∘ : (g : SFunᵉ {M = M} B C) (f : SFunᵉ {M = M} A B) → mapᵉ (g ∘ᵉ f) ≈ᵉ (mapᵉ g ∘ᵉ mapᵉ f)
   mapᵉ-∘ g f xs = begin
@@ -90,7 +89,6 @@ module _ {M N : Type↑}
     (eval (mapᵉ f) xs >>= eval (mapᵉ g))
       ≈⟨ trace-∘ xs ⟩
     eval (mapᵉ g ∘ᵉ mapᵉ f) xs ∎
-    where open N-Reasoning
 
   SFunᵉ-map : Functor (SFunᵉ-Category {M = M}) (SFunᵉ-Category {M = N})
   SFunᵉ-map = record

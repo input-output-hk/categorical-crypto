@@ -15,8 +15,6 @@ open import Data.Sum.Base renaming (map to map⊎)
 open import Data.Sum.Ext
 open import Data.Sum.Properties
 
-import Relation.Binary.Reasoning.Setoid as R-Setoid
-
 open import CategoricalCrypto.SFunM
 open import CategoricalCrypto.SFunM.Properties
 
@@ -33,6 +31,7 @@ private
 
 open 𝒮.HomReasoning using (_○_; ⟺)
 open import Categories.Morphism.Reasoning (SFunᵉ-Category {M = M})
+open ≈ᴹ-Reasoning
 
 ------------------------------------------------------------------------
 -- The tensor
@@ -185,7 +184,6 @@ hexagonᵉ = ∘ᵉ-resp-≈ᵉ (statelessᵉ-⊗ id swap)
   where
     module F = SFunᵉ f; module G = SFunᵉ g
     module F′ = SFunᵉ f′; module G′ = SFunᵉ g′
-    open R-Setoid ≈ᴹ-setoid
 
     kern : ∀ s x → _
     kern ((sg , sf) , (sg′ , sf′)) (inj₁ a) = begin
@@ -274,7 +272,6 @@ private
       fill  = fillˡ (inj₁ a ∷ xs)
       consˡ = λ p bs → return (inj₁ (proj₂ p) ∷ bs)
       cont  = λ p → trace (f ⊗ᵏ SFunᵉ.fun idᵉ) (proj₁ p) xs >>= λ bs → return (proj₂ p ∷ bs)
-      open R-Setoid ≈ᴹ-setoid
   ⊗idᵏ-trace f s (inj₂ c ∷ xs)  = begin
     ((((λ (t′ , d) → (s , t′) , inj₂ d) <$>ᴹ return (tt , c))) >>= cont)
       ≈⟨ <$>ᴹ->>= _ (return (tt , c)) cont ⟩
@@ -288,7 +285,6 @@ private
     where
       consʳ = λ bs → return (inj₂ c ∷ bs)
       cont  = λ p → trace (f ⊗ᵏ SFunᵉ.fun idᵉ) (proj₁ p) xs >>= λ bs → return (proj₂ p ∷ bs)
-      open R-Setoid ≈ᴹ-setoid
 
   ⊗idᵉ-resp : {f g : SFunᵉ {M = M} A B} → f ≈ᵉ g → (f ⊗ᵉ idᵉ {M = M} {C}) ≈ᵉ (g ⊗ᵉ idᵉ {M = M} {C})
   ⊗idᵉ-resp {f = f} {g} f≈g xs = begin
@@ -299,7 +295,6 @@ private
     (fillˡ xs <$>ᴹ eval g (lefts xs))
       ≈˘⟨ ⊗idᵏ-trace (SFunᵉ.fun g) (SFunᵉ.init g) xs ⟩
     eval (g ⊗ᵉ idᵉ) xs ∎
-    where open R-Setoid ≈ᴹ-setoid
 
   -- Conjugating by the braiding saves a second trace lemma for the right factor.
   σ-conjᵉ : (f : SFunᵉ {M = M} C D) → (σᵉ ∘ᵉ ((f ⊗ᵉ idᵉ {M = M} {A}) ∘ᵉ σᵉ)) ≈ᵉ (idᵉ {M = M} {A} ⊗ᵉ f)
@@ -313,7 +308,6 @@ private
 ⊗-split f g = ≈ᵉ-sim (λ (s , t) → (tt , t) , (s , tt)) refl kern
   where
     module F = SFunᵉ f; module G = SFunᵉ g
-    open R-Setoid ≈ᴹ-setoid
 
     kern : ∀ s x → _
     kern (s , t) (inj₁ a) = begin

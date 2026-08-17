@@ -15,6 +15,8 @@ module CategoricalCrypto.SFunM {M : Type↑}
   ⦃ Monad-M : Monad M       ⦄
   ⦃ MS      : MonadSetoid M ⦄ where
 
+open module ≈ᴹ-Reasoning {ℓ} {X : Type ℓ} = R-Setoid (≈ᴹ-setoid {A = X})
+
 SFunType : Type → Type → Type → Type
 SFunType A B S = S × A → M (S × B)
 
@@ -77,7 +79,6 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
     (eval idᵉ as >>= λ as → return (a ∷ as))
       ≈˘⟨ >>=-identityˡ-≈ ⟩
     eval idᵉ (a ∷ as) ∎
-    where open R-Setoid ≈ᴹ-setoid
 
   -- Uses commutativity to swap the next-step `trace f` recursion with the
   -- current-step `g` action.
@@ -114,7 +115,6 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
     ((f (sf , a) >>= (λ (sf' , b) →
       g (sg , b) >>= (λ (sg' , c) → return ((sg' , sf') , c))))
       >>= (λ (s , c) → trace (g ∘ᵉ' f) s as >>= (λ cs → return (c ∷ cs)))) ∎
-    where open R-Setoid ≈ᴹ-setoid
 
   assoc-∘ᵉ : {f : SFunᵉ A B} {g : SFunᵉ B C} {h : SFunᵉ C D}
            → ((h ∘ᵉ g) ∘ᵉ f) ≈ᵉ (h ∘ᵉ (g ∘ᵉ f))
@@ -130,7 +130,6 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
     (eval (g ∘ᵉ f) xs >>= eval h)
       ≈⟨ trace-∘ xs ⟩
     eval (h ∘ᵉ (g ∘ᵉ f)) xs ∎
-    where open R-Setoid ≈ᴹ-setoid
 
   identityˡ-∘ᵉ : {f : SFunᵉ A B} → (idᵉ ∘ᵉ f) ≈ᵉ f
   identityˡ-∘ᵉ {f = f} xs = begin
@@ -141,7 +140,6 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
     (eval f xs >>= return)
       ≈⟨ >>=-identityʳ-≈ (eval f xs) ⟩
     eval f xs ∎
-    where open R-Setoid ≈ᴹ-setoid
 
   identityʳ-∘ᵉ : {f : SFunᵉ A B} → (f ∘ᵉ idᵉ) ≈ᵉ f
   identityʳ-∘ᵉ {f = f} xs = begin
@@ -152,7 +150,6 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
     (return xs >>= eval f)
       ≈⟨ >>=-identityˡ-≈ ⟩
     eval f xs ∎
-    where open R-Setoid ≈ᴹ-setoid
 
   ∘ᵉ-resp-≈ᵉ : {f h : SFunᵉ B C} {g i : SFunᵉ A B}
              → f ≈ᵉ h → g ≈ᵉ i → (f ∘ᵉ g) ≈ᵉ (h ∘ᵉ i)
@@ -164,7 +161,6 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
     (eval i xs >>= eval h)
       ≈⟨ trace-∘ xs ⟩
     eval (h ∘ᵉ i) xs ∎
-    where open R-Setoid ≈ᴹ-setoid
 
   SFunᵉ-Category : Category _ _ _
   SFunᵉ-Category = categoryHelper record

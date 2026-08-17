@@ -8,14 +8,14 @@ open import Class.Monad.Ext.Setoid
 open import Categories.Category.Instance.Sets
 open import Categories.Functor using (Functor)
 
-import Relation.Binary.Reasoning.Setoid as R-Setoid
-
 open import CategoricalCrypto.SFunM
 
 module CategoricalCrypto.SFunM.Properties {M : Type↑}
   ⦃ Monad-M : Monad M     ⦄
   ⦃ MS      : MonadSetoid M ⦄
   ⦃ M-Laws  : MonadLawsSetoid M ⦄ where
+
+open ≈ᴹ-Reasoning
 
 private variable A A′ B C S S′ : Type
 
@@ -34,9 +34,7 @@ trace-sim φ {f} {g} k s (a ∷ as) = begin
   (((λ (s′ , b) → φ s′ , b) <$>ᴹ f (s , a)) >>= cont)
     ≈⟨ >>=-cong-x (k s a) ⟩
   (g (φ s , a) >>= cont) ∎
-  where
-    cont = λ (t , b) → trace g t as >>= λ bs → return (b ∷ bs)
-    open R-Setoid ≈ᴹ-setoid
+  where cont = λ (t , b) → trace g t as >>= λ bs → return (b ∷ bs)
 
 ≈ᵉ-sim : {f g : SFunᵉ {M = M} A B} (φ : SFunᵉ.State f → SFunᵉ.State g)
        → φ (SFunᵉ.init f) ≡ SFunᵉ.init g
