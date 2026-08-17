@@ -18,7 +18,7 @@ module Data.Bool.ListAction.Ext where
 
 private variable
   ℓ : Level
-  A B : Type ℓ
+  A B C : Type ℓ
 
 any-cong : {P Q : A → Bool} → P ≗ Q → any P ≗ any Q
 any-cong P≗Q xs = cong or (map-cong P≗Q xs)
@@ -51,3 +51,16 @@ any-pair Q []       ys = sym (any-const-false ys)
 any-pair Q (x ∷ xs) ys =
   trans (cong (any (λ b → Q (x , b)) ys ∨_) (any-pair Q xs ys))
         (sym (any-∨ (λ b → Q (x , b)) (λ b → any (λ a → Q (a , b)) xs) ys))
+
+any-⊗ : (Q : C → Bool) (p : A → B → C) (σ : List A) (τ : List B)
+      → any Q (concatMap (λ a → concatMap (λ b → p a b ∷ []) τ) σ)
+      ≡ any (λ a → any (λ b → Q (p a b)) τ) σ
+any-⊗ Q p σ τ = begin
+  any Q (concatMap (λ a → concatMap (λ b → p a b ∷ []) τ) σ)
+    ≡⟨ any-concatMap Q (λ a → concatMap (λ b → p a b ∷ []) τ) σ ⟩
+  any (λ a → any Q (concatMap (λ b → p a b ∷ []) τ)) σ
+    ≡⟨ any-cong (λ a → any-concatMap Q (λ b → p a b ∷ []) τ) σ ⟩
+  any (λ a → any (λ b → any Q (p a b ∷ [])) τ) σ
+    ≡⟨ any-cong (λ a → any-cong (λ b → ∨-identityʳ (Q (p a b))) τ) σ ⟩
+  any (λ a → any (λ b → Q (p a b)) τ) σ ∎
+  where open ≡-Reasoning

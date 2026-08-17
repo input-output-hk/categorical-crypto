@@ -9,7 +9,6 @@ open import Class.Monad.Ext.Setoid
 
 open import Data.Bool.ListAction
 open import Data.Bool.ListAction.Ext
-open import Data.Bool.Properties
 open import Data.List.Properties
 open import Relation.Binary
 
@@ -65,20 +64,6 @@ module 𝒫 {ℓ} {A : Type ℓ} = Setoid (𝒫-setoid A)
   any (λ a → any P (concatMap h (g a))) σ     ≡⟨ sym (any-concatMap P (λ a → concatMap h (g a)) σ) ⟩
   any P (concatMap (λ a → concatMap h (g a)) σ) ∎
   where open ≡-Reasoning
-
-private
-  any-⊗ : (Q : C → Bool) (p : A → B → C) (σ : List A) (τ : List B)
-        → any Q (concatMap (λ a → concatMap (λ b → p a b ∷ []) τ) σ)
-        ≡ any (λ a → any (λ b → Q (p a b)) τ) σ
-  any-⊗ Q p σ τ = begin
-    any Q (concatMap (λ a → concatMap (λ b → p a b ∷ []) τ) σ)
-      ≡⟨ any-concatMap Q (λ a → concatMap (λ b → p a b ∷ []) τ) σ ⟩
-    any (λ a → any Q (concatMap (λ b → p a b ∷ []) τ)) σ
-      ≡⟨ any-cong (λ a → any-concatMap Q (λ b → p a b ∷ []) τ) σ ⟩
-    any (λ a → any (λ b → any Q (p a b ∷ [])) τ) σ
-      ≡⟨ any-cong (λ a → any-cong (λ b → ∨-identityʳ (Q (p a b))) τ) σ ⟩
-    any (λ a → any (λ b → Q (p a b)) τ) σ ∎
-    where open ≡-Reasoning
 
 >>=𝒫-comm : (σ : List A) (τ : List B)
           → concatMap (λ a → concatMap (λ b → (a ,′ b) ∷ []) τ) σ
