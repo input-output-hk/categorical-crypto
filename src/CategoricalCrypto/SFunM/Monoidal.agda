@@ -283,8 +283,7 @@ private
         K   = λ P → (SFunᵉ.fun idᵉ ⊗ᵏ G.fun) ((tt , t) , proj₂ P)
                       >>= λ Q → return ((proj₁ Q , proj₁ P) , proj₂ Q)
 
-⊗ᵉ-resp-≈ : {f h : SFunᵉ {M = M} A B} {g i : SFunᵉ {M = M} C D}
-          → f ≈ᵉ h → g ≈ᵉ i → (f ⊗ᵉ g) ≈ᵉ (h ⊗ᵉ i)
+⊗ᵉ-resp-≈ : {f h : SFunᵉ {M = M} A B} {g i : SFunᵉ {M = M} C D} → f ≈ᵉ h → g ≈ᵉ i → (f ⊗ᵉ g) ≈ᵉ (h ⊗ᵉ i)
 ⊗ᵉ-resp-≈ {f = f} {h} {g} {i} f≈h g≈i =
   ⊗-split f g ○ ∘ᵉ-resp-≈ᵉ (id⊗ᵉ-resp g≈i) (⊗idᵉ-resp f≈h) ○ ⟺ (⊗-split h i)
 
@@ -324,8 +323,7 @@ private
 σᵉ : SFunᵉ {M = M} (A ⊎ B) (B ⊎ A)
 σᵉ = statelessᵉ swap
 
-statelessᵉ-⊗ : (h : A → B) (k : C → D)
-             → (statelessᵉ h ⊗ᵉ statelessᵉ k) ≈ᵉ statelessᵉ (map⊎ h k)
+statelessᵉ-⊗ : (h : A → B) (k : C → D) → (statelessᵉ h ⊗ᵉ statelessᵉ k) ≈ᵉ statelessᵉ (map⊎ h k)
 statelessᵉ-⊗ h k = ≈ᵉ-sim (λ _ → tt) refl kern
   where
     kern : ∀ s x → _
@@ -383,8 +381,7 @@ assoc-commuteᵉ {f = f} {g} {h} = ≈ᵉ-sim (λ (_ , ((u , v) , w)) → (u , (
                $ ≈ᴹ.trans (<$>ᴹ-cong (<$>ᴹ-∘ _ _ (H.fun (w , c))))
                           (<$>ᴹ-∘ _ _ (H.fun (w , c))))
 
-braiding-commuteᵉ : {f : SFunᵉ {M = M} A A′} {g : SFunᵉ {M = M} B B′}
-                  → (σᵉ ∘ᵉ (f ⊗ᵉ g)) ≈ᵉ ((g ⊗ᵉ f) ∘ᵉ σᵉ)
+braiding-commuteᵉ : {f : SFunᵉ {M = M} A A′} {g : SFunᵉ {M = M} B B′} → (σᵉ ∘ᵉ (f ⊗ᵉ g)) ≈ᵉ ((g ⊗ᵉ f) ∘ᵉ σᵉ)
 braiding-commuteᵉ {f = f} {g} = ≈ᵉ-sim (λ (_ , (u , v)) → (v , u) , tt) refl kern
   where
     module F = SFunᵉ f; module G = SFunᵉ g

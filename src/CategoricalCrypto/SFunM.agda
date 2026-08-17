@@ -27,10 +27,7 @@ record SFunᵉ (A B : Type) : Type₁ where
 private variable A B C D State : Type
 
 idᵉ : SFunᵉ A A
-idᵉ = record
-  { State = ⊤
-  ; fun = λ (_ , a) → return (_ , a)
-  }
+idᵉ = record { State = ⊤ ; fun = λ (_ , a) → return (_ , a) }
 
 _∘ᵉ'_ : ∀ {A B C State₁ State₂}
   → SFunType B C State₂
@@ -41,10 +38,7 @@ _∘ᵉ'_ g f ((sg , sf) , a) = do
   (sg , c) ← g (sg , b)
   return ((sg , sf) , c)
 
-_∘ᵉ_ : ∀ {A B C}
-  → SFunᵉ B C
-  → SFunᵉ A B
-  → SFunᵉ A C
+_∘ᵉ_ : ∀ {A B C} → SFunᵉ B C → SFunᵉ A B → SFunᵉ A C
 _∘ᵉ_ g f = let module g = SFunᵉ g; module f = SFunᵉ f in record
   { State = g.State × f.State
   ; init  = g.init , f.init

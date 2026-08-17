@@ -60,8 +60,7 @@ statelessᵉ-cong : {h k : A → B} → h ≗ k → statelessᵉ h ≈ᵉ statel
 statelessᵉ-cong h≗k = ≈ᵉ-sim id refl λ _ a →
   ≈ᴹ.trans >>=-identityˡ-≈ (≈ᴹ.reflexive (cong (λ b → return (tt , b)) (h≗k a)))
 
-statelessᵉ-∘ : (h : B → C) (k : A → B)
-             → statelessᵉ (h ∘ k) ≈ᵉ (statelessᵉ h ∘ᵉ statelessᵉ k)
+statelessᵉ-∘ : (h : B → C) (k : A → B) → statelessᵉ (h ∘ k) ≈ᵉ (statelessᵉ h ∘ᵉ statelessᵉ k)
 statelessᵉ-∘ h k = ≈ᵉ-sim (λ _ → tt , tt) refl λ _ a →
   ≈ᴹ.trans >>=-identityˡ-≈ (≈ᴹ.sym (≈ᴹ.trans >>=-identityˡ-≈ >>=-identityˡ-≈))
 

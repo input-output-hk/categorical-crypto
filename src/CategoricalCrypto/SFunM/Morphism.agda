@@ -77,8 +77,7 @@ module _ {M N : Type↑}
     eval idᵉ xs         ∎
     where open N-Reasoning
 
-  mapᵉ-∘ : (g : SFunᵉ {M = M} B C) (f : SFunᵉ {M = M} A B)
-         → mapᵉ (g ∘ᵉ f) ≈ᵉ (mapᵉ g ∘ᵉ mapᵉ f)
+  mapᵉ-∘ : (g : SFunᵉ {M = M} B C) (f : SFunᵉ {M = M} A B) → mapᵉ (g ∘ᵉ f) ≈ᵉ (mapᵉ g ∘ᵉ mapᵉ f)
   mapᵉ-∘ g f xs = begin
     eval (mapᵉ (g ∘ᵉ f)) xs
       ≈˘⟨ θ-eval (g ∘ᵉ f) xs ⟩
@@ -114,8 +113,7 @@ module _ {M N : Type↑}
   mapᵉ-stateless h = ≈ᵉ-sim id refl λ _ a →
     N≈.≈ᴹ.trans (N≈.<$>ᴹ-cong (θ-return (tt , h a))) >>=-identityˡ-≈
 
-  mapᵉ-⊗ : (f : SFunᵉ {M = M} A B) (g : SFunᵉ {M = M} C D)
-         → mapᵉ (f ⊗ᵉ g) ≈ᵉ (mapᵉ f ⊗ᵉ mapᵉ g)
+  mapᵉ-⊗ : (f : SFunᵉ {M = M} A B) (g : SFunᵉ {M = M} C D) → mapᵉ (f ⊗ᵉ g) ≈ᵉ (mapᵉ f ⊗ᵉ mapᵉ g)
   mapᵉ-⊗ f g = ≈ᵉ-sim id refl kern
     where
       module F = SFunᵉ f; module G = SFunᵉ g
