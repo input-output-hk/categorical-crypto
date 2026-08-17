@@ -72,9 +72,8 @@ statelessᵉ-preᵏ : (h : A′ → A) (k : SFunType A B S) (s : S) (a : A′)
 statelessᵉ-preᵏ h k s a = >>=-identityˡ-≈
 
 statelessᵉ-inv : {h : A → B} {k : B → A} → k ∘ h ≗ id → (statelessᵉ k ∘ᵉ statelessᵉ h) ≈ᵉ idᵉ
-statelessᵉ-inv inv = ≈ᵉ-sim (λ _ → tt) refl λ _ a →
-    ≈ᴹ.trans (<$>ᴹ-cong (≈ᴹ.trans >>=-identityˡ-≈ >>=-identityˡ-≈))
-  $ ≈ᴹ.trans >>=-identityˡ-≈ (≈ᴹ.reflexive (cong (λ b → return (tt , b)) (inv a)))
+statelessᵉ-inv {h = h} {k} inv =
+  ≈ᵉ.trans (≈ᵉ.sym (statelessᵉ-∘ k h)) (≈ᵉ.trans (statelessᵉ-cong inv) statelessᵉ-id)
 
 statelessᵉ-natural : {f : SFunᵉ {M = M} A B} {g : SFunᵉ {M = M} A′ C}
                      (h : A → A′) (k : B → C) (ψ : SFunᵉ.State f → SFunᵉ.State g)

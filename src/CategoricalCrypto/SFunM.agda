@@ -66,6 +66,8 @@ f ≈ᵉ g = ∀ xs → eval f xs ≈ᴹ eval g xs
   ; trans = λ f≈g g≈h xs → ≈ᴹ.trans (f≈g xs) (g≈h xs)
   }
 
+module ≈ᵉ {A B : Type} = IsEquivalence (≈ᵉ-isEquivalence {A} {B})
+
 module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
          ⦃ M-Comm : CommutativeMonadSetoid M ⦄ where
 
