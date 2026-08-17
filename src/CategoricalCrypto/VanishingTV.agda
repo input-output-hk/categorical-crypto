@@ -14,7 +14,6 @@ open import CategoricalCrypto.MachineAxioms
 module CategoricalCrypto.VanishingTV
   {o ℓ e os ℓs qs : Level} (MA : MachineAxioms o ℓ e os ℓs qs) where
 
-open import Axiom.UniquenessOfIdentityProofs
 open import Data.Nat as ℕ using (ℕ)
 open import Data.Nat.Poly
 import Data.Nat.Properties as ℕₚ
@@ -103,8 +102,6 @@ TVTest : Obj^ω → Set (o ⊔ ℓ ⊔ qs)
 TVTest A = Σ[ Y ∈ Obj^ω ] Test^ω (Y 𝒞ω.⊗₀ A)
 
 -- Tests agree iff running them on every closure gives vanishing advantage.
--- Note `same` forces the two sides to share ONE ancilla Y: that is why
--- eliminating a SameTV between general TVTests needs transport (substCl).
 data SameTV (A : Obj^ω) : TVTest A → TVTest A → Set (o ⊔ ℓ ⊔ qs) where
   same : {Y : Obj^ω} {E₁ E₂ : Test^ω (Y 𝒞ω.⊗₀ A)}
        → (∀ (m : Closure^ω (Y 𝒞ω.⊗₀ A)) → run (E₁ 𝒞ω.∘ m) ∼ᵛ run (E₂ 𝒞ω.∘ m))
@@ -174,8 +171,7 @@ private
     open MR U
     α-nat = (refl⟩∘⟨ (⟺ ⊗.identity) ⟩⊗⟨refl) ○ assoc-commute-from
 
--- TODO: should `UIP 𝕄.Obj` become a MachineAxioms field?
-module _ (Obj-set : UIP 𝕄.Obj) where
+module _ (hom-triv : HomTransportTrivial) where
   private
     substCl-level : {Y Z : Obj^ω} (p : Y ≡ Z) (m : Closure^ω (Y 𝒞ω.⊗₀ A)) (n : ℕ)
                   → proj₁ (substCl p m) n
@@ -183,10 +179,9 @@ module _ (Obj-set : UIP 𝕄.Obj) where
     substCl-level refl _ _ = refl
 
     substCl-loop : (p : Y ≡ Y) (m : Closure^ω (Y 𝒞ω.⊗₀ A)) → substCl p m ≈^ω m
-    substCl-loop {Y = Y} {A = A} p m n = 𝕄.Equiv.reflexive
-      (trans (substCl-level p m n)
-             (cong (λ q → subst (𝕄.unit 𝕄.⇒_) q (proj₁ m n))
-                   (Obj-set (cong (λ W → W n 𝕄.⊗₀ A n) p) refl)))
+    substCl-loop {Y = Y} {A = A} p m n =
+      𝕄.Equiv.trans (𝕄.Equiv.reflexive (substCl-level p m n))
+                    (hom-triv (cong (λ W → W n 𝕄.⊗₀ A n) p) (proj₁ m n))
 
   ≈ℰ⇒R : {f g : A ⇒^ω B} → f ≈ℰ g → R f g
   ≈ℰ⇒R e Y E′ m =
