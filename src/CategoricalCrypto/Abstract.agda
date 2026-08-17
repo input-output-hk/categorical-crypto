@@ -19,6 +19,7 @@ open import Categories.Functor
 import Categories.GradedKleisli as GK
 import Categories.GradedKleisli.Regrade as Rg
 import Categories.KernelCongruence as KernelCong
+import Categories.KernelCongruence.Reindex as KernelReindex
 
 open import CategoricalCrypto.UCSetup
 
@@ -67,29 +68,22 @@ module AbstractUC
   U-functor : Functor OAP 𝒞
   U-functor = GK.U-functor 𝒞 ℐ ℳ
 
-  -- 𝓔-observational equivalence: `_≈ℰ_` is the kernel congruence of ℰ
-  -- on 𝒞-homs and `_≈ℰ'_` that of ℰ∘Uᵒᵖ on OAP-homs
-  module KE = KernelCong 𝒞.op              (Setoids cs ℓs) ℰ
+  -- `_≈ℰ'_` is the kernel congruence of ℰ∘Uᵒᵖ on OAP-homs
   module KO = KernelCong (Category.op OAP) (Setoids cs ℓs) (ℰ ∘F Functor.op U-functor)
+  module KU = KernelReindex (Functor.op U-functor) ℰ
 
-  open KE using () renaming
-    ( _∼_ to _≈ℰ_; ∼-refl to ≈ℰ-refl; ∼-sym to ≈ℰ-sym; ∼-trans to ≈ℰ-trans
-    ; ≈⇒∼ to ≈C⇒≈ℰ; ∼-congˡ to ≈ℰ-cong-pre; ∼-congʳ to ≈ℰ-cong-post ) public
   open KO using () renaming
     ( _∼_ to _≈ℰ'_; ∼-sym to ≈'-sym; ∼-congˡ to ≈'-congʳ; ∼-congʳ to ≈'-congˡ
     ; ≈⇒∼ to ≋⇒≈ℰ' ) public
-
-  ≈ℰ-setoid : (A B : 𝒞.Obj) → Setoid ℓ′ (cs ⊔ ℓs)
-  ≈ℰ-setoid A B = KE.∼-setoid B A
 
   ≈'-setoid : (A B : OAP.Obj) → Setoid (o ⊔ ℓ ⊔ ℓ′) (cs ⊔ ℓs)
   ≈'-setoid A B = KO.∼-setoid B A
 
   U-≈ℰ⇒≈ℰ' : ∀ {A B} {x y : A ⇒ᴼ B} → U x ≈ℰ U y → x ≈ℰ' y
-  U-≈ℰ⇒≈ℰ' p = KO.mk∼ (KE.run∼ p)
+  U-≈ℰ⇒≈ℰ' = KU.∼⇒∼∘
 
   ≈ℰ'⇒U-≈ℰ : ∀ {A B} {x y : A ⇒ᴼ B} → x ≈ℰ' y → U x ≈ℰ U y
-  ≈ℰ'⇒U-≈ℰ p = KE.mk∼ (KO.run∼ p)
+  ≈ℰ'⇒U-≈ℰ = KU.∼∘⇒∼
 
   U-≋ : ∀ {A B} {x y : A ⇒ᴼ B} → x OAP.≈ y → U x ≈ℰ U y
   U-≋ p = ≈C⇒≈ℰ (U-resp p)
