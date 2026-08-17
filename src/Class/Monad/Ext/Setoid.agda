@@ -2,7 +2,6 @@
 
 open import categorical-crypto.Prelude
 
-open import Level
 open import Class.Core
 open import Class.Monad
 open import Class.Monad.Ext
@@ -130,8 +129,6 @@ module FromPropositional {M : Type↑}
   ⦃ Monad-M       : Monad M            ⦄
   ⦃ M-Laws        : MonadLaws M        ⦄
   ⦃ M-Extensional : ExtensionalMonad M ⦄ where
-
-  open import Relation.Binary.PropositionalEquality
 
   Propositional-MonadSetoid : MonadSetoid M
   Propositional-MonadSetoid = record

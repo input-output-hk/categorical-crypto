@@ -5,6 +5,12 @@ open import categorical-crypto.Prelude
 open import Class.Core
 open import Class.Prelude
 
+import Categories.Monad as C
+open import Categories.Category.Core
+open import Categories.Category.Construction.Kleisli
+open import Categories.Category.Instance.Sets
+open import Categories.Monad.Construction.Kleisli
+
 module Class.Monad.Ext where
 
 record ExtensionalMonad (M : Type↑) ⦃ Monad-M : Monad M ⦄ ⦃ _ : MonadLaws M ⦄ : Typeω where
@@ -61,13 +67,6 @@ instance
   Commutative-Maybe .>>=-comm {x = just  _} {nothing} = refl
   Commutative-Maybe .>>=-comm {x = nothing} {just  _} = refl
   Commutative-Maybe .>>=-comm {x = nothing} {nothing} = refl
-
-
-import Categories.Monad as C
-open import Categories.Category.Core
-open import Categories.Category.Construction.Kleisli
-open import Categories.Category.Instance.Sets
-open import Categories.Monad.Construction.Kleisli
 
 module _ {M : Type↑} ⦃ Monad-M : Monad M ⦄ ⦃ F-Laws : FunctorLaws M ⦄
   ⦃ M-Laws : MonadLaws M ⦄ ⦃ M-Extensional : ExtensionalMonad M ⦄ where
