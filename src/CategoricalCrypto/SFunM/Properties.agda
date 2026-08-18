@@ -96,6 +96,37 @@ statelessᵉ-natural {f = f} {g} h k ψ init≡ sq =
   $ ≈ᴹ.trans (<$>ᴹ-cong (≈ᴹ.sym (sq s a))) (<$>ᴹ-∘ _ _ (F.fun (s , a)))
   where module F = SFunᵉ f; module G = SFunᵉ g
 
+------------------------------------------------------------------------
+-- Kleisli machines
+
+-- The Kleisli arrows of `M` as stateless machines: `statelessᵉ` is this at a
+-- pure step.
+kleisliᵉ : (A → M B) → SFunᵉ {M = M} A B
+kleisliᵉ h = mkᵉ tt λ (_ , a) → (tt ,_) <$>ᴹ h a
+
+kleisliᵉ-cong : {h k : A → M B} → (∀ a → h a ≈ᴹ k a) → kleisliᵉ h ≈ᵉ kleisliᵉ k
+kleisliᵉ-cong h≈k =
+  ≈ᵉ-sim id refl λ _ a → ≈ᴹ.trans (>>=-identityʳ-≈ _) (<$>ᴹ-cong (h≈k a))
+
+kleisliᵉ-return : (h : A → B) → kleisliᵉ (return ∘ h) ≈ᵉ statelessᵉ h
+kleisliᵉ-return h =
+  ≈ᵉ-sim id refl λ _ a → ≈ᴹ.trans (>>=-identityʳ-≈ _) >>=-identityˡ-≈
+
+kleisliᵉ-∘ : (h : B → M C) (k : A → M B) → kleisliᵉ (h <=< k) ≈ᵉ kleisliᵉ h ∘ᵉ kleisliᵉ k
+kleisliᵉ-∘ h k = ≈ᵉ-sim (λ _ → tt , tt) refl λ _ a → begin
+  ((λ (_ , c) → (tt , tt) , c) <$>ᴹ ((tt ,_) <$>ᴹ (k a >>= h)))
+    ≈⟨ <$>ᴹ-∘ _ (tt ,_) (k a >>= h) ⟩
+  (Λ <$>ᴹ (k a >>= h))
+    ≈⟨ >>=-<$>ᴹ Λ (k a) h ⟩
+  (k a >>= λ b → Λ <$>ᴹ h b)
+    ≈˘⟨ >>=-cong-f (λ b → <$>ᴹ->>= (tt ,_) (h b) mid) ⟩
+  (k a >>= λ b → ((tt ,_) <$>ᴹ h b) >>= mid)
+    ≈˘⟨ <$>ᴹ->>= (tt ,_) (k a) _ ⟩
+  (((tt ,_) <$>ᴹ k a) >>= λ (sf , b) → ((tt ,_) <$>ᴹ h b) >>= λ (sg , c) →
+    return ((sg , sf) , c)) ∎
+  where Λ   = λ c → (tt , tt) , c
+        mid = λ (sg , c) → return ((sg , tt) , c)
+
 module _ ⦃ M-Comm : CommutativeMonadSetoid M ⦄ where
 
   statelessᵉ-Functor : Functor (Sets 0ℓ) (SFunᵉ-Category {M = M})
