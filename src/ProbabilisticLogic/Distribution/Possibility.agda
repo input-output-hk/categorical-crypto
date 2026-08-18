@@ -1,7 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The finite possibility monad: `List` under stdlib set equality, so order and
--- multiplicity are invisible to it.
+-- The finite possibility monad: `List` under set equality.
 
 open import categorical-crypto.Prelude
 
