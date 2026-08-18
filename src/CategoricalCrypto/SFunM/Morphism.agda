@@ -9,7 +9,7 @@ open import Categories.Category.Instance.Setoids
 open import Categories.Functor using (Functor)
 open import Categories.Functor.Monoidal
 open import Categories.Monad.Construction.Kleisli
-open import Categories.Monad.Construction.Kleisli.Ext using (KleisliTriple⇒)
+open import Categories.Monad.Construction.Kleisli.Ext
 import Categories.Monad.Setoids.Discrete as Discrete
 import Categories.Monad.Setoids.Discrete.Morphism as DiscreteMorphism
 open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)

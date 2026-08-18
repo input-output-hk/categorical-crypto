@@ -1,10 +1,10 @@
 {-# OPTIONS --safe --without-K #-}
 
-open import Function.Base using (_∘_)
-open import Function.Bundles using (Func)
+open import Function.Base
+open import Function.Bundles
 open import Level
-open import Relation.Binary.Bundles using (Setoid)
-open import Relation.Binary.PropositionalEquality using (cong)
+open import Relation.Binary.Bundles
+open import Relation.Binary.PropositionalEquality
 open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to ≡-setoid)
 
 module Function.Bundles.Ext where

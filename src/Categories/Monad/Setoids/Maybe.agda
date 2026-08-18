@@ -8,10 +8,10 @@ open import Categories.Category.Instance.Setoids
 open import Categories.Monad.Construction.Kleisli
 import Categories.Monad.Setoids.Discrete as Discrete
 
-open import Data.Maybe using (Maybe; just; nothing; _>>=_)
+open import Data.Maybe
 open import Data.Maybe.Relation.Binary.Pointwise as Pw using (Pointwise)
 open import Function.Bundles
-open import Relation.Binary.Bundles using (Setoid)
+open import Relation.Binary.Bundles
 open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to ≡-setoid)
 
 module Categories.Monad.Setoids.Maybe where

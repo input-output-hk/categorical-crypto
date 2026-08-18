@@ -7,19 +7,19 @@
 
 open import Level
 
-open import Categories.Category using (Category; _[_,_])
-open import Categories.Category.Construction.Kleisli using (Kleisli)
+open import Categories.Category
+open import Categories.Category.Construction.Kleisli
 open import Categories.Category.Instance.Setoids
-open import Categories.Category.SubCategory using (FullSubCategory)
+open import Categories.Category.SubCategory
 open import Categories.Monad.Construction.Kleisli
-open import Categories.Monad.Construction.Kleisli.Ext using (extend-μ)
+open import Categories.Monad.Construction.Kleisli.Ext
 open import Categories.Monad.Relative using () renaming (Monad to RMonad)
 
-open import Data.Product using (_,_; _,′_)
-open import Function.Base using (_∘_)
+open import Data.Product
+open import Function.Base
 open import Function.Bundles
 open import Function.Bundles.Ext
-open import Relation.Binary.Bundles using (Setoid)
+open import Relation.Binary.Bundles
 open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to ≡-setoid)
 import Relation.Binary.Reasoning.Setoid as R-Setoid
 
@@ -140,6 +140,5 @@ private module Kl = Category Kleisliᴹ
 -- `Kleisliᴹ` composes through `μ ∘ F₁ g`, which is `_>>=_` only up to `_≈ᴹ_`.
 ∘ᴹ-bind : {f : Kleisliᴹ [ A , B ]} {g : Kleisliᴹ [ B , C ]} (a : A)
         → ((g Kl.∘ f) ⟨$⟩ a) ≈ᴹ ((f ⟨$⟩ a) >>= (g ⟨$⟩_))
-∘ᴹ-bind {g = g} _ =
-  ≈ᴹ.trans (extend-μ (Setoids ℓ ℓ) K g) (K.extend-≈ ≈ᴹ.refl)
+∘ᴹ-bind {g = g} _ = ≈ᴹ.trans (extend-μ (Setoids ℓ ℓ) K g) (K.extend-≈ ≈ᴹ.refl)
 

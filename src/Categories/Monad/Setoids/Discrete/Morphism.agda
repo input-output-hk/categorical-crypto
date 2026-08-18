@@ -11,7 +11,7 @@ open import Categories.Monad.Construction.Kleisli.Ext
 open import Categories.Monad.Relative using () renaming (Monad to RMonad)
 import Categories.Monad.Setoids.Discrete as Discrete
 
-open import Function.Base using (_∘_)
+open import Function.Base
 open import Function.Bundles
 open import Function.Bundles.Ext
 open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to ≡-setoid)
