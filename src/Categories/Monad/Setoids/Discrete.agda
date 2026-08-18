@@ -114,3 +114,11 @@ Commutative = {A B C : Set ℓ} {x : M A} {y : M B} (f : A → B → M C)
 Kleisliᴹ : Category (suc ℓ) ℓ ℓ
 Kleisliᴹ = FullSubCategory (Kleisli (Kleisli⇒Monad (Setoids ℓ ℓ) K)) ≡-setoid
 
+private module Kl = Category Kleisliᴹ
+
+-- `Kleisliᴹ` composes through `μ ∘ F₁ g`, which is `_>>=_` only up to `_≈ᴹ_`.
+∘ᴹ-bind : {f : Kleisliᴹ [ A , B ]} {g : Kleisliᴹ [ B , C ]} (a : A)
+        → ((g Kl.∘ f) ⟨$⟩ a) ≈ᴹ ((f ⟨$⟩ a) >>= (g ⟨$⟩_))
+∘ᴹ-bind {g = g} _ =
+  ≈ᴹ.trans (extend-μ (Setoids ℓ ℓ) K g) (K.extend-≈ ≈ᴹ.refl)
+

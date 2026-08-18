@@ -133,3 +133,13 @@ kleisliᵉ-∘ h k = ≈ᵉ-sim (λ _ → tt , tt) refl λ _ a → begin
     return ((sg , sf) , c)) ∎
   where Λ   = λ c → (tt , tt) , c
         mid = λ (sg , c) → return ((sg , tt) , c)
+
+kleisliᵉ-Functor : (>>=-comm : Commutative) → Functor Kleisliᴹ (Laws.SFunᵉ-Category >>=-comm)
+kleisliᵉ-Functor _ = record
+  { F₀           = id
+  ; F₁           = λ f → kleisliᵉ (f ⟨$⟩_)
+  ; identity     = ≈ᵉ.trans (kleisliᵉ-return id) statelessᵉ-id
+  ; homomorphism = λ {_ _ _ f g} →
+      ≈ᵉ.trans (kleisliᵉ-cong (∘ᴹ-bind {f = f} {g = g})) (kleisliᵉ-∘ (g ⟨$⟩_) (f ⟨$⟩_))
+  ; F-resp-≈     = λ f≈g → kleisliᵉ-cong λ a → f≈g {a}
+  }
