@@ -15,6 +15,7 @@ open import Categories.Monad.Construction.Kleisli
 open import Categories.Monad.Construction.Kleisli.Ext using (extend-μ)
 open import Categories.Monad.Relative using () renaming (Monad to RMonad)
 
+open import Data.Product using (_,_; _,′_)
 open import Function.Base using (_∘_)
 open import Function.Bundles
 open import Function.Bundles.Ext
@@ -99,13 +100,32 @@ h <$>ᴹ m = m >>= (return ∘ h)
          → (h <$>ᴹ (m >>= g)) ≈ᴹ (m >>= λ a → h <$>ᴹ g a)
 >>=-<$>ᴹ h m g = >>=-assoc-≈ m
 
--- Commutativity, in the Yoneda form: the pair form forces the setoid the two
--- sides are compared at to be a product, which is not what the machine layer's
--- state-passing kernels need.
 record Commutative : Set (suc ℓ) where
   field
-    >>=-comm : {A B C : Set ℓ} {x : M A} {y : M B} (f : A → B → M C)
+    >>=-comm : {A B : Set ℓ} {x : M A} {y : M B}
+             → (x >>= λ a → y >>= λ b → return (a ,′ b))
+             ≈ᴹ (y >>= λ b → x >>= λ a → return (a , b))
+
+  -- Yoneda variant
+  >>=-comm-y : {A B C : Set ℓ} {x : M A} {y : M B} (f : A → B → M C)
              → (x >>= λ a → y >>= f a) ≈ᴹ (y >>= λ b → x >>= λ a → f a b)
+  >>=-comm-y {x = x} {y} f = begin
+    (x >>= λ a → y >>= λ b → f a b)
+      ≈⟨ >>=-cong-f (λ _ → >>=-cong-f λ _ → ≈ᴹ.sym >>=-identityˡ-≈) ⟩
+    (x >>= λ a → y >>= λ b → return (a ,′ b) >>= λ (a , b) → f a b)
+      ≈⟨ >>=-cong-f (λ _ → ≈ᴹ.sym (>>=-assoc-≈ y)) ⟩
+    (x >>= λ a → (y >>= λ b → return (a ,′ b)) >>= λ (a , b) → f a b)
+      ≈⟨ ≈ᴹ.sym (>>=-assoc-≈ x) ⟩
+    ((x >>= λ a → y >>= λ b → return (a ,′ b)) >>= λ (a , b) → f a b)
+      ≈⟨ >>=-cong-x >>=-comm ⟩
+    ((y >>= λ b → x >>= λ a → return (a ,′ b)) >>= λ (a , b) → f a b)
+      ≈⟨ >>=-assoc-≈ y ⟩
+    (y >>= λ b → (x >>= λ a → return (a ,′ b)) >>= λ (a , b) → f a b)
+      ≈⟨ >>=-cong-f (λ _ → >>=-assoc-≈ x) ⟩
+    (y >>= λ b → x >>= λ a → return (a ,′ b) >>= λ (a , b) → f a b)
+      ≈⟨ >>=-cong-f (λ _ → >>=-cong-f λ _ → >>=-identityˡ-≈) ⟩
+    (y >>= λ b → x >>= λ a → f a b) ∎
+    where open ≈ᴹ-Reasoning
 
 ------------------------------------------------------------------------
 -- The Kleisli category

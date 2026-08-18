@@ -131,6 +131,6 @@ module _ {S : Setoid ℓ ℓ} {S′ : Setoid ℓ′ ℓ′} {S″ : Setoid ℓ�
 
 𝒫-commutative : Discrete.Commutative (𝒫-KleisliTriple {ℓ})
 𝒫-commutative = record
-  { >>=-comm = λ {A} {B} {C} {σ} {τ} f →
-      >>=𝒫-comm {S = ≡-setoid A} {S′ = ≡-setoid B} {S″ = ≡-setoid C} σ τ f
+  { >>=-comm = λ {A} {B} {σ} {τ} →
+      >>=𝒫-comm {S = ≡-setoid A} {S′ = ≡-setoid B} {S″ = ≡-setoid (A × B)} σ τ _
   }

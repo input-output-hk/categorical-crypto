@@ -65,7 +65,7 @@ Maybe-KleisliTriple = record
   assocᴹᵇ           nothing  = Pw.nothing
 
 Maybe-commutative : Discrete.Commutative (Maybe-KleisliTriple {ℓ})
-Maybe-commutative = record { >>=-comm = λ {A} {B} {C} {x} {y} f → commᴹᵇ {C = C} f x y }
+Maybe-commutative = record { >>=-comm = λ {A} {B} {x} {y} → commᴹᵇ _ x y }
   where
   commᴹᵇ : {A B C : Set ℓ} (f : A → B → Maybe C) (x : Maybe A) (y : Maybe B)
          → ≈ᴹᵇ (≡-setoid C) (x >>= λ a → y >>= f a) (y >>= λ b → x >>= λ a → f a b)

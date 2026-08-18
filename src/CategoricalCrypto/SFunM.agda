@@ -105,7 +105,7 @@ module Laws (M-Comm : Commutative) where
     (f (sf , a) >>= (λ (sf' , b) → trace f sf' as >>= (λ bs → return (b ∷ bs) >>= trace g sg)))
       ≈⟨ >>=-cong-f (λ _ → >>=-cong-f (λ _ → >>=-identityˡ-≈)) ⟩
     (f (sf , a) >>= (λ (sf' , b) → trace f sf' as >>= (λ bs → trace g sg (b ∷ bs))))
-      ≈⟨ >>=-cong-f (λ _ → >>=-comm _) ⟩
+      ≈⟨ >>=-cong-f (λ _ → >>=-comm-y _) ⟩
     (f (sf , a) >>= (λ (sf' , b) → g (sg , b) >>= (λ (sg' , c) →
       trace f sf' as >>= (λ bs → trace g sg' bs >>= (λ cs → return (c ∷ cs))))))
       ≈⟨ >>=-cong-f (λ _ → >>=-cong-f (λ _ → ≈ᴹ.sym (>>=-assoc-≈ (trace f _ as)))) ⟩
