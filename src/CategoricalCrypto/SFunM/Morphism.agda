@@ -43,7 +43,7 @@ module _ {M N : Type↑}
   open N-Reasoning
 
   mapᵉ : SFunᵉ {M = M} A B → SFunᵉ {M = N} A B
-  mapᵉ f = record { State = State ; init = init ; fun = θ ∘ fun }
+  mapᵉ f = mkᵉ init (θ ∘ fun)
     where open SFunᵉ f
 
   θ-trace : (f : SFunType {M = M} A B St) (s : St) (xs : List A)

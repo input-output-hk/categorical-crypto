@@ -28,11 +28,14 @@ record SFunᵉ (A B : Type) : Type₁ where
 
 private variable A B C D State State′ : Type
 
+mkᵉ : State → SFunType A B State → SFunᵉ A B
+mkᵉ {State = S} s k = record { State = S ; init = s ; fun = k }
+
 idᵏ : SFunType A A ⊤
 idᵏ (_ , a) = return (tt , a)
 
 idᵉ : SFunᵉ A A
-idᵉ = record { State = ⊤ ; init = tt ; fun = idᵏ }
+idᵉ = mkᵉ tt idᵏ
 
 _∘ᵉ'_ : SFunType B C State′ → SFunType A B State → SFunType A C (State′ × State)
 _∘ᵉ'_ g f ((sg , sf) , a) = do
@@ -41,11 +44,16 @@ _∘ᵉ'_ g f ((sg , sf) , a) = do
   return ((sg , sf) , c)
 
 _∘ᵉ_ : SFunᵉ B C → SFunᵉ A B → SFunᵉ A C
-_∘ᵉ_ g f = let module g = SFunᵉ g; module f = SFunᵉ f in record
-  { State = g.State × f.State
-  ; init  = g.init , f.init
-  ; fun   = g.fun ∘ᵉ' f.fun
-  }
+_∘ᵉ_ g f = let module g = SFunᵉ g; module f = SFunᵉ f in
+  mkᵉ (g.init , f.init) (g.fun ∘ᵉ' f.fun)
+
+-- Two ports over *one* state.  The tensor `_⊗ᵏ_`
+-- (`CategoricalCrypto.SFunM.Monoidal`) has the same shape with the two sides'
+-- states kept apart, so a functionality whose ports share a queue cannot use it;
+-- and there is no `SFunᵉ`-level counterpart, since `SFunᵉ` hides the state.
+[_∣_]ᵏ : SFunType A B State → SFunType C D State → SFunType (A ⊎ C) (B ⊎ D) State
+[ f ∣ g ]ᵏ (s , inj₁ a) = (λ (s′ , b) → s′ , inj₁ b) <$>ᴹ f (s , a)
+[ f ∣ g ]ᵏ (s , inj₂ c) = (λ (s′ , d) → s′ , inj₂ d) <$>ᴹ g (s , c)
 
 trace : SFunType A B State → State → List A → M (List B)
 trace f s [] = return []

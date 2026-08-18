@@ -45,7 +45,7 @@ _⊗ᵏ_ : SFunType A B S → SFunType C D S′ → SFunType (A ⊎ C) (B ⊎ D)
 (f ⊗ᵏ g) ((s , t) , inj₂ c) = (λ (t′ , d) → (s , t′) , inj₂ d) <$>ᴹ g (t , c)
 
 _⊗ᵉ_ : SFunᵉ {M = M} A B → SFunᵉ {M = M} C D → SFunᵉ {M = M} (A ⊎ C) (B ⊎ D)
-f ⊗ᵉ g = record { State = F.State × G.State ; init = F.init , G.init ; fun = F.fun ⊗ᵏ G.fun }
+f ⊗ᵉ g = mkᵉ (F.init , G.init) (F.fun ⊗ᵏ G.fun)
   where module F = SFunᵉ f
         module G = SFunᵉ g
 

@@ -54,7 +54,7 @@ statelessᵏ : (A → B) → SFunType A B ⊤
 statelessᵏ h (_ , a) = return (tt , h a)
 
 statelessᵉ : (A → B) → SFunᵉ {M = M} A B
-statelessᵉ h = record { State = ⊤ ; init = tt ; fun = statelessᵏ h }
+statelessᵉ h = mkᵉ tt (statelessᵏ h)
 
 statelessᵉ-cong : {h k : A → B} → h ≗ k → statelessᵉ h ≈ᵉ statelessᵉ k
 statelessᵉ-cong h≗k = ≈ᵉ-sim id refl λ _ a →
