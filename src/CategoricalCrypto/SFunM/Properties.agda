@@ -1,20 +1,19 @@
 {-# OPTIONS --safe --without-K #-}
 
-open import categorical-crypto.Prelude hiding (Functor)
-
-open import Class.Core
-open import Class.Monad.Ext.Setoid
+open import categorical-crypto.Prelude hiding (Functor; _>>=_; _<=<_; return)
 
 open import Categories.Category.Instance.Sets
+open import Categories.Category.Instance.Setoids
 open import Categories.Functor using (Functor)
+open import Categories.Monad.Construction.Kleisli
+import Categories.Monad.Setoids.Discrete as Discrete
 
-open import CategoricalCrypto.SFunM
+import CategoricalCrypto.SFunM as SFun
 
-module CategoricalCrypto.SFunM.Properties {M : Type↑}
-  ⦃ Monad-M : Monad M     ⦄
-  ⦃ MS      : MonadSetoid M ⦄
-  ⦃ M-Laws  : MonadLawsSetoid M ⦄ where
+module CategoricalCrypto.SFunM.Properties (K : KleisliTriple (Setoids 0ℓ 0ℓ)) where
 
+open Discrete K
+open SFun K
 open ≈ᴹ-Reasoning
 
 private variable A A′ B C S S′ : Type
@@ -39,7 +38,7 @@ trace-sim φ {f} {g} k s (a ∷ as) = begin
   (g (φ s , a) >>= cont) ∎
   where cont = λ (t , b) → trace g t as >>= λ bs → return (b ∷ bs)
 
-≈ᵉ-sim : {f g : SFunᵉ {M = M} A B} (φ : SFunᵉ.State f → SFunᵉ.State g)
+≈ᵉ-sim : {f g : SFunᵉ A B} (φ : SFunᵉ.State f → SFunᵉ.State g)
        → φ (SFunᵉ.init f) ≡ SFunᵉ.init g
        → (∀ s a → ((λ (s′ , b) → φ s′ , b) <$>ᴹ SFunᵉ.fun f (s , a)) ≈ᴹ SFunᵉ.fun g (φ s , a))
        → f ≈ᵉ g
@@ -53,7 +52,7 @@ trace-sim φ {f} {g} k s (a ∷ as) = begin
 statelessᵏ : (A → B) → SFunType A B ⊤
 statelessᵏ h (_ , a) = return (tt , h a)
 
-statelessᵉ : (A → B) → SFunᵉ {M = M} A B
+statelessᵉ : (A → B) → SFunᵉ A B
 statelessᵉ h = mkᵉ tt (statelessᵏ h)
 
 statelessᵉ-cong : {h k : A → B} → h ≗ k → statelessᵉ h ≈ᵉ statelessᵉ k
@@ -81,7 +80,7 @@ statelessᵉ-inv : {h : A → B} {k : B → A} → k ∘ h ≗ id → stateless�
 statelessᵉ-inv {h = h} {k} inv =
   ≈ᵉ.trans (≈ᵉ.sym (statelessᵉ-∘ k h)) (≈ᵉ.trans (statelessᵉ-cong inv) statelessᵉ-id)
 
-statelessᵉ-natural : {f : SFunᵉ {M = M} A B} {g : SFunᵉ {M = M} A′ C}
+statelessᵉ-natural : {f : SFunᵉ A B} {g : SFunᵉ A′ C}
                      (h : A → A′) (k : B → C) (ψ : SFunᵉ.State f → SFunᵉ.State g)
                    → ψ (SFunᵉ.init f) ≡ SFunᵉ.init g
                    → (∀ s a → ((λ (s′ , b) → ψ s′ , k b) <$>ᴹ SFunᵉ.fun f (s , a))
@@ -96,8 +95,8 @@ statelessᵉ-natural {f = f} {g} h k ψ init≡ sq =
   $ ≈ᴹ.trans (<$>ᴹ-cong (≈ᴹ.sym (sq s a))) (<$>ᴹ-∘ _ _ (F.fun (s , a)))
   where module F = SFunᵉ f; module G = SFunᵉ g
 
-statelessᵉ-Functor : ⦃ M-Comm : CommutativeMonadSetoid M ⦄ → Functor (Sets 0ℓ) (SFunᵉ-Category {M = M})
-statelessᵉ-Functor = record
+statelessᵉ-Functor : (>>=-comm : Commutative) → Functor (Sets 0ℓ) (Laws.SFunᵉ-Category >>=-comm)
+statelessᵉ-Functor _ = record
   { F₀           = id
   ; F₁           = statelessᵉ
   ; identity     = statelessᵉ-id
@@ -109,8 +108,7 @@ statelessᵉ-Functor = record
 -- Kleisli machines
 
 -- The Kleisli arrows of `M` as stateless machines
--- TODO: this should be a functor as well. Maybe we can redefine `statelessᵉ` and its properties from this?
-kleisliᵉ : (A → M B) → SFunᵉ {M = M} A B
+kleisliᵉ : (A → M B) → SFunᵉ A B
 kleisliᵉ h = mkᵉ tt λ (_ , a) → (tt ,_) <$>ᴹ h a
 
 kleisliᵉ-cong : {h k : A → M B} → (∀ a → h a ≈ᴹ k a) → kleisliᵉ h ≈ᵉ kleisliᵉ k

@@ -17,7 +17,7 @@ open import Function.Bundles.Ext
 open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to ≡-setoid)
 
 module Categories.Monad.Setoids.Discrete.Morphism {ℓ}
-  {K K′ : KleisliTriple (Setoids ℓ ℓ)} (Θᶜ : KleisliTriple⇒ (Setoids ℓ ℓ) K K′) where
+  (K K′ : KleisliTriple (Setoids ℓ ℓ)) (Θᶜ : KleisliTriple⇒ (Setoids ℓ ℓ) K K′) where
 
 open Discrete K
 
@@ -29,7 +29,7 @@ private
 
 module N = Discrete K′
 
-open N using () renaming (M to Mᴺ; _≈ᴹ_ to _≈ᴺ_)
+open N using () renaming (M to Mᴺ; _≈ᴹ_ to _≈ᴺ_) public
 
 θ : M A → Mᴺ A
 θ {A} = Θ.θ {≡-setoid A} ⟨$⟩_

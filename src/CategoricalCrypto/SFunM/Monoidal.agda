@@ -2,37 +2,39 @@
 
 -- The monoidal structure is given by parallel composition
 
-open import categorical-crypto.Prelude
-
-open import Class.Core
-open import Class.Monad.Ext.Setoid
+open import categorical-crypto.Prelude hiding (_>>=_; return)
 
 open import Categories.Category.Core
+open import Categories.Category.Instance.Setoids
 open import Categories.Category.Monoidal
 open import Categories.Category.Monoidal.Symmetric
 import Categories.Functor.Bifunctor as CatBi
+open import Categories.Monad.Construction.Kleisli
+import Categories.Monad.Setoids.Discrete as Discrete
 open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)
 
 open import Data.Sum renaming (map to map⊎)
 open import Data.Sum.Ext
 open import Data.Sum.Properties
 
-open import CategoricalCrypto.SFunM
-open import CategoricalCrypto.SFunM.Properties
+import CategoricalCrypto.SFunM as SFun
+import CategoricalCrypto.SFunM.Properties as SFunProperties
 
-module CategoricalCrypto.SFunM.Monoidal {M : Type↑}
-  ⦃ Monad-M : Monad M                  ⦄
-  ⦃ MS      : MonadSetoid M            ⦄
-  ⦃ M-Laws  : MonadLawsSetoid M        ⦄
-  ⦃ M-Comm  : CommutativeMonadSetoid M ⦄ where
+module CategoricalCrypto.SFunM.Monoidal (K : KleisliTriple (Setoids 0ℓ 0ℓ))
+  (>>=-comm : Discrete.Commutative K) where
+
+open Discrete K
+open SFun K
+open Laws >>=-comm
+open SFunProperties K
 
 private
   variable A A′ B B′ C C′ D S S′ : Type
 
-  module 𝒮 = Category (SFunᵉ-Category {M = M})
+  module 𝒮 = Category SFunᵉ-Category
 
 open 𝒮.HomReasoning using (_○_; ⟺; _⟩∘⟨_; refl⟩∘⟨_; _⟩∘⟨refl)
-open import Categories.Morphism.Reasoning (SFunᵉ-Category {M = M})
+open import Categories.Morphism.Reasoning SFunᵉ-Category
 open ≈ᴹ-Reasoning
 
 ------------------------------------------------------------------------
@@ -44,7 +46,7 @@ _⊗ᵏ_ : SFunType A B S → SFunType C D S′ → SFunType (A ⊎ C) (B ⊎ D)
 (f ⊗ᵏ g) ((s , t) , inj₁ a) = (λ (s′ , b) → (s′ , t) , inj₁ b) <$>ᴹ f (s , a)
 (f ⊗ᵏ g) ((s , t) , inj₂ c) = (λ (t′ , d) → (s , t′) , inj₂ d) <$>ᴹ g (t , c)
 
-_⊗ᵉ_ : SFunᵉ {M = M} A B → SFunᵉ {M = M} C D → SFunᵉ {M = M} (A ⊎ C) (B ⊎ D)
+_⊗ᵉ_ : SFunᵉ A B → SFunᵉ C D → SFunᵉ (A ⊎ C) (B ⊎ D)
 f ⊗ᵉ g = mkᵉ (F.init , G.init) (F.fun ⊗ᵏ G.fun)
   where module F = SFunᵉ f
         module G = SFunᵉ g
@@ -52,25 +54,25 @@ f ⊗ᵉ g = mkᵉ (F.init , G.init) (F.fun ⊗ᵏ G.fun)
 ------------------------------------------------------------------------
 -- The structural morphisms
 
-λ⇒ᵉ : SFunᵉ {M = M} (⊥ ⊎ A) A
+λ⇒ᵉ : SFunᵉ (⊥ ⊎ A) A
 λ⇒ᵉ = statelessᵉ unitˡ⇒
 
-λ⇐ᵉ : SFunᵉ {M = M} A (⊥ ⊎ A)
+λ⇐ᵉ : SFunᵉ A (⊥ ⊎ A)
 λ⇐ᵉ = statelessᵉ inj₂
 
-ρ⇒ᵉ : SFunᵉ {M = M} (A ⊎ ⊥) A
+ρ⇒ᵉ : SFunᵉ (A ⊎ ⊥) A
 ρ⇒ᵉ = statelessᵉ unitʳ⇒
 
-ρ⇐ᵉ : SFunᵉ {M = M} A (A ⊎ ⊥)
+ρ⇐ᵉ : SFunᵉ A (A ⊎ ⊥)
 ρ⇐ᵉ = statelessᵉ inj₁
 
-α⇒ᵉ : SFunᵉ {M = M} ((A ⊎ B) ⊎ C) (A ⊎ (B ⊎ C))
+α⇒ᵉ : SFunᵉ ((A ⊎ B) ⊎ C) (A ⊎ (B ⊎ C))
 α⇒ᵉ = statelessᵉ assocʳ
 
-α⇐ᵉ : SFunᵉ {M = M} (A ⊎ (B ⊎ C)) ((A ⊎ B) ⊎ C)
+α⇐ᵉ : SFunᵉ (A ⊎ (B ⊎ C)) ((A ⊎ B) ⊎ C)
 α⇐ᵉ = statelessᵉ assocˡ
 
-σᵉ : SFunᵉ {M = M} (A ⊎ B) (B ⊎ A)
+σᵉ : SFunᵉ (A ⊎ B) (B ⊎ A)
 σᵉ = statelessᵉ swap
 
 statelessᵉ-⊗ : (h : A → B) (k : C → D) → (statelessᵉ h ⊗ᵉ statelessᵉ k) ≈ᵉ statelessᵉ (map⊎ h k)
@@ -78,17 +80,17 @@ statelessᵉ-⊗ h k = ≈ᵉ-sim (λ _ → tt) refl λ where
   _ (inj₁ _) → ≈ᴹ.trans (<$>ᴹ-cong >>=-identityˡ-≈) >>=-identityˡ-≈
   _ (inj₂ _) → ≈ᴹ.trans (<$>ᴹ-cong >>=-identityˡ-≈) >>=-identityˡ-≈
 
-unitorˡ-commuteᵉ : {f : SFunᵉ {M = M} A B} → (λ⇒ᵉ ∘ᵉ (idᵉ ⊗ᵉ f)) ≈ᵉ (f ∘ᵉ λ⇒ᵉ)
+unitorˡ-commuteᵉ : {f : SFunᵉ A B} → (λ⇒ᵉ ∘ᵉ (idᵉ ⊗ᵉ f)) ≈ᵉ (f ∘ᵉ λ⇒ᵉ)
 unitorˡ-commuteᵉ {f = f} = statelessᵉ-natural unitˡ⇒ unitˡ⇒ proj₂ refl λ where
     (_ , s) (inj₂ a) → ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (s , a))) (>>=-identityʳ-≈ (F.fun (s , a)))
   where module F = SFunᵉ f
 
-unitorʳ-commuteᵉ : {f : SFunᵉ {M = M} A B} → (ρ⇒ᵉ ∘ᵉ (f ⊗ᵉ idᵉ)) ≈ᵉ (f ∘ᵉ ρ⇒ᵉ)
+unitorʳ-commuteᵉ : {f : SFunᵉ A B} → (ρ⇒ᵉ ∘ᵉ (f ⊗ᵉ idᵉ)) ≈ᵉ (f ∘ᵉ ρ⇒ᵉ)
 unitorʳ-commuteᵉ {f = f} = statelessᵉ-natural unitʳ⇒ unitʳ⇒ proj₁ refl λ where
     (s , _) (inj₁ a) → ≈ᴹ.trans (<$>ᴹ-∘ _ _ (F.fun (s , a))) (>>=-identityʳ-≈ (F.fun (s , a)))
   where module F = SFunᵉ f
 
-assoc-commuteᵉ : {f : SFunᵉ {M = M} A A′} {g : SFunᵉ {M = M} B B′} {h : SFunᵉ {M = M} C C′}
+assoc-commuteᵉ : {f : SFunᵉ A A′} {g : SFunᵉ B B′} {h : SFunᵉ C C′}
                → (α⇒ᵉ ∘ᵉ ((f ⊗ᵉ g) ⊗ᵉ h)) ≈ᵉ ((f ⊗ᵉ (g ⊗ᵉ h)) ∘ᵉ α⇒ᵉ)
 assoc-commuteᵉ {f = f} {g} {h} =
     statelessᵉ-natural assocʳ assocʳ (λ ((u , v) , w) → u , (v , w)) refl λ where
@@ -101,7 +103,7 @@ assoc-commuteᵉ {f = f} {g} {h} =
         ≈ᴹ.trans (<$>ᴹ-∘ _ _ (H.fun (w , c))) (≈ᴹ.sym (<$>ᴹ-∘ _ _ (H.fun (w , c))))
   where module F = SFunᵉ f; module G = SFunᵉ g; module H = SFunᵉ h
 
-braiding-commuteᵉ : {f : SFunᵉ {M = M} A A′} {g : SFunᵉ {M = M} B B′} → (σᵉ ∘ᵉ (f ⊗ᵉ g)) ≈ᵉ ((g ⊗ᵉ f) ∘ᵉ σᵉ)
+braiding-commuteᵉ : {f : SFunᵉ A A′} {g : SFunᵉ B B′} → (σᵉ ∘ᵉ (f ⊗ᵉ g)) ≈ᵉ ((g ⊗ᵉ f) ∘ᵉ σᵉ)
 braiding-commuteᵉ {f = f} {g} =
     statelessᵉ-natural swap swap (λ (u , v) → v , u) refl λ where
       (u , _) (inj₁ a) → <$>ᴹ-∘ _ _ (F.fun (u , a))
@@ -138,7 +140,7 @@ braiding-commuteᵉ {f = f} {g} =
 σ-involutiveᵉ : (σᵉ ∘ᵉ σᵉ {A} {B}) ≈ᵉ idᵉ
 σ-involutiveᵉ = statelessᵉ-inv swap-involutive
 
-triangleᵉ : ((idᵉ {M = M} {A} ⊗ᵉ λ⇒ᵉ {B}) ∘ᵉ α⇒ᵉ) ≈ᵉ (ρ⇒ᵉ ⊗ᵉ idᵉ)
+triangleᵉ : ((idᵉ {A} ⊗ᵉ λ⇒ᵉ {B}) ∘ᵉ α⇒ᵉ) ≈ᵉ (ρ⇒ᵉ ⊗ᵉ idᵉ)
 triangleᵉ = statelessᵉ-⊗ id unitˡ⇒ ⟩∘⟨refl
           ○ ⟺ (statelessᵉ-∘ (map⊎ id unitˡ⇒) assocʳ)
           ○ statelessᵉ-cong (λ where
@@ -171,11 +173,11 @@ hexagonᵉ = statelessᵉ-⊗ id swap ⟩∘⟨ (refl⟩∘⟨ statelessᵉ-⊗ 
 ------------------------------------------------------------------------
 -- Functoriality
 
-⊗ᵉ-identity : (idᵉ {M = M} {A} ⊗ᵉ idᵉ {M = M} {B}) ≈ᵉ idᵉ
+⊗ᵉ-identity : (idᵉ {A} ⊗ᵉ idᵉ {B}) ≈ᵉ idᵉ
 ⊗ᵉ-identity = statelessᵉ-⊗ id id ○ statelessᵉ-cong map-id ○ statelessᵉ-id
 
-⊗ᵉ-homomorphism : {f : SFunᵉ {M = M} A B} {g : SFunᵉ {M = M} B C}
-                  {f′ : SFunᵉ {M = M} A′ B′} {g′ : SFunᵉ {M = M} B′ C′}
+⊗ᵉ-homomorphism : {f : SFunᵉ A B} {g : SFunᵉ B C}
+                  {f′ : SFunᵉ A′ B′} {g′ : SFunᵉ B′ C′}
                 → ((g ∘ᵉ f) ⊗ᵉ (g′ ∘ᵉ f′)) ≈ᵉ ((g ⊗ᵉ g′) ∘ᵉ (f ⊗ᵉ f′))
 ⊗ᵉ-homomorphism {f = f} {g} {f′} {g′} =
   ≈ᵉ-sim (λ ((sg , sf) , (sg′ , sf′)) → (sg , sg′) , (sf , sf′)) refl kern
@@ -284,7 +286,7 @@ private
       consʳ = λ bs → return (inj₂ c ∷ bs)
       cont  = λ p → trace (f ⊗ᵏ idᵏ) (proj₁ p) xs >>= λ bs → return (proj₂ p ∷ bs)
 
-  ⊗idᵉ-resp : {f g : SFunᵉ {M = M} A B} → f ≈ᵉ g → (f ⊗ᵉ idᵉ {M = M} {C}) ≈ᵉ (g ⊗ᵉ idᵉ {M = M} {C})
+  ⊗idᵉ-resp : {f g : SFunᵉ A B} → f ≈ᵉ g → (f ⊗ᵉ idᵉ {C}) ≈ᵉ (g ⊗ᵉ idᵉ {C})
   ⊗idᵉ-resp {f = f} {g} f≈g xs = begin
     eval (f ⊗ᵉ idᵉ) xs
       ≈⟨ ⊗idᵏ-trace F.fun F.init xs ⟩
@@ -296,13 +298,13 @@ private
     where module F = SFunᵉ f; module G = SFunᵉ g
 
   -- Conjugating by the braiding saves a second trace lemma for the right factor.
-  σ-conjᵉ : (f : SFunᵉ {M = M} C D) → (σᵉ ∘ᵉ ((f ⊗ᵉ idᵉ {M = M} {A}) ∘ᵉ σᵉ)) ≈ᵉ (idᵉ {M = M} {A} ⊗ᵉ f)
+  σ-conjᵉ : (f : SFunᵉ C D) → (σᵉ ∘ᵉ ((f ⊗ᵉ idᵉ {A}) ∘ᵉ σᵉ)) ≈ᵉ (idᵉ {A} ⊗ᵉ f)
   σ-conjᵉ f = pullˡ braiding-commuteᵉ ○ cancelʳ σ-involutiveᵉ
 
-  id⊗ᵉ-resp : {f g : SFunᵉ {M = M} C D} → f ≈ᵉ g → (idᵉ {M = M} {A} ⊗ᵉ f) ≈ᵉ (idᵉ {M = M} {A} ⊗ᵉ g)
+  id⊗ᵉ-resp : {f g : SFunᵉ C D} → f ≈ᵉ g → (idᵉ {A} ⊗ᵉ f) ≈ᵉ (idᵉ {A} ⊗ᵉ g)
   id⊗ᵉ-resp {f = f} {g} f≈g = ⟺ (σ-conjᵉ f) ○ refl⟩∘⟨ (⊗idᵉ-resp f≈g ⟩∘⟨refl) ○ σ-conjᵉ g
 
-⊗-split : (f : SFunᵉ {M = M} A B) (g : SFunᵉ {M = M} C D) → (f ⊗ᵉ g) ≈ᵉ ((idᵉ ⊗ᵉ g) ∘ᵉ (f ⊗ᵉ idᵉ))
+⊗-split : (f : SFunᵉ A B) (g : SFunᵉ C D) → (f ⊗ᵉ g) ≈ᵉ ((idᵉ ⊗ᵉ g) ∘ᵉ (f ⊗ᵉ idᵉ))
 ⊗-split f g = ≈ᵉ-sim (λ (s , t) → (tt , t) , (s , tt)) refl kern
   where
     module F = SFunᵉ f; module G = SFunᵉ g
@@ -316,29 +318,29 @@ private
       ((Λφ ∘ Λ) <$>ᴹ F.fun (s , a))
         ≈˘⟨ >>=-cong-f (λ p → ≈ᴹ.trans (<$>ᴹ->>= _ (return (tt , proj₂ p)) (mid p)) >>=-identityˡ-≈) ⟩
       (F.fun (s , a) >>= λ p → ((λ (u , y) → (u , t) , inj₁ y) <$>ᴹ return (tt , proj₂ p)) >>= mid p)
-        ≈˘⟨ <$>ᴹ->>= Λf (F.fun (s , a)) K ⟩
-      ((Λf <$>ᴹ F.fun (s , a)) >>= K) ∎
+        ≈˘⟨ <$>ᴹ->>= Λf (F.fun (s , a)) cont ⟩
+      ((Λf <$>ᴹ F.fun (s , a)) >>= cont) ∎
       where
-        Λ   = λ (s′ , b) → (s′ , t) , inj₁ b
-        Λf  = λ (s′ , b) → (s′ , tt) , inj₁ b
-        mid = λ p Q → return ((proj₁ Q , (proj₁ p , tt)) , proj₂ Q)
-        K   = λ P → (idᵏ ⊗ᵏ G.fun) ((tt , t) , proj₂ P) >>= λ Q → return ((proj₁ Q , proj₁ P) , proj₂ Q)
+        Λ    = λ (s′ , b) → (s′ , t) , inj₁ b
+        Λf   = λ (s′ , b) → (s′ , tt) , inj₁ b
+        mid  = λ p Q → return ((proj₁ Q , (proj₁ p , tt)) , proj₂ Q)
+        cont = λ P → (idᵏ ⊗ᵏ G.fun) ((tt , t) , proj₂ P) >>= λ Q → return ((proj₁ Q , proj₁ P) , proj₂ Q)
     kern (s , t) (inj₂ c) = begin
       (Λφ <$>ᴹ (Λ <$>ᴹ G.fun (t , c)))
         ≈⟨ <$>ᴹ-∘ Λφ Λ (G.fun (t , c)) ⟩
       ((Λφ ∘ Λ) <$>ᴹ G.fun (t , c))
         ≈˘⟨ <$>ᴹ->>= Λg (G.fun (t , c)) mid ⟩
       ((Λg <$>ᴹ G.fun (t , c)) >>= mid)
-        ≈˘⟨ ≈ᴹ.trans (<$>ᴹ->>= Λf (return (tt , c)) K) >>=-identityˡ-≈ ⟩
-      ((Λf <$>ᴹ return (tt , c)) >>= K) ∎
+        ≈˘⟨ ≈ᴹ.trans (<$>ᴹ->>= Λf (return (tt , c)) cont) >>=-identityˡ-≈ ⟩
+      ((Λf <$>ᴹ return (tt , c)) >>= cont) ∎
       where
-        Λ   = λ (t′ , d) → (s , t′) , inj₂ d
-        Λf  = λ (u , y) → (s , u) , inj₂ y
-        Λg  = λ (t′ , d) → (tt , t′) , inj₂ d
-        mid = λ Q → return ((proj₁ Q , (s , tt)) , proj₂ Q)
-        K   = λ P → (idᵏ ⊗ᵏ G.fun) ((tt , t) , proj₂ P) >>= λ Q → return ((proj₁ Q , proj₁ P) , proj₂ Q)
+        Λ    = λ (t′ , d) → (s , t′) , inj₂ d
+        Λf   = λ (u , y) → (s , u) , inj₂ y
+        Λg   = λ (t′ , d) → (tt , t′) , inj₂ d
+        mid  = λ Q → return ((proj₁ Q , (s , tt)) , proj₂ Q)
+        cont = λ P → (idᵏ ⊗ᵏ G.fun) ((tt , t) , proj₂ P) >>= λ Q → return ((proj₁ Q , proj₁ P) , proj₂ Q)
 
-⊗ᵉ-resp-≈ : {f h : SFunᵉ {M = M} A B} {g i : SFunᵉ {M = M} C D} → f ≈ᵉ h → g ≈ᵉ i → (f ⊗ᵉ g) ≈ᵉ (h ⊗ᵉ i)
+⊗ᵉ-resp-≈ : {f h : SFunᵉ A B} {g i : SFunᵉ C D} → f ≈ᵉ h → g ≈ᵉ i → (f ⊗ᵉ g) ≈ᵉ (h ⊗ᵉ i)
 ⊗ᵉ-resp-≈ {f = f} {h} {g} {i} f≈h g≈i = ⊗-split f g ○ id⊗ᵉ-resp g≈i ⟩∘⟨ ⊗idᵉ-resp f≈h ○ ⟺ (⊗-split h i)
 
 ⊗ᵉ-bifunctor : CatBi.Bifunctor SFunᵉ-Category SFunᵉ-Category SFunᵉ-Category
@@ -353,8 +355,8 @@ private
 ------------------------------------------------------------------------
 -- The bundles
 
-SFunᵉ-Monoidal : Monoidal (SFunᵉ-Category {M = M})
-SFunᵉ-Monoidal = monoidalHelper (SFunᵉ-Category {M = M}) record
+SFunᵉ-Monoidal : Monoidal SFunᵉ-Category
+SFunᵉ-Monoidal = monoidalHelper SFunᵉ-Category record
   { ⊗               = ⊗ᵉ-bifunctor
   ; unit            = ⊥
   ; unitorˡ         = record { from = λ⇒ᵉ ; to = λ⇐ᵉ ; iso = record { isoˡ = λ-isoˡ ; isoʳ = λ-isoʳ } }
@@ -380,4 +382,4 @@ SFunᵉ-Symmetric = symmetricHelper SFunᵉ-Monoidal record
   }
 
 SFunᵉ-MonoidalCategory : MonoidalCategory _ _ _
-SFunᵉ-MonoidalCategory = record { U = SFunᵉ-Category {M = M} ; monoidal = SFunᵉ-Monoidal }
+SFunᵉ-MonoidalCategory = record { U = SFunᵉ-Category ; monoidal = SFunᵉ-Monoidal }

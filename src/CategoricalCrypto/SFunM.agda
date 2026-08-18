@@ -1,21 +1,19 @@
 {-# OPTIONS --safe --without-K #-}
 
-open import categorical-crypto.Prelude
-
-open import Class.Core
-open import Class.Monad.Ext.Setoid
+open import categorical-crypto.Prelude hiding (_>>=_; return)
 
 open import Categories.Category.Core
 open import Categories.Category.Helper
+open import Categories.Category.Instance.Setoids
+open import Categories.Monad.Construction.Kleisli
+import Categories.Monad.Setoids.Discrete as Discrete
 
 open import Relation.Binary
-import Relation.Binary.Reasoning.Setoid as R-Setoid
 
-module CategoricalCrypto.SFunM {M : Type↑}
-  ⦃ Monad-M : Monad M       ⦄
-  ⦃ MS      : MonadSetoid M ⦄ where
+module CategoricalCrypto.SFunM (K : KleisliTriple (Setoids 0ℓ 0ℓ)) where
 
-open module ≈ᴹ-Reasoning {ℓ} {X : Type ℓ} = R-Setoid (≈ᴹ-setoid {A = X})
+open Discrete K
+open ≈ᴹ-Reasoning
 
 SFunType : Type → Type → Type → Type
 SFunType A B S = S × A → M (S × B)
@@ -76,8 +74,8 @@ f ≈ᵉ g = ∀ xs → eval f xs ≈ᴹ eval g xs
 
 module ≈ᵉ {A B : Type} = IsEquivalence (≈ᵉ-isEquivalence {A} {B})
 
-module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
-         ⦃ M-Comm : CommutativeMonadSetoid M ⦄ where
+-- Composition is associative and unital only up to the monad's commutativity.
+module Laws (>>=-comm : Commutative) where
 
   id-correct : (xs : List A) → return xs ≈ᴹ eval idᵉ xs
   id-correct []       = ≈ᴹ.refl
@@ -105,7 +103,7 @@ module _ ⦃ M-Laws : MonadLawsSetoid M       ⦄
     (f (sf , a) >>= (λ (sf' , b) → trace f sf' as >>= (λ bs → return (b ∷ bs) >>= trace g sg)))
       ≈⟨ >>=-cong-f (λ _ → >>=-cong-f (λ _ → >>=-identityˡ-≈)) ⟩
     (f (sf , a) >>= (λ (sf' , b) → trace f sf' as >>= (λ bs → trace g sg (b ∷ bs))))
-      ≈⟨ >>=-cong-f (λ _ → >>=-comm-y-≈ _) ⟩
+      ≈⟨ >>=-cong-f (λ _ → >>=-comm _) ⟩
     (f (sf , a) >>= (λ (sf' , b) → g (sg , b) >>= (λ (sg' , c) →
       trace f sf' as >>= (λ bs → trace g sg' bs >>= (λ cs → return (c ∷ cs))))))
       ≈⟨ >>=-cong-f (λ _ → >>=-cong-f (λ _ → ≈ᴹ.sym (>>=-assoc-≈ (trace f _ as)))) ⟩

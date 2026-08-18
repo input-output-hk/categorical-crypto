@@ -7,11 +7,12 @@
 
 open import Level
 
-open import Categories.Category using (Category)
+open import Categories.Category using (Category; _[_,_])
 open import Categories.Category.Construction.Kleisli using (Kleisli)
 open import Categories.Category.Instance.Setoids
 open import Categories.Category.SubCategory using (FullSubCategory)
 open import Categories.Monad.Construction.Kleisli
+open import Categories.Monad.Construction.Kleisli.Ext using (extend-μ)
 open import Categories.Monad.Relative using () renaming (Monad to RMonad)
 
 open import Function.Base using (_∘_)
@@ -112,3 +113,4 @@ Commutative = {A B C : Set ℓ} {x : M A} {y : M B} (f : A → B → M C)
 -- The discrete objects of `Kleisli`: `A ⇒ B` is a map `A → M B`, up to `_≈ᴹ_`.
 Kleisliᴹ : Category (suc ℓ) ℓ ℓ
 Kleisliᴹ = FullSubCategory (Kleisli (Kleisli⇒Monad (Setoids ℓ ℓ) K)) ≡-setoid
+
