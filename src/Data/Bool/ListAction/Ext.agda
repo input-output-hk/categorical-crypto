@@ -1,62 +1,25 @@
 {-# OPTIONS --safe --without-K #-}
 
-open import categorical-crypto.Prelude hiding (any; or)
+open import categorical-crypto.Prelude hiding (any)
 
 open import Data.Bool.ListAction
 open import Data.Bool.Properties
-open import Data.List.Properties
-
-open import Algebra.Bundles
-open import Algebra.Properties.CommutativeSemigroup
-  (CommutativeMonoid.commutativeSemigroup ∨-commutativeMonoid)
+open import Data.List.Relation.Binary.BagAndSetEquality using (_∼[_]_; set)
+open import Data.List.Relation.Binary.Subset.Propositional using (_⊆_)
+open import Data.List.Relation.Binary.Subset.Propositional.Properties using (any⁺)
+open import Function.Bundles using (Equivalence; mk⇔)
 
 module Data.Bool.ListAction.Ext where
 
-private variable
-  ℓ : Level
-  A B C : Type ℓ
+private variable ℓ : Level
 
-any-cong : {P Q : A → Bool} → P ≗ Q → any P ≗ any Q
-any-cong P≗Q = cong or ∘ map-cong P≗Q
-
-any-const-false : (xs : List A) → any (λ _ → false) xs ≡ false
-any-const-false []       = refl
-any-const-false (x ∷ xs) = any-const-false xs
-
-any-++ : (P : A → Bool) (xs ys : List A) → any P (xs ++ ys) ≡ any P xs ∨ any P ys
-any-++ P []       ys = refl
-any-++ P (x ∷ xs) ys = trans (cong (P x ∨_) (any-++ P xs ys))
-                             (sym (∨-assoc (P x) (any P xs) (any P ys)))
-
-any-concatMap : (P : B → Bool) (f : A → List B) (xs : List A)
-              → any P (concatMap f xs) ≡ any (λ a → any P (f a)) xs
-any-concatMap P f []       = refl
-any-concatMap P f (x ∷ xs) = trans (any-++ P (f x) (concatMap f xs))
-                                   (cong (any P (f x) ∨_) (any-concatMap P f xs))
-
-any-∨ : (P Q : A → Bool) (xs : List A) → any (λ a → P a ∨ Q a) xs ≡ any P xs ∨ any Q xs
-any-∨ P Q []       = refl
-any-∨ P Q (x ∷ xs) = trans (cong ((P x ∨ Q x) ∨_) (any-∨ P Q xs))
-                           (interchange (P x) (Q x) (any P xs) (any Q xs))
-
--- Fubini for `any`.
-any-pair : (Q : A × B → Bool) (xs : List A) (ys : List B)
-         → any (λ a → any (λ b → Q (a , b)) ys) xs
-         ≡ any (λ b → any (λ a → Q (a , b)) xs) ys
-any-pair Q []       ys = sym (any-const-false ys)
-any-pair Q (x ∷ xs) ys =
-  trans (cong (any (λ b → Q (x , b)) ys ∨_) (any-pair Q xs ys))
-        (sym (any-∨ (λ b → Q (x , b)) (λ b → any (λ a → Q (a , b)) xs) ys))
-
-any-⊗ : (Q : C → Bool) (p : A → B → C) (σ : List A) (τ : List B)
-      → any Q (concatMap (λ a → concatMap (λ b → p a b ∷ []) τ) σ)
-      ≡ any (λ a → any (λ b → Q (p a b)) τ) σ
-any-⊗ Q p σ τ = begin
-  any Q (concatMap (λ a → concatMap (λ b → p a b ∷ []) τ) σ)
-    ≡⟨ any-concatMap Q (λ a → concatMap (λ b → p a b ∷ []) τ) σ ⟩
-  any (λ a → any Q (concatMap (λ b → p a b ∷ []) τ)) σ
-    ≡⟨ any-cong (λ a → any-concatMap Q (λ b → p a b ∷ []) τ) σ ⟩
-  any (λ a → any (λ b → any Q (p a b ∷ [])) τ) σ
-    ≡⟨ any-cong (λ a → any-cong (λ b → ∨-identityʳ (Q (p a b))) τ) σ ⟩
-  any (λ a → any (λ b → Q (p a b)) τ) σ ∎
-  where open ≡-Reasoning
+-- `any` only sees which of its tests some element passes, so it is blind to the
+-- order and the multiplicity `set` equality quotients away.  The converse fails:
+-- no `A → Bool` need separate two given elements.
+any-cong : {A : Type ℓ} {σ τ : List A}
+         → σ ∼[ set ] τ → (P : A → Bool) → any P σ ≡ any P τ
+any-cong {A = A} σ≈τ P =
+  ⇔→≡ (mk⇔ (mono (Equivalence.to σ≈τ)) (mono (Equivalence.from σ≈τ)))
+  where
+  mono : {σ τ : List A} → σ ⊆ τ → any P σ ≡ true → any P τ ≡ true
+  mono σ⊆τ = Equivalence.to T-≡ ∘ any⁺ P σ⊆τ ∘ Equivalence.from T-≡

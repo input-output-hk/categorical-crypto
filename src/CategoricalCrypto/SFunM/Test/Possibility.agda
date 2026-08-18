@@ -59,9 +59,9 @@ fromMaybeᴹ : MonadMorphismSetoid Maybe List
 fromMaybeᴹ = record
   { θ        = fromMaybe
   ; θ-cong   = λ x≡y → 𝒫.reflexive (cong fromMaybe x≡y)
-  ; θ-return = λ _ _ → refl
+  ; θ-return = λ _ → 𝒫.refl
   ; θ-bind   = λ where
-      nothing  _ _ → refl
+      nothing  _ → 𝒫.refl
       (just a) k → 𝒫.reflexive (sym (++-identityʳ (fromMaybe (k a))))
   }
 
