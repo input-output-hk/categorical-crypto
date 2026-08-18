@@ -168,14 +168,9 @@ module FromPropositional {M : Type↑}
     Propositional-CommutativeMonadSetoid = record { >>=-comm-≈ = >>=-comm }
 
 ------------------------------------------------------------------------
--- Setoid-indexed monads
+-- Monads on the category Setoid
 ------------------------------------------------------------------------
 
--- `MonadSetoid`'s `_≈ᴹ_` is fixed by the carrier of `A`, so it has no equality
--- on `B` to compare `h` and `k` up to: `<$>ᴹ-congˡ` can only ask them to agree
--- propositionally, and the map-congruence proper is not even statable.  Indexing
--- the equality by a setoid *on* `A` states it as `<$>ᴹ-congˢˡ`, and makes `M` an
--- honest monad on `Setoids`; `Class.Monad.Ext.Setoid.Graded` builds it.
 record SetoidMonad (M : Type↑) ⦃ _ : Monad M ⦄ : Typeω where
   infix 4 _⟨_≈ˢ_⟩
   field
@@ -183,10 +178,8 @@ record SetoidMonad (M : Type↑) ⦃ _ : Monad M ⦄ : Typeω where
 
     ≈ˢ-isEquivalence : {S : Setoid ℓ ℓ} → IsEquivalence (S ⟨_≈ˢ_⟩)
 
-    -- `return` is a setoid function …
     return-congˢ : {S : Setoid ℓ ℓ} {a b : Carrier S} → S ⟨ a ≈ b ⟩ → S ⟨ return a ≈ˢ return b ⟩
 
-    -- … and `_>>=_` is congruent in both of its arguments at once.
     >>=-congˢ : {S : Setoid ℓ ℓ} {S′ : Setoid ℓ′ ℓ′}
                 {x y : M (Carrier S)} {f g : Carrier S → M (Carrier S′)}
               → S ⟨ x ≈ˢ y ⟩ → (∀ {a b} → S ⟨ a ≈ b ⟩ → S′ ⟨ f a ≈ˢ g b ⟩)

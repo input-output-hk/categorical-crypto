@@ -1,9 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The trivial grading.  `One` has one object and one morphism, so grading by it
--- is no grading at all: every coercion is the identity and the graded laws
--- collapse to the ungraded ones.  This is how an ungraded monad, and a morphism
--- of two of them, enter the graded theory.
+-- The monads are trivially graded monads
 
 open import Data.Unit
 open import Level
@@ -65,12 +62,11 @@ module _ {oᵢ ℓᵢ eᵢ : Level} {𝒞 : Category o ℓ e} {𝒟 : Category o
   module _ (κ : Components (ungraded K {oᵢ} {ℓᵢ} {eᵢ}) (ungraded K′) F (idF-Monoidal Oneᴹ))
     where
 
-    -- `ungraded`'s `T₀` ignores the grade, so `One`'s single object never shows
-    -- up in a type unification could read it off: name it.
     private
       κ⋆ : ∀ {A} → 𝒟 [ F.₀ (K.F₀ A) , K′.F₀ (F.₀ A) ]
       κ⋆ = κ {lift tt}
 
+    -- TODO: This should take a `MonadMorphism`.
     ungraded-morphism :
         (∀ {A} → 𝒟 [ κ⋆ 𝒟.∘ F.₁ (K.unit {A}) ≈ K′.unit ])
       → (∀ {A B} (f : 𝒞 [ A , K.F₀ B ])

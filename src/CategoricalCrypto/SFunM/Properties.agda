@@ -96,11 +96,20 @@ statelessᵉ-natural {f = f} {g} h k ψ init≡ sq =
   $ ≈ᴹ.trans (<$>ᴹ-cong (≈ᴹ.sym (sq s a))) (<$>ᴹ-∘ _ _ (F.fun (s , a)))
   where module F = SFunᵉ f; module G = SFunᵉ g
 
+statelessᵉ-Functor : ⦃ M-Comm : CommutativeMonadSetoid M ⦄ → Functor (Sets 0ℓ) (SFunᵉ-Category {M = M})
+statelessᵉ-Functor = record
+  { F₀           = id
+  ; F₁           = statelessᵉ
+  ; identity     = statelessᵉ-id
+  ; homomorphism = λ {_ _ _ k h} → statelessᵉ-∘ h k
+  ; F-resp-≈     = statelessᵉ-cong
+  }
+
 ------------------------------------------------------------------------
 -- Kleisli machines
 
--- The Kleisli arrows of `M` as stateless machines: `statelessᵉ` is this at a
--- pure step.
+-- The Kleisli arrows of `M` as stateless machines
+-- TODO: this should be a functor as well. Maybe we can redefine `statelessᵉ` and its properties from this?
 kleisliᵉ : (A → M B) → SFunᵉ {M = M} A B
 kleisliᵉ h = mkᵉ tt λ (_ , a) → (tt ,_) <$>ᴹ h a
 
@@ -126,14 +135,3 @@ kleisliᵉ-∘ h k = ≈ᵉ-sim (λ _ → tt , tt) refl λ _ a → begin
     return ((sg , sf) , c)) ∎
   where Λ   = λ c → (tt , tt) , c
         mid = λ (sg , c) → return ((sg , tt) , c)
-
-module _ ⦃ M-Comm : CommutativeMonadSetoid M ⦄ where
-
-  statelessᵉ-Functor : Functor (Sets 0ℓ) (SFunᵉ-Category {M = M})
-  statelessᵉ-Functor = record
-    { F₀           = id
-    ; F₁           = statelessᵉ
-    ; identity     = statelessᵉ-id
-    ; homomorphism = λ {_ _ _ k h} → statelessᵉ-∘ h k
-    ; F-resp-≈     = statelessᵉ-cong
-    }

@@ -47,10 +47,7 @@ _∘ᵉ_ : SFunᵉ B C → SFunᵉ A B → SFunᵉ A C
 _∘ᵉ_ g f = let module g = SFunᵉ g; module f = SFunᵉ f in
   mkᵉ (g.init , f.init) (g.fun ∘ᵉ' f.fun)
 
--- Two ports over *one* state.  The tensor `_⊗ᵏ_`
--- (`CategoricalCrypto.SFunM.Monoidal`) has the same shape with the two sides'
--- states kept apart, so a functionality whose ports share a queue cannot use it;
--- and there is no `SFunᵉ`-level counterpart, since `SFunᵉ` hides the state.
+-- Like `_⊗_`, but with shared state
 [_∣_]ᵏ : SFunType A B State → SFunType C D State → SFunType (A ⊎ C) (B ⊎ D) State
 [ f ∣ g ]ᵏ (s , inj₁ a) = (λ (s′ , b) → s′ , inj₁ b) <$>ᴹ f (s , a)
 [ f ∣ g ]ᵏ (s , inj₂ c) = (λ (s′ , d) → s′ , inj₂ d) <$>ᴹ g (s , c)

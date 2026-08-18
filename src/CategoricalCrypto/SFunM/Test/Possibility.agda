@@ -15,11 +15,11 @@ open import Categories.Functor.Monoidal
 
 open import Data.List.Base
 open import Data.List.Properties
-open import Data.List.Relation.Unary.Any using (Any; here; there)
+open import Data.List.Relation.Unary.Any
 
 open import Function.Bundles
 
-open import Relation.Binary.Bundles using (Setoid)
+open import Relation.Binary using (Setoid)
 import Relation.Binary.Construct.Always as Always
 open import Relation.Binary.Bundles.Ext
 open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to ≡-setoid)
@@ -79,26 +79,3 @@ _ = SFunᵉ-map fromMaybeᴹ
 _ : StrongMonoidalFunctor (SFunᵉ-MonoidalCategory {M = Maybe})
                           (SFunᵉ-MonoidalCategory {M = List})
 _ = SFunᵉ-map-monoidal fromMaybeᴹ
-
-------------------------------------------------------------------------
--- The gap the setoid index closes
-------------------------------------------------------------------------
-
-private
-  -- The one-point setoid on `Bool`: `const true` and `const false` are the same
-  -- map into it.
-  Bool⋆ : Setoid 0ℓ 0ℓ
-  Bool⋆ = Always.setoid Bool 0ℓ
-
--- Carrier-indexed, the two maps' images are separated, and `<$>ᴹ-congˡ`'s
--- premise `const true ≗ const false` is false — so `_≈ᴹ_` has nothing to say.
-_ : ¬ ((const true <$>ᴹ (true ∷ [])) ≈ᴹ (const false <$>ᴹ (true ∷ [])))
-_ = λ eq → separate (Equivalence.to eq (here refl))
-  where
-  separate : ¬ Any (true ≡_) (false ∷ [])
-  separate (here ())
-  separate (there ())
-
--- Setoid-indexed, `<$>ᴹ-congˢˡ` identifies them: the gap is closed.
-_ : (σ : List Bool) → 𝒫ˢ Bool⋆ ⟨ (const true <$>ᴹ σ) ≈ (const false <$>ᴹ σ) ⟩
-_ = <$>ᴹ-congˢˡ {S = ≡-setoid Bool} {S′ = Bool⋆} λ _ → _
