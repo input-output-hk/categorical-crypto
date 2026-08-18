@@ -112,7 +112,10 @@ record CommutativeMonadSetoid (M : Type↑) ⦃ _ : Monad M ⦄ ⦃ _ : MonadSet
 
 open CommutativeMonadSetoid ⦃...⦄ public
 
--- TODO: prove that this is a special instance of `GradedMonadMorphism`
+-- `GradedMonadMorphism` presupposes a `GradedMonad`, i.e. an honest endofunctor,
+-- which `M` is not: its laws hold only up to `_≈ᴹ_`, never up to an equality on
+-- functions as `Sets` needs, and `_≈ᴹ_` is fixed by the carrier alone, so
+-- `_<$>ᴹ_` cannot respect a `Setoids` object's own equality either.
 record MonadMorphismSetoid (M N : Type↑)
   ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄
   ⦃ _ : Monad N ⦄ ⦃ MS-N : MonadSetoid N ⦄ : Typeω where
