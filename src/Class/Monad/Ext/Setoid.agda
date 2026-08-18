@@ -6,6 +6,7 @@ open import Class.Core
 open import Class.Monad
 open import Class.Monad.Ext
 open import Class.Prelude using (Typeω)
+open import Data.Maybe.Relation.Binary.Pointwise as Pw using (Pointwise)
 open import Data.Product.Relation.Binary.Pointwise.NonDependent using (×-setoid)
 open import Function.Bundles using (Func; _⟨$⟩_)
 open import Relation.Binary
@@ -319,4 +320,59 @@ module Discrete {M : Type↑} ⦃ _ : Monad M ⦄ ⦃ SM : SetoidMonad M ⦄ whe
     { >>=-comm-≈ = λ {X = X} {Y = Y} →
         >>=-comm-≈ˢ {S = ≡-setoid X} {≡-setoid Y} {≡-setoid (X × Y)}
                     (λ where refl refl → ≈ˢ.refl)
+    }
+
+-- `Maybe` up to the element setoid: the interface's second instance, and what
+-- `Class.Monad.Ext.Setoid.Test`'s monad morphism goes out of.  Left for the
+-- consumer to declare as an instance, as `FromPropositional` is: a `SetoidMonad`
+-- in scope for a concrete `M` competes with the parameter of every module that
+-- abstracts over one.
+module PointwiseMaybe where
+
+  private
+    ≈ᴹᵇ : (S : Setoid ℓ ℓ) → Rel (Maybe (Carrier S)) ℓ
+    ≈ᴹᵇ S = Pointwise (Setoid._≈_ S)
+
+    >>=-congᴹᵇ : {S : Setoid ℓ ℓ} {S′ : Setoid ℓ′ ℓ′}
+                 {x y : Maybe (Carrier S)} {f g : Carrier S → Maybe (Carrier S′)}
+               → ≈ᴹᵇ S x y → (∀ {a b} → S ⟨ a ≈ b ⟩ → ≈ᴹᵇ S′ (f a) (g b))
+               → ≈ᴹᵇ S′ (x >>= f) (y >>= g)
+    >>=-congᴹᵇ (Pw.just a≈b) f≈g = f≈g a≈b
+    >>=-congᴹᵇ Pw.nothing    _   = Pw.nothing
+
+    >>=-commᴹᵇ : {S : Setoid ℓ ℓ} {S′ : Setoid ℓ′ ℓ′} {S″ : Setoid ℓ″ ℓ″}
+                 (x : Maybe (Carrier S)) (y : Maybe (Carrier S′))
+                 (f : Carrier S → Carrier S′ → Maybe (Carrier S″))
+               → ≈ᴹᵇ S″ (x >>= λ a → y >>= f a) (y >>= λ b → x >>= λ a → f a b)
+    >>=-commᴹᵇ {S″ = S″} (just _) (just _) _ = Pw.refl (Setoid.refl S″)
+    >>=-commᴹᵇ (just _)  nothing  _ = Pw.nothing
+    >>=-commᴹᵇ nothing   (just _) _ = Pw.nothing
+    >>=-commᴹᵇ nothing   nothing  _ = Pw.nothing
+
+  Pointwise-SetoidMonad : SetoidMonad Maybe
+  Pointwise-SetoidMonad = record
+    { _⟨_≈ˢ_⟩          = ≈ᴹᵇ
+    ; ≈ˢ-isEquivalence = λ {S = S} → Pw.isEquivalence (Setoid.isEquivalence S)
+    ; return-congˢ     = Pw.just
+    ; >>=-congˢ        = λ {S = S} {S′ = S′} → >>=-congᴹᵇ {S = S} {S′ = S′}
+    }
+
+  private instance
+    Default-SetoidMonad = Pointwise-SetoidMonad
+
+  Pointwise-SetoidMonadLaws : SetoidMonadLaws Maybe
+  Pointwise-SetoidMonadLaws = record
+    { >>=-identityˡ-≈ˢ = λ {S′ = S′} → Pw.refl (Setoid.refl S′)
+    ; >>=-identityʳ-≈ˢ = λ {S = S} → λ where
+        (just _) → Pw.just (Setoid.refl S)
+        nothing  → Pw.nothing
+    ; >>=-assoc-≈ˢ     = λ {S″ = S″} → λ where
+        (just _) → Pw.refl (Setoid.refl S″)
+        nothing  → Pw.nothing
+    }
+
+  Pointwise-CommutativeSetoidMonad : CommutativeSetoidMonad Maybe
+  Pointwise-CommutativeSetoidMonad = record
+    { >>=-comm-≈ˢ = λ {S = S} {S′ = S′} {S″ = S″} {x = x} {y = y} {f = f} _ →
+        >>=-commᴹᵇ {S = S} {S′ = S′} {S″ = S″} x y f
     }

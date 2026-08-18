@@ -145,3 +145,7 @@ instance
 
   CommutativeMonadSetoid-List : CommutativeMonadSetoid List
   CommutativeMonadSetoid-List = Discrete-CommutativeMonadSetoid
+
+-- Definitionally the same relation: the adapter only pins the index.
+_ : {σ τ : List A} → MonadSetoid._≈ᴹ_ MonadSetoid-List σ τ ≡ (𝒫ˢ (≡-setoid A) ⟨ σ ≈ τ ⟩)
+_ = refl
