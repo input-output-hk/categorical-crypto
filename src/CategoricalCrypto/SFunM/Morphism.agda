@@ -23,21 +23,21 @@ import CategoricalCrypto.SFunM.Properties as SFunProperties
 
 module CategoricalCrypto.SFunM.Morphism
   (K K′ : KleisliTriple (Setoids 0ℓ 0ℓ)) (Θ : KleisliTriple⇒ (Setoids 0ℓ 0ℓ) K K′)
-  (>>=-comm : Discrete.Commutative K) (>>=-comm′ : Discrete.Commutative K′) where
+  (M-Comm : Discrete.Commutative K) (N-Comm : Discrete.Commutative K′) where
 
 private variable A B C D St : Type
 
 open Discrete K
 open DiscreteMorphism K K′ Θ
 open SFun K
-open Laws >>=-comm
-open SFunMonoidal K >>=-comm
+open Laws M-Comm
+open SFunMonoidal K M-Comm
 open SFunProperties K
 
 private
   module 𝓝  = SFun K′
-  module 𝓝L = 𝓝.Laws >>=-comm′
-  module 𝓝M = SFunMonoidal K′ >>=-comm′
+  module 𝓝L = 𝓝.Laws N-Comm
+  module 𝓝M = SFunMonoidal K′ N-Comm
   module 𝓝P = SFunProperties K′
   module 𝒩  = Category 𝓝L.SFunᵉ-Category
 

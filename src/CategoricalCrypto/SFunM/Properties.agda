@@ -95,7 +95,7 @@ statelessᵉ-natural {f = f} {g} h k ψ init≡ sq =
   $ ≈ᴹ.trans (<$>ᴹ-cong (≈ᴹ.sym (sq s a))) (<$>ᴹ-∘ _ _ (F.fun (s , a)))
   where module F = SFunᵉ f; module G = SFunᵉ g
 
-statelessᵉ-Functor : (>>=-comm : Commutative) → Functor (Sets 0ℓ) (Laws.SFunᵉ-Category >>=-comm)
+statelessᵉ-Functor : (M-Comm : Commutative) → Functor (Sets 0ℓ) (Laws.SFunᵉ-Category M-Comm)
 statelessᵉ-Functor _ = record
   { F₀           = id
   ; F₁           = statelessᵉ
@@ -134,7 +134,7 @@ kleisliᵉ-∘ h k = ≈ᵉ-sim (λ _ → tt , tt) refl λ _ a → begin
   where Λ   = λ c → (tt , tt) , c
         mid = λ (sg , c) → return ((sg , tt) , c)
 
-kleisliᵉ-Functor : (>>=-comm : Commutative) → Functor Kleisliᴹ (Laws.SFunᵉ-Category >>=-comm)
+kleisliᵉ-Functor : (M-Comm : Commutative) → Functor Kleisliᴹ (Laws.SFunᵉ-Category M-Comm)
 kleisliᵉ-Functor _ = record
   { F₀           = id
   ; F₁           = λ f → kleisliᵉ (f ⟨$⟩_)

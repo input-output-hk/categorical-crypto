@@ -21,11 +21,11 @@ import CategoricalCrypto.SFunM as SFun
 import CategoricalCrypto.SFunM.Properties as SFunProperties
 
 module CategoricalCrypto.SFunM.Monoidal (K : KleisliTriple (Setoids 0ℓ 0ℓ))
-  (>>=-comm : Discrete.Commutative K) where
+  (M-Comm : Discrete.Commutative K) where
 
 open Discrete K
 open SFun K
-open Laws >>=-comm
+open Laws M-Comm
 open SFunProperties K
 
 private

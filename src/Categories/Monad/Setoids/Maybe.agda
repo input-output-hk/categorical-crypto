@@ -65,11 +65,11 @@ Maybe-KleisliTriple = record
   assocᴹᵇ           nothing  = Pw.nothing
 
 Maybe-commutative : Discrete.Commutative (Maybe-KleisliTriple {ℓ})
-Maybe-commutative {A = A} {B = B} {C = C} {x = x} {y = y} f = commᴹᵇ x y
+Maybe-commutative = record { >>=-comm = λ {A} {B} {C} {x} {y} f → commᴹᵇ {C = C} f x y }
   where
-  commᴹᵇ : (x : Maybe A) (y : Maybe B) → ≈ᴹᵇ (≡-setoid C) (x >>= λ a → y >>= f a)
-                                                          (y >>= λ b → x >>= λ a → f a b)
-  commᴹᵇ (just _) (just _) = Pw.refl (Setoid.refl (≡-setoid C))
-  commᴹᵇ (just _) nothing  = Pw.nothing
-  commᴹᵇ nothing  (just _) = Pw.nothing
-  commᴹᵇ nothing  nothing  = Pw.nothing
+  commᴹᵇ : {A B C : Set ℓ} (f : A → B → Maybe C) (x : Maybe A) (y : Maybe B)
+         → ≈ᴹᵇ (≡-setoid C) (x >>= λ a → y >>= f a) (y >>= λ b → x >>= λ a → f a b)
+  commᴹᵇ {C = C} _ (just _) (just _) = Pw.refl (Setoid.refl (≡-setoid C))
+  commᴹᵇ         _ (just _) nothing  = Pw.nothing
+  commᴹᵇ         _ nothing  (just _) = Pw.nothing
+  commᴹᵇ         _ nothing  nothing  = Pw.nothing

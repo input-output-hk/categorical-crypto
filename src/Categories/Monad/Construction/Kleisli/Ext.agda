@@ -47,7 +47,7 @@ module _ (K K′ : KleisliTriple 𝒞) where
     module Kᶠ = Functor (RMonad⇒Functor K)
     module K′ᶠ = Functor (RMonad⇒Functor K′)
 
-  module _ {θ : ∀ {A} → K.F₀ A ⇒ K′.F₀ A}
+  module _ (θ : ∀ {A} → K.F₀ A ⇒ K′.F₀ A)
     (θ-unit : ∀ {A} → θ ∘ K.unit {A} ≈ K′.unit)
     (θ-extend : ∀ {A B} (f : A ⇒ K.F₀ B) → θ ∘ K.extend f ≈ K′.extend (θ ∘ f) ∘ θ)
     where

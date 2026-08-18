@@ -102,9 +102,10 @@ h <$>ᴹ m = m >>= (return ∘ h)
 -- Commutativity, in the Yoneda form: the pair form forces the setoid the two
 -- sides are compared at to be a product, which is not what the machine layer's
 -- state-passing kernels need.
-Commutative : Set (suc ℓ)
-Commutative = {A B C : Set ℓ} {x : M A} {y : M B} (f : A → B → M C)
-            → (x >>= λ a → y >>= f a) ≈ᴹ (y >>= λ b → x >>= λ a → f a b)
+record Commutative : Set (suc ℓ) where
+  field
+    >>=-comm : {A B C : Set ℓ} {x : M A} {y : M B} (f : A → B → M C)
+             → (x >>= λ a → y >>= f a) ≈ᴹ (y >>= λ b → x >>= λ a → f a b)
 
 ------------------------------------------------------------------------
 -- The Kleisli category

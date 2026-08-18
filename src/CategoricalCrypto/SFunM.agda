@@ -75,7 +75,9 @@ f ≈ᵉ g = ∀ xs → eval f xs ≈ᴹ eval g xs
 module ≈ᵉ {A B : Type} = IsEquivalence (≈ᵉ-isEquivalence {A} {B})
 
 -- Composition is associative and unital only up to the monad's commutativity.
-module Laws (>>=-comm : Commutative) where
+module Laws (M-Comm : Commutative) where
+
+  open Commutative M-Comm
 
   id-correct : (xs : List A) → return xs ≈ᴹ eval idᵉ xs
   id-correct []       = ≈ᴹ.refl
