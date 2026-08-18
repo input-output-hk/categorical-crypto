@@ -21,4 +21,5 @@ open import CategoricalCrypto.SFunM.Monoidal
 open import CategoricalCrypto.SFunM.Morphism
 open import CategoricalCrypto.Examples.Basic
 open import CategoricalCrypto.Examples.Commitment
+open import CategoricalCrypto.Examples.Possibilistic
 open import CategoricalCrypto.Examples.Signatures
