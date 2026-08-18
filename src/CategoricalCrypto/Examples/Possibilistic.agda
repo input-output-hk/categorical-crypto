@@ -6,9 +6,9 @@
 --
 -- These are `SFun` morphisms, not UC functionalities.
 
-open import categorical-crypto.Prelude
+open import categorical-crypto.Prelude hiding (_>>=_; return)
 
-open import Class.Monad.Ext.Setoid
+import Categories.Monad.Setoids.Discrete as Discrete
 
 open import Data.List.Relation.Binary.BagAndSetEquality
 open import Data.List.Relation.Binary.BagAndSetEquality.Ext
@@ -21,9 +21,10 @@ open import ProbabilisticLogic.Distribution.Possibility
 
 module CategoricalCrypto.Examples.Possibilistic where
 
-open SFun {List}
-open SFunMonoidal {List}
-open SFunProperties {List}
+open Discrete (𝒫-KleisliTriple {0ℓ})
+open SFun 𝒫-KleisliTriple
+open SFunMonoidal 𝒫-KleisliTriple 𝒫-commutative
+open SFunProperties 𝒫-KleisliTriple
 
 private variable Msg : Type
 
