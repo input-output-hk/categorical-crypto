@@ -42,7 +42,7 @@ module _ (M : Type↑) ⦃ _ : Monad M ⦄ ⦃ _ : SetoidMonad M ⦄ ⦃ _ : Set
         bindˢ-cong {S = S} {S′ = S′} {f = k} {g = h} (λ _ → k≈h) (≈ˢ.refl {S = S})
     }
 
-  -- `F₁` is `_<$>ᴹ_` and `F-resp-≈` is `<$>ᴹ-congˢ-f`.
+  -- `F₁` is `_<$>ᴹ_` and `F-resp-≈` is `<$>ᴹ-congˢˡ`.
   SetoidMonad-Functor : Endofunctor (Setoids ℓ ℓ)
   SetoidMonad-Functor = RMonad⇒Functor SetoidMonad-KleisliTriple
 

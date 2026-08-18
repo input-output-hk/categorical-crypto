@@ -99,6 +99,6 @@ _ = λ eq → separate (Equivalence.to eq (here refl))
   separate (here ())
   separate (there ())
 
--- Setoid-indexed, `<$>ᴹ-congˢ-f` identifies them: the gap is closed.
+-- Setoid-indexed, `<$>ᴹ-congˢˡ` identifies them: the gap is closed.
 _ : (σ : List Bool) → 𝒫ˢ Bool⋆ ⟨ (const true <$>ᴹ σ) ≈ (const false <$>ᴹ σ) ⟩
-_ = <$>ᴹ-congˢ-f {S = ≡-setoid Bool} {S′ = Bool⋆} λ _ → _
+_ = <$>ᴹ-congˢˡ {S = ≡-setoid Bool} {S′ = Bool⋆} λ _ → _

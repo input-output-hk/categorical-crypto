@@ -171,10 +171,10 @@ module FromPropositional {M : Type↑}
 -- Setoid-indexed monads
 ------------------------------------------------------------------------
 
--- `MonadSetoid`'s `_≈ᴹ_` is fixed by the carrier of `A`, so `<$>ᴹ-congˡ` can
--- only ask its two functions to agree propositionally: the law
--- `h ≈⟨A→B⟩ k → (h <$>ᴹ x) ≈ᴹ (k <$>ᴹ x)` is not even statable.  Indexing the
--- equality by a setoid *on* `A` states it — `<$>ᴹ-congˢ-f` — and makes `M` an
+-- `MonadSetoid`'s `_≈ᴹ_` is fixed by the carrier of `A`, so it has no equality
+-- on `B` to compare `h` and `k` up to: `<$>ᴹ-congˡ` can only ask them to agree
+-- propositionally, and the map-congruence proper is not even statable.  Indexing
+-- the equality by a setoid *on* `A` states it as `<$>ᴹ-congˢˡ`, and makes `M` an
 -- honest monad on `Setoids`; `Class.Monad.Ext.Setoid.Graded` builds it.
 record SetoidMonad (M : Type↑) ⦃ _ : Monad M ⦄ : Typeω where
   infix 4 _⟨_≈ˢ_⟩
@@ -184,8 +184,7 @@ record SetoidMonad (M : Type↑) ⦃ _ : Monad M ⦄ : Typeω where
     ≈ˢ-isEquivalence : {S : Setoid ℓ ℓ} → IsEquivalence (S ⟨_≈ˢ_⟩)
 
     -- `return` is a setoid function …
-    return-congˢ : {S : Setoid ℓ ℓ} {a b : Carrier S}
-                 → S ⟨ a ≈ b ⟩ → S ⟨ return a ≈ˢ return b ⟩
+    return-congˢ : {S : Setoid ℓ ℓ} {a b : Carrier S} → S ⟨ a ≈ b ⟩ → S ⟨ return a ≈ˢ return b ⟩
 
     -- … and `_>>=_` is congruent in both of its arguments at once.
     >>=-congˢ : {S : Setoid ℓ ℓ} {S′ : Setoid ℓ′ ℓ′}
@@ -214,8 +213,8 @@ record SetoidMonad (M : Type↑) ⦃ _ : Monad M ⦄ : Typeω where
     ; cong = λ x≈y → >>=-congˢ {S = S} {S′ = S′} x≈y (Func.cong f)
     }
 
-  -- Congruence of `bindˢ` in the function argument; in the value argument it is
-  -- `bindˢ f`'s own `cong`, and this is the two at once.
+  -- Congruence of `bindˢ` in both arguments at once: in the value argument alone
+  -- it is `bindˢ f`'s own `cong`.
   bindˢ-cong : {S : Setoid ℓ ℓ} {S′ : Setoid ℓ′ ℓ′} {f g : Func S (≈ˢ-setoid S′)}
              → (∀ a → S′ ⟨ f ⟨$⟩ a ≈ˢ g ⟨$⟩ a ⟩)
              → {x y : M (Carrier S)} → S ⟨ x ≈ˢ y ⟩
@@ -226,10 +225,10 @@ record SetoidMonad (M : Type↑) ⦃ _ : Monad M ⦄ : Typeω where
 
   -- The law `MonadSetoid` cannot state: `_<$>ᴹ_` respects `S′`'s own equality,
   -- not just `_≗_`.  It is the endofunctor's `F-resp-≈`.
-  <$>ᴹ-congˢ-f : {S : Setoid ℓ ℓ} {S′ : Setoid ℓ′ ℓ′} {h k : Carrier S → Carrier S′}
+  <$>ᴹ-congˢˡ : {S : Setoid ℓ ℓ} {S′ : Setoid ℓ′ ℓ′} {h k : Carrier S → Carrier S′}
                → (∀ {a b} → S ⟨ a ≈ b ⟩ → S′ ⟨ h a ≈ k b ⟩)
                → (x : M (Carrier S)) → S′ ⟨ (h <$>ᴹ x) ≈ˢ (k <$>ᴹ x) ⟩
-  <$>ᴹ-congˢ-f {S = S} {S′ = S′} h≈k _ =
+  <$>ᴹ-congˢˡ {S = S} {S′ = S′} h≈k _ =
     >>=-congˢ {S = S} {S′ = S′} (≈ˢ.refl {S = S}) (return-congˢ ∘ h≈k)
 
   <$>ᴹ-congˢ : {S : Setoid ℓ ℓ} {S′ : Setoid ℓ′ ℓ′} {h : Carrier S → Carrier S′}
