@@ -112,9 +112,7 @@ record CommutativeMonadSetoid (M : Type↑) ⦃ _ : Monad M ⦄ ⦃ _ : MonadSet
 
 open CommutativeMonadSetoid ⦃...⦄ public
 
--- `Categories.Monad.Morphism.Monad⇒-id` is this notion for a `Categories.Monad`
--- on a category, i.e. in the (η , μ)-presentation; there is no bridge from a
--- `Type↑` with a `_≈ᴹ_` to that, so state it in the presentation used here.
+-- TODO: prove that this is a special instance of `GradedMonadMorphism`
 record MonadMorphismSetoid (M N : Type↑)
   ⦃ _ : Monad M ⦄ ⦃ _ : MonadSetoid M ⦄
   ⦃ _ : Monad N ⦄ ⦃ MS-N : MonadSetoid N ⦄ : Typeω where
@@ -130,6 +128,7 @@ record MonadMorphismSetoid (M N : Type↑)
   θ-<$>ᴹ : {A : Type ℓ} {B : Type ℓ′} (h : A → B) (m : M A) → θ (h <$>ᴹ m) ≈ᴹ (h N≈.<$>ᴹ θ m)
   θ-<$>ᴹ h m = N≈.≈ᴹ.trans (θ-bind m _) (N≈.>>=-cong-f λ _ → θ-return _)
 
+-- Propositional monads can be turned into setoid monads
 module FromPropositional {M : Type↑}
   ⦃ Monad-M       : Monad M            ⦄
   ⦃ M-Laws        : MonadLaws M        ⦄

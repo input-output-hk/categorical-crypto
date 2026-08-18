@@ -21,6 +21,7 @@ private variable
 
 infix 4 _≈𝒫_
 
+-- TODO: the stdlib has bag equality, which I believe this is
 _≈𝒫_ : {A : Type ℓ} → List A → List A → Type ℓ
 σ ≈𝒫 τ = ∀ P → any P σ ≡ any P τ
 
@@ -37,8 +38,7 @@ _≈𝒫_ : {A : Type ℓ} → List A → List A → Type ℓ
 module 𝒫 {ℓ} {A : Type ℓ} = Setoid (𝒫-setoid A)
 
 ------------------------------------------------------------------------
--- Setoid monad structure on `List` (the `Monad-List` instance of
--- `Class.Monad.Instances`, whose bind is `flip concatMap`).
+-- Setoid monad structure
 
 >>=𝒫-cong : {σ τ : List A} {f g : A → List B}
           → σ ≈𝒫 τ → (∀ a → f a ≈𝒫 g a) → concatMap f σ ≈𝒫 concatMap g τ

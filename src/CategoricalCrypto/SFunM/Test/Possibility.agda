@@ -1,8 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The generic machine layer at a concrete monad. `𝒫` is the branch's only
--- commutative setoid monad, so this is the one place where the bundles of
--- `SFunM.Monoidal` and their coherence obligations are forced to elaborate.
+-- The generic machine layer at concrete monads.
 
 open import categorical-crypto.Prelude hiding (Functor)
 

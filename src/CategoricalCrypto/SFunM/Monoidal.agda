@@ -1,5 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
+-- The monoidal structure is given by parallel composition
+
 open import categorical-crypto.Prelude
 
 open import Class.Core
@@ -11,7 +13,7 @@ open import Categories.Category.Monoidal.Symmetric
 import Categories.Functor.Bifunctor as CatBi
 open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)
 
-open import Data.Sum.Base renaming (map to map⊎)
+open import Data.Sum renaming (map to map⊎)
 open import Data.Sum.Ext
 open import Data.Sum.Properties
 
@@ -241,8 +243,6 @@ private
   lefts (inj₁ a ∷ xs)  = a ∷ lefts xs
   lefts (inj₂ _ ∷ xs)  = lefts xs
 
-  -- `⊗idᵏ-trace` never reaches the `(inj₁ _ ∷ xs) []` clause: `trace` returns as
-  -- many outputs as it is given inputs, i.e. `length (lefts xs)` of them.
   fillˡ : List (A ⊎ C) → List B → List (B ⊎ C)
   fillˡ []                 _        = []
   fillˡ (inj₁ _ ∷ xs)      []       = []

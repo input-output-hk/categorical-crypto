@@ -22,6 +22,9 @@ private variable A A′ B C S S′ : Type
 ------------------------------------------------------------------------
 -- Simulation
 
+-- A state map `φ` that intertwines the two kernels — running `f` and
+-- relabelling the resulting state is running `g` on the relabelled state —
+-- makes the two traces equal.
 trace-sim : (φ : S → S′) {f : SFunType A B S} {g : SFunType A B S′}
           → (∀ s a → ((λ (s′ , b) → φ s′ , b) <$>ᴹ f (s , a)) ≈ᴹ g (φ s , a))
           → ∀ s xs → trace f s xs ≈ᴹ trace g (φ s) xs
@@ -57,7 +60,7 @@ statelessᵉ-cong : {h k : A → B} → h ≗ k → statelessᵉ h ≈ᵉ statel
 statelessᵉ-cong h≗k = ≈ᵉ-sim id refl λ _ a →
   ≈ᴹ.trans >>=-identityˡ-≈ (≈ᴹ.reflexive (cong (λ b → return (tt , b)) (h≗k a)))
 
-statelessᵉ-∘ : (h : B → C) (k : A → B) → statelessᵉ (h ∘ k) ≈ᵉ (statelessᵉ h ∘ᵉ statelessᵉ k)
+statelessᵉ-∘ : (h : B → C) (k : A → B) → statelessᵉ (h ∘ k) ≈ᵉ statelessᵉ h ∘ᵉ statelessᵉ k
 statelessᵉ-∘ h k = ≈ᵉ-sim (λ _ → tt , tt) refl λ _ a →
   ≈ᴹ.trans >>=-identityˡ-≈ (≈ᴹ.sym (≈ᴹ.trans >>=-identityˡ-≈ >>=-identityˡ-≈))
 
@@ -74,7 +77,7 @@ statelessᵉ-preᵏ : (h : A′ → A) (k : SFunType A B S) (s : S) (a : A′)
                 ≈ᴹ ((λ (s′ , b) → (s′ , tt) , b) <$>ᴹ k (s , h a))
 statelessᵉ-preᵏ h k s a = >>=-identityˡ-≈
 
-statelessᵉ-inv : {h : A → B} {k : B → A} → k ∘ h ≗ id → (statelessᵉ k ∘ᵉ statelessᵉ h) ≈ᵉ idᵉ
+statelessᵉ-inv : {h : A → B} {k : B → A} → k ∘ h ≗ id → statelessᵉ k ∘ᵉ statelessᵉ h ≈ᵉ idᵉ
 statelessᵉ-inv {h = h} {k} inv =
   ≈ᵉ.trans (≈ᵉ.sym (statelessᵉ-∘ k h)) (≈ᵉ.trans (statelessᵉ-cong inv) statelessᵉ-id)
 
@@ -83,7 +86,7 @@ statelessᵉ-natural : {f : SFunᵉ {M = M} A B} {g : SFunᵉ {M = M} A′ C}
                    → ψ (SFunᵉ.init f) ≡ SFunᵉ.init g
                    → (∀ s a → ((λ (s′ , b) → ψ s′ , k b) <$>ᴹ SFunᵉ.fun f (s , a))
                             ≈ᴹ SFunᵉ.fun g (ψ s , h a))
-                   → (statelessᵉ k ∘ᵉ f) ≈ᵉ (g ∘ᵉ statelessᵉ h)
+                   → statelessᵉ k ∘ᵉ f ≈ᵉ g ∘ᵉ statelessᵉ h
 statelessᵉ-natural {f = f} {g} h k ψ init≡ sq =
   ≈ᵉ-sim (λ (_ , s) → ψ s , tt) (cong (_, tt) init≡) λ (_ , s) a →
     ≈ᴹ.trans (<$>ᴹ-cong (statelessᵉ-postᵏ k F.fun s a))

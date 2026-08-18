@@ -1,9 +1,5 @@
 {-# OPTIONS --safe --without-K #-}
 
--- `Data.Bool.ListAction` is definitions only: the stdlib proves none of this.
-
--- `Data.List`'s `any`/`or` are the deprecated aliases of the
--- `Data.Bool.ListAction` ones.
 open import categorical-crypto.Prelude hiding (any; or)
 
 open import Data.Bool.ListAction
