@@ -11,15 +11,15 @@ open import Class.Monad.Ext.Setoid
 open import Class.Monad.Ext.Setoid.Graded
 
 open import Categories.Category.Instance.Setoids
-open import Categories.Functor using (Endofunctor) renaming (id to idF)
-open import Categories.Functor.Monoidal.Properties using (idF-Monoidal)
+open import Categories.Functor renaming (id to idF)
+open import Categories.Functor.Monoidal.Properties
 import Categories.Monad as C
-open import Categories.Monad.Graded using (GradedMonad)
-open import Categories.Monad.Graded.Trivial using (Oneᴹ)
-open import Categories.Monad.Graded.Uncurried using (GradedMonadMorphism)
+open import Categories.Monad.Graded
+open import Categories.Monad.Graded.Trivial
+open import Categories.Monad.Graded.Uncurried
 
 open import Data.List.Base using (fromMaybe)
-open import Data.List.Properties using (++-identityʳ)
+open import Data.List.Properties
 import Data.Maybe.Relation.Binary.Pointwise as Pw
 
 open import ProbabilisticLogic.Distribution.Possibility

@@ -9,14 +9,14 @@ open import categorical-crypto.Prelude
 open import Class.Monad.Ext.Setoid
 
 import Data.List.Membership.Setoid as Membership
-open import Data.List.Membership.Setoid.Properties using (∈-concatMap⁺; ∈-concatMap⁻)
+open import Data.List.Membership.Setoid.Properties
 open import Data.List.Properties
 open import Data.List.Properties.Ext
 open import Data.List.Relation.Binary.BagAndSetEquality using (_∼[_]_; set; [_]-Equality)
 open import Data.List.Relation.Unary.Any as Any using (Any)
-open import Data.List.Relation.Unary.Any.Properties using (swap↔)
-open import Data.List.Relation.Unary.Any.Properties.Ext using (Any-congˢ)
-open import Function.Bundles using (Equivalence; mk⇔)
+open import Data.List.Relation.Unary.Any.Properties
+open import Data.List.Relation.Unary.Any.Properties.Ext
+open import Function.Bundles
 open import Function.Related.Propositional using (InducedEquivalence₂; module EquationalReasoning)
 open import Relation.Binary
 open import Relation.Binary.Bundles.Ext

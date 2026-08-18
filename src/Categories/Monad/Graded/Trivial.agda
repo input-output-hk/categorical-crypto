@@ -5,16 +5,16 @@
 -- collapse to the ungraded ones.  This is how an ungraded monad, and a morphism
 -- of two of them, enter the graded theory.
 
-open import Data.Unit using (tt)
+open import Data.Unit
 open import Level
 
 open import Categories.Category
 open import Categories.Category.Instance.One
 open import Categories.Category.Monoidal
 open import Categories.Category.Monoidal.Instance.One
-open import Categories.Functor using (Functor)
-open import Categories.Functor.Monoidal.Properties using (idF-Monoidal)
-open import Categories.Monad.Construction.Kleisli using (KleisliTriple)
+open import Categories.Functor
+open import Categories.Functor.Monoidal.Properties
+open import Categories.Monad.Construction.Kleisli
 open import Categories.Monad.Graded
 open import Categories.Monad.Graded.Morphism
 open import Categories.Monad.Relative using () renaming (Monad to RMonad)

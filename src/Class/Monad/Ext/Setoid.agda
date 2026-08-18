@@ -8,7 +8,7 @@ open import Class.Monad.Ext
 open import Class.Prelude using (Typeω)
 open import Data.Maybe.Relation.Binary.Pointwise as Pw using (Pointwise)
 open import Data.Product.Relation.Binary.Pointwise.NonDependent using (×-setoid)
-open import Function.Bundles using (Func; _⟨$⟩_)
+open import Function.Bundles
 open import Relation.Binary
 open import Relation.Binary.Bundles.Ext
 open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to ≡-setoid)

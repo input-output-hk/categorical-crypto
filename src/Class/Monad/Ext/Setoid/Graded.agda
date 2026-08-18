@@ -13,13 +13,13 @@ open import Class.Monad.Ext.Setoid
 
 open import Categories.Category.Instance.Setoids
 open import Categories.Functor renaming (id to idF)
-open import Categories.Functor.Monoidal.Properties using (idF-Monoidal)
+open import Categories.Functor.Monoidal.Properties
 import Categories.Monad as C
-open import Categories.Monad.Construction.Kleisli using (KleisliTriple; Kleisli⇒Monad)
+open import Categories.Monad.Construction.Kleisli
 open import Categories.Monad.Graded
-open import Categories.Monad.Graded.Morphism using (Components; IsGradedKleisliMorphism)
+open import Categories.Monad.Graded.Morphism
 open import Categories.Monad.Graded.Trivial
-open import Categories.Monad.Graded.Uncurried using (GradedMonadMorphism; toMonadMorphism)
+open import Categories.Monad.Graded.Uncurried
 open import Categories.Monad.Relative using (RMonad⇒Functor)
 open import Function.Bundles using (_⟨$⟩_)
 

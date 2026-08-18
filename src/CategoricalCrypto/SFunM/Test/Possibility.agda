@@ -17,7 +17,7 @@ open import Data.List.Base
 open import Data.List.Properties
 open import Data.List.Relation.Unary.Any using (Any; here; there)
 
-open import Function.Bundles using (Equivalence)
+open import Function.Bundles
 
 open import Relation.Binary.Bundles using (Setoid)
 import Relation.Binary.Construct.Always as Always
