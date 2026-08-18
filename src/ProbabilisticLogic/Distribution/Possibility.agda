@@ -2,11 +2,13 @@
 
 -- The finite possibility monad: `List` under set equality, taken up to the
 -- element setoid's own equality.  At `≡-setoid` that is the stdlib's
--- `_∼[ set ]_`, so `Discrete` recovers the `MonadSetoid` structure verbatim.
+-- `_∼[ set ]_`, which is what the machine layer computes with.
 
 open import categorical-crypto.Prelude
 
-open import Class.Monad.Ext.Setoid
+open import Categories.Category.Instance.Setoids
+open import Categories.Monad.Construction.Kleisli
+import Categories.Monad.Setoids.Discrete as Discrete
 
 import Data.List.Membership.Setoid as Membership
 open import Data.List.Membership.Setoid.Properties
@@ -105,47 +107,28 @@ module _ {S : Setoid ℓ ℓ} {S′ : Setoid ℓ′ ℓ′} {S″ : Setoid ℓ�
     open Membership S″ using () renaming (_∈_ to _∈″_)
 
 ------------------------------------------------------------------------
--- Setoid monad structure
+-- The monad on `Setoids`
 ------------------------------------------------------------------------
 
-instance
-  SetoidMonad-List : SetoidMonad List
-  SetoidMonad-List = record
-    { _⟨_≈ˢ_⟩          = λ S → Setoid._≈_ (𝒫ˢ S)
-    ; ≈ˢ-isEquivalence = λ {S = S} → Setoid.isEquivalence (𝒫ˢ S)
-    ; return-congˢ     = λ {S = S} → return-cong𝒫 {S = S}
-    ; >>=-congˢ        = λ {S = S} {S′ = S′} → >>=𝒫-cong {S = S} {S′ = S′}
-    }
+𝒫-KleisliTriple : KleisliTriple (Setoids ℓ ℓ)
+𝒫-KleisliTriple = record
+  { F₀        = 𝒫ˢ
+  ; unit      = λ {S} → record { to = _∷ [] ; cong = return-cong𝒫 {S = S} }
+  ; extend    = λ {S} {S′} f → record
+      { to   = concatMap (f ⟨$⟩_)
+      ; cong = λ σ≈τ → >>=𝒫-cong {S = S} {S′ = S′} σ≈τ (Func.cong f)
+      }
+  ; identityʳ = λ {S} {S′} {k} {a} → >>=𝒫-identityˡ {S = S} {S′ = S′} a (k ⟨$⟩_)
+  ; identityˡ = λ {S} {σ} → >>=𝒫-identityʳ {S = S} σ
+  ; assoc     = λ {S} {S′} {S″} {k} {l} {σ} →
+      Setoid.sym (𝒫ˢ S″) (>>=𝒫-assoc {S = S} {S′ = S′} {S″ = S″} σ (k ⟨$⟩_) (l ⟨$⟩_))
+  ; sym-assoc = λ {S} {S′} {S″} {k} {l} {σ} →
+      >>=𝒫-assoc {S = S} {S′ = S′} {S″ = S″} σ (k ⟨$⟩_) (l ⟨$⟩_)
+  ; extend-≈  = λ {S} {S′} {k} {h} k≈h {σ} →
+      >>=𝒫-cong {S = S} {S′ = S′} {σ = σ} {τ = σ} (Setoid.refl (𝒫ˢ S)) λ a≈b →
+        Setoid.trans (𝒫ˢ S′) k≈h (Func.cong h a≈b)
+  }
 
-  SetoidMonadLaws-List : SetoidMonadLaws List
-  SetoidMonadLaws-List = record
-    { >>=-identityˡ-≈ˢ = λ {S = S} {S′ = S′} {a = a} {h = h} →
-        >>=𝒫-identityˡ {S = S} {S′ = S′} a h
-    ; >>=-identityʳ-≈ˢ = λ {S = S} → >>=𝒫-identityʳ {S = S}
-    ; >>=-assoc-≈ˢ     = λ {S = S} {S′ = S′} {S″ = S″} m {g = g} {h = h} →
-        >>=𝒫-assoc {S = S} {S′ = S′} {S″ = S″} m g h
-    }
-
-  CommutativeSetoidMonad-List : CommutativeSetoidMonad List
-  CommutativeSetoidMonad-List = record
-    { >>=-comm-≈ˢ = λ {S = S} {S′ = S′} {S″ = S″} {x = σ} {y = τ} {f = f} _ →
-        >>=𝒫-comm {S = S} {S′ = S′} {S″ = S″} σ τ f
-    }
-
--- The carrier-indexed structure the machine layer consumes is the ≡-discrete
--- case of the above.
-open Discrete {List}
-
-instance
-  MonadSetoid-List : MonadSetoid List
-  MonadSetoid-List = Discrete-MonadSetoid
-
-  MonadLawsSetoid-List : MonadLawsSetoid List
-  MonadLawsSetoid-List = Discrete-MonadLawsSetoid
-
-  CommutativeMonadSetoid-List : CommutativeMonadSetoid List
-  CommutativeMonadSetoid-List = Discrete-CommutativeMonadSetoid
-
--- Definitionally the same relation: the adapter only pins the index.
-_ : {σ τ : List A} → MonadSetoid._≈ᴹ_ MonadSetoid-List σ τ ≡ (𝒫ˢ (≡-setoid A) ⟨ σ ≈ τ ⟩)
-_ = refl
+𝒫-commutative : Discrete.Commutative (𝒫-KleisliTriple {ℓ})
+𝒫-commutative {A = A} {B = B} {C = C} {x = σ} {y = τ} f =
+  >>=𝒫-comm {S = ≡-setoid A} {S′ = ≡-setoid B} {S″ = ≡-setoid C} σ τ f
