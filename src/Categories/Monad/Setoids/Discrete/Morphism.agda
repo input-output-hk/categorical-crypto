@@ -17,34 +17,31 @@ open import Function.Bundles.Ext
 open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to ≡-setoid)
 
 module Categories.Monad.Setoids.Discrete.Morphism {ℓ}
-  (K K′ : KleisliTriple (Setoids ℓ ℓ)) (Θᶜ : KleisliTriple⇒ (Setoids ℓ ℓ) K K′) where
+  (M N : KleisliTriple (Setoids ℓ ℓ)) (Θ : KleisliTriple⇒ (Setoids ℓ ℓ) M N) where
 
-open Discrete K
+module ℳ = Discrete M
+module 𝒩 = Discrete N
 
 private
-  module K′ = RMonad K′
-  module Θ = KleisliTriple⇒ Θᶜ
+  module Nᴿ = RMonad N
+  module Θ = KleisliTriple⇒ Θ
 
   variable A B : Set ℓ
 
-module N = Discrete K′
-
-open N using () renaming (M to Mᴺ; _≈ᴹ_ to _≈ᴺ_) public
-
-θ : M A → Mᴺ A
+θ : ℳ.M A → 𝒩.M A
 θ {A} = Θ.θ {≡-setoid A} ⟨$⟩_
 
-θ-cong : {x y : M A} → x ≈ᴹ y → θ x ≈ᴺ θ y
+θ-cong : {x y : ℳ.M A} → x ℳ.≈ᴹ y → θ x 𝒩.≈ᴹ θ y
 θ-cong {A} = Func.cong (Θ.θ {≡-setoid A})
 
-θ-return : (a : A) → θ (return a) ≈ᴺ N.return a
+θ-return : (a : A) → θ (ℳ.return a) 𝒩.≈ᴹ 𝒩.return a
 θ-return {A} _ = Θ.θ-unit {≡-setoid A}
 
 -- `θ-extend` lands in `extend` of the composite setoid map; that agrees with
 -- `θ ∘ k`'s own pointwise, not as a record.
-θ-bind : (m : M A) (k : A → M B) → θ (m >>= k) ≈ᴺ (θ m N.>>= (θ ∘ k))
-θ-bind {A} {B} _ k =
-  N.≈ᴹ.trans (Θ.θ-extend (discreteFunc k)) (K′.extend-≈ {h = discreteFunc (θ ∘ k)} N.≈ᴹ.refl)
+θ-bind : (m : ℳ.M A) (k : A → ℳ.M B) → θ (m ℳ.>>= k) 𝒩.≈ᴹ (θ m 𝒩.>>= (θ ∘ k))
+θ-bind _ k =
+  𝒩.≈ᴹ.trans (Θ.θ-extend (discreteFunc k)) (Nᴿ.extend-≈ {h = discreteFunc (θ ∘ k)} 𝒩.≈ᴹ.refl)
 
-θ-<$>ᴹ : (h : A → B) (m : M A) → θ (h <$>ᴹ m) ≈ᴺ (h N.<$>ᴹ θ m)
-θ-<$>ᴹ h m = N.≈ᴹ.trans (θ-bind m _) (N.>>=-cong-f λ _ → θ-return _)
+θ-<$>ᴹ : (h : A → B) (m : ℳ.M A) → θ (h ℳ.<$>ᴹ m) 𝒩.≈ᴹ (h 𝒩.<$>ᴹ θ m)
+θ-<$>ᴹ h m = 𝒩.≈ᴹ.trans (θ-bind m _) (𝒩.>>=-cong-f λ _ → θ-return _)
