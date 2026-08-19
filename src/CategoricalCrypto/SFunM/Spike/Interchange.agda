@@ -77,6 +77,11 @@ untuck-tuck = cancelInner associator.isoʳ ○ σ-pad-inv
 tuck-untuck : tuck ∘ untuck ≈ id {(P ⊗₀ X) ⊗₀ Q}
 tuck-untuck = cancelInner σ-pad-inv ○ associator.isoˡ
 
+Ω-involutive : Ω {P} {X} {Q} {Z} ∘ Ω {P} {Q} {X} {Z} ≈ id
+Ω-involutive = center (cancelʳ associator.isoˡ)
+             ○ (refl⟩∘⟨ pullˡ (merge₁ˡ ○ (swp-swp ⟩⊗⟨refl) ○ ⊗.identity))
+             ○ (refl⟩∘⟨ identityˡ) ○ associator.isoʳ
+
 ------------------------------------------------------------------------
 -- Padding a generator
 ------------------------------------------------------------------------
@@ -283,6 +288,15 @@ onRᵍ-⊗ : {U V : Obj} {g₂ : Z ⊗₀ W′ ⇒ Q ⊗₀ V} {h : W ⇒ W′} 
 onRᵍ-⊗ {h = h} = onRᵍ-∘ ○ (refl⟩∘⟨ onRᵍ-∘) ○ (refl⟩∘⟨ (onRᵍ-id⊗ h ⟩∘⟨refl))
 
 ------------------------------------------------------------------------
+-- Closing off the state
+------------------------------------------------------------------------
+
+-- `Spike.Mealy`'s `eval f n` is `cl (discard (state f)) (point (state f))
+-- (run f n)`.
+cl : (K₁ ⇒ unit) → (unit ⇒ K₁) → (K₁ ⊗₀ X ⇒ K₁ ⊗₀ Y) → X ⇒ Y
+cl d p R = λ⇒ ∘ d ⊗₁ id ∘ R ∘ p ⊗₁ id ∘ λ⇐
+
+------------------------------------------------------------------------
 -- Solver terms mirroring the combinators of `Spike.Mealy`
 ------------------------------------------------------------------------
 
@@ -404,13 +418,10 @@ module OneGen (P Q X Y Z : Obj) (k : P ⊗₀ X ⇒ P ⊗₀ Y) where
       ≈˘⟨ onL-cong slot₂-slot₁ ⟩
     onL (slot₂ k) ∎
 
-  -- `Ω` agrees with upstream's `swapInner` (which braids inside the interface
-  -- pair rather than the state pair) and is its own inverse.
-  Ω≈Ω′ : Ω {P} {Q} {X} {Z} ≈ α⇐ ∘ id ⊗₁ (α⇒ ∘ σ⇒ ⊗₁ id ∘ α⇐) ∘ α⇒
+  -- `Ω` agrees with upstream's `swapInner`, which braids inside the interface
+  -- pair rather than the state pair.
+  Ω≈Ω′ : Ω {P} {Q} {X} {Z} ≈ α⇐ ∘ id ⊗₁ swapˡ ∘ α⇒
   Ω≈Ω′ = solveMorσ! (ΩT p q x z) (Ω′T p q x z)
-
-  Ω-involutive : Ω {P} {X} {Q} {Z} ∘ Ω {P} {Q} {X} {Z} ≈ id
-  Ω-involutive = solveMorσ! (ΩT p x q z S.∘ ΩT p q x z) (S.id {(p ⊗ᵒ q) ⊗ᵒ (x ⊗ᵒ z)})
 
 -- The right state factor's actions commute with both interface slots.
 module OneGenʳ (P Q X Y Z : Obj) (k : Q ⊗₀ X ⇒ Q ⊗₀ Y) where
