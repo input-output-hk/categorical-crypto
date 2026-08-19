@@ -100,6 +100,10 @@ h <$>ᴹ m = m >>= (return ∘ h)
          → (h <$>ᴹ (m >>= g)) ≈ᴹ (m >>= λ a → h <$>ᴹ g a)
 >>=-<$>ᴹ h m g = >>=-assoc-≈ m
 
+-- Commutativity at the *discrete* setoids: what the machine layer needs and what every
+-- instance proves.  The general-setoid form is strictly stronger (nothing makes `F₀ S`
+-- reachable from `F₀ (≡-setoid ⟦S⟧)`), so assuming it would narrow every law that runs
+-- through `trace-∘`; upstream's `Categories.Monad.Commutative` needs a strength.
 record Commutative : Set (suc ℓ) where
   field
     >>=-comm : {A B : Set ℓ} {x : M A} {y : M B}
