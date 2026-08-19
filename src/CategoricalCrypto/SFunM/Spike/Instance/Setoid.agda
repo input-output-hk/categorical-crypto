@@ -167,5 +167,6 @@ eval-Cutᴹ-fail = refl
 -- Two cuts in series are one cut, at this input: the shape `_∘ᴹ_` needs — the
 -- paired state, `onL`/`onR` and hence `swp` — computes here too.
 eval-Cutᴹ-∘ : {m₁ m₂ : Msg}
-  → eval (Cutᴹ ∘ᴹ Cutᴹ) 2 ⟨$⟩ (just m₁ , just m₂ , tt) ≡ eval Cutᴹ 2 ⟨$⟩ (just m₁ , just m₂ , tt)
+  → eval (Cutᴹ ∘ᴹ Cutᴹ) 2 ⟨$⟩ (just m₁ , just m₂ , tt)
+  ≡ eval Cutᴹ 2 ⟨$⟩ (just m₁ , just m₂ , tt)
 eval-Cutᴹ-∘ = refl

@@ -46,7 +46,10 @@ Maybe-Monad = Kleisli⇒Monad (Setoids ℓ ℓ) Maybe-KleisliTriple
 -- Projections rather than a pattern-matching lambda, so that the structural
 -- morphisms of `Kleisli-Monoidal` still compute on closed inputs.
 σᴹᵇ : Func (A ×ₛ Pw.setoid B) (Pw.setoid (A ×ₛ B))
-σᴹᵇ {A} {B} = record { to = λ p → map (proj₁ p ,_) (proj₂ p) ; cong = λ {p} {q} (a≈b , m≈n) → congσ (proj₂ p) (proj₂ q) a≈b m≈n }
+σᴹᵇ {A} {B} = record
+  { to   = λ p → map (proj₁ p ,_) (proj₂ p)
+  ; cong = λ {p} {q} (a≈b , m≈n) → congσ (proj₂ p) (proj₂ q) a≈b m≈n
+  }
   where
   congσ : {a b : Carrier A} (m n : Maybe (Carrier B))
         → Setoid._≈_ A a b → Pw.Pointwise (Setoid._≈_ B) m n

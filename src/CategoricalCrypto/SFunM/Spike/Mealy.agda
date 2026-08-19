@@ -51,8 +51,12 @@ untuck = id ⊗₁ σ⇒ ∘ α⇒
 -- Machines
 
 -- A state object comes with a point (the initial state) and a discard (what
--- `eval` does with the final state).  At `𝒱 = Setoids` with the cartesian
--- tensor the discard is unique, so this is exactly `SFunᵉ`'s `init`.
+-- `eval` does with the final state).  Both are real data at the instances that
+-- matter: in a Kleisli category `unit` is neither initial nor terminal, so
+-- `point` is a possibly-effectful initial state where `SFunᵉ` has a pure `init`,
+-- and a degenerate `discard` annihilates every trace.  Imposing affineness on
+-- `𝒱` (a copy-discard structure) is what would make `discard` canonical and let
+-- this field go.
 record State : Set (o ⊔ ℓ) where
   field
     obj     : Obj
