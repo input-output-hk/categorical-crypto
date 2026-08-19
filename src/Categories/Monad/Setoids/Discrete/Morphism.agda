@@ -23,7 +23,7 @@ open Discrete K
 
 private
   module K′ = RMonad K′
-  module Θ = Morphism (Setoids ℓ ℓ) K K′ Θᶜ
+  module Θ = KleisliTriple⇒ Θᶜ
 
   variable A B : Set ℓ
 

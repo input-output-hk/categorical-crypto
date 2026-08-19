@@ -73,19 +73,18 @@ _ = refl
 -- Abstracting a partial machine to a possibilistic one
 
 fromMaybeᵏ : KleisliTriple⇒ (Setoids 0ℓ 0ℓ) Maybeᵏ 𝒫ᵏ
-fromMaybeᵏ = mkMorphism (Setoids 0ℓ 0ℓ) Maybeᵏ 𝒫ᵏ θᵏ
-  (λ {S} → Setoid.refl (𝒫ˢ S))
-  (λ {_} {S′} f → λ where
-      {nothing} → Setoid.refl (𝒫ˢ S′)
-      {just a}  → Setoid.reflexive (𝒫ˢ S′) (sym (++-identityʳ (fromMaybe (f ⟨$⟩ a)))))
-  where
-    θᵏ : {S : Setoid 0ℓ 0ℓ} → Func (Pw.setoid S) (𝒫ˢ S)
-    θᵏ {S} = record
+fromMaybeᵏ = record
+  { θ        = λ {S} → record
       { to   = fromMaybe
       ; cong = λ where
           (Pw.just a≈b) → return-cong𝒫 {S = S} a≈b
           Pw.nothing    → Setoid.refl (𝒫ˢ S)
       }
+  ; θ-unit   = λ {S} → Setoid.refl (𝒫ˢ S)
+  ; θ-extend = λ {_} {S′} f → λ where
+      {nothing} → Setoid.refl (𝒫ˢ S′)
+      {just a}  → Setoid.reflexive (𝒫ˢ S′) (sym (++-identityʳ (fromMaybe (f ⟨$⟩ a))))
+  }
 
 private
   module Mb  = SFun.Laws Maybeᵏ Maybe-commutative

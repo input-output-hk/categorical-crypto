@@ -84,9 +84,9 @@ module _ {oᵢ ℓᵢ eᵢ : Level} {𝒞 : Category o ℓ e} {𝒟 : Category o
 module _ {oᵢ ℓᵢ eᵢ : Level} {𝒞 : Category o ℓ e}
   (K K′ : KleisliTriple 𝒞) (Θ : KleisliTriple⇒ 𝒞 K K′) where
 
-  private module Θ = Morphism 𝒞 K K′ Θ
+  open KleisliTriple⇒ Θ
 
   ungraded-morphism :
     IsGradedKleisliMorphism (ungraded K {oᵢ} {ℓᵢ} {eᵢ}) (ungraded K′) idF
-                            (idF-Monoidal Oneᴹ) Θ.θ
-  ungraded-morphism = ungraded-filler K K′ idF Θ.θ Θ.θ-unit Θ.θ-extend
+                            (idF-Monoidal Oneᴹ) θ
+  ungraded-morphism = ungraded-filler K K′ idF θ θ-unit θ-extend
