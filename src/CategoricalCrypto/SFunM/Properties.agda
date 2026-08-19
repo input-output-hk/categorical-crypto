@@ -134,6 +134,7 @@ kleisliᵉ-∘ h k = ≈ᵉ-sim (λ _ → tt , tt) refl λ _ a → begin
   where Λ   = λ c → (tt , tt) , c
         mid = λ (sg , c) → return ((sg , tt) , c)
 
+-- TODO: `pure` is a natural transformation between `statelessᵉ` and `kleisliᵉ`. I assume something similar holds for multiplication. Does this mean we have an algebra over `K`?
 kleisliᵉ-Functor : (M-Comm : Commutative) → Functor Kleisliᴹ (Laws.SFunᵉ-Category M-Comm)
 kleisliᵉ-Functor _ = record
   { F₀           = id

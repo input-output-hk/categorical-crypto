@@ -27,18 +27,12 @@ module _ (K : KleisliTriple 𝒞) where
     module K = RMonad K
     module Kᶠ = Functor (RMonad⇒Functor K)
 
-  -- The two ways a triple's monad extends along `f`; the graded sibling is
-  -- `Categories.Monad.Graded.Ext.μT`.
   extend-μ : ∀ {A B} (f : A ⇒ K.F₀ B) → K.extend id ∘ Kᶠ.₁ f ≈ K.extend f
   extend-μ f = K.sym-assoc ○ K.extend-≈ (pullˡ K.identityʳ ○ identityˡ)
 
--- Upstream's `Monad⇒-id M N` carries `α : N.F ⇒ M.F`, so the *source* triple is
--- the second argument.
 KleisliTriple⇒ : (K K′ : KleisliTriple 𝒞) → Set (o ⊔ ℓ ⊔ e)
 KleisliTriple⇒ K K′ = Monad⇒-id (Kleisli⇒Monad 𝒞 K′) (Kleisli⇒Monad 𝒞 K)
 
--- `KleisliTriple⇒` is a defined type, so its two triples cannot be read back
--- off a morphism: both stay explicit here.
 module _ (K K′ : KleisliTriple 𝒞) where
 
   private
@@ -47,6 +41,7 @@ module _ (K K′ : KleisliTriple 𝒞) where
     module Kᶠ = Functor (RMonad⇒Functor K)
     module K′ᶠ = Functor (RMonad⇒Functor K′)
 
+  -- TODO: let's bundle these as `KleisliTriple⇒` and rename that one slightly. Then package all of this into an `Inverse` (with the right setoid notion that ignores properties)
   module _ (θ : ∀ {A} → K.F₀ A ⇒ K′.F₀ A)
     (θ-unit : ∀ {A} → θ ∘ K.unit {A} ≈ K′.unit)
     (θ-extend : ∀ {A B} (f : A ⇒ K.F₀ B) → θ ∘ K.extend f ≈ K′.extend (θ ∘ f) ∘ θ)

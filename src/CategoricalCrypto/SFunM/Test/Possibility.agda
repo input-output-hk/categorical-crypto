@@ -70,16 +70,7 @@ _ : eval (statelessᵉ not ⊗ᵉ statelessᵉ id)
 _ = refl
 
 ------------------------------------------------------------------------
--- Abstracting a partial machine to a possibilistic one, along `fromMaybe`
-
-private
-  θᵏ : {S : Setoid 0ℓ 0ℓ} → Func (Pw.setoid S) (𝒫ˢ S)
-  θᵏ {S} = record
-    { to   = fromMaybe
-    ; cong = λ where
-        (Pw.just a≈b) → return-cong𝒫 {S = S} a≈b
-        Pw.nothing    → Setoid.refl (𝒫ˢ S)
-    }
+-- Abstracting a partial machine to a possibilistic one
 
 fromMaybeᵏ : KleisliTriple⇒ (Setoids 0ℓ 0ℓ) Maybeᵏ 𝒫ᵏ
 fromMaybeᵏ = mkMorphism (Setoids 0ℓ 0ℓ) Maybeᵏ 𝒫ᵏ θᵏ
@@ -87,6 +78,14 @@ fromMaybeᵏ = mkMorphism (Setoids 0ℓ 0ℓ) Maybeᵏ 𝒫ᵏ θᵏ
   (λ {_} {S′} f → λ where
       {nothing} → Setoid.refl (𝒫ˢ S′)
       {just a}  → Setoid.reflexive (𝒫ˢ S′) (sym (++-identityʳ (fromMaybe (f ⟨$⟩ a)))))
+  where
+    θᵏ : {S : Setoid 0ℓ 0ℓ} → Func (Pw.setoid S) (𝒫ˢ S)
+    θᵏ {S} = record
+      { to   = fromMaybe
+      ; cong = λ where
+          (Pw.just a≈b) → return-cong𝒫 {S = S} a≈b
+          Pw.nothing    → Setoid.refl (𝒫ˢ S)
+      }
 
 private
   module Mb  = SFun.Laws Maybeᵏ Maybe-commutative
@@ -115,8 +114,6 @@ _ = ungraded 𝒫ᵏ
 _ : GradedMonad (Oneᴹ {0ℓ} {0ℓ} {0ℓ}) (Setoids 0ℓ 0ℓ)
 _ = GradedKleisliTriple⇒GradedMonad (ungraded 𝒫ᵏ)
 
--- Naming the two graded monads here would compare two concrete `MonoidalFunctor`
--- records field by field, which does not terminate in reasonable time.
 fromMaybeᵍ : GradedMonadMorphism _ _ idF (idF-Monoidal (Oneᴹ {0ℓ} {0ℓ} {0ℓ}))
 fromMaybeᵍ = toMonadMorphism (ungraded Maybeᵏ) (ungraded 𝒫ᵏ) idF (idF-Monoidal Oneᴹ)
                              (ungraded-morphism Maybeᵏ 𝒫ᵏ fromMaybeᵏ)

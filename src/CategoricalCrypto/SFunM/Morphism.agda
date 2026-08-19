@@ -22,11 +22,12 @@ import CategoricalCrypto.SFunM.Monoidal as SFunMonoidal
 import CategoricalCrypto.SFunM.Properties as SFunProperties
 
 module CategoricalCrypto.SFunM.Morphism
-  (K K′ : KleisliTriple (Setoids 0ℓ 0ℓ)) (Θ : KleisliTriple⇒ (Setoids 0ℓ 0ℓ) K K′)
-  (M-Comm : Discrete.Commutative K) (N-Comm : Discrete.Commutative K′) where
+  (K K′ : KleisliTriple (Setoids 0ℓ 0ℓ)) (Θ : KleisliTriple⇒ (Setoids 0ℓ 0ℓ) K K′) -- TODO: might as well name the Kleisli triples M and N, for consistency below
+  (M-Comm : Discrete.Commutative K) (N-Comm : Discrete.Commutative K′) where -- TODO: why Discrete.Commutative? Surely we can define commutativity just fine on the monads?
 
 private variable A B C D St : Type
 
+-- TODO: it'd be better to qualify this as ℳ.*
 open Discrete K
 open DiscreteMorphism K K′ Θ
 open SFun K
