@@ -283,6 +283,11 @@ swapˡ = α⇒ ∘ σ⇒ ⊗₁ id ∘ α⇐
 onRᵍ-id⊗ : (h : W ⇒ W′) → onRᵍ {Q = Q} {P = P} (id ⊗₁ h) ≈ id ⊗₁ h
 onRᵍ-id⊗ h = pullˡ assoc-commute-to ○ cancelʳ associator.isoˡ ○ (⊗.identity ⟩⊗⟨refl)
 
+-- An action on one factor of a paired state, and one on the interface alone,
+-- both pass through `onRᵍ` as themselves.
+onRᵍ-⊗id : (h : W ⇒ W′) → onRᵍ {P = P} (h ⊗₁ id {X}) ≈ (id ⊗₁ h) ⊗₁ id
+onRᵍ-⊗id _ = pullˡ assoc-commute-to ○ cancelʳ associator.isoˡ
+
 onRᵍ-⊗ : {U V : Obj} {g₂ : Z ⊗₀ W′ ⇒ Q ⊗₀ V} {h : W ⇒ W′} {g₁ : Q ⊗₀ U ⇒ Z ⊗₀ W}
        → onRᵍ {P = P} (g₂ ∘ (id ⊗₁ h ∘ g₁)) ≈ onRᵍ g₂ ∘ (id ⊗₁ h ∘ onRᵍ g₁)
 onRᵍ-⊗ {h = h} = onRᵍ-∘ ○ (refl⟩∘⟨ onRᵍ-∘) ○ (refl⟩∘⟨ (onRᵍ-id⊗ h ⟩∘⟨refl))
