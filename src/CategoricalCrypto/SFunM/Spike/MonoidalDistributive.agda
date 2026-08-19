@@ -17,7 +17,6 @@
 --   * a map out of a coproduct is determined by its two components, so the
 --     ⊕-side laws are case splits, not coherence chains.
 
-open import Categories.Category.BinaryProducts using (BinaryProducts)
 open import Categories.Category.Cocartesian using (Cocartesian)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
 open import Level using (levelOfTerm)
@@ -28,7 +27,7 @@ module CategoricalCrypto.SFunM.Spike.MonoidalDistributive
   {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e) where
 
 open SymmetricMonoidalCategory 𝒱
-open M U using (IsIso; _≅_)
+open M U using (IsIso)
 
 record MonoidalDistributive : Set (levelOfTerm 𝒱) where
   field
