@@ -134,7 +134,6 @@ kleisliᵉ-∘ h k = ≈ᵉ-sim (λ _ → tt , tt) refl λ _ a → begin
   where Λ   = λ c → (tt , tt) , c
         mid = λ (sg , c) → return ((sg , tt) , c)
 
--- TODO: `pure` is a natural transformation between `statelessᵉ` and `kleisliᵉ`. I assume something similar holds for multiplication. Does this mean we have an algebra over `K`?
 kleisliᵉ-Functor : (M-Comm : Commutative) → Functor Kleisliᴹ (Laws.SFunᵉ-Category M-Comm)
 kleisliᵉ-Functor _ = record
   { F₀           = id
@@ -144,3 +143,31 @@ kleisliᵉ-Functor _ = record
       ≈ᵉ.trans (kleisliᵉ-cong (∘ᴹ-bind {f = f} {g = g})) (kleisliᵉ-∘ (g ⟨$⟩_) (f ⟨$⟩_))
   ; F-resp-≈     = λ f≈g → kleisliᵉ-cong λ a → f≈g {a}
   }
+
+------------------------------------------------------------------------
+-- The `K`-algebra
+------------------------------------------------------------------------
+
+-- A functor out of a Kleisli category is a `K`-algebra structure on its
+-- restriction along the free functor `Sets → Kleisliᴹ`: that restriction is
+-- `kleisliᵉ-return` (which is `pure`'s naturality), and the structure map is
+-- `kleisliᵉ id`, whose unit and multiplication laws are below.  So
+-- `kleisliᵉ-Functor` and `statelessᵉ-Functor` are not two unrelated functors —
+-- the second is the first's free part, and `algᵉ` is what carries the difference.
+module _ (M-Comm : Commutative) where
+
+  open Laws M-Comm
+
+  algᵉ : SFunᵉ (M A) A
+  algᵉ = kleisliᵉ id
+
+  algᵉ-unit : (algᵉ ∘ᵉ statelessᵉ return) ≈ᵉ idᵉ {A}
+  algᵉ-unit = ≈ᵉ.trans (∘ᵉ-resp-≈ᵉ ≈ᵉ.refl (≈ᵉ.sym (kleisliᵉ-return return)))
+            $ ≈ᵉ.trans (≈ᵉ.sym (kleisliᵉ-∘ id (return ∘ return)))
+            $ ≈ᵉ.trans (kleisliᵉ-cong λ _ → >>=-identityˡ-≈)
+            $ ≈ᵉ.trans (kleisliᵉ-return id) statelessᵉ-id
+
+  algᵉ-mult : (algᵉ ∘ᵉ statelessᵉ (_>>= id)) ≈ᵉ (algᵉ {A} ∘ᵉ algᵉ)
+  algᵉ-mult = ≈ᵉ.trans (∘ᵉ-resp-≈ᵉ ≈ᵉ.refl (≈ᵉ.sym (kleisliᵉ-return (_>>= id))))
+            $ ≈ᵉ.trans (≈ᵉ.sym (kleisliᵉ-∘ id (return ∘ (_>>= id))))
+            $ ≈ᵉ.trans (kleisliᵉ-cong λ _ → >>=-identityˡ-≈) (kleisliᵉ-∘ id id)
