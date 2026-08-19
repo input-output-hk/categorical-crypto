@@ -28,6 +28,16 @@ open SFunProperties 𝒫-KleisliTriple
 
 private variable Msg : Type
 
+-- The link to the original type-level `Machine`: at the discrete setoids the possibility
+-- monad is `List` on the nose, so a machine kernel is a `List`-valued function on TYPES —
+-- a finitely supported relation `S × A → S × B` — and not a map of setoids.  The other
+-- half of the link, that `_≈ᴹ_` here is stdlib set equality, is pinned by `refl` in
+-- `Possibility.agda`; the discrete objects sit in the Kleisli category as the *full*
+-- subcategory `Discrete.Kleisliᴹ`, so nothing about the type-level notion is lost by
+-- taking the monad on `Setoids`.
+kernel-on-Types : {A B S : Type} → SFunType A B S ≡ (S × A → List (S × B))
+kernel-on-Types = refl
+
 ------------------------------------------------------------------------
 -- Lossy links
 
