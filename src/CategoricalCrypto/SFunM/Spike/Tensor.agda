@@ -5,11 +5,22 @@
 -- `Spike.Mealy`'s `⊗` pairs STATES; the tensor here pairs INTERFACES, and is
 -- `CategoricalCrypto.SFunM.Monoidal`'s `_⊗ᵉ_` written point-free: a paired state
 -- acts on a sum interface by distributing (`δ⇐`), copairing the two one-sided
--- actions, and reassembling (`δ⇒`).  Two levers carry the layer:
+-- actions, and reassembling (`δ⇒`).  Three levers carry the layer:
 --   * a map out of a distributed sum is its two components (`δ-unique`), so the
---     ⊕-side equations split into branch goals instead of coherence chains;
---   * `sim` is the point-free `≈ᵉ-sim`, and `pureᴹ` a functor from the base, so
---     the structural morphisms and their coherence come from `+-monoidal`.
+--     ⊕-side equations are branch goals, not coherence chains;
+--   * `pureᴹ` is a functor from the base and monoidal (`⊗ᵉ-pureᴹ`), so every
+--     structural morphism and all of its coherence comes from `+-monoidal`;
+--   * `sim` is the point-free `≈ᵉ-sim`, and `collapseˡ`/`collapseʳ` its two
+--     instances for the trivial state a pure machine contributes.
+--
+-- What is missing (`⊗ᵉ-homomorphism`, `assoc-commute`, `⊗ᵉ-resp-≈ᵉ`, hence the
+-- bundles) is missing for a state-side reason, not a ⊕-side one: each needs the
+-- action of one factor of a re-bracketed state tree to be recognized as the
+-- action of the same factor of another — the `σ-onR`/`σ-onL` pair below is that
+-- statement for the state braiding, and it is the one the braiding square
+-- needed.  `⊗ᵉ-resp-≈ᵉ` needs more: the elementwise `⊗idᵏ-trace` splits a
+-- *word* over `A ⊎ C` into its two subwords, i.e. the iterated distributor
+-- `pow n (A + C) ≅ Σ`, which binary distributivity does not hand over.
 
 open import Categories.Category.Core using (Category)
 open import Categories.Category.Monoidal.Braided using (Braided)
@@ -43,6 +54,7 @@ open State
 open import Categories.Category.Monoidal.Properties monoidal using (coherence₁; coherence₃)
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U
+open BraidedProps braided using (braiding-coherence)
 
 private variable A B C D P Q R X Y Z : Obj
 
@@ -550,3 +562,78 @@ tstep-sim {v = v} e₁ e₂ = δ-unique
    ○ ⟺ (pullʳ (⟺ (pad-transport v i₁)) ○ pullˡ tstep-i₁ ○ assoc))
   (pullʳ tstep-i₂ ○ pullˡ (⟺ (pad-transport v i₂)) ○ assoc ○ (refl⟩∘⟨ e₂)
    ○ ⟺ (pullʳ (⟺ (pad-transport v i₂)) ○ pullˡ tstep-i₂ ○ assoc))
+
+private
+  σ⊗-inv : σ⇒ {P} {Q} ⊗₁ id {A} ∘ σ⇒ {Q} {P} ⊗₁ id ≈ id
+  σ⊗-inv = merge₁ˡ ○ (commutative ⟩⊗⟨refl) ○ ⊗.identity
+
+-- The state-side arm: braiding the state pair swaps which factor acts.  The
+-- braiding crosses `k`\'s whole block, so `unbraid` puts the padding on one side
+-- and the two residual obligations are the block hexagon (`σ-splitˡ`/`σ-splitʳ`).
+σ-onR : {k : Q ⊗₀ A ⇒ Q ⊗₀ B}
+      → σ⇒ {P} {Q} ⊗₁ id {B} ∘ onR {P = P} k ≈ onL {Q = P} k ∘ σ⇒ ⊗₁ id {A}
+σ-onR {k = k} = begin
+  σ⇒ ⊗₁ id ∘ (α⇐ ∘ (id ⊗₁ k ∘ α⇒))              ≈⟨ sym-assoc ⟩
+  (σ⇒ ⊗₁ id ∘ α⇐) ∘ (id ⊗₁ k ∘ α⇒)              ≈⟨ unbraid k ⟩
+  ((σ⇒ ⊗₁ id ∘ α⇐) ∘ σ⇒) ∘ (k ⊗₁ id ∘ (σ⇒ ∘ α⇒))
+    ≈⟨ out ⟩∘⟨ (refl⟩∘⟨ inn) ⟩
+  swp ∘ (k ⊗₁ id ∘ (swp ∘ σ⇒ ⊗₁ id))            ≈⟨ refl⟩∘⟨ sym-assoc ⟩
+  swp ∘ ((k ⊗₁ id ∘ swp) ∘ σ⇒ ⊗₁ id)            ≈⟨ sym-assoc ⟩
+  (swp ∘ (k ⊗₁ id ∘ swp)) ∘ σ⇒ ⊗₁ id            ∎
+  where
+    out : (σ⇒ {P} {Q} ⊗₁ id {B} ∘ α⇐) ∘ σ⇒ ≈ swp
+    out = (refl⟩∘⟨ σ-splitʳ) ○ cancelInner associator.isoˡ
+        ○ (refl⟩∘⟨ assoc) ○ (refl⟩∘⟨ assoc) ○ cancelˡ σ⊗-inv
+
+    inn : σ⇒ {P} {Q ⊗₀ A} ∘ α⇒ ≈ swp ∘ σ⇒ ⊗₁ id
+    inn = (σ-splitˡ ⟩∘⟨refl) ○ cancelʳ associator.isoˡ
+        ○ (refl⟩∘⟨ sym-assoc) ○ sym-assoc
+
+-- …and the mirror arm follows by conjugating with the braiding.
+σ-onL : {k : P ⊗₀ A ⇒ P ⊗₀ B}
+      → σ⇒ {P} {Q} ⊗₁ id {B} ∘ onL {Q = Q} k ≈ onR {P = Q} k ∘ σ⇒ ⊗₁ id {A}
+σ-onL {k = k} = begin
+  σ⇒ ⊗₁ id ∘ onL k                        ≈˘⟨ refl⟩∘⟨ cancelʳ σ⊗-inv ⟩
+  σ⇒ ⊗₁ id ∘ ((onL k ∘ σ⇒ ⊗₁ id) ∘ σ⇒ ⊗₁ id)
+    ≈˘⟨ refl⟩∘⟨ σ-onR ⟩∘⟨refl ⟩
+  σ⇒ ⊗₁ id ∘ ((σ⇒ ⊗₁ id ∘ onR k) ∘ σ⇒ ⊗₁ id)
+    ≈⟨ refl⟩∘⟨ assoc ⟩
+  σ⇒ ⊗₁ id ∘ (σ⇒ ⊗₁ id ∘ (onR k ∘ σ⇒ ⊗₁ id))
+    ≈⟨ cancelˡ σ⊗-inv ⟩
+  onR k ∘ σ⇒ ⊗₁ id                        ∎
+
+------------------------------------------------------------------------
+-- Braiding naturality
+------------------------------------------------------------------------
+
+-- Swapping the interface summands swaps the two arms.
+tstep-swap : {k : X ⊗₀ A ⇒ X ⊗₀ B} {l : X ⊗₀ C ⇒ X ⊗₀ D}
+           → id ⊗₁ +-swap ∘ tstep k l ≈ tstep l k ∘ id ⊗₁ +-swap
+tstep-swap = δ-unique
+  (pullʳ tstep-i₁ ○ pullˡ (merge₂ʳ ○ refl⟩⊗⟨ inject₁)
+   ○ ⟺ (pullʳ (merge₂ʳ ○ refl⟩⊗⟨ inject₁) ○ tstep-i₂))
+  (pullʳ tstep-i₂ ○ pullˡ (merge₂ʳ ○ refl⟩⊗⟨ inject₂)
+   ○ ⟺ (pullʳ (merge₂ʳ ○ refl⟩⊗⟨ inject₂) ○ tstep-i₁))
+
+private
+  -- The braiding is trivial on the unit, so it leaves a paired point and a
+  -- paired discard alone.
+  σ-unit : σ⇒ {unit} {unit} ≈ id
+  σ-unit = insertˡ unitorˡ.isoˡ ○ (refl⟩∘⟨ (braiding-coherence ○ ⟺ coherence₃))
+         ○ unitorˡ.isoˡ
+
+braiding-commuteᴹ : {f : Machine A B} {g : Machine C D}
+                  → (σᴹ ∘ᴹ (f ⊗ᵉ g)) ≈ᵉ ((g ⊗ᵉ f) ∘ᴹ σᴹ)
+braiding-commuteᴹ {f = f} {g} =
+    pure-∘ˡ +-swap (f ⊗ᵉ g)
+  ○ᴹ sim σ⇒ discard-σ point-σ
+         (pullˡ (⟺ (pad-transport σ⇒ +-swap)) ○ assoc
+          ○ (refl⟩∘⟨ tstep-sim σ-onL σ-onR) ○ sym-assoc ○ (tstep-swap ⟩∘⟨refl))
+  ○ᴹ ⟺ᴹ (pure-∘ʳ +-swap (g ⊗ᵉ f))
+  where
+    discard-σ : discard (state g ⊛ state f) ∘ σ⇒ ≈ discard (state f ⊛ state g)
+    discard-σ = pullʳ (⟺ (braiding.⇒.commute _)) ○ pullˡ (refl⟩∘⟨ σ-unit ○ identityʳ)
+
+    point-σ : σ⇒ ∘ point (state f ⊛ state g) ≈ point (state g ⊛ state f)
+    point-σ = pullˡ (braiding.⇒.commute _) ○ assoc
+            ○ (refl⟩∘⟨ (σ-unit ⟩∘⟨refl ○ identityˡ))

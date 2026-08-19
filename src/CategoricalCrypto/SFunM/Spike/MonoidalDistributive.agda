@@ -11,11 +11,17 @@
 --
 -- Two things come for free and are worth naming, because they are what makes
 -- this hypothesis cheap rather than a `RigCategory`:
---   * `Cocartesian` already carries `+-monoidal`/`+-symmetric`, so every
---     structural morphism of the interface tensor and all of its coherence is
---     upstream — nothing here has to prove a pentagon or a hexagon;
+--   * `CocartesianMonoidal`/`CocartesianSymmetricMonoidal` derive `+-monoidal`
+--     and `+-symmetric` from `cocartesian`, so every structural morphism of the
+--     interface tensor and all of its coherence is upstream — nothing here has
+--     to prove a pentagon or a hexagon;
 --   * a map out of a coproduct is determined by its two components, so the
 --     ⊕-side laws are case splits, not coherence chains.
+--
+-- `X ⊗₀ ⊥` being initial is a *consequence* of binary distributivity, not a
+-- field to add: `[ id , id ] : ⊥ + ⊥ ⇒ ⊥` is invertible because maps out of `⊥`
+-- are unique, and `δ⇒` then forces `i₁ ≈ i₂ : X ⊗₀ ⊥ ⇒ (X ⊗₀ ⊥) + (X ⊗₀ ⊥)`.
+-- See `Spike.Tensor`'s `⊥-unique`.
 
 open import Categories.Category.Cocartesian using (Cocartesian)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
