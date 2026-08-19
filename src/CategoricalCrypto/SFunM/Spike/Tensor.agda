@@ -432,3 +432,121 @@ hexagonᴹ = (⊗ᵉ-idᴹˡ σᴹ ○ᴹ ⊗ᵉ-pureᴹ id +-swap)
          ○ᴹ (reflᴹ⟩∘ᴹ⟨ ⟺ᴹ (pureᴹ-∘ _ _)) ○ᴹ ⟺ᴹ (pureᴹ-∘ _ _)
          ○ᴹ pureᴹ-cong hexagon⊕ ○ᴹ pureᴹ-∘ _ _ ○ᴹ (reflᴹ⟩∘ᴹ⟨ pureᴹ-∘ _ _)
   where hexagon⊕ = ⊕Br.hexagon₁
+
+------------------------------------------------------------------------
+-- `tstep` is functorial, and the state-side actions distribute over it
+------------------------------------------------------------------------
+
+tstep-∘ : {k₂ : X ⊗₀ B ⇒ X ⊗₀ C} {l₂ : X ⊗₀ D ⇒ X ⊗₀ Z}
+          {k₁ : X ⊗₀ A ⇒ X ⊗₀ B} {l₁ : X ⊗₀ Y ⇒ X ⊗₀ D}
+        → tstep k₂ l₂ ∘ tstep k₁ l₁ ≈ tstep (k₂ ∘ k₁) (l₂ ∘ l₁)
+tstep-∘ {k₂ = k₂} {l₂} {k₁} {l₁} = begin
+  (δ⇒ ∘ ((k₂ +₁ l₂) ∘ δ⇐)) ∘ (δ⇒ ∘ ((k₁ +₁ l₁) ∘ δ⇐))
+    ≈⟨ assoc ○ (refl⟩∘⟨ assoc) ⟩
+  δ⇒ ∘ ((k₂ +₁ l₂) ∘ (δ⇐ ∘ (δ⇒ ∘ ((k₁ +₁ l₁) ∘ δ⇐))))
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ cancelˡ distributeˡ.isoˡ ⟩
+  δ⇒ ∘ ((k₂ +₁ l₂) ∘ ((k₁ +₁ l₁) ∘ δ⇐))
+    ≈⟨ refl⟩∘⟨ pullˡ +₁∘+₁ ⟩
+  δ⇒ ∘ (((k₂ ∘ k₁) +₁ (l₂ ∘ l₁)) ∘ δ⇐)  ∎
+
+-- `swp` is natural in the interface factor it moves out, too — the mirror of
+-- `Interchange`'s `swp-natural`, obtained from it by involutivity.
+swp-natural′ : (g : X ⇒ Y) → swp {P} {Y} {Q} ∘ (id ⊗₁ g) ⊗₁ id ≈ id ⊗₁ g ∘ swp
+swp-natural′ g = begin
+  swp ∘ (id ⊗₁ g) ⊗₁ id                ≈⟨ refl⟩∘⟨ insertʳ swp-swp ⟩
+  swp ∘ (((id ⊗₁ g) ⊗₁ id ∘ swp) ∘ swp) ≈˘⟨ refl⟩∘⟨ swp-natural g ⟩∘⟨refl ⟩
+  swp ∘ ((swp ∘ id ⊗₁ g) ∘ swp)        ≈⟨ refl⟩∘⟨ assoc ⟩
+  swp ∘ (swp ∘ (id ⊗₁ g ∘ swp))        ≈⟨ cancelˡ swp-swp ⟩
+  id ⊗₁ g ∘ swp                        ∎
+
+-- Both state-side actions carry a square that is natural in the interface…
+onL-branch : {k : P ⊗₀ A ⇒ P ⊗₀ B} {t : P ⊗₀ X ⇒ P ⊗₀ Y} {j : A ⇒ X} {j′ : B ⇒ Y}
+           → t ∘ id ⊗₁ j ≈ id ⊗₁ j′ ∘ k
+           → onL {Q = Q} t ∘ id ⊗₁ j ≈ id ⊗₁ j′ ∘ onL k
+onL-branch {k = k} {t} {j} {j′} e = begin
+  (swp ∘ (t ⊗₁ id ∘ swp)) ∘ id ⊗₁ j        ≈⟨ assoc ○ (refl⟩∘⟨ assoc) ⟩
+  swp ∘ (t ⊗₁ id ∘ (swp ∘ id ⊗₁ j))        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ swp-natural j ⟩
+  swp ∘ (t ⊗₁ id ∘ ((id ⊗₁ j) ⊗₁ id ∘ swp))
+    ≈⟨ refl⟩∘⟨ pullˡ (merge₁ˡ ○ e ⟩⊗⟨refl ○ split₁ˡ) ⟩
+  swp ∘ (((id ⊗₁ j′) ⊗₁ id ∘ k ⊗₁ id) ∘ swp)
+    ≈⟨ refl⟩∘⟨ assoc ○ pullˡ (swp-natural′ j′) ○ assoc ⟩
+  id ⊗₁ j′ ∘ (swp ∘ (k ⊗₁ id ∘ swp))       ∎
+
+onR-branch : {k : Q ⊗₀ A ⇒ Q ⊗₀ B} {t : Q ⊗₀ X ⇒ Q ⊗₀ Y} {j : A ⇒ X} {j′ : B ⇒ Y}
+           → t ∘ id ⊗₁ j ≈ id ⊗₁ j′ ∘ k
+           → onR {P = P} t ∘ id ⊗₁ j ≈ id ⊗₁ j′ ∘ onR k
+onR-branch {k = k} {t} {j} {j′} e = begin
+  (α⇐ ∘ (id ⊗₁ t ∘ α⇒)) ∘ id ⊗₁ j          ≈⟨ assoc ○ (refl⟩∘⟨ assoc) ⟩
+  α⇐ ∘ (id ⊗₁ t ∘ (α⇒ ∘ id ⊗₁ j))
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ((refl⟩∘⟨ ((⟺ ⊗.identity) ⟩⊗⟨refl)) ○ assoc-commute-from) ⟩
+  α⇐ ∘ (id ⊗₁ t ∘ (id ⊗₁ (id ⊗₁ j) ∘ α⇒))
+    ≈⟨ refl⟩∘⟨ pullˡ (merge₂ʳ ○ refl⟩⊗⟨ e ○ split₂ʳ) ⟩
+  α⇐ ∘ ((id ⊗₁ (id ⊗₁ j′) ∘ id ⊗₁ k) ∘ α⇒)
+    ≈⟨ refl⟩∘⟨ assoc
+       ○ pullˡ (assoc-commute-to ○ (⊗.identity ⟩⊗⟨refl) ⟩∘⟨refl) ○ assoc ⟩
+  id ⊗₁ j′ ∘ (α⇐ ∘ (id ⊗₁ k ∘ α⇒))         ∎
+
+-- …hence both distribute over the tensor of steps.
+onL-tstep : {k : P ⊗₀ A ⇒ P ⊗₀ B} {l : P ⊗₀ C ⇒ P ⊗₀ D}
+          → onL {Q = Q} (tstep k l) ≈ tstep (onL k) (onL l)
+onL-tstep = δ-unique (onL-branch tstep-i₁ ○ ⟺ tstep-i₁)
+                     (onL-branch tstep-i₂ ○ ⟺ tstep-i₂)
+
+onR-tstep : {k : Q ⊗₀ A ⇒ Q ⊗₀ B} {l : Q ⊗₀ C ⇒ Q ⊗₀ D}
+          → onR {P = P} (tstep k l) ≈ tstep (onR k) (onR l)
+onR-tstep = δ-unique (onR-branch tstep-i₁ ○ ⟺ tstep-i₁)
+                     (onR-branch tstep-i₂ ○ ⟺ tstep-i₂)
+
+------------------------------------------------------------------------
+-- Unitor naturality
+------------------------------------------------------------------------
+
+-- Cutting the empty summand: the other branch cannot fire, because `X ⊗₀ ⊥` is
+-- initial (`⊥-unique`).
+private
+  ρ-i₁ : ∀ {W} → id {X} ⊗₁ ⊕.unitorʳ.from {W} ∘ id ⊗₁ i₁ ≈ id
+  ρ-i₁ = merge₂ʳ ○ (refl⟩⊗⟨ ⊕.unitorʳ.isoʳ) ○ ⊗.identity
+
+  λ-i₂ : ∀ {W} → id {X} ⊗₁ ⊕.unitorˡ.from {W} ∘ id ⊗₁ i₂ ≈ id
+  λ-i₂ = merge₂ʳ ○ (refl⟩⊗⟨ ⊕.unitorˡ.isoʳ) ○ ⊗.identity
+
+tstep-ρ : {k : X ⊗₀ A ⇒ X ⊗₀ B} {l : X ⊗₀ ⊥ ⇒ X ⊗₀ ⊥}
+        → id ⊗₁ ⊕.unitorʳ.from ∘ tstep k l ≈ k ∘ id ⊗₁ ⊕.unitorʳ.from
+tstep-ρ = δ-unique (pullʳ tstep-i₁ ○ pullˡ ρ-i₁ ○ identityˡ
+                    ○ ⟺ (pullʳ ρ-i₁ ○ identityʳ)) ⊥-unique
+
+tstep-λ : {k : X ⊗₀ ⊥ ⇒ X ⊗₀ ⊥} {l : X ⊗₀ A ⇒ X ⊗₀ B}
+        → id ⊗₁ ⊕.unitorˡ.from ∘ tstep k l ≈ l ∘ id ⊗₁ ⊕.unitorˡ.from
+tstep-λ = δ-unique ⊥-unique
+                   (pullʳ tstep-i₂ ○ pullˡ λ-i₂ ○ identityˡ
+                    ○ ⟺ (pullʳ λ-i₂ ○ identityʳ))
+
+unitorˡ-commuteᴹ : {f : Machine A B} → (λ⇒ᴹ ∘ᴹ (idᴹ {⊥} ⊗ᵉ f)) ≈ᵉ (f ∘ᴹ λ⇒ᴹ)
+unitorˡ-commuteᴹ {f = f} =
+    pure-∘ˡ ⊕.unitorˡ.from (idᴹ ⊗ᵉ f)
+  ○ᴹ collapseˡ ((refl⟩∘⟨ tstep-λ) ○ pullˡ onR-collapseˡ ○ assoc
+                ○ (refl⟩∘⟨ ⟺ (pad-transport λ⇒ ⊕.unitorˡ.from)) ○ sym-assoc)
+  ○ᴹ ⟺ᴹ (pure-∘ʳ ⊕.unitorˡ.from f)
+
+unitorʳ-commuteᴹ : {f : Machine A B} → (ρ⇒ᴹ ∘ᴹ (f ⊗ᵉ idᴹ {⊥})) ≈ᵉ (f ∘ᴹ ρ⇒ᴹ)
+unitorʳ-commuteᴹ {f = f} =
+    pure-∘ˡ ⊕.unitorʳ.from (f ⊗ᵉ idᴹ)
+  ○ᴹ collapseʳ ((refl⟩∘⟨ tstep-ρ) ○ pullˡ onL-collapseʳ ○ assoc
+                ○ (refl⟩∘⟨ ⟺ (pad-transport ρ⇒ ⊕.unitorʳ.from)) ○ sym-assoc)
+  ○ᴹ ⟺ᴹ (pure-∘ʳ ⊕.unitorʳ.from f)
+
+------------------------------------------------------------------------
+-- Interchange
+------------------------------------------------------------------------
+
+-- A state map that conjugates both arms conjugates the tensor: the interface
+-- tensor is compatible with state simulations.
+tstep-sim : {X′ : Obj} {v : X ⇒ X′} {k : X ⊗₀ A ⇒ X ⊗₀ B} {k′ : X′ ⊗₀ A ⇒ X′ ⊗₀ B}
+            {l : X ⊗₀ C ⇒ X ⊗₀ D} {l′ : X′ ⊗₀ C ⇒ X′ ⊗₀ D}
+          → v ⊗₁ id ∘ k ≈ k′ ∘ v ⊗₁ id → v ⊗₁ id ∘ l ≈ l′ ∘ v ⊗₁ id
+          → v ⊗₁ id ∘ tstep k l ≈ tstep k′ l′ ∘ v ⊗₁ id
+tstep-sim {v = v} e₁ e₂ = δ-unique
+  (pullʳ tstep-i₁ ○ pullˡ (⟺ (pad-transport v i₁)) ○ assoc ○ (refl⟩∘⟨ e₁)
+   ○ ⟺ (pullʳ (⟺ (pad-transport v i₁)) ○ pullˡ tstep-i₁ ○ assoc))
+  (pullʳ tstep-i₂ ○ pullˡ (⟺ (pad-transport v i₂)) ○ assoc ○ (refl⟩∘⟨ e₂)
+   ○ ⟺ (pullʳ (⟺ (pad-transport v i₂)) ○ pullˡ tstep-i₂ ○ assoc))
