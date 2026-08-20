@@ -96,6 +96,13 @@ tuck-untuck = cancelInner σ-pad-inv ○ associator.isoˡ
 pad-transport : (h : K₁ ⇒ K₂) (s : W ⇒ W′) → id ⊗₁ s ∘ h ⊗₁ id ≈ h ⊗₁ id ∘ id ⊗₁ s
 pad-transport _ _ = parallel id-comm-sym id-comm
 
+-- Splitting a padding across the associator: the generator never sees it.
+pad-α⇒ : (h : K₁ ⇒ K₂) → h ⊗₁ id {W ⊗₀ W′} ∘ α⇒ ≈ α⇒ ∘ (h ⊗₁ id {W}) ⊗₁ id {W′}
+pad-α⇒ _ = ((refl⟩⊗⟨ (⟺ ⊗.identity)) ⟩∘⟨refl) ○ ⟺ assoc-commute-from
+
+pad-α⇐ : (h : K₁ ⇒ K₂) → α⇐ ∘ h ⊗₁ id {W ⊗₀ W′} ≈ (h ⊗₁ id {W}) ⊗₁ id {W′} ∘ α⇐
+pad-α⇐ _ = (refl⟩∘⟨ (refl⟩⊗⟨ (⟺ ⊗.identity))) ○ assoc-commute-to
+
 -- A left padding is a braided right padding.
 pad-braid : (L : Obj) (h : K₁ ⇒ K₂) → id {L} ⊗₁ h ≈ σ⇒ ∘ h ⊗₁ id ∘ σ⇒
 pad-braid L h = begin

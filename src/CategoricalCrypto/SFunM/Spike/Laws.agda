@@ -30,7 +30,8 @@ open MonoidalUtilities.Shorthands monoidal
 open Mealy 𝒱
 open Interchange 𝒱
 
-open import Categories.Category.Monoidal.Properties monoidal using (coherence₂; coherence₃; coherence-inv₃)
+open import Categories.Category.Monoidal.Properties monoidal
+  using (coherence₁; coherence₂; coherence₃; coherence-inv₁; coherence-inv₃)
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U
 open BraidedProps braided using (braiding-coherence)
@@ -191,6 +192,60 @@ cl-∘ʳ {d = d} {p} {R} {h} = begin
   λ⇒ ∘ ((d ⊗₁ id ∘ (R ∘ (p ⊗₁ id ∘ λ⇐))) ∘ h)
     ≈⟨ sym-assoc ⟩
   (λ⇒ ∘ (d ⊗₁ id ∘ (R ∘ (p ⊗₁ id ∘ λ⇐)))) ∘ h  ∎
+
+-- …and so does an action on the interface alone on the other side.
+cl-∘ˡ : {d : P ⇒ unit} {p : unit ⇒ P} {R : P ⊗₀ A ⇒ P ⊗₀ B} {h : B ⇒ C}
+      → cl d p (id ⊗₁ h ∘ R) ≈ h ∘ cl d p R
+cl-∘ˡ {d = d} {p} {R} {h} = begin
+  λ⇒ ∘ (d ⊗₁ id ∘ ((id ⊗₁ h ∘ R) ∘ (p ⊗₁ id ∘ λ⇐)))
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ assoc ⟩
+  λ⇒ ∘ (d ⊗₁ id ∘ (id ⊗₁ h ∘ (R ∘ (p ⊗₁ id ∘ λ⇐))))
+    ≈⟨ refl⟩∘⟨ pullˡ (⟺ (pad-transport d h)) ⟩
+  λ⇒ ∘ ((id ⊗₁ h ∘ d ⊗₁ id) ∘ (R ∘ (p ⊗₁ id ∘ λ⇐)))
+    ≈⟨ refl⟩∘⟨ assoc ⟩
+  λ⇒ ∘ (id ⊗₁ h ∘ (d ⊗₁ id ∘ (R ∘ (p ⊗₁ id ∘ λ⇐))))
+    ≈⟨ pullˡ unitorˡ-commute-from ○ assoc ⟩
+  h ∘ (λ⇒ ∘ (d ⊗₁ id ∘ (R ∘ (p ⊗₁ id ∘ λ⇐))))  ∎
+
+-- Slotting into the first interface factor comes out of the closure untouched:
+-- this is what turns a word's `A`-subrun back into `eval f`.
+cl-slot₁ : {d : P ⇒ unit} {p : unit ⇒ P} {R : P ⊗₀ A ⇒ P ⊗₀ B}
+         → cl d p (slot₁ {Z = C} R) ≈ cl d p R ⊗₁ id
+cl-slot₁ {d = d} {p} {R} = begin
+  λ⇒ ∘ (d ⊗₁ id ∘ ((α⇒ ∘ (R ⊗₁ id ∘ α⇐)) ∘ (p ⊗₁ id ∘ λ⇐)))
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (assoc ○ (refl⟩∘⟨ assoc)) ⟩
+  λ⇒ ∘ (d ⊗₁ id ∘ (α⇒ ∘ (R ⊗₁ id ∘ (α⇐ ∘ (p ⊗₁ id ∘ λ⇐)))))
+    ≈⟨ refl⟩∘⟨ pullˡ (pad-α⇒ d) ⟩
+  λ⇒ ∘ ((α⇒ ∘ (d ⊗₁ id) ⊗₁ id) ∘ (R ⊗₁ id ∘ (α⇐ ∘ (p ⊗₁ id ∘ λ⇐))))
+    ≈⟨ pullˡ (pullˡ coherence₁) ⟩
+  (λ⇒ ⊗₁ id ∘ (d ⊗₁ id) ⊗₁ id) ∘ (R ⊗₁ id ∘ (α⇐ ∘ (p ⊗₁ id ∘ λ⇐)))
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ (pad-α⇐ p) ⟩
+  (λ⇒ ⊗₁ id ∘ (d ⊗₁ id) ⊗₁ id) ∘ (R ⊗₁ id ∘ (((p ⊗₁ id) ⊗₁ id ∘ α⇐) ∘ λ⇐))
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (assoc ○ (refl⟩∘⟨ coherence-inv₁)) ⟩
+  (λ⇒ ⊗₁ id ∘ (d ⊗₁ id) ⊗₁ id) ∘ (R ⊗₁ id ∘ ((p ⊗₁ id) ⊗₁ id ∘ λ⇐ ⊗₁ id))
+    ≈⟨ merge₁ˡ ⟩∘⟨ ((refl⟩∘⟨ merge₁ˡ) ○ merge₁ˡ) ⟩
+  (λ⇒ ∘ d ⊗₁ id) ⊗₁ id ∘ (R ∘ (p ⊗₁ id ∘ λ⇐)) ⊗₁ id
+    ≈⟨ merge₁ˡ ○ (assoc ⟩⊗⟨refl) ⟩
+  (λ⇒ ∘ (d ⊗₁ id ∘ (R ∘ (p ⊗₁ id ∘ λ⇐)))) ⊗₁ id  ∎
+
+-- A state map that conjugates the two runs identifies their closures; `sim` is
+-- this at every unrolling.
+cl-sim : {d : P ⇒ unit} {p : unit ⇒ P} {d′ : Q ⇒ unit} {p′ : unit ⇒ Q}
+         {R : P ⊗₀ A ⇒ P ⊗₀ B} {R′ : Q ⊗₀ A ⇒ Q ⊗₀ B} (u : P ⇒ Q)
+       → d′ ∘ u ≈ d → u ∘ p ≈ p′ → u ⊗₁ id ∘ R ≈ R′ ∘ u ⊗₁ id
+       → cl d p R ≈ cl d′ p′ R′
+cl-sim {d = d} {p} {d′} {p′} {R} {R′} u ed ep e = begin
+  λ⇒ ∘ (d ⊗₁ id ∘ (R ∘ (p ⊗₁ id ∘ λ⇐)))
+    ≈˘⟨ refl⟩∘⟨ ed ⟩⊗⟨refl ⟩∘⟨refl ⟩
+  λ⇒ ∘ ((d′ ∘ u) ⊗₁ id ∘ (R ∘ (p ⊗₁ id ∘ λ⇐)))
+    ≈⟨ refl⟩∘⟨ split₁ˡ ⟩∘⟨refl ○ (refl⟩∘⟨ assoc) ⟩
+  λ⇒ ∘ (d′ ⊗₁ id ∘ (u ⊗₁ id ∘ (R ∘ (p ⊗₁ id ∘ λ⇐))))
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ e ⟩
+  λ⇒ ∘ (d′ ⊗₁ id ∘ ((R′ ∘ u ⊗₁ id) ∘ (p ⊗₁ id ∘ λ⇐)))
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ assoc ⟩
+  λ⇒ ∘ (d′ ⊗₁ id ∘ (R′ ∘ (u ⊗₁ id ∘ (p ⊗₁ id ∘ λ⇐))))
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ (merge₁ˡ ○ ep ⟩⊗⟨refl) ⟩
+  λ⇒ ∘ (d′ ⊗₁ id ∘ (R′ ∘ (p′ ⊗₁ id ∘ λ⇐)))  ∎
 
 -- A factorization of the point and the discard factors out of the closure.
 cl-factor : {d : P ⇒ unit} {p : unit ⇒ P} {u : Q ⇒ P} {v : P ⇒ Q}

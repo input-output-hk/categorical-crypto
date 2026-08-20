@@ -32,6 +32,7 @@ import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
 open import Data.Nat.Base using (ℕ; zero; suc)
 
+import CategoricalCrypto.SFunM.Spike.Distributor as Distributor
 import CategoricalCrypto.SFunM.Spike.Interchange as Interchange
 import CategoricalCrypto.SFunM.Spike.Laws as Laws
 import CategoricalCrypto.SFunM.Spike.Mealy as Mealy
@@ -43,6 +44,7 @@ module CategoricalCrypto.SFunM.Spike.Tensor {o ℓ e} (𝒱 : SymmetricMonoidalC
 open SymmetricMonoidalCategory 𝒱
 open BraidedProps.Shorthands braided using (σ⇒)
 open MonoidalUtilities.Shorthands monoidal
+open Distributor 𝒱 dist
 open Equiv
 open Interchange 𝒱
 open Laws 𝒱
@@ -82,18 +84,12 @@ slot₁-sim : {u : P ⇒ R} {k : P ⊗₀ X ⇒ P ⊗₀ Y} {k′ : R ⊗₀ X �
           → u ⊗₁ id ∘ k ≈ k′ ∘ u ⊗₁ id
           → u ⊗₁ id {Y ⊗₀ Z} ∘ slot₁ k ≈ slot₁ k′ ∘ u ⊗₁ id
 slot₁-sim {u = u} {k} {k′} e = begin
-  u ⊗₁ id ∘ (α⇒ ∘ (k ⊗₁ id ∘ α⇐))            ≈⟨ pullˡ pad-α⇒ ⟩
+  u ⊗₁ id ∘ (α⇒ ∘ (k ⊗₁ id ∘ α⇐))            ≈⟨ pullˡ (pad-α⇒ u) ⟩
   (α⇒ ∘ (u ⊗₁ id) ⊗₁ id) ∘ (k ⊗₁ id ∘ α⇐)    ≈⟨ center merge₁ˡ ⟩
   α⇒ ∘ ((u ⊗₁ id ∘ k) ⊗₁ id ∘ α⇐)            ≈⟨ refl⟩∘⟨ (e ⟩⊗⟨refl ○ split₁ˡ) ⟩∘⟨refl ⟩
-  α⇒ ∘ ((k′ ⊗₁ id ∘ (u ⊗₁ id) ⊗₁ id) ∘ α⇐)   ≈⟨ refl⟩∘⟨ pullʳ (⟺ pad-α⇐) ⟩
+  α⇒ ∘ ((k′ ⊗₁ id ∘ (u ⊗₁ id) ⊗₁ id) ∘ α⇐)   ≈⟨ refl⟩∘⟨ pullʳ (⟺ (pad-α⇐ u)) ⟩
   α⇒ ∘ (k′ ⊗₁ id ∘ (α⇐ ∘ u ⊗₁ id))           ≈⟨ refl⟩∘⟨ sym-assoc ○ sym-assoc ⟩
   (α⇒ ∘ (k′ ⊗₁ id ∘ α⇐)) ∘ u ⊗₁ id           ∎
-  where
-    pad-α⇒ : u ⊗₁ id {Y ⊗₀ Z} ∘ α⇒ ≈ α⇒ ∘ (u ⊗₁ id {Y}) ⊗₁ id {Z}
-    pad-α⇒ = (refl⟩⊗⟨ (⟺ ⊗.identity)) ⟩∘⟨refl ○ ⟺ assoc-commute-from
-
-    pad-α⇐ : α⇐ ∘ u ⊗₁ id {X ⊗₀ Z} ≈ (u ⊗₁ id {X}) ⊗₁ id {Z} ∘ α⇐
-    pad-α⇐ = (refl⟩∘⟨ (refl⟩⊗⟨ (⟺ ⊗.identity))) ○ assoc-commute-to
 
 -- …the second one being the first conjugated by an interface braiding.
 slot₂-sim : {u : P ⇒ R} {k : P ⊗₀ X ⇒ P ⊗₀ Y} {k′ : R ⊗₀ X ⇒ R ⊗₀ Y}
@@ -122,21 +118,7 @@ sim : {S T : State} {k : obj S ⊗₀ A ⇒ obj S ⊗₀ B} {k′ : obj T ⊗₀
     → discard T ∘ u ≈ discard S → u ∘ point S ≈ point T
     → u ⊗₁ id ∘ k ≈ k′ ∘ u ⊗₁ id
     → mk S k ≈ᵉ mk T k′
-sim {S = S} {T} {k} {k′} u ed ep e n = begin
-  λ⇒ ∘ (discard S ⊗₁ id ∘ (Rn ∘ (point S ⊗₁ id ∘ λ⇐)))
-    ≈˘⟨ refl⟩∘⟨ ed ⟩⊗⟨refl ⟩∘⟨refl ⟩
-  λ⇒ ∘ ((discard T ∘ u) ⊗₁ id ∘ (Rn ∘ (point S ⊗₁ id ∘ λ⇐)))
-    ≈⟨ refl⟩∘⟨ split₁ˡ ⟩∘⟨refl ○ (refl⟩∘⟨ assoc) ⟩
-  λ⇒ ∘ (discard T ⊗₁ id ∘ (u ⊗₁ id ∘ (Rn ∘ (point S ⊗₁ id ∘ λ⇐))))
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ (run-sim u e n) ⟩
-  λ⇒ ∘ (discard T ⊗₁ id ∘ ((Rn′ ∘ u ⊗₁ id) ∘ (point S ⊗₁ id ∘ λ⇐)))
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ assoc ⟩
-  λ⇒ ∘ (discard T ⊗₁ id ∘ (Rn′ ∘ (u ⊗₁ id ∘ (point S ⊗₁ id ∘ λ⇐))))
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ (merge₁ˡ ○ ep ⟩⊗⟨refl) ⟩
-  λ⇒ ∘ (discard T ⊗₁ id ∘ (Rn′ ∘ (point T ⊗₁ id ∘ λ⇐)))  ∎
-  where
-    Rn  = run (mk S k) n
-    Rn′ = run (mk T k′) n
+sim u ed ep e n = cl-sim u ed ep (run-sim u e n)
 
 ------------------------------------------------------------------------
 -- Pure machines
@@ -220,14 +202,6 @@ pureᴹ-∘ g f n = eval-pureᴹ (g ∘ f) n ○ powmap-∘ g f n
 -- The interface tensor
 ------------------------------------------------------------------------
 
--- Two maps out of a distributed sum agree as soon as their branches do: this is
--- the lever that replaces the ⊕-side coherence chains.
-δ-unique : {u v : X ⊗₀ (A + B) ⇒ Y}
-         → u ∘ id ⊗₁ i₁ ≈ v ∘ id ⊗₁ i₁ → u ∘ id ⊗₁ i₂ ≈ v ∘ id ⊗₁ i₂ → u ≈ v
-δ-unique e₁ e₂ = insertʳ distributeˡ.isoʳ
-               ○ (∘-distribˡ-[] ○ []-cong₂ e₁ e₂ ○ ⟺ ∘-distribˡ-[]) ⟩∘⟨refl
-               ○ cancelʳ distributeˡ.isoʳ
-
 private
   -- `[ id , id ] : ⊥ + ⊥ ⇒ ⊥` is an iso, its inverse `i₁`, because maps out of
   -- the initial object are unique.
@@ -273,12 +247,6 @@ f ⊗ᵉ g = mk (state f ⊛ state g) (tstep (onL (step f)) (onR (step g)))
 tstep-cong : {k k′ : X ⊗₀ A ⇒ X ⊗₀ B} {l l′ : X ⊗₀ C ⇒ X ⊗₀ D}
            → k ≈ k′ → l ≈ l′ → tstep k l ≈ tstep k′ l′
 tstep-cong e₁ e₂ = refl⟩∘⟨ +₁-cong₂ e₁ e₂ ⟩∘⟨refl
-
-δ⇐-i₁ : δ⇐ ∘ id {X} ⊗₁ i₁ ≈ i₁ {X ⊗₀ A} {X ⊗₀ B}
-δ⇐-i₁ = (refl⟩∘⟨ ⟺ inject₁) ○ cancelˡ distributeˡ.isoˡ
-
-δ⇐-i₂ : δ⇐ ∘ id {X} ⊗₁ i₂ ≈ i₂ {X ⊗₀ A} {X ⊗₀ B}
-δ⇐-i₂ = (refl⟩∘⟨ ⟺ inject₂) ○ cancelˡ distributeˡ.isoˡ
 
 tstep-i₁ : {k : X ⊗₀ A ⇒ X ⊗₀ B} {l : X ⊗₀ C ⇒ X ⊗₀ D}
          → tstep k l ∘ id ⊗₁ i₁ ≈ id ⊗₁ i₁ ∘ k
