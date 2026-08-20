@@ -31,6 +31,7 @@ import Categories.Category.Monoidal.Braided.Properties as BraidedProps
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
 open import Data.Nat.Base using (ℕ; zero; suc)
+open import Data.Product using (_,_)
 
 import CategoricalCrypto.SFunM.Spike.Distributor as Distributor
 import CategoricalCrypto.SFunM.Spike.Interchange as Interchange
@@ -676,3 +677,102 @@ eval-⊗id f {n} w = (⊗idᵉ-collapse f n ⟩∘⟨refl) ○ ⟺ cl-∘ʳ ○ 
 ⊗idᵉ-resp : {f g : Machine A B} → f ≈ᵉ g → (f ⊗ᵉ idᴹ {C}) ≈ᵉ (g ⊗ᵉ idᴹ)
 ⊗idᵉ-resp {A} {B} {C} {f} {g} e n = pow-unique′ {A} {C} n λ {k} {m} w →
   eval-⊗id f {n} w ○ (refl⟩∘⟨ (e k ⟩⊗⟨refl)) ○ ⟺ (eval-⊗id g {n} w)
+
+------------------------------------------------------------------------
+-- Splitting the tensor, and the congruence
+------------------------------------------------------------------------
+
+private
+  -- `swp` is natural in all three factors.
+  swp-nat : (u : P ⇒ R) (v : Q ⇒ Z) (t : X ⇒ Y)
+          → (u ⊗₁ t) ⊗₁ v ∘ swp ≈ swp ∘ (u ⊗₁ v) ⊗₁ t
+  swp-nat u v t = begin
+    (u ⊗₁ t) ⊗₁ v ∘ (α⇐ ∘ (id ⊗₁ σ⇒ ∘ α⇒))
+      ≈⟨ pullˡ (⟺ assoc-commute-to) ○ assoc ⟩
+    α⇐ ∘ (u ⊗₁ (t ⊗₁ v) ∘ (id ⊗₁ σ⇒ ∘ α⇒))
+      ≈⟨ refl⟩∘⟨ pullˡ (parallel id-comm (⟺ (braiding.⇒.commute (v , t)))) ⟩
+    α⇐ ∘ ((id ⊗₁ σ⇒ ∘ u ⊗₁ (v ⊗₁ t)) ∘ α⇒)
+      ≈⟨ refl⟩∘⟨ assoc ⟩
+    α⇐ ∘ (id ⊗₁ σ⇒ ∘ (u ⊗₁ (v ⊗₁ t) ∘ α⇒))
+      ≈˘⟨ refl⟩∘⟨ refl⟩∘⟨ assoc-commute-from ⟩
+    α⇐ ∘ (id ⊗₁ σ⇒ ∘ (α⇒ ∘ (u ⊗₁ v) ⊗₁ t))
+      ≈⟨ refl⟩∘⟨ sym-assoc ○ sym-assoc ⟩
+    (α⇐ ∘ (id ⊗₁ σ⇒ ∘ α⇒)) ∘ (u ⊗₁ v) ⊗₁ t  ∎
+
+-- A state map on each factor of a paired state conjugates the two actions:
+-- `slot₁-sim`'s mirror for the state side.
+onL-sim : {v : P ⇒ R} {w : Q ⇒ Z} {k : P ⊗₀ X ⇒ P ⊗₀ Y} {k′ : R ⊗₀ X ⇒ R ⊗₀ Y}
+        → v ⊗₁ id ∘ k ≈ k′ ∘ v ⊗₁ id
+        → (v ⊗₁ w) ⊗₁ id {Y} ∘ onL k ≈ onL k′ ∘ (v ⊗₁ w) ⊗₁ id {X}
+onL-sim {v = v} {w} {k} {k′} e = begin
+  (v ⊗₁ w) ⊗₁ id ∘ (swp ∘ (k ⊗₁ id ∘ swp))
+    ≈⟨ pullˡ (swp-nat v id w) ○ assoc ⟩
+  swp ∘ ((v ⊗₁ id) ⊗₁ w ∘ (k ⊗₁ id ∘ swp))
+    ≈⟨ refl⟩∘⟨ pullˡ (parallel e id-comm) ⟩
+  swp ∘ ((k′ ⊗₁ id ∘ (v ⊗₁ id) ⊗₁ w) ∘ swp)
+    ≈⟨ refl⟩∘⟨ assoc ⟩
+  swp ∘ (k′ ⊗₁ id ∘ ((v ⊗₁ id) ⊗₁ w ∘ swp))
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ swp-nat v w id ⟩
+  swp ∘ (k′ ⊗₁ id ∘ (swp ∘ (v ⊗₁ w) ⊗₁ id))
+    ≈⟨ refl⟩∘⟨ sym-assoc ○ sym-assoc ⟩
+  (swp ∘ (k′ ⊗₁ id ∘ swp)) ∘ (v ⊗₁ w) ⊗₁ id  ∎
+
+onR-sim : {v : P ⇒ R} {w : Q ⇒ Z} {k : Q ⊗₀ X ⇒ Q ⊗₀ Y} {k′ : Z ⊗₀ X ⇒ Z ⊗₀ Y}
+        → w ⊗₁ id ∘ k ≈ k′ ∘ w ⊗₁ id
+        → (v ⊗₁ w) ⊗₁ id {Y} ∘ onR k ≈ onR k′ ∘ (v ⊗₁ w) ⊗₁ id {X}
+onR-sim {v = v} {w} {k} {k′} e = begin
+  (v ⊗₁ w) ⊗₁ id ∘ (α⇐ ∘ (id ⊗₁ k ∘ α⇒))
+    ≈⟨ pullˡ (⟺ assoc-commute-to) ○ assoc ⟩
+  α⇐ ∘ (v ⊗₁ (w ⊗₁ id) ∘ (id ⊗₁ k ∘ α⇒))
+    ≈⟨ refl⟩∘⟨ pullˡ (parallel id-comm e) ⟩
+  α⇐ ∘ ((id ⊗₁ k′ ∘ v ⊗₁ (w ⊗₁ id)) ∘ α⇒)
+    ≈⟨ refl⟩∘⟨ assoc ⟩
+  α⇐ ∘ (id ⊗₁ k′ ∘ (v ⊗₁ (w ⊗₁ id) ∘ α⇒))
+    ≈˘⟨ refl⟩∘⟨ refl⟩∘⟨ assoc-commute-from ⟩
+  α⇐ ∘ (id ⊗₁ k′ ∘ (α⇒ ∘ (v ⊗₁ w) ⊗₁ id))
+    ≈⟨ refl⟩∘⟨ sym-assoc ○ sym-assoc ⟩
+  (α⇐ ∘ (id ⊗₁ k′ ∘ α⇒)) ∘ (v ⊗₁ w) ⊗₁ id  ∎
+
+-- The tensor is the composite of its two one-sided halves: the elementwise
+-- `⊗-split`, and the only place a *state* interchange is needed.
+⊗-split : (f : Machine A B) (g : Machine C D)
+        → (f ⊗ᵉ g) ≈ᵉ ((f ⊗ᵉ idᴹ {D}) ∘ᴹ (idᴹ {A} ⊗ᵉ g))
+⊗-split {A} {B} {C} {D} f g = ⟺ᴹ (sim (ρ⇒ ⊗₁ λ⇒) dsc-u pt-u step-u)
+  where
+    dsc-u : discard (state f ⊛ state g) ∘ (ρ⇒ ⊗₁ λ⇒)
+          ≈ discard ((state f ⊛ Iˢ) ⊛ (Iˢ ⊛ state g))
+    dsc-u = assoc ○ (refl⟩∘⟨ ⟺ ⊗.homomorphism)
+          ○ (refl⟩∘⟨ (⟺ ((coherence₃ ⟩∘⟨refl) ○ unitorʳ-commute-from)
+                      ⟩⊗⟨ ⟺ unitorˡ-commute-from))
+
+    pt-u : (ρ⇒ ⊗₁ λ⇒) ∘ point ((state f ⊛ Iˢ) ⊛ (Iˢ ⊛ state g))
+         ≈ point (state f ⊛ state g)
+    pt-u = sym-assoc ○ ((⟺ ⊗.homomorphism) ⟩∘⟨refl)
+         ○ ((  (pullˡ unitorʳ-commute-from ○ assoc
+                ○ (refl⟩∘⟨ ((⟺ coherence₃ ⟩∘⟨refl) ○ unitorˡ.isoʳ)) ○ identityʳ)
+            ⟩⊗⟨ (pullˡ unitorˡ-commute-from ○ assoc
+                 ○ (refl⟩∘⟨ unitorˡ.isoʳ) ○ identityʳ)) ⟩∘⟨refl)
+
+    step-u : (ρ⇒ ⊗₁ λ⇒) ⊗₁ id ∘ (onL (step (f ⊗ᵉ idᴹ {D})) ∘ onR (step (idᴹ {A} ⊗ᵉ g)))
+           ≈ step (f ⊗ᵉ g) ∘ (ρ⇒ ⊗₁ λ⇒) ⊗₁ id
+    step-u = (refl⟩∘⟨ ((onL-tstep ⟩∘⟨ onR-tstep) ○ tstep-∘
+                       ○ tstep-cong (elimʳ (onR-cong onL-id ○ onR-id))
+                                    (elimˡ (onL-cong onR-id ○ onL-id))))
+           ○ tstep-sim (onL-sim onL-collapseʳ) (onR-sim onR-collapseˡ)
+
+private
+  -- Tensoring on the left is tensoring on the right, conjugated by the braiding.
+  braid-conj : (M : Machine A B) (N : Machine C D)
+             → (M ⊗ᵉ N) ≈ᵉ (σᴹ ∘ᴹ ((N ⊗ᵉ M) ∘ᴹ σᴹ))
+  braid-conj M N = ⟺ᴹ identityˡ-∘ᴹ ○ᴹ (⟺ᴹ σᴹ-involutive ⟩∘ᴹ⟨reflᴹ)
+                 ○ᴹ assoc-∘ᴹ ○ᴹ (reflᴹ⟩∘ᴹ⟨ braiding-commuteᴹ)
+
+id⊗ᵉ-resp : {g h : Machine C D} → g ≈ᵉ h → (idᴹ {A} ⊗ᵉ g) ≈ᵉ (idᴹ ⊗ᵉ h)
+id⊗ᵉ-resp {g = g} {h} e = braid-conj idᴹ g
+                        ○ᴹ (reflᴹ⟩∘ᴹ⟨ (⊗idᵉ-resp e ⟩∘ᴹ⟨reflᴹ))
+                        ○ᴹ ⟺ᴹ (braid-conj idᴹ h)
+
+⊗ᵉ-resp-≈ᵉ : {f h : Machine A B} {g i : Machine C D}
+           → f ≈ᵉ h → g ≈ᵉ i → (f ⊗ᵉ g) ≈ᵉ (h ⊗ᵉ i)
+⊗ᵉ-resp-≈ᵉ {f = f} {h} {g} {i} e₁ e₂ =
+  ⊗-split f g ○ᴹ (⊗idᵉ-resp e₁ ⟩∘ᴹ⟨ id⊗ᵉ-resp e₂) ○ᴹ ⟺ᴹ (⊗-split h i)
