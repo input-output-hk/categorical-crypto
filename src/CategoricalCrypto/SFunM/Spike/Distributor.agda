@@ -73,11 +73,8 @@ private variable n k m : ℕ
 +-unique₂ e₁ e₂ = ⟺ +-g-η ○ []-cong₂ e₁ e₂ ○ +-g-η
 
 ------------------------------------------------------------------------
--- Two ways to use an invertible map
+-- Cancelling an invertible map on the right
 ------------------------------------------------------------------------
-
-pad-inv : {h : X ⇒ Y} {h⁻ : Y ⇒ X} → h ∘ h⁻ ≈ id → id {Z} ⊗₁ h ∘ id ⊗₁ h⁻ ≈ id
-pad-inv e = merge₂ʳ ○ (refl⟩⊗⟨ e) ○ ⊗.identity
 
 epiʳ : {h : X ⇒ Y} {h⁻ : Y ⇒ X} → h ∘ h⁻ ≈ id → {u v : Y ⇒ Z} → u ∘ h ≈ v ∘ h → u ≈ v
 epiʳ i e = insertʳ i ○ (e ⟩∘⟨refl) ○ ⟺ (insertʳ i)
@@ -222,6 +219,13 @@ pow-unique {A} {C} {X} (suc n) e =
              → hd ∘ g ≈ j ∘ γ → u ∘ j ≈ v ∘ j → (u ∘ hd) ∘ g ≈ (v ∘ hd) ∘ g
     transfer c d = assoc ○ (refl⟩∘⟨ c) ○ sym-assoc ○ (d ⟩∘⟨refl)
                  ○ assoc ○ (refl⟩∘⟨ ⟺ c) ○ sym-assoc
+
+-- The same at no state, which is the form `eval` needs.
+pow-unique′ : ∀ {A C Y : Obj} (n : ℕ) {u v : pow n (A + C) ⇒ Y}
+            → (∀ {k m} (w : Split n k m) → u ∘ ι w ≈ v ∘ ι w) → u ≈ v
+pow-unique′ n e = epiʳ unitorˡ.isoʳ
+  (pow-unique n λ w → pullʳ unitorˡ-commute-from ○ sym-assoc ○ (e w ⟩∘⟨refl)
+                    ○ assoc ○ ⟺ (pullʳ unitorˡ-commute-from))
 
 -- The same statement in upstream's vocabulary.
 ι-jointEpi : ∀ {A C X : Obj} (n : ℕ)

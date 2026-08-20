@@ -65,8 +65,12 @@ slot₂ᵍ k = untuck ∘ k ⊗₁ id ∘ tuck
 -- The shuffles are involutions
 ------------------------------------------------------------------------
 
+-- `id ⊗₁ _` preserves invertibility.
+pad-inv : {h : X ⇒ Y} {h⁻ : Y ⇒ X} → h ∘ h⁻ ≈ id → id {L} ⊗₁ h ∘ id ⊗₁ h⁻ ≈ id
+pad-inv e = merge₂ˡ ○ refl⟩⊗⟨ e ○ ⊗.identity
+
 σ-pad-inv : id {L} ⊗₁ σ⇒ ∘ id ⊗₁ σ⇒ ≈ id {L ⊗₀ (Q ⊗₀ X)}
-σ-pad-inv = merge₂ˡ ○ refl⟩⊗⟨ commutative ○ ⊗.identity
+σ-pad-inv = pad-inv commutative
 
 swp-swp : swp ∘ swp ≈ id {(P ⊗₀ Q) ⊗₀ X}
 swp-swp = center (cancelʳ associator.isoʳ) ○ refl⟩∘⟨ cancelˡ σ-pad-inv ○ associator.isoˡ

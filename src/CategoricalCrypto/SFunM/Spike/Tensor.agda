@@ -37,6 +37,7 @@ import CategoricalCrypto.SFunM.Spike.Interchange as Interchange
 import CategoricalCrypto.SFunM.Spike.Laws as Laws
 import CategoricalCrypto.SFunM.Spike.Mealy as Mealy
 import CategoricalCrypto.SFunM.Spike.MonoidalDistributive as MD
+import CategoricalCrypto.SFunM.Spike.SlotFrame as SlotFrame
 
 module CategoricalCrypto.SFunM.Spike.Tensor {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e)
   (dist : MD.MonoidalDistributive 𝒱) where
@@ -50,6 +51,7 @@ open Interchange 𝒱
 open Laws 𝒱
 open MD.MonoidalDistributive dist
 open Mealy 𝒱
+open SlotFrame 𝒱
 open Machine
 open State
 
@@ -140,14 +142,6 @@ powmap-∘ g f (suc n) = (refl⟩⊗⟨ powmap-∘ g f n) ○ ⊗.homomorphism
 powmap-cong : {f g : A ⇒ B} → f ≈ g → (n : ℕ) → powmap n f ≈ powmap n g
 powmap-cong e zero    = refl
 powmap-cong e (suc n) = e ⟩⊗⟨ powmap-cong e n
-
--- A step that ignores the state slots into both interface slots as itself.
-slot₁-str : (h : X ⇒ Y) → slot₁ {P} (id ⊗₁ h) ≈ id ⊗₁ (h ⊗₁ id {Z})
-slot₁-str h = pullˡ assoc-commute-from ○ cancelʳ associator.isoʳ
-
-slot₂-str : (h : X ⇒ Y) → slot₂ {P} (id ⊗₁ h) ≈ id ⊗₁ (id {Z} ⊗₁ h)
-slot₂-str h = slot₂-slot₁ ○ (refl⟩∘⟨ slot₁-str h ⟩∘⟨refl)
-            ○ (refl⟩∘⟨ merge₂ʳ) ○ merge₂ʳ ○ refl⟩⊗⟨ (⟺ (pad-braid _ h))
 
 run-str : {S : State} (h : A ⇒ B) (n : ℕ) → run (mk S (id ⊗₁ h)) n ≈ id ⊗₁ powmap n h
 run-str h zero    = ⟺ ⊗.identity
@@ -531,10 +525,6 @@ tstep-sim {v = v} e₁ e₂ = δ-unique
   (pullʳ tstep-i₂ ○ pullˡ (⟺ (pad-transport v i₂)) ○ assoc ○ (refl⟩∘⟨ e₂)
    ○ ⟺ (pullʳ (⟺ (pad-transport v i₂)) ○ pullˡ tstep-i₂ ○ assoc))
 
-private
-  σ⊗-inv : σ⇒ {P} {Q} ⊗₁ id {A} ∘ σ⇒ {Q} {P} ⊗₁ id ≈ id
-  σ⊗-inv = merge₁ˡ ○ (commutative ⟩⊗⟨refl) ○ ⊗.identity
-
 -- The state-side arm: braiding the state pair swaps which factor acts.  The
 -- braiding crosses `k`\'s whole block, so `unbraid` puts the padding on one side
 -- and the two residual obligations are the block hexagon (`σ-splitˡ`/`σ-splitʳ`).
@@ -605,3 +595,84 @@ braiding-commuteᴹ {f = f} {g} =
     point-σ : σ⇒ ∘ point (state f ⊛ state g) ≈ point (state g ⊛ state f)
     point-σ = pullˡ (braiding.⇒.commute _) ○ assoc
             ○ (refl⟩∘⟨ (σ-unit ⟩∘⟨refl ○ identityˡ))
+
+------------------------------------------------------------------------
+-- Splitting a word: the interface tensor's congruence
+------------------------------------------------------------------------
+
+-- Tensoring with the identity, with the trivial state factor collapsed away, so
+-- that the word induction below sees no `onL`/`onR` at all.
+⊗idᵉ-collapse : (f : Machine A B) → (f ⊗ᵉ idᴹ {C}) ≈ᵉ mk (state f) (tstep (step f) id)
+⊗idᵉ-collapse f =
+  collapseʳ (tstep-sim onL-collapseʳ ((refl⟩∘⟨ onR-id) ○ identityʳ ○ ⟺ identityˡ))
+
+private
+  -- A letterwise pair of interface actions is one action per slot.
+  pair-slots : (h : A ⇒ B) (j : X ⇒ Y)
+             → id {P} ⊗₁ (h ⊗₁ j) ≈ slot₁ᵍ (id ⊗₁ h) ∘ slot₂ᵍ (id ⊗₁ j)
+  pair-slots h j = (refl⟩⊗⟨ serialize₁₂) ○ split₂ʳ ○ ⟺ (slot₁-str h ⟩∘⟨ slot₂-str j)
+
+  -- Peeling the head letter off a word: the head goes through the matching
+  -- branch of the step, the tail through the induction hypothesis.
+  peel : {S A′ B′ N N′ W W′ : Obj}
+         {T : S ⊗₀ (A + C) ⇒ S ⊗₀ (B + D)} {R : S ⊗₀ N ⇒ S ⊗₀ N′}
+         {Rt : S ⊗₀ W ⇒ S ⊗₀ W′} {j : W ⇒ N} {j′ : W′ ⇒ N′}
+         {b : A′ ⇒ A + C} {b′ : B′ ⇒ B + D} {kb : S ⊗₀ A′ ⇒ S ⊗₀ B′}
+       → T ∘ id ⊗₁ b ≈ id ⊗₁ b′ ∘ kb
+       → R ∘ id ⊗₁ j ≈ id ⊗₁ j′ ∘ Rt
+       → (slot₂ᵍ R ∘ slot₁ᵍ T) ∘ id ⊗₁ (b ⊗₁ j)
+       ≈ id ⊗₁ (b′ ⊗₁ j′) ∘ (slot₂ᵍ Rt ∘ slot₁ᵍ kb)
+  peel {T = T} {R} {Rt} {j} {j′} {b} {b′} {kb} eT eR = begin
+    (slot₂ᵍ R ∘ slot₁ᵍ T) ∘ id ⊗₁ (b ⊗₁ j)
+      ≈⟨ refl⟩∘⟨ pair-slots b j ⟩
+    (slot₂ᵍ R ∘ slot₁ᵍ T) ∘ (slot₁ᵍ (id ⊗₁ b) ∘ slot₂ᵍ (id ⊗₁ j))
+      ≈⟨ assoc ○ (refl⟩∘⟨ sym-assoc) ⟩
+    slot₂ᵍ R ∘ ((slot₁ᵍ T ∘ slot₁ᵍ (id ⊗₁ b)) ∘ slot₂ᵍ (id ⊗₁ j))
+      ≈⟨ refl⟩∘⟨ (⟺ slot₁ᵍ-∘ ○ slot₁ᵍ-cong eT ○ slot₁ᵍ-∘) ⟩∘⟨refl ⟩
+    slot₂ᵍ R ∘ ((slot₁ᵍ (id ⊗₁ b′) ∘ slot₁ᵍ kb) ∘ slot₂ᵍ (id ⊗₁ j))
+      ≈⟨ refl⟩∘⟨ (assoc ○ (refl⟩∘⟨ slots-comm) ○ sym-assoc) ⟩
+    slot₂ᵍ R ∘ ((slot₁ᵍ (id ⊗₁ b′) ∘ slot₂ᵍ (id ⊗₁ j)) ∘ slot₁ᵍ kb)
+      ≈˘⟨ refl⟩∘⟨ pair-slots b′ j ⟩∘⟨refl ⟩
+    slot₂ᵍ R ∘ (id ⊗₁ (b′ ⊗₁ j) ∘ slot₁ᵍ kb)
+      ≈⟨ pullˡ tail ⟩
+    (id ⊗₁ (b′ ⊗₁ j′) ∘ slot₂ᵍ Rt) ∘ slot₁ᵍ kb
+      ≈⟨ assoc ⟩
+    id ⊗₁ (b′ ⊗₁ j′) ∘ (slot₂ᵍ Rt ∘ slot₁ᵍ kb)  ∎
+    where
+      slots-comm : slot₁ᵍ kb ∘ slot₂ᵍ (id ⊗₁ j) ≈ slot₂ᵍ (id ⊗₁ j) ∘ slot₁ᵍ kb
+      slots-comm = (refl⟩∘⟨ slot₂-str j) ○ slot₁-pad j ○ (⟺ (slot₂-str j) ⟩∘⟨refl)
+
+      tail : slot₂ᵍ R ∘ id ⊗₁ (b′ ⊗₁ j) ≈ id ⊗₁ (b′ ⊗₁ j′) ∘ slot₂ᵍ Rt
+      tail = (refl⟩∘⟨ ((refl⟩⊗⟨ serialize₁₂) ○ split₂ʳ)) ○ pullˡ (slot₂-pad b′) ○ assoc
+           ○ (refl⟩∘⟨ ((refl⟩∘⟨ ⟺ (slot₂-str j)) ○ ⟺ slot₂ᵍ-∘ ○ slot₂ᵍ-cong eR
+                       ○ slot₂ᵍ-∘ ○ (slot₂-str j′ ⟩∘⟨refl)))
+           ○ sym-assoc ○ ((merge₂ʳ ○ (refl⟩⊗⟨ (⟺ serialize₁₂))) ⟩∘⟨refl)
+
+-- The point-free `⊗idᵏ-trace`: unrolling `f ⊗ᵉ idᴹ` along a word runs `f` on the
+-- word's `A`-letters and carries the `C`-letters along.  `Split`'s two indices
+-- are exactly the elementwise `lefts`/`rights` of the word.
+run-⊗id : (f : Machine A B) {n k m : ℕ} (w : Split n k m)
+        → run (mk (state f) (tstep (step f) (id {St f ⊗₀ C}))) n ∘ id ⊗₁ ι {A} {C} w
+        ≈ id ⊗₁ ι {B} {C} w ∘ slot₁ (run f k)
+run-⊗id f []       = identityˡ ○ ⟺ (elimʳ slot₁-id)
+run-⊗id f (a∷ w) =
+    (refl⟩∘⟨ split₂ʳ) ○ sym-assoc ○ (peel tstep-i₁ (run-⊗id f w) ⟩∘⟨refl) ○ assoc
+  ○ (refl⟩∘⟨ (assoc ○ (refl⟩∘⟨ slot₁-α) ○ sym-assoc ○ (slot-α ⟩∘⟨refl) ○ assoc
+              ○ (refl⟩∘⟨ ⟺ slot₁ᵍ-∘)))
+  ○ sym-assoc ○ (⟺ split₂ʳ ⟩∘⟨refl)
+run-⊗id f (c∷ w) =
+    (refl⟩∘⟨ split₂ʳ) ○ sym-assoc ○ (peel tstep-i₂ (run-⊗id f w) ⟩∘⟨refl) ○ assoc
+  ○ (refl⟩∘⟨ ((elimʳ slot₁-id ⟩∘⟨refl) ○ slot-σ))
+  ○ sym-assoc ○ (⟺ split₂ʳ ⟩∘⟨refl)
+
+-- The closed form: `eval (f ⊗ᵉ idᴹ) n` is `eval f` on the word's `A`-subword,
+-- with the `C`-subword passed through.  This is the elementwise `⊗idᵉ-resp`'s
+-- `fillˡ xs <$>ᴹ eval f (lefts xs)`, read as a diagram.
+eval-⊗id : (f : Machine A B) {n k m : ℕ} (w : Split n k m)
+         → eval (f ⊗ᵉ idᴹ {C}) n ∘ ι w ≈ ι w ∘ (eval f k ⊗₁ id)
+eval-⊗id f {n} w = (⊗idᵉ-collapse f n ⟩∘⟨refl) ○ ⟺ cl-∘ʳ ○ cl-cong (run-⊗id f {n} w)
+                 ○ cl-∘ˡ ○ (refl⟩∘⟨ cl-slot₁)
+
+⊗idᵉ-resp : {f g : Machine A B} → f ≈ᵉ g → (f ⊗ᵉ idᴹ {C}) ≈ᵉ (g ⊗ᵉ idᴹ)
+⊗idᵉ-resp {A} {B} {C} {f} {g} e n = pow-unique′ {A} {C} n λ {k} {m} w →
+  eval-⊗id f {n} w ○ (refl⟩∘⟨ (e k ⟩⊗⟨refl)) ○ ⟺ (eval-⊗id g {n} w)
