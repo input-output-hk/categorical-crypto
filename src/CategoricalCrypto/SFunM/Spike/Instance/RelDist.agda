@@ -27,6 +27,8 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 open import CategoricalCrypto.SFunM.Spike.MonoidalDistributive
 
+import CategoricalCrypto.SFunM.Spike.Tensor as Tensor
+
 module CategoricalCrypto.SFunM.Spike.Instance.RelDist where
 
 𝒱 : SymmetricMonoidalCategory (lsuc 0ℓ) (lsuc 0ℓ) 0ℓ
@@ -68,3 +70,8 @@ Rels-MonoidalDistributive = record
           }
       }
   }
+
+-- The whole interface tensor instantiates here, the word split included: nothing
+-- in `Spike.Distributor`/`Spike.SlotFrame`/`Spike.Tensor` strengthens the
+-- hypothesis, so `⊗ᵉ-resp-≈ᵉ` holds at `Rels` too.
+module Rels-Tensor = Tensor 𝒱 Rels-MonoidalDistributive

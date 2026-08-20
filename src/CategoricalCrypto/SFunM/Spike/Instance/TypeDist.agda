@@ -36,6 +36,7 @@ import Categories.Monad.Setoids.Discrete as Discrete
 import CategoricalCrypto.SFunM.Spike.KleisliDiscrete as KD
 import CategoricalCrypto.SFunM.Spike.Mealy as Mealy
 import CategoricalCrypto.SFunM.Spike.MonoidalDistributive as MD
+import CategoricalCrypto.SFunM.Spike.Tensor as Tensor
 
 open import ProbabilisticLogic.Distribution.Possibility using (𝒫-KleisliTriple; 𝒫-commutative)
 
@@ -154,3 +155,7 @@ Cutᴹ = record
 eval-Cutᴹ : {m₁ m₂ : Msg} → eval Cutᴹ 2 (just m₁ , just m₂ , tt)
           ≡ ((just m₁ , just m₂ , tt) ∷ (nothing , nothing , tt) ∷ [])
 eval-Cutᴹ = refl
+
+-- …and the whole interface tensor instantiates at the possibilistic base too,
+-- the word split included.
+module 𝒫-Tensor = Tensor Klᴹ-SymmetricMonoidal MDist
