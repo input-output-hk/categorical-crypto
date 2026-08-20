@@ -13,14 +13,16 @@
 --   * `sim` is the point-free `≈ᵉ-sim`, and `collapseˡ`/`collapseʳ` its two
 --     instances for the trivial state a pure machine contributes.
 --
--- What is missing (`⊗ᵉ-homomorphism`, `assoc-commute`, `⊗ᵉ-resp-≈ᵉ`, hence the
--- bundles) is missing for a state-side reason, not a ⊕-side one: each needs the
--- action of one factor of a re-bracketed state tree to be recognized as the
--- action of the same factor of another — the `σ-onR`/`σ-onL` pair below is that
--- statement for the state braiding, and it is the one the braiding square
--- needed.  `⊗ᵉ-resp-≈ᵉ` needs more: the elementwise `⊗idᵏ-trace` splits a
--- *word* over `A ⊎ C` into its two subwords, i.e. the iterated distributor
--- `pow n (A + C) ≅ Σ`, which binary distributivity does not hand over.
+-- What is missing (`⊗ᵉ-homomorphism` and `assoc-commute`, hence the bundles) is
+-- missing for a state-side reason, not a ⊕-side one: each needs the action of one
+-- factor of a re-bracketed state tree to be recognized as the action of the same
+-- factor of another — the `σ-onR`/`σ-onL` pair below is that statement for the
+-- state braiding, and `onL-sim`/`onR-sim` for a state map on each factor.
+--
+-- `⊗ᵉ-resp-≈ᵉ` needed more, and that is `Spike.Distributor`: the elementwise
+-- `⊗idᵏ-trace` splits a *word* over `A ⊎ C` into its two subwords, which binary
+-- distributivity does not hand over.  `run-⊗id`/`eval-⊗id` are that split, and
+-- `Spike.SlotFrame` is the one reshuffle it needs across the step.
 
 open import Categories.Category.Core using (Category)
 open import Categories.Category.Monoidal.Braided using (Braided)
