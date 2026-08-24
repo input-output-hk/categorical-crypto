@@ -5,9 +5,13 @@
 -- function as an inductive relation (its graph).
 --
 -- This is the technique used to discharge `edge-step` (Lemma 0b of the APROP
--- soundness proof): see `Categories.Examples.EdgeStepRelation`.  Here it is
--- distilled to toy types (ℕ and `List ℕ`) so the
--- pattern is visible in isolation.
+-- soundness proof); the load-bearing copy is `Discharge.SwapValidity`'s own
+-- `EdgeStepR`/`edge-step-graph`, and `Categories.Examples.EdgeStepRelation` is
+-- its off-cone transcription.  Here the pattern is distilled to toy types
+-- (ℕ and `List ℕ`) so it is visible in isolation.
+--
+-- OFF-CONE DEMONSTRATION: nothing imports this module, and nothing should —
+-- it is documentation that typechecks.
 --
 -- "Green slime" (Conor McBride's term) = a *defined function* appearing in a
 -- goal type in a position where Agda's unifier / `with`-abstraction can't make
@@ -65,7 +69,8 @@ pop-tag k (x ∷ xs) with x ≟ k
 -- Here it happens to work because both functions appear *directly*.  But the
 -- moment one of them is wrapped in ANOTHER `with`-defined function whose result
 -- sits in the goal — the situation in the real proof, where `edge-step` was
--- buried inside the goal via `edge-step-stack-φ` (itself `with`-defined) — the
+-- buried inside a goal about the stack fold (`edge-step` is itself
+-- `with`-defined, and so is the fold over it) — the
 -- abstraction `with x ≟ k` becomes ILL-TYPED:
 --
 --     …error: [SplitError.UnificationStuck] / "ill-typed with-abstraction"…
@@ -87,7 +92,9 @@ data PopR (k : ℕ) : List ℕ → Bool → List ℕ → Set where
 --------------------------------------------------------------------------------
 -- §4.  The functions REALISE the relation (the "cover" lemma).
 --
--- This is the ONE place we case-split on `x ≟ k`.  It works cleanly because
+-- This is the place we case-split on `x ≟ k` for the CONSUMERS' benefit (the
+-- inverse `pop-sound` in §5 splits it too, to read a constructor back off a
+-- function value).  It works cleanly because
 -- `pop`/`pop-tag` appear *directly* applied to `x ∷ xs`: the `x ≟ k` we
 -- abstract IS the scrutinee inside them, so after matching they reduce.
 -- (This is the analogue of `edge-step-graph`.)
@@ -115,8 +122,9 @@ pop-sound {k} (skipR x xs ¬e) with x ≟ k
 
 --------------------------------------------------------------------------------
 -- §6.  THE PAYOFF — downstream proofs are done by case analysis on the
--- relation's CONSTRUCTORS, never on `x ≟ k` and never with the functions
--- buried in the goal.  No green slime.
+-- relation's CONSTRUCTORS, never with the functions buried in the goal.  The
+-- two `x ≟ k` splits stay confined to §4/§5, where `pop`/`pop-tag` are applied
+-- directly and so reduce.  No green slime.
 --
 -- First state the property over the relation (trivial: one line per
 -- constructor), then transport to the functions via the cover `pop-graph`.
@@ -137,10 +145,12 @@ fired-or-skip-fn k xs = fired-or-skip (pop-graph k xs)
 --------------------------------------------------------------------------------
 -- §7.  The same trick scales to NATURALITY (the actual shape of Lemma 0b):
 -- relating `pop` on a relabelled input to `pop` on the original.  We case on
--- the relation witness for the original run, and use the cover at the
--- relabelled input — the injectivity of the relabel lines the branches up,
--- and we never case on the *neutral* test `f x ≟ f k` (which would also hit a
--- `--without-K` wall on the reflexive `f x ≡ f x`).
+-- the relation witness for the ORIGINAL run (via the cover `pop-graph k xs`),
+-- which refines `xs` and hands us the `x ≡ k` / `x ≢ k` evidence.  The
+-- relabelled side still needs its own `with f x ≟ f k`, but injectivity of `f`
+-- makes one branch of each pair ABSURD — so the neutral test is decided, never
+-- left open, and no proof of `f x ≡ f x` is ever matched (which is where a
+-- `--without-K` wall would be).
 
 open import Data.List using (map)
 
