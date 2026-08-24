@@ -31,16 +31,13 @@ open import Categories.APROP.Hypergraph.Solver.Match.PBij
 
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List.Base
-open import Data.List.Properties
+open import Data.List.Base using (List; map)
+open import Data.List.Properties using (≡-dec)
 open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
 open import Data.Nat using (ℕ)
-open import Data.Product using (_,_)
-open import Function
-open import Relation.Binary.Definitions
-open import Relation.Binary.PropositionalEquality
-
-open import Relation.Nullary
+open import Relation.Binary.Definitions using (DecidableEquality)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst₂)
+open import Relation.Nullary using (yes; no)
 open import Relation.Nullary.Decidable using (dec⇒maybe)
 
 --------------------------------------------------------------------------------
@@ -153,10 +150,10 @@ module Verify (H J : Hypergraph FlatGen)
 
   verify : Maybe (H ≅ᴴ J)
   verify =
-    totalise (forward  φB)                                       >>= λ (φ   , _) →
-    totalise (backward φB)                                       >>= λ (φ⁻¹ , _) →
-    totalise (forward  ψB)                                       >>= λ (ψ   , _) →
-    totalise (backward ψB)                                       >>= λ (ψ⁻¹ , _) →
+    totalise (forward  φB)                                       >>= λ φ   →
+    totalise (backward φB)                                       >>= λ φ⁻¹ →
+    totalise (forward  ψB)                                       >>= λ ψ   →
+    totalise (backward ψB)                                       >>= λ ψ⁻¹ →
     ∀F? (λ i → dec⇒maybe (φ⁻¹ (φ i) ≟F i))                       >>= λ φ-left →
     ∀F? (λ j → dec⇒maybe (φ (φ⁻¹ j) ≟F j))                       >>= λ φ-rght →
     ∀F? (λ e → dec⇒maybe (ψ⁻¹ (ψ e) ≟F e))                       >>= λ ψ-left →

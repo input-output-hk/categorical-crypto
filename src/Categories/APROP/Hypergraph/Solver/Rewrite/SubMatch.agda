@@ -124,8 +124,8 @@ module Verify-Sub (L S : Hypergraph FlatGen)
 
   verifySub : Maybe (L ↪ᴴ S)
   verifySub =
-    totalise (forward φB)                                          >>= λ (φ , _) →
-    totalise (forward ψB)                                          >>= λ (ψ , _) →
+    totalise (forward φB)                                          >>= λ φ →
+    totalise (forward ψB)                                          >>= λ ψ →
     ∀F? (λ i → dec⇒maybe (backward φB (φ i) ≟M just i))           >>= λ φ-inv →
     ∀F? (λ e → dec⇒maybe (backward ψB (ψ e) ≟M just e))           >>= λ ψ-inv →
     ∀F? (λ i → dec⇒maybe (S.vlab (φ i) ≟X L.vlab i))               >>= λ φ-lab →
