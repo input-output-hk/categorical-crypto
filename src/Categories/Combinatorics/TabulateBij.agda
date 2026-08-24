@@ -2,27 +2,30 @@
 
 --------------------------------------------------------------------------------
 -- Fin-bijection / `tabulate`-reindexing leaf, used by `IsoInvarianceWiring` to
--- transport cardinalities and `tabulate`-built lists across a Fin-bijection
--- (`bij-fin-ℕ-≡`, `tabulate-bij-↭-via-eq`).
+-- transport `tabulate`-built lists across a Fin-bijection
+-- (`tabulate-bij-↭-via-eq`).  The cardinality equality the transport needs is
+-- derived here, not demanded from the caller.
 --------------------------------------------------------------------------------
 
 module Categories.Combinatorics.TabulateBij where
 
-open import Data.Fin using (Fin; zero; suc)
+open import Data.Fin using (Fin; zero; suc; punchIn; punchOut)
+open import Data.Fin.Properties
+  using (punchInᵢ≢i; punchOut-punchIn; punchIn-punchOut; punchOut-cong
+        ; injective⇒≤)
 open import Data.List using (_∷_; tabulate)
+open import Data.List.Properties using (tabulate-cong)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Data.Nat using (zero; suc)
+import Data.Nat.Properties as NatProp
 import Function as Fun
+open import Function.Definitions using (Injective)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; _≢_; refl; cong; sym; trans; subst)
 
 --------------------------------------------------------------------------------
 -- `tabulate (f ∘ π)` is a permutation of `tabulate f` when π is a
 -- Fin-bijection.
-
-open import Data.Fin using (punchIn; punchOut)
-open import Data.Fin.Properties
-  using (punchInᵢ≢i; punchOut-punchIn; punchIn-punchOut; punchOut-cong)
 
 private
   -- `tabulate f` can be reordered to bring `f k` to the head, with
@@ -95,7 +98,6 @@ tabulate-bij-↭ {n = suc n'}  f π π⁻¹ leftInv rightInv =
 
     -- The IH applied at (f ∘ punchIn k, π', π'⁻¹), rewritten via
     -- pointwise-eq to match the LHS shape `tabulate (f ∘ π ∘ suc)`.
-    open import Data.List.Properties using (tabulate-cong)
     ih : tabulate (f Fun.∘ π Fun.∘ suc) Perm.↭ tabulate (f Fun.∘ punchIn k)
     ih = subst (λ xs → xs Perm.↭ tabulate (f Fun.∘ punchIn k))
                (sym (tabulate-cong pointwise-eq))
@@ -105,31 +107,31 @@ tabulate-bij-↭ {n = suc n'}  f π π⁻¹ leftInv rightInv =
     shift = tabulate-shift-↭ f k
 
 --------------------------------------------------------------------------------
--- Cardinality equality m ≡ n from a Fin-bijection.
+-- `tabulate-bij-↭` generalized to bijections between different `Fin` types.
+-- The two carriers must have equal cardinality, but that is a CONSEQUENCE of
+-- the bijection (`≤` both ways from injectivity), so it is derived here rather
+-- than asked of the caller.
 
-open import Data.Fin.Properties using (injective⇒≤)
-open import Function.Definitions using (Injective)
-import Data.Nat.Properties as NatProp
+private
+  bij-fin-ℕ-≡
+    : ∀ {m n} (π : Fin m → Fin n) (π⁻¹ : Fin n → Fin m)
+    → (∀ i → π⁻¹ (π i) ≡ i) → (∀ i → π (π⁻¹ i) ≡ i)
+    → m ≡ n
+  bij-fin-ℕ-≡ π π⁻¹ leftInv rightInv =
+    NatProp.≤-antisym (injective⇒≤ π-inj) (injective⇒≤ π⁻¹-inj)
+    where
+      π-inj : Injective _≡_ _≡_ π
+      π-inj {i} {j} eq = trans (sym (leftInv i)) (trans (cong π⁻¹ eq) (leftInv j))
 
-bij-fin-ℕ-≡
-  : ∀ {m n} (π : Fin m → Fin n) (π⁻¹ : Fin n → Fin m)
-  → (∀ i → π⁻¹ (π i) ≡ i) → (∀ i → π (π⁻¹ i) ≡ i)
-  → m ≡ n
-bij-fin-ℕ-≡ π π⁻¹ leftInv rightInv =
-  NatProp.≤-antisym (injective⇒≤ π-inj) (injective⇒≤ π⁻¹-inj)
-  where
-    π-inj : Injective _≡_ _≡_ π
-    π-inj {i} {j} eq = trans (sym (leftInv i)) (trans (cong π⁻¹ eq) (leftInv j))
-
-    π⁻¹-inj : Injective _≡_ _≡_ π⁻¹
-    π⁻¹-inj {i} {j} eq = trans (sym (rightInv i)) (trans (cong π eq) (rightInv j))
-
--- tabulate-bij-↭ generalized to bijections between different Fin types.
+      π⁻¹-inj : Injective _≡_ _≡_ π⁻¹
+      π⁻¹-inj {i} {j} eq = trans (sym (rightInv i)) (trans (cong π eq) (rightInv j))
 
 tabulate-bij-↭-via-eq
-  : ∀ {m n} {A : Set} (m≡n : m ≡ n)
+  : ∀ {m n} {A : Set}
       (f : Fin n → A)
       (π : Fin m → Fin n) (π⁻¹ : Fin n → Fin m)
   → (∀ i → π⁻¹ (π i) ≡ i) → (∀ i → π (π⁻¹ i) ≡ i)
   → tabulate (f Fun.∘ π) Perm.↭ tabulate f
-tabulate-bij-↭-via-eq refl f π π⁻¹ leftInv rightInv = tabulate-bij-↭ f π π⁻¹ leftInv rightInv
+tabulate-bij-↭-via-eq f π π⁻¹ leftInv rightInv
+  with refl ← bij-fin-ℕ-≡ π π⁻¹ leftInv rightInv =
+  tabulate-bij-↭ f π π⁻¹ leftInv rightInv

@@ -29,7 +29,7 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency
 import Data.List.Relation.Unary.AllPairs as AP
 import Data.List.Relation.Unary.AllPairs.Properties as APProp
 open import Categories.Combinatorics.TabulateBij
-  using (bij-fin-ℕ-≡; tabulate-bij-↭-via-eq)
+  using (tabulate-bij-↭-via-eq)
 
 import Categories.Combinatorics.LinearExtension as LinExt
 
@@ -123,11 +123,8 @@ module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J) where
   τ↭range : τ Perm.↭ range H.nE
   τ↭range = subst (λ xs → xs Perm.↭ range H.nE) bridge base-range
     where
-      nE-eq : H.nE ≡ J.nE
-      nE-eq = bij-fin-ℕ-≡ ψ ψ⁻¹ ψ-left ψ-rght
-
       base : tabulate {n = J.nE} (λ i → ψ⁻¹ i) Perm.↭ tabulate {n = H.nE} (λ i → i)
-      base = tabulate-bij-↭-via-eq (sym nE-eq) (λ i → i) ψ⁻¹ ψ ψ-rght ψ-left
+      base = tabulate-bij-↭-via-eq (λ i → i) ψ⁻¹ ψ ψ-rght ψ-left
 
       base-range : tabulate {n = J.nE} (λ i → ψ⁻¹ i) Perm.↭ range H.nE
       base-range =

@@ -16,7 +16,7 @@
 -- `a` occurring before `b`, `¬ R b a` — i.e. no later element is
 -- strictly below an earlier one.  Phrasing it as `AllPairs` makes the
 -- two key bookkeeping lemmas fall out as clean `All`/`AllPairs`
--- manipulations (see `↝-preserves-NoInv` and `before-incomparable`).
+-- manipulations (see `↝-preserves-NoInv` and `bubble`).
 --
 -- Two lists are extensions of "the same poset" when they are
 -- permutations of each other (`_↭_`); finiteness of the carrier is
@@ -34,30 +34,29 @@
 ------------------------------------------------------------------------
 
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; subst; subst₂)
+  using (_≡_; refl; sym; subst)
 open import Relation.Nullary using (¬_)
 open import Data.Product using (_×_; _,_; proj₁)
-open import Data.List.Properties using (++-assoc)
 open import Data.List.Relation.Binary.Permutation.Propositional.Properties
   using (∈-resp-↭)
-open import Level using (Level; _⊔_)
+open import Level using (_⊔_)
 
 open import Data.List.Base using (List; []; _∷_; _++_)
 open import Data.List.Relation.Unary.All using (All; []; _∷_; lookup)
 open import Data.List.Relation.Unary.AllPairs using (AllPairs; []; _∷_)
-open import Data.List.Relation.Unary.Any using (Any; here; there)
+open import Data.List.Relation.Unary.Any using (here; there; _─_)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Relation.Binary.Permutation.Propositional
   using (_↭_; ↭-refl; ↭-sym; ↭-trans; prep; swap)
 open import Data.List.Relation.Binary.Permutation.Propositional.Properties
-  using (drop-∷; ↭-length)
+  using (drop-∷; ↭-empty-inv)
 
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive
-  using (Star; ε; _◅_; _◅◅_; gmap)
+  using (Star; ε; _◅_; _◅◅_; gmap; return; reverse)
 
 -- NOTE: the connectivity theorem needs only *irreflexivity* of `R`
--- (used in `before-incomparable`); transitivity is never required.
--- Irreflexivity is an explicit argument of `before-incomparable` /
+-- (used to see that the head of `L` is R-minimal); transitivity is never
+-- required.  Irreflexivity is an explicit argument of
 -- `connectivity` alone — the predicates (`Incomp`/`Below`/`NoInv`/`_↝_`)
 -- are irreflexivity-free, so instantiating THEM requires no proof about
 -- `R` at all.  This lets the result be instantiated at the *immediate*
@@ -127,35 +126,28 @@ infix 4 _↝_ _↝*_
 ↝*-trans : L ↝* M → M ↝* L′ → L ↝* L′
 ↝*-trans = _◅◅_
 
--- Embed a single step.
-step : L ↝ M → L ↝* M
-step s = s ◅ ε
-
 -- A single swap is symmetric: swapping the pair back is also an
--- adjacent-incomparable swap.
+-- adjacent-incomparable swap.  Hence so is the closure, by `Star.reverse`
+-- (which accumulates, so the reversal stays linear in the chain length).
 ↝-sym : L ↝ M → M ↝ L
 ↝-sym (swap-step ps qs inc) = swap-step ps qs (Incomp-sym inc)
 
--- Hence the closure is symmetric.
 ↝*-sym : L ↝* M → M ↝* L
-↝*-sym ε        = ε
-↝*-sym (s ◅ ss) = ↝*-trans (↝*-sym ss) (step (↝-sym s))
+↝*-sym = reverse ↝-sym
 
 ------------------------------------------------------------------------
--- Congruence: `↝` (hence `↝*`) is preserved under a fixed prefix.
+-- Congruence: `↝` (hence `↝*`) survives prepending a head element.
+-- Only a one-element prefix is ever needed, and there the new head is
+-- absorbed by `swap-step`'s own prefix argument definitionally
+-- (`(x ∷ ps) ++ qs = x ∷ (ps ++ qs)`), so no associativity transport
+-- appears at all.
 ------------------------------------------------------------------------
 
-↝-prefix : ∀ (rs : List A) → L ↝ M → (rs ++ L) ↝ (rs ++ M)
-↝-prefix rs (swap-step ps qs inc) =
-  subst₂ _↝_ (++-assoc rs ps _) (++-assoc rs ps _) (swap-step (rs ++ ps) qs inc)
+↝-cons : ∀ x → L ↝ M → (x ∷ L) ↝ (x ∷ M)
+↝-cons x (swap-step ps qs inc) = swap-step (x ∷ ps) qs inc
 
--- Hence on the closure, by mapping the step relation under `rs ++_`.
-↝*-prefix : ∀ (rs : List A) → L ↝* M → (rs ++ L) ↝* (rs ++ M)
-↝*-prefix rs = gmap (rs ++_) (↝-prefix rs)
-
--- Special case used in the induction: prepend a single head element.
 ↝*-cons : ∀ x → L ↝* M → (x ∷ L) ↝* (x ∷ M)
-↝*-cons x = ↝*-prefix (x ∷ [])
+↝*-cons x = gmap (x ∷_) (↝-cons x)
 
 ------------------------------------------------------------------------
 -- `↝*` preserves the no-inversion property.
@@ -194,96 +186,42 @@ All-swap (p ∷ ps) (pp ∷ rest)     = pp ∷ All-swap ps rest
   ↝*-preserves-NoInv ss (↝-preserves-NoInv s noL)
 
 ------------------------------------------------------------------------
--- Removing the element pointed to by a membership witness.
+-- Removing the element pointed to by a membership witness: `M ─ i` is
+-- stdlib's `Any._─_`, i.e. `M` with the occurrence located by `i` deleted
+-- and every other element left in place.
 ------------------------------------------------------------------------
 
--- `remove M i` is `M` with the occurrence located by `i` deleted,
--- keeping all other elements in order.
-remove : (M : List A) → x ∈ M → List A
-remove (w ∷ rest) (here _)  = rest
-remove (w ∷ rest) (there i) = w ∷ remove rest i
-
--- `M` is a permutation of `x ∷ remove M i`.
-remove-↭ : (M : List A) (i : x ∈ M) → M ↭ x ∷ remove M i
+-- `M` is a permutation of `x ∷ (M ─ i)`.
+remove-↭ : (M : List A) (i : x ∈ M) → M ↭ x ∷ (M ─ i)
 remove-↭ (w ∷ rest) (here refl) = ↭-refl
 remove-↭ (w ∷ rest) (there i)   =
   ↭-trans (prep w (remove-↭ rest i)) (swap w _ ↭-refl)
 
 ------------------------------------------------------------------------
--- `AllBefore x M i` (as a `data` type): every element occurring strictly
--- before the located occurrence of `x` is incomparable to `x`.
-------------------------------------------------------------------------
-
-data AllBefore (x : A) : (M : List A) → x ∈ M → Set (a ⊔ r) where
-  ab-here  : ∀ {rest} → AllBefore x (x ∷ rest) (here refl)
-  ab-there : ∀ {w rest} {i : x ∈ rest} →
-             Incomp x w → AllBefore x rest i →
-             AllBefore x (w ∷ rest) (there i)
-
-------------------------------------------------------------------------
--- Sub-lemma (a): every element before `x` in `M` is incomparable to `x`.
+-- The bubble lemma: an R-minimal `x` can be bubbled to the front of any
+-- inversion-free `M` that contains it.
 --
--- We first establish, once, that `x` is R-minimal
--- across the whole carrier (`x-min`): nothing in `M` is strictly below
--- `x`.  This uses `↭-sym perm` to move into `x ∷ L′`, where the head
--- field of `NoInv (x ∷ L′)` gives `¬ R z x` for every `z ∈ L′` and
--- `R-irrefl` covers `z ≡ x`.  Then we induct on the membership witness
--- `i : x ∈ M`, reading `¬ R x w` off the head field of `NoInv` at each
--- level and `¬ R w x` off `x-min`.
+-- The recursion on the membership witness `i : x ∈ M` reads the two halves
+-- of each swap's incomparability straight off its two hypotheses: `¬ R x m`
+-- off the head field of `NoInv` at that level, and `¬ R m x` off
+-- R-minimality.  No pre-pass over `i` is needed: collecting the halves
+-- ahead of time would just be a second recursion over the same witness.
 ------------------------------------------------------------------------
 
-before-incomparable :
-  ∀ (R-irrefl : ∀ {x} → ¬ R x x) (x : A) (L′ : List A) (M : List A) →
-  (x ∷ L′) ↭ M →
-  NoInv (x ∷ L′) →
-  NoInv M →
-  (i : x ∈ M) →
-  AllBefore x M i
-before-incomparable R-irrefl x L′ M perm noL noM i = go M i noM x-min
+bubble : (M : List A) (i : x ∈ M) → NoInv M →
+         (∀ {z} → z ∈ M → ¬ R z x) → M ↝* (x ∷ (M ─ i))
+bubble (m ∷ rest) (here refl) _    _     = ε
+bubble {x = x} (m ∷ rest) (there i) noM xmin =
+  -- recurse inside `rest`, prepend `m`, then one final swap of (m x).
+  ↝*-trans (↝*-cons m (bubble rest i (NoInv-tail noM)
+                              (λ z∈rest → xmin (there z∈rest))))
+           (return head-swap)
   where
-  -- `x` is strictly below nothing in `M`.
-  x-min : ∀ {z} → z ∈ M → ¬ R z x
-  x-min z∈M with ∈-resp-↭ (↭-sym perm) z∈M
-  ... | here  z≡x  = subst (λ u → ¬ R u x) (sym z≡x) R-irrefl
-  ... | there z∈L′ = lookup (NoInv-head noL) z∈L′
-
-  go : (M′ : List A) (j : x ∈ M′) →
-       NoInv M′ → (∀ {z} → z ∈ M′ → ¬ R z x) → AllBefore x M′ j
-  go (m ∷ rest) (here refl) _    _     = ab-here
-  go (m ∷ rest) (there j)   noM′ xmin′ =
-    ab-there (lookup (NoInv-head noM′) j , xmin′ (here refl))
-             (go rest j (NoInv-tail noM′) (λ z∈rest → xmin′ (there z∈rest)))
-
-------------------------------------------------------------------------
--- Sub-lemma (b): the bubble lemma.
---   If every element before `x` in `M` is incomparable to `x`, then we
---   can bubble `x` to the front: M ↝* x ∷ remove M i.
-------------------------------------------------------------------------
-
-bubble : (M : List A) (i : x ∈ M) → AllBefore x M i → M ↝* (x ∷ remove M i)
-bubble (w ∷ rest) (here refl) ab-here = ε
-bubble {x = x} (w ∷ rest) (there i) (ab-there incx-w before) =
-  -- recurse inside `rest`, prepend `w`, then one final swap of (w x).
-  ↝*-trans (↝*-cons w (bubble rest i before))
-           (step head-swap)
-  where
-  -- `w ∷ x ∷ remove rest i ↝ x ∷ w ∷ remove rest i`, valid since w,x
-  -- are incomparable.
-  head-swap : (w ∷ x ∷ remove rest i) ↝ (x ∷ w ∷ remove rest i)
-  head-swap = swap-step [] (remove rest i) (Incomp-sym incx-w)
-
-------------------------------------------------------------------------
--- Locating `x` and the empty-permutation fact.
-------------------------------------------------------------------------
-
-x∈-self : ∀ (x : A) (L′ : List A) (M : List A) → (x ∷ L′) ↭ M → x ∈ M
-x∈-self x L′ M perm = ∈-resp-↭ perm (here refl)
-
--- A permutation of `[]` is `[]` (length 0 forces the empty list).
-↭[]⇒≡[] : [] ↭ M → [] ≡ M
-↭[]⇒≡[] {M = []}    _ = refl
-↭[]⇒≡[] {M = _ ∷ _} p with ↭-length p
-... | ()
+  -- `m ∷ x ∷ (rest ─ i) ↝ x ∷ m ∷ (rest ─ i)`, valid since m,x are
+  -- incomparable: `¬ R m x` from minimality, `¬ R x m` from `NoInv`.
+  head-swap : (m ∷ x ∷ (rest ─ i)) ↝ (x ∷ m ∷ (rest ─ i))
+  head-swap = swap-step [] (rest ─ i)
+                (xmin (here refl) , lookup (NoInv-head noM) i)
 
 ------------------------------------------------------------------------
 -- Main theorem.
@@ -291,32 +229,43 @@ x∈-self x L′ M perm = ∈-resp-↭ perm (here refl)
 -- Direct structural recursion on the list `L`: the only recursive call is
 -- on the tail of a cons, so the termination checker accepts it without any
 -- well-founded/`Acc` machinery.
+--
+-- Cross-reference: `connectivity` bubbles `x` to the front by adjacent
+-- swaps and recurses on the tail — the same bubble-to-front recursion
+-- shape as `PermuteCoherence.Coxeter.Word.canonW` (`canonW` rotates the
+-- destined-front element via a rotation word and recurses on the
+-- residual). The carriers (linear extensions of a poset here vs.
+-- `FinBij`/words there) and side-conditions (`NoInv`-guarded swaps vs.
+-- unconditional rotation) differ enough that a shared formalization was
+-- examined and declined as not worth the cost (see
+-- REVIEW3/00-conceptual-unbiased.md F19).
 ------------------------------------------------------------------------
 
--- Worker with explicit list arguments, so the structural recursion on `L`
--- is visible to the termination checker.
-connectivity-go :
-  ∀ (R-irrefl : ∀ {x} → ¬ R x x) (L M : List A) →
-  L ↭ M → NoInv L → NoInv M → L ↝* M
-connectivity-go R-irrefl [] M perm _ noM =
+connectivity : (∀ {x} → ¬ R x x) → L ↭ M → NoInv L → NoInv M → L ↝* M
+connectivity {L = []} R-irrefl perm _ noM =
   -- A permutation of [] is []; so M = [] and L = M reflexively.
-  subst (Star _↝_ []) (↭[]⇒≡[] perm) ε
-connectivity-go R-irrefl (x ∷ L′) M perm noL noM =
+  subst ([] ↝*_) (sym (↭-empty-inv (↭-sym perm))) ε
+connectivity {L = x ∷ L′} {M = M} R-irrefl perm noL noM =
   -- (1) locate x in M, (2) bubble it to the front, (3) recurse on tails.
   bubbled-then-tail
   where
   i : x ∈ M
-  i = x∈-self x L′ M perm
+  i = ∈-resp-↭ perm (here refl)
 
   M′ : List A
-  M′ = remove M i
+  M′ = M ─ i
 
-  before : AllBefore x M i
-  before = before-incomparable R-irrefl x L′ M perm noL noM i
+  -- `x` is strictly below nothing in `M`: `↭-sym perm` moves into
+  -- `x ∷ L′`, where the head field of `NoInv (x ∷ L′)` gives `¬ R z x` for
+  -- every `z ∈ L′`, and `R-irrefl` covers `z ≡ x`.
+  x-min : ∀ {z} → z ∈ M → ¬ R z x
+  x-min z∈M with ∈-resp-↭ (↭-sym perm) z∈M
+  ... | here  z≡x  = subst (λ u → ¬ R u x) (sym z≡x) R-irrefl
+  ... | there z∈L′ = lookup (NoInv-head noL) z∈L′
 
   -- M ↝* x ∷ M′
   M↝*xM′ : M ↝* (x ∷ M′)
-  M↝*xM′ = bubble M i before
+  M↝*xM′ = bubble M i noM x-min
 
   -- M ↭ x ∷ M′, hence x ∷ L′ ↭ x ∷ M′, hence L′ ↭ M′ by cancellation.
   M↭xM′ : M ↭ (x ∷ M′)
@@ -338,25 +287,8 @@ connectivity-go R-irrefl (x ∷ L′) M perm noL noM =
 
   -- IH on the structural subterm `L′` (the tail of `x ∷ L′`).
   tails : L′ ↝* M′
-  tails = connectivity-go R-irrefl L′ M′ L′↭M′ noL′ noM′
+  tails = connectivity R-irrefl L′↭M′ noL′ noM′
 
   -- x ∷ L′ ↝* x ∷ M′, then ←↝* M  (reverse of bubbling).
   bubbled-then-tail : (x ∷ L′) ↝* M
   bubbled-then-tail = ↝*-trans (↝*-cons x tails) (↝*-sym M↝*xM′)
-
-------------------------------------------------------------------------
--- The theorem, with finiteness/induction wiring discharged.
-------------------------------------------------------------------------
-
--- Cross-reference: `connectivity`/`connectivity-go` bubble `x` to the
--- front by adjacent swaps and recurse on the tail — the same
--- bubble-to-front recursion shape as `PermuteCoherence.Coxeter.Word.canonW`
--- (`canonW` rotates the destined-front element via a rotation word and
--- recurses on the residual). The carriers (linear extensions of a poset
--- here vs. `FinBij`/words there) and side-conditions (`NoInv`-guarded
--- swaps vs. unconditional rotation) differ enough that a shared
--- formalization was examined and declined as not worth the cost (see
--- REVIEW3/00-conceptual-unbiased.md F19).
-connectivity : (∀ {x} → ¬ R x x) → L ↭ M → NoInv L → NoInv M → L ↝* M
-connectivity {L = L} {M = M} R-irrefl perm noL noM =
-  connectivity-go R-irrefl L M perm noL noM

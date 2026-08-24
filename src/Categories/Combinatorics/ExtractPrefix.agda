@@ -1,15 +1,13 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Generic `extract-elem` / `extract-prefix` over `List (Fin n)`.
+-- Generic `extract-elem` / `extract-prefix` over `List (Fin n)`: the
+-- multiset search of the decoder, kept in one signature-free place so that
+-- every consumer observes the SAME definition (definitional equality).
 --
--- `Categories.APROP.Hypergraph.Soundness.Decode.Decode` re-exports from
--- here so it observes the SAME definition (definitional equality) of the
--- prefix-extraction used by its edge/step processor.
---
--- Bodies are verbatim copies of the original `Decode.extract-elem` /
--- `Decode.extract-prefix` (which are generic in `Fin n` already; only
--- their location was APROP-specific).
+-- Consumers: `APROP.…Soundness.Decode.Decode` (re-exports both `public`),
+-- `APROP.…Soundness.Stack.SeparableStack`, and the φ-naturality proof in
+-- `Combinatorics.ExtractPrefixEvalPhi`.
 --------------------------------------------------------------------------------
 
 module Categories.Combinatorics.ExtractPrefix where
@@ -19,8 +17,7 @@ open import Data.List using (List; []; _∷_; _++_)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ-syntax; _,_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open import Relation.Binary.PropositionalEquality
-  using (refl; subst)
+open import Relation.Binary.PropositionalEquality using (subst)
 open import Relation.Nullary.Decidable using (yes; no)
 
 extract-elem

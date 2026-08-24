@@ -39,9 +39,21 @@ open import Categories.Combinatorics.ExtractPrefix using (extract-elem; extract-
 --------------------------------------------------------------------------------
 -- §1.  φ-naturality of the search at the derivation level.
 
--- UIP on `Fin` (Hedberg; --without-K-safe via decidable equality).
-fin-uip : ∀ {l} {a b : Fin l} (p q : a ≡ b) → p ≡ q
-fin-uip {l} = Decidable⇒UIP.≡-irrelevant (_≟_ {l})
+private
+  -- UIP on `Fin` (Hedberg; --without-K-safe via decidable equality).
+  fin-uip : ∀ {l} {a b : Fin l} (p q : a ≡ b) → p ≡ q
+  fin-uip {l} = Decidable⇒UIP.≡-irrelevant (_≟_ {l})
+
+  -- `subst` over the codomain of `trans A (prep a B)` pushes into `B`
+  -- (refl-pattern on the codomain equality).  Mentions neither the
+  -- relabelling `f` nor its injectivity, so it sits outside the module
+  -- parameterised by them and is elaborated once.
+  push-subst-cons
+    : ∀ {m} {xs V V' V'' : List (Fin m)} {a : Fin m}
+        (A : xs ↭ a ∷ V) (B : V ↭ V') (e : V' ≡ V'')
+    → subst (λ z → xs ↭ z) (cong (a ∷_) e) (Perm.trans A (Perm.prep a B))
+      ≡ Perm.trans A (Perm.prep a (subst (λ z → V ↭ z) e B))
+  push-subst-cons A B refl = refl
 
 module _ {n m : ℕ} (f : Fin n → Fin m)
          (f-inj : ∀ {x y} → f x ≡ f y → x ≡ y) where
@@ -74,15 +86,6 @@ module _ {n m : ℕ} (f : Fin n → Fin m)
   ... | refl with f x ≟ f k
   ...   | yes fxk = ⊥-elim (¬xk (f-inj fxk))
   ...   | no _ rewrite extract-elem-map⁺ k xs rest' p' eq-inner = refl
-
-  -- subst over the codomain of `trans A (prep a B)` pushes into `B`
-  -- (refl-pattern on the codomain equality).
-  push-subst-cons
-    : ∀ {xs V V' V'' : List (Fin m)} {a : Fin m}
-        (A : xs ↭ a ∷ V) (B : V ↭ V') (e : V' ≡ V'')
-    → subst (λ z → xs ↭ z) (cong (a ∷_) e) (Perm.trans A (Perm.prep a B))
-      ≡ Perm.trans A (Perm.prep a (subst (λ z → V ↭ z) e B))
-  push-subst-cons A B refl = refl
 
   -- `extract-prefix` commutes with `map f` at the derivation level (modulo the
   -- `map-++` identification of the residual codomain).
@@ -118,10 +121,7 @@ module _ {n m : ℕ} (f : Fin n → Fin m)
 -- of the H-side derivation.  Since `extract-prefix`'s result is a `Maybe` pair
 -- and the index type is a `List (Fin nJ)` (decidable, hence UIP), that pins the
 -- SECOND component too: any `permJ` the caller happens to be holding IS
--- `map⁺ φ permH` transported along `map-++`.  This is strictly stronger than —
--- and used to be derived on the first line of, and then discarded by — the
--- former `eval-coincide`, which spent 50 lines walking both derivations down to
--- finite bijections to buy the same fact back.
+-- `map⁺ φ permH` transported along `map-++`.
 
 module _ {nH nJ : ℕ}
          (φ : Fin nH → Fin nJ) (φ-inj : ∀ {x y} → φ x ≡ φ y → x ≡ y) where
