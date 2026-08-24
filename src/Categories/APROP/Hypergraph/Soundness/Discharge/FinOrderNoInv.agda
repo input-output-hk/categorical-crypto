@@ -4,9 +4,8 @@
 -- (LemC) The natural `Fin` edge-order of a TRANSLATED hypergraph is a
 -- linear extension of its immediate dependency relation `Dep`.
 --
--- Goal: `fin-order-NoInv-⟪⟫ : ∀ {A B} (f : HomTerm A B) → PH.NoInv (range
--- nE)`, where `PH.NoInv (range nE) = AllPairs (λ a b → ¬ Dep ⟪f⟫ b a) (range
--- nE)` — "for edges `a` before `b` in `range`, `b` does not produce a wire
+-- Goal: `fin-order-NoInv-⟪⟫ : ∀ {A B} (f : HomTerm A B) → NoInvH ⟪f⟫ (range
+-- nE)`, where `NoInvH H = AllPairs (λ a b → ¬ Dep H b a)` — "for edges `a` before `b` in `range`, `b` does not produce a wire
 -- that `a` consumes" (no earlier-consumes-later inversion).
 --
 -- Second goal, on the DIAGONAL that `AllPairs` never reaches:
@@ -22,7 +21,7 @@
 -- `NoInv (range nE)` is a property of the TRANSLATION, not of the decoder's
 -- run, and it does NOT follow from the two order-free facts the Stack layer
 -- tracks for an arbitrary hypergraph — `Linear H` (`Linearity`) and the
--- decoder's totality witness `IW.PerHG.Valid (range H.nE)`, i.e.
+-- decoder's totality witness `IsoInvarianceWiring.PerHG.Valid`, i.e.
 -- `process-all-edges H H.dom ↭ H.cod` (what
 -- `DecodeAttemptLinearP.decode-attempt-LinearP` supplies).  Counterexample:
 -- `nV = nE = 2`, `dom = cod = []`, `ein/eout` a 2-cycle (`e₀ : v₀ ↦ v₁`,
@@ -97,9 +96,6 @@ open import Data.List.Membership.Propositional.Properties
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Sum using (inj₁; inj₂)
 
-import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig
-  as IW
-
 open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_; splitAt; join)
 open import Data.Fin.Properties using (join-splitAt)
 open import Data.List using (List; []; _∷_; _++_; length; map; concat; tabulate)
@@ -127,7 +123,9 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics s
 -- ## The `NoInv` predicate as a bare `AllPairs`.
 --
 -- Convenient per-`H` abbreviations; `NoInvH H` coincides definitionally
--- with `IW.PerHG.NoInv H` (the predicates are irreflexivity-free).
+-- with `IsoInvarianceWiring.PerHG.NoInv H` (both are irreflexivity-free
+-- `AllPairs`), which is what lets the consumers take these two exports
+-- where that spelling is expected -- no wrapper here restates them.
 
 -- `BelowH H a b := ¬ Dep H b a`: `b` (later) does not produce a wire that
 -- `a` (earlier) consumes.
@@ -160,17 +158,9 @@ splitE {m} {n} P pl pr e = subst P (join-splitAt m n e) (go (splitAt m e))
     go (inj₂ b) = pr b
 
 --------------------------------------------------------------------------------
--- ## `NoSelfDep` base cases.
-
--- `nE = 0`: no edge exists, so `Dep` is vacuous.
-NoSelfDep-hEmpty : NoSelfDep hEmpty
-NoSelfDep-hEmpty {()}
-
-NoSelfDep-hVar : ∀ x → NoSelfDep (hVar x)
-NoSelfDep-hVar x {()}
-
-NoSelfDep-hSwap : ∀ A B → NoSelfDep (hSwap A B)
-NoSelfDep-hSwap A B {()}
+-- ## `NoSelfDep` for the single edge.  The zero-edge shapes (`hEmpty`,
+-- `hVar`, `hSwap`) need no lemma: `Dep` is vacuous there, and the two
+-- inductions below discharge them by an absurd pattern in place.
 
 -- `hGen f`: the unique edge has `ein` of `_↑ˡ_` form and `eout` of `_↑ʳ_`
 -- form, disjoint by `Inv.↑ˡ≢↑ʳ`.
@@ -406,30 +396,30 @@ NoInvH-hId (A ⊗₀ B)  =
 --
 -- For every `f`, `NoInvH ⟪ f ⟫ (range (nE ⟪ f ⟫))`.
 
-NoInvH-range-⟪⟫ : ∀ {A B} (f : HomTerm A B)
+fin-order-NoInv-⟪⟫ : ∀ {A B} (f : HomTerm A B)
                 → NoInvH ⟪ f ⟫ (range (Hypergraph.nE ⟪ f ⟫))
 
 -- Zero-edge `hId`-shaped cases, via `NoInvH-hId`.
-NoInvH-range-⟪⟫ (id {A})       = NoInvH-hId A
-NoInvH-range-⟪⟫ (λ⇒ {A})       = NoInvH-hId A
-NoInvH-range-⟪⟫ (λ⇐ {A})       = NoInvH-hId A
-NoInvH-range-⟪⟫ (ρ⇒ {A})       = NoInvH-hId (A ⊗₀ unit)
-NoInvH-range-⟪⟫ (ρ⇐ {A})       = NoInvH-hId (A ⊗₀ unit)
-NoInvH-range-⟪⟫ (α⇒ {A}{B}{C}) = NoInvH-hId ((A ⊗₀ B) ⊗₀ C)
-NoInvH-range-⟪⟫ (α⇐ {A}{B}{C}) = NoInvH-hId ((A ⊗₀ B) ⊗₀ C)
+fin-order-NoInv-⟪⟫ (id {A})       = NoInvH-hId A
+fin-order-NoInv-⟪⟫ (λ⇒ {A})       = NoInvH-hId A
+fin-order-NoInv-⟪⟫ (λ⇐ {A})       = NoInvH-hId A
+fin-order-NoInv-⟪⟫ (ρ⇒ {A})       = NoInvH-hId (A ⊗₀ unit)
+fin-order-NoInv-⟪⟫ (ρ⇐ {A})       = NoInvH-hId (A ⊗₀ unit)
+fin-order-NoInv-⟪⟫ (α⇒ {A}{B}{C}) = NoInvH-hId ((A ⊗₀ B) ⊗₀ C)
+fin-order-NoInv-⟪⟫ (α⇐ {A}{B}{C}) = NoInvH-hId ((A ⊗₀ B) ⊗₀ C)
 
 -- `σ`: `⟪ σ ⟫ = hSwap A B`, which has `nE = 0` literally ⇒ `range 0 = []`.
-NoInvH-range-⟪⟫ (σ {A}{B})     = []
+fin-order-NoInv-⟪⟫ (σ {A}{B})     = []
 
 -- Single edge: `nE = 1`, `range 1 = zero ∷ []`; the singleton has no pairs.
-NoInvH-range-⟪⟫ (Agen g)       = [] ∷ []
+fin-order-NoInv-⟪⟫ (Agen g)       = [] ∷ []
 
 -- Tensor: split `range (G.nE + K.nE)` via `range-++` and reuse the IHs.
-NoInvH-range-⟪⟫ (f ⊗₁ g) =
+fin-order-NoInv-⟪⟫ (f ⊗₁ g) =
   subst (NoInvH (hTensor F G))
         (sym (range-++ F.nE G.nE))
         (NoInvH-tensor F G (range F.nE) (range G.nE)
-          (NoInvH-range-⟪⟫ f) (NoInvH-range-⟪⟫ g))
+          (fin-order-NoInv-⟪⟫ f) (fin-order-NoInv-⟪⟫ g))
   where
     F = ⟪ f ⟫
     G = ⟪ g ⟫
@@ -437,12 +427,12 @@ NoInvH-range-⟪⟫ (f ⊗₁ g) =
     module G = Hypergraph G
 
 -- Composition: `⟪ g ∘ f ⟫ = hComposeP ⟪ f ⟫ ⟪ g ⟫ bdy`.  Split and reuse.
-NoInvH-range-⟪⟫ (g ∘ f) =
+fin-order-NoInv-⟪⟫ (g ∘ f) =
   subst (NoInvH (hComposeP F G bdy))
         (sym (range-++ F.nE G.nE))
         (NoInvH-compose F G bdy (⟪⟫-LinearP f) (⟪⟫-LinearP g)
           (range F.nE) (range G.nE)
-          (NoInvH-range-⟪⟫ f) (NoInvH-range-⟪⟫ g))
+          (fin-order-NoInv-⟪⟫ f) (fin-order-NoInv-⟪⟫ g))
   where
     F = ⟪ f ⟫
     G = ⟪ g ⟫
@@ -455,40 +445,25 @@ NoInvH-range-⟪⟫ (g ∘ f) =
 -- ## The same induction on the diagonal: `NoSelfDep ⟪ f ⟫`.
 
 NoSelfDep-hId : ∀ A → NoSelfDep (hId A)
-NoSelfDep-hId unit      {e} = NoSelfDep-hEmpty {e}
-NoSelfDep-hId (Var x)   {e} = NoSelfDep-hVar x {e}
+NoSelfDep-hId unit      {()}
+NoSelfDep-hId (Var x)   {()}
 NoSelfDep-hId (A ⊗₀ B)  {e} =
   NoSelfDep-tensor (hId A) (hId B) (NoSelfDep-hId A) (NoSelfDep-hId B) {e}
 
-NoSelfDep-⟪⟫ : ∀ {A B} (f : HomTerm A B) → NoSelfDep ⟪ f ⟫
-NoSelfDep-⟪⟫ (id {A})       {e} = NoSelfDep-hId A {e}
-NoSelfDep-⟪⟫ (λ⇒ {A})       {e} = NoSelfDep-hId A {e}
-NoSelfDep-⟪⟫ (λ⇐ {A})       {e} = NoSelfDep-hId A {e}
-NoSelfDep-⟪⟫ (ρ⇒ {A})       {e} = NoSelfDep-hId (A ⊗₀ unit) {e}
-NoSelfDep-⟪⟫ (ρ⇐ {A})       {e} = NoSelfDep-hId (A ⊗₀ unit) {e}
-NoSelfDep-⟪⟫ (α⇒ {A}{B}{C}) {e} = NoSelfDep-hId ((A ⊗₀ B) ⊗₀ C) {e}
-NoSelfDep-⟪⟫ (α⇐ {A}{B}{C}) {e} = NoSelfDep-hId ((A ⊗₀ B) ⊗₀ C) {e}
-NoSelfDep-⟪⟫ (σ {A}{B})     {e} = NoSelfDep-hSwap A B {e}
-NoSelfDep-⟪⟫ (Agen g)       {e} = NoSelfDep-hGen g {e}
-NoSelfDep-⟪⟫ (f ⊗₁ g)       {e} =
-  NoSelfDep-tensor ⟪ f ⟫ ⟪ g ⟫ (NoSelfDep-⟪⟫ f) (NoSelfDep-⟪⟫ g) {e}
-NoSelfDep-⟪⟫ (g ∘ f)        {e} =
+dep-irrefl-⟪⟫ : ∀ {A B} (f : HomTerm A B) → NoSelfDep ⟪ f ⟫
+dep-irrefl-⟪⟫ (id {A})       {e} = NoSelfDep-hId A {e}
+dep-irrefl-⟪⟫ (λ⇒ {A})       {e} = NoSelfDep-hId A {e}
+dep-irrefl-⟪⟫ (λ⇐ {A})       {e} = NoSelfDep-hId A {e}
+dep-irrefl-⟪⟫ (ρ⇒ {A})       {e} = NoSelfDep-hId (A ⊗₀ unit) {e}
+dep-irrefl-⟪⟫ (ρ⇐ {A})       {e} = NoSelfDep-hId (A ⊗₀ unit) {e}
+dep-irrefl-⟪⟫ (α⇒ {A}{B}{C}) {e} = NoSelfDep-hId ((A ⊗₀ B) ⊗₀ C) {e}
+dep-irrefl-⟪⟫ (α⇐ {A}{B}{C}) {e} = NoSelfDep-hId ((A ⊗₀ B) ⊗₀ C) {e}
+dep-irrefl-⟪⟫ (σ {A}{B})     {()}
+dep-irrefl-⟪⟫ (Agen g)       {e} = NoSelfDep-hGen g {e}
+dep-irrefl-⟪⟫ (f ⊗₁ g)       {e} =
+  NoSelfDep-tensor ⟪ f ⟫ ⟪ g ⟫ (dep-irrefl-⟪⟫ f) (dep-irrefl-⟪⟫ g) {e}
+dep-irrefl-⟪⟫ (g ∘ f)        {e} =
   NoSelfDep-compose ⟪ f ⟫ ⟪ g ⟫ (trans (⟪⟫-codL f) (sym (⟪⟫-domL g)))
     (⟪⟫-LinearP f) (⟪⟫-LinearP g)
-    (NoSelfDep-⟪⟫ f) (NoSelfDep-⟪⟫ g) {e}
+    (dep-irrefl-⟪⟫ f) (dep-irrefl-⟪⟫ g) {e}
 
---------------------------------------------------------------------------------
--- ## The targets.  `fin-order-NoInv-⟪⟫` in `IW.PerHG.NoInv` form
--- (= `NoInvH ⟪ f ⟫` definitionally); `dep-irrefl-⟪⟫` on the diagonal.
---
--- `IsoInvarianceWiring.PerHG` asks `¬ Dep H e e` for an ARBITRARY `H`, which
--- is FALSE in general (a self-loop edge); `dep-irrefl-⟪⟫` is the honest
--- `⟪f⟫`-specific statement, supplied at the `H = ⟪f⟫` call site.
-
-fin-order-NoInv-⟪⟫
-  : ∀ {A B} (f : HomTerm A B)
-  → IW.PerHG.NoInv ⟪ f ⟫ (range (Hypergraph.nE ⟪ f ⟫))
-fin-order-NoInv-⟪⟫ f = NoInvH-range-⟪⟫ f
-
-dep-irrefl-⟪⟫ : ∀ {A B} (f : HomTerm A B) {e} → ¬ (Dep ⟪ f ⟫ e e)
-dep-irrefl-⟪⟫ f = NoSelfDep-⟪⟫ f

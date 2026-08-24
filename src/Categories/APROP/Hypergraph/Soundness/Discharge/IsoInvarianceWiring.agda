@@ -7,9 +7,10 @@
 -- into iso-invariance of the order-indexed decoder.
 -- Defines `Order`/`Valid` (per-hypergraph) and the cross-iso
 -- boundary identifications + ψ-pullback order `τ` and its no-inversion
--- transport `NoInv-τ` (Lemma 4).  The analytic steps (`swap-≈`,
--- `order-invariant`, `iso-transport`) live downstream in
--- `SwapStep` / `IsoTransport`.
+-- transport `NoInv-τ` (Lemma 4).  The analytic steps live downstream, and
+-- only in their STRICT form — `SwapStep.swap-≈ˢ`,
+-- `IsoTransport.order-invariantˢ`/`iso-transportˢ`; the unstarred names died
+-- with the weak morphism apparatus.
 {-# OPTIONS --safe --without-K #-}
 
 open import Categories.APROP
@@ -75,7 +76,10 @@ module PerHG (H : Hypergraph FlatGen) where
   -- for an arbitrary `H`) as an explicit argument, supplied at
   -- `H = ⟪f⟫`/`⟪g⟫` via the proven `FinOrderNoInv.dep-irrefl-⟪⟫`.
   module L = LinExt (Fin H.nE) (Dep H)
-  open L public using (NoInv; _↝_; _↝*_; connectivity)
+  -- The swap relation's constructor and its incomparability side condition
+  -- are part of this interface: both downstream consumers pattern-match on
+  -- `swap-step`, and `SwapValidity` states its hypotheses with `Incomp`.
+  open L public using (NoInv; _↝_; _↝*_; connectivity; swap-step; Incomp)
 
   Order : Set
   Order = List (Fin H.nE)

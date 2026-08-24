@@ -123,13 +123,17 @@ module PerHG (H : Hypergraph FlatGen)
         (p₂ , mid≈rec) = ↝*⇒≈ˢ ss o-mid↭range p-mid
     in  p₂ , ≈-trans (swap-≈ˢ s o₁↭range p₁ p-mid) mid≈rec
 
-  -- Order-invariance of the decoder, driven by `connectivity`.
+  -- Order-invariance of the decoder, driven by `connectivity`.  The target
+  -- order is the NATURAL one: `↝*⇒≈ˢ` needs the `↭ range nE` provenance
+  -- anyway, and at `o₂ = range nE` that provenance IS the permutation
+  -- `connectivity` consumes — so one hypothesis does both jobs.
   order-invariantˢ :
-    ∀ (o₁ o₂ : Order) → o₁ Perm.↭ o₂ → NoInv o₁ → NoInv o₂ →
-    o₁ Perm.↭ range (Hypergraph.nE H) →
+    ∀ (o₁ : Order) → o₁ Perm.↭ range (Hypergraph.nE H) →
+    NoInv o₁ → NoInv (range (Hypergraph.nE H)) →
     (p₁ : Validˢ o₁) →
-    Σ[ p₂ ∈ Validˢ o₂ ] decodeOrdˢ o₁ p₁ ≈ˢ decodeOrdˢ o₂ p₂
-  order-invariantˢ o₁ o₂ p n₁ n₂ o₁↭range p₁ = ↝*⇒≈ˢ (connectivity p n₁ n₂) o₁↭range p₁
+    Σ[ p₂ ∈ Validˢ (range (Hypergraph.nE H)) ]
+      decodeOrdˢ o₁ p₁ ≈ˢ decodeOrdˢ (range (Hypergraph.nE H)) p₂
+  order-invariantˢ o₁ p n₁ n₂ p₁ = ↝*⇒≈ˢ (connectivity p n₁ n₂) p p₁
 
 ------------------------------------------------------------------------
 -- The cross-iso module.  `H = ⟪f⟫`, `J = ⟪g⟫`.
@@ -339,6 +343,5 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
     let vτ            = iso-validˢ vJ
         transport≈    = iso-transportˢ vJ
         (vH , inv≈)   =
-          CPH.order-invariantˢ τ (range H.nE) (IW.τ↭range iso) NoInv-τ
-                               noInvH (IW.τ↭range iso) vτ
+          CPH.order-invariantˢ τ (IW.τ↭range iso) NoInv-τ noInvH vτ
     in vH , ≈-trans transport≈ inv≈

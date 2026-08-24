@@ -84,8 +84,8 @@ module PerHG (H : Hypergraph FlatGen) (lin : Linear H) where
   module PH = IW.PerHG H
 
   -- `Incomp e e' = (¬ Dep H e e') × (¬ Dep H e' e)` and the swap-step
-  -- constructor, from the LinExt instantiation `PH.L`.
-  open PH.L public using (Incomp; swap-step)
+  -- constructor, from `PerHG`'s order-theory interface.
+  open PH public using (Incomp; swap-step)
 
   ------------------------------------------------------------------------
   -- The final stack of running an order from a stack (generalised over

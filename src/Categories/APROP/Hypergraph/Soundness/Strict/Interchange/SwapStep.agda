@@ -76,8 +76,7 @@ module PerHG (H : Hypergraph FlatGen)
   -- The order-theory spine, reused verbatim from the non-strict wiring
   -- (`connectivity` pre-applied to this hypergraph's acyclicity `dih`).
   module PH = IW.PerHG H
-  open PH public using (Order; _↝_; _↝*_; NoInv)
-  open IW.PerHG.L H public using (swap-step)
+  open PH public using (Order; _↝_; _↝*_; NoInv; swap-step)
 
   connectivity : ∀ {L M : Order} → L Perm.↭ M → NoInv L → NoInv M → L ↝* M
   connectivity = PH.connectivity dih

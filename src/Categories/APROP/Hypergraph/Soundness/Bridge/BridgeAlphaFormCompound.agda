@@ -230,6 +230,18 @@ private
   cfrom : (as bs : List X) → HomTerm (unflatten (as ++ bs)) (unflatten as ⊗₀ unflatten bs)
   cfrom as bs = _≅_.from (unflatten-++-≅ as bs)
 
+  -- `bridge` of a tensor whose two factors are already known: `bridge-⊗`
+  -- followed by the congruence in the middle.  Both `⊗`-factors of the
+  -- compound decomposition below are this shape (with `id` on one side).
+  bridge-⊗-resp
+    : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
+        {rf : HomTerm (unflatten (flatten A)) (unflatten (flatten B))}
+        {rg : HomTerm (unflatten (flatten C)) (unflatten (flatten D))}
+    → bridge f ≈Term rf → bridge g ≈Term rg
+    → bridge (f ⊗₁ g)
+      ≈Term cto (flatten B) (flatten D) ∘ (rf ⊗₁ rg) ∘ cfrom (flatten A) (flatten C)
+  bridge-⊗-resp f g ef eg = bridge-⊗ f g ○ (refl⟩∘⟨ ⊗-resp-≈ ef eg ⟩∘⟨refl)
+
   -- the 4-fold composite `pentagon-rewrite` produces, at prefix `p`.
   collapse-lhs
     : ∀ (p a b c : List X)
@@ -493,46 +505,13 @@ module Worker where
           ∘ bridge (id {P} ⊗₁ α⇒ {A₂} {B} {C})
           ∘ bridge (α⇒ {P} {A₂ ⊗₀ B} {C})
           ∘ bridge (α⇒ {P} {A₂} {B} ⊗₁ id {C})
-          ≈⟨ br-⇐ ⟩∘⟨ bx-mid ⟩∘⟨ br-mid ⟩∘⟨ bx-low ⟩
+          ≈⟨ derive-⇐ P A₂ (B ⊗₀ C) br⇒-P
+             ⟩∘⟨ bridge-⊗-resp (id {P}) (α⇒ {A₂} {B} {C})
+                               (bridge-id-is-id P) br-A₂
+             ⟩∘⟨ br-mid
+             ⟩∘⟨ bridge-⊗-resp (α⇒ {P} {A₂} {B}) (id {C})
+                               br-low (bridge-id-is-id C) ⟩
         collapse-lhs p (flatten A₂) (flatten B) (flatten C)
           ≈⟨ list-collapse-gen p (flatten A₂) (flatten B) (flatten C) ⟩
         α⇒-form-list ((flatten A₁₁ ++ flatten A₁₂) ++ flatten A₂)
                      (flatten B) (flatten C) ∎
-        where
-          -- the α⇐-form at `P`, derived non-recursively from the α⇒-form
-          -- result `br⇒-P` at the SAME object.
-          br-⇐ : bridge (α⇐ {P} {A₂} {B ⊗₀ C})
-               ≈Term α⇐-form-list p (flatten A₂) (flatten B ++ flatten C)
-          br-⇐ = derive-⇐ P A₂ (B ⊗₀ C) br⇒-P
-
-          bx-mid
-            : bridge (id {P} ⊗₁ α⇒ {A₂} {B} {C})
-            ≈Term cto p (flatten A₂ ++ flatten B ++ flatten C)
-                 ∘ (id ⊗₁ α⇒-form-list (flatten A₂) (flatten B) (flatten C))
-                 ∘ cfrom p ((flatten A₂ ++ flatten B) ++ flatten C)
-          bx-mid = begin
-            bridge (id {P} ⊗₁ α⇒ {A₂} {B} {C})
-              ≈⟨ bridge-⊗ (id {P}) (α⇒ {A₂} {B} {C}) ⟩
-            cto p (flatten A₂ ++ flatten B ++ flatten C)
-              ∘ (bridge (id {P}) ⊗₁ bridge (α⇒ {A₂} {B} {C}))
-              ∘ cfrom p ((flatten A₂ ++ flatten B) ++ flatten C)
-              ≈⟨ refl⟩∘⟨ ⊗-resp-≈ (bridge-id-is-id P) br-A₂ ⟩∘⟨refl ⟩
-            cto p (flatten A₂ ++ flatten B ++ flatten C)
-              ∘ (id ⊗₁ α⇒-form-list (flatten A₂) (flatten B) (flatten C))
-              ∘ cfrom p ((flatten A₂ ++ flatten B) ++ flatten C) ∎
-
-          bx-low
-            : bridge (α⇒ {P} {A₂} {B} ⊗₁ id {C})
-            ≈Term cto (p ++ flatten A₂ ++ flatten B) (flatten C)
-                 ∘ (α⇒-form-list p (flatten A₂) (flatten B) ⊗₁ id)
-                 ∘ cfrom ((p ++ flatten A₂) ++ flatten B) (flatten C)
-          bx-low = begin
-            bridge (α⇒ {P} {A₂} {B} ⊗₁ id {C})
-              ≈⟨ bridge-⊗ (α⇒ {P} {A₂} {B}) (id {C}) ⟩
-            cto (p ++ flatten A₂ ++ flatten B) (flatten C)
-              ∘ (bridge (α⇒ {P} {A₂} {B}) ⊗₁ bridge (id {C}))
-              ∘ cfrom ((p ++ flatten A₂) ++ flatten B) (flatten C)
-              ≈⟨ refl⟩∘⟨ ⊗-resp-≈ br-low (bridge-id-is-id C) ⟩∘⟨refl ⟩
-            cto (p ++ flatten A₂ ++ flatten B) (flatten C)
-              ∘ (α⇒-form-list p (flatten A₂) (flatten B) ⊗₁ id)
-              ∘ cfrom ((p ++ flatten A₂) ++ flatten B) (flatten C) ∎
