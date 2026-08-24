@@ -29,8 +29,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _�
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermDischarge X _≟X_ as PD
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.Braid X _≟X_ as BR
 
-open import Data.List using (List)
-
 --------------------------------------------------------------------------------
 -- For any vertex set `V` with a labelling, the constructed residual.
 

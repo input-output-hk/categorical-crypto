@@ -48,7 +48,7 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-edges; edge-step; extract-prefix)
 
-open import Data.Nat using (_+_) renaming (_≤_ to _≤ⁿ_)
+open import Data.Nat using () renaming (_≤_ to _≤ⁿ_)
 import Data.Nat.Properties as Nat
 
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig

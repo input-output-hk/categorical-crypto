@@ -57,9 +57,6 @@ open import Categories.FreeMonoidal using (v≤v)
 open import Categories.FreeStrictSMC using (module Map)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Embed sig _≟X_ as E
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-  using (decodePˢ)
-
 import Categories.APROP.Hypergraph.Soundness.Strict.PartI  sig _≟X_ as PI
 import Categories.APROP.Hypergraph.Soundness.Strict.PartII sig _≟X_ as PII
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorBraid sig _≟X_

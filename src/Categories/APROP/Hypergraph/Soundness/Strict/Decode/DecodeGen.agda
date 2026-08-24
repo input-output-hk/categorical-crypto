@@ -38,7 +38,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flat; flatten; hGen; domL-hGen; codL-hGen; retype-≡)
+  using (FlatGen; flat; flatten; domL-hGen; codL-hGen; retype-≡)
 open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
@@ -60,7 +60,6 @@ open import Data.List using (List; []; _++_; map)
 open import Data.List.Properties using (++-identityʳ)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just)
-open import Data.Nat using (ℕ)
 open import Data.Product using (_,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst; subst₂)

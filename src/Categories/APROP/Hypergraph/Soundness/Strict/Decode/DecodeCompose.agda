@@ -46,8 +46,8 @@ open import Data.List.Properties using (map-++)
 open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.Maybe using (just; nothing)
 open import Data.Maybe.Ext using (just≢nothing)
-open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Product using (Σ; Σ-syntax; _,_; proj₁; proj₂)
+open import Data.Empty using (⊥-elim)
+open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 open import Relation.Binary.PropositionalEquality.Properties.Ext

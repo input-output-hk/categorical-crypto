@@ -92,7 +92,6 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
 
   open hComposeP-impl G K bdy
     using ( injL; remapP; map-via-remapP; vlab-injL; remapP-vlab
-          ; vlab-P
           ; ein-c-inj₁-red; eout-c-inj₁-red; elab-c-inj₁
           ; ein-c-inj₂-red; eout-c-inj₂-red; elab-c-inj₂ )
 
