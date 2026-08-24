@@ -14,13 +14,23 @@
 --   * every cast lemma is derived by refl-matching + UIP; `_≈ˢ_` needs NO
 --     cast-related axiom.
 --
--- `Build` constructs the category over a generator family `mor`; `Map`
--- is the evident homomorphism along a generator translation (used to move
--- from the `FlatGen`-generated instance into the `HomTerm`-generated one
--- that `Strict.Embed` embeds back into the free SMC).
+-- Three top-level modules, in file order:
 --
--- `box-suffix-ˢ`/`permuteˢ-frame` at the bottom are the strict forms of the
--- decoder's separability/frame lemmas.
+--   * `Build` (the bulk) constructs the category over a generator family
+--     `mor`: the presentation `_≈ˢ_`, the `castˢ` calculus and its
+--     heterogeneous companion `_≈̂_` with the `viâ`/`viaˢ` re-spelling
+--     sandwiches, the `SCat : Category` bundle, the derived unit/braiding
+--     laws, `box-suffix-ˢ` and — in the vertex-indexed submodule `Perm′` —
+--     `permuteˢ` with its frame (`permuteˢ-frame{,ˡ}`) and inverse
+--     (`permuteˢ-inv-{left,right}`) lemmas.  These are the strict forms of
+--     the decoder's separability / frame lemmas.
+--   * `Restrict` (still inside `Build`) re-proves the whole presentation at
+--     VERTEX level, paying the `map-++` bookkeeping once for the entire
+--     decoder cone; eight strict-cone modules `open` it by that name.
+--   * `Map` is the evident homomorphism along a generator translation (used
+--     to move from the `FlatGen`-generated instance into the
+--     `HomTerm`-generated one that `Strict.Embed` embeds back into the free
+--     SMC).
 --------------------------------------------------------------------------------
 
 module Categories.FreeStrictSMC where
@@ -111,8 +121,9 @@ module Build
   ------------------------------------------------------------------------
   -- `(HomS , _≈ˢ_)` as a `Category`.  Its four axioms are `_≈ˢ_`
   -- constructors on the nose, so the bundle is free — and it is what lets the
-  -- strict cone open `Categories.Morphism.Reasoning` (`pullʳ`, `pullˡ`,
-  -- `cancelInner`, `cancelˡ`, `elimʳ`) instead of re-deriving those
+  -- strict cone open `Categories.Morphism.Reasoning` on `SCat` (`pullʳ`,
+  -- `pullˡ`, `cancelˡ`, `cancelInner`, and `.Ext`'s `inv-resp`) instead of
+  -- re-deriving those
   -- combinators locally.  Not the monoidal structure: `_⊗ˢ_`'s associativity
   -- and unit laws are `castˢ`-mediated, so `⊗` is not a `Bifunctor` over
   -- `List X` without the strictification, which is what `FreeStrictMonoidal`
@@ -311,8 +322,8 @@ module Build
   ∘-cast-resp P M Q eg ef = ≈-trans (∘-cast-split P M Q _ _) (∘-resp eg ef)
 
   -- the re-spelling sandwich: cite an equation at whatever endpoints it is
-  -- stated, framed by two `≈̂` re-spellings of the sides.  EVERY V-level axiom
-  -- (`Restrict`, below) is `viaˢ`; the `≈̂`-middle twin `viâ` serves the same
+  -- stated, framed by two `≈̂` re-spellings of the sides.  Most V-level axioms
+  -- (`Restrict`, below) are `viaˢ`; the `≈̂`-middle twin `viâ` serves the same
   -- shape where the middle is itself heterogeneous.
   -- `viâ`'s middle is genuinely heterogeneous on BOTH sides — that is the
   -- point of the `≈̂` layer, and the ˢ-level sites re-spell endpoints that do
@@ -363,8 +374,9 @@ module Build
       Iy = ++-identityʳ ys
 
   ------------------------------------------------------------------------
-  -- MEASUREMENT 1: the fired-edge separability step (`box-suffix`).
-  -- Non-strict version: ~281 LOC + the BoxAssoc bracket machinery.
+  -- MEASUREMENT 1: the fired-edge separability step.  Its non-strict
+  -- counterpart (`box-suffix` in the since-deleted `Sub/BoxKernel`) was
+  -- ~281 LOC plus its bracket machinery; strictly, it is two `⊗` axioms.
 
   box-suffix-ˢ
     : ∀ {as bs} (b : HomS as bs) (rest R : List X)
@@ -376,7 +388,8 @@ module Build
 
   ------------------------------------------------------------------------
   -- MEASUREMENT 2: `permuteˢ` and the residual-frame lemmas
-  -- (the `frame-ext` analogue).  Note prep/swap need NO cast in the
+  -- `permuteˢ-frame`/`permuteˢ-frameˡ` (the counterparts of the since-deleted
+  -- non-strict `frame-ext`).  Note prep/swap need NO cast in the
   -- DEFINITION: singleton/cons left frames make `++` reduce.
   -- Parameterised by the vertex set, so `HomS` itself stays independent
   -- of any particular hypergraph.
@@ -620,8 +633,11 @@ module Build
       castˢ⇒≈̂ (cong m p) (cong m q)
               (≈-trans (≡⇒≈ˢ (sym (castᵛ-cast p q t))) e)
 
-    -- EVERY V-level axiom below is `Build`'s `viaˢ`, which covers V level on
-    -- the nose (`HomV as bs = HomS (m as) (m bs)` and `_≈ᵛ_` IS `_≈ˢ_`).
+    -- Every V-level axiom below is `Build`'s `viaˢ`, which covers V level on
+    -- the nose (`HomV as bs = HomS (m as) (m bs)` and `_≈ᵛ_` IS `_≈ˢ_`) —
+    -- except the three whose ˢ-level source already lands at the V endpoints:
+    -- `⊗-respᵛ`/`⊗-idᵛ` (a plain `cast-resp`) and `σ-unitᵛ` (a `cast-fuse` /
+    -- `cast-irrel` reconciliation of two `refl`-domain casts).
 
     ------------------------------------------------------------------------
     -- The presentation, re-proved at V level.  Category and `_≈ᵛ_` structure

@@ -30,11 +30,12 @@ import Categories.Morphism.Reasoning as MR
 data Variant : Set where
   Mon Symm : Variant
 
--- NOTE: these are deliberately NOT global `instance`s.  Downstream the APROP
--- cone provides its own local instances (e.g. `Symm ≤ Symm`, and per-signature
--- `Symm ≤ v (asFreeMonoidalData …)`), and a global `v≤v : ∀ {v} → v ≤ v` makes
--- those instance searches ambiguous/stuck.  Consumers pass `⦃ v≤v ⦄`
--- explicitly where needed.
+-- NOTE: these are deliberately NOT global `instance`s.  Each downstream cone
+-- declares its own `Symm ≤ Symm` instead — `APROP.Symm≤Symm` for the whole
+-- APROP cone, and a `private instance S≤S` in each of `GConstructionCoherence/
+-- {Terms,Wiring}` and `GConstructionIdentityCoherence` — because a global
+-- `v≤v : ∀ {v} → v ≤ v` makes those instance searches ambiguous/stuck.
+-- Consumers pass `⦃ v≤v ⦄` explicitly where needed.
 data _≤_ : Variant → Variant → Set where
   v≤v : ∀ {v} → v ≤ v
 
@@ -459,7 +460,7 @@ module FreeMonoidal (d : FreeMonoidalData) where
   -- The wire-combinator helpers (`split`/`merge`/`liftW`/`pad`/`rpad`/…) live
   -- in `Mor` for the solver's benefit and are NOT re-exported here.  The
   -- blocking name is `merge`: stdlib's `Data.List.Base` exports one, and
-  -- `Soundness/Decode/Decode.agda:41` is a bare `open import Data.List`, so
+  -- `Soundness/Decode/Decode.agda` has a bare `open import Data.List`, so
   -- re-exporting ours makes that module genuinely ambiguous.  The rest travel
   -- with it rather than being individually contested.  The solver opens
   -- `FreeMonoidalHelper.Mor` directly and is unaffected.

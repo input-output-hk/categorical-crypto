@@ -31,6 +31,22 @@ module Categories.FreeStrictMonoidal where
 -- by Hedberg irrelevance, hence the instance is gated on `⦃ DecEq X ⦄`.
 -- Opening `Categories.Category.Monoidal.Reasoning` on the instance supplies
 -- the generic tensor vocabulary (`serialize`/`split`).
+--
+-- Everything above is the first quarter of the file.  The rest is the PAD
+-- LAYER the coherence solver runs on, and it is what the consumers actually
+-- read:
+--
+--   * `padʷ pre suf g` (below) — a box idling behind `pre` and in front of
+--     `suf` wires, cast-free because `++` is the tensor;
+--   * the pad-conjugation relation `_≋_` and its kit (`≈ʷ→≋`, `≋-sym`,
+--     `≋-trans`, `≋-cong-⊗ʳ`, `≋→cast-formˢ`), which factors the
+--     `++`-associativity transport bookkeeping out ONCE, so the pad
+--     regroupings (`pad-nestᴶ`, `pad-nestRᴶ`, `nest3ᴶ`) are cast-free
+--     compositional statements and the explicit-cast wrappers the
+--     `Coherence.Monoidal.Diagram` soundness lemmas consume (`pad-nest`,
+--     `pad-nestR`, `nest3`) are thin;
+--   * `swap-cleanˢ` — the disjoint two-box interchange, and this module's key
+--     export: it is the interchange KEY of `Coherence.Monoidal.Normalize`.
 --------------------------------------------------------------------------------
 
 open import Level
@@ -135,8 +151,8 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
 
   --------------------------------------------------------------------------------
   -- The flat pad: a box `g` idling behind `pre` wires and in front of `suf`
-  -- wires.  This is the strict, cast-free analogue of `Diagram.pad` — no
-  -- merge/split appears.
+  -- wires.  This is the strict, cast-free analogue of the non-strict
+  -- `FreeMonoidalHelper.Mor.pad` — no merge/split appears.
   --------------------------------------------------------------------------------
   padʷ : (pre suf : List X) {a b : List X} → WTerm a b → WTerm (pre ++ (a ++ suf)) (pre ++ (b ++ suf))
   padʷ pre suf g = idʷ {n = pre} ⊗ʷ (g ⊗ʷ idʷ {n = suf})
