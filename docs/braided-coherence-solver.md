@@ -4,7 +4,7 @@ The recurring conclusion of the size-reduction and solver-performance analyses
 (`size-reduction-strategies.md`, `smc-solver-performance.md`) is that the one lever which would
 *both* shrink the soundness proof *and* make a usable SMC solver is a **direct coherence
 decision procedure** — one that decides free symmetric-monoidal term equality by
-**normalization**, not by the hypergraph round-trip (`soundness-full-wired ∘ findIso`).
+**normalization**, not by the hypergraph round-trip (`soundness ∘ findIso`).
 
 This note investigates what building that would take.
 
@@ -17,7 +17,7 @@ This note investigates what building that would take.
 
 ## What "direct" buys: non-circular and fast
 
-The APROP `Solver` decides `f ≈Term g` via `soundness-full-wired (from-just (findIso ⟪f⟫ ⟪g⟫))`.
+The APROP `Solver` decides `f ≈Term g` via `soundness (from-just (findIso ⟪f⟫ ⟪g⟫))`.
 That route (a) is **circular** with the soundness theorem (so it cannot be used to *prove* or
 shrink soundness), and (b) inherits the decode/transport normalization wall, so it OOMs past
 hexagon size.
@@ -168,7 +168,7 @@ Instead of proving `matrix-faithful` (`matrix f ≈M matrix g → f ≈Term g`) 
 two representations and inherit faithfulness from the already-proven hypergraph soundness theorem**:
 
 ```
-matrix f ≈M matrix g  ──(bridge, NEW)──▶  ⟪f⟫ ≅ᴴ ⟪g⟫  ──(soundness-full-wired, PROVEN)──▶  f ≈Term g
+matrix f ≈M matrix g  ──(bridge, NEW)──▶  ⟪f⟫ ≅ᴴ ⟪g⟫  ──(soundness, PROVEN)──▶  f ≈Term g
 ```
 
 **Why it is plausible — they encode the same incidence data.** The matrix `BlockMatrix sA sB k ds cs`
@@ -200,7 +200,7 @@ reconciliation); (b) **reconcile the index schemes**; (c) pin down `≈M`'s exac
 
 ### De-risking spike (2026-06-09) — VIABLE; the feared index crux dissolves
 
-A spike built the pipeline `hg→mat → align → matIso→hgIso → soundness-full-wired` on the current
+A spike built the pipeline `hg→mat → align → matIso→hgIso → soundness` on the current
 branch (`Categories/APROP/Hypergraph/Solver/MatrixBridge.agda` + `Matrix.agda` ported from
 `smc-coherence`, one unused-`Biproduct` trim) and ran it end-to-end (builds EXIT 0), producing a
 real `σ-naturality : LHS ≈Term RHS` from two matrix-encoded hypergraphs. Findings:
@@ -245,10 +245,10 @@ Subsequent passes drove the checkpoint to a genuine, proven decider:
   `φ`/`φ⁻¹`); the 8 incidence/label/boundary fields come from a `CanonMatch` witness *decided without
   search* by `decCanonMatch` (the analogue of `findIso`'s `Verify`, reusing its `∀F?`/`flat-match`).
   The demo builds the full iso end-to-end (both hypotheses discharged constructively) and feeds
-  `soundness-full-wired`.
+  `soundness`.
 
 **Net:** the hg↔matrix bridge is now a **sound, no-search hypergraph-iso decider with a
-postulate-free `≅ᴴ` construction.** The path `align → decCanonMatch → matIso→hgIso → soundness-full-wired`
+postulate-free `≅ᴴ` construction.** The path `align → decCanonMatch → matIso→hgIso → soundness`
 has no postulates. What remains is *not* a soundness gap: (i) the `CanonPerm` permutation hypothesis
 (caller-discharged; constructively in the demo; general peel-permutation proof ≈ 300–500 LOC), and
 (ii) the **completeness** meta-theorem `H ≅ J ⇒ decCanonMatch (align H J) succeeds` — the
