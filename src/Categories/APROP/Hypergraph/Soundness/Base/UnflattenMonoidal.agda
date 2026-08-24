@@ -8,7 +8,7 @@
 --
 -- NOTE: no `Functor` / `MonoidalFunctor` record is actually built here — this
 -- module only collects the coherence isos and transport lemmas that such a
--- functor would carry, as consumed by `Strict/{Boundary,Embed}`.  The object
+-- functor would carry, as consumed by `Strict/Embed`.  The object
 -- map is `unflatten : List X → ObjTerm` (the right-associated, `unit`-padded
 -- fold from `Soundness/Base/Unflatten.agda`) and the structure iso (laxator)
 -- is `unflatten-++-≅`.  It gathers the associativity coherence (both

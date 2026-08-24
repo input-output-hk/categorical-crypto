@@ -13,7 +13,7 @@
 -- module parameter, so this assembly is unconditional given exactly that
 -- one.
 --
--- Composed with `Boundary.st-roundtrip` (embF (st f) ≈Term bridge f) and
+-- Composed with `Strict.Soundness.st-roundtrip` (embF (st f) ≈Term bridge f) and
 -- part (II)ˢ (`decodePˢ`-iso-invariance), this yields the re-pointed
 -- soundness theorem.
 --------------------------------------------------------------------------------

@@ -62,8 +62,9 @@ bridge {A} {B} f = _≅_.from (unflatten-flatten-≈ B) ∘ f ∘ _≅_.to (unfl
 --------------------------------------------------------------------------------
 -- `subst`-identity morphisms on the domain / codomain, over `unflatten`, and
 -- their groupoid laws.  They live here — below every consumer — so that the
--- bridge/boundary layer, the coherence-iso layer (`UnflattenMonoidal`, which
--- re-exports them) and `Base/CIsoAssoc` all share ONE spelling.
+-- bridge/boundary layer (`Bridge/BridgeCoherence`, `Strict/Soundness`) and the
+-- coherence-iso layer (`Base/UnflattenMonoidal`, which re-exports them to
+-- `Strict/Embed`) all share ONE spelling.
 
 subst-id-cod : ∀ {c d : List X} → c ≡ d → HomTerm (unflatten c) (unflatten d)
 subst-id-cod {c} q = subst (λ z → HomTerm (unflatten c) (unflatten z)) q id

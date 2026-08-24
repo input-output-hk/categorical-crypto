@@ -341,7 +341,7 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
     -- The pad-conjugation relation `≋`: `t ≋ t'` when `t` is `t'` up to a
     -- domain/codomain `++`-associativity transport pair.  The regather / push /
     -- endo-cast-irr glue of the pad regroupings is factored ONCE into the `≋` kit
-    -- (`≋-trans`, `≋-cong-pad`, `≋-cong-⊗ʳ`, `≋→cast-formˢ`); the regroupings are
+    -- (`≈ʷ→≋`, `≋-sym`, `≋-trans`, `≋-cong-⊗ʳ`, `≋→cast-formˢ`); the regroupings are
     -- then cast-free compositional `≋` statements, and the callers' explicit-cast
     -- lemmas are thin wrappers over them.
     --------------------------------------------------------------------------------
