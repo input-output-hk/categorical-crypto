@@ -7,7 +7,7 @@
 -- coercions `coe` and the strictification functor `st`.  Kept light (no
 -- boundary imports) so the DECODER side depends on it alone; the embedding
 -- back into the free SMC (`embF`, `st-roundtrip`) needs `Embed`/`Bridge/*`
--- and lives in `Strict.Boundary`.
+-- and lives in `Strict.Soundness`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
