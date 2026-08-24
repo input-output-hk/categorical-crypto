@@ -73,7 +73,7 @@ module _ (H : Hypergraph FlatGen)
   -- them as functions of `H`).
   ------------------------------------------------------------------------
 
-  fire-termˢ′ = fire-termˢ H
+  fire-termˢ′ = fire-termˢ
   Incompˢ     = Incomp H
   pe-stackˢ′  = pe-stackˢ H
   pe-termˢ′   = pe-termˢ H

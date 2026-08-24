@@ -57,7 +57,7 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
 open import Data.Fin using (Fin) renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _++_; map)
-open import Data.List.Properties using (++-identityʳ; map-++)
+open import Data.List.Properties using (++-identityʳ)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just)
 open import Data.Nat using (ℕ)
@@ -111,10 +111,7 @@ module Gen {A B : ObjTerm} (g : mor A B) where
   private
     -- the fired single-edge layer, with the residual forced to `[]`.
     layer : HomV Hf.dom (Hf.eout e₀ ++ [])
-    layer = castˢ refl (sym (map-++ Hf.vlab (Hf.eout e₀) []))
-              ((genˢ (Hf.elab e₀) ⊗ˢ idˢ {map Hf.vlab []})
-                ∘ˢ castˢ refl (map-++ Hf.vlab (Hf.ein e₀) [])
-                     (RF.permuteˢ selfP))
+    layer = RF.fire-termˢ e₀ Hf.dom [] selfP
 
     -- the whole run (one edge): stack and term.
     s≡ : RF.s-finˢ ≡ Hf.eout e₀ ++ []

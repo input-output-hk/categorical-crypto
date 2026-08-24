@@ -260,7 +260,7 @@ module _ (H : Hypergraph FlatGen)
   open StrictDecoder H
 
   -- SwapCore brick aliases.
-  fire-termˢ′ = fire-termˢ H
+  fire-termˢ′ = fire-termˢ
 
   -- The thin wiring-groupoid calculus (F11): ⟦absorbˡ⟧/⟦absorbʳ⟧/⟦bswap⟧ᵛ +
   -- rigid-≈̂.

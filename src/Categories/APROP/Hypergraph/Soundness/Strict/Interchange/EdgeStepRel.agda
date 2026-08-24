@@ -35,10 +35,9 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟
 
 open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (map-++)
 open import Data.Maybe using (just; nothing)
 open import Data.Product using (_,_; proj₁; proj₂)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 
 module EdgeStepView (H : Hypergraph FlatGen) where
@@ -46,17 +45,9 @@ module EdgeStepView (H : Hypergraph FlatGen) where
 
   open StrictDecoder H
 
-  -- The framed box of an edge `e` on the residual `rest`, with the input
-  -- locating permute `perm`.  This is EXACTLY `proj₂ (edge-stepˢ s e)` on
-  -- the FIRE branch (`extract-prefix (H.ein e) s ≡ just (rest , perm)`).
-  fire-termˢ
-    : ∀ (e : Fin H.nE) (s rest : List (Fin H.nV))
-    → s Perm.↭ H.ein e ++ rest
-    → HomS (map vl s) (map vl (H.eout e ++ rest))
-  fire-termˢ e s rest perm =
-    castˢ refl (sym (map-++ vl (H.eout e) rest))
-      ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
-        ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ perm))
+  -- `fire-termˢ` (`edge-stepˢ`'s FIRE branch, on the nose) comes from
+  -- `StrictDecoder` above, so `fireRˢ`'s morphism index below is
+  -- DEFINITIONALLY `proj₂ (edge-stepˢ s e)`.
 
   data EdgeStepRˢ (s : List (Fin H.nV)) (e : Fin H.nE)
        : (s' : List (Fin H.nV)) → HomS (map vl s) (map vl s') → Set where

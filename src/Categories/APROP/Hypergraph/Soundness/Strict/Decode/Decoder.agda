@@ -62,16 +62,25 @@ module StrictDecoder (H : Hypergraph FlatGen) where
   ------------------------------------------------------------------------
   -- The strict decoder.
 
+  -- The framed box of an edge `e` on the residual `rest`, with the input
+  -- locating permute `perm`.  This is `edge-stepˢ`'s FIRE branch, named ONCE:
+  -- every statement below that mentions the fired layer says `fire-termˢ`
+  -- rather than re-spelling the two `map-++` casts.
+  fire-termˢ
+    : ∀ (e : Fin H.nE) (s rest : List (Fin H.nV))
+    → s Perm.↭ H.ein e ++ rest
+    → HomS (map vl s) (map vl (H.eout e ++ rest))
+  fire-termˢ e s rest perm =
+    castˢ refl (sym (map-++ vl (H.eout e) rest))
+      ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
+        ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ perm))
+
   edge-stepˢ
     : (s : List (Fin H.nV)) (e : Fin H.nE)
     → Σ[ s' ∈ List (Fin H.nV) ] HomS (map vl s) (map vl s')
   edge-stepˢ s e with extract-prefix (H.ein e) s
   ... | nothing            = (s , idˢ)
-  ... | just (rest , perm) =
-    ( H.eout e ++ rest
-    , castˢ refl (sym (map-++ vl (H.eout e) rest))
-        ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
-          ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ perm)) )
+  ... | just (rest , perm) = (H.eout e ++ rest , fire-termˢ e s rest perm)
 
   process-edgesˢ
     : (es : List (Fin H.nE)) (s : List (Fin H.nV))
@@ -134,10 +143,7 @@ module StrictDecoder (H : Hypergraph FlatGen) where
   edge-step-firedᵛ
     : ∀ (e : Fin H.nE) (rest : List (Fin H.nV)) {xs : List (Fin H.nV)}
         (p : xs Perm.↭ H.ein e ++ rest)
-    → castˢ refl (sym (map-++ vl (H.eout e) rest))
-        ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
-          ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ p))
-      ≈ᵛ firedᵛ e rest p
+    → fire-termˢ e xs rest p ≈ᵛ firedᵛ e rest p
   edge-step-firedᵛ e rest p =
     ≈̂⇒≈ˢ
       (≈̂-trans (cast-≈̂ {p = refl} {q = sym (map-++ vl (H.eout e) rest)})
@@ -200,7 +206,14 @@ module StrictDecoder (H : Hypergraph FlatGen) where
                      (≈ˢ⇒≈̂ (≈-trans idʳ (⊗-respᵛ (≈-sym idʳ) ≈-refl)))))
   ... | just (rest , p)
         rewrite extract-prefix-++ˡ (H.ein e) xs R eq
-        = main
+        = ≈̂⇒≈ˢ
+            (≈̂-trans (castᵛ-≈̂ refl Q _)
+            (≈̂-trans (∘-resp-≈̂ Aside Bside)
+            (≈̂-trans (≈ˢ⇒≈̂ interchangeᵛ)
+                     (⊗-resp-≈̂ᵛ
+                       (∘-resp-≈̂ ≈̂-refl
+                         (≈̂-sym (≈ˢ⇒≈̂ (edge-step-firedᵛ e rest p))))
+                       (≈ˢ⇒≈̂ idˡ)))))
         where
           B = H.eout e
           xs₁ = B ++ rest
@@ -224,37 +237,14 @@ module StrictDecoder (H : Hypergraph FlatGen) where
                               (castᵛ-≈̂ E∘ E₁ _)))
               (castᵛ⇒≈̂ refl QIH _ (term-sepᵛ es xs₁ R des QIH))
 
-          Bside : castˢ refl (sym (map-++ vl B (rest ++ R)))
-                    ((genˢ (H.elab e) ⊗ˢ idˢ {map vl (rest ++ R)})
-                      ∘ˢ castˢ refl (map-++ vl (H.ein e) (rest ++ R))
-                           (permuteˢ (prefix-++ˡ-perm (H.ein e)
-                                        (PermProp.++⁺ʳ R p))))
+          Bside : fire-termˢ e (xs ++ R) (rest ++ R)
+                    (prefix-++ˡ-perm (H.ein e) (PermProp.++⁺ʳ R p))
                   ≈̂ (firedᵛ e rest p ⊗ᵛ idᵛ {R})
           Bside =
             ≈̂-trans (≈ˢ⇒≈̂ (edge-step-firedᵛ e (rest ++ R) _))
                     (castᵛ⇒≈̂ refl (sym (++-assoc B rest R)) _
                               (layer-sepᵛ e R rest p))
 
-          main
-            : castᵛ refl Q
-                (proj₂ (process-edgesˢ es (B ++ (rest ++ R)))
-                  ∘ᵛ castˢ refl (sym (map-++ vl B (rest ++ R)))
-                      ((genˢ (H.elab e) ⊗ˢ idˢ {map vl (rest ++ R)})
-                        ∘ˢ castˢ refl (map-++ vl (H.ein e) (rest ++ R))
-                             (permuteˢ (prefix-++ˡ-perm (H.ein e)
-                                          (PermProp.++⁺ʳ R p)))))
-              ≈ᵛ (proj₂ (process-edgesˢ es xs₁)
-                   ∘ᵛ castˢ refl (sym (map-++ vl B rest))
-                       ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
-                         ∘ˢ castˢ refl (map-++ vl (H.ein e) rest)
-                              (permuteˢ p)))
-                 ⊗ᵛ idᵛ {R}
-          main =
-            ≈̂⇒≈ˢ
-              (≈̂-trans (castᵛ-≈̂ refl Q _)
-              (≈̂-trans (∘-resp-≈̂ Aside Bside)
-              (≈̂-trans (≈ˢ⇒≈̂ interchangeᵛ)
-                       (⊗-resp-≈̂ᵛ
-                         (∘-resp-≈̂ ≈̂-refl
-                           (≈̂-sym (≈ˢ⇒≈̂ (edge-step-firedᵛ e rest p))))
-                         (≈ˢ⇒≈̂ idˡ)))))
+          -- the goal at this point is `castᵛ refl Q (pe-term ∘ᵛ fire-termˢ …)
+          -- ≈ᵛ (pe-term ∘ᵛ fire-termˢ …) ⊗ᵛ idᵛ {R}`; `Aside`/`Bside` are its
+          -- two factors and `interchangeᵛ` recombines them.

@@ -355,13 +355,8 @@ module TermEmbedˢ
         (restJ≡ : restJ ≡ map φ restH)
         (pDom : map vlJ (map φ sH) ≡ map vlH sH)
         (pCod : map vlJ (J.eout (ψ e) ++ restJ) ≡ map vlH (H.eout e ++ restH))
-    → castˢ pDom pCod
-        (castˢ refl (sym (map-++ vlJ (J.eout (ψ e)) restJ))
-           ((genˢ (J.elab (ψ e)) ⊗ˢ idˢ {map vlJ restJ})
-             ∘ˢ castˢ refl (map-++ vlJ (J.ein (ψ e)) restJ) (RJ.permuteˢ permJ)))
-      ≈ˢ castˢ refl (sym (map-++ vlH (H.eout e) restH))
-           ((genˢ (H.elab e) ⊗ˢ idˢ {map vlH restH})
-             ∘ˢ castˢ refl (map-++ vlH (H.ein e) restH) (RH.permuteˢ permH))
+    → castˢ pDom pCod (RJ.fire-termˢ (ψ e) (map φ sH) restJ permJ)
+      ≈ˢ RH.fire-termˢ e sH restH permH
   edge-step-fire-embˢ e sH restH permH eqH restJ permJ eqJ restJ≡ pDom pCod =
     -- Peel the outer/inner boundary casts off both sides (`cast-≈̂`), congruence
     -- the `∘ˢ` with the box- and perm-twins (`∘-resp-≈̂` threads the middle
