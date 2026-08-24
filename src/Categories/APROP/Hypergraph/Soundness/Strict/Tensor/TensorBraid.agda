@@ -95,7 +95,7 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm si
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorReconcile sig _≟X_ as TR
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
 open import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig _≟X_
-  using (pvv-relabelˢ)
+  using (pvv-≈̂)
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig as SU
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
@@ -541,11 +541,7 @@ module Braid {A B C D : ObjTerm}
     -- ### G-/K-part C-level twins (`decodePˢ f`/`g`-cores under relabel).
 
     φGdom = Embeds.TG.vlab-φ G K Gd.dom
-    φGcod = Embeds.TG.vlab-φ G K Gd.cod
-    φGsf  = Embeds.TG.vlab-φ G K s_G_final
     φKdom = Embeds.TK.vlab-φ G K Kd.dom
-    φKcod = Embeds.TK.vlab-φ G K Kd.cod
-    φKsf  = Embeds.TK.vlab-φ G K s_K_final
 
     -- G-side `sG≡`-corrected G-run, and the C-level G-part `permuteˢ pL ∘ Gon'`.
     Gon' : HomV (map injL Gd.dom) (map injL s_G_final)
@@ -558,20 +554,14 @@ module Braid {A B C D : ObjTerm}
     decf-inner : HomS (map Gd.vlab Gd.dom) (map Gd.vlab Gd.cod)
     decf-inner = Gd'.permuteˢ (finalPermˢ f) ∘ˢ Grun
 
-    -- G-part permute relabel.  `pL` IS `map⁺ injL (finalPermˢ f)`, so this is
-    -- `pvv-relabelˢ` at the goal's own endpoint proofs — nothing to reconcile.
-    Gperm-relabel : castˢ φGsf φGcod (RF.permuteˢ pL) ≈ˢ Gd'.permuteˢ (finalPermˢ f)
-    Gperm-relabel =
-      pvv-relabelˢ injL vl Gd.vlab (Embeds.vlab-injL G K)
-        (finalPermˢ f) φGsf φGcod
-
     -- G-part twin, HETEROGENEOUSLY: `Gc ≈̂ decf-inner`, factor by factor.
-    -- Nothing names `φGsf` as a MIDDLE any more, so `∘-cast-split` goes.
+    -- `pL` IS `map⁺ injL (finalPermˢ f)`, so the permute factor is `pvv-≈̂`
+    -- itself; nothing names a MIDDLE, so `∘-cast-split` goes.
     Gc-≈̂ : Gc ≈̂ decf-inner
     Gc-≈̂ = ∘-resp-≈̂ Gperm-≈̂ Gon'-≈̂
       where
         Gperm-≈̂ : RF.permuteˢ pL ≈̂ Gd'.permuteˢ (finalPermˢ f)
-        Gperm-≈̂ = castˢ⇒≈̂ φGsf φGcod Gperm-relabel
+        Gperm-≈̂ = pvv-≈̂ injL vl Gd.vlab (Embeds.vlab-injL G K) (finalPermˢ f)
         Gon'-≈̂ : Gon' ≈̂ Grun
         Gon'-≈̂ = ≈̂-trans cast-≈̂ (castˢ⇒≈̂ φGdom pCodG Gbridge)
 
@@ -585,17 +575,12 @@ module Braid {A B C D : ObjTerm}
     decg-inner : HomS (map Kd.vlab Kd.dom) (map Kd.vlab Kd.cod)
     decg-inner = Kd'.permuteˢ (finalPermˢ g) ∘ˢ Krun-K
 
-    -- mirror of `Gperm-relabel` / `Gc-twin` at `φ = injR`.
-    Kperm-relabel : castˢ φKsf φKcod (RF.permuteˢ pR) ≈ˢ Kd'.permuteˢ (finalPermˢ g)
-    Kperm-relabel =
-      pvv-relabelˢ injR vl Kd.vlab (Embeds.vlab-injR G K)
-        (finalPermˢ g) φKsf φKcod
-
+    -- the mirror of `Gc-≈̂` at `φ = injR`.
     Kc-≈̂ : Kc ≈̂ decg-inner
     Kc-≈̂ = ∘-resp-≈̂ Kperm-≈̂ Kclean'-≈̂
       where
         Kperm-≈̂ : RF.permuteˢ pR ≈̂ Kd'.permuteˢ (finalPermˢ g)
-        Kperm-≈̂ = castˢ⇒≈̂ φKsf φKcod Kperm-relabel
+        Kperm-≈̂ = pvv-≈̂ injR vl Kd.vlab (Embeds.vlab-injR G K) (finalPermˢ g)
         Kclean'-≈̂ : Kclean' ≈̂ Krun-K
         Kclean'-≈̂ = ≈̂-trans cast-≈̂ (castˢ⇒≈̂ φKdom pCodK Kbridge)
 

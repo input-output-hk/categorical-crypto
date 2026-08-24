@@ -246,7 +246,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
   -- wiring groupoid settles them.  That is the calculus's `⟦relabel-rigid⟧`
   -- face verbatim, at `φ = ` the iso's vertex map: it builds the φ-lift of the
   -- H-side derivation from `fin-eq`/`sym φ-cod` itself, absorbs both
-  -- reindexings, and hands the residual to `pvv-relabelˢ`.  Shared with
+  -- reindexings, and hands the residual to `pvv-≈̂`.  Shared with
   -- `DecodeComposeAssembly`'s `gperm'`/`kperm'` — no `eval-↭`, no `FinBij`,
   -- no `lookup`.
   ------------------------------------------------------------------------

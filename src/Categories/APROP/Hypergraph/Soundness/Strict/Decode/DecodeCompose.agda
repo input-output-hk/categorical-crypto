@@ -300,7 +300,7 @@ module TermEmbedˢ
   -- (`extract-prefix-pin`), so the two derivations are not independent and no
   -- rigidity/`FinBij` machinery is needed: rewrite `permJ`, let
   -- `permuteˢ-subst` turn the transport into a cast, peel the casts in `_≈̂_`,
-  -- and close with the cross-vertex-type relabel `pvv-relabelˢ` (pure
+  -- and close with the cross-vertex-type relabel `pvv-≈̂` (pure
   -- functoriality of `map⁺`, proved by structural induction).
 
   perm-emb
@@ -328,16 +328,11 @@ module TermEmbedˢ
         ≈̂⇒castˢ
           (≈̂-trans (≈ˢ⇒≈̂ (≡⇒≈ˢ (trans (cong RJ.permuteˢ pinned)
                                        (RJ.permuteˢ-subst mpp lift))))
-          (≈̂-trans cast-≈̂
-                   (castˢ⇒≈̂ P Qφ (PVV.pvv-relabelˢ φ vlJ vlH φ-lab permH P Qφ))))
+          (≈̂-trans cast-≈̂ (PVV.pvv-≈̂ φ vlJ vlH φ-lab permH)))
           P qq
         where
           mpp = map-++ φ (H.ein e) restH
           lift = PermProp.map⁺ φ permH
-
-          -- `pvv-relabelˢ`'s codomain proof, at the UNSPLIT `map φ (ein ++ rest)`.
-          Qφ : map vlJ (map φ (H.ein e ++ restH)) ≡ map vlH (H.ein e ++ restH)
-          Qφ = trans (cong (map vlJ) mpp) qq
 
           pinned : pJ ≡ subst (λ z → map φ sH Perm.↭ z) mpp lift
           pinned = extract-prefix-pin φ φ-inj (H.ein e) sH restH permH pJ eqH eJ

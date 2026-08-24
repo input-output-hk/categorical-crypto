@@ -1,13 +1,15 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The standalone, module-level strict cross-vertex-type relabel `pvv-relabelˢ`:
+-- The standalone, module-level strict cross-vertex-type relabel `pvv-≈̂`:
 --
---   castˢ P Q (permuteˢ {Fin nJ} vJ (map⁺ φ p)) ≈ˢ permuteˢ {Fin nH} vH p
+--   permuteˢ {Fin nJ} vJ (map⁺ φ p) ≈̂ permuteˢ {Fin nH} vH p
 --
--- Consumed by BOTH the `∘`-shape (`DecodeComposeAssembly`) and the ⊗-shape
--- (`TensorBraid`) for the G-/K-block final permutes
--- (`φ = injL / injR / remapP`).
+-- Consumed by BOTH the `∘`-shape (`DecodeCompose`, `DecodeComposeAssembly` via
+-- `PermCalc`) and the ⊗-shape (`TensorBraid`) for the G-/K-block final
+-- permutes (`φ = injL / injR / remapP`).  HETEROGENEOUS by design: every
+-- consumer immediately strips the cast form again, so the endpoint proofs ride
+-- in the relation instead of in three call-site arguments.
 --
 -- This is FUNCTORIALITY, not rigidity: stdlib's `map⁺ φ` is structural, so
 -- `permuteˢ vJ (map⁺ φ p)` and `permuteˢ vH p` are the SAME wiring term up to
@@ -47,22 +49,13 @@ module _ {nH nJ : ℕ} (φ : Fin nH → Fin nJ)
     vmap : (as : List (Fin nH)) → map vJ (map φ as) ≡ map vH as
     vmap as = map-∘-cong veq as
 
-    pvv-≈̂
-      : ∀ {xs ys : List (Fin nH)} (p : xs Perm.↭ ys)
-      → Perm′.permuteˢ (Fin nJ) vJ (PermProp.map⁺ φ p)
-        ≈̂ Perm′.permuteˢ (Fin nH) vH p
-    pvv-≈̂ {xs} Perm.refl      = idˢ-≈̂ (vmap xs)
-    pvv-≈̂ (Perm.prep x p)     =
-      ⊗-resp-≈̂ (idˢ-≈̂ (cong (_∷ []) (veq x))) (pvv-≈̂ p)
-    pvv-≈̂ (Perm.swap x y p)   =
-      ⊗-resp-≈̂ (σ-≈̂ (cong (_∷ []) (veq x)) (cong (_∷ []) (veq y))) (pvv-≈̂ p)
-    pvv-≈̂ (Perm.trans p q)    = ∘-resp-≈̂ (pvv-≈̂ q) (pvv-≈̂ p)
-
-  pvv-relabelˢ
+  pvv-≈̂
     : ∀ {xs ys : List (Fin nH)} (p : xs Perm.↭ ys)
-        (P : map vJ (map φ xs) ≡ map vH xs)
-        (Q : map vJ (map φ ys) ≡ map vH ys)
-    → castˢ P Q
-        (Perm′.permuteˢ (Fin nJ) vJ (PermProp.map⁺ φ p))
-      ≈ˢ Perm′.permuteˢ (Fin nH) vH p
-  pvv-relabelˢ p P Q = ≈̂⇒castˢ (pvv-≈̂ p) P Q
+    → Perm′.permuteˢ (Fin nJ) vJ (PermProp.map⁺ φ p)
+      ≈̂ Perm′.permuteˢ (Fin nH) vH p
+  pvv-≈̂ {xs} Perm.refl      = idˢ-≈̂ (vmap xs)
+  pvv-≈̂ (Perm.prep x p)     =
+    ⊗-resp-≈̂ (idˢ-≈̂ (cong (_∷ []) (veq x))) (pvv-≈̂ p)
+  pvv-≈̂ (Perm.swap x y p)   =
+    ⊗-resp-≈̂ (σ-≈̂ (cong (_∷ []) (veq x)) (cong (_∷ []) (veq y))) (pvv-≈̂ p)
+  pvv-≈̂ (Perm.trans p q)    = ∘-resp-≈̂ (pvv-≈̂ q) (pvv-≈̂ p)

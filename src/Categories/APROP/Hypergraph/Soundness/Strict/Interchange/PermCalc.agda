@@ -25,7 +25,7 @@
 --   ⟦bswap⟧ᵛ    — `BlockSwapComm.swap-block`
 --   rigid-≈̂     — `SwapCore.perm-rigidˢ`   (the rigidity discharge)
 -- plus one COMPOSITE face, ⟦relabel-rigid⟧ (rigidity + both absorptions +
--- `TensorPVVRelabel.pvv-relabelˢ`), which is every located FINAL permute.
+-- `TensorPVVRelabel.pvv-≈̂`), which is every located FINAL permute.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -51,7 +51,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig 
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
 open import Data.List using (List; map)
-open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
@@ -131,7 +130,7 @@ module Kit (H : Hypergraph FlatGen) where
   -- here against an UNRELATED derivation `p` over a relabelling source type.
   -- Rigidity at the `Unique` cod identifies `D` with the φ-lift of `p` (BUILT
   -- here from `e₁`/`e₂`, not supplied), the absorptions swallow the lift's two
-  -- reindexings, and the residual is functoriality (`PVV.pvv-relabelˢ`).
+  -- reindexings, and the residual is functoriality (`PVV.pvv-≈̂`).
   -- `e₂ = refl` covers a definitional codomain reindexing.  Consumers:
   -- `DecodeComposeAssembly.{gperm',kperm'}`, `IsoTransport.permute-relabel-freeˢ`.
   ------------------------------------------------------------------------
@@ -150,12 +149,8 @@ module Kit (H : Hypergraph FlatGen) where
         (≈̂-trans (rigid-≈̂ u D φ-lift)
         (≈̂-trans (⟦absorbʳ⟧ e₁)
         (≈̂-trans (⟦absorbˡ⟧ e₂)
-        (castˢ⇒≈̂ Pdom Pcod (PVV.pvv-relabelˢ φ vl vlK φ-lab p Pdom Pcod))))))
+                 (PVV.pvv-≈̂ φ vl vlK φ-lab p)))))
       where
         φ-lift : as Perm.↭ bs
         φ-lift = Perm.trans (Perm.↭-reflexive e₁)
                    (Perm.trans (PermProp.map⁺ φ p) (Perm.↭-reflexive e₂))
-        Pdom : m (map φ xs) ≡ map vlK xs
-        Pdom = map-∘-cong φ-lab xs
-        Pcod : m (map φ ys) ≡ map vlK ys
-        Pcod = map-∘-cong φ-lab ys
