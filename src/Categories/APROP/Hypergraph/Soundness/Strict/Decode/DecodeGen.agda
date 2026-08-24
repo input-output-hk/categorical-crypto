@@ -88,7 +88,7 @@ module Gen {A B : ObjTerm} (g : mor A B) where
     open Support (Fin Hf.nV) Hf.vlab
     open Restrict (Fin Hf.nV) Hf.vlab
       using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ
-            ; castᵛ-cast; cast-flipᵛ; cast-respᵛ; cast-fuseᵛ; ∘-castᵛ; ⊗-unitʳᵛ
+            ; castᵛ-≈̂; cast-flipᵛ; cast-respᵛ; cast-fuseᵛ; ∘-castᵛ; ⊗-unitʳᵛ
             ; subst-codᵛ )
 
     K : PermK
@@ -244,26 +244,15 @@ module Gen {A B : ObjTerm} (g : mor A B) where
   --------------------------------------------------------------------------
   -- Step E: the full Agen shape.
 
-  private
-    Qf : List X
-    Qf = map Hf.vlab Hf.cod
-
-    Qfˢ : map Hf.vlab (Hf.eout e₀) ≡ Qf
-    Qfˢ = cong (map Hf.vlab) (trans Qrun sc)
-
+  -- `decodePˢ f` IS `castˢ (⟪⟫-domL f) (⟪⟫-codL f) inner` and `st (Agen g)` IS
+  -- `genˢ (flat g)`, so the whole `cast-fuse`/`cast-irrel` reconciliation is
+  -- `≈̂`: prove `inner ≈̂ genˢ (flat g)` and let `≈̂⇒castˢ` re-pin the boundary.
   decodePˢ-Agen : decodePˢ f ≈ˢ st (Agen g)
   decodePˢ-Agen =
-    ≈-trans (cast-resp (⟪⟫-domL f) (⟪⟫-codL f)
-               (≈-trans inner≈
-                 (≈-trans (≡⇒≈ˢ (castᵛ-cast refl (trans Qrun sc) G0))
-                          (cast-resp refl Qfˢ G0≈))))
-    (≈-trans (cast-resp (⟪⟫-domL f) (⟪⟫-codL f)
-               (≡⇒≈ˢ (cast-fuse Pin refl Pout Qfˢ (genˢ (flat g)))))
-      (≈-trans (≡⇒≈ˢ (cast-fuse (trans Pin refl) (⟪⟫-domL f)
-                        (trans Pout Qfˢ) (⟪⟫-codL f) (genˢ (flat g))))
-        (≡⇒≈ˢ (cast-irrel (trans (trans Pin refl) (⟪⟫-domL f)) refl
-                          (trans (trans Pout Qfˢ) (⟪⟫-codL f)) refl
-                          (genˢ (flat g))))))
+    ≈̂⇒castˢ
+      (≈̂-trans (≈̂-trans (≈ˢ⇒≈̂ inner≈) (castᵛ-≈̂ refl (trans Qrun sc) G0))
+               (≈̂-trans (≈ˢ⇒≈̂ G0≈) (cast-≈̂ {p = Pin} {q = Pout})))
+      (⟪⟫-domL f) (⟪⟫-codL f)
 
 --------------------------------------------------------------------------------
 -- The exported Agen shape (the part-(I)ˢ base case).
