@@ -50,11 +50,11 @@ open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-++-≅; _≅_)
--- `permute-via-vlab` is imported directly from `Categories.PermuteCoherence.Steps`
--- (rather than through any intermediate re-export) so APROP and generic SMC
--- code observe definitional equality.
-open import Categories.PermuteCoherence.Steps asFreeMonoidalData
-  using (permute-via-vlab)
+-- `permute` comes straight from `Categories.PermuteCoherence.Unflatten` (rather
+-- than through any intermediate re-export) so the frame this decoder builds is
+-- definitionally the generic-SMC one.
+open import Categories.PermuteCoherence.Unflatten asFreeMonoidalData
+  using (permute)
 
 -- Shared helpers from the soundness decoder: `Agen-edge-aux` (the canonical
 -- generator wrapping, now defined only there) and `extract-exact` (the final
@@ -74,6 +74,19 @@ open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_; sym; cong; subst; subst₂)
 open import Relation.Nullary using (yes; no)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
+import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
+
+--------------------------------------------------------------------------------
+-- A vertex-list permutation as a `HomTerm` on the unflattened tensor products,
+-- indexed only by a labelling function.  (Its former home, the one-definition
+-- `PermuteCoherence.Steps`, existed to share this with an APROP-side twin that
+-- the weak-decoder demotion deleted — see `Soundness.Decode.Decode`'s NOTE.)
+
+permute-via-vlab
+  : ∀ {n} {xs ys : List (Fin n)} (vlab : Fin n → X)
+  → xs Perm.↭ ys
+  → HomTerm (unflatten (map vlab xs)) (unflatten (map vlab ys))
+permute-via-vlab vlab p = permute (PermProp.map⁺ vlab p)
 
 --------------------------------------------------------------------------------
 -- The cospan algorithm, with `H` fixed.  Same stack control flow as
