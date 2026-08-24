@@ -230,7 +230,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
     split (x ∷ a) = α⇐ ∘ id ⊗₁ split a
 
     open MR FreeMonoidal
-    open MonR Monoidal-FreeMonoidal using (refl⟩⊗⟨_; _⟩⊗⟨refl; _⟩⊗⟨_; split₁ʳ; merge₂ʳ)
+    open MonR Monoidal-FreeMonoidal using (refl⟩⊗⟨_; _⟩⊗⟨_; merge₂ʳ)
     open Category.HomReasoning FreeMonoidal
 
     id⊗-∘ : ∀ {Z} {A B C} (P : HomTerm B C) (Q : HomTerm A B)
@@ -255,16 +255,17 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
     ⊗-cancel PQ RS = ⟺ ⊗-∘-dist ○ (PQ ⟩⊗⟨ RS) ○ id⊗id≈id
 
     -- Two 3-fold composites sharing a middle iso `Fm ∘ Tm ≈ id` cancel it,
-    -- leaving `To ∘ M₁ ∘ M₂ ∘ Ff`.  No assumption on `M₁` / `M₂`.
+    -- leaving `To ∘ (M₁ ∘ M₂) ∘ Ff`.  No assumption on `M₁` / `M₂`.
     cancel-mid-iso
       : ∀ {A₀ A₁ A₂ A₃ A₄ A₅ : ObjTerm}
           (To : HomTerm A₄ A₅) (M₁ : HomTerm A₂ A₄) (Fm : HomTerm A₃ A₂)
           (Tm : HomTerm A₂ A₃) (M₂ : HomTerm A₁ A₂) (Ff : HomTerm A₀ A₁)
       → Fm ∘ Tm ≈Term id
       → (To ∘ M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
-        ≈Term To ∘ M₁ ∘ M₂ ∘ Ff
-    -- `cancelʳ m-iso : (M₁ ∘ Fm) ∘ Tm ≈ M₁`, in the `center` of the composite.
-    cancel-mid-iso _ _ _ _ _ _ m-iso = center (cancelʳ m-iso)
+        ≈Term To ∘ (M₁ ∘ M₂) ∘ Ff
+    -- `cancelʳ m-iso : (M₁ ∘ Fm) ∘ Tm ≈ M₁`, in the `center` of the composite;
+    -- the middle run is then re-bracketed, which is the form all consumers want.
+    cancel-mid-iso _ _ _ _ _ _ m-iso = center (cancelʳ m-iso) ○ (refl⟩∘⟨ ≈-Term-sym assoc)
 
     -- A 3-fold composite and its reverse cancel, innermost pair first: the
     -- `cancel-mid-iso` face above, then the two outer pairs.
@@ -274,7 +275,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
           {c⁻ : HomTerm A₁ A₀} {b⁻ : HomTerm A₂ A₁} {a⁻ : HomTerm A₃ A₂}
       → c ∘ c⁻ ≈Term id → b ∘ b⁻ ≈Term id → a ∘ a⁻ ≈Term id
       → (a ∘ b ∘ c) ∘ (c⁻ ∘ b⁻ ∘ a⁻) ≈Term id
-    cancel₃ hc hb ha = cancel-mid-iso _ _ _ _ _ _ hc ○ (refl⟩∘⟨ cancelˡ hb) ○ ha
+    cancel₃ hc hb ha = cancel-mid-iso _ _ _ _ _ _ hc ○ (refl⟩∘⟨ elimˡ hb) ○ ha
 
     α-conj : ∀ {A B C D E G} (f : HomTerm A B) (g : HomTerm C D) (h : HomTerm E G)
            → α⇒ ∘ (f ⊗₁ g) ⊗₁ h ∘ α⇐ ≈Term f ⊗₁ (g ⊗₁ h)
@@ -310,7 +311,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
 
     --------------------------------------------------------------------------
     -- The flat-shift wire-frame algebra: `rpad` (suffix idle wires), `liftW`
-    -- (prefix idle wires), `pad` (both), and their functoriality lemmas.  Only
+    -- (prefix idle wires) and `pad` (both).  Only
     -- `merge`/`split` and the monoidal structure appear, so they live here
     -- alongside merge/split; the wire-level engine and the front-ends
     -- re-export them.
@@ -332,58 +333,6 @@ module FreeMonoidalHelper (v : Variant) (X : Set) where
     pad : ∀ {a b} (pre : List X) (suf : List X) → HomTerm (wires a) (wires b)
         → HomTerm (wires (pre ++ (a ++ suf))) (wires (pre ++ (b ++ suf)))
     pad pre suf g = liftW pre (rpad suf g)
-
-    -- liftW p respects ≈ and ∘ (functoriality of the flat shift).
-    liftW-resp : ∀ (p : List X) {u v} {P Q : HomTerm (wires u) (wires v)}
-               → P ≈Term Q → liftW p P ≈Term liftW p Q
-    liftW-resp []      eq = eq
-    liftW-resp (x ∷ p) eq = refl⟩⊗⟨ liftW-resp p eq
-
-    liftW-∘ : ∀ (p : List X) {u v w} (P : HomTerm (wires v) (wires w)) (Q : HomTerm (wires u) (wires v))
-            → liftW p (P ∘ Q) ≈Term liftW p P ∘ liftW p Q
-    liftW-∘ []      P Q = ≈-Term-refl
-    liftW-∘ (x ∷ p) P Q = (refl⟩⊗⟨ liftW-∘ p P Q) ○ (⟺ (id⊗-∘ _ _))
-
-    -- liftW of an identity is an identity.
-    liftW-id : ∀ (p : List X) {u} → liftW p (id {wires u}) ≈Term id
-    liftW-id []      = ≈-Term-refl
-    liftW-id (x ∷ p) = (refl⟩⊗⟨ liftW-id p) ○ id⊗id≈id
-
-    -- rpad respects ≈.
-    rpad-resp : ∀ {a b} (suf : List X) {g g' : HomTerm (wires a) (wires b)}
-              → g ≈Term g' → rpad suf g ≈Term rpad suf g'
-    rpad-resp suf eq = refl⟩∘⟨ ((eq ⟩⊗⟨refl) ⟩∘⟨refl)
-
-    -- rpad of an identity is an identity.
-    rpad-id : ∀ (rt : List X) {u} → rpad rt (id {wires u}) ≈Term id
-    rpad-id rt {u} =
-      refl⟩∘⟨ (id⊗id≈id ⟩∘⟨refl)
-      ○ refl⟩∘⟨ idˡ
-      ○ merge∘split u
-
-    -- rpad distributes over ∘.
-    rpad-∘ : ∀ (rt : List X) {u v w} (P : HomTerm (wires v) (wires w)) (Q : HomTerm (wires u) (wires v))
-           → rpad rt (P ∘ Q) ≈Term rpad rt P ∘ rpad rt Q
-    rpad-∘ rt {u} {v} {w} P Q =
-      refl⟩∘⟨ (split₁ʳ ⟩∘⟨refl)
-      ○ refl⟩∘⟨ (insertInner (split∘merge v) ⟩∘⟨refl)
-      ○ center⁻¹ ≈-Term-refl assoc
-
-    -- pad respects ≈.  `pad pre suf = liftW pre ∘ rpad suf` definitionally, so
-    -- the pad functoriality lemmas factor through the liftW-*/rpad-* ones.
-    pad-resp : ∀ {a b} (pre suf : List X) {g g' : HomTerm (wires a) (wires b)}
-             → g ≈Term g' → pad pre suf g ≈Term pad pre suf g'
-    pad-resp pre suf eq    = liftW-resp pre (rpad-resp suf eq)
-
-    -- pad of an identity is an identity.
-    pad-id : ∀ {a} (pre suf : List X) → pad pre suf (id {wires a}) ≈Term id
-    pad-id pre suf         = liftW-resp pre (rpad-id suf) ○ liftW-id pre
-
-    -- pad distributes over ∘.
-    pad-∘ : ∀ {a b c} (pre suf : List X)
-              (g : HomTerm (wires b) (wires c)) (f : HomTerm (wires a) (wires b))
-          → pad pre suf (g ∘ f) ≈Term pad pre suf g ∘ pad pre suf f
-    pad-∘ pre suf g f      = liftW-resp pre (rpad-∘ suf g f) ○ liftW-∘ pre _ _
 
     module _ ⦃ _ : Symm ≤ v ⦄ where
       open import Categories.Morphism FreeMonoidal
@@ -515,10 +464,7 @@ module FreeMonoidal (d : FreeMonoidalData) where
   -- with it rather than being individually contested.  The solver opens
   -- `FreeMonoidalHelper.Mor` directly and is unaffected.
   open FreeMonoidalHelper.Mor v X mor public
-    hiding ( liftW; liftW-id; liftW-resp; liftW-∘
-           ; merge; merge∘split; split; split∘merge
-           ; pad; pad-id; pad-resp; pad-∘
-           ; rpad; rpad-id; rpad-resp; rpad-∘ )
+    hiding (liftW; merge; merge∘split; split; split∘merge; pad; rpad)
 
 -- The object action of the free functor depends only on the atoms'
 -- interpretation `⟦_⟧ᵖ₀`, never on the generating morphisms `mor`.  Hoisting

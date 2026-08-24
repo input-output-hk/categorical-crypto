@@ -47,11 +47,10 @@ bridge-∘
   : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
   → bridge (g ∘ f) ≈Term bridge g ∘ bridge f
 -- `bridge h = F-cod ∘ h ∘ T-dom` (`Unflatten`), so `bridge g ∘ bridge f` IS the
--- drawer's `cancel-mid-iso` shape with `isoˡ B` as the middle iso; one
--- `sym-assoc` then re-brackets `g ∘ (f ∘ T-A)` as `(g ∘ f) ∘ T-A`.
+-- drawer's `cancel-mid-iso` shape with `isoˡ B` as the middle iso, whose
+-- conclusion already brackets the middle run as `(g ∘ f)`.
 bridge-∘ {B = B} g f =
-  ⟺ (cancel-mid-iso _ _ _ _ _ _ (_≅_.isoˡ (unflatten-flatten-≈ B))
-      ○ (refl⟩∘⟨ FM.sym-assoc))
+  ⟺ (cancel-mid-iso _ _ _ _ _ _ (_≅_.isoˡ (unflatten-flatten-≈ B)))
 
 -- bridge-⊗: bridge distributes over tensor (modulo unflatten-++-≅ coherence).
 bridge-⊗

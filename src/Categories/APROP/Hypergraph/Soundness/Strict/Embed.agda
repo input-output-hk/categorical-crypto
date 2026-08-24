@@ -325,7 +325,7 @@ private
     ○ (refl⟩∘⟨ refl⟩∘⟨ FM.assoc)
     ○ cancel-mid-iso _ _ _ _ _ _ α⇐∘α⇒≈id
     -- phase 5: fold the left frame into (T zs xs ∘ σ) ⊗ id
-    ○ (refl⟩∘⟨ FM.assoc)
+    ○ (refl⟩∘⟨ FM.assoc) ○ (refl⟩∘⟨ FM.assoc)
     ○ (refl⟩∘⟨ refl⟩∘⟨ fold⊗ˡ)
     -- phase 6: cancel the outer α-pair and fold the right frame
     ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ FM.assoc)
@@ -433,22 +433,18 @@ module EmbRespFull where
   -- (T∘(a⊗b)∘F) ∘ (T∘(c⊗d)∘F)  ≈  T∘((a∘c)⊗(b∘d))∘F
   emb-resp-≈ˢ (interchangeˢ {xs} {ys} {zs} {us} {vs} {ws} {a} {b} {c} {d}) =
     cancel-mid-iso _ _ _ _ _ _ (_≅_.isoʳ (unflatten-++-≅ ys vs))
-    ○ (refl⟩∘⟨ FM.sym-assoc)
     ○ (refl⟩∘⟨ (≈-Term-sym ⊗-∘-dist ⟩∘⟨refl))
   emb-resp-≈ˢ (⊗-assocˢ f g h) = ⊗-assoc-case f g h
   emb-resp-≈ˢ (⊗-unitʳˢ f)     = ⊗-unitʳ-case f
   -- (T∘σ∘F) ∘ (T∘(f⊗g)∘F)  ≈  (T∘(g⊗f)∘F) ∘ (T∘σ∘F)
   emb-resp-≈ˢ (σ-natˢ {xs} {ys} {us} {vs} {f} {g}) =
     cancel-mid-iso _ _ _ _ _ _ (_≅_.isoʳ (unflatten-++-≅ ys vs))
-    ○ (refl⟩∘⟨ FM.sym-assoc)
     ○ (refl⟩∘⟨ (σ∘[f⊗g]≈[g⊗f]∘σ ⟩∘⟨refl))
-    ○ (refl⟩∘⟨ FM.assoc)
     ○ ≈-Term-sym (cancel-mid-iso (T vs ys) (emb g ⊗₁ emb f) (F us xs)
         (T us xs) σ (F xs us) (_≅_.isoʳ (unflatten-++-≅ us xs)))
   -- (T∘σ∘F) ∘ (T∘σ∘F)  ≈  id
   emb-resp-≈ˢ (σ-σˢ {xs} {ys}) =
     cancel-mid-iso _ _ _ _ _ _ (_≅_.isoʳ (unflatten-++-≅ ys xs))
-    ○ (refl⟩∘⟨ FM.sym-assoc)
     ○ (refl⟩∘⟨ (σ∘σ≈id ⟩∘⟨refl))
     ○ (refl⟩∘⟨ idˡ)
     ○ _≅_.isoˡ (unflatten-++-≅ xs ys)
