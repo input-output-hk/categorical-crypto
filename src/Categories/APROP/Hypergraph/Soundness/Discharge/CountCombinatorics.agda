@@ -5,7 +5,8 @@
 --
 -- Generic lemmas over `List (Fin n)`, collected in one leaf.  `count` is
 -- from `Soundness.Linearity`; `extract-elem`/`extract-prefix` from
--- `Soundness.Decode`.
+-- `Soundness.Decode`.  Also hosts the `Unique` ⇔ `count ≤ 1` bridge, shared
+-- by `Stack.StackUnique` and `Discharge.DecodeAttemptLinearP`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -21,10 +22,12 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using (_≟_)
-open import Data.List using (List; []; _∷_; _++_; map; concat; length; filter)
-open import Data.List.Base using (tabulate)
+open import Data.List using (List; []; _∷_; _++_; map; concat; length; filter; tabulate)
 open import Data.List.Membership.Propositional using (_∈_)
+import Data.List.Relation.Unary.All as All
+import Data.List.Relation.Unary.AllPairs as AllPairs
 open import Data.List.Relation.Unary.Any using (here; there)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 import Data.List.Relation.Binary.Permutation.Setoid.Properties as SetoidPropM
@@ -55,6 +58,66 @@ count-cons-no : (v x : Fin n) (xs : List (Fin n)) → ¬ (v ≡ x) → count v (
 count-cons-no v x xs v≢x with v ≟ x
 ... | yes p = ⊥-elim (v≢x p)
 ... | no  _ = refl
+
+count-mono-cons : ∀ {n} (v x : Fin n) (xs : List (Fin n)) → count v xs ≤ⁿ count v (x ∷ xs)
+count-mono-cons v x xs with v ≟ x
+... | yes _ = Nat.n≤1+n (count v xs)
+... | no  _ = Nat.≤-refl
+
+--------------------------------------------------------------------------------
+-- `Unique` ⇔ "every element occurs at most once": `Unique xs`
+-- (= `AllPairs _≢_ xs`) iff `∀ v → count v xs ≤ 1`.
+
+count≤1 : List (Fin n) → Set
+count≤1 xs = ∀ v → count v xs ≤ⁿ 1
+
+private
+  All≢⇒count0 : ∀ {x : Fin n} {xs} → All.All (λ y → ¬ (x ≡ y)) xs → count x xs ≡ 0
+  All≢⇒count0 {x = x} {[]}      All.[]           = refl
+  All≢⇒count0 {x = x} {y ∷ xs} (x≢y All.∷ rest) =
+    trans (count-cons-no x y xs x≢y) (All≢⇒count0 rest)
+
+  -- Casing on `v ≟ x` HERE keeps the result type in terms of the
+  -- un-abstracted `count v (x ∷ xs)`, so the `count-cons-*` lemmas apply.
+  count-cons-le1 : (v x : Fin n) (xs : List (Fin n))
+                 → count x xs ≡ 0 → count v xs ≤ⁿ 1 → count v (x ∷ xs) ≤ⁿ 1
+  count-cons-le1 v x xs hx ht with v ≟ x
+  ... | yes refl = Nat.≤-reflexive (cong suc hx)
+  ... | no  _    = ht
+
+Unique⇒count≤1 : ∀ {xs : List (Fin n)} → Unique xs → count≤1 xs
+Unique⇒count≤1 {xs = []}      AllPairs.[]        v = z≤nⁿ
+Unique⇒count≤1 {xs = x ∷ xs} (x≢ AllPairs.∷ uq) v =
+  count-cons-le1 v x xs (All≢⇒count0 x≢) (Unique⇒count≤1 uq v)
+
+private
+  -- `count v (v ∷ xs) ≢ 0` (inlines the `v ≟ v` view to dodge the
+  -- with-abstraction mismatch from applying `count-cons-yes` after `refl`).
+  count-head-not-0 : (v : Fin n) (xs : List (Fin n)) → count v (v ∷ xs) ≡ 0 → ⊥
+  count-head-not-0 v xs c0 with v ≟ v
+  ... | yes _ = case-suc c0
+    where case-suc : suc (count v xs) ≡ 0 → ⊥
+          case-suc ()
+  ... | no q  = ⊥-elim (q refl)
+
+  count0⇒All≢ : ∀ {x : Fin n} {xs} → count x xs ≡ 0 → All.All (λ y → ¬ (x ≡ y)) xs
+  count0⇒All≢ {x = x} {[]}     _  = All.[]
+  count0⇒All≢ {x = x} {y ∷ xs} c0 = head≢ All.∷ count0⇒All≢ {x = x} {xs} tail0
+    where
+      head≢ : ¬ (x ≡ y)
+      head≢ refl = count-head-not-0 x xs c0
+      tail0 : count x xs ≡ 0
+      tail0 = trans (sym (count-cons-no x y xs head≢)) c0
+
+count≤1⇒Unique : ∀ {xs : List (Fin n)} → count≤1 xs → Unique xs
+count≤1⇒Unique {xs = []}      _ = AllPairs.[]
+count≤1⇒Unique {xs = x ∷ xs}  h =
+  count0⇒All≢ x∉xs AllPairs.∷ count≤1⇒Unique tail-h
+  where
+    x∉xs : count x xs ≡ 0
+    x∉xs = Nat.n≤0⇒n≡0 (s≤s⁻¹ (Nat.≤-trans (Nat.≤-reflexive (sym (count-cons-yes x xs))) (h x)))
+    tail-h : count≤1 xs
+    tail-h v = Nat.≤-trans (count-mono-cons v x xs) (h v)
 
 --------------------------------------------------------------------------------
 -- `count` ↔ membership.
@@ -211,12 +274,7 @@ count-concat-tabulate-pair-≤ f (suc e) (suc e')  e≢e' v =
 ++-cancelˡ (x ∷ xs) p = ++-cancelˡ xs (PermProp.drop-∷ p)
 
 --------------------------------------------------------------------------------
--- count monotonicity / split / cancellation, and the count ⇒ ↭ bridge.
-
-count-mono-cons : ∀ {n} (v x : Fin n) (xs : List (Fin n)) → count v xs ≤ⁿ count v (x ∷ xs)
-count-mono-cons v x xs with v ≟ x
-... | yes _ = Nat.n≤1+n (count v xs)
-... | no  _ = Nat.≤-refl
+-- count split / cancellation, and the count ⇒ ↭ bridge.
 
 count-zero-empty : ∀ {n} (xs : List (Fin n)) → (∀ v → count v xs ≡ 0) → xs ≡ []
 count-zero-empty []       _   = refl

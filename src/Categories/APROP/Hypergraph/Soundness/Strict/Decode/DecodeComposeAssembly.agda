@@ -44,8 +44,6 @@ import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
 open Inv using (inject+-inj)
 import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
-  using (⟪⟫-LinearP; process-edges-↑ˡ-pure-L)
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as LP
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_ public
@@ -86,11 +84,11 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   module C = Hypergraph Chg
 
   lin-G : Lin.Linear G
-  lin-G = ⟪⟫-LinearP f
+  lin-G = LP.⟪⟫-LinearP f
   lin-K : Lin.Linear K
-  lin-K = ⟪⟫-LinearP g
+  lin-K = LP.⟪⟫-LinearP g
   lin-C : Lin.Linear Chg
-  lin-C = ⟪⟫-LinearP (g ∘ f)
+  lin-C = LP.⟪⟫-LinearP (g ∘ f)
 
   open hComposeP-impl G K bdy
     using ( injL; remapP; map-via-remapP; vlab-injL; remapP-vlab
@@ -169,7 +167,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   after-G-≡ : after-G ≡ map injL s_G_final
   after-G-≡ =
     trans (RC.stacks-agree gblk C.dom)
-    (trans (process-edges-↑ˡ-pure-L G K bdy lin-G lin-K (range G.nE) G.dom)
+    (trans (LP.process-edges-↑ˡ-pure-L G K bdy lin-G lin-K (range G.nE) G.dom)
            (cong (map injL) (sym (RG.stacks-agree (range G.nE) G.dom))))
 
   -- The boundary permutation `after-G ↭ map remapP K.dom`.  Needs the

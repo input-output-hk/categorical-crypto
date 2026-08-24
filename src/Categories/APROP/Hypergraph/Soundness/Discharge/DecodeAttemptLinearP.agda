@@ -40,7 +40,6 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
 
 import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
-open Inv
 import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using ( count; count-++; count-map-↑ˡ; count-map-inj
@@ -51,14 +50,13 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
 
 
-open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Nat
 open import Data.List
 open import Data.List.Properties
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (just; nothing)
-open import Data.Product using (Σ-syntax; ∃-syntax; _,_; _×_; proj₁; proj₂)
+open import Data.Product using (∃-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
 
 open import Data.Empty using (⊥; ⊥-elim)
@@ -70,28 +68,21 @@ open import Data.Fin.Properties using
   ; toℕ-cast; toℕ-injective)
   -- `Data.Nat`, opened wholesale for the decode half, also exports `_≟_`.
   renaming (_≟_ to _≟F_)
-open import Data.List using (List; []; _∷_; _++_; length; map; tabulate; concat; lookup)
-open import Data.List.Properties using (map-++)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties using (∈-map⁻)
 open import Data.List.Relation.Unary.Any using (any?)
-import Data.List.Relation.Unary.All as All
-import Data.List.Relation.Unary.AllPairs as AllPairs
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-open import Data.Nat using (zero; suc; z≤n; _+_)
 open import Data.Nat as Nat using ()
 import Data.Nat.Properties as Nat
-open import Data.Product using (_,_; proj₁; proj₂)
 open import Data.Sum using (inj₁; inj₂)
-open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl; cong; cong₂; sym; trans; subst)
 open import Relation.Nullary.Decidable using (yes; no)
 
 --------------------------------------------------------------------------------
 -- Count / permutation helpers.
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
-  using ( count-cons-yes; ∉→count-zero; count-++-bndˡ; count-++-bndʳ
-        ; count-mono-cons; count-map-resp; ∈→count-pos; ++-bnd→disjoint)
+  using ( count≤1⇒Unique; ∉→count-zero; count-++-bndˡ; count-++-bndʳ
+        ; count-map-resp; ++-bnd→disjoint)
 
 private
 
@@ -110,39 +101,10 @@ private
     (trans (cong (count v X +_) (count-++ v A B)) (sym (Nat.+-assoc (count v X) _ _)))
 
 --------------------------------------------------------------------------------
--- `count _ _ ≤ 1` ⇒ `Unique`.  `Prune.remap-injective` needs `Unique xs`
--- (= `AllPairs _≢_ xs`), but the linearity invariant only supplies
--- `count k xs ≤ 1`.  Short induction: at the head `x ∷ xs`, the bound
--- forces `count x xs ≡ 0`, hence `All (x ≢_) xs`; the tail bound gives
--- `Unique xs`.
-
-private
-  -- `count x xs ≡ 0` ⇒ `x ≢` every element of `xs`.
-  count-zero→All-≢ : ∀ {n} (x : Fin n) (xs : List (Fin n)) → count x xs ≡ 0 → All.All (x ≢_) xs
-  count-zero→All-≢ x []       _ = All.[]
-  count-zero→All-≢ x (y ∷ xs) c with x ≟F y
-  ... | yes refl = ⊥-elim (case c) where case : suc _ ≡ 0 → ⊥
-                                         case ()
-  ... | no  x≢y  = x≢y All.∷ count-zero→All-≢ x xs c
-
-count-bnd→Unique : ∀ {n} (xs : List (Fin n)) → (∀ v → count v xs Nat.≤ 1) → Unique xs
-count-bnd→Unique []       _   = AllPairs.[]
-count-bnd→Unique (x ∷ xs) bnd =
-  count-zero→All-≢ x xs head-zero AllPairs.∷ count-bnd→Unique xs tail-bnd
-  where
-    head-zero : count x xs ≡ 0
-    head-zero =
-      Nat.≤-antisym
-        (Nat.s≤s⁻¹ (Nat.≤-trans (Nat.≤-reflexive (sym (count-cons-yes x xs)))
-                                (bnd x)))
-        z≤n
-    tail-bnd : ∀ v → count v xs Nat.≤ 1
-    tail-bnd v = Nat.≤-trans (count-mono-cons v x xs) (bnd v)
-
---------------------------------------------------------------------------------
 -- The shared parameter block: a cospan-composable pair of LINEAR hypergraphs.
--- Per-edge liftings (G-side `injL = _↑ˡ cn`, K-side `remapP`) live here too,
--- since the K-side one needs `remapP-injective` from the linearity half.
+-- Everything about one composite lives here — the linearity half, the per-edge
+-- liftings (G-side `injL = _↑ˡ cn`, K-side `remapP`, whose lift needs
+-- `remapP-injective` from the linearity half), and the `∘` decode lemma.
 
 module _
   (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
@@ -181,10 +143,10 @@ module _
   -- `remapP-injective`.
 
   K-dom-Unique : Unique K.dom
-  K-dom-Unique = count-bnd→Unique K.dom K-dom-bnd
+  K-dom-Unique = count≤1⇒Unique K-dom-bnd
 
   G-cod-Unique : Unique G.cod
-  G-cod-Unique = count-bnd→Unique G.cod G-cod-bnd
+  G-cod-Unique = count≤1⇒Unique G-cod-bnd
 
   -- `lookup-cod` is injective: `lookup G.cod` (injective on a Unique
   -- list) precomposed with the injective `cast`.
@@ -240,19 +202,8 @@ module _
   ------------------------------------------------------------------------
   -- For BALANCE we only push K-balance through `remapP` via
   -- `count-map-resp` (treating `remapP` opaquely); for BOUND we need to
-  -- bound `count v (map remapP K-eb)`, obtained from K-bound via the
-  -- fiber lemmas below.
-
-  private
-    -- count v (map f xs) ≡ count k xs when f injective and f k = v.  This is
-    -- `count-map-inj` with the counted value rewritten along `f k ≡ v`.
-    count-map-fiber
-      : ∀ {n m} (f : Fin n → Fin m)
-      → (∀ {a b} → f a ≡ f b → a ≡ b)
-      → (k : Fin n) {v : Fin m} → f k ≡ v
-      → ∀ (xs : List (Fin n)) → count v (map f xs) ≡ count k xs
-    count-map-fiber f f-inj k {v} eq xs =
-      subst (λ w → count w (map f xs) ≡ count k xs) eq (count-map-inj f f-inj k xs)
+  -- bound `count v (map remapP K-eb)`, obtained from K-bound by
+  -- `count-map-inj` at the `remapP`-fiber of the counted vertex.
 
   ------------------------------------------------------------------------
   -- Structural decompositions of `concat (tabulate eout-c / ein-c)`.
@@ -375,17 +326,18 @@ module _
     ...   | k , _ , v≡rk =
             Nat.≤-trans
               (Nat.≤-reflexive
-                (count-map-fiber remapP remapP-injective k (sym v≡rk) K-eb))
+                (subst (λ w → count w (map remapP K-eb) ≡ count k K-eb) (sym v≡rk)
+                       (count-map-inj remapP remapP-injective k K-eb)))
               (K-eb-bnd k)
 
     -- Only K.dom members route to `↑ˡ`-slots (injL).  `Prune.classify-view`
-    -- gives both halves in one split: `mem` is the membership witness, whose
-    -- count is positive (`∈→count-pos`); `out` reduces `remapP k` to a
-    -- `G.nV ↑ʳ_` slot, absurd against `injL i` by `↑ˡ≢↑ʳ`.
+    -- gives both halves in one split: `is-mem` carries the membership witness
+    -- directly; `is-non` reduces `remapP k` to a `G.nV ↑ʳ_` slot, absurd
+    -- against `injL i` by `Invariant.↑ˡ≢↑ʳ`.
     remapP-injL→dom : ∀ (k : Fin K.nV) (i : Fin G.nV) → remapP k ≡ injL i → k ∈ K.dom
     remapP-injL→dom k i rpk with classify K.dom k | classify-view K.dom k
     ... | _ | is-mem k∈ = k∈
-    ... | _ | is-non _  = ⊥-elim (↑ˡ≢↑ʳ i _ (sym rpk))
+    ... | _ | is-non _  = ⊥-elim (Inv.↑ˡ≢↑ʳ i _ (sym rpk))
 
     -- The K-eb contribution at an injL-slot vanishes: a preimage `k`
     -- (`∈-map⁻`) of `injL i` is in K.dom, and K.dom is disjoint from K-eb.
@@ -430,19 +382,15 @@ module _
   ...                | refl = bound-raise j
 
   ------------------------------------------------------------------------
-  -- The pruned composition preserves linearity.  The section's parameters
-  -- ARE this module's public face: applied, its type is
-  --   (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
-  --   → Linear G → Linear K → Linear (hComposeP G K bdy-eq).
+  -- The pruned composition preserves linearity.
 
   Linear-hComposeP : Linear (hComposeP G K bdy-eq)
   Linear-hComposeP = balance , bound
 
+  ------------------------------------------------------------------------
+  -- G-side: the frame-free instance of `DecodeAttempt.StackLift` — the stack
+  -- former is `map injL` and `fold` is one `map-++`.
 
-  -- G-side: per-edge lifting on a pure-L stack `map injL xs`.
-
-  -- The G-side instance of `DecodeAttempt.StackLift`: frame-free, so the
-  -- stack former is `map injL` and `fold` is one `map-++`.
   private
     module PureL where
       out : List (Fin G.nV) → List (Fin nV-P)
@@ -457,7 +405,7 @@ module _
       hit e xs rest p eq =
         subst (λ ks → ∃[ q ] extract-prefix ks (out xs) ≡ just (out rest , q))
               (sym (ein-c-inj₁-red e))
-              (extract-prefix-via-injective-just injL (inject+-inj cn)
+              (extract-prefix-via-injective-just injL (Inv.inject+-inj cn)
                                                   (G.ein e) xs rest p eq)
 
       miss : ∀ (e : Fin G.nE) (xs : List (Fin G.nV))
@@ -468,7 +416,7 @@ module _
       miss e xs eq =
         subst (λ ks → extract-prefix ks (out xs) ≡ nothing)
               (sym (ein-c-inj₁-red e))
-              (extract-prefix-via-injective-nothing injL (inject+-inj cn)
+              (extract-prefix-via-injective-nothing injL (Inv.inject+-inj cn)
                                                      (G.ein e) xs eq)
 
       fold : ∀ (e : Fin G.nE) (rest : List (Fin G.nV))
@@ -516,82 +464,68 @@ module _
       open PermLift (hComposeP G K bdy-eq) K (G.nE ↑ʳ_) remapP out
              ein-c-inj₂-red eout-c-inj₂-red front fold miss public
 
-  process-edges-↑ʳ-via-remapP
-    : ∀ (es : List (Fin K.nE))
-        (s : List (Fin (G.nV + cn)))
-        (ys : List (Fin K.nV))
-    → s Perm.↭ map remapP ys
-    → process-edges (hComposeP G K bdy-eq) (map (G.nE ↑ʳ_) es) s
-        Perm.↭ map remapP (process-edges K es ys)
-  process-edges-↑ʳ-via-remapP = ViaRemapP.process-edges-lift
+  ------------------------------------------------------------------------
+  -- `decode-attempt-hComposeP`: run the G-block, then the K-block.
 
---------------------------------------------------------------------------------
--- `decode-attempt-hComposeP`.
+  decode-attempt-hComposeP
+    : process-all-edges G (Hypergraph.dom G) Perm.↭ Hypergraph.cod G
+    → process-all-edges K (Hypergraph.dom K) Perm.↭ Hypergraph.cod K
+    → process-all-edges (hComposeP G K bdy-eq) (Hypergraph.dom (hComposeP G K bdy-eq))
+        Perm.↭ Hypergraph.cod (hComposeP G K bdy-eq)
+  decode-attempt-hComposeP perm-G perm-K =
+      perm-final
+    where
+      open Perm.PermutationReasoning
 
-decode-attempt-hComposeP
-  : (G K : Hypergraph FlatGen) (bdy-eq : codL G ≡ domL K)
-  → Lin.Linear G → Lin.Linear K
-  → process-all-edges G (Hypergraph.dom G) Perm.↭ Hypergraph.cod G
-  → process-all-edges K (Hypergraph.dom K) Perm.↭ Hypergraph.cod K
-  → process-all-edges (hComposeP G K bdy-eq) (Hypergraph.dom (hComposeP G K bdy-eq))
-      Perm.↭ Hypergraph.cod (hComposeP G K bdy-eq)
-decode-attempt-hComposeP G K bdy-eq lin-G lin-K perm-G perm-K =
-    perm-final
-  where
-    module G = Hypergraph G
-    module K = Hypergraph K
-    open hComposeP-impl G K bdy-eq
-    open Perm.PermutationReasoning
+      s_G_final = process-all-edges G G.dom
+      s_K_final = process-all-edges K K.dom
 
-    s_G_final = process-all-edges G G.dom
-    s_K_final = process-all-edges K K.dom
+      proc = process-all-edges (hComposeP G K bdy-eq) (Hypergraph.dom (hComposeP G K bdy-eq))
 
-    proc = process-all-edges (hComposeP G K bdy-eq) (Hypergraph.dom (hComposeP G K bdy-eq))
+      after-G-stack = process-edges (hComposeP G K bdy-eq)
+                        (map (_↑ˡ K.nE) (range G.nE))
+                        (Hypergraph.dom (hComposeP G K bdy-eq))
 
-    after-G-stack = process-edges (hComposeP G K bdy-eq)
-                      (map (_↑ˡ K.nE) (range G.nE))
-                      (Hypergraph.dom (hComposeP G K bdy-eq))
+      after-G-≡ : after-G-stack ≡ map injL s_G_final
+      after-G-≡ = PureL.process-edges-lift (range G.nE) G.dom
 
-    after-G-≡ : after-G-stack ≡ map injL s_G_final
-    after-G-≡ = process-edges-↑ˡ-pure-L G K bdy-eq lin-G lin-K (range G.nE) G.dom
+      after-G-↭-remap-Kdom : after-G-stack Perm.↭ map remapP K.dom
+      after-G-↭-remap-Kdom = begin
+        after-G-stack
+          ≡⟨ after-G-≡ ⟩
+        map injL s_G_final
+          ↭⟨ PermProp.map⁺ injL perm-G ⟩
+        map injL G.cod
+          ≡⟨ sym map-remapP-K-dom ⟩
+        map remapP K.dom
+          ∎
 
-    after-G-↭-remap-Kdom : after-G-stack Perm.↭ map remapP K.dom
-    after-G-↭-remap-Kdom = begin
-      after-G-stack
-        ≡⟨ after-G-≡ ⟩
-      map injL s_G_final
-        ↭⟨ PermProp.map⁺ injL perm-G ⟩
-      map injL G.cod
-        ≡⟨ sym (map-remapP-K-dom G K bdy-eq lin-G lin-K) ⟩
-      map remapP K.dom
-        ∎
+      K-lift : process-edges (hComposeP G K bdy-eq) (map (G.nE ↑ʳ_) (range K.nE)) after-G-stack
+                 Perm.↭ map remapP s_K_final
+      K-lift = ViaRemapP.process-edges-lift
+                 (range K.nE) after-G-stack K.dom after-G-↭-remap-Kdom
 
-    K-lift : process-edges (hComposeP G K bdy-eq) (map (G.nE ↑ʳ_) (range K.nE)) after-G-stack
-               Perm.↭ map remapP s_K_final
-    K-lift = process-edges-↑ʳ-via-remapP G K bdy-eq lin-G lin-K
-              (range K.nE) after-G-stack K.dom after-G-↭-remap-Kdom
+      proc-≡ : proc
+               ≡ process-edges (hComposeP G K bdy-eq) (map (G.nE ↑ʳ_) (range K.nE)) after-G-stack
+      proc-≡ =
+        trans (cong (λ es → process-edges (hComposeP G K bdy-eq) es
+                              (Hypergraph.dom (hComposeP G K bdy-eq)))
+                    (Inv.range-++ G.nE K.nE))
+              (process-edges-++-stack (hComposeP G K bdy-eq)
+                (map (_↑ˡ K.nE) (range G.nE))
+                (map (G.nE ↑ʳ_) (range K.nE))
+                (Hypergraph.dom (hComposeP G K bdy-eq)))
 
-    proc-≡ : proc
-             ≡ process-edges (hComposeP G K bdy-eq) (map (G.nE ↑ʳ_) (range K.nE)) after-G-stack
-    proc-≡ =
-      trans (cong (λ es → process-edges (hComposeP G K bdy-eq) es
-                            (Hypergraph.dom (hComposeP G K bdy-eq)))
-                  (Inv.range-++ G.nE K.nE))
-            (process-edges-++-stack (hComposeP G K bdy-eq)
-              (map (_↑ˡ K.nE) (range G.nE))
-              (map (G.nE ↑ʳ_) (range K.nE))
-              (Hypergraph.dom (hComposeP G K bdy-eq)))
-
-    perm-final : proc Perm.↭ Hypergraph.cod (hComposeP G K bdy-eq)
-    perm-final = begin
-      proc
-        ≡⟨ proc-≡ ⟩
-      process-edges (hComposeP G K bdy-eq) (map (G.nE ↑ʳ_) (range K.nE)) after-G-stack
-        ↭⟨ K-lift ⟩
-      map remapP s_K_final
-        ↭⟨ PermProp.map⁺ remapP perm-K ⟩
-      map remapP K.cod
-        ∎
+      perm-final : proc Perm.↭ Hypergraph.cod (hComposeP G K bdy-eq)
+      perm-final = begin
+        proc
+          ≡⟨ proc-≡ ⟩
+        process-edges (hComposeP G K bdy-eq) (map (G.nE ↑ʳ_) (range K.nE)) after-G-stack
+          ↭⟨ K-lift ⟩
+        map remapP s_K_final
+          ↭⟨ PermProp.map⁺ remapP perm-K ⟩
+        map remapP K.cod
+          ∎
 
 --------------------------------------------------------------------------------
 -- `⟪⟫-LinearP`.
