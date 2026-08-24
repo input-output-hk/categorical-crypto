@@ -107,7 +107,6 @@ import Data.Fin.Properties as FinP
 open import Data.Maybe using (nothing)
 open import Relation.Nullary using (yes; no)
 open import Data.List using (List; []; _∷_; _++_; map)
-open import Data.List.Properties using (map-++)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
@@ -294,7 +293,7 @@ module Braid {A B C D : ObjTerm}
       using (block-disjoint; stack-sepˢ; term-sepᵛ)
     open Restrict (Fin Hf.nV) vl
       using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; cast-flipᵛ
-            ; cast-respᵛ; box-conjᵛ; ⊗-respᵛ; interchangeᵛ )
+            ; cast-respᵛ; box-conjᵛ; ⊗-respᵛ; interchangeᵛ; ⊗ᵛ-≈̂ )
 
     open Embeds G K using (injL; injR)
 
@@ -623,28 +622,11 @@ module Braid {A B C D : ObjTerm}
     GcKc→comb = ≈-sym interchangeˢ
 
     ------------------------------------------------------------------
-    -- ### The boundary tensor as a cast of `decf-inner ⊗ decg-inner`.
-
-    private
-      Df = ⟪⟫-domL f
-      Cf = ⟪⟫-codL f
-      Dg = ⟪⟫-domL g
-      Cg = ⟪⟫-codL g
-
-    -- `decodePˢ f ⊗ decodePˢ g ≡ castₜ (decf-inner ⊗ decg-inner)` (definitional
-    -- `decodePˢ` + `cast-⊗-both`).
-    decT-cast
-      : decodePˢ f ⊗ˢ decodePˢ g
-        ≡ castˢ (cong₂ _++_ Df Dg) (cong₂ _++_ Cf Cg)
-            (decf-inner ⊗ˢ decg-inner)
-    decT-cast = sym (cast-⊗-both Df Cf Dg Cg decf-inner decg-inner)
-
-    ------------------------------------------------------------------
     -- ### TARGET equation, HETEROGENEOUSLY: the C-level
-    -- `(pL⊗pR) ∘ (Gon'⊗Kclean')` IS the boundary tensor.  Cast-free: the
-    -- two boundary casts are re-attached by `viâ` at the two consumers'
-    -- own endpoint proofs, so no `Bd⁻`/`Bc⁻`/`cast-fuse`/`cast-irrel`
-    -- endpoint algebra survives.
+    -- `(pL⊗pR) ∘ (Gon'⊗Kclean')` IS the boundary tensor.  `decodePˢ f` IS
+    -- `castˢ (⟪⟫-domL f) (⟪⟫-codL f) decf-inner` definitionally, so the two
+    -- boundary casts peel FACTORWISE (`⊗-resp-≈̂` of two `cast-≈̂`s) and no
+    -- `cast-⊗-both`/`cast-fuse`/`cast-irrel` endpoint algebra survives.
 
     target-≈̂
       : (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR) ∘ˢ (Gon' ⊗ˢ Kclean')
@@ -652,8 +634,8 @@ module Braid {A B C D : ObjTerm}
     target-≈̂ =
       ≈̂-trans (≈ˢ⇒≈̂ (≈-sym GcKc→comb))
       (≈̂-trans (⊗-resp-≈̂ Gc-≈̂ Kc-≈̂)
-               (castˢ⇒≈̂ (cong₂ _++_ Df Dg) (cong₂ _++_ Cf Cg)
-                        (≡⇒≈ˢ (sym decT-cast))))
+               (≈̂-sym (⊗-resp-≈̂ (cast-≈̂ {p = ⟪⟫-domL f} {q = ⟪⟫-codL f})
+                                (cast-≈̂ {p = ⟪⟫-domL g} {q = ⟪⟫-codL g}))))
 
     ------------------------------------------------------------------
     -- ### The G-framed factor (matching `KBlockσ`'s body), and the inner
@@ -686,43 +668,21 @@ module Braid {A B C D : ObjTerm}
     inner-frame = inner-gen Gon Kclean sep
 
     ------------------------------------------------------------------
-    -- ### `permuteˢ comb` frame: to `castˢ … (permuteˢ pL ⊗ permuteˢ pR)`.
+    -- ### The two inner factors of `KBlockσ`'s target, HETEROGENEOUSLY.
     --
-    -- `comb`'s reindexing factor is absorbed inside `permuteˢ` (`⟦absorbʳ⟧`),
-    -- so no `subst₂`-of-derivation bridge is needed.
+    -- `comb`'s reindexing factor is absorbed inside `permuteˢ` (`⟦absorbʳ⟧`);
+    -- the `⊗ᵛ`'s own `map-++` cast and the two `sG≡`/`Kfin≡` corrections peel
+    -- by `⊗ᵛ-≈̂`/`⊗-resp-≈̂`.  Both endpoints ride in the relation, so no
+    -- `map-++` path is named and no `refl`-matched generic is needed.
 
-    private
-      mLsf = map-++ vl (map injL s_G_final) (map injR s_K_final)
-      mLcc = map-++ vl (map injL Gd.cod) (map injR Kd.cod)
+    comb-frame : RF.permuteˢ comb ≈̂ RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR
+    comb-frame = ≈̂-trans (⟦absorbʳ⟧ (cong₂ _++_ sG≡ Kfin≡)) combRaw-frame
 
-      combDom : map vl (map injL s_G_final) ++ map vl (map injR s_K_final)
-                ≡ map vl (sG ++ Kfin)
-      combDom = trans (sym mLsf) (cong (map vl) (sym (cong₂ _++_ sG≡ Kfin≡)))
-
-    comb-frame
-      : RF.permuteˢ comb
-        ≈ˢ castˢ combDom (sym mLcc) (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR)
-    comb-frame =
-      viâ (⟦absorbʳ⟧ (cong₂ _++_ sG≡ Kfin≡)) combRaw-frame
-          (cast-≈̂ {p = combDom} {q = sym mLcc})
-
-    private
-      -- `Gon ⊗ᵛ Kclean ≈ castₚ (Gon' ⊗ˢ Kclean')` (push the `sG≡`/`Kfin≡`
-      -- casts in), matched on `sG≡`/`Kfin≡` so `Gon'`/`Kclean'` collapse to
-      -- `Gon`/`Kclean` and the two `⊗ᵛ` casts differ only by UIP.
-      GK-gen
-        : ∀ {sGx Kfinx : List (Fin Hf.nV)}
-            (Gonx : HomV Lpre sGx) (Kcleanx : HomV Rsuf Kfinx)
-            (sGe : sGx ≡ map injL s_G_final) (Kfe : Kfinx ≡ map injR s_K_final)
-            (Q : map vl (map injL s_G_final) ++ map vl (map injR s_K_final)
-                 ≡ map vl (sGx ++ Kfinx))
-        → Gonx ⊗ᵛ Kcleanx
-          ≈ᵛ castˢ (sym (map-++ vl Lpre Rsuf)) Q
-              (castˢ refl (cong (map vl) sGe) Gonx
-                ⊗ˢ castˢ refl (cong (map vl) Kfe) Kcleanx)
-      GK-gen {sGx} {Kfinx} Gonx Kcleanx refl refl Q =
-        ≡⇒≈ˢ (cast-irrel (sym (map-++ vl Lpre Rsuf)) (sym (map-++ vl Lpre Rsuf))
-                (sym (map-++ vl sGx Kfinx)) Q (Gonx ⊗ˢ Kcleanx))
+    W-≈̂ : (Gon ⊗ᵛ Kclean) ≈̂ Gon' ⊗ˢ Kclean'
+    W-≈̂ =
+      ≈̂-trans (⊗ᵛ-≈̂ Gon Kclean)
+              (⊗-resp-≈̂ (≈̂-sym (cast-≈̂ {p = refl} {q = cong (map vl) sG≡}))
+                        (≈̂-sym (cast-≈̂ {p = refl} {q = cong (map vl) Kfin≡})))
 
     ----------------------------------------------------------------
     -- ## THE (e)-RECONCILE: `KBlockσ` from the K-block factorization.
@@ -770,31 +730,10 @@ module Braid {A B C D : ObjTerm}
           (≈-trans (∘-resp (pvv-transˢ (Perm.↭-sym Br) comb) ≈-refl)
                    (cancelInner (pvv-inverse-leftˢ Br))))
 
-        WQ : map vl (map injL s_G_final) ++ map vl (map injR s_K_final)
-             ≡ map vl (sG ++ Kfin)
-        WQ = trans (sym (cong₂ _++_ (cong (map vl) sG≡) (cong (map vl) Kfin≡)))
-                   (sym (map-++ vl sG Kfin))
-
-        W-primed : W ≈ˢ castˢ (sym (map-++ vl Lpre Rsuf)) WQ (Gon' ⊗ˢ Kclean')
-        W-primed = GK-gen Gon Kclean sG≡ Kfin≡ WQ
-
-        -- Step D: `permuteˢ comb ∘ W ≈ castˢ (sym mLR)(sym mLcc)
-        --            ((pL⊗pR) ∘ (Gon'⊗Kclean'))`.
-        stepD
-          : RF.permuteˢ comb ∘ˢ W
-            ≈ˢ castˢ (sym (map-++ vl Lpre Rsuf)) (sym mLcc)
-                ((RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR) ∘ˢ (Gon' ⊗ˢ Kclean'))
-        stepD =
-          ≈-trans (∘-resp comb-frame W-primed)
-          -- castₐ(pL⊗pR) ∘ castᵦ(Gon'⊗Kclean')  →  align mid (cast-irrel) + split
-          (≈-trans
-            (∘-resp
-              (≡⇒≈ˢ (cast-irrel combDom WQ (sym mLcc) (sym mLcc)
-                       (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR)))
-              ≈-refl)
-            (≈-sym (∘-cast-split (sym (map-++ vl Lpre Rsuf)) WQ
-                     (sym mLcc)
-                     (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR) (Gon' ⊗ˢ Kclean'))))
+        -- Step D: the whole inner composite IS the boundary tensor
+        -- (`∘-resp-≈̂` pays both `map-++` endpoints once, inside itself).
+        stepD : RF.permuteˢ comb ∘ˢ W ≈̂ decodePˢ f ⊗ˢ decodePˢ g
+        stepD = ≈̂-trans (∘-resp-≈̂ comb-frame W-≈̂) target-≈̂
 
         goal
           : RF.permuteˢ cand
@@ -804,11 +743,9 @@ module Braid {A B C D : ObjTerm}
         goal =
           ≈-trans (∘-resp ≈-refl (cast-resp refl (cong (map vl) stkSplit₀) stepA))
           (≈-trans stepBC
-          (≈-trans stepD
-            -- Step E: re-attach BOTH boundary casts around `target-≈̂`.
-            (viâ (cast-≈̂ {p = sym (map-++ vl Lpre Rsuf)} {q = sym mLcc})
-                 target-≈̂
-                 (cast-≈̂ {p = sym (⟪⟫-domL fg)} {q = sym (⟪⟫-codL fg)}))))
+            -- Step E: re-attach the boundary cast around Step D.
+            (viâ stepD ≈̂-refl
+                 (cast-≈̂ {p = sym (⟪⟫-domL fg)} {q = sym (⟪⟫-codL fg)})))
 
     ----------------------------------------------------------------
     -- ## THE K-BLOCK FACTORIZATION, from three already-proven theorems.
