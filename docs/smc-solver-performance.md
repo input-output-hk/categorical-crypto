@@ -4,7 +4,7 @@ The `Categories.APROP.Hypergraph.Solver` decision procedure proves free-symmetri
 term equalities by
 
 ```agda
-f ≈Term g  :=  soundness-full-wired (from-just (findIso ⟪ f ⟫ ⟪ g ⟫))
+f ≈Term g  :=  soundness (from-just (findIso ⟪ f ⟫ ⟪ g ⟫))
 ```
 
 It is complete and axiom-free (`--safe`), but it does **not** scale. This note records what
@@ -14,21 +14,21 @@ the cost actually is, measured by `agda --profile=definitions`, and why.
 
 A temporary probe (`ScaleProbe.agda`, since removed) timed the two phases separately —
 `iso-k = from-just (findIso …)` (forces the *search* to evaluate) versus
-`sound-k = soundness-full-wired iso-k` (the *correctness proof*) — while independently scaling
+`sound-k = soundness iso-k` (the *correctness proof*) — while independently scaling
 the two candidate cost drivers.
 
-### Finding 1 — `findIso` is essentially free; all cost is in `soundness-full-wired`
+### Finding 1 — `findIso` is essentially free; all cost is in `soundness`
 
 In every case the `iso`/`findIso` definitions cost ≤ 146 ms (usually below the profiler's
 threshold), while the `sound` definitions carried 100% of the visible time. This matches the
 source: `searchIso` is a backtracking search over **edges** with fuel `nE_H × nE_J`, and the
 coherence goals have 0–3 edges (the pentagon has *zero*). The search is never the bottleneck.
 
-### Finding 2 — `soundness-full-wired` cost is the product of two steep axes
+### Finding 2 — `soundness` cost is the product of two steep axes
 
 **Axis A — wire count** (trivial `id` round-trip, ~0 structural morphisms):
 
-| wires | `soundness-full-wired` |
+| wires | `soundness` |
 |------:|-----------------------:|
 | 3     | 51 ms                  |
 | 5     | 183 ms                 |
@@ -40,7 +40,7 @@ bookkeeping (`Verify` also scans every vertex with decidable equality + `FlatVie
 **Axis B — structural-morphism count** at a *fixed* 3 wires (chaining `α⇐ ∘ α⇒` pairs, which
 equal `id` but grow the term):
 
-| associator pairs | `soundness-full-wired` |
+| associator pairs | `soundness` |
 |-----------------:|-----------------------:|
 | 1                | 541 ms                 |
 | 4                | 3.4 s                  |
@@ -76,11 +76,11 @@ instead of *proof* time.
 ## Head-to-head: APROP solver vs matrix solver, with an `opaque` fairness control
 
 The APROP solver's cost has *two* per-use components: (a) normalizing the soundness proof, and
-(b) the `findIso ⟪f⟫ ⟪g⟫` search. To isolate (b), wrap `soundness-full-wired` in `opaque` — so a
+(b) the `findIso ⟪f⟫ ⟪g⟫` search. To isolate (b), wrap `soundness` in `opaque` — so a
 use site sees only its *type*, exactly as the matrix solver's `solveSM` sees only the (postulated)
 `matrix-faithful`. This is the fair control.
 
-With `opaque`, `soundness-full-wired` itself drops to **16 ms** (one-time), and the per-test cost
+With `opaque`, `soundness` itself drops to **16 ms** (one-time), and the per-test cost
 becomes pure `findIso`. Comparing that against the matrix solver's decide step
 (`diagram lhs ≡ diagram rhs` by `refl`), same equations, `X = Fin 3`, per-definition profile:
 
@@ -117,7 +117,7 @@ matrix and comparing.
    *not* make `GConstruction.assoc'-coherence` tractable — its blow-up is dominated by `findIso`/`⟪_⟫`
    over an 8-wire × ~50-morphism term, which `opaque` does not touch.
 
-(`opaque`-ing `soundness-full-wired` is, separately, a legitimate ~free improvement: it makes every
+(`opaque`-ing `soundness` is, separately, a legitimate ~free improvement: it makes every
 downstream *use* of the theorem cheap without weakening it. Worth keeping independent of any solver
 work.)
 
@@ -207,7 +207,7 @@ a flat canonical form (matrix, or a DAG canonical labelling on the hypergraph) w
 
 With the `findIsoᴮ` bridge built (`MatrixBridge`/`InterpretBridge`), the two `solveH!` variants differ
 *only* in the iso finder — `findIso` (backtracking search) vs `findIsoᴮ` (canonical-form construction
-on hypergraphs); everything else (opaque `soundness-full-wired`, the abstract-`C` transport) is shared.
+on hypergraphs); everything else (opaque `soundness`, the abstract-`C` transport) is shared.
 Profiling the two iso finders on the same equations:
 
 | equation | `findIso` (search) | `findIsoᴮ` (bridge) |
@@ -221,7 +221,7 @@ but it doesn't — it sharpens it:
 
 - The ~16–25× head-to-head win belonged to the smc-coherence **flat Bool-matrix** solver
   (`diagram f ≡ diagram g` by `refl` — a cheap array compare). `findIsoᴮ` is a *different* thing: it
-  **reconstructs a hypergraph isomorphism** (because `soundness-full-wired` consumes a `≅ᴴ`), via the
+  **reconstructs a hypergraph isomorphism** (because `soundness` consumes a `≅ᴴ`), via the
   canonical labelling `align` + the two deciders `decBijLaws` + `decCanonMatch` + the `matIso→hgIso`
   record assembly. `decCanonMatch` alone costs ≈ `findIso`'s `Verify`; `findIsoᴮ` then pays `align`
   (peel + `posIn`/`lookupD` + `sortℕ`), `decBijLaws`, the per-edge `ecode` extraction, and the
@@ -315,8 +315,8 @@ A final attribution probe separated the components of the post-`opaque` per-use 
 | `tr2` — force it **twice in one definition** | 150 ms | — | **exactly 2× ⇒ Agda does NOT share**: syntactically identical subterms are fully re-evaluated |
 | `iso` — full `findIso` (right-nested chain) | 798 ms | 8,310 ms | 10.6× / **17.8×** the one-shot translation, growing |
 | `isoL` — same, **left-nested** chain | 1,041 ms | 20,028 ms | association matters: left-nesting is 1.3× / **2.4×** worse, diverging |
-| `snd-inline` — `soundness-full-wired (from-just (findIso …))` inlined | 1,900 ms | — | = iso + ~1.1 s application overhead |
-| `snd-hoisted` — `soundness-full-wired iso-8` (named iso) | 1,172 ms | — | the ~1.1 s overhead is paid either way (one ⟪⟫-type conversion); hoisting is program-neutral |
+| `snd-inline` — `soundness (from-just (findIso …))` inlined | 1,900 ms | — | = iso + ~1.1 s application overhead |
+| `snd-hoisted` — `soundness iso-8` (named iso) | 1,172 ms | — | the ~1.1 s overhead is paid either way (one ⟪⟫-type conversion); hoisting is program-neutral |
 
 **This revises the earlier attribution.** The translation `⟪f⟫` costs only ~5–10% of `findIso`
 when forced *once*; the other ~90–95% is `findIso`'s machinery **re-walking unshared thunks** —
@@ -397,7 +397,7 @@ sharing is the bottleneck.
    *(Post-tabulation correction: with `findIsoᵀ` measured at 2.7 s for N=16 while the forced
    traversal is only ~466 ms of it (~17%), rebalancing's ~2× on that component is ~10% end-to-end.
    Demoted — not worth building unless the residual search/Verify cost is reduced first.)*
-3. **The ~1.1 s `soundness-full-wired`-application overhead** — real, paid once per solve even with
+3. **The ~1.1 s `soundness`-application overhead** — real, paid once per solve even with
    the named-iso pattern; likely one re-normalization of the `⟪_⟫`-typed index during conversion.
    Bounded but worth a look after (1), since (1) makes the iso's type a literal too.
 4. *(Workflow)* put expensive solver calls in **leaf modules** (paid once, cached in `.agdai`), and
@@ -406,7 +406,7 @@ sharing is the bottleneck.
 
 ## GConstruction `assoc'-coherence` retried post-`opaque` (2026-06-09) — still infeasible; the bar is set
 
-The original motivating goal was re-measured with the now-`opaque` `soundness-full-wired`
+The original motivating goal was re-measured with the now-`opaque` `soundness`
 (the earlier 14 GB OOM predates that change). Calibration ladder (8 atoms, 3 generators,
 warm cache, `-M12g`, 1200 s timeout per rung):
 

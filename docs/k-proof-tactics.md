@@ -77,5 +77,6 @@ reproofs:
   using T1's clean congruence layer + T2.
 - **(B)** the **T4** spike: factor `permute` through a quotient of `_≅↭ⁱ_`.
 
-All work: `--safe --without-K`, postulate-free, K (`faithfulness`/`soundness-full-wired`)
-green at every integration; spikes in isolated worktrees, integrated only when green.
+All work: `--safe --without-K`, postulate-free, K (`Coxeter.FaithfulnessInductive.complete`)
+and the soundness root (`Hypergraph.Soundness.soundness`) green at every integration;
+spikes in isolated worktrees, integrated only when green.

@@ -53,7 +53,7 @@ hypergraph $⟪f⟫$ is a strict symmetric monoidal functor; its *completeness*
 ($f approx_("Term") g => ⟪f⟫ tilde.equiv^("H") ⟪g⟫$) is routine, and its *faithfulness* —
 the soundness theorem
 $
-  #raw("soundness-full") : quad ⟪f⟫ space tilde.equiv^("H") space ⟪g⟫ quad => quad f approx_("Term") g
+  #raw("soundness") : quad ⟪f⟫ space tilde.equiv^("H") space ⟪g⟫ quad => quad f approx_("Term") g
 $ <main>
 — is the subject of this report. Faithfulness is exactly *coherence* for the free SMC:
 two terms with the same string diagram are interconvertible by the SMC axioms.
@@ -435,7 +435,8 @@ By induction on $f$, using the action of $⟪dot.c⟫$ on each constructor:
   [*$alpha$*],
   [edge-free, but *not* cheap: $"decode" ⟪alpha⟫$ is a $"permute"$ matched to the associator by a
    well-founded recursion over the object's $times.o$-structure plus a pentagon / `c-iso-assoc` step —
-   $bold(M)$ (`Bridge/BridgeAlphaFormCompound`, `Base/CIsoAssoc`; together about a thousand lines).],
+   $bold(M)$ (`Bridge/BridgeAlphaFormCompound`, `Base/UnflattenMonoidal`; together some
+   seven hundred lines).],
   [*$sigma$*],
   [edge-free; $sigma$ is the generator $sigma_(A,B)$, so $"decode" ⟪sigma⟫$ is the $"permute"$ of
    the *block* swap of $"flatten" A$, $"flatten" B$ — an iterated braiding, *not* a single
