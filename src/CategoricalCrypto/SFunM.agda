@@ -8,7 +8,8 @@ open import Class.Monad.Ext
 open import Categories.Category.Core
 open import Categories.Category.Helper
 
-open import LibExt
+open import Relation.Binary.Bundles using (Setoid)
+open import Relation.Binary.PropositionalEquality using (_→-setoid_)
 
 import Relation.Binary.Construct.On as On
 import Relation.Binary.Reasoning.Setoid as R-Setoid
@@ -150,7 +151,7 @@ assoc-∘ᵉ {f = f} {g} {h} = begin
   eval (h ∘ᵉ (g ∘ᵉ f)) ∎
   where
     open Kl-M renaming (_∘_ to _∘ᵏ_)
-    open R-Setoid ≗-setoid
+    open R-Setoid (_ →-setoid _)
 
 identityˡ-∘ᵉ : {f : SFunᵉ A B} → (idᵉ ∘ᵉ f) ≈ᵉ f
 identityˡ-∘ᵉ {f = f} = begin
@@ -160,7 +161,7 @@ identityˡ-∘ᵉ {f = f} = begin
   eval f ∎
   where
     open Kl-M renaming (_∘_ to _∘ᵏ_ ; id to idᵏ)
-    open R-Setoid ≗-setoid
+    open R-Setoid (_ →-setoid _)
     
 identityʳ-∘ᵉ : {f : SFunᵉ A B} → (f ∘ᵉ idᵉ) ≈ᵉ f
 identityʳ-∘ᵉ {f = f} = begin
@@ -170,7 +171,7 @@ identityʳ-∘ᵉ {f = f} = begin
   eval f ∎
   where
     open Kl-M renaming (_∘_ to _∘ᵏ_ ; id to idᵏ)
-    open R-Setoid ≗-setoid
+    open R-Setoid (_ →-setoid _)
 
 ∘ᵉ-resp-≈ᵉ : {A B C : Type} {f h : SFunᵉ B C} {g i : SFunᵉ A B} → f ≈ᵉ h → g ≈ᵉ i → (f ∘ᵉ g) ≈ᵉ (h ∘ᵉ i)
 ∘ᵉ-resp-≈ᵉ {f = f} {h} {g} {i} p q = begin
@@ -181,7 +182,7 @@ identityʳ-∘ᵉ {f = f} = begin
   eval (h ∘ᵉ i) ∎
   where
     open Kl-M renaming (_∘_ to _∘ᵏ_ ; id to idᵏ)
-    open R-Setoid ≗-setoid
+    open R-Setoid (_ →-setoid _)
     
 SFunᵉ-Category : Category _ _ _
 SFunᵉ-Category = categoryHelper record
@@ -193,6 +194,6 @@ SFunᵉ-Category = categoryHelper record
   ; assoc = assoc-∘ᵉ
   ; identityˡ = identityˡ-∘ᵉ
   ; identityʳ = identityʳ-∘ᵉ
-  ; equiv = On.isEquivalence eval IsEquivalence-≗
+  ; equiv = On.isEquivalence eval (Setoid.isEquivalence (_ →-setoid _))
   ; ∘-resp-≈ = ∘ᵉ-resp-≈ᵉ
   }
