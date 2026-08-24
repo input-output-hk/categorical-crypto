@@ -506,6 +506,21 @@ module TermEmbedˢ
   process-edges-term-embˢ es sH pCod =
     process-edges-term-embˢ-gen es sH (map φ sH) refl (vlab-φ sH) pCod
 
+  -- …and the same fact HETEROGENEOUSLY, which is what every consumer wants:
+  -- both endpoint proofs (`vlab-φ` on the domain, `proc-stack-embˢ ⨟ vlab-φ`
+  -- on the codomain) are CANONICAL, so no consumer should be building them.
+  term-emb-≈̂
+    : ∀ (es : List (Fin H.nE)) (sH : List (Fin H.nV))
+    → proj₂ (RJ.process-edgesˢ (map ψ es) (map φ sH))
+      ≈̂ proj₂ (RH.process-edgesˢ es sH)
+  term-emb-≈̂ es sH =
+    castˢ⇒≈̂ (vlab-φ sH) pCod (process-edges-term-embˢ es sH pCod)
+    where
+      pCod : map vlJ (proj₁ (RJ.process-edgesˢ (map ψ es) (map φ sH)))
+           ≡ map vlH (proj₁ (RH.process-edgesˢ es sH))
+      pCod = trans (cong (map vlJ) (proc-stack-embˢ es sH))
+                   (vlab-φ (proj₁ (RH.process-edgesˢ es sH)))
+
 --------------------------------------------------------------------------------
 -- ## (B)-foundation.  Strict equivariance keystones (the genuinely-new
 -- part).  The per-hypergraph `permuteˢ` is a (weak) functor of `↭`: it

@@ -62,8 +62,10 @@
 --     parameter.  This is the file's last definition.
 --   * `Reconcile-e`'s own statements are HETEROGENEOUS (`_≈̂_`) wherever a
 --     homogeneous one would have to name a cast path (`Gc-≈̂`, `Kc-≈̂`,
---     `combRaw-frame`, `target-≈̂`) — which is why no `cast-fuse` /
---     `cast-irrel` endpoint algebra survives at the boundary.
+--     `combRaw-frame`, `comb-frame`, `W-≈̂`, `stepD`, `target-≈̂`, and
+--     `DecodeCompose.TermEmbedˢ.term-emb-≈̂` from outside) — which is why NO
+--     `cast-fuse` / `cast-irrel` / `∘-cast-split` endpoint algebra survives
+--     anywhere in this file.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -329,32 +331,6 @@ module Braid {A B C D : ObjTerm}
         ≈ᵛ castᵛ refl (sym sep) (Gon ⊗ᵛ idᵛ {Rsuf})
     gframe = cast-flipᵛ refl sep (term-sepᵛ gblk Lpre Rsuf g-disjoint sep)
 
-    ------------------------------------------------------------------
-    -- ## The G-block relabel bridge (via the proven `TG` embedding).
-    -- `Gon` (the G-block run on the pure-`injL` prefix) relabels to the
-    -- G SUB-decoder run `proj₂ (Run.runˢ G)`, modulo the `vlab-φ` boundary
-    -- cast.  (`map ψG (range Gd.nE) = gblk`, `map injL Gd.dom = Lpre`.)
-    Gon-bridge
-      : (pCod : map Hf.vlab (proj₁ (process-edgesˢ gblk Lpre))
-                ≡ map Gd.vlab (proj₁ (StrictDecoder.process-edgesˢ G (range Gd.nE) Gd.dom)))
-      → castˢ (Embeds.TG.vlab-φ G K Gd.dom) pCod Gon
-        ≈ˢ proj₂ (Run.runˢ G)
-    Gon-bridge pCod = Embeds.TG.process-edges-term-embˢ G K (range Gd.nE) Gd.dom pCod
-
-    -- ## The K-block relabel bridge (via the proven `TK` embedding).
-    -- The K-block C-run on the CANONICAL pure-`injR` stack `Rsuf = map injR
-    -- Kd.dom` relabels to the K SUB-decoder run `proj₂ (Run.runˢ K)`,
-    -- modulo the `vlab-φ` boundary cast.  (`map ψK (range Kd.nE) = kblk`.)
-    -- This is the K-side companion the K-block braid `KBlockσ` consumes,
-    -- after the equivariance conjugation onto the canonical stack.
-    Kon-bridge
-      : (pCod : map Hf.vlab (proj₁ (process-edgesˢ kblk Rsuf))
-                ≡ map Kd.vlab (proj₁ (StrictDecoder.process-edgesˢ K (range Kd.nE) Kd.dom)))
-      → castˢ (Embeds.TK.vlab-φ G K Kd.dom) pCod
-            (proj₂ (process-edgesˢ kblk Rsuf))
-        ≈ˢ proj₂ (Run.runˢ K)
-    Kon-bridge pCod = Embeds.TK.process-edges-term-embˢ G K (range Kd.nE) Kd.dom pCod
-
   ----------------------------------------------------------------------
   -- ## The K-BLOCK BRAID residual `KBlockσ`.
   --
@@ -491,30 +467,17 @@ module Braid {A B C D : ObjTerm}
     Kfin≡ = Embeds.TK.proc-stack-embˢ G K (range Kd.nE) Kd.dom
 
     ------------------------------------------------------------------
-    -- ### The G-/K-block run bridges (instantiated `Gon-bridge`/`Kon-bridge`).
+    -- ### The two sub-decoder runs.  `Gon`/`Kclean` (the G-block run on the
+    -- pure-`injL` prefix / the K-block run on the pure-`injR` suffix) relabel
+    -- to them by the proven `TG`/`TK` embeddings' `≈̂` face — canonical
+    -- endpoint proofs, so nothing here names a `vlab-φ`/`pCod` boundary path.
+    -- (`map ψG (range Gd.nE) = gblk`, `map injL Gd.dom = Lpre`, dually for K.)
 
-    -- the sub-decoder runs (G/K).
     Grun : HomS (map Gd.vlab Gd.dom) (map Gd.vlab s_G_final)
     Grun = proj₂ (Run.runˢ G)
 
     Krun-K : HomS (map Kd.vlab Kd.dom) (map Kd.vlab s_K_final)
     Krun-K = proj₂ (Run.runˢ K)
-
-    -- the `pCod` boundary proofs.
-    pCodG : map vl sG ≡ map Gd.vlab s_G_final
-    pCodG = trans (cong (map vl) sG≡) (Embeds.TG.vlab-φ G K s_G_final)
-
-    pCodK : map vl Kfin ≡ map Kd.vlab s_K_final
-    pCodK = trans (cong (map vl) Kfin≡) (Embeds.TK.vlab-φ G K s_K_final)
-
-    -- `Gon` relabels to `Grun` (boundary `vlab-φ`).
-    Gbridge : castˢ (Embeds.TG.vlab-φ G K Gd.dom) pCodG Gon ≈ˢ Grun
-    Gbridge = Gon-bridge pCodG
-
-    -- `Kclean` relabels to `Krun-K` (boundary `vlab-φ`).  `Kon-bridge` is on
-    -- `proj₂ (process-edgesˢ kblk Rsuf)` = `Kclean`.
-    Kbridge : castˢ (Embeds.TK.vlab-φ G K Kd.dom) pCodK Kclean ≈ˢ Krun-K
-    Kbridge = Kon-bridge pCodK
 
     ------------------------------------------------------------------
     -- ### The two sub-final-permutes, relabelled to the C-level.
@@ -540,9 +503,6 @@ module Braid {A B C D : ObjTerm}
     ------------------------------------------------------------------
     -- ### G-/K-part C-level twins (`decodePˢ f`/`g`-cores under relabel).
 
-    φGdom = Embeds.TG.vlab-φ G K Gd.dom
-    φKdom = Embeds.TK.vlab-φ G K Kd.dom
-
     -- G-side `sG≡`-corrected G-run, and the C-level G-part `permuteˢ pL ∘ Gon'`.
     Gon' : HomV (map injL Gd.dom) (map injL s_G_final)
     Gon' = castˢ refl (cong (map vl) sG≡) Gon
@@ -563,7 +523,7 @@ module Braid {A B C D : ObjTerm}
         Gperm-≈̂ : RF.permuteˢ pL ≈̂ Gd'.permuteˢ (finalPermˢ f)
         Gperm-≈̂ = pvv-≈̂ injL vl Gd.vlab (Embeds.vlab-injL G K) (finalPermˢ f)
         Gon'-≈̂ : Gon' ≈̂ Grun
-        Gon'-≈̂ = ≈̂-trans cast-≈̂ (castˢ⇒≈̂ φGdom pCodG Gbridge)
+        Gon'-≈̂ = ≈̂-trans cast-≈̂ (Embeds.TG.term-emb-≈̂ G K (range Gd.nE) Gd.dom)
 
     -- K-side `Kfin≡`-corrected clean K-run, and the C-level K-part.
     Kclean' : HomV (map injR Kd.dom) (map injR s_K_final)
@@ -582,7 +542,7 @@ module Braid {A B C D : ObjTerm}
         Kperm-≈̂ : RF.permuteˢ pR ≈̂ Kd'.permuteˢ (finalPermˢ g)
         Kperm-≈̂ = pvv-≈̂ injR vl Kd.vlab (Embeds.vlab-injR G K) (finalPermˢ g)
         Kclean'-≈̂ : Kclean' ≈̂ Krun-K
-        Kclean'-≈̂ = ≈̂-trans cast-≈̂ (castˢ⇒≈̂ φKdom pCodK Kbridge)
+        Kclean'-≈̂ = ≈̂-trans cast-≈̂ (Embeds.TK.term-emb-≈̂ G K (range Kd.nE) Kd.dom)
 
     ------------------------------------------------------------------
     -- ### `permuteˢ combRaw` frame-decomposition.
