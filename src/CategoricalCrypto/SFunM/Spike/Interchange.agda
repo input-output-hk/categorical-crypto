@@ -316,31 +316,28 @@ cl d p R = λ⇒ ∘ d ⊗₁ id ∘ R ∘ p ⊗₁ id ∘ λ⇐
 -- Solver terms mirroring the combinators of `Spike.Mealy`
 ------------------------------------------------------------------------
 
--- One generator `k : P ⊗ X ⇒ P ⊗ Y`, four object atoms besides.
-module OneGen (P Q X Y Z : Obj) (k : P ⊗₀ X ⇒ P ⊗₀ Y) where
+-- Five object atoms, and the DSL shapes of `Spike.Mealy`'s shuffles over one
+-- generator.  The two setups below differ only in which state factor the
+-- generator acts on, so they share `Shapes`.
+module SymTerms (P Q X Y Z : Obj) where
+  private module Impl = FinSetupσ 𝕄 symmetric (P ∷ Q ∷ X ∷ Y ∷ Z ∷ [])
 
-  vars = P ∷ Q ∷ X ∷ Y ∷ Z ∷ []
-  open Coh.SymAtoms 𝕄 symmetric vars
+  open Impl public using (ObjTerm; V; _⊗ᵒ_)
 
-  private
-    p q x y z : ObjTerm
-    p = V zero
-    q = V (suc zero)
-    x = V (suc (suc zero))
-    y = V (suc (suc (suc zero)))
-    z = V (suc (suc (suc (suc zero))))
+  p q x y z : ObjTerm
+  p = V zero
+  q = V (suc zero)
+  x = V (suc (suc zero))
+  y = V (suc (suc (suc zero)))
+  z = V (suc (suc (suc (suc zero))))
 
-  open Coh.SymSolve 𝕄 symmetric vars (((p ⊗ᵒ x , p ⊗ᵒ y) , k) ∷ [])
+  module Shapes (a b : ObjTerm) (g : Impl.⟦ a ⟧ₒ ⇒ Impl.⟦ b ⟧ₒ) where
+    open Coh.SymSolve 𝕄 symmetric (P ∷ Q ∷ X ∷ Y ∷ Z ∷ []) (((a , b) , g) ∷ []) public
 
-  private
     k′ = gen zero
 
     swpT : (u v w : ObjTerm) → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ w) ((u ⊗ᵒ w) ⊗ᵒ v)
     swpT u v w = S.α⇐ S.∘ S.id S.⊗₁ S.σ {v} {w} S.∘ S.α⇒ {u} {v} {w}
-
-    onLT : (u v s t : ObjTerm) → S.HomTerm (u ⊗ᵒ s) (u ⊗ᵒ t)
-         → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ s) ((u ⊗ᵒ v) ⊗ᵒ t)
-    onLT u v s t h = swpT u t v S.∘ h S.⊗₁ S.id {v} S.∘ swpT u v s
 
     tuckT : (u v w : ObjTerm) → S.HomTerm (u ⊗ᵒ (v ⊗ᵒ w)) ((u ⊗ᵒ w) ⊗ᵒ v)
     tuckT u v w = S.α⇐ {u} {w} {v} S.∘ S.id {u} S.⊗₁ S.σ {v} {w}
@@ -356,14 +353,39 @@ module OneGen (P Q X Y Z : Obj) (k : P ⊗₀ X ⇒ P ⊗₀ Y) where
            → S.HomTerm (u ⊗ᵒ (w ⊗ᵒ s)) (u ⊗ᵒ (w ⊗ᵒ t))
     slot₂T u s t w h = untuckT u w t S.∘ h S.⊗₁ S.id {w} S.∘ tuckT u w s
 
+    swapˡT : (u v w : ObjTerm) → S.HomTerm (u ⊗ᵒ (v ⊗ᵒ w)) (v ⊗ᵒ (u ⊗ᵒ w))
+    swapˡT u v w = S.α⇒ {v} {u} {w} S.∘ (S.σ {u} {v} S.⊗₁ S.id {w} S.∘ S.α⇐ {u} {v} {w})
+
     ΩT : (u v s w : ObjTerm) → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ (s ⊗ᵒ w)) ((u ⊗ᵒ s) ⊗ᵒ (v ⊗ᵒ w))
     ΩT u v s w = S.α⇒ {u ⊗ᵒ s} {v} {w} S.∘ swpT u v s S.⊗₁ S.id {w}
-           S.∘ S.α⇐ {u ⊗ᵒ v} {s} {w}
+                 S.∘ S.α⇐ {u ⊗ᵒ v} {s} {w}
 
     Ω′T : (u v s w : ObjTerm) → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ (s ⊗ᵒ w)) ((u ⊗ᵒ s) ⊗ᵒ (v ⊗ᵒ w))
     Ω′T u v s w = S.α⇐ {u} {s} {v ⊗ᵒ w}
-      S.∘ S.id {u} S.⊗₁ (S.α⇒ {s} {v} {w} S.∘ S.σ {v} {s} S.⊗₁ S.id {w} S.∘ S.α⇐ {v} {s} {w})
-      S.∘ S.α⇒ {u} {v} {s ⊗ᵒ w}
+                  S.∘ (S.id {u} S.⊗₁ swapˡT v s w S.∘ S.α⇒ {u} {v} {s ⊗ᵒ w})
+
+    -- The two hexagon instances of `σ-splitˡ`/`σ-splitʳ`, as terms.
+    σsplitˡT : (u v w : ObjTerm) → S.HomTerm (u ⊗ᵒ (v ⊗ᵒ w)) ((v ⊗ᵒ w) ⊗ᵒ u)
+    σsplitˡT u v w = (S.α⇐ {v} {w} {u}
+                      S.∘ (S.id {v} S.⊗₁ S.σ {u} {w}
+                           S.∘ (S.α⇒ {v} {u} {w} S.∘ S.σ {u} {v} S.⊗₁ S.id {w})))
+                     S.∘ S.α⇐ {u} {v} {w}
+
+    σsplitʳT : (u v w : ObjTerm) → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ w) (w ⊗ᵒ (u ⊗ᵒ v))
+    σsplitʳT u v w = S.α⇒ {w} {u} {v}
+      S.∘ (((S.σ {u} {w} S.⊗₁ S.id {v} S.∘ S.α⇐ {u} {w} {v})
+            S.∘ S.id {u} S.⊗₁ S.σ {v} {w}) S.∘ S.α⇒ {u} {v} {w})
+
+-- One generator `k : P ⊗ X ⇒ P ⊗ Y`, four object atoms besides.
+module OneGen (P Q X Y Z : Obj) (k : P ⊗₀ X ⇒ P ⊗₀ Y) where
+
+  open SymTerms P Q X Y Z
+  open Shapes (p ⊗ᵒ x) (p ⊗ᵒ y) k
+
+  private
+    onLT : (u v s t : ObjTerm) → S.HomTerm (u ⊗ᵒ s) (u ⊗ᵒ t)
+         → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ s) ((u ⊗ᵒ v) ⊗ᵒ t)
+    onLT u v s t h = swpT u t v S.∘ h S.⊗₁ S.id {v} S.∘ swpT u v s
 
   -- The left state factor acting on interface slot 1 is an `Ω`-conjugate: this
   -- is the half of the interchange the solver decides.
@@ -376,17 +398,6 @@ module OneGen (P Q X Y Z : Obj) (k : P ⊗₀ X ⇒ P ⊗₀ Y) where
   -- a crossing block the solver will not split, so `σ-splitˡ`/`σ-splitʳ` split
   -- it by hand first and only then is the goal solver food.
   private
-    σsplitˡT : (u v w : ObjTerm) → S.HomTerm (u ⊗ᵒ (v ⊗ᵒ w)) ((v ⊗ᵒ w) ⊗ᵒ u)
-    σsplitˡT u v w = (S.α⇐ {v} {w} {u}
-                      S.∘ (S.id {v} S.⊗₁ S.σ {u} {w}
-                           S.∘ (S.α⇒ {v} {u} {w} S.∘ S.σ {u} {v} S.⊗₁ S.id {w})))
-                     S.∘ S.α⇐ {u} {v} {w}
-
-    σsplitʳT : (u v w : ObjTerm) → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ w) (w ⊗ᵒ (u ⊗ᵒ v))
-    σsplitʳT u v w = S.α⇒ {w} {u} {v}
-      S.∘ (((S.σ {u} {w} S.⊗₁ S.id {v} S.∘ S.α⇐ {u} {w} {v})
-            S.∘ S.id {u} S.⊗₁ S.σ {v} {w}) S.∘ S.α⇒ {u} {v} {w})
-
     swpSplitˡT : (u v s w : ObjTerm)
                → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ (s ⊗ᵒ w)) ((u ⊗ᵒ (s ⊗ᵒ w)) ⊗ᵒ v)
     swpSplitˡT u v s w = S.α⇐ {u} {s ⊗ᵒ w} {v}
@@ -442,34 +453,13 @@ module OneGen (P Q X Y Z : Obj) (k : P ⊗₀ X ⇒ P ⊗₀ Y) where
 -- The right state factor's actions commute with both interface slots.
 module OneGenʳ (P Q X Y Z : Obj) (k : Q ⊗₀ X ⇒ Q ⊗₀ Y) where
 
-  vars = P ∷ Q ∷ X ∷ Y ∷ Z ∷ []
-  open Coh.SymAtoms 𝕄 symmetric vars
+  open SymTerms P Q X Y Z
+  open Shapes (q ⊗ᵒ x) (q ⊗ᵒ y) k
 
   private
-    p q x y z : ObjTerm
-    p = V zero
-    q = V (suc zero)
-    x = V (suc (suc zero))
-    y = V (suc (suc (suc zero)))
-    z = V (suc (suc (suc (suc zero))))
-
-  open Coh.SymSolve 𝕄 symmetric vars (((q ⊗ᵒ x , q ⊗ᵒ y) , k) ∷ [])
-
-  private
-    k′ = gen zero
-
     onRT : (u v s t : ObjTerm) → S.HomTerm (v ⊗ᵒ s) (v ⊗ᵒ t)
          → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ s) ((u ⊗ᵒ v) ⊗ᵒ t)
     onRT u v s t h = S.α⇐ {u} {v} {t} S.∘ S.id {u} S.⊗₁ h S.∘ S.α⇒ {u} {v} {s}
-
-    slot₁T : (u s t w : ObjTerm) → S.HomTerm (u ⊗ᵒ s) (u ⊗ᵒ t)
-           → S.HomTerm (u ⊗ᵒ (s ⊗ᵒ w)) (u ⊗ᵒ (t ⊗ᵒ w))
-    slot₁T u s t w h = S.α⇒ {u} {t} {w} S.∘ h S.⊗₁ S.id {w} S.∘ S.α⇐ {u} {s} {w}
-
-    slot₂T : (u s t w : ObjTerm) → S.HomTerm (u ⊗ᵒ s) (u ⊗ᵒ t)
-           → S.HomTerm (u ⊗ᵒ (w ⊗ᵒ s)) (u ⊗ᵒ (w ⊗ᵒ t))
-    slot₂T u s t w h = (S.id {u} S.⊗₁ S.σ {t} {w} S.∘ S.α⇒ {u} {t} {w})
-                 S.∘ h S.⊗₁ S.id {w} S.∘ (S.α⇐ {u} {s} {w} S.∘ S.id {u} S.⊗₁ S.σ {w} {s})
 
   slot₁-onR : slot₁ {Z = Z} (onR {P = P} k) ≈ onR (slot₁ k)
   slot₁-onR = solveMorσ! (slot₁T (p ⊗ᵒ q) x y z (onRT p q x y k′))
@@ -480,37 +470,6 @@ module OneGenʳ (P Q X Y Z : Obj) (k : Q ⊗₀ X ⇒ Q ⊗₀ Y) where
                          (onRT p q (z ⊗ᵒ x) (z ⊗ᵒ y) (slot₂T q x y z k′))
 
   private
-    swpT : (u v w : ObjTerm) → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ w) ((u ⊗ᵒ w) ⊗ᵒ v)
-    swpT u v w = S.α⇐ S.∘ S.id S.⊗₁ S.σ {v} {w} S.∘ S.α⇒ {u} {v} {w}
-
-    tuckT : (u v w : ObjTerm) → S.HomTerm (u ⊗ᵒ (v ⊗ᵒ w)) ((u ⊗ᵒ w) ⊗ᵒ v)
-    tuckT u v w = S.α⇐ {u} {w} {v} S.∘ S.id {u} S.⊗₁ S.σ {v} {w}
-
-    untuckT : (u v w : ObjTerm) → S.HomTerm ((u ⊗ᵒ w) ⊗ᵒ v) (u ⊗ᵒ (v ⊗ᵒ w))
-    untuckT u v w = S.id {u} S.⊗₁ S.σ {w} {v} S.∘ S.α⇒ {u} {w} {v}
-
-    swapˡT : (u v w : ObjTerm) → S.HomTerm (u ⊗ᵒ (v ⊗ᵒ w)) (v ⊗ᵒ (u ⊗ᵒ w))
-    swapˡT u v w = S.α⇒ {v} {u} {w} S.∘ (S.σ {u} {v} S.⊗₁ S.id {w} S.∘ S.α⇐ {u} {v} {w})
-
-    ΩT : (u v s w : ObjTerm) → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ (s ⊗ᵒ w)) ((u ⊗ᵒ s) ⊗ᵒ (v ⊗ᵒ w))
-    ΩT u v s w = S.α⇒ {u ⊗ᵒ s} {v} {w} S.∘ swpT u v s S.⊗₁ S.id {w}
-                 S.∘ S.α⇐ {u ⊗ᵒ v} {s} {w}
-
-    Ω′T : (u v s w : ObjTerm) → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ (s ⊗ᵒ w)) ((u ⊗ᵒ s) ⊗ᵒ (v ⊗ᵒ w))
-    Ω′T u v s w = S.α⇐ {u} {s} {v ⊗ᵒ w}
-                  S.∘ (S.id {u} S.⊗₁ swapˡT v s w S.∘ S.α⇒ {u} {v} {s ⊗ᵒ w})
-
-    σsplitˡT : (u v w : ObjTerm) → S.HomTerm (u ⊗ᵒ (v ⊗ᵒ w)) ((v ⊗ᵒ w) ⊗ᵒ u)
-    σsplitˡT u v w = (S.α⇐ {v} {w} {u}
-                      S.∘ (S.id {v} S.⊗₁ S.σ {u} {w}
-                           S.∘ (S.α⇒ {v} {u} {w} S.∘ S.σ {u} {v} S.⊗₁ S.id {w})))
-                     S.∘ S.α⇐ {u} {v} {w}
-
-    σsplitʳT : (u v w : ObjTerm) → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ w) (w ⊗ᵒ (u ⊗ᵒ v))
-    σsplitʳT u v w = S.α⇒ {w} {u} {v}
-      S.∘ (((S.σ {u} {w} S.⊗₁ S.id {v} S.∘ S.α⇐ {u} {w} {v})
-            S.∘ S.id {u} S.⊗₁ S.σ {v} {w}) S.∘ S.α⇒ {u} {v} {w})
-
     -- `tuck`/`untuck` route the interface pair past the state through a single
     -- block crossing; `swapˡ` routes it through two atomic ones, so these two
     -- are hexagon instances (hence `σ-splitˡ`/`σ-splitʳ` first).
