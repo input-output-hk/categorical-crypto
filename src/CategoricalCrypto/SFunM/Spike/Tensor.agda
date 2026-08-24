@@ -16,13 +16,15 @@
 -- What is missing (`⊗ᵉ-homomorphism` and `assoc-commute`, hence the bundles) is
 -- missing for a state-side reason, not a ⊕-side one: each needs the action of one
 -- factor of a re-bracketed state tree to be recognized as the action of the same
--- factor of another — the `σ-onR`/`σ-onL` pair below is that statement for the
--- state braiding, and `onL-sim`/`onR-sim` for a state map on each factor.
+-- factor of another — `Spike.SlotFrame`'s `σ-onR`/`σ-onL` pair is that statement
+-- for the state braiding, and its `onL-sim`/`onR-sim` for a state map on each
+-- factor.
 --
 -- `⊗ᵉ-resp-≈ᵉ` needed more, and that is `Spike.Distributor`: the elementwise
 -- `⊗idᵏ-trace` splits a *word* over `A ⊎ C` into its two subwords, which binary
 -- distributivity does not hand over.  `run-⊗id`/`eval-⊗id` are that split, and
--- `Spike.SlotFrame` is the one reshuffle it needs across the step.
+-- `Spike.SlotFrame` holds the reshuffles it needs across the step, as it does
+-- every other coherence obligation this file glues together.
 
 open import Categories.Category.Core using (Category)
 open import Categories.Category.Monoidal.Braided using (Braided)
@@ -33,7 +35,6 @@ import Categories.Category.Monoidal.Braided.Properties as BraidedProps
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
 open import Data.Nat.Base using (ℕ; zero; suc)
-open import Data.Product using (_,_)
 
 import CategoricalCrypto.SFunM.Spike.Distributor as Distributor
 import CategoricalCrypto.SFunM.Spike.Interchange as Interchange
@@ -58,12 +59,11 @@ open SlotFrame 𝒱
 open Machine
 open State
 
-open import Categories.Category.Monoidal.Properties monoidal using (coherence₁; coherence₃)
+open import Categories.Category.Monoidal.Properties monoidal using (coherence₃)
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U
-open BraidedProps braided using (braiding-coherence)
 
-private variable A B C D P Q R X Y Z : Obj
+private variable A B C D P Q X Y Z : Obj
 
 ------------------------------------------------------------------------
 -- Machines with a named state
@@ -83,31 +83,6 @@ mk-cong e n = cl-cong (run-cong e n)
 ------------------------------------------------------------------------
 -- Simulation: the point-free `≈ᵉ-sim`
 ------------------------------------------------------------------------
-
--- A state map conjugating the steps passes through both interface slots…
-slot₁-sim : {u : P ⇒ R} {k : P ⊗₀ X ⇒ P ⊗₀ Y} {k′ : R ⊗₀ X ⇒ R ⊗₀ Y}
-          → u ⊗₁ id ∘ k ≈ k′ ∘ u ⊗₁ id
-          → u ⊗₁ id {Y ⊗₀ Z} ∘ slot₁ k ≈ slot₁ k′ ∘ u ⊗₁ id
-slot₁-sim {u = u} {k} {k′} e = begin
-  u ⊗₁ id ∘ (α⇒ ∘ (k ⊗₁ id ∘ α⇐))            ≈⟨ pullˡ (pad-α⇒ u) ⟩
-  (α⇒ ∘ (u ⊗₁ id) ⊗₁ id) ∘ (k ⊗₁ id ∘ α⇐)    ≈⟨ center merge₁ˡ ⟩
-  α⇒ ∘ ((u ⊗₁ id ∘ k) ⊗₁ id ∘ α⇐)            ≈⟨ refl⟩∘⟨ (e ⟩⊗⟨refl ○ split₁ˡ) ⟩∘⟨refl ⟩
-  α⇒ ∘ ((k′ ⊗₁ id ∘ (u ⊗₁ id) ⊗₁ id) ∘ α⇐)   ≈⟨ refl⟩∘⟨ pullʳ (⟺ (pad-α⇐ u)) ⟩
-  α⇒ ∘ (k′ ⊗₁ id ∘ (α⇐ ∘ u ⊗₁ id))           ≈⟨ refl⟩∘⟨ sym-assoc ○ sym-assoc ⟩
-  (α⇒ ∘ (k′ ⊗₁ id ∘ α⇐)) ∘ u ⊗₁ id           ∎
-
--- …the second one being the first conjugated by an interface braiding.
-slot₂-sim : {u : P ⇒ R} {k : P ⊗₀ X ⇒ P ⊗₀ Y} {k′ : R ⊗₀ X ⇒ R ⊗₀ Y}
-          → u ⊗₁ id ∘ k ≈ k′ ∘ u ⊗₁ id
-          → u ⊗₁ id {Z ⊗₀ Y} ∘ slot₂ k ≈ slot₂ k′ ∘ u ⊗₁ id
-slot₂-sim {u = u} {k} {k′} e = begin
-  u ⊗₁ id ∘ slot₂ k                            ≈⟨ refl⟩∘⟨ slot₂-slot₁ ⟩
-  u ⊗₁ id ∘ (id ⊗₁ σ⇒ ∘ (slot₁ k ∘ id ⊗₁ σ⇒))  ≈⟨ pullˡ (⟺ (pad-transport u σ⇒)) ⟩
-  (id ⊗₁ σ⇒ ∘ u ⊗₁ id) ∘ (slot₁ k ∘ id ⊗₁ σ⇒)  ≈⟨ center (slot₁-sim e) ⟩
-  id ⊗₁ σ⇒ ∘ ((slot₁ k′ ∘ u ⊗₁ id) ∘ id ⊗₁ σ⇒) ≈⟨ refl⟩∘⟨ pullʳ (⟺ (pad-transport u σ⇒)) ⟩
-  id ⊗₁ σ⇒ ∘ (slot₁ k′ ∘ (id ⊗₁ σ⇒ ∘ u ⊗₁ id)) ≈⟨ refl⟩∘⟨ sym-assoc ○ sym-assoc ⟩
-  (id ⊗₁ σ⇒ ∘ (slot₁ k′ ∘ id ⊗₁ σ⇒)) ∘ u ⊗₁ id ≈˘⟨ slot₂-slot₁ ⟩∘⟨refl ⟩
-  slot₂ k′ ∘ u ⊗₁ id                           ∎
 
 run-sim : {S T : State} {k : obj S ⊗₀ A ⇒ obj S ⊗₀ B} {k′ : obj T ⊗₀ A ⇒ obj T ⊗₀ B}
           (u : obj S ⇒ obj T) → u ⊗₁ id ∘ k ≈ k′ ∘ u ⊗₁ id
@@ -295,23 +270,6 @@ collapseʳ = sim ρ⇒ (⟺ unitorʳ-commute-from ○ (⟺ coherence₃) ⟩∘�
                    (pullˡ unitorʳ-commute-from
                     ○ cancelʳ ((⟺ coherence₃) ⟩∘⟨refl ○ unitorˡ.isoʳ))
 
--- A trivial left state factor sees an `onR` action as the action itself…
-onR-collapseˡ : {k : Q ⊗₀ A ⇒ Q ⊗₀ B} → λ⇒ ⊗₁ id ∘ onR k ≈ k ∘ λ⇒ ⊗₁ id
-onR-collapseˡ {k = k} = begin
-  λ⇒ ⊗₁ id ∘ (α⇐ ∘ (id ⊗₁ k ∘ α⇒))   ≈˘⟨ coherence₁ ⟩∘⟨refl ⟩
-  (λ⇒ ∘ α⇒) ∘ (α⇐ ∘ (id ⊗₁ k ∘ α⇒))  ≈⟨ cancelInner associator.isoʳ ⟩
-  λ⇒ ∘ (id ⊗₁ k ∘ α⇒)                ≈⟨ pullˡ unitorˡ-commute-from ○ assoc ⟩
-  k ∘ (λ⇒ ∘ α⇒)                      ≈⟨ refl⟩∘⟨ coherence₁ ⟩
-  k ∘ λ⇒ ⊗₁ id                       ∎
-
--- …and a trivial right one an `onL` action, which is `discard-onL` at `id`.
-onL-collapseʳ : {k : P ⊗₀ A ⇒ P ⊗₀ B} → ρ⇒ ⊗₁ id ∘ onL k ≈ k ∘ ρ⇒ ⊗₁ id
-onL-collapseʳ {P = P} =
-    ((⟺ dsc-id) ⟩⊗⟨refl ⟩∘⟨refl) ○ discard-onL ○ (refl⟩∘⟨ dsc-id ⟩⊗⟨refl)
-  where
-    dsc-id : dsc (id {unit}) ≈ ρ⇒ {P}
-    dsc-id = elimʳ ⊗.identity
-
 -- Composing with a pure machine only pre- or post-composes the step.
 pure-∘ˡ : (h : B ⇒ C) (M : Machine A B) → (pureᴹ h ∘ᴹ M) ≈ᵉ mk (state M) (id ⊗₁ h ∘ step M)
 pure-∘ˡ h M = collapseˡ ((refl⟩∘⟨ onL-str h ⟩∘⟨refl) ○ pullˡ (⟺ (pad-transport λ⇒ h))
@@ -426,44 +384,8 @@ tstep-∘ {k₂ = k₂} {l₂} {k₁} {l₁} = begin
     ≈⟨ refl⟩∘⟨ pullˡ +₁∘+₁ ⟩
   δ⇒ ∘ (((k₂ ∘ k₁) +₁ (l₂ ∘ l₁)) ∘ δ⇐)  ∎
 
--- `swp` is natural in the interface factor it moves out, too — the mirror of
--- `Interchange`'s `swp-natural`, obtained from it by involutivity.
-swp-natural′ : (g : X ⇒ Y) → swp {P} {Y} {Q} ∘ (id ⊗₁ g) ⊗₁ id ≈ id ⊗₁ g ∘ swp
-swp-natural′ g = begin
-  swp ∘ (id ⊗₁ g) ⊗₁ id                ≈⟨ refl⟩∘⟨ insertʳ swp-swp ⟩
-  swp ∘ (((id ⊗₁ g) ⊗₁ id ∘ swp) ∘ swp) ≈˘⟨ refl⟩∘⟨ swp-natural g ⟩∘⟨refl ⟩
-  swp ∘ ((swp ∘ id ⊗₁ g) ∘ swp)        ≈⟨ refl⟩∘⟨ assoc ⟩
-  swp ∘ (swp ∘ (id ⊗₁ g ∘ swp))        ≈⟨ cancelˡ swp-swp ⟩
-  id ⊗₁ g ∘ swp                        ∎
-
--- Both state-side actions carry a square that is natural in the interface…
-onL-branch : {k : P ⊗₀ A ⇒ P ⊗₀ B} {t : P ⊗₀ X ⇒ P ⊗₀ Y} {j : A ⇒ X} {j′ : B ⇒ Y}
-           → t ∘ id ⊗₁ j ≈ id ⊗₁ j′ ∘ k
-           → onL {Q = Q} t ∘ id ⊗₁ j ≈ id ⊗₁ j′ ∘ onL k
-onL-branch {k = k} {t} {j} {j′} e = begin
-  (swp ∘ (t ⊗₁ id ∘ swp)) ∘ id ⊗₁ j        ≈⟨ assoc ○ (refl⟩∘⟨ assoc) ⟩
-  swp ∘ (t ⊗₁ id ∘ (swp ∘ id ⊗₁ j))        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ swp-natural j ⟩
-  swp ∘ (t ⊗₁ id ∘ ((id ⊗₁ j) ⊗₁ id ∘ swp))
-    ≈⟨ refl⟩∘⟨ pullˡ (merge₁ˡ ○ e ⟩⊗⟨refl ○ split₁ˡ) ⟩
-  swp ∘ (((id ⊗₁ j′) ⊗₁ id ∘ k ⊗₁ id) ∘ swp)
-    ≈⟨ refl⟩∘⟨ assoc ○ pullˡ (swp-natural′ j′) ○ assoc ⟩
-  id ⊗₁ j′ ∘ (swp ∘ (k ⊗₁ id ∘ swp))       ∎
-
-onR-branch : {k : Q ⊗₀ A ⇒ Q ⊗₀ B} {t : Q ⊗₀ X ⇒ Q ⊗₀ Y} {j : A ⇒ X} {j′ : B ⇒ Y}
-           → t ∘ id ⊗₁ j ≈ id ⊗₁ j′ ∘ k
-           → onR {P = P} t ∘ id ⊗₁ j ≈ id ⊗₁ j′ ∘ onR k
-onR-branch {k = k} {t} {j} {j′} e = begin
-  (α⇐ ∘ (id ⊗₁ t ∘ α⇒)) ∘ id ⊗₁ j          ≈⟨ assoc ○ (refl⟩∘⟨ assoc) ⟩
-  α⇐ ∘ (id ⊗₁ t ∘ (α⇒ ∘ id ⊗₁ j))
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ((refl⟩∘⟨ ((⟺ ⊗.identity) ⟩⊗⟨refl)) ○ assoc-commute-from) ⟩
-  α⇐ ∘ (id ⊗₁ t ∘ (id ⊗₁ (id ⊗₁ j) ∘ α⇒))
-    ≈⟨ refl⟩∘⟨ pullˡ (merge₂ʳ ○ refl⟩⊗⟨ e ○ split₂ʳ) ⟩
-  α⇐ ∘ ((id ⊗₁ (id ⊗₁ j′) ∘ id ⊗₁ k) ∘ α⇒)
-    ≈⟨ refl⟩∘⟨ assoc
-       ○ pullˡ (assoc-commute-to ○ (⊗.identity ⟩⊗⟨refl) ⟩∘⟨refl) ○ assoc ⟩
-  id ⊗₁ j′ ∘ (α⇐ ∘ (id ⊗₁ k ∘ α⇒))         ∎
-
--- …hence both distribute over the tensor of steps.
+-- Both state-side actions carry a square that is natural in the interface
+-- (`onL-branch`/`onR-branch`), hence both distribute over the tensor of steps.
 onL-tstep : {k : P ⊗₀ A ⇒ P ⊗₀ B} {l : P ⊗₀ C ⇒ P ⊗₀ D}
           → onL {Q = Q} (tstep k l) ≈ tstep (onL k) (onL l)
 onL-tstep = δ-unique (onL-branch tstep-i₁ ○ ⟺ tstep-i₁)
@@ -528,41 +450,6 @@ tstep-sim {v = v} e₁ e₂ = δ-unique
   (pullʳ tstep-i₂ ○ pullˡ (⟺ (pad-transport v i₂)) ○ assoc ○ (refl⟩∘⟨ e₂)
    ○ ⟺ (pullʳ (⟺ (pad-transport v i₂)) ○ pullˡ tstep-i₂ ○ assoc))
 
--- The state-side arm: braiding the state pair swaps which factor acts.  The
--- braiding crosses `k`\'s whole block, so `unbraid` puts the padding on one side
--- and the two residual obligations are the block hexagon (`σ-splitˡ`/`σ-splitʳ`).
-σ-onR : {k : Q ⊗₀ A ⇒ Q ⊗₀ B}
-      → σ⇒ {P} {Q} ⊗₁ id {B} ∘ onR {P = P} k ≈ onL {Q = P} k ∘ σ⇒ ⊗₁ id {A}
-σ-onR {k = k} = begin
-  σ⇒ ⊗₁ id ∘ (α⇐ ∘ (id ⊗₁ k ∘ α⇒))              ≈⟨ sym-assoc ⟩
-  (σ⇒ ⊗₁ id ∘ α⇐) ∘ (id ⊗₁ k ∘ α⇒)              ≈⟨ unbraid k ⟩
-  ((σ⇒ ⊗₁ id ∘ α⇐) ∘ σ⇒) ∘ (k ⊗₁ id ∘ (σ⇒ ∘ α⇒))
-    ≈⟨ out ⟩∘⟨ (refl⟩∘⟨ inn) ⟩
-  swp ∘ (k ⊗₁ id ∘ (swp ∘ σ⇒ ⊗₁ id))            ≈⟨ refl⟩∘⟨ sym-assoc ⟩
-  swp ∘ ((k ⊗₁ id ∘ swp) ∘ σ⇒ ⊗₁ id)            ≈⟨ sym-assoc ⟩
-  (swp ∘ (k ⊗₁ id ∘ swp)) ∘ σ⇒ ⊗₁ id            ∎
-  where
-    out : (σ⇒ {P} {Q} ⊗₁ id {B} ∘ α⇐) ∘ σ⇒ ≈ swp
-    out = (refl⟩∘⟨ σ-splitʳ) ○ cancelInner associator.isoˡ
-        ○ (refl⟩∘⟨ assoc) ○ (refl⟩∘⟨ assoc) ○ cancelˡ σ⊗-inv
-
-    inn : σ⇒ {P} {Q ⊗₀ A} ∘ α⇒ ≈ swp ∘ σ⇒ ⊗₁ id
-    inn = (σ-splitˡ ⟩∘⟨refl) ○ cancelʳ associator.isoˡ
-        ○ (refl⟩∘⟨ sym-assoc) ○ sym-assoc
-
--- …and the mirror arm follows by conjugating with the braiding.
-σ-onL : {k : P ⊗₀ A ⇒ P ⊗₀ B}
-      → σ⇒ {P} {Q} ⊗₁ id {B} ∘ onL {Q = Q} k ≈ onR {P = Q} k ∘ σ⇒ ⊗₁ id {A}
-σ-onL {k = k} = begin
-  σ⇒ ⊗₁ id ∘ onL k                        ≈˘⟨ refl⟩∘⟨ cancelʳ σ⊗-inv ⟩
-  σ⇒ ⊗₁ id ∘ ((onL k ∘ σ⇒ ⊗₁ id) ∘ σ⇒ ⊗₁ id)
-    ≈˘⟨ refl⟩∘⟨ σ-onR ⟩∘⟨refl ⟩
-  σ⇒ ⊗₁ id ∘ ((σ⇒ ⊗₁ id ∘ onR k) ∘ σ⇒ ⊗₁ id)
-    ≈⟨ refl⟩∘⟨ assoc ⟩
-  σ⇒ ⊗₁ id ∘ (σ⇒ ⊗₁ id ∘ (onR k ∘ σ⇒ ⊗₁ id))
-    ≈⟨ cancelˡ σ⊗-inv ⟩
-  onR k ∘ σ⇒ ⊗₁ id                        ∎
-
 ------------------------------------------------------------------------
 -- Braiding naturality
 ------------------------------------------------------------------------
@@ -575,13 +462,6 @@ tstep-swap = δ-unique
    ○ ⟺ (pullʳ (merge₂ʳ ○ refl⟩⊗⟨ inject₁) ○ tstep-i₂))
   (pullʳ tstep-i₂ ○ pullˡ (merge₂ʳ ○ refl⟩⊗⟨ inject₂)
    ○ ⟺ (pullʳ (merge₂ʳ ○ refl⟩⊗⟨ inject₂) ○ tstep-i₁))
-
-private
-  -- The braiding is trivial on the unit, so it leaves a paired point and a
-  -- paired discard alone.
-  σ-unit : σ⇒ {unit} {unit} ≈ id
-  σ-unit = insertˡ unitorˡ.isoˡ ○ (refl⟩∘⟨ (braiding-coherence ○ ⟺ coherence₃))
-         ○ unitorˡ.isoˡ
 
 braiding-commuteᴹ : {f : Machine A B} {g : Machine C D}
                   → (σᴹ ∘ᴹ (f ⊗ᵉ g)) ≈ᵉ ((g ⊗ᵉ f) ∘ᴹ σᴹ)
@@ -610,11 +490,6 @@ braiding-commuteᴹ {f = f} {g} =
   collapseʳ (tstep-sim onL-collapseʳ ((refl⟩∘⟨ onR-id) ○ identityʳ ○ ⟺ identityˡ))
 
 private
-  -- A letterwise pair of interface actions is one action per slot.
-  pair-slots : (h : A ⇒ B) (j : X ⇒ Y)
-             → id {P} ⊗₁ (h ⊗₁ j) ≈ slot₁ᵍ (id ⊗₁ h) ∘ slot₂ᵍ (id ⊗₁ j)
-  pair-slots h j = (refl⟩⊗⟨ serialize₁₂) ○ split₂ʳ ○ ⟺ (slot₁-str h ⟩∘⟨ slot₂-str j)
-
   -- Peeling the head letter off a word: the head goes through the matching
   -- branch of the step, the tail through the induction hypothesis.
   peel : {S A′ B′ N N′ W W′ : Obj}
@@ -683,57 +558,6 @@ eval-⊗id f {n} w = (⊗idᵉ-collapse f n ⟩∘⟨refl) ○ ⟺ cl-∘ʳ ○ 
 ------------------------------------------------------------------------
 -- Splitting the tensor, and the congruence
 ------------------------------------------------------------------------
-
-private
-  -- `swp` is natural in all three factors.
-  swp-nat : (u : P ⇒ R) (v : Q ⇒ Z) (t : X ⇒ Y)
-          → (u ⊗₁ t) ⊗₁ v ∘ swp ≈ swp ∘ (u ⊗₁ v) ⊗₁ t
-  swp-nat u v t = begin
-    (u ⊗₁ t) ⊗₁ v ∘ (α⇐ ∘ (id ⊗₁ σ⇒ ∘ α⇒))
-      ≈⟨ pullˡ (⟺ assoc-commute-to) ○ assoc ⟩
-    α⇐ ∘ (u ⊗₁ (t ⊗₁ v) ∘ (id ⊗₁ σ⇒ ∘ α⇒))
-      ≈⟨ refl⟩∘⟨ pullˡ (parallel id-comm (⟺ (braiding.⇒.commute (v , t)))) ⟩
-    α⇐ ∘ ((id ⊗₁ σ⇒ ∘ u ⊗₁ (v ⊗₁ t)) ∘ α⇒)
-      ≈⟨ refl⟩∘⟨ assoc ⟩
-    α⇐ ∘ (id ⊗₁ σ⇒ ∘ (u ⊗₁ (v ⊗₁ t) ∘ α⇒))
-      ≈˘⟨ refl⟩∘⟨ refl⟩∘⟨ assoc-commute-from ⟩
-    α⇐ ∘ (id ⊗₁ σ⇒ ∘ (α⇒ ∘ (u ⊗₁ v) ⊗₁ t))
-      ≈⟨ refl⟩∘⟨ sym-assoc ○ sym-assoc ⟩
-    (α⇐ ∘ (id ⊗₁ σ⇒ ∘ α⇒)) ∘ (u ⊗₁ v) ⊗₁ t  ∎
-
--- A state map on each factor of a paired state conjugates the two actions:
--- `slot₁-sim`'s mirror for the state side.
-onL-sim : {v : P ⇒ R} {w : Q ⇒ Z} {k : P ⊗₀ X ⇒ P ⊗₀ Y} {k′ : R ⊗₀ X ⇒ R ⊗₀ Y}
-        → v ⊗₁ id ∘ k ≈ k′ ∘ v ⊗₁ id
-        → (v ⊗₁ w) ⊗₁ id {Y} ∘ onL k ≈ onL k′ ∘ (v ⊗₁ w) ⊗₁ id {X}
-onL-sim {v = v} {w} {k} {k′} e = begin
-  (v ⊗₁ w) ⊗₁ id ∘ (swp ∘ (k ⊗₁ id ∘ swp))
-    ≈⟨ pullˡ (swp-nat v id w) ○ assoc ⟩
-  swp ∘ ((v ⊗₁ id) ⊗₁ w ∘ (k ⊗₁ id ∘ swp))
-    ≈⟨ refl⟩∘⟨ pullˡ (parallel e id-comm) ⟩
-  swp ∘ ((k′ ⊗₁ id ∘ (v ⊗₁ id) ⊗₁ w) ∘ swp)
-    ≈⟨ refl⟩∘⟨ assoc ⟩
-  swp ∘ (k′ ⊗₁ id ∘ ((v ⊗₁ id) ⊗₁ w ∘ swp))
-    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ swp-nat v w id ⟩
-  swp ∘ (k′ ⊗₁ id ∘ (swp ∘ (v ⊗₁ w) ⊗₁ id))
-    ≈⟨ refl⟩∘⟨ sym-assoc ○ sym-assoc ⟩
-  (swp ∘ (k′ ⊗₁ id ∘ swp)) ∘ (v ⊗₁ w) ⊗₁ id  ∎
-
-onR-sim : {v : P ⇒ R} {w : Q ⇒ Z} {k : Q ⊗₀ X ⇒ Q ⊗₀ Y} {k′ : Z ⊗₀ X ⇒ Z ⊗₀ Y}
-        → w ⊗₁ id ∘ k ≈ k′ ∘ w ⊗₁ id
-        → (v ⊗₁ w) ⊗₁ id {Y} ∘ onR k ≈ onR k′ ∘ (v ⊗₁ w) ⊗₁ id {X}
-onR-sim {v = v} {w} {k} {k′} e = begin
-  (v ⊗₁ w) ⊗₁ id ∘ (α⇐ ∘ (id ⊗₁ k ∘ α⇒))
-    ≈⟨ pullˡ (⟺ assoc-commute-to) ○ assoc ⟩
-  α⇐ ∘ (v ⊗₁ (w ⊗₁ id) ∘ (id ⊗₁ k ∘ α⇒))
-    ≈⟨ refl⟩∘⟨ pullˡ (parallel id-comm e) ⟩
-  α⇐ ∘ ((id ⊗₁ k′ ∘ v ⊗₁ (w ⊗₁ id)) ∘ α⇒)
-    ≈⟨ refl⟩∘⟨ assoc ⟩
-  α⇐ ∘ (id ⊗₁ k′ ∘ (v ⊗₁ (w ⊗₁ id) ∘ α⇒))
-    ≈˘⟨ refl⟩∘⟨ refl⟩∘⟨ assoc-commute-from ⟩
-  α⇐ ∘ (id ⊗₁ k′ ∘ (α⇒ ∘ (v ⊗₁ w) ⊗₁ id))
-    ≈⟨ refl⟩∘⟨ sym-assoc ○ sym-assoc ⟩
-  (α⇐ ∘ (id ⊗₁ k′ ∘ α⇒)) ∘ (v ⊗₁ w) ⊗₁ id  ∎
 
 -- The tensor is the composite of its two one-sided halves: the elementwise
 -- `⊗-split`, and the only place a *state* interchange is needed.
