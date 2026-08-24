@@ -10,9 +10,17 @@
 -- structure (groupoid laws, bifunctoriality, σ-naturality, σ²=id,
 -- and the braid).
 --
--- Architecture:
+-- Architecture, in file order — the two directions of `_≅↭ⁱ_ ⟺ _≅↭_` with
+-- the machinery `complete` needs between them:
 --
---   * `complete : eval-↭ p ≈-fb eval-↭ q → p ≅↭ⁱ q`
+--   * §2 `sound : p ≅↭ⁱ q → eval-↭ p ≈-fb eval-↭ q`
+--       the easy direction: one `FinBij`-level coherence per generator.
+--   * §3 the heterogeneous wrapper `_≅↭ᴴ_`, which cages the `subst` a
+--       `~ʷ`-move on the intermediate list would otherwise leak, and §4 the
+--       structure lemmas for the word interpretation `⟦_⟧↭`.
+--   * §5 `flatten`: every `↭`-derivation is `≅↭ᴴ`-equal to `⟦ w ⟧↭ xs` for
+--       some `Word (length xs)` — the passage to the word model.
+--   * §6 `complete : eval-↭ p ≈-fb eval-↭ q → p ≅↭ⁱ q`
 --       a purely COMBINATORIAL statement about `↭`-derivations (no terms,
 --       no `subst`): the Coxeter / word-problem core.
 --

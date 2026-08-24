@@ -36,7 +36,9 @@ private
     n N : ℕ
 
 ------------------------------------------------------------------------
--- 0. Structural glue for `_~ʷ_` (Word ships only `++c-r`).
+-- 0. Structural glue for `_~ʷ_` not already in `Word` (which ships `++c-r`
+--    and the `∷-cong` this section builds on, but no left-concatenation
+--    congruence and no head-commutation).
 
 -- Left-concatenation congruence.
 ++c-l : (u : Word n) {v w : Word n} → v ~ʷ w → (u ++ v) ~ʷ (u ++ w)

@@ -51,7 +51,8 @@ cons-fin1-id X = ≈-fb-trans {b = cons-fb X} {b′ = cons-fb id-fb} {b″ = id-
 ------------------------------------------------------------------------
 -- The `i = 0F` crux.
 --
--- `crux1 X m` peels `X` (via `LehmerRotate.peel`) and dispatches to
+-- `crux1 X m` peels `X` (via `Word.peel`, imported directly above) and
+-- dispatches to
 -- `crux-core`; the size-0 base is a direct computation.
 
 crux1 : (X : FinBij (suc N) (suc N)) (m : Fin (suc (suc N)))

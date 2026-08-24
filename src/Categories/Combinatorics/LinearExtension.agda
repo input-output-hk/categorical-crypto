@@ -28,7 +28,10 @@
 -- when `x` and `y` are incomparable.  `_↝*_` is its reflexive-transitive
 -- closure (the standard library `Star`).
 --
---   Main theorem:  connectivity :  L ↭ M → NoInv L → NoInv M → L ↝* M
+--   Main theorem:  connectivity :  (∀ {x} → ¬ R x x)
+--                                → L ↭ M → NoInv L → NoInv M → L ↝* M
+--
+--   (on the irreflexivity hypothesis, see the NOTE below the imports.)
 --
 -- This module is now postulate-free and `--safe`.
 ------------------------------------------------------------------------
@@ -237,8 +240,8 @@ bubble {x = x} (m ∷ rest) (there i) noM xmin =
 -- residual). The carriers (linear extensions of a poset here vs.
 -- `FinBij`/words there) and side-conditions (`NoInv`-guarded swaps vs.
 -- unconditional rotation) differ enough that a shared formalization was
--- examined and declined as not worth the cost (see
--- REVIEW3/00-conceptual-unbiased.md F19).
+-- examined and declined as not worth the cost: the `_∈_`/`NoInv`-guarded step
+-- here and `remove`/`rotate` there do not align at the type level.
 ------------------------------------------------------------------------
 
 connectivity : (∀ {x} → ¬ R x x) → L ↭ M → NoInv L → NoInv M → L ↝* M

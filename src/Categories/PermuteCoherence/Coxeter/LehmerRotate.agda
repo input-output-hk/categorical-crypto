@@ -56,10 +56,11 @@ remove-cons : (X : FinBij n N) → remove 0F (cons-fb X) ≈-fb X
 remove-cons X = cons-fb-injective (P.lift₀-remove (cons-fb X) refl)
 
 ------------------------------------------------------------------------
--- 2. The peel lemma (every `b` factors as `cons-fb (residual) ∘ ρ_m`) now
---    lives upstream in `Word`, next to `canonW`
---    [REVIEW3/00-conceptual-unbiased.md F3]; `peel` is visible here via the
---    unrestricted `open import Categories.PermuteCoherence.Coxeter.Word` above.
+-- 2. The peel lemma (every `b` factors as `cons-fb (residual) ∘ ρ_m`) lives
+--    upstream in `Word`, next to `canonW` — the factorization IS the data
+--    `canonW` recurses on, so it belongs there.  `peel` is visible here via
+--    the unrestricted `open import Categories.PermuteCoherence.Coxeter.Word`
+--    above (but is NOT re-exported: `InsertProof` imports `Word` itself).
 
 ------------------------------------------------------------------------
 -- 3. `canonW` of a `cons-fb X ∘ rotate-fb k`:  the peel is realised at
