@@ -43,7 +43,7 @@ untuck = id ⊗₁ σ⇒ ∘ α⇒
 -- The middle-four interchange, built from `swp` on the state pair.  Also its own
 -- inverse, and equal to `Categories.Category.Monoidal.Interchange.Braided`'s
 -- `swapInner`, which routes the braiding through the interface pair instead
--- (`Ω≈Ω′` in `Spike.Interchange`).
+-- (`Ω≈Ω′` in `Spike.SlotFrame`).
 Ω : (P ⊗₀ Q) ⊗₀ (X ⊗₀ Y) ⇒ (P ⊗₀ X) ⊗₀ (Q ⊗₀ Y)
 Ω = α⇒ ∘ swp ⊗₁ id ∘ α⇐
 

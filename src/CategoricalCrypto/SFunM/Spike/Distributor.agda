@@ -29,9 +29,9 @@ import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 open import Data.Nat.Base using (ℕ; zero; suc)
 open import Data.Product using (Σ; _,_)
 
-import CategoricalCrypto.SFunM.Spike.Interchange as Interchange
 import CategoricalCrypto.SFunM.Spike.Mealy as Mealy
 import CategoricalCrypto.SFunM.Spike.MonoidalDistributive as MD
+import CategoricalCrypto.SFunM.Spike.SlotFrame as SlotFrame
 
 module CategoricalCrypto.SFunM.Spike.Distributor {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e)
   (dist : MD.MonoidalDistributive 𝒱) where
@@ -40,9 +40,9 @@ open SymmetricMonoidalCategory 𝒱
 open BraidedProps.Shorthands braided using (σ⇒)
 open MonoidalUtilities.Shorthands monoidal
 open Equiv
-open Interchange 𝒱
 open MD.MonoidalDistributive dist
 open Mealy 𝒱
+open SlotFrame 𝒱
 
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism U using (JointEpi; _≅_)

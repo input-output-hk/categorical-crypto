@@ -37,7 +37,6 @@ import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 open import Data.Nat.Base using (ℕ; zero; suc)
 
 import CategoricalCrypto.SFunM.Spike.Distributor as Distributor
-import CategoricalCrypto.SFunM.Spike.Interchange as Interchange
 import CategoricalCrypto.SFunM.Spike.Laws as Laws
 import CategoricalCrypto.SFunM.Spike.Mealy as Mealy
 import CategoricalCrypto.SFunM.Spike.MonoidalDistributive as MD
@@ -51,7 +50,6 @@ open BraidedProps.Shorthands braided using (σ⇒)
 open MonoidalUtilities.Shorthands monoidal
 open Distributor 𝒱 dist
 open Equiv
-open Interchange 𝒱
 open Laws 𝒱
 open MD.MonoidalDistributive dist
 open Mealy 𝒱
@@ -233,9 +231,6 @@ tstep-i₂ = assoc ○ (refl⟩∘⟨ (pullʳ δ⇐-i₂ ○ +₁∘i₂)) ○ p
 tstep-str : (h : A ⇒ B) (k : C ⇒ D) → tstep (id {X} ⊗₁ h) (id ⊗₁ k) ≈ id ⊗₁ (h +₁ k)
 tstep-str h k = δ-unique (tstep-i₁ ○ merge₂ʳ ○ ⟺ (merge₂ʳ ○ refl⟩⊗⟨ +₁∘i₁))
                          (tstep-i₂ ○ merge₂ʳ ○ ⟺ (merge₂ʳ ○ refl⟩⊗⟨ +₁∘i₂))
-
-IˢIˢ-closed : discard (Iˢ ⊛ Iˢ) ∘ point (Iˢ ⊛ Iˢ) ≈ id
-IˢIˢ-closed = (elimʳ ⊗.identity ⟩∘⟨ elimˡ ⊗.identity) ○ unitorˡ.isoʳ
 
 +₁-id : id {A} +₁ id {B} ≈ id
 +₁-id = ⟺ (+-unique (+₁∘i₁ ○ identityʳ) (+₁∘i₂ ○ identityʳ)) ○ +-η

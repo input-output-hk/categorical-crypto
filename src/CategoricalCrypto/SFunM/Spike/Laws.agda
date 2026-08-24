@@ -2,13 +2,12 @@
 
 -- SPIKE: the category of Mealy machines over a symmetric monoidal `𝒱`.
 --
--- `Spike.Interchange` supplies the three interchange identities and
--- `Spike.SlotFrame` the coherence bookkeeping they are glued with.  The crux
--- here is `run-∘`: unrolling a composite `n` steps is the same as composing the
--- two unrollings, which is `CategoricalCrypto.SFunM`'s `trace-∘` written
--- point-free.  `eval-∘` then closes the paired state off one factor at a time,
--- and `Mealy-Category` reads the category laws off `eval-∘` and `eval-id`
--- exactly as `SFunM.Laws` does.
+-- `Spike.SlotFrame` supplies the interchange identities and all the coherence
+-- bookkeeping they are glued with.  The crux here is `run-∘`: unrolling a
+-- composite `n` steps is the same as composing the two unrollings, which is
+-- `CategoricalCrypto.SFunM`'s `trace-∘` written point-free.  `eval-∘` then
+-- closes the paired state off one factor at a time, and `Mealy-Category` reads
+-- the category laws off `eval-∘` and `eval-id` exactly as `SFunM.Laws` does.
 
 open import Categories.Category.Core using (Category)
 open import Categories.Category.Helper using (categoryHelper)
@@ -17,7 +16,6 @@ import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
 open import Data.Nat.Base using (ℕ; zero; suc)
 
-import CategoricalCrypto.SFunM.Spike.Interchange as Interchange
 import CategoricalCrypto.SFunM.Spike.Mealy as Mealy
 import CategoricalCrypto.SFunM.Spike.SlotFrame as SlotFrame
 
@@ -25,7 +23,6 @@ module CategoricalCrypto.SFunM.Spike.Laws {o ℓ e} (𝒱 : SymmetricMonoidalCat
 
 open SymmetricMonoidalCategory 𝒱
 open MonoidalUtilities.Shorthands monoidal
-open Interchange 𝒱
 open Mealy 𝒱
 open SlotFrame 𝒱
 
