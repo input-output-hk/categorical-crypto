@@ -276,7 +276,8 @@ module Braid {A B C D : ObjTerm}
     module Kd = Hypergraph K
     module RF = Run ⟪ fg ⟫
     module Hf = Hypergraph ⟪ fg ⟫
-    open StrictDecoder ⟪ fg ⟫ using (process-edgesˢ; vl)
+    open StrictDecoder ⟪ fg ⟫
+      using (process-edgesˢ; vl; block-disjoint; stack-sepˢ; term-sepᵛ)
 
     open import Categories.APROP.Hypergraph.Model.Invariant sig using (range-++)
 
@@ -291,8 +292,6 @@ module Braid {A B C D : ObjTerm}
     open DC.RunBlocks ⟪ fg ⟫
       using (absorbˢ; coeCod; run-split-atˢ; pe-stack-++ˢ)
     module KBD = KBlockDisjoint G K
-    open StrictDecoder ⟪ fg ⟫
-      using (block-disjoint; stack-sepˢ; term-sepᵛ)
     open Restrict (Fin Hf.nV) vl
       using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; cast-flipᵛ
             ; cast-respᵛ; box-conjᵛ; ⊗-respᵛ; interchangeᵛ; ⊗ᵛ-≈̂ )
@@ -444,7 +443,8 @@ module Braid {A B C D : ObjTerm}
       perm-rigidᵛ = PK.perm-rigidˢ (Fin Hf.nV) _≟F_ Hf.vlab
 
       open DSS.Scr (Fin Hf.nV) Hf.vlab using (bswap)
-      open EquivStep ⟪ fg ⟫ using (process-edges-equivariantˢ)
+      open EquivStep ⟪ fg ⟫
+        using (process-edges-equivariantˢ; pvv-transˢ; pvv-inverse-leftˢ)
 
     ------------------------------------------------------------------
     -- ### Foundational stack / boundary identities.
@@ -644,8 +644,6 @@ module Braid {A B C D : ObjTerm}
     KBlockσ-from-factorization Br kfac =
       cand , goal
       where
-        open EquivStep ⟪ fg ⟫ using (pvv-transˢ; pvv-inverse-leftˢ)
-
         cand : RF.s-finˢ Perm.↭ Hf.cod
         cand = subst (Perm._↭ Hf.cod) stkSplit₀ (Perm.trans (Perm.↭-sym Br) comb)
 
