@@ -18,6 +18,11 @@
 -- `EdgeStepR` is the graph of that stack function.  The FIRE branch no longer
 -- carries a `HomTerm` factor, so the relation is indexed by the output stack
 -- alone.
+--
+-- OFF-CONE DEMONSTRATION: nothing imports this module.  The load-bearing copy
+-- of `EdgeStepR`/`edge-step-graph` is private to
+-- `Soundness.Discharge.SwapValidity`, which needs it at the `↭`-respect
+-- lemmas; this file exists to present the same construction on its own.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

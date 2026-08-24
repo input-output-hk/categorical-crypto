@@ -3,7 +3,8 @@
 ------------------------------------------------------------------------
 -- Extensions to `Data.List.Properties`.
 --
--- Charter (fan-in 19, so the import cone here is paid by every consumer):
+-- Charter (a wide-fan-in leaf, so the import cone here is paid by every
+-- consumer):
 -- list facts provable from `Data.List.Base` + `Data.List.Properties` +
 -- `Core` equality alone.  Anything needing a new stdlib module belongs in
 -- its consumer, not here.  Splitting this leaf into its four honest

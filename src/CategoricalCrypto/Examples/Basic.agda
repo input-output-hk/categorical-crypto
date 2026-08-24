@@ -137,5 +137,7 @@ module SecureFromAuthenticated (PlainText CipherText PubKey PrivKey : Type)
   Functionality : Machine I ((S.A ⊗₀ S.B) ⊗₀ S.E)
   Functionality = SH.Functionality ∘ L.Functionality
 
-  -- F≤Secure : Functionality ≤'UC S.Functionality msgLength
+  -- `Machine.Core._≤'UC_` is binary; the `msgLength` this sketch
+  -- passed as a third argument belongs inside `S.Functionality`.
+  -- F≤Secure : Functionality ≤'UC S.Functionality
   -- F≤Secure = {!!}
