@@ -43,7 +43,6 @@ open import Categories.APROP.Hypergraph.Model.Translation sig
 open import Categories.APROP.Hypergraph.Solver.Match.FindIsoTab sig-dec
 open import Categories.APROP.Hypergraph.Soundness sig-dec
 
-
 open import Data.Maybe.Base
 import Data.Maybe.Base as Maybe
 open import Data.Nat.Base
@@ -129,14 +128,15 @@ solveSplit? f g | nothing = fallback f g
 
 --------------------------------------------------------------------------------
 -- Reassociation (cut exposure): normalize `∘` to right-nested form,
--- recursing under `⊗₁`.  `comp` grafts a term onto the right end of a
+-- recursing under `⊗₁`.  `compS` grafts a term onto the right end of a
 -- right-nested spine.  Soundness uses only `assoc` and the congruence
 -- rules — no coherence.
 
 -- The graft and its soundness proof in ONE recursion: pairing the term with
 -- its witness lets the nine non-`∘` constructors be covered by the CATCH-ALL
--- clause.  As two separate definitions they must each be enumerated, because
--- `comp g f` does not reduce at a variable `g`.
+-- clause.  Split into a `comp`/`comp-sound` pair they would each have to be
+-- enumerated, because `comp g f` does not reduce at a variable `g` — and
+-- nothing outside this module ever needed either half separately.
 private
   compS : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
         → Σ (HomTerm A C) (λ h → h ≈Term g ∘ f)
@@ -144,17 +144,10 @@ private
   ... | gf , p = h ∘ gf , ≈-Term-trans (∘-resp-≈ ≈-Term-refl p) (≈-Term-sym assoc)
   compS h f = h ∘ f , ≈-Term-refl
 
-comp : ∀ {A B C} → HomTerm B C → HomTerm A B → HomTerm A C
-comp g f = proj₁ (compS g f)
-
-comp-sound : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B) → comp g f ≈Term g ∘ f
-comp-sound g f = proj₂ (compS g f)
-
-private
   reassocS : ∀ {A B} (f : HomTerm A B) → Σ (HomTerm A B) (λ g → g ≈Term f)
   reassocS (g ∘ f) with reassocS g | reassocS f
-  ... | g' , pg | f' , pf =
-        comp g' f' , ≈-Term-trans (comp-sound g' f') (∘-resp-≈ pg pf)
+  ... | g' , pg | f' , pf with compS g' f'
+  ...   | gf , pc = gf , ≈-Term-trans pc (∘-resp-≈ pg pf)
   reassocS (f ⊗₁ g) with reassocS f | reassocS g
   ... | f' , pf | g' , pg = f' ⊗₁ g' , ⊗-resp-≈ pf pg
   reassocS f = f , ≈-Term-refl
@@ -188,14 +181,11 @@ private
   pairC (h ◅ ε)        = h ◅ ε
   pairC (h ◅ (g ◅ gs)) = (h ∘ g) ◅ pairC gs
 
-  -- Right-collapse (only the fuel-exhausted fallback; unreachable with fuel = length).
-  oneC : ∀ {A B} → Chain A B → HomTerm A B
-  oneC = fold (λ Y Z → HomTerm Z Y) _∘_ id
-
   balC : ∀ {A B} → ℕ → Chain A B → HomTerm A B
   balC _       ε        = id
   balC _       (f ◅ ε)  = f
-  balC zero    (g ◅ gs) = oneC (g ◅ gs)
+  -- The fuel-exhausted fallback right-collapses; unreachable with fuel = length.
+  balC zero    (g ◅ gs) = fold (λ Y Z → HomTerm Z Y) _∘_ id (g ◅ gs)
   balC (suc n) (g ◅ gs) = balC n (pairC (g ◅ gs))
 
   -- Identity elimination on a chain.  Every `id` factor in a `∘`-spine
