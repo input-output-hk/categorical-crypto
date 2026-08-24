@@ -133,9 +133,6 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
     castʷ-irr : (e e' : m ≡ m') (t : WTerm n m) → castʷ e t ≡ castʷ e' t
     castʷ-irr e e' t = cong (λ z → castʷ z t) (≡-irrL e e')
 
-    castʷᵈ-irr : (e e' : n ≡ n') (t : WTerm n m) → castʷᵈ e t ≡ castʷᵈ e' t
-    castʷᵈ-irr e e' t = cong (λ z → castʷᵈ z t) (≡-irrL e e')
-
   --------------------------------------------------------------------------------
   -- The flat pad: a box `g` idling behind `pre` wires and in front of `suf`
   -- wires.  This is the strict, cast-free analogue of `Diagram.pad` — no
@@ -143,22 +140,6 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
   --------------------------------------------------------------------------------
   padʷ : (pre suf : List X) {a b : List X} → WTerm a b → WTerm (pre ++ (a ++ suf)) (pre ++ (b ++ suf))
   padʷ pre suf g = idʷ {n = pre} ⊗ʷ (g ⊗ʷ idʷ {n = suf})
-
-  -- pushing a domain/codomain transport of a pad's box out to a transport of
-  -- the whole pad; and reindexing a pad's idle suffix along `suf ≡ suf'`.  Both
-  -- reduce on `refl`.
-  pad-castˢ : ∀ (pre suf : List X) {n n' m m' : List X} (d : n ≡ n') (c : m ≡ m')
-                (t : WTerm n m)
-            → padʷ pre suf (castʷᵈ d (castʷ c t))
-              ≡ castʷᵈ (cong (λ z → pre ++ (z ++ suf)) d)
-                  (castʷ (cong (λ z → pre ++ (z ++ suf)) c) (padʷ pre suf t))
-  pad-castˢ pre suf refl refl t = refl
-
-  padʷ-suf : ∀ (pre : List X) {suf suf' a b : List X} (e : suf ≡ suf') (g : WTerm a b)
-           → padʷ pre suf' g
-             ≡ castʷᵈ (cong (λ z → pre ++ (a ++ z)) e)
-                 (castʷ (cong (λ z → pre ++ (b ++ z)) e) (padʷ pre suf g))
-  padʷ-suf pre refl g = refl
 
   --------------------------------------------------------------------------------
   -- The equational theory, parametrised by an engine relation `R`.  Besides the
@@ -352,23 +333,9 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
         ; pentagon        = pentagonˢ
         }
 
-      -- generic tensor vocabulary over the instance, re-exported so the pad
-      -- functoriality proofs and the disjoint-block slides read in library terms.
+      -- generic tensor vocabulary over the instance, re-exported so the
+      -- disjoint-block slides read in library terms.
       open MonR MonoidalStrictR public using (serialize₁₂; serialize₂₁; split₁ʳ; split₂ʳ)
-
-    --------------------------------------------------------------------------------
-    -- `padʷ pre suf` as a functor: congruence (`pad-respˢ`), preservation of
-    -- composition (`pad-∘ˢ`, distributing each idle block via the library
-    -- `split₁ʳ`/`split₂ʳ`, hence `⦃ DecEq X ⦄`) and identity (`pad-idˢ`).
-    --------------------------------------------------------------------------------
-    pad-respˢ : (p s : List X) {a b : List X} {g g' : WTerm a b} → g ≈ʷ g' → padʷ p s g ≈ʷ padʷ p s g'
-    pad-respˢ p s e = ⊗-resp-≈ʷ reflʷ (⊗-resp-≈ʷ e reflʷ)
-
-    pad-∘ˢ : ⦃ _ : DecEq X ⦄ → (p s : List X) (g : WTerm m k) (f : WTerm n m) → padʷ p s (g ∘ʷ f) ≈ʷ padʷ p s g ∘ʷ padʷ p s f
-    pad-∘ˢ p s g f = transʷ (⊗-resp-≈ʷ reflʷ split₁ʳ) split₂ʳ
-
-    pad-idˢ : (p s : List X) → padʷ p s (idʷ {n = n}) ≈ʷ idʷ
-    pad-idˢ p s = transʷ (⊗-resp-≈ʷ reflʷ id⊗id) id⊗id
 
     --------------------------------------------------------------------------------
     -- The pad-conjugation relation `≋`: `t ≋ t'` when `t` is `t'` up to a
@@ -414,25 +381,10 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
     ≋-cong-⊗ʳ s {t = t} (mk≋ d c eq) = mk≋ (cong (_ ++_) d) (cong (_ ++_) c)
       (transʷ (≡→≈ʷ (sym (⊗ʷ-cast-pair-r d c s t))) (⊗-resp-≈ʷ reflʷ eq))
 
-    ≋-cong-pad : (p s : List X) {t : WTerm n m} {t' : WTerm n' m'}
-               → t ≋ t' → padʷ p s t ≋ padʷ p s t'
-    ≋-cong-pad p s {t = t} (mk≋ d c eq) =
-      mk≋ (cong (λ z → p ++ (z ++ s)) d) (cong (λ z → p ++ (z ++ s)) c)
-        (transʷ (≡→≈ʷ (sym (pad-castˢ p s d c t))) (pad-respˢ p s eq))
-
-    -- reindex a pad's idle suffix along `suf ≡ suf'`
-    padʷ-sufᴶ : (pre : List X) {suf suf' a b : List X} (e : suf ≡ suf') (g : WTerm a b)
-              → padʷ pre suf g ≋ padʷ pre suf' g
-    padʷ-sufᴶ pre {a = a} {b} e g =
-      mk≋ (cong (λ z → pre ++ (a ++ z)) e) (cong (λ z → pre ++ (b ++ z)) e)
-        (≡→≈ʷ (sym (padʷ-suf pre e g)))
-
     --------------------------------------------------------------------------------
     -- The pad regroupings as cast-free `≋` statements: `pad-nestᴶ` at a split
-    -- prefix, `pad-nestRᴶ` at a split suffix, `pad-fuseᴶ` fusing a wide pad into a
-    -- pad-of-pad, `nest3ᴶ` the threefold nesting, and the two `pad-absorb_ᴶ`
-    -- collapsing a box padded on one side then re-padded.  Each is `⊗-assocᴶ` +
-    -- `id⊗id` composed through the `≋` kit.
+    -- prefix, `pad-nestRᴶ` at a split suffix, and `nest3ᴶ` the threefold nesting.
+    -- Each is `⊗-assocᴶ` + `id⊗id` composed through the `≋` kit.
     --------------------------------------------------------------------------------
     pad-nestᴶ : (p q suf : List X) {a b : List X} (g : WTerm a b)
               → padʷ (p ++ q) suf g ≋ (idʷ {n = p} ⊗ʷ padʷ q suf g)
@@ -447,28 +399,10 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
         (≋-trans (≋-cong-⊗ʳ (idʷ {n = pre}) (≋-sym (⊗-assocᴶ g (idʷ {n = suf}) (idʷ {n = rt}))))
                  (≋-sym (⊗-assocᴶ (idʷ {n = pre}) (g ⊗ʷ idʷ {n = suf}) (idʷ {n = rt}))))
 
-    pad-fuseᴶ : (px sx P s : List X) {a b : List X} (g : WTerm a b)
-              → padʷ (px ++ P) (s ++ sx) g ≋ padʷ px sx (padʷ P s g)
-    pad-fuseᴶ px sx P s g =
-      ≋-trans (pad-nestᴶ px P (s ++ sx) g) (≋-cong-⊗ʳ (idʷ {n = px}) (pad-nestRᴶ P s sx g))
-
     nest3ᴶ : (p q r suf : List X) {a b : List X} (g : WTerm a b)
            → padʷ (p ++ (q ++ r)) suf g ≋ (idʷ {n = p} ⊗ʷ (idʷ {n = q} ⊗ʷ padʷ r suf g))
     nest3ᴶ p q r suf g =
       ≋-trans (pad-nestᴶ p (q ++ r) suf g) (≋-cong-⊗ʳ (idʷ {n = p}) (pad-nestᴶ q r suf g))
-
-    pad-absorbLᴶ : (px sx a p₁ s₁ : List X) {u v : List X} (g : WTerm u v)
-                 → padʷ px sx (idʷ {n = a} ⊗ʷ padʷ p₁ s₁ g) ≋ padʷ (px ++ (a ++ p₁)) (s₁ ++ sx) g
-    pad-absorbLᴶ px sx a p₁ s₁ g =
-      ≋-trans (≋-cong-pad px sx (≋-sym (pad-nestᴶ a p₁ s₁ g)))
-              (≋-sym (pad-fuseᴶ px sx (a ++ p₁) s₁ g))
-
-    pad-absorbRᴶ : (px sx a p₁ s₁ : List X) {u v : List X} (g : WTerm u v)
-                 → padʷ px sx (padʷ p₁ s₁ g ⊗ʷ idʷ {n = a}) ≋ padʷ (px ++ p₁) (s₁ ++ (a ++ sx)) g
-    pad-absorbRᴶ px sx a p₁ s₁ g =
-      ≋-trans (≋-cong-pad px sx (≋-sym (pad-nestRᴶ p₁ s₁ a g)))
-        (≋-trans (≋-sym (pad-fuseᴶ px sx p₁ (s₁ ++ a) g))
-                 (padʷ-sufᴶ (px ++ p₁) (++-assoc s₁ a sx) g))
 
     -- the explicit-cast wrapper Diagram.shiftL-soundˢ consumes: canonical
     -- `++-assoc` endpoints, so no Hedberg reconciliation (instance-free).
@@ -482,8 +416,7 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
     -- The explicit-cast wrappers whose caller supplies the transports; the caller
     -- pair is reconciled to the `≋`-record's canonical pair by Hedberg
     -- irrelevance (`≋→cast-formˢ`), so these carry the `⦃ DecEq X ⦄`.  `pad-nestR`
-    -- feeds Diagram.shiftR-soundˢ, `nest3` feeds `swap-cleanˢ`, and the two
-    -- `pad-absorb_ˢ` feed Sigma.slide-cleanˢ/-a.
+    -- feeds Diagram.shiftR-soundˢ and `nest3` feeds `swap-cleanˢ`.
     --------------------------------------------------------------------------------
     module _ ⦃ _ : DecEq X ⦄ where
       ≋→cast-formˢ : {t : WTerm n m} {t' : WTerm n' m'} → t ≋ t'
@@ -504,20 +437,6 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
             → padʷ (p ++ (q ++ r)) suf g
               ≈ʷ castʷᵈ dd (castʷ dc (idʷ {n = p} ⊗ʷ (idʷ {n = q} ⊗ʷ padʷ r suf g)))
       nest3 p q r suf g dd dc = ≋→cast-formˢ (≋-sym (nest3ᴶ p q r suf g)) dd dc
-
-      pad-absorbLˢ : (px sx a p₁ s₁ : List X) {u v : List X} (g : WTerm u v)
-                     (eD : (px ++ (a ++ p₁)) ++ (u ++ (s₁ ++ sx)) ≡ px ++ ((a ++ (p₁ ++ (u ++ s₁))) ++ sx))
-                     (eC : (px ++ (a ++ p₁)) ++ (v ++ (s₁ ++ sx)) ≡ px ++ ((a ++ (p₁ ++ (v ++ s₁))) ++ sx))
-                   → padʷ px sx (idʷ {n = a} ⊗ʷ padʷ p₁ s₁ g)
-                     ≈ʷ castʷᵈ eD (castʷ eC (padʷ (px ++ (a ++ p₁)) (s₁ ++ sx) g))
-      pad-absorbLˢ px sx a p₁ s₁ g eD eC = ≋→cast-formˢ (≋-sym (pad-absorbLᴶ px sx a p₁ s₁ g)) eD eC
-
-      pad-absorbRˢ : (px sx a p₁ s₁ : List X) {u v : List X} (g : WTerm u v)
-                     (eD : (px ++ p₁) ++ (u ++ (s₁ ++ (a ++ sx))) ≡ px ++ (((p₁ ++ (u ++ s₁)) ++ a) ++ sx))
-                     (eC : (px ++ p₁) ++ (v ++ (s₁ ++ (a ++ sx))) ≡ px ++ (((p₁ ++ (v ++ s₁)) ++ a) ++ sx))
-                   → padʷ px sx (padʷ p₁ s₁ g ⊗ʷ idʷ {n = a})
-                     ≈ʷ castʷᵈ eD (castʷ eC (padʷ (px ++ p₁) (s₁ ++ (a ++ sx)) g))
-      pad-absorbRˢ px sx a p₁ s₁ g eD eC = ≋→cast-formˢ (≋-sym (pad-absorbRᴶ px sx a p₁ s₁ g)) eD eC
     -- The disjoint two-box interchange.  Two boxes `fy` (block `ay/by`, offset `P`) and `fx`
     -- (block `ax/bx`, offset `P ++ (·  ++ mid)`) sit in disjoint, non-crossing
     -- ranges of the flat wire word  P | y | mid | x | s , so the two firing
