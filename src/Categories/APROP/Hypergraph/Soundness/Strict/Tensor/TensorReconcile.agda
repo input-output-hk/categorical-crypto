@@ -1,19 +1,29 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- DISCHARGE WORK for the `reconcileˢ` residual of `Strict.Decode.DecodeTensor`
--- — the K-block prepend-asymmetry braid + final-permute resort completing the
--- ⊗-shape.  This is the strict port of the whole-run assembly TAIL of the
--- former non-strict `DecodeTensorShape`.
+-- The ⊗-SHAPE of the strict decoder `decodePˢ` (strict analogue of the former
+-- non-strict `DecodeTensorShape`), reduced to its ONE residual and discharged
+-- down to the K-block braid:
 --
--- The TARGET (verified verbatim against `DecodeTensor.Tensor`'s `reconcileˢ`
--- parameter) is, for `f : HomTerm A B`, `g : HomTerm C D`:
+--   decodePˢ-⊗ : decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
 --
---   reconcileˢ
---     : Run.permuteˢ ⟪ f ⊗₁ g ⟫ (finalPermˢ (f ⊗₁ g))
---         ∘ˢ proj₂ (Run.runˢ ⟪ f ⊗₁ g ⟫)
---       ≈ˢ castˢ (sym (⟪⟫-domL (f ⊗₁ g))) (sym (⟪⟫-codL (f ⊗₁ g)))
---           (decodePˢ f ⊗ˢ decodePˢ g)
+-- CRITICAL ASYMMETRY (the documented finding — NOT re-discovered here).  The
+-- ⊗-shape is NOT two separability frames.  `edge-stepˢ` PREPENDS fired outputs:
+--
+--   * the RIGHT frame (untouched region = SUFFIX) works — this is the PROVEN
+--     `Decoder.term-sepᵛ`.  It factors the G-block run over `C.dom =
+--     map injL G.dom ++ map injR K.dom` as `(G-run on map injL G.dom) ⊗ᵛ
+--     idᵛ {map injR K.dom}` (the untouched K-input is a suffix).
+--   * the LEFT frame is FALSE for any firing block: in `hTensor G K`, after
+--     G's block fires (leaving `G.cod ++ K.dom`-shaped stack), K's edges act on
+--     the K-input suffix and PREPEND K's outputs in FRONT of `G.cod`, producing
+--     a BRAIDED form (`SeparableStack`'s obstruction note: no left frame).
+--
+-- So the clean `decodePˢ f ⊗ˢ decodePˢ g` is recovered ONLY at the whole-decode
+-- level, where the final extract-exact permutation `finalPermˢ (f ⊗₁ g)`
+-- re-sorts the braided K-outputs back behind `G.cod`.  That is the `braidˢ`
+-- residual below; in the strict SMC it collapses to the `σˢ`/`σ-hexˢ` machinery
+-- of `Strict/Perm/Braid.agda` + `Strict/Interchange/BlockSwapComm.agda`.
 --
 -- WHAT IS PROVEN HERE (green, postulate-free, `--safe --without-K`):
 --
@@ -28,9 +38,11 @@
 --   * `reconcile-from-braid` — the REDUCTION: GIVEN the single K-block braid
 --     fact `braidˢ` (one clearly-typed `≈ˢ`, stated below: the C-run inner
 --     term, post-resort by a canonical derivation `cand`, equals the clean
---     tensor at the boundary objects), `reconcileˢ` follows by `final-resortˢ`
---     + `∘-resp`.  Hence the whole ⊗-shape rests on the SINGLE residual
---     `braidˢ` — the K-block prepend-asymmetry braid.
+--     tensor at the boundary objects), `BraidSigˢ (finalPermˢ fg)` follows by
+--     `final-resortˢ` + `∘-resp`.  Hence the whole ⊗-shape rests on the SINGLE
+--     residual `braidˢ` — the K-block prepend-asymmetry braid.
+--
+--   * `decodePˢ-⊗-from-braid` — the ⊗-shape itself, from that by `viaˢ`.
 --
 -- THE `braidˢ` PARAMETER (precisely typed; discharged DOWNSTREAM, not here):
 --   `braidˢ`, the K-block braid: the strict statement that the C-run inner
@@ -65,7 +77,6 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeTensor sig _≟X_ as DT
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
@@ -97,8 +108,9 @@ module Reconcile {A B C D : ObjTerm}
     uniqCod = Linear⇒cod-Unique ⟪ fg ⟫ (⟪⟫-LinearP fg)
 
   -- THE `braidˢ` RESIDUAL, named: the C-run inner term post-sorted by
-  -- `cand` is the clean tensor at the boundary objects.  `reconcileˢ` IS
-  -- this signature at `cand := finalPermˢ fg`.
+  -- `cand` is the clean tensor at the boundary objects.  At
+  -- `cand := finalPermˢ fg` this signature IS the ⊗-shape conjugated by
+  -- `castˢ (⟪⟫-domL fg) (⟪⟫-codL fg)`.
   BraidSigˢ : RF.s-finˢ ↭ Hf.cod → Set
   BraidSigˢ cand =
     RF.permuteˢ cand ∘ˢ proj₂ (Run.runˢ ⟪ fg ⟫)
@@ -135,19 +147,21 @@ module Reconcile {A B C D : ObjTerm}
   reconcile-from-braid cand braidˢ = ≈-trans (∘-resp (final-resortˢ cand) ≈-refl) braidˢ
 
   ----------------------------------------------------------------------
-  -- VERIFICATION that `reconcile-from-braid` produces EXACTLY the
-  -- `reconcileˢ` parameter of `DecodeTensor.Tensor`, and that feeding it
-  -- yields the ⊗-shape THEOREM `decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ
-  -- decodePˢ g` modulo the single residual `braidˢ` (the K-block braid).
+  -- The ⊗-shape THEOREM, modulo the single residual `braidˢ`.  Boundaries
+  -- align definitionally (`flatten` distributes over `⊗₀` as `_++_`), so the
+  -- statement is cast-free and `BraidSigˢ (finalPermˢ fg)` is exactly it
+  -- conjugated by `castˢ (⟪⟫-domL fg) (⟪⟫-codL fg)`.
 
   decodePˢ-⊗-from-braid
     : (cand : RF.s-finˢ ↭ Hf.cod) → BraidSigˢ cand
     → decodePˢ fg ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
   decodePˢ-⊗-from-braid cand braidˢ =
-    DT.Tensor.decodePˢ-⊗ f g (reconcile-from-braid cand braidˢ)
+    viaˢ (cast-≈̂ {p = ⟪⟫-domL fg} {q = ⟪⟫-codL fg})
+         (reconcile-from-braid cand braidˢ)
+         (≈̂-sym (cast-≈̂ {p = sym (⟪⟫-domL fg)} {q = sym (⟪⟫-codL fg)}))
 
 --------------------------------------------------------------------------------
--- `reconcileˢ` = `final-resortˢ` (proven here, via `perm-rigidˢ` on the
+-- The ⊗-shape = `final-resortˢ` (proven here, via `perm-rigidˢ` on the
 -- `Unique` cod) + the single K-block braid residual `braidˢ`, discharged
 -- downstream in `Strict/Tensor/TensorBraid` (concrete witness
 -- `TensorBraid.decodePˢ-⊗-concrete`, zero postulates).  See the header

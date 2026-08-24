@@ -264,6 +264,6 @@ module _ {A B C : ObjTerm} where
 --   decodePˢ-σ       : decodePˢ (σ {A} {B}) ≈ˢ σˢ (flatten A) (flatten B)
 --
 -- discharged in `Strict/Decode/DecodeCompose`(+`DecodeComposeAssembly`),
--- `DecodeTensor`(+`Tensor/TensorReconcile`,`TensorBraid`), and
+-- `Tensor/TensorReconcile` + `TensorBraid`, and
 -- `DecodeSigma`(+`Interchange/BlockSwapComm`) respectively.
 --------------------------------------------------------------------------------
