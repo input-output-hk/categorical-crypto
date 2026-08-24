@@ -19,6 +19,10 @@
 --                          unchanged (failures only ever fall back, at the
 --                          level where the decomposition got stuck).
 --
+-- The file also exports the reassociation normaliser `reassocBal` and its
+-- combinator kit (the second half of the file), load-bearing in
+-- `Solver.Frontend`'s focus frames.
+--
 -- `solveSplitR?` is the entry point: it first reassociates both sides to
 -- right-nested `∘`-chains (`reassoc`, assoc-only — no coherence), exposing
 -- cuts so that case 2 peels common chain prefixes head-by-head.

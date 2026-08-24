@@ -12,8 +12,8 @@
 --
 --     process-edgesˢ es (xs ++ R)  ≈ˢ  process-edgesˢ es xs ⊗ˢ idˢ {R}
 --
--- (modulo the stack equality), whose non-strict counterpart costs
--- SeparableStack (752 LOC) + the former `BoxKernel` box-suffix machinery.
+-- (modulo the stack equality), whose non-strict counterpart cost
+-- `SeparableStack` + the former `BoxKernel` box-suffix machinery.
 -- Stack-level lemmas (`extract-prefix-++ˡ` etc.) are term-free and are
 -- REUSED from SeparableStack as-is.
 --------------------------------------------------------------------------------

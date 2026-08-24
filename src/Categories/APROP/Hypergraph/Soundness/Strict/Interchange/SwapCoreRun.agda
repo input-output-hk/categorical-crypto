@@ -1,18 +1,21 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The STRICT EMPTY-TAIL two-edge interchange `run-interchange₀ˢ` and its
--- both-fire core `fire-mid-interchangeˢ`.
+-- The STRICT EMPTY-TAIL two-edge interchange `run-interchange₀ˢ`, PARAMETRIC
+-- in the both-fire core.
 --
--- This is the assembly file for part (II)ˢ's per-swap lemma: it consumes the
--- algebra bricks of `Strict.Interchange.SwapCore` (`EdgeStepRˢ`, `perm-rigidˢ`)
--- and the
--- V-level interchange kernel of `Interchange.FireMid` (`box-crossᵛ`,
--- `cross-NFᵛ`), plus the TERM-FREE combinatorics of
--- `Discharge.FireMidInterchangeComb` (`SimLoc`, `sim-loc`, the stability
--- lemmas) and `Stack.StackUniqueReach` (`Reservoir≤1`) to build:
+-- This file STATES the both-fire core (`FireMidInterchangeˢ`) and builds the
+-- four-way firing split around it: it consumes the algebra bricks of
+-- `Strict.Interchange.SwapCore` (`EdgeStepRˢ`, `perm-rigidˢ`), plus the
+-- TERM-FREE combinatorics of `Discharge.FireMidInterchangeComb` (`SimLoc`,
+-- `sim-loc`, the stability lemmas) and `Stack.StackUniqueReach`
+-- (`Reservoir≤1`) to build:
 --
---   * `fire-mid-interchangeˢ` — the both-fire interchange core.
+--   * `FireMidInterchangeˢ`   — the both-fire core, as a STATEMENT: the
+--                               parameter `FMI` of `RunInterchange`.  It is
+--                               PROVED downstream in `Interchange.FireMid`,
+--                               which imports this module and instantiates
+--                               `RunInterchange` with the proven core.
 --   * `run-interchange₀ˢ`     — the four-way firing split (skeleton).
 --
 -- The concrete `permˢ-K` is supplied via `Strict.Perm.PermK`.

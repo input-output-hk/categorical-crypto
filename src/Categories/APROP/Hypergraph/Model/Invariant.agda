@@ -6,7 +6,7 @@
 -- The pruned cospan composition `hComposeP` relies on structural properties
 -- of the translation that are universal but not captured by the `Hypergraph`
 -- record fields alone (uniqueness / dom≡cod of the identity and swap
--- hypergraphs, `range`-shape of `hId`'s dom, and Fin/cast bridging lemmas).
+-- hypergraphs, and `Unique` witnesses for `range n` / `hSwap` / `hGen`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

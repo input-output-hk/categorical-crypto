@@ -51,7 +51,7 @@
 --   * `Braid.decodePˢ-⊗-cond` — the ⊗-shape THEOREM, conditional on
 --     `KBlockσ`, which the next item then discharges.
 --   * `Braid.Reconcile-e` — the (e)-RECONCILE, the file's largest population
---     (from its own banner below to the end of the file).  It DERIVES the
+--     (from its own banner below to just before the final wiring).  It DERIVES the
 --     K-block run factorization here (`kfac`: equivariance + right-frame
 --     separability + σ-conjugation), reconciles it to the residual
 --     (`KBlockσ-from-factorization`), and closes with `kblockσ : KBlockσ`.

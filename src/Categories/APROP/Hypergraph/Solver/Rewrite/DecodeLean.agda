@@ -4,7 +4,7 @@
 -- Gate-only LEAN decode.
 --
 -- The term-building decoder used at the deep-rewrite search call site
--- (`Solver.Deep.At.tryEmb`, run over the EXTENDED signature `sig⁺`): from a
+-- (`Solver.Rewrite.Deep.tryEmb`, run over the EXTENDED signature `sig⁺`): from a
 -- hypergraph it produces the `HomTerm` frame whose translation is handed to
 -- the downstream `findIso`/`Verify` gate.
 --

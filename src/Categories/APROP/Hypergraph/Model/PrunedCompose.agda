@@ -5,7 +5,7 @@
 -- `G.nV + count-non K.dom` (pruned) rather than `G.nV + K.nV`: pruning
 -- drops every K-side vertex in `K.dom`, since those positions are glued to
 -- the corresponding `G.cod` entry and are unreferenced in the composite.
--- Relies on `Hypergraph.Prune.remap` and its label-preservation lemmas.
+-- Relies on `Util.Prune.remap` and its label-preservation lemmas.
 --
 -- DESIGN: pruning lets the vertex counts line up so the ≈Term laws
 -- (where the unpruned LHS would have strictly more vertices than the

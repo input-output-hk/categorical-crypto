@@ -1,13 +1,14 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Translate an APROP term `HomTerm A B` into a labeled hypergraph
--- `Hypergraph FlatGen`.
+-- The label alphabet (`FlatGen`, `flatten`, `flat`) and the smart
+-- hypergraph constructors that the term translation is built from.  The
+-- translation `⟪_⟫` itself and its boundary lemmas (`⟪⟫-domL`, `⟪⟫-codL`)
+-- live downstream in `Model.Translation`.
 --
 -- The hypergraph is *un-indexed* — it does not carry its boundary
--- atom-lists in the type.  The boundary facts `domL ⟪f⟫ ≡ flatten A`
--- and `codL ⟪f⟫ ≡ flatten B` are exposed as separate propositional
--- lemmas (`⟪⟫-domL`, `⟪⟫-codL`).
+-- atom-lists in the type; boundary facts are separate propositional
+-- lemmas at each constructor.
 --
 -- Smart constructors:
 --   hEmpty      empty hypergraph
@@ -70,7 +71,7 @@ flatten (Var x) = x ∷ []
 -- each `hComposeP` level.
 --
 -- The boundary proofs are kept *relevant* so the soundness-side strictification
--- (`Boundary.J-flat`, `Decode.Agen-edge-aux`) can coerce a generator's
+-- (`Strict.Soundness.J-flat`, `Decode.Agen-edge-aux`) can coerce a generator's
 -- `unflatten`-bridge onto the record's declared boundaries without needing
 -- decidable equality on `X` (which most soundness modules lack).  They are
 -- never *normalised* on the solver hot path (only carried as thunks), so the

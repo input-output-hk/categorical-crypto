@@ -61,8 +61,9 @@ module _ (H : Hypergraph FlatGen) where
 
   --------------------------------------------------------------------
   -- RIGIDITY: any two derivations into a `Unique` stack are `permuteˢ`-equal.
-  -- The strict Kelly residual enters here, and only here, at the concrete
-  -- `Perm.PermK` (axiom-free for every vertex set).
+  -- The strict Kelly residual is discharged by the concrete `Perm.PermK`
+  -- (axiom-free for every vertex set), instantiated here as at its other
+  -- strict-cone sites.
   --------------------------------------------------------------------
 
   perm-rigidˢ

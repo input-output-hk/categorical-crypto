@@ -13,13 +13,16 @@
 -- Contents (in dependency order):
 --   * `nE0-run`   : the structural-atom run (nE = 0) collapses to `idˢ`,
 --                   leaving the final permutation;
---   * `atom-shape`: a generic "nE = 0, dom ≡ cod" shape giving
+--   * `Atom.shape` (with the `coe`-form `shape-coe`): a generic
+--                   "nE = 0, dom ≡ cod" shape giving
 --                   `decodePˢ f ≈ˢ coe (boundary cast)` via `perm-rigidˢ`;
 --   * the concrete atomic shapes
 --       `decodePˢ-id`, `decodePˢ-λ⇒`, `decodePˢ-λ⇐`,
 --       `decodePˢ-ρ⇒`, `decodePˢ-ρ⇐`, `decodePˢ-α⇒`, `decodePˢ-α⇐`
 --     each `≈ˢ st (atom)` (idˢ / coe casts);
---   * the ⊗-shape and ∘-shape STATEMENTS with what is provable here.
+--   * a closing comment RECORDING the ⊗/∘/σ shape statements, which are
+--     proved elsewhere (`TensorBraid`, `DecodeCompose`, `DecodeSigma`) —
+--     not here.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

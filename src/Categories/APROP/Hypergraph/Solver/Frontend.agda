@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------
 -- Solving symmetric-monoidal equations in an *arbitrary* target SMC.
 --
--- `solveM` (Categories.Coherence.Monoidal) discharges a *monoidal* coherence
+-- `solveM` (Categories.Coherence.Monoidal.Api) discharges a *monoidal* coherence
 -- equation in any monoidal category by proving it in the free monoidal
 -- category and transporting it along the interpreting functor.  This module
 -- is the symmetric / string-diagram analogue.
@@ -19,6 +19,10 @@
 -- The interface mirrors `solveM`: `solveH` takes the two terms `f g`
 -- explicitly (so the goal need not pin them down through the non-injective
 -- `⟦_⟧₁`), plus the hypergraph isomorphism.
+--
+-- The second half of the file (the focus frames onward) is the REWRITE/DRIVER layer:
+-- the focus frames (`focFrame`/`deepFrameM`), the `rewriteH!`-family gates,
+-- and the deep-rewrite drivers they feed.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
@@ -175,7 +179,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   -- its `_ ∘ (id ⊗₁ mid) ∘ _` skeleton, so the `lemma` matches `deepFocₙ` —
   -- in the `just` branch the frame reduces and the peel applies; `nothing` is
   -- absurd (`found : T (is-just nothing)`).  (The non-tabulated gates use the
-  -- inline peel against the cheap `let`-form `deepFrame` directly.)
+  -- inline peel against the cheap `let`-form `focFrame` directly.)
   frame-rule-step
     : ∀ {A B P Q} (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁

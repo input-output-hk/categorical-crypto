@@ -6,8 +6,9 @@
 --
 --   block-swap-comm : ∀ (L R : List V) → permuteᵛ (bswap L R) ≈ᵛ σᵛ L R
 --
--- This is the strict, VERTEX-LEVEL twin of the non-strict keystone
--- `BNV.σ-block-comm` (`pvl (++-comm L R) ≈ σ-block`), proven entirely from the
+-- This is the strict, VERTEX-LEVEL analogue of the former non-strict
+-- keystone `σ-block-comm` (`pvl (++-comm L R) ≈ σ-block`, deleted with
+-- `BlockNFBraid` in round 6), proven entirely from the
 -- `FreeStrictSMC.Build` axioms + the RIGHT-hexagon companion lemma `σ-hexˢʳ`
 -- (below, generic on `List X`; this module is its only consumer) and the `[]`
 -- base cases proven in `DecodeSigma`.
@@ -20,7 +21,7 @@
 -- `cast-irrel`, `∘-cast-split`), because at the SINGLETON left frames this
 -- induction produces every `List V` associator and every `map-++` reduces.
 --
--- Proof structure (mirrors `BlockNFBraid.σ-block-comm` / `prep-step`):
+-- Proof structure (inherited from the deleted non-strict proof):
 --
 --   * `σ-hexˢʳ a b c` — the RIGHT hexagon `σˢ a (b ++ c)` on `List X`, from
 --     the `σ-hexˢ` axiom by inverse-uniqueness;
@@ -58,8 +59,8 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
 
 --------------------------------------------------------------------------------
 -- The RIGHT hexagon: `σˢ a (b ++ c)` decomposed.  Derived from the `σ-hexˢ`
--- axiom by the same inverse-uniqueness argument as `Braid`'s `hexagon` case (which
--- proves exactly this for `a,b,c = flatten _`); here generic on `List X`.
+-- axiom by an inverse-uniqueness argument, generic on `List X`.  (Moved here
+-- from its former home once this module became its only consumer.)
 
 σ-hexˢʳ
   : ∀ (a b c : List X)

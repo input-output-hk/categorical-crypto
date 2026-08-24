@@ -527,8 +527,8 @@ module TermEmbedˢ
 -- sends `trans` to `∘ˢ` (definitionally) and inverses to `≈ˢ`-inverses.
 -- The inverse law is the strict analogue of `pvv-inverse-{left,right}`;
 -- where the non-strict proof invokes `permute-self-loop-id-wide K`, the
--- strict one invokes the per-hypergraph `permˢ-K` on the SELF-LOOP whose
--- evaluated bijection is the identity (`eval-rigid`-free: direct).
+-- strict one is K-FREE (`Perm′.permuteˢ-inv-left/right` below — direct,
+-- no Kelly residual is consulted anywhere in this file).
 
 module Equivariantˢ (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
