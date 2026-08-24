@@ -7,8 +7,8 @@
 --   decodePˢ-resp-iso : ⟪f⟫ ≅ᴴ ⟪g⟫ → decodePˢ f ≈ˢ decodePˢ g
 --
 -- `decodePˢ f` IS `castˢ (⟪⟫-domL f) (⟪⟫-codL f) (decodeOrdˢ ⟪f⟫ (range nE)
--- (finalPermˢ f))` DEFINITIONALLY (the strict twin of
--- `decodeP-≡-decodeOrd-range` is `refl`), so the result factors as:
+-- (finalPermˢ f))` DEFINITIONALLY — no transport lemma stands between them —
+-- so the result factors as:
 --
 --   * the boundary cast algebra — UIP-trivial in S (`List X` casts collapse
 --     by `uipL` via `cast-fuse`/`cast-irrel`; the non-strict `objUIP`
@@ -63,7 +63,7 @@ open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc)
 open import Data.Product using (proj₁; proj₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; sym; subst)
 
 ------------------------------------------------------------------------
 -- Per-`f` data: the strict per-HG decoder at the translation `⟪f⟫`, and the
@@ -89,20 +89,12 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
     lin : Linear F
     lin = DAL.⟪⟫-LinearP f
 
-  open SS.PerHG F dih lin using (Validˢ; decodeOrdˢ)
+  open SS.PerHG F dih lin using (Validˢ)
 
-  -- `decodePˢ f` exposed as a boundary cast of `decodeOrdˢ` at `range nE`.
-  -- This is the strict twin of `decodeP-≡-decodeOrd-range`, holding `≡ refl`:
-  -- `finalPermˢ f : pe-stackˢ (range nE) dom ↭ cod = Validˢ (range nE)`, and
-  -- `Run.permuteˢ F (finalPermˢ f) ∘ˢ proj₂ (Run.runˢ F)` IS
-  -- `decodeOrdˢ (range nE) (finalPermˢ f)`.
+  -- `finalPermˢ f` retyped as the `range nE` validity witness it already is:
+  -- `finalPermˢ f : pe-stackˢ (range nE) dom ↭ cod`, which is `Validˢ (range nE)`.
   vrangeˢ : Validˢ (range (Hypergraph.nE F))
   vrangeˢ = finalPermˢ f
-
-  decodePˢ-≡-cast
-    : decodePˢ f
-      ≡ castˢ (⟪⟫-domL f) (⟪⟫-codL f) (decodeOrdˢ (range (Hypergraph.nE F)) vrangeˢ)
-  decodePˢ-≡-cast = refl
 
   run-interchange-H : SS.PerHG.RunInterchangeAt F dih lin
   run-interchange-H ps qs {e} {e'} inc prov =
@@ -186,8 +178,8 @@ module Boundary {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ 
 
 decodePˢ-resp-iso : ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g ⟫ → decodePˢ f ≈ˢ decodePˢ g
 decodePˢ-resp-iso f g iso =
-  -- `decodePˢ-≡-cast` holds by `refl`, so no transport is needed: the
-  -- boundary lemma's statement IS the goal up to unfolding `decodePˢ`.
+  -- No transport is needed: the boundary lemma's statement IS the goal up to
+  -- unfolding `decodePˢ` into `castˢ (⟪⟫-domL _) (⟪⟫-codL _) (decodeOrdˢ …)`.
   B.decodeOrdˢ-boundary-resp-≈ (vrangeˢ f) (vrangeˢ g) vH wiring≈
   where
     module B = Boundary f g iso
