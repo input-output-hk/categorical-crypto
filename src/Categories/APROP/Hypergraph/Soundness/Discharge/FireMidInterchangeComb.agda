@@ -1,18 +1,29 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The simultaneous-location combinatorics of the both-fire two-edge
--- interchange.
--- From the four locating permutes (plus disjointness from `Incomp` + `Linear`)
--- it locates BOTH input blocks at once, producing a single shared residual
--- `Rlist` with
+-- The stack combinatorics of the two-edge interchange, in two independent
+-- families.  Pure `_↭_` / `count` work throughout; the categorical bracketing
+-- is left to the consumer (`Strict.Interchange.FireMid`).
 --
---   loc₁ : sp ↭ (ein e ++ ein e') ++ Rlist
---   loc₂ : sp ↭ (ein e' ++ ein e) ++ Rlist
+-- (1) FIRING STABILITY (`e'-fires-stable`, `e'-skips-stable`): whether `e'`
+--     fires is unchanged by running `e` first.  Both directions are the one
+--     count transport `ein'-≤-transport` over `count-ein'-pres`: the `ein e'`
+--     counts of `s` and of `eout e ++ r₁` agree on every vertex `e'`
+--     consumes, because `Linear` + `¬ Dep` make the `ein`/`eout` blocks
+--     disjoint there.
 --
--- (the two orders differing only by the `ein` block swap) plus the output
--- reshuffle `r-stk : eout e' ++ r₂ ↭ eout e ++ r₁'`.  Pure `_↭_` / `count`
--- combinatorics; the categorical bracketing is left to the consumer.
+-- (2) SIMULTANEOUS LOCATION (`SimLoc`, `sim-loc`): from the four locating
+--     permutes (plus that same disjointness) locate BOTH input blocks at
+--     once, producing a single shared residual `Rlist` with
+--
+--       loc₁ : sp ↭ (ein e ++ ein e') ++ Rlist
+--       loc₂ : sp ↭ (ein e' ++ ein e) ++ Rlist
+--
+--     (the two orders differing only by the `ein` block swap) plus the output
+--     reshuffle `r-stk : eout e' ++ r₂ ↭ eout e ++ r₁'`.  Assembled from
+--     `extract-ein'`, `block-loc-e`, `vout-loc-e`, `eout-residual` and
+--     `post-swap-stack-↭` (an equation in the free commutative monoid on
+--     `Fin H.nV`, and this module's most-consumed export).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

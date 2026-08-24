@@ -363,7 +363,7 @@ decode-attempt-hGen {A} {B} g = perm
 -- `decode-attempt-hTensor`: combines the per-edge / process-edges
 -- liftings.  Run the G-edges block (`process-edges-↑ˡ-on-mixed`) then the
 -- K-edges block (`process-edges-↑ʳ-on-perm`), then combine the two side
--- permutations and feed `decode-attempt-from-perm`.
+-- permutations with `PermProp.++⁺`/`map⁺` in the local `perm-final` chain.
 
 decode-attempt-hTensor
   : (G K : Hypergraph FlatGen)

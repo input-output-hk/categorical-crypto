@@ -13,7 +13,7 @@
 --
 -- The `nothing` case of `extract-exact` captures non-linear inputs and
 -- non-topologically-sound edge orders.  For `⟪ f ⟫` the natural Fin order is
--- sound, so the witness always exists — `DecodeAttempt.decode-attempt-LinearP`
+-- sound, so the witness always exists — `Discharge.DecodeAttemptLinearP.decode-attempt-LinearP`
 -- constructs the bare permutation `process-all-edges ⟪f⟫ dom ↭ cod` directly.
 --
 -- NOTE (weak-decoder demotion, Review-2 F2): this decoder used to also

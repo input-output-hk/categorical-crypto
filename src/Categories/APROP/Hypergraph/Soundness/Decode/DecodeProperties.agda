@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Foundation lemmas for `extract-elem`, `extract-prefix`, and
--- `extract-exact` (defined in `Decode.agda`).  These reduce the per-case
+-- Foundation lemmas for `extract-elem` and `extract-prefix` (defined in
+-- `Combinatorics.ExtractPrefix`, re-exported by `Decode.agda`).  These reduce the per-case
 -- `decode-attempt-h*` obligations to facts about disjoint Fin injections
 -- and `Unique` lists.  Three families: single-list searches, membership /
 -- permutation lemmas, and mixed-injection liftings (for hTensor/hComposeP).

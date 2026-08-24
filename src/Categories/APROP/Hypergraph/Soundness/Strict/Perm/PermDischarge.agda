@@ -13,8 +13,8 @@
 -- The combinatorial core `complete : eval-↭ p ≈-fb eval-↭ q → p ≅↭ⁱ q`
 -- (the Coxeter / word-problem kernel of `FaithfulnessInductive`) is purely
 -- element-level: it never touches term structure, so it is reusable verbatim
--- at the vertex set `V` by instantiating it there directly.  We then prove
--- the STRICT mirror of `permute-resp-≅↭ⁱ`:
+-- at the vertex set `V` by instantiating it there directly.  We then prove,
+-- at the strict level, the congruence of `permuteˢ` for `_≅↭ⁱ_`:
 --
 --     permuteˢ-resp-≅↭ⁱ : p ≅↭ⁱ q → permuteˢ p ≈ˢ permuteˢ q
 --
@@ -127,7 +127,7 @@ module Discharge (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X)
       swap-braid-case {x} {y} {z} {xs} = braid₃ x y z (map vlab xs)
 
     --------------------------------------------------------------------
-    -- The strict mirror of `permute-resp-≅↭ⁱ`: one strict-SMC axiom per
+    -- `permuteˢ` respects `_≅↭ⁱ_`: one strict-SMC axiom per
     -- `_≅↭ⁱ_` generator.
 
     permuteˢ-resp-≅↭ⁱ

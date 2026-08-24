@@ -4,9 +4,10 @@
 -- Shared `count` / `extract-prefix` combinatorics leaf (H-agnostic).
 --
 -- Generic lemmas over `List (Fin n)`, collected in one leaf.  `count` is
--- from `Soundness.Linearity`; `extract-elem`/`extract-prefix` from
--- `Soundness.Decode`.  Also hosts the `Unique` ⇔ `count ≤ 1` bridge, shared
--- by `Stack.StackUnique` and `Discharge.DecodeAttemptLinearP`.
+-- from `Soundness.Linearity.Linearity`; `extract-elem`/`extract-prefix` from
+-- `Soundness.Decode.Decode` (which re-exports them from
+-- `Combinatorics.ExtractPrefix`).  Also hosts the `Unique` ⇔ `count ≤ 1`
+-- bridge, shared by `Stack.StackUnique` and `Discharge.DecodeAttemptLinearP`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
