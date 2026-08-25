@@ -23,7 +23,7 @@
 --     reshuffle `r-stk : eout e' ++ r₂ ↭ eout e ++ r₁'`.  Assembled from
 --     `extract-ein'`, `block-loc-e`, `vout-loc-e`, `eout-residual` and
 --     `post-swap-stack-↭` (an equation in the free commutative monoid on
---     `Fin H.nV`, and this module's most-consumed export).
+--     `Fin H.nV`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

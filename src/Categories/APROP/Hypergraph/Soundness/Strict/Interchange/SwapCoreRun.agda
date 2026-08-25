@@ -87,8 +87,8 @@ module _ (H : Hypergraph FlatGen)
   edge-stepˢ-graph′ = edge-stepˢ-graph H
 
   ------------------------------------------------------------------------
-  -- The both-fire interchange core, AS A STATEMENT (the strict twin of
-  -- `FireMidInterchange.fire-mid-interchange`).  The four framed fire
+  -- The both-fire interchange core, AS A STATEMENT (discharged downstream
+  -- by `FireMid.fire-mid-interchangeˢ`).  The four framed fire
   -- boxes on disjoint blocks commute, modulo a stack reshuffle.
   ------------------------------------------------------------------------
 

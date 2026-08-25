@@ -4,7 +4,7 @@
 -- Hypergraph isomorphism (TensorRocq §3.2): two hypergraphs are isomorphic
 -- when there is a bijection of vertices and a bijection of edges that
 -- preserves labels, endpoints, and the ordered boundary.  Defines the
--- relation and proves it is an equivalence; the main theorem
+-- relation and proves it symmetric and transitive; the main theorem
 -- (⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g) lives in `Soundness`.
 --------------------------------------------------------------------------------
 

@@ -161,7 +161,7 @@ module At (P Q : ObjTerm) where
     C⁺.focusAtₙ ctx (Agen⁺ hole!) 0            >>= λ { (k , pre⁺ , post⁺) →
     retract pre⁺                               >>= λ pre₀ →
     retract post⁺                              >>= λ post₀ →
-    -- Glue: `decode`'s endpoints are `unflatten⁺` of the carved boundary;
+    -- Glue: `decode`'s endpoints are `U⁺.unflatten` of the carved boundary;
     -- decide that they coincide with `unflatten (flatten –)` of `s`'s
     -- endpoints and bridge with the `unflatten-flatten-≈` coherence isos.
     decide-≡ (U⁺.unflatten (domL H')) (unflatten (flatten A)) >>= λ p →

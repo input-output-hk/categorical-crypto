@@ -5,9 +5,11 @@
 --
 -- Charter (a wide-fan-in leaf, so the import cone here is paid by every
 -- consumer):
--- list facts provable from `Data.List.Base` + `Data.List.Properties` +
--- `Core` equality alone.  Anything needing a new stdlib module belongs in
--- its consumer, not here.  Splitting this leaf into its four honest
+-- facts about `List`/`Fin` provable from `Data.List.{Base,Properties}`,
+-- propositional equality (`Relation.Binary.PropositionalEquality.Core`),
+-- and the `All`/`AllPairs`/`Unique` unary relations.  Anything needing a
+-- categorical or APROP import belongs in its consumer, not here.
+-- Splitting this leaf into its four honest
 -- clusters was priced at +33 lines of ceremony to relocate ~25 and is NOT
 -- the answer; the answer is keeping the cone narrow.
 ------------------------------------------------------------------------

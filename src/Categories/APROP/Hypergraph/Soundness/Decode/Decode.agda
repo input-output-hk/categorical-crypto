@@ -66,7 +66,8 @@ extract-exact ks xs with extract-prefix ks xs
 ... | just (_ ∷ _ , _) = nothing
 
 --------------------------------------------------------------------------------
--- Apply an edge: recover the generator `g : mor A B` from `FlatGen.flat`,
+-- Apply an edge: recover the generator `g : mor A B` from a `FlatGen`
+-- record (constructor `flat-rec`),
 -- then wrap with the unflatten-flatten coherence iso on each side.
 -- Top-level (not under the `H` module) so downstream files can
 -- `cong`-rewrite `Agen-edge` along `elab` equations without an `H` arg.
