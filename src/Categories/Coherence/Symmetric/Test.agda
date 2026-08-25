@@ -79,11 +79,10 @@
 -- three-generator fixture `…Solver.Test.ThreeGens`).
 --------------------------------------------------------------------------------
 
-open import Level using (Level)
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-
-module Categories.Coherence.Symmetric.Test
-  {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e) where
+-- No content of its own: an `import` typechecks its module in full, so the six
+-- lines below ARE the suite.  Clients wanting a configuration (say the derived
+-- `Frobenius.frobL`) apply that module directly — no re-export layer here.
+module Categories.Coherence.Symmetric.Test where
 
 import Categories.Coherence.Symmetric.Test.Coherence
 import Categories.Coherence.Symmetric.Test.Rewrite
@@ -91,10 +90,3 @@ import Categories.Coherence.Symmetric.Test.Deep
 import Categories.Coherence.Symmetric.Test.DeepArity
 import Categories.Coherence.Symmetric.Test.Drivers
 import Categories.Coherence.Symmetric.Test.Frobenius
-
-module Coherence = Categories.Coherence.Symmetric.Test.Coherence C
-module Rewrite   = Categories.Coherence.Symmetric.Test.Rewrite   C
-module Deep      = Categories.Coherence.Symmetric.Test.Deep      C
-module DeepArity = Categories.Coherence.Symmetric.Test.DeepArity C
-module Drivers   = Categories.Coherence.Symmetric.Test.Drivers   C
-module Frobenius = Categories.Coherence.Symmetric.Test.Frobenius C
