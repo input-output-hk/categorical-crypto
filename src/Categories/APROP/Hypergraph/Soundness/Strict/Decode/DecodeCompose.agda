@@ -3,8 +3,10 @@
 --------------------------------------------------------------------------------
 -- Strict decoder `∘`-SHAPE, Stage 1: block-level factoring of the strict run.
 --
---   §1  pe-*-++ˢ / run-split-atˢ — strict stack/term factoring of the run at
---                      `es ≡ gblk ++ kblk`.
+--   §1  pe-term-++ˢ / run-split-atˢ — strict TERM factoring of the run at
+--                      `es ≡ gblk ++ kblk` (the STACK kernel `pe-stack-++ˢ`
+--                      lives with the decoder; `open Run H public`
+--                      re-exports it from `RunBlocks`).
 --   TermEmbedˢ / Equivariantˢ — the per-edge relabelling twin
 --                      (`process-edges-term-embˢ`) + the FIRE-box equivariance
 --                      foundation (`pvv-transˢ`, `pvv-inverse-*ˢ`).
@@ -62,17 +64,8 @@ module RunBlocks (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
   open Run H public
 
-  ------------------------------------------------------------------------
-  -- STACK factoring.  Running `ps ++ rest` from `s` leaves the same stack
-  -- as running `rest` from the post-`ps` stack.  Refl-pure (same shape as
-  -- the non-strict `pe-stack-++`); the per-edge term is irrelevant.
-
-  pe-stack-++ˢ
-    : ∀ (ps rest : List (Fin H.nE)) (s : List (Fin H.nV))
-    → proj₁ (process-edgesˢ (ps ++ rest) s)
-      ≡ proj₁ (process-edgesˢ rest (proj₁ (process-edgesˢ ps s)))
-  pe-stack-++ˢ []       rest s = refl
-  pe-stack-++ˢ (e ∷ ps) rest s = pe-stack-++ˢ ps rest (proj₁ (edge-stepˢ s e))
+  -- STACK factoring (`pe-stack-++ˢ`) comes from `StrictDecoder` via
+  -- `open Run H public` above — one kernel, defined beside `process-edgesˢ`.
 
   ------------------------------------------------------------------------
   -- TERM factoring.  On the term level, the composite run is the `rest`-run

@@ -91,6 +91,19 @@ module StrictDecoder (H : Hypergraph FlatGen) where
         (s'' , t') = process-edgesˢ es s'
     in (s'' , t' ∘ˢ t)
 
+  -- STACK factoring over an order split: running `ps ++ rest` from `s`
+  -- leaves the same stack as running `rest` from the post-`ps` stack.  The
+  -- run recurses on the prefix, so this is a direct induction and the
+  -- per-edge term is irrelevant (refl-pure).  ONE kernel: the decoder
+  -- cluster uses this name, `EdgeStepRel.EdgeStepView` aliases it as
+  -- `++-stackˢ`.
+  pe-stack-++ˢ
+    : ∀ (ps rest : List (Fin H.nE)) (s : List (Fin H.nV))
+    → proj₁ (process-edgesˢ (ps ++ rest) s)
+      ≡ proj₁ (process-edgesˢ rest (proj₁ (process-edgesˢ ps s)))
+  pe-stack-++ˢ []       rest s = refl
+  pe-stack-++ˢ (e ∷ ps) rest s = pe-stack-++ˢ ps rest (proj₁ (edge-stepˢ s e))
+
   ------------------------------------------------------------------------
   -- Separability, stack level (the term-free half; same 12-line shape as
   -- the non-strict `process-edges-stack-sep`).

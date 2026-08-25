@@ -9,7 +9,8 @@
 -- collapsing to the vertex-level `permuteˢ` + the UIP-trivial `castˢ` kit
 -- (`castˢ refl refl = subst₂ HomS refl refl` reduces DEFINITIONALLY, so the
 -- non-strict `coe-cod`/`coe-vanish` `refl`-pattern tricks port verbatim):
---   * `process-edges-++-≈ˢ`  — factors `process-edgesˢ` over `_++_`;
+--   * `pe-term-++ˢ`           — factors `process-edgesˢ` over `_++_` (the ONE
+--     kernel, re-exported from `DecodeCompose.RunBlocks`);
 --   * `decodeOrdˢ-factor`     — exposes the prefix term as a right factor;
 --   * `front-swap-≈ˢ`         — the front-of-stack two-edge swap (the locus of
 --     the (N) `RunInterchangeˢ` residual and the (K) `perm-rigidˢ`);
@@ -68,10 +69,10 @@ module PerHG (H : Hypergraph FlatGen)
   private module H = Hypergraph H
 
   -- `EquivStep H` re-exports (via `open Run`/`open StrictDecoder`/`open
-  -- Perm′`) everything we need: `vl`, `edge-stepˢ`, `permuteˢ`, `pe-stackˢ`,
-  -- `pe-termˢ`, `stacks-agree` — no separate `open StrictDecoder` (which
+  -- Perm′`) everything we need: `vl`, `permuteˢ`, `pe-stackˢ`, `pe-termˢ`,
+  -- `++-stackˢ`, `stacks-agree` — no separate `open StrictDecoder` (which
   -- would duplicate `permuteˢ`).
-  open EquivStep H using (vl; edge-stepˢ; stacks-agree; permuteˢ; pe-stackˢ; pe-termˢ; ++-stackˢ)
+  open EquivStep H using (vl; stacks-agree; permuteˢ; pe-stackˢ; pe-termˢ; ++-stackˢ)
 
   -- The order-theory spine, reused verbatim from the non-strict wiring
   -- (`connectivity` pre-applied to this hypergraph's acyclicity `dih`).
@@ -121,37 +122,11 @@ module PerHG (H : Hypergraph FlatGen)
   swap-validityˢ {o₁} {o₂} s p =
     of-PHValid o₂ (SV.PerHG.swap-validity H lin s (to-PHValid o₁ p))
 
-  -- cod-only stack transport, from the strict `DecodeCompose` run blocks.
-  open RunBlocks H using (coeCod) public
-
-  ------------------------------------------------------------------------
-  -- PLUMBING 1 — term-level factoring of `process-edgesˢ` over `_++_`.
-  ------------------------------------------------------------------------
-
-  process-edges-++-≈ˢ
-    : ∀ (ps rest : Order) (s : List (Fin H.nV))
-    → pe-termˢ (ps ++ rest) s
-      ≈ˢ coeCod (sym (++-stackˢ ps rest s))
-              (pe-termˢ rest (pe-stackˢ ps s) ∘ˢ pe-termˢ ps s)
-  process-edges-++-≈ˢ []         rest s = ≈-sym idʳ
-  process-edges-++-≈ˢ (e ∷ ps)   rest s =
-    ≈-trans
-      (∘-resp (process-edges-++-≈ˢ ps rest s') ≈-refl)
-      (coeCod-assoc (sym (++-stackˢ ps rest s'))
-                     (pe-termˢ rest (pe-stackˢ ps s'))
-                     (pe-termˢ ps s')
-                     t)
-    where
-      s' = proj₁ (edge-stepˢ s e)
-      t  = proj₂ (edge-stepˢ s e)
-
-      coeCod-assoc
-        : ∀ {a b : List (Fin H.nV)} (eq : a ≡ b)
-            (g : HomS (map vl (pe-stackˢ ps s')) (map vl a))
-            (f : HomS (map vl s') (map vl (pe-stackˢ ps s')))
-            (t0 : HomS (map vl s) (map vl s'))
-        → coeCod eq (g ∘ˢ f) ∘ˢ t0 ≈ˢ coeCod eq (g ∘ˢ (f ∘ˢ t0))
-      coeCod-assoc refl g f t0 = assocˢ
+  -- PLUMBING 1 — the cod-only stack transport `coeCod` and the term-level
+  -- factoring of `process-edgesˢ` over `_++_` (`pe-term-++ˢ`), both from the
+  -- strict `DecodeCompose` run blocks: `pe-term-++ˢ` IS this cluster's
+  -- `process-edges-++-≈ˢ` face, once `++-stackˢ` is the shared stack kernel.
+  open RunBlocks H using (coeCod; pe-term-++ˢ) public
 
   ------------------------------------------------------------------------
   -- PLUMBING 2 — `decodeOrdˢ` over a prefixed order factors so the prefix
@@ -167,7 +142,7 @@ module PerHG (H : Hypergraph FlatGen)
           ∘ˢ pe-termˢ ps H.dom
   decodeOrdˢ-factor ps rest p =
     ≈-trans
-      (∘-resp ≈-refl (process-edges-++-≈ˢ ps rest H.dom))
+      (∘-resp ≈-refl (pe-term-++ˢ ps rest H.dom))
       (≈-trans
         (∘-resp ≈-refl
           (coeCod-∘ (sym (++-stackˢ ps rest H.dom))
