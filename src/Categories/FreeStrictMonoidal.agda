@@ -492,24 +492,10 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
 
         -- fy fired first-block, Fx second-block: the binary interchange
         fy-core : FY ∘ʷ (idʷ {n = P} ⊗ʷ (idʷ {n = ay} ⊗ʷ Fx)) ≈ʷ CANON
-        fy-core = begin
-          (idʷ {n = P} ⊗ʷ (boxʷ fy ⊗ʷ idʷ {n = mid ++ (bx ++ s)}))
-            ∘ʷ (idʷ {n = P} ⊗ʷ (idʷ {n = ay} ⊗ʷ Fx))
-            ≈⟨ inter ⟨
-          (idʷ {n = P} ∘ʷ idʷ {n = P})
-            ⊗ʷ ((boxʷ fy ⊗ʷ idʷ {n = mid ++ (bx ++ s)}) ∘ʷ (idʷ {n = ay} ⊗ʷ Fx))
-            ≈⟨ ⊗-resp-≈ʷ idˡ (symʷ serialize₁₂) ⟩
-          idʷ {n = P} ⊗ʷ (boxʷ fy ⊗ʷ Fx) ∎
+        fy-core = transʷ (symʷ inter) (⊗-resp-≈ʷ idˡ (symʷ serialize₁₂))
 
         fy-core' : (idʷ {n = P} ⊗ʷ (idʷ {n = by} ⊗ʷ Fx)) ∘ʷ FYi ≈ʷ CANON
-        fy-core' = begin
-          (idʷ {n = P} ⊗ʷ (idʷ {n = by} ⊗ʷ Fx))
-            ∘ʷ (idʷ {n = P} ⊗ʷ (boxʷ fy ⊗ʷ idʷ {n = mid ++ (ax ++ s)}))
-            ≈⟨ inter ⟨
-          (idʷ {n = P} ∘ʷ idʷ {n = P})
-            ⊗ʷ ((idʷ {n = by} ⊗ʷ Fx) ∘ʷ (boxʷ fy ⊗ʷ idʷ {n = mid ++ (ax ++ s)}))
-            ≈⟨ ⊗-resp-≈ʷ idˡ (symʷ serialize₂₁) ⟩
-          idʷ {n = P} ⊗ʷ (boxʷ fy ⊗ʷ Fx) ∎
+        fy-core' = transʷ (symʷ inter) (⊗-resp-≈ʷ idˡ (symʷ serialize₂₁))
 
         -- LHS: reduce the (cast-mediated) fx-layer to the nested core, then fire.
         core-in : WTerm (P ++ (ay ++ (mid ++ (ax ++ s)))) (P ++ (ay ++ (mid ++ (bx ++ s))))
@@ -568,9 +554,5 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
           castʷ (sym E₂) (castʷᵈ (sym E₄) CANON) ∎
 
         rhs-canon : castʷ E₂ (padʷ (P ++ (by ++ mid)) s (boxʷ fx) ∘ʷ castʷ E₃ (castʷᵈ (sym E₄) (padʷ P (mid ++ (ax ++ s)) (boxʷ fy)))) ≈ʷ castʷᵈ (sym E₄) CANON
-        rhs-canon = begin
-          castʷ E₂ (padʷ (P ++ (by ++ mid)) s (boxʷ fx) ∘ʷ T)
-            ≈⟨ castʷ-resp E₂ inner ⟩
-          castʷ E₂ (castʷ (sym E₂) (castʷᵈ (sym E₄) CANON))
-            ≈⟨ ≡→≈ʷ (castʷ-symʳ E₂ (castʷᵈ (sym E₄) CANON)) ⟩
-          castʷᵈ (sym E₄) CANON ∎
+        rhs-canon = transʷ (castʷ-resp E₂ inner)
+                           (≡→≈ʷ (castʷ-symʳ E₂ (castʷᵈ (sym E₄) CANON)))

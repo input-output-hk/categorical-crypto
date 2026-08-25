@@ -166,7 +166,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
                    {h : proj₁ D C.⊗₀ proj₂ E C.⇒ proj₂ D C.⊗₀ proj₁ E} →
                    C.trace (α C.∘ C.trace (α C.∘ h C.⊗₁ g C.∘ γ) C.⊗₁ f C.∘ γ) C.≈
                    C.trace (α C.∘ h C.⊗₁ C.trace (α C.∘ g C.⊗₁ f C.∘ γ) C.∘ γ)
-        assoc' {_ , _} {B⁺ , B⁻} {D⁺ , D⁻} {E⁺ , E⁻} {f} {g} {h} = begin
+        assoc' {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} {E⁺ , E⁻} {f} {g} {h} = begin
           -- LHS: trace_B(α ∘ trace_D(m) ⊗₁ f ∘ γ)
           C.trace (α C.∘ C.trace m C.⊗₁ f C.∘ γ)
             -- 1-2. serialize + reassociate: trace(m) ⊗₁ f ∘ γ
@@ -188,7 +188,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
             -- 6b. coherence: β ∘ Φ_L ∘ β ≈ Φ_R
             --     Both sides apply the same permutation to h ⊗₁ g ⊗₁ f
             --     with the traced variables. Pure monoidal coherence.
-            ≈⟨ trace-resp-≈ (trace-resp-≈ (assoc'-coherence f g h)) ⟩
+            ≈⟨ trace-resp-≈ (trace-resp-≈ assoc'-coherence) ⟩
           C.trace (C.trace (α C.⊗₁ C.id C.∘ q C.∘ (h C.⊗₁ C.id C.∘ γ) C.⊗₁ C.id))
             -- 7. left naturality⁻¹: extract α from trace_B
             ≈˘⟨ trace-resp-≈ trace-∘ˡ ⟩
@@ -210,26 +210,15 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
             m' = β C.∘ m C.⊗₁ C.id C.∘ β
             q = C.α⇐ C.∘ C.id C.⊗₁ k C.∘ C.α⇒
 
-            -- The main coherence proof
+            -- The main coherence equation: pure monoidal coherence — both
+            -- sides are the same rearrangement of h ⊗₁ g ⊗₁ f with the
+            -- traced variables, i.e. the same string diagram.  Discharged
+            -- by the transported free-level solver result.  (Stated at the
+            -- ONE instantiation it has: the enclosing `where`'s own `m'`
+            -- and `q`.)
             assoc'-coherence :
-              ∀ {A⁺ A⁻' B⁺' B⁻' D⁺' D⁻' E⁺' E⁻'}
-              (f' : A⁺ C.⊗₀ B⁻' C.⇒ A⁻' C.⊗₀ B⁺')
-              (g' : B⁺' C.⊗₀ D⁻' C.⇒ B⁻' C.⊗₀ D⁺')
-              (h' : D⁺' C.⊗₀ E⁻' C.⇒ D⁻' C.⊗₀ E⁺') →
-              let m₀ = α C.∘ h' C.⊗₁ g' C.∘ γ
-                  k₀ = α C.∘ g' C.⊗₁ f' C.∘ γ
-                  m₀' = β C.∘ m₀ C.⊗₁ C.id C.∘ β
-                  q₀ = C.α⇐ C.∘ C.id C.⊗₁ k₀ C.∘ C.α⇒
-              in β C.∘ (α C.⊗₁ C.id C.∘ m₀' C.∘ (C.id C.⊗₁ f' C.∘ γ) C.⊗₁ C.id) C.∘ β
-                 C.≈
-                 α C.⊗₁ C.id C.∘ q₀ C.∘ (h' C.⊗₁ C.id C.∘ γ) C.⊗₁ C.id
-            -- The main coherence equation: pure monoidal coherence showing that
-            -- the two rearrangements of h ⊗₁ g ⊗₁ f (with trace variables)
-            -- are equal. Both sides represent the same string diagram.
-            -- Discharged by the transported free-level solver result
-            -- (GConstructionCoherence.Transport.WithGens.coherence).
-            assoc'-coherence {A⁺} {A⁻'} {B⁺'} {B⁻'} {D⁺'} {D⁻'} {E⁺'} {E⁻'} f' g' h' =
-              GCoh.Transport.WithGens.coherence Cˢ
-                A⁺ A⁻' B⁺' B⁻' D⁺' D⁻' E⁺' E⁻'
-                f' g' h'
+              β C.∘ (α C.⊗₁ C.id C.∘ m' C.∘ (C.id C.⊗₁ f C.∘ γ) C.⊗₁ C.id) C.∘ β
+              C.≈ α C.⊗₁ C.id C.∘ q C.∘ (h C.⊗₁ C.id C.∘ γ) C.⊗₁ C.id
+            assoc'-coherence =
+              GCoh.Transport.WithGens.coherence Cˢ A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ f g h
 
