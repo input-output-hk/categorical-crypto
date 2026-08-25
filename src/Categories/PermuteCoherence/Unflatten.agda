@@ -24,7 +24,7 @@ module Categories.PermuteCoherence.Unflatten
 open FreeMonoidal d
 open FreeMonoidalData d using (v; X; mor)
 
-open import Data.List.Base using (List; []; _∷_; _++_)
+open import Data.List.Base using (List; _++_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 
 open import Categories.Morphism FreeMonoidal using (_≅_)

@@ -36,8 +36,7 @@
 -- This module is now postulate-free and `--safe`.
 ------------------------------------------------------------------------
 
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; subst)
+open import Relation.Binary.PropositionalEquality using (refl; sym; subst)
 open import Relation.Nullary using (¬_)
 open import Data.Product using (_×_; _,_)
 open import Data.List.Relation.Binary.Permutation.Propositional.Properties

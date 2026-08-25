@@ -23,14 +23,14 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 open import Categories.APROP.Hypergraph.Util.Prune
 
 
-open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt; cast; toℕ)
+open import Data.Fin using (Fin; zero; suc; _↑ˡ_; splitAt; cast; toℕ)
 open import Data.Fin.Properties
 open import Data.List using (List; _∷_; length; map; lookup)
 open import Data.List.Properties
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Nat
 open import Data.Product using (proj₁; proj₂)
-open import Data.Sum using (inj₁; inj₂; [_,_]′)
+open import Data.Sum using ([_,_]′)
 open import Function
 open import Relation.Binary.PropositionalEquality
 

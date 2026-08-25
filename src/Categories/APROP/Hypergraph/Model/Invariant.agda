@@ -23,7 +23,6 @@ open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.List using (List; []; _∷_; _++_; map; length)
 open import Data.List.Properties using (map-id; map-cong; map-++; map-∘)
 open import Data.List.Properties.Ext using (map-∘-cong)
-open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties
   using (∈-map⁻)
 open import Data.List.Relation.Binary.Disjoint.Propositional using (Disjoint)
@@ -35,7 +34,7 @@ open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
 open import Data.Product using (_,_)
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; _≢_; refl; sym; trans; subst; cong; cong₂)
+  using (_≡_; refl; sym; trans; subst; cong; cong₂)
 
 --------------------------------------------------------------------------------
 -- For identity hypergraphs, `dom ≡ cod` as lists (every `hId` branch uses

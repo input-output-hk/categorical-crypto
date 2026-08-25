@@ -33,9 +33,9 @@
 module Categories.APROP.Hypergraph.Util.Prune where
 
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
+open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.Fin.Properties using (_≟_; splitAt-↑ˡ; splitAt-↑ʳ; ↑ˡ-injective; ↑ʳ-injective)
-open import Data.List using (List; _∷_; length; filter; allFin; lookup; map)
+open import Data.List using (List; length; filter; allFin; lookup; map)
 open import Data.List.Membership.Propositional using (_∈_; _∉_)
 open import Data.List.Membership.Propositional.Properties
   using (∈-filter⁺; ∈-allFin; ∈-lookup)

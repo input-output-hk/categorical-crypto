@@ -17,7 +17,7 @@
 
 module Categories.PermuteCoherence.Rigid where
 
-open import Data.Nat.Base using (zero; suc)
+open import Data.Nat.Base using (suc)
 open import Data.Fin.Base using (Fin; suc)
 open import Data.Fin.Patterns using (0F)
 open import Data.List.Base using (List; length; lookup)

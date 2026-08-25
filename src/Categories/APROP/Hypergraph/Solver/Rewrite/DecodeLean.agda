@@ -71,7 +71,7 @@ open import Data.List.Properties using (map-++; ≡-dec)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ-syntax; _,_)
 open import Relation.Binary using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality using (_≡_; sym; cong; subst; subst₂)
+open import Relation.Binary.PropositionalEquality using (sym; cong; subst; subst₂)
 open import Relation.Nullary using (yes; no)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp

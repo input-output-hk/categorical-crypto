@@ -48,7 +48,7 @@ open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Base using (List; head; map; mapMaybe)
-open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
+open import Data.Maybe.Base using (Maybe; just; _>>=_)
 open import Data.Maybe.Properties using () renaming (≡-dec to ≡-decM)
 open import Data.Product using (_,_)
 open import Relation.Binary.Definitions using (DecidableEquality)

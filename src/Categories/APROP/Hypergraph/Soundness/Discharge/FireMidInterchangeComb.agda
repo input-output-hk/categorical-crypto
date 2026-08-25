@@ -42,7 +42,7 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 
-open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.List using (List; _++_; concat)
 open import Data.List.Base using (tabulate)

@@ -27,7 +27,7 @@ open import Categories.APROP.Hypergraph.Model.Invariant sig
         ; hId-cod-Unique; hSwap-cod-Unique; hGen-cod-Unique
         ; inject+-inj; raise-inj; disj-L-R)
 
-open import Data.List using (List; _++_)
+open import Data.List using (List)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
 open import Relation.Binary.PropositionalEquality using (sym; trans)

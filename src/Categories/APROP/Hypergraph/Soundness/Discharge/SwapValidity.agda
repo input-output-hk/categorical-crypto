@@ -56,9 +56,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
 -- by `Strict/Interchange/{FireMid,SwapCoreRun}`).
 import Categories.APROP.Hypergraph.Soundness.Discharge.FireMidInterchangeComb sig as FMIC
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
-
-open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using (_≟_)
 open import Data.List using (List; []; _∷_; _++_)

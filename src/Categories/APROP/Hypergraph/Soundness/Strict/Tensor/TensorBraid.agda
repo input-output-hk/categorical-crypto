@@ -293,7 +293,7 @@ module Braid {A B C D : ObjTerm}
       using (absorbˢ; coeCod; run-split-atˢ; pe-stack-++ˢ)
     module KBD = KBlockDisjoint G K
     open Restrict (Fin Hf.nV) vl
-      using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; cast-flipᵛ
+      using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ; cast-flipᵛ
             ; cast-respᵛ; box-conjᵛ; ⊗-respᵛ; interchangeᵛ; ⊗ᵛ-≈̂ )
 
     open Embeds G K using (injL; injR)

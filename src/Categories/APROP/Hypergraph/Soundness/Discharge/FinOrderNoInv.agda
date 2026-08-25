@@ -73,8 +73,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; range; flatten; hEmpty; hVar; hGen; hId; hSwap; hTensor
-        ; module hTensor-impl)
+  using (FlatGen; range; flatten; hGen; hId; hTensor; module hTensor-impl)
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig

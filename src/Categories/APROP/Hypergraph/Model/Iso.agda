@@ -16,7 +16,6 @@ open import Data.Fin using (Fin)
 open import Data.List using (List; map)
 open import Data.List.Properties using (map-∘)
 open import Data.List.Properties.Ext using (map-∘-id)
-open import Function using (id; _∘_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; trans; sym; subst₂)
 open import Relation.Binary.PropositionalEquality.Properties.Ext

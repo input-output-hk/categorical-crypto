@@ -16,14 +16,13 @@
 
 module Categories.PermuteCoherence.Coxeter.LehmerRotate where
 
-open import Data.Nat.Base using (ℕ; zero; suc; _≤_; z≤n; s≤s; _<_; _+_)
-open import Data.Nat.Properties
-  using (≤-refl; ≤-trans; n≤1+n; m≤n⇒m≤1+n; _≤?_; ≰⇒>; ≤-pred)
+open import Data.Nat.Base using (ℕ; zero; suc; _≤_; z≤n; s≤s; _+_)
+open import Data.Nat.Properties using (≤-trans; m≤n⇒m≤1+n; _≤?_; ≰⇒>; ≤-pred)
 open import Data.Fin.Base using (Fin; toℕ; fromℕ<) renaming (suc to fsuc)
-open import Data.Fin.Patterns using (0F; 1F)
+open import Data.Fin.Patterns using (0F)
 open import Data.Fin.Properties using (toℕ-fromℕ<; toℕ≤pred[n])
-open import Data.List.Base using ([]; _∷_; _++_)
-open import Data.List.Properties using (++-identityʳ; ++-assoc)
+open import Data.List.Base using (_∷_; _++_)
+open import Data.List.Properties using (++-assoc)
 open import Relation.Nullary using (yes; no)
 import Data.Fin.Permutation as P
 open P using (remove)
@@ -32,7 +31,7 @@ open import Relation.Binary.PropositionalEquality.Core
 
 open import Categories.PermuteCoherence.FinBij
 open import Categories.PermuteCoherence.Coxeter.EvalSoundness as Snd
-  using (cons-fb-functor-comp; cons-fb-functor-id; swap-fb-natural)
+  using (cons-fb-functor-comp; swap-fb-natural)
 open import Categories.PermuteCoherence.Coxeter.Word
 open import Categories.PermuteCoherence.Coxeter.LehmerStaircase
 
