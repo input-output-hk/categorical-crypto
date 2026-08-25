@@ -14,7 +14,7 @@
 --   (1) `++-stack` (imported): reduces the general swap to a FRONT swap
 --       (`ps = []`) on the shared post-prefix stack.
 --
---   (2) `front-swap-stack-↭`, reduced (via `pe-stack-resp-↭`) to the
+--   (2) the front swap, reduced (via `pe-stack-resp-↭`) to the
 --       two-edge head bridge `two-edge-swap-stack-↭`, which case-splits
 --       the four `extract-prefix` firing outcomes (both-skip / both-fire /
 --       two firing-divergence cases) as flat clauses over the `EdgeStepR`
@@ -84,8 +84,9 @@ module PerHG (H : Hypergraph FlatGen) (lin : Linear H) where
   module PH = IW.PerHG H
 
   -- `Incomp e e' = (¬ Dep H e e') × (¬ Dep H e' e)` and the swap-step
-  -- constructor, from `PerHG`'s order-theory interface.
-  open PH public using (Incomp; swap-step)
+  -- constructor, from `PerHG`'s order-theory interface.  Internal: this
+  -- module's only external export is `swap-validity`.
+  open PH using (Incomp; swap-step)
 
   ------------------------------------------------------------------------
   -- The final stack of running an order from a stack (generalised over
@@ -113,10 +114,9 @@ module PerHG (H : Hypergraph FlatGen) (lin : Linear H) where
   --     stack (via `extract-prefix-↭-{residual,nothing}`).
   --   * `post-swap-stack-↭` — the both-fire multiset content is order
   --     independent (pure `_↭_` reasoning).
-  --   * `front-swap-stack-↭` reduces (via `pe-stack-resp-↭`) to the
-  --     two-edge head bridge `two-edge-swap-stack-↭`, itself the
-  --     `EdgeStepR`-view split `two-edge-swap-gen` at the four graph
-  --     witnesses.
+  --   * `swap-stack-↭` reduces (via `pe-stack-resp-↭`) to the two-edge head
+  --     bridge `two-edge-swap-stack-↭`, itself the `EdgeStepR`-view split
+  --     `two-edge-swap-gen` at the four graph witnesses.
   --
   -- The firing-divergence cases use firing-stability: under `lin` the
   -- `ein`s of distinct edges are count-disjoint (`ein-ein-disjoint`), and
@@ -264,17 +264,10 @@ module PerHG (H : Hypergraph FlatGen) (lin : Linear H) where
       (edge-step-graph s e) (edge-step-graph (edge-step H s e ) e')
       (edge-step-graph s e') (edge-step-graph (edge-step H s e') e )
 
-  -- `front-swap-stack-↭` — threading the shared tail `qs` through
-  -- `pe-stack-resp-↭` reduces to the two-edge head bridge.
-  front-swap-stack-↭
-    : ∀ (qs : PH.Order) {e e' : Fin H.nE}
-        (inc : Incomp e e') (s : List (Fin H.nV))
-    → pe-stack (e ∷ e' ∷ qs) s  Perm.↭  pe-stack (e' ∷ e ∷ qs) s
-  front-swap-stack-↭ qs {e} {e'} inc s = pe-stack-resp-↭ qs (two-edge-swap-stack-↭ inc s)
-
   ------------------------------------------------------------------------
-  -- (general swap) reduce to the front swap via `++-stack`, then apply
-  -- `front-swap-stack-↭` at the shared post-prefix stack.
+  -- (general swap) reduce to the FRONT swap via `++-stack`, then thread the
+  -- shared tail `qs` through `pe-stack-resp-↭` onto the two-edge head
+  -- bridge, at the shared post-prefix stack.
   ------------------------------------------------------------------------
 
   swap-stack-↭
@@ -286,7 +279,7 @@ module PerHG (H : Hypergraph FlatGen) (lin : Linear H) where
           (sym (++-stack ps (e ∷ e' ∷ qs) H.dom))
       (subst (pe-stack (e ∷ e' ∷ qs) (pe-stack ps H.dom) Perm.↭_)
              (sym (++-stack ps (e' ∷ e ∷ qs) H.dom))
-        (front-swap-stack-↭ qs inc (pe-stack ps H.dom)))
+        (pe-stack-resp-↭ qs (two-edge-swap-stack-↭ inc (pe-stack ps H.dom))))
 
   ------------------------------------------------------------------------
   -- (3) `swap-validity`: transport `Valid` along `swap-stack-↭`.

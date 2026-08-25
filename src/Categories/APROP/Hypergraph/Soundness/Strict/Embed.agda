@@ -24,12 +24,13 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Embed
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig using (unflatten; unflatten-++-≅)
-open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
-  using ( c-iso-assoc-to; c-iso-assoc-from
+open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
+  using ( unflatten; unflatten-++-≅
         ; subst-id-dom; subst-id-cod
         ; cast-dc; cast-cancel′; cod-cancel; dom-cancel
         ; subst-cod-cons )
+open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
+  using (c-iso-assoc-to; c-iso-assoc-from)
 
 open import Categories.FreeStrictSMC using (module Build)
 

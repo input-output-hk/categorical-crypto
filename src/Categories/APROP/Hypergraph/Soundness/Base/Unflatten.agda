@@ -2,9 +2,8 @@
 
 --------------------------------------------------------------------------------
 -- `unflatten : List X → ObjTerm`, the right-associated `unit`-padded
--- decoder.  `flatten ∘ unflatten` is propositionally `id`; the reverse
--- `unflatten ∘ flatten` holds only up to `≈Term`, so it is packaged as a
--- FreeMonoidal iso built from α/λ/ρ.
+-- decoder.  `unflatten ∘ flatten` holds only up to `≈Term`, so it is
+-- packaged as a FreeMonoidal iso built from α/λ/ρ.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -34,14 +33,8 @@ open import Categories.PermuteCoherence.Unflatten asFreeMonoidalData public
   using (unflatten; unflatten-++-≅)
 
 --------------------------------------------------------------------------------
--- `flatten ∘ unflatten ≡ id` propositionally.
-
-flatten-unflatten : ∀ l → flatten (unflatten l) ≡ l
-flatten-unflatten []       = refl
-flatten-unflatten (x ∷ xs) = cong (x ∷_) (flatten-unflatten xs)
-
---------------------------------------------------------------------------------
--- The reverse round-trip is a coherence iso, not a propositional equality.
+-- The `unflatten ∘ flatten` round-trip is a coherence iso, not a
+-- propositional equality.
 
 unflatten-flatten-≈ : ∀ (A : ObjTerm) → A ≅ unflatten (flatten A)
 unflatten-flatten-≈ unit     = ≅.refl

@@ -49,7 +49,8 @@ private
 --------------------------------------------------------------------------------
 -- 0.  `↭`-invariance of `count` and the `Unique` ⇔ `count ≤ 1` bridge, both
 --     from the shared leaf.  The bridge is re-exported because
---     `StackUniqueReach` and `DecodeComposeAssembly` read it from here.
+--     `StackUniqueReach` reads it from here (`DecodeComposeAssembly` takes
+--     only `Linear⇒cod-Unique`).
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
   using (↭⇒count)
