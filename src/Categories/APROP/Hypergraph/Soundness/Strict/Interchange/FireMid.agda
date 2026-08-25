@@ -621,12 +621,8 @@ module _ (H : Hypergraph FlatGen)
       cross = cross-NFᵛ′ (genˢ (H.elab e)) (genˢ (H.elab e'))
                 Lin₁ Lin₂ Lout₁ Lout₂ Pr vin-cohᵛ vout-cohᵛ
 
-      goal
-        : ( fire-termˢ′ e (H.eout e' ++ r₂') r₁' p₁'
-              ∘ˢ fire-termˢ′ e' sp r₂' p₂' )
-          ≈ˢ permuteˢ r-stk
-                ∘ˢ ( fire-termˢ′ e' (H.eout e ++ r₁) r₂ p₂
-                       ∘ˢ fire-termˢ′ e sp r₁ p₁ )
+      -- `goal` is `FireMidInterchangeˢ`'s second component at this
+      -- instantiation, so it is NOT re-spelled here.
       goal = ≈-trans nf₂-eqᵛ (≈-trans cross (∘-resp ≈-refl (≈-sym nf₁-eqᵛ)))
 
   ----------------------------------------------------------------------

@@ -255,8 +255,9 @@ module Build
   -- a cast over a ⊗ splits into a cast on each factor, through the two
   -- `cong₂ _++_` endpoint proofs (all four component proofs refl-match: then
   -- both `cong₂` reduce to refl and every `castˢ … refl refl` vanishes).
-  -- This is the ⊗-analogue of `∘-cast-split`; it dissolves the ⊗-frame
-  -- entanglement that blocked TensorBraid / Decoder / DecodeSigma.
+  -- This is the ⊗-analogue of `∘-cast-split`.  Its ONLY consumer is
+  -- `⊗-resp-≈̂` below (the ⊗-frame entanglement it was written for is now
+  -- discharged once, inside `≈̂`, not per-caller).
   cast-⊗-both
     : ∀ {as as' bs bs' us us' vs vs'}
         (p : as ≡ as') (q : bs ≡ bs') (r : us ≡ us') (s : vs ≡ vs')
