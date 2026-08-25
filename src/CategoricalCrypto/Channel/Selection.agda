@@ -1,5 +1,4 @@
 {-# OPTIONS --safe --no-require-unique-meta-solutions #-}
-{-# OPTIONS -v allTactics:100 #-}
 
 module CategoricalCrypto.Channel.Selection where
 
