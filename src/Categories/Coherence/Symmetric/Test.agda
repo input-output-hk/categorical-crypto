@@ -62,12 +62,15 @@
 --     edge-free hypergraphs — they are coherence facts; use `solveH!`.
 --                                     → `Test.Deep.deep-structural-limitation`
 --   * Occurrences overlapping themselves are rejected at the search's
---     injectivity check.                 → `Test.Deep.deep-overlap-rejected`
+--     injectivity check.        → `Test.Deep.deep-overlap-{,match-}rejected`
 --   * Non-convex occurrences are rejected at the carve (correctly: no
 --     pushout complement exists); the match retry skips them, so they never
 --     mask a convex occurrence elsewhere.
 --                            → `Test.DeepArity.deep-non-convex-rejected`,
+--                              `…deep-non-convex-match-succeeds`,
 --                              `Test.DeepArity.test-deep-retry`
+--     (the two `…match-…` probes are what pin each rejection to its STAGE: a
+--     `deepFoc` failure alone cannot tell match from carve.)
 --   * `focusAt`'s leaf test compares the rule's interface objects `P`, `Q`
 --     literally (decidable `ObjTerm` equality); inside the redex matching is
 --     up to SMC structure.              → `Test.Rewrite.test-unitˡ-noisy`

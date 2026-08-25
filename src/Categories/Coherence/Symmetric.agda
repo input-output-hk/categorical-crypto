@@ -101,7 +101,14 @@ module Wiring
 
   -- The underlying search vocabulary, re-exported so clients (and the test
   -- suite) can state facts about the engine — e.g. that a redex is or is not
-  -- locatable — in the frontend's own terms.
+  -- locatable — in the frontend's own terms.  `⟪_⟫`/`subMatch` are the STAGE
+  -- BEFORE `deepFoc`: a `deepFoc` failure alone cannot say whether the
+  -- sub-hypergraph match or the hole-carve was what refused, and the two are
+  -- different limitations (see `Test.Deep`/`Test.DeepArity`).
+  open import Categories.APROP.Hypergraph.Model.Translation finSig public
+    using (⟪_⟫)
+  open import Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch finSigDec public
+    using (subMatch)
   open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve finSigDec public
     using (focusAll; focusAtₙ; focusAt)
   open import Categories.APROP.Hypergraph.Solver.Rewrite.Deep finSigDec public

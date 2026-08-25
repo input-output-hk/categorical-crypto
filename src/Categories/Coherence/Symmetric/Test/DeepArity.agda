@@ -16,7 +16,7 @@ open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory
 module Categories.Coherence.Symmetric.Test.DeepArity
   {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e) where
 
-open import Data.Bool.Base using (false)
+open import Data.Bool.Base using (false; true)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.Maybe.Base using (is-just)
@@ -99,6 +99,14 @@ module DeepArity (A : C.Obj)
   deep-non-convex-rejected
     : is-just (deepFoc (k S.∘ k S.∘ k) (k S.⊗₁ k)) ≡ false
   deep-non-convex-rejected = refl
+
+  -- The stage discriminator: here the MATCH succeeds (unlike
+  -- `Test.Deep.deep-overlap-match-rejected`, where the same assertion is
+  -- `false`) — so the rejection above provably happens at the carve, not at
+  -- the search.
+  deep-non-convex-match-succeeds
+    : is-just (subMatch ⟪ k S.⊗₁ k ⟫ ⟪ k S.∘ k S.∘ k ⟫) ≡ true
+  deep-non-convex-match-succeeds = refl
 
   -- Match retry: in `(k ∘ k ∘ k) ⊗ k` the DFS's FIRST match for `k ⊗ k` is a
   -- non-convex outer pair as above, but convex pairings with the parallel

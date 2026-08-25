@@ -140,6 +140,15 @@ module DeepRewrite (A₀ A₁ A₂ : C.Obj)
     : is-just (deepFoc (w S.∘ p) (p S.⊗₁ w)) ≡ false
   deep-overlap-rejected = refl
 
+  -- The stage discriminator for the claim above: it is the MATCH that refuses,
+  -- before any carve is attempted.  (Contrast `Test.DeepArity`'s
+  -- `deep-non-convex-match-succeeds`, where this same assertion holds with
+  -- `true` and only the carve rejects — so `deepFoc … ≡ false` alone would
+  -- not have distinguished the two limitations.)
+  deep-overlap-match-rejected
+    : is-just (subMatch ⟪ p S.⊗₁ w ⟫ ⟪ w S.∘ p ⟫) ≡ false
+  deep-overlap-match-rejected = refl
+
   -- Purely structural rule LHS (`σ`, `id`, any coherence morphism): its
   -- hypergraph has NO edges, so there is nothing to match.  Such "rules"
   -- are free coherence facts — `solveH!`'s job, not a rewrite's.
