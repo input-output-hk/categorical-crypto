@@ -167,24 +167,21 @@ bridge-ρ⇒-form A =
   id {Var y} ⊗₁ subst-id-cod (++-identityʳ ys)
     ≈⟨ ⊗-resp-≈ ≈-Term-refl (ρ⇒-coh-list ys) ⟩
   id ⊗₁ (ρ⇒ ∘ inner-from)
-    ≈⟨ ρ-slide ⟩
+    ≈⟨ solveMor! lhsᵗ rhsᵗ ⟩
   ρ⇒ ∘ α⇐ ∘ id ⊗₁ inner-from ∎
   where
     inner-from = _≅_.from (unflatten-++-≅ ys [])
 
-    ρ-slide : id {Var y} ⊗₁ (ρ⇒ ∘ inner-from) ≈Term ρ⇒ ∘ α⇐ ∘ id ⊗₁ inner-from
-    ρ-slide = solveMor! lhsᵗ rhsᵗ
-      where
-        -- atoms: 0 ↦ Var y, 1 ↦ unflatten ys, 2 ↦ unflatten (ys ++ [])
-        open FinSetup FMC
-          ( Var y Vec.∷ unflatten ys Vec.∷ unflatten (ys ++ []) Vec.∷ Vec.[] )
-        v0 = V 0F ; v1 = V 1F ; v2 = V 2F
-        open Sig {1} (λ { 0F → v2 , v1 ⊗ᵒ unitᵒ })
-        open WithGen (λ { (genS 0F) → inner-from })
-        g0 = gen 0F
-        lhsᵗ rhsᵗ : S.HomTerm (v0 ⊗ᵒ v2) (v0 ⊗ᵒ v1)
-        lhsᵗ = S._⊗₁_ S.id (S._∘_ S.ρ⇒ g0)
-        rhsᵗ = S._∘_ S.ρ⇒ (S._∘_ S.α⇐ (S._⊗₁_ S.id g0))
+    -- atoms: 0 ↦ Var y, 1 ↦ unflatten ys, 2 ↦ unflatten (ys ++ [])
+    open FinSetup FMC
+      ( Var y Vec.∷ unflatten ys Vec.∷ unflatten (ys ++ []) Vec.∷ Vec.[] )
+    v0 = V 0F ; v1 = V 1F ; v2 = V 2F
+    open Sig {1} (λ { 0F → v2 , v1 ⊗ᵒ unitᵒ })
+    open WithGen (λ { (genS 0F) → inner-from })
+    g0 = gen 0F
+    lhsᵗ rhsᵗ : S.HomTerm (v0 ⊗ᵒ v2) (v0 ⊗ᵒ v1)
+    lhsᵗ = S._⊗₁_ S.id (S._∘_ S.ρ⇒ g0)
+    rhsᵗ = S._∘_ S.ρ⇒ (S._∘_ S.α⇐ (S._⊗₁_ S.id g0))
 
 --------------------------------------------------------------------------------
 -- ρ⇒-coherence / ρ⇐-coherence: combine list-coherence with bridge-form.
@@ -231,16 +228,18 @@ bridge-ρ⇒-form A =
 --------------------------------------------------------------------------------
 -- Mac Lane / solver helpers.
 
+-- (the object variables are `A`…`D`, not `X`…: `X` is the signature's atom
+-- type, which `α⇒-form-list` above quantifies over as `List X`.)
 pentagon-rewrite
-  : ∀ {X Y Z W}
-  → α⇒ {X ⊗₀ Y} {Z} {W}
-  ≈Term α⇐ {X} {Y} {Z ⊗₀ W}
-        ∘ id {X} ⊗₁ α⇒ {Y} {Z} {W}
-        ∘ α⇒ {X} {Y ⊗₀ Z} {W}
-        ∘ α⇒ {X} {Y} {Z} ⊗₁ id {W}
-pentagon-rewrite {X} {Y} {Z} {W} = solveMor! lhsᵗ rhsᵗ
+  : ∀ {A B C D}
+  → α⇒ {A ⊗₀ B} {C} {D}
+  ≈Term α⇐ {A} {B} {C ⊗₀ D}
+        ∘ id {A} ⊗₁ α⇒ {B} {C} {D}
+        ∘ α⇒ {A} {B ⊗₀ C} {D}
+        ∘ α⇒ {A} {B} {C} ⊗₁ id {D}
+pentagon-rewrite {A} {B} {C} {D} = solveMor! lhsᵗ rhsᵗ
   where
-    open FinSetup FMC ( X Vec.∷ Y Vec.∷ Z Vec.∷ W Vec.∷ Vec.[] )
+    open FinSetup FMC ( A Vec.∷ B Vec.∷ C Vec.∷ D Vec.∷ Vec.[] )
     v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F
     open Sig {0} (λ ())
     open WithGen (λ { (genS ()) })
@@ -284,7 +283,7 @@ bridge-α⇒-form-Var
             ≈Term α⇒-form-list (x ∷ []) (flatten B) (flatten C)
 bridge-α⇒-form-Var x B C = begin
   bridge (α⇒ {Var x} {B} {C})
-    ≈⟨ shuffle ⟩
+    ≈⟨ solveMor! lhsᵗ rhsᵗ ⟩
   id {Var x} ⊗₁ (cBC-to ∘ ((F-B ∘ T-B) ⊗₁ (F-C ∘ T-C)) ∘ cBC-from)
     ≈⟨ ⊗-resp-≈ ≈-Term-refl (collapse-c-FT B C) ⟩
   id ⊗₁ id ∎
@@ -293,44 +292,39 @@ bridge-α⇒-form-Var x B C = begin
 
     -- the free part of the chase: all coherence/naturality/interchange,
     -- bringing each `from`/`to` leg adjacent to its partner.
-    shuffle
-      : bridge (α⇒ {Var x} {B} {C})
-      ≈Term id {Var x} ⊗₁ (cBC-to ∘ ((F-B ∘ T-B) ⊗₁ (F-C ∘ T-C)) ∘ cBC-from)
-    shuffle = solveMor! lhsᵗ rhsᵗ
-      where
-        -- atoms: 0 ↦ Var x, 1 ↦ B, 2 ↦ C, 3 ↦ uf B, 4 ↦ uf C,
-        -- 5 ↦ unflatten (fB++fC)
-        open FinSetup FMC
-          ( Var x Vec.∷ B Vec.∷ C
-              Vec.∷ unflatten (flatten B) Vec.∷ unflatten (flatten C)
-              Vec.∷ unflatten (flatten B ++ flatten C) Vec.∷ Vec.[] )
-        v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
-        v5 = V 5F
-        -- generators: F-B, F-C, T-B, T-C, cBC-to, cBC-from
-        open Sig {6} (λ { 0F → v1 , v3
-                        ; 1F → v2 , v4
-                        ; 2F → v3 , v1
-                        ; 3F → v4 , v2
-                        ; 4F → v3 ⊗ᵒ v4 , v5
-                        ; 5F → v5 , v3 ⊗ᵒ v4 })
-        open WithGen (λ { (genS 0F) → F-B ; (genS 1F) → F-C
-                        ; (genS 2F) → T-B ; (genS 3F) → T-C
-                        ; (genS 4F) → cBC-to ; (genS 5F) → cBC-from })
-        gFB = gen 0F ; gFC = gen 1F ; gTB = gen 2F ; gTC = gen 3F
-        gcto = gen 4F ; gcfrom = gen 5F
-        lhsᵗ rhsᵗ : S.HomTerm (v0 ⊗ᵒ v5) (v0 ⊗ᵒ v5)
-        lhsᵗ = S._∘_
-                 (S._∘_ (S._∘_ (S._⊗₁_ S.id S.λ⇒) S.α⇒)
-                        (S._⊗₁_ S.ρ⇐ (S._∘_ gcto (S._⊗₁_ gFB gFC))))
-                 (S._∘_ S.α⇒
-                   (S._∘_
-                     (S._⊗₁_ (S._∘_ (S._⊗₁_ S.ρ⇒ gTB)
-                                    (S._∘_ S.α⇐ (S._⊗₁_ S.id S.λ⇐)))
-                             gTC)
-                     (S._∘_ S.α⇐ (S._⊗₁_ S.id gcfrom))))
-        rhsᵗ = S._⊗₁_ S.id
-                 (S._∘_ gcto
-                   (S._∘_ (S._⊗₁_ (S._∘_ gFB gTB) (S._∘_ gFC gTC)) gcfrom))
+    -- atoms: 0 ↦ Var x, 1 ↦ B, 2 ↦ C, 3 ↦ uf B, 4 ↦ uf C,
+    -- 5 ↦ unflatten (fB++fC)
+    open FinSetup FMC
+      ( Var x Vec.∷ B Vec.∷ C
+          Vec.∷ unflatten (flatten B) Vec.∷ unflatten (flatten C)
+          Vec.∷ unflatten (flatten B ++ flatten C) Vec.∷ Vec.[] )
+    v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
+    v5 = V 5F
+    -- generators: F-B, F-C, T-B, T-C, cBC-to, cBC-from
+    open Sig {6} (λ { 0F → v1 , v3
+                    ; 1F → v2 , v4
+                    ; 2F → v3 , v1
+                    ; 3F → v4 , v2
+                    ; 4F → v3 ⊗ᵒ v4 , v5
+                    ; 5F → v5 , v3 ⊗ᵒ v4 })
+    open WithGen (λ { (genS 0F) → F-B ; (genS 1F) → F-C
+                    ; (genS 2F) → T-B ; (genS 3F) → T-C
+                    ; (genS 4F) → cBC-to ; (genS 5F) → cBC-from })
+    gFB = gen 0F ; gFC = gen 1F ; gTB = gen 2F ; gTC = gen 3F
+    gcto = gen 4F ; gcfrom = gen 5F
+    lhsᵗ rhsᵗ : S.HomTerm (v0 ⊗ᵒ v5) (v0 ⊗ᵒ v5)
+    lhsᵗ = S._∘_
+             (S._∘_ (S._∘_ (S._⊗₁_ S.id S.λ⇒) S.α⇒)
+                    (S._⊗₁_ S.ρ⇐ (S._∘_ gcto (S._⊗₁_ gFB gFC))))
+             (S._∘_ S.α⇒
+               (S._∘_
+                 (S._⊗₁_ (S._∘_ (S._⊗₁_ S.ρ⇒ gTB)
+                                (S._∘_ S.α⇐ (S._⊗₁_ S.id S.λ⇐)))
+                         gTC)
+                 (S._∘_ S.α⇐ (S._⊗₁_ S.id gcfrom))))
+    rhsᵗ = S._⊗₁_ S.id
+             (S._∘_ gcto
+               (S._∘_ (S._⊗₁_ (S._∘_ gFB gTB) (S._∘_ gFC gTC)) gcfrom))
 
 --------------------------------------------------------------------------------
 -- Unit-base case of bridge-α⇒-form.
@@ -340,7 +334,7 @@ bridge-α⇒-form-unit
           ≈Term α⇒-form-list [] (flatten B) (flatten C)
 bridge-α⇒-form-unit B C = begin
   bridge (α⇒ {unit} {B} {C})
-    ≈⟨ shuffle ⟩
+    ≈⟨ solveMor! lhsᵗ rhsᵗ ⟩
   cBC-to ∘ ((F-B ∘ T-B) ⊗₁ (F-C ∘ T-C)) ∘ cBC-from
     ≈⟨ collapse-c-FT B C ⟩
   id ∎
@@ -349,35 +343,30 @@ bridge-α⇒-form-unit B C = begin
 
     -- the free part of the chase: all coherence/naturality/interchange,
     -- bringing each `from`/`to` leg adjacent to its partner.
-    shuffle
-      : bridge (α⇒ {unit} {B} {C})
-      ≈Term cBC-to ∘ ((F-B ∘ T-B) ⊗₁ (F-C ∘ T-C)) ∘ cBC-from
-    shuffle = solveMor! lhsᵗ rhsᵗ
-      where
-        -- atoms: 0 ↦ B, 1 ↦ C, 2 ↦ uf B, 3 ↦ uf C, 4 ↦ unflatten (fB++fC)
-        open FinSetup FMC
-          ( B Vec.∷ C
-              Vec.∷ unflatten (flatten B) Vec.∷ unflatten (flatten C)
-              Vec.∷ unflatten (flatten B ++ flatten C) Vec.∷ Vec.[] )
-        v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
-        -- generators: F-B, F-C, T-B, T-C, cBC-to, cBC-from
-        open Sig {6} (λ { 0F → v0 , v2
-                        ; 1F → v1 , v3
-                        ; 2F → v2 , v0
-                        ; 3F → v3 , v1
-                        ; 4F → v2 ⊗ᵒ v3 , v4
-                        ; 5F → v4 , v2 ⊗ᵒ v3 })
-        open WithGen (λ { (genS 0F) → F-B ; (genS 1F) → F-C
-                        ; (genS 2F) → T-B ; (genS 3F) → T-C
-                        ; (genS 4F) → cBC-to ; (genS 5F) → cBC-from })
-        gFB = gen 0F ; gFC = gen 1F ; gTB = gen 2F ; gTC = gen 3F
-        gcto = gen 4F ; gcfrom = gen 5F
-        lhsᵗ rhsᵗ : S.HomTerm v4 v4
-        lhsᵗ = S._∘_
-                 (S._∘_ S.λ⇒
-                        (S._⊗₁_ S.id (S._∘_ gcto (S._⊗₁_ gFB gFC))))
-                 (S._∘_ S.α⇒
-                   (S._∘_
-                     (S._⊗₁_ (S._∘_ (S._⊗₁_ S.id gTB) S.λ⇐) gTC)
-                     gcfrom))
-        rhsᵗ = S._∘_ gcto (S._∘_ (S._⊗₁_ (S._∘_ gFB gTB) (S._∘_ gFC gTC)) gcfrom)
+    -- atoms: 0 ↦ B, 1 ↦ C, 2 ↦ uf B, 3 ↦ uf C, 4 ↦ unflatten (fB++fC)
+    open FinSetup FMC
+      ( B Vec.∷ C
+          Vec.∷ unflatten (flatten B) Vec.∷ unflatten (flatten C)
+          Vec.∷ unflatten (flatten B ++ flatten C) Vec.∷ Vec.[] )
+    v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
+    -- generators: F-B, F-C, T-B, T-C, cBC-to, cBC-from
+    open Sig {6} (λ { 0F → v0 , v2
+                    ; 1F → v1 , v3
+                    ; 2F → v2 , v0
+                    ; 3F → v3 , v1
+                    ; 4F → v2 ⊗ᵒ v3 , v4
+                    ; 5F → v4 , v2 ⊗ᵒ v3 })
+    open WithGen (λ { (genS 0F) → F-B ; (genS 1F) → F-C
+                    ; (genS 2F) → T-B ; (genS 3F) → T-C
+                    ; (genS 4F) → cBC-to ; (genS 5F) → cBC-from })
+    gFB = gen 0F ; gFC = gen 1F ; gTB = gen 2F ; gTC = gen 3F
+    gcto = gen 4F ; gcfrom = gen 5F
+    lhsᵗ rhsᵗ : S.HomTerm v4 v4
+    lhsᵗ = S._∘_
+             (S._∘_ S.λ⇒
+                    (S._⊗₁_ S.id (S._∘_ gcto (S._⊗₁_ gFB gFC))))
+             (S._∘_ S.α⇒
+               (S._∘_
+                 (S._⊗₁_ (S._∘_ (S._⊗₁_ S.id gTB) S.λ⇐) gTC)
+                 gcfrom))
+    rhsᵗ = S._∘_ gcto (S._∘_ (S._⊗₁_ (S._∘_ gFB gTB) (S._∘_ gFC gTC)) gcfrom)
