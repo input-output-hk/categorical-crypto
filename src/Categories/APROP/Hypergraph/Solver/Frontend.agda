@@ -208,11 +208,11 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   -- and an output-side term `post : k ⊗ Q → B`, so that the rule fires inside
   -- the frame `post ∘ (id {k} ⊗₁ –) ∘ pre`.  The `id {k} ⊗₁ –` padding makes
   -- this frame general for any *connected single-subdiagram* occurrence: σ/α
-  -- can reshape the occurrence into this shape, and the two `findIso` searches
+  -- can reshape the occurrence into this shape, and the two `findIsoᵀ` searches
   -- below absorb exactly that reshaping.
   --
   -- The caller writes *both* endpoints `s t : HomTerm A B` in any SMC-equivalent
-  -- form they like; the two implicit `findIso` witnesses reconcile each side to
+  -- form they like; the two implicit `findIsoᵀ` witnesses reconcile each side to
   -- the corresponding frame.  Soundness (`soundness`, via `solveH`)
   -- discharges the two coherence reconciliations; the rule is transported across
   -- by `C`'s `∘`/`⊗₁` congruence — no completeness and no hypergraph→term
@@ -224,14 +224,14 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → (pre : HomTerm A (k ⊗₀ P)) (post : HomTerm (k ⊗₀ Q) B)
     → (lᵗ rᵗ : HomTerm P Q)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
-    → {_ : T (is-just (findIso ⟪ s ⟫ ⟪ post ∘ (id {k} ⊗₁ lᵗ) ∘ pre ⟫))}
-    → {_ : T (is-just (findIso ⟪ t ⟫ ⟪ post ∘ (id {k} ⊗₁ rᵗ) ∘ pre ⟫))}
+    → {_ : T (is-just (findIsoᵀ ⟪ s ⟫ ⟪ post ∘ (id {k} ⊗₁ lᵗ) ∘ pre ⟫))}
+    → {_ : T (is-just (findIsoᵀ ⟪ t ⟫ ⟪ post ∘ (id {k} ⊗₁ rᵗ) ∘ pre ⟫))}
     → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁
   rewriteH! s t pre post lᵗ rᵗ rule {p₁} {p₂} =
-    C.Equiv.trans (solveH! s (post ∘ (id ⊗₁ lᵗ) ∘ pre) {p₁})
+    C.Equiv.trans (solveH!ᵀ s (post ∘ (id ⊗₁ lᵗ) ∘ pre) {p₁})
       (C.Equiv.trans
         (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule))))
-        (C.Equiv.sym (solveH! t (post ∘ (id ⊗₁ rᵗ) ∘ pre) {p₂})))
+        (C.Equiv.sym (solveH!ᵀ t (post ∘ (id ⊗₁ rᵗ) ∘ pre) {p₂})))
 
   --------------------------------------------------------------------------------
   -- Fully automatic rewriting: like `rewriteH!`, but the position (`pre`/`post`)
@@ -250,11 +250,11 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
     → {found : T (is-just (focusAtₙ s lᵗ n))}
-    → {_     : T (is-just (findIso ⟪ s ⟫ ⟪ focFrame s lᵗ lᵗ n found ⟫))}
+    → {_     : T (is-just (findIsoᵀ ⟪ s ⟫ ⟪ focFrame s lᵗ lᵗ n found ⟫))}
     → ⟦ s ⟧₁ C.≈ ⟦ focFrame s lᵗ rᵗ n found ⟧₁
   rewriteAutoₙ! s lᵗ rᵗ n rule {found} {cert} =
     C.Equiv.trans
-      (solveH! s (focFrame s lᵗ lᵗ n found) {cert})
+      (solveH!ᵀ s (focFrame s lᵗ lᵗ n found) {cert})
       (frame-rule-step (λ h → h) lᵗ rᵗ rule (focusAtₙ s lᵗ n) found)
 
   -- The first occurrence (`n = 0`).
@@ -263,7 +263,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     → (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q)
     → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
     → {found : T (is-just (focusAtₙ s lᵗ zero))}
-    → {_     : T (is-just (findIso ⟪ s ⟫ ⟪ focFrame s lᵗ lᵗ zero found ⟫))}
+    → {_     : T (is-just (findIsoᵀ ⟪ s ⟫ ⟪ focFrame s lᵗ lᵗ zero found ⟫))}
     → ⟦ s ⟧₁ C.≈ ⟦ focFrame s lᵗ rᵗ zero found ⟧₁
   rewriteAuto! s lᵗ rᵗ rule {found} {cert} = rewriteAutoₙ! s lᵗ rᵗ zero rule {found} {cert}
 
