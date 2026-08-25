@@ -3,7 +3,6 @@
 open import categorical-crypto.Prelude
 
 open import Class.Core
-open import Class.Monad
 open import Class.Prelude using (Typeω)
 open import Data.Product hiding (_<*>_)
 import Data.Sum as S
