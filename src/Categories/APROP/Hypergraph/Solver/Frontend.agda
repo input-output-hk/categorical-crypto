@@ -21,7 +21,7 @@
 -- `⟦_⟧₁`), plus the hypergraph isomorphism.
 --
 -- The second half of the file (the focus frames onward) is the REWRITE/DRIVER layer:
--- the focus frames (`focFrame`/`deepFrameM`), the `rewriteH!`-family gates,
+-- the focus frames (`frameM` and its two entry points), the `rewriteH!`-family gates,
 -- and the deep-rewrite drivers they feed.
 --------------------------------------------------------------------------------
 
@@ -50,49 +50,48 @@ open import Categories.APROP.Hypergraph.Soundness sig-dec using (soundness)
 open import Level using (Level; _⊔_)
 open import Data.List.Base using (List; []; _∷_)
 open import Data.Maybe.Base using (Maybe; just; nothing; is-just; _<∣>_)
+-- `to-witness-T`, not `from-just`: the `just`-proof is a separate argument, so
+-- it applies to an *abstract* `Maybe`, and `⊤`'s eta fills it at every call
+-- site where the search concretely succeeds.
+open import Data.Maybe using (to-witness-T)
 open import Data.Bool.Base using (T)
 open import Data.Nat.Base using (ℕ; zero; suc)
 open import Data.Product.Base using (Σ; _,_; proj₁; proj₂)
 
-private
-  -- Extract the value of a `Maybe` from a proof (`T (is-just _)`) that it is
-  -- `just`.  Unlike `from-just`, the proof is a separate argument, so this
-  -- can be applied to an *abstract* `Maybe` and still type-check; the proof is
-  -- the unit value `tt` (filled implicitly) whenever the `Maybe` is concretely
-  -- `just`, and uninhabitable when it is `nothing`.
-  fromWitness! : ∀ {a} {A : Set a} (m : Maybe A) → T (is-just m) → A
-  fromWitness! (just x) _ = x
+-- The frame `bal post ∘ (id {k} ⊗₁ mid) ∘ bal pre` at an ALREADY LOCATED focus
+-- position.  `mid := lᵗ` gives the L-frame whose iso to `s` certifies the carve;
+-- `mid := rᵗ` gives the rewritten target.
+--
+-- The position is consumed by MATCHING the `Maybe` (not the inner Σ, which would
+-- η-reduce, and not a `let`, which Agda inlines — so a `let (k , pre , post) = …`
+-- both re-runs the position search once per projection and makes the frame
+-- REDUCE on abstract arguments, which for the tabulated gates forces
+-- `tabH ⟪ frame … ⟫` during the polymorphic gate definition).  Staying NEUTRAL is
+-- also what lets `frame-rule-step` peel the rule out of the frame by matching the
+-- SAME `Maybe`.
+--
+-- `bal` normalises the context spines per family: the identity for the
+-- term-level (`focusAtₙ`) family, and `reassocBal` for the deep (`deepFocₙ`)
+-- one, whose carve emits a verbose decoded context.  The dominant deep-rewrite
+-- cost is `tabH`/`findIsoᵀ` CONSTRUCTING ⟪ frame ⟫ (the `hComposeP` tower — NOT
+-- the ~20 ms embedding search, nor the iso search itself), and a balanced
+-- (log-depth) ∘-tree makes that construction O(nV·log n) rather than O(nV·n).
+frameM : ∀ {A B P Q} (bal : ∀ {C D} → HomTerm C D → HomTerm C D)
+         (mid : HomTerm P Q) (m : Maybe (Foc A B P Q)) → T (is-just m) → HomTerm A B
+frameM bal mid (just (k , pre , post)) _ = bal post ∘ (id {k} ⊗₁ mid) ∘ bal pre
+frameM bal mid nothing ()
 
--- The frame `post ∘ (id {k} ⊗₁ mid) ∘ pre` for the `n`-th focus position of
--- `lᵗ` in `s` (when it exists).  `mid := lᵗ` gives the L-frame whose iso to
--- `s` certifies the carve; `mid := rᵗ` gives the rewritten target.  Public so
--- callers can *name* the term a rewrite lands on (e.g. to continue a
--- `HomReasoning` chain from it); the witness argument is `tt` at any call
--- site where the search concretely succeeds, so `_` fills it.
+-- The two families' entry points, at the `n`-th position of their own search.
+-- Public so callers can *name* the term a rewrite lands on (e.g. to continue a
+-- `HomReasoning` chain from it); the witness argument is `tt` at any call site
+-- where the search concretely succeeds, so `_` fills it.
 focFrame : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)
          → (n : ℕ) → T (is-just (focusAtₙ s lᵗ n)) → HomTerm A B
-focFrame s lᵗ mid n found =
-  let (k , pre , post) = fromWitness! (focusAtₙ s lᵗ n) found
-  in post ∘ (id {k} ⊗₁ mid) ∘ pre
-
--- As `focFrame`, but for the hypergraph-level (`deepFocₙ`) position search.
--- The deep gates use the TABULATED finder `findIsoᵀ`, which would force
--- `tabH ⟪ deepFrame … ⟫` during the polymorphic gate definition; matching the
--- `Maybe` (NOT the inner Σ, which would η-reduce) in `deepFrameM` keeps
--- `deepFrame` NEUTRAL on abstract args, so the gate definitions stay cheap.
--- `deepFrameM` is shared with `frame-rule-step` (the rule-transport peel matches
--- the SAME `Maybe`).  The context spines are BALANCED via `reassocBal`: the
--- dominant deep-rewrite cost is `tabH`/`findIsoᵀ` CONSTRUCTING ⟪ deepFrame ⟫
--- (the `hComposeP` tower over the carve's verbose decoded context — NOT the
--- ~20ms embedding search, nor the iso search itself); a balanced (log-depth)
--- ∘-tree makes that construction O(nV·log n) rather than O(nV·n).
-deepFrameM : ∀ {A B P Q} (mid : HomTerm P Q) (m : Maybe (Foc A B P Q)) → T (is-just m) → HomTerm A B
-deepFrameM mid (just (k , pre , post)) _ = reassocBal post ∘ (id {k} ⊗₁ mid) ∘ reassocBal pre
-deepFrameM mid nothing ()
+focFrame s lᵗ mid n found = frameM (λ h → h) mid (focusAtₙ s lᵗ n) found
 
 deepFrame : ∀ {A B P Q} (s : HomTerm A B) (lᵗ : HomTerm P Q) (mid : HomTerm P Q)
           → (n : ℕ) → T (is-just (deepFocₙ s lᵗ n)) → HomTerm A B
-deepFrame s lᵗ mid n found = deepFrameM mid (deepFocₙ s lᵗ n) found
+deepFrame s lᵗ mid n found = frameM reassocBal mid (deepFocₙ s lᵗ n) found
 
 --------------------------------------------------------------------------------
 -- The object interpretation `⟦_⟧₀ : ObjTerm → C.Obj`, which depends only on
@@ -157,7 +156,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   -- unit type `⊤`) exactly when `findIso ⟪ f ⟫ ⟪ g ⟫` succeeds at type-check
   -- time; if the search fails it reduces to `⊥` and the call is rejected.
   solveH! : ∀ {A B} (f g : HomTerm A B) → {_ : T (is-just (findIso ⟪ f ⟫ ⟪ g ⟫))} → ⟦ f ⟧₁ C.≈ ⟦ g ⟧₁
-  solveH! f g {pf} = solveH f g (fromWitness! (findIso ⟪ f ⟫ ⟪ g ⟫) pf)
+  solveH! f g {pf} = solveH f g (to-witness-T (findIso ⟪ f ⟫ ⟪ g ⟫) pf)
 
   -- Same, but the iso search runs on the TABULATED translations
   -- (`findIsoᵀ = findIso ∘ tabH`, transported back along `tab-≅ᴴ`):
@@ -169,28 +168,22 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
     : ∀ {A B} (f g : HomTerm A B)
     → {_ : T (is-just (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫))}
     → ⟦ f ⟧₁ C.≈ ⟦ g ⟧₁
-  solveH!ᵀ f g {pf} = solveH f g (fromWitness! (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫) pf)
+  solveH!ᵀ f g {pf} = solveH f g (to-witness-T (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫) pf)
 
-  -- The rule-transport step of the TABULATED `ᵀᴮ` gate, factored out so it
-  -- matches the SAME `Maybe` as `deepFrameM`.  `deepFrame` is kept NEUTRAL on
-  -- abstract args (so the finder's `tabH ⟪ deepFrame … ⟫` does not unfold during
-  -- the polymorphic gate definition); the peel
-  -- `∘-resp-≈ʳ (∘-resp-≈ˡ (⊗.F-resp-≈ (refl , rule)))` needs the frame REDUCED to
-  -- its `_ ∘ (id ⊗₁ mid) ∘ _` skeleton, so the `lemma` matches `deepFocₙ` —
-  -- in the `just` branch the frame reduces and the peel applies; `nothing` is
-  -- absurd (`found : T (is-just nothing)`).  (The non-tabulated gates use the
-  -- inline peel against the cheap `let`-form `focFrame` directly.)
+  -- The rule-transport step shared by BOTH automatic gates: peel the rule out of
+  -- a located frame.  The peel `∘-resp-≈ʳ (∘-resp-≈ˡ (⊗.F-resp-≈ (refl , rule)))`
+  -- needs the frame REDUCED to its `_ ∘ (id ⊗₁ mid) ∘ _` skeleton, and `frameM`
+  -- is deliberately NEUTRAL on abstract arguments — so this matches the SAME
+  -- `Maybe` that `frameM` does: in the `just` branch the frame reduces and the
+  -- peel applies; `nothing` is absurd (`found : T (is-just nothing)`).
   frame-rule-step
-    : ∀ {A B P Q} (s : HomTerm A B) (lᵗ rᵗ : HomTerm P Q) (n : ℕ)
-    → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
-    → (found : T (is-just (deepFocₙ s lᵗ n)))
-    → ⟦ deepFrame s lᵗ lᵗ n found ⟧₁ C.≈ ⟦ deepFrame s lᵗ rᵗ n found ⟧₁
-  frame-rule-step {A} {B} {P} {Q} s lᵗ rᵗ n rule found = lemma (deepFocₙ s lᵗ n) found
-    where
-      lemma : (m : Maybe (Foc A B P Q)) (f : T (is-just m))
-            → ⟦ deepFrameM lᵗ m f ⟧₁ C.≈ ⟦ deepFrameM rᵗ m f ⟧₁
-      lemma (just (k , pre , post)) _ = C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule)))
-      lemma nothing ()
+    : ∀ {A B P Q} (bal : ∀ {C D} → HomTerm C D → HomTerm C D)
+      (lᵗ rᵗ : HomTerm P Q) → ⟦ lᵗ ⟧₁ C.≈ ⟦ rᵗ ⟧₁
+    → (m : Maybe (Foc A B P Q)) (found : T (is-just m))
+    → ⟦ frameM bal lᵗ m found ⟧₁ C.≈ ⟦ frameM bal rᵗ m found ⟧₁
+  frame-rule-step bal lᵗ rᵗ rule (just (k , pre , post)) _ =
+    C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule)))
+  frame-rule-step bal lᵗ rᵗ rule nothing ()
 
   -- Same, but the witness is produced by the equation-splitting front-end
   -- `solveSplitR?`: both sides are reassociated to right-nested `∘`-chains,
@@ -200,7 +193,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   -- solves too.  `solveSplitR?` already yields a `f ≈Term g`, so it is
   -- transported by `F-resp-≈` directly (no `solveH`).
   solveH!ˢ : ∀ {A B} (f g : HomTerm A B) → {_ : T (is-just (solveSplitR? f g))} → ⟦ f ⟧₁ C.≈ ⟦ g ⟧₁
-  solveH!ˢ f g {pf} = Functor.F-resp-≈ freeFunctor (fromWitness! (solveSplitR? f g) pf)
+  solveH!ˢ f g {pf} = Functor.F-resp-≈ freeFunctor (to-witness-T (solveSplitR? f g) pf)
 
   --------------------------------------------------------------------------------
   -- Diagrammatic *rewriting* in `C`, in the style of `solveH!` but with a
@@ -262,7 +255,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   rewriteAutoₙ! s lᵗ rᵗ n rule {found} {cert} =
     C.Equiv.trans
       (solveH! s (focFrame s lᵗ lᵗ n found) {cert})
-      (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , rule))))
+      (frame-rule-step (λ h → h) lᵗ rᵗ rule (focusAtₙ s lᵗ n) found)
 
   -- The first occurrence (`n = 0`).
   rewriteAuto!
@@ -291,7 +284,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   rewriteDeepₙ! s lᵗ rᵗ n rule {found} {cert} =
     C.Equiv.trans
       (solveH!ᵀ s (deepFrame s lᵗ lᵗ n found) {cert})
-      (frame-rule-step s lᵗ rᵗ n rule found)
+      (frame-rule-step reassocBal lᵗ rᵗ rule (deepFocₙ s lᵗ n) found)
 
   -- The first carvable occurrence (`n = 0`).
   rewriteDeep!
@@ -360,7 +353,7 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   -- (measured: ~21s of `Typing.With` in this one definition).  Feeding the
   -- `Maybe` to a helper that pattern-matches it keeps the frame a plain term
   -- argument whose translation is built only at *reduction* time (when `drive`
-  -- actually runs on a concrete term), exactly as `deepFrameM`/`frame-rule-step`
+  -- actually runs on a concrete term), exactly as `frameM`/`frame-rule-step`
   -- do for the single-step gates.
   private
     -- Consume the `findIsoᵀ` result for a fixed carve frame.  `frameL`/`frameR`
