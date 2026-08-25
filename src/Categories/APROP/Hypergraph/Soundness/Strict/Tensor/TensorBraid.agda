@@ -351,8 +351,8 @@ module Braid {A B C D : ObjTerm}
     stkSplit₀ : proj₁ (process-edgesˢ kblk (proj₁ (process-edgesˢ gblk Hf.dom)))
                 ≡ proj₁ (process-edgesˢ (range Hf.nE) Hf.dom)
     stkSplit₀ =
-      trans (sym (pe-stack-++ˢ gblk kblk Hf.dom))
-            (cong (λ z → proj₁ (process-edgesˢ z Hf.dom)) (sym range≡))
+      sym (trans (cong (λ z → proj₁ (process-edgesˢ z Hf.dom)) range≡)
+                 (pe-stack-++ˢ gblk kblk Hf.dom))
 
   KBlockσ : Set
   KBlockσ =

@@ -242,8 +242,8 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   -- run-split: the composite run factors as `(kterm-aG ∘ˢ gterm)` under a cod
   -- cast `E₀` (the post-`kblk` stack equals the composite final stack).
   E₀ : proj₁ (RC.process-edgesˢ kblk after-G) ≡ RC.s-finˢ
-  E₀ = trans (sym (RB.pe-stack-++ˢ gblk kblk C.dom))
-             (cong (λ z → proj₁ (RC.process-edgesˢ z C.dom)) (sym range-eq))
+  E₀ = sym (trans (cong (λ z → proj₁ (RC.process-edgesˢ z C.dom)) range-eq)
+                  (RB.pe-stack-++ˢ gblk kblk C.dom))
 
   run-split : Pcomposite ≈ˢ RB.coeCod E₀ (kterm-aG ∘ˢ gterm)
   run-split = RB.run-split-atˢ gblk kblk range-eq C.dom

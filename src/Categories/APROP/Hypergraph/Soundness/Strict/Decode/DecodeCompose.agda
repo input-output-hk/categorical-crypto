@@ -133,18 +133,14 @@ module RunBlocks (H : Hypergraph FlatGen) where
     : ∀ {es : List (Fin H.nE)} (gblk kblk : List (Fin H.nE))
         (eq : es ≡ gblk ++ kblk) (s : List (Fin H.nV))
     → proj₂ (process-edgesˢ es s)
-      ≈ˢ coeCod (trans (sym (pe-stack-++ˢ gblk kblk s))
-                       (cong (λ z → proj₁ (process-edgesˢ z s)) (sym eq)))
+      ≈ˢ coeCod (sym (trans (cong (λ z → proj₁ (process-edgesˢ z s)) eq)
+                            (pe-stack-++ˢ gblk kblk s)))
            (proj₂ (process-edgesˢ kblk (proj₁ (process-edgesˢ gblk s)))
              ∘ˢ proj₂ (process-edgesˢ gblk s))
-  run-split-atˢ gblk kblk refl s =
-      ≈-trans (pe-term-++ˢ gblk kblk s)
-        (≡⇒≈ˢ (cast-irrel
-                 refl refl
-                 (cong (map vl) (sym (pe-stack-++ˢ gblk kblk s)))
-                 (cong (map vl) (trans (sym (pe-stack-++ˢ gblk kblk s)) refl))
-                 (proj₂ (process-edgesˢ kblk (proj₁ (process-edgesˢ gblk s)))
-                   ∘ˢ proj₂ (process-edgesˢ gblk s))))
+  -- The cast proof is spelled `sym (trans (cong … eq) …)` — the one shape that
+  -- REDUCES at `eq := refl` (`trans refl q = q` matches on the left), so the
+  -- clause is `pe-term-++ˢ` itself rather than that lemma re-cast by hand.
+  run-split-atˢ gblk kblk refl s = pe-term-++ˢ gblk kblk s
 
 
 --------------------------------------------------------------------------------
