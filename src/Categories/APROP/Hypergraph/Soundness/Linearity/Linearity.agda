@@ -29,7 +29,7 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using ( FlatGen; flatten; range
         ; hEmpty; hVar; hId; hGen; hSwap; hTensor
         ; module hTensor-impl)
-open import Categories.APROP.Hypergraph.Model.Invariant sig using (↑ˡ≢↑ʳ)
+open import Categories.APROP.Hypergraph.Model.Invariant sig using (↑ˡ≢↑ʳ; range-++)
 
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
@@ -165,29 +165,17 @@ concat-tabulate-blocks {m} {n} fc fG fK gL gR redL redR =
   (trans (sym (concat-++ (map (map gL) (tabulate fG)) (map (map gR) (tabulate fK))))
          (cong₂ _++_ (concat-map (tabulate fG)) (concat-map (tabulate fK)))))
 
--- The combined `LL ++ RR` list contains every Fin (nA + nB) exactly once.
+-- The combined `LL ++ RR` list contains every Fin (nA + nB) exactly once —
+-- because it IS `range (nA + nB)`, split along the `↑ˡ`/`↑ʳ` boundary by
+-- `Invariant.range-++`.  No case analysis on `splitAt nA v` is needed: the
+-- per-side count bookkeeping is already inside `count-range`.
 
 private
   count-LL-RR-eq-1
     : ∀ (nA nB : ℕ) (v : Fin (nA + nB))
     → count v (map (_↑ˡ nB) (range nA) ++ map (nA ↑ʳ_) (range nB)) ≡ 1
-  count-LL-RR-eq-1 nA nB v with splitAt nA v in eq
-  ... | inj₁ i with splitAt⁻¹-↑ˡ {n = nB} eq
-  ...           | refl =
-                  trans (count-++ (i ↑ˡ nB)
-                                  (map (_↑ˡ nB) (range nA))
-                                  (map (nA ↑ʳ_) (range nB)))
-                        (cong₂ Nat._+_
-                          (trans (count-map-↑ˡ nB i (range nA)) (count-range i))
-                          (count-map-↑ʳ-mismatch nB i (range nB)))
-  count-LL-RR-eq-1 nA nB v | inj₂ j with splitAt⁻¹-↑ʳ {m = nA} eq
-  ...                                  | refl =
-                                          trans (count-++ (nA ↑ʳ j)
-                                                          (map (_↑ˡ nB) (range nA))
-                                                          (map (nA ↑ʳ_) (range nB)))
-                                                (cong₂ Nat._+_
-                                                  (count-map-↑ˡ-mismatch nA j (range nA))
-                                                  (trans (count-map-↑ʳ nA j (range nB)) (count-range j)))
+  count-LL-RR-eq-1 nA nB v =
+    trans (sym (cong (count v) (range-++ nA nB))) (count-range v)
 
 -- Production / consumption lists of a hypergraph.
 

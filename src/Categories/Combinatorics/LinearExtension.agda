@@ -16,7 +16,7 @@
 -- `a` occurring before `b`, `¬ R b a` — i.e. no later element is
 -- strictly below an earlier one.  Phrasing it as `AllPairs` makes the
 -- two key bookkeeping lemmas fall out as clean `All`/`AllPairs`
--- manipulations (see `↝-preserves-NoInv` and `bubble`).
+-- manipulations (see `NoInv-─` and `bubble`).
 --
 -- Two lists are extensions of "the same poset" when they are
 -- permutations of each other (`_↭_`); finiteness of the carrier is
@@ -39,14 +39,16 @@
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; subst)
 open import Relation.Nullary using (¬_)
-open import Data.Product using (_×_; _,_; proj₁)
+open import Data.Product using (_×_; _,_)
 open import Data.List.Relation.Binary.Permutation.Propositional.Properties
   using (∈-resp-↭)
 open import Level using (_⊔_)
 
 open import Data.List.Base using (List; []; _∷_; _++_)
-open import Data.List.Relation.Unary.All using (All; []; _∷_; lookup)
+open import Data.List.Relation.Unary.All using (lookup)
+open import Data.List.Relation.Unary.All.Properties using (─⁺)
 open import Data.List.Relation.Unary.AllPairs using (AllPairs; []; _∷_)
+  renaming (head to NoInv-head; tail to NoInv-tail)
 open import Data.List.Relation.Unary.Any using (here; there; _─_)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Relation.Binary.Permutation.Propositional
@@ -55,7 +57,7 @@ open import Data.List.Relation.Binary.Permutation.Propositional.Properties
   using (drop-∷; ↭-empty-inv)
 
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive
-  using (Star; ε; _◅_; _◅◅_; gmap; return; reverse)
+  using (Star; ε; _◅◅_; gmap; return; reverse)
 
 -- NOTE: the connectivity theorem needs only *irreflexivity* of `R`
 -- (used to see that the head of `L` is R-minimal); transitivity is never
@@ -71,8 +73,8 @@ module Categories.Combinatorics.LinearExtension
 
 private
   variable
-    x y z w : A
-    xs ys ps qs L M L′ : List A
+    x y : A
+    xs L M L′ : List A
 
 ------------------------------------------------------------------------
 -- Comparability / incomparability
@@ -103,12 +105,8 @@ Below x y = ¬ R y x
 NoInv : List A → Set (a ⊔ r)
 NoInv = AllPairs Below
 
--- Destructors for the cons case (the two `AllPairs._∷_` fields).
-NoInv-head : NoInv (x ∷ xs) → All (Below x) xs
-NoInv-head (h ∷ _) = h
-
-NoInv-tail : NoInv (x ∷ xs) → NoInv xs
-NoInv-tail (_ ∷ t) = t
+-- (`NoInv-head`/`NoInv-tail`, the two `AllPairs._∷_` field projections,
+-- are stdlib's `AllPairs.head`/`AllPairs.tail` under those names.)
 
 ------------------------------------------------------------------------
 -- The adjacent-incomparable swap step and its closure
@@ -153,42 +151,6 @@ infix 4 _↝_ _↝*_
 ↝*-cons x = gmap (x ∷_) (↝-cons x)
 
 ------------------------------------------------------------------------
--- `↝*` preserves the no-inversion property.
---
--- Now a real proof.  A single swap touches exactly one adjacency: the
--- pair `x , y`.  As `AllPairs`, the only field that changes is the one
--- recording the relation between `x` and `y`, and incomparability
--- (`¬ R x y`) supplies the replacement.  An `All` predicate over a list
--- is unaffected by swapping two of its elements.
-------------------------------------------------------------------------
-
--- An `All` predicate is invariant under swapping one adjacent pair.
-All-swap : ∀ {ℓ} {P : A → Set ℓ} (ps : List A) {x y qs} →
-           All P (ps ++ x ∷ y ∷ qs) → All P (ps ++ y ∷ x ∷ qs)
-All-swap []       (px ∷ py ∷ pqs) = py ∷ px ∷ pqs
-All-swap (p ∷ ps) (pp ∷ rest)     = pp ∷ All-swap ps rest
-
-↝-preserves-NoInv : L ↝ M → NoInv L → NoInv M
-↝-preserves-NoInv (swap-step ps {x} {y} qs inc) = go ps
-  where
-  go : ∀ (ps′ : List A) →
-       NoInv (ps′ ++ x ∷ y ∷ qs) → NoInv (ps′ ++ y ∷ x ∷ qs)
-  -- ps = [] : the swapped pair sits at the front.  `proj₁ inc : ¬ R x y`
-  -- is exactly the `Below y x` field needed after the swap; the three
-  -- remaining `AllPairs`/`All` fields are reused verbatim.
-  go []        ((_ ∷ allBx) ∷ (allBy ∷ noqs)) =
-                 (proj₁ inc ∷ allBy) ∷ (allBx ∷ noqs)
-  -- ps = p ∷ ps′ : the head `p` relates to the same multiset of later
-  -- elements (only their order changed), so its `All` field survives
-  -- via `All-swap`; recurse on the tail.
-  go (p ∷ ps′) (allBp ∷ noinv) = All-swap ps′ allBp ∷ go ps′ noinv
-
-↝*-preserves-NoInv : L ↝* M → NoInv L → NoInv M
-↝*-preserves-NoInv ε        noL = noL
-↝*-preserves-NoInv (s ◅ ss) noL =
-  ↝*-preserves-NoInv ss (↝-preserves-NoInv s noL)
-
-------------------------------------------------------------------------
 -- Removing the element pointed to by a membership witness: `M ─ i` is
 -- stdlib's `Any._─_`, i.e. `M` with the occurrence located by `i` deleted
 -- and every other element left in place.
@@ -199,6 +161,13 @@ remove-↭ : (M : List A) (i : x ∈ M) → M ↭ x ∷ (M ─ i)
 remove-↭ (w ∷ rest) (here refl) = ↭-refl
 remove-↭ (w ∷ rest) (there i)   =
   ↭-trans (prep w (remove-↭ rest i)) (swap w _ ↭-refl)
+
+-- Deletion preserves the no-inversion property: `AllPairs`'s pairs of
+-- `M ─ i` are a sub-collection of `M`'s, so each `All` field shrinks by
+-- stdlib's `All.─⁺` — the same recursion on `i` that `_─_` itself runs.
+NoInv-─ : (M : List A) (i : x ∈ M) → NoInv M → NoInv (M ─ i)
+NoInv-─ (w ∷ rest) (here refl) noM       = NoInv-tail noM
+NoInv-─ (w ∷ rest) (there i)   (h ∷ noM) = ─⁺ i h ∷ NoInv-─ rest i noM
 
 ------------------------------------------------------------------------
 -- The bubble lemma: an R-minimal `x` can be bubbled to the front of any
@@ -277,13 +246,8 @@ connectivity {L = x ∷ L′} {M = M} R-irrefl perm noL noM =
   L′↭M′ : L′ ↭ M′
   L′↭M′ = drop-∷ (↭-trans perm M↭xM′)
 
-  -- `x ∷ M′` is inversion-free: reachable from inversion-free M by
-  -- adjacent *incomparable* swaps, which preserve NoInv.
-  noxM′ : NoInv (x ∷ M′)
-  noxM′ = ↝*-preserves-NoInv M↝*xM′ noM
-
   noM′ : NoInv M′
-  noM′ = NoInv-tail noxM′
+  noM′ = NoInv-─ M i noM
 
   noL′ : NoInv L′
   noL′ = NoInv-tail noL
