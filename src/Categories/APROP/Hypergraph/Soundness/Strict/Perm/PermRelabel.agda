@@ -7,9 +7,12 @@
 --
 -- Consumed by BOTH the `∘`-shape (`DecodeCompose`, `DecodeComposeAssembly` via
 -- `PermCalc`) and the ⊗-shape (`TensorBraid`) for the G-/K-block final
--- permutes (`φ = injL / injR / remapP`).  HETEROGENEOUS by design: every
--- consumer immediately strips the cast form again, so the endpoint proofs ride
--- in the relation instead of in three call-site arguments.
+-- permutes (`φ = injL / injR / remapP`) — which is why it lives HERE and not
+-- under `Tensor/`: it is a `permuteˢ` law, its whole dependency is
+-- `Strict.Core`, and siting it in the ⊗-shape's directory was the tree's only
+-- `Interchange/ → Tensor/` import edge.  HETEROGENEOUS by design: every
+-- consumer would otherwise strip a cast form again, so the endpoint proofs
+-- ride in the relation instead of in three call-site arguments.
 --
 -- This is FUNCTORIALITY, not rigidity: stdlib's `map⁺ φ` is structural, so
 -- `permuteˢ vJ (map⁺ φ p)` and `permuteˢ vH p` are the SAME wiring term up to
@@ -23,14 +26,14 @@
 open import Categories.APROP
 open import Relation.Binary using (DecidableEquality)
 
-module Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel
+module Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel
   (sig : APROPSignature)
   (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_
 
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)

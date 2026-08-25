@@ -25,7 +25,7 @@
 --   ⟦bswap⟧ᵛ    — `BlockSwapComm.swap-block`
 --   rigid-≈̂     — `SwapCore.perm-rigidˢ`   (the rigidity discharge)
 -- plus one COMPOSITE face, ⟦relabel-rigid⟧ (rigidity + both absorptions +
--- `TensorPVVRelabel.pvv-≈̂`), which is every located FINAL permute.
+-- `PermRelabel.pvv-≈̂`), which is every located FINAL permute.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -46,7 +46,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore si
 
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig _≟X_ as BSC
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_ as DSS
-import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig _≟X_ as PVV
+import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel sig _≟X_ as PVV
 
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)

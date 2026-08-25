@@ -37,7 +37,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X
 open import Categories.Combinatorics.ExtractPrefixEvalPhi using (extract-prefix-pin)
 -- The cross-vertex-type permute relabel (functoriality of `map⁺` under
 -- `permuteˢ`); it imports only `Strict.Decode.Decode`, so no cycle.
-import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig _≟X_
+import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel sig _≟X_
   as PVV
 
 open import Data.Fin using (Fin)

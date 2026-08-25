@@ -96,7 +96,7 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig _≟X_ as BSC
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorReconcile sig _≟X_ as TR
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
-open import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorPVVRelabel sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel sig _≟X_
   using (pvv-≈̂)
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig as SU

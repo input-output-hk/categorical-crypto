@@ -50,7 +50,7 @@
 --   derivation, equals `castˢ … (decodePˢ f ⊗ˢ decodePˢ g)`.  This is the
 --   G-block frame (`TensorBraid.gframe`, available) tensored with the K-block
 --   run slid back past `G.cod` via `σˢ`/`σ-hexˢʳ`/`strict-braid`, reconciled
---   with the sub-decoder runs through `TensorPVVRelabel.pvv-≈̂`.
+--   with the sub-decoder runs through `PermRelabel.pvv-≈̂`.
 --   `braidˢ` is supplied downstream by `Strict.Tensor.TensorBraid` (via the
 --   K-prepend box-braid `KBlockσ`), so `decodePˢ-⊗-from-braid` here is fed a
 --   concrete witness in `TensorBraid.decodePˢ-⊗-concrete` — making the
