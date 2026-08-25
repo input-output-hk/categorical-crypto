@@ -51,11 +51,12 @@
 --                   · `⟦_⟧₀`/`⟦_⟧₁` — the object/morphism interpretations
 --                                  (from `ObjInterp`/`Solver`; `Tgt` is the
 --                                  target vocabulary only and has neither).
---   * `Wiring`  — the signature/interpretation half of `Setup` on its own,
---                 exposing `dom`/`cod`/`⟦_⟧₀` and the type `GenTable` of an
---                 index-keyed generator interpretation; also the (unverified)
---                 position-search vocabulary `focusAll`/`focusAt(ₙ)`/`deepFoc`,
---                 for stating what the engine can and cannot locate.
+--   * `Wiring`  — `Setup` minus the generator table; NOT a second entry point
+--                 (nothing in this repo opens it — configure through `Setup`,
+--                 which re-exports all of it).  It holds `dom`/`cod`/`⟦_⟧₀`,
+--                 the type `GenTable`, and the (unverified) position-search
+--                 vocabulary `focusAll`/`focusAt(ₙ)`/`subMatch`/`deepFoc`, for
+--                 stating what the engine can and cannot locate.
 --   * `C`       — `SymmetricMonoidalCategory C` opened as a module (`C.Obj`,
 --                 `C.monoidal`, `C.HomReasoning`, `C.braiding`, …), and the
 --                 `FreeMonoidal` vocabulary (`Symm`, `FreeMonoidalHelper`, …)
@@ -85,7 +86,12 @@ module C = SymmetricMonoidalCategory C
 -- table describing the generators, and an interpretation `⟦_⟧ᵖ₀` of the atoms
 -- as objects of `C`, the `FinSignature` and the object interpretation `⟦_⟧₀`.
 -- It exposes `dom`/`cod`, the term language `S`, the `Solver`, and the type
--- `GenTable` of an index-keyed generator interpretation.
+-- `GenTable` of an index-keyed generator interpretation.  `GenTable` is why
+-- this is a separate module rather than part of `Setup`'s body: `Setup`'s
+-- `⟦gen⟧` is a *declared parameter*, so its type wants a name.  Inlining it
+-- instead would take a telescope `let open` chain over `FinSignature`,
+-- `Frontend` and `ObjInterp` — three parameterised-module applications, then
+-- repeated in the body.
 
 module Wiring
   {Atom : Set} (_≟A_ : DecidableEquality Atom)
