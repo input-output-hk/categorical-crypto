@@ -62,7 +62,7 @@
 --     parameter.  This is the file's last definition.
 --   * `Reconcile-e`'s own statements are HETEROGENEOUS (`_≈̂_`) wherever a
 --     homogeneous one would have to name a cast path (`Gc-≈̂`, `Kc-≈̂`,
---     `combRaw-frame`, `comb-frame`, `W-≈̂`, `stepD`, `target-≈̂`, and
+--     `comb-frame`, `W-≈̂`, `stepD`, `target-≈̂`, and
 --     `DecodeCompose.TermEmbedˢ.term-emb-≈̂` from outside) — which is why NO
 --     `cast-fuse` / `cast-irrel` / `∘-cast-split` endpoint algebra survives
 --     anywhere in this file.
@@ -88,7 +88,7 @@ open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelInner)
 open import Categories.Tactic.Category using (solve)
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
-  using (module EquivStep; module TermEmbedˢ)
+  using (module EquivStep)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-elem)
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ as DC
@@ -235,7 +235,7 @@ module Embeds (G K : Hypergraph FlatGen) where
                 injL ψG ein-c-inj₁-red eout-c-inj₁-red
                 (map-via vlab-injL) elab-c-inj₁
 
-  module TG = TermEmbedˢ {H = G} {J = hTensor G K}
+  module TG = DC.TermEmbedˢ {H = G} {J = hTensor G K}
                 injL (λ {x} {y} → ↑ˡ-injective K.nV x y)
                 vlab-injL
                 ψG ein-c-inj₁-red eout-c-inj₁-red
@@ -248,7 +248,7 @@ module Embeds (G K : Hypergraph FlatGen) where
                 injR ψK ein-c-inj₂-red eout-c-inj₂-red
                 (map-via vlab-injR) elab-c-inj₂
 
-  module TK = TermEmbedˢ {H = K} {J = hTensor G K}
+  module TK = DC.TermEmbedˢ {H = K} {J = hTensor G K}
                 injR (λ {x} {y} → ↑ʳ-injective G.nV x y)
                 vlab-injR
                 ψK ein-c-inj₂-red eout-c-inj₂-red
@@ -368,16 +368,13 @@ module Braid {A B C D : ObjTerm}
   --
   -- Substituting the run-split `run-split-atˢ` (PROVEN) and the G-frame
   -- `gframe` (PROVEN, ⇐ `term-sepᵛ`) into the C-run turns `KBlockσ` into
-  -- exactly the `braidˢ` parameter of `TensorReconcile.reconcile-from-braid`
-  -- for the chosen `cand`.  The narrowed `KBlockσ` now mentions only the
+  -- exactly `TensorReconcile.BraidSigˢ` — the `braidˢ` parameter of
+  -- `reconcile-from-braid` — at the chosen `cand`, so this file never restates
+  -- the residual's type.  The narrowed `KBlockσ` now mentions only the
   -- K-block run and the FRAMED G-side `Gon ⊗ˢ idˢ`.
 
   braidˢ-from-kblock
-    : KBlockσ
-    → Σ[ cand ∈ RF.s-finˢ ↭ Hf.cod ]
-        ( RF.permuteˢ cand ∘ˢ proj₂ (Run.runˢ ⟪ fg ⟫)
-          ≈ˢ castˢ (sym (⟪⟫-domL fg)) (sym (⟪⟫-codL fg))
-              (decodePˢ f ⊗ˢ decodePˢ g) )
+    : KBlockσ → Σ[ cand ∈ RF.s-finˢ ↭ Hf.cod ] TR.Reconcile.BraidSigˢ f g cand
   braidˢ-from-kblock (cand , kb) =
     cand , ≈-trans (∘-resp ≈-refl split-eq) kb
     where
@@ -482,7 +479,6 @@ module Braid {A B C D : ObjTerm}
     ------------------------------------------------------------------
     -- ### The two sub-final-permutes, relabelled to the C-level.
 
-
     -- the injL-/injR-lifted sub-final permutes, on `Fin Hf.nV`.
     pL : (map injL s_G_final) Perm.↭ (map injL Gd.cod)
     pL = PermProp.map⁺ injL (finalPermˢ f)
@@ -545,28 +541,6 @@ module Braid {A B C D : ObjTerm}
         Kclean'-≈̂ = ≈̂-trans cast-≈̂ (Embeds.TK.term-emb-≈̂ G K (range Kd.nE) Kd.dom)
 
     ------------------------------------------------------------------
-    -- ### `permuteˢ combRaw` frame-decomposition.
-    --
-    -- `permuteˢ combRaw ≈̂ RF.permuteˢ pL ⊗ RF.permuteˢ pR`, read off the
-    -- `PermCalc` frames: `⟦trans⟧` is definitional, `⟦frameʳ⟧`/`⟦frameˡ⟧`
-    -- present the two framed factors heterogeneously (so no intermediate
-    -- `map-++` endpoint is ever named) and `interchangeˢ` merges them.
-
-    combRaw-frame
-      : RF.permuteˢ combRaw ≈̂ RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR
-    combRaw-frame =
-      ≈̂-trans (∘-resp-≈̂ (⟦frameˡ⟧ (map injL Gd.cod) pR)
-                        (⟦frameʳ⟧ (map injR s_K_final) pL))
-              (≈ˢ⇒≈̂ (≈-trans interchangeˢ (⊗-resp idˡ idʳ)))
-
-
-    ------------------------------------------------------------------
-    -- ### `Gc ⊗ Kc` decomposition 2: to `permuteˢ comb ∘ (Gon ⊗ Kclean)`.
-
-    GcKc→comb : Gc ⊗ˢ Kc ≈ˢ (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR) ∘ˢ (Gon' ⊗ˢ Kclean')
-    GcKc→comb = ≈-sym interchangeˢ
-
-    ------------------------------------------------------------------
     -- ### TARGET equation, HETEROGENEOUSLY: the C-level
     -- `(pL⊗pR) ∘ (Gon'⊗Kclean')` IS the boundary tensor.  `decodePˢ f` IS
     -- `castˢ (⟪⟫-domL f) (⟪⟫-codL f) decf-inner` definitionally, so the two
@@ -577,7 +551,7 @@ module Braid {A B C D : ObjTerm}
       : (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR) ∘ˢ (Gon' ⊗ˢ Kclean')
         ≈̂ decodePˢ f ⊗ˢ decodePˢ g
     target-≈̂ =
-      ≈̂-trans (≈ˢ⇒≈̂ (≈-sym GcKc→comb))
+      ≈̂-trans (≈ˢ⇒≈̂ interchangeˢ)
       (≈̂-trans (⊗-resp-≈̂ Gc-≈̂ Kc-≈̂)
                (≈̂-sym (⊗-resp-≈̂ (cast-≈̂ {p = ⟪⟫-domL f} {q = ⟪⟫-codL f})
                                 (cast-≈̂ {p = ⟪⟫-domL g} {q = ⟪⟫-codL g}))))
@@ -615,13 +589,19 @@ module Braid {A B C D : ObjTerm}
     ------------------------------------------------------------------
     -- ### The two inner factors of `KBlockσ`'s target, HETEROGENEOUSLY.
     --
-    -- `comb`'s reindexing factor is absorbed inside `permuteˢ` (`⟦absorbʳ⟧`);
-    -- the `⊗ᵛ`'s own `map-++` cast and the two `sG≡`/`Kfin≡` corrections peel
-    -- by `⊗ᵛ-≈̂`/`⊗-resp-≈̂`.  Both endpoints ride in the relation, so no
-    -- `map-++` path is named and no `refl`-matched generic is needed.
+    -- `comb`'s reindexing factor is absorbed inside `permuteˢ` (`⟦absorbʳ⟧`)
+    -- and the two lifted sub-permutes are read off the `PermCalc` frames
+    -- (`⟦frameʳ⟧`/`⟦frameˡ⟧` present them heterogeneously, `interchangeˢ`
+    -- merges them), so no intermediate `map-++` endpoint is ever named.  The
+    -- `⊗ᵛ`'s own `map-++` cast and the two `sG≡`/`Kfin≡` corrections peel by
+    -- `⊗ᵛ-≈̂`/`⊗-resp-≈̂`; no `refl`-matched generic is needed.
 
     comb-frame : RF.permuteˢ comb ≈̂ RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR
-    comb-frame = ≈̂-trans (⟦absorbʳ⟧ (cong₂ _++_ sG≡ Kfin≡)) combRaw-frame
+    comb-frame =
+      ≈̂-trans (⟦absorbʳ⟧ (cong₂ _++_ sG≡ Kfin≡))
+      (≈̂-trans (∘-resp-≈̂ (⟦frameˡ⟧ (map injL Gd.cod) pR)
+                         (⟦frameʳ⟧ (map injR s_K_final) pL))
+               (≈ˢ⇒≈̂ (≈-trans interchangeˢ (⊗-resp idˡ idʳ))))
 
     W-≈̂ : (Gon ⊗ᵛ Kclean) ≈̂ Gon' ⊗ˢ Kclean'
     W-≈̂ =

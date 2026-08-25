@@ -63,7 +63,7 @@ module _ (H : Hypergraph FlatGen)
 
   open EquivStep H
     using ( permuteˢ; pe-stackˢ; pe-termˢ; process-edges-equivariantˢ
-          ; pvv-inverse-leftˢ )
+          ; pvv-inverse-leftˢ; stacks-agree )
 
   -- `Incomp` from `SwapCore` (so the record matches the `run-interchange₀ˢ`
   -- consumer).
@@ -104,8 +104,7 @@ module _ (H : Hypergraph FlatGen)
 
   -- `pe-stackˢ` IS `(process-edges …)` definitionally?  No — they walk
   -- the same `extract-prefix` calls but the strict `pe-stackˢ` is from
-  -- `process-edgesˢ`.  Bridge propositionally via `stacks-agree`.
-  open EquivStep H using (stacks-agree)
+  -- `process-edgesˢ`.  Bridge propositionally via `stacks-agree` (above).
 
   open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig using (process-edges)
 
