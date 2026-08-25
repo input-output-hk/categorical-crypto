@@ -26,7 +26,7 @@
 --     the H=⟪f⟫-side ψ-pullback order `τ = IW.τ iso` (which IS
 --     `map ψ⁻¹ (range J.nE)`, but is taken from the wiring, not rebuilt
 --     here).  Its term
---     factor is the strict embedding engine `TermEmbedˢ.process-edges-term-embˢ`
+--     factor is the strict embedding engine `TermEmbedˢ.term-emb-≈̂`
 --     (φ = iso's vertex map, ψ = iso's edge map) — the `subst₂ HomTerm` /
 --     `subst₂-∘-distrib` / `map⁺`-lift mass of the non-strict §3 VANISHES into
 --     `castˢ`; its permute factor is `permute-relabel-freeˢ` (§4), the wiring
@@ -184,10 +184,6 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
   module TE = DC2.TermEmbedˢ {H} {J}
     φ φ-inj φ-lab ψ ψ-ein ψ-eout atom-ein atom-eout ψ-elab
 
-  -- `map J.vlab (map φ s) ≡ map H.vlab s`.
-  vlab-φ : ∀ (s : List (Fin H.nV)) → map J.vlab (map φ s) ≡ map H.vlab s
-  vlab-φ = TE.vlab-φ
-
   ------------------------------------------------------------------------
   -- §1.  Bridge `RJ.process-edgesˢ (range J.nE) J.dom` to the
   -- `TermEmbedˢ`-canonical shape `RJ.process-edgesˢ (map ψ τ) (map φ H.dom)`.
@@ -247,74 +243,44 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
   -- face verbatim, at `φ = ` the iso's vertex map: it builds the φ-lift of the
   -- H-side derivation from `fin-eq`/`sym φ-cod` itself, absorbs both
   -- reindexings, and hands the residual to `pvv-≈̂`.  Shared with
-  -- `DecodeComposeAssembly`'s `gperm'`/`kperm'` — no `eval-↭`, no `FinBij`,
+  -- `DecodeComposeAssembly`'s `Yc-≈̂`/`Xc-≈̂` — no `eval-↭`, no `FinBij`,
   -- no `lookup`.
   ------------------------------------------------------------------------
 
-  private
-    -- the mid (final-stack) object-equality.
-    mid-iso : map J.vlab sJ-final ≡ map H.vlab sH-final
-    mid-iso = trans (cong (map J.vlab) fin-eq) (vlab-φ sH-final)
-
-    open PC.Kit J using (⟦relabel-rigid⟧)
+  open PC.Kit J using (⟦relabel-rigid⟧)
 
   permute-relabel-freeˢ
     : (vJ : SG.Validˢ (range J.nE))
-    → castˢ mid-iso ci (RJ.permuteˢ vJ) ≈ˢ RH.permuteˢ (iso-validˢ vJ)
+    → RJ.permuteˢ vJ ≈̂ RH.permuteˢ (iso-validˢ vJ)
   permute-relabel-freeˢ vJ =
     ⟦relabel-rigid⟧ H.vlab φ φ-lab (⟪ g ⟫-cod-unique) fin-eq (sym φ-cod)
-                    vJ (iso-validˢ vJ) mid-iso ci
+                    vJ (iso-validˢ vJ)
 
   ------------------------------------------------------------------------
   -- §5.  `iso-transportˢ`: the J-side decoding at `range J.nE` casts to the
   -- H-side decoding at the pullback order `τ`.
   ------------------------------------------------------------------------
 
-  -- The term factor: bridge `TermEmbedˢ.process-edges-term-embˢ` from the
-  -- canonical `map ψ τ`/`map φ H.dom` shape to `range J.nE`/`J.dom`.
-  private
-    -- canonical pCod for `process-edges-term-embˢ τ H.dom`.
-    pCod-can : map J.vlab (proj₁ (RJ.process-edgesˢ (map ψ τ) (map φ H.dom)))
-             ≡ map H.vlab (proj₁ (RH.process-edgesˢ τ H.dom))
-    pCod-can = trans (cong (map J.vlab) (TE.proc-stack-embˢ τ H.dom)) (vlab-φ sH-final)
-
-  -- The process-edges term twin at the canonical shape.
-  proc-twin-can
-    : castˢ (vlab-φ H.dom) pCod-can
-        (proj₂ (RJ.process-edgesˢ (map ψ τ) (map φ H.dom)))
-      ≈ˢ proj₂ (RH.process-edgesˢ τ H.dom)
-  proc-twin-can = TE.process-edges-term-embˢ τ H.dom pCod-can
-
-  -- Re-express the J-run at `range J.nE`/`J.dom` (the bridge `subst`).  The
-  -- whole `process-edgesˢ`-package is transported along `mapψτ`/`mapφdom`.
-  private
-    -- The bridged term twin: `castˢ di mid-iso (proj₂ (RJ.process-edgesˢ
-    -- (range J.nE) J.dom)) ≈ proj₂ (RH.process-edgesˢ τ H.dom)`.
-    bridge-pkg
-      : ∀ (esJ : List (Fin J.nE)) (sJ : List (Fin J.nV))
-          (es≡ : esJ ≡ map ψ τ) (s≡ : sJ ≡ map φ H.dom)
-          (pD : map J.vlab sJ ≡ map H.vlab H.dom)
-          (pC : map J.vlab (proj₁ (RJ.process-edgesˢ esJ sJ))
-                ≡ map H.vlab (proj₁ (RH.process-edgesˢ τ H.dom)))
-      → castˢ pD pC (proj₂ (RJ.process-edgesˢ esJ sJ))
-        ≈ˢ proj₂ (RH.process-edgesˢ τ H.dom)
-    bridge-pkg .(map ψ τ) .(map φ H.dom) refl refl pD pC =
-      ≈-trans (≡⇒≈ˢ (cast-irrel pD (vlab-φ H.dom) pC pCod-can
-                       (proj₂ (RJ.process-edgesˢ (map ψ τ) (map φ H.dom)))))
-              proc-twin-can
-
+  -- The term factor: the embedding's canonical-endpoint face `term-emb-≈̂`,
+  -- re-expressed at `range J.nE`/`J.dom`.  The J-run there IS the run at the
+  -- `TermEmbedˢ`-canonical `map ψ τ`/`map φ H.dom` shape, so the bridge is a
+  -- refl-match on `mapψτ`/`mapφdom` and carries no endpoint proof at all.
   proc-twin
-    : castˢ di mid-iso (proj₂ (RJ.process-edgesˢ (range J.nE) J.dom))
-      ≈ˢ proj₂ (RH.process-edgesˢ τ H.dom)
-  proc-twin = bridge-pkg (range J.nE) J.dom (sym mapψτ) (sym mapφdom) di mid-iso
+    : ∀ (esJ : List (Fin J.nE)) (sJ : List (Fin J.nV))
+    → esJ ≡ map ψ τ → sJ ≡ map φ H.dom
+    → proj₂ (RJ.process-edgesˢ esJ sJ) ≈̂ proj₂ (RH.process-edgesˢ τ H.dom)
+  proc-twin .(map ψ τ) .(map φ H.dom) refl refl = TE.term-emb-≈̂ τ H.dom
 
-  -- `iso-transportˢ`, assembled `∘-cast-split`-then-`∘-resp`.
+  -- `iso-transportˢ`, assembled `∘-resp-≈̂`-then-`≈̂⇒castˢ`: the mid object
+  -- `map J.vlab sJ-final` is never named.
   iso-transportˢ
     : (vJ : SG.Validˢ (range J.nE))
     → castˢ di ci (SG.decodeOrdˢ (range J.nE) vJ)
       ≈ˢ SF.decodeOrdˢ τ (iso-validˢ vJ)
   iso-transportˢ vJ =
-    ∘-cast-resp di mid-iso ci (permute-relabel-freeˢ vJ) proc-twin
+    ≈̂⇒castˢ (∘-resp-≈̂ (permute-relabel-freeˢ vJ)
+                      (proc-twin (range J.nE) J.dom (sym mapψτ) (sym mapφdom)))
+            di ci
 
   ------------------------------------------------------------------------
   -- §6.  Bridge `τ` to the natural order `range nE_f` via `order-invariantˢ`,

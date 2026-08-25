@@ -313,31 +313,19 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   map-rKd : map remapP K.dom ≡ map injL G.cod
   map-rKd = LP.map-remapP-K-dom G K bdy lin-G lin-K
 
-  M1G : map vlC after-G ≡ map G.vlab s_G_final
-  M1G = trans (cong (map vlC) after-G-≡) (TG.vlab-φ s_G_final)
-
-  midG-cod : map vlC (map remapP K.dom) ≡ map G.vlab G.cod
-  midG-cod = trans (cong (map vlC) map-rKd) (TG.vlab-φ G.cod)
-
   ----------------------------------------------------------------------
-  -- G-block permute: `castˢ M1G midG-cod permAG ≈ˢ PFˢ` — rigidity on the
-  -- `Unique` cod `map remapP K.dom` against the injL-lift of `perm-f`.
+  -- Y-twin, HETEROGENEOUSLY: the G-part IS `PFˢ ∘ˢ pterm-f`, factor by
+  -- factor.  Both factors' endpoint paths are canonical, so neither the mid
+  -- (`map vlC after-G ≡ map G.vlab s_G_final`) nor the two boundary paths is
+  -- ever named: the permute factor is the calculus's `⟦relabel-rigid⟧`
+  -- (rigidity on the `Unique` cod `map remapP K.dom` against the injL-lift of
+  -- `perm-f`), the term factor the embedding's `term-emb-≈̂`.
 
-  private
-    gperm' : castˢ M1G midG-cod permAG ≈ˢ PFˢ
-    gperm' = ⟦relabel-rigid⟧ G.vlab injL vlab-injL uRemapKdom after-G-≡
-                             (sym map-rKd) after-G-↭ perm-f M1G midG-cod
-
-  ----------------------------------------------------------------------
-  -- G-block twin: `castˢ (vlab-φ G.dom) M1G gterm ≈ˢ pterm-f`.
-
-  private
-    gtwin' : castˢ (TG.vlab-φ G.dom) M1G gterm ≈ˢ pterm-f
-    gtwin' = TG.process-edges-term-embˢ (range G.nE) G.dom M1G
-
-  -- Y-twin: `castˢ (vlab-φ G.dom) midG-cod Ycˢ ≈ˢ PFˢ ∘ˢ pterm-f`.
-  Yc-twinˢ : castˢ (TG.vlab-φ G.dom) midG-cod Ycˢ ≈ˢ PFˢ ∘ˢ pterm-f
-  Yc-twinˢ = ∘-cast-resp (TG.vlab-φ G.dom) M1G midG-cod gperm' gtwin'
+  Yc-≈̂ : Ycˢ ≈̂ PFˢ ∘ˢ pterm-f
+  Yc-≈̂ =
+    ∘-resp-≈̂ (⟦relabel-rigid⟧ G.vlab injL vlab-injL uRemapKdom after-G-≡
+                              (sym map-rKd) after-G-↭ perm-f)
+             (TG.term-emb-≈̂ (range G.nE) G.dom)
 
   ----------------------------------------------------------------------
   -- ## The K-block.
@@ -345,39 +333,21 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   combPˢ : proj₁ (RC.process-edgesˢ kblk (map remapP K.dom)) Perm.↭ C.cod
   combPˢ = Perm.trans (Perm.↭-sym ρf-K) perm-C2ˢ
 
-  -- `Xcˢ ≈ˢ permuteˢ combPˢ ∘ˢ kterm-canon`  (permuteˢ trans = ∘ˢ, reassoc).
-  private
-    Xc-assocˢ : Xcˢ ≈ˢ RC.permuteˢ combPˢ ∘ˢ kterm-canon
-    Xc-assocˢ = ≈-sym assocˢ
-
   proc-stack-emb-K : proj₁ (RC.process-edgesˢ kblk (map remapP K.dom)) ≡ map remapP s_K_final
   proc-stack-emb-K = TK.proc-stack-embˢ (range K.nE) K.dom
 
-  MK1 : map vlC (proj₁ (RC.process-edgesˢ kblk (map remapP K.dom))) ≡ map K.vlab s_K_final
-  MK1 = trans (cong (map vlC) proc-stack-emb-K) (TK.vlab-φ s_K_final)
-
   ----------------------------------------------------------------------
-  -- K-block permute: `castˢ MK1 (vlab-φ K.cod) (permuteˢ combPˢ) ≈ˢ PGˢ` —
-  -- the mirror, on the `Unique` cod `C.cod`, which IS `map remapP K.cod`
-  -- definitionally, so the codomain reindexing is `refl`.
+  -- X-twin, the mirror.  `Xcˢ` is reassociated to `permuteˢ combPˢ ∘ˢ
+  -- kterm-canon` (`permuteˢ trans = ∘ˢ`, definitional) and then split the same
+  -- way; the `Unique` cod is `C.cod`, which IS `map remapP K.cod`
+  -- definitionally, so this block's codomain reindexing is `refl`.
 
-  private
-    kperm' : castˢ MK1 (TK.vlab-φ K.cod) (RC.permuteˢ combPˢ) ≈ˢ PGˢ
-    kperm' = ⟦relabel-rigid⟧ K.vlab remapP remapP-vlab uCcod proc-stack-emb-K
-                             refl combPˢ perm-g MK1 (TK.vlab-φ K.cod)
-
-  ----------------------------------------------------------------------
-  -- K-block twin: `castˢ (vlab-φ K.dom) MK1 kterm-canon ≈ˢ pterm-g`.
-
-  private
-    ktwin' : castˢ (TK.vlab-φ K.dom) MK1 kterm-canon ≈ˢ pterm-g
-    ktwin' = TK.process-edges-term-embˢ (range K.nE) K.dom MK1
-
-  -- X-twin: `castˢ (vlab-φ K.dom)(vlab-φ K.cod) Xcˢ ≈ˢ PGˢ ∘ˢ pterm-g`.
-  Xc-twinˢ : castˢ (TK.vlab-φ K.dom) (TK.vlab-φ K.cod) Xcˢ ≈ˢ PGˢ ∘ˢ pterm-g
-  Xc-twinˢ =
-    ≈-trans (cast-resp (TK.vlab-φ K.dom) (TK.vlab-φ K.cod) Xc-assocˢ)
-            (∘-cast-resp (TK.vlab-φ K.dom) MK1 (TK.vlab-φ K.cod) kperm' ktwin')
+  Xc-≈̂ : Xcˢ ≈̂ PGˢ ∘ˢ pterm-g
+  Xc-≈̂ =
+    ≈̂-trans (≈ˢ⇒≈̂ (≈-sym assocˢ))
+            (∘-resp-≈̂ (⟦relabel-rigid⟧ K.vlab remapP remapP-vlab uCcod
+                                       proc-stack-emb-K refl combPˢ perm-g)
+                      (TK.term-emb-≈̂ (range K.nE) K.dom))
 
   ----------------------------------------------------------------------
   -- ## The headline `decodePˢ` equation.
@@ -403,15 +373,13 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
     -- cast of `PFˢ ∘ˢ pterm-f`); the `_≈̂_` kit absorbs the `cast-irrel`/`cast-fuse`.
     Gpartˢ : castˢ domGF midGFᵉ Ycˢ ≈ˢ decodePˢ f
     Gpartˢ =
-      viâ (cast-≈̂ {p = domGF} {q = midGFᵉ})
-          (castˢ⇒≈̂ (TG.vlab-φ G.dom) midG-cod Yc-twinˢ)
+      viâ (cast-≈̂ {p = domGF} {q = midGFᵉ}) Yc-≈̂
           (cast-≈̂ {p = ⟪⟫-domL f} {q = ⟪⟫-codL f})
 
     -- K-part: `castˢ midGFᵉ codGF Xcˢ ≈ˢ decodePˢ g`.  Mirror of `Gpartˢ`.
     Kpartˢ : castˢ midGFᵉ codGF Xcˢ ≈ˢ decodePˢ g
     Kpartˢ =
-      viâ (cast-≈̂ {p = midGFᵉ} {q = codGF})
-          (castˢ⇒≈̂ (TK.vlab-φ K.dom) (TK.vlab-φ K.cod) Xc-twinˢ)
+      viâ (cast-≈̂ {p = midGFᵉ} {q = codGF}) Xc-≈̂
           (cast-≈̂ {p = ⟪⟫-domL g} {q = ⟪⟫-codL g})
 
   -- The full strict `∘`-shape.

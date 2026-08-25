@@ -131,8 +131,10 @@ module Kit (H : Hypergraph FlatGen) where
   -- Rigidity at the `Unique` cod identifies `D` with the φ-lift of `p` (BUILT
   -- here from `e₁`/`e₂`, not supplied), the absorptions swallow the lift's two
   -- reindexings, and the residual is functoriality (`PVV.pvv-≈̂`).
-  -- `e₂ = refl` covers a definitional codomain reindexing.  Consumers:
-  -- `DecodeComposeAssembly.{gperm',kperm'}`, `IsoTransport.permute-relabel-freeˢ`.
+  -- `e₂ = refl` covers a definitional codomain reindexing.  HETEROGENEOUS:
+  -- both endpoint paths are `e₁`/`e₂` pushed through `vl`, i.e. canonical, so
+  -- no consumer builds them.  Consumers: `DecodeComposeAssembly.{Yc-≈̂,Xc-≈̂}`,
+  -- `IsoTransport.permute-relabel-freeˢ`.
   ------------------------------------------------------------------------
   module _ {nK : ℕ} (vlK : Fin nK → X) (φ : Fin nK → Fin H.nV)
            (φ-lab : ∀ i → vl (φ i) ≡ vlK i) where
@@ -141,15 +143,12 @@ module Kit (H : Hypergraph FlatGen) where
       : ∀ {xs ys : List (Fin nK)} {as bs : List (Fin H.nV)}
           (u : Unique bs) (e₁ : as ≡ map φ xs) (e₂ : map φ ys ≡ bs)
           (D : as Perm.↭ bs) (p : xs Perm.↭ ys)
-          (P : m as ≡ map vlK xs) (Q : m bs ≡ map vlK ys)
-      → castˢ P Q (permuteˢ D) ≈ˢ Perm′.permuteˢ (Fin nK) vlK p
-    ⟦relabel-rigid⟧ {xs} {ys} {as} {bs} u e₁ e₂ D p P Q =
-      ≈̂⇒≈ˢ
-        (≈̂-trans (cast-≈̂ {p = P} {q = Q})
-        (≈̂-trans (rigid-≈̂ u D φ-lift)
-        (≈̂-trans (⟦absorbʳ⟧ e₁)
-        (≈̂-trans (⟦absorbˡ⟧ e₂)
-                 (PVV.pvv-≈̂ φ vl vlK φ-lab p)))))
+      → permuteˢ D ≈̂ Perm′.permuteˢ (Fin nK) vlK p
+    ⟦relabel-rigid⟧ {xs} {ys} {as} {bs} u e₁ e₂ D p =
+      ≈̂-trans (rigid-≈̂ u D φ-lift)
+      (≈̂-trans (⟦absorbʳ⟧ e₁)
+      (≈̂-trans (⟦absorbˡ⟧ e₂)
+               (PVV.pvv-≈̂ φ vl vlK φ-lab p)))
       where
         φ-lift : as Perm.↭ bs
         φ-lift = Perm.trans (Perm.↭-reflexive e₁)
