@@ -64,15 +64,6 @@ open import Relation.Binary.PropositionalEquality
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 
 --------------------------------------------------------------------------------
--- `genˢ` commutes with `castˢ` (boundary transport of a generator), proven
--- definitionally (`refl refl`); the strict twin of `subst₂`-on-`flat`.
-
-gen-cast
-  : ∀ {as as' bs bs'} (p : as ≡ as') (q : bs ≡ bs') (x : FlatGen as bs)
-  → castˢ p q (genˢ x) ≡ genˢ (subst₂ FlatGen p q x)
-gen-cast refl refl x = refl
-
---------------------------------------------------------------------------------
 -- The Agen shape.
 
 module Gen {A B : ObjTerm} (g : mor A B) where

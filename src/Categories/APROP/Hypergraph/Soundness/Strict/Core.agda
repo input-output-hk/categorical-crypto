@@ -24,9 +24,20 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; flat
 open import Categories.FreeStrictSMC using (module Build)
 open import Data.List using (List)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; subst₂)
 
 open Build X _≟X_ FlatGen public
+
+--------------------------------------------------------------------------------
+-- `genˢ` commutes with `castˢ`: a boundary transport of a generator is the
+-- generator of the transported `FlatGen` (`refl refl` matched).  Lives here
+-- because the `Decode` chain reaches it publicly and BOTH decoder modules
+-- that need it (`DecodeGen`, `DecodeCompose`) once spelled their own copy.
+
+gen-cast
+  : ∀ {as as' bs bs'} (p : as ≡ as') (q : bs ≡ bs') (x : FlatGen as bs)
+  → castˢ p q (genˢ x) ≡ genˢ (subst₂ FlatGen p q x)
+gen-cast refl refl x = refl
 
 --------------------------------------------------------------------------------
 -- `coe`: the object-equality coercions the structural atoms become.

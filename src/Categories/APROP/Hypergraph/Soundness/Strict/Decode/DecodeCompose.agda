@@ -151,13 +151,6 @@ module RunBlocks (H : Hypergraph FlatGen) where
 -- ## Local plumbing.
 
 private
-  -- generator-cast: a `castˢ` of a `genˢ` is the `genˢ` of the `subst₂`-ed
-  -- generator.  (`refl refl` matched.)
-  gen-cast
-    : ∀ {as as' bs bs'} (p : as ≡ as') (q : bs ≡ bs') (g : FlatGen as bs)
-    → castˢ p q (genˢ g) ≡ genˢ (subst₂ FlatGen p q g)
-  gen-cast refl refl g = refl
-
   just-injective-fst
     : ∀ {a b} {A : Set a} {B : A → Set b} {x y : A} {p : B x} {q : B y}
     → just (x , p) ≡ just (y , q) → x ≡ y
