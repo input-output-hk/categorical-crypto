@@ -3,7 +3,7 @@
 ------------------------------------------------------------------------
 -- An INDUCTIVE variant of `≅↭`, and the combinatorial completeness of it.
 --
--- `≅↭` (Canonical.agda) is the *semantic* relation "equal evaluated
+-- `≅↭` (Rigid.agda) is the *semantic* relation "equal evaluated
 -- bijection" (`eval-↭ p ≈-fb eval-↭ q`).  This module introduces an
 -- INDUCTIVELY GENERATED congruence `_≅↭ⁱ_` on `↭`-derivations whose
 -- generators are exactly the relations of the free symmetric-monoidal
@@ -60,7 +60,7 @@ open import Categories.PermuteCoherence.Coxeter.EvalSoundness
 -- The Word model (position level) and its list-level interpretation.
 open import Categories.PermuteCoherence.Coxeter.Word
   using ( Word; liftW; _~ʷ_; ~refl; ~sym; ~trans; ∷c; c1; c2; c3
-        ; Far; far0ˡ; far0ʳ; farS; Adj; adj0; adjS
+        ; Far; far0ˡ; farS; Adj; adj0; adjS
         ; evalW; canonW-resp-≈
         ; cons-fb-cong )
 open import Categories.PermuteCoherence.Coxeter.InsertProof using (straightenW)
@@ -141,10 +141,6 @@ data _≅↭ⁱ_ : {xs ys : List X} → xs ↭ ys → xs ↭ ys → Set where
 -- induction with one `FinBij`-level coherence per generator.  `complete`
 -- (below) is the COMBINATORIAL core.  Together they give `_≅↭ⁱ_ ⟺ _≅↭_`.
 
-private
-  sw∘c≈sw : ∀ {n} → swap-fb n ∘-fb cons-fb (cons-fb (id-fb {n})) ≈-fb swap-fb n
-  sw∘c≈sw {n} i = cong (swap-fb n P.⟨$⟩ʳ_) (cons²-fb-id {n} i)
-
 sound : {p q : xs ↭ ys} → p ≅↭ⁱ q → eval-↭ p ≈-fb eval-↭ q
 sound iref          = λ i → refl
 sound (isym h)      = λ i → sym (sound h i)
@@ -187,7 +183,7 @@ sound (swap-braid {xs = xs}) i =
   ccx : ∀ k → c2s P.⟨$⟩ʳ k ≡ k
   ccx = cons²-fb-id {suc L}
   collM : ∀ k → D P.⟨$⟩ʳ k ≡ cs P.⟨$⟩ʳ k            -- inner lift collapses
-  collM = cons-fb-cong (sw∘c≈sw {L})
+  collM = cons-fb-cong (λ k → cong (swap-fb L P.⟨$⟩ʳ_) (cons²-fb-id {L} k))
   -- LHS at `i` reduces to YB-LHS.
   lhsCollapse : Sx P.⟨$⟩ʳ (c2s P.⟨$⟩ʳ (D P.⟨$⟩ʳ (Sx P.⟨$⟩ʳ (c2s P.⟨$⟩ʳ i))))
                 ≡ Sx P.⟨$⟩ʳ (cs P.⟨$⟩ʳ (Sx P.⟨$⟩ʳ i))
@@ -245,17 +241,12 @@ trcᴴ : {p : xs ↭ ys} {q : ys ↭ zs} {p′ : xs′ ↭ ys′} {q′ : ys′ 
 trcᴴ {q = q} (refl , refl , h₁) (el₂ , refl , h₂) =
   refl , refl , trc h₁ (subst (λ e → subst₂ Perm._↭_ e refl q ≅↭ⁱ _) (uipX el₂ refl) h₂)
 
--- A single-generator piece is heterogeneously equal to another when its
--- (index, list) inputs match (so the `∷c`/index-rewrite case is clean).
-swapAt-↭-≅↭ᴴ : {n : ℕ} {i j : Fin n} → i ≡ j → (e : xs ≡ ys)
-             → swapAt-↭ i xs ≅↭ᴴ swapAt-↭ j ys
-swapAt-↭-≅↭ᴴ refl refl = hrefl
-
--- …and appending one to a `≅↭ᴴ` needs no new list equality: the one the
--- wrapper already carries IS `swapAt-↭-≅↭ᴴ`'s argument (4 sites).
-∷ᴴ : {n : ℕ} {i j : Fin n} {p : xs ↭ ys} {q : xs′ ↭ ys′} → i ≡ j → (h : p ≅↭ᴴ q)
-   → Perm.trans p (swapAt-↭ i ys) ≅↭ᴴ Perm.trans q (swapAt-↭ j ys′)
-∷ᴴ eq h = trcᴴ h (swapAt-↭-≅↭ᴴ eq (proj₁ (proj₂ h)))
+-- Appending one generator piece to a `≅↭ᴴ` needs no new list equality: the
+-- wrapper's own codomain proof is the only thing that could differ, and its
+-- right endpoint is free, so matching it to `refl` discharges it (4 sites).
+∷ᴴ : {n : ℕ} {i : Fin n} {p : xs ↭ ys} {q : xs′ ↭ ys′} → (h : p ≅↭ᴴ q)
+   → Perm.trans p (swapAt-↭ i ys) ≅↭ᴴ Perm.trans q (swapAt-↭ i ys′)
+∷ᴴ h@(_ , refl , _) = trcᴴ h hrefl
 
 -- Convert back to the homogeneous relation, once the endpoints coincide
 -- (e.g. at `complete`, where `p q : xs ↭ ys`).  The endpoint equalities
@@ -292,17 +283,14 @@ far-nat : {p : xs ↭ ys}
 far-nat = itrn (isym swap-nat) swap-nat-left
 
 -- The C2 generator lemma (far-commutativity).  `farS` lifts via `prepᴴ`;
--- the `far0ˡ`/`far0ʳ` bases are the naturality square `far-nat`, with short
--- junk lists settled by the unit laws.
+-- the `far0ˡ` base is the naturality square `far-nat`, with short junk
+-- lists settled by the unit laws.
 swapFarᴴ : {n : ℕ} {i j : Fin n} → Far i j → (ys : List X)
   → Perm.trans (swapAt-↭ j ys) (swapAt-↭ i (swapAt j ys))
     ≅↭ᴴ Perm.trans (swapAt-↭ i ys) (swapAt-↭ j (swapAt i ys))
 swapFarᴴ far0ˡ    []             = hrefl
 swapFarᴴ far0ˡ    (a ∷ [])       = liftⁱ (itrn tr-unitʳ (isym tr-unitˡ))
 swapFarᴴ far0ˡ    (a ∷ b ∷ rest) = liftⁱ far-nat
-swapFarᴴ far0ʳ    []             = hrefl
-swapFarᴴ far0ʳ    (a ∷ [])       = liftⁱ (itrn tr-unitˡ (isym tr-unitʳ))
-swapFarᴴ far0ʳ    (a ∷ b ∷ rest) = liftⁱ (isym far-nat)
 swapFarᴴ (farS f) []             = hrefl
 swapFarᴴ (farS f) (a ∷ ys′)      =
   htrn (liftⁱ (isym prep-tr)) (htrn (prepᴴ (swapFarᴴ f ys′)) (liftⁱ prep-tr))
@@ -338,7 +326,7 @@ bridge-sound : {n : ℕ} {w w′ : Word n} → w ~ʷ w′ → (xs : List X) → 
 bridge-sound ~refl          xs len = hrefl
 bridge-sound (~sym r)       xs len = hsym (bridge-sound r xs len)
 bridge-sound (~trans r₁ r₂) xs len = htrn (bridge-sound r₁ xs len) (bridge-sound r₂ xs len)
-bridge-sound (∷c {i = i} {j = j} eq r) xs len = ∷ᴴ eq (bridge-sound r xs len)
+bridge-sound (∷c r) xs len = ∷ᴴ (bridge-sound r xs len)
 bridge-sound (c1 i {w = w}) xs len =
   htrn (liftⁱ tr-assoc)
        (htrn (trcᴴ hrefl (swap²ᴴ i (applyW w xs))) (liftⁱ tr-unitʳ))
@@ -366,14 +354,14 @@ interp-liftW : {n : ℕ} (w : Word n) {x : X} {xs : List X}
              → ⟦ liftW w ⟧↭ (x ∷ xs) ≅↭ᴴ Perm.prep x (⟦ w ⟧↭ xs)
 interp-liftW []        = liftⁱ (isym prep-id)
 interp-liftW (i ∷ w′) =
-  htrn (∷ᴴ refl (interp-liftW w′)) (liftⁱ (isym prep-tr))
+  htrn (∷ᴴ (interp-liftW w′)) (liftⁱ (isym prep-tr))
 
 -- A concatenated word interprets as the composite of the two pieces.
 interp-++ : {n : ℕ} (v w : Word n) {xs : List X}
           → ⟦ v ++ w ⟧↭ xs ≅↭ᴴ Perm.trans (⟦ w ⟧↭ xs) (⟦ v ⟧↭ (applyW w xs))
 interp-++ []       w = liftⁱ (isym tr-unitʳ)
 interp-++ (i ∷ v′) w =
-  htrn (∷ᴴ refl (interp-++ v′ w)) (liftⁱ tr-assoc)
+  htrn (∷ᴴ (interp-++ v′ w)) (liftⁱ tr-assoc)
 
 ------------------------------------------------------------------------
 -- 5. `flatten`: every `↭`-derivation `p` is `≅↭ᴴ`-equal to the
@@ -391,11 +379,6 @@ interp-++ (i ∷ v′) w =
 ⟦⟧↭-subst : {n m : ℕ} (eq : n ≡ m) (w : Word n) {as : List X}
           → ⟦ subst Word eq w ⟧↭ as ≅↭ᴴ ⟦ w ⟧↭ as
 ⟦⟧↭-subst refl w = hrefl
-
-swap-refl-cong : {ys ys′ : List X}
-               → ys′ ≡ ys
-               → Perm.swap x y (Perm.refl {xs = ys′}) ≅↭ᴴ Perm.swap x y (Perm.refl {xs = ys})
-swap-refl-cong refl = hrefl
 
 flatten : (p : xs ↭ ys) → Σ[ w ∈ Word (pred (length xs)) ] (p ≅↭ᴴ ⟦ w ⟧↭ xs)
 flatten Perm.refl = [] , hrefl
@@ -420,20 +403,19 @@ flatten (Perm.trans {xs = xs} {ys = ys} {zs = zs} p′ q′)
 flatten (Perm.swap {xs = z ∷ zs} {ys = ys′} x y p′) with flatten p′
 ... | w′ , rel′ =
   0F ∷ liftW (liftW w′) ,
-  htrn (liftⁱ swap-nat) (∷ᴴ (refl {x = 0F}) piece1)
+  htrn (liftⁱ swap-nat) (∷ᴴ piece1)
   where
   piece1 : Perm.prep x (Perm.prep y p′)
            ≅↭ᴴ ⟦ liftW (liftW w′) ⟧↭ (x ∷ y ∷ z ∷ zs)
   piece1 = htrn (prepᴴ (prepᴴ rel′))
                 (hsym (htrn (interp-liftW (liftW w′)) (prepᴴ (interp-liftW w′))))
+-- (`rel′`'s codomain proof is matched: `⟦ [] ⟧↭ []` closes the right
+-- endpoint, so `ys′ ≡ []` is forced and the bare swap needs no re-indexing.)
 flatten (Perm.swap {xs = []} {ys = ys′} x y p′) with flatten p′
-... | [] , rel′ =
+... | [] , rel′@(_ , refl , _) =
   0F ∷ [] ,
-  htrn (liftⁱ swap-nat)
-       (trcᴴ collapse (swap-refl-cong er′))
+  htrn (liftⁱ swap-nat) (trcᴴ collapse hrefl)
   where
-  er′ : ys′ ≡ []
-  er′ = proj₁ (proj₂ rel′)
   collapse : Perm.prep x (Perm.prep y p′) ≅↭ᴴ Perm.refl {xs = x ∷ y ∷ []}
   collapse =
     htrn (prepᴴ (prepᴴ rel′))

@@ -20,20 +20,19 @@
 module Categories.PermuteCoherence.Coxeter.Word where
 
 open import Data.Nat.Base using (ℕ; zero; suc)
-open import Data.Fin.Base using (Fin; zero) renaming (suc to fsuc)
+open import Data.Fin.Base using (Fin; zero; punchOut) renaming (suc to fsuc)
 open import Data.Fin.Patterns using (0F)
+open import Data.Fin.Properties using (punchOut-cong)
 open import Data.List.Base using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-identityʳ)
 import Data.Fin.Permutation as P
 open P using (remove)
 
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl; sym; cong; trans; subst)
+  using (_≡_; _≢_; refl; sym; cong; trans; subst)
 
 open import Categories.PermuteCoherence.FinBij
 open import Categories.PermuteCoherence.Coxeter.EvalSoundness as Snd
--- `residual-pw-cong`: `remove 0F` respects pointwise (`≈-fb`) equality.
-open import Categories.PermuteCoherence.Canonical using (residual-pw-cong)
 
 private
   variable
@@ -60,20 +59,43 @@ evalW []      = id-fb
 evalW (i ∷ w) = genFB i ∘-fb evalW w
 
 ------------------------------------------------------------------------
--- 3. Pointwise-congruence helpers for `_∘-fb_` and `cons-fb`.
+-- 3. Pointwise-congruence helpers for `_∘-fb_`, `cons-fb` and `remove 0F`.
 
 ∘-fb-cong : {g g′ : FinBij m k} {f f′ : FinBij n m} →
             g ≈-fb g′ → f ≈-fb f′ → (g ∘-fb f) ≈-fb (g′ ∘-fb f′)
 ∘-fb-cong {g = g} {g′} {f} {f′} g≈ f≈ i
   rewrite f≈ i = g≈ (f′ P.⟨$⟩ʳ i)
 
+-- One-sided forms, for the sites where one factor is shared.  All three
+-- factors are EXPLICIT because `_≈-fb_` unfolds to a POINTWISE statement:
+-- a `FinBij` meta only ever occurs under the forward projection of a
+-- record, so neither the goal nor the supplied proof's type can solve it —
+-- which is what pins `∘-fb-cong` four ways at every one of ITS call sites.
+∘-fb-congˡ : (g g′ : FinBij m k) (f : FinBij n m) →
+             g ≈-fb g′ → (g ∘-fb f) ≈-fb (g′ ∘-fb f)
+∘-fb-congˡ _ _ f g≈ i = g≈ (f P.⟨$⟩ʳ i)
+
+∘-fb-congʳ : (g : FinBij m k) (f f′ : FinBij n m) →
+             f ≈-fb f′ → (g ∘-fb f) ≈-fb (g ∘-fb f′)
+∘-fb-congʳ g _ _ f≈ i = cong (g P.⟨$⟩ʳ_) (f≈ i)
+
 cons-fb-cong : {f f′ : FinBij n m} →
                f ≈-fb f′ → cons-fb f ≈-fb cons-fb f′
 cons-fb-cong eq 0F       = refl
 cons-fb-cong eq (fsuc i) = cong fsuc (eq i)
 
-genFB-cong : {n : ℕ} {i j : Fin n} → i ≡ j → genFB i ≈-fb genFB j
-genFB-cong refl _ = refl
+-- `remove 0F` respects pointwise equality.  Under `_≡_` stdlib's
+-- `remove`/`punchOut` are opaque, so this is the only form available;
+-- `punchOut` is congruent in both arguments, of which stdlib proves the
+-- `j` half.
+private
+  punchOut-cong-both : {i i′ j j′ : Fin (suc n)} → i ≡ i′ → j ≡ j′
+                     → {p : i ≢ j} {p′ : i′ ≢ j′} → punchOut p ≡ punchOut p′
+  punchOut-cong-both {i = i} refl ej = punchOut-cong i ej
+
+residual-pw-cong : (b b′ : FinBij (suc n) (suc n)) → b ≈-fb b′
+                 → remove 0F b ≈-fb remove 0F b′
+residual-pw-cong b b′ eq i = punchOut-cong-both (eq 0F) (eq (fsuc i))
 
 ------------------------------------------------------------------------
 -- 4. The concatenation homomorphism and lifting.
@@ -116,13 +138,9 @@ rotateW {suc n} (fsuc m) = 0F ∷ liftW (rotateW m)
 -- `rotateW` realises `rotate-fb`.
 rotateW-sound : {n : ℕ} (m : Fin (suc n)) → evalW (rotateW m) ≈-fb rotate-fb m
 rotateW-sound {n}     0F       i = refl
-rotateW-sound {suc n} (fsuc m) i =
-  ∘-fb-cong {g = swap-fb n} {g′ = swap-fb n}
-            {f = evalW (liftW (rotateW m))} {f′ = cons-fb (rotate-fb m)}
-            (λ _ → refl)
-            (λ j → trans (eval-liftW (rotateW m) j)
-                         (cons-fb-cong (rotateW-sound m) j))
-            i
+rotateW-sound {suc n} (fsuc m) =
+  ∘-fb-congʳ (swap-fb n) (evalW (liftW (rotateW m))) (cons-fb (rotate-fb m))
+    (λ j → trans (eval-liftW (rotateW m) j) (cons-fb-cong (rotateW-sound m) j))
 
 -- The defining property: the rotation brings `m` to the front.
 rotate-fb-front : {n : ℕ} (m : Fin (suc n)) → rotate-fb m P.⟨$⟩ʳ m ≡ 0F
@@ -160,10 +178,6 @@ canonW {suc n} b =
       rest = remove 0F (b ∘-fb inv-fb (rotate-fb m))
   in liftW (canonW rest) ++ rotateW m
 
--- Every element of `Fin 1` is `0F`.
-fin1-unique : (j : Fin 1) → j ≡ 0F
-fin1-unique 0F = refl
-
 -- The Lehmer factorization: every `b` factors as `cons-fb rest ∘ ρ_m`, with
 -- `m = b ⟨$⟩ˡ 0F` and `rest = remove 0F (b ∘ ρ_m⁻¹)` — exactly the data
 -- `canonW` recurses on.  `InsertProof` (its only consumer) takes it from
@@ -188,12 +202,7 @@ peel {n} b i = sym (trans stepC stepD)
 
   -- Collapse `cons-fb rest ≈ bρ⁻¹` via `lift₀-remove fix0`.
   stepC : (cons-fb rest ∘-fb ρ) P.⟨$⟩ʳ i ≡ (bρ⁻¹ ∘-fb ρ) P.⟨$⟩ʳ i
-  stepC = ∘-fb-cong
-            {g = cons-fb rest} {g′ = bρ⁻¹}
-            {f = ρ} {f′ = ρ}
-            (P.lift₀-remove bρ⁻¹ fix0)
-            (λ _ → refl)
-            i
+  stepC = ∘-fb-congˡ (cons-fb rest) bρ⁻¹ ρ (P.lift₀-remove bρ⁻¹ fix0) i
 
   -- Cancel `inv-fb ρ ∘ ρ = id`.
   stepD : (bρ⁻¹ ∘-fb ρ) P.⟨$⟩ʳ i ≡ b P.⟨$⟩ʳ i
@@ -216,10 +225,11 @@ peel {n} b i = sym (trans stepC stepD)
 -- `Far i j` witnesses that generators `i` and `j` act on disjoint
 -- position pairs (`|i − j| ≥ 2`), so they commute.  It is structural,
 -- hence trivially closed under simultaneous `fsuc` (the `farS` rule),
--- which is what makes `_~ʷ_` closed under `lift~`.
+-- which is what makes `_~ʷ_` closed under `lift~`.  Only the `0F`-on-the-
+-- LEFT base is a constructor: the other orientation is `~sym` of `c2`,
+-- and nothing in the tree ever needs it as a `Far`.
 data Far : {n : ℕ} → Fin n → Fin n → Set where
   far0ˡ : {n : ℕ} {j : Fin n} → Far {suc (suc n)} 0F (fsuc (fsuc j))
-  far0ʳ : {n : ℕ} {j : Fin n} → Far {suc (suc n)} (fsuc (fsuc j)) 0F
   farS  : {n : ℕ} {i j : Fin n} → Far i j → Far (fsuc i) (fsuc j)
 
 -- `Adj i k` witnesses that `k` is the generator immediately above `i`
@@ -236,10 +246,8 @@ data _~ʷ_ : {n : ℕ} → Word n → Word n → Set where
   ~sym   : {n : ℕ} {v w : Word n} → v ~ʷ w → w ~ʷ v
   ~trans : {n : ℕ} {u v w : Word n} → u ~ʷ v → v ~ʷ w → u ~ʷ w
 
-  -- congruence under `_∷_`, with an index equation (doubles as a
-  -- generator-index rewrite).
-  ∷c   : {n : ℕ} {i j : Fin n} {v w : Word n}
-       → i ≡ j → v ~ʷ w → (i ∷ v) ~ʷ (j ∷ w)
+  -- congruence under `_∷_`.
+  ∷c : {n : ℕ} {i : Fin n} {v w : Word n} → v ~ʷ w → (i ∷ v) ~ʷ (i ∷ w)
 
   -- (C1) involution at any position.
   c1 : {n : ℕ} (i : Fin n) {w : Word n} → (i ∷ i ∷ w) ~ʷ w
@@ -255,9 +263,9 @@ data _~ʷ_ : {n : ℕ} → Word n → Word n → Set where
 ------------------------------------------------------------------------
 -- 8. Derived congruences for `_~ʷ_`.
 
--- Plain cons-congruence (same head index).
+-- Cons-congruence with the head index explicit (`∷c` leaves it implicit).
 ∷-cong : {n : ℕ} (i : Fin n) {v w : Word n} → v ~ʷ w → (i ∷ v) ~ʷ (i ∷ w)
-∷-cong i = ∷c refl
+∷-cong _ = ∷c
 
 -- Lift congruence `v ~ʷ w ⇒ liftW v ~ʷ liftW w` — the engine that
 -- propagates the front-only `c2`/`c3` to all depths.
@@ -265,7 +273,7 @@ lift~ : {n : ℕ} {v w : Word n} → v ~ʷ w → liftW v ~ʷ liftW w
 lift~ ~refl          = ~refl
 lift~ (~sym r)       = ~sym (lift~ r)
 lift~ (~trans r₁ r₂) = ~trans (lift~ r₁) (lift~ r₂)
-lift~ (∷c eq r)      = ∷c (cong fsuc eq) (lift~ r)
+lift~ (∷c r)         = ∷c (lift~ r)
 lift~ (c1 i)         = c1 (fsuc i)
 lift~ (c2 far)       = c2 (farS far)
 lift~ (c3 adj)       = c3 (adjS adj)
@@ -275,7 +283,7 @@ lift~ (c3 adj)       = c3 (adjS adj)
 ++c-r w ~refl          = ~refl
 ++c-r w (~sym r)       = ~sym (++c-r w r)
 ++c-r w (~trans r₁ r₂) = ~trans (++c-r w r₁) (++c-r w r₂)
-++c-r w (∷c eq r)      = ∷c eq (++c-r w r)
+++c-r w (∷c r)         = ∷c (++c-r w r)
 ++c-r w (c1 i)         = c1 i
 ++c-r w (c2 far)       = c2 far
 ++c-r w (c3 adj)       = c3 adj
@@ -298,7 +306,6 @@ genFB-involutive {suc n} (fsuc j) =
 genFB-far : {n : ℕ} {i j : Fin n} → Far i j
           → (genFB i ∘-fb genFB j) ≈-fb (genFB j ∘-fb genFB i)
 genFB-far (far0ˡ {j = j}) = Snd.swap-fb-natural (genFB j)
-genFB-far (far0ʳ {j = j}) = λ p → sym (Snd.swap-fb-natural (genFB j) p)
 genFB-far (farS {i = i} {j = j} far) =
   λ p → trans (sym (Snd.cons-fb-functor-comp (genFB i) (genFB j) p))
         (trans (cons-fb-cong (genFB-far far) p)
@@ -335,22 +342,16 @@ genFB-braid (adjS {i = i} {k = k} adj) =
 ~ʷ⇒≈ ~refl          _ = refl
 ~ʷ⇒≈ (~sym r)       p = sym (~ʷ⇒≈ r p)
 ~ʷ⇒≈ (~trans r₁ r₂) p = trans (~ʷ⇒≈ r₁ p) (~ʷ⇒≈ r₂ p)
-~ʷ⇒≈ (∷c {i = i} {j = j} {v = v} {w = w} eq r) =
-  ∘-fb-cong {g = genFB i} {g′ = genFB j} {f = evalW v} {f′ = evalW w}
-            (genFB-cong eq) (~ʷ⇒≈ r)
+~ʷ⇒≈ (∷c {i = i} {v = v} {w = w} r) =
+  ∘-fb-congʳ (genFB i) (evalW v) (evalW w) (~ʷ⇒≈ r)
 ~ʷ⇒≈ (c1 i {w = w}) =
-  ∘-fb-cong {g = genFB i ∘-fb genFB i} {g′ = id-fb}
-            {f = evalW w} {f′ = evalW w}
-            (genFB-involutive i) (λ _ → refl)
+  ∘-fb-congˡ (genFB i ∘-fb genFB i) id-fb (evalW w) (genFB-involutive i)
 ~ʷ⇒≈ (c2 {i = i} {j = j} {w = w} far) =
-  ∘-fb-cong {g = genFB i ∘-fb genFB j} {g′ = genFB j ∘-fb genFB i}
-            {f = evalW w} {f′ = evalW w}
-            (genFB-far far) (λ _ → refl)
+  ∘-fb-congˡ (genFB i ∘-fb genFB j) (genFB j ∘-fb genFB i) (evalW w)
+             (genFB-far far)
 ~ʷ⇒≈ (c3 {i = i} {k = k} {w = w} adj) =
-  ∘-fb-cong {g = genFB i ∘-fb genFB k ∘-fb genFB i}
-            {g′ = genFB k ∘-fb genFB i ∘-fb genFB k}
-            {f = evalW w} {f′ = evalW w}
-            (genFB-braid adj) (λ _ → refl)
+  ∘-fb-congˡ (genFB i ∘-fb genFB k ∘-fb genFB i)
+             (genFB k ∘-fb genFB i ∘-fb genFB k) (evalW w) (genFB-braid adj)
 
 ------------------------------------------------------------------------
 -- 10. The Insertion Lemma (the Sₙ word problem kernel) is `_~ʷ_`-derived
@@ -409,17 +410,16 @@ cons-fb-injective h j = suc-injective (h (fsuc j))
   suc-injective : {a b : Fin _} → fsuc a ≡ fsuc b → a ≡ b
   suc-injective refl = refl
 
--- `cons-fb` reflects the identity:  if `cons-fb f ≈ id-fb` then `f ≈ id-fb`.
--- The `g = id-fb` instance of `cons-fb-injective`.
-cons-fb-reflects-id : {n : ℕ} {f : FinBij n n}
-                    → cons-fb f ≈-fb id-fb → f ≈-fb id-fb
-cons-fb-reflects-id h = cons-fb-injective (λ j → trans (h j) (sym (Snd.cons-fb-functor-id j)))
-
--- `remove 0F X ≈ id-fb` whenever `X ≈ id-fb`, via `lift₀-remove`.
+-- `remove 0F X ≈ id-fb` whenever `X ≈ id-fb`: `lift₀-remove` turns the
+-- residual into a `cons-fb`, and `cons-fb-injective` at `g = id-fb`
+-- (whose `cons-fb-functor-id` step is the only reason `id-fb` needs
+-- unfolding) strips it.
 remove-0-of-≈id : {n : ℕ} (X : FinBij (suc n) (suc n))
                 → X ≈-fb id-fb → remove 0F X ≈-fb id-fb
 remove-0-of-≈id X h =
-  cons-fb-reflects-id (λ j → trans (P.lift₀-remove X (h 0F) j) (h j))
+  cons-fb-injective
+    (λ j → trans (trans (P.lift₀-remove X (h 0F) j) (h j))
+                 (sym (Snd.cons-fb-functor-id j)))
 
 -- The canonical word of the identity is empty (up to `~ʷ`).
 canonW-id : {n : ℕ} → canonW (id-fb {n = suc n}) ~ʷ []

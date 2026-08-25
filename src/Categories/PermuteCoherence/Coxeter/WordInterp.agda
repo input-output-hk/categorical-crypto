@@ -32,7 +32,7 @@ open import Relation.Binary.PropositionalEquality using (subst; subst₂)
 import Data.Fin.Permutation as P
 
 open import Categories.PermuteCoherence.Coxeter.Word
-  using ( Word; genFB; evalW; ∘-fb-cong; cons-fb-cong )
+  using ( Word; genFB; evalW; ∘-fb-cong; ∘-fb-congʳ; cons-fb-cong )
 
 open import Categories.PermuteCoherence.FinBij
   using ( FinBij; _≈-fb_; _∘-fb_; id-fb; cons-fb; swap-fb )
@@ -99,20 +99,15 @@ cast-push : {p q : ℕ} (e₁ : p ≡ suc n) (e₂ : q ≡ suc n)
             ≡ subst Fin e₂ (b P.⟨$⟩ʳ subst Fin (sym e₁) k)
 cast-push refl refl b k = refl
 
--- The cast does not depend on WHICH endpoint proofs it is handed: both are
--- `ℕ`-equalities, and `ℕ` has UIP.  Stated unconditionally — a congruence
--- form would take the hypotheses `e₁ ≡ e₁′`, `e₂ ≡ e₂′`, and *building*
--- those from the length proofs at hand is the only thing a `cong suc` /
--- `trans`-associativity bookkeeping layer would be for.
-cast-irr : {p q : ℕ} (e₁ e₁′ : p ≡ suc n) (e₂ e₂′ : q ≡ suc n) (b : FinBij p q)
-         → castFB e₁ e₂ b ≈-fb castFB e₁′ e₂′ b
-cast-irr e₁ e₁′ e₂ e₂′ b k
-  rewrite ℕ-≡-irrelevant e₁ e₁′ | ℕ-≡-irrelevant e₂ e₂′ = refl
-
--- `cons-fb` commutes with the cast.
-cons-cast : {p q : ℕ} (e₁ : p ≡ suc n) (e₂ : q ≡ suc n) (b : FinBij p q)
-          → castFB (cong suc e₁) (cong suc e₂) (cons-fb b)
-            ≈-fb cons-fb (castFB e₁ e₂ b)
+-- `cons-fb` commutes with the cast.  The endpoint proofs are ARBITRARY and
+-- the peeled ones are produced by `suc-injective` in the conclusion: a
+-- `cong suc`-shaped hypothesis would force every caller to recode the proof
+-- it has, which is the only thing a cast-irrelevance layer was ever for
+-- (`ℕ` has UIP, so the recoding is free — but it is not free of lines).
+cons-cast : {p q : ℕ} (e₁ : suc p ≡ suc (suc n)) (e₂ : suc q ≡ suc (suc n))
+            (b : FinBij p q)
+          → castFB e₁ e₂ (cons-fb b)
+            ≈-fb cons-fb (castFB (suc-injective e₁) (suc-injective e₂) b)
 cons-cast refl refl b k = refl
 
 -- The cast distributes over composition (middle proof `e₂`).
@@ -131,10 +126,12 @@ cast-id refl _ = refl
 --   eval-↭ (swapAt-↭ i ys)  cast to FinBij (suc n)(suc n)  ≈-fb  genFB i
 
 gen-eval : {n : ℕ} (i : Fin n) (ys : List X) (len : length ys ≡ suc n)
-         → castFB len (trans (swapAt-length i ys) len)
-                  (eval-↭ (swapAt-↭ i ys))
-           ≈-fb genFB i
-gen-eval {suc n} 0F (a ∷ b ∷ rest) len k =
+           (cod : length (swapAt i ys) ≡ suc n)
+         → castFB len cod (eval-↭ (swapAt-↭ i ys)) ≈-fb genFB i
+-- `0F`: the swap does not move the length, so `cod` and `len` have the same
+-- type and `ℕ`-UIP identifies them; then match `len` to `refl`.
+gen-eval {suc n} 0F (a ∷ b ∷ rest) len cod k
+  rewrite ℕ-≡-irrelevant cod len =
   trans (cast-push {n = suc n} len len
                    (eval-↭ (swapAt-↭ {n = suc n} 0F (a ∷ b ∷ rest))) k)
         (aux len k)
@@ -147,27 +144,16 @@ gen-eval {suc n} 0F (a ∷ b ∷ rest) len k =
              P.⟨$⟩ʳ subst Fin (sym e) j)
           ≡ swap-fb m P.⟨$⟩ʳ j
     aux refl j =
-      ∘-fb-cong {g = swap-fb (length rest)} {g′ = swap-fb (length rest)}
-                {f = cons-fb (cons-fb (id-fb {n = length rest}))}
-                {f′ = id-fb {n = suc (suc (length rest))}}
-                (λ _ → refl)
-                (cons²-fb-id {n = length rest})
-                j
--- `fsuc i`: recode both of the goal's length proofs into the `cong suc`
--- shape `cons-cast` wants (free, by `cast-irr`), move the cast through
--- `cons-fb`, then apply the IH.  Chained pointwise at `k` to avoid
--- non-injective `≈-fb` middle-term metas.
-gen-eval {suc n} (fsuc i) (a ∷ xs) len k =
-  trans (cast-irr {n = suc n} len (cong suc lenTail)
-                  (trans (cong suc (swapAt-length i xs)) len)
-                  (cong suc (trans (swapAt-length i xs) lenTail))
-                  (cons-fb (eval-↭ (swapAt-↭ i xs))) k)
-  (trans (cons-cast {n = n} lenTail (trans (swapAt-length i xs) lenTail)
-                    (eval-↭ (swapAt-↭ i xs)) k)
-         (cons-fb-cong (gen-eval i xs lenTail) k))
-  where
-    lenTail : length xs ≡ suc n
-    lenTail = suc-injective len
+      ∘-fb-congʳ (swap-fb (length rest))
+                 (cons-fb (cons-fb (id-fb {n = length rest})))
+                 (id-fb {n = suc (suc (length rest))})
+                 (cons²-fb-id {n = length rest}) j
+-- `fsuc i`: move the cast through `cons-fb` and apply the IH to the peeled
+-- proofs.  Chained pointwise at `k` to avoid non-injective `≈-fb`
+-- middle-term metas.
+gen-eval {suc n} (fsuc i) (a ∷ xs) len cod k =
+  trans (cons-cast {n = n} len cod (eval-↭ (swapAt-↭ i xs)) k)
+        (cons-fb-cong (gen-eval i xs (suc-injective len) (suc-injective cod)) k)
 
 ------------------------------------------------------------------------
 -- The main lemma.
@@ -177,8 +163,7 @@ eval-respect : {n : ℕ} (w : Word n) (xs : List X) (len : length xs ≡ suc n)
                       (eval-↭ (⟦ w ⟧↭ xs))
                ≈-fb evalW w
 eval-respect [] xs len = cast-id len
--- `i ∷ w′`: split the cast over the composition (`comp-cast`), recode the
--- codomain length proof to `gen-eval`'s shape (`cast-irr`), then apply
+-- `i ∷ w′`: split the cast over the composition (`comp-cast`), then apply
 -- `gen-eval` to the head factor and the IH to the tail.  Chained at `k`.
 eval-respect {n} (i ∷ w) xs len k =
   trans (comp-cast {n = n} len lenMid lenCod
@@ -189,7 +174,7 @@ eval-respect {n} (i ∷ w) xs len k =
                    {g′ = genFB i}
                    {f = castFB len lenMid (eval-↭ (⟦ w ⟧↭ xs))}
                    {f′ = evalW w}
-                   headFactor
+                   (gen-eval i (applyW w xs) lenMid lenCod)
                    (eval-respect w xs len)
                    k)
   where
@@ -197,11 +182,3 @@ eval-respect {n} (i ∷ w) xs len k =
     lenMid = trans (applyW-length w xs) len
     lenCod : length (applyW (i ∷ w) xs) ≡ suc n
     lenCod = trans (applyW-length (i ∷ w) xs) len
-    -- Recode `lenCod` to `gen-eval`'s codomain shape, then apply `gen-eval`.
-    headFactor : castFB lenMid lenCod (eval-↭ (swapAt-↭ i (applyW w xs)))
-                 ≈-fb genFB i
-    headFactor j =
-      trans (cast-irr {n = n} lenMid lenMid lenCod
-                      (trans (swapAt-length i (applyW w xs)) lenMid)
-                      (eval-↭ (swapAt-↭ i (applyW w xs))) j)
-            (gen-eval i (applyW w xs) lenMid j)

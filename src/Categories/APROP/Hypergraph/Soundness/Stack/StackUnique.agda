@@ -39,8 +39,7 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual)
 
-open import Categories.PermuteCoherence.Canonical using (_≅↭_)
-open import Categories.PermuteCoherence.Rigid using (eval-rigid)
+open import Categories.PermuteCoherence.Rigid using (_≅↭_; eval-rigid)
 
 private
   variable

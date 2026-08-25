@@ -4,8 +4,7 @@
 -- and the `canonW`-peel lemmas that turn the staircase identities of
 -- `LehmerStaircase` into a direct proof of the Insertion Lemma.
 --
--- This module replaces the FinBij "risk center" of the exchange/Matsumoto
--- tower with a single clean observation:
+-- The one clean observation the module rests on:
 --
 --   * the pointwise `remove`/`rotate` range computation the plan feared is
 --     never needed as a raw Fin computation.  The one FinBij identity we
@@ -13,9 +12,6 @@
 --     free* as the SOUNDNESS (`~ʷ⇒≈`) shadow of the very staircase word
 --     identity that closes the proof — see `wglue`/`rot-comp` below.
 --
--- Together with `LehmerStaircase`, this supersedes:
---   Inversions{,Sum,Rec,Dichotomy,Cong,Arith}, ExchangeBase,
---   BringToFront{Base,AdjL,AdjR,Cases,}, InsertProof{Base,Matsumoto}.
 ------------------------------------------------------------------------
 
 module Categories.PermuteCoherence.Coxeter.LehmerRotate where
@@ -37,7 +33,6 @@ open import Relation.Binary.PropositionalEquality.Core
 open import Categories.PermuteCoherence.FinBij
 open import Categories.PermuteCoherence.Coxeter.EvalSoundness as Snd
   using (cons-fb-functor-comp; cons-fb-functor-id; swap-fb-natural)
-open import Categories.PermuteCoherence.Canonical using (residual-pw-cong)
 open import Categories.PermuteCoherence.Coxeter.Word
 open import Categories.PermuteCoherence.Coxeter.LehmerStaircase
 
@@ -48,22 +43,15 @@ private
 ------------------------------------------------------------------------
 -- 1. Small FinBij algebra used pointwise (everything as `≈-fb`, i.e.
 --    refl-per-point where composition is definitionally associative).
---    `cons-fb-injective` itself lives upstream in `Word` (shared with
---    `cons-fb-reflects-id`, its `g = id-fb` instance).
+--    `cons-fb-injective` itself lives upstream in `Word`, shared with
+--    `remove-0-of-≈id`.
 
 -- `remove 0F (cons-fb X) ≈ X`: removing the head of a lift is the identity.
 remove-cons : (X : FinBij n N) → remove 0F (cons-fb X) ≈-fb X
 remove-cons X = cons-fb-injective (P.lift₀-remove (cons-fb X) refl)
 
 ------------------------------------------------------------------------
--- 2. The peel lemma (every `b` factors as `cons-fb (residual) ∘ ρ_m`) lives
---    upstream in `Word`, next to `canonW` — the factorization IS the data
---    `canonW` recurses on, so it belongs there.  `peel` is visible here via
---    the unrestricted `open import Categories.PermuteCoherence.Coxeter.Word`
---    above (but is NOT re-exported: `InsertProof` imports `Word` itself).
-
-------------------------------------------------------------------------
--- 3. `canonW` of a `cons-fb X ∘ rotate-fb k`:  the peel is realised at
+-- 2. `canonW` of a `cons-fb X ∘ rotate-fb k`:  the peel is realised at
 --    the word level as `liftW (canonW X) ++ rotateW k`.
 
 canonW-cons-rotate : (X : FinBij (suc n) (suc n)) (k : Fin (suc (suc n)))
@@ -96,7 +84,7 @@ canonW-cons-rotate {n} X k =
   rec = canonW-resp-≈ {b = resid} {b′ = X} resid≈X
 
 ------------------------------------------------------------------------
--- 4. Bridges: `rotateW`/`liftW` in terms of the staircase run `runF`.
+-- 3. Bridges: `rotateW`/`liftW` in terms of the staircase run `runF`.
 --    (Bounds are irrelevant, so proofs are supplied ad libitum.)
 
 liftW-runF : (s ℓ : ℕ) .(p : s + ℓ ≤ N) .(q : suc s + ℓ ≤ suc N)
@@ -114,23 +102,18 @@ rotateW-runF {suc n} (fsuc m) p =
            (liftW-runF {n} 0 (toℕ m) (toℕ≤pred[n] m) (s≤s (toℕ≤pred[n] m))))
 
 ------------------------------------------------------------------------
--- 5. The rotation-composition glue.
+-- 4. The rotation-composition glue.
 --
 -- Given the two head-data `r`, `m` of a doubly-peeled bijection, the
 -- dichotomy `toℕ m ≤? toℕ r` chooses replacement indices `r′`, `m′` and a
 -- STAIRCASE WORD IDENTITY `wglue`.  Its `~ʷ⇒≈` shadow (`rot-comp`) is the
 -- ONLY FinBij fact the crux needs — no pointwise `remove`/`punchOut`.
 
--- Re-length a run (bounds irrelevant).
-runF-cong : (s v v′ : ℕ) → v ≡ v′ → .(bv : s + v ≤ N) .(bv′ : s + v′ ≤ N)
-          → runF {N} s v bv ≡ runF {N} s v′ bv′
-runF-cong s v .v refl _ _ = refl
-
--- `rotateW x` as a base-0 run of its numeric value.
+-- `rotateW x` as a base-0 run of its numeric value.  The run's bound is
+-- irrelevant, so re-lengthing it is exactly the value equation's `refl`.
 rotateW-val : (x : Fin (suc n)) (v : ℕ) → toℕ x ≡ v → .(bv : v ≤ n)
             → rotateW x ≡ runF {n} 0 v bv
-rotateW-val {n} x v ev bv =
-  trans (rotateW-runF x (toℕ≤pred[n] x)) (runF-cong 0 (toℕ x) v ev _ bv)
+rotateW-val x .(toℕ x) refl bv = rotateW-runF x bv
 
 record Glue (r : Fin (suc (suc n))) (m : Fin (suc (suc (suc n)))) : Set where
   field
@@ -163,7 +146,7 @@ mkGlue {n} r m with toℕ m ≤? toℕ r
   rmm = rotateW-val m M refl (m≤n⇒m≤1+n (≤-trans M≤a ra))
   wg : (liftW (rotateW r′) ++ rotateW m′) ~ʷ (rotateW (fsuc r) ++ rotateW m)
   wg = subst₂ _~ʷ_ (sym (cong₂ _++_ lr′ rm′)) (sym (cong₂ _++_ rfr rmm))
-                   (~sym (stairBW 0 M a M≤a (s≤s ra)))
+                   (~sym (stairBW 0 M a M≤a (s≤s ra) _ _))
 -- Branch A (r < m): identity (A); m = fsuc m₀ (m = 0F is absurd).
 mkGlue {n} r 0F        | no  a≮ with () ← a≮ z≤n
 mkGlue {n} r (fsuc m₀) | no  a≮ = record { r′ = r′ ; m′ = m′ ; wglue = wg }
@@ -191,7 +174,7 @@ mkGlue {n} r (fsuc m₀) | no  a≮ = record { r′ = r′ ; m′ = m′ ; wglue
   rmm = rotateW-val (fsuc m₀) (suc M₀) refl Mb
   wg : (liftW (rotateW r′) ++ rotateW m′) ~ʷ (rotateW (fsuc r) ++ rotateW (fsuc m₀))
   wg = subst₂ _~ʷ_ (sym (cong₂ _++_ lr′ rm′)) (sym (cong₂ _++_ rfr rmm))
-                   (~sym (stairAW 0 M₀ a a≤M₀ Mb))
+                   (~sym (stairAW 0 M₀ a a≤M₀ Mb (s≤s ra) _ _))
 
 -- The FinBij composition-of-rotations identity, obtained *for free* as
 -- the `~ʷ⇒≈` shadow of `wglue` — no pointwise `remove`/`punchOut` at all.
@@ -221,7 +204,7 @@ rot-comp r m g i =
                      (rotateW-sound m′) i)
 
 ------------------------------------------------------------------------
--- 6. The crux factorisation:  `genFB 0F ∘ (cons² Z ∘ ρr ∘ ρm)` puts into
+-- 5. The crux factorisation:  `genFB 0F ∘ (cons² Z ∘ ρr ∘ ρm)` puts into
 --    `cons X ∘ ρ` form via cons-functoriality, swap-naturality and the
 --    definition `rotate-fb (fsuc r) = swap ∘ cons (rotate-fb r)`, closing
 --    the double rotation with `rot-comp`.
@@ -246,7 +229,7 @@ factor {n} Z r m g i =
   w = ρm′ P.⟨$⟩ʳ i
 
 ------------------------------------------------------------------------
--- 7. The crux equation (`i = 0F` case of `insert-thm`), IH-free:
+-- 6. The crux equation (`i = 0F` case of `insert-thm`), IH-free:
 --    peel a doubly-`cons`ed / doubly-rotated bijection past `genFB 0F`.
 
 -- LHS: fold via `factor` + `canonW-cons-rotate` (twice) + reshaping.

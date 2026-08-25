@@ -41,6 +41,14 @@ private
     A : Set a
 
 ------------------------------------------------------------------------
+-- Canonical equivalence of `↭`-derivations: they agree on the evaluated
+-- finite bijection.  This is `eval-rigid`'s own conclusion, named.
+
+infix 4 _≅↭_
+_≅↭_ : {xs ys : List A} → xs ↭ ys → xs ↭ ys → Set
+p ≅↭ q = eval-↭ p ≈-fb eval-↭ q
+
+------------------------------------------------------------------------
 -- Lookup-soundness of `eval-↭`:  `eval-↭ p` carries position `i` of
 -- `xs` to a position of `ys` holding the SAME element.
 
@@ -62,7 +70,7 @@ lookup-sound (Perm.trans p q)  i             =
 eval-rigid
   : {xs ys : List A} → Unique ys
   → (p q : xs ↭ ys)
-  → eval-↭ p ≈-fb eval-↭ q
+  → p ≅↭ q
 eval-rigid uniq p q i =
   lookup-injective-unique uniq _ _
     (trans (lookup-sound p i) (sym (lookup-sound q i)))

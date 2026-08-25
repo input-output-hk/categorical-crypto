@@ -3,10 +3,8 @@
 -- The Insertion Lemma, by a direct Lehmer peel:
 --   insert-thm : canonW (genFB i ∘-fb b) ~ʷ i ∷ canonW b
 --
--- This replaces the exchange-condition / Matsumoto tower (`Inversions*`,
--- `ExchangeBase`, `BringToFront*`, the old `InsertProof{Base,Matsumoto}`)
--- with the peel machinery of `LehmerStaircase` + `LehmerRotate`.  The
--- proof recurses on the ambient size and cases the generator index `i`:
+-- Proved by the peel machinery of `LehmerStaircase` + `LehmerRotate`:
+-- recurse on the ambient size, casing the generator index `i`:
 --
 --   * `i = fsuc i′`: structural, uses the induction hypothesis.
 --   * `i = 0F`:      IH-free, closed by `crux-core` (whose combinatorial
@@ -39,14 +37,16 @@ private
 ------------------------------------------------------------------------
 -- Base building blocks.
 
--- Every self-bijection of `Fin 1` is the identity.
-fin1-id : (X : FinBij 1 1) → X ≈-fb id-fb
-fin1-id X j = trans (fin1-unique (X P.⟨$⟩ʳ j)) (sym (fin1-unique j))
-
--- `cons-fb X ≈ id` for `X : FinBij 1 1`.
+-- `cons-fb X ≈ id` for `X : FinBij 1 1`: `Fin 1` is a singleton, so `X`
+-- is the identity, and `cons-fb` preserves that.
 cons-fin1-id : (X : FinBij 1 1) → cons-fb X ≈-fb id-fb
 cons-fin1-id X = ≈-fb-trans {b = cons-fb X} {b′ = cons-fb id-fb} {b″ = id-fb}
-                   (cons-fb-cong (fin1-id X)) cons-fb-functor-id
+                   (cons-fb-cong fin1-id) cons-fb-functor-id
+  where
+  fin1-unique : (k : Fin 1) → k ≡ 0F
+  fin1-unique 0F = refl
+  fin1-id : X ≈-fb id-fb
+  fin1-id j = trans (fin1-unique (X P.⟨$⟩ʳ j)) (sym (fin1-unique j))
 
 ------------------------------------------------------------------------
 -- The `i = 0F` crux.

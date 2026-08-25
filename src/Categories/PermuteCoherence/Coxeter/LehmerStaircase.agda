@@ -4,9 +4,7 @@
 -- Coxeter word relation `_~ʷ_`.
 --
 -- These are the two combinatorial identities the direct (Lehmer-peel)
--- proof of `insert-thm` rests on, replacing the exchange-condition /
--- Matsumoto tower (`Inversions*`, `ExchangeBase`, `BringToFront*`,
--- `InsertProof{Base,Matsumoto}`).  Both are derived from the three
+-- proof of `insert-thm` rests on.  Both are derived from the three
 -- Coxeter relations `c1`/`c2`/`c3` alone.
 --
 -- The identities concatenate ascending runs of DIFFERENT lengths; the
@@ -105,31 +103,25 @@ commLW s b (suc k) w s<N bk le =
                  (commLW s (suc b) k w s<N (tail≤ b k bk) (≤-trans le (n≤1+n b))))
 
 ------------------------------------------------------------------------
--- 4. Bound arithmetic for the staircase statements.  All are consumed
--- only in irrelevant `runF` positions or as relevant inputs to the c2
--- engine, so their precise proofs never matter for the result type.
-
-bnd-m : ∀ {N} (s m r : ℕ) → m ≤ r → s + suc r ≤ N → s + m ≤ N
-bnd-m s m r m≤r sr = ≤-trans (+-monoʳ-≤ s (≤-trans m≤r (n≤1+n r))) sr
-
-bnd-sm : ∀ {N} (s m r : ℕ) → m ≤ r → s + suc r ≤ N → suc s + m ≤ N
-bnd-sm {N} s m r m≤r sr =
-  subst (λ z → z ≤ N) (+-suc s m) (≤-trans (+-monoʳ-≤ s (s≤s m≤r)) sr)
-
-------------------------------------------------------------------------
--- 5. STAIRCASE IDENTITY (B) (r ≥ m):
+-- 4. STAIRCASE IDENTITY (B) (r ≥ m):
 --    runF s (r+1) ++ runF s m  ~ʷ  runF (s+1) m ++ runF s (r+1)
+--
+-- The two secondary run bounds are IRRELEVANT parameters: a run does not
+-- depend on which proof builds it (`runF`'s bound, like `fromℕ<`'s, is
+-- irrelevant), so no bound arithmetic has to be named for them — only the
+-- bounds the c2/c3 engines consume RELEVANTLY (`sr`, `m≤r`) are proved.
 
 stairBW : ∀ {N} (s m r : ℕ) (m≤r : m ≤ r) (sr : s + suc r ≤ N)
-        → (runF s (suc r) sr ++ runF s m (bnd-m s m r m≤r sr))
-          ~ʷ (runF (suc s) m (bnd-sm s m r m≤r sr) ++ runF s (suc r) sr)
-stairBW s zero r _ sr =
+          .(bm : s + m ≤ N) .(bsm : suc s + m ≤ N)
+        → (runF s (suc r) sr ++ runF s m bm)
+          ~ʷ (runF (suc s) m bsm ++ runF s (suc r) sr)
+stairBW s zero r _ sr _ _ =
   subst (λ z → z ~ʷ runF s (suc r) sr)
         (sym (++-identityʳ (runF s (suc r) sr))) ~refl
-stairBW {N} s (suc m′) (suc r′) (s≤s m′≤r′) sr =
+stairBW {N} s (suc m′) (suc r′) (s≤s m′≤r′) sr _ _ =
   ~trans (∷-cong S (∷-cong S1 (~sym (commLW s (suc (suc s)) r′ _ s<N cb1 ≤-refl))))
   (~trans (c3 (adjℕ→Adj s s<N ss<N))
-  (~trans (∷-cong S1 (∷-cong S (stairBW (suc s) m′ r′ m′≤r′ sr′)))
+  (~trans (∷-cong S1 (∷-cong S (stairBW (suc s) m′ r′ m′≤r′ sr′ _ _)))
           (∷-cong S1 (commLW s (suc (suc s)) m′ _ s<N cb2 ≤-refl))))
   where
   s<N : s < N
@@ -148,35 +140,27 @@ stairBW {N} s (suc m′) (suc r′) (s≤s m′≤r′) sr =
   S1 = fromℕ< ss<N
 
 ------------------------------------------------------------------------
--- 6. Bound arithmetic + STAIRCASE IDENTITY (A) (r ≤ m′), which
--- terminates in a `c1` cancellation:
+-- 5. STAIRCASE IDENTITY (A) (r ≤ m′), which terminates in a `c1`
+-- cancellation:
 --    runF s (r+1) ++ runF s (m′+1)  ~ʷ  runF (s+1) m′ ++ runF s r
-
-bA-r : ∀ {N} (s m′ r : ℕ) → r ≤ m′ → s + suc m′ ≤ N → s + suc r ≤ N
-bA-r s m′ r r≤m′ sm = ≤-trans (+-monoʳ-≤ s (s≤s r≤m′)) sm
-
-bA-sm : ∀ {N} (s m′ r : ℕ) → s + suc m′ ≤ N → suc s + m′ ≤ N
-bA-sm {N} s m′ r sm = subst (λ z → z ≤ N) (+-suc s m′) sm
-
-bA-rr : ∀ {N} (s m′ r : ℕ) → r ≤ m′ → s + suc m′ ≤ N → s + r ≤ N
-bA-rr s m′ r r≤m′ sm = ≤-trans (+-monoʳ-≤ s (≤-trans r≤m′ (n≤1+n m′))) sm
+-- Three irrelevant run bounds, as in (B).
 
 stairAW : ∀ {N} (s m′ r : ℕ) (r≤m′ : r ≤ m′) (sm : s + suc m′ ≤ N)
-        → (runF s (suc r) (bA-r s m′ r r≤m′ sm) ++ runF s (suc m′) sm)
-          ~ʷ (runF (suc s) m′ (bA-sm s m′ r sm) ++ runF s r (bA-rr s m′ r r≤m′ sm))
-stairAW {N} s m′ zero _ sm =
+          .(br : s + suc r ≤ N) .(bsm : suc s + m′ ≤ N) .(brr : s + r ≤ N)
+        → (runF s (suc r) br ++ runF s (suc m′) sm)
+          ~ʷ (runF (suc s) m′ bsm ++ runF s r brr)
+stairAW {N} s m′ zero _ sm _ bsm _ =
   ~trans (c1 S)
-         (subst (λ z → runF (suc s) m′ (bA-sm s m′ zero sm) ~ʷ z)
-                (sym (++-identityʳ _)) ~refl)
+         (subst (λ z → runF (suc s) m′ bsm ~ʷ z) (sym (++-identityʳ _)) ~refl)
   where
   s<N : s < N
   s<N = head< s m′ sm
   S = fromℕ< s<N
-stairAW {N} s (suc m″) (suc r′) (s≤s r′≤m″) sm =
+stairAW {N} s (suc m″) (suc r′) (s≤s r′≤m″) sm _ _ _ =
   ~trans (∷-cong S (∷-cong S1 (~sym (commLW s (suc (suc s)) r′ _ s<N cb1 ≤-refl))))
   (~trans (c3 (adjℕ→Adj s s<N ss<N))
-  (~trans (∷-cong S1 (∷-cong S (stairAW (suc s) m″ r′ r′≤m″ sr′)))
-          (∷-cong S1 (commLW s (suc (suc s)) m″ _ s<N cb2 ≤-refl))))
+  (~trans (∷-cong S1 (∷-cong S (stairAW (suc s) m″ r′ r′≤m″ sr′ brA _ _)))
+          (∷-cong S1 (commLW s (suc (suc s)) m″ _ s<N cbm ≤-refl))))
   where
   s<N : s < N
   s<N = head< s (suc m″) sm
@@ -186,11 +170,11 @@ stairAW {N} s (suc m″) (suc r′) (s≤s r′≤m″) sm =
   cbm = subst (λ z → z ≤ N) eqA sm
   cb1 : suc (suc s) + r′ ≤ N
   cb1 = ≤-trans (s≤s (s≤s (+-monoʳ-≤ s r′≤m″))) cbm
-  cb2 : suc (suc s) + m″ ≤ N
-  cb2 = cbm
   ss<N : suc s < N
   ss<N = ≤-trans (s≤s (s≤s (m≤m+n s m″))) cbm
   sr′ : suc s + suc m″ ≤ N
   sr′ = subst (λ z → z ≤ N) (+-suc s (suc m″)) sm
+  brA : suc s + suc r′ ≤ N
+  brA = ≤-trans (+-monoʳ-≤ (suc s) (s≤s r′≤m″)) sr′
   S  = fromℕ< s<N
   S1 = fromℕ< ss<N
