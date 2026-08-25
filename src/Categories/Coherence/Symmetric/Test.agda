@@ -11,7 +11,7 @@ open import Categories.Category.Monoidal.Bundle
 module Categories.Coherence.Symmetric.Test
   {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e) where
 
-open import Data.Bool.Base using (false)
+open import Data.Bool.Base using (false; true)
 open import Data.Fin
 open import Data.List
 open import Data.Maybe.Base using (is-just)
@@ -319,8 +319,10 @@ module DeepRewrite (A₀ A₁ A₂ : C.Obj) (pᴹ qᴹ : A₀ C.⇒ A₁) (wᴹ 
   open Atoms3 A₀ A₁ A₂
 
   open Solver C objects ((a₀ , a₁ , pᴹ) ∷ (a₀ , a₁ , qᴹ) ∷ (a₁ , a₂ , wᴹ) ∷ [])
+  open import Categories.APROP.Hypergraph.Model.Translation finSig using (⟪_⟫)
   open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve finSig using (focusAt)
   open import Categories.APROP.Hypergraph.Solver.Rewrite.Deep finSig using (deepFoc)
+  open import Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch finSig using (subMatch)
 
   private
     p q w : S.HomTerm _ _
@@ -333,6 +335,10 @@ module DeepRewrite (A₀ A₁ A₂ : C.Obj) (pᴹ qᴹ : A₀ C.⇒ A₁) (wᴹ 
 
   deep-overlap-rejected : is-just (deepFoc (w S.∘ p) (p S.⊗₁ w)) ≡ false
   deep-overlap-rejected = refl
+
+  -- Here the match itself rejects, before attempting to carve the occurrence.
+  deep-overlap-match-rejected : is-just (subMatch ⟪ p S.⊗₁ w ⟫ ⟪ w S.∘ p ⟫) ≡ false
+  deep-overlap-match-rejected = refl
 
   deep-structural-limitation : is-just (deepFoc (S.σ S.∘ (p S.⊗₁ q)) (S.σ {a₁} {a₁})) ≡ false
   deep-structural-limitation = refl
@@ -420,7 +426,9 @@ module DeepArity (A : C.Obj)
 
   open Solver C objects
     (((a ⊗₀ a) , a , mᴹ) ∷ (a , (a ⊗₀ a) , eᴹ) ∷ (a , a , kᴹ) ∷ (unitᵗ , a , uᴹ) ∷ [])
+  open import Categories.APROP.Hypergraph.Model.Translation finSig using (⟪_⟫)
   open import Categories.APROP.Hypergraph.Solver.Rewrite.Deep finSig using (deepFoc)
+  open import Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch finSig using (subMatch)
 
   private
     m sp k u : S.HomTerm _ _
@@ -431,6 +439,10 @@ module DeepArity (A : C.Obj)
 
   deep-non-convex-rejected : is-just (deepFoc (k S.∘ k S.∘ k) (k S.⊗₁ k)) ≡ false
   deep-non-convex-rejected = refl
+
+  -- Unlike overlap, this match succeeds; the later carve rejects non-convexity.
+  deep-non-convex-match-succeeds : is-just (subMatch ⟪ k S.⊗₁ k ⟫ ⟪ k S.∘ k S.∘ k ⟫) ≡ true
+  deep-non-convex-match-succeeds = refl
 
   module _ (identityLaw : id {A} ≈ kᴹ) where
 
