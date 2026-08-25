@@ -1,5 +1,7 @@
 # GLOBAL-φ DIRECT — correctly-framed probe notes
 
+> **STATUS (2026-08-25): spike log.** The modules discussed (`DeepProv`, `GlobalPhiDirect.agda`) were probe-only and never entered the tree.
+
 Target: `⟪s⟫ ≅ᴴ ⟪frame⟫` (the deep-rewrite gate #1) where the bijection is the
 SPECIFIC one DeepProv builds (seedFromInterfaces + guided fold over provenance
 pairs). NOT `⟪decode H⟫ ≅ᴴ H` (that was the prior, misframed run).

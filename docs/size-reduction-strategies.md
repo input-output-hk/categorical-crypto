@@ -1,5 +1,7 @@
 # Strategies for shrinking the APROP soundness development
 
+> **STATUS (2026-08-25): historical planning document.** The census below predates the simplification campaign (rounds 1–9 have since removed ~38% of the tree); LOC figures, file counts, and some module names no longer match `src/`.
+
 The `src/Categories/APROP/Hypergraph` subtree is **36,748 LOC across 89 files**. This
 note catalogues the levers for cutting it substantially, ranked by payoff, and
 separates *accidental* complexity (bookkeeping the informal proof never does) from
