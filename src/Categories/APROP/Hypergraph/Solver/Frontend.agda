@@ -102,34 +102,23 @@ deepFrame s lᵗ mid n found = frameM reassocBal mid (deepFocₙ s lᵗ n) found
 
 module ObjInterp {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   (let module C = SymmetricMonoidalCategory C)
-  (let ⟦v⟧ : ⟦ Symm ⟧ᵥ {o} {ℓ} {e}
-       ⟦v⟧ = record
-         { C           = C.U
-         ; Monoidal-C  = C.monoidal
-         ; Symmetric-C = λ ⦃ _ ⦄ → C.symmetric
-         })
+  (let ⟦v⟧ = fromMC {v = Symm} C.monoidalCategory (λ ⦃ _ ⦄ → C.symmetric))
   (⟦_⟧ᵖ₀ : X → C.Obj)
   where
-  open FreeFunctorHelper asFreeMonoidalData ⟦v⟧ using (module Go)
-  open Go ⟦_⟧ᵖ₀ public using (⟦_⟧₀)
+  open FreeObjInterp Symm X ⟦v⟧ ⟦_⟧ᵖ₀ public using (⟦_⟧₀)
 
 --------------------------------------------------------------------------------
 -- The solver, parameterised by a target SMC `C` and an interpretation of the
 -- signature: `⟦_⟧ᵖ₀` on atoms, `⟦_⟧ᵖ₁` on generators.  The `let`-bindings in
--- the telescope assemble the `⟦ Symm ⟧ᵥ` package and bring the object
--- interpretation `⟦_⟧₀` into scope so the type of `⟦_⟧ᵖ₁` can mention it.
+-- the telescope assemble the `⟦ Symm ⟧ᵥ` package (via the shared `fromMC`
+-- builder) and bring the object interpretation `⟦_⟧₀` into scope so the type
+-- of `⟦_⟧ᵖ₁` can mention it.
 
 module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
   (let module C = SymmetricMonoidalCategory C)
-  (let ⟦v⟧ : ⟦ Symm ⟧ᵥ {o} {ℓ} {e}
-       ⟦v⟧ = record
-         { C           = C.U
-         ; Monoidal-C  = C.monoidal
-         ; Symmetric-C = λ ⦃ _ ⦄ → C.symmetric
-         })
+  (let ⟦v⟧ = fromMC {v = Symm} C.monoidalCategory (λ ⦃ _ ⦄ → C.symmetric))
   (⟦_⟧ᵖ₀ : X → C.Obj)
-  (let open FreeFunctorHelper asFreeMonoidalData ⟦v⟧ using (module Go))
-  (let open Go ⟦_⟧ᵖ₀ using (⟦_⟧₀))
+  (let open FreeObjInterp Symm X ⟦v⟧ ⟦_⟧ᵖ₀ using (⟦_⟧₀))
   (⟦_⟧ᵖ₁ : ∀ {x y} → mor x y → ⟦ x ⟧₀ C.⇒ ⟦ y ⟧₀)
   where
 
