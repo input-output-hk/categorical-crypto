@@ -1,5 +1,7 @@
 # Two proof tactics that would have paid for themselves
 
+> **STATUS (2026-08-25): historical proposal.** Written against a pre-campaign tree; the cited modules and line counts have since changed or been deleted, and none of the proposed tactics were built.
+
 While mechanising APROP completeness (the `decode-⊗-shape` / `nf-bracket` chain)
 two patterns showed up again and again, each costing 20–60 lines of hand-written
 bookkeeping per occurrence. Neither is *hard* — both are mechanical — which is

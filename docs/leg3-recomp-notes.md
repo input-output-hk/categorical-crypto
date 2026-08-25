@@ -1,5 +1,7 @@
 # LEG 3 (recomposition + focus/retract/pad soundness) — working notes
 
+> **STATUS (2026-08-25): spike log.** `Leg3Recomp.agda` was probe-only and never entered the tree; names such as `soundness-full-wired` no longer exist in `src/`.
+
 Module: src/Leg3Recomp.agda  ({-# OPTIONS --safe --without-K #-})
 Goal: ⟪ deepFrame s lᵗ lᵗ n found ⟫ ≅ᴴ ⟪ ctx ⟫[h ↦ ⟪lᵗ⟫]
 deepFrame = post ∘ ((id{k} ⊗₁ lᵗ) ∘ pre), (k,pre,post) from focusAtₙ ctx (Agen hole) then retract.
