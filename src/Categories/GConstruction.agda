@@ -1,4 +1,17 @@
 {-# OPTIONS --safe --without-K #-}
+
+------------------------------------------------------------------------
+-- The G construction: the category of states-and-processes over a
+-- traced symmetric monoidal category, with its own (traced) monoidal
+-- structure.  OFF-CONE SHOWCASE: nothing in the library imports this
+-- island (`GConstruction*`, 6 modules); it exists as the flagship
+-- application of the coherence solver — the associativity and identity
+-- obligations are solver-discharged in `GConstructionCoherence` and
+-- `GConstructionIdentityCoherence`.  Note the four trace laws marked
+-- below are taken as hypotheses because agda-categories' `Traced`
+-- omits them.
+------------------------------------------------------------------------
+
 module Categories.GConstruction where
 
 open import Categories.Category
