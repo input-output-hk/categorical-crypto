@@ -24,7 +24,7 @@
 -- `Solver.Frontend`'s focus frames.
 --
 -- `solveSplitR?` is the entry point: it first reassociates both sides to
--- right-nested `∘`-chains (`reassoc`, assoc-only — no coherence), exposing
+-- right-nested `∘`-chains (`reassocS`, assoc-only — no coherence), exposing
 -- cuts so that case 2 peels common chain prefixes head-by-head.
 --
 -- Everything is sound by construction: each piece is solver-proven or
@@ -50,7 +50,7 @@ open import Categories.APROP.Hypergraph.Soundness sig-dec
 open import Data.Maybe.Base
 import Data.Maybe.Base as Maybe
 open import Data.Nat.Base
-open import Data.Product using (Σ; _,_; proj₁; proj₂)
+open import Data.Product using (Σ; _,_)
 open import Relation.Binary.PropositionalEquality
 
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive
@@ -156,9 +156,6 @@ private
   ... | f' , pf | g' , pg = f' ⊗₁ g' , ⊗-resp-≈ pf pg
   reassocS f = f , ≈-Term-refl
 
-reassoc : ∀ {A B} → HomTerm A B → HomTerm A B
-reassoc f = proj₁ (reassocS f)
-
 --------------------------------------------------------------------------------
 -- BALANCED reassociation: flatten the ∘-spine into a `Chain`, then rebuild it
 -- as a BALANCED `∘`-tree (depth ~log n instead of n) via adjacent pairing.
@@ -166,7 +163,7 @@ reassoc f = proj₁ (reassocS f)
 -- traverse O(log n) per field instead of O(n) — the dominant cost of deep-gate
 -- frame construction on long context spines (e.g. Frobenius).  Assoc-only, used
 -- only INSIDE frames where the gate re-finds the iso (`findIsoᵀ`/`Verify`), so —
--- like `reassoc` in `deepFrame` — it needs no soundness proof.
+-- like the reassociation inside `deepFrame` — it needs no soundness proof.
 
 private
   -- The `∘`-spine from `A` to `B`, head = last-applied factor: stdlib's `Star`
@@ -263,16 +260,16 @@ mutual
   reassocBal : ∀ {A B} → HomTerm A B → HomTerm A B
   reassocBal f = let c = dropIdC (cancelC (dropIdC (flat∘ f))) in balC (lenC c) c
 
-reassoc-sound : ∀ {A B} (f : HomTerm A B) → reassoc f ≈Term f
-reassoc-sound f = proj₂ (reassocS f)
-
 --------------------------------------------------------------------------------
--- Entry point: reassociate both sides, split, then transport the result
--- back along `reassoc-sound`.
+-- Entry point: reassociate both sides, split, then transport the result back
+-- along the two reassociation witnesses.  Each side's reassociated term and
+-- its witness are taken from ONE `reassocS` pair, matched: projecting them
+-- separately (`proj₁`/`proj₂` of the same call) re-runs the whole structural
+-- recursion — and its proof — a second time on that side.
 
 solveSplitR? : ∀ {A B} (f g : HomTerm A B) → Maybe (f ≈Term g)
-solveSplitR? f g =
+solveSplitR? f g with reassocS f | reassocS g
+... | f' , pf | g' , pg =
   Maybe.map
-    (λ p → ≈-Term-trans (≈-Term-sym (reassoc-sound f))
-                        (≈-Term-trans p (reassoc-sound g)))
-    (solveSplit? (reassoc f) (reassoc g))
+    (λ p → ≈-Term-trans (≈-Term-sym pf) (≈-Term-trans p pg))
+    (solveSplit? f' g')
