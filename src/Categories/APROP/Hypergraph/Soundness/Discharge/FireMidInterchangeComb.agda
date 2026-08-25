@@ -4,6 +4,8 @@
 -- The stack combinatorics of the two-edge interchange, in two independent
 -- families.  Pure `_↭_` / `count` work throughout; the categorical bracketing
 -- is left to the consumer (`Strict.Interchange.FireMid`).
+-- `Linear H` is a parameter of family (1) ONLY (a nested `module _ (lin …)`);
+-- family (2) is stated in `¬ Dep` alone.
 --
 -- (1) FIRING STABILITY (`e'-fires-stable`, `e'-skips-stable`): whether `e'`
 --     fires is unchanged by running `e` first.  Both directions are the one
@@ -100,33 +102,12 @@ private
 
 --------------------------------------------------------------------------------
 
-module _ (H : Hypergraph FlatGen)
-         (lin : Linear H)
-         where
+module _ (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
 
   ----------------------------------------------------------------------
-  -- Disjointness from `Linear` + `Incomp`.
+  -- Disjointness + the count transport that need `¬ Dep` (Incomp) ALONE.
   ----------------------------------------------------------------------
-
-  private
-    consume-bnd : ∀ (v : Fin H.nV) → count v (consumedList H) ≤ⁿ 1
-    consume-bnd v = subst (_≤ⁿ 1) (proj₁ lin v) (proj₂ lin v)
-
-    ein-concat-bnd : ∀ (v : Fin H.nV) → count v (concat (tabulate H.ein)) ≤ⁿ 1
-    ein-concat-bnd v = count-++-bndʳ v H.cod _ (consume-bnd v)
-
-  -- `ein e ⊥ ein e'` (Linear): no vertex is consumed by two distinct edges.
-  ein-ein-disjoint
-    : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → (v : Fin H.nV)
-    → 0 <ⁿ count v (H.ein e) → count v (H.ein e') ≡ 0
-  ein-ein-disjoint {e} {e'} e≢e' v v∈ein-e =
-    Nat.n≤0⇒n≡0
-      (s≤s⁻¹
-        (Nat.≤-trans
-          (Nat.+-monoˡ-≤ (count v (H.ein e')) v∈ein-e)
-          (Nat.≤-trans (count-concat-tabulate-pair-≤ H.ein e e' e≢e' v)
-                       (ein-concat-bnd v))))
 
   -- `eout e ⊥ ein e'` (Incomp / ¬Dep): `e` does not produce a wire `e'`
   -- consumes.
@@ -138,27 +119,7 @@ module _ (H : Hypergraph FlatGen)
       (Nat.≮⇒≥ λ v∈eout-e →
         ¬dep (v , count-pos→∈ v∈eout-e , count-pos→∈ v∈ein-e'))
 
-  ----------------------------------------------------------------------
-  -- FIRING STABILITY (Linear + Incomp): `e'`'s firing decision is the
-  -- same on `s` and on the post-`e` stack `eout e ++ r₁`, since for every
-  -- vertex consumed by `e'` the count is unchanged across the `e`-step
-  -- (`count v (ein e) ≡ 0` by Linearity, `count v (eout e) ≡ 0` by Incomp).
-  ----------------------------------------------------------------------
-
   private
-    count-ein'-pres
-      : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
-      → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
-      → (v : Fin H.nV) → 0 <ⁿ count v (H.ein e')
-      → count v s ≡ count v (H.eout e ++ r₁)
-    count-ein'-pres {e} {e'} e≢e' ¬dep r₁ s p v v∈ein-e' =
-      trans (↭⇒count p v)
-      (trans (count-++ v (H.ein e) r₁)
-      (trans (cong (_+ count v r₁)
-                   (ein-ein-disjoint (λ eq → e≢e' (sym eq)) v v∈ein-e'))
-      (sym (trans (count-++ v (H.eout e) r₁)
-                  (cong (_+ count v r₁) (eout-ein-disjoint ¬dep v v∈ein-e'))))))
-
     count-zero-or-pos : (e' : Fin H.nE) (v : Fin H.nV)
                       → (count v (H.ein e') ≡ 0) ⊎ (0 <ⁿ count v (H.ein e'))
     count-zero-or-pos e' v with count v (H.ein e')
@@ -177,50 +138,93 @@ module _ (H : Hypergraph FlatGen)
     ... | inj₁ z   = subst (_≤ⁿ count v U) (sym z) z≤nⁿ
     ... | inj₂ pos = subst (count v (H.ein e') ≤ⁿ_) (eq pos) h
 
-    ein'-≤-fwd
+  ----------------------------------------------------------------------
+  -- THE LINEARITY HALF — `Linear H` is read by exactly these lemmas.
+  -- FIRING STABILITY: `e'`'s firing decision is the same on `s` and on the
+  -- post-`e` stack `eout e ++ r₁`, since for every vertex consumed by `e'`
+  -- the count is unchanged across the `e`-step (`count v (ein e) ≡ 0` by
+  -- Linearity, `count v (eout e) ≡ 0` by Incomp).
+  ----------------------------------------------------------------------
+
+  module _ (lin : Linear H) where
+
+    private
+      consume-bnd : ∀ (v : Fin H.nV) → count v (consumedList H) ≤ⁿ 1
+      consume-bnd v = subst (_≤ⁿ 1) (proj₁ lin v) (proj₂ lin v)
+
+      ein-concat-bnd : ∀ (v : Fin H.nV) → count v (concat (tabulate H.ein)) ≤ⁿ 1
+      ein-concat-bnd v = count-++-bndʳ v H.cod _ (consume-bnd v)
+
+    -- `ein e ⊥ ein e'` (Linear): no vertex is consumed by two distinct edges.
+    ein-ein-disjoint
+      : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → (v : Fin H.nV)
+      → 0 <ⁿ count v (H.ein e) → count v (H.ein e') ≡ 0
+    ein-ein-disjoint {e} {e'} e≢e' v v∈ein-e =
+      Nat.n≤0⇒n≡0
+        (s≤s⁻¹
+          (Nat.≤-trans
+            (Nat.+-monoˡ-≤ (count v (H.ein e')) v∈ein-e)
+            (Nat.≤-trans (count-concat-tabulate-pair-≤ H.ein e e' e≢e' v)
+                         (ein-concat-bnd v))))
+
+    private
+      count-ein'-pres
+        : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
+        → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
+        → (v : Fin H.nV) → 0 <ⁿ count v (H.ein e')
+        → count v s ≡ count v (H.eout e ++ r₁)
+      count-ein'-pres {e} {e'} e≢e' ¬dep r₁ s p v v∈ein-e' =
+        trans (↭⇒count p v)
+        (trans (count-++ v (H.ein e) r₁)
+        (trans (cong (_+ count v r₁)
+                     (ein-ein-disjoint (λ eq → e≢e' (sym eq)) v v∈ein-e'))
+        (sym (trans (count-++ v (H.eout e) r₁)
+                    (cong (_+ count v r₁) (eout-ein-disjoint ¬dep v v∈ein-e'))))))
+
+      ein'-≤-fwd
+        : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
+        → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
+        → (∀ v → count v (H.ein e') ≤ⁿ count v s)
+        → (∀ v → count v (H.ein e') ≤ⁿ count v (H.eout e ++ r₁))
+      ein'-≤-fwd {e} {e'} e≢e' ¬dep r₁ s p h v =
+        ein'-≤-transport v s (H.eout e ++ r₁)
+          (count-ein'-pres e≢e' ¬dep r₁ s p v) (h v)
+
+      ein'-≤-bwd
+        : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
+        → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
+        → (∀ v → count v (H.ein e') ≤ⁿ count v (H.eout e ++ r₁))
+        → (∀ v → count v (H.ein e') ≤ⁿ count v s)
+      ein'-≤-bwd {e} {e'} e≢e' ¬dep r₁ s p h v =
+        ein'-≤-transport v (H.eout e ++ r₁) s
+          (λ pos → sym (count-ein'-pres e≢e' ¬dep r₁ s p v pos)) (h v)
+
+    e'-fires-stable
       : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
       → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
-      → (∀ v → count v (H.ein e') ≤ⁿ count v s)
-      → (∀ v → count v (H.ein e') ≤ⁿ count v (H.eout e ++ r₁))
-    ein'-≤-fwd {e} {e'} e≢e' ¬dep r₁ s p h v =
-      ein'-≤-transport v s (H.eout e ++ r₁)
-        (count-ein'-pres e≢e' ¬dep r₁ s p v) (h v)
+      → ∀ {r₂' p₂'} → extract-prefix (H.ein e') s ≡ just (r₂' , p₂')
+      → Σ[ r ∈ List (Fin H.nV) ] Σ[ q ∈ _ ]
+          extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ just (r , q)
+    e'-fires-stable {e} {e'} e≢e' ¬dep r₁ s p {r₂'} {p₂'} eqe' =
+      count-≤→extract-prefix (H.ein e') (H.eout e ++ r₁)
+        (ein'-≤-fwd e≢e' ¬dep r₁ s p
+          (extract-prefix-just→count-≤ (H.ein e') s r₂' p₂'))
 
-    ein'-≤-bwd
+    -- A `just` outcome on `eout e ++ r₁` would (via the backward count
+    -- transport) force success on `s`.
+    e'-skips-stable
       : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
       → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
-      → (∀ v → count v (H.ein e') ≤ⁿ count v (H.eout e ++ r₁))
-      → (∀ v → count v (H.ein e') ≤ⁿ count v s)
-    ein'-≤-bwd {e} {e'} e≢e' ¬dep r₁ s p h v =
-      ein'-≤-transport v (H.eout e ++ r₁) s
-        (λ pos → sym (count-ein'-pres e≢e' ¬dep r₁ s p v pos)) (h v)
-
-  e'-fires-stable
-    : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
-    → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
-    → ∀ {r₂' p₂'} → extract-prefix (H.ein e') s ≡ just (r₂' , p₂')
-    → Σ[ r ∈ List (Fin H.nV) ] Σ[ q ∈ _ ]
-        extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ just (r , q)
-  e'-fires-stable {e} {e'} e≢e' ¬dep r₁ s p {r₂'} {p₂'} eqe' =
-    count-≤→extract-prefix (H.ein e') (H.eout e ++ r₁)
-      (ein'-≤-fwd e≢e' ¬dep r₁ s p
-        (extract-prefix-just→count-≤ (H.ein e') s r₂' p₂'))
-
-  -- A `just` outcome on `eout e ++ r₁` would (via the backward count
-  -- transport) force success on `s`.
-  e'-skips-stable
-    : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
-    → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
-    → extract-prefix (H.ein e') s ≡ nothing
-    → extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ nothing
-  e'-skips-stable {e} {e'} e≢e' ¬dep r₁ s p eqe'
-    with extract-prefix (H.ein e') (H.eout e ++ r₁)
-  ... | nothing      = refl
-  ... | just (r , q) =
-        ⊥-elim (nothing≢just (trans (sym eqe')
-          (proj₂ (proj₂ (count-≤→extract-prefix (H.ein e') s
-            (ein'-≤-bwd e≢e' ¬dep r₁ s p
-              (extract-prefix-just→count-≤ (H.ein e') (H.eout e ++ r₁) r q)))))))
+      → extract-prefix (H.ein e') s ≡ nothing
+      → extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ nothing
+    e'-skips-stable {e} {e'} e≢e' ¬dep r₁ s p eqe'
+      with extract-prefix (H.ein e') (H.eout e ++ r₁)
+    ... | nothing      = refl
+    ... | just (r , q) =
+          ⊥-elim (nothing≢just (trans (sym eqe')
+            (proj₂ (proj₂ (count-≤→extract-prefix (H.ein e') s
+              (ein'-≤-bwd e≢e' ¬dep r₁ s p
+                (extract-prefix-just→count-≤ (H.ein e') (H.eout e ++ r₁) r q)))))))
 
   ----------------------------------------------------------------------
   -- Extracting `ein e'` from the residual `r₁`.  From `p₂` + `eout e ⊥

@@ -206,8 +206,8 @@ module FMS2 (H : Hypergraph FlatGen)
     (us-cod : Unique (H.eout e ++ r₁'))
     where
 
-    SL : FMIC.SimLoc H lin (proj₁ inc) (proj₂ inc) sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
-    SL = FMIC.sim-loc H lin (proj₁ inc) (proj₂ inc) sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+    SL : FMIC.SimLoc H (proj₁ inc) (proj₂ inc) sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
+    SL = FMIC.sim-loc H (proj₁ inc) (proj₂ inc) sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
     open FMIC.SimLoc SL public
 
     -- The located frames.

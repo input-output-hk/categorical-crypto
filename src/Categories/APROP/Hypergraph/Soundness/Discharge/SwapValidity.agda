@@ -178,12 +178,13 @@ module PerHG (H : Hypergraph FlatGen) (lin : Linear H) where
   -- BOTH-FIRE multiset bridge + FIRING STABILITY, shared with
   -- the strict `SwapCoreRun` via the `Discharge/FireMidInterchangeComb`
   -- leaf: `post-swap-stack-↭` is the pure `_↭_` order-independence of
-  -- the both-fire multiset content; `e'-fires-stable` / `e'-skips-stable`
-  -- say `e'`'s firing decision is the same on `s` and on the post-`e`
-  -- stack (under `Linear` + `Incomp` count-disjointness).
+  -- the both-fire multiset content (linearity-free — hence no `lin`);
+  -- `e'-fires-stable` / `e'-skips-stable` say `e'`'s firing decision is the
+  -- same on `s` and on the post-`e` stack (under `Linear` + `Incomp`
+  -- count-disjointness).
   ------------------------------------------------------------------------
 
-  post-swap-stack-↭ = FMIC.post-swap-stack-↭ H lin
+  post-swap-stack-↭ = FMIC.post-swap-stack-↭ H
 
   private
     e'-fires-stable = FMIC.e'-fires-stable H lin
