@@ -67,7 +67,7 @@ gSigDec = record { sig = gSig ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-GMor_ }
 
 open APROP gSig public
   using (FreeMonoidal; HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_;
-         ≈-Term-refl; ≈-Term-sym; ≈-Term-trans; assoc; ∘-resp-≈)
+         ≈-Term-sym; ≈-Term-trans)
 
 f' g' h' : HomTerm _ _
 f' = Agen gf

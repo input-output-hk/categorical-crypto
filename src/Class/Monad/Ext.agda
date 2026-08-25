@@ -64,7 +64,7 @@ instance
 
 
 import Categories.Monad as C
-open import Categories.Category
+open import Categories.Category.Core
 open import Categories.Category.Construction.Kleisli
 open import Categories.Category.Instance.Sets
 open import Categories.Monad.Construction.Kleisli

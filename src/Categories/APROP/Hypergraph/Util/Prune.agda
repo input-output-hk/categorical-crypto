@@ -25,9 +25,8 @@
 --                       `remap-injective`, and the two label-transport faces
 --                       `remap-vlab` / `map-via-remap`.
 --
--- Also re-exports (`public`) the two generic list/uniqueness facts
--- `All-lookup` / `lookup-injective-unique` from `Data.List.Properties.Ext`,
--- so the pruning consumers reach them through this module.
+-- Also re-exports (`public`) `Data.List.Properties.Ext`'s generic
+-- `lookup-injective-unique`, so the pruning consumers reach it through here.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Util.Prune where
@@ -40,10 +39,8 @@ open import Data.List.Membership.Propositional using (_∈_; _∉_)
 open import Data.List.Membership.Propositional.Properties
   using (∈-filter⁺; ∈-allFin; ∈-lookup)
 open import Data.List.Properties.Ext using (map-∘-cong)
--- generic list/uniqueness facts (not Fin-specific); re-exported for the
--- pruning consumers that reach them through this module.
-open import Data.List.Properties.Ext
-  using (All-lookup; lookup-injective-unique) public
+-- generic (not Fin-specific); re-exported for the pruning consumers.
+open import Data.List.Properties.Ext using (lookup-injective-unique) public
 open import Data.List.Relation.Unary.Any using (index)
 open import Data.List.Relation.Unary.Any.Properties using (lookup-index)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)

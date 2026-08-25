@@ -17,11 +17,10 @@ module Categories.GConstruction where
 open import Categories.Category
 open import Categories.Category.Helper
 open import Categories.Category.Monoidal
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
 open import Categories.Category.Monoidal.Traced
 
 open import Data.Product using (_×_; _,_; proj₁; proj₂)
-import Categories.Category.Monoidal.Braided.Properties
+import Categories.Category.Monoidal.Braided.Properties as BProps
 
 import Categories.Category.Monoidal.Utilities as U
 
@@ -34,14 +33,12 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
     module C where
       open Category C public
       open Traced Traced public
-      open U Monoidal public using (module Shorthands)
+      open U.Shorthands Monoidal public
       open import Categories.Category.Monoidal.Reasoning Monoidal public
         using (serialize₁₂; serialize₂₁; _⟩⊗⟨_; refl⟩⊗⟨_)
       open import Categories.Morphism.Reasoning C public
         using (introˡ; pullʳ; pullˡ; pushˡ; elimˡ; elimʳ; cancelˡ)
-      open Shorthands public
-      module BP = Categories.Category.Monoidal.Braided.Properties braided
-      open BP.Shorthands public
+      open BProps.Shorthands braided public
 
     -- the bundle the transported coherence lemmas are instantiated at
     Cˢ : SymmetricMonoidalCategory a b c

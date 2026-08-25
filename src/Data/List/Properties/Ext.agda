@@ -26,10 +26,10 @@ open import Data.List.Relation.Unary.AllPairs using (_∷_)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe.Base as Maybe using (Maybe; just; nothing)
 open import Data.Nat.Base using (ℕ)
-open import Data.Product using (Σ-syntax; _,_)
+open import Data.Product.Base using (Σ-syntax; _,_)
 open import Relation.Binary.Definitions using (DecidableEquality; Irrelevant)
 open import Relation.Binary.PropositionalEquality.Core using (_≡_; refl; sym; trans; cong; cong₂)
-open import Relation.Nullary using (yes; no)
+open import Relation.Nullary.Decidable.Core using (yes; no)
 
 ≡-irrelevant : ∀ {a} {A : Set a} → DecidableEquality A → Irrelevant {A = List A} _≡_
 ≡-irrelevant _≟_ = Decidable⇒UIP.≡-irrelevant (≡-dec _≟_)
