@@ -70,9 +70,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
-  sig using (Linear⇒cod-Unique)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
-  sig using (⟪⟫-LinearP)
+  sig using (⟪⟫-cod-Unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
@@ -80,7 +78,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Product using (proj₂)
 open import Relation.Binary.PropositionalEquality using (sym)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
@@ -104,9 +101,6 @@ module Reconcile {A B C D : ObjTerm}
     K : PermK
     K = PK.permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
 
-    uniqCod : Unique Hf.cod
-    uniqCod = Linear⇒cod-Unique ⟪ fg ⟫ (⟪⟫-LinearP fg)
-
   -- THE `braidˢ` RESIDUAL, named: the C-run inner term post-sorted by
   -- `cand` is the clean tensor at the boundary objects.  At
   -- `cand := finalPermˢ fg` this signature IS the ⊗-shape conjugated by
@@ -129,7 +123,7 @@ module Reconcile {A B C D : ObjTerm}
   final-resortˢ
     : (cand : RF.s-finˢ ↭ Hf.cod)
     → RF.permuteˢ (finalPermˢ fg) ≈ˢ RF.permuteˢ cand
-  final-resortˢ cand = perm-rigidˢ K uniqCod (finalPermˢ fg) cand
+  final-resortˢ cand = perm-rigidˢ K (⟪⟫-cod-Unique fg) (finalPermˢ fg) cand
 
   ----------------------------------------------------------------------
   -- ## The REDUCTION: ⊗-shape ⇐ K-block braid.

@@ -30,14 +30,18 @@ import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
-open import Relation.Binary.PropositionalEquality using (_≡_; sym; subst)
+open import Relation.Binary.PropositionalEquality using (sym; subst)
 
+open APROP sig using (HomTerm)
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
+open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using (count; count-++; Linear)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual)
+open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
+  using (⟪⟫-LinearP)
 
 open import Categories.PermuteCoherence.Rigid using (_≅↭_; eval-rigid)
 
@@ -49,12 +53,12 @@ private
 -- 0.  `↭`-invariance of `count` and the `Unique` ⇔ `count ≤ 1` bridge, both
 --     from the shared leaf.  The bridge is re-exported because
 --     `StackUniqueReach` reads it from here (`DecodeComposeAssembly` takes
---     only `Linear⇒cod-Unique`).
+--     only `Linear⇒cod-Unique`).  ONE module application, opened twice:
+--     `open import … sig` twice would apply the section twice.
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
-  using (↭⇒count)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
-  using (count≤1; Unique⇒count≤1; count≤1⇒Unique) public
+import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig as CC
+open CC using (↭⇒count)
+open CC using (Unique⇒count≤1; count≤1⇒Unique) public
 
 --------------------------------------------------------------------------------
 -- 1.  `Unique-resp-↭` — the actual enabler.  `↭` preserves `count` (`↭⇒count`),
@@ -105,3 +109,10 @@ Linear⇒cod-Unique H (bal , bnd) = count≤1⇒Unique cod-bnd
           (Nat.m≤m+n (count v H.cod) (count v (concat (tabulate H.ein))))
           (Nat.≤-reflexive (sym (count-++ v H.cod (concat (tabulate H.ein))))))
         (Nat.≤-trans (Nat.≤-reflexive (sym (bal v))) (bnd v))
+
+-- …at the ONE hypergraph the decoder ever asks about.  Four decoder shape
+-- modules used to spell this composite (`Linear⇒cod-Unique ⟪ f ⟫ (⟪⟫-LinearP
+-- f)`) locally; `⟪ f ⟫` is linear unconditionally, so the pairing is canonical
+-- and belongs here, beside the general form the compose shapes still need.
+⟪⟫-cod-Unique : ∀ {A B} (f : HomTerm A B) → Unique (Hypergraph.cod ⟪ f ⟫)
+⟪⟫-cod-Unique f = Linear⇒cod-Unique ⟪ f ⟫ (⟪⟫-LinearP f)

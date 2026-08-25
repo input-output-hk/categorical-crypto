@@ -46,9 +46,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-self)
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
-  sig using (Linear⇒cod-Unique)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
-  sig using (⟪⟫-LinearP)
+  sig using (⟪⟫-cod-Unique)
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (hGen-dom-Unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
@@ -92,9 +90,6 @@ module Gen {A B : ObjTerm} (g : mor A B) where
 
     K : PermK
     K = PK.permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
-
-    uniqCod : Unique Hf.cod
-    uniqCod = Linear⇒cod-Unique ⟪ f ⟫ (⟪⟫-LinearP f)
 
     -- the single edge.
     e₀ : Fin Hf.nE
@@ -207,7 +202,7 @@ module Gen {A B : ObjTerm} (g : mor A B) where
       where
         finalP≈ : RF.permuteˢ (finalPermˢ f)
                   ≈ᵛ castᵛ refl sc (idᵛ {RF.s-finˢ})
-        finalP≈ = rigid-reflexiveᵛ uniqCod (finalPermˢ f) sc
+        finalP≈ = rigid-reflexiveᵛ (⟪⟫-cod-Unique f) (finalPermˢ f) sc
 
   --------------------------------------------------------------------------
   -- Step D: `genˢ (elab e₀) = genˢ (subst₂ FlatGen lem-in lem-out (flat g))`

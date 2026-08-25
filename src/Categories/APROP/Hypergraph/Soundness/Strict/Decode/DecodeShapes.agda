@@ -40,9 +40,7 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; hId)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
-  sig using (Linear⇒cod-Unique)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
-  sig using (⟪⟫-LinearP)
+  sig using (⟪⟫-cod-Unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
@@ -131,9 +129,6 @@ module Atom {A B : ObjTerm} (f : HomTerm A B)
     module RF = Run ⟪ f ⟫
     module Hf = Hypergraph ⟪ f ⟫
 
-    uniqCod : Unique Hf.cod
-    uniqCod = Linear⇒cod-Unique ⟪ f ⟫ (⟪⟫-LinearP f)
-
     collapse = nE0-run ⟪ f ⟫ nE≡0
     s≡ : RF.s-finˢ ≡ Hf.dom
     s≡ = proj₁ collapse
@@ -162,7 +157,7 @@ module Atom {A B : ObjTerm} (f : HomTerm A B)
     sc = trans s≡ dc
 
     perm≡ : RF.permuteˢ (finalPermˢ f) ≈ˢ coe (cong (map Hf.vlab) sc)
-    perm≡ = T.perm-trivial sc uniqCod (finalPermˢ f)
+    perm≡ = T.perm-trivial sc (⟪⟫-cod-Unique f) (finalPermˢ f)
 
     run≈ : proj₂ RF.runˢ ≈ˢ coe (cong (map Hf.vlab) (sym s≡))
     run≈ = ≡⇒≈ˢ run≡
