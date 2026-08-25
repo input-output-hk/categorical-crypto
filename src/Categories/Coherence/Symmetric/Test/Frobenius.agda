@@ -76,11 +76,12 @@ module FrobeniusAlgebra (A : C.Obj)
     (suc (suc (suc _))) → vᴹ)
 
   private
-    m u n v : S.HomTerm _ _
+    -- (The counit `v`, generator 3, is in the signature — a comonoid has one —
+    -- but no rule or diagram below mentions it, so it gets no free-term name.)
+    m u n : S.HomTerm _ _
     m = S.Agen (gen zero)
     u = S.Agen (gen (suc zero))
     n = S.Agen (gen (suc (suc zero)))
-    v = S.Agen (gen (suc (suc (suc zero))))
 
     -- The rules' free-SMC sides.
     unitLᵗ : S.HomTerm (unitᵗ S.⊗₀ a) a

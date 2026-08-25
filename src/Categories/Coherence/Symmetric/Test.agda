@@ -72,9 +72,11 @@
 --     literally (decidable `ObjTerm` equality); inside the redex matching is
 --     up to SMC structure.              → `Test.Rewrite.test-unitˡ-noisy`
 --
--- Backend-internal smoke tests (raw `findIso`/`subMatch`/`solveH` at fixed
--- signatures) live next to their subjects in
--- `Categories.APROP.Hypergraph.Solver.{Tests, SubMatchTests, InterpretTests}`.
+-- Backend-internal smoke tests (raw `findIso`, raw `subMatch`, and the
+-- equation-splitting front-end `solveH!ˢ`, each at one fixed signature) live
+-- next to their subjects in `Categories.APROP.Hypergraph.Solver.Test.{
+-- FindIsoTests, SubMatchTests, SplitTests}` (the first two share the
+-- three-generator fixture `…Solver.Test.ThreeGens`).
 --------------------------------------------------------------------------------
 
 open import Level using (Level)

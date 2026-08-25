@@ -40,14 +40,22 @@
 --                                  (oriented rewrites with soundness proofs)
 --                                  to fuel-bounded exhaustion; the search
 --                                  carries its own proof;
+--                   · `Rule`/`mkRule` — the record a driver's rule list is
+--                                  built from (free-SMC sides + the proof);
 --                   · `S`        — the free-SMC term language (`S.Agen`, `S.∘`,
 --                                  `S.⊗₁`, `S.σ`, `S.α⇒`, …);
---                   · `gen`      — the `i`-th generator as a free term;
---                   · `Tgt`      — `C`'s own vocabulary (`_∘_`, `id`, `_⊗₁_`,
---                                  `σ`, `α⇒`, `λ⇒`, …) and `⟦_⟧₀`/`⟦_⟧₁`.
+--                   · `gen`      — the `i`-th generator as a morphism LABEL;
+--                                  `S.Agen (gen i)` is the free term for it;
+--                   · `Tgt`      — `C`'s own vocabulary (`_∘_`, `id`, `_⊗₀_`,
+--                                  `_⊗₁_`, `σ`, `α⇒`, `λ⇒`, …);
+--                   · `⟦_⟧₀`/`⟦_⟧₁` — the object/morphism interpretations
+--                                  (from `ObjInterp`/`Solver`; `Tgt` is the
+--                                  target vocabulary only and has neither).
 --   * `Wiring`  — the signature/interpretation half of `Setup` on its own,
 --                 exposing `dom`/`cod`/`⟦_⟧₀` and the type `GenTable` of an
---                 index-keyed generator interpretation.
+--                 index-keyed generator interpretation; also the (unverified)
+--                 position-search vocabulary `focusAll`/`focusAt(ₙ)`/`deepFoc`,
+--                 for stating what the engine can and cannot locate.
 --   * `C`       — `SymmetricMonoidalCategory C` opened as a module (`C.Obj`,
 --                 `C.monoidal`, `C.HomReasoning`, `C.braiding`, …), and the
 --                 `FreeMonoidal` vocabulary (`Symm`, `FreeMonoidalHelper`, …)
