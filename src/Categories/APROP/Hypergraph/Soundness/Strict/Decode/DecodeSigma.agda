@@ -34,9 +34,7 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (flatten; range; module hGenSwap-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
-  sig using (Linear⇒cod-Unique)
-open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
-  sig using (⟪⟫-LinearP)
+  sig using (⟪⟫-cod-Unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟X_
@@ -47,8 +45,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _�
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_; _++_; map; length)
-open import Data.List.Properties using (++-identityʳ; map-++)
-open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
+open import Data.List.Properties using (++-identityʳ)
 open import Data.Product using (proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; subst)
@@ -115,13 +112,10 @@ module _
       module Hf = Hypergraph ⟪ f ⟫
       open Support (Fin Hf.nV) Hf.vlab
       open Restrict (Fin Hf.nV) Hf.vlab
-        using (idᵛ; _∘ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; ∘-castᵛ; subst-codᵛ)
+        using (idᵛ; _∘ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; ∘-castᵛ; subst-codᵛ; σᵛ-≈̂)
 
       K : PermK
       K = PK.permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
-
-      uniqCod : Unique Hf.cod
-      uniqCod = Linear⇒cod-Unique ⟪ f ⟫ (⟪⟫-LinearP f)
 
       nE≡0 : Hf.nE ≡ 0
       nE≡0 = refl
@@ -150,7 +144,8 @@ module _
       -- non-strict proof invokes K-faithfulness).
       perm≈ : RF.permuteˢ (finalPermˢ f)
               ≈ˢ RF.permuteˢ (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
-      perm≈ = perm-rigidˢ K uniqCod (finalPermˢ f) (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
+      perm≈ = perm-rigidˢ K (⟪⟫-cod-Unique f) (finalPermˢ f)
+                (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
 
     -- the block-swap identity at the hSwap blocks (the residual `bswap-σ`),
     -- V-level: `Hf.dom = Lblk ++ Rblk` and `Hf.cod = Rblk ++ Lblk` hold
@@ -183,29 +178,18 @@ module _
       (≈-trans (∘-castᵛ refl (sym s≡) refl (permuteᵛ bsw) idᵛ)
         (≈-trans idʳ σ-block-≈))
 
-    private
-      -- rewrite the block-label braiding to the `flatten` braiding; the cast
-      -- endpoints fold to refl once the args are `flatten A`/`flatten B`.
-      σblk≈ : castˢ (trans (sym (map-++ Hf.vlab Lblk Rblk)) (⟪⟫-domL f))
-                    (trans (sym (map-++ Hf.vlab Rblk Lblk)) (⟪⟫-codL f))
-                (σˢ (map Hf.vlab Lblk) (map Hf.vlab Rblk))
-              ≈ˢ σˢ (flatten A) (flatten B)
-      σblk≈ = go lem-L lem-R _ _
-        where
-          go : ∀ {ml mr} (eL : ml ≡ flatten A) (eR : mr ≡ flatten B)
-                 (P : ml ++ mr ≡ flatten A ++ flatten B)
-                 (Q : mr ++ ml ≡ flatten B ++ flatten A)
-             → castˢ P Q (σˢ ml mr) ≈ˢ σˢ (flatten A) (flatten B)
-          go refl refl P Q = ≡⇒≈ˢ (cast-irrel P refl Q refl (σˢ (flatten A) (flatten B)))
-
-    -- the full σ-shape.
+    -- the full σ-shape.  `decodePˢ f` IS `castˢ (⟪⟫-domL f) (⟪⟫-codL f) inner`
+    -- and every remaining endpoint mismatch is a cast the `≈̂` layer carries:
+    -- `σᵛ-≈̂` peels `σᵛ`'s own `map-++` frame, `σ-≈̂` re-indexes the braiding
+    -- from the hSwap blocks to `flatten A`/`flatten B`, and `≈̂⇒castˢ` re-pins
+    -- the boundary.  (The former `cast-fuse`/`cast-irrel` pair and its
+    -- refl-matching `where` worker are exactly what that absorbs.)
     decodePˢ-σ : decodePˢ f ≈ˢ σˢ (flatten A) (flatten B)
     decodePˢ-σ =
-      ≈-trans (cast-resp (⟪⟫-domL f) (⟪⟫-codL f) inner≈)
-      (≈-trans (≡⇒≈ˢ (cast-fuse (sym (map-++ Hf.vlab Lblk Rblk)) (⟪⟫-domL f)
-                        (sym (map-++ Hf.vlab Rblk Lblk)) (⟪⟫-codL f)
-                        (σˢ (map Hf.vlab Lblk) (map Hf.vlab Rblk))))
-        σblk≈)
+      ≈̂⇒castˢ
+        (≈̂-trans (≈ˢ⇒≈̂ inner≈)
+                 (≈̂-trans (σᵛ-≈̂ Lblk Rblk) (σ-≈̂ lem-L lem-R)))
+        (⟪⟫-domL f) (⟪⟫-codL f)
 
 --------------------------------------------------------------------------------
 -- The σ-shape is reduced to the single residual `bswap-σ` (`Scr.BswapSig`),
