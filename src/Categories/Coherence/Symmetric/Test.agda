@@ -90,6 +90,5 @@ module Categories.Coherence.Symmetric.Test where
 import Categories.Coherence.Symmetric.Test.Coherence
 import Categories.Coherence.Symmetric.Test.Rewrite
 import Categories.Coherence.Symmetric.Test.Deep
-import Categories.Coherence.Symmetric.Test.DeepArity
 import Categories.Coherence.Symmetric.Test.Drivers
 import Categories.Coherence.Symmetric.Test.Frobenius
