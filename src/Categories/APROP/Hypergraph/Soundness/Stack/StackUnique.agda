@@ -10,8 +10,11 @@
 -- comparison in one line.  (The uniqueness-FREE generic form is actually
 -- FALSE: a duplicated vertex breaks it.)
 --
--- Exports (postulate-free): `count≤1⇒Unique`, `Unique-resp-↭` (`↭` preserves
--- `Unique`, via a `count≤1` bridge), `Linear⇒cod-Unique`, and `residual-recon`.
+-- Exports (postulate-free): the two `count≤1` bridge directions re-exported
+-- from `CountCombinatorics`, `Unique-resp-↭` (`↭` preserves `Unique`, via that
+-- bridge), `residual-recon`, and the two codomain-uniqueness faces
+-- `Linear⇒cod-Unique` / `⟪⟫-cod-Unique` (the latter is the one four decoder
+-- shape modules read).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

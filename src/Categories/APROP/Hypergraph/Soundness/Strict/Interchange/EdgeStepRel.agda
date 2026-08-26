@@ -13,6 +13,9 @@
 --     `skipRˢ`/`fireRˢ` constructors refines the otherwise-stuck
 --     `edge-stepˢ` redex (dodges green-slime).
 --   * `edge-stepˢ-graph` — the function realises the relation.
+--   * `pe-stackˢ`/`pe-termˢ`/`++-stackˢ` — the two `process-edgesˢ`
+--     projection abbreviations every consumer of this view reads, plus the
+--     decoder's one order-split stack kernel under the `pe-stackˢ` spelling.
 --
 -- Shared by `Interchange.SwapCore` (which re-exports it under its `(H)`
 -- telescope) and `Interchange.StackEquiv`'s `EquivStep`.

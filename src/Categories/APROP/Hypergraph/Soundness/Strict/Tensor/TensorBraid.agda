@@ -399,7 +399,7 @@ module Braid {A B C D : ObjTerm}
   -- clean K-head via `interchangeˢ` (giving `Gon ⊗ Kclean`), bridging `Gon`
   -- ↦ `decodePˢ f`-core / `Kclean` ↦ `decodePˢ g`-core via `TG`/`TK`, and
   -- absorbing `Br`, `pf`, and the two sub-final-permutes into the single
-  -- `cand` by `perm-rigidˢ` on the `Unique` cod (`Linear⇒cod-Unique`).
+  -- `cand` by `perm-rigidˢ` on the `Unique` cod (`⟪⟫-cod-Unique`).
   ----------------------------------------------------------------------
 
   module Reconcile-e where
