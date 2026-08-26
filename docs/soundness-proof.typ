@@ -418,7 +418,7 @@ So @runeq is *$bold(S)$ (disjointness) $+$ plain bifunctoriality (the boxes comm
 (the re-association bulk) $+ bold(K)$ (the reshuffle)*. The braiding lives entirely in the
 reshuffle, absorbed by $bold(K)$; and the genuine bulk is the $bold(M)$ re-bracketing — the
 solver-unfriendly heart of braided-monoidal coherence, and by far the largest part of the
-formalization (`Strict/Interchange/*` here, `Strict/Tensor/*` in part (I); see the note in §1).
+formalization (`Strict/Interchange/*` here, `Strict/Tensor/*` in part (I); see the note in the front matter).
 
 = The normal-form theorem, part (I)
 
@@ -454,9 +454,10 @@ By induction on $f$, using the action of $⟪dot.c⟫$ on each constructor:
   [*$g times.o h$*],
   [$⟪g times.o h⟫$ is the disjoint juxtaposition; $"decode"$ factors as
    $("coerce") compose ("decode" ⟪g⟫ times.o "decode" ⟪h⟫) compose ("coerce")$ after
-   interleaving the two edge-streams — the $times.o$-shape lemma — then the IH. This lemma is the
-   *single largest part of the whole development* (`Strict/Tensor/{TensorBraid, TensorReconcile,
-   TensorPVVRelabel}`): its bulk is the per-edge `box-suffix` / `box-prefix` Mac-Lane re-bracketing ($bold(M)$)
+   interleaving the two edge-streams — the $times.o$-shape lemma — then the IH. This lemma is a
+   *major part of the development* (`Strict/Tensor/{TensorBraid, TensorReconcile}`, with the
+   relabelling engine in `Strict/Perm/PermRelabel`; the interchange cluster is larger still):
+   its bulk is the per-edge `box-suffix` (`FreeStrictSMC`) Mac-Lane re-bracketing ($bold(M)$)
    that aligns the two box-streams onto disjoint factors, closed by $bold(K)$ — not the light
    $bold(S)$ glue the one-line shape equation suggests.],
 )
@@ -496,7 +497,7 @@ separately and out of scope here. $bold(M)$ — Mac-Lane (associator / unitor) c
 bifunctoriality — is by contrast the one *large* ingredient: it has no canonical-form solver in
 the symmetric fragment, so it is chased per positional case, and the box re-bracketing it demands
 (now paid once in `Soundness/Strict/Embed.agda`) was by far the largest part of the
-formalization before strictification (see the note in §1). $bold(S)$ is finite combinatorics.
+formalization before strictification (see the note in the front matter). $bold(S)$ is finite combinatorics.
 
 = Conclusion
 
