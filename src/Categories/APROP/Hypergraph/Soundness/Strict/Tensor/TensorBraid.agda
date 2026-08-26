@@ -228,31 +228,22 @@ module Embeds (G K : Hypergraph FlatGen) where
   -- G-side embedding: φ = injL, ψ = _↑ˡ K.nE, H = G, J = hTensor G K.
   --
   -- `atom-ein`/`atom-eout`/`ψ-elab` are DERIVED from the raw endpoint
-  -- reductions + edge-label reduction by `DC.EmbedGlue` (same builder
+  -- reductions + edge-label reduction inside `DC.EmbedGlue`, which is
+  -- `TermEmbedˢ` at that derived glue (same entry point
   -- `DecodeComposeAssembly` uses for the `hComposeP` twin).
 
-  module GG = DC.EmbedGlue {H = G} {J = hTensor G K}
-                injL ψG ein-c-inj₁-red eout-c-inj₁-red
-                (map-via vlab-injL) elab-c-inj₁
-
-  module TG = DC.TermEmbedˢ {H = G} {J = hTensor G K}
-                injL (λ {x} {y} → ↑ˡ-injective K.nV x y)
-                vlab-injL
+  module TG = DC.EmbedGlue {H = G} {J = hTensor G K}
+                injL (λ {x} {y} → ↑ˡ-injective K.nV x y) vlab-injL
                 ψG ein-c-inj₁-red eout-c-inj₁-red
-                GG.atom-ein GG.atom-eout GG.ψ-elab
+                (map-via vlab-injL) elab-c-inj₁
 
   ------------------------------------------------------------------------
   -- K-side embedding: φ = injR, ψ = G.nE ↑ʳ_, H = K, J = hTensor G K.
 
-  module KG = DC.EmbedGlue {H = K} {J = hTensor G K}
-                injR ψK ein-c-inj₂-red eout-c-inj₂-red
-                (map-via vlab-injR) elab-c-inj₂
-
-  module TK = DC.TermEmbedˢ {H = K} {J = hTensor G K}
-                injR (λ {x} {y} → ↑ʳ-injective G.nV x y)
-                vlab-injR
+  module TK = DC.EmbedGlue {H = K} {J = hTensor G K}
+                injR (λ {x} {y} → ↑ʳ-injective G.nV x y) vlab-injR
                 ψK ein-c-inj₂-red eout-c-inj₂-red
-                KG.atom-ein KG.atom-eout KG.ψ-elab
+                (map-via vlab-injR) elab-c-inj₂
 
 --------------------------------------------------------------------------------
 -- ## The ⊗-shape, assembled from the K-block braid residual.

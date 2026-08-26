@@ -121,34 +121,24 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   ----------------------------------------------------------------------
   -- ## Block-twin embedding data.
   --
-  -- The `atom-ein`/`atom-eout`/`ψ-elab` glue of each block twin is DERIVED
-  -- from the raw endpoint reductions + edge-label reduction by `EmbedGlue`
-  -- (DecodeCompose), whose `ψ-elab` cancellation reuses the generic
-  -- `subst₂` groupoid laws.
+  -- `EmbedGlue` (DecodeCompose) is `TermEmbedˢ` at DERIVED `atom-ein`/
+  -- `atom-eout`/`ψ-elab`: it takes the raw endpoint reductions, the
+  -- label-pushed cast and the edge-label reduction, and builds the glue with
+  -- the generic `subst₂` groupoid laws.
 
   -- ### G-side: φ = injL, ψ = _↑ˡ K.nE, H = G, J = C.
 
-  module GG = EmbedGlue {H = G} {J = Chg}
-                injL (_↑ˡ K.nE) ein-c-inj₁-red eout-c-inj₁-red
-                (λ xs → map-via vlab-injL xs) elab-c-inj₁
-
-  module TG = TermEmbedˢ {H = G} {J = Chg}
-                injL (inject+-inj cn)
-                vlab-injL
+  module TG = EmbedGlue {H = G} {J = Chg}
+                injL (inject+-inj cn) vlab-injL
                 (_↑ˡ K.nE) ein-c-inj₁-red eout-c-inj₁-red
-                GG.atom-ein GG.atom-eout GG.ψ-elab
+                (λ xs → map-via vlab-injL xs) elab-c-inj₁
 
   -- ### K-side: φ = remapP, ψ = G.nE ↑ʳ_, H = K, J = C.
 
-  module KG = EmbedGlue {H = K} {J = Chg}
-                remapP (G.nE ↑ʳ_) ein-c-inj₂-red eout-c-inj₂-red
-                map-via-remapP elab-c-inj₂
-
-  module TK = TermEmbedˢ {H = K} {J = Chg}
-                remapP remapP-injective
-                remapP-vlab
+  module TK = EmbedGlue {H = K} {J = Chg}
+                remapP remapP-injective remapP-vlab
                 (G.nE ↑ʳ_) ein-c-inj₂-red eout-c-inj₂-red
-                KG.atom-ein KG.atom-eout KG.ψ-elab
+                map-via-remapP elab-c-inj₂
 
   ----------------------------------------------------------------------
   -- ## Run-split + equivariance ingredients.

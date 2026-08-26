@@ -10,6 +10,8 @@
 --   TermEmbedˢ / Equivariantˢ — the per-edge relabelling twin
 --                      (`term-emb-≈̂`) + the FIRE-box equivariance
 --                      foundation (`pvv-transˢ`, `pvv-inverse-*ˢ`).
+--                      `EmbedGlue` is `TermEmbedˢ` at DERIVED endpoint glue —
+--                      the entry point every block twin uses.
 --
 -- The ∘-shape assembly proper is `DecodeComposeAssembly.decodePˢ-∘-shape`,
 -- kept a separate module to avoid a `StackEquiv` import cycle.
@@ -154,42 +156,6 @@ private
         (P : xs ++ us ≡ xs' ++ us') (Q : ys ++ vs ≡ ys' ++ vs')
     → castˢ P Q (f ⊗ˢ g) ≈ˢ castˢ px py f ⊗ˢ castˢ pu pv g
   cast-⊗-split refl refl refl refl f g P Q rewrite uipL P refl | uipL Q refl = ≈-refl
-
---------------------------------------------------------------------------------
--- ## Smart builder for the `atom-ein`/`atom-eout`/`ψ-elab` glue of `TermEmbedˢ`.
---
--- These three inputs are NOT independent data: given the raw endpoint
--- reductions (`ein-red`/`eout-red`), the label-pushed `map-via` cast (`mv`),
--- and the edge-label reduction (`elab-c`), all three are DERIVED uniformly.
--- The `ψ-elab` derivation is the two-cast cancellation `subst₂-trans` +
--- `subst₂-sym-flip`; previously each block-twin (G-side / K-side / braid)
--- hand-rolled the same construction with a locally-duplicated lemma.
-module EmbedGlue
-  {H J : Hypergraph FlatGen}
-  (let module H = Hypergraph H)
-  (let module J = Hypergraph J)
-  (φ        : Fin H.nV → Fin J.nV)
-  (ψ        : Fin H.nE → Fin J.nE)
-  (ein-red  : ∀ e → J.ein  (ψ e) ≡ map φ (H.ein  e))
-  (eout-red : ∀ e → J.eout (ψ e) ≡ map φ (H.eout e))
-  (mv       : ∀ (xs : List (Fin H.nV)) → map H.vlab xs ≡ map J.vlab (map φ xs))
-  (elab-c   : ∀ e → subst₂ FlatGen (cong (map J.vlab) (ein-red e))
-                                   (cong (map J.vlab) (eout-red e)) (J.elab (ψ e))
-                  ≡ subst₂ FlatGen (mv (H.ein e)) (mv (H.eout e)) (H.elab e))
-  where
-  atom-ein : ∀ e → map J.vlab (J.ein (ψ e)) ≡ map H.vlab (H.ein e)
-  atom-ein e = trans (cong (map J.vlab) (ein-red e)) (sym (mv (H.ein e)))
-
-  atom-eout : ∀ e → map J.vlab (J.eout (ψ e)) ≡ map H.vlab (H.eout e)
-  atom-eout e = trans (cong (map J.vlab) (eout-red e)) (sym (mv (H.eout e)))
-
-  ψ-elab : ∀ e → subst₂ FlatGen (atom-ein e) (atom-eout e) (J.elab (ψ e)) ≡ H.elab e
-  ψ-elab e =
-    trans (sym (subst₂-trans (cong (map J.vlab) (ein-red e)) (sym (mv (H.ein e)))
-                             (cong (map J.vlab) (eout-red e)) (sym (mv (H.eout e)))
-                             (J.elab (ψ e))))
-      (trans (cong (subst₂ FlatGen (sym (mv (H.ein e))) (sym (mv (H.eout e)))) (elab-c e))
-             (subst₂-sym-flip (mv (H.ein e)) (mv (H.eout e)) refl))
 
 --------------------------------------------------------------------------------
 -- ## (A)  The generic embedding-based per-edge + process-edges term-twins,
@@ -494,6 +460,51 @@ module TermEmbedˢ
            ≡ map vlH (proj₁ (RH.process-edgesˢ es sH))
       pCod = trans (cong (map vlJ) (proc-stack-embˢ es sH))
                    (vlab-φ (proj₁ (RH.process-edgesˢ es sH)))
+
+--------------------------------------------------------------------------------
+-- ## The block-twin entry point: `TermEmbedˢ` at DERIVED glue.
+--
+-- `TermEmbedˢ`'s `atom-ein`/`atom-eout`/`ψ-elab` are NOT independent data:
+-- given the raw endpoint reductions (`ein-red`/`eout-red`), the label-pushed
+-- `map-via` cast (`mv`) and the edge-label reduction (`elab-c`), all three are
+-- DERIVED uniformly — the `ψ-elab` derivation being the two-cast cancellation
+-- `subst₂-trans` + `subst₂-sym-flip`.  Every block twin in the tree
+-- (`DecodeComposeAssembly`'s G-/K-side, `TensorBraid`'s G-/K-side) wants the
+-- derived form, so the derivation and the engine are applied TOGETHER here
+-- rather than at each site.  `TermEmbedˢ` itself stays open for the one
+-- consumer that has the three as GIVEN data: `IsoTransport`, where they are
+-- fields of `_≅ᴴ_`.
+module EmbedGlue
+  {H J : Hypergraph FlatGen}
+  (let module H = Hypergraph H)
+  (let module J = Hypergraph J)
+  (φ        : Fin H.nV → Fin J.nV)
+  (φ-inj    : ∀ {x y} → φ x ≡ φ y → x ≡ y)
+  (φ-lab    : ∀ i → J.vlab (φ i) ≡ H.vlab i)
+  (ψ        : Fin H.nE → Fin J.nE)
+  (ein-red  : ∀ e → J.ein  (ψ e) ≡ map φ (H.ein  e))
+  (eout-red : ∀ e → J.eout (ψ e) ≡ map φ (H.eout e))
+  (mv       : ∀ (xs : List (Fin H.nV)) → map H.vlab xs ≡ map J.vlab (map φ xs))
+  (elab-c   : ∀ e → subst₂ FlatGen (cong (map J.vlab) (ein-red e))
+                                   (cong (map J.vlab) (eout-red e)) (J.elab (ψ e))
+                  ≡ subst₂ FlatGen (mv (H.ein e)) (mv (H.eout e)) (H.elab e))
+  where
+  atom-ein : ∀ e → map J.vlab (J.ein (ψ e)) ≡ map H.vlab (H.ein e)
+  atom-ein e = trans (cong (map J.vlab) (ein-red e)) (sym (mv (H.ein e)))
+
+  atom-eout : ∀ e → map J.vlab (J.eout (ψ e)) ≡ map H.vlab (H.eout e)
+  atom-eout e = trans (cong (map J.vlab) (eout-red e)) (sym (mv (H.eout e)))
+
+  ψ-elab : ∀ e → subst₂ FlatGen (atom-ein e) (atom-eout e) (J.elab (ψ e)) ≡ H.elab e
+  ψ-elab e =
+    trans (sym (subst₂-trans (cong (map J.vlab) (ein-red e)) (sym (mv (H.ein e)))
+                             (cong (map J.vlab) (eout-red e)) (sym (mv (H.eout e)))
+                             (J.elab (ψ e))))
+      (trans (cong (subst₂ FlatGen (sym (mv (H.ein e))) (sym (mv (H.eout e)))) (elab-c e))
+             (subst₂-sym-flip (mv (H.ein e)) (mv (H.eout e)) refl))
+
+  open TermEmbedˢ {H} {J} φ φ-inj φ-lab ψ ein-red eout-red
+                  atom-ein atom-eout ψ-elab public
 
 --------------------------------------------------------------------------------
 -- ## (B)-foundation.  Strict equivariance keystones (the genuinely-new
