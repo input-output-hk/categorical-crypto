@@ -14,7 +14,7 @@
 --     `embF-resp-≈ˢ` from `Strict.Embed`;
 --   * `st-roundtrip : embF (st f) ≈Term bridge f` — by induction on f, with the
 --     atomic content supplied by the EXISTING bridge lemmas
---     (`bridge-*-is-id`, `ρ⇒/ρ⇐-coherence`, BAFC's α-form worker).
+--     (`bridge-*-is-id`, `ρ⇒/ρ⇐-coherence`, BAFC's α cast worker).
 --
 -- §2 THE ASSEMBLY.  From
 --   * part (I)ˢ   `st-≈-decodePˢ : st h ≈ˢ decodePˢ h`        (Strict.PartI)
@@ -45,11 +45,10 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-  using ( unflatten; unflatten-flatten-≈; _≅_; bridge
-        ; subst-id-cod; cod-cancel; subst-cod-cons )
+  using (unflatten; unflatten-flatten-≈; _≅_; bridge; subst-id-cod)
 open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
   using ( bridge-∘; bridge-⊗; bridge-id-is-id; bridge-λ⇒-is-id; bridge-λ⇐-is-id
-        ; ρ⇒-coherence; ρ⇐-coherence; α⇒-form-list )
+        ; ρ⇒-coherence; ρ⇐-coherence )
 import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeAlphaFormCompound
   sig as BAFC
 
@@ -62,18 +61,17 @@ import Categories.APROP.Hypergraph.Soundness.Strict.PartII sig _≟X_ as PII
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorBraid sig _≟X_
   as TB
 
-open import Data.List using (List; []; _∷_)
+open import Data.List using (List)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; subst₂)
 
 open import Categories.Category using (Category)
 -- `inv-uniqueᵀ` used to be hand-rolled here because these opens were missing:
--- the σ/α⇐ chases ARE `center`/`cancelInner`/`inv-resp` at the term-level
--- category.
+-- the σ chase and the bridge cancellation ARE `center`/`cancelInner`/`pullʳ`
+-- at the term-level category.
 open import Categories.Morphism.Reasoning FreeMonoidal
   using (center; cancelInner; pullʳ; cancelʳ; cancelˡ)
-open import Categories.Morphism.Reasoning.Ext FreeMonoidal using (inv-resp)
 
 private
   module FM = Category FreeMonoidal
@@ -110,22 +108,6 @@ private
   embF-coe : ∀ {a b : List X} (e : a ≡ b) → embF (coe e) ≡ subst-id-cod e
   embF-coe refl = refl
 
-  -- the α-form tower is the transported identity
-  α-form-cast
-    : ∀ xs ys zs
-    → α⇒-form-list xs ys zs ≈Term subst-id-cod (++-assoc xs ys zs)
-  α-form-cast []       ys zs = ≈-Term-refl
-  α-form-cast (x ∷ xs) ys zs =
-    ⊗-resp-≈ ≈-Term-refl (α-form-cast xs ys zs)
-    ○ subst-cod-cons (++-assoc xs ys zs)
-
-  bridge-α⇒-cast
-    : ∀ A B C
-    → bridge (α⇒ {A} {B} {C})
-      ≈Term subst-id-cod (++-assoc (flatten A) (flatten B) (flatten C))
-  bridge-α⇒-cast A B C =
-    BAFC.Worker.work A B C ○ α-form-cast (flatten A) (flatten B) (flatten C)
-
 st-roundtrip : ∀ {A B} (f : HomTerm A B) → embF (st f) ≈Term bridge f
 st-roundtrip (Agen g)  = ≈-Term-refl
 st-roundtrip (id {A})  = ⟺ (bridge-id-is-id A)
@@ -142,18 +124,12 @@ st-roundtrip (ρ⇐ {A})  =
   ≡⇒≈Term (embF-coe (sym (++-identityʳ (flatten A)))) ○ ρ⇐-coherence A
 st-roundtrip (α⇒ {A} {B} {C}) =
   ≡⇒≈Term (embF-coe (++-assoc (flatten A) (flatten B) (flatten C)))
-  ○ ⟺ (bridge-α⇒-cast A B C)
+  ○ ⟺ (BAFC.Worker.work A B C)
+-- the α⇐ cast is the α⇒ one transposed — BAFC's own `derive-⇐`, which is that
+-- transposition at an arbitrary object.
 st-roundtrip (α⇐ {A} {B} {C}) =
-  ≡⇒≈Term (embF-coe (sym P))
-  ○ ⟺ (inv-resp
-        -- bridge α⇐ ∘ bridge α⇒ ≈ id
-        (⟺ (bridge-∘ (α⇐ {A} {B} {C}) α⇒)
-          ○ (refl⟩∘⟨ (α⇐∘α⇒≈id ⟩∘⟨refl))
-          ○ bridge-id-is-id _)
-        -- bridge α⇒ ∘ subst-id-cod (sym P) ≈ id
-        ((bridge-α⇒-cast A B C ⟩∘⟨refl) ○ cod-cancel P)
-        ≈-Term-refl)
-  where P = ++-assoc (flatten A) (flatten B) (flatten C)
+  ≡⇒≈Term (embF-coe (sym (++-assoc (flatten A) (flatten B) (flatten C))))
+  ○ ⟺ (BAFC.derive-⇐ A B C (BAFC.Worker.work A B C))
 st-roundtrip (σ {A} {B} ⦃ v≤v ⦄) =
   ⟺ (center (⟺ σ∘[f⊗g]≈[g⊗f]∘σ)
      ○ (refl⟩∘⟨ cancelInner ⊗-iso-cancel))

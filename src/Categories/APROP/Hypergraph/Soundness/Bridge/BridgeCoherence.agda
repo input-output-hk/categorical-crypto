@@ -2,8 +2,8 @@
 
 --------------------------------------------------------------------------------
 -- Bridge-level coherence toolkit: bridge distributivity (`bridge-∘`,
--- `bridge-⊗`), the `bridge-X-is-id` lemmas, ρ/α bridge forms and
--- list-coherence, the α-form isos, and assorted Mac Lane / solver helpers.
+-- `bridge-⊗`), the `bridge-X-is-id` lemmas, the ρ bridge form and its
+-- list-coherence, and assorted Mac Lane / solver helpers.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -27,7 +27,7 @@ open import Categories.Category.Monoidal.Properties Monoidal-FreeMonoidal
 open Kelly's using (coherence₃)
 -- Morphism-variable monoidal solver: discharges the structural-coherence /
 -- naturality / interchange chases as single `solveMor!` calls at the free
--- monoidal category itself (cf. `BridgeAlphaFormCompound.agda`).
+-- monoidal category itself (cf. `Base/UnflattenMonoidal.agda`).
 open import Categories.Coherence.Monoidal.Frontend using (module FinSetup)
 open import Data.Product using (_,_)
 open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F; 7F; 8F; 9F)
@@ -201,35 +201,10 @@ bridge-ρ⇒-form A =
            (ρ⇒-coherence A)
 
 --------------------------------------------------------------------------------
--- α-form lists and their list-induction lemmas.
-
-α⇒-form-list
-  : (xs ys zs : List X)
-  → HomTerm (unflatten ((xs ++ ys) ++ zs)) (unflatten (xs ++ ys ++ zs))
-α⇒-form-list []       ys zs = id
-α⇒-form-list (x ∷ xs) ys zs = id {Var x} ⊗₁ α⇒-form-list xs ys zs
-
-α⇐-form-list
-  : (xs ys zs : List X)
-  → HomTerm (unflatten (xs ++ ys ++ zs)) (unflatten ((xs ++ ys) ++ zs))
-α⇐-form-list []       ys zs = id
-α⇐-form-list (x ∷ xs) ys zs = id {Var x} ⊗₁ α⇐-form-list xs ys zs
-
---------------------------------------------------------------------------------
--- α⇒-form / α⇐-form are mutually inverse; only the ⇒∘⇐ direction is consumed
--- (`BridgeAlphaFormCompound.derive-⇐` feeds it to `inv-resp`).
-
-α⇒-α⇐-iso
-  : ∀ (xs ys zs : List X)
-  → α⇒-form-list xs ys zs ∘ α⇐-form-list xs ys zs ≈Term id
-α⇒-α⇐-iso []       ys zs = idˡ
-α⇒-α⇐-iso (x ∷ xs) ys zs = id⊗-cancel (α⇒-α⇐-iso xs ys zs)
-
---------------------------------------------------------------------------------
 -- Mac Lane / solver helpers.
 
 -- (the object variables are `A`…`D`, not `X`…: `X` is the signature's atom
--- type, which `α⇒-form-list` above quantifies over as `List X`.)
+-- type, which this module quantifies over as `List X`.)
 pentagon-rewrite
   : ∀ {A B C D}
   → α⇒ {A ⊗₀ B} {C} {D}
@@ -276,17 +251,19 @@ private
     ○ _≅_.isoˡ (unflatten-++-≅ (flatten B) (flatten C))
 
 --------------------------------------------------------------------------------
--- Var-base case of bridge-α⇒-form.
+-- Var-base case of the bridge-α⇒ cast: `++-assoc (x ∷ []) _ _` is `refl`, so
+-- the cast the worker wants IS `id`.
 
-bridge-α⇒-form-Var
-  : ∀ x B C → bridge (α⇒ {Var x} {B} {C})
-            ≈Term α⇒-form-list (x ∷ []) (flatten B) (flatten C)
-bridge-α⇒-form-Var x B C = begin
+bridge-α⇒-is-id-Var
+  : ∀ x B C → bridge (α⇒ {Var x} {B} {C}) ≈Term id
+bridge-α⇒-is-id-Var x B C = begin
   bridge (α⇒ {Var x} {B} {C})
     ≈⟨ solveMor! lhsᵗ rhsᵗ ⟩
   id {Var x} ⊗₁ (cBC-to ∘ ((F-B ∘ T-B) ⊗₁ (F-C ∘ T-C)) ∘ cBC-from)
     ≈⟨ ⊗-resp-≈ ≈-Term-refl (collapse-c-FT B C) ⟩
-  id ⊗₁ id ∎
+  id {Var x} ⊗₁ id
+    ≈⟨ id⊗id≈id ⟩
+  id ∎
   where
     open FT B C
 
@@ -327,12 +304,11 @@ bridge-α⇒-form-Var x B C = begin
                (S._∘_ (S._⊗₁_ (S._∘_ gFB gTB) (S._∘_ gFC gTC)) gcfrom))
 
 --------------------------------------------------------------------------------
--- Unit-base case of bridge-α⇒-form.
+-- Unit-base case of the bridge-α⇒ cast: `++-assoc [] _ _` is `refl`.
 
-bridge-α⇒-form-unit
-  : ∀ B C → bridge (α⇒ {unit} {B} {C})
-          ≈Term α⇒-form-list [] (flatten B) (flatten C)
-bridge-α⇒-form-unit B C = begin
+bridge-α⇒-is-id-unit
+  : ∀ B C → bridge (α⇒ {unit} {B} {C}) ≈Term id
+bridge-α⇒-is-id-unit B C = begin
   bridge (α⇒ {unit} {B} {C})
     ≈⟨ solveMor! lhsᵗ rhsᵗ ⟩
   cBC-to ∘ ((F-B ∘ T-B) ⊗₁ (F-C ∘ T-C)) ∘ cBC-from
