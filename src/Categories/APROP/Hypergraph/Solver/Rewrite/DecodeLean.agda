@@ -47,22 +47,22 @@ module Categories.APROP.Hypergraph.Solver.Rewrite.DecodeLean (sig : APROPSignatu
 
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig
+  using (FlatGen; flat-rec; range)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-  using (unflatten; unflatten-++-≅; _≅_)
+  using (unflatten; unflatten-flatten-≈; unflatten-++-≅; _≅_)
 -- `permute` comes straight from `Categories.PermuteCoherence.Unflatten` (rather
 -- than through any intermediate re-export) so the frame this decoder builds is
 -- definitionally the generic-SMC one.
 open import Categories.PermuteCoherence.Unflatten asFreeMonoidalData
   using (permute)
 
--- Shared helpers from the soundness decoder: `Agen-edge-aux` (the canonical
--- generator wrapping, now defined only there) and `extract-exact` (the final
--- exact-match search).  Reusing them, together with `extract-prefix`, keeps
--- the edge branching and the `nothing` discipline definitionally aligned with
+-- Shared search primitives from the soundness decoder: `extract-exact` (the
+-- final exact-match search) and `extract-prefix`.  Reusing them keeps the edge
+-- branching and the `nothing` discipline definitionally aligned with
 -- `Decode`'s bare-stack fold.
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (Agen-edge-aux; extract-exact; extract-prefix)
+  using (extract-exact; extract-prefix)
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
@@ -75,6 +75,21 @@ open import Relation.Binary.PropositionalEquality using (sym; cong; subst; subst
 open import Relation.Nullary using (yes; no)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
+
+--------------------------------------------------------------------------------
+-- Apply an edge: recover the generator `g : mor A B` from a `FlatGen` record
+-- (constructor `flat-rec`), then wrap with the unflatten-flatten coherence iso
+-- on each side.  Top-level (not under the `H` module) so `Agen-edge` below can
+-- be `cong`-rewritten along `elab` equations without an `H` argument.  This is
+-- the ONLY term-emitting piece of the old decoder that survived the Review-2
+-- demotion, and this is the only decoder that emits a term — so it lives here
+-- rather than in the now-`List`-only `Soundness.Decode.Decode`.
+Agen-edge-aux
+  : ∀ {ins outs : List X} → FlatGen ins outs
+  → HomTerm (unflatten ins) (unflatten outs)
+Agen-edge-aux (flat-rec {A} {B} okA okB g) =
+  subst₂ (λ a b → HomTerm (unflatten a) (unflatten b)) okA okB
+    (_≅_.from (unflatten-flatten-≈ B) ∘ Agen g ∘ _≅_.to (unflatten-flatten-≈ A))
 
 --------------------------------------------------------------------------------
 -- A vertex-list permutation as a `HomTerm` on the unflattened tensor products,

@@ -19,10 +19,12 @@
 -- NOTE (weak-decoder demotion, Review-2 F2): this decoder used to also
 -- build a `HomTerm` alongside the stack, but the live (strict) pipeline
 -- reads only the stack trajectory + this totality witness — the morphism
--- value was never observed.  The `HomTerm` apparatus (`Agen-edge`, the
--- `unflatten-++-≅`/`permute-via-vlab` per-edge wrapping, `final-permute`)
--- has therefore been deleted; the generic per-edge generator survives as
--- the top-level `Agen-edge-aux`, still used by the rewrite-engine decoder.
+-- value was never observed.  The whole `HomTerm` apparatus (`Agen-edge`, the
+-- `unflatten-++-≅`/`permute-via-vlab` per-edge wrapping, `final-permute`) is
+-- therefore gone from here, and with it every `unflatten`/coherence-iso
+-- import: this module is now `List`-only.  The generic per-edge generator
+-- lives with the one decoder that still emits a term,
+-- `Solver.Rewrite.DecodeLean.Agen-edge-aux`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -33,21 +35,13 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 
-open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-
-
-open import Data.Fin
-open import Data.Fin.Properties
-open import Data.List
-open import Data.List.Properties
+open import Data.Fin using (Fin)
+open import Data.List using (List; []; _∷_; _++_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Nat
-open import Data.Product using (Σ-syntax; ∃-syntax; _,_)
-open import Relation.Binary.PropositionalEquality
-
-open import Relation.Nullary
+open import Data.Product using (_,_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 --------------------------------------------------------------------------------
 -- Multiset search (hypergraph-independent).  `extract-elem`/`extract-prefix`
@@ -64,19 +58,6 @@ extract-exact ks xs with extract-prefix ks xs
 ... | nothing       = nothing
 ... | just ([]    , p) = just (Perm.trans p (PermProp.++-identityʳ ks))
 ... | just (_ ∷ _ , _) = nothing
-
---------------------------------------------------------------------------------
--- Apply an edge: recover the generator `g : mor A B` from a `FlatGen`
--- record (constructor `flat-rec`),
--- then wrap with the unflatten-flatten coherence iso on each side.
--- Top-level (not under the `H` module) so downstream files can
--- `cong`-rewrite `Agen-edge` along `elab` equations without an `H` arg.
-Agen-edge-aux
-  : ∀ {ins outs : List X} → FlatGen ins outs
-  → HomTerm (unflatten ins) (unflatten outs)
-Agen-edge-aux (flat-rec {A} {B} okA okB g) =
-  subst₂ (λ a b → HomTerm (unflatten a) (unflatten b)) okA okB
-    (_≅_.from (unflatten-flatten-≈ B) ∘ Agen g ∘ _≅_.to (unflatten-flatten-≈ A))
 
 --------------------------------------------------------------------------------
 -- The cospan algorithm, with `H` fixed.

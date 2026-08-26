@@ -15,8 +15,6 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 
-open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
-
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig

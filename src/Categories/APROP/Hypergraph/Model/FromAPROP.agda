@@ -71,7 +71,7 @@ flatten (Var x) = x ∷ []
 -- each `hComposeP` level.
 --
 -- The boundary proofs are kept *relevant* so the soundness-side strictification
--- (`Strict.Soundness.J-flat`, `Decode.Agen-edge-aux`) can coerce a generator's
+-- (`Strict.Soundness.J-flat`, `DecodeLean.Agen-edge-aux`) can coerce a generator's
 -- `unflatten`-bridge onto the record's declared boundaries without needing
 -- decidable equality on `X` (which most soundness modules lack).  They are
 -- never *normalised* on the solver hot path (only carried as thunks), so the
