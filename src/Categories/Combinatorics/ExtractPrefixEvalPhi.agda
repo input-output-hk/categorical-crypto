@@ -6,7 +6,8 @@
 --
 -- §1 proves it at the DERIVATION level: for an injective vertex relabel
 -- `φ : Fin nH → Fin nJ`, the search on the relabelled input returns exactly the
--- `map⁺ φ`-lift of the H-side derivation (`extract-prefix-map⁺`).
+-- `map⁺ φ`-lift of the H-side derivation (`extract-elem-map⁺` /
+-- `extract-prefix-map⁺`, both consumed directly by `Decode.DecodeProperties`).
 --
 -- §2 turns that into the form the strict decoder's per-edge permute twin
 -- consumes: since the result type is a `Maybe (List (Fin nJ) × _)` and
@@ -112,7 +113,6 @@ module _ {n m : ℕ} (f : Fin n → Fin m)
             cong (λ d → just (map f rest' , d))
               (sym (push-subst-cons (PermProp.map⁺ f p-e) (PermProp.map⁺ f q-pre)
                                     (map-++ f ks rest')))
-
 
 --------------------------------------------------------------------------------
 -- §2.  The pinned derivation.

@@ -354,14 +354,7 @@ genFB-braid (adjS {i = i} {k = k} adj) =
              (genFB k ∘-fb genFB i ∘-fb genFB k) (evalW w) (genFB-braid adj)
 
 ------------------------------------------------------------------------
--- 10. The Insertion Lemma (the Sₙ word problem kernel) is `_~ʷ_`-derived
--- and proved as `InsertProof.insert-thm` (downstream of `Word`, by a
--- direct Lehmer peel — see `LehmerStaircase`/`LehmerRotate`).
--- `straightenW` lives there too, as it is the only thing that depends on
--- `insert-thm`.
-
-------------------------------------------------------------------------
--- 11. `canonW` congruence + identity (straightening support).
+-- 10. `canonW` congruence + identity (straightening support).
 --
 -- `canonW` sends pointwise-equal bijections to `~ʷ`-equal words
 -- (`canonW-resp-≈`).  Proved directly into `_~ʷ_`, so no funext is needed.
@@ -434,4 +427,6 @@ canonW-id {suc n} =
             (lift~ canonW-id))
 
 -- Straightening (every word is `~ʷ` its canonical form) needs the
--- Insertion Lemma, so it lives in `InsertProof` (`straightenW`).
+-- Insertion Lemma (the Sₙ word-problem kernel), so both live downstream in
+-- `InsertProof` — `insert-thm` by a direct Lehmer peel, see
+-- `LehmerStaircase`/`LehmerRotate` — as `straightenW`/`insert-thm`.
