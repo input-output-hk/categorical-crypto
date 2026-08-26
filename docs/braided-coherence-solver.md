@@ -80,7 +80,7 @@ APROP hypergraph soundness development, but expressed in the matrix/span represe
 Two reasons to believe the matrix route is *shorter* than the hypergraph one:
 
 1. **It reuses the independent K-kernel.** `Categories.PermuteCoherence.*`
-   (`FinBij`/`Eval`/`Faithfulness`/`Canonical`, ~520 LOC, **0 APROP-Hypergraph imports**) already
+   (`FinBij`/`Eval`/`Faithfulness` — `Canonical` has since been dissolved — **0 APROP-Hypergraph imports**) already
    proves the permutation coherence `FaithfulnessResidual : eval π ≈ eval π' → permute π ≈ permute π'`,
    axiom-free. A wiring matrix *is* an evaluated permutation-with-labels, so `matrix-faithful`
    should reduce to "strip `α/λ/ρ` (they are identities on matrices) + apply FinBij coherence to
