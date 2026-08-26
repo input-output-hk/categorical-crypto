@@ -20,7 +20,7 @@
 --     a BRAIDED form (`SeparableStack`'s obstruction note: no left frame).
 --
 -- So the clean `decodePˢ f ⊗ˢ decodePˢ g` is recovered ONLY at the whole-decode
--- level, where the final extract-exact permutation `finalPermˢ (f ⊗₁ g)`
+-- level, where the final closing permutation `finalPermˢ (f ⊗₁ g)`
 -- re-sorts the braided K-outputs back behind `G.cod`.  That is the `braidˢ`
 -- residual below; in the strict SMC it collapses to the `σˢ`/`σ-hexˢ` machinery
 -- of `Strict/Perm/Braid.agda` + `Strict/Interchange/BlockSwapComm.agda`.

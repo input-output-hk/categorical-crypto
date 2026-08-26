@@ -8,14 +8,15 @@
 --                  (permuteˢ (finalPermˢ f) ∘ˢ proj₂ (runˢ ⟪ f ⟫))
 --
 -- where `runˢ H = process-edgesˢ (range H.nE) H.dom` is the strict run and
--- `finalPermˢ f` is the permutation produced by `extract-exact` on the
--- final stack.  Totality is NOT re-proved: the strict and non-strict
--- decoders branch on the SAME `extract-prefix` calls, so their stack
--- evolutions agree (`stacks-agree`), and the success witness of the live
--- decoder (`decode-attempt-LinearP`) transfers.  `extract-exact-total`
--- upgrades the transferred semantic permutation into the actual
--- `extract-exact ... ≡ just _` equation, so downstream shape lemmas can
--- compute the final permutation derivation by `just`-injectivity.
+-- `finalPermˢ f` is the closing permutation of the final stack onto `cod`.
+-- Totality is NOT re-proved: the strict and non-strict decoders branch on
+-- the SAME `extract-prefix` calls, so their stack evolutions agree
+-- (`stacks-agree`) and the success witness of the live decoder
+-- (`decode-attempt-LinearP`) transfers verbatim.  WHICH permutation it is
+-- never matters downstream: the atom / σ / Agen / ⊗ shapes collapse
+-- `permuteˢ (finalPermˢ f)` by RIGIDITY (`perm-rigidˢ` at the `Unique`
+-- codomain of `⟪ f ⟫`) and the ∘-shape transports it opaquely, so nothing
+-- ever reads an `extract-exact ... ≡ just _` equation for it.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -34,44 +35,19 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (extract-prefix; extract-exact; edge-step; process-edges)
-open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
-  using (extract-prefix-↭-residual)
+  using (extract-prefix; edge-step; process-edges)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
   using (decode-attempt-LinearP)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_ public
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.List using (List; []; _∷_; map)
 open import Data.Maybe using (just; nothing)
-open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
+open import Data.Product using (Σ-syntax; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; subst)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
-
---------------------------------------------------------------------------------
--- `extract-exact` totality from a semantic permutation: if ANY
--- permutation `xs ↭ ks` exists, `extract-exact ks xs` succeeds — and we
--- get hold of the equation, so the returned derivation is computable.
-
-extract-exact-total
-  : ∀ {n} (ks xs : List (Fin n)) → xs Perm.↭ ks
-  → Σ[ p ∈ xs Perm.↭ ks ] extract-exact ks xs ≡ just p
-extract-exact-total {n} ks xs perm =
-  finish (proj₁ w) (proj₁ (proj₂ w)) (proj₁ (proj₂ (proj₂ w))) (sym r≡[])
-  where
-    w = extract-prefix-↭-residual ks xs []
-          (Perm.↭-trans perm (Perm.↭-sym (PermProp.++-identityʳ ks)))
-
-    r≡[] : proj₁ w ≡ []
-    r≡[] = PermProp.↭-empty-inv (Perm.↭-sym (proj₂ (proj₂ (proj₂ w))))
-
-    finish : ∀ r' (p : xs Perm.↭ ks ++ r')
-           → extract-prefix ks xs ≡ just (r' , p) → [] ≡ r'
-           → Σ[ q ∈ xs Perm.↭ ks ] extract-exact ks xs ≡ just q
-    finish .[] p eq refl rewrite eq = Perm.trans p (PermProp.++-identityʳ ks) , refl
 
 --------------------------------------------------------------------------------
 -- Per-hypergraph strict run.
@@ -102,30 +78,21 @@ module Run (H : Hypergraph FlatGen) where
 
 --------------------------------------------------------------------------------
 -- Transfer of the live decoder's success witness: the strict final stack
--- permutes onto `H.cod`, with the `extract-exact` equation in hand.
+-- permutes onto `H.cod`.
 
 module _ {A B : ObjTerm} (f : HomTerm A B) where
   private
     module RF = Run ⟪ f ⟫
     module Hf = Hypergraph ⟪ f ⟫
 
-  s-fin-cod-↭ : RF.s-finˢ Perm.↭ Hf.cod
-  s-fin-cod-↭ =
+  -- The non-strict totality witness is exactly the permutation
+  -- `process-all-edges ⟪f⟫ dom ↭ cod`; `stacks-agree` transports it onto the
+  -- strict final stack `RF.s-finˢ`.
+  finalPermˢ : RF.s-finˢ Perm.↭ Hf.cod
+  finalPermˢ =
     subst (Perm._↭ Hf.cod)
       (sym (RF.stacks-agree (range Hf.nE) Hf.dom))
-      w
-    where
-      -- The non-strict totality witness is exactly the permutation
-      -- `process-all-edges ⟪f⟫ dom ↭ cod`; the strict/non-strict `stacks-agree`
-      -- transports it onto the strict final stack `RF.s-finˢ`.
-      w = decode-attempt-LinearP f
-
-  decode-pkgˢ : Σ[ p ∈ RF.s-finˢ Perm.↭ Hf.cod ]
-                  extract-exact Hf.cod RF.s-finˢ ≡ just p
-  decode-pkgˢ = extract-exact-total Hf.cod RF.s-finˢ s-fin-cod-↭
-
-  finalPermˢ : RF.s-finˢ Perm.↭ Hf.cod
-  finalPermˢ = proj₁ decode-pkgˢ
+      (decode-attempt-LinearP f)
 
 --------------------------------------------------------------------------------
 -- The full strict decoder.
