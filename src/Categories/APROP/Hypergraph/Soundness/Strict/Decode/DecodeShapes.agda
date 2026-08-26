@@ -38,6 +38,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; hId)
+open import Categories.APROP.Hypergraph.Model.Invariant sig using (hId-cod≡dom)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
   sig using (⟪⟫-cod-Unique)
@@ -45,9 +46,9 @@ open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
-open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
+open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; _++_; map)
+open import Data.List using (List; map)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Nat using () renaming (_+_ to _+ⁿ_)
@@ -187,12 +188,7 @@ hId-nE (Var x)    = refl
 hId-nE (A ⊗₀ B)   = cong₂ _+ⁿ_ (hId-nE A) (hId-nE B)
 
 hId-dc : ∀ A → Hypergraph.dom (hId A) ≡ Hypergraph.cod (hId A)
-hId-dc unit       = refl
-hId-dc (Var x)    = refl
-hId-dc (A ⊗₀ B)   =
-  cong₂ _++_
-    (cong (map (_↑ˡ Hypergraph.nV (hId B))) (hId-dc A))
-    (cong (map (Hypergraph.nV (hId A) ↑ʳ_)) (hId-dc B))
+hId-dc A = sym (hId-cod≡dom A)
 
 --------------------------------------------------------------------------------
 -- A boundary cast of `idˢ` is the corresponding object-coercion `coe`.
