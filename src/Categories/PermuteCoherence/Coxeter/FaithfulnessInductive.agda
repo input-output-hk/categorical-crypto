@@ -49,7 +49,7 @@ open import Relation.Binary.PropositionalEquality using (subst₂)
 open import Data.List.Properties using () renaming (≡-dec to List-≡-dec)
 import Axiom.UniquenessOfIdentityProofs as UIPmod
 open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (↭-length)
-open import Data.Product using (_,_; proj₁; proj₂; Σ-syntax)
+open import Data.Product using (_,_; Σ-syntax)
 
 open import Categories.PermuteCoherence.FinBij
   using (_≈-fb_; cons-fb; swap-fb; id-fb; _∘-fb_)
@@ -139,7 +139,10 @@ data _≅↭ⁱ_ : {xs ys : List X} → xs ↭ ys → xs ↭ ys → Set where
 --
 -- `sound` is the EASY direction (each generator preserves `eval-↭`), by
 -- induction with one `FinBij`-level coherence per generator.  `complete`
--- (below) is the COMBINATORIAL core.  Together they give `_≅↭ⁱ_ ⟺ _≅↭_`.
+-- (below) is the COMBINATORIAL core.  Together they give `_≅↭ⁱ_ ⟺ _≅↭_`, but
+-- only `_≅↭ⁱ_` and `complete` are consumed outside this file (by
+-- `Soundness.Strict.Perm.PermDischarge`); `sound`'s one caller is
+-- `flatten-eval` in §6 -- the easy direction is a lemma of `complete`.
 
 sound : {p q : xs ↭ ys} → p ≅↭ⁱ q → eval-↭ p ≈-fb eval-↭ q
 sound iref          = λ i → refl
@@ -345,10 +348,6 @@ bridge-sound (c3 {i = i} {k = k} {w = w} adj) xs len =
 -- `≅↭ᴴ` (not `≅↭ⁱ`): the endpoint only reduces for a *concrete* word, so
 -- the endpoint equality is carried.
 
-interp-cong : {n : ℕ} {w : Word n} {as bs : List X}
-            → as ≡ bs → ⟦ w ⟧↭ as ≅↭ᴴ ⟦ w ⟧↭ bs
-interp-cong refl = hrefl
-
 -- A lifted word interprets as the original under `prep`.
 interp-liftW : {n : ℕ} (w : Word n) {x : X} {xs : List X}
              → ⟦ liftW w ⟧↭ (x ∷ xs) ≅↭ᴴ Perm.prep x (⟦ w ⟧↭ xs)
@@ -386,20 +385,21 @@ flatten (Perm.prep {xs = []} x p′) with flatten p′
 ... | [] , rel′ = [] , htrn (prepᴴ rel′) (liftⁱ prep-id)
 flatten (Perm.prep {xs = z ∷ zs} x p′) with flatten p′
 ... | w′ , rel′ = liftW w′ , htrn (prepᴴ rel′) (hsym (interp-liftW w′))
-flatten (Perm.trans {xs = xs} {ys = ys} {zs = zs} p′ q′)
+-- `rel_p`'s codomain proof is matched: the `trans`'s middle list is free,
+-- so the match forces it to `applyW w_p xs` and `rel_q` already has the
+-- shape the glue needs (no separate `⟦_⟧↭`-congruence step).
+flatten (Perm.trans {xs = xs} p′ q′)
   with flatten p′ | flatten q′
-... | w_p , rel_p | w_q , rel_q =
+... | w_p , rel_p@(_ , refl , _) | w_q , rel_q =
   w_q′ ++ w_p ,
-  htrn (trcᴴ rel_p (htrn rel_q (interp-cong er_p)))
+  htrn (trcᴴ rel_p rel_q)
        (hsym (htrn (interp-++ w_q′ w_p)
                    (trcᴴ hrefl (⟦⟧↭-subst (sym eq′) w_q))))
   where
-  eq′ : pred (length xs) ≡ pred (length ys)
+  eq′ : pred (length xs) ≡ pred (length (applyW w_p xs))
   eq′ = cong pred (↭-length p′)
   w_q′ : Word (pred (length xs))
   w_q′ = subst Word (sym eq′) w_q
-  er_p : ys ≡ applyW w_p xs
-  er_p = proj₁ (proj₂ rel_p)
 flatten (Perm.swap {xs = z ∷ zs} {ys = ys′} x y p′) with flatten p′
 ... | w′ , rel′ =
   0F ∷ liftW (liftW w′) ,
