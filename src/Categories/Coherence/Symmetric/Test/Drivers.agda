@@ -89,3 +89,10 @@ module MonoidNormalize (A : C.Obj)
       normalizeTo! (m S.∘ (u S.⊗₁ (m S.∘ (S.id S.⊗₁ u))))
                    (S.λ⇒ S.∘ (S.id S.⊗₁ S.ρ⇒))
                    rules 3
+
+    -- `normalize!`: land wherever the driver stops, with no stated target
+    -- (the `≈ _` form).  Same rule system and fuel as the test above, so the
+    -- two together pin the driver's stopping point from both sides.
+    test-normalize-open : mᴹ ∘ (uᴹ ⊗₁ (mᴹ ∘ (id ⊗₁ uᴹ))) ≈ _
+    test-normalize-open =
+      normalize! rules 3 (m S.∘ (u S.⊗₁ (m S.∘ (S.id S.⊗₁ u))))

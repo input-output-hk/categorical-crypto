@@ -1,12 +1,18 @@
 {-# OPTIONS --safe --without-K #-}
 
-module Categories.FreeMonoidal where
+--------------------------------------------------------------------------------
+-- Various free monoidal categories.  There are TWO client entry points:
+--
+--   * `FreeMonoidalHelper v X` (below) — the unbundled vocabulary
+--     (`ObjTerm`, `Var`, `_⊗₀_`, `unit`, `HomTerm`, …).  This is the one
+--     most consumers open, including every configuration of the symmetric
+--     solver's test suite and `Coherence.Symmetric` itself.
+--   * `FreeMonoidalData` + the `FreeMonoidal` module (further below) — the
+--     bundled form, which re-exports the helper `public` and adds the
+--     morphism layer `Mor`; the APROP cone and `PermuteCoherence` use this.
+--------------------------------------------------------------------------------
 
---------------------------------------------------------------------------------
--- Various free monoidal categories. The intended interface to this
--- file is further below, the `FreeMonoidalData` type and
--- `FreeMonoidal` module.
---------------------------------------------------------------------------------
+module Categories.FreeMonoidal where
 
 open import Level
 

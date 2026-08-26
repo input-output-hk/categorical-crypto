@@ -32,9 +32,12 @@ module Categories.FreeStrictMonoidal where
 -- Opening `Categories.Category.Monoidal.Reasoning` on the instance supplies
 -- the generic tensor vocabulary (`serialize`/`split`).
 --
--- Everything above is the first quarter of the file.  The rest is the PAD
--- LAYER the coherence solver runs on, and it is what the consumers actually
--- read:
+-- The layout is NOT "theory first, pads second": `padʷ` lands early (it needs
+-- only the raw syntax), the equational theory and the `Monoidal` instance take
+-- the middle, and the PAD LAYER the coherence solver runs on is the file's last
+-- third.  That last third is what the consumers actually read — all three of
+-- them (`Coherence.Monoidal.{Diagram, Reflect, Normalize}`), i.e. this module
+-- is consumed only from inside the vendored `Coherence/Monoidal/**` subtree:
 --
 --   * `padʷ pre suf g` (below) — a box idling behind `pre` and in front of
 --     `suf` wires, cast-free because `++` is the tensor;
