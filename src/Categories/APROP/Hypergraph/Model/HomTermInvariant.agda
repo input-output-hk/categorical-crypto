@@ -2,11 +2,13 @@
 
 --------------------------------------------------------------------------------
 -- Translation-level invariant: for every APROP term `f : HomTerm A B`,
--- `⟪ f ⟫` has a `Unique` domain (and codomain) interface.
+-- `⟪ f ⟫` has a `Unique` CODOMAIN interface — that is the exported theorem
+-- (`⟪_⟫-cod-unique`).  `⟪_⟫-dom-unique` is proved for its sake alone (the
+-- `g ∘ h` codomain case needs it) and has no consumer outside this module.
 --
--- Used by the strict decoder's iso-invariance (`decodePˢ-resp-iso`) and the
--- ordering machinery (`IsoTransport`, `PartII`): the `Unique` interface
--- discharges the translated-term side conditions.
+-- `⟪_⟫-cod-unique` is what discharges the translated-term `Unique` side
+-- conditions in `Strict/Iso/IsoTransport` and `Strict/PartII` (the latter's
+-- headline being the strict decoder's iso-invariance `decodePˢ-resp-iso`).
 --
 -- Structural induction on `f`: `hId`/`hSwap`/`hGen` cases from the matching
 -- `Invariant` lemma; `_∘_`/`_⊗₁_` from `map⁺` + `++⁺`.

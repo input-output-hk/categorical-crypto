@@ -68,9 +68,9 @@ count-++ v (x ∷ xs) ys with v ≟ x
 
 -- Generic `count` behaviour under `map f`: an injective `f` preserves the
 -- count of any preimage, and a value with no `f`-preimage has count 0.  All
--- the per-injection lemmas below are instances (see also the fiber form in
--- `Discharge.DecodeAttemptLinearP`, which is likewise `count-map-inj` up to a
--- rewrite of the counted value).
+-- the per-injection lemmas below are instances, and `count-map-inj` is also
+-- applied directly at `f = remapP` (after a `subst` rewriting the counted
+-- value to its fiber) in `Discharge.DecodeAttemptLinearP`.
 
 count-map-inj : ∀ {n m} (f : Fin n → Fin m) → (∀ {a b} → f a ≡ f b → a ≡ b)
               → (v : Fin n) (xs : List (Fin n)) → count (f v) (map f xs) ≡ count v xs

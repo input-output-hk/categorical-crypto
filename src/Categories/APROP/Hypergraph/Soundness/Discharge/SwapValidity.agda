@@ -184,11 +184,10 @@ module PerHG (H : Hypergraph FlatGen) (lin : Linear H) where
   -- count-disjointness).
   ------------------------------------------------------------------------
 
-  post-swap-stack-↭ = FMIC.post-swap-stack-↭ H
-
   private
-    e'-fires-stable = FMIC.e'-fires-stable H lin
-    e'-skips-stable = FMIC.e'-skips-stable H lin
+    post-swap-stack-↭ = FMIC.post-swap-stack-↭ H
+    e'-fires-stable   = FMIC.e'-fires-stable H lin
+    e'-skips-stable   = FMIC.e'-skips-stable H lin
 
   -- The four-way firing split at ABSTRACT stack indices, over the
   -- `EdgeStepR` view: the non-strict twin of
