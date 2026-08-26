@@ -184,7 +184,7 @@ c-iso-assoc-from (x ∷ xs₁') xs₂ ys = body
 --------------------------------------------------------------------------------
 -- Associativity coherence, `to`-side.
 --
--- `c-iso-assoc-from` (re-exported above) is the `from`-side pentagon.  Its
+-- `c-iso-assoc-from` above is the `from`-side pentagon.  Its
 -- `to`-side dual is that same equation between the two INVERSE composites:
 -- each side is a 3-fold composite whose reverse cancels pairwise (`cancel₃`),
 -- so `inv-resp` transports `Rhs ≈ Lhs` to `Rhsinv ≈ Lhsinv`.

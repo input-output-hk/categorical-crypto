@@ -220,8 +220,13 @@ module Build
   ≈̂-refl : ∀ {as bs} {f : HomS as bs} → f ≈̂ f
   ≈̂-refl = refl , refl , ≈-refl
 
-  -- the ONE lemma that retires `cast-fuse`/`cast-irrel`/`cast-flip`: a cast is
-  -- heterogeneously equal to its content.
+  -- A cast is heterogeneously equal to its content.  This is what lets a chain
+  -- of `≈̂`-steps avoid `cast-fuse`/`cast-irrel` at the STATEMENT BOUNDARY — it
+  -- does NOT retire them: they survive wherever a congruence UNDER a cast that
+  -- must reach the next statement is needed (`Strict.Core.coe-uip`,
+  -- `DecodeShapes.shape`, `DecodeGen`'s Steps A–C; all three were measured
+  -- line-neutral-or-worse under `≈̂`).  `cast-flip` IS retired — its only
+  -- remaining uses are inside this kit.
   cast-≈̂ : ∀ {as bs as' bs'} {p : as ≡ as'} {q : bs ≡ bs'} {f : HomS as bs}
          → castˢ p q f ≈̂ f
   cast-≈̂ {p = p} {q} {f} =
@@ -312,9 +317,11 @@ module Build
     → castˢ p q f ≈ˢ g → f ≈̂ g
   castˢ⇒≈̂ p q e = p , q , e
 
-  -- `∘-cast-split` is never used alone: every consumer immediately `∘-resp`s
-  -- the two split factors against their twins.  Naming the composite also
-  -- makes the two morphism arguments implicit (the goal pins them).
+  -- Almost every use of `∘-cast-split` immediately `∘-resp`s the two split
+  -- factors against their twins, so that composite is named once here; naming
+  -- it also makes the two morphism arguments implicit (the goal pins them).
+  -- `∘-cast-split` stays exported for the unit-law derivations below, which
+  -- use it WITHOUT a following `∘-resp`.
   ∘-cast-resp
     : ∀ {as bs cs as' bs' cs'} (P : as ≡ as') (M : bs ≡ bs') (Q : cs ≡ cs')
         {g : HomS bs cs} {g' : HomS bs' cs'} {f : HomS as bs} {f' : HomS as' bs'}
