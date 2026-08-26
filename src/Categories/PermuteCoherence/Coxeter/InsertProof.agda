@@ -10,8 +10,7 @@
 --   * `i = 0F`:      IH-free, closed by `crux-core` (whose combinatorial
 --                    core are the staircase identities).
 --
--- Also hosts `straightenW` (its sole consumer is `FaithfulnessInductive`);
--- its public interface is unchanged.
+-- Also hosts `straightenW` (its sole consumer is `FaithfulnessInductive`).
 ------------------------------------------------------------------------
 module Categories.PermuteCoherence.Coxeter.InsertProof where
 
@@ -51,9 +50,8 @@ cons-fin1-id X = ≈-fb-trans {b = cons-fb X} {b′ = cons-fb id-fb} {b″ = id-
 ------------------------------------------------------------------------
 -- The `i = 0F` crux.
 --
--- `crux1 X m` peels `X` (via `Word.peel`, imported directly above) and
--- dispatches to
--- `crux-core`; the size-0 base is a direct computation.
+-- `crux1 X m` peels `X` (via `Word.peel`) and dispatches to `crux-core`;
+-- the size-0 base is a direct computation.
 
 crux1 : (X : FinBij (suc N) (suc N)) (m : Fin (suc (suc N)))
       → canonW (swap-fb N ∘-fb (cons-fb X ∘-fb rotate-fb m))
@@ -89,24 +87,22 @@ crux1 {suc n} X m =
   r = X P.⟨$⟩ˡ 0F
   Z = remove 0F (X ∘-fb inv-fb (rotate-fb r))
 
-crux : (b : FinBij (suc (suc N)) (suc (suc N)))
-     → canonW (swap-fb N ∘-fb b) ~ʷ (0F ∷ canonW b)
-crux {N} b =
+------------------------------------------------------------------------
+-- The Insertion Lemma.  The `0F` clause is stated only here: `genFB 0F`
+-- IS `swap-fb`, so a separately named `crux` would just restate this
+-- clause's own goal.
+
+insert-thm : (i : Fin n) (b : FinBij (suc n) (suc n))
+           → canonW (genFB i ∘-fb b) ~ʷ i ∷ canonW b
+insert-thm {suc n} 0F        b =
   ~trans (canonW-resp-≈
-            {b = swap-fb N ∘-fb b}
-            {b′ = swap-fb N ∘-fb (cons-fb rest-b ∘-fb rotate-fb m)}
-            (λ j → cong (swap-fb N P.⟨$⟩ʳ_) (peel b j)))
+            {b = swap-fb n ∘-fb b}
+            {b′ = swap-fb n ∘-fb (cons-fb rest-b ∘-fb rotate-fb m)}
+            (λ j → cong (swap-fb n P.⟨$⟩ʳ_) (peel b j)))
          (crux1 rest-b m)
   where
   m      = b P.⟨$⟩ˡ 0F
   rest-b = remove 0F (b ∘-fb inv-fb (rotate-fb m))
-
-------------------------------------------------------------------------
--- The Insertion Lemma.
-
-insert-thm : (i : Fin n) (b : FinBij (suc n) (suc n))
-           → canonW (genFB i ∘-fb b) ~ʷ i ∷ canonW b
-insert-thm {suc n} 0F        b = crux b
 insert-thm {suc n} (fsuc i′) b =
   ~trans (canonW-resp-≈
             {b = cons-fb (genFB i′) ∘-fb b}

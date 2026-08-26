@@ -40,17 +40,7 @@ private
     n N : ℕ
 
 ------------------------------------------------------------------------
--- 1. Small FinBij algebra used pointwise (everything as `≈-fb`, i.e.
---    refl-per-point where composition is definitionally associative).
---    `cons-fb-injective` itself lives upstream in `Word`, shared with
---    `remove-0-of-≈id`.
-
--- `remove 0F (cons-fb X) ≈ X`: removing the head of a lift is the identity.
-remove-cons : (X : FinBij n N) → remove 0F (cons-fb X) ≈-fb X
-remove-cons X = cons-fb-injective (P.lift₀-remove (cons-fb X) refl)
-
-------------------------------------------------------------------------
--- 2. `canonW` of a `cons-fb X ∘ rotate-fb k`:  the peel is realised at
+-- 1. `canonW` of a `cons-fb X ∘ rotate-fb k`:  the peel is realised at
 --    the word level as `liftW (canonW X) ++ rotateW k`.
 
 canonW-cons-rotate : (X : FinBij (suc n) (suc n)) (k : Fin (suc (suc n)))
@@ -68,11 +58,13 @@ canonW-cons-rotate {n} X k =
 
   resid = remove 0F (Y ∘-fb inv-fb (rotate-fb mY))
 
-  -- Y ∘ ρ_mY⁻¹ ≈ cons-fb X  (with mY substituted to k, the ρ's cancel).
+  -- Y ∘ ρ_mY⁻¹ ≈ cons-fb X  (with mY substituted to k, the ρ's cancel), and
+  -- `remove 0F` of that lift is `X` again (`cons-fb-injective`, upstream in
+  -- `Word`, shared with `remove-0-of-≈id`).
   resid≈X : resid ≈-fb X
   resid≈X = ≈-fb-trans {b = resid} {b′ = remove 0F (cons-fb X)} {b″ = X}
               (residual-pw-cong (Y ∘-fb inv-fb (rotate-fb mY)) (cons-fb X) collapse)
-              (remove-cons X)
+              (cons-fb-injective (P.lift₀-remove (cons-fb X) refl))
     where
     collapse : ∀ i → (Y ∘-fb inv-fb (rotate-fb mY)) P.⟨$⟩ʳ i ≡ cons-fb X P.⟨$⟩ʳ i
     collapse i =
@@ -83,7 +75,7 @@ canonW-cons-rotate {n} X k =
   rec = canonW-resp-≈ {b = resid} {b′ = X} resid≈X
 
 ------------------------------------------------------------------------
--- 3. Bridges: `rotateW`/`liftW` in terms of the staircase run `runF`.
+-- 2. Bridges: `rotateW`/`liftW` in terms of the staircase run `runF`.
 --    (Bounds are irrelevant, so proofs are supplied ad libitum.)
 
 liftW-runF : (s ℓ : ℕ) .(p : s + ℓ ≤ N) .(q : suc s + ℓ ≤ suc N)
@@ -101,7 +93,7 @@ rotateW-runF {suc n} (fsuc m) p =
            (liftW-runF {n} 0 (toℕ m) (toℕ≤pred[n] m) (s≤s (toℕ≤pred[n] m))))
 
 ------------------------------------------------------------------------
--- 4. The rotation-composition glue.
+-- 3. The rotation-composition glue.
 --
 -- Given the two head-data `r`, `m` of a doubly-peeled bijection, the
 -- dichotomy `toℕ m ≤? toℕ r` chooses replacement indices `r′`, `m′` and a
@@ -203,7 +195,7 @@ rot-comp r m g i =
                      (rotateW-sound m′) i)
 
 ------------------------------------------------------------------------
--- 5. The crux factorisation:  `genFB 0F ∘ (cons² Z ∘ ρr ∘ ρm)` puts into
+-- 4. The crux factorisation:  `genFB 0F ∘ (cons² Z ∘ ρr ∘ ρm)` puts into
 --    `cons X ∘ ρ` form via cons-functoriality, swap-naturality and the
 --    definition `rotate-fb (fsuc r) = swap ∘ cons (rotate-fb r)`, closing
 --    the double rotation with `rot-comp`.
@@ -228,7 +220,7 @@ factor {n} Z r m g i =
   w = ρm′ P.⟨$⟩ʳ i
 
 ------------------------------------------------------------------------
--- 6. The crux equation (`i = 0F` case of `insert-thm`), IH-free:
+-- 5. The crux equation (`i = 0F` case of `insert-thm`), IH-free:
 --    peel a doubly-`cons`ed / doubly-rotated bijection past `genFB 0F`.
 
 -- LHS: fold via `factor` + `canonW-cons-rotate` (twice) + reshaping.
