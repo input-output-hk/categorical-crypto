@@ -28,8 +28,6 @@ module Categories.APROP.Hypergraph.Soundness.Strict.PartI
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (flatten)
-
 open import Categories.FreeMonoidal using (v≤v)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_
@@ -42,21 +40,9 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm  s
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeGen      sig _≟X_ as DGen
 
 --------------------------------------------------------------------------------
--- The concretely-discharged shapes (atomic + σ + ∘).
-
-private
-  -- σ shape (DecodeSigma, at the concrete `bswap-σ`)
-  d-σ : ∀ A B → decodePˢ (σ {A} {B}) ≈ˢ σˢ (flatten A) (flatten B)
-  d-σ A B = DSig.Sigma.decodePˢ-σ BSC.block-swap-comm A B
-
-  -- ∘ shape (DecodeComposeAssembly, unconditional)
-  d-∘ : ∀ {A B C} (g : HomTerm B C) (f : HomTerm A B)
-      → decodePˢ (g ∘ f) ≈ˢ decodePˢ g ∘ˢ decodePˢ f
-  d-∘ g f = DComp.ComposeShape.decodePˢ-∘-shape g f
-
---------------------------------------------------------------------------------
--- The induction, parameterised over the single remaining shape (decodePˢ-⊗);
--- `Agen` is concrete via DecodeGen.
+-- The induction, parameterised over the single remaining shape (decodePˢ-⊗).
+-- Every other clause names the discharging lemma directly: re-ascribing its
+-- statement here would only restate it.
 
 module _
   (decodePˢ-⊗
@@ -64,16 +50,12 @@ module _
     → decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g)
   where
 
-  -- the Agen base case, via DecodeGen
-  decodePˢ-Agen : ∀ {A B} (g : mor A B) → decodePˢ (Agen g) ≈ˢ st (Agen g)
-  decodePˢ-Agen = DGen.decodePˢ-Agen
-
   st-≈-decodePˢ : ∀ {A B} (f : HomTerm A B) → st f ≈ˢ decodePˢ f
-  st-≈-decodePˢ (Agen g)        = ≈-sym (decodePˢ-Agen g)
+  st-≈-decodePˢ (Agen g)        = ≈-sym (DGen.decodePˢ-Agen g)
   st-≈-decodePˢ (id {A})        = ≈-sym (DSh.decodePˢ-id {A})
   st-≈-decodePˢ (g ∘ f)         =
     ≈-trans (∘-resp (st-≈-decodePˢ g) (st-≈-decodePˢ f))
-            (≈-sym (d-∘ g f))
+            (≈-sym (DComp.ComposeShape.decodePˢ-∘-shape g f))
   st-≈-decodePˢ (f ⊗₁ g)        =
     ≈-trans (⊗-resp (st-≈-decodePˢ f) (st-≈-decodePˢ g))
             (≈-sym (decodePˢ-⊗ f g))
@@ -83,4 +65,5 @@ module _
   st-≈-decodePˢ (ρ⇐ {A})        = ≈-sym (DSh.decodePˢ-ρ⇐ {A})
   st-≈-decodePˢ (α⇒ {A} {B} {C}) = ≈-sym (DSh.decodePˢ-α⇒ {A} {B} {C})
   st-≈-decodePˢ (α⇐ {A} {B} {C}) = ≈-sym (DSh.decodePˢ-α⇐ {A} {B} {C})
-  st-≈-decodePˢ (σ {A} {B} ⦃ v≤v ⦄) = ≈-sym (d-σ A B)
+  st-≈-decodePˢ (σ {A} {B} ⦃ v≤v ⦄) =
+    ≈-sym (DSig.Sigma.decodePˢ-σ BSC.block-swap-comm A B)
