@@ -4,17 +4,14 @@ module CategoricalCrypto.Examples.Signatures where
 open import categorical-crypto.Prelude
 import categorical-crypto.Prelude as P
 
-open import Data.Fin using (Fin; fromℕ<) renaming (zero to fzero; suc to fsuc)
+open import Data.Fin using (fromℕ<)
 
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
 
 open import Data.Nat
-open import Data.List
 open import Data.List.Membership.Propositional
-
-open import Function
 
 module Signatures (VK M S : Set) where
   data SigT : Mode → Type where
