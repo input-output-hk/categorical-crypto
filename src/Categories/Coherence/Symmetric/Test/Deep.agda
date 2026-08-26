@@ -135,13 +135,13 @@ module DeepRewrite (A₀ A₁ A₂ : C.Obj)
   -- sequential `w ∘ p` would need the redex's two boundary wires to map to
   -- the SAME vertex (p's output = w's input), and the vertex map of an
   -- embedding is injective.  (For occurrences rejected later, at the *carve*,
-  -- see `deep-non-convex-rejected` in `Test.DeepArity`.)
+  -- see `deep-non-convex-rejected` in the `DeepArity` module below.)
   deep-overlap-rejected
     : is-just (deepFoc (w S.∘ p) (p S.⊗₁ w)) ≡ false
   deep-overlap-rejected = refl
 
   -- The stage discriminator for the claim above: it is the MATCH that refuses,
-  -- before any carve is attempted.  (Contrast `Test.DeepArity`'s
+  -- before any carve is attempted.  (Contrast the `DeepArity` module's
   -- `deep-non-convex-match-succeeds`, where this same assertion holds with
   -- `true` and only the carve rejects — so `deepFoc … ≡ false` alone would
   -- not have distinguished the two limitations.)

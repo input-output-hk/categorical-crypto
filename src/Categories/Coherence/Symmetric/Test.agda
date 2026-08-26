@@ -33,7 +33,7 @@
 --                            a connected sub-diagram — rewriting modulo
 --                            deformation.  `n` indexes the carvable (convex)
 --                            occurrences in match order.
---                                          → `Test.Deep`, `Test.DeepArity`
+--                                          → `Test.Deep` (both configurations)
 --   * `rewriteDeepTo!`     — `rewriteDeepₙ!` landing on a caller-stated clean
 --                            term: the step form for chained derivations (it
 --                            keeps the carved frame out of all exposed types,
@@ -66,9 +66,9 @@
 --   * Non-convex occurrences are rejected at the carve (correctly: no
 --     pushout complement exists); the match retry skips them, so they never
 --     mask a convex occurrence elsewhere.
---                            → `Test.DeepArity.deep-non-convex-rejected`,
+--                            → `Test.Deep.DeepArity.deep-non-convex-rejected`,
 --                              `…deep-non-convex-match-succeeds`,
---                              `Test.DeepArity.test-deep-retry`
+--                              `Test.Deep.DeepArity.test-deep-retry`
 --     (the two `…match-…` probes are what pin each rejection to its STAGE: a
 --     `deepFoc` failure alone cannot tell match from carve.)
 --   * `focusAt`'s leaf test compares the rule's interface objects `P`, `Q`
@@ -82,8 +82,8 @@
 -- three-generator fixture `…Solver.Test.ThreeGens`).
 --------------------------------------------------------------------------------
 
--- No content of its own: an `import` typechecks its module in full, so the six
--- lines below ARE the suite.  Clients wanting a configuration (say the derived
+-- No content of its own: an `import` typechecks its module in full, so the
+-- import lines below ARE the suite.  Clients wanting a configuration (say the derived
 -- `Frobenius.frobL`) apply that module directly — no re-export layer here.
 module Categories.Coherence.Symmetric.Test where
 

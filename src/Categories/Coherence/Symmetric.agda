@@ -52,8 +52,8 @@
 --                                  (from `ObjInterp`/`Solver`; `Tgt` is the
 --                                  target vocabulary only and has neither).
 --   * `Wiring`  — `Setup` minus the generator table; NOT a second entry point
---                 (nothing in this repo opens it — configure through `Setup`,
---                 which re-exports all of it).  It holds `dom`/`cod`/`⟦_⟧₀`,
+--                 (nothing opens it except `Setup` itself, which re-exports
+--                 all of it — configure through `Setup`).  It holds `dom`/`cod`/`⟦_⟧₀`,
 --                 the type `GenTable`, and the (unverified) position-search
 --                 vocabulary `focusAll`/`focusAt(ₙ)`/`subMatch`/`deepFoc`, for
 --                 stating what the engine can and cannot locate.
@@ -110,7 +110,7 @@ module Wiring
   -- locatable — in the frontend's own terms.  `⟪_⟫`/`subMatch` are the STAGE
   -- BEFORE `deepFoc`: a `deepFoc` failure alone cannot say whether the
   -- sub-hypergraph match or the hole-carve was what refused, and the two are
-  -- different limitations (see `Test.Deep`/`Test.DeepArity`).
+  -- different limitations (see `Test.Deep`, both configurations).
   open import Categories.APROP.Hypergraph.Model.Translation finSig public
     using (⟪_⟫)
   open import Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch finSigDec public
