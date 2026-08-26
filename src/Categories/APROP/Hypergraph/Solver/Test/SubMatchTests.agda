@@ -17,7 +17,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 open import Categories.APROP using (module APROP)
 open import Categories.APROP.Hypergraph.Solver.Test.ThreeGens
-  using (a₀; a₁; a₂; f; g; h; mySig; mySigDec)
+  using (a₁; f; g; h; mySig; mySigDec)
 
 open import Categories.APROP.Hypergraph.Model.Translation mySig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch mySigDec using (subMatch)

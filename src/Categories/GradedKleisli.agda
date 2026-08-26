@@ -27,10 +27,10 @@ record UC-model : Set₁ where
         ℰ : Presheaf C (Sets ℓ0)
 
 module _ (C : Category ℓ0 ℓ0 ℓ0) (I : MonoidalCategory ℓ0 ℓ0 ℓ0) (M : GradedKleisliTriple I C) where
-  open Category hiding (∘-resp-≈ˡ; identityʳ; assoc)
+  open Category hiding (identityʳ; assoc)
   open Category C using () renaming (id to idC; _∘_ to _∘C_)
-  open MonoidalCategory hiding (_⊗₀_; _⊗₁_; -⊗_; _⊗-; ∘-resp-≈ˡ)
-  open MonoidalCategory I using (∘-resp-≈ˡ; _⊗₀_; _⊗₁_; -⊗_; _⊗-) renaming (id to idI; _∘_ to _∘I_)
+  open MonoidalCategory hiding (_⊗₀_; _⊗₁_; -⊗_; _⊗-)
+  open MonoidalCategory I using (_⊗₀_; _⊗₁_; -⊗_; _⊗-) renaming (id to idI; _∘_ to _∘I_)
   open Functor
   open NaturalTransformation
   open GradedKleisliTriple M

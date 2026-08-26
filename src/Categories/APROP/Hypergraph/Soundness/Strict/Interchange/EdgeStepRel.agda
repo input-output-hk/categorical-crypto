@@ -34,7 +34,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.List using (List; _++_; map)
 open import Data.Maybe using (just; nothing)
 open import Data.Product using (_,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_)
