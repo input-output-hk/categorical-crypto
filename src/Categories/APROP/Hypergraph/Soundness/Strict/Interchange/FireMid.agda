@@ -7,15 +7,15 @@
 -- This assembles the located normal-form pieces:
 -- the per-order located normal forms `nf-genᵛ` (a single, block-symmetric
 -- single-order chase), instantiated for the two firing orders, then threaded
--- through `cross-NFᵛ` with the proven `vin-cohᵛ`/`vout-cohᵛ` (FMS2) to give
+-- through `cross-NFᵛ` with the proven `vin-cohᵛ`/`vout-cohᵛ` to give
 -- the both-fire core
 -- `fire-mid-interchangeˢ`.  Instantiating `SwapCoreRun.RunInterchange` with
 -- it yields the UNCONDITIONAL `run-interchange₀ˢ`.  The whole assembly runs
 -- in the `Restrict` layer (F7): the located block shapes `(A ++ A') ++ Rl`
 -- ARE the vertex stacks the located derivations produce, so the block frames
--- carry no `map-++` transport.  The interchange kernel lives in submodule
--- `FMS`, the coherences in `FMS2`, and the capstone `fire-mid-interchangeˢ`
--- in the final `module _ (H lin)`.
+-- carry no `map-++` transport.  The linearity-free bricks (kernel + located
+-- coherences) live in submodule `FMS`; the capstone `fire-mid-interchangeˢ`,
+-- which needs `Linear H`, is the final `module _ (H lin)`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -163,21 +163,9 @@ module FMS (H : Hypergraph FlatGen) where
       (≈-trans (⊗-respᵛ (≈-sym idʳ) (≈-sym idˡ))
         (≈-sym interchangeᵛ))))
 
---------------------------------------------------------------------------------
--- ===== submodule FMS2 =====
---------------------------------------------------------------------------------
-
-module FMS2 (H : Hypergraph FlatGen)
-         (lin : Linear H)
-         where
-  private module H = Hypergraph H
-
-  open StrictDecoder H
-
-  open Restrict (Fin H.nV) vl
-    using (HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; _≈ᵛ_; permuteᵛ)
-
-  -- SwapCore brick aliases.
+  ------------------------------------------------------------------------
+  -- The `SwapCore` / `PermCalc` bricks the located coherences below use.
+  ------------------------------------------------------------------------
   Incompˢ = Incomp H
   rigidᵛ  = perm-rigidˢ H
 
@@ -260,7 +248,6 @@ module _ (H : Hypergraph FlatGen)
   open StrictDecoder H
 
   -- SwapCore brick aliases.
-  fire-termˢ′ = fire-termˢ
 
   -- The thin wiring-groupoid calculus (F11): ⟦absorbˡ⟧/⟦absorbʳ⟧/⟦bswap⟧ᵛ +
   -- rigid-≈̂.
@@ -302,7 +289,7 @@ module _ (H : Hypergraph FlatGen)
     fire-locatedᵛ
       : ∀ (e : Fin H.nE) (s rest C Rl : List (Fin H.nV))
           (perm : s Perm.↭ H.ein e ++ rest) (q : rest Perm.↭ C ++ Rl)
-      → fire-termˢ′ e s rest perm
+      → fire-termˢ e s rest perm
         ≈ᵛ (idᵛ {H.eout e} ⊗ᵛ permuteᵛ (Perm.↭-sym q))
              ∘ᵛ ( (genˢ (H.elab e) ⊗ᵛ idᵛ {C ++ Rl})
                     ∘ᵛ permuteᵛ (Perm.trans perm (PermProp.++⁺ˡ (H.ein e) q)) )
@@ -413,7 +400,7 @@ module _ (H : Hypergraph FlatGen)
       σ-out     = σᵛ B B' ⊗ᵛ idᵛ {R}
 
       phase
-        : fire-termˢ′ b (B ++ s₁) s₂ q-second ∘ˢ fire-termˢ′ a sp s₁ q-first
+        : fire-termˢ b (B ++ s₁) s₂ q-second ∘ˢ fire-termˢ a sp s₁ q-first
           ≈ᵛ OUT2 ∘ᵛ ( Boxb ∘ᵛ ( (IN2 ∘ᵛ OUT1) ∘ᵛ ( Boxa ∘ᵛ IN1 ) ) )
       phase =
         ≈-trans (∘-resp (fire-locatedᵛ b (B ++ s₁) s₂ B R q-second ρ₂)
@@ -490,7 +477,7 @@ module _ (H : Hypergraph FlatGen)
     ------------------------------------------------------------------
     -- OUTPUT reconciliation: the located output `OUT2` together with the
     -- merge's output braid equals `Lout`.  (`⟦bswap⟧ᵛ` + `rigid-≈̂` at
-    -- `us-cod`, mirroring `FMS2.Located.vout-cohᵛ`.)
+    -- `us-cod`, mirroring `FMS.Located.vout-cohᵛ`.)
     ------------------------------------------------------------------
     private
       out-part : HomV ((B ++ B') ++ R) (B' ++ (B ++ R))
@@ -520,7 +507,7 @@ module _ (H : Hypergraph FlatGen)
     -- THE SINGLE-ORDER LOCATED NORMAL FORM.
     ------------------------------------------------------------------
     nf-genᵛ
-      : fire-termˢ′ b (B ++ s₁) s₂ q-second ∘ˢ fire-termˢ′ a sp s₁ q-first
+      : fire-termˢ b (B ++ s₁) s₂ q-second ∘ˢ fire-termˢ a sp s₁ q-first
         ≈ᵛ Lout ∘ᵛ ( box-block ∘ᵛ Lin )
     nf-genᵛ =
       ≈-trans phase
@@ -545,7 +532,7 @@ module _ (H : Hypergraph FlatGen)
   --
   -- The two per-order located normal forms `nf-genᵛ` (instantiated for the
   -- `e`-first / `e'`-first orders at the shared `SimLoc` residual) are threaded
-  -- through the proven `cross-NFᵛ` with `FMS2`'s coherences
+  -- through the proven `cross-NFᵛ` with `FMS`'s coherences
   -- `vin-cohᵛ`/`vout-cohᵛ`.
   ----------------------------------------------------------------------
 
@@ -556,7 +543,7 @@ module _ (H : Hypergraph FlatGen)
     where
       -- `Located` already built the `SimLoc` bundle and re-exports it, so the
       -- 12-argument `sim-loc` application is NOT respelled here.
-      open FMS2.Located H lin inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod
+      open FMS.Located H inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-cod
 
       -- The per-order residual relocates + `Unique` witnesses + `Gen`
       -- instantiation, factored once and instantiated for both orders below
@@ -599,15 +586,15 @@ module _ (H : Hypergraph FlatGen)
       module G1 = O1.GG
       module G2 = O2.GG
 
-      -- the two located normal forms (frames match `FMS2`'s Lin/Lout).
+      -- the two located normal forms (frames match `FMS`'s Lin/Lout).
       nf₁-eqᵛ
-        : fire-termˢ′ e' (H.eout e ++ r₁) r₂ p₂ ∘ˢ fire-termˢ′ e sp r₁ p₁
+        : fire-termˢ e' (H.eout e ++ r₁) r₂ p₂ ∘ˢ fire-termˢ e sp r₁ p₁
           ≈ᵛ Lout₁ ∘ᵛ ( ((genˢ (H.elab e) ⊗ᵛ genˢ (H.elab e')) ⊗ᵛ idᵛ {Rlist})
                           ∘ᵛ Lin₁ )
       nf₁-eqᵛ = G1.nf-genᵛ
 
       nf₂-eqᵛ
-        : fire-termˢ′ e (H.eout e' ++ r₂') r₁' p₁' ∘ˢ fire-termˢ′ e' sp r₂' p₂'
+        : fire-termˢ e (H.eout e' ++ r₂') r₁' p₁' ∘ˢ fire-termˢ e' sp r₂' p₂'
           ≈ᵛ Lout₂ ∘ᵛ ( ((genˢ (H.elab e') ⊗ᵛ genˢ (H.elab e)) ⊗ᵛ idᵛ {Rlist})
                           ∘ᵛ Lin₂ )
       nf₂-eqᵛ = G2.nf-genᵛ

@@ -71,11 +71,10 @@ module _ (H : Hypergraph FlatGen)
   open StrictDecoder H
 
   ------------------------------------------------------------------------
-  -- Local aliases for the SwapCore bricks (whose anonymous module exposes
-  -- them as functions of `H`).
+  -- Local aliases for the SwapCore bricks, whose anonymous module exposes
+  -- them as functions of `H` (`fire-termˢ` needs none: `open StrictDecoder`).
   ------------------------------------------------------------------------
 
-  fire-termˢ′ = fire-termˢ
   Incompˢ     = Incomp H
   pe-stackˢ′  = pe-stackˢ H
   pe-termˢ′   = pe-termˢ H
@@ -103,11 +102,11 @@ module _ (H : Hypergraph FlatGen)
         (us-mid₁ : Unique (H.eout e ++ r₁)) (us-mid₂ : Unique (H.eout e' ++ r₂'))
         (us-cod : Unique (H.eout e ++ r₁'))
     → Σ[ r ∈ (H.eout e' ++ r₂) Perm.↭ (H.eout e ++ r₁') ]
-        ( fire-termˢ′ e (H.eout e' ++ r₂') r₁' p₁'
-            ∘ˢ fire-termˢ′ e' sp r₂' p₂' )
+        ( fire-termˢ e (H.eout e' ++ r₂') r₁' p₁'
+            ∘ˢ fire-termˢ e' sp r₂' p₂' )
         ≈ˢ permuteˢ r
-              ∘ˢ ( fire-termˢ′ e' (H.eout e ++ r₁) r₂ p₂
-                     ∘ˢ fire-termˢ′ e sp r₁ p₁ )
+              ∘ˢ ( fire-termˢ e' (H.eout e ++ r₁) r₂ p₂
+                     ∘ˢ fire-termˢ e sp r₁ p₁ )
 
   ------------------------------------------------------------------------
   -- The strict reservoir → `Unique (pe-stackˢ o dom)` bridge.  The
@@ -217,11 +216,11 @@ module _ (H : Hypergraph FlatGen)
           RI = FMI inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁' us-sp us-s1 us-u1 us-u2
           r  = proj₁ RI
           box-eq
-            : ( fire-termˢ′ e (H.eout e' ++ r₂') r₁' p₁'
-                  ∘ˢ fire-termˢ′ e' sp r₂' p₂' )
+            : ( fire-termˢ e (H.eout e' ++ r₂') r₁' p₁'
+                  ∘ˢ fire-termˢ e' sp r₂' p₂' )
               ≈ˢ permuteˢ r
-                  ∘ˢ ( fire-termˢ′ e' (H.eout e ++ r₁) r₂ p₂
-                         ∘ˢ fire-termˢ′ e sp r₁ p₁ )
+                  ∘ˢ ( fire-termˢ e' (H.eout e ++ r₁) r₂ p₂
+                         ∘ˢ fire-termˢ e sp r₁ p₁ )
           box-eq = proj₂ RI
 
     ----------------------------------------------------------------------
