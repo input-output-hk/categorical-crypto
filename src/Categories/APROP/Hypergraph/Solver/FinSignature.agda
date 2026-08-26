@@ -24,7 +24,7 @@
 open import Relation.Binary.Definitions using (DecidableEquality)
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
-open import Data.Product using (_×_)
+open import Data.Product using (_×_; Σ-syntax; _,_; proj₁; proj₂)
 open import Categories.FreeMonoidal
 
 module Categories.APROP.Hypergraph.Solver.FinSignature
@@ -35,7 +35,6 @@ module Categories.APROP.Hypergraph.Solver.FinSignature
   where
 
 open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
-open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 open import Relation.Nullary using (yes; no)
 

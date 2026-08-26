@@ -88,7 +88,7 @@ module SplitConfig (A₀ A₁ A₂ : C.Obj)
   test-refl = solveH!ˢ lhs-core lhs-core
 
   -- (a') Refl after reassociation: the sides differ only in the nesting of
-  -- `∘`; `reassoc` makes them syntactically equal, so again no solver call.
+  -- `∘`; `reassocS` makes them syntactically equal, so again no solver call.
   test-reassoc-refl : (wᴹ ∘ σ) ∘ (pᴹ ⊗₁ sᴹ) ≈ wᴹ ∘ (σ ∘ (pᴹ ⊗₁ sᴹ))
   test-reassoc-refl = solveH!ˢ ((w S.∘ S.σ) S.∘ (p S.⊗₁ s))
                                (w S.∘ (S.σ S.∘ (p S.⊗₁ s)))

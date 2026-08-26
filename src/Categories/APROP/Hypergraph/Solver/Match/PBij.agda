@@ -15,8 +15,7 @@ module Categories.APROP.Hypergraph.Solver.Match.PBij where
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Properties.Ext using (map-∘-cong)
-open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
-import Data.Maybe.Base as Maybe
+open import Data.Maybe.Base as Maybe using (Maybe; just; nothing; _>>=_)
 open import Data.Nat using (ℕ)
 open import Relation.Binary.PropositionalEquality using (_≡_; cong; trans)
 open import Relation.Nullary using (yes; no)

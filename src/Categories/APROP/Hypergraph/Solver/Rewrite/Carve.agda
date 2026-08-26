@@ -32,8 +32,7 @@ open APROPSignatureDec sig-dec using (sig; _≟-ObjTerm_)
 open import Categories.APROP using (module APROP)
 open APROP sig
 
-open import Data.Maybe.Base using (Maybe; just; nothing)
-import Data.Maybe.Base as Maybe
+open import Data.Maybe.Base as Maybe using (Maybe; just; nothing)
 open import Data.List.Base using (List; []; _∷_; _++_; map)
 open import Data.List.Properties.Ext using (lookupMaybe)
 open import Data.Nat using (ℕ)

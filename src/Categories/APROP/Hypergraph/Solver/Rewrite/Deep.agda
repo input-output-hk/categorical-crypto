@@ -38,8 +38,7 @@ open import Data.List.Base
   using (List; []; _∷_; _++_; map; mapMaybe; concatMap; length; lookup)
 open import Data.List.Properties using (≡-dec)
 open import Data.List.Properties.Ext using (lookupMaybe)
-open import Data.Maybe.Base using (Maybe; just; nothing; _>>=_)
-import Data.Maybe.Base as Maybe
+open import Data.Maybe.Base as Maybe using (Maybe; just; nothing; _>>=_)
 open import Data.Nat using (ℕ; suc)
 open import Data.Product using (Σ; _×_; _,_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst; subst₂)

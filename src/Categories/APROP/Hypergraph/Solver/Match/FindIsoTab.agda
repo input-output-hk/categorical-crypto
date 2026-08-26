@@ -33,8 +33,7 @@ open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_; sym-≅ᴴ; t
 open import Categories.APROP.Hypergraph.Solver.Tabulate using (tabH; tab-≅ᴴ)
 open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig-dec using (findIso)
 
-open import Data.Maybe.Base using (Maybe)
-import Data.Maybe.Base as Maybe
+open import Data.Maybe.Base as Maybe using (Maybe)
 
 findIsoᵀ : (H J : Hypergraph FlatGen) → Maybe (H ≅ᴴ J)
 findIsoᵀ H J =

@@ -15,8 +15,11 @@ module Categories.APROP.Hypergraph.Model.Translation (sig : APROPSignature) wher
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; flatten; hGen; hId; hTensor; hSwap)
-open import Categories.APROP.Hypergraph.Model.PrunedCompose sig using (hComposeP)
+  using (FlatGen; flatten; hGen; hId; hTensor; hSwap;
+         domL-hId; codL-hId; domL-hTensor; codL-hTensor;
+         domL-hSwap; codL-hSwap; domL-hGen; codL-hGen)
+open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
+  using (hComposeP; domL-hComposeP; codL-hComposeP)
 
 open import Data.List using (List; _++_)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
@@ -27,12 +30,6 @@ open import Relation.Binary.PropositionalEquality
 -- Mutual definition: `⟪_⟫` produces the hypergraph; the boundary lemmas
 -- `⟪⟫-domL`/`⟪⟫-codL` witness that its `domL`/`codL` agree with the term's
 -- source/target via `flatten`.
-
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (domL-hId; codL-hId; domL-hTensor; codL-hTensor;
-         domL-hSwap; codL-hSwap; domL-hGen; codL-hGen)
-open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
-  using (domL-hComposeP; codL-hComposeP)
 
 ⟪_⟫     : ∀ {A B} → HomTerm A B → Hypergraph FlatGen
 ⟪⟫-domL : ∀ {A B} (f : HomTerm A B) → domL ⟪ f ⟫ ≡ flatten A

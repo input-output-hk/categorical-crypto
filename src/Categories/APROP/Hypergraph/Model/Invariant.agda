@@ -16,8 +16,7 @@ module Categories.APROP.Hypergraph.Model.Invariant (sig : APROPSignature) where
 open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_)
-import Data.Fin as Fin
+open import Data.Fin as Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using (suc-injective)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.List using (List; []; _∷_; _++_; map; length)

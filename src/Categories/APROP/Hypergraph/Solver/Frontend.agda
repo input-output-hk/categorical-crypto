@@ -362,12 +362,11 @@ module Solver {o ℓ e} (C : SymmetricMonoidalCategory o ℓ e)
            → Maybe (Σ (HomTerm A B) (λ t → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁))
     tryFoc r s nothing               = nothing
     tryFoc r s (just (k , pre , post)) =
-      fireWith s
-        (reassocBal post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ reassocBal pre)
-        (reassocBal post ∘ (id {k} ⊗₁ Rule.rhs r) ∘ reassocBal pre)
+      fireWith s frameL frameR
         (C.∘-resp-≈ʳ (C.∘-resp-≈ˡ (C.⊗.F-resp-≈ (C.Equiv.refl , Rule.sound r))))
-        (findIsoᵀ ⟪ s ⟫
-          ⟪ reassocBal post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ reassocBal pre ⟫)
+        (findIsoᵀ ⟪ s ⟫ ⟪ frameL ⟫)
+      where frameL = reassocBal post ∘ (id {k} ⊗₁ Rule.lhs r) ∘ reassocBal pre
+            frameR = reassocBal post ∘ (id {k} ⊗₁ Rule.rhs r) ∘ reassocBal pre
 
   driveStep : List Rule → ∀ {A B} (s : HomTerm A B)
             → Maybe (Σ (HomTerm A B) (λ t → ⟦ s ⟧₁ C.≈ ⟦ t ⟧₁))
