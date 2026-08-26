@@ -9,7 +9,6 @@ open import Categories.Category.Core
 open import Categories.Category.Helper
 
 open import Relation.Binary.Bundles using (Setoid)
-open import Relation.Binary.PropositionalEquality using (_→-setoid_)
 
 import Relation.Binary.Construct.On as On
 import Relation.Binary.Reasoning.Setoid as R-Setoid

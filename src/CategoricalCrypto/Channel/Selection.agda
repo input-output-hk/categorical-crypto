@@ -17,7 +17,6 @@ open import Class.Functor
 open import Class.MonadError.Instances
 open import Class.MonadReader.Instances
 open import Class.MonadTC.Instances hiding (_ᵗ)
-open import Function
 
 infix 4 _[_]⇒[_]ᵍ_
 
