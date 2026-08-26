@@ -8,7 +8,7 @@
 --                      lives with the decoder; `open Run H public`
 --                      re-exports it from `RunBlocks`).
 --   TermEmbedˢ / Equivariantˢ — the per-edge relabelling twin
---                      (`process-edges-term-embˢ`) + the FIRE-box equivariance
+--                      (`term-emb-≈̂`) + the FIRE-box equivariance
 --                      foundation (`pvv-transˢ`, `pvv-inverse-*ˢ`).
 --
 -- The ∘-shape assembly proper is `DecodeComposeAssembly.decodePˢ-∘-shape`,
@@ -477,26 +477,18 @@ module TermEmbedˢ
       goal = ∘-cast-resp pDom pMid pCod recTwin headTwin
 
   ----------------------------------------------------------------------
-  -- The headline iterated term-twin, at the canonical `sJ = map φ sH`.
+  -- The headline iterated term-twin, at the canonical `sJ = map φ sH`, and
+  -- HETEROGENEOUSLY, which is what every consumer wants: both endpoint
+  -- proofs (`vlab-φ` on the domain, `proc-stack-embˢ ⨟ vlab-φ` on the
+  -- codomain) are CANONICAL, so no consumer should be building them.
 
-  process-edges-term-embˢ
-    : ∀ (es : List (Fin H.nE)) (sH : List (Fin H.nV))
-        (pCod : map vlJ (proj₁ (RJ.process-edgesˢ (map ψ es) (map φ sH)))
-              ≡ map vlH (proj₁ (RH.process-edgesˢ es sH)))
-    → castˢ (vlab-φ sH) pCod (proj₂ (RJ.process-edgesˢ (map ψ es) (map φ sH)))
-      ≈ˢ proj₂ (RH.process-edgesˢ es sH)
-  process-edges-term-embˢ es sH pCod =
-    process-edges-term-embˢ-gen es sH (map φ sH) refl (vlab-φ sH) pCod
-
-  -- …and the same fact HETEROGENEOUSLY, which is what every consumer wants:
-  -- both endpoint proofs (`vlab-φ` on the domain, `proc-stack-embˢ ⨟ vlab-φ`
-  -- on the codomain) are CANONICAL, so no consumer should be building them.
   term-emb-≈̂
     : ∀ (es : List (Fin H.nE)) (sH : List (Fin H.nV))
     → proj₂ (RJ.process-edgesˢ (map ψ es) (map φ sH))
       ≈̂ proj₂ (RH.process-edgesˢ es sH)
   term-emb-≈̂ es sH =
-    castˢ⇒≈̂ (vlab-φ sH) pCod (process-edges-term-embˢ es sH pCod)
+    castˢ⇒≈̂ (vlab-φ sH) pCod
+      (process-edges-term-embˢ-gen es sH (map φ sH) refl (vlab-φ sH) pCod)
     where
       pCod : map vlJ (proj₁ (RJ.process-edgesˢ (map ψ es) (map φ sH)))
            ≡ map vlH (proj₁ (RH.process-edgesˢ es sH))
