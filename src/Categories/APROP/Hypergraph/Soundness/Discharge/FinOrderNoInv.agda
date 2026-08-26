@@ -91,8 +91,6 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
   using (⟪⟫-LinearP; remapP-injective)
 open import Categories.APROP.Hypergraph.Util.Prune
   using (remap-↑ˡ→∈)
-open import Data.List.Membership.Propositional.Properties
-  using (∈-concat⁺′; ∈-tabulate⁺)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Sum using (inj₁; inj₂)
 
@@ -100,7 +98,8 @@ open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_; splitAt; join)
 open import Data.Fin.Properties using (join-splitAt)
 open import Data.List using (List; []; _∷_; _++_; length; map; concat; tabulate)
 open import Data.List.Membership.Propositional using (_∈_)
-open import Data.List.Membership.Propositional.Properties using (∈-map⁻)
+open import Data.List.Membership.Propositional.Properties
+  using (∈-map⁻; ∈-concat⁺′; ∈-tabulate⁺)
 open import Data.List.Relation.Unary.All using (All; []; _∷_; universal)
 import Data.List.Relation.Unary.All.Properties as AllProp
 open import Data.List.Relation.Unary.AllPairs using (AllPairs; []; _∷_)
