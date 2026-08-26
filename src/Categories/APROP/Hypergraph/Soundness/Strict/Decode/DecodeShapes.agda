@@ -43,7 +43,6 @@ open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
   sig using (⟪⟫-cod-Unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
@@ -64,7 +63,7 @@ open Perm using (_↭_)
 -- residual block: that is what `DecodeSigma.Scr` can consume.
 
 module Trivial (V : Set) (vlab : V → X) where
-  open Support V vlab
+  open PK.Support V vlab
 
   refl-trivial
     : ∀ {xs ys : List V} (e : xs ≡ ys)
@@ -95,7 +94,7 @@ nE0-run
 -- structural atoms.
 
 module Triv (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X) where
-  open Support V vlab
+  open PK.Support V vlab
   open Trivial V vlab
 
   K : PermK

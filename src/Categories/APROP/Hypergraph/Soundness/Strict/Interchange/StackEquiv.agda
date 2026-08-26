@@ -49,8 +49,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.EdgeStepRel
   using (module EdgeStepView)
 
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
-  using (module Support)
 
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig as SU
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
@@ -86,7 +84,7 @@ module EquivStep (H : Hypergraph FlatGen) where
     _≟V_ : DecidableEquality (Fin H.nV)
     _≟V_ = _≟F_
 
-    permˢ-K-H : Support.PermK (Fin H.nV) H.vlab
+    permˢ-K-H : PK.Support.PermK (Fin H.nV) H.vlab
     permˢ-K-H = PK.permˢ-K (Fin H.nV) _≟V_ H.vlab
 
   ----------------------------------------------------------------------

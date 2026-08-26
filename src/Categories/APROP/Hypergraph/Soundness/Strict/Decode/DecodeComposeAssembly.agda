@@ -10,7 +10,7 @@
 --   * `process-edges-equivariantˢ` (StackEquiv): the K-side equivariance
 --     keystone;
 --   * `run-split-atˢ` (DecodeCompose §1): the run-split;
---   * `perm-rigidˢ` (PermSupport) on `Unique` cods + the strict `castˢ` kit.
+--   * `perm-rigidˢ` (Perm.PermK) on `Unique` cods + the strict `castˢ` kit.
 --
 -- The non-strict `subst₂ HomTerm`/`unflatten`/`coe-cod` plumbing collapses to
 -- the strict `castˢ` kit (refl-matching + UIP), so the proof is materially

@@ -6,7 +6,7 @@
 -- bijection (with distinct elements the position bijection is forced).
 --
 -- This lets the APROP soundness consumers (`Stack.StackUnique`,
--- `Strict.Interchange.StackEquiv`, `Strict.Perm.PermSupport`) discharge the
+-- `Strict.Interchange.StackEquiv`, `Strict.Perm.PermK`) discharge the
 -- `≅↭` hypothesis of the Kelly residual from `Unique`-ness of the stacks —
 -- NO label-injectivity of `vlab` is needed (rigidity is applied at the
 -- Fin-index level, where the stacks ARE `Unique`, even though the X-level

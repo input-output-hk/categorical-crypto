@@ -40,7 +40,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟X_
   as DShapes
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
@@ -58,7 +57,7 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
 -- vertex-level keystone).  Recursion on the LEFT block.
 
 module Scr (V : Set) (vlab : V → X) where
-  open Support V vlab public
+  open PK.Support V vlab public
   open DShapes.Trivial V vlab public
   open Restrict V vlab
     using (idᵛ; _⊗ᵛ_; σᵛ; _≈ᵛ_; permuteᵛ; castᵛ-cast; σ-unitᵛ)
@@ -110,7 +109,7 @@ module _
 
       module RF = Run ⟪ f ⟫
       module Hf = Hypergraph ⟪ f ⟫
-      open Support (Fin Hf.nV) Hf.vlab
+      open PK.Support (Fin Hf.nV) Hf.vlab
       open Restrict (Fin Hf.nV) Hf.vlab
         using (idᵛ; _∘ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; ∘-castᵛ; subst-codᵛ; σᵛ-≈̂)
 

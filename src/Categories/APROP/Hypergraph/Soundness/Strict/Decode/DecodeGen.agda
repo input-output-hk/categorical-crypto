@@ -50,7 +50,6 @@ open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (hGen-dom-Unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
 open import Data.Fin using (Fin) renaming (_≟_ to _≟F_)
@@ -73,7 +72,7 @@ module Gen {A B : ObjTerm} (g : mor A B) where
 
     module RF = Run ⟪ f ⟫
     module Hf = Hypergraph ⟪ f ⟫
-    open Support (Fin Hf.nV) Hf.vlab
+    open PK.Support (Fin Hf.nV) Hf.vlab
     open Restrict (Fin Hf.nV) Hf.vlab
       using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ
             ; castᵛ-≈̂; cast-flipᵛ; cast-respᵛ; cast-fuseᵛ; ∘-castᵛ; ⊗-unitʳᵛ

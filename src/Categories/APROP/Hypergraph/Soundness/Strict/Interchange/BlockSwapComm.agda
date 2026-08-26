@@ -45,7 +45,6 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_
   using (module Scr)
 open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelˡ)

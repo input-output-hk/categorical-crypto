@@ -73,7 +73,6 @@ open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
   sig using (⟪⟫-cod-Unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermSupport sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
 open import Data.Fin using (Fin)
@@ -96,7 +95,7 @@ module Reconcile {A B C D : ObjTerm}
 
     module RF = Run ⟪ fg ⟫
     module Hf = Hypergraph ⟪ fg ⟫
-    open Support (Fin Hf.nV) Hf.vlab
+    open PK.Support (Fin Hf.nV) Hf.vlab
 
     K : PermK
     K = PK.permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
