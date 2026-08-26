@@ -70,9 +70,6 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics s
         ; count-concat-tabulate-pair-≤)
 
 private
-  variable
-    n : ℕ
-
   -- A four-summand ℕ rearrangement (used to reshuffle the count identity
   -- below): `(a + b) + (c + d) ≡ (a + d) + (c + b)`.
   mid4 : ∀ (a b c d : ℕ) → (a + b) + (c + d) ≡ (a + d) + (c + b)
@@ -181,24 +178,6 @@ module _ (H : Hypergraph FlatGen) where
         (sym (trans (count-++ v (H.eout e) r₁)
                     (cong (_+ count v r₁) (eout-ein-disjoint ¬dep v v∈ein-e'))))))
 
-      ein'-≤-fwd
-        : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
-        → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
-        → (∀ v → count v (H.ein e') ≤ⁿ count v s)
-        → (∀ v → count v (H.ein e') ≤ⁿ count v (H.eout e ++ r₁))
-      ein'-≤-fwd {e} {e'} e≢e' ¬dep r₁ s p h v =
-        ein'-≤-transport v s (H.eout e ++ r₁)
-          (count-ein'-pres e≢e' ¬dep r₁ s p v) (h v)
-
-      ein'-≤-bwd
-        : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
-        → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
-        → (∀ v → count v (H.ein e') ≤ⁿ count v (H.eout e ++ r₁))
-        → (∀ v → count v (H.ein e') ≤ⁿ count v s)
-      ein'-≤-bwd {e} {e'} e≢e' ¬dep r₁ s p h v =
-        ein'-≤-transport v (H.eout e ++ r₁) s
-          (λ pos → sym (count-ein'-pres e≢e' ¬dep r₁ s p v pos)) (h v)
-
     e'-fires-stable
       : ∀ {e e' : Fin H.nE} → ¬ (e ≡ e') → ¬ (Dep H e e')
       → (r₁ s : List (Fin H.nV)) → s Perm.↭ H.ein e ++ r₁
@@ -207,8 +186,9 @@ module _ (H : Hypergraph FlatGen) where
           extract-prefix (H.ein e') (H.eout e ++ r₁) ≡ just (r , q)
     e'-fires-stable {e} {e'} e≢e' ¬dep r₁ s p {r₂'} {p₂'} eqe' =
       count-≤→extract-prefix (H.ein e') (H.eout e ++ r₁)
-        (ein'-≤-fwd e≢e' ¬dep r₁ s p
-          (extract-prefix-just→count-≤ (H.ein e') s r₂' p₂'))
+        (λ v → ein'-≤-transport v s (H.eout e ++ r₁)
+                 (count-ein'-pres e≢e' ¬dep r₁ s p v)
+                 (extract-prefix-just→count-≤ (H.ein e') s r₂' p₂' v))
 
     -- A `just` outcome on `eout e ++ r₁` would (via the backward count
     -- transport) force success on `s`.
@@ -223,8 +203,10 @@ module _ (H : Hypergraph FlatGen) where
     ... | just (r , q) =
           ⊥-elim (nothing≢just (trans (sym eqe')
             (proj₂ (proj₂ (count-≤→extract-prefix (H.ein e') s
-              (ein'-≤-bwd e≢e' ¬dep r₁ s p
-                (extract-prefix-just→count-≤ (H.ein e') (H.eout e ++ r₁) r q)))))))
+              (λ v → ein'-≤-transport v (H.eout e ++ r₁) s
+                       (λ pos → sym (count-ein'-pres e≢e' ¬dep r₁ s p v pos))
+                       (extract-prefix-just→count-≤
+                          (H.ein e') (H.eout e ++ r₁) r q v)))))))
 
   ----------------------------------------------------------------------
   -- Extracting `ein e'` from the residual `r₁`.  From `p₂` + `eout e ⊥
