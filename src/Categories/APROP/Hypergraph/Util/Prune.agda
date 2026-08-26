@@ -22,6 +22,7 @@
 --   * `remap xs f`    — routes members of `xs` to an arbitrary target space
 --                       via `f`, non-members to the fresh pruned space of
 --                       size `count-non xs`; with `remap-inj₁`,
+--                       `remap-↑ˡ→∈` (only members reach the `_↑ˡ_` slots),
 --                       `remap-injective`, and the two label-transport faces
 --                       `remap-vlab` / `map-via-remap`.
 --
@@ -137,6 +138,16 @@ module _ {n m : ℕ} where
              → remap xs f v ≡ f i ↑ˡ count-non xs
   remap-inj₁ xs f v i eq with classify xs v
   remap-inj₁ xs f v i refl | inj₁ .i = refl
+
+  -- Converse routing fact: ONLY members of `xs` reach the `_↑ˡ_` (target
+  -- space) slots, since the non-member branch lands in the disjoint `m ↑ʳ_`
+  -- family.  Both pruned-composition consumers need it at `remapP`.
+  remap-↑ˡ→∈ : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)
+               (v : Fin n) (i : Fin m)
+             → remap xs f v ≡ i ↑ˡ count-non xs → v ∈ xs
+  remap-↑ˡ→∈ xs f v i eq with classify xs v | classify-view xs v
+  ... | _ | is-mem v∈ = v∈
+  ... | _ | is-non _  = ⊥-elim (↑ˡ-↑ʳ-disjoint i _ (sym eq))
 
   remap-injective
     : (xs : List (Fin n)) (f : Fin (length xs) → Fin m)

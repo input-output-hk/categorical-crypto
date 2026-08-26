@@ -330,24 +330,16 @@ module _
                        (count-map-inj remapP remapP-injective k K-eb)))
               (K-eb-bnd k)
 
-    -- Only K.dom members route to `↑ˡ`-slots (injL).  `Prune.classify-view`
-    -- gives both halves in one split: `is-mem` carries the membership witness
-    -- directly; `is-non` reduces `remapP k` to a `G.nV ↑ʳ_` slot, absurd
-    -- against `injL i` by `Invariant.↑ˡ≢↑ʳ`.
-    remapP-injL→dom : ∀ (k : Fin K.nV) (i : Fin G.nV) → remapP k ≡ injL i → k ∈ K.dom
-    remapP-injL→dom k i rpk with classify K.dom k | classify-view K.dom k
-    ... | _ | is-mem k∈ = k∈
-    ... | _ | is-non _  = ⊥-elim (Inv.↑ˡ≢↑ʳ i _ (sym rpk))
-
     -- The K-eb contribution at an injL-slot vanishes: a preimage `k`
-    -- (`∈-map⁻`) of `injL i` is in K.dom, and K.dom is disjoint from K-eb.
+    -- (`∈-map⁻`) of `injL i` is in K.dom (only members reach the `_↑ˡ cn`
+    -- slots — `Prune.remap-↑ˡ→∈`), and K.dom is disjoint from K-eb.
     count-injL-remapP-K-eb-zero : ∀ (i : Fin G.nV) → count (injL i) (map remapP K-eb) ≡ 0
     count-injL-remapP-K-eb-zero i with any? (injL i ≟F_) (map remapP K-eb)
     ... | no  i∉ = ∉→count-zero i∉
     ... | yes i∈ with ∈-map⁻ remapP i∈
     ...   | k , k∈ , i≡rk =
             ⊥-elim (++-bnd→disjoint K.dom K-eb (K-bnd k)
-                      (remapP-injL→dom k i (sym i≡rk)) k∈)
+                      (remap-↑ˡ→∈ K.dom lookup-cod k i (sym i≡rk)) k∈)
 
     bound-injL : ∀ (i : Fin G.nV) → count (injL i) (producedList (hComposeP G K bdy-eq)) Nat.≤ 1
     bound-injL i =

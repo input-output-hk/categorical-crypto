@@ -5,8 +5,9 @@
 -- linear extension of its immediate dependency relation `Dep`.
 --
 -- Goal: `fin-order-NoInv-⟪⟫ : ∀ {A B} (f : HomTerm A B) → NoInvH ⟪f⟫ (range
--- nE)`, where `NoInvH H = AllPairs (λ a b → ¬ Dep H b a)` — "for edges `a` before `b` in `range`, `b` does not produce a wire
--- that `a` consumes" (no earlier-consumes-later inversion).
+-- nE)`, where `NoInvH H = AllPairs (λ a b → ¬ Dep H b a)` — "for edges `a`
+-- before `b` in `range`, `b` does not produce a wire that `a` consumes" (no
+-- earlier-consumes-later inversion).
 --
 -- Second goal, on the DIAGONAL that `AllPairs` never reaches:
 -- `dep-irrefl-⟪⟫ : ∀ {A B} (f : HomTerm A B) {e} → ¬ Dep ⟪f⟫ e e` — no
@@ -82,14 +83,14 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using
 import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
 open Inv using (inject+-inj; raise-inj; disj-L-R; range-++)
 
--- Linearity layer: the `Linear` invariant, `count`, the pruned-translation
--- linearity witness, and the pruning machinery for the `∘` case.
+-- Linearity layer: the `Linear` invariant, the pruned-translation linearity
+-- witness, and the pruning machinery for the `∘` case.
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using (Linear)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
   using (⟪⟫-LinearP; remapP-injective)
 open import Categories.APROP.Hypergraph.Util.Prune
-  using (count-non; classify; classify-view; is-mem; is-non)
+  using (remap-↑ˡ→∈)
 open import Data.List.Membership.Propositional.Properties
   using (∈-concat⁺′; ∈-tabulate⁺)
 open import Data.Empty using (⊥; ⊥-elim)
@@ -112,9 +113,9 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; sym; trans; subst)
 
 --------------------------------------------------------------------------------
--- ## Generic count / disjointness helpers (used by the `∘` cross-acyclicity).
-
--- Membership ⇒ positive `count`: shared `CountCombinatorics` leaf.
+-- The one count fact the `∘` cross-acyclicity needs, from the shared
+-- `CountCombinatorics` leaf: a `count ≤ 1` bound on a `_++_` makes its two
+-- sides disjoint.
 open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
   using (++-bnd→disjoint)
 
@@ -311,13 +312,11 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
 
   -- The cross-block acyclicity — no K-block edge produces a wire an earlier
   -- G-block edge consumes.  A shared vertex `v` would be both a `remapP`-image
-  -- of a K-output `k₀ ∈ K.eout eb` and an `injL`-image (`_↑ˡ cn`).  Then
-  -- `classify K.dom k₀`: `inj₂` routes to a `G.nV ↑ʳ_` slot, disjoint from
-  -- `_↑ˡ cn`; `inj₁` puts `k₀ ∈ K.dom`, so `k₀` occurs in BOTH summands of
-  -- `producedList K` (`count ≥ 2`), contradicting `Linear K`'s bound `≤ 1`.
+  -- of a K-output `k₀ ∈ K.eout eb` and an `injL`-image (`_↑ˡ cn`), so
+  -- `Prune.remap-↑ˡ→∈` puts `k₀ ∈ K.dom` — whence `k₀` occurs in BOTH
+  -- summands of `producedList K` (`count ≥ 2`), contradicting `Linear K`'s
+  -- bound `≤ 1`.
   private
-    cn = count-non K.dom
-
     -- An edge-output that is also in `K.dom` occurs in BOTH summands of
     -- `producedList K = K.dom ++ concat (tabulate eout)`, so `Linear K`'s
     -- `count ≤ 1` bound on that concatenation refutes it.
@@ -328,16 +327,6 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
       ++-bnd→disjoint K.dom (concat (tabulate K.eout)) (proj₂ lin-K k)
                       k∈dom (∈-concat⁺′ k∈out (∈-tabulate⁺ eb))
 
-    -- Only `K.dom` members route to the `_↑ˡ cn` (G-side) slots: if
-    -- `remapP k ≡ i ↑ˡ cn` then `k ∈ K.dom`.  `Prune.classify-view` splits
-    -- `classify K.dom k`: `mem` *is* the wanted `k ∈ K.dom`; `out` reduces
-    -- `remapP k` to a `G.nV ↑ʳ_` slot, absurd against `i ↑ˡ cn` by `Inv.↑ˡ≢↑ʳ`.
-    remapP-injL→dom
-      : ∀ (k : Fin K.nV) (i : Fin G.nV) → C.remapP k ≡ i ↑ˡ cn → k ∈ K.dom
-    remapP-injL→dom k i hyp with classify K.dom k | classify-view K.dom k
-    ... | _ | is-mem k∈  = k∈
-    ... | _ | is-non _   = ⊥-elim (Inv.↑ˡ≢↑ʳ i _ (sym hyp))
-
   compose-cross-acyclic : ∀ {ea : Fin G.nE} {eb : Fin K.nE}
                         → ¬ Dep Hc (injREc eb) (injLEc ea)
   compose-cross-acyclic {ea} {eb} (v , v∈out , v∈in)
@@ -346,7 +335,7 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
   ... | v∈out' | v∈in' with ∈-map⁻ C.remapP v∈out' | ∈-map⁻ C.injL v∈in'
   ... | k₀ , k₀∈out , v≡rk | i₀ , i₀∈in , v≡injL =
         dom-and-out→absurd k₀ eb
-          (remapP-injL→dom k₀ i₀ (trans (sym v≡rk) v≡injL))
+          (remap-↑ˡ→∈ K.dom C.lookup-cod k₀ i₀ (trans (sym v≡rk) v≡injL))
           k₀∈out
 
   ------------------------------------------------------------------------------
