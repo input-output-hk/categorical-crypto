@@ -61,8 +61,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorBraid sig _≟X
 
 open import Data.List using (List)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; subst₂)
 
 open import Categories.Category using (Category)
 -- `inv-uniqueᵀ` used to be hand-rolled here because these opens were missing:

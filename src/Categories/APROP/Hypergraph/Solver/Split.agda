@@ -49,7 +49,6 @@ open import Categories.APROP.Hypergraph.Soundness sig-dec
 open import Data.Maybe.Base as Maybe
 open import Data.Nat.Base
 open import Data.Product using (Σ; _,_)
-open import Relation.Binary.PropositionalEquality
 
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive
   using (Star; ε; _◅_; _◅◅_; fold)

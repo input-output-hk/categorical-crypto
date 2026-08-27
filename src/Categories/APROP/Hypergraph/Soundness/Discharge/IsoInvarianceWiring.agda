@@ -43,8 +43,6 @@ open import Data.List.Properties using (map-tabulate)
 open import Data.List.Properties.Ext using (map-∘-cong)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Relation.Nullary using (¬_)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; cong; sym; trans; subst; subst₂)
 
 ------------------------------------------------------------------------
 -- Small range/tabulate bridge lemmas (local copies; `range` is defined

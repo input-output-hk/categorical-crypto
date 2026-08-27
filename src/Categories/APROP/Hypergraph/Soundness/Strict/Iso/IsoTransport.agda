@@ -80,8 +80,6 @@ import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermPro
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Function using (Injective)
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive using (ε; _◅_)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst)
 open import Relation.Nullary using (¬_)
 
 ------------------------------------------------------------------------

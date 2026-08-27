@@ -24,7 +24,6 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; flat
 open import Categories.FreeStrictSMC using (module Build)
 open import Data.List using (List)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; subst₂)
 
 open Build X _≟X_ FlatGen public
 

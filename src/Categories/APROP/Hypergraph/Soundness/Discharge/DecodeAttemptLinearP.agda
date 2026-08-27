@@ -56,7 +56,6 @@ import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (just; nothing)
 open import Data.Product using (∃-syntax; _,_; proj₁; proj₂)
-open import Relation.Binary.PropositionalEquality
 
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; cast; toℕ)

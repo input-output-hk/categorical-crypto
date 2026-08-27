@@ -52,8 +52,6 @@ open import Data.Maybe using (just; nothing)
 open import Data.Maybe.Ext using (just≢nothing)
 open import Data.Empty using (⊥-elim)
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst; subst₂)
 open import Relation.Binary.PropositionalEquality.Properties.Ext
   using (subst₂-sym-flip; subst₂-trans)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm

@@ -108,8 +108,6 @@ import Data.List.Relation.Unary.AllPairs.Properties as AllPairsProp
 open import Data.Nat using (_+_)
 open import Data.Product using (_,_; proj₂)
 open import Relation.Nullary using (¬_)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; sym; trans; subst)
 
 --------------------------------------------------------------------------------
 -- The one count fact the `∘` cross-acyclicity needs, from the shared

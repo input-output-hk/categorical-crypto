@@ -36,7 +36,6 @@ open import Categories.FreeStrictSMC using (module Build)
 
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; cong; subst₂)
 
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)

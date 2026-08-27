@@ -32,8 +32,6 @@ import Data.List.Relation.Unary.AllPairs           as AllPairs
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
 open import Data.Product using (_,_)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; subst; cong; cong₂)
 
 --------------------------------------------------------------------------------
 -- For identity hypergraphs, `dom ≡ cod` as lists (every `hId` branch uses

@@ -52,7 +52,6 @@ open import Categories.Morphism.Reasoning.Ext SCat using (inv-resp)
 
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (++-assoc)
-open import Relation.Binary.PropositionalEquality using (refl; sym)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 

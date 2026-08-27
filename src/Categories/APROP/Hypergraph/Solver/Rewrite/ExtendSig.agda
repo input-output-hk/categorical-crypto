@@ -36,7 +36,6 @@ module Categories.APROP.Hypergraph.Solver.Rewrite.ExtendSig
 open import Data.List.Base using (_++_)
 open import Data.Maybe.Base
 open import Relation.Binary.Definitions
-open import Relation.Binary.PropositionalEquality
 
 open import Relation.Nullary
 

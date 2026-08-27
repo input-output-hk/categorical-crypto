@@ -60,8 +60,6 @@ import Data.Nat.Properties as Nat
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Nullary using (¬_)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
   using ( ↭⇒count; count-≡⇒↭; count-pos→∈; count-≤→extract-prefix; ++-cancelˡ

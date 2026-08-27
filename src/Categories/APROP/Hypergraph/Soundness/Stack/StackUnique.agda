@@ -33,7 +33,6 @@ import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
-open import Relation.Binary.PropositionalEquality using (sym; subst)
 
 open APROP sig using (HomTerm)
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)

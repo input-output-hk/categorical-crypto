@@ -49,8 +49,6 @@ open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.Product using (Σ-syntax; proj₁; proj₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; sym; trans; cong; subst)
 
 ------------------------------------------------------------------------
 -- Per-hypergraph: fix `H`, `lin`.

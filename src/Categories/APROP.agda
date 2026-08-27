@@ -15,6 +15,14 @@ module Categories.APROP where
 
 open import Categories.FreeMonoidal public
 
+-- Propositional equality for the whole APROP tree: 47 of the 53 modules that
+-- blanket-open this one imported it themselves.  The hidden names are the four
+-- the island prelude hides (`[_]` clashes with `Data.List`'s) plus `J`, which
+-- `Strict/Embed` defines as a lemma of its own — a name this re-export would
+-- otherwise make undefinable there.
+open import Relation.Binary.PropositionalEquality public
+  hiding (preorder; isPreorder; setoid; [_]; J)
+
 record APROPSignature : Set₁ where
   field X : Set
 

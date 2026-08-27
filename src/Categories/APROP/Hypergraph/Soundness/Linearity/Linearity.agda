@@ -46,8 +46,6 @@ open import Data.Nat as Nat using ()
 import Data.Nat.Properties as Nat
 open import Data.Product using (_×_; _,_)
 open import Data.Sum using (inj₁; inj₂)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; _≢_; refl; cong; cong₂; sym; trans)
 open import Relation.Nullary.Decidable using (yes; no)
 
 -- count v xs : number of occurrences of `v` in `xs`.

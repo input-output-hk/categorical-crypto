@@ -67,8 +67,6 @@ open import Data.Maybe.Properties using (just-injective)
 open import Data.Maybe.Ext using (nothing≢just)
 open import Data.Product using (_,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_; yes; no)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; subst)
 
 ------------------------------------------------------------------------
 -- Per-hypergraph: fix `H` and `lin : Linear H`.

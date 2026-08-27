@@ -38,7 +38,6 @@ open import Data.Nat using (s≤s⁻¹) renaming (_≤_ to _≤ⁿ_; _<_ to _<�
 import Data.Nat.Properties as Nat
 open import Data.Product using (Σ-syntax; _,_)
 open import Relation.Nullary using (¬_; yes; no)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
 open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to ≡-setoid)
 
 private

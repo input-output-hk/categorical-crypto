@@ -111,8 +111,6 @@ open import Relation.Nullary using (yes; no)
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; trans; cong; cong₂; subst)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
@@ -631,8 +629,6 @@ module Braid {A B C D : ObjTerm}
         candP≡ : subst (Perm._↭ Hf.cod) (sym stkSplit₀) cand
                  ≡ Perm.trans (Perm.↭-sym Br) comb
         candP≡ = subst-sym-subst stkSplit₀
-          where
-            open import Relation.Binary.PropositionalEquality using (subst-sym-subst)
 
         -- Step B/C: absorb `coeCod stkSplit₀` + cancel `Br`.
         stepBC

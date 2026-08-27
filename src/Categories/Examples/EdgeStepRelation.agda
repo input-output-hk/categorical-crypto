@@ -42,7 +42,6 @@ open import Data.List using (List; _++_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Data.Maybe using (just; nothing)
 open import Data.Product using (_,_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 module _ (G : Hypergraph FlatGen) where
   private module G = Hypergraph G

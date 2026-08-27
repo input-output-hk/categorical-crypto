@@ -35,9 +35,6 @@ open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F; 7F; 8F; 9F)
 import Data.Vec as Vec
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
-open import Relation.Binary.PropositionalEquality.Properties
-  using (cong-id; cong-∘; sym-cong)
 
 private
   module FM = Category FreeMonoidal

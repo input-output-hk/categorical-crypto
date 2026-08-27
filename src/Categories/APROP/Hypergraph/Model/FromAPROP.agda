@@ -40,7 +40,6 @@ open import Data.List.Properties
 open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.Nat
 open import Data.Sum using (inj₁; inj₂; [_,_]′)
-open import Relation.Binary.PropositionalEquality
 
 
 --------------------------------------------------------------------------------

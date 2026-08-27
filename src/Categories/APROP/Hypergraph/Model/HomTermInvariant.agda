@@ -32,7 +32,6 @@ open import Categories.APROP.Hypergraph.Model.Invariant sig
 open import Data.List using (List)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
-open import Relation.Binary.PropositionalEquality using (sym; trans)
 
 --------------------------------------------------------------------------------
 -- `⟪ f ⟫.dom` is Unique for every APROP term.
