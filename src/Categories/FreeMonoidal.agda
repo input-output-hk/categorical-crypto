@@ -17,6 +17,8 @@ open import Categories.Category.Helper
 open import Categories.Category.Monoidal
 open import Categories.Category.Monoidal.Symmetric
 open import Categories.Functor using (Functor)
+open import Categories.Functor.Monoidal using (IsMonoidalFunctor)
+open import Categories.NaturalTransformation using (ntHelper)
 open import Categories.NaturalTransformation.NaturalIsomorphism.Properties
 
 open import Data.List using (List; []; _∷_; _++_)
@@ -504,3 +506,17 @@ module FreeFunctor {d : FreeMonoidalData {ℓ′}} (ffd : FreeFunctorData d {o} 
     ; homomorphism = C.Equiv.refl
     ; F-resp-≈ = ⟦⟧-resp-≈
     }
+
+  isMonoidal-freeFunctor : IsMonoidalFunctor FreeMonoidalM CM freeFunctor
+  isMonoidal-freeFunctor = record
+    { ε = C.id
+    ; ⊗-homo = ntHelper record
+      { η       = λ _ → C.id
+      ; commute = λ _ → C.identityˡ ○ ⟺ C.identityʳ
+      }
+    ; associativity = elimʳ (C.identityˡ ○ C.⊗.identity) ○ ⟺ (C.identityˡ ○ elimˡ C.⊗.identity)
+    ; unitaryˡ = elimʳ (C.identityˡ ○ C.⊗.identity)
+    ; unitaryʳ = elimʳ (C.identityˡ ○ C.⊗.identity)
+    }
+    where open Category.HomReasoning C
+          open MR C

@@ -38,14 +38,6 @@ concatMap-assoc (x ∷ xs) f g = trans (concatMap-++ g (f x) (concatMap f xs))
              → (p ++ (x ++ s)) ++ r ≡ p ++ (x ++ (s ++ r))
 ++-assoc-mid p x s r = trans (++-assoc p (x ++ s) r) (cong (p ++_) (++-assoc x s r))
 
--- `Data.List.Effectful.MonadProperties.associative` is this at a single level.
-concatMap-assoc : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
-                  (xs : List A) (f : A → List B) (g : B → List C)
-                → concatMap g (concatMap f xs) ≡ concatMap (λ x → concatMap g (f x)) xs
-concatMap-assoc []       f g = refl
-concatMap-assoc (x ∷ xs) f g = trans (concatMap-++ g (f x) (concatMap f xs))
-                                     (cong (concatMap g (f x) ++_) (concatMap-assoc xs f g))
-
 lookupMaybe : ∀ {a} {A : Set a} → List A → ℕ → Maybe A
 lookupMaybe xs n = head (drop n xs)
 
