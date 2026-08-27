@@ -96,14 +96,13 @@ module Triv (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X) where
   open PK.Support V vlab
   open Trivial V vlab
 
-  K : PermK
-  K = PK.permˢ-K V _≟V_ vlab
+  rigidˢ = PK.perm-rigidˢ V _≟V_ vlab
 
   perm-trivial
     : ∀ {xs ys : List V} (e : xs ≡ ys) → Unique ys → (p : xs ↭ ys)
     → permuteˢ p ≈ˢ castˢ refl (cong (map vlab) e) (idˢ {map vlab xs})
   perm-trivial e uniq p =
-    ≈-trans (perm-rigidˢ K uniq p (Perm.↭-reflexive e)) (refl-trivial e)
+    ≈-trans (rigidˢ uniq p (Perm.↭-reflexive e)) (refl-trivial e)
 
 --------------------------------------------------------------------------------
 -- The generic structural-atom shape: `⟪ f ⟫` has no edges and its

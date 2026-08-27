@@ -94,10 +94,8 @@ module Reconcile {A B C D : ObjTerm}
 
     module RF = Run ⟪ fg ⟫
     module Hf = Hypergraph ⟪ fg ⟫
-    open PK.Support (Fin Hf.nV) Hf.vlab
 
-    K : PermK
-    K = PK.permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
+    rigidˢ = PK.perm-rigidˢ (Fin Hf.nV) _≟F_ Hf.vlab
 
   -- THE `braidˢ` RESIDUAL, named: the C-run inner term post-sorted by
   -- `cand` is the clean tensor at the boundary objects.  At
@@ -121,7 +119,7 @@ module Reconcile {A B C D : ObjTerm}
   final-resortˢ
     : (cand : RF.s-finˢ ↭ Hf.cod)
     → RF.permuteˢ (finalPermˢ fg) ≈ˢ RF.permuteˢ cand
-  final-resortˢ cand = perm-rigidˢ K (⟪⟫-cod-Unique fg) (finalPermˢ fg) cand
+  final-resortˢ cand = rigidˢ (⟪⟫-cod-Unique fg) (finalPermˢ fg) cand
 
   ----------------------------------------------------------------------
   -- ## The REDUCTION: ⊗-shape ⇐ K-block braid.

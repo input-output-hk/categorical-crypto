@@ -107,12 +107,10 @@ module _
 
       module RF = Run ⟪ f ⟫
       module Hf = Hypergraph ⟪ f ⟫
-      open PK.Support (Fin Hf.nV) Hf.vlab
       open Restrict (Fin Hf.nV) Hf.vlab
         using (idᵛ; _∘ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; ∘-castᵛ; subst-codᵛ; σᵛ-≈̂)
 
-      K : PermK
-      K = PK.permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
+      rigidˢ = PK.perm-rigidˢ (Fin Hf.nV) _≟F_ Hf.vlab
 
       nE≡0 : Hf.nE ≡ 0
       nE≡0 = refl
@@ -141,7 +139,7 @@ module _
       -- non-strict proof invokes K-faithfulness).
       perm≈ : RF.permuteˢ (finalPermˢ f)
               ≈ˢ RF.permuteˢ (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
-      perm≈ = perm-rigidˢ K (⟪⟫-cod-Unique f) (finalPermˢ f)
+      perm≈ = rigidˢ (⟪⟫-cod-Unique f) (finalPermˢ f)
                 (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
 
     -- the block-swap identity at the hSwap blocks (the residual `bswap-σ`),

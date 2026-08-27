@@ -70,14 +70,12 @@ module Gen {A B : ObjTerm} (g : mor A B) where
 
     module RF = Run ⟪ f ⟫
     module Hf = Hypergraph ⟪ f ⟫
-    open PK.Support (Fin Hf.nV) Hf.vlab
     open Restrict (Fin Hf.nV) Hf.vlab
       using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ
             ; castᵛ-≈̂; cast-flipᵛ; cast-respᵛ; cast-fuseᵛ; ∘-castᵛ; ⊗-unitʳᵛ
             ; subst-codᵛ )
 
-    K : PermK
-    K = PK.permˢ-K (Fin Hf.nV) _≟F_ Hf.vlab
+    rigidˢ = PK.perm-rigidˢ (Fin Hf.nV) _≟F_ Hf.vlab
 
     -- the single edge.
     e₀ : Fin Hf.nE
@@ -117,7 +115,7 @@ module Gen {A B : ObjTerm} (g : mor A B) where
       : ∀ {xs ys : List (Fin Hf.nV)} → Unique ys
       → (p : xs Perm.↭ ys) (e : xs ≡ ys)
       → permuteᵛ p ≈ᵛ castᵛ refl e (idᵛ {xs})
-    rigid-reflexiveᵛ u p refl = perm-rigidˢ K u p Perm.refl
+    rigid-reflexiveᵛ u p refl = rigidˢ u p Perm.refl
 
   --------------------------------------------------------------------------
   -- Step A: `proj₂ runˢ ≈ᵛ castᵛ refl (sym s≡) layer`.
